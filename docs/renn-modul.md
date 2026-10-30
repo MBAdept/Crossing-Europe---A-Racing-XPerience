@@ -17,11 +17,16 @@ Verträge stehen in [ARCHITECTURE.md](../ARCHITECTURE.md) §5, §6, §8; hier st
 | `scripts/race/geo_batch.gd` | `GeoBatch` | sammelt farbige Vierecke und schickt sie als ein Dreiecks-Array an den RenderingServer |
 | `scripts/race/palette.gd` | `Palette` | Farben nach Tageszeit, Wetter, Tunnel |
 | `scripts/race/race_session.gd` | (Szene `scenes/race/race.tscn`) | Rennsitzung: Countdown, Simulation, HUD/Audio/Renderer füttern, Meldungen, Pause, Ziel |
+| `scripts/race/session_rules.gd` | `SessionRules` | reine Regeln der Rennsitzung (Kollisionen in geskripteten Phasen, HUD-Tankstelle, Ausrollen in die Tankspur, Überholweg der Polizei) – testbar ohne Szene |
+| `scripts/race/tutorial_coach.gd` | `TutorialCoach` | Tutorial-Hinweise der Etappe Kiel – Hamburg (Warteschlange, Texte mit Konfigurationswerten) |
 | `scripts/race/autopilot.gd` | `Autopilot` | Testfahrer (Spur halten, überholen, bremsen, tanken, Radar beachten) |
 | `data/scenery.json` | – | 22 Landschaften: Grasfarben, Hintergrund, Klima, Requisiten-Regeln |
 | `tests/race/run_stage.gd` | – | ganze Etappe headless mit Autopilot fahren, Ergebnis + Frame-Zeiten |
+| `tests/race/run_race.gd` | – | ganzes Rennen durch den echten Menüablauf (Autopilot) |
+| `tests/race/check_session.gd` | – | Szenario-Prüfungen in der echten Rennszene (Kollisionsrichtung, Ausrollen, Abschleppen, Polizei beim Tanken, HUD-Werte, Tutorial) |
+| `tests/race/check_sprite_flip.gd` | – | Render-Prüfung (Xvfb): gespiegelte Sprites liegen an Ort und Stelle |
 | `tests/race/bench_render.gd` | – | Render-Benchmark an festen Streckenpositionen |
-| `tests/unit/race/*` | – | Unit-Tests (Track, Projektion, Palette, Hilfsklassen) |
+| `tests/unit/race/*` | – | Unit-Tests (Track, Projektion, Palette, Schilder, Sitzungsregeln, Tutorial, Hilfsklassen) |
 
 ## 2. Ein Frame des Renderers
 
@@ -53,13 +58,16 @@ als ein Befehl abgeschickt – typisch 3–40 Befehle und 2 500–4 000 Dreiecke
 | Schlüssel (`render`) | Wert | Wirkung |
 |---|---|---|
 | `fov_deg` | 84 | horizontaler Bildwinkel → Brennweite 711 px |
-| `camera_height_m` | 2.55 | Kamerahöhe über der Straße am Fahrzeug |
-| `camera_distance_m` | 7.6 | Abstand hinter der Wagenmitte |
+| `camera_height_m` | 3.4 | Kamerahöhe über der Straße am Fahrzeug |
+| `camera_distance_m` | 9.0 | Abstand hinter der Wagenmitte |
 | `horizon_y_frac` | 0.45 | Horizont bei y = 324 |
 | `camera_follow`, `camera_lag_max_m` | 7 /s, 1.1 m | seitliches Nachziehen der Kamera (Wagen wandert beim Spurwechsel leicht aus der Mitte) |
 
-Das Wagenheck steht damit bei y ≈ 668 (unten Mitte, ganz sichtbar), der Wagen ist ~250 px breit. Die Kombination
-erfüllt auch den Kern-Test der Ein-Drittel-Regel (1/3 eines 1,5 m hohen Autos sichtbar bei dz ≈ 2,8 m).
+Das Heck der 4,85 m langen Limousine steht damit bei y ≈ 692 (Heckkante 6,6 m vor der Kamera, unten Mitte, ganz
+sichtbar), der Wagen ist ~200 px breit (Kompakt: y ≈ 672, ~180 px; Gran Turismo: y ≈ 694, ~210 px). Ein-Drittel-Regel:
+1/3 eines 1,5 m hohen Autos ist sichtbar, sobald seine Heckkante ≈ 4,3 m vor der Kamera liegt (`visible_fraction`) –
+ein von hinten überholendes Auto kollidiert also erst, wenn seine Heckkante höchstens ≈ 2,3 m hinter dem Heck des
+Spielers liegt. Die Standardwerte in `projection.gd` entsprechen der Konfiguration.
 Tempogefühl: echte Abstände – Leitlinien 6 m Strich/12 m Lücke (Stadt 3/6 m), Leitpfosten alle 50 m (an Leitplanken
 Reflektoren auf den Pfosten), Leitplankenpfosten alle 6 m, Grasbänder alle 12 m, Fahrbahn leicht abwechselnd schattiert,
 in der Stadt Bordsteinfugen, Gehwegplatten und Zebrastreifen. Die sichtbare Straße scrollt mit Tachotempo.
@@ -84,8 +92,14 @@ nähere Hintergrundebenen drehen sich etwas schneller (Parallaxe).
   (mit Limit), Tempo-Schilder beidseitig am Radarfeld + Wiederholung, Blitzer, Aufhebung am Ende; Tempolimits und
   Autobahn-Beginn/-Ende an Abschnittsgrenzen; Tunnelschild (Name + Länge); EU-Grenzschilder (Landesname in Landessprache,
   auch kyrillisch), Grenzstation (Dach über der Fahrbahn mit Landesnamen, Zollhäuschen), neues Tempolimit; Ortsschild
-  (gelb, Zielname) beidseitig + Stadtlimit; Entfernungsschilder („Hamburg 50 km“, blau auf der Autobahn, gelb sonst);
+  (Zielname, im Stil des Ziellandes) beidseitig + Stadtlimit; Entfernungsschilder („Hamburg 50 km“, Farben des Landes);
   Start-Portal mit Ampel (Countdown) und Ziel-Portal. Um Schilder, Portale und Bauwerke bleiben Landschaftsrequisiten weg.
+  Jedes Schild trägt `country` (Land am Standort; Grenzschilder: das neue Land) und `road` (Straßentyp) für seinen Stil.
+- **Schilder im Tunnel**: im Tunnel gibt es keinen Straßenrand – Schilder, deren km im Tunnel liegt (z. B. die
+  30/15/5-km-Ankündigungen im Gotthard, Entfernungsschilder, Tempolimits an Abschnittsgrenzen, Grenzschilder im
+  Somport), hängen an der Tunnelwand (`wall: true`, ohne Pfosten): die Tafel liegt ganz in der Röhre (Abstand
+  `WALL_SIGN_GAP_M` zur Wand) und wird verkleinert, wenn sie sonst mehr als `WALL_SIGN_OVERHANG_M` (1 m) über die
+  Fahrbahn reichte (Wegweiser ×0,71). Stehende Objekte (Zollhäuschen, Blitzer, Zapfsäulen) entfallen im Tunnel.
 - **Requisiten** aus den Regeln der Landschaft (`data/scenery.json`), pro Segment mit eigenem Zufallsgenerator.
 
 ## 5. Landschaften (`data/scenery.json`)
@@ -99,6 +113,16 @@ damit sie nie auf die Straße ragen).
 Fehlt ein Sprite-Set (noch nicht gerendert), nimmt der Renderer den `fallback` oder überspringt die Regel.
 Hintergrundstile wechseln weich (alte Silhouetten sinken, neue steigen, `render.background_blend_s`).
 
+**Spiegeln und Vorderkante**: Sets mit Tag `mirror_left` (Gebäude, Höfe, Kirche, Fabrik …, 3/4-Ansicht für die rechte
+Straßenseite) und Regeln mit `mirror` werden links gespiegelt gezeichnet (`prop_flipped`). Godot spiegelt ein Rechteck
+mit negativer Breite an Ort und Stelle (Position bleibt, nur die Textur wird gespiegelt – `flipped_draw_rect`,
+geprüft von `tests/race/check_sprite_flip.gd`); der Anker wird dabei mitgespiegelt (`1 - anchor.x`, `sprite_dest`).
+Bei `align: "edge"` rückt der Anker um die zur Straße zeigende Ausdehnung von der Straße weg (`edge_anchor_x`):
+`extent_m = [links, rechts]` gilt für die ungespiegelte Zelle; rechts der Straße zeigt die linke Seite zur Straße
+(`extent_m[0]`), links gespiegelt ebenfalls die (gespiegelte) linke Seite (`extent_m[0]`), nur ungespiegelt links die
+rechte (`extent_m[1]`). So steht die Fassade auf beiden Seiten genau an der Regelposition hinter dem Gehweg
+(Unit-Test `test_edge_aligned_props_keep_their_near_edge` mit dem echten Manifest).
+
 ## 6. Besondere Abschnitte
 
 - **Tunnel**: Wände (unten Fliesen, oben Beton), abgeschrägte Ecken, Decke, zwei Lampenreihen (mit Leuchten), grüne
@@ -111,9 +135,26 @@ Hintergrundstile wechseln weich (alte Silhouetten sinken, neue steigen, `render.
 - **Radar**: Warnschild mit Kamera, Limit und Entfernung; Tempo-Schilder; Blitzer-Kamera (leuchtet bei `radar_flash01`);
   der Vollbild-Blitz kommt weiter vom HUD.
 - **Grenze**: EU-Schild (Sternenkranz mit Länderkürzel, Name in Landessprache), Grenzstation, Zollhäuschen,
-  Landschaftswechsel, Polizeilackierung über `GameData.police_set_for(Land)`.
+  Landschaftswechsel, Polizeilackierung über `GameData.police_set_for(Land)` und ab der Grenze die Schilder im Stil
+  des neuen Landes (siehe unten).
 - **City Limits**: Ortsschild, Bordsteine (mit Kantenflächen), Gehwege, Straßenlaternen (mit Lichtkegeln nachts),
-  Straßenbäume, Gebäude, Zebrastreifen, Skyline mit Fensterlichtern, Ziel-Portal + karierte Ziellinie.
+  Straßenbäume, Gebäude auf beiden Seiten (links gespiegelt), Zebrastreifen, Skyline mit Fensterlichtern, Ziel-Portal
+  + karierte Ziellinie.
+
+**Schilder je Land** (Design: „Grenzübergänge: Wechsel von Schildern, Landschaft und Polizeifahrzeugen“): `SignPainter`
+nimmt die Farben aus `GameData.countries[Land].signs` (`data/countries.json`, Daten-Modul): `motorway` für
+Wegweiser, Autobahnschild und Tankstellen-Ankündigungen auf der Autobahn (DE/NL/FR … blau, CH/IT/SI/HR/CZ … grün),
+`town_bg`/`town_fg`/`town_border` für das Ortsschild (DE gelb/schwarz, NL und CH blau/weiß, FR/BE/ES/AT weiß mit
+breitem rotem Rand, IT … weiß/schwarz). Wegweiser abseits der Autobahn: `signs.road`/`road_fg`, falls in den Daten
+vorhanden, sonst blau/weiß in Ländern mit grünen Autobahnschildern und sonst die Ortsschildfarben (DE gelb, NL blau,
+FR weiß). Unbekanntes Land → deutscher Stil. Tempo-, Radar-, Tunnel- und EU-Grenzschilder sind europaweit gleich.
+
+**Entscheidung: Schilder prozedural statt Blender-Sprites.** Das Design nennt Schilder bei den Blender-Sprites. Alle
+Schilder tragen aber veränderliche Inhalte – Zielname und Entfernung, Limit, Tunnelname und -länge, Landesname in
+Landessprache (auch kyrillisch), Countdown-Ampel – und ihr Stil wechselt je Land. Als Sprites bräuchte es je
+Kombination ein Bild oder Text auf leeren Tafeln. Deshalb zeichnet `SignPainter` Tafel, Pfosten, Piktogramme und
+Text als Vektorgrafik (gestochen scharf in jeder Entfernung, nachts rückstrahlend, im Nebel verblassend). Fahrzeuge,
+Bäume, Gebäude, Tankstellen und Zapfsäulen sind Blender-Sprites wie im Design vorgesehen.
 
 ## 7. Licht, Tageszeit, Wetter
 
@@ -135,16 +176,65 @@ Grenzen 6,5° und 18,5° (Sprites bei 12° und 25°). Spieler: `l1/c/r1` nach Le
 
 Simulation in `_physics_process` (feste Schritte), Darstellung in `_process`. Ablauf je Schritt: Eingabe (Spieler oder
 Autopilot) → Steuerungsanfrage (`FuelSystem` vor `PoliceSystem`) → `VehicleModel.update` → Position → Fenster →
-`TrafficSystem.update` → Kollision (`find_collision` mit `RoadProjection.visible_fraction` = Ein-Drittel-Regel,
-dann `space_beside` mit den Straßenrändern für die Ausweichrichtung; keine Kollisionen während eines geskripteten
-Halts) → Tank → Polizei → Strafzeit → Uhr → Zonenmeldungen → Ziel.
+`TrafficSystem.update` → Kollision → Tank → `police.set_blocked(fuel.state != NORMAL)` → Polizei → Strafzeit → Uhr →
+Zonenmeldungen → Tutorial-Hinweise → Ziel.
+
+- **Kollision** (`_check_collision`): `find_collision` mit `RoadProjection.visible_fraction` (Ein-Drittel-Regel), dann
+  `space_beside(…, hit)` mit den Straßenrändern inkl. Bankett – **ohne das getroffene Auto**, sonst stünde es bei einem
+  Treffer genau von hinten/vorn auf „seiner“ Seite und die Richtung hinge an Zentimetern; so gilt „auf die Seite mit
+  mehr Platz, im Zweifel nach links“ (`VehicleModel.push_direction`). Geprüft wird nach `SessionRules.collisions_active`:
+  nicht während der Unverwundbarkeit, nicht im Stillstand geskripteter Phasen (Tanken, Polizeikontrolle,
+  Abschleppen), aber **immer beim Ausrollen mit leerem Tank** und in jeder geskripteten Phase über
+  `render.scripted_collision_min_kmh` (30 km/h: Anhalten für Polizei oder Zapfsäule, Auslaufen nach dem Ziel) – der
+  Wagen fährt nie durch Verkehr hindurch.
+- **Tanken vor Polizei**: solange das `FuelSystem` den Wagen hält (Tanken, Abschleppen), blockiert die Sitzung die
+  Polizeikontrolle (`PoliceSystem.set_blocked`); eine Festnahme während des Tankens wird danach abgesessen (Semantik
+  im Gameplay-Modul).
+- **Leerer Tank**: `ran_dry` meldet „Tank leer! Rechts in die Tankspur rollen lassen“, wenn der ausrollende Wagen
+  (`fuel.dry_coast_decel_kmh_s`) eine Tankspur noch unter 60 km/h erreicht (`SessionRules.can_roll_into_lane`), sonst
+  „Tank leer! Der Abschleppdienst kommt …“. Gezählt (`tow_events`) wird ein Abschleppen erst bei `tow_finished`, also
+  nur wenn es wirklich stattfand.
+- **HUD-Tank**: Reichweite beim aktuellen Tempo (`fuel.range_km(speed)`, im Stand 60 km/h); „Nächste Tankstelle“ = 0,
+  solange der Wagen an der Tankstelle ist (im km-Bereich der Tankspur – die Zapfsäulen stehen entlang der ganzen Spur –
+  oder beim Tanken), sonst die Entfernung (`SessionRules.next_station_km`).
+- **Polizeiwagen**: gezeichnet bei `police.police_car_offset_m()` (Animation im Gameplay-Modul). Seitlich fährt er
+  eine Spur neben dem Spieler, solange er hinter oder neben ihm ist (links, wenn dort eine Spur ist, sonst rechts;
+  gewählt, solange er noch außer Sicht hinter der Kamera ist), und zieht vor dem Spieler ein, sobald sein Heck frei
+  ist (Haltepunkt `police.pull_over_offset_m` vor dem Spieler, `SessionRules.police_car_x`) – er fährt nie durch den
+  Wagen des Spielers.
+
 Meldungen (HUD `show_message`): Tankstelle 30/15/5 km, Tanken, vollgetankt/abgebrochen, Reserve, Tank leer,
 Abschleppstrafe, Radarwarnung, Radarfeld Anfang/Ende, geblitzt, Verfolgung, entkommen, „Führerschein, bitte!“,
-„Gute Fahrt!“, Grenze (Land + Name in Landessprache), City Limits, Tunnelname, LOS, ZIEL.
+„Gute Fahrt!“, Grenze (Land + Name in Landessprache), City Limits, Tunnelname, LOS, ZIEL, Tutorial-Hinweise (§9a).
 Audio: Motor, Wind, Sirene (mit Abstand), Regen, Rutschen, Einzeltöne (beep je Countdown-Sekunde, go, crash, flash,
 fuel_start/fuel_done, finish). Pause: Baum pausiert, Ton stumm, Fokusverlust pausiert (nicht im Autopilot).
-Ziel: Zeit wird eingefroren, „ZIEL!“-Meldung, Wagen rollt aus (`render.finish_decel_kmh_s`), Ergebnis nach dem Stillstand
+Ziel: Zeit wird eingefroren, „ZIEL!“-Meldung, Wagen rollt aus (`render.finish_decel_kmh_s`), der Spieler lenkt weiter,
+Verkehr kollidiert weiter (zählt aber nicht mehr zu `collisions` der Etappe); Ergebnis nach dem Stillstand
 oder spätestens `render.finish_hold_s`. Ergebnis-Wörterbuch unverändert (ARCHITECTURE.md §8).
+
+## 9a. Tutorial (Kiel – Hamburg)
+
+Design: „Kiel – Hamburg: alternativlose Startetappe, gleichzeitig Tutorial.“ Die Etappe trägt in den Daten
+`tutorial: true` und `start_fuel_fraction: 0.35` (Start mit gut einem Drittel Tank – 95 km reichen damit nicht, der
+Tankstopp gehört dazu; `StagePlan.tutorial`, `FuelSystem`). Auf dieser Etappe (oder mit `--tutorial`) erzeugt die
+Sitzung einen `TutorialCoach`, der jedes Thema einmal als kurzen „Tipp: …“ (HUD-Meldung, `render.tutorial_hint_s`
+= 6 s) zeigt, nacheinander mit 0,6 s Pause; dringende Themen kommen sofort, weil die Situation gerade eintritt:
+
+| Auslöser | Hinweis (Zahlen aus der Konfiguration) |
+|---|---|
+| LOS (+1,2 s) | Lenken (Pfeiltasten, A/D), Gas/Bremse (Pfeil hoch/runter, W/S), Gamepad (Stick, Trigger) |
+| Start mit < 60 % Tank | „Nur 35 % im Tank – unterwegs an der Tankstelle nachtanken!“ |
+| Start | Tankanzeige unten links: Tankstand, Reichweite, nächste Tankstelle |
+| erste Ankündigung 30/15 km | „Tankstellen werden 30, 15 und 5 km vorher angekündigt“ (`fuel.announce_km`) |
+| 5-km-Ankündigung (dringend) | „Rechts in die Tankspur und unter 60 km/h rollen – dann wird getankt“ (`fuel.lane_trigger_speed_kmh`) |
+| Tanken beginnt (dringend) | „Gas geben bricht das Tanken ab – warte, bis der Tank voll ist“ |
+| Radarwarnung (dringend) | „Toleranz 15 % – bei Limit 120 blitzt das Radar erst ab 138 km/h“ (`radar.tolerance`) |
+| Verfolgung (dringend) | Flucht mit im Schnitt 220 km/h über 12 s (`police.escape_*`), sonst 10 s Stillstand (`police.stop_duration_s`) |
+| erster Abschnitt ohne Limit | „Kein Tempolimit – aber Vollgas kostet deutlich mehr Sprit“ |
+| City Limits (dringend) | „City Limits – Tempo 50, dichter Verkehr, keine Tankstelle, kein Radar“ |
+| erste Kollision | „Zusammenstoß – der Wagen wird auf 10 km/h abgebremst und abgedrängt“ (`collision.target_speed_kmh`) |
+
+Die Etappenbeschreibung (`StagePlan.description`) zeigt der Etappenbildschirm (UI-Modul).
 
 ## 10. Autopilot
 
@@ -171,14 +261,27 @@ Zusätzlich zu ARCHITECTURE.md §13 (`--stage --from --vehicle --hour --weather 
 | `--autopilot-refuel=auto\|always\|never` | Tankverhalten des Autopiloten |
 | `--perf` | am Ziel Frame-Zeiten ausgeben (`PERF {...}`) |
 | `--trace[=<km>]` | Fahrprotokoll alle n km (Tempo, Zieltempo, Grund, Kurve, Steigung, Tank) |
+| `--tutorial` | Tutorial-Hinweise auch auf anderen Etappen |
 
 `--timescale=<f>` setzt `Engine.time_scale` und die Physiktakte auf 60·f, damit jeder Schritt 1/60 s bleibt.
-Setup-Schlüssel für Tests: `no_countdown`, `autopilot_speeding`, `autopilot_refuel`, `traffic_warmup`.
+Setup-Schlüssel für Tests: `no_countdown`, `autopilot_speeding`, `autopilot_refuel`, `traffic_warmup`, `tutorial`.
 
 ## 12. Tests und Werkzeuge
 
 - `tools/run_tests.sh race` – Unit-Tests: Track (Determinismus, Fenster, Spurübergänge, Tankspur, Ereignisse,
-  Geometriegrenzen, Requisiten, vollständige `scenery.json`), Projektion, Palette, GeoBatch, Autopilot-Bremskurve.
+  Geometriegrenzen, Requisiten, vollständige `scenery.json`, Schilder im Tunnel an der Wand, Land/Straßentyp der
+  Schilder), Projektion, Palette, GeoBatch, Autopilot-Bremskurve, Spiegeln und Vorderkante aller kantenbündigen
+  Requisiten mit dem echten Manifest, Schilderstile je Land, Sitzungsregeln (Kollisionen in geskripteten Phasen,
+  HUD-Tankstelle, Ausrollen in die Tankspur, Überholweg der Polizei), Tutorial-Warteschlange und -Texte.
+- `godot --headless --path . -s res://tests/race/check_session.gd [-- --only=coll_right,tutorial]` – Szenarien in
+  der echten Rennszene (≈ 30 s): Auffahrunfall genau von hinten in rechter/linker/mittlerer Spur → Seite mit mehr
+  Platz bzw. links; Ausrollen mit leerem Tank in ein langsameres Auto → Kollision, Abschleppen erst nach dem
+  Abschleppen gezählt; leer in die Tankspur gerollt → getankt, kein Abschleppen; Auslaufen nach dem Ziel →
+  Kollision statt Durchfahren; Verfolgung bis in den Tankstopp → Polizei genau beim Tanken blockiert, HUD-Werte;
+  Kiel – Hamburg zeigt alle Tutorial-Hinweise, andere Etappen keine. Ausgabe `CHECK <name> OK|FEHLER`, Exit-Code.
+- `xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --audio-driver Dummy -s
+  res://tests/race/check_sprite_flip.gd` – prüft mit echtem Renderer, dass Godot gespiegelte Rechtecke an Ort und
+  Stelle zeichnet (Grundlage von `flipped_draw_rect`).
 - `godot --headless --path . -s res://tests/race/run_stage.gd -- --stage=dev_testetappe [--hour=21 --weather=rain
   --timescale=40 --vehicle=… --from=… --autopilot-refuel=always]` – fährt die ganze Etappe so schnell wie möglich
   (~35× Echtzeit) und gibt `ERGEBNIS {…}`, `PERF {…}` und `RUN {…}` aus; Exit-Code 0 = im Ziel.
@@ -209,19 +312,35 @@ Requisit zwischengespeichert, früher Größen-/Bildschirm-Ausschnitt, Projektio
 `peek_m`), `background_parallax`, `near_m`, `lod_merge_px`, `lod_from_m`, `lod_max_segments`, `lod_detail_m`,
 `headlight_range_m`, `headlight_intensity`, `background_blend_s`, `camera_follow`, `camera_lag_max_m`,
 `finish_decel_kmh_s`, `finish_hold_s`, `procedural_props` (`auto` = Zapfsäulen/Shop/Zollhaus/Blitzer prozedural
-zeichnen, solange das Sprite-Manifest nur Platzhalter enthält; `always`/`never`).
+zeichnen, solange das Sprite-Manifest nur Platzhalter enthält; `always`/`never`), `scripted_collision_min_kmh`
+(30: darüber kollidiert der Wagen auch in geskripteten Phasen), `tutorial_hint_s` (6: Anzeigedauer eines
+Tutorial-Hinweises).
 
 `debug`: `autopilot_target_kmh`, `show_render_stats`.
 
 ## 15. API-Erweiterungen (zusätzlich zu ARCHITECTURE.md)
 
-- `Track`: `zones`, `runout_m`, `hill_scale`, `window_size()`, `distance_to_fuel_lane(z)`, `events_for_segment(i)`.
+- `Track`: `zones`, `runout_m`, `hill_scale`, `window_size()`, `distance_to_fuel_lane(z)`, `events_for_segment(i)`,
+  Konstanten `WALL_SIGN_GAP_M`, `WALL_SIGN_OVERHANG_M`; Schild-Requisiten zusätzlich `country`, `road`, im Tunnel
+  `wall` (und `scale` < 1).
 - `TrackSegment`: `runout`, `fuel_zone` (+ Konstanten `FUEL_*`), `cover`, `cover_front`, `country_to`.
 - `RoadProjection`: `scale_at(dz)`, `ground_row(dz)`, `depth_at_row(y)`, `view_angle(dx, dz)`, `near` aus `render.near_m`.
 - `RoadRenderer`: `perf_stats()`, `show_stats`; View-Schlüssel zusätzlich `camera_in_tunnel`, `countdown`, `chase01`,
   `radar_flash01`, je Auto `length`, `speed`, `heavy`. `palette` ist immer die Außenpalette, die Tunnelvariante bildet
-  der Renderer selbst. `bg_offset` ist der Kurswinkel in Radiant.
+  der Renderer selbst. `bg_offset` ist der Kurswinkel in Radiant. Statisch: `prop_flipped(side, rule_mirror,
+  tag_mirror_left)`, `edge_anchor_x(x, side, flipped, extent, scale)`, `sprite_dest(p, w, h, anchor, flip)`,
+  `flipped_draw_rect(dest)`. Schilder werden mit ihrem `scale` gezeichnet.
+- `SignPainter`: `countries` (vom Renderer aus `GameData.countries`), statisch `style_for(countries, code)` →
+  `{motorway, motorway_fg, road, road_fg, town_bg, town_fg, town_border}`, `board_half_width(kind)`, `contrast(bg)`.
 - `Palette`: Schlüssel `sky_mid`, `glow`, `cloud`, `cloud_dark`, `moon_visible`, `moon_pos`, `overcast`, `tunnel`;
   `tunnel(p)`, `luminance(c)`, `lit(p, extra)`.
-- Rennsitzung: `perf_stats()`, `road_info(z)`, `last_input`, `traffic_enabled`, `cam_x`, Setup-Schlüssel siehe §11.
+- Rennsitzung: `perf_stats()`, `road_info(z)`, `last_input`, `traffic_enabled`, `cam_x`, `coach` (TutorialCoach oder
+  null), Setup-Schlüssel siehe §11.
+- `SessionRules` (statisch): `collisions_active(invulnerable, scripted, speed_kmh, rolling_out, min_scripted_kmh)`,
+  `next_station_km(plan, km, refueling)`, `roll_distance_m(speed, target, decel)`, `can_roll_into_lane(z, speed,
+  decel, trigger, lane_open_z, lane_z1)`, `police_pass_side(player_x, left_edge, lane_w)`, `police_car_x(offset,
+  player_x, side, lane_w, pull_over_m, clear_m)`.
+- `TutorialCoach`: `setup(cfg)`, `trigger(topic, args) → Anzahl`, `hold(s)`, `update(dt) → Text|""`, `pending()`,
+  `hints_for(topic, args)`, `hint_s`, `gap_s`, `shown`; Themen `start, fuel_low, fuel_hud, fuel_announce, fuel_lane,
+  refuel, radar, chase, unlimited, city, collision`.
 - `Autopilot`: `refuel_mode`, `last_want`, `last_reason`.

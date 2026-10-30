@@ -167,6 +167,76 @@ func test_events() -> void:
 	assert_true(signs.has("props/fuel_pump"), "Zapfsäulen an der Tankstelle")
 
 
+## Stage with a long tunnel that holds fuel announcements, a destination sign and a radar zone.
+func _tunnel_track() -> Track:
+	var stage := {
+		"id": "t_tunnel", "from": "a", "to": "b", "length_km": 150, "seed": 99,
+		"sections": [
+			{"length_km": 100, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "alps", "country": "DE", "speed_limit": null},
+			{"length_km": 50, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "polder", "country": "NL"},
+		],
+		"fuel_stations_km": [90],
+		"radars": [{"km": 65, "limit": 100}],
+		"tunnels": [{"km": 45, "length_km": 35, "name": "Langtunnel"}],
+		"borders": [{"km": 100, "to": "NL"}],
+	}
+	var t := Track.new()
+	t.setup(StagePlan.build(stage, "a", CITIES, COUNTRIES, cfg()), cfg(), _scenery())
+	return t
+
+
+func test_signs_in_tunnels_hang_inside_the_tube() -> void:
+	var t := _tunnel_track()
+	var wall_signs := {}
+	var z := 0.0
+	while z < t.length_z:
+		t.update_window(z, 10.0)
+		var s := t.segment_at(z)
+		var e := t.road_edges_at(s.z)
+		for sp: Dictionary in s.sprites:
+			var kind := str(sp.get("kind", ""))
+			var side := int(sp.get("side", 1))
+			if s.tunnel and side != 0:
+				assert_eq(kind, "sign", "im Tunnel nur Schilder an der Wand (%s bei km %.2f)" % [str(sp.get("set", sp.get("obj", ""))), s.km])
+				assert_true(bool(sp.get("wall", false)), "Schild an der Tunnelwand bei km %.2f" % s.km)
+				var hw := SignPainter.board_half_width(str(sp.get("sign", ""))) * float(sp["scale"])
+				var x := float(sp["x"])
+				assert_true(x + hw <= e.y + t.shoulder_w + 0.001 and x - hw >= e.x - t.shoulder_w - 0.001,
+					"Schild %s bei km %.2f ganz innerhalb der Röhre" % [str(sp["sign"]), s.km])
+				var over := (e.y - (x - hw)) if side > 0 else ((x + hw) - e.x)
+				assert_true(over <= Track.WALL_SIGN_OVERHANG_M + 0.001, "Schild ragt höchstens %.1f m über die Fahrbahn (%.2f)" % [Track.WALL_SIGN_OVERHANG_M, over])
+				var key := str(sp["sign"])
+				wall_signs[key] = int(wall_signs.get(key, 0)) + 1
+			elif kind == "sign":
+				assert_false(bool(sp.get("wall", false)), "außerhalb von Tunneln auf Pfosten")
+		z += t.seg_len
+	assert_eq(int(wall_signs.get("fuel", 0)), 2, "30- und 15-km-Ankündigung im Tunnel sichtbar")
+	assert_true(wall_signs.has("distance"), "Entfernungsschild im Tunnel sichtbar")
+	assert_true(wall_signs.has("radar") and int(wall_signs.get("limit", 0)) >= 2, "Radarwarnung und Tempolimits im Tunnel")
+
+
+func test_signs_carry_country_and_road() -> void:
+	var t := _tunnel_track()
+	var seen := {}
+	var z := 0.0
+	while z < t.length_z:
+		t.update_window(z, 10.0)
+		var s := t.segment_at(z)
+		for sp: Dictionary in s.sprites:
+			if str(sp.get("kind", "")) != "sign" or int(sp.get("side", 1)) == 0:
+				continue
+			assert_true(sp.has("country") and sp.has("road"), "Schild mit Land und Straßentyp")
+			var sign := str(sp["sign"])
+			if sign == "border":
+				assert_eq(str(sp["country"]), "NL", "Grenzschild nennt das neue Land")
+			else:
+				assert_eq(str(sp["country"]), s.country, "Schild im Stil des Landes, in dem es steht")
+			seen["%s:%s" % [sign, str(sp["country"])]] = true
+		z += t.seg_len
+	assert_true(seen.has("town:NL"), "Ortsschild im Stil des Ziellandes")
+	assert_true(seen.has("distance:DE") and seen.has("distance:NL"), "Wegweiser vor und hinter der Grenze")
+
+
 func _has_near(list: Array, km: float, tol: float = 0.05) -> bool:
 	for v: float in list:
 		if absf(v - km) <= tol:

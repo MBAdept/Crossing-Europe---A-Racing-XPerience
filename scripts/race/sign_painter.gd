@@ -1,11 +1,16 @@
 class_name SignPainter
 extends RefCounted
-## Procedural road signs (they carry text, so they are not sprites). All sizes in metres and
-## slightly exaggerated for readability at speed. Geometry goes into the shared GeoBatch, text is
-## drawn with draw_string at a few cached font sizes, scaled to the exact size with a transform.
+## Procedural road signs (they carry text, so they are not sprites – documented decision, see
+## docs/renn-modul.md §6). All sizes in metres and slightly exaggerated for readability at speed.
+## Geometry goes into the shared GeoBatch, text is drawn with draw_string at a few cached font sizes,
+## scaled to the exact size with a transform.
 ## Kinds: limit, unlimited, radar, fuel, fuel_lane, town, distance, border, tunnel, autobahn,
 ## autobahn_end, start (gantry with countdown lights), finish (gantry with "ZIEL" banner).
-## Owner: race module.
+## Country styles (design document: „Grenzübergänge: Wechsel von Schildern …"): the sign's "country"
+## selects the colours from countries.json signs {motorway, town_bg, town_fg, town_border} (optional
+## road / road_fg for direction signs off the motorway), see style_for(). Motorway direction signs, the
+## motorway sign and fuel signs on the motorway use the motorway colour; the town sign the town colours.
+## Signs with "wall": true are mounted on a tunnel wall (no posts). Owner: race module.
 
 const BLUE := Color("1d4f9c")
 const BLUE_AB := Color("1f5aa8")
@@ -17,12 +22,71 @@ const POST := Color("8d9399")
 const EU_BLUE := Color("1b3f94")
 const EU_YELLOW := Color("ffd21f")
 const FONT_SIZES := [8, 10, 12, 14, 16, 20, 24, 28, 32, 40, 48, 56, 64, 80, 96]
+## Half width (m, scale 1) of the board of each sign kind (tunnel walls: Track fits the board inside).
+const HALF_WIDTH_M := {"limit": 0.85, "unlimited": 0.85, "radar": 1.05, "fuel": 1.5, "fuel_lane": 1.15,
+	"town": 1.9, "distance": 2.4, "border": 1.75, "tunnel": 1.7, "autobahn": 0.95, "autobahn_end": 0.95}
 
 var font: Font
 var batch: GeoBatch
 var ci: CanvasItem
 var base_offset := Vector2.ZERO   ## current base transform (camera shake) of the canvas item
 var countdown := -1.0             ## seconds left of the start countdown (start gantry lights)
+var countries: Dictionary = {}    ## country code -> countries.json entry (GameData.countries), for sign styles
+var _styles: Dictionary = {}      ## country code -> style_for() (cache)
+var _wall := false                ## the sign being drawn hangs on a tunnel wall (no posts)
+
+
+## Half width (m) of the board of a sign kind at scale 1.
+static func board_half_width(kind: String) -> float:
+	return float(HALF_WIDTH_M.get(kind, 1.5))
+
+
+## Sign colours of a country: {motorway, motorway_fg, road, road_fg, town_bg, town_fg, town_border}.
+## From countries[code].signs (colour strings); missing values fall back to the German style (blue
+## motorway signs, yellow town sign). Direction signs off the motorway use signs.road / road_fg when
+## given, else blue/white in countries with green motorway signs (CH, IT, …) and the town sign colours
+## elsewhere (yellow in DE, blue in NL, white in FR …).
+static func style_for(country_data: Dictionary, code: String) -> Dictionary:
+	var c: Dictionary = country_data.get(code, {})
+	var s: Dictionary = c.get("signs", {}) if c.get("signs", {}) is Dictionary else {}
+	var st := {
+		"motorway": _col(s, "motorway", BLUE_AB),
+		"motorway_fg": _col(s, "motorway_fg", WHITE),
+		"town_bg": _col(s, "town_bg", YELLOW),
+		"town_fg": _col(s, "town_fg", BLACK),
+		"town_border": _col(s, "town_border", BLACK),
+	}
+	var mw: Color = st["motorway"]
+	if s.has("road"):
+		st["road"] = _col(s, "road", YELLOW)
+		st["road_fg"] = _col(s, "road_fg", contrast(st["road"]))
+	elif mw.g > mw.b and mw.g > mw.r:
+		st["road"] = BLUE_AB
+		st["road_fg"] = WHITE
+	else:
+		st["road"] = st["town_bg"]
+		st["road_fg"] = st["town_fg"]
+	return st
+
+
+static func _col(d: Dictionary, key: String, fallback: Color) -> Color:
+	var v: Variant = d.get(key)
+	if v is String and Color.html_is_valid(v):
+		return Color.html(v)
+	return fallback
+
+
+## Black or white, whichever reads better on bg.
+static func contrast(bg: Color) -> Color:
+	return BLACK if bg.get_luminance() > 0.5 else WHITE
+
+
+func _style(code: String) -> Dictionary:
+	var st: Variant = _styles.get(code)
+	if st == null:
+		st = style_for(countries, code)
+		_styles[code] = st
+	return st
 
 
 func setup(canvas: CanvasItem, geo: GeoBatch) -> void:
@@ -37,34 +101,41 @@ func setup(canvas: CanvasItem, geo: GeoBatch) -> void:
 ## Draws one sign. p = (screen x, screen y of the ground point, pixels per metre);
 ## lit = colour multiplier (ambient + reflection); alpha = fog fade. edges = outer road edges
 ## (left/right, metres from the camera axis already projected: screen x) for gantries.
+## Sign keys used here: sign (kind), text, value, country (style; border signs: the country entered),
+## road (road type at the sign), wall (tunnel wall mount). The caller scales p.z by the sign's scale.
 func draw(it: Dictionary, p: Vector3, lit: Color, alpha: float, edges_px: Vector2) -> void:
 	var kind := str(it.get("sign", ""))
 	var s := p.z
 	if s < 0.6:
 		return
+	_wall = bool(it.get("wall", false))
+	var st := _style(str(it.get("country", "")))
+	var motorway := str(it.get("road", "autobahn")) == "autobahn"
 	match kind:
 		"limit", "unlimited":
 			_round_sign(p, lit, alpha, kind == "unlimited", int(it.get("value", 0)))
 		"radar":
 			_radar_sign(p, lit, alpha, int(it.get("value", 0)), str(it.get("text", "")))
 		"fuel":
-			_fuel_sign(p, lit, alpha, str(it.get("text", "")))
+			_fuel_sign(p, lit, alpha, str(it.get("text", "")), st["motorway"] if motorway else BLUE_AB)
 		"fuel_lane":
-			_fuel_lane_sign(p, lit, alpha)
+			_fuel_lane_sign(p, lit, alpha, st["motorway"] if motorway else BLUE_AB)
 		"town":
-			_town_sign(p, lit, alpha, str(it.get("text", "")))
+			_town_sign(p, lit, alpha, str(it.get("text", "")), st)
 		"distance":
-			_distance_sign(p, lit, alpha, str(it.get("text", "")), int(it.get("value", 0)), str(it.get("road", "autobahn")))
+			_distance_sign(p, lit, alpha, str(it.get("text", "")), int(it.get("value", 0)),
+				st["motorway"] if motorway else st["road"], st["motorway_fg"] if motorway else st["road_fg"])
 		"border":
 			_border_sign(p, lit, alpha, str(it.get("text", "")), str(it.get("country", "")))
 		"tunnel":
 			_tunnel_sign(p, lit, alpha, str(it.get("text", "")), int(it.get("value", 0)))
 		"autobahn", "autobahn_end":
-			_autobahn_sign(p, lit, alpha, kind == "autobahn_end")
+			_autobahn_sign(p, lit, alpha, kind == "autobahn_end", st["motorway"])
 		"start":
 			_gantry(p, lit, alpha, edges_px, tr("START"), true)
 		"finish":
 			_gantry(p, lit, alpha, edges_px, str(it.get("text", "ZIEL")), false)
+	_wall = false
 
 
 # --- helpers --------------------------------------------------------------------------------
@@ -74,6 +145,8 @@ func _c(col: Color, lit: Color, alpha: float) -> Color:
 
 
 func _post(x: float, ground_y: float, top_y: float, w: float, lit: Color, alpha: float) -> void:
+	if _wall:
+		return   # mounted on the tunnel wall
 	batch.rect(Rect2(x - w * 0.5, top_y, w, ground_y - top_y), _c(POST, lit, alpha))
 
 
@@ -174,23 +247,23 @@ func _pump_icon(c: Vector2, s: float, col: Color, bg: Color) -> void:
 	batch.line(Vector2(c.x + 0.3 * s, c.y - 0.05 * s), Vector2(c.x + 0.3 * s, c.y + 0.25 * s), maxf(1.0, 0.07 * s), col)
 
 
-func _fuel_sign(p: Vector3, lit: Color, alpha: float, dist: String) -> void:
+func _fuel_sign(p: Vector3, lit: Color, alpha: float, dist: String, bg: Color) -> void:
 	var s := p.z
 	var r := Rect2(p.x - 1.5 * s, p.y - 4.1 * s, 3.0 * s, 2.1 * s)
 	_post(p.x - 1.0 * s, p.y, r.end.y, 0.12 * s, lit, alpha)
 	_post(p.x + 1.0 * s, p.y, r.end.y, 0.12 * s, lit, alpha)
-	_board(r, BLUE_AB, lit, alpha, WHITE, 0.07 * s)
-	_pump_icon(Vector2(r.position.x + 0.75 * s, r.position.y + 0.95 * s), s, _c(WHITE, lit, alpha), _c(BLUE_AB, lit, alpha))
+	_board(r, bg, lit, alpha, WHITE, 0.07 * s)
+	_pump_icon(Vector2(r.position.x + 0.75 * s, r.position.y + 0.95 * s), s, _c(WHITE, lit, alpha), _c(bg, lit, alpha))
 	text(tr("Tankstelle"), Vector2(r.position.x + 1.95 * s, r.position.y + 0.72 * s), 0.3 * s, _c(WHITE, lit, alpha), 1.85 * s)
 	text(dist, Vector2(r.position.x + 1.95 * s, r.position.y + 1.6 * s), 0.55 * s, _c(WHITE, lit, alpha), 1.85 * s)
 
 
-func _fuel_lane_sign(p: Vector3, lit: Color, alpha: float) -> void:
+func _fuel_lane_sign(p: Vector3, lit: Color, alpha: float, bg: Color) -> void:
 	var s := p.z
 	var r := Rect2(p.x - 1.15 * s, p.y - 4.2 * s, 2.3 * s, 2.3 * s)
 	_post(p.x, p.y, r.end.y, 0.12 * s, lit, alpha)
-	_board(r, BLUE_AB, lit, alpha, WHITE, 0.07 * s)
-	_pump_icon(Vector2(r.position.x + 0.75 * s, r.position.y + 0.85 * s), s * 0.9, _c(WHITE, lit, alpha), _c(BLUE_AB, lit, alpha))
+	_board(r, bg, lit, alpha, WHITE, 0.07 * s)
+	_pump_icon(Vector2(r.position.x + 0.75 * s, r.position.y + 0.85 * s), s * 0.9, _c(WHITE, lit, alpha), _c(bg, lit, alpha))
 	var a0 := Vector2(r.position.x + 0.55 * s, r.end.y - 0.5 * s)
 	var a1 := Vector2(r.end.x - 0.45 * s, r.end.y - 0.5 * s)
 	var w := maxf(1.0, 0.16 * s)
@@ -199,25 +272,29 @@ func _fuel_lane_sign(p: Vector3, lit: Color, alpha: float) -> void:
 	batch.line(Vector2(r.end.x - 0.6 * s, r.position.y + 0.45 * s), Vector2(r.end.x - 0.6 * s, r.position.y + 1.3 * s), w, _c(WHITE, lit, alpha))
 
 
-func _town_sign(p: Vector3, lit: Color, alpha: float, name: String) -> void:
+## Town sign of the destination in the style of its country (DE yellow/black, NL and CH blue/white,
+## FR white with a red border …).
+func _town_sign(p: Vector3, lit: Color, alpha: float, name: String, st: Dictionary) -> void:
 	var s := p.z
+	var bg: Color = st["town_bg"]
+	var fg: Color = st["town_fg"]
+	var border: Color = st["town_border"]
 	var r := Rect2(p.x - 1.9 * s, p.y - 3.3 * s, 3.8 * s, 1.75 * s)
 	_post(p.x - 1.3 * s, p.y, r.end.y, 0.1 * s, lit, alpha)
 	_post(p.x + 1.3 * s, p.y, r.end.y, 0.1 * s, lit, alpha)
-	_board(r, YELLOW, lit, alpha, BLACK, 0.05 * s)
+	var thick := not border.is_equal_approx(fg)   # a coloured (e.g. red) border is drawn wider
+	_board(r, bg, lit, alpha, border, (0.11 if thick else 0.05) * s)
 	if 0.06 * s > 0.6:
-		var inner := r.grow(-0.12 * s)
-		batch.rect(inner, _c(BLACK, lit, alpha))
-		batch.rect(inner.grow(-0.05 * s), _c(YELLOW, lit, alpha))
-	text(name, Vector2(p.x, r.position.y + 1.08 * s), 0.62 * s, _c(BLACK, lit, alpha), 3.4 * s)
-	text(tr("City Limits"), Vector2(p.x, r.end.y - 0.22 * s), 0.2 * s, _c(BLACK, lit, alpha), 3.0 * s)
+		var inner := r.grow(-(0.2 if thick else 0.12) * s)
+		batch.rect(inner, _c(border, lit, alpha))
+		batch.rect(inner.grow(-0.05 * s), _c(bg, lit, alpha))
+	text(name, Vector2(p.x, r.position.y + 1.08 * s), 0.62 * s, _c(fg, lit, alpha), 3.3 * s)
+	text(tr("City Limits"), Vector2(p.x, r.end.y - 0.26 * s), 0.2 * s, _c(fg, lit, alpha), 3.0 * s)
 
 
-func _distance_sign(p: Vector3, lit: Color, alpha: float, name: String, km: int, road: String) -> void:
+## Direction sign "<destination>  <n> km" in the country's colours (motorway or other road).
+func _distance_sign(p: Vector3, lit: Color, alpha: float, name: String, km: int, bg: Color, fg: Color) -> void:
 	var s := p.z
-	var yellow := road != "autobahn"
-	var bg := YELLOW if yellow else BLUE_AB
-	var fg := BLACK if yellow else WHITE
 	var r := Rect2(p.x - 2.4 * s, p.y - 4.0 * s, 4.8 * s, 1.35 * s)
 	_post(p.x - 1.7 * s, p.y, r.end.y, 0.12 * s, lit, alpha)
 	_post(p.x + 1.7 * s, p.y, r.end.y, 0.12 * s, lit, alpha)
@@ -258,13 +335,14 @@ func _tunnel_sign(p: Vector3, lit: Color, alpha: float, name: String, length_m: 
 		text("%d m" % length_m, Vector2(r.position.x + 2.2 * s, r.end.y - 0.22 * s), 0.3 * s, _c(WHITE, lit, alpha), 2.1 * s)
 
 
-func _autobahn_sign(p: Vector3, lit: Color, alpha: float, ended: bool) -> void:
+## Motorway begin/end sign (pictogram of a motorway bridge) in the country's motorway colour.
+func _autobahn_sign(p: Vector3, lit: Color, alpha: float, ended: bool, bg: Color) -> void:
 	var s := p.z
 	var r := Rect2(p.x - 0.95 * s, p.y - 3.7 * s, 1.9 * s, 1.9 * s)
 	_post(p.x, p.y, r.end.y, 0.11 * s, lit, alpha)
-	_board(r, BLUE_AB, lit, alpha, WHITE, 0.05 * s)
+	_board(r, bg, lit, alpha, WHITE, 0.05 * s)
 	var w := _c(WHITE, lit, alpha)
-	var b := _c(BLUE_AB, lit, alpha)
+	var b := _c(bg, lit, alpha)
 	var bottom := r.end.y - 0.18 * s
 	var top := r.position.y + 0.55 * s
 	batch.quad(Vector2(p.x - 0.75 * s, bottom), Vector2(p.x + 0.75 * s, bottom), Vector2(p.x + 0.12 * s, top), Vector2(p.x - 0.12 * s, top), w)

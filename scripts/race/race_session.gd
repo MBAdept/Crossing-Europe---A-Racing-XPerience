@@ -9,8 +9,12 @@ extends Node2D
 ## result (signal stage_finished): see ARCHITECTURE.md §Ergebnis.
 ##
 ## Simulation runs in _physics_process (fixed steps), the view in _process. Scripted control
-## requests (fuel before police) are handed to VehicleModel.auto_control(); collisions use
-## TrafficSystem.find_collision (with the 1/3-visibility rule of RoadProjection) and space_beside.
+## requests (fuel before police) are handed to VehicleModel.auto_control(); while the FuelSystem holds
+## the car (refuelling, tow) the police stop is blocked (PoliceSystem.set_blocked). Collisions use
+## TrafficSystem.find_collision (with the 1/3-visibility rule of RoadProjection) and space_beside
+## without the car just hit; they stay active while the car rolls out (empty tank, finish) and in
+## scripted phases faster than render.scripted_collision_min_kmh (SessionRules.collisions_active).
+## On the tutorial stage (StagePlan.tutorial) a TutorialCoach adds explanatory hints.
 
 signal stage_finished(result: Dictionary)
 signal stage_aborted(reason: String)
@@ -32,6 +36,7 @@ var env: EnvironmentModel
 var hud: Hud
 var pause_menu: PauseMenu
 var autopilot: Autopilot
+var coach: TutorialCoach         ## tutorial hints (only on the tutorial stage or with --tutorial), else null
 var weather := "normal"
 var time_scale := 12.0
 
@@ -71,6 +76,10 @@ var _sim_us_max := 0
 var _sim_steps := 0
 var _start_wall_ms := 0
 var _trace_next := 0.0
+var _scripted_min_kmh := 30.0    ## render.scripted_collision_min_kmh
+var _was_limit := -1             ## speed limit of the last step (tutorial: first section without limit)
+var _police_side := -1.0         ## side on which the police car passes (-1 left, +1 right)
+var _pull_over_m := 12.0
 
 
 func _ready() -> void:
@@ -104,6 +113,8 @@ func _build() -> void:
 	_draw_distance = float(ConfigLoader.lookup(cfg, "render.draw_distance_m", 900.0))
 	_curve_r1 = float(ConfigLoader.lookup(cfg, "road.curve_radius_at_1_m", 120.0))
 	_bg_turn = float(ConfigLoader.lookup(cfg, "render.background_parallax", 1.0))
+	_scripted_min_kmh = float(ConfigLoader.lookup(cfg, "render.scripted_collision_min_kmh", 30.0))
+	_pull_over_m = float(ConfigLoader.lookup(cfg, "police.pull_over_offset_m", 12.0))
 	plan = GameData.get_stage_plan(str(setup.get("stage_id", "kiel_hamburg")), str(setup.get("from_city", "")))
 	if plan == null:
 		push_error("Etappe konnte nicht geladen werden")
@@ -194,6 +205,9 @@ func _build() -> void:
 		autopilot.target_kmh = float(ConfigLoader.lookup(cfg, "debug.autopilot_target_kmh", 235.0))
 		autopilot.obey_radar = not CliArgs.has("autopilot-speeding") and not bool(setup.get("autopilot_speeding", false))
 		autopilot.refuel_mode = CliArgs.get_string("autopilot-refuel", str(setup.get("autopilot_refuel", "auto")))
+	if plan.tutorial or CliArgs.has("tutorial") or bool(setup.get("tutorial", false)):
+		coach = TutorialCoach.new()
+		coach.setup(cfg)
 
 	_connect_signals()
 	countdown = float(ConfigLoader.lookup(cfg, "time.countdown_s", 3.0))
@@ -238,25 +252,34 @@ func _connect_signals() -> void:
 	fuel.announced.connect(func(k: int, _st: float) -> void:
 		if k <= 5:
 			hud.show_message(tr("Tankstelle in %d km – Tankspur rechts") % k, "info", 3.5)
+			_tutorial("fuel_lane")
 		else:
-			hud.show_message(tr("Tankstelle in %d km") % k, "info"))
+			hud.show_message(tr("Tankstelle in %d km") % k, "info")
+			_tutorial("fuel_announce"))
 	fuel.refuel_started.connect(func() -> void:
 		stats["refuels"] += 1
 		AudioManager.play("fuel_start")
-		hud.show_message(tr("Tanken …"), "info", 1.5))
+		hud.show_message(tr("Tanken …"), "info", 1.5)
+		_tutorial("refuel"))
 	fuel.refuel_finished.connect(func(l: float, aborted: bool) -> void:
 		stats["liters"] += l
 		_reserve_warned = false
 		hud.show_message((tr("Tanken abgebrochen – %.0f L") if aborted else tr("Vollgetankt – %.0f L")) % l, "info")
 		AudioManager.play("fuel_done"))
+	# ran_dry fires when the tank reaches 0 L – the car may still roll into a fuel lane and refuel there,
+	# so a tow is only counted when it really happened (tow_finished)
 	fuel.ran_dry.connect(func() -> void:
-		stats["tows"] += 1
-		hud.show_message(tr("Tank leer! Der Abschleppdienst kommt …"), "alert", 4.0))
+		if _can_roll_into_fuel_lane():
+			hud.show_message(tr("Tank leer! Rechts in die Tankspur rollen lassen"), "alert", 4.0)
+		else:
+			hud.show_message(tr("Tank leer! Der Abschleppdienst kommt …"), "alert", 4.0))
 	fuel.tow_finished.connect(func(p: float) -> void:
+		stats["tows"] += 1
 		_reserve_warned = false
 		hud.show_message(tr("Zeitstrafe Abschleppdienst: +%s") % Units.format_race_time(p), "warn", 4.0))
 	police.radar_warning.connect(func(r: Dictionary) -> void:
-		hud.show_message(tr("Radarkontrolle in %d km – Limit %d km/h") % [int(round(float(ConfigLoader.lookup(cfg, "radar.warning_km", 10.0)))), int(r["limit"])], "warn", 4.0))
+		hud.show_message(tr("Radarkontrolle in %d km – Limit %d km/h") % [int(round(float(ConfigLoader.lookup(cfg, "radar.warning_km", 10.0)))), int(r["limit"])], "warn", 4.0)
+		_tutorial("radar", {"limit": float(r.get("limit", 120))}))
 	police.radar_zone.connect(func(r: Dictionary, entered: bool) -> void:
 		if entered:
 			hud.show_message(tr("Radarkontrolle – Limit %d km/h") % int(r["limit"]), "warn", 2.5)
@@ -269,7 +292,8 @@ func _connect_signals() -> void:
 		hud.show_message(tr("Geblitzt! Die Polizei ist hinter dir her!"), "alert", 3.5))
 	police.chase_started.connect(func() -> void:
 		AudioManager.set_siren(true, 0.3)
-		hud.show_message(tr("Polizei! Flucht nur mit über %d km/h") % int(ConfigLoader.lookup(cfg, "police.escape_speed_kmh", 220.0)), "alert", 3.0))
+		hud.show_message(tr("Polizei! Flucht nur mit über %d km/h") % int(ConfigLoader.lookup(cfg, "police.escape_speed_kmh", 220.0)), "alert", 3.0)
+		_tutorial("chase"))
 	police.escaped.connect(func() -> void:
 		stats["police_escapes"] += 1
 		AudioManager.set_siren(false, 0.0)
@@ -283,10 +307,31 @@ func _connect_signals() -> void:
 		AudioManager.set_siren(false, 0.0)
 		hud.show_message(tr("Gute Fahrt!"), "info"))
 	vehicle.crash_started.connect(func(_d: int) -> void:
-		stats["collisions"] += 1
+		if not finished:
+			stats["collisions"] += 1   # a bump during the finish roll-out does not count for the stage
+			_tutorial("collision")
 		_shake_t = 0.45
 		AudioManager.play("crash")
 		hud.flash(Color(1, 0.3, 0.2, 0.35), 0.25))
+
+
+## Tutorial stage: queue the hints of a topic (no-op on other stages).
+func _tutorial(topic: String, args: Dictionary = {}) -> void:
+	if coach != null:
+		coach.trigger(topic, args)
+
+
+## True when the car that just ran dry can still roll into a fuel lane slowly enough to refuel there
+## (fuel.dry_coast_decel_kmh_s, fuel.lane_trigger_speed_kmh) – then no tow service is announced.
+func _can_roll_into_fuel_lane() -> bool:
+	var decel := float(ConfigLoader.lookup(cfg, "fuel.dry_coast_decel_kmh_s", 18.0))
+	var trigger := float(ConfigLoader.lookup(cfg, "fuel.lane_trigger_speed_kmh", 60.0))
+	var taper := float(ConfigLoader.lookup(cfg, "road.fuel_lane_taper_m", 40.0))
+	for l in plan.fuel_lanes:
+		var open_z := track.km_to_z(float(l["start_km"])) + taper
+		if SessionRules.can_roll_into_lane(pos_z, vehicle.speed, decel, trigger, open_z, track.km_to_z(float(l["end_km"]))):
+			return true
+	return false
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -387,6 +432,12 @@ func _step(dt: float) -> void:
 			running = true
 			hud.show_message(tr("LOS!"), "info", 1.2)
 			AudioManager.play("go")
+			if coach != null:
+				coach.hold(1.2)   # let "LOS!" stand alone for a moment
+				coach.trigger("start")
+				if fuel.fuel_l < fuel.tank_l * 0.6:
+					coach.trigger("fuel_low", {"percent": 100.0 * fuel.fuel_l / maxf(fuel.tank_l, 0.001)})
+				coach.trigger("fuel_hud")
 		return
 	if finished:
 		_step_finished(dt)
@@ -411,14 +462,12 @@ func _step(dt: float) -> void:
 	if traffic_enabled:
 		traffic.update(dt, {"z": pos_z, "x": vehicle.x, "speed": vehicle.speed},
 			{"hour": hour, "chase": police.chase_active(), "camera_z": cam_z, "visibility_m": _visibility_m(hour)})
-		if not vehicle.invulnerable and vehicle.state != VehicleModel.State.AUTO:
-			var hit := traffic.find_collision({"z": pos_z, "x": vehicle.x, "length": vehicle.length_m, "width": vehicle.width_m}, cam_z, proj.visible_fraction)
-			if hit != null:
-				var edges := track.road_edges_at(pos_z)
-				var space := traffic.space_beside(pos_z, vehicle.x, vehicle.length_m * 0.5, edges.x - track.shoulder_w, edges.y + track.shoulder_w)
-				vehicle.start_crash(hit.x, space.x, space.y)
+		_check_collision(cam_z, vehicle.state == VehicleModel.State.AUTO)
 	var in_lane := track.fuel_lane_at(pos_z) and vehicle.x > track.main_right_edge(pos_z)
 	fuel.update(dt, pos_km, dkm, vehicle.speed, in_lane, float(input.get("throttle", 0.0)))
+	# while the fuel system holds the car (refuelling, tow) the police stop waits: a capture during
+	# refuelling is served after the refuel
+	police.set_blocked(fuel.state != FuelSystem.State.NORMAL)
 	police.update(dt, pos_km, vehicle.speed)
 	var pen := fuel.take_penalty()
 	if pen > 0.0:
@@ -429,6 +478,10 @@ func _step(dt: float) -> void:
 	# the view turns with the road: heading change = arc length / radius
 	bg_offset += track.curve_at(pos_z) / _curve_r1 * vehicle.speed / 3.6 * dt * _bg_turn
 	_check_zones()
+	if coach != null:
+		var hint := coach.update(dt)
+		if hint != "":
+			hud.show_message(hint, "info", coach.hint_s)
 	if CliArgs.has("trace") and pos_km >= _trace_next:
 		_trace_next = pos_km + CliArgs.get_float("trace", 2.0) if not CliArgs.all()["trace"] is bool else pos_km + 2.0
 		print("TRACE km %6.1f  t %6.1f  v %5.1f  want %5.1f  x %5.2f  curve %5.2f  grade %5.3f  fuel %4.1f  cars %d  state %d  %s" % [pos_km, total_time(), vehicle.speed,
@@ -437,20 +490,41 @@ func _step(dt: float) -> void:
 		_finish()
 
 
+## Finish roll-out: the clock is frozen, the car brakes (render.finish_decel_kmh_s) while the player keeps
+## steering; traffic still collides (the car does not drive through slower cars after the line).
 func _step_finished(dt: float) -> void:
+	var input := _read_input()
+	last_input = input
 	vehicle.auto_control(0.0, float(ConfigLoader.lookup(cfg, "render.finish_decel_kmh_s", 35.0)))
-	vehicle.update(dt, {}, road_info(pos_z), {"vmax_factor": 1.0})
+	vehicle.update(dt, {"steer": float(input.get("steer", 0.0))}, road_info(pos_z), {"vmax_factor": 1.0})
 	pos_z = minf(pos_z + vehicle.speed / 3.6 * dt, track.length_z + track.runout_m - 30.0)
 	pos_km = track.z_to_km(pos_z)
 	bg_offset += track.curve_at(pos_z) / _curve_r1 * vehicle.speed / 3.6 * dt * _bg_turn
-	track.update_window(pos_z - proj.cam_distance, _draw_distance + 60.0)
+	var cam_z := pos_z - proj.cam_distance
+	track.update_window(cam_z, _draw_distance + 60.0)
 	if traffic_enabled:
 		traffic.update(dt, {"z": pos_z, "x": vehicle.x, "speed": vehicle.speed},
-			{"hour": clock.hour(), "chase": false, "camera_z": pos_z - proj.cam_distance, "visibility_m": _visibility_m(clock.hour())})
+			{"hour": clock.hour(), "chase": false, "camera_z": cam_z, "visibility_m": _visibility_m(clock.hour())})
+		_check_collision(cam_z, true)
 	_finish_timer -= dt
 	if not _result_sent and (_finish_timer <= 0.0 or (vehicle.speed < 1.0 and _finish_timer < 2.0)):
 		_result_sent = true
 		_emit_result()
+
+
+## Collision with traffic: TrafficSystem.find_collision with the 1/3-visibility rule. The push side comes
+## from the free space beside the car without the car just hit, so a hit straight from behind or in front
+## goes to the side with more room (left on a tie, VehicleModel.push_direction). scripted = the car is in
+## a scripted phase (AUTO, finish roll-out): see SessionRules.collisions_active.
+func _check_collision(cam_z: float, scripted: bool) -> void:
+	if not SessionRules.collisions_active(vehicle.invulnerable, scripted, vehicle.speed, fuel.rolling_out, _scripted_min_kmh):
+		return
+	var hit := traffic.find_collision({"z": pos_z, "x": vehicle.x, "length": vehicle.length_m, "width": vehicle.width_m}, cam_z, proj.visible_fraction)
+	if hit == null:
+		return
+	var edges := track.road_edges_at(pos_z)
+	var space := traffic.space_beside(pos_z, vehicle.x, vehicle.length_m * 0.5, edges.x - track.shoulder_w, edges.y + track.shoulder_w, hit)
+	vehicle.start_crash(hit.x, space.x, space.y)
 
 
 func _check_zones() -> void:
@@ -463,7 +537,12 @@ func _check_zones() -> void:
 	var city := plan.is_city(pos_km)
 	if city and not _was_city:
 		hud.show_message(tr("City Limits %s – Tempo %d") % [plan.to_name, plan.city_speed_limit], "info", 3.0)
+		_tutorial("city", {"limit": plan.city_speed_limit})
 	_was_city = city
+	var limit := plan.speed_limit_at(clampf(pos_km, 0.0, plan.length_km))
+	if limit == 0 and _was_limit != 0 and not city:
+		_tutorial("unlimited")
+	_was_limit = limit
 	var tunnel := plan.tunnel_at(pos_km)
 	if not tunnel.is_empty() and not _was_tunnel:
 		var tname := str(tunnel.get("name", ""))
@@ -575,10 +654,16 @@ func _process(delta: float) -> void:
 		for c in traffic.cars:
 			cars.append({"kind": "car", "set": c.set_id, "z": c.z - c.length * 0.5, "x": c.x, "length": c.length,
 				"tail": lights, "brake": 1.0 if c.braking else 0.0, "speed": c.speed, "heavy": c.heavy})
+	# police car at PoliceSystem.police_car_offset_m() (animated by the gameplay module): it passes the
+	# player one lane beside him and pulls in ahead of him for the stop (SessionRules.police_car_x)
 	var off := police.police_car_offset_m()
 	if not is_nan(off):
+		if off < -proj.cam_distance - 6.0:
+			# out of sight behind the camera: choose the side it will pass on
+			_police_side = SessionRules.police_pass_side(vehicle.x, track.road_edges_at(pos_z).x, track.lane_w)
+		var px := SessionRules.police_car_x(off, vehicle.x, _police_side, track.lane_w, _pull_over_m, (4.8 + vehicle.length_m) * 0.5)
 		cars.append({"kind": "car", "set": GameData.police_set_for(plan.country_at(clampf(pos_km, 0.0, plan.length_km))), "z": pos_z + off - 2.4,
-			"x": vehicle.x + (0.0 if off < 0.0 else -0.4), "tail": lights, "length": 4.8, "speed": vehicle.speed,
+			"x": px, "tail": lights, "length": 4.8, "speed": vehicle.speed,
 			"beacon": "a" if fmod(_beacon_t, 0.5) < 0.25 else "b"})
 	var angle := "c"
 	if vehicle.steer_visual > 0.25:
@@ -652,8 +737,8 @@ func _hud_state(hour: float) -> Dictionary:
 		"record_name": str(_record.get("name", "")),
 		"fuel_l": fuel.fuel_l,
 		"tank_l": fuel.tank_l,
-		"range_km": fuel.range_km(maxf(vehicle.speed, 80.0)),
-		"next_station_km": fuel.distance_to_next_station(km),
+		"range_km": fuel.range_km(vehicle.speed),   # at the current speed (FuelSystem floors standstill at 60 km/h)
+		"next_station_km": SessionRules.next_station_km(plan, km, fuel.state == FuelSystem.State.REFUELING),
 		"speed_limit": limit,
 		"radar_warning": radar_warn,
 		"police_state": st_police,
