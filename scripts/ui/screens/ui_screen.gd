@@ -9,7 +9,6 @@ var default_focus: Control
 var bg_dim := 0.55
 var hints: Array = []
 var footer: KeyHints
-var _built := false
 
 
 func _init(p_params: Dictionary = {}) -> void:
@@ -22,7 +21,6 @@ func _ready() -> void:
 	if hints.is_empty():
 		hints = [[["Enter", "pad:A"], tr("Auswählen")], [["Esc", "pad:B"], tr("Zurück")]]
 	build()
-	_built = true
 	footer = KeyHints.new(hints)
 	UiKit.place(self, footer, Rect2(64, 676, 1152, 34))
 	_grab_default.call_deferred()

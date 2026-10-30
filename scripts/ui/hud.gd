@@ -49,6 +49,7 @@ var _reserve_l := 8.0
 var _speedo_max := 300.0
 var _escape_kmh := 220.0
 var _max_messages := 3
+var _message_s := 3.0
 var _show_fps := false
 var _country_colors: Dictionary = {}
 var _country_names: Dictionary = {}
@@ -74,7 +75,7 @@ func _ready() -> void:
 	if CliArgs.has("hud-demo"):
 		for key in CliArgs.get_string("hud-demo", "").split(",", false):
 			_demo.merge(DEMO.get(key, {}), true)
-		show_message(tr("Radarkontrolle in 10 km – Limit 120 km/h"), "warn", 30.0)
+		show_message(tr("Radarkontrolle in 10 km – Limit 120 km/h"), "warn", 30.0)  # demo only
 		show_message(tr("Tankstelle in 15 km"), "info", 30.0)
 
 
@@ -86,6 +87,7 @@ func setup_stage(stage_plan: StagePlan, config: Dictionary) -> void:
 	_speedo_max = float(ConfigLoader.lookup(cfg, "hud.speedo_max_kmh", 300.0))
 	_escape_kmh = float(ConfigLoader.lookup(cfg, "police.escape_speed_kmh", 220.0))
 	_max_messages = int(ConfigLoader.lookup(cfg, "hud.messages_max", 3))
+	_message_s = float(ConfigLoader.lookup(cfg, "hud.message_s", 3.0))
 	_show_fps = bool(ConfigLoader.lookup(cfg, "hud.show_fps", false))
 	var gd: Node = get_node_or_null("/root/GameData")
 	if gd != null:
@@ -115,8 +117,10 @@ func update_state(s: Dictionary) -> void:
 	queue_redraw()
 
 
-## Temporary centred message. kind: "info" | "warn" | "alert".
-func show_message(text: String, kind: String = "info", duration: float = 3.0) -> void:
+## Temporary centred message. kind: "info" | "warn" | "alert". duration < 0 = hud.message_s.
+func show_message(text: String, kind: String = "info", duration: float = -1.0) -> void:
+	if duration < 0.0:
+		duration = _message_s
 	if text == tr("LOS!") or text == "LOS!":
 		_go_t = GO_TIME
 		return

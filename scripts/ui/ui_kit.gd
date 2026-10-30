@@ -50,8 +50,6 @@ static func place(parent: Control, child: Control, rect: Rect2) -> Control:
 	parent.add_child(child)
 	child.position = rect.position
 	child.size = rect.size
-	if child.custom_minimum_size == Vector2.ZERO:
-		child.custom_minimum_size = Vector2.ZERO
 	return child
 
 
