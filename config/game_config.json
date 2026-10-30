@@ -199,13 +199,19 @@
 
 	"hud": {
 		"message_s": 3.0,
-		"show_fps": false
+		"show_fps": false,
+		"speedo_max_kmh": 300,
+		"messages_max": 3,
+		"marquee_speed_px_s": 90.0
 	},
 
 	"audio": {
 		"master_db": 0.0,
 		"engine_gears": 6,
-		"engine_idle_hz": 38.0
+		"engine_idle_hz": 38.0,
+		"engine_max_hz": 175.0,
+		"music_db": -4.0,
+		"menu_music": true
 	},
 
 	"leaderboard": {
