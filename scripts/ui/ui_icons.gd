@@ -167,17 +167,58 @@ static func beacon(ci: CanvasItem, c: Vector2, s: float, phase: float) -> void:
 	ci.draw_rect(Rect2(c.x - s * 0.38, c.y, s * 0.76, s * 0.14), Color("c9d2e8"))
 
 
-## Three flag stripes (horizontal) from countries.json colours.
+## Flag from countries.json "colors": an optional layout token first ("v" vertical stripes,
+## "h121"/"h212" weighted horizontal stripes, "ch" Swiss cross, "cz" Czech wedge), then the colours.
+## Without a token: equal horizontal stripes. vertical = true forces plain vertical stripes (tiny markers).
 static func flag(ci: CanvasItem, rect: Rect2, colors: Array, vertical: bool = false) -> void:
-	if colors.is_empty():
+	var layout := "h"
+	var cols: Array[Color] = []
+	for v in colors:
+		var s := str(v)
+		if s.begins_with("#"):
+			cols.append(Color.html(s))
+		elif cols.is_empty():
+			layout = s
+	if cols.is_empty():
 		ci.draw_rect(rect, Color(0.5, 0.5, 0.6))
 		return
-	var n := colors.size()
-	for i in n:
-		var col := Color.html(str(colors[i])) if str(colors[i]).begins_with("#") else Color(0.5, 0.5, 0.6)
-		var r := Rect2(rect.position.x + rect.size.x * i / n, rect.position.y, rect.size.x / n, rect.size.y) if vertical \
-			else Rect2(rect.position.x, rect.position.y + rect.size.y * i / n, rect.size.x, rect.size.y / n)
-		ci.draw_rect(r, col)
+	if vertical:
+		layout = "v"
+	match layout:
+		"ch":
+			ci.draw_rect(rect, cols[0])
+			var c := rect.get_center()
+			var arm := minf(rect.size.x, rect.size.y) * 0.62
+			var t := arm * 0.32
+			var white: Color = cols[1] if cols.size() > 1 else Color.WHITE
+			ci.draw_rect(Rect2(c.x - arm * 0.5, c.y - t * 0.5, arm, t), white)
+			ci.draw_rect(Rect2(c.x - t * 0.5, c.y - arm * 0.5, t, arm), white)
+		"cz":
+			ci.draw_rect(Rect2(rect.position, Vector2(rect.size.x, rect.size.y * 0.5)), cols[0])
+			ci.draw_rect(Rect2(rect.position.x, rect.position.y + rect.size.y * 0.5, rect.size.x, rect.size.y * 0.5), cols[1] if cols.size() > 1 else cols[0])
+			if cols.size() > 2:
+				ci.draw_colored_polygon(PackedVector2Array([rect.position, rect.position + Vector2(rect.size.x * 0.5, rect.size.y * 0.5),
+					rect.position + Vector2(0, rect.size.y)]), cols[2])
+		"v":
+			var n := cols.size()
+			for i in n:
+				ci.draw_rect(Rect2(rect.position.x + rect.size.x * i / n, rect.position.y, rect.size.x / n, rect.size.y), cols[i])
+		_:
+			var weights: Array[float] = []
+			if layout.begins_with("h") and layout.length() == cols.size() + 1:
+				for ch in layout.substr(1):
+					weights.append(float(ch))
+			else:
+				for i in cols.size():
+					weights.append(1.0)
+			var total := 0.0
+			for w in weights:
+				total += w
+			var y := rect.position.y
+			for i in cols.size():
+				var hgt := rect.size.y * weights[i] / total
+				ci.draw_rect(Rect2(rect.position.x, y, rect.size.x, hgt), cols[i])
+				y += hgt
 	ci.draw_rect(rect, Color(0, 0, 0, 0.5), false, 1.0)
 
 

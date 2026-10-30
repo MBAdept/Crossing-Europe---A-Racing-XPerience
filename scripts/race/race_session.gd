@@ -145,6 +145,7 @@ func _build() -> void:
 		if not heavy.has(id):
 			cars.append(id)
 	traffic.setup(cfg, track, cars, heavy, plan.seed + 17 + int(setup.get("seed", 0)))
+	traffic.set_dimensions(SpriteDB.sets)
 	traffic_enabled = not CliArgs.has("no-traffic")
 
 	fuel = FuelSystem.new()
@@ -166,6 +167,10 @@ func _build() -> void:
 	vehicle.speed = clampf(CliArgs.get_float("start-speed", 0.0), 0.0, 300.0)
 	if traffic_enabled and (CliArgs.has("traffic-warmup") or bool(setup.get("traffic_warmup", false))):
 		_warm_up_traffic()
+	if traffic_enabled:
+		var h0 := Units.hour_of_day(_start_world_minutes)
+		traffic.update(0.0, {"z": pos_z, "x": vehicle.x, "speed": vehicle.speed},
+			{"hour": h0, "chase": false, "camera_z": pos_z - proj.cam_distance, "visibility_m": _visibility_m(h0)})
 	_last_country = plan.country_at(pos_km)
 	_was_city = plan.is_city(pos_km)
 	_was_tunnel = plan.in_tunnel(pos_km)
@@ -208,6 +213,11 @@ func _build() -> void:
 		Engine.physics_ticks_per_second = maxi(1, int(round(60.0 * ts)))
 		Engine.max_physics_steps_per_frame = clampi(int(ceil(ts)) * 2, 8, 128)
 	_start_wall_ms = Time.get_ticks_msec()
+
+
+## Current sight distance (m): draw distance reduced by night, weather and tunnels.
+func _visibility_m(hour: float) -> float:
+	return _draw_distance * env.visibility_factor(hour, weather, track.is_tunnel_at(pos_z - proj.cam_distance + 5.0))
 
 
 ## Debug/screenshots: lets traffic build up around the start position by simulating a virtual
@@ -264,6 +274,8 @@ func _connect_signals() -> void:
 		stats["police_escapes"] += 1
 		AudioManager.set_siren(false, 0.0)
 		hud.show_message(tr("Entkommen!"), "info"))
+	police.pull_over.connect(func() -> void:
+		hud.show_message(tr("Polizei! Rechts ranfahren!"), "alert", 2.5))
 	police.caught.connect(func() -> void:
 		stats["police_stops"] += 1
 		hud.show_message(tr("Führerschein, bitte!"), "alert", float(ConfigLoader.lookup(cfg, "police.stop_duration_s", 10.0))))
@@ -370,8 +382,7 @@ func _step(dt: float) -> void:
 		countdown -= dt
 		var sec := int(ceil(countdown))
 		if sec < _last_beep and sec > 0:
-			_last_beep = sec
-			AudioManager.play("beep")
+			_last_beep = sec   # the HUD plays the beep when the countdown number changes
 		if countdown <= 0.0:
 			running = true
 			hud.show_message(tr("LOS!"), "info", 1.2)
@@ -399,7 +410,7 @@ func _step(dt: float) -> void:
 	track.update_window(cam_z, _draw_distance + 60.0)
 	if traffic_enabled:
 		traffic.update(dt, {"z": pos_z, "x": vehicle.x, "speed": vehicle.speed},
-			{"hour": hour, "chase": police.chase_active(), "camera_z": cam_z})
+			{"hour": hour, "chase": police.chase_active(), "camera_z": cam_z, "visibility_m": _visibility_m(hour)})
 		if not vehicle.invulnerable and vehicle.state != VehicleModel.State.AUTO:
 			var hit := traffic.find_collision({"z": pos_z, "x": vehicle.x, "length": vehicle.length_m, "width": vehicle.width_m}, cam_z, proj.visible_fraction)
 			if hit != null:
@@ -435,7 +446,7 @@ func _step_finished(dt: float) -> void:
 	track.update_window(pos_z - proj.cam_distance, _draw_distance + 60.0)
 	if traffic_enabled:
 		traffic.update(dt, {"z": pos_z, "x": vehicle.x, "speed": vehicle.speed},
-			{"hour": clock.hour(), "chase": false, "camera_z": pos_z - proj.cam_distance})
+			{"hour": clock.hour(), "chase": false, "camera_z": pos_z - proj.cam_distance, "visibility_m": _visibility_m(clock.hour())})
 	_finish_timer -= dt
 	if not _result_sent and (_finish_timer <= 0.0 or (vehicle.speed < 1.0 and _finish_timer < 2.0)):
 		_result_sent = true

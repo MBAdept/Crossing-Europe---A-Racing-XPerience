@@ -1397,8 +1397,11 @@ func _prep_prop(it: Dictionary) -> Array:
 		var info := _spinfo(set_id)
 		var sc := _prop_scale(it, set_id)
 		if it.has("align"):
-			# "edge": x is the near edge of the object -> shift its centre away from the road
-			x += float(int(it.get("side", 1))) * float(info[6]) * sc
+			# "edge": x is the near edge of the object -> shift its anchor away from the road by the
+			# object's extent towards the road (extent_m of the manifest, else half its width)
+			var side := int(it.get("side", 1))
+			var ext: Vector2 = info[7]
+			x += float(side) * (ext.x if side > 0 else ext.y) * sc
 		res = [set_id, info, sc, x, "", Color(str(it["tint"])) if it.has("tint") else Color.WHITE]
 	it["_c"] = res
 	return res
@@ -1498,7 +1501,11 @@ func _spinfo(set_id: String) -> Array:
 			rows[str(layers[i])] = i
 		var obj: Dictionary = SpriteDB.object_size(set_id)
 		var half_w := float(obj.get("width_m", SpriteDB.cell_size(set_id).x / SpriteDB.pixels_per_meter(set_id) * 0.8)) * 0.5
-		info = [tex, SpriteDB.pixels_per_meter(set_id), SpriteDB.anchor(set_id), SpriteDB.cell_size(set_id), cols, rows, half_w]
+		# extent_m (Blender manifest): distance from the anchor to the near side when placed right / left
+		var ext: Array = SpriteDB.get_set(set_id).get("extent_m", [half_w, half_w])
+		var extent := Vector2(float(ext[0]), float(ext[1])) if ext.size() >= 2 else Vector2(half_w, half_w)
+		var mirror_left := (SpriteDB.get_set(set_id).get("tags", []) as Array).has("mirror_left")
+		info = [tex, SpriteDB.pixels_per_meter(set_id), SpriteDB.anchor(set_id), SpriteDB.cell_size(set_id), cols, rows, half_w, extent, mirror_left]
 	_sp_cache[set_id] = info
 	return info
 
@@ -1546,7 +1553,8 @@ func _sprite_i(info: Array, angle: String, layer: String, p: Vector3, scale: flo
 	if w < 0.8 or w > proj.screen.x * 5.0:
 		return Rect2()
 	var an: Vector2 = info[2]
-	var dest := Rect2(p.x - an.x * w, p.y - an.y * h, w, h)
+	var ax := (1.0 - an.x) if flip else an.x
+	var dest := Rect2(p.x - ax * w, p.y - an.y * h, w, h)
 	if dest.position.x > proj.screen.x + 4.0 or dest.end.x < -4.0 or dest.position.y > proj.screen.y + 4.0 or dest.end.y < -4.0:
 		return Rect2()
 	var src := Rect2(float(col) * cell.x, float(row) * cell.y, cell.x, cell.y)
@@ -1572,7 +1580,8 @@ func _modulate(k: int, light: float, alpha: float, reflect: float = 0.6) -> Colo
 func _draw_prop_info(k: int, it: Dictionary, pc: Array, p: Vector3, alpha: float, light: float) -> void:
 	var info: Array = pc[1]
 	var scale := float(pc[2])
-	var flip := int(it.get("side", 1)) < 0 and bool(it.get("mirror", false))
+	# props rendered for the right roadside (tag mirror_left) are mirrored on the left side
+	var flip := int(it.get("side", 1)) < 0 and (bool(it.get("mirror", false)) or bool(info[8]))
 	var mod := _modulate(k, light, alpha)
 	var tint: Color = pc[5]
 	if tint != Color.WHITE:

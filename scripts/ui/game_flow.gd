@@ -222,15 +222,25 @@ func ferry_done() -> void:
 
 ## Setup dictionary for the race session (ARCHITECTURE.md §8).
 func stage_setup() -> Dictionary:
+	var s := {}
 	if mode == "race" and race != null:
-		return {"mode": "race", "race_id": race.race_id, "stage_id": str(pending_leg.get("id", "")),
+		s = {"mode": "race", "race_id": race.race_id, "stage_id": str(pending_leg.get("id", "")),
 			"from_city": str(pending_leg.get("from", "")), "vehicle": race.vehicle,
 			"start_world_minutes": race.world_minutes, "weather": pending_weather,
 			"seed": race.stage_seed(str(pending_leg.get("id", ""))) % 100000}
-	return {"mode": "single", "race_id": "", "stage_id": str(single.get("stage_id", "")),
-		"from_city": str(single.get("from_city", "")), "vehicle": str(single.get("vehicle", "limousine")),
-		"start_world_minutes": float(single.get("hour", 8.0)) * 60.0, "weather": str(single.get("weather", "normal")),
-		"seed": randi() % 100000}
+	else:
+		s = {"mode": "single", "race_id": "", "stage_id": str(single.get("stage_id", "")),
+			"from_city": str(single.get("from_city", "")), "vehicle": str(single.get("vehicle", "limousine")),
+			"start_world_minutes": float(single.get("hour", 8.0)) * 60.0, "weather": str(single.get("weather", "normal")),
+			"seed": randi() % 100000}
+	# debug/test hooks (command line only): drive the stages with the autopilot
+	if CliArgs.has("autopilot"):
+		s["autopilot"] = true
+		s["autopilot_speeding"] = CliArgs.has("autopilot-speeding")
+		s["autopilot_refuel"] = CliArgs.get_string("autopilot-refuel", "auto")
+	if CliArgs.has("no-countdown"):
+		s["no_countdown"] = true
+	return s
 
 
 func start_pending_stage() -> void:

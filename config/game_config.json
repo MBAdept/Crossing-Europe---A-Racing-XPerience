@@ -227,8 +227,8 @@
 		"segment_length_m": 3.0,
 		"draw_distance_m": 900.0,
 		"fov_deg": 84.0,
-		"camera_height_m": 2.55,
-		"camera_distance_m": 7.6,
+		"camera_height_m": 3.4,
+		"camera_distance_m": 9.0,
 		"horizon_y_frac": 0.45,
 		"fog_start_frac": 0.45,
 		"hill_height_scale": 2.0,
@@ -276,7 +276,7 @@
 		"store_per_vehicle": true,
 		"default_filter": "all",
 		"seed_entries": true,
-		"seed_avg_kmh": [150, 190],
+		"seed_avg_kmh": [125, 165],
 		"seed_names": ["Anke", "Bernd", "Clara", "Dieter", "Elif", "Frank", "Gabi", "Hakan", "Ines", "Jörg"]
 	},
 

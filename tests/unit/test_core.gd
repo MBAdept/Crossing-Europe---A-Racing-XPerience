@@ -63,5 +63,14 @@ func test_projection_visible_fraction() -> void:
 	pr.setup(ConfigLoader.lookup(cfg(), "render", {}), Vector2(1280, 720))
 	assert_eq(pr.visible_fraction(0.1, 1.5), 0.0, "hinter der Kamera unsichtbar")
 	assert_near(pr.visible_fraction(60.0, 1.5), 1.0, 0.001, "weit vorn ganz sichtbar")
-	assert_true(pr.visible_fraction(2.5, 1.5) < 0.34, "knapp vor der Kamera nur teilweise sichtbar")
-	assert_true(pr.visible_fraction(3.2, 1.5) > 0.34, "etwas weiter vorn mehr als ein Drittel sichtbar")
+	# the visible share grows monotonically with depth and passes 1/3 a few metres ahead of the camera
+	var prev := 0.0
+	var third_at := -1.0
+	for i in range(1, 400):
+		var dz := i * 0.05
+		var f := pr.visible_fraction(dz, 1.5)
+		assert_true(f >= prev - 0.0001, "monoton bei dz=%.2f" % dz)
+		prev = f
+		if third_at < 0.0 and f >= 1.0 / 3.0:
+			third_at = dz
+	assert_between(third_at, 1.0, pr.cam_distance, "ein Drittel sichtbar zwischen Kamera und Spielerauto")

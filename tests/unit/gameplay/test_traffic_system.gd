@@ -276,12 +276,26 @@ func test_find_collision_and_rear_visibility_rule() -> void:
 	behind.x = 0.6
 	assert_eq(ts.find_collision(player, 993.4, hidden), null, "von hinten, kaum sichtbar: keine Kollision")
 	assert_eq(ts.find_collision(player, 993.4, visible), behind, "von hinten, sichtbar: Kollision")
+	# With the real camera: find the depth at which a third of the car becomes visible, then test
+	# an overlapping car just before and just after that threshold (independent of camera tuning).
 	var proj := RoadProjection.new()
-	proj.setup(ConfigLoader.lookup(c, "render", {}), Vector2(1280, 720))
-	var hit := ts.find_collision(player, 1000.0 - proj.cam_distance, proj.visible_fraction)
-	assert_eq(hit, null, "mit echter Projektion: das Heck ist noch hinter der Kamera")
-	behind.z = 999.5
-	hit = ts.find_collision(player, 1000.0 - proj.cam_distance, proj.visible_fraction)
+	proj.setup(ConfigLoader.lookup(cfg(), "render", {}), Vector2(1280, 720))
+	var cam_z := 1000.0 - proj.cam_distance
+	var min_frac := float(ConfigLoader.lookup(cfg(), "collision.rear_min_visible_fraction", 0.3333))
+	var dz_t := 0.0
+	while dz_t < 20.0 and proj.visible_fraction(dz_t, behind.height) < min_frac:
+		dz_t += 0.01
+	var overlap := (behind.length + 4.6) * 0.5
+	var hit: TrafficSystem.Car = null
+	var z_hidden := cam_z + dz_t * 0.5 + behind.length * 0.5
+	if absf(z_hidden - 1000.0) < overlap:
+		behind.z = z_hidden
+		hit = ts.find_collision(player, cam_z, proj.visible_fraction)
+		assert_eq(hit, null, "mit echter Projektion: weniger als ein Drittel sichtbar")
+	# else: the camera is so far behind the car that every overlapping car is already >= 1/3 visible
+	behind.z = cam_z + dz_t + 0.4 + behind.length * 0.5
+	assert_true(absf(behind.z - 1000.0) < overlap, "Testaufbau: Auto überlappt den Spieler (sichtbar)")
+	hit = ts.find_collision(player, cam_z, proj.visible_fraction)
 	assert_eq(hit, behind, "mit echter Projektion: zu mehr als einem Drittel sichtbar")
 
 
