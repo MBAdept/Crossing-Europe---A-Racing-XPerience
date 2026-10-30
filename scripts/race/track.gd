@@ -12,6 +12,9 @@ extends RefCounted
 ## After the finish line the road continues straight for road.runout_m (coast-out after "ZIEL").
 ## Owner: race module.
 
+const WALL_SIGN_GAP_M := 0.1           ## gap between a tunnel-wall sign and the wall
+const WALL_SIGN_OVERHANG_M := 1.0      ## how far a tunnel-wall sign may reach over the paved road
+
 var plan: StagePlan
 var cfg: Dictionary = {}
 var scenery_db: Dictionary = {}
@@ -546,6 +549,19 @@ func _mark_zones(s: TrackSegment) -> void:
 					s.cover_front = true
 
 
+## Inside a tunnel the roadside ends at the tube wall (paved edge + shoulder): a sign there is mounted on
+## the wall ("wall": true, no posts) with its board inside the tube, scaled down when it would reach
+## more than WALL_SIGN_OVERHANG_M over the paved road (it hangs above the traffic's height).
+func _mount_on_tunnel_wall(p: Dictionary, edges: Vector2, side: int) -> void:
+	var hw := SignPainter.board_half_width(str(p.get("sign", "")))
+	var room := shoulder_w - WALL_SIGN_GAP_M + WALL_SIGN_OVERHANG_M
+	var sc := minf(float(p.get("scale", 1.0)), room / (2.0 * hw))
+	var wall_x := edges.y + shoulder_w if side > 0 else edges.x - shoulder_w
+	p["scale"] = sc
+	p["wall"] = true
+	p["x"] = wall_x - float(side) * (WALL_SIGN_GAP_M + hw * sc)
+
+
 func _prop_x(edges: Vector2, side: int, at: String, offset: float) -> float:
 	if side == 0:
 		return 0.0
@@ -560,8 +576,20 @@ func _place_props(s: TrackSegment) -> void:
 	for e: Dictionary in _events.get(s.index, []):
 		var p := e.duplicate()
 		var side := int(e.get("side", 1))
-		p["x"] = _prop_x(edges, side, str(e.get("at", "outer")), float(e.get("offset", 1.0)))
+		var kind := str(e.get("kind", "prop"))
 		p["scale"] = float(e.get("scale", 1.0))
+		if kind == "sign":
+			# sign style follows the country and road type where the sign stands (border signs keep the
+			# country they announce)
+			if not p.has("country"):
+				p["country"] = s.country
+			p["road"] = s.road
+		if s.tunnel and side != 0:
+			if kind != "sign":
+				continue   # no room for booths, cameras or pumps inside the tube
+			_mount_on_tunnel_wall(p, edges, side)
+		else:
+			p["x"] = _prop_x(edges, side, str(e.get("at", "outer")), float(e.get("offset", 1.0)))
 		s.sprites.append(p)
 	if s.tunnel:
 		return

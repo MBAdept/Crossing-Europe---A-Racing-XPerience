@@ -192,6 +192,7 @@ func setup(t: Track, p: RoadProjection, config: Dictionary, scenery: Dictionary)
 	_prefer_proc = mode == "always" or (mode == "auto" and placeholders)
 	backdrop.setup(proj, batch, float(r.get("background_blend_s", 2.5)))
 	signs.setup(self, batch)
+	signs.countries = _country_data()
 	_times.resize(STATS_N)
 	# additive glow layer (child canvas item drawn after this one)
 	_glow_ci = RenderingServer.canvas_item_create()
@@ -216,6 +217,16 @@ func setup(t: Track, p: RoadProjection, config: Dictionary, scenery: Dictionary)
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_PREDELETE and _glow_ci.is_valid():
 		RenderingServer.free_rid(_glow_ci)
+
+
+## Country data (GameData.countries) for the country-specific sign styles; {} without the autoload.
+func _country_data() -> Dictionary:
+	var tree := Engine.get_main_loop() as SceneTree
+	var gd: Node = tree.root.get_node_or_null("GameData") if tree != null and tree.root != null else null
+	if gd == null:
+		return {}
+	var c: Variant = gd.get("countries")
+	return c if c is Dictionary else {}
 
 
 func render(v: Dictionary) -> void:
@@ -1379,6 +1390,34 @@ func _item_alpha(k: int, dz: float) -> float:
 	return 1.0 - pow(clampf((dz - _fog_start) / maxf(1.0, _vis - _fog_start), 0.0, 1.0), 2.0)
 
 
+## True when a prop is drawn mirrored: sets rendered for the right roadside (tag mirror_left, or the
+## scenery rule's "mirror") are mirrored on the left side, so their front faces the road on both sides.
+static func prop_flipped(side: int, rule_mirror: bool, tag_mirror_left: bool) -> bool:
+	return side < 0 and (rule_mirror or tag_mirror_left)
+
+
+## Anchor x of an edge-aligned prop whose near edge (towards the road) shall be at x. extent = manifest
+## extent_m [left, right] of the anchor in the unmirrored cell (metres at scale 1). On the right roadside
+## the object's left side faces the road; on the left roadside its right side – or, when the sprite is
+## mirrored, again its (mirrored) left side.
+static func edge_anchor_x(x: float, side: int, flipped: bool, extent: Vector2, scale: float) -> float:
+	return x + float(side) * (extent.x if (side > 0 or flipped) else extent.y) * scale
+
+
+## Screen rect of a sprite cell of size w × h whose ground anchor (normalised, unmirrored cell) stands at
+## p. A mirrored cell keeps the anchor at p: its anchor column becomes 1 - anchor.x.
+static func sprite_dest(p: Vector2, w: float, h: float, anchor: Vector2, flip: bool) -> Rect2:
+	var ax := (1.0 - anchor.x) if flip else anchor.x
+	return Rect2(p.x - ax * w, p.y - anchor.y * h, w, h)
+
+
+## Rect for draw_texture_rect_region that draws a cell mirrored into dest: Godot 4 keeps the position of
+## a rect with negative width and only mirrors the texture (checked by tests/race/check_sprite_flip.gd),
+## so the mirrored image covers exactly dest.
+static func flipped_draw_rect(dest: Rect2) -> Rect2:
+	return Rect2(dest.position, Vector2(-dest.size.x, dest.size.y))
+
+
 ## Per-prop data resolved once and cached in the prop dictionary ("_c"):
 ## [set id ("" = procedural or missing), sprite info, scale, x (edge-aligned), procedural kind, tint]
 func _prep_prop(it: Dictionary) -> Array:
@@ -1399,12 +1438,8 @@ func _prep_prop(it: Dictionary) -> Array:
 		if it.has("align"):
 			# "edge": x is the near edge of the object -> shift its anchor away from the road by the
 			# object's extent towards the road (extent_m of the manifest, else half its width)
-			# extent_m = [left, right] of the anchor in the unmirrored cell. The side facing the road is
-			# the object's left side on the right roadside and – mirrored – also on the left roadside.
 			var side := int(it.get("side", 1))
-			var ext: Vector2 = info[7]
-			var flipped := side < 0 and (bool(it.get("mirror", false)) or bool(info[8]))
-			x += float(side) * (ext.x if (side > 0 or flipped) else ext.y) * sc
+			x = edge_anchor_x(x, side, prop_flipped(side, bool(it.get("mirror", false)), bool(info[8])), info[7], sc)
 		res = [set_id, info, sc, x, "", Color(str(it["tint"])) if it.has("tint") else Color.WHITE]
 	it["_c"] = res
 	return res
@@ -1463,9 +1498,11 @@ func _draw_item(k: int, it: Dictionary) -> void:
 				var l := -seg.lanes * _lw * 0.5 - _sh
 				var r := seg.lanes * _lw * 0.5 + seg.fuel_lane * _lw + _sh
 				edges_px = Vector2(p2.x + (l - x) * p2.z, p2.x + (r - x) * p2.z)
-			if str(it.get("sign", "")) == "distance":
+			if not it.has("road"):
 				it["road"] = _segs[k].road
-			signs.draw(it, p2, lit, alpha2, edges_px)
+			# scale < 1: e.g. a sign fitted onto a tunnel wall (Track._mount_on_tunnel_wall)
+			var ssc := float(it.get("scale", 1.0))
+			signs.draw(it, p2 if ssc == 1.0 else Vector3(p2.x, p2.y, p2.z * ssc), lit, alpha2, edges_px)
 			if str(it.get("sign", "")) == "start" and float(view.get("countdown", -1000.0)) > -2.0:
 				_start_light_glows(p2, edges_px)
 		"car":
@@ -1555,19 +1592,13 @@ func _sprite_i(info: Array, angle: String, layer: String, p: Vector3, scale: flo
 	var h := w * cell.y / cell.x
 	if w < 0.8 or w > proj.screen.x * 5.0:
 		return Rect2()
-	var an: Vector2 = info[2]
-	var ax := (1.0 - an.x) if flip else an.x
-	var dest := Rect2(p.x - ax * w, p.y - an.y * h, w, h)
+	var dest := sprite_dest(Vector2(p.x, p.y), w, h, info[2], flip)
 	if dest.position.x > proj.screen.x + 4.0 or dest.end.x < -4.0 or dest.position.y > proj.screen.y + 4.0 or dest.end.y < -4.0:
 		return Rect2()
 	var src := Rect2(float(col) * cell.x, float(row) * cell.y, cell.x, cell.y)
 	var tex: Texture2D = info[0]
 	batch.flush()
-	if flip:
-		# Godot flips in place: negative width keeps the rect position and only mirrors the texture
-		draw_texture_rect_region(tex, Rect2(dest.position.x, dest.position.y, -w, h), src, modulate)
-	else:
-		draw_texture_rect_region(tex, dest, src, modulate)
+	draw_texture_rect_region(tex, flipped_draw_rect(dest) if flip else dest, src, modulate)
 	return dest
 
 
@@ -1585,7 +1616,7 @@ func _draw_prop_info(k: int, it: Dictionary, pc: Array, p: Vector3, alpha: float
 	var info: Array = pc[1]
 	var scale := float(pc[2])
 	# props rendered for the right roadside (tag mirror_left) are mirrored on the left side
-	var flip := int(it.get("side", 1)) < 0 and (bool(it.get("mirror", false)) or bool(info[8]))
+	var flip := prop_flipped(int(it.get("side", 1)), bool(it.get("mirror", false)), bool(info[8]))
 	var mod := _modulate(k, light, alpha)
 	var tint: Color = pc[5]
 	if tint != Color.WHITE:

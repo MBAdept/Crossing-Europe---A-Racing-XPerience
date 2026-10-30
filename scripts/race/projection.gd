@@ -9,13 +9,15 @@ extends RefCounted
 ## camera_distance_m (behind the player car centre), horizon_y_frac, near_m.
 ## Where the player car ends up on screen: rear bottom edge at
 ##   y = horizon_y + camera_height_m * focal / (camera_distance_m - car_length / 2).
-## Owner: race module.
+## With the configured 3.4 m / 9.0 m (fov 84°, focal 711 px) the 4.85 m limousine's rear sits at
+## y ≈ 692, the car is about 200 px wide, and 1/3 of a 1.5 m high car is visible from a rear depth of
+## about 4.3 m (docs/renn-modul.md §3). Owner: race module.
 
 var screen := Vector2(1280, 720)
 var horizon_y := 324.0
 var focal := 711.0               ## pixels per metre at 1 m depth (derived from fov_deg)
-var cam_height := 2.55           ## camera height above the road at the player position (m)
-var cam_distance := 7.6          ## camera distance behind the player car centre (m)
+var cam_height := 3.4            ## camera height above the road at the player position (m)
+var cam_distance := 9.0          ## camera distance behind the player car centre (m)
 var near := 0.3                  ## nearest depth that is projected (m)
 
 
@@ -23,8 +25,8 @@ func setup(render_cfg: Dictionary, screen_size: Vector2) -> void:
 	screen = screen_size
 	horizon_y = screen.y * float(render_cfg.get("horizon_y_frac", 0.45))
 	focal = (screen.x * 0.5) / tan(deg_to_rad(float(render_cfg.get("fov_deg", 84.0))) * 0.5)
-	cam_height = float(render_cfg.get("camera_height_m", 2.55))
-	cam_distance = float(render_cfg.get("camera_distance_m", 7.6))
+	cam_height = float(render_cfg.get("camera_height_m", 3.4))
+	cam_distance = float(render_cfg.get("camera_distance_m", 9.0))
 	near = float(render_cfg.get("near_m", 0.3))
 
 

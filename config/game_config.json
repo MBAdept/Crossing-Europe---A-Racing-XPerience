@@ -250,7 +250,10 @@
 		"finish_decel_kmh_s": 35.0,
 		"finish_hold_s": 6.0,
 		"lod_detail_m": 260.0,
-		"procedural_props": "auto"
+		"procedural_props": "auto",
+		"_doc_session": "Rennsitzung: scripted_collision_min_kmh = in geskripteten Phasen (Anhalten für Polizei/Tankstelle, Auslaufen nach dem Ziel) kollidiert der Wagen mit Verkehr, solange er schneller fährt (beim Ausrollen mit leerem Tank immer); tutorial_hint_s = Anzeigedauer eines Tutorial-Hinweises (Etappe mit tutorial: true).",
+		"scripted_collision_min_kmh": 30.0,
+		"tutorial_hint_s": 6.0
 	},
 
 	"hud": {
