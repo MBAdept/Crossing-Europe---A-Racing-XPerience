@@ -69,7 +69,7 @@
 	},
 
 	"driving": {
-		"_doc": "Arcade-Fahrmodell ohne Physik-Engine (Details: docs/gameplay.md). Kein Übersteuern: zu schnell in der Kurve -> Untersteuern (nach außen drücken, proportional zur relativen Überschreitung der sicheren Kurvengeschwindigkeit, Lenkung greift schwächer). Unterhalb der sicheren Kurvengeschwindigkeit folgt der Wagen der Straße ohne Abdrift (base_centrifugal bleibt 0). Straßenrand: Bankett (shoulder) bremst auf max_speed_kmh; harte Grenze bei Fahrbahnrand + Bankett: Leitplanke (Geschwindigkeit * speed_factor_per_hit, Abprallen) oder ohne Leitplanke Gras (grass, stärker bremsen). Höchstgeschwindigkeit = vmax * Wetter * Nacht * Steigung (nur bergauf).",
+		"_doc": "Arcade-Fahrmodell ohne Physik-Engine (Details: docs/gameplay.md). Kein Übersteuern: zu schnell in der Kurve -> Untersteuern (nach außen drücken, proportional zur relativen Überschreitung der sicheren Kurvengeschwindigkeit, Lenkung greift schwächer). Unterhalb der sicheren Kurvengeschwindigkeit folgt der Wagen der Straße ohne Abdrift (base_centrifugal bleibt 0). Straßenrand: Bankett (shoulder) bremst auf max_speed_kmh; harte Grenze bei Fahrbahnrand + Bankett: Leitplanke (Geschwindigkeit * speed_factor_per_hit, Abprallen) oder ohne Leitplanke Gras (grass, stärker bremsen). Höchstgeschwindigkeit = vmax * Wetter * Nacht * Steigung (nur bergauf): Steigungen bis grade_free_percent kosten nichts, darüber grade_vmax_loss_per_percent je Prozentpunkt – so schafft auch das langsamste Auto (230) bei leicht verschlechterten Bedingungen (Regen + Nacht, Hügel bis Stufe 2 = 4,5 %) die 220 km/h für die Polizeiflucht.",
 		"brake_decel_kmh_s": 70.0,
 		"coast_decel_kmh_s": 5.0,
 		"steer_full_speed_kmh": 60.0,
@@ -82,6 +82,7 @@
 		},
 		"base_centrifugal": 0.0,
 		"grade_vmax_loss_per_percent": 0.012,
+		"grade_free_percent": 4.0,
 		"weather_vmax_factor": { "normal": 1.0, "rain": 0.975, "snow": 0.88 },
 		"night_vmax_factor": 0.99,
 		"weather_grip_factor": { "normal": 1.0, "rain": 0.88, "snow": 0.72 },
@@ -109,9 +110,9 @@
 	},
 
 	"traffic": {
-		"_doc": "Verkehr fährt nur in Fahrtrichtung auf festen Spuren. Dichte = base_density_per_km (Fahrzeuge je sichtbarem km) * hourly_density[Stunde] * Faktoren (Nacht, Verfolgung, City Limits, Abschnitt).",
+		"_doc": "Verkehr fährt nur in Fahrtrichtung auf festen Spuren. Dichte = base_density_per_km (Fahrzeuge je sichtbarem km) * hourly_density[Stunde] * Faktoren (Nacht, Verfolgung, City Limits, Abschnitt). Grundgeschwindigkeit laut Design je Straßentyp (speeds_kmh); Lkw/Busse fahren am langsamen Ende desselben Bereichs (truck_speeds_kmh muss innerhalb von speeds_kmh liegen).",
 		"speeds_kmh": { "autobahn": [110, 150], "landstrasse": [70, 100], "city": [40, 60] },
-		"truck_speeds_kmh": { "autobahn": [80, 90], "landstrasse": [60, 80], "city": [35, 50] },
+		"truck_speeds_kmh": { "autobahn": [110, 120], "landstrasse": [70, 80], "city": [40, 50] },
 		"base_density_per_km": { "autobahn": 14.0, "landstrasse": 9.0, "city": 8.0 },
 		"hourly_density": [0.22, 0.16, 0.13, 0.12, 0.14, 0.24, 0.50, 0.92, 1.0, 0.82, 0.68, 0.66, 0.70, 0.70, 0.72, 0.80, 0.95, 1.0, 0.98, 0.78, 0.58, 0.44, 0.34, 0.27],
 		"night": { "start_hour": 23.0, "end_hour": 4.0, "density_factor": 1.0, "speed_factor": 1.15 },
@@ -146,11 +147,18 @@
 		"spawn_min_gap_m": 30.0,
 		"cull_visible_fraction": 0.85,
 		"chase_flash_cull_m": 250.0,
-		"count_jitter_s": 8.0
+		"count_jitter_s": 8.0,
+		"_doc_side": "Keine rollenden Straßensperren: Ein Auto auf einer linken Spur prüft die Verkehrsautos auf der Spur rechts (side_window_behind_m hinten bis side_window_ahead_m vorn), die es nicht ohnehin um mindestens yield_speed_margin_kmh überholt. Will es mindestens so schnell fahren wie sie und kann es klar schneller sein, überholt es zügig: Wunschtempo + pass_boost_kmh (höchstens oberes Ende seines Tempobereichs). Sonst fällt es auf ihr Tempo minus yield_slowdown_kmh zurück und ordnet sich dahinter rechts ein (Rechtsfahrgebot + yield_keep_right_bonus_mps2, kein Ausweichen nach links). Der Spieler zählt nie (er regelt sein Tempo selbst). Neue Autos erscheinen nicht dort, wo sie sofort zurückfallen müssten. yield_slowdown_kmh 0 bzw. pass_boost_kmh 0 = aus.",
+		"yield_speed_margin_kmh": 6.0,
+		"yield_slowdown_kmh": 15.0,
+		"yield_keep_right_bonus_mps2": 1.0,
+		"pass_boost_kmh": 10.0,
+		"side_window_behind_m": 70.0,
+		"side_window_ahead_m": 40.0
 	},
 
 	"fuel": {
-		"_doc": "Verbrauch (L/100 km) = base + quad_coeff * v². Tankstellen alle 60–90 km rechts; Tankspur 1–2 km vor der Tankstelle; unter 60 km/h in der Spur startet das Tanken automatisch. Dauer = fix + 2 s je 5 L.",
+		"_doc": "Verbrauch (L/100 km) = base + quad_coeff * v². Tankstellen alle 60–90 km rechts; Tankspur 1–2 km vor der Tankstelle; unter 60 km/h in der Spur startet das Tanken automatisch. Dauer = fix + 2 s je 5 L. Ein frischer Gasstoß bricht das Tanken ab, aber erst wenn mindestens abort_min_fuel_l im Tank sind (mit leerem Tank ist Weiterfahren unmöglich). Ein leeres Auto in der Tankspur tankt immer (nie Abschleppen an der Zapfsäule).",
 		"base_l_per_100km": 14.0,
 		"quad_coeff": 0.00034,
 		"station_spacing_km": [60, 90],
@@ -170,6 +178,7 @@
 		"min_refuel_l": 1.0,
 		"abort_press_threshold": 0.5,
 		"abort_release_threshold": 0.15,
+		"abort_min_fuel_l": 1.0,
 		"announce_window_km": 1.5
 	},
 
@@ -185,14 +194,16 @@
 	},
 
 	"police": {
-		"_doc": "Verfolgung: Polizeiwagen startet start_gap_m (sichtbare Meter) hinter dem Spieler und fährt police_speed_kmh – der Abstand schrumpft, solange der Spieler langsamer ist. Flucht gelingt, wenn der Durchschnitt über escape_window_s mindestens escape_speed_kmh beträgt und die Verfolgung so lange lief. Erwischt (Abstand 0 oder catch_timeout_s): anhalten (stop_decel_kmh_s), stop_duration_s stehen, dann aus dem Stand weiter.",
+		"_doc": "Verfolgung: Polizeiwagen startet start_gap_m (sichtbare Meter) hinter dem Spieler und fährt police_speed_kmh – der Abstand schrumpft, solange der Spieler langsamer ist. Flucht gelingt, wenn der Durchschnitt über escape_window_s mindestens escape_speed_kmh beträgt und die Verfolgung so lange lief. Erwischt (Abstand 0 oder catch_timeout_s): anhalten (stop_decel_kmh_s), stop_duration_s stehen, dann aus dem Stand weiter. Hält ein anderes System den Wagen (Tanken, Abschleppen), wartet der Polizeistopp, bis es fertig ist. catch_timeout_s (nicht im Design) beendet Verfolgungen knapp unter 220 km/h; 60 s reichen, damit eine Verfolgung vom letzten Radar (Feldende >= 30 km vor den City Limits) bei 200–219 km/h in die City Limits hineinläuft. Darstellung (police_car_offset_m): während der Verfolgung bleibt der Polizeiwagen hinter der Kamera (mind. overtake_from_m hinter dem Spieler); beim Zugriff überholt er in overtake_s von overtake_from_m hinten bis pull_over_offset_m vorn (das Renn-Modul zeichnet ihn dabei eine Spur daneben).",
 		"escape_speed_kmh": 220.0,
 		"escape_window_s": 12.0,
 		"start_gap_m": 320.0,
-		"catch_timeout_s": 40.0,
+		"catch_timeout_s": 60.0,
 		"stop_duration_s": 10.0,
 		"stop_decel_kmh_s": 40.0,
 		"pull_over_offset_m": 12.0,
+		"overtake_s": 2.2,
+		"overtake_from_m": 16.0,
 		"police_speed_kmh": 220.0,
 		"max_gap_m": 600.0,
 		"gap_rate_factor": 1.0,

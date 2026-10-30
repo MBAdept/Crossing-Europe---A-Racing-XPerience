@@ -5,7 +5,8 @@ extends RefCounted
 ## Rules, decisions and tuning numbers: docs/gameplay.md.
 ##
 ## Rules (design document "Verkehr", "Kollisionen"):
-##  * base speed per road type (traffic.speeds_kmh); trucks slower (traffic.truck_speeds_kmh), right lanes
+##  * base speed per road type (traffic.speeds_kmh); trucks/buses at the slow end of that range
+##    (traffic.truck_speeds_kmh, inside the design ranges), right lanes
 ##  * density (cars per visible km) = traffic.base_density_per_km[road] * daily curve traffic.hourly_density
 ##    (peaks 7–9 and 16–19, minimum 1–5) * section factor * City Limits factor * chase factor
 ##  * night 23–4: 15 % faster (traffic.night.speed_factor), fewer cars (daily curve)
@@ -50,6 +51,11 @@ class Car:
 	var end_lane := -1000     ## cache of the distance to the end of the own lane
 	var end_abs := INF
 	var end_check_z := -INF
+	## Rolling-roadblock rule (TrafficSystem._side_plan), < 0 = inactive. yield_kmh: the car cannot pass an
+	## about equally fast car on its right decisively – it drops back to this speed and keeps right behind
+	## it. pass_kmh: it passes such cars decisively at this desired speed (at most the top of its range).
+	var yield_kmh := -1.0
+	var pass_kmh := -1.0
 
 
 const FUEL_LANE := 99
@@ -126,6 +132,12 @@ var _fuel_look_m := 420.0
 var _cull_frac := 0.7
 var _spawn_min_gap := 30.0
 var _brake_light := 1.0
+var _yield_margin := 6.0
+var _yield_slow := 15.0
+var _side_behind := 70.0
+var _side_ahead := 40.0
+var _yield_bonus := 1.0
+var _pass_boost := 10.0
 var _cam_distance := 6.6
 var _draw_distance := 900.0
 var _rear_visible := 0.3333
@@ -220,6 +232,12 @@ func _read_config() -> void:
 	_spawn_min_gap = _f("traffic.spawn_min_gap_m", 30.0)
 	_jitter_period = maxf(0.5, _f("traffic.count_jitter_s", 8.0))
 	_brake_light = _f("traffic.brake_light_decel_mps2", 1.0)
+	_yield_margin = _f("traffic.yield_speed_margin_kmh", 6.0)
+	_yield_slow = maxf(0.0, _f("traffic.yield_slowdown_kmh", 15.0))
+	_side_behind = _f("traffic.side_window_behind_m", 70.0)
+	_side_ahead = _f("traffic.side_window_ahead_m", 40.0)
+	_yield_bonus = _f("traffic.yield_keep_right_bonus_mps2", 1.0)
+	_pass_boost = maxf(0.0, _f("traffic.pass_boost_kmh", 10.0))
 	_cam_distance = _f("render.camera_distance_m", 6.6)
 	_draw_distance = _f("render.draw_distance_m", 900.0)
 	_rear_visible = _f("collision.rear_min_visible_fraction", 0.3333)
@@ -387,6 +405,7 @@ func _think(c: Car, dt: float) -> void:
 		return
 	c.lane_timer = _lc_interval * (0.75 + 0.5 * fposmod(float(c.id) * 0.618034, 1.0))
 	_update_fuel_plan(c, lanes)
+	_side_plan(c, lanes, road)
 	if c.lane_cooldown > 0.0 and not urgent:
 		return
 	if absf(c.x - _lane_x(c.z, c.lane)) > 0.35:
@@ -421,7 +440,8 @@ func _consider_lane_change(c: Car, lanes: int, road: String, urgent: bool) -> vo
 				mandatory = FUEL_LANE
 			elif cur < lanes - 1:
 				mandatory = cur + 1
-		if cur > 0 and not (c.heavy and lanes >= 3 and cur - 1 == 0):
+		# a yielding car wants to get back to the right – it does not dodge to the left (unless evading the player)
+		if cur > 0 and not (c.heavy and lanes >= 3 and cur - 1 == 0) and (c.yield_kmh < 0.0 or urgent):
 			cands.append(cur - 1)
 		if cur < lanes - 1:
 			cands.append(cur + 1)
@@ -446,6 +466,58 @@ func _consider_lane_change(c: Car, lanes: int, road: String, urgent: bool) -> vo
 			c.fuel_state = 2
 		c.lane = best_lane
 		c.lane_cooldown = _lc_cooldown
+		c.yield_kmh = -1.0
+		c.pass_kmh = -1.0
+
+
+## No rolling roadblocks (two cars of about the same speed side by side, or one just ahead of the other in
+## neighbouring lanes, block a road for minutes). A car in a left lane looks at the traffic cars in the lane to
+## its right between traffic.side_window_behind_m behind and traffic.side_window_ahead_m ahead that it is not
+## already clearly faster than (margin m = traffic.yield_speed_margin_kmh):
+##  * PASS decisively when they are at most m faster than it wants to go and it can be clearly (m) faster
+##    within its speed range: desired speed min(max(own cruise, their speed) + traffic.pass_boost_kmh, top of
+##    its range) (pass_kmh) – it overtakes them and keeps right once it is clear
+##  * otherwise (a clearly faster car comes up on the right, or it cannot be clearly faster) YIELD: drop back
+##    to their speed - traffic.yield_slowdown_kmh (never above its own cruise), let them pass and keep right
+##    behind them (MOBIL keep-right bias + traffic.yield_keep_right_bonus_mps2, no dodging to the left)
+## A faster car that is only held back by a slow car ahead in its own lane passes as soon as that one is
+## gone. The player never counts: he controls his own speed, and a car matching it would stay beside him and
+## block his overtaking lane.
+func _side_plan(c: Car, lanes: int, road: String) -> void:
+	c.yield_kmh = -1.0
+	c.pass_kmh = -1.0
+	if c.lane == FUEL_LANE or c.lane >= lanes - 1 or c.fuel_state == 1 or not _lane_usable(c, c.lane + 1):
+		return
+	var plan := _side_decision(c.z, c.lane, c.cruise_speed, c.heavy, road, c)
+	if plan.x > 0.0:
+		c.pass_kmh = plan.y
+	elif plan.x < 0.0:
+		c.yield_kmh = plan.y
+
+
+## Side decision for a car (cruise speed, heavy) at (z, lane) – see _side_plan: Vector2(1, desired speed) =
+## pass, Vector2(-1, speed to drop back to) = yield, Vector2.ZERO = nothing to do. `self_car` is skipped.
+func _side_decision(z: float, lane: int, cruise: float, heavy: bool, road: String, self_car: Car = null) -> Vector2:
+	var v_max := -1.0
+	var v_min := INF
+	for o in cars:
+		if o == self_car:
+			continue
+		var dz := o.z - z
+		if dz < -_side_behind or dz > _side_ahead:
+			continue
+		if o.speed + _yield_margin <= cruise or not _occupies(o, lane + 1):
+			continue   # clearly slower than this car wants to go: an ordinary overtake
+		v_max = maxf(v_max, o.speed)
+		v_min = minf(v_min, o.speed)
+	if v_max < 0.0:
+		return Vector2.ZERO
+	var top := maxf(cruise, _cruise_value(road, heavy, 1.0))
+	if _pass_boost > 0.0 and v_max <= cruise + _yield_margin and top >= v_max + _yield_margin:
+		return Vector2(1.0, minf(maxf(cruise, v_max) + _pass_boost, top))
+	if _yield_slow > 0.0:
+		return Vector2(-1.0, maxf(0.0, v_min - _yield_slow))   # below all of them, then keep right
+	return Vector2.ZERO
 
 
 ## MOBIL: advantage (m/s²) of moving to `lane`, -INF when unsafe or not allowed.
@@ -473,6 +545,8 @@ func _lane_gain(c: Car, lane: int, a_cur: float, road: String, mandatory: bool, 
 	if lane != FUEL_LANE and c.lane != FUEL_LANE:
 		var kr := float(_keep_right.get(road, 0.0))
 		gain += kr if lane > c.lane else -kr
+		if lane > c.lane and c.yield_kmh >= 0.0:
+			gain += _yield_bonus   # yielding: back to the right as soon as it is safe
 	if mandatory:
 		gain += 10.0
 	return gain
@@ -501,6 +575,10 @@ func _desired_speed(c: Car, lane: int) -> float:
 	if c == player_obstacle:
 		return c.cruise_speed
 	var v := c.cruise_speed
+	if lane == c.lane and c.yield_kmh >= 0.0:
+		v = minf(v, c.yield_kmh)   # not overtaking the car beside it: drop back, then keep right
+	elif c.pass_kmh >= 0.0 and (lane == c.lane or lane == c.lane + 1):
+		v = maxf(v, c.pass_kmh)    # passing decisively (also when judging the merge back to the right)
 	if lane == FUEL_LANE or c.in_fuel_lane:
 		v = minf(v, _fuel_speed)
 	elif c.fuel_state == 1:
@@ -911,6 +989,8 @@ func _try_spawn(z: float, frac: float, heavy_roll: float, lane_roll: float, set_
 			for o in cars:
 				if o.z > z and o.z - z < 220.0 and _occupies(o, lane):
 					speed = minf(speed, o.speed)
+		if lane < lanes - 1 and _side_decision(z, lane, cruise, heavy, road).x < 0.0:
+			continue   # would have to yield to an about equally fast car on its right at once
 		var c := Car.new()
 		c.id = _next_id
 		_next_id += 1
@@ -1049,16 +1129,23 @@ func _rear_min_visible() -> float:
 	return _rear_visible
 
 
-## Free lateral metres left/right of a car of half length half_len at (z, x), limited by the road edges.
+## Free lateral metres left/right of a car of half length half_len at (z, x), limited by the road edges
+## (pass the edges including the shoulder). Only cars BESIDE count: `exclude` (the car just hit) and every
+## car whose body covers x (in line, i.e. ahead of or behind the player, like the hit car of a centre hit)
+## are skipped – otherwise the hit car would block the side its centre happens to be on by a few cm, and the
+## centre-hit rule "side with more space, equal space -> left" could never apply.
 func space_beside(z: float, x: float, half_len: float, left_edge: float, right_edge: float, exclude: Object = null) -> Vector2:
 	var left := x - left_edge
 	var right := right_edge - x
 	for c in cars:
 		if c == exclude:
-			continue   # the car just hit does not block the side it is on (centre-hit rule)
-		if absf(c.z - z) < half_len + c.length * 0.5 + 1.0:
-			if c.x < x:
-				left = minf(left, x - c.x - c.width * 0.5)
-			else:
-				right = minf(right, c.x - x - c.width * 0.5)
+			continue
+		if absf(c.z - z) >= half_len + c.length * 0.5 + 1.0:
+			continue
+		if absf(c.x - x) < c.width * 0.5:
+			continue   # in line (ahead/behind): blocks neither side
+		if c.x < x:
+			left = minf(left, x - c.x - c.width * 0.5)
+		else:
+			right = minf(right, c.x - x - c.width * 0.5)
 	return Vector2(maxf(left, 0.0), maxf(right, 0.0))

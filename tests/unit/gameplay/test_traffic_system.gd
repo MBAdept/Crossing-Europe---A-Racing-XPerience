@@ -310,6 +310,198 @@ func test_space_beside() -> void:
 	assert_near(sp.x, 3.75 - 0.9, 0.001, "links begrenzt durch das Auto daneben")
 	assert_near(sp.y, 8.125, 0.001, "rechts bis zum Rand (Auto weit vorn zählt nicht)")
 	assert_true(far_car.z > 1050.0 and left_car.x < 0.0, "Testaufbau")
+	# a car in line (directly ahead, a few cm to either side) is not beside: it blocks neither side
+	var ahead := _car(ts, c, 3, 1004.5, 1, 60.0)
+	for off: float in [0.02, -0.02]:
+		ahead.x = off
+		var s2 := ts.space_beside(1000.0, 0.0, 2.3, -8.125, 8.125)
+		assert_near(s2.y, 8.125, 0.001, "Auto genau vorn (%+.2f m) sperrt rechts nicht" % off)
+		assert_near(s2.x, 3.75 - 0.9, 0.001, "links weiter nur das Auto daneben")
+	# a car offset by more than half its width is beside and blocks its side
+	ahead.x = 1.2
+	assert_near(ts.space_beside(1000.0, 0.0, 2.3, -8.125, 8.125).y, 1.2 - 0.9, 0.001, "versetzt: blockiert rechts")
+	assert_near(ts.space_beside(1000.0, 0.0, 2.3, -8.125, 8.125, ahead).y, 8.125, 0.001, "exclude: getroffenes Auto zählt nicht")
+
+
+## COLL-1 end to end (TrafficSystem + VehicleModel, the same calls as the race session): the player rear-ends
+## the car ahead in its own lane exactly from behind (a few cm offset either way). The push goes to the side
+## with more free road incl. shoulder and other cars beside – never decided by the cm offset – and equal space
+## (± collision.equal_space_tolerance_m) goes LEFT.
+func test_centre_hit_pushes_to_side_with_more_space() -> void:
+	var c := _empty_cfg()
+	# [lanes, road, player lane, player offset (m), car beside in lane (-1 = none), fuel lane open, expected]
+	var cases := [
+		[3, "autobahn", 2, 0.03, -1, false, -1],    # right lane: 11.9 m left vs 4.4 m right
+		[3, "autobahn", 2, -0.03, -1, false, -1],
+		[3, "autobahn", 0, 0.03, -1, false, 1],     # left lane: more space on the right
+		[3, "autobahn", 0, -0.03, -1, false, 1],
+		[3, "autobahn", 1, 0.03, -1, false, -1],    # middle lane: equal space -> left
+		[3, "autobahn", 1, -0.03, -1, false, -1],
+		[3, "autobahn", 1, -0.03, 0, false, 1],     # middle lane, car beside on the left -> right
+		[3, "autobahn", 1, 0.03, 2, false, -1],     # middle lane, car beside on the right -> left
+		[3, "autobahn", 2, 0.03, -1, true, -1],     # right lane next to an open fuel lane: 11.9 vs 8.1 -> left
+		[2, "landstrasse", 1, 0.03, -1, false, -1], # two lanes, right lane -> left
+		[2, "landstrasse", 0, -0.03, -1, false, 1], # two lanes, left lane -> right
+	]
+	for k in cases.size():
+		var cs: Array = cases[k]
+		for use_exclude: bool in [true, false]:
+			var track := FakeTrack.new(30000.0, str(cs[1]), int(cs[0]))
+			var pz := 1000.0
+			if bool(cs[5]):
+				track.add_fuel_lane(900.0, 1300.0)
+			var ts := _system(c, track)
+			ts.update(0.0, {"z": 0.0, "x": -60.0, "speed": 0.0}, {"hour": 12.0})
+			var lane := int(cs[2])
+			var hit_car := _car(ts, c, 1, pz + 15.0, lane, 60.0)
+			hit_car.lane_cooldown = 1000.0   # keep it in its lane (no lane changes during the test)
+			if int(cs[4]) >= 0:
+				var beside := _car(ts, c, 2, pz, int(cs[4]), 150.0)
+				beside.lane_cooldown = 1000.0
+			var v := Fx.vehicle(c, "limousine")
+			v.speed = 150.0
+			v.x = float(track.lane_center_x(pz, lane)) + float(cs[3])
+			var dir := 0
+			for i in 240:
+				v.update(DT, {"throttle": 1.0}, track.road_info(pz), {"vmax_factor": 1.0})
+				pz += v.speed / 3.6 * DT
+				ts.update(DT, {"z": pz, "x": v.x, "speed": v.speed}, {"hour": 12.0, "camera_z": pz - 9.0})
+				var hit := ts.find_collision({"z": pz, "x": v.x, "length": v.length_m, "width": v.width_m}, pz - 9.0, Callable())
+				if hit != null:
+					assert_eq(hit, hit_car, "Fall %d: das Auto vorn getroffen" % k)
+					assert_true(absf(v.x - hit.x) <= 0.25 * v.width_m, "Fall %d: Treffer mittig (dx %.3f)" % [k, v.x - hit.x])
+					var e: Vector2 = track.road_edges_at(pz)
+					var space := ts.space_beside(pz, v.x, v.length_m * 0.5, e.x - track.shoulder_w, e.y + track.shoulder_w, hit if use_exclude else null)
+					v.start_crash(hit.x, space.x, space.y)
+					dir = v.crash_dir
+					break
+			assert_eq(dir, int(cs[6]), "Fall %d (%d Spuren, Spur %d, Versatz %+.2f, daneben %d, Tankspur %s, exclude %s)" % [
+				k, int(cs[0]), lane, float(cs[3]), int(cs[4]), str(cs[5]), str(use_exclude)])
+
+
+## TRAF-2: two cars of almost the same speed side by side on a two-lane road must not form a rolling roadblock:
+## the one on the left passes decisively (or, if it cannot be clearly faster, drops back) and keeps right;
+## faster traffic gets through. Trucks: no "elephant race" either.
+func test_no_rolling_roadblock_side_by_side() -> void:
+	var c := _empty_cfg()
+	var track := FakeTrack.new(60000.0, "landstrasse", 2)
+	var ts := _system(c, track)
+	ts.update(0.0, {"z": 0.0, "x": -60.0, "speed": 0.0}, {"hour": 12.0})
+	var left := _car(ts, c, 1, 1005.0, 0, 74.0)
+	var right := _car(ts, c, 2, 1000.0, 1, 75.0)
+	var fast := _car(ts, c, 3, 860.0, 0, 95.0)
+	var side := 0.0
+	var t := 0.0
+	var through := -1.0
+	var overlaps := 0
+	while t < 90.0:
+		ts.update(DT, {"z": minf(fast.z, minf(left.z, right.z)) - 120.0, "x": -60.0, "speed": 0.0}, {"hour": 12.0})
+		t += DT
+		if left.lane != right.lane and absf(left.z - right.z) < 12.0:
+			side += DT
+		if through < 0.0 and fast.z > maxf(left.z, right.z) + 10.0:
+			through = t
+		for a in ts.cars:
+			for b in ts.cars:
+				if a.id < b.id and absf(a.x - b.x) < (a.width + b.width) * 0.5 - 0.1 and absf(a.z - b.z) < (a.length + b.length) * 0.5:
+					overlaps += 1
+	assert_true(side < 10.0, "nebeneinander nur kurz: %.1f s (vorher: die ganze Zeit)" % side)
+	assert_eq(left.lane, 1, "das linke Auto ordnet sich rechts ein")
+	assert_true(left.z > right.z, "es hat zügig überholt (statt neben ihm herzufahren)")
+	assert_true(through > 0.0 and through < 60.0, "schnellerer Verkehr kommt vorbei (nach %.1f s)" % through)
+	assert_eq(overlaps, 0, "keine Überlappungen")
+	# trucks: no "elephant race" in the middle lane of an autobahn
+	var c3 := _empty_cfg()
+	var track3 := FakeTrack.new(60000.0, "autobahn", 3)
+	var ts3 := _system(c3, track3)
+	ts3.update(0.0, {"z": 0.0, "x": -60.0, "speed": 0.0}, {"hour": 12.0})
+	var t1 := _car(ts3, c3, 1, 1010.0, 1, 114.0, true)
+	var t2 := _car(ts3, c3, 2, 1000.0, 2, 112.0, true)
+	var side3 := 0.0
+	var tt := 0.0
+	while tt < 90.0:
+		ts3.update(DT, {"z": minf(t1.z, t2.z) - 120.0, "x": -60.0, "speed": 0.0}, {"hour": 12.0})
+		tt += DT
+		if t1.lane != t2.lane and absf(t1.z - t2.z) < (t1.length + t2.length) * 0.5 + 6.0:
+			side3 += DT
+	assert_true(side3 < 25.0, "Lkw nebeneinander nur kurz: %.1f s" % side3)
+	assert_eq(t1.lane, 2, "Lkw ordnet sich wieder rechts ein")
+	# normal traffic on a two-lane road (without the rule this seed has a pair side by side for ~40 s)
+	var r := Sim.traffic_run(cfg(), FakeTrack.new(60000.0, "landstrasse", 2), 17.0, 90.0, 120.0, {"seed": 7})
+	assert_true(float(r["max_side_by_side_s"]) < 10.0, "Landstraße 17 Uhr: längstes Nebeneinander %.1f s" % float(r["max_side_by_side_s"]))
+	assert_eq(int(r["overlaps"]), 0, "keine Überlappungen")
+	assert_eq(int(r["pops_in"]) + int(r["pops_out"]), 0, "kein Auftauchen/Verschwinden im Bild")
+
+
+## TRAF-2, other branch: a car that cannot be clearly faster drops back and keeps right behind the other one
+## (trucks on a Landstraße, top 80 km/h), and nobody races a clearly faster car that comes up on the right.
+func test_side_rule_drops_back_when_it_cannot_pass() -> void:
+	var c := _empty_cfg()
+	var track := FakeTrack.new(60000.0, "landstrasse", 2)
+	var ts := _system(c, track)
+	ts.update(0.0, {"z": 0.0, "x": -60.0, "speed": 0.0}, {"hour": 12.0})
+	var a := _car(ts, c, 1, 1004.0, 0, 78.0, true)
+	var b := _car(ts, c, 2, 1000.0, 1, 76.0, true)
+	var top: Array = ConfigLoader.lookup(c, "traffic.truck_speeds_kmh.landstrasse", [70, 80])
+	var yielded := false
+	var max_a := 0.0
+	var side := 0.0
+	var t := 0.0
+	while t < 60.0:
+		ts.update(DT, {"z": minf(a.z, b.z) - 120.0, "x": -60.0, "speed": 0.0}, {"hour": 12.0})
+		t += DT
+		yielded = yielded or a.yield_kmh >= 0.0
+		max_a = maxf(max_a, a.speed)
+		if a.lane != b.lane and absf(a.z - b.z) < (a.length + b.length) * 0.5 + 6.0:
+			side += DT
+	assert_true(yielded, "Lkw kann nicht klar schneller sein -> fällt zurück")
+	assert_true(max_a <= float(top[1]) + 0.5, "kein Tempo über dem Lkw-Bereich (%.1f)" % max_a)
+	assert_eq(a.lane, 1, "ordnet sich rechts ein")
+	assert_true(a.z < b.z, "hinter dem anderen Lkw")
+	assert_true(side < 15.0, "nebeneinander nur kurz: %.1f s" % side)
+	# a clearly faster car comes up on the right: the car on the left lets it pass, no race
+	var ts2 := _system(c, track)
+	ts2.update(0.0, {"z": 0.0, "x": -60.0, "speed": 0.0}, {"hour": 12.0})
+	var slow := _car(ts2, c, 1, 1050.0, 0, 80.0)
+	var fast := _car(ts2, c, 2, 1000.0, 1, 98.0)
+	var max_slow := 0.0
+	t = 0.0
+	while t < 40.0:
+		ts2.update(DT, {"z": minf(slow.z, fast.z) - 120.0, "x": -60.0, "speed": 0.0}, {"hour": 12.0})
+		t += DT
+		max_slow = maxf(max_slow, slow.speed)
+	assert_true(max_slow <= 80.5, "kein Wettrennen mit dem schnelleren Auto (%.1f km/h)" % max_slow)
+	assert_true(fast.z > slow.z + 20.0, "das schnellere Auto ist vorbei")
+	assert_eq(slow.lane, 1, "danach rechts eingeordnet")
+
+
+## TRAF-1: every vehicle (cars and trucks/buses) cruises inside the design base-speed range of its road type
+## ("Autobahn 110–150, Landstraße 70–100, City Limits 40–60"), times the night factor.
+func test_truck_speeds_inside_design_ranges() -> void:
+	var c := cfg()
+	var cars: Dictionary = ConfigLoader.lookup(c, "traffic.speeds_kmh", {})
+	var trucks: Dictionary = ConfigLoader.lookup(c, "traffic.truck_speeds_kmh", {})
+	for road: String in ["autobahn", "landstrasse", "city"]:
+		var cr: Array = cars[road]
+		var tr_: Array = trucks[road]
+		assert_true(float(tr_[0]) >= float(cr[0]) and float(tr_[1]) <= float(cr[1]),
+			"%s: Lkw %s innerhalb von %s" % [road, str(tr_), str(cr)])
+	# many trucks (share 50 %) so that every road type sees plenty of them; day and night (+15 %)
+	var ch := Fx.config({"traffic": {"truck_share": {"autobahn": 0.5, "landstrasse": 0.5, "city": 0.5}}})
+	for spec: Array in [["autobahn", 3, 8.0], ["landstrasse", 2, 8.0], ["city", 2, 8.0], ["autobahn", 3, 23.5]]:
+		var road := str(spec[0])
+		var track := FakeTrack.new(40000.0, "landstrasse" if road == "city" else road, int(spec[1]))
+		if road == "city":
+			track.city_z = 0.0
+		var r := Sim.traffic_run(ch, track, float(spec[2]), 100.0 if road != "autobahn" else 160.0, 30.0)
+		var ts: TrafficSystem = r["system"]
+		var rng: Array = cars[road]
+		var f := ts.speed_factor(float(spec[2]))
+		var label := "%s %.1f Uhr" % [road, float(spec[2])]
+		assert_true(int(r["heavy_seen"]) >= 3, "%s: Lkw unterwegs (%d)" % [label, int(r["heavy_seen"])])
+		assert_between(float(r["min_cruise"]), float(rng[0]) * f - 0.01, float(rng[1]) * f + 0.01, label + ": langsamstes Wunschtempo")
+		assert_between(float(r["min_cruise_heavy"]), float(rng[0]) * f - 0.01, float(rng[1]) * f + 0.01, label + ": langsamster Lkw")
+		assert_between(float(r["max_cruise"]), float(rng[0]) * f - 0.01, float(rng[1]) * f + 0.01, label + ": schnellstes Wunschtempo")
 
 
 func test_dimensions_from_manifest() -> void:

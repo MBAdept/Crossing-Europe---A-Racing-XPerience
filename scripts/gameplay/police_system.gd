@@ -15,8 +15,17 @@ extends RefCounted
 ##  * caught: gap reaches 0 or police.catch_timeout_s passed -> STOPPING (control_request brakes the car to
 ##    a standstill) -> STOPPED for police.stop_duration_s ("Führerschein, bitte!") -> released, the car
 ##    starts from standstill. Effective loss about 15–20 s
+##  * while another system holds the car (set_blocked(true), e.g. refuelling or towing) the stop does not
+##    progress: STOPPING waits, STOPPED does not count down – a capture during refuelling is served
+##    after the refuel, so the stop always adds its full time
 ##  * during the chase traffic is reduced by 80 % (traffic_factor())
-##  * a chase can continue into the City Limits; no radar zones there (StagePlan guarantees that)
+##  * a chase can continue into the City Limits; no radar zones there (StagePlan guarantees that). The
+##    time limit police.catch_timeout_s (60 s, not in the design) is long enough for a chase that started in
+##    the last radar zone before the City Limits (zone end >= 30 km before them) to run into them at
+##    200–219 km/h
+##  * visuals (police_car_offset_m()): during the chase the police car stays behind the camera; on pull_over
+##    it overtakes from police.overtake_from_m behind to police.pull_over_offset_m in front within
+##    police.overtake_s (the race module draws it one lane beside the player while passing)
 
 enum State { IDLE, CHASE, STOPPING, STOPPED }
 
@@ -46,6 +55,10 @@ var flashes := 0                 ## radar flashes in this stage
 var chases := 0
 var escapes := 0
 var stops := 0
+## While true another system controls the car (refuelling, towing): the police stop does not progress
+## (STOPPING does not turn into STOPPED, STOPPED does not count down). See set_blocked().
+var blocked := false
+var overtake_time := 0.0         ## seconds since pull_over (overtaking animation of police_car_offset_m)
 
 var _warned: Dictionary = {}
 var _in_zone: Dictionary = {}
@@ -64,12 +77,14 @@ var _police_speed := 220.0
 var _start_gap := 320.0
 var _max_gap := 600.0
 var _gap_rate := 1.0
-var _catch_timeout := 40.0
+var _catch_timeout := 60.0
 var _stop_duration := 10.0
 var _stop_decel := 40.0
 var _pull_over := 12.0
 var _bar_range := 60.0
 var _chase_factor := 0.2
+var _overtake_s := 2.2
+var _overtake_from := 16.0
 
 
 func setup(config: Dictionary, stage_plan: StagePlan) -> void:
@@ -88,6 +103,8 @@ func setup(config: Dictionary, stage_plan: StagePlan) -> void:
 	chases = 0
 	escapes = 0
 	stops = 0
+	blocked = false
+	overtake_time = 0.0
 	_warned.clear()
 	_in_zone.clear()
 	_triggered.clear()
@@ -107,12 +124,14 @@ func _read_config() -> void:
 	_start_gap = _f("police.start_gap_m", 320.0)
 	_max_gap = _f("police.max_gap_m", 600.0)
 	_gap_rate = _f("police.gap_rate_factor", 1.0)
-	_catch_timeout = _f("police.catch_timeout_s", 40.0)
+	_catch_timeout = _f("police.catch_timeout_s", 60.0)
 	_stop_duration = _f("police.stop_duration_s", 10.0)
 	_stop_decel = _f("police.stop_decel_kmh_s", 40.0)
 	_pull_over = _f("police.pull_over_offset_m", 12.0)
 	_bar_range = maxf(1.0, _f("police.escape_bar_range_kmh", 60.0))
 	_chase_factor = _f("traffic.chase_density_factor", 0.2)
+	_overtake_s = maxf(0.05, _f("police.overtake_s", 2.2))
+	_overtake_from = maxf(0.0, _f("police.overtake_from_m", 16.0))
 
 
 ## Speed (km/h) from which a radar with this limit flashes: limit * (1 + radar.tolerance), 120 -> 138.
@@ -129,12 +148,17 @@ func update(dt: float, pos_km: float, speed_kmh: float) -> void:
 		State.CHASE:
 			_update_chase(dt, speed_kmh)
 		State.STOPPING:
-			if speed_kmh <= 0.5:
+			overtake_time += maxf(dt, 0.0)
+			# blocked (e.g. refuelling): the stop starts only when the car is free again
+			if speed_kmh <= 0.5 and not blocked:
 				state = State.STOPPED
 				stop_time_left = _stop_duration
 				stops += 1
 				caught.emit()
 		State.STOPPED:
+			overtake_time += maxf(dt, 0.0)
+			if blocked:
+				return  # the stop time is served after the other system releases the car
 			stop_time_left -= dt
 			if stop_time_left <= 0.0:
 				stop_time_left = 0.0
@@ -207,6 +231,7 @@ func _update_chase(dt: float, speed_kmh: float) -> void:
 	elif gap_m <= 0.0 or chase_time >= _catch_timeout:
 		gap_m = 0.0
 		state = State.STOPPING
+		overtake_time = 0.0
 		pull_over.emit()
 
 
@@ -239,11 +264,11 @@ func _push_sample(dt: float, v: float) -> void:
 		_head = 0
 
 
-## While blocked (another system – e.g. refuelling – controls the car) the police stop does not
-## progress: a capture during refuelling is served after the refuel. Called every frame by the session.
-var blocked := false
-
-
+## While blocked (another system – refuelling or towing, FuelSystem.holds_car() – controls the car) the
+## police stop does not progress: STOPPING waits for the car to be free before it turns into STOPPED
+## (`caught` = "Führerschein, bitte!"), and STOPPED does not count down. A capture during refuelling is
+## therefore served after the refuel and the stop always adds its full police.stop_duration_s. The chase
+## itself (gap, escape, catch) keeps running. Call it every frame before update().
 func set_blocked(is_blocked: bool) -> void:
 	blocked = is_blocked
 
@@ -264,15 +289,24 @@ func control_request() -> Dictionary:
 	return {}
 
 
-## Position of the police car relative to the player in visual metres (negative = behind).
-## NAN when no police car is around. Chase: -gap_m; stopping/stopped: +police.pull_over_offset_m (in front).
+## Position of the police car (centre) relative to the player's centre in visual metres (negative = behind).
+## NAN when no police car is around. Chase: -gap_m, but never closer than police.overtake_from_m (it stays
+## behind the camera, render.camera_distance_m = 9 m). Pull-over: in police.overtake_s it overtakes from
+## police.overtake_from_m behind to police.pull_over_offset_m in front (smoothstep: gentle start, fastest
+## while passing, gentle stop) and stays there while stopping/stopped – no pop-up in front of the player.
+## The drawing side places it one lane beside the player while it overlaps him (race module).
 func police_car_offset_m() -> float:
 	match state:
 		State.CHASE:
-			return -gap_m
+			return -maxf(gap_m, _overtake_from)
 		State.STOPPING, State.STOPPED:
-			return _pull_over
+			return lerpf(-_overtake_from, _pull_over, smoothstep(0.0, 1.0, overtake_time / _overtake_s))
 	return NAN
+
+
+## Addition: true while the police car is still overtaking (pull-over animation running).
+func overtaking() -> bool:
+	return (state == State.STOPPING or state == State.STOPPED) and overtake_time < _overtake_s
 
 
 ## Addition: 0..1 closeness of the police car for the siren volume (1 = right behind / stopping).
