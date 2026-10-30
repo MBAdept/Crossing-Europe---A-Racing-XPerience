@@ -254,7 +254,7 @@
 	},
 
 	"leaderboard": {
-		"_doc": "Bestenlisten pro Etappe (und Richtung) und pro Rennen. Einträge werden auch je Fahrzeugtyp gespeichert, damit sowohl eine gemeinsame als auch getrennte Ansicht möglich ist.",
+		"_doc": "Bestenlisten pro Etappe (und Richtung) und pro Rennen. Einträge werden auch je Fahrzeugtyp gespeichert (store_per_vehicle: je Typ die besten 'size'), damit sowohl eine gemeinsame als auch getrennte Ansicht möglich ist. seed_entries: nie beschriebene Listen bekommen 'size' Starteinträge (Namen aus seed_names, Schnitt in seed_avg_kmh) aus der Etappenlänge bzw. der kürzesten Rennroute.",
 		"size": 10,
 		"store_per_vehicle": true,
 		"default_filter": "all",
@@ -264,14 +264,16 @@
 	},
 
 	"routing": {
-		"_doc": "Routenwahl im Rennen: erlaubt sind Etappen, deren Umweg höchstens detour_tolerance (Anteil) über dem kürzesten Weg zum nächsten Pflichtziel liegt.",
+		"_doc": "Routenwahl im Rennen: erlaubt sind Etappen, deren Umweg höchstens detour_tolerance (Anteil) über dem kürzesten Weg zum nächsten Pflichtziel liegt (Städte des aktuellen Abschnitts gesperrt, Fähren zählen 0 km, races[].avoid_stages ausgenommen). Höchstens max_options Optionen, beste zuerst.",
 		"detour_tolerance": 0.35,
 		"max_options": 4
 	},
 
 	"stages": {
 		"core_length_km": [150, 300],
-		"split_above_km": 300
+		"split_above_km": 300,
+		"_doc": "Etappenlängen: Kernlänge laut Design 150–300 km, darüber bekommen Etappen eine Zwischenstation (Kiel – Nürnberg); im Königsrennen sind Etappen bis max_length_km erlaubt (natürliche kürzere Etappen ab ca. 90 km).",
+		"max_length_km": 400
 	},
 
 	"debug": {
