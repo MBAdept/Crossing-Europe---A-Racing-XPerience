@@ -240,6 +240,10 @@ def convert_stage(s):
 	st = {"id": s["id"], "from": s["from"], "to": s["to"], "length_km": r1(length), "roads": s["roads"]}
 	if s["doc"]:
 		st["description"] = s["doc"]
+	if s.get("tutorial"):
+		st["tutorial"] = True
+	if s.get("start_fuel") is not None:
+		st["start_fuel_fraction"] = s["start_fuel"]
 	st["sections"] = out_secs
 	st["fuel_stations_km"] = [r1(v) for v in stations]
 	st["radars"] = radars

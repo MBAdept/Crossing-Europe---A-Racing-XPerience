@@ -5,7 +5,7 @@ extends Node
 ##   accelerate                : Up, W, right trigger, gamepad A
 ##   brake                     : Down, S, left trigger, gamepad X
 ##   pause                     : Escape, P, gamepad Start
-## Menus use the built-in ui_* actions (Enter/Space = ui_accept, Escape = ui_cancel).
+## Menus use the built-in ui_* actions (Enter/Space/gamepad A = ui_accept, Escape/gamepad B = ui_cancel).
 
 const STEER_DEADZONE := 0.2
 const PEDAL_DEADZONE := 0.1
@@ -17,6 +17,9 @@ func _init() -> void:
 	_action("accelerate", PEDAL_DEADZONE, [_key(KEY_UP), _key(KEY_W), _axis(JOY_AXIS_TRIGGER_RIGHT, 1.0), _button(JOY_BUTTON_A)])
 	_action("brake", PEDAL_DEADZONE, [_key(KEY_DOWN), _key(KEY_S), _axis(JOY_AXIS_TRIGGER_LEFT, 1.0), _button(JOY_BUTTON_X)])
 	_action("pause", 0.5, [_key(KEY_ESCAPE), _key(KEY_P), _button(JOY_BUTTON_START)])
+	# Menus: Godot's built-in ui_accept/ui_cancel have no gamepad buttons – add A / B.
+	_action("ui_accept", 0.5, [_button(JOY_BUTTON_A)])
+	_action("ui_cancel", 0.5, [_button(JOY_BUTTON_B)])
 
 
 func _action(action_name: String, deadzone: float, events: Array) -> void:

@@ -80,7 +80,10 @@ func setup(config: Dictionary, vehicle_spec: Dictionary, stage_plan: StagePlan) 
 	_read_config()
 	tank_l = float(vehicle_spec.get("tank_l", ConfigLoader.lookup(config, "vehicles.base_tank_l", 50.0)))
 	consumption_factor = float(vehicle_spec.get("consumption_factor", 1.0))
-	fuel_l = tank_l * float(ConfigLoader.lookup(config, "fuel.start_fill_fraction", 1.0))
+	var fill := float(ConfigLoader.lookup(config, "fuel.start_fill_fraction", 1.0))
+	if stage_plan != null and stage_plan.start_fuel_fraction >= 0.0:
+		fill = stage_plan.start_fuel_fraction   # e.g. the tutorial starts with a partly filled tank
+	fuel_l = tank_l * fill
 	state = State.NORMAL
 	refuel_progress = 0.0
 	refuel_time_left = 0.0

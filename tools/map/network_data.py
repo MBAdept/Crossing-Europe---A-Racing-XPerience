@@ -29,9 +29,10 @@ def L(km, scenery, country, limit=DEF, c=2, h=1, t=1.0, name=""):
 			"country": country, "speed_limit": limit, "traffic": t, "name": name}
 
 
-def stage(sid, frm, to, km, roads, sections, radars=(), tunnels=(), fuel="normal", doc=""):
+def stage(sid, frm, to, km, roads, sections, radars=(), tunnels=(), fuel="normal", doc="", tutorial=False, start_fuel=None):
 	return {"id": sid, "from": frm, "to": to, "km": km, "roads": roads, "sections": list(sections),
-			"radars": list(radars), "tunnels": list(tunnels), "fuel": fuel, "doc": doc}
+			"radars": list(radars), "tunnels": list(tunnels), "fuel": fuel, "doc": doc,
+			"tutorial": tutorial, "start_fuel": start_fuel}
 
 
 # id, name (German), country, lat, lon, local name (signs/info; "" = same)
@@ -122,7 +123,8 @@ STAGES = [
 		A(15, "north_plain", "DE", 120, c=1, h=0, t=1.2, name="A7 Quickborn"),
 		A(20, "north_plain", "DE", 100, c=1, h=0, t=1.4, name="A7 Hamburg-Schnelsen"),
 	], radars=[(28, 120, "fwd"), (62, 120, "rev")], fuel="normal",
-		doc="Tutorial: einfache Autobahn, eine Tankstelle, ein Radar je Richtung."),
+		doc="Tutorial: einfache Autobahn, eine Tankstelle, ein Radar je Richtung. Start mit gut einem Drittel Tank – der Tankstopp gehört dazu.",
+		tutorial=True, start_fuel=0.35),
 	stage("hamburg_hannover", "hamburg", "hannover", 150, "A7", [
 		A(15, "north_plain", "DE", 80, c=1, h=0, t=1.5, name="A7 Elbtunnel – Hamburg-Süd"),
 		A(25, "heath", "DE", 120, c=1, h=1, t=1.2, name="A7 Harburger Berge"),

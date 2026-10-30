@@ -1050,10 +1050,12 @@ func _rear_min_visible() -> float:
 
 
 ## Free lateral metres left/right of a car of half length half_len at (z, x), limited by the road edges.
-func space_beside(z: float, x: float, half_len: float, left_edge: float, right_edge: float) -> Vector2:
+func space_beside(z: float, x: float, half_len: float, left_edge: float, right_edge: float, exclude: Object = null) -> Vector2:
 	var left := x - left_edge
 	var right := right_edge - x
 	for c in cars:
+		if c == exclude:
+			continue   # the car just hit does not block the side it is on (centre-hit rule)
 		if absf(c.z - z) < half_len + c.length * 0.5 + 1.0:
 			if c.x < x:
 				left = minf(left, x - c.x - c.width * 0.5)

@@ -41,6 +41,8 @@ var city_speed_limit := 50
 var climate := "default"       ## climate of the dominant country (weather picking)
 var countries_in_order: Array[String] = []
 var weather_hint := ""         ## optional fixed weather from the data ("weather" field)
+var tutorial := false          ## tutorial stage: the race session shows explanatory hints
+var start_fuel_fraction := -1.0  ## tank filling at the start (data "start_fuel_fraction"; -1 = config default)
 var roads := ""                ## road numbers for menus, e.g. "A215 · A7"
 var description := ""          ## optional stage description (German)
 var seed := 0
@@ -67,6 +69,8 @@ static func build(stage: Dictionary, from_city_id: String, cities: Dictionary, c
 	p.display_name = "%s – %s" % [p.from_name, p.to_name]
 	p.board_key = "stage:%s:%s" % [p.stage_id, "rev" if p.reversed else "fwd"]
 	p.weather_hint = str(stage.get("weather", ""))
+	p.tutorial = bool(stage.get("tutorial", false))
+	p.start_fuel_fraction = clampf(float(stage.get("start_fuel_fraction", -1.0)), -1.0, 1.0)
 	p.roads = str(stage.get("roads", ""))
 	p.description = str(stage.get("description", ""))
 	var base_seed := int(stage.get("seed", abs(hash(p.stage_id))))

@@ -57,7 +57,7 @@
 	],
 	"stages": [
 		{
-			"id": "kiel_hamburg", "from": "kiel", "to": "hamburg", "length_km": 95, "roads": "A215 · A7", "description": "Tutorial: einfache Autobahn, eine Tankstelle, ein Radar je Richtung.",
+			"id": "kiel_hamburg", "from": "kiel", "to": "hamburg", "length_km": 95, "roads": "A215 · A7", "description": "Tutorial: einfache Autobahn, eine Tankstelle, ein Radar je Richtung. Start mit gut einem Drittel Tank – der Tankstopp gehört dazu.", "tutorial": true, "start_fuel_fraction": 0.35,
 			"sections": [
 				{ "length_km": 12, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "north_plain", "country": "DE", "speed_limit": 120, "traffic": 1.0, "name": "A215 Kiel – Bordesholm" },
 				{ "length_km": 13, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "north_plain", "country": "DE", "speed_limit": null, "traffic": 0.9, "name": "A7 Bordesholm – Neumünster" },

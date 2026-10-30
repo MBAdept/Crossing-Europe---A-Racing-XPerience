@@ -1399,9 +1399,12 @@ func _prep_prop(it: Dictionary) -> Array:
 		if it.has("align"):
 			# "edge": x is the near edge of the object -> shift its anchor away from the road by the
 			# object's extent towards the road (extent_m of the manifest, else half its width)
+			# extent_m = [left, right] of the anchor in the unmirrored cell. The side facing the road is
+			# the object's left side on the right roadside and – mirrored – also on the left roadside.
 			var side := int(it.get("side", 1))
 			var ext: Vector2 = info[7]
-			x += float(side) * (ext.x if side > 0 else ext.y) * sc
+			var flipped := side < 0 and (bool(it.get("mirror", false)) or bool(info[8]))
+			x += float(side) * (ext.x if (side > 0 or flipped) else ext.y) * sc
 		res = [set_id, info, sc, x, "", Color(str(it["tint"])) if it.has("tint") else Color.WHITE]
 	it["_c"] = res
 	return res
@@ -1561,7 +1564,8 @@ func _sprite_i(info: Array, angle: String, layer: String, p: Vector3, scale: flo
 	var tex: Texture2D = info[0]
 	batch.flush()
 	if flip:
-		draw_texture_rect_region(tex, Rect2(dest.position.x + w, dest.position.y, -w, h), src, modulate)
+		# Godot flips in place: negative width keeps the rect position and only mirrors the texture
+		draw_texture_rect_region(tex, Rect2(dest.position.x, dest.position.y, -w, h), src, modulate)
 	else:
 		draw_texture_rect_region(tex, dest, src, modulate)
 	return dest

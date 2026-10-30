@@ -239,6 +239,15 @@ func _push_sample(dt: float, v: float) -> void:
 		_head = 0
 
 
+## While blocked (another system – e.g. refuelling – controls the car) the police stop does not
+## progress: a capture during refuelling is served after the refuel. Called every frame by the session.
+var blocked := false
+
+
+func set_blocked(is_blocked: bool) -> void:
+	blocked = is_blocked
+
+
 func chase_active() -> bool:
 	return state == State.CHASE or state == State.STOPPING
 
