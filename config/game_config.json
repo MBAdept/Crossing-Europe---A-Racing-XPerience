@@ -65,7 +65,7 @@
 	},
 
 	"driving": {
-		"_doc": "Arcade-Fahrmodell ohne Physik-Engine. Kein Übersteuern: zu schnell in der Kurve -> Untersteuern (nach außen drücken, Lenkung greift schwächer).",
+		"_doc": "Arcade-Fahrmodell ohne Physik-Engine (Details: docs/gameplay.md). Kein Übersteuern: zu schnell in der Kurve -> Untersteuern (nach außen drücken, proportional zur relativen Überschreitung der sicheren Kurvengeschwindigkeit, Lenkung greift schwächer). Unterhalb der sicheren Kurvengeschwindigkeit folgt der Wagen der Straße ohne Abdrift (base_centrifugal bleibt 0). Straßenrand: Bankett (shoulder) bremst auf max_speed_kmh; harte Grenze bei Fahrbahnrand + Bankett: Leitplanke (Geschwindigkeit * speed_factor_per_hit, Abprallen) oder ohne Leitplanke Gras (grass, stärker bremsen). Höchstgeschwindigkeit = vmax * Wetter * Nacht * Steigung (nur bergauf).",
 		"brake_decel_kmh_s": 70.0,
 		"coast_decel_kmh_s": 5.0,
 		"steer_full_speed_kmh": 60.0,
@@ -73,35 +73,43 @@
 		"understeer": {
 			"push_mps_per_excess": 14.0,
 			"steer_loss_per_excess": 1.6,
-			"min_steer_factor": 0.25
+			"min_steer_factor": 0.25,
+			"full_excess": 0.4
 		},
 		"base_centrifugal": 0.0,
 		"grade_vmax_loss_per_percent": 0.012,
 		"weather_vmax_factor": { "normal": 1.0, "rain": 0.975, "snow": 0.88 },
-		"night_vmax_factor": 0.985,
+		"night_vmax_factor": 0.99,
 		"weather_grip_factor": { "normal": 1.0, "rain": 0.88, "snow": 0.72 },
-		"shoulder": { "max_speed_kmh": 90.0, "decel_kmh_s": 35.0 },
-		"guardrail": { "speed_factor_per_hit": 0.9, "bounce_mps": 1.5 }
+		"shoulder": { "max_speed_kmh": 90.0, "decel_kmh_s": 35.0, "tolerance_m": 0.5 },
+		"guardrail": { "speed_factor_per_hit": 0.9, "bounce_mps": 1.5, "hit_cooldown_s": 0.6, "scrape_decel_kmh_s": 20.0 },
+		"overspeed_decel_kmh_s": 12.0,
+		"grade_min_factor": 0.5,
+		"grass": { "max_speed_kmh": 40.0, "decel_kmh_s": 60.0 },
+		"auto_steer_mps": 3.0
 	},
 
 	"collision": {
-		"_doc": "Kollision mit Verkehr: in slowdown_s auf target_speed_kmh abbremsen, dabei seitlich schieben. Endpunkt push_extra_s nach Erreichen von target_speed. Währenddessen unverwundbar und blinkend.",
+		"_doc": "Kollision mit Verkehr: in slowdown_s auf target_speed_kmh abbremsen (Verlauf (1-t)^slowdown_exp: am Anfang am stärksten), dabei seitlich push_distance_m schieben. Endpunkt push_extra_s nach Erreichen von target_speed, erst dann wieder Gas. Währenddessen und invulnerable_grace_s danach unverwundbar und blinkend. Treffer mittig (|dx| <= center_hit_fraction * Breite) -> Seite mit mehr Platz, gleich viel Platz (± equal_space_tolerance_m) -> links.",
 		"target_speed_kmh": 10.0,
 		"slowdown_s": 3.0,
-		"push_extra_s": 0.4,
+		"push_extra_s": 0.5,
 		"push_distance_m": 3.0,
 		"center_hit_fraction": 0.25,
 		"blink_hz": 8.0,
-		"invulnerable_grace_s": 0.0,
-		"rear_min_visible_fraction": 0.3333
+		"invulnerable_grace_s": 0.75,
+		"rear_min_visible_fraction": 0.3333,
+		"slowdown_exp": 2.0,
+		"equal_space_tolerance_m": 0.25,
+		"hitbox_scale": 0.95
 	},
 
 	"traffic": {
 		"_doc": "Verkehr fährt nur in Fahrtrichtung auf festen Spuren. Dichte = base_density_per_km (Fahrzeuge je sichtbarem km) * hourly_density[Stunde] * Faktoren (Nacht, Verfolgung, City Limits, Abschnitt).",
 		"speeds_kmh": { "autobahn": [110, 150], "landstrasse": [70, 100], "city": [40, 60] },
 		"truck_speeds_kmh": { "autobahn": [80, 90], "landstrasse": [60, 80], "city": [35, 50] },
-		"base_density_per_km": { "autobahn": 9.0, "landstrasse": 6.0, "city": 9.0 },
-		"hourly_density": [0.10, 0.07, 0.05, 0.05, 0.06, 0.15, 0.45, 0.95, 1.0, 0.80, 0.65, 0.65, 0.70, 0.70, 0.72, 0.80, 0.95, 1.0, 1.0, 0.75, 0.55, 0.40, 0.28, 0.18],
+		"base_density_per_km": { "autobahn": 14.0, "landstrasse": 9.0, "city": 8.0 },
+		"hourly_density": [0.22, 0.16, 0.13, 0.12, 0.14, 0.24, 0.50, 0.92, 1.0, 0.82, 0.68, 0.66, 0.70, 0.70, 0.72, 0.80, 0.95, 1.0, 0.98, 0.78, 0.58, 0.44, 0.34, 0.27],
 		"night": { "start_hour": 23.0, "end_hour": 4.0, "density_factor": 1.0, "speed_factor": 1.15 },
 		"chase_density_factor": 0.2,
 		"truck_share": { "autobahn": 0.22, "landstrasse": 0.12, "city": 0.06 },
@@ -113,7 +121,28 @@
 		"despawn_behind_m": 220.0,
 		"min_gap_m": 14.0,
 		"follow_time_s": 1.2,
-		"lane_change_mps": 2.5
+		"lane_change_mps": 2.5,
+		"_doc_driving": "Fahrverhalten: Intelligent Driver Model (accel_mps2, comfort_decel_mps2, max_decel_mps2, min_gap_m, follow_time_s) und MOBIL-Spurwechsel (lane_change_*, politeness, keep_right_bias_mps2 je Straßentyp). Neue Autos erscheinen außerhalb der Sicht (vorn ab spawn_ahead_m, hinten nur schnellere als der Spieler) und verschwinden nur außer Sicht (zu viele Autos: hinter der Kamera oder jenseits cull_visible_fraction der Sichtweite).",
+		"accel_mps2": 1.6,
+		"truck_accel_mps2": 0.7,
+		"comfort_decel_mps2": 2.5,
+		"max_decel_mps2": 8.0,
+		"brake_light_decel_mps2": 0.6,
+		"lane_change_safe_decel_mps2": 3.0,
+		"lane_change_threshold_mps2": 0.2,
+		"truck_lane_change_threshold_mps2": 0.6,
+		"lane_change_min_gap_m": 6.0,
+		"lane_change_cooldown_s": 2.5,
+		"lane_change_interval_s": 0.3,
+		"politeness": 0.3,
+		"keep_right_bias_mps2": { "autobahn": 0.3, "landstrasse": 0.3, "city": 0.0 },
+		"merge_lookahead_s": 6.0,
+		"fuel_lane_lookahead_m": 420.0,
+		"despawn_ahead_margin_m": 250.0,
+		"spawn_min_gap_m": 30.0,
+		"cull_visible_fraction": 0.85,
+		"chase_flash_cull_m": 250.0,
+		"count_jitter_s": 8.0
 	},
 
 	"fuel": {
@@ -130,30 +159,40 @@
 		"stop_decel_kmh_s": 50.0,
 		"start_fill_fraction": 1.0,
 		"reserve_warning_l": 8.0,
-		"tow_penalty_s": 120.0,
+		"tow_penalty_s": 90.0,
 		"tow_refill_fraction": 0.5,
-		"tow_overlay_s": 4.0
+		"tow_overlay_s": 4.0,
+		"dry_coast_decel_kmh_s": 18.0,
+		"min_refuel_l": 1.0,
+		"abort_press_threshold": 0.5,
+		"abort_release_threshold": 0.15,
+		"announce_window_km": 1.5
 	},
 
 	"radar": {
-		"_doc": "Warnung warning_km vorher mit Tempolimit; Auslösefeld zone_length_km lang; Toleranz 15 %. In den letzten no_radar_before_city_km vor den City Limits gibt es kein Radar.",
+		"_doc": "Warnung warning_km vorher mit Tempolimit; Auslösefeld zone_length_km lang; Toleranz 15 %: löst ab limit * (1 + tolerance) aus (120 -> 138). In den letzten no_radar_before_city_km vor den City Limits gibt es kein Radar.",
 		"warning_km": 10.0,
 		"zone_length_km": 5.0,
 		"tolerance": 0.15,
 		"no_radar_before_city_km": 30.0,
 		"default_limit_kmh": 120,
-		"flash_s": 0.3
+		"flash_s": 0.3,
+		"warning_window_km": 1.5
 	},
 
 	"police": {
-		"_doc": "Flucht gelingt, wenn der Durchschnitt über escape_window_s mindestens escape_speed_kmh beträgt. Erwischt: anhalten, stop_duration_s stehen, dann aus dem Stand weiter.",
+		"_doc": "Verfolgung: Polizeiwagen startet start_gap_m (sichtbare Meter) hinter dem Spieler und fährt police_speed_kmh – der Abstand schrumpft, solange der Spieler langsamer ist. Flucht gelingt, wenn der Durchschnitt über escape_window_s mindestens escape_speed_kmh beträgt und die Verfolgung so lange lief. Erwischt (Abstand 0 oder catch_timeout_s): anhalten (stop_decel_kmh_s), stop_duration_s stehen, dann aus dem Stand weiter.",
 		"escape_speed_kmh": 220.0,
 		"escape_window_s": 12.0,
 		"start_gap_m": 320.0,
 		"catch_timeout_s": 40.0,
 		"stop_duration_s": 10.0,
 		"stop_decel_kmh_s": 40.0,
-		"pull_over_offset_m": 12.0
+		"pull_over_offset_m": 12.0,
+		"police_speed_kmh": 220.0,
+		"max_gap_m": 600.0,
+		"gap_rate_factor": 1.0,
+		"escape_bar_range_kmh": 60.0
 	},
 
 	"city_limits": {
