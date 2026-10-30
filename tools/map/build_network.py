@@ -9,7 +9,10 @@ What it does:
   * places fuel stations every 60–90 km (deterministic, clear of tunnels, radar zones and borders),
   * derives explicit border entries from country changes between sections,
   * checks the StagePlan rules for BOTH driving directions (fuel/radar distances, section sums, …),
+  * checks that the landscape (scenery) changes at every border and that borders lie outside the City Limits,
   * replays the routing of GameData.next_options (Dijkstra + detour tolerance) and prints all race routes,
+  * checks the stage lengths of tours ("tour": true, the Königsrennen): a way between two consecutive waypoints
+    that needs several stages is split into stages of stages.split_length_km (200–400 km),
   * keeps existing "map_pos" values (they are written by tools/map/build_map.mjs from "latlon"),
   * rewrites the generated block in docs/daten.md (between the NETZ markers).
 The committed data/network.json is the source of truth for the game; the Godot tests re-check everything.
@@ -60,8 +63,11 @@ RADAR_ZONE = float(CFG["radar"]["zone_length_km"])
 NO_RADAR = float(CFG["radar"]["no_radar_before_city_km"])
 TOLERANCE = float(CFG["routing"]["detour_tolerance"])
 MAX_OPTIONS = int(CFG["routing"]["max_options"])
+SPLIT_KM = [float(v) for v in CFG["stages"].get("split_length_km", [200, 400])]
+BORDER_MARGIN = float(CFG["stages"].get("border_min_before_city_km", 5.0))
 EDGE_MIN = LAST_STATION + 1.0     # stations keep this distance to both ends (both directions)
 RADAR_MIN = CITY_LEN + NO_RADAR   # radar zones end at least this far before the finish (50 km)
+BORDER_EDGE = CITY_LEN + BORDER_MARGIN  # borders lie at least this far from both ends (25 km)
 
 
 def r1(v):
@@ -211,6 +217,20 @@ def check_stage(s, secs, length, stations):
 		if tk < last_end:
 			err("%s: Tunnel überlappen sich" % sid)
 		last_end = tk + tl
+	# borders: new country = new landscape (design: "Wechsel von Schildern, Landschaft und Polizeifahrzeugen").
+	# Inside the City Limits both sides would show the "city" scenery, so borders stay outside them (both
+	# directions) with a margin in which the new landscape is visible.
+	for i in range(1, len(secs)):
+		a, b = secs[i - 1], secs[i]
+		if a["country"] == b["country"]:
+			continue
+		km = a["end"]
+		if a["scenery"] == b["scenery"]:
+			err("%s: Grenze %s → %s bei km %.1f ohne Landschaftswechsel (beide Seiten %s)" % (
+				sid, a["country"], b["country"], km, a["scenery"]))
+		if km < BORDER_EDGE - 1e-6 or km > length - BORDER_EDGE + 1e-6:
+			err("%s: Grenze bei km %.1f liegt weniger als %.0f km vor den City Limits (einer Richtung)" % (
+				sid, km, BORDER_MARGIN))
 
 
 def convert_stage(s):
@@ -331,6 +351,53 @@ def race_routes(adj, race, limit=64):
 	rec(race["start"], 0, [race["start"]], [race["start"]], [], 0.0)
 	routes.sort(key=lambda r: r[0])
 	return routes, choices
+
+
+def target_segments(race, legs):
+	"""Splits the legs of a route into the ways between consecutive targets (start → waypoint → … → finish)."""
+	targets = race["waypoints"] + [race["finish"]]
+	idx = 0
+	seg = []
+	out = []
+	for leg in legs:
+		seg.append(leg)
+		if idx < len(targets) and targets[idx] == leg[3]:
+			while idx < len(targets) and targets[idx] == leg[3]:
+				idx += 1
+			out.append(seg)
+			seg = []
+	if seg:
+		out.append(seg)
+	return out
+
+
+def split_violations(race, routes):
+	"""Tours ("tour": true, the Königsrennen): a way between two consecutive targets that consists of several
+	stages must use stages of SPLIT_KM (200–400 km); a single natural stage may be shorter."""
+	if not race.get("tour"):
+		return []
+	out = set()
+	for (_km, _cs, legs) in routes:
+		for seg in target_segments(race, legs):
+			stages = [l for l in seg if l[0] == "stage"]
+			if len(stages) < 2:
+				continue
+			for (_kind, lid, a, b, length) in stages:
+				if not (SPLIT_KM[0] - 1e-6 <= length <= SPLIT_KM[1] + 1e-6):
+					out.add("%s: Etappe %s (%s – %s, %.0f km) teilt den Abschnitt %s – %s, Soll %.0f–%.0f km" % (
+						race["id"], lid, a, b, length, seg[0][2], seg[-1][3], SPLIT_KM[0], SPLIT_KM[1]))
+	return sorted(out)
+
+
+def natural_short_stages(race, routes):
+	"""(stage id, from, to, km) of single-stage target-to-target ways shorter than SPLIT_KM[0]."""
+	out = []
+	for (_km, _cs, legs) in routes:
+		for seg in target_segments(race, legs):
+			stages = [l for l in seg if l[0] == "stage"]
+			if len(stages) == 1 and stages[0][4] < SPLIT_KM[0] and stages[0][1] not in [o[0] for o in out]:
+				out.append((stages[0][1], stages[0][2], stages[0][3], stages[0][4]))
+	return out
 
 
 # --------------------------------------------------------------------------------------------- JSON
@@ -464,6 +531,14 @@ def doc_block(cities, stages, ferries, races, route_info):
 		if choices:
 			out.append("- Wahlpunkte: " + "; ".join("%s → %s" % (cname[c], " / ".join(cname[t] for t in opts))
 				for (c, _i), opts in choices.items()))
+		if r.get("tour"):
+			lens = [l[4] for x in routes for l in x[2] if l[0] == "stage"]
+			short = natural_short_stages(r, routes)
+			out.append("- Etappenlängen %s–%s km. Abschnitte zwischen zwei Pflichtstationen, die mehrere Etappen "
+				"brauchen, sind in Etappen von %d–%d km geteilt; kürzer sind nur natürliche Etappen zwischen zwei "
+				"aufeinanderfolgenden Pflichtstationen: %s" % (
+					r1(min(lens)), r1(max(lens)), SPLIT_KM[0], SPLIT_KM[1],
+					", ".join("%s – %s (%s km)" % (cname[a], cname[b], r1(km)) for (_id, a, b, km) in short) or "keine"))
 		out.append("")
 	out.append("### Etappen\n")
 	out.append("Radar = Radarfallen vorwärts/rückwärts, Tank = Tankstellen, Verkehr = längengewichteter Faktor, "
@@ -478,6 +553,24 @@ def doc_block(cities, stages, ferries, races, route_info):
 		out.append("| %s (`%s`) | %s | %s | %s | %s / %s | %d/%d | %d | %s | %s |" % (
 			sname[st["id"]], st["id"], st.get("roads", ""), str(st["length_km"]).replace(".", ","), " → ".join(countries),
 			r1(auto), r1(free), rf, rr, len(st["fuel_stations_km"]), tunnels, de_num(traffic)))
+	out.append("")
+	out.append("### Grenzübergänge\n")
+	out.append("An jeder Grenze wechselt die Landschaft (Szenerie-ID des Abschnitts, ARCHITECTURE.md §4.1); die Grenze "
+			   "liegt in beiden Richtungen mindestens %.0f km vor den City Limits. km ab `from`.\n" % BORDER_MARGIN)
+	out.append("| Etappe | km | Grenze | Landschaft | Abschnitte |")
+	out.append("|---|---|---|---|---|")
+	for st in stages:
+		if st.get("dev"):
+			continue
+		km = 0.0
+		secs = st["sections"]
+		for i, sec in enumerate(secs):
+			if i > 0 and sec["country"] != secs[i - 1]["country"]:
+				p = secs[i - 1]
+				out.append("| %s | %s | %s → %s | `%s` → `%s` | %s / %s |" % (
+					sname[st["id"]], str(r1(km)).replace(".", ","), p["country"], sec["country"], p["scenery"],
+					sec["scenery"], p.get("name", ""), sec.get("name", "")))
+			km += sec["length_km"]
 	out.append("")
 	out.append("Fähren: " + "; ".join("%s (`%s`, %d s Rennzeit, %d h Weltzeit)" % (
 		f["name"], f["id"], f["fixed_time_s"], f["world_hours"]) for f in ferries))
@@ -554,6 +647,8 @@ def main():
 		routes, choices = race_routes(adj, r)
 		if not routes:
 			err("Rennen %s ist nicht fahrbar" % r["id"])
+		for msg in split_violations(r, routes):
+			err(msg)
 		route_info[r["id"]] = (routes, choices)
 		print("== %s: %d Route(n)" % (r["name"], len(routes)))
 		for (km, cs, legs) in routes:

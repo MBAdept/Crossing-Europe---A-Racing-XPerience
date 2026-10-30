@@ -5,10 +5,10 @@ extends RefCounted
 ## and ferries, route options of a race within the detour tolerance, summaries for menus and validation.
 ## Owner: data module. See docs/daten.md for the routing rules.
 ##
-## Races: {id, name, start, finish, waypoints[], avoid_stages[]?, description, dev?}. The race is a chain of
+## Races: {id, name, start, finish, waypoints[], avoid_stages[]?, tour?, description, dev?}. The race is a chain of
 ## legs start → waypoints[0] → … → finish. `waypoint_index` = index of the next target in
 ## race_targets() (= waypoints + [finish]); waypoints.size() means "heading for the finish".
-## Within a leg no city may be visited twice; between legs cities may repeat (Königsrennen: Niš, Belgrad).
+## Within a leg no city may be visited twice; between legs cities may repeat (Königsrennen: Belgrad).
 
 const SCENERY_IDS: Array[String] = ["north_plain", "heath", "forest_hills", "rhine_main", "industrial", "polder",
 	"ardennes", "farmland_fr", "loire", "pyrenees", "meseta", "mediterranean", "alps", "lombardy", "karst",
@@ -31,6 +31,7 @@ var load_warnings: Array[String] = []   ## problems found while reading the file
 
 var _adj: Dictionary = {}               ## city id -> Array of leg dictionaries (both directions)
 var _route_cache: Dictionary = {}       ## race id -> {routes, choices}
+var _summary_cache: Dictionary = {}     ## "stage_id|from_city" -> StagePlan.summary() (read only)
 
 
 ## Reads the network dictionary (data/network.json). country_data = data/countries.json["countries"].
@@ -43,6 +44,7 @@ func setup(network: Dictionary, country_data: Dictionary, config: Dictionary, ma
 	race_order = []
 	load_warnings = []
 	_route_cache = {}
+	_summary_cache = {}
 	countries = country_data
 	cfg = config
 	map_data = map
@@ -260,7 +262,26 @@ func _avoid_set(race: Dictionary) -> Dictionary:
 ## the best option; at most routing.max_options, best first. Without a known race: all unvisited connections.
 ## Extra fields: remaining_km, total_km, detour (fraction), best, target, target_index, via (cities after
 ## this leg up to the target on the shortest continuation), name, board_key (stages).
+## The whole route to the next target (the first leg alone often hides the trade-off of a route choice):
+##   continuation  – legs after this one on the shortest rest, in driving order:
+##                   [{kind, id, from, to, length_km, name, board_key (stages), ferry fields}]
+##   route_km      – length of leg + continuation (= total_km)
+##   route_cities  – [current_city, to, …, target]
+##   route_summary – legs_summary() of leg + continuation: the keys of StagePlan.summary() (length_km,
+##                   autobahn_km, unlimited_km, landstrasse_km, radars, stations, tunnels, tunnel_km, borders,
+##                   traffic/hills/curviness length-weighted, max_hills, countries) plus cities, stages,
+##                   ferries, ferry_time_s – summed over the whole route to the target
+##   via_distinct  – cities of this route (without current city and target) that no other offered option
+##                   passes, e.g. ["hannover", "kassel"] vs ["bremen", "dortmund", "frankfurt"] in Hamburg
+## Without a race the details describe the single leg (continuation []).
 func next_options(race_id: String, current_city: String, waypoint_index: int, visited: Array) -> Array[Dictionary]:
+	var out := _race_options(race_id, current_city, waypoint_index, visited)
+	_add_route_details(out, current_city)
+	return out
+
+
+## next_options() without the route details (used to enumerate all routes of a race).
+func _race_options(race_id: String, current_city: String, waypoint_index: int, visited: Array) -> Array[Dictionary]:
 	var race: Dictionary = races.get(race_id, {})
 	if race.is_empty():
 		var free: Array[Dictionary] = []
@@ -290,6 +311,7 @@ func next_options(race_id: String, current_city: String, waypoint_index: int, vi
 		o["remaining_km"] = float(rest["km"])
 		o["total_km"] = float(leg["length_km"]) + float(rest["km"])
 		o["via"] = (rest["cities"] as Array).slice(1)
+		o["continuation"] = rest["legs"]
 		o["target"] = target
 		o["target_index"] = idx
 		opts.append(o)
@@ -317,6 +339,131 @@ static func _option_before(a: Dictionary, b: Dictionary) -> bool:
 	if absf(float(a["total_km"]) - float(b["total_km"])) > 0.001:
 		return float(a["total_km"]) < float(b["total_km"])
 	return str(a["id"]) < str(b["id"])
+
+
+## Adds continuation (with names/board keys), route_km, route_cities, route_summary and via_distinct.
+func _add_route_details(opts: Array[Dictionary], current_city: String) -> void:
+	for o in opts:
+		var cont: Array[Dictionary] = []
+		for l in o.get("continuation", []):
+			var c: Dictionary = (l as Dictionary).duplicate()
+			c["name"] = leg_name(c)
+			if str(c.get("kind", "")) == "stage":
+				c["board_key"] = stage_board_key(str(c["id"]), str(c["from"]))
+			cont.append(c)
+		o["continuation"] = cont
+		o["route_km"] = float(o.get("total_km", o.get("length_km", 0.0)))
+		var route_cities: Array[String] = [current_city, str(o["to"])]
+		for c in cont:
+			route_cities.append(str(c["to"]))
+		o["route_cities"] = route_cities
+		var chain: Array = [o]
+		chain.append_array(cont)
+		o["route_summary"] = legs_summary(chain)
+	for i in opts.size():
+		var others := {}
+		for j in opts.size():
+			if j != i:
+				for c in opts[j]["route_cities"]:
+					others[str(c)] = true
+		var target := str(opts[i].get("target", ""))
+		var distinct: Array[String] = []
+		for c in (opts[i]["route_cities"] as Array).slice(1):
+			var id := str(c)
+			if id != target and not others.has(id):
+				distinct.append(id)
+		opts[i]["via_distinct"] = distinct
+
+
+## Plain-data summary of a chain of legs as driven (stages in their driving direction, ferries) in the format of
+## StagePlan.summary(): sums of length_km, autobahn_km, unlimited_km, landstrasse_km, radars (of the driving
+## direction), stations, tunnels, tunnel_km, borders; traffic, hills and curviness length-weighted; max_hills;
+## countries in driving order (without repeats). Additionally cities [first from … last to], stages, ferries and
+## ferry_time_s. Ferries count 0 km; unknown stages are skipped. Used for route_summary and race routes.
+func legs_summary(legs: Array) -> Dictionary:
+	var s := {"length_km": 0.0, "autobahn_km": 0.0, "unlimited_km": 0.0, "landstrasse_km": 0.0, "radars": 0,
+		"stations": 0, "tunnels": 0, "tunnel_km": 0.0, "borders": 0, "traffic": 0.0, "hills": 0.0,
+		"curviness": 0.0, "max_hills": 0, "countries": [], "cities": [], "stages": 0, "ferries": 0,
+		"ferry_time_s": 0.0}
+	var countries_out: Array[String] = []
+	var cities_out: Array[String] = []
+	var traffic_w := 0.0
+	var hills_w := 0.0
+	var curves_w := 0.0
+	for leg in legs:
+		if not leg is Dictionary:
+			continue
+		var l: Dictionary = leg
+		var from := str(l.get("from", ""))
+		var to := str(l.get("to", ""))
+		var codes: Array = []
+		if str(l.get("kind", "stage")) == "ferry":
+			var ferry: Dictionary = ferries.get(str(l.get("id", "")), {})
+			s["ferries"] = int(s["ferries"]) + 1
+			s["ferry_time_s"] = float(s["ferry_time_s"]) + float(ferry.get("fixed_time_s", l.get("fixed_time_s", 0.0)))
+			codes = [str(cities.get(from, {}).get("country", "")), str(cities.get(to, {}).get("country", ""))]
+		else:
+			var st := _stage_summary_cached(str(l.get("id", "")), from)
+			if st.is_empty():
+				continue
+			var length := float(st["length_km"])
+			s["stages"] = int(s["stages"]) + 1
+			s["length_km"] = float(s["length_km"]) + length
+			for key in ["autobahn_km", "unlimited_km", "landstrasse_km", "tunnel_km"]:
+				s[key] = float(s[key]) + float(st[key])
+			for key in ["radars", "stations", "tunnels", "borders"]:
+				s[key] = int(s[key]) + int(st[key])
+			traffic_w += float(st["traffic"]) * length
+			hills_w += float(st["hills"]) * length
+			curves_w += float(st["curviness"]) * length
+			s["max_hills"] = maxi(int(s["max_hills"]), int(st["max_hills"]))
+			codes = st["countries"]
+		if cities_out.is_empty():
+			cities_out.append(from)
+		cities_out.append(to)
+		for c in codes:
+			var code := str(c)
+			if code != "" and (countries_out.is_empty() or countries_out[-1] != code):
+				countries_out.append(code)
+	var total := float(s["length_km"])
+	if total > 0.0:
+		s["traffic"] = traffic_w / total
+		s["hills"] = hills_w / total
+		s["curviness"] = curves_w / total
+	s["countries"] = countries_out
+	s["cities"] = cities_out
+	return s
+
+
+## StagePlan.summary() of a stage in the direction starting at from_city, cached (the network does not change
+## after setup()). Read only – callers must not modify the returned dictionary.
+func _stage_summary_cached(stage_id: String, from_city: String) -> Dictionary:
+	var key := "%s|%s" % [stage_id, from_city]
+	if not _summary_cache.has(key):
+		var p := get_stage_plan(stage_id, from_city)
+		_summary_cache[key] = p.summary() if p != null else {}
+	return _summary_cache[key]
+
+
+## Splits the legs of a race route into the ways between consecutive targets (start → first waypoint → … →
+## finish), e.g. for the Königsrennen [[kiel→hamburg], [hamburg→bremen], [bremen→amsterdam], …]. An unfinished
+## last way (route still running) is the last element.
+func target_segments(race_id: String, legs: Array) -> Array:
+	var out: Array = []
+	var seg: Array = []
+	var idx := 0
+	for leg in legs:
+		if not leg is Dictionary:
+			continue
+		seg.append(leg)
+		var next_idx := advance_waypoint_index(race_id, str((leg as Dictionary).get("to", "")), idx)
+		if next_idx != idx:
+			out.append(seg)
+			seg = []
+			idx = next_idx
+	if not seg.is_empty():
+		out.append(seg)
+	return out
 
 
 ## Every complete route a player can drive by following next_options (cached), shortest first:
@@ -357,7 +504,7 @@ func _collect(race_id: String, city: String, idx: int, route: Array, legs: Array
 		out: Array[Dictionary], choices: Dictionary) -> void:
 	if out.size() >= MAX_ROUTES or route.size() > 400:
 		return
-	var opts := next_options(race_id, city, idx, route)
+	var opts := _race_options(race_id, city, idx, route)
 	if opts.size() > 1:
 		var key := "%s|%d" % [city, idx]
 		if not choices.has(key):
@@ -498,7 +645,8 @@ func city_map_pos(city_id: String) -> Vector2:
 
 ## Full consistency check of the data: referential integrity, section sums, scenery ids, design rules of
 ## every stage in both directions (StagePlan warnings, dev stages forward only), fuel spacing, radar limits,
-## routability of every race, map positions. Returns human-readable problems (empty = all fine).
+## landscape change at every border (outside the City Limits), routability of every race, stage lengths of
+## tours (split_violations), map positions. Returns human-readable problems (empty = all fine).
 func validate() -> Array[String]:
 	var w: Array[String] = load_warnings.duplicate()
 	for id: String in cities:
@@ -618,6 +766,17 @@ func _validate_plan_extras(p: StagePlan, w: Array[String]) -> void:
 					w.append("%s: Radar bei km %.1f (%d km/h) in Abschnitt mit Limit %d" % [tag, float(r["km"]), int(r["limit"]), int(sec["speed_limit"])])
 		if float(r["end_km"]) > p.length_km - 50.0 + 0.001:
 			w.append("%s: Radar bei km %.1f in den letzten 50 km" % [tag, float(r["km"])])
+	# Design: "Grenzübergänge: Wechsel von Schildern, Landschaft und Polizeifahrzeugen" – the scenery changes at
+	# every border, and the border lies outside the City Limits (there both sides would show "city").
+	var margin := float(ConfigLoader.lookup(cfg, "stages.border_min_before_city_km", 5.0))
+	for b in p.borders:
+		var km := float(b["km"])
+		var before := p.scenery_at(maxf(0.0, km - 0.05))
+		var after := p.scenery_at(minf(p.length_km, km + 0.05))
+		if before == after:
+			w.append("%s: Grenze %s → %s bei km %.1f ohne Landschaftswechsel (%s)" % [tag, str(b["from"]), str(b["to"]), km, before])
+		if km > p.city_limits_km - margin + 0.001:
+			w.append("%s: Grenze bei km %.1f weniger als %.0f km vor den City Limits" % [tag, km, margin])
 
 
 func _validate_race(id: String, w: Array[String]) -> void:
@@ -650,3 +809,34 @@ func _validate_race(id: String, w: Array[String]) -> void:
 			for leg: Dictionary in route["legs"]:
 				if is_dev_leg(leg):
 					w.append("Rennen %s nutzt Entwickler-Etappe %s" % [id, str(leg["id"])])
+	if bool(r.get("tour", false)):
+		for msg in split_violations(id, routes):
+			w.append(msg)
+
+
+## Tours (race field "tour": true – the Königsrennen): when the way between two consecutive targets needs
+## several stages, every one of them must be stages.split_length_km long (design: "Lange Abschnitte werden in
+## Etappen von 200–400 km geteilt"); a single natural stage between two targets may be shorter. Returns the
+## violations for the given routes (validate() calls it for every tour).
+func split_violations(race_id: String, routes: Array[Dictionary]) -> Array[String]:
+	var out: Array[String] = []
+	var bounds: Array = ConfigLoader.lookup(cfg, "stages.split_length_km", [200, 400])
+	var lo := float(bounds[0])
+	var hi := float(bounds[1])
+	for route in routes:
+		for seg: Array in target_segments(race_id, route["legs"]):
+			var parts: Array[Dictionary] = []
+			for leg: Dictionary in seg:
+				if str(leg.get("kind", "")) == "stage":
+					parts.append(leg)
+			if parts.size() < 2:
+				continue
+			for leg in parts:
+				var km := float(leg["length_km"])
+				if km < lo - 0.001 or km > hi + 0.001:
+					var msg := "Rennen %s: Etappe %s (%s, %.0f km) teilt den Abschnitt %s – %s, Soll %.0f–%.0f km" % [
+						race_id, str(leg["id"]), leg_name(leg), km, city_name(str((seg[0] as Dictionary)["from"])),
+						city_name(str((seg[-1] as Dictionary)["to"])), lo, hi]
+					if not out.has(msg):
+						out.append(msg)
+	return out
