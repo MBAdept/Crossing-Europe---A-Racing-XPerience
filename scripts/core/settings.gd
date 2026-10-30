@@ -13,6 +13,7 @@ var leaderboard_filter := "all"   # "all" or a vehicle type id
 
 
 func _ready() -> void:
+	leaderboard_filter = str(ConfigLoader.lookup(ConfigLoader.load_merged(), "leaderboard.default_filter", "all"))
 	load_settings()
 	if not CliArgs.has("no-settings-apply"):
 		apply()

@@ -46,9 +46,9 @@ chmod +x CrossingEurope.x86_64
   „Führerschein, bitte!“; City Limits in den letzten 20 km jeder Etappe.
 - **Tageszeit und Wetter**: frei wählbare Startzeit, nächste Etappe 12 h Weltzeit nach dem Ende der vorigen,
   Dämmerung/Nacht/Sonnenaufgang während der Fahrt, Regen und Schnee.
-- **Streckennetz** komplett in Datendateien: 50 Städte, 56 Etappen (in beide Richtungen fahrbar), Fähre
+- **Streckennetz** komplett in Datendateien: 45 Städte, 51 Etappen (in beide Richtungen fahrbar), Fähre
   Riga – Rostock, vier Rennen: Kiel – Nürnberg (Route über Kassel oder über Frankfurt), Dresden – Dortmund,
-  München – Bremen und das Königsrennen (rund 9.200 km in 40 Etappen).
+  München – Bremen und das Königsrennen (rund 9.200 km in 33 Etappen plus Fähre).
 - **Etappenbildschirm** mit Karte (Natural Earth), Wetter, Rekord-Laufschrift und Top 10; Bestenlisten pro Etappe
   und Rennen mit Fahrzeug, Wetter- und Tageszeit-Symbol; Namenseingabe auch per Gamepad; Spielstand nach jeder Etappe.
 - **Sound** komplett prozedural (Motor mit virtuellem Getriebe, Wind, Martinshorn, Blitzer, Tanken, Menümusik).
