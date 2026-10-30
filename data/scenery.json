@@ -1,39 +1,275 @@
 {
-	"_doc": "Landschaften: Grasfarben (Tag), Hintergrund (Stil + Farben fern/nah), Requisiten-Regeln. Regel: alle every_m Meter mit Wahrscheinlichkeit chance ein Sprite-Set im Abstand x (m hinter dem Bankett), Seite left/right/both, Skalierung scale. 'city' gilt in den City Limits. Wird vom Renn-Modul gepflegt.",
+	"_doc": "Landschaften (Renn-Modul). grass: zwei Grasfarben (Tag, abwechselnde Bänder). background: style (plain, hills, forest, mountains, alps, city, coast, industrial), colors (fern -> nah, je Ebene), optional snow_caps, height (Faktor), trees (round|conifer), features (turbines, spires, pylons, chimneys), sea (Farbe der See bei coast). climate: north|continental|alpine|mediterranean|default. props: Regeln – alle every_m sichtbare Meter mit Wahrscheinlichkeit chance ein Sprite-Set im Abstand x (Meter hinter dem Bankett), Seite left/right/both, Skalierung scale; optional count (mehrere je Platz), roads (nur auf diesen Straßentypen), phase_m, tint (Farbmultiplikator), fallback (anderes Set, solange das eigentliche fehlt) mit fallback_scale. Fehlende Sets ohne fallback werden übersprungen. 'city' gilt automatisch in den City Limits; Straßenlaternen, Leitpfosten, Leitplanken und Tankstellen zeichnet das Renn-Modul selbst.",
 	"scenery": {
 		"north_plain": {
 			"name": "Norddeutsche Tiefebene",
 			"climate": "north",
 			"grass": ["#5f9a40", "#57903a"],
-			"background": { "style": "plain", "colors": ["#8ea9c0", "#6c8f5e"] },
+			"background": { "style": "plain", "colors": ["#9bb0c2", "#6e8f5f"], "features": ["turbines"] },
 			"props": [
 				{ "set": "props/tree_oak", "every_m": 27, "chance": 0.55, "side": "both", "x": [6, 30], "scale": [0.8, 1.25] },
 				{ "set": "props/tree_birch", "every_m": 39, "chance": 0.45, "side": "both", "x": [5, 22], "scale": [0.8, 1.2] },
+				{ "set": "props/bush_round", "every_m": 33, "chance": 0.35, "side": "both", "x": [2, 12], "scale": [0.8, 1.2], "fallback": "props/tree_beech", "fallback_scale": 0.35 },
 				{ "set": "props/wind_turbine", "every_m": 210, "chance": 0.6, "side": "both", "x": [60, 170], "scale": [0.9, 1.1] },
-				{ "set": "props/farmhouse", "every_m": 330, "chance": 0.4, "side": "both", "x": [35, 80], "scale": [0.9, 1.1] },
-				{ "set": "props/delineator", "every_m": 48, "chance": 1.0, "side": "right", "x": [0.3, 0.3], "scale": [1.0, 1.0] }
+				{ "set": "props/farmhouse", "every_m": 330, "chance": 0.4, "side": "both", "x": [35, 80], "scale": [0.9, 1.1], "align": "edge" },
+				{ "set": "props/haybale", "every_m": 95, "chance": 0.3, "side": "both", "x": [10, 45], "scale": [0.9, 1.1], "count": 2 }
+			]
+		},
+		"heath": {
+			"name": "Heide",
+			"climate": "north",
+			"grass": ["#7f8a4c", "#778246"],
+			"background": { "style": "plain", "colors": ["#a0afbe", "#7a7a6a"], "height": 1.2 },
+			"props": [
+				{ "set": "props/heather", "every_m": 9, "chance": 0.7, "side": "both", "x": [1, 30], "scale": [0.8, 1.3] },
+				{ "set": "props/tree_birch", "every_m": 18, "chance": 0.6, "side": "both", "x": [4, 25], "scale": [0.8, 1.2] },
+				{ "set": "props/tree_pine", "every_m": 24, "chance": 0.5, "side": "both", "x": [6, 35], "scale": [0.8, 1.25], "fallback": "props/tree_spruce", "fallback_scale": 0.9 },
+				{ "set": "props/bush_low", "every_m": 15, "chance": 0.4, "side": "both", "x": [2, 15], "scale": [0.8, 1.2] },
+				{ "set": "props/farmhouse", "every_m": 420, "chance": 0.3, "side": "both", "x": [40, 90], "scale": [0.9, 1.1], "align": "edge" }
 			]
 		},
 		"forest_hills": {
 			"name": "Mittelgebirge",
 			"climate": "continental",
 			"grass": ["#4d8a3a", "#467f35"],
-			"background": { "style": "hills", "colors": ["#7d93ad", "#4f7448"] },
+			"background": { "style": "forest", "colors": ["#7d93ad", "#58745a", "#3f5e3c"] },
 			"props": [
 				{ "set": "props/tree_spruce", "every_m": 12, "chance": 0.75, "side": "both", "x": [4, 26], "scale": [0.85, 1.3] },
 				{ "set": "props/tree_beech", "every_m": 21, "chance": 0.5, "side": "both", "x": [5, 30], "scale": [0.8, 1.2] },
+				{ "set": "props/tree_pine", "every_m": 45, "chance": 0.35, "side": "both", "x": [3, 18], "scale": [0.8, 1.2], "fallback": "props/tree_spruce" },
 				{ "set": "props/rock_a", "every_m": 120, "chance": 0.3, "side": "both", "x": [3, 12], "scale": [0.7, 1.3] }
+			]
+		},
+		"rhine_main": {
+			"name": "Rhein-Main",
+			"climate": "continental",
+			"grass": ["#5c9340", "#558a3a"],
+			"background": { "style": "hills", "colors": ["#8ea0b8", "#6f8a5c", "#5a7a48"], "features": ["spires"] },
+			"props": [
+				{ "set": "props/tree_oak", "every_m": 33, "chance": 0.45, "side": "both", "x": [5, 28], "scale": [0.8, 1.2] },
+				{ "set": "props/tree_poplar", "every_m": 45, "chance": 0.4, "side": "both", "x": [8, 25], "scale": [0.85, 1.15] },
+				{ "set": "props/house_med", "every_m": 150, "chance": 0.35, "side": "both", "x": [15, 45], "scale": [0.9, 1.1], "fallback": "props/farmhouse", "align": "edge" },
+				{ "set": "props/church", "every_m": 600, "chance": 0.3, "side": "both", "x": [40, 100], "scale": [0.9, 1.1], "align": "edge" },
+				{ "set": "props/bush_low", "every_m": 12, "chance": 0.45, "side": "left", "x": [10, 40], "scale": [0.9, 1.1], "count": 2 }
+			]
+		},
+		"industrial": {
+			"name": "Industriegebiet",
+			"climate": "continental",
+			"grass": ["#6a8a48", "#628242"],
+			"background": { "style": "industrial", "colors": ["#8d939c", "#6c727c", "#5d6e52"], "features": ["pylons"] },
+			"props": [
+				{ "set": "props/factory", "every_m": 120, "chance": 0.55, "side": "both", "x": [15, 60], "scale": [0.9, 1.2], "align": "edge" },
+				{ "set": "props/power_pylon", "every_m": 150, "chance": 0.5, "side": "both", "x": [25, 70], "scale": [0.9, 1.1] },
+				{ "set": "props/building_block_b", "every_m": 90, "chance": 0.35, "side": "both", "x": [10, 30], "scale": [0.9, 1.1], "align": "edge" },
+				{ "set": "props/tree_poplar", "every_m": 70, "chance": 0.35, "side": "both", "x": [6, 20], "scale": [0.8, 1.0] },
+				{ "set": "props/tree_birch", "every_m": 30, "chance": 0.4, "side": "both", "x": [4, 15], "scale": [0.8, 1.1] },
+				{ "set": "props/wind_turbine", "every_m": 400, "chance": 0.2, "side": "both", "x": [80, 160], "scale": [0.9, 1.1] }
 			]
 		},
 		"polder": {
 			"name": "Polder",
 			"climate": "north",
 			"grass": ["#6aa64a", "#62a044"],
-			"background": { "style": "plain", "colors": ["#97b0c6", "#79a066"] },
+			"background": { "style": "plain", "colors": ["#97b0c6", "#79a066"], "height": 0.7, "features": ["turbines"] },
 			"props": [
 				{ "set": "props/tree_poplar", "every_m": 18, "chance": 0.6, "side": "both", "x": [10, 18], "scale": [0.9, 1.15] },
 				{ "set": "props/windmill", "every_m": 450, "chance": 0.5, "side": "both", "x": [70, 140], "scale": [0.9, 1.1] },
-				{ "set": "props/farmhouse", "every_m": 360, "chance": 0.35, "side": "both", "x": [40, 90], "scale": [0.9, 1.1] }
+				{ "set": "props/farmhouse", "every_m": 360, "chance": 0.35, "side": "both", "x": [40, 90], "scale": [0.9, 1.1], "align": "edge" },
+				{ "set": "props/wind_turbine", "every_m": 300, "chance": 0.35, "side": "both", "x": [80, 170], "scale": [0.9, 1.1] },
+				{ "set": "props/haybale", "every_m": 110, "chance": 0.3, "side": "both", "x": [12, 50], "scale": [0.9, 1.1], "count": 3 }
+			]
+		},
+		"ardennes": {
+			"name": "Ardennen",
+			"climate": "default",
+			"grass": ["#4f8a3c", "#488236"],
+			"background": { "style": "forest", "colors": ["#7f92a8", "#566f55", "#3d5a3e"], "height": 1.2 },
+			"props": [
+				{ "set": "props/tree_spruce", "every_m": 10, "chance": 0.7, "side": "both", "x": [3, 24], "scale": [0.85, 1.3] },
+				{ "set": "props/tree_beech", "every_m": 15, "chance": 0.55, "side": "both", "x": [4, 28], "scale": [0.8, 1.2] },
+				{ "set": "props/rock_a", "every_m": 90, "chance": 0.3, "side": "both", "x": [2, 10], "scale": [0.7, 1.4] },
+				{ "set": "props/farmhouse", "every_m": 500, "chance": 0.25, "side": "both", "x": [30, 70], "scale": [0.9, 1.1], "align": "edge" }
+			]
+		},
+		"farmland_fr": {
+			"name": "Französisches Ackerland",
+			"climate": "default",
+			"grass": ["#7a9c45", "#72943f"],
+			"background": { "style": "plain", "colors": ["#a3b4c4", "#8aa070"], "height": 1.3, "features": ["spires"] },
+			"props": [
+				{ "set": "props/tree_poplar", "every_m": 60, "chance": 0.4, "side": "both", "x": [8, 25], "scale": [0.9, 1.1], "count": 3 },
+				{ "set": "props/tree_oak", "every_m": 45, "chance": 0.4, "side": "both", "x": [6, 35], "scale": [0.8, 1.2] },
+				{ "set": "props/haybale", "every_m": 70, "chance": 0.35, "side": "both", "x": [10, 50], "scale": [0.9, 1.1], "count": 2 },
+				{ "set": "props/barn", "every_m": 300, "chance": 0.4, "side": "both", "x": [30, 90], "scale": [0.9, 1.1], "fallback": "props/farmhouse", "align": "edge" },
+				{ "set": "props/church", "every_m": 700, "chance": 0.3, "side": "both", "x": [60, 140], "scale": [0.9, 1.1], "align": "edge" }
+			]
+		},
+		"loire": {
+			"name": "Loire-Tal",
+			"climate": "default",
+			"grass": ["#6a9c48", "#629442"],
+			"background": { "style": "hills", "colors": ["#a5b7c8", "#86a275", "#6d8d5a"], "height": 0.7, "features": ["spires"] },
+			"props": [
+				{ "set": "props/tree_poplar", "every_m": 30, "chance": 0.5, "side": "both", "x": [8, 22], "scale": [0.9, 1.15] },
+				{ "set": "props/tree_oak", "every_m": 40, "chance": 0.45, "side": "both", "x": [5, 30], "scale": [0.8, 1.2] },
+				{ "set": "props/house_med", "every_m": 200, "chance": 0.35, "side": "both", "x": [20, 60], "scale": [0.9, 1.1], "fallback": "props/farmhouse", "align": "edge" },
+				{ "set": "props/church", "every_m": 600, "chance": 0.25, "side": "both", "x": [50, 120], "scale": [0.9, 1.1], "align": "edge" },
+				{ "set": "props/bush_round", "every_m": 40, "chance": 0.3, "side": "both", "x": [2, 12], "scale": [0.8, 1.2], "fallback": "props/tree_beech", "fallback_scale": 0.35 }
+			]
+		},
+		"pyrenees": {
+			"name": "Pyrenäen",
+			"climate": "alpine",
+			"grass": ["#6b8a48", "#638242"],
+			"background": { "style": "mountains", "colors": ["#8e9db3", "#6e7f78", "#566b4b"], "snow_caps": true },
+			"props": [
+				{ "set": "props/tree_pine", "every_m": 14, "chance": 0.6, "side": "both", "x": [3, 25], "scale": [0.85, 1.25], "fallback": "props/tree_spruce" },
+				{ "set": "props/rock_a", "every_m": 40, "chance": 0.45, "side": "both", "x": [2, 20], "scale": [0.7, 1.5] },
+				{ "set": "props/rock_b", "every_m": 60, "chance": 0.35, "side": "both", "x": [2, 20], "scale": [0.8, 1.4], "fallback": "props/rock_a" },
+				{ "set": "props/cliff", "every_m": 160, "chance": 0.4, "side": "both", "x": [10, 30], "scale": [0.9, 1.2], "fallback": "props/rock_a", "fallback_scale": 2.2 },
+				{ "set": "props/farmhouse", "every_m": 500, "chance": 0.2, "side": "both", "x": [25, 70], "scale": [0.9, 1.1], "align": "edge" }
+			]
+		},
+		"meseta": {
+			"name": "Meseta",
+			"climate": "mediterranean",
+			"grass": ["#b8a46a", "#ae9a60"],
+			"background": { "style": "plain", "colors": ["#b9b3a6", "#a89a72"], "height": 1.6, "features": ["turbines"] },
+			"props": [
+				{ "set": "props/bush_low", "every_m": 20, "chance": 0.5, "side": "both", "x": [1, 30], "scale": [0.8, 1.2], "tint": "#d8d0b0" },
+				{ "set": "props/tree_olive", "every_m": 60, "chance": 0.35, "side": "both", "x": [8, 40], "scale": [0.8, 1.1], "fallback": "props/tree_oak", "fallback_scale": 0.6 },
+				{ "set": "props/rock_a", "every_m": 80, "chance": 0.3, "side": "both", "x": [2, 25], "scale": [0.7, 1.3] },
+				{ "set": "props/windmill", "every_m": 500, "chance": 0.25, "side": "both", "x": [50, 120], "scale": [0.9, 1.1] },
+				{ "set": "props/wind_turbine", "every_m": 300, "chance": 0.4, "side": "both", "x": [70, 170], "scale": [0.9, 1.1] }
+			]
+		},
+		"mediterranean": {
+			"name": "Mittelmeer",
+			"climate": "mediterranean",
+			"grass": ["#9a9a58", "#909052"],
+			"background": { "style": "hills", "colors": ["#a8b8c8", "#8c9a72", "#6f8455"], "height": 1.1 },
+			"props": [
+				{ "set": "props/tree_cypress", "every_m": 25, "chance": 0.5, "side": "both", "x": [4, 20], "scale": [0.85, 1.2], "fallback": "props/tree_poplar", "fallback_scale": 0.8 },
+				{ "set": "props/tree_olive", "every_m": 20, "chance": 0.55, "side": "both", "x": [5, 35], "scale": [0.8, 1.1], "fallback": "props/tree_oak", "fallback_scale": 0.6 },
+				{ "set": "props/tree_palm", "every_m": 70, "chance": 0.25, "side": "both", "x": [4, 15], "scale": [0.9, 1.2] },
+				{ "set": "props/house_med", "every_m": 160, "chance": 0.4, "side": "both", "x": [12, 40], "scale": [0.9, 1.1], "fallback": "props/farmhouse", "fallback_scale": 0.8, "align": "edge" },
+				{ "set": "props/bush_round", "every_m": 18, "chance": 0.4, "side": "both", "x": [1, 10], "scale": [0.8, 1.2], "fallback": "props/tree_beech", "fallback_scale": 0.3 }
+			]
+		},
+		"alps": {
+			"name": "Alpen",
+			"climate": "alpine",
+			"grass": ["#5a9a48", "#529042"],
+			"background": { "style": "alps", "colors": ["#8d9fb8", "#6f8296", "#4a6b47"], "snow_caps": true },
+			"props": [
+				{ "set": "props/tree_spruce", "every_m": 9, "chance": 0.75, "side": "both", "x": [3, 30], "scale": [0.85, 1.35] },
+				{ "set": "props/rock_a", "every_m": 50, "chance": 0.4, "side": "both", "x": [2, 18], "scale": [0.7, 1.5] },
+				{ "set": "props/cliff", "every_m": 120, "chance": 0.4, "side": "both", "x": [8, 25], "scale": [0.9, 1.2], "fallback": "props/rock_a", "fallback_scale": 2.4 },
+				{ "set": "props/farmhouse", "every_m": 350, "chance": 0.3, "side": "both", "x": [20, 60], "scale": [0.9, 1.1], "align": "edge" },
+				{ "set": "props/church", "every_m": 900, "chance": 0.2, "side": "both", "x": [40, 100], "scale": [0.9, 1.1], "align": "edge" }
+			]
+		},
+		"lombardy": {
+			"name": "Lombardei",
+			"climate": "mediterranean",
+			"grass": ["#6aa04a", "#629844"],
+			"background": { "style": "plain", "colors": ["#a9b8c4", "#8aa27a"], "features": ["spires"] },
+			"props": [
+				{ "set": "props/tree_poplar", "every_m": 15, "chance": 0.6, "side": "both", "x": [6, 20], "scale": [0.9, 1.15] },
+				{ "set": "props/house_med", "every_m": 180, "chance": 0.35, "side": "both", "x": [15, 50], "scale": [0.9, 1.1], "fallback": "props/farmhouse", "align": "edge" },
+				{ "set": "props/church", "every_m": 600, "chance": 0.25, "side": "both", "x": [50, 120], "scale": [0.9, 1.1], "align": "edge" },
+				{ "set": "props/tree_cypress", "every_m": 70, "chance": 0.2, "side": "both", "x": [5, 20], "scale": [0.9, 1.1], "fallback": "props/tree_poplar", "fallback_scale": 0.8 }
+			]
+		},
+		"karst": {
+			"name": "Karst",
+			"climate": "alpine",
+			"grass": ["#8a9468", "#828c60"],
+			"background": { "style": "mountains", "colors": ["#a3abb3", "#8a9184", "#6c7a5a"], "height": 0.6 },
+			"props": [
+				{ "set": "props/rock_a", "every_m": 18, "chance": 0.55, "side": "both", "x": [1, 25], "scale": [0.6, 1.4] },
+				{ "set": "props/rock_b", "every_m": 25, "chance": 0.45, "side": "both", "x": [1, 25], "scale": [0.6, 1.4], "fallback": "props/rock_a" },
+				{ "set": "props/bush_low", "every_m": 14, "chance": 0.5, "side": "both", "x": [1, 20], "scale": [0.8, 1.2] },
+				{ "set": "props/tree_pine", "every_m": 40, "chance": 0.3, "side": "both", "x": [4, 25], "scale": [0.8, 1.1], "fallback": "props/tree_spruce", "fallback_scale": 0.8 },
+				{ "set": "props/house_med", "every_m": 400, "chance": 0.2, "side": "both", "x": [25, 60], "scale": [0.9, 1.1], "fallback": "props/farmhouse", "align": "edge" }
+			]
+		},
+		"balkan_hills": {
+			"name": "Balkanhügel",
+			"climate": "continental",
+			"grass": ["#6d9244", "#658a3e"],
+			"background": { "style": "hills", "colors": ["#8f9fb2", "#6f855e", "#5a7448"], "height": 1.2 },
+			"props": [
+				{ "set": "props/tree_oak", "every_m": 22, "chance": 0.5, "side": "both", "x": [5, 30], "scale": [0.8, 1.2] },
+				{ "set": "props/tree_beech", "every_m": 30, "chance": 0.4, "side": "both", "x": [5, 30], "scale": [0.8, 1.2] },
+				{ "set": "props/house_med", "every_m": 200, "chance": 0.35, "side": "both", "x": [15, 50], "scale": [0.9, 1.1], "fallback": "props/farmhouse", "align": "edge" },
+				{ "set": "props/haybale", "every_m": 120, "chance": 0.3, "side": "both", "x": [10, 45], "scale": [0.9, 1.1], "count": 2 },
+				{ "set": "props/church", "every_m": 800, "chance": 0.2, "side": "both", "x": [40, 100], "scale": [0.9, 1.1], "align": "edge" }
+			]
+		},
+		"pannonian_plain": {
+			"name": "Pannonische Tiefebene",
+			"climate": "continental",
+			"grass": ["#93a052", "#8b984c"],
+			"background": { "style": "plain", "colors": ["#a7b6c3", "#93a46e"], "height": 0.6, "features": ["pylons"] },
+			"props": [
+				{ "set": "props/tree_poplar", "every_m": 50, "chance": 0.35, "side": "both", "x": [8, 30], "scale": [0.9, 1.1] },
+				{ "set": "props/haybale", "every_m": 60, "chance": 0.45, "side": "both", "x": [10, 50], "scale": [0.9, 1.1], "count": 2 },
+				{ "set": "props/power_pylon", "every_m": 160, "chance": 0.45, "side": "both", "x": [30, 80], "scale": [0.9, 1.1] },
+				{ "set": "props/farmhouse", "every_m": 300, "chance": 0.35, "side": "both", "x": [30, 80], "scale": [0.9, 1.1], "align": "edge" },
+				{ "set": "props/wind_turbine", "every_m": 350, "chance": 0.3, "side": "both", "x": [70, 170], "scale": [0.9, 1.1] }
+			]
+		},
+		"bohemian": {
+			"name": "Böhmen",
+			"climate": "continental",
+			"grass": ["#5a8e42", "#52863c"],
+			"background": { "style": "hills", "colors": ["#8a9bb0", "#647d5d", "#4c6646"], "features": ["spires"] },
+			"props": [
+				{ "set": "props/tree_spruce", "every_m": 16, "chance": 0.55, "side": "both", "x": [4, 26], "scale": [0.85, 1.25] },
+				{ "set": "props/tree_beech", "every_m": 22, "chance": 0.45, "side": "both", "x": [5, 28], "scale": [0.8, 1.2] },
+				{ "set": "props/tree_birch", "every_m": 35, "chance": 0.35, "side": "both", "x": [4, 20], "scale": [0.8, 1.2] },
+				{ "set": "props/church", "every_m": 500, "chance": 0.3, "side": "both", "x": [40, 100], "scale": [0.9, 1.1], "align": "edge" },
+				{ "set": "props/house_med", "every_m": 220, "chance": 0.3, "side": "both", "x": [15, 50], "scale": [0.9, 1.1], "fallback": "props/farmhouse", "align": "edge" }
+			]
+		},
+		"east_plain": {
+			"name": "Osteuropäische Ebene",
+			"climate": "continental",
+			"grass": ["#6f9445", "#678c3f"],
+			"background": { "style": "plain", "colors": ["#9fb0bf", "#7a8e62"], "trees": "conifer", "features": ["pylons"] },
+			"props": [
+				{ "set": "props/tree_birch", "every_m": 16, "chance": 0.6, "side": "both", "x": [4, 25], "scale": [0.8, 1.2] },
+				{ "set": "props/tree_pine", "every_m": 22, "chance": 0.5, "side": "both", "x": [5, 30], "scale": [0.85, 1.2], "fallback": "props/tree_spruce" },
+				{ "set": "props/farmhouse", "every_m": 300, "chance": 0.35, "side": "both", "x": [30, 80], "scale": [0.9, 1.1], "align": "edge" },
+				{ "set": "props/power_pylon", "every_m": 200, "chance": 0.35, "side": "both", "x": [30, 80], "scale": [0.9, 1.1] },
+				{ "set": "props/haybale", "every_m": 100, "chance": 0.3, "side": "both", "x": [10, 45], "scale": [0.9, 1.1], "count": 2 }
+			]
+		},
+		"baltic_forest": {
+			"name": "Baltische Wälder",
+			"climate": "north",
+			"grass": ["#557f3f", "#4e7739"],
+			"background": { "style": "forest", "colors": ["#8899aa", "#4f6650", "#3a5038"] },
+			"props": [
+				{ "set": "props/tree_pine", "every_m": 8, "chance": 0.75, "side": "both", "x": [3, 28], "scale": [0.85, 1.3], "fallback": "props/tree_spruce" },
+				{ "set": "props/tree_spruce", "every_m": 11, "chance": 0.6, "side": "both", "x": [4, 30], "scale": [0.85, 1.3] },
+				{ "set": "props/tree_birch", "every_m": 20, "chance": 0.45, "side": "both", "x": [3, 18], "scale": [0.8, 1.2] },
+				{ "set": "props/rock_a", "every_m": 120, "chance": 0.2, "side": "both", "x": [2, 12], "scale": [0.6, 1.2] }
+			]
+		},
+		"coast": {
+			"name": "Küste",
+			"climate": "north",
+			"grass": ["#9fb27a", "#97aa72"],
+			"background": { "style": "coast", "colors": ["#4d7a97", "#8fa98a", "#7f9c76"], "sea": "#4d7a97", "features": ["turbines"] },
+			"props": [
+				{ "set": "props/tree_pine", "every_m": 40, "chance": 0.35, "side": "both", "x": [5, 30], "scale": [0.7, 1.0], "fallback": "props/tree_spruce", "fallback_scale": 0.8 },
+				{ "set": "props/bush_low", "every_m": 12, "chance": 0.5, "side": "both", "x": [1, 20], "scale": [0.8, 1.2] },
+				{ "set": "props/heather", "every_m": 10, "chance": 0.5, "side": "both", "x": [1, 25], "scale": [0.8, 1.2] },
+				{ "set": "props/wind_turbine", "every_m": 250, "chance": 0.45, "side": "both", "x": [60, 170], "scale": [0.9, 1.1] },
+				{ "set": "props/house_med", "every_m": 300, "chance": 0.25, "side": "both", "x": [20, 60], "scale": [0.9, 1.1], "fallback": "props/farmhouse", "align": "edge" }
 			]
 		},
 		"city": {
@@ -42,9 +278,12 @@
 			"grass": ["#7d7d78", "#77776f"],
 			"background": { "style": "city", "colors": ["#8792a3", "#6a7282"] },
 			"props": [
-				{ "set": "props/building_block_a", "every_m": 30, "chance": 0.75, "side": "both", "x": [4, 12], "scale": [0.9, 1.2] },
-				{ "set": "props/building_tall", "every_m": 66, "chance": 0.5, "side": "both", "x": [10, 25], "scale": [0.9, 1.2] },
-				{ "set": "props/streetlight", "every_m": 30, "chance": 1.0, "side": "both", "x": [0.5, 0.5], "scale": [1.0, 1.0] }
+				{ "set": "props/building_block_a", "every_m": 24, "chance": 0.75, "side": "both", "x": [1, 6], "scale": [0.9, 1.2], "align": "edge" },
+				{ "set": "props/building_block_b", "every_m": 28, "chance": 0.6, "side": "both", "x": [1, 6], "scale": [0.9, 1.2], "phase_m": 9, "fallback": "props/building_block_a", "align": "edge" },
+				{ "set": "props/building_tall", "every_m": 66, "chance": 0.5, "side": "both", "x": [8, 22], "scale": [0.9, 1.2], "align": "edge" },
+				{ "set": "props/building_oldtown", "every_m": 36, "chance": 0.45, "side": "both", "x": [1, 5], "scale": [0.9, 1.1], "phase_m": 17, "align": "edge" },
+				{ "set": "props/building_shop", "every_m": 30, "chance": 0.4, "side": "both", "x": [0.5, 3], "scale": [0.9, 1.1], "phase_m": 5, "align": "edge" },
+				{ "set": "props/tree_beech", "every_m": 27, "chance": 0.3, "side": "both", "x": [-1.8, -1.2], "scale": [0.5, 0.65], "phase_m": 13 }
 			]
 		}
 	}

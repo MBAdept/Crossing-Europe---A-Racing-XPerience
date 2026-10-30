@@ -21,7 +21,7 @@
 	},
 
 	"road": {
-		"_doc": "Straßengeometrie, gemeinsam für Darstellung, Fahrmodell und Verkehr. Kurven-Wert 1.0 entspricht curve_radius_at_1_m Radius. Kurvigkeit/Hügel 0–3 aus den Etappendaten wählen die Maximalwerte.",
+		"_doc": "Straßengeometrie, gemeinsam für Darstellung, Fahrmodell und Verkehr. Kurven-Wert 1.0 entspricht curve_radius_at_1_m Radius. Kurvigkeit/Hügel 0–3 aus den Etappendaten wählen die Maximalwerte. Alle Längen in sichtbaren Metern (1 km Kilometerzähler = 83,3 m). runout_m: gerade Auslaufstrecke hinter der Ziellinie.",
 		"lane_width_m": 3.75,
 		"lanes": { "autobahn": 3, "landstrasse": 2, "city": 2 },
 		"shoulder_width_m": 2.5,
@@ -30,7 +30,11 @@
 		"curviness_max_curve": [0.0, 0.22, 0.45, 0.9],
 		"hills_max_grade": [0.0, 0.025, 0.045, 0.07],
 		"lane_transition_m": 180.0,
-		"fuel_lane_taper_m": 40.0
+		"fuel_lane_taper_m": 40.0,
+		"runout_m": 600.0,
+		"delineator_every_m": 50.0,
+		"streetlight_every_m": 33.0,
+		"crosswalk_every_m": 330.0
 	},
 
 	"vehicles": {
@@ -219,21 +223,34 @@
 	},
 
 	"render": {
-		"_doc": "Pseudo-3D-Darstellung (Node2D mit _draw). Sichtbare Meter, nicht Kilometerzähler.",
+		"_doc": "Pseudo-3D-Darstellung (Node2D mit _draw). Sichtbare Meter, nicht Kilometerzähler. Kamera: fov_deg (horizontal), camera_height_m, camera_distance_m (hinter der Wagenmitte), horizon_y_frac. hill_height_scale überhöht Hügel nur optisch. LOD: ferne Segmente dünner als lod_merge_px werden zu einem Streifen zusammengefasst. background_parallax: Drehfaktor des Hintergrunds in Kurven (1.0 = physikalisch). Siehe docs/renn-modul.md.",
 		"segment_length_m": 3.0,
 		"draw_distance_m": 900.0,
-		"fov_deg": 100.0,
-		"camera_height_m": 3.2,
-		"camera_distance_m": 6.6,
-		"horizon_y_frac": 0.42,
+		"fov_deg": 84.0,
+		"camera_height_m": 2.55,
+		"camera_distance_m": 7.6,
+		"horizon_y_frac": 0.45,
 		"fog_start_frac": 0.45,
-		"hill_height_scale": 1.0,
-		"stripes": { "rumble": 2, "dash_on": 2, "dash_off": 4, "grass": 4 },
-		"edge_line_m": 0.22,
+		"hill_height_scale": 2.0,
+		"stripes": { "rumble": 2, "dash_on": 2, "dash_off": 4, "grass": 4, "road": 2, "dash": { "autobahn": [2, 4], "landstrasse": [2, 4], "city": [1, 2] } },
+		"edge_line_m": 0.3,
 		"lane_line_m": 0.15,
 		"rumble_width_m": 0.5,
-		"tunnel": { "wall_height_m": 5.0, "ceiling_m": 5.6, "light_every_m": 24.0 },
-		"background_parallax": 0.0025
+		"tunnel": { "wall_height_m": 4.2, "ceiling_m": 6.2, "light_every_m": 12.0, "haunch_m": 1.8, "darkness_m": 260.0, "peek_m": 45.0 },
+		"background_parallax": 1.0,
+		"near_m": 0.3,
+		"lod_merge_px": 2.0,
+		"lod_from_m": 45.0,
+		"lod_max_segments": 24,
+		"headlight_range_m": 80.0,
+		"headlight_intensity": 0.95,
+		"background_blend_s": 2.5,
+		"camera_follow": 7.0,
+		"camera_lag_max_m": 1.1,
+		"finish_decel_kmh_s": 35.0,
+		"finish_hold_s": 6.0,
+		"lod_detail_m": 260.0,
+		"procedural_props": "auto"
 	},
 
 	"hud": {
@@ -277,6 +294,7 @@
 	},
 
 	"debug": {
-		"autopilot_target_kmh": 235.0
+		"autopilot_target_kmh": 235.0,
+		"show_render_stats": false
 	}
 }

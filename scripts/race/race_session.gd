@@ -2,11 +2,15 @@ extends Node2D
 ## Race scene root (scenes/race/race.tscn): runs one stage – countdown, per-frame simulation of all
 ## gameplay systems, HUD/renderer/audio feeding, messages, pause, finish.
 ## Started by GameFlow (which sets `setup` before adding the scene to the tree) or standalone from
-## the command line (see ARCHITECTURE.md §Debug-CLI). Owner: race module.
+## the command line (see ARCHITECTURE.md §Debug-CLI and docs/renn-modul.md). Owner: race module.
 ##
 ## setup: {mode: "race"|"single", race_id, stage_id, from_city, vehicle, start_world_minutes,
 ##         weather, start_km (debug), autopilot (debug), seed}
 ## result (signal stage_finished): see ARCHITECTURE.md §Ergebnis.
+##
+## Simulation runs in _physics_process (fixed steps), the view in _process. Scripted control
+## requests (fuel before police) are handed to VehicleModel.auto_control(); collisions use
+## TrafficSystem.find_collision (with the 1/3-visibility rule of RoadProjection) and space_beside.
 
 signal stage_finished(result: Dictionary)
 signal stage_aborted(reason: String)
@@ -38,8 +42,11 @@ var penalty_time := 0.0          ## added time penalties (towing)
 var countdown := 3.0
 var running := false
 var finished := false
-var bg_offset := 0.0
+var bg_offset := 0.0             ## background heading (radians), turns with the curves
+var cam_x := 0.0                 ## camera lateral position (follows the car with a slight lag)
 var stats := {"collisions": 0, "refuels": 0, "liters": 0.0, "radar_flashes": 0, "police_stops": 0, "police_escapes": 0, "tows": 0}
+var last_input: Dictionary = {}
+var traffic_enabled := true
 
 var _start_world_minutes := 0.0
 var _record: Dictionary = {}
@@ -47,9 +54,23 @@ var _flash := 0.0
 var _last_country := ""
 var _was_city := false
 var _was_tunnel := false
+var _was_radar_zone := false
+var _reserve_warned := false
 var _finish_timer := -1.0
+var _final_time := 0.0
+var _result_sent := false
 var _real_time := 0.0
 var _beacon_t := 0.0
+var _last_beep := 99
+var _shake_t := 0.0
+var _draw_distance := 900.0
+var _curve_r1 := 120.0
+var _bg_turn := 1.0
+var _sim_us_sum := 0
+var _sim_us_max := 0
+var _sim_steps := 0
+var _start_wall_ms := 0
+var _trace_next := 0.0
 
 
 func _ready() -> void:
@@ -80,14 +101,23 @@ static func setup_from_cli() -> Dictionary:
 
 func _build() -> void:
 	time_scale = float(ConfigLoader.lookup(cfg, "time.time_scale", 12.0))
+	_draw_distance = float(ConfigLoader.lookup(cfg, "render.draw_distance_m", 900.0))
+	_curve_r1 = float(ConfigLoader.lookup(cfg, "road.curve_radius_at_1_m", 120.0))
+	_bg_turn = float(ConfigLoader.lookup(cfg, "render.background_parallax", 1.0))
 	plan = GameData.get_stage_plan(str(setup.get("stage_id", "kiel_hamburg")), str(setup.get("from_city", "")))
 	if plan == null:
 		push_error("Etappe konnte nicht geladen werden")
-		stage_aborted.emit("no_stage")
+		call_deferred("emit_signal", "stage_aborted", "no_stage")
 		return
 	weather = str(setup.get("weather", "normal"))
+	if not ["normal", "rain", "snow"].has(weather):
+		weather = "normal"
 	_start_world_minutes = float(setup.get("start_world_minutes", 8.0 * 60.0))
 
+	if CliArgs.has("scenery"):
+		# debug: one scenery for the whole stage (screenshots of background styles)
+		for sec in plan.sections:
+			sec["scenery"] = CliArgs.get_string("scenery", "north_plain")
 	proj = RoadProjection.new()
 	proj.setup(ConfigLoader.lookup(cfg, "render", {}), Vector2(
 		float(ProjectSettings.get_setting("display/window/size/viewport_width", 1280)),
@@ -115,19 +145,30 @@ func _build() -> void:
 		if not heavy.has(id):
 			cars.append(id)
 	traffic.setup(cfg, track, cars, heavy, plan.seed + 17 + int(setup.get("seed", 0)))
+	traffic_enabled = not CliArgs.has("no-traffic")
 
 	fuel = FuelSystem.new()
 	fuel.setup(cfg, vehicle.spec, plan)
+	if CliArgs.has("fuel"):
+		fuel.fuel_l = fuel.tank_l * clampf(CliArgs.get_float("fuel", 1.0), 0.0, 1.0)
 	police = PoliceSystem.new()
 	police.setup(cfg, plan)
 
 	var start_km := clampf(float(setup.get("start_km", 0.0)), 0.0, plan.length_km - 0.5)
 	pos_km = start_km
 	pos_z = track.km_to_z(start_km)
-	track.update_window(pos_z - proj.cam_distance, float(ConfigLoader.lookup(cfg, "render.draw_distance_m", 900.0)))
-	vehicle.x = track.lane_center_x(pos_z, track.lane_count_at(pos_z) - 1)
+	track.update_window(pos_z - proj.cam_distance, _draw_distance + 60.0)
+	var lane := int(CliArgs.get_float("lane", float(track.lane_count_at(pos_z) - 1)))
+	vehicle.x = track.lane_center_x(pos_z, clampi(lane, 0, track.lane_count_at(pos_z) - 1))
+	if CliArgs.has("x"):
+		vehicle.x = CliArgs.get_float("x", vehicle.x)
+	cam_x = vehicle.x
+	vehicle.speed = clampf(CliArgs.get_float("start-speed", 0.0), 0.0, 300.0)
+	if traffic_enabled and (CliArgs.has("traffic-warmup") or bool(setup.get("traffic_warmup", false))):
+		_warm_up_traffic()
 	_last_country = plan.country_at(pos_km)
 	_was_city = plan.is_city(pos_km)
+	_was_tunnel = plan.in_tunnel(pos_km)
 	_record = Leaderboards.record(plan.board_key)
 
 	var layer := CanvasLayer.new()
@@ -146,12 +187,14 @@ func _build() -> void:
 	if bool(setup.get("autopilot", false)):
 		autopilot = Autopilot.new()
 		autopilot.target_kmh = float(ConfigLoader.lookup(cfg, "debug.autopilot_target_kmh", 235.0))
-		autopilot.obey_radar = not CliArgs.has("autopilot-speeding")
+		autopilot.obey_radar = not CliArgs.has("autopilot-speeding") and not bool(setup.get("autopilot_speeding", false))
+		autopilot.refuel_mode = CliArgs.get_string("autopilot-refuel", str(setup.get("autopilot_refuel", "auto")))
 
 	_connect_signals()
 	countdown = float(ConfigLoader.lookup(cfg, "time.countdown_s", 3.0))
-	if CliArgs.has("no-countdown"):
+	if CliArgs.has("no-countdown") or bool(setup.get("no_countdown", false)):
 		countdown = 0.0
+	_last_beep = int(ceil(countdown)) + 1
 	if CliArgs.has("screenshot"):
 		var shot := Screenshotter.new()
 		add_child(shot)
@@ -160,36 +203,63 @@ func _build() -> void:
 			times = [1.0]
 		shot.configure(CliArgs.get_string("screenshot"), times)
 	if CliArgs.has("timescale"):
-		Engine.time_scale = CliArgs.get_float("timescale", 1.0)
-		Engine.physics_ticks_per_second = 60
+		var ts := clampf(CliArgs.get_float("timescale", 1.0), 0.05, 200.0)
+		Engine.time_scale = ts
+		Engine.physics_ticks_per_second = maxi(1, int(round(60.0 * ts)))
+		Engine.max_physics_steps_per_frame = clampi(int(ceil(ts)) * 2, 8, 128)
+	_start_wall_ms = Time.get_ticks_msec()
+
+
+## Debug/screenshots: lets traffic build up around the start position by simulating a virtual
+## player that approaches from 1.5 km behind at 250 km/h (TrafficSystem only spawns ahead).
+func _warm_up_traffic() -> void:
+	var hour := Units.hour_of_day(_start_world_minutes)
+	var fake := maxf(0.0, pos_z - 1500.0)
+	while fake < pos_z:
+		var step := minf(14.0, pos_z - fake)
+		fake += step
+		traffic.update(0.2, {"z": fake, "x": vehicle.x, "speed": 250.0}, {"hour": hour, "chase": false, "camera_z": fake - proj.cam_distance})
+	for c in traffic.cars:
+		if absf(c.z - pos_z) < 25.0 and absf(c.x - vehicle.x) < 2.5:
+			c.z += 40.0
 
 
 func _connect_signals() -> void:
 	fuel.announced.connect(func(k: int, _st: float) -> void:
 		if k <= 5:
-			hud.show_message(tr("Tankstelle in %d km – Tankspur rechts") % k, "info")
+			hud.show_message(tr("Tankstelle in %d km – Tankspur rechts") % k, "info", 3.5)
 		else:
 			hud.show_message(tr("Tankstelle in %d km") % k, "info"))
 	fuel.refuel_started.connect(func() -> void:
 		stats["refuels"] += 1
-		AudioManager.play("fuel_start"))
+		AudioManager.play("fuel_start")
+		hud.show_message(tr("Tanken …"), "info", 1.5))
 	fuel.refuel_finished.connect(func(l: float, aborted: bool) -> void:
 		stats["liters"] += l
+		_reserve_warned = false
 		hud.show_message((tr("Tanken abgebrochen – %.0f L") if aborted else tr("Vollgetankt – %.0f L")) % l, "info")
 		AudioManager.play("fuel_done"))
 	fuel.ran_dry.connect(func() -> void:
 		stats["tows"] += 1
 		hud.show_message(tr("Tank leer! Der Abschleppdienst kommt …"), "alert", 4.0))
 	fuel.tow_finished.connect(func(p: float) -> void:
+		_reserve_warned = false
 		hud.show_message(tr("Zeitstrafe Abschleppdienst: +%s") % Units.format_race_time(p), "warn", 4.0))
 	police.radar_warning.connect(func(r: Dictionary) -> void:
 		hud.show_message(tr("Radarkontrolle in %d km – Limit %d km/h") % [int(round(float(ConfigLoader.lookup(cfg, "radar.warning_km", 10.0)))), int(r["limit"])], "warn", 4.0))
+	police.radar_zone.connect(func(r: Dictionary, entered: bool) -> void:
+		if entered:
+			hud.show_message(tr("Radarkontrolle – Limit %d km/h") % int(r["limit"]), "warn", 2.5)
+		else:
+			hud.show_message(tr("Ende der Radarkontrolle"), "info", 2.0))
 	police.flashed.connect(func(_r: Dictionary, _v: float) -> void:
 		stats["radar_flashes"] += 1
 		_flash = 1.0
 		AudioManager.play("flash")
 		hud.show_message(tr("Geblitzt! Die Polizei ist hinter dir her!"), "alert", 3.5))
-	police.chase_started.connect(func() -> void: AudioManager.set_siren(true, 0.3))
+	police.chase_started.connect(func() -> void:
+		AudioManager.set_siren(true, 0.3)
+		hud.show_message(tr("Polizei! Flucht nur mit über %d km/h") % int(ConfigLoader.lookup(cfg, "police.escape_speed_kmh", 220.0)), "alert", 3.0))
 	police.escaped.connect(func() -> void:
 		stats["police_escapes"] += 1
 		AudioManager.set_siren(false, 0.0)
@@ -202,27 +272,45 @@ func _connect_signals() -> void:
 		hud.show_message(tr("Gute Fahrt!"), "info"))
 	vehicle.crash_started.connect(func(_d: int) -> void:
 		stats["collisions"] += 1
+		_shake_t = 0.45
 		AudioManager.play("crash")
 		hud.flash(Color(1, 0.3, 0.2, 0.35), 0.25))
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if plan == null:
+		return
 	if event.is_action_pressed("pause") and not finished:
 		if get_tree().paused:
 			_on_resume()
 		else:
 			get_tree().paused = true
+			AudioManager.set_engine(0.0, 0.0, vehicle.vmax_effective, false)
+			AudioManager.set_wind(0.0)
+			AudioManager.set_siren(false, 0.0)
+			AudioManager.set_rain(0.0)
+			AudioManager.set_skid(0.0)
 			pause_menu.open()
 		get_viewport().set_input_as_handled()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and plan != null and running and not finished and autopilot == null and not standalone:
+		if not get_tree().paused:
+			get_tree().paused = true
+			pause_menu.open()
 
 
 func _on_resume() -> void:
 	get_tree().paused = false
 	pause_menu.close()
+	if police.chase_active():
+		AudioManager.set_siren(true, _chase01())
 
 
 func _on_restart() -> void:
 	get_tree().paused = false
+	AudioManager.stop_all()
 	if standalone:
 		get_tree().reload_current_scene()
 	else:
@@ -231,6 +319,7 @@ func _on_restart() -> void:
 
 func _on_quit() -> void:
 	get_tree().paused = false
+	AudioManager.stop_all()
 	if standalone:
 		get_tree().quit()
 	else:
@@ -249,13 +338,14 @@ func _read_input() -> Dictionary:
 
 func road_info(z: float) -> Dictionary:
 	var edges := track.road_edges_at(z)
+	var seg := track.segment_at(z)
 	return {
 		"curve": track.curve_at(z),
 		"grade": track.grade_at(z),
 		"left_edge": edges.x,
 		"right_edge": edges.y,
 		"shoulder_m": track.shoulder_w,
-		"guardrail": track.segment_at(z).guardrail,
+		"guardrail": seg.guardrail or seg.tunnel,
 		"grip": env.grip(weather),
 	}
 
@@ -263,25 +353,35 @@ func road_info(z: float) -> Dictionary:
 func _physics_process(dt: float) -> void:
 	if plan == null:
 		return
+	var t0 := Time.get_ticks_usec()
+	_step(dt)
+	var us := Time.get_ticks_usec() - t0
+	_sim_us_sum += us
+	_sim_us_max = maxi(_sim_us_max, us)
+	_sim_steps += 1
+
+
+## One simulation step (fixed dt).
+func _step(dt: float) -> void:
 	_real_time += dt
 	_flash = maxf(0.0, _flash - dt / float(ConfigLoader.lookup(cfg, "radar.flash_s", 0.3)))
+	_shake_t = maxf(0.0, _shake_t - dt)
 	if not running:
 		countdown -= dt
+		var sec := int(ceil(countdown))
+		if sec < _last_beep and sec > 0:
+			_last_beep = sec
+			AudioManager.play("beep")
 		if countdown <= 0.0:
 			running = true
 			hud.show_message(tr("LOS!"), "info", 1.2)
 			AudioManager.play("go")
 		return
 	if finished:
-		vehicle.auto_control(0.0, 30.0)
-		vehicle.update(dt, {}, road_info(pos_z), {"vmax_factor": 1.0})
-		pos_z += vehicle.speed / 3.6 * dt
-		_finish_timer -= dt
-		if _finish_timer <= 0.0 and _finish_timer > -100.0:
-			_finish_timer = -1000.0
-			_emit_result()
+		_step_finished(dt)
 		return
 	var input := _read_input()
+	last_input = input
 	var req := fuel.control_request()
 	if req.is_empty():
 		req = police.control_request()
@@ -296,15 +396,16 @@ func _physics_process(dt: float) -> void:
 	var dkm := Units.visual_m_to_km(dz, time_scale)
 	pos_km = track.z_to_km(pos_z)
 	var cam_z := pos_z - proj.cam_distance
-	track.update_window(cam_z, float(ConfigLoader.lookup(cfg, "render.draw_distance_m", 900.0)) + 60.0)
-	traffic.update(dt, {"z": pos_z, "x": vehicle.x, "speed": vehicle.speed},
-		{"hour": hour, "chase": police.chase_active(), "camera_z": cam_z})
-	if not vehicle.invulnerable:
-		var hit := traffic.find_collision({"z": pos_z, "x": vehicle.x, "length": vehicle.length_m, "width": vehicle.width_m}, cam_z, proj.visible_fraction)
-		if hit != null:
-			var edges := track.road_edges_at(pos_z)
-			var space := traffic.space_beside(pos_z, vehicle.x, vehicle.length_m * 0.5, edges.x - track.shoulder_w, edges.y + track.shoulder_w)
-			vehicle.start_crash(hit.x, space.x, space.y)
+	track.update_window(cam_z, _draw_distance + 60.0)
+	if traffic_enabled:
+		traffic.update(dt, {"z": pos_z, "x": vehicle.x, "speed": vehicle.speed},
+			{"hour": hour, "chase": police.chase_active(), "camera_z": cam_z})
+		if not vehicle.invulnerable and vehicle.state != VehicleModel.State.AUTO:
+			var hit := traffic.find_collision({"z": pos_z, "x": vehicle.x, "length": vehicle.length_m, "width": vehicle.width_m}, cam_z, proj.visible_fraction)
+			if hit != null:
+				var edges := track.road_edges_at(pos_z)
+				var space := traffic.space_beside(pos_z, vehicle.x, vehicle.length_m * 0.5, edges.x - track.shoulder_w, edges.y + track.shoulder_w)
+				vehicle.start_crash(hit.x, space.x, space.y)
 	var in_lane := track.fuel_lane_at(pos_z) and vehicle.x > track.main_right_edge(pos_z)
 	fuel.update(dt, pos_km, dkm, vehicle.speed, in_lane, float(input.get("throttle", 0.0)))
 	police.update(dt, pos_km, vehicle.speed)
@@ -314,36 +415,72 @@ func _physics_process(dt: float) -> void:
 		clock.advance(pen)
 	clock.advance(dt)
 	stage_time += dt
-	bg_offset += track.curve_at(pos_z) * vehicle.speed * dt * float(ConfigLoader.lookup(cfg, "render.background_parallax", 0.0025))
+	# the view turns with the road: heading change = arc length / radius
+	bg_offset += track.curve_at(pos_z) / _curve_r1 * vehicle.speed / 3.6 * dt * _bg_turn
 	_check_zones()
+	if CliArgs.has("trace") and pos_km >= _trace_next:
+		_trace_next = pos_km + CliArgs.get_float("trace", 2.0) if not CliArgs.all()["trace"] is bool else pos_km + 2.0
+		print("TRACE km %6.1f  t %6.1f  v %5.1f  want %5.1f  x %5.2f  curve %5.2f  grade %5.3f  fuel %4.1f  cars %d  state %d  %s" % [pos_km, total_time(), vehicle.speed,
+			autopilot.last_want if autopilot != null else -1.0, vehicle.x, track.curve_at(pos_z), track.grade_at(pos_z), fuel.fuel_l, traffic.cars.size(), vehicle.state, autopilot.last_reason if autopilot != null else ""])
 	if pos_km >= plan.length_km:
 		_finish()
+
+
+func _step_finished(dt: float) -> void:
+	vehicle.auto_control(0.0, float(ConfigLoader.lookup(cfg, "render.finish_decel_kmh_s", 35.0)))
+	vehicle.update(dt, {}, road_info(pos_z), {"vmax_factor": 1.0})
+	pos_z = minf(pos_z + vehicle.speed / 3.6 * dt, track.length_z + track.runout_m - 30.0)
+	pos_km = track.z_to_km(pos_z)
+	bg_offset += track.curve_at(pos_z) / _curve_r1 * vehicle.speed / 3.6 * dt * _bg_turn
+	track.update_window(pos_z - proj.cam_distance, _draw_distance + 60.0)
+	if traffic_enabled:
+		traffic.update(dt, {"z": pos_z, "x": vehicle.x, "speed": vehicle.speed},
+			{"hour": clock.hour(), "chase": false, "camera_z": pos_z - proj.cam_distance})
+	_finish_timer -= dt
+	if not _result_sent and (_finish_timer <= 0.0 or (vehicle.speed < 1.0 and _finish_timer < 2.0)):
+		_result_sent = true
+		_emit_result()
 
 
 func _check_zones() -> void:
 	var country := plan.country_at(pos_km)
 	if country != _last_country:
 		_last_country = country
-		hud.show_message(tr("Grenze: %s") % GameData.country_name(country), "info", 3.0)
+		var local := str(GameData.countries.get(country, {}).get("name_local", ""))
+		var name := GameData.country_name(country)
+		hud.show_message((tr("Grenze: %s") % name) + ("" if local == "" or local == name else "  ·  " + local), "info", 3.0)
 	var city := plan.is_city(pos_km)
 	if city and not _was_city:
-		hud.show_message(tr("City Limits %s") % plan.to_name, "info", 3.0)
+		hud.show_message(tr("City Limits %s – Tempo %d") % [plan.to_name, plan.city_speed_limit], "info", 3.0)
 	_was_city = city
 	var tunnel := plan.tunnel_at(pos_km)
-	if not tunnel.is_empty() and not _was_tunnel and str(tunnel.get("name", "")) != "":
-		hud.show_message(str(tunnel["name"]), "info", 2.0)
+	if not tunnel.is_empty() and not _was_tunnel:
+		var tname := str(tunnel.get("name", ""))
+		hud.show_message(tname if tname != "" else tr("Tunnel"), "info", 2.0)
 	_was_tunnel = not tunnel.is_empty()
+	var reserve := float(ConfigLoader.lookup(cfg, "fuel.reserve_warning_l", 8.0))
+	if fuel.fuel_l < reserve and not _reserve_warned and fuel.state == FuelSystem.State.NORMAL:
+		_reserve_warned = true
+		var st := fuel.distance_to_next_station(pos_km)
+		if st >= 0.0:
+			hud.show_message(tr("Reserve! Nächste Tankstelle in %d km") % int(round(st)), "warn", 3.5)
+		else:
+			hud.show_message(tr("Reserve! Keine Tankstelle mehr bis zum Ziel"), "warn", 3.5)
 
 
 func _finish() -> void:
+	_final_time = stage_time + penalty_time
 	finished = true
-	_finish_timer = 2.0
+	_finish_timer = float(ConfigLoader.lookup(cfg, "render.finish_hold_s", 6.0))
 	pos_km = plan.length_km
 	AudioManager.play("finish")
-	hud.show_message(tr("ZIEL!  %s") % Units.format_race_time(total_time()), "info", 3.0)
+	AudioManager.set_siren(false, 0.0)
+	hud.show_message(tr("ZIEL!  %s") % Units.format_race_time(_final_time), "info", 5.0)
 
 
 func total_time() -> float:
+	if finished:
+		return _final_time
 	return stage_time + penalty_time
 
 
@@ -358,12 +495,12 @@ func build_result() -> Dictionary:
 		"stage_name": plan.display_name,
 		"time_s": t,
 		"penalty_s": penalty_time,
-		"avg_speed_kmh": Units.avg_speed_kmh(plan.length_km, t, time_scale),
+		"avg_speed_kmh": Units.avg_speed_kmh(plan.length_km - float(setup.get("start_km", 0.0)), t, time_scale),
 		"distance_km": plan.length_km,
-		"vehicle": vehicle.type_id,
+		"vehicle": str(vehicle.spec.get("id", setup.get("vehicle", ""))),
 		"weather": weather,
 		"start_world_minutes": _start_world_minutes,
-		"end_world_minutes": clock.world_minutes,
+		"end_world_minutes": _start_world_minutes + Units.world_minutes_delta(t, time_scale),
 		"start_hour": start_hour,
 		"daytime": WorldClock.daytime_category(start_hour, cfg),
 		"collisions": stats["collisions"],
@@ -377,48 +514,80 @@ func build_result() -> Dictionary:
 	}
 
 
+## Simulation and render timing (for tests/race/run_stage.gd and --perf).
+func perf_stats() -> Dictionary:
+	var r := renderer.perf_stats() if renderer != null else {}
+	r["sim_steps"] = _sim_steps
+	r["sim_avg_ms"] = float(_sim_us_sum) / maxf(1.0, float(_sim_steps)) / 1000.0
+	r["sim_max_ms"] = float(_sim_us_max) / 1000.0
+	r["wall_s"] = float(Time.get_ticks_msec() - _start_wall_ms) / 1000.0
+	return r
+
+
 func _emit_result() -> void:
 	var r := build_result()
+	AudioManager.set_engine(0.0, 0.0, vehicle.vmax_effective, false)
+	AudioManager.set_siren(false, 0.0)
 	if standalone:
 		print("ERGEBNIS ", JSON.stringify(r))
+		if CliArgs.has("perf"):
+			print("PERF ", JSON.stringify(perf_stats()))
 		if CliArgs.has("quit-at-finish"):
 			get_tree().quit()
 	else:
 		stage_finished.emit(r)
 
 
+func _chase01() -> float:
+	if not police.chase_active():
+		return 0.0
+	var start_gap := float(ConfigLoader.lookup(cfg, "police.start_gap_m", 320.0))
+	return clampf(1.0 - police.gap_m / maxf(1.0, start_gap), 0.15, 1.0)
+
+
 func _process(delta: float) -> void:
 	if plan == null:
 		return
 	_beacon_t += delta
+	var follow := float(ConfigLoader.lookup(cfg, "render.camera_follow", 7.0))
+	var lag := float(ConfigLoader.lookup(cfg, "render.camera_lag_max_m", 1.1))
+	cam_x = lerpf(cam_x, vehicle.x, 1.0 - exp(-follow * delta))
+	cam_x = clampf(cam_x, vehicle.x - lag, vehicle.x + lag)
 	var cam_z := pos_z - proj.cam_distance
 	var hour := clock.hour()
-	var in_tunnel := track.is_tunnel_at(cam_z + 5.0)
-	var pal := Palette.compute(hour, weather, ConfigLoader.lookup(cfg, "daytime", {}), in_tunnel)
-	var vis := float(ConfigLoader.lookup(cfg, "render.draw_distance_m", 900.0)) * env.visibility_factor(hour, weather, in_tunnel)
+	var cam_tunnel := track.is_tunnel_at(cam_z + 1.0)
+	var pal := Palette.compute(hour, weather, ConfigLoader.lookup(cfg, "daytime", {}), false)
+	var vis := _draw_distance * env.visibility_factor(hour, weather, cam_tunnel)
 	var lights := float(pal.get("lights", 0.0))
 	var cars: Array = []
-	for c in traffic.cars:
-		cars.append({"kind": "car", "set": c.set_id, "z": c.z - c.length * 0.5, "x": c.x, "tail": lights, "brake": 1.0 if c.braking else 0.0})
+	if traffic_enabled:
+		for c in traffic.cars:
+			cars.append({"kind": "car", "set": c.set_id, "z": c.z - c.length * 0.5, "x": c.x, "length": c.length,
+				"tail": lights, "brake": 1.0 if c.braking else 0.0, "speed": c.speed, "heavy": c.heavy})
 	var off := police.police_car_offset_m()
 	if not is_nan(off):
-		cars.append({"kind": "car", "set": GameData.police_set_for(plan.country_at(pos_km)), "z": pos_z + off - 2.3,
-			"x": vehicle.x, "tail": lights, "beacon": "a" if fmod(_beacon_t, 0.5) < 0.25 else "b"})
+		cars.append({"kind": "car", "set": GameData.police_set_for(plan.country_at(clampf(pos_km, 0.0, plan.length_km))), "z": pos_z + off - 2.4,
+			"x": vehicle.x + (0.0 if off < 0.0 else -0.4), "tail": lights, "length": 4.8, "speed": vehicle.speed,
+			"beacon": "a" if fmod(_beacon_t, 0.5) < 0.25 else "b"})
 	var angle := "c"
 	if vehicle.steer_visual > 0.25:
 		angle = "r1"
 	elif vehicle.steer_visual < -0.25:
 		angle = "l1"
 	var player := {"kind": "car", "player": true, "set": str(vehicle.spec.get("sprite", "player/limousine")),
-		"z": pos_z - vehicle.length_m * 0.5, "x": vehicle.x, "angle": angle,
-		"tail": lights, "brake": 1.0 if vehicle.braking else 0.0, "visible": vehicle.blink_visible}
+		"z": pos_z - vehicle.length_m * 0.5, "x": vehicle.x, "angle": angle, "length": vehicle.length_m,
+		"tail": lights, "brake": 1.0 if vehicle.braking else 0.0, "visible": vehicle.blink_visible, "speed": vehicle.speed}
 	var shake := Vector2.ZERO
 	if vehicle.off_road > 0 and vehicle.speed > 30.0:
-		shake = Vector2(randf_range(-1.5, 1.5), randf_range(-1.5, 1.5)) * minf(vehicle.speed / 100.0, 2.0)
+		shake = Vector2(randf_range(-1.2, 1.2), randf_range(-1.5, 1.5)) * minf(vehicle.speed / 100.0, 2.0)
+	if _shake_t > 0.0:
+		shake += Vector2(randf_range(-4.0, 4.0), randf_range(-3.0, 3.0)) * (_shake_t / 0.45)
+	var chase := _chase01()
 	renderer.render({
 		"camera_z": cam_z,
-		"camera_x": vehicle.x,
+		"camera_x": cam_x,
 		"camera_y": track.height_at(pos_z) + proj.cam_height,
+		"camera_in_tunnel": cam_tunnel,
 		"visibility_m": vis,
 		"palette": pal,
 		"weather": weather,
@@ -427,20 +596,32 @@ func _process(delta: float) -> void:
 		"cars": cars,
 		"player": player,
 		"bg_offset": bg_offset,
-		"scenery": plan.scenery_at(pos_km),
+		"scenery": plan.scenery_at(clampf(pos_km, 0.0, plan.length_km)) if not plan.is_city(pos_km) or not GameData.scenery.has("city") else "city",
 		"shake": shake,
+		"countdown": countdown if not running else (-0.5 if _real_time < 1.0 + float(ConfigLoader.lookup(cfg, "time.countdown_s", 3.0)) else -1000.0),
+		"chase01": chase,
+		"radar_flash01": _flash,
 	})
 	hud.update_state(_hud_state(hour))
-	AudioManager.set_engine(vehicle.speed, 1.0 if Input.is_action_pressed("accelerate") else 0.0, vehicle.vmax_effective, running and not finished)
+	var throttle := float(last_input.get("throttle", 0.0)) if autopilot != null else Input.get_action_strength("accelerate")
+	AudioManager.set_engine(vehicle.speed, throttle, vehicle.vmax_effective, not finished or vehicle.speed > 1.0)
 	AudioManager.set_wind(vehicle.speed)
+	AudioManager.set_rain(1.0 if weather == "rain" and not cam_tunnel else 0.0)
+	AudioManager.set_skid(clampf(vehicle.understeer + (0.5 if vehicle.state == VehicleModel.State.CRASH else 0.0), 0.0, 1.0))
+	if chase > 0.0:
+		AudioManager.set_siren(true, chase)
 
 
 func _hud_state(hour: float) -> Dictionary:
-	var next_radar := plan.next_radar(pos_km)
+	var km := clampf(pos_km, 0.0, plan.length_km)
+	var next_radar := plan.next_radar(km)
 	var radar_warn := {}
-	if not next_radar.is_empty() and pos_km >= float(next_radar["warn_km"]):
-		radar_warn = {"distance_km": maxf(0.0, float(next_radar["km"]) - pos_km), "limit": int(next_radar["limit"]),
-			"in_zone": pos_km >= float(next_radar["km"])}
+	var limit := plan.speed_limit_at(km)
+	if not next_radar.is_empty() and km >= float(next_radar["warn_km"]):
+		var in_zone := km >= float(next_radar["km"])
+		radar_warn = {"distance_km": maxf(0.0, float(next_radar["km"]) - km), "limit": int(next_radar["limit"]), "in_zone": in_zone}
+		if in_zone:
+			limit = int(next_radar["limit"])
 	var st_police := "none"
 	match police.state:
 		PoliceSystem.State.CHASE: st_police = "chase"
@@ -449,9 +630,9 @@ func _hud_state(hour: float) -> Dictionary:
 	return {
 		"speed_kmh": vehicle.speed,
 		"vmax_kmh": vehicle.vmax_effective,
-		"stage_km": pos_km,
+		"stage_km": km,
 		"stage_length_km": plan.length_km,
-		"remaining_km": maxf(0.0, plan.length_km - pos_km),
+		"remaining_km": maxf(0.0, plan.length_km - km),
 		"clock_text": clock.text(),
 		"hour": hour,
 		"stage_time_s": total_time(),
@@ -461,8 +642,8 @@ func _hud_state(hour: float) -> Dictionary:
 		"fuel_l": fuel.fuel_l,
 		"tank_l": fuel.tank_l,
 		"range_km": fuel.range_km(maxf(vehicle.speed, 80.0)),
-		"next_station_km": fuel.distance_to_next_station(pos_km),
-		"speed_limit": plan.speed_limit_at(pos_km),
+		"next_station_km": fuel.distance_to_next_station(km),
+		"speed_limit": limit,
 		"radar_warning": radar_warn,
 		"police_state": st_police,
 		"police_gap_m": police.gap_m,
@@ -470,9 +651,9 @@ func _hud_state(hour: float) -> Dictionary:
 		"refuel": {"active": fuel.state == FuelSystem.State.REFUELING, "progress01": fuel.refuel_progress, "liters": fuel.liters_added, "time_left_s": fuel.refuel_time_left} if fuel.state == FuelSystem.State.REFUELING else {},
 		"tow": {"active": true} if fuel.state == FuelSystem.State.TOWING else {},
 		"weather": weather,
-		"country": plan.country_at(pos_km),
-		"city_limits": plan.is_city(pos_km),
-		"in_tunnel": plan.in_tunnel(pos_km),
+		"country": plan.country_at(km),
+		"city_limits": plan.is_city(km),
+		"in_tunnel": plan.in_tunnel(km),
 		"radar_flash01": _flash,
 		"countdown": int(ceil(countdown)) if not running else -1,
 		"stage_name": plan.display_name,

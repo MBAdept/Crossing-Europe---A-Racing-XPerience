@@ -6,6 +6,10 @@ extends RefCounted
 ## (curviness / hills 0–3). Everything tied to km positions (road type, lanes, fuel lane, tunnels,
 ## City Limits, signs, stations, radar posts, border posts) is deterministic.
 ## Implements the track API used by TrafficSystem (see ARCHITECTURE.md §Strecke).
+##
+## Generation is sequential (one RNG for curves/hills), so a segment depends only on the seed and
+## its index – never on the camera path. Props use a per-segment RNG (seed, index).
+## After the finish line the road continues straight for road.runout_m (coast-out after "ZIEL").
 ## Owner: race module.
 
 var plan: StagePlan
@@ -15,16 +19,23 @@ var seg_len := 3.0
 var time_scale := 12.0
 var lane_w := 3.75
 var shoulder_w := 2.5
-var length_z := 0.0
+var length_z := 0.0                    ## visual metres from start to finish line
 var length_km := 0.0
-var segment_count := 0
+var segment_count := 0                 ## including the run-out behind the finish
 var keep_behind := 64                  ## segments kept behind the camera
+var runout_m := 600.0
+var hill_scale := 1.0                  ## render.hill_height_scale (visual exaggeration of hills)
+## Spanning structures {kind: "fuel"|"fuel_canopy"|"border", z0, z1, ...} sorted by z0.
+var zones: Array[Dictionary] = []
 
 var _segs: Dictionary = {}             ## index -> TrackSegment (current window)
 var _gen_next := 0                     ## next index to generate
 var _seed := 0
-var _road_changes: Array[Dictionary] = []   ## {z, from_lanes, to_lanes}
+var _road_changes: Array[Dictionary] = []   ## {z, from, to}
 var _events: Dictionary = {}           ## segment index -> Array[Dictionary] (props/signs from km events)
+var _clear: Dictionary = {}            ## segment index -> side mask (1 right, 2 left): no scenery props
+var _lane_trans := 180.0
+var _taper := 40.0
 
 # road piece generator state (curves)
 var _rng := RandomNumberGenerator.new()
@@ -32,9 +43,16 @@ var _c_len := 0
 var _c_pos := 0
 var _c_mag := 0.0
 var _c_is_curve := false
+var _c_last := 0.0
+var _c_fade := 0                       ## segments left of a fade-out at a section change
+var _c_fade_n := 1
+var _c_fade_from := 0.0
+var _breaks: Array[float] = []        ## z where the road pieces restart (section starts, before tunnels)
+var _break_i := 0
 # hills
 var _h_len := 0
 var _h_pos := 0
+var _h_trans := 1
 var _h_from := 0.0
 var _h_to := 0.0
 var _h_grade := 0.0
@@ -49,15 +67,32 @@ func setup(stage_plan: StagePlan, config: Dictionary, scenery: Dictionary, seed_
 	time_scale = float(ConfigLoader.lookup(cfg, "time.time_scale", 12.0))
 	lane_w = float(ConfigLoader.lookup(cfg, "road.lane_width_m", 3.75))
 	shoulder_w = float(ConfigLoader.lookup(cfg, "road.shoulder_width_m", 2.5))
+	runout_m = float(ConfigLoader.lookup(cfg, "road.runout_m", 600.0))
+	hill_scale = float(ConfigLoader.lookup(cfg, "render.hill_height_scale", 1.0))
+	_lane_trans = float(ConfigLoader.lookup(cfg, "road.lane_transition_m", 180.0))
+	_taper = float(ConfigLoader.lookup(cfg, "road.fuel_lane_taper_m", 40.0))
 	length_km = plan.length_km
 	length_z = km_to_z(length_km)
-	segment_count = int(ceil(length_z / seg_len)) + 1
+	segment_count = int(ceil((length_z + runout_m) / seg_len)) + 1
 	_seed = plan.seed if seed_override < 0 else seed_override
 	_rng.seed = _seed
 	_segs.clear()
 	_gen_next = 0
 	_c_len = 0
+	_c_pos = 0
+	_c_is_curve = false
+	_c_last = 0.0
+	_c_fade = 0
+	_break_i = 0
+	_breaks.clear()
+	for sec in plan.sections:
+		if float(sec["start_km"]) > 0.0:
+			_breaks.append(km_to_z(float(sec["start_km"])))
+	for t in plan.tunnels:
+		_breaks.append(maxf(0.0, km_to_z(float(t["start_km"])) - 60.0))
+	_breaks.sort()
 	_h_len = 0
+	_h_pos = 0
 	_h_grade = 0.0
 	_y = 0.0
 	_build_road_changes()
@@ -87,7 +122,7 @@ func update_window(camera_z: float, ahead_m: float) -> void:
 		_generate(_gen_next)
 		_gen_next += 1
 	var first := segment_index_at(camera_z) - keep_behind
-	for i in _segs.keys():
+	for i: int in _segs.keys():
 		if i < first:
 			_segs.erase(i)
 
@@ -98,8 +133,9 @@ func get_segment(index: int) -> TrackSegment:
 	while _gen_next <= index:
 		_generate(_gen_next)
 		_gen_next += 1
-	if _segs.has(index):
-		return _segs[index]
+	var s: TrackSegment = _segs.get(index)
+	if s != null:
+		return s
 	var keys := _segs.keys()
 	keys.sort()
 	return _segs[keys[0]]
@@ -109,6 +145,11 @@ func segment_at(z: float) -> TrackSegment:
 	return get_segment(segment_index_at(z))
 
 
+## Number of segments currently held in memory (window size, for tests/diagnostics).
+func window_size() -> int:
+	return _segs.size()
+
+
 # --- Generation -----------------------------------------------------------------------------
 
 func _generate(i: int) -> void:
@@ -116,32 +157,59 @@ func _generate(i: int) -> void:
 	s.index = i
 	s.z = i * seg_len
 	s.km = z_to_km(s.z)
-	var km := s.km
+	var km := minf(s.km, length_km)
 	var sec := plan.section_at(km)
+	s.runout = s.z > length_z
 	s.road = plan.road_at(km)
-	s.scenery = "city" if plan.is_city(km) and scenery_db.has("city") else str(sec.get("scenery", "north_plain"))
+	s.city = plan.is_city(km)
+	s.scenery = "city" if s.city and scenery_db.has("city") else str(sec.get("scenery", "north_plain"))
 	s.country = str(sec.get("country", "DE"))
 	s.speed_limit = plan.speed_limit_at(km)
-	s.tunnel = plan.in_tunnel(km)
-	s.city = plan.is_city(km)
+	s.tunnel = plan.in_tunnel(km) and not s.runout
 	s.guardrail = bool(ConfigLoader.lookup(cfg, "road.guardrail." + s.road, false))
 	s.lanes = lanes_at(s.z)
 	s.lane_count = lane_count_at(s.z)
 	s.fuel_lane = fuel_lane_factor(s.z)
-	s.curve = _next_curve(i, sec, s)
+	if _break_i < _breaks.size() and s.z >= _breaks[_break_i]:
+		while _break_i < _breaks.size() and s.z >= _breaks[_break_i]:
+			_break_i += 1
+		# new section / tunnel ahead: fade the running curve out (60 m) and start new road pieces
+		# with the limits that apply there
+		_c_fade_from = _c_last
+		_c_fade_n = int(60.0 / seg_len)
+		_c_fade = _c_fade_n
+		_c_pos = _c_len
+		_c_is_curve = true
+		_h_pos = _h_len
+	s.curve = _next_curve(sec, s)
+	_c_last = s.curve
 	s.y = _y
-	_y += _next_grade(i, sec, s) * seg_len * float(ConfigLoader.lookup(cfg, "render.hill_height_scale", 1.0))
+	_y += _next_grade(sec, s) * seg_len * hill_scale
+	_mark_zones(s)
 	_place_props(s)
 	_segs[i] = s
 
 
-func _next_curve(i: int, sec: Dictionary, s: TrackSegment) -> float:
+## Fade factor 0..1 that keeps the road straight and flat at the start and around the finish.
+func _calm(z: float, near_start: float, near_end: float) -> float:
+	var a := smoothstep(near_start, near_start + 120.0, z)
+	var b := 1.0 - smoothstep(length_z - near_end - 120.0, length_z - near_end, z)
+	return a * b
+
+
+func _next_curve(sec: Dictionary, s: TrackSegment) -> float:
+	if _c_fade > 0:
+		_c_fade -= 1
+		return _c_fade_from * smoothstep(0.0, 1.0, float(_c_fade) / float(_c_fade_n))
 	if _c_pos >= _c_len:
 		_c_pos = 0
 		var level := int(sec.get("curviness", 1))
-		var max_curve := float((ConfigLoader.lookup(cfg, "road.curviness_max_curve", [0.0, 0.22, 0.45, 0.9]) as Array)[level])
+		var maxes: Array = ConfigLoader.lookup(cfg, "road.curviness_max_curve", [0.0, 0.22, 0.45, 0.9])
+		var max_curve := float(maxes[clampi(level, 0, maxes.size() - 1)])
 		if s.tunnel:
 			max_curve = minf(max_curve, 0.25)
+		if s.city:
+			max_curve = minf(max_curve, 0.35)
 		if _c_is_curve or max_curve <= 0.0:
 			_c_is_curve = false
 			_c_len = int(_rng.randf_range(120.0, 700.0 - level * 140.0) / seg_len)
@@ -152,29 +220,37 @@ func _next_curve(i: int, sec: Dictionary, s: TrackSegment) -> float:
 			_c_mag = _rng.randf_range(0.35, 1.0) * max_curve * (1.0 if _rng.randf() < 0.5 else -1.0)
 	var t := float(_c_pos) / maxf(1.0, float(_c_len))
 	_c_pos += 1
-	# no curves on the first and last 150 m (start grid / finish line)
-	if s.z < 150.0 or s.z > length_z - 150.0:
+	if s.runout:
 		return 0.0
 	var ease := smoothstep(0.0, 0.3, t) * (1.0 - smoothstep(0.7, 1.0, t))
-	return _c_mag * ease
+	return _c_mag * ease * _calm(s.z, 40.0, 60.0)
 
 
-func _next_grade(i: int, sec: Dictionary, s: TrackSegment) -> float:
+func _next_grade(sec: Dictionary, s: TrackSegment) -> float:
 	if _h_pos >= _h_len:
 		_h_pos = 0
 		var level := int(sec.get("hills", 1))
-		var max_grade := float((ConfigLoader.lookup(cfg, "road.hills_max_grade", [0.0, 0.025, 0.045, 0.07]) as Array)[level])
-		if s.tunnel:
+		var ahead := plan.in_tunnel(minf(length_km, s.km + z_to_km(80.0)))
+		var maxes: Array = ConfigLoader.lookup(cfg, "road.hills_max_grade", [0.0, 0.025, 0.045, 0.07])
+		var max_grade := float(maxes[clampi(level, 0, maxes.size() - 1)])
+		if s.tunnel or ahead:
 			max_grade *= 0.4
 		_h_from = _h_grade
-		_h_to = _rng.randf_range(-max_grade, max_grade)
-		_h_len = int(_rng.randf_range(180.0, 650.0) / seg_len)
-	var t := float(_h_pos) / maxf(1.0, float(_h_len))
+		# mostly alternate up/down so that real crests and dips appear
+		var dir := -signf(_h_from) if absf(_h_from) > 0.003 else (1.0 if _rng.randf() < 0.5 else -1.0)
+		if _rng.randf() < 0.22:
+			dir = -dir
+		_h_to = dir * _rng.randf_range(0.5, 1.0) * max_grade
+		if _rng.randf() < 0.12:
+			_h_to = 0.0
+		_h_len = maxi(8, int(_rng.randf_range(130.0, 420.0) / seg_len))
+		_h_trans = clampi(int(float(_h_len) * _rng.randf_range(0.25, 0.55)), 6, _h_len)
+	var t := clampf(float(_h_pos) / float(_h_trans), 0.0, 1.0)
 	_h_pos += 1
 	_h_grade = lerpf(_h_from, _h_to, smoothstep(0.0, 1.0, t))
-	if s.z < 60.0:
+	if s.runout:
 		return 0.0
-	return _h_grade
+	return _h_grade * _calm(s.z, 30.0, 40.0)
 
 
 # --- Lanes, edges, fuel lane ----------------------------------------------------------------
@@ -199,24 +275,23 @@ func _build_road_changes() -> void:
 			_road_changes.append({"z": km_to_z(km), "from": before, "to": after})
 
 
-## Effective (fractional) lane count at z; lane changes blend over road.lane_transition_m.
+## Effective (fractional) lane count at z; lane changes blend over road.lane_transition_m
+## (starting at the change point).
 func lanes_at(z: float) -> float:
-	var trans := float(ConfigLoader.lookup(cfg, "road.lane_transition_m", 180.0))
-	var lanes := float(_lanes_for(plan.road_at(z_to_km(z))))
+	var lanes := float(_lanes_for(plan.road_at(clampf(z_to_km(z), 0.0, length_km))))
 	for c in _road_changes:
 		var d := z - float(c["z"])
-		if d >= 0.0 and d < trans:
-			lanes = lerpf(float(c["from"]), float(c["to"]), smoothstep(0.0, 1.0, d / trans))
+		if d >= 0.0 and d < _lane_trans:
+			lanes = lerpf(float(c["from"]), float(c["to"]), smoothstep(0.0, 1.0, d / _lane_trans))
 	return lanes
 
 
-## Lanes usable by traffic at z (during a transition the smaller count).
+## Lanes usable by traffic at z (during a transition and shortly before it the smaller count).
 func lane_count_at(z: float) -> int:
-	var trans := float(ConfigLoader.lookup(cfg, "road.lane_transition_m", 180.0))
-	var n := _lanes_for(plan.road_at(z_to_km(z)))
+	var n := _lanes_for(plan.road_at(clampf(z_to_km(z), 0.0, length_km)))
 	for c in _road_changes:
 		var d := z - float(c["z"])
-		if d >= -trans and d < trans:
+		if d >= -_lane_trans and d < _lane_trans:
 			n = mini(int(c["from"]), int(c["to"]))
 	return n
 
@@ -240,16 +315,15 @@ func main_right_edge(z: float) -> float:
 
 ## 0..1 width of the fuel lane at z (tapers in/out over road.fuel_lane_taper_m).
 func fuel_lane_factor(z: float) -> float:
-	var taper := float(ConfigLoader.lookup(cfg, "road.fuel_lane_taper_m", 40.0))
 	for l in plan.fuel_lanes:
 		var z0 := km_to_z(float(l["start_km"]))
 		var z1 := km_to_z(float(l["end_km"]))
-		if z >= z0 and z <= z1 + taper:
-			if z < z0 + taper:
-				return smoothstep(z0, z0 + taper, z)
+		if z >= z0 and z <= z1 + _taper:
+			if z < z0 + _taper:
+				return smoothstep(z0, z0 + _taper, z)
 			if z <= z1:
 				return 1.0
-			return 1.0 - smoothstep(z1, z1 + taper, z)
+			return 1.0 - smoothstep(z1, z1 + _taper, z)
 	return 0.0
 
 
@@ -262,35 +336,45 @@ func fuel_lane_x(z: float) -> float:
 	return main_right_edge(z) + lane_w * 0.5
 
 
+## Visual metres from z to the start of the next fuel lane ahead (INF if none). Used by the autopilot.
+func distance_to_fuel_lane(z: float) -> float:
+	for l in plan.fuel_lanes:
+		var z0 := km_to_z(float(l["start_km"]))
+		var z1 := km_to_z(float(l["end_km"]))
+		if z1 >= z:
+			return maxf(0.0, z0 - z)
+	return INF
+
+
 func road_type_at(z: float) -> String:
-	return plan.road_at(z_to_km(z))
+	return plan.road_at(clampf(z_to_km(z), 0.0, length_km))
 
 
 func is_city_at(z: float) -> bool:
-	return plan.is_city(z_to_km(z))
+	return plan.is_city(clampf(z_to_km(z), 0.0, length_km))
 
 
 func is_tunnel_at(z: float) -> bool:
-	return plan.in_tunnel(z_to_km(z))
+	return z <= length_z and plan.in_tunnel(z_to_km(z))
 
 
 func traffic_factor_at(z: float) -> float:
-	return plan.traffic_factor_at(z_to_km(z))
+	return plan.traffic_factor_at(clampf(z_to_km(z), 0.0, length_km))
 
 
 func country_at(z: float) -> String:
-	return plan.country_at(z_to_km(z))
+	return plan.country_at(clampf(z_to_km(z), 0.0, length_km))
 
 
 func speed_limit_at(z: float) -> int:
-	return plan.speed_limit_at(z_to_km(z))
+	return plan.speed_limit_at(clampf(z_to_km(z), 0.0, length_km))
 
 
 func curve_at(z: float) -> float:
 	return get_segment(segment_index_at(z)).curve
 
 
-## Road height at z (interpolated between segment starts).
+## Road height at z (visual metres, interpolated between segment starts).
 func height_at(z: float) -> float:
 	var i := segment_index_at(z)
 	var a := get_segment(i)
@@ -299,55 +383,116 @@ func height_at(z: float) -> float:
 	return lerpf(a.y, b.y, t)
 
 
-## Grade (rise/run) at z, + = uphill.
+## Physical grade (rise/run) at z, + = uphill (without the visual hill exaggeration).
 func grade_at(z: float) -> float:
 	var i := segment_index_at(z)
 	var a := get_segment(i)
 	var b := get_segment(mini(i + 1, segment_count - 1))
-	return (b.y - a.y) / seg_len / maxf(0.001, float(ConfigLoader.lookup(cfg, "render.hill_height_scale", 1.0)))
+	return (b.y - a.y) / seg_len / maxf(0.001, hill_scale)
 
 
-# --- Props ----------------------------------------------------------------------------------
+# --- Events: signs, stations, borders -------------------------------------------------------
 
 func _build_events() -> void:
 	_events.clear()
+	_clear.clear()
+	zones.clear()
 	var dest := plan.to_name
+	# Fuel stations: announcements 30/15/5 km, lane sign, price pylon, pump islands, canopies, shop.
+	var announce: Array = ConfigLoader.lookup(cfg, "fuel.announce_km", [30, 15, 5])
 	for st in plan.fuel_stations_km:
-		for k in ConfigLoader.lookup(cfg, "fuel.announce_km", [30, 15, 5]):
+		for k in announce:
 			_add_event(st - float(k), {"kind": "sign", "sign": "fuel", "text": "%d km" % int(k), "value": int(k), "side": 1})
 	for l in plan.fuel_lanes:
 		var z0 := km_to_z(float(l["start_km"]))
 		var z1 := km_to_z(float(l["end_km"]))
-		var z := z0 + 30.0
-		while z < z1:
-			_add_event_z(z, {"kind": "prop", "set": "props/fuel_pump", "side": 1, "offset": 4.5, "fuel_lane": true})
-			z += 24.0
-		_add_event_z(z1, {"kind": "prop", "set": "props/fuel_station", "side": 1, "offset": 9.0, "fuel_lane": true})
+		_add_event_z(z0 - 22.0, {"kind": "sign", "sign": "fuel_lane", "side": 1})
+		_add_event_z(z0 + _taper * 0.6, {"kind": "object", "obj": "fuel_pylon", "side": 1, "at": "edge", "offset": 6.5})
+		var za := z0 + _taper + 4.0
+		var zb := z1 - 4.0
+		zones.append({"kind": "fuel", "z0": za, "z1": zb})
+		var zc := za + 4.0
+		while zc + 8.0 < zb:
+			var ze := minf(zc + 12.0, zb - 2.0)
+			zones.append({"kind": "fuel_canopy", "z0": zc, "z1": ze})
+			for zp: float in [zc + 3.0, zc + 8.5]:
+				if zp < ze - 1.0:
+					_add_event_z(zp, {"kind": "prop", "set": "props/fuel_pump", "proc": "pump", "side": 1, "at": "edge", "offset": 1.35})
+			zc += 22.0
+		_add_event_z(z1 - 8.0, {"kind": "prop", "set": "props/fuel_station", "proc": "station", "side": 1, "at": "edge", "offset": 19.0})
+		_mark_clear(z0 - 40.0, z1 + _taper + 30.0, 1)
+	# Radar: warning 10 km before (with limit), limit signs at the zone, cameras, end of the limit.
 	for r in plan.radars:
-		_add_event(float(r["warn_km"]), {"kind": "sign", "sign": "radar", "value": int(r["limit"]), "side": 1})
-		_add_event(float(r["km"]), {"kind": "sign", "sign": "limit", "value": int(r["limit"]), "side": 1})
-		_add_event(float(r["km"]), {"kind": "sign", "sign": "limit", "value": int(r["limit"]), "side": -1})
-		_add_event(float(r["km"]) + 0.4, {"kind": "prop", "set": "props/radar_camera", "side": 1, "offset": 1.5})
-	for t in plan.tunnels:
-		if str(t["name"]) != "":
-			_add_event(maxf(0.0, float(t["start_km"]) - 0.6), {"kind": "sign", "sign": "tunnel", "text": str(t["name"]), "side": 1})
-	for b in plan.borders:
-		var name_local := str(b.get("name_local", b["to"]))
-		_add_event(float(b["km"]) - 0.3, {"kind": "sign", "sign": "border", "text": name_local, "value": 0, "side": 1, "country": str(b["to"])})
-		_add_event(float(b["km"]), {"kind": "prop", "set": "props/customs_booth", "side": 1, "offset": 2.0})
-		_add_event(float(b["km"]), {"kind": "prop", "set": "props/customs_booth", "side": -1, "offset": 2.0})
-	_add_event(plan.city_limits_km, {"kind": "sign", "sign": "town", "text": dest, "side": 1})
+		var rk := float(r["km"])
+		var lim := int(r["limit"])
+		_add_event(float(r["warn_km"]), {"kind": "sign", "sign": "radar", "value": lim, "text": "%d km" % int(round(rk - float(r["warn_km"]))), "side": 1})
+		_add_event(rk, {"kind": "sign", "sign": "limit", "value": lim, "side": 1})
+		_add_event(rk, {"kind": "sign", "sign": "limit", "value": lim, "side": -1})
+		_add_event(rk + 0.25, {"kind": "prop", "set": "props/radar_camera", "proc": "radar_cam", "side": 1, "offset": 0.3})
+		var mid := (rk + float(r["end_km"])) * 0.5
+		_add_event(mid, {"kind": "sign", "sign": "limit", "value": lim, "side": 1})
+		_add_event(mid + 0.25, {"kind": "prop", "set": "props/radar_camera", "proc": "radar_cam", "side": 1, "offset": 0.3})
+		var after := plan.speed_limit_at(float(r["end_km"]) + 0.05)
+		if after != lim:
+			_add_event(float(r["end_km"]), {"kind": "sign", "sign": "limit" if after > 0 else "unlimited", "value": after, "side": 1})
+		for k: float in [rk, rk + 0.25, mid, mid + 0.25]:
+			_mark_clear(km_to_z(k) - 12.0, km_to_z(k) + 6.0, 3)
+	# Speed limits and road type at section starts.
 	var prev_limit := -1
+	var prev_road := ""
 	for sec in plan.sections:
+		var start := float(sec["start_km"])
 		var lim := int(sec["speed_limit"])
-		if lim != prev_limit and float(sec["start_km"]) < plan.city_limits_km:
-			_add_event(float(sec["start_km"]) + 0.2, {"kind": "sign", "sign": "limit" if lim > 0 else "unlimited", "value": lim, "side": 1})
+		var road := str(sec["road"])
+		if start >= plan.city_limits_km:
+			break
+		if road != prev_road and start > 0.0:
+			if road == "autobahn":
+				_add_event(start + 0.05, {"kind": "sign", "sign": "autobahn", "side": 1})
+			elif prev_road == "autobahn":
+				_add_event(start + 0.05, {"kind": "sign", "sign": "autobahn_end", "side": 1})
+		if lim != prev_limit and not (lim == 0 and prev_limit <= 0 and start > 0.0):
+			_add_event(start + 0.2, {"kind": "sign", "sign": "limit" if lim > 0 else "unlimited", "value": lim, "side": 1})
 		prev_limit = lim
-	var km := 50.0
-	while km < plan.city_limits_km - 10.0:
-		_add_event(plan.length_km - km, {"kind": "sign", "sign": "distance", "text": "%s %d km" % [dest, int(km)], "side": 1})
-		km += 50.0
-	_add_event_z(length_z - seg_len * 2.0, {"kind": "sign", "sign": "finish", "text": "ZIEL", "side": 0})
+		prev_road = road
+	# Tunnels: name sign before the portal, no scenery right at the portals.
+	for t in plan.tunnels:
+		var t0 := float(t["start_km"])
+		var t1 := float(t["end_km"])
+		if str(t["name"]) != "":
+			_add_event(maxf(0.0, t0 - 0.6), {"kind": "sign", "sign": "tunnel", "text": str(t["name"]), "value": int(round((t1 - t0) * 1000.0)), "side": 1})
+		_mark_clear(km_to_z(t0) - 45.0, km_to_z(t1) + 12.0, 3)
+	# Borders: EU country sign, control station (canopy + booths), new speed limit.
+	for b in plan.borders:
+		var bk := float(b["km"])
+		var bz := km_to_z(bk)
+		var name_local := str(b.get("name_local", b.get("name", b["to"])))
+		_add_event_z(bz - 22.0, {"kind": "sign", "sign": "border", "text": name_local, "side": 1, "country": str(b["to"])})
+		_add_event_z(bz - 22.0, {"kind": "sign", "sign": "border", "text": name_local, "side": -1, "country": str(b["to"])})
+		zones.append({"kind": "border", "z0": bz, "z1": bz + 18.0, "country": str(b["to"])})
+		_add_event_z(bz + 5.0, {"kind": "prop", "set": "props/customs_booth", "proc": "booth", "side": 1, "at": "edge", "offset": 1.6})
+		_add_event_z(bz + 5.0, {"kind": "prop", "set": "props/customs_booth", "proc": "booth", "side": -1, "at": "edge", "offset": 1.6})
+		var new_limit := plan.speed_limit_at(bk + 0.6)
+		if new_limit != plan.speed_limit_at(maxf(0.0, bk - 0.05)) and bk + 0.6 < plan.city_limits_km:
+			_add_event(bk + 0.6, {"kind": "sign", "sign": "limit" if new_limit > 0 else "unlimited", "value": new_limit, "side": 1})
+		_mark_clear(bz - 45.0, bz + 45.0, 3)
+	# City Limits: yellow town sign with the destination, city speed limit.
+	_add_event(plan.city_limits_km, {"kind": "sign", "sign": "town", "text": dest, "side": 1})
+	_add_event(plan.city_limits_km, {"kind": "sign", "sign": "town", "text": dest, "side": -1})
+	_add_event(plan.city_limits_km + 0.15, {"kind": "sign", "sign": "limit", "value": plan.city_speed_limit, "side": 1})
+	_mark_clear(km_to_z(plan.city_limits_km) - 20.0, km_to_z(plan.city_limits_km) + 20.0, 3)
+	# Distance signs to the destination.
+	for left: float in [25.0, 50.0, 100.0, 150.0, 200.0, 250.0, 300.0, 350.0, 400.0]:
+		var pos := plan.length_km - left
+		if pos > 1.5 and pos < plan.city_limits_km - 0.5:
+			_add_event(pos, {"kind": "sign", "sign": "distance", "text": dest, "value": int(left), "side": 1})
+	if plan.length_km > 30.0:
+		_add_event(1.0, {"kind": "sign", "sign": "distance", "text": dest, "value": int(round(plan.length_km - 1.0)), "side": 1})
+	# Start gantry (countdown lights) and finish gantry.
+	_add_event_z(14.0, {"kind": "sign", "sign": "start", "side": 0})
+	_add_event_z(length_z, {"kind": "sign", "sign": "finish", "text": "ZIEL", "side": 0})
+	_mark_clear(length_z - 30.0, length_z + 20.0, 3)
+	zones.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return float(x["z0"]) < float(y["z0"]))
 
 
 func _add_event(km: float, e: Dictionary) -> void:
@@ -357,46 +502,109 @@ func _add_event(km: float, e: Dictionary) -> void:
 
 
 func _add_event_z(z: float, e: Dictionary) -> void:
+	if z < 0.0:
+		return
 	var i := segment_index_at(z)
 	if not _events.has(i):
 		_events[i] = []
-	_events[i].append(e)
+	var ev := e.duplicate()
+	ev["z"] = z
+	(_events[i] as Array).append(ev)
+
+
+func _mark_clear(z0: float, z1: float, mask: int) -> void:
+	for i in range(segment_index_at(maxf(0.0, z0)), segment_index_at(maxf(0.0, z1)) + 1):
+		_clear[i] = int(_clear.get(i, 0)) | mask
+
+
+## Signs/props from km events, sorted by z inside the segment.
+func events_for_segment(index: int) -> Array:
+	return _events.get(index, [])
+
+
+func _mark_zones(s: TrackSegment) -> void:
+	var z0 := s.z
+	var z1 := s.z + seg_len
+	for zn in zones:
+		var a := float(zn["z0"])
+		var b := float(zn["z1"])
+		if a > z1:
+			break
+		if b <= z0:
+			continue
+		match str(zn["kind"]):
+			"fuel":
+				s.fuel_zone |= TrackSegment.FUEL_ISLAND
+			"fuel_canopy":
+				s.fuel_zone |= TrackSegment.FUEL_CANOPY
+				if a >= z0 and a < z1:
+					s.fuel_zone |= TrackSegment.FUEL_CANOPY_FRONT
+			"border":
+				s.cover = "border"
+				s.country_to = str(zn.get("country", ""))
+				if a >= z0 and a < z1:
+					s.cover_front = true
+
+
+func _prop_x(edges: Vector2, side: int, at: String, offset: float) -> float:
+	if side == 0:
+		return 0.0
+	var base := edges.y if side > 0 else edges.x
+	if at != "edge":
+		base += shoulder_w * float(side)
+	return base + offset * float(side)
 
 
 func _place_props(s: TrackSegment) -> void:
 	var edges := road_edges_at(s.z)
-	var rng := RandomNumberGenerator.new()
-	rng.seed = hash(_seed * 7919 + s.index)
 	for e: Dictionary in _events.get(s.index, []):
 		var p := e.duplicate()
 		var side := int(e.get("side", 1))
-		var offset := float(e.get("offset", 1.2))
-		if side > 0:
-			p["x"] = edges.y + shoulder_w + offset
-		elif side < 0:
-			p["x"] = edges.x - shoulder_w - offset
-		else:
-			p["x"] = 0.0
-		p["scale"] = 1.0
+		p["x"] = _prop_x(edges, side, str(e.get("at", "outer")), float(e.get("offset", 1.0)))
+		p["scale"] = float(e.get("scale", 1.0))
 		s.sprites.append(p)
 	if s.tunnel:
 		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(_seed * 7919 + s.index)
+	if s.city:
+		# street lights on both sides (procedural, lit at night)
+		var every := float(ConfigLoader.lookup(cfg, "road.streetlight_every_m", 33.0))
+		var phase := fposmod(s.z, every)
+		if phase < seg_len:
+			s.sprites.append({"kind": "object", "obj": "streetlight", "side": 1, "x": _prop_x(edges, 1, "outer", -0.6), "scale": 1.0, "z": s.z})
+		elif fposmod(s.z + every * 0.5, every) < seg_len:
+			s.sprites.append({"kind": "object", "obj": "streetlight", "side": -1, "x": _prop_x(edges, -1, "outer", -0.6), "scale": 1.0, "z": s.z})
+	var clear := int(_clear.get(s.index, 0))
 	var sc: Dictionary = scenery_db.get(s.scenery, {})
-	var z_mod := s.z
 	for rule: Dictionary in sc.get("props", []):
 		var every := float(rule.get("every_m", 30.0))
-		if fmod(z_mod, every) >= seg_len:
+		if fposmod(s.z + float(rule.get("phase_m", 0.0)), every) >= seg_len:
 			continue
-		if rng.randf() > float(rule.get("chance", 1.0)):
+		var roads: Array = rule.get("roads", [])
+		if not roads.is_empty() and not roads.has(s.road):
 			continue
-		var side_rule := str(rule.get("side", "both"))
-		var side := 1
-		if side_rule == "left":
-			side = -1
-		elif side_rule == "both":
-			side = -1 if rng.randf() < 0.5 else 1
-		var xr: Array = rule.get("x", [8.0, 30.0])
-		var off := rng.randf_range(float(xr[0]), float(xr[1]))
-		var x := (edges.y + shoulder_w + off) if side > 0 else (edges.x - shoulder_w - off)
-		var sr: Array = rule.get("scale", [1.0, 1.0])
-		s.sprites.append({"kind": "prop", "set": str(rule["set"]), "x": x, "scale": rng.randf_range(float(sr[0]), float(sr[1])), "side": side})
+		var count := int(rule.get("count", 1))
+		for n in count:
+			if rng.randf() > float(rule.get("chance", 1.0)):
+				continue
+			var side_rule := str(rule.get("side", "both"))
+			var side := 1
+			if side_rule == "left":
+				side = -1
+			elif side_rule == "both":
+				side = -1 if rng.randf() < 0.5 else 1
+			var xr: Array = rule.get("x", [8.0, 30.0])
+			var off := rng.randf_range(float(xr[0]), float(xr[1]))
+			var sr: Array = rule.get("scale", [1.0, 1.0])
+			var scale := rng.randf_range(float(sr[0]), float(sr[1]))
+			var dz := rng.randf_range(0.0, seg_len)
+			if off < 25.0 and (clear & (1 if side > 0 else 2)) != 0:
+				continue
+			var p := {"kind": "prop", "set": str(rule["set"]), "x": _prop_x(edges, side, "outer", off),
+				"scale": scale, "side": side, "z": s.z + dz}
+			for key: String in ["fallback", "fallback_scale", "tint", "mirror", "align"]:
+				if rule.has(key):
+					p[key] = rule[key]
+			s.sprites.append(p)
+	s.sprites.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return float(a.get("z", 0.0)) > float(b.get("z", 0.0)))
