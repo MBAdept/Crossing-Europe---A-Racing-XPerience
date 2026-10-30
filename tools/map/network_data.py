@@ -13,6 +13,14 @@ Stage helper:
   km = expected length (checked against the section sum). Radars without direction are valid in both
   directions and must lie between km 50 and length-55 (no radar in the last 50 km of either direction).
   Fuel stations are placed automatically every 60–90 km ("few" ~ 88 km, "normal" ~ 75 km, "many" ~ 62 km).
+Design rules checked by build_network.py (and again by the Godot tests):
+  * Border crossings (country change between two sections) always change the landscape: the sections on both
+    sides use different scenery ids, and the border lies at least stages.border_min_before_city_km (5 km)
+    outside the City Limits in both directions (inside them both sides would show the "city" scenery).
+  * Tours (race field "tour": True – the Königsrennen): when the way between two consecutive waypoints is split
+    into several stages, every one of them is stages.split_length_km (200–400 km) long. A natural stage between two
+    consecutive waypoints may be shorter (Kiel – Hamburg 95, Hamburg – Bremen 120, Leipzig – Berlin 190).
+    Towns on the way (Groningen, Valenciennes, Zagreb, Niš, Szeged) are therefore passed, not stage ends.
 """
 
 FREE = None
@@ -53,10 +61,8 @@ CITIES = [
 	("magdeburg", "Magdeburg", "DE", 52.131, 11.640, ""),
 	("berlin", "Berlin", "DE", 52.520, 13.405, ""),
 	("rostock", "Rostock", "DE", 54.092, 12.099, ""),
-	("groningen", "Groningen", "NL", 53.219, 6.567, ""),
 	("amsterdam", "Amsterdam", "NL", 52.370, 4.895, ""),
 	("luettich", "Lüttich", "BE", 50.633, 5.567, "Liège"),
-	("valenciennes", "Valenciennes", "FR", 50.357, 3.524, ""),
 	("paris", "Paris", "FR", 48.857, 2.352, ""),
 	("tours", "Tours", "FR", 47.394, 0.685, ""),
 	("bordeaux", "Bordeaux", "FR", 44.838, -0.579, ""),
@@ -73,12 +79,9 @@ CITIES = [
 	("mailand", "Mailand", "IT", 45.464, 9.190, "Milano"),
 	("venedig", "Venedig", "IT", 45.481, 12.236, "Venezia"),
 	("ljubljana", "Ljubljana", "SI", 46.056, 14.506, ""),
-	("zagreb", "Zagreb", "HR", 45.815, 15.982, ""),
 	("slavonski_brod", "Slavonski Brod", "HR", 45.160, 18.016, ""),
 	("belgrad", "Belgrad", "RS", 44.787, 20.457, "Beograd"),
-	("nis", "Niš", "RS", 43.320, 21.896, ""),
 	("sofia", "Sofia", "BG", 42.698, 23.322, "София"),
-	("szeged", "Szeged", "HU", 46.253, 20.148, ""),
 	("budapest", "Budapest", "HU", 47.498, 19.040, ""),
 	("wien", "Wien", "AT", 48.208, 16.373, ""),
 	("prag", "Prag", "CZ", 50.076, 14.438, "Praha"),
@@ -263,15 +266,15 @@ STAGES = [
 		A(20, "industrial", "DE", 100, c=1, h=0, t=1.6, name="A2/A1 Dortmund"),
 	], radars=[(60, 120)], fuel="many", doc="Nordroute: A2 mit viel LKW-Verkehr."),
 	# ------------------------------------------------------------------ Königsrennen ----------------
-	stage("bremen_groningen", "bremen", "groningen", 180, "A28 · A31 · A7 (NL)", [
+	# Ways between two waypoints that need several stages are split into stages of 200–400 km
+	# (stages.split_length_km); the towns in between are passed (see the module docstring).
+	stage("bremen_amsterdam", "bremen", "amsterdam", 365, "A28 · A31 · A7 (NL) · A6 · A10", [
 		A(20, "north_plain", "DE", 120, c=1, h=0, t=1.3, name="A28 Bremen – Delmenhorst"),
 		A(25, "north_plain", "DE", FREE, c=0, h=0, t=1.0, name="A28 Hude"),
 		A(15, "north_plain", "DE", 120, c=1, h=0, t=1.2, name="A28 Oldenburg"),
 		A(55, "north_plain", "DE", FREE, c=0, h=0, t=0.9, name="A28 Ammerland – Leer"),
 		A(25, "coast", "DE", 100, c=1, h=0, t=0.9, name="A31 Emstunnel – Bunde"),
 		A(40, "polder", "NL", DEF, c=0, h=0, t=1.0, name="A7 Oost-Groningen"),
-	], radars=[(50, 120), (150, 100, "rev")], tunnels=[(125, 0.95, "Emstunnel")], fuel="normal"),
-	stage("groningen_amsterdam", "groningen", "amsterdam", 185, "A7 · A6 · A10", [
 		A(20, "polder", "NL", DEF, c=0, h=0, t=1.2, name="A7 Groningen"),
 		A(40, "polder", "NL", DEF, c=0, h=0, t=1.0, name="A7 Drachten – Heerenveen"),
 		A(30, "polder", "NL", DEF, c=0, h=0, t=0.9, name="A6 Lemmer – Emmeloord"),
@@ -279,32 +282,32 @@ STAGES = [
 		A(40, "polder", "NL", DEF, c=0, h=0, t=1.2, name="A6 Flevoland – Almere"),
 		A(15, "coast", "NL", DEF, c=1, h=0, t=1.4, name="A6 Hollandse Brug"),
 		A(25, "polder", "NL", DEF, c=1, h=0, t=1.6, name="A1/A10 Amsterdam"),
-	], radars=[(70, 100), (115, 100)], fuel="normal", doc="Polder und Deiche über die Flevopolder."),
+	], radars=[(50, 120), (150, 100, "rev"), (250, 100), (295, 100)], tunnels=[(125, 0.95, "Emstunnel")],
+		fuel="normal", doc="Ostfriesland, Emstunnel, an Groningen vorbei und über die Flevopolder mit Ketelbrug und Hollandse Brug."),
 	stage("amsterdam_luettich", "amsterdam", "luettich", 235, "A2 · E25", [
 		A(20, "polder", "NL", DEF, c=1, h=0, t=1.6, name="A2 Amsterdam"),
 		A(25, "polder", "NL", DEF, c=1, h=0, t=1.5, name="A2 Utrecht"),
 		A(50, "polder", "NL", DEF, c=0, h=0, t=1.2, name="A2 Bommelerwaard – 's-Hertogenbosch"),
 		A(30, "heath", "NL", DEF, c=1, h=0, t=1.3, name="A2 Eindhoven"),
 		A(50, "heath", "NL", DEF, c=0, h=0, t=1.0, name="A2 Weert – Roermond"),
-		A(35, "ardennes", "NL", DEF, c=1, h=1, t=1.3, name="A2 Maastricht"),
+		A(35, "rhine_main", "NL", DEF, c=1, h=1, t=1.3, name="A2 Maastal – Maastricht"),
 		A(25, "ardennes", "BE", DEF, c=1, h=2, t=1.3, name="E25 Visé – Lüttich"),
 	], radars=[(60, 100), (140, 100)], tunnels=[(198, 2.3, "Koning-Willem-Alexander-Tunnel")], fuel="normal"),
-	stage("luettich_valenciennes", "luettich", "valenciennes", 190, "E42 · E19 · A2", [
+	stage("luettich_paris", "luettich", "paris", 395, "E42 · E19 · A2 · A1", [
 		A(20, "ardennes", "BE", DEF, c=1, h=1, t=1.4, name="E42 Lüttich"),
 		A(45, "farmland_fr", "BE", DEF, c=0, h=1, t=1.0, name="E42 Hespengau – Namur"),
 		A(40, "industrial", "BE", DEF, c=1, h=1, t=1.3, name="E42 Sambretal – Charleroi"),
 		A(45, "farmland_fr", "BE", DEF, c=0, h=1, t=1.1, name="E42 Binche – Mons"),
 		A(20, "industrial", "BE", DEF, c=1, h=0, t=1.2, name="E19 Borinage"),
-		A(20, "farmland_fr", "FR", DEF, c=1, h=0, t=1.3, name="A2 Valenciennes"),
-	], radars=[(60, 120), (110, 120)], fuel="normal"),
-	stage("valenciennes_paris", "valenciennes", "paris", 205, "A2 · A1", [
-		A(20, "farmland_fr", "FR", DEF, c=1, h=0, t=1.2, name="A2 Valenciennes – Cambrai"),
+		A(40, "farmland_fr", "FR", DEF, c=1, h=0, t=1.2, name="A2 Valenciennes – Cambrai"),
 		A(45, "farmland_fr", "FR", DEF, c=0, h=1, t=1.0, name="A2 Cambrésis"),
 		A(70, "farmland_fr", "FR", DEF, c=0, h=1, t=1.0, name="A1 Picardie"),
 		A(30, "forest_hills", "FR", DEF, c=1, h=1, t=1.1, name="A1 Forêt d'Halatte – Senlis"),
 		A(20, "farmland_fr", "FR", 110, c=1, h=0, t=1.5, name="A1 Roissy"),
 		A(20, "industrial", "FR", 110, c=1, h=0, t=1.7, name="A1 Saint-Denis – Paris"),
-	], radars=[(70, 130), (120, 130), (168, 110, "rev")], tunnels=[(195, 1.3, "Tunnel du Landy")], fuel="normal"),
+	], radars=[(60, 120), (110, 120), (260, 130), (310, 130), (358, 110, "rev")],
+		tunnels=[(385, 1.3, "Tunnel du Landy")], fuel="normal",
+		doc="Durch Wallonien (Namur, Charleroi, Mons), an Valenciennes vorbei und durch die Picardie nach Paris."),
 	stage("paris_tours", "paris", "tours", 240, "A10", [
 		A(20, "industrial", "FR", 110, c=1, h=0, t=1.6, name="A6/A10 Paris – Massy"),
 		A(30, "farmland_fr", "FR", DEF, c=0, h=0, t=1.2, name="A10 Dourdan"),
@@ -325,8 +328,8 @@ STAGES = [
 		A(20, "farmland_fr", "FR", 110, c=1, h=0, t=1.5, name="Rocade Bordeaux"),
 		A(120, "forest_hills", "FR", DEF, c=0, h=0, t=1.0, name="A63 Landes (Kiefernwald)"),
 		A(45, "farmland_fr", "FR", DEF, c=1, h=1, t=1.1, name="A63 Labenne – Bayonne"),
-		A(33, "pyrenees", "FR", DEF, c=2, h=2, t=1.2, name="A63 Baskische Küste"),
-		A(22, "pyrenees", "ES", DEF, c=2, h=2, t=1.3, name="AP-8 Irun – San Sebastián"),
+		A(30, "coast", "FR", DEF, c=2, h=2, t=1.2, name="A63 Baskische Küste (Biarritz – Hendaye)"),
+		A(25, "pyrenees", "ES", DEF, c=2, h=2, t=1.3, name="AP-8 Irun – San Sebastián"),
 	], radars=[(60, 130), (120, 130)], fuel="normal"),
 	stage("san_sebastian_burgos", "san_sebastian", "burgos", 225, "A-15 · A-1 · AP-1", [
 		A(20, "pyrenees", "ES", DEF, c=2, h=2, t=1.3, name="A-15 San Sebastián – Andoain"),
@@ -367,8 +370,8 @@ STAGES = [
 		A(50, "mediterranean", "ES", DEF, c=1, h=1, t=1.3, name="AP-7 Vallès – Granollers"),
 		A(55, "mediterranean", "ES", DEF, c=1, h=1, t=1.0, name="AP-7 Girona"),
 		A(25, "mediterranean", "ES", DEF, c=1, h=1, t=1.0, name="AP-7 Empordà – Figueres"),
-		A(15, "pyrenees", "ES", DEF, c=2, h=2, t=1.0, name="AP-7 La Jonquera"),
-		A(15, "pyrenees", "FR", DEF, c=2, h=2, t=1.0, name="A9 Le Perthus – Le Boulou"),
+		A(15, "pyrenees", "ES", DEF, c=2, h=2, t=1.0, name="AP-7 La Jonquera – Coll del Pertús"),
+		A(15, "mediterranean", "FR", DEF, c=2, h=2, t=1.0, name="A9 Le Perthus – Le Boulou (Roussillon)"),
 		A(30, "mediterranean", "FR", DEF, c=1, h=0, t=1.2, name="A9 Perpignan"),
 		A(60, "coast", "FR", DEF, c=1, h=0, t=1.0, name="A9 Étangs – Leucate – Narbonne"),
 		A(60, "mediterranean", "FR", DEF, c=1, h=1, t=1.1, name="A9 Béziers"),
@@ -381,15 +384,15 @@ STAGES = [
 		A(40, "pyrenees", "ES", DEF, c=2, h=2, t=0.8, name="A-23 Sabiñánigo – Jaca"),
 		L(32, "pyrenees", "ES", DEF, c=3, h=3, t=0.7, name="N-330 Canfranc"),
 		L(8.6, "pyrenees", "ES", 70, c=1, h=1, t=0.6, name="Somport-Tunnel"),
-		L(40, "pyrenees", "FR", DEF, c=3, h=3, t=0.6, name="N134 Vallée d'Aspe"),
+		L(40, "alps", "FR", DEF, c=3, h=3, t=0.6, name="N134 Vallée d'Aspe (grüne Nordseite)"),
 		L(34.4, "farmland_fr", "FR", DEF, c=2, h=1, t=0.9, name="N134 Oloron – Pau"),
 	], radars=[(60, 120)], tunnels=[(177, 8.6, "Somport-Tunnel")], fuel="many",
 		doc="Pyrenäenroute (Wahl bei Saragossa): Bergstraßen und Somport-Tunnel, wenig Verkehr und Radar."),
-	stage("pau_toulouse", "pau", "toulouse", 195, "A64", [
+	stage("pau_toulouse", "pau", "toulouse", 200, "A64", [
 		A(20, "farmland_fr", "FR", DEF, c=1, h=1, t=1.2, name="A64 Pau"),
 		A(60, "pyrenees", "FR", DEF, c=1, h=2, t=0.9, name="A64 Tarbes – Lannemezan"),
 		A(50, "farmland_fr", "FR", DEF, c=1, h=1, t=0.9, name="A64 Saint-Gaudens – Garonne"),
-		A(45, "farmland_fr", "FR", DEF, c=0, h=1, t=1.1, name="A64 Muret"),
+		A(50, "farmland_fr", "FR", DEF, c=0, h=1, t=1.1, name="A64 Muret"),
 		A(20, "industrial", "FR", 110, c=1, h=0, t=1.5, name="Toulouse"),
 	], radars=[(70, 130)], fuel="many", doc="Pyrenäenroute (Wahl bei Saragossa)."),
 	stage("toulouse_montpellier", "toulouse", "montpellier", 245, "A61 · A9", [
@@ -412,7 +415,7 @@ STAGES = [
 		A(20, "industrial", "FR", 110, c=1, h=0, t=1.5, name="Lyon"),
 		A(40, "farmland_fr", "FR", DEF, c=1, h=1, t=1.1, name="A42 Plaine de l'Ain"),
 		A(40, "forest_hills", "FR", DEF, c=2, h=3, t=1.0, name="A40 Jura (Autoroute des Titans)"),
-		A(40, "alps", "FR", DEF, c=2, h=2, t=1.1, name="A40 Bellegarde – Genf"),
+		A(40, "forest_hills", "FR", DEF, c=2, h=2, t=1.1, name="A40 Bellegarde – Genf (Jura-Südfuß)"),
 		A(20, "alps", "CH", DEF, c=1, h=1, t=1.5, name="A1 Genf"),
 		A(50, "alps", "CH", DEF, c=1, h=1, t=1.3, name="A1 Genfersee – Lausanne"),
 		A(30, "alps", "CH", DEF, c=2, h=2, t=1.1, name="A9/A12 Lavaux – Châtel-St-Denis"),
@@ -428,7 +431,7 @@ STAGES = [
 		L(17, "alps", "CH", 80, c=1, h=1, t=0.9, name="Gotthard-Strassentunnel"),
 		A(40, "alps", "CH", DEF, c=2, h=3, t=1.0, name="A2 Leventina – Biasca"),
 		A(50, "alps", "CH", DEF, c=2, h=2, t=1.2, name="A2 Bellinzona – Monte Ceneri – Lugano"),
-		A(25, "lombardy", "CH", DEF, c=1, h=1, t=1.3, name="A2 Mendrisiotto – Chiasso"),
+		A(25, "alps", "CH", DEF, c=1, h=1, t=1.3, name="A2 Mendrisiotto – Chiasso (Voralpen)"),
 		A(48, "lombardy", "IT", DEF, c=1, h=0, t=1.4, name="A9 Como – Mailand"),
 	], radars=[(60, 120), (215, 120), (260, 120), (325, 130, "rev")],
 		tunnels=[(106, 1.5, "Sonnenbergtunnel"), (130, 9.3, "Seelisbergtunnel"), (185, 16.9, "Gotthard-Strassentunnel")],
@@ -447,68 +450,65 @@ STAGES = [
 		A(20, "coast", "IT", 110, c=1, h=0, t=1.4, name="Mestre"),
 		A(75, "lombardy", "IT", DEF, c=0, h=0, t=1.1, name="A4 Friaul – Palmanova"),
 		A(35, "karst", "IT", DEF, c=1, h=1, t=1.1, name="A4 Monfalcone – Karst"),
-		A(15, "karst", "IT", 110, c=2, h=2, t=1.2, name="RA13 Triest – Fernetti"),
+		A(15, "coast", "IT", 110, c=2, h=2, t=1.2, name="RA13 Triest – Fernetti (Golf von Triest)"),
 		A(50, "karst", "SI", DEF, c=2, h=2, t=1.0, name="A3/A1 Sežana – Postojna"),
 		A(50, "forest_hills", "SI", DEF, c=1, h=2, t=1.1, name="A1 Logatec – Ljubljana"),
 	], radars=[(60, 130), (160, 130)], fuel="normal"),
-	stage("ljubljana_zagreb", "ljubljana", "zagreb", 140, "A2 (SI) · A3 (HR)", [
+	stage("ljubljana_slavonski_brod", "ljubljana", "slavonski_brod", 335, "A2 (SI) · A3 (HR)", [
 		A(20, "forest_hills", "SI", 100, c=1, h=1, t=1.4, name="Ljubljana-Ring"),
 		A(50, "forest_hills", "SI", DEF, c=2, h=2, t=1.0, name="A2 Unterkrain"),
 		A(40, "forest_hills", "SI", DEF, c=1, h=1, t=1.0, name="A2 Novo Mesto – Obrežje"),
 		A(30, "pannonian_plain", "HR", DEF, c=1, h=0, t=1.3, name="A3 Bregana – Zagreb"),
-	], radars=[(55, 130)], fuel="normal"),
-	stage("zagreb_slavonski_brod", "zagreb", "slavonski_brod", 195, "A3", [
-		A(20, "pannonian_plain", "HR", 110, c=1, h=0, t=1.4, name="Zagreb-Ring"),
+		A(20, "pannonian_plain", "HR", 110, c=1, h=0, t=1.4, name="A3 Zagreb-Umfahrung"),
 		A(70, "pannonian_plain", "HR", DEF, c=0, h=0, t=0.9, name="A3 Lonjsko polje – Kutina"),
 		A(50, "pannonian_plain", "HR", DEF, c=0, h=1, t=0.8, name="A3 Novska – Okučani"),
 		A(55, "pannonian_plain", "HR", DEF, c=0, h=0, t=0.9, name="A3 Nova Gradiška – Slavonski Brod"),
-	], radars=[(60, 130), (120, 130)], fuel="normal"),
+	], radars=[(55, 130), (200, 130), (260, 130)], fuel="normal",
+		doc="Durch Unterkrain nach Kroatien, an Zagreb vorbei und durch Slawonien (Lonjsko polje)."),
 	stage("slavonski_brod_belgrad", "slavonski_brod", "belgrad", 205, "A3", [
 		A(20, "pannonian_plain", "HR", DEF, c=0, h=0, t=1.0, name="A3 Slavonski Brod"),
-		A(75, "pannonian_plain", "HR", DEF, c=0, h=0, t=0.9, name="A3 Slawonien – Županja"),
+		A(45, "pannonian_plain", "HR", DEF, c=0, h=0, t=0.9, name="A3 Slawonien – Županja"),
+		A(30, "forest_hills", "HR", DEF, c=0, h=0, t=0.9, name="A3 Spačva-Eichenwald – Lipovac"),
 		A(70, "pannonian_plain", "RS", DEF, c=0, h=0, t=0.9, name="A3 Syrmien – Šid"),
 		A(20, "pannonian_plain", "RS", 120, c=1, h=0, t=1.3, name="A3 Surčin"),
 		A(20, "pannonian_plain", "RS", 100, c=1, h=0, t=1.5, name="Belgrad"),
 	], radars=[(60, 130), (110, 130)], fuel="normal"),
-	stage("belgrad_nis", "belgrad", "nis", 240, "A1", [
+	stage("belgrad_sofia", "belgrad", "sofia", 395, "A1 · A4 · I-8 · A6", [
 		A(20, "pannonian_plain", "RS", 100, c=1, h=0, t=1.5, name="Belgrad"),
 		A(60, "pannonian_plain", "RS", DEF, c=0, h=1, t=1.0, name="A1 Große Morava"),
 		A(70, "balkan_hills", "RS", DEF, c=1, h=1, t=0.9, name="A1 Jagodina – Ćuprija"),
 		A(70, "balkan_hills", "RS", DEF, c=1, h=2, t=0.9, name="A1 Paraćin – Aleksinac"),
-		A(20, "balkan_hills", "RS", 100, c=1, h=1, t=1.3, name="Niš"),
-	], radars=[(60, 130), (130, 130)], fuel="normal"),
-	stage("nis_sofia", "nis", "sofia", 155, "A4 · I-8 · A6", [
-		A(20, "balkan_hills", "RS", 100, c=1, h=1, t=1.3, name="Niš"),
+		A(40, "balkan_hills", "RS", 100, c=1, h=1, t=1.3, name="A1/A4 Niš"),
 		A(30, "balkan_hills", "RS", DEF, c=3, h=3, t=0.8, name="A4 Sićevo-Schlucht"),
 		A(50, "balkan_hills", "RS", DEF, c=2, h=2, t=0.8, name="A4 Pirot – Dimitrovgrad"),
-		L(30, "balkan_hills", "BG", DEF, c=2, h=2, t=0.9, name="I-8 Kalotina – Dragoman"),
+		L(30, "karst", "BG", DEF, c=2, h=2, t=0.9, name="I-8 Kalotina – Dragoman (Karst)"),
 		A(25, "balkan_hills", "BG", DEF, c=1, h=1, t=1.3, name="A6 Dragoman – Sofia"),
-	], radars=[(55, 130)], fuel="normal"),
-	stage("belgrad_szeged", "belgrad", "szeged", 230, "A1 · M5", [
+	], radars=[(60, 130), (130, 130), (295, 130)], fuel="normal",
+		doc="Durch das Moravatal, an Niš vorbei, durch die Sićevo-Schlucht und über Pirot und Kalotina nach Sofia."),
+	stage("belgrad_budapest", "belgrad", "budapest", 400, "A1 · M5", [
 		A(20, "pannonian_plain", "RS", 100, c=1, h=0, t=1.5, name="Belgrad"),
 		A(70, "pannonian_plain", "RS", DEF, c=0, h=0, t=1.0, name="A1 Syrmien – Novi Sad"),
 		A(100, "pannonian_plain", "RS", DEF, c=0, h=0, t=0.9, name="A1 Batschka – Subotica"),
 		A(25, "pannonian_plain", "RS", DEF, c=0, h=0, t=1.0, name="A1 Subotica – Horgoš"),
-		A(15, "pannonian_plain", "HU", DEF, c=0, h=0, t=1.2, name="M5 Röszke – Szeged"),
-	], radars=[(60, 130), (130, 130)], fuel="normal"),
-	stage("szeged_budapest", "szeged", "budapest", 170, "M5", [
+		A(15, "heath", "HU", DEF, c=0, h=0, t=1.2, name="M5 Röszke – Szeged (Sandrücken)"),
 		A(20, "pannonian_plain", "HU", DEF, c=0, h=0, t=1.1, name="M5 Szeged"),
-		A(65, "pannonian_plain", "HU", DEF, c=0, h=0, t=0.9, name="M5 Puszta – Kiskunfélegyháza"),
+		A(65, "heath", "HU", DEF, c=0, h=0, t=0.9, name="M5 Kiskunság-Puszta – Kiskunfélegyháza"),
 		A(50, "pannonian_plain", "HU", DEF, c=0, h=0, t=1.1, name="M5 Kecskemét"),
 		A(35, "pannonian_plain", "HU", 110, c=1, h=0, t=1.5, name="M5/M0 Budapest"),
-	], radars=[(60, 130), (100, 130)], fuel="normal"),
+	], radars=[(60, 130), (130, 130), (290, 130), (330, 130)], fuel="normal",
+		doc="Durch die Batschka (Novi Sad, Subotica), über die Grenze bei Röszke, an Szeged vorbei und durch die Kiskunság nach Budapest."),
 	stage("budapest_wien", "budapest", "wien", 245, "M1 · A4", [
 		A(20, "pannonian_plain", "HU", 110, c=1, h=0, t=1.5, name="M1 Budapest"),
 		A(55, "forest_hills", "HU", DEF, c=1, h=2, t=1.1, name="M1 Gerecse – Tatabánya"),
 		A(50, "pannonian_plain", "HU", DEF, c=0, h=0, t=1.0, name="M1 Győr"),
 		A(45, "pannonian_plain", "HU", DEF, c=0, h=0, t=1.0, name="M1 Mosonmagyaróvár – Hegyeshalom"),
-		A(55, "pannonian_plain", "AT", DEF, c=0, h=0, t=1.2, name="A4 Nickelsdorf – Parndorf"),
+		A(55, "north_plain", "AT", DEF, c=0, h=0, t=1.2, name="A4 Nickelsdorf – Parndorfer Platte (Windparks)"),
 		A(20, "pannonian_plain", "AT", 100, c=1, h=0, t=1.5, name="A4 Schwechat – Wien"),
 	], radars=[(60, 130), (140, 130), (180, 130)], fuel="normal"),
 	stage("wien_prag", "wien", "prag", 335, "A5 · I/52 · D52 · D1", [
 		A(20, "pannonian_plain", "AT", 100, c=1, h=0, t=1.4, name="A22/A5 Wien"),
 		A(45, "pannonian_plain", "AT", DEF, c=1, h=1, t=1.0, name="A5 Weinviertel"),
-		L(30, "pannonian_plain", "CZ", DEF, c=2, h=1, t=1.1, name="I/52 Mikulov – Pohořelice"),
+		L(30, "bohemian", "CZ", DEF, c=2, h=1, t=1.1, name="I/52 Mikulov – Pohořelice"),
 		A(30, "bohemian", "CZ", DEF, c=1, h=1, t=1.2, name="D52 Brünn"),
 		A(15, "bohemian", "CZ", 100, c=1, h=1, t=1.4, name="D1 Brünn"),
 		A(70, "bohemian", "CZ", DEF, c=1, h=2, t=1.2, name="D1 Böhmisch-Mährische Höhe – Jihlava"),
@@ -516,15 +516,21 @@ STAGES = [
 		A(80, "bohemian", "CZ", DEF, c=1, h=1, t=1.2, name="D1 Benešov"),
 		A(20, "bohemian", "CZ", 100, c=1, h=0, t=1.5, name="D1 Prag"),
 	], radars=[(30, 130, "fwd"), (150, 130), (215, 80), (260, 130)], fuel="normal"),
-	stage("prag_dresden", "prag", "dresden", 150, "D8 · A17", [
+	stage("prag_leipzig", "prag", "leipzig", 265, "D8 · A17 · A4 · A14", [
 		A(20, "bohemian", "CZ", 100, c=1, h=0, t=1.4, name="D8 Prag"),
 		A(40, "bohemian", "CZ", DEF, c=1, h=1, t=1.1, name="D8 Elbebene – Roudnice"),
 		A(30, "bohemian", "CZ", DEF, c=2, h=3, t=1.0, name="D8 Böhmisches Mittelgebirge"),
-		A(12, "forest_hills", "CZ", DEF, c=2, h=3, t=1.0, name="D8 Erzgebirge – Krásný Les"),
+		A(12, "bohemian", "CZ", DEF, c=2, h=3, t=1.0, name="D8 Erzgebirge – Krásný Les"),
 		A(28, "forest_hills", "DE", 120, c=2, h=2, t=1.0, name="A17 Osterzgebirge"),
 		A(20, "forest_hills", "DE", 100, c=1, h=1, t=1.3, name="A17 Dresden"),
-	], radars=[(60, 130), (110, 120, "rev")], tunnels=[(78, 0.6, "Tunel Radejčín"), (136, 1.1, "Tunnel Dölzschen")],
-		fuel="normal"),
+		A(15, "forest_hills", "DE", 120, c=1, h=1, t=1.4, name="A4 Dresden-Altstadt – Wilsdruff"),
+		A(30, "forest_hills", "DE", FREE, c=1, h=2, t=1.0, name="A4 Wilsdruff – Nossen"),
+		A(15, "north_plain", "DE", 120, c=1, h=1, t=1.0, name="A14 Döbeln"),
+		A(35, "north_plain", "DE", FREE, c=0, h=1, t=1.1, name="A14 Muldental – Grimma"),
+		A(20, "north_plain", "DE", 120, c=1, h=0, t=1.4, name="A14 Leipzig"),
+	], radars=[(60, 130), (110, 120, "rev"), (200, 120)],
+		tunnels=[(78, 0.6, "Tunel Radejčín"), (136, 1.1, "Tunnel Dölzschen")], fuel="normal",
+		doc="Durch das Böhmische Mittelgebirge und über das Erzgebirge nach Dresden, weiter über A4 und A14 nach Leipzig."),
 	stage("leipzig_berlin", "leipzig", "berlin", 190, "A9 · A10 · A115", [
 		A(20, "north_plain", "DE", 120, c=1, h=0, t=1.4, name="A14/A9 Leipzig"),
 		A(45, "north_plain", "DE", FREE, c=0, h=0, t=1.1, name="A9 Bitterfeld – Dessau"),
@@ -560,13 +566,13 @@ STAGES = [
 		A(65, "east_plain", "PL", 120, c=1, h=1, t=0.9, name="S8 Knyszyner Heide – Augustów"),
 		A(30, "baltic_forest", "PL", 120, c=1, h=1, t=0.9, name="S61 Augustower Urwald"),
 		A(25, "baltic_forest", "PL", 120, c=1, h=1, t=0.9, name="S61 Suwałki – Budzisko"),
-		L(35, "baltic_forest", "LT", DEF, c=1, h=1, t=0.9, name="A5 Kalvarija – Marijampolė"),
-		A(55, "baltic_forest", "LT", DEF, c=1, h=1, t=1.0, name="A5 Marijampolė – Kaunas"),
+		L(35, "east_plain", "LT", DEF, c=1, h=1, t=0.9, name="A5 Kalvarija – Marijampolė (Suvalkija)"),
+		A(55, "east_plain", "LT", DEF, c=1, h=1, t=1.0, name="A5 Marijampolė – Kaunas"),
 	], radars=[(60, 120), (150, 90)], fuel="normal", doc="Via Baltica."),
 	stage("kaunas_riga", "kaunas", "riga", 255, "A8 · A10 (LT) · A7 (LV)", [
 		A(20, "baltic_forest", "LT", 110, c=1, h=1, t=1.3, name="Kaunas"),
 		A(90, "baltic_forest", "LT", 110, c=0, h=0, t=0.9, name="A8 Via Baltica – Panevėžys"),
-		L(65, "baltic_forest", "LT", DEF, c=1, h=0, t=0.8, name="A10 Pasvalys – Saločiai"),
+		L(65, "east_plain", "LT", DEF, c=1, h=0, t=0.8, name="A10 Pasvalys – Saločiai"),
 		L(60, "baltic_forest", "LV", DEF, c=1, h=0, t=0.9, name="A7 Bauska – Iecava"),
 		A(20, "baltic_forest", "LV", DEF, c=1, h=0, t=1.4, name="A7 Ķekava – Riga"),
 	], radars=[(60, 110), (120, 90), (190, 90)], fuel="normal", doc="Via Baltica, im Baltikum meist Landstraße."),
@@ -608,7 +614,7 @@ RACES = [
 			"hügelig, mehr Radar) oder über Frankfurt und Dortmund (länger, mehr Verkehr, mehr freie Autobahn).",
 	},
 	{
-		"id": "koenigsrennen", "name": "Königsrennen", "start": "kiel", "finish": "kiel",
+		"id": "koenigsrennen", "name": "Königsrennen", "start": "kiel", "finish": "kiel", "tour": True,
 		"waypoints": ["hamburg", "bremen", "amsterdam", "luettich", "paris", "madrid", "bern", "mailand", "sofia",
 			"budapest", "wien", "prag", "leipzig", "berlin", "warschau", "riga", "rostock"],
 		"description": "Die große Europa-Tour mit 17 Pflichtstationen: Kiel – Hamburg – Bremen – Amsterdam – Lüttich – "

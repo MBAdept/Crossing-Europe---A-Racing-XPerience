@@ -24,7 +24,8 @@ static func load_network(config: Dictionary) -> RoadNetwork:
 func test_network_loads() -> void:
 	var n := net()
 	assert_true(n.load_warnings.is_empty(), "keine Ladewarnungen: %s" % str(n.load_warnings))
-	assert_true(n.cities.size() >= 50, "mindestens 50 Städte, sind %d" % n.cities.size())
+	# 45 cities + 2 dev cities: towns passed by long Königsrennen stages (Groningen, Niš, …) are no stage ends
+	assert_true(n.cities.size() >= 45, "mindestens 45 Städte, sind %d" % n.cities.size())
 	assert_true(n.stages.size() >= 50, "mindestens 50 Etappen, sind %d" % n.stages.size())
 	for id in ["kiel_nuernberg", "dresden_dortmund", "muenchen_bremen", "koenigsrennen"]:
 		assert_true(n.races.has(id), "Rennen %s vorhanden" % id)
@@ -121,6 +122,28 @@ func test_tutorial_stage() -> void:
 		assert_true(int(s["curviness"]) <= 1 and int(s["hills"]) <= 1, "einfache Strecke")
 	var r := net().get_stage_plan("kiel_hamburg", "hamburg")
 	assert_eq(r.radars.size(), 1, "Rückrichtung: ein Radar (Gegenrichtung)")
+	# tutorial data: flagged stage, starts with ~1/3 tank so the fuel stop is part of the tutorial
+	assert_true(p.tutorial, "Kiel – Hamburg ist die Tutorial-Etappe")
+	assert_near(p.start_fuel_fraction, 0.35, 0.001, "Start mit 35 % Tank")
+	assert_true(r.tutorial, "auch in Gegenrichtung als Tutorial markiert")
+	for id in net().stage_order:
+		if id != "kiel_hamburg":
+			var other := net().get_stage_plan(id, "")
+			assert_false(other.tutorial, "%s ist kein Tutorial" % id)
+			assert_eq(other.start_fuel_fraction, -1.0, "%s: Starttank aus der Konfiguration" % id)
+
+
+## data/countries.json: every country has the sign colours used for country-typical signs (border crossings
+## change the signs) and the data the network needs.
+func test_country_sign_colours() -> void:
+	var n := net()
+	for code: String in n.countries:
+		var c: Dictionary = n.countries[code]
+		var signs: Dictionary = c.get("signs", {})
+		for key in ["motorway", "town_bg", "town_fg", "town_border"]:
+			assert_true(signs.has(key) and Color.html_is_valid(str(signs[key])), "%s: Schilderfarbe %s" % [code, key])
+		assert_true(str(c.get("police", "")).begins_with("police/"), "%s: Polizei-Sprite" % code)
+		assert_true((c.get("limits", {}) as Dictionary).has("city"), "%s: Tempolimit City" % code)
 
 
 func test_real_tunnels_and_borders() -> void:
@@ -137,8 +160,109 @@ func test_real_tunnels_and_borders() -> void:
 	assert_true(p.in_tunnel(195.0), "Gotthard bei km 195 vorwärts")
 	assert_eq(p.borders.size(), 1, "Bern – Mailand: eine Grenze")
 	assert_eq(str(p.borders[0]["to"]), "IT", "nach Italien")
-	var g := n.get_stage_plan("bremen_groningen", "groningen")
-	assert_eq(str(g.borders[0]["to"]), "DE", "Rückrichtung Groningen → Bremen nach DE")
+	var g := n.get_stage_plan("bremen_amsterdam", "amsterdam")
+	assert_true(g != null, "Etappe Bremen – Amsterdam vorhanden")
+	if g == null:
+		return
+	assert_eq(g.borders.size(), 1, "Amsterdam → Bremen: eine Grenze")
+	assert_eq(str(g.borders[0]["to"]), "DE", "Rückrichtung Amsterdam → Bremen nach DE")
+
+
+## Design: "Grenzübergänge: Wechsel von Schildern, Landschaft und Polizeifahrzeugen" (review BORDER-1: 15 of 20
+## borders kept the scenery). Every border changes the scenery and lies outside the City Limits (both
+## directions; inside them both sides would show the "city" scenery).
+func test_landscape_changes_at_every_border() -> void:
+	var n := net()
+	var margin := float(ConfigLoader.lookup(cfg(), "stages.border_min_before_city_km", 5.0))
+	var borders := 0
+	for id in n.stage_order:
+		var s: Dictionary = n.stages[id]
+		var secs: Array = s["sections"]
+		for i in range(1, secs.size()):
+			if str(secs[i]["country"]) != str(secs[i - 1]["country"]):
+				borders += 1
+				assert_true(str(secs[i]["scenery"]) != str(secs[i - 1]["scenery"]), "%s: Grenze %s → %s mit Landschaftswechsel (%s)" % [
+					id, str(secs[i - 1]["country"]), str(secs[i]["country"]), str(secs[i]["scenery"])])
+		var dirs: Array = [str(s["from"])] if bool(s.get("dev", false)) else [str(s["from"]), str(s["to"])]
+		for from_id in dirs:
+			var p := n.get_stage_plan(id, from_id)
+			for b in p.borders:
+				var km := float(b["km"])
+				assert_true(p.scenery_at(km - 0.05) != p.scenery_at(km + 0.05), "%s ab %s: Landschaft wechselt bei km %.1f" % [id, from_id, km])
+				assert_true(km <= p.city_limits_km - margin + 0.001, "%s ab %s: Grenze bei km %.1f vor den City Limits (%.1f)" % [id, from_id, km, p.city_limits_km])
+				assert_eq(p.country_at(km + 0.05), str(b["to"]), "%s ab %s: Land nach der Grenze" % [id, from_id])
+	assert_true(borders >= 19, "alle Grenzen geprüft (%d)" % borders)
+
+
+## Design (Königsrennen): "Lange Abschnitte werden in Etappen von 200–400 km geteilt" (review KOEN-LEN-1). Every
+## way between two consecutive waypoints that needs several stages uses stages of 200–400 km; only a single
+## natural stage between two waypoints may be shorter. Independent of RoadNetwork.split_violations().
+func test_koenigsrennen_split_stages_200_400() -> void:
+	var n := net()
+	var bounds: Array = ConfigLoader.lookup(cfg(), "stages.split_length_km", [200, 400])
+	assert_true(float(bounds[0]) == 200.0 and float(bounds[1]) == 400.0, "Design: 200–400 km, ist %s" % str(bounds))
+	assert_true(bool(n.races["koenigsrennen"].get("tour", false)), "Königsrennen ist als Tour markiert")
+	var targets: Array = (n.races["koenigsrennen"]["waypoints"] as Array).duplicate()
+	targets.append(n.races["koenigsrennen"]["finish"])
+	var natural := {}
+	for route in n.race_routes("koenigsrennen"):
+		var idx := 0
+		var seg: Array[Dictionary] = []
+		for leg: Dictionary in route["legs"]:
+			if str(leg["kind"]) == "stage":
+				seg.append(leg)
+			if idx < targets.size() and str(leg["to"]) == str(targets[idx]):
+				idx += 1
+				if seg.size() == 1:
+					natural[str(seg[0]["id"])] = float(seg[0]["length_km"])
+				else:
+					for st in seg:
+						assert_between(float(st["length_km"]), float(bounds[0]), float(bounds[1]),
+							"Königsrennen: geteilte Etappe %s (%s → %s)" % [str(st["id"]), str(st["from"]), str(st["to"])])
+				seg = []
+		assert_eq(idx, targets.size(), "alle Pflichtstationen erreicht")
+	# the short stages left are natural legs between consecutive waypoints (Kiel – Hamburg 95, Hamburg – Bremen 120,
+	# Leipzig – Berlin 190), all within the general limits
+	for id: String in natural:
+		assert_between(float(natural[id]), 90.0, float(bounds[1]), "natürliche Etappe %s" % id)
+	assert_true(natural.has("kiel_hamburg") and natural.has("leipzig_berlin"), "natürliche Etappen erkannt: %s" % str(natural.keys()))
+	assert_true(n.split_violations("koenigsrennen", n.race_routes("koenigsrennen")).is_empty(), "RoadNetwork.split_violations leer")
+
+
+## validate() reports both new rules on a small synthetic network (regression for the checks themselves).
+func test_validation_reports_border_and_split_problems() -> void:
+	var sec := func(km: float, country: String, scenery: String) -> Dictionary:
+		return {"length_km": km, "road": "autobahn", "country": country, "scenery": scenery, "speed_limit": 120}
+	var data := {
+		"cities": [{"id": "a", "name": "A", "country": "DE", "latlon": [50, 10]},
+			{"id": "b", "name": "B", "country": "NL", "latlon": [51, 9]},
+			{"id": "c", "name": "C", "country": "NL", "latlon": [52, 8]}],
+		"stages": [
+			# border at km 100 of 200 without a landscape change
+			{"id": "ab", "from": "a", "to": "b", "length_km": 200, "fuel_stations_km": [70, 140],
+				"sections": [sec.call(100.0, "DE", "north_plain"), sec.call(100.0, "NL", "north_plain")]},
+			# 150 km: too short as one of two stages between the waypoints a and c of a tour
+			{"id": "bc", "from": "b", "to": "c", "length_km": 150, "fuel_stations_km": [75],
+				"sections": [sec.call(150.0, "NL", "polder")]},
+		],
+		"races": [{"id": "t", "name": "T", "start": "a", "finish": "c", "waypoints": [], "tour": true},
+			{"id": "plain", "name": "P", "start": "a", "finish": "c", "waypoints": []}],
+	}
+	var countries := {"DE": {"limits": {"autobahn": null, "landstrasse": 100, "city": 50}},
+		"NL": {"limits": {"autobahn": 100, "landstrasse": 80, "city": 50}}}
+	var n := RoadNetwork.new()
+	n.setup(data, countries, cfg())
+	var problems := "\n".join(n.validate())
+	assert_true(problems.contains("ohne Landschaftswechsel"), "Grenze ohne Landschaftswechsel gemeldet: %s" % problems)
+	assert_true(problems.contains("Rennen t: Etappe bc"), "zu kurze geteilte Etappe der Tour gemeldet: %s" % problems)
+	assert_false(problems.contains("Rennen plain:"), "Rennen ohne tour: keine 200–400-km-Regel")
+	(data["stages"][0]["sections"][1] as Dictionary)["scenery"] = "polder"
+	(data["stages"][0]["sections"][0] as Dictionary)["length_km"] = 185.0
+	(data["stages"][0]["sections"][1] as Dictionary)["length_km"] = 15.0
+	n.setup(data, countries, cfg())
+	problems = "\n".join(n.validate())
+	assert_false(problems.contains("ohne Landschaftswechsel"), "mit Landschaftswechsel kein Fehler")
+	assert_true(problems.contains("vor den City Limits"), "Grenze in den City Limits gemeldet: %s" % problems)
 
 
 func test_directional_radars() -> void:

@@ -18,10 +18,8 @@
 		{ "id": "magdeburg", "name": "Magdeburg", "country": "DE", "latlon": [52.131, 11.64], "map_pos": [583.7, 283.5] },
 		{ "id": "berlin", "name": "Berlin", "country": "DE", "latlon": [52.52, 13.405], "map_pos": [630.4, 268.5] },
 		{ "id": "rostock", "name": "Rostock", "country": "DE", "latlon": [54.092, 12.099], "map_pos": [599.1, 200.1] },
-		{ "id": "groningen", "name": "Groningen", "country": "NL", "latlon": [53.219, 6.567], "map_pos": [456.2, 226.4] },
 		{ "id": "amsterdam", "name": "Amsterdam", "country": "NL", "latlon": [52.37, 4.895], "map_pos": [408.6, 257] },
 		{ "id": "luettich", "name": "Lüttich", "country": "BE", "name_local": "Liège", "latlon": [50.633, 5.567], "map_pos": [416.4, 333.3] },
-		{ "id": "valenciennes", "name": "Valenciennes", "country": "FR", "latlon": [50.357, 3.524], "map_pos": [359.6, 337] },
 		{ "id": "paris", "name": "Paris", "country": "FR", "latlon": [48.857, 2.352], "map_pos": [317.2, 395.3] },
 		{ "id": "tours", "name": "Tours", "country": "FR", "latlon": [47.394, 0.685], "map_pos": [259.3, 448.4] },
 		{ "id": "bordeaux", "name": "Bordeaux", "country": "FR", "latlon": [44.838, -0.579], "map_pos": [201.5, 548.5] },
@@ -38,12 +36,9 @@
 		{ "id": "mailand", "name": "Mailand", "country": "IT", "name_local": "Milano", "latlon": [45.464, 9.19], "map_pos": [497.3, 564.4] },
 		{ "id": "venedig", "name": "Venedig", "country": "IT", "name_local": "Venezia", "latlon": [45.481, 12.236], "map_pos": [588.9, 568.9] },
 		{ "id": "ljubljana", "name": "Ljubljana", "country": "SI", "latlon": [46.056, 14.506], "map_pos": [657.3, 545.8] },
-		{ "id": "zagreb", "name": "Zagreb", "country": "HR", "latlon": [45.815, 15.982], "map_pos": [701.4, 556] },
 		{ "id": "slavonski_brod", "name": "Slavonski Brod", "country": "HR", "latlon": [45.16, 18.016], "map_pos": [763.3, 582.4] },
 		{ "id": "belgrad", "name": "Belgrad", "country": "RS", "name_local": "Beograd", "latlon": [44.787, 20.457], "map_pos": [838.2, 594.1] },
-		{ "id": "nis", "name": "Niš", "country": "RS", "latlon": [43.32, 21.896], "map_pos": [887.4, 653] },
 		{ "id": "sofia", "name": "Sofia", "country": "BG", "name_local": "София", "latlon": [42.698, 23.322], "map_pos": [934.5, 674.9] },
-		{ "id": "szeged", "name": "Szeged", "country": "HU", "latlon": [46.253, 20.148], "map_pos": [824.7, 532.1] },
 		{ "id": "budapest", "name": "Budapest", "country": "HU", "latlon": [47.498, 19.04], "map_pos": [789.1, 480.9] },
 		{ "id": "wien", "name": "Wien", "country": "AT", "latlon": [48.208, 16.373], "map_pos": [711.3, 453.4] },
 		{ "id": "prag", "name": "Prag", "country": "CZ", "name_local": "Praha", "latlon": [50.076, 14.438], "map_pos": [656.6, 373.6] },
@@ -321,23 +316,14 @@
 			"borders": []
 		},
 		{
-			"id": "bremen_groningen", "from": "bremen", "to": "groningen", "length_km": 180, "roads": "A28 · A31 · A7 (NL)",
+			"id": "bremen_amsterdam", "from": "bremen", "to": "amsterdam", "length_km": 365, "roads": "A28 · A31 · A7 (NL) · A6 · A10", "description": "Ostfriesland, Emstunnel, an Groningen vorbei und über die Flevopolder mit Ketelbrug und Hollandse Brug.",
 			"sections": [
 				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "north_plain", "country": "DE", "speed_limit": 120, "traffic": 1.3, "name": "A28 Bremen – Delmenhorst" },
 				{ "length_km": 25, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "north_plain", "country": "DE", "speed_limit": null, "traffic": 1.0, "name": "A28 Hude" },
 				{ "length_km": 15, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "north_plain", "country": "DE", "speed_limit": 120, "traffic": 1.2, "name": "A28 Oldenburg" },
 				{ "length_km": 55, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "north_plain", "country": "DE", "speed_limit": null, "traffic": 0.9, "name": "A28 Ammerland – Leer" },
 				{ "length_km": 25, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "coast", "country": "DE", "speed_limit": 100, "traffic": 0.9, "name": "A31 Emstunnel – Bunde" },
-				{ "length_km": 40, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "polder", "country": "NL", "traffic": 1.0, "name": "A7 Oost-Groningen" }
-			],
-			"fuel_stations_km": [42, 131.6],
-			"radars": [ { "km": 50, "limit": 120 }, { "km": 150, "limit": 100, "dir": "rev" } ],
-			"tunnels": [ { "km": 125, "length_km": 0.9, "name": "Emstunnel" } ],
-			"borders": [ { "km": 140, "to": "NL" } ]
-		},
-		{
-			"id": "groningen_amsterdam", "from": "groningen", "to": "amsterdam", "length_km": 185, "roads": "A7 · A6 · A10", "description": "Polder und Deiche über die Flevopolder.",
-			"sections": [
+				{ "length_km": 40, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "polder", "country": "NL", "traffic": 1.0, "name": "A7 Oost-Groningen" },
 				{ "length_km": 20, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "polder", "country": "NL", "traffic": 1.2, "name": "A7 Groningen" },
 				{ "length_km": 40, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "polder", "country": "NL", "traffic": 1.0, "name": "A7 Drachten – Heerenveen" },
 				{ "length_km": 30, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "polder", "country": "NL", "traffic": 0.9, "name": "A6 Lemmer – Emmeloord" },
@@ -346,10 +332,10 @@
 				{ "length_km": 15, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "coast", "country": "NL", "traffic": 1.4, "name": "A6 Hollandse Brug" },
 				{ "length_km": 25, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "polder", "country": "NL", "traffic": 1.6, "name": "A1/A10 Amsterdam" }
 			],
-			"fuel_stations_km": [29.2, 93.6, 154],
-			"radars": [ { "km": 70, "limit": 100 }, { "km": 115, "limit": 100 } ],
-			"tunnels": [],
-			"borders": []
+			"fuel_stations_km": [36.8, 112.1, 184.2, 258.5, 330.5],
+			"radars": [ { "km": 50, "limit": 120 }, { "km": 150, "limit": 100, "dir": "rev" }, { "km": 250, "limit": 100 }, { "km": 295, "limit": 100 } ],
+			"tunnels": [ { "km": 125, "length_km": 0.9, "name": "Emstunnel" } ],
+			"borders": [ { "km": 140, "to": "NL" } ]
 		},
 		{
 			"id": "amsterdam_luettich", "from": "amsterdam", "to": "luettich", "length_km": 235, "roads": "A2 · E25",
@@ -359,7 +345,7 @@
 				{ "length_km": 50, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "polder", "country": "NL", "traffic": 1.2, "name": "A2 Bommelerwaard – 's-Hertogenbosch" },
 				{ "length_km": 30, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "heath", "country": "NL", "traffic": 1.3, "name": "A2 Eindhoven" },
 				{ "length_km": 50, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "heath", "country": "NL", "traffic": 1.0, "name": "A2 Weert – Roermond" },
-				{ "length_km": 35, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "ardennes", "country": "NL", "traffic": 1.3, "name": "A2 Maastricht" },
+				{ "length_km": 35, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "rhine_main", "country": "NL", "traffic": 1.3, "name": "A2 Maastal – Maastricht" },
 				{ "length_km": 25, "road": "autobahn", "curviness": 1, "hills": 2, "scenery": "ardennes", "country": "BE", "traffic": 1.3, "name": "E25 Visé – Lüttich" }
 			],
 			"fuel_stations_km": [40.9, 119.8, 194.5],
@@ -368,34 +354,24 @@
 			"borders": [ { "km": 210, "to": "BE" } ]
 		},
 		{
-			"id": "luettich_valenciennes", "from": "luettich", "to": "valenciennes", "length_km": 190, "roads": "E42 · E19 · A2",
+			"id": "luettich_paris", "from": "luettich", "to": "paris", "length_km": 395, "roads": "E42 · E19 · A2 · A1", "description": "Durch Wallonien (Namur, Charleroi, Mons), an Valenciennes vorbei und durch die Picardie nach Paris.",
 			"sections": [
 				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "ardennes", "country": "BE", "traffic": 1.4, "name": "E42 Lüttich" },
 				{ "length_km": 45, "road": "autobahn", "curviness": 0, "hills": 1, "scenery": "farmland_fr", "country": "BE", "traffic": 1.0, "name": "E42 Hespengau – Namur" },
 				{ "length_km": 40, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "industrial", "country": "BE", "traffic": 1.3, "name": "E42 Sambretal – Charleroi" },
 				{ "length_km": 45, "road": "autobahn", "curviness": 0, "hills": 1, "scenery": "farmland_fr", "country": "BE", "traffic": 1.1, "name": "E42 Binche – Mons" },
 				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "industrial", "country": "BE", "traffic": 1.2, "name": "E19 Borinage" },
-				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "farmland_fr", "country": "FR", "traffic": 1.3, "name": "A2 Valenciennes" }
-			],
-			"fuel_stations_km": [30.3, 93.3, 161.3],
-			"radars": [ { "km": 60, "limit": 120 }, { "km": 110, "limit": 120 } ],
-			"tunnels": [],
-			"borders": [ { "km": 170, "to": "FR" } ]
-		},
-		{
-			"id": "valenciennes_paris", "from": "valenciennes", "to": "paris", "length_km": 205, "roads": "A2 · A1",
-			"sections": [
-				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "farmland_fr", "country": "FR", "traffic": 1.2, "name": "A2 Valenciennes – Cambrai" },
+				{ "length_km": 40, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "farmland_fr", "country": "FR", "traffic": 1.2, "name": "A2 Valenciennes – Cambrai" },
 				{ "length_km": 45, "road": "autobahn", "curviness": 0, "hills": 1, "scenery": "farmland_fr", "country": "FR", "traffic": 1.0, "name": "A2 Cambrésis" },
 				{ "length_km": 70, "road": "autobahn", "curviness": 0, "hills": 1, "scenery": "farmland_fr", "country": "FR", "traffic": 1.0, "name": "A1 Picardie" },
 				{ "length_km": 30, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "forest_hills", "country": "FR", "traffic": 1.1, "name": "A1 Forêt d'Halatte – Senlis" },
 				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "farmland_fr", "country": "FR", "speed_limit": 110, "traffic": 1.5, "name": "A1 Roissy" },
 				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "industrial", "country": "FR", "speed_limit": 110, "traffic": 1.7, "name": "A1 Saint-Denis – Paris" }
 			],
-			"fuel_stations_km": [36.1, 103.9, 176.8],
-			"radars": [ { "km": 70, "limit": 130 }, { "km": 120, "limit": 130 }, { "km": 168, "limit": 110, "dir": "rev" } ],
-			"tunnels": [ { "km": 195, "length_km": 1.3, "name": "Tunnel du Landy" } ],
-			"borders": []
+			"fuel_stations_km": [41.6, 118.5, 199.4, 278.1, 354.3],
+			"radars": [ { "km": 60, "limit": 120 }, { "km": 110, "limit": 120 }, { "km": 260, "limit": 130 }, { "km": 310, "limit": 130 }, { "km": 358, "limit": 110, "dir": "rev" } ],
+			"tunnels": [ { "km": 385, "length_km": 1.3, "name": "Tunnel du Landy" } ],
+			"borders": [ { "km": 170, "to": "FR" } ]
 		},
 		{
 			"id": "paris_tours", "from": "paris", "to": "tours", "length_km": 240, "roads": "A10",
@@ -433,13 +409,13 @@
 				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "farmland_fr", "country": "FR", "speed_limit": 110, "traffic": 1.5, "name": "Rocade Bordeaux" },
 				{ "length_km": 120, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "forest_hills", "country": "FR", "traffic": 1.0, "name": "A63 Landes (Kiefernwald)" },
 				{ "length_km": 45, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "farmland_fr", "country": "FR", "traffic": 1.1, "name": "A63 Labenne – Bayonne" },
-				{ "length_km": 33, "road": "autobahn", "curviness": 2, "hills": 2, "scenery": "pyrenees", "country": "FR", "traffic": 1.2, "name": "A63 Baskische Küste" },
-				{ "length_km": 22, "road": "autobahn", "curviness": 2, "hills": 2, "scenery": "pyrenees", "country": "ES", "traffic": 1.3, "name": "AP-8 Irun – San Sebastián" }
+				{ "length_km": 30, "road": "autobahn", "curviness": 2, "hills": 2, "scenery": "coast", "country": "FR", "traffic": 1.2, "name": "A63 Baskische Küste (Biarritz – Hendaye)" },
+				{ "length_km": 25, "road": "autobahn", "curviness": 2, "hills": 2, "scenery": "pyrenees", "country": "ES", "traffic": 1.3, "name": "AP-8 Irun – San Sebastián" }
 			],
 			"fuel_stations_km": [40.7, 116.1, 200],
 			"radars": [ { "km": 60, "limit": 130 }, { "km": 120, "limit": 130 } ],
 			"tunnels": [],
-			"borders": [ { "km": 218, "to": "ES" } ]
+			"borders": [ { "km": 215, "to": "ES" } ]
 		},
 		{
 			"id": "san_sebastian_burgos", "from": "san_sebastian", "to": "burgos", "length_km": 225, "roads": "A-15 · A-1 · AP-1",
@@ -510,8 +486,8 @@
 				{ "length_km": 50, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "mediterranean", "country": "ES", "traffic": 1.3, "name": "AP-7 Vallès – Granollers" },
 				{ "length_km": 55, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "mediterranean", "country": "ES", "traffic": 1.0, "name": "AP-7 Girona" },
 				{ "length_km": 25, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "mediterranean", "country": "ES", "traffic": 1.0, "name": "AP-7 Empordà – Figueres" },
-				{ "length_km": 15, "road": "autobahn", "curviness": 2, "hills": 2, "scenery": "pyrenees", "country": "ES", "traffic": 1.0, "name": "AP-7 La Jonquera" },
-				{ "length_km": 15, "road": "autobahn", "curviness": 2, "hills": 2, "scenery": "pyrenees", "country": "FR", "traffic": 1.0, "name": "A9 Le Perthus – Le Boulou" },
+				{ "length_km": 15, "road": "autobahn", "curviness": 2, "hills": 2, "scenery": "pyrenees", "country": "ES", "traffic": 1.0, "name": "AP-7 La Jonquera – Coll del Pertús" },
+				{ "length_km": 15, "road": "autobahn", "curviness": 2, "hills": 2, "scenery": "mediterranean", "country": "FR", "traffic": 1.0, "name": "A9 Le Perthus – Le Boulou (Roussillon)" },
 				{ "length_km": 30, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "mediterranean", "country": "FR", "traffic": 1.2, "name": "A9 Perpignan" },
 				{ "length_km": 60, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "coast", "country": "FR", "traffic": 1.0, "name": "A9 Étangs – Leucate – Narbonne" },
 				{ "length_km": 60, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "mediterranean", "country": "FR", "traffic": 1.1, "name": "A9 Béziers" },
@@ -531,7 +507,7 @@
 				{ "length_km": 40, "road": "autobahn", "curviness": 2, "hills": 2, "scenery": "pyrenees", "country": "ES", "traffic": 0.8, "name": "A-23 Sabiñánigo – Jaca" },
 				{ "length_km": 32, "road": "landstrasse", "curviness": 3, "hills": 3, "scenery": "pyrenees", "country": "ES", "traffic": 0.7, "name": "N-330 Canfranc" },
 				{ "length_km": 8.6, "road": "landstrasse", "curviness": 1, "hills": 1, "scenery": "pyrenees", "country": "ES", "speed_limit": 70, "traffic": 0.6, "name": "Somport-Tunnel" },
-				{ "length_km": 40, "road": "landstrasse", "curviness": 3, "hills": 3, "scenery": "pyrenees", "country": "FR", "traffic": 0.6, "name": "N134 Vallée d'Aspe" },
+				{ "length_km": 40, "road": "landstrasse", "curviness": 3, "hills": 3, "scenery": "alps", "country": "FR", "traffic": 0.6, "name": "N134 Vallée d'Aspe (grüne Nordseite)" },
 				{ "length_km": 34.4, "road": "landstrasse", "curviness": 2, "hills": 1, "scenery": "farmland_fr", "country": "FR", "traffic": 0.9, "name": "N134 Oloron – Pau" }
 			],
 			"fuel_stations_km": [34.8, 99.8, 162.3, 227.7],
@@ -540,15 +516,15 @@
 			"borders": [ { "km": 185.6, "to": "FR" } ]
 		},
 		{
-			"id": "pau_toulouse", "from": "pau", "to": "toulouse", "length_km": 195, "roads": "A64", "description": "Pyrenäenroute (Wahl bei Saragossa).",
+			"id": "pau_toulouse", "from": "pau", "to": "toulouse", "length_km": 200, "roads": "A64", "description": "Pyrenäenroute (Wahl bei Saragossa).",
 			"sections": [
 				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "farmland_fr", "country": "FR", "traffic": 1.2, "name": "A64 Pau" },
 				{ "length_km": 60, "road": "autobahn", "curviness": 1, "hills": 2, "scenery": "pyrenees", "country": "FR", "traffic": 0.9, "name": "A64 Tarbes – Lannemezan" },
 				{ "length_km": 50, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "farmland_fr", "country": "FR", "traffic": 0.9, "name": "A64 Saint-Gaudens – Garonne" },
-				{ "length_km": 45, "road": "autobahn", "curviness": 0, "hills": 1, "scenery": "farmland_fr", "country": "FR", "traffic": 1.1, "name": "A64 Muret" },
+				{ "length_km": 50, "road": "autobahn", "curviness": 0, "hills": 1, "scenery": "farmland_fr", "country": "FR", "traffic": 1.1, "name": "A64 Muret" },
 				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "industrial", "country": "FR", "speed_limit": 110, "traffic": 1.5, "name": "Toulouse" }
 			],
-			"fuel_stations_km": [31.6, 96.5, 163.8],
+			"fuel_stations_km": [32.4, 99, 168],
 			"radars": [ { "km": 70, "limit": 130 } ],
 			"tunnels": [],
 			"borders": []
@@ -589,7 +565,7 @@
 				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "industrial", "country": "FR", "speed_limit": 110, "traffic": 1.5, "name": "Lyon" },
 				{ "length_km": 40, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "farmland_fr", "country": "FR", "traffic": 1.1, "name": "A42 Plaine de l'Ain" },
 				{ "length_km": 40, "road": "autobahn", "curviness": 2, "hills": 3, "scenery": "forest_hills", "country": "FR", "traffic": 1.0, "name": "A40 Jura (Autoroute des Titans)" },
-				{ "length_km": 40, "road": "autobahn", "curviness": 2, "hills": 2, "scenery": "alps", "country": "FR", "traffic": 1.1, "name": "A40 Bellegarde – Genf" },
+				{ "length_km": 40, "road": "autobahn", "curviness": 2, "hills": 2, "scenery": "forest_hills", "country": "FR", "traffic": 1.1, "name": "A40 Bellegarde – Genf (Jura-Südfuß)" },
 				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "alps", "country": "CH", "traffic": 1.5, "name": "A1 Genf" },
 				{ "length_km": 50, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "alps", "country": "CH", "traffic": 1.3, "name": "A1 Genfersee – Lausanne" },
 				{ "length_km": 30, "road": "autobahn", "curviness": 2, "hills": 2, "scenery": "alps", "country": "CH", "traffic": 1.1, "name": "A9/A12 Lavaux – Châtel-St-Denis" },
@@ -612,7 +588,7 @@
 				{ "length_km": 17, "road": "landstrasse", "curviness": 1, "hills": 1, "scenery": "alps", "country": "CH", "speed_limit": 80, "traffic": 0.9, "name": "Gotthard-Strassentunnel" },
 				{ "length_km": 40, "road": "autobahn", "curviness": 2, "hills": 3, "scenery": "alps", "country": "CH", "traffic": 1.0, "name": "A2 Leventina – Biasca" },
 				{ "length_km": 50, "road": "autobahn", "curviness": 2, "hills": 2, "scenery": "alps", "country": "CH", "traffic": 1.2, "name": "A2 Bellinzona – Monte Ceneri – Lugano" },
-				{ "length_km": 25, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "lombardy", "country": "CH", "traffic": 1.3, "name": "A2 Mendrisiotto – Chiasso" },
+				{ "length_km": 25, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "alps", "country": "CH", "traffic": 1.3, "name": "A2 Mendrisiotto – Chiasso (Voralpen)" },
 				{ "length_km": 48, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "lombardy", "country": "IT", "traffic": 1.4, "name": "A9 Como – Mailand" }
 			],
 			"fuel_stations_km": [39.2, 111.3, 181.3, 253.2, 333.7],
@@ -643,7 +619,7 @@
 				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "coast", "country": "IT", "speed_limit": 110, "traffic": 1.4, "name": "Mestre" },
 				{ "length_km": 75, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "lombardy", "country": "IT", "traffic": 1.1, "name": "A4 Friaul – Palmanova" },
 				{ "length_km": 35, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "karst", "country": "IT", "traffic": 1.1, "name": "A4 Monfalcone – Karst" },
-				{ "length_km": 15, "road": "autobahn", "curviness": 2, "hills": 2, "scenery": "karst", "country": "IT", "speed_limit": 110, "traffic": 1.2, "name": "RA13 Triest – Fernetti" },
+				{ "length_km": 15, "road": "autobahn", "curviness": 2, "hills": 2, "scenery": "coast", "country": "IT", "speed_limit": 110, "traffic": 1.2, "name": "RA13 Triest – Fernetti (Golf von Triest)" },
 				{ "length_km": 50, "road": "autobahn", "curviness": 2, "hills": 2, "scenery": "karst", "country": "SI", "traffic": 1.0, "name": "A3/A1 Sežana – Postojna" },
 				{ "length_km": 50, "road": "autobahn", "curviness": 1, "hills": 2, "scenery": "forest_hills", "country": "SI", "traffic": 1.1, "name": "A1 Logatec – Ljubljana" }
 			],
@@ -653,36 +629,28 @@
 			"borders": [ { "km": 145, "to": "SI" } ]
 		},
 		{
-			"id": "ljubljana_zagreb", "from": "ljubljana", "to": "zagreb", "length_km": 140, "roads": "A2 (SI) · A3 (HR)",
+			"id": "ljubljana_slavonski_brod", "from": "ljubljana", "to": "slavonski_brod", "length_km": 335, "roads": "A2 (SI) · A3 (HR)", "description": "Durch Unterkrain nach Kroatien, an Zagreb vorbei und durch Slawonien (Lonjsko polje).",
 			"sections": [
 				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "forest_hills", "country": "SI", "speed_limit": 100, "traffic": 1.4, "name": "Ljubljana-Ring" },
 				{ "length_km": 50, "road": "autobahn", "curviness": 2, "hills": 2, "scenery": "forest_hills", "country": "SI", "traffic": 1.0, "name": "A2 Unterkrain" },
 				{ "length_km": 40, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "forest_hills", "country": "SI", "traffic": 1.0, "name": "A2 Novo Mesto – Obrežje" },
-				{ "length_km": 30, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "pannonian_plain", "country": "HR", "traffic": 1.3, "name": "A3 Bregana – Zagreb" }
-			],
-			"fuel_stations_km": [36.5, 104.8],
-			"radars": [ { "km": 55, "limit": 130 } ],
-			"tunnels": [],
-			"borders": [ { "km": 110, "to": "HR" } ]
-		},
-		{
-			"id": "zagreb_slavonski_brod", "from": "zagreb", "to": "slavonski_brod", "length_km": 195, "roads": "A3",
-			"sections": [
-				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "pannonian_plain", "country": "HR", "speed_limit": 110, "traffic": 1.4, "name": "Zagreb-Ring" },
+				{ "length_km": 30, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "pannonian_plain", "country": "HR", "traffic": 1.3, "name": "A3 Bregana – Zagreb" },
+				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "pannonian_plain", "country": "HR", "speed_limit": 110, "traffic": 1.4, "name": "A3 Zagreb-Umfahrung" },
 				{ "length_km": 70, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "pannonian_plain", "country": "HR", "traffic": 0.9, "name": "A3 Lonjsko polje – Kutina" },
 				{ "length_km": 50, "road": "autobahn", "curviness": 0, "hills": 1, "scenery": "pannonian_plain", "country": "HR", "traffic": 0.8, "name": "A3 Novska – Okučani" },
 				{ "length_km": 55, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "pannonian_plain", "country": "HR", "traffic": 0.9, "name": "A3 Nova Gradiška – Slavonski Brod" }
 			],
-			"fuel_stations_km": [35, 95.4, 160.4],
-			"radars": [ { "km": 60, "limit": 130 }, { "km": 120, "limit": 130 } ],
+			"fuel_stations_km": [42.9, 126.6, 208.6, 290.1],
+			"radars": [ { "km": 55, "limit": 130 }, { "km": 200, "limit": 130 }, { "km": 260, "limit": 130 } ],
 			"tunnels": [],
-			"borders": []
+			"borders": [ { "km": 110, "to": "HR" } ]
 		},
 		{
 			"id": "slavonski_brod_belgrad", "from": "slavonski_brod", "to": "belgrad", "length_km": 205, "roads": "A3",
 			"sections": [
 				{ "length_km": 20, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "pannonian_plain", "country": "HR", "traffic": 1.0, "name": "A3 Slavonski Brod" },
-				{ "length_km": 75, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "pannonian_plain", "country": "HR", "traffic": 0.9, "name": "A3 Slawonien – Županja" },
+				{ "length_km": 45, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "pannonian_plain", "country": "HR", "traffic": 0.9, "name": "A3 Slawonien – Županja" },
+				{ "length_km": 30, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "forest_hills", "country": "HR", "traffic": 0.9, "name": "A3 Spačva-Eichenwald – Lipovac" },
 				{ "length_km": 70, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "pannonian_plain", "country": "RS", "traffic": 0.9, "name": "A3 Syrmien – Šid" },
 				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "pannonian_plain", "country": "RS", "speed_limit": 120, "traffic": 1.3, "name": "A3 Surčin" },
 				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "pannonian_plain", "country": "RS", "speed_limit": 100, "traffic": 1.5, "name": "Belgrad" }
@@ -693,59 +661,40 @@
 			"borders": [ { "km": 95, "to": "RS" } ]
 		},
 		{
-			"id": "belgrad_nis", "from": "belgrad", "to": "nis", "length_km": 240, "roads": "A1",
+			"id": "belgrad_sofia", "from": "belgrad", "to": "sofia", "length_km": 395, "roads": "A1 · A4 · I-8 · A6", "description": "Durch das Moravatal, an Niš vorbei, durch die Sićevo-Schlucht und über Pirot und Kalotina nach Sofia.",
 			"sections": [
 				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "pannonian_plain", "country": "RS", "speed_limit": 100, "traffic": 1.5, "name": "Belgrad" },
 				{ "length_km": 60, "road": "autobahn", "curviness": 0, "hills": 1, "scenery": "pannonian_plain", "country": "RS", "traffic": 1.0, "name": "A1 Große Morava" },
 				{ "length_km": 70, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "balkan_hills", "country": "RS", "traffic": 0.9, "name": "A1 Jagodina – Ćuprija" },
 				{ "length_km": 70, "road": "autobahn", "curviness": 1, "hills": 2, "scenery": "balkan_hills", "country": "RS", "traffic": 0.9, "name": "A1 Paraćin – Aleksinac" },
-				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "balkan_hills", "country": "RS", "speed_limit": 100, "traffic": 1.3, "name": "Niš" }
-			],
-			"fuel_stations_km": [39, 120.4, 198.7],
-			"radars": [ { "km": 60, "limit": 130 }, { "km": 130, "limit": 130 } ],
-			"tunnels": [],
-			"borders": []
-		},
-		{
-			"id": "nis_sofia", "from": "nis", "to": "sofia", "length_km": 155, "roads": "A4 · I-8 · A6",
-			"sections": [
-				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "balkan_hills", "country": "RS", "speed_limit": 100, "traffic": 1.3, "name": "Niš" },
+				{ "length_km": 40, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "balkan_hills", "country": "RS", "speed_limit": 100, "traffic": 1.3, "name": "A1/A4 Niš" },
 				{ "length_km": 30, "road": "autobahn", "curviness": 3, "hills": 3, "scenery": "balkan_hills", "country": "RS", "traffic": 0.8, "name": "A4 Sićevo-Schlucht" },
 				{ "length_km": 50, "road": "autobahn", "curviness": 2, "hills": 2, "scenery": "balkan_hills", "country": "RS", "traffic": 0.8, "name": "A4 Pirot – Dimitrovgrad" },
-				{ "length_km": 30, "road": "landstrasse", "curviness": 2, "hills": 2, "scenery": "balkan_hills", "country": "BG", "traffic": 0.9, "name": "I-8 Kalotina – Dragoman" },
+				{ "length_km": 30, "road": "landstrasse", "curviness": 2, "hills": 2, "scenery": "karst", "country": "BG", "traffic": 0.9, "name": "I-8 Kalotina – Dragoman (Karst)" },
 				{ "length_km": 25, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "balkan_hills", "country": "BG", "traffic": 1.3, "name": "A6 Dragoman – Sofia" }
 			],
-			"fuel_stations_km": [36.7, 118.8],
-			"radars": [ { "km": 55, "limit": 130 } ],
+			"fuel_stations_km": [40, 121, 199.3, 278.1, 357.6],
+			"radars": [ { "km": 60, "limit": 130 }, { "km": 130, "limit": 130 }, { "km": 295, "limit": 130 } ],
 			"tunnels": [],
-			"borders": [ { "km": 100, "to": "BG" } ]
+			"borders": [ { "km": 340, "to": "BG" } ]
 		},
 		{
-			"id": "belgrad_szeged", "from": "belgrad", "to": "szeged", "length_km": 230, "roads": "A1 · M5",
+			"id": "belgrad_budapest", "from": "belgrad", "to": "budapest", "length_km": 400, "roads": "A1 · M5", "description": "Durch die Batschka (Novi Sad, Subotica), über die Grenze bei Röszke, an Szeged vorbei und durch die Kiskunság nach Budapest.",
 			"sections": [
 				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "pannonian_plain", "country": "RS", "speed_limit": 100, "traffic": 1.5, "name": "Belgrad" },
 				{ "length_km": 70, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "pannonian_plain", "country": "RS", "traffic": 1.0, "name": "A1 Syrmien – Novi Sad" },
 				{ "length_km": 100, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "pannonian_plain", "country": "RS", "traffic": 0.9, "name": "A1 Batschka – Subotica" },
 				{ "length_km": 25, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "pannonian_plain", "country": "RS", "traffic": 1.0, "name": "A1 Subotica – Horgoš" },
-				{ "length_km": 15, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "pannonian_plain", "country": "HU", "traffic": 1.2, "name": "M5 Röszke – Szeged" }
-			],
-			"fuel_stations_km": [40.1, 115.4, 193.7],
-			"radars": [ { "km": 60, "limit": 130 }, { "km": 130, "limit": 130 } ],
-			"tunnels": [],
-			"borders": [ { "km": 215, "to": "HU" } ]
-		},
-		{
-			"id": "szeged_budapest", "from": "szeged", "to": "budapest", "length_km": 170, "roads": "M5",
-			"sections": [
+				{ "length_km": 15, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "heath", "country": "HU", "traffic": 1.2, "name": "M5 Röszke – Szeged (Sandrücken)" },
 				{ "length_km": 20, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "pannonian_plain", "country": "HU", "traffic": 1.1, "name": "M5 Szeged" },
-				{ "length_km": 65, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "pannonian_plain", "country": "HU", "traffic": 0.9, "name": "M5 Puszta – Kiskunfélegyháza" },
+				{ "length_km": 65, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "heath", "country": "HU", "traffic": 0.9, "name": "M5 Kiskunság-Puszta – Kiskunfélegyháza" },
 				{ "length_km": 50, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "pannonian_plain", "country": "HU", "traffic": 1.1, "name": "M5 Kecskemét" },
 				{ "length_km": 35, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "pannonian_plain", "country": "HU", "speed_limit": 110, "traffic": 1.5, "name": "M5/M0 Budapest" }
 			],
-			"fuel_stations_km": [40.7, 130.3],
-			"radars": [ { "km": 60, "limit": 130 }, { "km": 100, "limit": 130 } ],
+			"fuel_stations_km": [42.7, 117.2, 198.2, 277.3, 361.2],
+			"radars": [ { "km": 60, "limit": 130 }, { "km": 130, "limit": 130 }, { "km": 290, "limit": 130 }, { "km": 330, "limit": 130 } ],
 			"tunnels": [],
-			"borders": []
+			"borders": [ { "km": 215, "to": "HU" } ]
 		},
 		{
 			"id": "budapest_wien", "from": "budapest", "to": "wien", "length_km": 245, "roads": "M1 · A4",
@@ -754,7 +703,7 @@
 				{ "length_km": 55, "road": "autobahn", "curviness": 1, "hills": 2, "scenery": "forest_hills", "country": "HU", "traffic": 1.1, "name": "M1 Gerecse – Tatabánya" },
 				{ "length_km": 50, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "pannonian_plain", "country": "HU", "traffic": 1.0, "name": "M1 Győr" },
 				{ "length_km": 45, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "pannonian_plain", "country": "HU", "traffic": 1.0, "name": "M1 Mosonmagyaróvár – Hegyeshalom" },
-				{ "length_km": 55, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "pannonian_plain", "country": "AT", "traffic": 1.2, "name": "A4 Nickelsdorf – Parndorf" },
+				{ "length_km": 55, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "north_plain", "country": "AT", "traffic": 1.2, "name": "A4 Nickelsdorf – Parndorfer Platte (Windparks)" },
 				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "pannonian_plain", "country": "AT", "speed_limit": 100, "traffic": 1.5, "name": "A4 Schwechat – Wien" }
 			],
 			"fuel_stations_km": [39.4, 124.1, 206.9],
@@ -767,7 +716,7 @@
 			"sections": [
 				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "pannonian_plain", "country": "AT", "speed_limit": 100, "traffic": 1.4, "name": "A22/A5 Wien" },
 				{ "length_km": 45, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "pannonian_plain", "country": "AT", "traffic": 1.0, "name": "A5 Weinviertel" },
-				{ "length_km": 30, "road": "landstrasse", "curviness": 2, "hills": 1, "scenery": "pannonian_plain", "country": "CZ", "traffic": 1.1, "name": "I/52 Mikulov – Pohořelice" },
+				{ "length_km": 30, "road": "landstrasse", "curviness": 2, "hills": 1, "scenery": "bohemian", "country": "CZ", "traffic": 1.1, "name": "I/52 Mikulov – Pohořelice" },
 				{ "length_km": 30, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "bohemian", "country": "CZ", "traffic": 1.2, "name": "D52 Brünn" },
 				{ "length_km": 15, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "bohemian", "country": "CZ", "speed_limit": 100, "traffic": 1.4, "name": "D1 Brünn" },
 				{ "length_km": 70, "road": "autobahn", "curviness": 1, "hills": 2, "scenery": "bohemian", "country": "CZ", "traffic": 1.2, "name": "D1 Böhmisch-Mährische Höhe – Jihlava" },
@@ -781,17 +730,22 @@
 			"borders": [ { "km": 65, "to": "CZ" } ]
 		},
 		{
-			"id": "prag_dresden", "from": "prag", "to": "dresden", "length_km": 150, "roads": "D8 · A17",
+			"id": "prag_leipzig", "from": "prag", "to": "leipzig", "length_km": 265, "roads": "D8 · A17 · A4 · A14", "description": "Durch das Böhmische Mittelgebirge und über das Erzgebirge nach Dresden, weiter über A4 und A14 nach Leipzig.",
 			"sections": [
 				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "bohemian", "country": "CZ", "speed_limit": 100, "traffic": 1.4, "name": "D8 Prag" },
 				{ "length_km": 40, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "bohemian", "country": "CZ", "traffic": 1.1, "name": "D8 Elbebene – Roudnice" },
 				{ "length_km": 30, "road": "autobahn", "curviness": 2, "hills": 3, "scenery": "bohemian", "country": "CZ", "traffic": 1.0, "name": "D8 Böhmisches Mittelgebirge" },
-				{ "length_km": 12, "road": "autobahn", "curviness": 2, "hills": 3, "scenery": "forest_hills", "country": "CZ", "traffic": 1.0, "name": "D8 Erzgebirge – Krásný Les" },
+				{ "length_km": 12, "road": "autobahn", "curviness": 2, "hills": 3, "scenery": "bohemian", "country": "CZ", "traffic": 1.0, "name": "D8 Erzgebirge – Krásný Les" },
 				{ "length_km": 28, "road": "autobahn", "curviness": 2, "hills": 2, "scenery": "forest_hills", "country": "DE", "speed_limit": 120, "traffic": 1.0, "name": "A17 Osterzgebirge" },
-				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "forest_hills", "country": "DE", "speed_limit": 100, "traffic": 1.3, "name": "A17 Dresden" }
+				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "forest_hills", "country": "DE", "speed_limit": 100, "traffic": 1.3, "name": "A17 Dresden" },
+				{ "length_km": 15, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "forest_hills", "country": "DE", "speed_limit": 120, "traffic": 1.4, "name": "A4 Dresden-Altstadt – Wilsdruff" },
+				{ "length_km": 30, "road": "autobahn", "curviness": 1, "hills": 2, "scenery": "forest_hills", "country": "DE", "speed_limit": null, "traffic": 1.0, "name": "A4 Wilsdruff – Nossen" },
+				{ "length_km": 15, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "north_plain", "country": "DE", "speed_limit": 120, "traffic": 1.0, "name": "A14 Döbeln" },
+				{ "length_km": 35, "road": "autobahn", "curviness": 0, "hills": 1, "scenery": "north_plain", "country": "DE", "speed_limit": null, "traffic": 1.1, "name": "A14 Muldental – Grimma" },
+				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "north_plain", "country": "DE", "speed_limit": 120, "traffic": 1.4, "name": "A14 Leipzig" }
 			],
-			"fuel_stations_km": [37.5, 118.6],
-			"radars": [ { "km": 60, "limit": 130 }, { "km": 110, "limit": 120, "dir": "rev" } ],
+			"fuel_stations_km": [34.3, 97.1, 164.6, 232.2],
+			"radars": [ { "km": 60, "limit": 130 }, { "km": 110, "limit": 120, "dir": "rev" }, { "km": 200, "limit": 120 } ],
 			"tunnels": [ { "km": 78, "length_km": 0.6, "name": "Tunel Radejčín" }, { "km": 136, "length_km": 1.1, "name": "Tunnel Dölzschen" } ],
 			"borders": [ { "km": 102, "to": "DE" } ]
 		},
@@ -860,8 +814,8 @@
 				{ "length_km": 65, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "east_plain", "country": "PL", "speed_limit": 120, "traffic": 0.9, "name": "S8 Knyszyner Heide – Augustów" },
 				{ "length_km": 30, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "baltic_forest", "country": "PL", "speed_limit": 120, "traffic": 0.9, "name": "S61 Augustower Urwald" },
 				{ "length_km": 25, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "baltic_forest", "country": "PL", "speed_limit": 120, "traffic": 0.9, "name": "S61 Suwałki – Budzisko" },
-				{ "length_km": 35, "road": "landstrasse", "curviness": 1, "hills": 1, "scenery": "baltic_forest", "country": "LT", "traffic": 0.9, "name": "A5 Kalvarija – Marijampolė" },
-				{ "length_km": 55, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "baltic_forest", "country": "LT", "traffic": 1.0, "name": "A5 Marijampolė – Kaunas" }
+				{ "length_km": 35, "road": "landstrasse", "curviness": 1, "hills": 1, "scenery": "east_plain", "country": "LT", "traffic": 0.9, "name": "A5 Kalvarija – Marijampolė (Suvalkija)" },
+				{ "length_km": 55, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "east_plain", "country": "LT", "traffic": 1.0, "name": "A5 Marijampolė – Kaunas" }
 			],
 			"fuel_stations_km": [37.3, 112.4, 192.3],
 			"radars": [ { "km": 60, "limit": 120 }, { "km": 150, "limit": 90 } ],
@@ -873,7 +827,7 @@
 			"sections": [
 				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "baltic_forest", "country": "LT", "speed_limit": 110, "traffic": 1.3, "name": "Kaunas" },
 				{ "length_km": 90, "road": "autobahn", "curviness": 0, "hills": 0, "scenery": "baltic_forest", "country": "LT", "speed_limit": 110, "traffic": 0.9, "name": "A8 Via Baltica – Panevėžys" },
-				{ "length_km": 65, "road": "landstrasse", "curviness": 1, "hills": 0, "scenery": "baltic_forest", "country": "LT", "traffic": 0.8, "name": "A10 Pasvalys – Saločiai" },
+				{ "length_km": 65, "road": "landstrasse", "curviness": 1, "hills": 0, "scenery": "east_plain", "country": "LT", "traffic": 0.8, "name": "A10 Pasvalys – Saločiai" },
 				{ "length_km": 60, "road": "landstrasse", "curviness": 1, "hills": 0, "scenery": "baltic_forest", "country": "LV", "traffic": 0.9, "name": "A7 Bauska – Iecava" },
 				{ "length_km": 20, "road": "autobahn", "curviness": 1, "hills": 0, "scenery": "baltic_forest", "country": "LV", "traffic": 1.4, "name": "A7 Ķekava – Riga" }
 			],
@@ -946,6 +900,7 @@
 			"name": "Königsrennen",
 			"start": "kiel",
 			"finish": "kiel",
+			"tour": true,
 			"waypoints": ["hamburg", "bremen", "amsterdam", "luettich", "paris", "madrid", "bern", "mailand", "sofia", "budapest", "wien", "prag", "leipzig", "berlin", "warschau", "riga", "rostock"],
 			"description": "Die große Europa-Tour mit 17 Pflichtstationen: Kiel – Hamburg – Bremen – Amsterdam – Lüttich – Paris – Madrid – Bern – Mailand – Sofia – Budapest – Wien – Prag – Leipzig – Berlin – Warschau – Riga, Fähre nach Rostock und zurück nach Kiel. Bei Saragossa Wahl zwischen der Küste über Barcelona und den Pyrenäen über den Somport-Tunnel."
 		}

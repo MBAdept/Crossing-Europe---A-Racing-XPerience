@@ -16,7 +16,7 @@ const NETWORK_OVERRIDE_NAME := "network.json"
 var cities: Dictionary = {}      ## id -> {id, name, country, latlon, map_pos, name_local?, dev?}
 var stages: Dictionary = {}      ## id -> raw stage dictionary (as in network.json)
 var ferries: Dictionary = {}     ## id -> {id, from, to, name, fixed_time_s, world_hours}
-var races: Dictionary = {}       ## id -> {id, name, start, finish, waypoints, avoid_stages?, description}
+var races: Dictionary = {}       ## id -> {id, name, start, finish, waypoints, avoid_stages?, tour?, description}
 var race_order: Array[String] = []
 var countries: Dictionary = {}   ## code -> country dictionary (data/countries.json)
 var scenery: Dictionary = {}     ## id -> scenery dictionary (data/scenery.json, authored by the race module)
@@ -151,8 +151,24 @@ func connections_from(city_id: String) -> Array[Dictionary]:
 ## the whole route of the race (route[] of the race state) or just the current leg.
 ## Each option: {kind, id, from, to, length_km, remaining_km, total_km, detour, best, target, target_index,
 ## via, name, board_key (stages), name/fixed_time_s/world_hours (ferries)}. [] when the race is complete.
+## Whole route to the next target (show this in the route choice, not just the first leg): continuation
+## (following legs on the shortest rest, each with name and board_key), route_km (= total_km), route_cities
+## ([current_city, to, …, target]), route_summary (legs_summary() of leg + continuation, same keys as
+## StagePlan.summary()) and via_distinct (cities only this option passes, e.g. Kassel vs. Frankfurt).
 func next_options(race_id: String, current_city: String, waypoint_index: int, visited: Array) -> Array[Dictionary]:
 	return network.next_options(race_id, current_city, waypoint_index, visited)
+
+
+## Summary of a chain of legs as driven (e.g. an option's leg + continuation, or a route of race_routes()):
+## the keys of StagePlan.summary() summed / length-weighted over all stages, plus cities, stages, ferries and
+## ferry_time_s.
+func legs_summary(legs: Array) -> Dictionary:
+	return network.legs_summary(legs)
+
+
+## The legs of a race route split into the ways between consecutive targets (start → waypoint → … → finish).
+func target_segments(race_id: String, legs: Array) -> Array:
+	return network.target_segments(race_id, legs)
 
 
 ## waypoints + [finish] of a race.

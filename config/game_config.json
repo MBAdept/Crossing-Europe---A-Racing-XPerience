@@ -289,8 +289,10 @@
 	"stages": {
 		"core_length_km": [150, 300],
 		"split_above_km": 300,
-		"_doc": "Etappenlängen: Kernlänge laut Design 150–300 km, darüber bekommen Etappen eine Zwischenstation (Kiel – Nürnberg); im Königsrennen sind Etappen bis max_length_km erlaubt (natürliche kürzere Etappen ab ca. 90 km).",
-		"max_length_km": 400
+		"_doc": "Etappenlängen (Prüfung durch tools/map/build_network.py und die Datentests): Kernlänge laut Design 150–300 km, darüber bekommen Etappen eine Zwischenstation (Kiel – Nürnberg); keine Etappe ist länger als max_length_km. Touren (races[].tour = true, das Königsrennen): braucht der Weg zwischen zwei aufeinanderfolgenden Pflichtstationen mehrere Etappen, ist jede davon split_length_km lang (Design: 'Lange Abschnitte werden in Etappen von 200–400 km geteilt'); nur eine natürliche Etappe zwischen zwei Pflichtstationen darf kürzer sein (Kiel – Hamburg, Hamburg – Bremen, Leipzig – Berlin). Grenzen liegen in beiden Richtungen mindestens border_min_before_city_km vor den City Limits, damit der Landschaftswechsel sichtbar ist.",
+		"max_length_km": 400,
+		"split_length_km": [200, 400],
+		"border_min_before_city_km": 5
 	},
 
 	"debug": {
