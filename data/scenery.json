@@ -1,0 +1,51 @@
+{
+	"_doc": "Landschaften: Grasfarben (Tag), Hintergrund (Stil + Farben fern/nah), Requisiten-Regeln. Regel: alle every_m Meter mit Wahrscheinlichkeit chance ein Sprite-Set im Abstand x (m hinter dem Bankett), Seite left/right/both, Skalierung scale. 'city' gilt in den City Limits. Wird vom Renn-Modul gepflegt.",
+	"scenery": {
+		"north_plain": {
+			"name": "Norddeutsche Tiefebene",
+			"climate": "north",
+			"grass": ["#5f9a40", "#57903a"],
+			"background": { "style": "plain", "colors": ["#8ea9c0", "#6c8f5e"] },
+			"props": [
+				{ "set": "props/tree_oak", "every_m": 27, "chance": 0.55, "side": "both", "x": [6, 30], "scale": [0.8, 1.25] },
+				{ "set": "props/tree_birch", "every_m": 39, "chance": 0.45, "side": "both", "x": [5, 22], "scale": [0.8, 1.2] },
+				{ "set": "props/wind_turbine", "every_m": 210, "chance": 0.6, "side": "both", "x": [60, 170], "scale": [0.9, 1.1] },
+				{ "set": "props/farmhouse", "every_m": 330, "chance": 0.4, "side": "both", "x": [35, 80], "scale": [0.9, 1.1] },
+				{ "set": "props/delineator", "every_m": 48, "chance": 1.0, "side": "right", "x": [0.3, 0.3], "scale": [1.0, 1.0] }
+			]
+		},
+		"forest_hills": {
+			"name": "Mittelgebirge",
+			"climate": "continental",
+			"grass": ["#4d8a3a", "#467f35"],
+			"background": { "style": "hills", "colors": ["#7d93ad", "#4f7448"] },
+			"props": [
+				{ "set": "props/tree_spruce", "every_m": 12, "chance": 0.75, "side": "both", "x": [4, 26], "scale": [0.85, 1.3] },
+				{ "set": "props/tree_beech", "every_m": 21, "chance": 0.5, "side": "both", "x": [5, 30], "scale": [0.8, 1.2] },
+				{ "set": "props/rock_a", "every_m": 120, "chance": 0.3, "side": "both", "x": [3, 12], "scale": [0.7, 1.3] }
+			]
+		},
+		"polder": {
+			"name": "Polder",
+			"climate": "north",
+			"grass": ["#6aa64a", "#62a044"],
+			"background": { "style": "plain", "colors": ["#97b0c6", "#79a066"] },
+			"props": [
+				{ "set": "props/tree_poplar", "every_m": 18, "chance": 0.6, "side": "both", "x": [10, 18], "scale": [0.9, 1.15] },
+				{ "set": "props/windmill", "every_m": 450, "chance": 0.5, "side": "both", "x": [70, 140], "scale": [0.9, 1.1] },
+				{ "set": "props/farmhouse", "every_m": 360, "chance": 0.35, "side": "both", "x": [40, 90], "scale": [0.9, 1.1] }
+			]
+		},
+		"city": {
+			"name": "City Limits",
+			"climate": "default",
+			"grass": ["#7d7d78", "#77776f"],
+			"background": { "style": "city", "colors": ["#8792a3", "#6a7282"] },
+			"props": [
+				{ "set": "props/building_block_a", "every_m": 30, "chance": 0.75, "side": "both", "x": [4, 12], "scale": [0.9, 1.2] },
+				{ "set": "props/building_tall", "every_m": 66, "chance": 0.5, "side": "both", "x": [10, 25], "scale": [0.9, 1.2] },
+				{ "set": "props/streetlight", "every_m": 30, "chance": 1.0, "side": "both", "x": [0.5, 0.5], "scale": [1.0, 1.0] }
+			]
+		}
+	}
+}

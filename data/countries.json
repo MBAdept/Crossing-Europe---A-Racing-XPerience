@@ -1,0 +1,22 @@
+{
+	"_doc": "Länder: Namen (deutsch / Landessprache für Grenzschilder), Standard-Tempolimits je Straßentyp (null = kein Limit), Klima (Wettergewichtung), Sprite-Set der Polizei.",
+	"countries": {
+		"DE": { "name": "Deutschland", "name_local": "Deutschland", "limits": { "autobahn": null, "landstrasse": 100, "city": 50 }, "climate": "north", "police": "police/de", "colors": ["#000000", "#DD0000", "#FFCE00"] },
+		"NL": { "name": "Niederlande", "name_local": "Nederland", "limits": { "autobahn": 100, "landstrasse": 80, "city": 50 }, "climate": "north", "police": "police/nl", "colors": ["#AE1C28", "#FFFFFF", "#21468B"] },
+		"BE": { "name": "Belgien", "name_local": "België · Belgique", "limits": { "autobahn": 120, "landstrasse": 90, "city": 50 }, "climate": "north", "police": "police/be", "colors": ["#000000", "#FDDA24", "#EF3340"] },
+		"FR": { "name": "Frankreich", "name_local": "France", "limits": { "autobahn": 130, "landstrasse": 80, "city": 50 }, "climate": "default", "police": "police/fr", "colors": ["#002395", "#FFFFFF", "#ED2939"] },
+		"ES": { "name": "Spanien", "name_local": "España", "limits": { "autobahn": 120, "landstrasse": 90, "city": 50 }, "climate": "mediterranean", "police": "police/es", "colors": ["#AA151B", "#F1BF00", "#AA151B"] },
+		"CH": { "name": "Schweiz", "name_local": "Schweiz · Suisse · Svizzera", "limits": { "autobahn": 120, "landstrasse": 80, "city": 50 }, "climate": "alpine", "police": "police/ch", "colors": ["#DA291C", "#FFFFFF", "#DA291C"] },
+		"IT": { "name": "Italien", "name_local": "Italia", "limits": { "autobahn": 130, "landstrasse": 90, "city": 50 }, "climate": "mediterranean", "police": "police/it", "colors": ["#009246", "#FFFFFF", "#CE2B37"] },
+		"SI": { "name": "Slowenien", "name_local": "Slovenija", "limits": { "autobahn": 130, "landstrasse": 90, "city": 50 }, "climate": "alpine", "police": "police/si", "colors": ["#FFFFFF", "#0000FF", "#FF0000"] },
+		"HR": { "name": "Kroatien", "name_local": "Hrvatska", "limits": { "autobahn": 130, "landstrasse": 90, "city": 50 }, "climate": "continental", "police": "police/hr", "colors": ["#FF0000", "#FFFFFF", "#171796"] },
+		"RS": { "name": "Serbien", "name_local": "Србија · Srbija", "limits": { "autobahn": 130, "landstrasse": 80, "city": 50 }, "climate": "continental", "police": "police/rs", "colors": ["#C6363C", "#0C4076", "#FFFFFF"] },
+		"BG": { "name": "Bulgarien", "name_local": "България", "limits": { "autobahn": 140, "landstrasse": 90, "city": 50 }, "climate": "continental", "police": "police/bg", "colors": ["#FFFFFF", "#00966E", "#D62612"] },
+		"HU": { "name": "Ungarn", "name_local": "Magyarország", "limits": { "autobahn": 130, "landstrasse": 90, "city": 50 }, "climate": "continental", "police": "police/hu", "colors": ["#CE2939", "#FFFFFF", "#477050"] },
+		"AT": { "name": "Österreich", "name_local": "Österreich", "limits": { "autobahn": 130, "landstrasse": 100, "city": 50 }, "climate": "alpine", "police": "police/at", "colors": ["#ED2939", "#FFFFFF", "#ED2939"] },
+		"CZ": { "name": "Tschechien", "name_local": "Česko", "limits": { "autobahn": 130, "landstrasse": 90, "city": 50 }, "climate": "continental", "police": "police/cz", "colors": ["#FFFFFF", "#D7141A", "#11457E"] },
+		"PL": { "name": "Polen", "name_local": "Polska", "limits": { "autobahn": 140, "landstrasse": 90, "city": 50 }, "climate": "continental", "police": "police/pl", "colors": ["#FFFFFF", "#DC143C", "#FFFFFF"] },
+		"LT": { "name": "Litauen", "name_local": "Lietuva", "limits": { "autobahn": 130, "landstrasse": 90, "city": 50 }, "climate": "north", "police": "police/lt", "colors": ["#FDB913", "#006A44", "#C1272D"] },
+		"LV": { "name": "Lettland", "name_local": "Latvija", "limits": { "autobahn": 110, "landstrasse": 90, "city": 50 }, "climate": "north", "police": "police/lv", "colors": ["#9E3039", "#FFFFFF", "#9E3039"] }
+	}
+}

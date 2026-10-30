@@ -1,0 +1,235 @@
+{
+	"_doc": "Zentrale Konfiguration von Crossing Europe. Alle Zahlen sind Startwerte und werden beim Testen angepasst. Eine Datei 'game_config.json' neben der ausführbaren Datei (oder in user://) überschreibt einzelne Werte, ohne dass neu gebaut werden muss. Felder mit '_doc' sind Kommentare.",
+
+	"time": {
+		"_doc": "Zeitraffer: 1 Stunde Weltzeit = 5 Spielminuten (Faktor 12). Kilometerzähler und Uhr laufen um diesen Faktor schneller als die sichtbare Straße.",
+		"time_scale": 12.0,
+		"stage_pause_hours": 12.0,
+		"countdown_s": 3.0,
+		"default_start_hour": 8.0,
+		"start_hour_step_minutes": 30
+	},
+
+	"daytime": {
+		"_doc": "Tageszeiten in Stunden (Weltzeit). Dämmerung: dawn_start..day_start bzw. dusk_start..night_start.",
+		"dawn_start": 5.0,
+		"sunrise": 6.5,
+		"day_start": 7.5,
+		"dusk_start": 18.0,
+		"sunset": 19.5,
+		"night_start": 20.5
+	},
+
+	"road": {
+		"_doc": "Straßengeometrie, gemeinsam für Darstellung, Fahrmodell und Verkehr. Kurven-Wert 1.0 entspricht curve_radius_at_1_m Radius. Kurvigkeit/Hügel 0–3 aus den Etappendaten wählen die Maximalwerte.",
+		"lane_width_m": 3.75,
+		"lanes": { "autobahn": 3, "landstrasse": 2, "city": 2 },
+		"shoulder_width_m": 2.5,
+		"guardrail": { "autobahn": true, "landstrasse": false, "city": false },
+		"curve_radius_at_1_m": 120.0,
+		"curviness_max_curve": [0.0, 0.22, 0.45, 0.9],
+		"hills_max_grade": [0.0, 0.025, 0.045, 0.07],
+		"lane_transition_m": 180.0,
+		"fuel_lane_taper_m": 40.0
+	},
+
+	"vehicles": {
+		"_doc": "Fünf Fahrzeugtypen (Vorschlag aus dem Design-Dokument). accel/agility (1–5) werden über accel_ratings/agility_ratings in Fahrwerte übersetzt. Verbrauch = Grundverbrauch * consumption_factors.",
+		"order": ["kompakt", "kombi", "limousine", "sportwagen", "gran_turismo"],
+		"default": "limousine",
+		"base_tank_l": 50,
+		"types": {
+			"kompakt": { "name": "Kompakt", "vmax_kmh": 230, "accel": 4, "agility": 5, "tank_l": 45, "consumption": "niedrig", "sprite": "player/kompakt", "showroom": "showroom/kompakt", "length_m": 4.1, "width_m": 1.78 },
+			"kombi": { "name": "Kombi", "vmax_kmh": 235, "accel": 2, "agility": 3, "tank_l": 70, "consumption": "mittel", "sprite": "player/kombi", "showroom": "showroom/kombi", "length_m": 4.8, "width_m": 1.85 },
+			"limousine": { "name": "Limousine", "vmax_kmh": 245, "accel": 3, "agility": 3, "tank_l": 60, "consumption": "mittel", "sprite": "player/limousine", "showroom": "showroom/limousine", "length_m": 4.85, "width_m": 1.86 },
+			"sportwagen": { "name": "Sportwagen", "vmax_kmh": 255, "accel": 5, "agility": 4, "tank_l": 55, "consumption": "hoch", "sprite": "player/sportwagen", "showroom": "showroom/sportwagen", "length_m": 4.45, "width_m": 1.9 },
+			"gran_turismo": { "name": "Gran Turismo", "vmax_kmh": 270, "accel": 4, "agility": 2, "tank_l": 60, "consumption": "sehr_hoch", "sprite": "player/gran_turismo", "showroom": "showroom/gran_turismo", "length_m": 4.95, "width_m": 1.95 }
+		},
+		"consumption_factors": { "niedrig": 0.85, "mittel": 1.0, "hoch": 1.15, "sehr_hoch": 1.3 },
+		"accel_ratings": {
+			"_doc": "Zielwerte: Sekunden von 0 auf 100 bzw. 200 km/h. Das Fahrmodell leitet daraus seine Beschleunigungskurve ab.",
+			"1": { "t100_s": 8.5, "t200_s": 25.0 },
+			"2": { "t100_s": 7.0, "t200_s": 19.0 },
+			"3": { "t100_s": 5.6, "t200_s": 14.5 },
+			"4": { "t100_s": 4.6, "t200_s": 12.0 },
+			"5": { "t100_s": 3.8, "t200_s": 10.0 }
+		},
+		"agility_ratings": {
+			"_doc": "steer_mps: seitliche Lenkgeschwindigkeit in m/s; lat_grip: Querbeschleunigung in m/s², bestimmt die Kurvengeschwindigkeit, ab der Untersteuern einsetzt.",
+			"1": { "steer_mps": 6.5, "lat_grip": 7.6 },
+			"2": { "steer_mps": 7.5, "lat_grip": 8.3 },
+			"3": { "steer_mps": 8.5, "lat_grip": 9.0 },
+			"4": { "steer_mps": 9.5, "lat_grip": 9.7 },
+			"5": { "steer_mps": 10.5, "lat_grip": 10.4 }
+		}
+	},
+
+	"driving": {
+		"_doc": "Arcade-Fahrmodell ohne Physik-Engine. Kein Übersteuern: zu schnell in der Kurve -> Untersteuern (nach außen drücken, Lenkung greift schwächer).",
+		"brake_decel_kmh_s": 70.0,
+		"coast_decel_kmh_s": 5.0,
+		"steer_full_speed_kmh": 60.0,
+		"steer_response_s": 0.12,
+		"understeer": {
+			"push_mps_per_excess": 14.0,
+			"steer_loss_per_excess": 1.6,
+			"min_steer_factor": 0.25
+		},
+		"base_centrifugal": 0.0,
+		"grade_vmax_loss_per_percent": 0.012,
+		"weather_vmax_factor": { "normal": 1.0, "rain": 0.975, "snow": 0.88 },
+		"night_vmax_factor": 0.985,
+		"weather_grip_factor": { "normal": 1.0, "rain": 0.88, "snow": 0.72 },
+		"shoulder": { "max_speed_kmh": 90.0, "decel_kmh_s": 35.0 },
+		"guardrail": { "speed_factor_per_hit": 0.9, "bounce_mps": 1.5 }
+	},
+
+	"collision": {
+		"_doc": "Kollision mit Verkehr: in slowdown_s auf target_speed_kmh abbremsen, dabei seitlich schieben. Endpunkt push_extra_s nach Erreichen von target_speed. Währenddessen unverwundbar und blinkend.",
+		"target_speed_kmh": 10.0,
+		"slowdown_s": 3.0,
+		"push_extra_s": 0.4,
+		"push_distance_m": 3.0,
+		"center_hit_fraction": 0.25,
+		"blink_hz": 8.0,
+		"invulnerable_grace_s": 0.0,
+		"rear_min_visible_fraction": 0.3333
+	},
+
+	"traffic": {
+		"_doc": "Verkehr fährt nur in Fahrtrichtung auf festen Spuren. Dichte = base_density_per_km (Fahrzeuge je sichtbarem km) * hourly_density[Stunde] * Faktoren (Nacht, Verfolgung, City Limits, Abschnitt).",
+		"speeds_kmh": { "autobahn": [110, 150], "landstrasse": [70, 100], "city": [40, 60] },
+		"truck_speeds_kmh": { "autobahn": [80, 90], "landstrasse": [60, 80], "city": [35, 50] },
+		"base_density_per_km": { "autobahn": 9.0, "landstrasse": 6.0, "city": 9.0 },
+		"hourly_density": [0.10, 0.07, 0.05, 0.05, 0.06, 0.15, 0.45, 0.95, 1.0, 0.80, 0.65, 0.65, 0.70, 0.70, 0.72, 0.80, 0.95, 1.0, 1.0, 0.75, 0.55, 0.40, 0.28, 0.18],
+		"night": { "start_hour": 23.0, "end_hour": 4.0, "density_factor": 1.0, "speed_factor": 1.15 },
+		"chase_density_factor": 0.2,
+		"truck_share": { "autobahn": 0.22, "landstrasse": 0.12, "city": 0.06 },
+		"lane_weights": { "autobahn": [0.25, 0.35, 0.4], "landstrasse": [0.4, 0.6], "city": [0.5, 0.5] },
+		"fuel_lane_use_chance": 0.12,
+		"fuel_lane_speed_kmh": 50.0,
+		"spawn_ahead_m": 950.0,
+		"spawn_behind_m": 120.0,
+		"despawn_behind_m": 220.0,
+		"min_gap_m": 14.0,
+		"follow_time_s": 1.2,
+		"lane_change_mps": 2.5
+	},
+
+	"fuel": {
+		"_doc": "Verbrauch (L/100 km) = base + quad_coeff * v². Tankstellen alle 60–90 km rechts; Tankspur 1–2 km vor der Tankstelle; unter 60 km/h in der Spur startet das Tanken automatisch. Dauer = fix + 2 s je 5 L.",
+		"base_l_per_100km": 14.0,
+		"quad_coeff": 0.00034,
+		"station_spacing_km": [60, 90],
+		"last_station_min_before_end_km": 25.0,
+		"announce_km": [30, 15, 5],
+		"lane_length_km": [1.0, 2.0],
+		"lane_trigger_speed_kmh": 60.0,
+		"refuel_fixed_s": 5.0,
+		"refuel_s_per_5l": 2.0,
+		"stop_decel_kmh_s": 50.0,
+		"start_fill_fraction": 1.0,
+		"reserve_warning_l": 8.0,
+		"tow_penalty_s": 120.0,
+		"tow_refill_fraction": 0.5,
+		"tow_overlay_s": 4.0
+	},
+
+	"radar": {
+		"_doc": "Warnung warning_km vorher mit Tempolimit; Auslösefeld zone_length_km lang; Toleranz 15 %. In den letzten no_radar_before_city_km vor den City Limits gibt es kein Radar.",
+		"warning_km": 10.0,
+		"zone_length_km": 5.0,
+		"tolerance": 0.15,
+		"no_radar_before_city_km": 30.0,
+		"default_limit_kmh": 120,
+		"flash_s": 0.3
+	},
+
+	"police": {
+		"_doc": "Flucht gelingt, wenn der Durchschnitt über escape_window_s mindestens escape_speed_kmh beträgt. Erwischt: anhalten, stop_duration_s stehen, dann aus dem Stand weiter.",
+		"escape_speed_kmh": 220.0,
+		"escape_window_s": 12.0,
+		"start_gap_m": 320.0,
+		"catch_timeout_s": 40.0,
+		"stop_duration_s": 10.0,
+		"stop_decel_kmh_s": 40.0,
+		"pull_over_offset_m": 12.0
+	},
+
+	"city_limits": {
+		"_doc": "Die letzten length_km jeder Etappe: mehr Verkehr, keine Tankstellen, kein Radar.",
+		"length_km": 20.0,
+		"density_factor": 2.5,
+		"road": "city"
+	},
+
+	"weather": {
+		"_doc": "Wetter senkt Höchstgeschwindigkeit (driving.weather_vmax_factor) und Sicht. race_mode: region = zufällig gewichtet nach Klima der Landschaft, random = gleichverteilt, fixed = Feld 'weather' der Etappe.",
+		"types": ["normal", "rain", "snow"],
+		"visibility_factor": { "normal": 1.0, "rain": 0.65, "snow": 0.5 },
+		"night_visibility_factor": 0.55,
+		"tunnel_visibility_factor": 0.4,
+		"race_mode": "region",
+		"climate_weights": {
+			"default": { "normal": 0.7, "rain": 0.24, "snow": 0.06 },
+			"north": { "normal": 0.6, "rain": 0.32, "snow": 0.08 },
+			"continental": { "normal": 0.66, "rain": 0.22, "snow": 0.12 },
+			"alpine": { "normal": 0.55, "rain": 0.2, "snow": 0.25 },
+			"mediterranean": { "normal": 0.86, "rain": 0.13, "snow": 0.01 }
+		}
+	},
+
+	"render": {
+		"_doc": "Pseudo-3D-Darstellung (Node2D mit _draw). Sichtbare Meter, nicht Kilometerzähler.",
+		"segment_length_m": 3.0,
+		"draw_distance_m": 900.0,
+		"fov_deg": 100.0,
+		"camera_height_m": 3.2,
+		"camera_distance_m": 6.6,
+		"horizon_y_frac": 0.42,
+		"fog_start_frac": 0.45,
+		"hill_height_scale": 1.0,
+		"stripes": { "rumble": 2, "dash_on": 2, "dash_off": 4, "grass": 4 },
+		"edge_line_m": 0.22,
+		"lane_line_m": 0.15,
+		"rumble_width_m": 0.5,
+		"tunnel": { "wall_height_m": 5.0, "ceiling_m": 5.6, "light_every_m": 24.0 },
+		"background_parallax": 0.0025
+	},
+
+	"hud": {
+		"message_s": 3.0,
+		"show_fps": false
+	},
+
+	"audio": {
+		"master_db": 0.0,
+		"engine_gears": 6,
+		"engine_idle_hz": 38.0
+	},
+
+	"leaderboard": {
+		"_doc": "Bestenlisten pro Etappe (und Richtung) und pro Rennen. Einträge werden auch je Fahrzeugtyp gespeichert, damit sowohl eine gemeinsame als auch getrennte Ansicht möglich ist.",
+		"size": 10,
+		"store_per_vehicle": true,
+		"default_filter": "all",
+		"seed_entries": true,
+		"seed_avg_kmh": [150, 190],
+		"seed_names": ["Anke", "Bernd", "Clara", "Dieter", "Elif", "Frank", "Gabi", "Hakan", "Ines", "Jörg"]
+	},
+
+	"routing": {
+		"_doc": "Routenwahl im Rennen: erlaubt sind Etappen, deren Umweg höchstens detour_tolerance (Anteil) über dem kürzesten Weg zum nächsten Pflichtziel liegt.",
+		"detour_tolerance": 0.35,
+		"max_options": 4
+	},
+
+	"stages": {
+		"core_length_km": [150, 300],
+		"split_above_km": 300
+	},
+
+	"debug": {
+		"autopilot_target_kmh": 235.0
+	}
+}

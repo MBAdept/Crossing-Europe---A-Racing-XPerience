@@ -1,0 +1,11 @@
+# Godot
+.godot/
+/build/
+/android/
+export_credentials.cfg
+*.tmp
+# Tools / local
+__pycache__/
+*.pyc
+node_modules/
+/tools/blender/_cache/

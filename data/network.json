@@ -1,0 +1,45 @@
+{
+	"_doc": "Streckennetz: Städte (Knoten), Etappen (Verbindungen, in beide Richtungen fahrbar), Fähren und Rennen (Start, Ziel, Pflichtstationen). Positionen von Tankstellen, Radar, Tunneln und Grenzen in km ab 'from'. City Limits = automatisch die letzten 20 km. Platzhalterdaten – werden vom Datenmodul ersetzt.",
+	"cities": [
+		{ "id": "kiel", "name": "Kiel", "country": "DE", "latlon": [54.323, 10.123], "map_pos": [412, 118] },
+		{ "id": "hamburg", "name": "Hamburg", "country": "DE", "latlon": [53.551, 9.994], "map_pos": [405, 140] },
+		{ "id": "dev_start", "name": "Teststadt", "country": "DE", "latlon": [52.0, 7.0], "map_pos": [380, 180], "dev": true },
+		{ "id": "dev_ziel", "name": "Testdorp", "country": "NL", "latlon": [52.2, 5.5], "map_pos": [350, 175], "dev": true }
+	],
+	"stages": [
+		{
+			"id": "kiel_hamburg",
+			"from": "kiel",
+			"to": "hamburg",
+			"length_km": 95,
+			"sections": [
+				{ "length_km": 95, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "north_plain", "country": "DE", "speed_limit": null }
+			],
+			"fuel_stations_km": [40],
+			"radars": [ { "km": 30, "limit": 120 } ],
+			"tunnels": [],
+			"borders": []
+		},
+		{
+			"id": "dev_testetappe",
+			"dev": true,
+			"from": "dev_start",
+			"to": "dev_ziel",
+			"length_km": 130,
+			"_doc": "Entwickler-Etappe mit allen Elementen auf kurzer Strecke (nicht im Menü).",
+			"sections": [
+				{ "length_km": 35, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "north_plain", "country": "DE", "speed_limit": null },
+				{ "length_km": 30, "road": "landstrasse", "curviness": 3, "hills": 2, "scenery": "forest_hills", "country": "DE" },
+				{ "length_km": 65, "road": "autobahn", "curviness": 2, "hills": 1, "scenery": "polder", "country": "NL", "traffic": 1.3 }
+			],
+			"fuel_stations_km": [20, 80],
+			"radars": [ { "km": 12, "limit": 120 } ],
+			"tunnels": [ { "km": 50, "length_km": 4, "name": "Testtunnel" } ],
+			"borders": [ { "km": 65, "to": "NL" } ]
+		}
+	],
+	"ferries": [],
+	"races": [
+		{ "id": "kiel_nuernberg", "name": "Kiel – Nürnberg", "start": "kiel", "finish": "hamburg", "waypoints": [], "_doc": "Platzhalter bis das Netz vollständig ist" }
+	]
+}

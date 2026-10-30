@@ -1,0 +1,941 @@
+{
+ "version": 1,
+ "generator": "placeholders",
+ "sets": {
+  "player/kompakt": {
+   "cell": [
+    256,
+    200
+   ],
+   "angles": [
+    "l2",
+    "l1",
+    "c",
+    "r1",
+    "r2"
+   ],
+   "layers": [
+    "base",
+    "tail",
+    "brake"
+   ],
+   "image_width_m": 2.9,
+   "anchor": [
+    0.5,
+    0.92
+   ],
+   "object": {
+    "width_m": 1.85,
+    "length_m": 4.6,
+    "height_m": 1.45
+   },
+   "tags": [
+    "player"
+   ],
+   "file": "player/kompakt.png"
+  },
+  "showroom/kompakt": {
+   "cell": [
+    384,
+    240
+   ],
+   "angles": [
+    "c"
+   ],
+   "layers": [
+    "base"
+   ],
+   "image_width_m": 3.4,
+   "anchor": [
+    0.5,
+    0.92
+   ],
+   "object": {},
+   "tags": [
+    "showroom"
+   ],
+   "file": "showroom/kompakt.png"
+  },
+  "player/kombi": {
+   "cell": [
+    256,
+    200
+   ],
+   "angles": [
+    "l2",
+    "l1",
+    "c",
+    "r1",
+    "r2"
+   ],
+   "layers": [
+    "base",
+    "tail",
+    "brake"
+   ],
+   "image_width_m": 2.9,
+   "anchor": [
+    0.5,
+    0.92
+   ],
+   "object": {
+    "width_m": 1.85,
+    "length_m": 4.6,
+    "height_m": 1.45
+   },
+   "tags": [
+    "player"
+   ],
+   "file": "player/kombi.png"
+  },
+  "showroom/kombi": {
+   "cell": [
+    384,
+    240
+   ],
+   "angles": [
+    "c"
+   ],
+   "layers": [
+    "base"
+   ],
+   "image_width_m": 3.4,
+   "anchor": [
+    0.5,
+    0.92
+   ],
+   "object": {},
+   "tags": [
+    "showroom"
+   ],
+   "file": "showroom/kombi.png"
+  },
+  "player/limousine": {
+   "cell": [
+    256,
+    200
+   ],
+   "angles": [
+    "l2",
+    "l1",
+    "c",
+    "r1",
+    "r2"
+   ],
+   "layers": [
+    "base",
+    "tail",
+    "brake"
+   ],
+   "image_width_m": 2.9,
+   "anchor": [
+    0.5,
+    0.92
+   ],
+   "object": {
+    "width_m": 1.85,
+    "length_m": 4.6,
+    "height_m": 1.45
+   },
+   "tags": [
+    "player"
+   ],
+   "file": "player/limousine.png"
+  },
+  "showroom/limousine": {
+   "cell": [
+    384,
+    240
+   ],
+   "angles": [
+    "c"
+   ],
+   "layers": [
+    "base"
+   ],
+   "image_width_m": 3.4,
+   "anchor": [
+    0.5,
+    0.92
+   ],
+   "object": {},
+   "tags": [
+    "showroom"
+   ],
+   "file": "showroom/limousine.png"
+  },
+  "player/sportwagen": {
+   "cell": [
+    256,
+    200
+   ],
+   "angles": [
+    "l2",
+    "l1",
+    "c",
+    "r1",
+    "r2"
+   ],
+   "layers": [
+    "base",
+    "tail",
+    "brake"
+   ],
+   "image_width_m": 2.9,
+   "anchor": [
+    0.5,
+    0.92
+   ],
+   "object": {
+    "width_m": 1.85,
+    "length_m": 4.6,
+    "height_m": 1.45
+   },
+   "tags": [
+    "player"
+   ],
+   "file": "player/sportwagen.png"
+  },
+  "showroom/sportwagen": {
+   "cell": [
+    384,
+    240
+   ],
+   "angles": [
+    "c"
+   ],
+   "layers": [
+    "base"
+   ],
+   "image_width_m": 3.4,
+   "anchor": [
+    0.5,
+    0.92
+   ],
+   "object": {},
+   "tags": [
+    "showroom"
+   ],
+   "file": "showroom/sportwagen.png"
+  },
+  "player/gran_turismo": {
+   "cell": [
+    256,
+    200
+   ],
+   "angles": [
+    "l2",
+    "l1",
+    "c",
+    "r1",
+    "r2"
+   ],
+   "layers": [
+    "base",
+    "tail",
+    "brake"
+   ],
+   "image_width_m": 2.9,
+   "anchor": [
+    0.5,
+    0.92
+   ],
+   "object": {
+    "width_m": 1.85,
+    "length_m": 4.6,
+    "height_m": 1.45
+   },
+   "tags": [
+    "player"
+   ],
+   "file": "player/gran_turismo.png"
+  },
+  "showroom/gran_turismo": {
+   "cell": [
+    384,
+    240
+   ],
+   "angles": [
+    "c"
+   ],
+   "layers": [
+    "base"
+   ],
+   "image_width_m": 3.4,
+   "anchor": [
+    0.5,
+    0.92
+   ],
+   "object": {},
+   "tags": [
+    "showroom"
+   ],
+   "file": "showroom/gran_turismo.png"
+  },
+  "traffic/sedan_red": {
+   "cell": [
+    256,
+    200
+   ],
+   "angles": [
+    "l2",
+    "l1",
+    "c",
+    "r1",
+    "r2"
+   ],
+   "layers": [
+    "base",
+    "tail",
+    "brake"
+   ],
+   "image_width_m": 2.9,
+   "anchor": [
+    0.5,
+    0.92
+   ],
+   "object": {
+    "width_m": 1.8,
+    "length_m": 4.5,
+    "height_m": 1.5
+   },
+   "tags": [
+    "traffic",
+    "car"
+   ],
+   "file": "traffic/sedan_red.png"
+  },
+  "traffic/sedan_blue": {
+   "cell": [
+    256,
+    200
+   ],
+   "angles": [
+    "l2",
+    "l1",
+    "c",
+    "r1",
+    "r2"
+   ],
+   "layers": [
+    "base",
+    "tail",
+    "brake"
+   ],
+   "image_width_m": 2.9,
+   "anchor": [
+    0.5,
+    0.92
+   ],
+   "object": {
+    "width_m": 1.8,
+    "length_m": 4.5,
+    "height_m": 1.5
+   },
+   "tags": [
+    "traffic",
+    "car"
+   ],
+   "file": "traffic/sedan_blue.png"
+  },
+  "traffic/sedan_silver": {
+   "cell": [
+    256,
+    200
+   ],
+   "angles": [
+    "l2",
+    "l1",
+    "c",
+    "r1",
+    "r2"
+   ],
+   "layers": [
+    "base",
+    "tail",
+    "brake"
+   ],
+   "image_width_m": 2.9,
+   "anchor": [
+    0.5,
+    0.92
+   ],
+   "object": {
+    "width_m": 1.8,
+    "length_m": 4.5,
+    "height_m": 1.5
+   },
+   "tags": [
+    "traffic",
+    "car"
+   ],
+   "file": "traffic/sedan_silver.png"
+  },
+  "traffic/hatch_green": {
+   "cell": [
+    256,
+    200
+   ],
+   "angles": [
+    "l2",
+    "l1",
+    "c",
+    "r1",
+    "r2"
+   ],
+   "layers": [
+    "base",
+    "tail",
+    "brake"
+   ],
+   "image_width_m": 2.9,
+   "anchor": [
+    0.5,
+    0.92
+   ],
+   "object": {
+    "width_m": 1.8,
+    "length_m": 4.5,
+    "height_m": 1.5
+   },
+   "tags": [
+    "traffic",
+    "car"
+   ],
+   "file": "traffic/hatch_green.png"
+  },
+  "traffic/van_white": {
+   "cell": [
+    256,
+    200
+   ],
+   "angles": [
+    "l2",
+    "l1",
+    "c",
+    "r1",
+    "r2"
+   ],
+   "layers": [
+    "base",
+    "tail",
+    "brake"
+   ],
+   "image_width_m": 2.9,
+   "anchor": [
+    0.5,
+    0.92
+   ],
+   "object": {
+    "width_m": 1.8,
+    "length_m": 4.5,
+    "height_m": 2.0
+   },
+   "tags": [
+    "traffic",
+    "car"
+   ],
+   "file": "traffic/van_white.png"
+  },
+  "traffic/truck_white": {
+   "cell": [
+    256,
+    288
+   ],
+   "angles": [
+    "l2",
+    "l1",
+    "c",
+    "r1",
+    "r2"
+   ],
+   "layers": [
+    "base",
+    "tail",
+    "brake"
+   ],
+   "image_width_m": 3.4,
+   "anchor": [
+    0.5,
+    0.92
+   ],
+   "object": {
+    "width_m": 2.5,
+    "length_m": 16.5,
+    "height_m": 3.9
+   },
+   "tags": [
+    "traffic",
+    "heavy"
+   ],
+   "file": "traffic/truck_white.png"
+  },
+  "police/de": {
+   "cell": [
+    256,
+    200
+   ],
+   "angles": [
+    "l2",
+    "l1",
+    "c",
+    "r1",
+    "r2"
+   ],
+   "layers": [
+    "base",
+    "tail",
+    "brake",
+    "beacon_a",
+    "beacon_b"
+   ],
+   "image_width_m": 2.9,
+   "anchor": [
+    0.5,
+    0.92
+   ],
+   "object": {
+    "width_m": 1.85,
+    "length_m": 4.8,
+    "height_m": 1.5
+   },
+   "tags": [
+    "police",
+    "de"
+   ],
+   "file": "police/de.png"
+  },
+  "police/nl": {
+   "cell": [
+    256,
+    200
+   ],
+   "angles": [
+    "l2",
+    "l1",
+    "c",
+    "r1",
+    "r2"
+   ],
+   "layers": [
+    "base",
+    "tail",
+    "brake",
+    "beacon_a",
+    "beacon_b"
+   ],
+   "image_width_m": 2.9,
+   "anchor": [
+    0.5,
+    0.92
+   ],
+   "object": {
+    "width_m": 1.85,
+    "length_m": 4.8,
+    "height_m": 1.5
+   },
+   "tags": [
+    "police",
+    "nl"
+   ],
+   "file": "police/nl.png"
+  },
+  "props/tree_oak": {
+   "cell": [
+    256,
+    320
+   ],
+   "angles": [
+    "c"
+   ],
+   "layers": [
+    "base"
+   ],
+   "image_width_m": 9.0,
+   "anchor": [
+    0.5,
+    0.97
+   ],
+   "object": {
+    "width_m": 7,
+    "height_m": 11
+   },
+   "tags": [
+    "prop"
+   ],
+   "file": "props/tree_oak.png"
+  },
+  "props/tree_beech": {
+   "cell": [
+    256,
+    320
+   ],
+   "angles": [
+    "c"
+   ],
+   "layers": [
+    "base"
+   ],
+   "image_width_m": 9.0,
+   "anchor": [
+    0.5,
+    0.97
+   ],
+   "object": {
+    "width_m": 7,
+    "height_m": 12
+   },
+   "tags": [
+    "prop"
+   ],
+   "file": "props/tree_beech.png"
+  },
+  "props/tree_birch": {
+   "cell": [
+    192,
+    320
+   ],
+   "angles": [
+    "c"
+   ],
+   "layers": [
+    "base"
+   ],
+   "image_width_m": 6.0,
+   "anchor": [
+    0.5,
+    0.97
+   ],
+   "object": {
+    "width_m": 4.5,
+    "height_m": 10
+   },
+   "tags": [
+    "prop"
+   ],
+   "file": "props/tree_birch.png"
+  },
+  "props/tree_spruce": {
+   "cell": [
+    192,
+    384
+   ],
+   "angles": [
+    "c"
+   ],
+   "layers": [
+    "base"
+   ],
+   "image_width_m": 6.0,
+   "anchor": [
+    0.5,
+    0.97
+   ],
+   "object": {
+    "width_m": 5,
+    "height_m": 15
+   },
+   "tags": [
+    "prop"
+   ],
+   "file": "props/tree_spruce.png"
+  },
+  "props/tree_poplar": {
+   "cell": [
+    128,
+    384
+   ],
+   "angles": [
+    "c"
+   ],
+   "layers": [
+    "base"
+   ],
+   "image_width_m": 4.0,
+   "anchor": [
+    0.5,
+    0.97
+   ],
+   "object": {
+    "width_m": 3.5,
+    "height_m": 18
+   },
+   "tags": [
+    "prop"
+   ],
+   "file": "props/tree_poplar.png"
+  },
+  "props/rock_a": {
+   "cell": [
+    256,
+    160
+   ],
+   "angles": [
+    "c"
+   ],
+   "layers": [
+    "base"
+   ],
+   "image_width_m": 5.0,
+   "anchor": [
+    0.5,
+    0.97
+   ],
+   "object": {},
+   "tags": [
+    "prop"
+   ],
+   "file": "props/rock_a.png"
+  },
+  "props/wind_turbine": {
+   "cell": [
+    256,
+    512
+   ],
+   "angles": [
+    "c"
+   ],
+   "layers": [
+    "base"
+   ],
+   "image_width_m": 60.0,
+   "anchor": [
+    0.5,
+    0.97
+   ],
+   "object": {},
+   "tags": [
+    "prop"
+   ],
+   "file": "props/wind_turbine.png"
+  },
+  "props/farmhouse": {
+   "cell": [
+    320,
+    256
+   ],
+   "angles": [
+    "c"
+   ],
+   "layers": [
+    "base",
+    "lights"
+   ],
+   "image_width_m": 22.0,
+   "anchor": [
+    0.5,
+    0.97
+   ],
+   "object": {},
+   "tags": [
+    "prop"
+   ],
+   "file": "props/farmhouse.png"
+  },
+  "props/windmill": {
+   "cell": [
+    256,
+    384
+   ],
+   "angles": [
+    "c"
+   ],
+   "layers": [
+    "base"
+   ],
+   "image_width_m": 18.0,
+   "anchor": [
+    0.5,
+    0.97
+   ],
+   "object": {},
+   "tags": [
+    "prop"
+   ],
+   "file": "props/windmill.png"
+  },
+  "props/building_block_a": {
+   "cell": [
+    320,
+    384
+   ],
+   "angles": [
+    "c"
+   ],
+   "layers": [
+    "base",
+    "lights"
+   ],
+   "image_width_m": 22.0,
+   "anchor": [
+    0.5,
+    0.97
+   ],
+   "object": {},
+   "tags": [
+    "prop"
+   ],
+   "file": "props/building_block_a.png"
+  },
+  "props/building_tall": {
+   "cell": [
+    256,
+    512
+   ],
+   "angles": [
+    "c"
+   ],
+   "layers": [
+    "base",
+    "lights"
+   ],
+   "image_width_m": 24.0,
+   "anchor": [
+    0.5,
+    0.97
+   ],
+   "object": {},
+   "tags": [
+    "prop"
+   ],
+   "file": "props/building_tall.png"
+  },
+  "props/streetlight": {
+   "cell": [
+    128,
+    384
+   ],
+   "angles": [
+    "c"
+   ],
+   "layers": [
+    "base",
+    "lights"
+   ],
+   "image_width_m": 3.0,
+   "anchor": [
+    0.5,
+    0.97
+   ],
+   "object": {},
+   "tags": [
+    "prop"
+   ],
+   "file": "props/streetlight.png"
+  },
+  "props/delineator": {
+   "cell": [
+    64,
+    128
+   ],
+   "angles": [
+    "c"
+   ],
+   "layers": [
+    "base",
+    "lights"
+   ],
+   "image_width_m": 0.6,
+   "anchor": [
+    0.5,
+    0.97
+   ],
+   "object": {},
+   "tags": [
+    "prop"
+   ],
+   "file": "props/delineator.png"
+  },
+  "props/fuel_station": {
+   "cell": [
+    384,
+    256
+   ],
+   "angles": [
+    "c"
+   ],
+   "layers": [
+    "base",
+    "lights"
+   ],
+   "image_width_m": 34.0,
+   "anchor": [
+    0.5,
+    0.97
+   ],
+   "object": {},
+   "tags": [
+    "prop"
+   ],
+   "file": "props/fuel_station.png"
+  },
+  "props/fuel_pump": {
+   "cell": [
+    128,
+    192
+   ],
+   "angles": [
+    "c"
+   ],
+   "layers": [
+    "base",
+    "lights"
+   ],
+   "image_width_m": 4.0,
+   "anchor": [
+    0.5,
+    0.97
+   ],
+   "object": {},
+   "tags": [
+    "prop"
+   ],
+   "file": "props/fuel_pump.png"
+  },
+  "props/radar_camera": {
+   "cell": [
+    96,
+    192
+   ],
+   "angles": [
+    "c"
+   ],
+   "layers": [
+    "base"
+   ],
+   "image_width_m": 1.6,
+   "anchor": [
+    0.5,
+    0.97
+   ],
+   "object": {},
+   "tags": [
+    "prop"
+   ],
+   "file": "props/radar_camera.png"
+  },
+  "props/customs_booth": {
+   "cell": [
+    256,
+    192
+   ],
+   "angles": [
+    "c"
+   ],
+   "layers": [
+    "base",
+    "lights"
+   ],
+   "image_width_m": 9.0,
+   "anchor": [
+    0.5,
+    0.97
+   ],
+   "object": {},
+   "tags": [
+    "prop"
+   ],
+   "file": "props/customs_booth.png"
+  }
+ }
+}
