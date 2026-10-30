@@ -77,15 +77,42 @@ func test_max_speed_weather_night_grade() -> void:
 	assert_near(v.max_speed(0.0, 1.0), vmax, 0.001, "flach")
 	assert_near(v.max_speed(-0.06, 1.0), vmax, 0.001, "bergab erhöht nicht")
 	var loss := float(ConfigLoader.lookup(c, "driving.grade_vmax_loss_per_percent", 0.012))
-	assert_near(v.max_speed(0.05, 1.0), vmax * (1.0 - 5.0 * loss), 0.001, "5 % bergauf")
+	var free := float(ConfigLoader.lookup(c, "driving.grade_free_percent", 0.0))
+	assert_near(v.max_speed(free / 100.0, 1.0), vmax, 0.001, "bis grade_free_percent kein Verlust")
+	assert_near(v.max_speed(0.07, 1.0), vmax * (1.0 - (7.0 - free) * loss), 0.001, "7 % bergauf: Verlust je Prozent darüber")
+	assert_true(v.max_speed(0.07, 1.0) < vmax - 5.0, "steile Steigung senkt das Maximum spürbar")
 	assert_near(v.max_speed(0.0, 0.9), vmax * 0.9, 0.001, "Umweltfaktor")
 	# above the current maximum (e.g. uphill) the car settles down to it
 	var road := Fx.flat_road()
-	road["grade"] = 0.06
+	road["grade"] = 0.07
 	v.speed = vmax
 	_run(v, 4.0, {"throttle": 1.0}, road)
-	assert_near(v.speed, v.max_speed(0.06, 1.0), 0.5, "bergauf auf neues Maximum")
-	assert_near(v.vmax_effective, v.max_speed(0.06, 1.0), 0.001, "vmax_effective")
+	assert_near(v.speed, v.max_speed(0.07, 1.0), 0.5, "bergauf auf neues Maximum")
+	assert_near(v.vmax_effective, v.max_speed(0.07, 1.0), 0.001, "vmax_effective")
+
+
+## VEH-1: "Untergrenze 230 km/h, damit jedes Fahrzeug die 220 km/h für die Polizeiflucht auch bei leicht
+## verschlechterten Bedingungen erreicht." Slightly worse = rain + night on normal hilly roads (hills levels
+## 1–2, up to road.hills_max_grade[2] = 4.5 %): every car keeps >= 220 on every such climb and escapes at
+## full throttle. Steep mountain climbs (hills 3) still lower the maximum.
+func test_grade_keeps_escape_speed_in_slightly_worse_conditions() -> void:
+	var c := cfg()
+	var env := EnvironmentModel.new()
+	env.setup(c)
+	var worse := env.vmax_factor(2.0, "rain")
+	var maxes: Array = ConfigLoader.lookup(c, "road.hills_max_grade", [0.0, 0.025, 0.045, 0.07])
+	var hills2 := float(maxes[2])
+	var hills3 := float(maxes[3])
+	for id: String in Fx.VEHICLES:
+		var v := Fx.vehicle(c, id)
+		var g := 0.0
+		while g <= hills2 + 0.00001:
+			assert_true(v.max_speed(g, worse) >= 220.0, "%s Regen+Nacht, %.1f %% Steigung: %.1f km/h" % [id, g * 100.0, v.max_speed(g, worse)])
+			assert_true(v.max_speed(g, env.vmax_factor(12.0, "rain")) >= 220.0, "%s Regen, %.1f %%" % [id, g * 100.0])
+			g += 0.0025
+		assert_true(v.max_speed(hills3, 1.0) < v.max_speed(0.0, 1.0) - 3.0, "%s: Hügelstufe 3 (%.0f %%) senkt das Maximum" % [id, hills3 * 100.0])
+		var r := Sim.escape_run(c, id, 400.0, worse, 140.0, hills2)
+		assert_eq(str(r["result"]), "escaped", "%s: Vollgas ab 140 km/h, Regen + Nacht, %.1f %% bergauf -> Flucht (vmax %.1f)" % [id, hills2 * 100.0, float(r["vmax_eff"])])
 
 
 func test_all_vehicles_reach_220_in_rain_at_night() -> void:

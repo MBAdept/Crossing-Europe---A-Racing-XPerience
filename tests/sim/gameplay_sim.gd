@@ -84,6 +84,7 @@ static func police_caught_cost(cfg: Dictionary, id: String, cruise: float = 160.
 	var t_stand := -1.0
 	var t_release := -1.0
 	var d_since := 0.0
+	var catch_km := -1.0
 	while t < 300.0:
 		var req := police.control_request()
 		if req.is_empty():
@@ -101,6 +102,7 @@ static func police_caught_cost(cfg: Dictionary, id: String, cruise: float = 160.
 			t_flash = t
 		if t_catch < 0.0 and police.state == PoliceSystem.State.STOPPING:
 			t_catch = t
+			catch_km = km
 		if t_catch >= 0.0:
 			d_since += dz
 		if t_stand < 0.0 and police.state == PoliceSystem.State.STOPPED:
@@ -111,20 +113,21 @@ static func police_caught_cost(cfg: Dictionary, id: String, cruise: float = 160.
 			break
 	var lost := (t - t_catch) - d_since / (cruise / 3.6) if t_catch >= 0.0 else 0.0
 	return {"id": id, "cruise": cruise, "chase_s": t_catch - t_flash, "brake_s": t_stand - t_catch,
-		"stand_s": t_release - t_stand, "lost_s": lost}
+		"stand_s": t_release - t_stand, "lost_s": lost, "catch_km": catch_km}
 
 
 # --- (e) escape ------------------------------------------------------------------------------
 
 ## Flashed at hold_kmh (entering a 120 zone at that speed), then holding hold_kmh (or the car's maximum).
-## Result: escaped / caught, after how many seconds.
-static func escape_run(cfg: Dictionary, id: String, hold_kmh: float, vmax_factor: float = 1.0, start_kmh: float = -1.0) -> Dictionary:
+## Result: escaped / caught, after how many seconds. grade: constant climb (rise/run) of the whole run.
+static func escape_run(cfg: Dictionary, id: String, hold_kmh: float, vmax_factor: float = 1.0, start_kmh: float = -1.0, grade: float = 0.0) -> Dictionary:
 	var plan := Fx.make_plan(cfg, 300.0, [], [{"km": 20.0, "limit": 120}])
 	var police := PoliceSystem.new()
 	police.setup(cfg, plan)
 	var v := Fx.vehicle(cfg, id)
 	v.speed = hold_kmh if start_kmh < 0.0 else start_kmh
 	var road := Fx.flat_road()
+	road["grade"] = grade
 	var ts := float(ConfigLoader.lookup(cfg, "time.time_scale", 12.0))
 	var km := 19.95
 	var t := 0.0
@@ -151,7 +154,172 @@ static func escape_run(cfg: Dictionary, id: String, hold_kmh: float, vmax_factor
 			chase_t = police.chase_time
 			break
 	return {"id": id, "hold": hold_kmh, "result": result, "chase_s": chase_t, "min_gap_m": min_gap,
-		"avg": police.avg_speed}
+		"avg": police.avg_speed, "vmax_eff": v.vmax_effective}
+
+
+## A chase into the City Limits, driven continuously with the real VehicleModel on a flat road: the player
+## approaches `radar` (default: the last radar of the plan) at hold_kmh, is flashed at the zone start and
+## keeps trying to flee at hold_kmh (below 220 = no escape). flee_kmh > 0: from the City Limits on the
+## player speeds up to flee_kmh (escape inside the City Limits). Ends when the chase ends.
+## Returns flash_km, end ("caught" | "escaped" | "none"), end_km, chase_s and city_chase_km (odometer km
+## driven inside the City Limits while the chase was running).
+static func chase_into_city_run(cfg: Dictionary, plan: StagePlan, id: String, hold_kmh: float, flee_kmh: float = -1.0, radar: Dictionary = {}) -> Dictionary:
+	var r := radar
+	if r.is_empty() and not plan.radars.is_empty():
+		r = plan.radars[plan.radars.size() - 1]
+	var police := PoliceSystem.new()
+	police.setup(cfg, plan)
+	var v := Fx.vehicle(cfg, id)
+	v.speed = hold_kmh
+	var road := Fx.flat_road()
+	var ts := float(ConfigLoader.lookup(cfg, "time.time_scale", 12.0))
+	var km := maxf(0.0, float(r.get("km", 0.0)) - 2.0)
+	var t := 0.0
+	var end := "none"
+	var end_km := -1.0
+	var city_km := 0.0
+	var st := {"km": km, "flash_km": -1.0}   # lambdas capture locals by value: share state via a Dictionary
+	police.flashed.connect(func(_rr: Dictionary, _s: float) -> void: st["flash_km"] = st["km"])
+	while t < 600.0 and km < plan.length_km:
+		var target := hold_kmh
+		if flee_kmh > 0.0 and plan.is_city(km):
+			target = flee_kmh
+		var req := police.control_request()
+		if req.is_empty():
+			v.release_auto()
+		else:
+			v.auto_control(float(req["target_kmh"]), float(req["rate_kmh_s"]))
+		v.update(DT, {"throttle": 1.0 if v.speed < target else 0.0}, road, {"vmax_factor": 1.0})
+		if v.state == VehicleModel.State.DRIVING and v.speed > target:
+			v.speed = target
+		var dkm := Units.odometer_km_delta(v.speed, DT, ts)
+		km += dkm
+		st["km"] = km
+		var was := police.state
+		police.update(DT, km, v.speed)
+		t += DT
+		if police.state == PoliceSystem.State.CHASE and plan.is_city(km):
+			city_km += dkm
+		if was == PoliceSystem.State.CHASE and police.state != PoliceSystem.State.CHASE:
+			end = "escaped" if police.state == PoliceSystem.State.IDLE else "caught"
+			end_km = km
+			break
+	return {"flash_km": float(st["flash_km"]), "end": end, "end_km": end_km, "chase_s": police.chase_time,
+		"city_chase_km": city_km, "city_limits_km": plan.city_limits_km}
+
+
+## The radar zone closest to the City Limits in the real network (data/network.json, all non-dev stages in
+## both directions): {plan, radar, distance_km (zone start -> City Limits)} or {} without data.
+static func closest_radar_to_city(cfg: Dictionary) -> Dictionary:
+	var net: Variant = ConfigLoader.load_json("res://data/network.json")
+	var ctry: Variant = ConfigLoader.load_json("res://data/countries.json")
+	if not net is Dictionary or not ctry is Dictionary:
+		return {}
+	var countries: Dictionary = (ctry as Dictionary).get("countries", {})
+	var cities := {}
+	for c: Dictionary in (net as Dictionary).get("cities", []):
+		cities[str(c["id"])] = c
+	var best := {}
+	for st: Dictionary in (net as Dictionary).get("stages", []):
+		if bool(st.get("dev", false)):
+			continue
+		for from: String in [str(st["from"]), str(st["to"])]:
+			var plan := StagePlan.build(st, from, cities, countries, cfg)
+			for r: Dictionary in plan.radars:
+				var d := plan.city_limits_km - float(r["km"])
+				if best.is_empty() or d < float(best["distance_km"]) - 0.0001:
+					best = {"plan": plan, "radar": r, "distance_km": d}
+	return best
+
+
+## POL-1: police stop and refuelling must add up. Real FuelSystem + PoliceSystem + VehicleModel with the race
+## session's control priority (fuel before police) and PoliceSystem.set_blocked(fuel.holds_car()).
+## mode "refuel_first": flashed at 180 km/h, the player brakes into the fuel lane and refuels, the police catch
+##   the standing car during the refuel;
+## mode "caught_first": caught right before the fuel lane, the police stop brakes the car below 60 km/h inside
+##   the lane, so the refuel starts during the police stop;
+## mode "refuel_only": the same refuel without a chase (reference).
+## Returns standstill_s (first standstill until moving again), refuel_s (duration of the refuel), stop_s,
+## liters and events [[t, name], ...].
+static func police_refuel_run(cfg: Dictionary, mode: String, id: String = "limousine", fuel_l: float = 20.0) -> Dictionary:
+	var cruise := 180.0 if mode != "caught_first" else 160.0
+	var radar_km := 30.0
+	var station := 40.0
+	var lane_len := 1.5
+	if mode == "caught_first":
+		# where does the police catch a car cruising at 160 through the zone (same set-up as
+		# police_caught_cost)? The lane starts just before that point and the car stops inside it.
+		radar_km = 20.0
+		lane_len = 1.8
+		station = float(police_caught_cost(cfg, id, cruise).get("catch_km", 30.0)) + 1.6
+	var plan := Fx.make_plan(cfg, 300.0, [station], [] if mode == "refuel_only" else [{"km": radar_km, "limit": 120}], lane_len)
+	var police := PoliceSystem.new()
+	police.setup(cfg, plan)
+	var spec := VehicleModel.resolve_spec(cfg, id)
+	var fuel := FuelSystem.new()
+	fuel.setup(cfg, spec, plan)
+	fuel.fuel_l = fuel_l
+	var v := Fx.vehicle(cfg, id)
+	v.speed = cruise
+	var road := Fx.flat_road()
+	var ts := float(ConfigLoader.lookup(cfg, "time.time_scale", 12.0))
+	var km := radar_km - 1.0
+	var t := 0.0
+	var events: Array = []
+	var clock := {"t": 0.0}   # lambdas capture locals by value: share the time via a Dictionary
+	police.pull_over.connect(func() -> void: events.append([clock["t"], "pull_over"]))
+	police.caught.connect(func() -> void: events.append([clock["t"], "caught"]))
+	police.released.connect(func() -> void: events.append([clock["t"], "released"]))
+	fuel.refuel_started.connect(func() -> void: events.append([clock["t"], "refuel_started"]))
+	fuel.refuel_finished.connect(func(_l: float, _a: bool) -> void: events.append([clock["t"], "refuel_finished"]))
+	var lane_start := station - lane_len
+	var t_stand := -1.0
+	var t_go := -1.0
+	var refuel_s := 0.0
+	while t < 200.0:
+		# player: cruise, brake into the fuel lane (refuel modes), hands off while the car is held
+		var throttle := 1.0 if v.speed < cruise else 0.0
+		var brake := 0.0
+		if mode != "caught_first" and km > lane_start - 0.6 and km < station and fuel.liters_added <= 0.0:
+			throttle = 0.0
+			brake = 1.0 if v.speed > 45.0 else 0.0
+		if fuel.state != FuelSystem.State.NORMAL or not police.control_request().is_empty():
+			throttle = 0.0
+			brake = 0.0
+		var req := fuel.control_request()
+		if req.is_empty():
+			req = police.control_request()
+		if req.is_empty():
+			v.release_auto()
+		else:
+			v.auto_control(float(req["target_kmh"]), float(req["rate_kmh_s"]))
+		v.update(DT, {"throttle": throttle, "brake": brake}, road, {"vmax_factor": 1.0})
+		var dkm := Units.odometer_km_delta(v.speed, DT, ts)
+		km += dkm
+		var in_lane := not plan.fuel_lane_at(km).is_empty()
+		t += DT
+		clock["t"] = t
+		fuel.update(DT, km, dkm, v.speed, in_lane, throttle)
+		police.set_blocked(fuel.holds_car())
+		police.update(DT, km, v.speed)
+		if fuel.state == FuelSystem.State.REFUELING:
+			refuel_s = fuel.refuel_duration
+		if t_stand < 0.0 and v.speed <= 0.5:
+			t_stand = t
+		if t_stand >= 0.0 and t_go < 0.0 and v.speed > 0.5:
+			t_go = t
+			break
+	# the car stops inside the fixed part of the refuel: the refuel itself keeps it standing until it ends
+	var t_refuel_end := -1.0
+	for e: Array in events:
+		if str(e[1]) == "refuel_finished":
+			t_refuel_end = float(e[0])
+	var standstill := (t_go - t_stand) if t_go >= 0.0 else -1.0
+	var refuel_stand := maxf(0.0, t_refuel_end - t_stand) if t_refuel_end >= 0.0 else 0.0
+	return {"mode": mode, "standstill_s": standstill, "refuel_s": refuel_s, "refuel_stand_s": refuel_stand,
+		"police_extra_s": standstill - refuel_stand,
+		"stop_s": float(ConfigLoader.lookup(cfg, "police.stop_duration_s", 10.0)), "liters": fuel.liters_added,
+		"events": events, "stops": police.stops}
 
 
 # --- (c) refuel, (d) consumption -------------------------------------------------------------
@@ -268,6 +436,11 @@ static func traffic_run(cfg: Dictionary, track: Object, hour: float, player_kmh:
 	var cull_frac := float(ConfigLoader.lookup(cfg, "traffic.cull_visible_fraction", 0.85))
 	var flash_m := float(ConfigLoader.lookup(cfg, "traffic.chase_flash_cull_m", 250.0))
 	var braking_seen := 0
+	var min_cruise := INF
+	var max_cruise := -INF
+	var min_cruise_heavy := INF
+	var side_t := {}
+	var max_side := 0.0
 	while t < warmup + seconds:
 		var since := t - warmup
 		var chase := chase_all or (chase_at >= 0.0 and since >= chase_at)
@@ -310,6 +483,10 @@ static func traffic_run(cfg: Dictionary, track: Object, hour: float, player_kmh:
 					sum_vis += 1.0
 			if not seen.has(c.id):
 				seen[c.id] = true
+				min_cruise = minf(min_cruise, c.cruise_speed)
+				max_cruise = maxf(max_cruise, c.cruise_speed)
+				if c.heavy:
+					min_cruise_heavy = minf(min_cruise_heavy, c.cruise_speed)
 				sum_cruise_unique += c.cruise_speed
 				var r: Array = ConfigLoader.lookup(cfg, ("traffic.truck_speeds_kmh." if c.heavy else "traffic.speeds_kmh.") + str(track.road_type_at(c.z)), [100, 130])
 				sum_factor_unique += c.cruise_speed / lerpf(float(r[0]), float(r[1]), c.speed_frac)
@@ -333,6 +510,7 @@ static func traffic_run(cfg: Dictionary, track: Object, hour: float, player_kmh:
 			if absf(c.z - pz) < (c.length + 4.6) * 0.5 and absf(c.x - px) < (c.width + 1.85) * 0.5:
 				player_hits += 1
 		var cs := ts.cars
+		var side_now := {}
 		for i in cs.size():
 			for j in range(i + 1, cs.size()):
 				var a := cs[i]
@@ -343,6 +521,14 @@ static func traffic_run(cfg: Dictionary, track: Object, hour: float, player_kmh:
 						overlaps += 1
 					if absf(a.x - b.x) < 0.5:
 						min_gap = minf(min_gap, gap)
+				# rolling roadblock: two cars side by side in neighbouring lanes at (almost) the same speed
+				if a.lane != TrafficSystem.FUEL_LANE and b.lane != TrafficSystem.FUEL_LANE and absi(a.lane - b.lane) == 1 \
+						and absf(a.z - b.z) < (a.length + b.length) * 0.5 + 6.0 and absf(a.speed - b.speed) < 5.0:
+					var key := "%d:%d" % [mini(a.id, b.id), maxi(a.id, b.id)]
+					var st := float(side_t.get(key, 0.0)) + DT
+					side_now[key] = st
+					max_side = maxf(max_side, st)
+		side_t = side_now
 	var n_before := n - n_after if chase_at >= 0.0 else n
 	if chase_at >= 0.0:
 		n_before = int(minf(float(n), chase_at / DT))
@@ -354,7 +540,9 @@ static func traffic_run(cfg: Dictionary, track: Object, hour: float, player_kmh:
 		"overlaps": overlaps, "player_hits": player_hits, "min_gap": min_gap, "lane_changes": lane_changes,
 		"fuel_users": fuel_users.size(), "target": ts.target_count, "spawned": ts.spawned_total,
 		"pops_in": pops_in, "pops_out": pops_out, "hidden_culls": hidden_culls, "heavy_seen": heavy_ids.size(), "heavy_lane0_frames": heavy_lane0,
-		"heavy_right_share": float(heavy_right) / maxf(1.0, heavy_frames), "braking_frames": braking_seen, "system": ts}
+		"heavy_right_share": float(heavy_right) / maxf(1.0, heavy_frames), "braking_frames": braking_seen,
+		"min_cruise": min_cruise, "max_cruise": max_cruise, "min_cruise_heavy": min_cruise_heavy,
+		"max_side_by_side_s": max_side, "system": ts}
 
 
 ## Cars per visible km (all lanes) for the given hour: TrafficSystem.density_per_km_at on a plain autobahn.
@@ -418,8 +606,19 @@ static func table_police(cfg: Dictionary) -> String:
 		row.append("%.1f" % float(r160["chase_s"]))
 		row.append("%.1f + %.1f" % [float(r160["brake_s"]), float(r160["stand_s"])])
 		rows.append(row)
-	return Fx.table("(b) Von der Polizei erwischt – Zeitverlust ab dem Zugriff (Ziel 15–20 s, Referenz 160–180 km/h)",
+	var out := Fx.table("(b) Von der Polizei erwischt – Zeitverlust ab dem Zugriff (Ziel 15–20 s, Referenz 160–180 km/h)",
 		["Fahrzeug", "bei 140", "bei 160", "bei 180", "bei 200", "Verfolgung s (160)", "Bremsen + Stehen s"], rows)
+	var rows2: Array = []
+	for mode: String in ["refuel_only", "refuel_first", "caught_first"]:
+		var r := police_refuel_run(cfg, mode)
+		var names: Array = []
+		for e: Array in r["events"]:
+			names.append(str(e[1]))
+		rows2.append([mode, "%.1f" % float(r["standstill_s"]), "%.1f" % float(r["refuel_stand_s"]), "%.1f" % float(r["police_extra_s"]),
+			" > ".join(names)])
+	out += Fx.table("(b2) Erwischt an der Tankstelle (Limousine, ~42 L): Polizeistopp kommt zum Tanken hinzu",
+		["Fall", "Stand s", "davon Tanken s", "Polizei s", "Ablauf"], rows2)
+	return out
 
 
 static func table_refuel(cfg: Dictionary) -> String:
@@ -470,22 +669,42 @@ static func table_escape(cfg: Dictionary) -> String:
 	for id: String in Fx.VEHICLES:
 		var r := escape_run(cfg, id, 400.0, env.vmax_factor(2.0, "rain"), 140.0)
 		rows.append(["%s Vollgas ab 140, Regen+Nacht" % id, str(r["result"]), "%.1f" % float(r["chase_s"]), "%.0f" % float(r["min_gap_m"]), "%.1f" % float(r["avg"])])
-	return Fx.table("(e) Flucht: Tempo halten nach dem Blitzer (Limousine; Flucht ab Ø 220 km/h über 12 s)",
+	var hills2 := float((ConfigLoader.lookup(cfg, "road.hills_max_grade", [0.0, 0.025, 0.045, 0.07]) as Array)[2])
+	for id: String in Fx.VEHICLES:
+		var r := escape_run(cfg, id, 400.0, env.vmax_factor(2.0, "rain"), 140.0, hills2)
+		rows.append(["%s dito, %.1f %% bergauf" % [id, hills2 * 100.0], str(r["result"]), "%.1f" % float(r["chase_s"]), "%.0f" % float(r["min_gap_m"]), "%.1f" % float(r["avg"])])
+	var out := Fx.table("(e) Flucht: Tempo halten nach dem Blitzer (Limousine; Flucht ab Ø 220 km/h über 12 s)",
 		["Tempo", "Ergebnis", "nach s", "min. Abstand m", "Ø km/h"], rows)
+	var best := closest_radar_to_city(cfg)
+	if not best.is_empty():
+		var plan: StagePlan = best["plan"]
+		var rows2: Array = []
+		for hold: float in [190.0, 200.0, 210.0, 219.0]:
+			var r := chase_into_city_run(cfg, plan, "kompakt", hold, -1.0, best["radar"])
+			rows2.append(["%d" % int(hold), "%.1f" % float(r["flash_km"]), str(r["end"]), "%.1f" % float(r["end_km"]), "%.1f" % float(r["chase_s"]),
+				"%.1f" % float(r["city_chase_km"])])
+		out += Fx.table("(e2) Verfolgung in die City Limits: %s, Radar km %.0f–%.0f, City Limits ab km %.0f (Kompakt hält das Tempo)" % [
+			plan.display_name, float(best["radar"]["km"]), float(best["radar"]["end_km"]), plan.city_limits_km],
+			["Tempo", "geblitzt km", "Ende", "bei km", "Verfolgung s", "km in den City Limits"], rows2)
+	return out
 
 
 static func table_rain_night(cfg: Dictionary) -> String:
 	var env := EnvironmentModel.new()
 	env.setup(cfg)
 	var rows: Array = []
+	var maxes: Array = ConfigLoader.lookup(cfg, "road.hills_max_grade", [0.0, 0.025, 0.045, 0.07])
 	for id: String in Fx.VEHICLES:
 		var rn := accel_run(cfg, id, env.vmax_factor(2.0, "rain"))
 		var sn := accel_run(cfg, id, env.vmax_factor(2.0, "snow"))
 		var sd := accel_run(cfg, id, env.vmax_factor(12.0, "snow"))
+		var v := Fx.vehicle(cfg, id)
 		rows.append([id, "%d" % int(rn["vmax"]), "%.1f" % float(rn["top"]), "%.1f" % float(rn["t220"]),
-			"%.1f" % float(sd["top"]), "%.1f" % float(sn["top"])])
-	return Fx.table("(f) Höchstgeschwindigkeit bei Regen in der Nacht (Ziel >= 220 km/h) und Schnee",
-		["Fahrzeug", "vmax", "Regen+Nacht km/h", "0-220 s", "Schnee Tag", "Schnee+Nacht"], rows)
+			"%.1f" % v.max_speed(float(maxes[2]), env.vmax_factor(2.0, "rain")), "%.1f" % v.max_speed(float(maxes[3]), 1.0),
+			"%.1f" % v.max_speed(float(maxes[3]), env.vmax_factor(2.0, "rain")), "%.1f" % float(sd["top"]), "%.1f" % float(sn["top"])])
+	return Fx.table("(f) Höchstgeschwindigkeit bei Regen in der Nacht (Ziel >= 220 km/h, auch an Steigungen bis Hügelstufe 2 = %.1f %%), Hügelstufe 3 (%.0f %%) und Schnee" % [
+		float(maxes[2]) * 100.0, float(maxes[3]) * 100.0],
+		["Fahrzeug", "vmax", "Regen+Nacht km/h", "0-220 s", "R+N 4,5 %", "trocken 7 %", "R+N 7 %", "Schnee Tag", "Schnee+Nacht"], rows)
 
 
 static func table_traffic(cfg: Dictionary) -> String:
@@ -529,5 +748,14 @@ static func table_traffic(cfg: Dictionary) -> String:
 	rows.append(["sim: Auftauchen/Verschwinden im Bild", "%d" % pops, "muss 0 sein"])
 	rows.append(["sim: Spieler steht auf der Fahrbahn (17:30)", "%d Treffer" % int(stopped["player_hits"]), "%d Autos ausgewichen/gebremst" % int(stopped["unique_cars"])])
 	rows.append(["sim: Spurwechsel in 60 s (12:00)", "%d" % int(day["lane_changes"]), ""])
+	var lkw := traffic_run(cfg, FakeTrack.new(60000.0, "autobahn", 3), 12.0, 160.0, 60.0)
+	var r_trucks: Array = ConfigLoader.lookup(cfg, "traffic.truck_speeds_kmh.autobahn", [110, 120])
+	rows.append(["sim: Wunschtempo Autobahn 12:00 min (Lkw min)", "%.1f (%.1f) km/h" % [float(lkw["min_cruise"]), float(lkw["min_cruise_heavy"])],
+		"Lkw/Busse %d–%d km/h, im Design-Bereich 110–150" % [int(r_trucks[0]), int(r_trucks[1])]])
+	var land := traffic_run(cfg, FakeTrack.new(60000.0, "landstrasse", 2), 17.0, 90.0, 120.0, {"seed": 7})
+	var no_yield := ConfigLoader.deep_merge(cfg, {"traffic": {"yield_slowdown_kmh": 0.0, "pass_boost_kmh": 0.0}})
+	var land0 := traffic_run(no_yield, FakeTrack.new(60000.0, "landstrasse", 2), 17.0, 90.0, 120.0, {"seed": 7})
+	rows.append(["sim: Landstraße 17:00, Spieler 90 km/h, 120 s", "%.1f s (ohne Regel %.1f s)" % [float(land["max_side_by_side_s"]), float(land0["max_side_by_side_s"])],
+		"längstes Nebeneinander zweier gleich schneller Autos (rollende Sperre)"])
 	return Fx.table("(g) Verkehr: Tageskurve, Nacht +15 %, Verfolgung -80 %, City Limits x2,5",
 		["Größe", "Wert", "Bemerkung"], rows)

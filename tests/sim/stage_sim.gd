@@ -225,10 +225,11 @@ func _run() -> void:
 			var hit := traffic.find_collision({"z": pos_z, "x": vehicle.x, "length": vehicle.length_m, "width": vehicle.width_m}, cam_z, _visible)
 			if hit != null:
 				var e := track.road_edges_at(pos_z)
-				var space := traffic.space_beside(pos_z, vehicle.x, vehicle.length_m * 0.5, e.x - track.shoulder_w, e.y + track.shoulder_w)
+				var space := traffic.space_beside(pos_z, vehicle.x, vehicle.length_m * 0.5, e.x - track.shoulder_w, e.y + track.shoulder_w, hit)
 				vehicle.start_crash(hit.x, space.x, space.y)
 		var in_lane := track.fuel_lane_at(pos_z) and vehicle.x > track.main_right_edge(pos_z)
 		fuel.update(DT, pos_km, dkm, vehicle.speed, in_lane, float(input.get("throttle", 0.0)))
+		police.set_blocked(fuel.holds_car())   # a police stop is served after refuelling/towing
 		police.update(DT, pos_km, vehicle.speed)
 		var pen := fuel.take_penalty()
 		if pen > 0.0:

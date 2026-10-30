@@ -180,9 +180,10 @@ func test_empty_tank_tow() -> void:
 	var plan := Fx.make_plan(c, 200.0)
 	var f := _fuel(c, plan)
 	f.fuel_l = 0.01
-	var log := {"dry": 0, "tow": -1.0}
+	var log := {"dry": 0, "tow": -1.0, "started": 0}
 	f.ran_dry.connect(func() -> void: log["dry"] = int(log["dry"]) + 1)
 	f.tow_finished.connect(func(p: float) -> void: log["tow"] = p)
+	f.tow_started.connect(func() -> void: log["started"] = int(log["started"]) + 1)
 	var v := Fx.vehicle(c, "limousine")
 	v.speed = 150.0
 	var km := 30.0
@@ -202,9 +203,11 @@ func test_empty_tank_tow() -> void:
 		if f.state == FuelSystem.State.TOWING:
 			towing_seen += DT
 			assert_true(v.speed <= 0.5, "Abschleppen erst im Stand")
+			assert_true(f.holds_car(), "hält den Wagen")
 		if float(log["tow"]) >= 0.0:
 			break
 	assert_eq(int(log["dry"]), 1, "ran_dry einmal")
+	assert_eq(int(log["started"]), 1, "tow_started einmal (echtes Abschleppen)")
 	assert_near(towing_seen, float(ConfigLoader.lookup(c, "fuel.tow_overlay_s", 4.0)), 0.05, "Einblendung tow_overlay_s")
 	var penalty := float(ConfigLoader.lookup(c, "fuel.tow_penalty_s", 90.0))
 	assert_eq(float(log["tow"]), penalty, "tow_finished(Strafe)")
@@ -225,6 +228,63 @@ func test_empty_tank_can_still_roll_into_the_fuel_lane() -> void:
 	f.update(DT, 58.7, 0.001, 45.0, true, 0.0)
 	assert_eq(f.state, FuelSystem.State.REFUELING, "rollt in die Tankspur und tankt")
 	assert_false(f.rolling_out, "kein Abschleppen")
+
+
+## FUEL-4: a car that rolled into the fuel lane with an empty tank refuels; a gas press while (almost) nothing
+## is in the tank does not abort ("Weiterfahren" is impossible) and never calls the tow service at the pump.
+## Once fuel.abort_min_fuel_l is in, a fresh press aborts as usual and the car drives on with that fuel.
+func test_empty_tank_refuel_is_not_aborted_into_a_tow() -> void:
+	var c := cfg()
+	var plan := Fx.make_plan(c, 200.0, [60.0], [], 1.5)
+	var f := _fuel(c, plan)
+	f.fuel_l = 0.0
+	var log := {"dry": 0, "tow": 0, "finished": []}
+	f.ran_dry.connect(func() -> void: log["dry"] = int(log["dry"]) + 1)
+	f.tow_started.connect(func() -> void: log["tow"] = int(log["tow"]) + 1)
+	f.refuel_finished.connect(func(l: float, a: bool) -> void: log["finished"] = [l, a])
+	var v := Fx.vehicle(c, "limousine")
+	v.speed = 30.0
+	var km := 58.8
+	var t := 0.0
+	var min_abort := float(ConfigLoader.lookup(c, "fuel.abort_min_fuel_l", 1.0))
+	# fresh presses (0.3 s each): two in the fixed part (tank empty), one while the first litre flows (5.2 s:
+	# ~0.4 L), one with ~2 L in the tank (5.9 s)
+	var press_at := [2.0, 4.0, 5.2, 5.9]
+	var aborted_at := -1.0
+	while t < 12.0:
+		var throttle := 0.0
+		for p: float in press_at:
+			if t >= p and t < p + 0.3:
+				throttle = 1.0
+		if f.state == FuelSystem.State.REFUELING and throttle > 0.0 and f.fuel_l < min_abort:
+			assert_false(f.can_abort_refuel(), "t=%.2f: mit %.2f L kein Abbruch möglich" % [t, f.fuel_l])
+		var req := f.control_request()
+		if req.is_empty():
+			v.release_auto()
+		else:
+			v.auto_control(float(req["target_kmh"]), float(req["rate_kmh_s"]))
+		v.update(DT, {"throttle": throttle}, Fx.flat_road(), {"vmax_factor": 1.0})
+		var dkm := Units.visual_m_to_km(v.speed / 3.6 * DT, 12.0)
+		km += dkm
+		var before := f.state
+		f.update(DT, km, dkm, v.speed, true, throttle)
+		t += DT
+		if before == FuelSystem.State.REFUELING and f.state != FuelSystem.State.REFUELING and aborted_at < 0.0:
+			aborted_at = t
+			break
+		assert_true(f.state != FuelSystem.State.TOWING, "t=%.2f: kein Abschleppen an der Zapfsäule" % t)
+	assert_eq(int(log["dry"]), 1, "ran_dry genau einmal")
+	assert_eq(int(log["tow"]), 0, "kein Abschleppdienst")
+	assert_true(aborted_at >= 5.88 and aborted_at < 6.0, "erst der Gasstoß mit Sprit im Tank bricht ab (t=%.2f)" % aborted_at)
+	assert_true(bool(log["finished"][1]), "abgebrochen")
+	assert_true(f.fuel_l >= min_abort, "fährt mit %.2f L weiter" % f.fuel_l)
+	assert_false(f.rolling_out, "nicht mehr leer")
+	assert_eq(f.take_penalty(), 0.0, "keine Zeitstrafe")
+	# the lane lock after an abort never strands an EMPTY car in the lane: it refuels again
+	f.fuel_l = 0.0
+	f.update(DT, km, 0.0, 0.0, true, 0.0)
+	assert_eq(f.state, FuelSystem.State.REFUELING, "leer in der Tankspur: tankt wieder, statt abgeschleppt zu werden")
+	assert_true(f.holds_car(), "hält den Wagen (Polizei wartet)")
 
 
 func test_reserve_signal() -> void:

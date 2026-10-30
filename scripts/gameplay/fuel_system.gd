@@ -13,10 +13,13 @@ extends RefCounted
 ##    stops (control_request), duration = refuel_fixed_s + refuel_s_per_5l per 5 litres needed (empty
 ##    50 L tank: 5 + 20 = 25 s); the litres flow after the fixed part. HUD: "Volltanken?" /
 ##    "Gas = Weiterfahren" while state == REFUELING. A FRESH throttle press (not a held pedal) aborts and
-##    keeps the litres pumped so far. Faster than 60 the car simply drives through the lane.
-##  * empty tank: the car rolls to a stop (control_request; it can still roll into a fuel lane and refuel),
-##    then the tow service: TOWING for fuel.tow_overlay_s seconds, time penalty fuel.tow_penalty_s
-##    (take_penalty()), tank refilled to fuel.tow_refill_fraction
+##    keeps the litres pumped so far – but only once the tank holds fuel.abort_min_fuel_l (can_abort_refuel()):
+##    with a (nearly) empty tank driving on is impossible, so gas is ignored until that much is in.
+##    Faster than 60 the car simply drives through the lane.
+##  * empty tank: the car rolls to a stop (control_request; it can still roll into a fuel lane and refuel –
+##    an empty car standing in a fuel lane always refuels, it is never towed there), then the tow service:
+##    TOWING for fuel.tow_overlay_s seconds, time penalty fuel.tow_penalty_s (take_penalty()), tank refilled
+##    to fuel.tow_refill_fraction. ran_dry fires once per empty tank, tow_started when the tow really comes
 
 enum State { NORMAL, REFUELING, TOWING }
 
@@ -27,6 +30,10 @@ signal ran_dry
 signal tow_finished(penalty_s: float)
 ## Addition: fuel dropped below fuel.reserve_warning_l (once until refuelled).
 signal reserve_reached
+## Addition: the empty car has come to a stop outside a fuel lane and the tow service comes (state TOWING).
+## Unlike ran_dry (tank empty, the car may still roll into a fuel lane) this is a real tow; tow_finished
+## follows after fuel.tow_overlay_s.
+signal tow_started
 
 var cfg: Dictionary = {}
 var plan: StagePlan
@@ -53,6 +60,7 @@ var _announced: Dictionary = {}
 var _throttle_prev := 0.0
 var _abort_armed := false
 var _lane_lock := false
+var _dry_reported := false
 var _fuel_at_start := 0.0
 var _station_km := -1.0
 # cached configuration
@@ -72,6 +80,7 @@ var _tow_overlay := 4.0
 var _press := 0.5
 var _release := 0.15
 var _announce_window := 1.5
+var _abort_min := 1.0
 
 
 func setup(config: Dictionary, vehicle_spec: Dictionary, stage_plan: StagePlan) -> void:
@@ -102,6 +111,7 @@ func setup(config: Dictionary, vehicle_spec: Dictionary, stage_plan: StagePlan) 
 	_throttle_prev = 0.0
 	_abort_armed = false
 	_lane_lock = false
+	_dry_reported = false
 	_station_km = -1.0
 
 
@@ -130,6 +140,7 @@ func _read_config() -> void:
 	_press = _f("fuel.abort_press_threshold", 0.5)
 	_release = _f("fuel.abort_release_threshold", 0.15)
 	_announce_window = _f("fuel.announce_window_km", 1.5)
+	_abort_min = maxf(0.0, _f("fuel.abort_min_fuel_l", 1.0))
 
 
 static func base_consumption(config: Dictionary, speed_kmh: float) -> float:
@@ -165,15 +176,21 @@ func update(dt: float, pos_km: float, delta_km: float, speed_kmh: float, in_fuel
 		State.NORMAL:
 			_consume(delta_km, speed_kmh)
 			_announce_stations(pos_km)
-			if fuel_l <= 0.0 and not rolling_out:
+			if fuel_l <= 0.0:
 				rolling_out = true
-				ran_dry.emit()
-			if in_fuel_lane and speed_kmh < _trigger and not _lane_lock and tank_l - fuel_l >= _min_refuel and _lane_valid(pos_km):
+				if not _dry_reported:
+					_dry_reported = true
+					ran_dry.emit()
+			# an empty car in the lane always refuels (the lane lock after a refuel only stops a car with
+			# fuel from being caught again while it pulls away) – it is never towed away from the pumps
+			var locked := _lane_lock and fuel_l > 0.0
+			if in_fuel_lane and speed_kmh < _trigger and not locked and tank_l - fuel_l >= _min_refuel and _lane_valid(pos_km):
 				_start_refuel(pos_km, throttle)
 			elif rolling_out and speed_kmh <= 0.5:
 				rolling_out = false
 				state = State.TOWING
 				tow_time_left = _tow_overlay
+				tow_started.emit()
 		State.REFUELING:
 			_update_refuel(dt, throttle)
 		State.TOWING:
@@ -185,6 +202,8 @@ func update(dt: float, pos_km: float, delta_km: float, speed_kmh: float, in_fuel
 				state = State.NORMAL
 				_check_reserve()
 				tow_finished.emit(_tow_penalty)
+	if fuel_l > 0.0:
+		_dry_reported = false   # the next empty tank is reported again
 	_throttle_prev = throttle
 
 
@@ -252,10 +271,11 @@ func _start_refuel(pos_km: float, throttle: float) -> void:
 
 
 func _update_refuel(dt: float, throttle: float) -> void:
-	# abort only with a fresh press: the pedal must have been released since the refuel started
+	# abort only with a fresh press: the pedal must have been released since the refuel started.
+	# With (almost) nothing in the tank the press is ignored – "Weiterfahren" is impossible then.
 	if throttle <= _release:
 		_abort_armed = true
-	elif _abort_armed and throttle >= _press and _throttle_prev < _press:
+	elif _abort_armed and throttle >= _press and _throttle_prev < _press and can_abort_refuel():
 		_finish_refuel(true)
 		return
 	refuel_elapsed += dt
@@ -280,6 +300,19 @@ func _finish_refuel(aborted: bool) -> void:
 	_lane_lock = true
 	_check_reserve()
 	refuel_finished.emit(liters_added, aborted)
+
+
+## Addition: a fresh throttle press would abort the running refuel ("Gas = Weiterfahren"): false while the
+## tank holds less than fuel.abort_min_fuel_l (HUD: show "Tank leer – bitte warten" instead) or when no
+## refuel is running.
+func can_abort_refuel() -> bool:
+	return state == State.REFUELING and fuel_l >= _abort_min
+
+
+## Addition: the fuel system holds the car at a standstill (refuelling or towing). The race session passes
+## it to PoliceSystem.set_blocked() so that a police stop is served after the refuel/tow, not during it.
+func holds_car() -> bool:
+	return state == State.REFUELING or state == State.TOWING
 
 
 ## Scripted control wanted by the fuel system: {} or {"target_kmh": float, "rate_kmh_s": float}.

@@ -9,7 +9,10 @@ extends RefCounted
 ##  * acceleration curve dv/dt = a0 * (1 - v/vmax)^(1-q); a0 and q are fitted per vehicle so that the
 ##    0–100 / 0–200 km/h times of its accel rating are met; integrated analytically (frame-rate independent),
 ##    vmax is reached in finite time (q > 0)
-##  * max speed = vmax_kmh * env.vmax_factor (weather/night) * grade factor (only uphill lowers it)
+##  * max speed = vmax_kmh * env.vmax_factor (weather/night) * grade factor. Only climbs steeper than
+##    driving.grade_free_percent lower it (driving.grade_vmax_loss_per_percent per % above that), so that
+##    the slowest car (230) still reaches the 220 km/h police escape speed in "slightly worse conditions"
+##    (rain + night on normal hilly roads up to hills level 2, i.e. <= 4.5 %); downhill never raises it
 ##  * steering: lateral speed from the agility rating, ramps up with speed, smoothed response
 ##  * no oversteer, no spin: too fast in a curve -> understeer: pushed outwards proportional to the
 ##    overshoot of the safe curve speed, and steering gets weaker. Below the safe speed: no drift at all
@@ -67,6 +70,7 @@ var _us_loss := 1.6
 var _us_min := 0.25
 var _us_full := 0.4
 var _grade_loss := 0.012
+var _grade_free := 4.0
 var _grade_min := 0.5
 var _sh_max := 90.0
 var _sh_decel := 35.0
@@ -155,6 +159,7 @@ func _read_config() -> void:
 	_us_min = _f("driving.understeer.min_steer_factor", 0.25)
 	_us_full = maxf(0.01, _f("driving.understeer.full_excess", 0.4))
 	_grade_loss = _f("driving.grade_vmax_loss_per_percent", 0.012)
+	_grade_free = maxf(0.0, _f("driving.grade_free_percent", 4.0))
 	_grade_min = _f("driving.grade_min_factor", 0.5)
 	_sh_max = _f("driving.shoulder.max_speed_kmh", 90.0)
 	_sh_decel = _f("driving.shoulder.decel_kmh_s", 35.0)
@@ -494,7 +499,9 @@ func safe_curve_speed(curve: float, grip: float = 1.0) -> float:
 	return sqrt(maxf(0.0, _lat_grip * grip * radius)) * 3.6
 
 
-## Max speed for the current grade (rise/run) and weather/night factor. Downhill does not raise it.
+## Max speed for the current grade (rise/run) and weather/night factor. Climbs up to
+## driving.grade_free_percent cost nothing, every % above it driving.grade_vmax_loss_per_percent
+## (floor driving.grade_min_factor). Downhill does not raise it.
 func max_speed(grade: float, vmax_factor: float) -> float:
-	var loss := maxf(0.0, grade * 100.0) * _grade_loss
+	var loss := maxf(0.0, grade * 100.0 - _grade_free) * _grade_loss
 	return _vmax * vmax_factor * maxf(_grade_min, 1.0 - loss)
