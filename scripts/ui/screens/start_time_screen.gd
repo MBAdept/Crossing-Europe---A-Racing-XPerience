@@ -42,6 +42,7 @@ func build() -> void:
 	note.custom_minimum_size = Vector2(500, 0)
 	left.add_child(note)
 	var arrows := _ClockArrows.new()
+	arrows.clicked.connect(_step)
 	UiKit.place(self, arrows, Rect2(56, 150, 560, 160))
 	_preview = SkyPreview.new()
 	UiKit.place(self, _preview, Rect2(640, 112, 584, 452))
@@ -63,10 +64,14 @@ func _input(event: InputEvent) -> void:
 	elif event.is_action_pressed("ui_down", true):
 		d = -2
 	if d != 0:
-		_index = posmod(_index + d, _steps.size())
-		UiKit.sound("ui_move")
-		_update()
+		_step(d)
 		get_viewport().set_input_as_handled()
+
+
+func _step(d: int) -> void:
+	_index = posmod(_index + d, _steps.size())
+	UiKit.sound("ui_move")
+	_update()
 
 
 func _update() -> void:
@@ -88,8 +93,18 @@ class _DaytimeIcon extends Control:
 
 
 class _ClockArrows extends Control:
+	signal clicked(dir: int)
+
 	func _init() -> void:
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		mouse_filter = Control.MOUSE_FILTER_PASS
+
+	func _gui_input(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.pressed and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
+			var x := (event as InputEventMouseButton).position.x
+			if x < 80.0:
+				clicked.emit(-1)
+			elif x > size.x - 80.0:
+				clicked.emit(1)
 
 	func _process(_d: float) -> void:
 		queue_redraw()

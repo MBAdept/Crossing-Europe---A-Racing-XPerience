@@ -49,6 +49,9 @@ func _ready() -> void:
 		b.custom_minimum_size = Vector2(400, 52)
 		var sig: Signal = pair[1]
 		b.pressed.connect(func() -> void: sig.emit())
+		b.focus_entered.connect(func() -> void:
+			if Time.get_ticks_msec() - _opened_at > 120:
+				UiKit.sound("ui_move"))
 		box.add_child(b)
 		_buttons.append(b)
 	var hint := KeyHints.new([[["Enter", "pad:A"], tr("Auswählen")], [["Esc", "pad:B"], tr("Weiterfahren")]])

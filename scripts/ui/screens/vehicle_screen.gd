@@ -35,6 +35,7 @@ func build() -> void:
 	_class = UiKit.label("", UiTheme.F.BODY_MEDIUM, 21, UiTheme.TEXT_DIM, HORIZONTAL_ALIGNMENT_CENTER)
 	UiKit.place(self, _class, Rect2(48, 572, 660, 30))
 	var arrows := _Arrows.new()
+	arrows.clicked.connect(_switch)
 	UiKit.place(self, arrows, Rect2(48, 112, 660, 480))
 	_dots = _Dots.new()
 	(_dots as _Dots).screen = self
@@ -121,10 +122,6 @@ func _cons_name(c: String) -> String:
 	return tr("mittel")
 
 
-func _click(dir: int) -> void:
-	_switch(dir)
-
-
 class _StatBars extends Control:
 	var rows: Array = []
 
@@ -146,8 +143,18 @@ class _StatBars extends Control:
 
 
 class _Arrows extends Control:
+	signal clicked(dir: int)
+
 	func _init() -> void:
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		mouse_filter = Control.MOUSE_FILTER_PASS
+
+	func _gui_input(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.pressed and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
+			var x := (event as InputEventMouseButton).position.x
+			if x < 90.0:
+				clicked.emit(-1)
+			elif x > size.x - 90.0:
+				clicked.emit(1)
 
 	func _draw() -> void:
 		var cy := size.y * 0.42

@@ -154,3 +154,9 @@ func test_route_enumeration() -> void:
 	var with_wp := {"id": "kn", "start": "kiel", "finish": "nuernberg", "waypoints": ["frankfurt"]}
 	assert_eq(RaceState.enumerate_routes(with_wp, fn).size(), 3, "nur Routen über Frankfurt (H-F-N, H-K-F-N, H-F-K-N)")
 	assert_eq(RaceState.enumerate_routes(race, fn, 2).size(), 2, "Begrenzung max_routes")
+	var slow := func(rid: String, city: String, wp: int, visited: Array) -> Array:
+		OS.delay_msec(4)
+		return fn.call(rid, city, wp, visited)
+	var t0 := Time.get_ticks_msec()
+	RaceState.enumerate_routes(race, slow, 64, 60, 3000, 10.0)
+	assert_true(Time.get_ticks_msec() - t0 < 60, "Zeitbudget wird eingehalten")

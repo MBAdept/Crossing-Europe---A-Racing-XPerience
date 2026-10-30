@@ -333,7 +333,7 @@ func _draw_progress(w: float) -> void:
 	# player marker
 	draw_colored_polygon(PackedVector2Array([Vector2(px - 7, y - 13), Vector2(px + 7, y - 13), Vector2(px, y - 3)]), Color.WHITE)
 	draw_circle(Vector2(px, y), 4.5, UiTheme.ACCENT_2)
-	var left := tr("km %s") % UiFormat.decimal(km, 1)
+	var left := tr("km %s / %s") % [UiFormat.decimal(km, 1), UiFormat.decimal(length, 0)]
 	var right := tr("noch %s") % UiFormat.km(maxf(0.0, length - km), 0)
 	_text(Vector2(x0, y + 30), left, _f_mono, 17, UiTheme.TEXT)
 	_text(Vector2(x0, y + 30), right, _f_mono, 17, UiTheme.TEXT_DIM, HORIZONTAL_ALIGNMENT_RIGHT, bw)

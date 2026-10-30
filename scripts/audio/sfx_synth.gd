@@ -53,7 +53,14 @@ static func _buf(seconds: float) -> PackedFloat32Array:
 	return b
 
 
+## Removes the DC offset and scales to the given peak.
 static func normalize(b: PackedFloat32Array, peak: float = 0.9) -> PackedFloat32Array:
+	var mean := 0.0
+	for v in b:
+		mean += v
+	mean /= maxf(b.size(), 1.0)
+	for i in b.size():
+		b[i] -= mean
 	var m := 0.0001
 	for v in b:
 		m = maxf(m, absf(v))
@@ -108,7 +115,8 @@ static func engine_loop(on_load: bool, cycles: int = 64) -> PackedFloat32Array:
 			else:
 				s += 0.04 * env * rng.randf_range(-1.0, 1.0)
 			b[k * ENGINE_PERIOD + i] = s * amp
-	lowpass_loop(b, 2600.0 if on_load else 1300.0)
+	lowpass_loop(b, 2200.0 if on_load else 1300.0)
+	lowpass_loop(b, 3200.0 if on_load else 2000.0)
 	return normalize(b, 0.85)
 
 
@@ -223,21 +231,25 @@ static func crash() -> PackedFloat32Array:
 	return normalize(b, 0.95)
 
 
-## Radar flash: shutter click + charging flash whine.
+## Radar flash: shutter click, warning beep and the charging whine of the flash unit.
 static func radar_flash() -> PackedFloat32Array:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 6
-	var b := _buf(0.5)
+	var b := _buf(0.55)
 	var ph := 0.0
 	for i in b.size():
 		var t := float(i) / RATE
 		var click := 0.0
 		if t < 0.006 or (t > 0.07 and t < 0.078):
 			click = rng.randf_range(-1.0, 1.0)
-		var f := lerpf(1800.0, 4600.0, minf(t / 0.35, 1.0))
+		var beep_v := 0.0
+		if t > 0.1 and t < 0.28:
+			var tb := t - 0.1
+			beep_v = _tone(1480.0, tb) * minf(1.0, tb / 0.004) * minf(1.0, (0.18 - tb) / 0.02) * 0.45
+		var f := lerpf(1800.0, 4600.0, minf(t / 0.45, 1.0))
 		ph += TAU * f / RATE
-		var whine := 0.3 * sin(ph) * _env_ad(t, 0.02, 0.18)
-		b[i] = click * 0.9 + whine
+		var whine := 0.22 * sin(ph) * _env_ad(t, 0.03, 0.2)
+		b[i] = click * 0.9 + beep_v + whine
 	return normalize(b, 0.85)
 
 

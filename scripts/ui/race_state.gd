@@ -258,17 +258,21 @@ static func choose_weather(config: Dictionary, climate: String, weather_hint: St
 
 ## Enumerates complete routes from the race start to the finish. options_fn is
 ## Callable(race_id, current_city, waypoint_index, visited) -> Array of legs (GameData.next_options).
-## Each route is an Array of legs. Bounded by max_routes / max_depth / max_calls (big tours).
-static func enumerate_routes(race: Dictionary, options_fn: Callable, max_routes: int = 64, max_depth: int = 60, max_calls: int = 3000) -> Array:
+## Each route is an Array of legs. Bounded by max_routes / max_depth / max_calls and – if max_ms > 0 –
+## a time budget in milliseconds (big tours with expensive routing must not stall the menu).
+static func enumerate_routes(race: Dictionary, options_fn: Callable, max_routes: int = 64, max_depth: int = 60, max_calls: int = 3000, max_ms: float = 0.0) -> Array:
 	var probe := RaceState.create(race, "", 8.0, 0)
 	var out: Array = []
-	var budget := [max_calls]
+	var deadline := Time.get_ticks_usec() + int(max_ms * 1000.0) if max_ms > 0.0 else 0
+	var budget := [max_calls, deadline]
 	_dfs(probe.race_id, probe.finish_city, probe.waypoints, probe.current_city, probe.waypoint_index, probe.route.duplicate(), [], options_fn, out, max_routes, max_depth, budget)
 	return out
 
 
 static func _dfs(race_id: String, finish: String, wps: Array[String], city: String, wp_index: int, visited: Array, path: Array, options_fn: Callable, out: Array, max_routes: int, max_depth: int, budget: Array) -> void:
 	if out.size() >= max_routes or int(budget[0]) <= 0:
+		return
+	if int(budget[1]) > 0 and Time.get_ticks_usec() > int(budget[1]):
 		return
 	if wp_index >= wps.size() and city == finish and not path.is_empty():
 		out.append(path.duplicate())

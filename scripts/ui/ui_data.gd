@@ -12,6 +12,8 @@ static var sample := false
 static var _net: Dictionary = {}           ## sample network (cities, stages, ferries, races, countries)
 static var _boards: Dictionary = {}        ## sample leaderboards: key -> Array[Dictionary]
 static var _route_cache: Dictionary = {}
+static var _map_override: Dictionary = {}
+static var _plan_cache: Dictionary = {}
 
 
 static func _node(n: String) -> Node:
@@ -33,6 +35,7 @@ static func enable_sample(net: Dictionary) -> void:
 	sample = true
 	_net = net
 	_route_cache.clear()
+	_plan_cache.clear()
 
 
 # --- network ---------------------------------------------------------------------------------
@@ -71,7 +74,14 @@ static func countries() -> Dictionary:
 	return _gd_dict("countries")
 
 
+## Map polygons (GameData.map_data). Debug: CLI --map-file=<path> loads another map file of the
+## same format (ARCHITECTURE.md §4.5), e.g. to test the polygon rendering before the real map exists.
 static func map_data() -> Dictionary:
+	if CliArgs.has("map-file"):
+		if _map_override.is_empty():
+			var d: Variant = ConfigLoader.load_json(CliArgs.get_string("map-file"))
+			_map_override = d if d is Dictionary else {"countries": []}
+		return _map_override
 	var gd := _node("GameData")
 	if gd == null:
 		return {}
@@ -128,16 +138,21 @@ static func visible_stage_ids() -> Array[String]:
 	return out
 
 
-## Stage resolved for a direction (StagePlan) – null if unknown.
+## Stage resolved for a direction (StagePlan, cached per session) – null if unknown.
 static func stage_plan(stage_id: String, from_city: String) -> StagePlan:
+	var key := "%s|%s|%s" % [stage_id, from_city, use_sample_network()]
+	if _plan_cache.has(key):
+		return _plan_cache[key]
+	var plan: StagePlan = null
 	if use_sample_network():
-		if not stages().has(stage_id):
-			return null
-		return StagePlan.build(stages()[stage_id], from_city, cities(), countries(), cfg())
-	var gd := _node("GameData")
-	if gd == null or not gd.get("stages").has(stage_id):
-		return null
-	return gd.call("get_stage_plan", stage_id, from_city)
+		if stages().has(stage_id):
+			plan = StagePlan.build(stages()[stage_id], from_city, cities(), countries(), cfg())
+	else:
+		var gd := _node("GameData")
+		if gd != null and gd.get("stages").has(stage_id):
+			plan = gd.call("get_stage_plan", stage_id, from_city)
+	_plan_cache[key] = plan
+	return plan
 
 
 static func stage_board_key(stage_id: String, from_city: String) -> String:
@@ -198,7 +213,7 @@ static func race_routes(race_id: String) -> Array:
 	if routes.is_empty():
 		var opt_fn := func(rid: String, city: String, wp: int, visited: Array) -> Array:
 			return next_options(rid, city, wp, visited)
-		routes = RaceState.enumerate_routes(race(race_id), opt_fn, 48, 60, 1500)
+		routes = RaceState.enumerate_routes(race(race_id), opt_fn, 48, 80, 1500, 160.0)
 	_route_cache[race_id] = routes
 	return routes
 

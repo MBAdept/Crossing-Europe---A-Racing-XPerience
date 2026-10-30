@@ -152,7 +152,9 @@ func _build_sounds() -> void:
 
 
 func _generate_music() -> void:
+	var t0 := Time.get_ticks_msec()
 	_music_samples = SfxSynth.music_loop()
+	print("AudioManager: Menümusik erzeugt in %d ms" % (Time.get_ticks_msec() - t0))
 	_on_music_ready.call_deferred()
 
 
