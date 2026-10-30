@@ -13,8 +13,8 @@ Nachtankzwang, Radarfallen und Polizei, Tageszeit und Wetter. Vorbilder: *Enduro
 
 ## Spielen
 
-Linux (x86_64): `CrossingEurope.x86_64` aus den GitHub-Releases herunterladen, ausführbar machen und starten – eine
-einzige Datei, keine Installation nötig (OpenGL 3.3). Am besten mit dem Rennen Kiel – Nürnberg beginnen: Die erste
+Linux (x86_64): `CrossingEurope.x86_64` ausführbar machen und starten – eine einzige Datei, keine Installation nötig
+(OpenGL 3.3). Selbst bauen: `tools/build_linux.sh` (Godot 4.7.2 mit Export-Templates). Am besten mit dem Rennen Kiel – Nürnberg beginnen: Die erste
 Etappe Kiel – Hamburg ist das Tutorial.
 
 ```bash
