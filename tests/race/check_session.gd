@@ -293,8 +293,11 @@ func _tick_refuel_chase() -> void:
 	if not _d.has("set"):
 		_d["set"] = true
 		_fuel().fuel_l = _fuel().tank_l * 0.5
-		# 200 km/h: too slow to escape (220), so the chase is still running when the car refuels
+		# 200 km/h: too slow to escape (220), so the chase is still running when the car refuels.
+		# No traffic: a slower car ahead would let the police catch up before the fuel lane.
 		(_sc.get("autopilot") as Object).set("target_kmh", 200.0)
+		_sc.set("traffic_enabled", false)
+		((_sc.get("traffic") as Object).get("cars") as Array).clear()
 		_d["bad_block"] = 0
 		_d["bad_hud"] = 0
 		return
@@ -313,8 +316,10 @@ func _tick_refuel_chase() -> void:
 	if _vehicle().speed < 0.5 and not bool(_sc.get("finished")):
 		_d["stand_s"] = float(_d.get("stand_s", 0.0)) + 1.0 / float(Engine.physics_ticks_per_second) * Engine.time_scale
 	if bool(_d.get("refuel_seen", false)) and f.state == FuelSystem.State.NORMAL and p.state == PoliceSystem.State.IDLE and _vehicle().speed > 60.0:
-		var ok := int(_d["bad_block"]) == 0 and int(_d["bad_hud"]) == 0 and bool(_d.get("chase_during_refuel", false))
-		_done(ok, "Verfolgung beim Tanken: Polizei blockiert genau beim Tanken (Abweichungen %d), HUD beim Tanken (Abweichungen %d), Stillstand %.1f s" % [int(_d["bad_block"]), int(_d["bad_hud"]), float(_d.get("stand_s", 0.0))])
+		# the police stop (10 s) is served after the refuel (~17 s for 30 L), not during it
+		var ok := int(_d["bad_block"]) == 0 and int(_d["bad_hud"]) == 0 and bool(_d.get("chase_during_refuel", false)) \
+			and float(_d.get("stand_s", 0.0)) >= 24.0
+		_done(ok, "Verfolgung beim Tanken: Polizei blockiert genau beim Tanken (Abweichungen %d), HUD beim Tanken (Abweichungen %d), Stillstand %.1f s (Tanken + Polizei-Stopp)" % [int(_d["bad_block"]), int(_d["bad_hud"]), float(_d.get("stand_s", 0.0))])
 	elif _t > 120.0:
 		_done(false, "Zeitlimit (Tankstatus %d, Polizei %d, Tanken gesehen %s, Verfolgung beim Tanken %s)" % [f.state, p.state, str(_d.get("refuel_seen", false)), str(_d.get("chase_during_refuel", false))])
 

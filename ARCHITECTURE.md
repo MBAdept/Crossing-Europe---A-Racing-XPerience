@@ -131,6 +131,20 @@ City Limits; kein Radarfeld in den 30 km vor den City Limits; Tankspur = die let
 `{ "size": [w, h], "projection": "…", "countries": [ { "code": "DE", "polygons": [[[x,y], …], …] } ] }`
 – Koordinaten im selben Raum wie `cities[].map_pos`. Quelle: Natural Earth (gemeinfrei) über npm `world-atlas`.
 
+### 4.6 Ergänzungen nach Review und Integration
+
+- Etappe: `description`, `roads`, `tutorial` (Tutorial-Hinweise in der Rennsitzung, „So geht's“ im Etappenbildschirm),
+  `start_fuel_fraction` (Tankfüllung beim Start, Kiel – Hamburg 0,35); Radar optional `dir: "fwd"|"rev"`.
+- Rennen: `avoid_stages` (Etappen, die die Routensuche dieses Rennens meidet), `tour: true` (Königsrennen: lange
+  Wege zwischen zwei Pflichtstationen werden in Etappen von 200–400 km geteilt, `stages.split_length_km`).
+- Land: `colors` mit optionalem Flaggen-Layout vorn (`v`, `h121`, `h212`, `ch`, `cz`), `signs` = Farben für
+  Autobahn-Wegweiser und Ortsschild (`motorway`, `town_bg`, `town_fg`, `town_border`).
+- Jede Grenze wechselt die Landschaft und liegt mindestens `stages.border_min_before_city_km` vor den City Limits.
+- `GameData.next_options()` liefert je Option zusätzlich `continuation` (Folge-Etappen bis zum nächsten Ziel),
+  `route_km`, `route_cities`, `route_summary` (Summen wie `StagePlan.summary()` über die ganze Route) und
+  `via_distinct`; Hilfen `legs_summary(legs)`, `target_segments()`, `race_routes()`, `race_choices()`,
+  `race_summary()`, `race_targets()`, `next_target()`, `advance_waypoint_index()`, `is_race_finished()`.
+
 ## 5. Strecke (`Track`, `scripts/race/track.gd`)
 
 Erzeugt Segmente (`TrackSegment`, `render.segment_length_m` sichtbare Meter) vor der Kamera und verwirft sie dahinter.
@@ -170,6 +184,12 @@ player{… , player: true, angle, visible}, bg_offset, scenery, shake (Vector2)`
 
 **Steuerungsanfragen**: `control_request()` liefert `{}` oder `{target_kmh, rate_kmh_s, steer_x?}`. Die Rennsitzung
 übergibt die Anfrage an `VehicleModel.auto_control()` (Tanken vor Polizei) und gibt die Kontrolle mit `release_auto()` zurück.
+
+Ergänzungen: `TrafficSystem.space_beside(…, exclude)` (getroffenes Auto zählt nicht; Gleichstand → links),
+`set_dimensions(SpriteDB.sets)`; `PoliceSystem.set_blocked(bool)` (Polizei-Stopp wartet, solange getankt wird),
+Signal `pull_over` (Polizei überholt und stoppt den Wagen; `caught` erst im Stand), `siren_level()`, `overtaking()`;
+`FuelSystem` Signale `tow_started`, `reserve_reached`, `can_abort_refuel()`, `holds_car()`; `VehicleModel`
+Steigungsabzug erst ab `driving.grade_free_percent`. Details: docs/gameplay.md.
 
 ## 8. Rennsitzung (`scripts/race/race_session.gd`, Szene `scenes/race/race.tscn`)
 
@@ -254,3 +274,6 @@ Argumente nach `--`: `--stage=<id> --from=<city> --vehicle=<typ> --hour=<0..24> 
   `tests/unit/**/test_*.gd` (Basisklasse `TestCase`). Bricht bei Skriptfehlern ab.
 - `tools/screenshot.sh <präfix> [args]` – rendert unter Xvfb (Software-OpenGL) und speichert PNGs.
 - `tools/build_linux.sh` – exportiert `build/CrossingEurope.x86_64`.
+- Integration: `tests/race/check_session.gd` (9 Szenarien der Rennsitzung: Kollisionsrichtung, leerer Tank,
+  Zielauslauf, Polizei beim Tanken, Tutorial), `tests/race/check_sprite_flip.gd` (braucht Xvfb/OpenGL),
+  `tests/race/run_stage.gd` (eine Etappe mit Autopilot), `tests/race/run_race.gd` (ein ganzes Rennen durch die Menüs).

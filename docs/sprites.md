@@ -149,8 +149,9 @@ Aufstellung aller Fahrzeuge/Requisiten auf gemeinsamer Bodenlinie.
   werden (`"mirror": true` im Sprite-Eintrag – der Renderer unterstützt das bereits). Beim Spiegeln muss
   auch der Anker gespiegelt werden (`1 - anchor.x`), sonst verrutscht ein nicht mittiger Anker.
 - **Abstand zur Straße**: Gebäude sind 10–34 m breit, der Anker sitzt in der Mitte ihrer Vorderseite.
-  `extent_m[0]` (rechts der Straße) bzw. `extent_m[1]` (links, gespiegelt) ist der Mindestabstand des Ankers
-  vom Fahrbahnrand, damit nichts in die Straße ragt.
+  `extent_m = [links, rechts]` ist die sichtbare Ausdehnung links/rechts des Ankers in der ungespiegelten Zelle.
+  Zur Straße zeigt rechts der Straße die linke Seite (`extent_m[0]`) – und links der Straße, gespiegelt, ebenfalls
+  `extent_m[0]`; nur ungespiegelte Requisiten links der Straße nutzen `extent_m[1]` (siehe docs/renn-modul.md §5).
 - **Tankstelle** (`wide`): Anker unter der Mitte des Dachs, Preismast links, Shop rechts.
 - **Fähre**: `props/ferry_ship` ist eine große Seitenansicht (Bug rechts, Anker = Wasserlinie Mitte,
   ohne Schatten) für die Fährszene; Ebene `lights` für die Nachtfahrt.

@@ -25,4 +25,16 @@ if grep -qE "SCRIPT ERROR|Parse Error|^ERROR:" "$LOG"; then
 	CODE=1
 fi
 rm -f "$LOG"
+# Integration scenarios of the race session (headless, ~30 s) – skipped with a filter argument.
+if [ $# -eq 0 ] && [ $CODE -eq 0 ]; then
+	SLOG=$(mktemp)
+	timeout 300 "$GODOT" --headless --path . -s res://tests/race/check_session.gd >"$SLOG" 2>&1
+	SCODE=$?
+	grep -E "^CHECK" "$SLOG"
+	if [ $SCODE -ne 0 ] || grep -qE "SCRIPT ERROR" "$SLOG"; then
+		echo "==> Integrationsszenarien fehlgeschlagen"
+		CODE=1
+	fi
+	rm -f "$SLOG"
+fi
 exit $CODE
