@@ -1,63 +1,68 @@
 extends Node
 ## Autoload "Leaderboards": local top lists per stage (and direction) and per race, saved as JSON.
 ## Board keys: "stage:<stage_id>:fwd|rev", "race:<race_id>".
-## Entry: {name, time_s, avg_kmh, vehicle, weather, start_hour, daytime, date, route?(race boards)}
-## Owner: data module. STUB: simple in-memory list + JSON file; replaced by the data module.
+## Entry: {name, time_s, avg_kmh, vehicle, weather, start_hour, daytime, date, route?(race boards), seeded?}
+## Owner: data module. Logic in LeaderboardStore (scripts/data/leaderboard_store.gd): per-vehicle top lists,
+## vehicle filter ("" / "all" / vehicle id), deterministic seeded entries, atomic versioned file.
 
 const PATH := "user://leaderboards.json"
 
-var boards: Dictionary = {}   ## key -> Array[Dictionary] sorted by time_s
+var store := LeaderboardStore.new()
+## Raw boards (key -> sorted entries); kept for compatibility with the original stub.
+var boards: Dictionary:
+	get:
+		return store.boards
 
 
 func _ready() -> void:
+	var lengths := Callable()
+	var gd := get_node_or_null("/root/GameData")
+	if gd != null and gd.has_method("board_length_km"):
+		lengths = Callable(gd, "board_length_km")
+	store.setup(Config.data, PATH, lengths)
 	load_boards()
 
 
 func load_boards() -> void:
-	boards.clear()
-	if FileAccess.file_exists(PATH):
-		var d: Variant = ConfigLoader.load_json(PATH)
-		if d is Dictionary:
-			boards = d.get("boards", {})
+	store.load_boards()
+	if store.load_problem != "":
+		push_warning(store.load_problem)
 
 
 func save_boards() -> void:
-	var f := FileAccess.open(PATH, FileAccess.WRITE)
-	if f:
-		f.store_string(JSON.stringify({"version": 1, "boards": boards}, "\t"))
+	store.save_boards()
 
 
 ## Top entries of a board, optionally only one vehicle type ("" or "all" = all vehicles).
 func top(board_key: String, vehicle_filter: String = "", count: int = 10) -> Array[Dictionary]:
-	var out: Array[Dictionary] = []
-	for e in boards.get(board_key, []):
-		if vehicle_filter == "" or vehicle_filter == "all" or e.get("vehicle", "") == vehicle_filter:
-			out.append(e)
-			if out.size() >= count:
-				break
-	return out
+	return store.top(board_key, vehicle_filter, count)
 
 
 func record(board_key: String, vehicle_filter: String = "") -> Dictionary:
-	var t := top(board_key, vehicle_filter, 1)
-	return t[0] if not t.is_empty() else {}
+	return store.record(board_key, vehicle_filter)
 
 
 ## 1-based rank the time would reach in the (filtered) top list, 0 = not in the top list.
 func would_rank(board_key: String, time_s: float, vehicle_filter: String = "") -> int:
-	var list := top(board_key, vehicle_filter, 10)
-	for i in list.size():
-		if time_s < float(list[i]["time_s"]):
-			return i + 1
-	return list.size() + 1 if list.size() < 10 else 0
+	return store.would_rank(board_key, time_s, vehicle_filter)
 
 
-## Inserts an entry; returns its 1-based rank in the overall list (0 = not placed). Saves to disk.
-func submit(board_key: String, entry: Dictionary) -> int:
-	var list: Array = boards.get(board_key, [])
-	list.append(entry)
-	list.sort_custom(func(a, b): return float(a["time_s"]) < float(b["time_s"]))
-	boards[board_key] = list
-	save_boards()
-	var rank := list.find(entry) + 1
-	return rank if rank <= 10 else 0
+## Rank of a time within the list of one vehicle type (0 = not placed).
+func rank_for_vehicle(board_key: String, time_s: float, vehicle: String) -> int:
+	return store.rank_for_vehicle(board_key, time_s, vehicle)
+
+
+## True if the time enters the overall list or its vehicle type's list (ask for the name).
+func qualifies(board_key: String, time_s: float, vehicle: String) -> bool:
+	return store.qualifies(board_key, time_s, vehicle)
+
+
+## Inserts an entry; returns its 1-based rank in the list selected by vehicle_filter ("" = overall,
+## 0 = not placed). Saves to disk.
+func submit(board_key: String, entry: Dictionary, vehicle_filter: String = "") -> int:
+	return store.submit(board_key, entry, vehicle_filter)
+
+
+## Board keys that exist in memory/on disk (sorted).
+func board_keys() -> Array[String]:
+	return store.board_keys()

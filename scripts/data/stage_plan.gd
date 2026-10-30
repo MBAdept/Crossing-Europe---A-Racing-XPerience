@@ -8,6 +8,12 @@ extends RefCounted
 ##  * last fuel station at least fuel.last_station_min_before_end_km before the finish (and never in City Limits)
 ##  * no radar zone in the last radar.no_radar_before_city_km before the City Limits
 ##  * City Limits = last city_limits.length_km of the stage
+## Data extensions (data module): radars may carry "dir": "fwd"|"rev" (only in that driving direction –
+## skipped silently in the other one); sections may carry a "name" (e.g. "A7 Kasseler Berge"); stages
+## "roads" and "description". Additional warnings: unknown road type, fuel lane inside a tunnel, tunnel
+## outside the stage.
+
+const ROAD_TYPES: Array[String] = ["autobahn", "landstrasse"]
 
 var stage_id := ""
 var reversed := false
@@ -35,6 +41,8 @@ var city_speed_limit := 50
 var climate := "default"       ## climate of the dominant country (weather picking)
 var countries_in_order: Array[String] = []
 var weather_hint := ""         ## optional fixed weather from the data ("weather" field)
+var roads := ""                ## road numbers for menus, e.g. "A215 · A7"
+var description := ""          ## optional stage description (German)
 var seed := 0
 var dev := false
 var warnings: Array[String] = []
@@ -59,6 +67,8 @@ static func build(stage: Dictionary, from_city_id: String, cities: Dictionary, c
 	p.display_name = "%s – %s" % [p.from_name, p.to_name]
 	p.board_key = "stage:%s:%s" % [p.stage_id, "rev" if p.reversed else "fwd"]
 	p.weather_hint = str(stage.get("weather", ""))
+	p.roads = str(stage.get("roads", ""))
+	p.description = str(stage.get("description", ""))
 	var base_seed := int(stage.get("seed", abs(hash(p.stage_id))))
 	p.seed = (base_seed ^ 0x5bd1e995) & 0x7fffffff if p.reversed else base_seed & 0x7fffffff
 
@@ -73,6 +83,7 @@ static func build(stage: Dictionary, from_city_id: String, cities: Dictionary, c
 	_build_tunnels(p, stage)
 	_build_borders(p, stage, countries)
 	_compute_climate(p, countries)
+	_check_layout(p)
 	return p
 
 
@@ -101,6 +112,9 @@ static func _build_sections(p: StagePlan, stage: Dictionary, cities: Dictionary,
 		var length := float(s.get("length_km", 0.0)) * scale
 		var country := str(s.get("country", default_country))
 		var road := str(s.get("road", "autobahn"))
+		if not ROAD_TYPES.has(road):
+			p.warnings.append("Etappe %s: unbekannter Straßentyp '%s' – nutze autobahn" % [p.stage_id, road])
+			road = "autobahn"
 		var limit := 0
 		if s.has("speed_limit"):
 			limit = 0 if s["speed_limit"] == null else int(s["speed_limit"])
@@ -116,6 +130,7 @@ static func _build_sections(p: StagePlan, stage: Dictionary, cities: Dictionary,
 			"country": country,
 			"speed_limit": limit,
 			"traffic": float(s.get("traffic", 1.0)),
+			"name": str(s.get("name", "")),
 		})
 		km += length
 	if not p.sections.is_empty():
@@ -161,6 +176,11 @@ static func _build_radars(p: StagePlan, stage: Dictionary, cfg: Dictionary, coun
 	var default_limit := int(ConfigLoader.lookup(cfg, "radar.default_limit_kmh", 120))
 	var max_end := p.city_limits_km - gap
 	for r: Dictionary in stage.get("radars", []):
+		var dir := str(r.get("dir", "both"))
+		if (dir == "fwd" and p.reversed) or (dir == "rev" and not p.reversed):
+			continue
+		if dir != "both" and dir != "fwd" and dir != "rev":
+			p.warnings.append("Radar mit unbekannter Richtung '%s' – gilt in beiden Richtungen" % dir)
 		var km := float(r.get("km", 0.0))
 		var start := (p.length_km - km - zone) if p.reversed else km
 		start = maxf(0.0, start)
@@ -183,6 +203,8 @@ static func _build_tunnels(p: StagePlan, stage: Dictionary) -> void:
 	for t: Dictionary in stage.get("tunnels", []):
 		var km := float(t.get("km", 0.0))
 		var length := float(t.get("length_km", 1.0))
+		if km < 0.0 or km + length > p.length_km + 0.001:
+			p.warnings.append("Tunnel %s liegt außerhalb der Etappe" % str(t.get("name", "")))
 		var start := (p.length_km - km - length) if p.reversed else km
 		start = clampf(start, 0.0, p.length_km)
 		p.tunnels.append({"start_km": start, "end_km": minf(start + length, p.length_km), "name": str(t.get("name", ""))})
@@ -229,6 +251,14 @@ static func _compute_climate(p: StagePlan, countries: Dictionary) -> void:
 			best = c
 			best_len = float(share[c])
 	p.climate = str(countries.get(best, {}).get("climate", "default"))
+
+
+## Layout checks that need the finished plan: no fuel lane (or station) inside a tunnel.
+static func _check_layout(p: StagePlan) -> void:
+	for lane in p.fuel_lanes:
+		for t in p.tunnels:
+			if float(lane["start_km"]) < float(t["end_km"]) and float(lane["end_km"]) > float(t["start_km"]):
+				p.warnings.append("Tankstelle bei km %.1f liegt im Tunnel %s" % [float(lane["station_km"]), str(t["name"])])
 
 
 # --- Queries -------------------------------------------------------------------------------
@@ -318,10 +348,15 @@ func radar_zone_at(km: float) -> Dictionary:
 
 
 ## Plain-data summary for menus (route choice, stage screen).
+## Data-module additions: landstrasse_km, hills/curviness (length-weighted 0–3), max_hills, roads,
+## display_name, tunnel_km.
 func summary() -> Dictionary:
 	var autobahn_km := 0.0
 	var unlimited_km := 0.0
 	var traffic_weighted := 0.0
+	var hills_weighted := 0.0
+	var curves_weighted := 0.0
+	var max_hills := 0
 	for s in sections:
 		var length := float(s["length_km"])
 		if s["road"] == "autobahn":
@@ -329,6 +364,13 @@ func summary() -> Dictionary:
 			if int(s["speed_limit"]) == 0:
 				unlimited_km += length
 		traffic_weighted += length * float(s["traffic"])
+		hills_weighted += length * float(s["hills"])
+		curves_weighted += length * float(s["curviness"])
+		max_hills = maxi(max_hills, int(s["hills"]))
+	var tunnel_km := 0.0
+	for t in tunnels:
+		tunnel_km += float(t["end_km"]) - float(t["start_km"])
+	var l := maxf(length_km, 0.001)
 	return {
 		"length_km": length_km,
 		"autobahn_km": autobahn_km,
@@ -337,6 +379,13 @@ func summary() -> Dictionary:
 		"stations": fuel_stations_km.size(),
 		"tunnels": tunnels.size(),
 		"borders": borders.size(),
-		"traffic": traffic_weighted / maxf(length_km, 0.001),
+		"traffic": traffic_weighted / l,
 		"countries": countries_in_order.duplicate(),
+		"landstrasse_km": length_km - autobahn_km,
+		"hills": hills_weighted / l,
+		"curviness": curves_weighted / l,
+		"max_hills": max_hills,
+		"tunnel_km": tunnel_km,
+		"roads": roads,
+		"display_name": display_name,
 	}
