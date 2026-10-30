@@ -1,10 +1,12 @@
 class_name StartTimeScreen
 extends UiScreen
-## Start time of the race (00:00–23:30 in 30-minute steps): big clock, daytime category and a
-## preview landscape in the race palette; ◀ ▶ = 30 min, ▲ ▼ = 1 h.
+## Start time of the race (00:00 to 24:00 in time.start_hour_step_minutes steps, 30 by default): big
+## clock, daytime category and a preview landscape in the race palette; ◀ ▶ = one step, ▲ ▼ = 1 h.
+## Every number in the texts (step, stage pause, time-lapse) comes from the configuration.
 
 var _steps: Array[int] = []
 var _index := 0
+var _per_hour := 2                    ## steps per hour (▲ ▼)
 var _clock: Label
 var _cat: Label
 var _preview: SkyPreview
@@ -13,9 +15,12 @@ var _icon: Control
 
 func build() -> void:
 	add_header(tr("Startzeit"), UiData.race_name(str(GameFlow.draft.get("race_id", ""))))
-	hints = [[["lr"], tr("±30 Minuten")], [["ud"], tr("±1 Stunde")], [["Enter", "pad:A"], tr("Rennen starten")], [["Esc", "pad:B"], tr("Zurück")]]
 	var c := cfg()
-	_steps = UiFormat.start_time_steps(int(ConfigLoader.lookup(c, "time.start_hour_step_minutes", 30)))
+	var step_min := maxi(int(ConfigLoader.lookup(c, "time.start_hour_step_minutes", 30)), 1)
+	_per_hour = maxi(1, roundi(60.0 / step_min))
+	var big_step := tr("±1 Stunde") if _per_hour * step_min == 60 else tr("±%d Minuten") % (_per_hour * step_min)
+	hints = [[["lr"], tr("±%d Minuten") % step_min], [["ud"], big_step], [["Enter", "pad:A"], tr("Rennen starten")], [["Esc", "pad:B"], tr("Zurück")]]
+	_steps = UiFormat.start_time_steps(step_min)
 	var def_min := int(float(ConfigLoader.lookup(c, "time.default_start_hour", 8.0)) * 60.0)
 	_index = 0
 	for i in _steps.size():
@@ -37,7 +42,7 @@ func build() -> void:
 	left.add_child(_icon)
 	_cat = UiKit.label("", UiTheme.F.HEADING, 28, UiTheme.GOLD, HORIZONTAL_ALIGNMENT_CENTER)
 	left.add_child(_cat)
-	var note := UiKit.label(tr("Jede weitere Etappe startet 12 Stunden nach dem Ende der vorherigen – die Pause zählt nicht zur Rennzeit. Die Uhr läuft im Zeitraffer: 1 Stunde dauert 5 Spielminuten."), UiTheme.F.BODY_MEDIUM, 19, UiTheme.TEXT_DIM, HORIZONTAL_ALIGNMENT_CENTER)
+	var note := UiKit.label(start_note(c), UiTheme.F.BODY_MEDIUM, 19, UiTheme.TEXT_DIM, HORIZONTAL_ALIGNMENT_CENTER)
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	note.custom_minimum_size = Vector2(500, 0)
 	left.add_child(note)
@@ -53,6 +58,14 @@ func build() -> void:
 	_update()
 
 
+## Explanation under the clock: stage pause (time.stage_pause_hours) and time-lapse (time.time_scale).
+static func start_note(c: Dictionary) -> String:
+	var pause_h := float(ConfigLoader.lookup(c, "time.stage_pause_hours", 12.0))
+	var game_min := 60.0 / maxf(float(ConfigLoader.lookup(c, "time.time_scale", 12.0)), 0.001)
+	return UiFormat.t("Jede weitere Etappe startet %s nach dem Ende der vorherigen – die Pause zählt nicht zur Rennzeit. Die Uhr läuft im Zeitraffer: 1 Stunde dauert %s Spielminuten.") % [
+		UiFormat.hours(pause_h), UiFormat.number(game_min, 1)]
+
+
 func _input(event: InputEvent) -> void:
 	var d := 0
 	if event.is_action_pressed("ui_left", true):
@@ -60,9 +73,9 @@ func _input(event: InputEvent) -> void:
 	elif event.is_action_pressed("ui_right", true):
 		d = 1
 	elif event.is_action_pressed("ui_up", true):
-		d = 2
+		d = _per_hour
 	elif event.is_action_pressed("ui_down", true):
-		d = -2
+		d = -_per_hour
 	if d != 0:
 		_step(d)
 		get_viewport().set_input_as_handled()

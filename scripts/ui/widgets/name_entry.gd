@@ -2,6 +2,8 @@ class_name NameEntry
 extends VBoxContainer
 ## Name entry for a top-10 placement: LineEdit (keyboard) plus an on-screen keyboard grid for
 ## gamepads. Enter / gamepad A on the line or "OK" submits; the name is remembered in Settings.
+## Gamepad: D-pad moves between the line and the keys, A types / submits (ui_accept, gamepad A is
+## mapped by InputSetup), B deletes the last character.
 
 signal submitted(player_name: String)
 
@@ -45,6 +47,44 @@ func _init(initial: String = "") -> void:
 	ok_button = _wide_button(tr("OK"), _submit)
 	ok_button.add_theme_color_override("font_color", UiTheme.GOLD)
 	row.add_child(ok_button)
+	_wire_focus(row)
+
+
+## Explicit D-pad / arrow navigation (the geometric search jumped e.g. from "OK" into the text field):
+## key rows wrap left/right, ▲ from the first row -> text field, ▼ from the last row -> the button
+## row below (Leerzeichen / Löschen / OK, wraps), ▼ from the text field -> the keys.
+func _wire_focus(row: HBoxContainer) -> void:
+	var keys: Array[Button] = []
+	for c in grid.get_children():
+		keys.append(c as Button)
+	var bottom: Array[Button] = []
+	for c in row.get_children():
+		bottom.append(c as Button)
+	var cols := grid.columns
+	var rows := ceili(keys.size() / float(cols))
+	for i in keys.size():
+		var b := keys[i]
+		var r := floori(float(i) / cols)
+		var c := i % cols
+		var row_len := mini(cols, keys.size() - r * cols)
+		b.focus_neighbor_left = b.get_path_to(keys[r * cols + posmod(c - 1, row_len)])
+		b.focus_neighbor_right = b.get_path_to(keys[r * cols + posmod(c + 1, row_len)])
+		b.focus_neighbor_top = b.get_path_to(line) if r == 0 else b.get_path_to(keys[i - cols])
+		if r == rows - 1 or i + cols >= keys.size():
+			b.focus_neighbor_bottom = b.get_path_to(bottom[mini(floori(float(c) * bottom.size() / cols), bottom.size() - 1)])
+		else:
+			b.focus_neighbor_bottom = b.get_path_to(keys[i + cols])
+	for j in bottom.size():
+		var b := bottom[j]
+		b.focus_neighbor_left = b.get_path_to(bottom[posmod(j - 1, bottom.size())])
+		b.focus_neighbor_right = b.get_path_to(bottom[posmod(j + 1, bottom.size())])
+		var above := (rows - 1) * cols + mini(floori((j + 0.5) * cols / bottom.size()), cols - 1)
+		b.focus_neighbor_top = b.get_path_to(keys[mini(above, keys.size() - 1)])
+		b.focus_neighbor_bottom = b.get_path_to(b)
+	line.focus_neighbor_bottom = line.get_path_to(keys[mini(floori(cols / 2.0) - 1, keys.size() - 1)])
+	line.focus_neighbor_top = line.get_path_to(line)
+	line.focus_neighbor_left = line.get_path_to(line)
+	line.focus_neighbor_right = line.get_path_to(line)
 
 
 func _key_button(k: String, cb: Callable) -> Button:
@@ -97,6 +137,28 @@ func _on_line_input(event: InputEvent) -> void:
 	if event is InputEventJoypadButton and event.is_action_pressed("ui_accept"):
 		_submit()
 		line.accept_event()
+
+
+## Gamepad B (ui_cancel) inside the entry deletes the last character – the screens behind it have no
+## "back" while a name is pending. Keyboard Esc is left alone (Backspace works in the field).
+func _unhandled_input(event: InputEvent) -> void:
+	if is_inside_tree() and handle_gamepad_cancel(event, get_viewport().gui_get_focus_owner()):
+		get_viewport().set_input_as_handled()
+
+
+## Gamepad B while the focus is inside the entry: delete the last character. Returns true if handled.
+func handle_gamepad_cancel(event: InputEvent, focus_owner: Control) -> bool:
+	if _done or not event is InputEventJoypadButton or not event.is_action_pressed("ui_cancel"):
+		return false
+	if focus_owner == null or not (focus_owner == self or is_ancestor_of(focus_owner)):
+		return false
+	_backspace()
+	return true
+
+
+## Footer hints for screens showing a name entry.
+static func key_hints() -> Array:
+	return [[["Enter", "pad:A"], UiFormat.t("Eintragen")], [["ud", "lr"], UiFormat.t("Tastatur")], [["pad:B"], UiFormat.t("Löschen")]]
 
 
 func player_name() -> String:

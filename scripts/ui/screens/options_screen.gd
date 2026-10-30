@@ -61,6 +61,12 @@ func _set_volume(key: String, i: int) -> void:
 	AudioManager.apply_volumes()
 
 
+## Fuel-lane note under the controls; the trigger speed comes from fuel.lane_trigger_speed_kmh.
+static func lane_note(config: Dictionary) -> String:
+	var lane_kmh := float(ConfigLoader.lookup(config, "fuel.lane_trigger_speed_kmh", 60.0))
+	return UiFormat.t("Tankspur: unter %s km/h rollen – getankt wird automatisch. Gas geben bricht ab.") % UiFormat.number(lane_kmh, 0)
+
+
 func on_cancel() -> void:
 	Settings.player_name = _name.text.strip_edges()
 	if not GameFlow.sample_mode:
@@ -91,5 +97,5 @@ class _Controls extends Control:
 			draw_string(f, Vector2(140, y), str(r[1]), HORIZONTAL_ALIGNMENT_LEFT, 150, 19, UiTheme.GOLD)
 			draw_string(f, Vector2(300, y), str(r[2]), HORIZONTAL_ALIGNMENT_LEFT, size.x - 300, 19, UiTheme.TEXT_DIM)
 			y += 44.0
-		var note := tr("Tankspur: unter 60 km/h rollen – getankt wird automatisch. Gas geben bricht ab.")
+		var note := OptionsScreen.lane_note(ConfigLoader.load_merged())
 		draw_multiline_string(f, Vector2(0, y + 10), note, HORIZONTAL_ALIGNMENT_LEFT, size.x, 18, -1, UiTheme.TEXT_DIM)

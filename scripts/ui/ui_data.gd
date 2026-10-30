@@ -218,6 +218,54 @@ static func race_routes(race_id: String) -> Array:
 	return routes
 
 
+## Direct connection a -> b as a leg {kind, id, from, to, length_km} (shortest stage, else a ferry; {} if none).
+static func link_between(a: String, b: String) -> Dictionary:
+	var best: Dictionary = {}
+	for id in stages():
+		var st: Dictionary = stages()[id]
+		var f := str(st.get("from", ""))
+		var t := str(st.get("to", ""))
+		if (f == a and t == b) or (f == b and t == a):
+			var km := float(st.get("length_km", 0.0))
+			if best.is_empty() or km < float(best["length_km"]):
+				best = {"kind": "stage", "id": str(id), "from": a, "to": b, "length_km": km}
+	if not best.is_empty():
+		return best
+	for id in ferries():
+		var fe: Dictionary = ferries()[id]
+		if (str(fe.get("from", "")) == a and str(fe.get("to", "")) == b) or (str(fe.get("from", "")) == b and str(fe.get("to", "")) == a):
+			return {"kind": "ferry", "id": str(id), "from": a, "to": b, "length_km": 0.0}
+	return {}
+
+
+## A route option of the route choice as a whole route to its target (RouteInfo): {legs (option +
+## continuation), continuation, totals, via (city ids before the target), target, km (to the target)}.
+## Uses the data module's "continuation" / "route_km" / route summary when present, otherwise the
+## complete race routes (race_routes) or the option's "via" cities.
+static func route_option(option: Dictionary, race_id: String, driven: Array, fallback_target: String = "") -> Dictionary:
+	var target := str(option.get("target", fallback_target))
+	var routes: Array = []
+	if not option.has("continuation"):
+		routes = race_routes(race_id)
+	var cont := RouteInfo.continuation(option, target, driven, routes, link_between)
+	var legs: Array[Dictionary] = [option]
+	legs.append_array(cont)
+	var t := RouteInfo.totals(legs, _leg_summary)
+	if cont.is_empty() and str(option.get("to", "")) != target and option.has("total_km"):
+		t["km"] = float(option["total_km"])   # continuation unknown: at least the length is right
+	RouteInfo.apply_data_summary(t, option)
+	return {"legs": legs, "continuation": cont, "totals": t, "via": RouteInfo.via_cities(option, cont, target),
+		"target": target, "km": float(t["km"])}
+
+
+## StagePlan.summary() of a stage leg in its driving direction ({} for ferries).
+static func _leg_summary(leg: Dictionary) -> Dictionary:
+	if str(leg.get("kind", "stage")) != "stage":
+		return {}
+	var plan := stage_plan(str(leg.get("id", "")), str(leg.get("from", "")))
+	return plan.summary() if plan != null else {"length_km": float(leg.get("length_km", 0.0))}
+
+
 ## {count, min_km, max_km, min_stages, max_stages, ferry} – GameData.race_summary() keys win if present.
 static func race_summary(race_id: String) -> Dictionary:
 	var st := RaceState.route_stats(race_routes(race_id))
@@ -271,6 +319,42 @@ static func would_rank(board_key: String, time_s: float, vehicle_filter: String 
 		return list.size() + 1 if list.size() < 10 else 0
 	var lb := _node("Leaderboards")
 	return int(lb.call("would_rank", board_key, time_s, "" if vehicle_filter == "all" else vehicle_filter)) if lb != null else 0
+
+
+## Index of a just-submitted entry (same name and time) in a board list, -1 if it is not there.
+static func entry_index(list: Array, entry: Dictionary) -> int:
+	for i in list.size():
+		var e: Dictionary = list[i]
+		if str(e.get("name", "")) == str(entry.get("name", "")) and absf(float(e.get("time_s", 0.0)) - float(entry.get("time_s", -1.0))) < 0.0005:
+			return i
+	return -1
+
+
+## Filter under which a submitted entry shows up: "" = it is in the overall top 10, else its vehicle
+## type (it only made the list of its own vehicle – "TOP 10 KOMPAKT").
+static func board_filter_for(board_key: String, entry: Dictionary) -> String:
+	if entry_index(top(board_key, "", 10), entry) >= 0:
+		return ""
+	return str(entry.get("vehicle", ""))
+
+
+## Valid leaderboard filters: "all" + the vehicle ids of the configuration.
+static func valid_filters(config: Dictionary) -> Array[String]:
+	var out: Array[String] = ["all"]
+	for v in ConfigLoader.lookup(config, "vehicles.order", []):
+		out.append(str(v))
+	return out
+
+
+## Leaderboard filter to use: the stored choice of the player (`stored` = value from the settings
+## file, null if never chosen) if it is still valid, else leaderboard.default_filter (central config),
+## else "all".
+static func effective_filter(config: Dictionary, stored: Variant) -> String:
+	var valid := valid_filters(config)
+	if stored != null and valid.has(str(stored)):
+		return str(stored)
+	var def := str(ConfigLoader.lookup(config, "leaderboard.default_filter", "all"))
+	return def if valid.has(def) else "all"
 
 
 ## Inserts an entry, returns its rank (0 = not placed). Sample mode: in memory only.

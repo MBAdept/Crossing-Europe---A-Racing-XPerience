@@ -21,7 +21,7 @@ const SPEEDO_A0 := 135.0
 const SPEEDO_A1 := 405.0
 const GO_TIME := 1.1
 const DEMO := {
-	"refuel": {"refuel": {"active": true, "progress01": 0.46, "liters": 23.4, "time_left_s": 6.3}, "speed_kmh": 0.0, "fuel_l": 31.0},
+	"refuel": {"refuel": {"active": true, "progress01": 0.46, "liters": 23.4, "time_left_s": 6.3}, "speed_kmh": 0.0, "fuel_l": 31.0, "next_station_km": 0.0},
 	"police": {"police_state": "chase", "police_gap_m": 140.0, "escape01": 0.62, "speed_kmh": 226.0},
 	"radar": {"radar_warning": {"distance_km": 4.2, "limit": 120, "in_zone": false}, "speed_limit": 120},
 	"radarzone": {"radar_warning": {"distance_km": 0.0, "limit": 120, "in_zone": true}, "speed_limit": 120},
@@ -461,9 +461,10 @@ func _draw_fuel(h: float) -> void:
 	_text(Vector2(x, r.position.y + 84), tr("Reichweite"), _f_body, 19, UiTheme.TEXT_DIM)
 	_text(Vector2(r.position.x, r.position.y + 84), UiFormat.km(rng, 0), _f_mono, 21, UiTheme.BAD if short else UiTheme.TEXT, HORIZONTAL_ALIGNMENT_RIGHT, r.size.x - 16)
 	_text(Vector2(x, r.position.y + 108), tr("Nächste Tankstelle"), _f_body, 19, UiTheme.TEXT_DIM)
-	var nt := UiFormat.km(nxt, 1) if nxt >= 0.0 else tr("keine mehr")
+	# 0 = at the station (the race session sends 0 while the car is in the fuel lane) -> "hier"
+	var nt := UiFormat.station_distance(nxt)
 	var ncol := UiTheme.GOOD if (nxt >= 0.0 and nxt < 5.0) else UiTheme.TEXT
-	_text(Vector2(r.position.x, r.position.y + 108), nt, _f_mono, 21, ncol, HORIZONTAL_ALIGNMENT_RIGHT, r.size.x - 16)
+	_text(Vector2(r.position.x, r.position.y + 108), nt, _f_bold if (nxt >= 0.0 and nxt < 0.05) else _f_mono, 21, ncol, HORIZONTAL_ALIGNMENT_RIGHT, r.size.x - 16)
 
 
 # --- bottom-right: speedometer ---------------------------------------------------------------
@@ -630,9 +631,11 @@ func _draw_refuel(w: float) -> float:
 	return r.end.y
 
 
+## Empty tank: the car stays where it stopped, the tow service brings fuel (fuel.tow_refill_fraction)
+## and the time penalty (fuel.tow_penalty_s) is added – the texts say exactly that.
 func _draw_tow(w: float, h: float) -> float:
 	draw_rect(Rect2(0, 0, w, h), Color(0, 0, 0, 0.45))
-	var r := Rect2(w * 0.5 - 260, 168, 520, 132)
+	var r := Rect2(w * 0.5 - 300, 168, 600, 150)
 	UiIcons.panel(self, r, Color(0.06, 0.05, 0.02, 0.92), UiTheme.WARN, 14.0, 2.5)
 	# hazard stripes on top
 	var stripe := Rect2(r.position.x + 14, r.position.y + 10, r.size.x - 28, 14)
@@ -648,9 +651,10 @@ func _draw_tow(w: float, h: float) -> float:
 	draw_circle(r.position + Vector2(40, 72), 14.0, Color(1.0, 0.6, 0.0, 0.95 if beacon_on else 0.3))
 	draw_circle(Vector2(r.end.x - 40, r.position.y + 72), 14.0, Color(1.0, 0.6, 0.0, 0.3 if beacon_on else 0.95))
 	_text(Vector2(r.position.x, r.position.y + 72), tr("ABSCHLEPPDIENST"), _f_title, 36, UiTheme.WARN, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
-	_text(Vector2(r.position.x, r.position.y + 104), tr("Tank leer – der Wagen wird zur nächsten Tankstelle gebracht"), _f_body, 19, UiTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
-	var tow_pen := float(ConfigLoader.lookup(cfg, "fuel.tow_penalty_s", 120.0))
-	_text(Vector2(r.position.x, r.position.y + 124), tr("Zeitstrafe: +%s") % UiFormat.time(tow_pen), _f_bold, 18, UiTheme.BAD, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	var refill := float(ConfigLoader.lookup(cfg, "fuel.tow_refill_fraction", 0.5))
+	_text(Vector2(r.position.x, r.position.y + 106), UiFormat.tow_text(refill), _f_body, 19, UiTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	var tow_pen := float(ConfigLoader.lookup(cfg, "fuel.tow_penalty_s", 90.0))
+	_text(Vector2(r.position.x, r.position.y + 136), tr("Weiterfahrt von hier  ·  Zeitstrafe +%s") % UiFormat.time(tow_pen), _f_bold, 19, UiTheme.BAD, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 	return r.end.y
 
 

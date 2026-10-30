@@ -73,7 +73,7 @@ func build() -> void:
 		left.add_child(s2)
 		left.add_child(UiKit.stat_line(tr("Rennzeit nach Etappe %d") % race.stage_count(), UiFormat.time(race.total_time_s), UiTheme.GOLD, 22))
 		if not race.is_finished():
-			left.add_child(UiKit.stat_line(tr("Nächster Start (12 h Pause)"), tr("%s Uhr") % Units.format_clock(race.world_minutes), UiTheme.TEXT, 20))
+			left.add_child(UiKit.stat_line(next_start_caption(c), tr("%s Uhr") % Units.format_clock(race.world_minutes), UiTheme.TEXT, 20))
 	# right: name entry or leaderboard
 	_right = add_panel(Rect2(644, 104, 596, 508), UiTheme.GOLD, 10)
 	_next = UiKit.button(tr("Weiter") if race == null or not race.is_finished() else tr("Zum Rennergebnis"), 28, HORIZONTAL_ALIGNMENT_CENTER)
@@ -86,7 +86,7 @@ func build() -> void:
 		_entry = {"time_s": time_s, "avg_kmh": float(result.get("avg_speed_kmh", 0.0)), "vehicle": vehicle,
 			"weather": str(result.get("weather", "normal")), "start_hour": float(result.get("start_hour", 8.0)),
 			"daytime": cond.daytime, "date": Time.get_date_string_from_system()}
-		var head := tr("TOP 10 – PLATZ %d!") % rank if rank > 0 else tr("TOP 10 %s – PLATZ %d!") % [UiFormat.vehicle_name(vehicle, c).to_upper(), rank_v]
+		var head := UiFormat.placement_headline(false, rank, rank_v, UiFormat.vehicle_name(vehicle, c))
 		_right.add_child(UiKit.label(head, UiTheme.F.TITLE, 34, UiTheme.GOLD, HORIZONTAL_ALIGNMENT_CENTER))
 		_right.add_child(UiKit.label(tr("Trag dich in die Bestenliste ein:"), UiTheme.F.BODY_MEDIUM, 21, UiTheme.TEXT_DIM, HORIZONTAL_ALIGNMENT_CENTER))
 		var ne := NameEntry.new(str(Settings.player_name))
@@ -95,10 +95,16 @@ func build() -> void:
 		_right.add_child(ne)
 		_next.visible = false
 		default_focus = ne.line
-		hints = [[["Enter", "pad:A"], tr("Eintragen")], [["ud", "lr"], tr("Tastatur")]]
+		hints = NameEntry.key_hints()
 	else:
 		_show_board("", 0)
 		default_focus = _next
+
+
+## "Nächster Start (12 h Pause)" – the pause is time.stage_pause_hours (what RaceState really adds).
+static func next_start_caption(config: Dictionary) -> String:
+	var pause_h := float(ConfigLoader.lookup(config, "time.stage_pause_hours", 12.0))
+	return UiFormat.t("Nächster Start (%s h Pause)") % UiFormat.number(pause_h)
 
 
 func _on_name(player_name: String) -> void:
@@ -106,10 +112,8 @@ func _on_name(player_name: String) -> void:
 	_entry["name"] = player_name
 	UiKit.sound("finish")
 	UiData.submit(_board, _entry)
-	var list := UiData.top(_board, "", 10)
-	var filter := ""
-	if _find(list) < 0:
-		filter = str(_entry.get("vehicle", ""))
+	GameFlow.stage_result_done()   # entry stored -> the save no longer needs the pending result
+	var filter := UiData.board_filter_for(_board, _entry)
 	for ch in _right.get_children():
 		ch.queue_free()
 	_show_board(filter, -1)
@@ -119,11 +123,7 @@ func _on_name(player_name: String) -> void:
 
 
 func _find(list: Array) -> int:
-	for i in list.size():
-		var e: Dictionary = list[i]
-		if str(e.get("name", "")) == str(_entry.get("name", "")) and absf(float(e.get("time_s", 0.0)) - float(_entry.get("time_s", -1.0))) < 0.0005:
-			return i
-	return -1
+	return UiData.entry_index(list, _entry)
 
 
 func _show_board(filter: String, highlight: int) -> void:
