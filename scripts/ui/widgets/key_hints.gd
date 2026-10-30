@@ -2,9 +2,11 @@ class_name KeyHints
 extends Control
 ## Footer with input hints, keyboard keycaps and gamepad buttons side by side:
 ##   hints = [[["Enter", "pad:A"], "Auswählen"], [["Esc", "pad:B"], "Zurück"], [["lr"], "Ändern"]]
-## Special key names: "lr" / "ud" (arrow pairs), "pad:A|B|X|Y|LB|RB|Start".
+## Special key names: "lr" / "ud" (arrow pairs), "left" / "right" / "up" / "down" (single arrows),
+## "pad:A|B|X|Y|LB|RB|LT|RT|Start".
 
 const PAD_COLORS := {"A": Color("3fbf5f"), "B": Color("e0434f"), "X": Color("3b7be8"), "Y": Color("e8b53b")}
+const ARROWS := {"left": Vector2(-1, 0), "right": Vector2(1, 0), "up": Vector2(0, -1), "down": Vector2(0, 1)}
 
 var hints: Array = []
 var align := HORIZONTAL_ALIGNMENT_LEFT
@@ -33,6 +35,8 @@ func _key_width(k: String) -> float:
 		return 26.0 if b.length() == 1 else _font_bold.get_string_size(b, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x + 18.0
 	if k == "lr" or k == "ud":
 		return 44.0
+	if ARROWS.has(k):
+		return 26.0
 	return maxf(26.0, _font_bold.get_string_size(k, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x + 16.0)
 
 
@@ -89,6 +93,12 @@ func _draw_key(r: Rect2, key: String) -> void:
 	box.set_corner_radius_all(4)
 	draw_style_box(box, r)
 	var ink := Color(0.08, 0.09, 0.16)
+	if ARROWS.has(key):
+		var d: Vector2 = ARROWS[key]
+		var n := Vector2(-d.y, d.x)
+		var c1 := r.get_center() + Vector2(0, -1)
+		draw_colored_polygon(PackedVector2Array([c1 + d * 5.0, c1 - d * 3.0 + n * 5.0, c1 - d * 3.0 - n * 5.0]), ink)
+		return
 	if key == "lr" or key == "ud":
 		var c2 := r.get_center() + Vector2(0, -1)
 		for s in [-1.0, 1.0]:

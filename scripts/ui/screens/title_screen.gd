@@ -5,6 +5,7 @@ extends UiScreen
 
 var _desc: Label
 var _buttons: Array[Button] = []
+var confirm_box: ConfirmBox          ## open "overwrite the saved race?" question (null if none)
 
 
 func build() -> void:
@@ -31,7 +32,7 @@ func build() -> void:
 	UiKit.place(self, box, Rect2(92, 266, 410, 352))
 	var has_save := UiData.has_saved_race()
 	var items := [
-		[tr("Rennen starten"), tr("Etappenrennen quer durch Europa – Rennen, Fahrzeug und Startzeit wählen."), GameFlow.new_race, true],
+		[tr("Rennen starten"), tr("Etappenrennen quer durch Europa – Rennen, Fahrzeug und Startzeit wählen."), _new_race, true],
 		[tr("Rennen fortsetzen"), _save_text(), GameFlow.continue_race, has_save],
 		[tr("Einzelne Etappe"), tr("Eine Etappe frei wählen: Richtung, Uhrzeit und Wetter."), GameFlow.single_stage, true],
 		[tr("Bestenlisten"), tr("Top 10 aller Etappen und Rennen."), func() -> void: GameFlow.go("leaderboards"), true],
@@ -70,11 +71,27 @@ func build() -> void:
 			UiKit.place(self, car, Rect2(1280 * 0.7 - 130, 540, 260, 170))
 
 
+## "Rennen starten": there is only one save slot – with a saved race in progress ask first, because
+## confirming the start time of a new race replaces it.
+func _new_race() -> void:
+	if not UiData.has_saved_race():
+		GameFlow.new_race()
+		return
+	confirm_box = ConfirmBox.new(tr("Gespeichertes Rennen überschreiben?"),
+		tr("Gespeichert: %s\nEin neues Rennen ersetzt diesen Spielstand, sobald du seine Startzeit bestätigst.") % _save_text(),
+		tr("Neues Rennen"), tr("Abbrechen"))
+	confirm_box.confirmed.connect(GameFlow.new_race)
+	add_child(confirm_box)
+
+
 func _save_text() -> String:
 	var d := UiData.load_race()
 	if d.is_empty():
 		return tr("Kein gespeichertes Rennen.")
 	var rs := RaceState.from_dict(d, UiData.race(str(d.get("race_id", ""))))
+	if rs.is_finished():
+		# kept until the race result's name entry is done (GameFlow.finish_race)
+		return tr("%s – im Ziel nach %s, Eintrag in die Bestenliste offen") % [rs.race_name, UiFormat.time(rs.total_time_s)]
 	return tr("%s – Etappe %d ab %s, bisher %s") % [rs.race_name, rs.next_stage_number(), UiData.city_name(rs.current_city), UiFormat.time(rs.total_time_s)]
 
 

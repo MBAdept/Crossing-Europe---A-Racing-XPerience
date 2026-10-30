@@ -9,6 +9,9 @@ extends Node
 ## result|race_result|leaderboards|options|ferry> shows a screen with sample data (screenshots).
 
 const RACE_SCENE := "res://scenes/race/race.tscn"
+## Save-game key (addition to the race state): result of the last stage while its result screen /
+## name entry is not done yet – "Rennen fortsetzen" shows that screen again (docs/ui.md).
+const PENDING_RESULT_KEY := "pending_result"
 const SCREENS := {
 	"title": "res://scripts/ui/screens/title_screen.gd",
 	"race_select": "res://scripts/ui/screens/race_select_screen.gd",
@@ -39,6 +42,24 @@ var _history: Array[Dictionary] = []
 var _screen_name := ""
 var _screen_params: Dictionary = {}
 var _focus_sound_after := 0
+var _result_pending := false        ## the save holds PENDING_RESULT_KEY
+
+
+func _ready() -> void:
+	apply_default_leaderboard_filter()
+
+
+## Central config leaderboard.default_filter: applies while the player has not picked a filter in the
+## leaderboard browser yet (no "leaderboard_filter" in the settings file) and replaces a stored filter
+## that is no longer valid (e.g. a removed vehicle type). Returns the active filter.
+func apply_default_leaderboard_filter() -> String:
+	var stored: Variant = null
+	if FileAccess.file_exists(Settings.PATH):
+		var d: Variant = ConfigLoader.load_json(Settings.PATH)
+		if d is Dictionary and (d as Dictionary).has("leaderboard_filter"):
+			stored = Settings.leaderboard_filter   # chosen (and loaded) by the player
+	Settings.leaderboard_filter = UiData.effective_filter(Config.data, stored)
+	return str(Settings.leaderboard_filter)
 
 
 ## Called by the main scene. CLI "--stage=..." starts that stage directly (debug).
@@ -171,7 +192,7 @@ func select_start_time(hour: float) -> void:
 	var r := UiData.race(str(draft.get("race_id", "")))
 	race = RaceState.create(r, str(draft.get("vehicle", "limousine")), hour, randi() % 1000000)
 	mode = "race"
-	UiData.save_race(race.to_dict())
+	_save_race()
 	_race_next(true)
 
 
@@ -182,7 +203,32 @@ func continue_race() -> void:
 		return
 	race = RaceState.from_dict(d, UiData.race(str(d.get("race_id", ""))))
 	mode = "race"
+	var pending: Variant = d.get(PENDING_RESULT_KEY, null)
+	if pending is Dictionary and not (pending as Dictionary).is_empty():
+		# the game was closed on a stage result (e.g. at the name prompt): show it again
+		_result_pending = true
+		last_result = pending
+		pending_leg = race.last_leg()
+		go("result", {"result": pending}, true)
+		return
 	_race_next(true)
+
+
+## Saves the running race (SaveGame). `pending_result` = a stage result whose screen is not done yet.
+func _save_race(pending_result: Dictionary = {}) -> void:
+	if race == null:
+		return
+	var d := race.to_dict()
+	if not pending_result.is_empty():
+		d[PENDING_RESULT_KEY] = pending_result.duplicate(true)
+	_result_pending = not pending_result.is_empty()
+	UiData.save_race(d)
+
+
+## The stage result screen is done (name entered, or "Weiter"): the save drops the pending result.
+func stage_result_done() -> void:
+	if _result_pending and mode == "race" and race != null:
+		_save_race()
 
 
 ## Next step of the running race: race result, route choice or the single next leg.
@@ -216,7 +262,7 @@ func choose_leg(leg: Dictionary, reset_history: bool = false) -> void:
 func ferry_done() -> void:
 	if race != null and str(pending_leg.get("kind", "")) == "ferry":
 		race.apply_ferry(UiData.ferries().get(str(pending_leg.get("id", "")), {}), pending_leg)
-		UiData.save_race(race.to_dict())
+		_save_race()
 	_race_next(true)
 
 
@@ -255,7 +301,8 @@ func _on_stage_finished(result: Dictionary) -> void:
 	AudioManager.stop_all()
 	if mode == "race" and race != null and not bool(result.get("aborted", false)):
 		race.apply_stage_result(pending_leg, result, Config.data)
-		UiData.save_race(race.to_dict())
+		# saved with the result: closing the game on the result screen / name prompt loses nothing
+		_save_race(result)
 	go("result", {"result": result}, true)
 
 
@@ -272,6 +319,7 @@ func _on_stage_aborted(_reason: String) -> void:
 ## "Weiter" on the stage result screen.
 func result_continue() -> void:
 	if mode == "race" and race != null:
+		stage_result_done()
 		_race_next(true)
 	elif mode == "single":
 		go("stage_select", {}, true)
@@ -279,8 +327,10 @@ func result_continue() -> void:
 		show_title()
 
 
-## Race completed and shown: the save game is no longer needed.
+## Race completed and its leaderboard entry (if any) stored: the save game is no longer needed.
+## Called by the race result screen – right away without a placement, after the name entry otherwise.
 func finish_race() -> void:
+	_result_pending = false
 	UiData.clear_race()
 
 
@@ -319,7 +369,9 @@ func _debug_screen(screen_name: String) -> void:
 		UiData.enable_sample(SampleData.network())
 	var c := Config.data
 	var ids := UiData.visible_race_ids()
-	var rid := ids[0] if not ids.is_empty() else ""
+	# --race=<id> picks the race, --stages-done=<n> how far the sample race has got (debug screenshots)
+	var rid := CliArgs.get_string("race", ids[0] if not ids.is_empty() else "")
+	var done := int(CliArgs.get_float("stages-done", -1.0))
 	match screen_name:
 		"vehicle":
 			mode = "race"
@@ -331,7 +383,7 @@ func _debug_screen(screen_name: String) -> void:
 			go("start_time", {}, true)
 		"route_choice", "stage_screen":
 			mode = "race"
-			race = SampleData.race_state(rid, 1, c)
+			race = SampleData.race_state(rid, done if done >= 0 else 1, c)
 			var opts := UiData.next_options(race.race_id, race.current_city, race.waypoint_index, race.visited())
 			if screen_name == "route_choice" or opts.is_empty():
 				go("route_choice", {"options": opts}, true)
@@ -339,14 +391,14 @@ func _debug_screen(screen_name: String) -> void:
 				choose_leg(opts[0], true)
 		"result":
 			mode = "race"
-			race = SampleData.race_state(rid, 2, c)
+			race = SampleData.race_state(rid, done if done >= 1 else 2, c)
 			var last := race.last_leg()
 			pending_leg = last
 			var res := SampleData.stage_result(str(last.get("id", "")), str(last.get("from", "")), c)
 			go("result", {"result": res}, true)
 		"race_result":
 			mode = "race"
-			race = SampleData.race_state(rid, 99, c)
+			race = SampleData.race_state(rid, done if done >= 1 else 999, c)
 			go("race_result", {}, true)
 		"ferry":
 			mode = "race"

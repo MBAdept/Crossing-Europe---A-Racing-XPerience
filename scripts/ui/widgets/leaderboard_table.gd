@@ -1,7 +1,13 @@
 class_name LeaderboardTable
 extends Control
-## Top-10 table: rank, name, time, average speed, vehicle and small weather + daytime icons.
+## Top-10 table: rank, name, time with the small weather + daytime icons right next to it (design:
+## "Wetter und Tageszeit erscheinen als kleines Symbol neben der Zeit"), average speed, vehicle.
 ## highlight = 1-based rank to emphasise (new entry), 0 = none. compact hides the vehicle column.
+
+const ICONS_W := 58.0     ## weather + daytime icon pair after the time (incl. gaps)
+const AVG_W := 70.0       ## Ø km/h column
+const VEH_MIN_W := 96.0   ## room kept for the vehicle name
+const TIME_FS := 20
 
 var entries: Array = []
 var highlight := 0
@@ -48,13 +54,13 @@ func _draw() -> void:
 		draw_string(UiTheme.font(UiTheme.F.HEADING), Vector2(0, 26), title, HORIZONTAL_ALIGNMENT_LEFT, w, 24, UiTheme.TEXT)
 		y = 38.0
 	var row_h := minf(36.0, (size.y - y - 28.0) / 10.0)
-	# column layout
+	var cols := columns(w)
 	var c_rank := 6.0
 	var c_name := 44.0
-	var c_time := w * (0.38 if not compact else 0.55)
-	var c_avg := w * (0.56 if not compact else 0.76)
-	var c_veh := w * 0.67
-	var c_icons := w - 56.0
+	var c_time: float = cols["time"]
+	var c_icons: float = cols["icons"]
+	var c_avg: float = cols["avg"]
+	var c_veh: float = cols["vehicle"]
 	var hy := y + 18.0
 	var hcol := UiTheme.TEXT_MUTED
 	draw_string(_font_bold, Vector2(c_rank, hy), "#", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, hcol)
@@ -88,13 +94,27 @@ func _draw() -> void:
 		var tc := Color.WHITE if is_hl else UiTheme.TEXT
 		draw_string(_mono, Vector2(c_rank, base), "%d" % (i + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, 20, rank_col)
 		draw_string(_font_bold, Vector2(c_name, base), str(e.get("name", "?")), HORIZONTAL_ALIGNMENT_LEFT, c_time - c_name - 8.0, 21, tc)
-		draw_string(_mono, Vector2(c_time, base), UiFormat.time(float(e.get("time_s", -1.0))), HORIZONTAL_ALIGNMENT_LEFT, -1, 20, UiTheme.GOLD if i == 0 else tc)
-		draw_string(_mono, Vector2(c_avg, base), "%d" % roundi(float(e.get("avg_kmh", 0.0))), HORIZONTAL_ALIGNMENT_LEFT, -1, 20, tc)
-		if not compact:
-			draw_string(_font, Vector2(c_veh, base), UiFormat.vehicle_name(str(e.get("vehicle", "")), config), HORIZONTAL_ALIGNMENT_LEFT, c_icons - c_veh - 4.0, 17, UiTheme.TEXT_DIM)
-		var ic := Vector2(c_icons + 14.0, r.position.y + row_h * 0.5 - 1.0)
+		draw_string(_mono, Vector2(c_time, base), UiFormat.time(float(e.get("time_s", -1.0))), HORIZONTAL_ALIGNMENT_LEFT, -1, TIME_FS, UiTheme.GOLD if i == 0 else tc)
+		var ic := Vector2(c_icons + 10.0, r.position.y + row_h * 0.5 - 1.0)
 		UiIcons.weather(self, str(e.get("weather", "normal")), ic, 20.0)
 		var dt := str(e.get("daytime", ""))
 		if dt == "":
 			dt = WorldClock.daytime_category(float(e.get("start_hour", 12.0)), config)
 		UiIcons.daytime(self, dt, ic + Vector2(26.0, 0), 20.0)
+		draw_string(_mono, Vector2(c_avg, base), "%d" % roundi(float(e.get("avg_kmh", 0.0))), HORIZONTAL_ALIGNMENT_LEFT, -1, 20, tc)
+		if not compact:
+			draw_string(_font, Vector2(c_veh, base), UiFormat.vehicle_name(str(e.get("vehicle", "")), config), HORIZONTAL_ALIGNMENT_LEFT, w - c_veh - 2.0, 17, UiTheme.TEXT_DIM)
+
+
+## Column x positions for a table of width w: {time, icons, avg, vehicle}. The icons follow the
+## widest time of the shown entries; the time column moves left when long race times need room.
+func columns(w: float) -> Dictionary:
+	var mono: Font = _mono if _mono != null else UiTheme.font(UiTheme.F.MONO)
+	var time_w := mono.get_string_size("0:00.00", HORIZONTAL_ALIGNMENT_LEFT, -1, TIME_FS).x
+	for i in mini(entries.size(), 10):
+		var t := UiFormat.time(float((entries[i] as Dictionary).get("time_s", -1.0)))
+		time_w = maxf(time_w, mono.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, TIME_FS).x)
+	var tail := time_w + ICONS_W + AVG_W + (0.0 if compact else VEH_MIN_W)
+	var c_time := clampf(w - tail, 134.0, w * (0.38 if not compact else 0.55))
+	var c_icons := c_time + time_w + 8.0
+	return {"time": c_time, "icons": c_icons, "avg": c_icons + ICONS_W, "vehicle": c_icons + ICONS_W + AVG_W}

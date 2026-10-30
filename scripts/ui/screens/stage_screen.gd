@@ -1,10 +1,17 @@
 class_name StageScreen
 extends UiScreen
-## Stage screen before every stage: record marquee (Laufschrift: name, time, average), map with the
-## route and the current stage highlighted, weather, start time, stage facts, race standing and the
-## top 10 (name, time, avg, vehicle, weather + daytime icons). "Start" launches the race scene.
+## Stage screen before every stage: record marquee (Laufschrift: name, time, average of the stage
+## record over all vehicles – the record holder, like the HUD and the result screen), map with the
+## route and the current stage highlighted, weather, start time, stage facts, race standing, the
+## stage description and the top 10 (name, time + weather/daytime icons, avg, vehicle; vehicle
+## filter of the leaderboard browser). Tutorial stages (StagePlan.tutorial, Kiel – Hamburg) get a
+## "So geht's" box: controls, refuelling and radar tolerance (numbers from the configuration).
+## "Start" launches the race scene.
 
 var _filter := "all"
+var marquee: Marquee
+var description_label: Label        ## stage description (null if the stage has none)
+var tutorial_box: Control           ## "So geht's" panel (null unless plan.tutorial)
 
 
 func build() -> void:
@@ -19,9 +26,11 @@ func build() -> void:
 	hints = [[["Enter", "pad:A"], tr("Start")], [["Esc", "pad:B"], tr("Zurück") if race == null else tr("Hauptmenü")]]
 	var board := plan.board_key if plan != null else UiData.stage_board_key(stage_id, from)
 	_filter = str(Settings.leaderboard_filter)
-	var rec := UiData.record(board, _filter)
-	var mq := Marquee.new(UiFormat.marquee_text(rec, stage_name, cfg()))
-	UiKit.place(self, mq, Rect2(0, 90, 1280, 42))
+	# the marquee names the record holder: overall record, never the vehicle-filtered best time
+	var rec := UiData.record(board)
+	marquee = Marquee.new(UiFormat.marquee_text(rec, stage_name, cfg()))
+	UiKit.place(self, marquee, Rect2(0, 90, 1280, 42))
+	var tutorial := plan != null and plan.tutorial
 	# map
 	var map := MapView.new()
 	map.set_network(UiData.cities(), UiData.stages(), UiData.ferries(), UiData.map_data())
@@ -35,8 +44,20 @@ func build() -> void:
 		map.label_ids.append(race.next_target())
 	map.current_city = from
 	map.highlight = [{"from": from, "to": str(leg.get("to", "")), "style": "current"}]
-	UiKit.place(self, map, Rect2(40, 146, 640, 372))
+	UiKit.place(self, map, Rect2(40, 146, 640, 204 if tutorial else 372))
 	map.fit_to(focus)
+	if tutorial:
+		tutorial_box = _tutorial_box(plan)
+		UiKit.place(self, tutorial_box, Rect2(40, 358, 640, 162))
+	if plan != null and plan.description != "":
+		description_label = UiKit.label(plan.description, UiTheme.F.BODY_MEDIUM, 17, UiTheme.TEXT_DIM)
+		description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		description_label.max_lines_visible = 2
+		description_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		description_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		description_label.add_theme_constant_override("line_spacing", -3)
+		description_label.custom_minimum_size = Vector2(636, 0)
+		UiKit.place(self, description_label, Rect2(44, 626, 636, 46))
 	# info tiles
 	var start_min: float = race.world_minutes if race != null else float(GameFlow.single.get("hour", 8.0)) * 60.0
 	var hour := Units.hour_of_day(start_min)
@@ -77,6 +98,55 @@ func on_cancel() -> void:
 		GameFlow.leave_race_to_title()
 	else:
 		GameFlow.back()
+
+
+## "So geht's" for tutorial stages: controls (keycaps + gamepad), refuelling and radar – the numbers
+## (fuel-lane speed, start filling, tolerance, trigger speed, escape speed) come from config and plan.
+func _tutorial_box(plan: StagePlan) -> Control:
+	var p := UiKit.panel(UiTheme.PANEL, UiTheme.ACCENT_2, 12)
+	var box := UiKit.vbox(4)
+	p.add_child(box)
+	var row := UiKit.hbox(16)
+	box.add_child(row)
+	var head := UiKit.label(tr("SO GEHT'S"), UiTheme.F.HEADING, 20, UiTheme.ACCENT_2)
+	head.custom_minimum_size = Vector2(0, 30)
+	head.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(head)
+	# Pause (Esc / Start) is left out: the race shows it, and the row must fit the panel
+	var keys := KeyHints.new([[["left", "right"], tr("Lenken")], [["up", "pad:RT"], tr("Gas")], [["down", "pad:LT"], tr("Bremse")]])
+	keys.custom_minimum_size = Vector2(460, 30)
+	row.add_child(keys)
+	var limit := 0.0
+	if not plan.radars.is_empty():
+		limit = float(plan.radars[0].get("limit", 0))
+	var tips := UiFormat.tutorial_tips(cfg(), limit, plan.start_fuel_fraction)
+	var icons := ["pump", "radar"]
+	for i in tips.size():
+		var tip := UiKit.hbox(10)
+		box.add_child(tip)
+		var ic := _TipIcon.new()
+		ic.kind = str(icons[i]) if i < icons.size() else ""
+		ic.custom_minimum_size = Vector2(26, 24)
+		ic.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		tip.add_child(ic)
+		var l := UiKit.label(tips[i], UiTheme.F.BODY_MEDIUM, 17, UiTheme.TEXT)
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		l.custom_minimum_size = Vector2(574, 0)   # fixed wrap width -> correct height from the start
+		l.add_theme_constant_override("line_spacing", -3)
+		tip.add_child(l)
+	return p
+
+
+class _TipIcon extends Control:
+	var kind := ""
+
+	func _draw() -> void:
+		var c := Vector2(size.x * 0.5, 13.0)
+		match kind:
+			"pump":
+				UiIcons.pump(self, c, 22.0, UiTheme.GOOD)
+			"radar":
+				UiIcons.radar(self, c, 22.0, UiTheme.WARN)
 
 
 class _InfoTiles extends Control:

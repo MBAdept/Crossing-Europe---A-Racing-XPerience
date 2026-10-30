@@ -30,16 +30,22 @@ func build() -> void:
 			first = b
 	_map = MapView.new()
 	_map.set_network(UiData.cities(), UiData.stages(), UiData.ferries(), UiData.map_data())
-	UiKit.place(self, _map, Rect2(476, 104, 748, 360))
-	var info := add_panel(Rect2(476, 476, 748, 188), UiTheme.ACCENT, 4)
+	UiKit.place(self, _map, Rect2(476, 104, 748, 262))
+	# info panel sized for the longest content (title, 4 description lines, 2 fact lines, record) – the
+	# description wraps at a fixed width and is cut with "…", so the panel never grows over the footer
+	var info := add_panel(Rect2(476, 374, 748, 290), UiTheme.ACCENT, 4)
 	_title = UiKit.label("", UiTheme.F.HEADING, 28, Color.WHITE)
 	info.add_child(_title)
-	_desc = UiKit.label("", UiTheme.F.BODY_MEDIUM, 20, UiTheme.TEXT_DIM)
+	_desc = UiKit.label("", UiTheme.F.BODY_MEDIUM, 19, UiTheme.TEXT_DIM)
 	_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_desc.custom_minimum_size = Vector2(708, 108)   # four lines
+	_desc.max_lines_visible = 4
+	_desc.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_desc.add_theme_constant_override("line_spacing", -5)
 	info.add_child(_desc)
 	_facts = UiKit.vbox(2)
 	info.add_child(_facts)
-	_record = UiKit.label("", UiTheme.F.BODY_BOLD, 20, UiTheme.GOLD)
+	_record = _line_label("", UiTheme.F.BODY_BOLD, UiTheme.GOLD)
 	info.add_child(_record)
 	if first == null:
 		_title.text = tr("Keine Rennen verfügbar")
@@ -50,6 +56,34 @@ func build() -> void:
 	default_focus = first
 	if not ids.is_empty():
 		_show_race(ids[0])
+
+
+## "Rekord" = the overall race record (the record holder); with a vehicle filter of the leaderboard
+## browser the best time of that vehicle is added and named, never passed off as the record.
+static func record_text(race_id: String, filter: String) -> String:
+	var key := UiData.race_board_key(race_id)
+	var rec := UiData.record(key)
+	if rec.is_empty():
+		return UiFormat.t("Noch kein Rekord für dieses Rennen")
+	var s := UiFormat.t("Rekord: %s – %s (Ø %s)") % [str(rec.get("name", "")), UiFormat.time(float(rec.get("time_s", -1.0))), UiFormat.kmh(float(rec.get("avg_kmh", 0.0)))]
+	if filter != "" and filter != "all":
+		var best := UiData.record(key, filter)
+		var vname := UiFormat.vehicle_name(filter, UiData.cfg())
+		if best.is_empty():
+			s += "  ·  " + UiFormat.t("%s: noch keine Zeit") % vname
+		elif best != rec:
+			s += "  ·  " + UiFormat.t("%s: %s – %s") % [vname, str(best.get("name", "")), UiFormat.time(float(best.get("time_s", -1.0)))]
+	return s
+
+
+## One-line label of the info panel: clipped with "…" so a long line (17 Pflichtstationen of the
+## Königsrennen) can never widen the panel beyond the screen.
+func _line_label(text: String, kind: int, col: Color) -> Label:
+	var l := UiKit.label(text, kind, 20, col)
+	l.clip_text = true
+	l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return l
 
 
 func _show_race(race_id: String) -> void:
@@ -69,7 +103,7 @@ func _show_race(race_id: String) -> void:
 		for w in wps:
 			names.append(UiData.city_name(str(w)))
 		line1 += "  ·  " + tr("Pflichtstationen: %s") % ", ".join(names)
-	_facts.add_child(UiKit.label(line1, UiTheme.F.BODY_BOLD, 20, UiTheme.TEXT))
+	_facts.add_child(_line_label(line1, UiTheme.F.BODY_BOLD, UiTheme.TEXT))
 	var line2 := tr("Strecke wird noch geplant")
 	if int(st.get("count", 0)) > 0:
 		var km_txt := UiFormat.km(float(st["min_km"]))
@@ -81,9 +115,8 @@ func _show_race(race_id: String) -> void:
 		line2 = tr("%s  ·  %s Etappen  ·  %d mögliche Routen") % [km_txt, stg, int(st["count"])]
 		if bool(st.get("ferry", false)):
 			line2 += "  ·  " + tr("mit Fähre")
-	_facts.add_child(UiKit.label(line2, UiTheme.F.BODY_MEDIUM, 20, UiTheme.ACCENT_2))
-	var rec := UiData.record(UiData.race_board_key(race_id), str(Settings.leaderboard_filter))
-	_record.text = tr("Rekord: %s – %s (Ø %s)") % [str(rec.get("name", "")), UiFormat.time(float(rec.get("time_s", -1.0))), UiFormat.kmh(float(rec.get("avg_kmh", 0.0)))] if not rec.is_empty() else tr("Noch kein Rekord für dieses Rennen")
+	_facts.add_child(_line_label(line2, UiTheme.F.BODY_MEDIUM, UiTheme.ACCENT_2))
+	_record.text = record_text(race_id, str(Settings.leaderboard_filter))
 	# map: union of all route legs, start/finish labels
 	var hl: Array[Dictionary] = []
 	var seen := {}

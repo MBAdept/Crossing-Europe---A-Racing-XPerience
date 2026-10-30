@@ -130,7 +130,7 @@ static func race_state(race_id: String, stages_done: int, config: Dictionary) ->
 	var ts := float(ConfigLoader.lookup(config, "time.time_scale", 12.0))
 	var avgs := [182.0, 176.5, 191.2, 169.8, 187.3, 179.9, 184.0, 172.6]
 	var guard := 0
-	while not s.is_finished() and s.stage_count() < stages_done and guard < 30:
+	while not s.is_finished() and s.stage_count() < stages_done and guard < 200:   # Königsrennen: 40 stages + ferry
 		guard += 1
 		var opts := UiData.next_options(s.race_id, s.current_city, s.waypoint_index, s.visited())
 		if opts.is_empty():

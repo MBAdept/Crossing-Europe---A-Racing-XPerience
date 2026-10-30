@@ -2,6 +2,12 @@ class_name StageSelectScreen
 extends UiScreen
 ## Single stage: free choice of stage and direction, start time and weather; map preview, stage
 ## facts and record. "Weiter" -> vehicle selection -> stage screen.
+##
+## Focus (keyboard / gamepad): the stage list on the left (▲▼, wraps; focusing an entry selects it),
+## Enter or ▶ on an entry -> the column Richtung / Startzeit / Wetter / Weiter (▲▼, wraps; ◀▶ change
+## the values). ◀ on "Weiter" and Esc in the column return to the selected entry; Esc in the list
+## leaves the screen. Explicit neighbours everywhere, so the geometric focus search can never jump
+## into the list and silently switch the stage.
 
 var _ids: Array[String] = []
 var _stage := ""
@@ -12,6 +18,7 @@ var _weather: OptionRow
 var _facts: VBoxContainer
 var _steps: Array[int] = []
 var _ok: Button
+var _buttons: Dictionary = {}          ## stage id -> list Button
 
 
 func build() -> void:
@@ -26,6 +33,7 @@ func build() -> void:
 	var prev := str(GameFlow.single.get("stage_id", ""))
 	var first: Button = null
 	var preselect: Button = null
+	var list: Array[Button] = []
 	for id in _ids:
 		var b := UiKit.button(_label(id), 21)
 		b.custom_minimum_size = Vector2(384, 44)
@@ -33,6 +41,8 @@ func build() -> void:
 		b.focus_entered.connect(func() -> void: _select(id))
 		b.pressed.connect(func() -> void: _dir.grab_focus())
 		box.add_child(b)
+		list.append(b)
+		_buttons[id] = b
 		if first == null:
 			first = b
 		if id == prev:
@@ -63,8 +73,13 @@ func build() -> void:
 	_ok = UiKit.button(tr("Weiter"), 28, HORIZONTAL_ALIGNMENT_CENTER)
 	_ok.pressed.connect(_confirm)
 	UiKit.place(self, _ok, Rect2(924, 624, 300, 46))
-	for row: Control in [_dir, _time, _weather, _ok]:
-		row.focus_neighbor_left = row.get_path_to(first) if first != null else NodePath()
+	# focus chains: list (wraps) and the option column (wraps); ▶ from the list -> Richtung
+	UiKit.chain_focus(list)
+	UiKit.chain_focus([_dir, _time, _weather, _ok])
+	for b in list:
+		b.focus_neighbor_right = b.get_path_to(_dir)
+		b.focus_neighbor_left = b.get_path_to(b)
+	_ok.focus_neighbor_right = _ok.get_path_to(_ok)
 	default_focus = preselect if preselect != null else first
 	if _ids.is_empty():
 		_facts.add_child(UiKit.label(tr("Keine Etappen verfügbar."), UiTheme.F.BODY_MEDIUM, 20, UiTheme.WARN))
@@ -81,6 +96,10 @@ func _label(id: String) -> String:
 func _select(id: String) -> void:
 	var keep_dir := _stage == id
 	_stage = id
+	# ◀ from the option column returns to the selected entry (never to another stage)
+	var sel: Button = _buttons.get(id, null)
+	for row: Control in [_dir, _time, _weather, _ok]:
+		row.focus_neighbor_left = row.get_path_to(sel) if sel != null else row.get_path_to(row)
 	var s: Dictionary = UiData.stages().get(id, {})
 	var a := str(s.get("from", ""))
 	var b := str(s.get("to", ""))
@@ -120,6 +139,21 @@ func _refresh() -> void:
 	row.add_child(a)
 	row.add_child(UiKit.label(rt, UiTheme.F.BODY_BOLD, 19, UiTheme.GOLD, HORIZONTAL_ALIGNMENT_RIGHT))
 	_facts.add_child(row)
+
+
+## Esc / gamepad B: from the option column back to the selected list entry, from the list back.
+func on_cancel() -> void:
+	var f := get_viewport().gui_get_focus_owner()
+	var sel: Button = _buttons.get(_stage, null)
+	if sel != null and f != null and f in [_dir, _time, _weather, _ok]:
+		sel.grab_focus()
+		return
+	GameFlow.back()
+
+
+## The list entry of the selected stage (null if the list is empty).
+func selected_button() -> Button:
+	return _buttons.get(_stage, null)
 
 
 func _confirm() -> void:

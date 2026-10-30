@@ -34,17 +34,18 @@ schräge Schaltflächen (StyleBoxFlat mit `skew`), Panels mit abgeschrägten Eck
 | `scripts/ui/menu_shell.gd` | `MenuShell`: Theme, Hintergrund, aktueller Bildschirm mit Übergang |
 | `scripts/ui/ui_theme.gd`, `ui_kit.gd`, `ui_icons.gd`, `ui_format.gd` | Stil, Bausteine, Symbole, Formatierung |
 | `scripts/ui/ui_data.gd`, `sample_data.gd` | Datenzugriff mit Fallbacks, Beispieldaten für Debug-Bildschirme |
+| `scripts/ui/route_info.gd` | `RouteInfo`: Routenoption als ganze Route bis zum nächsten Ziel (Fortsetzung, Summen; rein, getestet) |
 | `scripts/ui/screens/*.gd` | ein Skript je Bildschirm (Basisklasse `UiScreen`) |
-| `scripts/ui/widgets/*.gd` | Hintergrund, Logo-Text, Tastenhinweise, Optionszeile, Laufschrift, Bestenliste, Namenseingabe, Tageszeit-Vorschau, Fahrzeug-Showroom, Routenkarte |
+| `scripts/ui/widgets/*.gd` | Hintergrund, Logo-Text, Tastenhinweise, Optionszeile, Laufschrift, Bestenliste, Namenseingabe, Tageszeit-Vorschau, Fahrzeug-Showroom, Routenkarte, Ja/Nein-Abfrage (`ConfirmBox`) |
 | `scripts/audio/audio_manager.gd` | Autoload `AudioManager` (API §11) |
 | `scripts/audio/sfx_synth.gd` | `SfxSynth`: Klangsynthese (rein, getestet) |
-| `tests/unit/ui/*` | Tests: Rennlogik, Formatierung, Laufschrift, Audio-Synthese, Getriebe, Karten-Zoom |
+| `tests/unit/ui/*` | Tests: Rennlogik, Formatierung, Laufschrift, Audio-Synthese, Getriebe, Karten-Zoom, Routenoptionen (`test_route_info`), Texte aus der Konfiguration (`test_ui_texts`), Gamepad/Fokus/Spielstand (`test_menu_input`) |
 
 ## Bildschirmablauf
 
 ```
-Titel ─┬─ Rennen starten → Rennen wählen → Fahrzeug → Startzeit ─┐
-       ├─ Rennen fortsetzen (SaveGame.has_race()) ───────────────┤
+Titel ─┬─ Rennen starten [Abfrage, falls gespeichert] → Rennen wählen → Fahrzeug → Startzeit ─┐
+       ├─ Rennen fortsetzen (SaveGame.has_race(); offenes Etappenergebnis → Ergebnis) ───────┤
        │                                                          ▼
        │        ┌──────────── _race_next() ◄──────────────────────────────┐
        │        │  fertig? → Rennergebnis (+ Namenseingabe Rennbestenliste) │
@@ -59,11 +60,18 @@ Titel ─┬─ Rennen starten → Rennen wählen → Fahrzeug → Startzeit ─
        └─ Beenden
 ```
 
-- **Speichern**: nach Rennstart und nach jeder Etappe/Fähre `SaveGame.save_race(race.to_dict())`;
-  das Rennergebnis löscht den Spielstand (`SaveGame.clear_race()`).
-- **Nächste Etappe**: Start = Ende + 12 h (`EnvironmentModel.next_stage_start`), die Pause zählt nicht.
-  **Fähre**: `fixed_time_s` zählt zur Rennzeit, `world_hours` zur Weltzeit; die nächste Etappe startet bei
-  Ankunft (die Fähre ersetzt die 12-h-Pause).
+- **Speichern**: nach Rennstart und nach jeder Etappe/Fähre `SaveGame.save_race(race.to_dict())`.
+  Nach einer Etappe enthält der Spielstand zusätzlich `pending_result` (das Etappenergebnis), bis dessen
+  Ergebnisbildschirm erledigt ist (Name eingetragen oder „Weiter“, `GameFlow.stage_result_done()`): Wird das
+  Spiel am Ergebnis bzw. an der Namenseingabe geschlossen, zeigt „Rennen fortsetzen“ dieses Ergebnis erneut.
+  Das Rennergebnis löscht den Spielstand (`GameFlow.finish_race()` → `SaveGame.clear_race()`) erst, wenn nichts
+  mehr verloren gehen kann: sofort ohne Platzierung, sonst nach der Namenseingabe – bis dahin führt „Rennen
+  fortsetzen“ wieder zum Rennergebnis.
+- **Nur ein Spielstand**: „Rennen starten“ fragt bei einem gespeicherten Rennen nach (`ConfirmBox`, Standard
+  „Abbrechen“, Esc/B = Nein), weil die Bestätigung der Startzeit des neuen Rennens den Spielstand ersetzt.
+- **Nächste Etappe**: Start = Ende + `time.stage_pause_hours` (12 h, `EnvironmentModel.next_stage_start`),
+  die Pause zählt nicht. **Fähre**: `fixed_time_s` zählt zur Rennzeit, `world_hours` zur Weltzeit; die
+  nächste Etappe startet bei Ankunft (die Fähre ersetzt die Pause).
 - **Wetter im Rennen**: `RaceState.choose_weather()` nach `weather.race_mode` (`region` →
   `EnvironmentModel.pick_weather(seed, plan.climate)`, `random` gleichverteilt, `fixed` = Feld `weather` der
   Etappe). Der Seed hängt von Renn-Seed, Leg-Nummer und Etappe ab – nach „Fortsetzen“ ist das Wetter gleich.
@@ -71,24 +79,61 @@ Titel ─┬─ Rennen starten → Rennen wählen → Fahrzeug → Startzeit ─
   startet sie sofort neu. Abgebrochene Etappen werden nicht gewertet.
 - **Bestenlisten**: Namenseingabe, wenn die Zeit in die Top 10 aller Fahrzeuge **oder** des eigenen
   Fahrzeugtyps kommt (`would_rank`); eingetragen wird einmal mit `Leaderboards.submit()`. Der Name wird in
-  `Settings.player_name` gemerkt. Der Filter (`Settings.leaderboard_filter`) gilt für Bestenlisten-Browser,
-  Top 10 auf dem Etappenbildschirm und Rekorde in der Rennauswahl.
-- **Routenwahl**: Optionen kommen aus `GameData.next_options()`; Rennauswahl zeigt Längen- und
-  Etappenspanne aller Routen (`GameData.race_routes()`/`race_summary()` falls vorhanden, sonst Aufzählung
-  mit `next_options`, begrenzt).
+  `Settings.player_name` gemerkt. Kommt die Zeit nur in die Liste des eigenen Fahrzeugs, nennt die
+  Überschrift das Fahrzeug („TOP 10 KOMPAKT – PLATZ 3!“ bzw. „RENNEN-TOP-10 KOMPAKT – …“,
+  `UiFormat.placement_headline`), und nach der Eingabe erscheint diese Liste mit dem markierten Eintrag
+  (`UiData.board_filter_for`) – auf dem Etappen- und dem Rennergebnis gleich.
+- **Rekord**: Laufschrift, HUD und Ergebnisvergleich nennen immer den Gesamtrekord (Rekordhalter über alle
+  Fahrzeuge). Der Filter (`Settings.leaderboard_filter`) gilt für Bestenlisten-Browser und die Top 10 auf dem
+  Etappenbildschirm; die Rennauswahl zeigt den Gesamtrekord und mit Filter zusätzlich die Bestzeit des
+  Fahrzeugs („Rekord: … · Kompakt: …“). Startwert des Filters ist `leaderboard.default_filter`, solange der
+  Spieler im Browser keinen gewählt hat (kein Eintrag in `user://settings.json`); ungültige Filter fallen
+  darauf zurück (`GameFlow.apply_default_leaderboard_filter()`, `UiData.effective_filter`).
+- **Routenwahl**: Optionen kommen aus `GameData.next_options()`. Jede Karte zeigt die ganze Route bis zum
+  nächsten Pflichtziel (`UiData.route_option` → `RouteInfo`): große Zahl = km bis zum Ziel, „Route über
+  Hannover › Kassel › Würzburg“, nächste Etappe mit Länge und Etappenzahl, Summen über alle Etappen bis zum Ziel
+  (Autobahn, frei, Radar, Tankstellen, Tunnel, Verkehr, Länder). Die Fortsetzung kommt aus dem Feld
+  `continuation` der Option (Datenmodul), sonst aus der kürzesten passenden Route von `race_routes()`, sonst aus
+  `via`; `route_km` und eine Zusammenfassung unter `route_summary`/`summary` gewinnen, wenn vorhanden. Die Karte
+  hebt die erste Etappe und gestrichelt die Fortsetzung der gewählten Option hervor und beschriftet die
+  Zwischenstationen. Rennauswahl zeigt Längen- und Etappenspanne aller Routen (`GameData.race_routes()`/
+  `race_summary()` falls vorhanden, sonst Aufzählung mit `next_options`, begrenzt).
+- **Etappenbildschirm**: unter den Infokacheln die Etappenbeschreibung (`StagePlan.description`, max. zwei
+  Zeilen). Tutorial-Etappen (`StagePlan.tutorial`, Kiel – Hamburg) bekommen einen Kasten „So geht's“:
+  Steuerung (Tasten + Gamepad), Tanken (Tankspur, `fuel.lane_trigger_speed_kmh`, Gas bricht ab, Startfüllung
+  `StagePlan.start_fuel_fraction`) und Radar (`radar.tolerance` mit Beispiel am ersten Radar der Etappe,
+  Polizeiflucht ab `police.escape_speed_kmh`) – `UiFormat.tutorial_tips`.
 
 ### Rennstand (`RaceState.to_dict()`)
 
 Format aus ARCHITECTURE.md §10 plus `version`, `race_name`; Legs zusätzlich mit `name`, `penalty_s`,
 `distance_km`, `daytime`. `total_time_s` = Summe der Leg-Zeiten (Etappen inkl. Strafen + Fähren).
+Im Spielstand optional `pending_result` (`GameFlow.PENDING_RESULT_KEY`, siehe Speichern).
 
 ## Bedienung
 
-Tastatur, Gamepad und Maus. Menüs nutzen `ui_accept`/`ui_cancel`/`ui_up/down/left/right`, jede Seite setzt
-einen Standardfokus; der Fokus ist deutlich sichtbar (Magenta-Rahmen mit Glühen, goldene Schrift).
-Auswahlwerte (Fahrzeug, Uhrzeit, Optionen, Filter) mit ◀ ▶. Namenseingabe: Tastatur tippt direkt ins Feld,
-Gamepad nutzt die Bildschirmtastatur (A–Z, ÄÖÜß, Ziffern, Leerzeichen, Löschen, OK); Gamepad-A im Feld trägt ein.
-Pausenmenü: Esc/P/Start oder B setzt fort.
+Tastatur, Gamepad und Maus. Menüs nutzen `ui_accept`/`ui_cancel`/`ui_up/down/left/right` (Gamepad A/B
+registriert `InputSetup`, Steuerkreuz/Stick sind in Godots ui_*-Aktionen), jede Seite setzt einen
+Standardfokus; der Fokus ist deutlich sichtbar (Magenta-Rahmen mit Glühen, goldene Schrift).
+Auswahlwerte (Fahrzeug, Uhrzeit, Optionen, Filter) mit ◀ ▶.
+
+- **Namenseingabe**: Tastatur tippt direkt ins Feld; Gamepad nutzt die Bildschirmtastatur (A–Z, ÄÖÜß,
+  Ziffern, Leerzeichen, Löschen, OK): A tippt, B löscht das letzte Zeichen, A im Feld oder auf OK trägt ein.
+  Feste Nachbarn: Tastenreihen laufen links/rechts herum, ▲ aus der ersten Reihe ins Feld, ▼ aus der letzten
+  Reihe auf Leerzeichen/Löschen/OK.
+- **Einzelne Etappe**: Liste links (▲▼ läuft herum, der fokussierte Eintrag wird gewählt), Enter oder ▶ →
+  Spalte Richtung/Startzeit/Wetter/Weiter (▲▼ läuft herum, ◀▶ ändern). ◀ auf „Weiter“ und Esc in der Spalte
+  führen zum gewählten Eintrag zurück, Esc in der Liste verlässt den Bildschirm. Alle Nachbarn sind explizit
+  gesetzt – die geometrische Fokussuche kann nicht mehr in die Liste springen und die Etappe wechseln.
+- **Rennergebnis**: Die Etappentabelle hat feste Zeilenhöhe und scrollt bei langen Rennen (Königsrennen:
+  40 Etappen + Fähre) – Mausrad oder ▲▼, solange „Hauptmenü“ den Fokus hat (Hinweis „Etappen blättern“).
+  Die Routenzeile ist auf zwei Zeilen begrenzt.
+- **Abfragen** (`ConfirmBox`): Fokus bleibt in der Box, Standard ist die sichere Antwort, Esc/B = Nein.
+- Pausenmenü: Esc/P/Start oder B setzt fort.
+
+Die Flüsse lassen sich mit echten Tastatur-/Gamepad-Ereignissen prüfen (`Input.parse_input_event` in einem
+SceneTree-Skript, das `res://scenes/main.tscn` lädt); die Unit-Tests prüfen Verdrahtung und Handler, weil
+`tests/run_tests.gd` vor dem Eintritt des Viewports in den Baum läuft.
 
 ## HUD
 
@@ -104,6 +149,11 @@ Abschleppen, Nachrichten) erscheinen nur zeitweise. Ergänzungen zum Vertrag:
 - Marker im Fortschrittsbalken kommen aus dem `StagePlan` (Tankstellen, Radar, Tunnel, Grenzen, City Limits).
 - Länderfarben/-namen aus `GameData.countries`.
 - Jedes Frame ruft die HUD `AudioManager.hud_hints(state)` auf (siehe Audio).
+- „Nächste Tankstelle“: `next_station_km` 0 (die Rennsitzung schickt 0, solange der Wagen in der Tankspur ist)
+  zeigt „hier“, -1 „keine mehr“ (`UiFormat.station_distance`).
+- Abschlepp-Overlay beschreibt die Mechanik: Der Wagen bleibt stehen, wo er liegen geblieben ist, der
+  Abschleppdienst bringt Sprit (`fuel.tow_refill_fraction`, „für einen halben Tank“), Zeitstrafe
+  `fuel.tow_penalty_s` („Weiterfahrt von hier · Zeitstrafe +1:30.00“, `UiFormat.tow_text`).
 - Debug: `--hud-demo=refuel,police,radar,radarzone,tow,countdown,reserve,finish,city,understeer` legt
   Demo-Werte über den echten Zustand (Screenshots seltener Situationen).
 
@@ -141,7 +191,9 @@ der letzten Sekunde haben Vorrang), `gear_for(speed, vmax, gears)` (statisch), F
 `select_race(id)`, `select_vehicle(id)`, `select_start_time(hour)`, `continue_race()`, `choose_leg(leg)`,
 `ferry_done()`, `stage_setup()`, `start_pending_stage()`, `result_continue()`, `finish_race()`,
 `leave_race_to_title()`, `single_stage()`, `configure_single(stage_id, from, hour, weather)`,
-`remember_player_name(name)`; Felder `race`, `mode`, `draft`, `single`, `pending_leg`, `pending_weather`.
+`remember_player_name(name)`, `stage_result_done()` (Etappenergebnis erledigt → `pending_result` aus dem
+Spielstand), `apply_default_leaderboard_filter()`; Felder `race`, `mode`, `draft`, `single`, `pending_leg`,
+`pending_weather`; Konstante `PENDING_RESULT_KEY`.
 
 ## Debug und Screenshots
 
@@ -155,7 +207,10 @@ tools/screenshot.sh /tmp/p --stage=dev_testetappe --start-km=40 --no-countdown -
 
 Mit `--screen` laufen die Bildschirme mit Beispieldaten: Ist das echte Netz noch dünn (Stub), wird ein kleines
 Beispielnetz um Kiel – Nürnberg verwendet; Bestenlisten werden erzeugt und nur im Speicher gehalten, es wird
-nichts nach `user://` geschrieben, „Start“ startet kein Rennen.
+nichts nach `user://` geschrieben, „Start“ startet kein Rennen. `--race=<id>` wählt das Rennen der
+Rennbildschirme, `--stages-done=<n>` den Fortschritt des Beispielrennens (jeweils erste Option), z. B.
+`--screen=stage_screen --stages-done=0` (Tutorial Kiel – Hamburg), `--screen=route_choice --race=koenigsrennen
+--stages-done=13` (Wahl bei Saragossa), `--screen=race_result --race=koenigsrennen` (41 Legs).
 
 ## Konfiguration
 
@@ -163,3 +218,10 @@ nichts nach `user://` geschrieben, „Start“ startet kein Rennen.
 `marquee_speed_px_s` (Laufschrift).
 `audio`: `master_db`, `engine_gears`, `engine_idle_hz`, `engine_max_hz` (Motor-Grundton bei Höchstdrehzahl),
 `music_db` (Pegel des Music-Busses), `menu_music` (Menümusik an/aus).
+
+**Zahlen in Spielertexten** kommen aus der Konfiguration, damit sie nach dem Abstimmen (auch per
+`game_config.json` neben der ausführbaren Datei) stimmen: Etappenpause `time.stage_pause_hours` und Zeitraffer
+`time.time_scale` (Startzeit-Bildschirm, „Nächster Start (12 h Pause)“), Schrittweite
+`time.start_hour_step_minutes` (Startzeit-Hinweise), Tankspur `fuel.lane_trigger_speed_kmh` (Optionen,
+Tutorial), Abschleppen `fuel.tow_refill_fraction`/`fuel.tow_penalty_s`, Radar `radar.tolerance`, Polizei
+`police.escape_speed_kmh`, Startwert des Bestenlisten-Filters `leaderboard.default_filter`.
