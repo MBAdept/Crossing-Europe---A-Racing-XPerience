@@ -8,11 +8,14 @@ Nachtankzwang, Radarfallen und Polizei, Tageszeit und Wetter. Vorbilder: *Enduro
 - Technik: [ARCHITECTURE.md](ARCHITECTURE.md) und die Moduldokus in [docs/](docs/)
 - Engine: Godot 4.7.2 (GDScript, Renderer „GL Compatibility“), alle Fahrzeuge, Bäume, Gebäude, Tankstellen und
   Symbole prozedural in Blender 5.2 modelliert und als Sprites gerendert
+- Stand: **v0.1.0 – erster spielbarer Prototyp**; alle acht Schritte des Prototyp-Plans sind umgesetzt, alle Zahlen
+  sind Startwerte zum Testen.
 
 ## Spielen
 
-Linux (x86_64): `CrossingEurope.x86_64` herunterladen, ausführbar machen und starten – eine einzige Datei, keine
-Installation nötig.
+Linux (x86_64): `CrossingEurope.x86_64` aus den GitHub-Releases herunterladen, ausführbar machen und starten – eine
+einzige Datei, keine Installation nötig (OpenGL 3.3). Am besten mit dem Rennen Kiel – Nürnberg beginnen: Die erste
+Etappe Kiel – Hamburg ist das Tutorial.
 
 ```bash
 chmod +x CrossingEurope.x86_64
