@@ -5,7 +5,9 @@ extends SceneTree
 ## Run (needs a real GL context, e.g. a virtual X server):
 ##   xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --audio-driver Dummy \
 ##       -s res://tools/steam/render_logo.gd [-- --out=DIR --scale=6 --only=logo_wide,monogram_ce]
-## Output directory: --out=DIR, else $CE_LOGO_OUT, else DEFAULT_OUT.
+## Output directory: --out=DIR, else $CE_LOGO_OUT, else DEFAULT_OUT (/tmp/crossing-europe-steam/logo).
+## Files: logo_stacked_left[_glow] (title-screen layout), logo_stacked_center[_glow], logo_wide[_glow],
+## monogram_ce; tools/steam/compose.py builds the Steam set from them.
 ##
 ## The logo lines are the real GradientText widget with UiTheme's Orbitron Black, the tagline the same Label
 ## (Exo 2 ExtraBold Italic, FontVariation glyph spacing, menu theme) that scripts/ui/screens/title_screen.gd
@@ -19,7 +21,7 @@ extends SceneTree
 ##   -> final pass (blend_disabled): glow under the logo, un-premultiply to straight alpha
 ##   -> crop to the visible pixels (incl. shadow / glow) + PAD_FRAC transparent padding -> PNG.
 
-const DEFAULT_OUT := "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/steam/logo"
+const DEFAULT_OUT := "/tmp/crossing-europe-steam/logo"
 
 # Title-screen geometry (title_screen.gd): "CROSSING" at (84, 30), "EUROPE" at (84, 114), tagline at (92, 208).
 const LOGO_FS := 80
@@ -152,7 +154,11 @@ func _main() -> void:
 	if lf != null:
 		print("logo font %s: msdf=%s oversampling=%s fixed_size=%d -> glyphs rasterised at %d px" % [
 			lf.resource_path.get_file(), lf.multichannel_signed_distance_field, lf.oversampling, lf.fixed_size, roundi(LOGO_FS * sc)])
-	print("scale x%.2f, output: %s" % [sc, out_dir])
+	var probe := _make("tag", TAGLINE, false)
+	print("scale x%.2f (logo %d px, outline %d, tagline %d px, tagline shadow outline %d), output: %s" % [
+		sc, roundi(LOGO_FS * sc), roundi(LOGO_OUTLINE * sc), roundi(TAG_FS * sc),
+		probe.get_theme_constant("shadow_outline_size"), out_dir])
+	probe.free()
 
 	# Ink bounds of every element without its shadow ("body"), relative to the element's position.
 	var b := {}
@@ -185,6 +191,7 @@ func _main() -> void:
 
 	var jobs := [
 		["logo_stacked_left", left, false],
+		["logo_stacked_left_glow", left, true],
 		["logo_stacked_center", center, false],
 		["logo_stacked_center_glow", center, true],
 		["logo_wide", wide, false],
@@ -265,7 +272,8 @@ func _measure(kind: String, text: String) -> Rect2:
 	var font: Font = UiTheme.font(UiTheme.F.LOGO if kind == "line" else UiTheme.F.TITLE)
 	var fs := roundi((LOGO_FS if kind == "line" else TAG_FS) * sc)
 	var est := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs)
-	est.x += text.length() * TAG_SPACING * sc
+	if kind == "tag":
+		est.x += text.length() * TAG_SPACING * sc   # FontVariation glyph spacing
 	var vp := _viewport(Vector2i(_ceil4(est.x + MARGIN * 2), _ceil4(font.get_height(fs) + MARGIN * 2)))
 	var n := _make(kind, text, true)
 	n.position = Vector2(MARGIN, MARGIN)
