@@ -2,13 +2,18 @@ class_name OptionsScreen
 extends UiScreen
 ## Options: master / effects / music volume, fullscreen, player name and the controls overview.
 ## Changes apply immediately; settings are saved when leaving the screen.
+## Player name with a gamepad: A on the name field opens the on-screen keyboard (NameEntryBox); a
+## keyboard types into the field directly.
 
 var _name: LineEdit
+var keyboard: NameEntryBox          ## open on-screen keyboard (null if none)
+var _base_hints: Array = []
 
 
 func build() -> void:
 	add_header(tr("Optionen"))
-	hints = [[["ud"], tr("Wählen")], [["lr"], tr("Ändern")], [["Esc", "pad:B"], tr("Zurück")]]
+	_base_hints = [[["ud"], tr("Wählen")], [["lr"], tr("Ändern")], [["Esc", "pad:B"], tr("Zurück")]]
+	hints = _base_hints
 	var left := add_panel(Rect2(48, 104, 640, 560), UiTheme.ACCENT, 8)
 	left.add_child(UiKit.label(tr("TON UND BILD"), UiTheme.F.HEADING, 22, UiTheme.ACCENT_2))
 	var master := _volume_row(tr("Gesamtlautstärke"), float(Settings.master_volume))
@@ -33,6 +38,11 @@ func build() -> void:
 	_name.placeholder_text = tr("Name für die Bestenlisten")
 	_name.custom_minimum_size = Vector2(0, 54)
 	_name.text_changed.connect(func(t: String) -> void: Settings.player_name = t.strip_edges())
+	_name.gui_input.connect(_on_name_input)
+	_name.focus_entered.connect(func() -> void: set_hints(_name_hints()))
+	_name.focus_exited.connect(func() -> void:
+		if keyboard == null:
+			set_hints(_base_hints))
 	left.add_child(_name)
 	var back := UiKit.button(tr("Zurück"), 24, HORIZONTAL_ALIGNMENT_CENTER)
 	back.pressed.connect(on_cancel)
@@ -44,6 +54,41 @@ func build() -> void:
 	var ctl := _Controls.new()
 	ctl.custom_minimum_size = Vector2(480, 470)
 	right.add_child(ctl)
+
+
+## Footer while the name field has the focus: gamepad A opens the on-screen keyboard.
+func _name_hints() -> Array:
+	return [[["ud"], tr("Wählen")], [["pad:A"], tr("Bildschirmtastatur")], [["Esc", "pad:B"], tr("Zurück")]]
+
+
+## Gamepad A on the name field: on-screen keyboard (the keyboard's Enter is left to the LineEdit).
+func _on_name_input(event: InputEvent) -> void:
+	if event is InputEventJoypadButton and event.is_action_pressed("ui_accept"):
+		_name.accept_event()
+		open_keyboard()
+
+
+func open_keyboard() -> void:
+	if keyboard != null and is_instance_valid(keyboard):
+		return
+	keyboard = NameEntryBox.new(tr("Spielername"), _name.text)
+	keyboard.submitted.connect(_on_keyboard_name)
+	keyboard.cancelled.connect(_close_keyboard)
+	add_child(keyboard)
+	set_hints(NameEntry.key_hints())
+
+
+func _on_keyboard_name(player_name: String) -> void:
+	_name.text = player_name   # setting the text does not emit text_changed
+	Settings.player_name = player_name
+	_close_keyboard()
+
+
+func _close_keyboard() -> void:
+	keyboard = null
+	set_hints(_name_hints())
+	if is_inside_tree():
+		_focus_later(_name)
 
 
 func _volume_row(label: String, v: float) -> OptionRow:

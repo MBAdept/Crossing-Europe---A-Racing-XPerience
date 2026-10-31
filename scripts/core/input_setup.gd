@@ -6,6 +6,7 @@ extends Node
 ##   brake                     : Down, S, left trigger, gamepad X
 ##   pause                     : Escape, P, gamepad Start
 ## Menus use the built-in ui_* actions (Enter/Space/gamepad A = ui_accept, Escape/gamepad B = ui_cancel).
+## Also tracks the active input device (InputMode: gamepad or keyboard) for the key hints.
 
 const STEER_DEADZONE := 0.2
 const PEDAL_DEADZONE := 0.1
@@ -20,6 +21,25 @@ func _init() -> void:
 	# Menus: Godot's built-in ui_accept/ui_cancel have no gamepad buttons – add A / B.
 	_action("ui_accept", 0.5, [_button(JOY_BUTTON_A)])
 	_action("ui_cancel", 0.5, [_button(JOY_BUTTON_B)])
+
+
+func _ready() -> void:
+	# a connected gamepad (Steam Deck: always) starts with gamepad hints; the first key press switches
+	InputMode.gamepad = not Input.get_connected_joypads().is_empty()
+	if CliArgs.has("input"):   # debug/screenshots: --input=gamepad|keyboard
+		InputMode.gamepad = CliArgs.get_string("input") == "gamepad"
+	Input.joy_connection_changed.connect(_on_joy_connection_changed)
+
+
+func _input(event: InputEvent) -> void:
+	InputMode.note(event)
+
+
+func _on_joy_connection_changed(_device: int, connected: bool) -> void:
+	if connected:
+		InputMode.gamepad = true
+	elif Input.get_connected_joypads().is_empty():
+		InputMode.gamepad = false
 
 
 func _action(action_name: String, deadzone: float, events: Array) -> void:

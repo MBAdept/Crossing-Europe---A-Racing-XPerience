@@ -14,9 +14,19 @@ var leaderboard_filter := "all"   # "all" or a vehicle type id
 
 func _ready() -> void:
 	leaderboard_filter = str(ConfigLoader.lookup(ConfigLoader.load_merged(), "leaderboard.default_filter", "all"))
+	fullscreen = default_fullscreen()
 	load_settings()
 	if not CliArgs.has("no-settings-apply"):
 		apply()
+
+
+## Start value of "Vollbild" (until the player sets it in the options): full screen on small screens
+## like the Steam Deck's 1280×800, where a 1280×720 window with its title bar does not fit (and the menus
+## only fill a 16:10 screen in full screen); windowed on larger screens.
+static func default_fullscreen() -> bool:
+	if DisplayServer.get_name() == "headless":
+		return false
+	return DisplayServer.screen_get_size().y <= 800
 
 
 func load_settings() -> void:

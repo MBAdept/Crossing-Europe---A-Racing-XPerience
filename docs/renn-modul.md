@@ -321,7 +321,7 @@ Sitzung einen `TutorialCoach`, der jedes Thema einmal als kurzen „Tipp: …“
 
 | Auslöser | Hinweis (Zahlen aus der Konfiguration) |
 |---|---|
-| LOS (+1,2 s) | Lenken (Pfeiltasten, A/D), Gas/Bremse (Pfeil hoch/runter, W/S), Gamepad (Stick, Trigger) |
+| LOS (+1,2 s) | Lenken (Pfeiltasten, A/D), Gas/Bremse (Pfeil hoch/runter, W/S), Gamepad (Stick, Trigger); ist beim Start ein Gamepad das aktive Eingabegerät (`InputMode`, z. B. Steam Deck), nur der Gamepad-Hinweis (`TutorialCoach.gamepad`) |
 | Start mit < 60 % Tank | „Nur 35 % im Tank – unterwegs an der Tankstelle nachtanken!“ |
 | Start | Tankanzeige unten links: Tankstand, Reichweite, nächste Tankstelle |
 | erste Ankündigung 30/15 km | „Tankstellen werden 30, 15 und 5 km vorher angekündigt“ (`fuel.announce_km`) |

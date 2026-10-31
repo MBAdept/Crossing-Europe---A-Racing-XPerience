@@ -47,6 +47,13 @@ chmod +x CrossingEurope.x86_64
 | Pause | Esc oder P | Start |
 | Menü: wählen / bestätigen / zurück | Pfeiltasten / Enter / Esc | Stick / A / B |
 
+## Steam Deck
+
+Läuft als Nicht-Steam-Spiel auf dem Steam Deck und ist komplett mit dem eingebauten Controller spielbar: Die
+Tastenhinweise zeigen dort nur Gamepad-Tasten, Namen gibt man über eine Bildschirmtastatur ein, die Menüs füllen den
+16:10-Bildschirm. Prüfung, Messwerte und empfohlene Einstellungen (Vorlage „Gamepad“, Vollbild, kein Proton):
+[docs/steam-deck.md](docs/steam-deck.md).
+
 ## Steam-Artwork
 
 Wer das Spiel als Nicht-Steam-Spiel in Steam einbindet (Linux, Steam Deck): fertige Bibliotheksbilder im Look des

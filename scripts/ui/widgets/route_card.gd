@@ -85,7 +85,7 @@ func _draw() -> void:
 		draw_string(f_bold, Vector2(fx + 25, fy + 1), code, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, UiTheme.TEXT_DIM)
 		fx += 44.0
 	if next_stage != "":
-		draw_string(f_body, Vector2(x, fy), next_stage, HORIZONTAL_ALIGNMENT_LEFT, size.x - x - 34.0 - n_flags * 44.0, 16, UiTheme.TEXT_DIM)
+		draw_string(f_body, Vector2(x, fy), next_stage, HORIZONTAL_ALIGNMENT_LEFT, size.x - x - 34.0 - n_flags * 44.0, 17, UiTheme.TEXT_DIM)
 	# figures row: totals over the route to the target
 	var y := size.y - 18.0
 	var cx := x

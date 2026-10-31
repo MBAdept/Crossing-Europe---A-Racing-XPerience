@@ -7,6 +7,8 @@ extends RefCounted
 ## per stage – and hands them out one after another, render.tutorial_hint_s seconds apart, for
 ## Hud.show_message. Urgent topics (fuel lane, refuelling, radar, chase, City Limits) jump the queue,
 ## because the situation they explain is happening right now. The texts use the configured numbers.
+## The control hints follow the active input: with a gamepad (InputMode.gamepad at setup, e.g. on the
+## Steam Deck) only the gamepad hint, otherwise keyboard first, then gamepad.
 ## Pure logic (no autoloads, no nodes). Owner: race module.
 
 const URGENT := ["fuel_lane", "refuel", "radar", "chase", "city"]
@@ -14,6 +16,7 @@ const URGENT := ["fuel_lane", "refuel", "radar", "chase", "city"]
 var hint_s := 6.0                  ## seconds a hint stays on screen (render.tutorial_hint_s)
 var gap_s := 0.6                   ## pause between two queued hints
 var shown: Array[String] = []      ## topics already triggered (in order)
+var gamepad := false               ## gamepad is the active input: control hints for the gamepad only
 
 var _cfg: Dictionary = {}
 var _queue: Array[String] = []
@@ -23,6 +26,7 @@ var _wait := 0.0
 func setup(config: Dictionary) -> void:
 	_cfg = config
 	hint_s = maxf(1.0, _f("render.tutorial_hint_s", 6.0))
+	gamepad = InputMode.gamepad
 	shown.clear()
 	_queue.clear()
 	_wait = 0.0
@@ -73,8 +77,9 @@ func hints_for(topic: String, args: Dictionary = {}) -> Array[String]:
 	var out: Array[String] = []
 	match topic:
 		"start":
-			out.append(tr("Tipp: Lenken mit den Pfeiltasten links/rechts oder A/D"))
-			out.append(tr("Tipp: Gas mit Pfeil hoch oder W, Bremse mit Pfeil runter oder S"))
+			if not gamepad:
+				out.append(tr("Tipp: Lenken mit den Pfeiltasten links/rechts oder A/D"))
+				out.append(tr("Tipp: Gas mit Pfeil hoch oder W, Bremse mit Pfeil runter oder S"))
 			out.append(tr("Tipp: Gamepad – Stick lenkt, rechter Trigger Gas, linker Trigger Bremse"))
 		"fuel_low":
 			out.append(tr("Tipp: Nur %d %% im Tank – unterwegs an der Tankstelle nachtanken!") % int(round(float(args.get("percent", 35.0)))))

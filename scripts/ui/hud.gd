@@ -20,6 +20,7 @@ extends Control
 const SPEEDO_A0 := 135.0
 const SPEEDO_A1 := 405.0
 const GO_TIME := 1.1
+const PROGRESS_Y := 112.0     ## centre line of the progress bar (its panel also holds the km figures)
 const DEMO := {
 	"refuel": {"refuel": {"active": true, "progress01": 0.46, "liters": 23.4, "time_left_s": 6.3}, "speed_kmh": 0.0, "fuel_l": 31.0, "next_station_km": 0.0},
 	"police": {"police_state": "chase", "police_gap_m": 140.0, "escape01": 0.62, "speed_kmh": 226.0},
@@ -200,6 +201,16 @@ func _text_w(text: String, font: Font, fs: int) -> float:
 	return font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 
 
+## `text` shortened with "…" so that it fits into `max_w` pixels (draw_string itself does not clip).
+func _fit(text: String, font: Font, fs: int, max_w: float) -> String:
+	if _text_w(text, font, fs) <= max_w:
+		return text
+	var t := text
+	while t.length() > 1 and _text_w(t.strip_edges() + "…", font, fs) > max_w:
+		t = t.left(t.length() - 1)
+	return t.strip_edges() + "…"
+
+
 func _hud_panel(r: Rect2, border: Color = Color(UiTheme.ACCENT_2, 0.32), bg: Color = UiTheme.PANEL_HUD, cut: float = 10.0) -> void:
 	UiIcons.panel(self, r, bg, border, cut, 1.5)
 
@@ -221,6 +232,7 @@ func _draw() -> void:
 	_draw_clock_panel()
 	_draw_time_panel(w)
 	_draw_progress(w)
+	_draw_penalty(w)
 	var right_y := _draw_limit_and_radar(w)
 	right_y = _draw_city_sign(w, right_y)
 	_draw_police(w, right_y)
@@ -268,7 +280,7 @@ func _draw_clock_panel() -> void:
 		cname += "  ·  " + tr("TUNNEL")
 	_text(Vector2(r.position.x + 52, r.position.y + 76), cname, _f_bold, 21, UiTheme.TEXT)
 	var stage_name := _s("stage_name", plan.display_name if plan != null else "")
-	_text(Vector2(r.position.x + 16, r.position.y + 100), stage_name, _f_body, 17, UiTheme.TEXT_DIM, HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 28)
+	_text(Vector2(r.position.x + 16, r.position.y + 101), _fit(stage_name, _f_body, 19, r.size.x - 28), _f_body, 19, UiTheme.TEXT_DIM)
 
 
 # --- top-centre: stage time, record, pace delta ----------------------------------------------
@@ -285,19 +297,24 @@ func _draw_time_panel(w: float) -> void:
 		var label := tr("REKORD %s") % UiFormat.time(rec)
 		if who != "":
 			label += " · " + who
-		_text(Vector2(r.position.x + 14, y2), label, _f_body, 17, UiTheme.TEXT_DIM, HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 110)
+		_text(Vector2(r.position.x + 14, y2), _fit(label, _f_body, 19, r.size.x - 112), _f_body, 19, UiTheme.TEXT_DIM)
 		var pd := UiFormat.pace_delta(t, rec, _f("stage_km"), _f("stage_length_km", 1.0))
 		if not is_nan(pd) and _f("stage_km") > 0.5:
 			_text(Vector2(r.position.x, y2 + 1), UiFormat.delta_short(pd), _f_mono, 21, UiTheme.delta_color(pd), HORIZONTAL_ALIGNMENT_RIGHT, r.size.x - 14)
 	else:
-		_text(Vector2(r.position.x, y2), tr("Noch kein Rekord – setz die Bestzeit!"), _f_body, 17, UiTheme.TEXT_DIM, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+		_text(Vector2(r.position.x, y2), tr("Noch kein Rekord – setz die Bestzeit!"), _f_body, 19, UiTheme.TEXT_DIM, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+
+
+## Time penalty badge in the middle of the progress panel's label row (between the km figures).
+func _draw_penalty(w: float) -> void:
 	var pen := _f("penalty_s")
-	if pen > 0.0:
-		var txt := tr("+%s STRAFE") % UiFormat.time(pen)
-		var tw := _text_w(txt, _f_bold, 17) + 20.0
-		var pr := Rect2(w * 0.5 - tw * 0.5, r.end.y + 34, tw, 22)
-		UiIcons.panel(self, pr, Color(0.35, 0.18, 0.0, 0.8), UiTheme.WARN, 6.0)
-		_text(Vector2(pr.position.x, pr.position.y + 17), txt, _f_bold, 17, UiTheme.WARN, HORIZONTAL_ALIGNMENT_CENTER, pr.size.x)
+	if pen <= 0.0:
+		return
+	var txt := tr("+%s STRAFE") % UiFormat.time(pen)
+	var tw := _text_w(txt, _f_bold, 18) + 20.0
+	var pr := Rect2(w * 0.5 - tw * 0.5, PROGRESS_Y + 13.0, tw, 24)
+	UiIcons.panel(self, pr, Color(0.35, 0.18, 0.0, 0.9), UiTheme.WARN, 6.0)
+	_text(Vector2(pr.position.x, pr.position.y + 18), txt, _f_bold, 18, UiTheme.WARN, HORIZONTAL_ALIGNMENT_CENTER, pr.size.x)
 
 
 # --- progress bar ----------------------------------------------------------------------------
@@ -307,8 +324,8 @@ func _draw_progress(w: float) -> void:
 	var km := clampf(_f("stage_km"), 0.0, length)
 	var x0 := w * 0.5 - 286.0
 	var bw := 572.0
-	var y := 112.0
-	UiIcons.panel(self, Rect2(x0 - 14, y - 15, bw + 28, 30), UiTheme.PANEL_HUD, Color(0, 0, 0, 0), 8.0)
+	var y := PROGRESS_Y
+	UiIcons.panel(self, Rect2(x0 - 14, y - 15, bw + 28, 55), UiTheme.PANEL_HUD, Color(0, 0, 0, 0), 8.0)
 	var kx := func(k: float) -> float: return x0 + bw * clampf(k / length, 0.0, 1.0)
 	draw_rect(Rect2(x0, y - 2, bw, 4), Color(1, 1, 1, 0.16))
 	if plan != null:
@@ -339,8 +356,8 @@ func _draw_progress(w: float) -> void:
 	draw_circle(Vector2(px, y), 4.5, UiTheme.ACCENT_2)
 	var left := tr("km %s / %s") % [UiFormat.decimal(km, 1), UiFormat.decimal(length, 0)]
 	var right := tr("noch %s") % UiFormat.km(maxf(0.0, length - km), 0)
-	_text(Vector2(x0, y + 30), left, _f_mono, 17, UiTheme.TEXT)
-	_text(Vector2(x0, y + 30), right, _f_mono, 17, UiTheme.TEXT_DIM, HORIZONTAL_ALIGNMENT_RIGHT, bw)
+	_text(Vector2(x0, y + 31), left, _f_mono, 19, UiTheme.TEXT)
+	_text(Vector2(x0, y + 31), right, _f_mono, 19, UiTheme.TEXT_DIM, HORIZONTAL_ALIGNMENT_RIGHT, bw)
 
 
 # --- top-right: limit sign + radar warning ---------------------------------------------------
@@ -351,7 +368,7 @@ func _draw_limit_and_radar(w: float) -> float:
 	var limit := int(_f("speed_limit"))
 	UiIcons.speed_sign(self, c, r, limit, _f_bold)
 	if limit <= 0:
-		_text(Vector2(c.x - 40, c.y + r + 18), tr("frei"), _f_bold, 17, UiTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 80)
+		_text(Vector2(c.x - 40, c.y + r + 19), tr("frei"), _f_bold, 19, UiTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 80)
 	var rw := _d("radar_warning")
 	if not rw.is_empty():
 		var in_zone := bool(rw.get("in_zone", false))
@@ -375,11 +392,11 @@ func _draw_city_sign(w: float, y: float) -> float:
 	if not _b("city_limits"):
 		return y
 	var town := (plan.to_name if plan != null else "").to_upper()
-	var tw := maxf(_text_w(town, _f_bold, 22), _text_w(tr("CITY LIMITS"), _f_bold, 13)) + 28.0
+	var tw := maxf(_text_w(town, _f_bold, 22), _text_w(tr("CITY LIMITS"), _f_bold, 15)) + 28.0
 	var r := Rect2(w - 16 - tw, y + 6, tw, 50)
 	draw_rect(r, Color("f2c200"))
 	draw_rect(r.grow(-3), Color(0.08, 0.08, 0.08), false, 2.0)
-	_text(Vector2(r.position.x, r.position.y + 19), tr("CITY LIMITS"), _f_bold, 13, Color(0.1, 0.1, 0.1), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, false)
+	_text(Vector2(r.position.x, r.position.y + 19), tr("CITY LIMITS"), _f_bold, 15, Color(0.1, 0.1, 0.1), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, false)
 	_text(Vector2(r.position.x, r.position.y + 41), town, _f_bold, 22, Color(0.06, 0.06, 0.06), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, false)
 	return r.end.y + 4
 
@@ -412,11 +429,12 @@ func _draw_police(w: float, y: float) -> void:
 	_text(Vector2(r.position.x, r.position.y + 56), sub, _f_body, 18, UiTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 	if ps == "chase":
 		var e := clampf(_f("escape01"), 0.0, 1.0)
-		var br := Rect2(r.position.x + 16, r.position.y + 68, r.size.x - 120, 14)
+		var gap_txt := tr("%d m hinter dir") % roundi(_f("police_gap_m"))
+		var gap_w := _text_w(gap_txt, _f_body, 18)
+		var br := Rect2(r.position.x + 16, r.position.y + 69, maxf(r.size.x - 44.0 - gap_w, 80.0), 14)
 		_bar(br, e, UiTheme.GOOD if e > 0.66 else UiTheme.ACCENT_2)
 		draw_rect(br, Color(1, 1, 1, 0.35), false, 1.0)
-		var gap := _f("police_gap_m")
-		_text(Vector2(br.end.x + 8, br.end.y), tr("%d m hinter dir") % roundi(gap), _f_body, 16, UiTheme.TEXT_DIM)
+		_text(Vector2(r.position.x, br.end.y + 1), gap_txt, _f_body, 18, UiTheme.TEXT_DIM, HORIZONTAL_ALIGNMENT_RIGHT, r.size.x - 14)
 
 
 # --- bottom-left: fuel -----------------------------------------------------------------------
@@ -476,7 +494,7 @@ func _speed_angle(v: float) -> float:
 func _draw_speedo(w: float, h: float) -> void:
 	var c := Vector2(w - 140, h - 124)
 	var rr := 104.0
-	draw_circle(c, rr + 16, Color(0.015, 0.02, 0.07, 0.7))
+	draw_circle(c, rr + 16, Color(0.015, 0.02, 0.07, 0.78))
 	draw_arc(c, rr + 16, 0.0, TAU, 72, Color(UiTheme.ACCENT_2, 0.3), 1.5, true)
 	draw_arc(c, rr, deg_to_rad(SPEEDO_A0), deg_to_rad(SPEEDO_A1), 72, Color(1, 1, 1, 0.1), 10.0, true)
 	var speed := maxf(_f("speed_kmh"), 0.0)
@@ -530,7 +548,7 @@ func _draw_speedo(w: float, h: float) -> void:
 	# digital
 	var sp := str(roundi(speed))
 	_text(Vector2(c.x - 70, c.y + 62), sp, _f_mono, 50, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 140)
-	_text(Vector2(c.x - 70, c.y + 84), "km/h", _f_bold, 17, UiTheme.TEXT_DIM, HORIZONTAL_ALIGNMENT_CENTER, 140)
+	_text(Vector2(c.x - 70, c.y + 85), "km/h", _f_bold, 18, UiTheme.TEXT_DIM, HORIZONTAL_ALIGNMENT_CENTER, 140)
 	if _f("understeer") > 0.3:
 		var txt := tr("UNTERSTEUERN")
 		var tw := _text_w(txt, _f_bold, 17) + 18.0
@@ -616,7 +634,7 @@ func _draw_start_lights(c: Vector2, lit: int, alpha: float = 1.0) -> void:
 
 func _draw_refuel(w: float) -> float:
 	var rf := _d("refuel")
-	var r := Rect2(w * 0.5 - 230, 150, 460, 136)
+	var r := Rect2(w * 0.5 - 230, 160, 460, 136)
 	UiIcons.panel(self, r, Color(0.02, 0.05, 0.14, 0.88), UiTheme.GOOD, 14.0, 2.5)
 	UiIcons.pump(self, r.position + Vector2(44, 46), 46.0, UiTheme.GOOD)
 	_text(Vector2(r.position.x + 70, r.position.y + 48), tr("Volltanken?"), _f_title, 38, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 90)
@@ -659,7 +677,7 @@ func _draw_tow(w: float, h: float) -> float:
 
 
 func _draw_finish(w: float) -> float:
-	var r := Rect2(0, 150, w, 92)
+	var r := Rect2(0, 160, w, 92)
 	draw_rect(r, Color(0.02, 0.02, 0.06, 0.72))
 	UiIcons.checkered(self, Rect2(0, r.position.y, w, 12), int(w / 12.0), 1)
 	UiIcons.checkered(self, Rect2(0, r.end.y - 12, w, 12), int(w / 12.0), 1, Color(0.08, 0.08, 0.1), Color.WHITE)

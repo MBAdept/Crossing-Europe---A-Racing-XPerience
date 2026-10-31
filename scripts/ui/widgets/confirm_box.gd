@@ -33,6 +33,11 @@ func _ready() -> void:
 	bg.color = Color(0.015, 0.02, 0.07, 0.8)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	# the screen is the 1280×720 frame; the dimmer also covers the menu background around it (16:10)
+	bg.offset_left = -1000.0
+	bg.offset_right = 1000.0
+	bg.offset_top = -400.0
+	bg.offset_bottom = 400.0
 	add_child(bg)
 	var center := CenterContainer.new()
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
