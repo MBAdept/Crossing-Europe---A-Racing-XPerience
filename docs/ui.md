@@ -16,6 +16,13 @@ schräge Schaltflächen (StyleBoxFlat mit `skew`), Panels mit abgeschrägten Eck
   Jede Schrift hat die latin-ext-Variante und danach Godots Standardschrift (Open Sans, u. a. Kyrillisch) als
   Fallback – bulgarische/serbische Namen werden also dargestellt. Pfeil-Glyphen fehlen in allen Schriften:
   Pfeile werden gezeichnet (`KeyHints`, `UiIcons.chevron`), nie als Text.
+- **Mindestgrößen** (Steam Deck, [steam-deck.md](steam-deck.md)): Text mit Kleinbuchstaben ab 17 px (x-Höhe gerendert
+  ≥ 9 px), reine Versal-/Ziffernbeschriftung ab 15 px (Versalhöhe 11 px); HUD-Texte, die man beim Fahren liest, 18–19 px.
+  Die gedämpfte Farbe `TEXT_MUTED` hat auf den Panels mindestens 4,5:1 Kontrast.
+- **Bildformat**: logisch 1280×720 (`canvas_items`). Im Rennen Seitenverhältnis `keep` (16:10 → je 40 px schwarze
+  Balken oben und unten), in den Menüs `expand` (`GameFlow._set_menu_stretch`): Die Bildschirme bleiben 1280×720 in der
+  Mitte (`MenuShell.layer`), `MenuBackground` ist im selben Rahmen ausgelegt und läuft bis an den Fensterrand weiter;
+  `ConfirmBox` und `NameEntryBox` dunkeln das ganze Fenster ab. Bei 16:9 ist beides gleich.
 - **Theme** wird in `UiTheme.theme()` im Code gebaut und an der Menüwurzel (`MenuShell`) bzw. am Pausenmenü gesetzt.
 - **Symbole** (Wetter, Tageszeit, Zapfsäule, Radar, Blaulicht, Flaggen, Tempolimit-Schilder) sind Vektorzeichnungen
   in `UiIcons`. Liefert das Sprite-Manifest `ui/weather_*` bzw. `ui/daytime_*`, werden diese Sprites verwendet.
@@ -36,10 +43,11 @@ schräge Schaltflächen (StyleBoxFlat mit `skew`), Panels mit abgeschrägten Eck
 | `scripts/ui/ui_data.gd`, `sample_data.gd` | Datenzugriff mit Fallbacks, Beispieldaten für Debug-Bildschirme |
 | `scripts/ui/route_info.gd` | `RouteInfo`: Routenoption als ganze Route bis zum nächsten Ziel (Fortsetzung, Summen; rein, getestet) |
 | `scripts/ui/screens/*.gd` | ein Skript je Bildschirm (Basisklasse `UiScreen`) |
-| `scripts/ui/widgets/*.gd` | Hintergrund, Logo-Text, Tastenhinweise, Optionszeile, Laufschrift, Bestenliste, Namenseingabe, Tageszeit-Vorschau, Fahrzeug-Showroom, Routenkarte, Ja/Nein-Abfrage (`ConfirmBox`) |
+| `scripts/ui/widgets/*.gd` | Hintergrund, Logo-Text, Tastenhinweise, Optionszeile, Laufschrift, Bestenliste, Namenseingabe, Bildschirmtastatur als Abfrage (`NameEntryBox`), Tageszeit-Vorschau, Fahrzeug-Showroom, Routenkarte, Ja/Nein-Abfrage (`ConfirmBox`) |
+| `scripts/core/input_mode.gd` | `InputMode`: aktives Eingabegerät (Gamepad/Tastatur) für Tastenhinweise und Tutorial |
 | `scripts/audio/audio_manager.gd` | Autoload `AudioManager` (API §11) |
 | `scripts/audio/sfx_synth.gd` | `SfxSynth`: Klangsynthese (rein, getestet) |
-| `tests/unit/ui/*` | Tests: Rennlogik, Formatierung, Laufschrift, Audio-Synthese, Getriebe, Karten-Zoom, Routenoptionen (`test_route_info`), Texte aus der Konfiguration (`test_ui_texts`), Gamepad/Fokus/Spielstand (`test_menu_input`) |
+| `tests/unit/ui/*` | Tests: Rennlogik, Formatierung, Laufschrift, Audio-Synthese, Getriebe, Karten-Zoom, Routenoptionen (`test_route_info`), Texte aus der Konfiguration (`test_ui_texts`), Gamepad/Fokus/Spielstand (`test_menu_input`), Eingabegerät/Gamepad-Hinweise/Namenseingabe in den Optionen (`test_steam_deck`) |
 
 ## Bildschirmablauf
 
@@ -117,6 +125,19 @@ registriert `InputSetup`, Steuerkreuz/Stick sind in Godots ui_*-Aktionen), jede 
 Standardfokus; der Fokus ist deutlich sichtbar (Magenta-Rahmen mit Glühen, goldene Schrift).
 Auswahlwerte (Fahrzeug, Uhrzeit, Optionen, Filter) mit ◀ ▶.
 
+- **Tastenhinweise je Eingabegerät** (`InputMode`, `KeyHints.visible_hints`): `InputSetup` meldet jedes
+  Eingabeereignis an `InputMode`; eine Gamepad-Taste oder ein deutlicher Stick-/Triggerausschlag (≥ 0,5) schaltet auf
+  Gamepad, ein Tastendruck zurück, Maus/Touch/Trackpad schalten nicht. Startwert: Gamepad, wenn eines angeschlossen ist
+  (Steam Deck: immer). Mit Gamepad zeigen die Fußzeilen nur Gamepad-Symbole: `pad:*` bleibt, Pfeiltasten werden zu einem
+  gezeichneten Steuerkreuz (`dpad:udlr`, nur wo der Hinweis keine Gamepad-Taste hat), andere Tasten entfallen; mit
+  Tastatur wie bisher Tasten und Gamepad nebeneinander. Weitere Symbole: `pad:LS`/`pad:RS` (Stick).
+  Das Tutorial nennt mit Gamepad nur den Gamepad-Tipp (`TutorialCoach.gamepad`, beim Start der Etappe gesetzt).
+- **Spielername in den Optionen per Gamepad**: A im Namensfeld öffnet `NameEntryBox` (dieselbe Bildschirmtastatur wie
+  bei den Bestenlisten; OK übernimmt, B löscht, Esc auf einer Tastatur schließt ohne Änderung). Hat das Feld den Fokus,
+  zeigt die Fußzeile „(A) Bildschirmtastatur“.
+- **Vollbild**: Startwert `Settings.default_fullscreen()` – an auf Bildschirmen bis 800 px Höhe (Steam Deck: ein
+  1280×720-Fenster mit Titelleiste passt nicht, und nur im Vollbild füllen die Menüs 16:10), sonst aus; danach gilt der
+  in den Optionen gespeicherte Wert.
 - **Namenseingabe**: Tastatur tippt direkt ins Feld; Gamepad nutzt die Bildschirmtastatur (A–Z, ÄÖÜß,
   Ziffern, Leerzeichen, Löschen, OK): A tippt, B löscht das letzte Zeichen, A im Feld oder auf OK trägt ein.
   Feste Nachbarn: Tastenreihen laufen links/rechts herum, ▲ aus der ersten Reihe ins Feld, ▼ aus der letzten
@@ -154,6 +175,9 @@ Abschleppen, Nachrichten) erscheinen nur zeitweise. Ergänzungen zum Vertrag:
 - Abschlepp-Overlay beschreibt die Mechanik: Der Wagen bleibt stehen, wo er liegen geblieben ist, der
   Abschleppdienst bringt Sprit (`fuel.tow_refill_fraction`, „für einen halben Tank“), Zeitstrafe
   `fuel.tow_penalty_s` („Weiterfahrt von hier · Zeitstrafe +1:30.00“, `UiFormat.tow_text`).
+- Fortschrittsbalken: Das Panel umfasst auch die km-Angaben darunter (vorher standen sie auf dem Himmel und waren
+  bei Tag kaum lesbar); eine Zeitstrafe erscheint als Plakette mittig in dieser Zeile. Lange Etappennamen und
+  Rekordhalter werden mit „…“ gekürzt (`_fit`).
 - Debug: `--hud-demo=refuel,police,radar,radarzone,tow,countdown,reserve,finish,city,understeer` legt
   Demo-Werte über den echten Zustand (Screenshots seltener Situationen).
 
@@ -204,6 +228,10 @@ tools/screenshot.sh /tmp/s --scene=res://scenes/main.tscn --screen=stage_screen 
 tools/screenshot.sh /tmp/h --stage=dev_testetappe --start-km=8 --autopilot --shot-times=3
 tools/screenshot.sh /tmp/p --stage=dev_testetappe --start-km=40 --no-countdown --pause-demo --shot-times=1.5
 ```
+
+Steam Deck: `SCREEN=1280x800 tools/screenshot.sh …` rendert auf einem 1280×800-Bildschirm mit gleich großem Fenster;
+die Screenshots zeigen dann das ganze Fenster samt Balken bzw. Menühintergrund. `--input=gamepad|keyboard` legt das
+Eingabegerät beim Start fest (Gamepad-Hinweise ohne angeschlossenes Gamepad).
 
 Mit `--screen` laufen die Bildschirme mit Beispieldaten: Ist das echte Netz noch dünn (Stub), wird ein kleines
 Beispielnetz um Kiel – Nürnberg verwendet; Bestenlisten werden erzeugt und nur im Speicher gehalten, es wird

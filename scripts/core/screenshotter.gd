@@ -3,6 +3,8 @@ extends Node
 ## Debug helper: saves viewport screenshots at given real-time seconds after it entered the tree,
 ## then optionally quits. Used by the debug CLI (--screenshot=/path/prefix --shot-times=1,2.5,5).
 ## Files: <prefix>_<index>.png (index starting at 0, two digits).
+## A window larger than the 16:9 picture (e.g. 1280×800 like the Steam Deck, stretch aspect "keep")
+## is saved whole: the picture centred with black bars, exactly as the screen shows it.
 
 signal all_done
 
@@ -34,7 +36,7 @@ func _process(delta: float) -> void:
 func _capture(index: int) -> void:
 	_busy = true
 	await RenderingServer.frame_post_draw
-	var img := get_viewport().get_texture().get_image()
+	var img := window_image(get_viewport().get_texture().get_image())
 	var path := "%s_%02d.png" % [prefix, index]
 	var err := img.save_png(path)
 	print("Screenshot ", path, " -> ", error_string(err))
@@ -43,3 +45,18 @@ func _capture(index: int) -> void:
 		all_done.emit()
 		if quit_when_done:
 			get_tree().quit()
+
+
+## The viewport picture as the window shows it: with "keep" the picture is centred in a larger window
+## and the rest stays black (letterbox bars).
+static func window_image(img: Image) -> Image:
+	if img == null or DisplayServer.get_name() == "headless":
+		return img
+	var win := DisplayServer.window_get_size()
+	if win.x <= img.get_width() and win.y <= img.get_height():
+		return img
+	var full := Image.create_empty(maxi(win.x, img.get_width()), maxi(win.y, img.get_height()), false, img.get_format())
+	full.fill(Color.BLACK)
+	var at := (full.get_size() - img.get_size()) / 2
+	full.blit_rect(img, Rect2i(Vector2i.ZERO, img.get_size()), at)
+	return full

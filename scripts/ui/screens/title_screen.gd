@@ -55,7 +55,7 @@ func build() -> void:
 	_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiKit.place(self, _desc, Rect2(96, 630, 620, 40))
 	default_focus = _buttons[1] if has_save else _buttons[0]
-	var ver := UiKit.label("v" + str(ProjectSettings.get_setting("application/config/version", "0.1")), UiTheme.F.MONO, 16, UiTheme.TEXT_MUTED, HORIZONTAL_ALIGNMENT_RIGHT)
+	var ver := UiKit.label("v" + str(ProjectSettings.get_setting("application/config/version", "0.1")), UiTheme.F.MONO, 18, UiTheme.TEXT_MUTED, HORIZONTAL_ALIGNMENT_RIGHT)
 	UiKit.place(self, ver, Rect2(1016, 684, 200, 24))
 	var car := TextureRect.new()
 	var db: Node = get_node_or_null("/root/SpriteDB")

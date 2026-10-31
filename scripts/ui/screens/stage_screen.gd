@@ -113,7 +113,7 @@ func _tutorial_box(plan: StagePlan) -> Control:
 	head.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	row.add_child(head)
 	# Pause (Esc / Start) is left out: the race shows it, and the row must fit the panel
-	var keys := KeyHints.new([[["left", "right"], tr("Lenken")], [["up", "pad:RT"], tr("Gas")], [["down", "pad:LT"], tr("Bremse")]])
+	var keys := KeyHints.new([[["left", "right", "pad:LS"], tr("Lenken")], [["up", "pad:RT"], tr("Gas")], [["down", "pad:LT"], tr("Bremse")]])
 	keys.custom_minimum_size = Vector2(460, 30)
 	row.add_child(keys)
 	var limit := 0.0
@@ -198,4 +198,4 @@ class _InfoTiles extends Control:
 					if race_total >= 0.0:
 						sub = tr("nach %d Etappen") % race_stages if race_stages != 1 else tr("nach 1 Etappe")
 			if sub != "":
-				draw_string(fb, r.position + Vector2(14 if i >= 2 else 56, 80), sub, HORIZONTAL_ALIGNMENT_LEFT, tw - 20, 16, UiTheme.TEXT_DIM)
+				draw_string(fb, r.position + Vector2(14, 82), sub, HORIZONTAL_ALIGNMENT_LEFT, tw - 20, 18, UiTheme.TEXT_DIM)

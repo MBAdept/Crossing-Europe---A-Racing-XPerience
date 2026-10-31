@@ -5,7 +5,8 @@ Datenformate und Konventionen. **Öffentliche APIs in diesem Dokument sind Vertr
 Signaturen ändern oder entfernen nicht.
 
 - Engine: **Godot 4.7.2**, GDScript, Renderer *GL Compatibility* (läuft auch auf schwacher Hardware).
-- Auflösung: 1280×720 logisch, Stretch-Modus `canvas_items`.
+- Auflösung: 1280×720 logisch, Stretch-Modus `canvas_items`; Seitenverhältnis `keep` im Rennen, `expand` in den
+  Menüs (der Menühintergrund füllt z. B. 16:10 auf dem Steam Deck, siehe [docs/steam-deck.md](docs/steam-deck.md)).
 - Zielplattform: Linux x86_64 als einzelne ausführbare Datei (PCK eingebettet).
 
 ## 1. Verzeichnisse und Modul-Eigentümer
@@ -53,7 +54,7 @@ Abschnitte der zentralen Konfiguration `config/game_config.json`:
 | Name | Datei | Aufgabe |
 |---|---|---|
 | `Config` | `scripts/core/config.gd` | zentrale Konfiguration (`data`, `value("a.b")`, `f()`, `i()`, `section()`) |
-| `InputSetup` | `scripts/core/input_setup.gd` | registriert Aktionen `steer_left/right`, `accelerate`, `brake`, `pause` (Tastatur + Gamepad) |
+| `InputSetup` | `scripts/core/input_setup.gd` | registriert Aktionen `steer_left/right`, `accelerate`, `brake`, `pause` (Tastatur + Gamepad); meldet das aktive Eingabegerät an `InputMode` (Tastenhinweise) |
 | `Settings` | `scripts/core/settings.gd` | Nutzer-Einstellungen `user://settings.json` (Lautstärke, Vollbild, Name, Sprache, Bestenlisten-Filter) |
 | `GameData` | `scripts/data/game_data.gd` | Netz, Länder, Landschaften, Karte; liefert `StagePlan`s und Routenoptionen |
 | `SpriteDB` | `scripts/core/sprite_db.gd` | Sprite-Manifest, Texturen, Zellen je Winkel/Ebene |
@@ -290,7 +291,8 @@ Argumente nach `--`: `--stage=<id> --from=<city> --vehicle=<typ> --hour=<0..24> 
 
 - `tools/run_tests.sh [filter]` – kompiliert alle Skripte (`tests/check_scripts.gd`) und startet alle
   `tests/unit/**/test_*.gd` (Basisklasse `TestCase`). Bricht bei Skriptfehlern ab.
-- `tools/screenshot.sh <präfix> [args]` – rendert unter Xvfb (Software-OpenGL) und speichert PNGs.
+- `tools/screenshot.sh <präfix> [args]` – rendert unter Xvfb (Software-OpenGL) und speichert PNGs;
+  `SCREEN=1280x800` rendert auf einem 1280×800-Bildschirm (Steam Deck, Screenshots samt Balken).
 - `tools/build_linux.sh` – exportiert `build/CrossingEurope.x86_64`.
 - Integration: `tests/race/check_session.gd` (9 Szenarien der Rennsitzung: Kollisionsrichtung, leerer Tank,
   Zielauslauf, Polizei beim Tanken, Tutorial), `tests/race/check_sprite_flip.gd` (braucht Xvfb/OpenGL),

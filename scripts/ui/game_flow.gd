@@ -96,6 +96,7 @@ func start_stage(setup: Dictionary) -> void:
 	scene.connect("restart_requested", func() -> void: start_stage(setup))
 	shell = null
 	_screen_name = ""
+	_set_menu_stretch(false)
 	_switch_to(scene)
 
 
@@ -146,9 +147,17 @@ func _ensure_shell() -> void:
 	if shell != null and is_instance_valid(shell) and current == shell:
 		return
 	get_tree().paused = false
+	_set_menu_stretch(true)
 	shell = MenuShell.new()
 	_switch_to(shell)
 	AudioManager.set_music(true)
+
+
+## Stretch aspect of the window: the menus use "expand" (the screens stay 1280×720 in the middle, the
+## background fills a 16:10 screen like the Steam Deck's), the race keeps 16:9 with black bars ("keep",
+## project setting) because the road picture is laid out for 1280×720.
+func _set_menu_stretch(menus: bool) -> void:
+	get_tree().root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND if menus else Window.CONTENT_SCALE_ASPECT_KEEP
 
 
 func _on_focus_changed(_c: Control) -> void:
