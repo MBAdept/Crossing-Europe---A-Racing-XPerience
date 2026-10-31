@@ -53,9 +53,11 @@ func _vgrad(r: Rect2, top: Color, bottom: Color) -> void:
 
 
 func _draw() -> void:
-	var vs := size if size.x > 2.0 else get_viewport_rect().size
+	var vs := size if size.x > 2.0 and size.y > 2.0 else get_viewport_rect().size
 	var w := vs.x
 	var h := vs.y
+	if w < 16.0 or h < 16.0:
+		return   # degenerate size for a frame while the window/stretch changes: nothing sensible to draw
 	# frame of the screens (centred); equal to the whole area at 16:9
 	var fw := minf(w, FRAME.x)
 	var fh := minf(h, FRAME.y)
@@ -134,6 +136,8 @@ func _draw() -> void:
 			continue
 		var y0 := hy + (fb - hy) * 0.35 / z0
 		var y1 := hy + (fb - hy) * 0.35 / z1
+		if y0 - y1 < 0.25 or y1 > h:
+			continue   # flatter than a quarter pixel (triangulation would fail) or below the window
 		var w0 := 6.0 * 0.35 / z0 * 3.0
 		var w1 := 6.0 * 0.35 / z1 * 3.0
 		draw_colored_polygon(PackedVector2Array([Vector2(vp.x - w1, y1), Vector2(vp.x + w1, y1), Vector2(vp.x + w0, y0), Vector2(vp.x - w0, y0)]),

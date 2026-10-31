@@ -8,8 +8,21 @@ Nachtankzwang, Radarfallen und Polizei, Tageszeit und Wetter. Vorbilder: *Enduro
 - Technik: [ARCHITECTURE.md](ARCHITECTURE.md) und die Moduldokus in [docs/](docs/)
 - Engine: Godot 4.7.2 (GDScript, Renderer „GL Compatibility“), alle Fahrzeuge, Bäume, Gebäude, Tankstellen und
   Symbole prozedural in Blender 5.2 modelliert und als Sprites gerendert
-- Stand: **v0.2.0 – Fahrzeugdarstellung v2** (nach dem ersten Playtest); alle acht Schritte des Prototyp-Plans sind
-  umgesetzt, alle Zahlen sind Startwerte zum Testen.
+- Stand: **v0.3.0 – Motorklang v2 und Steam Deck**; alle acht Schritte des Prototyp-Plans sind umgesetzt, alle
+  Zahlen sind Startwerte zum Testen.
+
+## Neu in v0.3.0
+
+- **Eigener Motor für jedes Auto**: Kompakt mit 2,0-l-Vierzylinder-Turbo, Kombi mit Turbodiesel, Limousine mit
+  Reihensechszylinder, Sportwagen mit hochdrehendem Sechszylinder-Boxer, Gran Turismo mit V8-Biturbo. Der Klang
+  entsteht aus einem physikalisch angelehnten Modell (Auspuffstöße in echter Zündfolge, Auspuffanlage, Ansaug- und
+  Mechanikgeräusche, Diesel-Nageln) und wird im Spiel Arbeitsspiel für Arbeitsspiel passend zur Drehzahl
+  zusammengesetzt.
+- **Getriebe je Auto**: lastabhängiges Hochschalten, Rückschalten beim Bremsen (bei den sportlichen Autos mit
+  Zwischengas), Begrenzer, Gasstöße im Countdown, Turbopfeifen, Schubumluftzischen und Knallen im Schub, Anlassen.
+- **Probehören**: in der Fahrzeugwahl gibt jedes Auto beim Wechsel einen kurzen Gasstoß.
+- **Steam Deck**: Menüs füllen den 16:10-Bildschirm, bei Gamepad-Bedienung nur Gamepad-Symbole, größere und
+  kontrastreichere Schrift im HUD, Namenseingabe in den Optionen per Bildschirmtastatur.
 
 ## Neu in v0.2.0
 
@@ -84,7 +97,8 @@ Hero-Banner, transparentes Logo und Icon, jeweils auch in doppelter Auflösung. 
   München – Bremen und das Königsrennen (rund 9.200 km in 33 Etappen plus Fähre).
 - **Etappenbildschirm** mit Karte (Natural Earth), Wetter, Rekord-Laufschrift und Top 10; Bestenlisten pro Etappe
   und Rennen mit Fahrzeug, Wetter- und Tageszeit-Symbol; Namenseingabe auch per Gamepad; Spielstand nach jeder Etappe.
-- **Sound** komplett prozedural (Motor mit virtuellem Getriebe, Wind, Martinshorn, Blitzer, Tanken, Menümusik).
+- **Sound** komplett prozedural: fünf eigene Motoren aus einem physikalisch angelehnten Modell mit Getriebe je Auto
+  ([docs/motorsound.md](docs/motorsound.md)), Wind, Martinshorn, Blitzer, Tanken, Menümusik.
 
 ## Entscheidungen zu den offenen Punkten
 
