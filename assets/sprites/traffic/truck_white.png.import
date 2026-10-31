@@ -3,20 +3,21 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://code3job1xtc5"
-path="res://.godot/imported/truck_white.png-9fcde4c6cbbd3230fd14fd58516a3844.ctex"
+path.bptc="res://.godot/imported/truck_white.png-9fcde4c6cbbd3230fd14fd58516a3844.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/sprites/traffic/truck_white.png"
-dest_files=["res://.godot/imported/truck_white.png-9fcde4c6cbbd3230fd14fd58516a3844.ctex"]
+dest_files=["res://.godot/imported/truck_white.png-9fcde4c6cbbd3230fd14fd58516a3844.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

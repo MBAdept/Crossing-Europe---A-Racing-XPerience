@@ -319,6 +319,75 @@ def basic(name, color, rough=0.5, metal=0.0, coat=0.0, spec=0.5, emit=None, bump
     return finish(m, nb, out, em)
 
 
+def paint(name, color, metal=0.4, rough=0.3, coat=1.0, coat_rough=0.03, emit=None):
+    """Car paint: base (solid or metallic) under a glossy clear coat."""
+    m, nb = new_material(name)
+    c = srgb(color) if isinstance(color, str) else color
+    out = principled(nb, c, rough=rough, metal=metal, coat=coat, coat_rough=coat_rough, spec=0.5)
+    em = {k: emit_col(v[0], v[1]) for k, v in emit.items()} if emit else None
+    return finish(m, nb, out, em)
+
+
+def glass_mat(name, tint="#0d1115", rough=0.012):
+    """Car glass (opaque, dark tint): strong Fresnel reflections of the sky/horizon."""
+    m, nb = new_material(name)
+    out = principled(nb, srgb(tint), rough=rough, metal=0.0, coat=0.6, coat_rough=0.008, spec=0.8)
+    return finish(m, nb, out, None)
+
+
+def lens(name, tint="#9c1209", refl=0.07, rough=0.015, emit=None, frost=0.0):
+    """Thin lamp lens (no refraction): tinted transparency + clear-coat-like reflection (Fresnel).
+    In the light passes it is fully transparent (plus its own emission), so the lamp internals behind
+    it glow through; the light passes therefore allow transparent bounces."""
+    m, nb = new_material(name)
+    tr = nb.node("ShaderNodeBsdfTransparent")
+    tr.inputs["Color"].default_value = srgb(tint)
+    gl = nb.node("ShaderNodeBsdfGlossy")
+    gl.inputs["Roughness"].default_value = rough
+    gl.inputs["Color"].default_value = (1.0, 1.0, 1.0, 1.0)
+    fr = nb.node("ShaderNodeFresnel")
+    fr.inputs["IOR"].default_value = 1.5
+    fac = nb.math("MULTIPLY_ADD", fr.outputs[0], 1.0 - refl, refl, clamp=True)
+    mix = nb.node("ShaderNodeMixShader")
+    nb.feed(mix.inputs[0], fac)
+    if frost > 0:
+        df = nb.node("ShaderNodeBsdfDiffuse")
+        df.inputs["Color"].default_value = srgb(tint)
+        m2 = nb.node("ShaderNodeMixShader")
+        m2.inputs[0].default_value = frost
+        nb.links.new(tr.outputs[0], m2.inputs[1])
+        nb.links.new(df.outputs[0], m2.inputs[2])
+        nb.links.new(m2.outputs[0], mix.inputs[1])
+    else:
+        nb.links.new(tr.outputs[0], mix.inputs[1])
+    nb.links.new(gl.outputs[0], mix.inputs[2])
+    grp = nb.node("ShaderNodeGroup")
+    grp.node_tree = pass_group()
+    # light passes: transparent (white) + own emission
+    tr2 = nb.node("ShaderNodeBsdfTransparent")
+    tr2.inputs["Color"].default_value = (1.0, 1.0, 1.0, 1.0)
+    em = nb.node("ShaderNodeEmission")
+    em_col = (0.0, 0.0, 0.0, 1.0)
+    if emit:
+        acc = None
+        for layer, (ecol, strength) in emit.items():
+            term = nb.color_scale(emit_col(ecol, strength), grp.outputs[layer])
+            acc = term if acc is None else nb.vadd(acc, term)
+        nb.feed(em.inputs["Color"], acc)
+    else:
+        em.inputs["Color"].default_value = em_col
+    add = nb.node("ShaderNodeAddShader")
+    nb.links.new(tr2.outputs[0], add.inputs[0])
+    nb.links.new(em.outputs[0], add.inputs[1])
+    sw = nb.node("ShaderNodeMixShader")
+    nb.feed(sw.inputs[0], nb.NOT(grp.outputs["base"]))
+    nb.links.new(mix.outputs[0], sw.inputs[1])
+    nb.links.new(add.outputs[0], sw.inputs[2])
+    out = nb.node("ShaderNodeOutputMaterial")
+    nb.links.new(sw.outputs[0], out.inputs["Surface"])
+    return m
+
+
 def emissive_only(name, base_color, emit, rough=0.3):
     """Lamp lens: base look = base_color (lights off), emission per layer."""
     return basic(name, base_color, rough=rough, spec=0.6, coat=0.3, emit=emit)

@@ -3,20 +3,21 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dljr4l65fal1g"
-path="res://.godot/imported/limousine.png-f60cd25125d0b7a2ea7ad73f436ca04d.ctex"
+path.bptc="res://.godot/imported/limousine.png-f60cd25125d0b7a2ea7ad73f436ca04d.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/sprites/player/limousine.png"
-dest_files=["res://.godot/imported/limousine.png-f60cd25125d0b7a2ea7ad73f436ca04d.ctex"]
+dest_files=["res://.godot/imported/limousine.png-f60cd25125d0b7a2ea7ad73f436ca04d.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

@@ -3,20 +3,21 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ds6yvlq8057lp"
-path="res://.godot/imported/truck_blue.png-8f99a1dd5efa189e7b67bf4560c3f04f.ctex"
+path.bptc="res://.godot/imported/truck_blue.png-8f99a1dd5efa189e7b67bf4560c3f04f.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/sprites/traffic/truck_blue.png"
-dest_files=["res://.godot/imported/truck_blue.png-8f99a1dd5efa189e7b67bf4560c3f04f.ctex"]
+dest_files=["res://.godot/imported/truck_blue.png-8f99a1dd5efa189e7b67bf4560c3f04f.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

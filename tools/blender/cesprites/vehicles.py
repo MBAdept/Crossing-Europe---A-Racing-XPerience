@@ -196,6 +196,7 @@ class Car:
             rings.append([(x, y, z) for (x, z) in MU.mirror_ring(half)])
         bm = MU.loft(rings)
         ob = MU.make(self.name + "_lower", bm, mat, parent=self.rig.root, smooth=True, sharp_deg=48)
+        _smooth_body(ob)
         self.parts.append(ob)
         return ob
 
@@ -211,6 +212,7 @@ class Car:
             rings.append([(x, y, z) for (x, z) in MU.mirror_ring(half)])
         bm = MU.loft(rings)
         ob = MU.make(self.name + "_greenhouse", bm, mat, parent=self.rig.root, smooth=True, sharp_deg=32)
+        _smooth_body(ob)
         self.parts.append(ob)
         return ob
 
@@ -248,6 +250,7 @@ class Car:
             bm = MU.loft(rings)
             ob = MU.make(self.name + ("_fbumper" if front else "_rbumper"), bm, mat, parent=self.rig.root,
                          smooth=True, sharp_deg=50)
+            _smooth_body(ob)
             self.parts.append(ob)
 
     def wells(self):
@@ -541,6 +544,16 @@ class Car:
         if win.get("no_rear_window"):
             res.pop("rear")
         return res
+
+
+def _smooth_body(ob):
+    """Softer traffic bodies (contract v2): sharp edges only at real creases, one subdivision level."""
+    me = ob.data
+    me.set_sharp_from_angle(angle=math.radians(70))
+    m = ob.modifiers.new("subd", "SUBSURF")
+    m.levels = 1
+    m.render_levels = 1
+    m.boundary_smooth = "PRESERVE_CORNERS"
 
 
 def clip_poly(poly, h):

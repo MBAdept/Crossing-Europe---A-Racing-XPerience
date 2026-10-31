@@ -1,3997 +1,1726 @@
 {
  "version": 1,
- "generator": "blender-cesprites-1",
+ "generator": "blender-cesprites-2",
  "sets": {
   "player/gran_turismo": {
    "file": "player/gran_turismo.png",
-   "cell": [
-    660,
-    280
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.8929,
-   "anchor": [
-    0.5,
-    0.968
-   ],
-   "object": {
-    "width_m": 1.95,
-    "length_m": 4.95,
-    "height_m": 1.3
+   "cell": [596, 364],
+   "grid_cols": 6,
+   "angles": ["l20", "l18", "l16", "l14", "l12", "l10", "l8", "l6", "l4", "l2", "c", "r2", "r4", "r6", "r8", "r10", "r12", "r14", "r16", "r18", "r20"],
+   "yaw_deg": [-20.0, -18.0, -16.0, -14.0, -12.0, -10.0, -8.0, -6.0, -4.0, -2.0, 0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 4.4391,
+   "anchor": [0.48205, 0.50216],
+   "object": {"width_m": 1.95, "length_m": 4.95, "height_m": 1.285},
+   "tags": ["player"],
+   "projection": "perspective",
+   "pivot": "center",
+   "camera": {
+    "height_m": 3.4,
+    "distance_m": 9.0,
+    "fov_deg": 84.0,
+    "horizon_y_frac": 0.45,
+    "screen": [1280, 720]
    },
-   "tags": [
-    "player"
-   ],
-   "elevation_deg": 20.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.13,
-    1.13
-   ]
+   "supersample": 1.7
   },
   "player/kombi": {
    "file": "player/kombi.png",
-   "cell": [
-    644,
-    296
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.75,
-   "anchor": [
-    0.5,
-    0.9697
-   ],
-   "object": {
-    "width_m": 1.85,
-    "length_m": 4.8,
-    "height_m": 1.52
+   "cell": [572, 384],
+   "grid_cols": 7,
+   "angles": ["l20", "l18", "l16", "l14", "l12", "l10", "l8", "l6", "l4", "l2", "c", "r2", "r4", "r6", "r8", "r10", "r12", "r14", "r16", "r18", "r20"],
+   "yaw_deg": [-20.0, -18.0, -16.0, -14.0, -12.0, -10.0, -8.0, -6.0, -4.0, -2.0, 0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 4.3895,
+   "anchor": [0.47885, 0.55224],
+   "object": {"width_m": 1.85, "length_m": 4.8, "height_m": 1.537},
+   "tags": ["player"],
+   "projection": "perspective",
+   "pivot": "center",
+   "camera": {
+    "height_m": 3.4,
+    "distance_m": 9.0,
+    "fov_deg": 84.0,
+    "horizon_y_frac": 0.45,
+    "screen": [1280, 720]
    },
-   "tags": [
-    "player"
-   ],
-   "elevation_deg": 20.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.08,
-    1.08
-   ]
+   "supersample": 1.65
   },
   "player/kompakt": {
    "file": "player/kompakt.png",
-   "cell": [
-    572,
-    264
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.1071,
-   "anchor": [
-    0.5,
-    0.9661
-   ],
-   "object": {
-    "width_m": 1.78,
-    "length_m": 4.1,
-    "height_m": 1.48
+   "cell": [584, 388],
+   "grid_cols": 7,
+   "angles": ["l20", "l18", "l16", "l14", "l12", "l10", "l8", "l6", "l4", "l2", "c", "r2", "r4", "r6", "r8", "r10", "r12", "r14", "r16", "r18", "r20"],
+   "yaw_deg": [-20.0, -18.0, -16.0, -14.0, -12.0, -10.0, -8.0, -6.0, -4.0, -2.0, 0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 3.8919,
+   "anchor": [0.46849, 0.58039],
+   "object": {"width_m": 1.78, "length_m": 4.1, "height_m": 1.435},
+   "tags": ["player"],
+   "projection": "perspective",
+   "pivot": "center",
+   "camera": {
+    "height_m": 3.4,
+    "distance_m": 9.0,
+    "fov_deg": 84.0,
+    "horizon_y_frac": 0.45,
+    "screen": [1280, 720]
    },
-   "tags": [
-    "player"
-   ],
-   "elevation_deg": 20.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.04,
-    1.04
-   ]
+   "supersample": 1.9
   },
   "player/limousine": {
    "file": "player/limousine.png",
-   "cell": [
-    648,
-    296
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.7857,
-   "anchor": [
-    0.5,
-    0.9697
-   ],
-   "object": {
-    "width_m": 1.86,
-    "length_m": 4.85,
-    "height_m": 1.48
+   "cell": [572, 384],
+   "grid_cols": 7,
+   "angles": ["l20", "l18", "l16", "l14", "l12", "l10", "l8", "l6", "l4", "l2", "c", "r2", "r4", "r6", "r8", "r10", "r12", "r14", "r16", "r18", "r20"],
+   "yaw_deg": [-20.0, -18.0, -16.0, -14.0, -12.0, -10.0, -8.0, -6.0, -4.0, -2.0, 0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 4.3895,
+   "anchor": [0.47885, 0.54794],
+   "object": {"width_m": 1.86, "length_m": 4.85, "height_m": 1.448},
+   "tags": ["player"],
+   "projection": "perspective",
+   "pivot": "center",
+   "camera": {
+    "height_m": 3.4,
+    "distance_m": 9.0,
+    "fov_deg": 84.0,
+    "horizon_y_frac": 0.45,
+    "screen": [1280, 720]
    },
-   "tags": [
-    "player"
-   ],
-   "elevation_deg": 20.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.09,
-    1.09
-   ]
+   "supersample": 1.65
   },
   "player/sportwagen": {
    "file": "player/sportwagen.png",
-   "cell": [
-    612,
-    260
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.4643,
-   "anchor": [
-    0.5,
-    0.9654
-   ],
-   "object": {
-    "width_m": 1.9,
-    "length_m": 4.45,
-    "height_m": 1.26
+   "cell": [608, 372],
+   "grid_cols": 6,
+   "angles": ["l20", "l18", "l16", "l14", "l12", "l10", "l8", "l6", "l4", "l2", "c", "r2", "r4", "r6", "r8", "r10", "r12", "r14", "r16", "r18", "r20"],
+   "yaw_deg": [-20.0, -18.0, -16.0, -14.0, -12.0, -10.0, -8.0, -6.0, -4.0, -2.0, 0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 4.1613,
+   "anchor": [0.47163, 0.52477],
+   "object": {"width_m": 1.9, "length_m": 4.45, "height_m": 1.232},
+   "tags": ["player"],
+   "projection": "perspective",
+   "pivot": "center",
+   "camera": {
+    "height_m": 3.4,
+    "distance_m": 9.0,
+    "fov_deg": 84.0,
+    "horizon_y_frac": 0.45,
+    "screen": [1280, 720]
    },
-   "tags": [
-    "player"
-   ],
-   "elevation_deg": 20.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.11,
-    1.11
-   ]
+   "supersample": 1.85
   },
   "police/at": {
    "file": "police/at.png",
-   "cell": [
-    312,
-    144
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake",
-    "beacon_a",
-    "beacon_b"
-   ],
-   "image_width_m": 5.5714,
-   "anchor": [
-    0.5,
-    0.9728
-   ],
-   "object": {
-    "width_m": 1.9,
-    "length_m": 4.62,
-    "height_m": 1.88
-   },
-   "tags": [
-    "police",
-    "at"
-   ],
+   "cell": [308, 144],
+   "grid_cols": 7,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake", "beacon_a", "beacon_b"],
+   "image_width_m": 5.5,
+   "anchor": [0.5, 0.9728],
+   "object": {"width_m": 1.9, "length_m": 4.62, "height_m": 1.88},
+   "tags": ["police", "at"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.11,
-    1.11
-   ]
+   "extent_m": [1.11, 1.11]
   },
   "police/be": {
    "file": "police/be.png",
-   "cell": [
-    320,
-    132
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake",
-    "beacon_a",
-    "beacon_b"
-   ],
-   "image_width_m": 5.7143,
-   "anchor": [
-    0.5,
-    0.9703
-   ],
-   "object": {
-    "width_m": 1.84,
-    "length_m": 4.8,
-    "height_m": 1.65
-   },
-   "tags": [
-    "police",
-    "be"
-   ],
+   "cell": [312, 132],
+   "grid_cols": 6,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake", "beacon_a", "beacon_b"],
+   "image_width_m": 5.5714,
+   "anchor": [0.5, 0.9703],
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.65},
+   "tags": ["police", "be"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.07,
-    1.07
-   ]
+   "extent_m": [1.07, 1.07]
   },
   "police/bg": {
    "file": "police/bg.png",
-   "cell": [
-    280,
-    128
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake",
-    "beacon_a",
-    "beacon_b"
-   ],
-   "image_width_m": 5.0,
-   "anchor": [
-    0.5,
-    0.9694
-   ],
-   "object": {
-    "width_m": 1.76,
-    "length_m": 4.05,
-    "height_m": 1.64
-   },
-   "tags": [
-    "police",
-    "bg"
-   ],
+   "cell": [276, 128],
+   "grid_cols": 6,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake", "beacon_a", "beacon_b"],
+   "image_width_m": 4.9286,
+   "anchor": [0.5, 0.9694],
+   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.64},
+   "tags": ["police", "bg"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.04,
-    1.04
-   ]
+   "extent_m": [1.04, 1.04]
   },
   "police/ch": {
    "file": "police/ch.png",
-   "cell": [
-    320,
-    132
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake",
-    "beacon_a",
-    "beacon_b"
-   ],
-   "image_width_m": 5.7143,
-   "anchor": [
-    0.5,
-    0.9703
-   ],
-   "object": {
-    "width_m": 1.84,
-    "length_m": 4.8,
-    "height_m": 1.65
-   },
-   "tags": [
-    "police",
-    "ch"
-   ],
+   "cell": [312, 132],
+   "grid_cols": 6,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake", "beacon_a", "beacon_b"],
+   "image_width_m": 5.5714,
+   "anchor": [0.5, 0.9703],
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.65},
+   "tags": ["police", "ch"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.07,
-    1.07
-   ]
+   "extent_m": [1.07, 1.07]
   },
   "police/cz": {
    "file": "police/cz.png",
-   "cell": [
-    320,
-    132
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake",
-    "beacon_a",
-    "beacon_b"
-   ],
-   "image_width_m": 5.7143,
-   "anchor": [
-    0.5,
-    0.9703
-   ],
-   "object": {
-    "width_m": 1.84,
-    "length_m": 4.8,
-    "height_m": 1.65
-   },
-   "tags": [
-    "police",
-    "cz"
-   ],
+   "cell": [312, 132],
+   "grid_cols": 6,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake", "beacon_a", "beacon_b"],
+   "image_width_m": 5.5714,
+   "anchor": [0.5, 0.9703],
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.65},
+   "tags": ["police", "cz"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.07,
-    1.07
-   ]
+   "extent_m": [1.07, 1.07]
   },
   "police/de": {
    "file": "police/de.png",
-   "cell": [
-    320,
-    132
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake",
-    "beacon_a",
-    "beacon_b"
-   ],
-   "image_width_m": 5.7143,
-   "anchor": [
-    0.5,
-    0.9703
-   ],
-   "object": {
-    "width_m": 1.84,
-    "length_m": 4.8,
-    "height_m": 1.65
-   },
-   "tags": [
-    "police",
-    "de"
-   ],
+   "cell": [312, 132],
+   "grid_cols": 6,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake", "beacon_a", "beacon_b"],
+   "image_width_m": 5.5714,
+   "anchor": [0.5, 0.9703],
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.65},
+   "tags": ["police", "de"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.07,
-    1.07
-   ]
+   "extent_m": [1.07, 1.07]
   },
   "police/es": {
    "file": "police/es.png",
-   "cell": [
-    316,
-    136
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake",
-    "beacon_a",
-    "beacon_b"
-   ],
-   "image_width_m": 5.6429,
-   "anchor": [
-    0.5,
-    0.9712
-   ],
-   "object": {
-    "width_m": 1.82,
-    "length_m": 4.7,
-    "height_m": 1.61
-   },
-   "tags": [
-    "police",
-    "es"
-   ],
+   "cell": [308, 136],
+   "grid_cols": 6,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake", "beacon_a", "beacon_b"],
+   "image_width_m": 5.5,
+   "anchor": [0.5, 0.9712],
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.61},
+   "tags": ["police", "es"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.07,
-    1.07
-   ]
+   "extent_m": [1.07, 1.07]
   },
   "police/fr": {
    "file": "police/fr.png",
-   "cell": [
-    280,
-    128
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake",
-    "beacon_a",
-    "beacon_b"
-   ],
-   "image_width_m": 5.0,
-   "anchor": [
-    0.5,
-    0.9694
-   ],
-   "object": {
-    "width_m": 1.76,
-    "length_m": 4.05,
-    "height_m": 1.64
-   },
-   "tags": [
-    "police",
-    "fr"
-   ],
+   "cell": [276, 128],
+   "grid_cols": 6,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake", "beacon_a", "beacon_b"],
+   "image_width_m": 4.9286,
+   "anchor": [0.5, 0.9694],
+   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.64},
+   "tags": ["police", "fr"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.04,
-    1.04
-   ]
+   "extent_m": [1.04, 1.04]
   },
   "police/hr": {
    "file": "police/hr.png",
-   "cell": [
-    316,
-    136
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake",
-    "beacon_a",
-    "beacon_b"
-   ],
-   "image_width_m": 5.6429,
-   "anchor": [
-    0.5,
-    0.9712
-   ],
-   "object": {
-    "width_m": 1.82,
-    "length_m": 4.7,
-    "height_m": 1.61
-   },
-   "tags": [
-    "police",
-    "hr"
-   ],
+   "cell": [308, 136],
+   "grid_cols": 6,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake", "beacon_a", "beacon_b"],
+   "image_width_m": 5.5,
+   "anchor": [0.5, 0.9712],
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.61},
+   "tags": ["police", "hr"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.07,
-    1.07
-   ]
+   "extent_m": [1.07, 1.07]
   },
   "police/hu": {
    "file": "police/hu.png",
-   "cell": [
-    316,
-    136
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake",
-    "beacon_a",
-    "beacon_b"
-   ],
-   "image_width_m": 5.6429,
-   "anchor": [
-    0.5,
-    0.9712
-   ],
-   "object": {
-    "width_m": 1.82,
-    "length_m": 4.7,
-    "height_m": 1.61
-   },
-   "tags": [
-    "police",
-    "hu"
-   ],
+   "cell": [308, 136],
+   "grid_cols": 6,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake", "beacon_a", "beacon_b"],
+   "image_width_m": 5.5,
+   "anchor": [0.5, 0.9712],
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.61},
+   "tags": ["police", "hu"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.07,
-    1.07
-   ]
+   "extent_m": [1.07, 1.07]
   },
   "police/it": {
    "file": "police/it.png",
-   "cell": [
-    316,
-    136
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake",
-    "beacon_a",
-    "beacon_b"
-   ],
-   "image_width_m": 5.6429,
-   "anchor": [
-    0.5,
-    0.9712
-   ],
-   "object": {
-    "width_m": 1.82,
-    "length_m": 4.7,
-    "height_m": 1.61
-   },
-   "tags": [
-    "police",
-    "it"
-   ],
+   "cell": [308, 136],
+   "grid_cols": 6,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake", "beacon_a", "beacon_b"],
+   "image_width_m": 5.5,
+   "anchor": [0.5, 0.9712],
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.61},
+   "tags": ["police", "it"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.07,
-    1.07
-   ]
+   "extent_m": [1.07, 1.07]
   },
   "police/lt": {
    "file": "police/lt.png",
-   "cell": [
-    312,
-    144
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake",
-    "beacon_a",
-    "beacon_b"
-   ],
-   "image_width_m": 5.5714,
-   "anchor": [
-    0.5,
-    0.9728
-   ],
-   "object": {
-    "width_m": 1.9,
-    "length_m": 4.62,
-    "height_m": 1.88
-   },
-   "tags": [
-    "police",
-    "lt"
-   ],
+   "cell": [308, 144],
+   "grid_cols": 7,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake", "beacon_a", "beacon_b"],
+   "image_width_m": 5.5,
+   "anchor": [0.5, 0.9728],
+   "object": {"width_m": 1.9, "length_m": 4.62, "height_m": 1.88},
+   "tags": ["police", "lt"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.11,
-    1.11
-   ]
+   "extent_m": [1.11, 1.11]
   },
   "police/lv": {
    "file": "police/lv.png",
-   "cell": [
-    280,
-    128
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake",
-    "beacon_a",
-    "beacon_b"
-   ],
-   "image_width_m": 5.0,
-   "anchor": [
-    0.5,
-    0.9694
-   ],
-   "object": {
-    "width_m": 1.76,
-    "length_m": 4.05,
-    "height_m": 1.64
-   },
-   "tags": [
-    "police",
-    "lv"
-   ],
+   "cell": [276, 128],
+   "grid_cols": 6,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake", "beacon_a", "beacon_b"],
+   "image_width_m": 4.9286,
+   "anchor": [0.5, 0.9694],
+   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.64},
+   "tags": ["police", "lv"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.04,
-    1.04
-   ]
+   "extent_m": [1.04, 1.04]
   },
   "police/nl": {
    "file": "police/nl.png",
-   "cell": [
-    280,
-    128
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake",
-    "beacon_a",
-    "beacon_b"
-   ],
-   "image_width_m": 5.0,
-   "anchor": [
-    0.5,
-    0.9694
-   ],
-   "object": {
-    "width_m": 1.76,
-    "length_m": 4.05,
-    "height_m": 1.64
-   },
-   "tags": [
-    "police",
-    "nl"
-   ],
+   "cell": [276, 128],
+   "grid_cols": 6,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake", "beacon_a", "beacon_b"],
+   "image_width_m": 4.9286,
+   "anchor": [0.5, 0.9694],
+   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.64},
+   "tags": ["police", "nl"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.04,
-    1.04
-   ]
+   "extent_m": [1.04, 1.04]
   },
   "police/pl": {
    "file": "police/pl.png",
-   "cell": [
-    316,
-    136
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake",
-    "beacon_a",
-    "beacon_b"
-   ],
-   "image_width_m": 5.6429,
-   "anchor": [
-    0.5,
-    0.9712
-   ],
-   "object": {
-    "width_m": 1.82,
-    "length_m": 4.7,
-    "height_m": 1.61
-   },
-   "tags": [
-    "police",
-    "pl"
-   ],
+   "cell": [308, 136],
+   "grid_cols": 6,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake", "beacon_a", "beacon_b"],
+   "image_width_m": 5.5,
+   "anchor": [0.5, 0.9712],
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.61},
+   "tags": ["police", "pl"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.07,
-    1.07
-   ]
+   "extent_m": [1.07, 1.07]
   },
   "police/rs": {
    "file": "police/rs.png",
-   "cell": [
-    316,
-    136
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake",
-    "beacon_a",
-    "beacon_b"
-   ],
-   "image_width_m": 5.6429,
-   "anchor": [
-    0.5,
-    0.9712
-   ],
-   "object": {
-    "width_m": 1.82,
-    "length_m": 4.7,
-    "height_m": 1.61
-   },
-   "tags": [
-    "police",
-    "rs"
-   ],
+   "cell": [308, 136],
+   "grid_cols": 6,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake", "beacon_a", "beacon_b"],
+   "image_width_m": 5.5,
+   "anchor": [0.5, 0.9712],
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.61},
+   "tags": ["police", "rs"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.07,
-    1.07
-   ]
+   "extent_m": [1.07, 1.07]
   },
   "police/si": {
    "file": "police/si.png",
-   "cell": [
-    320,
-    132
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake",
-    "beacon_a",
-    "beacon_b"
-   ],
-   "image_width_m": 5.7143,
-   "anchor": [
-    0.5,
-    0.9703
-   ],
-   "object": {
-    "width_m": 1.84,
-    "length_m": 4.8,
-    "height_m": 1.65
-   },
-   "tags": [
-    "police",
-    "si"
-   ],
+   "cell": [312, 132],
+   "grid_cols": 6,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake", "beacon_a", "beacon_b"],
+   "image_width_m": 5.5714,
+   "anchor": [0.5, 0.9703],
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.65},
+   "tags": ["police", "si"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.07,
-    1.07
-   ]
+   "extent_m": [1.07, 1.07]
   },
   "props/barn": {
    "file": "props/barn.png",
-   "cell": [
-    472,
-    292
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base",
-    "lights"
-   ],
+   "cell": [472, 292],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
    "image_width_m": 17.3701,
-   "anchor": [
-    0.6639,
-    0.948
-   ],
-   "object": {
-    "width_m": 11.0,
-    "height_m": 8.1,
-    "length_m": 14.0
-   },
-   "tags": [
-    "prop",
-    "building",
-    "mirror_left"
-   ],
+   "anchor": [0.6639, 0.948],
+   "object": {"width_m": 11.0, "height_m": 8.1, "length_m": 14.0},
+   "tags": ["prop", "building", "mirror_left"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    10.91,
-    5.21
-   ]
+   "extent_m": [10.91, 5.21]
   },
   "props/building_block_a": {
    "file": "props/building_block_a.png",
-   "cell": [
-    460,
-    448
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base",
-    "lights"
-   ],
+   "cell": [460, 448],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
    "image_width_m": 22.7756,
-   "anchor": [
-    0.5901,
-    0.9699
-   ],
-   "object": {
-    "width_m": 18.3,
-    "height_m": 19.5,
-    "length_m": 12.0
-   },
-   "tags": [
-    "prop",
-    "building",
-    "city",
-    "mirror_left"
-   ],
+   "anchor": [0.5901, 0.9699],
+   "object": {"width_m": 18.3, "height_m": 19.5, "length_m": 12.0},
+   "tags": ["prop", "building", "city", "mirror_left"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    12.75,
-    8.64
-   ]
+   "extent_m": [12.75, 8.64]
   },
   "props/building_block_b": {
    "file": "props/building_block_b.png",
-   "cell": [
-    484,
-    480
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base",
-    "lights"
-   ],
+   "cell": [484, 480],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
    "image_width_m": 25.1515,
-   "anchor": [
-    0.5884,
-    0.9718
-   ],
-   "object": {
-    "width_m": 20.4,
-    "height_m": 22.1,
-    "length_m": 13.0
-   },
-   "tags": [
-    "prop",
-    "building",
-    "city",
-    "mirror_left"
-   ],
+   "anchor": [0.5884, 0.9718],
+   "object": {"width_m": 20.4, "height_m": 22.1, "length_m": 13.0},
+   "tags": ["prop", "building", "city", "mirror_left"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    14.12,
-    9.68
-   ]
+   "extent_m": [14.12, 9.68]
   },
   "props/building_oldtown": {
    "file": "props/building_oldtown.png",
-   "cell": [
-    272,
-    448
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base",
-    "lights"
-   ],
+   "cell": [272, 448],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
    "image_width_m": 13.2176,
-   "anchor": [
-    0.6603,
-    0.9775
-   ],
-   "object": {
-    "width_m": 8.4,
-    "height_m": 20.0,
-    "length_m": 12.0
-   },
-   "tags": [
-    "prop",
-    "building",
-    "city",
-    "mirror_left"
-   ],
+   "anchor": [0.6603, 0.9775],
+   "object": {"width_m": 8.4, "height_m": 20.0, "length_m": 12.0},
+   "tags": ["prop", "building", "city", "mirror_left"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    8.05,
-    3.86
-   ]
+   "extent_m": [8.05, 3.86]
   },
   "props/building_shop": {
    "file": "props/building_shop.png",
-   "cell": [
-    476,
-    288
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base",
-    "lights"
-   ],
+   "cell": [476, 288],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
    "image_width_m": 18.2574,
-   "anchor": [
-    0.5937,
-    0.946
-   ],
-   "object": {
-    "width_m": 14.3,
-    "height_m": 8.65,
-    "length_m": 10.0
-   },
-   "tags": [
-    "prop",
-    "building",
-    "city",
-    "mirror_left"
-   ],
+   "anchor": [0.5937, 0.946],
+   "object": {"width_m": 14.3, "height_m": 8.65, "length_m": 10.0},
+   "tags": ["prop", "building", "city", "mirror_left"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    10.19,
-    6.77
-   ]
+   "extent_m": [10.19, 6.77]
   },
   "props/building_tall": {
    "file": "props/building_tall.png",
-   "cell": [
-    228,
-    516
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base",
-    "lights"
-   ],
+   "cell": [228, 516],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
    "image_width_m": 30.3094,
-   "anchor": [
-    0.6241,
-    0.9893
-   ],
-   "object": {
-    "width_m": 22.3,
-    "height_m": 65.9,
-    "length_m": 22.0
-   },
-   "tags": [
-    "prop",
-    "building",
-    "city",
-    "mirror_left"
-   ],
+   "anchor": [0.6241, 0.9893],
+   "object": {"width_m": 22.3, "height_m": 65.9, "length_m": 22.0},
+   "tags": ["prop", "building", "city", "mirror_left"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    18.12,
-    10.6
-   ]
+   "extent_m": [18.12, 10.6]
   },
   "props/bush_low": {
    "file": "props/bush_low.png",
-   "cell": [
-    408,
-    128
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [408, 128],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 5.7923,
-   "anchor": [
-    0.5,
-    0.8231
-   ],
-   "object": {
-    "width_m": 5.0,
-    "height_m": 1.3
-   },
-   "tags": [
-    "prop",
-    "plant"
-   ],
+   "anchor": [0.5, 0.8231],
+   "object": {"width_m": 5.0, "height_m": 1.3},
+   "tags": ["prop", "plant"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    2.8,
-    2.46
-   ]
+   "extent_m": [2.8, 2.46]
   },
   "props/bush_round": {
    "file": "props/bush_round.png",
-   "cell": [
-    196,
-    160
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [196, 160],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 3.5157,
-   "anchor": [
-    0.5,
-    0.875
-   ],
-   "object": {
-    "width_m": 3.0,
-    "height_m": 2.2
-   },
-   "tags": [
-    "prop",
-    "plant"
-   ],
+   "anchor": [0.5, 0.875],
+   "object": {"width_m": 3.0, "height_m": 2.2},
+   "tags": ["prop", "plant"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    1.65,
-    1.6
-   ]
+   "extent_m": [1.65, 1.6]
   },
   "props/church": {
    "file": "props/church.png",
-   "cell": [
-    288,
-    512
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base",
-    "lights"
-   ],
+   "cell": [288, 512],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
    "image_width_m": 20.5715,
-   "anchor": [
-    0.8164,
-    0.9871
-   ],
-   "object": {
-    "width_m": 10.8,
-    "height_m": 35.4,
-    "length_m": 28.0
-   },
-   "tags": [
-    "prop",
-    "building",
-    "mirror_left"
-   ],
+   "anchor": [0.8164, 0.9871],
+   "object": {"width_m": 10.8, "height_m": 35.4, "length_m": 28.0},
+   "tags": ["prop", "building", "mirror_left"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    16.08,
-    3.06
-   ]
+   "extent_m": [16.08, 3.06]
   },
   "props/cliff": {
    "file": "props/cliff.png",
-   "cell": [
-    532,
-    320
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [532, 320],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 27.8822,
-   "anchor": [
-    0.5,
-    0.9643
-   ],
-   "object": {
-    "width_m": 26.0,
-    "height_m": 14.0,
-    "length_m": 5.0
-   },
-   "tags": [
-    "prop",
-    "rock"
-   ],
+   "anchor": [0.5, 0.9643],
+   "object": {"width_m": 26.0, "height_m": 14.0, "length_m": 5.0},
+   "tags": ["prop", "rock"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    13.26,
-    13.31
-   ]
+   "extent_m": [13.26, 13.31]
   },
   "props/customs_booth": {
    "file": "props/customs_booth.png",
-   "cell": [
-    292,
-    224
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base",
-    "lights"
-   ],
+   "cell": [292, 224],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
    "image_width_m": 4.8097,
-   "anchor": [
-    0.5,
-    0.9675
-   ],
-   "object": {
-    "width_m": 4.4,
-    "height_m": 3.05,
-    "length_m": 3.8
-   },
-   "tags": [
-    "prop",
-    "border"
-   ],
+   "anchor": [0.5, 0.9675],
+   "object": {"width_m": 4.4, "height_m": 3.05, "length_m": 3.8},
+   "tags": ["prop", "border"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    2.21,
-    2.21
-   ]
+   "extent_m": [2.21, 2.21]
   },
   "props/delineator": {
    "file": "props/delineator.png",
-   "cell": [
-    40,
-    128
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base",
-    "lights"
-   ],
+   "cell": [40, 128],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
    "image_width_m": 0.342,
-   "anchor": [
-    0.5,
-    0.9615
-   ],
-   "object": {
-    "width_m": 0.12,
-    "height_m": 1.0,
-    "length_m": 0.1
-   },
-   "tags": [
-    "prop",
-    "road"
-   ],
+   "anchor": [0.5, 0.9615],
+   "object": {"width_m": 0.12, "height_m": 1.0, "length_m": 0.1},
+   "tags": ["prop", "road"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    0.06,
-    0.06
-   ]
+   "extent_m": [0.06, 0.06]
   },
   "props/factory": {
    "file": "props/factory.png",
-   "cell": [
-    488,
-    448
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base",
-    "lights"
-   ],
+   "cell": [488, 448],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
    "image_width_m": 42.1944,
-   "anchor": [
-    0.6082,
-    0.9739
-   ],
-   "object": {
-    "width_m": 34.0,
-    "height_m": 34.5,
-    "length_m": 29.0
-   },
-   "tags": [
-    "prop",
-    "building",
-    "mirror_left"
-   ],
+   "anchor": [0.6082, 0.9739],
+   "object": {"width_m": 34.0, "height_m": 34.5, "length_m": 29.0},
+   "tags": ["prop", "building", "mirror_left"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    24.97,
-    15.84
-   ]
+   "extent_m": [24.97, 15.84]
   },
   "props/farmhouse": {
    "file": "props/farmhouse.png",
-   "cell": [
-    512,
-    300
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base",
-    "lights"
-   ],
+   "cell": [512, 300],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
    "image_width_m": 19.3518,
-   "anchor": [
-    0.6787,
-    0.9489
-   ],
-   "object": {
-    "width_m": 11.9,
-    "height_m": 8.6,
-    "length_m": 17.0
-   },
-   "tags": [
-    "prop",
-    "building",
-    "mirror_left"
-   ],
+   "anchor": [0.6787, 0.9489],
+   "object": {"width_m": 11.9, "height_m": 8.6, "length_m": 17.0},
+   "tags": ["prop", "building", "mirror_left"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    12.53,
-    5.61
-   ]
+   "extent_m": [12.53, 5.61]
   },
   "props/ferry_ship": {
    "file": "props/ferry_ship.png",
-   "cell": [
-    1280,
-    296
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base",
-    "lights"
-   ],
+   "cell": [1280, 296],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
    "image_width_m": 186.0,
-   "anchor": [
-    0.5,
-    0.9347
-   ],
-   "object": {
-    "width_m": 182.0,
-    "height_m": 38.0,
-    "length_m": 28.0
-   },
-   "tags": [
-    "prop",
-    "ship"
-   ],
+   "anchor": [0.5, 0.9347],
+   "object": {"width_m": 182.0, "height_m": 38.0, "length_m": 28.0},
+   "tags": ["prop", "ship"],
    "elevation_deg": 3.5,
-   "extent_m": [
-    90.97,
-    90.97
-   ]
+   "extent_m": [90.97, 90.97]
   },
   "props/fuel_pump": {
    "file": "props/fuel_pump.png",
-   "cell": [
-    120,
-    196
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base",
-    "lights"
-   ],
+   "cell": [120, 196],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
    "image_width_m": 3.0256,
-   "anchor": [
-    0.814,
-    0.9832
-   ],
-   "object": {
-    "width_m": 1.3,
-    "height_m": 4.35,
-    "length_m": 3.8
-   },
-   "tags": [
-    "prop",
-    "fuel"
-   ],
+   "anchor": [0.814, 0.9832],
+   "object": {"width_m": 1.3, "height_m": 4.35, "length_m": 3.8},
+   "tags": ["prop", "fuel"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    2.36,
-    0.46
-   ]
+   "extent_m": [2.36, 0.46]
   },
   "props/fuel_station": {
    "file": "props/fuel_station.png",
-   "cell": [
-    640,
-    172
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base",
-    "lights"
-   ],
+   "cell": [640, 172],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
    "image_width_m": 29.8267,
-   "anchor": [
-    0.3534,
-    0.9465
-   ],
-   "object": {
-    "width_m": 31.0,
-    "height_m": 7.0,
-    "length_m": 12.0
-   },
-   "tags": [
-    "prop",
-    "fuel",
-    "wide"
-   ],
+   "anchor": [0.3534, 0.9465],
+   "object": {"width_m": 31.0, "height_m": 7.0, "length_m": 12.0},
+   "tags": ["prop", "fuel", "wide"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    9.93,
-    18.68
-   ]
+   "extent_m": [9.93, 18.68]
   },
   "props/haybale": {
    "file": "props/haybale.png",
-   "cell": [
-    188,
-    96
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [188, 96],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 3.5171,
-   "anchor": [
-    0.5607,
-    0.9666
-   ],
-   "object": {
-    "width_m": 3.4,
-    "height_m": 1.5,
-    "length_m": 1.4
-   },
-   "tags": [
-    "prop",
-    "farm"
-   ],
+   "anchor": [0.5607, 0.9666],
+   "object": {"width_m": 3.4, "height_m": 1.5, "length_m": 1.4},
+   "tags": ["prop", "farm"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    1.88,
-    1.45
-   ]
+   "extent_m": [1.88, 1.45]
   },
   "props/heather": {
    "file": "props/heather.png",
-   "cell": [
-    512,
-    96
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [512, 96],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 6.0096,
-   "anchor": [
-    0.5,
-    0.8057
-   ],
-   "object": {
-    "width_m": 5.6,
-    "height_m": 0.75,
-    "length_m": 2.6
-   },
-   "tags": [
-    "prop",
-    "plant"
-   ],
+   "anchor": [0.5, 0.8057],
+   "object": {"width_m": 5.6, "height_m": 0.75, "length_m": 2.6},
+   "tags": ["prop", "plant"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    2.78,
-    2.92
-   ]
+   "extent_m": [2.78, 2.92]
   },
   "props/house_med": {
    "file": "props/house_med.png",
-   "cell": [
-    408,
-    292
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base",
-    "lights"
-   ],
+   "cell": [408, 292],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
    "image_width_m": 14.9829,
-   "anchor": [
-    0.6086,
-    0.9479
-   ],
-   "object": {
-    "width_m": 11.0,
-    "height_m": 9.0,
-    "length_m": 8.0
-   },
-   "tags": [
-    "prop",
-    "building",
-    "mirror_left"
-   ],
+   "anchor": [0.6086, 0.9479],
+   "object": {"width_m": 11.0, "height_m": 9.0, "length_m": 8.0},
+   "tags": ["prop", "building", "mirror_left"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    8.46,
-    5.2
-   ]
+   "extent_m": [8.46, 5.2]
   },
   "props/power_pylon": {
    "file": "props/power_pylon.png",
-   "cell": [
-    200,
-    512
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [200, 512],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 18.803,
-   "anchor": [
-    0.5,
-    0.984
-   ],
-   "object": {
-    "width_m": 17.5,
-    "height_m": 47.0,
-    "length_m": 7.2
-   },
-   "tags": [
-    "prop",
-    "energy"
-   ],
+   "anchor": [0.5, 0.984],
+   "object": {"width_m": 17.5, "height_m": 47.0, "length_m": 7.2},
+   "tags": ["prop", "energy"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    8.74,
-    8.74
-   ]
+   "extent_m": [8.74, 8.74]
   },
   "props/radar_camera": {
    "file": "props/radar_camera.png",
-   "cell": [
-    72,
-    192
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [72, 192],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 1.2132,
-   "anchor": [
-    0.5,
-    0.9685
-   ],
-   "object": {
-    "width_m": 0.9,
-    "height_m": 3.05,
-    "length_m": 0.8
-   },
-   "tags": [
-    "prop",
-    "road"
-   ],
+   "anchor": [0.5, 0.9685],
+   "object": {"width_m": 0.9, "height_m": 3.05, "length_m": 0.8},
+   "tags": ["prop", "road"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    0.45,
-    0.45
-   ]
+   "extent_m": [0.45, 0.45]
   },
   "props/rock_a": {
    "file": "props/rock_a.png",
-   "cell": [
-    228,
-    128
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [228, 128],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 4.0357,
-   "anchor": [
-    0.5,
-    0.7969
-   ],
-   "object": {
-    "width_m": 3.6,
-    "height_m": 1.6,
-    "length_m": 2.4
-   },
-   "tags": [
-    "prop",
-    "rock"
-   ],
+   "anchor": [0.5, 0.7969],
+   "object": {"width_m": 3.6, "height_m": 1.6, "length_m": 2.4},
+   "tags": ["prop", "rock"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    1.4,
-    1.93
-   ]
+   "extent_m": [1.4, 1.93]
   },
   "props/rock_b": {
    "file": "props/rock_b.png",
-   "cell": [
-    276,
-    128
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [276, 128],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 3.738,
-   "anchor": [
-    0.5,
-    0.8611
-   ],
-   "object": {
-    "width_m": 3.8,
-    "height_m": 1.3,
-    "length_m": 2.4
-   },
-   "tags": [
-    "prop",
-    "rock"
-   ],
+   "anchor": [0.5, 0.8611],
+   "object": {"width_m": 3.8, "height_m": 1.3, "length_m": 2.4},
+   "tags": ["prop", "rock"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    1.77,
-    1.69
-   ]
+   "extent_m": [1.77, 1.69]
   },
   "props/streetlight": {
    "file": "props/streetlight.png",
-   "cell": [
-    192,
-    300
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base",
-    "lights"
-   ],
+   "cell": [192, 300],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
    "image_width_m": 6.8426,
-   "anchor": [
-    0.7879,
-    0.9682
-   ],
-   "object": {
-    "width_m": 2.4,
-    "height_m": 9.45
-   },
-   "tags": [
-    "prop",
-    "road",
-    "mirror_left"
-   ],
+   "anchor": [0.7879, 0.9682],
+   "object": {"width_m": 2.4, "height_m": 9.45},
+   "tags": ["prop", "road", "mirror_left"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    2.33,
-    0.17
-   ]
+   "extent_m": [2.33, 0.17]
   },
   "props/tree_beech": {
    "file": "props/tree_beech.png",
-   "cell": [
-    280,
-    384
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [280, 384],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 11.8534,
-   "anchor": [
-    0.5,
-    0.9826
-   ],
-   "object": {
-    "width_m": 9.5,
-    "height_m": 15.5
-   },
-   "tags": [
-    "prop",
-    "tree"
-   ],
+   "anchor": [0.5, 0.9826],
+   "object": {"width_m": 9.5, "height_m": 15.5},
+   "tags": ["prop", "tree"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    5.08,
-    5.5
-   ]
+   "extent_m": [5.08, 5.5]
   },
   "props/tree_birch": {
    "file": "props/tree_birch.png",
-   "cell": [
-    176,
-    320
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [176, 320],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 7.4396,
-   "anchor": [
-    0.5,
-    0.9798
-   ],
-   "object": {
-    "width_m": 5.2,
-    "height_m": 12.8
-   },
-   "tags": [
-    "prop",
-    "tree"
-   ],
+   "anchor": [0.5, 0.9798],
+   "object": {"width_m": 5.2, "height_m": 12.8},
+   "tags": ["prop", "tree"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    2.79,
-    3.3
-   ]
+   "extent_m": [2.79, 3.3]
   },
   "props/tree_cypress": {
    "file": "props/tree_cypress.png",
-   "cell": [
-    72,
-    320
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [72, 320],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 3.2841,
-   "anchor": [
-    0.5,
-    0.9816
-   ],
-   "object": {
-    "width_m": 2.8,
-    "height_m": 14.0
-   },
-   "tags": [
-    "prop",
-    "tree"
-   ],
+   "anchor": [0.5, 0.9816],
+   "object": {"width_m": 2.8, "height_m": 14.0},
+   "tags": ["prop", "tree"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    1.19,
-    1.14
-   ]
+   "extent_m": [1.19, 1.14]
   },
   "props/tree_oak": {
    "file": "props/tree_oak.png",
-   "cell": [
-    352,
-    352
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [352, 352],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 13.7299,
-   "anchor": [
-    0.5,
-    0.9785
-   ],
-   "object": {
-    "width_m": 12.0,
-    "height_m": 13.5
-   },
-   "tags": [
-    "prop",
-    "tree"
-   ],
+   "anchor": [0.5, 0.9785],
+   "object": {"width_m": 12.0, "height_m": 13.5},
+   "tags": ["prop", "tree"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    6.36,
-    6.44
-   ]
+   "extent_m": [6.36, 6.44]
   },
   "props/tree_olive": {
    "file": "props/tree_olive.png",
-   "cell": [
-    348,
-    256
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [348, 256],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 8.5907,
-   "anchor": [
-    0.5,
-    0.9407
-   ],
-   "object": {
-    "width_m": 7.4,
-    "height_m": 5.4
-   },
-   "tags": [
-    "prop",
-    "tree"
-   ],
+   "anchor": [0.5, 0.9407],
+   "object": {"width_m": 7.4, "height_m": 5.4},
+   "tags": ["prop", "tree"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    3.78,
-    3.88
-   ]
+   "extent_m": [3.78, 3.88]
   },
   "props/tree_palm": {
    "file": "props/tree_palm.png",
-   "cell": [
-    296,
-    320
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [296, 320],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 10.2559,
-   "anchor": [
-    0.5,
-    0.9743
-   ],
-   "object": {
-    "width_m": 8.5,
-    "height_m": 11.0
-   },
-   "tags": [
-    "prop",
-    "tree"
-   ],
+   "anchor": [0.5, 0.9743],
+   "object": {"width_m": 8.5, "height_m": 11.0},
+   "tags": ["prop", "tree"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    3.26,
-    4.64
-   ]
+   "extent_m": [3.26, 4.64]
   },
   "props/tree_pine": {
    "file": "props/tree_pine.png",
-   "cell": [
-    184,
-    384
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [184, 384],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 8.4205,
-   "anchor": [
-    0.5,
-    0.9839
-   ],
-   "object": {
-    "width_m": 7.0,
-    "height_m": 18.0
-   },
-   "tags": [
-    "prop",
-    "tree"
-   ],
+   "anchor": [0.5, 0.9839],
+   "object": {"width_m": 7.0, "height_m": 18.0},
+   "tags": ["prop", "tree"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    3.16,
-    3.75
-   ]
+   "extent_m": [3.16, 3.75]
   },
   "props/tree_poplar": {
    "file": "props/tree_poplar.png",
-   "cell": [
-    112,
-    384
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [112, 384],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 6.283,
-   "anchor": [
-    0.5,
-    0.9869
-   ],
-   "object": {
-    "width_m": 4.0,
-    "height_m": 21.8
-   },
-   "tags": [
-    "prop",
-    "tree"
-   ],
+   "anchor": [0.5, 0.9869],
+   "object": {"width_m": 4.0, "height_m": 21.8},
+   "tags": ["prop", "tree"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    2.19,
-    2.64
-   ]
+   "extent_m": [2.19, 2.64]
   },
   "props/tree_spruce": {
    "file": "props/tree_spruce.png",
-   "cell": [
-    160,
-    384
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [160, 384],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 8.2895,
-   "anchor": [
-    0.5,
-    0.9858
-   ],
-   "object": {
-    "width_m": 7.0,
-    "height_m": 19.3
-   },
-   "tags": [
-    "prop",
-    "tree"
-   ],
+   "anchor": [0.5, 0.9858],
+   "object": {"width_m": 7.0, "height_m": 19.3},
+   "tags": ["prop", "tree"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    3.68,
-    3.32
-   ]
+   "extent_m": [3.68, 3.32]
   },
   "props/wind_turbine": {
    "file": "props/wind_turbine.png",
-   "cell": [
-    308,
-    512
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base",
-    "lights"
-   ],
+   "cell": [308, 512],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
    "image_width_m": 81.9583,
-   "anchor": [
-    0.5,
-    0.991
-   ],
-   "object": {
-    "width_m": 88.0,
-    "height_m": 133.6,
-    "length_m": 12.0
-   },
-   "tags": [
-    "prop",
-    "energy"
-   ],
+   "anchor": [0.5, 0.991],
+   "object": {"width_m": 88.0, "height_m": 133.6, "length_m": 12.0},
+   "tags": ["prop", "energy"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    38.58,
-    38.32
-   ]
+   "extent_m": [38.58, 38.32]
   },
   "props/windmill": {
    "file": "props/windmill.png",
-   "cell": [
-    328,
-    448
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base",
-    "lights"
-   ],
+   "cell": [328, 448],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
    "image_width_m": 23.1374,
-   "anchor": [
-    0.5,
-    0.9889
-   ],
-   "object": {
-    "width_m": 25.0,
-    "height_m": 32.3,
-    "length_m": 9.0
-   },
-   "tags": [
-    "prop",
-    "building"
-   ],
+   "anchor": [0.5, 0.9889],
+   "object": {"width_m": 25.0, "height_m": 32.3, "length_m": 9.0},
+   "tags": ["prop", "building"],
    "elevation_deg": 6.0,
-   "extent_m": [
-    10.86,
-    10.86
-   ]
+   "extent_m": [10.86, 10.86]
   },
   "showroom/gran_turismo": {
    "file": "showroom/gran_turismo.png",
-   "cell": [
-    384,
-    240
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
-   "image_width_m": 6.298,
-   "anchor": [
-    0.5,
-    0.6335
-   ],
-   "object": {
-    "width_m": 1.95,
-    "length_m": 4.95,
-    "height_m": 1.3
-   },
-   "tags": [
-    "showroom"
-   ]
+   "cell": [768, 480],
+   "angles": ["c"],
+   "layers": ["base"],
+   "image_width_m": 5.473,
+   "anchor": [0.5, 0.5978],
+   "object": {"width_m": 1.95, "length_m": 4.95, "height_m": 1.285},
+   "tags": ["showroom"]
   },
   "showroom/kombi": {
    "file": "showroom/kombi.png",
-   "cell": [
-    384,
-    240
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
-   "image_width_m": 6.108,
-   "anchor": [
-    0.5,
-    0.6606
-   ],
-   "object": {
-    "width_m": 1.85,
-    "length_m": 4.8,
-    "height_m": 1.52
-   },
-   "tags": [
-    "showroom"
-   ]
+   "cell": [768, 480],
+   "angles": ["c"],
+   "layers": ["base"],
+   "image_width_m": 5.307,
+   "anchor": [0.5, 0.6314],
+   "object": {"width_m": 1.85, "length_m": 4.8, "height_m": 1.537},
+   "tags": ["showroom"]
   },
   "showroom/kompakt": {
    "file": "showroom/kompakt.png",
-   "cell": [
-    384,
-    240
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
-   "image_width_m": 5.217,
-   "anchor": [
-    0.5,
-    0.6827
-   ],
-   "object": {
-    "width_m": 1.78,
-    "length_m": 4.1,
-    "height_m": 1.48
-   },
-   "tags": [
-    "showroom"
-   ]
+   "cell": [768, 480],
+   "angles": ["c"],
+   "layers": ["base"],
+   "image_width_m": 4.533,
+   "anchor": [0.5, 0.6478],
+   "object": {"width_m": 1.78, "length_m": 4.1, "height_m": 1.435},
+   "tags": ["showroom"]
   },
   "showroom/limousine": {
    "file": "showroom/limousine.png",
-   "cell": [
-    384,
-    240
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
-   "image_width_m": 6.171,
-   "anchor": [
-    0.5,
-    0.6549
-   ],
-   "object": {
-    "width_m": 1.86,
-    "length_m": 4.85,
-    "height_m": 1.48
-   },
-   "tags": [
-    "showroom"
-   ]
+   "cell": [768, 480],
+   "angles": ["c"],
+   "layers": ["base"],
+   "image_width_m": 5.363,
+   "anchor": [0.5, 0.6194],
+   "object": {"width_m": 1.86, "length_m": 4.85, "height_m": 1.448},
+   "tags": ["showroom"]
   },
   "showroom/sportwagen": {
    "file": "showroom/sportwagen.png",
-   "cell": [
-    384,
-    240
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
-   "image_width_m": 5.662,
-   "anchor": [
-    0.5,
-    0.6438
-   ],
-   "object": {
-    "width_m": 1.9,
-    "length_m": 4.45,
-    "height_m": 1.26
-   },
-   "tags": [
-    "showroom"
-   ]
+   "cell": [768, 480],
+   "angles": ["c"],
+   "layers": ["base"],
+   "image_width_m": 4.92,
+   "anchor": [0.5, 0.6074],
+   "object": {"width_m": 1.9, "length_m": 4.45, "height_m": 1.232},
+   "tags": ["showroom"]
   },
   "traffic/bus_blue": {
    "file": "traffic/bus_blue.png",
-   "cell": [
-    484,
-    160
+   "render": "box",
+   "object": {"width_m": 2.55, "length_m": 12.8, "height_m": 3.65},
+   "tags": ["traffic", "heavy"],
+   "parts": [
+    {
+     "name": "body",
+     "z": [-6.4, 6.4],
+     "x": [-1.275, 1.275],
+     "y": [0.0, 3.65],
+     "faces": {
+      "rear": [216, 4, 255, 365],
+      "left": [4, 1036, 1024, 292],
+      "right": [4, 1636, 1024, 292],
+      "top": [4, 4, 204, 1024]
+     }
+    }
    ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 14.2353,
-   "anchor": [
-    0.5,
-    0.9788
-   ],
-   "object": {
-    "width_m": 2.55,
-    "length_m": 12.8,
-    "height_m": 3.65
-   },
-   "tags": [
-    "traffic",
-    "heavy"
-   ],
-   "elevation_deg": 3.5,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.5,
-    1.5
-   ]
+   "lights": {
+    "tail": [
+     {
+      "part": "body",
+      "face": "rear",
+      "rect": [744, 4, 255, 365]
+     },
+     {
+      "part": "body",
+      "face": "left",
+      "rect": [4, 1336, 1024, 292]
+     },
+     {
+      "part": "body",
+      "face": "right",
+      "rect": [4, 1936, 1024, 292]
+     }
+    ],
+    "brake": [
+     {
+      "part": "body",
+      "face": "rear",
+      "rect": [480, 4, 255, 365]
+     }
+    ]
+   }
   },
   "traffic/bus_red": {
    "file": "traffic/bus_red.png",
-   "cell": [
-    484,
-    160
+   "render": "box",
+   "object": {"width_m": 2.55, "length_m": 12.8, "height_m": 3.65},
+   "tags": ["traffic", "heavy"],
+   "parts": [
+    {
+     "name": "body",
+     "z": [-6.4, 6.4],
+     "x": [-1.275, 1.275],
+     "y": [0.0, 3.65],
+     "faces": {
+      "rear": [216, 4, 255, 365],
+      "left": [4, 1036, 1024, 292],
+      "right": [4, 1636, 1024, 292],
+      "top": [4, 4, 204, 1024]
+     }
+    }
    ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 14.2353,
-   "anchor": [
-    0.5,
-    0.9788
-   ],
-   "object": {
-    "width_m": 2.55,
-    "length_m": 12.8,
-    "height_m": 3.65
-   },
-   "tags": [
-    "traffic",
-    "heavy"
-   ],
-   "elevation_deg": 3.5,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.5,
-    1.5
-   ]
+   "lights": {
+    "tail": [
+     {
+      "part": "body",
+      "face": "rear",
+      "rect": [744, 4, 255, 365]
+     },
+     {
+      "part": "body",
+      "face": "left",
+      "rect": [4, 1336, 1024, 292]
+     },
+     {
+      "part": "body",
+      "face": "right",
+      "rect": [4, 1936, 1024, 292]
+     }
+    ],
+    "brake": [
+     {
+      "part": "body",
+      "face": "rear",
+      "rect": [480, 4, 255, 365]
+     }
+    ]
+   }
   },
   "traffic/bus_white": {
    "file": "traffic/bus_white.png",
-   "cell": [
-    484,
-    160
+   "render": "box",
+   "object": {"width_m": 2.55, "length_m": 12.8, "height_m": 3.65},
+   "tags": ["traffic", "heavy"],
+   "parts": [
+    {
+     "name": "body",
+     "z": [-6.4, 6.4],
+     "x": [-1.275, 1.275],
+     "y": [0.0, 3.65],
+     "faces": {
+      "rear": [216, 4, 255, 365],
+      "left": [4, 1036, 1024, 292],
+      "right": [4, 1636, 1024, 292],
+      "top": [4, 4, 204, 1024]
+     }
+    }
    ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 14.2353,
-   "anchor": [
-    0.5,
-    0.9788
-   ],
-   "object": {
-    "width_m": 2.55,
-    "length_m": 12.8,
-    "height_m": 3.65
-   },
-   "tags": [
-    "traffic",
-    "heavy"
-   ],
-   "elevation_deg": 3.5,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.5,
-    1.5
-   ]
+   "lights": {
+    "tail": [
+     {
+      "part": "body",
+      "face": "rear",
+      "rect": [744, 4, 255, 365]
+     },
+     {
+      "part": "body",
+      "face": "left",
+      "rect": [4, 1336, 1024, 292]
+     },
+     {
+      "part": "body",
+      "face": "right",
+      "rect": [4, 1936, 1024, 292]
+     }
+    ],
+    "brake": [
+     {
+      "part": "body",
+      "face": "rear",
+      "rect": [480, 4, 255, 365]
+     }
+    ]
+   }
   },
   "traffic/hatch_blue": {
    "file": "traffic/hatch_blue.png",
-   "cell": [
-    260,
-    104
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.0,
-   "anchor": [
-    0.5,
-    0.965
-   ],
-   "object": {
-    "width_m": 1.76,
-    "length_m": 4.05,
-    "height_m": 1.51
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [256, 104],
+   "grid_cols": 5,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 4.9231,
+   "anchor": [0.5, 0.965],
+   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.51},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.04,
-    1.04
-   ]
+   "extent_m": [1.04, 1.04]
   },
   "traffic/hatch_green": {
    "file": "traffic/hatch_green.png",
-   "cell": [
-    260,
-    104
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.0,
-   "anchor": [
-    0.5,
-    0.965
-   ],
-   "object": {
-    "width_m": 1.76,
-    "length_m": 4.05,
-    "height_m": 1.51
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [256, 104],
+   "grid_cols": 5,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 4.9231,
+   "anchor": [0.5, 0.965],
+   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.51},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.04,
-    1.04
-   ]
+   "extent_m": [1.04, 1.04]
   },
   "traffic/hatch_red": {
    "file": "traffic/hatch_red.png",
-   "cell": [
-    260,
-    104
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.0,
-   "anchor": [
-    0.5,
-    0.965
-   ],
-   "object": {
-    "width_m": 1.76,
-    "length_m": 4.05,
-    "height_m": 1.51
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [256, 104],
+   "grid_cols": 5,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 4.9231,
+   "anchor": [0.5, 0.965],
+   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.51},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.04,
-    1.04
-   ]
+   "extent_m": [1.04, 1.04]
   },
   "traffic/hatch_white": {
    "file": "traffic/hatch_white.png",
-   "cell": [
-    260,
-    104
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.0,
-   "anchor": [
-    0.5,
-    0.965
-   ],
-   "object": {
-    "width_m": 1.76,
-    "length_m": 4.05,
-    "height_m": 1.51
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [256, 104],
+   "grid_cols": 5,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 4.9231,
+   "anchor": [0.5, 0.965],
+   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.51},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.04,
-    1.04
-   ]
+   "extent_m": [1.04, 1.04]
   },
   "traffic/hatch_yellow": {
    "file": "traffic/hatch_yellow.png",
-   "cell": [
-    260,
-    104
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.0,
-   "anchor": [
-    0.5,
-    0.965
-   ],
-   "object": {
-    "width_m": 1.76,
-    "length_m": 4.05,
-    "height_m": 1.51
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [256, 104],
+   "grid_cols": 5,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 4.9231,
+   "anchor": [0.5, 0.965],
+   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.51},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.04,
-    1.04
-   ]
+   "extent_m": [1.04, 1.04]
   },
   "traffic/sedan_black": {
    "file": "traffic/sedan_black.png",
-   "cell": [
-    292,
-    108
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.6154,
-   "anchor": [
-    0.5,
-    0.9663
-   ],
-   "object": {
-    "width_m": 1.82,
-    "length_m": 4.7,
-    "height_m": 1.48
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [284, 108],
+   "grid_cols": 4,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 5.4615,
+   "anchor": [0.5, 0.9663],
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.48},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.06,
-    1.06
-   ]
+   "extent_m": [1.06, 1.06]
   },
   "traffic/sedan_blue": {
    "file": "traffic/sedan_blue.png",
-   "cell": [
-    292,
-    108
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.6154,
-   "anchor": [
-    0.5,
-    0.9663
-   ],
-   "object": {
-    "width_m": 1.82,
-    "length_m": 4.7,
-    "height_m": 1.48
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [284, 108],
+   "grid_cols": 4,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 5.4615,
+   "anchor": [0.5, 0.9663],
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.48},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.06,
-    1.06
-   ]
+   "extent_m": [1.06, 1.06]
   },
   "traffic/sedan_red": {
    "file": "traffic/sedan_red.png",
-   "cell": [
-    292,
-    108
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.6154,
-   "anchor": [
-    0.5,
-    0.9663
-   ],
-   "object": {
-    "width_m": 1.82,
-    "length_m": 4.7,
-    "height_m": 1.48
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [284, 108],
+   "grid_cols": 4,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 5.4615,
+   "anchor": [0.5, 0.9663],
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.48},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.06,
-    1.06
-   ]
+   "extent_m": [1.06, 1.06]
   },
   "traffic/sedan_silver": {
    "file": "traffic/sedan_silver.png",
-   "cell": [
-    292,
-    108
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.6154,
-   "anchor": [
-    0.5,
-    0.9663
-   ],
-   "object": {
-    "width_m": 1.82,
-    "length_m": 4.7,
-    "height_m": 1.48
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [284, 108],
+   "grid_cols": 4,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 5.4615,
+   "anchor": [0.5, 0.9663],
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.48},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.06,
-    1.06
-   ]
+   "extent_m": [1.06, 1.06]
   },
   "traffic/sports_black": {
    "file": "traffic/sports_black.png",
-   "cell": [
-    284,
-    92
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.4615,
-   "anchor": [
-    0.5,
-    0.9604
-   ],
-   "object": {
-    "width_m": 1.95,
-    "length_m": 4.45,
-    "height_m": 1.26
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [280, 92],
+   "grid_cols": 4,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 5.3846,
+   "anchor": [0.5, 0.9604],
+   "object": {"width_m": 1.95, "length_m": 4.45, "height_m": 1.26},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.13,
-    1.13
-   ]
+   "extent_m": [1.13, 1.13]
   },
   "traffic/sports_blue": {
    "file": "traffic/sports_blue.png",
-   "cell": [
-    284,
-    92
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.4615,
-   "anchor": [
-    0.5,
-    0.9604
-   ],
-   "object": {
-    "width_m": 1.95,
-    "length_m": 4.45,
-    "height_m": 1.26
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [280, 92],
+   "grid_cols": 4,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 5.3846,
+   "anchor": [0.5, 0.9604],
+   "object": {"width_m": 1.95, "length_m": 4.45, "height_m": 1.26},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.13,
-    1.13
-   ]
+   "extent_m": [1.13, 1.13]
   },
   "traffic/sports_orange": {
    "file": "traffic/sports_orange.png",
-   "cell": [
-    284,
-    92
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.4615,
-   "anchor": [
-    0.5,
-    0.9604
-   ],
-   "object": {
-    "width_m": 1.95,
-    "length_m": 4.45,
-    "height_m": 1.26
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [280, 92],
+   "grid_cols": 4,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 5.3846,
+   "anchor": [0.5, 0.9604],
+   "object": {"width_m": 1.95, "length_m": 4.45, "height_m": 1.26},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.13,
-    1.13
-   ]
+   "extent_m": [1.13, 1.13]
   },
   "traffic/sports_red": {
    "file": "traffic/sports_red.png",
-   "cell": [
-    284,
-    92
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.4615,
-   "anchor": [
-    0.5,
-    0.9604
-   ],
-   "object": {
-    "width_m": 1.95,
-    "length_m": 4.45,
-    "height_m": 1.26
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [280, 92],
+   "grid_cols": 4,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 5.3846,
+   "anchor": [0.5, 0.9604],
+   "object": {"width_m": 1.95, "length_m": 4.45, "height_m": 1.26},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.13,
-    1.13
-   ]
+   "extent_m": [1.13, 1.13]
   },
   "traffic/sports_yellow": {
    "file": "traffic/sports_yellow.png",
-   "cell": [
-    284,
-    92
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.4615,
-   "anchor": [
-    0.5,
-    0.9604
-   ],
-   "object": {
-    "width_m": 1.95,
-    "length_m": 4.45,
-    "height_m": 1.26
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [280, 92],
+   "grid_cols": 4,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 5.3846,
+   "anchor": [0.5, 0.9604],
+   "object": {"width_m": 1.95, "length_m": 4.45, "height_m": 1.26},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.13,
-    1.13
-   ]
+   "extent_m": [1.13, 1.13]
   },
   "traffic/suv_black": {
    "file": "traffic/suv_black.png",
-   "cell": [
-    292,
-    124
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.6154,
-   "anchor": [
-    0.5,
-    0.9706
-   ],
-   "object": {
-    "width_m": 1.9,
-    "length_m": 4.62,
-    "height_m": 1.75
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [284, 124],
+   "grid_cols": 5,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 5.4615,
+   "anchor": [0.5, 0.9706],
+   "object": {"width_m": 1.9, "length_m": 4.62, "height_m": 1.75},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.1,
-    1.1
-   ]
+   "extent_m": [1.12, 1.1]
   },
   "traffic/suv_brown": {
    "file": "traffic/suv_brown.png",
-   "cell": [
-    292,
-    124
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.6154,
-   "anchor": [
-    0.5,
-    0.9706
-   ],
-   "object": {
-    "width_m": 1.9,
-    "length_m": 4.62,
-    "height_m": 1.75
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [284, 124],
+   "grid_cols": 5,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 5.4615,
+   "anchor": [0.5, 0.9706],
+   "object": {"width_m": 1.9, "length_m": 4.62, "height_m": 1.75},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.1,
-    1.1
-   ]
+   "extent_m": [1.12, 1.1]
   },
   "traffic/suv_grey": {
    "file": "traffic/suv_grey.png",
-   "cell": [
-    292,
-    124
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.6154,
-   "anchor": [
-    0.5,
-    0.9706
-   ],
-   "object": {
-    "width_m": 1.9,
-    "length_m": 4.62,
-    "height_m": 1.75
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [284, 124],
+   "grid_cols": 5,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 5.4615,
+   "anchor": [0.5, 0.9706],
+   "object": {"width_m": 1.9, "length_m": 4.62, "height_m": 1.75},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.1,
-    1.1
-   ]
+   "extent_m": [1.12, 1.1]
   },
   "traffic/suv_white": {
    "file": "traffic/suv_white.png",
-   "cell": [
-    292,
-    124
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.6154,
-   "anchor": [
-    0.5,
-    0.9706
-   ],
-   "object": {
-    "width_m": 1.9,
-    "length_m": 4.62,
-    "height_m": 1.75
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [284, 124],
+   "grid_cols": 5,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 5.4615,
+   "anchor": [0.5, 0.9706],
+   "object": {"width_m": 1.9, "length_m": 4.62, "height_m": 1.75},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.1,
-    1.1
-   ]
+   "extent_m": [1.12, 1.1]
   },
   "traffic/truck_blue": {
    "file": "traffic/truck_blue.png",
-   "cell": [
-    572,
-    176
+   "render": "box",
+   "object": {"width_m": 2.55, "length_m": 16.5, "height_m": 4.0},
+   "tags": ["traffic", "heavy"],
+   "parts": [
+    {
+     "name": "trailer",
+     "z": [-8.25, 5.35],
+     "x": [-1.275, 1.275],
+     "y": [0.0, 4.0],
+     "faces": {
+      "rear": [216, 4, 255, 400],
+      "left": [4, 1100, 1088, 320],
+      "right": [4, 1756, 1088, 320],
+      "top": [4, 4, 204, 1088]
+     }
+    },
+    {
+     "name": "cab",
+     "z": [5.75, 8.25],
+     "x": [-1.25, 1.25],
+     "y": [0.0, 3.8],
+     "faces": {
+      "rear": [1008, 4, 250, 380],
+      "left": [1100, 2084, 200, 304],
+      "right": [1308, 2084, 200, 304],
+      "top": [1516, 2084, 200, 200]
+     }
+    }
    ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 16.8235,
-   "anchor": [
-    0.5,
-    0.9807
-   ],
-   "object": {
-    "width_m": 2.55,
-    "length_m": 16.5,
-    "height_m": 4.0
-   },
-   "tags": [
-    "traffic",
-    "heavy"
-   ],
-   "elevation_deg": 3.5,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.47,
-    1.47
-   ]
+   "lights": {
+    "tail": [
+     {
+      "part": "trailer",
+      "face": "rear",
+      "rect": [744, 4, 255, 400]
+     },
+     {
+      "part": "trailer",
+      "face": "left",
+      "rect": [4, 1428, 1088, 320]
+     },
+     {
+      "part": "trailer",
+      "face": "right",
+      "rect": [4, 2084, 1088, 320]
+     }
+    ],
+    "brake": [
+     {
+      "part": "trailer",
+      "face": "rear",
+      "rect": [480, 4, 255, 400]
+     }
+    ]
+   }
   },
   "traffic/truck_green": {
    "file": "traffic/truck_green.png",
-   "cell": [
-    572,
-    176
+   "render": "box",
+   "object": {"width_m": 2.55, "length_m": 16.5, "height_m": 4.0},
+   "tags": ["traffic", "heavy"],
+   "parts": [
+    {
+     "name": "trailer",
+     "z": [-8.25, 5.35],
+     "x": [-1.275, 1.275],
+     "y": [0.0, 4.0],
+     "faces": {
+      "rear": [216, 4, 255, 400],
+      "left": [4, 1100, 1088, 320],
+      "right": [4, 1756, 1088, 320],
+      "top": [4, 4, 204, 1088]
+     }
+    },
+    {
+     "name": "cab",
+     "z": [5.75, 8.25],
+     "x": [-1.25, 1.25],
+     "y": [0.0, 3.8],
+     "faces": {
+      "rear": [1008, 4, 250, 380],
+      "left": [1100, 2084, 200, 304],
+      "right": [1308, 2084, 200, 304],
+      "top": [1516, 2084, 200, 200]
+     }
+    }
    ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 16.8235,
-   "anchor": [
-    0.5,
-    0.9807
-   ],
-   "object": {
-    "width_m": 2.55,
-    "length_m": 16.5,
-    "height_m": 4.0
-   },
-   "tags": [
-    "traffic",
-    "heavy"
-   ],
-   "elevation_deg": 3.5,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.47,
-    1.47
-   ]
+   "lights": {
+    "tail": [
+     {
+      "part": "trailer",
+      "face": "rear",
+      "rect": [744, 4, 255, 400]
+     },
+     {
+      "part": "trailer",
+      "face": "left",
+      "rect": [4, 1428, 1088, 320]
+     },
+     {
+      "part": "trailer",
+      "face": "right",
+      "rect": [4, 2084, 1088, 320]
+     }
+    ],
+    "brake": [
+     {
+      "part": "trailer",
+      "face": "rear",
+      "rect": [480, 4, 255, 400]
+     }
+    ]
+   }
   },
   "traffic/truck_red": {
    "file": "traffic/truck_red.png",
-   "cell": [
-    572,
-    176
+   "render": "box",
+   "object": {"width_m": 2.55, "length_m": 16.5, "height_m": 4.0},
+   "tags": ["traffic", "heavy"],
+   "parts": [
+    {
+     "name": "trailer",
+     "z": [-8.25, 5.35],
+     "x": [-1.275, 1.275],
+     "y": [0.0, 4.0],
+     "faces": {
+      "rear": [216, 4, 255, 400],
+      "left": [4, 1100, 1088, 320],
+      "right": [4, 1756, 1088, 320],
+      "top": [4, 4, 204, 1088]
+     }
+    },
+    {
+     "name": "cab",
+     "z": [5.75, 8.25],
+     "x": [-1.25, 1.25],
+     "y": [0.0, 3.8],
+     "faces": {
+      "rear": [1008, 4, 250, 380],
+      "left": [1100, 2084, 200, 304],
+      "right": [1308, 2084, 200, 304],
+      "top": [1516, 2084, 200, 200]
+     }
+    }
    ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 16.8235,
-   "anchor": [
-    0.5,
-    0.9807
-   ],
-   "object": {
-    "width_m": 2.55,
-    "length_m": 16.5,
-    "height_m": 4.0
-   },
-   "tags": [
-    "traffic",
-    "heavy"
-   ],
-   "elevation_deg": 3.5,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.47,
-    1.47
-   ]
+   "lights": {
+    "tail": [
+     {
+      "part": "trailer",
+      "face": "rear",
+      "rect": [744, 4, 255, 400]
+     },
+     {
+      "part": "trailer",
+      "face": "left",
+      "rect": [4, 1428, 1088, 320]
+     },
+     {
+      "part": "trailer",
+      "face": "right",
+      "rect": [4, 2084, 1088, 320]
+     }
+    ],
+    "brake": [
+     {
+      "part": "trailer",
+      "face": "rear",
+      "rect": [480, 4, 255, 400]
+     }
+    ]
+   }
   },
   "traffic/truck_white": {
    "file": "traffic/truck_white.png",
-   "cell": [
-    572,
-    176
+   "render": "box",
+   "object": {"width_m": 2.55, "length_m": 16.5, "height_m": 4.0},
+   "tags": ["traffic", "heavy"],
+   "parts": [
+    {
+     "name": "trailer",
+     "z": [-8.25, 5.35],
+     "x": [-1.275, 1.275],
+     "y": [0.0, 4.0],
+     "faces": {
+      "rear": [216, 4, 255, 400],
+      "left": [4, 1100, 1088, 320],
+      "right": [4, 1756, 1088, 320],
+      "top": [4, 4, 204, 1088]
+     }
+    },
+    {
+     "name": "cab",
+     "z": [5.75, 8.25],
+     "x": [-1.25, 1.25],
+     "y": [0.0, 3.8],
+     "faces": {
+      "rear": [1008, 4, 250, 380],
+      "left": [1100, 2084, 200, 304],
+      "right": [1308, 2084, 200, 304],
+      "top": [1516, 2084, 200, 200]
+     }
+    }
    ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 16.8235,
-   "anchor": [
-    0.5,
-    0.9807
-   ],
-   "object": {
-    "width_m": 2.55,
-    "length_m": 16.5,
-    "height_m": 4.0
-   },
-   "tags": [
-    "traffic",
-    "heavy"
-   ],
-   "elevation_deg": 3.5,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.47,
-    1.47
-   ]
+   "lights": {
+    "tail": [
+     {
+      "part": "trailer",
+      "face": "rear",
+      "rect": [744, 4, 255, 400]
+     },
+     {
+      "part": "trailer",
+      "face": "left",
+      "rect": [4, 1428, 1088, 320]
+     },
+     {
+      "part": "trailer",
+      "face": "right",
+      "rect": [4, 2084, 1088, 320]
+     }
+    ],
+    "brake": [
+     {
+      "part": "trailer",
+      "face": "rear",
+      "rect": [480, 4, 255, 400]
+     }
+    ]
+   }
   },
   "traffic/van_darkblue": {
    "file": "traffic/van_darkblue.png",
-   "cell": [
-    332,
-    168
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 6.3846,
-   "anchor": [
-    0.5,
-    0.9783
-   ],
-   "object": {
-    "width_m": 2.02,
-    "length_m": 5.4,
-    "height_m": 2.49
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [324, 168],
+   "grid_cols": 5,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 6.2308,
+   "anchor": [0.5, 0.9783],
+   "object": {"width_m": 2.02, "length_m": 5.4, "height_m": 2.49},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.17,
-    1.17
-   ]
+   "extent_m": [1.17, 1.17]
   },
   "traffic/van_red": {
    "file": "traffic/van_red.png",
-   "cell": [
-    332,
-    168
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 6.3846,
-   "anchor": [
-    0.5,
-    0.9783
-   ],
-   "object": {
-    "width_m": 2.02,
-    "length_m": 5.4,
-    "height_m": 2.49
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [324, 168],
+   "grid_cols": 5,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 6.2308,
+   "anchor": [0.5, 0.9783],
+   "object": {"width_m": 2.02, "length_m": 5.4, "height_m": 2.49},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.17,
-    1.17
-   ]
+   "extent_m": [1.17, 1.17]
   },
   "traffic/van_silver": {
    "file": "traffic/van_silver.png",
-   "cell": [
-    332,
-    168
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 6.3846,
-   "anchor": [
-    0.5,
-    0.9783
-   ],
-   "object": {
-    "width_m": 2.02,
-    "length_m": 5.4,
-    "height_m": 2.49
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [324, 168],
+   "grid_cols": 5,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 6.2308,
+   "anchor": [0.5, 0.9783],
+   "object": {"width_m": 2.02, "length_m": 5.4, "height_m": 2.49},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.17,
-    1.17
-   ]
+   "extent_m": [1.17, 1.17]
   },
   "traffic/van_white": {
    "file": "traffic/van_white.png",
-   "cell": [
-    332,
-    168
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 6.3846,
-   "anchor": [
-    0.5,
-    0.9783
-   ],
-   "object": {
-    "width_m": 2.02,
-    "length_m": 5.4,
-    "height_m": 2.49
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [324, 168],
+   "grid_cols": 5,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 6.2308,
+   "anchor": [0.5, 0.9783],
+   "object": {"width_m": 2.02, "length_m": 5.4, "height_m": 2.49},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.17,
-    1.17
-   ]
+   "extent_m": [1.17, 1.17]
   },
   "traffic/wagon_darkblue": {
    "file": "traffic/wagon_darkblue.png",
-   "cell": [
-    296,
-    112
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.6923,
-   "anchor": [
-    0.5,
-    0.9675
-   ],
-   "object": {
-    "width_m": 1.84,
-    "length_m": 4.8,
-    "height_m": 1.52
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [292, 112],
+   "grid_cols": 4,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 5.6154,
+   "anchor": [0.5, 0.9675],
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.52},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.08,
-    1.08
-   ]
+   "extent_m": [1.08, 1.08]
   },
   "traffic/wagon_green": {
    "file": "traffic/wagon_green.png",
-   "cell": [
-    296,
-    112
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.6923,
-   "anchor": [
-    0.5,
-    0.9675
-   ],
-   "object": {
-    "width_m": 1.84,
-    "length_m": 4.8,
-    "height_m": 1.52
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [292, 112],
+   "grid_cols": 4,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 5.6154,
+   "anchor": [0.5, 0.9675],
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.52},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.08,
-    1.08
-   ]
+   "extent_m": [1.08, 1.08]
   },
   "traffic/wagon_silver": {
    "file": "traffic/wagon_silver.png",
-   "cell": [
-    296,
-    112
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.6923,
-   "anchor": [
-    0.5,
-    0.9675
-   ],
-   "object": {
-    "width_m": 1.84,
-    "length_m": 4.8,
-    "height_m": 1.52
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [292, 112],
+   "grid_cols": 4,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 5.6154,
+   "anchor": [0.5, 0.9675],
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.52},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.08,
-    1.08
-   ]
+   "extent_m": [1.08, 1.08]
   },
   "traffic/wagon_white": {
    "file": "traffic/wagon_white.png",
-   "cell": [
-    296,
-    112
-   ],
-   "angles": [
-    "l2",
-    "l1",
-    "c",
-    "r1",
-    "r2"
-   ],
-   "layers": [
-    "base",
-    "tail",
-    "brake"
-   ],
-   "image_width_m": 5.6923,
-   "anchor": [
-    0.5,
-    0.9675
-   ],
-   "object": {
-    "width_m": 1.84,
-    "length_m": 4.8,
-    "height_m": 1.52
-   },
-   "tags": [
-    "traffic",
-    "car"
-   ],
+   "cell": [292, 112],
+   "grid_cols": 4,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake"],
+   "image_width_m": 5.6154,
+   "anchor": [0.5, 0.9675],
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.52},
+   "tags": ["traffic", "car"],
+   "projection": "ortho",
+   "pivot": "rear",
    "elevation_deg": 9.0,
-   "yaw_deg": {
-    "l2": -25.0,
-    "l1": -12.0,
-    "c": 0.0,
-    "r1": 12.0,
-    "r2": 25.0
-   },
-   "extent_m": [
-    1.08,
-    1.08
-   ]
+   "extent_m": [1.08, 1.08]
   },
   "ui/daytime_dawn": {
    "file": "ui/daytime_dawn.png",
-   "cell": [
-    96,
-    96
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [96, 96],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 3.306,
-   "anchor": [
-    0.5,
-    0.4816
-   ],
-   "object": {
-    "width_m": 1.0,
-    "height_m": 1.0
-   },
-   "tags": [
-    "ui",
-    "icon"
-   ]
+   "anchor": [0.5, 0.4816],
+   "object": {"width_m": 1.0, "height_m": 1.0},
+   "tags": ["ui", "icon"]
   },
   "ui/daytime_day": {
    "file": "ui/daytime_day.png",
-   "cell": [
-    96,
-    96
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [96, 96],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 2.4455,
-   "anchor": [
-    0.5,
-    0.5
-   ],
-   "object": {
-    "width_m": 1.0,
-    "height_m": 1.0
-   },
-   "tags": [
-    "ui",
-    "icon"
-   ]
+   "anchor": [0.5, 0.5],
+   "object": {"width_m": 1.0, "height_m": 1.0},
+   "tags": ["ui", "icon"]
   },
   "ui/daytime_dusk": {
    "file": "ui/daytime_dusk.png",
-   "cell": [
-    96,
-    96
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [96, 96],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 3.306,
-   "anchor": [
-    0.5,
-    0.4816
-   ],
-   "object": {
-    "width_m": 1.0,
-    "height_m": 1.0
-   },
-   "tags": [
-    "ui",
-    "icon"
-   ]
+   "anchor": [0.5, 0.4816],
+   "object": {"width_m": 1.0, "height_m": 1.0},
+   "tags": ["ui", "icon"]
   },
   "ui/daytime_night": {
    "file": "ui/daytime_night.png",
-   "cell": [
-    96,
-    96
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [96, 96],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 1.8812,
-   "anchor": [
-    0.5079,
-    0.508
-   ],
-   "object": {
-    "width_m": 1.0,
-    "height_m": 1.0
-   },
-   "tags": [
-    "ui",
-    "icon"
-   ]
+   "anchor": [0.5079, 0.508],
+   "object": {"width_m": 1.0, "height_m": 1.0},
+   "tags": ["ui", "icon"]
   },
   "ui/weather_normal": {
    "file": "ui/weather_normal.png",
-   "cell": [
-    96,
-    96
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [96, 96],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 2.5769,
-   "anchor": [
-    0.4865,
-    0.5754
-   ],
-   "object": {
-    "width_m": 1.0,
-    "height_m": 1.0
-   },
-   "tags": [
-    "ui",
-    "icon"
-   ]
+   "anchor": [0.4865, 0.5754],
+   "object": {"width_m": 1.0, "height_m": 1.0},
+   "tags": ["ui", "icon"]
   },
   "ui/weather_rain": {
    "file": "ui/weather_rain.png",
-   "cell": [
-    96,
-    96
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [96, 96],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 2.5194,
-   "anchor": [
-    0.494,
-    0.5456
-   ],
-   "object": {
-    "width_m": 1.0,
-    "height_m": 1.0
-   },
-   "tags": [
-    "ui",
-    "icon"
-   ]
+   "anchor": [0.494, 0.5456],
+   "object": {"width_m": 1.0, "height_m": 1.0},
+   "tags": ["ui", "icon"]
   },
   "ui/weather_snow": {
    "file": "ui/weather_snow.png",
-   "cell": [
-    96,
-    96
-   ],
-   "angles": [
-    "c"
-   ],
-   "layers": [
-    "base"
-   ],
+   "cell": [96, 96],
+   "angles": ["c"],
+   "layers": ["base"],
    "image_width_m": 2.622,
-   "anchor": [
-    0.4943,
-    0.5267
-   ],
-   "object": {
-    "width_m": 1.0,
-    "height_m": 1.0
-   },
-   "tags": [
-    "ui",
-    "icon"
-   ]
+   "anchor": [0.4943, 0.5267],
+   "object": {"width_m": 1.0, "height_m": 1.0},
+   "tags": ["ui", "icon"]
   }
  }
 }
