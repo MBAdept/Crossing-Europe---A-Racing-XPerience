@@ -80,6 +80,11 @@ var _scripted_min_kmh := 30.0    ## render.scripted_collision_min_kmh
 var _was_limit := -1             ## speed limit of the last step (tutorial: first section without limit)
 var _police_side := -1.0         ## side on which the police car passes (-1 left, +1 right)
 var _pull_over_m := 12.0
+var _police_off_last := NAN      ## police car offset of the last view (its speed for the sprite pose)
+var _police_off_t := 0.0
+var _police_rel_kmh := 0.0
+
+const POLICE_VIEW_ID := -2       ## vehicle id of the police car in the view (pose smoothing in the renderer)
 
 
 func _ready() -> void:
@@ -652,26 +657,33 @@ func _process(delta: float) -> void:
 	var cars: Array = []
 	if traffic_enabled:
 		for c in traffic.cars:
-			cars.append({"kind": "car", "set": c.set_id, "z": c.z - c.length * 0.5, "x": c.x, "length": c.length,
+			cars.append({"kind": "car", "id": c.id, "set": c.set_id, "z": c.z - c.length * 0.5, "x": c.x, "length": c.length,
 				"tail": lights, "brake": 1.0 if c.braking else 0.0, "speed": c.speed, "heavy": c.heavy})
 	# police car at PoliceSystem.police_car_offset_m() (animated by the gameplay module): it passes the
 	# player one lane beside him and pulls in ahead of him for the stop (SessionRules.police_car_x)
 	var off := police.police_car_offset_m()
-	if not is_nan(off):
+	if is_nan(off):
+		_police_off_last = NAN
+		_police_rel_kmh = 0.0
+	else:
+		# its own speed (pose of the sprite while it pulls over): player speed + change of the offset
+		if not is_nan(_police_off_last) and _real_time > _police_off_t + 0.0005:
+			_police_rel_kmh = (off - _police_off_last) / (_real_time - _police_off_t) * 3.6
+		if is_nan(_police_off_last) or _real_time > _police_off_t + 0.0005:
+			_police_off_last = off
+			_police_off_t = _real_time
 		if off < -proj.cam_distance - 6.0:
 			# out of sight behind the camera: choose the side it will pass on
 			_police_side = SessionRules.police_pass_side(vehicle.x, track.road_edges_at(pos_z).x, track.lane_w)
 		var px := SessionRules.police_car_x(off, vehicle.x, _police_side, track.lane_w, _pull_over_m, (4.8 + vehicle.length_m) * 0.5)
-		cars.append({"kind": "car", "set": GameData.police_set_for(plan.country_at(clampf(pos_km, 0.0, plan.length_km))), "z": pos_z + off - 2.4,
-			"x": px, "tail": lights, "length": 4.8, "speed": vehicle.speed,
+		cars.append({"kind": "car", "id": POLICE_VIEW_ID, "set": GameData.police_set_for(plan.country_at(clampf(pos_km, 0.0, plan.length_km))), "z": pos_z + off - 2.4,
+			"x": px, "tail": lights, "length": 4.8, "speed": maxf(0.0, vehicle.speed + _police_rel_kmh),
 			"beacon": "a" if fmod(_beacon_t, 0.5) < 0.25 else "b"})
-	var angle := "c"
-	if vehicle.steer_visual > 0.25:
-		angle = "r1"
-	elif vehicle.steer_visual < -0.25:
-		angle = "l1"
+	# the renderer derives the visible yaw and body roll of the car from these (docs/renn-modul.md §8)
 	var player := {"kind": "car", "player": true, "set": str(vehicle.spec.get("sprite", "player/limousine")),
-		"z": pos_z - vehicle.length_m * 0.5, "x": vehicle.x, "angle": angle, "length": vehicle.length_m,
+		"z": pos_z - vehicle.length_m * 0.5, "x": vehicle.x, "length": vehicle.length_m, "width": vehicle.width_m,
+		"steer": vehicle.steer_visual, "lat_speed": vehicle.lat_speed, "push_speed": vehicle.push_speed,
+		"understeer": vehicle.understeer,
 		"tail": lights, "brake": 1.0 if vehicle.braking else 0.0, "visible": vehicle.blink_visible, "speed": vehicle.speed}
 	var shake := Vector2.ZERO
 	if vehicle.off_road > 0 and vehicle.speed > 30.0:
