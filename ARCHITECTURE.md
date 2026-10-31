@@ -168,8 +168,12 @@ Straßengeometrie gebündelt als Dreiecks-Array. `RoadProjection` (`scripts/race
 und `visible_fraction(dz, height)` für die Ein-Drittel-Regel.
 
 View-Dictionary: `camera_z, camera_x, camera_y (Welt), visibility_m, palette (Palette.compute), weather, time,
-speed, cars[{kind:"car", set, z (Hinterkante), x, tail 0..1, brake 0..1, beacon "a"|"b"|"", angle?}],
-player{… , player: true, angle, visible}, bg_offset, scenery, shake (Vector2)`.
+speed, cars[{kind:"car", id, set, z (Hinterkante), x, tail 0..1, brake 0..1, beacon "a"|"b"|"", angle?}],
+player{… , player: true, steer, lat_speed, push_speed, understeer, width, visible}, bg_offset, scenery, shake (Vector2)`.
+`id` je Fahrzeug (Polizei −2) für die Glättung des Darstellungswinkels; `angle` ist optional und wird von der
+Sitzung nicht mehr gesendet – der Renderer berechnet den Winkel selbst (Fahrzeugdarstellung v2:
+`VehiclePose` für Pkw/Polizei/Spieler, `BoxVehicle` für Lkw/Busse; Vertrag in
+[docs/fahrzeug-darstellung.md](docs/fahrzeug-darstellung.md), Umsetzung in [docs/renn-modul.md](docs/renn-modul.md) §8).
 
 ## 7. Gameplay (`scripts/gameplay/*`, reine Logik)
 
@@ -234,20 +238,34 @@ vehicle, weather, start_hour, daytime, date, route?}`.
 
 ## 12. Sprites (`assets/sprites/manifest.json`)
 
-Ein PNG je Sprite-Set: **Spalten = Winkel, Zeilen = Ebenen**, alle Zellen gleich groß.
+Ein PNG je Sprite-Set, alle Zellen gleich groß. Zellindex `i = ebene · len(angles) + winkel`, angeordnet in
+`grid_cols` Spalten (fehlt das Feld: eine Zeile je Ebene, Spalten = Winkel). Sheets höchstens 4096 px je Seite,
+Fahrzeug-Sheets VRAM-komprimiert (BPTC) mit Mipmaps.
 
 ```json
 { "version": 1, "sets": { "traffic/sedan_blue": {
-    "file": "traffic/sedan_blue.png", "cell": [256, 200],
-    "angles": ["l2","l1","c","r1","r2"], "layers": ["base","tail","brake"],
-    "image_width_m": 2.9, "anchor": [0.5, 0.92],
-    "object": { "width_m": 1.8, "length_m": 4.5, "height_m": 1.45 }, "tags": ["traffic","car"] } } }
+    "file": "traffic/sedan_blue.png", "cell": [284, 108], "grid_cols": 4,
+    "angles": ["l24", "l21", …, "c", …, "r24"], "yaw_deg": [-24.0, -21.0, …, 0.0, …, 24.0],
+    "layers": ["base","tail","brake"], "pivot": "rear", "projection": "ortho", "elevation_deg": 9.0,
+    "image_width_m": 5.4615, "anchor": [0.5, 0.9663],
+    "object": { "width_m": 1.82, "length_m": 4.7, "height_m": 1.48 }, "tags": ["traffic","car"] } } }
 ```
 
-- `image_width_m` = Weltbreite einer Zelle (Pixel pro Meter = `cell.x / image_width_m`), orthografisch gerendert.
-- `anchor` = Bodenpunkt (Objektmitte, vordere/nahe Kante) innerhalb der Zelle, normiert.
-- Winkel: `c` = genau von hinten; `r1`/`r2` = Fahrzeug um ca. 12°/25° nach **rechts** gedreht (rechte Flanke sichtbar);
-  `l1`/`l2` entsprechend links. Spieler: `l1/c/r1` beim Lenken.
+- Fahrzeugdarstellung v2 (verbindlicher Vertrag: [docs/fahrzeug-darstellung.md](docs/fahrzeug-darstellung.md),
+  Pipeline: [docs/sprites.md](docs/sprites.md)):
+  - **Pkw im Verkehr, Polizei**: `projection: "ortho"`, `pivot: "rear"`, 17 Winkel −24° … +24° (3°-Schritte).
+    Der Renderer wählt den Winkel mit Fahrzeuglänge, sodass die Front dort liegt, wo die Perspektive sie zeigt;
+    geglättet und mit Hysterese.
+  - **Spielerautos**: `projection: "perspective"`, `pivot: "center"`, 21 Winkel −20° … +20°, gerendert mit der
+    Spielkamera (`camera`, `supersample`); bei Änderung von `render.camera_*`/`fov_deg`/`horizon` neu rendern.
+  - **Lkw und Busse**: `render: "box"` – texturierte Quader (`parts` mit `faces` rear/left/right/top, `lights`), die
+    der Straße abschnittsweise folgen; gezeichnet wird genau die Kollisionsbox.
+- `image_width_m` = Weltbreite einer Zelle (Pixel pro Meter = `cell.x / image_width_m`; perspektivisch: in der Ebene
+  der Fahrzeugmitte).
+- `anchor` = Bodenpunkt innerhalb der Zelle, normiert (`rear`: Heckmitte, `center`: Fahrzeugmitte, Requisiten:
+  Objektmitte vorn).
+- `yaw_deg` = Gierwinkel je Winkel (+ = nach **rechts** gedreht, rechte Flanke sichtbar); fehlt das Feld, gelten die
+  alten Namen `l2/l1/c/r1/r2` = −25°/−12°/0°/12°/25°.
 - Ebenen: `base` (unbeleuchtet, Tageslicht), `tail` (Rücklichter, nur Leuchten, transparent), `brake` (Bremslichter),
   `beacon_a`/`beacon_b` (Blaulicht-Phasen), `lights` (Requisiten: Fenster/Lampen nachts).
 - Set-IDs: `player/<kompakt|kombi|limousine|sportwagen|gran_turismo>`, `showroom/<dieselben>` (3/4-Ansicht vorn),

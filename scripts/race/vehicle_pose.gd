@@ -112,6 +112,70 @@ static func roll_target_deg(a_lat: float, deg_per_mps2: float, max_deg: float) -
 	return -clampf(a_lat * deg_per_mps2, -absf(max_deg), absf(max_deg))
 
 
+## Perspective warp of a rear-pivot ortho sprite (docs/renn-modul.md §8): the rotated ortho sprite draws its
+## front at the scale of the rear, so a car beside the camera looks too big and seems to cut across the lanes.
+## The cell is cut into vertical strips; each strip edge is mapped to the point of the car it shows and drawn
+## where the road projection puts that point, at that point's own scale.
+## Columns as triples (sprite x in metres from the anchor, lateral s from the rear centre, distance t from the
+## rear), ordered left to right: the rear face (t = 0, s = x / cos psi), the visible flank (s = ±width/2,
+## t = 0 … length in n strips) and the space beyond the front corner (t = length). psi = yaw of the drawn cell
+## (radians, + = turned right, right flank visible); x_left/x_right = cell edges in metres from the anchor.
+## Empty when psi is too small to show a flank.
+static func warp_columns(psi: float, width: float, length: float, x_left: float, x_right: float, n: int) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	var sn := sin(psi)
+	if absf(sn) < 0.005 or length <= 0.0 or x_right <= x_left:
+		return out
+	var c := cos(psi)
+	var hw := width * 0.5
+	var steps := maxi(1, n)
+	if psi > 0.0:
+		var corner := clampf(hw * c, x_left, x_right)
+		var front := clampf(hw * c + length * sn, corner, x_right)
+		if corner > x_left:
+			out.append_array([x_left, x_left / c, 0.0])
+		for i in steps + 1:
+			var t := length * float(i) / float(steps)
+			out.append_array([minf(hw * c + t * sn, x_right), hw, t])
+		if x_right > front + 0.001:
+			out.append_array([x_right, hw + (x_right - front) / c, length])
+	else:
+		var corner := clampf(-hw * c, x_left, x_right)
+		var front := clampf(-hw * c + length * sn, x_left, corner)
+		if x_left < front - 0.001:
+			out.append_array([x_left, -hw - (front - x_left) / c, length])
+		for i in range(steps, -1, -1):
+			var t := length * float(i) / float(steps)
+			out.append_array([maxf(-hw * c + t * sn, x_left), -hw, t])
+		if corner < x_right:
+			out.append_array([x_right, x_right / c, 0.0])
+	return out
+
+
+## Screen geometry of the warp columns: per column [x (metres from the anchor, as given), screen x, screen y of
+## the cell top, screen y of the cell bottom]. road(z) -> Vector3(road centre x, road height relative to the
+## camera, depth) as RoadRenderer.road_at; z_rear = world z of the rear, x = lateral position on the road,
+## tan_c = tan(own heading relative to the road), v_top/v_bot = cell top/bottom in metres above the anchor,
+## elev = elevation of the ortho render camera (radians): in the sprite a ground point of the car at depth
+## offset dz appears dz * sin(elev) above the anchor; a pixel keeps its height above that local ground.
+static func warp_screen(cols: PackedFloat32Array, psi: float, z_rear: float, x: float, tan_c: float, road: Callable,
+		focal: float, half_w: float, horizon_y: float, near: float, v_top: float, v_bot: float, elev: float) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	var sp := sin(psi)
+	var cp := cos(psi)
+	var se := sin(elev)
+	for i in range(0, cols.size() - 2, 3):
+		var s := cols[i + 1]
+		var t := cols[i + 2]
+		var ra: Vector3 = road.call(z_rear + t)
+		var kpx := focal / maxf(ra.z, near)
+		var sx := half_w + (ra.x + x + t * tan_c + s) * kpx
+		var gy := horizon_y - ra.y * kpx
+		var vg := (t * cp - s * sp) * se
+		out.append_array([cols[i], sx, gy - (v_top - vg) * kpx, gy - (v_bot - vg) * kpx])
+	return out
+
+
 ## Scale (game px per cell px) of a perspective sprite cell: distance_m of its render camera / actual depth of
 ## the vehicle centre / supersample (contract §3).
 static func perspective_scale(camera_distance_m: float, depth: float, supersample: float) -> float:

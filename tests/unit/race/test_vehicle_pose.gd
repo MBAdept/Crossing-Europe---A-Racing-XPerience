@@ -220,3 +220,81 @@ func test_roll_and_perspective_scale() -> void:
 	assert_near(VehiclePose.roll_target_deg(40.0, 0.22, 2.5), -2.5, 1e-6, "höchstens 2,5°")
 	assert_near(VehiclePose.perspective_scale(9.0, 9.0, 1.25), 0.8, 1e-6, "Standardkamera: 1 / supersample")
 	assert_near(VehiclePose.perspective_scale(9.0, 18.0, 2.0), 0.25, 1e-6, "doppelte Tiefe: halbe Größe")
+
+
+## Perspective flank warp (docs/renn-modul.md §8): columns of the rotated ortho cell, left to right, rear face at
+## t = 0 with s = x / cos psi, the visible flank at s = ±W/2 from t = 0 to L, the rest at t = L.
+func test_warp_columns_follow_the_rotated_car() -> void:
+	var w := 1.8
+	var l := 4.6
+	for psi_deg: float in [15.0, -15.0, 3.0, -24.0]:
+		var psi := deg_to_rad(psi_deg)
+		var cols := VehiclePose.warp_columns(psi, w, l, -3.0, 3.0, 6)
+		assert_true(cols.size() >= 9 and cols.size() % 3 == 0, "Spalten als Tripel (psi %.0f°)" % psi_deg)
+		var flank := 0
+		for i in range(0, cols.size(), 3):
+			if i > 0:
+				assert_true(cols[i] >= cols[i - 3] - 0.0001, "Spalten von links nach rechts (psi %.0f°)" % psi_deg)
+			var s := cols[i + 1]
+			var t := cols[i + 2]
+			assert_between(t, 0.0, l + 0.0001, "t im Fahrzeug (psi %.0f°)" % psi_deg)
+			if absf(absf(s) - w * 0.5) < 0.0001 and t > 0.0001 and t < l - 0.0001:
+				flank += 1
+				# a flank column shows the point (s, t) of the rotated car: x = s cos psi + t sin psi
+				assert_near(cols[i], s * cos(psi) + t * sin(psi), 0.0001, "Flankenspalte (psi %.0f°)" % psi_deg)
+				assert_near(signf(s), signf(psi), 0.0001, "sichtbare Flanke auf der Drehseite (psi %.0f°)" % psi_deg)
+			elif t < 0.0001:
+				assert_near(s, cols[i] / cos(psi), 0.0001, "Heckfläche: s = x / cos psi (psi %.0f°)" % psi_deg)
+		assert_eq(flank, 5, "innere Flankenspalten (psi %.0f°)" % psi_deg)
+	assert_true(VehiclePose.warp_columns(0.0, w, l, -3.0, 3.0, 6).is_empty(), "ohne Gierwinkel keine Verzerrung")
+
+
+## A car in the left neighbour lane right beside the camera, shown with the contract yaw: the warped front corner
+## and the warped flank land exactly on the true pinhole projection (straight flat road), and the front is drawn
+## smaller than the rear – the plain rotated ortho sprite draws it at the scale of the rear (too big, too low).
+func test_warp_puts_front_and_flank_on_the_true_projection() -> void:
+	var p := _proj()
+	var lane_w := float(ConfigLoader.lookup(cfg(), "road.lane_width_m", 3.75))
+	var cam_h := float(ConfigLoader.lookup(cfg(), "render.camera_height_m", 3.4))
+	var w := 1.82
+	var l := 4.7
+	var x := -lane_w                 # left neighbour lane, camera on the centre of the own lane
+	var d_r := 8.8
+	var road := func(z: float) -> Vector3: return Vector3(0.0, -cam_h, z)   # straight, flat; z = depth
+	var psi := VehiclePose.ortho_yaw(d_r, x, 0.0, 0.0, l)
+	assert_true(psi > deg_to_rad(10.0), "Auto links neben der Kamera: rechte Flanke sichtbar (%.1f°)" % rad_to_deg(psi))
+	var elev := deg_to_rad(9.0)
+	var v_top := 2.5
+	var v_bot := -0.3
+	var cols := VehiclePose.warp_columns(psi, w, l, -2.0, 4.0, 8)
+	var scr := VehiclePose.warp_screen(cols, psi, d_r, x, 0.0, road, p.focal, 640.0, p.horizon_y, p.near, v_top, v_bot, elev)
+	assert_eq(scr.size(), cols.size() / 3 * 4, "eine Bildschirmspalte je Spalte")
+	var true_x := func(lat: float, depth: float) -> float: return 640.0 + lat * p.focal / depth
+	var true_ground := func(depth: float) -> float: return p.horizon_y + cam_h * p.focal / depth
+	for i in cols.size() / 3:
+		var s := cols[i * 3 + 1]
+		var t := cols[i * 3 + 2]
+		var depth := d_r + t
+		assert_near(scr[i * 4 + 1], true_x.call(x + s, depth), 0.01, "Bildschirm-x der Spalte %d (t %.2f m)" % [i, t])
+		# the local ground of the column in the cell (dz * sin elev above the anchor) lands on the true ground
+		var vg := (t * cos(psi) - s * sin(psi)) * sin(elev)
+		var k := (scr[i * 4 + 3] - scr[i * 4 + 2]) / (v_top - v_bot)
+		assert_near(scr[i * 4 + 2] + (v_top - vg) * k, true_ground.call(depth), 0.01, "Bodenpunkt der Spalte %d" % i)
+		assert_near(k, p.focal / depth, 0.0001, "Maßstab der Spalte %d = Brennweite / eigene Tiefe" % i)
+	# front corner vs. the plain rotated ortho sprite (everything at the scale of the rear)
+	var last_flank := -1
+	for i in cols.size() / 3:
+		if absf(cols[i * 3 + 2] - l) < 0.0001 and absf(cols[i * 3 + 1] - w * 0.5) < 0.0001:
+			last_flank = i
+	assert_true(last_flank >= 0, "Spalte der vorderen Ecke vorhanden")
+	var s_r := p.focal / d_r
+	var ortho_front_x := 640.0 + x * s_r + cols[last_flank * 3] * s_r
+	var ortho_front_ground: float = float(true_ground.call(d_r)) - l * cos(psi) * sin(elev) * s_r
+	var warped_front_ground: float = true_ground.call(d_r + l)
+	# the contract yaw puts the front centre right, but the ortho sprite draws the front half width at the scale
+	# of the rear: its front corner sticks out sideways – the warp puts it on the true projection
+	var ortho_centre_x := ortho_front_x - w * 0.5 * cos(psi) * s_r
+	assert_near(ortho_centre_x, true_x.call(x, d_r + l), 0.5, "Vertragsformel: Frontmitte am richtigen Ort")
+	assert_near(scr[last_flank * 4 + 1], true_x.call(x + w * 0.5, d_r + l), 0.01, "verzerrte vordere Ecke am richtigen Ort")
+	assert_true(ortho_front_x - scr[last_flank * 4 + 1] > 10.0, "vordere Ecke im Ortho-Sprite zu weit außen (%.1f px)" % (ortho_front_x - scr[last_flank * 4 + 1]))
+	assert_true(ortho_front_ground - warped_front_ground > 30.0, "Front im Ortho-Sprite viel zu tief (%.0f px), mit Verzerrung richtig" % (ortho_front_ground - warped_front_ground))

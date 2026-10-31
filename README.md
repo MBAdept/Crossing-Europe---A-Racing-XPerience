@@ -8,8 +8,22 @@ Nachtankzwang, Radarfallen und Polizei, Tageszeit und Wetter. Vorbilder: *Enduro
 - Technik: [ARCHITECTURE.md](ARCHITECTURE.md) und die Moduldokus in [docs/](docs/)
 - Engine: Godot 4.7.2 (GDScript, Renderer „GL Compatibility“), alle Fahrzeuge, Bäume, Gebäude, Tankstellen und
   Symbole prozedural in Blender 5.2 modelliert und als Sprites gerendert
-- Stand: **v0.1.0 – erster spielbarer Prototyp**; alle acht Schritte des Prototyp-Plans sind umgesetzt, alle Zahlen
-  sind Startwerte zum Testen.
+- Stand: **v0.2.0 – Fahrzeugdarstellung v2** (nach dem ersten Playtest); alle acht Schritte des Prototyp-Plans sind
+  umgesetzt, alle Zahlen sind Startwerte zum Testen.
+
+## Neu in v0.2.0
+
+- **Einlenken ohne Sprünge**: Pkw und Polizei vor dir drehen sich in 17 Stufen (3°-Schritte) gleichmäßig in die Kurve.
+  Der Darstellungswinkel berücksichtigt die Fahrzeuglänge, die Front liegt also dort, wo die Perspektive sie zeigt –
+  kein Auto scheint mehr über mehrere Spuren zu ragen, und was du siehst, ist genau das, womit du kollidierst.
+  Autos direkt neben dir (beim Überholen) werden streifenweise perspektivisch gezeichnet und scheinen nicht mehr in
+  deine Spur zu ziehen.
+- **Lkw und Busse als echte Quader**: Sie werden perspektivisch aus texturierten Flächen gezeichnet, biegen sich
+  abschnittsweise mit der Kurve und bleiben beim Überholen neben dir vollständig sichtbar.
+- **Neue Spielerautos**: fünf glatte, detailreiche Modelle (Felgen, Leuchtengrafiken, Diffusor, Spiegel, Kennzeichen),
+  gerendert mit der Spielkamera in 21 Winkeln. Das eigene Auto folgt sichtbar der Kurve, dreht beim Spurwechsel ein
+  und neigt sich leicht in der Kurve.
+- Verkehrs- und Polizeiautos neu gerendert; Fahrzeugtexturen VRAM-komprimiert.
 
 ## Spielen
 

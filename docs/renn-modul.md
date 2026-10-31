@@ -200,9 +200,19 @@ Straßenmitte, Höhe, Tiefe – dieselbe Projektion wie für die Straße).
   `render.vehicle_cell_hysteresis` (0,3) Schritte näher liegt – auf einer gleichmäßigen Kurve flackert nichts
   (Unit-Test mit Rauschen und schwankender Bildzeit; `shoot_vehicles.gd` zählt die Zellwechsel im echten Renderer).
   Rück-/Bremslicht- und Blaulicht-Ebenen nutzen dieselbe Zelle; die Leuchtpunkte rücken mit dem Winkel mit.
-- Grenze der Darstellungsart: orthografische Sprites zeichnen die Front im Maßstab des Hecks. Für Pkw ist das
-  unauffällig; lange alte Lkw-Sprites dicht neben der Kamera werden dabei riesig (wie bisher, nur mit kleinerem
-  Winkel) – dafür gibt es die Quader.
+- Grenze der Darstellungsart: orthografische Sprites zeichnen die Front im Maßstab des Hecks. Ein Pkw dicht neben
+  der Kamera (Überholen) wirkt dadurch zu groß, seine Front zu tief und zu weit außen – er scheint in die eigene Spur
+  zu ziehen. Deshalb **perspektivische Flankenverzerrung** (`render.vehicle_warp`, ab Fahrzeuglänge / Hecktiefe
+  ≥ `render.vehicle_warp_min_ratio` = 0,06, also bis rund 78 m): `VehiclePose.warp_columns` zerlegt die Zelle in
+  senkrechte Streifen – Heckfläche (`t = 0`, `s = x / cos ψ`), sichtbare Flanke (`s = ±B/2`, `t = 0 … L` in bis zu 16
+  Streifen) und den Rest hinter der vorderen Ecke (`t = L`) –, `VehiclePose.warp_screen` projiziert jede Spalte mit
+  der Straßengeometrie an `z + t` (`road_at`) in ihrer eigenen Tiefe; die Pixelhöhe über dem lokalen Boden der Spalte
+  im Sprite (`Δz · sin(elevation_deg)`) bleibt erhalten. Streifen mit ungleich hohen Kanten werden zusätzlich in Zeilen
+  geteilt (sonst knicken die zwei affinen Dreiecke waagrechte Linien der Textur). Alle Ebenen eines Autos gehen als
+  ein Dreiecks-Array an den RenderingServer. Ergebnis (Unit-Test und Vergleich mit einem echten 3D-Render derselben
+  Szene in Blender): Flanke, vordere Ecke und Vorderrad liegen auf der echten Projektion; ohne Verzerrung stand die
+  vordere Ecke eines Pkw 10 m vor der Kamera in der Nachbarspur 23 px zu weit außen und über 30 px zu tief. Lange alte
+  Lkw-Sprites gibt es nicht mehr – Lkw und Busse sind Quader.
 
 **Lkw und Busse – `render: "box"` (`BoxVehicle`)**:
 
@@ -431,7 +441,7 @@ zwischengespeichert, Lichtüberlagerungen nur bei Licht, Zellsuche ab der aktuel
 zeichnen, solange das Sprite-Manifest nur Platzhalter enthält; `always`/`never`), `scripted_collision_min_kmh`
 (30: darüber kollidiert der Wagen auch in geskripteten Phasen), `tutorial_hint_s` (6: Anzeigedauer eines
 Tutorial-Hinweises). Fahrzeugdarstellung (§8): `vehicle_yaw_smooth_s` (0,12), `vehicle_cell_hysteresis` (0,3 Schritte),
-`vehicle_yaw_max_deg` (30), `box_slice_m` (2), `box_slice_ratio` (0,12), `box_subdiv_px` (1,5),
+`vehicle_yaw_max_deg` (30), `vehicle_warp` (an), `vehicle_warp_min_ratio` (0,06), `box_slice_m` (2), `box_slice_ratio` (0,12), `box_subdiv_px` (1,5),
 `player_curve_lookahead_m` (10), `player_curve_gain` (1), `player_steer_deg` (3), `player_lateral_gain` (1),
 `player_understeer_deg` (4), `player_view_gain` (1), `player_yaw_max_deg` (20), `player_yaw_smooth_s` (0,15),
 `player_roll_deg_per_mps2` (0,22), `player_roll_max_deg` (2,5 – mehr lässt der Vertrag nicht zu),

@@ -8,9 +8,13 @@ extends SceneTree
 ## player the perspective fixture; without it the current assets. Random traffic is switched off; the cars
 ## are placed and driven by the scenario (speed, lane changes). Saves <out>_<NN>.png every `every` frames.
 ## Scenarios (dev_testetappe): curve_left, curve_right (cars and a truck ahead entering a curve),
-## overtake, overtake_curve (passing a truck in the neighbour lane), lane_change (cars ahead change lanes),
-## player_left, player_right (player alone through curves), player_lanes (player lane changes),
-## police (the police car pulls in ahead), tunnel (truck and car in the tunnel). --perf prints the renderer's _draw times at the end; with --no-shots
+## curve_sharp_left, curve_sharp_right (the sharpest curves, R ≈ 165/199 m, truck and car close ahead),
+## overtake, overtake_curve (passing a truck in the neighbour lane), overtake_cars (passing cars close by on
+## both sides: perspective flank warp), beside (a car standing still relative to the player in the left lane,
+## rear 10 m ahead of the camera – for comparisons with a true 3D render), lane_change (cars ahead change
+## lanes), player_left, player_right (player alone through curves), player_lanes (player lane changes),
+## police (the police car pulls in ahead), tunnel (truck and car in the tunnel). Overrides: --km, --kmh,
+## --frames, --every. --perf prints the renderer's _draw times at the end; with --no-shots
 ## (no screenshots) it also runs headless (CPU time of _draw is the same).
 ## The scene is accessed untyped (this script compiles before the autoloads the scene uses).
 
@@ -21,6 +25,21 @@ const SCENARIOS := {
 	"curve_right": {"km": 57.62, "lane": 0, "kmh": 100.0, "frames": 96, "every": 6,
 		"cars": [{"kind": "truck", "lane": 1, "gap": 18.0, "kmh": 80.0}, {"kind": "car", "lane": 0, "gap": 14.0, "kmh": 92.0},
 			{"kind": "car", "lane": 1, "gap": 60.0, "kmh": 85.0}]},
+	# the sharpest curves of dev_testetappe (left R ≈ 165 m from km 38.16, right R ≈ 199 m from km 58.14):
+	# truck and car close ahead, driven deep into the curve
+	"curve_sharp_left": {"km": 38.0, "lane": 0, "kmh": 100.0, "frames": 180, "every": 10,
+		"cars": [{"kind": "truck", "lane": 1, "gap": 10.0, "kmh": 92.0}, {"kind": "car", "lane": 0, "gap": 16.0, "kmh": 96.0},
+			{"kind": "car", "lane": 1, "gap": 45.0, "kmh": 90.0}]},
+	"curve_sharp_right": {"km": 58.0, "lane": 0, "kmh": 100.0, "frames": 180, "every": 10,
+		"cars": [{"kind": "truck", "lane": 1, "gap": 10.0, "kmh": 92.0}, {"kind": "car", "lane": 0, "gap": 16.0, "kmh": 96.0},
+			{"kind": "car", "lane": 1, "gap": 45.0, "kmh": 90.0}]},
+	# passing cars close by on both sides (perspective flank warp of the ortho car sprites)
+	"overtake_cars": {"km": 30.0, "lane": 1, "kmh": 150.0, "frames": 60, "every": 3,
+		"cars": [{"kind": "car", "lane": 0, "gap": 14.0, "kmh": 105.0}, {"kind": "car", "lane": 2, "gap": 22.0, "kmh": 110.0}]},
+	# a car standing still relative to the player in the left neighbour lane, rear 10 m ahead of the camera
+	# (gap = 10 - camera distance 9 - half the limousine 2.425): compare with a true 3D render
+	"beside": {"km": 30.0, "lane": 1, "kmh": 120.0, "frames": 12, "every": 12,
+		"cars": [{"kind": "car", "lane": 0, "gap": -1.425, "kmh": 120.0}]},
 	"overtake": {"km": 30.0, "lane": 0, "kmh": 150.0, "frames": 90, "every": 3,
 		"cars": [{"kind": "truck", "lane": 1, "gap": 16.0, "kmh": 85.0}, {"kind": "car", "lane": 2, "gap": 40.0, "kmh": 110.0}]},
 	"overtake_curve": {"km": 68.95, "lane": 0, "kmh": 150.0, "frames": 90, "every": 3,
@@ -57,7 +76,10 @@ func _initialize() -> void:
 		print("Unbekanntes Szenario: ", _name, " – ", SCENARIOS.keys())
 		quit(2)
 		return
-	_cfg = SCENARIOS[_name]
+	_cfg = (SCENARIOS[_name] as Dictionary).duplicate(true)
+	for key: String in ["km", "kmh", "frames", "every"]:   # overrides: --km=38.0 --frames=180 ...
+		if args.has(key):
+			_cfg[key] = float(args[key])
 	_out = str(args.get("out", "/tmp/vehicles_" + _name))
 	_perf = args.has("perf")
 	var setup := {"mode": "single", "race_id": "", "stage_id": "dev_testetappe", "from_city": "", "vehicle": str(args.get("vehicle", "limousine")),

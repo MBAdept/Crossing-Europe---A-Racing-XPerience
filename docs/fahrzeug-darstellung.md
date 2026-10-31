@@ -46,6 +46,10 @@ sind frei (z. B. `l24 … l3, c, r3 … r24`), der Renderer arbeitet nur mit `ya
   (gemessen im Maßstab des Hecks); das Heck sitzt ohnehin exakt.
 - Pro Fahrzeug geglättet (kritisch gedämpft, Zeitkonstante ≈ 0,12 s) und mit Hysterese beim Zellwechsel
   (wechseln erst, wenn die neue Zelle um mehr als 0,3 Schritte näher liegt).
+- Ergänzung nach der Integration: In Kameranähe zeichnet der Renderer die Zelle in senkrechten Streifen, jeden in
+  seiner eigenen Tiefe (perspektivische Flankenverzerrung, `render.vehicle_warp`, Details in
+  [renn-modul.md](renn-modul.md) §8). Dafür braucht er `elevation_deg` (Höhenwinkel der Ortho-Kamera) und ein
+  ausdrückliches `"pivot": "rear"` im Set; Sets ohne diese Angabe werden unverzerrt gezeichnet.
 
 ## 3. Spielerauto – `projection: perspective`, `pivot: center`
 

@@ -55,6 +55,8 @@ const SI_PARTS := 16
 const SI_LIGHTS := 17
 const SI_TEXSIZE := 18
 const SI_OBJ := 19         ## object size (width, length, height)
+const SI_REAR := 20        ## explicit rear-pivot ortho sprite (traffic, police): perspective flank warp
+const SI_ELEV := 21        ## elevation of the ortho render camera (radians)
 const NO_ID := -1000000
 
 var track: Track
@@ -99,6 +101,8 @@ var _curve_r1 := 120.0                 ## road.curve_radius_at_1_m
 var _veh_tau := 0.12
 var _veh_hyst := 0.3
 var _veh_max_deg := 30.0
+var _veh_warp := true                  ## render.vehicle_warp: perspective flank warp of near ortho cars
+var _veh_warp_ratio := 0.06            ## render.vehicle_warp_min_ratio: warp when length / rear depth >= this
 var _pl_k := {}
 var _pl_lookahead := 10.0
 var _pl_tau := 0.15
@@ -245,6 +249,8 @@ func setup(t: Track, p: RoadProjection, config: Dictionary, scenery: Dictionary)
 	_veh_tau = float(r.get("vehicle_yaw_smooth_s", 0.12))
 	_veh_hyst = float(r.get("vehicle_cell_hysteresis", 0.3))
 	_veh_max_deg = float(r.get("vehicle_yaw_max_deg", 30.0))
+	_veh_warp = bool(r.get("vehicle_warp", true))
+	_veh_warp_ratio = float(r.get("vehicle_warp_min_ratio", 0.06))
 	_pl_lookahead = float(r.get("player_curve_lookahead_m", 10.0))
 	_pl_tau = float(r.get("player_yaw_smooth_s", 0.15))
 	_pl_k = {"curve_gain": float(r.get("player_curve_gain", 1.0)), "steer_deg": float(r.get("player_steer_deg", 3.0)),
@@ -1691,7 +1697,9 @@ func _spinfo(set_id: String) -> Array:
 			tex = ct
 		info = [tex, ppm, SpriteDB.anchor(set_id), cell, cols, rows, half_w, extent, mirror_left,
 			SpriteDB.yaw_list(set_id), SpriteDB.grid_cols(set_id), angles.size(), persp, SpriteDB.supersample(set_id), cam_d,
-			SpriteDB.is_box(set_id), SpriteDB.box_parts(set_id), SpriteDB.box_lights(set_id), tex_size, obj_v]
+			SpriteDB.is_box(set_id), SpriteDB.box_parts(set_id), SpriteDB.box_lights(set_id), tex_size, obj_v,
+			s.has("pivot") and SpriteDB.pivot(set_id) == "rear" and not persp and not SpriteDB.is_box(set_id),
+			deg_to_rad(float(s.get("elevation_deg", 0.0)))]
 	_sp_cache[set_id] = info
 	return info
 
@@ -1881,21 +1889,30 @@ func _draw_car(k: int, f: float, it: Dictionary, p: Vector3, alpha: float, light
 		return
 	var cell := _vehicle_cell(k, f, it, info)
 	var mod := _modulate(k, light, alpha, 0.55)
-	var r := _sprite_cell(info, cell, "base", p, 1.0, mod)
-	if r.size.x <= 0.0:
-		return
 	var rows: Dictionary = info[SI_ROWS]
 	var lights := _lights if not _segs[k].tunnel else 1.0
 	var tail := maxf(float(it.get("tail", 0.0)), lights)
 	var brake := float(it.get("brake", 0.0))
 	var light_alpha := alpha if _lights < 0.3 else minf(1.0, alpha * 1.6)
-	if tail > 0.05 and rows.has("tail"):
-		_sprite_cell(info, cell, "tail", p, 1.0, Color(1, 1, 1, light_alpha * tail))
-	if brake > 0.05 and rows.has("brake"):
-		_sprite_cell(info, cell, "brake", p, 1.0, Color(1, 1, 1, light_alpha * brake))
 	var beacon := str(it.get("beacon", ""))
+	# layers [name, colour]: base, then the light overlays
+	var layers: Array = [["base", mod]]
+	if tail > 0.05 and rows.has("tail"):
+		layers.append(["tail", Color(1, 1, 1, light_alpha * tail)])
+	if brake > 0.05 and rows.has("brake"):
+		layers.append(["brake", Color(1, 1, 1, light_alpha * brake)])
 	if beacon != "" and rows.has("beacon_" + beacon):
-		_sprite_cell(info, cell, "beacon_" + beacon, p, 1.0, Color(1, 1, 1, light_alpha))
+		layers.append(["beacon_" + beacon, Color(1, 1, 1, light_alpha)])
+	var warp := _car_warp(it, info, cell, p)
+	if not warp.is_empty():
+		if not _draw_warped(info, cell, layers, warp):
+			return
+	else:
+		var r := _sprite_cell(info, cell, "base", p, 1.0, mod)
+		if r.size.x <= 0.0:
+			return
+		for l: Array in layers.slice(1):
+			_sprite_cell(info, cell, str(l[0]), p, 1.0, l[1])
 	var obj: Vector3 = info[SI_OBJ]
 	var cw := obj.x
 	var ch := obj.z
@@ -1922,6 +1939,106 @@ func _draw_car(k: int, f: float, it: Dictionary, p: Vector3, alpha: float, light
 		var sa := clampf((spd - 40.0) / 120.0, 0.0, 1.0) * 0.28 * alpha * _wet
 		var spray := Color(_fogc.lerp(Color(0.9, 0.92, 0.95), 0.5), sa)
 		batch.ellipse(Vector2(p.x, p.y - 0.45 * s), Vector2(cw * 0.75 * s, 0.6 * s), spray, Color(spray, 0.0), 12)
+
+
+## Screen columns of the perspective flank warp (VehiclePose.warp_columns / warp_screen) for a traffic or
+## police car near the camera; empty when the plain sprite is drawn (render.vehicle_warp off, sets without an
+## explicit rear pivot, far away – vehicle length / rear depth below render.vehicle_warp_min_ratio – or hardly
+## any flank visible). The rotated ortho sprite places the front correctly but draws it at the scale of the
+## rear; the warp draws every strip of the cell at its own depth (docs/renn-modul.md §8).
+func _car_warp(it: Dictionary, info: Array, cell: int, p: Vector3) -> PackedFloat32Array:
+	var none := PackedFloat32Array()
+	if not _veh_warp or not bool(info[SI_REAR]) or p.z <= 0.0:
+		return none
+	var yaws: PackedFloat32Array = info[SI_YAWS]
+	if cell < 0 or cell >= yaws.size():
+		return none
+	var psi := deg_to_rad(yaws[cell])
+	var obj: Vector3 = info[SI_OBJ]
+	var length := float(it.get("length", obj.y))
+	var d_r := proj.focal / p.z
+	if absf(psi) < deg_to_rad(1.0) or length / d_r < _veh_warp_ratio:
+		return none
+	var cellv: Vector2 = info[SI_CELL]
+	var ppm := maxf(float(info[SI_PPM]), 0.001)
+	var w := cellv.x / ppm * p.z
+	if w < 0.8 or w > proj.screen.x * 5.0:
+		return none
+	var an: Vector2 = info[SI_ANCHOR]
+	var n := clampi(int(ceil(length / d_r * 12.0)), 2, 16)
+	var cols := VehiclePose.warp_columns(psi, obj.x, length, -an.x * cellv.x / ppm, (1.0 - an.x) * cellv.x / ppm, n)
+	if cols.is_empty():
+		return none
+	var tan_c := 0.0
+	var id := int(it.get("id", NO_ID))
+	if _poses.has(id):
+		tan_c = tan(VehiclePose.own_heading((_poses[id] as PackedFloat64Array)[5], float(it.get("speed", 100.0)) / 3.6))
+	return VehiclePose.warp_screen(cols, psi, float(it.get("z", 0.0)), float(it.get("x", 0.0)), tan_c, road_at,
+		proj.focal, proj.screen.x * 0.5, proj.horizon_y, proj.near, an.y * cellv.y / ppm, (an.y - 1.0) * cellv.y / ppm,
+		float(info[SI_ELEV]))
+
+
+## Draws the layers ([name, colour], base first) of a cell through the warp columns as one triangle array
+## (one quad per strip and layer). Returns false when the car is off screen (nothing drawn).
+func _draw_warped(info: Array, cell: int, layers: Array, warp: PackedFloat32Array) -> bool:
+	var nc := warp.size() / 4
+	if nc < 2:
+		return false
+	var x0 := INF
+	var x1 := -INF
+	var y0 := INF
+	var y1 := -INF
+	for i in nc:
+		x0 = minf(x0, warp[i * 4 + 1])
+		x1 = maxf(x1, warp[i * 4 + 1])
+		y0 = minf(y0, warp[i * 4 + 2])
+		y1 = maxf(y1, warp[i * 4 + 3])
+	if x1 < -4.0 or x0 > proj.screen.x + 4.0 or y1 < -4.0 or y0 > proj.screen.y + 4.0:
+		return false
+	var cellv: Vector2 = info[SI_CELL]
+	var ppm := float(info[SI_PPM])
+	var au := (info[SI_ANCHOR] as Vector2).x * cellv.x
+	var ts: Vector2 = info[SI_TEXSIZE]
+	var rows: Dictionary = info[SI_ROWS]
+	var pts := PackedVector2Array()
+	var uvs := PackedVector2Array()
+	var cols := PackedColorArray()
+	var idx := PackedInt32Array()
+	for l: Array in layers:
+		var src := cell_src(info, cell, int(rows.get(str(l[0]), 0)))
+		var col: Color = l[1]
+		var v0 := (src.position.y + 0.5) / ts.y
+		var v1 := (src.end.y - 0.5) / ts.y
+		for i in nc - 1:
+			var a := i * 4
+			var b := a + 4
+			var ua := (src.position.x + clampf(au + warp[a] * ppm, 0.5, cellv.x - 0.5)) / ts.x
+			var ub := (src.position.x + clampf(au + warp[b] * ppm, 0.5, cellv.x - 0.5)) / ts.x
+			# the column mapping is exact; a strip whose edges differ in height (trapezoid) is cut into rows,
+			# otherwise its two affine triangles bend horizontal lines of the texture (zigzag near the camera)
+			var dh := absf((warp[a + 3] - warp[a + 2]) - (warp[b + 3] - warp[b + 2]))
+			var m := clampi(int(ceil(sqrt(dh / 1.5))), 1, 10)
+			for j in m:
+				var f0 := float(j) / float(m)
+				var f1 := float(j + 1) / float(m)
+				var base := pts.size()
+				pts.append(Vector2(warp[a + 1], lerpf(warp[a + 2], warp[a + 3], f0)))
+				pts.append(Vector2(warp[b + 1], lerpf(warp[b + 2], warp[b + 3], f0)))
+				pts.append(Vector2(warp[b + 1], lerpf(warp[b + 2], warp[b + 3], f1)))
+				pts.append(Vector2(warp[a + 1], lerpf(warp[a + 2], warp[a + 3], f1)))
+				uvs.append(Vector2(ua, lerpf(v0, v1, f0)))
+				uvs.append(Vector2(ub, lerpf(v0, v1, f0)))
+				uvs.append(Vector2(ub, lerpf(v0, v1, f1)))
+				uvs.append(Vector2(ua, lerpf(v0, v1, f1)))
+				for q in 4:
+					cols.append(col)
+				idx.append_array([base, base + 1, base + 2, base, base + 2, base + 3])
+	batch.flush()
+	RenderingServer.canvas_item_add_triangle_array(get_canvas_item(), idx, pts, cols, uvs, PackedInt32Array(),
+		PackedFloat32Array(), (info[SI_TEX] as Texture2D).get_rid())
+	batch.triangles += idx.size() / 3
+	batch.commands += 1
+	return true
 
 
 ## Streaky reflections of rear lights on the wet road below the given ground points (soft, fading downwards).
