@@ -235,6 +235,9 @@ vehicle, weather, start_hour, daytime, date, route?}`.
 
 `set_engine(speed_kmh, throttle, vmax_kmh, active)`, `set_wind(speed)`, `set_siren(on, distance01)`, `set_rain(x)`,
 `set_skid(x)`, `play(name)` mit `crash, flash, go, beep, finish, fuel_start, fuel_done, ui_move, ui_ok, ui_back`, `stop_all()`.
+Motor (Motorklang v2, [docs/motorsound.md](docs/motorsound.md)): `set_vehicle(id)` (Rennsitzung beim Aufbau: Zyklusbank
+des Autos, ohne Bank der bisherige Klang), `engine_state()` → `{rpm, gear (0 = neutral), load, boost}`. Weitere
+Ergänzungen (u. a. `preview_engine(id)` für die Fahrzeugwahl): docs/ui.md „Audio“.
 
 ## 12. Sprites (`assets/sprites/manifest.json`)
 
@@ -283,7 +286,7 @@ Fahrzeug-Sheets VRAM-komprimiert (BPTC) mit Mipmaps.
 
 Argumente nach `--`: `--stage=<id> --from=<city> --vehicle=<typ> --hour=<0..24> --weather=normal|rain|snow
 --start-km=<km> --autopilot [--autopilot-speeding] --no-countdown --seed=<n> --timescale=<f>
---screenshot=<pfad-präfix> --shot-times=1,2.5 --quit-at-finish`. Die Rennszene läuft auch allein:
+--screenshot=<pfad-präfix> --shot-times=1,2.5 --quit-at-finish --engine-bank=<motorbank.json>`. Die Rennszene läuft auch allein:
 `godot --path . res://scenes/race/race.tscn -- --stage=dev_testetappe --start-km=48 --hour=21`.
 
 ## 14. Tests, Screenshots, Build

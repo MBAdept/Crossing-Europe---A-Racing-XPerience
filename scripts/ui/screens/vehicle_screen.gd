@@ -68,6 +68,7 @@ func _switch(d: int) -> void:
 	_index = posmod(_index + d, _ids.size())
 	UiKit.sound("ui_move")
 	_update(float(d))
+	AudioManager.preview_engine(_ids[_index])   # short rev blip of the newly selected car
 
 
 func _update(dir: float) -> void:

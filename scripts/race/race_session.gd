@@ -148,6 +148,7 @@ func _build() -> void:
 	vehicle = VehicleModel.new()
 	vehicle.setup(cfg, str(setup.get("vehicle", "limousine")))
 	SpriteDB.preload_sets([str(vehicle.spec.get("sprite", ""))])
+	AudioManager.set_vehicle(vehicle.type_id)   # engine sound of this car (cycle bank, start clip)
 
 	env = EnvironmentModel.new()
 	env.setup(cfg)

@@ -39,7 +39,9 @@ schräge Schaltflächen (StyleBoxFlat mit `skew`), Panels mit abgeschrägten Eck
 | `scripts/ui/widgets/*.gd` | Hintergrund, Logo-Text, Tastenhinweise, Optionszeile, Laufschrift, Bestenliste, Namenseingabe, Tageszeit-Vorschau, Fahrzeug-Showroom, Routenkarte, Ja/Nein-Abfrage (`ConfirmBox`) |
 | `scripts/audio/audio_manager.gd` | Autoload `AudioManager` (API §11) |
 | `scripts/audio/sfx_synth.gd` | `SfxSynth`: Klangsynthese (rein, getestet) |
-| `tests/unit/ui/*` | Tests: Rennlogik, Formatierung, Laufschrift, Audio-Synthese, Getriebe, Karten-Zoom, Routenoptionen (`test_route_info`), Texte aus der Konfiguration (`test_ui_texts`), Gamepad/Fokus/Spielstand (`test_menu_input`) |
+| `scripts/audio/engine_bank.gd`, `engine_gearbox.gd`, `engine_audio.gd` | Motorklang v2: Zyklusbank laden/prüfen, Getriebe/Drehzahl, Mischkern + Wiedergabe (Abschnitt *Motor*) |
+| `tools/audio/render_engine_demo.gd` | Demo-WAV einer Motorbank mit geskripteter Fahrt |
+| `tests/unit/ui/*` | Tests: Rennlogik, Formatierung, Laufschrift, Audio-Synthese, Getriebe, Karten-Zoom, Routenoptionen (`test_route_info`), Texte aus der Konfiguration (`test_ui_texts`), Gamepad/Fokus/Spielstand (`test_menu_input`), Motor: Bank (`test_engine_bank`), Getriebe (`test_engine_gearbox`), Mischkern (`test_engine_audio`) mit den Testbänken aus `tests/fixtures/engines/` |
 
 ## Bildschirmablauf
 
@@ -168,21 +170,95 @@ Debug: `--map-file=<pfad>` lädt eine andere Kartendatei gleichen Formats.
 
 ## Audio
 
-Alle Klänge werden beim Start synthetisiert (`SfxSynth`, ca. 0,2 s; Menümusik im Hintergrund-Thread) und als
-`AudioStreamWAV` abgespielt – funktioniert mit jedem Audiotreiber inkl. `Dummy`; im Headless-Betrieb wird nichts
-erzeugt.
+Effekte, Schleifen und Menümusik werden beim Start synthetisiert (`SfxSynth`, ca. 0,2 s; Menümusik im
+Hintergrund-Thread) und als `AudioStreamWAV` abgespielt – funktioniert mit jedem Audiotreiber inkl. `Dummy`; im
+Headless-Betrieb wird nichts abgespielt. Der Motor kommt aus einer Zyklusbank je Auto (Abschnitt *Motor*).
 
 - Busse `Master`, `SFX`, `Music` (werden angelegt), Lautstärken aus `Settings` (`apply_volumes()`).
-- Motor: zwei Schleifen (Last/Schub) mit gleicher Tonhöhe, Tonhöhe über ein virtuelles 6-Gang-Getriebe
-  (`SfxSynth.gear_for`: Sägezahn-Drehzahl, kurzer Einbruch beim Hochschalten), Gas lauter und heller.
-  Während des Countdowns (`active = false`) Leerlauf mit Gasstößen.
+- Motor ohne Bank (Datei fehlt oder ist ungültig – Rückfall): zwei Schleifen (Last/Schub) mit gleicher Tonhöhe,
+  Tonhöhe über ein virtuelles 6-Gang-Getriebe (`SfxSynth.gear_for`: Sägezahn-Drehzahl, kurzer Einbruch beim
+  Hochschalten), Gas lauter und heller; `engine_state()` kommt dann aus einem allgemeinen Getriebe
+  (`EngineGearbox.generic`).
 - Wind ∝ Tempo, Regen, Reifenquietschen beim Untersteuern, Martinshorn (440/587 Hz, „tatü-tata“).
 - Einmalklänge `crash, flash, go, beep, finish, fuel_start, fuel_done, ui_move, ui_ok, ui_back`.
-- Schleifen blenden aus, wenn `set_engine()` nicht mehr aufgerufen wird (Szene verlassen) und während der Pause.
+- Schleifen und Motor blenden aus, wenn `set_engine()` nicht mehr aufgerufen wird (Szene verlassen) und während der
+  Pause. `set_engine()` während der Pause und im selben Frame wie `stop_all()` wird ignoriert (eine Rennszene, die
+  gerade freigegeben wird, startet den Motor nicht neu).
 
 Ergänzungen zur API §11: `apply_volumes()`, `set_music(on)`, `hud_hints(state)` (Regen aus `weather` außerhalb von
 Tunneln, Quietschen aus `understeer`, Sirenen-Entfernung aus `police_gap_m`; explizite `set_rain`/`set_skid`-Aufrufe
-der letzten Sekunde haben Vorrang), `gear_for(speed, vmax, gears)` (statisch), Feld `sounds_ready`.
+der letzten Sekunde haben Vorrang), `gear_for(speed, vmax, gears)` (statisch, Getriebe der Rückfall-Schleifen), Feld
+`sounds_ready`; zum Motor `set_vehicle(id)`, `engine_state()` (beide auch in §11), `preview_engine(id)`
+(Fahrzeugwahl: kurzer Gasstoß dieses Autos), `bank_for(id)` (Bank laden/aus dem Cache, `null` = keine),
+`engine_perf()` (`{avg_ms, max_ms, frames, samples, skips}` der Live-Wiedergabe).
+
+### Motor (Motorklang v2)
+
+Vertrag, Bankformat und Motoren: [docs/motorsound.md](motorsound.md). Die Rennsitzung ruft beim Aufbau
+`AudioManager.set_vehicle(id)` auf; die Bank `audio.engine_bank_dir/<id>.json` wird beim ersten Bedarf geladen und
+gemerkt (auch Fehlschläge). Laufzeit in drei reinen, getesteten Klassen:
+
+| Klasse | Aufgabe |
+|---|---|
+| `EngineBank` (`scripts/audio/engine_bank.gd`) | lädt JSON + Rohdaten (`FileAccess.get_file_as_bytes` → `to_float32_array`), prüft das Format: `errors` = Bank unbrauchbar (Meldung mit `push_error`, Rückfall auf die Schleifen), `warnings` = Abweichung vom Vertrag, die die Laufzeit verträgt (unter 32 kHz, weniger als 8 Varianten, Drehzahlabstand > 1,25, fehlende Ebenenfelder) |
+| `EngineGearbox` (`scripts/audio/engine_gearbox.gd`) | Getriebe und Drehzahl aus `gearbox` (unten) |
+| `EngineAudio` (`scripts/audio/engine_audio.gd`) | Mischkern, Ebenen, Wiedergabe über `AudioStreamGenerator` |
+
+**Mischkern** (`EngineAudio.render(out, offset, count)`, ohne AudioServer – Tests und Demo nutzen ihn direkt): eine
+Zyklusphase (0..1 je Arbeitsspiel) läuft mit der aktuellen Drehzahl. Je Ausgabesample werden die beiden benachbarten
+Drehzahlbanken × beide Lasten gelesen, jede an Phase · Periode (Leseschritt Drehzahl / Bankdrehzahl, linear
+interpoliert). Gewichte: linear im Logarithmus der Drehzahl zwischen den beiden Punkten, Lasten gleichleistungs-
+überblendet (`sin`/`cos` der geglätteten Last, τ 45 ms; Schub × `mix.off_gain`; im Leerlauf mindestens
+`mix.idle_load` Last). An jeder Zyklusgrenze wählt jede Bank eine neue zufällige Variante (nie dieselbe zweimal
+hintereinander); der alte Zyklus läuft über `overlap − 4` Samples weiter und wird mit Smoothstep ausgeblendet. Pegel,
+Last und Überblendungen werden je Block (128 Samples) linear nachgeführt. Ausgang: NaN/inf → 0, weiche Begrenzung ab
+0,9 (tanh, nie über 1).
+
+**Getriebe** (`EngineGearbox.update(dt, speed, throttle, vmax, active)`, je Frame): Hochschalten zwischen
+`upshift_rpm[0]` (wenig Gas) und `[1]` (Vollgas), Rückschalten zwischen `downshift_rpm[0]` und `[1]` – mit geglättetem
+Gas (steigt in 0,15 s für den Kickdown, fällt in 0,8 s, damit kurzes Lupfen den Gang hält); Kickdown überspringt
+Gänge. Nahe vmax (keine Beschleunigung mehr) schaltet es in den Gang, der vmax mit weniger Drehzahl hält – bei
+passenden Übersetzungen trägt der höchste Gang vmax. Bremsen = Tempo fällt schneller als 15 km/h pro s ohne Gas:
+früher zurückschalten, Gang für Gang, bei sportlichen Autos mit Zwischengas. Schaltvorgang = `shift_time_s`
+Lastunterbrechung (hoch) bzw. Zwischengas (runter), Drehzahl folgt mit schneller Exponentialkurve. Anfahren: im
+1. Gang schleift die Kupplung bei `launch_rpm` (× Gas), bis die Räder aufholen. Stand (oder `active = false`):
+neutral (Gang 0), Leerlauf; Gas dreht mit Trägheit bis zum Begrenzer (Countdown). Kein Pendeln: Mindestabstand
+zwischen Schaltvorgängen, nach dem Hochschalten 1,2 s kein Rückschalten (außer beim Bremsen), keine Schaltung, deren
+neue Drehzahl sofort die Gegenrichtung auslösen würde. Drehzahl immer in [Leerlauf, Begrenzer].
+
+**Ebenen** (aus `layers`/`clips` der Bank, fehlende Ebene = aus): Turbopfeifen prozedural (Sinus; Ladedruck = Last ×
+Spool-Kurve ab `boost_rpm` mit Verzögerung `spool_s`, im Stand nur 45 %; Pfeifton zwischen `whistle_hz` je nach
+Laderdrehzahl, die beim Gaswegnehmen langsam ausläuft); Gaswegnehmen (Last fällt von über 0,6 unter 0,2, auch nach
+einem Zwischengas, nicht beim Hochschalten): Schubumluft-Clip ab `min_boost`, Knall-Clips Poisson-verteilt
+(`rate_hz`, abklingend über `duration_s`, ab `min_rpm`, nie zweimal derselbe Clip hintereinander); Begrenzer:
+`cut_cycles` Schubzyklen nach `on_cycles` gezündeten Zyklen, Drehzahl sinkt beim Abschalten leicht; Schaltknall
+(`shift`) bei Hochschalten unter Last; Startclip beim ersten `set_engine()` nach `set_vehicle()` – die Zyklen blenden
+0,3 s vor seinem Ende ein, Drehzahl kurz über dem Leerlauf.
+
+**Wiedergabe**: `AudioStreamGenerator` mit `mix_rate` = Abtastrate der Bank, Puffer `audio.engine_buffer_s`, Bus
+`SFX`. Je Frame wird auf `audio.engine_latency_s` Vorlauf gefüllt – mindestens 1,6 Frame-Zeiten (niedrige
+Bildrate) und 1,25 × dem größten Block, den der Audiotreiber zwischen zwei Füllungen geholt hat (Treiber mit langen
+Mischperioden, z. B. `Dummy` mit ≈ 93 ms). Pause und Szenenwechsel: in 0,12 s ausblenden, danach nicht mehr füllen,
+der Player stoppt, sobald die Warteschlange abgespielt ist; Fortsetzen blendet wieder ein. Fahrzeugwahl
+(`preview_engine`, `audio.engine_preview`): Leerlauf → Gasstoß (0,25 s nach dem Wechsel, 0,3 s) → Leerlauf,
+ausgeblendet nach 1,5 s; ein laufender Gasstoß blendet in 40 ms aus und der neue folgt im selben Datenstrom – sie
+überlappen nie.
+
+**Rechenzeit** (GDScript auf dieser Maschine, Bank mit 32 kHz, 533 Samples = ein 60-fps-Frame,
+`test_engine_audio.gd::test_cpu_time_per_frame`): vier Quellen + Turbo ≈ 0,44 ms, Begrenzer im Stand ≈ 0,43 ms,
+Schub mit Knallen ≈ 0,28 ms (Budget < 1 ms).
+
+**Optionale Bankfelder** (nicht im Vertrag, Standardwerte in Klammern): `mix.idle_load` (0,2: Anteil der Lastbank im
+Leerlauf), `gearbox.blip` (Zwischengas beim Bremsen; ja, wenn die Bank einen `shift`-Clip oder eine `crackle`-Ebene
+hat), `gearbox.rev_up_s` / `gearbox.rev_down_s` (Hochdrehen im Stand Leerlauf → Begrenzer bzw. zurück; Diesel
+0,9/1,6 s, Turbo 0,6/1,25 s, Sauger 0,45/1,05 s).
+
+**Werkzeuge**: `tools/audio/render_engine_demo.gd` rendert eine Bank mit einer geskripteten Fahrt (Start,
+Gasstöße, Begrenzer, Vollgas durch die Gänge, Schub, Bremsen) als WAV (Aufruf im Kopf der Datei; `--only-cycles`
+nur Zyklen, `--trace` Drehzahl/Gang je Frame als CSV). Testbänke: `tests/fixtures/engines/` aus
+`tests/fixtures/make_engine_fixtures.py` (`--demo DIR` schreibt zusätzlich eine V8-Demobank mit vollem
+Drehzahlbereich). Debug: `--engine-bank=<pfad.json>` spielt diese Bank für jedes Auto, z. B.
+`--engine-bank=res://tests/fixtures/engines/fixture_v4.json` vor dem Einbau der echten Banken.
 
 ## GameFlow-API (Ergänzungen)
 
@@ -216,7 +292,10 @@ Rennbildschirme, `--stages-done=<n>` den Fortschritt des Beispielrennens (jeweil
 
 `hud`: `message_s`, `show_fps`, `speedo_max_kmh` (Skalenende Tacho), `messages_max` (gleichzeitige Nachrichten),
 `marquee_speed_px_s` (Laufschrift).
-`audio`: `master_db`, `engine_gears`, `engine_idle_hz`, `engine_max_hz` (Motor-Grundton bei Höchstdrehzahl),
+`audio`: `master_db`, `engine_db` (Pegel des Motors aus der Bank, zusätzlich zu deren `mix.gain`),
+`engine_latency_s` (Vorlauf im Generator, Standard 0,07 s), `engine_buffer_s` (Puffer des Generators, 0,25 s),
+`engine_preview` (Gasstoß in der Fahrzeugwahl an/aus), `engine_bank_dir` (Ordner der Motorbänke), nur für den
+Rückfall ohne Bank `engine_gears`, `engine_idle_hz`, `engine_max_hz` (Motor-Grundton bei Höchstdrehzahl);
 `music_db` (Pegel des Music-Busses), `menu_music` (Menümusik an/aus).
 
 **Zahlen in Spielertexten** kommen aus der Konfiguration, damit sie nach dem Abstimmen (auch per

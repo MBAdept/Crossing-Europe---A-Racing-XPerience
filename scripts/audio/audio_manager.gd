@@ -1,8 +1,10 @@
 extends Node
-## Autoload "AudioManager": procedural sound (engine tied to speed with a virtual gearbox, wind,
-## siren, crash, radar flash, fuel, countdown/UI blips, rain, menu music). Owner: UI/audio module.
-## Public API = contract (ARCHITECTURE.md §11). All sounds are synthesised at startup (SfxSynth) as
-## AudioStreamWAV – works with any audio driver incl. "Dummy". Nothing is generated in headless runs.
+## Autoload "AudioManager": engine (cycle banks per car, docs/motorsound.md), wind, siren, crash, radar
+## flash, fuel, countdown/UI blips, rain, menu music. Owner: UI/audio module.
+## Public API = contract (ARCHITECTURE.md §11). Effects and loops are synthesised at startup (SfxSynth) as
+## AudioStreamWAV. The engine plays from the car's cycle bank (assets/audio/engines/<id>.json, EngineAudio
+## through an AudioStreamGenerator); without a bank the old SfxSynth engine loops play (fallback).
+## Nothing is played in headless runs (the engine's gearbox still runs there, for engine_state()).
 ##
 ## Buses: Master / SFX / Music (created if missing), volumes from Settings (apply_volumes()).
 ## Additions to §11 (documented in docs/ui.md):
@@ -10,15 +12,23 @@ extends Node
 ##   set_music(on)         – menu music loop on the Music bus
 ##   hud_hints(state)      – called by the HUD each frame; derives rain, skid and siren distance
 ##                           when the race session does not set them explicitly (explicit calls win)
-##   gear_for(speed, vmax) – virtual gearbox (static, delegates to SfxSynth.gear_for)
-## Safety: loops fade out automatically when set_engine() is no longer called (scene left) and
-## while the tree is paused; play() ignores the same one-shot requested twice within 45 ms.
+##   gear_for(speed, vmax) – virtual gearbox of the fallback loops (static, delegates to SfxSynth.gear_for)
+##   set_vehicle(id)       – engine of the car (race session at setup); bank loaded lazily and cached
+##   engine_state()        – {rpm, gear (0 = neutral), load, boost} of the race engine
+##   preview_engine(id)    – vehicle selection: short rev blip of that car (no overlap with the last one)
+##   bank_for(id), engine_perf()
+## Safety: loops and the engine fade out automatically when set_engine() is no longer called (scene left)
+## and while the tree is paused (the engine then stops filling its generator); set_engine() calls while
+## paused are ignored; play() ignores the same one-shot requested twice within 45 ms.
 
 const ONESHOT_DB := {
 	"crash": -1.0, "flash": -3.0, "go": -4.0, "beep": -6.0, "finish": -3.0, "fuel_start": -5.0,
 	"fuel_done": -4.0, "ui_move": -12.0, "ui_ok": -8.0, "ui_back": -9.0,
 }
 const LOOPS := ["engine_on", "engine_off", "wind", "rain", "siren", "skid"]
+const ENGINE_DIR := "res://assets/audio/engines"
+const ENGINE_FADE_S := 0.12      ## fade of the bank engine on pause / scene change / resume
+const PREVIEW_DB := -2.0         ## vehicle-select blip relative to audio.engine_db
 
 var sounds_ready := false
 var _streams: Dictionary = {}
@@ -58,6 +68,23 @@ var _hint_siren := -1.0
 var _hint_chase := false
 var _vol: Dictionary = {}
 
+# engine v2 (cycle banks)
+var _bank_dir := ENGINE_DIR
+var _bank_override := ""
+var _banks: Dictionary = {}
+var _vehicle_id := ""
+var _eng: EngineAudio = null
+var _eng_start_pending := false
+var _fb_gearbox: EngineGearbox = null
+var _engine_db := -3.0
+var _engine_latency := 0.07
+var _engine_buffer := 0.25
+var _preview_on := true
+var _preview: EngineAudio = null
+var _preview_next: EngineAudio = null
+var _preview_t := 0.0
+var _stopped_frame := -1
+
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -65,6 +92,13 @@ func _ready() -> void:
 	_gears = int(ConfigLoader.lookup(cfg, "audio.engine_gears", 6))
 	_idle_hz = float(ConfigLoader.lookup(cfg, "audio.engine_idle_hz", 38.0))
 	_max_hz = float(ConfigLoader.lookup(cfg, "audio.engine_max_hz", 175.0))
+	_engine_db = float(ConfigLoader.lookup(cfg, "audio.engine_db", -3.0))
+	_engine_latency = clampf(float(ConfigLoader.lookup(cfg, "audio.engine_latency_s", 0.07)), 0.02, 0.2)
+	_engine_buffer = clampf(float(ConfigLoader.lookup(cfg, "audio.engine_buffer_s", 0.25)), _engine_latency * 2.0, 1.0)
+	_preview_on = bool(ConfigLoader.lookup(cfg, "audio.engine_preview", true))
+	_bank_dir = str(ConfigLoader.lookup(cfg, "audio.engine_bank_dir", ENGINE_DIR))
+	_bank_override = CliArgs.get_string("engine-bank", "")
+	_fb_gearbox = EngineGearbox.generic(250.0, _gears)
 	_ensure_buses()
 	apply_volumes()
 	if DisplayServer.get_name() == "headless":
@@ -174,7 +208,13 @@ func _on_music_ready() -> void:
 # --- public API (ARCHITECTURE.md §11) ----------------------------------------------------------
 
 ## Engine sound: speed (km/h), throttle 0..1, current vmax, active = engine running.
+## Ignored while the tree is paused (the engine fades out then; the values from before the pause stay) and
+## in the frame of stop_all() (a race scene that is being freed must not restart the engine).
 func set_engine(speed_kmh: float, throttle: float, vmax_kmh: float, active: bool) -> void:
+	if is_inside_tree() and get_tree().paused:
+		return
+	if Engine.get_process_frames() == _stopped_frame:
+		return
 	_engine_speed = maxf(speed_kmh, 0.0)
 	_engine_throttle = clampf(throttle, 0.0, 1.0)
 	_engine_vmax = maxf(vmax_kmh, 60.0)
@@ -224,6 +264,13 @@ func stop_all() -> void:
 		_vol[n] = 0.0
 	for p in _oneshots:
 		p.stop()
+	if _eng != null:
+		_eng.detach()
+		_eng.reset()
+	_stop_preview()
+	if _fb_gearbox != null:
+		_fb_gearbox.reset()
+	_stopped_frame = Engine.get_process_frames()
 	_engine_t = -100.0
 	_siren_on = false
 	_wind_speed = 0.0
@@ -260,17 +307,151 @@ func hud_hints(state: Dictionary) -> void:
 		_hint_siren = -1.0
 
 
-## Virtual gearbox: gear (1..gears) and rpm fraction (0..1 within the gear) – see SfxSynth.gear_for.
+## Virtual gearbox of the fallback loops: gear (1..gears) and rpm fraction (0..1 within the gear) – see
+## SfxSynth.gear_for.
 static func gear_for(speed_kmh: float, vmax_kmh: float, gears: int = 6) -> Vector2:
 	return SfxSynth.gear_for(speed_kmh, vmax_kmh, gears)
 
 
+## Engine of the car (the race session calls it at setup with its vehicle id): its cycle bank is loaded
+## lazily and cached; the next set_engine() starts the engine (start clip of the bank). Without a usable
+## bank the old SfxSynth engine loops play.
+func set_vehicle(id: String) -> void:
+	_vehicle_id = id
+	_stopped_frame = -1
+	var vmax := float(ConfigLoader.lookup(ConfigLoader.load_merged(), "vehicles.types.%s.vmax_kmh" % id, 250.0))
+	_fb_gearbox = EngineGearbox.generic(vmax, _gears)
+	if _eng != null:
+		_eng.detach()
+	_eng = null
+	_eng_start_pending = false
+	var bank := bank_for(id)
+	if bank != null:
+		_eng = EngineAudio.new(bank)
+		_eng.level = db_to_linear(_engine_db)
+		_eng.reset()
+		_eng_start_pending = true
+
+
+## Cycle bank of a car (cached, also misses). null = no usable bank (missing or invalid -> fallback loops).
+## Debug: --engine-bank=<path/to/bank.json> uses that bank for every car.
+func bank_for(id: String) -> EngineBank:
+	var path := _bank_override if _bank_override != "" else _bank_dir.path_join(id + ".json")
+	if _banks.has(path):
+		return _banks[path]
+	var bank: EngineBank = null
+	if FileAccess.file_exists(path):
+		var t0 := Time.get_ticks_msec()
+		var b := EngineBank.load_file(path)
+		if b.ok():
+			bank = b
+			print("AudioManager: Motorbank %s geladen in %d ms" % [b.summary(), Time.get_ticks_msec() - t0])
+			for w in b.warnings:
+				push_warning("Motorbank %s: %s" % [path, w])
+		else:
+			for e in b.errors:
+				push_error("Motorbank %s: %s" % [path, e])
+	else:
+		print("AudioManager: keine Motorbank für \"%s\" – bisheriger Motorklang" % id)
+	_banks[path] = bank
+	return bank
+
+
+## Engine state of the race car (tests, HUD): {rpm, gear (0 = neutral, 1..n), load 0..1, boost 0..1}.
+## Without a bank: the generic gearbox that runs alongside the fallback loops.
+func engine_state() -> Dictionary:
+	if _eng != null:
+		return _eng.state()
+	if _fb_gearbox != null:
+		return {"rpm": _fb_gearbox.rpm, "gear": _fb_gearbox.gear, "load": _fb_gearbox.load, "boost": 0.0}
+	return {"rpm": 0.0, "gear": 0, "load": 0.0, "boost": 0.0}
+
+
+## Render time of the bank engine (live playback): {avg_ms, max_ms per filling call, frames = filling calls,
+## samples rendered, skips = generator underruns of the current playback}.
+func engine_perf() -> Dictionary:
+	if _eng == null or _eng.perf_calls == 0:
+		return {"avg_ms": 0.0, "max_ms": 0.0, "frames": 0, "samples": 0, "skips": 0}
+	return {"avg_ms": _eng.perf_us_sum / 1000.0 / _eng.perf_calls, "max_ms": _eng.perf_us_max / 1000.0,
+		"frames": _eng.perf_calls, "samples": _eng.perf_samples, "skips": _eng.skips()}
+
+
+## Vehicle selection: a short rev blip of that car (idle -> blip -> idle, EngineAudio.PREVIEW_S). A running
+## blip fades out first and the new one follows in the same stream – they never overlap. Needs the car's
+## cycle bank (no blip with the fallback loops) and config audio.engine_preview.
+func preview_engine(id: String) -> void:
+	if not _preview_on or not sounds_ready:
+		return
+	var bank := bank_for(id)
+	if bank == null:
+		return
+	var e := EngineAudio.new(bank)
+	e.level = db_to_linear(_engine_db + PREVIEW_DB)
+	e.start(false)
+	if _preview == null:
+		_preview = e
+		_preview_t = 0.0
+		_preview.attach(self, "SFX", _engine_buffer)
+	else:
+		_preview.fade_to(0.0, 0.04)
+		_preview_next = e
+
+
+func _stop_preview() -> void:
+	if _preview != null:
+		_preview.detach()
+	_preview = null
+	_preview_next = null
+
+
+func _process_preview(delta: float) -> void:
+	if _preview == null:
+		return
+	if _preview_next != null and _preview.is_silent():
+		_preview_next.take_output(_preview, self, "SFX", _engine_buffer)
+		_preview = _preview_next
+		_preview_next = null
+		_preview_t = 0.0
+	_preview_t += delta
+	var thr := 0.0
+	if _preview_next == null:
+		thr = EngineAudio.preview_throttle(_preview_t)
+		if _preview_t >= EngineAudio.PREVIEW_S - 0.25:
+			_preview.fade_to(0.0, 0.25)
+	_preview.update(delta, 0.0, thr, 0.0, false)
+	_preview.pump(_engine_latency, delta)
+	if _preview_next == null and _preview.is_silent() and _preview_t > EngineAudio.PREVIEW_S + 0.5:
+		_stop_preview()
+
+
+## Bank engine (or the generic gearbox of the fallback): runs also headless, so engine_state() works there.
+func _process_engine(delta: float, alive: bool) -> void:
+	if _eng == null:
+		if _fb_gearbox != null and alive:
+			_fb_gearbox.update(delta, _engine_speed, _engine_throttle, _engine_vmax, _engine_active)
+		return
+	if alive:
+		if _eng_start_pending:
+			_eng_start_pending = false
+			_eng.start(true)
+		_eng.update(delta, _engine_speed, _engine_throttle, _engine_vmax, _engine_active)
+		_eng.fade_to(1.0, ENGINE_FADE_S)
+	else:
+		_eng.fade_to(0.0, ENGINE_FADE_S)
+	if sounds_ready:
+		if _eng.player == null and not _eng.is_silent():
+			_eng.attach(self, "SFX", _engine_buffer)
+		_eng.pump(_engine_latency, delta)
+
+
 func _process(delta: float) -> void:
 	_time += delta
-	if not sounds_ready:
-		return
 	var paused := get_tree().paused
 	var alive := (_time - _engine_t) < 0.35 and not paused
+	_process_engine(delta, alive)
+	if not sounds_ready:
+		return
+	_process_preview(delta)
 	var k_fast := 1.0 - exp(-delta / 0.06)
 	var k_slow := 1.0 - exp(-delta / 0.25)
 	# engine with virtual gearbox
@@ -289,7 +470,7 @@ func _process(delta: float) -> void:
 	_throttle_s = lerpf(_throttle_s, _engine_throttle, k_fast)
 	_pitch_s = lerpf(_pitch_s, freq / SfxSynth.ENGINE_BASE_HZ, k_fast if _shift_dip <= 0.0 else k_fast * 2.0)
 	var base := 0.0
-	if alive:
+	if alive and _eng == null:
 		base = (0.5 + 0.25 * _throttle_s) * (1.0 - 0.45 * _shift_dip)
 		if not _engine_active:
 			base *= 0.75
