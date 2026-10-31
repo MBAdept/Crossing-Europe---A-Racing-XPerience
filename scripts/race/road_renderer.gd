@@ -13,9 +13,16 @@ extends Node2D
 ## Coloured geometry is batched into few triangle-array commands (GeoBatch).
 ## Night: per-vertex lighting of the near ground (player headlight cone, traffic headlights, street
 ## lamps, canopy lights); signs and markings are retro-reflective.
+## Vehicles (docs/fahrzeug-darstellung.md, docs/renn-modul.md §8): ortho sprites rotated about the rear
+## (traffic, police) get their display yaw from the contract formula with the vehicle length, smoothed per
+## vehicle id with cell hysteresis (VehiclePose); trucks/buses with render "box" are textured boxes that
+## follow the road slice by slice (BoxVehicle) and are drawn in painter's order with the scene slices;
+## the player car is a perspective sprite (anchor = projected ground point of its centre) with a smoothed
+## visible yaw and body roll; old ortho player sets keep their rear anchor.
 ##
 ## Input: render(view) once per frame (see ARCHITECTURE.md §Renderer-View). Extra view keys used
-## here: length (player/cars), countdown, chase01, radar_flash01, camera_in_tunnel.
+## here: length (player/cars), countdown, chase01, radar_flash01, camera_in_tunnel; per car id (pose
+## smoothing), speed; player steer, lat_speed, push_speed, understeer (visible yaw and roll).
 ## Owner: race module.
 
 const LIGHT_COL := Color(1.0, 0.93, 0.8)
@@ -27,6 +34,28 @@ const CEILING := Color("3e3b35")
 const CONCRETE := Color("b9b5aa")
 const ROCK := Color("7d7466")
 const STATS_N := 600
+# indices of the cached sprite metadata (_spinfo)
+const SI_TEX := 0
+const SI_PPM := 1
+const SI_ANCHOR := 2
+const SI_CELL := 3
+const SI_COLS := 4         ## {angle name: angle index}
+const SI_ROWS := 5         ## {layer: row}
+const SI_HALFW := 6
+const SI_EXTENT := 7
+const SI_MIRROR := 8
+const SI_YAWS := 9         ## PackedFloat32Array, degrees per angle index
+const SI_GRID := 10        ## cells per sheet row
+const SI_NANG := 11        ## number of angles
+const SI_PERSP := 12       ## perspective set (player)
+const SI_SS := 13          ## supersample of a perspective set
+const SI_CAMD := 14        ## camera distance_m of a perspective set
+const SI_BOX := 15         ## render: box
+const SI_PARTS := 16
+const SI_LIGHTS := 17
+const SI_TEXSIZE := 18
+const SI_OBJ := 19         ## object size (width, length, height)
+const NO_ID := -1000000
 
 var track: Track
 var proj: RoadProjection
@@ -65,6 +94,18 @@ var _hl_int := 0.95
 var _guard_post_every := 2
 var _crosswalk_every := 330.0
 var _prefer_proc := false              ## draw pumps/station/booths/radar procedurally (placeholder sprites)
+var _curve_r1 := 120.0                 ## road.curve_radius_at_1_m
+# vehicles v2 (render.vehicle_*, render.box_*, render.player_*)
+var _veh_tau := 0.12
+var _veh_hyst := 0.3
+var _veh_max_deg := 30.0
+var _pl_k := {}
+var _pl_lookahead := 10.0
+var _pl_tau := 0.15
+var _roll_per := 0.22
+var _roll_max := 2.5
+var _roll_tau := 0.2
+var _box := BoxVehicle.new()
 
 # per-frame projected rows (k = 0 is the segment start at or behind the camera)
 var _n := 0
@@ -73,7 +114,6 @@ var _dz := PackedFloat32Array()
 var _zw := PackedFloat32Array()
 var _xw := PackedFloat32Array()
 var _yw := PackedFloat32Array()
-var _hd := PackedFloat32Array()
 var _sx := PackedFloat32Array()
 var _sy := PackedFloat32Array()
 var _ss := PackedFloat32Array()
@@ -134,6 +174,22 @@ var _gp := PackedVector2Array()
 var _gr := PackedFloat32Array()
 var _gc := PackedColorArray()
 
+# vehicle poses: id -> PackedFloat64Array [yaw (rad), yaw velocity, cell, last x, last time, lateral m/s, frame]
+var _poses: Dictionary = {}
+var _pose_frame := 0
+var _pose_dt := 0.0
+var _pose_last_t := -1.0
+# player pose
+var _pl_yaw := 0.0
+var _pl_yaw_v := 0.0
+var _pl_roll := 0.0
+var _pl_roll_v := 0.0
+var _pl_cell := -1
+var _pl_lat := 0.0
+var _pl_init := false
+var _cam_warned := false
+var last_player_pose: Dictionary = {}    ## yaw_deg, roll_deg, cell, anchor, scale of the last frame (tests, debug)
+
 # weather particles (camera space: x lateral, y above road, z depth)
 var _wp := PackedVector3Array()
 var _wp_kind := ""
@@ -185,6 +241,19 @@ func setup(t: Track, p: RoadProjection, config: Dictionary, scenery: Dictionary)
 	_crosswalk_every = float(ConfigLoader.lookup(cfg, "road.crosswalk_every_m", 330.0))
 	_hl_range = float(r.get("headlight_range_m", 80.0))
 	_hl_int = float(r.get("headlight_intensity", 0.95))
+	_curve_r1 = maxf(1.0, float(ConfigLoader.lookup(cfg, "road.curve_radius_at_1_m", 120.0)))
+	_veh_tau = float(r.get("vehicle_yaw_smooth_s", 0.12))
+	_veh_hyst = float(r.get("vehicle_cell_hysteresis", 0.3))
+	_veh_max_deg = float(r.get("vehicle_yaw_max_deg", 30.0))
+	_pl_lookahead = float(r.get("player_curve_lookahead_m", 10.0))
+	_pl_tau = float(r.get("player_yaw_smooth_s", 0.15))
+	_pl_k = {"curve_gain": float(r.get("player_curve_gain", 1.0)), "steer_deg": float(r.get("player_steer_deg", 3.0)),
+		"lateral_gain": float(r.get("player_lateral_gain", 1.0)), "understeer_deg": float(r.get("player_understeer_deg", 4.0)),
+		"view_gain": float(r.get("player_view_gain", 1.0)), "max_deg": float(r.get("player_yaw_max_deg", 20.0))}
+	_roll_per = float(r.get("player_roll_deg_per_mps2", 0.22))
+	_roll_max = minf(2.5, float(r.get("player_roll_max_deg", 2.5)))
+	_roll_tau = float(r.get("player_roll_smooth_s", 0.2))
+	_box.setup(proj, float(r.get("box_slice_m", 2.0)), float(r.get("box_slice_ratio", 0.12)), float(r.get("box_subdiv_px", 1.5)))
 	show_stats = bool(ConfigLoader.lookup(cfg, "debug.show_render_stats", false))
 	var mode := str(r.get("procedural_props", "auto"))
 	var manifest: Variant = ConfigLoader.load_json("res://assets/sprites/manifest.json")
@@ -272,6 +341,7 @@ func _draw() -> void:
 	_gc.clear()
 	_prepare()
 	_project()
+	_pose_tick()
 	var t1 := Time.get_ticks_usec()
 	var heading := float(view.get("bg_offset", 0.0))
 	var w := proj.screen.x
@@ -428,7 +498,6 @@ func _project() -> void:
 	var a_zw := PackedFloat32Array()
 	var a_xw := PackedFloat32Array()
 	var a_yw := PackedFloat32Array()
-	var a_hd := PackedFloat32Array()
 	var a_sx := PackedFloat32Array()
 	var a_sy := PackedFloat32Array()
 	var a_ss := PackedFloat32Array()
@@ -439,7 +508,6 @@ func _project() -> void:
 	a_zw.resize(count + 1)
 	a_xw.resize(count + 1)
 	a_yw.resize(count + 1)
-	a_hd.resize(count + 1)
 	a_sx.resize(count + 1)
 	a_sy.resize(count + 1)
 	a_ss.resize(count + 1)
@@ -478,7 +546,6 @@ func _project() -> void:
 		a_xw[k] = xr
 		var y := seg.y
 		a_yw[k] = y
-		a_hd[k] = dx / seg_len
 		var s := focal / maxf(dz, near)
 		a_ss[k] = s
 		a_sx[k] = half_w + xr * s
@@ -501,7 +568,6 @@ func _project() -> void:
 	_zw = a_zw
 	_xw = a_xw
 	_yw = a_yw
-	_hd = a_hd
 	_sx = a_sx
 	_sy = a_sy
 	_ss = a_ss
@@ -644,6 +710,20 @@ func _can_merge(a: int, b: int) -> bool:
 
 
 # --- screen helpers -------------------------------------------------------------------------
+
+## Camera-space road sample at world z: Vector3(lateral offset of the road centre from the camera axis, road
+## height relative to the camera, depth). Linear in each segment; extrapolated beyond the projected rows.
+func road_at(z: float) -> Vector3:
+	var fk := z / _seg_len - float(_base)
+	var k := clampi(int(floor(fk)), 0, maxi(0, _n - 1))
+	var f := fk - float(k)
+	return Vector3(lerpf(_xw[k], _xw[k + 1], f), lerpf(_yw[k], _yw[k + 1], f) - _cam_y, lerpf(_dz[k], _dz[k + 1], f))
+
+
+## Road heading (radians) relative to the camera axis at world z (slope of the road centre over ±1.5 m).
+func road_heading_at(z: float) -> float:
+	return atan((road_at(z + 1.5).x - road_at(z - 1.5).x) / 3.0)
+
 
 ## Screen position (x, y, pixels per metre) of road point (segment k, fraction f, lateral x, height h).
 func _proj_at(k: int, f: float, x: float, h: float) -> Vector3:
@@ -806,7 +886,10 @@ func _submit_glows(shake: Vector2) -> void:
 func _draw_world() -> void:
 	var buckets := {}
 	for item: Dictionary in view.get("cars", []):
-		_bucket(buckets, item)
+		if _is_box(str(item.get("set", ""))):
+			_bucket_box(buckets, item)
+		else:
+			_bucket(buckets, item)
 	if view.has("player"):
 		_bucket(buckets, view["player"])
 	# From outside only the first metres of a tunnel are drawn (the tube deeper inside could curve out
@@ -868,6 +951,41 @@ func _bucket(buckets: Dictionary, item: Dictionary) -> void:
 	if not buckets.has(k):
 		buckets[k] = []
 	(buckets[k] as Array).append(item)
+
+
+func _is_box(set_id: String) -> bool:
+	var info := _spinfo(set_id)
+	return not info.is_empty() and bool(info[SI_BOX])
+
+
+## Box vehicles (trucks, buses) are cut at the scene slices: every slice they reach gets one item with that
+## part of the vehicle, so they take part in the painter's order like the ground (crests hide them, a truck
+## beside the player is drawn in depth order with the player car). The part behind the near plane is cut
+## off – a truck alongside stays visible while its rear is behind the camera.
+func _bucket_box(buckets: Dictionary, car: Dictionary) -> void:
+	var z0 := float(car["z"])
+	var length := float(car.get("length", 16.5))
+	var cam_z := float(view["camera_z"])
+	var lo := maxf(z0, cam_z + proj.near)
+	var hi := minf(z0 + length, cam_z + _vis)
+	if hi <= lo:
+		return
+	for si in _sl_a.size():
+		var a := _sl_a[si]
+		var b := _sl_b[si]
+		var s0 := _zw[a]
+		var s1 := _zw[b]
+		if s1 <= lo:
+			continue
+		if s0 >= hi:
+			break
+		var r0 := maxf(lo, s0)
+		var r1 := minf(hi, s1)
+		if r1 <= r0 + 0.001:
+			continue
+		if not buckets.has(a):
+			buckets[a] = []
+		(buckets[a] as Array).append({"kind": "box", "car": car, "z0": r0, "z1": r1, "z": (r0 + r1) * 0.5})
 
 
 func _grass_color(seg: TrackSegment, merged: bool) -> Color:
@@ -1449,6 +1567,9 @@ func _draw_item(k: int, it: Dictionary) -> void:
 	var z := float(it.get("z", _zw[k]))
 	var f := clampf((z - _zw[k]) / _seg_len, 0.0, 1.0)
 	var kind := str(it.get("kind", "prop"))
+	if kind == "box":
+		_draw_box_item(it)
+		return
 	if kind == "prop":
 		var pc := _prep_prop(it)
 		var info: Array = pc[1]
@@ -1523,8 +1644,10 @@ func _start_light_glows(p: Vector3, _edges_px: Vector2) -> void:
 			_glow(c, 1.4 * s, Color(1.0, 0.15, 0.1, 0.6))
 
 
-## Cached sprite metadata: [texture, pixels per metre, anchor, cell size, {angle: column}, {layer: row}]
-## or [] when the set or its texture does not exist (missing sprites are skipped).
+## Cached sprite metadata (indices SI_*): texture, pixels per metre, anchor, cell size, {angle name: index}
+## (incl. the legacy names l2/l1/c/r1/r2), {layer: row}, half width, extent, mirror_left, yaw per angle,
+## grid columns, angle count, perspective?, supersample, camera distance, box?, box parts, box lights,
+## texture size, object size (w, l, h) – or [] when the set or its texture does not exist (skipped).
 func _spinfo(set_id: String) -> Array:
 	var c: Variant = _sp_cache.get(set_id)
 	if c != null:
@@ -1532,27 +1655,61 @@ func _spinfo(set_id: String) -> Array:
 	var info: Array = []
 	var tex := SpriteDB.texture(set_id) if set_id != "" else null
 	if tex != null:
+		var s := SpriteDB.get_set(set_id)
+		var angles: Array = s["angles"]
 		var cols := {}
+		for i in angles.size():
+			cols[str(angles[i])] = i
 		for a: String in ["l2", "l1", "c", "r1", "r2"]:
-			cols[a] = (SpriteDB.get_set(set_id)["angles"] as Array).find(SpriteDB.resolve_angle(set_id, a))
+			if not cols.has(a):
+				cols[a] = angles.find(SpriteDB.resolve_angle(set_id, a))
 		var rows := {}
-		var layers: Array = SpriteDB.get_set(set_id)["layers"]
+		var layers: Array = s["layers"]
 		for i in layers.size():
 			rows[str(layers[i])] = i
 		var obj: Dictionary = SpriteDB.object_size(set_id)
-		var half_w := float(obj.get("width_m", SpriteDB.cell_size(set_id).x / SpriteDB.pixels_per_meter(set_id) * 0.8)) * 0.5
+		var cell := SpriteDB.cell_size(set_id)
+		var ppm := SpriteDB.pixels_per_meter(set_id)
+		var half_w := float(obj.get("width_m", cell.x / maxf(ppm, 0.001) * 0.8)) * 0.5
 		# extent_m (Blender manifest): distance from the anchor to the near side when placed right / left
-		var ext: Array = SpriteDB.get_set(set_id).get("extent_m", [half_w, half_w])
+		var ext: Array = s.get("extent_m", [half_w, half_w])
 		var extent := Vector2(float(ext[0]), float(ext[1])) if ext.size() >= 2 else Vector2(half_w, half_w)
-		var mirror_left := (SpriteDB.get_set(set_id).get("tags", []) as Array).has("mirror_left")
-		info = [tex, SpriteDB.pixels_per_meter(set_id), SpriteDB.anchor(set_id), SpriteDB.cell_size(set_id), cols, rows, half_w, extent, mirror_left]
+		var mirror_left := (s.get("tags", []) as Array).has("mirror_left")
+		var persp := SpriteDB.projection(set_id) == "perspective"
+		var cam := SpriteDB.camera(set_id)
+		var cam_d := float(cam.get("distance_m", proj.cam_distance))
+		if persp and not _cam_warned and _camera_differs(cam):
+			_cam_warned = true
+			push_warning("RoadRenderer: %s wurde für eine andere Kamera gerendert als render.* – Spieler-Sprites neu rendern" % set_id)
+		var obj_v := Vector3(float(obj.get("width_m", half_w * 2.0)), float(obj.get("length_m", 4.5)), float(obj.get("height_m", 1.5)))
+		var tex_size := tex.get_size()
+		if SpriteDB.is_box(set_id):
+			# box faces are seen at grazing angles: anisotropic filtering keeps the side texture sharp
+			var ct := CanvasTexture.new()
+			ct.diffuse_texture = tex
+			ct.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+			tex = ct
+		info = [tex, ppm, SpriteDB.anchor(set_id), cell, cols, rows, half_w, extent, mirror_left,
+			SpriteDB.yaw_list(set_id), SpriteDB.grid_cols(set_id), angles.size(), persp, SpriteDB.supersample(set_id), cam_d,
+			SpriteDB.is_box(set_id), SpriteDB.box_parts(set_id), SpriteDB.box_lights(set_id), tex_size, obj_v]
 	_sp_cache[set_id] = info
 	return info
 
 
+## True when the render camera of a perspective set differs from the game camera (render.*).
+func _camera_differs(cam: Dictionary) -> bool:
+	if cam.is_empty():
+		return false
+	var r: Dictionary = ConfigLoader.lookup(cfg, "render", {})
+	return absf(float(cam.get("height_m", proj.cam_height)) - proj.cam_height) > 0.01 \
+		or absf(float(cam.get("distance_m", proj.cam_distance)) - proj.cam_distance) > 0.01 \
+		or absf(float(cam.get("fov_deg", 84.0)) - float(r.get("fov_deg", 84.0))) > 0.01 \
+		or absf(float(cam.get("horizon_y_frac", 0.45)) - float(r.get("horizon_y_frac", 0.45))) > 0.001
+
+
 func _has_layer(set_id: String, layer: String) -> bool:
 	var info := _spinfo(set_id)
-	return not info.is_empty() and (info[5] as Dictionary).has(layer)
+	return not info.is_empty() and (info[SI_ROWS] as Dictionary).has(layer)
 
 
 ## Sprite set to use for a prop: the set itself, its fallback, or "" if neither exists.
@@ -1583,22 +1740,34 @@ func _sprite(set_id: String, angle: String, layer: String, p: Vector3, scale: fl
 
 
 func _sprite_i(info: Array, angle: String, layer: String, p: Vector3, scale: float, modulate: Color, flip: bool = false) -> Rect2:
-	var row := int((info[5] as Dictionary).get(layer, -1))
+	return _sprite_cell(info, int((info[SI_COLS] as Dictionary).get(angle, 0)), layer, p, scale, modulate, flip)
+
+
+## Source rect of the cell (angle index, layer row) in the sheet (grid layout, contract §1).
+static func cell_src(info: Array, angle_index: int, row: int) -> Rect2:
+	var cell: Vector2 = info[SI_CELL]
+	var i := row * int(info[SI_NANG]) + clampi(angle_index, 0, int(info[SI_NANG]) - 1)
+	var g := maxi(1, int(info[SI_GRID]))
+	return Rect2(float(i % g) * cell.x, float(i / g) * cell.y, cell.x, cell.y)
+
+
+## Draws the cell of angle index `ai` on `layer` with its anchor at p (ortho: width from pixels per metre and
+## the scale p.z); returns its screen rect (size 0 when skipped).
+func _sprite_cell(info: Array, ai: int, layer: String, p: Vector3, scale: float, modulate: Color, flip: bool = false) -> Rect2:
+	var row := int((info[SI_ROWS] as Dictionary).get(layer, -1))
 	if row < 0:
 		return Rect2()
-	var cell: Vector2 = info[3]
-	var col := int((info[4] as Dictionary).get(angle, 0))
-	var w := cell.x / float(info[1]) * p.z * scale
+	var cell: Vector2 = info[SI_CELL]
+	var w := cell.x / float(info[SI_PPM]) * p.z * scale
 	var h := w * cell.y / cell.x
 	if w < 0.8 or w > proj.screen.x * 5.0:
 		return Rect2()
-	var dest := sprite_dest(Vector2(p.x, p.y), w, h, info[2], flip)
+	var dest := sprite_dest(Vector2(p.x, p.y), w, h, info[SI_ANCHOR], flip)
 	if dest.position.x > proj.screen.x + 4.0 or dest.end.x < -4.0 or dest.position.y > proj.screen.y + 4.0 or dest.end.y < -4.0:
 		return Rect2()
-	var src := Rect2(float(col) * cell.x, float(row) * cell.y, cell.x, cell.y)
-	var tex: Texture2D = info[0]
+	var tex: Texture2D = info[SI_TEX]
 	batch.flush()
-	draw_texture_rect_region(tex, flipped_draw_rect(dest) if flip else dest, src, modulate)
+	draw_texture_rect_region(tex, flipped_draw_rect(dest) if flip else dest, cell_src(info, ai, row), modulate)
 	return dest
 
 
@@ -1628,74 +1797,351 @@ func _draw_prop_info(k: int, it: Dictionary, pc: Array, p: Vector3, alpha: float
 		_sprite_i(info, "c", "lights", p, scale, Color(1, 1, 1, alpha * _lights), flip)
 
 
-func _car_angle(k: int, f: float, x: float, p: Vector3) -> String:
-	var heading := lerpf(_hd[k], _hd[mini(k + 1, _n)], f)
-	var dz := proj.focal / p.z
-	var xr := lerpf(_xw[k], _xw[k + 1], f) + x
-	var yaw := rad_to_deg(atan(heading) - atan2(xr, maxf(dz, 0.5)))
-	if yaw > 18.5:
-		return "r2"
-	if yaw > 6.5:
-		return "r1"
-	if yaw < -18.5:
-		return "l2"
-	if yaw < -6.5:
-		return "l1"
-	return "c"
+# --- vehicles (docs/fahrzeug-darstellung.md, docs/renn-modul.md §8) ------------------------------------
+
+## Once per frame: simulation time step for the pose smoothing (0 while paused or frozen); forgets
+## vehicles that were not drawn for a while.
+func _pose_tick() -> void:
+	var t := float(view.get("time", 0.0))
+	_pose_dt = 0.0 if _pose_last_t < 0.0 else clampf(t - _pose_last_t, 0.0, 0.1)
+	_pose_last_t = t
+	_pose_frame += 1
+	if _pose_frame % 120 == 0:
+		for id: int in _poses.keys():
+			if _pose_frame - int((_poses[id] as PackedFloat64Array)[6]) > 240:
+				_poses.erase(id)
+
+
+## Cell (angle index) of an ortho vehicle sprite rotated about its rear (traffic, police): display yaw from
+## the contract formula with the vehicle length (VehiclePose.ortho_yaw: rear depth and lateral offset, road
+## heading as the chord from the rear to the front, own heading from the lateral speed during lane changes),
+## critically damped per vehicle id (render.vehicle_yaw_smooth_s), cell hysteresis
+## (render.vehicle_cell_hysteresis). An explicit "angle" in the item forces that cell.
+func _vehicle_cell(k: int, f: float, it: Dictionary, info: Array) -> int:
+	if it.has("angle"):
+		return int((info[SI_COLS] as Dictionary).get(str(it["angle"]), 0))
+	var length := float(it.get("length", (info[SI_OBJ] as Vector3).y))
+	var z := float(it.get("z", _zw[k]))
+	var x := float(it.get("x", 0.0))
+	var speed := float(it.get("speed", 100.0)) / 3.6
+	var d_r := lerpf(_dz[k], _dz[k + 1], f)
+	var xr_road := lerpf(_xw[k], _xw[k + 1], f)
+	var h := VehiclePose.chord_heading(xr_road, road_at(z + length).x, length)
+	var id := int(it.get("id", NO_ID))
+	var known := id != NO_ID and _poses.has(id)
+	var st: PackedFloat64Array
+	if known:
+		st = _poses[id]
+	else:
+		st = PackedFloat64Array([0.0, 0.0, -1.0, x, _pose_last_t, 0.0, 0.0])
+	# lateral speed = change of x over simulation time (lane changes, lane geometry)
+	if known and _pose_last_t > st[4] + 0.0005:
+		st[5] = (x - st[3]) / (_pose_last_t - st[4])
+		st[3] = x
+		st[4] = _pose_last_t
+	var target := VehiclePose.ortho_yaw(d_r, xr_road + x, h, VehiclePose.own_heading(st[5], speed), length, _veh_max_deg)
+	if known:
+		var r := VehiclePose.damp(st[0], st[1], target, _pose_dt, _veh_tau)
+		st[0] = r.x
+		st[1] = r.y
+	else:
+		st[0] = target
+		st[1] = 0.0
+	var cell := VehiclePose.pick_cell(info[SI_YAWS], rad_to_deg(st[0]), int(st[2]), _veh_hyst)
+	st[2] = float(cell)
+	st[6] = float(_pose_frame)
+	if id != NO_ID:
+		_poses[id] = st
+	return cell
+
+
+## Smoothed display yaw (degrees) of a vehicle id in the last frame (tests, debug); NAN if unknown.
+func vehicle_yaw_deg(id: int) -> float:
+	if not _poses.has(id):
+		return NAN
+	return rad_to_deg((_poses[id] as PackedFloat64Array)[0])
+
+
+## Cell (angle index) shown for a vehicle id in the last frame (tests, debug); -1 if unknown.
+func vehicle_cell(id: int) -> int:
+	if not _poses.has(id):
+		return -1
+	return int((_poses[id] as PackedFloat64Array)[2])
 
 
 func _draw_car(k: int, f: float, it: Dictionary, p: Vector3, alpha: float, light: float) -> void:
+	var set_id := str(it.get("set", ""))
+	var info := _spinfo(set_id)
+	if info.is_empty():
+		return
+	if bool(it.get("player", false)):
+		_draw_player(k, it, info, p, alpha, light)   # updates the pose also while blinking
+		return
 	if not bool(it.get("visible", true)):
 		return
-	var set_id := str(it.get("set", ""))
-	var player := bool(it.get("player", false))
-	var angle := str(it["angle"]) if it.has("angle") else _car_angle(k, f, float(it.get("x", 0.0)), p)
+	var cell := _vehicle_cell(k, f, it, info)
 	var mod := _modulate(k, light, alpha, 0.55)
-	if player:
-		mod = Color(minf(1.3, mod.r * 1.15 + 0.08), minf(1.3, mod.g * 1.15 + 0.08), minf(1.3, mod.b * 1.15 + 0.1), alpha)
-	var r := _sprite(set_id, angle, "base", p, 1.0, mod)
+	var r := _sprite_cell(info, cell, "base", p, 1.0, mod)
 	if r.size.x <= 0.0:
 		return
+	var rows: Dictionary = info[SI_ROWS]
 	var lights := _lights if not _segs[k].tunnel else 1.0
 	var tail := maxf(float(it.get("tail", 0.0)), lights)
 	var brake := float(it.get("brake", 0.0))
 	var light_alpha := alpha if _lights < 0.3 else minf(1.0, alpha * 1.6)
-	if tail > 0.05 and _has_layer(set_id, "tail"):
-		_sprite(set_id, angle, "tail", p, 1.0, Color(1, 1, 1, light_alpha * tail))
-	if brake > 0.05 and _has_layer(set_id, "brake"):
-		_sprite(set_id, angle, "brake", p, 1.0, Color(1, 1, 1, light_alpha * brake))
+	if tail > 0.05 and rows.has("tail"):
+		_sprite_cell(info, cell, "tail", p, 1.0, Color(1, 1, 1, light_alpha * tail))
+	if brake > 0.05 and rows.has("brake"):
+		_sprite_cell(info, cell, "brake", p, 1.0, Color(1, 1, 1, light_alpha * brake))
 	var beacon := str(it.get("beacon", ""))
-	if beacon != "" and _has_layer(set_id, "beacon_" + beacon):
-		_sprite(set_id, angle, "beacon_" + beacon, p, 1.0, Color(1, 1, 1, light_alpha))
-	var obj: Dictionary = SpriteDB.object_size(set_id)
-	var cw := float(obj.get("width_m", 1.8))
-	var ch := float(obj.get("height_m", 1.5))
+	if beacon != "" and rows.has("beacon_" + beacon):
+		_sprite_cell(info, cell, "beacon_" + beacon, p, 1.0, Color(1, 1, 1, light_alpha))
+	var obj: Vector3 = info[SI_OBJ]
+	var cw := obj.x
+	var ch := obj.z
 	var s := p.z
-	# glows: tail/brake lights (night or braking), police beacon
+	# glows: tail/brake lights (night or braking), police beacon; they follow the yawed rear (pivot) a little
 	var glow_a := clampf(tail * lights * 0.9 + brake * (0.35 + 0.4 * lights), 0.0, 1.0) * alpha
+	var yaw := deg_to_rad((info[SI_YAWS] as PackedFloat32Array)[cell]) if cell >= 0 else 0.0
+	var gx := cw * 0.38 * cos(yaw) * s
 	if glow_a > 0.03:
 		var gy := p.y - ch * 0.42 * s
 		var gr := clampf((0.32 + brake * 0.12 + lights * 0.18) * s, 2.0, 70.0)
 		var gcol := Color(1.0, 0.16, 0.06, 0.5 * glow_a)
-		_glow(Vector2(p.x - cw * 0.38 * s, gy), gr, gcol)
-		_glow(Vector2(p.x + cw * 0.38 * s, gy), gr, gcol)
+		_glow(Vector2(p.x - gx, gy), gr, gcol)
+		_glow(Vector2(p.x + gx, gy), gr, gcol)
 		if _wet > 0.0 and lights > 0.2:
-			# streaky reflections of the rear lights on the wet road (soft, fading towards the viewer)
-			var rc := Color(1.0, 0.22, 0.12, (0.12 if player else 0.22) * glow_a * _wet)
-			var rl := (0.45 if player else 0.8) * s
-			for side: float in [-1.0, 1.0]:
-				var x0 := p.x + side * cw * 0.38 * s
-				batch.quad4(Vector2(x0 - 0.08 * s, p.y - 0.02 * s), Vector2(x0 + 0.08 * s, p.y - 0.02 * s), Vector2(x0 + 0.14 * s, p.y + rl), Vector2(x0 - 0.14 * s, p.y + rl), rc, rc, Color(rc, 0.0), Color(rc, 0.0))
+			_wet_reflections(PackedVector2Array([Vector2(p.x - gx, p.y), Vector2(p.x + gx, p.y)]), s, 0.22 * glow_a * _wet, 0.8 * s)
 	if beacon != "":
 		var bc := Color(0.25, 0.45, 1.0, 0.7 * alpha) if beacon == "a" else Color(0.35, 0.55, 1.0, 0.45 * alpha)
-		var bx := p.x + (-0.25 if beacon == "a" else 0.25) * s
+		var bx := p.x + (-0.25 if beacon == "a" else 0.25) * s + 2.2 * sin(yaw) * s
 		_glow(Vector2(bx, p.y - (ch + 0.1) * s), maxf(3.0, (1.2 + lights) * s), bc)
 	# spray in the rain
 	var spd := float(it.get("speed", 100.0))
-	if _wet > 0.0 and not _segs[k].tunnel and spd > 40.0 and not player:
+	if _wet > 0.0 and not _segs[k].tunnel and spd > 40.0:
 		var sa := clampf((spd - 40.0) / 120.0, 0.0, 1.0) * 0.28 * alpha * _wet
 		var spray := Color(_fogc.lerp(Color(0.9, 0.92, 0.95), 0.5), sa)
 		batch.ellipse(Vector2(p.x, p.y - 0.45 * s), Vector2(cw * 0.75 * s, 0.6 * s), spray, Color(spray, 0.0), 12)
+
+
+## Streaky reflections of rear lights on the wet road below the given ground points (soft, fading downwards).
+func _wet_reflections(points: PackedVector2Array, s: float, a: float, length: float) -> void:
+	var rc := Color(1.0, 0.22, 0.12, a)
+	for q in points:
+		batch.quad4(Vector2(q.x - 0.08 * s, q.y - 0.02 * s), Vector2(q.x + 0.08 * s, q.y - 0.02 * s), Vector2(q.x + 0.14 * s, q.y + length), Vector2(q.x - 0.14 * s, q.y + length), rc, rc, Color(rc, 0.0), Color(rc, 0.0))
+
+
+## Visible yaw and body roll of the player car (smoothed, render.player_*): target from
+## VehiclePose.player_yaw_target (curve look-ahead, steering, lane change, understeer, view angle), roll from
+## the lateral acceleration (road curvature at the car + change of the steering lateral speed).
+func _update_player_pose(it: Dictionary, zc: float, xc: float, dc: float, speed: float) -> void:
+	var lat := float(it.get("lat_speed", 0.0))
+	var curve := track.curve_at(zc) if track != null else 0.0
+	var heading := road_heading_at(zc + _pl_lookahead)
+	var target := VehiclePose.player_yaw_target(heading, float(it.get("steer", 0.0)), lat, speed,
+		float(it.get("understeer", 0.0)), curve, atan2(xc, dc), _pl_k)
+	var dlat := 0.0
+	if _pl_init and _pose_dt > 0.0:
+		dlat = (lat - _pl_lat) / _pose_dt
+	if _pose_dt > 0.0 or not _pl_init:
+		_pl_lat = lat
+	var a_lat := clampf(speed * speed * curve / _curve_r1, -12.0, 12.0) + clampf(dlat, -12.0, 12.0)
+	var roll_t := VehiclePose.roll_target_deg(a_lat, _roll_per, _roll_max)
+	if not _pl_init:
+		_pl_init = true
+		_pl_yaw = target
+		_pl_yaw_v = 0.0
+		_pl_roll = roll_t
+		_pl_roll_v = 0.0
+		return
+	var r := VehiclePose.damp(_pl_yaw, _pl_yaw_v, target, _pose_dt, _pl_tau)
+	_pl_yaw = r.x
+	_pl_yaw_v = r.y
+	var q := VehiclePose.damp(_pl_roll, _pl_roll_v, roll_t, _pose_dt, _roll_tau)
+	_pl_roll = clampf(q.x, -_roll_max, _roll_max)
+	_pl_roll_v = q.y
+
+
+## The player car. Perspective sets (contract §3): anchor on the projected ground point of the car centre,
+## scale = render camera distance / actual depth / supersample. Old ortho sets keep the rear anchor. Both show
+## the cell of the smoothed visible yaw (hysteresis) and lean by the body roll (rotation about the anchor);
+## brake/tail layers, blinking (visible) and shake (draw transform) as before.
+func _draw_player(k: int, it: Dictionary, info: Array, p_rear: Vector3, alpha: float, light: float) -> void:
+	var length := float(it.get("length", 4.6))
+	var zc := float(it["z"]) + length * 0.5
+	var rc := road_at(zc)
+	var dc := maxf(rc.z, proj.near)
+	var xc := rc.x + float(it.get("x", 0.0))
+	_update_player_pose(it, zc, xc, dc, float(it.get("speed", 0.0)) / 3.6)
+	var cell: int
+	if it.has("angle") and not it.has("steer"):
+		cell = int((info[SI_COLS] as Dictionary).get(str(it["angle"]), 0))
+	else:
+		cell = VehiclePose.pick_cell(info[SI_YAWS], rad_to_deg(_pl_yaw), _pl_cell, _veh_hyst)
+	_pl_cell = cell
+	var persp := bool(info[SI_PERSP])
+	var anchor_pt: Vector2
+	var scale: float
+	if persp:
+		var s := proj.focal / dc
+		anchor_pt = Vector2(proj.screen.x * 0.5 + xc * s, proj.horizon_y - rc.y * s)
+		scale = VehiclePose.perspective_scale(float(info[SI_CAMD]), dc, float(info[SI_SS]))
+	else:
+		anchor_pt = Vector2(p_rear.x, p_rear.y)
+		scale = p_rear.z / maxf(float(info[SI_PPM]), 0.001)
+	var size: Vector2 = (info[SI_CELL] as Vector2) * scale
+	var an: Vector2 = info[SI_ANCHOR]
+	var dest := Rect2(-an * size, size)
+	var roll := deg_to_rad(_pl_roll)
+	last_player_pose = {"yaw_deg": rad_to_deg(_pl_yaw), "roll_deg": _pl_roll, "cell": cell, "anchor": anchor_pt,
+		"scale": scale, "perspective": persp, "rect": Rect2(anchor_pt + dest.position, size)}
+	if size.x < 1.0 or not bool(it.get("visible", true)):
+		return
+	var mod := _modulate(k, light, alpha, 0.55)
+	mod = Color(minf(1.3, mod.r * 1.15 + 0.08), minf(1.3, mod.g * 1.15 + 0.08), minf(1.3, mod.b * 1.15 + 0.1), alpha)
+	var rows: Dictionary = info[SI_ROWS]
+	var tex: Texture2D = info[SI_TEX]
+	var lights := _lights if not _segs[k].tunnel else 1.0
+	var tail := maxf(float(it.get("tail", 0.0)), lights)
+	var brake := float(it.get("brake", 0.0))
+	var light_alpha := alpha if _lights < 0.3 else minf(1.0, alpha * 1.6)
+	var shake: Vector2 = view.get("shake", Vector2.ZERO)
+	batch.flush()
+	draw_set_transform(anchor_pt + shake, roll, Vector2.ONE)
+	draw_texture_rect_region(tex, dest, cell_src(info, cell, int(rows.get("base", 0))), mod)
+	if tail > 0.05 and rows.has("tail"):
+		draw_texture_rect_region(tex, dest, cell_src(info, cell, int(rows["tail"])), Color(1, 1, 1, light_alpha * tail))
+	if brake > 0.05 and rows.has("brake"):
+		draw_texture_rect_region(tex, dest, cell_src(info, cell, int(rows["brake"])), Color(1, 1, 1, light_alpha * brake))
+	draw_set_transform(shake)
+	# glows at the rear lights, rotated with the car
+	var obj: Vector3 = info[SI_OBJ]
+	var glow_a := clampf(tail * lights * 0.9 + brake * (0.35 + 0.4 * lights), 0.0, 1.0) * alpha
+	if glow_a <= 0.03:
+		return
+	var pts := _player_light_points(persp, info, cell, anchor_pt, p_rear, dc, obj)
+	var rot := Transform2D(roll, anchor_pt)
+	var s_rear := pts[2].x
+	var gr := clampf((0.32 + brake * 0.12 + lights * 0.18) * s_rear, 2.0, 70.0)
+	var gcol := Color(1.0, 0.16, 0.06, 0.5 * glow_a)
+	var ground := PackedVector2Array()
+	for i in 2:
+		_glow(rot * (pts[i] - anchor_pt), gr, gcol)
+		ground.append(rot * (pts[3 + i] - anchor_pt))
+	if _wet > 0.0 and lights > 0.2:
+		_wet_reflections(ground, s_rear, 0.12 * glow_a * _wet, 0.45 * s_rear)
+
+
+## Screen points of the player's rear lights before the roll: [left light, right light, (rear scale, 0),
+## left ground point, right ground point]. Perspective: the car as rendered for the cell (yaw about its centre,
+## seen from the render camera), placed by the anchor and scale; ortho: around the rear anchor as before.
+func _player_light_points(persp: bool, info: Array, cell: int, anchor_pt: Vector2, p_rear: Vector3, dc: float, obj: Vector3) -> PackedVector2Array:
+	var cw := obj.x
+	var ch := obj.z
+	var out := PackedVector2Array()
+	if not persp:
+		var s := p_rear.z
+		var yaw0 := deg_to_rad((info[SI_YAWS] as PackedFloat32Array)[cell]) if cell >= 0 else 0.0
+		var gx := cw * 0.38 * cos(yaw0) * s
+		out.append(Vector2(p_rear.x - gx, p_rear.y - ch * 0.42 * s))
+		out.append(Vector2(p_rear.x + gx, p_rear.y - ch * 0.42 * s))
+		out.append(Vector2(s, 0.0))
+		out.append(Vector2(p_rear.x - gx, p_rear.y))
+		out.append(Vector2(p_rear.x + gx, p_rear.y))
+		return out
+	var yaw := deg_to_rad((info[SI_YAWS] as PackedFloat32Array)[cell]) if cell >= 0 else 0.0
+	var d := float(info[SI_CAMD])
+	var hcam := proj.cam_height
+	var half_l := obj.y * 0.5
+	var k := proj.focal * d / maxf(dc, 0.01)     # game px per (metre / render depth)
+	var pts_h: Array[float] = [ch * 0.42, 0.0]
+	var tmp: Array[Vector2] = []
+	var s_rear := 0.0
+	for hy: float in pts_h:
+		for side: float in [-1.0, 1.0]:
+			var lx := side * cw * 0.38
+			var x := lx * cos(yaw) - half_l * sin(yaw)
+			var z := -lx * sin(yaw) - half_l * cos(yaw)
+			var depth := maxf(d + z, 0.1)
+			tmp.append(anchor_pt + Vector2(k * x / depth, k * ((hcam - hy) / depth - hcam / d)))
+			s_rear = k / depth
+	out.append(tmp[0])
+	out.append(tmp[1])
+	out.append(Vector2(s_rear, 0.0))
+	out.append(tmp[2])
+	out.append(tmp[3])
+	return out
+
+
+## Truck/bus part inside one scene slice (bucketed by _bucket_box): BoxVehicle projects the visible faces of
+## all parts with the road geometry (slices <= render.box_slice_m), far to near, with the ambient/fog/night
+## modulate of sprites; tail/brake overlays on top; one textured triangle array per item. A soft shadow on
+## the road under the body comes first; the rear lights glow when the rear face is in this slice.
+func _draw_box_item(it: Dictionary) -> void:
+	var car: Dictionary = it["car"]
+	if not bool(car.get("visible", true)):
+		return
+	var info := _spinfo(str(car.get("set", "")))
+	if info.is_empty():
+		return
+	var obj: Vector3 = info[SI_OBJ]
+	var length := float(car.get("length", obj.y))
+	var zc := float(car["z"]) + length * 0.5
+	var xc := float(car.get("x", 0.0))
+	var z0 := float(it["z0"])
+	var z1 := float(it["z1"])
+	var zm := (z0 + z1) * 0.5
+	var km := clampi(int(floor(zm / _seg_len)) - _base, 0, _n - 1)
+	var dz := maxf(road_at(zm).z, proj.near)
+	var alpha := _item_alpha(km, dz)
+	if alpha <= 0.02:
+		return
+	_ctx(_segs[km].tunnel)
+	var light := _light(zm, xc) if _lit and dz < _hl_range + 40.0 else 0.0
+	var mod := _modulate(km, light, alpha, 0.55)
+	var lights := _lights if not _segs[km].tunnel else 1.0
+	var tail := maxf(float(car.get("tail", 0.0)), lights)
+	var brake := float(car.get("brake", 0.0))
+	var light_alpha := alpha if _lights < 0.3 else minf(1.0, alpha * 1.6)
+	_box_shadow(km, xc, z0, z1, obj.x, alpha)
+	_box.clear()
+	_box.tex_size = info[SI_TEXSIZE]
+	var k_l := light_alpha / maxf(alpha, 0.001)
+	_box.emit(info[SI_PARTS], info[SI_LIGHTS], zc, xc, z0, z1, float(view["camera_z"]), road_at, mod, tail * k_l, brake * k_l)
+	if _box.quads > 0:
+		batch.flush()
+		RenderingServer.canvas_item_add_triangle_array(get_canvas_item(), _box.idx, _box.pts, _box.cols, _box.uvs,
+			PackedInt32Array(), PackedFloat32Array(), (info[SI_TEX] as Texture2D).get_rid())
+		batch.triangles += _box.quads * 2
+		batch.commands += 1
+	if not _box.rear_drawn:
+		return
+	var glow_a := clampf(tail * lights * 0.9 + brake * (0.35 + 0.4 * lights), 0.0, 1.0) * alpha
+	if glow_a > 0.03:
+		var rr := _box.rear_rect
+		var s := rr.size.x / maxf(obj.x, 0.1)
+		var gy := rr.end.y - 0.85 * s
+		var gr := clampf((0.36 + brake * 0.12 + lights * 0.2) * s, 2.0, 80.0)
+		var gcol := Color(1.0, 0.16, 0.06, 0.5 * glow_a)
+		_glow(Vector2(rr.position.x + rr.size.x * 0.12, gy), gr, gcol)
+		_glow(Vector2(rr.end.x - rr.size.x * 0.12, gy), gr, gcol)
+		if _wet > 0.0 and lights > 0.2:
+			_wet_reflections(PackedVector2Array([Vector2(rr.position.x + rr.size.x * 0.12, rr.end.y), Vector2(rr.end.x - rr.size.x * 0.12, rr.end.y)]), s, 0.22 * glow_a * _wet, 0.8 * s)
+
+
+## Darkened road under a box vehicle between z0 and z1 (footprint + 0.15 m to each side).
+func _box_shadow(k: int, xc: float, z0: float, z1: float, width: float, alpha: float) -> void:
+	var ra := road_at(z0)
+	var rb := road_at(z1)
+	if ra.z <= proj.near or rb.z <= ra.z:
+		return
+	var hw := width * 0.5 + 0.15
+	var sa := proj.focal / ra.z
+	var sb := proj.focal / rb.z
+	var cx := proj.screen.x * 0.5
+	var c := Color(0.0, 0.0, 0.0, 0.32 * alpha * (1.0 - _ftx[k]))
+	batch.quad(Vector2(cx + (ra.x + xc - hw) * sa, proj.horizon_y - ra.y * sa), Vector2(cx + (ra.x + xc + hw) * sa, proj.horizon_y - ra.y * sa),
+		Vector2(cx + (rb.x + xc + hw) * sb, proj.horizon_y - rb.y * sb), Vector2(cx + (rb.x + xc - hw) * sb, proj.horizon_y - rb.y * sb), c)
 
 
 # --- procedural objects ---------------------------------------------------------------------

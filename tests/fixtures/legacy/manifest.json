@@ -1,0 +1,11 @@
+{
+ "version": 1,
+ "_doc": "Manifest im Format der ersten Version (5 Winkel l2/l1/c/r1/r2, eine Zeile je Ebene, yaw_deg als Wörterbuch bzw. fehlend) – prüft, dass SpriteDB alte Manifeste unverändert liest (tests/unit/race/test_sprite_db.gd). Die Sheets werden nicht geladen.",
+ "sets": {
+  "traffic/sedan_blue": {"file": "traffic/sedan_blue.png", "cell": [292, 108], "angles": ["l2", "l1", "c", "r1", "r2"], "layers": ["base", "tail", "brake"], "image_width_m": 5.6154, "anchor": [0.5, 0.9663], "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.48}, "tags": ["traffic", "car"], "elevation_deg": 9.0, "yaw_deg": {"l2": -25.0, "l1": -12.0, "c": 0.0, "r1": 12.0, "r2": 25.0}, "extent_m": [1.06, 1.06]},
+  "police/de": {"file": "police/de.png", "cell": [320, 132], "angles": ["l2", "l1", "c", "r1", "r2"], "layers": ["base", "tail", "brake", "beacon_a", "beacon_b"], "image_width_m": 5.7143, "anchor": [0.5, 0.9703], "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.65}, "tags": ["police", "de"]},
+  "traffic/truck_white": {"file": "traffic/truck_white.png", "cell": [572, 176], "angles": ["l2", "l1", "c", "r1", "r2"], "layers": ["base", "tail", "brake"], "image_width_m": 16.8235, "anchor": [0.5, 0.9807], "object": {"width_m": 2.55, "length_m": 16.5, "height_m": 4.0}, "tags": ["traffic", "heavy"], "elevation_deg": 3.5, "yaw_deg": {"l2": -25.0, "l1": -12.0, "c": 0.0, "r1": 12.0, "r2": 25.0}},
+  "player/limousine": {"file": "player/limousine.png", "cell": [648, 296], "angles": ["l2", "l1", "c", "r1", "r2"], "layers": ["base", "tail", "brake"], "image_width_m": 5.7857, "anchor": [0.5, 0.9697], "object": {"width_m": 1.86, "length_m": 4.85, "height_m": 1.48}, "tags": ["player"], "elevation_deg": 20.0},
+  "props/tree_oak": {"file": "props/tree_oak.png", "cell": [256, 320], "angles": ["c"], "layers": ["base"], "image_width_m": 9.0, "anchor": [0.5, 0.95], "tags": ["tree"]}
+ }
+}

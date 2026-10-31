@@ -1,8 +1,9 @@
 # Renn-Modul – Strecke, Pseudo-3D-Renderer, Rennsitzung
 
 Technische Dokumentation des Renn-Moduls (Eigentum: `scripts/race/*`, `scenes/race/*`, `data/scenery.json`,
-`tests/unit/race/*`, `tests/race/*`, Konfigurationsabschnitte `road`, `render`, `debug`).
-Verträge stehen in [ARCHITECTURE.md](../ARCHITECTURE.md) §5, §6, §8; hier steht, wie es funktioniert und woran man dreht.
+`tests/unit/race/*`, `tests/race/*`, `tests/fixtures/*`, Konfigurationsabschnitte `road`, `render`, `debug`).
+Verträge stehen in [ARCHITECTURE.md](../ARCHITECTURE.md) §5, §6, §8 und für die Fahrzeuge in
+[fahrzeug-darstellung.md](fahrzeug-darstellung.md); hier steht, wie es funktioniert und woran man dreht.
 
 ## 1. Dateien und Klassen
 
@@ -15,6 +16,8 @@ Verträge stehen in [ARCHITECTURE.md](../ARCHITECTURE.md) §5, §6, §8; hier st
 | `scripts/race/backdrop.gd` | `RaceBackdrop` | Himmel (Verlauf, Sonne, Mond, Sterne, Wolken) und Hintergrund-Silhouetten je Landschaftsstil |
 | `scripts/race/sign_painter.gd` | `SignPainter` | prozedurale Schilder mit Text (Tempo, Radar, Tankstelle, Ortsschild, EU-Grenze, Tunnel, Autobahn, Start/Ziel) |
 | `scripts/race/geo_batch.gd` | `GeoBatch` | sammelt farbige Vierecke und schickt sie als ein Dreiecks-Array an den RenderingServer |
+| `scripts/race/vehicle_pose.gd` | `VehiclePose` | Fahrzeugdarstellung v2, reine Mathematik: Darstellungswinkel mit Fahrzeuglänge, kritisch gedämpfte Glättung, Zellwahl mit Hysterese, Gierwinkel und Neigung des Spielerautos |
+| `scripts/race/box_vehicle.gd` | `BoxVehicle` | Lkw/Busse als texturierte Quader: sichtbare Flächen, Abschnitte entlang der Straße, nahe Ebene, Texturkoordinaten |
 | `scripts/race/palette.gd` | `Palette` | Farben nach Tageszeit, Wetter, Tunnel |
 | `scripts/race/race_session.gd` | (Szene `scenes/race/race.tscn`) | Rennsitzung: Countdown, Simulation, HUD/Audio/Renderer füttern, Meldungen, Pause, Ziel |
 | `scripts/race/session_rules.gd` | `SessionRules` | reine Regeln der Rennsitzung (Kollisionen in geskripteten Phasen, HUD-Tankstelle, Ausrollen in die Tankspur, Überholweg der Polizei) – testbar ohne Szene |
@@ -26,7 +29,9 @@ Verträge stehen in [ARCHITECTURE.md](../ARCHITECTURE.md) §5, §6, §8; hier st
 | `tests/race/check_session.gd` | – | Szenario-Prüfungen in der echten Rennszene (Kollisionsrichtung, Ausrollen, Abschleppen, Polizei beim Tanken, HUD-Werte, Tutorial) |
 | `tests/race/check_sprite_flip.gd` | – | Render-Prüfung (Xvfb): gespiegelte Sprites liegen an Ort und Stelle |
 | `tests/race/bench_render.gd` | – | Render-Benchmark an festen Streckenpositionen |
-| `tests/unit/race/*` | – | Unit-Tests (Track, Projektion, Palette, Schilder, Sitzungsregeln, Tutorial, Hilfsklassen) |
+| `tests/race/shoot_vehicles.gd` | – | Fahrzeug-Szenarien als Bildfolgen (Xvfb, feste Bildrate): Kurven, Überholen eines Lkw, Spurwechsel, Polizei, Tunnel |
+| `tests/fixtures/make_fixtures.py` | – | erzeugt die Testdaten `tests/fixtures/sprites/*` (17-Winkel-Pkw, Polizei, 21-Winkel-Spielerauto perspektivisch, Lkw als Quader) |
+| `tests/unit/race/*` | – | Unit-Tests (Track, Projektion, Palette, Schilder, Sitzungsregeln, Tutorial, Hilfsklassen, Fahrzeugdarstellung, SpriteDB) |
 
 ## 2. Ein Frame des Renderers
 
@@ -45,6 +50,8 @@ Verträge stehen in [ARCHITECTURE.md](../ARCHITECTURE.md) §5, §6, §8; hier st
 5. **Maleralgorithmus**: Scheiben von hinten nach vorn – Boden (Grasbänder, Bankett/Standstreifen/Gehweg, Asphalt,
    Markierungen), Bauwerke (Leitplanken, Leitpfosten, Tunnelwände/-decke/-lampen, Tankstellendächer, Grenzstation),
    dann die Sprites der Scheibe nach Tiefe sortiert (Requisiten, Schilder, Fahrzeuge), danach ggf. das Tunnelportal.
+   Lkw/Busse als Quader werden an den Scheibengrenzen geteilt: jede Scheibe zeichnet den Teil des Quaders, der in ihr
+   liegt (§8) – so verdecken Kuppen auch Lkw richtig, und ein Lkw neben dem Spieler steht in der richtigen Reihenfolge.
    Dadurch verdecken Kuppen Straße und Verkehr, Tunnelwände in Kurven die Autos dahinter usw.
 6. **Wetterpartikel** (Regen als Schlieren, Schnee als Flocken, im Kameraraum simuliert), Verfolgungs-Blaulicht,
    **additive Leuchtebene** (eigenes CanvasItem mit Additiv-Material: Rück-/Bremslichter, Blaulicht, Laternen,
@@ -166,11 +173,93 @@ Regen: grauer bedeckter Himmel, nasse dunkle Fahrbahn mit Himmelsspiegelung in d
 Spiegelungen der Rücklichter nachts, Regenschlieren. Schnee: grauer Himmel, weißer Boden, Schnee an den Fahrbahnrändern,
 Flocken. Sichtweite kommt aus `EnvironmentModel.visibility_factor` (Nebel ab `render.fog_start_frac` der Sichtweite).
 
-## 8. Fahrzeuge
+## 8. Fahrzeuge (Darstellung v2)
 
-Verkehr wählt den Winkel `l2/l1/c/r1/r2` aus der scheinbaren Gierung (Straßenrichtung am Auto minus Sichtstrahl):
-Grenzen 6,5° und 18,5° (Sprites bei 12° und 25°). Spieler: `l1/c/r1` nach Lenkung, Bremslichter, Blinken über
-`visible`, Wackeln neben der Fahrbahn und bei Kollisionen. Polizei: Blaulichtphasen `beacon_a/b` + blaues Leuchten.
+Vertrag zwischen Sprite-Pipeline und Renderer: [fahrzeug-darstellung.md](fahrzeug-darstellung.md). Das Manifest legt pro
+Set die Darstellungsart fest; `SpriteDB` liest die Erweiterungen (`grid_cols`, `yaw_deg`, `pivot`, `projection`,
+`camera`, `supersample`, `render: box` mit `parts`/`faces`/`lights`) und bleibt mit dem alten Manifest (5 Winkel
+`l2/l1/c/r1/r2`, eine Zeile je Ebene, `yaw_deg` als Wörterbuch) verträglich. Die Mathematik steht in `VehiclePose` und
+`BoxVehicle` (rein, unit-getestet), der Renderer liefert die Straßengeometrie (`road_at(z)`: seitlicher Versatz der
+Straßenmitte, Höhe, Tiefe – dieselbe Projektion wie für die Straße).
+
+**Verkehr und Polizei – orthografische Sprites, Drehung um das Heck** (alte 5-Winkel-Sets und neue 17-Winkel-Sets):
+
+- Der Anker (Heckmitte am Boden) sitzt auf dem projizierten Heckpunkt. Darstellungswinkel nach Vertrag:
+  `sin ψ = (d_r · tan(h + ψ_c) − x_r) / (d_r + L)`, begrenzt auf ±`render.vehicle_yaw_max_deg` (30°). `d_r` = Tiefe des
+  Hecks, `x_r` = sein seitlicher Abstand von der Kameraachse inklusive Straßenversatz, `h` = Straßenrichtung relativ
+  zur Kamera als **Sehne vom Heck zur Front** (Straßenmitte an `z` und `z + L` – für eine Kurve konstanter Krümmung
+  exakt), `L` = Fahrzeuglänge, `ψ_c = atan(v_quer / v_längs)` = Eigenrichtung. So liegt die Front des Sprites (im
+  Maßstab des Hecks) dort, wo die echte Perspektive sie zeigt (Unit-Test: < 0,5 px über Kurven, Spuren und Längen; die
+  alte Punktformel lag bis zu Hunderten Pixeln daneben). Beispiel aus dem Playtest: Lkw (16,5 m) in der Nachbarspur
+  30 m voraus → −4,6° statt bisher der 12°-Zelle.
+- `v_quer` misst der Renderer selbst: Änderung von `x` je Fahrzeug-`id` über die Simulationszeit (Spurwechsel,
+  Spurgeometrie); die Sitzung gibt jedem Auto seine `id` mit (Polizei: −2) und der Polizei ihr wirkliches Tempo
+  (Spielertempo + Änderung von `police_car_offset_m`).
+- Pro `id` kritisch gedämpft geglättet (`render.vehicle_yaw_smooth_s` = 0,12 s, exakte Lösung, stabil bei jeder
+  Bildrate, steht in der Pause), Zellwahl mit Hysterese: die Zelle wechselt erst, wenn eine andere um mehr als
+  `render.vehicle_cell_hysteresis` (0,3) Schritte näher liegt – auf einer gleichmäßigen Kurve flackert nichts
+  (Unit-Test mit Rauschen und schwankender Bildzeit; `shoot_vehicles.gd` zählt die Zellwechsel im echten Renderer).
+  Rück-/Bremslicht- und Blaulicht-Ebenen nutzen dieselbe Zelle; die Leuchtpunkte rücken mit dem Winkel mit.
+- Grenze der Darstellungsart: orthografische Sprites zeichnen die Front im Maßstab des Hecks. Für Pkw ist das
+  unauffällig; lange alte Lkw-Sprites dicht neben der Kamera werden dabei riesig (wie bisher, nur mit kleinerem
+  Winkel) – dafür gibt es die Quader.
+
+**Lkw und Busse – `render: "box"` (`BoxVehicle`)**:
+
+- Jede Fläche eines Teils (`parts`: `z`/`x`/`y` relativ zur Fahrzeugmitte) wird als texturiertes Viereck projiziert;
+  die Fahrzeugmitte steht auf (`z`-Mitte, `x`) des Verkehrsautos, die Aufstandsfläche ist damit genau die
+  Kollisionsbox des `TrafficSystem` (Spurmitte, Länge, Breite; Unit-Tests mit den Ecken der gezeichneten Flächen und
+  mit den Teilen aller Quader-Sets im Manifest).
+- Sichtbar ist eine Fläche, wenn ihre Außenseite zur Kamera zeigt: Heck, wenn es vor der Kamera liegt; links/rechts je
+  Abschnitt über die Lage der Kamera zur Flächenlinie (`x_a · z_b − x_b · z_a`, berücksichtigt die Kurve); Dach nur
+  unter der Kamera (Senken). Keine Frontflächen (alle fahren in unsere Richtung).
+- Seiten und Dach werden längs in Abschnitte geteilt: höchstens `render.box_slice_m` (2 m), näher an der Kamera
+  höchstens `render.box_slice_ratio` (12 %) der Tiefe (Längen 2/1/0,5/0,25/0,125 m, Grenzen fest am Fahrzeug – die
+  Textur schwimmt nicht). Jeder Abschnitt wird mit der Straßengeometrie seiner Enden projiziert, der Quader biegt sich
+  mit der Kurve. Canvas-Dreiecke bilden Texturen affin ab; jeder Abschnitt wird deshalb zusätzlich in Streifen
+  konstanter Tiefe geteilt, bis der Fehler unter `render.box_subdiv_px` (1,5 px) liegt.
+- Teile hinter der nahen Ebene (`render.near_m`) werden abgeschnitten: Beim Überholen bleibt der Lkw neben dem
+  Spieler sichtbar, bis seine Front an der Kamera vorbei ist. Abschnitte ganz außerhalb des Bildes entfallen.
+- Reihenfolge: Teile nach ihrer Front von hinten nach vorn (Fahrerhaus vor Auflieger), je Teil die Abschnitte von
+  vorn zur Kamera, dann seine Heckfläche. In der Szene steckt jedes Fahrzeug in jeder Scheibe, die es berührt (§2).
+- Licht wie bei Sprites (Umgebungslicht, Scheinwerfer, Nebel, Tunnel, Ausblenden in der Ferne); Rück- und
+  Bremslicht-Überlagerungen (`lights`) liegen mit derselben Geometrie über ihrer Fläche, dazu Leuchtpunkte und nasse
+  Spiegelungen an der Fläche mit den Leuchten. Unter dem Quader liegt ein weicher Schatten auf der Straße.
+- Texturen mit anisotroper Filterung (`CanvasTexture`), damit die schräg gesehenen Flanken scharf bleiben.
+- Spurwechsel: der Quader bleibt straßenparallel (er gleitet seitlich), damit er immer genau die Kollisionsbox zeigt.
+
+**Spielerauto – perspektivische Sprites (`projection: perspective`, `pivot: center`)**:
+
+- Anker = projizierter Bodenpunkt der Wagenmitte (mit Straßenversatz und Kamera-Nachlauf), Maßstab
+  `camera.distance_m / Tiefe / supersample` (`VehiclePose.perspective_scale`, bei der Standardkamera 1/supersample).
+  Weicht die im Manifest dokumentierte Kamera von `render.*` ab, warnt der Renderer (Sprites neu rendern).
+- Sichtbarer Gierwinkel (`VehiclePose.player_yaw_target`, gedämpft mit `render.player_yaw_smooth_s`, höchstens
+  `render.player_yaw_max_deg`): Kurvenvorschau = Straßenrichtung `render.player_curve_lookahead_m` (10 m) vor der
+  Wagenmitte relativ zur Kamera (× `player_curve_gain`) + Lenkeinschlag × `player_steer_deg` + Spurwechsel
+  `atan(lat_speed / v)` × `player_lateral_gain` + Untersteuern × `player_understeer_deg` (Nase zur Kurveninnenseite,
+  während der Wagen nach außen schiebt) − Blickwinkel `atan(Querabstand zur Kamera / Tiefe)` × `player_view_gain`.
+  Der letzte Term ist Geometrie, kein Effekt: das Sprite ist gerade vor der Kamera gerendert, ein Auto neben der
+  Kameraachse (Kamera-Nachlauf bis 1,1 m, Straßenversatz in Kurven) sieht man leicht von der Seite – mit ihm liegen
+  Heck und Front an der wahren Position (Unit-Test, < 1,5 px). Zelle mit derselben Hysterese wie beim Verkehr.
+  Werte im Spiel: Kurve 0,73 bei 140 km/h ≈ −4,6° (Zelle −4°), Spurwechsel bei 160 km/h ≈ ±7°.
+- Neigung (Rotation um den Anker, höchstens ±`render.player_roll_max_deg` = 2,5°): Querbeschleunigung
+  `v² · Krümmung + d(lat_speed)/dt` × `player_roll_deg_per_mps2`, gedämpft (`player_roll_smooth_s`); der Aufbau neigt
+  sich aus der Kurve. Bremslichter, Rücklichter (nachts), Blinken (`visible`) und Wackeln (`shake`) wie bisher; die
+  Leuchtpunkte folgen Gierwinkel und Neigung.
+- Rückfall für alte orthografische Spieler-Sets (5 Winkel): Anker am Heck wie bisher, Zelle aus demselben sichtbaren
+  Gierwinkel (mit Hysterese, also r1/l1 erst ab 7,8°), Neigung um den Anker. Ein explizites `angle` im Spieler-Eintrag
+  (ohne `steer`) erzwingt weiterhin eine Zelle.
+
+Polizei: Blaulichtphasen `beacon_a/b` + blaues Leuchten (mit dem Darstellungswinkel versetzt).
+
+**Testdaten und Bildfolgen**: `tests/fixtures/make_fixtures.py` (Pillow + numpy, kleiner Z-Buffer-Rasterizer) erzeugt
+nach Vertrag einen 17-Winkel-Pkw (`grid_cols` 9, Drehung um das Heck), eine Polizei mit Blaulicht-Ebenen, ein
+21-Winkel-Spielerauto mit der Spielkamera (supersample 1,25) und einen Sattelzug als Quader (Metergitter mit Zahlen auf
+den Flanken, damit Verzerrungen auffallen; cyanfarbener Umriss der Aufstandsfläche bei den Pkw). Mit
+`--sprite-manifest=res://tests/fixtures/sprites/manifest.json` lädt `SpriteDB` sie zusätzlich; `aliases` zeigen
+`traffic/sedan_*`, `traffic/hatch_*`, `traffic/truck_*`, `police/*` und `player/*` darauf (die Sets behalten ihre Tags).
+`tests/race/shoot_vehicles.gd` fährt feste Szenarien (zufälliger Verkehr aus, Autos gesetzt und geführt) und speichert
+Bildfolgen; Aufruf siehe §12.
 
 ## 9. Rennsitzung (`race_session.gd`)
 
@@ -262,6 +351,7 @@ Zusätzlich zu ARCHITECTURE.md §13 (`--stage --from --vehicle --hour --weather 
 | `--perf` | am Ziel Frame-Zeiten ausgeben (`PERF {...}`) |
 | `--trace[=<km>]` | Fahrprotokoll alle n km (Tempo, Zieltempo, Grund, Kurve, Steigung, Tank) |
 | `--tutorial` | Tutorial-Hinweise auch auf anderen Etappen |
+| `--sprite-manifest=<pfad>` | weiteres Sprite-Manifest über das echte legen (`SpriteDB`, Dateipfade relativ zu ihm, `aliases` zeigen echte Sets auf andere); z. B. die Testdaten `res://tests/fixtures/sprites/manifest.json` (§8) |
 
 `--timescale=<f>` setzt `Engine.time_scale` und die Physiktakte auf 60·f, damit jeder Schritt 1/60 s bleibt.
 Setup-Schlüssel für Tests: `no_countdown`, `autopilot_speeding`, `autopilot_refuel`, `traffic_warmup`, `tutorial`.
@@ -272,7 +362,24 @@ Setup-Schlüssel für Tests: `no_countdown`, `autopilot_speeding`, `autopilot_re
   Geometriegrenzen, Requisiten, vollständige `scenery.json`, Schilder im Tunnel an der Wand, Land/Straßentyp der
   Schilder), Projektion, Palette, GeoBatch, Autopilot-Bremskurve, Spiegeln und Vorderkante aller kantenbündigen
   Requisiten mit dem echten Manifest, Schilderstile je Land, Sitzungsregeln (Kollisionen in geskripteten Phasen,
-  HUD-Tankstelle, Ausrollen in die Tankspur, Überholweg der Polizei), Tutorial-Warteschlange und -Texte.
+  HUD-Tankstelle, Ausrollen in die Tankspur, Überholweg der Polizei), Tutorial-Warteschlange und -Texte;
+  Fahrzeugdarstellung v2: `test_vehicle_pose.gd` (Lkw 30 m voraus in der Nachbarspur ≈ 4,6° statt 12°, Front des
+  Sprites an der wahren perspektivischen Position über Kurven/Spuren/Längen, Eigenrichtung beim Spurwechsel, kein
+  Zellflackern auf gleichmäßiger Kurve trotz Rauschen und schwankender Bildzeit, Hysterese-Band, kritische Dämpfung,
+  Gierwinkel-Anteile und Blickwinkel des Spielerautos, Neigung, perspektivischer Maßstab), `test_box_vehicle.gd`
+  (gezeichnete Aufstandsfläche = Kollisionsbox, sichtbare Flächen, Lkw neben dem Spieler bleibt sichtbar, Abschnitte
+  ≤ 2 m folgen der Kurve, feste Abschnittsgrenzen, von hinten nach vorn, Bildausrichtung der Flächen,
+  Licht-Überlagerungen, Rücklichter des Sattelzugs), `test_sprite_db.gd` (altes Manifest-Format unverändert –
+  `tests/fixtures/legacy/manifest.json`, damit der Test unabhängig vom jeweils gelieferten echten Manifest bleibt –,
+  echtes Manifest in sich stimmig, Winkel aus Namen/Listen/Wörterbuch, Raster-Layout, Testdaten, Quader-Teile aller
+  Quader-Sets = Objektmaße, Zusatz-Manifest und Aliase).
+- `xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --audio-driver Dummy --fixed-fps 30
+  -s res://tests/race/shoot_vehicles.gd -- --scenario=<name> --out=<präfix> [--sprite-manifest=res://tests/fixtures/sprites/manifest.json]
+  [--hour=22] [--verbose]` – Fahrzeug-Szenarien als Bildfolgen (`<präfix>_NN.png`, feste Bildrate = gleiche Spielzeit
+  je Bild): `curve_left`, `curve_right`, `overtake`, `overtake_curve`, `lane_change`, `player_left`, `player_right`,
+  `player_lanes`, `police`, `tunnel`. Am Ende je Auto die Zahl der Zellwechsel und der Bereich des
+  Darstellungswinkels (Flacker-Prüfung im echten Renderer); `--no-shots --perf` läuft auch headless und gibt die
+  `_draw`-Zeiten aus. `python3 tests/fixtures/make_fixtures.py` erzeugt die Testdaten neu.
 - `godot --headless --path . -s res://tests/race/check_session.gd [-- --only=coll_right,tutorial]` – Szenarien in
   der echten Rennszene (≈ 30 s): Auffahrunfall genau von hinten in rechter/linker/mittlerer Spur → Seite mit mehr
   Platz bzw. links; Ausrollen mit leerem Tank in ein langsameres Auto → Kollision, Abschleppen erst nach dem
@@ -300,6 +407,15 @@ Himmel ~0,3 ms. Auf einem normalen Desktop-Prozessor etwa die Hälfte. Maßnahme
 Requisit zwischengespeichert, früher Größen-/Bildschirm-Ausschnitt, Projektion in lokale Arrays.
 `perf_stats()` von Renderer und Sitzung liefert die Zahlen; `debug.show_render_stats` blendet sie im Bild ein.
 
+Fahrzeugdarstellung v2 (gemessen während parallel Blender renderte, Last ≈ 3,8 auf 4 Kernen – die Mediane schwanken
+um ±1 ms, verglichen werden die Minima von `bench_render.gd` an denselben fünf Positionen): vorher 4,35 ms, mit den
+heutigen Sprites 4,54 ms, mit den Testdaten (17-Winkel-Pkw, perspektivisches Spielerauto, Quader-Lkw) 4,80 ms; die
+Mediane lagen bei 5,4–6,7 ms für alle drei. Ein Quader-Lkw kostet (Mikro-Benchmark, eine Scheibe je 3 m) 0,08 ms in
+200 m, 0,15 ms in 20–60 m und 0,35 ms beim Überholen direkt daneben (≈ 150 Vierecke); je Sprite-Fahrzeug kommen
+Winkelformel, Glättung und Zellwahl hinzu (wenige µs). Maßnahmen: Abschnittslängen nach Tiefe (fern 2 m, nah kürzer),
+Abschnitte außerhalb des Bildes entfallen, Straßenproben an gemeinsamen Abschnittsgrenzen nur einmal, Teile-Reihenfolge
+zwischengespeichert, Lichtüberlagerungen nur bei Licht, Zellsuche ab der aktuellen Zelle.
+
 ## 14. Stellschrauben (Konfiguration)
 
 `road`: `lane_width_m`, `lanes`, `shoulder_width_m`, `guardrail`, `curve_radius_at_1_m`, `curviness_max_curve`,
@@ -314,7 +430,12 @@ Requisit zwischengespeichert, früher Größen-/Bildschirm-Ausschnitt, Projektio
 `finish_decel_kmh_s`, `finish_hold_s`, `procedural_props` (`auto` = Zapfsäulen/Shop/Zollhaus/Blitzer prozedural
 zeichnen, solange das Sprite-Manifest nur Platzhalter enthält; `always`/`never`), `scripted_collision_min_kmh`
 (30: darüber kollidiert der Wagen auch in geskripteten Phasen), `tutorial_hint_s` (6: Anzeigedauer eines
-Tutorial-Hinweises).
+Tutorial-Hinweises). Fahrzeugdarstellung (§8): `vehicle_yaw_smooth_s` (0,12), `vehicle_cell_hysteresis` (0,3 Schritte),
+`vehicle_yaw_max_deg` (30), `box_slice_m` (2), `box_slice_ratio` (0,12), `box_subdiv_px` (1,5),
+`player_curve_lookahead_m` (10), `player_curve_gain` (1), `player_steer_deg` (3), `player_lateral_gain` (1),
+`player_understeer_deg` (4), `player_view_gain` (1), `player_yaw_max_deg` (20), `player_yaw_smooth_s` (0,15),
+`player_roll_deg_per_mps2` (0,22), `player_roll_max_deg` (2,5 – mehr lässt der Vertrag nicht zu),
+`player_roll_smooth_s` (0,2).
 
 `debug`: `autopilot_target_kmh`, `show_render_stats`.
 
@@ -330,6 +451,30 @@ Tutorial-Hinweises).
   der Renderer selbst. `bg_offset` ist der Kurswinkel in Radiant. Statisch: `prop_flipped(side, rule_mirror,
   tag_mirror_left)`, `edge_anchor_x(x, side, flipped, extent, scale)`, `sprite_dest(p, w, h, anchor, flip)`,
   `flipped_draw_rect(dest)`. Schilder werden mit ihrem `scale` gezeichnet.
+  Fahrzeugdarstellung v2: `road_at(z)` → `Vector3(Straßenmitte seitlich, Höhe relativ zur Kamera, Tiefe)`,
+  `road_heading_at(z)`, `vehicle_yaw_deg(id)`, `vehicle_cell(id)`, `last_player_pose` (`yaw_deg`, `roll_deg`, `cell`,
+  `anchor`, `scale`, `perspective`, `rect`), statisch `cell_src(info, angle_index, row)`. View-Schlüssel zusätzlich je
+  Auto `id` (Glättung je Fahrzeug, Polizei −2), beim Spieler `steer`, `lat_speed`, `push_speed`, `understeer`, `width`;
+  `angle` ist optional geworden (erzwingt eine Zelle, beim Spieler nur ohne `steer`) – die Sitzung schickt es nicht mehr.
+- `VehiclePose` (statisch): `ortho_yaw(d_r, x_r, h, psi_c, length, limit_deg)`, `chord_heading(xr_road, xf_road,
+  length)`, `point_yaw(d_r, x_r, h)` (alte Formel, Vergleich), `own_heading(lateral_mps, speed_mps)`,
+  `ortho_front_x(sx_r, s_r, length, psi)`, `damp(value, velocity, target, dt, tau)` → `Vector2(Wert, Geschwindigkeit)`,
+  `pick_cell(yaws, yaw_deg, current, hysteresis)`, `player_yaw_target(curve_heading, steer, lat_mps, speed_mps,
+  understeer, curve_sign, view_angle, k)`, `roll_target_deg(a_lat, deg_per_mps2, max_deg)`,
+  `perspective_scale(camera_distance_m, depth, supersample)`.
+- `BoxVehicle`: `setup(proj, slice_m, ratio, err_px)`, `clear()`, `emit(parts, lights, zc, xc, z_lo, z_hi, cam_z, road:
+  Callable, col, tail, brake)` → `pts`, `uvs`, `cols`, `idx`, `quads`, `rear_drawn`, `rear_rect`, `order`;
+  `slice_bounds(z_a, z_b, z_part0, cam_z)`, statisch `side_visible(xa, za, xb, zb, left)`, `part_order(parts)`;
+  `debug` + `faces_out` (Tests).
+- `SpriteDB` (Kern-Datei, für die Fahrzeugdarstellung erweitert; alle bisherigen Funktionen unverändert, `region()`
+  rechnet mit `grid_cols`, `resolve_angle()` übersetzt alte Namen in den nächsten Winkel neuer Sets):
+  `load_manifest(path)`, `merge_manifest(path)` (mit `aliases`; `--sprite-manifest`), `overlay_paths`,
+  `cell_region(id, angle_index, layer)`, `grid_cols(id)`, `yaw_list(id)`, `angle_count(id)`,
+  `nearest_angle_index(id, yaw_deg)`, `projection(id)`, `pivot(id)`, `render_mode(id)`, `is_box(id)`, `camera(id)`,
+  `supersample(id)`, `box_parts(id)` (Flächen als `Rect2`), `box_lights(id)` (Teil als Index); statisch
+  `derive_meta(set)`, `parse_yaws(set)`, `name_yaw(name)`, `nearest_yaw_index(yaws, yaw)`, `cell_grid_pos(i, cols)`,
+  `parse_parts(set)`, `parse_lights(set, parts)`. Sheets, die Godot nicht importiert hat (Testdaten außerhalb des
+  Projekts), lädt `texture()` direkt aus der PNG-Datei.
 - `SignPainter`: `countries` (vom Renderer aus `GameData.countries`), statisch `style_for(countries, code)` →
   `{motorway, motorway_fg, road, road_fg, town_bg, town_fg, town_border}`, `board_half_width(kind)`, `contrast(bg)`.
 - `Palette`: Schlüssel `sky_mid`, `glow`, `cloud`, `cloud_dark`, `moon_visible`, `moon_pos`, `overcast`, `tunnel`;
