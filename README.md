@@ -47,6 +47,15 @@ chmod +x CrossingEurope.x86_64
 | Pause | Esc oder P | Start |
 | Menü: wählen / bestätigen / zurück | Pfeiltasten / Enter / Esc | Stick / A / B |
 
+## Steam-Artwork
+
+Wer das Spiel als Nicht-Steam-Spiel in Steam einbindet (Linux, Steam Deck): fertige Bibliotheksbilder im Look des
+Titelbildschirms liegen in [marketing/steam/](marketing/steam/) – Grid hochkant (600×900) und quer (920×430),
+Hero-Banner, transparentes Logo und Icon, jeweils auch in doppelter Auflösung. Die Anleitung zum Einrichten steht in
+[marketing/steam/README.md](marketing/steam/README.md).
+
+<img src="marketing/steam/grid_portrait_600x900.png" width="200" alt="Steam-Grid hochkant"> <img src="marketing/steam/grid_landscape_920x430.png" width="428" alt="Steam-Grid quer">
+
 ## Was drin ist
 
 - **Pseudo-3D** aus kurzen Segmenten (Node2D mit `_draw`), Kurven, Hügel mit Kuppen, Tunnel mit Lichterreihen,
