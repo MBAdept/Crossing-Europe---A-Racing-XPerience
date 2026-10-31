@@ -296,7 +296,13 @@
 	},
 
 	"audio": {
+		"_doc": "Pegel in dB. Motor (docs/motorsound.md): Zyklusbank je Auto aus engine_bank_dir/<auto>.json, abgespielt über einen AudioStreamGenerator im Bus SFX. engine_db = Pegel des Motors (zusätzlich zu mix.gain der Bank); engine_latency_s = Vorlauf, den die Laufzeit je Frame im Generator hält (kleiner = direktere Reaktion auf das Gas, aber Aussetzer bei Rucklern); engine_buffer_s = Puffergröße des Generators; engine_preview = kurzer Gasstoß beim Wechsel in der Fahrzeugwahl. Ohne Bank für ein Auto spielen die alten synthetischen Motorschleifen: engine_gears, engine_idle_hz und engine_max_hz gelten nur für diesen Rückfall.",
 		"master_db": 0.0,
+		"engine_db": -3.0,
+		"engine_latency_s": 0.07,
+		"engine_buffer_s": 0.25,
+		"engine_preview": true,
+		"engine_bank_dir": "res://assets/audio/engines",
 		"engine_gears": 6,
 		"engine_idle_hz": 38.0,
 		"engine_max_hz": 175.0,
