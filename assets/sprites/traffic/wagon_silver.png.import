@@ -3,20 +3,21 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bqtlnnmku66q6"
-path="res://.godot/imported/wagon_silver.png-3d55a018d1c826a13e5da1b1bbc9fb9d.ctex"
+path.bptc="res://.godot/imported/wagon_silver.png-3d55a018d1c826a13e5da1b1bbc9fb9d.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/sprites/traffic/wagon_silver.png"
-dest_files=["res://.godot/imported/wagon_silver.png-3d55a018d1c826a13e5da1b1bbc9fb9d.ctex"]
+dest_files=["res://.godot/imported/wagon_silver.png-3d55a018d1c826a13e5da1b1bbc9fb9d.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

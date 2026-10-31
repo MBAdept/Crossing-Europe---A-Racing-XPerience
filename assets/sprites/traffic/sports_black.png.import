@@ -3,20 +3,21 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d0665ftsqk6nu"
-path="res://.godot/imported/sports_black.png-732f1895f5178168ba2d91f86851ecbc.ctex"
+path.bptc="res://.godot/imported/sports_black.png-732f1895f5178168ba2d91f86851ecbc.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/sprites/traffic/sports_black.png"
-dest_files=["res://.godot/imported/sports_black.png-732f1895f5178168ba2d91f86851ecbc.ctex"]
+dest_files=["res://.godot/imported/sports_black.png-732f1895f5178168ba2d91f86851ecbc.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

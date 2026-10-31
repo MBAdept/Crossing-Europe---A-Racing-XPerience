@@ -109,14 +109,14 @@ def build_truck(rig, p):
         side_dec.append(_lamp(_rect(y, box_z0 + 0.03, y + 0.09, box_z0 + 0.09), part="marker", face="side", tail=2.0))
     box_mat = M.surface("tr_box", box_col, metal=0.15, rough=0.45 if v["tarp"] else 0.35, coat=0.0 if v["tarp"] else 0.3,
                         decals=rear_dec + side_dec)
-    bm = MU.bm_box(2 * W2, L_tr, box_z1 - box_z0, (0.0, 0.05 + L_tr / 2, (box_z0 + box_z1) / 2))
+    bm = MU.bm_box(2 * W2, L_tr, box_z1 - box_z0, (0.0, L_tr / 2, (box_z0 + box_z1) / 2))
     ob = MU.make("tr_box", bm, box_mat, parent=root)
     MU.bevel(ob, 0.035, 2)
     # lock rods
     bm = bmesh.new()
     for x in (-0.95, -0.35, 0.35, 0.95):
-        MU.bm_cyl(0.022, 0.022, box_z1 - box_z0 - 0.3, center=(x, 0.03, (box_z0 + box_z1) / 2), segs=8, bm=bm)
-        MU.bm_box(0.08, 0.05, 0.1, (x, 0.04, 2.1), bm=bm)
+        MU.bm_cyl(0.022, 0.022, box_z1 - box_z0 - 0.3, center=(x, -0.022, (box_z0 + box_z1) / 2), segs=8, bm=bm)
+        MU.bm_box(0.08, 0.05, 0.1, (x, -0.02, 2.1), bm=bm)
     MU.make("tr_rods", bm, alu, parent=root)
     if v["text"]:
         _side_text(rig, v["text"], y0=0.05, y1=L_tr, z=2.85, size=0.62, x=W2 + 0.004, color=v["stripe"] or "#222222")
@@ -166,38 +166,52 @@ def build_truck(rig, p):
         MU.bm_box(0.08, 0.08, 0.6, (x, 0.12, 0.8), bm=bm)
     MU.make("tr_underride", bm, grey, parent=root)
 
-    # --- tractor -----------------------------------------------------------------------------
+    # --- tractor (box part "cab": z 5.75 .. 8.25 from the centre = y 14.0 .. 16.5, height <= 3.8) ----
+    trailer_zone = set(root.children)
     cab_col = v["cab"] if p.get("variant") else box_col
-    y_cab0, y_cab1 = 14.2, 16.48
+    y_cab0, y_cab1 = 14.05, 16.45
+    cz0, cz1 = 1.2, 3.45
     cab_dec = [
-        dict(face="front", poly=_rect(0.0, 2.35, 1.06, 3.42), mat="glass", n=0.5),
-        dict(face="front", poly=_rect(0.0, 1.55, 0.92, 2.15), mat="dark", n=0.5),               # grille
+        dict(face="front", poly=_rect(0.0, 2.25, 1.06, 3.28), mat="glass", n=0.5),
+        dict(face="front", poly=_rect(0.0, 1.5, 0.92, 2.08), mat="dark", n=0.5),                # grille
         dict(face="front", poly=_rect(0.0, 0.62, 1.25, 1.0), mat="#3a3d42", n=0.5),              # bumper
         dict(face="front", poly=_rect(0.82, 0.72, 1.18, 0.9), mat="lamp_clear", n=0.5),          # headlights
-        dict(face="side", poly=_rect(15.35, 2.4, 16.32, 3.32), mat="glass", n=0.6),
-        dict(face="side", poly=_rect(14.3, 2.4, 15.25, 3.32), mat="glass", n=0.6),
-        dict(face="side", poly=_rect(15.3, 0.9, 15.32, 3.4), mat="seal", n=0.6),
-        dict(face="rear", poly=_rect(0.0, 1.3, 1.3, 3.9), mat="#2b2d30", n=0.5),
+        dict(face="side", poly=_rect(15.25, 2.3, 16.3, 3.22), mat="glass", n=0.6),
+        dict(face="side", poly=_rect(14.2, 2.3, 15.15, 3.22), mat="glass", n=0.6),
+        dict(face="side", poly=_rect(15.19, 0.9, 15.21, 3.3), mat="seal", n=0.6),
+        dict(face="side", poly=_rect(14.12, 1.28, 16.4, 1.36), mat="#2b2d30", n=0.6),            # step / sill
+        dict(face="rear", poly=_rect(0.0, 1.3, 1.3, 3.4), mat="#2b2d30", n=0.5),
     ]
     cab_mat = M.surface("tr_cab", cab_col, metal=0.2, rough=0.3, coat=0.6, decals=cab_dec)
-    bm = MU.bm_box(2.48, y_cab1 - y_cab0, 2.65, (0.0, (y_cab0 + y_cab1) / 2, 1.25 + 2.65 / 2))
+    bm = MU.bm_box(2.48, y_cab1 - y_cab0, cz1 - cz0, (0.0, (y_cab0 + y_cab1) / 2, (cz0 + cz1) / 2))
     ob = MU.make("tr_cabbox", bm, cab_mat, parent=root)
     MU.bevel(ob, 0.12, 3)
-    # roof deflector (wedge up to trailer height)
+    # roof deflector (wedge, rises towards the trailer to 3.78 m)
     bm = bmesh.new()
-    pts = [(-1.18, y_cab0 + 0.05), (1.18, y_cab0 + 0.05)]
     verts = [bm.verts.new(v_) for v_ in [
-        (-1.18, y_cab0 + 0.1, 3.9), (1.18, y_cab0 + 0.1, 3.9), (1.18, y_cab1 - 0.5, 3.9), (-1.18, y_cab1 - 0.5, 3.9),
-        (-1.12, y_cab0 + 0.1, 4.02), (1.12, y_cab0 + 0.1, 4.02)]]
+        (-1.18, y_cab0 + 0.1, cz1 - 0.02), (1.18, y_cab0 + 0.1, cz1 - 0.02), (1.18, y_cab1 - 0.6, cz1 - 0.02),
+        (-1.18, y_cab1 - 0.6, cz1 - 0.02), (-1.12, y_cab0 + 0.1, 3.78), (1.12, y_cab0 + 0.1, 3.78)]]
     bm.faces.new((verts[0], verts[1], verts[2], verts[3]))
     bm.faces.new((verts[3], verts[2], verts[5], verts[4]))
     bm.faces.new((verts[0], verts[4], verts[5], verts[1]))
     bm.faces.new((verts[0], verts[3], verts[4]))
     bm.faces.new((verts[1], verts[5], verts[2]))
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    MU.make("tr_deflector", bm, cab_mat, parent=root)
-    # tractor chassis, tanks, wheels
-    bm = MU.bm_box(1.0, 5.2, 0.3, (0.0, 13.75, 1.0))
+    ob = MU.make("tr_deflector", bm, cab_mat, parent=root)
+    MU.bevel(ob, 0.04, 2)
+    # chassis under the cab, front wheels, mirrors
+    bm = MU.bm_box(1.0, 2.3, 0.3, (0.0, 15.2, 1.0))
+    MU.make("tr_cchassis", bm, dark, parent=root)
+    for side in (-1, 1):
+        _wheel(rig, "tr_fw", side * (W2 - 0.03), 15.25, R, 0.32, side, tire, rim)
+    bm = bmesh.new()
+    for side in (-1, 1):
+        MU.bm_box(0.12, 0.08, 0.45, (side * 1.42, 16.25, 2.75), bm=bm)
+        MU.bm_beam((side * 1.2, 16.3, 3.0), (side * 1.42, 16.27, 2.95), 0.04, bm=bm)
+    MU.make("tr_mirrors", bm, dark, parent=root)
+    cab_objs = [o for o in root.children if o not in trailer_zone]
+    # tractor parts under the trailer (belong to the trailer faces): chassis, tanks, drive axle
+    bm = MU.bm_box(1.0, 3.0, 0.3, (0.0, 12.55, 1.0))
     MU.make("tr_tchassis", bm, dark, parent=root)
     bm = bmesh.new()
     for side in (-1, 1):
@@ -205,14 +219,18 @@ def build_truck(rig, p):
     MU.make("tr_tanks", bm, alu, parent=root)
     for side in (-1, 1):
         _wheel(rig, "tr_tw", side * (W2 - 0.04), 11.35, R, 0.3, side, tire, rim, dual=True)
-        _wheel(rig, "tr_fw", side * (W2 - 0.03), 15.05, R, 0.32, side, tire, rim)
-    # mirrors
-    bm = bmesh.new()
-    for side in (-1, 1):
-        MU.bm_box(0.12, 0.08, 0.45, (side * 1.42, 16.25, 2.85), bm=bm)
-        MU.bm_beam((side * 1.2, 16.3, 3.1), (side * 1.42, 16.27, 3.05), 0.04, bm=bm)
-    MU.make("tr_mirrors", bm, dark, parent=root)
-    return dict(object={"width_m": 2.55, "length_m": 16.5, "height_m": 4.0})
+    everything = list(root.children)
+    L = 16.5
+    parts = [
+        dict(name="trailer", z=[-8.25, 5.35], x=[-1.275, 1.275], y=[0.0, 4.0], faces=["rear", "left", "right", "top"],
+             objects=everything),
+        dict(name="cab", z=[5.75, 8.25], x=[-1.25, 1.25], y=[0.0, 3.8], faces=["rear", "left", "right", "top"],
+             objects=cab_objs),
+    ]
+    lights = {"tail": [dict(part="trailer", face="rear"), dict(part="trailer", face="left"),
+                       dict(part="trailer", face="right")],
+              "brake": [dict(part="trailer", face="rear")]}
+    return dict(object={"width_m": 2.55, "length_m": L, "height_m": 4.0}, parts=parts, lights=lights)
 
 
 def _side_text(rig, text, y0, y1, z, size, x, color):
@@ -226,7 +244,7 @@ def _side_text(rig, text, y0, y1, z, size, x, color):
 def build_bus(rig, p):
     v = BUS_VARIANTS[p.get("variant", "white")]
     col = p.get("paint", v["body"])
-    L, W2, H = 12.8, 1.275, 3.65
+    L, W2, H = 12.8, 1.275, 3.625      # roof crown +0.025 -> 3.65 m
     root = rig.root
     zb_body = 0.38
     y_ra, y_fa = 3.15, 10.0
@@ -320,4 +338,8 @@ def build_bus(rig, p):
         MU.bm_beam((side * 1.45, L + 0.35, 3.0), (side * 1.45, L + 0.4, 2.55), 0.05, bm=bm)
         MU.bm_box(0.1, 0.06, 0.38, (side * 1.45, L + 0.4, 2.35), bm=bm)
     MU.make("bus_mirrors", bm, dark, parent=root)
-    return dict(object={"width_m": 2.55, "length_m": L, "height_m": H})
+    parts = [dict(name="body", z=[-6.4, 6.4], x=[-1.275, 1.275], y=[0.0, 3.65], faces=["rear", "left", "right", "top"],
+                  objects=list(root.children))]
+    lights = {"tail": [dict(part="body", face="rear"), dict(part="body", face="left"), dict(part="body", face="right")],
+              "brake": [dict(part="body", face="rear")]}
+    return dict(object={"width_m": 2.55, "length_m": L, "height_m": 3.65}, parts=parts, lights=lights)

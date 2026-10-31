@@ -33,7 +33,7 @@ class Rig:
         cy = sc.cycles
         cy.device = "CPU"
         sc.render.threads_mode = "FIXED"
-        sc.render.threads = 2
+        sc.render.threads = int(os.environ.get("CE_THREADS", "3"))
         sc.render.film_transparent = True
         sc.render.use_persistent_data = True
         sc.render.resolution_percentage = 100
@@ -204,6 +204,55 @@ class Rig:
         d = Vector(target) - loc
         cam.rotation_euler = d.to_track_quat("-Z", "Y").to_euler()
 
+    def frame_game(self, cam, rect, supersample):
+        """Perspective game camera (pivot = world origin = car centre on the ground): camera
+        cam["distance_m"] behind and cam["height_m"] above the origin, looking horizontally along +Y,
+        horizontal field of view cam["fov_deg"] over cam["screen"][0] px, horizon at
+        cam["horizon_y_frac"]. rect = (x0, y0, x1, y1) in game screen px; the render shows exactly that
+        screen region (lens shift), supersample times larger."""
+        sc = self.scene
+        c = self.cam
+        sw, sh = cam["screen"]
+        f = game_focal(cam)
+        x0, y0, x1, y1 = rect
+        res_x = int(round((x1 - x0) * supersample))
+        res_y = int(round((y1 - y0) * supersample))
+        c.data.type = "PERSP"
+        c.data.sensor_fit = "HORIZONTAL"
+        c.data.sensor_width = 36.0
+        c.data.lens = f * supersample * 36.0 / res_x
+        cx, cy = (x0 + x1) * 0.5, (y0 + y1) * 0.5
+        c.data.shift_x = (cx - sw * 0.5) / (x1 - x0)
+        c.data.shift_y = -(cy - sh * cam["horizon_y_frac"]) / (x1 - x0)
+        c.data.clip_start = 0.05
+        c.data.clip_end = 500.0
+        sc.render.resolution_x = res_x
+        sc.render.resolution_y = res_y
+        c.location = Vector((0.0, -cam["distance_m"], cam["height_m"]))
+        c.rotation_euler = (math.pi / 2, 0.0, 0.0)
+
+    def frame_face(self, loc, rot, ortho_w, res_x, res_y):
+        """Orthographic face-on camera for box faces (render covers exactly ortho_w x res_y/res_x*ortho_w)."""
+        sc = self.scene
+        c = self.cam
+        c.data.type = "ORTHO"
+        c.data.sensor_fit = "HORIZONTAL"
+        c.data.ortho_scale = ortho_w
+        c.data.shift_x = 0.0
+        c.data.shift_y = 0.0
+        c.data.clip_start = 0.1
+        c.data.clip_end = 300.0
+        sc.render.resolution_x = int(res_x)
+        sc.render.resolution_y = int(res_y)
+        c.location = Vector(loc)
+        c.rotation_euler = rot
+
+    def box_lighting(self):
+        """World-fixed light for box faces (same for every face): sky + sun from above, slightly behind."""
+        d = Vector((0.0, -0.42, 0.91)).normalized()
+        self.sun.rotation_euler = d.to_track_quat("Z", "Y").to_euler()
+        self.sun.data.energy = 2.1
+
     # --- passes and rendering -------------------------------------------------------------------
 
     def _model_objects(self):
@@ -242,7 +291,7 @@ class Rig:
             cy.diffuse_bounces = 2
             cy.glossy_bounces = 2
             cy.transmission_bounces = 2
-            cy.transparent_max_bounces = 4
+            cy.transparent_max_bounces = 8
             cy.volume_bounces = 0
         else:
             cy.samples = samples or self.samples_emit
@@ -251,7 +300,8 @@ class Rig:
             cy.diffuse_bounces = 0
             cy.glossy_bounces = 0
             cy.transmission_bounces = 0
-            cy.transparent_max_bounces = 0
+            # lamp lenses (materials.lens) are transparent in the light passes
+            cy.transparent_max_bounces = 8
             cy.volume_bounces = 0
 
     def render(self, path):
@@ -259,6 +309,36 @@ class Rig:
         self.scene.render.filepath = path
         bpy.ops.render.render(write_still=True)
         return path
+
+
+def game_focal(cam):
+    """Focal length in game pixels for the horizontal field of view."""
+    return cam["screen"][0] * 0.5 / math.tan(math.radians(cam["fov_deg"]) * 0.5)
+
+
+def game_project(pts, cam, yaw_deg=0.0):
+    """Screen positions (game px, y down) of model points (car centre at the origin) turned by yaw."""
+    a = math.radians(-yaw_deg)
+    ca, sa = math.cos(a), math.sin(a)
+    x = pts[:, 0] * ca - pts[:, 1] * sa
+    y = pts[:, 0] * sa + pts[:, 1] * ca
+    z = pts[:, 2]
+    f = game_focal(cam)
+    d = np.maximum(y + cam["distance_m"], 0.2)
+    sx = cam["screen"][0] * 0.5 + f * x / d
+    sy = cam["screen"][1] * cam["horizon_y_frac"] + f * (cam["height_m"] - z) / d
+    return sx, sy
+
+
+def shadow_points(pts, sun_dir=None):
+    """Ground projection of points along the sun direction (for framing the baked shadow)."""
+    s = SUN_DIR if sun_dir is None else sun_dir
+    k = pts[:, 2] / max(1e-3, s.z)
+    out = pts.copy()
+    out[:, 0] = pts[:, 0] - s.x * k
+    out[:, 1] = pts[:, 1] - s.y * k
+    out[:, 2] = 0.0
+    return out
 
 
 def extents(pts, yaws_deg, elevation_deg):

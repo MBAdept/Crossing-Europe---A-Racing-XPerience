@@ -1,5 +1,7 @@
 """Pillow/numpy post-processing: base-layer border fade, light layers (alpha from brightness + glow),
 sheet assembly."""
+import math
+
 import numpy as np
 from PIL import Image
 
@@ -95,6 +97,66 @@ def sheet(grid, cell):
         for c, arr in enumerate(row):
             img.paste(to_image(arr), (c * cw, r * ch))
     return img
+
+
+def sheet_grid(cells, cell, cols):
+    """cells in manifest order (index = layer * len(angles) + angle) -> PIL sheet with cols per row."""
+    cw, ch = cell
+    n = len(cells)
+    rows = (n + cols - 1) // cols
+    img = Image.new("RGBA", (cw * cols, ch * rows), (0, 0, 0, 0))
+    for i, arr in enumerate(cells):
+        img.paste(to_image(arr), ((i % cols) * cw, (i // cols) * ch))
+    return img
+
+
+def box_face_post(arr):
+    """Box face image: covers exactly the face rectangle (no border fade), alpha noise floor removed."""
+    out = arr.copy()
+    a = out[:, :, 3]
+    a[a < 2.0 / 255.0] = 0.0
+    return out
+
+
+def pack(images, pad=4, align=4, limit=4096):
+    """Shelf packing of {key: HxWx4 float array} into one sheet. Every image gets pad px of
+    edge-replicated pixels around it (no seams with bilinear filtering / mipmaps); rectangles start on
+    multiples of align. Returns (PIL image, {key: [x, y, w, h]})."""
+    keys = sorted(images, key=lambda k: (-images[k].shape[0], -images[k].shape[1], str(k)))
+    area = sum((images[k].shape[0] + 2 * pad) * (images[k].shape[1] + 2 * pad) for k in keys)
+    widest = max(images[k].shape[1] for k in keys) + 2 * pad
+    width = max(widest, int(math.sqrt(area) * 1.15))
+    width = int(math.ceil(width / align) * align)
+    width = min(width, limit)
+
+    def up(v):
+        return int(math.ceil(v / align) * align)
+    pos = {}
+    x = y = 0
+    row_h = 0
+    for k in keys:
+        h, w = images[k].shape[:2]
+        bw, bh = up(w + 2 * pad), up(h + 2 * pad)
+        if x + bw > width:
+            x = 0
+            y += row_h
+            row_h = 0
+        pos[k] = (x, y)
+        x += bw
+        row_h = max(row_h, bh)
+    total_h = y + row_h
+    if total_h > limit:
+        raise ValueError("box faces do not fit into %d px" % limit)
+    sheet = Image.new("RGBA", (width, up(total_h)), (0, 0, 0, 0))
+    rects = {}
+    for k in keys:
+        arr = images[k]
+        h, w = arr.shape[:2]
+        padded = np.pad(arr, ((pad, pad), (pad, pad), (0, 0)), mode="edge")
+        x0, y0 = pos[k]
+        sheet.paste(to_image(padded), (x0, y0))
+        rects[k] = [x0 + pad, y0 + pad, w, h]
+    return sheet, rects
 
 
 def outline(arr, px=2, color=(0.08, 0.09, 0.11), strength=0.85):

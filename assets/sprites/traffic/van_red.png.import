@@ -3,20 +3,21 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cw877g1du8pbh"
-path="res://.godot/imported/van_red.png-9c4344915ec05592432891a01d6f2b60.ctex"
+path.bptc="res://.godot/imported/van_red.png-9c4344915ec05592432891a01d6f2b60.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/sprites/traffic/van_red.png"
-dest_files=["res://.godot/imported/van_red.png-9c4344915ec05592432891a01d6f2b60.ctex"]
+dest_files=["res://.godot/imported/van_red.png-9c4344915ec05592432891a01d6f2b60.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

@@ -2,31 +2,68 @@
 
 A set spec:
   id        manifest set id (= output file without .png)
-  builder   'car' | 'truck' | 'bus' | 'police' | 'prop' | 'icon'  (see render_all.BUILDERS)
+  builder   'player' | 'car' | 'truck' | 'bus' | 'police' | 'prop' | 'icon'  (see render_all.build)
+  render    'box' for trucks/buses (face images of textured boxes, contract v2 section 4)
   params    builder parameters; keys listed in 'paint' only affect the base layer (colour variants share
             geometry, shadow and light-layer renders through the cache)
-  camera    mode ('ortho' | 'showroom' | 'icon'), elevation (deg), ppm (pixels per metre), angles
-            [(name, yaw_deg)], margins (side, top, bottom in m), view_yaw (props), cell (fixed cells)
-  layers    sheet rows; 'base' first
+  camera    mode 'ortho' (elevation deg, ppm, angles [(name, yaw_deg)], margins (side, top, bottom m),
+            pivot, view_yaw for props) | 'perspective' (game camera, supersample, angles) | 'showroom' |
+            'icon' (fixed cell) | 'box' (ppm, ppm_rear)
+  layers    light layers after 'base'; cells are laid out in a grid (index = layer * n_angles + angle)
   glow      per light layer [(sigma_m, strength)] bloom added in post
+  light_gain  per light layer brightness gain in post (emission renders stay <= 1)
+  samples   base-pass samples (default 40), samples_emit for the light passes
   tags      manifest tags
 """
+import json
+import os
+
 from . import designs
 
 ANGLES5 = [("l2", -25.0), ("l1", -12.0), ("c", 0.0), ("r1", 12.0), ("r2", 25.0)]
+
+
+def _angles(step, maxdeg):
+    n = int(round(maxdeg / step))
+    out = [("l%d" % (step * k), -float(step * k)) for k in range(n, 0, -1)]
+    out.append(("c", 0.0))
+    out += [("r%d" % (step * k), float(step * k)) for k in range(1, n + 1)]
+    return out
+
+
+# contract v2 (docs/fahrzeug-darstellung.md): traffic/police 17 ortho angles about the rear,
+# player cars 21 perspective angles about the centre
+ANGLES17 = _angles(3, 24)
+ANGLES21 = _angles(2, 20)
 CAR_LAYERS = ["base", "tail", "brake"]
+SUPERSAMPLE = 2.0
+
+
+def game_camera():
+    """The game camera (config/game_config.json render.*) the player sprites are rendered for."""
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "config", "game_config.json")
+    r = {}
+    try:
+        with open(path, encoding="utf-8") as fh:
+            r = json.load(fh).get("render", {})
+    except (OSError, ValueError):
+        pass
+    return dict(fov_deg=float(r.get("fov_deg", 84.0)), height_m=float(r.get("camera_height_m", 3.4)),
+                distance_m=float(r.get("camera_distance_m", 9.0)), horizon_y_frac=float(r.get("horizon_y_frac", 0.45)),
+                screen=[1280, 720])
 POLICE_LAYERS = ["base", "tail", "brake", "beacon_a", "beacon_b"]
 
 GLOW_CAR = {"tail": [(0.025, 0.55), (0.08, 0.32)], "brake": [(0.03, 0.7), (0.1, 0.42)],
             "beacon_a": [(0.05, 1.0), (0.2, 0.7), (0.5, 0.25)], "beacon_b": [(0.05, 1.0), (0.2, 0.7), (0.5, 0.25)]}
 
 PLAYER_COLORS = {
-    "kompakt": ("#f0b30a", 0.25),
-    "kombi": ("#1d6b45", 0.45),
-    "limousine": ("#1d4ea8", 0.5),
-    "sportwagen": ("#cc1419", 0.3),
-    "gran_turismo": ("#c3c8ce", 0.75),
+    "kompakt": ("#f0b30a", 0.0),
+    "kombi": ("#1d6b45", 0.55),
+    "limousine": ("#1d4ea8", 0.55),
+    "sportwagen": ("#cc1419", 0.15),
+    "gran_turismo": ("#b2b7bd", 0.9),
 }
+GLOW_PLAYER = {"tail": [(0.012, 0.5), (0.05, 0.3)], "brake": [(0.015, 0.6), (0.07, 0.38)]}
 
 TRAFFIC_COLORS = {
     "hatch": [("green", "#3d8a45"), ("yellow", "#e5bd1c"), ("white", "#e8e8e5"), ("blue", "#2c5fa8"), ("red", "#b5282a")],
@@ -63,20 +100,29 @@ POLICE = {
 }
 
 
-def car_sets():
+def player_sets():
+    from . import player_cars
     out = []
-    for vid, design in designs.PLAYER_MODELS.items():
+    gc = game_camera()
+    for vid in player_cars.DESIGNS:
         col, metal = PLAYER_COLORS[vid]
         out.append(dict(
-            id="player/" + vid, builder="car", params=dict(design=vid, group="player", paint=col, metal=metal),
+            id="player/" + vid, builder="player", params=dict(design=vid, paint=col, metal=metal),
             paint=["paint", "metal"],
-            camera=dict(mode="ortho", elevation=20.0, ppm=112.0, angles=ANGLES5, margins=(0.12, 0.12, 0.08)),
-            layers=CAR_LAYERS, glow=GLOW_CAR, tags=["player"], shadow=0.62))
+            camera=dict(mode="perspective", game=gc, supersample=SUPERSAMPLE, angles=ANGLES21, margin_px=4.0),
+            layers=CAR_LAYERS, glow=GLOW_PLAYER, tags=["player"], shadow=0.62, samples=56, samples_emit=24,
+            light_gain={"tail": 1.5, "brake": 1.7}, fade_px=4.0))
         out.append(dict(
-            id="showroom/" + vid, builder="car", params=dict(design=vid, group="player", paint=col, metal=metal),
+            id="showroom/" + vid, builder="player", params=dict(design=vid, paint=col, metal=metal, showroom=True),
             paint=["paint", "metal"],
-            camera=dict(mode="showroom", cell=(384, 240), yaw=145.0, elevation=13.0, lens=58.0),
-            layers=["base"], glow={}, tags=["showroom"], shadow=0.7))
+            camera=dict(mode="showroom", cell=(768, 480), yaw=142.0, elevation=11.0, lens=56.0, pivot="center",
+                        dist_per_m=1.72, target_h=0.4, shift_y=-0.03),
+            layers=["base"], glow={}, tags=["showroom"], shadow=0.7, samples=160))
+    return out
+
+
+def car_sets():
+    out = []
     for model, colours in TRAFFIC_COLORS.items():
         if model in ("truck", "bus"):
             continue
@@ -85,21 +131,25 @@ def car_sets():
                 id="traffic/%s_%s" % (model, cname), builder="car",
                 params=dict(design=model, group="traffic", paint=hexcol, metal=METALLIC.get(cname, 0.35)),
                 paint=["paint", "metal"],
-                camera=dict(mode="ortho", elevation=9.0, ppm=52.0, angles=ANGLES5, margins=(0.1, 0.1, 0.07)),
+                camera=dict(mode="ortho", elevation=9.0, ppm=52.0, angles=ANGLES17, margins=(0.1, 0.1, 0.07),
+                            pivot="rear"),
                 layers=CAR_LAYERS, glow=GLOW_CAR, tags=["traffic", "car"], shadow=0.75))
     return out
 
 
 def heavy_sets():
+    """Trucks and buses: render "box" (contract section 4) - face-on orthographic images of every visible
+    face of the part boxes; rear faces at 100 px/m, sides/top at 80 px/m (all face sizes are multiples
+    of 5 cm -> exact pixel rectangles)."""
     out = []
     for model in ("truck", "bus"):
         for cname, hexcol in TRAFFIC_COLORS[model]:
             out.append(dict(
-                id="traffic/%s_%s" % (model, cname), builder=model,
+                id="traffic/%s_%s" % (model, cname), builder=model, render="box",
                 params=dict(paint=hexcol, variant=cname),
-                paint=["paint"],
-                camera=dict(mode="ortho", elevation=3.5, ppm=34.0, angles=ANGLES5, margins=(0.15, 0.15, 0.1)),
-                layers=CAR_LAYERS, glow=GLOW_CAR, tags=["traffic", "heavy"], shadow=0.75))
+                camera=dict(mode="box", ppm=80.0, ppm_rear=100.0),
+                layers=CAR_LAYERS, glow={"tail": [(0.02, 0.5), (0.07, 0.3)], "brake": [(0.025, 0.6), (0.09, 0.4)]},
+                tags=["traffic", "heavy"], samples=32))
     return out
 
 
@@ -108,7 +158,8 @@ def police_sets():
     for cc, p in POLICE.items():
         out.append(dict(
             id="police/" + cc, builder="police", params=dict(cc=cc, **p), paint=[],
-            camera=dict(mode="ortho", elevation=9.0, ppm=56.0, angles=ANGLES5, margins=(0.1, 0.32, 0.07)),
+            camera=dict(mode="ortho", elevation=9.0, ppm=56.0, angles=ANGLES17, margins=(0.1, 0.32, 0.07),
+                        pivot="rear"),
             layers=POLICE_LAYERS, glow=GLOW_CAR, tags=["police", cc], shadow=0.75,
             light_gain={"beacon_a": 2.6, "beacon_b": 2.6}))
     return out
@@ -116,4 +167,4 @@ def police_sets():
 
 def all_sets():
     from . import icons, props
-    return car_sets() + heavy_sets() + police_sets() + props.prop_sets() + icons.icon_sets()
+    return player_sets() + car_sets() + heavy_sets() + police_sets() + props.prop_sets() + icons.icon_sets()
