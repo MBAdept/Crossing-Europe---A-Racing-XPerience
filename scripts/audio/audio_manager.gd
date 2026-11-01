@@ -1,12 +1,15 @@
 extends Node
-## Autoload "AudioManager": engine (cycle banks per car, docs/motorsound.md), wind, siren, crash, radar
-## flash, fuel, countdown/UI blips, rain, menu music. Owner: UI/audio module.
+## Autoload "AudioManager": engine (cycle banks per car, docs/motorsound.md), traffic pass-by sounds and the
+## spatial siren (docs/verkehrsgeraeusche.md), room sound (tunnel reverb), wind, crash, radar flash, fuel,
+## countdown/UI blips, rain, menu music. Owner: UI/audio module.
 ## Public API = contract (ARCHITECTURE.md §11). Effects and loops are synthesised at startup (SfxSynth) as
 ## AudioStreamWAV. The engine plays from the car's cycle bank (assets/audio/engines/<id>.json, EngineAudio
 ## through an AudioStreamGenerator); without a bank the old SfxSynth engine loops play (fallback).
 ## Nothing is played in headless runs (the engine's gearbox still runs there, for engine_state()).
 ##
-## Buses: Master / SFX / Music (created if missing), volumes from Settings (apply_volumes()).
+## Buses: Master / SFX / Music (created if missing), volumes from Settings (apply_volumes()); Room (→ SFX: early
+## reflections, tunnel reverb) and Engine (→ Room: stereo width of the engine) from RoomAudio; TrafficV<n> and
+## Siren (→ Room: low-pass of the air absorption) from TrafficAudio.
 ## Additions to §11 (documented in docs/ui.md):
 ##   apply_volumes()       – re-read Settings.master/sfx/music_volume
 ##   set_music(on)         – menu music loop on the Music bus
@@ -17,18 +20,27 @@ extends Node
 ##   engine_state()        – {rpm, gear (0 = neutral), load, boost} of the race engine
 ##   preview_engine(id)    – vehicle selection: short rev blip of that car (no overlap with the last one)
 ##   bank_for(id), engine_perf()
+##   set_traffic(vehicles, listener) – race session each frame: the renderer's car list (police car id −2) and
+##                           the chase camera; nearby vehicles sound at their positions, the siren at the police car
+##   set_environment(env)  – {"tunnel": bool} each frame: tunnel reverb fades in/out
+##   traffic_state(), traffic_perf() – debug/tests
 ## Safety: loops and the engine fade out automatically when set_engine() is no longer called (scene left)
 ## and while the tree is paused (the engine then stops filling its generator); set_engine() calls while
-## paused are ignored; play() ignores the same one-shot requested twice within 45 ms.
+## paused are ignored; play() ignores the same one-shot requested twice within 45 ms. The same holds for the
+## traffic: no set_traffic() for 0.35 s or a paused tree fades all voices out; stop_all() silences them at once.
+## Debug: --traffic-sounds=<traffic_sounds.json> (e.g. the test fixtures), --audio-config=key=value,… (audio.* for
+## this run), --mute-bus=Engine (measure the traffic alone; muting SFX would also mute Room), --perf (AUDIO_PERF at exit).
 
 const ONESHOT_DB := {
 	"crash": -1.0, "flash": -3.0, "go": -4.0, "beep": -6.0, "finish": -3.0, "fuel_start": -5.0,
 	"fuel_done": -4.0, "ui_move": -12.0, "ui_ok": -8.0, "ui_back": -9.0,
 }
-const LOOPS := ["engine_on", "engine_off", "wind", "rain", "siren", "skid"]
+const LOOPS := ["engine_on", "engine_off", "wind", "rain", "skid"]
 const ENGINE_DIR := "res://assets/audio/engines"
 const ENGINE_FADE_S := 0.12      ## fade of the bank engine on pause / scene change / resume
 const PREVIEW_DB := -2.0         ## vehicle-select blip relative to audio.engine_db
+const TRAFFIC_SOUNDS := "res://assets/audio/traffic/traffic_sounds.json"
+const ALIVE_S := 0.35            ## traffic counts as left when set_traffic() was not called for this long (as the engine)
 
 var sounds_ready := false
 var _streams: Dictionary = {}
@@ -85,6 +97,14 @@ var _preview_next: EngineAudio = null
 var _preview_t := 0.0
 var _stopped_frame := -1
 
+# traffic, siren and room sound (docs/verkehrsgeraeusche.md)
+var _traffic: TrafficAudio = null
+var _room: RoomAudio = null
+var _traffic_vehicles: Array = []
+var _traffic_listener: Dictionary = {}
+var _traffic_t := -100.0
+var _tunnel := false
+
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -100,15 +120,29 @@ func _ready() -> void:
 	_bank_override = CliArgs.get_string("engine-bank", "")
 	_fb_gearbox = EngineGearbox.generic(250.0, _gears)
 	_ensure_buses()
+	var room_cfg := _with_audio_overrides(cfg)
+	_room = RoomAudio.new()
+	_room.setup(room_cfg)
+	_room.attach("SFX")
+	_traffic = TrafficAudio.new()
+	_traffic.setup(room_cfg)
 	apply_volumes()
+	for bus_name in CliArgs.get_string("mute-bus", "").split(",", false):
+		if AudioServer.get_bus_index(bus_name) >= 0:
+			AudioServer.set_bus_mute(AudioServer.get_bus_index(bus_name), true)
 	if DisplayServer.get_name() == "headless":
 		return
+	_load_traffic_sounds(room_cfg)
 	_build_sounds()
 	if bool(ConfigLoader.lookup(cfg, "audio.menu_music", true)):
 		_music_thread_task = WorkerThreadPool.add_task(_generate_music, false, "menu music")
 
 
 func _exit_tree() -> void:
+	if CliArgs.has("perf") and _traffic != null and _traffic.perf_calls > 0:
+		print("AUDIO_PERF ", JSON.stringify({"traffic": traffic_perf(), "engine": engine_perf()}))
+	if _traffic != null:
+		_traffic.detach()
 	if _music_thread_task >= 0:
 		WorkerThreadPool.wait_for_task_completion(_music_thread_task)
 		_music_thread_task = -1
@@ -137,6 +171,48 @@ func apply_volumes() -> void:
 	_set_bus("Master", master, offset)
 	_set_bus("SFX", sfx, 0.0)
 	_set_bus("Music", music, float(ConfigLoader.lookup(ConfigLoader.load_merged(), "audio.music_db", -4.0)))
+
+
+## Debug/measurements: --audio-config=engine_width=0,traffic_db=-3 overrides audio.* keys of the traffic and room
+## sound for this run (numbers, true/false or text), without touching the shared user:// configuration.
+static func _with_audio_overrides(cfg: Dictionary) -> Dictionary:
+	var pairs := CliArgs.get_string("audio-config", "").split(",", false)
+	if pairs.is_empty():
+		return cfg
+	var out := cfg.duplicate(true)
+	var audio: Dictionary = out.get("audio", {})
+	for pair in pairs:
+		var k := pair.get_slice("=", 0).strip_edges()
+		var v := pair.get_slice("=", 1).strip_edges()
+		if k == "":
+			continue
+		if v.is_valid_float():
+			audio[k] = v.to_float()
+		elif v == "true" or v == "false":
+			audio[k] = v == "true"
+		else:
+			audio[k] = v
+		print("AudioManager: audio.%s = %s (--audio-config)" % [k, v])
+	out["audio"] = audio
+	return out
+
+
+## Traffic sounds (docs/verkehrsgeraeusche.md §1): audio.traffic_sounds (default TRAFFIC_SOUNDS), debug
+## --traffic-sounds=<path>. A missing file only means no traffic sound (no error); an unusable one is reported.
+func _load_traffic_sounds(cfg: Dictionary) -> void:
+	var path := CliArgs.get_string("traffic-sounds", str(ConfigLoader.lookup(cfg, "audio.traffic_sounds", TRAFFIC_SOUNDS)))
+	if not FileAccess.file_exists(path):
+		print("AudioManager: keine Verkehrsgeräusche (%s fehlt)" % path)
+		return
+	var t0 := Time.get_ticks_msec()
+	if _traffic.load_sounds(path):
+		print("AudioManager: Verkehrsgeräusche %s geladen in %d ms (%d Klänge, %d Klassen)" % [path,
+			Time.get_ticks_msec() - t0, _traffic.sounds.size(), _traffic.classes.size()])
+	else:
+		for e in _traffic.errors:
+			push_error("Verkehrsgeräusche %s: %s" % [path, e])
+	for w in _traffic.warnings:
+		push_warning("Verkehrsgeräusche %s: %s" % [path, w])
 
 
 func _set_bus(bus_name: String, linear: float, offset_db: float) -> void:
@@ -168,11 +244,13 @@ func _build_sounds() -> void:
 	for n in LOOPS:
 		var p := AudioStreamPlayer.new()
 		p.stream = _streams[n]
-		p.bus = "SFX"
+		p.bus = RoomAudio.ENGINE_BUS if n.begins_with("engine") else "SFX"
 		p.volume_db = -80.0
 		add_child(p)
 		_loop_players[n] = p
 		_vol[n] = 0.0
+	_traffic.siren_stream = _streams["siren"]
+	_traffic.attach(self, RoomAudio.ROOM_BUS)
 	for i in 8:
 		var p := AudioStreamPlayer.new()
 		p.bus = "SFX"
@@ -277,9 +355,56 @@ func stop_all() -> void:
 	_rain_explicit = 0.0
 	_skid_explicit = 0.0
 	_hint_t = -100.0
+	_traffic_t = -100.0
+	_traffic_vehicles = []
+	_tunnel = false
+	if _traffic != null:
+		_traffic.reset()
+	if _room != null:
+		_room.reset()
 
 
 # --- additions -----------------------------------------------------------------------------
+
+## Traffic pass-by sounds and the spatial siren (docs/verkehrsgeraeusche.md), called by the race session each frame:
+## vehicles = the renderer's car list [{id, set, z (rear), x, length, speed (km/h), heavy?}], the police car with
+## id −2; listener = the chase camera {z, x, speed (km/h)} (TrafficAudio adds audio.traffic_listener_ahead_m).
+## Ignored while paused and in the frame of stop_all(); without calls for ALIVE_S everything fades out.
+func set_traffic(vehicles: Array, listener: Dictionary) -> void:
+	if is_inside_tree() and get_tree().paused:
+		return
+	if Engine.get_process_frames() == _stopped_frame:
+		return
+	_traffic_vehicles = vehicles
+	_traffic_listener = listener
+	_traffic_t = _time
+
+
+## Surroundings of the listener: {"tunnel": bool} (camera in a tunnel) – the tunnel reverb fades in and out.
+func set_environment(env: Dictionary) -> void:
+	if Engine.get_process_frames() == _stopped_frame:
+		return
+	_tunnel = bool(env.get("tunnel", false))
+
+
+## Debug/tests: voices of the last frame (TrafficAudio.state()) plus the room blend.
+func traffic_state() -> Dictionary:
+	if _traffic == null:
+		return {}
+	var s: Dictionary = _traffic.state()
+	s["tunnel_blend"] = _room.blend if _room != null else 0.0
+	return s
+
+
+## GDScript time of the traffic voices per frame (update + apply): {avg_ms, max_ms, frames, apply_avg_ms,
+## apply_max_ms (pushing the values to the players alone)}.
+func traffic_perf() -> Dictionary:
+	if _traffic == null or _traffic.perf_calls == 0:
+		return {"avg_ms": 0.0, "max_ms": 0.0, "frames": 0, "apply_avg_ms": 0.0, "apply_max_ms": 0.0}
+	return {"avg_ms": _traffic.perf_us_sum / 1000.0 / _traffic.perf_calls, "max_ms": _traffic.perf_us_max / 1000.0,
+		"frames": _traffic.perf_calls, "apply_avg_ms": _traffic.perf_apply_us_sum / 1000.0 / _traffic.perf_calls,
+		"apply_max_ms": _traffic.perf_apply_us_max / 1000.0}
+
 
 ## Menu music on/off (Music bus).
 func set_music(on: bool) -> void:
@@ -440,7 +565,7 @@ func _process_engine(delta: float, alive: bool) -> void:
 		_eng.fade_to(0.0, ENGINE_FADE_S)
 	if sounds_ready:
 		if _eng.player == null and not _eng.is_silent():
-			_eng.attach(self, "SFX", _engine_buffer)
+			_eng.attach(self, RoomAudio.ENGINE_BUS, _engine_buffer)
 		_eng.pump(_engine_latency, delta)
 
 
@@ -487,14 +612,20 @@ func _process(delta: float) -> void:
 	_loop("rain", rain * 0.38 if not paused else 0.0, 1.0, k_slow)
 	var skid := _skid_explicit if (_time - _skid_explicit_t) < 1.0 else (_hint_skid if hints else 0.0)
 	_loop("skid", clampf(skid - 0.15, 0.0, 1.0) * 0.45 if alive else 0.0, 1.0 + 0.05 * sin(_time * 9.0), k_fast)
-	# siren
+	# siren: on/off and its centred level as before; TrafficAudio places it at the police car when the race session
+	# sends that (set_traffic), with distance law and Doppler
 	var siren := 0.0
 	if _siren_on and (alive or hints):
 		var d := _hint_siren if (hints and _hint_siren >= 0.0) else _siren_dist
 		siren = lerpf(0.18, 0.8, d)
 		if hints and not _hint_chase:
 			siren = 0.0
-	_loop("siren", siren, 1.0, k_slow)
+	_traffic.set_siren(siren > 0.0, siren)
+	# traffic voices (fade out while paused or when the race session stopped calling) and the room
+	var traffic_alive := (_time - _traffic_t) < ALIVE_S and not paused
+	_traffic.update(delta, _traffic_vehicles if traffic_alive else [], _traffic_listener, traffic_alive)
+	_traffic.apply()
+	_room.update(delta, _tunnel)
 
 
 func _loop(n: String, target: float, pitch: float, k: float) -> void:

@@ -237,8 +237,14 @@ vehicle, weather, start_hour, daytime, date, route?}`.
 `set_engine(speed_kmh, throttle, vmax_kmh, active)`, `set_wind(speed)`, `set_siren(on, distance01)`, `set_rain(x)`,
 `set_skid(x)`, `play(name)` mit `crash, flash, go, beep, finish, fuel_start, fuel_done, ui_move, ui_ok, ui_back`, `stop_all()`.
 Motor (Motorklang v2, [docs/motorsound.md](docs/motorsound.md)): `set_vehicle(id)` (Rennsitzung beim Aufbau: Zyklusbank
-des Autos, ohne Bank der bisherige Klang), `engine_state()` → `{rpm, gear (0 = neutral), load, boost}`. Weitere
-Ergänzungen (u. a. `preview_engine(id)` für die Fahrzeugwahl): docs/ui.md „Audio“.
+des Autos, ohne Bank der bisherige Klang), `engine_state()` → `{rpm, gear (0 = neutral), load, boost}`.
+Verkehrsgeräusche und Raumklang ([docs/verkehrsgeraeusche.md](docs/verkehrsgeraeusche.md)): `set_traffic(vehicles,
+listener)` (Rennsitzung jedes Frame: die Fahrzeugliste des Renderers `[{id, set, z (Heck), x, length, speed (km/h),
+heavy?}]`, Polizei mit `id` −2, und die Verfolgerkamera `{z, x, speed}`; nahe Fahrzeuge klingen an ihrer Position, das
+Martinshorn an der Polizei; ohne Aufruf, in der Pause und nach `stop_all()` blendet alles aus),
+`set_environment({"tunnel": bool})` (Kamera im Tunnel: Tunnelhall blendet ein). `set_siren(on, distance01)` schaltet
+das Horn weiter ein und aus; ohne Polizei in der Fahrzeugliste spielt es wie bisher mittig. Weitere Ergänzungen (u. a.
+`preview_engine(id)` für die Fahrzeugwahl, `traffic_state()`, `traffic_perf()`): docs/ui.md „Audio“.
 
 ## 12. Sprites (`assets/sprites/manifest.json`)
 
@@ -287,7 +293,8 @@ Fahrzeug-Sheets VRAM-komprimiert (BPTC) mit Mipmaps.
 
 Argumente nach `--`: `--stage=<id> --from=<city> --vehicle=<typ> --hour=<0..24> --weather=normal|rain|snow
 --start-km=<km> --autopilot [--autopilot-speeding] --no-countdown --seed=<n> --timescale=<f>
---screenshot=<pfad-präfix> --shot-times=1,2.5 --quit-at-finish --engine-bank=<motorbank.json>`. Die Rennszene läuft auch allein:
+--screenshot=<pfad-präfix> --shot-times=1,2.5 --quit-at-finish --engine-bank=<motorbank.json>
+--traffic-sounds=<traffic_sounds.json> --audio-config=<schlüssel=wert,…> --mute-bus=<bus,…> --perf`. Die Rennszene läuft auch allein:
 `godot --path . res://scenes/race/race.tscn -- --stage=dev_testetappe --start-km=48 --hour=21`.
 
 ## 14. Tests, Screenshots, Build
@@ -299,4 +306,6 @@ Argumente nach `--`: `--stage=<id> --from=<city> --vehicle=<typ> --hour=<0..24> 
 - `tools/build_linux.sh` – exportiert `build/CrossingEurope.x86_64`.
 - Integration: `tests/race/check_session.gd` (9 Szenarien der Rennsitzung: Kollisionsrichtung, leerer Tank,
   Zielauslauf, Polizei beim Tanken, Tutorial), `tests/race/check_sprite_flip.gd` (braucht Xvfb/OpenGL),
-  `tests/race/run_stage.gd` (eine Etappe mit Autopilot), `tests/race/run_race.gd` (ein ganzes Rennen durch die Menüs).
+  `tests/race/run_stage.gd` (eine Etappe mit Autopilot), `tests/race/run_race.gd` (ein ganzes Rennen durch die Menüs),
+  `tests/race/shoot_vehicles.gd` (Fahrzeugszenarien; mit `--write-movie <datei>.avi` samt Ton, `--audio-trace` für die
+  Auswertung der Verkehrsgeräusche, docs/ui.md „Audio“).

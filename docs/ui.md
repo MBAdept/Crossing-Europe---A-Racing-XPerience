@@ -48,8 +48,9 @@ schräge Schaltflächen (StyleBoxFlat mit `skew`), Panels mit abgeschrägten Eck
 | `scripts/audio/audio_manager.gd` | Autoload `AudioManager` (API §11) |
 | `scripts/audio/sfx_synth.gd` | `SfxSynth`: Klangsynthese (rein, getestet) |
 | `scripts/audio/engine_bank.gd`, `engine_gearbox.gd`, `engine_audio.gd` | Motorklang v2: Zyklusbank laden/prüfen, Getriebe/Drehzahl, Mischkern + Wiedergabe (Abschnitt *Motor*) |
+| `scripts/audio/traffic_audio.gd`, `room_audio.gd` | Verkehrsgeräusche und räumliches Martinshorn (`TrafficAudio`), Raumklang mit Tunnelhall und Motorbreite (`RoomAudio`) (Abschnitt *Verkehrsgeräusche, Martinshorn und Raumklang*) |
 | `tools/audio/render_engine_demo.gd` | Demo-WAV einer Motorbank mit geskripteter Fahrt |
-| `tests/unit/ui/*` | Tests: Rennlogik, Formatierung, Laufschrift, Audio-Synthese, Getriebe, Karten-Zoom, Routenoptionen (`test_route_info`), Texte aus der Konfiguration (`test_ui_texts`), Gamepad/Fokus/Spielstand (`test_menu_input`), Eingabegerät/Gamepad-Hinweise/Namenseingabe in den Optionen (`test_steam_deck`), Motor: Bank (`test_engine_bank`), Getriebe (`test_engine_gearbox`), Mischkern (`test_engine_audio`) mit den Testbänken aus `tests/fixtures/engines/` |
+| `tests/unit/ui/*` | Tests: Rennlogik, Formatierung, Laufschrift, Audio-Synthese, Getriebe, Karten-Zoom, Routenoptionen (`test_route_info`), Texte aus der Konfiguration (`test_ui_texts`), Gamepad/Fokus/Spielstand (`test_menu_input`), Eingabegerät/Gamepad-Hinweise/Namenseingabe in den Optionen (`test_steam_deck`), Motor: Bank (`test_engine_bank`), Getriebe (`test_engine_gearbox`), Mischkern (`test_engine_audio`) mit den Testbänken aus `tests/fixtures/engines/`, Verkehrsgeräusche und Raumklang (`test_traffic_audio`) mit den Platzhalterschleifen aus `tests/fixtures/traffic/` |
 
 ## Bildschirmablauf
 
@@ -196,14 +197,17 @@ Debug: `--map-file=<pfad>` lädt eine andere Kartendatei gleichen Formats.
 
 Effekte, Schleifen und Menümusik werden beim Start synthetisiert (`SfxSynth`, ca. 0,2 s; Menümusik im
 Hintergrund-Thread) und als `AudioStreamWAV` abgespielt – funktioniert mit jedem Audiotreiber inkl. `Dummy`; im
-Headless-Betrieb wird nichts abgespielt. Der Motor kommt aus einer Zyklusbank je Auto (Abschnitt *Motor*).
+Headless-Betrieb wird nichts abgespielt. Der Motor kommt aus einer Zyklusbank je Auto (Abschnitt *Motor*); Verkehr,
+Martinshorn und Raumklang: Abschnitt *Verkehrsgeräusche, Martinshorn und Raumklang*.
 
-- Busse `Master`, `SFX`, `Music` (werden angelegt), Lautstärken aus `Settings` (`apply_volumes()`).
+- Busse `Master`, `SFX`, `Music` (werden angelegt), Lautstärken aus `Settings` (`apply_volumes()`); dazu `Room` (→ `SFX`,
+  Raumklang), `Engine` (→ `Room`, eigener Motor), `TrafficV0` … `TrafficV<n-1>` und `Siren` (→ `Room`, je ein Tiefpass).
 - Motor ohne Bank (Datei fehlt oder ist ungültig – Rückfall): zwei Schleifen (Last/Schub) mit gleicher Tonhöhe,
   Tonhöhe über ein virtuelles 6-Gang-Getriebe (`SfxSynth.gear_for`: Sägezahn-Drehzahl, kurzer Einbruch beim
   Hochschalten), Gas lauter und heller; `engine_state()` kommt dann aus einem allgemeinen Getriebe
   (`EngineGearbox.generic`).
-- Wind ∝ Tempo, Regen, Reifenquietschen beim Untersteuern, Martinshorn (440/587 Hz, „tatü-tata“).
+- Wind ∝ Tempo, Regen, Reifenquietschen beim Untersteuern, Martinshorn (440/587 Hz, „tatü-tata“; räumlich an der
+  Polizei, wenn die Rennsitzung sie in `set_traffic()` mitschickt).
 - Einmalklänge `crash, flash, go, beep, finish, fuel_start, fuel_done, ui_move, ui_ok, ui_back`.
 - Schleifen und Motor blenden aus, wenn `set_engine()` nicht mehr aufgerufen wird (Szene verlassen) und während der
   Pause. `set_engine()` während der Pause und im selben Frame wie `stop_all()` wird ignoriert (eine Rennszene, die
@@ -214,7 +218,10 @@ Tunneln, Quietschen aus `understeer`, Sirenen-Entfernung aus `police_gap_m`; exp
 der letzten Sekunde haben Vorrang), `gear_for(speed, vmax, gears)` (statisch, Getriebe der Rückfall-Schleifen), Feld
 `sounds_ready`; zum Motor `set_vehicle(id)`, `engine_state()` (beide auch in §11), `preview_engine(id)`
 (Fahrzeugwahl: kurzer Gasstoß dieses Autos), `bank_for(id)` (Bank laden/aus dem Cache, `null` = keine),
-`engine_perf()` (`{avg_ms, max_ms, frames, samples, skips}` der Live-Wiedergabe).
+`engine_perf()` (`{avg_ms, max_ms, frames, samples, skips}` der Live-Wiedergabe); zu Verkehr und Raum
+`set_traffic(vehicles, listener)` und `set_environment(env)` (beide auch in §11), `traffic_state()` (Stimmen des letzten
+Frames, Hörer, Martinshorn, Tunnelüberblendung) und `traffic_perf()` (`{avg_ms, max_ms, frames, apply_avg_ms,
+apply_max_ms}`: GDScript-Zeit je Frame). Mit `--perf` gibt der AudioManager beim Beenden `AUDIO_PERF` aus.
 
 ### Motor (Motorklang v2)
 
@@ -283,6 +290,94 @@ nur Zyklen, `--trace` Drehzahl/Gang je Frame als CSV). Testbänke: `tests/fixtur
 `tests/fixtures/make_engine_fixtures.py` (`--demo DIR` schreibt zusätzlich eine V8-Demobank mit vollem
 Drehzahlbereich). Debug: `--engine-bank=<pfad.json>` spielt diese Bank für jedes Auto, z. B.
 `--engine-bank=res://tests/fixtures/engines/fixture_v4.json` vor dem Einbau der echten Banken.
+
+### Verkehrsgeräusche, Martinshorn und Raumklang
+
+Vertrag: [docs/verkehrsgeraeusche.md](verkehrsgeraeusche.md). Die Rennsitzung ruft jedes Frame
+`AudioManager.set_traffic(cars, {z, x, speed})` mit der Fahrzeugliste des Renderers (`id`, `set`, Heck `z`, `x`, `length`,
+`speed` in km/h, `heavy`; Polizei mit `id` −2) und der Verfolgerkamera auf, dazu `set_environment({"tunnel": Kamera im
+Tunnel})`; nach dem Etappenergebnis nicht mehr (der Verkehr blendet aus). Zwei Klassen:
+
+| Klasse | Aufgabe |
+|---|---|
+| `TrafficAudio` (`scripts/audio/traffic_audio.gd`) | lädt `traffic_sounds.json` und die WAVs, rechnet je Frame Stimmenzuteilung, Pegel, Panorama, Tonhöhe und Luftdämpfung (rein: `update()`, ohne AudioServer getestet) und gibt sie an die Player (`attach()`/`apply()`) |
+| `RoomAudio` (`scripts/audio/room_audio.gd`) | Busse `Room` und `Engine` mit ihren Effekten, Überblendung beim Ein- und Ausfahren in Tunnel |
+
+**Klänge**: `audio.traffic_sounds` (`res://assets/audio/traffic/traffic_sounds.json`). Fehlt die Datei, gibt es keine
+Verkehrsgeräusche (nur ein Hinweis in der Konsole, kein Fehler); das Martinshorn spielt trotzdem. Eine unbrauchbare Datei
+(Format, Klasse `car` fehlt) meldet `push_error`; Klassen mit fehlendem Klang werden mit Warnung verworfen (ihre Fahrzeuge
+klingen wie `car`). Godot importiert die WAVs; die Laufzeit nimmt je eine Kopie ohne Pfad und schaltet deren Schleife ein
+(vorwärts über das ganze Sample). Modell aus der Sprite-ID (`traffic/<modell>_<farbe>`, `police/<land>`; unbekannte
+schwere Fahrzeuge zählen als `truck`, sonst `car`). Debug: `--traffic-sounds=res://tests/fixtures/traffic/traffic_sounds.json`
+spielt die Platzhalter, bis die echten Klänge da sind.
+
+**Modell** (je Frame, `TrafficAudio.update`):
+
+- Hörer = Kamera + `traffic_listener_ahead_m` (3 m) entlang der Straße; x quer, z längs in Metern, Kurven vernachlässigt
+  (die Straße scrollt mit dem echten Tempo: km/h / 3,6 = m/s).
+- Quelle = Fahrzeugachse vom Heck zur Front. Abstand und Richtung gehen zum nächsten Punkt dieser Strecke (ein Lkw bleibt
+  „neben“ einem, solange er neben einem ist), der Doppler zur Mitte.
+- Pegel = `traffic_db` + `gain_db` + `level_db_per_decade · log10(v / ref_kmh)` + Entfernung: bis `traffic_ref_m` × Größe
+  voll, dann (Bezug/Abstand)^`traffic_rolloff` (Luft: hoch 2 – das „Wusch“ nur nah), zwischen 70 und 100 % von
+  `traffic_max_m` (150 m) weich auf 0.
+- Panorama mit gleicher Leistung aus sin(Azimut) × `traffic_pan` (0,85: direkt neben einem ~19 dB Unterschied zwischen
+  den Kanälen). Vorn und hinten sind in Stereo gleich.
+- Tonhöhe = clamp((v / ref_kmh)^pitch_exp, 0,6, 1,6) × Doppler × Streuung (±6 %, fest je Fahrzeug-ID wie die
+  Motorvariante und die Startposition in der Schleife).
+- Doppler = c / (c − k · v_Annäherung): Annäherung aus der Relativgeschwindigkeit längs der Straße entlang der Sichtlinie,
+  k = `traffic_doppler` (2 = doppelt so deutlich wie echt), |k · v| ≤ c/2, über 80 ms geglättet.
+- Luftdämpfung: Tiefpass 20 kHz / (1 + Abstand / `traffic_air_m`) (30 m: bei 150 m 3,3 kHz).
+- Stimmen: `traffic_voices` (6) Plätze aus Motor + Reifen + Luft. Die nächsten Fahrzeuge (Lkw/Busse zählen 1,45-mal
+  näher) bekommen einen Platz; wer einen hat, behält ihn, bis ein anderes um `traffic_hysteresis` (25 %) näher ist. Ein-
+  und Ausblenden in `traffic_fade_s` (0,3 s); ein freigegebener Platz wird erst wieder vergeben, wenn er still ist. Pause
+  oder keine Aufrufe (0,35 s): alles blendet aus; `stop_all()`: sofort still.
+- Martinshorn: eigener Platz an der Polizei (`id` −2) mit Panorama, Doppler und Luftdämpfung; Pegel `siren_db` (wie die
+  alte Mono-Schleife) bis `siren_ref_m`, dann (Bezug/Abstand)^`siren_rolloff` bis `siren_max_m`, nie unter `siren_floor`,
+  solange es läuft (eine Verfolgung aus 320 m bleibt hörbar). Ein/aus kommt wie bisher aus `set_siren()`/`hud_hints()`;
+  ohne Polizei in der Fahrzeugliste spielt es mittig mit der alten Lautstärkekurve.
+
+**Wiedergabe**: `AudioStreamPlayer2D` in einer eigenen, nicht gezeichneten Welt (`SubViewport` mit `AudioListener2D`).
+Godot verteilt jede Wiedergabe mit Kanalpegeln, die es über jeden Mischblock rampt – Panorama- und Pegeländerungen
+knacken nicht. Aus den gewünschten Pegeln (links, rechts) wird Lautstärke = links + rechts und Position
+x = (2 · rechts / (links + rechts) − 1) · 64 px (Godots lineares 2D-Panorama, `panning_strength` =
+1 / `audio/general/2d_panning_strength`). Je Platz ein Bus `TrafficV<n>` bzw. `Siren` mit Tiefpass (Luftdämpfung), alle
+→ `Room`. Werte werden nur gesetzt, wenn sie sich ändern.
+
+**Raumklang** (`RoomAudio`):
+
+- Bus `Room` (→ `SFX`) für Motor, Verkehr und Martinshorn: frühe Reflexionen (`AudioEffectDelay`, 17/23 ms, leicht
+  links/rechts, `reflections_db` −16 dB draußen, `reflections_tunnel_db` −8 dB im Tunnel) und Tunnelhall
+  (`AudioEffectReverb`: `reverb_room_size` 0,86, `reverb_damping` 0,45, `reverb_predelay_ms` 22 mit
+  `reverb_predelay_feedback` 0,3, `reverb_hipass` 0,03; Anteil `reverb_wet` 0 draußen … `reverb_tunnel_wet` 0,3 im
+  Tunnel). Der Anteil folgt der Kamera im Tunnel linear in `reverb_fade_s` (0,8 s), abgebildet mit Smoothstep.
+- Bus `Engine` (→ `Room`) für den eigenen Motor (auch die Rückfall-Schleifen): kurzer, diffuser Stereohall
+  (`engine_width` 0,6) mit Hochpass davor (`engine_width_hipass` 0,1 ≈ 600 Hz; Godots `hipass` 0..1 = 0..6 kHz). Die
+  starken tiefen Motortöne bleiben mono, darüber mitteln sich viele Teiltöne – breiter, aber mittig. (Der erste Versuch,
+  je eine feste Verzögerung links und rechts, filtert den harmonischen Motor je Kanal verschieden und zog ihn
+  drehzahlabhängig bis 1,7 dB zur Seite.)
+- Probehören in der Fahrzeugwahl, Einmalklänge, Wind, Regen und Quietschen bleiben trocken auf `SFX`.
+
+**Messungen** (Movie-Maker-Aufnahmen des echten Spiels mit `tests/race/shoot_vehicles.gd`, Platzhalterklänge; für die
+Verkehrsmessungen ist der eigene Motor stumm):
+
+| Prüfung | Ergebnis |
+|---|---|
+| Auto links überholt (`passby`, 150 gegen 105 km/h) | links bis 9 dB lauter, solange es links ist; danach mittig (0,1 dB) |
+| Tonhöhe beim Passieren | Grundton 71,5 → 62,5 Hz (Verhältnis 1,14, berechnet 1,15); folgt dem Protokoll auf ±1–2 % |
+| Lkw rechts (`overtake`) | ~1,2 s lang rechts 11–13 dB lauter, Spitze 5,4 dB über dem Pkw, tiefer (63,8 → 52,1 Hz, Verhältnis 1,22, berechnet 1,23) |
+| Martinshorn (`police`) | kommt links von hinten (links bis 17 dB lauter), 440-Hz-Ton 471 → 402 Hz beim Passieren (±1,5 % zum Protokoll), danach mittig 16 m voraus |
+| Tunnel (`tunnel` ab km 49,7) | Hall blendet beim Einfahren der Kamera in 0,8 s ein, L/R-Korrelation fällt von ~0,93 auf 0,3–0,6; Impulsantwort: Nachhallzeit 2,2–2,5 s, Hall/Direkt −2 dB; draußen nur die frühen Reflexionen (−13,6 dB, kein Nachhall) |
+| Stimmenwechsel (`overtake_cars` mit nur einer Stimme) | kein Knacken: Spitzen der Ableitung beim Zuteilen 0,2–0,6 × des 95. Perzentils, Pegelsprünge wie im übrigen Signal |
+| Eigener Motor (Rennen ab km 30, Autopilot) | L/R-Korrelation vorher 1,000, nachher 0,885 (je Sekunde 0,84–0,94), Balance ±0,3 dB |
+| Rechenzeit | `update()` ohne AudioServer 0,05 ms (41 Fahrzeuge) bzw. 0,09 ms (161); im Rennen zur Hauptverkehrszeit (Software-Rendering, Movie Maker) 0,23 ms je Frame samt Playern (`traffic_perf()`) |
+
+**Werkzeuge**: `tests/race/shoot_vehicles.gd -- --scenario=passby|overtake|overtake_cars|police|tunnel` mit
+`--write-movie <datei>.avi` (Bild und Ton), `--traffic-sounds=…`, `--audio-trace=<datei.csv>` (Stimmen je Frame:
+Fahrzeug, Abstand, Panorama, Doppler, Pegel, Tunnelüberblendung) und `AUDIO_PERF` am Ende; `--mute-bus=Engine` (nur
+Verkehr hören), `--audio-config=engine_width=0,traffic_db=-3` (Werte für einen Lauf ändern, ohne die gemeinsame
+`user://`-Konfiguration). Platzhalter: `tests/fixtures/make_traffic_fixtures.py` → `tests/fixtures/traffic/` (16 kHz,
+1,6 s, jede Schleife RMS −15 dBFS). Mit dieser Lautheit ist `traffic_db` = −4 dB eingestellt; haben die echten Schleifen
+eine andere, `traffic_db` um die Differenz anpassen.
 
 ## GameFlow-API (Ergänzungen)
 

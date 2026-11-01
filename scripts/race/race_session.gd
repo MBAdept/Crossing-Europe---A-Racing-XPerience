@@ -719,6 +719,11 @@ func _process(delta: float) -> void:
 	AudioManager.set_skid(clampf(vehicle.understeer + (0.5 if vehicle.state == VehicleModel.State.CRASH else 0.0), 0.0, 1.0))
 	if chase > 0.0:
 		AudioManager.set_siren(true, chase)
+	# pass-by sounds at the vehicles' positions, the siren at the police car (id -2) and the tunnel reverb
+	# (docs/verkehrsgeraeusche.md); listener = chase camera. Once the result is out the traffic fades out.
+	if not _result_sent:
+		AudioManager.set_traffic(cars, {"z": cam_z, "x": cam_x, "speed": vehicle.speed})
+	AudioManager.set_environment({"tunnel": cam_tunnel})
 
 
 func _hud_state(hour: float) -> Dictionary:
