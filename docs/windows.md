@@ -259,6 +259,16 @@ Geprüft ohne Windows-PC – unter Linux mit Wine 9.0 (64-Bit-Präfix), virtuell
 - Ton: Mit Audiogerät startet WASAPI ohne Fehler. Ohne Audiogerät meldet Godot einmal „WASAPI: init_output_device
   error“ und spielt stumm weiter.
 - Beenden über das Menü und mit Alt+F4: Rückgabewert 0.
+- **v0.5.0** (QA nach dem Zusammenführen, Test-Build desselben Stands): Titelbildschirm mit dem Titelbild des Spielers
+  wie unter Linux – Ken-Burns-Zoom und Milchglas-Karte (`TitleBackdrop`/`GlassPanel`) über WGL, ganzes Bild gegen den
+  Linux-Export 42,7 dB PSNR, die Glaskarte 62,8 dB (größte Abweichung 1 Stufe); der OpenGL-ES-3-Weg zeichnet dieselbe
+  Karte (57,1 dB). Die Titelmelodie (OGG) spielt über WASAPI ab 1,6 s und läuft nahtlos in der Schleife weiter
+  (Intro einmal). Attract-Modus nach 60 s ohne Eingabe, auch über `-- --attract-after=5 --attract-scene=2` mit den
+  `--`-Argumenten der `.exe`; Enter beendet die Demo und führt zurück zum Titel, ohne einen Menüpunkt auszulösen; nach
+  sieben Demos keine gespeicherte Datei. Schneerennen Bern – Mailand über die Menüs mit Wetterhinweis beim Countdown.
+  Dabei gefunden und behoben: ein Wagen, der im Schnee an der Leitplanke stand (nach einem Unfall), kam nie wieder
+  los (gameplay.md „Verhalten am Straßenrand“), und `--screenshot`-Läufe im Titel meldeten beim Beenden
+  „2 resources still in use at exit“ (die Titelmelodie wird jetzt vorher freigegeben).
 
 Nicht geprüft:
 
@@ -285,4 +295,9 @@ Unter Linux ist die Linux-Version die richtige Wahl. Wer die Windows-Fassung tro
   zeigt nur ein schwarzes Bild (siehe oben).
 - Mit einer Sprache ohne UTF-8 (`LANG=C`) kann Wine den Ordner mit „–“ im Namen nicht anlegen; dann z. B.
   `LANG=C.UTF-8` setzen.
+- Testaufbau der QA (v0.5.0), damit nichts vom eigenen Wine-Profil hineinspielt: ein eigenes Präfix
+  (`WINEPREFIX=<Ordner> wine64 wineboot -i`), `WINEDLLOVERRIDES="mscoree,mshtml=;dinput8=d"` (kein Mono-/Gecko-Dialog,
+  DirectInput aus) und ohne Soundkarte ein ALSA-Null-Gerät, damit WASAPI startet: eine Datei mit
+  `pcm.!default { type null }` und `ALSA_CONFIG_PATH=<diese Datei>`. Das Null-Gerät nimmt Ton etwa 1,5-mal schneller
+  ab als in Echtzeit – kurze Aussetzer (2 × 10 ms in 5 Minuten) gehören zu Wine/llvmpipe, nicht zum Spiel.
 - Harmlose Meldungen nur unter Wine: „Failed to enable screen_keep_on“, „Failed to get SDR white level“.
