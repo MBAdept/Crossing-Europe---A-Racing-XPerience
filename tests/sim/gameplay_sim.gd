@@ -439,12 +439,34 @@ static func traffic_run(cfg: Dictionary, track: Object, hour: float, player_kmh:
 	var min_cruise := INF
 	var max_cruise := -INF
 	var min_cruise_heavy := INF
+	var max_cruise_heavy := -INF
+	var min_cruise_car := INF
 	var side_t := {}
 	var max_side := 0.0
+	var weather := str(opts.get("weather", "normal"))
+	var signals := 0
+	var signal_moves := 0
+	var min_lead := INF
+	var signal_seen := {}
+	var cv_sum := 0.0
+	var cv_n := 0
 	while t < warmup + seconds:
 		var since := t - warmup
 		var chase := chase_all or (chase_at >= 0.0 and since >= chase_at)
-		ts.update(DT, {"z": pz, "x": px, "speed": player_kmh}, {"hour": hour, "chase": chase, "camera_z": pz - cam_dist})
+		var lane_before := {}
+		for c in ts.cars:
+			lane_before[c.id] = c.lane
+		ts.update(DT, {"z": pz, "x": px, "speed": player_kmh}, {"hour": hour, "chase": chase, "camera_z": pz - cam_dist, "weather": weather})
+		# indicators: every lane change (except an emergency swerve) is signalled before the car moves
+		for c in ts.cars:
+			if c.signal_dir != 0 and not signal_seen.has(c.id):
+				signal_seen[c.id] = true
+				signals += 1
+			elif c.signal_dir == 0:
+				signal_seen.erase(c.id)
+			if lane_before.has(c.id) and int(lane_before[c.id]) != c.lane and c.signal_dir != 0:
+				signal_moves += 1
+				min_lead = minf(min_lead, c.signal_age)
 		pz += player_kmh / 3.6 * DT
 		t += DT
 		since = t - warmup
@@ -474,6 +496,24 @@ static func traffic_run(cfg: Dictionary, track: Object, hour: float, player_kmh:
 		var after := chase_at >= 0.0 and since >= chase_at + settle
 		if after:
 			n_after += 1
+		if n % 60 == 0:
+			# spacing along the road (all lanes, view ahead): coefficient of variation of the gaps (clusters > 1)
+			var zs: Array[float] = []
+			for c in ts.cars:
+				if c.z > pz and c.z < pz + vis:
+					zs.append(c.z)
+			zs.sort()
+			if zs.size() >= 4:
+				var gsum := 0.0
+				var gsq := 0.0
+				for i in range(1, zs.size()):
+					var g := zs[i] - zs[i - 1]
+					gsum += g
+					gsq += g * g
+				var k := float(zs.size() - 1)
+				var mean := gsum / k
+				cv_sum += sqrt(maxf(0.0, gsq / k - mean * mean)) / maxf(mean, 0.001)
+				cv_n += 1
 		sum_all += ts.cars.size()
 		for c in ts.cars:
 			if c.z + c.length * 0.5 > cam and c.z - c.length * 0.5 < cam + vis:
@@ -487,8 +527,15 @@ static func traffic_run(cfg: Dictionary, track: Object, hour: float, player_kmh:
 				max_cruise = maxf(max_cruise, c.cruise_speed)
 				if c.heavy:
 					min_cruise_heavy = minf(min_cruise_heavy, c.cruise_speed)
+					max_cruise_heavy = maxf(max_cruise_heavy, c.cruise_speed)
+				else:
+					min_cruise_car = minf(min_cruise_car, c.cruise_speed)
 				sum_cruise_unique += c.cruise_speed
-				var r: Array = ConfigLoader.lookup(cfg, ("traffic.truck_speeds_kmh." if c.heavy else "traffic.speeds_kmh.") + str(track.road_type_at(c.z)), [100, 130])
+				# desired speed relative to the class range at its temperament (night/weather factor)
+				var key := "traffic.speeds_kmh."
+				if c.heavy:
+					key = "traffic.bus_speeds_kmh." if c.bus else "traffic.truck_speeds_kmh."
+				var r: Array = ConfigLoader.lookup(cfg, key + str(track.road_type_at(c.z)), [100, 130])
 				sum_factor_unique += c.cruise_speed / lerpf(float(r[0]), float(r[1]), c.speed_frac)
 			sum_speed += c.speed
 			sum_cruise += c.cruise_speed
@@ -537,6 +584,8 @@ static func traffic_run(cfg: Dictionary, track: Object, hour: float, player_kmh:
 		"avg_speed": sum_speed / maxf(1.0, speed_n), "avg_cruise": sum_cruise / maxf(1.0, speed_n),
 		"unique_cars": seen.size(), "avg_cruise_unique": sum_cruise_unique / maxf(1.0, seen.size()),
 		"speed_factor_unique": sum_factor_unique / maxf(1.0, seen.size()),
+		"max_cruise_heavy": max_cruise_heavy, "min_cruise_car": min_cruise_car, "spacing_cv": cv_sum / maxf(1.0, float(cv_n)),
+		"signals": signals, "signal_moves": signal_moves, "min_signal_lead_s": min_lead,
 		"overlaps": overlaps, "player_hits": player_hits, "min_gap": min_gap, "lane_changes": lane_changes,
 		"fuel_users": fuel_users.size(), "target": ts.target_count, "spawned": ts.spawned_total,
 		"pops_in": pops_in, "pops_out": pops_out, "hidden_culls": hidden_culls, "heavy_seen": heavy_ids.size(), "heavy_lane0_frames": heavy_lane0,
@@ -908,13 +957,18 @@ static func table_traffic(cfg: Dictionary) -> String:
 	rows.append(["sim: Spieler steht auf der Fahrbahn (17:30)", "%d Treffer" % int(stopped["player_hits"]), "%d Autos ausgewichen/gebremst" % int(stopped["unique_cars"])])
 	rows.append(["sim: Spurwechsel in 60 s (12:00)", "%d" % int(day["lane_changes"]), ""])
 	var lkw := traffic_run(cfg, FakeTrack.new(60000.0, "autobahn", 3), 12.0, 160.0, 60.0)
-	var r_trucks: Array = ConfigLoader.lookup(cfg, "traffic.truck_speeds_kmh.autobahn", [110, 120])
-	rows.append(["sim: Wunschtempo Autobahn 12:00 min (Lkw min)", "%.1f (%.1f) km/h" % [float(lkw["min_cruise"]), float(lkw["min_cruise_heavy"])],
-		"Lkw/Busse %d–%d km/h, im Design-Bereich 110–150" % [int(r_trucks[0]), int(r_trucks[1])]])
+	var r_trucks: Array = ConfigLoader.lookup(cfg, "traffic.truck_speeds_kmh.autobahn", [80, 90])
+	var r_bus: Array = ConfigLoader.lookup(cfg, "traffic.bus_speeds_kmh.autobahn", [95, 100])
+	rows.append(["sim: Wunschtempo Autobahn 12:00 min Pkw (schwere min–max)", "%.1f (%.1f–%.1f) km/h" % [float(lkw["min_cruise_car"]),
+		float(lkw["min_cruise_heavy"]), float(lkw["max_cruise_heavy"])], "Lkw %d–%d, Busse %d–%d km/h" % [int(r_trucks[0]), int(r_trucks[1]), int(r_bus[0]), int(r_bus[1])]])
+	var snow := traffic_run(cfg, FakeTrack.new(60000.0, "autobahn", 3), 12.0, 160.0, 60.0, {"weather": "snow"})
+	var rain := traffic_run(cfg, FakeTrack.new(60000.0, "autobahn", 3), 12.0, 160.0, 60.0, {"weather": "rain"})
+	rows.append(["sim: Ø Wunschtempo neuer Autos 12:00 trocken / Regen / Schnee", "%.1f / %.1f / %.1f km/h" % [float(lkw["avg_cruise_unique"]),
+		float(rain["avg_cruise_unique"]), float(snow["avg_cruise_unique"])], "traffic.weather"])
 	var land := traffic_run(cfg, FakeTrack.new(60000.0, "landstrasse", 2), 17.0, 90.0, 120.0, {"seed": 7})
 	var no_yield := ConfigLoader.deep_merge(cfg, {"traffic": {"yield_slowdown_kmh": 0.0, "pass_boost_kmh": 0.0}})
 	var land0 := traffic_run(no_yield, FakeTrack.new(60000.0, "landstrasse", 2), 17.0, 90.0, 120.0, {"seed": 7})
 	rows.append(["sim: Landstraße 17:00, Spieler 90 km/h, 120 s", "%.1f s (ohne Regel %.1f s)" % [float(land["max_side_by_side_s"]), float(land0["max_side_by_side_s"])],
 		"längstes Nebeneinander zweier gleich schneller Autos (rollende Sperre)"])
-	return Fx.table("(g) Verkehr: Tageskurve, Nacht +15 %, Verfolgung -80 %, City Limits x2,5",
+	return Fx.table("(g) Verkehr: Tageskurve, Nacht x%.2f, Verfolgung -80 %%, City Limits x2,5" % float(ConfigLoader.lookup(cfg, "traffic.night.speed_factor", 1.0)),
 		["Größe", "Wert", "Bemerkung"], rows)

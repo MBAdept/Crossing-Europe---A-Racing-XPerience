@@ -208,7 +208,7 @@ func _lane_free(l: int) -> bool:
 func _run() -> void:
 	var ts := float(ConfigLoader.lookup(cfg, "time.time_scale", 12.0))
 	var t_end := 1800.0
-	traffic.update(0.0, {"z": pos_z, "x": vehicle.x, "speed": 0.0}, {"hour": clock.hour(), "chase": false, "camera_z": pos_z - 6.6})
+	traffic.update(0.0, {"z": pos_z, "x": vehicle.x, "speed": 0.0}, {"hour": clock.hour(), "chase": false, "camera_z": pos_z - 6.6, "weather": weather})
 	while _t < t_end and pos_km < plan.length_km:
 		var input := _bot()
 		var req := fuel.control_request()
@@ -227,7 +227,8 @@ func _run() -> void:
 		var cam_z := pos_z - 6.6
 		track.update_window(cam_z, 960.0)
 		var vis := 900.0 * env.visibility_factor(hour, weather, track.is_tunnel_at(cam_z + 5.0))
-		traffic.update(DT, {"z": pos_z, "x": vehicle.x, "speed": vehicle.speed}, {"hour": hour, "chase": police.chase_active(), "camera_z": cam_z, "visibility_m": vis})
+		traffic.update(DT, {"z": pos_z, "x": vehicle.x, "speed": vehicle.speed}, {"hour": hour, "chase": police.chase_active(), "camera_z": cam_z, "visibility_m": vis,
+			"weather": weather, "brake_mps2": vehicle.brake_decel_mps2(track.grip_at(pos_z, env.grip(weather)))})
 		if not vehicle.invulnerable:
 			var hit := traffic.find_collision({"z": pos_z, "x": vehicle.x, "length": vehicle.length_m, "width": vehicle.width_m}, cam_z, _visible)
 			if hit != null:

@@ -196,7 +196,9 @@ func test_safe_curve_speed_formula_and_excess() -> void:
 	assert_near(v.safe_curve_speed(0.45, 1.0), sqrt(grip * r1 / 0.45) * 3.6, 0.001, "v = √(Haftung · R)")
 	assert_near(v.safe_curve_speed(-0.45, 1.0), v.safe_curve_speed(0.45, 1.0), 0.0001, "Richtung egal")
 	assert_eq(v.safe_curve_speed(0.0, 1.0), INF, "Gerade: keine Grenze")
-	assert_near(v.grip_accel(0.88), grip * 0.88, 0.0001, "Haftung × Wetter")
+	var ce := float(ConfigLoader.lookup(c, "driving.grip_effects.curve_exp", 1.0))
+	assert_near(v.grip_accel(0.88), grip * pow(0.88, ce), 0.0001, "Haftung × Kurvenhaftung(Wetter) = Wetterhaftung^curve_exp")
+	assert_near(v.curve_grip(1.0), 1.0, 0.0001, "trocken: volle Kurvenhaftung")
 	var safe := v.safe_curve_speed(0.45, 1.0)
 	assert_eq(v.lateral_excess(0.45, 1.0, safe * 0.99), 0.0, "unter der Grenze kein Überschuss")
 	var vm := safe * 1.2 / 3.6
@@ -363,8 +365,11 @@ func test_weather_grip_lowers_curve_speed() -> void:
 	env.setup(c)
 	var v := Fx.vehicle(c, "limousine")
 	var dry := v.safe_curve_speed(0.45, env.grip("normal"))
-	assert_near(v.safe_curve_speed(0.45, env.grip("rain")), dry * sqrt(env.grip("rain")), 0.01, "Regen")
-	assert_near(v.safe_curve_speed(0.45, env.grip("snow")), dry * sqrt(env.grip("snow")), 0.01, "Schnee")
+	assert_near(v.safe_curve_speed(0.45, env.grip("rain")), dry * sqrt(v.curve_grip(env.grip("rain"))), 0.01, "Regen")
+	assert_near(v.safe_curve_speed(0.45, env.grip("snow")), dry * sqrt(v.curve_grip(env.grip("snow"))), 0.01, "Schnee")
+	# retuned with the lower grip of v0.5.0 (snow 0.45, rain 0.75): curves 10 % / 26 % slower than dry
+	assert_between(v.safe_curve_speed(0.45, env.grip("rain")) / dry, 0.86, 0.93, "Regen: Kurven etwa 10 % langsamer")
+	assert_between(v.safe_curve_speed(0.45, env.grip("snow")) / dry, 0.70, 0.78, "Schnee: Kurven etwa 26 % langsamer")
 	var speed := dry * 0.97
 	var a := Fx.vehicle(c, "limousine")
 	var b := Fx.vehicle(c, "limousine")
@@ -598,3 +603,126 @@ func test_auto_control_and_release() -> void:
 	v.start_crash(v.x - 1.0, 1.0, 1.0)
 	v.auto_control(0.0, 50.0)
 	assert_eq(v.state, VehicleModel.State.CRASH, "Unfall hat Vorrang")
+
+
+# --- v0.5.0: weather handling (docs/gameplay.md "Wetter") ---------------------------------------------------------
+
+## Distance (m) and time (s) of a full braking from v0 to v1 on a straight road with tyre grip g.
+func _brake_run(c: Dictionary, id: String, g: float, v0: float, v1: float) -> Vector2:
+	var v := Fx.vehicle(c, id)
+	v.speed = v0
+	var d := 0.0
+	var t := 0.0
+	while v.speed > v1 and t < 30.0:
+		v.update(DT, {"brake": 1.0}, Fx.flat_road(3, true, 0.0, g), {"vmax_factor": 1.0})
+		d += v.speed / 3.6 * DT
+		t += DT
+	return Vector2(d, t)
+
+
+## Snow: roughly half the deceleration of a dry road, rain in between – the braking distance grows accordingly.
+func test_braking_limited_by_grip() -> void:
+	var c := cfg()
+	var env := EnvironmentModel.new()
+	env.setup(c)
+	var v := Fx.vehicle(c, "limousine")
+	var full := float(ConfigLoader.lookup(c, "driving.brake_decel_kmh_s", 70.0)) / 3.6
+	assert_near(v.brake_decel_mps2(1.0), full, 0.0001, "trocken: volle Bremsung (70 km/h/s)")
+	assert_between(v.brake_decel_mps2(env.grip("snow")) / full, 0.45, 0.55, "Schnee: etwa die halbe Verzögerung")
+	assert_between(v.brake_decel_mps2(env.grip("rain")) / full, 0.7, 0.85, "Regen dazwischen")
+	var dry := _brake_run(c, "limousine", 1.0, 200.0, 100.0)
+	var rain := _brake_run(c, "limousine", env.grip("rain"), 200.0, 100.0)
+	var snow := _brake_run(c, "limousine", env.grip("snow"), 200.0, 100.0)
+	assert_between(snow.x / dry.x, 1.8, 2.2, "Bremsweg 200 -> 100 km/h im Schnee etwa doppelt (%.0f statt %.0f m)" % [snow.x, dry.x])
+	assert_true(rain.x > dry.x * 1.15 and rain.x < snow.x, "Regen: %.0f m" % rain.x)
+	# the player's brake while rolling out (auto control without steer_x) is limited the same way
+	var r := Fx.vehicle(c, "limousine")
+	r.speed = 200.0
+	r.auto_control(0.0, 18.0)
+	_run(r, 1.0, {"brake": 1.0}, Fx.flat_road(3, true, 0.0, env.grip("snow")))
+	assert_near(r.speed, 200.0 - v.brake_decel_mps2(env.grip("snow")) * 3.6, 0.5, "Ausrollen: Bremse wie bei Schnee")
+
+
+## Seconds from standstill to 100 km/h with full throttle on tyre grip g (top speed of a dry road).
+func _t100(c: Dictionary, id: String, g: float, dt: float) -> float:
+	var v := Fx.vehicle(c, id)
+	var t := 0.0
+	while v.speed < 100.0 and t < 60.0:
+		v.update(dt, {"throttle": 1.0}, Fx.flat_road(3, true, 0.0, g), {"vmax_factor": 1.0})
+		t += dt
+	return t
+
+
+## In snow the acceleration is traction-limited at low speed (driving.grip_effects.traction_mps2 · grip): every car
+## needs clearly longer to 100 km/h and the strong ones lose their advantage; a dry road changes nothing; exact
+## integration (frame-rate independent).
+func test_traction_limits_the_start_in_snow() -> void:
+	var c := cfg()
+	var env := EnvironmentModel.new()
+	env.setup(c)
+	var snow_times: Array[float] = []
+	for id: String in Fx.VEHICLES:
+		var v := Fx.vehicle(c, id)
+		var dry := _t100(c, id, 1.0, DT)
+		var snow := _t100(c, id, env.grip("snow"), DT)
+		assert_near(dry, float(v.spec["t100_s"]), 0.1, id + ": trocken unverändert")
+		assert_true(snow > dry * 1.15, "%s: Schnee 0–100 in %.2f s statt %.2f s" % [id, snow, dry])
+		assert_near(_t100(c, id, env.grip("snow"), 1.0 / 30.0), snow, 0.05, id + ": bildratenunabhängig")
+		assert_true(_t100(c, id, env.grip("rain"), DT) < snow, id + ": Regen dazwischen")
+		snow_times.append(snow)
+		# the traction limit only caps the start: the curve above the crossover speed is the normal one
+		var vc := v.traction_crossover(v.vmax_effective, v.traction_mps2(env.grip("snow")) * 3.6)
+		assert_true(vc > 60.0 and vc < v.vmax_effective, "%s: Traktion begrenzt bis %.0f km/h" % [id, vc])
+	snow_times.sort()
+	assert_true(snow_times[snow_times.size() - 1] - snow_times[0] < 1.0, "Schnee: die starken Autos verlieren ihren Vorsprung beim Anfahren")
+
+
+## Lane change at 200 km/h from x 3.75 to the lane centre 0 on tyre grip g: full lock until the car is there, then
+## either let go or counter-steer until the lateral speed is gone. Returns the slide beyond the target (m).
+func _lane_change_slide(c: Dictionary, g: float, counter: bool, dt: float = DT) -> float:
+	var v := Fx.vehicle(c, "limousine")
+	v.speed = 200.0
+	v.x = 3.75
+	var road := Fx.flat_road(3, true, 0.0, g)
+	var phase := 0
+	var over := 0.0
+	var t := 0.0
+	while t < 5.0:
+		var steer := 0.0
+		if phase == 0:
+			steer = -1.0
+			if v.x <= 0.0:
+				phase = 1
+		elif phase == 1 and counter:
+			steer = 1.0
+			if v.lat_speed >= 0.0:
+				phase = 2
+		v.update(dt, {"steer": steer}, road, {"vmax_factor": 10.0})
+		v.speed = 200.0
+		assert_true(absf(v.lat_speed) <= v.steer_speed_mps(g) + 0.001, "nie mehr Querbewegung als voller Lenkeinschlag (kein Dreher)")
+		if phase >= 1:
+			over = maxf(over, -v.x)
+		t += dt
+	return over
+
+
+## Steering on a slippery road: the lateral speed builds up more slowly and the car keeps sliding once the input
+## ends – released at the target lane it slides on far into the next lane on snow (rain in between); counter-steer
+## stops it much sooner. Frame-rate independent; the lateral speed never exceeds full lock (no spin).
+func test_steering_slides_on_snow() -> void:
+	var c := cfg()
+	var env := EnvironmentModel.new()
+	env.setup(c)
+	var v := Fx.vehicle(c, "limousine")
+	assert_near(v.steer_response_s(1.0), float(ConfigLoader.lookup(c, "driving.steer_response_s", 0.12)), 0.0001, "trocken unverändert")
+	assert_true(v.steer_response_s(env.grip("snow")) > 3.0 * v.steer_response_s(1.0), "Schnee: Lenkung spricht viel träger an")
+	assert_true(v.steer_speed_mps(env.grip("snow")) < v.steer_speed_mps(1.0), "Schnee: weniger Querbewegung")
+	var dry := _lane_change_slide(c, 1.0, false)
+	var rain := _lane_change_slide(c, env.grip("rain"), false)
+	var snow := _lane_change_slide(c, env.grip("snow"), false)
+	var snow_counter := _lane_change_slide(c, env.grip("snow"), true)
+	assert_true(dry < 1.5, "trocken: rutscht %.2f m nach" % dry)
+	assert_true(snow > 2.0 and snow > dry * 2.0, "Schnee: rutscht %.2f m in die Nachbarspur (trocken %.2f m)" % [snow, dry])
+	assert_true(rain > dry and rain < snow, "Regen dazwischen: %.2f m" % rain)
+	assert_true(snow_counter < snow * 0.5, "Gegenlenken hilft: %.2f statt %.2f m" % [snow_counter, snow])
+	assert_near(_lane_change_slide(c, env.grip("snow"), false, 1.0 / 30.0), snow, 0.15, "bildratenunabhängig (30 Hz)")

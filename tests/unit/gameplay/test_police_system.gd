@@ -76,11 +76,16 @@ func test_police_curve_speed_below_every_car() -> void:
 	var p := _police(c)
 	var lat := float(ConfigLoader.lookup(c, "vehicles.agility_ratings.%d.lat_grip" % int(ConfigLoader.lookup(c, "police.agility", 1)), 0.0))
 	var r1 := float(ConfigLoader.lookup(c, "road.curve_radius_at_1_m", 120.0))
-	assert_near(p.curve_speed_mps(0.45, 0.88), sqrt(lat * 0.88 * r1 / 0.45), 0.0001, "v = √(Haftung · Wetter · R)")
+	var ce := float(ConfigLoader.lookup(c, "driving.grip_effects.curve_exp", 1.0))
+	assert_near(p.curve_speed_mps(0.45, 0.88), sqrt(lat * pow(0.88, ce) * r1 / 0.45), 0.0001, "v = √(Haftung · Kurvenhaftung(Wetter) · R)")
 	assert_eq(p.curve_speed_mps(0.0, 1.0), INF, "Gerade: keine Grenze")
+	var env := EnvironmentModel.new()
+	env.setup(c)
 	for id: String in Fx.VEHICLES:
 		var v := Fx.vehicle(c, id)
-		for grip: float in [1.0, 0.88, 0.72]:
+		assert_near(p.curve_speed_mps(0.3, env.grip("snow")) / p.curve_speed_mps(0.3, 1.0), sqrt(v.curve_grip(env.grip("snow"))), 0.0001,
+			"Polizei und Spieler: dieselbe Kurvenhaftung im Schnee")
+		for grip: float in [1.0, env.grip("rain"), env.grip("snow")]:
 			for curve: float in [0.1, 0.3, 0.9]:
 				assert_true(p.curve_speed_mps(curve, grip) * 3.6 < v.safe_curve_speed(curve, grip) - 1.0,
 					"%s schneller als die Polizei (Kurve %.1f, Haftung %.2f)" % [id, curve, grip])

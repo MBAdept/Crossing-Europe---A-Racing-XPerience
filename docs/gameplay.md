@@ -13,7 +13,8 @@ traffic, fuel, radar, police, city_limits, weather`). Alles ist für einen Seed 
 | `scripts/gameplay/police_system.gd` | `PoliceSystem` – Radarwarnung/-feld, Verfolgung, Flucht, Anhalten |
 | `scripts/gameplay/world_clock.gd` | `WorldClock` – Weltzeit im Zeitraffer |
 | `scripts/gameplay/environment_model.gd` | `EnvironmentModel` – Tageszeit/Wetter: vmax, Haftung, Sicht, Rennwetter |
-| `tests/unit/gameplay/test_*.gd` | 94 Unit-Tests: Regeln je System + Designzahlen (a)–(h) (`test_design_numbers.gd`) |
+| `tests/unit/gameplay/test_*.gd` | 102 Unit-Tests: Regeln je System + Designzahlen (a)–(h) (`test_design_numbers.gd`) |
+| `tests/sim/difficulty_sim.gd` | Schwierigkeit (Tabelle (j)): echte Etappen mit Verkehr, Fahrer „naiv“ (weicht nur aus), „spät“ (bremst wie auf trockener Straße) und Autopilot – Kollisionen, Annäherung, blockierte Spuren, Spurwechsel |
 | `tests/sim/gameplay_sim.gd` | Simulationen (a)–(i), (b2), (e2), Tabellen; `tests/sim/run_sims.gd` druckt alle |
 | `tests/sim/stage_sim.gd` | Etappe mit echtem `StagePlan`/`Track` und Bot-Fahrer, Kollisions-/Ereignisprotokoll |
 | `tests/sim/curve_sim.gd` | Nur Kurven: echte Etappe ohne Verkehr/Radar/Tanken, Fahrer mit Bremskurve oder Vollgas – was Kurven kosten |
@@ -32,15 +33,17 @@ godot --headless --path . -s res://tests/sim/curve_sim.gd -- --stage=saragossa_p
 godot --headless --path . -s res://tests/sim/curve_sight.gd -- [--stage=<id>|all] [--vehicle=gran_turismo] \
       [--weather=snow] [--night] [--reaction=1.0] [--top-speed] [--no-signs] [--tolerance=0.05]
 godot --headless --path . -s res://tests/sim/check_escapes.gd [-- --only=ideal|good]   # ~60 s, Exit-Code
+godot --headless --path . -s res://tests/sim/difficulty_sim.gd -- [--stages=kassel_wuerzburg,saragossa_pau,hamburg_hannover] \
+      [--weathers=normal,rain,snow] [--hours=7.5,0.5] [--drivers=naive,late,autopilot,dryhabit] [--km=40] [--json=<datei>]
 ```
 
 ## Entscheidungen (offene Punkte des Design-Dokuments)
 
 | Offener Punkt | Entscheidung (Konfiguration) |
 |---|---|
-| Wie stark senken Regen, Schnee und Nacht die Höchstgeschwindigkeit? | Regen −2,5 % (`driving.weather_vmax_factor.rain` 0,975), Schnee −12 % (0,88), Nacht −1 % (`driving.night_vmax_factor` 0,99, weich über die Dämmerung). Regen + Nacht = −3,5 %: das langsamste Auto (230) schafft 222 km/h → Flucht möglich; Schnee verhindert sie bei Kompakt/Kombi/Limousine. Haftung (sichere Kurvengeschwindigkeit ∝ √Haftung): Regen 0,88, Schnee 0,72. **Steigung**: bis `driving.grade_free_percent` (4 %) kein Verlust, darüber 1,2 % je Prozentpunkt (`grade_vmax_loss_per_percent`). „Leicht verschlechterte Bedingungen“ (Design: jedes Auto schafft dann noch 220 km/h) = Regen und/oder Nacht auf normalem Hügelland bis Hügelstufe 2 (≤ 4,5 %): Kompakt bei Regen + Nacht an 4,5 % noch 220,7 km/h, Flucht gelingt (Tabellen (e), (f)). Deutlich schlechter = Schnee oder steile Bergstrecken (Hügelstufe 3, 7 %: −3,6 %, Kompakt bei Regen + Nacht 214 km/h). |
+| Wie stark senken Regen, Schnee und Nacht die Höchstgeschwindigkeit? | Regen −2,5 % (`driving.weather_vmax_factor.rain` 0,975), Schnee −12 % (0,88), Nacht −1 % (`driving.night_vmax_factor` 0,99, weich über die Dämmerung). Regen + Nacht = −3,5 %: das langsamste Auto (230) schafft 222 km/h → Flucht möglich; Schnee verhindert sie bei Kompakt/Kombi/Limousine. Haftung seit v0.5.0 (Spieltest: „Schnee macht die Steuerung nur leicht schwammiger, ohne ernsthafte Probleme“): Reifenhaftung Regen 0,75, Schnee 0,45 (vorher 0,88/0,72, nur für die Kurvengrenze), wirkt auf Kurvengrenze, Bremsen, Traktion und Lenken (Abschnitt „Wetter“). **Steigung**: bis `driving.grade_free_percent` (4 %) kein Verlust, darüber 1,2 % je Prozentpunkt (`grade_vmax_loss_per_percent`). „Leicht verschlechterte Bedingungen“ (Design: jedes Auto schafft dann noch 220 km/h) = Regen und/oder Nacht auf normalem Hügelland bis Hügelstufe 2 (≤ 4,5 %): Kompakt bei Regen + Nacht an 4,5 % noch 220,7 km/h, Flucht gelingt (Tabellen (e), (f)). Deutlich schlechter = Schnee oder steile Bergstrecken (Hügelstufe 3, 7 %: −3,6 %, Kompakt bei Regen + Nacht 214 km/h). |
 | Länge der Zeitstrafe bei leerem Tank | `fuel.tow_penalty_s` = **90 s** Strafe + Ausrollen (18 km/h/s) + 4 s Einblendung `TOWING`, danach halber Tank (`tow_refill_fraction` 0,5). Effektiv ≈ 110 s, etwa das 2,5-Fache eines vollen Tankstopps (25 s + Bremsen/Anfahren). Wer mit leerem Tank in eine Tankspur rollt, tankt dort normal (kein Abschleppen) – ein leeres Auto in der Tankspur wird nie abgeschleppt, und Gas bricht das Tanken erst ab, wenn mindestens `fuel.abort_min_fuel_l` (1 L) im Tank sind. |
-| Verhalten am Straßenrand | **Bankett** (2,5 m, `road.shoulder_width_m`): ragt die Karosserie > 0,5 m über den Fahrbahnrand, bremst der Wagen auf 90 km/h (35 km/h/s), `off_road = 1`; loser Belag: dort nur 60 % Haftung (`driving.shoulder.grip_factor`), ein untersteuernder Wagen rutscht also weiter. **Harte Grenze** am Bankettende: mit Leitplanke (Autobahn) Kontakt → Tempo × 0,9 je Treffer (höchstens alle 0,6 s), Abprallen mit 1,5 m/s nach innen, Schleifen 20 km/h/s; trifft die Untersteuer-Abdrift die Leitplanke, kostet jeder m/s über 1 m/s weitere 5 % (`driving.guardrail.impact_*`, bis Tempo × 0,5 – ungebremst seitlich hinein); ohne Leitplanke (Landstraße, Stadt) **Gras** → stark bremsen auf 40 km/h (60 km/h/s); beides `off_road = 2`, die Abdrift endet dort. |
+| Verhalten am Straßenrand | **Bankett** (2,5 m, `road.shoulder_width_m`): ragt die Karosserie > 0,5 m über den Fahrbahnrand, bremst der Wagen auf 90 km/h (35 km/h/s), `off_road = 1`; loser Belag: dort nur 60 % Kurvenhaftung (`driving.shoulder.grip_factor` 0,51, mit Exponent 0,75 = 0,60), ein untersteuernder Wagen rutscht also weiter. **Harte Grenze** am Bankettende: mit Leitplanke (Autobahn) Kontakt → Tempo × 0,9 je Treffer (höchstens alle 0,6 s), Abprallen mit 1,5 m/s nach innen, Schleifen 20 km/h/s; trifft die Untersteuer-Abdrift die Leitplanke, kostet jeder m/s über 1 m/s weitere 5 % (`driving.guardrail.impact_*`, bis Tempo × 0,5 – ungebremst seitlich hinein); ohne Leitplanke (Landstraße, Stadt) **Gras** → stark bremsen auf 40 km/h (60 km/h/s); beides `off_road = 2`, die Abdrift endet dort. |
 | Wetter im Rennen | `weather.race_mode`: `region` (Standard, gewichtet nach Klima des Etappenlandes), `random` (gleichverteilt), `fixed` (Feld `weather` der Etappe, sonst Region). `EnvironmentModel.race_weather(plan, race_seed, leg_index)` ist deterministisch. |
 
 Weitere Festlegungen:
@@ -49,11 +52,13 @@ Weitere Festlegungen:
   den Zielen der Beschleunigungsstufe entsprechen; analytisch integriert (bildratenunabhängig), vmax wird in endlicher Zeit
   erreicht (q > 0). Die Kurve gilt relativ zur aktuellen Höchstgeschwindigkeit (Wetter/Nacht/Steigung). Über dem Maximum
   (z. B. bergauf) sinkt das Tempo mit 12 km/h/s darauf ab. Steigungen bis 4 % senken das Maximum nicht (siehe oben).
-- **Lenken**: seitlich `steer_mps` der Agilitätsstufe, linear ab 0 bis 60 km/h hochgefahren, Ansprechzeit 0,12 s.
+- **Lenken**: seitlich `steer_mps` der Agilitätsstufe, linear ab 0 bis 60 km/h hochgefahren, Ansprechzeit 0,12 s
+  (trocken; bei Regen und Schnee träger und mit Nachrutschen, Abschnitt „Wetter“).
   Der Wagen folgt der Straße; unterhalb der sicheren Kurvengeschwindigkeit gibt es keinerlei Abdrift.
 - **Kurvengrenze** (seit v0.3.0-Playtest: „Kurven gehen immer mit Top Speed“): die Kurve verlangt die Querbeschleunigung
   a = v²/R (R = `road.curve_radius_at_1_m` 120 m / |Kurve|), die Reifen geben a_Haftung = `lat_grip` der Agilitätsstufe
-  × Wetterhaftung (Regen 0,88, Schnee 0,72; im Tunnel ist die Fahrbahn trocken: 1,0, `Track.grip_at`). Sichere
+  × Kurvenhaftung (seit v0.5.0 Wetterhaftung^0,75: Regen 0,81, Schnee 0,55 – vorher 0,88/0,72; im Tunnel ist die
+  Fahrbahn trocken: 1,0, `Track.grip_at`). Sichere
   Kurvengeschwindigkeit v_sicher = √(a_Haftung · R). `lat_grip` je Agilität 1–5: **5,6 / 6,2 / 6,8 / 7,4 / 8,0 m/s²**
   (vorher 7,6–10,4: damit lagen fast alle Autobahnkurven über vmax). Dazu sind die Autobahnkurven der Kurvigkeit 1
   schärfer geworden (`road.curviness_max_curve[1]` **0,30** statt 0,22, R ≥ 400 statt 545 m): mit 0,22 fuhr der Kompakt
@@ -74,7 +79,7 @@ Weitere Festlegungen:
   ein ganzes Kurvenstück in ihr (höchstens 0,63 m daneben, auch auf 520 m), ab 8–10 % endet ein langes Kurvenstück an
   der Leitplanke; 15 % → trotz vollem Gegenlenken nach 1,4–1,5 s eine Spur weiter außen; 30 % → aus der Mittelspur in
   1,0–1,1 s auf dem Bankett, 1,2–1,3 s an der Leitplanke. Konfiguration vollständig in `driving.understeer`
-  (`scrub_max_mps2` 3) und `driving.shoulder.grip_factor` (0,6).
+  (`scrub_max_mps2` 3) und `driving.shoulder.grip_factor` (0,51 = 0,6 Kurvenhaftung).
 - **Wer nicht bremst, verliert**: Im ersten Entwurf (ohne geringere Bankett-Haftung und Aufprallverlust) war
   Durchrutschen schneller als Bremsen – Leitplanke, Bankett und Radieren bremsten „gratis“ erst in der Kurve. Jetzt
   kostet Vollgas durch alle Kurven gegenüber gutem Bremsen 12–33 s je Etappe (Tabelle (i4)), mit Verkehr kommt das
@@ -143,19 +148,22 @@ Weitere Festlegungen:
     überholt er in `police.overtake_s` (2,2 s, smoothstep) von −16 m bis `pull_over_offset_m` (+12 m) und bleibt dort;
     das Renn-Modul zeichnet ihn dabei eine Spur neben dem Spieler (Seite festgelegt, solange er außer Sicht ist) und
     schert danach ein – kein Auftauchen aus dem Nichts mehr. `overtaking()`/`overtake_time` für Effekte.
-- **Verkehr**:
-  - Wunschtempo je Auto = fester Anteil im Bereich des Straßentyps × 1,15 von 23 bis 4 Uhr; Straßentypwechsel
-    (Autobahn → Landstraße → City) übernimmt jedes Auto sofort als neues Wunschtempo. Lkw/Busse fahren am langsamen
-    Ende **desselben** Design-Bereichs (`truck_speeds_kmh`: Autobahn 110–120, Landstraße 70–80, City 40–50 km/h) –
-    die Grundgeschwindigkeit des Designs gilt für alle Fahrzeuge (Test `test_truck_speeds_inside_design_ranges`).
+- **Verkehr** (seit v0.5.0 ein echtes Hindernis – Regeln und Messungen im Abschnitt „Verkehr als Hindernis“):
+  - Wunschtempo je Fahrzeug = fester Anteil (Temperament) im Bereich seiner Klasse und des Straßentyps, begrenzt durch
+    das Tempolimit, mal Wetterfaktor (`TrafficSystem.cruise_speed_for`); Straßentypwechsel (Autobahn → Landstraße →
+    City) übernimmt jedes Auto sofort als neues Wunschtempo. Lkw und Busse fahren realistisch langsamer (Autobahn
+    80–90 bzw. 95–100 km/h) – bis v0.4 am langsamen Ende des Pkw-Bereichs (110–120), was das Überholen zu leicht machte.
+    Nachts kein Tempobonus mehr (vorher +15 %).
   - Folgefahren: Intelligent Driver Model (a = 1,6 m/s², Lkw 0,7; komfortabel 2,5, max. 8 m/s²; Mindestabstand 14 m +
-    1,2 s). Bremslicht ab 0,6 m/s² Verzögerung und im Stand.
+    1,2 s, bei Regen/Schnee länger). Bremslicht ab 0,6 m/s² Verzögerung und im Stand.
   - Spurwechsel: MOBIL (Vorteil > 0,2 m/s², Lkw nach links > 0,6; Sicherheit: neuer Hintermann muss nicht stärker als
-    3 m/s² bremsen; Höflichkeit 0,3; Rechtsfahrgebot +0,3 m/s² auf Autobahn/Landstraße). Lkw nie auf die linke Spur
-    einer dreispurigen Straße. Endet eine Spur (Vorausschau 60 m + 6 s), wird zwingend eingefädelt; ohne Lücke hält
-    das Auto vor dem Spurende an.
+    3 m/s² bremsen – außer dem Spieler, s. „Einscheren“; Höflichkeit 0,3; Rechtsfahrgebot +0,3 m/s² auf
+    Autobahn/Landstraße). Jeder Spurwechsel wird mit dem Blinker angekündigt (1–1,5 s vorher). Lkw nie auf die linke
+    Spur einer dreispurigen Straße. Endet eine Spur (Vorausschau 60 m + 6 s), wird zwingend eingefädelt; ohne Lücke
+    hält das Auto vor dem Spurende an.
   - **Keine rollenden Straßensperren** (vorher fuhren zwei Autos mit 74/75 km/h minutenlang nebeneinander und
-    sperrten eine Landstraße; Elefantenrennen bei Lkw ebenso). Ein Auto auf einer linken Spur prüft die
+    sperrten eine Landstraße). Ausnahme seit v0.5.0: ein Lkw, der einen langsameren überholt (**Elefantenrennen**),
+    behält sein Tempo bis `traffic.elephant.max_s`. Ein Auto auf einer linken Spur prüft die
     Verkehrsautos auf der Spur rechts (70 m dahinter bis 40 m davor, `side_window_*`), die es nicht ohnehin um
     mindestens `yield_speed_margin_kmh` (6 km/h) überholt:
     - **zügig überholen**, wenn sie höchstens 6 km/h schneller sind, als es fahren will, und es innerhalb seines
@@ -164,13 +172,22 @@ Weitere Festlegungen:
     - sonst (ein klar schnelleres Auto kommt rechts auf, oder es kann nicht klar schneller sein, z. B. Lkw auf
       der Landstraße) **zurückfallen**: auf deren Tempo − `yield_slowdown_kmh` (15 km/h, nie über dem eigenen
       Wunschtempo), dahinter rechts einordnen (Rechtsfahrgebot + `yield_keep_right_bonus_mps2` 1,0 m/s², dabei
-      kein Ausweichen nach links). Kein Wettrennen mit einem schnelleren Auto, das rechts vorbei will.
+      kein Ausweichen nach links). Kein Wettrennen mit einem schnelleren Auto, das rechts vorbei will. Wer
+      zurückfällt, tut das, bis der andere `side_yield_hold_m` (40 m) jenseits des Fensters ist (seit v0.5.0: ohne
+      dieses Haltefenster pendelte ein Auto an der Fenstergrenze – genau neben einem Spieler, der dem Lkw folgt; im
+      Schnee sperrte das auf Saragossa – Pau 52 km lang die Überholspur, Test
+      `test_yielding_car_does_not_hover_beside_the_player`: blockiert 22 statt 100 % der Zeit).
+    Die Tempo-Abstände (6, 10, 15 km/h) gelten trocken; bei Regen und Schnee schrumpfen sie mit dem Wetterfaktor
+    der Pkw (Schnee × 0,65: 3,9 / 6,5 / 9,75 km/h) – alle Tempi sind dort ein Drittel niedriger, sonst könnte im
+    Schnee fast kein Auto mehr einen Lkw zügig überholen.
     Der Spieler zählt nie (er regelt sein Tempo selbst – ein Auto, das sich nach ihm richtet, bliebe neben ihm
     und sperrte ihm die Überholspur). Neue Autos erscheinen nicht dort, wo sie sofort zurückfallen müssten.
     Ergebnis: längstes Nebeneinander gleich schneller Autos in den Landstraßen-Simulationen ≤ 0,6 s (ohne die
     Regeln 17–41 s), Testfall 74/75 km/h ≈ 2 s; Spuranteile und Spurwechsel wie ohne die Regeln.
   - Spieler: zählt als Hindernis in jeder Spur, in die seine Karosserie ragt. Autos bremsen hinter ihm (IDM) und
-    überholen links (oder rechts, wenn er sie bedrängt). In allen Simulationen fuhr kein Auto in den Spieler.
+    überholen links (oder rechts, wenn er sie bedrängt). In allen Simulationen fuhr kein Auto in den Spieler. Vor ihm
+    machen sie seit v0.5.0 keinen Platz mehr: sie scheren vor einem schnell herankommenden Spieler ein, nie aber
+    näher, als er noch bremsen kann (Abschnitt „Verkehr als Hindernis“).
   - Tankspur: Ein Auto entscheidet 420 m vor einer Tankspur mit `fuel_lane_use_chance` (0,12), sie zu nutzen, wechselt
     nach rechts, bremst rechtzeitig auf 50 km/h, fährt die Spur entlang und fädelt vor ihrem Ende wieder ein.
   - Dichte: Ziel-Anzahl = ∫ Dichte über das Fenster [Spieler − 220 m, Spieler + 950 m]; gehalten wird
@@ -183,6 +200,71 @@ Weitere Festlegungen:
   - Größen der Fahrzeuge: per `set_dimensions(SpriteDB.sets)` aus dem Manifest, sonst aus der Set-ID geschätzt.
   - Leistung: die Streckengeometrie wird alle 4 m einmal abgefragt und zwischengespeichert; ≈ 0,45 ms je Bild für
     15 Autos (gemessen auf der Dev-Etappe).
+
+## Schwierigkeit (v0.5.0)
+
+Spieltest v0.4.0: „Der Schwierigkeitsgrad ist zu niedrig, … man kann zu leicht an anderen Autos vorbeifahren … selbst
+bei Top-Speed sind die Gegner ‚schnell‘ genug, dass ich easy in aller Ruhe überhole, und Schnee macht die Steuerung
+nur leicht schwammiger, ohne ernsthafte Probleme zu verursachen.“ Ursachen (gemessen, Tabelle (j)): Pkw fuhren
+110–150, Lkw 110–120 km/h und nachts 15 % schneller – kleine Annäherungsgeschwindigkeit; der Verkehr machte dem Spieler
+Platz (kein Auto zog vor einem schnell herankommenden Spieler heraus: die MOBIL-Sicherheitsregel verlangte bei
+230 gegen 130 km/h rund 390 m Lücke); Schnee senkte nur die Kurvengrenze; im Schnee fuhr der Verkehr unverändert schnell,
+die Annäherung war dort sogar am kleinsten. Ziel: Verkehr als echtes Hindernis, Regen und Schnee mit ernsten Folgen
+für die Fahrzeugbeherrschung – fair (alles vorher sichtbar, nichts unvermeidbar) und mit unveränderten Designregeln
+(Flucht bei leicht verschlechterten Bedingungen, kein Übersteuern, kein Dreher).
+
+Ergebnis (Tabelle (j), gleiche Etappen vorher/nachher): Annäherung an den Verkehr im Median trocken 109 → 112 km/h
+(nachts 83 → 123, Schnee 78 → 119); im Berufsverkehr sind alle Spuren innerhalb des Bremswegs trocken doppelt, bei Regen
+fast dreimal und bei Schnee neunmal so oft zu; ein Fahrer, der nie für Autos bremst, kollidiert 1,7-mal so oft
+(1,86 → 3,21 je 100 km), einer, der im Schnee wie gewohnt bremst, jetzt überhaupt (0 → 1,54 je 100 km Schnee); der
+vorsichtige Autopilot bleibt kollisionsfrei, ist trocken 5–8 %, bei Regen 6–16 % und bei Schnee 9–25 % langsamer.
+Polizeiflucht (`check_escapes.gd`) und Sichtprüfung der Kurven (i5) bleiben grün.
+
+### Verkehr als Hindernis
+
+| Regel | Umsetzung (`traffic.*`, `TrafficSystem`) |
+|---|---|
+| Realistische Tempi je Klasse | Pkw im Design-Bereich (`speeds_kmh`: Autobahn 110–150, Landstraße 70–100, City 40–60), Lkw `truck_speeds_kmh` (Autobahn **80–90**, Landstraße 65–80, City 35–50), Busse `bus_speeds_kmh` (Autobahn **95–100**), `bus_share` 20 % der schweren Fahrzeuge. Temperament je Fahrzeug (0..1) wählt das Tempo im Bereich. |
+| Tempolimits | Pkw höchstens Limit × `limit_tolerance` (0,92 vorsichtig … 1,12 schnell): niederländische Autobahn (100) 92–112, französische (130) 110–146, City (50) 40–56; Lkw/Busse höchstens das Limit. Das Limit kommt aus der Strecke (`Track.speed_limit_at`, 0 = frei). |
+| Rechts langsam, links schnell | neue Pkw wählen die Spur nach Tempo: (1 − Temperament) · (Spuren − 1) ± `lane_speed_spread`/2 – rechts die langsamen (und alle Lkw), links die schnellen; das Rechtsfahrgebot hält die Ordnung. |
+| Nacht | `night.speed_factor` **1,0** (Design-Startwert +15 %: schnellerer Verkehr machte das Überholen nachts noch leichter); ruhiger bleibt die Nacht durch die Tageskurve (12–27 % der Spitzendichte). |
+| Wetter | `traffic.weather.<w>`: Regen Pkw × 0,85, Lkw × 0,88, Abstände × 1,3 (Zeitlücke) / × 1,2 (Mindestabstand), Spurwechsel × 0,85; Schnee Pkw × **0,65** (Autobahn 72–98 km/h), Lkw × 0,68 (54–61 km/h), Zeitlücke × 1,8, Mindestabstand × 1,5, Spurwechsel × 0,65 (vorsichtig, zwei Spuren länger belegt). Die Tempo-Abstände der Regel gegen rollende Sperren schrumpfen mit (Abschnitt „Verkehr“). Die Rennsitzung gibt `ctx.weather`. |
+| Blinker | Jeder Spurwechsel wird angekündigt: der Blinker geht `blink.lead_s` (1,0–1,5 s je Auto, Lkw/Busse × 1,3, Pflichtwechsel 1,0 s) **bevor** das Auto zieht; ohne sichere Lücke wartet es blinkend (höchstens `max_wait_s` 3 s, dann gibt es auf), es bricht ab, wenn der Wechsel sich nicht mehr lohnt, und der Blinker bleibt an, bis es in der neuen Spur ist. Nur das Ausweichen vor einem langsameren Spieler (Notfall) geht sofort. Gezeichnet als bernsteinfarbene Leuchte am Heck (renn-modul.md §8). |
+| Kein Platzmachen mehr (**Einscheren**) | Kommt der Spieler in der Zielspur schneller heran, beurteilt der Fahrer ihn wie im Spiegel: er sieht den Abstand und höchstens `cut_in.perceived_max_kmh` (72 km/h) Annäherung und will davon `judge_s` (5 s vorsichtig … 2,5 s mutig = schnell) plus `judge_add_m` (20 m) – vor einem Spieler mit 230 km/h zieht er also heraus, wo ihn die alte Regel noch 390 m hätte warten lassen. |
+| Fairness-Untergrenze | Nie näher als `cut_in_floor_m`: Relativtempo v_rel · (Blinkzeit + `intrude_s` 0,5 s + `margin_s` 0,3 s) + v_rel² / (2 · `brake_fraction` 0,7 · Vollbremsung des Spielers **im aktuellen Wetter**, `ctx.brake_mps2`) + `margin_m` 8 m. Wer auf den Blinker hin – oder spätestens, wenn das Auto herüberzieht – mit 70 % seiner Bremsleistung bremst, bleibt dahinter. Beim Losziehen wird erneut geprüft (ohne Blinkzeit): hat der Spieler beschleunigt oder die Spur gewechselt, wartet das Auto. Bei 230 gegen 82 km/h (Lkw-Kolonne) trocken ≥ 154 m beim Blinken, im Schnee (205 gegen 55 km/h) ≥ 220 m. Test `test_cut_in_in_front_of_a_fast_player_is_fair`. |
+| **Elefantenrennen** | Auf Straßen mit 3+ Spuren (`elephant.min_lanes`, nicht in den City Limits) überholt ein Lkw/Bus ein mindestens 3 km/h langsameres schweres Fahrzeug innerhalb 120 m (`min_diff_kmh`, `look_m` – so weit hinten pendelt sich ein Lkw mit 3 km/h Unterschied im IDM ein; Vorteil `bonus_mps2`) in seinem eigenen Tempo – rechte und mittlere Spur sind dann mit Lkw-Tempo zu, links bleibt die Überholspur. Die Regel gegen rollende Sperren gilt für ihn erst nach `max_s` (45 s): dann gibt er auf, fällt zurück und versucht es frühestens nach `retry_s` (60 s) wieder. Gemessen: 80 gegen 90 km/h, 28 m dahinter: schert nach 1,6 s aus, 17,5 s Seite an Seite, nach 48,6 s vorbei und wieder rechts; 84 gegen 88 km/h: gibt nach 45 s auf. Auf zweispurigen Straßen überholen Lkw nicht (Test `test_elephant_race_on_three_lanes_only`). |
+| Kolonnen und Gruppen (`cluster`) | Neuer Verkehr vorn kommt mit `chance` (Autobahn/Landstraße 35 %, City 40 %) als Gruppe aus 1 + `followers` (1–3): eine Kolonne hinter einem langsamen Fahrzeug (Lkw/Bus mit 2,5-fachem Lkw-Anteil, sonst ein langsamer Pkw; die Hintermänner im `gap_factor`-fachen IDM-Abstand, `patience_s` 4–20 s ohne Überholversuch) oder auf 3+ Spuren (`elephant_share` 30 %) ein Elefantenrennen samt Autos dahinter. Eine Gruppe wartet, bis im Fenster so viele Fahrzeuge fehlen: erst eine leere Strecke, dann die Gruppe – die mittlere Dichte bleibt gleich, die Abstände streuen stärker (Variationskoeffizient der Abstände entlang der Straße, alle Spuren, 08:00, Spieler 200 km/h: ohne Gruppen 0,77, mit 0,90; Test `test_traffic_comes_in_clusters`). |
+| Dichte | Grunddichte Autobahn **16** (vorher 14), Landstraße **10** (9), City 8 (× 2,5 in den City Limits); Tageskurve unverändert (Spitzen 7–9 und 16–19 Uhr). |
+
+### Wetter
+
+Eine Reifenhaftung g je Fahrbahn (`driving.weather_grip_factor`: trocken 1,0, Regen **0,75**, Schnee **0,45**; im Tunnel
+trocken), jede Steuerung mit eigener Empfindlichkeit (`driving.grip_effects`, `VehicleModel`):
+
+| Wirkung | Formel | trocken | Regen | Schnee |
+|---|---|---|---|---|
+| Kurvengrenze (`curve_grip`) | lat_grip · g^0,75 (Spieler und Polizei) | 1,00 | 0,81 (Kurventempo × 0,90) | 0,55 (× 0,74) |
+| Vollbremsung (`brake_decel_mps2`) | 70 km/h/s · g^0,87 | 19,4 m/s² | 15,2 m/s² | 9,7 m/s² (≈ halb) |
+| Bremsweg 200 → 100 km/h | gemessen | 59 m / 1,4 s | 77 m / 1,9 s | 119 m / 2,9 s |
+| Traktion (`traction_mps2`) | 9 m/s² · g^1,25 | über jedem Auto | 6,3 m/s² (nur ganz unten spürbar) | 3,3 m/s²: 0–100 km/h für jedes Auto ≈ 8,4 s (trocken 3,8–7,0 s) |
+| Ansprechzeit der Lenkung (`steer_response_s`) | 0,12 s / g^1,75 | 0,12 s | 0,20 s | 0,49 s |
+| Querbewegung bei vollem Einschlag (`steer_speed_mps`) | steer_mps · g^0,3 | 7,5–10,5 m/s | × 0,92 | × 0,79 |
+| Nachrutschen: Spurwechsel bei 200 km/h, am Ziel losgelassen | gemessen (Limousine) | 1,2 m | 1,6 m | **2,9 m** (in die Nachbarspur) |
+
+Die Quergeschwindigkeit folgt der Lenkung erster Ordnung mit der Ansprechzeit; nach dem Loslassen rutscht der Wagen um
+etwa Quergeschwindigkeit × Ansprechzeit weiter, Gegenlenken halbiert das (Test `test_steering_slides_on_snow`). Nie mehr
+Querbewegung als voller Einschlag, kein Übersteuern, kein Dreher: der sichtbare Gierwinkel folgt weiter der
+Quergeschwindigkeit. Die Kurvengrenze sinkt bewusst schwächer als die Haftung (Exponent 0,75; mit g selbst wären
+Bergstraßen bei Schnee 73 statt 80 km/h, Autobahnkurven 126 statt 139 km/h) – die Arcade-Kurvengrenze ist schon im
+Trockenen niedrig. Das Bankett (`driving.shoulder.grip_factor` 0,51 = 0,6 Kurvenhaftung wie bisher) gilt nur für die
+Kurvengrenze. Höchsttempo (Regen 0,975, Schnee 0,88) und Sicht (Regen 0,65, Schnee 0,5) bleiben: mit der halben
+Bremsung reicht die Sicht bei Schnee in der Nacht für jede Kurve noch knapp ((i5): kleinste Reserve 28 m), weniger Sicht
+würde dort Kurven unfair machen.
+
+**Autopilot** (renn-modul.md §10): plant mit 75 % der Bremsung des Wetters, folgt langsamem Verkehr auf einer
+Bremskurve, sieht Blinker als belegte Spur, braucht im Schnee größere Lücken und lenkt mit einem auf die Ansprechzeit
+abgestimmten PD-Regler – keine Kollision, kein Ausflug neben die Fahrbahn bei keinem Wetter (Tabelle (j),
+`tests/unit/race/test_autopilot_weather.gd`).
 
 ## Ergänzungen zur API (ARCHITECTURE.md §7 bleibt unverändert gültig)
 
@@ -218,6 +300,18 @@ Weitere Festlegungen:
   statisch `world_minutes_at(day, hour)`.
 - `EnvironmentModel`: `pick_weather(seed, climate, hint = "")` (Rennmodus), `race_weather(plan, race_seed,
   leg_index = 0)`, `weather_types()`.
+- v0.5.0 `TrafficSystem`: `update` liest `ctx.weather` (Tempo, Abstände, Spurwechseltempo des Verkehrs) und
+  `ctx.brake_mps2` (Vollbremsung des Spielers – Untergrenze fürs Einscheren); `cruise_speed_for(road, cls, frac,
+  limit = 0)` (Wunschtempo einer Klasse 0 Pkw / 1 Lkw / 2 Bus), statisch `vehicle_class(car)`, `cut_in_floor_m(rel_mps,
+  lead_s = 0)`; Felder `weather`, `player_brake_mps2`, `cut_ins` (Einscheren vor dem schnelleren Spieler, Statistik),
+  `last_cut_in` {id, gap_m, rel_kmh, floor_m, car_kmh, player_kmh}. `Car`: `bus`, Blinker `signal_dir` (−1/0/+1),
+  `signal_lane`, `signal_t` (Zeit bis zum Losziehen), `signal_age` (seit dem Einschalten – Blinktakt), `signal_wait`,
+  `signal_mandatory`; Elefantenrennen `elephant_t` (−1 = nein), `elephant_cool`. Die Strecke darf `speed_limit_at(z)`
+  liefern (0 = frei; `FakeTrack` mit Feld `limit` je Abschnitt).
+- v0.5.0 `VehicleModel`: `curve_grip(g)`, `brake_decel_mps2(g)`, `traction_mps2(g)`, `steer_response_s(g)`,
+  `steer_speed_mps(g)`, `traction_crossover(vtop, trac_kmh_s)`; `accelerate(v, vtop, t, trac_kmh_s = INF)` mit
+  Traktionsgrenze (exakt integriert). `road.grip` wirkt auf Kurvengrenze, Bremsen (auch die Spielerbremse beim
+  Ausrollen), Traktion und Lenken. `PoliceSystem.curve_speed_mps(curve, grip)` nutzt dieselbe Kurvenhaftung.
 
 ## Zahlen (Simulationen, 60 Hz, echte Klassen – `tests/sim/run_sims.gd`)
 
@@ -294,6 +388,11 @@ das Auslösetempo erreicht). Verfolgungen ohne Entkommen je Auto (Kompakt / Komb
 | 95 %, Bremsen 10 m/s² | – | 0 |
 | vorsichtig: 90 %, Bremsen 8 m/s² | – | 1 (Kombi, Regen + Nacht, Barcelona – Montpellier) |
 
+v0.5.0 (Regen: Reifenhaftung 0,75, Kurvenhaftung 0,81 für Spieler **und** Polizei; der ideale Fahrer bremst höchstens
+mit der Vollbremsung des Wetters, bei Regen 15,2 m/s²): `check_escapes.gd` weiter grün – ideal **0** (längste Flucht
+15,5 s), gut **0** (16,3 s) von je 2 150 Verfolgungen. Die Polizei verliert in Regenkurven so viel wie der Spieler, die
+Flucht bei leicht verschlechterten Bedingungen bleibt möglich; Schnee darf sie verhindern (Design).
+
 Vorher unentkommbar waren vor allem Erfurt – Kassel km 100 / Kassel km 50 und San Sebastián – Burgos km 50 / Burgos
 km 170 (Kurvigkeit 2–3: bester 12-s-Schnitt 137–161 km/h, nach 14–22 s erwischt). Zum Vergleich der Polizei-Agilität
 (ideal / 95 % / vorsichtig, Fehlschläge gesamt über alle Autos und beide Wetter): Agilität 1: 0 / 0 / 1; Agilität 2:
@@ -308,19 +407,19 @@ Steigung (Hügelstufe 2: 220,7 / 225,5 / 235,1 / 244,7 / 259,1). Hügelstufe 3 (
 Echte Etappe (`run_stage.gd`, Dev-Etappe, Kompakt, 23 Uhr, Regen, Raser-Autopilot): 222,0 km/h an 2,3 % Steigung
 (vorher 215,9), Radar-Verfolgung entkommen.
 
-**(g) Verkehr** (Autobahn-Grunddichte 14 Fz/km, Landstraße 9, Stadt 8; Tageskurve `traffic.hourly_density`)
+**(g) Verkehr** (v0.5.0: Autobahn-Grunddichte 16 Fz/km, Landstraße 10, Stadt 8; Tageskurve `traffic.hourly_density`)
 
 | Größe | Wert |
 |---|---|
-| Dichte 08:00 / 03:00 | 14,0 / 1,68 Fz/km (03:00 = 12 % von 08:00); 12:00 9,8; 17:30 13,9; 23:30 3,4 |
-| Nacht 23–4 Uhr | jedes Auto +15 % (gemessen 1,150; Ø Wunschtempo neuer Autos 129,1 → 147,8 km/h) |
-| Lkw/Busse | Wunschtempo im Design-Bereich: Autobahn ≥ 110,4 km/h (vorher 80–90), Landstraße 70–80, City 40–50 |
-| Verfolgung | Dichte × 0,20 (−80 %); sichtbare Autos 8,1 → 2,1 (15 s nach Beginn, Spieler 225 km/h) |
-| City Limits | × 2,5 gegenüber der Stadtstraße (14 Fz/km um 12:00 auf 2 Spuren = 2,1 × so viel je Spur wie Autobahn) |
-| sichtbare Autos (Spieler 160 km/h) | 08:00 12,9 · 03:00 2,0 · City (80 km/h) 12,4 |
-| Rollende Sperren | Landstraße 17:00, Spieler 90 km/h, 120 s: längstes Nebeneinander gleich schneller Autos 0 s (ohne die Regeln 41 s) |
-| Sicherheit | 0 Überlappungen, 0 Autos tauchen im Bild auf/verschwinden, stehender Spieler: 0 Treffer bei 41 Autos |
-| Spurwechsel | 11 in 60 s (12:00; vorher 35 – Pkw mussten ständig 80–90 km/h langsame Lkw überholen) |
+| Dichte 08:00 / 03:00 | 16,0 / 1,92 Fz/km (03:00 = 12 % von 08:00); 12:00 11,2; 17:30 15,8; 23:30 3,9 (v0.4: 14,0 / 1,68) |
+| Nacht 23–4 Uhr | kein Tempobonus mehr (Faktor 1,000; v0.4: +15 %, Ø Wunschtempo neuer Autos 129,1 → 147,8 km/h) |
+| Wunschtempo | Autobahn 12:00: Pkw ab 114,5, Lkw 81,3–88,5 km/h (v0.4: Lkw ≥ 110,4); Ø neuer Autos trocken 123,5 · Regen 100,8 · Schnee 76,0 km/h |
+| Verfolgung | Dichte × 0,20 (−80 %); sichtbare Autos 8,2 → 1,3 (15 s nach Beginn, Spieler 225 km/h) |
+| City Limits | × 2,5 gegenüber der Stadtstraße (14 Fz/km um 12:00 auf 2 Spuren = 2,5 × so viel je Spur wie Autobahn) |
+| sichtbare Autos (Spieler 160 km/h) | 08:00 12,1 · 03:00 2,3 · City (80 km/h) 10,2 |
+| Rollende Sperren | Landstraße 17:00, Spieler 90 km/h, 120 s: längstes Nebeneinander gleich schneller Autos 0 s (ohne die Regeln 72 s); erlaubt bleibt nur das Elefantenrennen der Lkw auf 3+ Spuren |
+| Sicherheit | 0 Überlappungen, 0 Autos tauchen im Bild auf/verschwinden, stehender Spieler: 0 Treffer bei 46 Autos |
+| Spurwechsel | 12 in 60 s (12:00), jeder mit Blinker 1,0–1,5 s vorher (`test_lane_changes_are_signalled`) |
 
 **(i) Kurven und Untersteuern** (`run_sims.gd -- --only=understeer`, `curve_sim.gd`, `curve_sight.gd`)
 
@@ -336,7 +435,8 @@ Sichere Kurvengeschwindigkeit (km/h) an der schärfsten / mittleren Kurve je Kur
 | Sportwagen | 4 | 7,4 (9,7) | 255 | 196 / 238 (262) | 63 % | 160 / 195 (183) | 93 % | 113 / 138 (129) | 100 % |
 | Gran Turismo | 2 | 6,2 (8,3) | 270 | 179 / 218 (242) | 86 % | 146 / 178 (169) | 100 % | 104 / 126 (120) | 100 % |
 
-Regen × 0,938, Schnee × 0,849 (√Haftung): z. B. schärfste Kurve Kurvigkeit 2 bei Schnee 124 (GT) – 141 km/h (Kompakt).
+Regen × 0,898, Schnee × 0,741 (√Kurvenhaftung seit v0.5.0; v0.4: × 0,938 / × 0,849): z. B. schärfste Kurve Kurvigkeit 2
+bei Schnee 108 (GT) – 123 km/h (Kompakt), Bergstraße (Kurvigkeit 3) 77–87 km/h.
 Begründung der Werte: Mit 5,6–8,0 m/s² bestimmt die Agilität sichtbar das Kurventempo (Spanne 14 % zwischen
 Agilität 2 und 5). Die häufigste Straße (Autobahn Kurvigkeit 1, 6 700 von 12 100 km im Netz, dazu 3 900 km ganz
 gerade Kurvigkeit 0) verlangt jetzt von jedem Auto Gas weg in den schärferen Kurven, vom Gran Turismo schon in den
@@ -441,11 +541,85 @@ sicheren Geschwindigkeit anzukommen (dort hält Gegenlenken die Linie)? Anfahrt:
 | Gran Turismo, Regen + Nacht (322 m) | – | 1 (−3 m, Kassel – Dortmund, blinde Kurve in den City Limits) | **0** (+76 m) |
 | Gran Turismo, Schnee + Nacht (248 m) | – | 0 (+12 m) | **0** (+92 m) |
 | Kompakt, Tag | – | 0 | **0** (+261 m) |
+| v0.5.0 – Bremsung des Wetters (Regen 15,2, Schnee 9,7 m/s²), Kurvenhaftung 0,81 / 0,55 | | | |
+| Gran Turismo, Regen + Nacht | – | – | **0** von 104 (+59 m, Budapest – Wien km 185,6) |
+| Gran Turismo, Schnee + Nacht | – | – | **0** von 104 (+28 m, Saragossa – Barcelona km 178,8) |
+
+Mit der halben Bremsung im Schnee bleibt bei Nacht nur noch eine knappe Reserve – deshalb sinkt die Sicht bei Schnee
+nicht weiter (gameplay.md „Wetter“).
 
 Ohne Schilder sind Kurven direkt hinter Kuppen die Falle (die Straße dahinter ist verdeckt, z. B. 153-km/h-Kurve erst
 84 m vorher sichtbar). Daher stehen Warnschilder vor scharfen **und vor blinden** Kurven (renn-modul.md §4) – jetzt auch
 in den City Limits (dort gibt es kein Radar) und vor Kurven, die ein Abschnittswechsel abschneidet. Mit Kurvigkeit 1 =
 0,30 sind mehr Autobahnkurven scharf und damit beschildert; im Tunnel gilt trockene Haftung.
+
+**(j) Schwierigkeit vorher/nachher** (v0.5.0, `difficulty_sim.gd`): Stand v0.4.0 gegen v0.5.0, je Zeile die drei
+Etappen Kassel – Würzburg (Autobahn mit Limits), Saragossa – Pau (Autobahn und Bergstraße) und Hamburg – Hannover
+(dichte Autobahn) in einer Richtung mit der Limousine, Tank voll, ohne Polizei: 558 km außerhalb und 59 km in den City
+Limits. Fahrer: **naiv** = Vollgas, bremst nur für Kurven und weicht aus (Nachbarspur mit dem meisten Platz, wenn seine
+in ~2,2 s zu ist), nie für Autos – sind alle Spuren innerhalb seines Bremswegs zu, kracht es; **spät** = derselbe, bremst
+aber im letzten Moment wie auf trockener Straße (70 km/h/s nach 0,3 s) – ein Spieler, der sich nicht aufs Wetter
+einstellt; **Autopilot** = der echte Autopilot (immer vmax, Radar ignoriert). „Alle Spuren zu“: Anteil der Zeit, in der in
+jeder Spur ein Auto innerhalb des Anhaltewegs eines Autos mit Höchsttempo ist ((v − v_Auto)²/2a + (v − v_Auto) · 1 s
++ 10 m, a = Vollbremsung im Wetter; v0.4.0 bremste bei jedem Wetter mit 19,4 m/s²) – ohne Bremsen kein Vorbeikommen;
+in Klammern solche Situationen je 100 km. Annäherung = Tempounterschied zu jedem überholten Auto (naiver Fahrer).
+
+Außerhalb der City Limits:
+
+| Wetter, Uhrzeit | Annäherung km/h: Median (p10–p90) | alle Spuren zu: % der Zeit (je 100 km) | Spurwechsel/km | Kollisionen/100 km: naiv | spät | Autopilot | Autopilot Ø km/h | Verkehr Median km/h: Pkw (Lkw) |
+|---|---|---|---|---|---|---|---|---|
+| trocken 07:30 | 109 (56–135) → **112** (61–149) | 7,6 (7,0) → **15,0** (12,4) | 0,14 → **0,16** | 1,8 → **4,1** | 0,0 → **0,0** | 0,0 → **0,0** | 156 → **143** | 124 (111) → **102** (84) |
+| trocken 00:30 | 83 (64–110) → **123** (71–158) | 0,2 (0,2) → **0,7** (0,9) | 0,01 → **0,02** | 0,0 → **0,5** | 0,0 → **0,0** | 0,0 → **0,0** | 204 → **194** | 150 (135) → **105** (85) |
+| Regen 07:30 | 100 (53–126) → **120** (64–160) | 6,6 (6,1) → **18,6** (13,8) | 0,13 → **0,22** | 1,8 → **3,6** | 0,0 → **0,0** | 0,0 → **0,0** | 154 → **130** | 122 (112) → **90** (73) |
+| Regen 00:30 | 81 (66–108) → **120** (73–160) | 0,0 (0,0) → **0,7** (0,9) | 0,01 → **0,01** | 0,0 → **0,2** | 0,0 → **0,0** | 0,0 → **0,0** | 196 → **185** | 154 (128) → **94** (76) |
+| Schnee 07:30 | 78 (45–105) → **119** (54–150) | 2,3 (2,3) → **21,4** (14,3) | 0,10 → **0,21** | 1,4 → **4,5** | 0,0 → **2,1** | 0,0 → **0,0** | 152 → **114** | 124 (112) → **70** (55) |
+| Schnee 00:30 | 68 (41–123) → **116** (64–148) | 0,0 (0,0) → **1,4** (1,1) | 0,01 → **0,01** | 0,0 → **0,7** | 0,0 → **0,5** | 0,0 → **0,0** | 180 → **164** | 140 (131) → **73** (55) |
+
+City Limits (zweispurig, 2,5-fache Dichte – dort entscheidet vor allem die Dichte, das Wetter macht den Verkehr langsamer):
+
+| Wetter, Uhrzeit | Annäherung km/h: Median (p10–p90) | alle Spuren zu: % der Zeit (je 100 km) | Spurwechsel/km | Kollisionen/100 km: naiv | spät | Autopilot | Autopilot Ø km/h | Verkehr Median km/h: Pkw (Lkw) |
+|---|---|---|---|---|---|---|---|---|
+| trocken 07:30 | 112 (67–161) → **100** (64–180) | 79,1 (22,0) → **84,0** (11,8) | 0,47 → **0,61** | 22,0 → **22,0** | 0,0 → **0,0** | 0,0 → **0,0** | 59 → **65** | 52 (46) → **47** (38) |
+| trocken 00:30 | 179 (139–194) → **187** (147–196) | 8,0 (6,8) → **8,2** (5,1) | 0,12 → **0,03** | 1,7 → **5,1** | 0,0 → **0,0** | 0,0 → **0,0** | 137 → **196** | 62 (54) → **47** (–) |
+| Regen 07:30 | 127 (62–185) → **108** (52–182) | 78,5 (20,3) → **85,2** (13,5) | 0,64 → **0,39** | 22,0 → **22,0** | 0,0 → **0,0** | 0,0 → **0,0** | 60 → **59** | 52 (50) → **40** (38) |
+| Regen 00:30 | 170 (114–185) → **186** (157–200) | 2,6 (5,1) → **9,8** (5,1) | 0,05 → **0,12** | 0,0 → **1,7** | 0,0 → **0,0** | 0,0 → **0,0** | 207 → **147** | 60 (86) → **42** (35) |
+| Schnee 07:30 | 110 (63–154) → **110** (58–142) | 57,6 (25,4) → **88,1** (10,2) | 0,37 → **0,42** | 23,7 → **20,3** | 0,0 → **6,8** | 0,0 → **0,0** | 54 → **37** | 51 (37) → **30** (26) |
+| Schnee 00:30 | 146 (113–159) → **174** (88–180) | 0,9 (1,7) → **14,1** (6,8) | 0,10 → **0,10** | 0,0 → **1,7** | 0,0 → **0,0** | 0,0 → **0,0** | 193 → **167** | 58 (54) → **31** (31) |
+
+Summe aller Läufe (3706 km je Fahrer): naive Kollisionen 1,86 → **3,21** je 100 km, mit Spätbremsen 0,00 → **0,51** (19 von 19 bei
+Schnee), Autopilot 0 → **0** (auch kein Bankett: 0,0 s, kein Untersteuern: max 0,00). Im Berufsverkehr (07:30) außerhalb
+der City Limits sind alle Spuren trocken 2,0-, bei Regen 2,8- und bei Schnee 9,4-mal so oft zu wie vorher; der naive Fahrer
+überholt trocken 293 statt 238, bei Schnee 324 statt 196 Autos; je 100 km zieht 4,5-mal ein Auto vor ihm heraus (v0.4.0:
+nie; Autopilot 0,5–2,3-mal), Lkw fahren 28 s nebeneinander (Elefantenrennen, Regen/Schnee 28/12 s; v0.4.0: 0).
+Der Autopilot bleibt kollisionsfrei und ist gegenüber v0.4.0 trocken 8/5 %, bei Regen 16/6 % und bei Schnee
+25/9 % langsamer (07:30/00:30).
+
+Ganze Etappen und Rennen mit dem Autopilot (Endstand v0.5.0, `run_stage.gd`/`run_race.gd`, Wunschtempo 235 km/h, Radar
+befolgt, Tanken nach Bedarf) – alle ohne Kollision, Leitplanke und Untersteuern, neben der Fahrbahn nur in der Tankspur
+(höchstens 0,9 s):
+
+| Etappe | Auto | Wetter, Start | Ø km/h |
+|---|---|---|---|
+| Hamburg – Hannover | Gran Turismo | Schnee, 08:00 | 98,4 |
+| Dortmund – Frankfurt | Limousine | Schnee, 07:30 | 82,3 |
+| Bremen – Dortmund | Kombi | Schnee, 17:00 | 93,3 |
+| Saragossa – Pau | Sportwagen | Schnee, 12:00 | 107,5 |
+| Kassel – Würzburg | Kompakt | Regen, 17:00 | 102,7 |
+| Hamburg – Bremen | Limousine | Regen, 08:00 | 100,3 |
+| Saragossa – Pau | Kombi | Regen, 00:30 | 155,8 |
+| Kassel – Würzburg | Limousine | trocken, 08:00 | 125,4 |
+
+Kiel – Nürnberg (Limousine, Rennwetter und Tageszeiten aus dem Rennen): **27:05,5** (v0.4.0: 25:03,8) – Schnee auf der
+ersten Etappe (74 km/h mit Pflicht-Tankstopp), Regen auf der zweiten (146 km/h, nachts), sonst trocken 137–165 km/h.
+Bei diesen Läufen gefunden und behoben: (1) der Autopilot zog 700 m vor der Tankspur quer über alle Spuren – im Schnee
+in ein 95 km/h langsameres Auto in der Mittelspur (Saragossa – Pau, Sportwagen); jetzt Spur für Spur in freie Lücken
+(renn-modul.md §10, `test_fuel_lane_approach_waits_for_a_gap`). (2) Ein Auto, das einem Lkw nicht zügig vorbeikam,
+pendelte an der Grenze des Seitenfensters genau neben dem Spieler – im Schnee 52 km Kolonne mit 53 km/h; jetzt
+Haltefenster und Tempo-Abstände nach Wetter (Abschnitt „Verkehr“, `test_yielding_car_does_not_hover_beside_the_player`).
+
+Bestenlisten: Die Starteinträge (`leaderboard.seed_avg_kmh` 125–165 km/h) liegen bei trockenem Wetter weiter im Bereich
+des vorsichtigen Autopiloten (125–165 km/h je nach Tageszeit, Verkehr und Tankstopp) – gute Spieler schlagen sie; bei
+Regen (100–156 km/h) und Schnee (74–108 km/h) sind sie ein hohes Ziel, wie es zum Wetter passt. Keine Anpassung nötig.
 
 ## Hinweise für andere Module
 
@@ -471,3 +645,10 @@ in den City Limits (dort gibt es kein Radar) und vor Kurven, die ein Abschnittsw
 - **Renn-Modul (Polizei in Kurven)**: jeden Schritt einer Verfolgung `police.update(dt, km, v,
   SessionRules.police_curve_cap_kmh(track, police, z, Wetterhaftung))`; ohne diesen Wert fährt die Polizei wie früher
   220 durch jede Kurve. Das HUD liest die aktuelle Fluchtschwelle aus `police.escape_kmh` (HUD-Schlüssel `escape_kmh`).
+- **Renn-Modul (v0.5.0)**: `traffic.update` mit `ctx.weather` und `ctx.brake_mps2 =
+  vehicle.brake_decel_mps2(Haftung unter dem Wagen)` (ohne sie fährt der Verkehr trocken und rechnet beim Einscheren mit
+  70 km/h/s); Blinker zeichnen aus `Car.signal_dir`/`signal_age` (View `blink`/`blink_t`, renn-modul.md §8). Ein
+  Autopilot oder Bot, der mit festen 15 m/s² plant oder proportional lenkt, kommt im Schnee nicht mehr unfallfrei
+  durch – `Autopilot.plan_decel`/`steer_to` nutzen.
+- **Audio/HUD (Wetter)**: der Wagen rutscht nach Spurwechseln sichtbar nach (`lat_speed` klingt mit
+  `vehicle.steer_response_s(Haftung)` ab) – ein Rutschgeräusch dafür gibt es noch nicht.

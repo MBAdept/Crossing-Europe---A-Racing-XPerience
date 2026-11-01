@@ -3,7 +3,7 @@ extends SceneTree
 ## every radar zone of every stage direction × every car × {dry day, rain at night} – each chase must be
 ## escapable (tests/sim/escape_sim.gd: real PoliceSystem with the police car's curve limit, curve-limited
 ## player profile, no traffic):
-##   ideal  at the car's own curve limit, braking with the full 70 km/h/s before curves
+##   ideal  at the car's own curve limit, braking with the full braking of the weather before curves (70 km/h/s dry)
 ##   good   97 % of the curve limit, braking with only 10 m/s² (earlier and gentler than possible)
 ##   godot --headless --path . -s res://tests/sim/check_escapes.gd [-- --only=good]
 ## Prints "CHECK escape_<driver> OK|FEHLER …" (plus the failing chases); exit code 0 when all pass.

@@ -4,21 +4,34 @@ extends RefCounted
 ## Owner: gameplay module. Public API = contract (ARCHITECTURE.md §Gameplay); extend, don't break.
 ## Rules, decisions and tuning numbers: docs/gameplay.md.
 ##
-## Rules (design document "Verkehr", "Kollisionen"):
-##  * base speed per road type (traffic.speeds_kmh); trucks/buses at the slow end of that range
-##    (traffic.truck_speeds_kmh, inside the design ranges), right lanes
+## Rules (design document "Verkehr", "Kollisionen"; v0.5.0 playtest "man kann zu leicht an anderen Autos
+## vorbeifahren" – traffic is a real obstacle now, docs/gameplay.md "Verkehr als Hindernis"):
+##  * desired speed per car: the design range of the road type (traffic.speeds_kmh) for cars, realistic ranges for
+##    trucks (traffic.truck_speeds_kmh, autobahn 80–90) and buses (traffic.bus_speeds_kmh, ~95–100); capped by the
+##    speed limit of the section (cars limit * traffic.limit_tolerance, by temperament; heavy vehicles the limit)
+##    and slowed by the weather (traffic.weather.<w>: rain about -15 %, snow about -35 % with longer gaps).
+##    Fast cars appear in the left lanes, slow ones on the right (traffic.lane_speed_spread)
 ##  * density (cars per visible km) = traffic.base_density_per_km[road] * daily curve traffic.hourly_density
-##    (peaks 7–9 and 16–19, minimum 1–5) * section factor * City Limits factor * chase factor
-##  * night 23–4: 15 % faster (traffic.night.speed_factor), fewer cars (daily curve)
+##    (peaks 7–9 and 16–19, minimum 1–5) * section factor * City Limits factor * chase factor; new traffic
+##    often comes in clusters (traffic.cluster: platoons behind a slow vehicle, trucks overtaking trucks)
+##  * night 23–4: fewer cars (daily curve); traffic.night.speed_factor (1.0: no night bonus any more)
 ##  * during a police chase traffic is reduced by 80 % (ctx.chase -> traffic.chase_density_factor)
 ##  * much more traffic in the City Limits (city_limits.density_factor)
 ##  * occasionally a car uses the fuel lane (traffic.fuel_lane_use_chance): slows down, drives through, merges
 ##  * cars overtaking from behind only collide once at least 1/3 of them is on screen
+##  * every lane change is announced by the indicator (traffic.blink: 1–1.5 s before the car moves; Car.signal_*),
+##    except an emergency swerve away from the player
+##  * traffic does not clear the way for the player: drivers misjudge a fast car coming up behind them and pull
+##    out in front of it (traffic.cut_in) – but never closer than the player can still brake for (fairness floor
+##    with ctx.brake_mps2, the player's full braking in this weather)
+##  * trucks overtake slower heavy vehicles on roads with 3+ lanes ("Elefantenrennen", two lanes blocked at
+##    ~85 km/h) and give up after traffic.elephant.max_s
 ## Driving: Intelligent Driver Model (car following without rear-ending, brake lights) + MOBIL lane changes
 ## (overtaking, keeping right, merging where a lane ends, evading the player). Cars appear beyond the view
 ## ahead or behind the camera (only cars faster than the player) and vanish only where nobody can see them.
 ## The track object must provide (duck typing): length_z, lane_count_at(z), lane_center_x(z, lane),
-## road_type_at(z), is_city_at(z), traffic_factor_at(z), fuel_lane_at(z), fuel_lane_x(z) (optional: lane_w).
+## road_type_at(z), is_city_at(z), traffic_factor_at(z), fuel_lane_at(z), fuel_lane_x(z) (optional: lane_w,
+## speed_limit_at(z) – 0 = no limit).
 ## Its answers are sampled every TQ_BUCKET metres and cached: the track geometry must not change during a stage.
 
 
@@ -56,6 +69,20 @@ class Car:
 	## it. pass_kmh: it passes such cars decisively at this desired speed (at most the top of its range).
 	var yield_kmh := -1.0
 	var pass_kmh := -1.0
+	# --- v0.5.0 ---
+	var bus := false          ## heavy vehicle that is a bus (own speed range)
+	## Indicator: -1 left, +1 right, 0 off. It starts signal_lead seconds before the car moves (signal_t counts
+	## down), stays on while it waits for a safe gap and while it moves, and goes off in the new lane.
+	var signal_dir := 0
+	var signal_lane := -1     ## lane the car signals into (FUEL_LANE possible)
+	var signal_t := 0.0       ## seconds until it moves (<= 0: moves as soon as it is safe)
+	var signal_age := 0.0     ## seconds since the indicator came on (blink phase for the renderer)
+	var signal_wait := 0.0    ## seconds it has been waiting for a gap after signal_t ran out
+	var signal_mandatory := false
+	## Truck overtaking a slower heavy vehicle (Elefantenrennen): seconds in the overtaking lane, -1 = no.
+	var elephant_t := -1.0
+	## Seconds until a heavy vehicle that gave up an Elefantenrennen tries again (traffic.elephant.retry_s).
+	var elephant_cool := 0.0
 
 
 const FUEL_LANE := 99
@@ -74,6 +101,11 @@ var target_count := 0.0          ## wanted number of cars in the managed window 
 var spawned_total := 0
 var despawned_total := 0
 var player_obstacle := Car.new() ## the player as seen by the traffic (id -1)
+# --- v0.5.0 ---
+var weather := "normal"          ## ctx.weather of the last update (speeds and gaps of the traffic)
+var player_brake_mps2 := 19.44   ## ctx.brake_mps2: the player's full braking in this weather (cut-in floor)
+var cut_ins := 0                 ## lane changes into the player's lane in front of a faster player (statistics)
+var last_cut_in := {}            ## {id, gap_m, rel_kmh, floor_m} of the last one (tests, debug)
 
 var _next_id := 1
 var _initialized := false
@@ -92,6 +124,7 @@ var _tgt_z := -1.0e9
 var _tgt_hour := -100.0
 var _tgt_chase := false
 var _spawn_wait := 0.0
+var _pending := 0                 ## size of the next group spawned ahead (0 = not drawn yet)
 var _last_dt := 0.0
 # cached configuration
 var _speeds: Dictionary = {}
@@ -105,7 +138,6 @@ var _night_speed := 1.15
 var _chase_factor := 0.2
 var _city_factor := 2.5
 var _truck_share: Dictionary = {}
-var _lane_weights: Dictionary = {}
 var _keep_right: Dictionary = {}
 var _fuel_chance := 0.12
 var _fuel_speed := 50.0
@@ -138,10 +170,49 @@ var _side_behind := 70.0
 var _side_ahead := 40.0
 var _yield_bonus := 1.0
 var _pass_boost := 10.0
+var _yield_hold := 40.0
+var _w_margin := 1.0              ## side-rule speed margins × the weather speed factor (snow: 6 -> 3.9 km/h)
 var _cam_distance := 6.6
 var _draw_distance := 900.0
 var _rear_visible := 0.3333
 var _hitbox := 0.95
+# v0.5.0: classes, limits, weather, indicators, cut-ins, elephant races, clusters
+var _bus_speeds: Dictionary = {}
+var _bus_share := 0.25
+var _limit_tol := Vector2(0.92, 1.12)
+var _lane_spread := 1.4
+var _weather_cfg: Dictionary = {}
+var _w_speed := 1.0               ## weather factors of the current weather (ctx.weather)
+var _w_heavy := 1.0
+var _w_follow := 1.0
+var _w_gap := 1.0
+var _eff_gap := 14.0              ## min_gap_m * weather factor
+var _eff_follow := 1.2            ## follow_time_s * weather factor
+var _eff_lc_mps := 2.5            ## lane_change_mps * weather factor (careful lane changes on snow)
+var _blink_lead := Vector2(1.0, 1.5)
+var _blink_heavy := 1.3
+var _blink_mandatory := 1.0
+var _blink_max_wait := 3.0
+var _cut_react := 0.3
+var _cut_intrude := 0.5
+var _cut_brake_frac := 0.7
+var _cut_margin := 8.0
+var _cut_perceive := 20.0         ## m/s: closing speeds above this look like this in the mirror
+var _cut_judge := Vector2(2.5, 5.0)
+var _cut_judge_add := 20.0
+var _el_min_lanes := 3
+var _el_min_kmh := 3.0
+var _el_look := 60.0
+var _el_bonus := 1.0
+var _el_max_s := 40.0
+var _el_retry := 60.0
+var _cluster_chance: Dictionary = {}
+var _cluster_followers := Vector2i(1, 3)
+var _cluster_elephant := 0.3
+var _cluster_gap := Vector2(1.0, 1.5)
+var _cluster_patience := Vector2(4.0, 20.0)
+var _bus_sets: Array[String] = []
+var _truck_sets: Array[String] = []
 
 
 ## car_sets / heavy_sets: sprite set ids to choose from (SpriteDB tags "traffic" / "heavy").
@@ -171,8 +242,19 @@ func setup(config: Dictionary, track_api: Object, cars_ids: Array[String], heavy
 	_tgt_hour = -100.0
 	_tgt_chase = false
 	_spawn_wait = 0.0
+	_pending = 0
 	_last_dt = 0.0
+	cut_ins = 0
+	last_cut_in = {}
+	_bus_sets.clear()
+	_truck_sets.clear()
+	for id in heavy_sets:
+		if id.to_lower().contains("bus"):
+			_bus_sets.append(id)
+		else:
+			_truck_sets.append(id)
 	_read_config()
+	_apply_weather("normal")
 	_lane_w = float(ConfigLoader.lookup(cfg, "road.lane_width_m", 3.75))
 	if track != null and "lane_w" in track:
 		_lane_w = float(track.get("lane_w"))
@@ -203,7 +285,6 @@ func _read_config() -> void:
 	_chase_factor = _f("traffic.chase_density_factor", 0.2)
 	_city_factor = _f("city_limits.density_factor", 2.5)
 	_truck_share = ConfigLoader.lookup(cfg, "traffic.truck_share", {})
-	_lane_weights = ConfigLoader.lookup(cfg, "traffic.lane_weights", {})
 	_keep_right = ConfigLoader.lookup(cfg, "traffic.keep_right_bias_mps2", {"autobahn": 0.3, "landstrasse": 0.3})
 	_fuel_chance = _f("traffic.fuel_lane_use_chance", 0.12)
 	_fuel_speed = _f("traffic.fuel_lane_speed_kmh", 50.0)
@@ -238,10 +319,64 @@ func _read_config() -> void:
 	_side_ahead = _f("traffic.side_window_ahead_m", 40.0)
 	_yield_bonus = _f("traffic.yield_keep_right_bonus_mps2", 1.0)
 	_pass_boost = maxf(0.0, _f("traffic.pass_boost_kmh", 10.0))
+	_yield_hold = maxf(0.0, _f("traffic.side_yield_hold_m", 40.0))
 	_cam_distance = _f("render.camera_distance_m", 6.6)
 	_draw_distance = _f("render.draw_distance_m", 900.0)
 	_rear_visible = _f("collision.rear_min_visible_fraction", 0.3333)
 	_hitbox = _f("collision.hitbox_scale", 0.95)
+	_bus_speeds = ConfigLoader.lookup(cfg, "traffic.bus_speeds_kmh", {})
+	_bus_share = clampf(_f("traffic.bus_share", 0.25), 0.0, 1.0)
+	_limit_tol = _vec2("traffic.limit_tolerance", Vector2(0.92, 1.12))
+	_lane_spread = maxf(0.0, _f("traffic.lane_speed_spread", 1.4))
+	_weather_cfg = ConfigLoader.lookup(cfg, "traffic.weather", {})
+	_blink_lead = _vec2("traffic.blink.lead_s", Vector2(1.0, 1.5))
+	_blink_heavy = maxf(0.0, _f("traffic.blink.heavy_factor", 1.3))
+	_blink_mandatory = maxf(0.0, _f("traffic.blink.mandatory_lead_s", 1.0))
+	_blink_max_wait = maxf(0.0, _f("traffic.blink.max_wait_s", 3.0))
+	_cut_react = maxf(0.0, _f("traffic.cut_in.margin_s", 0.3))
+	_cut_intrude = maxf(0.0, _f("traffic.cut_in.intrude_s", 0.5))
+	_cut_brake_frac = clampf(_f("traffic.cut_in.brake_fraction", 0.7), 0.05, 1.0)
+	_cut_margin = maxf(0.0, _f("traffic.cut_in.margin_m", 8.0))
+	_cut_perceive = maxf(0.1, _f("traffic.cut_in.perceived_max_kmh", 72.0) / 3.6)
+	_cut_judge = _vec2("traffic.cut_in.judge_s", Vector2(2.5, 5.0))
+	_cut_judge_add = maxf(0.0, _f("traffic.cut_in.judge_add_m", 20.0))
+	_el_min_lanes = int(_f("traffic.elephant.min_lanes", 3.0))
+	_el_min_kmh = maxf(0.0, _f("traffic.elephant.min_diff_kmh", 3.0))
+	_el_look = maxf(0.0, _f("traffic.elephant.look_m", 60.0))
+	_el_bonus = _f("traffic.elephant.bonus_mps2", 1.0)
+	_el_max_s = maxf(0.0, _f("traffic.elephant.max_s", 40.0))
+	_el_retry = maxf(0.0, _f("traffic.elephant.retry_s", 60.0))
+	_cluster_chance = ConfigLoader.lookup(cfg, "traffic.cluster.chance", {})
+	var fol := _vec2("traffic.cluster.followers", Vector2(1.0, 3.0))
+	_cluster_followers = Vector2i(maxi(0, int(fol.x)), maxi(0, int(fol.y)))
+	_cluster_elephant = clampf(_f("traffic.cluster.elephant_share", 0.3), 0.0, 1.0)
+	_cluster_gap = _vec2("traffic.cluster.gap_factor", Vector2(1.0, 1.5))
+	_cluster_patience = _vec2("traffic.cluster.patience_s", Vector2(4.0, 20.0))
+	player_brake_mps2 = _f("driving.brake_decel_kmh_s", 70.0) / 3.6
+
+
+## [lo, hi] config array as Vector2 (default when missing or malformed).
+func _vec2(path: String, default: Vector2) -> Vector2:
+	var v: Variant = ConfigLoader.lookup(cfg, path, null)
+	if v is Array and (v as Array).size() >= 2:
+		return Vector2(float(v[0]), float(v[1]))
+	return default
+
+
+## Weather factors of the traffic (traffic.weather.<w>: speed_factor for cars, heavy_speed_factor for trucks/buses,
+## follow_time_factor and min_gap_factor for the following distance). Unknown weather = normal.
+func _apply_weather(w: String) -> void:
+	weather = w
+	var e: Variant = _weather_cfg.get(w, {})
+	var d: Dictionary = e if e is Dictionary else {}
+	_w_speed = maxf(0.05, float(d.get("speed_factor", 1.0)))
+	_w_heavy = maxf(0.05, float(d.get("heavy_speed_factor", _w_speed)))
+	_w_follow = maxf(0.1, float(d.get("follow_time_factor", 1.0)))
+	_w_gap = maxf(0.1, float(d.get("min_gap_factor", 1.0)))
+	_eff_gap = _min_gap * _w_gap
+	_eff_follow = _follow_time * _w_follow
+	_eff_lc_mps = _lane_change_mps * maxf(0.1, float(d.get("lane_change_factor", 1.0)))
+	_w_margin = _w_speed
 
 
 # --- Public queries -------------------------------------------------------------------------
@@ -259,9 +394,40 @@ func density_factor(hour: float) -> float:
 	return d
 
 
-## Speed multiplier (night 23–4: traffic.night.speed_factor, +15 %).
+## Speed multiplier of the night window 23–4 (traffic.night.speed_factor; 1.0 since v0.5.0 – faster traffic
+## at night made overtaking even easier).
 func speed_factor(hour: float) -> float:
 	return _night_speed if is_night_hour(hour) else 1.0
+
+
+## Desired speed (km/h) of a vehicle class (0 car, 1 truck, 2 bus) with temperament frac (0..1) on road type
+## `road` with the speed limit `limit` (0 = none) in the current weather and hour: the class range
+## (traffic.speeds_kmh / truck_speeds_kmh / bus_speeds_kmh) at frac, capped by the limit (cars: limit *
+## traffic.limit_tolerance at frac – careful drivers below it, fast ones a little above; heavy vehicles: the
+## limit), times the weather factor of the class and speed_factor(hour).
+func cruise_speed_for(road: String, cls: int, frac: float, limit: int = 0) -> float:
+	var table := _speeds
+	if cls == 1:
+		table = _truck_speeds
+	elif cls == 2:
+		table = _bus_speeds if not _bus_speeds.is_empty() else _truck_speeds
+	var r: Variant = table.get(road, null)
+	var lo := 100.0
+	var hi := 130.0
+	if r is Array and (r as Array).size() >= 2:
+		lo = float(r[0])
+		hi = float(r[1])
+	var v := lerpf(lo, hi, frac)
+	if limit > 0:
+		v = minf(v, float(limit) * (lerpf(_limit_tol.x, _limit_tol.y, frac) if cls == 0 else 1.0))
+	return v * (_w_speed if cls == 0 else _w_heavy) * speed_factor(_hour)
+
+
+## Vehicle class of a car: 0 car, 1 truck, 2 bus.
+static func vehicle_class(c: Car) -> int:
+	if not c.heavy:
+		return 0
+	return 2 if c.bus else 1
 
 
 ## True inside the traffic night window (traffic.night.start_hour .. end_hour, wrapping midnight).
@@ -289,11 +455,17 @@ func density_per_km_at(z: float, hour: float, chase: bool) -> float:
 
 # --- Per-frame update -----------------------------------------------------------------------
 
-## player: {z, x, speed (, length, width)}; ctx: {hour: float, chase: bool, camera_z: float (, visibility_m)}
+## player: {z, x, speed (, length, width)}; ctx: {hour: float, chase: bool, camera_z: float (, visibility_m,
+## weather: "normal"|"rain"|"snow" – speeds and gaps of the traffic, brake_mps2: the player's full braking in this
+## weather – the floor of the cut-ins, see _cut_in_ok)}.
 ## dt = 0 is allowed (spawns the initial traffic without moving anything).
 func update(dt: float, player: Dictionary, ctx: Dictionary) -> void:
 	if track == null:
 		return
+	var w := str(ctx.get("weather", weather))
+	if w != weather:
+		_apply_weather(w)
+	player_brake_mps2 = maxf(0.5, float(ctx.get("brake_mps2", player_brake_mps2)))
 	var p := player_obstacle
 	p.z = float(player.get("z", 0.0))
 	p.x = float(player.get("x", 0.0))
@@ -382,7 +554,7 @@ func _drive(dt: float) -> void:
 		c.speed = v * 3.6
 		c.accel = a
 		c.z += v * dt
-		c.x = move_toward(c.x, _lane_x(c.z, c.lane), _lane_change_mps * dt)
+		c.x = move_toward(c.x, _lane_x(c.z, c.lane), _eff_lc_mps * dt)
 		c.in_fuel_lane = c.lane == FUEL_LANE or _right_of_main(c)
 		c.braking = a < -_brake_light or c.speed < 2.0
 		c.age += dt
@@ -392,13 +564,23 @@ func _drive(dt: float) -> void:
 func _think(c: Car, dt: float) -> void:
 	var lanes := maxi(1, _t_lanes(c.z))
 	var road := _t_road(c.z)
-	c.cruise_speed = _cruise_value(road, c.heavy, c.speed_frac)
+	c.cruise_speed = cruise_speed_for(road, vehicle_class(c), c.speed_frac, _t_limit(c.z))
 	if c.lane != FUEL_LANE and c.lane >= lanes:
 		c.lane = lanes - 1
 	if c.lane == FUEL_LANE and not _fuel_lane_open_at(c.z) and not _t_fuel(c.z + 8.0):
 		c.lane = lanes - 1
 		c.fuel_state = 2
 	c.lane_cooldown = maxf(0.0, c.lane_cooldown - dt)
+	_update_elephant(c, lanes, dt)
+	if c.signal_dir != 0:
+		c.signal_age += dt
+		if c.signal_lane == c.lane:
+			# moving into the new lane: the indicator goes off once the car is (almost) there
+			if absf(c.x - _lane_x(c.z, c.lane)) < 0.4:
+				_clear_signal(c)
+		else:
+			_signal_step(c, lanes, road, dt)
+			return
 	c.lane_timer -= dt
 	var urgent := _player_threat(c)
 	if c.lane_timer > 0.0 and not urgent:
@@ -422,16 +604,18 @@ func _player_threat(c: Car) -> bool:
 	if gap > 150.0:
 		return false
 	var closing := (c.speed - p.speed) / 3.6
-	return gap < _min_gap or (closing > 0.5 and gap / closing < 3.0)
+	return gap < _eff_gap or (closing > 0.5 and gap / closing < 3.0)
 
 
+## Picks the best lane (MOBIL). A wanted change starts the indicator (traffic.blink, _signal_step moves the car
+## later); an emergency swerve away from the player (urgent) happens at once.
 func _consider_lane_change(c: Car, lanes: int, road: String, urgent: bool) -> void:
 	var cur := c.lane
 	var cands: Array[int] = []
 	var mandatory := -999
 	if cur == FUEL_LANE:
 		cands.append(lanes - 1)
-		if c.fuel_state != 1 or _lane_end_distance(c, FUEL_LANE) < INF:
+		if c.fuel_state != 1 or _lane_end_distance(c, FUEL_LANE, _blink_mandatory + 0.5) < INF:
 			mandatory = lanes - 1
 	else:
 		if c.fuel_state == 1:
@@ -445,29 +629,152 @@ func _consider_lane_change(c: Car, lanes: int, road: String, urgent: bool) -> vo
 			cands.append(cur - 1)
 		if cur < lanes - 1:
 			cands.append(cur + 1)
-		if cur > 0 and _lane_end_distance(c, cur) < INF:
+		if cur > 0 and _lane_end_distance(c, cur, _blink_mandatory) < INF:
 			mandatory = cur - 1
 	if cands.is_empty():
 		return
 	var a_cur := _idm(c, _desired_speed(c, cur), _leader(c, cur))
 	var best_lane := cur
 	var best_margin := 0.0
+	var lead_s := 0.0 if urgent else _signal_lead(c, false)
 	for lane in cands:
-		# trucks are reluctant to pull out to the left, but return to the right like everybody else
-		var threshold := _lc_threshold_truck if c.heavy and lane < cur else _lc_threshold
-		if urgent:
-			threshold = 0.05
-		var margin := _lane_gain(c, lane, a_cur, road, lane == mandatory, urgent) - threshold
+		var margin := _lane_margin(c, lane, a_cur, road, lanes, lane == mandatory, urgent,
+			0.0 if urgent else (_blink_mandatory if lane == mandatory else lead_s))
 		if margin > best_margin:
 			best_margin = margin
 			best_lane = lane
-	if best_lane != cur:
-		if cur == FUEL_LANE:
-			c.fuel_state = 2
-		c.lane = best_lane
-		c.lane_cooldown = _lc_cooldown
-		c.yield_kmh = -1.0
-		c.pass_kmh = -1.0
+	if best_lane == cur:
+		return
+	_start_signal(c, best_lane, best_lane == mandatory)
+	if urgent:
+		_execute_lane_change(c, lanes, road)
+
+
+## MOBIL advantage of `lane` minus the threshold of this move (> 0 = worth it), -INF when unsafe. Trucks are
+## reluctant to pull out to the left (traffic.truck_lane_change_threshold_mps2) unless a clearly slower vehicle
+## holds them up on a road with 3+ lanes (Elefantenrennen, traffic.elephant.bonus_mps2).
+func _lane_margin(c: Car, lane: int, a_cur: float, road: String, lanes: int, mandatory: bool, urgent: bool,
+		lead_s: float) -> float:
+	var threshold := _lc_threshold_truck if c.heavy and lane < c.lane else _lc_threshold
+	if urgent:
+		threshold = 0.05
+	var gain := _lane_gain(c, lane, a_cur, road, mandatory, urgent, lead_s)
+	if gain == -INF:
+		return -INF
+	if c.heavy and lane < c.lane and lane != FUEL_LANE and c.lane != FUEL_LANE and _elephant_wanted(c, lanes, road):
+		gain += _el_bonus
+	return gain - threshold
+
+
+## Seconds the indicator runs before the car moves: traffic.blink.lead_s (per car between the two values),
+## mandatory changes (lane ends, fuel lane) traffic.blink.mandatory_lead_s, heavy vehicles × heavy_factor.
+func _signal_lead(c: Car, mandatory: bool) -> float:
+	var lead := _blink_mandatory
+	if not mandatory:
+		lead = lerpf(_blink_lead.x, _blink_lead.y, fposmod(float(c.id) * 0.7548777, 1.0))
+	return lead * (_blink_heavy if c.heavy else 1.0)
+
+
+func _start_signal(c: Car, target: int, mandatory: bool) -> void:
+	c.signal_lane = target
+	c.signal_dir = -1 if target < c.lane else 1
+	c.signal_mandatory = mandatory
+	c.signal_t = _signal_lead(c, mandatory)
+	c.signal_age = 0.0
+	c.signal_wait = 0.0
+
+
+func _clear_signal(c: Car) -> void:
+	c.signal_dir = 0
+	c.signal_lane = -1
+	c.signal_t = 0.0
+	c.signal_age = 0.0
+	c.signal_wait = 0.0
+	c.signal_mandatory = false
+
+
+## A car with its indicator on: it moves once the indicator has run its time and the target lane is still safe
+## (the cut-in floor counts the time left); while unsafe it waits (traffic.blink.max_wait_s, then gives up), and
+## it cancels when the change is no longer worth it.
+func _signal_step(c: Car, lanes: int, road: String, dt: float) -> void:
+	c.signal_t -= dt
+	if c.signal_t <= 0.0:
+		c.signal_wait += dt
+	var target := c.signal_lane
+	var valid := target == FUEL_LANE or (target >= 0 and target < lanes and absi(target - c.lane) == 1) \
+		or (c.lane == FUEL_LANE and target == lanes - 1)
+	if target == FUEL_LANE and (c.lane != lanes - 1 or c.fuel_state != 1):
+		valid = false
+	if not valid:
+		_clear_signal(c)
+		return
+	c.lane_timer -= dt
+	if c.signal_t > 0.0 and c.lane_timer > 0.0:
+		return
+	c.lane_timer = _lc_interval * (0.75 + 0.5 * fposmod(float(c.id) * 0.618034, 1.0))
+	_update_fuel_plan(c, lanes)
+	var a_cur := _idm(c, _desired_speed(c, c.lane), _leader(c, c.lane))
+	var margin := _lane_margin(c, target, a_cur, road, lanes, c.signal_mandatory, false, maxf(c.signal_t, 0.0))
+	if margin == -INF:
+		if c.signal_wait > _blink_max_wait * (2.0 if c.signal_mandatory else 1.0):
+			_clear_signal(c)   # no gap: gives up (a mandatory change signals again at the next decision)
+			c.lane_cooldown = maxf(c.lane_cooldown, _lc_interval)
+		return
+	if margin < -0.15 and not c.signal_mandatory:
+		_clear_signal(c)   # no longer worth it
+		return
+	if c.signal_t <= 0.0:
+		_execute_lane_change(c, lanes, road)
+
+
+## Moves the car into its signalled lane (the indicator stays on until it is there). Counts a cut-in in front of
+## a faster player (cut_ins, last_cut_in).
+func _execute_lane_change(c: Car, lanes: int, road: String) -> void:
+	var target := c.signal_lane
+	var foll := _follower(c, target)
+	var p := player_obstacle
+	if foll == p and target != FUEL_LANE and p.speed > c.speed + 2.0:
+		var rel := (p.speed - c.speed) / 3.6
+		cut_ins += 1
+		last_cut_in = {"id": c.id, "gap_m": _gap(p, c), "rel_kmh": rel * 3.6, "floor_m": cut_in_floor_m(rel, 0.0),
+			"car_kmh": c.speed, "player_kmh": p.speed}
+	if c.heavy and target < c.lane and target != FUEL_LANE and c.lane != FUEL_LANE and _elephant_wanted(c, lanes, road):
+		c.elephant_t = 0.0
+	if c.lane == FUEL_LANE:
+		c.fuel_state = 2
+	c.lane = target
+	c.lane_cooldown = _lc_cooldown
+	c.yield_kmh = -1.0
+	c.pass_kmh = -1.0
+	c.signal_t = 0.0
+	c.signal_wait = 0.0
+
+
+## Elefantenrennen bookkeeping: seconds a heavy vehicle spends overtaking in a left lane (elephant_t), reset
+## once it is back in the right lane – after giving up (traffic.elephant.max_s) it waits traffic.elephant.retry_s
+## before it tries again.
+func _update_elephant(c: Car, lanes: int, dt: float) -> void:
+	if not c.heavy:
+		return
+	c.elephant_cool = maxf(0.0, c.elephant_cool - dt)
+	if c.lane == FUEL_LANE or c.lane >= lanes - 1:
+		if c.elephant_t >= _el_max_s:
+			c.elephant_cool = _el_retry
+		c.elephant_t = -1.0
+	elif c.elephant_t >= 0.0:
+		c.elephant_t += dt
+
+
+## A heavy vehicle on a road with traffic.elephant.min_lanes+ lanes (not in the City Limits) is held up by a vehicle
+## at least traffic.elephant.min_diff_kmh slower than it wants to go, within traffic.elephant.look_m: it overtakes.
+func _elephant_wanted(c: Car, lanes: int, road: String) -> bool:
+	if not c.heavy or road == "city" or lanes < _el_min_lanes or c.lane <= 0 or c.lane == FUEL_LANE \
+			or c.elephant_cool > 0.0:
+		return false
+	var lead := _leader(c, c.lane)
+	if lead == null or lead == player_obstacle:
+		return false
+	return _gap(c, lead) < _el_look and lead.speed <= c.cruise_speed - _el_min_kmh
 
 
 ## No rolling roadblocks (two cars of about the same speed side by side, or one just ahead of the other in
@@ -479,49 +786,68 @@ func _consider_lane_change(c: Car, lanes: int, road: String, urgent: bool) -> vo
 ##    its range) (pass_kmh) – it overtakes them and keeps right once it is clear
 ##  * otherwise (a clearly faster car comes up on the right, or it cannot be clearly faster) YIELD: drop back
 ##    to their speed - traffic.yield_slowdown_kmh (never above its own cruise), let them pass and keep right
-##    behind them (MOBIL keep-right bias + traffic.yield_keep_right_bonus_mps2, no dodging to the left)
+##    behind them (MOBIL keep-right bias + traffic.yield_keep_right_bonus_mps2, no dodging to the left) – until
+##    they are traffic.side_yield_hold_m beyond the window (hysteresis: no hovering at the window's edge)
+## The speed margins are dry values and shrink with the weather speed factor (snow × 0.65).
 ## A faster car that is only held back by a slow car ahead in its own lane passes as soon as that one is
 ## gone. The player never counts: he controls his own speed, and a car matching it would stay beside him and
-## block his overtaking lane.
+## block his overtaking lane. Exception (v0.5.0): a truck overtaking a slower heavy vehicle (Elefantenrennen)
+## keeps its own pace for traffic.elephant.max_s – two lanes blocked at truck speed – and then gives up (drops
+## back behind it).
 func _side_plan(c: Car, lanes: int, road: String) -> void:
+	var was_yielding := c.yield_kmh >= 0.0
 	c.yield_kmh = -1.0
 	c.pass_kmh = -1.0
 	if c.lane == FUEL_LANE or c.lane >= lanes - 1 or c.fuel_state == 1 or not _lane_usable(c, c.lane + 1):
 		return
-	var plan := _side_decision(c.z, c.lane, c.cruise_speed, c.heavy, road, c)
+	var gave_up := false
+	if c.heavy and c.elephant_t >= 0.0:
+		if c.elephant_t < _el_max_s:
+			return
+		gave_up = true
+	var plan := _side_decision(c.z, c.lane, c.cruise_speed, vehicle_class(c), road, c, not gave_up,
+		_yield_hold if was_yielding else 0.0)
 	if plan.x > 0.0:
 		c.pass_kmh = plan.y
 	elif plan.x < 0.0:
 		c.yield_kmh = plan.y
 
 
-## Side decision for a car (cruise speed, heavy) at (z, lane) – see _side_plan: Vector2(1, desired speed) =
-## pass, Vector2(-1, speed to drop back to) = yield, Vector2.ZERO = nothing to do. `self_car` is skipped.
-func _side_decision(z: float, lane: int, cruise: float, heavy: bool, road: String, self_car: Car = null) -> Vector2:
+## Side decision for a car (cruise speed, class) at (z, lane) – see _side_plan: Vector2(1, desired speed) =
+## pass, Vector2(-1, speed to drop back to) = yield, Vector2.ZERO = nothing to do. `self_car` is skipped;
+## may_pass = false: only yielding is possible; extra_ahead_m widens the window ahead (a car that yields keeps
+## dropping back until it is traffic.side_yield_hold_m further behind – otherwise it would hover at the edge of
+## the window, e.g. beside a player who follows the slower vehicle). The speed margins scale with the weather
+## (traffic.weather.<w>.speed_factor): in snow every speed is about a third lower, so are the differences.
+func _side_decision(z: float, lane: int, cruise: float, cls: int, road: String, self_car: Car = null,
+		may_pass: bool = true, extra_ahead_m: float = 0.0) -> Vector2:
+	var margin := _yield_margin * _w_margin
 	var v_max := -1.0
 	var v_min := INF
 	for o in cars:
 		if o == self_car:
 			continue
 		var dz := o.z - z
-		if dz < -_side_behind or dz > _side_ahead:
+		if dz < -_side_behind or dz > _side_ahead + extra_ahead_m:
 			continue
-		if o.speed + _yield_margin <= cruise or not _occupies(o, lane + 1):
+		if o.speed + margin <= cruise or not _occupies(o, lane + 1):
 			continue   # clearly slower than this car wants to go: an ordinary overtake
 		v_max = maxf(v_max, o.speed)
 		v_min = minf(v_min, o.speed)
 	if v_max < 0.0:
 		return Vector2.ZERO
-	var top := maxf(cruise, _cruise_value(road, heavy, 1.0))
-	if _pass_boost > 0.0 and v_max <= cruise + _yield_margin and top >= v_max + _yield_margin:
-		return Vector2(1.0, minf(maxf(cruise, v_max) + _pass_boost, top))
+	var top := maxf(cruise, cruise_speed_for(road, cls, 1.0, _t_limit(z)))
+	if may_pass and _pass_boost > 0.0 and v_max <= cruise + margin and top >= v_max + margin:
+		return Vector2(1.0, minf(maxf(cruise, v_max) + _pass_boost * _w_margin, top))
 	if _yield_slow > 0.0:
-		return Vector2(-1.0, maxf(0.0, v_min - _yield_slow))   # below all of them, then keep right
+		return Vector2(-1.0, maxf(0.0, v_min - _yield_slow * _w_margin))   # below all of them, then keep right
 	return Vector2.ZERO
 
 
-## MOBIL: advantage (m/s²) of moving to `lane`, -INF when unsafe or not allowed.
-func _lane_gain(c: Car, lane: int, a_cur: float, road: String, mandatory: bool, urgent: bool) -> float:
+## MOBIL: advantage (m/s²) of moving to `lane`, -INF when unsafe or not allowed. lead_s = seconds until the car
+## really moves (indicator time left): a cut-in in front of the player is judged with it (_cut_in_ok).
+func _lane_gain(c: Car, lane: int, a_cur: float, road: String, mandatory: bool, urgent: bool,
+		lead_s: float = 0.0) -> float:
 	if not _lane_usable(c, lane):
 		return -INF
 	var lead := _lane_leader(c, lane)
@@ -534,13 +860,17 @@ func _lane_gain(c: Car, lane: int, a_cur: float, road: String, mandatory: bool, 
 	if a_new < -_lc_safe and not mandatory and not urgent:
 		return -INF
 	var f_loss := 0.0
-	if foll != null:
+	if foll == player_obstacle:
+		if not _cut_in_ok(c, lead_s):
+			return -INF
+	elif foll != null:
 		var a_f_new := _idm(foll, _desired_speed(foll, foll.lane), c)
 		if a_f_new < -_lc_safe:
 			return -INF
-		if foll != player_obstacle:
-			var a_f_old := _idm(foll, _desired_speed(foll, foll.lane), _leader(foll, foll.lane))
-			f_loss = maxf(0.0, a_f_old - a_f_new)
+		var a_f_old := _idm(foll, _desired_speed(foll, foll.lane), _leader(foll, foll.lane))
+		f_loss = maxf(0.0, a_f_old - a_f_new)
+		if lane > c.lane and a_f_new > -1.0:
+			f_loss = 0.0   # keeping right well ahead of the traffic there: no politeness (no slow car lingers left)
 	var gain := a_new - a_cur - _politeness * f_loss
 	if lane != FUEL_LANE and c.lane != FUEL_LANE:
 		var kr := float(_keep_right.get(road, 0.0))
@@ -550,6 +880,35 @@ func _lane_gain(c: Car, lane: int, a_cur: float, road: String, mandatory: bool, 
 	if mandatory:
 		gain += 10.0
 	return gain
+
+
+## A lane change with the player as the new follower (he comes up behind in the target lane). Traffic does not
+## clear the way any more: a driver judges a car in the mirror by the gap and a closing speed of at most
+## traffic.cut_in.perceived_max_kmh, wanting traffic.cut_in.judge_s of it (bold = fast drivers the shorter
+## value) plus judge_add_m – a fast player gets cut off. Never closer than the fairness floor
+## (cut_in_floor_m): reacting to the indicator, the player can still brake in time. A player who is not faster
+## than the car: the ordinary MOBIL safety (no braking harder than traffic.lane_change_safe_decel_mps2).
+func _cut_in_ok(c: Car, lead_s: float) -> bool:
+	var p := player_obstacle
+	var gap := _gap(p, c)
+	var rel := (p.speed - c.speed) / 3.6
+	if rel <= 0.5:
+		return _idm(p, p.cruise_speed, c) >= -_lc_safe
+	if gap < cut_in_floor_m(rel, lead_s):
+		return false
+	var judge := lerpf(_cut_judge.y, _cut_judge.x, c.speed_frac)
+	return gap >= minf(rel, _cut_perceive) * judge + _cut_judge_add
+
+
+## Smallest gap (m, player front to car rear) at which a car may start a lane change in front of a player closing
+## in at rel_mps, lead_s seconds before it moves: the car blocks his lane after lead_s + traffic.cut_in.intrude_s;
+## with traffic.cut_in.margin_s more to react, the player then brakes with traffic.cut_in.brake_fraction of his
+## full braking (ctx.brake_mps2 – weather!) and stops closing in traffic.cut_in.margin_m behind it.
+func cut_in_floor_m(rel_mps: float, lead_s: float = 0.0) -> float:
+	if rel_mps <= 0.0:
+		return _cut_margin
+	var a := maxf(0.5, player_brake_mps2 * _cut_brake_frac)
+	return rel_mps * (maxf(lead_s, 0.0) + _cut_intrude + _cut_react) + rel_mps * rel_mps / (2.0 * a) + _cut_margin
 
 
 func _lane_usable(c: Car, lane: int) -> bool:
@@ -607,9 +966,11 @@ func _idm_free(c: Car, v0_kmh: float, a_max: float) -> float:
 	return -minf(_comfort, 0.4 * (v - vd) + 0.2)
 
 
+## IDM interaction term. Minimum gap and time gap of the current weather (traffic.weather.<w>: longer in rain
+## and snow).
 func _idm_interaction(c: Car, a_max: float, v_lead: float, gap: float) -> float:
 	var v := c.speed / 3.6
-	var s_star := _min_gap + maxf(0.0, v * _follow_time + v * (v - v_lead) / (2.0 * sqrt(a_max * _comfort)))
+	var s_star := _eff_gap + maxf(0.0, v * _eff_follow + v * (v - v_lead) / (2.0 * sqrt(a_max * _comfort)))
 	return -a_max * pow(s_star / maxf(gap, 0.5), 2.0)
 
 
@@ -635,16 +996,23 @@ func _right_of_main(c: Car) -> bool:
 # --- Track geometry cache -------------------------------------------------------------------
 # The track is static, but its queries are not free. Everything the traffic needs is sampled every
 # TQ_BUCKET metres once: [lane_count, centre of lane 0, fuel lane open, fuel lane centre, road type,
-# City Limits, traffic factor]. Buckets far behind the player are dropped.
+# City Limits, traffic factor, speed limit (0 = none)]. Buckets far behind the player are dropped.
 
 func _tq_bucket(b: int) -> Array:
 	var e: Variant = _tq_cache.get(b, null)
 	if e == null:
 		var z := float(b) * TQ_BUCKET
+		var limit := int(track.speed_limit_at(z)) if track.has_method("speed_limit_at") else 0
 		e = [int(track.lane_count_at(z)), float(track.lane_center_x(z, 0)), bool(track.fuel_lane_at(z)),
-			float(track.fuel_lane_x(z)), str(track.road_type_at(z)), bool(track.is_city_at(z)), float(track.traffic_factor_at(z))]
+			float(track.fuel_lane_x(z)), str(track.road_type_at(z)), bool(track.is_city_at(z)),
+			float(track.traffic_factor_at(z)), limit]
 		_tq_cache[b] = e
 	return e
+
+
+## Speed limit at z (km/h, 0 = none) from the geometry cache.
+func _t_limit(z: float) -> int:
+	return int(_tq(z)[7])
 
 
 func _tq(z: float) -> Array:
@@ -757,12 +1125,13 @@ func _follower(c: Car, lane: int) -> Car:
 
 
 ## Distance (m) to where `lane` ends ahead of c (lane drop or end of the fuel lane), INF if not in sight.
-func _lane_end_distance(c: Car, lane: int) -> float:
+## extra_s: look that many seconds further (the decision to leave signals first, traffic.blink.mandatory_lead_s).
+func _lane_end_distance(c: Car, lane: int, extra_s: float = 0.0) -> float:
 	var look: float
 	if lane == FUEL_LANE:
-		look = 25.0 + c.speed / 3.6 * 1.5
+		look = 25.0 + c.speed / 3.6 * (1.5 + extra_s)
 	else:
-		look = 60.0 + c.speed / 3.6 * _merge_look_s
+		look = 60.0 + c.speed / 3.6 * (_merge_look_s + extra_s)
 	var last_ok := 0.0
 	for d: float in PROBES:
 		if d > look:
@@ -860,22 +1229,29 @@ func _resolve_overlaps() -> void:
 
 # --- Spawning and despawning ----------------------------------------------------------------
 
-func _cruise_value(road: String, heavy: bool, frac: float) -> float:
-	var r: Variant = (_truck_speeds if heavy else _speeds).get(road, null)
-	var lo := 100.0
-	var hi := 130.0
-	if r is Array and (r as Array).size() >= 2:
-		lo = float(r[0])
-		hi = float(r[1])
-	return lerpf(lo, hi, frac) * speed_factor(_hour)
-
-
 func _is_heavy(road: String, roll: float) -> bool:
 	if heavy_sets.is_empty():
 		return false
 	if car_sets.is_empty():
 		return true
 	return roll < float(_truck_share.get(road, 0.1))
+
+
+## Sprite set and class [set_id, cls] (0 car, 1 truck, 2 bus) of a new vehicle: heavy vehicles are buses with
+## traffic.bus_share (when there are bus sets), the rest of the roll picks the colour.
+func _pick_set(heavy: bool, set_roll: float) -> Array:
+	if not heavy:
+		if car_sets.is_empty():
+			return ["", 0]
+		return [car_sets[mini(int(set_roll * car_sets.size()), car_sets.size() - 1)], 0]
+	var bus := not _bus_sets.is_empty() and (_truck_sets.is_empty() or set_roll < _bus_share)
+	var r := set_roll
+	if not _bus_sets.is_empty() and not _truck_sets.is_empty():
+		r = set_roll / maxf(_bus_share, 0.0001) if bus else (set_roll - _bus_share) / maxf(0.0001, 1.0 - _bus_share)
+	var sets := _bus_sets if bus else _truck_sets
+	if sets.is_empty():
+		return ["", 1]
+	return [sets[mini(int(clampf(r, 0.0, 0.9999) * sets.size()), sets.size() - 1)], 2 if bus else 1]
 
 
 func _dims_for(set_id: String, heavy: bool) -> Vector3:
@@ -898,37 +1274,26 @@ func _dims_for(set_id: String, heavy: bool) -> Vector3:
 	return Vector3(4.5, 1.8, 1.5)
 
 
-## Lanes to try for a new car, preferred first (trucks: right lanes only).
-func _lane_order(road: String, lanes: int, heavy: bool, roll: float) -> Array[int]:
+## Lanes to try for a new vehicle, preferred first. Heavy vehicles: the right lane (on 3+ lanes some are just
+## overtaking in the second lane from the right: trucks 15 %, buses 30 %). Cars by speed – fast ones left, slow
+## ones right: (1 - frac) * (lanes - 1) ± traffic.lane_speed_spread / 2 (roll), then the others, nearest first.
+func _lane_order(lanes: int, cls: int, roll: float, frac: float) -> Array[int]:
 	var order: Array[int] = []
-	if heavy:
-		# trucks: rightmost lane; on wider roads some are just overtaking in the second lane from the right
-		order.append(lanes - 2 if lanes >= 3 and roll < 0.15 else lanes - 1)
+	if cls != 0:
+		order.append(lanes - 2 if lanes >= 3 and roll < (0.3 if cls == 2 else 0.15) else lanes - 1)
 		return order
-	var w: Variant = _lane_weights.get(road, [])
-	var weights: Array[float] = []
-	var total := 0.0
-	for i in lanes:
-		var wi := 1.0
-		if w is Array and not (w as Array).is_empty():
-			wi = maxf(0.0, float(w[mini(i, (w as Array).size() - 1)]))
-		weights.append(wi)
-		total += wi
 	var pick := lanes - 1
-	var r := roll * total
-	var acc := 0.0
-	for i in lanes:
-		acc += weights[i]
-		if r < acc:
-			pick = i
-			break
+	if lanes > 1:
+		pick = clampi(int(roundf((1.0 - frac) * float(lanes - 1) + (roll - 0.5) * _lane_spread)), 0, lanes - 1)
 	order.append(pick)
-	for i in range(lanes - 1, -1, -1):
-		if i != pick:
-			order.append(i)
+	for d in range(1, lanes):
+		for l: int in [pick + d, pick - d]:
+			if l >= 0 and l < lanes:
+				order.append(l)
 	return order
 
 
+## Traffic at the start (during the countdown): the managed window ahead, singles and clusters.
 func _initial_fill() -> void:
 	var p := player_obstacle
 	var z0 := p.z + 60.0
@@ -937,9 +1302,21 @@ func _initial_fill() -> void:
 		return
 	var share := (z1 - z0) / maxf(1.0, _spawn_ahead + _despawn_behind)
 	var n := int(roundf(target_count * share))
+	var made := 0
 	for i in n:
+		if made >= n:
+			break
 		var z := z0 + (z1 - z0) * (float(i) + rng.randf()) / float(n)
-		_try_spawn(z, rng.randf(), rng.randf(), rng.randf(), rng.randf(), false)
+		var road := _t_road(z)
+		if z + 260.0 < z1 and n - made >= 2 and rng.randf() < float(_cluster_chance.get(road, 0.0)):
+			var followers := rng.randi_range(_cluster_followers.x, maxi(_cluster_followers.x, _cluster_followers.y))
+			var size := mini(n - made, 1 + followers)
+			var k := _spawn_cluster(z, road, size)
+			if k > 0:
+				made += k
+				continue
+		if _try_spawn(z, rng.randf(), rng.randf(), rng.randf(), rng.randf(), false) != null:
+			made += 1
 
 
 func _spawn(cam_z: float, vis: float) -> void:
@@ -961,66 +1338,182 @@ func _spawn(cam_z: float, vis: float) -> void:
 	# a car that would overtake the player comes from behind (out of sight), all others appear ahead
 	if z_behind > 0.0:
 		var road_b := _t_road(z_behind)
-		if _cruise_value(road_b, _is_heavy(road_b, heavy_roll), frac) > p.speed + 8.0:
+		var cls_b := int(_pick_set(_is_heavy(road_b, heavy_roll), set_roll)[1])
+		if cruise_speed_for(road_b, cls_b, frac, _t_limit(z_behind)) > p.speed + 8.0:
 			_try_spawn(z_behind, frac, heavy_roll, lane_roll, set_roll, true)
 			return
 	if z_ahead < float(track.length_z) - 30.0:
+		var road := _t_road(z_ahead)
+		if _pending == 0:
+			# the next group: a single vehicle, or with traffic.cluster.chance a cluster of 1 + followers
+			_pending = 1
+			if rng.randf() < float(_cluster_chance.get(road, 0.0)):
+				_pending = 1 + rng.randi_range(_cluster_followers.x, maxi(_cluster_followers.x, _cluster_followers.y))
+		# a cluster waits until the window misses that many vehicles: an empty stretch, then the group – the
+		# average density stays the same
+		var n := mini(_pending, maxi(1, wanted_count()))
+		if wanted_count() - cars.size() < n:
+			return
+		_pending = 0
+		if n >= 2 and _spawn_cluster(z_ahead, road, n) > 0:
+			return
 		_try_spawn(z_ahead, frac, heavy_roll, lane_roll, set_roll, false)
 
 
-func _try_spawn(z: float, frac: float, heavy_roll: float, lane_roll: float, set_roll: float, behind: bool) -> bool:
+## One new vehicle at z (lane by class and speed, see _lane_order) or null when there is no room.
+func _try_spawn(z: float, frac: float, heavy_roll: float, lane_roll: float, set_roll: float, behind: bool) -> Car:
 	var road := _t_road(z)
-	var heavy := _is_heavy(road, heavy_roll)
-	var sets := heavy_sets if heavy else car_sets
-	if sets.is_empty():
-		return false
-	var set_id := sets[mini(int(set_roll * sets.size()), sets.size() - 1)]
-	var dims := _dims_for(set_id, heavy)
+	var pick := _pick_set(_is_heavy(road, heavy_roll), set_roll)
+	var set_id := str(pick[0])
+	if set_id == "":
+		return null
+	var cls := int(pick[1])
 	var lanes := maxi(1, _t_lanes(z))
-	var cruise := _cruise_value(road, heavy, frac)
-	for lane in _lane_order(road, lanes, heavy, lane_roll):
+	var cruise := cruise_speed_for(road, cls, frac, _t_limit(z))
+	for lane in _lane_order(lanes, cls, lane_roll, frac):
 		if behind and _occupies(player_obstacle, lane):
 			continue
 		var speed := cruise
-		if not _space_free(z, lane, dims.x, speed):
-			continue
 		if not behind:
 			# do not appear faster than a slow car right ahead in the same lane
 			for o in cars:
 				if o.z > z and o.z - z < 220.0 and _occupies(o, lane):
 					speed = minf(speed, o.speed)
-		if lane < lanes - 1 and _side_decision(z, lane, cruise, heavy, road).x < 0.0:
+		if lane < lanes - 1 and cls == 0 and _side_decision(z, lane, cruise, cls, road).x < 0.0:
 			continue   # would have to yield to an about equally fast car on its right at once
-		var c := Car.new()
-		c.id = _next_id
-		_next_id += 1
-		c.z = z
-		c.lane = lane
-		c.x = _lane_x(z, lane)
-		c.speed_frac = frac
-		c.cruise_speed = cruise
-		c.speed = speed
-		c.set_id = set_id
-		c.length = dims.x
-		c.width = dims.y
-		c.height = dims.z
-		c.heavy = heavy
-		c.from_behind = behind
-		c.lane_timer = _lc_interval
-		_update_occ(c)
-		cars.append(c)
-		spawned_total += 1
-		return true
-	return false
+		var c := _place(z, lane, frac, set_id, cls, speed, behind)
+		if c != null:
+			return c
+	return null
 
 
+## Creates a vehicle at (z, lane) when the lane has room there (_space_free); null otherwise. A heavy vehicle left
+## of the right lane is overtaking (elephant_t = 0).
+func _place(z: float, lane: int, frac: float, set_id: String, cls: int, speed: float, behind: bool) -> Car:
+	var dims := _dims_for(set_id, cls != 0)
+	if not _space_free(z, lane, dims.x, speed):
+		return null
+	var c := Car.new()
+	c.id = _next_id
+	_next_id += 1
+	c.z = z
+	c.lane = lane
+	c.x = _lane_x(z, lane)
+	c.speed_frac = frac
+	c.cruise_speed = cruise_speed_for(_t_road(z), cls, frac, _t_limit(z))
+	c.speed = speed
+	c.set_id = set_id
+	c.length = dims.x
+	c.width = dims.y
+	c.height = dims.z
+	c.heavy = cls != 0
+	c.bus = cls == 2
+	c.from_behind = behind
+	c.lane_timer = _lc_interval
+	if c.heavy and lane < maxi(1, _t_lanes(z)) - 1:
+		c.elephant_t = 0.0
+	_update_occ(c)
+	cars.append(c)
+	spawned_total += 1
+	return c
+
+
+## A cluster of n new vehicles beyond the view, its rear end at z (traffic.cluster): on roads with
+## traffic.elephant.min_lanes+ lanes with traffic.cluster.elephant_share an Elefantenrennen (a truck overtaking a
+## slower one, cars held up behind both), else a platoon (a slow leader – truck, bus or slow car – with the other
+## cars held up behind it). Returns the number of vehicles placed.
+func _spawn_cluster(z: float, road: String, n: int) -> int:
+	var lanes := maxi(1, _t_lanes(z))
+	if n >= 2 and not _truck_sets.is_empty() and road != "city" and lanes >= maxi(2, _el_min_lanes) \
+			and rng.randf() < _cluster_elephant:
+		var k := _spawn_elephant(z, road, lanes, n)
+		if k > 0:
+			return k
+	return _spawn_platoon(z, road, n)
+
+
+## Gap (m, bumper to bumper) of a follower in a cluster at speed v_kmh: traffic.cluster.gap_factor × the IDM
+## equilibrium gap of the weather.
+func _cluster_gap_m(v_kmh: float) -> float:
+	return (_eff_gap + v_kmh / 3.6 * _eff_follow) * rng.randf_range(_cluster_gap.x, maxf(_cluster_gap.x, _cluster_gap.y))
+
+
+## Cars queued behind `lead` in its lane (n of them, each wanting to go faster, all at its speed). They stay in the
+## queue for traffic.cluster.patience_s before they try to overtake – so the player meets the platoon.
+func _queue_behind(lead: Car, n: int, road: String) -> int:
+	var made := 0
+	var prev := lead
+	for i in n:
+		var pick := _pick_set(false, rng.randf())
+		if str(pick[0]) == "":
+			break
+		var frac := rng.randf_range(0.35, 1.0)
+		var dims := _dims_for(str(pick[0]), false)
+		var zf := prev.z - (prev.length + dims.x) * 0.5 - _cluster_gap_m(lead.speed)
+		var v := minf(lead.speed, cruise_speed_for(road, 0, frac, _t_limit(zf)))
+		var c := _place(zf, lead.lane, frac, str(pick[0]), 0, v, false)
+		if c == null:
+			break
+		c.lane_cooldown = rng.randf_range(_cluster_patience.x, maxf(_cluster_patience.x, _cluster_patience.y))
+		made += 1
+		prev = c
+	return made
+
+
+## Platoon of n: a slow leader (heavy with 2.5 × the truck share of the road, else a slow car) and n - 1 cars
+## behind it.
+func _spawn_platoon(z: float, road: String, n: int) -> int:
+	var heavy_chance := minf(0.85, float(_truck_share.get(road, 0.1)) * 2.5)
+	var heavy := not heavy_sets.is_empty() and (car_sets.is_empty() or rng.randf() < heavy_chance)
+	var frac := rng.randf() * (1.0 if heavy else 0.45)
+	var v := cruise_speed_for(road, 1 if heavy else 0, frac, _t_limit(z))
+	var length := 17.0
+	for i in n - 1:
+		length += (_eff_gap + v / 3.6 * _eff_follow) * maxf(_cluster_gap.x, _cluster_gap.y) + 5.5
+	var leader := _try_spawn(z + length, frac, 0.0 if heavy else 0.9999, rng.randf(), rng.randf(), false)
+	if leader == null:
+		return 0
+	return 1 + _queue_behind(leader, n - 1, road)
+
+
+## Elefantenrennen of n vehicles: a slow truck in the right lane, a faster one overtaking it in the lane to its left
+## (already some seconds into it), the other n - 2 cars queued behind them.
+func _spawn_elephant(z: float, road: String, lanes: int, n: int) -> int:
+	var right := lanes - 1
+	var left := lanes - 2
+	var limit := _t_limit(z)
+	var fa := rng.randf_range(0.0, 0.45)
+	var fb := minf(1.0, fa + rng.randf_range(0.35, 0.6))
+	var va := cruise_speed_for(road, 1, fa, limit)
+	var vb := cruise_speed_for(road, 1, fb, limit)
+	if vb - va < _el_min_kmh * _w_heavy:
+		return 0   # a speed limit flattened the truck range
+	var n_left := rng.randi_range(0, maxi(0, n - 2))
+	var n_right := maxi(0, n - 2 - n_left)
+	var off := rng.randf_range(0.0, 12.0)   # centre of the overtaking truck behind the centre of the other one
+	var room := (_eff_gap + va / 3.6 * _eff_follow) * maxf(_cluster_gap.x, _cluster_gap.y) + 5.5
+	var za := z + 9.0 + off + room * float(maxi(n_left, n_right))
+	var sa := _pick_set(true, _bus_share + rng.randf() * (1.0 - _bus_share))
+	var sb := _pick_set(true, _bus_share + rng.randf() * (1.0 - _bus_share))
+	var a := _place(za, right, fa, str(sa[0]), int(sa[1]), va, false)
+	if a == null:
+		return 0
+	var b := _place(za - off, left, fb, str(sb[0]), int(sb[1]), vb, false)
+	if b == null:
+		return 1
+	b.elephant_t = rng.randf_range(0.0, _el_max_s * 0.4)
+	return 2 + _queue_behind(b, n_left, road) + _queue_behind(a, n_right, road)
+
+
+## True when (z, lane) has room for a new vehicle of this length and speed: the IDM gap of the weather (at least
+## traffic.spawn_min_gap_m) plus 4 s of any speed difference to the vehicles ahead and behind in that lane.
 func _space_free(z: float, lane: int, length: float, speed: float) -> bool:
 	for i in cars.size() + 1:
 		var o := cars[i] if i < cars.size() else player_obstacle
 		if not _occupies(o, lane):
 			continue
 		var dz := o.z - z
-		var need := (o.length + length) * 0.5 + maxf(_spawn_min_gap, _min_gap + maxf(speed, o.speed) / 3.6 * _follow_time)
+		var need := (o.length + length) * 0.5 + maxf(_spawn_min_gap, _eff_gap + maxf(speed, o.speed) / 3.6 * _eff_follow)
 		if dz > 0.0 and speed > o.speed:
 			need += (speed - o.speed) / 3.6 * 4.0
 		elif dz < 0.0 and o.speed > speed:

@@ -14,9 +14,16 @@ extends RefCounted
 ##    the slowest car (230) still reaches the 220 km/h police escape speed in "slightly worse conditions"
 ##    (rain + night on normal hilly roads up to hills level 2, i.e. <= 4.5 %); downhill never raises it
 ##  * steering: lateral speed from the agility rating, ramps up with speed, smoothed response
+##  * weather (road "grip" g: tyre grip of the surface, driving.weather_grip_factor, dry 1.0 inside tunnels)
+##    limits every control, each with its own sensitivity (driving.grip_effects, docs/gameplay.md "Wetter"):
+##    curves use the curve grip g^curve_exp, braking driving.brake_decel_kmh_s · g^brake_exp (snow about half),
+##    acceleration at most traction_mps2 · g^traction_exp (snow: traction-limited at low speed), steering
+##    builds the lateral speed with the response time steer_response_s / g^steer_response_exp and keeps sliding
+##    after the input ends (counter-steering stops it sooner), up to steer_mps · g^steer_speed_exp. Never
+##    oversteer or spin
 ##  * no oversteer, no spin: too fast in a curve -> understeer. The curve needs the lateral acceleration
 ##    a_req = v^2 / R (R = road.curve_radius_at_1_m / |curve|), the tyres give a_grip = lat_grip (agility)
-##    * grip (weather). Below that limit the car follows the road without any drift. Above it the excess
+##    * curve grip (weather). Below that limit the car follows the road without any drift. Above it the excess
 ##    a_ex = a_req - a_grip accelerates an outward drift (push_speed, driving.understeer.push_gain * a_ex),
 ##    steering towards the inside loses effect with the excess (saturated front tyres: counter-steering
 ##    helps when slightly too fast, not when clearly too fast) and the sliding tyres scrub speed
@@ -100,6 +107,12 @@ var _grass_max := 40.0
 var _grass_decel := 60.0
 var _auto_steer := 3.0
 var _radius_at_1 := 120.0
+var _g_curve_exp := 1.0
+var _g_brake_exp := 0.0
+var _g_traction := 0.0           ## traction limit on a dry road (m/s², 0 = none)
+var _g_traction_exp := 1.0
+var _g_resp_exp := 0.0
+var _g_speed_exp := 0.0
 var _c_target := 10.0
 var _c_slow := 3.0
 var _c_extra := 0.4
@@ -198,6 +211,12 @@ func _read_config() -> void:
 	_grass_decel = _f("driving.grass.decel_kmh_s", 60.0)
 	_auto_steer = _f("driving.auto_steer_mps", 3.0)
 	_radius_at_1 = _f("road.curve_radius_at_1_m", 120.0)
+	_g_curve_exp = maxf(0.0, _f("driving.grip_effects.curve_exp", 1.0))
+	_g_brake_exp = maxf(0.0, _f("driving.grip_effects.brake_exp", 0.0))
+	_g_traction = maxf(0.0, _f("driving.grip_effects.traction_mps2", 0.0))
+	_g_traction_exp = maxf(0.0, _f("driving.grip_effects.traction_exp", 1.0))
+	_g_resp_exp = maxf(0.0, _f("driving.grip_effects.steer_response_exp", 0.0))
+	_g_speed_exp = maxf(0.0, _f("driving.grip_effects.steer_speed_exp", 0.0))
 	_c_target = _f("collision.target_speed_kmh", 10.0)
 	_c_slow = maxf(0.05, _f("collision.slowdown_s", 3.0))
 	_c_extra = maxf(0.0, _f("collision.push_extra_s", 0.4))
@@ -294,11 +313,33 @@ static func top_speed_time(vtop: float, a0: float, q: float) -> float:
 	return vtop / (a0 * q)
 
 
-## Speed after t seconds of full throttle starting at v, with top speed vtop (this vehicle's curve).
-func accelerate(v: float, vtop: float, t: float) -> float:
+## Speed after t seconds of full throttle starting at v, with top speed vtop (this vehicle's curve). trac_kmh_s
+## = traction limit of the road (km/h per s, traction_mps2(grip) · 3.6; INF = none): below the speed where the
+## curve's acceleration drops to it (traction_crossover) the car gains exactly trac_kmh_s – integrated exactly.
+func accelerate(v: float, vtop: float, t: float, trac_kmh_s: float = INF) -> float:
 	if v >= vtop:
 		return v
+	if trac_kmh_s < INF:
+		if trac_kmh_s <= 0.0:
+			return v
+		var vc := traction_crossover(vtop, trac_kmh_s)
+		if v < vc:
+			var tc := (vc - v) / trac_kmh_s
+			if t <= tc:
+				return v + trac_kmh_s * t
+			v = vc
+			t -= tc
 	return curve_speed(curve_time(v, vtop, accel_a0, accel_q) + t, vtop, accel_a0, accel_q)
+
+
+## Speed (km/h) below which a traction limit of trac_kmh_s caps this car's acceleration curve (top speed vtop):
+## where a0 · (1 - v/vtop)^(1-q) = trac_kmh_s. 0 when the curve never exceeds the limit.
+func traction_crossover(vtop: float, trac_kmh_s: float) -> float:
+	if trac_kmh_s >= accel_a0:
+		return 0.0
+	if accel_q >= 0.999:
+		return vtop
+	return vtop * (1.0 - pow(maxf(trac_kmh_s, 0.0) / accel_a0, 1.0 / (1.0 - accel_q)))
 
 
 ## Seconds of full throttle from v_from to v_to on a flat road (top speed vtop, default = vmax_kmh).
@@ -334,20 +375,24 @@ func update(dt: float, input: Dictionary, road: Dictionary, env: Dictionary) -> 
 func _update_driving(dt: float, input: Dictionary, road: Dictionary) -> void:
 	var throttle := clampf(float(input.get("throttle", 0.0)), 0.0, 1.0)
 	var brake := clampf(float(input.get("brake", 0.0)), 0.0, 1.0)
+	var g := float(road.get("grip", 1.0))
 	braking = brake > 0.05
 	if braking:
-		speed = maxf(0.0, speed - _brake_decel * brake * dt)
+		speed = maxf(0.0, speed - brake_decel_mps2(g) * 3.6 * brake * dt)
 	elif speed > vmax_effective:
 		# above the current maximum (uphill, weather, after a bonus): settle down to it
 		speed = maxf(vmax_effective, speed - maxf(_over_decel, _coast_decel) * dt)
 	elif throttle > 0.0:
-		speed = accelerate(speed, vmax_effective, dt * throttle)
+		speed = accelerate(speed, vmax_effective, dt * throttle, traction_mps2(g) * 3.6)
 	else:
 		speed = maxf(0.0, speed - _coast_decel * dt)
 	_steer(dt, float(input.get("steer", 0.0)), road)
 
 
 ## Lateral movement: steering (ramped with speed, smoothed) plus the understeer drift in curves.
+## Grip (docs/gameplay.md "Wetter"): on a slippery road the lateral speed follows the steering more slowly
+## (steer_response_s(grip)) – it builds up late and keeps sliding once the input ends, steering the other way
+## (counter-steer) stops it sooner – and reaches at most steer_speed_mps(grip).
 ## Understeer (docs/gameplay.md "Untersteuern"): the excess lateral acceleration a_ex = v²/R − a_grip
 ## accelerates the outward drift push_speed (push_gain · a_ex; + curve = right bend -> outside = left),
 ## steering towards the inside of the bend keeps max(min_steer_factor, 1 − steer_loss_per_excess · a_ex/a_grip)
@@ -358,7 +403,8 @@ func _update_driving(dt: float, input: Dictionary, road: Dictionary) -> void:
 func _steer(dt: float, steer_input: float, road: Dictionary) -> void:
 	var steer := clampf(steer_input, -1.0, 1.0)
 	var curve := float(road.get("curve", 0.0))
-	var grip := float(road.get("grip", 1.0)) * (_sh_grip if off_road >= 1 else 1.0)
+	var g_road := float(road.get("grip", 1.0))
+	var grip := g_road * (_sh_grip if off_road >= 1 else 1.0)
 	var a_grip := grip_accel(grip)
 	lat_excess = lateral_excess(curve, grip, speed)
 	var ratio := lat_excess / a_grip
@@ -368,8 +414,8 @@ func _steer(dt: float, steer_input: float, road: Dictionary) -> void:
 	if ratio > 0.0 and steer * curve > 0.0:
 		steer_factor = maxf(_us_min, 1.0 - ratio * _us_loss)
 	var ramp := clampf(speed / _steer_full, 0.0, 1.0)
-	var target := steer * _steer_mps * ramp * steer_factor
-	lat_speed = lerpf(lat_speed, target, 1.0 - exp(-dt / _steer_tau))
+	var target := steer * steer_speed_mps(g_road) * ramp * steer_factor
+	lat_speed = lerpf(lat_speed, target, 1.0 - exp(-dt / steer_response_s(g_road)))
 	var dx := lat_speed * dt
 	if lat_excess > 0.0:
 		var a := -signf(curve) * _us_gain * lat_excess
@@ -417,7 +463,8 @@ func _update_auto(dt: float, input: Dictionary, road: Dictionary) -> void:
 	if is_nan(_auto_steer_x):
 		# the player still steers – and may brake harder than the scripted rate (an empty tank or a police
 		# stop does not disable the brakes: rolling out at 245 km/h towards a sharp curve, braking avoids the slide)
-		rate = maxf(rate, clampf(float(input.get("brake", 0.0)), 0.0, 1.0) * _brake_decel)
+		var full := brake_decel_mps2(float(road.get("grip", 1.0))) * 3.6
+		rate = maxf(rate, clampf(float(input.get("brake", 0.0)), 0.0, 1.0) * full)
 	speed = maxf(0.0, move_toward(speed, _auto_target, rate * dt))
 	if not is_nan(_auto_steer_x):
 		x = move_toward(x, _auto_steer_x, _auto_steer * dt)
@@ -548,13 +595,13 @@ func is_controllable() -> bool:
 
 
 ## Speed (km/h) above which the car understeers in a curve of the given strength (-1..1).
-## Lateral acceleration limit = lat_grip (agility) * grip (weather); radius = road.curve_radius_at_1_m / |curve|.
+## Lateral acceleration limit = lat_grip (agility) * curve_grip(grip); radius = road.curve_radius_at_1_m / |curve|.
 func safe_curve_speed(curve: float, grip: float = 1.0) -> float:
 	var c := absf(curve)
 	if c < 0.0001:
 		return INF
 	var radius := _radius_at_1 / c
-	return sqrt(maxf(0.0, _lat_grip * grip * radius)) * 3.6
+	return sqrt(maxf(0.0, _lat_grip * curve_grip(grip) * radius)) * 3.6
 
 
 ## Speed factor of a guardrail hit: a touch (steering, scraping) keeps driving.guardrail.speed_factor_per_hit;
@@ -565,9 +612,45 @@ func rail_hit_factor(drift_mps: float) -> float:
 	return clampf(f, minf(_rail_min, _rail_factor), _rail_factor)
 
 
-## Lateral acceleration (m/s²) the tyres can give: lat_grip of the agility rating * grip of the weather.
+## Lateral acceleration (m/s²) the tyres can give in a curve: lat_grip of the agility rating * curve_grip(grip).
 func grip_accel(grip: float = 1.0) -> float:
-	return maxf(0.01, _lat_grip * grip)
+	return maxf(0.01, _lat_grip * curve_grip(grip))
+
+
+# --- Grip effects (docs/gameplay.md "Wetter"). One tyre grip g per surface: the weather
+# --- (driving.weather_grip_factor; dry 1.0 inside tunnels, Track.grip_at), for the curve limit also times
+# --- driving.shoulder.grip_factor on the loose shoulder. Every control has its own sensitivity
+# --- (driving.grip_effects); g = 1 (dry) changes nothing.
+
+## Share of the dry curve grip (lat_grip) left at tyre grip g: g^curve_exp (snow 0.45 -> 0.55, rain 0.75 -> 0.81).
+## Arcade: the dry curve limit is already low, so it falls less than the grip itself.
+func curve_grip(grip: float) -> float:
+	return pow(clampf(grip, 0.0001, 1.0), _g_curve_exp)
+
+
+## Full braking (m/s²) at tyre grip g: driving.brake_decel_kmh_s · g^brake_exp (snow about half, rain ~80 %).
+func brake_decel_mps2(grip: float = 1.0) -> float:
+	return _brake_decel / 3.6 * pow(clampf(grip, 0.0001, 1.0), _g_brake_exp)
+
+
+## Traction limit of the acceleration (m/s²) at tyre grip g: traction_mps2 · g^traction_exp (INF without a limit).
+## Above every car's standstill acceleration in the dry; in snow it caps the start (0–100 km/h) of every car.
+func traction_mps2(grip: float = 1.0) -> float:
+	if _g_traction <= 0.0:
+		return INF
+	return _g_traction * pow(clampf(grip, 0.0001, 1.0), _g_traction_exp)
+
+
+## Response time (s) of the lateral speed to the steering at tyre grip g: driving.steer_response_s / g^exp.
+## Also the time constant of the slide once the input ends (left-over drift ≈ lateral speed · response time).
+func steer_response_s(grip: float = 1.0) -> float:
+	return _steer_tau / pow(clampf(grip, 0.0001, 1.0), _g_resp_exp)
+
+
+## Highest lateral speed (m/s) from steering at tyre grip g (at or above driving.steer_full_speed_kmh):
+## steer_mps of the agility rating · g^steer_speed_exp.
+func steer_speed_mps(grip: float = 1.0) -> float:
+	return _steer_mps * pow(clampf(grip, 0.0001, 1.0), _g_speed_exp)
 
 
 ## Lateral acceleration (m/s²) a curve needs at speed_kmh beyond what the tyres give (0 at or below the

@@ -166,7 +166,9 @@ static func sweep_drivers(cfg: Dictionary, opts: Dictionary) -> Dictionary:
 					for d: String in drivers:
 						var dr: Dictionary = drivers[d]
 						var res_d: Dictionary = out[d]
-						var prof := player_profile(road, v, grip, env.vmax_factor(hour, weather), float(dr.get("margin", 1.0)), float(dr.get("brake_mps2", 70.0 / 3.6)))
+						# braking at most the full braking of the weather (v0.5.0: rain ~78 %, snow ~half of 70 km/h/s)
+						var brake := minf(float(dr.get("brake_mps2", 70.0 / 3.6)), v.brake_decel_mps2(grip))
+						var prof := player_profile(road, v, grip, env.vmax_factor(hour, weather), float(dr.get("margin", 1.0)), brake)
 						for r: Dictionary in plan.radars:
 							var res := chase(cfg, plan, track, road, prof, cap, r)
 							res_d["total"][key] = int(res_d["total"].get(key, 0)) + 1

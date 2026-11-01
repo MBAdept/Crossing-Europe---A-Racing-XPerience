@@ -47,6 +47,11 @@ const LANDMARK_FLOOD := Color(1.0, 0.86, 0.62)   ## floodlight on plain props us
 const LANDMARK_FLOOD_K := 0.55
 const GROUND_BLEND_M := 150.0          ## outskirts ground blends into the centre ground over these visible m
 const STATS_N := 600
+## Indicators of the traffic (car item "blink" -1/+1, "blink_t" = seconds since it came on; TrafficSystem signals
+## every lane change 1–1.5 s ahead): amber lamp + glow at the rear corner of that side, lit for the first half
+## of each period – about 83 flashes a minute, the first one at once.
+const INDICATOR_PERIOD_S := 0.72
+const INDICATOR_COLOR := Color(1.0, 0.58, 0.06)
 # indices of the cached sprite metadata (_spinfo)
 const SI_TEX := 0
 const SI_PPM := 1
@@ -898,6 +903,23 @@ func _vstrip(a: int, b: int, xa: float, xb: float, h0: float, h1: float, base: C
 ## Horizontal surface at height h between lateral xa0..xa1 (row a) and xb0..xb1 (row b).
 func _hstrip(a: int, b: int, xa0: float, xa1: float, xb0: float, xb1: float, h: float, base: Color) -> void:
 	_gstrip(a, b, xa0, xa1, xb0, xb1, base, h, 1, 0.3)
+
+
+## True while an indicator that came on blink_t seconds ago is lit (first half of each INDICATOR_PERIOD_S).
+static func indicator_lit(blink_t: float) -> bool:
+	return fposmod(maxf(blink_t, 0.0), INDICATOR_PERIOD_S) < INDICATOR_PERIOD_S * 0.5
+
+
+## A lit indicator at pos (screen, rear corner of a vehicle at scale s px/m): a small amber lamp drawn with the
+## vehicle (painter's order) plus an additive glow – bright enough to be seen by day, stronger at night.
+func _indicator(pos: Vector2, s: float, alpha: float, lights: float) -> void:
+	if alpha <= 0.02:
+		return
+	var w := clampf(0.2 * s, 1.6, 30.0)
+	var h := clampf(0.13 * s, 1.2, 20.0)
+	var lamp := INDICATOR_COLOR.lerp(Color(1.0, 0.9, 0.6), 0.35)
+	batch.rect(Rect2(pos.x - w * 0.5, pos.y - h * 0.5, w, h), Color(lamp, alpha))
+	_glow(pos, clampf((0.55 + 0.35 * lights) * s, 3.0, 70.0), Color(INDICATOR_COLOR, (0.75 + 0.2 * lights) * alpha))
 
 
 func _glow(pos: Vector2, r: float, col: Color) -> void:
@@ -2011,6 +2033,9 @@ func _draw_car(k: int, f: float, it: Dictionary, p: Vector3, alpha: float, light
 		var bc := Color(0.25, 0.45, 1.0, 0.7 * alpha) if beacon == "a" else Color(0.35, 0.55, 1.0, 0.45 * alpha)
 		var bx := p.x + (-0.25 if beacon == "a" else 0.25) * s + 2.2 * sin(yaw) * s
 		_glow(Vector2(bx, p.y - (ch + 0.1) * s), maxf(3.0, (1.2 + lights) * s), bc)
+	var blink := int(it.get("blink", 0))
+	if blink != 0 and indicator_lit(float(it.get("blink_t", 0.0))):
+		_indicator(Vector2(p.x + float(blink) * cw * 0.47 * cos(yaw) * s, p.y - ch * 0.42 * s), s, alpha, lights)
 	# spray in the rain
 	var spd := float(it.get("speed", 100.0))
 	if _wet > 0.0 and not _segs[k].tunnel and spd > 40.0:
@@ -2311,6 +2336,12 @@ func _draw_box_item(it: Dictionary) -> void:
 		batch.commands += 1
 	if not _box.rear_drawn:
 		return
+	var blink := int(car.get("blink", 0))
+	if blink != 0 and indicator_lit(float(car.get("blink_t", 0.0))):
+		var br := _box.rear_rect
+		var bs := br.size.x / maxf(obj.x, 0.1)
+		var ix := br.position.x + br.size.x * 0.06 if blink < 0 else br.end.x - br.size.x * 0.06
+		_indicator(Vector2(ix, br.end.y - 0.85 * bs), bs, alpha, lights)
 	var glow_a := clampf(tail * lights * 0.9 + brake * (0.35 + 0.4 * lights), 0.0, 1.0) * alpha
 	if glow_a > 0.03:
 		var rr := _box.rear_rect

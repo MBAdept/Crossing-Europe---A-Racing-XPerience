@@ -81,7 +81,9 @@ func test_g_traffic_density_speed_chase_city() -> void:
 	var ts := TrafficSystem.new()
 	var empty: Array[String] = []
 	ts.setup(c, Fx.FakeTrack.new(), empty, empty, 1)
-	assert_near(ts.speed_factor(0.5) / ts.speed_factor(12.0), 1.15, 0.0001, "nachts +15 %")
+	# design "nachts 15 % schneller" switched off after the v0.4.0 playtest (closing speeds too low): factor 1.0
+	assert_near(ts.speed_factor(0.5) / ts.speed_factor(12.0), float(ConfigLoader.lookup(c, "traffic.night.speed_factor", 1.0)), 0.0001, "Nachtfaktor")
+	assert_true(Sim.density_at(c, 0.5) < Sim.density_at(c, 8.0) * 0.3, "nachts ruhiger")
 
 
 func test_h_acceleration_times() -> void:

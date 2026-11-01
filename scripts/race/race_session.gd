@@ -191,7 +191,8 @@ func _build() -> void:
 	if traffic_enabled:
 		var h0 := Units.hour_of_day(_start_world_minutes)
 		traffic.update(0.0, {"z": pos_z, "x": vehicle.x, "speed": vehicle.speed},
-			{"hour": h0, "chase": false, "camera_z": pos_z - proj.cam_distance, "visibility_m": _visibility_m(h0)})
+			{"hour": h0, "chase": false, "camera_z": pos_z - proj.cam_distance, "visibility_m": _visibility_m(h0),
+			"weather": weather, "brake_mps2": _player_brake_mps2()})
 	_last_country = plan.country_at(pos_km)
 	_was_city = plan.is_city(pos_km)
 	_was_tunnel = plan.in_tunnel(pos_km)
@@ -241,6 +242,12 @@ func _build() -> void:
 	_start_wall_ms = Time.get_ticks_msec()
 
 
+## Full braking (m/s²) of the player's car on the road under it in this weather (TrafficSystem ctx.brake_mps2: no
+## car pulls out in front of the player closer than he can still brake for).
+func _player_brake_mps2() -> float:
+	return vehicle.brake_decel_mps2(track.grip_at(pos_z, env.grip(weather)))
+
+
 ## Current sight distance (m): draw distance reduced by night, weather and tunnels.
 func _visibility_m(hour: float) -> float:
 	return _draw_distance * env.visibility_factor(hour, weather, track.is_tunnel_at(pos_z - proj.cam_distance + 5.0))
@@ -254,7 +261,8 @@ func _warm_up_traffic() -> void:
 	while fake < pos_z:
 		var step := minf(14.0, pos_z - fake)
 		fake += step
-		traffic.update(0.2, {"z": fake, "x": vehicle.x, "speed": 250.0}, {"hour": hour, "chase": false, "camera_z": fake - proj.cam_distance})
+		traffic.update(0.2, {"z": fake, "x": vehicle.x, "speed": 250.0}, {"hour": hour, "chase": false, "camera_z": fake - proj.cam_distance,
+			"weather": weather})
 	for c in traffic.cars:
 		if absf(c.z - pos_z) < 25.0 and absf(c.x - vehicle.x) < 2.5:
 			c.z += 40.0
@@ -474,7 +482,8 @@ func _step(dt: float) -> void:
 	track.update_window(cam_z, _draw_distance + 60.0)
 	if traffic_enabled:
 		traffic.update(dt, {"z": pos_z, "x": vehicle.x, "speed": vehicle.speed},
-			{"hour": hour, "chase": police.chase_active(), "camera_z": cam_z, "visibility_m": _visibility_m(hour)})
+			{"hour": hour, "chase": police.chase_active(), "camera_z": cam_z, "visibility_m": _visibility_m(hour),
+			"weather": weather, "brake_mps2": _player_brake_mps2()})
 		_check_collision(cam_z, vehicle.state == VehicleModel.State.AUTO)
 	var in_lane := track.fuel_lane_at(pos_z) and vehicle.x > track.main_right_edge(pos_z)
 	fuel.update(dt, pos_km, dkm, vehicle.speed, in_lane, float(input.get("throttle", 0.0)))
@@ -565,7 +574,8 @@ func _step_finished(dt: float) -> void:
 	track.update_window(cam_z, _draw_distance + 60.0)
 	if traffic_enabled:
 		traffic.update(dt, {"z": pos_z, "x": vehicle.x, "speed": vehicle.speed},
-			{"hour": clock.hour(), "chase": false, "camera_z": cam_z, "visibility_m": _visibility_m(clock.hour())})
+			{"hour": clock.hour(), "chase": false, "camera_z": cam_z, "visibility_m": _visibility_m(clock.hour()),
+			"weather": weather, "brake_mps2": _player_brake_mps2()})
 		_check_collision(cam_z, true)
 	_finish_timer -= dt
 	if not _result_sent and (_finish_timer <= 0.0 or (vehicle.speed < 1.0 and _finish_timer < 2.0)):
@@ -719,7 +729,8 @@ func _process(delta: float) -> void:
 	if traffic_enabled:
 		for c in traffic.cars:
 			cars.append({"kind": "car", "id": c.id, "set": c.set_id, "z": c.z - c.length * 0.5, "x": c.x, "length": c.length,
-				"tail": lights, "brake": 1.0 if c.braking else 0.0, "speed": c.speed, "heavy": c.heavy})
+				"tail": lights, "brake": 1.0 if c.braking else 0.0, "speed": c.speed, "heavy": c.heavy,
+				"blink": c.signal_dir, "blink_t": c.signal_age})
 	# police car at PoliceSystem.police_car_offset_m() (animated by the gameplay module): it passes the
 	# player one lane beside him and pulls in ahead of him for the stop (SessionRules.police_car_x)
 	var off := police.police_car_offset_m()

@@ -298,6 +298,16 @@ Straßenmitte, Höhe, Tiefe – dieselbe Projektion wie für die Straße).
 
 Polizei: Blaulichtphasen `beacon_a/b` + blaues Leuchten (mit dem Darstellungswinkel versetzt).
 
+**Blinker des Verkehrs** (v0.5.0, gameplay.md „Verkehr als Hindernis“): Jeder Spurwechsel eines Verkehrsautos wird
+1–1,5 s vorher angekündigt (`TrafficSystem.Car.signal_dir`, `signal_age`); die Sitzung gibt jedem Auto im View
+`blink` (−1 links, +1 rechts, 0 aus) und `blink_t` (Sekunden seit dem Einschalten) mit. Der Renderer zeichnet an der
+Heckecke dieser Seite eine kleine bernsteinfarbene Leuchte (mit dem Fahrzeug, im Maleralgorithmus) und darüber ein
+additives Leuchten (`_indicator`), hell genug für den Tag, nachts kräftiger: bei Pkw/Polizei an der Ecke des
+gedrehten Sprites (wie die Rücklicht-Leuchtpunkte), bei Lkw/Bussen an den unteren Ecken der Heckfläche
+(`BoxVehicle.rear_rect`). Takt `INDICATOR_PERIOD_S` = 0,72 s, an in der ersten Hälfte (≈ 83 Mal je Minute, das erste Mal
+sofort, `RoadRenderer.indicator_lit(blink_t)`). Der Blinker bleibt an, solange das Auto auf eine Lücke wartet und
+während es hinüberzieht.
+
 **Testdaten und Bildfolgen**: `tests/fixtures/make_fixtures.py` (Pillow + numpy, kleiner Z-Buffer-Rasterizer) erzeugt
 nach Vertrag einen 17-Winkel-Pkw (`grid_cols` 9, Drehung um das Heck), eine Polizei mit Blaulicht-Ebenen, ein
 21-Winkel-Spielerauto mit der Spielkamera (supersample 1,25) und einen Sattelzug als Quader (Metergitter mit Zahlen auf
@@ -340,7 +350,12 @@ Zonenmeldungen → Tutorial-Hinweise → Ziel.
   Kurven, die Fluchtschwelle sinkt dort entsprechend (gameplay.md „Verfolgung“); das HUD zeigt sie
   („Flucht ab 187 km/h halten!“, HUD-Schlüssel `escape_kmh`).
 - **Haftung**: `road_info` gibt im Tunnel Haftung 1,0 (trockene Fahrbahn unter dem Dach, `Track.grip_at`), sonst die
-  Wetterhaftung – ebenso Autopilot, Tutorial-Kurvenhinweis, Polizei und Sichtprüfung.
+  Wetterhaftung – ebenso Autopilot, Tutorial-Kurvenhinweis, Polizei und Sichtprüfung. Seit v0.5.0 wirkt sie im
+  Fahrmodell auf Kurvengrenze, Bremsen, Traktion und Lenken (gameplay.md „Wetter“).
+- **Verkehr und Wetter** (v0.5.0): `traffic.update` bekommt im Kontext `weather` (Tempo und Abstände des Verkehrs) und
+  `brake_mps2` = `vehicle.brake_decel_mps2(Haftung unter dem Wagen)` (`_player_brake_mps2`): kein Verkehrsauto zieht
+  näher vor dem Spieler heraus, als er mit dieser Bremsleistung noch bremsen könnte (gameplay.md „Verkehr als
+  Hindernis“).
 - **Leitplankentreffer** (`vehicle.rail_hit`): Kamerawackeln von `render.rail_shake_min_s` (0,15 s, Berühren) bis
   `render.rail_shake_max_s` (0,45 s wie ein Unfall) mit der Abdrift, die hineinrutscht (`vehicle.rail_impact` /
   `render.rail_shake_full_mps` 8 m/s), ab `render.rail_flash_min_mps` (2 m/s) zusätzlich ein kurzes orangefarbenes
@@ -392,7 +407,10 @@ Hält eine Spur, wählt die Nachbarspur mit dem besten erreichbaren Tempo (näch
 Hysterese, nur wenn die Spur frei ist), folgt sonst mit Sicherheitsabstand; bremst vorausschauend für Radarfelder
 (Limit + 6 %) und für Autos im Fahrweg; verlässt endende Spuren rechtzeitig. Tanken: entscheidet 14 km vor jeder
 Tankstelle (`auto`: wenn der Sprit nicht bis zur übernächsten Tankstelle/zum Ziel reicht; `always`/`never` per
-`--autopilot-refuel`), fädelt in die Tankspur ein und fährt unter 60 km/h; während des Tankens gibt er kein Gas (sonst
+`--autopilot-refuel`), wechselt ab 700 m davor Spur für Spur nach rechts – jeweils nur in eine freie Lücke wie beim
+Überholen, nie quer über alle Spuren (v0.5.0: im Schnee traf er so ein 95 km/h langsameres Auto in der Mittelspur) –,
+fädelt aus der rechten Spur in die Tankspur ein und fährt unter 60 km/h (wer die rechte Spur nicht rechtzeitig
+erreicht, tankt an der nächsten Tankstelle); während des Tankens gibt er kein Gas (sonst
 bricht das Tanken ab). Rollt der Wagen mit leerem Tank aus (`fuel.rolling_out`), bremst er nur für Kurven – die Bremse
 wirkt dabei (gameplay.md „Automatik“), und Bremsen für die Tankspur würde ihn vor ihr anhalten.
 
@@ -406,6 +424,30 @@ Tunnel trocken); dazu der Punkt unter dem Auto. Pedale
 Leitplanke durch Kurven (gameplay.md (i4)). Debug: `--autopilot-target=<km/h>` (Wunschtempo statt
 `debug.autopilot_target_kmh` 235, z. B. 300 = vmax), `--autopilot-no-curve-brake` (ignoriert Kurven – fährt zu schnell
 hinein und untersteuert, für die Demo des Fahrmodells).
+
+**Wetter und dichter Verkehr** (v0.5.0; der Autopilot fährt Tests, Demos und den Attract-Mode und muss jedes Rennen bei
+jedem Wetter ohne Unfall und ohne Ausflug neben die Fahrbahn schaffen):
+
+- Er plant mit `plan_decel(v, Haftung)` = `brake_decel_mps2` (15 m/s²), aber höchstens `brake_fraction` (75 %) der
+  echten Vollbremsung auf dieser Fahrbahn (`VehicleModel.brake_decel_mps2`: Regen ≈ 11,4, Schnee ≈ 7,3 m/s²) – für
+  Kurven, Radar und Verkehr.
+- Langsamer Verkehr: folgt auf der relativen Bremskurve (`_follow_speed`: Tempo des Vordermanns
+  + √(2 · Planverzögerung · (Abstand − Sicherheitsabstand)), Sicherheitsabstand 12 m + 0,9 s) statt linear – bei
+  Annäherung mit 150 km/h Unterschied im Schnee beginnt er früh genug. Autos im Fahrweg prüft er so weit voraus, wie
+  sein Bremsweg reicht (`_look_m`: 110–320 m).
+- Blinker: ein Auto, das in eine Spur blinkt, zählt dort schon als Hindernis (`_in_lane`, `_car_in_path`) – er bremst
+  oder weicht aus, bevor es herüberzieht.
+- Eigene Spurwechsel nur, wenn die Lücke vorn den Spurwechsel (`_lc_time` = max(1,4; 0,6 + 2 · Ansprechzeit der Lenkung)
+  bei der Annäherung) plus den relativen Bremsweg abdeckt, und erst wenn er wieder in seiner Spur ist.
+- Lenken: PD-Regler auf Querabstand und Quergeschwindigkeit (`steer_to`), Verstärkung aus der Ansprechzeit τ der Lenkung
+  auf dieser Fahrbahn (`VehicleModel.steer_response_s`) und der Quergeschwindigkeit bei vollem Einschlag V: geschlossener
+  Kreis τ·x'' + (1 + V·kd)·x' + V·kp·x = 0 mit ω = min(7; 1,7/τ), Dämpfung 0,85. Trocken ist das die alte
+  P-Lenkung (kp ≈ 0,7); im Schnee lenkt er früh gegen, statt zu pendeln (Test: Spurwechsel bei 200 km/h überschwingt
+  < 0,4 m bei jedem Wetter).
+- `weather_aware = false` (nur Messungen): plant Verkehr, Lücken und Lenken wie auf trockener Straße.
+- Ergebnis: in den Messungen (gameplay.md (j)) und `tests/unit/race/test_autopilot_weather.gd` (dichter Berufsverkehr bei
+  Schnee und Regen, Autobahn, kurvige Landstraße, Autobahn mit Limit) keine Kollision, nie neben der Fahrbahn, kein
+  Untersteuern.
 
 ## 11. Debug-Kommandozeile
 
@@ -488,6 +530,16 @@ xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
 - `xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --audio-driver Dummy -s
   res://tests/race/check_sprite_flip.gd` – prüft mit echtem Renderer, dass Godot gespiegelte Rechtecke an Ort und
   Stelle zeichnet (Grundlage von `flipped_draw_rect`).
+- `tests/unit/race/test_autopilot_weather.gd` (v0.5.0): PD-Lenkung des Autopiloten pendelt bei keinem Wetter
+  (Spurwechsel bei 200 km/h < 0,4 m Überschwingen, nach < 2,5 s in der Spur), Planverzögerung nach Wetter, dichter
+  Berufsverkehr bei Schnee (Gran Turismo, 110 km) und Regen (Kompakt, 80 km) ohne Kollision, Bankett und Untersteuern,
+  zur Tankspur Spur für Spur nur in freie Lücken (`test_fuel_lane_approach_waits_for_a_gap`).
+- `xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --resolution 1280x720 --write-movie
+  /tmp/schnee.avi --fixed-fps 30 --quit-after 1100 -s res://tests/race/movie_snow.gd -- --start-speed=120
+  [--stage=hamburg_bremen --km=26 --hour=7.5 --weather=snow]` – Demofahrt als Video (v0.5.0: Berufsverkehr, fliegender
+  Start mit 120 km/h): Schnee auf der Autobahn, langsamer Verkehr; der Autopilot
+  wählt Tempo und Spur, gelenkt wird wie mit der Tastatur (voller Einschlag, loslassen wie auf trockener Straße) – der
+  Wagen rutscht nach jedem Spurwechsel weiter und wird abgefangen (gameplay.md „Wetter“).
 - `godot --headless --path . -s res://tests/race/run_stage.gd -- --stage=dev_testetappe [--hour=21 --weather=rain
   --timescale=40 --vehicle=… --from=… --autopilot-refuel=always]` – fährt die ganze Etappe so schnell wie möglich
   (~35× Echtzeit) und gibt `ERGEBNIS {…}`, `PERF {…}` und `RUN {…}` aus; Exit-Code 0 = im Ziel.

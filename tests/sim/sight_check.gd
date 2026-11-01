@@ -8,7 +8,7 @@ extends RefCounted
 ## tunnels) and not hidden behind a crest (line of sight from the camera, render.camera_height_m above the road
 ## at the car, render.camera_distance_m behind it, over the visual road heights) – or when a curve warning sign
 ## of the stretch (Track, road.curve_warning_*; its board 2.8 m above the road sticks out over crests) is seen
-## earlier. From there the driver needs a reaction time plus full braking (driving.brake_decel_kmh_s) to be at
+## earlier. From there the driver needs a reaction time plus full braking (of the weather, VehicleModel.brake_decel_mps2) to be at
 ## most `tolerance` (5 %: manageable with counter-steer, docs/gameplay.md (i2)) above the safe speed at every
 ## point of the stretch. margin = distance left over (m), negative = not enough.
 ## Owner: gameplay module (tests only, no autoloads).
@@ -34,7 +34,8 @@ static func check(cfg: Dictionary, plan: StagePlan, opts: Dictionary = {}) -> Di
 	v.setup(cfg, str(opts.get("vehicle", "gran_turismo")))
 	var grip := env.grip(weather)
 	var vtop := v.max_speed(0.0, env.vmax_factor(hour, weather))
-	var brake := float(ConfigLoader.lookup(cfg, "driving.brake_decel_kmh_s", 70.0)) / 3.6
+	# full braking of this weather (v0.5.0: limited by the grip – snow about half, VehicleModel.brake_decel_mps2)
+	var brake := v.brake_decel_mps2(grip)
 	var draw := float(ConfigLoader.lookup(cfg, "render.draw_distance_m", 900.0))
 	var cam_h := float(ConfigLoader.lookup(cfg, "render.camera_height_m", 3.4))
 	var cam_d := float(ConfigLoader.lookup(cfg, "render.camera_distance_m", 9.0))
