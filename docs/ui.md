@@ -52,6 +52,8 @@ schräge Schaltflächen (StyleBoxFlat mit `skew`), Panels mit abgeschrägten Eck
 | `scripts/audio/engine_bank.gd`, `engine_gearbox.gd`, `engine_audio.gd` | Motorklang v2: Zyklusbank laden/prüfen, Getriebe/Drehzahl, Mischkern + Wiedergabe (Abschnitt *Motor*) |
 | `scripts/audio/traffic_audio.gd`, `room_audio.gd` | Verkehrsgeräusche und räumliches Martinshorn (`TrafficAudio`), Raumklang mit Tunnelhall und Motorbreite (`RoomAudio`) (Abschnitt *Verkehrsgeräusche, Martinshorn und Raumklang*) |
 | `tools/audio/render_engine_demo.gd` | Demo-WAV einer Motorbank mit geskripteter Fahrt |
+| `assets/audio/music/title_theme.ogg` | Titelmelodie (Menümusik, Schleife nach dem Intro; Abschnitt *Titelmelodie*) |
+| `tools/audio/music_synth.py`, `music_preview.py` | Titelmelodie offline erzeugen; prüfen (Lautheit, Balance, Harmonik, Schleifennaht) und Vorschau |
 | `tests/unit/ui/*` | Tests: Rennlogik, Formatierung, Laufschrift, Audio-Synthese, Getriebe, Karten-Zoom, Routenoptionen (`test_route_info`), Texte aus der Konfiguration (`test_ui_texts`), Gamepad/Fokus/Spielstand (`test_menu_input`), Eingabegerät/Gamepad-Hinweise/Namenseingabe in den Optionen (`test_steam_deck`), Motor: Bank (`test_engine_bank`), Getriebe (`test_engine_gearbox`), Mischkern (`test_engine_audio`) mit den Testbänken aus `tests/fixtures/engines/`, Verkehrsgeräusche und Raumklang (`test_traffic_audio`) mit den Platzhalterschleifen aus `tests/fixtures/traffic/`, Attract-Modus und Titelbild (`test_attract_mode`); das ganze Spiel mit Demo: `tests/race/check_attract.gd` |
 
 ## Bildschirmablauf
@@ -293,10 +295,11 @@ Debug: `--map-file=<pfad>` lädt eine andere Kartendatei gleichen Formats.
 
 ## Audio
 
-Effekte, Schleifen und Menümusik werden beim Start synthetisiert (`SfxSynth`, ca. 0,2 s; Menümusik im
-Hintergrund-Thread) und als `AudioStreamWAV` abgespielt – funktioniert mit jedem Audiotreiber inkl. `Dummy`; im
-Headless-Betrieb wird nichts abgespielt. Der Motor kommt aus einer Zyklusbank je Auto (Abschnitt *Motor*); Verkehr,
-Martinshorn und Raumklang: Abschnitt *Verkehrsgeräusche, Martinshorn und Raumklang*.
+Effekte und Schleifen werden beim Start synthetisiert (`SfxSynth`, ca. 0,2 s) und als `AudioStreamWAV` abgespielt –
+funktioniert mit jedem Audiotreiber inkl. `Dummy`; im Headless-Betrieb wird nichts abgespielt. Die Menümusik ist die
+Titelmelodie `assets/audio/music/title_theme.ogg` (Abschnitt *Titelmelodie*); fehlt die Datei, wird wie früher eine
+kurze Synthwave-Schleife im Hintergrund-Thread synthetisiert. Der Motor kommt aus einer Zyklusbank je Auto (Abschnitt
+*Motor*); Verkehr, Martinshorn und Raumklang: Abschnitt *Verkehrsgeräusche, Martinshorn und Raumklang*.
 
 - Busse `Master`, `SFX`, `Music` (werden angelegt), Lautstärken aus `Settings` (`apply_volumes()`); dazu `Room` (→ `SFX`,
   Raumklang), `Engine` (→ `Room`, eigener Motor), `TrafficV0` … `TrafficV<n-1>` und `Siren` (→ `Room`, je ein Tiefpass).
@@ -477,6 +480,87 @@ Verkehr hören), `--audio-config=engine_width=0,traffic_db=-3` (Werte für einen
 1,6 s, jede Schleife RMS −15 dBFS). Mit dieser Lautheit ist `traffic_db` = −4 dB eingestellt; haben die echten Schleifen
 eine andere, `traffic_db` um die Differenz anpassen.
 
+### Titelmelodie
+
+Synthwave-Rock im Outrun-Stil, 128 bpm, E-Moll, 3:22,5 min: `assets/audio/music/title_theme.ogg` (Ogg Vorbis q5,
+44,1 kHz Stereo, 3,7 MB), erzeugt offline mit `tools/audio/music_synth.py` (python3 + numpy, ffmpeg nur für die
+Vorbis-Kodierung; deterministisch – zwei Läufe ergeben eine bitgleiche Datei –, ca. 5 min). Das **Intro** (Takt 1–8, 0:00–0:15) läuft einmal, danach die
+**Schleife** (Takt 9–108, 3:07,5 min) ohne Ende: Import-Einstellungen `loop=true`, `loop_offset=15` (die `.import`
+schreibt das Werkzeug mit). Das Intro ist genau 661 500 Samples lang – Godots Sprung an den Schleifenbeginn ist
+sampelgenau (Test `test_title_theme_seam_through_godot_playback`).
+
+- **Abspielen**: `AudioManager.set_music(true)` startet die Titelmelodie von vorn (Intro), `set_music(false)` stoppt
+  sie; weitere `set_music(true)`, während sie läuft, ändern nichts (Bildschirmwechsel, Attract-Mode), `stop_all()` lässt
+  die Musik in Ruhe. Datei aus `audio.music_file`; fehlt sie oder ist sie kein Audiostream, spielt die alte
+  synthetisierte Schleife (`SfxSynth.music_loop`, um `FALLBACK_MUSIC_DB` = +5 dB angehoben, damit sie so laut bleibt
+  wie früher).
+- **Pegel**: gemastert auf −14 LUFS integriert (ITU-R BS.1770-4), True Peak ≤ −1 dBTP auch nach der Vorbis-Kodierung;
+  Music-Bus `audio.music_db` −9 dB (vorher −4 dB mit der alten Schleife von −20 LUFS) – im Mittel rund 1 dB lauter als
+  die alte Menümusik, in den lauten Teilen rund 2,5 dB.
+
+| Zeit | Takte | Abschnitt | Akkorde | Inhalt |
+|---|---|---|---|---|
+| 0:00 | 1–8 | Intro (einmal) | Em Em C C Am Am D B | FM-Glocken spielen das Motiv, Pad, Bass-Drone, Arpeggio öffnet den Filter; ab Takt 5 Hi-Hats, Kick, gedämpfte Gitarren, Snare-Wirbel, Riser; Takt 7–8 Turnaround D–B mit Stabs und Tom-Fill |
+| 0:15 | 9–16 | Thema (Schleifenbeginn) | Em C G D ×2 | Hook auf der Leadgitarre (Synth im Unisono), Rhythmusgitarren im 3-3-2-Akzent, Oktavbass, Four-on-the-floor mit Gated-Snare und Clap |
+| 0:30 | 17–32 | Strophe 1 | Em Em C D ×4 | Palm-Mute-Achtel, Rockbeat, Arpeggio; ab Takt 25 Strophenmelodie (weicher Synth) |
+| 1:00 | 33–40 | Pre-Chorus 1 | Am Am C C D D B B | offene Akkorde, Synth-Brass, steigende Melodie (über B7 in den Refrain), Snare-Wirbel, Riser |
+| 1:15 | 41–48 | Refrain 1 | Em C G D ×2 | Hook auf dem Synth-Lead, Gitarrenwand aus offenen Achteln |
+| 1:30 | 49–56 | Strophe 2 | Em Em C D ×2 | Strophe mit Melodie, Ghost-Hi-Hats |
+| 1:45 | 57–64 | Pre-Chorus 2 | wie Pre-Chorus 1 | |
+| 2:00 | 65–72 | Refrain 2 | Em C G D ×2 | Hook mit Terz-Harmoniestimme |
+| 2:15 | 73–80 | Bridge | C G D Em C G D D | Breakdown: Glocken, Pad, Arpeggio, Puls-Bass; Halftime, Snare-Wirbel |
+| 2:30 | 81–88 | Gitarrensolo | Em C G D Em C D E | Bends, Vibrato, schnelle Läufe; E-Dur und ein Bend auf Fis führen in den Tonartwechsel |
+| 2:45 | 89–104 | Schlussrefrain | F♯m D A E ×4 | Hook einen Ganzton höher (Fis-Moll), Harmoniestimme, Leadgitarre eine Oktave tiefer |
+| 3:15 | 105–108 | Ausklang | F♯m F♯m D B | Schlussakkord mit Tom-Wirbel, dann derselbe Turnaround wie im Intro → zurück zum Thema |
+
+**Hook**: aufsteigender e-Moll-Dreiklang und fallende Linie im 3-3-2-Rhythmus (E–G–H, A–G–Fis), über G wiederholt
+(D–G–H, A–G–A), in Takt 7 bis zum hohen D; im Thema auf der Leadgitarre, in den Refrains auf dem Synth-Lead, im
+Schlussrefrain einen Ganzton höher – der „Gangwechsel“ des Rennspiels.
+
+**Klangerzeugung** (alles numpy, keine Samples): Kick (Sinus mit Tonhöhenhüllkurve, Schlägelklick, Sättigung),
+Snare und Toms mit 80er-Gated-Reverb (dichter Raum, nach 0,25–0,32 s abgeschnitten; Toms auf E–H–E gestimmt), Clap,
+Hi-Hats im 808-Stil (sechs Rechteckschwingungen + Rauschen), Becken aus 70 unharmonischen Teiltönen, Reverse-Becken,
+Riser (Rauschband 300 Hz → 9 kHz), Impacts; Bass als gezupfte Saite (Teiltöne mit Inharmonizität, Zupf- und
+Tonabnehmer-Position) plus Synth-Bass (Sägezahn durch ein 4-Pol-Ladder-Filter mit Hüllkurve); **Rhythmusgitarren**:
+Powerchords aus gezupften Saitenmodellen (Anschlag nacheinander, Plektrumrauschen, Palm Mutes mit stark gedämpften
+Obertönen), zwei unabhängige Takes hart links/rechts (Korrelation ≈ 0), durch ein Verstärkermodell (Vor-EQ mit
+Mittenbuckel, zwei asymmetrische tanh-Stufen bei 4× Überabtastung, Klangregelung, 4×12-Box als minimalphasiges FIR);
+Leadgitarre mit Bends, Vibrato, Slides durch einen heißeren Verstärker; Pad (verstimmte Sägezahn-Wavetables, Chorus),
+Arpeggiator (Ladder-Filter-Pluck), Synth-Brass, FM-Glocken, Synth-Lead (zwei verstimmte Sägezähne + Suboktave,
+Portamento, verzögertes Vibrato).
+
+**Mischung und Mastering**: EQ je Spur (minimalphasige FIRs aus analogen Prototypen), Pegel je Spur als K-gewichtete
+Ziel-Lautheit (`MIX`), Abschnitts-Automation (`AUTOMATION`: Strophen und Bridge zurückgenommen, Solo-Gitarre vorn),
+Sidechain-Ducking von Pad, Synth-Bass und Arpeggio durch die Kick, Sends auf Plate und Hall (synthetische
+Stereo-Impulsantworten mit frequenzabhängiger Nachhallzeit) und ein punktiertes Ping-Pong-Delay, Parallelkompression
+der Drums; Master: EQ (`MASTER_EQ`), Glue-Kompressor 2:1, Bass unter 120 Hz mono, Lookahead-True-Peak-Limiter
+(Lautheit iterativ auf −14 LUFS).
+
+**Nahtlose Schleife**: Die letzten zwei Takte des Ausklangs sind dieselben Ereignisse wie die letzten zwei des Intros
+(Turnaround D–B, gleiche Zufallszahlen), alle Modulationen laufen im Takt (Chorus 1 Zyklus je Takt), die Detektoren der
+Kompressoren arbeiten in Blöcken von 63 Samples (teilt Intro- und Schleifenlänge). Das Werkzeug rendert nach dem
+Ende der Schleife deren Fortsetzung (Thema, 4 Takte): Was die Schleife nach der Naht spielt, weicht von dieser echten
+Fortsetzung um weniger als −95 dBFS ab – Nachhall, Delays, klingende Noten und Kompressorzustand gehen über die Naht.
+
+**Prüfen ohne Hinhören**: `python3 tools/audio/music_preview.py --out DIR [--master DIR/master_full.wav]` (Master aus
+`music_synth.py --wav DIR`) misst die dekodierte OGG-Datei so, wie das Spiel sie abspielt: Lautheit und
+Lautheitsumfang (EBU Tech 3342), True Peak, Lautheit je Abschnitt, Terzband-Spektrum gegen eine Rock/Pop-Zielkurve,
+Stereo-Korrelation, Mono-Bass, Akkord je Takt (Chroma aus tonalen Spektralspitzen gegen die Akkorde des Arrangements)
+und Tonart je Abschnitt, die Schleifennaht (Sprung an der Naht gegen die Sprungstatistik der Datei, Hochpass-Klick-
+detektor, Abweichung von der echten Fortsetzung); Bilder `spectrogram.png`, `loudness.png`, `seam.png`,
+`overview.png`, Tabelle `sections.md`, Vorschau `title_theme_preview.mp3` (Datei + 20 s zweiter Durchlauf),
+`seam_demo.mp3` (12 s vor und nach der Naht) und `title_theme_preview.mp4` (Spektrogramm mit Abspielmarke).
+
+| Messung (dekodierte Datei) | Ergebnis |
+|---|---|
+| Lautheit | −14,1 LUFS integriert (Master −14,0), Lautheitsumfang 4,6 LU, True Peak −1,1 dBTP, kein Sample übersteuert |
+| Abschnitte (Kurzzeit-Lautheit, Mittel) | Intro −17,6, Thema −13,7, Strophen −16,1/−15,3, Pre-Chorus −13,7, Refrains −12,9/−12,8, Bridge −16,8 (Breakdown bis −19), Solo −13,5, Schlussrefrain −12,8 LUFS |
+| Klangbalance | Terzbänder 63 Hz – 16 kHz innerhalb ±3,5 dB der Zielkurve (50 Hz tiefer: e-Moll-Basslinien liegen bei 41 und 82 Hz) |
+| Stereo | Korrelation 0,65–0,84 je Abschnitt, Bass unter 120 Hz mono (0,98–0,99), die zwei Gitarren-Takes untereinander ≈ 0 |
+| Harmonik | 101 von 108 Takten als der vorgesehene Akkord erkannt (alle Grundtöne richtig; der Rest: Terz der verzerrten Powerchords), Tonart E-Moll bzw. im Schlussrefrain Fis-Moll |
+| Schleifennaht | Sprung an der Naht 0,38 × des 99,9. Perzentils der Datei, kein Hochton-Klick (Energie wie in der Umgebung), Abweichung von der echten Fortsetzung −101 dB; Godot spielt nach der Naht exakt die Samples ab `loop_offset` |
+| Im Spiel (Movie Maker, Titelbildschirm) | Musik startet mit dem Bildschirm, Pegel −14,05 dB unter der Datei (= `music_db` −9 dB + Musiklautstärke 0,7 + Master 0,8), −28,7 LUFS |
+
 ## GameFlow-API (Ergänzungen)
 
 `boot()` und `start_stage(setup)` wie im Vertrag. Zusätzlich (für die Bildschirme):
@@ -530,7 +614,8 @@ dem Aufwecken), `scenes` (Abschnitt *Attract-Modus*).
 `engine_latency_s` (Vorlauf im Generator, Standard 0,07 s), `engine_buffer_s` (Puffer des Generators, 0,25 s),
 `engine_preview` (Gasstoß in der Fahrzeugwahl an/aus), `engine_bank_dir` (Ordner der Motorbänke), nur für den
 Rückfall ohne Bank `engine_gears`, `engine_idle_hz`, `engine_max_hz` (Motor-Grundton bei Höchstdrehzahl);
-`music_db` (Pegel des Music-Busses), `menu_music` (Menümusik an/aus).
+`music_db` (Pegel des Music-Busses, −9 dB für die auf −14 LUFS gemasterte Titelmelodie), `menu_music` (Menümusik
+an/aus), `music_file` (Titelmelodie; fehlt sie, spielt die synthetisierte Schleife).
 
 **Zahlen in Spielertexten** kommen aus der Konfiguration, damit sie nach dem Abstimmen (auch per
 `game_config.json` neben der ausführbaren Datei) stimmen: Etappenpause `time.stage_pause_hours` und Zeitraffer
