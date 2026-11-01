@@ -369,6 +369,8 @@ Zonenmeldungen → Tutorial-Hinweise → Ziel.
   bewirkt – „Schnee: Bremsweg ×2, der Wagen rutscht nach dem Spurwechsel weiter – früh gegenlenken“, „Regen: Bremsweg
   ×1,3, die Lenkung reagiert träger – früher bremsen“ (`SessionRules.weather_hint`, Faktor = trockene / nasse
   Vollbremsung aus `driving.grip_effects`). Die Tutorial-Etappe fährt immer trocken (gameplay.md „Wetter im Rennen“).
+  Die Countdown-Ziffer steht seit dem Review 42 px tiefer (`Hud.COUNTDOWN_Y` 292, Startampel darunter) – vorher
+  überdeckte sie den unteren Rand des Hinweises.
 - **City Limits ankündigen** (Review v0.5.0): am Vorschild (`city_limits.announce_km` vor den City Limits) die Meldung
   „City Limits Würzburg in 4 km – Tempo 50“ (`SessionRules.city_announce_due`/`city_announce_text`, einmal je Etappe, nie
   in den City Limits) – 333 m genügen, um selbst bei Schnee aus Höchsttempo auf das Stadttempo zu bremsen.
