@@ -5,6 +5,8 @@ extends Node
 ## boot(), start_stage(setup). Navigation helpers below are additions (docs/ui.md).
 ##
 ## Race progression lives in RaceState (pure, unit tested); data access goes through UiData.
+## The attract mode (child AttractMode, `attract`) shows a demo after a minute without input on the title; its
+## race scene comes from start_attract_stage() and never reaches the race flow (nothing is saved).
 ## Debug: --screen=<title|race_select|vehicle|start_time|stage_select|route_choice|stage_screen|
 ## result|race_result|leaderboards|options|ferry> shows a screen with sample data (screenshots).
 
@@ -38,6 +40,7 @@ var pending_weather := "normal"
 var last_setup: Dictionary = {}
 var last_result: Dictionary = {}
 var sample_mode := false
+var attract: AttractMode = null     ## attract mode: demo after a minute without input on the title (docs/ui.md)
 var _history: Array[Dictionary] = []
 var _screen_name := ""
 var _screen_params: Dictionary = {}
@@ -47,6 +50,9 @@ var _result_pending := false        ## the save holds PENDING_RESULT_KEY
 
 func _ready() -> void:
 	apply_default_leaderboard_filter()
+	attract = AttractMode.new()
+	attract.name = "AttractMode"
+	add_child(attract)
 
 
 ## Central config leaderboard.default_filter: applies while the player has not picked a filter in the
@@ -98,6 +104,18 @@ func start_stage(setup: Dictionary) -> void:
 	_screen_name = ""
 	_set_menu_stretch(false)
 	_switch_to(scene)
+
+
+## Attract mode (AttractMode): the race scene of a demo. Unlike start_stage() the title music keeps playing
+## and the scene's signals do not reach the race flow – the AttractMode handles them; nothing is saved.
+func start_attract_stage(setup: Dictionary) -> Node:
+	var scene: Node = (load(RACE_SCENE) as PackedScene).instantiate()
+	scene.set("setup", setup)
+	shell = null
+	_screen_name = ""
+	_set_menu_stretch(false)
+	_switch_to(scene)
+	return scene
 
 
 func _switch_to(node: Node) -> void:

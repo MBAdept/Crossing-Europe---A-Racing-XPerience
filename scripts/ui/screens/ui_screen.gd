@@ -7,6 +7,7 @@ extends Control
 var params: Dictionary = {}
 var default_focus: Control
 var bg_dim := 0.55
+var backdrop := ""                  ## "" = synthwave background, "title" = photo backdrop (MenuShell)
 var hints: Array = []
 var footer: KeyHints
 

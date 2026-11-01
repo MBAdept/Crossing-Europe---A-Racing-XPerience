@@ -231,7 +231,8 @@ finished, understeer, collision`.
 Etappe, Bestenlisten, Optionen, Beenden) → Rennen wählen → Fahrzeug wählen → Startuhrzeit → [Routenwahl] →
 Etappenbildschirm (Karte, Wetter, Rekord-Laufschrift, Top 10) → Rennen → Ergebnis + Namenseingabe → nächste Etappe
 (Start = Ende + 12 h Weltzeit, Pause zählt nicht) / Fähre (Szene, feste Zeit) → Rennergebnis + Rennbestenliste.
-Nach jeder Etappe `SaveGame.save_race(state)`.
+Nach jeder Etappe `SaveGame.save_race(state)`. Nach 60 s ohne Eingabe im Titel zeigt der Attract-Modus eine 30-s-Demo
+in der echten Rennszene (Autopilot, Titelmusik, Effekte stumm, nichts wird gespeichert; docs/ui.md „Attract-Modus“).
 
 **Rennstand** (`SaveGame`): `{race_id, vehicle, start_hour, current_city, waypoint_index, legs[{kind, id, from, to,
 time_s, avg_kmh, weather, start_world_minutes, end_world_minutes}], total_time_s, world_minutes, route[], seed}`.
@@ -306,6 +307,8 @@ Argumente nach `--`: `--stage=<id> --from=<city> --vehicle=<typ> --hour=<0..24> 
 --screenshot=<pfad-präfix> --shot-times=1,2.5 --quit-at-finish --engine-bank=<motorbank.json>
 --traffic-sounds=<traffic_sounds.json> --audio-config=<schlüssel=wert,…> --mute-bus=<bus,…> --perf`. Die Rennszene läuft auch allein:
 `godot --path . res://scenes/race/race.tscn -- --stage=dev_testetappe --start-km=48 --hour=21`.
+Menüs: `--screen=<bildschirm>`, `--input=gamepad|keyboard`, Titelbild und Demo `--title-time=<s>
+--attract-after=<s> --attract-scene=<index|id> --attract-demo-s=<s> --attract-press=<s> --no-attract` (docs/ui.md).
 
 ## 14. Tests, Screenshots, Build
 
@@ -321,7 +324,8 @@ Argumente nach `--`: `--stage=<id> --from=<city> --vehicle=<typ> --hour=<0..24> 
   dieser Version Linux und Windows, packt `CrossingEurope-linux-x86_64.tar.gz` und schreibt `build/SHA256SUMS` und
   `build/BUILDINFO.txt`; die Archive sind reproduzierbar ([docs/windows.md](docs/windows.md)).
 - Integration: `tests/race/check_session.gd` (9 Szenarien der Rennsitzung: Kollisionsrichtung, leerer Tank,
-  Zielauslauf, Polizei beim Tanken, Tutorial), `tests/race/check_sprite_flip.gd` (braucht Xvfb/OpenGL),
+  Zielauslauf, Polizei beim Tanken, Tutorial), `tests/race/check_attract.gd` (Attract-Modus im ganzen Spiel:
+  Leerlauf, Demo, Abbruch per Taste/Gamepad/Klick ohne Menüpunkt, nichts gespeichert), `tests/race/check_sprite_flip.gd` (braucht Xvfb/OpenGL),
   `tests/race/run_stage.gd` (eine Etappe mit Autopilot), `tests/race/run_race.gd` (ein ganzes Rennen durch die Menüs),
   `tests/race/shoot_vehicles.gd` (Fahrzeugszenarien; mit `--write-movie <datei>.avi` samt Ton, `--audio-trace` für die
   Auswertung der Verkehrsgeräusche, docs/ui.md „Audio“).

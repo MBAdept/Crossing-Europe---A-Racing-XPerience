@@ -313,6 +313,24 @@
 		"marquee_speed_px_s": 90.0
 	},
 
+	"attract": {
+		"_doc": "Attract-Modus (docs/ui.md): Nach idle_s Sekunden ohne Eingabe im Titelbildschirm startet eine Demo von demo_s Sekunden – die echte Rennszene mit Autopilot, reihum eine der scenes (die nächste Demo zeigt die nächste Szene). Die Titelmusik läuft weiter, alle Effekt-Busse (SFX, Room, Engine, Siren, TrafficV…) sind stumm, das HUD zeigt nur Uhr und Tacho, nichts wird gespeichert. Jede Taste, Gamepad-Taste, ein deutlicher Stick-Ausschlag, Klick oder Fingertipp beendet die Demo sofort und führt zurück zum Titel, ohne einen Menüpunkt auszulösen (dieselbe Taste bleibt bis zum Loslassen bzw. guard_s Sekunden wirkungslos). fade_s = Überblendung über Schwarz. scenes[]: id, name (im Overlay), stage + from (Etappe und Startstadt), km (Start-Kilometer), hour (Weltzeit), weather (normal|rain|snow), vehicle, speed_kmh (Starttempo), cruise_kmh (Wunschtempo des Autopiloten; er bremst trotzdem für Kurven, Verkehr und Radar), lane (optional, 0 = links), seed (Verkehr).",
+		"enabled": true,
+		"idle_s": 60.0,
+		"demo_s": 30.0,
+		"fade_s": 0.6,
+		"guard_s": 0.4,
+		"scenes": [
+			{"id": "rushhour", "name": "Feierabendverkehr vor Frankfurt", "stage": "dortmund_frankfurt", "from": "dortmund", "km": 195.0, "hour": 18.8, "weather": "normal", "vehicle": "sportwagen", "speed_kmh": 170, "cruise_kmh": 225, "seed": 8},
+			{"id": "pyrenaeen", "name": "Schneetreiben in den Pyrenäen", "stage": "saragossa_pau", "from": "saragossa", "km": 159.0, "hour": 11.0, "weather": "snow", "vehicle": "kompakt", "speed_kmh": 90, "cruise_kmh": 140, "seed": 4},
+			{"id": "paris", "name": "Ankunft in Paris", "stage": "luettich_paris", "from": "luettich", "km": 384.6, "hour": 20.0, "weather": "normal", "vehicle": "gran_turismo", "speed_kmh": 90, "cruise_kmh": 135, "seed": 3},
+			{"id": "hamburg", "name": "Über die Köhlbrandbrücke nach Hamburg", "stage": "kiel_hamburg", "from": "kiel", "km": 77.0, "hour": 12.5, "weather": "normal", "vehicle": "kombi", "speed_kmh": 90, "cruise_kmh": 160, "seed": 5},
+			{"id": "regen", "name": "Nachtfahrt im Regen nach Berlin", "stage": "leipzig_berlin", "from": "leipzig", "km": 158.0, "hour": 23.0, "weather": "rain", "vehicle": "limousine", "speed_kmh": 170, "cruise_kmh": 215, "seed": 6},
+			{"id": "venedig", "name": "Über die Lagune nach Venedig", "stage": "mailand_venedig", "from": "mailand", "km": 267.6, "hour": 17.5, "weather": "normal", "vehicle": "sportwagen", "speed_kmh": 90, "cruise_kmh": 140, "seed": 2},
+			{"id": "wien", "name": "Morgendämmerung in Wien", "stage": "budapest_wien", "from": "budapest", "km": 236.5, "hour": 6.3, "weather": "normal", "vehicle": "kombi", "speed_kmh": 90, "cruise_kmh": 140, "seed": 9}
+		]
+	},
+
 	"audio": {
 		"_doc": "Pegel in dB. Motor (docs/motorsound.md): Zyklusbank je Auto aus engine_bank_dir/<auto>.json, abgespielt über einen AudioStreamGenerator im Bus Engine (→ Room → SFX). engine_db = Pegel des Motors (zusätzlich zu mix.gain der Bank); engine_latency_s = Vorlauf, den die Laufzeit je Frame im Generator hält (kleiner = direktere Reaktion auf das Gas, aber Aussetzer bei Rucklern); engine_buffer_s = Puffergröße des Generators; engine_preview = kurzer Gasstoß beim Wechsel in der Fahrzeugwahl. Ohne Bank für ein Auto spielen die alten synthetischen Motorschleifen: engine_gears, engine_idle_hz und engine_max_hz gelten nur für diesen Rückfall.",
 		"master_db": 0.0,

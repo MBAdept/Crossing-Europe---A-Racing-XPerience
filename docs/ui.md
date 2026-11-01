@@ -8,7 +8,8 @@ Bildschirme, HUD, Ablauf, Karte und Sound von *Crossing Europe*. Ergänzt [ARCHI
 Retro-modern im Stil der 80er-Arcade-Racer, aber ruhig und lesbar bei 1280×720:
 tiefes Nachtblau, Magenta (`UiTheme.ACCENT`) und Cyan (`ACCENT_2`) als Akzente, Gold für Hervorhebungen,
 schräge Schaltflächen (StyleBoxFlat mit `skew`), Panels mit abgeschrägten Ecken, animierter Synthwave-Hintergrund
-(gestreifte Sonne, Berge, Perspektivgitter, Highway).
+(gestreifte Sonne, Berge, Perspektivgitter, Highway). Der Titelbildschirm zeigt stattdessen das Titelbild
+(Abschnitt *Titelbildschirm*).
 
 - **Schriften** (OFL, aus npm `@fontsource`, Lizenzen in `assets/fonts/OFL-*.txt`):
   Orbitron Black (Logo, Countdown), Exo 2 ExtraBold/Bold Italic (Titel, Überschriften, Schaltflächen),
@@ -38,19 +39,20 @@ schräge Schaltflächen (StyleBoxFlat mit `skew`), Panels mit abgeschrägten Eck
 | `scripts/ui/hud.gd` | `Hud` (API §9), komplett in einem `_draw()` |
 | `scripts/ui/pause_menu.gd` | `PauseMenu` (API §9) |
 | `scripts/ui/map_view.gd` | `MapView`: Europakarte, Netz, Route, Hervorhebungen, Auto-Zoom |
-| `scripts/ui/menu_shell.gd` | `MenuShell`: Theme, Hintergrund, aktueller Bildschirm mit Übergang |
+| `scripts/ui/menu_shell.gd` | `MenuShell`: Theme, Hintergrund (Synthwave oder Titelbild, überblendet), aktueller Bildschirm mit Übergang |
+| `scripts/ui/attract_mode.gd` | `AttractMode`: Demo nach einer Minute ohne Eingabe im Titel (Kind von `GameFlow`, Abschnitt *Attract-Modus*) |
 | `scripts/ui/ui_theme.gd`, `ui_kit.gd`, `ui_icons.gd`, `ui_format.gd` | Stil, Bausteine, Symbole, Formatierung |
 | `scripts/ui/ui_data.gd`, `sample_data.gd` | Datenzugriff mit Fallbacks, Beispieldaten für Debug-Bildschirme |
 | `scripts/ui/route_info.gd` | `RouteInfo`: Routenoption als ganze Route bis zum nächsten Ziel (Fortsetzung, Summen; rein, getestet) |
 | `scripts/ui/screens/*.gd` | ein Skript je Bildschirm (Basisklasse `UiScreen`) |
-| `scripts/ui/widgets/*.gd` | Hintergrund, Logo-Text, Tastenhinweise, Optionszeile, Laufschrift, Bestenliste, Namenseingabe, Bildschirmtastatur als Abfrage (`NameEntryBox`), Tageszeit-Vorschau, Fahrzeug-Showroom, Routenkarte, Ja/Nein-Abfrage (`ConfirmBox`) |
+| `scripts/ui/widgets/*.gd` | Hintergrund, Logo-Text, Tastenhinweise, Optionszeile, Laufschrift, Bestenliste, Namenseingabe, Bildschirmtastatur als Abfrage (`NameEntryBox`), Tageszeit-Vorschau, Fahrzeug-Showroom, Routenkarte, Ja/Nein-Abfrage (`ConfirmBox`), Titelbild mit Ken-Burns-Shader (`TitleBackdrop`), Milchglas-Karte (`GlassPanel`), Demo-Overlay (`AttractOverlay`) |
 | `scripts/core/input_mode.gd` | `InputMode`: aktives Eingabegerät (Gamepad/Tastatur) für Tastenhinweise und Tutorial |
 | `scripts/audio/audio_manager.gd` | Autoload `AudioManager` (API §11) |
 | `scripts/audio/sfx_synth.gd` | `SfxSynth`: Klangsynthese (rein, getestet) |
 | `scripts/audio/engine_bank.gd`, `engine_gearbox.gd`, `engine_audio.gd` | Motorklang v2: Zyklusbank laden/prüfen, Getriebe/Drehzahl, Mischkern + Wiedergabe (Abschnitt *Motor*) |
 | `scripts/audio/traffic_audio.gd`, `room_audio.gd` | Verkehrsgeräusche und räumliches Martinshorn (`TrafficAudio`), Raumklang mit Tunnelhall und Motorbreite (`RoomAudio`) (Abschnitt *Verkehrsgeräusche, Martinshorn und Raumklang*) |
 | `tools/audio/render_engine_demo.gd` | Demo-WAV einer Motorbank mit geskripteter Fahrt |
-| `tests/unit/ui/*` | Tests: Rennlogik, Formatierung, Laufschrift, Audio-Synthese, Getriebe, Karten-Zoom, Routenoptionen (`test_route_info`), Texte aus der Konfiguration (`test_ui_texts`), Gamepad/Fokus/Spielstand (`test_menu_input`), Eingabegerät/Gamepad-Hinweise/Namenseingabe in den Optionen (`test_steam_deck`), Motor: Bank (`test_engine_bank`), Getriebe (`test_engine_gearbox`), Mischkern (`test_engine_audio`) mit den Testbänken aus `tests/fixtures/engines/`, Verkehrsgeräusche und Raumklang (`test_traffic_audio`) mit den Platzhalterschleifen aus `tests/fixtures/traffic/` |
+| `tests/unit/ui/*` | Tests: Rennlogik, Formatierung, Laufschrift, Audio-Synthese, Getriebe, Karten-Zoom, Routenoptionen (`test_route_info`), Texte aus der Konfiguration (`test_ui_texts`), Gamepad/Fokus/Spielstand (`test_menu_input`), Eingabegerät/Gamepad-Hinweise/Namenseingabe in den Optionen (`test_steam_deck`), Motor: Bank (`test_engine_bank`), Getriebe (`test_engine_gearbox`), Mischkern (`test_engine_audio`) mit den Testbänken aus `tests/fixtures/engines/`, Verkehrsgeräusche und Raumklang (`test_traffic_audio`) mit den Platzhalterschleifen aus `tests/fixtures/traffic/`, Attract-Modus und Titelbild (`test_attract_mode`); das ganze Spiel mit Demo: `tests/race/check_attract.gd` |
 
 ## Bildschirmablauf
 
@@ -68,7 +70,8 @@ Titel ─┬─ Rennen starten [Abfrage, falls gespeichert] → Rennen wählen �
        ├─ Einzelne Etappe → Etappe/Richtung/Uhrzeit/Wetter → Fahrzeug → Etappenbildschirm → Rennen → Ergebnis
        ├─ Bestenlisten (Rennen + Etappen je Richtung, Filter je Fahrzeug)
        ├─ Optionen (Lautstärken, Vollbild, Spielername, Steuerung)
-       └─ Beenden
+       ├─ Beenden
+       └─ 60 s ohne Eingabe: Demo (Attract-Modus, 30 s) ── Taste oder Ende ──► Titel
 ```
 
 - **Speichern**: nach Rennstart und nach jeder Etappe/Fähre `SaveGame.save_race(race.to_dict())`.
@@ -120,6 +123,100 @@ Titel ─┬─ Rennen starten [Abfrage, falls gespeichert] → Rennen wählen �
 Format aus ARCHITECTURE.md §10 plus `version`, `race_name`; Legs zusätzlich mit `name`, `penalty_s`,
 `distance_km`, `daytime`. `total_time_s` = Summe der Leg-Zeiten (Etappen inkl. Strafen + Fähren).
 Im Spielstand optional `pending_result` (`GameFlow.PENDING_RESULT_KEY`, siehe Speichern).
+
+## Titelbildschirm
+
+Hintergrund ist das Titelbild `assets/ui/title_background.webp` (vom Spieler erzeugt, 1672×941: roter Sportwagen von
+hinten auf der Autobahn bei Sonnenuntergang Richtung Frankfurter Skyline, Lkw und Transporter vor ihm, rechts eine
+beleuchtete Tankstelle). `MenuShell` blendet es für Bildschirme mit `UiScreen.backdrop == "title"` über den
+Synthwave-Hintergrund (0,35 s; beim ersten Bildschirm sofort), alle anderen Bildschirme behalten den
+Synthwave-Hintergrund. Aufbau:
+
+- **Bild**: `TitleBackdrop`, ein Canvas-Shader über das ganze Fenster: *cover fit* (16:9 zeigt das ganze Bild, 16:10
+  auf dem Steam Deck schneidet links und rechts je ~4 % ab, breitere Fenster oben und unten). Leben im Bild, ruhig und
+  ohne Effekthascherei: langsamer **Ken-Burns-Zoom** (bis 6,5 % in 45 s hin und zurück) um das rote Auto, dessen
+  Brennpunkt in 72 s Richtung Skyline wandert (der Zoom ist eine Konvexkombination – nie ein Bildrand); die tief
+  stehende **Sonne atmet** (weiches Glühen, schwacher waagrechter Lichtstreif, 7,2 s); feine **Fahrtstreifen** laufen
+  über den Asphalt auf den Betrachter zu – nur zwischen den Fahrbahnrändern unterhalb des Horizonts und hinter den
+  Fahrzeugen (Fluchtpunkt, Randsteigungen und Fahrzeugrechtecke sind im Bild vermessen, Konstanten in
+  `title_backdrop.gd`). Alle Perioden teilen die 3600-s-Umlaufzeit der Shader-Zeit: kein Sprung. Für die Lesbarkeit
+  wird das Bild nach rechts (Logo, Menü) und unten (Tastenhinweise) leicht abgedunkelt.
+- **Logo** oben rechts über dem Himmel (Orbitron 66 px, zwei Zeilen, rechtsbündig) auf einem weichen dunklen Hof
+  (`TitleBackdrop.halo_texture()`), darunter „A RACING XPERIENCE“ in Cyan mit dunklem Schatten.
+- **Menü** auf einer **Milchglas-Karte** (`GlassPanel`) rechts über der Fahrbahn neben den Lkw, wo das Bild am
+  wenigsten zählt: Sie zeigt das Bild dahinter weichgezeichnet (Mip-Stufen derselben Textur mit derselben
+  Ken-Burns-Abbildung, neun Abtastungen) und dunkelblau getönt, mit abgeschrägten Ecken, einem Rand von Magenta nach
+  Cyan und einer hellen Lichtkante oben. Die Schaltflächen sind in Ruhe durchscheinend, der Fokus wie überall
+  (Magenta-Rahmen mit Glühen, goldene Schrift); unter einer Linie die Beschreibung des fokussierten Eintrags.
+- Die linken zwei Drittel bleiben frei: Sonne, Skyline und das rote Auto (der Held) werden nie verdeckt – auch nicht
+  bei stärkstem Zoom und auf 16:10 (`test_attract_mode.gd::test_title_backdrop_cover_fit`).
+- Fehlt die Bilddatei, bleibt der Hintergrund dunkelblau und die Karte ein normales halbtransparentes Panel.
+- Debug: `--title-time=<s>` verschiebt die Animation (z. B. 22,5 = stärkster Zoom) für Screenshots.
+- Ein anderes Bild braucht neue Werte für Sonne, Fluchtpunkt, Fahrbahnränder, Fahrzeuge und Zoom-Brennpunkte
+  (Bild-UV 0..1, Konstanten oben in `title_backdrop.gd`).
+
+## Attract-Modus (Demo)
+
+Nach `attract.idle_s` (60 s) ohne Eingabe im Titelbildschirm startet eine Demo von `attract.demo_s` (30 s):
+`AttractMode` (Kind von `GameFlow`) blendet über Schwarz in die **echte Rennszene** mit Autopilot, reihum in einer
+der kuratierten Szenen aus `attract.scenes` – die nächste Demo zeigt die nächste Szene:
+
+| id | Szene | Etappe, Start | Zeit, Wetter, Auto |
+|---|---|---|---|
+| `rushhour` | Feierabendverkehr vor Frankfurt (Abendrot, Skyline ab den City Limits) | Dortmund – Frankfurt, km 195 | 18:48, klar, Sportwagen |
+| `pyrenaeen` | Schneetreiben in den Pyrenäen (kurvige Landstraße vor dem Somport) | Saragossa – Pau, km 159 | 11:00, Schnee, Kompakt |
+| `paris` | Ankunft in Paris (Tunnel du Landy, Pont Alexandre III, Eiffelturm, Haussmann-Häuser) | Lüttich – Paris, km 384,6 | 20:00, Dämmerung, Gran Turismo |
+| `hamburg` | Über die Köhlbrandbrücke nach Hamburg (Elbphilharmonie, Michel) | Kiel – Hamburg, km 77 | 12:30, klar, Kombi |
+| `regen` | Nachtfahrt im Regen nach Berlin (Autobahn, dann der Fernsehturm) | Leipzig – Berlin, km 158 | 23:00, Regen, Limousine |
+| `venedig` | Über die Lagune nach Venedig (Ponte della Libertà, Campanile) | Mailand – Venedig, km 267,6 | 17:30, klar, Sportwagen |
+| `wien` | Morgendämmerung in Wien (Riesenrad, Stephansdom) | Budapest – Wien, km 236,5 | 6:18, Morgendämmerung, Kombi |
+
+Felder einer Szene: `id`, `name` (im Overlay), `stage` + `from`, `km`, `hour`, `weather`, `vehicle`, `speed_kmh`
+(Starttempo), `cruise_kmh` (Wunschtempo des Autopiloten – er bremst trotzdem für Kurven, Verkehr und Radar; in den
+City Limits fährt er im dichten Stadtverkehr mit, ~50 km/h ≈ 5 km in 30 s), optional `lane`, `seed` (Verkehr). Die
+Rennsitzung bekommt ein normales Setup (`AttractMode.scene_setup`: `mode: "demo"`, Autopilot ohne Tanken und ohne
+Rasen, kein Countdown, Verkehr schon verteilt); Starttempo, reduziertes HUD und Spur setzt `AttractMode` nach dem
+Aufbau. Szenen lassen sich ohne Neubau über `game_config.json` neben der ausführbaren Datei ändern.
+
+- **Ton**: Die Titelmusik läuft nahtlos weiter (kein `set_music(false)`; der Musik-Player des AudioManagers läuft
+  unabhängig von der Szene). Alle Effekt-Busse – `SFX`, `Room`, `Engine`, `Siren`, `TrafficV<n>` – sind für die
+  Demo stumm und danach wieder im Zustand von vorher (ein vom Spieler stummgeschalteter Bus bleibt stumm); `Music`
+  wird nie angefasst. Beim Ende hört die Szene zuerst auf zu laufen, `AudioManager.stop_all()` bringt Motor,
+  Schleifen und Verkehr sofort zum Schweigen, erst dann werden die Busse zurückgesetzt. Voraussetzung:
+  `AudioManager.set_music(true)` startet laufende Musik nicht neu (die Rückkehr zum Titel ruft es auf).
+- **Bild**: Overlay `AttractOverlay` im 1280×720-Rahmen des Rennens: oben mittig das Logo in einer Zeile über dem
+  Himmel (Wahrzeichen stehen seitlich der Straße und bleiben frei), darunter „DEMO“ und der Name der Szene auf einer
+  dunklen Pille; unten links blinkend „Taste drücken“ mit den Symbolen des Eingabegeräts (Gamepad: Ⓐ, Tastatur:
+  Enter und Ⓐ) – die Bildmitte unten gehört dem eigenen Auto; am unteren Rand eine dünne Linie, die sich in 30 s
+  füllt. Das HUD ist reduziert (`Hud.reduced`): nur Uhr-Panel (Uhrzeit, Wetter, Land, Etappe) und Tacho; keine
+  Zeit/Rekord, kein Fortschrittsbalken, kein Tank, keine Schilder- und Polizei-Panels, keine Nachrichten, kein
+  Countdown und kein Zielbanner. Seitenverhältnis wie im Rennen (`keep`).
+- **Ende**: Jede Taste, Gamepad-Taste, ein deutlicher Stick-/Triggerausschlag (≥ 0,5), ein Mausklick oder Fingertipp
+  beendet die Demo **sofort** (Schnitt auf Schwarz, der Titel blendet ein). Das Ereignis wird in `_input` verbraucht,
+  bevor die GUI es sieht; dieselbe Taste bleibt bis zum Loslassen wirkungslos (auch das Echo einer gehaltenen Taste)
+  und für `attract.guard_s` (0,4 s) jede weitere – so löst das Aufwecken nie einen Menüpunkt aus. Das Gerät, das
+  geweckt hat, bestimmt die Hinweise im Titel (`InputMode`). Nach `demo_s` endet die Demo von selbst (über Schwarz),
+  ebenso wenn die Etappe in der Demo ins Ziel kommt; danach zählt der Leerlauf-Timer neu.
+- **Leerlauf-Timer**: zählt nur, solange der Titel zu sehen und keine Abfrage offen ist (`TitleScreen.has_modal`);
+  jede Eingabe (auch Mausbewegung und Loslassen, nicht Stick-Rauschen unter 0,5) setzt ihn zurück. Die Zeiten zählen
+  Bildzeit ohne `Engine.time_scale` – echte Sekunden für den Spieler, Videosekunden in einer Movie-Maker-Aufnahme.
+- **Nichts wird gespeichert**: Die Demo-Szene ist nicht mit dem Rennablauf von `GameFlow` verbunden
+  (`start_attract_stage` statt `start_stage`; `stage_finished`/`stage_aborted` beenden nur die Demo) – kein
+  Spielstand, keine Bestenliste, keine Einstellungen. `tests/race/check_attract.gd` prüft das mit einer Demo, deren
+  Etappe ins Ziel kommt (`savegame.json`, `leaderboards.json`, `settings.json` samt `.bak`/`.tmp` nach Größe, Zeit
+  und MD5 unverändert, keine neuen Bestenlisten-Einträge im Speicher).
+- **Steam Deck**: Der eingebaute Controller weckt wie jedes Gamepad, Touchscreen-Tipps und Trackpad-Klicks wie die Maus.
+- **Debug**: `--attract-after=<s>` (Leerlaufzeit), `--attract-scene=<index|id>` (erste Szene),
+  `--attract-demo-s=<s>`, `--attract-press=<s>` (Aufnahmen: Enter nach s Sekunden der ersten Demo, über den Viewport
+  wie eine echte Taste), `--no-attract`. Screenshots einer Szene:
+  `tools/screenshot.sh /tmp/a --scene=res://scenes/main.tscn --attract-after=0.5 --attract-scene=paris --shot-times=4,12,21`;
+  Video mit Ton siehe *Debug und Screenshots*.
+- **Tests**: `test_attract_mode.gd` (Leerlauf-Timer, welche Eingaben wecken, Verschlucken bis zum Loslassen und in der
+  Schutzzeit, Dauer und nächste Szene, Busse stumm und zurück, Szenen gegen das Streckennetz, Setup,
+  Titelbild-Abbildung) und `tests/race/check_attract.gd` (das ganze Spiel headless, Teil von `tools/run_tests.sh`:
+  Titel → Demo → von selbst zurück → nächste Szene → Enter / Gamepad A / Klick beenden ohne Menüpunkt → Ziel in der
+  Demo → nichts gespeichert; unter Xvfb ohne `--headless` misst es zusätzlich, dass die Titelmusik durchgehend
+  weiterläuft).
 
 ## Bedienung
 
@@ -183,6 +280,7 @@ Abschleppen, Nachrichten) erscheinen nur zeitweise. Ergänzungen zum Vertrag:
   Rekordhalter werden mit „…“ gekürzt (`_fit`).
 - Debug: `--hud-demo=refuel,police,radar,radarzone,tow,countdown,reserve,finish,city,understeer` legt
   Demo-Werte über den echten Zustand (Screenshots seltener Situationen).
+- `reduced` (Attract-Modus): nur Uhr-Panel und Tacho – keine Nachrichten, Banner oder übrigen Panels.
 
 ## Karte (`MapView`)
 
@@ -387,8 +485,9 @@ eine andere, `traffic_db` um die Differenz anpassen.
 `ferry_done()`, `stage_setup()`, `start_pending_stage()`, `result_continue()`, `finish_race()`,
 `leave_race_to_title()`, `single_stage()`, `configure_single(stage_id, from, hour, weather)`,
 `remember_player_name(name)`, `stage_result_done()` (Etappenergebnis erledigt → `pending_result` aus dem
-Spielstand), `apply_default_leaderboard_filter()`; Felder `race`, `mode`, `draft`, `single`, `pending_leg`,
-`pending_weather`; Konstante `PENDING_RESULT_KEY`.
+Spielstand), `apply_default_leaderboard_filter()`, `start_attract_stage(setup)` (Rennszene einer Demo: die
+Musik läuft weiter, die Signale gehen an `AttractMode`, nichts wird gespeichert); Felder `race`, `mode`, `draft`,
+`single`, `pending_leg`, `pending_weather`, `attract` (`AttractMode`); Konstante `PENDING_RESULT_KEY`.
 
 ## Debug und Screenshots
 
@@ -398,6 +497,16 @@ tools/screenshot.sh /tmp/s --scene=res://scenes/main.tscn --screen=stage_screen 
 #            result | race_result | leaderboards | options | ferry
 tools/screenshot.sh /tmp/h --stage=dev_testetappe --start-km=8 --autopilot --shot-times=3
 tools/screenshot.sh /tmp/p --stage=dev_testetappe --start-km=40 --no-countdown --pause-demo --shot-times=1.5
+```
+
+Titelbild und Demo: `--title-time=<s>` (Ken-Burns-Phase), `--attract-after=<s>`, `--attract-scene=<index|id>`,
+`--attract-demo-s=<s>`, `--attract-press=<s>`, `--no-attract` (Abschnitt *Attract-Modus*). Video mit Ton (Godot
+Movie Maker mit fester Bildrate – die Zeiten der Demo zählen Videosekunden), hier Titel → Demo → Taste → Titel:
+
+```bash
+xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --write-movie /tmp/demo.avi \
+  --fixed-fps 30 --quit-after 1000 res://scenes/main.tscn -- --attract-after=6 --attract-press=20
+ffmpeg -i /tmp/demo.avi -c:v libx264 -pix_fmt yuv420p -crf 20 -c:a aac -b:a 192k /tmp/demo.mp4
 ```
 
 Steam Deck: `SCREEN=1280x800 tools/screenshot.sh …` rendert auf einem 1280×800-Bildschirm mit gleich großem Fenster;
@@ -415,6 +524,8 @@ Rennbildschirme, `--stages-done=<n>` den Fortschritt des Beispielrennens (jeweil
 
 `hud`: `message_s`, `show_fps`, `speedo_max_kmh` (Skalenende Tacho), `messages_max` (gleichzeitige Nachrichten),
 `marquee_speed_px_s` (Laufschrift).
+`attract`: `enabled`, `idle_s` (60), `demo_s` (30), `fade_s` (Überblendung über Schwarz), `guard_s` (Schutzzeit nach
+dem Aufwecken), `scenes` (Abschnitt *Attract-Modus*).
 `audio`: `master_db`, `engine_db` (Pegel des Motors aus der Bank, zusätzlich zu deren `mix.gain`),
 `engine_latency_s` (Vorlauf im Generator, Standard 0,07 s), `engine_buffer_s` (Puffer des Generators, 0,25 s),
 `engine_preview` (Gasstoß in der Fahrzeugwahl an/aus), `engine_bank_dir` (Ordner der Motorbänke), nur für den
