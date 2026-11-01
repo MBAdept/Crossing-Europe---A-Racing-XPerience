@@ -13,9 +13,15 @@ extends SceneTree
 ## both sides: perspective flank warp), beside (a car standing still relative to the player in the left lane,
 ## rear 10 m ahead of the camera – for comparisons with a true 3D render), lane_change (cars ahead change
 ## lanes), player_left, player_right (player alone through curves), player_lanes (player lane changes),
-## police (the police car pulls in ahead), tunnel (truck and car in the tunnel). Overrides: --km, --kmh,
+## police (the police car pulls in ahead), tunnel (truck and car in the tunnel), passby (one car passed on the
+## left, for sound measurements). Overrides: --km, --kmh,
 ## --frames, --every. --perf prints the renderer's _draw times at the end; with --no-shots
 ## (no screenshots) it also runs headless (CPU time of _draw is the same).
+## Sound (docs/verkehrsgeraeusche.md): with --write-movie <file>.avi instead of the screenshots the AVI holds the
+## game's audio; --traffic-sounds=res://tests/fixtures/traffic/traffic_sounds.json plays the placeholder loops
+## before the real ones exist. --audio-trace=<file.csv> writes the traffic voices of every frame (vehicle,
+## distance, pan, Doppler, gains, siren, tunnel blend) for the analysis of the recording; AUDIO_PERF at the end
+## gives the GDScript time of the traffic voices per frame.
 ## The scene is accessed untyped (this script compiles before the autoloads the scene uses).
 
 const SCENARIOS := {
@@ -40,6 +46,9 @@ const SCENARIOS := {
 	# (gap = 10 - camera distance 9 - half the limousine 2.425): compare with a true 3D render
 	"beside": {"km": 30.0, "lane": 1, "kmh": 120.0, "frames": 12, "every": 12,
 		"cars": [{"kind": "car", "lane": 0, "gap": -1.425, "kmh": 120.0}]},
+	# one car passed on the left (sound: level, pan and pitch drop of a single pass-by, docs/verkehrsgeraeusche.md)
+	"passby": {"km": 30.0, "lane": 1, "kmh": 150.0, "frames": 150, "every": 10,
+		"cars": [{"kind": "car", "lane": 0, "gap": 14.0, "kmh": 105.0}]},
 	"overtake": {"km": 30.0, "lane": 0, "kmh": 150.0, "frames": 90, "every": 3,
 		"cars": [{"kind": "truck", "lane": 1, "gap": 16.0, "kmh": 85.0}, {"kind": "car", "lane": 2, "gap": 40.0, "kmh": 110.0}]},
 	"overtake_curve": {"km": 68.95, "lane": 0, "kmh": 150.0, "frames": 90, "every": 3,
@@ -67,6 +76,8 @@ var _cars: Array = []          ## [Car, spec]
 var _capture := false
 var _perf := false
 var _cells := {}               ## vehicle id -> [cell changes, last cell, min yaw, max yaw] (sprite vehicles)
+var _trace: FileAccess = null  ## --audio-trace
+var _game_t := 0.0             ## game seconds since the first frame (with --fixed-fps exact frame times)
 
 
 func _initialize() -> void:
@@ -170,14 +181,16 @@ func _physics_process(_delta: float) -> bool:
 	return false
 
 
-func _process(_delta: float) -> bool:
+func _process(delta: float) -> bool:
 	_frame += 1
+	_game_t += delta
 	if _frame == 1:
 		_setup_scenario()
 		return false
 	if _frame >= 4 and (_frame - 4) % int(_cfg["every"]) == 0 and not CliArgs.has("no-shots"):
 		_capture = true
 	_log_cells()
+	_log_audio()
 	if _frame > 4 + int(_cfg["frames"]):
 		for id: int in _cells:
 			var c: Array = _cells[id]
@@ -185,10 +198,48 @@ func _process(_delta: float) -> bool:
 		if _perf:
 			var r: Object = _sc.get("renderer")
 			print("PERF ", JSON.stringify(r.call("perf_stats")))
+		var am: Node = root.get_node_or_null("AudioManager")
+		if am != null and am.has_method("traffic_perf"):
+			print("AUDIO_PERF ", JSON.stringify({"traffic": am.call("traffic_perf"), "engine": am.call("engine_perf")}))
+		if _trace != null:
+			_trace.close()
 		print("Szenario %s: %d Bilder unter %s_*.png" % [_name, _shot, _out])
 		quit(0)
 		return true
 	return false
+
+
+## --audio-trace: one CSV line per frame and traffic voice (+ the siren as slot -1). Times are game seconds
+## since the scenario start (frame 1 = setup), so they line up with the AVI's audio track.
+func _log_audio() -> void:
+	if not CliArgs.has("audio-trace"):
+		return
+	var am: Node = root.get_node_or_null("AudioManager")
+	if am == null or not am.has_method("traffic_state"):
+		return
+	if _trace == null:
+		_trace = FileAccess.open(CliArgs.get_string("audio-trace", "/tmp/audio_trace.csv"), FileAccess.WRITE)
+		_trace.store_line("frame,t,slot,vehicle,distance,pan,doppler,l_engine,r_engine,l_tires,r_tires,l_air,r_air,pitch_engine,cutoff,listener_z,tunnel_blend")
+	var st: Dictionary = am.call("traffic_state")
+	if st.is_empty():
+		return
+	var t := _game_t
+	var lz := float((st["listener"] as Dictionary)["z"])
+	var blend := float(st.get("tunnel_blend", 0.0))
+	for v: Dictionary in st["voices"]:
+		if int(v["vehicle"]) == TrafficAudio.NONE:
+			continue
+		var l: Array = v["left"]
+		var r: Array = v["right"]
+		var p: Array = v["pitch"]
+		_trace.store_line("%d,%.4f,%d,%d,%.3f,%.4f,%.5f,%.5f,%.5f,%.5f,%.5f,%.5f,%.5f,%.5f,%.0f,%.3f,%.3f" % [_frame, t, int(v["slot"]),
+			int(v["vehicle"]), float(v["distance"]), float(v["pan"]), float(v["doppler"]), float(l[0]), float(r[0]),
+			float(l[1]), float(r[1]), float(l[2]), float(r[2]), float(p[0]), float(v["cutoff"]), lz, blend])
+	var s: Dictionary = st["siren"]
+	if float(s["left"]) + float(s["right"]) > 0.0:
+		_trace.store_line("%d,%.4f,-1,%d,%.3f,%.4f,%.5f,%.5f,%.5f,0,0,0,0,%.5f,0,%.3f,%.3f" % [_frame, t,
+			-2 if bool(s["spatial"]) else 0, minf(float(s["distance"]), 99999.0), float(s["pan"]), float(s["doppler"]),
+			float(s["left"]), float(s["right"]), float(s["doppler"]), lz, blend])
 
 
 ## Cell and smoothed yaw of every scenario car (sprites) after each frame: cell changes = flicker check.

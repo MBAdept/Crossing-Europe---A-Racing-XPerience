@@ -1,0 +1,135 @@
+{
+ "format": "ce-traffic-sounds-1",
+ "sample_rate": 16000,
+ "_doc": "Platzhalter (tests/fixtures/make_traffic_fixtures.py), nicht die echten Verkehrsgeräusche.",
+ "sounds": {
+  "car_petrol": {
+   "file": "car_petrol.wav",
+   "layer": "engine",
+   "ref_kmh": 120,
+   "pitch_exp": 1.0,
+   "gain_db": -4.0
+  },
+  "car_diesel": {
+   "file": "car_diesel.wav",
+   "layer": "engine",
+   "ref_kmh": 120,
+   "pitch_exp": 1.0,
+   "gain_db": -4.0
+  },
+  "car_sport": {
+   "file": "car_sport.wav",
+   "layer": "engine",
+   "ref_kmh": 140,
+   "pitch_exp": 1.0,
+   "gain_db": -2.0
+  },
+  "van_diesel": {
+   "file": "van_diesel.wav",
+   "layer": "engine",
+   "ref_kmh": 110,
+   "pitch_exp": 1.0,
+   "gain_db": -3.0
+  },
+  "truck_diesel": {
+   "file": "truck_diesel.wav",
+   "layer": "engine",
+   "ref_kmh": 85,
+   "pitch_exp": 1.0,
+   "gain_db": 0.0
+  },
+  "bus_diesel": {
+   "file": "bus_diesel.wav",
+   "layer": "engine",
+   "ref_kmh": 90,
+   "pitch_exp": 1.0,
+   "gain_db": -1.0
+  },
+  "tires_car": {
+   "file": "tires_car.wav",
+   "layer": "tires",
+   "ref_kmh": 120,
+   "pitch_exp": 0.35,
+   "gain_db": -3.0,
+   "level_db_per_decade": 30.0
+  },
+  "tires_truck": {
+   "file": "tires_truck.wav",
+   "layer": "tires",
+   "ref_kmh": 85,
+   "pitch_exp": 0.35,
+   "gain_db": 0.0,
+   "level_db_per_decade": 30.0
+  },
+  "air": {
+   "file": "air.wav",
+   "layer": "air",
+   "ref_kmh": 120,
+   "pitch_exp": 0.5,
+   "gain_db": -6.0,
+   "level_db_per_decade": 40.0
+  }
+ },
+ "classes": {
+  "car": {
+   "engine": [
+    "car_petrol",
+    "car_diesel"
+   ],
+   "tires": "tires_car",
+   "air": "air",
+   "size": 1.0
+  },
+  "sport": {
+   "engine": [
+    "car_sport"
+   ],
+   "tires": "tires_car",
+   "air": "air",
+   "size": 1.0
+  },
+  "van": {
+   "engine": [
+    "van_diesel"
+   ],
+   "tires": "tires_car",
+   "air": "air",
+   "size": 1.3
+  },
+  "truck": {
+   "engine": [
+    "truck_diesel"
+   ],
+   "tires": "tires_truck",
+   "air": "air",
+   "size": 2.2
+  },
+  "bus": {
+   "engine": [
+    "bus_diesel"
+   ],
+   "tires": "tires_truck",
+   "air": "air",
+   "size": 2.0
+  },
+  "police": {
+   "engine": [
+    "car_sport"
+   ],
+   "tires": "tires_car",
+   "air": "air",
+   "size": 1.0
+  }
+ },
+ "models": {
+  "hatch": "car",
+  "sedan": "car",
+  "wagon": "car",
+  "suv": "van",
+  "van": "van",
+  "sports": "sport",
+  "truck": "truck",
+  "bus": "bus",
+  "police": "police"
+ }
+}
