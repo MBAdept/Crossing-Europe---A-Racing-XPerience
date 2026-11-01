@@ -23,7 +23,8 @@ Verträge stehen in [ARCHITECTURE.md](../ARCHITECTURE.md) §5, §6, §8 und für
 | `scripts/race/session_rules.gd` | `SessionRules` | reine Regeln der Rennsitzung (Kollisionen in geskripteten Phasen, HUD-Tankstelle, Ausrollen in die Tankspur, Überholweg der Polizei) – testbar ohne Szene |
 | `scripts/race/tutorial_coach.gd` | `TutorialCoach` | Tutorial-Hinweise der Etappe Kiel – Hamburg (Warteschlange, Texte mit Konfigurationswerten) |
 | `scripts/race/autopilot.gd` | `Autopilot` | Testfahrer (Spur halten, überholen, bremsen, tanken, Radar beachten) |
-| `data/scenery.json` | – | 22 Landschaften: Grasfarben, Hintergrund, Klima, Requisiten-Regeln |
+| `data/scenery.json` | – | 22 Landschaften + 32 Stadt-Landschaften (16 Baustile × Stadtrand/Zentrum): Grasfarben, Hintergrund, Klima, Requisiten-Regeln, Zäune, Wasserfarbe |
+| `data/cities.json`, `scripts/data/city_data.gd` | `CityData` | individuelle Städte: Baustil, Wahrzeichen, Skyline, Brücken je Stadt (Daten-Modul; Vertrag und Umsetzung: [staedte.md](staedte.md)) |
 | `tests/race/run_stage.gd` | – | ganze Etappe headless mit Autopilot fahren, Ergebnis + Frame-Zeiten |
 | `tests/race/run_race.gd` | – | ganzes Rennen durch den echten Menüablauf (Autopilot) |
 | `tests/race/check_session.gd` | – | Szenario-Prüfungen in der echten Rennszene (Kollisionsrichtung, Ausrollen, Abschleppen, Polizei beim Tanken, HUD-Werte, Tutorial) |
@@ -117,8 +118,16 @@ optional `snow_caps`, `height`, `trees` = round|conifer, `features` = turbines|s
 `props` (Regeln: `set`, `every_m`, `chance`, `side`, `x` = Meter hinter dem Bankett, `scale`, optional `count`,
 `roads`, `phase_m`, `tint`, `fallback` + `fallback_scale`, `align: "edge"` = x ist die Vorderkante – für Gebäude,
 damit sie nie auf die Straße ragen).
-Fehlt ein Sprite-Set (noch nicht gerendert), nimmt der Renderer den `fallback` oder überspringt die Regel.
+Fehlt ein Sprite-Set (noch nicht gerendert), nimmt der Renderer den `fallback` (getönt mit `fallback_tint`, nur für
+das Ersatz-Set) oder überspringt die Regel.
 Hintergrundstile wechseln weich (alte Silhouetten sinken, neue steigen, `render.background_blend_s`).
+
+**Städte** ([staedte.md](staedte.md) §6–§8): In den City Limits gilt die Landschaft des Baustils der Zielstadt –
+`city_<stil>_outskirts` bis `center_km` vor dem Ziel, danach `city_<stil>_center` (`StagePlan.scenery_for`; `city`
+nur noch ohne Stil). Zusätzliche Schlüssel: `fence` (Lattenzaun, Hecke, Mauer oder Eisengitter hinter dem Gehweg,
+prozedural, mit Lücken), `water` (Wasserfarbe unter Brücken); Hintergrundstil `suburb` (ferne Skyline, Bäume, kleine
+Häuser), `roofs` (Dachformen der Skyline), Merkmale `cranes`, `domes`, `onion`, `slabs`, `towers` und `behind`
+(Bergkette hinter der Stadt). `cities.json` kann je Stadt Schlüssel des Hintergrunds überschreiben.
 
 **Spiegeln und Vorderkante**: Sets mit Tag `mirror_left` (Gebäude, Höfe, Kirche, Fabrik …, 3/4-Ansicht für die rechte
 Straßenseite) und Regeln mit `mirror` werden links gespiegelt gezeichnet (`prop_flipped`). Godot spiegelt ein Rechteck
@@ -146,7 +155,17 @@ rechte (`extent_m[1]`). So steht die Fassade auf beiden Seiten genau an der Rege
   des neuen Landes (siehe unten).
 - **City Limits**: Ortsschild, Bordsteine (mit Kantenflächen), Gehwege, Straßenlaternen (mit Lichtkegeln nachts),
   Straßenbäume, Gebäude auf beiden Seiten (links gespiegelt), Zebrastreifen, Skyline mit Fensterlichtern, Ziel-Portal
-  + karierte Ziellinie.
+  + karierte Ziellinie. Je Zielstadt Baustil (Stadtrand mit Gärten und Zäunen, Zentrum dicht bebaut), Hintergrund
+  und Bergkette je Stadt.
+- **Brücken** ([staedte.md](staedte.md) §7): Wasser neben und unter dem Deck je Scheibe in Höhe des Bodens unter der
+  Brücke (Kaimauer oder Böschung am Ufer, Himmelsspiegelung zur Ferne, Glitzern, nachts Lichter der Stadt), Geländer je
+  Typ an der Deckkante (Stahl, Steinbalustrade, Eisengitter, Brüstung), Fachwerkbogen mit Seitenträgern und Portalen
+  alle 40 m über der Fahrbahn (Requisiten in der normalen Malerreihenfolge), Pylone mit Seilfächern als 3D-Linien,
+  Kandelaber, Hausboote und Schiffe auf dem Wasser; keine Landschaft auf dem Wasser, keine Zebrastreifen.
+- **Wahrzeichen**: Ereignis-Requisiten mit freigehaltenem Platz; eigenes Dunstgesetz (`landmark_fade`): sichtbar bis
+  Sichtweite × 2 (höchstens `render.landmark_far_m`), jenseits der projizierten Zeilen im Fern-Durchgang mit gerade
+  verlängerter Straße gezeichnet – kein Aufpoppen. Prozedurale Ersatzformen, solange die Sprites fehlen; Lichter als
+  weiche Punkte in der Malerreihenfolge. Skyline-Silhouetten im Panorama (`RaceBackdrop.landmarks`).
 
 **Schilder je Land** (Design: „Grenzübergänge: Wechsel von Schildern, Landschaft und Polizeifahrzeugen“): `SignPainter`
 nimmt die Farben aus `GameData.countries[Land].signs` (`data/countries.json`, Daten-Modul): `motorway` für
@@ -368,6 +387,10 @@ Setup-Schlüssel für Tests: `no_countdown`, `autopilot_speeding`, `autopilot_re
 
 ## 12. Tests und Werkzeuge
 
+- Städte: `tests/unit/data/test_cities.gd` (alle Ankünfte ohne Warnung, Stile, Landschaften, Katalog, Pflicht-Wahrzeichen
+  und -Brücken), `tests/unit/race/test_city_track.gd` (Stadtrand/Zentrum, Brücken-Zonen, Tragwerk, Boote, Wahrzeichen
+  mit freiem Platz), `tests/unit/race/test_city_render.gd` (`landmark_fade` stetig, Wasser, Profile) –
+  [staedte.md](staedte.md) §9.
 - `tools/run_tests.sh race` – Unit-Tests: Track (Determinismus, Fenster, Spurübergänge, Tankspur, Ereignisse,
   Geometriegrenzen, Requisiten, vollständige `scenery.json`, Schilder im Tunnel an der Wand, Land/Straßentyp der
   Schilder), Projektion, Palette, GeoBatch, Autopilot-Bremskurve, Spiegeln und Vorderkante aller kantenbündigen
@@ -447,6 +470,9 @@ Tutorial-Hinweises). Fahrzeugdarstellung (§8): `vehicle_yaw_smooth_s` (0,12), `
 `player_roll_deg_per_mps2` (0,22), `player_roll_max_deg` (2,5 – mehr lässt der Vertrag nicht zu),
 `player_roll_smooth_s` (0,2).
 
+Städte (optional, Standardwerte im Code): `landmark_far_m` (1900: Wahrzeichen höchstens so weit sichtbar, nachts ihre
+Anstrahlung), `landmark_range_factor` (2,0 × Sichtweite), `skyline_distance_m` (1800: Größe der Panorama-Silhouetten).
+
 `debug`: `autopilot_target_kmh`, `show_render_stats`.
 
 ## 15. API-Erweiterungen (zusätzlich zu ARCHITECTURE.md)
@@ -454,7 +480,12 @@ Tutorial-Hinweises). Fahrzeugdarstellung (§8): `vehicle_yaw_smooth_s` (0,12), `
 - `Track`: `zones`, `runout_m`, `hill_scale`, `window_size()`, `distance_to_fuel_lane(z)`, `events_for_segment(i)`,
   Konstanten `WALL_SIGN_GAP_M`, `WALL_SIGN_OVERHANG_M`; Schild-Requisiten zusätzlich `country`, `road`, im Tunnel
   `wall` (und `scale` < 1).
-- `TrackSegment`: `runout`, `fuel_zone` (+ Konstanten `FUEL_*`), `cover`, `cover_front`, `country_to`.
+- `TrackSegment`: `runout`, `fuel_zone` (+ Konstanten `FUEL_*`), `cover`, `cover_front`, `country_to`; Städte: `bridge`,
+  `bridge_i`, `water`, `water_depth`, `water_level`, `bank`.
+- `Track` (Städte): `bridges` (Zonen `{z0, z1, type, depth, slope, name, water, color, bank, km0, km1}`), `landmarks`
+  (Fernliste mit `z`, `x`), `bridge_at(z)`, statisch `water_level_at(z, bridge)`, Konstanten `BRIDGE_PORTAL_EVERY_M`,
+  `BRIDGE_LAMP_EVERY_M`, `BRIDGE_DECK_EXTRA_M`; Requisiten mit `h` (Höhe über/unter der Straße, Boote), `fit_w`
+  (Breite eines Portals), `landmark`, `overhead`, `fallback_tint`.
 - `RoadProjection`: `scale_at(dz)`, `ground_row(dz)`, `depth_at_row(y)`, `view_angle(dx, dz)`, `near` aus `render.near_m`.
 - `RoadRenderer`: `perf_stats()`, `show_stats`; View-Schlüssel zusätzlich `camera_in_tunnel`, `countdown`, `chase01`,
   `radar_flash01`, je Auto `length`, `speed`, `heavy`. `palette` ist immer die Außenpalette, die Tunnelvariante bildet
@@ -466,6 +497,10 @@ Tutorial-Hinweises). Fahrzeugdarstellung (§8): `vehicle_yaw_smooth_s` (0,12), `
   `anchor`, `scale`, `perspective`, `rect`), statisch `cell_src(info, angle_index, row)`. View-Schlüssel zusätzlich je
   Auto `id` (Glättung je Fahrzeug, Polizei −2), beim Spieler `steer`, `lat_speed`, `push_speed`, `understeer`, `width`;
   `angle` ist optional geworden (erzwingt eine Zelle, beim Spieler nur ohne `steer`) – die Sitzung schickt es nicht mehr.
+- `RoadRenderer` (Städte, statisch): `landmark_fade(dz, vis, fog_start, range_k, far_m)` → `Vector2(Alpha, Dunst)`,
+  `water_tint(base, ambient, sky, dz)`, `eiffel_half_width(h)`. `RaceBackdrop`: Stil `suburb`, `landmarks` (Silhouetten
+  des Bildes), `sprite_cb` (zeichnet eine Silhouette), Hintergrund-Schlüssel `roofs`, `behind`, Merkmale `cranes`,
+  `domes`, `onion`, `slabs`, `towers`.
 - `VehiclePose` (statisch): `ortho_yaw(d_r, x_r, h, psi_c, length, limit_deg)`, `chord_heading(xr_road, xf_road,
   length)`, `point_yaw(d_r, x_r, h)` (alte Formel, Vergleich), `own_heading(lateral_mps, speed_mps)`,
   `ortho_front_x(sx_r, s_r, length, psi)`, `damp(value, velocity, target, dt, tau)` → `Vector2(Wert, Geschwindigkeit)`,

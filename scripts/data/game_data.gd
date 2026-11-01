@@ -11,6 +11,7 @@ const NETWORK_PATH := "res://data/network.json"
 const COUNTRIES_PATH := "res://data/countries.json"
 const SCENERY_PATH := "res://data/scenery.json"
 const MAP_PATH := "res://data/map/europe_map.json"
+const CITIES_PATH := "res://data/cities.json"
 const NETWORK_OVERRIDE_NAME := "network.json"
 
 var cities: Dictionary = {}      ## id -> {id, name, country, latlon, map_pos, name_local?, dev?}
@@ -21,6 +22,7 @@ var race_order: Array[String] = []
 var countries: Dictionary = {}   ## code -> country dictionary (data/countries.json)
 var scenery: Dictionary = {}     ## id -> scenery dictionary (data/scenery.json, authored by the race module)
 var map_data: Dictionary = {}    ## data/map/europe_map.json (may be empty)
+var city_db: Dictionary = {}     ## data/cities.json: styles, landmarks, bridges per city (docs/staedte.md; may be empty)
 var warnings: Array[String] = []
 var network := RoadNetwork.new() ## the routing/validation logic behind this autoload
 var network_source := NETWORK_PATH
@@ -38,6 +40,8 @@ func reload() -> void:
 	scenery = sc.get("scenery", {}) if sc is Dictionary else {}
 	var m: Variant = ConfigLoader.load_json(MAP_PATH) if FileAccess.file_exists(MAP_PATH) else null
 	map_data = m if m is Dictionary else {}
+	var cdb: Variant = ConfigLoader.load_json(CITIES_PATH) if FileAccess.file_exists(CITIES_PATH) else null
+	city_db = cdb if cdb is Dictionary else {}
 	network = RoadNetwork.new()
 	network.setup(net, countries, ConfigLoader.load_merged(), map_data)
 	cities = network.cities
@@ -118,7 +122,7 @@ func get_stage_plan(stage_id: String, from_city_id: String = "") -> StagePlan:
 	if not stages.has(stage_id):
 		push_error("Unbekannte Etappe: " + stage_id)
 		return null
-	var p := StagePlan.build(stages[stage_id], from_city_id, cities, countries, ConfigLoader.load_merged())
+	var p := StagePlan.build(stages[stage_id], from_city_id, cities, countries, ConfigLoader.load_merged(), city_db)
 	for w in p.warnings:
 		push_warning(w)
 	return p
@@ -262,6 +266,16 @@ func city_map_pos(city_id: String) -> Vector2:
 func validate() -> Array[String]:
 	warnings = network.validate()
 	return warnings
+
+
+## Building style of a city (data/cities.json; country default, else "german").
+func city_style(city_id: String) -> String:
+	return CityData.style_for(city_db, city_id, str(cities.get(city_id, {}).get("country", "")))
+
+
+## Check of data/cities.json against the network, the scenery and the sprite manifest (CityData.validate).
+func validate_cities(sprite_sets: Dictionary) -> Array[String]:
+	return CityData.validate(city_db, cities, scenery, sprite_sets)
 
 
 ## Scenery ids used by stages but missing in data/scenery.json (the race module renders them with defaults).

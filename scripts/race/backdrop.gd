@@ -8,7 +8,11 @@ extends RefCounted
 ## view["bg_offset"]) rotates it, nearer layers rotate slightly faster. When the scenery style
 ## changes the old layers sink below the horizon while the new ones rise (render.background_blend_s).
 ## Colours come from data/scenery.json ("background": {style, colors[far..near], snow_caps, height,
-## features[turbines|spires|pylons|chimneys], sea}). Owner: race module.
+## features[turbines|spires|pylons|chimneys|cranes|domes|onion|slabs|towers], sea, roofs
+## flat|gable|mansard|stepped|mixed, behind mountains|alps|hills}). Individual cities (docs/staedte.md):
+## skyline styles "city" and "suburb" (outskirts: low houses and trees), roof shapes, a mountain or hill
+## range behind the city ("behind") and landmark silhouettes (`landmarks`, drawn through `sprite_cb` by the
+## renderer after the far layer, turning with the panorama). Owner: race module.
 
 const TABLE_N := 2048
 const STYLES := {
@@ -40,6 +44,11 @@ const STYLES := {
 		{"type": "skyline", "par": 1.0, "h": 125.0, "col": 0, "haze": 0.45, "seed": 61, "count": 150, "windows": true},
 		{"type": "skyline", "par": 1.14, "h": 62.0, "col": 1, "haze": 0.18, "seed": 62, "count": 190, "windows": true},
 	],
+	"suburb": [
+		{"type": "skyline", "par": 1.0, "h": 70.0, "col": 0, "haze": 0.5, "seed": 66, "count": 120, "windows": true},
+		{"type": "trees", "par": 1.1, "h": 9.0, "col": 1, "haze": 0.28, "seed": 67, "tree": "round", "count": 210, "tree_h": 12.0},
+		{"type": "houses", "par": 1.18, "h": 15.0, "col": 2, "haze": 0.14, "seed": 68, "count": 170},
+	],
 	"coast": [
 		{"type": "sea", "par": 1.0, "h": 14.0, "col": 0, "haze": 0.25, "seed": 71},
 		{"type": "ridge", "par": 1.1, "h": 24.0, "col": 1, "haze": 0.3, "seed": 72, "rough": 0.5, "mask": 0.5},
@@ -68,6 +77,10 @@ var _prev_bg: Dictionary = {}
 var _blend := 1.0
 var _last_t := -1.0
 var _base_y := 0.0                 ## screen row the silhouettes stand on (horizon or crest line)
+## Landmark silhouettes of this frame (set by the renderer): [{entry, angle (panorama rad), alpha, s (px per m)}]
+var landmarks: Array = []
+## Draws one silhouette: (entry: Dictionary, pos: Vector2, px_per_m: float, alpha: float, haze: float)
+var sprite_cb: Callable
 
 
 func setup(p: RoadProjection, geo: GeoBatch, blend_seconds: float = 2.5) -> void:
@@ -191,14 +204,16 @@ func draw_background(pal: Dictionary, scenery_id: String, bg: Dictionary, headin
 		_cur_bg = bg
 	_blend = minf(1.0, _blend + dt / blend_s)
 	if _blend < 1.0 and not _prev_bg.is_empty():
-		_draw_style(pal, _prev_bg, heading, t, haze, 1.0 - smoothstep(0.0, 1.0, _blend))
-	_draw_style(pal, _cur_bg, heading, t, haze, smoothstep(0.0, 1.0, _blend))
+		_draw_style(pal, _prev_bg, heading, t, haze, 1.0 - smoothstep(0.0, 1.0, _blend), false)
+	_draw_style(pal, _cur_bg, heading, t, haze, smoothstep(0.0, 1.0, _blend), true)
 
 
-func _draw_style(pal: Dictionary, bg: Dictionary, heading: float, t: float, haze: float, grow: float) -> void:
+func _draw_style(pal: Dictionary, bg: Dictionary, heading: float, t: float, haze: float, grow: float, current: bool = true) -> void:
 	if grow <= 0.01:
 		return
 	var style := str(bg.get("style", "hills"))
+	if bg.has("behind"):
+		_draw_behind(pal, bg, heading, haze, grow)
 	var layers: Array = STYLES.get(style, STYLES["hills"])
 	var cols: Array = bg.get("colors", ["#8aa2bd", "#6f8f6a", "#4f7448"])
 	var hmul := float(bg.get("height", 1.0)) * grow
@@ -232,13 +247,17 @@ func _draw_style(pal: Dictionary, bg: Dictionary, heading: float, t: float, haze
 			"trees":
 				_draw_trees(L, top, bottom, h, par, heading, str(bg.get("trees", L.get("tree", "round"))), grow)
 			"skyline":
-				_draw_skyline(L, top, bottom, h, par, heading, lights, bool(L.get("windows", false)), t)
+				_draw_skyline(L, top, bottom, h, par, heading, lights, bool(L.get("windows", false)), t, str(bg.get("roofs", "flat")))
+			"houses":
+				_draw_houses(L, top, bottom, h, par, heading, lights)
 			"factory":
 				_draw_factories(L, top, bottom, h, par, heading, lights, t, fog)
 			"sea":
 				_draw_sea(top, bottom, h, pal, heading)
 		if li == 0:
 			_draw_features(bg.get("features", []), top.lerp(fog, 0.15), heading, t, lights, grow)
+			if current and not landmarks.is_empty() and sprite_cb.is_valid():
+				_draw_landmarks(heading, grow, haze)
 
 
 func _table(seed: int, kind: String, rough: float) -> PackedFloat32Array:
@@ -410,7 +429,7 @@ func _building_list(L: Dictionary) -> Array:
 	return out
 
 
-func _draw_skyline(L: Dictionary, top: Color, bottom: Color, h: float, par: float, heading: float, lights: float, windows: bool, t: float) -> void:
+func _draw_skyline(L: Dictionary, top: Color, bottom: Color, h: float, par: float, heading: float, lights: float, windows: bool, t: float, roofs: String = "flat") -> void:
 	var hy := _base_y
 	var period := TAU * proj.focal
 	var shift := heading * par * proj.focal
@@ -426,6 +445,8 @@ func _draw_skyline(L: Dictionary, top: Color, bottom: Color, h: float, par: floa
 		var tone := float(b["tone"])
 		var ct := Color(top.r + tone, top.g + tone, top.b + tone, top.a)
 		batch.quad4(Vector2(x0, hy - bh), Vector2(x0 + bw, hy - bh), Vector2(x0 + bw, hy + 2.0), Vector2(x0, hy + 2.0), ct, ct, bottom, bottom)
+		if roofs != "flat" and not bool(b["antenna"]) and float(b["h"]) < 0.62:
+			_roof(roofs, int(b["seed"]), x0, bw, hy - bh, ct)
 		if bool(b["antenna"]) and bh > 6.0:
 			batch.rect(Rect2(x0 + bw * 0.5 - 0.6, hy - bh - bh * 0.18, 1.2, bh * 0.18), ct)
 			if lights > 0.2 and fmod(t + float(int(b["seed"]) % 7) * 0.3, 1.6) < 0.8:
@@ -439,6 +460,90 @@ func _draw_skyline(L: Dictionary, top: Color, bottom: Color, h: float, par: floa
 					rng_v = (rng_v * 1103515245 + 12345) & 0x7fffffff
 					if rng_v % 100 < 28:
 						batch.rect(Rect2(x0 + 2.0 + c * 5.0, hy - bh + 3.0 + r * 6.0, 2.0, 2.5), win)
+
+
+## Roof on a skyline building (x0, width bw, eave row y): gable, mansard, stepped (Dutch) gable or mixed.
+func _roof(kind: String, seed: int, x0: float, bw: float, y: float, col: Color) -> void:
+	var k := kind
+	if kind == "mixed":
+		k = ["flat", "gable", "gable", "mansard"][seed % 4]
+	var rh := minf(bw * 0.42, 22.0)
+	match k:
+		"gable":
+			batch.tri(Vector2(x0, y), Vector2(x0 + bw, y), Vector2(x0 + bw * 0.5, y - rh * 0.8), col)
+		"mansard":
+			batch.quad(Vector2(x0 + bw * 0.12, y - rh * 0.55), Vector2(x0 + bw * 0.88, y - rh * 0.55), Vector2(x0 + bw, y), Vector2(x0, y), col)
+		"stepped":
+			var n := 3
+			for i in n:
+				var f := float(i) / float(n)
+				var w := bw * (1.0 - f) * 0.5
+				batch.rect(Rect2(x0 + bw * 0.5 - w, y - rh * (f + 1.0 / float(n)) * 0.9, w * 2.0, rh * 0.9 / float(n) + 0.5), col)
+
+
+func _house_list(L: Dictionary) -> Array:
+	var key := "%d:houses" % int(L.get("seed", 1))
+	if _objects.has(key):
+		return _objects[key]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(L.get("seed", 1)) * 547 + 9
+	var out: Array = []
+	for i in int(L.get("count", 160)):
+		out.append(Vector4(rng.randf(), rng.randf_range(0.6, 1.0), rng.randf_range(0.7, 1.3), float(rng.randi() % 1000)))
+	_objects[key] = out
+	return out
+
+
+## Low houses with pitched roofs between trees (outskirts, style "suburb"); lit windows at night.
+func _draw_houses(L: Dictionary, top: Color, bottom: Color, h: float, par: float, heading: float, lights: float) -> void:
+	var hy := _base_y
+	var period := TAU * proj.focal
+	var shift := heading * par * proj.focal
+	var roof := top.darkened(0.18)
+	var win := Color(1.0, 0.85, 0.5, 0.9 * lights)
+	for hv: Vector4 in _house_list(L):
+		var x := fposmod(hv.x * period - shift + proj.screen.x * 0.5, period)
+		if x > proj.screen.x + 20.0:
+			x -= period
+		if x < -20.0 or x > proj.screen.x + 20.0:
+			continue
+		var hw := h * 0.55 * hv.z
+		var hh := h * 0.55 * hv.y
+		batch.quad4(Vector2(x - hw, hy - hh), Vector2(x + hw, hy - hh), Vector2(x + hw, hy + 1.0), Vector2(x - hw, hy + 1.0), top, top, bottom, bottom)
+		batch.tri(Vector2(x - hw * 1.12, hy - hh), Vector2(x + hw * 1.12, hy - hh), Vector2(x, hy - hh - h * 0.42 * hv.y), roof)
+		if lights > 0.15 and int(hv.w) % 3 != 0:
+			batch.rect(Rect2(x - hw * 0.5, hy - hh * 0.65, hw * 0.35, hh * 0.3), win)
+
+
+## Mountain or hill range behind a city skyline ("behind": mountains|alps|hills, or {style, height}).
+func _draw_behind(pal: Dictionary, bg: Dictionary, heading: float, haze: float, grow: float) -> void:
+	var b: Variant = bg.get("behind")
+	var style := str(b.get("style", "hills")) if b is Dictionary else str(b)
+	var hmul := (float((b as Dictionary).get("height", 1.0)) if b is Dictionary else 1.0) * grow
+	var layers: Array = STYLES.get(style, STYLES["hills"])
+	var L: Dictionary = layers[0]
+	var cols: Array = bg.get("colors", ["#8aa2bd"])
+	var fog: Color = pal["fog"]
+	var col := Color(str(cols[0])).darkened(0.05) * (pal["ambient"] as Color)
+	var hz := clampf(0.55 + haze * 0.45, 0.0, 0.97)
+	var top := col.lerp(fog, hz)
+	var bottom := col.lerp(fog, minf(0.98, hz + 0.2))
+	var h := float(L.get("h", 60.0)) * hmul
+	_draw_table_layer(L, top, bottom, h, 0.97, heading, 0.0)
+	if style == "alps" or style == "mountains":
+		var snow := Color("eef2f8") * (pal["ambient"] as Color)
+		_draw_snow_caps(L, snow.lerp(fog, hz * 0.85), h, 0.97, heading, float(L.get("snow", 0.6)))
+
+
+## Skyline landmarks (renderer list): sprite or procedural silhouette at its panorama angle, hazy, growing
+## with the background blend.
+func _draw_landmarks(heading: float, grow: float, haze: float) -> void:
+	var hz := clampf(0.5 + haze * 0.4, 0.0, 0.95)
+	for e: Dictionary in landmarks:
+		var x := proj.screen.x * 0.5 + wrap_angle(float(e["angle"]) - heading) * proj.focal
+		if x < -400.0 or x > proj.screen.x + 400.0:
+			continue
+		sprite_cb.call(e["entry"], Vector2(x, _base_y + 1.0), float(e["s"]) * grow, float(e["alpha"]) * grow, hz)
 
 
 func _factory_list(L: Dictionary) -> Array:
@@ -581,3 +686,46 @@ func _draw_features(features: Array, col: Color, heading: float, t: float, light
 				"chimneys":
 					var ch := 30.0 * scale
 					batch.rect(Rect2(x - 1.5, hy - ch, 3.0, ch + 1.0), col)
+				"cranes":
+					# harbour crane: legs, machine house, jib reaching out
+					var ch := 30.0 * scale
+					batch.quad(Vector2(x - 5.0 * scale, hy + 1.0), Vector2(x - 3.0 * scale, hy - ch * 0.55), Vector2(x - 1.8 * scale, hy - ch * 0.55), Vector2(x - 3.4 * scale, hy + 1.0), col)
+					batch.quad(Vector2(x + 3.4 * scale, hy + 1.0), Vector2(x + 1.8 * scale, hy - ch * 0.55), Vector2(x + 3.0 * scale, hy - ch * 0.55), Vector2(x + 5.0 * scale, hy + 1.0), col)
+					batch.rect(Rect2(x - 4.0 * scale, hy - ch * 0.72, 8.0 * scale, ch * 0.18), col)
+					var dir := 1.0 if i % 2 == 0 else -1.0
+					batch.line(Vector2(x, hy - ch * 0.7), Vector2(x + dir * 20.0 * scale, hy - ch * 0.95), 1.4, col)
+					batch.line(Vector2(x, hy - ch * 0.98), Vector2(x + dir * 20.0 * scale, hy - ch * 0.95), 0.9, col)
+					batch.line(Vector2(x, hy - ch * 0.7), Vector2(x, hy - ch * 1.02), 1.2, col)
+				"domes":
+					var dh := 22.0 * scale
+					batch.rect(Rect2(x - 5.0 * scale, hy - dh * 0.55, 10.0 * scale, dh * 0.55 + 1.0), col)
+					batch.ellipse(Vector2(x, hy - dh * 0.55), Vector2(5.0 * scale, 4.6 * scale), col, col, 10)
+					batch.rect(Rect2(x - 0.8 * scale, hy - dh * 0.55 - 7.0 * scale, 1.6 * scale, 3.0 * scale), col)
+				"onion":
+					var oh := 20.0 * scale
+					batch.rect(Rect2(x - 3.0 * scale, hy - oh * 0.6, 6.0 * scale, oh * 0.6 + 1.0), col)
+					batch.ellipse(Vector2(x, hy - oh * 0.6 - 2.4 * scale), Vector2(3.4 * scale, 3.0 * scale), col, col, 10)
+					batch.tri(Vector2(x - 2.4 * scale, hy - oh * 0.6 - 4.0 * scale), Vector2(x + 2.4 * scale, hy - oh * 0.6 - 4.0 * scale), Vector2(x, hy - oh * 0.6 - 9.0 * scale), col)
+					batch.rect(Rect2(x - 10.0 * scale, hy - oh * 0.3, 7.0 * scale, oh * 0.3 + 1.0), col)
+				"slabs":
+					# prefabricated high-rise slabs (Plattenbau)
+					var sh := 34.0 * scale
+					var sw := 26.0 * scale
+					batch.rect(Rect2(x - sw * 0.5, hy - sh, sw, sh + 1.0), col)
+					if lights > 0.15:
+						var wc := Color(1.0, 0.86, 0.55, 0.7 * lights)
+						for r in 6:
+							for c in 5:
+								if (i * 7 + r * 3 + c * 5) % 4 == 0:
+									batch.rect(Rect2(x - sw * 0.5 + 2.0 + c * sw / 5.0, hy - sh + 3.0 + r * sh / 6.5, 2.0, 2.0), wc)
+				"towers":
+					# cluster of modern high-rises
+					for j in 3:
+						var tw := (7.0 + 2.0 * float(j)) * scale
+						var th := (62.0 - 14.0 * float(j)) * scale
+						var tx := x + (float(j) - 1.0) * 12.0 * scale
+						batch.rect(Rect2(tx - tw * 0.5, hy - th, tw, th + 1.0), col)
+						if j == 0:
+							batch.rect(Rect2(tx - 0.5, hy - th - 8.0 * scale, 1.0, 8.0 * scale), col)
+						if lights > 0.3 and fmod(t + float(i) * 0.3, 1.8) < 0.9:
+							batch.rect(Rect2(tx - 1.2, hy - th - 1.5, 2.4, 2.4), Color(1, 0.15, 0.1, lights))

@@ -48,9 +48,25 @@ var description := ""          ## optional stage description (German)
 var seed := 0
 var dev := false
 var warnings: Array[String] = []
+# Individual cities (docs/staedte.md, resolved by CityData.apply when GameData passes data/cities.json):
+var city_style := ""               ## building style of the destination city ("" = generic City Limits)
+var city_scenery_outskirts := ""   ## scenery id of the outer City Limits (km < city_center_km)
+var city_scenery_center := ""      ## scenery id of the city centre
+var city_center_km := 0.0          ## start of the city centre (km); >= city_limits_km
+var city_background: Dictionary = {}  ## per-city overrides of the city scenery "background"
+## Landmark props: {set, km, side, x_m (near edge from the paved edge), scale, name, height_m, proc?,
+## fallback?, fallback_scale?, fallback_tint?, tint?, width_m?, clear_m [before, after], plaza}
+var landmarks: Array[Dictionary] = []
+## Bridges: {start_km, end_km, length_m (visible m), type, name, depth_m (water below the deck), water,
+## color, ships, boats}
+var bridges: Array[Dictionary] = []
+## Skyline silhouettes: {set, name, height_m, proc?, fallback?, …, azimuth_deg (NAN = automatic), scale,
+## prop_km (-1 = no landmark prop of the same set on this stage)}
+var skyline: Array[Dictionary] = []
 
 
-static func build(stage: Dictionary, from_city_id: String, cities: Dictionary, countries: Dictionary, cfg: Dictionary) -> StagePlan:
+## city_db: parsed data/cities.json (optional) – fills the city fields (style, landmarks, bridges, skyline).
+static func build(stage: Dictionary, from_city_id: String, cities: Dictionary, countries: Dictionary, cfg: Dictionary, city_db: Dictionary = {}) -> StagePlan:
 	var p := StagePlan.new()
 	p.stage_id = str(stage.get("id", ""))
 	p.dev = bool(stage.get("dev", false))
@@ -88,6 +104,8 @@ static func build(stage: Dictionary, from_city_id: String, cities: Dictionary, c
 	_build_borders(p, stage, countries)
 	_compute_climate(p, countries)
 	_check_layout(p)
+	p.city_center_km = p.length_km
+	CityData.apply(p, city_db, cities, cfg)
 	return p
 
 
@@ -319,6 +337,34 @@ func tunnel_at(km: float) -> Dictionary:
 
 func in_tunnel(km: float) -> bool:
 	return not tunnel_at(km).is_empty()
+
+
+## Scenery id at km: the section's scenery outside the City Limits; inside them the destination city's
+## outskirts / centre scenery when `available` (the scenery table) has it, else the generic "city" scenery
+## (and the section's scenery when even that is missing).
+func scenery_for(km: float, available: Dictionary) -> String:
+	if not is_city(km):
+		return scenery_at(km)
+	var id := city_scenery_center if km >= city_center_km else city_scenery_outskirts
+	if id != "" and available.has(id):
+		return id
+	return "city" if available.has("city") else scenery_at(km)
+
+
+func in_city_center(km: float) -> bool:
+	return is_city(km) and km >= city_center_km
+
+
+## Bridge at km ({} if none).
+func bridge_at(km: float) -> Dictionary:
+	for b in bridges:
+		if km >= float(b["start_km"]) and km < float(b["end_km"]):
+			return b
+	return {}
+
+
+func on_bridge(km: float) -> bool:
+	return not bridge_at(km).is_empty()
 
 
 func fuel_lane_at(km: float) -> Dictionary:
