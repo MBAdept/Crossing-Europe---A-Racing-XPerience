@@ -493,6 +493,65 @@ func test_guardrail_scrape_and_bounce() -> void:
 	assert_false(v.on_grass, "kein Gras mit Leitplanke")
 
 
+## Regression v0.5.0 (QA Windows, snow race Bern – Mailand): a car that stood at the guardrail could never move
+## again in snow – the traction limit (11.9 km/h/s) is below the guardrail scrape (20 km/h/s), and at 0 km/h the
+## steering does nothing. Now the rail scrapes only while the car is pushed into it: from standstill at either rail,
+## every car leaves it with throttle and steering away (or drives off along it with throttle alone) in every weather.
+func test_guardrail_never_pins_a_standing_car() -> void:
+	var c := cfg()
+	var env := EnvironmentModel.new()
+	env.setup(c)
+	for w: String in ["normal", "rain", "snow"]:
+		var road := Fx.flat_road(3, true, 0.0, env.grip(w))
+		for id: String in Fx.VEHICLES:
+			for side: int in [-1, 1]:
+				for steer_away: bool in [true, false]:
+					var v := Fx.vehicle(c, id)
+					# standing at the rail (as after a collision push into it or pulling over): the hard limit
+					# puts the car there, the hit and its bounce are over
+					v.x = float(side) * 9.0
+					v.speed = 0.0
+					v.update(DT, {}, road, {"vmax_factor": 1.0})
+					v.lat_speed = 0.0
+					var tag := "%s %s %s %s" % [w, id, "rechts" if side > 0 else "links",
+						"Gas + weglenken" if steer_away else "nur Gas"]
+					assert_true(v.rail_contact and v.speed < 0.5, tag + ": steht an der Leitplanke (%.1f km/h)" % v.speed)
+					var t := 0.0
+					var left_rail := -1.0
+					var reached := -1.0
+					while t < 5.0 and reached < 0.0:
+						v.update(DT, {"throttle": 1.0, "steer": -float(side) if steer_away else 0.0}, road, {"vmax_factor": 1.0})
+						t += DT
+						if left_rail < 0.0 and not v.rail_contact:
+							left_rail = t
+						if v.speed >= 20.0:
+							reached = t
+					assert_true(reached > 0.0, tag + ": in 5 s auf 20 km/h (%.1f km/h)" % v.speed)
+					if steer_away:
+						assert_true(left_rail > 0.0 and left_rail < 3.0, tag + ": verlässt die Leitplanke (%.2f s)" % left_rail)
+
+
+## Pressing into the rail still scrapes: steering into it costs speed (driving.guardrail.scrape_decel_kmh_s), a car that
+## only touches it (no steering towards it) just coasts.
+func test_guardrail_scrapes_while_pressed_into_it() -> void:
+	var c := cfg()
+	var road := Fx.flat_road(3, true)
+	var scrape := float(ConfigLoader.lookup(c, "driving.guardrail.scrape_decel_kmh_s", 20.0))
+	var coast := float(ConfigLoader.lookup(c, "driving.coast_decel_kmh_s", 5.0))
+	var v := Fx.vehicle(c, "limousine")
+	v.x = 7.0
+	v.speed = 100.0
+	_run(v, 1.5, {"steer": 1.0}, road)   # hit and bounce are over, the car leans on the rail
+	var v0 := v.speed
+	_run(v, 1.0, {"steer": 1.0}, road)
+	assert_true(v.rail_contact, "an der Leitplanke")
+	assert_true(v0 - v.speed > (scrape + coast) * 0.8, "Schleifen bremst: %.1f -> %.1f km/h" % [v0, v.speed])
+	var v1 := v.speed
+	_run(v, 1.0, {}, road)
+	assert_true(v.rail_contact, "berührt die Leitplanke weiter")
+	assert_true(v1 - v.speed < coast * 1.05, "nur berühren schleift nicht: %.1f -> %.1f km/h" % [v1, v.speed])
+
+
 func test_grass_without_guardrail() -> void:
 	var c := cfg()
 	var v := Fx.vehicle(c, "limousine")
