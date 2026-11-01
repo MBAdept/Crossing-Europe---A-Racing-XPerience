@@ -91,6 +91,11 @@ und `stephansdom` (Wien), `fernsehturm_berlin`, `frauenkirche_dresden`, `frauenk
 `nevsky_kathedrale` (Sofia). Weitere nach Zeit (z. B. Frankfurter Hochhäuser, Kaiserburg Nürnberg,
 Freiheitsdenkmal Riga, Kathedrale Burgos, Basílica del Pilar Saragossa).
 
+Geliefert (Details, Maße und Zellgrößen: [docs/sprites.md „Wahrzeichen“](sprites.md)): alle 15 Pflicht-Sets und
+zusätzlich `frankfurt_skyline` (Frankfurt), `kaiserburg_nuernberg` (Nürnberg), `st_petri_riga` und
+`freiheitsdenkmal_riga` (Riga), `kathedrale_burgos` (Burgos), `basilica_pilar` (Saragossa). Anker = Mitte
+der nahen Seite am Boden, `extent_m` wie bei allen Requisiten, kein `mirror_left` (nie spiegeln).
+
 ## 4. Brückenbauteile
 
 `props/bridge_truss_arch` (Stahlbogen-Portal über der ganzen Fahrbahn, mittig verankert, Tag `overhead`, wird alle

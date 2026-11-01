@@ -2,7 +2,7 @@
 
 A set spec:
   id        manifest set id (= output file without .png)
-  builder   'player' | 'car' | 'truck' | 'bus' | 'police' | 'prop' | 'icon'  (see render_all.build)
+  builder   'player' | 'car' | 'truck' | 'bus' | 'police' | 'prop' | 'icon' | 'landmark'  (see render_all.build)
   render    'box' for trucks/buses (face images of textured boxes, contract v2 section 4)
   params    builder parameters; keys listed in 'paint' only affect the base layer (colour variants share
             geometry, shadow and light-layer renders through the cache)
@@ -167,4 +167,10 @@ def police_sets():
 
 def all_sets():
     from . import icons, props
-    return player_sets() + car_sets() + heavy_sets() + police_sets() + props.prop_sets() + icons.icon_sets()
+    return player_sets() + car_sets() + heavy_sets() + police_sets() + props.prop_sets() + icons.icon_sets() + landmark_sets()
+
+
+def landmark_sets():
+    """Landmarks landmarks/<name> (docs/staedte.md section 3), defined in props_landmarks."""
+    from . import props_landmarks
+    return props_landmarks.landmark_sets()
