@@ -520,6 +520,8 @@ func _track_driving(dt: float) -> void:
 	if vehicle.rail_hit:
 		drive_stats["rail_hits"] += 1
 		_rail_feedback(vehicle.rail_impact)
+		# metal on metal: a light touch is a scrape, a slide into the rail (understeer drift) a loud bang
+		AudioManager.play("rail", clampf(-10.0 + 2.0 * vehicle.rail_impact, -10.0, 2.0))
 	if vehicle.understeer > 0.0:
 		drive_stats["understeer_s"] += dt
 	drive_stats["understeer_max"] = maxf(float(drive_stats["understeer_max"]), vehicle.understeer)

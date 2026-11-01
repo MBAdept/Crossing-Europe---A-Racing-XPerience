@@ -208,7 +208,7 @@ Martinshorn und Raumklang: Abschnitt *Verkehrsgeräusche, Martinshorn und Raumkl
   (`EngineGearbox.generic`).
 - Wind ∝ Tempo, Regen, Reifenquietschen beim Untersteuern, Martinshorn (440/587 Hz, „tatü-tata“; räumlich an der
   Polizei, wenn die Rennsitzung sie in `set_traffic()` mitschickt).
-- Einmalklänge `crash, flash, go, beep, finish, fuel_start, fuel_done, ui_move, ui_ok, ui_back`.
+- Einmalklänge `crash, rail, flash, go, beep, finish, fuel_start, fuel_done, ui_move, ui_ok, ui_back`; `play(name, gain_db)` hebt/senkt den Pegel (Leitplankentreffer `rail`: −10 dB bei leichter Berührung bis +2 dB beim Hineinrutschen, skaliert mit `vehicle.rail_impact`).
 - Schleifen und Motor blenden aus, wenn `set_engine()` nicht mehr aufgerufen wird (Szene verlassen) und während der
   Pause. `set_engine()` während der Pause und im selben Frame wie `stop_all()` wird ignoriert (eine Rennszene, die
   gerade freigegeben wird, startet den Motor nicht neu).

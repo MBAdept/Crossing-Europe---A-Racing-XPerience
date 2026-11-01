@@ -32,7 +32,7 @@ extends Node
 ## this run), --mute-bus=Engine (measure the traffic alone; muting SFX would also mute Room), --perf (AUDIO_PERF at exit).
 
 const ONESHOT_DB := {
-	"crash": -1.0, "flash": -3.0, "go": -4.0, "beep": -6.0, "finish": -3.0, "fuel_start": -5.0,
+	"crash": -1.0, "rail": -5.0, "flash": -3.0, "go": -4.0, "beep": -6.0, "finish": -3.0, "fuel_start": -5.0,
 	"fuel_done": -4.0, "ui_move": -12.0, "ui_ok": -8.0, "ui_back": -9.0,
 }
 const LOOPS := ["engine_on", "engine_off", "wind", "rain", "skid"]
@@ -243,6 +243,7 @@ func _build_sounds() -> void:
 	_streams["siren"] = SfxSynth.to_wav(SfxSynth.siren_loop(), true)
 	_streams["skid"] = SfxSynth.to_wav(SfxSynth.skid_loop(), true)
 	_streams["crash"] = SfxSynth.to_wav(SfxSynth.crash())
+	_streams["rail"] = SfxSynth.to_wav(SfxSynth.rail_hit())
 	_streams["flash"] = SfxSynth.to_wav(SfxSynth.radar_flash())
 	_streams["beep"] = SfxSynth.to_wav(SfxSynth.beep(784.0, 0.18, 4.0))
 	_streams["go"] = SfxSynth.to_wav(SfxSynth.beep(1568.0, 0.7, 2.5))
@@ -333,7 +334,8 @@ func set_skid(amount01: float) -> void:
 
 ## One-shot effects: "crash", "flash", "go", "beep", "finish", "fuel_start", "fuel_done", "ui_move",
 ## "ui_ok", "ui_back".
-func play(sound_name: String) -> void:
+## One-shot sound; gain_db is added to its base level (e.g. a guardrail hit scaled by the impact).
+func play(sound_name: String, gain_db: float = 0.0) -> void:
 	if not sounds_ready or not _streams.has(sound_name) or _oneshots.is_empty():
 		return
 	var now := Time.get_ticks_msec()
@@ -343,7 +345,7 @@ func play(sound_name: String) -> void:
 	var p := _oneshots[_next_oneshot]
 	_next_oneshot = (_next_oneshot + 1) % _oneshots.size()
 	p.stream = _streams[sound_name]
-	p.volume_db = float(ONESHOT_DB.get(sound_name, -4.0))
+	p.volume_db = float(ONESHOT_DB.get(sound_name, -4.0)) + gain_db
 	p.play()
 
 

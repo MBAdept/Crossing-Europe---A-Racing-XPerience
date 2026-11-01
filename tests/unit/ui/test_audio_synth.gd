@@ -26,7 +26,7 @@ func test_siren_two_tones() -> void:
 
 
 func test_one_shots_in_range() -> void:
-	for b: PackedFloat32Array in [SfxSynth.crash(), SfxSynth.radar_flash(), SfxSynth.beep(784.0, 0.18), SfxSynth.finish_jingle(), SfxSynth.ui_tick()]:
+	for b: PackedFloat32Array in [SfxSynth.crash(), SfxSynth.rail_hit(), SfxSynth.radar_flash(), SfxSynth.beep(784.0, 0.18), SfxSynth.finish_jingle(), SfxSynth.ui_tick()]:
 		assert_true(b.size() > 100, "nicht leer")
 		assert_true(_peak(b) <= 0.951, "kein Clipping")
 

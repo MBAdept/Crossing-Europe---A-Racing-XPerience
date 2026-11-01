@@ -231,6 +231,31 @@ static func crash() -> PackedFloat32Array:
 	return normalize(b, 0.95)
 
 
+## Guardrail hit: dull thump, inharmonic clang of the steel profile and a short scrape of metal on metal.
+static func rail_hit() -> PackedFloat32Array:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 11
+	var b := _buf(0.7)
+	var lp := 0.0
+	var bp := 0.0
+	var ph := 0.0
+	var clang := [612.0, 1337.0, 2284.0, 3146.0, 4380.0]
+	for i in b.size():
+		var t := float(i) / RATE
+		ph += TAU * lerpf(85.0, 55.0, minf(t / 0.2, 1.0)) / RATE
+		var thump := sin(ph) * exp(-t * 12.0)
+		var m := 0.0
+		for k in clang.size():
+			m += sin(TAU * float(clang[k]) * t + 0.7 * k) * exp(-t * (7.0 + k * 3.0)) / (1.0 + 0.4 * k)
+		# scrape: noise through a resonance that jitters around 2.5 kHz, fading over half a second
+		var x := rng.randf_range(-1.0, 1.0)
+		lp += (x - lp) * 0.55
+		bp += (lp - bp) * 0.25
+		var scrape := (lp - bp) * exp(-t * 5.0) * (0.55 + 0.45 * absf(sin(TAU * 23.0 * t + 0.3 * sin(TAU * 7.0 * t))))
+		b[i] = 0.85 * thump + 0.35 * m + 0.9 * scrape
+	return normalize(b, 0.92)
+
+
 ## Radar flash: shutter click, warning beep and the charging whine of the flash unit.
 static func radar_flash() -> PackedFloat32Array:
 	var rng := RandomNumberGenerator.new()
