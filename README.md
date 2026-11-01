@@ -71,8 +71,9 @@ chmod +x CrossingEurope.x86_64
 
 Windows 10/11 (64 Bit): `CrossingEurope-windows-x86_64.zip` entpacken und `CrossingEurope.exe` starten – ebenfalls eine
 einzige Datei ohne Installation. Die Datei ist nicht signiert, beim ersten Start warnt deshalb Windows SmartScreen:
-„Weitere Informationen“ → „Trotzdem ausführen“. Spielstände, Prüfsummen, Selbstbauen (`tools/build_windows.sh`, beide
-Plattformen auf einmal mit `tools/build_release.sh`) und was geprüft ist: [docs/windows.md](docs/windows.md).
+„Weitere Informationen“ → „Trotzdem ausführen“. Browser-Warnungen, intelligente App-Steuerung, Virenscanner,
+Grafikprobleme, Spielstände, Prüfsummen, Selbstbauen (`tools/build_windows.sh`, ein Release für beide Plattformen mit
+`tools/build_release.sh <Version>`) und was geprüft ist: [docs/windows.md](docs/windows.md).
 
 | Aktion | Tastatur | Gamepad |
 |---|---|---|
@@ -91,10 +92,10 @@ Tastenhinweise zeigen dort nur Gamepad-Tasten, Namen gibt man über eine Bildsch
 
 ## Steam-Artwork
 
-Wer das Spiel als Nicht-Steam-Spiel in Steam einbindet (Linux, Steam Deck): fertige Bibliotheksbilder im Look des
-Titelbildschirms liegen in [marketing/steam/](marketing/steam/) – Grid hochkant (600×900) und quer (920×430),
-Hero-Banner, transparentes Logo und Icon, jeweils auch in doppelter Auflösung. Die Anleitung zum Einrichten steht in
-[marketing/steam/README.md](marketing/steam/README.md).
+Wer das Spiel als Nicht-Steam-Spiel in Steam einbindet (Linux, Windows, Steam Deck): fertige Bibliotheksbilder im
+Look des Titelbildschirms liegen in [marketing/steam/](marketing/steam/) – Grid hochkant (600×900) und quer
+(920×430), Hero-Banner, transparentes Logo und Icon, jeweils auch in doppelter Auflösung. Die Anleitung zum
+Einrichten steht in [marketing/steam/README.md](marketing/steam/README.md).
 
 <img src="marketing/steam/grid_portrait_600x900.png" width="200" alt="Steam-Grid hochkant"> <img src="marketing/steam/grid_landscape_920x430.png" width="428" alt="Steam-Grid quer">
 
@@ -138,7 +139,7 @@ Alle Werte stehen in `config/game_config.json` und lassen sich ohne Neubau ände
 | Tempo-Abzug Regen / Schnee / Nacht | −2,5 % / −12 % / −1 %; Regen + Nacht erlaubt jedem Auto noch 220 km/h |
 | Zeitstrafe leerer Tank | 90 s Abschleppdienst, danach halber Tank |
 | Straßenrand | Bankett bremst auf 90 km/h; Autobahn mit Leitplanke (abprallen), sonst Wiese (bremst auf 40 km/h) |
-| Plattform und Eingabe | Linux x86_64, Tastatur und Gamepad |
+| Plattform und Eingabe | Linux x86_64 und Windows 10/11 x86_64, Tastatur und Gamepad |
 | Sound, Musik, Sprache | prozeduraler Sound, Menümusik, alle Texte deutsch über `tr()` (übersetzbar) |
 
 ## Werte und Strecken anpassen ohne Neubau
@@ -171,5 +172,7 @@ tools/build_linux.sh
 
 ## Lizenzen der Fremddaten
 
+Engine: Godot Engine (MIT-Lizenz, <https://godotengine.org/license>) samt ihren Bestandteilen von Dritten.
 Schriften: Orbitron, Exo 2, Barlow Condensed, Share Tech Mono (SIL Open Font License, siehe `assets/fonts/`).
-Kartendaten: Natural Earth (gemeinfrei) über das npm-Paket `world-atlas` (ISC).
+Kartendaten: Natural Earth (gemeinfrei) über das npm-Paket `world-atlas` (ISC, `data/map/LICENSE-world-atlas.txt`).
+Die Release-Archive enthalten alle Lizenzhinweise in `LIZENZEN.txt` (erzeugt von `tools/write_licenses.gd`).

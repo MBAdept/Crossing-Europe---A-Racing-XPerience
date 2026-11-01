@@ -10,6 +10,8 @@ var fullscreen := false
 var player_name := ""
 var language := "de"
 var leaderboard_filter := "all"   # "all" or a vehicle type id
+var file_path := PATH             ## file of load_settings()/save_settings() (tests use their own)
+var _stored := {}                 ## values as last loaded or saved – see has_unsaved_changes()
 
 
 func _ready() -> void:
@@ -18,6 +20,13 @@ func _ready() -> void:
 	load_settings()
 	if not CliArgs.has("no-settings-apply"):
 		apply()
+
+
+## Closing the window (X button, Alt+F4 – on Windows the usual way to quit) keeps changes that are not
+## saved yet: the options screen saves only when it is left. Debug screens with sample data never save.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST and not _sample_mode():
+		save_if_changed()
 
 
 ## Start value of "Vollbild" (until the player sets it in the options): full screen on small screens
@@ -43,18 +52,27 @@ static func desktop_scale() -> float:
 	return clampf(DisplayServer.screen_get_dpi() / 96.0, 1.0, 4.0)
 
 
-## Scale for the window in windowed mode: the desktop scale, at most what fits into `room` (usable screen
-## area minus window decorations) with a picture of `base` pixels; 1.0 = leave the window as it is.
+## Scale for the window in windowed mode: the desktop scale, but at most what fits into `room` (usable
+## screen area minus window decorations) with a picture of `base` pixels – below 1.0 where 1280×720 does
+## not fit (1366×768 with the taskbar), never below half the size. No usable area reported: desktop scale.
 static func fitted_window_scale(scale: float, room: Vector2, base: Vector2) -> float:
-	return maxf(1.0, minf(scale, minf(room.x / base.x, room.y / base.y)))
+	var wanted := maxf(scale, 1.0)
+	if room.x <= 0.0 or room.y <= 0.0:
+		return wanted
+	return maxf(0.5, minf(wanted, minf(room.x / base.x, room.y / base.y)))
 
 
+## Position of the client area that centres a window of `size` – plus its decorations `deco`, the client
+## area sitting at `offset` inside the frame – in the usable screen area `area`; the frame never starts
+## above or left of the area, so the title bar stays reachable.
+static func centred_window_position(area: Rect2i, size: Vector2i, deco: Vector2i, offset: Vector2i) -> Vector2i:
+	var frame_pos := area.position + (area.size - size - deco) / 2
+	return frame_pos.max(area.position) + offset
+
+
+## Reads the settings file; a damaged file falls back to the previous version (".bak", JsonFile).
 func load_settings() -> void:
-	if not FileAccess.file_exists(PATH):
-		return
-	var d: Variant = ConfigLoader.load_json(PATH)
-	if not d is Dictionary:
-		return
+	var d := JsonFile.load_dict(file_path)
 	master_volume = float(d.get("master_volume", master_volume))
 	sfx_volume = float(d.get("sfx_volume", sfx_volume))
 	music_volume = float(d.get("music_volume", music_volume))
@@ -62,17 +80,39 @@ func load_settings() -> void:
 	player_name = str(d.get("player_name", player_name))
 	language = str(d.get("language", language))
 	leaderboard_filter = str(d.get("leaderboard_filter", leaderboard_filter))
+	_stored = to_dict()
 
 
-func save_settings() -> void:
-	var d := {
+## Writes the settings atomically like the savegame (temp file, previous version kept as ".bak"), so a
+## crash or power cut while saving never leaves a half-written file. Returns false if writing failed.
+func save_settings() -> bool:
+	var d := to_dict()
+	if not JsonFile.save_atomic(file_path, d):
+		return false
+	_stored = d
+	return true
+
+
+## Saves only if something changed since the settings were last loaded or saved.
+func save_if_changed() -> bool:
+	return has_unsaved_changes() and save_settings()
+
+
+func has_unsaved_changes() -> bool:
+	return to_dict() != _stored
+
+
+func to_dict() -> Dictionary:
+	return {
 		"master_volume": master_volume, "sfx_volume": sfx_volume, "music_volume": music_volume,
 		"fullscreen": fullscreen, "player_name": player_name, "language": language,
 		"leaderboard_filter": leaderboard_filter,
 	}
-	var f := FileAccess.open(PATH, FileAccess.WRITE)
-	if f:
-		f.store_string(JSON.stringify(d, "\t"))
+
+
+func _sample_mode() -> bool:
+	var flow: Node = get_node_or_null("/root/GameFlow") if is_inside_tree() else null
+	return flow != null and flow.get("sample_mode") == true
 
 
 func apply() -> void:
@@ -83,25 +123,25 @@ func apply() -> void:
 	if DisplayServer.get_name() != "headless":
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
 		if not fullscreen:
-			_scale_window()
+			_fit_window()
 
 
-## Windowed on a scaled Windows desktop: enlarges the 1280×720 window by the display scaling (as far as it
-## fits on the screen) and centres it. Nothing happens at 100 % and on other systems.
-func _scale_window() -> void:
-	var scale := desktop_scale()
-	if scale <= 1.0:
+## Windowed on Windows: sizes the 1280×720 window by the display scaling (1600×900 at 125 %) and keeps it,
+## title bar included, inside the usable screen area – smaller than 1280×720 where that does not fit
+## (1366×768 with the taskbar) –, centred. The picture scales with the window (stretch mode canvas_items).
+## A window that already has the right size and lies on the screen stays where it is. Other systems leave
+## size and position to the window manager.
+func _fit_window() -> void:
+	if OS.get_name() != "Windows":
 		return
 	var area := DisplayServer.screen_get_usable_rect()
-	var deco := DisplayServer.window_get_size_with_decorations() - DisplayServer.window_get_size()
+	var frame := Rect2i(DisplayServer.window_get_position_with_decorations(), DisplayServer.window_get_size_with_decorations())
+	var deco := frame.size - DisplayServer.window_get_size()
+	var offset := DisplayServer.window_get_position() - frame.position
 	var base := Vector2(float(ProjectSettings.get_setting("display/window/size/viewport_width", 1280)),
 		float(ProjectSettings.get_setting("display/window/size/viewport_height", 720)))
-	var s := fitted_window_scale(scale, Vector2(area.size - deco), base)
-	if s <= 1.0:
+	var size := Vector2i((base * fitted_window_scale(desktop_scale(), Vector2(area.size - deco), base)).round())
+	if size == DisplayServer.window_get_size() and area.encloses(frame):
 		return
-	var size := Vector2i((base * s).round())
 	DisplayServer.window_set_size(size)
-	var pos := area.position + Vector2i(Vector2(area.size - size) * 0.5)
-	# keep the title bar on the screen (decoration height minus the bottom border)
-	pos.y = maxi(pos.y, area.position.y + deco.y - int(deco.x * 0.5))
-	DisplayServer.window_set_position(pos)
+	DisplayServer.window_set_position(centred_window_position(area, size, deco, offset))
