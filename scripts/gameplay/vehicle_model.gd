@@ -20,10 +20,12 @@ extends RefCounted
 ##    a_ex = a_req - a_grip accelerates an outward drift (push_speed, driving.understeer.push_gain * a_ex),
 ##    steering towards the inside loses effect with the excess (saturated front tyres: counter-steering
 ##    helps when slightly too fast, not when clearly too fast) and the sliding tyres scrub speed
-##    (scrub_per_excess * a_ex). Back below the limit the drift decays quickly (recover_s). Lifting or
-##    braking is the remedy
-##  * road edge: the shoulder (Bankett) slows to driving.shoulder.max_speed_kmh; hard limit at
-##    edge + shoulder: guardrail (scrape: speed factor + bounce) or, without guardrail, grass (stronger slowdown)
+##    (scrub_per_excess * a_ex, at most scrub_max_mps2). Back below the limit the drift decays quickly
+##    (recover_s). Lifting or braking is the remedy
+##  * road edge: the shoulder (Bankett) slows to driving.shoulder.max_speed_kmh and has only
+##    driving.shoulder.grip_factor of the grip; hard limit at edge + shoulder (stops the drift): guardrail
+##    (scrape: speed factor + bounce; a drift into it costs more, rail_hit_factor) or, without guardrail,
+##    grass (stronger slowdown). So sliding wide never beats braking for the curve
 ##  * collision: slow down to collision.target_speed_kmh within collision.slowdown_s while being pushed
 ##    sideways; end point collision.push_extra_s after reaching that speed; only then accelerate again;
 ##    invulnerable + blinking during slowdown and push (+ collision.invulnerable_grace_s afterwards)

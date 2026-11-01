@@ -64,7 +64,7 @@
 			"5": { "t100_s": 3.8, "t200_s": 10.0 }
 		},
 		"agility_ratings": {
-			"_doc": "steer_mps: seitliche Lenkgeschwindigkeit in m/s; lat_grip: Querbeschleunigung in m/s², bestimmt die Kurvengeschwindigkeit, ab der Untersteuern einsetzt.",
+			"_doc": "steer_mps: seitliche Lenkgeschwindigkeit in m/s; lat_grip: Querbeschleunigung in m/s², bestimmt die Kurvengeschwindigkeit, ab der Untersteuern einsetzt (sicher = Wurzel(lat_grip * Haftung * Radius)). 5,6-8,0 m/s²: schärfste Kurve Kurvigkeit 1/2/3 sicher bei 209-238 / 146-166 / 104-118 km/h (docs/gameplay.md (i)).",
 			"1": { "steer_mps": 6.5, "lat_grip": 5.6 },
 			"2": { "steer_mps": 7.5, "lat_grip": 6.2 },
 			"3": { "steer_mps": 8.5, "lat_grip": 6.8 },
@@ -74,7 +74,7 @@
 	},
 
 	"driving": {
-		"_doc": "Arcade-Fahrmodell ohne Physik-Engine (Details: docs/gameplay.md). Kein Übersteuern: zu schnell in der Kurve -> Untersteuern (nach außen drücken, proportional zur relativen Überschreitung der sicheren Kurvengeschwindigkeit, Lenkung greift schwächer). Unterhalb der sicheren Kurvengeschwindigkeit folgt der Wagen der Straße ohne Abdrift (base_centrifugal bleibt 0). Straßenrand: Bankett (shoulder) bremst auf max_speed_kmh; harte Grenze bei Fahrbahnrand + Bankett: Leitplanke (Geschwindigkeit * speed_factor_per_hit, Abprallen) oder ohne Leitplanke Gras (grass, stärker bremsen). Höchstgeschwindigkeit = vmax * Wetter * Nacht * Steigung (nur bergauf): Steigungen bis grade_free_percent kosten nichts, darüber grade_vmax_loss_per_percent je Prozentpunkt – so schafft auch das langsamste Auto (230) bei leicht verschlechterten Bedingungen (Regen + Nacht, Hügel bis Stufe 2 = 4,5 %) die 220 km/h für die Polizeiflucht.",
+		"_doc": "Arcade-Fahrmodell ohne Physik-Engine (Details: docs/gameplay.md). Kein Übersteuern: zu schnell in der Kurve -> Untersteuern. Die Kurve verlangt v²/R (R = road.curve_radius_at_1_m / |Kurve|), die Reifen geben lat_grip (Agilität) * Haftung (Wetter); unterhalb dieser Grenze folgt der Wagen der Straße ohne Abdrift (base_centrifugal bleibt 0). Darüber (understeer): der Überschuss a_ex beschleunigt eine Abdrift nach außen (push_gain * a_ex), Lenken zur Kurveninnenseite behält max(min_steer_factor, 1 - steer_loss_per_excess * a_ex/Haftung), die rutschenden Reifen radieren min(scrub_per_excess * a_ex, scrub_max_mps2) vom Tempo, unter der Grenze klingt die Abdrift mit recover_s ab; understeer (HUD/Ton) = a_ex/Haftung / full_excess. Straßenrand: Bankett (shoulder) bremst auf max_speed_kmh und hat nur grip_factor Haftung; harte Grenze bei Fahrbahnrand + Bankett: Leitplanke (Geschwindigkeit * speed_factor_per_hit, mit Untersteuer-Abdrift je m/s über impact_free_mps zusätzlich impact_loss_per_mps weniger, bis min_speed_factor; Abprallen) oder ohne Leitplanke Gras (grass, stärker bremsen). Höchstgeschwindigkeit = vmax * Wetter * Nacht * Steigung (nur bergauf): Steigungen bis grade_free_percent kosten nichts, darüber grade_vmax_loss_per_percent je Prozentpunkt – so schafft auch das langsamste Auto (230) bei leicht verschlechterten Bedingungen (Regen + Nacht, Hügel bis Stufe 2 = 4,5 %) die 220 km/h für die Polizeiflucht.",
 		"brake_decel_kmh_s": 70.0,
 		"coast_decel_kmh_s": 5.0,
 		"steer_full_speed_kmh": 60.0,

@@ -89,8 +89,19 @@ nähere Hintergrundebenen drehen sich etwas schneller (Parallaxe).
   dieselbe Etappe sieht immer gleich aus. An Abschnittsgrenzen und 60 m vor Tunneln wird die laufende Kurve
   ausgeblendet und neu gewürfelt (die Grenzen des neuen Abschnitts gelten sofort). Start und Ziel sind gerade und eben;
   hinter dem Ziel folgen `road.runout_m` gerade Auslaufstrecke.
-- **Fenster**: `update_window(camera_z, ahead)` erzeugt bis `ahead` voraus und verwirft Segmente hinter der Kamera
-  (`keep_behind` = 64).
+- **Fenster**: `update_window(camera_z, ahead)` erzeugt bis `ahead` + `generation_lead_m()` (Warnschild-Abstand + längste
+  Einlaufphase einer Kurve, 366 m) voraus und verwirft Segmente hinter der Kamera (`keep_behind` = 64).
+- **Kurvenschilder** (seit dem Untersteuern zählt das Kurventempo, gameplay.md (i)): Ein Kurvenstück mit Betrag ≥
+  `road.curve_warning_min_curve` (0,25 = 480 m Radius) ist *scharf*: Gefahrzeichen „Kurve“ (rot umrandetes Dreieck,
+  Pfeil in Kurvenrichtung) `road.curve_warning_m` (200 m) vor seinem Anfang rechts und alle `road.chevron_every_m`
+  (30 m) eine rot-weiße Richtungstafel (drei Pfeile in die Kurve) außen am Bankettrand, solange die Kurve ≥ 60 % ihrer
+  Stärke hat. Ein Kurvenstück ab `road.curve_warning_blind_min_curve` (0,12) ist *blind*, wenn ein Punkt seiner
+  Einlaufphase (erste 30 %) von `road.curve_warning_sight_m` (150 m) davor wegen einer Kuppe nicht zu sehen ist
+  (Sichtlinie aus der Kamerahöhe über die bereits erzeugten Höhen) – auch dann steht das Warnschild. Entschieden wird am
+  Ende der Einlaufphase, das Schild wird in das schon erzeugte Segment 200 m vor dem Kurvenanfang eingefügt (im Tunnel
+  an der Wand); weil die Erzeugung `generation_lead_m()` vorausläuft, ist es da, bevor das Segment in Sichtweite kommt
+  (Test: Streamen = Gesamterzeugung). Keine Kurvenschilder in City Limits und Tunneln, nicht in den ruhigen Zonen an
+  Start und Ziel. Sichtprüfung über alle Etappen: gameplay.md (i5).
 - **Spuren**: Autobahn 3, Landstraße 2, Stadt 2 (`road.lanes`). Wechsel über `road.lane_transition_m` weich
   (`lanes_at` gebrochen); `lane_count_at` meldet dem Verkehr schon vor und während des Übergangs die kleinere Zahl.
 - **Tankspur**: `fuel_lane_factor` 0..1 mit `road.fuel_lane_taper_m` Ein-/Ausfädelung; `fuel_lane_at` nur bei ganz offener
@@ -154,7 +165,8 @@ Wegweiser, Autobahnschild und Tankstellen-Ankündigungen auf der Autobahn (DE/NL
 `town_bg`/`town_fg`/`town_border` für das Ortsschild (DE gelb/schwarz, NL und CH blau/weiß, FR/BE/ES/AT weiß mit
 breitem rotem Rand, IT … weiß/schwarz). Wegweiser abseits der Autobahn: `signs.road`/`road_fg`, falls in den Daten
 vorhanden, sonst blau/weiß in Ländern mit grünen Autobahnschildern und sonst die Ortsschildfarben (DE gelb, NL blau,
-FR weiß). Unbekanntes Land → deutscher Stil. Tempo-, Radar-, Tunnel- und EU-Grenzschilder sind europaweit gleich.
+FR weiß). Unbekanntes Land → deutscher Stil. Tempo-, Radar-, Tunnel- und EU-Grenzschilder sind europaweit gleich,
+ebenso das Kurven-Warnschild (`curve`) und die Richtungstafel (`chevron`, rot mit weißen Pfeilen, `value` = Richtung).
 
 **Entscheidung: Schilder prozedural statt Blender-Sprites.** Das Design nennt Schilder bei den Blender-Sprites. Alle
 Schilder tragen aber veränderliche Inhalte – Zielname und Entfernung, Limit, Tunnelname und -länge, Landesname in
@@ -332,17 +344,28 @@ Sitzung einen `TutorialCoach`, der jedes Thema einmal als kurzen „Tipp: …“
 | erster Abschnitt ohne Limit | „Kein Tempolimit – aber Vollgas kostet deutlich mehr Sprit“ |
 | City Limits (dringend) | „City Limits – Tempo 50, dichter Verkehr, keine Tankstelle, kein Radar“ |
 | erste Kollision | „Zusammenstoß – der Wagen wird auf 10 km/h abgebremst und abgedrängt“ (`collision.target_speed_kmh`) |
+| Untersteuern (`understeer` > 0,3) oder eine Kurve in den nächsten 250 m verlangt > 5 % weniger als das aktuelle Tempo (dringend) | „Vor scharfen Kurven bremsen – sonst schiebt der Wagen nach außen“ |
 
 Die Etappenbeschreibung (`StagePlan.description`) zeigt der Etappenbildschirm (UI-Modul).
 
 ## 10. Autopilot
 
 Hält eine Spur, wählt die Nachbarspur mit dem besten erreichbaren Tempo (nächstes Auto darin und dessen Abstand,
-Hysterese, nur wenn die Spur frei ist), folgt sonst mit Sicherheitsabstand; bremst vorausschauend für Kurven
-(Bremskurve über 220 m mit `safe_curve_speed`), für Radarfelder (Limit + 6 %) und für Autos im Fahrweg; verlässt
-endende Spuren rechtzeitig. Tanken: entscheidet 14 km vor jeder Tankstelle (`auto`: wenn der Sprit nicht bis zur
-übernächsten Tankstelle/zum Ziel reicht; `always`/`never` per `--autopilot-refuel`), fädelt in die Tankspur ein und
-fährt unter 60 km/h; während des Tankens gibt er kein Gas (sonst bricht das Tanken ab).
+Hysterese, nur wenn die Spur frei ist), folgt sonst mit Sicherheitsabstand; bremst vorausschauend für Radarfelder
+(Limit + 6 %) und für Autos im Fahrweg; verlässt endende Spuren rechtzeitig. Tanken: entscheidet 14 km vor jeder
+Tankstelle (`auto`: wenn der Sprit nicht bis zur übernächsten Tankstelle/zum Ziel reicht; `always`/`never` per
+`--autopilot-refuel`), fädelt in die Tankspur ein und fährt unter 60 km/h; während des Tankens gibt er kein Gas (sonst
+bricht das Tanken ab).
+
+**Kurven** (`curve_speed_ahead`): Seit dem Untersteuern (gameplay.md „Untersteuern“) darf er nie über die Kurvengrenze.
+Bremskurve über `curve_lookahead_m` (300 m, alle `curve_step_m` = 10 m): an jedem Punkt soll er
+`curve_margin` (96 %) der sicheren Kurvengeschwindigkeit `curve_lead_m` (12 m) früher erreicht haben, geplant mit
+`brake_decel_mps2` (15 m/s², unter den echten 70 km/h/s = 19,4 m/s²); dazu der Punkt unter dem Auto. Pedale
+(`pedals`): Vollgas unter dem Ziel, über Ziel + 2 km/h fest bremsen (30 % bis voll bei 12 km/h darüber), dazwischen
+60 % Gas. Ergebnis: auf allen gemessenen Etappen und beiden ganzen Rennen `understeer` = 0 und kein Bankett/keine
+Leitplanke durch Kurven (gameplay.md (i4)). Debug: `--autopilot-target=<km/h>` (Wunschtempo statt
+`debug.autopilot_target_kmh` 235, z. B. 300 = vmax), `--autopilot-no-curve-brake` (ignoriert Kurven – fährt zu schnell
+hinein und untersteuert, für die Demo des Fahrmodells).
 
 ## 11. Debug-Kommandozeile
 
@@ -358,19 +381,35 @@ Zusätzlich zu ARCHITECTURE.md §13 (`--stage --from --vehicle --hour --weather 
 | `--traffic-warmup` | Verkehr um die Startposition aufbauen (Screenshots) |
 | `--scenery=<id>` | eine Landschaft für die ganze Etappe (Hintergründe prüfen) |
 | `--autopilot-refuel=auto\|always\|never` | Tankverhalten des Autopiloten |
-| `--perf` | am Ziel Frame-Zeiten ausgeben (`PERF {...}`) |
-| `--trace[=<km>]` | Fahrprotokoll alle n km (Tempo, Zieltempo, Grund, Kurve, Steigung, Tank) |
+| `--autopilot-target=<km/h>` | Wunschtempo des Autopiloten (Standard `debug.autopilot_target_kmh` 235; 300 = immer vmax) |
+| `--autopilot-no-curve-brake` | Autopilot bremst nicht für Kurven (untersteuert – Demo/Test des Fahrmodells) |
+| `--perf` | am Ziel Frame-Zeiten ausgeben (`PERF {...}`, mit `drive`: Sekunden auf dem Bankett/an der harten Grenze, Leitplankentreffer, Sekunden mit Untersteuern und dessen Maximum) |
+| `--trace[=<km>]` | Fahrprotokoll alle n km (Tempo, Zieltempo, Grund, Kurve, Steigung, Untersteuern, Tank) |
 | `--tutorial` | Tutorial-Hinweise auch auf anderen Etappen |
 | `--sprite-manifest=<pfad>` | weiteres Sprite-Manifest über das echte legen (`SpriteDB`, Dateipfade relativ zu ihm, `aliases` zeigen echte Sets auf andere); z. B. die Testdaten `res://tests/fixtures/sprites/manifest.json` (§8) |
 
 `--timescale=<f>` setzt `Engine.time_scale` und die Physiktakte auf 60·f, damit jeder Schritt 1/60 s bleibt.
-Setup-Schlüssel für Tests: `no_countdown`, `autopilot_speeding`, `autopilot_refuel`, `traffic_warmup`, `tutorial`.
+Setup-Schlüssel für Tests: `no_countdown`, `autopilot_speeding`, `autopilot_refuel`, `autopilot_target`,
+`autopilot_no_curve_brake`, `traffic_warmup`, `tutorial`.
+
+Demo des Fahrmodells als Video (Godot Movie Maker, unter Xvfb): zu schnell in die scharfe Linkskurve der Dev-Etappe bei
+km 69 und dieselbe Kurve mit Bremsen:
+
+```bash
+xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --resolution 1280x720 \
+  --write-movie /tmp/zu_schnell.avi --fixed-fps 30 --quit-after 345 res://scenes/race/race.tscn -- \
+  --stage=dev_testetappe --start-km=65 --start-speed=205 --lane=1 --no-traffic --no-countdown --hour=12 \
+  --autopilot --autopilot-target=205 --autopilot-no-curve-brake      # ohne den letzten Schalter: bremst richtig
+```
 
 ## 12. Tests und Werkzeuge
 
 - `tools/run_tests.sh race` – Unit-Tests: Track (Determinismus, Fenster, Spurübergänge, Tankspur, Ereignisse,
   Geometriegrenzen, Requisiten, vollständige `scenery.json`, Schilder im Tunnel an der Wand, Land/Straßentyp der
-  Schilder), Projektion, Palette, GeoBatch, Autopilot-Bremskurve, Spiegeln und Vorderkante aller kantenbündigen
+  Schilder, Kurvenschilder: Warnschild vor jeder scharfen Kurve und Richtungstafeln außen, gleiche Schilder beim
+  Streamen und schon in Sichtweite vorhanden, Sichtprüfung der Teststrecke für den Gran Turismo bei Tag und bei
+  Schnee in der Nacht), Projektion, Palette, GeoBatch, Autopilot-Bremskurve, Autopilot auf Bergstraße und kurviger
+  Autobahn ohne Untersteuern (GT bei Schnee, Kompakt; ohne Kurvenbremsen untersteuert er), Spiegeln und Vorderkante aller kantenbündigen
   Requisiten mit dem echten Manifest, Schilderstile je Land, Sitzungsregeln (Kollisionen in geskripteten Phasen,
   HUD-Tankstelle, Ausrollen in die Tankspur, Überholweg der Polizei), Tutorial-Warteschlange und -Texte;
   Fahrzeugdarstellung v2: `test_vehicle_pose.gd` (Lkw 30 m voraus in der Nachbarspur ≈ 4,6° statt 12°, Front des
@@ -430,7 +469,8 @@ zwischengespeichert, Lichtüberlagerungen nur bei Licht, Zellsuche ab der aktuel
 
 `road`: `lane_width_m`, `lanes`, `shoulder_width_m`, `guardrail`, `curve_radius_at_1_m`, `curviness_max_curve`,
 `hills_max_grade`, `lane_transition_m`, `fuel_lane_taper_m`, `runout_m`, `delineator_every_m`, `streetlight_every_m`,
-`crosswalk_every_m`.
+`crosswalk_every_m`, Kurvenschilder (§4): `curve_warning_min_curve` (0,25), `curve_warning_blind_min_curve` (0,12),
+`curve_warning_sight_m` (150), `curve_warning_m` (200), `chevron_every_m` (30).
 
 `render`: `segment_length_m`, `draw_distance_m`, `fov_deg`, `camera_height_m`, `camera_distance_m`, `horizon_y_frac`,
 `fog_start_frac`, `hill_height_scale`, `stripes` (`grass`, `road`, `dash` je Straßentyp in Segmenten),
@@ -452,8 +492,13 @@ Tutorial-Hinweises). Fahrzeugdarstellung (§8): `vehicle_yaw_smooth_s` (0,12), `
 ## 15. API-Erweiterungen (zusätzlich zu ARCHITECTURE.md)
 
 - `Track`: `zones`, `runout_m`, `hill_scale`, `window_size()`, `distance_to_fuel_lane(z)`, `events_for_segment(i)`,
+  `generation_lead_m()` (Vorlauf der Erzeugung vor dem Fenster, Kurvenschilder §4),
   Konstanten `WALL_SIGN_GAP_M`, `WALL_SIGN_OVERHANG_M`; Schild-Requisiten zusätzlich `country`, `road`, im Tunnel
-  `wall` (und `scale` < 1).
+  `wall` (und `scale` < 1); Schildarten `curve` (Warnschild) und `chevron` (Richtungstafel), `value` = Richtung.
+- `Autopilot`: `curve_brake`, `curve_margin`, `curve_lookahead_m`, `curve_step_m`, `curve_lead_m`,
+  `curve_speed_ahead(track, vehicle, z, grip)`, statisch `pedals(speed, want)` → `{throttle, brake}`.
+- Rennsitzung: `drive_stats` (`off_road_s`, `limit_s`, `rail_hits`, `understeer_s`, `understeer_max`), in
+  `perf_stats()["drive"]`; Tutorial-Thema `curve` (`TutorialCoach.URGENT`).
 - `TrackSegment`: `runout`, `fuel_zone` (+ Konstanten `FUEL_*`), `cover`, `cover_front`, `country_to`.
 - `RoadProjection`: `scale_at(dz)`, `ground_row(dz)`, `depth_at_row(y)`, `view_angle(dx, dz)`, `near` aus `render.near_m`.
 - `RoadRenderer`: `perf_stats()`, `show_stats`; View-Schlüssel zusätzlich `camera_in_tunnel`, `countdown`, `chase01`,

@@ -83,7 +83,10 @@ Hero-Banner, transparentes Logo und Icon, jeweils auch in doppelter Auflösung. 
 - **Zeitraffer 12**: Die Straße scrollt mit Tachotempo, Kilometerzähler und Uhr laufen zwölfmal schneller
   (100 km bei 100 km/h = 5:00 min).
 - **Fünf Fahrzeuge** (Kompakt, Kombi, Limousine, Sportwagen, Gran Turismo) mit den Werten aus dem Design-Dokument;
-  Arcade-Fahrmodell ohne Übersteuern, Untersteuern bei zu hohem Kurventempo.
+  Arcade-Fahrmodell ohne Übersteuern; wer zu schnell in die Kurve fährt, untersteuert deutlich: der Wagen rutscht nach
+  außen, Gegenlenken hilft nur bei knapp zu hohem Tempo, Bremsen vor der Kurve ist die Abhilfe. Die Agilität bestimmt das
+  Kurventempo (Kompakt fährt Autobahnkurven voll, der Gran Turismo muss vom Gas); Warnschilder und rot-weiße
+  Richtungstafeln kündigen scharfe und hinter Kuppen versteckte Kurven an.
 - **Verkehr** nur in Fahrtrichtung mit Tageskurve, Nachtbonus, Lkw rechts, Spurwechseln; Kollisionen nach den Regeln
   des Dokuments (3 s auf 10 km/h, seitlich schieben, blinken, Ein-Drittel-Regel für Überholer von hinten).
 - **Tanken**: Verbrauch 14 + 0,00034·v², Tankstellen alle 60–90 km mit Ankündigung 30/15/5 km, Tankspur,

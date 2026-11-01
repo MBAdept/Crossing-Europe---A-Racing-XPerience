@@ -10,11 +10,11 @@ extends RefCounted
 ## Generation is sequential (one RNG for curves/hills), so a segment depends only on the seed and
 ## its index – never on the camera path. Props use a per-segment RNG (seed, index).
 ## After the finish line the road continues straight for road.runout_m (coast-out after "ZIEL").
-## Sharp curves (|curve| >= road.curve_warning_min_curve) get a warning sign road.curve_warning_m before them
-## (inserted into the already generated segment; generation runs that far ahead of the requested window, so
-## the sign is in place before the segment can be seen) and red-white chevron boards on their outside
-## (road.chevron_every_m) – the curve speed matters (understeer), and a curve behind a crest must be known
-## in time (tests/sim/curve_sight.gd).
+## Sharp curves (|curve| >= road.curve_warning_min_curve) and blind ones (hidden behind a crest) get a warning
+## sign road.curve_warning_m before them (inserted into the already generated segment; generation runs
+## generation_lead_m() ahead of the requested window, so the sign is in place before the segment can be seen),
+## sharp ones red-white chevron boards on their outside (road.chevron_every_m) – the curve speed matters
+## (understeer), and a curve behind a crest must be known in time (tests/sim/curve_sight.gd).
 ## Owner: race module.
 
 const WALL_SIGN_GAP_M := 0.1           ## gap between a tunnel-wall sign and the wall
