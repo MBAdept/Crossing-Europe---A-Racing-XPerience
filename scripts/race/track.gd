@@ -92,6 +92,16 @@ var _h_from := 0.0
 var _h_to := 0.0
 var _h_grade := 0.0
 var _y := 0.0
+# blind crests (Review v0.5.0, road.crest_warning_*): crest tops waiting for the road behind them, last sign
+var _crest_sight := 180.0              ## road.crest_warning_sight_m
+var _crest_check := 250.0              ## road.crest_warning_check_m
+var _crest_warn := 150.0               ## road.crest_warning_m
+var _crest_h := 0.75                   ## road.crest_target_height_m
+var _crest_pending: Array[float] = []
+var _crest_last_sign := -INF
+var _prev_dy := 0.0
+## Crest warning signs placed so far (diagnostics for tests).
+var crest_signs := 0
 
 
 func setup(stage_plan: StagePlan, config: Dictionary, scenery: Dictionary, seed_override: int = -1) -> void:
@@ -112,6 +122,14 @@ func setup(stage_plan: StagePlan, config: Dictionary, scenery: Dictionary, seed_
 	_warn_sight = float(ConfigLoader.lookup(cfg, "road.curve_warning_sight_m", 150.0))
 	_cam_h = float(ConfigLoader.lookup(cfg, "render.camera_height_m", 3.4))
 	_cam_d = float(ConfigLoader.lookup(cfg, "render.camera_distance_m", 9.0))
+	_crest_sight = maxf(0.0, float(ConfigLoader.lookup(cfg, "road.crest_warning_sight_m", 180.0)))
+	_crest_check = maxf(0.0, float(ConfigLoader.lookup(cfg, "road.crest_warning_check_m", 250.0)))
+	_crest_warn = maxf(0.0, float(ConfigLoader.lookup(cfg, "road.crest_warning_m", 150.0)))
+	_crest_h = maxf(0.0, float(ConfigLoader.lookup(cfg, "road.crest_target_height_m", 0.75)))
+	_crest_pending.clear()
+	_crest_last_sign = -INF
+	_prev_dy = 0.0
+	crest_signs = 0
 	_chev_n = maxi(1, int(round(float(ConfigLoader.lookup(cfg, "road.chevron_every_m", 30.0)) / seg_len)))
 	length_km = plan.length_km
 	length_z = km_to_z(length_km)
@@ -227,12 +245,18 @@ func _generate(i: int) -> void:
 	s.curve = _next_curve(sec, s)
 	_c_last = s.curve
 	s.y = _y
-	_y += _next_grade(sec, s) * seg_len * hill_scale
+	var dy := _next_grade(sec, s) * seg_len * hill_scale
+	_y += dy
 	_mark_zones(s)
 	_mark_bridge(s)
 	_place_props(s)
 	_segs[i] = s
 	_place_curve_signs(s)
+	if _prev_dy > 0.0 and dy <= 0.0 and _crest_sight > 0.0:
+		_crest_pending.append(s.z)   # a crest top: decided once the road behind it exists
+	_prev_dy = dy
+	while not _crest_pending.is_empty() and s.z >= _crest_pending[0] + _crest_sight + seg_len:
+		_decide_crest(_crest_pending.pop_front())
 
 
 ## Fade factor 0..1 that keeps the road straight and flat at the start and around the finish.
@@ -317,13 +341,13 @@ func _place_curve_signs(s: TrackSegment) -> void:
 		_sort_sprites(s)
 
 
-## Warning sign "Kurve" at zw on the right (on the tunnel wall inside a tunnel), inserted into its already
-## generated segment.
-func _place_warning_sign(zw: float, dir: int) -> void:
+## Warning sign ("curve" Kurve, "crest" Kuppe) at zw on the right (on the tunnel wall inside a tunnel), inserted into
+## its already generated segment.
+func _place_warning_sign(zw: float, dir: int, kind: String = "curve") -> void:
 	var target: TrackSegment = _segs.get(segment_index_at(zw)) if zw > 0.0 else null
 	if target == null:
 		return
-	var p := {"kind": "sign", "sign": "curve", "value": dir, "side": 1, "z": zw, "scale": 1.0,
+	var p := {"kind": "sign", "sign": kind, "value": dir, "side": 1, "z": zw, "scale": 1.0,
 		"x": _prop_x(road_edges_at(zw), 1, "outer", 1.0), "country": target.country, "road": target.road}
 	if target.tunnel:
 		_mount_on_tunnel_wall(p, road_edges_at(zw), 1)
@@ -342,19 +366,45 @@ func _blind(z0: float, z1: float) -> bool:
 
 
 ## How far generation runs ahead of the requested window (m): the warning sign distance plus the longest
-## ramp-in of a curve piece (30 % of 520 m; the sign is decided at its end).
+## ramp-in of a curve piece (30 % of 520 m; the sign is decided at its end) – or, if longer, the farthest crest sign
+## (road.crest_warning_check_m + crest_warning_m before the top, decided road.crest_warning_sight_m after it).
 func generation_lead_m() -> float:
-	return _warn_m + 0.3 * 520.0 + 10.0
+	return maxf(_warn_m + 0.3 * 520.0 + 10.0, _crest_check + _crest_warn + _crest_sight + 20.0)
 
 
-## True when the road at z_p can be seen from the camera of a car at z_car (render.camera_height_m above the
-## road at the car, render.camera_distance_m behind it): no crest of the generated road in between.
-func _sees(z_car: float, z_p: float) -> bool:
+## Blind crest (Review v0.5.0, QA: in snow a queue behind a crest came into view closer than the stopping distance –
+## in the City Limits of Burgos one with both lanes full was unavoidable): from some point up to
+## road.crest_warning_check_m before the top, a vehicle (road.crest_target_height_m high, half a car) somewhere within
+## road.crest_warning_sight_m ahead is hidden by the crest. Then a warning sign "Kuppe" stands road.crest_warning_m
+## before that point on the right (on the tunnel wall inside a tunnel); not in the calm start/finish zones, at most one
+## per crest_warning_sight_m. Uses no random numbers (the road stays the same).
+func _decide_crest(z_top: float) -> void:
+	if _calm(z_top, 40.0, 60.0) < 0.6 or z_top > length_z:
+		return
+	var zc := maxf(seg_len, z_top - _crest_check)
+	while zc <= z_top:
+		var p := zc + 15.0
+		while p <= zc + _crest_sight:
+			if not _sees(zc, p, _crest_h):
+				var zw := zc - _crest_warn
+				if zw > 0.0 and zw - _crest_last_sign > _crest_sight:
+					_crest_last_sign = zw
+					_place_warning_sign(zw, 0, "crest")
+					crest_signs += 1
+				return
+			p += 6.0
+		zc += 15.0
+
+
+## True when the road at z_p (or a point target_h above it) can be seen from the camera of a car at z_car
+## (render.camera_height_m above the road at the car, render.camera_distance_m behind it): no crest of the generated
+## road in between.
+func _sees(z_car: float, z_p: float, target_h: float = 0.0) -> bool:
 	if z_car <= 0.0:
 		return true
 	var zc := maxf(0.0, z_car - _cam_d)
 	var yc := _seg_y(z_car) + _cam_h
-	var yp := _seg_y(z_p)
+	var yp := _seg_y(z_p) + target_h
 	var k := segment_index_at(zc) + 1
 	var last := segment_index_at(z_p)
 	while k < last:

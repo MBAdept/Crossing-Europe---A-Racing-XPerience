@@ -436,6 +436,75 @@ func test_traffic_is_seen_in_time() -> void:
 	assert_true(float(r2["summary"]["min_margin_m"]) < 0.0, "mit 248 m Sicht zu knapp: %s m" % str(r2["summary"]["min_margin_m"]))
 
 
+## Blind crests (Review v0.5.0, QA): in snow a slow queue behind a crest came into view closer than the stopping
+## distance – in the City Limits of Burgos (km 208.5, seen at 152 m, 174 m needed) unavoidably, on Saragossa – Pau
+## (km 147.1 at 73 m, km 75.8 at 102 m) only just. Every crest that hides a vehicle within road.crest_warning_sight_m
+## gets a warning sign "Kuppe" before the place where it becomes blind: at those three spots it stands 0.3–4.5 km before.
+## The signs use no random numbers – the road is the same as without them – and stream like the curve signs.
+func test_blind_crests_have_a_warning_sign() -> void:
+	var net: Dictionary = ConfigLoader.load_json("res://data/network.json")
+	var countries: Dictionary = (ConfigLoader.load_json("res://data/countries.json") as Dictionary).get("countries", {})
+	var cities := {}
+	for c: Dictionary in net.get("cities", []):
+		cities[str(c["id"])] = c
+	var stages := {}
+	for st: Dictionary in net.get("stages", []):
+		stages[str(st["id"])] = st
+	var spots := [["san_sebastian_burgos", "san_sebastian", 208.51], ["saragossa_pau", "saragossa", 147.08], ["saragossa_pau", "saragossa", 75.8]]
+	for spot: Array in spots:
+		var plan := StagePlan.build(stages[spot[0]], str(spot[1]), cities, countries, cfg())
+		var t := Track.new()
+		t.setup(plan, cfg(), {})
+		t.get_segment(t.segment_count - 1)
+		var signs: Array[float] = []
+		for i in t.segment_count:
+			for sp: Dictionary in t.get_segment(i).sprites:
+				if str(sp.get("sign", "")) == "crest":
+					signs.append(t.z_to_km(float(sp["z"])))
+		var km := float(spot[2])
+		var before := false
+		for k in signs:
+			before = before or (k < km - 0.3 and k > km - 4.5)
+		assert_true(before, "%s km %.2f: Kuppenschild davor (Schilder %s)" % [spot[0], km, str(signs)])
+		var gap := INF
+		for j in range(1, signs.size()):
+			gap = minf(gap, (signs[j] - signs[j - 1]) * 1000.0 / t.time_scale)
+		var sight := float(ConfigLoader.lookup(cfg(), "road.crest_warning_sight_m", 180.0))
+		assert_true(gap > sight, "%s: Schilder mindestens %.0f m auseinander (%.0f m)" % [spot[0], sight, gap])
+		assert_eq(t.crest_signs, signs.size(), "Zähler")
+	# the same road without the signs
+	var plain := ConfigLoader.deep_merge(cfg(), {"road": {"crest_warning_sight_m": 0.0}})
+	var a := Track.new()
+	a.setup(_plan(), cfg(), {})
+	var b := Track.new()
+	b.setup(_plan(), plain, {})
+	var n := int(a.length_z / a.seg_len)
+	var same := true
+	for i in range(0, n, 7):
+		same = same and is_equal_approx(a.get_segment(i).y, b.get_segment(i).y) and is_equal_approx(a.get_segment(i).curve, b.get_segment(i).curve)
+	assert_true(same, "gleiche Straße mit und ohne Kuppenschilder")
+	assert_true(a.crest_signs > 0 and b.crest_signs == 0, "Testetappe: %d Kuppenschilder" % a.crest_signs)
+	# streamed: the farthest visible segment already carries its crest sign
+	var expect := {}
+	a.get_segment(n)
+	for i in n:
+		for sp: Dictionary in a.get_segment(i).sprites:
+			if str(sp.get("sign", "")) == "crest":
+				expect["%.1f" % float(sp["z"])] = true
+	var streamed := Track.new()
+	streamed.setup(_plan(), cfg(), {})
+	var got := {}
+	var draw := float(ConfigLoader.lookup(cfg(), "render.draw_distance_m", 900.0))
+	var z := -draw
+	while z < streamed.length_z:
+		streamed.update_window(maxf(z, 0.0), draw + 60.0)
+		for sp: Dictionary in streamed.segment_at(clampf(z + draw, 0.0, streamed.length_z)).sprites:
+			if str(sp.get("sign", "")) == "crest":
+				got["%.1f" % float(sp["z"])] = true
+		z += streamed.seg_len
+	assert_eq(got.size(), expect.size(), "Kuppenschilder beim Streamen schon in Sichtweite vorhanden")
+
+
 ## Inside a tunnel the road is dry: Track.grip_at gives 1.0 there and the weather grip outside (curve limits of the
 ## driving model, the autopilot, the police and the sight check).
 func test_tunnel_road_is_dry() -> void:

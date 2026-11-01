@@ -28,7 +28,7 @@ const FONT_SIZES := [8, 10, 12, 14, 16, 20, 24, 28, 32, 40, 48, 56, 64, 80, 96]
 ## Half width (m, scale 1) of the board of each sign kind (tunnel walls: Track fits the board inside).
 const HALF_WIDTH_M := {"limit": 0.85, "unlimited": 0.85, "radar": 1.05, "fuel": 1.5, "fuel_lane": 1.15,
 	"town": 1.9, "town_ahead": 1.9, "distance": 2.4, "border": 1.75, "tunnel": 1.7, "autobahn": 0.95, "autobahn_end": 0.95,
-	"curve": 0.9, "chevron": 0.95}
+	"curve": 0.9, "crest": 0.9, "chevron": 0.95}
 
 var font: Font
 var batch: GeoBatch
@@ -139,6 +139,8 @@ func draw(it: Dictionary, p: Vector3, lit: Color, alpha: float, edges_px: Vector
 			_autobahn_sign(p, lit, alpha, kind == "autobahn_end", st["motorway"])
 		"curve":
 			_curve_sign(p, lit, alpha, int(it.get("value", 1)))
+		"crest":
+			_crest_sign(p, lit, alpha)
 		"chevron":
 			_chevron_board(p, lit, alpha, int(it.get("value", 1)))
 		"start":
@@ -419,6 +421,30 @@ func _curve_sign(p: Vector3, lit: Color, alpha: float, dir: int) -> void:
 	var dirv := (c - b).normalized()
 	var nrm := Vector2(-dirv.y, dirv.x)
 	batch.tri(c + dirv * 0.16 * s, c + nrm * 0.12 * s, c - nrm * 0.12 * s, black)
+
+
+## Warning sign "Kuppe" before a blind crest (Track, road.crest_warning_*): the red warning triangle like the curve
+## sign, inside a black hump with the road running over it.
+func _crest_sign(p: Vector3, lit: Color, alpha: float) -> void:
+	var s := p.z
+	var base := p.y - 2.0 * s
+	var top := base - 1.55 * s
+	_post(p.x, p.y, base, 0.11 * s, lit, alpha)
+	var red := _c(RED, lit, alpha)
+	var white := _c(WHITE, lit, alpha)
+	var black := _c(BLACK, lit, alpha)
+	batch.tri(Vector2(p.x, top), Vector2(p.x + 0.9 * s, base), Vector2(p.x - 0.9 * s, base), red)
+	batch.tri(Vector2(p.x, top + 0.36 * s), Vector2(p.x + 0.6 * s, base - 0.15 * s), Vector2(p.x - 0.6 * s, base - 0.15 * s), white)
+	if s < 3.0:
+		return   # too small for the pictogram
+	# the hump: a fan of triangles from the middle of its foot along a half ellipse
+	var foot := Vector2(p.x, base - 0.24 * s)
+	var prev := Vector2(p.x - 0.42 * s, foot.y)
+	for i in range(1, 9):
+		var a := PI * (1.0 - float(i) / 8.0)
+		var q := Vector2(p.x + cos(a) * 0.42 * s, foot.y - sin(a) * 0.4 * s)
+		batch.tri(foot, prev, q, black)
+		prev = q
 
 
 ## Red-white direction board (Richtungstafel) on the outside of a sharp curve: red board, three white

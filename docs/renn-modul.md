@@ -91,7 +91,8 @@ nähere Hintergrundebenen drehen sich etwas schneller (Parallaxe).
   ausgeblendet und neu gewürfelt (die Grenzen des neuen Abschnitts gelten sofort). Start und Ziel sind gerade und eben;
   hinter dem Ziel folgen `road.runout_m` gerade Auslaufstrecke.
 - **Fenster**: `update_window(camera_z, ahead)` erzeugt bis `ahead` + `generation_lead_m()` (Warnschild-Abstand + längste
-  Einlaufphase einer Kurve, 366 m) voraus und verwirft Segmente hinter der Kamera (`keep_behind` = 64).
+  Einlaufphase einer Kurve, 366 m; seit den Kuppenschildern 600 m: Prüfweite + Schildabstand + Sichtweite + 20 m) voraus
+  und verwirft Segmente hinter der Kamera (`keep_behind` = 64).
 - **Kurvenschilder** (seit dem Untersteuern zählt das Kurventempo, gameplay.md (i)): Ein Kurvenstück mit Betrag ≥
   `road.curve_warning_min_curve` (0,25 = 480 m Radius) ist *scharf*: Gefahrzeichen „Kurve“ (rot umrandetes Dreieck,
   Pfeil in Kurvenrichtung) `road.curve_warning_m` (200 m) vor seinem Anfang rechts und alle `road.chevron_every_m`
@@ -108,6 +109,18 @@ nähere Hintergrundebenen drehen sich etwas schneller (Parallaxe).
   Keine Kurvenschilder in Tunneln (dort höchstens 0,25) und in den ruhigen Zonen an Start und Ziel. Ergebnis im ganzen
   Netz: alle 691 scharfen Kurvenstücke (55 davon in City Limits) haben ihr Warnschild (Test
   `test_every_sharp_curve_has_a_warning_sign`). Sichtprüfung über alle Etappen: gameplay.md (i5).
+- **Kuppenschilder** (Review v0.5.0, QA: im Schnee tauchte langsamer Verkehr hinter Kuppen näher auf als der
+  Anhalteweg – in den City Limits von Burgos war eine Kolonne auf beiden Spuren unvermeidbar): Ist von einem Punkt bis
+  `road.crest_warning_check_m` (250 m) vor einer Kuppe ein Fahrzeug (`road.crest_target_height_m` 0,75 m hoch, halbe
+  Wagenhöhe) irgendwo innerhalb `road.crest_warning_sight_m` (180 m ≈ Anhalteweg im Schnee aus rund 200 km/h
+  Annäherung) dahinter verdeckt (Sichtlinie aus der Kamera wie bei den Kurven, `_sees(z_car, z_p, target_h)`), steht
+  `road.crest_warning_m` (150 m) vor diesem Punkt rechts das Gefahrzeichen „Kuppe“ (rotes Dreieck mit schwarzem Hügel,
+  Schildart `crest`; im Tunnel an der Wand), höchstens eines je 180 m, nicht in den ruhigen Zonen an Start und Ziel.
+  Entschieden wird, wenn die Straße 180 m hinter der Kuppe erzeugt ist; die Schilder verbrauchen keine Zufallszahlen –
+  die Straße bleibt gleich (Test `test_blind_crests_have_a_warning_sign`: gleiche Höhen und Kurven mit und ohne, beim
+  Streamen schon in Sichtweite vorhanden, je ein Schild vor den QA-Stellen San Sebastián – Burgos km 208,5 und
+  Saragossa – Pau km 147,1 / 75,8). Im ganzen Netz (beide Richtungen) 1 295 Schilder auf 24 160 km = 5,4 je 100 km,
+  höchstens 11 (Kassel – Würzburg ab Würzburg), flache Etappen keine.
 - **Spuren**: Autobahn 3, Landstraße 2, Stadt 2 (`road.lanes`). Wechsel über `road.lane_transition_m` weich
   (`lanes_at` gebrochen); `lane_count_at` meldet dem Verkehr schon vor und während des Übergangs die kleinere Zahl.
 - **Tankspur**: `fuel_lane_factor` 0..1 mit `road.fuel_lane_taper_m` Ein-/Ausfädelung; `fuel_lane_at` nur bei ganz offener
@@ -193,7 +206,8 @@ Wegweiser, Autobahnschild und Tankstellen-Ankündigungen auf der Autobahn (DE/NL
 breitem rotem Rand, IT … weiß/schwarz). Wegweiser abseits der Autobahn: `signs.road`/`road_fg`, falls in den Daten
 vorhanden, sonst blau/weiß in Ländern mit grünen Autobahnschildern und sonst die Ortsschildfarben (DE gelb, NL blau,
 FR weiß). Unbekanntes Land → deutscher Stil. Tempo-, Radar-, Tunnel- und EU-Grenzschilder sind europaweit gleich,
-ebenso das Kurven-Warnschild (`curve`) und die Richtungstafel (`chevron`, rot mit weißen Pfeilen, `value` = Richtung).
+ebenso das Kurven-Warnschild (`curve`), das Kuppen-Warnschild (`crest`, Review v0.5.0) und die Richtungstafel (`chevron`,
+rot mit weißen Pfeilen, `value` = Richtung).
 
 **Entscheidung: Schilder prozedural statt Blender-Sprites.** Das Design nennt Schilder bei den Blender-Sprites. Alle
 Schilder tragen aber veränderliche Inhalte – Zielname und Entfernung, Limit, Tunnelname und -länge, Landesname in
@@ -618,7 +632,9 @@ zwischengespeichert, Lichtüberlagerungen nur bei Licht, Zellsuche ab der aktuel
 `road`: `lane_width_m`, `lanes`, `shoulder_width_m`, `guardrail`, `curve_radius_at_1_m`, `curviness_max_curve`,
 `hills_max_grade`, `lane_transition_m`, `fuel_lane_taper_m`, `runout_m`, `delineator_every_m`, `streetlight_every_m`,
 `crosswalk_every_m`, Kurvenschilder (§4): `curve_warning_min_curve` (0,25), `curve_warning_blind_min_curve` (0,12),
-`curve_warning_sight_m` (150), `curve_warning_m` (200), `chevron_every_m` (30). `curviness_max_curve` [0; 0,30;
+`curve_warning_sight_m` (150), `curve_warning_m` (200), `chevron_every_m` (30); Kuppenschilder (§4, Review v0.5.0):
+`crest_warning_sight_m` (180; 0 = keine), `crest_warning_check_m` (250), `crest_warning_m` (150),
+`crest_target_height_m` (0,75). `curviness_max_curve` [0; 0,30;
 0,45; 0,9] (Kurvigkeit 1 seit dem Spieltest „Kurven immer mit Top Speed“ 0,30 statt 0,22: R ≥ 400 statt 545 m,
 gameplay.md (i)).
 
@@ -649,7 +665,8 @@ Anstrahlung), `landmark_range_factor` (2,0 × Sichtweite), `skyline_distance_m` 
   `generation_lead_m()` (Vorlauf der Erzeugung vor dem Fenster, Kurvenschilder §4), `grip_at(z, weather_grip)`
   (Haftung: im Tunnel 1,0), `curve_signs_cut` (Diagnose: Warnschilder abgeschnittener Kurvenstücke),
   Konstanten `WALL_SIGN_GAP_M`, `WALL_SIGN_OVERHANG_M`; Schild-Requisiten zusätzlich `country`, `road`, im Tunnel
-  `wall` (und `scale` < 1); Schildarten `curve` (Warnschild) und `chevron` (Richtungstafel), `value` = Richtung;
+  `wall` (und `scale` < 1); Schildarten `curve` (Warnschild), `crest` (Kuppe, Review v0.5.0; Zähler `crest_signs`) und
+  `chevron` (Richtungstafel), `value` = Richtung;
   `town_ahead` (Vorschild der City Limits: `text` Ziel, `value` km, `limit` Stadtlimit), `city_announce_km()`
   (`city_limits.announce_km`, Review v0.5.0); `lane_end_ahead(z, lane, look_m)` (Meter bis dorthin, wo die Spur für
   den Verkehr endet, INF = geht weiter) und `fuel_lane_end_ahead(z)` (Meter bis zum Ende der Tankspur, in der z liegt)

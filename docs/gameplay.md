@@ -618,11 +618,18 @@ auftauchte (Gran Turismo, Profil; „v0.4.0“ = Bremsung 70 km/h/s bei jedem We
 | Schnee, Nacht | 0,54 % (−81 m) | 3,11 % (−152 m) |
 
 Schnee macht Kuppen gefährlicher (halbe Bremsung, langsamer Verkehr) – das gehört zur gewünschten Schwierigkeit, mehr
-Sicht im Nebel ändert daran nichts. Abhilfe wäre ein Warnschild vor blinden Kuppen oder weniger optische Überhöhung der
-Hügel; beides ist nicht umgesetzt (Rückfrage beim nächsten Spieltest). Dass alle Spuren hinter einer blinden Kuppe
-zugleich mit langsamem Verkehr belegt sind, ist selten: in den
-Fahrer-Simulationen des Reviews (unten) kam es nach den Korrekturen nicht mehr vor (vorher einmal, Saragossa – Pau
-km 147, Schnee 19:30).
+Sicht im Nebel ändert daran nichts. Dass alle Spuren hinter einer blinden Kuppe zugleich mit langsamem Verkehr belegt
+sind, ist selten – aber es kommt vor: Die Fahrer-Simulationen des Reviews (unten) fanden es nach den Korrekturen nicht
+mehr, die QA danach mit einem eigenen Fahrer-Bot auf rund 4 700 km Schnee (≈ 2,9 h mit Höchsttempo) dreimal ohne Ausweg
+(Saragossa – Pau km 147,1 um 07:30 erst bei 73 m statt 118 m gesehen, um 19:30 bei 75 statt 83 m, km 75,8 bei 102 statt
+106 m) und einmal unvermeidbar: City Limits Burgos, Schnee 22:18, 213 km/h, eine Kolonne mit 28–34 km/h auf beiden
+Spuren erst 152 m vorher sichtbar, nötig 174 m – Aufprall mit 98 km/h trotz Vollbremsung. **Seitdem (QA-Review v0.5.0)
+steht vor jeder blinden Kuppe ein Warnschild „Kuppe“** (renn-modul.md §4 „Kuppenschilder“: verdeckt die Kuppe ein
+Fahrzeug innerhalb 180 m – etwa der Anhalteweg im Schnee aus 200 km/h Annäherung –, steht 150 m vor der Stelle das
+Schild; im Netz 5,4 je 100 km, an allen QA-Stellen – Burgos km 208,5, Saragossa – Pau km 147,1 und 75,8 – davor). Wer
+wie vor einer blinden Kurve vom Gas geht, kommt
+rechtzeitig zum Stehen; die optische Überhöhung der Hügel bleibt (flachere Hügel nur in den City Limits verbesserten
+die schlimmste Stelle dort nur von −97 auf −74 m Reserve).
 
 Menschlicher Fahrer (Review-Skript `fair_sim.gd`: Gran Turismo mit Höchsttempo, sieht nur, was das Bild zeigt – Nebel
 ab halber Deckkraft, Kuppen –, reagiert nach 0,8 s auf ein Auto, das auftaucht oder in seine Spur zieht, bremst voll im

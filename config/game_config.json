@@ -21,7 +21,7 @@
 	},
 
 	"road": {
-		"_doc": "Straßengeometrie, gemeinsam für Darstellung, Fahrmodell und Verkehr. Kurven-Wert 1.0 entspricht curve_radius_at_1_m Radius. Kurvigkeit/Hügel 0–3 aus den Etappendaten wählen die Maximalwerte (Kurvigkeit 1 = 0,30, R >= 400 m: seit dem Spieltest „Kurven immer mit Top Speed“ muss auch der agile Kompakt in den schärferen Autobahnkurven vom Gas, docs/gameplay.md (i)). Alle Längen in sichtbaren Metern (1 km Kilometerzähler = 83,3 m). runout_m: gerade Auslaufstrecke hinter der Ziellinie. Scharfe Kurven (Betrag >= curve_warning_min_curve, z. B. 0,25 = 480 m Radius, sicher bei 196 km/h mit Agilität 2) bekommen curve_warning_m vor dem Kurvenstück ein Warnschild (Gefahrzeichen Kurve) und außen alle chevron_every_m eine rot-weiße Richtungstafel; das Warnschild steht auch vor blinden Kurven (Betrag >= curve_warning_blind_min_curve, Kurvenanfang von curve_warning_sight_m davor wegen einer Kuppe nicht zu sehen) – so ist jede Kurve rechtzeitig erkennbar (tests/sim/curve_sight.gd).",
+		"_doc": "Straßengeometrie, gemeinsam für Darstellung, Fahrmodell und Verkehr. Kurven-Wert 1.0 entspricht curve_radius_at_1_m Radius. Kurvigkeit/Hügel 0–3 aus den Etappendaten wählen die Maximalwerte (Kurvigkeit 1 = 0,30, R >= 400 m: seit dem Spieltest „Kurven immer mit Top Speed“ muss auch der agile Kompakt in den schärferen Autobahnkurven vom Gas, docs/gameplay.md (i)). Alle Längen in sichtbaren Metern (1 km Kilometerzähler = 83,3 m). runout_m: gerade Auslaufstrecke hinter der Ziellinie. Scharfe Kurven (Betrag >= curve_warning_min_curve, z. B. 0,25 = 480 m Radius, sicher bei 196 km/h mit Agilität 2) bekommen curve_warning_m vor dem Kurvenstück ein Warnschild (Gefahrzeichen Kurve) und außen alle chevron_every_m eine rot-weiße Richtungstafel; das Warnschild steht auch vor blinden Kurven (Betrag >= curve_warning_blind_min_curve, Kurvenanfang von curve_warning_sight_m davor wegen einer Kuppe nicht zu sehen) – so ist jede Kurve rechtzeitig erkennbar (tests/sim/curve_sight.gd). Blinde Kuppen (Review v0.5.0): ist von einem Punkt bis crest_warning_check_m vor einer Kuppe ein Fahrzeug (crest_target_height_m hoch, halbe Wagenhöhe) irgendwo innerhalb crest_warning_sight_m dahinter verdeckt, steht crest_warning_m vor diesem Punkt rechts ein Warnschild „Kuppe“ (höchstens eines je crest_warning_sight_m) – bei Schnee braucht ein Anhalteweg aus vollem Tempo mehr, als eine Kuppe frei gibt.",
 		"lane_width_m": 3.75,
 		"lanes": { "autobahn": 3, "landstrasse": 2, "city": 2 },
 		"shoulder_width_m": 2.5,
@@ -39,7 +39,11 @@
 		"curve_warning_blind_min_curve": 0.12,
 		"curve_warning_sight_m": 150.0,
 		"curve_warning_m": 200.0,
-		"chevron_every_m": 30.0
+		"chevron_every_m": 30.0,
+		"crest_warning_sight_m": 180.0,
+		"crest_warning_check_m": 250.0,
+		"crest_warning_m": 150.0,
+		"crest_target_height_m": 0.75
 	},
 
 	"vehicles": {
