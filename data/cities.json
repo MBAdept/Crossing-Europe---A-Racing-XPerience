@@ -5,12 +5,17 @@
 	"styles": {
 		"hanse": {"name": "Hanse (Backstein, Speicher, Hafen)", "outskirts": "city_hanse_outskirts", "center": "city_hanse_center"},
 		"german": {"name": "Deutsche Großstadt", "outskirts": "city_german_outskirts", "center": "city_german_center"},
+		"german_east": {"name": "Ostdeutsche Großstadt (Plattenbau am Stadtrand)", "outskirts": "city_german_east_outskirts", "center": "city_german_center"},
+		"ruhr": {"name": "Ruhrgebiet (Zechen, Industrie)", "outskirts": "city_ruhr_outskirts", "center": "city_german_center"},
 		"german_old": {"name": "Deutsche Altstadt (Fachwerk, Barock)", "outskirts": "city_german_old_outskirts", "center": "city_german_old_center"},
+		"bavarian": {"name": "Bayerische Großstadt (Barock, Gründerzeit)", "outskirts": "city_bavarian_outskirts", "center": "city_bavarian_center"},
 		"dutch": {"name": "Grachtenstadt", "outskirts": "city_dutch_outskirts", "center": "city_dutch_center"},
 		"belgian": {"name": "Belgische Stadt", "outskirts": "city_belgian_outskirts", "center": "city_belgian_center"},
 		"paris": {"name": "Paris (Haussmann)", "outskirts": "city_paris_outskirts", "center": "city_paris_center"},
 		"french": {"name": "Französische Stadt", "outskirts": "city_french_outskirts", "center": "city_french_center"},
+		"french_south": {"name": "Südfranzösische Stadt (Ziegeldächer)", "outskirts": "city_french_south_outskirts", "center": "city_french_south_center"},
 		"spanish": {"name": "Spanische Stadt", "outskirts": "city_spanish_outskirts", "center": "city_spanish_center"},
+		"spanish_north": {"name": "Nordspanische Stadt (grün, ohne Palmen)", "outskirts": "city_spanish_north_outskirts", "center": "city_spanish_north_center"},
 		"italian": {"name": "Italienische Stadt", "outskirts": "city_italian_outskirts", "center": "city_italian_center"},
 		"vienna": {"name": "Wien (Ringstraße)", "outskirts": "city_vienna_outskirts", "center": "city_vienna_center"},
 		"austrian": {"name": "Österreichische Stadt", "outskirts": "city_austrian_outskirts", "center": "city_austrian_center"},
@@ -46,7 +51,9 @@
 		"landmarks/cuatro_torres": {"name": "Cuatro Torres", "height_m": 250, "width_m": 160, "proc": "skyscrapers", "fallback": "props/building_tall", "fallback_scale": 3.8, "fallback_tint": "#b8c4d0"},
 		"landmarks/sacre_coeur": {"name": "Sacré-Cœur", "height_m": 83, "width_m": 80, "proc": "domed_church", "fallback": "props/church", "fallback_scale": 2.3, "fallback_tint": "#f4f2ea", "dome": "#f4f2ea", "wall": "#f0ede4"},
 		"landmarks/hram_svetog_save": {"name": "Kirche des Heiligen Sava", "height_m": 82, "width_m": 90, "proc": "domed_church", "fallback": "props/church", "fallback_scale": 2.3, "fallback_tint": "#f0ece0", "dome": "#6f9c86", "wall": "#f0ece2"},
-		"landmarks/herkules_kassel": {"name": "Herkules", "height_m": 70, "width_m": 60, "fallback": "props/church", "fallback_scale": 2.0, "fallback_tint": "#8f8a80"}
+		"landmarks/herkules_kassel": {"name": "Herkules", "height_m": 70, "width_m": 60, "proc": "octagon", "fallback": "props/church", "fallback_scale": 2.0, "fallback_tint": "#8f8a80", "wall": "#8f8a80", "dome": "#6f9c86"},
+		"landmarks/voelkerschlachtdenkmal": {"name": "Völkerschlachtdenkmal", "height_m": 91, "width_m": 124, "proc": "domed_church", "fallback": "props/church", "fallback_scale": 2.5, "fallback_tint": "#8a857a", "dome": "#77736a", "wall": "#8a857a", "cross": false},
+		"landmarks/neues_rathaus_hannover": {"name": "Neues Rathaus", "height_m": 98, "width_m": 120, "proc": "domed_church", "fallback": "props/church", "fallback_scale": 2.5, "fallback_tint": "#e4dccc", "dome": "#6f9c86", "wall": "#e4dccc", "cross": false}
 	},
 	"cities": {
 		"kiel": {
@@ -58,7 +65,7 @@
 			"style": "hanse",
 			"landmarks": [
 				{"set": "landmarks/elbphilharmonie", "km_to_finish": 3.4, "side": -1, "x_m": 55},
-				{"set": "landmarks/michel", "km_to_finish": 1.8, "side": 1, "x_m": 35}
+				{"set": "landmarks/michel", "km_to_finish": 1.8, "side": 1, "x_m": 70, "clear_m": [320, 40]}
 			],
 			"skyline": ["landmarks/michel", "landmarks/elbphilharmonie"],
 			"bridges": [
@@ -73,15 +80,15 @@
 		},
 		"rostock": {
 			"style": "hanse",
-			"landmarks": [{"set": "props/church", "km_to_finish": 2.0, "side": 1, "x_m": 30, "name": "Marienkirche", "scale": 2.4, "tint": "#a87060"}]
+			"landmarks": [{"set": "landmarks/st_petri_riga", "km_to_finish": 2.0, "side": 1, "x_m": 30, "name": "Marienkirche", "scale": 0.7, "clear_m": [250, 40]}]
 		},
 		"hannover": {
 			"style": "german",
-			"landmarks": [{"set": "props/church", "km_to_finish": 1.5, "side": -1, "x_m": 45, "name": "Neues Rathaus", "scale": 2.5, "tint": "#e4dccc"}],
+			"landmarks": [{"set": "landmarks/neues_rathaus_hannover", "km_to_finish": 1.5, "side": -1, "x_m": 10, "scale": 0.65, "clear_m": [250, 40]}],
 			"bridges": [{"km_to_finish": 2.8, "length_m": 45, "type": "river", "name": "Leinebrücke"}]
 		},
 		"dortmund": {
-			"style": "german",
+			"style": "ruhr",
 			"landmarks": [{"set": "landmarks/florianturm", "km_to_finish": 4.0, "side": 1, "x_m": 80}],
 			"skyline": ["landmarks/florianturm"],
 			"background": {"features": ["chimneys", "towers"]}
@@ -89,19 +96,19 @@
 		"kassel": {
 			"style": "german",
 			"landmarks": [{"set": "props/church", "km_to_finish": 2.0, "side": 1, "x_m": 30, "name": "Martinskirche", "scale": 2.0, "tint": "#cfc4b4"}],
-			"skyline": [{"set": "landmarks/herkules_kassel", "azimuth_deg": -24}],
+			"skyline": [{"set": "landmarks/herkules_kassel", "azimuth_deg": -24, "scale": 2.0}],
 			"bridges": [{"km_to_finish": 3.0, "length_m": 60, "type": "river", "name": "Fuldabrücke"}],
 			"background": {"behind": "hills"}
 		},
 		"magdeburg": {
-			"style": "german",
+			"style": "german_east",
 			"landmarks": [{"set": "props/church", "km_to_finish": 2.0, "side": -1, "x_m": 40, "name": "Magdeburger Dom", "scale": 2.9, "tint": "#b8b0a0"}],
 			"bridges": [{"km_to_finish": 3.5, "length_m": 120, "type": "river", "name": "Strombrücke"}]
 		},
 		"leipzig": {
-			"style": "german",
+			"style": "german_east",
 			"landmarks": [
-				{"set": "props/church", "km_to_finish": 6.0, "side": 1, "x_m": 90, "name": "Völkerschlachtdenkmal", "scale": 2.5, "tint": "#8a857a"},
+				{"set": "landmarks/voelkerschlachtdenkmal", "km_to_finish": 6.0, "side": 1, "x_m": 90},
 				{"set": "props/building_tall", "km_to_finish": 2.0, "side": -1, "x_m": 25, "name": "City-Hochhaus", "scale": 2.15, "tint": "#c8ccd0"}
 			],
 			"background": {"features": ["towers", "spires"]}
@@ -123,34 +130,34 @@
 		},
 		"nuernberg": {
 			"style": "german_old",
-			"landmarks": [{"set": "landmarks/kaiserburg_nuernberg", "km_to_finish": 2.0, "side": 1, "x_m": 50}],
+			"landmarks": [{"set": "landmarks/kaiserburg_nuernberg", "km_to_finish": 2.0, "side": 1, "x_m": 80}],
 			"skyline": ["landmarks/kaiserburg_nuernberg"],
 			"bridges": [{"km_to_finish": 3.6, "length_m": 35, "type": "river", "name": "Pegnitzbrücke"}]
 		},
 		"wuerzburg": {
 			"style": "german_old",
-			"landmarks": [{"set": "props/church", "km_to_finish": 2.4, "side": -1, "x_m": 120, "name": "Festung Marienberg", "scale": 2.2, "tint": "#e0d4b8"}],
+			"landmarks": [{"set": "landmarks/kaiserburg_nuernberg", "km_to_finish": 2.0, "side": -1, "x_m": 60, "name": "Festung Marienberg", "tint": "#efe6d6"}],
 			"bridges": [{"km_to_finish": 4.0, "length_m": 80, "type": "stone_arch", "name": "Ludwigsbrücke"}],
 			"background": {"behind": "hills"}
 		},
 		"erfurt": {
 			"style": "german_old",
-			"landmarks": [{"set": "props/church", "km_to_finish": 2.0, "side": 1, "x_m": 40, "name": "Erfurter Dom", "scale": 2.4, "tint": "#c8b8a0"}]
+			"landmarks": [{"set": "props/church", "km_to_finish": 2.0, "side": 1, "x_m": 30, "name": "Erfurter Dom", "scale": 2.4, "tint": "#c8b8a0", "clear_m": [250, 40]}]
 		},
 		"dresden": {
-			"style": "german_old",
+			"style": "central",
 			"landmarks": [{"set": "landmarks/frauenkirche_dresden", "km_to_finish": 1.8, "side": 1, "x_m": 40}],
 			"skyline": ["landmarks/frauenkirche_dresden"],
 			"bridges": [{"km_to_finish": 3.6, "length_m": 120, "type": "stone_arch", "name": "Augustusbrücke", "color": "#d8ccb0"}],
 			"background": {"behind": "hills"}
 		},
 		"muenchen": {
-			"style": "german_old",
+			"style": "bavarian",
 			"center_km": 9.0,
 			"landmarks": [{"set": "landmarks/frauenkirche_muenchen", "km_to_finish": 2.0, "side": -1, "x_m": 35}],
 			"skyline": ["landmarks/frauenkirche_muenchen"],
 			"bridges": [{"km_to_finish": 4.2, "length_m": 60, "type": "stone_arch", "name": "Maximiliansbrücke"}],
-			"background": {"behind": {"style": "alps", "height": 0.45}}
+			"background": {"behind": {"style": "alps", "height": 0.5, "color": "#7a8ca0", "haze": 0.35}}
 		},
 		"amsterdam": {
 			"style": "dutch",
@@ -171,12 +178,12 @@
 		"paris": {
 			"style": "paris",
 			"center_km": 10.0,
-			"landmarks": [{"set": "landmarks/eiffel_tower", "km_to_finish": 6.0, "side": 1, "x_m": 140}],
+			"landmarks": [{"set": "landmarks/eiffel_tower", "km_to_finish": 0.3, "side": 1, "x_m": 60}],
 			"skyline": [
 				"landmarks/eiffel_tower",
 				{"set": "landmarks/sacre_coeur", "azimuth_deg": -30}
 			],
-			"bridges": [{"km_to_finish": 3.2, "length_m": 130, "type": "stone_arch", "name": "Pont Alexandre III", "color": "#d8ccb4"}]
+			"bridges": [{"km_to_finish": 8.0, "length_m": 130, "type": "stone_arch", "name": "Pont Alexandre III", "color": "#d8ccb4"}]
 		},
 		"tours": {
 			"style": "french",
@@ -184,29 +191,29 @@
 			"bridges": [{"km_to_finish": 2.8, "length_m": 120, "type": "stone_arch", "name": "Pont Wilson"}]
 		},
 		"bordeaux": {
-			"style": "french",
+			"style": "french_south",
 			"landmarks": [{"set": "props/church", "km_to_finish": 0.9, "side": -1, "x_m": 35, "name": "Kathedrale Saint-André", "scale": 2.1, "tint": "#e6dccb"}],
 			"bridges": [{"km_to_finish": 3.0, "length_m": 150, "type": "stone_arch", "name": "Pont de Pierre", "color": "#c8a084"}]
 		},
 		"pau": {
 			"style": "french",
-			"landmarks": [{"set": "props/church", "km_to_finish": 1.4, "side": 1, "x_m": 30, "name": "Château de Pau", "scale": 1.6, "tint": "#d8c8b0"}],
+			"landmarks": [{"set": "landmarks/kaiserburg_nuernberg", "km_to_finish": 1.4, "side": 1, "x_m": 30, "name": "Château de Pau", "scale": 0.7, "tint": "#e6dccb"}],
 			"bridges": [{"km_to_finish": 2.6, "length_m": 60, "type": "river", "name": "Pont du XIV-Juillet"}],
-			"background": {"behind": {"style": "mountains", "height": 0.8}}
+			"background": {"behind": {"style": "mountains", "height": 1.2, "color": "#74849a", "haze": 0.35}}
 		},
 		"toulouse": {
-			"style": "french",
+			"style": "french_south",
 			"landmarks": [{"set": "props/church", "km_to_finish": 1.0, "side": -1, "x_m": 30, "name": "Basilique Saint-Sernin", "scale": 1.9, "tint": "#c07858"}],
 			"bridges": [{"km_to_finish": 3.0, "length_m": 130, "type": "stone_arch", "name": "Pont Neuf", "color": "#c47c60"}]
 		},
 		"montpellier": {
-			"style": "french",
+			"style": "french_south",
 			"landmarks": [{"set": "props/church", "km_to_finish": 1.6, "side": 1, "x_m": 30, "name": "Kathedrale Saint-Pierre", "scale": 1.8, "tint": "#e8dcc8"}],
 			"bridges": [{"km_to_finish": 3.4, "length_m": 40, "type": "river", "name": "Pont Juvénal"}]
 		},
 		"lyon": {
-			"style": "french",
-			"landmarks": [{"set": "props/church", "km_to_finish": 1.6, "side": -1, "x_m": 120, "name": "Basilika Notre-Dame de Fourvière", "scale": 2.0, "tint": "#f0ece2"}],
+			"style": "french_south",
+			"landmarks": [{"set": "props/city_vienna_kirche", "km_to_finish": 1.6, "side": -1, "x_m": 120, "name": "Basilika Notre-Dame de Fourvière", "scale": 2.2, "tint": "#f4f2ec"}],
 			"bridges": [
 				{"km_to_finish": 5.0, "length_m": 110, "type": "river", "name": "Pont Lafayette"},
 				{"km_to_finish": 2.6, "length_m": 70, "type": "stone_arch", "name": "Pont Bonaparte"}
@@ -214,13 +221,13 @@
 			"background": {"features": ["towers", "spires"], "behind": "hills"}
 		},
 		"san_sebastian": {
-			"style": "spanish",
+			"style": "spanish_north",
 			"landmarks": [{"set": "props/church", "km_to_finish": 1.1, "side": 1, "x_m": 30, "name": "Catedral del Buen Pastor", "scale": 2.1, "tint": "#d8ccb4"}],
 			"bridges": [{"km_to_finish": 2.2, "length_m": 60, "type": "stone_arch", "name": "Puente María Cristina", "color": "#e0d8c4"}],
 			"background": {"behind": "hills"}
 		},
 		"burgos": {
-			"style": "spanish",
+			"style": "spanish_north",
 			"landmarks": [{"set": "landmarks/kathedrale_burgos", "km_to_finish": 1.6, "side": -1, "x_m": 35}],
 			"skyline": ["landmarks/kathedrale_burgos"],
 			"bridges": [{"km_to_finish": 2.6, "length_m": 50, "type": "stone_arch", "name": "Puente de Santa María"}]
@@ -241,7 +248,7 @@
 		},
 		"barcelona": {
 			"style": "spanish",
-			"landmarks": [{"set": "landmarks/sagrada_familia", "km_to_finish": 2.4, "side": 1, "x_m": 40}],
+			"landmarks": [{"set": "landmarks/sagrada_familia", "km_to_finish": 2.4, "side": 1, "x_m": 12, "clear_m": [300, 40]}],
 			"skyline": [
 				"landmarks/sagrada_familia",
 				{"set": "props/building_tall", "name": "Torre Glòries", "scale": 2.2, "tint": "#d8705c", "azimuth_deg": 28}
@@ -251,14 +258,14 @@
 		"bern": {
 			"style": "swiss",
 			"landmarks": [{"set": "props/church", "km_to_finish": 1.6, "side": 1, "x_m": 30, "name": "Berner Münster", "scale": 2.85, "tint": "#a8a090"}],
-			"bridges": [{"km_to_finish": 3.0, "length_m": 110, "type": "river", "name": "Kirchenfeldbrücke", "height_m": 15, "bank": "#5f7c48", "color": "#7d8a90"}],
-			"background": {"behind": {"style": "alps", "height": 0.55}}
+			"bridges": [{"km_to_finish": 3.0, "length_m": 110, "type": "river", "name": "Kirchenfeldbrücke", "height_m": 8, "bank": "#5f7c48", "color": "#7d8a90"}],
+			"background": {"behind": {"style": "alps", "height": 0.75, "color": "#6f8296", "haze": 0.3}}
 		},
 		"mailand": {
 			"style": "italian",
 			"landmarks": [{"set": "landmarks/duomo_milano", "km_to_finish": 2.0, "side": 1, "x_m": 35}],
 			"skyline": ["landmarks/duomo_milano"],
-			"background": {"features": ["towers", "spires", "domes"], "height": 1.1, "behind": {"style": "alps", "height": 0.4}}
+			"background": {"features": ["towers", "spires", "domes"], "height": 1.1, "behind": {"style": "alps", "height": 0.45, "color": "#8494a8", "haze": 0.4}}
 		},
 		"venedig": {
 			"style": "italian",
@@ -269,9 +276,10 @@
 		},
 		"ljubljana": {
 			"style": "central",
-			"landmarks": [{"set": "props/church", "km_to_finish": 1.5, "side": 1, "x_m": 110, "name": "Burg Ljubljana", "scale": 1.8, "tint": "#c8c0b0"}],
+			"landmarks": [{"set": "landmarks/kaiserburg_nuernberg", "km_to_finish": 1.5, "side": 1, "x_m": 70, "name": "Burg Ljubljana"}],
+			"skyline": [{"set": "landmarks/kaiserburg_nuernberg", "name": "Burg Ljubljana"}],
 			"bridges": [{"km_to_finish": 2.4, "length_m": 40, "type": "stone_arch", "name": "Drachenbrücke", "color": "#e0dcd0"}],
-			"background": {"behind": {"style": "alps", "height": 0.5}}
+			"background": {"behind": {"style": "alps", "height": 0.6, "color": "#6f8296", "haze": 0.3}}
 		},
 		"slavonski_brod": {
 			"style": "balkan",
@@ -280,7 +288,7 @@
 		},
 		"belgrad": {
 			"style": "balkan",
-			"landmarks": [{"set": "landmarks/hram_svetog_save", "km_to_finish": 2.4, "side": 1, "x_m": 45}],
+			"landmarks": [{"set": "landmarks/hram_svetog_save", "km_to_finish": 2.4, "side": 1, "x_m": 90}],
 			"skyline": ["landmarks/hram_svetog_save"],
 			"bridges": [{"km_to_finish": 6.0, "length_m": 170, "type": "cable_stayed", "name": "Ada-Brücke", "pylon_m": 120, "color": "#e8e8e4", "ships": 1}],
 			"background": {"features": ["slabs", "onion", "towers"]}
@@ -289,7 +297,7 @@
 			"style": "balkan",
 			"landmarks": [{"set": "landmarks/nevsky_kathedrale", "km_to_finish": 2.0, "side": -1, "x_m": 30}],
 			"skyline": ["landmarks/nevsky_kathedrale"],
-			"background": {"behind": {"style": "mountains", "height": 0.9}}
+			"background": {"behind": {"style": "mountains", "height": 0.9, "color": "#6c7a88", "haze": 0.3}}
 		},
 		"budapest": {
 			"style": "central",
@@ -307,18 +315,18 @@
 			],
 			"skyline": ["landmarks/stephansdom", "landmarks/riesenrad"],
 			"bridges": [{"km_to_finish": 7.0, "length_m": 120, "type": "river", "name": "Reichsbrücke"}],
-			"background": {"behind": {"style": "hills", "height": 0.7}}
+			"background": {"behind": {"style": "hills", "height": 1.1, "color": "#62775a", "haze": 0.3}}
 		},
 		"prag": {
 			"style": "central",
-			"landmarks": [{"set": "landmarks/veitsdom_prag", "km_to_finish": 1.2, "side": 1, "x_m": 160}],
+			"landmarks": [{"set": "landmarks/veitsdom_prag", "km_to_finish": 1.2, "side": 1, "x_m": 60}],
 			"skyline": ["landmarks/veitsdom_prag"],
 			"bridges": [{"km_to_finish": 3.0, "length_m": 110, "type": "stone_arch", "name": "Most Legií"}],
 			"background": {"features": ["spires", "domes"], "behind": "hills"}
 		},
 		"posen": {
 			"style": "eastern",
-			"landmarks": [{"set": "props/church", "km_to_finish": 1.8, "side": 1, "x_m": 40, "name": "Posener Dom", "scale": 2.0, "tint": "#c09080"}],
+			"landmarks": [{"set": "landmarks/frauenkirche_muenchen", "km_to_finish": 1.8, "side": 1, "x_m": 40, "name": "Posener Dom", "scale": 0.75}],
 			"bridges": [{"km_to_finish": 3.2, "length_m": 90, "type": "river", "name": "Warthebrücke"}]
 		},
 		"warschau": {

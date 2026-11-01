@@ -8,7 +8,7 @@ const REQUIRED_LANDMARKS: Array[String] = ["eiffel_tower", "elbphilharmonie", "m
 	"campanile_venezia", "parlament_budapest", "veitsdom_prag", "kulturpalast_warschau", "nevsky_kathedrale"]
 const CONTRACT_STYLES: Array[String] = ["hanse", "german", "german_old", "dutch", "belgian", "paris", "french", "spanish",
 	"italian", "vienna", "austrian", "swiss", "central", "eastern", "balkan", "baltic"]
-const PROC_KINDS: Array[String] = ["lattice_tower", "tv_tower", "ferris_wheel", "column", "campanile", "domed_church",
+const PROC_KINDS: Array[String] = ["lattice_tower", "tv_tower", "ferris_wheel", "column", "octagon", "campanile", "domed_church",
 	"parliament", "palace_tower", "skyscrapers"]
 
 var _net: RoadNetwork = null
@@ -85,10 +85,18 @@ func test_city_data_validates() -> void:
 
 func test_city_sceneries_complete() -> void:
 	var sc := scenery()
+	var d := db()
 	for st in CONTRACT_STYLES:
 		for part: String in ["outskirts", "center"]:
-			var id := "city_%s_%s" % [st, part]
-			assert_true(sc.has(id), "Landschaft %s vorhanden" % id)
+			assert_true(sc.has("city_%s_%s" % [st, part]), "Landschaft city_%s_%s vorhanden" % [st, part])
+	# every style of cities.json (the contract styles and the regional ones added later: german_east, ruhr,
+	# bavarian, french_south, spanish_north …), with its own scenery or one shared with another style
+	var styles: Dictionary = d.get("styles", {})
+	for st: String in styles:
+		var ids := CityData.scenery_ids(d, st)
+		for part: String in ["outskirts", "center"]:
+			var id := str(ids[part])
+			assert_true(sc.has(id), "%s: Landschaft %s vorhanden" % [st, id])
 			var s: Dictionary = sc.get(id, {})
 			assert_eq((s.get("grass", []) as Array).size(), 2, "%s: zwei Bodenfarben" % id)
 			var style := str(s.get("background", {}).get("style", ""))
@@ -102,13 +110,15 @@ func test_city_sceneries_complete() -> void:
 				if set_id.begins_with("props/city_"):
 					own += 1
 					assert_true(r.has("fallback"), "%s: %s hat einen Ersatz" % [id, set_id])
+				if set_id.begins_with("props/tree_") or set_id == "props/bush_round":
+					# left of the road mirrored: the baked shadow falls away from the road, not over walls and fences
+					assert_true(bool(r.get("mirror", false)), "%s: %s links gespiegelt" % [id, set_id])
 			assert_true(own >= 1, "%s: eigene Gebäude des Stils" % id)
 			if s.has("fence"):
 				assert_true(["picket", "hedge", "wall", "iron"].has(str(s["fence"].get("style", ""))), "%s: Zaunstil" % id)
-	# outskirts and centre look different (ground colour)
-	for st in CONTRACT_STYLES:
-		var a: Array = sc.get("city_%s_outskirts" % st, {}).get("grass", [])
-		var b: Array = sc.get("city_%s_center" % st, {}).get("grass", [])
+		# outskirts and centre look different (ground colour)
+		var a: Array = sc.get(str(ids["outskirts"]), {}).get("grass", [])
+		var b: Array = sc.get(str(ids["center"]), {}).get("grass", [])
 		assert_true(a != b, "%s: Stadtrand und Zentrum mit eigenem Boden" % st)
 
 
@@ -197,3 +207,28 @@ func test_bridge_and_landmark_resolution() -> void:
 	var q := StagePlan.build(n.stages["hamburg_hannover"], "hannover", n.cities, n.countries, cfg(), bad)
 	assert_eq(q.bridges.size(), 0, "ungültige Brücken verworfen")
 	assert_eq(q.warnings.size(), 2, "zwei Warnungen")
+
+
+## Skyline silhouettes with a procedural stand-in draw it, not the generic fallback sprite (QA: Riga's
+## Fernsehturm appeared as a 369 m glass office block, Sacré-Cœur as a village church) – like the landmark
+## props (Track._build_landmark); entries with a real sprite keep it.
+func test_skyline_prefers_procedural_stand_ins() -> void:
+	var n := net()
+	var p := StagePlan.build(n.stages["kaunas_riga"], "kaunas", n.cities, n.countries, cfg(), db())
+	assert_eq(p.to_id, "riga", "Ankunft in Riga")
+	var found := 0
+	for e: Dictionary in p.skyline:
+		if str(e["set"]) == "landmarks/fernsehturm_riga":
+			found += 1
+			assert_eq(str(e.get("proc", "")), "tv_tower", "Fernsehturm prozedural")
+			assert_false(e.has("fallback"), "kein Ersatz-Sprite (Glashochhaus)")
+		elif str(e["set"]) == "landmarks/st_petri_riga":
+			found += 1
+			assert_false(e.has("proc"), "Petrikirche als Sprite")
+	assert_eq(found, 2, "beide Silhouetten in der Skyline")
+	# the Herkules (Kassel) has a procedural form of its own now, no generic church on the horizon
+	var k := StagePlan.build(n.stages["hannover_kassel"], "hannover", n.cities, n.countries, cfg(), db())
+	assert_eq(k.to_id, "kassel", "Ankunft in Kassel")
+	assert_eq(k.skyline.size(), 1, "Herkules als Silhouette")
+	assert_eq(str(k.skyline[0].get("proc", "")), "octagon", "Herkules: Oktogon mit Pyramide und Statue")
+	assert_false(k.skyline[0].has("fallback"), "Herkules ohne Ersatz-Kirche")

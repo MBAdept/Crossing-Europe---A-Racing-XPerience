@@ -515,17 +515,31 @@ func _draw_houses(L: Dictionary, top: Color, bottom: Color, h: float, par: float
 			batch.rect(Rect2(x - hw * 0.5, hy - hh * 0.65, hw * 0.35, hh * 0.3), win)
 
 
-## Mountain or hill range behind a city skyline ("behind": mountains|alps|hills, or {style, height}).
+## Parameters of the mountain range behind a city ("behind": a style name or {style, height, color, haze}):
+## style, height factor, colour (default: the far colour of the background, which is close to the sky) and
+## base haze towards the fog colour (default 0.55 = faint; 0.3 for a range that shall read clearly).
+static func behind_params(b: Variant, cols: Array) -> Dictionary:
+	var bd: Dictionary = b if b is Dictionary else {}
+	var far := str(cols[0]) if not cols.is_empty() else "#8aa2bd"
+	return {"style": str(bd.get("style", "hills")) if b is Dictionary else str(b), "height": float(bd.get("height", 1.0)),
+		"color": Color(str(bd.get("color", far))), "haze": clampf(float(bd.get("haze", 0.55)), 0.0, 0.97)}
+
+
+## Haze of the range: its base haze, growing with the weather / night haze up to almost the fog colour.
+static func behind_haze(base: float, haze: float) -> float:
+	return clampf(base + haze * (1.0 - base), 0.0, 0.97)
+
+
+## Mountain or hill range behind a city skyline ("behind": mountains|alps|hills, or {style, height, color, haze}).
 func _draw_behind(pal: Dictionary, bg: Dictionary, heading: float, haze: float, grow: float) -> void:
-	var b: Variant = bg.get("behind")
-	var style := str(b.get("style", "hills")) if b is Dictionary else str(b)
-	var hmul := (float((b as Dictionary).get("height", 1.0)) if b is Dictionary else 1.0) * grow
+	var bp := behind_params(bg.get("behind"), bg.get("colors", ["#8aa2bd"]))
+	var style := str(bp["style"])
+	var hmul := float(bp["height"]) * grow
 	var layers: Array = STYLES.get(style, STYLES["hills"])
 	var L: Dictionary = layers[0]
-	var cols: Array = bg.get("colors", ["#8aa2bd"])
 	var fog: Color = pal["fog"]
-	var col := Color(str(cols[0])).darkened(0.05) * (pal["ambient"] as Color)
-	var hz := clampf(0.55 + haze * 0.45, 0.0, 0.97)
+	var col := (bp["color"] as Color).darkened(0.05) * (pal["ambient"] as Color)
+	var hz := behind_haze(float(bp["haze"]), haze)
 	var top := col.lerp(fog, hz)
 	var bottom := col.lerp(fog, minf(0.98, hz + 0.2))
 	var h := float(L.get("h", 60.0)) * hmul

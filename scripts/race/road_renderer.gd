@@ -43,6 +43,9 @@ const QUAY := {"canal": Color("7a5648"), "causeway": Color("a9a395"), "river": C
 const RAIL := {"canal": Color("2c3430"), "causeway": Color("c9c6bd"), "river": Color("6d767d"), "stone_arch": Color("d6ccb6"),
 	"truss_arch": Color("4f6b55"), "cable_stayed": Color("c4c8cc")}
 const SKY_OFFSETS: Array[float] = [0.2, -0.34, 0.44, -0.12, 0.31, -0.48]   ## skyline-only silhouettes (rad)
+const LANDMARK_FLOOD := Color(1.0, 0.86, 0.62)   ## floodlight on plain props used as landmarks (night)
+const LANDMARK_FLOOD_K := 0.55
+const GROUND_BLEND_M := 150.0          ## outskirts ground blends into the centre ground over these visible m
 const STATS_N := 600
 # indices of the cached sprite metadata (_spinfo)
 const SI_TEX := 0
@@ -1023,12 +1026,31 @@ func _bucket_box(buckets: Dictionary, car: Dictionary) -> void:
 		(buckets[a] as Array).append({"kind": "box", "car": car, "z0": r0, "z1": r1, "z": (r0 + r1) * 0.5})
 
 
-func _grass_color(seg: TrackSegment, merged: bool) -> Color:
-	var scen: Dictionary = scenery_db.get(seg.scenery, {})
+## Ground colour of a scenery for a segment (alternating bands; their mean for merged LOD slices).
+func _grass_of(scen_id: String, seg: TrackSegment, merged: bool) -> Color:
+	var scen: Dictionary = scenery_db.get(scen_id, {})
 	var gcols: Array = scen.get("grass", ["#5d9a3e", "#56913a"])
 	var g0 := Color(str(gcols[0]))
 	var g1 := Color(str(gcols[mini(1, gcols.size() - 1)]))
-	var c := g0.lerp(g1, 0.5) if merged else (g0 if (seg.index / _grass_band) % 2 == 0 else g1)
+	return g0.lerp(g1, 0.5) if merged else (g0 if (seg.index / _grass_band) % 2 == 0 else g1)
+
+
+## Share of the centre ground in the outskirts ground at z: 0 up to GROUND_BLEND_M before the start of the
+## city centre (center_z), rising smoothly to 1 there – no hard line across the ground where the scenery
+## changes (the background blends anyway). 0 without a centre (center_z <= 0).
+static func ground_blend(z: float, center_z: float) -> float:
+	if center_z <= 0.0 or z >= center_z:
+		return 0.0
+	return smoothstep(center_z - GROUND_BLEND_M, center_z, z)
+
+
+func _grass_color(seg: TrackSegment, merged: bool) -> Color:
+	var c := _grass_of(seg.scenery, seg, merged)
+	var plan := track.plan
+	if seg.city and plan.city_scenery_center != "" and seg.scenery == plan.city_scenery_outskirts:
+		var f := ground_blend(seg.z, track.km_to_z(plan.city_center_km))
+		if f > 0.0:
+			c = c.lerp(_grass_of(plan.city_scenery_center, seg, merged), f)
 	if _snow > 0.0:
 		c = c.lerp(Palette.SNOW_GROUND if (seg.index / _grass_band) % 2 == 0 or merged else Palette.SNOW_GROUND.darkened(0.035), 0.94 * _snow)
 	return c
@@ -1593,7 +1615,8 @@ func _prep_prop(it: Dictionary) -> Array:
 	var res: Array
 	var proc := str(it.get("proc", ""))
 	var set_id := _resolve_set(it)
-	if proc != "" and (_prefer_proc or set_id == ""):
+	# "prefer_proc" on the prop: its procedural form beats the sprite (bridge pylons: cables as 3D lines)
+	if proc != "" and (_prefer_proc or set_id == "" or bool(it.get("prefer_proc", false))):
 		if it.has("align") and bool(it.get("landmark", false)):
 			# procedural landmark: x is its near edge -> anchor at its middle
 			x += float(int(it.get("side", 1))) * float(it.get("width_m", 30.0)) * 0.5 * float(it.get("scale", 1.0))
@@ -2900,6 +2923,10 @@ func _draw_landmark(it: Dictionary, pc: Array, p: Vector3, dz: float) -> void:
 		var flip := prop_flipped(int(it.get("side", 1)), bool(it.get("mirror", false)), bool(info[SI_MIRROR]))
 		var tint: Color = pc[5]
 		var mod := Color(_amb_out.r, _amb_out.g, _amb_out.b).lerp(_fog_outc * 1.15, fade.y)
+		if lights_a > 0.01 and not str(pc[0]).begins_with("landmarks/"):
+			# a plain prop as landmark (props/church as a cathedral …): its lights layer has only windows, the
+			# landmarks/* sprites carry their illumination – floodlight the facade instead
+			mod = mod.lerp(LANDMARK_FLOOD, LANDMARK_FLOOD_K * lights_a)
 		if fade.x > 0.01:
 			_sprite_i(info, "c", "base", p, float(pc[2]), Color(mod.r * tint.r, mod.g * tint.g, mod.b * tint.b, fade.x), flip)
 		if lights_a > 0.01 and (info[SI_ROWS] as Dictionary).has("lights"):
@@ -2993,6 +3020,8 @@ func _draw_landmark_proc(proc: String, it: Dictionary, p: Vector3, lights_a: flo
 			_lm_wheel(p, hgt, lights_a)
 		"column":
 			_lm_column(p, hgt, lights_a)
+		"octagon":
+			_lm_octagon(it, p, hgt, lights_a)
 		"campanile":
 			_lm_campanile(p, hgt, lights_a)
 		"domed_church":
@@ -3154,6 +3183,37 @@ func _lm_column(p: Vector3, hgt: float, lights_a: float) -> void:
 		_lm_glow(Vector2(p.x, p.y - 20.0 * s), maxf(3.0, 9.0 * s), Color(1.0, 0.9, 0.7, 0.25 * lights_a), 2.5)
 
 
+## Octagon with pyramid and statue (Herkules in Kassel, 70 m): tuff octagon with three rows of arches and
+## oblique side facets, balustrade, stepped pyramid and the copper statue on top; floodlit at night.
+func _lm_octagon(it: Dictionary, p: Vector3, hgt: float, lights_a: float) -> void:
+	var s := p.z * hgt / 70.0
+	var stone_c := _color(str(it.get("wall", "#8f8a80")))
+	var stone := _lmc(stone_c)
+	var side := _lmc(stone_c.darkened(0.18))
+	batch.rect(Rect2(p.x - 18.0 * s, p.y - 32.0 * s, 36.0 * s, 32.0 * s), stone)
+	batch.quad(Vector2(p.x - 30.0 * s, p.y - 30.0 * s), Vector2(p.x - 18.0 * s, p.y - 32.0 * s), Vector2(p.x - 18.0 * s, p.y), Vector2(p.x - 30.0 * s, p.y), side)
+	batch.quad(Vector2(p.x + 18.0 * s, p.y - 32.0 * s), Vector2(p.x + 30.0 * s, p.y - 30.0 * s), Vector2(p.x + 30.0 * s, p.y), Vector2(p.x + 18.0 * s, p.y), side)
+	if 70.0 * s > 36.0:
+		var dark := _lmc(stone_c.darkened(0.5))
+		for row in 3:
+			var y0 := 3.0 + float(row) * 9.5
+			for i in 5:
+				batch.rect(Rect2(p.x + (-15.0 + float(i) * 6.6) * s, p.y - (y0 + 6.0) * s, 3.2 * s, 6.0 * s), dark)
+	batch.rect(Rect2(p.x - 31.0 * s, p.y - 34.0 * s, 62.0 * s, 2.0 * s), _lmc(stone_c.lightened(0.12)))
+	for i in 4:
+		var y0 := 34.0 + float(i) * 6.75
+		var hw0 := lerpf(15.0, 3.0, float(i) / 4.0)
+		var hw1 := lerpf(15.0, 3.0, float(i + 1) / 4.0)
+		batch.quad(Vector2(p.x - hw0 * s, p.y - y0 * s), Vector2(p.x + hw0 * s, p.y - y0 * s), Vector2(p.x + hw1 * s, p.y - (y0 + 6.75) * s), Vector2(p.x - hw1 * s, p.y - (y0 + 6.75) * s), stone if i % 2 == 0 else side)
+	var copper := _lmc(Color(str(it.get("dome", "#6f9c86"))))
+	batch.quad(Vector2(p.x - 1.0 * s, p.y - 68.0 * s), Vector2(p.x + 1.0 * s, p.y - 68.0 * s), Vector2(p.x + 1.6 * s, p.y - 61.0 * s), Vector2(p.x - 1.6 * s, p.y - 61.0 * s), copper)
+	batch.ellipse(Vector2(p.x, p.y - 69.0 * s), Vector2(0.8 * s, 1.0 * s), copper, copper, 8)
+	batch.line(Vector2(p.x + 1.4 * s, p.y - 61.5 * s), Vector2(p.x + 2.2 * s, p.y - 66.0 * s), maxf(0.8, 0.5 * s), copper)
+	if lights_a > 0.02:
+		batch.rect(Rect2(p.x - 30.0 * s, p.y - 34.0 * s, 60.0 * s, 34.0 * s), Color(1.0, 0.82, 0.55, 0.3 * lights_a))
+		_lm_glow(Vector2(p.x, p.y - 64.0 * s), maxf(2.5, 5.0 * s), Color(1.0, 0.88, 0.6, 0.5 * lights_a))
+
+
 ## Bell tower (Campanile di San Marco, 99 m): brick shaft with pilasters, white belfry, attic, copper
 ## pyramid with the golden angel.
 func _lm_campanile(p: Vector3, hgt: float, lights_a: float) -> void:
@@ -3187,6 +3247,20 @@ func _lm_domed(it: Dictionary, p: Vector3, hgt: float, lights_a: float) -> void:
 	var dome_d := _lmc(dome_c.darkened(0.25))
 	batch.rect(Rect2(p.x - 32.0 * s, p.y - 30.0 * s, 64.0 * s, 30.0 * s), wall)
 	batch.rect(Rect2(p.x + 10.0 * s, p.y - 30.0 * s, 22.0 * s, 30.0 * s), shade)
+	if 30.0 * s > 36.0:
+		# from close up the body gets a facade (QA: a blank white wall while passing): cornice, two rows of
+		# tall arched windows between pilasters and a portal in the middle
+		var win := _lmc(wall_c.darkened(0.45), clampf((30.0 * s - 36.0) / 24.0, 0.0, 1.0))
+		batch.rect(Rect2(p.x - 32.0 * s, p.y - 30.0 * s, 64.0 * s, 1.2 * s), _lmc(wall_c.darkened(0.25)))
+		for row in 2:
+			var y0 := 5.0 + float(row) * 12.0
+			var xw := -29.0
+			while xw < 27.0:
+				if absf(xw + 1.1) > 5.0 or row == 1:
+					batch.rect(Rect2(p.x + xw * s, p.y - (y0 + 7.0) * s, 2.2 * s, 7.0 * s), win)
+					batch.ellipse(Vector2(p.x + (xw + 1.1) * s, p.y - (y0 + 7.0) * s), Vector2(1.1 * s, 1.1 * s), win, win, 8)
+				xw += 5.4
+		batch.rect(Rect2(p.x - 3.6 * s, p.y - 11.0 * s, 7.2 * s, 11.0 * s), win)
 	batch.quad(Vector2(p.x - 34.0 * s, p.y - 30.0 * s), Vector2(p.x + 34.0 * s, p.y - 30.0 * s), Vector2(p.x + 30.0 * s, p.y - 36.0 * s), Vector2(p.x - 30.0 * s, p.y - 36.0 * s), shade)
 	for sd: float in [-1.0, 1.0]:
 		var cx := p.x + sd * 22.0 * s
@@ -3199,7 +3273,8 @@ func _lm_domed(it: Dictionary, p: Vector3, hgt: float, lights_a: float) -> void:
 		batch.rect(Rect2(p.x + (-9.0 + float(i) * 4.2) * s, p.y - 51.0 * s, 1.4 * s, 8.0 * s), _lmc(wall_c.darkened(0.45)))
 	batch.rect(Rect2(p.x - 2.0 * s, p.y - 74.0 * s, 4.0 * s, 5.0 * s), dome)
 	batch.line(Vector2(p.x, p.y - 74.0 * s), Vector2(p.x, p.y - 80.0 * s), maxf(0.8, 0.6 * s), dome_d)
-	batch.line(Vector2(p.x - 1.6 * s, p.y - 78.0 * s), Vector2(p.x + 1.6 * s, p.y - 78.0 * s), maxf(0.8, 0.5 * s), dome_d)
+	if bool(it.get("cross", true)):   # "cross": false for secular domes (town hall, monument): lantern spike only
+		batch.line(Vector2(p.x - 1.6 * s, p.y - 78.0 * s), Vector2(p.x + 1.6 * s, p.y - 78.0 * s), maxf(0.8, 0.5 * s), dome_d)
 	if lights_a > 0.02:
 		batch.rect(Rect2(p.x - 32.0 * s, p.y - 36.0 * s, 64.0 * s, 36.0 * s), Color(1.0, 0.8, 0.5, 0.3 * lights_a))
 		_lm_glow(Vector2(p.x, p.y - 56.0 * s), maxf(4.0, 16.0 * s), Color(1.0, 0.82, 0.5, 0.4 * lights_a))
@@ -3283,6 +3358,18 @@ func _lm_skyscrapers(p: Vector3, hgt: float, lights_a: float) -> void:
 		var base := Color(str(t[3]))
 		batch.rect(Rect2(p.x + (xo - hw) * s, p.y - th * s, 2.0 * hw * s, th * s), _lmc(base))
 		batch.rect(Rect2(p.x + (xo + hw * 0.3) * s, p.y - th * s, hw * 0.7 * s, th * s), _lmc(base.darkened(0.18)))
+		if 4.0 * s >= 2.0:
+			# glass facade from close up: floor bands every 4 m and mullions every 3 m, fading in once the
+			# floors are 2 px apart (from afar the towers stay smooth silhouettes)
+			var band := _lmc(base.darkened(0.35), clampf(4.0 * s / 6.0, 0.0, 1.0) * 0.55)
+			var fl := 4.0
+			while fl < th - 1.0:
+				batch.rect(Rect2(p.x + (xo - hw) * s, p.y - fl * s, 2.0 * hw * s, maxf(1.0, 0.5 * s)), band)
+				fl += 4.0
+			var mx := -hw + 3.0
+			while mx < hw - 1.0:
+				batch.rect(Rect2(p.x + (xo + mx) * s, p.y - th * s, maxf(1.0, 0.35 * s), th * s), band)
+				mx += 3.0
 		match int(t[4]):
 			1:
 				batch.line(Vector2(p.x + xo * s, p.y - th * s), Vector2(p.x + xo * s, p.y - (th + 22.0) * s), maxf(0.8, 0.8 * s), _lmc(base.darkened(0.3)))

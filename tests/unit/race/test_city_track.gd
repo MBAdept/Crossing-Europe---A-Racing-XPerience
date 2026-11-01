@@ -143,6 +143,9 @@ func test_bridge_structures() -> void:
 					pylons += 1
 					assert_true(absf(float(sp["x"])) > edges.y + t.shoulder_w, "Pylon neben dem Deck")
 					assert_true(float(sp.get("cables", 0.0)) > 10.0, "Seilfächer")
+					# the procedural pylon beats the sprite (cables as 3D lines along the deck, pylon_m high)
+					assert_eq(str(sp.get("proc", "")), "pylon", "prozeduraler Pylon")
+					assert_true(bool(sp.get("prefer_proc", false)), "Pylon prozedural statt Sprite")
 				"props/bridge_lamp":
 					lamps += 1
 				"props/houseboat":
@@ -204,3 +207,79 @@ func test_city_track_is_deterministic() -> void:
 	for i in range(0, sa.size(), 5):
 		assert_eq(sa[i].sprites.size(), sb[i].sprites.size(), "gleiche Requisiten")
 		assert_eq(sa[i].water, sb[i].water, "gleiches Wasser")
+
+
+## QA regression: the park trees of a landmark plaza (placed up to clear_m[0] before the landmark) stood in
+## the river when a bridge ended shortly before the landmark (Bern, Slavonski Brod, Posen, Riga, Lüttich …).
+## Landmarks right behind the canal and the high bridge: no plaza tree on a bridge or within
+## Track.PARK_TREE_BRIDGE_GAP_M of one, and on the water only bridge parts and boats.
+func test_park_trees_keep_off_bridges() -> void:
+	var d := _db()
+	var lms: Array = d["cities"]["b"]["landmarks"]
+	lms.append({"set": "props/church", "km_to_finish": 6.45, "side": 1, "x_m": 40.0, "scale": 2.0, "name": "Kirche an der Gracht"})
+	lms.append({"set": "props/church", "km_to_finish": 3.2, "side": -1, "x_m": 30.0, "scale": 2.0, "name": "Kirche an der Hochbrücke"})
+	var p := StagePlan.build(_stage(), "a", CITIES, COUNTRIES, cfg(), d)
+	assert_true(p.warnings.is_empty(), "keine Warnungen: %s" % str(p.warnings))
+	var t := Track.new()
+	t.setup(p, cfg(), _scenery())
+	assert_eq(t.landmarks.size(), 4, "vier Wahrzeichen")
+	var trees := 0
+	for i in t.segment_count:
+		for ev: Dictionary in t.events_for_segment(i):
+			var set_id := str(ev.get("set", ""))
+			if not set_id.begins_with("props/tree_"):
+				continue
+			trees += 1
+			var z := float(ev["z"])
+			assert_true(t.bridge_at(z).is_empty(), "Parkbaum nicht auf der Brücke (%s bei z %.0f)" % [set_id, z])
+			assert_false(t.near_bridge(z, Track.PARK_TREE_BRIDGE_GAP_M - 0.01), "Parkbaum mit Abstand zur Brücke (z %.0f)" % z)
+			assert_true(bool(ev.get("mirror", false)), "Parkbaum links gespiegelt (Schatten von der Straße weg)")
+	assert_true(trees >= 10, "die Plätze haben trotzdem Parkbäume (%d)" % trees)
+	for s in _city_segments(t):
+		if not s.water:
+			continue
+		for sp: Dictionary in s.sprites:
+			var set_id := str(sp.get("set", ""))
+			if str(sp.get("kind", "")) == "prop":
+				assert_true(set_id.begins_with("props/bridge_") or set_id == "props/houseboat" or set_id == "props/ferry_ship",
+					"auf Brücken nur Brückenteile und Boote (%s bei km %.2f)" % [set_id, s.km])
+
+
+## The same with the real data: every arrival in every city (both directions of every stage) – no park tree
+## of a landmark plaza on or next to a bridge (QA: 19 of 31 arrivals in the French, Belgian and Baltic cities
+## alone had trees in the river), and every cable-stayed pylon drawn procedurally.
+func test_real_arrivals_keep_park_trees_off_bridges() -> void:
+	var load_json := func(path: String) -> Dictionary:
+		var d: Variant = ConfigLoader.load_json(path)
+		return d if d is Dictionary else {}
+	var net := RoadNetwork.new()
+	net.setup(load_json.call("res://data/network.json"), (load_json.call("res://data/countries.json") as Dictionary).get("countries", {}), cfg(), {})
+	var db: Dictionary = load_json.call("res://data/cities.json")
+	var sc := _scenery()
+	var arrivals := 0
+	var trees := 0
+	var pylons := 0
+	for id in net.stage_order:
+		var st: Dictionary = net.stages[id]
+		var dirs: Array = [str(st["from"])] if bool(st.get("dev", false)) else [str(st["from"]), str(st["to"])]
+		for from_id in dirs:
+			var p := StagePlan.build(st, from_id, net.cities, net.countries, cfg(), db)
+			if p.landmarks.is_empty() and p.bridges.is_empty():
+				continue
+			arrivals += 1
+			var t := Track.new()
+			t.setup(p, cfg(), sc)
+			for i in range(t.segment_index_at(t.km_to_z(p.city_limits_km)), t.segment_count):
+				for ev: Dictionary in t.events_for_segment(i):
+					var set_id := str(ev.get("set", ""))
+					var z := float(ev["z"])
+					if set_id == "props/bridge_pylon":
+						pylons += 1
+						assert_true(bool(ev.get("prefer_proc", false)), "%s ab %s: Pylon prozedural" % [id, from_id])
+					elif set_id.begins_with("props/tree_"):
+						trees += 1
+						assert_false(t.near_bridge(z, Track.PARK_TREE_BRIDGE_GAP_M - 0.01),
+							"%s ab %s: Parkbaum bei km %.2f nicht an einer Brücke" % [id, from_id, t.z_to_km(z)])
+	assert_true(arrivals > 80, "Ankünfte mit Wahrzeichen oder Brücken geprüft (%d)" % arrivals)
+	assert_true(trees > 200, "Parkbäume geprüft (%d)" % trees)
+	assert_true(pylons >= 8, "Pylone der Schrägseilbrücken geprüft (%d)" % pylons)
