@@ -432,6 +432,8 @@ Sitzung einen `TutorialCoach`, der jedes Thema einmal als kurzen „Tipp: …“
 | City Limits (dringend) | „City Limits – Tempo 50, dichter Verkehr, keine Tankstelle, kein Radar“ |
 | erste Kollision | „Zusammenstoß – der Wagen wird auf 10 km/h abgebremst und abgedrängt“ (`collision.target_speed_kmh`) |
 | Untersteuern (`understeer` > 0,3) oder eine Kurve in den nächsten 250 m verlangt > 5 % weniger als das aktuelle Tempo (dringend) | „Vor scharfen Kurven bremsen – sonst schiebt der Wagen nach außen“ |
+| erstes Auto bis 200 m voraus mit Blinker (dringend, Review v0.5.0) | „Blinker heißt, der Wagen zieht gleich herüber – Gas weg!“ |
+| erstes Elefantenrennen bis 200 m voraus (dringend, Review v0.5.0) | „Lkw überholt Lkw – zwei Spuren dicht, links bleibt frei“ |
 
 Die Etappenbeschreibung (`StagePlan.description`) zeigt der Etappenbildschirm (UI-Modul).
 

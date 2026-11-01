@@ -551,6 +551,7 @@ func _police_curve_cap() -> float:
 ## Driving diagnostics (drive_stats), the feedback of a guardrail hit and the curve hint of the tutorial stage:
 ## it comes when the car understeers or a curve within the next 250 m needs clearly less than the current speed.
 func _track_driving(dt: float) -> void:
+	_tutorial_traffic()
 	if vehicle.off_road > 0:
 		drive_stats["off_road_s"] += dt
 	if vehicle.off_road > 1:
@@ -573,6 +574,21 @@ func _track_driving(dt: float) -> void:
 		d += 10.0
 	if warn:
 		_tutorial("curve")
+
+
+## Tutorial hints on the traffic rules of v0.5.0 (QA: the coach did not explain them): the first car within 200 m
+## ahead that signals (it pulls out at once – "blinker"), the first truck overtaking a truck ahead ("elephant").
+func _tutorial_traffic() -> void:
+	if coach == null or not traffic_enabled or (coach.shown.has("blinker") and coach.shown.has("elephant")):
+		return
+	for c in traffic.cars:
+		var dz: float = c.z - pos_z
+		if dz <= 5.0 or dz > 200.0:
+			continue
+		if c.signal_dir != 0 and c.signal_lane != TrafficSystem.FUEL_LANE and absf(c.x - vehicle.x) < 6.0:
+			_tutorial("blinker")
+		if c.heavy and c.elephant_t >= 0.0:
+			_tutorial("elephant")
 
 
 ## A guardrail hit is felt (the speed loss of an understeer slide into the rail can be half the speed): camera
