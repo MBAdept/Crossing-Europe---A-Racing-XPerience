@@ -110,5 +110,5 @@ folgen. Format:
 ## 5. Größen und Speicher
 
 - Fahrzeug-Sheets werden mit VRAM-Kompression (BPTC/S3TC) importiert; Sheets höchstens 4096 px je Seite;
-  PNG-Gesamtbudget der Sprites ≈ 60 MB.
+  PNG-Gesamtbudget der Sprites ≈ 60 MB (seit den individuellen Städten 70 MB, siehe docs/sprites.md).
 - SpriteDB lädt Sets erst bei Bedarf.

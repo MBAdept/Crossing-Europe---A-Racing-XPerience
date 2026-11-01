@@ -36,7 +36,7 @@
 		"landmarks/veitsdom_prag": {"name": "Veitsdom", "height_m": 97, "width_m": 60, "required": true, "fallback": "props/church", "fallback_scale": 2.75, "fallback_tint": "#9a9488"},
 		"landmarks/kulturpalast_warschau": {"name": "Kulturpalast", "height_m": 237, "width_m": 90, "required": true, "proc": "palace_tower", "fallback": "props/building_tall", "fallback_scale": 3.6, "fallback_tint": "#e0d6c0"},
 		"landmarks/nevsky_kathedrale": {"name": "Alexander-Newski-Kathedrale", "height_m": 53, "width_m": 70, "required": true, "proc": "domed_church", "fallback": "props/church", "fallback_scale": 1.5, "fallback_tint": "#e8e0cc", "dome": "#d8b04a", "wall": "#ece6d6"},
-		"landmarks/frankfurter_hochhaeuser": {"name": "Frankfurter Hochhäuser", "height_m": 259, "width_m": 150, "proc": "skyscrapers", "fallback": "props/building_tall", "fallback_scale": 3.9, "fallback_tint": "#a8b8c8"},
+		"landmarks/frankfurt_skyline": {"name": "Frankfurter Hochhäuser", "height_m": 259, "width_m": 150, "proc": "skyscrapers", "fallback": "props/building_tall", "fallback_scale": 3.9, "fallback_tint": "#a8b8c8"},
 		"landmarks/kaiserburg_nuernberg": {"name": "Kaiserburg", "height_m": 50, "width_m": 80, "fallback": "props/church", "fallback_scale": 1.6, "fallback_tint": "#c0907a"},
 		"landmarks/freiheitsdenkmal_riga": {"name": "Freiheitsdenkmal", "height_m": 42, "width_m": 22, "proc": "column", "fallback": "props/building_oldtown", "fallback_scale": 2.1, "fallback_tint": "#d8d0c0"},
 		"landmarks/kathedrale_burgos": {"name": "Kathedrale von Burgos", "height_m": 88, "width_m": 60, "fallback": "props/church", "fallback_scale": 2.5, "fallback_tint": "#e8dcc0"},
@@ -108,8 +108,8 @@
 		},
 		"frankfurt": {
 			"style": "german",
-			"landmarks": [{"set": "landmarks/frankfurter_hochhaeuser", "km_to_finish": 3.0, "side": 1, "x_m": 60}],
-			"skyline": ["landmarks/frankfurter_hochhaeuser"],
+			"landmarks": [{"set": "landmarks/frankfurt_skyline", "km_to_finish": 3.0, "side": 1, "x_m": 60}],
+			"skyline": ["landmarks/frankfurt_skyline"],
 			"bridges": [{"km_to_finish": 4.5, "length_m": 110, "type": "river", "name": "Friedensbrücke"}],
 			"background": {"features": ["towers", "spires"], "height": 1.3}
 		},
@@ -342,7 +342,7 @@
 			"landmarks": [{"set": "landmarks/freiheitsdenkmal_riga", "km_to_finish": 1.2, "side": 1, "x_m": 25}],
 			"skyline": [
 				"landmarks/freiheitsdenkmal_riga",
-				{"set": "props/church", "name": "Petrikirche", "scale": 3.4, "tint": "#a07060", "azimuth_deg": -18},
+				{"set": "landmarks/st_petri_riga", "azimuth_deg": -18},
 				{"set": "landmarks/fernsehturm_riga", "azimuth_deg": 34}
 			],
 			"bridges": [{"km_to_finish": 3.6, "length_m": 150, "type": "cable_stayed", "name": "Vanšu-Brücke", "pylon_m": 100, "color": "#e4e4e0"}]

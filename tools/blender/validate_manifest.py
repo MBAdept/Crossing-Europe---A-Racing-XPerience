@@ -2,7 +2,7 @@
 """Validates assets/sprites/manifest.json and the sprite sheets (ARCHITECTURE.md section 12 and the
 vehicle display contract docs/fahrzeug-darstellung.md).
 
-Usage: python3 tools/blender/validate_manifest.py [--src assets/sprites] [--max-mb 60] [-q]
+Usage: python3 tools/blender/validate_manifest.py [--src assets/sprites] [--max-mb 70] [-q]
 Exit code 1 if an error was found. Needs Pillow + numpy (no Blender).
 
 Checks
@@ -416,7 +416,7 @@ def check_box_set(sid, s, src, rep):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", default=os.path.join(ROOT, "assets", "sprites"))
-    ap.add_argument("--max-mb", type=float, default=60.0)
+    ap.add_argument("--max-mb", type=float, default=70.0)
     ap.add_argument("-q", action="store_true", help="only errors")
     args = ap.parse_args()
     rep = Report(args.q)

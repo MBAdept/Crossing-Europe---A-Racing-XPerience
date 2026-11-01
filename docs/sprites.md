@@ -310,7 +310,7 @@ und horizontale Mitte; Spieler: horizontale Mitte, Heck unterhalb des Ankers, ge
 `beacon_a ≠ beacon_b`; **Quader-Sets**: Teile mit gültigen x/y/z-Bereichen innerhalb der Fahrzeuglänge,
 Flächen `rear/left/right` vorhanden, Rechtecke im Sheet und ohne Überlappung, ≥ 48 px/m,
 **Seitenverhältnis = Flächenmaße**, Flächen nicht leer, Lichter verweisen auf vorhandene Flächen und haben
-deren Größe; Gesamtgröße ≤ 60 MB.
+deren Größe; Gesamtgröße ≤ 70 MB (seit den individuellen Städten; je Etappe werden nur der Baustil und die Wahrzeichen der Zielstadt geladen).
 `contact_sheet.py` erzeugt je Kategorie einen Kontaktbogen (alle Winkel bei Tag + Nachtkomposit, Bremse an
 jedem zweiten Winkel), einen Bogen aller Quaderflächen samt Lichtern (`contact_boxes.png`) und eine
 maßstäbliche Aufstellung aller orthografischen Fahrzeuge (Lkw/Bus mit ihrer Heckfläche) auf gemeinsamer

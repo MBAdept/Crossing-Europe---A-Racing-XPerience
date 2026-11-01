@@ -294,9 +294,9 @@
 			"fence": { "style": "hedge", "color": "#5a7c44", "x": 0.5, "h": 1.0, "gap_every_m": 26, "gap_m": 3.5 },
 			"water": "#4d6370",
 			"props": [
-				{ "set": "props/city_hanse_gable_house", "every_m": 26, "chance": 0.75, "side": "both", "x": [5, 11], "scale": [0.9, 1.1], "fallback": "props/house_med", "fallback_tint": "#c49a88", "align": "edge" },
-				{ "set": "props/city_hanse_kontorhaus", "every_m": 80, "chance": 0.4, "side": "both", "x": [3, 10], "scale": [0.9, 1.1], "phase_m": 31, "fallback": "props/building_block_b", "fallback_tint": "#a87264", "align": "edge" },
-				{ "set": "props/city_hanse_harbour_crane", "every_m": 190, "chance": 0.4, "side": "both", "x": [35, 80], "scale": [0.9, 1.1], "fallback": "props/power_pylon", "fallback_tint": "#b8604c" },
+				{ "set": "props/city_hanse_gabled", "every_m": 26, "chance": 0.75, "side": "both", "x": [5, 11], "scale": [0.9, 1.1], "fallback": "props/house_med", "fallback_tint": "#c49a88", "align": "edge" },
+				{ "set": "props/city_hanse_kontor", "every_m": 80, "chance": 0.4, "side": "both", "x": [3, 10], "scale": [0.9, 1.1], "phase_m": 31, "fallback": "props/building_block_b", "fallback_tint": "#a87264", "align": "edge" },
+				{ "set": "props/city_hanse_crane", "every_m": 190, "chance": 0.4, "side": "both", "x": [35, 80], "scale": [0.9, 1.1], "fallback": "props/power_pylon", "fallback_tint": "#b8604c" },
 				{ "set": "props/tree_oak", "every_m": 22, "chance": 0.45, "side": "both", "x": [1.5, 6], "scale": [0.55, 0.9], "phase_m": 7 },
 				{ "set": "props/tree_birch", "every_m": 30, "chance": 0.35, "side": "both", "x": [2, 9], "scale": [0.6, 0.9], "phase_m": 19 },
 				{ "set": "props/bush_round", "every_m": 16, "chance": 0.35, "side": "both", "x": [0.8, 4], "scale": [0.8, 1.2], "fallback": "props/tree_beech", "fallback_scale": 0.35 }
@@ -310,9 +310,9 @@
 			"water": "#4d6370",
 			"props": [
 				{ "set": "props/city_hanse_speicher", "every_m": 30, "chance": 0.7, "side": "both", "x": [0.5, 4], "scale": [0.9, 1.1], "fallback": "props/building_block_b", "fallback_tint": "#b06e5c", "align": "edge" },
-				{ "set": "props/city_hanse_brick_block", "every_m": 24, "chance": 0.7, "side": "both", "x": [0.5, 4], "scale": [0.9, 1.15], "phase_m": 9, "fallback": "props/building_block_a", "fallback_tint": "#b98272", "align": "edge" },
-				{ "set": "props/city_hanse_gable_house", "every_m": 36, "chance": 0.5, "side": "both", "x": [0.3, 3], "scale": [0.95, 1.15], "phase_m": 17, "fallback": "props/building_oldtown", "fallback_tint": "#c08676", "align": "edge" },
-				{ "set": "props/city_hanse_kontorhaus", "every_m": 70, "chance": 0.45, "side": "both", "x": [3, 14], "scale": [1.0, 1.2], "phase_m": 40, "fallback": "props/building_block_b", "fallback_tint": "#94645a", "align": "edge" },
+				{ "set": "props/city_hanse_speicher", "every_m": 24, "chance": 0.7, "side": "both", "x": [0.5, 4], "scale": [0.9, 1.15], "phase_m": 9, "fallback": "props/building_block_a", "fallback_tint": "#b98272", "align": "edge" },
+				{ "set": "props/city_hanse_gabled", "every_m": 36, "chance": 0.5, "side": "both", "x": [0.3, 3], "scale": [0.95, 1.15], "phase_m": 17, "fallback": "props/building_oldtown", "fallback_tint": "#c08676", "align": "edge" },
+				{ "set": "props/city_hanse_kontor", "every_m": 70, "chance": 0.45, "side": "both", "x": [3, 14], "scale": [1.0, 1.2], "phase_m": 40, "fallback": "props/building_block_b", "fallback_tint": "#94645a", "align": "edge" },
 				{ "set": "props/building_shop", "every_m": 34, "chance": 0.35, "side": "both", "x": [0.3, 2], "scale": [0.9, 1.05], "phase_m": 5, "align": "edge" },
 				{ "set": "props/tree_beech", "every_m": 27, "chance": 0.3, "side": "both", "x": [-1.8, -1.2], "scale": [0.5, 0.65], "phase_m": 13 }
 			]
@@ -325,8 +325,8 @@
 			"fence": { "style": "hedge", "color": "#587a42", "x": 0.5, "h": 1.0, "gap_every_m": 24, "gap_m": 3.5 },
 			"water": "#4f6a74",
 			"props": [
-				{ "set": "props/city_german_family_house", "every_m": 24, "chance": 0.75, "side": "both", "x": [6, 12], "scale": [0.9, 1.1], "fallback": "props/house_med", "align": "edge" },
-				{ "set": "props/city_german_apartment", "every_m": 70, "chance": 0.45, "side": "both", "x": [4, 12], "scale": [0.85, 1.0], "phase_m": 29, "fallback": "props/building_block_a", "fallback_scale": 0.85, "fallback_tint": "#ece6da", "align": "edge" },
+				{ "set": "props/city_german_house", "every_m": 24, "chance": 0.75, "side": "both", "x": [6, 12], "scale": [0.9, 1.1], "fallback": "props/house_med", "align": "edge" },
+				{ "set": "props/city_german_mietshaus", "every_m": 70, "chance": 0.45, "side": "both", "x": [4, 12], "scale": [0.85, 1.0], "phase_m": 29, "fallback": "props/building_block_a", "fallback_scale": 0.85, "fallback_tint": "#ece6da", "align": "edge" },
 				{ "set": "props/tree_oak", "every_m": 20, "chance": 0.45, "side": "both", "x": [1.5, 6], "scale": [0.55, 0.9], "phase_m": 5 },
 				{ "set": "props/tree_beech", "every_m": 28, "chance": 0.35, "side": "both", "x": [2, 9], "scale": [0.6, 0.95], "phase_m": 15 },
 				{ "set": "props/bush_round", "every_m": 16, "chance": 0.35, "side": "both", "x": [0.8, 4], "scale": [0.8, 1.2], "fallback": "props/tree_beech", "fallback_scale": 0.35 }
@@ -340,8 +340,8 @@
 			"water": "#4f6a74",
 			"props": [
 				{ "set": "props/city_german_gruenderzeit", "every_m": 26, "chance": 0.7, "side": "both", "x": [0.3, 3], "scale": [0.95, 1.15], "fallback": "props/building_block_a", "fallback_scale": 0.9, "fallback_tint": "#eee2ca", "align": "edge" },
-				{ "set": "props/city_german_postwar_block", "every_m": 28, "chance": 0.6, "side": "both", "x": [0.5, 5], "scale": [0.9, 1.15], "phase_m": 9, "fallback": "props/building_block_a", "align": "edge" },
-				{ "set": "props/city_german_office_tower", "every_m": 80, "chance": 0.45, "side": "both", "x": [8, 22], "scale": [0.9, 1.2], "phase_m": 33, "fallback": "props/building_tall", "align": "edge" },
+				{ "set": "props/city_german_mietshaus", "every_m": 28, "chance": 0.6, "side": "both", "x": [0.5, 5], "scale": [0.9, 1.15], "phase_m": 9, "fallback": "props/building_block_a", "align": "edge" },
+				{ "set": "props/city_german_office", "every_m": 140, "chance": 0.45, "side": "both", "x": [8, 22], "scale": [0.36, 0.5], "phase_m": 33, "fallback": "props/building_tall", "align": "edge" },
 				{ "set": "props/building_block_b", "every_m": 34, "chance": 0.4, "side": "both", "x": [1, 6], "scale": [0.9, 1.15], "phase_m": 21, "fallback": "props/building_block_a", "align": "edge" },
 				{ "set": "props/building_shop", "every_m": 34, "chance": 0.35, "side": "both", "x": [0.3, 2], "scale": [0.9, 1.05], "phase_m": 5, "align": "edge" },
 				{ "set": "props/tree_beech", "every_m": 27, "chance": 0.3, "side": "both", "x": [-1.8, -1.2], "scale": [0.5, 0.65], "phase_m": 13 }
@@ -355,8 +355,9 @@
 			"fence": { "style": "picket", "color": "#8a6e50", "x": 0.5, "h": 1.0, "gap_every_m": 22, "gap_m": 3.2 },
 			"water": "#4f6c70",
 			"props": [
-				{ "set": "props/city_german_family_house", "every_m": 25, "chance": 0.7, "side": "both", "x": [6, 12], "scale": [0.9, 1.1], "fallback": "props/house_med", "align": "edge" },
-				{ "set": "props/city_german_old_timber_house", "every_m": 45, "chance": 0.5, "side": "both", "x": [4, 10], "scale": [0.9, 1.1], "phase_m": 18, "fallback": "props/farmhouse", "fallback_scale": 0.9, "fallback_tint": "#ecdcc0", "align": "edge" },
+				{ "set": "props/city_german_house", "every_m": 25, "chance": 0.7, "side": "both", "x": [6, 12], "scale": [0.9, 1.1], "fallback": "props/house_med", "align": "edge" },
+				{ "set": "props/city_german_old_fachwerk", "every_m": 45, "chance": 0.5, "side": "both", "x": [4, 10], "scale": [0.9, 1.1], "phase_m": 18, "fallback": "props/farmhouse", "fallback_scale": 0.9, "fallback_tint": "#ecdcc0", "align": "edge" },
+				{ "set": "props/city_german_old_fachwerk_b", "every_m": 31, "chance": 0.55, "side": "both", "x": [4, 10], "scale": [0.9, 1.1], "phase_m": 12, "fallback": "props/farmhouse", "fallback_scale": 0.9, "fallback_tint": "#ecdcc0", "align": "edge" },
 				{ "set": "props/tree_oak", "every_m": 20, "chance": 0.45, "side": "both", "x": [1.5, 6], "scale": [0.55, 0.9], "phase_m": 5 },
 				{ "set": "props/tree_beech", "every_m": 30, "chance": 0.35, "side": "both", "x": [2, 9], "scale": [0.6, 0.95], "phase_m": 15 },
 				{ "set": "props/bush_round", "every_m": 16, "chance": 0.35, "side": "both", "x": [0.8, 4], "scale": [0.8, 1.2], "fallback": "props/tree_beech", "fallback_scale": 0.35 }
@@ -369,8 +370,9 @@
 			"background": { "style": "city", "colors": ["#8e98a6", "#6e7684"], "height": 0.7, "features": ["spires", "domes"], "roofs": "gable" },
 			"water": "#4f6c70",
 			"props": [
-				{ "set": "props/city_german_old_timber_house", "every_m": 24, "chance": 0.75, "side": "both", "x": [0.3, 2.5], "scale": [0.95, 1.1], "fallback": "props/building_oldtown", "fallback_tint": "#f2e4c8", "align": "edge" },
-				{ "set": "props/city_german_old_baroque_house", "every_m": 30, "chance": 0.6, "side": "both", "x": [0.3, 3], "scale": [0.95, 1.15], "phase_m": 11, "fallback": "props/building_block_a", "fallback_tint": "#e8d2ae", "align": "edge" },
+				{ "set": "props/city_german_old_fachwerk", "every_m": 24, "chance": 0.75, "side": "both", "x": [0.3, 2.5], "scale": [0.95, 1.1], "fallback": "props/building_oldtown", "fallback_tint": "#f2e4c8", "align": "edge" },
+				{ "set": "props/city_german_old_fachwerk_b", "every_m": 31, "chance": 0.55, "phase_m": 12, "side": "both", "x": [0.3, 2.5], "scale": [0.95, 1.1], "fallback": "props/building_oldtown", "fallback_tint": "#f2e4c8", "align": "edge" },
+				{ "set": "props/city_german_old_barock", "every_m": 30, "chance": 0.6, "side": "both", "x": [0.3, 3], "scale": [0.95, 1.15], "phase_m": 11, "fallback": "props/building_block_a", "fallback_tint": "#e8d2ae", "align": "edge" },
 				{ "set": "props/building_oldtown", "every_m": 36, "chance": 0.45, "side": "both", "x": [0.3, 3], "scale": [0.9, 1.1], "phase_m": 23, "align": "edge" },
 				{ "set": "props/building_shop", "every_m": 34, "chance": 0.3, "side": "both", "x": [0.3, 2], "scale": [0.9, 1.05], "phase_m": 5, "tint": "#f0e6d4", "align": "edge" },
 				{ "set": "props/tree_beech", "every_m": 27, "chance": 0.3, "side": "both", "x": [-1.8, -1.2], "scale": [0.5, 0.65], "phase_m": 13 }
@@ -384,7 +386,7 @@
 			"fence": { "style": "hedge", "color": "#5a7e44", "x": 0.4, "h": 0.9, "gap_every_m": 20, "gap_m": 3.0 },
 			"water": "#3e5a50",
 			"props": [
-				{ "set": "props/city_dutch_rowhouse", "every_m": 22, "chance": 0.8, "side": "both", "x": [4, 9], "scale": [0.9, 1.1], "fallback": "props/house_med", "fallback_tint": "#b48272", "align": "edge" },
+				{ "set": "props/city_dutch_terrace", "every_m": 22, "chance": 0.8, "side": "both", "x": [4, 9], "scale": [0.9, 1.1], "fallback": "props/house_med", "fallback_tint": "#b48272", "align": "edge" },
 				{ "set": "props/windmill", "every_m": 420, "chance": 0.5, "side": "both", "x": [40, 110], "scale": [0.9, 1.1] },
 				{ "set": "props/tree_poplar", "every_m": 26, "chance": 0.45, "side": "both", "x": [2, 8], "scale": [0.7, 1.0], "phase_m": 9 },
 				{ "set": "props/tree_birch", "every_m": 24, "chance": 0.35, "side": "both", "x": [1.5, 6], "scale": [0.6, 0.9], "phase_m": 3 },
@@ -398,9 +400,9 @@
 			"background": { "style": "city", "colors": ["#91a5b8", "#6d7f8f"], "height": 0.65, "features": ["spires"], "roofs": "stepped" },
 			"water": "#3e5a50",
 			"props": [
-				{ "set": "props/city_dutch_canal_house_step", "every_m": 20, "chance": 0.75, "side": "both", "x": [0.3, 2], "scale": [0.95, 1.1], "fallback": "props/building_oldtown", "fallback_tint": "#9a6050", "align": "edge" },
-				{ "set": "props/city_dutch_canal_house_bell", "every_m": 23, "chance": 0.65, "side": "both", "x": [0.3, 2], "scale": [0.95, 1.1], "phase_m": 8, "fallback": "props/building_oldtown", "fallback_tint": "#7c5a4c", "align": "edge" },
-				{ "set": "props/city_dutch_canal_house_neck", "every_m": 26, "chance": 0.6, "side": "both", "x": [0.3, 2], "scale": [0.95, 1.1], "phase_m": 15, "fallback": "props/building_oldtown", "fallback_tint": "#b07c62", "align": "edge" },
+				{ "set": "props/city_dutch_canal", "every_m": 20, "chance": 0.75, "side": "both", "x": [0.3, 2], "scale": [0.95, 1.1], "fallback": "props/building_oldtown", "fallback_tint": "#9a6050", "align": "edge" },
+				{ "set": "props/city_dutch_canal_b", "every_m": 23, "chance": 0.65, "side": "both", "x": [0.3, 2], "scale": [0.95, 1.1], "phase_m": 8, "fallback": "props/building_oldtown", "fallback_tint": "#7c5a4c", "align": "edge" },
+				{ "set": "props/city_dutch_canal", "every_m": 26, "chance": 0.6, "side": "both", "x": [0.3, 2], "scale": [0.95, 1.1], "phase_m": 15, "fallback": "props/building_oldtown", "fallback_tint": "#b07c62", "align": "edge" },
 				{ "set": "props/building_shop", "every_m": 34, "chance": 0.25, "side": "both", "x": [0.3, 2], "scale": [0.9, 1.05], "phase_m": 5, "tint": "#e8dccc", "align": "edge" },
 				{ "set": "props/tree_beech", "every_m": 24, "chance": 0.35, "side": "both", "x": [-1.8, -1.2], "scale": [0.5, 0.65], "phase_m": 11 }
 			]
@@ -413,8 +415,8 @@
 			"fence": { "style": "wall", "color": "#9c7466", "x": 0.5, "h": 0.9, "gap_every_m": 20, "gap_m": 3.0 },
 			"water": "#4f6670",
 			"props": [
-				{ "set": "props/city_belgian_rowhouse", "every_m": 20, "chance": 0.8, "side": "both", "x": [3, 8], "scale": [0.9, 1.1], "fallback": "props/house_med", "fallback_tint": "#b88878", "align": "edge" },
-				{ "set": "props/city_belgian_stone_house", "every_m": 60, "chance": 0.4, "side": "both", "x": [3, 9], "scale": [0.9, 1.1], "phase_m": 27, "fallback": "props/farmhouse", "fallback_tint": "#c4bcb0", "align": "edge" },
+				{ "set": "props/city_belgian_terrace", "every_m": 20, "chance": 0.8, "side": "both", "x": [3, 8], "scale": [0.9, 1.1], "fallback": "props/house_med", "fallback_tint": "#b88878", "align": "edge" },
+				{ "set": "props/city_belgian_stone", "every_m": 60, "chance": 0.4, "side": "both", "x": [3, 9], "scale": [0.9, 1.1], "phase_m": 27, "fallback": "props/farmhouse", "fallback_tint": "#c4bcb0", "align": "edge" },
 				{ "set": "props/tree_oak", "every_m": 24, "chance": 0.4, "side": "both", "x": [1.5, 6], "scale": [0.55, 0.9], "phase_m": 7 },
 				{ "set": "props/bush_round", "every_m": 16, "chance": 0.35, "side": "both", "x": [0.8, 4], "scale": [0.8, 1.2], "fallback": "props/tree_beech", "fallback_scale": 0.35 }
 			]
@@ -426,8 +428,8 @@
 			"background": { "style": "city", "colors": ["#8f9aa8", "#6e7682"], "height": 0.75, "features": ["spires", "chimneys"], "roofs": "gable" },
 			"water": "#4f6670",
 			"props": [
-				{ "set": "props/city_belgian_rowhouse", "every_m": 22, "chance": 0.75, "side": "both", "x": [0.3, 2.5], "scale": [0.95, 1.15], "fallback": "props/building_oldtown", "fallback_tint": "#a87868", "align": "edge" },
-				{ "set": "props/city_belgian_stone_house", "every_m": 28, "chance": 0.6, "side": "both", "x": [0.3, 3], "scale": [0.95, 1.15], "phase_m": 9, "fallback": "props/building_block_a", "fallback_tint": "#cac2b4", "align": "edge" },
+				{ "set": "props/city_belgian_terrace", "every_m": 22, "chance": 0.75, "side": "both", "x": [0.3, 2.5], "scale": [0.95, 1.15], "fallback": "props/building_oldtown", "fallback_tint": "#a87868", "align": "edge" },
+				{ "set": "props/city_belgian_stone", "every_m": 28, "chance": 0.6, "side": "both", "x": [0.3, 3], "scale": [0.95, 1.15], "phase_m": 9, "fallback": "props/building_block_a", "fallback_tint": "#cac2b4", "align": "edge" },
 				{ "set": "props/building_block_b", "every_m": 40, "chance": 0.4, "side": "both", "x": [1, 6], "scale": [0.9, 1.1], "phase_m": 23, "fallback": "props/building_block_a", "align": "edge" },
 				{ "set": "props/building_shop", "every_m": 34, "chance": 0.35, "side": "both", "x": [0.3, 2], "scale": [0.9, 1.05], "phase_m": 5, "align": "edge" },
 				{ "set": "props/tree_beech", "every_m": 27, "chance": 0.3, "side": "both", "x": [-1.8, -1.2], "scale": [0.5, 0.65], "phase_m": 13 }
@@ -441,8 +443,8 @@
 			"fence": { "style": "iron", "color": "#2e3330", "x": 0.5, "h": 1.3, "gap_every_m": 22, "gap_m": 3.2 },
 			"water": "#566e70",
 			"props": [
-				{ "set": "props/city_paris_pavillon", "every_m": 24, "chance": 0.7, "side": "both", "x": [5, 11], "scale": [0.9, 1.1], "fallback": "props/house_med", "fallback_tint": "#e6dac6", "align": "edge" },
-				{ "set": "props/city_paris_hlm", "every_m": 75, "chance": 0.5, "side": "both", "x": [8, 22], "scale": [0.95, 1.15], "phase_m": 33, "fallback": "props/building_block_a", "fallback_scale": 1.3, "fallback_tint": "#f0f0ec", "align": "edge" },
+				{ "set": "props/city_french_maison", "every_m": 24, "chance": 0.7, "side": "both", "x": [5, 11], "scale": [0.9, 1.1], "fallback": "props/house_med", "fallback_tint": "#e6dac6", "align": "edge" },
+				{ "set": "props/city_french_immeuble", "every_m": 75, "chance": 0.5, "side": "both", "x": [8, 22], "scale": [0.95, 1.15], "phase_m": 33, "fallback": "props/building_block_a", "fallback_scale": 1.3, "fallback_tint": "#f0f0ec", "align": "edge" },
 				{ "set": "props/tree_oak", "every_m": 24, "chance": 0.4, "side": "both", "x": [1.5, 6], "scale": [0.55, 0.9], "phase_m": 7 },
 				{ "set": "props/tree_poplar", "every_m": 40, "chance": 0.3, "side": "both", "x": [3, 12], "scale": [0.7, 0.95], "phase_m": 21 },
 				{ "set": "props/bush_round", "every_m": 16, "chance": 0.35, "side": "both", "x": [0.8, 4], "scale": [0.8, 1.2], "fallback": "props/tree_beech", "fallback_scale": 0.35 }
@@ -456,7 +458,7 @@
 			"water": "#566e70",
 			"props": [
 				{ "set": "props/city_paris_haussmann", "every_m": 22, "chance": 0.85, "side": "both", "x": [0.3, 2.5], "scale": [0.95, 1.1], "fallback": "props/building_block_a", "fallback_tint": "#f2e6cc", "align": "edge" },
-				{ "set": "props/city_paris_haussmann_corner", "every_m": 90, "chance": 0.45, "side": "both", "x": [0.3, 3], "scale": [1.0, 1.1], "phase_m": 41, "fallback": "props/building_block_a", "fallback_scale": 1.1, "fallback_tint": "#f0e2c4", "align": "edge" },
+				{ "set": "props/city_paris_corner", "every_m": 90, "chance": 0.45, "side": "both", "x": [0.3, 3], "scale": [1.0, 1.1], "phase_m": 41, "fallback": "props/building_block_a", "fallback_scale": 1.1, "fallback_tint": "#f0e2c4", "align": "edge" },
 				{ "set": "props/building_shop", "every_m": 38, "chance": 0.3, "side": "both", "x": [0.3, 1.5], "scale": [0.9, 1.0], "phase_m": 5, "tint": "#f4ead8", "align": "edge" },
 				{ "set": "props/tree_beech", "every_m": 15, "chance": 0.6, "side": "both", "x": [-1.8, -1.2], "scale": [0.55, 0.7], "phase_m": 7 }
 			]
@@ -469,7 +471,7 @@
 			"fence": { "style": "wall", "color": "#dccfb8", "x": 0.5, "h": 1.2, "gap_every_m": 22, "gap_m": 3.2 },
 			"water": "#5a7470",
 			"props": [
-				{ "set": "props/city_french_house", "every_m": 25, "chance": 0.75, "side": "both", "x": [5, 11], "scale": [0.9, 1.1], "fallback": "props/house_med", "fallback_tint": "#ecdcc4", "align": "edge" },
+				{ "set": "props/city_french_maison", "every_m": 25, "chance": 0.75, "side": "both", "x": [5, 11], "scale": [0.9, 1.1], "fallback": "props/house_med", "fallback_tint": "#ecdcc4", "align": "edge" },
 				{ "set": "props/tree_poplar", "every_m": 30, "chance": 0.4, "side": "both", "x": [2, 9], "scale": [0.7, 1.0], "phase_m": 9 },
 				{ "set": "props/tree_oak", "every_m": 26, "chance": 0.35, "side": "both", "x": [1.5, 6], "scale": [0.55, 0.85], "phase_m": 17 },
 				{ "set": "props/bush_round", "every_m": 16, "chance": 0.35, "side": "both", "x": [0.8, 4], "scale": [0.8, 1.2], "fallback": "props/tree_beech", "fallback_scale": 0.35 }
@@ -482,8 +484,8 @@
 			"background": { "style": "city", "colors": ["#a3b0c0", "#7f8a98"], "height": 0.6, "features": ["spires", "domes"], "roofs": "gable" },
 			"water": "#5a7470",
 			"props": [
-				{ "set": "props/city_french_townhouse", "every_m": 24, "chance": 0.75, "side": "both", "x": [0.3, 2.5], "scale": [0.95, 1.1], "fallback": "props/building_block_a", "fallback_scale": 0.8, "fallback_tint": "#f4e8cc", "align": "edge" },
-				{ "set": "props/city_french_south_house", "every_m": 30, "chance": 0.55, "side": "both", "x": [0.3, 3], "scale": [0.95, 1.1], "phase_m": 11, "fallback": "props/house_med", "fallback_scale": 1.1, "fallback_tint": "#f6dcb0", "align": "edge" },
+				{ "set": "props/city_french_immeuble", "every_m": 24, "chance": 0.75, "side": "both", "x": [0.3, 2.5], "scale": [0.95, 1.1], "fallback": "props/building_block_a", "fallback_scale": 0.8, "fallback_tint": "#f4e8cc", "align": "edge" },
+				{ "set": "props/city_french_sud", "every_m": 30, "chance": 0.55, "side": "both", "x": [0.3, 3], "scale": [0.95, 1.1], "phase_m": 11, "fallback": "props/house_med", "fallback_scale": 1.1, "fallback_tint": "#f6dcb0", "align": "edge" },
 				{ "set": "props/building_block_a", "every_m": 40, "chance": 0.4, "side": "both", "x": [0.5, 4], "scale": [0.9, 1.05], "phase_m": 23, "tint": "#f4ead6", "align": "edge" },
 				{ "set": "props/building_shop", "every_m": 34, "chance": 0.3, "side": "both", "x": [0.3, 2], "scale": [0.9, 1.05], "phase_m": 5, "tint": "#f4ead8", "align": "edge" },
 				{ "set": "props/tree_beech", "every_m": 20, "chance": 0.45, "side": "both", "x": [-1.8, -1.2], "scale": [0.5, 0.65], "phase_m": 13 }
@@ -497,7 +499,7 @@
 			"fence": { "style": "wall", "color": "#ece4d4", "x": 0.4, "h": 1.4, "gap_every_m": 24, "gap_m": 3.4 },
 			"water": "#5a7a78",
 			"props": [
-				{ "set": "props/city_spanish_house", "every_m": 25, "chance": 0.7, "side": "both", "x": [5, 11], "scale": [0.9, 1.1], "fallback": "props/house_med", "fallback_tint": "#f6eee0", "align": "edge" },
+				{ "set": "props/city_spanish_casa", "every_m": 25, "chance": 0.7, "side": "both", "x": [5, 11], "scale": [0.9, 1.1], "fallback": "props/house_med", "fallback_tint": "#f6eee0", "align": "edge" },
 				{ "set": "props/city_spanish_block", "every_m": 70, "chance": 0.5, "side": "both", "x": [6, 18], "scale": [0.9, 1.1], "phase_m": 29, "fallback": "props/building_block_a", "fallback_scale": 1.2, "fallback_tint": "#f2d0a8", "align": "edge" },
 				{ "set": "props/tree_olive", "every_m": 26, "chance": 0.4, "side": "both", "x": [1.5, 8], "scale": [0.6, 0.9], "phase_m": 7, "fallback": "props/tree_oak", "fallback_scale": 0.6 },
 				{ "set": "props/tree_palm", "every_m": 40, "chance": 0.3, "side": "both", "x": [1, 6], "scale": [0.8, 1.0], "phase_m": 17 },
@@ -511,7 +513,8 @@
 			"background": { "style": "city", "colors": ["#b8bcc0", "#9a9a98"], "height": 0.8, "features": ["spires", "domes"], "roofs": "flat" },
 			"water": "#5a7a78",
 			"props": [
-				{ "set": "props/city_spanish_balcony_house", "every_m": 24, "chance": 0.75, "side": "both", "x": [0.3, 2.5], "scale": [0.95, 1.1], "fallback": "props/building_block_a", "fallback_scale": 0.85, "fallback_tint": "#f6e2c2", "align": "edge" },
+				{ "set": "props/city_spanish_block", "every_m": 24, "chance": 0.75, "side": "both", "x": [0.3, 2.5], "scale": [0.95, 1.1], "fallback": "props/building_block_a", "fallback_scale": 0.85, "fallback_tint": "#f6e2c2", "align": "edge" },
+				{ "set": "props/city_spanish_ladrillo", "every_m": 44, "chance": 0.45, "phase_m": 21, "side": "both", "x": [0.3, 2.5], "scale": [0.95, 1.1], "fallback": "props/building_block_a", "fallback_scale": 0.85, "fallback_tint": "#f6e2c2", "align": "edge" },
 				{ "set": "props/city_spanish_block", "every_m": 28, "chance": 0.65, "side": "both", "x": [0.5, 4], "scale": [0.95, 1.15], "phase_m": 9, "fallback": "props/building_block_a", "fallback_tint": "#f0cca4", "align": "edge" },
 				{ "set": "props/building_tall", "every_m": 90, "chance": 0.3, "side": "both", "x": [10, 24], "scale": [0.9, 1.1], "phase_m": 37, "tint": "#f4ecdc", "align": "edge" },
 				{ "set": "props/building_shop", "every_m": 34, "chance": 0.35, "side": "both", "x": [0.3, 2], "scale": [0.9, 1.05], "phase_m": 5, "tint": "#f6ecdc", "align": "edge" },
@@ -526,7 +529,7 @@
 			"fence": { "style": "wall", "color": "#e4ccac", "x": 0.4, "h": 1.3, "gap_every_m": 24, "gap_m": 3.4 },
 			"water": "#4f8a8c",
 			"props": [
-				{ "set": "props/city_italian_house", "every_m": 25, "chance": 0.7, "side": "both", "x": [5, 11], "scale": [0.9, 1.1], "fallback": "props/house_med", "fallback_tint": "#f0c8a0", "align": "edge" },
+				{ "set": "props/city_italian_block", "every_m": 25, "chance": 0.7, "side": "both", "x": [5, 11], "scale": [0.9, 1.1], "fallback": "props/house_med", "fallback_tint": "#f0c8a0", "align": "edge" },
 				{ "set": "props/city_italian_block", "every_m": 70, "chance": 0.5, "side": "both", "x": [6, 18], "scale": [0.9, 1.1], "phase_m": 31, "fallback": "props/building_block_a", "fallback_scale": 1.15, "fallback_tint": "#f2d4b4", "align": "edge" },
 				{ "set": "props/tree_cypress", "every_m": 24, "chance": 0.45, "side": "both", "x": [1.5, 7], "scale": [0.8, 1.05], "phase_m": 5, "fallback": "props/tree_poplar", "fallback_scale": 0.8 },
 				{ "set": "props/tree_poplar", "every_m": 36, "chance": 0.3, "side": "both", "x": [3, 12], "scale": [0.7, 0.95], "phase_m": 17 },
@@ -541,7 +544,8 @@
 			"water": "#4f8a8c",
 			"props": [
 				{ "set": "props/city_italian_palazzo", "every_m": 26, "chance": 0.75, "side": "both", "x": [0.3, 3], "scale": [0.95, 1.15], "fallback": "props/building_block_a", "fallback_tint": "#f2d2aa", "align": "edge" },
-				{ "set": "props/city_italian_house", "every_m": 24, "chance": 0.6, "side": "both", "x": [0.3, 2.5], "scale": [0.95, 1.1], "phase_m": 9, "fallback": "props/building_block_a", "fallback_scale": 0.8, "fallback_tint": "#f0c49a", "align": "edge" },
+				{ "set": "props/city_italian_venezia", "every_m": 47, "chance": 0.4, "phase_m": 23, "side": "both", "x": [0.3, 3], "scale": [0.95, 1.15], "fallback": "props/building_block_a", "fallback_tint": "#f2d2aa", "align": "edge" },
+				{ "set": "props/city_italian_block", "every_m": 24, "chance": 0.6, "side": "both", "x": [0.3, 2.5], "scale": [0.95, 1.1], "phase_m": 9, "fallback": "props/building_block_a", "fallback_scale": 0.8, "fallback_tint": "#f0c49a", "align": "edge" },
 				{ "set": "props/city_italian_block", "every_m": 44, "chance": 0.4, "side": "both", "x": [1, 6], "scale": [0.95, 1.1], "phase_m": 27, "fallback": "props/building_block_a", "fallback_tint": "#ecd8be", "align": "edge" },
 				{ "set": "props/building_shop", "every_m": 34, "chance": 0.3, "side": "both", "x": [0.3, 2], "scale": [0.9, 1.05], "phase_m": 5, "tint": "#f6e6d0", "align": "edge" },
 				{ "set": "props/tree_beech", "every_m": 27, "chance": 0.3, "side": "both", "x": [-1.8, -1.2], "scale": [0.5, 0.65], "phase_m": 13 }
@@ -555,8 +559,8 @@
 			"fence": { "style": "iron", "color": "#3a3f3a", "x": 0.5, "h": 1.2, "gap_every_m": 26, "gap_m": 3.5 },
 			"water": "#4f6e78",
 			"props": [
-				{ "set": "props/city_vienna_gemeindebau", "every_m": 60, "chance": 0.55, "side": "both", "x": [3, 10], "scale": [0.95, 1.15], "fallback": "props/building_block_a", "fallback_scale": 1.15, "fallback_tint": "#eac6a6", "align": "edge" },
-				{ "set": "props/city_austrian_house", "every_m": 26, "chance": 0.65, "side": "both", "x": [5, 11], "scale": [0.9, 1.1], "phase_m": 13, "fallback": "props/house_med", "fallback_tint": "#f2e6ca", "align": "edge" },
+				{ "set": "props/city_german_mietshaus", "every_m": 60, "chance": 0.55, "side": "both", "x": [3, 10], "scale": [0.95, 1.15], "fallback": "props/building_block_a", "fallback_scale": 1.15, "fallback_tint": "#eac6a6", "align": "edge" },
+				{ "set": "props/city_german_house", "every_m": 26, "chance": 0.65, "side": "both", "x": [5, 11], "scale": [0.9, 1.1], "phase_m": 13, "fallback": "props/house_med", "fallback_tint": "#f2e6ca", "align": "edge" },
 				{ "set": "props/tree_oak", "every_m": 22, "chance": 0.45, "side": "both", "x": [1.5, 6], "scale": [0.55, 0.9], "phase_m": 5 },
 				{ "set": "props/tree_beech", "every_m": 30, "chance": 0.35, "side": "both", "x": [2, 9], "scale": [0.6, 0.95], "phase_m": 19 },
 				{ "set": "props/bush_round", "every_m": 16, "chance": 0.35, "side": "both", "x": [0.8, 4], "scale": [0.8, 1.2], "fallback": "props/tree_beech", "fallback_scale": 0.35 }
@@ -570,8 +574,8 @@
 			"water": "#4f6e78",
 			"props": [
 				{ "set": "props/city_vienna_palais", "every_m": 26, "chance": 0.85, "side": "both", "x": [0.3, 3], "scale": [0.95, 1.1], "fallback": "props/building_block_a", "fallback_tint": "#f2ead8", "align": "edge" },
-				{ "set": "props/city_vienna_dome_church", "every_m": 220, "chance": 0.5, "side": "both", "x": [10, 30], "scale": [0.95, 1.1], "phase_m": 97, "fallback": "props/church", "fallback_scale": 1.3, "fallback_tint": "#f0e8d8", "align": "edge" },
-				{ "set": "props/city_vienna_gemeindebau", "every_m": 70, "chance": 0.35, "side": "both", "x": [1, 6], "scale": [0.95, 1.1], "phase_m": 37, "fallback": "props/building_block_a", "fallback_scale": 1.1, "fallback_tint": "#ecccae", "align": "edge" },
+				{ "set": "props/city_vienna_kirche", "every_m": 220, "chance": 0.5, "side": "both", "x": [10, 30], "scale": [0.95, 1.1], "phase_m": 97, "fallback": "props/church", "fallback_scale": 1.3, "fallback_tint": "#f0e8d8", "align": "edge" },
+				{ "set": "props/city_german_mietshaus", "every_m": 70, "chance": 0.35, "side": "both", "x": [1, 6], "scale": [0.95, 1.1], "phase_m": 37, "fallback": "props/building_block_a", "fallback_scale": 1.1, "fallback_tint": "#ecccae", "align": "edge" },
 				{ "set": "props/building_shop", "every_m": 34, "chance": 0.3, "side": "both", "x": [0.3, 2], "scale": [0.9, 1.05], "phase_m": 5, "tint": "#f4ecdc", "align": "edge" },
 				{ "set": "props/tree_beech", "every_m": 22, "chance": 0.4, "side": "both", "x": [-1.8, -1.2], "scale": [0.5, 0.65], "phase_m": 13 }
 			]
@@ -584,7 +588,7 @@
 			"fence": { "style": "picket", "color": "#7a5e44", "x": 0.5, "h": 1.0, "gap_every_m": 22, "gap_m": 3.2 },
 			"water": "#507078",
 			"props": [
-				{ "set": "props/city_austrian_house", "every_m": 25, "chance": 0.75, "side": "both", "x": [5, 11], "scale": [0.9, 1.1], "fallback": "props/house_med", "fallback_tint": "#f4eace", "align": "edge" },
+				{ "set": "props/city_german_house", "every_m": 25, "chance": 0.75, "side": "both", "x": [5, 11], "scale": [0.9, 1.1], "fallback": "props/house_med", "fallback_tint": "#f4eace", "align": "edge" },
 				{ "set": "props/tree_spruce", "every_m": 26, "chance": 0.4, "side": "both", "x": [2, 9], "scale": [0.6, 0.9], "phase_m": 9 },
 				{ "set": "props/tree_beech", "every_m": 30, "chance": 0.35, "side": "both", "x": [1.5, 6], "scale": [0.55, 0.9], "phase_m": 19 },
 				{ "set": "props/bush_round", "every_m": 16, "chance": 0.35, "side": "both", "x": [0.8, 4], "scale": [0.8, 1.2], "fallback": "props/tree_beech", "fallback_scale": 0.35 }
@@ -597,7 +601,7 @@
 			"background": { "style": "city", "colors": ["#98a8b8", "#788494"], "height": 0.65, "features": ["spires", "onion"], "roofs": "gable" },
 			"water": "#507078",
 			"props": [
-				{ "set": "props/city_austrian_townhouse", "every_m": 24, "chance": 0.75, "side": "both", "x": [0.3, 2.5], "scale": [0.95, 1.1], "fallback": "props/building_block_a", "fallback_scale": 0.85, "fallback_tint": "#f4e4c4", "align": "edge" },
+				{ "set": "props/city_vienna_zinshaus", "every_m": 24, "chance": 0.75, "side": "both", "x": [0.3, 2.5], "scale": [0.95, 1.1], "fallback": "props/building_block_a", "fallback_scale": 0.85, "fallback_tint": "#f4e4c4", "align": "edge" },
 				{ "set": "props/building_block_a", "every_m": 34, "chance": 0.5, "side": "both", "x": [0.5, 4], "scale": [0.9, 1.1], "phase_m": 11, "tint": "#f6eedc", "align": "edge" },
 				{ "set": "props/building_shop", "every_m": 34, "chance": 0.3, "side": "both", "x": [0.3, 2], "scale": [0.9, 1.05], "phase_m": 5, "tint": "#f4ecdc", "align": "edge" },
 				{ "set": "props/tree_beech", "every_m": 27, "chance": 0.3, "side": "both", "x": [-1.8, -1.2], "scale": [0.5, 0.65], "phase_m": 13 }
@@ -624,7 +628,7 @@
 			"background": { "style": "city", "colors": ["#9cacbc", "#76868e"], "height": 0.6, "features": ["spires"], "roofs": "gable" },
 			"water": "#4f8090",
 			"props": [
-				{ "set": "props/city_swiss_arcade_house", "every_m": 22, "chance": 0.8, "side": "both", "x": [0.3, 2], "scale": [0.95, 1.1], "fallback": "props/building_block_a", "fallback_scale": 0.85, "fallback_tint": "#d6d6c4", "align": "edge" },
+				{ "set": "props/city_swiss_laube", "every_m": 22, "chance": 0.8, "side": "both", "x": [0.3, 2], "scale": [0.95, 1.1], "fallback": "props/building_block_a", "fallback_scale": 0.85, "fallback_tint": "#d6d6c4", "align": "edge" },
 				{ "set": "props/building_block_a", "every_m": 40, "chance": 0.4, "side": "both", "x": [0.5, 4], "scale": [0.9, 1.05], "phase_m": 13, "tint": "#ece8d8", "align": "edge" },
 				{ "set": "props/building_shop", "every_m": 34, "chance": 0.25, "side": "both", "x": [0.3, 2], "scale": [0.9, 1.05], "phase_m": 5, "tint": "#efe8d6", "align": "edge" },
 				{ "set": "props/tree_beech", "every_m": 27, "chance": 0.3, "side": "both", "x": [-1.8, -1.2], "scale": [0.5, 0.65], "phase_m": 13 }
@@ -638,8 +642,8 @@
 			"fence": { "style": "picket", "color": "#7e6a52", "x": 0.5, "h": 1.1, "gap_every_m": 22, "gap_m": 3.2 },
 			"water": "#4f6c72",
 			"props": [
-				{ "set": "props/city_central_family_house", "every_m": 25, "chance": 0.7, "side": "both", "x": [5, 11], "scale": [0.9, 1.1], "fallback": "props/house_med", "fallback_tint": "#eee0c6", "align": "edge" },
-				{ "set": "props/city_central_block", "every_m": 70, "chance": 0.45, "side": "both", "x": [8, 22], "scale": [1.0, 1.2], "phase_m": 33, "fallback": "props/building_block_a", "fallback_scale": 1.3, "fallback_tint": "#e4e4dc", "align": "edge" },
+				{ "set": "props/city_german_house", "every_m": 25, "chance": 0.7, "side": "both", "x": [5, 11], "scale": [0.9, 1.1], "fallback": "props/house_med", "fallback_tint": "#eee0c6", "align": "edge" },
+				{ "set": "props/city_german_mietshaus", "every_m": 70, "chance": 0.45, "side": "both", "x": [8, 22], "scale": [1.0, 1.2], "phase_m": 33, "fallback": "props/building_block_a", "fallback_scale": 1.3, "fallback_tint": "#e4e4dc", "align": "edge" },
 				{ "set": "props/tree_beech", "every_m": 22, "chance": 0.4, "side": "both", "x": [1.5, 6], "scale": [0.55, 0.9], "phase_m": 5 },
 				{ "set": "props/tree_birch", "every_m": 30, "chance": 0.35, "side": "both", "x": [2, 9], "scale": [0.6, 0.9], "phase_m": 17 },
 				{ "set": "props/bush_round", "every_m": 16, "chance": 0.35, "side": "both", "x": [0.8, 4], "scale": [0.8, 1.2], "fallback": "props/tree_beech", "fallback_scale": 0.35 }
@@ -652,9 +656,9 @@
 			"background": { "style": "city", "colors": ["#949fae", "#727c8a"], "height": 0.7, "features": ["spires", "domes"], "roofs": "gable" },
 			"water": "#4f6c72",
 			"props": [
-				{ "set": "props/city_central_baroque_house", "every_m": 24, "chance": 0.75, "side": "both", "x": [0.3, 2.5], "scale": [0.95, 1.1], "fallback": "props/building_block_a", "fallback_scale": 0.85, "fallback_tint": "#f6dcae", "align": "edge" },
-				{ "set": "props/city_central_art_nouveau", "every_m": 28, "chance": 0.6, "side": "both", "x": [0.3, 3], "scale": [0.95, 1.15], "phase_m": 9, "fallback": "props/building_block_a", "fallback_tint": "#f0e4cc", "align": "edge" },
-				{ "set": "props/city_central_tower", "every_m": 260, "chance": 0.45, "side": "both", "x": [4, 14], "scale": [0.95, 1.1], "phase_m": 61, "fallback": "props/church", "fallback_scale": 0.9, "fallback_tint": "#8e877a", "align": "edge" },
+				{ "set": "props/city_central_barock", "every_m": 24, "chance": 0.75, "side": "both", "x": [0.3, 2.5], "scale": [0.95, 1.1], "fallback": "props/building_block_a", "fallback_scale": 0.85, "fallback_tint": "#f6dcae", "align": "edge" },
+				{ "set": "props/city_central_jugendstil", "every_m": 28, "chance": 0.6, "side": "both", "x": [0.3, 3], "scale": [0.95, 1.15], "phase_m": 9, "fallback": "props/building_block_a", "fallback_tint": "#f0e4cc", "align": "edge" },
+				{ "set": "props/city_central_eckturm", "every_m": 260, "chance": 0.45, "side": "both", "x": [4, 14], "scale": [0.95, 1.1], "phase_m": 61, "fallback": "props/church", "fallback_scale": 0.9, "fallback_tint": "#8e877a", "align": "edge" },
 				{ "set": "props/building_shop", "every_m": 34, "chance": 0.3, "side": "both", "x": [0.3, 2], "scale": [0.9, 1.05], "phase_m": 5, "tint": "#f2e6d2", "align": "edge" },
 				{ "set": "props/tree_beech", "every_m": 27, "chance": 0.3, "side": "both", "x": [-1.8, -1.2], "scale": [0.5, 0.65], "phase_m": 13 }
 			]
@@ -667,11 +671,12 @@
 			"fence": { "style": "picket", "color": "#76644f", "x": 0.6, "h": 1.15, "gap_every_m": 21, "gap_m": 3.6 },
 			"water": "#4e6a6e",
 			"props": [
-				{ "set": "props/city_eastern_family_house", "every_m": 21, "chance": 0.8, "side": "both", "x": [5, 10], "scale": [0.9, 1.05], "fallback": "props/house_med", "fallback_scale": 0.8, "fallback_tint": "#ece4cc", "align": "edge" },
-				{ "set": "props/city_eastern_kostka", "every_m": 33, "chance": 0.55, "side": "both", "x": [5, 10], "scale": [0.9, 1.05], "phase_m": 11, "fallback": "props/house_med", "fallback_scale": 0.78, "fallback_tint": "#dfe2cc", "align": "edge" },
+				{ "set": "props/city_eastern_house_a", "every_m": 21, "chance": 0.8, "side": "both", "x": [5, 10], "scale": [0.9, 1.05], "fallback": "props/house_med", "fallback_scale": 0.8, "fallback_tint": "#ece4cc", "align": "edge" },
+				{ "set": "props/city_eastern_house_c", "every_m": 27, "chance": 0.6, "phase_m": 7, "side": "both", "x": [5, 10], "scale": [0.9, 1.05], "fallback": "props/house_med", "fallback_scale": 0.8, "fallback_tint": "#ece4cc", "align": "edge" },
+				{ "set": "props/city_eastern_house_b", "every_m": 33, "chance": 0.55, "side": "both", "x": [5, 10], "scale": [0.9, 1.05], "phase_m": 11, "fallback": "props/house_med", "fallback_scale": 0.78, "fallback_tint": "#dfe2cc", "align": "edge" },
 				{ "set": "props/tree_oak", "every_m": 18, "chance": 0.45, "side": "both", "x": [1.5, 5], "scale": [0.45, 0.7], "phase_m": 5 },
 				{ "set": "props/tree_birch", "every_m": 24, "chance": 0.45, "side": "both", "x": [2, 8], "scale": [0.6, 0.9], "phase_m": 13 },
-				{ "set": "props/city_eastern_plattenbau", "every_m": 160, "chance": 0.35, "side": "both", "x": [40, 90], "scale": [1.1, 1.3], "phase_m": 70, "fallback": "props/building_block_a", "fallback_scale": 1.4, "fallback_tint": "#d4d8dc" },
+				{ "set": "props/city_eastern_plattenbau", "every_m": 160, "chance": 0.35, "side": "both", "x": [40, 90], "scale": [0.85, 1.05], "phase_m": 70, "fallback": "props/building_block_a", "fallback_scale": 1.4, "fallback_tint": "#d4d8dc" },
 				{ "set": "props/bush_round", "every_m": 16, "chance": 0.35, "side": "both", "x": [0.8, 4], "scale": [0.8, 1.2], "fallback": "props/tree_beech", "fallback_scale": 0.35 }
 			]
 		},
@@ -682,8 +687,8 @@
 			"background": { "style": "city", "colors": ["#9aa3ae", "#76808c"], "height": 0.85, "features": ["slabs", "towers"], "roofs": "flat" },
 			"water": "#4e6a6e",
 			"props": [
-				{ "set": "props/city_eastern_plattenbau", "every_m": 46, "chance": 0.7, "side": "both", "x": [6, 20], "scale": [1.15, 1.35], "fallback": "props/building_block_a", "fallback_scale": 1.4, "fallback_tint": "#d4d8dc", "align": "edge" },
-				{ "set": "props/city_eastern_tenement", "every_m": 30, "chance": 0.6, "side": "both", "x": [0.3, 3], "scale": [0.95, 1.1], "phase_m": 13, "fallback": "props/building_block_a", "fallback_scale": 0.85, "fallback_tint": "#e8d6ba", "align": "edge" },
+				{ "set": "props/city_eastern_plattenbau", "every_m": 46, "chance": 0.7, "side": "both", "x": [6, 20], "scale": [0.85, 1.05], "fallback": "props/building_block_a", "fallback_scale": 1.4, "fallback_tint": "#d4d8dc", "align": "edge" },
+				{ "set": "props/city_german_gruenderzeit", "every_m": 30, "chance": 0.6, "side": "both", "x": [0.3, 3], "scale": [0.95, 1.1], "phase_m": 13, "fallback": "props/building_block_a", "fallback_scale": 0.85, "fallback_tint": "#e8d6ba", "align": "edge" },
 				{ "set": "props/building_shop", "every_m": 52, "chance": 0.35, "side": "both", "x": [0.3, 2], "scale": [0.9, 1.0], "phase_m": 5, "tint": "#e8ecf0", "align": "edge" },
 				{ "set": "props/tree_birch", "every_m": 18, "chance": 0.45, "side": "both", "x": [1, 5], "scale": [0.6, 0.9], "phase_m": 9 },
 				{ "set": "props/tree_poplar", "every_m": 40, "chance": 0.3, "side": "both", "x": [3, 10], "scale": [0.7, 1.0], "phase_m": 29 }
@@ -698,6 +703,7 @@
 			"water": "#566c6a",
 			"props": [
 				{ "set": "props/city_balkan_house", "every_m": 23, "chance": 0.75, "side": "both", "x": [5, 10], "scale": [0.9, 1.1], "fallback": "props/house_med", "fallback_tint": "#c89070", "align": "edge" },
+				{ "set": "props/city_balkan_house_b", "every_m": 31, "chance": 0.55, "phase_m": 13, "side": "both", "x": [5, 10], "scale": [0.9, 1.1], "fallback": "props/house_med", "fallback_tint": "#c89070", "align": "edge" },
 				{ "set": "props/city_balkan_church", "every_m": 420, "chance": 0.5, "side": "both", "x": [12, 30], "scale": [0.9, 1.05], "phase_m": 150, "fallback": "props/church", "fallback_scale": 0.8, "fallback_tint": "#f0e8d8", "align": "edge" },
 				{ "set": "props/tree_oak", "every_m": 22, "chance": 0.4, "side": "both", "x": [1.5, 6], "scale": [0.5, 0.85], "phase_m": 5 },
 				{ "set": "props/tree_poplar", "every_m": 34, "chance": 0.3, "side": "both", "x": [3, 10], "scale": [0.7, 0.95], "phase_m": 17 },
@@ -711,8 +717,8 @@
 			"background": { "style": "city", "colors": ["#9ea6ae", "#7b828c"], "height": 0.8, "features": ["slabs", "onion"], "roofs": "flat" },
 			"water": "#566c6a",
 			"props": [
-				{ "set": "props/city_balkan_plattenbau", "every_m": 44, "chance": 0.65, "side": "both", "x": [5, 18], "scale": [1.1, 1.3], "fallback": "props/building_block_a", "fallback_scale": 1.4, "fallback_tint": "#dcd8d0", "align": "edge" },
-				{ "set": "props/city_balkan_townhouse", "every_m": 26, "chance": 0.65, "side": "both", "x": [0.3, 3], "scale": [0.95, 1.1], "phase_m": 11, "fallback": "props/building_block_a", "fallback_scale": 0.8, "fallback_tint": "#eedcc0", "align": "edge" },
+				{ "set": "props/city_balkan_plattenbau", "every_m": 44, "chance": 0.65, "side": "both", "x": [5, 18], "scale": [0.85, 1.05], "fallback": "props/building_block_a", "fallback_scale": 1.4, "fallback_tint": "#dcd8d0", "align": "edge" },
+				{ "set": "props/city_central_jugendstil", "every_m": 26, "chance": 0.65, "side": "both", "x": [0.3, 3], "scale": [0.95, 1.1], "phase_m": 11, "fallback": "props/building_block_a", "fallback_scale": 0.8, "fallback_tint": "#eedcc0", "align": "edge" },
 				{ "set": "props/city_balkan_church", "every_m": 300, "chance": 0.4, "side": "both", "x": [8, 22], "scale": [1.0, 1.1], "phase_m": 120, "fallback": "props/church", "fallback_tint": "#f2eadc", "align": "edge" },
 				{ "set": "props/building_shop", "every_m": 34, "chance": 0.35, "side": "both", "x": [0.3, 2], "scale": [0.9, 1.05], "phase_m": 5, "tint": "#eef0ee", "align": "edge" },
 				{ "set": "props/tree_beech", "every_m": 27, "chance": 0.3, "side": "both", "x": [-1.8, -1.2], "scale": [0.5, 0.65], "phase_m": 13 }
@@ -726,8 +732,8 @@
 			"fence": { "style": "picket", "color": "#86745c", "x": 0.6, "h": 1.1, "gap_every_m": 22, "gap_m": 3.4 },
 			"water": "#4b6470",
 			"props": [
-				{ "set": "props/city_baltic_wooden_house", "every_m": 23, "chance": 0.75, "side": "both", "x": [5, 10], "scale": [0.9, 1.1], "fallback": "props/house_med", "fallback_tint": "#c8d4a0", "align": "edge" },
-				{ "set": "props/city_baltic_wooden_house", "every_m": 37, "chance": 0.45, "side": "both", "x": [5, 10], "scale": [0.9, 1.05], "phase_m": 14, "fallback": "props/farmhouse", "fallback_scale": 0.85, "fallback_tint": "#e4c47e", "align": "edge" },
+				{ "set": "props/city_baltic_wood", "every_m": 23, "chance": 0.75, "side": "both", "x": [5, 10], "scale": [0.9, 1.1], "fallback": "props/house_med", "fallback_tint": "#c8d4a0", "align": "edge" },
+				{ "set": "props/city_baltic_wood_b", "every_m": 37, "chance": 0.45, "side": "both", "x": [5, 10], "scale": [0.9, 1.05], "phase_m": 14, "fallback": "props/farmhouse", "fallback_scale": 0.85, "fallback_tint": "#e4c47e", "align": "edge" },
 				{ "set": "props/tree_birch", "every_m": 18, "chance": 0.5, "side": "both", "x": [1.5, 7], "scale": [0.6, 0.95], "phase_m": 5 },
 				{ "set": "props/tree_pine", "every_m": 30, "chance": 0.35, "side": "both", "x": [3, 12], "scale": [0.6, 0.9], "phase_m": 19, "fallback": "props/tree_spruce" },
 				{ "set": "props/bush_round", "every_m": 16, "chance": 0.35, "side": "both", "x": [0.8, 4], "scale": [0.8, 1.2], "fallback": "props/tree_beech", "fallback_scale": 0.35 }
@@ -740,8 +746,8 @@
 			"background": { "style": "city", "colors": ["#93a0ad", "#717c88"], "height": 0.75, "features": ["spires", "slabs"], "roofs": "gable" },
 			"water": "#4b6470",
 			"props": [
-				{ "set": "props/city_baltic_art_nouveau", "every_m": 25, "chance": 0.8, "side": "both", "x": [0.3, 2.5], "scale": [0.95, 1.15], "fallback": "props/building_block_a", "fallback_tint": "#f0e8d4", "align": "edge" },
-				{ "set": "props/city_eastern_plattenbau", "every_m": 70, "chance": 0.35, "side": "both", "x": [8, 22], "scale": [1.1, 1.25], "phase_m": 33, "fallback": "props/building_block_a", "fallback_scale": 1.4, "fallback_tint": "#d4d8dc", "align": "edge" },
+				{ "set": "props/city_baltic_jugendstil", "every_m": 25, "chance": 0.8, "side": "both", "x": [0.3, 2.5], "scale": [0.95, 1.15], "fallback": "props/building_block_a", "fallback_tint": "#f0e8d4", "align": "edge" },
+				{ "set": "props/city_eastern_plattenbau", "every_m": 70, "chance": 0.35, "side": "both", "x": [8, 22], "scale": [0.85, 1.05], "phase_m": 33, "fallback": "props/building_block_a", "fallback_scale": 1.4, "fallback_tint": "#d4d8dc", "align": "edge" },
 				{ "set": "props/building_oldtown", "every_m": 34, "chance": 0.45, "side": "both", "x": [0.3, 3], "scale": [0.9, 1.1], "phase_m": 17, "tint": "#f2e8d6", "align": "edge" },
 				{ "set": "props/building_shop", "every_m": 34, "chance": 0.35, "side": "both", "x": [0.3, 2], "scale": [0.9, 1.05], "phase_m": 5, "align": "edge" },
 				{ "set": "props/tree_beech", "every_m": 27, "chance": 0.3, "side": "both", "x": [-1.8, -1.2], "scale": [0.5, 0.65], "phase_m": 13 }
