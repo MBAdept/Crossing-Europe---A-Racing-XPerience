@@ -598,8 +598,10 @@ xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
   vorbei ist (`test_fuel_lane_exit_waits_for_the_traffic_behind`).
 - `xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --resolution 1280x720 --write-movie
   /tmp/schnee.avi --fixed-fps 30 --quit-after 1100 -s res://tests/race/movie_snow.gd -- --start-speed=120
-  [--stage=hamburg_bremen --km=26 --hour=7.5 --weather=snow]` – Demofahrt als Video (v0.5.0: Berufsverkehr, fliegender
-  Start mit 120 km/h): Schnee auf der Autobahn, langsamer Verkehr; der Autopilot
+  [--stage=hamburg_hannover --km=70 --hour=7.5 --weather=snow --seed=5]` – Demofahrt als Video (v0.5.0: Berufsverkehr,
+  fliegender Start mit 120 km/h): Schnee auf der Autobahn, langsamer Verkehr – Lkw mit 55 km/h, vier Fahrzeuge ziehen
+  mit Blinker heraus (QA: die alten Vorgaben Hamburg – Bremen km 26, Seed 3 zeigten in den ersten 35 s keinen Lkw und
+  keinen Blinker); der Autopilot
   wählt Tempo und Spur, gelenkt wird wie mit der Tastatur (voller Einschlag, loslassen wie auf trockener Straße) – der
   Wagen rutscht nach jedem Spurwechsel weiter und wird abgefangen (gameplay.md „Wetter“).
 - `godot --headless --path . -s res://tests/race/run_stage.gd -- --stage=dev_testetappe [--hour=21 --weather=rain
