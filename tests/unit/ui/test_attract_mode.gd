@@ -112,6 +112,11 @@ func test_scene_setup_for_the_race_session() -> void:
 	assert_true(bool(s["no_countdown"]), "kein Countdown")
 	assert_true(bool(s["traffic_warmup"]), "Verkehr schon da")
 	assert_eq(str(s["mode"]), "demo", "Modus demo (kein Rennen, keine einzelne Etappe)")
+	# flying start before the traffic is built (Review v0.5.0): the race session clears the start for this speed
+	assert_near(float(s["start_speed_kmh"]), 90.0, 0.001, "Starttempo im Setup")
+	assert_false(s.has("start_lane"), "ohne lane: Standardspur")
+	sc["lane"] = 0
+	assert_eq(int(AttractMode.scene_setup(sc, cfg())["start_lane"]), 0, "Startspur im Setup")
 
 
 func test_scene_index_by_number_or_id() -> void:
@@ -268,6 +273,7 @@ func test_effect_buses_muted_and_restored() -> void:
 	assert_true(AudioServer.is_bus_mute(idx.call("Room")), "vom Spieler stummgeschaltet bleibt stumm")
 	assert_false(AudioServer.is_bus_mute(idx.call("TrafficV0")), "Verkehr wieder an")
 	assert_false(AudioServer.is_bus_mute(idx.call("Music")), "Musik unverändert")
+
 	# back to the state before the test, remove the buses it made (highest index first)
 	for n: String in before:
 		if idx.call(n) >= 0:
@@ -275,6 +281,42 @@ func test_effect_buses_muted_and_restored() -> void:
 	made.reverse()
 	for n in made:
 		AudioServer.remove_bus(idx.call(n))
+	a.free()
+
+
+## Review v0.5.0 (QA): back on the title the effect buses stayed muted only until the same frame – a muted bus keeps
+## processing its effects, so the engine's reverb and the room's delay played their last half second over the title
+## music. Now they come back once every effect bus is quiet, or after AttractMode.UNMUTE_MAX_S at the latest.
+func test_effect_buses_come_back_after_their_tails() -> void:
+	var made := AudioServer.get_bus_index("SFX") < 0
+	if made:
+		AudioServer.add_bus()
+		AudioServer.set_bus_name(AudioServer.bus_count - 1, "SFX")
+	var sfx := AudioServer.get_bus_index("SFX")
+	var before := AudioServer.is_bus_mute(sfx)
+	AudioServer.set_bus_mute(sfx, false)
+	var a := AttractMode.new()
+	var t := [0.0]
+	var quiet := [false]
+	a.clock = func() -> float: return float(t[0])
+	a.title_check = func() -> bool: return false
+	a.quiet_check = func() -> bool: return bool(quiet[0])
+	a.mute_effects()
+	a._unmute_by = a.now() + AttractMode.UNMUTE_MAX_S   # what _return_to_title sets
+	t[0] = 0.5
+	a._process(0.0)
+	assert_true(AudioServer.is_bus_mute(sfx), "Nachhall läuft noch: SFX bleibt stumm")
+	t[0] = AttractMode.UNMUTE_MAX_S + 0.01
+	a._process(0.0)
+	assert_false(AudioServer.is_bus_mute(sfx), "spätestens nach %.1f s wieder an" % AttractMode.UNMUTE_MAX_S)
+	a.mute_effects()
+	a._unmute_by = a.now() + AttractMode.UNMUTE_MAX_S
+	quiet[0] = true
+	a._process(0.0)
+	assert_false(AudioServer.is_bus_mute(sfx), "still: sofort wieder an")
+	AudioServer.set_bus_mute(sfx, before)
+	if made:
+		AudioServer.remove_bus(sfx)
 	a.free()
 
 

@@ -339,7 +339,7 @@
 	},
 
 	"attract": {
-		"_doc": "Attract-Modus (docs/ui.md): Nach idle_s Sekunden ohne Eingabe im Titelbildschirm startet eine Demo von demo_s Sekunden – die echte Rennszene mit Autopilot, reihum eine der scenes (die nächste Demo zeigt die nächste Szene). Die Titelmusik läuft weiter, alle Effekt-Busse (SFX, Room, Engine, Siren, TrafficV…) sind stumm, das HUD zeigt nur Uhr und Tacho, nichts wird gespeichert. Jede Taste, Gamepad-Taste, ein deutlicher Stick-Ausschlag, Klick oder Fingertipp beendet die Demo sofort und führt zurück zum Titel, ohne einen Menüpunkt auszulösen (dieselbe Taste bleibt bis zum Loslassen bzw. guard_s Sekunden wirkungslos). fade_s = Überblendung über Schwarz. scenes[]: id, name (im Overlay), stage + from (Etappe und Startstadt), km (Start-Kilometer), hour (Weltzeit), weather (normal|rain|snow), vehicle, speed_kmh (Starttempo), cruise_kmh (Wunschtempo des Autopiloten; er bremst trotzdem für Kurven, Verkehr und Radar), lane (optional, 0 = links), seed (Verkehr).",
+		"_doc": "Attract-Modus (docs/ui.md): Nach idle_s Sekunden ohne Eingabe im Titelbildschirm startet eine Demo von demo_s Sekunden – die echte Rennszene mit Autopilot, reihum eine der scenes (die nächste Demo zeigt die nächste Szene). Die Titelmusik läuft weiter, alle Effekt-Busse (SFX, Room, Engine, Siren, TrafficV…) sind stumm, das HUD zeigt nur Uhr und Tacho, nichts wird gespeichert. Jede Taste, Gamepad-Taste, ein deutlicher Stick-Ausschlag, Klick oder Fingertipp beendet die Demo sofort und führt zurück zum Titel, ohne einen Menüpunkt auszulösen (dieselbe Taste bleibt bis zum Loslassen bzw. guard_s Sekunden wirkungslos). fade_s = Überblendung über Schwarz. scenes[]: id, name (im Overlay), stage + from (Etappe und Startstadt), km (Start-Kilometer), hour (Weltzeit), weather (normal|rain|snow), vehicle, speed_kmh (Starttempo), cruise_kmh (Wunschtempo des Autopiloten; er bremst trotzdem für Kurven, Verkehr und Radar), lane (optional, 0 = links), seed (Verkehr). Starttempo und Spur setzt die Rennsitzung vor dem Aufbau des Verkehrs, der den Start dafür freiräumt. Jede Szene muss in demo_s ohne Ziel, Unfall, Leitplanke und Kriechfahrt auskommen (tests/race/check_attract_scenes.gd).",
 		"enabled": true,
 		"idle_s": 60.0,
 		"demo_s": 30.0,
@@ -350,9 +350,9 @@
 			{"id": "pyrenaeen", "name": "Schneetreiben in den Pyrenäen", "stage": "saragossa_pau", "from": "saragossa", "km": 159.0, "hour": 11.0, "weather": "snow", "vehicle": "kompakt", "speed_kmh": 90, "cruise_kmh": 140, "seed": 4},
 			{"id": "paris", "name": "Ankunft in Paris", "stage": "luettich_paris", "from": "luettich", "km": 384.6, "hour": 20.0, "weather": "normal", "vehicle": "gran_turismo", "speed_kmh": 90, "cruise_kmh": 135, "seed": 3},
 			{"id": "hamburg", "name": "Über die Köhlbrandbrücke nach Hamburg", "stage": "kiel_hamburg", "from": "kiel", "km": 77.0, "hour": 12.5, "weather": "normal", "vehicle": "kombi", "speed_kmh": 90, "cruise_kmh": 160, "seed": 5},
-			{"id": "regen", "name": "Nachtfahrt im Regen nach Berlin", "stage": "leipzig_berlin", "from": "leipzig", "km": 158.0, "hour": 23.0, "weather": "rain", "vehicle": "limousine", "speed_kmh": 170, "cruise_kmh": 215, "seed": 6},
+			{"id": "regen", "name": "Nachtfahrt im Regen nach Berlin", "stage": "leipzig_berlin", "from": "leipzig", "km": 157.0, "hour": 23.0, "weather": "rain", "vehicle": "limousine", "speed_kmh": 170, "cruise_kmh": 215, "seed": 3},
 			{"id": "venedig", "name": "Über die Lagune nach Venedig", "stage": "mailand_venedig", "from": "mailand", "km": 267.6, "hour": 17.5, "weather": "normal", "vehicle": "sportwagen", "speed_kmh": 90, "cruise_kmh": 140, "seed": 2},
-			{"id": "wien", "name": "Morgendämmerung in Wien", "stage": "budapest_wien", "from": "budapest", "km": 236.5, "hour": 6.3, "weather": "normal", "vehicle": "kombi", "speed_kmh": 90, "cruise_kmh": 140, "seed": 9}
+			{"id": "wien", "name": "Morgendämmerung in Wien", "stage": "budapest_wien", "from": "budapest", "km": 233.5, "hour": 6.3, "weather": "normal", "vehicle": "kombi", "speed_kmh": 90, "cruise_kmh": 110, "seed": 9}
 		]
 	},
 

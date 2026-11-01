@@ -181,12 +181,14 @@ func _build() -> void:
 	pos_km = start_km
 	pos_z = track.km_to_z(start_km)
 	track.update_window(pos_z - proj.cam_distance, _draw_distance + 60.0)
-	var lane := int(CliArgs.get_float("lane", float(track.lane_count_at(pos_z) - 1)))
+	# start lane and speed (setup start_lane / start_speed_kmh – a flying start of the attract demos – or the debug
+	# CLI) are set before the traffic is built, so the warm-up clears the start for them (Review v0.5.0)
+	var lane := int(CliArgs.get_float("lane", float(setup.get("start_lane", track.lane_count_at(pos_z) - 1))))
 	vehicle.x = track.lane_center_x(pos_z, clampi(lane, 0, track.lane_count_at(pos_z) - 1))
 	if CliArgs.has("x"):
 		vehicle.x = CliArgs.get_float("x", vehicle.x)
 	cam_x = vehicle.x
-	vehicle.speed = clampf(CliArgs.get_float("start-speed", 0.0), 0.0, 300.0)
+	vehicle.speed = clampf(CliArgs.get_float("start-speed", float(setup.get("start_speed_kmh", 0.0))), 0.0, 300.0)
 	if traffic_enabled and (CliArgs.has("traffic-warmup") or bool(setup.get("traffic_warmup", false))):
 		_warm_up_traffic()
 	if traffic_enabled:
@@ -260,8 +262,11 @@ func _visibility_m(hour: float) -> float:
 	return _draw_distance * env.visibility_factor(hour, weather, track.is_tunnel_at(pos_z - proj.cam_distance + 5.0))
 
 
-## Debug/screenshots: lets traffic build up around the start position by simulating a virtual
-## player that approaches from 1.5 km behind at 250 km/h (TrafficSystem only spawns ahead).
+## Debug/screenshots/attract demos: lets traffic build up around the start position by simulating a virtual
+## player that approaches from 1.5 km behind at 250 km/h (TrafficSystem only spawns ahead). Then the start is cleared
+## for the start speed (Review v0.5.0 – the demos start at 90–170 km/h; a car 15 m ahead at 38 km/h meant a hard brake
+## right after the fade-in, and moving the cars around the player 40 m ahead put one only 15–25 m in front of him): a
+## car in the start lane from 30 m behind to warm_up_clear_m() ahead goes behind the player.
 func _warm_up_traffic() -> void:
 	var hour := Units.hour_of_day(_start_world_minutes)
 	var fake := maxf(0.0, pos_z - 1500.0)
@@ -270,9 +275,25 @@ func _warm_up_traffic() -> void:
 		fake += step
 		traffic.update(0.2, {"z": fake, "x": vehicle.x, "speed": 250.0}, {"hour": hour, "chase": false, "camera_z": fake - proj.cam_distance,
 			"weather": weather, "brake_mps2": _player_brake_mps2()})
+	var behind := pos_z - 30.0
+	var moved: Array = []
 	for c in traffic.cars:
-		if absf(c.z - pos_z) < 25.0 and absf(c.x - vehicle.x) < 2.5:
-			c.z += 40.0
+		var dz: float = c.z - pos_z
+		if absf(c.x - vehicle.x) < (c.width + vehicle.width_m) * 0.5 + 0.6 and dz > -30.0 and dz < warm_up_clear_m(c.speed):
+			moved.append(c)
+	moved.sort_custom(func(a: Object, b: Object) -> bool: return float(a.get("z")) > float(b.get("z")))
+	for c in moved:
+		behind -= maxf(25.0, (c.length + vehicle.length_m) * 0.5 + 18.0)
+		c.z = behind
+		c.speed = minf(c.speed, vehicle.speed)
+
+
+## Gap (m) a car at car_kmh needs ahead of the player in his lane at the start: 12 m + 0.9 s at the start speed plus the
+## braking distance down to its speed with half the player's braking in this weather.
+func warm_up_clear_m(car_kmh: float) -> float:
+	var v := vehicle.speed / 3.6
+	var rel := maxf(0.0, v - car_kmh / 3.6)
+	return 12.0 + v * 0.9 + rel * rel / (2.0 * 0.5 * _player_brake_mps2())
 
 
 func _connect_signals() -> void:

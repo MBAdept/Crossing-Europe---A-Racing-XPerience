@@ -45,6 +45,15 @@ if [ $# -eq 0 ] && [ $CODE -eq 0 ]; then
 		echo "==> Attract-Modus fehlgeschlagen"
 		CODE=1
 	fi
+	# Every attract demo scene for its full 30 s (~2 min): ends by time (not at the finish), no collision, no
+	# guardrail, nothing close in front, no crawl – pins the tuned scene values of attract.scenes
+	timeout 600 "$GODOT" --headless --path . --fixed-fps 60 -s res://tests/race/check_attract_scenes.gd >"$SLOG" 2>&1
+	SCODE=$?
+	grep -E "^CHECK" "$SLOG"
+	if [ $SCODE -ne 0 ] || grep -qE "SCRIPT ERROR" "$SLOG"; then
+		echo "==> Attract-Szenen fehlgeschlagen"
+		CODE=1
+	fi
 	# Police escapes on the whole network with the curve physics (~60 s): every radar × car × dry day / rain night
 	timeout 600 "$GODOT" --headless --path . -s res://tests/sim/check_escapes.gd >"$SLOG" 2>&1
 	SCODE=$?

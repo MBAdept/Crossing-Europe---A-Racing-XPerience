@@ -23,6 +23,11 @@ enum State { IDLE, STARTING, DEMO, ENDING }
 
 ## Buses muted during the demo (with every bus whose name starts with TRAFFIC_BUS_PREFIX); never "Music".
 const EFFECT_BUSES: Array[String] = ["SFX", "Room", "Engine", "Siren"]
+## After the demo the effect buses stay muted until their reverb and delay tails have died away (every peak below
+## UNMUTE_PEAK_DB) or UNMUTE_MAX_S has passed: a bus keeps processing its effects while muted, unmuted at once the
+## last half second of engine sound played over the title music (Review v0.5.0).
+const UNMUTE_PEAK_DB := -70.0
+const UNMUTE_MAX_S := 1.2
 const TRAFFIC_BUS_PREFIX := "TrafficV"
 ## Stick/trigger deflection that ends the demo (as InputMode.AXIS_THRESHOLD: resting noise does not count).
 const WAKE_AXIS := 0.5
@@ -44,6 +49,8 @@ var last_end_reason := ""
 var clock: Callable
 ## Is the title screen showing and free (no question box)? Tests replace it.
 var title_check: Callable
+## Have the effect buses gone quiet (reverb/delay tails)? Tests replace it.
+var quiet_check: Callable
 
 var _clock_s := 0.0
 var _last_activity := 0.0
@@ -58,11 +65,13 @@ var _overlay: AttractOverlay
 var _fade: ColorRect
 var _tween: Tween
 var _press_at := -1.0                ## debug --attract-press: seconds into the first demo (-1 = off)
+var _unmute_by := -1.0               ## after a demo: restore the effect buses by then at the latest (-1 = done)
 
 
 func _init() -> void:
 	clock = func() -> float: return _clock_s
 	title_check = _title_ready
+	quiet_check = effects_quiet
 
 
 func _ready() -> void:
@@ -134,7 +143,10 @@ static func scene_setup(scene: Dictionary, cfg: Dictionary) -> Dictionary:
 		"no_countdown": true,
 		"traffic_warmup": true,
 		"seed": int(scene.get("seed", 0)),
-	}
+		# flying start: the race session sets speed and lane before it builds the traffic, which then clears the
+		# start for them (Review v0.5.0 – set afterwards, a car could be right ahead of the car at 90–170 km/h)
+		"start_speed_kmh": clampf(float(scene.get("speed_kmh", scene.get("cruise_kmh", 120.0))), 0.0, 300.0),
+	}.merged({"start_lane": int(scene["lane"])} if scene.has("lane") else {})
 
 
 # --- input -----------------------------------------------------------------------------------
@@ -235,6 +247,11 @@ func _process(delta: float) -> void:
 	var t := now()
 	match state:
 		State.IDLE:
+			if _unmute_by >= 0.0:
+				_keep_muted()
+				if t >= _unmute_by or bool(quiet_check.call()):
+					_unmute_by = -1.0
+					restore_effects()
 			if idle_due(t, bool(title_check.call())):
 				begin()
 		State.DEMO:
@@ -321,18 +338,9 @@ func _launch() -> void:
 	_fade_to(0.0, fade_s)
 
 
-## Start speed, lane, reduced HUD; the demo's own signals end it (the race flow never sees them).
-func _prepare_scene(scene: Node, sc: Dictionary) -> void:
-	var v: Object = scene.get("vehicle")
-	var track: Object = scene.get("track")
-	if v != null:
-		v.set("speed", clampf(float(sc.get("speed_kmh", sc.get("cruise_kmh", 120.0))), 0.0, 300.0))
-		if sc.has("lane") and track != null:
-			var z := float(scene.get("pos_z"))
-			var lanes := int(track.call("lane_count_at", z))
-			var x := float(track.call("lane_center_x", z, clampi(int(sc["lane"]), 0, maxi(lanes - 1, 0))))
-			v.set("x", x)
-			scene.set("cam_x", x)
+## Reduced HUD; the demo's own signals end it (the race flow never sees them). Start speed and lane come with the
+## setup (scene_setup: start_speed_kmh, start_lane).
+func _prepare_scene(scene: Node, _sc: Dictionary) -> void:
 	var hud: Object = scene.get("hud")
 	if hud != null:
 		hud.set("reduced", true)
@@ -385,7 +393,7 @@ func _return_to_title() -> void:
 	if gf != null and gf.has_method("show_title"):
 		gf.call("show_title")
 	_forget_demo_boards()
-	restore_effects()
+	_unmute_by = now() + UNMUTE_MAX_S   # restore_effects() once the effect tails have died away (_process)
 	state = State.IDLE
 	_last_activity = now()
 	_guard_until = now() + guard_s
@@ -454,8 +462,19 @@ static func effect_bus_names() -> Array[String]:
 	return out
 
 
+## True when every effect bus is quiet (both peaks below UNMUTE_PEAK_DB) – its reverb/delay tail has died away.
+func effects_quiet() -> bool:
+	for n in effect_bus_names():
+		var i := AudioServer.get_bus_index(n)
+		for ch in AudioServer.get_bus_channels(i):
+			if maxf(AudioServer.get_bus_peak_volume_left_db(i, ch), AudioServer.get_bus_peak_volume_right_db(i, ch)) > UNMUTE_PEAK_DB:
+				return false
+	return true
+
+
 ## Mutes every effect bus and remembers its previous state (a second call keeps the first states).
 func mute_effects() -> void:
+	_unmute_by = -1.0
 	if not _saved_mutes.is_empty():
 		return
 	for n in effect_bus_names():

@@ -505,7 +505,10 @@ Zusätzlich zu ARCHITECTURE.md §13 (`--stage --from --vehicle --hour --weather 
 
 `--timescale=<f>` setzt `Engine.time_scale` und die Physiktakte auf 60·f, damit jeder Schritt 1/60 s bleibt.
 Setup-Schlüssel für Tests: `no_countdown`, `autopilot_speeding`, `autopilot_refuel`, `autopilot_target`,
-`autopilot_no_curve_brake`, `traffic_warmup`, `tutorial`.
+`autopilot_no_curve_brake`, `traffic_warmup`, `tutorial`; Review v0.5.0: `start_speed_kmh` und `start_lane` (fliegender
+Start der Attract-Demos – vor dem Aufbau des Verkehrs gesetzt, der den Start dafür freiräumt: ein Auto in der Startspur
+näher als 12 m + 0,9 s Fahrt + Bremsweg auf sein Tempo mit halber Bremsleistung kommt hinter den Wagen,
+`warm_up_clear_m`).
 
 Demo des Fahrmodells als Video (Godot Movie Maker, unter Xvfb): zu schnell in die scharfe Linkskurve der Dev-Etappe bei
 km 69 und dieselbe Kurve mit Bremsen:
@@ -550,6 +553,10 @@ xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
   `player_lanes`, `police`, `tunnel`. Am Ende je Auto die Zahl der Zellwechsel und der Bereich des
   Darstellungswinkels (Flacker-Prüfung im echten Renderer); `--no-shots --perf` läuft auch headless und gibt die
   `_draw`-Zeiten aus. `python3 tests/fixtures/make_fixtures.py` erzeugt die Testdaten neu.
+- `godot --headless --path . --fixed-fps 60 -s res://tests/race/check_attract_scenes.gd [-- --only=wien,paris]` (Review
+  v0.5.0, ~2 min, in `tools/run_tests.sh`): jede Attract-Szene 30 s durch das echte Spiel – endet nach Zeit (nicht im
+  Ziel), ohne Kollision, Leitplanke und Ausflug neben die Fahrbahn, nie näher als 10 m hinter einem Auto (in den ersten
+  3 s 15 m), Ø ≥ 70 km/h (docs/ui.md „Attract-Modus“).
 - `godot --headless --path . -s res://tests/race/check_session.gd [-- --only=coll_right,tutorial]` – Szenarien in
   der echten Rennszene (≈ 30 s): Auffahrunfall genau von hinten in rechter/linker/mittlerer Spur → Seite mit mehr
   Platz bzw. links; Ausrollen mit leerem Tank in ein langsameres Auto → Kollision, Abschleppen erst nach dem
