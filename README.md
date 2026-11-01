@@ -8,8 +8,25 @@ Nachtankzwang, Radarfallen und Polizei, Tageszeit und Wetter. Vorbilder: *Enduro
 - Technik: [ARCHITECTURE.md](ARCHITECTURE.md) und die Moduldokus in [docs/](docs/)
 - Engine: Godot 4.7.2 (GDScript, Renderer „GL Compatibility“), alle Fahrzeuge, Bäume, Gebäude, Tankstellen und
   Symbole prozedural in Blender 5.2 modelliert und als Sprites gerendert
-- Stand: **v0.3.0 – Motorklang v2 und Steam Deck**; alle acht Schritte des Prototyp-Plans sind umgesetzt, alle
-  Zahlen sind Startwerte zum Testen.
+- Stand: **v0.4.0 – Verkehr hörbar, Fahrphysik, individuelle Städte**; alle acht Schritte des Prototyp-Plans sind
+  umgesetzt, alle Zahlen sind Startwerte zum Testen.
+
+## Neu in v0.4.0
+
+- **Individuelle Städte**: 21 Baustile mit eigenem Stadtrand und Zentrum – z. B. kleine Einfamilienhäuser mit
+  Lattenzaun und Garten am Stadtrand in Osteuropa, Plattenbauten, Grachtenhäuser in Amsterdam, Haussmann-Blöcke in
+  Paris, Palais und Zinshäuser in Wien, Speicherstadt und Kontorhäuser in Hamburg, Fachwerk, Berner Lauben. 21
+  Wahrzeichen (Eiffelturm, Elbphilharmonie, Michel, Riesenrad, Stephansdom, Fernsehturm, Frauenkirchen Dresden und
+  München, Sagrada Família, Mailänder Dom, Campanile, Parlament Budapest, Veitsdom, Kulturpalast Warschau,
+  Alexander-Newski-Kathedrale u. a.), schon ab den City Limits als Silhouette am Horizont. **Brücken mit Wasser**:
+  Hamburg über Köhlbrandbrücke und Elbbrücken, Amsterdam über Grachten mit Hausbooten, Venedig über den Lagunendamm,
+  Flussbrücken in Paris, Prag, Wien, Budapest und vielen weiteren Städten ([docs/staedte.md](docs/staedte.md)).
+- **Verkehr hörbar**: Fahrzeuge in der Nähe klingen räumlich (Motor, Reifen, Fahrtwind), mit Doppler-Effekt beim
+  Überholen; Lkw tief und laut, Martinshorn kommt von der Polizei; Hall im Tunnel, eigener Motor breiter im
+  Stereobild ([docs/verkehrsgeraeusche.md](docs/verkehrsgeraeusche.md)).
+- **Fahrphysik**: Wer zu schnell in die Kurve fährt, wird deutlich nach außen gedrückt; die Agilität entscheidet über
+  das Kurventempo. Warnschilder und Richtungstafeln an scharfen Kurven, Leitplankentreffer kosten Tempo und sind zu
+  hören; die Polizei bremst in Kurven ebenfalls ([docs/gameplay.md](docs/gameplay.md)).
 
 ## Neu in v0.3.0
 
