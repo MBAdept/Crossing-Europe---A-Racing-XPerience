@@ -52,6 +52,9 @@ var cam_x := 0.0                 ## camera lateral position (follows the car wit
 var stats := {"collisions": 0, "refuels": 0, "liters": 0.0, "radar_flashes": 0, "police_stops": 0, "police_escapes": 0, "tows": 0}
 var last_input: Dictionary = {}
 var traffic_enabled := true
+## Driving diagnostics of the stage (debug, perf_stats()["drive"]): seconds on the shoulder or beyond
+## (off_road_s), at the hard limit (limit_s), guardrail hits, seconds with understeer and its maximum.
+var drive_stats := {"off_road_s": 0.0, "limit_s": 0.0, "rail_hits": 0, "understeer_s": 0.0, "understeer_max": 0.0}
 
 var _start_world_minutes := 0.0
 var _record: Dictionary = {}
@@ -208,9 +211,11 @@ func _build() -> void:
 
 	if bool(setup.get("autopilot", false)):
 		autopilot = Autopilot.new()
-		autopilot.target_kmh = float(ConfigLoader.lookup(cfg, "debug.autopilot_target_kmh", 235.0))
+		autopilot.target_kmh = CliArgs.get_float("autopilot-target", float(setup.get("autopilot_target",
+			ConfigLoader.lookup(cfg, "debug.autopilot_target_kmh", 235.0))))
 		autopilot.obey_radar = not CliArgs.has("autopilot-speeding") and not bool(setup.get("autopilot_speeding", false))
 		autopilot.refuel_mode = CliArgs.get_string("autopilot-refuel", str(setup.get("autopilot_refuel", "auto")))
+		autopilot.curve_brake = not CliArgs.has("autopilot-no-curve-brake") and not bool(setup.get("autopilot_no_curve_brake", false))
 	if plan.tutorial or CliArgs.has("tutorial") or bool(setup.get("tutorial", false)):
 		coach = TutorialCoach.new()
 		coach.setup(cfg)
@@ -459,6 +464,7 @@ func _step(dt: float) -> void:
 		vehicle.release_auto()
 	var hour := clock.hour()
 	vehicle.update(dt, input, road_info(pos_z), {"vmax_factor": env.vmax_factor(hour, weather)})
+	_track_driving(dt)
 	var dz := vehicle.speed / 3.6 * dt
 	pos_z += dz
 	var dkm := Units.visual_m_to_km(dz, time_scale)
@@ -490,10 +496,34 @@ func _step(dt: float) -> void:
 			hud.show_message(hint, "info", coach.hint_s)
 	if CliArgs.has("trace") and pos_km >= _trace_next:
 		_trace_next = pos_km + CliArgs.get_float("trace", 2.0) if not CliArgs.all()["trace"] is bool else pos_km + 2.0
-		print("TRACE km %6.1f  t %6.1f  v %5.1f  want %5.1f  x %5.2f  curve %5.2f  grade %5.3f  fuel %4.1f  cars %d  state %d  %s" % [pos_km, total_time(), vehicle.speed,
-			autopilot.last_want if autopilot != null else -1.0, vehicle.x, track.curve_at(pos_z), track.grade_at(pos_z), fuel.fuel_l, traffic.cars.size(), vehicle.state, autopilot.last_reason if autopilot != null else ""])
+		print("TRACE km %6.1f  t %6.1f  v %5.1f  want %5.1f  x %5.2f  curve %5.2f  grade %5.3f  us %4.2f  fuel %4.1f  cars %d  state %d  %s" % [pos_km, total_time(), vehicle.speed,
+			autopilot.last_want if autopilot != null else -1.0, vehicle.x, track.curve_at(pos_z), track.grade_at(pos_z), vehicle.understeer, fuel.fuel_l, traffic.cars.size(), vehicle.state, autopilot.last_reason if autopilot != null else ""])
 	if pos_km >= plan.length_km:
 		_finish()
+
+
+## Driving diagnostics (drive_stats) and the curve hint of the tutorial stage: it comes when the car
+## understeers or a curve within the next 250 m needs clearly less than the current speed.
+func _track_driving(dt: float) -> void:
+	if vehicle.off_road > 0:
+		drive_stats["off_road_s"] += dt
+	if vehicle.off_road > 1:
+		drive_stats["limit_s"] += dt
+	if vehicle.rail_hit:
+		drive_stats["rail_hits"] += 1
+	if vehicle.understeer > 0.0:
+		drive_stats["understeer_s"] += dt
+	drive_stats["understeer_max"] = maxf(float(drive_stats["understeer_max"]), vehicle.understeer)
+	if coach == null or coach.shown.has("curve") or vehicle.state != VehicleModel.State.DRIVING:
+		return
+	var warn := vehicle.understeer > 0.3
+	var grip := env.grip(weather)
+	var d := 20.0
+	while not warn and d <= 250.0:
+		warn = vehicle.speed > vehicle.safe_curve_speed(track.curve_at(pos_z + d), grip) * 1.05
+		d += 10.0
+	if warn:
+		_tutorial("curve")
 
 
 ## Finish roll-out: the clock is frozen, the car brakes (render.finish_decel_kmh_s) while the player keeps
@@ -610,13 +640,14 @@ func build_result() -> Dictionary:
 	}
 
 
-## Simulation and render timing (for tests/race/run_stage.gd and --perf).
+## Simulation and render timing (for tests/race/run_stage.gd and --perf), plus drive_stats as "drive".
 func perf_stats() -> Dictionary:
 	var r := renderer.perf_stats() if renderer != null else {}
 	r["sim_steps"] = _sim_steps
 	r["sim_avg_ms"] = float(_sim_us_sum) / maxf(1.0, float(_sim_steps)) / 1000.0
 	r["sim_max_ms"] = float(_sim_us_max) / 1000.0
 	r["wall_s"] = float(Time.get_ticks_msec() - _start_wall_ms) / 1000.0
+	r["drive"] = drive_stats
 	return r
 
 

@@ -21,7 +21,7 @@
 	},
 
 	"road": {
-		"_doc": "Straßengeometrie, gemeinsam für Darstellung, Fahrmodell und Verkehr. Kurven-Wert 1.0 entspricht curve_radius_at_1_m Radius. Kurvigkeit/Hügel 0–3 aus den Etappendaten wählen die Maximalwerte. Alle Längen in sichtbaren Metern (1 km Kilometerzähler = 83,3 m). runout_m: gerade Auslaufstrecke hinter der Ziellinie.",
+		"_doc": "Straßengeometrie, gemeinsam für Darstellung, Fahrmodell und Verkehr. Kurven-Wert 1.0 entspricht curve_radius_at_1_m Radius. Kurvigkeit/Hügel 0–3 aus den Etappendaten wählen die Maximalwerte. Alle Längen in sichtbaren Metern (1 km Kilometerzähler = 83,3 m). runout_m: gerade Auslaufstrecke hinter der Ziellinie. Scharfe Kurven (Betrag >= curve_warning_min_curve, z. B. 0,25 = 480 m Radius, sicher bei 196 km/h mit Agilität 2) bekommen curve_warning_m vor dem Kurvenstück ein Warnschild (Gefahrzeichen Kurve) und außen alle chevron_every_m eine rot-weiße Richtungstafel; das Warnschild steht auch vor blinden Kurven (Betrag >= curve_warning_blind_min_curve, Kurvenanfang von curve_warning_sight_m davor wegen einer Kuppe nicht zu sehen) – so ist jede Kurve rechtzeitig erkennbar (tests/sim/curve_sight.gd).",
 		"lane_width_m": 3.75,
 		"lanes": { "autobahn": 3, "landstrasse": 2, "city": 2 },
 		"shoulder_width_m": 2.5,
@@ -34,7 +34,12 @@
 		"runout_m": 600.0,
 		"delineator_every_m": 50.0,
 		"streetlight_every_m": 33.0,
-		"crosswalk_every_m": 330.0
+		"crosswalk_every_m": 330.0,
+		"curve_warning_min_curve": 0.25,
+		"curve_warning_blind_min_curve": 0.12,
+		"curve_warning_sight_m": 150.0,
+		"curve_warning_m": 200.0,
+		"chevron_every_m": 30.0
 	},
 
 	"vehicles": {
@@ -60,11 +65,11 @@
 		},
 		"agility_ratings": {
 			"_doc": "steer_mps: seitliche Lenkgeschwindigkeit in m/s; lat_grip: Querbeschleunigung in m/s², bestimmt die Kurvengeschwindigkeit, ab der Untersteuern einsetzt.",
-			"1": { "steer_mps": 6.5, "lat_grip": 7.6 },
-			"2": { "steer_mps": 7.5, "lat_grip": 8.3 },
-			"3": { "steer_mps": 8.5, "lat_grip": 9.0 },
-			"4": { "steer_mps": 9.5, "lat_grip": 9.7 },
-			"5": { "steer_mps": 10.5, "lat_grip": 10.4 }
+			"1": { "steer_mps": 6.5, "lat_grip": 5.6 },
+			"2": { "steer_mps": 7.5, "lat_grip": 6.2 },
+			"3": { "steer_mps": 8.5, "lat_grip": 6.8 },
+			"4": { "steer_mps": 9.5, "lat_grip": 7.4 },
+			"5": { "steer_mps": 10.5, "lat_grip": 8.0 }
 		}
 	},
 
@@ -75,10 +80,12 @@
 		"steer_full_speed_kmh": 60.0,
 		"steer_response_s": 0.12,
 		"understeer": {
-			"push_mps_per_excess": 14.0,
-			"steer_loss_per_excess": 1.6,
-			"min_steer_factor": 0.25,
-			"full_excess": 0.4
+			"push_gain": 2.5,
+			"steer_loss_per_excess": 3.0,
+			"min_steer_factor": 0.15,
+			"full_excess": 0.5,
+			"recover_s": 0.25,
+			"scrub_per_excess": 0.5
 		},
 		"base_centrifugal": 0.0,
 		"grade_vmax_loss_per_percent": 0.012,
@@ -87,7 +94,8 @@
 		"night_vmax_factor": 0.99,
 		"weather_grip_factor": { "normal": 1.0, "rain": 0.88, "snow": 0.72 },
 		"shoulder": { "max_speed_kmh": 90.0, "decel_kmh_s": 35.0, "tolerance_m": 0.5 },
-		"guardrail": { "speed_factor_per_hit": 0.9, "bounce_mps": 1.5, "hit_cooldown_s": 0.6, "scrape_decel_kmh_s": 20.0 },
+		"guardrail": { "speed_factor_per_hit": 0.9, "bounce_mps": 1.5, "hit_cooldown_s": 0.6, "scrape_decel_kmh_s": 20.0,
+			"impact_free_mps": 1.0, "impact_loss_per_mps": 0.05, "min_speed_factor": 0.5 },
 		"overspeed_decel_kmh_s": 12.0,
 		"grade_min_factor": 0.5,
 		"grass": { "max_speed_kmh": 40.0, "decel_kmh_s": 60.0 },
@@ -278,7 +286,7 @@
 		"player_curve_gain": 1.0,
 		"player_steer_deg": 3.0,
 		"player_lateral_gain": 1.0,
-		"player_understeer_deg": 4.0,
+		"player_understeer_deg": 6.0,
 		"player_view_gain": 1.0,
 		"player_yaw_max_deg": 20.0,
 		"player_yaw_smooth_s": 0.15,

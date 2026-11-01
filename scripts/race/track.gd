@@ -10,6 +10,11 @@ extends RefCounted
 ## Generation is sequential (one RNG for curves/hills), so a segment depends only on the seed and
 ## its index – never on the camera path. Props use a per-segment RNG (seed, index).
 ## After the finish line the road continues straight for road.runout_m (coast-out after "ZIEL").
+## Sharp curves (|curve| >= road.curve_warning_min_curve) get a warning sign road.curve_warning_m before them
+## (inserted into the already generated segment; generation runs that far ahead of the requested window, so
+## the sign is in place before the segment can be seen) and red-white chevron boards on their outside
+## (road.chevron_every_m) – the curve speed matters (understeer), and a curve behind a crest must be known
+## in time (tests/sim/curve_sight.gd).
 ## Owner: race module.
 
 const WALL_SIGN_GAP_M := 0.1           ## gap between a tunnel-wall sign and the wall
@@ -47,6 +52,17 @@ var _c_pos := 0
 var _c_mag := 0.0
 var _c_is_curve := false
 var _c_last := 0.0
+var _c_new := false                    ## the last _next_curve() started a curve piece
+var _c_in_piece := false               ## the last _next_curve() was part of a curve piece (not a fade)
+var _sign_pending := false             ## warning sign of the running curve piece not decided yet
+var _sign_start_z := 0.0               ## z of the first segment of that piece
+var _warn_curve := 0.25                ## road.curve_warning_min_curve
+var _warn_blind := 0.12                ## road.curve_warning_blind_min_curve
+var _warn_sight := 150.0               ## road.curve_warning_sight_m
+var _warn_m := 200.0                   ## road.curve_warning_m
+var _chev_n := 10                      ## road.chevron_every_m in segments
+var _cam_h := 3.4                      ## render.camera_height_m (sight over crests)
+var _cam_d := 9.0                      ## render.camera_distance_m
 var _c_fade := 0                       ## segments left of a fade-out at a section change
 var _c_fade_n := 1
 var _c_fade_from := 0.0
@@ -74,6 +90,13 @@ func setup(stage_plan: StagePlan, config: Dictionary, scenery: Dictionary, seed_
 	hill_scale = float(ConfigLoader.lookup(cfg, "render.hill_height_scale", 1.0))
 	_lane_trans = float(ConfigLoader.lookup(cfg, "road.lane_transition_m", 180.0))
 	_taper = float(ConfigLoader.lookup(cfg, "road.fuel_lane_taper_m", 40.0))
+	_warn_curve = float(ConfigLoader.lookup(cfg, "road.curve_warning_min_curve", 0.25))
+	_warn_m = maxf(0.0, float(ConfigLoader.lookup(cfg, "road.curve_warning_m", 200.0)))
+	_warn_blind = float(ConfigLoader.lookup(cfg, "road.curve_warning_blind_min_curve", 0.12))
+	_warn_sight = float(ConfigLoader.lookup(cfg, "road.curve_warning_sight_m", 150.0))
+	_cam_h = float(ConfigLoader.lookup(cfg, "render.camera_height_m", 3.4))
+	_cam_d = float(ConfigLoader.lookup(cfg, "render.camera_distance_m", 9.0))
+	_chev_n = maxi(1, int(round(float(ConfigLoader.lookup(cfg, "road.chevron_every_m", 30.0)) / seg_len)))
 	length_km = plan.length_km
 	length_z = km_to_z(length_km)
 	segment_count = int(ceil((length_z + runout_m) / seg_len)) + 1
@@ -118,9 +141,10 @@ func segment_index_at(z: float) -> int:
 
 # --- Window ---------------------------------------------------------------------------------
 
-## Generates segments up to camera_z + ahead_m and discards those far behind the camera.
+## Generates segments up to camera_z + ahead_m (plus generation_lead_m(), so that curve warning signs are
+## placed before their segment comes into view) and discards those far behind the camera.
 func update_window(camera_z: float, ahead_m: float) -> void:
-	var last := segment_index_at(camera_z + ahead_m) + 2
+	var last := segment_index_at(camera_z + ahead_m + generation_lead_m()) + 2
 	while _gen_next <= mini(last, segment_count - 1):
 		_generate(_gen_next)
 		_gen_next += 1
@@ -191,6 +215,7 @@ func _generate(i: int) -> void:
 	_mark_zones(s)
 	_place_props(s)
 	_segs[i] = s
+	_place_curve_signs(s)
 
 
 ## Fade factor 0..1 that keeps the road straight and flat at the start and around the finish.
@@ -201,6 +226,8 @@ func _calm(z: float, near_start: float, near_end: float) -> float:
 
 
 func _next_curve(sec: Dictionary, s: TrackSegment) -> float:
+	_c_new = false
+	_c_in_piece = false
 	if _c_fade > 0:
 		_c_fade -= 1
 		return _c_fade_from * smoothstep(0.0, 1.0, float(_c_fade) / float(_c_fade_n))
@@ -221,12 +248,100 @@ func _next_curve(sec: Dictionary, s: TrackSegment) -> float:
 			_c_is_curve = true
 			_c_len = int(_rng.randf_range(150.0, 520.0) / seg_len)
 			_c_mag = _rng.randf_range(0.35, 1.0) * max_curve * (1.0 if _rng.randf() < 0.5 else -1.0)
+			_c_new = true
 	var t := float(_c_pos) / maxf(1.0, float(_c_len))
 	_c_pos += 1
+	_c_in_piece = _c_is_curve
 	if s.runout:
 		return 0.0
 	var ease := smoothstep(0.0, 0.3, t) * (1.0 - smoothstep(0.7, 1.0, t))
 	return _c_mag * ease * _calm(s.z, 40.0, 60.0)
+
+
+## Curve signs of a curve piece (not in tunnels or City Limits, not where the start/finish calm zone flattens
+## it). Warning sign road.curve_warning_m before its first segment on the right (inserted into that earlier
+## segment, on the tunnel wall if that is inside a tunnel) when it is sharp (|magnitude| >=
+## road.curve_warning_min_curve) or blind: |magnitude| >= road.curve_warning_blind_min_curve and some point of
+## its ramp-in hidden behind a crest from road.curve_warning_sight_m before it. Decided at the end of the
+## ramp-in (30 % of the piece), when the heights of that part exist. Sharp pieces also get a chevron board every
+## road.chevron_every_m on the outside of the bend along their strong part (|curve| >= 60 % of the magnitude).
+## value = direction (+1 right, -1 left).
+func _place_curve_signs(s: TrackSegment) -> void:
+	if _c_new:
+		_sign_pending = true
+		_sign_start_z = s.z
+	if not _c_in_piece or s.runout:
+		_sign_pending = false
+		return
+	if absf(_c_mag) < minf(_warn_curve, _warn_blind) or s.tunnel or s.city:
+		return
+	var dir := 1 if _c_mag > 0.0 else -1
+	var sharp := absf(_c_mag) >= _warn_curve
+	if _sign_pending and (float(_c_pos) >= 0.3 * float(_c_len) or _c_pos >= _c_len):
+		_sign_pending = false
+		if _calm(_sign_start_z + float(_c_len) * seg_len * 0.5, 40.0, 60.0) > 0.6 and (sharp or _blind(_sign_start_z, s.z)):
+			_place_warning_sign(_sign_start_z - _warn_m, dir)
+	if sharp and (_c_pos - 1) % _chev_n == 0 and absf(s.curve) >= 0.6 * absf(_c_mag):
+		s.sprites.append({"kind": "sign", "sign": "chevron", "value": dir, "side": -dir, "z": s.z, "scale": 1.0,
+			"x": _prop_x(road_edges_at(s.z), -dir, "outer", 0.6), "country": s.country, "road": s.road})
+		_sort_sprites(s)
+
+
+## Warning sign "Kurve" at zw on the right (on the tunnel wall inside a tunnel, none in City Limits), inserted
+## into its already generated segment.
+func _place_warning_sign(zw: float, dir: int) -> void:
+	var target: TrackSegment = _segs.get(segment_index_at(zw)) if zw > 0.0 else null
+	if target == null or target.city:
+		return
+	var p := {"kind": "sign", "sign": "curve", "value": dir, "side": 1, "z": zw, "scale": 1.0,
+		"x": _prop_x(road_edges_at(zw), 1, "outer", 1.0), "country": target.country, "road": target.road}
+	if target.tunnel:
+		_mount_on_tunnel_wall(p, road_edges_at(zw), 1)
+	target.sprites.append(p)
+	_sort_sprites(target)
+
+
+## True when some point of [z0, z1] (every 15 m) cannot be seen from road.curve_warning_sight_m before it.
+func _blind(z0: float, z1: float) -> bool:
+	var z := z0
+	while z <= z1 + 0.001:
+		if not _sees(z - _warn_sight, z):
+			return true
+		z += 15.0
+	return false
+
+
+## How far generation runs ahead of the requested window (m): the warning sign distance plus the longest
+## ramp-in of a curve piece (30 % of 520 m; the sign is decided at its end).
+func generation_lead_m() -> float:
+	return _warn_m + 0.3 * 520.0 + 10.0
+
+
+## True when the road at z_p can be seen from the camera of a car at z_car (render.camera_height_m above the
+## road at the car, render.camera_distance_m behind it): no crest of the generated road in between.
+func _sees(z_car: float, z_p: float) -> bool:
+	if z_car <= 0.0:
+		return true
+	var zc := maxf(0.0, z_car - _cam_d)
+	var yc := _seg_y(z_car) + _cam_h
+	var yp := _seg_y(z_p)
+	var k := segment_index_at(zc) + 1
+	var last := segment_index_at(z_p)
+	while k < last:
+		var sk: TrackSegment = _segs.get(k)
+		if sk != null and sk.y > yc + (yp - yc) * (sk.z - zc) / maxf(z_p - zc, 0.01) + 0.05:
+			return false
+		k += 1
+	return true
+
+
+func _seg_y(z: float) -> float:
+	var sk: TrackSegment = _segs.get(segment_index_at(z))
+	return sk.y if sk != null else _y
+
+
+func _sort_sprites(s: TrackSegment) -> void:
+	s.sprites.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return float(a.get("z", 0.0)) > float(b.get("z", 0.0)))
 
 
 func _next_grade(sec: Dictionary, s: TrackSegment) -> float:

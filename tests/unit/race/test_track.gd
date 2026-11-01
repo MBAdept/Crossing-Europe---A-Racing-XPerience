@@ -74,7 +74,9 @@ func test_window_streaming() -> void:
 		var s := t.segment_at(z + 10.0)
 		assert_eq(s.index, t.segment_index_at(z + 10.0), "Segment im Fenster bei z %.0f" % z)
 		z += 37.0
-	var limit := t.keep_behind + int(ahead / t.seg_len) + 4 + int(37.0 / t.seg_len) + 2
+	# generation runs generation_lead_m() further ahead (curve warning signs are placed back into the road)
+	var lead := int(t.generation_lead_m() / t.seg_len) + 1
+	var limit := t.keep_behind + int(ahead / t.seg_len) + lead + 4 + int(37.0 / t.seg_len) + 2
 	assert_true(max_window <= limit, "Fenster begrenzt (%d <= %d)" % [max_window, limit])
 	# segments behind the camera are discarded
 	t.update_window(9000.0, ahead)
@@ -310,3 +312,96 @@ func test_scenery_file_complete() -> void:
 		assert_true(not (s.get("props", []) as Array).is_empty(), "%s: Requisiten-Regeln" % id)
 		for r: Dictionary in s.get("props", []):
 			assert_true(str(r.get("set", "")).begins_with("props/"), "%s: Sprite-Set-ID" % id)
+
+
+## Curve signs (road.curve_warning_*): every sharp stretch (|curve| >= 0.3) has a warning sign with its
+## direction 150–450 m before it on the right and chevron boards on the outside pointing into the bend;
+## gentle curves get no chevrons.
+func test_sharp_curves_have_warning_sign_and_chevrons() -> void:
+	var t := _track()
+	var n := int(t.length_z / t.seg_len)
+	t.get_segment(n)   # generate the whole road first: warning signs are inserted into earlier segments
+	var signs: Array[Dictionary] = []
+	for i in n:
+		var s := t.get_segment(i)
+		for sp: Dictionary in s.sprites:
+			var kind := str(sp.get("sign", ""))
+			if kind == "curve" or kind == "chevron":
+				signs.append({"kind": kind, "z": float(sp["z"]), "value": int(sp["value"]), "side": int(sp["side"]), "x": float(sp["x"]),
+					"curve": t.curve_at(float(sp["z"])), "edges": t.road_edges_at(float(sp["z"]))})
+	var stretches := 0
+	var i := 0
+	while i < n:
+		var s := t.get_segment(i)
+		if absf(s.curve) < 0.3 or s.tunnel or s.city or s.z < 400.0 or s.z > t.length_z - 400.0:
+			i += 1
+			continue
+		var j := i
+		while j < n and absf(t.get_segment(j).curve) >= 0.3:
+			j += 1
+		stretches += 1
+		var dir := 1 if s.curve > 0.0 else -1
+		var warned := false
+		var chevrons := 0
+		for sg in signs:
+			var z := float(sg["z"])
+			if sg["kind"] == "curve" and z >= s.z - 450.0 and z <= s.z - 150.0 and int(sg["value"]) == dir:
+				warned = true
+				assert_eq(int(sg["side"]), 1, "Warnschild rechts")
+				assert_true(float(sg["x"]) > (sg["edges"] as Vector2).y, "Warnschild neben der Fahrbahn")
+			if sg["kind"] == "chevron" and z >= s.z - 60.0 and z <= float(j) * t.seg_len + 60.0:
+				chevrons += 1
+				assert_eq(int(sg["value"]), dir, "Pfeile zeigen in die Kurve")
+				assert_eq(int(sg["side"]), -dir, "Richtungstafel außen")
+				var e: Vector2 = sg["edges"]
+				assert_true(float(sg["x"]) > e.y if dir < 0 else float(sg["x"]) < e.x, "Richtungstafel neben der Fahrbahn")
+		assert_true(warned, "Warnschild vor der scharfen Kurve bei km %.1f" % s.km)
+		assert_true(chevrons >= 1, "Richtungstafeln an der scharfen Kurve bei km %.1f" % s.km)
+		i = j
+	assert_true(stretches >= 10, "Teststrecke hat scharfe Kurven (%d)" % stretches)
+	for sg in signs:
+		if sg["kind"] == "chevron":
+			assert_true(absf(float(sg["curve"])) >= 0.14, "keine Richtungstafel an sanften Kurven (%.2f)" % float(sg["curve"]))
+
+
+## The warning sign is inserted into a segment generated earlier: streaming (the game's window) gives the
+## same signs as generating the whole road at once, and every sign is in place before it can be seen.
+func test_curve_signs_same_when_streamed() -> void:
+	var whole := _track()
+	var n := int(whole.length_z / whole.seg_len)
+	whole.get_segment(n)
+	var expect := {}
+	for i in n:
+		for sp: Dictionary in whole.get_segment(i).sprites:
+			if str(sp.get("sign", "")) in ["curve", "chevron"]:
+				expect["%s@%.1f" % [str(sp["sign"]), float(sp["z"])]] = true
+	var streamed := _track()
+	var got := {}
+	var draw := float(ConfigLoader.lookup(cfg(), "render.draw_distance_m", 900.0))
+	var z := -draw
+	while z < streamed.length_z:
+		streamed.update_window(maxf(z, 0.0), draw + 60.0)
+		# the farthest segment the renderer can see now must already carry its signs
+		var far := streamed.segment_at(clampf(z + draw, 0.0, streamed.length_z))
+		for sp: Dictionary in far.sprites:
+			if str(sp.get("sign", "")) in ["curve", "chevron"]:
+				got["%s@%.1f" % [str(sp["sign"]), float(sp["z"])]] = true
+		z += streamed.seg_len
+	assert_true(expect.size() > 20, "Kurvenschilder vorhanden (%d)" % expect.size())
+	assert_eq(got.size(), expect.size(), "gleiche Schilder beim Streamen, schon in Sichtweite vorhanden")
+	for k: String in expect:
+		assert_true(got.has(k), "Schild %s beim Streamen" % k)
+
+
+## tests/sim/sight_check.gd on the test stage: with the warning signs every curve that needs braking is
+## recognised early enough (1 s reaction + full braking) for the Gran Turismo – by day and in snow at night.
+func test_curves_are_seen_in_time() -> void:
+	var sight: GDScript = load("res://tests/sim/sight_check.gd")
+	for from_id: String in ["a", "b"]:
+		var plan := StagePlan.build(_stage(), from_id, CITIES, COUNTRIES, cfg())
+		for opts: Dictionary in [{"vehicle": "gran_turismo"}, {"vehicle": "gran_turismo", "weather": "snow", "night": true}]:
+			var r: Dictionary = sight.call("check", cfg(), plan, opts)
+			var m: Variant = r["summary"]["min_margin_m"]
+			assert_true(int(r["summary"]["stretches"]) > 5, "Kurven, die Bremsen verlangen (%s)" % str(opts))
+			assert_true(m != null and float(m) >= 0.0, "ab %s, %s: Reserve %s m (schlechteste: %s)" % [from_id, str(opts), str(m),
+				str((r["cases"] as Array).slice(0, 1))])

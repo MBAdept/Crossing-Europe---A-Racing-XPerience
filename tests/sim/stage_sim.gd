@@ -175,10 +175,17 @@ func _bot() -> Dictionary:
 		var r := plan.next_radar(pos_km)
 		if not r.is_empty() and pos_km > float(r["km"]) - 2.0:
 			want = minf(want, float(r["limit"]) * 1.1)
-	for d: float in [30.0, 70.0, 120.0]:
-		want = minf(want, vehicle.safe_curve_speed(track.curve_at(pos_z + d), env.grip(weather)) * (0.97 + d / 3000.0))
+	# curves: braking curve (15 m/s², reach 96 % of the safe speed 12 m early) over the next 300 m
+	var grip := env.grip(weather)
+	want = minf(want, vehicle.safe_curve_speed(track.curve_at(pos_z), grip) * 0.96)
+	var d := 10.0
+	while d <= 300.0:
+		var vt := vehicle.safe_curve_speed(track.curve_at(pos_z + d), grip) * 0.96 / 3.6
+		if vt < want / 3.6:
+			want = minf(want, sqrt(vt * vt + 2.0 * 15.0 * maxf(0.0, d - 12.0)) * 3.6)
+		d += 10.0
 	var steer := clampf((tx - vehicle.x) * 0.7, -1.0, 1.0)
-	return {"steer": steer, "throttle": 1.0 if vehicle.speed < want - 1.0 else 0.0, "brake": 1.0 if vehicle.speed > want + 6.0 else 0.0}
+	return {"steer": steer, "throttle": 1.0 if vehicle.speed < want - 1.0 else 0.0, "brake": 1.0 if vehicle.speed > want + 3.0 else 0.0}
 
 
 func _car_ahead(x: float, dist: float) -> TrafficSystem.Car:

@@ -5,7 +5,9 @@ extends RefCounted
 ## Geometry goes into the shared GeoBatch, text is drawn with draw_string at a few cached font sizes,
 ## scaled to the exact size with a transform.
 ## Kinds: limit, unlimited, radar, fuel, fuel_lane, town, distance, border, tunnel, autobahn,
-## autobahn_end, start (gantry with countdown lights), finish (gantry with "ZIEL" banner).
+## autobahn_end, start (gantry with countdown lights), finish (gantry with "ZIEL" banner), curve (warning
+## triangle "Kurve", value = direction +1 right / -1 left) and chevron (red-white direction board on the
+## outside of a sharp curve, arrows pointing into the bend).
 ## Country styles (design document: „Grenzübergänge: Wechsel von Schildern …"): the sign's "country"
 ## selects the colours from countries.json signs {motorway, town_bg, town_fg, town_border} (optional
 ## road / road_fg for direction signs off the motorway), see style_for(). Motorway direction signs, the
@@ -24,7 +26,8 @@ const EU_YELLOW := Color("ffd21f")
 const FONT_SIZES := [8, 10, 12, 14, 16, 20, 24, 28, 32, 40, 48, 56, 64, 80, 96]
 ## Half width (m, scale 1) of the board of each sign kind (tunnel walls: Track fits the board inside).
 const HALF_WIDTH_M := {"limit": 0.85, "unlimited": 0.85, "radar": 1.05, "fuel": 1.5, "fuel_lane": 1.15,
-	"town": 1.9, "distance": 2.4, "border": 1.75, "tunnel": 1.7, "autobahn": 0.95, "autobahn_end": 0.95}
+	"town": 1.9, "distance": 2.4, "border": 1.75, "tunnel": 1.7, "autobahn": 0.95, "autobahn_end": 0.95,
+	"curve": 0.9, "chevron": 0.95}
 
 var font: Font
 var batch: GeoBatch
@@ -131,6 +134,10 @@ func draw(it: Dictionary, p: Vector3, lit: Color, alpha: float, edges_px: Vector
 			_tunnel_sign(p, lit, alpha, str(it.get("text", "")), int(it.get("value", 0)))
 		"autobahn", "autobahn_end":
 			_autobahn_sign(p, lit, alpha, kind == "autobahn_end", st["motorway"])
+		"curve":
+			_curve_sign(p, lit, alpha, int(it.get("value", 1)))
+		"chevron":
+			_chevron_board(p, lit, alpha, int(it.get("value", 1)))
 		"start":
 			_gantry(p, lit, alpha, edges_px, tr("START"), true)
 		"finish":
@@ -352,6 +359,51 @@ func _autobahn_sign(p: Vector3, lit: Color, alpha: float, ended: bool, bg: Color
 	batch.rect(Rect2(r.end.x - 0.45 * s, r.position.y + 0.58 * s, 0.1 * s, 0.35 * s), w)
 	if ended:
 		batch.line(Vector2(r.position.x + 0.1 * s, r.end.y - 0.1 * s), Vector2(r.end.x - 0.1 * s, r.position.y + 0.1 * s), maxf(1.0, 0.18 * s), _c(RED, lit, alpha))
+
+
+## Warning sign "Kurve" (Gefahrzeichen): white triangle with a red border and a black bent arrow towards
+## dir (+1 right bend, -1 left bend). Slightly larger than real (readable at speed).
+func _curve_sign(p: Vector3, lit: Color, alpha: float, dir: int) -> void:
+	var s := p.z
+	var d := 1.0 if dir >= 0 else -1.0
+	var base := p.y - 2.0 * s
+	var top := base - 1.55 * s
+	_post(p.x, p.y, base, 0.11 * s, lit, alpha)
+	var red := _c(RED, lit, alpha)
+	var white := _c(WHITE, lit, alpha)
+	var black := _c(BLACK, lit, alpha)
+	batch.tri(Vector2(p.x, top), Vector2(p.x + 0.9 * s, base), Vector2(p.x - 0.9 * s, base), red)
+	batch.tri(Vector2(p.x, top + 0.36 * s), Vector2(p.x + 0.6 * s, base - 0.15 * s), Vector2(p.x - 0.6 * s, base - 0.15 * s), white)
+	if s < 3.0:
+		return   # too small for the pictogram
+	var w := maxf(1.0, 0.09 * s)
+	var a := Vector2(p.x - 0.1 * d * s, base - 0.25 * s)
+	var b := Vector2(p.x - 0.1 * d * s, base - 0.6 * s)
+	var c := Vector2(p.x + 0.12 * d * s, base - 0.86 * s)
+	batch.line(a, b, w, black)
+	batch.line(b, c, w, black)
+	var dirv := (c - b).normalized()
+	var nrm := Vector2(-dirv.y, dirv.x)
+	batch.tri(c + dirv * 0.16 * s, c + nrm * 0.12 * s, c - nrm * 0.12 * s, black)
+
+
+## Red-white direction board (Richtungstafel) on the outside of a sharp curve: red board, three white
+## chevrons pointing into the bend (dir +1 right, -1 left), on two short posts.
+func _chevron_board(p: Vector3, lit: Color, alpha: float, dir: int) -> void:
+	var s := p.z
+	var d := 1.0 if dir >= 0 else -1.0
+	var r := Rect2(p.x - 0.95 * s, p.y - 1.95 * s, 1.9 * s, 0.75 * s)
+	_post(p.x - 0.6 * s, p.y, r.end.y, 0.09 * s, lit, alpha)
+	_post(p.x + 0.6 * s, p.y, r.end.y, 0.09 * s, lit, alpha)
+	_board(r, RED, lit, alpha, WHITE, 0.05 * s)
+	var white := _c(WHITE, lit, alpha)
+	var w := maxf(1.0, 0.13 * s)
+	var my := r.get_center().y
+	for i in 3:
+		var cx := p.x + (float(i) - 1.0) * 0.55 * s
+		var tip := Vector2(cx + 0.16 * d * s, my)
+		batch.line(Vector2(cx - 0.12 * d * s, r.position.y + 0.12 * s), tip, w, white)
+		batch.line(tip, Vector2(cx - 0.12 * d * s, r.end.y - 0.12 * s), w, white)
 
 
 ## Gantry over the whole road (posts at the outer shoulder edges) with a banner.

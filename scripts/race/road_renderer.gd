@@ -254,7 +254,7 @@ func setup(t: Track, p: RoadProjection, config: Dictionary, scenery: Dictionary)
 	_pl_lookahead = float(r.get("player_curve_lookahead_m", 10.0))
 	_pl_tau = float(r.get("player_yaw_smooth_s", 0.15))
 	_pl_k = {"curve_gain": float(r.get("player_curve_gain", 1.0)), "steer_deg": float(r.get("player_steer_deg", 3.0)),
-		"lateral_gain": float(r.get("player_lateral_gain", 1.0)), "understeer_deg": float(r.get("player_understeer_deg", 4.0)),
+		"lateral_gain": float(r.get("player_lateral_gain", 1.0)), "understeer_deg": float(r.get("player_understeer_deg", 6.0)),
 		"view_gain": float(r.get("player_view_gain", 1.0)), "max_deg": float(r.get("player_yaw_max_deg", 20.0))}
 	_roll_per = float(r.get("player_roll_deg_per_mps2", 0.22))
 	_roll_max = minf(2.5, float(r.get("player_roll_max_deg", 2.5)))
