@@ -484,7 +484,8 @@ Kurvengrenze und Etappensiege (51 Etappen ohne Dev-Etappe, ohne Tanken):
 
 Die 2 Etappen ohne Kurve sind ganz gerade (Kurvigkeit 0). Der Gran Turismo bleibt auf geraden Etappen vorn, auf
 kurvigen der Sportwagen (Agilität 4, Beschleunigung 5) – kein Auto ist überall überlegen; die Bestenlisten-Starteinträge
-(≤ 165 km/h Schnitt) liegen weit unter dem besten idealen Schnitt jeder Etappe (mindestens 207 km/h, Saragossa – Pau).
+(≤ 165 km/h Schnitt, seit dem QA-Review v0.5.0 aus der Zusammensetzung der Etappe: auf den längsten Etappen bis
+172 km/h) liegen weit unter dem besten idealen Schnitt jeder Etappe (mindestens 207 km/h, Saragossa – Pau).
 
 (i2) Gefühl: mit Vollgas (vmax, Gas hält das Tempo) in eine Rechtskurve, die X % zu schnell ist, aus der Mittelspur einer
 dreispurigen Autobahn; Zeit in s bis eine Spur weiter außen / Bankett / Leitplanke, ohne Lenken und mit vollem
