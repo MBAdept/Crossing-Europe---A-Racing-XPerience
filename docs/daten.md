@@ -43,7 +43,8 @@ Alle Erweiterungen sind optional; ältere Dateien bleiben gültig.
 - Etappen: `roads` (Straßennummern fürs Menü, z. B. „A215 · A7“), `description` (deutsch), `tutorial: true`
   (Tutorial-Etappe, `StagePlan.tutorial` – Kiel – Hamburg), `start_fuel_fraction` (Tankfüllung beim Start 0–1,
   `StagePlan.start_fuel_fraction`, sonst −1 = Konfiguration; Kiel – Hamburg startet mit 35 %, damit der
-  Tankstopp zum Tutorial gehört).
+  Tankstopp zum Tutorial gehört). Beide gelten nur in der Fahrtrichtung der Daten (Review v0.5.0): die
+  Rückrichtung Hamburg – Kiel (Einzeletappe) ist eine normale Etappe mit vollem Tank.
 - Abschnitte: `name` (z. B. „A7 Kasseler Berge“) – landet in `StagePlan.sections[i].name`.
 - Radar: `"dir": "fwd" | "rev"` – nur in einer Fahrtrichtung (fwd = from→to, rev = to→from). Positionen bleiben
   in km ab `from`. Viele echte Blitzer sind gerichtet; kurze Etappen (Kiel – Hamburg, 95 km) können so in jeder

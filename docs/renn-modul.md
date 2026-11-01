@@ -397,7 +397,8 @@ oder spätestens `render.finish_hold_s`. Ergebnis-Wörterbuch unverändert (ARCH
 
 Design: „Kiel – Hamburg: alternativlose Startetappe, gleichzeitig Tutorial.“ Die Etappe trägt in den Daten
 `tutorial: true` und `start_fuel_fraction: 0.35` (Start mit gut einem Drittel Tank – 95 km reichen damit nicht, der
-Tankstopp gehört dazu; `StagePlan.tutorial`, `FuelSystem`). Auf dieser Etappe (oder mit `--tutorial`) erzeugt die
+Tankstopp gehört dazu; `StagePlan.tutorial`, `FuelSystem`) – nur in Fahrtrichtung Kiel → Hamburg, die Rückrichtung
+(Einzeletappe) ist seit dem Review v0.5.0 eine normale Etappe. Auf dieser Etappe (oder mit `--tutorial`) erzeugt die
 Sitzung einen `TutorialCoach`, der jedes Thema einmal als kurzen „Tipp: …“ (HUD-Meldung, `render.tutorial_hint_s`
 = 6 s) zeigt, nacheinander mit 0,6 s Pause; dringende Themen kommen sofort, weil die Situation gerade eintritt:
 

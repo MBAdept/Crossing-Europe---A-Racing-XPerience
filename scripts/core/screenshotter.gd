@@ -44,7 +44,17 @@ func _capture(index: int) -> void:
 	if _next >= times.size():
 		all_done.emit()
 		if quit_when_done:
+			await _quiet_audio()
 			get_tree().quit()
+
+
+## Stops the menu music and gives the audio thread a moment to drop its playback before quitting – quitting while the
+## title theme played reported its stream as "resources still in use at exit" (AudioManager releases it on exit).
+func _quiet_audio() -> void:
+	var am := get_node_or_null("/root/AudioManager")
+	if am != null and am.has_method("set_music"):
+		am.call("set_music", false)
+		await get_tree().create_timer(0.5, true, false, true).timeout
 
 
 ## The viewport picture as the window shows it: with "keep" the picture is centred in a larger window

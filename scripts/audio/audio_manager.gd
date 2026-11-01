@@ -153,6 +153,12 @@ func _exit_tree() -> void:
 	if _music_thread_task >= 0:
 		WorkerThreadPool.wait_for_task_completion(_music_thread_task)
 		_music_thread_task = -1
+	# quit paths that skip the menus (e.g. the screenshotter of --screenshot runs) quit while the title theme plays:
+	# release its stream and playback here, otherwise Godot reports them as "resources still in use at exit"
+	if _music != null:
+		_music.stop()
+		_music.stream = null
+	_streams.clear()
 
 
 func _ensure_buses() -> void:
