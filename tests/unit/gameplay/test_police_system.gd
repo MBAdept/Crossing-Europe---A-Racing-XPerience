@@ -12,14 +12,78 @@ func _police(c: Dictionary, radars: Array = [{"km": 30.0, "limit": 120}]) -> Pol
 	return p
 
 
-## Drives at constant speed from km for `seconds`; returns the km reached.
-func _drive(p: PoliceSystem, km: float, speed: float, seconds: float) -> float:
+## Drives at constant speed from km for `seconds`; returns the km reached. cap = curve limit of the police car
+## (PoliceSystem.update road_cap_kmh, INF = straight road).
+func _drive(p: PoliceSystem, km: float, speed: float, seconds: float, cap: float = INF) -> float:
 	var t := 0.0
 	while t < seconds - 0.0001:
 		km += Units.odometer_km_delta(speed, DT, 12.0)
-		p.update(DT, km, speed)
+		p.update(DT, km, speed, cap)
 		t += DT
 	return km
+
+
+## Curves slow the police car down too (since the understeer rework): in a bend that allows it 150 km/h it drives
+## 150, so a player at 150 keeps the gap and escapes after the window (the escape threshold is the police's own
+## 12-s average); a slower player loses ground and does not escape.
+func test_police_slows_in_curves_and_escape_follows() -> void:
+	var c := cfg()
+	var p := _police(c)
+	p.update(DT, 30.5, 150.0, 150.0)
+	assert_eq(p.state, PoliceSystem.State.CHASE, "geblitzt in der Kurve")
+	assert_near(p.police_kmh, 150.0, 0.001, "Polizei fährt die Kurvengrenze, nicht 220")
+	var g0 := p.gap_m
+	var km := _drive(p, 30.5, 150.0, 11.0, 150.0)
+	assert_near(p.gap_m, g0, 0.01, "gleich schnell: Abstand bleibt")
+	assert_near(p.escape_kmh, 150.0, 0.001, "Fluchtschwelle = Ø der Polizei")
+	assert_eq(p.state, PoliceSystem.State.CHASE, "Fenster noch nicht voll")
+	_drive(p, km, 150.0, 1.2, 150.0)
+	assert_eq(p.state, PoliceSystem.State.IDLE, "entkommen: 12 s so schnell wie die Polizei")
+	var q := _police(c)
+	q.update(DT, 30.5, 150.0, 150.0)
+	_drive(q, 30.5, 140.0, 13.0, 150.0)
+	assert_eq(q.state, PoliceSystem.State.CHASE, "langsamer als die Polizei: keine Flucht")
+	assert_near(q.gap_m, float(ConfigLoader.lookup(c, "police.start_gap_m", 320.0)) - 10.0 / 3.6 * 13.0, 0.5, "Abstand schrumpft mit (v − Polizei)")
+	assert_true(q.escape_progress < 0.95, "Fluchtbalken nicht voll (%.2f)" % q.escape_progress)
+
+
+## After a curve the police speeds up again with police.curve_accel_mps2 over the distance driven (a speed profile
+## along the road); without curves it is the design rule: police_speed_kmh, escape from escape_speed_kmh.
+func test_police_accelerates_after_curve() -> void:
+	var c := cfg()
+	var a := float(ConfigLoader.lookup(c, "police.curve_accel_mps2", 1.5))
+	var p := _police(c)
+	p.update(DT, 30.5, 200.0, 150.0)
+	var km := _drive(p, 30.5, 200.0, 1.0, 150.0)
+	assert_near(p.police_kmh, 150.0, 0.001, "in der Kurve")
+	km = _drive(p, km, 230.0, 2.0)
+	var expect := sqrt(pow(150.0 / 3.6, 2.0) + 2.0 * a * 230.0 / 3.6 * 2.0) * 3.6
+	assert_near(p.police_kmh, expect, 0.1, "beschleunigt über die gefahrene Strecke (%.1f km/h)" % expect)
+	_drive(p, km, 230.0, 8.8)
+	assert_eq(p.state, PoliceSystem.State.CHASE, "Fenster noch nicht voll")
+	assert_eq(p.police_kmh, float(ConfigLoader.lookup(c, "police.police_speed_kmh", 220.0)), "nach ~670 m wieder 220")
+	var r := _police(c)
+	r.update(DT, 30.5, 230.0)
+	assert_eq(r.police_kmh, 220.0, "ohne Kurven: 220")
+	_drive(r, 30.5, 230.0, 5.0)
+	assert_near(r.escape_kmh, 220.0, 1e-9, "Fluchtschwelle auf der Geraden 220")
+
+
+## The police car (police.agility 1) takes every curve slower than any player car (agility 2–5), in every weather:
+## escaping is always possible – as every car reaches 220 km/h.
+func test_police_curve_speed_below_every_car() -> void:
+	var c := cfg()
+	var p := _police(c)
+	var lat := float(ConfigLoader.lookup(c, "vehicles.agility_ratings.%d.lat_grip" % int(ConfigLoader.lookup(c, "police.agility", 1)), 0.0))
+	var r1 := float(ConfigLoader.lookup(c, "road.curve_radius_at_1_m", 120.0))
+	assert_near(p.curve_speed_mps(0.45, 0.88), sqrt(lat * 0.88 * r1 / 0.45), 0.0001, "v = √(Haftung · Wetter · R)")
+	assert_eq(p.curve_speed_mps(0.0, 1.0), INF, "Gerade: keine Grenze")
+	for id: String in Fx.VEHICLES:
+		var v := Fx.vehicle(c, id)
+		for grip: float in [1.0, 0.88, 0.72]:
+			for curve: float in [0.1, 0.3, 0.9]:
+				assert_true(p.curve_speed_mps(curve, grip) * 3.6 < v.safe_curve_speed(curve, grip) - 1.0,
+					"%s schneller als die Polizei (Kurve %.1f, Haftung %.2f)" % [id, curve, grip])
 
 
 func test_warning_once_with_limit() -> void:

@@ -30,6 +30,8 @@ func _initialize() -> void:
 			print(Sim.table_rain_night(cfg))
 		"traffic":
 			print(Sim.table_traffic(cfg))
+		"understeer":
+			print(Sim.table_understeer(cfg))
 		_:
 			print(Sim.all_tables(cfg))
 	print("(%.1f s)" % ((Time.get_ticks_msec() - t0) / 1000.0))

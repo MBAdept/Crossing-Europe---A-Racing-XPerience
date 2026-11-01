@@ -1,16 +1,23 @@
 class_name Autopilot
 extends RefCounted
 ## Debug/test driver (CLI --autopilot): holds a lane, overtakes slower traffic, brakes ahead of
-## curves (look-ahead braking curve), traffic and radar zones, uses the fuel lane when the fuel would
-## not last to the station after next (or always / never, see refuel_mode) and – unless speeding is
-## allowed – respects radar limits. Hands off while refuelling or towing (no throttle, so the
-## FuelSystem's "Gas = Weiterfahren" never triggers by accident).
+## curves (look-ahead braking curve to curve_margin * the safe curve speed, so it never understeers),
+## traffic and radar zones, uses the fuel lane when the fuel would not last to the station after next
+## (or always / never, see refuel_mode) and – unless speeding is allowed – respects radar limits. Hands
+## off while refuelling or towing (no throttle, so the FuelSystem's "Gas = Weiterfahren" never triggers
+## by accident). curve_brake = false (debug, --autopilot-no-curve-brake) ignores curves: the car then
+## enters them too fast and understeers (demo of the driving model).
 ## Used by headless stage simulations (tests/race/run_stage.gd) and screenshot runs. Owner: race module.
 
 var target_kmh := 235.0
 var obey_radar := true
 var refuel_mode := "auto"          ## auto | always | never
-var brake_decel_mps2 := 15.0       ## planning deceleration (below the car's real braking)
+var brake_decel_mps2 := 15.0       ## planning deceleration (below the car's real braking, 70 km/h/s)
+var curve_brake := true            ## false: ignore curves (debug/demo: enters curves too fast)
+var curve_margin := 0.96           ## target speed in a curve = curve_margin * safe curve speed
+var curve_lookahead_m := 300.0     ## the braking curve covers this distance (more than any braking distance)
+var curve_step_m := 10.0           ## sample spacing of the look-ahead
+var curve_lead_m := 12.0           ## reach the curve speed this many metres before the sample point
 var reserve_l := 4.0
 var _lane := -1
 var _station := -2.0               ## station km of the current refuel decision
@@ -93,33 +100,53 @@ func drive(session: Node) -> Dictionary:
 				want = rw
 				last_reason = "radar"
 
-	# --- curves ahead (braking curve over the next 220 m)
-	var d := 15.0
-	while d <= 220.0:
-		var c := track.curve_at(z + d)
-		if absf(c) > 0.001:
-			var safe := v.safe_curve_speed(c, grip) * 0.97
-			var cw := _speed_for(safe, d - 12.0)
-			if cw < want:
-				want = cw
-				last_reason = "curve"
-		d += 15.0
-	var here := v.safe_curve_speed(track.curve_at(z), grip) * 0.97
-	want = minf(want, here)
+	# --- curves ahead (braking curve over the look-ahead)
+	if curve_brake:
+		var cw := curve_speed_ahead(track, v, z, grip)
+		if cw < want:
+			want = cw
+			last_reason = "curve"
 
 	last_want = want
 	# --- controls
 	var err := target_x - v.x
-	var steer := 0.0 if absf(err) < 0.05 else clampf(err * 0.7, -1.0, 1.0)
+	var out := pedals(speed, want)
+	if fuel.rolling_out:
+		# empty tank: the FuelSystem rolls the car out. The brake works then (VehicleModel.auto_control), so brake
+		# only where a curve needs it – braking for the fuel lane would stop the car short of it
+		out = pedals(speed, curve_speed_ahead(track, v, z, grip) if curve_brake else INF)
+		out["throttle"] = 0.0
+		last_reason = "rollout"
+	out["steer"] = 0.0 if absf(err) < 0.05 else clampf(err * 0.7, -1.0, 1.0)
+	return out
+
+
+## Throttle and brake that hold the target speed want (km/h): full throttle below it, brake firmly (from 30 %,
+## full at 12 km/h over) above it, so the car follows the braking curve of curve_speed_ahead().
+static func pedals(speed: float, want: float) -> Dictionary:
 	var throttle := 0.0
 	var brake := 0.0
 	if speed < want - 1.0:
 		throttle = 1.0
-	elif speed > want + 3.0:
-		brake = clampf((speed - want) / 25.0, 0.25, 1.0)
+	elif speed > want + 2.0:
+		brake = clampf((speed - want) / 12.0, 0.3, 1.0)
 	elif speed < want:
 		throttle = 0.6
-	return {"steer": steer, "throttle": throttle, "brake": brake}
+	return {"throttle": throttle, "brake": brake}
+
+
+## Highest speed now that still reaches curve_margin * the safe speed of every curve point within
+## curve_lookahead_m (curve_lead_m early, braking with brake_decel_mps2) – and of the point under the car.
+## grip = weather grip; inside tunnels the road is dry (Track.grip_at).
+func curve_speed_ahead(track: Track, v: VehicleModel, z: float, grip: float) -> float:
+	var want := v.safe_curve_speed(track.curve_at(z), track.grip_at(z, grip)) * curve_margin
+	var d := curve_step_m
+	while d <= curve_lookahead_m:
+		var c := track.curve_at(z + d)
+		if absf(c) > 0.001:
+			want = minf(want, _speed_for(v.safe_curve_speed(c, track.grip_at(z + d, grip)) * curve_margin, d - curve_lead_m))
+		d += curve_step_m
+	return want
 
 
 ## Highest speed now that still allows braking to v_target within distance_m.

@@ -2,8 +2,8 @@ class_name SessionRules
 extends RefCounted
 ## Pure rules of the race session (scripts/race/race_session.gd), kept out of the scene so that they can
 ## be unit-tested without autoloads: when collisions are checked, what the HUD shows as the next fuel
-## station, whether an empty tank can still roll into a fuel lane, and where the police car drives while
-## it overtakes the player. Owner: race module.
+## station, whether an empty tank can still roll into a fuel lane, where the police car drives while
+## it overtakes the player and how fast the curves let it chase. Owner: race module.
 
 
 ## True when TrafficSystem.find_collision runs in this simulation step.
@@ -63,3 +63,19 @@ static func police_pass_side(player_x: float, left_edge: float, lane_w: float) -
 static func police_car_x(offset_m: float, player_x: float, side: float, lane_w: float, pull_over_m: float, clear_m: float) -> float:
 	var beside := 1.0 - smoothstep(clear_m, maxf(clear_m + 0.5, pull_over_m), offset_m)
 	return player_x - 0.4 * (1.0 - beside) + side * lane_w * beside
+
+
+## Curve limit of the police car at z (km/h; PoliceSystem.update road_cap_kmh): the highest speed from which it
+## can still brake with police.curve_brake_mps2 to its own curve speed (PoliceSystem.curve_speed_mps, grip of
+## the road there – Track.grip_at, dry in tunnels) at every point within police.curve_lookahead_m, sampled
+## every police.curve_step_m. INF when no curve is ahead.
+static func police_curve_cap_kmh(track: Track, police: PoliceSystem, z: float, weather_grip: float) -> float:
+	var cap := INF
+	var d := 0.0
+	while d <= police.curve_lookahead_m + 0.001:
+		var zz := z + d
+		var vs := police.curve_speed_mps(track.curve_at(zz), track.grip_at(zz, weather_grip))
+		if vs < INF:
+			cap = minf(cap, sqrt(vs * vs + 2.0 * police.curve_brake_mps2 * d))
+		d += police.curve_step_m
+	return cap * 3.6

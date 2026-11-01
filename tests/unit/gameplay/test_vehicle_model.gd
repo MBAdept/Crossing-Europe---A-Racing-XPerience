@@ -177,37 +177,274 @@ func test_car_follows_road_below_safe_speed() -> void:
 	_run(v, 3.0, {"throttle": 0.0}, road)
 	assert_near(v.x, 1.0, 0.0001, "keine Abdrift unterhalb der sicheren Kurvengeschwindigkeit")
 	assert_eq(v.understeer, 0.0, "kein Untersteuern")
+	# right at the limit (full throttle holds the speed just below it): still no drift, no scrub
+	var w := Fx.vehicle(cfg(), "limousine")
+	w.speed = w.max_speed(0.0, 1.0)
+	var at_limit := Fx.flat_road(3, true, Sim.curve_for_overspeed(w, w.speed, -0.005))
+	_run(w, 3.0, {"throttle": 1.0}, at_limit)
+	assert_near(w.x, 0.0, 0.0001, "an der Grenze keine Abdrift")
+	assert_eq(w.push_speed, 0.0, "keine Driftgeschwindigkeit")
+	assert_eq(w.lat_excess, 0.0, "kein Haftungsüberschuss")
+	assert_near(w.speed, w.max_speed(0.0, 1.0), 0.001, "kein Radieren")
 
 
-func test_understeer_pushes_outwards_proportionally() -> void:
+func test_safe_curve_speed_formula_and_excess() -> void:
 	var c := cfg()
-	var right_bend := Fx.flat_road(3, true, 0.6)
-	var a := Fx.vehicle(c, "limousine")
-	var safe := a.safe_curve_speed(0.6, 1.0)
-	a.speed = safe * 1.1
-	a.update(DT, {}, right_bend, {"vmax_factor": 1.0})
-	var b := Fx.vehicle(c, "limousine")
-	b.speed = safe * 1.2
-	b.update(DT, {}, right_bend, {"vmax_factor": 1.0})
-	assert_true(a.push_speed < 0.0, "Rechtskurve drückt nach links (außen)")
-	assert_near(b.push_speed / a.push_speed, 2.0, 0.05, "proportional zur Überschreitung")
-	assert_true(b.understeer > a.understeer and a.understeer > 0.0, "Untersteuer-Intensität")
-	var left_bend := Fx.flat_road(3, true, -0.6)
+	var v := Fx.vehicle(c, "limousine")
+	var r1 := float(ConfigLoader.lookup(c, "road.curve_radius_at_1_m", 120.0))
+	var grip := float(v.spec["lat_grip"])
+	assert_near(v.safe_curve_speed(0.45, 1.0), sqrt(grip * r1 / 0.45) * 3.6, 0.001, "v = √(Haftung · R)")
+	assert_near(v.safe_curve_speed(-0.45, 1.0), v.safe_curve_speed(0.45, 1.0), 0.0001, "Richtung egal")
+	assert_eq(v.safe_curve_speed(0.0, 1.0), INF, "Gerade: keine Grenze")
+	assert_near(v.grip_accel(0.88), grip * 0.88, 0.0001, "Haftung × Wetter")
+	var safe := v.safe_curve_speed(0.45, 1.0)
+	assert_eq(v.lateral_excess(0.45, 1.0, safe * 0.99), 0.0, "unter der Grenze kein Überschuss")
+	var vm := safe * 1.2 / 3.6
+	assert_near(v.lateral_excess(0.45, 1.0, safe * 1.2), vm * vm * 0.45 / r1 - grip, 0.0001, "Überschuss = v²/R − Haftung")
+	assert_near(v.lateral_excess(0.45, 1.0, safe * 1.2) / grip, 0.44, 0.0001, "20 % zu schnell = 44 % mehr Querbeschleunigung")
+
+
+## Design: "Agilität bestimmt … die Kurvengeschwindigkeit, ab der Untersteuern einsetzt" – higher agility,
+## higher safe speed; at the same speed the agile car drifts less (or not at all).
+func test_agility_orders_curve_speeds() -> void:
+	var c := cfg()
+	var by_agility := {}
+	for id: String in Fx.VEHICLES:
+		var v := Fx.vehicle(c, id)
+		by_agility[int(v.spec["agility"])] = v.safe_curve_speed(0.45, 1.0)
+	var levels := by_agility.keys()
+	levels.sort()
+	for i in range(1, levels.size()):
+		assert_true(float(by_agility[levels[i]]) > float(by_agility[levels[i - 1]]) + 3.0,
+			"Agilität %d (%.0f km/h) > Agilität %d (%.0f km/h)" % [levels[i], by_agility[levels[i]], levels[i - 1], by_agility[levels[i - 1]]])
+	# curviness 2 (sharpest curve): about 140–170 km/h, mountain roads (curviness 3) about 100–120
+	var maxes: Array = ConfigLoader.lookup(c, "road.curviness_max_curve", [0.0, 0.30, 0.45, 0.9])
+	for id: String in Fx.VEHICLES:
+		var v := Fx.vehicle(c, id)
+		assert_between(v.safe_curve_speed(float(maxes[2]), 1.0), 140.0, 170.0, id + " Kurvigkeit 2")
+		assert_between(v.safe_curve_speed(float(maxes[3]), 1.0), 98.0, 120.0, id + " Kurvigkeit 3")
+	# playtest v0.3.0 "Kurven immer mit Top Speed": the sharpest autobahn curve (curviness 1) needs a lift with every
+	# car – more than the 5 % that counter-steering holds –, the median one only the heavy cars
+	var kompakt := Fx.vehicle(c, "kompakt")
+	var gt := Fx.vehicle(c, "gran_turismo")
+	for id: String in Fx.VEHICLES:
+		var v := Fx.vehicle(c, id)
+		assert_true(v.safe_curve_speed(float(maxes[1]), 1.0) * 1.05 < v.max_speed(0.0, 1.0),
+			"%s: schärfste Kurve Kurvigkeit 1 verlangt Gas weg (%.0f km/h)" % [id, v.safe_curve_speed(float(maxes[1]), 1.0)])
+	assert_true(kompakt.safe_curve_speed(float(maxes[1]) * 0.675, 1.0) > kompakt.max_speed(0.0, 1.0), "Kompakt: mittlere Kurve Kurvigkeit 1 mit Vollgas")
+	assert_true(gt.safe_curve_speed(float(maxes[1]) * 0.675, 1.0) < gt.max_speed(0.0, 1.0) * 0.9, "Gran Turismo: auch die mittlere verlangt Gas weg")
+	# same speed, same curve: the agile car stays on its line, the heavy one drifts
+	var road := Fx.flat_road(3, true, 0.35)
+	kompakt.speed = 180.0
+	gt.speed = 180.0
+	_run(kompakt, 1.0, {"throttle": 0.5}, road)
+	_run(gt, 1.0, {"throttle": 0.5}, road)
+	assert_near(kompakt.x, 0.0, 0.0001, "Kompakt hält die Linie")
+	assert_true(gt.x < -0.3, "Gran Turismo schiebt nach außen (%.2f m)" % gt.x)
+
+
+## The drift is an acceleration: it builds up while the car is too fast, faster the bigger the excess,
+## always towards the outside of the bend.
+func test_understeer_drift_grows_with_excess_and_time() -> void:
+	var c := cfg()
+	var pushes: Array[float] = []
+	for over: float in [0.05, 0.10, 0.20]:
+		var v := Fx.vehicle(c, "limousine")
+		v.speed = v.max_speed(0.0, 1.0)
+		var road := Fx.flat_road(3, true, Sim.curve_for_overspeed(v, v.speed, over))
+		_run(v, 0.25, {"throttle": 1.0}, road)
+		var early := v.push_speed
+		_run(v, 0.25, {"throttle": 1.0}, road)
+		assert_true(early < 0.0, "%d %%: Rechtskurve drückt nach links (außen)" % roundi(over * 100.0))
+		assert_true(v.push_speed < early * 1.6, "%d %%: Drift wächst mit der Zeit (%.2f -> %.2f m/s)" % [roundi(over * 100.0), early, v.push_speed])
+		assert_true(v.x < 0.0, "nach außen gewandert")
+		assert_true(v.understeer > 0.0 and v.lat_excess > 0.0, "Untersteuern gemeldet")
+		pushes.append(v.push_speed)
+	assert_true(pushes[1] < pushes[0] * 1.5 and pushes[2] < pushes[1] * 1.5, "mehr Überschreitung, stärkere Drift: %s" % str(pushes))
+	# initial build-up = push_gain * excess (before scrub and steering matter)
+	var p := Fx.vehicle(c, "limousine")
+	p.speed = p.max_speed(0.0, 1.0)
+	var bend := Fx.flat_road(3, true, Sim.curve_for_overspeed(p, p.speed, 0.15))
+	var a_ex := p.lateral_excess(float(bend["curve"]), 1.0, p.speed)
+	p.update(0.05, {"throttle": 1.0}, bend, {"vmax_factor": 1.0})
+	assert_near(p.push_speed, -float(ConfigLoader.lookup(c, "driving.understeer.push_gain", 2.5)) * a_ex * 0.05, 0.01, "Driftbeschleunigung = push_gain · a_ex")
+	# left bend: towards the right
 	var l := Fx.vehicle(c, "limousine")
-	l.speed = safe * 1.1
-	l.update(DT, {}, left_bend, {"vmax_factor": 1.0})
-	assert_true(l.push_speed > 0.0, "Linkskurve drückt nach rechts (außen)")
-	# steering gets weaker: same input, less lateral speed than on a straight
-	var s1 := Fx.vehicle(c, "limousine")
-	var s2 := Fx.vehicle(c, "limousine")
-	s1.speed = safe * 1.3
-	s2.speed = safe * 1.3
-	_run(s1, 0.5, {"steer": 1.0}, right_bend)
-	_run(s2, 0.5, {"steer": 1.0}, Fx.flat_road())
-	assert_true(s1.lat_speed < s2.lat_speed * 0.7, "Lenkung greift schwächer beim Untersteuern")
-	# grip: rain lowers the safe speed
-	assert_true(a.safe_curve_speed(0.6, 0.88) < safe, "Regen senkt die sichere Kurvengeschwindigkeit")
-	assert_eq(a.safe_curve_speed(0.0, 1.0), INF, "Gerade: keine Grenze")
+	l.speed = l.max_speed(0.0, 1.0)
+	_run(l, 0.5, {"throttle": 1.0}, Fx.flat_road(3, true, -Sim.curve_for_overspeed(l, l.speed, 0.15)))
+	assert_true(l.push_speed > 0.0 and l.x > 0.0, "Linkskurve drückt nach rechts (außen)")
+	# understeer intensity: 0..1, full at driving.understeer.full_excess
+	var full := float(ConfigLoader.lookup(c, "driving.understeer.full_excess", 0.5))
+	var u := Fx.vehicle(c, "limousine")
+	u.speed = u.max_speed(0.0, 1.0)
+	u.update(DT, {"throttle": 1.0}, Fx.flat_road(3, true, Sim.curve_for_overspeed(u, u.speed, sqrt(1.0 + full * 2.0) - 1.0)), {"vmax_factor": 1.0})
+	assert_near(u.understeer, 1.0, 0.0001, "voll bei doppeltem full_excess")
+	u.reset()
+	u.speed = u.max_speed(0.0, 1.0)
+	u.update(DT, {"throttle": 1.0}, Fx.flat_road(3, true, Sim.curve_for_overspeed(u, u.speed, sqrt(1.0 + full * 0.5) - 1.0)), {"vmax_factor": 1.0})
+	assert_near(u.understeer, 0.5, 0.02, "halb bei halbem full_excess")
+
+
+## Feel targets (docs/gameplay.md, tables (i2), (i2b)): top speed into a bend that is X % too fast, middle lane of
+## a three-lane autobahn: a player who keeps the lane (counter-steer proportional to the deviation) holds it at 5 %
+## through a whole real curve piece (ramps, up to 520 m); at 10 % the long piece ends at the guardrail. With full
+## counter-steer 15 % still drifts a lane outwards within ~1.5 s, 30 % reaches the shoulder / guardrail in ~1–1.5 s.
+func test_counter_steer_holds_slightly_but_not_clearly_too_fast() -> void:
+	var c := cfg()
+	for id: String in Fx.VEHICLES:
+		for length_m: float in [150.0, 300.0, 520.0]:
+			var hold := Sim.curve_piece_run(c, id, 0.05, length_m)
+			assert_true(float(hold["dev_max"]) < 1.0 and not bool(hold["shoulder"]),
+				"%s 5 %%, %d m: Spur gehalten (höchstens %.2f m daneben)" % [id, roundi(length_m), float(hold["dev_max"])])
+		var lost := Sim.curve_piece_run(c, id, 0.10, 520.0)
+		assert_true(bool(lost["limit"]), "%s 10 %%, 520 m: trotz Gegenlenken an der Leitplanke (%.2f m)" % [id, float(lost["out_max"])])
+	for id: String in ["kompakt", "limousine", "gran_turismo"]:
+		var free5 := Sim.understeer_run(c, id, 0.05, 0.0, 2.5)
+		assert_true(float(free5["x_min"]) < -2.5, "%s 5 %%: ohne Lenken schiebt der Wagen (x min %.2f)" % [id, float(free5["x_min"])])
+		var r15 := Sim.understeer_run(c, id, 0.15, 1.0, 3.0)
+		assert_between(float(r15["t_lane"]), 1.1, 1.8, "%s 15 %%: trotz Gegenlenken eine Spur nach außen" % id)
+		var r30 := Sim.understeer_run(c, id, 0.30, 1.0, 3.0)
+		assert_between(float(r30["t_shoulder"]), 0.8, 1.4, "%s 30 %%: Bankett" % id)
+		assert_between(float(r30["t_limit"]), 1.0, 1.6, "%s 30 %%: Leitplanke" % id)
+	# steering towards the inside loses effect, steering out of the bend keeps it
+	var s_in := Fx.vehicle(c, "limousine")
+	var s_out := Fx.vehicle(c, "limousine")
+	var s_straight := Fx.vehicle(c, "limousine")
+	for v: VehicleModel in [s_in, s_out, s_straight]:
+		v.speed = v.max_speed(0.0, 1.0)
+	var bend := Fx.flat_road(3, true, Sim.curve_for_overspeed(s_in, s_in.speed, 0.15))
+	_run(s_in, 0.5, {"steer": 1.0, "throttle": 1.0}, bend)
+	_run(s_out, 0.5, {"steer": -1.0, "throttle": 1.0}, bend)
+	_run(s_straight, 0.5, {"steer": 1.0, "throttle": 1.0}, Fx.flat_road())
+	assert_true(s_in.lat_speed < s_straight.lat_speed * 0.4, "Lenken nach innen greift kaum (%.2f vs. %.2f m/s)" % [s_in.lat_speed, s_straight.lat_speed])
+	assert_near(-s_out.lat_speed, s_straight.lat_speed, 0.05, "Lenken nach außen voll wirksam")
+
+
+## Lifting/braking is the remedy: once below the limit the drift decays quickly (recover_s).
+func test_drift_recovers_after_braking() -> void:
+	var c := cfg()
+	var r := Sim.understeer_run(c, "limousine", 0.15, 1.0, 3.0, 1.0, DT, 0.6)
+	assert_true(float(r["push_peak"]) > 2.0, "deutliche Drift vor dem Bremsen (%.1f m/s)" % float(r["push_peak"]))
+	assert_between(float(r["t_below"]) - 0.6, 0.1, 0.8, "Bremsen bringt den Wagen schnell unter die Grenze")
+	assert_between(float(r["t_recovered"]) - float(r["t_below"]), 0.0, 0.8, "Drift klingt danach schnell ab")
+	assert_true(float(r["drift_after_m"]) < 0.6, "kaum noch weiter nach außen (%.2f m)" % float(r["drift_after_m"]))
+	assert_true(float(r["x_min"]) > -3.75, "bleibt in der Nachbarspur (x min %.2f)" % float(r["x_min"]))
+	# a car that is back below the limit drifts no more: exponential decay with recover_s
+	var v := Fx.vehicle(c, "limousine")
+	v.speed = 120.0
+	v.push_speed = -4.0
+	var tau := float(ConfigLoader.lookup(c, "driving.understeer.recover_s", 0.25))
+	_run(v, tau, {"throttle": 0.5}, Fx.flat_road())
+	assert_near(v.push_speed, -4.0 * exp(-1.0), 0.02, "Abklingen mit recover_s")
+	assert_near(v.x, -4.0 * tau * (1.0 - exp(-1.0)), 0.01, "Weg während des Abklingens")
+
+
+## The sliding tyres scrub speed in proportion to the excess (km/h/s = 3.6 · scrub_per_excess · a_ex).
+func test_sliding_scrubs_speed() -> void:
+	var c := cfg()
+	var v := Fx.vehicle(c, "limousine")
+	v.speed = 200.0
+	var road := Fx.flat_road(3, true, Sim.curve_for_overspeed(v, 200.0, 0.2))
+	var a_ex := v.lateral_excess(float(road["curve"]), 1.0, 200.0)
+	_run(v, 0.1, {"throttle": 0.0}, road)
+	var coast := float(ConfigLoader.lookup(c, "driving.coast_decel_kmh_s", 5.0))
+	var scrub := float(ConfigLoader.lookup(c, "driving.understeer.scrub_per_excess", 0.5))
+	assert_near(200.0 - v.speed, (coast + 3.6 * scrub * a_ex) * 0.1, 0.15, "Rollen + Radieren")
+	var straight := Fx.vehicle(c, "limousine")
+	straight.speed = 200.0
+	_run(straight, 0.1, {"throttle": 0.0}, Fx.flat_road())
+	assert_true(v.speed < straight.speed - 0.5, "rutschend langsamer als geradeaus")
+
+
+## Weather grip lowers the safe speed (∝ √grip): a speed that is fine in the dry understeers in snow.
+func test_weather_grip_lowers_curve_speed() -> void:
+	var c := cfg()
+	var env := EnvironmentModel.new()
+	env.setup(c)
+	var v := Fx.vehicle(c, "limousine")
+	var dry := v.safe_curve_speed(0.45, env.grip("normal"))
+	assert_near(v.safe_curve_speed(0.45, env.grip("rain")), dry * sqrt(env.grip("rain")), 0.01, "Regen")
+	assert_near(v.safe_curve_speed(0.45, env.grip("snow")), dry * sqrt(env.grip("snow")), 0.01, "Schnee")
+	var speed := dry * 0.97
+	var a := Fx.vehicle(c, "limousine")
+	var b := Fx.vehicle(c, "limousine")
+	a.speed = speed
+	b.speed = speed
+	_run(a, 1.0, {"throttle": 0.3}, Fx.flat_road(3, true, 0.45, env.grip("normal")))
+	_run(b, 1.0, {"throttle": 0.3}, Fx.flat_road(3, true, 0.45, env.grip("snow")))
+	assert_near(a.x, 0.0, 0.0001, "trocken: hält die Linie")
+	assert_true(b.x < -1.0, "Schnee: schiebt nach außen (%.2f m)" % b.x)
+
+
+## Rolling out with an empty tank (scripted 18 km/h/s, the player steers) the brake still works: in a bend 25 %
+## too fast the scripted roll-out alone slides into the guardrail, braking avoids it.
+func test_brake_works_while_rolling_out() -> void:
+	var c := cfg()
+	for use_brake: bool in [false, true]:
+		var v := Fx.vehicle(c, "limousine")
+		v.speed = v.max_speed(0.0, 1.0)
+		var bend := Fx.flat_road(3, true, Sim.curve_for_overspeed(v, v.speed, 0.25))
+		var hits := 0
+		var t := 0.0
+		while t < 3.0:
+			v.auto_control(0.0, 18.0)
+			v.update(DT, {"steer": clampf(-v.x * 1.5, -1.0, 1.0), "brake": 1.0 if use_brake else 0.0}, bend, {"vmax_factor": 1.0})
+			t += DT
+			hits += 1 if v.rail_hit else 0
+		if use_brake:
+			assert_eq(hits, 0, "mit Bremse: keine Leitplanke (x %.2f)" % v.x)
+			assert_true(v.x > -3.75, "mit Bremse: bleibt in der Nachbarspur (x %.2f)" % v.x)
+		else:
+			assert_true(hits > 0, "nur Ausrollen: rutscht in die Leitplanke")
+	# the brake only adds: a weak pedal does not slow the scripted roll-out down
+	var a := Fx.vehicle(c, "limousine")
+	var b := Fx.vehicle(c, "limousine")
+	a.speed = 200.0
+	b.speed = 200.0
+	a.auto_control(0.0, 18.0)
+	b.auto_control(0.0, 18.0)
+	a.update(0.5, {}, Fx.flat_road(), {"vmax_factor": 1.0})
+	b.update(0.5, {"brake": 0.1, "throttle": 1.0}, Fx.flat_road(), {"vmax_factor": 1.0})
+	assert_near(a.speed, 191.0, 0.01, "Ausrollen 18 km/h/s")
+	assert_near(b.speed, 191.0, 0.01, "schwache Bremse (7 km/h/s) und Gas ändern nichts")
+
+
+## The drift integrates exactly per step: 30 Hz and 144 Hz give the same path.
+func test_understeer_is_frame_rate_independent() -> void:
+	var c := cfg()
+	var r30 := Sim.understeer_run(c, "limousine", 0.15, 0.0, 1.2, 1.0, 1.0 / 30.0)
+	var r144 := Sim.understeer_run(c, "limousine", 0.15, 0.0, 1.2, 1.0, 1.0 / 144.0)
+	assert_near(float(r30["x_end"]), float(r144["x_end"]), 0.12, "Weg 30 Hz vs. 144 Hz")
+	assert_near(float(r30["v_end"]), float(r144["v_end"]), 0.3, "Tempo 30 Hz vs. 144 Hz")
+	var d30 := Sim.understeer_run(c, "limousine", 0.15, 1.0, 1.8, 1.0, 1.0 / 30.0, 0.6)
+	var d144 := Sim.understeer_run(c, "limousine", 0.15, 1.0, 1.8, 1.0, 1.0 / 144.0, 0.6)
+	assert_near(float(d30["x_min"]), float(d144["x_min"]), 0.15, "Erholung 30 Hz vs. 144 Hz")
+
+
+## Sliding into the guardrail stops the drift and costs more than a touch: rail_hit_factor falls with the
+## drift speed (driving.guardrail.impact_*).
+func test_drift_into_guardrail_is_costly() -> void:
+	var c := cfg()
+	var v := Fx.vehicle(c, "limousine")
+	var touch := float(ConfigLoader.lookup(c, "driving.guardrail.speed_factor_per_hit", 0.9))
+	var floor_f := float(ConfigLoader.lookup(c, "driving.guardrail.min_speed_factor", 0.5))
+	assert_near(v.rail_hit_factor(0.0), touch, 0.0001, "Berühren wie bisher")
+	assert_true(v.rail_hit_factor(6.0) < touch - 0.1, "harter Aufprall kostet mehr")
+	assert_near(v.rail_hit_factor(100.0), floor_f, 0.0001, "Untergrenze")
+	v.speed = v.max_speed(0.0, 1.0)
+	var road := Fx.flat_road(3, true, Sim.curve_for_overspeed(v, v.speed, 0.3))
+	var hit_v := -1.0
+	var before := 0.0
+	for i in 180:
+		var b := v.speed
+		v.update(DT, {"throttle": 1.0}, road, {"vmax_factor": 1.0})
+		if v.rail_hit and hit_v < 0.0:
+			hit_v = v.speed
+			before = b
+			assert_true(v.rail_impact > 4.0, "mit Drift in die Leitplanke (%.1f m/s)" % v.rail_impact)
+			assert_true(v.push_speed >= 0.0, "Leitplanke stoppt die Drift")
+	assert_true(hit_v > 0.0, "Leitplanke erreicht")
+	assert_true(hit_v < before * 0.8, "harter Aufprall: %.0f -> %.0f km/h" % [before, hit_v])
 
 
 func test_shoulder_slows_down() -> void:

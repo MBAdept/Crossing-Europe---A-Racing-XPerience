@@ -11,10 +11,12 @@ extends SceneTree
 ##   refuel_chase    police chase into a refuel: police blocked while refuelling, HUD range at the
 ##                   current speed and next station 0 at the pumps (POL-1, FUEL-5, FUEL-7)
 ##   tutorial        Kiel – Hamburg shows the tutorial hints, the dev stage none (TUT-1)
+##   rail_feedback   an understeer slide into the guardrail: speed loss, camera shake and flash (review: the hit
+##                   showed only on the speedometer)
 ## Prints "CHECK <name> OK …" or "CHECK <name> FEHLER …" per scenario; exit code 0 when all pass.
 ## The scene is accessed untyped (this script compiles before the autoloads the scene uses).
 
-const SCENARIOS := ["coll_right", "coll_left", "coll_middle", "dry_rollout", "dry_into_lane", "finish_rollout", "refuel_chase", "tutorial", "no_tutorial"]
+const SCENARIOS := ["coll_right", "coll_left", "coll_middle", "dry_rollout", "dry_into_lane", "finish_rollout", "refuel_chase", "tutorial", "no_tutorial", "rail_feedback"]
 
 var _queue: Array[String] = []
 var _name := ""
@@ -293,9 +295,11 @@ func _tick_refuel_chase() -> void:
 	if not _d.has("set"):
 		_d["set"] = true
 		_fuel().fuel_l = _fuel().tank_l * 0.5
-		# 200 km/h: too slow to escape (220), so the chase is still running when the car refuels.
+		# 180 km/h: too slow to escape – also where the police has to slow down for the curves of this stretch
+		# (the escape threshold follows the police: 220 on a straight, less in curves) –, and the police starts
+		# police.max_gap_m behind (set below), so the chase is still running when the car refuels 27 s later.
 		# No traffic: a slower car ahead would let the police catch up before the fuel lane.
-		(_sc.get("autopilot") as Object).set("target_kmh", 200.0)
+		(_sc.get("autopilot") as Object).set("target_kmh", 180.0)
 		_sc.set("traffic_enabled", false)
 		((_sc.get("traffic") as Object).get("cars") as Array).clear()
 		_d["bad_block"] = 0
@@ -303,6 +307,9 @@ func _tick_refuel_chase() -> void:
 		return
 	var f := _fuel()
 	var p := _police()
+	if p.state == PoliceSystem.State.CHASE and not _d.has("gap_set"):
+		_d["gap_set"] = true
+		p.gap_m = float(ConfigLoader.lookup(ConfigLoader.load_merged(), "police.max_gap_m", 600.0))
 	if p.blocked != (f.state != FuelSystem.State.NORMAL):
 		_d["bad_block"] = int(_d["bad_block"]) + 1
 	if f.state == FuelSystem.State.REFUELING:
@@ -322,6 +329,34 @@ func _tick_refuel_chase() -> void:
 		_done(ok, "Verfolgung beim Tanken: Polizei blockiert genau beim Tanken (Abweichungen %d), HUD beim Tanken (Abweichungen %d), Stillstand %.1f s (Tanken + Polizei-Stopp)" % [int(_d["bad_block"]), int(_d["bad_hud"]), float(_d.get("stand_s", 0.0))])
 	elif _t > 120.0:
 		_done(false, "Zeitlimit (Tankstatus %d, Polizei %d, Tanken gesehen %s, Verfolgung beim Tanken %s)" % [f.state, p.state, str(_d.get("refuel_seen", false)), str(_d.get("chase_during_refuel", false))])
+
+
+# --- guardrail hit feedback ------------------------------------------------------------------------
+
+func _start_rail_feedback() -> void:
+	_launch("dev_testetappe", 3.0, {})
+
+
+func _tick_rail_feedback() -> void:
+	var v := _vehicle()
+	if not _d.has("set"):
+		_d["set"] = true
+		_sc.set("traffic_enabled", false)
+		((_sc.get("traffic") as Object).get("cars") as Array).clear()
+		# 200 km/h, right next to the guardrail on the left, sliding outwards with 6 m/s (understeer drift)
+		var e := _track().road_edges_at(float(_sc.get("pos_z")))
+		v.speed = 200.0
+		v.x = e.x - _track().shoulder_w + v.width_m * 0.5 + 0.05
+		v.push_speed = -6.0
+		return
+	var stats: Dictionary = _sc.get("drive_stats")
+	if int(stats["rail_hits"]) >= 1:
+		var shake := float(_sc.get("_shake_t"))
+		var flash: Color = (_sc.get("hud") as Object).get("_flash")
+		var ok := v.speed < 200.0 * 0.8 and shake > 0.3 and is_equal_approx(flash.g, 0.55) and flash.a > 0.2
+		_done(ok, "Leitplanke mit Abdrift %.1f m/s: Tempo 200 -> %.0f km/h, Wackeln %.2f s, Aufblitzen %s" % [v.rail_impact, v.speed, shake, str(flash)])
+	elif _t > 3.0:
+		_done(false, "keine Leitplanke erreicht (x %.2f)" % v.x)
 
 
 # --- TUT-1 ---------------------------------------------------------------------------------------

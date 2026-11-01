@@ -222,7 +222,7 @@ static func tutorial_tips(config: Dictionary, radar_limit_kmh: float = 0.0, star
 	var tol := float(ConfigLoader.lookup(config, "radar.tolerance", 0.15))
 	var limit := radar_limit_kmh if radar_limit_kmh > 0.0 else float(ConfigLoader.lookup(config, "radar.default_limit_kmh", 120))
 	var escape := float(ConfigLoader.lookup(config, "police.escape_speed_kmh", 220.0))
-	var radar := t("Radar: %s %% Toleranz – bei Limit %s km/h blitzt es erst ab %s km/h. Geblitzt? Die Polizei hängst du nur über %s km/h ab.") % [
+	var radar := t("Radar: %s %% Toleranz – bei Limit %s km/h blitzt es erst ab %s km/h. Geblitzt? Die Polizei hängst du nur über %s km/h ab – in Kurven muss auch sie bremsen.") % [
 		number(tol * 100.0, 1), number(limit, 0), number(radar_trigger_kmh(limit, config), 0), number(escape, 0)]
 	return [fuel, radar] as Array[String]
 

@@ -21,20 +21,25 @@
 	},
 
 	"road": {
-		"_doc": "Straßengeometrie, gemeinsam für Darstellung, Fahrmodell und Verkehr. Kurven-Wert 1.0 entspricht curve_radius_at_1_m Radius. Kurvigkeit/Hügel 0–3 aus den Etappendaten wählen die Maximalwerte. Alle Längen in sichtbaren Metern (1 km Kilometerzähler = 83,3 m). runout_m: gerade Auslaufstrecke hinter der Ziellinie.",
+		"_doc": "Straßengeometrie, gemeinsam für Darstellung, Fahrmodell und Verkehr. Kurven-Wert 1.0 entspricht curve_radius_at_1_m Radius. Kurvigkeit/Hügel 0–3 aus den Etappendaten wählen die Maximalwerte (Kurvigkeit 1 = 0,30, R >= 400 m: seit dem Spieltest „Kurven immer mit Top Speed“ muss auch der agile Kompakt in den schärferen Autobahnkurven vom Gas, docs/gameplay.md (i)). Alle Längen in sichtbaren Metern (1 km Kilometerzähler = 83,3 m). runout_m: gerade Auslaufstrecke hinter der Ziellinie. Scharfe Kurven (Betrag >= curve_warning_min_curve, z. B. 0,25 = 480 m Radius, sicher bei 196 km/h mit Agilität 2) bekommen curve_warning_m vor dem Kurvenstück ein Warnschild (Gefahrzeichen Kurve) und außen alle chevron_every_m eine rot-weiße Richtungstafel; das Warnschild steht auch vor blinden Kurven (Betrag >= curve_warning_blind_min_curve, Kurvenanfang von curve_warning_sight_m davor wegen einer Kuppe nicht zu sehen) – so ist jede Kurve rechtzeitig erkennbar (tests/sim/curve_sight.gd).",
 		"lane_width_m": 3.75,
 		"lanes": { "autobahn": 3, "landstrasse": 2, "city": 2 },
 		"shoulder_width_m": 2.5,
 		"guardrail": { "autobahn": true, "landstrasse": false, "city": false },
 		"curve_radius_at_1_m": 120.0,
-		"curviness_max_curve": [0.0, 0.22, 0.45, 0.9],
+		"curviness_max_curve": [0.0, 0.30, 0.45, 0.9],
 		"hills_max_grade": [0.0, 0.025, 0.045, 0.07],
 		"lane_transition_m": 180.0,
 		"fuel_lane_taper_m": 40.0,
 		"runout_m": 600.0,
 		"delineator_every_m": 50.0,
 		"streetlight_every_m": 33.0,
-		"crosswalk_every_m": 330.0
+		"crosswalk_every_m": 330.0,
+		"curve_warning_min_curve": 0.25,
+		"curve_warning_blind_min_curve": 0.12,
+		"curve_warning_sight_m": 150.0,
+		"curve_warning_m": 200.0,
+		"chevron_every_m": 30.0
 	},
 
 	"vehicles": {
@@ -59,26 +64,29 @@
 			"5": { "t100_s": 3.8, "t200_s": 10.0 }
 		},
 		"agility_ratings": {
-			"_doc": "steer_mps: seitliche Lenkgeschwindigkeit in m/s; lat_grip: Querbeschleunigung in m/s², bestimmt die Kurvengeschwindigkeit, ab der Untersteuern einsetzt.",
-			"1": { "steer_mps": 6.5, "lat_grip": 7.6 },
-			"2": { "steer_mps": 7.5, "lat_grip": 8.3 },
-			"3": { "steer_mps": 8.5, "lat_grip": 9.0 },
-			"4": { "steer_mps": 9.5, "lat_grip": 9.7 },
-			"5": { "steer_mps": 10.5, "lat_grip": 10.4 }
+			"_doc": "steer_mps: seitliche Lenkgeschwindigkeit in m/s; lat_grip: Querbeschleunigung in m/s², bestimmt die Kurvengeschwindigkeit, ab der Untersteuern einsetzt (sicher = Wurzel(lat_grip * Haftung * Radius)). 5,6-8,0 m/s²: schärfste Kurve Kurvigkeit 1/2/3 sicher bei 209-238 / 146-166 / 104-118 km/h (docs/gameplay.md (i)).",
+			"1": { "steer_mps": 6.5, "lat_grip": 5.6 },
+			"2": { "steer_mps": 7.5, "lat_grip": 6.2 },
+			"3": { "steer_mps": 8.5, "lat_grip": 6.8 },
+			"4": { "steer_mps": 9.5, "lat_grip": 7.4 },
+			"5": { "steer_mps": 10.5, "lat_grip": 8.0 }
 		}
 	},
 
 	"driving": {
-		"_doc": "Arcade-Fahrmodell ohne Physik-Engine (Details: docs/gameplay.md). Kein Übersteuern: zu schnell in der Kurve -> Untersteuern (nach außen drücken, proportional zur relativen Überschreitung der sicheren Kurvengeschwindigkeit, Lenkung greift schwächer). Unterhalb der sicheren Kurvengeschwindigkeit folgt der Wagen der Straße ohne Abdrift (base_centrifugal bleibt 0). Straßenrand: Bankett (shoulder) bremst auf max_speed_kmh; harte Grenze bei Fahrbahnrand + Bankett: Leitplanke (Geschwindigkeit * speed_factor_per_hit, Abprallen) oder ohne Leitplanke Gras (grass, stärker bremsen). Höchstgeschwindigkeit = vmax * Wetter * Nacht * Steigung (nur bergauf): Steigungen bis grade_free_percent kosten nichts, darüber grade_vmax_loss_per_percent je Prozentpunkt – so schafft auch das langsamste Auto (230) bei leicht verschlechterten Bedingungen (Regen + Nacht, Hügel bis Stufe 2 = 4,5 %) die 220 km/h für die Polizeiflucht.",
+		"_doc": "Arcade-Fahrmodell ohne Physik-Engine (Details: docs/gameplay.md). Kein Übersteuern: zu schnell in der Kurve -> Untersteuern. Die Kurve verlangt v²/R (R = road.curve_radius_at_1_m / |Kurve|), die Reifen geben lat_grip (Agilität) * Haftung (Wetter); unterhalb dieser Grenze folgt der Wagen der Straße ohne Abdrift (base_centrifugal bleibt 0). Darüber (understeer): der Überschuss a_ex beschleunigt eine Abdrift nach außen (push_gain * a_ex), Lenken zur Kurveninnenseite behält max(min_steer_factor, 1 - steer_loss_per_excess * a_ex/Haftung), die rutschenden Reifen radieren min(scrub_per_excess * a_ex, scrub_max_mps2) vom Tempo, unter der Grenze klingt die Abdrift mit recover_s ab; understeer (HUD/Ton) = a_ex/Haftung / full_excess. Straßenrand: Bankett (shoulder) bremst auf max_speed_kmh und hat nur grip_factor Haftung; harte Grenze bei Fahrbahnrand + Bankett: Leitplanke (Geschwindigkeit * speed_factor_per_hit, mit Untersteuer-Abdrift je m/s über impact_free_mps zusätzlich impact_loss_per_mps weniger, bis min_speed_factor; Abprallen) oder ohne Leitplanke Gras (grass, stärker bremsen). Höchstgeschwindigkeit = vmax * Wetter * Nacht * Steigung (nur bergauf): Steigungen bis grade_free_percent kosten nichts, darüber grade_vmax_loss_per_percent je Prozentpunkt – so schafft auch das langsamste Auto (230) bei leicht verschlechterten Bedingungen (Regen + Nacht, Hügel bis Stufe 2 = 4,5 %) die 220 km/h für die Polizeiflucht.",
 		"brake_decel_kmh_s": 70.0,
 		"coast_decel_kmh_s": 5.0,
 		"steer_full_speed_kmh": 60.0,
 		"steer_response_s": 0.12,
 		"understeer": {
-			"push_mps_per_excess": 14.0,
-			"steer_loss_per_excess": 1.6,
-			"min_steer_factor": 0.25,
-			"full_excess": 0.4
+			"push_gain": 2.5,
+			"steer_loss_per_excess": 3.0,
+			"min_steer_factor": 0.15,
+			"full_excess": 0.5,
+			"recover_s": 0.25,
+			"scrub_per_excess": 0.5,
+			"scrub_max_mps2": 3.0
 		},
 		"base_centrifugal": 0.0,
 		"grade_vmax_loss_per_percent": 0.012,
@@ -86,8 +94,9 @@
 		"weather_vmax_factor": { "normal": 1.0, "rain": 0.975, "snow": 0.88 },
 		"night_vmax_factor": 0.99,
 		"weather_grip_factor": { "normal": 1.0, "rain": 0.88, "snow": 0.72 },
-		"shoulder": { "max_speed_kmh": 90.0, "decel_kmh_s": 35.0, "tolerance_m": 0.5 },
-		"guardrail": { "speed_factor_per_hit": 0.9, "bounce_mps": 1.5, "hit_cooldown_s": 0.6, "scrape_decel_kmh_s": 20.0 },
+		"shoulder": { "max_speed_kmh": 90.0, "decel_kmh_s": 35.0, "tolerance_m": 0.5, "grip_factor": 0.6 },
+		"guardrail": { "speed_factor_per_hit": 0.9, "bounce_mps": 1.5, "hit_cooldown_s": 0.6, "scrape_decel_kmh_s": 20.0,
+			"impact_free_mps": 1.0, "impact_loss_per_mps": 0.05, "min_speed_factor": 0.5 },
 		"overspeed_decel_kmh_s": 12.0,
 		"grade_min_factor": 0.5,
 		"grass": { "max_speed_kmh": 40.0, "decel_kmh_s": 60.0 },
@@ -194,7 +203,7 @@
 	},
 
 	"police": {
-		"_doc": "Verfolgung: Polizeiwagen startet start_gap_m (sichtbare Meter) hinter dem Spieler und fährt police_speed_kmh – der Abstand schrumpft, solange der Spieler langsamer ist. Flucht gelingt, wenn der Durchschnitt über escape_window_s mindestens escape_speed_kmh beträgt und die Verfolgung so lange lief. Erwischt (Abstand 0 oder catch_timeout_s): anhalten (stop_decel_kmh_s), stop_duration_s stehen, dann aus dem Stand weiter. Hält ein anderes System den Wagen (Tanken, Abschleppen), wartet der Polizeistopp, bis es fertig ist. catch_timeout_s (nicht im Design) beendet Verfolgungen knapp unter 220 km/h; 60 s reichen, damit eine Verfolgung vom letzten Radar (Feldende >= 30 km vor den City Limits) bei 200–219 km/h in die City Limits hineinläuft. Darstellung (police_car_offset_m): während der Verfolgung bleibt der Polizeiwagen hinter der Kamera (mind. overtake_from_m hinter dem Spieler); beim Zugriff überholt er in overtake_s von overtake_from_m hinten bis pull_over_offset_m vorn (das Renn-Modul zeichnet ihn dabei eine Spur daneben).",
+		"_doc": "Verfolgung: Polizeiwagen startet start_gap_m (sichtbare Meter) hinter dem Spieler und fährt police_speed_kmh – der Abstand schrumpft, solange der Spieler langsamer ist. Flucht gelingt, wenn der Durchschnitt über escape_window_s mindestens escape_speed_kmh beträgt und die Verfolgung so lange lief. Erwischt (Abstand 0 oder catch_timeout_s): anhalten (stop_decel_kmh_s), stop_duration_s stehen, dann aus dem Stand weiter. Hält ein anderes System den Wagen (Tanken, Abschleppen), wartet der Polizeistopp, bis es fertig ist. catch_timeout_s (nicht im Design) beendet Verfolgungen knapp unter 220 km/h; 60 s reichen, damit eine Verfolgung vom letzten Radar (Feldende >= 30 km vor den City Limits) bei 200–219 km/h in die City Limits hineinläuft. Darstellung (police_car_offset_m): während der Verfolgung bleibt der Polizeiwagen hinter der Kamera (mind. overtake_from_m hinter dem Spieler); beim Zugriff überholt er in overtake_s von overtake_from_m hinten bis pull_over_offset_m vorn (das Renn-Modul zeichnet ihn dabei eine Spur daneben). Kurven: auch die Polizei untersteuert sonst – ihr Wagen hat die Kurvenhaftung der Agilitätsstufe agility (1, unter jedem Spielerauto: wie jedes Auto 220 km/h schafft, ist jedes in Kurven schneller als sie), bremst mit curve_brake_mps2 für die Kurven der nächsten curve_lookahead_m (Abtastung curve_step_m) und beschleunigt danach mit curve_accel_mps2; police_speed_kmh ist ihr Höchsttempo. Die Fluchtschwelle ist der 12-s-Durchschnitt von min(escape_speed_kmh, Polizeitempo an derselben Stelle): auf der Geraden 220, in Kurven weniger – wer 12 s schneller ist als die Polizei, entkommt (tests/sim/check_escapes.gd: jedes Radar im Netz zu entkommen).",
 		"escape_speed_kmh": 220.0,
 		"escape_window_s": 12.0,
 		"start_gap_m": 320.0,
@@ -207,7 +216,12 @@
 		"police_speed_kmh": 220.0,
 		"max_gap_m": 600.0,
 		"gap_rate_factor": 1.0,
-		"escape_bar_range_kmh": 60.0
+		"escape_bar_range_kmh": 60.0,
+		"agility": 1,
+		"curve_brake_mps2": 8.0,
+		"curve_accel_mps2": 1.5,
+		"curve_lookahead_m": 300.0,
+		"curve_step_m": 10.0
 	},
 
 	"city_limits": {
@@ -262,9 +276,13 @@
 		"finish_hold_s": 6.0,
 		"lod_detail_m": 260.0,
 		"procedural_props": "auto",
-		"_doc_session": "Rennsitzung: scripted_collision_min_kmh = in geskripteten Phasen (Anhalten für Polizei/Tankstelle, Auslaufen nach dem Ziel) kollidiert der Wagen mit Verkehr, solange er schneller fährt (beim Ausrollen mit leerem Tank immer); tutorial_hint_s = Anzeigedauer eines Tutorial-Hinweises (Etappe mit tutorial: true).",
+		"_doc_session": "Rennsitzung: scripted_collision_min_kmh = in geskripteten Phasen (Anhalten für Polizei/Tankstelle, Auslaufen nach dem Ziel) kollidiert der Wagen mit Verkehr, solange er schneller fährt (beim Ausrollen mit leerem Tank immer); tutorial_hint_s = Anzeigedauer eines Tutorial-Hinweises (Etappe mit tutorial: true). Leitplankentreffer (vehicle.rail_hit): Kamerawackeln rail_shake_min_s (Berühren) bis rail_shake_max_s, wenn die Untersteuer-Abdrift mit rail_shake_full_mps (vehicle.rail_impact) hineinrutscht; ab rail_flash_min_mps Abdrift zusätzlich ein kurzes Aufblitzen (der Aufprallklang gehört dem Audio-Modul).",
 		"scripted_collision_min_kmh": 30.0,
 		"tutorial_hint_s": 6.0,
+		"rail_shake_min_s": 0.15,
+		"rail_shake_max_s": 0.45,
+		"rail_shake_full_mps": 8.0,
+		"rail_flash_min_mps": 2.0,
 		"_doc_vehicles": "Fahrzeugdarstellung v2 (docs/fahrzeug-darstellung.md, docs/renn-modul.md §8). Verkehr/Polizei (orthografisch, Drehung um das Heck): Darstellungswinkel aus der Vertragsformel mit Fahrzeuglänge, pro Fahrzeug kritisch gedämpft geglättet (vehicle_yaw_smooth_s), Zellwechsel erst, wenn die neue Zelle um vehicle_cell_hysteresis Schritte näher liegt, höchstens vehicle_yaw_max_deg; in Kameranähe (Fahrzeuglänge / Tiefe des Hecks ≥ vehicle_warp_min_ratio) wird das Sprite in senkrechte Streifen zerlegt und jeder Streifen in seiner eigenen Tiefe gezeichnet (vehicle_warp: Front und Flanke perspektivisch richtig klein statt im Maßstab des Hecks). Lkw/Busse als Quader (render: box): Seiten/Dach in Abschnitte von höchstens box_slice_m, nah an der Kamera zusätzlich höchstens box_slice_ratio der Tiefe; box_subdiv_px = Zielfehler der (affinen) Texturabbildung. Spielerauto: sichtbarer Gierwinkel = gedämpfte Summe (player_yaw_smooth_s, höchstens player_yaw_max_deg) aus Kurvenvorschau (Straßenrichtung player_curve_lookahead_m vor der Wagenmitte relativ zur Kamera × player_curve_gain), Lenkeinschlag × player_steer_deg, Spurwechsel-Querbewegung (atan(v_quer / v) × player_lateral_gain), Untersteuern × player_understeer_deg (Nase zur Kurveninnenseite) und Blickwinkel × player_view_gain (das Sprite ist gerade vor der Kamera gerendert, ein seitlich versetztes Auto sieht man leicht von der Seite); Neigung = Querbeschleunigung × player_roll_deg_per_mps2, höchstens player_roll_max_deg (2,5°), Glättung player_roll_smooth_s.",
 		"vehicle_yaw_smooth_s": 0.12,
 		"vehicle_cell_hysteresis": 0.3,
@@ -278,7 +296,7 @@
 		"player_curve_gain": 1.0,
 		"player_steer_deg": 3.0,
 		"player_lateral_gain": 1.0,
-		"player_understeer_deg": 4.0,
+		"player_understeer_deg": 6.0,
 		"player_view_gain": 1.0,
 		"player_yaw_max_deg": 20.0,
 		"player_yaw_smooth_s": 0.15,

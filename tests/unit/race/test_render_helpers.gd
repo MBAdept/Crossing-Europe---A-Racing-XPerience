@@ -36,6 +36,57 @@ func test_autopilot_braking_curve() -> void:
 	assert_true(ap._follow_speed(100.0, 10.0, 150.0) < 100.0, "zu nah: zurückfallen")
 
 
+## The autopilot's curve planning (curve_speed_ahead + pedals) keeps the car below the understeer limit on a
+## mountain road (curviness 3) and a curvy autobahn (curviness 2), even with the least grip (Gran Turismo,
+## snow) – it never leaves the road. Without curve braking (debug flag) the same car understeers.
+func test_autopilot_brakes_for_curves() -> void:
+	var c := cfg()
+	var countries := {"DE": {"name": "Deutschland", "name_local": "Deutschland", "limits": {"autobahn": null, "landstrasse": 100, "city": 50}}}
+	var cities := {"a": {"name": "Astadt", "country": "DE"}, "b": {"name": "Bdorf", "country": "DE"}}
+	var stage := {"id": "t_ap", "from": "a", "to": "b", "length_km": 140, "seed": 2024,
+		"sections": [
+			{"length_km": 70, "road": "landstrasse", "curviness": 3, "hills": 3, "scenery": "alps", "country": "DE"},
+			{"length_km": 70, "road": "autobahn", "curviness": 2, "hills": 2, "scenery": "alps", "country": "DE", "speed_limit": null},
+		],
+		"fuel_stations_km": [], "radars": [], "tunnels": [], "borders": []}
+	for case: Array in [["gran_turismo", 0.72, true], ["kompakt", 1.0, true], ["gran_turismo", 1.0, false]]:
+		var plan := StagePlan.build(stage, "a", cities, countries, c)
+		var track := Track.new()
+		track.setup(plan, c, {})
+		var v := VehicleModel.new()
+		v.setup(c, str(case[0]))
+		var ap := Autopilot.new()
+		ap.target_kmh = 300.0
+		var grip := float(case[1])
+		var brake_curves := bool(case[2])
+		var z := 0.0
+		var us_max := 0.0
+		var off := 0.0
+		var min_v := INF
+		v.x = track.lane_center_x(0.0, 0)
+		while z < track.length_z - 50.0:
+			track.update_window(z - 9.0, 960.0)
+			var want := ap.curve_speed_ahead(track, v, z, grip) if brake_curves else 300.0
+			var input := Autopilot.pedals(v.speed, minf(want, ap.target_kmh))
+			input["steer"] = clampf((track.lane_center_x(z + 12.0, 0) - v.x) * 0.7, -1.0, 1.0)
+			var e := track.road_edges_at(z)
+			v.update(1.0 / 60.0, input, {"curve": track.curve_at(z), "grade": track.grade_at(z), "left_edge": e.x, "right_edge": e.y,
+				"shoulder_m": track.shoulder_w, "guardrail": track.segment_at(z).guardrail, "grip": grip}, {"vmax_factor": 1.0})
+			z += v.speed / 3.6 / 60.0
+			us_max = maxf(us_max, v.understeer)
+			if v.off_road > 0:
+				off += 1.0 / 60.0
+			if z > 500.0:
+				min_v = minf(min_v, v.speed)
+		var label := "%s Haftung %.2f" % [case[0], grip]
+		if brake_curves:
+			assert_true(us_max < 0.05, label + ": kein Untersteuern (max %.3f)" % us_max)
+			assert_eq(off, 0.0, label + ": nie neben der Fahrbahn")
+			assert_true(min_v < 130.0, label + ": bremst für die Bergkurven (min %.0f km/h)" % min_v)
+		else:
+			assert_true(us_max > 0.5 and off > 1.0, label + " ohne Kurvenbremsen: untersteuert (max %.2f) und verlässt die Fahrbahn (%.1f s)" % [us_max, off])
+
+
 ## Mirrored sprites (left roadside): the image covers exactly the unmirrored destination rect
 ## (Godot keeps the position of a negative-width rect, see tests/race/check_sprite_flip.gd).
 func test_sprite_flip_in_place() -> void:

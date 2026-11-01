@@ -14,10 +14,18 @@ extends RefCounted
 ##    the slowest car (230) still reaches the 220 km/h police escape speed in "slightly worse conditions"
 ##    (rain + night on normal hilly roads up to hills level 2, i.e. <= 4.5 %); downhill never raises it
 ##  * steering: lateral speed from the agility rating, ramps up with speed, smoothed response
-##  * no oversteer, no spin: too fast in a curve -> understeer: pushed outwards proportional to the
-##    overshoot of the safe curve speed, and steering gets weaker. Below the safe speed: no drift at all
-##  * road edge: the shoulder (Bankett) slows to driving.shoulder.max_speed_kmh; hard limit at
-##    edge + shoulder: guardrail (scrape: speed factor + bounce) or, without guardrail, grass (stronger slowdown)
+##  * no oversteer, no spin: too fast in a curve -> understeer. The curve needs the lateral acceleration
+##    a_req = v^2 / R (R = road.curve_radius_at_1_m / |curve|), the tyres give a_grip = lat_grip (agility)
+##    * grip (weather). Below that limit the car follows the road without any drift. Above it the excess
+##    a_ex = a_req - a_grip accelerates an outward drift (push_speed, driving.understeer.push_gain * a_ex),
+##    steering towards the inside loses effect with the excess (saturated front tyres: counter-steering
+##    helps when slightly too fast, not when clearly too fast) and the sliding tyres scrub speed
+##    (scrub_per_excess * a_ex, at most scrub_max_mps2). Back below the limit the drift decays quickly
+##    (recover_s). Lifting or braking is the remedy
+##  * road edge: the shoulder (Bankett) slows to driving.shoulder.max_speed_kmh and has only
+##    driving.shoulder.grip_factor of the grip; hard limit at edge + shoulder (stops the drift): guardrail
+##    (scrape: speed factor + bounce; a drift into it costs more, rail_hit_factor) or, without guardrail,
+##    grass (stronger slowdown). So sliding wide never beats braking for the curve
 ##  * collision: slow down to collision.target_speed_kmh within collision.slowdown_s while being pushed
 ##    sideways; end point collision.push_extra_s after reaching that speed; only then accelerate again;
 ##    invulnerable + blinking during slowdown and push (+ collision.invulnerable_grace_s afterwards)
@@ -45,10 +53,12 @@ var width_m := 1.85
 
 # --- additions to the documented API (docs/gameplay.md) ---
 var lat_speed := 0.0             ## lateral speed from steering (m/s, + = right), without understeer push
-var push_speed := 0.0            ## understeer push of the last frame (m/s, + = right)
+var push_speed := 0.0            ## understeer drift relative to the road (m/s, + = right), see _steer()
+var lat_excess := 0.0            ## lateral acceleration the tyres cannot give (m/s², 0 below the limit)
 var on_grass := false            ## at the hard limit of a road without guardrail (grass)
 var rail_contact := false        ## touching the guardrail this frame
 var rail_hit := false            ## a new guardrail hit (speed factor + bounce) happened this frame
+var rail_impact := 0.0           ## understeer drift (m/s) that hit the guardrail at the last rail_hit
 var crash_dir := 0               ## push direction of the running/last collision: -1 left, +1 right
 var crash_time := 0.0            ## seconds since the running collision started
 var grace_left := 0.0            ## remaining invulnerability after the collision end point (s)
@@ -65,20 +75,27 @@ var _coast_decel := 5.0
 var _over_decel := 12.0
 var _steer_full := 60.0
 var _steer_tau := 0.12
-var _us_push := 14.0
-var _us_loss := 1.6
-var _us_min := 0.25
-var _us_full := 0.4
+var _us_gain := 2.5
+var _us_loss := 3.0
+var _us_min := 0.15
+var _us_full := 0.5
+var _us_recover := 0.25
+var _us_scrub := 0.5
+var _us_scrub_max := 3.0
 var _grade_loss := 0.012
 var _grade_free := 4.0
 var _grade_min := 0.5
 var _sh_max := 90.0
 var _sh_decel := 35.0
 var _sh_tol := 0.5
+var _sh_grip := 0.6
 var _rail_factor := 0.9
 var _rail_bounce := 1.5
 var _rail_cooldown := 0.6
 var _rail_scrape := 20.0
+var _rail_free := 1.0
+var _rail_loss := 0.05
+var _rail_min := 0.5
 var _grass_max := 40.0
 var _grass_decel := 60.0
 var _auto_steer := 3.0
@@ -132,8 +149,10 @@ func reset() -> void:
 	on_grass = false
 	rail_contact = false
 	rail_hit = false
+	rail_impact = 0.0
 	lat_speed = 0.0
 	push_speed = 0.0
+	lat_excess = 0.0
 	crash_dir = 0
 	crash_time = 0.0
 	grace_left = 0.0
@@ -154,20 +173,27 @@ func _read_config() -> void:
 	_over_decel = _f("driving.overspeed_decel_kmh_s", 12.0)
 	_steer_full = maxf(1.0, _f("driving.steer_full_speed_kmh", 60.0))
 	_steer_tau = maxf(0.001, _f("driving.steer_response_s", 0.12))
-	_us_push = _f("driving.understeer.push_mps_per_excess", 14.0)
-	_us_loss = _f("driving.understeer.steer_loss_per_excess", 1.6)
-	_us_min = _f("driving.understeer.min_steer_factor", 0.25)
-	_us_full = maxf(0.01, _f("driving.understeer.full_excess", 0.4))
+	_us_gain = maxf(0.0, _f("driving.understeer.push_gain", 2.5))
+	_us_loss = maxf(0.0, _f("driving.understeer.steer_loss_per_excess", 3.0))
+	_us_min = clampf(_f("driving.understeer.min_steer_factor", 0.15), 0.0, 1.0)
+	_us_full = maxf(0.01, _f("driving.understeer.full_excess", 0.5))
+	_us_recover = maxf(0.01, _f("driving.understeer.recover_s", 0.25))
+	_us_scrub = maxf(0.0, _f("driving.understeer.scrub_per_excess", 0.5))
+	_us_scrub_max = maxf(0.0, _f("driving.understeer.scrub_max_mps2", 3.0))
 	_grade_loss = _f("driving.grade_vmax_loss_per_percent", 0.012)
 	_grade_free = maxf(0.0, _f("driving.grade_free_percent", 4.0))
 	_grade_min = _f("driving.grade_min_factor", 0.5)
 	_sh_max = _f("driving.shoulder.max_speed_kmh", 90.0)
 	_sh_decel = _f("driving.shoulder.decel_kmh_s", 35.0)
 	_sh_tol = _f("driving.shoulder.tolerance_m", 0.5)
+	_sh_grip = clampf(_f("driving.shoulder.grip_factor", 0.6), 0.05, 1.0)
 	_rail_factor = _f("driving.guardrail.speed_factor_per_hit", 0.9)
 	_rail_bounce = _f("driving.guardrail.bounce_mps", 1.5)
 	_rail_cooldown = _f("driving.guardrail.hit_cooldown_s", 0.6)
 	_rail_scrape = _f("driving.guardrail.scrape_decel_kmh_s", 20.0)
+	_rail_free = maxf(0.0, _f("driving.guardrail.impact_free_mps", 1.0))
+	_rail_loss = maxf(0.0, _f("driving.guardrail.impact_loss_per_mps", 0.05))
+	_rail_min = clampf(_f("driving.guardrail.min_speed_factor", 0.5), 0.0, 1.0)
 	_grass_max = _f("driving.grass.max_speed_kmh", 40.0)
 	_grass_decel = _f("driving.grass.decel_kmh_s", 60.0)
 	_auto_steer = _f("driving.auto_steer_mps", 3.0)
@@ -321,22 +347,42 @@ func _update_driving(dt: float, input: Dictionary, road: Dictionary) -> void:
 	_steer(dt, float(input.get("steer", 0.0)), road)
 
 
-## Lateral movement: steering (ramped with speed, smoothed) plus understeer push in curves.
+## Lateral movement: steering (ramped with speed, smoothed) plus the understeer drift in curves.
+## Understeer (docs/gameplay.md "Untersteuern"): the excess lateral acceleration a_ex = v²/R − a_grip
+## accelerates the outward drift push_speed (push_gain · a_ex; + curve = right bend -> outside = left),
+## steering towards the inside of the bend keeps max(min_steer_factor, 1 − steer_loss_per_excess · a_ex/a_grip)
+## of its effect, and the sliding tyres scrub min(scrub_per_excess · a_ex, scrub_max_mps2) off the speed.
+## On the shoulder (loose gravel, off_road of the last step) the grip is driving.shoulder.grip_factor lower.
+## Below the limit the drift decays with recover_s. Integrated exactly per step (constant a_ex), so the
+## drift does not depend on the frame rate.
 func _steer(dt: float, steer_input: float, road: Dictionary) -> void:
 	var steer := clampf(steer_input, -1.0, 1.0)
 	var curve := float(road.get("curve", 0.0))
-	var safe := safe_curve_speed(curve, float(road.get("grip", 1.0)))
-	var excess := 0.0
-	if not is_inf(safe) and speed > safe:
-		excess = (speed - safe) / maxf(safe, 1.0)
-	understeer = clampf(excess / _us_full, 0.0, 1.0)
-	var steer_factor := maxf(_us_min, 1.0 - excess * _us_loss)
+	var grip := float(road.get("grip", 1.0)) * (_sh_grip if off_road >= 1 else 1.0)
+	var a_grip := grip_accel(grip)
+	lat_excess = lateral_excess(curve, grip, speed)
+	var ratio := lat_excess / a_grip
+	understeer = clampf(ratio / _us_full, 0.0, 1.0)
+	# saturated front tyres: steering towards the inside of the bend loses effect, steering out does not
+	var steer_factor := 1.0
+	if ratio > 0.0 and steer * curve > 0.0:
+		steer_factor = maxf(_us_min, 1.0 - ratio * _us_loss)
 	var ramp := clampf(speed / _steer_full, 0.0, 1.0)
 	var target := steer * _steer_mps * ramp * steer_factor
 	lat_speed = lerpf(lat_speed, target, 1.0 - exp(-dt / _steer_tau))
-	# + curve = right bend -> the outside is the left side
-	push_speed = -signf(curve) * excess * _us_push
-	x += (lat_speed + push_speed) * dt
+	var dx := lat_speed * dt
+	if lat_excess > 0.0:
+		var a := -signf(curve) * _us_gain * lat_excess
+		dx += push_speed * dt + 0.5 * a * dt * dt
+		push_speed += a * dt
+		speed = maxf(0.0, speed - minf(_us_scrub * lat_excess, _us_scrub_max) * 3.6 * dt)
+	else:
+		var k := exp(-dt / _us_recover)
+		dx += push_speed * _us_recover * (1.0 - k)
+		push_speed *= k
+		if absf(push_speed) < 0.001:
+			push_speed = 0.0
+	x += dx
 	steer_visual = move_toward(steer_visual, steer if speed > 2.0 else 0.0, dt / 0.15)
 
 
@@ -354,6 +400,7 @@ func _update_crash(dt: float) -> void:
 	_crash_push_done = eased
 	lat_speed = 0.0
 	push_speed = 0.0
+	lat_excess = 0.0
 	understeer = 0.0
 	braking = true
 	steer_visual = move_toward(steer_visual, float(crash_dir) * 0.6 * (1.0 - tp), dt / 0.15)
@@ -366,11 +413,17 @@ func _update_crash(dt: float) -> void:
 
 func _update_auto(dt: float, input: Dictionary, road: Dictionary) -> void:
 	braking = speed > _auto_target + 0.5
-	speed = maxf(0.0, move_toward(speed, _auto_target, _auto_rate * dt))
+	var rate := _auto_rate
+	if is_nan(_auto_steer_x):
+		# the player still steers – and may brake harder than the scripted rate (an empty tank or a police
+		# stop does not disable the brakes: rolling out at 245 km/h towards a sharp curve, braking avoids the slide)
+		rate = maxf(rate, clampf(float(input.get("brake", 0.0)), 0.0, 1.0) * _brake_decel)
+	speed = maxf(0.0, move_toward(speed, _auto_target, rate * dt))
 	if not is_nan(_auto_steer_x):
 		x = move_toward(x, _auto_steer_x, _auto_steer * dt)
 		lat_speed = 0.0
 		push_speed = 0.0
+		lat_excess = 0.0
 		understeer = 0.0
 		steer_visual = move_toward(steer_visual, 0.0, dt / 0.15)
 	else:
@@ -410,10 +463,14 @@ func _apply_road_limits(dt: float, road: Dictionary) -> void:
 		off_road = 2
 		if lat_speed * float(side) > 0.0:
 			lat_speed = 0.0
+		var drift_in := maxf(0.0, push_speed * float(side))
+		if drift_in > 0.0:
+			push_speed = 0.0   # the guardrail / the end of the shoulder stops the drift
 		if rail:
 			rail_contact = true
 			if not _was_rail and _rail_cd_left <= 0.0:
-				speed *= _rail_factor
+				speed *= rail_hit_factor(drift_in)
+				rail_impact = drift_in
 				lat_speed = -float(side) * _rail_bounce
 				_rail_cd_left = _rail_cooldown
 				rail_hit = true
@@ -469,8 +526,9 @@ func push_direction(dx: float, space_left: float, space_right: float) -> int:
 
 
 ## Scripted control (refuelling stop, police stop, towing): move speed to target_kmh at rate_kmh_s.
-## With steer_x the car is steered there; without it (NAN) the player keeps steering. Throttle and brake
-## are ignored until release_auto(). Ignored during a collision. Safe to call every frame.
+## With steer_x the car is steered there; without it (NAN) the player keeps steering and may brake harder
+## than rate_kmh_s (input "brake" × driving.brake_decel_kmh_s, e.g. before a curve while rolling out with an
+## empty tank). Throttle is ignored until release_auto(). Ignored during a collision. Safe to call every frame.
 func auto_control(target_kmh: float, rate_kmh_s: float, steer_x: float = NAN) -> void:
 	if state == State.CRASH:
 		return
@@ -497,6 +555,26 @@ func safe_curve_speed(curve: float, grip: float = 1.0) -> float:
 		return INF
 	var radius := _radius_at_1 / c
 	return sqrt(maxf(0.0, _lat_grip * grip * radius)) * 3.6
+
+
+## Speed factor of a guardrail hit: a touch (steering, scraping) keeps driving.guardrail.speed_factor_per_hit;
+## an understeer slide hits it unbraked – every m/s of drift above impact_free_mps costs impact_loss_per_mps
+## more, down to min_speed_factor. So sliding into the rail costs more than braking for the curve would have.
+func rail_hit_factor(drift_mps: float) -> float:
+	var f := _rail_factor - _rail_loss * maxf(0.0, drift_mps - _rail_free)
+	return clampf(f, minf(_rail_min, _rail_factor), _rail_factor)
+
+
+## Lateral acceleration (m/s²) the tyres can give: lat_grip of the agility rating * grip of the weather.
+func grip_accel(grip: float = 1.0) -> float:
+	return maxf(0.01, _lat_grip * grip)
+
+
+## Lateral acceleration (m/s²) a curve needs at speed_kmh beyond what the tyres give (0 at or below the
+## safe curve speed): v² · |curve| / road.curve_radius_at_1_m − grip_accel(grip).
+func lateral_excess(curve: float, grip: float, speed_kmh: float) -> float:
+	var vm := speed_kmh / 3.6
+	return maxf(0.0, vm * vm * absf(curve) / maxf(_radius_at_1, 0.001) - grip_accel(grip))
 
 
 ## Max speed for the current grade (rise/run) and weather/night factor. Climbs up to

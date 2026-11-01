@@ -138,7 +138,7 @@ func _on_crash(dir: int) -> void:
 func _road(z: float) -> Dictionary:
 	var e := track.road_edges_at(z)
 	return {"curve": track.curve_at(z), "grade": track.grade_at(z), "left_edge": e.x, "right_edge": e.y,
-		"shoulder_m": track.shoulder_w, "guardrail": track.segment_at(z).guardrail, "grip": env.grip(weather)}
+		"shoulder_m": track.shoulder_w, "guardrail": track.segment_at(z).guardrail, "grip": track.grip_at(z, env.grip(weather))}
 
 
 func _bot() -> Dictionary:
@@ -175,10 +175,17 @@ func _bot() -> Dictionary:
 		var r := plan.next_radar(pos_km)
 		if not r.is_empty() and pos_km > float(r["km"]) - 2.0:
 			want = minf(want, float(r["limit"]) * 1.1)
-	for d: float in [30.0, 70.0, 120.0]:
-		want = minf(want, vehicle.safe_curve_speed(track.curve_at(pos_z + d), env.grip(weather)) * (0.97 + d / 3000.0))
+	# curves: braking curve (15 m/s², reach 96 % of the safe speed 12 m early) over the next 300 m
+	var grip := env.grip(weather)
+	want = minf(want, vehicle.safe_curve_speed(track.curve_at(pos_z), track.grip_at(pos_z, grip)) * 0.96)
+	var d := 10.0
+	while d <= 300.0:
+		var vt := vehicle.safe_curve_speed(track.curve_at(pos_z + d), track.grip_at(pos_z + d, grip)) * 0.96 / 3.6
+		if vt < want / 3.6:
+			want = minf(want, sqrt(vt * vt + 2.0 * 15.0 * maxf(0.0, d - 12.0)) * 3.6)
+		d += 10.0
 	var steer := clampf((tx - vehicle.x) * 0.7, -1.0, 1.0)
-	return {"steer": steer, "throttle": 1.0 if vehicle.speed < want - 1.0 else 0.0, "brake": 1.0 if vehicle.speed > want + 6.0 else 0.0}
+	return {"steer": steer, "throttle": 1.0 if vehicle.speed < want - 1.0 else 0.0, "brake": 1.0 if vehicle.speed > want + 3.0 else 0.0}
 
 
 func _car_ahead(x: float, dist: float) -> TrafficSystem.Car:
@@ -230,7 +237,8 @@ func _run() -> void:
 		var in_lane := track.fuel_lane_at(pos_z) and vehicle.x > track.main_right_edge(pos_z)
 		fuel.update(DT, pos_km, dkm, vehicle.speed, in_lane, float(input.get("throttle", 0.0)))
 		police.set_blocked(fuel.holds_car())   # a police stop is served after refuelling/towing
-		police.update(DT, pos_km, vehicle.speed)
+		var cap := SessionRules.police_curve_cap_kmh(track, police, pos_z, env.grip(weather)) if police.state == PoliceSystem.State.CHASE or not police.active_radar.is_empty() else INF
+		police.update(DT, pos_km, vehicle.speed, cap)
 		var pen := fuel.take_penalty()
 		if pen > 0.0:
 			clock.advance(pen)

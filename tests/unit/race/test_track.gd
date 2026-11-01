@@ -74,7 +74,9 @@ func test_window_streaming() -> void:
 		var s := t.segment_at(z + 10.0)
 		assert_eq(s.index, t.segment_index_at(z + 10.0), "Segment im Fenster bei z %.0f" % z)
 		z += 37.0
-	var limit := t.keep_behind + int(ahead / t.seg_len) + 4 + int(37.0 / t.seg_len) + 2
+	# generation runs generation_lead_m() further ahead (curve warning signs are placed back into the road)
+	var lead := int(t.generation_lead_m() / t.seg_len) + 1
+	var limit := t.keep_behind + int(ahead / t.seg_len) + lead + 4 + int(37.0 / t.seg_len) + 2
 	assert_true(max_window <= limit, "Fenster begrenzt (%d <= %d)" % [max_window, limit])
 	# segments behind the camera are discarded
 	t.update_window(9000.0, ahead)
@@ -246,7 +248,7 @@ func _has_near(list: Array, km: float, tol: float = 0.05) -> bool:
 
 func test_geometry_bounds() -> void:
 	var t := _track()
-	var maxes: Array = ConfigLoader.lookup(cfg(), "road.curviness_max_curve", [0.0, 0.22, 0.45, 0.9])
+	var maxes: Array = ConfigLoader.lookup(cfg(), "road.curviness_max_curve", [0.0, 0.30, 0.45, 0.9])
 	var grades: Array = ConfigLoader.lookup(cfg(), "road.hills_max_grade", [0.0, 0.025, 0.045, 0.07])
 	var z := 0.0
 	var max_all_c := 0.0
@@ -310,3 +312,182 @@ func test_scenery_file_complete() -> void:
 		assert_true(not (s.get("props", []) as Array).is_empty(), "%s: Requisiten-Regeln" % id)
 		for r: Dictionary in s.get("props", []):
 			assert_true(str(r.get("set", "")).begins_with("props/"), "%s: Sprite-Set-ID" % id)
+
+
+## Curve signs (road.curve_warning_*): every sharp stretch (|curve| >= 0.3) has a warning sign with its
+## direction 150–450 m before it on the right and chevron boards on the outside pointing into the bend;
+## gentle curves get no chevrons.
+func test_sharp_curves_have_warning_sign_and_chevrons() -> void:
+	var t := _track()
+	var n := int(t.length_z / t.seg_len)
+	t.get_segment(n)   # generate the whole road first: warning signs are inserted into earlier segments
+	var signs: Array[Dictionary] = []
+	for i in n:
+		var s := t.get_segment(i)
+		for sp: Dictionary in s.sprites:
+			var kind := str(sp.get("sign", ""))
+			if kind == "curve" or kind == "chevron":
+				signs.append({"kind": kind, "z": float(sp["z"]), "value": int(sp["value"]), "side": int(sp["side"]), "x": float(sp["x"]),
+					"curve": t.curve_at(float(sp["z"])), "edges": t.road_edges_at(float(sp["z"]))})
+	var stretches := 0
+	var i := 0
+	while i < n:
+		var s := t.get_segment(i)
+		if absf(s.curve) < 0.3 or s.tunnel or s.city or s.z < 400.0 or s.z > t.length_z - 400.0:
+			i += 1
+			continue
+		var j := i
+		while j < n and absf(t.get_segment(j).curve) >= 0.3:
+			j += 1
+		stretches += 1
+		var dir := 1 if s.curve > 0.0 else -1
+		var warned := false
+		var chevrons := 0
+		for sg in signs:
+			var z := float(sg["z"])
+			if sg["kind"] == "curve" and z >= s.z - 450.0 and z <= s.z - 150.0 and int(sg["value"]) == dir:
+				warned = true
+				assert_eq(int(sg["side"]), 1, "Warnschild rechts")
+				assert_true(float(sg["x"]) > (sg["edges"] as Vector2).y, "Warnschild neben der Fahrbahn")
+			if sg["kind"] == "chevron" and z >= s.z - 60.0 and z <= float(j) * t.seg_len + 60.0:
+				chevrons += 1
+				assert_eq(int(sg["value"]), dir, "Pfeile zeigen in die Kurve")
+				assert_eq(int(sg["side"]), -dir, "Richtungstafel außen")
+				var e: Vector2 = sg["edges"]
+				assert_true(float(sg["x"]) > e.y if dir < 0 else float(sg["x"]) < e.x, "Richtungstafel neben der Fahrbahn")
+		assert_true(warned, "Warnschild vor der scharfen Kurve bei km %.1f" % s.km)
+		assert_true(chevrons >= 1, "Richtungstafeln an der scharfen Kurve bei km %.1f" % s.km)
+		i = j
+	assert_true(stretches >= 10, "Teststrecke hat scharfe Kurven (%d)" % stretches)
+	for sg in signs:
+		if sg["kind"] == "chevron":
+			assert_true(absf(float(sg["curve"])) >= 0.14, "keine Richtungstafel an sanften Kurven (%.2f)" % float(sg["curve"]))
+
+
+## The warning sign is inserted into a segment generated earlier: streaming (the game's window) gives the
+## same signs as generating the whole road at once, and every sign is in place before it can be seen.
+func test_curve_signs_same_when_streamed() -> void:
+	var whole := _track()
+	var n := int(whole.length_z / whole.seg_len)
+	whole.get_segment(n)
+	var expect := {}
+	for i in n:
+		for sp: Dictionary in whole.get_segment(i).sprites:
+			if str(sp.get("sign", "")) in ["curve", "chevron"]:
+				expect["%s@%.1f" % [str(sp["sign"]), float(sp["z"])]] = true
+	var streamed := _track()
+	var got := {}
+	var draw := float(ConfigLoader.lookup(cfg(), "render.draw_distance_m", 900.0))
+	var z := -draw
+	while z < streamed.length_z:
+		streamed.update_window(maxf(z, 0.0), draw + 60.0)
+		# the farthest segment the renderer can see now must already carry its signs
+		var far := streamed.segment_at(clampf(z + draw, 0.0, streamed.length_z))
+		for sp: Dictionary in far.sprites:
+			if str(sp.get("sign", "")) in ["curve", "chevron"]:
+				got["%s@%.1f" % [str(sp["sign"]), float(sp["z"])]] = true
+		z += streamed.seg_len
+	assert_true(expect.size() > 20, "Kurvenschilder vorhanden (%d)" % expect.size())
+	assert_eq(got.size(), expect.size(), "gleiche Schilder beim Streamen, schon in Sichtweite vorhanden")
+	for k: String in expect:
+		assert_true(got.has(k), "Schild %s beim Streamen" % k)
+
+
+## tests/sim/sight_check.gd on the test stage: with the warning signs every curve that needs braking is
+## recognised early enough (1 s reaction + full braking) for the Gran Turismo – by day and in snow at night.
+func test_curves_are_seen_in_time() -> void:
+	var sight: GDScript = load("res://tests/sim/sight_check.gd")
+	for from_id: String in ["a", "b"]:
+		var plan := StagePlan.build(_stage(), from_id, CITIES, COUNTRIES, cfg())
+		for opts: Dictionary in [{"vehicle": "gran_turismo"}, {"vehicle": "gran_turismo", "weather": "snow", "night": true}]:
+			var r: Dictionary = sight.call("check", cfg(), plan, opts)
+			var m: Variant = r["summary"]["min_margin_m"]
+			assert_true(int(r["summary"]["stretches"]) > 5, "Kurven, die Bremsen verlangen (%s)" % str(opts))
+			assert_true(m != null and float(m) >= 0.0, "ab %s, %s: Reserve %s m (schlechteste: %s)" % [from_id, str(opts), str(m),
+				str((r["cases"] as Array).slice(0, 1))])
+
+
+## Inside a tunnel the road is dry: Track.grip_at gives 1.0 there and the weather grip outside (curve limits of the
+## driving model, the autopilot, the police and the sight check).
+func test_tunnel_road_is_dry() -> void:
+	var t := _track()
+	var inside := t.km_to_z(51.5)
+	var outside := t.km_to_z(20.0)
+	assert_true(t.segment_at(inside).tunnel and not t.segment_at(outside).tunnel, "Testtunnel bei km 50–53")
+	assert_eq(t.grip_at(inside, 0.72), 1.0, "Schnee draußen, trocken im Tunnel")
+	assert_eq(t.grip_at(outside, 0.72), 0.72, "draußen die Wetterhaftung")
+	assert_eq(t.grip_at(outside, 1.0), 1.0, "trocken")
+
+
+## Sharp stretches of a real stage (|curve| >= road.curve_warning_min_curve, outside tunnels and the calm zones at
+## start and finish): how many, how many without a warning sign 0–260 m before their curve piece, chevrons in City
+## Limits.
+func _sign_coverage(t: Track) -> Dictionary:
+	var minc := float(ConfigLoader.lookup(cfg(), "road.curve_warning_min_curve", 0.25))
+	var n := t.segment_count
+	t.get_segment(n - 1)
+	var warn: Array[float] = []
+	var out := {"stretches": 0, "missing": [], "city_stretches": 0, "city_chevrons": 0}
+	for i in n:
+		var sg := t.get_segment(i)
+		for sp: Dictionary in sg.sprites:
+			if str(sp.get("sign", "")) == "curve":
+				warn.append(float(sp["z"]))
+			elif str(sp.get("sign", "")) == "chevron" and sg.city:
+				out["city_chevrons"] = int(out["city_chevrons"]) + 1
+	var i := 0
+	while i < n:
+		var s := t.get_segment(i)
+		if absf(s.curve) < minc or s.runout:
+			i += 1
+			continue
+		var j := i
+		while j < n and absf(t.get_segment(j).curve) >= minc * 0.5:
+			j += 1
+		var k := i   # start of the curve piece: back while |curve| still decreases
+		while k > 0 and absf(t.get_segment(k - 1).curve) > 0.0005 and absf(t.get_segment(k - 1).curve) <= absf(t.get_segment(k).curve) + 1e-6:
+			k -= 1
+		if not s.tunnel and s.z > 400.0 and s.z < t.length_z - 300.0:
+			out["stretches"] = int(out["stretches"]) + 1
+			if s.city:
+				out["city_stretches"] = int(out["city_stretches"]) + 1
+			var ok := false
+			for zw in warn:
+				ok = ok or (zw >= float(k) * t.seg_len - 260.0 and zw <= s.z)
+			if not ok:
+				(out["missing"] as Array).append("km %.1f%s" % [s.km, " (City)" if s.city else ""])
+		i = j
+	return out
+
+
+func _network_track(stage_id: String, from_id: String) -> Track:
+	var net: Variant = ConfigLoader.load_json("res://data/network.json")
+	var ctry: Variant = ConfigLoader.load_json("res://data/countries.json")
+	var cities := {}
+	for c: Dictionary in (net as Dictionary).get("cities", []):
+		cities[str(c["id"])] = c
+	for st: Dictionary in (net as Dictionary).get("stages", []):
+		if str(st["id"]) == stage_id:
+			var t := Track.new()
+			t.setup(StagePlan.build(st, from_id, cities, (ctry as Dictionary).get("countries", {}), cfg()), cfg(), {})
+			return t
+	return null
+
+
+## A section or tunnel break that cuts a sharp curve piece during its ramp-in (where the sign is decided) no
+## longer drops its warning sign: the piece's peak decides (review: 5 sharp curves without sign). Sharp curves in
+## City Limits get the warning sign too (no radar there, cars arrive at full speed), but no chevron boards.
+func test_every_sharp_curve_has_a_warning_sign() -> void:
+	var cut := 0
+	var city := 0
+	for case: Array in [["dev_testetappe", "dev_start"], ["bremen_dortmund", "bremen"], ["hamburg_bremen", "bremen"]]:
+		var t := _network_track(str(case[0]), str(case[1]))
+		assert_true(t != null, "Etappe %s" % case[0])
+		var r := _sign_coverage(t)
+		assert_true(int(r["stretches"]) >= 1, "%s: scharfe Kurven (%d)" % [case[0], int(r["stretches"])])
+		assert_eq((r["missing"] as Array).size(), 0, "%s ab %s: Warnschild vor jeder scharfen Kurve, fehlt bei %s" % [case[0], case[1], str(r["missing"])])
+		assert_eq(int(r["city_chevrons"]), 0, "%s: keine Richtungstafeln in den City Limits" % case[0])
+		cut += t.curve_signs_cut
+		city += int(r["city_stretches"])
+	assert_true(cut >= 2, "Kurvenstücke, die ein Abschnittswechsel abschneidet, behalten ihr Schild (%d)" % cut)
+	assert_true(city >= 1, "scharfe Kurve in den City Limits geprüft (%d)" % city)
