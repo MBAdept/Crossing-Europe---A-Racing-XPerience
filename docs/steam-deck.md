@@ -176,6 +176,17 @@ erwarten – es gibt nur wenige 2D-Shader, und Mesa speichert übersetzte Shader
 Falls es doch ruckelt: im Schnellzugriffsmenü die Bildrate auf 40 begrenzen (mit 40 Hz Bildwiederholrate), das
 läuft gleichmäßig und spart Akku. Die Rennsimulation läuft in festen 1/60-s-Schritten und bleibt dabei gleich.
 
+## Titelbild und Attract-Modus (v0.5.0)
+
+- **Titelbild** ([ui.md „Titelbildschirm“](ui.md)): füllt 16:10 per *cover fit* – links und rechts fallen je ~4 % des
+  Bildes weg, oben und unten nichts; Logo, Milchglas-Menü und Tastenhinweise bleiben im 1280×720-Rahmen, das rote
+  Auto bleibt links der Menükarte (auch beim stärksten Ken-Burns-Zoom, geprüft in `test_attract_mode.gd`). Der Shader
+  (ein Bildzugriff je Pixel plus etwas Rechnung, Milchglas neun Zugriffe auf kleine Mip-Stufen) kostet auf der
+  Deck-GPU praktisch nichts.
+- **Attract-Modus** ([ui.md „Attract-Modus“](ui.md)): Die Demo läuft wie das Rennen mit 40-px-Balken; jede Taste des
+  eingebauten Controllers, ein Stickausschlag, ein Fingertipp auf den Touchscreen oder ein Trackpad-Klick beendet sie
+  und führt zurück zum Titel, ohne einen Menüpunkt auszulösen. Das Overlay zeigt dann das Ⓐ-Symbol.
+
 ## Verbleibende Grenzen
 
 - **Rennen mit Balken**: Das Straßenbild ist für 1280×720 berechnet (Projektion, Hintergründe, Sprites); im Rennen

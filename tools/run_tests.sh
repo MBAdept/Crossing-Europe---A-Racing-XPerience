@@ -36,6 +36,15 @@ if [ $# -eq 0 ] && [ $CODE -eq 0 ]; then
 		echo "==> Integrationsszenarien fehlgeschlagen"
 		CODE=1
 	fi
+	# Attract mode end to end (~25 s): idle timer, demo in the race scene, ended by key/gamepad/click without a
+	# menu action, effect buses muted and restored, nothing saved
+	timeout 300 "$GODOT" --headless --path . -s res://tests/race/check_attract.gd >"$SLOG" 2>&1
+	SCODE=$?
+	grep -E "^CHECK" "$SLOG"
+	if [ $SCODE -ne 0 ] || grep -qE "SCRIPT ERROR" "$SLOG"; then
+		echo "==> Attract-Modus fehlgeschlagen"
+		CODE=1
+	fi
 	# Police escapes on the whole network with the curve physics (~60 s): every radar × car × dry day / rain night
 	timeout 600 "$GODOT" --headless --path . -s res://tests/sim/check_escapes.gd >"$SLOG" 2>&1
 	SCODE=$?

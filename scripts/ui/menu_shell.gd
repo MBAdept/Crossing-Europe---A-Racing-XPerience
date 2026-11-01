@@ -5,12 +5,18 @@ extends Control
 ## The screens keep the 16:9 design space (1280×720, `layer`, centred); the background fills the whole
 ## window. GameFlow sets the stretch aspect to "expand" while the menus are shown, so on a 16:10 screen
 ## (Steam Deck 1280×800) the background reaches into the 40 px that are black bars in the race.
+## A screen with UiScreen.backdrop == "title" gets the photo backdrop (TitleBackdrop) instead of the synthwave
+## scene: it cross-fades in PHOTO_FADE_S (at once for the first screen of the shell); the hidden background is
+## not drawn.
 
 const DESIGN_SIZE := Vector2(1280, 720)
+const PHOTO_FADE_S := 0.35
 
 var background: MenuBackground
+var title_backdrop: TitleBackdrop     ## photo backdrop of the title screen (created on demand)
 var layer: Control
 var current_screen: Control
+var _photo_tween: Tween
 
 
 func _ready() -> void:
@@ -29,6 +35,7 @@ func _ready() -> void:
 
 
 func set_screen(s: Control) -> void:
+	var first := current_screen == null
 	if current_screen != null and is_instance_valid(current_screen):
 		layer.remove_child(current_screen)
 		current_screen.queue_free()
@@ -38,9 +45,35 @@ func set_screen(s: Control) -> void:
 	if s is UiScreen:
 		dim = (s as UiScreen).bg_dim
 	background.target_dim = dim
+	_show_photo(s is UiScreen and (s as UiScreen).backdrop == "title", first)
 	s.modulate.a = 0.0
 	s.position.x = 28.0
 	var tw := s.create_tween()
 	tw.set_parallel(true)
 	tw.tween_property(s, "modulate:a", 1.0, 0.18)
 	tw.tween_property(s, "position:x", 0.0, 0.24).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+
+## Photo backdrop on/off: cross-fades over the synthwave background (`instant` for the first screen).
+func _show_photo(on: bool, instant: bool) -> void:
+	if on and title_backdrop == null:
+		title_backdrop = TitleBackdrop.new()
+		add_child(title_backdrop)
+		move_child(title_backdrop, background.get_index() + 1)
+		title_backdrop.modulate.a = 0.0
+	if title_backdrop == null:
+		return
+	if _photo_tween != null and _photo_tween.is_valid():
+		_photo_tween.kill()
+	title_backdrop.visible = true
+	background.visible = true
+	var done := func() -> void:
+		background.visible = not on
+		title_backdrop.visible = on
+	if instant:
+		title_backdrop.modulate.a = 1.0 if on else 0.0
+		done.call()
+		return
+	_photo_tween = create_tween()
+	_photo_tween.tween_property(title_backdrop, "modulate:a", 1.0 if on else 0.0, PHOTO_FADE_S)
+	_photo_tween.tween_callback(done)

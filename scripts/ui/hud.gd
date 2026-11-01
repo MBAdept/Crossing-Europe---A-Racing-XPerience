@@ -37,6 +37,9 @@ const DEMO := {
 var state: Dictionary = {}
 var plan: StagePlan
 var cfg: Dictionary = {}
+## Attract demo (AttractMode): only the clock panel and the speedometer – no time/record, progress bar, fuel,
+## limit/radar/police panels, messages, countdown or finish banner (the demo overlay takes their place).
+var reduced := false
 
 var _messages: Array[Dictionary] = []
 var _flash := Color(0, 0, 0, 0)
@@ -230,6 +233,9 @@ func _draw() -> void:
 	var w := vs.x
 	var h := vs.y
 	_draw_clock_panel()
+	if reduced:
+		_draw_speedo(w, h)
+		return
 	_draw_time_panel(w)
 	_draw_progress(w)
 	_draw_penalty(w)
