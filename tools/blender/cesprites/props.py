@@ -67,6 +67,12 @@ UNCENTERED = {"streetlight", "fuel_station", "farmhouse", "barn", "church", "fac
 # shadow catcher size (m) for very tall props: keeps only a contact shadow instead of a long thin streak
 CATCHER = {"wind_turbine": 16.0, "power_pylon": 22.0, "building_tall": 60.0, "church": 45.0, "streetlight": 6.0}
 
+# regional city buildings and bridge parts (docs/staedte.md sections 2 and 4)
+from . import props_cities as C  # noqa: E402
+PROPS.update(C.CITY_PROPS)
+UNCENTERED |= C.UNCENTERED
+CATCHER.update(C.CATCHER)
+
 
 def prop_sets():
     out = []

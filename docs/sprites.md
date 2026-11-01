@@ -182,7 +182,7 @@ Frontkennzeichen.
 | Showroom | `showroom/<typ>`: 3/4-Ansicht von vorn, 768×480, base | – |
 | Verkehr | `traffic/<modell>_<farbe>`: hatch (5 Farben), sedan (4), wagon (4), suv (4), van (4), sports (5) – 17 Winkel; truck (4, Sattelzug 16,5 m), bus (3, Reisebus 12,8 m) als Quader | Pkw 52 px/m (9°); Lkw/Bus 100/80 px/m |
 | Polizei | `police/<land>` – 17 Länder, landestypische Farben, Wort auf Flanken und Heck, Blaulichtbalken (beacon_a = linke, beacon_b = rechte Hälfte), 17 Winkel | 56 px/m, 9° |
-| Requisiten | `props/<name>` (36 Stück, siehe unten); `lights` bei Gebäuden, Laternen, Leitpfosten, Tankstelle, Windrad (Flugfeuer) … | Bäume 256–384 px hoch, Gebäude bis 512 |
+| Requisiten | `props/<name>` (36 Stück, siehe unten) + 50 für die Städte (46 Gebäude `props/city_*`, Brückenteile, Hausboot); `lights` bei Gebäuden, Laternen, Leitpfosten, Tankstelle, Windrad (Flugfeuer) … | Bäume 256–384 px hoch, Gebäude bis 512 (Stadtgebäude 192–448) |
 | UI | `ui/weather_normal`, `_rain`, `_snow`, `ui/daytime_day`, `_night`, `_dawn`, `_dusk` – 96×96, dunkle Kontur | – |
 | Wahrzeichen | `landmarks/<name>` (21, siehe „Wahrzeichen“): base + lights (Anstrahlung), echte Maße, 3/4-Ansicht | 2,4–6 px/m, Zellen bis 1024 px |
 
@@ -217,6 +217,65 @@ delineator` (deutscher Leitpfosten mit Rückstrahler), `fuel_station` (Dach + Za
 (große Seitenansicht, Bug rechts, Anker = Wasserlinie Mitte). Requisiten und UI wurden in v2 nicht neu
 gerendert (unveränderte Sheets).
 
+### Städte: regionale Gebäude und Brückenbauteile
+
+Für die individuellen Städte ([staedte.md](staedte.md) §2 und §4) baut `tools/blender/cesprites/props_cities.py`
+46 Stadtgebäude in 15 Baustilen und vier Brückenbauteile (Tabelle `CITY_PROPS`, in `props.PROPS`
+eingehängt). Konventionen wie bei den übrigen Gebäuden: Anker = Mitte der Vorderfront am Boden, 3/4-Ansicht
+(Gierwinkel −20°, Einfamilienhäuser −24°) für die **rechte** Straßenseite, die linke Seitenwand zeigt zur
+Straße und ist voll ausgestaltet; Winkel `c`, Ebenen `base` + `lights` (zufällig beleuchtete Fenster in drei
+Warmtönen, Schaufenster, Leuchtschilder, Laternen, Flugfeuer), `extent_m` aus dem Rendering.
+Tags: `prop`, `building`, `city`, `mirror_left`, dazu der **Stil** (`hanse`, `german`, …) und die **Zone**
+(`outskirts` = Stadtrand, `center` = Zentrum) als Vorschlag für die Landschaften `city_<stil>_outskirts` /
+`city_<stil>_center`.
+
+| Stil | Stadtrand (`outskirts`) | Zentrum (`center`) |
+|---|---|---|
+| `hanse` | `city_hanse_crane` (Portalwippkran mit Gittermast) | `city_hanse_gabled` (drei Kaufmannshäuser: gotischer Treppengiebel mit Blendnischen, barocker Schweifgiebel, Spitzgiebel mit Lanzettfenstern), `city_hanse_kontor` (Kontorhaus, dunkler Klinker, Pfeiler, Staffelgeschosse), `city_hanse_speicher` (Speicherstadt: Treppengiebel, Ladeluken mit Windenhäuschen, Eckturm, Kupferdach) |
+| `german` | `city_german_house` (Einfamilienhaus mit Satteldach, Gaube, Garage, Hecke), `city_german_mietshaus` (50er-Jahre, Balkone, Glasbaustein-Treppenhaus, Antennen) | `city_german_gruenderzeit` (Eckhaus, Erker, Verdachungen, Mansarddach), `city_german_office` (Büroturm, 104 m + Glaskrone) |
+| `german_old` | – | `city_german_old_fachwerk` (drei vorkragende Fachwerkhäuser), `city_german_old_fachwerk_b` (Gildehaus auf rotem Sandstein, Eckerker mit Spitzhelm), `city_german_old_barock` (rosa Barockhaus mit Zwerchgiebel, gelbes mit Erker) |
+| `dutch` | `city_dutch_terrace` (Reihenhäuser, Gauben, Fahrräder) | `city_dutch_canal` (Treppen-, Glocken-, Halsgiebel), `city_dutch_canal_b` (Lijstgevel, Tuitgevel mit Läden, Amsterdamer Renaissance) |
+| `belgian` | – | `city_belgian_terrace` (vier Backsteinhäuser, Blaustein, Café), `city_belgian_stone` (maasländische Renaissance: Backstein mit Kalksteinbändern, Kreuzstockfenster) |
+| `paris` | – | `city_paris_haussmann` (Haussmann-Block mit Café), `city_paris_corner` (Eckhaus mit abgeschrägter Ecke, „pan coupé“) |
+| `french` | `city_french_maison` (Loire: Tuffstein, Schiefer, Steingauben, Fensterläden), `city_french_sud` (Süden: Ocker, Mönch-Nonne-Ziegel, Génoise, Platane) | `city_french_immeuble` (Lyon: Ocker, Läden, Gitter, Bäckerei) |
+| `spanish` | `city_spanish_casa` (weißes Haus, Rejas, Orangenbaum) | `city_spanish_block` (Balkone an jedem Fenster, Rollläden, Ático), `city_spanish_ladrillo` (Madrider Backstein mit Schieferhelm) |
+| `italian` | – | `city_italian_palazzo` (Rustika, Piano nobile, Cornicione), `city_italian_block` (Persiane, Balkone, Markisen), `city_italian_venezia` (gotische Fenster, Polifora, Trichterkamine) |
+| `vienna` | – | `city_vienna_palais` (Ringstraßenpalais in Schönbrunner Gelb, Attika mit Statuen), `city_vienna_kirche` (barocke Kuppelkirche mit Doppelturmfassade), `city_vienna_zinshaus` (Gründerzeit-Zinshaus mit Eckkuppel) |
+| `swiss` | `city_swiss_chalet` (Berner Chalet, Geranien, Brennholz) | `city_swiss_laube` (Berner Laubenhäuser) |
+| `central` | – | `city_central_barock` (Prager Bürgerhäuser), `city_central_jugendstil` (Rundgiebel, Fliesenbänder, runde Balkone), `city_central_eckturm` (Budapest: Zsolnay-Rautendach, Eckturm) |
+| `eastern` | `city_eastern_house_a` („Kostka“: Würfelhaus, Zaun mit Pfeilern, Apfelbaum, Schuppen), `city_eastern_house_b` (eingeschossig, steiler Giebel, Lattenzaun, Birke, Brunnen), `city_eastern_house_c` (neueres Haus, Garage mit Terrasse, Bretterzaun, Thujen) | `city_eastern_plattenbau` (Plattenbau mit Farbfeldern und Loggien) |
+| `balkan` | `city_balkan_house` (unfertig: Sichtziegel im Betonskelett, Bewehrungseisen, Weinlaube), `city_balkan_house_b` (Balustradenbalkon, unverputzte Seitenwand) | `city_balkan_church` (serbisch-byzantinisch, Ziegel-/Steinlagen, fünf Kuppeln), `city_balkan_plattenbau` (Sichtbeton, Balkonbänder, Klimageräte, Satellitenschüsseln) |
+| `baltic` | `city_baltic_wood` (Holzhaus mit Veranda), `city_baltic_wood_b` (Giebelhaus mit Schnitzwerk) | `city_baltic_jugendstil` (Rigaer Jugendstil) |
+
+Der Länderstil `austrian` (Österreich) verwendet die `vienna`-Gebäude. Stile ohne eigenes
+Stadtrand-Gebäude (`german_old`, `belgian`, `paris`, `italian`, `vienna`, `central`) können dort ihre
+kleineren Zentrumsgebäude oder passende Häuser anderer Stile verwenden (z. B. `paris` →
+`city_french_maison`, `italian` → `city_french_sud` / `city_spanish_casa`, `vienna` / `central` /
+`german_old` → `city_german_house`, `belgian` → `city_dutch_terrace`).
+
+Brückenbauteile:
+
+| Set | Inhalt | Anker / Platzierung |
+|---|---|---|
+| `props/bridge_truss_arch` | Stahlfachwerk-Bogenportal (Elbbrücken), zwei Fachwerkebenen 1,8 m tief, Knotenbleche, zwei Hängeleuchten (`lights`); zwischen den Stäben transparent, **kein Bodenschatten** | Anker = Fahrbahnmitte (Zelle zentriert), lichte Weite 29,4 m (Pfosten innen ±14,7 m, außen ±15,9 m), Scheitel 15,6 m; Tags `bridge`, `overhead`; alle ~40 m, andere Fahrbahnbreiten über `scale` |
+| `props/bridge_pylon` | Schrägseil-Pylon (Köhlbrandbrücke): Betonstiel 82 m (+ Spitze), leicht zur Fahrbahn geneigt, Seilfächer zum Fahrbahnrand nach vorn und hinten (je 10 Seile bis ±83 m längs), nachts angestrahlt + Flugfeuer | Anker = Pylonfuß auf Fahrbahnhöhe, rechte Seite (`mirror_left`); in der 3/4-Ansicht reicht der vordere Fächer ~33 m nach links (zur Fahrbahn, Seilenden etwas über dem Anker), der hintere ~25 m nach rechts (Seilenden bis ~8 m unter der Ankerzeile = näher am Betrachter); **am Anker** platzieren (nicht kantenbündig), ~3 m hinter dem Geländer |
+| `props/bridge_lamp` | gusseiserner Kandelaber mit drei Laternen, vergoldete Ringe, 4,85 m | Anker = Fuß; Tags `bridge`, `road`, `mirror_left`; auf der Geländerlinie alle 25–30 m |
+| `props/houseboat` | Amsterdamer Hausboot 16 × 4,6 m: schwarzer Stahlrumpf, grüne Holzkajüte mit großen Fenstern, Dachgarten, Blumen | Anker = Wasserlinie unter der Mitte der zugewandten Längsseite; Tags `boat`, `water`, `mirror_left`; wie Gebäude kantenbündig |
+
+Bausteine des Moduls: Fassaden-Shader `wallmat` (Fensterraster mit Rahmen, Sprossen, Rund-, Segment- und
+Spitzbögen, Klapp- und Rollläden, Vorhängen, Schaufenstern und Türen; Oberflächen Putz, Backstein, Quader,
+Rustika, Fachwerk, Stülpschalung, Bretter, Plattenfugen, Sichtbeton; Zonen für Sockel, Bänder und
+Farbfelder), echte Geometrie für Gesimse, Verdachungen, Gewände, Konsolen, Pilaster, Balkone mit
+Gittermustern (Material mit echter Transparenz, auch in der Lichtebene), Giebel (Dreieck, Treppe, Glocke,
+Hals, Tuit, Schweif, Rund, Lijst), Sattel-, Walm- und Mansarddächer (auch über abgeschrägten Ecken), Gauben,
+Schornsteine, Ecktürme, Statuen, Zäune, Hecken, Bäume und Blumen.
+
+Auflösung: Häuser am Stadtrand 15–21 px/m (Zellenhöhe 192–224 px; Kran 9,5), Zentrumsgebäude 9–16 px/m
+(256–452 px; Büroturm 3,4), Brückenteile 5–47 px/m. Die Werte sind ein Kompromiss mit dem PNG-Budget
+(siehe „Import und Speicher“): Fassaden mit vielen Fenstern, Gittern und Fugen kosten ≈ 1 Byte je Pixel,
+unabhängig von Rauschen, Samples oder Dither (gemessen). Die Zellenhöhen stehen in `CITY_PROPS`, der Faktor
+`RES_SCALE` skaliert alle Gebäude gemeinsam.
+
 ## Neues Modell hinzufügen
 
 - **Spielerauto**: Entwurf in `player_cars.py` (`DESIGNS`): Maße, Achsen, Reifen, Grundriss `plan`,
@@ -234,7 +293,9 @@ gerendert (unveränderte Sheets).
   Fahrzeugmitte, Flächen, Objekte je Teil) und die Lichtflächen (`lights`). Quadermaße als Vielfache von
   5 cm halten (ganzzahlige Pixel).
 - **Requisit**: Funktion `name(rig, p)` in `props_nature.py` / `props_buildings.py` / `props_road.py`,
-  Eintrag in `props.PROPS`.
+  Eintrag in `props.PROPS`. Stadtgebäude: Funktion in `props_cities.py` aus den Bausteinen (`wallmat`,
+  `grid`, `gable_house`, `timber_house`, `saddle`/`hip`/`mansard`, `dormers`, `Rails`, …), Eintrag in
+  `CITY_PROPS` über `_b(funktion, zellenhöhe, stil, zone)`.
 - Danach `render_all.py --only <id>` und `validate_manifest.py`; Kontaktbogen ansehen.
 
 ## Prüfung
@@ -269,13 +330,16 @@ und gibt die Größen aus. Stand v2:
 | player (5 Sheets, je bis 4096 × 3500) | 17,4 MB | 90,5 MB (BPTC, ≈ 18 MB je Auto) |
 | traffic (26 Pkw + 7 Lkw/Bus-Quader) | 19,4 MB | 93,9 MB (BPTC) |
 | police (17) | 11,5 MB | 78,8 MB (BPTC, ≈ 4,6 MB je Land) |
-| props (36) | 3,2 MB | 31,8 MB (verlustfrei) |
+| props (36 + 50 Städte) | 3,2 + 6,0 MB | 31,8 + 48,7 MB (verlustfrei) |
 | showroom (5) | 0,9 MB | 9,4 MB (verlustfrei) |
 | ui (7) | 0,1 MB | 0,3 MB |
-| **gesamt** | **52,4 MB** (Budget ≈ 60 MB) | **305 MB**, davon Fahrzeuge 263 MB |
+| **gesamt** | **58,3 MB** (Budget ≈ 60 MB) | **353 MB**, davon Fahrzeuge 263 MB |
 
 In einem Rennen ist nur ein Spielerauto und die Polizei des aktuellen Landes geladen (SpriteDB lädt bei
-Bedarf): typisch ≈ 150 MB, wenn alle Verkehrsmodelle und -farben vorkommen.
+Bedarf): typisch ≈ 150 MB, wenn alle Verkehrsmodelle und -farben vorkommen. Von den Stadtgebäuden braucht
+eine Etappe nur die Sets des Stils der Zielstadt (3–4 Gebäude ≈ 3–5 MB GPU) und ggf. die Brückenteile.
+Wird das PNG-Budget knapp (Wahrzeichen kommen hinzu), verkleinert `RES_SCALE` in `props_cities.py`
+alle Stadtgebäude auf einmal (0,85 → ≈ −1,6 MB, danach `render_all.py --only props/city_` neu rendern).
 
 ## Hinweise für die anderen Module
 
@@ -288,6 +352,12 @@ Bedarf): typisch ≈ 150 MB, wenn alle Verkehrsmodelle und -farben vorkommen.
 - **Abstand zur Straße**: `extent_m = [links, rechts]` ist die sichtbare Ausdehnung links/rechts des Ankers
   in der ungespiegelten Zelle (siehe docs/renn-modul.md §5).
 - **Tankstelle** (`wide`): Anker unter der Mitte des Dachs, Preismast links, Shop rechts.
+- **Stadtgebäude**: wie die übrigen Gebäude kantenbündig platzieren (`align: "edge"`, `extent_m`); Stil und
+  Zone stehen in den Tags. `props/city_hanse_crane` ist ein Einzelobjekt (Hafen), nur selten einstreuen.
+  Brückenteile: `bridge_truss_arch` mittig über der Fahrbahn (Tag `overhead`), `bridge_pylon` am Anker
+  (nicht kantenbündig, der Seilfächer ragt in der 3/4-Ansicht weit zur Seite), `bridge_lamp` auf der
+  Geländerlinie, `houseboat` auf dem Wasser (Anker = Wasserlinie). Der Validator meldet für
+  `bridge_pylon` absichtlich „reicht … unter den Anker“ (die näheren Seile enden vor dem Pylon).
 - **Fähre**: `props/ferry_ship` ist eine große Seitenansicht (Bug rechts, Anker = Wasserlinie Mitte,
   ohne Schatten) für die Fährszene; Ebene `lights` für die Nachtfahrt.
 
@@ -371,6 +441,7 @@ Gemessen auf der geteilten Maschine (Cycles CPU, leerer Cache):
 | Pkw-Verkehr (17 Winkel) | erste Farbe eines Modells 50–70 s, jede weitere Farbe 25–35 s (2 Threads) |
 | Polizei (17 Winkel × 6 Renderings) | ≈ 100 s (2 Threads) |
 | Requisiten / UI | unverändert aus v1 (2–25 s bzw. 1–3 s) |
+| Stadtgebäude und Brückenteile (3 Renderings: Schatten, Base, Licht) | 4–60 s je nach Größe und Last (2 Threads), alle 50 Sets ≈ 25–35 min; Vorschau mit `--quick` ≈ 2,5 min je 15 Sets |
 
 v2-Lauf: Verkehr + Polizei 43 Sets / 2474 Renderings in 47 min (2 Threads), Spieler + Showroom +
 Lkw/Bus 17 Sets / 502 Renderings in 59 min (3 Threads). Ein erneuter Lauf ohne Änderungen rendert nichts
