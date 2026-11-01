@@ -4,7 +4,7 @@
 Usage: python3 tools/blender/contact_sheet.py [--src assets/sprites] [--out DIR] [--only PREFIX[,..]]
                                               [--every N]
 
-Writes per category (player, showroom, traffic, police, props, ui):
+Writes per category (player, showroom, traffic, police, props, landmarks, ui):
   <out>/contact_<category>.png  every set: base cells of all angles (every N-th angle with --every) on an
                                 asphalt-grey background, then a night composite (base darkened like the
                                 game + light layers; brake on every second angle)
@@ -13,6 +13,7 @@ Writes per category (player, showroom, traffic, police, props, ui):
   <out>/lineup_vehicles.png     straight view of every ortho vehicle scaled to the same pixels per
                                 metre on a common ground line (checks metric consistency/anchors)
   <out>/lineup_props.png        same for props
+  <out>/lineup_landmarks.png    same for the landmarks (real heights side by side)
 Sprite cells are found through the grid layout (index = layer * len(angles) + angle, grid_cols).
 """
 import argparse
@@ -233,7 +234,7 @@ def main():
     args = ap.parse_args()
     sets = load_manifest(args.src)
     os.makedirs(args.out, exist_ok=True)
-    cats = ["player", "showroom", "traffic", "police", "props", "ui"]
+    cats = ["player", "showroom", "traffic", "police", "props", "landmarks", "ui"]
     prefixes = [p for p in args.only.split(",") if p]
     if prefixes:
         cats = [c for c in cats if any(c.startswith(p.rstrip("/").split("/")[0]) for p in prefixes)]
@@ -263,6 +264,12 @@ def main():
         if lp is not None:
             lp.save(os.path.join(args.out, "lineup_props.png"))
             print(os.path.join(args.out, "lineup_props.png"), lp.size)
+    if not prefixes or any(p.startswith("landmarks") for p in prefixes):
+        lm = sorted(k for k in sets if k.startswith("landmarks/"))
+        ll = lineup(args.src, sets, lm, ppm=1.6)
+        if ll is not None:
+            ll.save(os.path.join(args.out, "lineup_landmarks.png"))
+            print(os.path.join(args.out, "lineup_landmarks.png"), ll.size)
 
 
 if __name__ == "__main__":

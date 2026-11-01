@@ -49,6 +49,7 @@ CODE = {
     "bus": ["vehicles.py", "heavy.py", "textgeo.py"],
     "prop": ["props.py", "props_nature.py", "props_buildings.py", "props_road.py"],
     "icon": ["icons.py"],
+    "landmark": ["props_buildings.py"],      # props_landmarks.py: per landmark via params["rev"]
 }
 
 
@@ -106,6 +107,9 @@ def build(rig, spec):
     if b == "icon":
         from cesprites import icons
         return icons.build(rig, p)
+    if b == "landmark":
+        from cesprites import props_landmarks
+        return props_landmarks.build(rig, p)
     raise ValueError("unknown builder " + b)
 
 

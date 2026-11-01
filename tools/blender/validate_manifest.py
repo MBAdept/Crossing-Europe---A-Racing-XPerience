@@ -14,6 +14,8 @@ Checks
                 (lowest pixels, horizontal centre of the straight view), measured width vs object.width_m
   player        perspective, pivot "center", 21 angles -20..20 step 2, camera = config render.*,
                 supersample, car centred on anchor.x, width measured at the rear vs object.width_m
+  props, landmarks  standing on the anchor, measured height vs object.height_m; landmarks: one angle "c",
+                layers base + lights, tags prop + landmark (no mirror_left), real width/length/height
   box sets      parts with z/x/y ranges, faces inside the sheet and not overlapping, >= 48 px/m,
                 face aspect = face metres, non-empty faces, light overlays reference existing faces and
                 have the same size, overlays not empty
@@ -42,6 +44,10 @@ PROPS = ["tree_oak", "tree_beech", "tree_birch", "tree_pine", "tree_spruce", "tr
          "building_block_b", "building_tall", "building_oldtown", "building_shop", "streetlight", "delineator",
          "fuel_station", "fuel_pump", "radar_camera", "customs_booth", "ferry_ship"]
 UI = ["weather_normal", "weather_rain", "weather_snow", "daytime_day", "daytime_night", "daytime_dawn", "daytime_dusk"]
+# landmarks/<name> (docs/staedte.md section 3): one angle "c", base + lights, tags prop + landmark
+LANDMARKS = ["eiffel_tower", "elbphilharmonie", "michel", "riesenrad", "stephansdom", "fernsehturm_berlin",
+             "frauenkirche_dresden", "frauenkirche_muenchen", "sagrada_familia", "duomo_milano", "campanile_venezia",
+             "parlament_budapest", "veitsdom_prag", "kulturpalast_warschau", "nevsky_kathedrale"]
 # set ids of tools/placeholders/make_placeholders.py (the manifest must stay a superset)
 PLACEHOLDER_IDS = (["player/" + p for p in PLAYERS] + ["showroom/" + p for p in PLAYERS] +
                    ["traffic/sedan_red", "traffic/sedan_blue", "traffic/sedan_silver", "traffic/hatch_green",
@@ -195,6 +201,16 @@ def check_sprite_set(sid, s, src, rep):
             rep.err(sid, "tags muessen %s enthalten" % want)
     if cat == "player" and "player" not in s["tags"]:
         rep.err(sid, "tag 'player' fehlt")
+    if cat == "landmarks":
+        if angles != ["c"]:
+            rep.err(sid, "Wahrzeichen haben genau einen Winkel 'c'")
+        if "lights" not in layers:
+            rep.err(sid, "Ebene fehlt: lights (Anstrahlung nachts)")
+        if any(t not in s["tags"] for t in ("prop", "landmark")) or "mirror_left" in s["tags"]:
+            rep.err(sid, "tags muessen prop und landmark enthalten (kein mirror_left)")
+        for k in ("width_m", "length_m", "height_m"):
+            if k not in s["object"]:
+                rep.err(sid, "object." + k + " fehlt")
     path = os.path.join(src, s["file"])
     if not os.path.exists(path):
         rep.err(sid, "Datei fehlt: " + s["file"])
@@ -273,7 +289,7 @@ def check_sprite_set(sid, s, src, rep):
         # anchor = ground point under the car centre: lowest car pixels (rear) are below it
         if lowest < arow:
             rep.err(sid, "Bodenanker liegt unter dem Heck (Anker %.0f, unterste Pixel %.0f)" % (arow, lowest))
-    elif cat == "props":
+    elif cat in ("props", "landmarks"):
         if lowest > arow + max(3, 1.0 * ppm) and "ship" not in s["tags"]:
             rep.warn(sid, "Requisit reicht %.2f m unter den Anker" % ((lowest - arow) / ppm))
         if lowest < arow - max(4, 1.5 * ppm) and "ship" not in s["tags"]:
@@ -411,7 +427,7 @@ def main():
     sets = man.get("sets", {})
     required = (["player/" + p for p in PLAYERS] + ["showroom/" + p for p in PLAYERS] +
                 ["police/" + c for c in POLICE] + ["props/" + p for p in PROPS] + ["ui/" + u for u in UI] +
-                PLACEHOLDER_IDS)
+                ["landmarks/" + l for l in LANDMARKS] + PLACEHOLDER_IDS)
     for r in sorted(set(required)):
         if r not in sets:
             rep.err(r, "Set fehlt")

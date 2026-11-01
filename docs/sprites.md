@@ -184,6 +184,7 @@ Frontkennzeichen.
 | Polizei | `police/<land>` – 17 Länder, landestypische Farben, Wort auf Flanken und Heck, Blaulichtbalken (beacon_a = linke, beacon_b = rechte Hälfte), 17 Winkel | 56 px/m, 9° |
 | Requisiten | `props/<name>` (36 Stück, siehe unten); `lights` bei Gebäuden, Laternen, Leitpfosten, Tankstelle, Windrad (Flugfeuer) … | Bäume 256–384 px hoch, Gebäude bis 512 |
 | UI | `ui/weather_normal`, `_rain`, `_snow`, `ui/daytime_day`, `_night`, `_dawn`, `_dusk` – 96×96, dunkle Kontur | – |
+| Wahrzeichen | `landmarks/<name>` (21, siehe „Wahrzeichen“): base + lights (Anstrahlung), echte Maße, 3/4-Ansicht | 2,4–6 px/m, Zellen bis 1024 px |
 
 Polizei (keine echten Wappen/Logos, generische Lackierungen):
 
@@ -289,6 +290,74 @@ Bedarf): typisch ≈ 150 MB, wenn alle Verkehrsmodelle und -farben vorkommen.
 - **Tankstelle** (`wide`): Anker unter der Mitte des Dachs, Preismast links, Shop rechts.
 - **Fähre**: `props/ferry_ship` ist eine große Seitenansicht (Bug rechts, Anker = Wasserlinie Mitte,
   ohne Schatten) für die Fährszene; Ebene `lights` für die Nachtfahrt.
+
+## Wahrzeichen (`landmarks/*`)
+
+Vertrag: [Individuelle Städte §3](staedte.md). Modul `tools/blender/cesprites/props_landmarks.py`
+(Builder `landmark`, Registrierung `LANDMARKS`), Aufruf wie alle Sets:
+`render_all.py --only landmarks/` bzw. `--only landmarks/eiffel_tower --quick --out /tmp/x`.
+
+- **Konvention** wie bei den Gebäuden: echte Meter, Ursprung = Mitte der nahen Seite am Boden (= Anker),
+  das Wahrzeichen erstreckt sich nach +y (von der Straße weg); `object` = echte Breite/Länge/Höhe,
+  `extent_m` wie bei allen Requisiten.
+- **Ein Winkel `c`**, je Wahrzeichen eine 3/4-Ansicht (`view_yaw` −10° … −28°), Kamera nur **3°** geneigt
+  (aus der Ferne gesehen fast waagrecht). **Kein `mirror_left`**: Wahrzeichen werden nie gespiegelt
+  (Türme, Flügel und Schriftbilder bleiben, wo sie hingehören) – auch links der Straße dieselbe Ansicht.
+- **Ebenen `base` + `lights`**. Nachts strahlen angestrahlte Flächen ihre eigene, rauschfreie Grundfarbe
+  (Fenster, Bänder und Muster bleiben erhalten) mit Scheinwerferlicht getönt ab, unten etwas heller
+  (`Shade.flood`); dazu beleuchtete Fenster, Flugbefeuerung (rot), goldene Beleuchtung des Eiffelturms,
+  Kreuz und Stern der Sagrada Família, Glühlampen am Riesenrad. Kalibrierung `FLOOD_K`: Lichtebenen werden
+  sRGB-kodiert gespeichert (Alpha ≈ Emission^(1/2,2)) – heller Stein bei Stärke 1 ergibt Alpha ≈ 0,55–0,6
+  über der abgedunkelten Basis. Glühen (Bloom) nur schwach, damit Fassaden nicht zu Flächen verschwimmen.
+- **Schatten**: nur ein Kontaktschatten (Schattenfänger etwa so groß wie die Grundfläche), Türme werfen
+  keine langen Streifen. Ein schwaches Aufhelllicht von unten (Bodenreflexion, ohne Schatten, nur Basis)
+  verhindert schwarze Unterseiten (Fernsehturm-Kugel, Kuppeln, Plattformen).
+- **Auflösung**: 2–6,4 px/m (Frankfurter Skyline 2,05, Eiffelturm 3,0, Kirchen 4,2–5), Zellen höchstens
+  1024 px hoch und 960 px breit – aus der Ferne per Mipmap verkleinert, bei der Vorbeifahrt in 150–300 m
+  etwa 1:1 (Bildschirm 711/Tiefe px/m). Sehr hohe Wahrzeichen (Eiffelturm 330 m, Fernsehturm 368 m) sind
+  näher als ≈ 700 m oben angeschnitten – wie in echt.
+- **Schrägansicht und Anker**: Bei sehr breiten Wahrzeichen (Parlament 268 m, Eiffelturm) liegt die vordere
+  Ecke durch die Drehung vor dem Anker und reicht 1–2 m unter die Ankerlinie (`validate_manifest.py` warnt,
+  unbedenklich).
+- **Größe**: 21 Sets, 6,1 MB PNG (mit dem Bestand 58,5 MB bei 60 MB Budget), GPU 56 MB wenn alle geladen;
+  eine Etappe lädt nur die 1–3 Wahrzeichen ihrer Zielstadt (2–9 MB). Damit die Lichtebenen klein bleiben,
+  ist die Anstrahlung rauschfrei (glatte Flächen packen gut). Rendern: 21 Sets in 7,5 min (2 Threads,
+  6–38 s je Set).
+- **Render-Cache je Wahrzeichen**: Parameter `rev` = Hash aus dem gemeinsamen Teil des Moduls (Hilfen,
+  Materialien, Konstanten) und dem eigenen Builder; `render_all.CODE["landmark"]` enthält das Modul
+  deshalb nicht. Eine Änderung an einem Wahrzeichen rendert nur dieses neu.
+- **Import**: verlustfrei wie die anderen Requisiten (kein VRAM-Format, Mipmaps an).
+
+| Set | Stadt | Höhe | Merkmale |
+|---|---|---|---|
+| `eiffel_tower` | Paris | 330 m | Gitterwerk aus Beinen/Streben, Bögen, 1./2. Etage mit Bogenfries, 3. Etage, Antenne; nachts golden |
+| `elbphilharmonie` | Hamburg | 110 m | Backstein-Kaispeicher (37 m) mit Fensterraster, Plaza-Band, Glaswelle mit Wellendach (spitz zur Westspitze) |
+| `michel` | Hamburg | 132 m | Backsteinkirche, Turm mit Sandsteinecken, 8-m-Uhren, kupfergrüne Haube mit zwei Säulenkränzen |
+| `riesenrad` | Wien | 64,75 m | zwei Gitterkränze, 120 Speichen, 15 rote Waggons, A-Pylone, Station; nachts Lampenkette |
+| `stephansdom` | Wien | 136,4 m | Zickzack-Ziegeldach, gotischer Südturm, Nordturm mit Haube, Heidentürme, Strebepfeiler |
+| `fernsehturm_berlin` | Berlin | 368 m | Betonschaft, Kugel mit Fensterband, rot-weiße Antenne, Faltdach-Pavillon |
+| `frauenkirche_dresden` | Dresden | 91 m | Steinerne Glocke, Ecktürme, Laterne mit Kreuz, helle und dunkle (alte) Steine |
+| `frauenkirche_muenchen` | München | 98,6 m | Backstein, Zwillingstürme mit grünen Welschen Hauben, riesiges Dach |
+| `sagrada_familia` | Barcelona | 172,5 m | Geburtsfassade mit 4 Türmen (Mosaikspitzen), Jesus-Turm mit Kreuz, Evangelisten, Marienstern |
+| `duomo_milano` | Mailand | 108,5 m | weißer Marmor, Giebelfassade, Fialenwald, Vierungsturm mit goldener Madonnina |
+| `campanile_venezia` | Venedig | 98,6 m | Backsteinschaft, weiße Glockenstube, grüne Pyramide, Engel; Kuppeln von San Marco |
+| `parlament_budapest` | Budapest | 96 m | 268 m Donaufassade, rote Dächer, Rippenkuppel, Fialenreihe; nachts golden |
+| `veitsdom_prag` | Prag | 96,5 m | Westtürme, Südturm mit barocker Haube, dunkle Dächer, davor der Schlossflügel |
+| `kulturpalast_warschau` | Warschau | 237 m | Stufenturm mit Attiken und Fialen, Uhren, Spitze, Flügelbauten |
+| `nevsky_kathedrale` | Sofia | 53 m | goldene Hauptkuppel, grüne Kuppeln, Glockenturm mit goldener Zwiebel |
+| `frankfurt_skyline` | Frankfurt | 300 m | Westend Tower (Krone), Messeturm (Pyramide), Trianon, Deutsche-Bank-Türme, Main Tower, Commerzbank |
+| `kaiserburg_nuernberg` | Nürnberg | 66 m | Burgfelsen, Palas, Heidenturm, Sinwellturm mit Fachwerk, Kaiserstallung mit Luginsland |
+| `st_petri_riga` | Riga | 123,25 m | Backsteinkirche, Turm mit zwei Galerien und Nadel, goldener Hahn |
+| `freiheitsdenkmal_riga` | Riga | 42 m | Granitsockel, Travertinsäule, Milda mit drei goldenen Sternen |
+| `kathedrale_burgos` | Burgos | 88 m | weiße Gotik, durchbrochene Turmspitzen, Rosette, Vierungslaterne |
+| `basilica_pilar` | Saragossa | 92 m | vier Ecktürme, elf Kuppeln mit grün-gelb-weiß-blauen Ziegeln |
+
+Die ersten 15 sind Pflicht (`validate_manifest.py` verlangt sie: ein Winkel `c`, Ebenen `base` + `lights`,
+Tags `prop` + `landmark`, kein `mirror_left`, Breite/Länge/Höhe, Höhe ↔ gemessene Pixel). Neues
+Wahrzeichen: Builder-Funktion `name(rig, p)` in `props_landmarks.py` (Hilfen `Shade`, `lathe`, `pinnacle`,
+`copper`, `gold` …), Eintrag in `LANDMARKS` (Zellhöhe, `view_yaw`, Ränder, Glühen, Schattenfänger, max.
+Breite). `contact_sheet.py` erzeugt `contact_landmarks.png` (Tag + Nacht) und `lineup_landmarks.png`
+(alle in echter Höhe nebeneinander).
 
 ## Renderzeiten
 
