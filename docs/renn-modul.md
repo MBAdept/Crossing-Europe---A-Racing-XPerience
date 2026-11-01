@@ -461,6 +461,19 @@ jedem Wetter ohne Unfall und ohne Ausflug neben die Fahrbahn schaffen):
   Kreis τ·x'' + (1 + V·kd)·x' + V·kp·x = 0 mit ω = min(7; 1,7/τ), Dämpfung 0,85. Trocken ist das die alte
   P-Lenkung (kp ≈ 0,7); im Schnee lenkt er früh gegen, statt zu pendeln (Test: Spurwechsel bei 200 km/h überschwingt
   < 0,4 m bei jedem Wetter).
+- **Spurenden** (Review v0.5.0 – im Königsrennen überholte er vor den City Limits in der leeren rechten Spur, die 250 m
+  später endete, und 90 m vor ihrem Ende schob ihn eine Spurwahl ohne Lückenprüfung in die stehende Einfädel-Kolonne
+  der Mittelspur: 157 km/h auf ein stehendes Auto): `Track.lane_end_ahead(z, Spur, Weite)` sucht das Ende jeder Spur
+  über den Spurhorizont `lane_horizon_m` = Bremsweg (`_look_m`) + `lane_change_s` (6 s) Fahrt – 235 km/h trocken ≈ 620 m,
+  100 km/h ≈ 280 m; gemessen bis dorthin, wo der Verkehr sie verlässt (`road.lane_transition_m` vor der Verengung).
+  Eine Spur, die innerhalb des Horizonts endet, ist kein Ziel zum Überholen, auch wenn sie leer ist; endet die eigene,
+  wechselt er früh nach links, aber nur in eine freie Lücke – ohne Lücke hält er `lane_end_margin_m` (25 m) vor ihrem
+  Ende an, statt sich hinüberzudrängen (Grund `lane end`).
+- **Tankspur verlassen**: nach dem Tanken (oder in der Tankspur ohne Tankabsicht) zurück in die rechte Spur nur durch
+  eine freie Lücke – auch nach hinten: `_lane_free` verlangt hinten 12 m + 0,5 s Annäherung + deren Bremsweg mit
+  `behind_brake_mps2` (3 m/s²; mit 30 km/h vor einem Auto mit 100 km/h ≈ 85 m; vorher 2 s Annäherung = 51 m). Bis dahin
+  fährt er in der Tankspur weiter und hält vor ihrem Ende (`Track.fuel_lane_end_ahead`, Grund `fuel exit`). Vorher zog
+  er mit 31 km/h vor ein Auto mit 100 km/h (Kiel – Nürnberg, Sportwagen bei vmax).
 - `weather_aware = false` (nur Messungen): plant Verkehr, Lücken und Lenken wie auf trockener Straße.
 - Ergebnis: in den Messungen (gameplay.md (j)) und `tests/unit/race/test_autopilot_weather.gd` (dichter Berufsverkehr bei
   Schnee und Regen, Autobahn, kurvige Landstraße, Autobahn mit Limit) keine Kollision, nie neben der Fahrbahn, kein
@@ -552,7 +565,11 @@ xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
 - `tests/unit/race/test_autopilot_weather.gd` (v0.5.0): PD-Lenkung des Autopiloten pendelt bei keinem Wetter
   (Spurwechsel bei 200 km/h < 0,4 m Überschwingen, nach < 2,5 s in der Spur), Planverzögerung nach Wetter, dichter
   Berufsverkehr bei Schnee (Gran Turismo, 110 km) und Regen (Kompakt, 80 km) ohne Kollision, Bankett und Untersteuern,
-  zur Tankspur Spur für Spur nur in freie Lücken (`test_fuel_lane_approach_waits_for_a_gap`).
+  zur Tankspur Spur für Spur nur in freie Lücken (`test_fuel_lane_approach_waits_for_a_gap`); Review v0.5.0: am Spurende
+  3 → 2 mit stehender Kolonne in der Mittelspur hält er vor dem Ende, statt hineinzuziehen
+  (`test_lane_end_stops_instead_of_forcing_into_a_jam`), überholt nie in einer endenden Spur
+  (`test_does_not_overtake_in_an_ending_lane`) und verlässt die Tankspur erst, wenn das Auto mit 100 km/h von hinten
+  vorbei ist (`test_fuel_lane_exit_waits_for_the_traffic_behind`).
 - `xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --resolution 1280x720 --write-movie
   /tmp/schnee.avi --fixed-fps 30 --quit-after 1100 -s res://tests/race/movie_snow.gd -- --start-speed=120
   [--stage=hamburg_bremen --km=26 --hour=7.5 --weather=snow]` – Demofahrt als Video (v0.5.0: Berufsverkehr, fliegender
@@ -624,9 +641,12 @@ Anstrahlung), `landmark_range_factor` (2,0 × Sichtweite), `skyline_distance_m` 
   Konstanten `WALL_SIGN_GAP_M`, `WALL_SIGN_OVERHANG_M`; Schild-Requisiten zusätzlich `country`, `road`, im Tunnel
   `wall` (und `scale` < 1); Schildarten `curve` (Warnschild) und `chevron` (Richtungstafel), `value` = Richtung;
   `town_ahead` (Vorschild der City Limits: `text` Ziel, `value` km, `limit` Stadtlimit), `city_announce_km()`
-  (`city_limits.announce_km`, Review v0.5.0).
+  (`city_limits.announce_km`, Review v0.5.0); `lane_end_ahead(z, lane, look_m)` (Meter bis dorthin, wo die Spur für
+  den Verkehr endet, INF = geht weiter) und `fuel_lane_end_ahead(z)` (Meter bis zum Ende der Tankspur, in der z liegt)
+  – Review v0.5.0 für den Autopiloten (§10).
 - `Autopilot`: `curve_brake`, `curve_margin`, `curve_lookahead_m`, `curve_step_m`, `curve_lead_m`,
-  `curve_speed_ahead(track, vehicle, z, grip)`, statisch `pedals(speed, want)` → `{throttle, brake}`.
+  `curve_speed_ahead(track, vehicle, z, grip)`, statisch `pedals(speed, want)` → `{throttle, brake}`; Review v0.5.0:
+  `lane_end_margin_m`, `lane_change_s`, `behind_brake_mps2`, `lane_horizon_m(speed)`.
 - Rennsitzung: `drive_stats` (`off_road_s`, `limit_s`, `rail_hits`, `understeer_s`, `understeer_max`), in
   `perf_stats()["drive"]`; Tutorial-Thema `curve` (`TutorialCoach.URGENT`).
 - `TrackSegment`: `runout`, `fuel_zone` (+ Konstanten `FUEL_*`), `cover`, `cover_front`, `country_to`; Städte: `bridge`,

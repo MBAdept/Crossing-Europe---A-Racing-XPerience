@@ -31,6 +31,9 @@ var follow_time_s := 0.9           ## time gap behind a slower car (plus 12 m)
 ## a driver who does not adapt.
 var weather_aware := true
 var reserve_l := 4.0
+var lane_end_margin_m := 25.0      ## without a gap to leave an ending lane: stop this far before its end
+var lane_change_s := 6.0           ## lane horizon: braking distance (_look_m) plus this many seconds of driving
+var behind_brake_mps2 := 3.0       ## gap check: braking a faster car behind in the target lane may need (gentle)
 var _lane := -1
 var _station := -2.0               ## station km of the current refuel decision
 var _refuel := false
@@ -38,6 +41,7 @@ var _was_refueling := false
 var _hold_lane_t := 0.0
 var _plan_decel := 15.0            ## planning deceleration of the current weather (see plan_decel())
 var _lc_time := 1.4                ## seconds a lane change of this car takes in this weather (gap check)
+var _horizon_m := 300.0            ## lane horizon of this frame (lane_horizon_m)
 var last_want := 0.0               ## target speed of the last decision (debug trace)
 var last_reason := ""              ## what limited it (debug trace)
 
@@ -76,22 +80,43 @@ func drive(session: Node) -> Dictionary:
 		_station = next_st
 		_refuel = _needs_fuel(fuel, plan, km, next_st)
 
-	# --- lanes (look ahead for lane drops)
-	var lanes := mini(track.lane_count_at(z), track.lane_count_at(z + 90.0))
+	# --- lanes. A lane that ends within the horizon (Track.lane_end_ahead – the traffic leaves it road.lane_transition_m
+	# before the narrowing) is left early into a free gap and never entered; without a gap the car stops before its
+	# end instead of forcing its way over (QA v0.5.0: it overtook in the empty ending lane and was pushed back into a
+	# standing merge queue at 157 km/h)
+	var lanes := track.lane_count_at(z)
 	if _lane < 0:
 		_lane = _nearest_lane(track, z, v.x)
-	_lane = clampi(_lane, 0, lanes - 1)
+	_lane = clampi(_lane, 0, lanes - 1)   # already gone (a start inside a lane drop): no choice
 	_hold_lane_t = maxf(0.0, _hold_lane_t - dt)
+	_horizon_m = lane_horizon_m(speed)
 	var want := target_kmh
 	last_reason = "free"
+	var aligned := absf(track.lane_center_x(z, _lane) - v.x) < 0.8
+	var lane_end := track.lane_end_ahead(z, _lane, _horizon_m)
+	if lane_end < INF:
+		if _lane > 0 and _hold_lane_t <= 0.0 and aligned and _lane_free(traffic, track, z, _lane - 1, speed):
+			_lane -= 1
+			_hold_lane_t = maxf(0.8, _lc_time)
+		else:
+			var ew := _speed_for(0.0, lane_end - lane_end_margin_m)
+			if ew < want:
+				want = ew
+				last_reason = "lane end"
 	var target_x := track.lane_center_x(z + 12.0, _lane)
 	var use_fuel_lane := _refuel and next_st >= 0.0
+	# still in the fuel lane after refuelling (or after driving through it): back into the right lane only through
+	# a free gap – checked behind as well, the car comes out slowly – otherwise on along the fuel lane and stop
+	# before its end
+	var fuel_end := track.fuel_lane_end_ahead(z)
+	var in_fuel_lane := not use_fuel_lane and fuel_end < INF and v.x > track.main_right_edge(z) + 0.2
 	if use_fuel_lane:
 		var to_lane := track.distance_to_fuel_lane(z)
 		# over to the right lane one lane at a time, each into a free gap like when overtaking – never straight
-		# across the lanes (in snow the traffic there is far slower); the fuel lane only from the right lane
-		if to_lane < 700.0 and _lane < lanes - 1 and _hold_lane_t <= 0.0 \
-				and absf(track.lane_center_x(z, _lane) - v.x) < 0.8 \
+		# across the lanes (in snow the traffic there is far slower), never into a lane that ends first; the fuel
+		# lane only from the right lane
+		if to_lane < 700.0 and _lane < lanes - 1 and _hold_lane_t <= 0.0 and aligned \
+				and track.lane_end_ahead(z, _lane + 1, _horizon_m) == INF \
 				and _lane_free(traffic, track, z, _lane + 1, speed):
 			_lane += 1
 			_hold_lane_t = maxf(0.8, _lc_time)
@@ -105,7 +130,17 @@ func drive(session: Node) -> Dictionary:
 			if fw < want:
 				want = fw
 				last_reason = "fuel"
+	elif in_fuel_lane and not _lane_free(traffic, track, z, lanes - 1, speed):
+		_lane = lanes - 1
+		target_x = track.fuel_lane_x(z + 14.0)
+		var xw := _speed_for(0.0, fuel_end - 6.0)
+		if xw < want:
+			want = xw
+			last_reason = "fuel exit"
 	else:
+		if in_fuel_lane:
+			_lane = lanes - 1
+			_hold_lane_t = maxf(0.8, _lc_time)
 		var tw := _traffic(traffic, track, z, v, lanes, speed, want)
 		if tw < want:
 			want = tw
@@ -221,6 +256,12 @@ func _look_m(speed_kmh: float) -> float:
 	return clampf(vm * vm / (2.0 * _plan_decel) + 12.0 + vm * follow_time_s + 20.0, 110.0, 320.0)
 
 
+## Lane horizon (m): a lane that ends closer than this is no lane to change into, and the car leaves it – the
+## braking distance (_look_m) plus lane_change_s of driving to find a gap (235 km/h dry ≈ 620 m, 100 km/h ≈ 280 m).
+func lane_horizon_m(speed_kmh: float) -> float:
+	return _look_m(speed_kmh) + speed_kmh / 3.6 * lane_change_s
+
+
 func _needs_fuel(fuel: FuelSystem, plan: StagePlan, km: float, station_km: float) -> bool:
 	if refuel_mode == "always":
 		return true
@@ -255,8 +296,9 @@ func _traffic(traffic: TrafficSystem, track: Track, z: float, v: VehicleModel, l
 		var best := _lane
 		var best_v := here + 6.0
 		for cand: int in [_lane - 1, _lane + 1]:
-			if cand < 0 or cand >= lanes or not _lane_free(traffic, track, z, cand, speed):
-				continue
+			if cand < 0 or cand >= lanes or track.lane_end_ahead(z, cand, _horizon_m) < INF \
+					or not _lane_free(traffic, track, z, cand, speed):
+				continue   # no gap – or it ends soon (empty because everybody has left it)
 			var lv := _lane_speed(traffic, track, z, cand, desired) + (2.0 if cand < _lane else 0.0)
 			if lv > best_v:
 				best = cand
@@ -323,14 +365,17 @@ func _car_in_path(traffic: TrafficSystem, track: Track, z: float, x: float, targ
 
 
 ## Room to change into `lane`: no car beside or just ahead/behind in it (or signalling into it); the gap ahead must
-## cover the time a lane change takes in this weather at the closing speed plus the relative braking distance.
+## cover the time a lane change takes in this weather at the closing speed plus the relative braking distance, the
+## gap behind lets a faster car there react (0.5 s) and brake gently (behind_brake_mps2) – leaving the fuel lane at
+## 30 km/h in front of a car doing 100 needs about 85 m (QA v0.5.0: it pulled out at 31 km/h in front of one).
 func _lane_free(traffic: TrafficSystem, track: Track, z: float, lane: int, speed: float) -> bool:
 	for c in traffic.cars:
 		if not _in_lane(track, c, lane) and absf(c.x - track.lane_center_x(c.z, lane)) > 2.6:
 			continue
 		var rel := c.z - z
 		var closing := maxf(0.0, (speed - c.speed) / 3.6)
-		var behind_need := 12.0 + maxf(0.0, (c.speed - speed) / 3.6) * 2.0
+		var approach := maxf(0.0, (c.speed - speed) / 3.6)
+		var behind_need := 12.0 + approach * 0.5 + approach * approach / (2.0 * behind_brake_mps2)
 		var ahead_need := 18.0 + closing * _lc_time + closing * closing / (2.0 * _plan_decel)
 		if rel > -behind_need and rel < ahead_need:
 			return false

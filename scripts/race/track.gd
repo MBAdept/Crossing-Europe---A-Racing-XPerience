@@ -444,6 +444,31 @@ func lane_count_at(z: float) -> int:
 	return n
 
 
+## Visual metres from z to where `lane` stops being usable for traffic (lane_count_at drops to `lane` or below,
+## road.lane_transition_m before the narrowing starts) within `look_m` ahead: 0 when it is not usable at z, INF when
+## it continues that far. Lanes are numbered from the left, so a lane drop ends the rightmost lanes.
+func lane_end_ahead(z: float, lane: int, look_m: float) -> float:
+	if lane_count_at(z) <= lane:
+		return 0.0
+	var best := INF
+	for c in _road_changes:
+		var d := float(c["z"]) - _lane_trans - z
+		if d > 0.0 and d <= look_m and d < best and mini(int(c["from"]), int(c["to"])) <= lane:
+			best = d
+	return best
+
+
+## Visual metres from z to the end of the fuel lane z is in (where its taper begins; negative inside the taper),
+## INF outside a fuel lane.
+func fuel_lane_end_ahead(z: float) -> float:
+	for l in plan.fuel_lanes:
+		var z0 := km_to_z(float(l["start_km"]))
+		var z1 := km_to_z(float(l["end_km"]))
+		if z >= z0 and z <= z1 + _taper:
+			return z1 - z
+	return INF
+
+
 ## Centre x of a lane (0 = leftmost). lane == lane_count_at(z) addresses the fuel lane.
 func lane_center_x(z: float, lane: int) -> float:
 	var lanes := lanes_at(z)
