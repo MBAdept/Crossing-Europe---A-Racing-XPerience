@@ -555,7 +555,8 @@ unter – die Kurven kosten vor allem bei vmax, (i4).
 Bestenlisten: Die Starteinträge (`leaderboard.seed_avg_kmh` 125–165 km/h) bleiben schlagbar – der vorsichtige
 Autopilot fährt im Königsrennen je nach Tageszeit und Wetter 97–193 km/h Schnitt (Median 150, 10 der 33 Etappen über
 dem besten Starteintrag); nur die kurze Tutorial-Etappe mit Pflicht-Tankstopp liegt wie vorher darunter, und der beste
-ideale Schnitt liegt auf jeder Etappe bei mindestens 207 km/h ((i0)). Keine Anpassung nötig.
+ideale Schnitt liegt auf jeder Etappe bei mindestens 207 km/h ((i0)). Keine Anpassung nötig – seit dem QA-Review v0.5.0
+doch: die Starteinträge folgen der Zusammensetzung der Etappe (Nachtrag am Ende von (j)).
 
 (i5) Sichtprüfung (`curve_sight.gd`, alle 52 Etappen in beiden Richtungen): Reicht es, ab dem Moment zu bremsen, in
 dem die Kurve – oder ihr Warnschild – zu sehen ist (Nebel/Nacht-Sichtweite, Kuppen: Sichtlinie aus der Kamera 3,4 m
@@ -710,7 +711,18 @@ Haltefenster und Tempo-Abstände nach Wetter (Abschnitt „Verkehr“, `test_yie
 
 Bestenlisten: Die Starteinträge (`leaderboard.seed_avg_kmh` 125–165 km/h) liegen bei trockenem Wetter weiter im Bereich
 des vorsichtigen Autopiloten (125–165 km/h je nach Tageszeit, Verkehr und Tankstopp) – gute Spieler schlagen sie; bei
-Regen (100–156 km/h) und Schnee (74–108 km/h) sind sie ein hohes Ziel, wie es zum Wetter passt. Keine Anpassung nötig.
+Regen (100–156 km/h) und Schnee (74–108 km/h) sind sie ein hohes Ziel, wie es zum Wetter passt.
+
+Nachtrag (QA v0.5.0): Auf der Tutorial-Etappe Kiel – Hamburg waren sie unerreichbar – Rekord 2:52,73 nur 4 % über der
+Zeit des schnellsten Autos ganz ohne Verkehr (Sportwagen bei vmax 166,6 s), der 10. Platz 3:46,11 rund 25 % schneller
+als der Autopilot im Verkehr um 08:00 (4:43–5:30); auch kurze Etappen um 110–125 km lagen am Tag außerhalb der Top 10
+(Würzburg – Nürnberg trocken 12:25: 121 km/h). Ursache: dieselben 125–165 km/h auf jeder Länge, obwohl jede Etappe mit
+20 km City Limits endet und das Tutorial einen Pflicht-Tankstopp hat. Jetzt aus der Zusammensetzung (docs/daten.md
+„Starteinträge“): City Limits mit `seed_city_kmh` (60–80), der Rest so schnell, dass die typische Etappe
+(`seed_ref_km` 235 km) unverändert bleibt, + `seed_fuel_stop_s` (35 s) je Etappe mit teilgefülltem Tank + Fährzeiten.
+Kiel – Hamburg: Rekord 3:52,9, 10. Platz 4:55,2 (Rückrichtung ohne Tankstopp 3:17,9 / 4:21,9); 110–150 km 6–11 %
+langsamer, 210 km unverändert, 365–395 km 3–4 % schneller; Kiel – Nürnberg 24:02,2 … 31:18,8, Königsrennen mit Fähre
+4:39:02,6 … 6:05:15,4 (Test `test_seed_entries_follow_the_stage_make_up`).
 
 ## Hinweise für andere Module
 

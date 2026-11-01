@@ -133,7 +133,8 @@ Hilfen für die UI (alle in `GameData`): `race_targets`, `next_target(race_id, i
 `stage_summary(stage_id, from_city)` (`StagePlan.summary()` + Name, Bestenlisten-Schlüssel, Straßen),
 `legs_summary(legs)` (Zusammenfassung beliebiger Etappenketten, z. B. einer Route aus `race_routes()`),
 `target_segments(race_id, legs)` (Etappen einer Route nach Abschnitten zwischen den Zielen),
-`shortest_path(a, b)`, `board_length_km(key)`, `leg_name(leg)`, `get_stage/get_race/get_ferry`,
+`shortest_path(a, b)`, `board_length_km(key)`, `board_profile(key)` (Review v0.5.0: Länge, Etappen, Pflicht-Tankstopps,
+Fährzeit – Grundlage der Starteinträge), `leg_name(leg)`, `get_stage/get_race/get_ferry`,
 `map_size()`, `project_latlon(lat, lon)`, `city_map_pos(id)`, `missing_scenery_ids()`, `validate()`.
 
 **Warum `avoid_stages`?** Das Netz ist in Norddeutschland dicht: Mit den Etappen anderer Rennen (Hannover –
@@ -181,9 +182,16 @@ sich ohne Codeänderung ergänzen.
   gefilterten Liste (= `would_rank` vor dem Aufruf), `rank_for_vehicle(key, time_s, vehicle)`,
   `qualifies(key, time_s, vehicle)` (Namenseingabe, wenn Gesamt- oder Fahrzeugliste erreicht), `board_keys()`.
 - **Starteinträge** (`leaderboard.seed_entries`): Eine nie beschriebene Liste bekommt 10 deterministische
-  Einträge (Namen aus `seed_names`, Schnitt in `seed_avg_kmh` 150–190 km/h, gemischte Fahrzeuge, `"seeded": true`),
-  berechnet aus der Länge der Liste: Etappenlänge bzw. **kürzeste Route** des Rennens. So gibt es immer einen
-  Rekord als Laufschrift. Sie werden erst mit dem ersten echten Eintrag gespeichert.
+  Einträge (Namen aus `seed_names`, gemischte Fahrzeuge, `"seeded": true`), berechnet aus der **Zusammensetzung**
+  der Liste (Review v0.5.0, `RoadNetwork.board_profile` → `{length_km, stages, fuel_stops, fixed_s}`): Etappenlänge
+  bzw. **kürzeste Route** des Rennens. `seed_avg_kmh` (125–165 km/h) ist der Schnitt einer typischen Etappe von
+  `seed_ref_km` (235 km, Median des Netzes) samt ihren 20 km City Limits; die City Limits jeder Etappe zählen mit
+  `seed_city_kmh` (60–80 km/h), der Rest mit dem Tempo, das auf der typischen Etappe genau `seed_avg_kmh` ergibt
+  (≈ 139–183 km/h); dazu `seed_fuel_stop_s` (35 s: in die Tankspur, ~50 L tanken, wieder beschleunigen) für jede
+  Etappe, die mit teilgefülltem Tank startet (`start_fuel_fraction`, das Tutorial in Fahrtrichtung), und die
+  Fährzeiten eines Rennens (`fixed_time_s`). Vorher galt 125–165 km/h auf jede Länge – auf dem kurzen Tutorial mit
+  Pflicht-Tankstopp war das unerreichbar (Rekord 2:52,73 statt jetzt 3:52,9). So gibt es immer einen Rekord als
+  Laufschrift. Sie werden erst mit dem ersten echten Eintrag gespeichert.
 - Datei `user://leaderboards.json`: `{"version": 2, "boards": {…}}`, atomar geschrieben (Temp-Datei + Umbenennen,
   Vorversion als `.bak`). Beschädigte Datei: wird als `.corrupt` aufbewahrt, gelesen wird die `.bak`-Kopie
   (sonst leer); ungültige Einträge werden verworfen. Version 1 (Stub-Format) wird gelesen.

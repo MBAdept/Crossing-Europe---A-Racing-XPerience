@@ -16,10 +16,13 @@ var boards: Dictionary:
 
 func _ready() -> void:
 	var lengths := Callable()
+	var profiles := Callable()
 	var gd := get_node_or_null("/root/GameData")
 	if gd != null and gd.has_method("board_length_km"):
 		lengths = Callable(gd, "board_length_km")
-	store.setup(Config.data, PATH, lengths)
+	if gd != null and gd.has_method("board_profile"):
+		profiles = Callable(gd, "board_profile")
+	store.setup(Config.data, PATH, lengths, profiles)
 	load_boards()
 
 

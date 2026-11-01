@@ -405,12 +405,15 @@
 	},
 
 	"leaderboard": {
-		"_doc": "Bestenlisten pro Etappe (und Richtung) und pro Rennen. Einträge werden auch je Fahrzeugtyp gespeichert (store_per_vehicle: je Typ die besten 'size'), damit sowohl eine gemeinsame als auch getrennte Ansicht möglich ist. seed_entries: nie beschriebene Listen bekommen 'size' Starteinträge (Namen aus seed_names, Schnitt in seed_avg_kmh) aus der Etappenlänge bzw. der kürzesten Rennroute.",
+		"_doc": "Bestenlisten pro Etappe (und Richtung) und pro Rennen. Einträge werden auch je Fahrzeugtyp gespeichert (store_per_vehicle: je Typ die besten 'size'), damit sowohl eine gemeinsame als auch getrennte Ansicht möglich ist. seed_entries: nie beschriebene Listen bekommen 'size' Starteinträge (Namen aus seed_names) aus der Zusammensetzung der Etappe bzw. der kürzesten Rennroute (Review v0.5.0, docs/daten.md): seed_avg_kmh ist der Schnitt einer typischen Etappe von seed_ref_km km (davon city_limits.length_km City Limits); die City Limits jeder Etappe zählen mit seed_city_kmh, der Rest mit dem Tempo, das auf der typischen Etappe seed_avg_kmh ergibt; dazu seed_fuel_stop_s für jede Etappe, die mit teilgefülltem Tank startet (Tankstopp des Tutorials), und die Fährzeiten eines Rennens. Kurze Etappen mit ihren festen 20 km City Limits sind so im Schnitt langsamer, lange schneller.",
 		"size": 10,
 		"store_per_vehicle": true,
 		"default_filter": "all",
 		"seed_entries": true,
 		"seed_avg_kmh": [125, 165],
+		"seed_ref_km": 235.0,
+		"seed_city_kmh": [60, 80],
+		"seed_fuel_stop_s": 35.0,
 		"seed_names": ["Anke", "Bernd", "Clara", "Dieter", "Elif", "Frank", "Gabi", "Hakan", "Ines", "Jörg"]
 	},
 

@@ -608,6 +608,40 @@ func board_length_km(board_key: String) -> float:
 	return 0.0
 
 
+## What a board's default entries are computed from (Review v0.5.0, LeaderboardStore.seed_entries_for): {length_km,
+## stages (each ends in City Limits), fuel_stops (stages that start with a partly filled tank – the stop belongs to
+## them, like the tutorial Kiel – Hamburg in its driving direction), fixed_s (ferry time)} – a stage board, or the
+## shortest route of a race. {} for an unknown board.
+func board_profile(board_key: String) -> Dictionary:
+	var parts := board_key.split(":")
+	if parts.size() >= 2 and parts[0] == "stage" and stages.has(parts[1]):
+		var st: Dictionary = stages[parts[1]]
+		var fwd := parts.size() < 3 or parts[2] != "rev"
+		return {"length_km": float(st.get("length_km", 0.0)), "stages": 1,
+			"fuel_stops": 1 if fwd and _partial_tank(st) else 0, "fixed_s": 0.0}
+	if parts.size() >= 2 and parts[0] == "race":
+		var routes: Array = _routes_of(parts[1])["routes"]
+		if routes.is_empty():
+			return {}
+		var r: Dictionary = routes[0]
+		var out := {"length_km": float(r["km"]), "stages": 0, "fuel_stops": 0, "fixed_s": 0.0}
+		for l: Dictionary in r["legs"]:
+			if str(l["kind"]) == "stage":
+				out["stages"] = int(out["stages"]) + 1
+				var st: Dictionary = stages.get(str(l["id"]), {})
+				if str(l["from"]) == str(st.get("from", "")) and _partial_tank(st):
+					out["fuel_stops"] = int(out["fuel_stops"]) + 1
+			else:
+				out["fixed_s"] = float(out["fixed_s"]) + float(ferries.get(str(l["id"]), {}).get("fixed_time_s", 0.0))
+		return out
+	return {}
+
+
+static func _partial_tank(stage: Dictionary) -> bool:
+	var f := float(stage.get("start_fuel_fraction", -1.0))
+	return f >= 0.0 and f < 1.0
+
+
 # --- Map -----------------------------------------------------------------------------------------
 
 func map_size() -> Vector2:
