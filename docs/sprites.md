@@ -429,6 +429,28 @@ Wahrzeichen: Builder-Funktion `name(rig, p)` in `props_landmarks.py` (Hilfen `Sh
 Breite). `contact_sheet.py` erzeugt `contact_landmarks.png` (Tag + Nacht) und `lineup_landmarks.png`
 (alle in echter Höhe nebeneinander).
 
+### Wunschliste aus der Sichtprüfung der Städte
+
+Bis diese Sprites existieren, zeichnet die Laufzeit eine prozedurale Form, das Sprite eines anderen Wahrzeichens
+oder die allgemeine Kirche `props/church` ([staedte.md](staedte.md) §9). Reihenfolge = Nutzen:
+
+| Set | Stadt | Vorgabe | heute |
+|---|---|---|---|
+| `landmarks/festung_marienberg` | Würzburg | Festung auf dem Berg über dem Main, Marienkirche, Bergfried, Barockbastionen; ≈ 60 × 200 m | Kaiserburg (getönt) |
+| `landmarks/westerkerk` | Amsterdam | Backsteinkirche, 85 m Turm mit Kaiserkrone (blau-gold) | `props/church` |
+| `landmarks/hram_svetog_save` | Belgrad | weißer Marmor, grüne Kupferkuppeln, 82 × 90 m | `domed_church` (weißer Kasten) |
+| `landmarks/voelkerschlachtdenkmal` | Leipzig | grauer Granit, gestufter Sockel, Kuppel mit Figurenkranz, 91 × 124 m | `domed_church` ohne Kreuz |
+| `landmarks/neues_rathaus_hannover` | Hannover | Palast mit grüner Kupferkuppel (98 m), Flügel, Maschteich | `domed_church` ohne Kreuz |
+| `landmarks/burg_ljubljana` | Ljubljana | Burg auf bewaldetem Hügel, Aussichtsturm | Kaiserburg |
+| `landmarks/chateau_pau` | Pau | Schloss mit Türmen auf der Terrasse über dem Gave | Kaiserburg (getönt) |
+| `landmarks/cuatro_torres` | Madrid | vier Glastürme 220–250 m (Torre Cepsa mit Bogen) | `skyscrapers` |
+| `landmarks/sacre_coeur` | Paris | weißer Travertin, Kuppeln (Silhouette am Horizont) | `domed_church` |
+| `landmarks/fernsehturm_riga`, `landmarks/florianturm` | Riga, Dortmund | Fernsehtürme 368 / 209 m | `tv_tower` |
+| `landmarks/herkules_kassel` | Kassel | Oktogon, Pyramide, Kupferstatue (Silhouette) | `octagon` |
+| Kirchen | Kaunas (Christi-Auferstehung: weißer moderner Turm), Toulouse (Saint-Sernin: achteckiger Backsteinturm), Bordeaux (Saint-André), San Sebastián (Buen Pastor), Lyon (Fourvière: weiße Basilika mit vier Türmen), Rostock (Marienkirche), Posen (Dom) | wie die übrigen Wahrzeichen | `props/church` bzw. fremdes Sprite |
+| `props/city_paris_hlm` | Paris (Banlieue) | Wohnriegel, 10 Geschosse, 40 × 30 m | `city_eastern_plattenbau` hell getönt |
+| `props/bridge_pylon` (neu) | alle Schrägseilbrücken | Zelle ≥ 1024 px hoch, **ohne** Seilfächer, schwächere Lichtebene; die Laufzeit zeichnet Seile und Höhe (`pylon_m`) | prozedural (`prefer_proc`) |
+
 ## Renderzeiten
 
 Gemessen auf der geteilten Maschine (Cycles CPU, leerer Cache):

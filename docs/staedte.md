@@ -65,22 +65,32 @@ Neue Requisiten wie die vorhandenen Gebäude (`tools/blender/cesprites/props*.py
 `props/building_oldtown`: Winkel `c`, Ebenen `base` + `lights` (Fenster nachts), Anker am Boden, `extent_m`,
 Tags `prop`, `building`, `city`, `mirror_left`). Namen `props/city_<stil>_<name>`:
 
-| Stil | Städte (Vorschlag) | Gebäude (Stadtrand / Zentrum) |
+| Stil | Städte | Gebäude (Stadtrand / Zentrum) |
 |---|---|---|
-| `hanse` | Hamburg, Bremen, Kiel, Rostock | Backstein-Giebelhäuser, Kontorhaus, Hafenkran / Speicher, Backsteinblock |
-| `german` | Hannover, Dortmund, Kassel, Magdeburg, Leipzig, Frankfurt, Berlin | Einfamilienhäuser mit Satteldach / Mietshäuser, Gründerzeit, Bürotürme (Frankfurt) |
-| `german_old` | Nürnberg, Würzburg, Erfurt, Dresden, München | Fachwerkhäuser, barocke Bürgerhäuser |
-| `dutch` | Amsterdam | Grachtenhäuser (Treppen-, Glocken-, Halsgiebel), Hausboote, Windmühle am Stadtrand |
+| `hanse` | Hamburg, Bremen, Kiel, Rostock | Einfamilienhäuser (Klinkerton), wenige Giebelhäuser und Mietshäuser, Hafenkran / Kaufmannshäuser mit Giebeln, Speicher, Kontorhaus |
+| `german` | Hannover, Kassel, Frankfurt, Berlin | Einfamilienhäuser mit Satteldach / Mietshäuser, Gründerzeit, Bürotürme (Frankfurt) |
+| `german_east` | Magdeburg, Leipzig | wie `german`, am Stadtrand Plattenbauten hinter den Häusern |
+| `ruhr` | Dortmund | wie `german`, am Stadtrand Backstein-Reihenhäuser (Zechensiedlung), Fabriken, Strommasten |
+| `german_old` | Nürnberg, Würzburg, Erfurt | Fachwerkhäuser, barocke Bürgerhäuser |
+| `bavarian` | München | Einfamilien- und Mietshäuser mit Fichten / Gründerzeit-Zinshäuser, Barockhäuser (kein Fachwerk) |
+| `dutch` | Amsterdam | Grachtenhäuser (Treppen-, Glocken-, Halsgiebel), Hausboote, Windmühlen am Stadtrand |
 | `belgian` | Lüttich | Backstein-Reihenhäuser, Stein |
-| `paris` | Paris | Haussmann-Blöcke (heller Stein, Mansarddächer, Balkone) |
-| `french` | Lyon, Bordeaux, Tours, Toulouse, Montpellier, Pau | Steinhäuser mit Fensterläden, Ziegeldächer im Süden |
-| `spanish` / `italian` | Madrid, Barcelona, Burgos, Saragossa, San Sebastián / Mailand, Venedig | verputzte Wohnblöcke mit Balkonen, Terrakotta-Dächer, Palazzi |
-| `vienna` / `austrian` | Wien | Renaissance-/Gründerzeitpalais mit reicher Fassade, Kuppelkirche |
+| `paris` | Paris | Pavillons, Immeubles, HLM-Riegel / Haussmann-Blöcke (heller Stein, Mansarddächer, Balkone) |
+| `french` | Tours, Pau | Loire-Häuser (Tuffstein, Schiefer) / Stadthäuser mit Fensterläden |
+| `french_south` | Lyon, Bordeaux, Toulouse, Montpellier | Häuser mit Mönch-Nonne-Ziegeln, Zypressen, Ölbäume / ockerfarbene Stadthäuser |
+| `spanish` / `spanish_north` / `italian` | Madrid, Barcelona, Saragossa / San Sebastián, Burgos (grün, Eichen und Pappeln statt Palmen) / Mailand, Venedig | weiße Häuser, Wohnblöcke mit Balkonen, Terrakotta-Dächer; Italien: Villette und Casette am Stadtrand, Palazzi |
+| `vienna` / `austrian` | Wien | Zinshäuser am Stadtrand / Renaissance-/Gründerzeitpalais, Zinshäuser, Kuppelkirche |
 | `swiss` | Bern | Chalets am Stadtrand, Laubenhäuser |
-| `central` | Prag, Budapest, Ljubljana | barocke/Jugendstil-Bürgerhäuser, Türme |
+| `central` | Prag, Budapest, Ljubljana, Dresden | Würfelhäuser (Kostka, Kádár-kocka), Paneláky im Hintergrund / barocke und Jugendstil-Bürgerhäuser, Türme |
 | `eastern` | Warschau, Posen, Białystok | **kleine Einfamilienhäuser mit Zaun und Garten am Stadtrand**, Plattenbauten im Zentrum |
-| `balkan` | Belgrad, Sofia, Slavonski Brod | Einfamilienhäuser (oft unverputzt), Plattenbauten, orthodoxe Kirche |
-| `baltic` | Riga, Kaunas | Holzhäuser am Stadtrand, Jugendstil im Zentrum |
+| `balkan` | Belgrad, Sofia, Slavonski Brod | Einfamilienhäuser (oft unverputzt), Plattenbauten (im Zentrum hinter der Straßenfront), orthodoxe Kirche |
+| `baltic` | Riga, Kaunas | Holzhäuser und vereinzelte Plattenbauten am Stadtrand, Jugendstil im Zentrum |
+
+Die 16 Stile des Vertrags sind Pflicht; die regionalen Stile `german_east`, `ruhr`, `bavarian`, `french_south`
+und `spanish_north` kamen nach der Sichtprüfung dazu (Städte desselben Landesstils sahen bis auf ihr Wahrzeichen
+gleich aus; Dresden und München wirkten mit Fachwerk fränkisch, Toulouse und Montpellier mit Schieferdächern wie
+Tours, San Sebastián und Burgos mit Palmen andalusisch). Ein Stil darf eine Landschaft mit einem anderen teilen
+(`german_east` und `ruhr` nutzen das Zentrum von `german`).
 
 ## 3. Wahrzeichen
 
@@ -125,7 +135,7 @@ durch. Ohne `cities.json` (oder ohne Stil-Landschaft in `scenery.json`) bleibt a
 |---|---|
 | `km_to_finish` | Kilometerzähler-km vor dem Ziel (Anfang einer Brücke, Standort eines Wahrzeichens) |
 | `length_m` (Brücke) | **sichtbare Meter** wie alle `*_m`-Werte (ARCHITECTURE.md §2: 1 km = 83,3 m) – eine Brücke von 200 m ist 2,4 km lang und bei 150 km/h rund 5 s zu sehen; eine Gracht von 40 m ist eine kurze Brücke |
-| `height_m` (Brücke) | Wasser unter der Fahrbahn in Metern; Standard je Typ: Gracht 1,8, Damm 1,4, Fluss 3,0, Steinbrücke 3,2, Fachwerkbogen 3,6, Schrägseil 5,0. Hochbrücken (Kiel, Bern) 15–16 m – mehr verbirgt das Deck das Wasser fast ganz |
+| `height_m` (Brücke) | Wasser unter der Fahrbahn in Metern; Standard je Typ: Gracht 1,8, Damm 1,4, Fluss 3,0, Steinbrücke 3,2, Fachwerkbogen 3,6, Schrägseil 5,0. Hochbrücken nur bei langen Brücken (Kiel 16 m auf 200 m Länge): auf kurzen hohen Brücken verbirgt das Deck das Wasser, beidseits liegt nur die Böschung in Deckhöhe (Bern: 15 → 8 m) |
 | `x_m` (Wahrzeichen) | Abstand der **Vorderkante** vom Fahrbahnrand (die Laufzeit rückt den Anker um die Ausdehnung zur Straße weg, `align: edge`) |
 | `center_km` | Länge des Zentrums vor dem Ziel (Standard 8 km); davor der Stadtrand. Je Stadt überschreibbar (Paris, Berlin, Madrid 10, München, Wien 9, Venedig 6,6 = ab dem Damm) |
 
@@ -135,13 +145,27 @@ grüne Böschung), `ships` (Schiffe auf dem Fluss), `boats` (Hausboote, Standard
 Pylone); Wahrzeichen `name`, `tint`, `clear_m` [vorher, nachher] (sichtbare Meter ohne Landschaft auf seiner Seite,
 Standard [100, 40]), `plaza` (`park` = einige Bäume auf dem freien Platz, `square`, `none`); Skyline-Einträge als
 Set-ID oder `{set, scale, azimuth_deg, name, tint}`; `background` (überschreibt Schlüssel des Hintergrunds der
-Stadt-Landschaft, z. B. `features`, `roofs`, `height`, `behind`). Wahrzeichen dürfen auch vorhandene Requisiten
+Stadt-Landschaft, z. B. `features`, `roofs`, `height`, `behind`). Die Bergkette `behind` ist ein Stilname oder
+`{style, height, color, haze}`: `color` = Farbe der Kette (Standard: die ferne Hintergrundfarbe, fast Himmelsfarbe),
+`haze` = Grunddunst zur Nebelfarbe (Standard 0,55 = blass; 0,3 für eine Kette, die man lesen soll – Alpen hinter
+Bern, Ljubljana, München und Mailand, Witoscha, Wienerwald, Pyrenäen). Wahrzeichen dürfen auch vorhandene Requisiten
 sein (`props/church` mit `scale` und `tint` als Kathedrale) – so hat jede Stadt ein Wahrzeichen, ohne dass für alle ein
 eigenes Sprite entstehen muss.
 
 **Katalog `landmark_sets`**: je Wahrzeichen-Sprite `name`, echte `height_m` und `width_m`, `required` (Pflicht laut
 §3), `proc` (prozeduraler Ersatz, den der Renderer zeichnet, solange das Sprite fehlt) und `fallback` /
-`fallback_scale` / `fallback_tint` (Ersatz-Sprite, falls es keinen `proc` gibt). Siehe §8.
+`fallback_scale` / `fallback_tint` (Ersatz-Sprite, falls es keinen `proc` gibt), für `domed_church` die Farben `dome`
+und `wall` und `cross` (`false`: Laterne ohne Kreuz – Rathaus, Denkmal). Siehe §8.
+
+**Platzierung der Wahrzeichen** (Regel aus der Sichtprüfung): Ein Wahrzeichen der Höhe h ist unterhalb der
+HUD-Tafeln (Uhr oben links, Zeit und Fortschritt in der Mitte bis y ≈ 150 px) erst aus etwa 4 · h sichtbaren Metern
+ganz zu sehen; in der Straßenschlucht des Zentrums zeigt es sich nur über seinem freien Platz. Deshalb `clear_m[0]`
+≈ 2,5–3 · h (250–320 m für 90–130 m hohe Bauten) und `x_m` so, dass es dort 10–25° neben der Fahrtrichtung steht
+(nicht 40–60°: dann ist es beim Herankommen schon aus dem Bild). Gute Plätze liegen 0,4–1,0 km hinter einem
+Brückenende, wo das Wasser den Blick öffnet (Bremer Dom, Magdeburger Dom, Martinskirche, Neues Rathaus,
+Eiffelturm von der Pont Alexandre III). Prozedurale Wahrzeichen stehen mit ihrer Mitte bei `x_m` + halbe Breite
+(`width_m`), `x_m` also klein halten. Sehr hohe Bauten (Fernsehturm 368 m, Frankfurter Hochhäuser) sind ganz nur
+von den City Limits aus zu sehen und aus der Nähe oben angeschnitten – das lässt sich nicht vermeiden.
 
 **Prüfungen** (`CityData.apply` → `StagePlan.warnings`, Datentests prüfen alle Ankünfte ohne Warnung): Brücken
 außerhalb der Etappe, in oder näher als 0,3 km an einem Tunnel oder einer anderen Brücke werden verworfen;
@@ -152,8 +176,11 @@ meldet Landschafts-Regeln ohne vorhandenes Sprite und ohne Ersatz.
 **Abweichungen vom Beispiel in §1** (die Feldbedeutungen gelten unverändert): weil `length_m` sichtbare Meter sind,
 wären 700 m Köhlbrandbrücke 8,4 km lang und lägen über den Elbbrücken. Außerdem liegt auf der Ankunft aus Hannover
 der Elbtunnel 7,3–4,0 km vor dem Ziel. Hamburg ist deshalb: Köhlbrandbrücke 17,0 km / 260 m, Elbbrücken 11,0 km /
-200 m, Elbphilharmonie 3,4 km (links, 55 m), Michel 1,8 km (rechts, 35 m). Paris: Eiffelturm 6,0 km (hinter dem Tunnel
-du Landy 10,0–8,7 km), Pont Alexandre III 3,2 km.
+200 m, Elbphilharmonie 3,4 km (links, 55 m; ihr großer Auftritt ist der Blick über die Elbe von den Elbbrücken),
+Michel 1,8 km (rechts, 70 m, freier Platz 320 m: der grüne Turmhelm steht ab km 89,2 ganz im Bild). Paris: Pont
+Alexandre III 8,0 km (0,7 km hinter dem Tunnel du Landy 10,0–8,7 km), Eiffelturm 0,3 km (rechts, 60 m): von der Brücke
+steht er ganz über der Seine, danach über den Haussmann-Dächern, am Ziel daneben; von den City Limits aus ist er
+weiterhin ganz zu sehen.
 
 ### Städte im Überblick
 
@@ -162,44 +189,44 @@ du Landy 10,0–8,7 km), Pont Alexandre III 3,2 km.
 | Kiel | `hanse` | Rathausturm | Holtenauer Hochbrücke (river, 16 m hoch, Schiff im Kanal) |
 | Hamburg | `hanse` | Elbphilharmonie, Michel | Köhlbrandbrücke (cable_stayed), Elbbrücken (truss_arch), Schiffe |
 | Bremen | `hanse` | Bremer Dom | Wilhelm-Kaisen-Brücke (river) |
-| Rostock | `hanse` | Marienkirche | – |
-| Hannover | `german` | Neues Rathaus | Leinebrücke (river) |
-| Dortmund | `german` | Florianturm | – (Hintergrund mit Schornsteinen und Hochhäusern) |
-| Kassel | `german` | Martinskirche, Herkules (Silhouette) | Fuldabrücke (river) |
-| Magdeburg | `german` | Magdeburger Dom | Strombrücke (river) |
-| Leipzig | `german` | Völkerschlachtdenkmal, City-Hochhaus | – |
+| Rostock | `hanse` | Marienkirche (Sprite der Rigaer Petrikirche als Platzhalter: Backsteingotik, Kupferhelm) | – |
+| Hannover | `german` | Neues Rathaus (prozedural: Kuppelbau mit grüner Kuppel, links über die Leine) | Leinebrücke (river) |
+| Dortmund | `ruhr` | Florianturm | – (Hintergrund mit Schornsteinen und Hochhäusern) |
+| Kassel | `german` | Martinskirche, Herkules (Silhouette, prozedural `octagon`) | Fuldabrücke (river) |
+| Magdeburg | `german_east` | Magdeburger Dom | Strombrücke (river) |
+| Leipzig | `german_east` | Völkerschlachtdenkmal (prozedural: graue Kuppel), City-Hochhaus | – |
 | Frankfurt | `german` | Frankfurter Hochhäuser | Friedensbrücke (river) |
 | Berlin | `german` | Fernsehturm | Oberbaumbrücke (stone_arch, Backstein) |
 | Nürnberg | `german_old` | Kaiserburg | Pegnitzbrücke (river) |
-| Würzburg | `german_old` | Festung Marienberg | Ludwigsbrücke (stone_arch) |
+| Würzburg | `german_old` | Festung Marienberg (Sprite der Kaiserburg als Platzhalter, links über dem Main) | Ludwigsbrücke (stone_arch) |
 | Erfurt | `german_old` | Erfurter Dom | – |
-| Dresden | `german_old` | Frauenkirche | Augustusbrücke (stone_arch) |
-| München | `german_old` | Frauenkirche | Maximiliansbrücke (stone_arch); Alpen am Horizont |
+| Dresden | `central` | Frauenkirche | Augustusbrücke (stone_arch) |
+| München | `bavarian` | Frauenkirche | Maximiliansbrücke (stone_arch); Alpen am Horizont |
 | Amsterdam | `dutch` | Westerkerk | fünf Grachten: Singelgracht, Prinsengracht, Keizersgracht, Herengracht, Singel (canal, Hausboote) |
 | Lüttich | `belgian` | Kathedrale Saint-Paul | Pont de Fragnée (stone_arch) |
-| Paris | `paris` | Eiffelturm, Sacré-Cœur (Silhouette) | Pont Alexandre III (stone_arch) |
+| Paris | `paris` | Eiffelturm (0,3 km vor dem Ziel), Sacré-Cœur (Silhouette, prozedural) | Pont Alexandre III (stone_arch, 8,0 km) |
 | Tours | `french` | Kathedrale Saint-Gatien | Pont Wilson (stone_arch) |
-| Bordeaux | `french` | Kathedrale Saint-André | Pont de Pierre (stone_arch) |
-| Pau | `french` | Château de Pau | Pont du XIV-Juillet (river); Pyrenäen am Horizont |
-| Toulouse | `french` | Basilique Saint-Sernin | Pont Neuf (stone_arch, Backstein) |
-| Montpellier | `french` | Kathedrale Saint-Pierre | Pont Juvénal (river) |
-| Lyon | `french` | Notre-Dame de Fourvière | Pont Lafayette (river), Pont Bonaparte (stone_arch) |
-| San Sebastián | `spanish` | Catedral del Buen Pastor | Puente María Cristina (stone_arch) |
-| Burgos | `spanish` | Kathedrale | Puente de Santa María (stone_arch) |
+| Bordeaux | `french_south` | Kathedrale Saint-André | Pont de Pierre (stone_arch) |
+| Pau | `french` | Château de Pau (Sprite der Kaiserburg als Platzhalter) | Pont du XIV-Juillet (river); Pyrenäen am Horizont |
+| Toulouse | `french_south` | Basilique Saint-Sernin | Pont Neuf (stone_arch, Backstein) |
+| Montpellier | `french_south` | Kathedrale Saint-Pierre | Pont Juvénal (river) |
+| Lyon | `french_south` | Notre-Dame de Fourvière (weiße Kuppelkirche `city_vienna_kirche`) | Pont Lafayette (river), Pont Bonaparte (stone_arch) |
+| San Sebastián | `spanish_north` | Catedral del Buen Pastor | Puente María Cristina (stone_arch) |
+| Burgos | `spanish_north` | Kathedrale | Puente de Santa María (stone_arch) |
 | Madrid | `spanish` | Cuatro Torres | Puente de Segovia (stone_arch); Sierra am Horizont |
 | Saragossa | `spanish` | Basílica del Pilar | Puente de Piedra (stone_arch) |
 | Barcelona | `spanish` | Sagrada Família, Torre Glòries (Silhouette) | – |
-| Bern | `swiss` | Berner Münster | Kirchenfeldbrücke (river, 15 m hoch); Alpen am Horizont |
+| Bern | `swiss` | Berner Münster | Kirchenfeldbrücke (river, 8 m hoch); Alpen am Horizont |
 | Mailand | `italian` | Mailänder Dom | – (Hochhäuser, Alpen am Horizont) |
 | Venedig | `italian` | Campanile di San Marco | Ponte della Libertà (causeway, 380 m über die Lagune) |
-| Ljubljana | `central` | Burg | Drachenbrücke (stone_arch) |
+| Ljubljana | `central` | Burg (Sprite der Kaiserburg als Platzhalter, auch als Silhouette) | Drachenbrücke (stone_arch); Alpen am Horizont |
 | Slavonski Brod | `balkan` | Franziskanerkloster | Savebrücke (river) |
 | Belgrad | `balkan` | Kirche des Heiligen Sava | Ada-Brücke (cable_stayed) |
 | Sofia | `balkan` | Alexander-Newski-Kathedrale | – (Witoscha am Horizont) |
 | Budapest | `central` | Parlament | Elisabethbrücke (cable_stayed) |
 | Wien | `vienna` | Riesenrad, Stephansdom | Reichsbrücke (river); Wienerwald |
 | Prag | `central` | Veitsdom | Most Legií (stone_arch) |
-| Posen | `eastern` | Posener Dom | Warthebrücke (river) |
+| Posen | `eastern` | Posener Dom (Sprite der Münchner Frauenkirche: Backsteingotik, Doppeltürme) | Warthebrücke (river) |
 | Warschau | `eastern` | Kulturpalast | Poniatowski-Brücke (stone_arch) |
 | Białystok | `eastern` | Pfarrkirche (Fara) | – |
 | Kaunas | `baltic` | Christi-Auferstehungs-Kirche | Aleksotas-Brücke (river) |
@@ -219,17 +246,21 @@ Die Rennsitzung nimmt `scenery_for` für den Hintergrund und meldet Brückenname
 - Landschaft je Segment aus `plan.scenery_for` (Stadtrand → Zentrum ab `center_km`; der Hintergrund wechselt dort weich).
 - **Wahrzeichen** = Ereignis-Requisite (`landmark: true`, `align: edge`, Höhe/Breite/`proc`/Ersatz aus dem Katalog) am
   km; auf seiner Seite keine Landschafts-Requisiten von `clear_m[0]` davor bis `clear_m[1]` dahinter (neue Freihalte-Bits
-  für *alle* Abstände, `_mark_clear_all`), bei `plaza: park` 3–6 Parkbäume. `Track.landmarks` hält dieselben
-  Wahrzeichen mit `z` und `x` für die Fernsicht.
+  für *alle* Abstände, `_mark_clear_all`), bei `plaza: park` 5–8 Parkbäume davor und zwei daneben/dahinter –
+  nie auf einer Brücke oder näher als `PARK_TREE_BRIDGE_GAP_M` (8 m) an ihr (`Track.near_bridge`; liegt ein
+  Wahrzeichen kurz hinter einer Brücke, standen die Bäume sonst im Fluss), links gespiegelt wie die
+  Landschaftsbäume. `Track.landmarks` hält dieselben Wahrzeichen mit `z` und `x` für die Fernsicht.
 - **Brücken** = Zonen (`Track.bridges`, auch in `zones`, Grenzen auf dem Segmentraster): Segmente darauf tragen
   `water`, `bridge` (Typ), `bridge_i`, `water_depth` und `water_level` (Boden unter dem Deck: an den Widerlagern 0, über
   `slope` auf `-depth` – Kaimauer = ein Segment, Böschung bei `bank`/Hochbrücken = 1,5 × Tiefe), das erste Segment
   dahinter `bank`. Auf dem Wasser keine Landschaft (24 m davor auch nicht – Gebäude reichen nach hinten), keine
   Zebrastreifen. Tragwerk als Ereignis-Requisiten: `truss_arch` Portal `props/bridge_truss_arch` alle 40 m
   (`side 0`, `overhead`, `fit_w` = Breite von Fahrbahn + Gehwegen + 0,8 m, prozedural `truss_portal`),
-  `cable_stayed` Pylone `props/bridge_pylon` beidseitig bei 27/73 % (kurze Brücken: Mitte; `proc pylon` mit
-  Seilfächer), `stone_arch` Laternen `props/bridge_lamp` beidseitig alle 24 m, `causeway` alle 36 m (statt der
-  Straßenlaternen; `proc bridge_lamp`), `canal` Hausboote `props/houseboat` (Ersatz `props/ferry_ship` × 0,13),
+  `cable_stayed` Pylone `props/bridge_pylon` beidseitig bei 27/73 % (kurze Brücken: Mitte) mit `prefer_proc`: es
+  zeichnet immer der prozedurale Pylon (Höhe `pylon_m`, Seile als 3D-Linien entlang des Decks) – das Sprite trägt
+  einen eingebackenen Seilfächer, ist immer 88,8 m hoch und zerfiel aus der Nähe zu unscharfen, durchscheinenden
+  Flächen, nachts zu leuchtenden Scheiben, `stone_arch` Laternen `props/bridge_lamp` beidseitig alle 24 m,
+  `causeway` alle 36 m (statt der Straßenlaternen; `proc bridge_lamp`), `canal` Hausboote `props/houseboat` (Ersatz `props/ferry_ship` × 0,13),
   `ships` Schiffe `props/ferry_ship` × 0,32–0,45 auf dem Wasser (`h = -depth`: Requisiten können jetzt unter der
   Straße stehen).
 
@@ -249,17 +280,23 @@ Die Rennsitzung nimmt `scenery_for` für den Hintergrund und meldet Brückenname
   Gitter), Pylon (Beton, Flugfeuer) mit 2 × 7 Seilen als echte 3D-Linien zur Deckkante (an der nahen Ebene
   abgeschnitten), Kandelaber (drei Kugeln auf Steinbrücken). Portale werden auf `fit_w` skaliert (Sprite:
   `fit_w / object.width_m`).
+- **`prefer_proc`** an einer Requisite: ihre prozedurale Form (`proc`) schlägt das Sprite (Brückenpylone).
 - **Wahrzeichen** fernsichtbar: eigenes Dunstgesetz `landmark_fade` (Reichweite = Sichtweite × 2, höchstens
   `render.landmark_far_m` = 1900 m; ausblenden über die letzten 28 %, Dunst ab dem Nebelbeginn) statt des
   Requisiten-Nebels. Jenseits der projizierten Zeilen zeichnet `_draw_far_landmarks` sie nach dem Hintergrund und vor
   der Szene, die Straße gerade aus der letzten Zeile verlängert – stetiger Übergang, kein Aufpoppen. Nachts bleibt die
   Ebene `lights` (Anstrahlung) bis 1900 m sichtbar. Prozedurale Ersatzformen (`proc`): `lattice_tower` (Eiffelturm,
-  nachts golden mit stündlichem Glitzern), `tv_tower`, `ferris_wheel`, `column`, `campanile`, `domed_church` (Farben
-  `dome`/`wall`), `parliament`, `palace_tower`, `skyscrapers`. Ihre Lichter sind weiche Punkte in der Malerreihenfolge
-  (`_soft`), damit Häuser und Hügel davor sie verdecken – die additive Leuchtebene würde durchscheinen (auch für
-  Lampen-Spiegelungen auf dem Wasser).
-- **Skyline-Silhouetten** (`skyline[]`): in den City Limits im Panorama (`RaceBackdrop.landmarks`, nach der fernen
-  Ebene, vor der nahen), dunstig getönt, Größe wie in `render.skyline_distance_m` (1800 m), mit dem Panorama drehend.
+  nachts golden mit stündlichem Glitzern), `tv_tower`, `ferris_wheel`, `column`, `octagon` (Oktogon mit Pyramide und
+  Statue, Herkules), `campanile`, `domed_church` (Farben `dome`/`wall`, `cross`; aus der Nähe mit Fassade aus
+  Fensterreihen und Portal statt einer leeren weißen Wand), `parliament`, `palace_tower`,
+  `skyscrapers` (aus der Nähe mit Geschossbändern alle 4 m und Pfosten alle 3 m – Glasfassade statt glatter Fläche).
+  Ihre Lichter sind weiche Punkte in der Malerreihenfolge (`_soft`), damit Häuser und Hügel davor sie verdecken – die
+  additive Leuchtebene würde durchscheinen (auch für Lampen-Spiegelungen auf dem Wasser). Gewöhnliche Requisiten als
+  Wahrzeichen (`props/church` als Dom …) haben nachts nur Fenster in der Lichtebene: der Renderer strahlt sie warm an
+  (`LANDMARK_FLOOD`); die `landmarks/*`-Sprites tragen ihre Anstrahlung selbst.
+- **Skyline-Silhouetten** (`skyline[]`, mit `proc` ohne Ersatz-Sprite wie die Requisiten – sonst stand der Rigaer
+  Fernsehturm als 369 m hohes Glasbürohaus am Horizont): in den City Limits im Panorama (`RaceBackdrop.landmarks`,
+  nach der fernen Ebene, vor der nahen), dunstig getönt, Größe wie in `render.skyline_distance_m` (1800 m), mit dem Panorama drehend.
   Beim ersten Erscheinen verankert: steht dasselbe Wahrzeichen als Requisite auf der Strecke, in seiner wahren Richtung;
   sonst `azimuth_deg` oder ein fester Fächer. Ist die Requisite in Reichweite (`landmark_fade`), blendet die Silhouette
   aus (kein doppelter Eiffelturm) – bei klarer Sicht übernimmt die Requisite also schon ab den City Limits, bei Nacht,
@@ -268,13 +305,19 @@ Die Rennsitzung nimmt `scenery_for` für den Hintergrund und meldet Brückenname
   Lücken für Einfahrten (nur bis 240 m).
 - **Hintergrund** je Stil (`suburb` am Stadtrand: ferne Skyline, Bäume, kleine Häuser mit Satteldach; `city` im
   Zentrum mit `roofs`) und je Stadt (`background` aus `cities.json`): neue Merkmale `cranes`, `domes`, `onion`,
-  `slabs`, `towers`, Bergkette `behind`.
+  `slabs`, `towers`, Bergkette `behind` (mit `color` und `haze`, §6).
+- **Boden** am Übergang Stadtrand → Zentrum: über die letzten `GROUND_BLEND_M` (150 sichtbare m) vor `center_km` geht
+  der Boden des Stadtrands weich in den des Zentrums über (`RoadRenderer.ground_blend`) – vorher lief dort eine harte
+  Kante quer über den Boden (grüne Gärten → Sand).
 
 Konfiguration (optional, `render`): `landmark_far_m` (1900), `landmark_range_factor` (2,0), `skyline_distance_m` (1800).
 
 Leistung (`bench_render.gd`, Kiel – Hamburg, Last ≈ 7 auf 4 Kernen): Minimum 4,8 ms außerhalb der Stadt, auf der
 Köhlbrandbrücke 5,3 ms, auf den Elbbrücken 5,5 ms (Geländer, Seitenträger, Portale ≈ +0,3 ms), Zentrum 4,3–4,5 ms;
-Mediane 5,7–8,6 ms (stark lastabhängig).
+Mediane 5,7–8,6 ms (stark lastabhängig). Nach der Sichtprüfung (prozedurale Pylone, mehr Häuser am Hanse-Stadtrand,
+Fassadenraster der Hochhäuser; gleiche Positionen, Last ≈ 1–2, verglichen mit dem Stand davor): Minima +0,1–0,4 ms –
+Stadtrand vor der Köhlbrandbrücke 5,7–6,2 statt 5,6–5,8 ms, auf der Brücke 6,4–6,5 statt 6,0–6,4 ms, Cuatro Torres
+aus der Nähe 5,7–5,9 statt 5,5–5,8 ms (+530 Dreiecke); Mediane 6,6–8,1 ms gegen 6,3–7,5 ms vorher.
 
 ## 8. Gebäudeliste (für die Sprite-Pipeline)
 
@@ -346,7 +389,7 @@ genannt bzw. prägend.
 | ID | Beschreibung, Vorgaben der Laufzeit |
 |---|---|
 | `props/bridge_truss_arch` | Stahlbogen-Portal über der ganzen Fahrbahn, Ansicht genau von vorn, Anker unten Mitte, `object.width_m` = Außenbreite an den Beinen (die Laufzeit skaliert auf die Deckbreite), lichte Höhe ≥ 6 m, Scheitel ≈ 14 m, Tag `overhead`, ohne `mirror_left`; dunkelgrüner Stahl (Hamburg) |
-| `props/bridge_pylon` | ein Pylon (Beton, ≈ 80–100 m) mit Seilfächer zur Fahrbahn hin, für den rechten Rand, `mirror_left`; steht 1,3 m außerhalb des Geländers |
+| `props/bridge_pylon` | ein Pylon (Beton, ≈ 80–100 m) mit Seilfächer zur Fahrbahn hin, für den rechten Rand, `mirror_left`; steht 1,3 m außerhalb des Geländers. **Zur Zeit nicht gezeichnet** (`prefer_proc`, §7). Ein neues Sprite bräuchte: Zelle ≥ 1024 px hoch, **ohne** Seilfächer (die Laufzeit zeichnet die Seile in 3D), schwächere Lichtebene, Skalierung über `pylon_m` / `object.height_m` |
 | `props/bridge_lamp` | Kandelaber (≈ 4,5 m, drei Kugeln), `lights`, `mirror_left` |
 | `props/houseboat` | Hausboot in Breitseitenansicht (20–25 m), Anker = **Wasserlinie Mitte** (wie `props/ferry_ship`), `lights` |
 
@@ -380,23 +423,47 @@ Mitte vorn, echte Maße, Tag `landmark`, **kein** `mirror_left` – Wahrzeichen 
 ## 9. Tests, Screenshots, offene Assets
 
 - `tests/unit/data/test_cities.gd`: jede Stadt hat einen Stil mit beiden Landschaften, Rückfall-Regeln,
-  `CityData.validate()` und `missing_props()` leer, alle 16 Stile mit eigenem Boden, Gebäuden mit Ersatz und gültigem
-  Zaun, **jede Ankunft in jeder Stadt (beide Richtungen aller Etappen) ohne Warnung** (Brücken in der Etappe und nicht im
-  Tunnel, Wahrzeichen in den City Limits, nicht im Tunnel, nicht im Wasser), Pflicht-Wahrzeichen und -Brücken,
+  `CityData.validate()` und `missing_props()` leer, alle Stile (die 16 des Vertrags und die regionalen) mit eigenem
+  Boden, Gebäuden mit Ersatz, links gespiegelten Bäumen und gültigem Zaun, Skyline-Einträge mit `proc` ohne
+  Ersatz-Sprite (Rigaer Fernsehturm, Herkules), **jede Ankunft in jeder Stadt (beide Richtungen aller Etappen) ohne
+  Warnung** (Brücken in der Etappe und nicht im Tunnel, Wahrzeichen in den City Limits, nicht im Tunnel, nicht im
+  Wasser), Pflicht-Wahrzeichen und -Brücken,
   Auflösung der Hamburger Ankunft (km, Länge in sichtbaren Metern, Sortierung, Skyline ↔ Requisite), ungültige Brücken
   werden mit Warnung verworfen.
 - `tests/unit/race/test_city_track.gd`: Stadtrand/Zentrum je Segment, Brücken als Wasser-Zonen mit Ufer, Boden unter
-  dem Deck (Kaimauer/Böschung), keine Landschaft auf dem Wasser, Portale alle 40 m über der ganzen Fahrbahn, Pylone,
-  Laternen, Hausboote und Schiff auf Wasserhöhe, Wahrzeichen als Ereignis mit freiem Platz und gleicher Lage in der
-  Fernliste, Determinismus.
+  dem Deck (Kaimauer/Böschung), keine Landschaft auf dem Wasser, Portale alle 40 m über der ganzen Fahrbahn, Pylone
+  (prozedural, `prefer_proc`), Laternen, Hausboote und Schiff auf Wasserhöhe, Wahrzeichen als Ereignis mit freiem
+  Platz und gleicher Lage in der Fernliste, Parkbäume von Wahrzeichen direkt hinter einer Gracht und einer
+  Hochbrücke und in allen echten Ankünften nicht auf oder an einer Brücke, Pylone aller Schrägseilbrücken
+  prozedural, Determinismus.
 - `tests/unit/race/test_city_render.gd`: `landmark_fade` stetig und monoton (kein Aufpoppen, am Rand der Sichtweite
   noch sichtbar, bei klarer Sicht ab den City Limits), `water_tint`, Eiffelturm-Profil, Boden unter Brücken,
-  Hintergrundstil `suburb`.
+  Hintergrundstil `suburb`, Bergkette `behind` mit Farbe und Dunst (`RaceBackdrop.behind_params`/`behind_haze`),
+  weicher Bodenübergang zum Zentrum (`ground_blend`).
 - Screenshots (je 1280 × 720): `tools/screenshot.sh <präfix> --stage=kiel_hamburg --start-km=83.6 --start-speed=60
   --hour=12 --autopilot --no-countdown --shot-times=1.5` (Elbbrücken; 78.7 = Köhlbrandbrücke, 77.0 = Anfahrt),
-  `--stage=luettich_paris --start-km=381` (Eiffelturm von fern; 391.3 = Pont Alexandre III, 384 mit `--hour=22` nachts),
+  `--stage=luettich_paris --start-km=378` (Eiffelturm von fern; 387.0 = Pont Alexandre III mit dem Turm über der Seine,
+  386.4 mit `--hour=22` nachts, 394 = Turm am Ziel),
   `--stage=bremen_amsterdam --start-km=357.6` (Grachten), `--stage=budapest_wien --start-km=237.3` (Reichsbrücke,
   Riesenrad, Stephansdom), `--stage=warschau_bialystok --start-km=182` bzw. `--stage=posen_warschau --start-km=287`
   (Einfamilienhäuser mit Zäunen, Kulturpalast in der Ferne), `--stage=mailand_venedig --start-km=269` (Damm, Campanile).
-- **Noch ohne Asset** (alles läuft mit Ersatz): alle 53 Gebäude aus der Tabelle oben, die vier Brückenteile, alle 26
-  Wahrzeichen des Katalogs (15 Pflicht, 5 nach Zeit, 6 optional).
+- **Geliefert** (Manifest, [sprites.md](sprites.md)): 46 Stadtgebäude in 15 Stilen (`props/city_*`, Namen wie in
+  sprites.md „Städte“, nicht wie in der Wunschliste §8), `bridge_truss_arch`, `bridge_pylon`, `bridge_lamp`,
+  `houseboat` und 21 Wahrzeichen (die 15 Pflicht-Sets und 6 weitere).
+- **Noch ohne Asset** (läuft prozedural oder mit Ersatz):
+  - Wahrzeichen nur prozedural: `florianturm`, `fernsehturm_riga` (`tv_tower`), `cuatro_torres` (`skyscrapers`),
+    `sacre_coeur`, `hram_svetog_save`, `voelkerschlachtdenkmal`, `neues_rathaus_hannover` (`domed_church`),
+    `herkules_kassel` (`octagon`).
+  - Wahrzeichen mit dem Sprite eines anderen: Festung Marienberg, Burg Ljubljana, Château de Pau (Kaiserburg),
+    Marienkirche Rostock (Petrikirche Riga), Posener Dom (Frauenkirche München), Notre-Dame de Fourvière
+    (`city_vienna_kirche`).
+  - Wahrzeichen als allgemeine Kirche `props/church` (getönt): Rathausturm Kiel, Bremer Dom, Martinskirche Kassel,
+    Magdeburger und Erfurter Dom, Westerkerk, Saint-Paul Lüttich, Saint-Gatien Tours, Saint-André Bordeaux,
+    Saint-Sernin Toulouse, Saint-Pierre Montpellier, Buen Pastor San Sebastián, Berner Münster,
+    Franziskanerkloster Slavonski Brod, Fara Białystok, Christi-Auferstehungs-Kirche Kaunas; Leipziger
+    City-Hochhaus und Torre Glòries als `props/building_tall`.
+  - Gebäude mit Ersatz aus anderen Stilen: HLM der Banlieue (`city_eastern_plattenbau`), italienische Villette
+    (`city_spanish_casa`, `city_french_sud`), bayerische/österreichische Häuser (`city_german_house`),
+    mitteleuropäische Würfelhäuser und Paneláky (`city_eastern_house_a/_c`, `city_eastern_plattenbau`),
+    Zechenhäuser im Ruhrgebiet (`city_dutch_terrace`), Wiener Gemeindebau.
+  - `props/bridge_pylon` neu (siehe §8), dann ohne `prefer_proc`. Reihenfolge und Vorgaben: sprites.md „Wunschliste“.

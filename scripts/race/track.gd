@@ -22,6 +22,7 @@ const WALL_SIGN_OVERHANG_M := 1.0      ## how far a tunnel-wall sign may reach o
 const BRIDGE_PORTAL_EVERY_M := 40.0    ## truss bridges: overhead portal every n visible metres
 const BRIDGE_LAMP_EVERY_M := {"stone_arch": 24.0, "causeway": 36.0}
 const BRIDGE_DECK_EXTRA_M := 0.4       ## outside the City Limits the railing stands this far beyond the shoulder
+const PARK_TREE_BRIDGE_GAP_M := 8.0    ## landmark park trees keep this distance from bridges (crown radius)
 const PROP_KEYS: Array[String] = ["fallback", "fallback_scale", "fallback_tint", "tint", "mirror", "align"]
 
 var plan: StagePlan
@@ -724,9 +725,11 @@ func _build_bridge(br: Dictionary) -> void:
 				fr = [0.27, 0.73]
 			for f in fr:
 				for side: int in [-1, 1]:
-					_add_event_z(z0 + length * f, {"kind": "prop", "set": "props/bridge_pylon", "proc": "pylon", "side": side,
-						"offset": extra + 1.3, "height_m": float(br.get("pylon_m", 80.0)), "cables": minf(64.0, length * 0.24),
-						"bridge": typ, "color": b["color"]})
+					# prefer_proc: the procedural pylon (pylon_m high, stay cables as real 3D lines along the deck)
+					# instead of the sprite, whose baked cable fan and 88.8 m size break up next to the road
+					_add_event_z(z0 + length * f, {"kind": "prop", "set": "props/bridge_pylon", "proc": "pylon", "prefer_proc": true,
+						"side": side, "offset": extra + 1.3, "height_m": float(br.get("pylon_m", 80.0)),
+						"cables": minf(64.0, length * 0.24), "bridge": typ, "color": b["color"]})
 		"stone_arch", "causeway":
 			var every := float(BRIDGE_LAMP_EVERY_M[typ])
 			var zl := z0 + every * 0.5
@@ -755,7 +758,7 @@ func _build_landmark(lm: Dictionary, index: int) -> void:
 	var ev := {"kind": "prop", "set": str(lm["set"]), "side": side, "at": "edge", "offset": x_m, "align": "edge",
 		"scale": float(lm.get("scale", 1.0)), "landmark": true, "height_m": float(lm.get("height_m", 40.0)),
 		"name": str(lm.get("name", ""))}
-	for key: String in ["proc", "fallback", "fallback_scale", "fallback_tint", "tint", "width_m", "dome", "wall"]:
+	for key: String in ["proc", "fallback", "fallback_scale", "fallback_tint", "tint", "width_m", "dome", "wall", "cross"]:
 		if lm.has(key):
 			ev[key] = lm[key]
 	if ev.has("proc"):
@@ -767,14 +770,20 @@ func _build_landmark(lm: Dictionary, index: int) -> void:
 	if plaza != "none":
 		_mark_clear_all(z - float(cl[0]), z + float(cl[1]), mask)
 	if plaza == "park" and x_m > 14.0:
-		# a few park trees on the plaza in front of the landmark
+		# park trees on the plaza: most in front of the landmark, two beside and behind it; none on or right
+		# next to a bridge (a landmark shortly after a bridge would put them into the river). Mirrored on the
+		# left like the scenery trees, so their baked shadow falls away from the road.
 		var rng := RandomNumberGenerator.new()
 		rng.seed = hash(_seed * 17 + index * 7919 + 3)
-		var n := 3 + rng.randi() % 4
-		for i in n:
-			var zt := z - float(cl[0]) * rng.randf_range(0.15, 0.85)
-			_add_event_z(zt, {"kind": "prop", "set": "props/tree_oak" if rng.randf() < 0.5 else "props/tree_beech",
-				"side": side, "offset": rng.randf_range(3.0, minf(x_m - 8.0, 36.0)), "scale": rng.randf_range(0.7, 1.05)})
+		var n := 5 + rng.randi() % 4
+		for i in n + 2:
+			var zt := z - float(cl[0]) * rng.randf_range(0.15, 0.85) if i < n else z + float(cl[1]) * rng.randf_range(0.15, 0.8)
+			var tree := "props/tree_oak" if rng.randf() < 0.5 else "props/tree_beech"
+			var off := rng.randf_range(3.0, minf(x_m - 8.0, 36.0))
+			var sc := rng.randf_range(0.7, 1.05)
+			if near_bridge(zt, PARK_TREE_BRIDGE_GAP_M):
+				continue
+			_add_event_z(zt, {"kind": "prop", "set": tree, "side": side, "offset": off, "scale": sc, "mirror": true})
 	var far := ev.duplicate()
 	far["z"] = z
 	far["x"] = _prop_x(road_edges_at(z), side, "edge", x_m)
@@ -813,6 +822,15 @@ func bridge_at(z: float) -> Dictionary:
 		if z >= float(br["z0"]) and z < float(br["z1"]):
 			return br
 	return {}
+
+
+## True when z lies on a bridge (water, banks under the deck) or less than margin_m visible metres before or
+## behind one – a tree there would stand in the river or reach over it.
+func near_bridge(z: float, margin_m: float) -> bool:
+	for br in bridges:
+		if z >= float(br["z0"]) - margin_m and z <= float(br["z1"]) + margin_m:
+			return true
+	return false
 
 
 ## Signs/props from km events, sorted by z inside the segment.

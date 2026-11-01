@@ -63,3 +63,39 @@ func test_backdrop_city_styles() -> void:
 	for L: Dictionary in RaceBackdrop.STYLES["suburb"]:
 		kinds[str(L["type"])] = true
 	assert_true(kinds.has("houses") and kinds.has("skyline") and kinds.has("trees"), "Häuser, Bäume, ferne Skyline")
+
+
+## Mountain range behind a city (cities.json background.behind): colour and base haze from the data, so
+## the Alps behind Bern or the Witoscha read instead of vanishing in the sky colour; the defaults (string or
+## no colour/haze) keep the old faint look, and bad weather still fades every range towards the fog.
+func test_backdrop_behind_range_parameters() -> void:
+	var plain := RaceBackdrop.behind_params("alps", ["#9cacbc", "#5a7e4e"])
+	assert_eq(str(plain["style"]), "alps", "Stil aus dem Namen")
+	assert_near(float(plain["haze"]), 0.55, 0.0001, "Standard-Dunst")
+	assert_eq(plain["color"], Color("#9cacbc"), "Standardfarbe: ferne Hintergrundfarbe")
+	var bern := RaceBackdrop.behind_params({"style": "alps", "height": 0.75, "color": "#6f8296", "haze": 0.3}, ["#9cacbc"])
+	assert_eq(str(bern["style"]), "alps", "Stil")
+	assert_near(float(bern["height"]), 0.75, 0.0001, "Höhe")
+	assert_eq(bern["color"], Color("#6f8296"), "eigene Farbe")
+	assert_near(float(bern["haze"]), 0.3, 0.0001, "eigener Dunst")
+	assert_near(RaceBackdrop.behind_haze(0.55, 0.0), 0.55, 0.0001, "klar: Grunddunst")
+	assert_near(RaceBackdrop.behind_haze(0.55, 1.0), 0.97, 0.0001, "Nebel: fast Nebelfarbe")
+	assert_near(RaceBackdrop.behind_haze(0.3, 1.0), 0.97, 0.0001, "auch eine klare Kette verschwindet im Nebel")
+	assert_true(RaceBackdrop.behind_haze(0.3, 0.2) < RaceBackdrop.behind_haze(0.55, 0.2), "Grunddunst wirkt")
+
+
+## The outskirts ground blends into the centre ground over the last GROUND_BLEND_M before the centre (QA:
+## a hard line across the ground where the green gardens met the sand of the centre).
+func test_ground_blends_into_the_centre() -> void:
+	var c := 5000.0
+	assert_near(RoadRenderer.ground_blend(c - RoadRenderer.GROUND_BLEND_M - 10.0, c), 0.0, 0.0001, "davor Stadtrand")
+	assert_near(RoadRenderer.ground_blend(c - 1.0, c), 1.0, 0.01, "am Zentrum fast ganz Zentrum")
+	assert_near(RoadRenderer.ground_blend(c + 10.0, c), 0.0, 0.0001, "im Zentrum (eigene Landschaft) nichts")
+	assert_near(RoadRenderer.ground_blend(100.0, 0.0), 0.0, 0.0001, "ohne Zentrum nichts")
+	var prev := 0.0
+	var z := c - RoadRenderer.GROUND_BLEND_M
+	while z < c:
+		var f := RoadRenderer.ground_blend(z, c)
+		assert_true(f >= prev - 0.0001 and f - prev < 0.06, "stetig und monoton bei %.0f" % (z - c))
+		prev = f
+		z += 3.0

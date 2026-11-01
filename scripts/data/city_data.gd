@@ -159,7 +159,7 @@ static func _apply_landmarks(p: StagePlan, db: Dictionary, entry: Dictionary) ->
 static func landmark_entry(db: Dictionary, set_id: String, over: Dictionary = {}) -> Dictionary:
 	var info := landmark_info(db, set_id)
 	var d := {"set": set_id, "name": str(over.get("name", info.get("name", set_id.get_file())))}
-	for key: String in ["proc", "fallback", "fallback_scale", "fallback_tint", "tint", "height_m", "width_m", "dome", "wall"]:
+	for key: String in ["proc", "fallback", "fallback_scale", "fallback_tint", "tint", "height_m", "width_m", "dome", "wall", "cross"]:
 		if over.has(key):
 			d[key] = over[key]
 		elif info.has(key):
@@ -182,6 +182,10 @@ static func _apply_skyline(p: StagePlan, db: Dictionary, entry: Dictionary) -> v
 		if set_id == "":
 			continue
 		var d := landmark_entry(db, set_id, over)
+		if d.has("proc"):
+			# like the landmark props (Track._build_landmark): until the sprite exists the procedural stand-in is
+			# drawn, not the generic fallback sprite (a TV tower as a 369 m glass office block)
+			d.erase("fallback")
 		d["azimuth_deg"] = float(over.get("azimuth_deg", NAN))
 		d["scale"] = float(over.get("scale", 1.0))
 		d["prop_km"] = -1.0
