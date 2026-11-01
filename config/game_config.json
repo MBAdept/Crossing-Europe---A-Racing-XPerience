@@ -314,7 +314,7 @@
 	},
 
 	"audio": {
-		"_doc": "Pegel in dB. Motor (docs/motorsound.md): Zyklusbank je Auto aus engine_bank_dir/<auto>.json, abgespielt über einen AudioStreamGenerator im Bus Engine (→ Room → SFX). engine_db = Pegel des Motors (zusätzlich zu mix.gain der Bank); engine_latency_s = Vorlauf, den die Laufzeit je Frame im Generator hält (kleiner = direktere Reaktion auf das Gas, aber Aussetzer bei Rucklern); engine_buffer_s = Puffergröße des Generators; engine_preview = kurzer Gasstoß beim Wechsel in der Fahrzeugwahl. Ohne Bank für ein Auto spielen die alten synthetischen Motorschleifen: engine_gears, engine_idle_hz und engine_max_hz gelten nur für diesen Rückfall.",
+		"_doc": "Pegel in dB. Motor (docs/motorsound.md): Zyklusbank je Auto aus engine_bank_dir/<auto>.json, abgespielt über einen AudioStreamGenerator im Bus Engine (→ Room → SFX). engine_db = Pegel des Motors (zusätzlich zu mix.gain der Bank); engine_latency_s = Vorlauf, den die Laufzeit je Frame im Generator hält (kleiner = direktere Reaktion auf das Gas, aber Aussetzer bei Rucklern); engine_buffer_s = Puffergröße des Generators; engine_preview = kurzer Gasstoß beim Wechsel in der Fahrzeugwahl. Ohne Bank für ein Auto spielen die alten synthetischen Motorschleifen: engine_gears, engine_idle_hz und engine_max_hz gelten nur für diesen Rückfall. Menümusik (docs/ui.md, Titelmelodie): music_file = Titelmelodie (OGG Vorbis; die Import-Einstellungen lassen sie nach dem Intro als Schleife laufen, erzeugt mit tools/audio/music_synth.py; fehlt die Datei, spielt die alte synthetisierte Schleife); music_db = Pegel des Music-Busses (die Datei ist auf −14 LUFS gemastert); menu_music = Menümusik an/aus.",
 		"master_db": 0.0,
 		"engine_db": -3.0,
 		"engine_latency_s": 0.07,
@@ -324,8 +324,9 @@
 		"engine_gears": 6,
 		"engine_idle_hz": 38.0,
 		"engine_max_hz": 175.0,
-		"music_db": -4.0,
+		"music_db": -9.0,
 		"menu_music": true,
+		"music_file": "res://assets/audio/music/title_theme.ogg",
 		"_doc_traffic": "Verkehrsgeräusche (docs/verkehrsgeraeusche.md, TrafficAudio): traffic_sounds = Klangdatei (fehlt sie, gibt es keine Verkehrsgeräusche). Die traffic_voices nächsten Fahrzeuge (Lkw/Busse zählen 1,45-mal näher) bekommen je eine Stimme aus Motor, Reifen und Luft; ein Fahrzeug mit Stimme behält sie, bis ein anderes um traffic_hysteresis (Anteil) näher ist; Ein-/Ausblenden in traffic_fade_s. Hörer an der Verfolgerkamera, traffic_listener_ahead_m nach vorn versetzt. Pegel = traffic_db + Pegel des Klangs + Tempoanteil + Entfernung: bis traffic_ref_m × Größe voll, dann (Bezug/Abstand)^traffic_rolloff (Luft: hoch 2, nur nah hörbar), zwischen 70 und 100 % von traffic_max_m auf 0. traffic_pan = Stereobreite (1 = ganz links/rechts). traffic_air_m = Luftdämpfung: Tiefpass 20 kHz / (1 + Abstand / traffic_air_m). traffic_doppler = Übertreibung des Doppler-Effekts (1 = physikalisch, Schallgeschwindigkeit 343 m/s). limiter_ceiling_db = Obergrenze des Begrenzers auf dem Master-Bus (kein Übersteuern, wenn Motor, Lkw daneben, Martinshorn und Unfall zusammenkommen). Martinshorn an der Polizei: siren_db = Pegel nah (wie die alte Mono-Schleife), bis siren_ref_m voll, dann (Bezug/Abstand)^siren_rolloff bis siren_max_m, nie leiser als siren_floor (Anteil), solange es läuft.",
 		"traffic_sounds": "res://assets/audio/traffic/traffic_sounds.json",
 		"traffic_voices": 6,

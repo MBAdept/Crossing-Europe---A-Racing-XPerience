@@ -5,6 +5,8 @@ extends Node
 ## Public API = contract (ARCHITECTURE.md §11). Effects and loops are synthesised at startup (SfxSynth) as
 ## AudioStreamWAV. The engine plays from the car's cycle bank (assets/audio/engines/<id>.json, EngineAudio
 ## through an AudioStreamGenerator); without a bank the old SfxSynth engine loops play (fallback).
+## Menu music: the title theme audio.music_file (OGG Vorbis made by tools/audio/music_synth.py; its import loops
+## it after the intro, docs/ui.md "Titelmelodie"); without the file the old SfxSynth loop is synthesised (fallback).
 ## Nothing is played in headless runs (the engine's gearbox still runs there, for engine_state()).
 ##
 ## Buses: Master / SFX / Music (created if missing), volumes from Settings (apply_volumes()); Room (→ SFX: early
@@ -12,7 +14,7 @@ extends Node
 ## Siren (→ Room: low-pass of the air absorption) from TrafficAudio.
 ## Additions to §11 (documented in docs/ui.md):
 ##   apply_volumes()       – re-read Settings.master/sfx/music_volume
-##   set_music(on)         – menu music loop on the Music bus
+##   set_music(on)         – menu music on the Music bus (title theme from its start, intro once, then the loop)
 ##   hud_hints(state)      – called by the HUD each frame; derives rain, skid and siren distance
 ##                           when the race session does not set them explicitly (explicit calls win)
 ##   gear_for(speed, vmax) – virtual gearbox of the fallback loops (static, delegates to SfxSynth.gear_for)
@@ -41,6 +43,10 @@ const ENGINE_FADE_S := 0.12      ## fade of the bank engine on pause / scene cha
 const PREVIEW_DB := -2.0         ## vehicle-select blip relative to audio.engine_db
 const TRAFFIC_SOUNDS := "res://assets/audio/traffic/traffic_sounds.json"
 const ALIVE_S := 0.35            ## traffic counts as left when set_traffic() was not called for this long (as the engine)
+const MUSIC_FILE := "res://assets/audio/music/title_theme.ogg"
+## audio.music_db (−9 dB) is set for the title theme (mastered to −14 LUFS); the synthesised fallback loop (−20 LUFS)
+## was mixed for −4 dB on the bus and gets the difference, so it keeps its old level.
+const FALLBACK_MUSIC_DB := 5.0
 
 var sounds_ready := false
 var _streams: Dictionary = {}
@@ -135,7 +141,8 @@ func _ready() -> void:
 	_load_traffic_sounds(room_cfg)
 	_build_sounds()
 	if bool(ConfigLoader.lookup(cfg, "audio.menu_music", true)):
-		_music_thread_task = WorkerThreadPool.add_task(_generate_music, false, "menu music")
+		if not _load_music(str(ConfigLoader.lookup(cfg, "audio.music_file", MUSIC_FILE))):
+			_music_thread_task = WorkerThreadPool.add_task(_generate_music, false, "menu music")
 
 
 func _exit_tree() -> void:
@@ -275,6 +282,26 @@ func _build_sounds() -> void:
 	print("AudioManager: Klänge erzeugt in %d ms" % (Time.get_ticks_msec() - t0))
 
 
+## Title theme (docs/ui.md "Titelmelodie"): an imported audio stream - the OGG's import settings loop it after the
+## intro (loop_offset). Missing or unusable -> false, the synthesised loop plays instead.
+func _load_music(path: String) -> bool:
+	if path == "" or not ResourceLoader.exists(path):
+		print("AudioManager: keine Titelmelodie (%s fehlt) – synthetisierte Menümusik" % path)
+		return false
+	var t0 := Time.get_ticks_msec()
+	var s: Variant = load(path)
+	if not (s is AudioStream):
+		push_warning("Titelmelodie %s ist kein Audiostream – synthetisierte Menümusik" % path)
+		return false
+	print("AudioManager: Titelmelodie %s geladen in %d ms" % [path, Time.get_ticks_msec() - t0])
+	_streams["music"] = s
+	_music.stream = s
+	_music.volume_db = 0.0
+	if _music_wanted:
+		_music.play()
+	return true
+
+
 func _generate_music() -> void:
 	var t0 := Time.get_ticks_msec()
 	_music_samples = SfxSynth.music_loop()
@@ -291,6 +318,7 @@ func _on_music_ready() -> void:
 	_streams["music"] = SfxSynth.to_wav(_music_samples, true)
 	_music_samples = PackedFloat32Array()
 	_music.stream = _streams["music"]
+	_music.volume_db = FALLBACK_MUSIC_DB
 	if _music_wanted:
 		_music.play()
 
@@ -419,7 +447,8 @@ func traffic_perf() -> Dictionary:
 		"apply_max_ms": _traffic.perf_apply_us_max / 1000.0}
 
 
-## Menu music on/off (Music bus).
+## Menu music on/off (Music bus). On starts the title theme from its beginning (the intro plays once, then the
+## loop); while it plays, further set_music(true) calls change nothing - it keeps running (attract mode, screens).
 func set_music(on: bool) -> void:
 	_music_wanted = on
 	if _music == null:
