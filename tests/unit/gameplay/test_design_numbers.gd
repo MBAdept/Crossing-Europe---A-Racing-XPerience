@@ -81,7 +81,29 @@ func test_g_traffic_density_speed_chase_city() -> void:
 	var ts := TrafficSystem.new()
 	var empty: Array[String] = []
 	ts.setup(c, Fx.FakeTrack.new(), empty, empty, 1)
-	assert_near(ts.speed_factor(0.5) / ts.speed_factor(12.0), 1.15, 0.0001, "nachts +15 %")
+	# v0.5.0 deviations from the design start values (playtest v0.4.0 "zu leicht", docs/gameplay.md "Entscheidungen";
+	# the design document still has the start values until the user confirms): asserted as numbers, not against
+	# the configuration itself.
+	# (1) no night bonus: design "nachts 15 % schneller (Spielraum 15–20 %)" -> 0 %
+	assert_near(ts.speed_factor(0.5), 1.0, 0.0001, "nachts kein Tempobonus mehr (Design-Startwert +15 %)")
+	assert_near(ts.speed_factor(12.0), 1.0, 0.0001, "tagsüber Faktor 1")
+	assert_true(Sim.density_at(c, 0.5) < Sim.density_at(c, 8.0) * 0.3, "nachts ruhiger")
+	# (2) cars keep the design ranges (Autobahn 110–150, Landstraße 70–100, City 40–60 km/h, dry, no limit) …
+	for road: String in ["autobahn", "landstrasse", "city"]:
+		var design: Vector2 = {"autobahn": Vector2(110, 150), "landstrasse": Vector2(70, 100), "city": Vector2(40, 60)}[road]
+		assert_near(ts.cruise_speed_for(road, 0, 0.0), design.x, 0.01, "Pkw %s ab %d km/h (Design)" % [road, int(design.x)])
+		assert_near(ts.cruise_speed_for(road, 0, 1.0), design.y, 0.01, "Pkw %s bis %d km/h (Design)" % [road, int(design.y)])
+	# … trucks and buses drive realistically slower on the autobahn (design range was the car range: 110–150)
+	assert_near(ts.cruise_speed_for("autobahn", 1, 0.0), 80.0, 0.01, "Lkw Autobahn ab 80 km/h")
+	assert_near(ts.cruise_speed_for("autobahn", 1, 1.0), 90.0, 0.01, "Lkw Autobahn bis 90 km/h")
+	assert_near(ts.cruise_speed_for("autobahn", 2, 0.0), 95.0, 0.01, "Bus Autobahn ab 95 km/h")
+	assert_near(ts.cruise_speed_for("autobahn", 2, 1.0), 100.0, 0.01, "Bus Autobahn bis 100 km/h")
+	# (3) weather slows the traffic: rain cars × 0.85, snow × 0.65 (design: no weather effect on traffic)
+	ts.set_weather("snow")
+	assert_near(ts.cruise_speed_for("autobahn", 0, 0.0), 110.0 * 0.65, 0.01, "Schnee: Pkw Autobahn ab 71,5 km/h")
+	assert_near(ts.cruise_speed_for("autobahn", 1, 0.0), 80.0 * 0.68, 0.01, "Schnee: Lkw Autobahn ab 54,4 km/h")
+	ts.set_weather("rain")
+	assert_near(ts.cruise_speed_for("autobahn", 0, 1.0), 150.0 * 0.85, 0.01, "Regen: Pkw Autobahn bis 127,5 km/h")
 
 
 func test_h_acceleration_times() -> void:

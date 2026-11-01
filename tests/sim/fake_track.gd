@@ -40,7 +40,7 @@ func set_sections(list: Array) -> void:
 	for s: Dictionary in list:
 		var length := float(s.get("length", 1000.0))
 		sections.append({"z0": z, "z1": z + length, "road": str(s.get("road", "autobahn")), "lanes": int(s.get("lanes", 3)),
-			"traffic": float(s.get("traffic", 1.0)), "curve": float(s.get("curve", 0.0))})
+			"traffic": float(s.get("traffic", 1.0)), "curve": float(s.get("curve", 0.0)), "limit": int(s.get("limit", 0))})
 		z += length
 	length_z = z
 	_dirty = true
@@ -159,6 +159,11 @@ func traffic_factor_at(z: float) -> float:
 
 func curve_at(z: float) -> float:
 	return float(_section(z)["curve"])
+
+
+## Speed limit (km/h, 0 = none) of the section ("limit" in set_sections, default none).
+func speed_limit_at(z: float) -> int:
+	return int(_section(z).get("limit", 0))
 
 
 func grade_at(_z: float) -> float:

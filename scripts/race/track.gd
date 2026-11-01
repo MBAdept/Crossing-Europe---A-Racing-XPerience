@@ -630,7 +630,13 @@ func _build_events() -> void:
 		if new_limit != plan.speed_limit_at(maxf(0.0, bk - 0.05)) and bk + 0.6 < plan.city_limits_km:
 			_add_event(bk + 0.6, {"kind": "sign", "sign": "limit" if new_limit > 0 else "unlimited", "value": new_limit, "side": 1})
 		_mark_clear(bz - 45.0, bz + 45.0, 3)
-	# City Limits: yellow town sign with the destination, city speed limit.
+	# City Limits: advance sign city_limits.announce_km before (the race session announces them on the HUD at the
+	# same point), yellow town sign with the destination, city speed limit.
+	var ann := city_announce_km()
+	if ann > 0.0 and plan.city_limits_km - ann > 1.0:
+		_add_event(plan.city_limits_km - ann, {"kind": "sign", "sign": "town_ahead", "text": dest, "value": int(round(ann)),
+			"limit": plan.city_speed_limit, "side": 1})
+		_mark_clear(km_to_z(plan.city_limits_km - ann) - 14.0, km_to_z(plan.city_limits_km - ann) + 8.0, 1)
 	_add_event(plan.city_limits_km, {"kind": "sign", "sign": "town", "text": dest, "side": 1})
 	_add_event(plan.city_limits_km, {"kind": "sign", "sign": "town", "text": dest, "side": -1})
 	_add_event(plan.city_limits_km + 0.15, {"kind": "sign", "sign": "limit", "value": plan.city_speed_limit, "side": 1})
@@ -648,6 +654,11 @@ func _build_events() -> void:
 	_mark_clear(length_z - 30.0, length_z + 20.0, 3)
 	_build_city()
 	zones.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return float(x["z0"]) < float(y["z0"]))
+
+
+## Odometer km before the City Limits at which they are announced (city_limits.announce_km, 0 = no advance sign).
+func city_announce_km() -> float:
+	return maxf(0.0, float(ConfigLoader.lookup(cfg, "city_limits.announce_km", 4.0)))
 
 
 func _add_event(km: float, e: Dictionary) -> void:

@@ -93,8 +93,17 @@
 		"grade_free_percent": 4.0,
 		"weather_vmax_factor": { "normal": 1.0, "rain": 0.975, "snow": 0.88 },
 		"night_vmax_factor": 0.99,
-		"weather_grip_factor": { "normal": 1.0, "rain": 0.88, "snow": 0.72 },
-		"shoulder": { "max_speed_kmh": 90.0, "decel_kmh_s": 35.0, "tolerance_m": 0.5, "grip_factor": 0.6 },
+		"weather_grip_factor": { "normal": 1.0, "rain": 0.75, "snow": 0.45 },
+		"grip_effects": {
+			"_doc": "Haftung g der Fahrbahn (weather_grip_factor, im Tunnel trocken 1,0) wirkt auf jede Steuerung mit eigener Empfindlichkeit (docs/gameplay.md „Wetter“, seit Spieltest v0.4.0: „Schnee macht die Steuerung nur leicht schwammiger“): Kurvengrenze lat_grip * g^curve_exp (Schnee 0,55, Regen 0,81 – die trockene Arcade-Kurvengrenze ist schon niedrig); Vollbremsung brake_decel_kmh_s * g^brake_exp (Schnee ≈ halb, Regen ≈ 78 %); Beschleunigung höchstens traction_mps2 * g^traction_exp (trocken über jedem Auto, bei Schnee begrenzt die Traktion jeden Start: 0–100 km/h in etwa 8,5 s); Lenken: die Quergeschwindigkeit folgt mit steer_response_s / g^steer_response_exp (baut sich langsamer auf und rutscht nach dem Loslassen weiter – Gegenlenken nötig) bis höchstens steer_mps * g^steer_speed_exp. Kein Übersteuern, kein Dreher.",
+			"curve_exp": 0.75,
+			"brake_exp": 0.87,
+			"traction_mps2": 9.0,
+			"traction_exp": 1.25,
+			"steer_response_exp": 1.75,
+			"steer_speed_exp": 0.3
+		},
+		"shoulder": { "max_speed_kmh": 90.0, "decel_kmh_s": 35.0, "tolerance_m": 0.5, "grip_factor": 0.51 },
 		"guardrail": { "speed_factor_per_hit": 0.9, "bounce_mps": 1.5, "hit_cooldown_s": 0.6, "scrape_decel_kmh_s": 20.0,
 			"impact_free_mps": 1.0, "impact_loss_per_mps": 0.05, "min_speed_factor": 0.5 },
 		"overspeed_decel_kmh_s": 12.0,
@@ -119,15 +128,28 @@
 	},
 
 	"traffic": {
-		"_doc": "Verkehr fährt nur in Fahrtrichtung auf festen Spuren. Dichte = base_density_per_km (Fahrzeuge je sichtbarem km) * hourly_density[Stunde] * Faktoren (Nacht, Verfolgung, City Limits, Abschnitt). Grundgeschwindigkeit laut Design je Straßentyp (speeds_kmh); Lkw/Busse fahren am langsamen Ende desselben Bereichs (truck_speeds_kmh muss innerhalb von speeds_kmh liegen).",
+		"_doc": "Verkehr fährt nur in Fahrtrichtung auf festen Spuren und ist seit v0.5.0 ein echtes Hindernis (Spieltest v0.4.0: „man kann zu leicht an anderen Autos vorbeifahren“, docs/gameplay.md „Verkehr als Hindernis“). Dichte = base_density_per_km (Fahrzeuge je sichtbarem km) * hourly_density[Stunde] * Faktoren (Nacht, Verfolgung, City Limits, Abschnitt). Wunschtempo: Pkw im Design-Bereich je Straßentyp (speeds_kmh, schnelle Autos erscheinen links, langsame rechts: lane_speed_spread), Lkw realistisch (truck_speeds_kmh, Autobahn 80–90), Busse (bus_speeds_kmh, bus_share der schweren Fahrzeuge); Tempolimit des Abschnitts: Pkw höchstens Limit * limit_tolerance (vorsichtige darunter, schnelle etwas darüber), Lkw/Busse höchstens das Limit; Wetter: weather.<w> (speed_factor Pkw, heavy_speed_factor Lkw/Busse, follow_time_factor und min_gap_factor für längere Abstände, lane_change_factor für vorsichtigere, langsamere Spurwechsel, decel_factor für Bremsen: komfortabel und höchstens comfort_decel_mps2/max_decel_mps2 × Faktor – wie die Vollbremsung des Spielers etwa Haftung^0,87, Schnee 4 m/s²; hinter dem Spieler weiter max_decel_mps2, damit kein Auto ihm auffährt). Nachts kein Tempobonus mehr (night.speed_factor 1,0 – schnellerer Verkehr machte das Überholen noch leichter), dafür weniger Verkehr (hourly_density).",
 		"speeds_kmh": { "autobahn": [110, 150], "landstrasse": [70, 100], "city": [40, 60] },
-		"truck_speeds_kmh": { "autobahn": [110, 120], "landstrasse": [70, 80], "city": [40, 50] },
-		"base_density_per_km": { "autobahn": 14.0, "landstrasse": 9.0, "city": 8.0 },
+		"truck_speeds_kmh": { "autobahn": [80, 90], "landstrasse": [65, 80], "city": [35, 50] },
+		"bus_speeds_kmh": { "autobahn": [95, 100], "landstrasse": [70, 85], "city": [35, 50] },
+		"bus_share": 0.2,
+		"limit_tolerance": [0.92, 1.12],
+		"lane_speed_spread": 1.4,
+		"weather": {
+			"normal": { "speed_factor": 1.0, "heavy_speed_factor": 1.0, "follow_time_factor": 1.0, "min_gap_factor": 1.0, "lane_change_factor": 1.0 },
+			"rain": { "speed_factor": 0.85, "heavy_speed_factor": 0.88, "follow_time_factor": 1.3, "min_gap_factor": 1.2, "lane_change_factor": 0.85, "decel_factor": 0.78 },
+			"snow": { "speed_factor": 0.65, "heavy_speed_factor": 0.68, "follow_time_factor": 1.8, "min_gap_factor": 1.5, "lane_change_factor": 0.65, "decel_factor": 0.5 }
+		},
+		"base_density_per_km": { "autobahn": 16.0, "landstrasse": 10.0, "city": 8.0 },
 		"hourly_density": [0.22, 0.16, 0.13, 0.12, 0.14, 0.24, 0.50, 0.92, 1.0, 0.82, 0.68, 0.66, 0.70, 0.70, 0.72, 0.80, 0.95, 1.0, 0.98, 0.78, 0.58, 0.44, 0.34, 0.27],
-		"night": { "start_hour": 23.0, "end_hour": 4.0, "density_factor": 1.0, "speed_factor": 1.15 },
+		"night": { "start_hour": 23.0, "end_hour": 4.0, "density_factor": 1.0, "speed_factor": 1.0 },
 		"chase_density_factor": 0.2,
 		"truck_share": { "autobahn": 0.22, "landstrasse": 0.12, "city": 0.06 },
-		"lane_weights": { "autobahn": [0.25, 0.35, 0.4], "landstrasse": [0.4, 0.6], "city": [0.5, 0.5] },
+		"_doc_obstacle": "Verkehr als Hindernis (v0.5.0). blink: jeder Spurwechsel wird lead_s (je Auto zwischen beiden Werten; Lkw/Busse * heavy_factor, Pflichtwechsel mandatory_lead_s) vorher mit dem Blinker angekündigt; ohne sichere Lücke wartet das Auto blinkend höchstens max_wait_s. Nur das Ausweichen vor dem Spieler (Notfall) geht sofort. cut_in: Fahrer schätzen ein schnell herankommendes Auto im Spiegel falsch ein – sie sehen den Abstand und höchstens perceived_max_kmh Annäherung und wollen davon judge_s Sekunden (mutige = schnelle Fahrer den kleineren Wert) plus judge_add_m: der Verkehr macht dem Spieler nicht mehr Platz, er zieht vor ihm heraus. Untergrenze (Fairness): erst wenn der Spieler, der ab dem Blinker noch lead + intrude_s + margin_s Zeit hat, mit brake_fraction seiner vollen Bremsleistung im aktuellen Wetter (die Rennsitzung übergibt sie) margin_m hinter dem Auto zum Stehen relativ zu ihm kommt. elephant: Lkw/Busse überholen auf Straßen mit min_lanes Spuren langsamere schwere Fahrzeuge (mindestens min_diff_kmh langsamer, innerhalb look_m: Vorteil bonus_mps2) im eigenen Tempo – zwei Spuren mit Lkw-Tempo zu – und geben nach max_s auf. cluster: neuer Verkehr kommt mit chance je Straßentyp als Gruppe: Kolonne hinter einem langsamen Fahrzeug (followers Pkw im gap_factor-fachen IDM-Abstand) oder (Anteil elephant_share auf Straßen mit 3+ Spuren) ein Elefantenrennen samt Autos dahinter.",
+		"blink": { "lead_s": [1.0, 1.5], "heavy_factor": 1.3, "mandatory_lead_s": 1.0, "max_wait_s": 3.0 },
+		"cut_in": { "perceived_max_kmh": 72.0, "judge_s": [2.5, 5.0], "judge_add_m": 20.0, "intrude_s": 0.5, "margin_s": 0.3, "brake_fraction": 0.7, "margin_m": 8.0 },
+		"elephant": { "min_lanes": 3, "min_diff_kmh": 3.0, "look_m": 120.0, "bonus_mps2": 1.0, "max_s": 45.0, "retry_s": 60.0 },
+		"cluster": { "chance": { "autobahn": 0.35, "landstrasse": 0.35, "city": 0.4 }, "followers": [1, 3], "elephant_share": 0.3, "gap_factor": [1.0, 1.5], "patience_s": [4.0, 20.0] },
 		"fuel_lane_use_chance": 0.12,
 		"fuel_lane_speed_kmh": 50.0,
 		"spawn_ahead_m": 950.0,
@@ -136,7 +158,7 @@
 		"min_gap_m": 14.0,
 		"follow_time_s": 1.2,
 		"lane_change_mps": 2.5,
-		"_doc_driving": "Fahrverhalten: Intelligent Driver Model (accel_mps2, comfort_decel_mps2, max_decel_mps2, min_gap_m, follow_time_s) und MOBIL-Spurwechsel (lane_change_*, politeness, keep_right_bias_mps2 je Straßentyp). Neue Autos erscheinen außerhalb der Sicht (vorn ab spawn_ahead_m, hinten nur schnellere als der Spieler) und verschwinden nur außer Sicht (zu viele Autos: hinter der Kamera oder jenseits cull_visible_fraction der Sichtweite).",
+		"_doc_driving": "Fahrverhalten: Intelligent Driver Model (accel_mps2, comfort_decel_mps2, max_decel_mps2, min_gap_m, follow_time_s) und MOBIL-Spurwechsel (lane_change_*, politeness, keep_right_bias_mps2 je Straßentyp; nach rechts zählt die Höflichkeit nur, wenn der neue Hintermann stärker als 1 m/s² bremsen müsste – kein langsames Auto bleibt links). Neue Autos erscheinen außerhalb der Sicht (vorn ab spawn_ahead_m, hinten nur schnellere als der Spieler) und verschwinden nur außer Sicht (zu viele Autos: hinter der Kamera oder jenseits cull_visible_fraction der Sichtweite).",
 		"accel_mps2": 1.6,
 		"truck_accel_mps2": 0.7,
 		"comfort_decel_mps2": 2.5,
@@ -157,13 +179,14 @@
 		"cull_visible_fraction": 0.85,
 		"chase_flash_cull_m": 250.0,
 		"count_jitter_s": 8.0,
-		"_doc_side": "Keine rollenden Straßensperren: Ein Auto auf einer linken Spur prüft die Verkehrsautos auf der Spur rechts (side_window_behind_m hinten bis side_window_ahead_m vorn), die es nicht ohnehin um mindestens yield_speed_margin_kmh überholt. Will es mindestens so schnell fahren wie sie und kann es klar schneller sein, überholt es zügig: Wunschtempo + pass_boost_kmh (höchstens oberes Ende seines Tempobereichs). Sonst fällt es auf ihr Tempo minus yield_slowdown_kmh zurück und ordnet sich dahinter rechts ein (Rechtsfahrgebot + yield_keep_right_bonus_mps2, kein Ausweichen nach links). Der Spieler zählt nie (er regelt sein Tempo selbst). Neue Autos erscheinen nicht dort, wo sie sofort zurückfallen müssten. yield_slowdown_kmh 0 bzw. pass_boost_kmh 0 = aus.",
+		"_doc_side": "Keine rollenden Straßensperren: Ein Auto auf einer linken Spur prüft die Verkehrsautos auf der Spur rechts (side_window_behind_m hinten bis side_window_ahead_m vorn), die es nicht ohnehin um mindestens yield_speed_margin_kmh überholt. Will es mindestens so schnell fahren wie sie und kann es klar schneller sein, überholt es zügig: Wunschtempo + pass_boost_kmh (höchstens oberes Ende seines Tempobereichs). Sonst fällt es auf ihr Tempo minus yield_slowdown_kmh zurück und ordnet sich dahinter rechts ein (Rechtsfahrgebot + yield_keep_right_bonus_mps2, kein Ausweichen nach links); dabei fällt es zurück, bis der andere side_yield_hold_m jenseits des Fensters ist (sonst pendelt es an der Fenstergrenze, z. B. genau neben dem Spieler, der dem Lkw folgt). Die Tempo-Abstände (yield_speed_margin_kmh, pass_boost_kmh, yield_slowdown_kmh) gelten trocken und schrumpfen bei Regen/Schnee mit traffic.weather.<w>.speed_factor. Der Spieler zählt nie (er regelt sein Tempo selbst). Neue Autos erscheinen nicht dort, wo sie sofort zurückfallen müssten. yield_slowdown_kmh 0 bzw. pass_boost_kmh 0 = aus. Ausnahme (v0.5.0): ein Lkw im Elefantenrennen (elephant.*) behält sein Tempo bis elephant.max_s.",
 		"yield_speed_margin_kmh": 6.0,
 		"yield_slowdown_kmh": 15.0,
 		"yield_keep_right_bonus_mps2": 1.0,
 		"pass_boost_kmh": 10.0,
 		"side_window_behind_m": 70.0,
-		"side_window_ahead_m": 40.0
+		"side_window_ahead_m": 40.0,
+		"side_yield_hold_m": 40.0
 	},
 
 	"fuel": {
@@ -225,17 +248,19 @@
 	},
 
 	"city_limits": {
-		"_doc": "Die letzten length_km jeder Etappe: mehr Verkehr, keine Tankstellen, kein Radar.",
+		"_doc": "Die letzten length_km jeder Etappe: mehr Verkehr, keine Tankstellen, kein Radar. announce_km vorher kündigen ein Vorschild (Ortsschild mit „in 4 km“ und Tempolimit) und das HUD sie an – bei Schnee steht direkt hinter dem Ortsschild oft eine langsame Kolonne (4 km = 333 m Straße: genug, um selbst bei Schnee aus Höchsttempo auf das Stadttempo zu bremsen). 0 = keine Ankündigung.",
 		"length_km": 20.0,
+		"announce_km": 4.0,
 		"density_factor": 2.5,
 		"road": "city"
 	},
 
 	"weather": {
-		"_doc": "Wetter senkt Höchstgeschwindigkeit (driving.weather_vmax_factor) und Sicht. race_mode: region = zufällig gewichtet nach Klima der Landschaft, random = gleichverteilt, fixed = Feld 'weather' der Etappe.",
+		"_doc": "Wetter senkt Höchstgeschwindigkeit (driving.weather_vmax_factor) und Sicht (visibility_factor, nachts zusätzlich night_visibility_factor je Wetter: Schnee hellt die Nacht auf – Schnee nachts 338 m statt 248 m, damit der Anhalteweg mit der halben Bremsung bis zum langsamsten Verkehr in der Sicht liegt, docs/gameplay.md (i6)). race_mode: region = zufällig gewichtet nach Klima der Landschaft, random = gleichverteilt, fixed = Feld 'weather' der Etappe. tutorial_weather: Wetter der Tutorial-Etappe im Rennen (leer = Rennwetter wie jede Etappe).",
 		"types": ["normal", "rain", "snow"],
 		"visibility_factor": { "normal": 1.0, "rain": 0.65, "snow": 0.5 },
-		"night_visibility_factor": 0.55,
+		"night_visibility_factor": { "normal": 0.55, "rain": 0.55, "snow": 0.75 },
+		"tutorial_weather": "normal",
 		"tunnel_visibility_factor": 0.4,
 		"race_mode": "region",
 		"climate_weights": {

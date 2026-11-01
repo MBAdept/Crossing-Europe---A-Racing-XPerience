@@ -5,6 +5,7 @@ extends SceneTree
 ## (next stage starts time.stage_pause_hours after the previous one ended; race time = sum of legs).
 ##   godot --headless --path . -s res://tests/race/run_race.gd -- --race=kiel_nuernberg --autopilot \
 ##       --no-countdown [--pick=0|1] [--vehicle=limousine] [--hour=8] [--timescale=40] [--max-legs=60]
+##       [--race-seed=<n>] (GameFlow: fixed race seed – reproducible race weather, e.g. snow on a leg)
 ## Exit code 0 = race result reached and all checks passed.
 ## Note: autoload classes are accessed untyped (this script compiles before the autoloads exist).
 

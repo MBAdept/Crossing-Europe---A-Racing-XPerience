@@ -100,6 +100,7 @@ var _overtake_s := 2.2
 var _overtake_from := 16.0
 var _lat_grip := 5.6             ## lateral grip of the police car (m/s², agility rating police.agility)
 var _radius_at_1 := 120.0
+var _curve_grip_exp := 1.0       ## driving.grip_effects.curve_exp (same tyres and weather as the player)
 var _curve_accel := 1.5
 var _curve_brake := 8.0
 var curve_lookahead_m := 300.0   ## police.curve_lookahead_m: how far ahead the curve limit is checked
@@ -159,6 +160,7 @@ func _read_config() -> void:
 	var agility := clampi(int(_f("police.agility", 1.0)), 1, 5)
 	_lat_grip = maxf(0.1, _f("police.lat_grip", _f("vehicles.agility_ratings.%d.lat_grip" % agility, 5.6)))
 	_radius_at_1 = maxf(1.0, _f("road.curve_radius_at_1_m", 120.0))
+	_curve_grip_exp = maxf(0.0, _f("driving.grip_effects.curve_exp", 1.0))
 	_curve_accel = maxf(0.0, _f("police.curve_accel_mps2", 1.5))
 	_curve_brake = maxf(0.1, _f("police.curve_brake_mps2", 8.0))
 	curve_brake_mps2 = _curve_brake
@@ -272,13 +274,14 @@ func _advance_police(dt: float, speed_kmh: float) -> void:
 	police_kmh = minf(_police_speed, _road_kmh)
 
 
-## Speed (m/s) at which the police car takes a curve of this strength (-1..1) with this grip (weather; 1 in a
-## tunnel): sqrt(lat_grip of police.agility · grip · road.curve_radius_at_1_m / |curve|). INF on a straight.
+## Speed (m/s) at which the police car takes a curve of this strength (-1..1) with this tyre grip (weather; 1 in a
+## tunnel): sqrt(lat_grip of police.agility · curve grip · road.curve_radius_at_1_m / |curve|), curve grip =
+## grip^driving.grip_effects.curve_exp like the player's car (VehicleModel.curve_grip). INF on a straight.
 func curve_speed_mps(curve: float, grip: float = 1.0) -> float:
 	var c := absf(curve)
 	if c < 0.0001:
 		return INF
-	return sqrt(maxf(0.0, _lat_grip * grip * _radius_at_1 / c))
+	return sqrt(maxf(0.0, _lat_grip * pow(clampf(grip, 0.0001, 1.0), _curve_grip_exp) * _radius_at_1 / c))
 
 
 func _update_chase(dt: float, speed_kmh: float) -> void:

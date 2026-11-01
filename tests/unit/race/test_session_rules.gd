@@ -134,3 +134,23 @@ func test_tutorial_texts_use_the_configuration() -> void:
 			# one line in the HUD message box (the HUD shrinks the font from about 72 characters on)
 			assert_true(h.length() <= 80, "Hinweis passt in eine Zeile (%d Zeichen): %s" % [h.length(), h])
 			assert_true(h.begins_with("Tipp:"), "als Tipp erkennbar: %s" % h)
+
+
+## Review v0.5.0: rain and snow cost a lot of braking – the HUD says so at the start of such a stage, with the
+## factor from the configuration; the City Limits are announced city_limits.announce_km ahead (once, never inside).
+func test_weather_hint_and_city_announcement() -> void:
+	var c := cfg()
+	assert_eq(SessionRules.weather_hint(c, "normal"), "", "trocken: kein Hinweis")
+	var snow := SessionRules.weather_hint(c, "snow")
+	assert_true(snow.begins_with("Schnee") and snow.contains("×2") and snow.contains("gegenlenken"), "Schnee: %s" % snow)
+	var rain := SessionRules.weather_hint(c, "rain")
+	assert_true(rain.begins_with("Regen") and rain.contains("×1,3"), "Regen: %s" % rain)
+	var tuned := ConfigLoader.deep_merge(c, {"driving": {"weather_grip_factor": {"snow": 0.25}}})
+	assert_true(SessionRules.weather_hint(tuned, "snow").contains("×3,3"), "Faktor aus der Konfiguration: %s" % SessionRules.weather_hint(tuned, "snow"))
+	assert_true(snow.length() <= 90 and rain.length() <= 90, "kurz genug fürs HUD")
+	assert_eq(SessionRules.city_announce_text("Würzburg", 4.0, 50), "City Limits Würzburg in 4 km – Tempo 50", "Ansage")
+	assert_true(SessionRules.city_announce_due(175.9, 176.05, 180.0, 4.0), "beim Überfahren von km 176")
+	assert_false(SessionRules.city_announce_due(176.05, 176.2, 180.0, 4.0), "nur einmal")
+	assert_false(SessionRules.city_announce_due(175.0, 175.5, 180.0, 4.0), "noch nicht")
+	assert_false(SessionRules.city_announce_due(170.0, 180.5, 180.0, 4.0), "nie in den City Limits (Start mitten in der Stadt)")
+	assert_false(SessionRules.city_announce_due(175.9, 176.05, 180.0, 0.0), "0 = keine Ansage")

@@ -78,7 +78,7 @@ func _initialize() -> void:
 func run(vehicle_id: String) -> Dictionary:
 	var weather := _arg("weather", "normal")
 	var margin := float(_arg("margin", "0.96"))
-	var decel := float(_arg("decel", "15"))
+	var decel := float(_arg("decel", "-1"))   # default like the Autopilot: 15 m/s², at most 75 % of the weather's braking
 	var lookahead := float(_arg("lookahead", "300"))
 	var no_brake := _arg("no-brake", "") != ""
 	var trace := _arg("trace", "").split(",")
@@ -92,6 +92,8 @@ func run(vehicle_id: String) -> Dictionary:
 	var vf := env.vmax_factor(12.0, weather)
 	var v := VehicleModel.new()
 	v.setup(cfg, vehicle_id)
+	if decel <= 0.0:
+		decel = minf(15.0, 0.75 * v.brake_decel_mps2(grip))
 	var z := 0.0
 	var t := 0.0
 	var st := {"vehicle": vehicle_id, "stage": plan.stage_id, "weather": weather, "off_road_s": 0.0, "limit_s": 0.0,
@@ -111,8 +113,7 @@ func run(vehicle_id: String) -> Dictionary:
 					want = minf(want, sqrt(vt * vt + 2.0 * decel * maxf(0.0, d - 12.0)) * 3.6)
 				d += 10.0
 		var tx := track.lane_center_x(z + 12.0, track.lane_count_at(z + 12.0) - 1)
-		var err := tx - v.x
-		var input := {"steer": 0.0 if absf(err) < 0.05 else clampf(err * 0.7, -1.0, 1.0), "throttle": 0.0, "brake": 0.0}
+		var input := {"steer": Autopilot.steer_to(v, tx, track.grip_at(z, grip)), "throttle": 0.0, "brake": 0.0}
 		if v.speed < want - 1.0:
 			input["throttle"] = 1.0
 		elif v.speed > want + 2.0:

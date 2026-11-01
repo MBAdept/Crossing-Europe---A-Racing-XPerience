@@ -88,9 +88,12 @@ Titel ─┬─ Rennen starten [Abfrage, falls gespeichert] → Rennen wählen �
 - **Nächste Etappe**: Start = Ende + `time.stage_pause_hours` (12 h, `EnvironmentModel.next_stage_start`),
   die Pause zählt nicht. **Fähre**: `fixed_time_s` zählt zur Rennzeit, `world_hours` zur Weltzeit; die
   nächste Etappe startet bei Ankunft (die Fähre ersetzt die Pause).
-- **Wetter im Rennen**: `RaceState.choose_weather()` nach `weather.race_mode` (`region` →
-  `EnvironmentModel.pick_weather(seed, plan.climate)`, `random` gleichverteilt, `fixed` = Feld `weather` der
-  Etappe). Der Seed hängt von Renn-Seed, Leg-Nummer und Etappe ab – nach „Fortsetzen“ ist das Wetter gleich.
+- **Wetter im Rennen**: `RaceState.leg_weather(cfg, plan, seed)` → `RaceState.choose_weather()` nach
+  `weather.race_mode` (`region` → `EnvironmentModel.pick_weather(seed, plan.climate)`, `random` gleichverteilt,
+  `fixed` = Feld `weather` der Etappe). Der Seed hängt von Renn-Seed, Leg-Nummer und Etappe ab – nach „Fortsetzen“ ist
+  das Wetter gleich. Die Tutorial-Etappe (Kiel – Hamburg) fährt immer bei `weather.tutorial_weather` (trocken; Review
+  v0.5.0: Regen und Schnee halbieren seitdem fast die Bremsung). `--race-seed=<n>` legt den Renn-Seed fest
+  (`run_race.gd`: reproduzierbares Rennwetter).
 - **Aufgeben** (Pausenmenü) im Rennen führt zurück zum Etappenbildschirm derselben Etappe; „Etappe neu starten“
   startet sie sofort neu. Abgebrochene Etappen werden nicht gewertet.
 - **Bestenlisten**: Namenseingabe, wenn die Zeit in die Top 10 aller Fahrzeuge **oder** des eigenen

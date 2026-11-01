@@ -68,7 +68,16 @@ func test_visibility() -> void:
 	assert_eq(env.visibility_factor(12.0, "normal", false), 1.0, "klarer Tag")
 	assert_true(env.visibility_factor(12.0, "rain", false) < 1.0, "Regen")
 	assert_true(env.visibility_factor(12.0, "snow", false) < env.visibility_factor(12.0, "rain", false), "Schnee")
-	assert_near(env.visibility_factor(2.0, "normal", false), float(ConfigLoader.lookup(c, "weather.night_visibility_factor", 0.55)), 0.0001, "Nacht")
+	assert_near(env.visibility_factor(2.0, "normal", false), 0.55, 0.0001, "Nacht")
+	assert_near(env.visibility_factor(2.0, "rain", false), 0.65 * 0.55, 0.0001, "Regen in der Nacht (322 m)")
+	# snow brightens the night: 0.5 * 0.75 (338 m) instead of 0.5 * 0.55 (248 m) – the stopping distance with the
+	# halved braking must stay within the sight (docs/gameplay.md (i6))
+	assert_near(env.visibility_factor(2.0, "snow", false), 0.5 * 0.75, 0.0001, "Schnee in der Nacht")
+	assert_true(env.visibility_factor(2.0, "snow", false) < env.visibility_factor(12.0, "snow", false), "Nacht senkt die Sicht auch bei Schnee")
+	var old_style := ConfigLoader.deep_merge(c, {"weather": {"night_visibility_factor": 0.5}})
+	var env2 := EnvironmentModel.new()
+	env2.setup(old_style)
+	assert_near(env2.visibility_factor(2.0, "snow", false), 0.25, 0.0001, "eine Zahl gilt für jedes Wetter")
 	assert_near(env.visibility_factor(12.0, "rain", true), float(ConfigLoader.lookup(c, "weather.tunnel_visibility_factor", 0.4)), 0.0001, "Tunnel")
 
 

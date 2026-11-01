@@ -241,6 +241,19 @@ func _arrive(city: String) -> void:
 ## Weather of a race stage, honouring weather.race_mode:
 ##   "region" (default) = EnvironmentModel.pick_weather(seed, climate), "random" = uniform,
 ##   "fixed" = the stage's "weather" field (normal if missing).
+## Weather of a race leg: the tutorial stage (StagePlan.tutorial, Kiel – Hamburg) is driven in
+## weather.tutorial_weather ("normal": a first-time player learns the controls on a dry road – rain and snow halve
+## the braking since v0.5.0; empty = race weather like every stage), every other stage choose_weather().
+static func leg_weather(config: Dictionary, plan: StagePlan, weather_seed: int) -> String:
+	if plan == null:
+		return "normal"
+	var types: Array = ConfigLoader.lookup(config, "weather.types", ["normal", "rain", "snow"])
+	var tut := str(ConfigLoader.lookup(config, "weather.tutorial_weather", "normal"))
+	if plan.tutorial and types.has(tut):
+		return tut
+	return choose_weather(config, plan.climate, plan.weather_hint, weather_seed)
+
+
 static func choose_weather(config: Dictionary, climate: String, weather_hint: String, weather_seed: int) -> String:
 	var types: Array = ConfigLoader.lookup(config, "weather.types", ["normal", "rain", "snow"])
 	var mode := str(ConfigLoader.lookup(config, "weather.race_mode", "region"))

@@ -46,6 +46,6 @@ func test_unknown_country_uses_the_german_style() -> void:
 
 
 func test_board_sizes() -> void:
-	for kind: String in ["limit", "unlimited", "radar", "fuel", "fuel_lane", "town", "distance", "border", "tunnel", "autobahn", "autobahn_end"]:
+	for kind: String in ["limit", "unlimited", "radar", "fuel", "fuel_lane", "town", "town_ahead", "distance", "border", "tunnel", "autobahn", "autobahn_end"]:
 		assert_between(SignPainter.board_half_width(kind), 0.5, 2.5, "Schildbreite %s" % kind)
 	assert_near(SignPainter.board_half_width("distance"), 2.4, 0.0001, "Wegweiser 4,8 m breit")
