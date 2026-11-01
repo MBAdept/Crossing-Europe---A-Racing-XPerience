@@ -40,7 +40,7 @@ Auf Dauer hilft nur eine Code-Signatur (siehe „Release“).
 - Windows 10 oder 11, 64 Bit (x86_64). Windows auf ARM ist nicht geprüft.
 - Grafik mit **OpenGL 3.3** – jede halbwegs aktuelle Grafikkarte oder Prozessorgrafik mit dem Treiber des Herstellers
   (NVIDIA, AMD, Intel).
-- **Ohne OpenGL 3.3** – alter oder fehlender Grafiktreiber, „Microsoft Basic Display Adapter“, manche virtuelle
+- **Ohne OpenGL 3.3** – alter oder fehlender Grafiktreiber, „Microsoft Basic Display Adapter“, manche virtuellen
   Maschinen – schaltet Godot beim Start von selbst auf **ANGLE** um: OpenGL ES über **Direct3D 11**, das Windows 10/11
   immer mitbringt (notfalls als Software-Grafik). ANGLE steckt in der `.exe`; die Projekteinstellung
   `rendering/gl_compatibility/fallback_to_angle` ist an (Vorgabe von Godot 4.7.2).
@@ -103,7 +103,7 @@ also `C:\Users\<Name>\AppData\Roaming\Godot\app_userdata\…`. Am einfachsten Wi
 
 | Datei | Inhalt |
 |---|---|
-| `settings.json` (+ `.bak`) | Optionen: Lautstärken, Vollbild, Spielername, Filter der Bestenlisten; `.bak` ist der vorige Stand |
+| `settings.json` (+ `.bak`) | Optionen: Lautstärken, Vollbild, Spielername, Filter der Bestenlisten |
 | `savegame.json` (+ `.bak`) | laufendes Rennen, nach jeder Etappe gespeichert; `.bak` ist der vorige Stand |
 | `leaderboards.json` (+ `.bak`) | Bestenlisten aller Etappen und Rennen |
 | `logs\godot.log` | Protokoll des letzten Starts, ältere mit Datum daneben – bei Fehlern mitschicken |
@@ -236,8 +236,8 @@ Geprüft ohne Windows-PC – unter Linux mit Wine 9.0 (64-Bit-Präfix), virtuell
 
 - Aufbau der `.exe`: x86-64, GUI-Programm ohne Konsolenfenster, Icon mit allen sieben Größen, Versionsangaben samt
   Produktname und Beschreibung, eingebettetes PCK; Godot unter Linux startet das Spiel auch aus dem PCK der `.exe`
-  (`--main-pack`). Beide Archive enthalten Programm und `LIZENZEN.txt`; zwei Builds desselben Commits ergeben dieselben
-  Prüfsummen.
+  (`--main-pack`). Beide Archive enthalten Programm und `LIZENZEN.txt`; ein zweiter Windows-Build desselben Commits
+  und erneutes Packen des `tar.gz` ergaben dieselben Prüfsummen.
 - Start ohne Fenster (`--headless`) und mit Fenster: keine Skriptfehler, kein `ERROR` in der Ausgabe und in
   `logs\godot.log` – außer der Meldung zum fehlenden Audiogerät (siehe unten).
 - Grafik: OpenGL 4.5 über WGL. Titelbildschirm, Optionen, Rennwahl, Fahrzeug, Startzeit, Abfrage „Gespeichertes Rennen
@@ -252,8 +252,10 @@ Geprüft ohne Windows-PC – unter Linux mit Wine 9.0 (64-Bit-Präfix), virtuell
 - `game_config.json` und `data\network.json` neben der `.exe` werden geladen (Pfad `C:\Spiele\Crossing Europe\`,
   Dateien mit BOM und CRLF), ebenso eine `override.cfg` neben der `.exe`.
 - Fenstertitel mit „–“, Fenster-Icon aus der `.ico`; Fenstergröße und Vollbild-Vorgabe bei 100, 125, 150 und 200 %
-  Skalierung (in Wine eingestellte DPI 96, 120, 144, 192); nach „Vollbild aus“ auf 1280×720 und 1366×768 liegt das
-  Fenster samt Titelleiste ganz auf dem Bildschirm (auf 1280×720 verkleinert).
+  Skalierung (in Wine eingestellte DPI 96, 120, 144, 192; nach der letzten Änderung der Fensteranpassung erneut bei
+  100 % und 125 %: 1600×900, mittig). Nach „Vollbild aus“ liegt das Fenster samt Titelleiste ganz auf dem Bildschirm:
+  auf 1280×720 verkleinert auf 1220×686, auf 1366×768 in voller Größe nach unten gerückt (vorher ragte die
+  Titelleiste über den oberen Rand). Eine Taskleiste gibt es unter Wine nicht.
 - Ton: Mit Audiogerät startet WASAPI ohne Fehler. Ohne Audiogerät meldet Godot einmal „WASAPI: init_output_device
   error“ und spielt stumm weiter.
 - Beenden über das Menü und mit Alt+F4: Rückgabewert 0.
