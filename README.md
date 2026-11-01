@@ -8,8 +8,35 @@ Nachtankzwang, Radarfallen und Polizei, Tageszeit und Wetter. Vorbilder: *Enduro
 - Technik: [ARCHITECTURE.md](ARCHITECTURE.md) und die Moduldokus in [docs/](docs/)
 - Engine: Godot 4.7.2 (GDScript, Renderer „GL Compatibility“), alle Fahrzeuge, Bäume, Gebäude, Tankstellen und
   Symbole prozedural in Blender 5.2 modelliert und als Sprites gerendert
-- Stand: **v0.4.0 – Verkehr hörbar, Fahrphysik, individuelle Städte**; alle acht Schritte des Prototyp-Plans sind
-  umgesetzt, alle Zahlen sind Startwerte zum Testen.
+- Stand: **v0.5.0 – Verkehr als Hindernis, Schnee mit Folgen, Attract-Modus, Windows**; alle acht Schritte des
+  Prototyp-Plans sind umgesetzt, alle Zahlen sind Startwerte zum Testen.
+
+## Neu in v0.5.0
+
+- **Verkehr als echtes Hindernis**: Lkw fahren auf der Autobahn 80–90 km/h, Busse 95–100, Pkw richten sich nach dem
+  Tempolimit. Lkw überholen Lkw („Elefantenrennen“) und machen zwei Spuren dicht, langsame Fahrzeuge ziehen Kolonnen
+  hinter sich her, und niemand macht mehr Platz: Autos ziehen mit Blinker vor dir heraus – 1–1,5 s vorher angekündigt
+  und nie so knapp, dass Bremsen nicht mehr reicht. An Spurenden fädelt der Verkehr im Reißverschluss ein. Nachts gibt
+  es keinen Tempobonus mehr, dafür weniger Verkehr ([docs/gameplay.md](docs/gameplay.md), „Schwierigkeit (v0.5.0)“).
+- **Regen und Schnee mit Folgen**: Die Haftung (Regen 0,75, Schnee 0,45) wirkt auf Kurven, Bremsen, Beschleunigen und
+  Lenken. Im Schnee ist der Bremsweg doppelt so lang, 0–100 km/h dauert mit jedem Auto etwa 8,4 s (Limousine trocken
+  5,6 s), und nach einem Spurwechsel rutscht der Wagen weiter – Gegenlenken nötig. Der Verkehr fährt bei Regen 15 %, bei Schnee 35 % langsamer, du kommst
+  also viel schneller auf ihn zu. Ein Hinweis im Countdown sagt, worauf es ankommt; City Limits werden 4 km vorher
+  angekündigt, das Warnschild „Kuppe“ steht vor blinden Kuppen. Die Tutorial-Etappe Kiel – Hamburg bleibt immer trocken
+  und erklärt jetzt auch Blinker und Elefantenrennen.
+- **Neuer Titelbildschirm**: Sonnenuntergang über der Autobahn vor der Frankfurter Skyline mit langsamer Kamerafahrt,
+  das Menü auf einer Milchglas-Karte.
+- **Attract-Modus**: Nach einer Minute ohne Eingabe im Titel startet eine 30-Sekunden-Demo, jedes Mal eine andere
+  Szene – Feierabendverkehr vor Frankfurt, Schneetreiben in den Pyrenäen, Ankunft in Paris, über die Köhlbrandbrücke
+  nach Hamburg, Nachtfahrt im Regen nach Berlin, über die Lagune nach Venedig, Morgendämmerung in Wien. Die
+  Titelmelodie läuft weiter, die Effekte sind stumm, jede Taste führt zurück zum Titel, gespeichert wird nichts.
+- **Neue Titelmelodie**: Synthwave-Rock mit 128 bpm, 3:22 min, mit Gitarrensolo und einem Schlussrefrain einen Ton
+  höher; das Intro läuft einmal, danach wiederholt sich das Stück nahtlos ([docs/ui.md](docs/ui.md), „Titelmelodie“).
+- **Windows-Version** für Windows 10/11 (64 Bit), wie unter Linux eine einzige Datei ohne Installation
+  ([docs/windows.md](docs/windows.md)). Die Release-Archive enthalten alle Lizenzhinweise in `LIZENZEN.txt`.
+- **Bestenlisten**: Die Starteinträge richten sich nach der Etappe (Stadtanteil, Pflicht-Tankstopp, Fähren) – auf
+  Kiel – Hamburg sind sie jetzt erreichbar. Gespeicherte Listen bleiben, wie sie sind.
+- **Behoben**: Wer an der Leitplanke zum Stehen kam (vor allem im Schnee), kam nicht mehr los.
 
 ## Neu in v0.4.0
 
@@ -111,7 +138,8 @@ Einrichten steht in [marketing/steam/README.md](marketing/steam/README.md).
   Kurventempo: in den schärferen Autobahnkurven muss jedes Auto vom Gas, der Gran Turismo schon in den mittleren;
   Warnschilder und rot-weiße Richtungstafeln kündigen scharfe und hinter Kuppen versteckte Kurven an, das Warnschild
   „Kuppe“ blinde Kuppen, hinter denen langsamer Verkehr stehen kann.
-- **Verkehr** nur in Fahrtrichtung mit Tageskurve, Nachtbonus, Lkw rechts, Spurwechseln; Kollisionen nach den Regeln
+- **Verkehr** nur in Fahrtrichtung mit Tageskurve, Lkw rechts und im Elefantenrennen, Kolonnen, Spurwechseln mit Blinker
+  und Reißverschluss an Spurenden; Kollisionen nach den Regeln
   des Dokuments (3 s auf 10 km/h, seitlich schieben, blinken, Ein-Drittel-Regel für Überholer von hinten).
 - **Tanken**: Verbrauch 14 + 0,00034·v², Tankstellen alle 60–90 km mit Ankündigung 30/15/5 km, Tankspur,
   „Volltanken? – Gas = Weiterfahren“, Abschleppdienst bei leerem Tank.
@@ -126,7 +154,9 @@ Einrichten steht in [marketing/steam/README.md](marketing/steam/README.md).
 - **Etappenbildschirm** mit Karte (Natural Earth), Wetter, Rekord-Laufschrift und Top 10; Bestenlisten pro Etappe
   und Rennen mit Fahrzeug, Wetter- und Tageszeit-Symbol; Namenseingabe auch per Gamepad; Spielstand nach jeder Etappe.
 - **Sound** komplett prozedural: fünf eigene Motoren aus einem physikalisch angelehnten Modell mit Getriebe je Auto
-  ([docs/motorsound.md](docs/motorsound.md)), Wind, Martinshorn, Blitzer, Tanken, Menümusik.
+  ([docs/motorsound.md](docs/motorsound.md)), Wind, Martinshorn, Blitzer, Tanken; Titelmelodie (Synthwave-Rock, offline
+  synthetisiert mit `tools/audio/music_synth.py`).
+- **Titelbildschirm** mit Titelbild und Attract-Modus (Demo nach einer Minute ohne Eingabe, [docs/ui.md](docs/ui.md)).
 
 ## Entscheidungen zu den offenen Punkten
 
@@ -136,12 +166,13 @@ Alle Werte stehen in `config/game_config.json` und lassen sich ohne Neubau ände
 |---|---|
 | Fahrzeugtypen | Werte wie vorgeschlagen; Beschleunigung als Zeiten 0–100/0–200 je Stufe, Agilität als Lenk- und Kurvengriff |
 | Bestenlisten gemeinsam oder getrennt? | beides: gespeichert je Fahrzeugtyp, angezeigt gemeinsam mit umschaltbarem Fahrzeugfilter |
-| Wetter im Rennen | zufällig, gewichtet nach Klima der Region (alternativ `random` oder fest pro Etappe) |
+| Wetter im Rennen | zufällig, gewichtet nach Klima der Region (alternativ `random` oder fest pro Etappe); die Tutorial-Etappe Kiel – Hamburg ist immer trocken |
 | Tempo-Abzug Regen / Schnee / Nacht | −2,5 % / −12 % / −1 %; Regen + Nacht erlaubt jedem Auto noch 220 km/h |
+| Verkehr (seit v0.5.0, Spieltest v0.4.0: „zu leicht“) | Lkw 80–90 km/h, Busse 95–100 km/h (Design: alle 110–150), kein Nachtbonus (Design: +15 %), bei Regen 15 %, bei Schnee 35 % langsamer |
 | Zeitstrafe leerer Tank | 90 s Abschleppdienst, danach halber Tank |
 | Straßenrand | Bankett bremst auf 90 km/h; Autobahn mit Leitplanke (abprallen), sonst Wiese (bremst auf 40 km/h) |
 | Plattform und Eingabe | Linux x86_64 und Windows 10/11 x86_64, Tastatur und Gamepad |
-| Sound, Musik, Sprache | prozeduraler Sound, Menümusik, alle Texte deutsch über `tr()` (übersetzbar) |
+| Sound, Musik, Sprache | prozeduraler Sound, Titelmelodie (offline synthetisiert), alle Texte deutsch über `tr()` (übersetzbar) |
 
 ## Werte und Strecken anpassen ohne Neubau
 
