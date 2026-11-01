@@ -7,7 +7,8 @@ Signaturen ändern oder entfernen nicht.
 - Engine: **Godot 4.7.2**, GDScript, Renderer *GL Compatibility* (läuft auch auf schwacher Hardware).
 - Auflösung: 1280×720 logisch, Stretch-Modus `canvas_items`; Seitenverhältnis `keep` im Rennen, `expand` in den
   Menüs (der Menühintergrund füllt z. B. 16:10 auf dem Steam Deck, siehe [docs/steam-deck.md](docs/steam-deck.md)).
-- Zielplattform: Linux x86_64 als einzelne ausführbare Datei (PCK eingebettet).
+- Zielplattformen: Linux x86_64 und Windows x86_64 (10/11), jeweils als einzelne ausführbare Datei (PCK
+  eingebettet); Windows-Details in [docs/windows.md](docs/windows.md).
 
 ## 1. Verzeichnisse und Modul-Eigentümer
 
@@ -313,6 +314,12 @@ Argumente nach `--`: `--stage=<id> --from=<city> --vehicle=<typ> --hour=<0..24> 
 - `tools/screenshot.sh <präfix> [args]` – rendert unter Xvfb (Software-OpenGL) und speichert PNGs;
   `SCREEN=1280x800` rendert auf einem 1280×800-Bildschirm (Steam Deck, Screenshots samt Balken).
 - `tools/build_linux.sh` – exportiert `build/CrossingEurope.x86_64`.
+- `tools/build_windows.sh` – exportiert `build/CrossingEurope.exe` (Vorgabe „Windows Desktop“, danach setzt
+  `tools/windows/set_exe_icon.py` das vollständige Programm-Icon ein) und packt sie mit `LIZENZEN.txt`
+  (`tools/write_licenses.gd`: Godot Engine samt Bestandteilen, Schriften, Kartendaten) in
+  `build/CrossingEurope-windows-x86_64.zip`; `tools/build_release.sh <Version>` baut aus einem sauberen Commit mit
+  dieser Version Linux und Windows, packt `CrossingEurope-linux-x86_64.tar.gz` und schreibt `build/SHA256SUMS` und
+  `build/BUILDINFO.txt`; die Archive sind reproduzierbar ([docs/windows.md](docs/windows.md)).
 - Integration: `tests/race/check_session.gd` (9 Szenarien der Rennsitzung: Kollisionsrichtung, leerer Tank,
   Zielauslauf, Polizei beim Tanken, Tutorial), `tests/race/check_sprite_flip.gd` (braucht Xvfb/OpenGL),
   `tests/race/run_stage.gd` (eine Etappe mit Autopilot), `tests/race/run_race.gd` (ein ganzes Rennen durch die Menüs),
