@@ -109,7 +109,8 @@ Einrichten steht in [marketing/steam/README.md](marketing/steam/README.md).
   Arcade-Fahrmodell ohne Übersteuern; wer zu schnell in die Kurve fährt, untersteuert deutlich: der Wagen rutscht nach
   außen, Gegenlenken hilft nur bei knapp zu hohem Tempo, Bremsen vor der Kurve ist die Abhilfe. Die Agilität bestimmt das
   Kurventempo: in den schärferen Autobahnkurven muss jedes Auto vom Gas, der Gran Turismo schon in den mittleren;
-  Warnschilder und rot-weiße Richtungstafeln kündigen scharfe und hinter Kuppen versteckte Kurven an.
+  Warnschilder und rot-weiße Richtungstafeln kündigen scharfe und hinter Kuppen versteckte Kurven an, das Warnschild
+  „Kuppe“ blinde Kuppen, hinter denen langsamer Verkehr stehen kann.
 - **Verkehr** nur in Fahrtrichtung mit Tageskurve, Nachtbonus, Lkw rechts, Spurwechseln; Kollisionen nach den Regeln
   des Dokuments (3 s auf 10 km/h, seitlich schieben, blinken, Ein-Drittel-Regel für Überholer von hinten).
 - **Tanken**: Verbrauch 14 + 0,00034·v², Tankstellen alle 60–90 km mit Ankündigung 30/15/5 km, Tankspur,

@@ -6,9 +6,12 @@ extends SceneTree
 ## car there; on snow it slides on towards the next lane, then the player counter-steers.
 ##   xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --resolution 1280x720 \
 ##       --write-movie /tmp/schnee.avi --fixed-fps 30 --quit-after 1100 -s res://tests/race/movie_snow.gd -- \
-##       --start-speed=120 [--stage=hamburg_bremen] [--km=26] [--hour=7.5] [--weather=snow] [--vehicle=limousine]
-##       [--seed=3] [--lane=1]
-## (the video of v0.5.0: rush hour, flying start with 120 km/h; --start-speed and --lane are read by the race session)
+##       --start-speed=120 [--stage=hamburg_hannover] [--km=70] [--hour=7.5] [--weather=snow] [--vehicle=limousine]
+##       [--seed=5] [--lane=1]
+## (the video of v0.5.0: rush hour, flying start with 120 km/h; --start-speed and --lane are read by the race session.
+## QA v0.5.0: the old defaults Hamburg – Bremen km 26, seed 3 showed no truck within 150 m and no car pulling out in
+## the first 35 s – Hamburg – Hannover km 70, seed 5 shows a truck at 55 km/h and four cars/trucks pulling out with
+## their indicator)
 ## Prints a line per second of game time (speed, lane, lateral offset, slide, collisions so far). Accessed untyped
 ## (this script compiles before the autoloads the scene uses). Owner: race module (tools for demos).
 
@@ -21,10 +24,10 @@ var _last_change := 0           ## physics frame of the last lane change (keep r
 
 func _initialize() -> void:
 	var args := CliArgs.all()
-	var setup := {"mode": "single", "race_id": "", "stage_id": str(args.get("stage", "hamburg_bremen")), "from_city": str(args.get("from", "")),
+	var setup := {"mode": "single", "race_id": "", "stage_id": str(args.get("stage", "hamburg_hannover")), "from_city": str(args.get("from", "")),
 		"vehicle": str(args.get("vehicle", "limousine")), "start_world_minutes": float(args.get("hour", 7.5)) * 60.0,
-		"weather": str(args.get("weather", "snow")), "start_km": float(args.get("km", 26.0)), "autopilot": false,
-		"no_countdown": true, "traffic_warmup": true, "seed": int(args.get("seed", 3))}
+		"weather": str(args.get("weather", "snow")), "start_km": float(args.get("km", 70.0)), "autopilot": false,
+		"no_countdown": true, "traffic_warmup": true, "seed": int(args.get("seed", 5))}
 	_sc = (load("res://scenes/race/race.tscn") as PackedScene).instantiate()
 	_sc.set("setup", setup)
 	root.add_child(_sc)

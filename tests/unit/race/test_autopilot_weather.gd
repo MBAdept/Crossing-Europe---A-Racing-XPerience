@@ -172,6 +172,156 @@ func test_fuel_lane_approach_waits_for_a_gap() -> void:
 	sess.free()
 
 
+## Session on the test stage with scripted traffic (no TrafficSystem AI: every car keeps its lane x and speed).
+func _scripted_session(c: Dictionary, st: Dictionary, vehicle_id: String) -> SimSession:
+	var plan := StagePlan.build(st, "a", CITIES, COUNTRIES, c)
+	var sess := SimSession.new()
+	sess.plan = plan
+	sess.track = Track.new()
+	sess.track.setup(plan, c, {})
+	sess.env = EnvironmentModel.new()
+	sess.env.setup(c)
+	sess.vehicle = VehicleModel.new()
+	sess.vehicle.setup(c, vehicle_id)
+	sess.traffic = TrafficSystem.new()
+	var sets: Array[String] = ["traffic/sedan_blue"]
+	var heavy: Array[String] = []
+	sess.traffic.setup(c, sess.track, sets, heavy, 5)
+	sess.fuel = FuelSystem.new()
+	sess.fuel.setup(c, sess.vehicle.spec, plan)
+	return sess
+
+
+func _scripted_car(sess: SimSession, id: int, lane: int, z: float, kmh: float) -> TrafficSystem.Car:
+	var car := TrafficSystem.Car.new()
+	car.id = id
+	car.lane = lane
+	car.z = z
+	car.x = sess.track.lane_center_x(z, lane)
+	car.speed = kmh
+	car.cruise_speed = kmh
+	sess.traffic.cars.append(car)
+	return car
+
+
+## Drives the autopilot for `seconds` among the scripted cars; returns {collisions, min_gap (bodies overlapping
+## sideways), max_lane, lanes ([] of the autopilot's lane per second)}.
+func _run_scripted(sess: SimSession, ap: Autopilot, seconds: float, on_step: Callable = Callable()) -> Dictionary:
+	var v := sess.vehicle
+	var track := sess.track
+	var grip := sess.env.grip(sess.weather)
+	var out := {"collisions": 0, "min_gap": INF, "max_lane": -1, "min_x": INF}
+	var touching := false
+	var t := 0.0
+	while t < seconds:
+		var z := sess.pos_z
+		sess.pos_km = track.z_to_km(z)
+		var input := ap.drive(sess)
+		var e := track.road_edges_at(z)
+		var road := {"curve": track.curve_at(z), "grade": track.grade_at(z), "left_edge": e.x, "right_edge": e.y,
+			"shoulder_m": track.shoulder_w, "guardrail": true, "grip": track.grip_at(z, grip)}
+		v.update(DT, input, road, {"vmax_factor": 1.0})
+		sess.pos_z += v.speed / 3.6 * DT
+		var hit := false
+		for car in sess.traffic.cars:
+			car.z += car.speed / 3.6 * DT
+			car.x = track.lane_center_x(car.z, car.lane)
+			if absf(car.x - v.x) < (car.width + v.width_m) * 0.5:
+				var gap := absf(car.z - sess.pos_z) - (car.length + v.length_m) * 0.5
+				out["min_gap"] = minf(float(out["min_gap"]), gap)
+				hit = hit or gap < 0.0
+		if hit and not touching:
+			out["collisions"] = int(out["collisions"]) + 1
+		touching = hit
+		out["max_lane"] = maxi(int(out["max_lane"]), ap._lane)
+		out["min_x"] = minf(float(out["min_x"]), v.x)
+		if on_step.is_valid():
+			on_step.call(t)
+		t += DT
+	return out
+
+
+## Lane drop 3 -> 2 (QA v0.5.0, Königsrennen, Bremen – Amsterdam): the autopilot overtook in the empty right lane
+## that ended 250 m later, and 90 m before its end a forced lane choice without a gap check pushed it into the
+## middle lane, where the merge queue stood – 157 km/h into a standing car. Now: in the ending lane with a standing
+## jam in the middle lane it brakes and stops before the end instead of forcing its way over.
+func test_lane_end_stops_instead_of_forcing_into_a_jam() -> void:
+	var c := cfg()
+	var sess := _scripted_session(c, _stage(), "limousine")
+	var track := sess.track
+	var drop_z := track.km_to_z(60.0)
+	var z_end := drop_z - float(ConfigLoader.lookup(c, "road.lane_transition_m", 180.0))
+	assert_near(track.lane_end_ahead(z_end - 400.0, 2, 1000.0), 400.0, 0.01, "Spur 2 endet für den Verkehr")
+	assert_eq(track.lane_end_ahead(z_end - 400.0, 1, 1000.0), INF, "Spur 1 geht weiter")
+	var z := z_end - 450.0
+	sess.pos_z = z
+	sess.vehicle.x = track.lane_center_x(z, 2)
+	sess.vehicle.speed = 200.0
+	for k in 22:   # standing jam in the middle lane up to the end of the right lane
+		_scripted_car(sess, 10 + k, 1, z_end - 6.0 - 19.5 * float(k), 0.0)
+	var ap := Autopilot.new()
+	ap.obey_radar = false
+	ap.refuel_mode = "never"
+	var r := _run_scripted(sess, ap, 25.0)
+	assert_eq(int(r["collisions"]), 0, "keine Kollision")
+	assert_true(sess.vehicle.speed < 1.0, "steht (%.1f km/h)" % sess.vehicle.speed)
+	assert_true(sess.pos_z < z_end, "vor dem Spurende (%.1f m davor)" % (z_end - sess.pos_z))
+	assert_true(float(r["min_x"]) > track.lane_center_x(z_end, 2) - 1.0, "zieht nicht in die Mittelspur (x min %.2f)" % float(r["min_x"]))
+	sess.free()
+
+
+## It never changes into a lane that ends within its lane horizon, even when it is empty (everybody has left it).
+func test_does_not_overtake_in_an_ending_lane() -> void:
+	var c := cfg()
+	var sess := _scripted_session(c, _stage(), "limousine")
+	var track := sess.track
+	var z_end := track.km_to_z(60.0) - float(ConfigLoader.lookup(c, "road.lane_transition_m", 180.0))
+	var z := z_end - 340.0
+	sess.pos_z = z
+	sess.vehicle.x = track.lane_center_x(z, 1)
+	sess.vehicle.speed = 150.0
+	_scripted_car(sess, 1, 1, z + 70.0, 80.0)     # slow car ahead in the middle lane
+	_scripted_car(sess, 2, 0, z + 2.0, 150.0)     # left lane taken
+	_scripted_car(sess, 3, 0, z + 30.0, 150.0)
+	var ap := Autopilot.new()
+	ap.obey_radar = false
+	ap.refuel_mode = "never"
+	var r := _run_scripted(sess, ap, 6.0)
+	assert_true(int(r["max_lane"]) <= 1, "nicht in die endende rechte Spur (Spur %d)" % int(r["max_lane"]))
+	assert_eq(int(r["collisions"]), 0, "keine Kollision")
+	sess.free()
+
+
+## Leaving the fuel lane after refuelling (QA v0.5.0, Hamburg – Hannover, sports car): it pulled out at 31 km/h in
+## front of a car doing 100 in the right lane. Now it accelerates along the fuel lane and merges once the gap behind
+## is long enough.
+func test_fuel_lane_exit_waits_for_the_traffic_behind() -> void:
+	var c := cfg()
+	var st := _stage()
+	st["fuel_stations_km"] = [30]
+	var sess := _scripted_session(c, st, "sportwagen")
+	var track := sess.track
+	var lane := sess.plan.fuel_lanes[0]
+	var z0 := track.km_to_z(float(lane["start_km"]))
+	var z := z0 + 45.0
+	sess.pos_z = z
+	sess.vehicle.x = track.fuel_lane_x(z)
+	sess.vehicle.speed = 0.0
+	var fast := _scripted_car(sess, 1, 2, z - 40.0, 100.0)
+	var ap := Autopilot.new()
+	ap.obey_radar = false
+	ap.refuel_mode = "never"
+	var merged_while_close := [false]
+	var r := _run_scripted(sess, ap, 12.0, func(_t: float) -> void:
+		var v := sess.vehicle
+		if v.x < track.main_right_edge(sess.pos_z) and fast.z < sess.pos_z + 10.0:
+			merged_while_close[0] = true)
+	assert_false(bool(merged_while_close[0]), "wartet, bis das schnelle Auto vorbei ist")
+	assert_eq(int(r["collisions"]), 0, "keine Kollision")
+	assert_true(sess.vehicle.x < track.main_right_edge(sess.pos_z), "danach zurück in der rechten Spur (x %.2f)" % sess.vehicle.x)
+	sess.free()
+
+
 ## Drives the stage with traffic at rush hour (08:00, dense: section factors 1.2–1.4) and returns the stats.
 func _drive(weather: String, vehicle_id: String, km_to: float) -> Dictionary:
 	var c := cfg()

@@ -12,6 +12,11 @@ extends RefCounted
 ##  * Seeding (leaderboard.seed_entries): a board that has never been written gets `size` deterministic
 ##    default entries (names from seed_names, average speed within seed_avg_kmh, mixed vehicles) computed
 ##    from the board length (stage length / shortest race route) – so there is always a record to beat.
+##    Review v0.5.0: from the make-up of the board (profile_provider, RoadNetwork.board_profile) – seed_avg_kmh is
+##    the average of a typical stage (seed_ref_km with city_limits.length_km of City Limits); the City Limits of every
+##    stage are driven at seed_city_kmh, the rest at the open-road speed that gives seed_avg_kmh on the typical stage,
+##    plus seed_fuel_stop_s for each stage that starts with a partly filled tank (the tutorial's stop) and the ferry
+##    times of a race. Short stages with their fixed 20 km of City Limits are no longer unreachable.
 ##  * File: {"version": 2, "boards": {key: [entries]}} written atomically (JsonFile); a corrupt file is kept
 ##    as "<path>.corrupt" and the store starts empty (or from the ".bak" copy).
 
@@ -29,19 +34,33 @@ var vehicle_ids: Array[String] = []
 var time_scale := 12.0
 var daytime_cfg: Dictionary = {}
 var length_provider: Callable        ## func(board_key: String) -> float (km); invalid = no seeding
+## func(board_key: String) -> Dictionary {length_km, stages, fuel_stops, fixed_s} (RoadNetwork.board_profile);
+## invalid or {} = seeding from the length only (as if one stage without stops)
+var profile_provider: Callable
+var seed_ref_km := 235.0             ## leaderboard.seed_ref_km: typical stage length for seed_avg_kmh
+var seed_city_kmh := Vector2(60.0, 80.0)
+var seed_fuel_stop_s := 35.0
+var city_km := 20.0                  ## city_limits.length_km
 var load_problem := ""               ## non-empty if the file could not be read
 
 
 ## cfg = merged configuration; file_path "" = memory only.
-func setup(cfg: Dictionary, file_path: String, lengths: Callable = Callable()) -> void:
+func setup(cfg: Dictionary, file_path: String, lengths: Callable = Callable(), profiles: Callable = Callable()) -> void:
 	path = file_path
 	length_provider = lengths
+	profile_provider = profiles
 	size = maxi(1, int(ConfigLoader.lookup(cfg, "leaderboard.size", 10)))
 	store_per_vehicle = bool(ConfigLoader.lookup(cfg, "leaderboard.store_per_vehicle", true))
 	seed_enabled = bool(ConfigLoader.lookup(cfg, "leaderboard.seed_entries", true))
 	var avg: Variant = ConfigLoader.lookup(cfg, "leaderboard.seed_avg_kmh", [150, 190])
 	if avg is Array and (avg as Array).size() >= 2:
 		seed_avg_kmh = Vector2(float(avg[0]), float(avg[1]))
+	var ck: Variant = ConfigLoader.lookup(cfg, "leaderboard.seed_city_kmh", [60, 80])
+	if ck is Array and (ck as Array).size() >= 2:
+		seed_city_kmh = Vector2(maxf(5.0, float(ck[0])), maxf(5.0, float(ck[1])))
+	seed_ref_km = maxf(1.0, float(ConfigLoader.lookup(cfg, "leaderboard.seed_ref_km", 235.0)))
+	seed_fuel_stop_s = maxf(0.0, float(ConfigLoader.lookup(cfg, "leaderboard.seed_fuel_stop_s", 35.0)))
+	city_km = maxf(0.0, float(ConfigLoader.lookup(cfg, "city_limits.length_km", 20.0)))
 	seed_names.clear()
 	for n in ConfigLoader.lookup(cfg, "leaderboard.seed_names", []):
 		seed_names.append(str(n))
@@ -219,11 +238,14 @@ func board_keys() -> Array[String]:
 
 # --- Seeding ---------------------------------------------------------------------------------------
 
-## Deterministic default entries for a board of length_km (empty if length_km <= 0).
-func seed_entries_for(board_key: String, length_km: float) -> Array:
+## Deterministic default entries for a board of length_km (empty if length_km <= 0). profile (RoadNetwork.board_profile):
+## stages (City Limits each, default 1), fuel_stops, fixed_s (ferries) – see the class comment; {} = one stage.
+func seed_entries_for(board_key: String, length_km: float, profile: Dictionary = {}) -> Array:
 	var out: Array = []
 	if length_km <= 0.0:
 		return out
+	var city := minf(length_km, city_km * float(maxi(1, int(profile.get("stages", 1)))))
+	var extra_s := seed_fuel_stop_s * float(maxi(0, int(profile.get("fuel_stops", 0)))) + maxf(0.0, float(profile.get("fixed_s", 0.0)))
 	var rng := RandomNumberGenerator.new()
 	rng.seed = board_key.hash()
 	var names := seed_names.duplicate()
@@ -238,7 +260,9 @@ func seed_entries_for(board_key: String, length_km: float) -> Array:
 	speeds.sort()
 	speeds.reverse()
 	for i in size:
-		var time_s := snappedf(length_km / speeds[i] * 3600.0 / time_scale, 0.01)
+		var f := float(i) / float(maxi(size - 1, 1))
+		var hours := seed_hours(length_km, city, speeds[i], lerpf(seed_city_kmh.y, seed_city_kmh.x, f))
+		var time_s := snappedf(hours * 3600.0 / time_scale + extra_s, 0.01)
 		var weather_roll := rng.randf()
 		var weather := "normal" if weather_roll < 0.8 else ("rain" if weather_roll < 0.95 else "snow")
 		var hour := float(rng.randi_range(12, 40)) * 0.5
@@ -259,6 +283,17 @@ func seed_entries_for(board_key: String, length_km: float) -> Array:
 	return out
 
 
+## Hours (odometer km / km/h) of a seeded entry over length_km with city_len_km of City Limits: those at city_kmh, the rest at
+## the open-road speed that makes a typical stage (seed_ref_km, city_limits.length_km of them City Limits) average
+## avg_kmh – on that stage the time is exactly seed_ref_km / avg_kmh, as before the Review.
+func seed_hours(length_km: float, city_len_km: float, avg_kmh: float, city_kmh: float) -> float:
+	var ref_city := minf(city_km, seed_ref_km * 0.5)
+	var open_h := maxf(seed_ref_km / maxf(avg_kmh, 1.0) - ref_city / maxf(city_kmh, 1.0), 0.001)
+	var open_kmh := (seed_ref_km - ref_city) / open_h
+	var c := clampf(city_len_km, 0.0, length_km)
+	return (length_km - c) / open_kmh + c / maxf(city_kmh, 1.0)
+
+
 func _ensure(board_key: String) -> void:
 	if boards.has(board_key):
 		return
@@ -266,7 +301,11 @@ func _ensure(board_key: String) -> void:
 	if seed_enabled and length_provider.is_valid():
 		var length: Variant = length_provider.call(board_key)
 		if length is float or length is int:
-			list = seed_entries_for(board_key, float(length))
+			var profile: Dictionary = {}
+			if profile_provider.is_valid():
+				var p: Variant = profile_provider.call(board_key)
+				profile = p if p is Dictionary else {}
+			list = seed_entries_for(board_key, float(length), profile)
 	boards[board_key] = list
 
 

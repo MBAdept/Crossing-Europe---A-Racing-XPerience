@@ -141,6 +141,11 @@ func board_length_km(board_key: String) -> float:
 	return network.board_length_km(board_key)
 
 
+## Length, stages (City Limits), fuel stops and ferry time behind a board's default entries (RoadNetwork.board_profile).
+func board_profile(board_key: String) -> Dictionary:
+	return network.board_profile(board_key)
+
+
 ## All legs leaving city_id: [{kind: "stage"|"ferry", id, from, to, length_km}] – stages in both directions,
 ## ferries in both directions (ferries also carry name, fixed_time_s, world_hours).
 func connections_from(city_id: String) -> Array[Dictionary]:

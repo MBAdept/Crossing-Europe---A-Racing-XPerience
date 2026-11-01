@@ -20,6 +20,7 @@ extends Control
 const SPEEDO_A0 := 135.0
 const SPEEDO_A1 := 405.0
 const GO_TIME := 1.1
+const COUNTDOWN_Y := 292.0     ## centre of the countdown digit (start lights 92 px below)
 const PROGRESS_Y := 112.0     ## centre line of the progress bar (its panel also holds the km figures)
 const DEMO := {
 	"refuel": {"refuel": {"active": true, "progress01": 0.46, "liters": 23.4, "time_left_s": 6.3}, "speed_kmh": 0.0, "fuel_l": 31.0, "next_station_km": 0.0},
@@ -598,9 +599,11 @@ func _draw_messages(w: float, top: float) -> void:
 		y += 52.0
 
 
+## Countdown digit (centre COUNTDOWN_Y) and start lights below it. COUNTDOWN_Y keeps the digit clear of the first
+## message line (172–216, e.g. the weather hint of a rain or snow stage – Review v0.5.0: at 250 the digit covered it).
 func _draw_countdown(w: float) -> void:
 	var cd := int(_f("countdown", -1.0))
-	var c := Vector2(w * 0.5, 250)
+	var c := Vector2(w * 0.5, COUNTDOWN_Y)
 	if cd > 0:
 		var cols := {3: UiTheme.BAD, 2: UiTheme.WARN, 1: UiTheme.GOLD}
 		var col: Color = cols.get(cd, Color.WHITE)

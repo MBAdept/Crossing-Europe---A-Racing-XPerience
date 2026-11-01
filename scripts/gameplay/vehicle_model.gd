@@ -31,7 +31,8 @@ extends RefCounted
 ##    (recover_s). Lifting or braking is the remedy
 ##  * road edge: the shoulder (Bankett) slows to driving.shoulder.max_speed_kmh and has only
 ##    driving.shoulder.grip_factor of the grip; hard limit at edge + shoulder (stops the drift): guardrail
-##    (scrape: speed factor + bounce; a drift into it costs more, rail_hit_factor) or, without guardrail,
+##    (hit: speed factor + bounce, a drift into it costs more, rail_hit_factor; scraping only while steering or
+##    the drift push the car into it – a car standing at it always drives off) or, without guardrail,
 ##    grass (stronger slowdown). So sliding wide never beats braking for the curve
 ##  * collision: slow down to collision.target_speed_kmh within collision.slowdown_s while being pushed
 ##    sideways; end point collision.push_extra_s after reaching that speed; only then accelerate again;
@@ -508,6 +509,8 @@ func _apply_road_limits(dt: float, road: Dictionary) -> void:
 	_rail_cd_left = maxf(0.0, _rail_cd_left - dt)
 	if side != 0:
 		off_road = 2
+		# the car presses against the limit only while the steering or the understeer drift pushes it there
+		var pressing := lat_speed * float(side) > 0.0 or push_speed * float(side) > 0.0
 		if lat_speed * float(side) > 0.0:
 			lat_speed = 0.0
 		var drift_in := maxf(0.0, push_speed * float(side))
@@ -521,7 +524,10 @@ func _apply_road_limits(dt: float, road: Dictionary) -> void:
 				lat_speed = -float(side) * _rail_bounce
 				_rail_cd_left = _rail_cooldown
 				rail_hit = true
-			else:
+			elif pressing:
+				# scraping costs speed only while the car is pushed into the rail: a car that merely touches it
+				# (e.g. pushed there by a collision, or stopped there) drives off – in snow the traction limit
+				# (11.9 km/h/s) is below the scrape, the car would stay pinned at 0 km/h forever
 				speed = maxf(0.0, speed - _rail_scrape * dt)
 		else:
 			on_grass = true

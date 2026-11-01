@@ -129,7 +129,12 @@ func test_tutorial_texts_use_the_configuration() -> void:
 	assert_true(c.hints_for("collision")[0].contains("%d km/h" % int(ConfigLoader.lookup(cfg(), "collision.target_speed_kmh", 10.0))), "Kollision")
 	assert_eq(c.hints_for("curve"), ["Tipp: Vor scharfen Kurven bremsen – sonst schiebt der Wagen nach außen"] as Array[String], "Kurven")
 	assert_true(TutorialCoach.URGENT.has("curve"), "Kurvenhinweis sofort (die Kurve kommt gerade)")
-	for topic: String in ["start", "fuel_low", "fuel_hud", "fuel_announce", "fuel_lane", "refuel", "radar", "chase", "unlimited", "city", "collision", "curve"]:
+	# Review v0.5.0 (QA): the new traffic rules – an indicator means the car pulls out at once, trucks overtake trucks
+	assert_true(c.hints_for("blinker")[0].contains("Blinker") and c.hints_for("blinker")[0].contains("Gas weg"), "Blinker")
+	assert_true(c.hints_for("elephant")[0].contains("Lkw überholt Lkw"), "Elefantenrennen")
+	assert_true(TutorialCoach.URGENT.has("blinker") and TutorialCoach.URGENT.has("elephant"), "Verkehrshinweise sofort (die Lage ist gerade da)")
+	for topic: String in ["start", "fuel_low", "fuel_hud", "fuel_announce", "fuel_lane", "refuel", "radar", "chase", "unlimited", "city",
+			"collision", "curve", "blinker", "elephant"]:
 		for h in c.hints_for(topic, {"limit": 120.0, "percent": 35.0}):
 			# one line in the HUD message box (the HUD shrinks the font from about 72 characters on)
 			assert_true(h.length() <= 80, "Hinweis passt in eine Zeile (%d Zeichen): %s" % [h.length(), h])

@@ -79,6 +79,9 @@ class Car:
 	var signal_age := 0.0     ## seconds since the indicator came on (blink phase for the renderer)
 	var signal_wait := 0.0    ## seconds it has been waiting for a gap after signal_t ran out
 	var signal_mandatory := false
+	## The car must leave its lane (it ends, or the fuel lane after refuelling): it signals at once and waits for a gap,
+	## the traffic in the target lane lets it in (zipper, TrafficSystem._leader).
+	var signal_merge := false
 	## Truck overtaking a slower heavy vehicle (Elefantenrennen): seconds in the overtaking lane, -1 = no.
 	var elephant_t := -1.0
 	## Seconds until a heavy vehicle that gave up an Elefantenrennen tries again (traffic.elephant.retry_s).
@@ -195,6 +198,7 @@ var _blink_lead := Vector2(1.0, 1.5)
 var _blink_heavy := 1.3
 var _blink_mandatory := 1.0
 var _blink_max_wait := 3.0
+var _zipper_m := 60.0             ## traffic.blink.zipper_m: a mandatory merger this close ahead counts as the leader
 var _cut_react := 0.3
 var _cut_intrude := 0.5
 var _cut_brake_frac := 0.7
@@ -335,6 +339,7 @@ func _read_config() -> void:
 	_blink_heavy = maxf(0.0, _f("traffic.blink.heavy_factor", 1.3))
 	_blink_mandatory = maxf(0.0, _f("traffic.blink.mandatory_lead_s", 1.0))
 	_blink_max_wait = maxf(0.0, _f("traffic.blink.max_wait_s", 3.0))
+	_zipper_m = maxf(0.0, _f("traffic.blink.zipper_m", 60.0))
 	_cut_react = maxf(0.0, _f("traffic.cut_in.margin_s", 0.3))
 	_cut_intrude = maxf(0.0, _f("traffic.cut_in.intrude_s", 0.5))
 	_cut_brake_frac = clampf(_f("traffic.cut_in.brake_fraction", 0.7), 0.05, 1.0)
@@ -637,10 +642,12 @@ func _consider_lane_change(c: Car, lanes: int, road: String, urgent: bool) -> vo
 	var cur := c.lane
 	var cands: Array[int] = []
 	var mandatory := -999
+	var merge := false
 	if cur == FUEL_LANE:
 		cands.append(lanes - 1)
 		if c.fuel_state != 1 or _lane_end_distance(c, FUEL_LANE, _blink_mandatory + 0.5) < INF:
 			mandatory = lanes - 1
+			merge = true
 	else:
 		if c.fuel_state == 1:
 			if cur == lanes - 1 and _fuel_lane_open_at(c.z):
@@ -653,8 +660,14 @@ func _consider_lane_change(c: Car, lanes: int, road: String, urgent: bool) -> vo
 			cands.append(cur - 1)
 		if cur < lanes - 1:
 			cands.append(cur + 1)
+			# a truck that gave up its Elefantenrennen must get back to the right: it signals at once and the traffic
+			# there lets it in (zipper) – otherwise it hovers in the middle lane at its yield speed
+			if c.heavy and c.elephant_t >= _el_max_s and c.fuel_state != 1:
+				mandatory = cur + 1
+				merge = true
 		if cur > 0 and _lane_end_distance(c, cur, _blink_mandatory) < INF:
 			mandatory = cur - 1
+			merge = true
 	if cands.is_empty():
 		return
 	var a_cur := _idm(c, _desired_speed(c, cur), _leader(c, cur))
@@ -668,8 +681,12 @@ func _consider_lane_change(c: Car, lanes: int, road: String, urgent: bool) -> vo
 			best_margin = margin
 			best_lane = lane
 	if best_lane == cur:
+		# its lane ends and there is no gap yet: it signals at once and waits (_signal_step) – the traffic there opens
+		# the gap (zipper, _leader) instead of the car stopping at the end of its lane unannounced
+		if merge and not urgent and cands.has(mandatory):
+			_start_signal(c, mandatory, true, true)
 		return
-	_start_signal(c, best_lane, best_lane == mandatory)
+	_start_signal(c, best_lane, best_lane == mandatory, merge and best_lane == mandatory)
 	if urgent:
 		_execute_lane_change(c, lanes, road)
 
@@ -699,10 +716,11 @@ func _signal_lead(c: Car, mandatory: bool) -> float:
 	return lead * (_blink_heavy if c.heavy else 1.0)
 
 
-func _start_signal(c: Car, target: int, mandatory: bool) -> void:
+func _start_signal(c: Car, target: int, mandatory: bool, merge: bool = false) -> void:
 	c.signal_lane = target
 	c.signal_dir = -1 if target < c.lane else 1
 	c.signal_mandatory = mandatory
+	c.signal_merge = merge
 	c.signal_t = _signal_lead(c, mandatory)
 	c.signal_age = 0.0
 	c.signal_wait = 0.0
@@ -715,6 +733,7 @@ func _clear_signal(c: Car) -> void:
 	c.signal_age = 0.0
 	c.signal_wait = 0.0
 	c.signal_mandatory = false
+	c.signal_merge = false
 
 
 ## A car with its indicator on: it moves once the indicator has run its time and the target lane is still safe
@@ -740,7 +759,7 @@ func _signal_step(c: Car, lanes: int, road: String, dt: float) -> void:
 	var a_cur := _idm(c, _desired_speed(c, c.lane), _leader(c, c.lane))
 	var margin := _lane_margin(c, target, a_cur, road, lanes, c.signal_mandatory, false, maxf(c.signal_t, 0.0))
 	if margin == -INF:
-		if c.signal_wait > _blink_max_wait * (2.0 if c.signal_mandatory else 1.0):
+		if c.signal_wait > _blink_max_wait * (2.0 if c.signal_mandatory else 1.0) and not c.signal_merge:
 			_clear_signal(c)   # no gap: gives up (a mandatory change signals again at the next decision)
 			c.lane_cooldown = maxf(c.lane_cooldown, _lc_interval)
 		return
@@ -839,7 +858,8 @@ func _side_plan(c: Car, lanes: int, road: String) -> void:
 
 ## Side decision for a car (cruise speed, class) at (z, lane) – see _side_plan: Vector2(1, desired speed) =
 ## pass, Vector2(-1, speed to drop back to) = yield, Vector2.ZERO = nothing to do. `self_car` is skipped;
-## may_pass = false: only yielding is possible; extra_ahead_m widens the window ahead (a car that yields keeps
+## may_pass = false (a truck that gave up its Elefantenrennen): only yielding is possible, and every heavy vehicle
+## beside it counts, however much slower; extra_ahead_m widens the window ahead (a car that yields keeps
 ## dropping back until it is traffic.side_yield_hold_m further behind – otherwise it would hover at the edge of
 ## the window, e.g. beside a player who follows the slower vehicle). The speed margins scale with the weather
 ## (traffic.weather.<w>.speed_factor): in snow every speed is about a third lower, so are the differences.
@@ -854,8 +874,12 @@ func _side_decision(z: float, lane: int, cruise: float, cls: int, road: String, 
 		var dz := o.z - z
 		if dz < -_side_behind or dz > _side_ahead + extra_ahead_m:
 			continue
-		if o.speed + margin <= cruise or not _occupies(o, lane + 1):
-			continue   # clearly slower than this car wants to go: an ordinary overtake
+		if not _occupies(o, lane + 1):
+			continue
+		if o.speed + margin <= cruise and (may_pass or not o.heavy):
+			continue   # clearly slower than this car wants to go: an ordinary overtake – unless a truck gave up its
+			# Elefantenrennen: then the heavy vehicle beside it counts (in snow the margin shrinks to 3.9 km/h, a race
+			# at 5 km/h difference took over 2 minutes)
 		v_max = maxf(v_max, o.speed)
 		v_min = minf(v_min, o.speed)
 	if v_max < 0.0:
@@ -1108,6 +1132,9 @@ func _in_path(c: Car, o: Car, lane: int) -> bool:
 
 
 ## Nearest object ahead of c in its way (same checks as _in_path, inlined: this runs for every car each frame).
+## Zipper (Reißverschluss): a car that must leave its lane (lane end, fuel lane exit – signal_merge) and signals into
+## `lane` counts as soon as it is within traffic.blink.zipper_m ahead, so the traffic there opens the gap instead of
+## letting it stop at the end of its lane (QA v0.5.0: merge queues standing on the autobahn before the City Limits).
 func _leader(c: Car, lane: int) -> Car:
 	var best: Car = null
 	var best_z := INF
@@ -1121,7 +1148,9 @@ func _leader(c: Car, lane: int) -> Car:
 			continue
 		if absf(o.x - cx) < o.width * 0.5 + half \
 				or (o != player_obstacle and o.lane == lane) \
-				or (o.occ_fuel if fuel else (lane >= o.occ_lo and lane <= o.occ_hi)):
+				or (o.occ_fuel if fuel else (lane >= o.occ_lo and lane <= o.occ_hi)) \
+				or (o.signal_merge and o.signal_lane == lane and oz - cz < _zipper_m \
+					and oz - cz - (o.length + c.length) * 0.5 >= _lc_min_gap):
 			best = o
 			best_z = oz
 	return best

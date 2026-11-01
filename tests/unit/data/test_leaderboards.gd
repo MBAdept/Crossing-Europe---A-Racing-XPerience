@@ -7,12 +7,12 @@ const DIR := "user://test_data_module"
 const KEY := "stage:test:fwd"
 
 
-func _store(file: String = "", lengths: Callable = Callable(), lb: Dictionary = {}) -> LeaderboardStore:
+func _store(file: String = "", lengths: Callable = Callable(), lb: Dictionary = {}, profiles: Callable = Callable()) -> LeaderboardStore:
 	var c := cfg()
 	if not lb.is_empty():
 		c = ConfigLoader.deep_merge(c, {"leaderboard": lb})
 	var s := LeaderboardStore.new()
-	s.setup(c, file, lengths)
+	s.setup(c, file, lengths, profiles)
 	return s
 
 
@@ -81,7 +81,9 @@ func test_vehicle_filter_and_per_vehicle_storage() -> void:
 
 
 func test_seeded_entries() -> void:
-	var lengths := func(key: String) -> float: return 100.0 if key.begins_with("stage:") else 0.0
+	# seed_avg_kmh is the average of a typical stage (seed_ref_km, with its City Limits)
+	var ref := float(ConfigLoader.lookup(cfg(), "leaderboard.seed_ref_km", 235.0))
+	var lengths := func(key: String) -> float: return ref if key.begins_with("stage:") else 0.0
 	var s := _store("", lengths)
 	var list := s.top("stage:kiel_hamburg:fwd", "all", 10)
 	assert_eq(list.size(), 10, "10 Starteinträge")
@@ -92,7 +94,7 @@ func test_seeded_entries() -> void:
 		assert_true(bool(e.get("seeded", false)), "als seeded markiert")
 		assert_true(names.has(str(e["name"])), "Name aus seed_names")
 		assert_between(float(e["avg_kmh"]), float(avg[0]) - 0.1, float(avg[1]) + 0.1, "Schnitt im Bereich")
-		assert_near(float(e["time_s"]), 100.0 / float(e["avg_kmh"]) * 300.0, 0.2, "Zeit passt zu Länge und Schnitt")
+		assert_near(float(e["time_s"]), ref / float(e["avg_kmh"]) * 300.0, 0.3, "Zeit passt zu Länge und Schnitt")
 		assert_true(float(e["time_s"]) >= prev, "sortiert")
 		prev = float(e["time_s"])
 	var again := _store("", lengths).top("stage:kiel_hamburg:fwd", "all", 10)
@@ -104,6 +106,44 @@ func test_seeded_entries() -> void:
 	assert_true(_store("", lengths, {"seed_entries": false}).top("stage:kiel_hamburg:fwd").is_empty(), "seed_entries aus")
 	assert_eq(s.submit("stage:kiel_hamburg:fwd", _entry("Profi", 1.0, "kombi")), 1, "echte Zeit schlägt Starteinträge")
 	assert_false(bool(s.record("stage:kiel_hamburg:fwd").get("seeded", false)), "Rekord ist jetzt echt")
+
+
+## Review v0.5.0 (QA): every board got default entries in the same 125–165 km/h band, from the length alone – on the
+## tutorial Kiel – Hamburg (95 km, 20 of them City Limits, a fuel stop because it starts with 35 % tank) the record
+## 2:52.73 was only 4 % slower than the fastest car without any traffic, and even the 10th place was out of reach of
+## a careful driver. Now the entries follow the make-up of the board (RoadNetwork.board_profile): City Limits at
+## seed_city_kmh, the fuel stop of a stage that starts with a partly filled tank, the ferry of a race. Rule: the best
+## entry at least 15 % slower than the fastest car without traffic, the 10th at most 10 % faster than the careful
+## autopilot at 08:00 (measured with run_stage.gd / run_race.gd: sports car at vmax without traffic 166.6 s, autopilot
+## limousine 282.7–330.4 s).
+func test_seed_entries_follow_the_stage_make_up() -> void:
+	var n := NetworkTest.load_network(cfg())
+	var s := _store("", Callable(n, "board_length_km"), {}, Callable(n, "board_profile"))
+	var tut := s.top("stage:kiel_hamburg:fwd", "all", 10)
+	assert_eq(tut.size(), 10, "10 Starteinträge")
+	assert_true(float(tut[0]["time_s"]) >= 166.6 * 1.15, "Tutorial: Rekord %.1f s nicht schneller als 15 %% über der Zeit ohne Verkehr" % float(tut[0]["time_s"]))
+	assert_true(float(tut[9]["time_s"]) >= 282.7 * 0.9, "Tutorial: 10. Platz %.1f s erreichbar" % float(tut[9]["time_s"]))
+	var back := s.top("stage:kiel_hamburg:rev", "all", 10)
+	assert_true(float(back[0]["time_s"]) < float(tut[0]["time_s"]) - 20.0, "Rückrichtung ohne Pflicht-Tankstopp schneller")
+	assert_eq(int(n.board_profile("stage:kiel_hamburg:fwd")["fuel_stops"]), 1, "Tankstopp gehört zum Tutorial")
+	assert_eq(int(n.board_profile("stage:kiel_hamburg:rev")["fuel_stops"]), 0, "Rückrichtung: voller Tank")
+	# the typical stage keeps its times: seed_ref_km / seed_avg_kmh
+	var ref := float(ConfigLoader.lookup(cfg(), "leaderboard.seed_ref_km", 235.0))
+	var avg: Array = ConfigLoader.lookup(cfg(), "leaderboard.seed_avg_kmh", [125, 165])
+	var city: Array = ConfigLoader.lookup(cfg(), "leaderboard.seed_city_kmh", [60, 80])
+	assert_near(s.seed_hours(ref, 20.0, float(avg[1]), float(city[1])), ref / float(avg[1]), 0.0001, "typische Etappe unverändert (schnell)")
+	assert_near(s.seed_hours(ref, 20.0, float(avg[0]), float(city[0])), ref / float(avg[0]), 0.0001, "typische Etappe unverändert (langsam)")
+	# short stages (fixed 20 km of City Limits) are slower on average than long ones
+	var short := s.record("stage:hamburg_bremen:fwd")
+	var long := s.record("stage:luettich_paris:fwd")
+	assert_true(float(short["avg_kmh"]) < float(long["avg_kmh"]) - 10.0, "kurze Etappe langsamer im Schnitt (%.0f gegen %.0f km/h)"
+		% [float(short["avg_kmh"]), float(long["avg_kmh"])])
+	# a race adds its ferry time
+	var kr := n.board_profile("race:koenigsrennen")
+	assert_true(float(kr["fixed_s"]) >= 240.0, "Königsrennen: Fährzeit Riga – Rostock")
+	var plain := s.seed_entries_for("race:koenigsrennen", float(kr["length_km"]), {"stages": kr["stages"], "fuel_stops": kr["fuel_stops"]})
+	var with_ferry := s.seed_entries_for("race:koenigsrennen", float(kr["length_km"]), kr)
+	assert_near(float(with_ferry[0]["time_s"]) - float(plain[0]["time_s"]), float(kr["fixed_s"]), 0.05, "Fährzeit in den Starteinträgen")
 
 
 func test_race_board_seeded_from_shortest_route() -> void:

@@ -3,7 +3,8 @@ extends RefCounted
 ## Hints of the tutorial stage (StagePlan.tutorial – Kiel – Hamburg; design document: „Kiel – Hamburg:
 ## alternativlose Startetappe, gleichzeitig Tutorial"). The race session reports what happens (start,
 ## fuel announcements, refuelling, radar warning, police chase, a section without speed limit, City
-## Limits, the first collision, the first curve that is too fast for the car); the coach turns every topic
+## Limits, the first collision, the first curve that is too fast for the car; Review v0.5.0: the first car signalling
+## ahead, the first truck overtaking a truck); the coach turns every topic
 ## into short German hints – each topic once per stage – and hands them out one after another,
 ## render.tutorial_hint_s seconds apart, for Hud.show_message. Urgent topics (fuel lane, refuelling, radar,
 ## chase, City Limits, curve) jump the queue, because the situation they explain is happening right now.
@@ -12,7 +13,7 @@ extends RefCounted
 ## Steam Deck) only the gamepad hint, otherwise keyboard first, then gamepad.
 ## Pure logic (no autoloads, no nodes). Owner: race module.
 
-const URGENT := ["fuel_lane", "refuel", "radar", "chase", "city", "curve"]
+const URGENT := ["fuel_lane", "refuel", "radar", "chase", "city", "curve", "blinker", "elephant"]
 
 var hint_s := 6.0                  ## seconds a hint stays on screen (render.tutorial_hint_s)
 var gap_s := 0.6                   ## pause between two queued hints
@@ -107,6 +108,10 @@ func hints_for(topic: String, args: Dictionary = {}) -> Array[String]:
 			out.append(tr("Tipp: Zusammenstoß – der Wagen wird auf %d km/h abgebremst und abgedrängt") % int(round(_f("collision.target_speed_kmh", 10.0))))
 		"curve":
 			out.append(tr("Tipp: Vor scharfen Kurven bremsen – sonst schiebt der Wagen nach außen"))
+		"blinker":
+			out.append(tr("Tipp: Blinker heißt, der Wagen zieht gleich herüber – Gas weg!"))
+		"elephant":
+			out.append(tr("Tipp: Lkw überholt Lkw – zwei Spuren dicht, links bleibt frei"))
 	return out
 
 

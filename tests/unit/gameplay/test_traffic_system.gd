@@ -237,6 +237,41 @@ func test_merges_before_lane_ends() -> void:
 	assert_true(car.speed <= float(road_speed[1]) + 0.5, "Landstraßentempo übernommen")
 
 
+## Zipper at a lane drop (QA v0.5.0: cars stopped unannounced at the end of the right lane before the City Limits, the
+## middle lane stood behind them): the car that must leave its lane signals at once (signal_merge) and waits for the
+## gap, the car behind it in the target lane opens the gap – it merges while moving, nobody stops.
+func test_zipper_at_a_lane_drop() -> void:
+	var c := _empty_cfg()
+	var track := FakeTrack.new()
+	track.set_sections([{"length": 3000.0, "road": "autobahn", "lanes": 3}, {"length": 20000.0, "road": "autobahn", "lanes": 2}])
+	var ts := _system(c, track)
+	ts.update(0.0, {"z": 0.0, "x": -60.0, "speed": 0.0}, {"hour": 12.0})
+	var merger := _car(ts, c, 1, 2440.0, 2, 110.0)
+	# middle lane: a column at the merger's speed, the merger level with a gap that is too short
+	var column: Array[TrafficSystem.Car] = []
+	for k in 6:
+		column.append(_car(ts, c, 10 + k, 2470.0 - 30.0 * float(k), 1, 110.0))
+	var trans := float(track.lane_transition_m)
+	var signalled_at := -1.0
+	var min_speed := INF
+	var t := 0.0
+	for i in 1800:
+		ts.update(DT, {"z": merger.z - 250.0, "x": -60.0, "speed": 0.0}, {"hour": 12.0})
+		t += DT
+		if signalled_at < 0.0 and merger.signal_merge:
+			signalled_at = merger.z
+		for car in column:
+			min_speed = minf(min_speed, car.speed)
+		min_speed = minf(min_speed, merger.speed)
+		if merger.lane <= 1 and absf(merger.x - track.lane_center_x(merger.z, 1)) < 0.4:
+			break
+	assert_true(signalled_at > 0.0 and signalled_at < 3000.0 - trans - 100.0,
+		"blinkt früh (%.0f m vor dem Spurende)" % (3000.0 - trans - signalled_at))
+	assert_true(merger.lane <= 1, "eingefädelt")
+	assert_true(merger.z < 3000.0, "vor dem Ende der Spur (%.0f)" % merger.z)
+	assert_true(min_speed > 30.0, "niemand bleibt stehen (min %.0f km/h)" % min_speed)
+
+
 func test_cars_avoid_the_stationary_player() -> void:
 	var c := cfg()
 	var r := Sim.traffic_run(c, FakeTrack.new(60000.0), 17.5, 0.0, 45.0, {"player_x": 0.0, "start_z": 3000.0})
@@ -827,6 +862,39 @@ func test_elephant_race_on_three_lanes_only() -> void:
 		ts2.update(DT, {"z": minf(s2.z, f2.z) - 150.0, "x": -60.0, "speed": 0.0}, {"hour": 12.0})
 		stayed = stayed and f2.lane == 1
 	assert_true(stayed, "zweispurig: kein Elefantenrennen, der schnellere Lkw bleibt dahinter")
+
+
+## Elefantenrennen in snow (QA v0.5.0): the speed margins of the side rule shrink with the weather (× 0.65 = 3.9 km/h),
+## so after max_s a truck 5 km/h faster than the one beside it counted as an ordinary overtake and went on – 121 s
+## with both right lanes blocked at 55 km/h. Now it gives up after traffic.elephant.max_s and drops back behind it.
+func test_elephant_race_gives_up_in_snow() -> void:
+	var c := _empty_cfg()
+	var max_s := float(ConfigLoader.lookup(c, "traffic.elephant.max_s", 45.0))
+	var track := FakeTrack.new(90000.0, "autobahn", 3)
+	var ts := _system(c, track)
+	ts.update(0.0, {"z": 0.0, "x": -60.0, "speed": 0.0}, {"hour": 12.0, "weather": "snow"})
+	var slow := _car_frac(ts, 1, 1200.0, 2, 0.08, 1)
+	var fast := _car_frac(ts, 2, 1160.0, 2, 0.82, 1)
+	var diff := fast.cruise_speed - slow.cruise_speed
+	assert_between(diff, 4.0, 6.0, "Schnee: %.1f gegen %.1f km/h" % [fast.cruise_speed, slow.cruise_speed])
+	var t := 0.0
+	var pulled := -1.0
+	var back := -1.0
+	var behind_when_back := false
+	while t < 150.0 and back < 0.0:
+		var zmin := minf(slow.z, fast.z)
+		ts.update(DT, {"z": zmin - 150.0, "x": -60.0, "speed": 0.0}, {"hour": 12.0, "camera_z": zmin - 160.0, "weather": "snow"})
+		t += DT
+		if pulled < 0.0 and fast.lane == 1:
+			pulled = t
+		if pulled >= 0.0 and fast.lane == 2:
+			back = t
+			behind_when_back = fast.z < slow.z
+	assert_true(pulled > 0.0, "Elefantenrennen beginnt")
+	assert_true(back > 0.0, "zurück auf der rechten Spur")
+	assert_true(back - pulled >= max_s - 0.5 and back - pulled < max_s + 30.0,
+		"gibt nach %.0f s auf, nach %.1f s wieder rechts" % [max_s, back - pulled])
+	assert_true(behind_when_back, "fällt hinter den langsameren Lkw zurück, statt weiter zu überholen")
 
 
 ## New traffic often comes in clusters (traffic.cluster): platoons behind a slow vehicle and Elefantenrennen, with

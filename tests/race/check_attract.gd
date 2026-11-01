@@ -243,13 +243,14 @@ func _run() -> void:
 	# ends by itself after demo_s
 	ok = await _wait_state(STATE_IDLE, 8.0)
 	var dur := _clock - t_demo
-	await _wait(0.3)
-	_check("dauer", ok and dur >= 3.95 and dur <= 4.6 and str(_am.get("last_end_reason")) == "time" and _title_ok()
-		and _bus_mutes() == mutes0 and root.content_scale_aspect == Window.CONTENT_SCALE_ASPECT_EXPAND,
-		"%.2f s (demo_s 4 + Überblendung), zurück im Titel, Busse wie vorher" % dur)
 	# from here a longer idle time: the input checks after each return (≈1 s) must stay clear of the next demo's
 	# start even at a low frame rate (a key pressed while the next demo fades in would cancel that start instead)
 	_am.set("idle_s", 2.5)
+	# the effect buses come back once their reverb/delay tails have died away (at most AttractMode.UNMUTE_MAX_S)
+	await _wait(1.3)
+	_check("dauer", ok and dur >= 3.95 and dur <= 4.6 and str(_am.get("last_end_reason")) == "time" and _title_ok()
+		and _bus_mutes() == mutes0 and root.content_scale_aspect == Window.CONTENT_SCALE_ASPECT_EXPAND,
+		"%.2f s (demo_s 4 + Überblendung), zurück im Titel, Busse wie vorher" % dur)
 
 	# next demo: next scene; Enter ends it without a menu action
 	ok = await _wait_state(STATE_DEMO, 8.0)
@@ -314,7 +315,7 @@ func _run() -> void:
 	_am.set("demo_s", 14.0)
 	ok = await _wait_state(STATE_DEMO, 8.0)
 	ok = ok and await _wait_state(STATE_IDLE, 16.0)
-	await _wait(0.3)
+	await _wait(1.3)   # effect buses back after their tails (AttractMode.UNMUTE_MAX_S)
 	_check("ziel", ok and str(_am.get("last_end_reason")) == "finished" and _title_ok() and _flow_state() == flow0,
 		"Ziel in der Demo: Ende %s, kein Ergebnis" % str(_am.get("last_end_reason")))
 	_am.set("enabled", false)

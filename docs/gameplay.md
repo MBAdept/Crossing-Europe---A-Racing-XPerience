@@ -44,7 +44,7 @@ godot --headless --path . -s res://tests/sim/difficulty_sim.gd -- [--stages=kass
 |---|---|
 | Wie stark senken Regen, Schnee und Nacht die Höchstgeschwindigkeit? | Regen −2,5 % (`driving.weather_vmax_factor.rain` 0,975), Schnee −12 % (0,88), Nacht −1 % (`driving.night_vmax_factor` 0,99, weich über die Dämmerung). Regen + Nacht = −3,5 %: das langsamste Auto (230) schafft 222 km/h → Flucht möglich; Schnee verhindert sie bei Kompakt/Kombi/Limousine. Haftung seit v0.5.0 (Spieltest: „Schnee macht die Steuerung nur leicht schwammiger, ohne ernsthafte Probleme“): Reifenhaftung Regen 0,75, Schnee 0,45 (vorher 0,88/0,72, nur für die Kurvengrenze), wirkt auf Kurvengrenze, Bremsen, Traktion und Lenken (Abschnitt „Wetter“). **Steigung**: bis `driving.grade_free_percent` (4 %) kein Verlust, darüber 1,2 % je Prozentpunkt (`grade_vmax_loss_per_percent`). „Leicht verschlechterte Bedingungen“ (Design: jedes Auto schafft dann noch 220 km/h) = Regen und/oder Nacht auf normalem Hügelland bis Hügelstufe 2 (≤ 4,5 %): Kompakt bei Regen + Nacht an 4,5 % noch 220,7 km/h, Flucht gelingt (Tabellen (e), (f)). Deutlich schlechter = Schnee oder steile Bergstrecken (Hügelstufe 3, 7 %: −3,6 %, Kompakt bei Regen + Nacht 214 km/h). |
 | Länge der Zeitstrafe bei leerem Tank | `fuel.tow_penalty_s` = **90 s** Strafe + Ausrollen (18 km/h/s) + 4 s Einblendung `TOWING`, danach halber Tank (`tow_refill_fraction` 0,5). Effektiv ≈ 110 s, etwa das 2,5-Fache eines vollen Tankstopps (25 s + Bremsen/Anfahren). Wer mit leerem Tank in eine Tankspur rollt, tankt dort normal (kein Abschleppen) – ein leeres Auto in der Tankspur wird nie abgeschleppt, und Gas bricht das Tanken erst ab, wenn mindestens `fuel.abort_min_fuel_l` (1 L) im Tank sind. |
-| Verhalten am Straßenrand | **Bankett** (2,5 m, `road.shoulder_width_m`): ragt die Karosserie > 0,5 m über den Fahrbahnrand, bremst der Wagen auf 90 km/h (35 km/h/s), `off_road = 1`; loser Belag: dort nur 60 % Kurvenhaftung (`driving.shoulder.grip_factor` 0,51, mit Exponent 0,75 = 0,60), ein untersteuernder Wagen rutscht also weiter. **Harte Grenze** am Bankettende: mit Leitplanke (Autobahn) Kontakt → Tempo × 0,9 je Treffer (höchstens alle 0,6 s), Abprallen mit 1,5 m/s nach innen, Schleifen 20 km/h/s; trifft die Untersteuer-Abdrift die Leitplanke, kostet jeder m/s über 1 m/s weitere 5 % (`driving.guardrail.impact_*`, bis Tempo × 0,5 – ungebremst seitlich hinein); ohne Leitplanke (Landstraße, Stadt) **Gras** → stark bremsen auf 40 km/h (60 km/h/s); beides `off_road = 2`, die Abdrift endet dort. |
+| Verhalten am Straßenrand | **Bankett** (2,5 m, `road.shoulder_width_m`): ragt die Karosserie > 0,5 m über den Fahrbahnrand, bremst der Wagen auf 90 km/h (35 km/h/s), `off_road = 1`; loser Belag: dort nur 60 % Kurvenhaftung (`driving.shoulder.grip_factor` 0,51, mit Exponent 0,75 = 0,60), ein untersteuernder Wagen rutscht also weiter. **Harte Grenze** am Bankettende: mit Leitplanke (Autobahn) Kontakt → Tempo × 0,9 je Treffer (höchstens alle 0,6 s), Abprallen mit 1,5 m/s nach innen, Schleifen 20 km/h/s – nur solange Lenken oder Abdrift den Wagen gegen die Leitplanke drücken: ein Wagen, der sie nur berührt oder dort steht (nach einem Unfall, beim Rechtsranfahren), fährt mit Gas frei weg (Review v0.5.0: im Schnee liegt die Traktion mit 11,9 km/h/s unter dem Schleifen – der Wagen blieb sonst für immer stehen, `test_guardrail_never_pins_a_standing_car`); trifft die Untersteuer-Abdrift die Leitplanke, kostet jeder m/s über 1 m/s weitere 5 % (`driving.guardrail.impact_*`, bis Tempo × 0,5 – ungebremst seitlich hinein); ohne Leitplanke (Landstraße, Stadt) **Gras** → stark bremsen auf 40 km/h (60 km/h/s); beides `off_road = 2`, die Abdrift endet dort. |
 | Wetter im Rennen | `weather.race_mode`: `region` (Standard, gewichtet nach Klima des Etappenlandes), `random` (gleichverteilt), `fixed` (Feld `weather` der Etappe, sonst Region). `EnvironmentModel.race_weather(plan, race_seed, leg_index)` ist deterministisch. Seit dem Review v0.5.0 fährt die Tutorial-Etappe (Kiel – Hamburg) immer bei `weather.tutorial_weather` = trocken (`RaceState.leg_weather`): vorher bekam sie das Rennwetter (Norden: 32 % Regen, 8 % Schnee) – ein Erstspieler hatte dann die halbe Bremsung und einen nachrutschenden Wagen, ohne jeden Hinweis (Autopilot Kompakt: trocken 287 s, Schnee 434 s). Alle anderen Etappen behalten das Rennwetter; jede Regen- oder Schnee-Etappe zeigt beim Countdown, was das Wetter bewirkt („Schnee: Bremsweg ×2, der Wagen rutscht nach dem Spurwechsel weiter – früh gegenlenken“, `SessionRules.weather_hint`, Faktor aus `driving.grip_effects`). |
 | Abweichungen von Startwerten des Design-Dokuments (v0.5.0, Spieltest „zu leicht“) | (1) Verkehr nachts nicht mehr schneller (Design: +15 %, Spielraum 15–20 %; `traffic.night.speed_factor` 1,0), (2) Lkw auf der Autobahn 80–90 km/h, Busse 95–100 km/h (Design: alle Fahrzeuge 110–150; Pkw bleiben im Design-Bereich), (3) Regen und Schnee machen den Verkehr langsamer (Pkw × 0,85 / × 0,65). Das Design-Dokument nennt die Werte ausdrücklich Startwerte; es steht noch auf ihnen, bis der Nutzer die Änderungen bestätigt. `test_design_numbers.gd` prüft die neuen Zahlen ausdrücklich (nicht die Konfiguration gegen sich selbst). |
 
@@ -161,8 +161,14 @@ Weitere Festlegungen:
   - Spurwechsel: MOBIL (Vorteil > 0,2 m/s², Lkw nach links > 0,6; Sicherheit: neuer Hintermann muss nicht stärker als
     3 m/s² bremsen – außer dem Spieler, s. „Einscheren“; Höflichkeit 0,3; Rechtsfahrgebot +0,3 m/s² auf
     Autobahn/Landstraße). Jeder Spurwechsel wird mit dem Blinker angekündigt (1–1,5 s vorher). Lkw nie auf die linke
-    Spur einer dreispurigen Straße. Endet eine Spur (Vorausschau 60 m + 6 s), wird zwingend eingefädelt; ohne Lücke
-    hält das Auto vor dem Spurende an.
+    Spur einer dreispurigen Straße. Endet eine Spur (Vorausschau 60 m + 6 s), wird zwingend eingefädelt: seit dem
+    Review v0.5.0 blinkt das Auto sofort und wartet blinkend auf die Lücke (`Car.signal_merge`), und der Verkehr der
+    Zielspur lässt es im **Reißverschluss** herein – wer bis zu `traffic.blink.zipper_m` (60 m) hinter ihm fährt (mindestens
+    6 m Lücke), behandelt es als Vordermann. Ohne Lücke hält es vor dem Spurende an, dann aber mit Blinker. Vorher hielten
+    die Autos der endenden Spur unangekündigt an ihrem Ende, und die Mittelspur der Autobahn stand dahinter
+    (`qa_traffic_rules`, 150 s ab 10–12 km davor, Zeit mit stehenden Autos in Sicht: Hamburg – Bremen 17:30 13,9 → 3,0 s,
+    Bremen – Amsterdam 11:54 10,6 → 0 s, Hannover – Kassel 08:00 22,4 s mit bis zu 3 Autos → 10,6 s mit einem blinkenden;
+    `test_zipper_at_a_lane_drop`). Dasselbe gilt für das Verlassen der Tankspur.
   - **Keine rollenden Straßensperren** (vorher fuhren zwei Autos mit 74/75 km/h minutenlang nebeneinander und
     sperrten eine Landstraße). Ausnahme seit v0.5.0: ein Lkw, der einen langsameren überholt (**Elefantenrennen**),
     behält sein Tempo bis `traffic.elephant.max_s`. Ein Auto auf einer linken Spur prüft die
@@ -243,7 +249,7 @@ Schnee-Etappe sagt beim Countdown, was das Wetter bewirkt. Die Schwierigkeit sel
 | Blinker | Jeder Spurwechsel wird angekündigt: der Blinker geht `blink.lead_s` (1,0–1,5 s je Auto, Lkw/Busse × 1,3, Pflichtwechsel 1,0 s) **bevor** das Auto zieht; ohne sichere Lücke wartet es blinkend (höchstens `max_wait_s` 3 s, dann gibt es auf), es bricht ab, wenn der Wechsel sich nicht mehr lohnt, und der Blinker bleibt an, bis es in der neuen Spur ist. Nur das Ausweichen vor einem langsameren Spieler (Notfall) geht sofort. Gezeichnet als bernsteinfarbene Leuchte am Heck (renn-modul.md §8) – mit Mindestgröße auch in 150–250 m deutlich, nachts so lange sichtbar wie die Rücklichter (Review). |
 | Kein Platzmachen mehr (**Einscheren**) | Kommt der Spieler in der Zielspur schneller heran, beurteilt der Fahrer ihn wie im Spiegel: er sieht den Abstand und höchstens `cut_in.perceived_max_kmh` (72 km/h) Annäherung und will davon `judge_s` (5 s vorsichtig … 2,5 s mutig = schnell) plus `judge_add_m` (20 m) – vor einem Spieler mit 230 km/h zieht er also heraus, wo ihn die alte Regel noch 390 m hätte warten lassen. |
 | Fairness-Untergrenze | Nie näher als `cut_in_floor_m`: Relativtempo v_rel · (Blinkzeit + `intrude_s` 0,5 s + `margin_s` 0,3 s) + v_rel² / (2 · `brake_fraction` 0,7 · Vollbremsung des Spielers **im aktuellen Wetter**, `ctx.brake_mps2` – mit der Haftung des Wetters, auch im Tunnel: sonst zöge ein Auto hinter der Tunnelausfahrt mit der trockenen Untergrenze heraus, die der Spieler draußen im Schnee nicht mehr schafft, Review) + `margin_m` 8 m. Wer auf den Blinker hin – oder spätestens, wenn das Auto herüberzieht – mit 70 % seiner Bremsleistung bremst, bleibt dahinter. Beim Losziehen wird erneut geprüft (ohne Blinkzeit): hat der Spieler beschleunigt oder die Spur gewechselt, wartet das Auto. Bei 230 gegen 82 km/h (Lkw-Kolonne) trocken ≥ 154 m beim Blinken, im Schnee (205 gegen 55 km/h) ≥ 220 m. Test `test_cut_in_in_front_of_a_fast_player_is_fair`. |
-| **Elefantenrennen** | Auf Straßen mit 3+ Spuren (`elephant.min_lanes`, nicht in den City Limits) überholt ein Lkw/Bus ein mindestens 3 km/h langsameres schweres Fahrzeug innerhalb 120 m (`min_diff_kmh`, `look_m` – so weit hinten pendelt sich ein Lkw mit 3 km/h Unterschied im IDM ein; Vorteil `bonus_mps2`) in seinem eigenen Tempo – rechte und mittlere Spur sind dann mit Lkw-Tempo zu, links bleibt die Überholspur. Die Regel gegen rollende Sperren gilt für ihn erst nach `max_s` (45 s): dann gibt er auf, fällt zurück und versucht es frühestens nach `retry_s` (60 s) wieder. Gemessen: 80 gegen 90 km/h, 28 m dahinter: schert nach 1,6 s aus, 17,5 s Seite an Seite, nach 48,6 s vorbei und wieder rechts; 84 gegen 88 km/h: gibt nach 45 s auf. Auf zweispurigen Straßen überholen Lkw nicht (Test `test_elephant_race_on_three_lanes_only`). |
+| **Elefantenrennen** | Auf Straßen mit 3+ Spuren (`elephant.min_lanes`, nicht in den City Limits) überholt ein Lkw/Bus ein mindestens 3 km/h langsameres schweres Fahrzeug innerhalb 120 m (`min_diff_kmh`, `look_m` – so weit hinten pendelt sich ein Lkw mit 3 km/h Unterschied im IDM ein; Vorteil `bonus_mps2`) in seinem eigenen Tempo – rechte und mittlere Spur sind dann mit Lkw-Tempo zu, links bleibt die Überholspur. Die Regel gegen rollende Sperren gilt für ihn erst nach `max_s` (45 s): dann gibt er auf, fällt zurück, blinkt rechts und wird hereingelassen wie am Spurende (Reißverschluss), und versucht es frühestens nach `retry_s` (60 s) wieder. Review v0.5.0: nach dem Aufgeben zählt jedes schwere Fahrzeug rechts neben ihm, auch wenn es um mehr als die (im Schnee auf 3,9 km/h geschrumpfte) Tempo-Marge langsamer ist – vorher ging ein Lkw mit 5 km/h Unterschied im Schnee als „gewöhnliches Überholen“ weiter, längstes Rennen 121 s; jetzt längstens 61 s bis zurück rechts (Hamburg – Bremen 08:00, Schnee, 300 s; Test `test_elephant_race_gives_up_in_snow`). Gemessen: 80 gegen 90 km/h, 28 m dahinter: schert nach 1,6 s aus, 17,5 s Seite an Seite, nach 48,6 s vorbei und wieder rechts; 84 gegen 88 km/h: gibt nach 45 s auf. Auf zweispurigen Straßen überholen Lkw nicht (Test `test_elephant_race_on_three_lanes_only`). |
 | Kolonnen und Gruppen (`cluster`) | Neuer Verkehr vorn kommt mit `chance` (Autobahn/Landstraße 35 %, City 40 %) als Gruppe aus 1 + `followers` (1–3): eine Kolonne hinter einem langsamen Fahrzeug (Lkw/Bus mit 2,5-fachem Lkw-Anteil, sonst ein langsamer Pkw; die Hintermänner im `gap_factor`-fachen IDM-Abstand, `patience_s` 4–20 s ohne Überholversuch) oder auf 3+ Spuren (`elephant_share` 30 %) ein Elefantenrennen samt Autos dahinter. Eine Gruppe wartet, bis im Fenster so viele Fahrzeuge fehlen: erst eine leere Strecke, dann die Gruppe – die mittlere Dichte bleibt gleich, die Abstände streuen stärker (Variationskoeffizient der Abstände entlang der Straße, alle Spuren, 08:00, Spieler 200 km/h: ohne Gruppen 0,77, mit 0,90; Test `test_traffic_comes_in_clusters`). |
 | Dichte | Grunddichte Autobahn **16** (vorher 14), Landstraße **10** (9), City 8 (× 2,5 in den City Limits); Tageskurve unverändert (Spitzen 7–9 und 16–19 Uhr). |
 
@@ -322,7 +328,8 @@ abgestimmten PD-Regler – keine Kollision, kein Ausflug neben die Fahrbahn bei 
   lead_s = 0)`; Felder `weather`, `player_brake_mps2`, `cut_ins` (Einscheren vor dem schnelleren Spieler, Statistik),
   `last_cut_in` {id, gap_m, rel_kmh, floor_m, car_kmh, player_kmh}. `Car`: `bus`, Blinker `signal_dir` (−1/0/+1),
   `signal_lane`, `signal_t` (Zeit bis zum Losziehen), `signal_age` (seit dem Einschalten – Blinktakt), `signal_wait`,
-  `signal_mandatory`; Elefantenrennen `elephant_t` (−1 = nein), `elephant_cool`. Die Strecke darf `speed_limit_at(z)`
+  `signal_mandatory`, `signal_merge` (Review: muss seine Spur verlassen – Spurende, Tankspur, aufgegebenes
+  Elefantenrennen; blinkt sofort, Reißverschluss); Elefantenrennen `elephant_t` (−1 = nein), `elephant_cool`. Die Strecke darf `speed_limit_at(z)`
   liefern (0 = frei; `FakeTrack` mit Feld `limit` je Abschnitt).
 - Review v0.5.0: `TrafficSystem.slowest_speed_kmh(road, limit, heavy = -1)` (langsamstes Wunschtempo: Pkw, Lkw/Busse oder
   alle), `set_weather(w)`, `traffic.weather.<w>.decel_factor` (Bremsen des Verkehrs, hinter dem Spieler trocken);
@@ -477,7 +484,8 @@ Kurvengrenze und Etappensiege (51 Etappen ohne Dev-Etappe, ohne Tanken):
 
 Die 2 Etappen ohne Kurve sind ganz gerade (Kurvigkeit 0). Der Gran Turismo bleibt auf geraden Etappen vorn, auf
 kurvigen der Sportwagen (Agilität 4, Beschleunigung 5) – kein Auto ist überall überlegen; die Bestenlisten-Starteinträge
-(≤ 165 km/h Schnitt) liegen weit unter dem besten idealen Schnitt jeder Etappe (mindestens 207 km/h, Saragossa – Pau).
+(≤ 165 km/h Schnitt, seit dem QA-Review v0.5.0 aus der Zusammensetzung der Etappe: auf den längsten Etappen bis
+172 km/h) liegen weit unter dem besten idealen Schnitt jeder Etappe (mindestens 207 km/h, Saragossa – Pau).
 
 (i2) Gefühl: mit Vollgas (vmax, Gas hält das Tempo) in eine Rechtskurve, die X % zu schnell ist, aus der Mittelspur einer
 dreispurigen Autobahn; Zeit in s bis eine Spur weiter außen / Bankett / Leitplanke, ohne Lenken und mit vollem
@@ -548,7 +556,8 @@ unter – die Kurven kosten vor allem bei vmax, (i4).
 Bestenlisten: Die Starteinträge (`leaderboard.seed_avg_kmh` 125–165 km/h) bleiben schlagbar – der vorsichtige
 Autopilot fährt im Königsrennen je nach Tageszeit und Wetter 97–193 km/h Schnitt (Median 150, 10 der 33 Etappen über
 dem besten Starteintrag); nur die kurze Tutorial-Etappe mit Pflicht-Tankstopp liegt wie vorher darunter, und der beste
-ideale Schnitt liegt auf jeder Etappe bei mindestens 207 km/h ((i0)). Keine Anpassung nötig.
+ideale Schnitt liegt auf jeder Etappe bei mindestens 207 km/h ((i0)). Keine Anpassung nötig – seit dem QA-Review v0.5.0
+doch: die Starteinträge folgen der Zusammensetzung der Etappe (Nachtrag am Ende von (j)).
 
 (i5) Sichtprüfung (`curve_sight.gd`, alle 52 Etappen in beiden Richtungen): Reicht es, ab dem Moment zu bremsen, in
 dem die Kurve – oder ihr Warnschild – zu sehen ist (Nebel/Nacht-Sichtweite, Kuppen: Sichtlinie aus der Kamera 3,4 m
@@ -610,11 +619,18 @@ auftauchte (Gran Turismo, Profil; „v0.4.0“ = Bremsung 70 km/h/s bei jedem We
 | Schnee, Nacht | 0,54 % (−81 m) | 3,11 % (−152 m) |
 
 Schnee macht Kuppen gefährlicher (halbe Bremsung, langsamer Verkehr) – das gehört zur gewünschten Schwierigkeit, mehr
-Sicht im Nebel ändert daran nichts. Abhilfe wäre ein Warnschild vor blinden Kuppen oder weniger optische Überhöhung der
-Hügel; beides ist nicht umgesetzt (Rückfrage beim nächsten Spieltest). Dass alle Spuren hinter einer blinden Kuppe
-zugleich mit langsamem Verkehr belegt sind, ist selten: in den
-Fahrer-Simulationen des Reviews (unten) kam es nach den Korrekturen nicht mehr vor (vorher einmal, Saragossa – Pau
-km 147, Schnee 19:30).
+Sicht im Nebel ändert daran nichts. Dass alle Spuren hinter einer blinden Kuppe zugleich mit langsamem Verkehr belegt
+sind, ist selten – aber es kommt vor: Die Fahrer-Simulationen des Reviews (unten) fanden es nach den Korrekturen nicht
+mehr, die QA danach mit einem eigenen Fahrer-Bot auf rund 4 700 km Schnee (≈ 2,9 h mit Höchsttempo) dreimal ohne Ausweg
+(Saragossa – Pau km 147,1 um 07:30 erst bei 73 m statt 118 m gesehen, um 19:30 bei 75 statt 83 m, km 75,8 bei 102 statt
+106 m) und einmal unvermeidbar: City Limits Burgos, Schnee 22:18, 213 km/h, eine Kolonne mit 28–34 km/h auf beiden
+Spuren erst 152 m vorher sichtbar, nötig 174 m – Aufprall mit 98 km/h trotz Vollbremsung. **Seitdem (QA-Review v0.5.0)
+steht vor jeder blinden Kuppe ein Warnschild „Kuppe“** (renn-modul.md §4 „Kuppenschilder“: verdeckt die Kuppe ein
+Fahrzeug innerhalb 180 m – etwa der Anhalteweg im Schnee aus 200 km/h Annäherung –, steht 150 m vor der Stelle das
+Schild; im Netz 5,4 je 100 km, an allen QA-Stellen – Burgos km 208,5, Saragossa – Pau km 147,1 und 75,8 – davor). Wer
+wie vor einer blinden Kurve vom Gas geht, kommt
+rechtzeitig zum Stehen; die optische Überhöhung der Hügel bleibt (flachere Hügel nur in den City Limits verbesserten
+die schlimmste Stelle dort nur von −97 auf −74 m Reserve).
 
 Menschlicher Fahrer (Review-Skript `fair_sim.gd`: Gran Turismo mit Höchsttempo, sieht nur, was das Bild zeigt – Nebel
 ab halber Deckkraft, Kuppen –, reagiert nach 0,8 s auf ein Auto, das auftaucht oder in seine Spur zieht, bremst voll im
@@ -703,7 +719,18 @@ Haltefenster und Tempo-Abstände nach Wetter (Abschnitt „Verkehr“, `test_yie
 
 Bestenlisten: Die Starteinträge (`leaderboard.seed_avg_kmh` 125–165 km/h) liegen bei trockenem Wetter weiter im Bereich
 des vorsichtigen Autopiloten (125–165 km/h je nach Tageszeit, Verkehr und Tankstopp) – gute Spieler schlagen sie; bei
-Regen (100–156 km/h) und Schnee (74–108 km/h) sind sie ein hohes Ziel, wie es zum Wetter passt. Keine Anpassung nötig.
+Regen (100–156 km/h) und Schnee (74–108 km/h) sind sie ein hohes Ziel, wie es zum Wetter passt.
+
+Nachtrag (QA v0.5.0): Auf der Tutorial-Etappe Kiel – Hamburg waren sie unerreichbar – Rekord 2:52,73 nur 4 % über der
+Zeit des schnellsten Autos ganz ohne Verkehr (Sportwagen bei vmax 166,6 s), der 10. Platz 3:46,11 rund 25 % schneller
+als der Autopilot im Verkehr um 08:00 (4:43–5:30); auch kurze Etappen um 110–125 km lagen am Tag außerhalb der Top 10
+(Würzburg – Nürnberg trocken 12:25: 121 km/h). Ursache: dieselben 125–165 km/h auf jeder Länge, obwohl jede Etappe mit
+20 km City Limits endet und das Tutorial einen Pflicht-Tankstopp hat. Jetzt aus der Zusammensetzung (docs/daten.md
+„Starteinträge“): City Limits mit `seed_city_kmh` (60–80), der Rest so schnell, dass die typische Etappe
+(`seed_ref_km` 235 km) unverändert bleibt, + `seed_fuel_stop_s` (35 s) je Etappe mit teilgefülltem Tank + Fährzeiten.
+Kiel – Hamburg: Rekord 3:52,9, 10. Platz 4:55,2 (Rückrichtung ohne Tankstopp 3:17,9 / 4:21,9); 110–150 km 6–11 %
+langsamer, 210 km unverändert, 365–395 km 3–4 % schneller; Kiel – Nürnberg 24:02,2 … 31:18,8, Königsrennen mit Fähre
+4:39:02,6 … 6:05:15,4 (Test `test_seed_entries_follow_the_stage_make_up`).
 
 ## Hinweise für andere Module
 

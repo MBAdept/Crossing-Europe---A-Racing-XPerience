@@ -172,22 +172,39 @@ der kuratierten Szenen aus `attract.scenes` – die nächste Demo zeigt die näc
 | `pyrenaeen` | Schneetreiben in den Pyrenäen (kurvige Landstraße vor dem Somport) | Saragossa – Pau, km 159 | 11:00, Schnee, Kompakt |
 | `paris` | Ankunft in Paris (Tunnel du Landy, Pont Alexandre III, Eiffelturm, Haussmann-Häuser) | Lüttich – Paris, km 384,6 | 20:00, Dämmerung, Gran Turismo |
 | `hamburg` | Über die Köhlbrandbrücke nach Hamburg (Elbphilharmonie, Michel) | Kiel – Hamburg, km 77 | 12:30, klar, Kombi |
-| `regen` | Nachtfahrt im Regen nach Berlin (Autobahn, dann der Fernsehturm) | Leipzig – Berlin, km 158 | 23:00, Regen, Limousine |
+| `regen` | Nachtfahrt im Regen nach Berlin (Autobahn, dann der Fernsehturm) | Leipzig – Berlin, km 157 | 23:00, Regen, Limousine |
 | `venedig` | Über die Lagune nach Venedig (Ponte della Libertà, Campanile) | Mailand – Venedig, km 267,6 | 17:30, klar, Sportwagen |
-| `wien` | Morgendämmerung in Wien (Riesenrad, Stephansdom) | Budapest – Wien, km 236,5 | 6:18, Morgendämmerung, Kombi |
+| `wien` | Morgendämmerung in Wien (Riesenrad, Stephansdom) | Budapest – Wien, km 233,5 | 6:18, Morgendämmerung, Kombi |
+
+Review v0.5.0 (QA nach dem Zusammenführen mit der neuen Schwierigkeit): Wien kam ins Ziel und stand bis zum vorzeitigen
+Ende (26 s) still – jetzt km 233,5 mit Wunschtempo 110 (Reichsbrücke 13–17 s, endet nach 30 s bei km 243,2); Regen
+endete in einer Kriechfahrt durch die City Limits (47 km/h) – jetzt km 157, Seed 3 (Ø 184 km/h, City Limits nach 21 s).
+Paris und Hamburg krochen mit 52/55 km/h hinter dem Stadtverkehr, der Feierabendverkehr erreichte die Skyline erst nach
+28 s und Venedig startete 15 m hinter einem 38 km/h langsamen Auto: das lösten der freigeräumte Start und der
+Autopilot an Spurenden (unten, renn-modul.md §10) – mit unveränderten Werten Paris Ø 93, Hamburg Ø 90, Feierabendverkehr
+Ø 143 km/h mit den City Limits nach 14,5 s, Venedig kleinster Abstand 24,5 m. Alle Szenen prüft
+`tests/race/check_attract_scenes.gd` (in `tools/run_tests.sh`, ~2 min): jede endet nach `demo_s` ohne Ziel, Unfall,
+Leitplanke und Ausflug neben die Fahrbahn, nie näher als 10 m hinter einem Auto (in den ersten 3 s 15 m), Ø ≥ 70 km/h.
 
 Felder einer Szene: `id`, `name` (im Overlay), `stage` + `from`, `km`, `hour`, `weather`, `vehicle`, `speed_kmh`
 (Starttempo), `cruise_kmh` (Wunschtempo des Autopiloten – er bremst trotzdem für Kurven, Verkehr und Radar; in den
 City Limits fährt er im dichten Stadtverkehr mit, ~50 km/h ≈ 5 km in 30 s), optional `lane`, `seed` (Verkehr). Die
 Rennsitzung bekommt ein normales Setup (`AttractMode.scene_setup`: `mode: "demo"`, Autopilot ohne Tanken und ohne
-Rasen, kein Countdown, Verkehr schon verteilt); Starttempo, reduziertes HUD und Spur setzt `AttractMode` nach dem
-Aufbau. Szenen lassen sich ohne Neubau über `game_config.json` neben der ausführbaren Datei ändern.
+Rasen, kein Countdown, Verkehr schon verteilt, Starttempo `start_speed_kmh` und optional Startspur `start_lane`). Die
+Rennsitzung setzt Tempo und Spur **vor** dem Aufbau des Verkehrs (`_warm_up_traffic`), der den Start dafür freiräumt:
+ein Auto in der Startspur, das näher ist als 12 m + 0,9 s Fahrt + Bremsweg auf sein Tempo mit halber Bremsleistung,
+kommt hinter den Wagen (vorher setzte `AttractMode` Tempo und Spur erst nach dem Aufbau, und der Aufbau schob Autos
+nur 40 m weiter – eines lag dann 15–25 m vor dem Wagen). `AttractMode` setzt nach dem Aufbau nur noch das reduzierte HUD.
+Szenen lassen sich ohne Neubau über `game_config.json` neben der ausführbaren Datei ändern.
 
 - **Ton**: Die Titelmusik läuft nahtlos weiter (kein `set_music(false)`; der Musik-Player des AudioManagers läuft
   unabhängig von der Szene). Alle Effekt-Busse – `SFX`, `Room`, `Engine`, `Siren`, `TrafficV<n>` – sind für die
   Demo stumm und danach wieder im Zustand von vorher (ein vom Spieler stummgeschalteter Bus bleibt stumm); `Music`
   wird nie angefasst. Beim Ende hört die Szene zuerst auf zu laufen, `AudioManager.stop_all()` bringt Motor,
-  Schleifen und Verkehr sofort zum Schweigen, erst dann werden die Busse zurückgesetzt. Voraussetzung:
+  Schleifen und Verkehr sofort zum Schweigen, erst dann werden die Busse zurückgesetzt – seit dem Review v0.5.0 erst,
+  wenn ihr Nachhall verklungen ist (alle Spitzenpegel unter `AttractMode.UNMUTE_PEAK_DB` −70 dB, spätestens nach
+  `UNMUTE_MAX_S` 1,2 s): ein stummer Bus rechnet seine Effekte weiter, sofort zurückgeschaltet spielten Hall und
+  Echo die letzte halbe Sekunde Motor über die Titelmusik (Paris → Titel −2 dB unter der Musik). Voraussetzung:
   `AudioManager.set_music(true)` startet laufende Musik nicht neu (die Rückkehr zum Titel ruft es auf).
 - **Bild**: Overlay `AttractOverlay` im 1280×720-Rahmen des Rennens: oben mittig das Logo in einer Zeile über dem
   Himmel (Wahrzeichen stehen seitlich der Straße und bleiben frei), darunter „DEMO“ und der Name der Szene auf einer

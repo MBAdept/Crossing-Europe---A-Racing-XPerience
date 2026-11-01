@@ -91,7 +91,8 @@ nähere Hintergrundebenen drehen sich etwas schneller (Parallaxe).
   ausgeblendet und neu gewürfelt (die Grenzen des neuen Abschnitts gelten sofort). Start und Ziel sind gerade und eben;
   hinter dem Ziel folgen `road.runout_m` gerade Auslaufstrecke.
 - **Fenster**: `update_window(camera_z, ahead)` erzeugt bis `ahead` + `generation_lead_m()` (Warnschild-Abstand + längste
-  Einlaufphase einer Kurve, 366 m) voraus und verwirft Segmente hinter der Kamera (`keep_behind` = 64).
+  Einlaufphase einer Kurve, 366 m; seit den Kuppenschildern 600 m: Prüfweite + Schildabstand + Sichtweite + 20 m) voraus
+  und verwirft Segmente hinter der Kamera (`keep_behind` = 64).
 - **Kurvenschilder** (seit dem Untersteuern zählt das Kurventempo, gameplay.md (i)): Ein Kurvenstück mit Betrag ≥
   `road.curve_warning_min_curve` (0,25 = 480 m Radius) ist *scharf*: Gefahrzeichen „Kurve“ (rot umrandetes Dreieck,
   Pfeil in Kurvenrichtung) `road.curve_warning_m` (200 m) vor seinem Anfang rechts und alle `road.chevron_every_m`
@@ -108,6 +109,18 @@ nähere Hintergrundebenen drehen sich etwas schneller (Parallaxe).
   Keine Kurvenschilder in Tunneln (dort höchstens 0,25) und in den ruhigen Zonen an Start und Ziel. Ergebnis im ganzen
   Netz: alle 691 scharfen Kurvenstücke (55 davon in City Limits) haben ihr Warnschild (Test
   `test_every_sharp_curve_has_a_warning_sign`). Sichtprüfung über alle Etappen: gameplay.md (i5).
+- **Kuppenschilder** (Review v0.5.0, QA: im Schnee tauchte langsamer Verkehr hinter Kuppen näher auf als der
+  Anhalteweg – in den City Limits von Burgos war eine Kolonne auf beiden Spuren unvermeidbar): Ist von einem Punkt bis
+  `road.crest_warning_check_m` (250 m) vor einer Kuppe ein Fahrzeug (`road.crest_target_height_m` 0,75 m hoch, halbe
+  Wagenhöhe) irgendwo innerhalb `road.crest_warning_sight_m` (180 m ≈ Anhalteweg im Schnee aus rund 200 km/h
+  Annäherung) dahinter verdeckt (Sichtlinie aus der Kamera wie bei den Kurven, `_sees(z_car, z_p, target_h)`), steht
+  `road.crest_warning_m` (150 m) vor diesem Punkt rechts das Gefahrzeichen „Kuppe“ (rotes Dreieck mit schwarzem Hügel,
+  Schildart `crest`; im Tunnel an der Wand), höchstens eines je 180 m, nicht in den ruhigen Zonen an Start und Ziel.
+  Entschieden wird, wenn die Straße 180 m hinter der Kuppe erzeugt ist; die Schilder verbrauchen keine Zufallszahlen –
+  die Straße bleibt gleich (Test `test_blind_crests_have_a_warning_sign`: gleiche Höhen und Kurven mit und ohne, beim
+  Streamen schon in Sichtweite vorhanden, je ein Schild vor den QA-Stellen San Sebastián – Burgos km 208,5 und
+  Saragossa – Pau km 147,1 / 75,8). Im ganzen Netz (beide Richtungen) 1 295 Schilder auf 24 160 km = 5,4 je 100 km,
+  höchstens 11 (Kassel – Würzburg ab Würzburg), flache Etappen keine.
 - **Spuren**: Autobahn 3, Landstraße 2, Stadt 2 (`road.lanes`). Wechsel über `road.lane_transition_m` weich
   (`lanes_at` gebrochen); `lane_count_at` meldet dem Verkehr schon vor und während des Übergangs die kleinere Zahl.
 - **Tankspur**: `fuel_lane_factor` 0..1 mit `road.fuel_lane_taper_m` Ein-/Ausfädelung; `fuel_lane_at` nur bei ganz offener
@@ -193,7 +206,8 @@ Wegweiser, Autobahnschild und Tankstellen-Ankündigungen auf der Autobahn (DE/NL
 breitem rotem Rand, IT … weiß/schwarz). Wegweiser abseits der Autobahn: `signs.road`/`road_fg`, falls in den Daten
 vorhanden, sonst blau/weiß in Ländern mit grünen Autobahnschildern und sonst die Ortsschildfarben (DE gelb, NL blau,
 FR weiß). Unbekanntes Land → deutscher Stil. Tempo-, Radar-, Tunnel- und EU-Grenzschilder sind europaweit gleich,
-ebenso das Kurven-Warnschild (`curve`) und die Richtungstafel (`chevron`, rot mit weißen Pfeilen, `value` = Richtung).
+ebenso das Kurven-Warnschild (`curve`), das Kuppen-Warnschild (`crest`, Review v0.5.0) und die Richtungstafel (`chevron`,
+rot mit weißen Pfeilen, `value` = Richtung).
 
 **Entscheidung: Schilder prozedural statt Blender-Sprites.** Das Design nennt Schilder bei den Blender-Sprites. Alle
 Schilder tragen aber veränderliche Inhalte – Zielname und Entfernung, Limit, Tunnelname und -länge, Landesname in
@@ -369,6 +383,8 @@ Zonenmeldungen → Tutorial-Hinweise → Ziel.
   bewirkt – „Schnee: Bremsweg ×2, der Wagen rutscht nach dem Spurwechsel weiter – früh gegenlenken“, „Regen: Bremsweg
   ×1,3, die Lenkung reagiert träger – früher bremsen“ (`SessionRules.weather_hint`, Faktor = trockene / nasse
   Vollbremsung aus `driving.grip_effects`). Die Tutorial-Etappe fährt immer trocken (gameplay.md „Wetter im Rennen“).
+  Die Countdown-Ziffer steht seit dem Review 42 px tiefer (`Hud.COUNTDOWN_Y` 292, Startampel darunter) – vorher
+  überdeckte sie den unteren Rand des Hinweises.
 - **City Limits ankündigen** (Review v0.5.0): am Vorschild (`city_limits.announce_km` vor den City Limits) die Meldung
   „City Limits Würzburg in 4 km – Tempo 50“ (`SessionRules.city_announce_due`/`city_announce_text`, einmal je Etappe, nie
   in den City Limits) – 333 m genügen, um selbst bei Schnee aus Höchsttempo auf das Stadttempo zu bremsen.
@@ -397,7 +413,8 @@ oder spätestens `render.finish_hold_s`. Ergebnis-Wörterbuch unverändert (ARCH
 
 Design: „Kiel – Hamburg: alternativlose Startetappe, gleichzeitig Tutorial.“ Die Etappe trägt in den Daten
 `tutorial: true` und `start_fuel_fraction: 0.35` (Start mit gut einem Drittel Tank – 95 km reichen damit nicht, der
-Tankstopp gehört dazu; `StagePlan.tutorial`, `FuelSystem`). Auf dieser Etappe (oder mit `--tutorial`) erzeugt die
+Tankstopp gehört dazu; `StagePlan.tutorial`, `FuelSystem`) – nur in Fahrtrichtung Kiel → Hamburg, die Rückrichtung
+(Einzeletappe) ist seit dem Review v0.5.0 eine normale Etappe. Auf dieser Etappe (oder mit `--tutorial`) erzeugt die
 Sitzung einen `TutorialCoach`, der jedes Thema einmal als kurzen „Tipp: …“ (HUD-Meldung, `render.tutorial_hint_s`
 = 6 s) zeigt, nacheinander mit 0,6 s Pause; dringende Themen kommen sofort, weil die Situation gerade eintritt:
 
@@ -415,6 +432,8 @@ Sitzung einen `TutorialCoach`, der jedes Thema einmal als kurzen „Tipp: …“
 | City Limits (dringend) | „City Limits – Tempo 50, dichter Verkehr, keine Tankstelle, kein Radar“ |
 | erste Kollision | „Zusammenstoß – der Wagen wird auf 10 km/h abgebremst und abgedrängt“ (`collision.target_speed_kmh`) |
 | Untersteuern (`understeer` > 0,3) oder eine Kurve in den nächsten 250 m verlangt > 5 % weniger als das aktuelle Tempo (dringend) | „Vor scharfen Kurven bremsen – sonst schiebt der Wagen nach außen“ |
+| erstes Auto bis 200 m voraus mit Blinker (dringend, Review v0.5.0) | „Blinker heißt, der Wagen zieht gleich herüber – Gas weg!“ |
+| erstes Elefantenrennen bis 200 m voraus (dringend, Review v0.5.0) | „Lkw überholt Lkw – zwei Spuren dicht, links bleibt frei“ |
 
 Die Etappenbeschreibung (`StagePlan.description`) zeigt der Etappenbildschirm (UI-Modul).
 
@@ -461,6 +480,19 @@ jedem Wetter ohne Unfall und ohne Ausflug neben die Fahrbahn schaffen):
   Kreis τ·x'' + (1 + V·kd)·x' + V·kp·x = 0 mit ω = min(7; 1,7/τ), Dämpfung 0,85. Trocken ist das die alte
   P-Lenkung (kp ≈ 0,7); im Schnee lenkt er früh gegen, statt zu pendeln (Test: Spurwechsel bei 200 km/h überschwingt
   < 0,4 m bei jedem Wetter).
+- **Spurenden** (Review v0.5.0 – im Königsrennen überholte er vor den City Limits in der leeren rechten Spur, die 250 m
+  später endete, und 90 m vor ihrem Ende schob ihn eine Spurwahl ohne Lückenprüfung in die stehende Einfädel-Kolonne
+  der Mittelspur: 157 km/h auf ein stehendes Auto): `Track.lane_end_ahead(z, Spur, Weite)` sucht das Ende jeder Spur
+  über den Spurhorizont `lane_horizon_m` = Bremsweg (`_look_m`) + `lane_change_s` (6 s) Fahrt – 235 km/h trocken ≈ 620 m,
+  100 km/h ≈ 280 m; gemessen bis dorthin, wo der Verkehr sie verlässt (`road.lane_transition_m` vor der Verengung).
+  Eine Spur, die innerhalb des Horizonts endet, ist kein Ziel zum Überholen, auch wenn sie leer ist; endet die eigene,
+  wechselt er früh nach links, aber nur in eine freie Lücke – ohne Lücke hält er `lane_end_margin_m` (25 m) vor ihrem
+  Ende an, statt sich hinüberzudrängen (Grund `lane end`).
+- **Tankspur verlassen**: nach dem Tanken (oder in der Tankspur ohne Tankabsicht) zurück in die rechte Spur nur durch
+  eine freie Lücke – auch nach hinten: `_lane_free` verlangt hinten 12 m + 0,5 s Annäherung + deren Bremsweg mit
+  `behind_brake_mps2` (3 m/s²; mit 30 km/h vor einem Auto mit 100 km/h ≈ 85 m; vorher 2 s Annäherung = 51 m). Bis dahin
+  fährt er in der Tankspur weiter und hält vor ihrem Ende (`Track.fuel_lane_end_ahead`, Grund `fuel exit`). Vorher zog
+  er mit 31 km/h vor ein Auto mit 100 km/h (Kiel – Nürnberg, Sportwagen bei vmax).
 - `weather_aware = false` (nur Messungen): plant Verkehr, Lücken und Lenken wie auf trockener Straße.
 - Ergebnis: in den Messungen (gameplay.md (j)) und `tests/unit/race/test_autopilot_weather.gd` (dichter Berufsverkehr bei
   Schnee und Regen, Autobahn, kurvige Landstraße, Autobahn mit Limit) keine Kollision, nie neben der Fahrbahn, kein
@@ -489,7 +521,10 @@ Zusätzlich zu ARCHITECTURE.md §13 (`--stage --from --vehicle --hour --weather 
 
 `--timescale=<f>` setzt `Engine.time_scale` und die Physiktakte auf 60·f, damit jeder Schritt 1/60 s bleibt.
 Setup-Schlüssel für Tests: `no_countdown`, `autopilot_speeding`, `autopilot_refuel`, `autopilot_target`,
-`autopilot_no_curve_brake`, `traffic_warmup`, `tutorial`.
+`autopilot_no_curve_brake`, `traffic_warmup`, `tutorial`; Review v0.5.0: `start_speed_kmh` und `start_lane` (fliegender
+Start der Attract-Demos – vor dem Aufbau des Verkehrs gesetzt, der den Start dafür freiräumt: ein Auto in der Startspur
+näher als 12 m + 0,9 s Fahrt + Bremsweg auf sein Tempo mit halber Bremsleistung kommt hinter den Wagen,
+`warm_up_clear_m`).
 
 Demo des Fahrmodells als Video (Godot Movie Maker, unter Xvfb): zu schnell in die scharfe Linkskurve der Dev-Etappe bei
 km 69 und dieselbe Kurve mit Bremsen:
@@ -534,6 +569,10 @@ xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
   `player_lanes`, `police`, `tunnel`. Am Ende je Auto die Zahl der Zellwechsel und der Bereich des
   Darstellungswinkels (Flacker-Prüfung im echten Renderer); `--no-shots --perf` läuft auch headless und gibt die
   `_draw`-Zeiten aus. `python3 tests/fixtures/make_fixtures.py` erzeugt die Testdaten neu.
+- `godot --headless --path . --fixed-fps 60 -s res://tests/race/check_attract_scenes.gd [-- --only=wien,paris]` (Review
+  v0.5.0, ~2 min, in `tools/run_tests.sh`): jede Attract-Szene 30 s durch das echte Spiel – endet nach Zeit (nicht im
+  Ziel), ohne Kollision, Leitplanke und Ausflug neben die Fahrbahn, nie näher als 10 m hinter einem Auto (in den ersten
+  3 s 15 m), Ø ≥ 70 km/h (docs/ui.md „Attract-Modus“).
 - `godot --headless --path . -s res://tests/race/check_session.gd [-- --only=coll_right,tutorial]` – Szenarien in
   der echten Rennszene (≈ 30 s): Auffahrunfall genau von hinten in rechter/linker/mittlerer Spur → Seite mit mehr
   Platz bzw. links; Ausrollen mit leerem Tank in ein langsameres Auto → Kollision, Abschleppen erst nach dem
@@ -552,11 +591,17 @@ xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
 - `tests/unit/race/test_autopilot_weather.gd` (v0.5.0): PD-Lenkung des Autopiloten pendelt bei keinem Wetter
   (Spurwechsel bei 200 km/h < 0,4 m Überschwingen, nach < 2,5 s in der Spur), Planverzögerung nach Wetter, dichter
   Berufsverkehr bei Schnee (Gran Turismo, 110 km) und Regen (Kompakt, 80 km) ohne Kollision, Bankett und Untersteuern,
-  zur Tankspur Spur für Spur nur in freie Lücken (`test_fuel_lane_approach_waits_for_a_gap`).
+  zur Tankspur Spur für Spur nur in freie Lücken (`test_fuel_lane_approach_waits_for_a_gap`); Review v0.5.0: am Spurende
+  3 → 2 mit stehender Kolonne in der Mittelspur hält er vor dem Ende, statt hineinzuziehen
+  (`test_lane_end_stops_instead_of_forcing_into_a_jam`), überholt nie in einer endenden Spur
+  (`test_does_not_overtake_in_an_ending_lane`) und verlässt die Tankspur erst, wenn das Auto mit 100 km/h von hinten
+  vorbei ist (`test_fuel_lane_exit_waits_for_the_traffic_behind`).
 - `xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --resolution 1280x720 --write-movie
   /tmp/schnee.avi --fixed-fps 30 --quit-after 1100 -s res://tests/race/movie_snow.gd -- --start-speed=120
-  [--stage=hamburg_bremen --km=26 --hour=7.5 --weather=snow]` – Demofahrt als Video (v0.5.0: Berufsverkehr, fliegender
-  Start mit 120 km/h): Schnee auf der Autobahn, langsamer Verkehr; der Autopilot
+  [--stage=hamburg_hannover --km=70 --hour=7.5 --weather=snow --seed=5]` – Demofahrt als Video (v0.5.0: Berufsverkehr,
+  fliegender Start mit 120 km/h): Schnee auf der Autobahn, langsamer Verkehr – Lkw mit 55 km/h, vier Fahrzeuge ziehen
+  mit Blinker heraus (QA: die alten Vorgaben Hamburg – Bremen km 26, Seed 3 zeigten in den ersten 35 s keinen Lkw und
+  keinen Blinker); der Autopilot
   wählt Tempo und Spur, gelenkt wird wie mit der Tastatur (voller Einschlag, loslassen wie auf trockener Straße) – der
   Wagen rutscht nach jedem Spurwechsel weiter und wird abgefangen (gameplay.md „Wetter“).
 - `godot --headless --path . -s res://tests/race/run_stage.gd -- --stage=dev_testetappe [--hour=21 --weather=rain
@@ -591,7 +636,9 @@ zwischengespeichert, Lichtüberlagerungen nur bei Licht, Zellsuche ab der aktuel
 `road`: `lane_width_m`, `lanes`, `shoulder_width_m`, `guardrail`, `curve_radius_at_1_m`, `curviness_max_curve`,
 `hills_max_grade`, `lane_transition_m`, `fuel_lane_taper_m`, `runout_m`, `delineator_every_m`, `streetlight_every_m`,
 `crosswalk_every_m`, Kurvenschilder (§4): `curve_warning_min_curve` (0,25), `curve_warning_blind_min_curve` (0,12),
-`curve_warning_sight_m` (150), `curve_warning_m` (200), `chevron_every_m` (30). `curviness_max_curve` [0; 0,30;
+`curve_warning_sight_m` (150), `curve_warning_m` (200), `chevron_every_m` (30); Kuppenschilder (§4, Review v0.5.0):
+`crest_warning_sight_m` (180; 0 = keine), `crest_warning_check_m` (250), `crest_warning_m` (150),
+`crest_target_height_m` (0,75). `curviness_max_curve` [0; 0,30;
 0,45; 0,9] (Kurvigkeit 1 seit dem Spieltest „Kurven immer mit Top Speed“ 0,30 statt 0,22: R ≥ 400 statt 545 m,
 gameplay.md (i)).
 
@@ -622,11 +669,15 @@ Anstrahlung), `landmark_range_factor` (2,0 × Sichtweite), `skyline_distance_m` 
   `generation_lead_m()` (Vorlauf der Erzeugung vor dem Fenster, Kurvenschilder §4), `grip_at(z, weather_grip)`
   (Haftung: im Tunnel 1,0), `curve_signs_cut` (Diagnose: Warnschilder abgeschnittener Kurvenstücke),
   Konstanten `WALL_SIGN_GAP_M`, `WALL_SIGN_OVERHANG_M`; Schild-Requisiten zusätzlich `country`, `road`, im Tunnel
-  `wall` (und `scale` < 1); Schildarten `curve` (Warnschild) und `chevron` (Richtungstafel), `value` = Richtung;
+  `wall` (und `scale` < 1); Schildarten `curve` (Warnschild), `crest` (Kuppe, Review v0.5.0; Zähler `crest_signs`) und
+  `chevron` (Richtungstafel), `value` = Richtung;
   `town_ahead` (Vorschild der City Limits: `text` Ziel, `value` km, `limit` Stadtlimit), `city_announce_km()`
-  (`city_limits.announce_km`, Review v0.5.0).
+  (`city_limits.announce_km`, Review v0.5.0); `lane_end_ahead(z, lane, look_m)` (Meter bis dorthin, wo die Spur für
+  den Verkehr endet, INF = geht weiter) und `fuel_lane_end_ahead(z)` (Meter bis zum Ende der Tankspur, in der z liegt)
+  – Review v0.5.0 für den Autopiloten (§10).
 - `Autopilot`: `curve_brake`, `curve_margin`, `curve_lookahead_m`, `curve_step_m`, `curve_lead_m`,
-  `curve_speed_ahead(track, vehicle, z, grip)`, statisch `pedals(speed, want)` → `{throttle, brake}`.
+  `curve_speed_ahead(track, vehicle, z, grip)`, statisch `pedals(speed, want)` → `{throttle, brake}`; Review v0.5.0:
+  `lane_end_margin_m`, `lane_change_s`, `behind_brake_mps2`, `lane_horizon_m(speed)`.
 - Rennsitzung: `drive_stats` (`off_road_s`, `limit_s`, `rail_hits`, `understeer_s`, `understeer_max`), in
   `perf_stats()["drive"]`; Tutorial-Thema `curve` (`TutorialCoach.URGENT`).
 - `TrackSegment`: `runout`, `fuel_zone` (+ Konstanten `FUEL_*`), `cover`, `cover_front`, `country_to`; Städte: `bridge`,

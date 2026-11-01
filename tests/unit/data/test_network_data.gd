@@ -125,7 +125,9 @@ func test_tutorial_stage() -> void:
 	# tutorial data: flagged stage, starts with ~1/3 tank so the fuel stop is part of the tutorial
 	assert_true(p.tutorial, "Kiel – Hamburg ist die Tutorial-Etappe")
 	assert_near(p.start_fuel_fraction, 0.35, 0.001, "Start mit 35 % Tank")
-	assert_true(r.tutorial, "auch in Gegenrichtung als Tutorial markiert")
+	# the way back is no tutorial (QA v0.5.0: Hamburg – Kiel had tutorial tips, a 35 % tank and the dry rule)
+	assert_false(r.tutorial, "Gegenrichtung Hamburg – Kiel ist kein Tutorial")
+	assert_eq(r.start_fuel_fraction, -1.0, "Gegenrichtung: Starttank aus der Konfiguration")
 	for id in net().stage_order:
 		if id != "kiel_hamburg":
 			var other := net().get_stage_plan(id, "")
