@@ -20,6 +20,11 @@ extends Node2D
 ## the player car is a perspective sprite (anchor = projected ground point of its centre) with a smoothed
 ## visible yaw and body roll; old ortho player sets keep their rear anchor.
 ##
+## Individual cities (docs/staedte.md): water beside the deck on bridges (quay walls / embankments at the banks,
+## sky reflection, glints, city lights at night), railings per bridge type, truss girders and portals,
+## pylons with cable fans, landmarks visible far beyond the draw range (fading in with the haze), skyline
+## silhouettes in the panorama (RaceBackdrop), fences/hedges of the city scenery, per-city background.
+##
 ## Input: render(view) once per frame (see ARCHITECTURE.md §Renderer-View). Extra view keys used
 ## here: length (player/cars), countdown, chase01, radar_flash01, camera_in_tunnel; per car id (pose
 ## smoothing), speed; player steer, lat_speed, push_speed, understeer (visible yaw and roll).
@@ -33,6 +38,11 @@ const HAUNCH := Color("57544e")
 const CEILING := Color("3e3b35")
 const CONCRETE := Color("b9b5aa")
 const ROCK := Color("7d7466")
+const QUAY := {"canal": Color("7a5648"), "causeway": Color("a9a395"), "river": Color("9a948a"), "stone_arch": Color("a8a090"),
+	"truss_arch": Color("8f8b84"), "cable_stayed": Color("a3a29c")}
+const RAIL := {"canal": Color("2c3430"), "causeway": Color("c9c6bd"), "river": Color("6d767d"), "stone_arch": Color("d6ccb6"),
+	"truss_arch": Color("4f6b55"), "cable_stayed": Color("c4c8cc")}
+const SKY_OFFSETS: Array[float] = [0.2, -0.34, 0.44, -0.12, 0.31, -0.48]   ## skyline-only silhouettes (rad)
 const STATS_N := 600
 # indices of the cached sprite metadata (_spinfo)
 const SI_TEX := 0
@@ -110,6 +120,17 @@ var _roll_per := 0.22
 var _roll_max := 2.5
 var _roll_tau := 0.2
 var _box := BoxVehicle.new()
+# individual cities (render.landmark_*, render.skyline_distance_m)
+var _lm_far := 1900.0                  ## landmarks are drawn up to this depth (beyond the draw range)
+var _lm_range_k := 2.0                 ## landmark visibility = visibility_m × this (haze), capped by _lm_far
+var _sky_dist := 1800.0                ## virtual distance of the panorama silhouettes (size)
+var _sky_anchor: Dictionary = {}       ## skyline index -> panorama angle (rad), fixed when first seen
+var _bg_cache: Dictionary = {}         ## scenery id -> background with the city overrides
+var _water_cache: Dictionary = {}      ## bridge index -> water colour
+var _col_cache: Dictionary = {}        ## colour string -> Color
+var _lm_amb := Color.WHITE             ## landmark shading of the current draw call (procedural landmarks)
+var _lm_haze := 0.0
+var _lm_alpha := 1.0
 
 # per-frame projected rows (k = 0 is the segment start at or behind the camera)
 var _n := 0
@@ -265,7 +286,11 @@ func setup(t: Track, p: RoadProjection, config: Dictionary, scenery: Dictionary)
 	var manifest: Variant = ConfigLoader.load_json("res://assets/sprites/manifest.json")
 	var placeholders := manifest is Dictionary and str((manifest as Dictionary).get("generator", "")) == "placeholders"
 	_prefer_proc = mode == "always" or (mode == "auto" and placeholders)
+	_lm_far = float(r.get("landmark_far_m", 1900.0))
+	_lm_range_k = float(r.get("landmark_range_factor", 2.0))
+	_sky_dist = maxf(200.0, float(r.get("skyline_distance_m", 1800.0)))
 	backdrop.setup(proj, batch, float(r.get("background_blend_s", 2.5)))
+	backdrop.sprite_cb = _draw_skyline_landmark
 	signs.setup(self, batch)
 	signs.countries = _country_data()
 	_times.resize(STATS_N)
@@ -362,8 +387,10 @@ func _draw() -> void:
 		var base_y := hy
 		if _clip.size() > _n and _clip[_n] < hy:
 			base_y = maxf(_clip[_n], hy - 120.0)
-		backdrop.draw_background(_pal_out, scen_id, scen.get("background", {}), heading, _time, haze * 0.9, base_y)
+		backdrop.landmarks = _skyline_silhouettes(heading)
+		backdrop.draw_background(_pal_out, scen_id, _background_for(scen_id, scen), heading, _time, haze * 0.9, base_y)
 		batch.rect(Rect2(-40, base_y, w + 80, proj.screen.y - base_y + 40), _exposed(_pal_out["fog"]))
+		_draw_far_landmarks()
 	else:
 		batch.rect(Rect2(-40, -40, w + 80, proj.screen.y + 80), Palette.TUNNEL_FOG)
 	var t3 := Time.get_ticks_usec()
@@ -675,7 +702,7 @@ func _tunnel_exit_visible() -> bool:
 func _has_marking(seg: TrackSegment) -> bool:
 	if absf(seg.z - track.length_z) < _seg_len * 2.0 or absf(seg.z - 14.0) < _seg_len * 2.0:
 		return true
-	return seg.city and fposmod(seg.z, _crosswalk_every) < _seg_len
+	return seg.city and not seg.water and fposmod(seg.z, _crosswalk_every) < _seg_len
 
 
 func _build_slices() -> void:
@@ -706,6 +733,8 @@ func _can_merge(a: int, b: int) -> bool:
 	if sa.tunnel != sb.tunnel or sa.city != sb.city or sa.road != sb.road or sa.guardrail != sb.guardrail:
 		return false
 	if sa.fuel_zone != sb.fuel_zone or sa.cover != sb.cover or sa.runout != sb.runout or sa.scenery != sb.scenery:
+		return false
+	if sa.water != sb.water or sa.bridge_i != sb.bridge_i or sb.bank or absf(sa.water_level - sb.water_level) > 0.05:
 		return false
 	if absf(sa.fuel_lane - sb.fuel_lane) > 0.01 or absf(sa.lanes - sb.lanes) > 0.01:
 		return false
@@ -1042,8 +1071,10 @@ func _draw_ground(a: int, b: int) -> void:
 	var rb := mb + sb.fuel_lane * lw
 	var lit_row := _lit and a < _lit_rows
 	var w := proj.screen.x
-	# grass (full width; split at night so the headlight cone can light the verge)
-	if not tunnel:
+	# grass (full width; split at night so the headlight cone can light the verge); water on bridges
+	if not tunnel and sa.water:
+		_draw_water(a, b, sa, merged)
+	elif not tunnel:
 		var g := _grass_color(sa, merged)
 		if lit_row:
 			var xl_a := (-40.0 - _sx[a]) / _ss[a]
@@ -1078,6 +1109,12 @@ func _draw_ground(a: int, b: int) -> void:
 		_gstrip(a, b, ra, ra + 0.25, rb, rb + 0.25, curb, curb_h)
 		_vstrip(a, b, la, lb, 0.0, curb_h, curb.darkened(0.15))
 		_vstrip(a, b, ra, rb, 0.0, curb_h, curb.darkened(0.15))
+	elif sa.water:
+		# bridge deck outside the City Limits: paved shoulders up to the railing
+		var deck := Palette.SHOULDER_PAVED.darkened(0.05)
+		var dx := Track.BRIDGE_DECK_EXTRA_M
+		_gstrip(a, b, la - sh - dx, la, lb - sh - dx, lb, deck, 0.0, 2 if lit_row else 1, 0.6)
+		_gstrip(a, b, ra, ra + sh + dx, rb, rb + sh + dx, deck, 0.0, 2 if lit_row else 1, 0.8)
 	else:
 		var shc := Palette.SHOULDER_PAVED if sa.road == "autobahn" else _grass_color(sa, merged).lerp(Palette.SHOULDER, 0.65)
 		if sa.road == "autobahn" and _snow > 0.0:
@@ -1142,7 +1179,7 @@ func _draw_markings(a: int, b: int, sa: TrackSegment, sb: TrackSegment, la: floa
 	var z0 := _zw[a]
 	if absf(z0 + _seg_len * 0.5 - track.length_z) <= _seg_len * 0.5 or absf(z0 + _seg_len * 0.5 - 14.0) <= _seg_len * 0.5:
 		_checker(a, la, ra, lb, rb)
-	elif sa.city and fposmod(sa.z, _crosswalk_every) < _seg_len:
+	elif sa.city and not sa.water and fposmod(sa.z, _crosswalk_every) < _seg_len:
 		var bars := int((ma - la) / 1.0)
 		for i in bars:
 			var x0 := la + 0.3 + float(i) * 1.0
@@ -1197,6 +1234,10 @@ func _draw_structures(a: int, b: int, hidden: bool) -> void:
 		_fuel_structures(a, b, sa, ra, rb)
 	if sa.cover != "":
 		_border_cover(a, b, sa, la - _sh, ra + _sh, lb - _sh, rb + _sh)
+	if sa.water:
+		_bridge_structures(a, b, sa, la, lb, ra, rb, merged)
+	elif sa.city:
+		_fence(a, b, sa, la, lb, ra, rb, merged)
 
 
 func _guardrail(a: int, b: int, xa: float, xb: float, merged: bool) -> void:
@@ -1553,18 +1594,27 @@ func _prep_prop(it: Dictionary) -> Array:
 	var proc := str(it.get("proc", ""))
 	var set_id := _resolve_set(it)
 	if proc != "" and (_prefer_proc or set_id == ""):
+		if it.has("align") and bool(it.get("landmark", false)):
+			# procedural landmark: x is its near edge -> anchor at its middle
+			x += float(int(it.get("side", 1))) * float(it.get("width_m", 30.0)) * 0.5 * float(it.get("scale", 1.0))
 		res = ["", [], 1.0, x, proc, Color.WHITE]
 	elif set_id == "":
 		res = ["", [], 0.0, x, "", Color.WHITE]
 	else:
 		var info := _spinfo(set_id)
 		var sc := _prop_scale(it, set_id)
+		if it.has("fit_w"):
+			# overhead structures (bridge portals) span the whole deck
+			sc = float(it["fit_w"]) / maxf(0.5, (info[SI_OBJ] as Vector3).x)
 		if it.has("align"):
 			# "edge": x is the near edge of the object -> shift its anchor away from the road by the
 			# object's extent towards the road (extent_m of the manifest, else half its width)
 			var side := int(it.get("side", 1))
 			x = edge_anchor_x(x, side, prop_flipped(side, bool(it.get("mirror", false)), bool(info[8])), info[7], sc)
-		res = [set_id, info, sc, x, "", Color(str(it["tint"])) if it.has("tint") else Color.WHITE]
+		var tint := Color(str(it["tint"])) if it.has("tint") else Color.WHITE
+		if set_id != str(it.get("set", "")) and it.has("fallback_tint"):
+			tint *= Color(str(it["fallback_tint"]))
+		res = [set_id, info, sc, x, "", tint]
 	it["_c"] = res
 	return res
 
@@ -1580,9 +1630,14 @@ func _draw_item(k: int, it: Dictionary) -> void:
 		var pc := _prep_prop(it)
 		var info: Array = pc[1]
 		var px := float(pc[3])
+		if bool(it.get("landmark", false)):
+			var pl := _proj_at(k, f, px, 0.0)
+			if pl.z > 0.0:
+				_draw_landmark(it, pc, pl, proj.focal / pl.z)
+			return
 		if not info.is_empty():
 			# sprite prop: cheap culling (size, screen) before any shading work
-			var p := _proj_at(k, f, px, 0.0)
+			var p := _proj_at(k, f, px, float(it.get("h", 0.0)))
 			if p.z <= 0.0:
 				return
 			var wpx := (info[3] as Vector2).x / float(info[1]) * p.z * float(pc[2])
@@ -2281,6 +2336,12 @@ func _draw_object(k: int, obj: String, it: Dictionary, p: Vector3, alpha: float,
 			_radar_cam(k, p, alpha, light)
 		"booth":
 			_booth(k, p, side, alpha, light)
+		"truss_portal":
+			_truss_portal(k, it, p, alpha, light)
+		"pylon":
+			_pylon(k, it, p, alpha, light)
+		"bridge_lamp":
+			_bridge_lamp(k, it, p, alpha, light)
 
 
 func _oc(base: Color, k: int, light: float, alpha: float, reflect: float = 0.5) -> Color:
@@ -2303,6 +2364,8 @@ func _streetlight(k: int, p: Vector3, side: int, alpha: float) -> void:
 	if _lights > 0.05:
 		batch.rect(Rect2(lamp.x - 0.38 * s, lamp.y + 0.1 * s, 0.76 * s, 0.09 * s), Color(1.0, 0.9, 0.65, alpha * _lights))
 		_glow(lamp + Vector2(0, 0.2 * s), maxf(3.0, 2.4 * s), Color(1.0, 0.75, 0.4, 0.5 * _lights * alpha))
+		if _segs[k].water:
+			_water_reflection(k, p, side, 2.5, Color(1.0, 0.75, 0.4, 0.45 * _lights * alpha))
 
 
 func _fuel_pylon(k: int, p: Vector3, alpha: float, light: float) -> void:
@@ -2374,6 +2437,867 @@ func _booth(k: int, p: Vector3, side: int, alpha: float, light: float) -> void:
 	if _lights > 0.3:
 		_glow(r.get_center(), maxf(3.0, 2.5 * s), Color(1.0, 0.85, 0.55, 0.25 * _lights * alpha))
 	var _unused := side
+
+
+# --- individual cities: water, bridges, fences (docs/staedte.md) ------------------------------------
+
+const TRUSS_H := 4.2          ## height of the side girders of truss bridges (m)
+const TRUSS_PANEL := 7.5      ## panel length of the side girders (m)
+
+
+func _color(c: String) -> Color:
+	var v: Variant = _col_cache.get(c)
+	if v == null:
+		v = Color(c)
+		_col_cache[c] = v
+	return v
+
+
+## Water colour of the bridge on seg: bridge "water", else scenery "water", else the default per type.
+func _water_base(seg: TrackSegment) -> Color:
+	var v: Variant = _water_cache.get(seg.bridge_i)
+	if v != null:
+		return v
+	var c := ""
+	if seg.bridge_i >= 0 and seg.bridge_i < track.bridges.size():
+		c = str(track.bridges[seg.bridge_i].get("water", ""))
+	if c == "":
+		c = str((scenery_db.get(seg.scenery, {}) as Dictionary).get("water", ""))
+	if c == "":
+		c = str(CityData.WATER_COLOR.get(seg.bridge, "#4b6878"))
+	var col := Color(c)
+	_water_cache[seg.bridge_i] = col
+	return col
+
+
+## Water colour of row k: ambient-lit base that mirrors more of the sky towards the horizon (grazing
+## angle), then fog. Night: the sky is dark, so is the water.
+static func water_tint(base: Color, amb: Color, sky: Color, dz: float) -> Color:
+	var fres := clampf(0.16 + dz / 600.0, 0.16, 0.7)
+	return Color(base.r * amb.r, base.g * amb.g, base.b * amb.b).lerp(sky, fres)
+
+
+func _water_row(base: Color, k: int) -> Color:
+	var c := water_tint(base, _amb, _pal_out["sky_bottom"], _dz[k])
+	if _snow > 0.0:
+		c = c.lerp(Color(0.75, 0.8, 0.84), 0.15 * _snow)
+	return c.lerp(_fogc, _ftx[k])
+
+
+## Water under and beside the bridge deck: one full-width band per slice at the height of the ground
+## under the deck (TrackSegment.water_level: the water surface, rising to the road on the bank slopes –
+## quay walls, embankments); the deck, drawn afterwards, covers it. Slopes facing away are skipped. Near
+## the camera light ripples / sun glints flicker at fixed spots of each segment.
+func _draw_water(a: int, b: int, sa: TrackSegment, merged: bool) -> void:
+	var depth := sa.water_depth
+	var sb := _segs[b]
+	var la := sa.water_level
+	var lb := sb.water_level if sb.water else 0.0
+	var ya := _sy[a] - la * _ss[a]
+	var yb := _sy[b] - lb * _ss[b]
+	if yb >= ya - 0.01:
+		return
+	var w := proj.screen.x
+	if la > -depth + 0.05 or lb > -depth + 0.05:
+		# bank slope (quay wall or embankment) between ground and water
+		var q: Color = QUAY.get(sa.bridge, QUAY["river"])
+		if sa.bridge_i >= 0 and sa.bridge_i < track.bridges.size() and str(track.bridges[sa.bridge_i].get("bank", "")) != "":
+			q = _color(str(track.bridges[sa.bridge_i]["bank"]))
+		var qa := _rowc(q.darkened(0.35 * clampf(-la / depth, 0.0, 1.0)), a)
+		var qb := _rowc(q.darkened(0.35 * clampf(-lb / depth, 0.0, 1.0)), b)
+		batch.quad4(Vector2(-40, yb), Vector2(w + 40, yb), Vector2(w + 40, ya), Vector2(-40, ya), qb, qb, qa, qa)
+		return
+	var base := _water_base(sa)
+	var ca := _water_row(base, a)
+	var cb := _water_row(base, b)
+	batch.quad4(Vector2(-40, yb), Vector2(w + 40, yb), Vector2(w + 40, ya), Vector2(-40, ya), cb, cb, ca, ca)
+	if merged or _dz[a] > 320.0:
+		return
+	# glints: thin streaks across the current at fixed spots per segment (a fraction of a segment deep)
+	var deck := sa.lanes * _lw * 0.5 + _sh + 1.0
+	var sun := bool(_pal_out.get("sun_visible", false)) and _lights < 0.3
+	var sky_top: Color = _pal_out["sky_top"]
+	var hi := Color(1.0, 0.98, 0.92) if sun else sky_top.lightened(0.3)
+	if _lights > 0.3:
+		hi = Color(1.0, 0.78, 0.45)   # night: shimmering reflections of the city lights
+	var v := sa.index * 92821 + 17
+	for j in 5:
+		v = (v * 1103515245 + 12345) & 0x7fffffff
+		var xc := (float(v % 4000) / 4000.0 - 0.5) * 130.0
+		if absf(xc) < deck:
+			continue
+		var ph := sin(_time * (1.3 + float(j) * 0.4) + float(sa.index) * 0.9 + float(j) * 2.3)
+		if ph < 0.2:
+			continue
+		var half := 0.7 + float((v >> 12) % 100) * 0.035
+		var f0 := float((v >> 5) % 70) / 100.0
+		var p0 := _proj_at(a, f0, xc, -depth)
+		var p1 := _proj_at(a, f0 + 0.12, xc, -depth)
+		if p0.z <= 0.0 or p1.z <= 0.0:
+			continue
+		var al := (0.42 if sun else 0.2) * (ph - 0.2) / 0.8 * (1.0 - _ftx[a])
+		var c := _rowc(Color(hi, al), a)
+		if _lights > 0.3:
+			c = Color(hi.lerp(_fogc, _ftx[a] * 0.7), 0.5 * _lights * (ph - 0.2) / 0.8)
+		var top := minf(p1.y, p0.y - 0.8)
+		batch.quad(Vector2(p0.x - half * p0.z, p0.y), Vector2(p0.x + half * p0.z, p0.y), Vector2(p1.x + half * p1.z * 0.8, top), Vector2(p1.x - half * p1.z * 0.8, top), c)
+
+
+func _bridge_color(seg: TrackSegment) -> Color:
+	if seg.bridge_i >= 0 and seg.bridge_i < track.bridges.size():
+		var c := str(track.bridges[seg.bridge_i].get("color", ""))
+		if c != "":
+			return _color(c)
+	return RAIL.get(seg.bridge, RAIL["river"])
+
+
+## Railing at the outer deck edges (type-specific), side girders of truss bridges.
+func _bridge_structures(a: int, b: int, sa: TrackSegment, la: float, lb: float, ra: float, rb: float, merged: bool) -> void:
+	var extra := 0.0 if sa.city else Track.BRIDGE_DECK_EXTRA_M
+	var col := _bridge_color(sa)
+	for x: Vector2 in [Vector2(la - _sh - extra, lb - _sh - extra), Vector2(ra + _sh + extra, rb + _sh + extra)]:
+		match sa.bridge:
+			"stone_arch":
+				_balustrade(a, b, x.x, x.y, col, merged)
+			"canal":
+				_iron_railing(a, b, x.x, x.y, col, merged, 1.02)
+			"causeway":
+				_vstrip(a, b, x.x, x.y, 0.0, 0.82, col, 0.5)
+				_vstrip(a, b, x.x, x.y, 0.82, 0.92, col.lightened(0.12), 0.5)
+			_:
+				_steel_railing(a, b, x.x, x.y, col, merged)
+		if sa.bridge == "truss_arch":
+			var o := signf(x.x) * 0.35
+			_truss_girder(a, b, x.x + o, x.y + o, col, merged)
+
+
+func _steel_railing(a: int, b: int, xa: float, xb: float, col: Color, merged: bool) -> void:
+	_vstrip(a, b, xa, xb, 0.0, 0.28, CONCRETE, 0.5)
+	_vstrip(a, b, xa, xb, 0.5, 0.56, col.darkened(0.15), 0.6)
+	_vstrip(a, b, xa, xb, 0.98, 1.1, col, 0.6)
+	if not merged and _ss[a] > 1.5 and _segs[a].index % 2 == 0:
+		var s := _ss[a]
+		var pw := maxf(1.0, 0.1 * s)
+		batch.rect(Rect2(_sx[a] + xa * s - pw * 0.5, _sy[a] - 1.1 * s, pw, 0.82 * s), _shade(col.darkened(0.2), a, xa, 0.5))
+
+
+## Stone balustrade: plinth, balusters (single near the camera, a translucent band farther away),
+## handrail, pedestals every 12 m.
+func _balustrade(a: int, b: int, xa: float, xb: float, col: Color, merged: bool) -> void:
+	_vstrip(a, b, xa, xb, 0.0, 0.24, col.darkened(0.22), 0.5)
+	if merged or _ss[a] < 3.0:
+		_vstrip(a, b, xa, xb, 0.24, 0.92, Color(col.darkened(0.08), 0.55), 0.5)
+	else:
+		var bc := _shade(col.darkened(0.04), a, xa, 0.5)
+		for i in 5:
+			var f := (float(i) + 0.5) / 5.0
+			var q := _proj_at(a, f, lerpf(xa, xb, f), 0.24)
+			if q.z <= 0.0:
+				continue
+			var bw := maxf(1.0, 0.14 * q.z)
+			batch.rect(Rect2(q.x - bw * 0.5, q.y - 0.68 * q.z, bw, 0.68 * q.z), bc)
+	_vstrip(a, b, xa, xb, 0.92, 1.14, col.lightened(0.08), 0.5)
+	if not merged and _segs[a].index % 4 == 0 and _ss[a] > 0.8:
+		var s := _ss[a]
+		batch.rect(Rect2(_sx[a] + xa * s - 0.28 * s, _sy[a] - 1.32 * s, 0.56 * s, 1.32 * s), _shade(col.lightened(0.03), a, xa, 0.5))
+
+
+## Wrought-iron railing (canal bridges, iron fences): rails and thin bars (a translucent band far away).
+func _iron_railing(a: int, b: int, xa: float, xb: float, col: Color, merged: bool, h: float) -> void:
+	_vstrip(a, b, xa, xb, h * 0.42, h * 0.47, col, 0.5)
+	_vstrip(a, b, xa, xb, h - 0.07, h, col, 0.5)
+	if merged or _ss[a] < 2.0:
+		_vstrip(a, b, xa, xb, 0.1, h, Color(col, 0.3), 0.4)
+		return
+	var bc := _shade(col, a, xa, 0.5)
+	for i in 5:
+		var f := (float(i) + 0.5) / 5.0
+		var q := _proj_at(a, f, lerpf(xa, xb, f), 0.1)
+		if q.z <= 0.0:
+			continue
+		var bw := maxf(1.0, 0.05 * q.z)
+		batch.rect(Rect2(q.x - bw * 0.5, q.y - (h - 0.1) * q.z, bw, (h - 0.1) * q.z), bc)
+
+
+## Side girder of a truss bridge: chords along the deck edge, verticals and alternating diagonals every
+## TRUSS_PANEL metres (thin lines, the water stays visible between them).
+func _truss_girder(a: int, b: int, xa: float, xb: float, col: Color, _merged: bool) -> void:
+	_vstrip(a, b, xa, xb, TRUSS_H - 0.45, TRUSS_H, col, 0.5)
+	_vstrip(a, b, xa, xb, 0.0, 0.4, col.darkened(0.15), 0.5)
+	if _dz[a] > 520.0:
+		return
+	var z0 := _zw[a]
+	var z1 := _zw[b]
+	var lc := _rowc(col.darkened(0.1), a)
+	var zp := ceilf(z0 / TRUSS_PANEL) * TRUSS_PANEL
+	while zp < z1:
+		var x := lerpf(xa, xb, (zp - z0) / maxf(0.001, z1 - z0))
+		var p0 := _proj_world(zp, x, 0.35)
+		var p1 := _proj_world(zp, x, TRUSS_H - 0.4)
+		if p0.z > 0.0 and p1.z > 0.0:
+			var wdt := maxf(1.0, 0.2 * p0.z)
+			batch.line(Vector2(p0.x, p0.y), Vector2(p1.x, p1.y), wdt, lc)
+			var up := int(floorf(zp / TRUSS_PANEL + 0.5)) % 2 == 0
+			var p2 := _proj_world(zp + TRUSS_PANEL, x, TRUSS_H - 0.4 if up else 0.35)
+			var p3 := p0 if up else p1
+			if p2.z > 0.0:
+				batch.line(Vector2(p3.x, p3.y), Vector2(p2.x, p2.y), wdt * 0.8, lc)
+		zp += TRUSS_PANEL
+
+
+## Fence, hedge or garden wall of the city scenery ("fence": {style picket|hedge|wall|iron, color, x
+## (m behind the sidewalk), h, gap_every_m, gap_m}) along both sides, with gaps for gates and driveways.
+func _fence(a: int, b: int, sa: TrackSegment, la: float, lb: float, ra: float, rb: float, merged: bool) -> void:
+	if _dz[a] > 240.0:
+		return
+	var fv: Variant = (scenery_db.get(sa.scenery, {}) as Dictionary).get("fence")
+	if not fv is Dictionary:
+		return
+	var fd: Dictionary = fv
+	var style := str(fd.get("style", "picket"))
+	var col := _color(str(fd.get("color", "#d8d2c4")))
+	var off := float(fd.get("x", 0.6))
+	var h := float(fd.get("h", 1.1))
+	var every := float(fd.get("gap_every_m", 24.0))
+	var gap := float(fd.get("gap_m", 3.5))
+	for side: int in [-1, 1]:
+		if every > 0.0 and fposmod(sa.z + (every * 0.5 if side > 0 else 0.0), every) < gap:
+			continue
+		var xa := (la - _sh - off) if side < 0 else (ra + _sh + off)
+		var xb := (lb - _sh - off) if side < 0 else (rb + _sh + off)
+		match style:
+			"hedge":
+				var dp := 0.8 * float(side)
+				_hstrip(a, b, xa, xa + dp, xb, xb + dp, h, col.lightened(0.1))
+				_vstrip(a, b, xa, xb, 0.0, h, col, 0.5)
+			"wall":
+				_vstrip(a, b, xa, xb, 0.0, h, col, 0.5)
+				_vstrip(a, b, xa, xb, h, h + 0.08, col.lightened(0.15), 0.5)
+			"iron":
+				_vstrip(a, b, xa, xb, 0.0, 0.3, col.lightened(0.35), 0.5)
+				_iron_railing(a, b, xa, xb, col, merged, h)
+			_:
+				_vstrip(a, b, xa, xb, h * 0.22, h * 0.3, col.darkened(0.12), 0.5)
+				_vstrip(a, b, xa, xb, h * 0.68, h * 0.76, col.darkened(0.12), 0.5)
+				if merged or _ss[a] < 2.2:
+					_vstrip(a, b, xa, xb, 0.05, h, Color(col, 0.55), 0.5)
+				else:
+					var pc := _shade(col, a, xa, 0.5)
+					for i in 4:
+						var f := (float(i) + 0.5) / 4.0
+						var q := _proj_at(a, f, lerpf(xa, xb, f), 0.05)
+						if q.z <= 0.0:
+							continue
+						var pw := maxf(1.0, 0.09 * q.z)
+						batch.rect(Rect2(q.x - pw * 0.5, q.y - (h - 0.12) * q.z, pw, (h - 0.12) * q.z), pc)
+						batch.tri(Vector2(q.x - pw * 0.5, q.y - (h - 0.12) * q.z), Vector2(q.x + pw * 0.5, q.y - (h - 0.12) * q.z), Vector2(q.x, q.y - h * q.z), pc)
+
+
+## Screen position (x, y, px per m) of the world point at track z, lateral x, height h above the road
+## (road_at: extrapolated beyond the projected rows); z = -1 when behind the near plane.
+func _proj_world(z: float, x: float, h: float) -> Vector3:
+	var r := road_at(z)
+	if r.z <= proj.near:
+		return Vector3(0, 0, -1)
+	var s := proj.focal / r.z
+	return Vector3(proj.screen.x * 0.5 + (r.x + x) * s, proj.horizon_y - (r.y + h) * s, s)
+
+
+## Straight line between two world points, clipped at the near plane; width in metres (at least 0.8 px).
+func _world_line(z0: float, x0: float, h0: float, z1: float, x1: float, h1: float, width_m: float, col: Color) -> void:
+	var zn := float(view["camera_z"]) + proj.near + 0.5
+	if z0 < zn and z1 < zn:
+		return
+	if z0 < zn:
+		var t := (zn - z0) / (z1 - z0)
+		x0 = lerpf(x0, x1, t)
+		h0 = lerpf(h0, h1, t)
+		z0 = zn
+	elif z1 < zn:
+		var t := (zn - z1) / (z0 - z1)
+		x1 = lerpf(x1, x0, t)
+		h1 = lerpf(h1, h0, t)
+		z1 = zn
+	var p0 := _proj_world(z0, x0, h0)
+	var p1 := _proj_world(z1, x1, h1)
+	if p0.z <= 0.0 or p1.z <= 0.0:
+		return
+	batch.line(Vector2(p0.x, p0.y), Vector2(p1.x, p1.y), maxf(0.8, width_m * minf(p0.z, p1.z)), col)
+
+
+func _steel_of(it: Dictionary) -> Color:
+	var c := str(it.get("color", ""))
+	return _color(c) if c != "" else RAIL.get(str(it.get("bridge", "truss_arch")), RAIL["truss_arch"])
+
+
+## Overhead portal of a truss bridge (procedural stand-in for props/bridge_truss_arch): legs at the deck
+## edges, a steel arch over the whole deck (fit_w), tie beam and lattice bracing.
+func _truss_portal(k: int, it: Dictionary, p: Vector3, alpha: float, light: float) -> void:
+	var s := p.z
+	var hw := float(it.get("fit_w", 16.0)) * 0.5 - 0.4
+	var steel := _steel_of(it)
+	var col := _oc(steel, k, light, alpha, 0.4)
+	var dark := _oc(steel.darkened(0.3), k, light, alpha, 0.3)
+	var leg_h := 6.4
+	var apex := 14.0
+	var lw := maxf(1.0, 0.75 * s)
+	for sd: float in [-1.0, 1.0]:
+		batch.rect(Rect2(p.x + sd * hw * s - lw * 0.5, p.y - leg_h * s, lw, leg_h * s), col)
+	var n := 12
+	var pts: Array[Vector2] = []
+	for i in n + 1:
+		var t := float(i) / float(n)
+		pts.append(Vector2(p.x + lerpf(-hw, hw, t) * s, p.y - (leg_h + (apex - leg_h) * sin(t * PI)) * s))
+	for i in n:
+		batch.line(pts[i], pts[i + 1], maxf(1.0, 0.85 * s), col)
+	var tie := p.y - leg_h * s
+	batch.line(Vector2(p.x - hw * s, tie), Vector2(p.x + hw * s, tie), maxf(1.0, 0.5 * s), dark)
+	if s > 1.0:
+		for i in range(1, n):
+			var bot := Vector2(pts[i].x, tie)
+			batch.line(bot, pts[i], maxf(1.0, 0.18 * s), dark)
+			batch.line(bot, pts[i + 1] if i % 2 == 0 else pts[i - 1], maxf(1.0, 0.14 * s), dark)
+
+
+## Pylon of a cable-stayed bridge (procedural stand-in for props/bridge_pylon) with its fan of stay cables
+## down to the deck edge as real 3D lines in front of and behind it.
+func _pylon(k: int, it: Dictionary, p: Vector3, alpha: float, light: float) -> void:
+	var s := p.z
+	var hgt := float(it.get("height_m", 80.0))
+	var conc := _oc(Color("d3d1ca"), k, light, alpha, 0.3)
+	var shade := _oc(Color("a7a59d"), k, light, alpha, 0.3)
+	var w0 := 3.6 * s
+	var w1 := 2.2 * s
+	batch.quad4(Vector2(p.x - w1 * 0.5, p.y - hgt * s), Vector2(p.x + w1 * 0.5, p.y - hgt * s), Vector2(p.x + w0 * 0.5, p.y), Vector2(p.x - w0 * 0.5, p.y), conc, conc, shade, shade)
+	batch.rect(Rect2(p.x - w1 * 0.6, p.y - (hgt + 1.6) * s, w1 * 1.2, 1.6 * s), shade)
+	var side := float(int(it.get("side", 1)))
+	var z := float(it.get("z", 0.0))
+	var x := float(it.get("x", 0.0))
+	var span := float(it.get("cables", 50.0))
+	var cable := _oc(Color("ecebe6"), k, light, alpha * 0.9, 0.3)
+	var x_deck := x - side * 1.4
+	for i in 7:
+		var d := span * float(i + 1) / 7.0
+		var ht := hgt * (0.95 - 0.05 * float(i))
+		_world_line(z, x, ht, z + d, x_deck, 1.1, 0.07, cable)
+		_world_line(z, x, ht, z - d, x_deck, 1.1, 0.07, cable)
+	if _lights > 0.2 and fmod(_time + side * 0.4, 1.6) < 0.8:
+		_glow(Vector2(p.x, p.y - (hgt + 1.6) * s), maxf(3.0, 1.2 * s), Color(1, 0.15, 0.1, 0.8 * _lights * alpha))
+
+
+## Ornamental bridge lamp (procedural stand-in for props/bridge_lamp): three globes on stone bridges, one
+## on causeways; lit at night with a reflection on the water.
+func _bridge_lamp(k: int, it: Dictionary, p: Vector3, alpha: float, light: float) -> void:
+	var s := p.z
+	var hgt := 4.4
+	var post := _oc(Color("2e3833"), k, light, alpha, 0.3)
+	batch.rect(Rect2(p.x - 0.32 * s, p.y - 0.9 * s, 0.64 * s, 0.9 * s), post)
+	batch.rect(Rect2(p.x - 0.1 * s, p.y - hgt * s, 0.2 * s, hgt * s), post)
+	var lit := _lights > 0.05
+	var globe := Color(1.0, 0.93, 0.72, alpha) if lit else _oc(Color("e9e5da"), k, light, alpha, 0.8)
+	var heads: Array[Vector2] = [Vector2(0.0, hgt + 0.35)]
+	if str(it.get("bridge", "")) == "stone_arch":
+		heads = [Vector2(-0.55, hgt - 0.1), Vector2(0.55, hgt - 0.1), Vector2(0.0, hgt + 0.45)]
+		batch.line(Vector2(p.x - 0.6 * s, p.y - (hgt - 0.35) * s), Vector2(p.x + 0.6 * s, p.y - (hgt - 0.35) * s), maxf(1.0, 0.08 * s), post)
+	for hd in heads:
+		var c := Vector2(p.x + hd.x * s, p.y - hd.y * s)
+		batch.ellipse(c, Vector2(0.24 * s, 0.3 * s), globe, globe, 8)
+		if lit:
+			_glow(c, maxf(3.0, 1.6 * s), Color(1.0, 0.8, 0.45, 0.45 * _lights * alpha))
+	if lit and _segs[k].water:
+		_water_reflection(k, p, int(it.get("side", 1)), 1.8, Color(1.0, 0.78, 0.45, 0.4 * _lights * alpha))
+
+
+## Soft light spot drawn in painter's order (radial alpha gradient in the batch, not the additive layer):
+## nearer geometry covers it – reflections under a deck, lights of landmarks behind buildings or hills.
+func _soft(pos: Vector2, rx: float, ry: float, col: Color) -> void:
+	if rx < 0.5 or col.a < 0.01 or pos.x < -rx or pos.x > proj.screen.x + rx or pos.y < -ry or pos.y > proj.screen.y + ry:
+		return
+	batch.ellipse(pos, Vector2(rx, ry), col, Color(col, 0.0), 12)
+
+
+## Reflection of a lamp on the water a little outside the deck edge: an elongated soft streak at the water
+## level (night), covered by the nearer deck where the water is hidden under it.
+func _water_reflection(k: int, p: Vector3, side: int, out_m: float, col: Color) -> void:
+	var s := p.z
+	var c := Vector2(p.x + float(side) * out_m * s, p.y + _segs[k].water_depth * s)
+	_soft(c, maxf(1.5, 0.8 * s), maxf(4.0, 3.2 * s), col)
+	_soft(c, maxf(1.0, 0.3 * s), maxf(2.0, 1.6 * s), Color(1.0, 0.95, 0.85, col.a))
+
+
+# --- individual cities: landmarks and skyline (docs/staedte.md) -------------------------------------
+
+## Scenery background with the per-city overrides (cities.json "background") inside the City Limits.
+func _background_for(scen_id: String, scen: Dictionary) -> Dictionary:
+	var bg: Dictionary = scen.get("background", {})
+	var over: Dictionary = track.plan.city_background
+	if over.is_empty() or not scen_id.begins_with("city"):
+		return bg
+	var c: Variant = _bg_cache.get(scen_id)
+	if c == null:
+		var m := bg.duplicate(true)
+		for key: String in over:
+			m[key] = over[key]
+		_bg_cache[scen_id] = m
+		c = m
+	return c
+
+
+## Alpha (x) and haze (y) of a landmark at depth dz: landmarks keep their contrast in the haze far beyond
+## the draw range (range = visibility × range_k, at most far_m); they fade out over the last 28 % of it and
+## blend towards the fog colour from the fog start on. Continuous everywhere (no pop-in).
+static func landmark_fade(dz: float, vis: float, fog_start: float, range_k: float, far_m: float) -> Vector2:
+	var l := clampf(vis * range_k, minf(vis, 600.0), maxf(far_m, vis))
+	return Vector2(1.0 - smoothstep(l * 0.72, l, dz), clampf((dz - fog_start) / maxf(1.0, l - fog_start), 0.0, 1.0) * 0.85)
+
+
+func _landmark_range() -> float:
+	return clampf(_vis * _lm_range_k, minf(_vis, 600.0), maxf(_lm_far, _vis))
+
+
+## Landmarks beyond the projected rows: the road is extrapolated straight from the last row (its heading at
+## the end of the draw range, its height flat). Drawn after the background, before the scene.
+func _draw_far_landmarks() -> void:
+	if track.landmarks.is_empty() or _n < 2:
+		return
+	var cam_z := float(view["camera_z"])
+	var z_end := _zw[_n]
+	var lim := maxf(_landmark_range(), _lm_far if _lights > 0.05 else 0.0)
+	var items: Array = []
+	for it: Dictionary in track.landmarks:
+		var z := float(it["z"])
+		if z >= z_end and z - cam_z <= lim:
+			items.append(it)
+	if items.is_empty():
+		return
+	items.sort_custom(func(u: Dictionary, v: Dictionary) -> bool: return float(u["z"]) > float(v["z"]))
+	var y_rel := _yw[_n] - _cam_y
+	for it: Dictionary in items:
+		var z := float(it["z"])
+		var d := z - cam_z
+		var pc := _prep_prop(it)
+		var r := road_at(z)
+		var s := proj.focal / d
+		_draw_landmark(it, pc, Vector3(proj.screen.x * 0.5 + (r.x + float(pc[3])) * s, proj.horizon_y - y_rel * s, s), d)
+
+
+## A landmark (sprite or procedural stand-in) at screen anchor p (x, y, px per m) and depth dz with the
+## landmark haze (landmark_fade) instead of the prop fog; its lights layer (illumination) stays visible at
+## night up to render.landmark_far_m.
+func _draw_landmark(it: Dictionary, pc: Array, p: Vector3, dz: float) -> void:
+	var fade := landmark_fade(dz, _vis, _fog_start, _lm_range_k, _lm_far)
+	var lights_a := 0.0
+	if _lights > 0.05:
+		lights_a = _lights * (1.0 - smoothstep(_lm_far * 0.8, _lm_far, dz))
+	if fade.x <= 0.01 and lights_a <= 0.01:
+		return
+	_ctx(false)
+	_lm_amb = _amb_out
+	_lm_haze = fade.y
+	_lm_alpha = fade.x
+	var info: Array = pc[1]
+	if not info.is_empty():
+		var flip := prop_flipped(int(it.get("side", 1)), bool(it.get("mirror", false)), bool(info[SI_MIRROR]))
+		var tint: Color = pc[5]
+		var mod := Color(_amb_out.r, _amb_out.g, _amb_out.b).lerp(_fog_outc * 1.15, fade.y)
+		if fade.x > 0.01:
+			_sprite_i(info, "c", "base", p, float(pc[2]), Color(mod.r * tint.r, mod.g * tint.g, mod.b * tint.b, fade.x), flip)
+		if lights_a > 0.01 and (info[SI_ROWS] as Dictionary).has("lights"):
+			_sprite_i(info, "c", "lights", p, float(pc[2]), Color(1, 1, 1, lights_a), flip)
+	elif str(pc[4]) != "":
+		_draw_landmark_proc(str(pc[4]), it, p, lights_a)
+
+
+## Panorama silhouettes of the destination's skyline landmarks (cities.json "skyline") inside the City
+## Limits: anchored to the panorama when first seen – one that is also passed as a prop starts in its true
+## direction – then turning with it; faded out while that prop is within landmark range (no double).
+func _skyline_silhouettes(heading: float) -> Array:
+	var sky: Array[Dictionary] = track.plan.skyline
+	var cam_z := float(view["camera_z"])
+	if sky.is_empty() or not track.is_city_at(cam_z + proj.cam_distance):
+		return []
+	var out: Array = []
+	var l := _landmark_range()
+	for i in sky.size():
+		var e: Dictionary = sky[i]
+		var a := 1.0
+		var prop_km := float(e.get("prop_km", -1.0))
+		var dz := 0.0
+		if prop_km >= 0.0:
+			dz = track.km_to_z(prop_km) - cam_z
+			a = smoothstep(l, l * 1.15, dz) if dz > 0.0 else 0.0
+		if a <= 0.01:
+			continue
+		if not _sky_anchor.has(i):
+			_sky_anchor[i] = heading + _skyline_offset(i, e, dz)
+		out.append({"entry": e, "angle": float(_sky_anchor[i]), "alpha": a, "s": proj.focal / _sky_dist})
+	return out
+
+
+func _skyline_offset(i: int, e: Dictionary, dz: float) -> float:
+	var az := float(e.get("azimuth_deg", NAN))
+	if not is_nan(az):
+		return deg_to_rad(az)
+	if dz > 0.0:
+		for it: Dictionary in track.landmarks:
+			if str(it["set"]) == str(e["set"]):
+				return atan2(road_at(float(it["z"])).x + float(_prep_prop(it)[3]), dz)
+	return SKY_OFFSETS[i % SKY_OFFSETS.size()]
+
+
+## RaceBackdrop.sprite_cb: a skyline silhouette standing on the panorama base line at pos (s = px per m).
+func _draw_skyline_landmark(entry: Dictionary, pos: Vector2, s: float, alpha: float, haze: float) -> void:
+	var pc := _prep_prop(entry)
+	_lm_amb = _amb_out
+	_lm_haze = haze
+	_lm_alpha = alpha
+	var p := Vector3(pos.x, pos.y, s)
+	var info: Array = pc[1]
+	var lights := _lights * alpha
+	if not info.is_empty():
+		var tint: Color = pc[5]
+		var mod := Color(_amb_out.r, _amb_out.g, _amb_out.b).lerp(_fog_outc * 1.15, haze)
+		_sprite_i(info, "c", "base", p, float(pc[2]), Color(mod.r * tint.r, mod.g * tint.g, mod.b * tint.b, alpha), false)
+		if lights > 0.02 and (info[SI_ROWS] as Dictionary).has("lights"):
+			_sprite_i(info, "c", "lights", p, float(pc[2]), Color(1, 1, 1, lights), false)
+	elif str(pc[4]) != "":
+		_draw_landmark_proc(str(pc[4]), entry, p, lights)
+
+
+## Light of a landmark (illumination, aviation lights): a soft spot in painter's order with a bright core,
+## so buildings or hills in front of the landmark cover it (the additive glow layer would shine through).
+func _lm_glow(pos: Vector2, r: float, col: Color, stretch: float = 1.0) -> void:
+	_soft(pos, r, r * stretch, Color(col, minf(1.0, col.a * 0.8)))
+	_soft(pos, r * 0.35, r * 0.35 * stretch, Color(col.lightened(0.5), minf(1.0, col.a * 1.2)))
+
+
+## Colour of a procedural landmark part: ambient, haze towards the fog, landmark alpha.
+func _lmc(base: Color, a: float = 1.0) -> Color:
+	var c := Color(base.r * _lm_amb.r, base.g * _lm_amb.g, base.b * _lm_amb.b).lerp(_fog_outc, _lm_haze)
+	c.a = _lm_alpha * a
+	return c
+
+
+## Procedural landmark stand-ins until the Blender sprite exists (cities.json landmark_sets "proc").
+func _draw_landmark_proc(proc: String, it: Dictionary, p: Vector3, lights_a: float) -> void:
+	var hgt := float(it.get("height_m", 40.0)) * float(it.get("scale", 1.0))
+	var span := maxf(hgt, float(it.get("width_m", 0.0)) * float(it.get("scale", 1.0)) * 0.6) * p.z
+	if span < 1.5 or p.x + span < -10.0 or p.x - span > proj.screen.x + 10.0 or p.y - span > proj.screen.y:
+		return
+	match proc:
+		"lattice_tower":
+			_lm_lattice(p, hgt, lights_a)
+		"tv_tower":
+			_lm_tv(p, hgt, lights_a)
+		"ferris_wheel":
+			_lm_wheel(p, hgt, lights_a)
+		"column":
+			_lm_column(p, hgt, lights_a)
+		"campanile":
+			_lm_campanile(p, hgt, lights_a)
+		"domed_church":
+			_lm_domed(it, p, hgt, lights_a)
+		"parliament":
+			_lm_parliament(p, hgt, lights_a)
+		"palace_tower":
+			_lm_palace(p, hgt, lights_a)
+		"skyscrapers":
+			_lm_skyscrapers(p, hgt, lights_a)
+
+
+## Half width (m) of the Eiffel tower's silhouette at height h (exponential profile of the real tower).
+static func eiffel_half_width(h: float) -> float:
+	return 3.0 + 59.0 * exp(-h / 72.0)
+
+
+func _hbar(p: Vector3, s: float, h: float, thick: float, half: float, col: Color) -> void:
+	batch.rect(Rect2(p.x - half * s, p.y - (h + thick) * s, 2.0 * half * s, thick * s), col)
+
+
+## Lattice tower (Eiffel tower, 330 m): curved legs with the arch, platforms, shaft, antenna; golden
+## illumination and a beacon at night.
+func _lm_lattice(p: Vector3, hgt: float, lights_a: float) -> void:
+	var s := p.z * hgt / 330.0
+	var passes: Array[Color] = [_lmc(Color("6f5544"))]
+	if lights_a > 0.02:
+		passes.append(Color(1.0, 0.72, 0.34, lights_a * 0.85))
+	for col: Color in passes:
+		var steps: Array[float] = [0.0, 14.0, 30.0, 44.0, 57.0, 75.0, 95.0, 117.0]
+		for sd: float in [-1.0, 1.0]:
+			for i in steps.size() - 1:
+				var h0 := steps[i]
+				var h1 := steps[i + 1]
+				var o0 := eiffel_half_width(h0)
+				var o1 := eiffel_half_width(h1)
+				var i0 := maxf(0.0, o0 - lerpf(16.0, 9.5, h0 / 117.0))
+				var i1 := maxf(0.0, o1 - lerpf(16.0, 9.5, h1 / 117.0))
+				batch.quad(Vector2(p.x + sd * o0 * s, p.y - h0 * s), Vector2(p.x + sd * i0 * s, p.y - h0 * s),
+					Vector2(p.x + sd * i1 * s, p.y - h1 * s), Vector2(p.x + sd * o1 * s, p.y - h1 * s), col)
+		var ia := eiffel_half_width(10.0) - 15.0
+		var prev := Vector2.ZERO
+		for i in 9:
+			var t := float(i) / 8.0
+			var pt := Vector2(p.x + lerpf(-ia, ia, t) * s, p.y - (10.0 + 28.0 * (1.0 - pow(2.0 * t - 1.0, 2.0))) * s)
+			if i > 0:
+				batch.line(prev, pt, maxf(1.0, 3.0 * s), col)
+			prev = pt
+		_hbar(p, s, 57.0, 6.0, eiffel_half_width(57.0) + 3.0, col)
+		_hbar(p, s, 115.0, 4.5, eiffel_half_width(115.0) + 2.0, col)
+		var ups: Array[float] = [119.5, 160.0, 205.0, 245.0, 276.0]
+		for i in ups.size() - 1:
+			var w0 := eiffel_half_width(ups[i])
+			var w1 := eiffel_half_width(ups[i + 1])
+			batch.quad(Vector2(p.x - w0 * s, p.y - ups[i] * s), Vector2(p.x + w0 * s, p.y - ups[i] * s),
+				Vector2(p.x + w1 * s, p.y - ups[i + 1] * s), Vector2(p.x - w1 * s, p.y - ups[i + 1] * s), col)
+		_hbar(p, s, 276.0, 6.0, 7.0, col)
+		batch.quad(Vector2(p.x - 3.4 * s, p.y - 282.0 * s), Vector2(p.x + 3.4 * s, p.y - 282.0 * s),
+			Vector2(p.x + 1.8 * s, p.y - 302.0 * s), Vector2(p.x - 1.8 * s, p.y - 302.0 * s), col)
+		batch.line(Vector2(p.x, p.y - 302.0 * s), Vector2(p.x, p.y - 330.0 * s), maxf(1.0, 1.2 * s), col)
+	if 330.0 * s > 140.0 and lights_a < 0.5:
+		# cross bracing of the shaft
+		var lc := _lmc(Color("4e3b2f"), 0.8)
+		var h := 125.0
+		while h < 268.0:
+			var w0 := eiffel_half_width(h)
+			var w1 := eiffel_half_width(h + 18.0)
+			batch.line(Vector2(p.x - w0 * s, p.y - h * s), Vector2(p.x + w1 * s, p.y - (h + 18.0) * s), maxf(1.0, 0.8 * s), lc)
+			batch.line(Vector2(p.x + w0 * s, p.y - h * s), Vector2(p.x - w1 * s, p.y - (h + 18.0) * s), maxf(1.0, 0.8 * s), lc)
+			h += 18.0
+	if lights_a > 0.02:
+		_lm_glow(Vector2(p.x, p.y - 300.0 * s), maxf(4.0, 14.0 * s), Color(1.0, 0.85, 0.6, 0.5 * lights_a))
+		if fmod(_time, 60.0) < 9.0:
+			# the hourly sparkle
+			var v := int(_time * 12.0) * 7919
+			for i in 14:
+				v = (v * 1103515245 + 12345) & 0x7fffffff
+				var hh := float(v % 290)
+				var ww := eiffel_half_width(hh) * (float((v >> 9) % 200) / 100.0 - 1.0)
+				_lm_glow(Vector2(p.x + ww * s, p.y - hh * s), maxf(1.5, 2.0 * s), Color(1, 1, 1, 0.8 * lights_a))
+
+
+## Television tower (Berlin Fernsehturm, 368 m; any height): tapered shaft, sphere with window ring,
+## antenna with red/white bands; aviation lights at night.
+func _lm_tv(p: Vector3, hgt: float, lights_a: float) -> void:
+	var s := p.z * hgt / 368.0
+	var conc := _lmc(Color("dcdbd6"))
+	var conc_d := _lmc(Color("b5b4ae"))
+	var hs: Array[float] = [0.0, 40.0, 100.0, 200.0]
+	var ws: Array[float] = [16.0, 11.5, 7.5, 4.5]
+	for i in 3:
+		batch.quad4(Vector2(p.x - ws[i] * s, p.y - hs[i] * s), Vector2(p.x, p.y - hs[i] * s), Vector2(p.x, p.y - hs[i + 1] * s), Vector2(p.x - ws[i + 1] * s, p.y - hs[i + 1] * s), conc, conc, conc, conc)
+		batch.quad4(Vector2(p.x, p.y - hs[i] * s), Vector2(p.x + ws[i] * s, p.y - hs[i] * s), Vector2(p.x + ws[i + 1] * s, p.y - hs[i + 1] * s), Vector2(p.x, p.y - hs[i + 1] * s), conc_d, conc_d, conc_d, conc_d)
+	var c := Vector2(p.x, p.y - 213.0 * s)
+	batch.ellipse(c, Vector2(16.0 * s, 16.0 * s), _lmc(Color("c4c9d1")), _lmc(Color("8e949e")), 20)
+	batch.rect(Rect2(p.x - 15.2 * s, c.y - 1.6 * s, 30.4 * s, 3.2 * s), _lmc(Color("4f5a68")))
+	batch.quad(Vector2(p.x - 3.2 * s, p.y - 229.0 * s), Vector2(p.x + 3.2 * s, p.y - 229.0 * s), Vector2(p.x + 2.6 * s, p.y - 252.0 * s), Vector2(p.x - 2.6 * s, p.y - 252.0 * s), conc)
+	for i in 10:
+		var h0 := 252.0 + float(i) * 11.6
+		var w0 := lerpf(1.9, 0.6, float(i) / 10.0)
+		var w1 := lerpf(1.9, 0.6, float(i + 1) / 10.0)
+		var band := _lmc(Color("c8402e") if i % 2 == 0 else Color("eeeeea"))
+		batch.quad(Vector2(p.x - w0 * s, p.y - h0 * s), Vector2(p.x + w0 * s, p.y - h0 * s), Vector2(p.x + w1 * s, p.y - (h0 + 11.6) * s), Vector2(p.x - w1 * s, p.y - (h0 + 11.6) * s), band)
+	if lights_a > 0.02:
+		batch.rect(Rect2(p.x - 15.2 * s, c.y - 1.6 * s, 30.4 * s, 3.2 * s), Color(1.0, 0.85, 0.55, 0.8 * lights_a))
+		var blink := fmod(_time, 1.5) < 0.75
+		for hh: float in [252.0, 300.0, 368.0]:
+			if blink or hh < 300.0:
+				_lm_glow(Vector2(p.x, p.y - hh * s), maxf(2.5, 6.0 * s), Color(1, 0.12, 0.08, 0.85 * lights_a))
+
+
+## Giant Ferris wheel (Wiener Riesenrad, 65 m): A-frame supports, rim, spokes, gondolas; bulbs at night.
+func _lm_wheel(p: Vector3, hgt: float, lights_a: float) -> void:
+	var s := p.z * hgt / 65.0
+	var red := _lmc(Color("a8372c"))
+	var steel := _lmc(Color("5f5a55"))
+	var c := Vector2(p.x, p.y - 34.0 * s)
+	var r := 30.5 * s
+	for sd: float in [-1.0, 1.0]:
+		batch.line(Vector2(p.x + sd * 21.0 * s, p.y), c, maxf(1.0, 1.4 * s), steel)
+		batch.line(Vector2(p.x + sd * 11.0 * s, p.y), c, maxf(1.0, 0.9 * s), steel)
+	var n := 32
+	var rim: Array[Vector2] = []
+	for i in n + 1:
+		var a := TAU * float(i) / float(n)
+		rim.append(c + Vector2(cos(a), sin(a)) * r)
+	for i in n:
+		batch.line(rim[i], rim[i + 1], maxf(1.0, 0.9 * s), red)
+	for i in 16:
+		batch.line(c, rim[i * 2], maxf(0.8, 0.22 * s), steel)
+	var rot := _time * 0.03
+	for i in 15:
+		var a := rot + TAU * float(i) / 15.0
+		var q := c + Vector2(cos(a), sin(a)) * r
+		batch.rect(Rect2(q.x - 2.6 * s, q.y, 5.2 * s, 3.0 * s), red)
+	if lights_a > 0.02:
+		for i in range(0, n, 2):
+			_lm_glow(rim[i], maxf(1.5, 1.6 * s), Color(1.0, 0.85, 0.55, 0.7 * lights_a))
+
+
+## Monument column with a statue (Freiheitsdenkmal Riga, 42 m): granite base, travertine column, copper
+## figure holding three golden stars; illuminated at night.
+func _lm_column(p: Vector3, hgt: float, lights_a: float) -> void:
+	var s := p.z * hgt / 42.0
+	var granite := _lmc(Color("9a948a"))
+	batch.rect(Rect2(p.x - 11.0 * s, p.y - 4.0 * s, 22.0 * s, 4.0 * s), granite)
+	batch.rect(Rect2(p.x - 7.5 * s, p.y - 8.5 * s, 15.0 * s, 4.5 * s), granite)
+	batch.quad(Vector2(p.x - 1.8 * s, p.y - 34.0 * s), Vector2(p.x + 1.8 * s, p.y - 34.0 * s), Vector2(p.x + 2.6 * s, p.y - 8.5 * s), Vector2(p.x - 2.6 * s, p.y - 8.5 * s), _lmc(Color("ddd5c4")))
+	var copper := _lmc(Color("6f9c86"))
+	batch.quad(Vector2(p.x - 0.9 * s, p.y - 40.0 * s), Vector2(p.x + 0.9 * s, p.y - 40.0 * s), Vector2(p.x + 1.4 * s, p.y - 34.0 * s), Vector2(p.x - 1.4 * s, p.y - 34.0 * s), copper)
+	batch.line(Vector2(p.x - 0.6 * s, p.y - 39.0 * s), Vector2(p.x - 0.2 * s, p.y - 42.6 * s), maxf(1.0, 0.5 * s), copper)
+	batch.line(Vector2(p.x + 0.6 * s, p.y - 39.0 * s), Vector2(p.x + 0.2 * s, p.y - 42.6 * s), maxf(1.0, 0.5 * s), copper)
+	var gold := _lmc(Color("e8c060"))
+	for i in 3:
+		batch.rect(Rect2(p.x + float(i - 1) * 1.1 * s - 0.4 * s, p.y - 43.6 * s, 0.8 * s, 0.8 * s), gold)
+	if lights_a > 0.02:
+		for i in 3:
+			_lm_glow(Vector2(p.x + float(i - 1) * 1.1 * s, p.y - 43.2 * s), maxf(1.5, 1.2 * s), Color(1.0, 0.85, 0.4, 0.8 * lights_a))
+		_lm_glow(Vector2(p.x, p.y - 20.0 * s), maxf(3.0, 9.0 * s), Color(1.0, 0.9, 0.7, 0.25 * lights_a), 2.5)
+
+
+## Bell tower (Campanile di San Marco, 99 m): brick shaft with pilasters, white belfry, attic, copper
+## pyramid with the golden angel.
+func _lm_campanile(p: Vector3, hgt: float, lights_a: float) -> void:
+	var s := p.z * hgt / 99.0
+	var brick := _lmc(Color("b47a60"))
+	batch.rect(Rect2(p.x - 6.0 * s, p.y - 50.0 * s, 12.0 * s, 50.0 * s), brick)
+	batch.rect(Rect2(p.x + 1.5 * s, p.y - 50.0 * s, 4.5 * s, 50.0 * s), _lmc(Color("98604a")))
+	var dark := _lmc(Color("7a4a38"))
+	for xo: float in [-3.0, 0.0, 3.0]:
+		batch.rect(Rect2(p.x + (xo - 0.3) * s, p.y - 48.0 * s, maxf(0.8, 0.6 * s), 46.0 * s), dark)
+	batch.rect(Rect2(p.x - 6.6 * s, p.y - 61.0 * s, 13.2 * s, 11.0 * s), _lmc(Color("ece6d8")))
+	for i in 4:
+		batch.rect(Rect2(p.x + (-5.4 + float(i) * 2.9) * s, p.y - 59.0 * s, 1.8 * s, 7.0 * s), _lmc(Color("3a3430")))
+	batch.rect(Rect2(p.x - 6.0 * s, p.y - 72.0 * s, 12.0 * s, 11.0 * s), brick)
+	batch.tri(Vector2(p.x - 6.6 * s, p.y - 72.0 * s), Vector2(p.x + 6.6 * s, p.y - 72.0 * s), Vector2(p.x, p.y - 95.0 * s), _lmc(Color("6f9c86")))
+	batch.rect(Rect2(p.x - 0.6 * s, p.y - 99.0 * s, 1.2 * s, 4.0 * s), _lmc(Color("e0b850")))
+	if lights_a > 0.02:
+		batch.rect(Rect2(p.x - 6.0 * s, p.y - 72.0 * s, 12.0 * s, 72.0 * s), Color(1.0, 0.78, 0.5, 0.35 * lights_a))
+		_lm_glow(Vector2(p.x, p.y - 56.0 * s), maxf(3.0, 7.0 * s), Color(1.0, 0.85, 0.6, 0.45 * lights_a))
+
+
+## Domed church (Alexander-Newski-Kathedrale, Frauenkirche Dresden, Sacré-Cœur …): body with roof, side
+## domes, drum and main dome with lantern and cross; colours "wall"/"dome" from the catalogue.
+func _lm_domed(it: Dictionary, p: Vector3, hgt: float, lights_a: float) -> void:
+	var s := p.z * hgt / 80.0
+	var wall_c := _color(str(it.get("wall", "#ece6d6")))
+	var dome_c := _color(str(it.get("dome", "#d8b04a")))
+	var wall := _lmc(wall_c)
+	var shade := _lmc(wall_c.darkened(0.16))
+	var dome := _lmc(dome_c)
+	var dome_d := _lmc(dome_c.darkened(0.25))
+	batch.rect(Rect2(p.x - 32.0 * s, p.y - 30.0 * s, 64.0 * s, 30.0 * s), wall)
+	batch.rect(Rect2(p.x + 10.0 * s, p.y - 30.0 * s, 22.0 * s, 30.0 * s), shade)
+	batch.quad(Vector2(p.x - 34.0 * s, p.y - 30.0 * s), Vector2(p.x + 34.0 * s, p.y - 30.0 * s), Vector2(p.x + 30.0 * s, p.y - 36.0 * s), Vector2(p.x - 30.0 * s, p.y - 36.0 * s), shade)
+	for sd: float in [-1.0, 1.0]:
+		var cx := p.x + sd * 22.0 * s
+		batch.ellipse(Vector2(cx, p.y - 44.0 * s), Vector2(6.5 * s, 7.5 * s), dome, dome_d, 12)
+		batch.rect(Rect2(cx - 5.5 * s, p.y - 44.0 * s, 11.0 * s, 8.0 * s), wall)
+		batch.line(Vector2(cx, p.y - 51.0 * s), Vector2(cx, p.y - 56.0 * s), maxf(0.8, 0.5 * s), dome_d)
+	batch.ellipse(Vector2(p.x, p.y - 54.0 * s), Vector2(13.5 * s, 16.0 * s), dome, dome_d, 18)
+	batch.rect(Rect2(p.x - 12.0 * s, p.y - 54.0 * s, 24.0 * s, 18.0 * s), wall)
+	for i in 5:
+		batch.rect(Rect2(p.x + (-9.0 + float(i) * 4.2) * s, p.y - 51.0 * s, 1.4 * s, 8.0 * s), _lmc(wall_c.darkened(0.45)))
+	batch.rect(Rect2(p.x - 2.0 * s, p.y - 74.0 * s, 4.0 * s, 5.0 * s), dome)
+	batch.line(Vector2(p.x, p.y - 74.0 * s), Vector2(p.x, p.y - 80.0 * s), maxf(0.8, 0.6 * s), dome_d)
+	batch.line(Vector2(p.x - 1.6 * s, p.y - 78.0 * s), Vector2(p.x + 1.6 * s, p.y - 78.0 * s), maxf(0.8, 0.5 * s), dome_d)
+	if lights_a > 0.02:
+		batch.rect(Rect2(p.x - 32.0 * s, p.y - 36.0 * s, 64.0 * s, 36.0 * s), Color(1.0, 0.8, 0.5, 0.3 * lights_a))
+		_lm_glow(Vector2(p.x, p.y - 56.0 * s), maxf(4.0, 16.0 * s), Color(1.0, 0.82, 0.5, 0.4 * lights_a))
+
+
+## Neo-gothic parliament (Budapest, 268 m wide, dome 96 m): long facade with red roof, spires along the
+## ridge, side towers, central drum and ribbed dome; golden floodlight at night.
+func _lm_parliament(p: Vector3, hgt: float, lights_a: float) -> void:
+	var s := p.z * hgt / 96.0
+	var wall := _lmc(Color("ece4d4"))
+	var shade := _lmc(Color("cfc6b4"))
+	var roof := _lmc(Color("b04a3a"))
+	var dark := _lmc(Color("6e665a"))
+	batch.rect(Rect2(p.x - 134.0 * s, p.y - 28.0 * s, 268.0 * s, 28.0 * s), wall)
+	batch.quad(Vector2(p.x - 134.0 * s, p.y - 28.0 * s), Vector2(p.x + 134.0 * s, p.y - 28.0 * s), Vector2(p.x + 128.0 * s, p.y - 37.0 * s), Vector2(p.x - 128.0 * s, p.y - 37.0 * s), roof)
+	if 268.0 * s > 220.0:
+		for row in 2:
+			var xw := -128.0
+			while xw < 128.0:
+				batch.rect(Rect2(p.x + xw * s, p.y - (9.0 + float(row) * 9.0) * s, 2.2 * s, 4.5 * s), dark)
+				xw += 6.0
+	var xs := -126.0
+	while xs <= 126.0:
+		batch.tri(Vector2(p.x + (xs - 1.2) * s, p.y - 36.0 * s), Vector2(p.x + (xs + 1.2) * s, p.y - 36.0 * s), Vector2(p.x + xs * s, p.y - 46.0 * s), wall)
+		xs += 12.6
+	for xt: float in [-108.0, -62.0, 62.0, 108.0]:
+		batch.rect(Rect2(p.x + (xt - 3.0) * s, p.y - 50.0 * s, 6.0 * s, 22.0 * s), shade)
+		batch.tri(Vector2(p.x + (xt - 3.4) * s, p.y - 50.0 * s), Vector2(p.x + (xt + 3.4) * s, p.y - 50.0 * s), Vector2(p.x + xt * s, p.y - 62.0 * s), roof)
+	batch.rect(Rect2(p.x - 24.0 * s, p.y - 44.0 * s, 48.0 * s, 44.0 * s), wall)
+	batch.ellipse(Vector2(p.x, p.y - 62.0 * s), Vector2(15.0 * s, 24.0 * s), roof, _lmc(Color("8a3a2e")), 18)
+	batch.rect(Rect2(p.x - 14.0 * s, p.y - 62.0 * s, 28.0 * s, 18.0 * s), shade)
+	for i in 6:
+		batch.rect(Rect2(p.x + (-11.0 + float(i) * 4.4) * s, p.y - 59.0 * s, 1.5 * s, 10.0 * s), dark)
+	batch.rect(Rect2(p.x - 2.2 * s, p.y - 89.0 * s, 4.4 * s, 5.0 * s), wall)
+	batch.tri(Vector2(p.x - 2.4 * s, p.y - 89.0 * s), Vector2(p.x + 2.4 * s, p.y - 89.0 * s), Vector2(p.x, p.y - 96.0 * s), roof)
+	if lights_a > 0.02:
+		batch.rect(Rect2(p.x - 134.0 * s, p.y - 37.0 * s, 268.0 * s, 37.0 * s), Color(1.0, 0.78, 0.42, 0.45 * lights_a))
+		_lm_glow(Vector2(p.x, p.y - 62.0 * s), maxf(5.0, 24.0 * s), Color(1.0, 0.8, 0.45, 0.5 * lights_a))
+
+
+## Stepped high-rise in the style of Socialist Classicism (Palace of Culture Warsaw, 237 m): wings, set-back
+## tiers with pinnacles, clock storey, crown and spire; floodlit at night.
+func _lm_palace(p: Vector3, hgt: float, lights_a: float) -> void:
+	var s := p.z * hgt / 237.0
+	var wall := _lmc(Color("ddd2bc"))
+	var shade := _lmc(Color("bdb19a"))
+	var tiers: Array[Vector3] = [Vector3(45.0, 0.0, 30.0), Vector3(30.0, 30.0, 62.0), Vector3(22.0, 62.0, 102.0),
+		Vector3(16.0, 102.0, 136.0), Vector3(11.0, 136.0, 162.0), Vector3(8.0, 162.0, 182.0), Vector3(6.0, 182.0, 190.0)]
+	for tr: Vector3 in tiers:
+		batch.rect(Rect2(p.x - tr.x * s, p.y - tr.z * s, 2.0 * tr.x * s, (tr.z - tr.y) * s), wall)
+		batch.rect(Rect2(p.x + tr.x * 0.35 * s, p.y - tr.z * s, tr.x * 0.65 * s, (tr.z - tr.y) * s), shade)
+		if tr.y > 0.0 and tr.y < 170.0:
+			for sd: float in [-1.0, 1.0]:
+				var px := p.x + sd * (tr.x + 3.0) * s
+				batch.rect(Rect2(px - 1.6 * s, p.y - (tr.y + 14.0) * s, 3.2 * s, 14.0 * s), shade)
+				batch.tri(Vector2(px - 1.8 * s, p.y - (tr.y + 14.0) * s), Vector2(px + 1.8 * s, p.y - (tr.y + 14.0) * s), Vector2(px, p.y - (tr.y + 21.0) * s), shade)
+	batch.tri(Vector2(p.x - 3.0 * s, p.y - 190.0 * s), Vector2(p.x + 3.0 * s, p.y - 190.0 * s), Vector2(p.x, p.y - 237.0 * s), shade)
+	if 237.0 * s > 160.0:
+		var dark := _lmc(Color("8a8070"), 0.7)
+		for i in 9:
+			var xv := -20.0 + float(i) * 5.0
+			batch.rect(Rect2(p.x + xv * s, p.y - 100.0 * s, maxf(0.8, 0.8 * s), 36.0 * s), dark)
+	if lights_a > 0.02:
+		batch.rect(Rect2(p.x - 30.0 * s, p.y - 190.0 * s, 60.0 * s, 160.0 * s), Color(1.0, 0.82, 0.55, 0.22 * lights_a))
+		_lm_glow(Vector2(p.x, p.y - 172.0 * s), maxf(3.0, 6.0 * s), Color(1.0, 0.95, 0.8, 0.6 * lights_a))
+		if fmod(_time, 1.5) < 0.75:
+			_lm_glow(Vector2(p.x, p.y - 237.0 * s), maxf(2.5, 4.0 * s), Color(1, 0.12, 0.08, 0.85 * lights_a))
+
+
+## Cluster of high-rises (Frankfurt's banking district, Madrid's Cuatro Torres): glass towers of different
+## heights and tops; lit windows and aviation lights at night.
+func _lm_skyscrapers(p: Vector3, hgt: float, lights_a: float) -> void:
+	var s := p.z * hgt / 259.0
+	# x offset, half width, height, colour, top (0 flat, 1 mast, 2 pyramid)
+	var towers: Array = [[-62.0, 14.0, 150.0, "7f97ad", 0], [58.0, 13.0, 175.0, "c9bfa8", 2], [-20.0, 18.0, 259.0, "6a8098", 1],
+		[22.0, 15.0, 205.0, "95aec4", 1], [86.0, 11.0, 120.0, "8aa0b4", 0]]
+	for t: Array in towers:
+		var xo := float(t[0])
+		var hw := float(t[1])
+		var th := float(t[2])
+		var base := Color(str(t[3]))
+		batch.rect(Rect2(p.x + (xo - hw) * s, p.y - th * s, 2.0 * hw * s, th * s), _lmc(base))
+		batch.rect(Rect2(p.x + (xo + hw * 0.3) * s, p.y - th * s, hw * 0.7 * s, th * s), _lmc(base.darkened(0.18)))
+		match int(t[4]):
+			1:
+				batch.line(Vector2(p.x + xo * s, p.y - th * s), Vector2(p.x + xo * s, p.y - (th + 22.0) * s), maxf(0.8, 0.8 * s), _lmc(base.darkened(0.3)))
+			2:
+				batch.tri(Vector2(p.x + (xo - hw) * s, p.y - th * s), Vector2(p.x + (xo + hw) * s, p.y - th * s), Vector2(p.x + xo * s, p.y - (th + 24.0) * s), _lmc(base.darkened(0.1)))
+		if lights_a > 0.02:
+			var v := int(absf(xo)) * 977 + 13
+			var rows := int(th / 9.0)
+			for r in rows:
+				for c in 4:
+					v = (v * 1103515245 + 12345) & 0x7fffffff
+					if v % 100 < 35:
+						batch.rect(Rect2(p.x + (xo - hw + 2.0 + float(c) * (hw * 2.0 - 4.0) / 4.0) * s, p.y - (th - 4.0 - float(r) * 9.0) * s, maxf(0.8, 2.4 * s), maxf(0.8, 2.0 * s)), Color(1.0, 0.88, 0.6, 0.8 * lights_a))
+			if fmod(_time + absf(xo) * 0.01, 1.6) < 0.8:
+				_lm_glow(Vector2(p.x + xo * s, p.y - th * s), maxf(2.5, 3.0 * s), Color(1, 0.12, 0.08, 0.85 * lights_a))
 
 
 # --- weather and overlays -------------------------------------------------------------------

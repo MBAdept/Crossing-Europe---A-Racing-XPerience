@@ -61,6 +61,7 @@ var _record: Dictionary = {}
 var _flash := 0.0
 var _last_country := ""
 var _was_city := false
+var _was_bridge := false
 var _was_tunnel := false
 var _was_radar_zone := false
 var _reserve_warned := false
@@ -608,6 +609,10 @@ func _check_zones() -> void:
 		var tname := str(tunnel.get("name", ""))
 		hud.show_message(tname if tname != "" else tr("Tunnel"), "info", 2.0)
 	_was_tunnel = not tunnel.is_empty()
+	var bridge := plan.bridge_at(pos_km)
+	if not bridge.is_empty() and not _was_bridge and str(bridge.get("name", "")) != "":
+		hud.show_message(str(bridge["name"]), "info", 2.0)
+	_was_bridge = not bridge.is_empty()
 	var reserve := float(ConfigLoader.lookup(cfg, "fuel.reserve_warning_l", 8.0))
 	if fuel.fuel_l < reserve and not _reserve_warned and fuel.state == FuelSystem.State.NORMAL:
 		_reserve_warned = true
@@ -760,7 +765,7 @@ func _process(delta: float) -> void:
 		"cars": cars,
 		"player": player,
 		"bg_offset": bg_offset,
-		"scenery": plan.scenery_at(clampf(pos_km, 0.0, plan.length_km)) if not plan.is_city(pos_km) or not GameData.scenery.has("city") else "city",
+		"scenery": plan.scenery_for(clampf(pos_km, 0.0, plan.length_km), GameData.scenery),
 		"shake": shake,
 		"countdown": countdown if not running else (-0.5 if _real_time < 1.0 + float(ConfigLoader.lookup(cfg, "time.countdown_s", 3.0)) else -1000.0),
 		"chase01": chase,

@@ -53,6 +53,11 @@ Alle Erweiterungen sind optional; ältere Dateien bleiben gültig.
   „Lange Abschnitte werden in Etappen von 200–400 km geteilt“ gilt (Königsrennen, siehe unten).
 - Fähren sind in beide Richtungen nutzbar (wie Etappen); `fixed_time_s` = feste Rennzeit, `world_hours` =
   vorrückende Weltzeit.
+- Städte: `data/cities.json` (eigene Datei, Vertrag und Format in [staedte.md](staedte.md)) – Baustil, Wahrzeichen,
+  Skyline und Brücken je Stadt; `GameData.city_db`, aufgelöst für die Zielstadt von `CityData.apply()` in
+  `StagePlan.build(…, city_db)`. Positionen zählen in km vor dem Ziel und gelten damit für jede Ankunft (beide
+  Richtungen aller Etappen); `tests/unit/data/test_cities.gd` baut jede Ankunft ohne Warnung (Brücken nicht im
+  Tunnel, Wahrzeichen in den City Limits).
 
 ### Regeln je Etappe (beide Richtungen, `StagePlan.build` ohne Warnungen – getestet)
 

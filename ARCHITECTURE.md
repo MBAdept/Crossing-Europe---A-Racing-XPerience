@@ -99,6 +99,9 @@ ausführbaren Datei** und `user://game_config.json` – so lassen sich Werte ohn
 - Szenerie-IDs (Inhalt in `data/scenery.json`): `north_plain, heath, forest_hills, rhine_main, industrial, polder,
   ardennes, farmland_fr, loire, pyrenees, meseta, mediterranean, alps, lombardy, karst, balkan_hills,
   pannonian_plain, bohemian, east_plain, baltic_forest, coast, city` (`city` gilt automatisch in den City Limits).
+  Individuelle Städte ([docs/staedte.md](docs/staedte.md)): `data/cities.json` legt je Stadt Baustil, Wahrzeichen,
+  Skyline und Brücken fest; in den City Limits gelten dann `city_<stil>_outskirts` / `city_<stil>_center` aus
+  `data/scenery.json` (ohne Stil weiterhin `city`).
 
 ### 4.2 `data/countries.json`
 
@@ -115,6 +118,9 @@ tunnels[{start_km,end_km,name}], borders[{km,from,to,name,name_local}], city_lim
 climate, countries_in_order, weather_hint, seed, warnings[]`.
 Abfragen: `section_at, country_at, scenery_at, is_city, road_at, speed_limit_at, traffic_factor_at, tunnel_at,
 in_tunnel, fuel_lane_at, next_station_km, next_radar, radar_zone_at, summary()`.
+Städte (`StagePlan.build(…, city_db)`, `CityData`): Felder `city_style, city_scenery_outskirts, city_scenery_center,
+city_center_km, city_background, landmarks[], bridges[], skyline[]`, Abfragen `scenery_for(km, scenery), in_city_center,
+bridge_at, on_bridge` – Formate in [docs/staedte.md](docs/staedte.md) §6–§7.
 Regeln werden beim Bauen erzwungen (Verstöße → `warnings`): letzte Tankstelle ≥ 25 km vor dem Ziel und nie in den
 City Limits; kein Radarfeld in den 30 km vor den City Limits; Tankspur = die letzten 1–2 km vor der Tankstelle.
 
@@ -125,7 +131,8 @@ City Limits; kein Radarfeld in den 30 km vor den City Limits; Tankspur = die let
 `stage_board_key(stage_id, from_city)`, `race_board_key(race_id)` (`"race:<id>"`), `connections_from(city)`
 (`[{kind: "stage"|"ferry", id, from, to, length_km}]`), `next_options(race_id, current_city, waypoint_index, visited)`
 (erlaubte nächste Etappen Richtung nächstem Pflichtziel; Umweg ≤ `routing.detour_tolerance`),
-`visible_race_ids()`, `visible_stage_ids()`, `validate()`.
+`visible_race_ids()`, `visible_stage_ids()`, `validate()`; Städte: `city_db` (`data/cities.json`), `city_style(id)`,
+`validate_cities(sprite_sets)`.
 
 ### 4.5 Karte `data/map/europe_map.json`
 
@@ -285,7 +292,9 @@ Fahrzeug-Sheets VRAM-komprimiert (BPTC) mit Mipmaps.
   tree_palm, bush_round, bush_low, heather, rock_a, rock_b, cliff, haybale, farmhouse, barn, church, windmill,
   wind_turbine, power_pylon, factory, house_med, building_block_a, building_block_b, building_tall,
   building_oldtown, building_shop, streetlight, delineator, fuel_station, fuel_pump, radar_camera, customs_booth,
-  ferry_ship), `ui/<icon>` (weather_normal, weather_rain, weather_snow, daytime_day, daytime_night, daytime_dawn,
+  ferry_ship), Städte ([docs/staedte.md](docs/staedte.md) §8): `props/city_<stil>_<name>` (Gebäude der Baustile),
+  `props/bridge_truss_arch`, `props/bridge_pylon`, `props/bridge_lamp`, `props/houseboat`, `landmarks/<name>`
+  (Wahrzeichen, Tag `landmark`), `ui/<icon>` (weather_normal, weather_rain, weather_snow, daytime_day, daytime_night, daytime_dawn,
   daytime_dusk).
 - Platzhalter: `tools/placeholders/make_placeholders.py`; echte Grafiken: `tools/blender/` (Blender 5.2, `bpy`).
 

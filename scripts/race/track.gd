@@ -19,6 +19,10 @@ extends RefCounted
 
 const WALL_SIGN_GAP_M := 0.1           ## gap between a tunnel-wall sign and the wall
 const WALL_SIGN_OVERHANG_M := 1.0      ## how far a tunnel-wall sign may reach over the paved road
+const BRIDGE_PORTAL_EVERY_M := 40.0    ## truss bridges: overhead portal every n visible metres
+const BRIDGE_LAMP_EVERY_M := {"stone_arch": 24.0, "causeway": 36.0}
+const BRIDGE_DECK_EXTRA_M := 0.4       ## outside the City Limits the railing stands this far beyond the shoulder
+const PROP_KEYS: Array[String] = ["fallback", "fallback_scale", "fallback_tint", "tint", "mirror", "align"]
 
 var plan: StagePlan
 var cfg: Dictionary = {}
@@ -33,8 +37,14 @@ var segment_count := 0                 ## including the run-out behind the finis
 var keep_behind := 64                  ## segments kept behind the camera
 var runout_m := 600.0
 var hill_scale := 1.0                  ## render.hill_height_scale (visual exaggeration of hills)
-## Spanning structures {kind: "fuel"|"fuel_canopy"|"border", z0, z1, ...} sorted by z0.
+## Spanning structures {kind: "fuel"|"fuel_canopy"|"border"|"bridge", z0, z1, ...} sorted by z0.
 var zones: Array[Dictionary] = []
+## Bridges of the destination city (docs/staedte.md): {z0, z1 (on the segment grid), type, depth, slope (bank
+## slope length), name, water, color, bank, km0, km1}; segments on them carry water/bridge_i/water_level, the
+## first one behind them bank.
+var bridges: Array[Dictionary] = []
+## Landmark props of the destination city with their z and x (also drawn beyond the draw range).
+var landmarks: Array[Dictionary] = []
 
 var _segs: Dictionary = {}             ## index -> TrackSegment (current window)
 var _gen_next := 0                     ## next index to generate
@@ -194,7 +204,7 @@ func _generate(i: int) -> void:
 	s.runout = s.z > length_z
 	s.road = plan.road_at(km)
 	s.city = plan.is_city(km)
-	s.scenery = "city" if s.city and scenery_db.has("city") else str(sec.get("scenery", "north_plain"))
+	s.scenery = plan.scenery_for(km, scenery_db) if not sec.is_empty() else "north_plain"
 	s.country = str(sec.get("country", "DE"))
 	s.speed_limit = plan.speed_limit_at(km)
 	s.tunnel = plan.in_tunnel(km) and not s.runout
@@ -218,6 +228,7 @@ func _generate(i: int) -> void:
 	s.y = _y
 	_y += _next_grade(sec, s) * seg_len * hill_scale
 	_mark_zones(s)
+	_mark_bridge(s)
 	_place_props(s)
 	_segs[i] = s
 	_place_curve_signs(s)
@@ -634,6 +645,7 @@ func _build_events() -> void:
 	_add_event_z(14.0, {"kind": "sign", "sign": "start", "side": 0})
 	_add_event_z(length_z, {"kind": "sign", "sign": "finish", "text": "ZIEL", "side": 0})
 	_mark_clear(length_z - 30.0, length_z + 20.0, 3)
+	_build_city()
 	zones.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return float(x["z0"]) < float(y["z0"]))
 
 
@@ -657,6 +669,150 @@ func _add_event_z(z: float, e: Dictionary) -> void:
 func _mark_clear(z0: float, z1: float, mask: int) -> void:
 	for i in range(segment_index_at(maxf(0.0, z0)), segment_index_at(maxf(0.0, z1)) + 1):
 		_clear[i] = int(_clear.get(i, 0)) | mask
+
+
+## Like _mark_clear, but no scenery props at any distance on those sides (mask 1 right, 2 left).
+func _mark_clear_all(z0: float, z1: float, mask: int) -> void:
+	_mark_clear(z0, z1, mask << 2)
+
+
+# --- Individual cities: landmarks and bridges (docs/staedte.md) ---------------------------------
+
+func _build_city() -> void:
+	bridges.clear()
+	landmarks.clear()
+	for br in plan.bridges:
+		_build_bridge(br)
+	for li in plan.landmarks.size():
+		_build_landmark(plan.landmarks[li], li)
+
+
+func _deck_extra(z: float) -> float:
+	return 0.0 if is_city_at(z) else BRIDGE_DECK_EXTRA_M
+
+
+func _build_bridge(br: Dictionary) -> void:
+	var z0 := roundf(km_to_z(float(br["start_km"])) / seg_len) * seg_len
+	var z1 := maxf(z0 + seg_len, roundf(km_to_z(float(br["end_km"])) / seg_len) * seg_len)
+	var typ := str(br["type"])
+	var depth := float(br["depth_m"])
+	# bank slopes: steep quay walls (one segment), embankments of high bridges / green banks much flatter
+	var slope := seg_len if str(br.get("bank", "")) == "" and depth < 8.0 else clampf(depth * 1.5, seg_len, (z1 - z0) * 0.3)
+	var b := {"kind": "bridge", "z0": z0, "z1": z1, "type": typ, "depth": depth, "slope": slope, "name": str(br.get("name", "")),
+		"water": str(br.get("water", "")), "color": str(br.get("color", "")), "bank": str(br.get("bank", "")),
+		"km0": float(br["start_km"]), "km1": float(br["end_km"])}
+	bridges.append(b)
+	zones.append(b)
+	# nothing of the scenery on the water, nor right before it (buildings reach backwards from their front)
+	_mark_clear_all(z0 - 24.0, z1, 3)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(_seed * 31 + int(z0))
+	var length := z1 - z0
+	var extra := _deck_extra(z0)
+	match typ:
+		"truss_arch":
+			var zp := z0 + 10.0
+			while zp < z1 - 6.0:
+				var e := road_edges_at(zp)
+				var fit := (e.y - e.x) + 2.0 * (shoulder_w + extra) + 0.8
+				_add_event_z(zp, {"kind": "prop", "set": "props/bridge_truss_arch", "proc": "truss_portal", "side": 0,
+					"overhead": true, "fit_w": fit, "bridge": typ, "color": b["color"]})
+				zp += BRIDGE_PORTAL_EVERY_M
+		"cable_stayed":
+			var fr: Array[float] = [0.5]
+			if length >= 150.0:
+				fr = [0.27, 0.73]
+			for f in fr:
+				for side: int in [-1, 1]:
+					_add_event_z(z0 + length * f, {"kind": "prop", "set": "props/bridge_pylon", "proc": "pylon", "side": side,
+						"offset": extra + 1.3, "height_m": float(br.get("pylon_m", 80.0)), "cables": minf(64.0, length * 0.24),
+						"bridge": typ, "color": b["color"]})
+		"stone_arch", "causeway":
+			var every := float(BRIDGE_LAMP_EVERY_M[typ])
+			var zl := z0 + every * 0.5
+			while zl < z1 - 2.0:
+				for side: int in [-1, 1]:
+					_add_event_z(zl, {"kind": "prop", "set": "props/bridge_lamp", "proc": "bridge_lamp", "side": side,
+						"offset": extra - 0.25, "bridge": typ})
+				zl += every
+	# houseboats moored along a canal, ships on a river
+	var boats := int(br.get("boats", 0))
+	for n in boats:
+		var side := 1 if n % 2 == 0 else -1
+		var zb := z0 + length * (0.3 if n % 4 < 2 else 0.72)
+		_add_event_z(zb, {"kind": "prop", "set": "props/houseboat", "fallback": "props/ferry_ship", "fallback_scale": 0.13,
+			"side": side, "offset": extra + rng.randf_range(5.0, 16.0), "align": "edge", "h": -depth, "scale": rng.randf_range(0.9, 1.1)})
+	for n in int(br.get("ships", 0)):
+		var side := -1 if (n + rng.randi() % 2) % 2 == 0 else 1
+		_add_event_z(z0 + length * rng.randf_range(0.3, 0.7), {"kind": "prop", "set": "props/ferry_ship", "side": side,
+			"offset": rng.randf_range(45.0, 110.0), "align": "edge", "h": -depth, "scale": rng.randf_range(0.32, 0.45)})
+
+
+func _build_landmark(lm: Dictionary, index: int) -> void:
+	var z := km_to_z(float(lm["km"]))
+	var side := int(lm["side"])
+	var x_m := float(lm["x_m"])
+	var ev := {"kind": "prop", "set": str(lm["set"]), "side": side, "at": "edge", "offset": x_m, "align": "edge",
+		"scale": float(lm.get("scale", 1.0)), "landmark": true, "height_m": float(lm.get("height_m", 40.0)),
+		"name": str(lm.get("name", ""))}
+	for key: String in ["proc", "fallback", "fallback_scale", "fallback_tint", "tint", "width_m", "dome", "wall"]:
+		if lm.has(key):
+			ev[key] = lm[key]
+	if ev.has("proc"):
+		ev.erase("fallback")   # the procedural stand-in replaces a generic fallback sprite
+	_add_event_z(z, ev)
+	var cl: Array = lm.get("clear_m", CityData.DEFAULT_CLEAR_M)
+	var mask := 1 if side > 0 else 2
+	var plaza := str(lm.get("plaza", "park"))
+	if plaza != "none":
+		_mark_clear_all(z - float(cl[0]), z + float(cl[1]), mask)
+	if plaza == "park" and x_m > 14.0:
+		# a few park trees on the plaza in front of the landmark
+		var rng := RandomNumberGenerator.new()
+		rng.seed = hash(_seed * 17 + index * 7919 + 3)
+		var n := 3 + rng.randi() % 4
+		for i in n:
+			var zt := z - float(cl[0]) * rng.randf_range(0.15, 0.85)
+			_add_event_z(zt, {"kind": "prop", "set": "props/tree_oak" if rng.randf() < 0.5 else "props/tree_beech",
+				"side": side, "offset": rng.randf_range(3.0, minf(x_m - 8.0, 36.0)), "scale": rng.randf_range(0.7, 1.05)})
+	var far := ev.duplicate()
+	far["z"] = z
+	far["x"] = _prop_x(road_edges_at(z), side, "edge", x_m)
+	landmarks.append(far)
+
+
+func _mark_bridge(s: TrackSegment) -> void:
+	for i in bridges.size():
+		var br: Dictionary = bridges[i]
+		var z0 := float(br["z0"])
+		var z1 := float(br["z1"])
+		if s.z >= z0 - 0.01 and s.z < z1 - 0.01:
+			s.bridge = str(br["type"])
+			s.bridge_i = i
+			s.water = true
+			s.water_depth = float(br["depth"])
+			s.water_level = water_level_at(s.z, br)
+			return
+		if absf(s.z - z1) < 0.01:
+			s.bank = true
+			s.bridge_i = i
+			s.water_depth = float(br["depth"])
+			return
+
+
+## Height of the ground/water under a bridge at z (m, <= 0): 0 at the abutments, sloping down over the
+## bridge's "slope" to the water level -depth.
+static func water_level_at(z: float, br: Dictionary) -> float:
+	var f := clampf(minf(z - float(br["z0"]), float(br["z1"]) - z) / maxf(0.1, float(br["slope"])), 0.0, 1.0)
+	return -float(br["depth"]) * f
+
+
+## Bridge zone at z ({} if none).
+func bridge_at(z: float) -> Dictionary:
+	for br in bridges:
+		if z >= float(br["z0"]) and z < float(br["z1"]):
+			return br
+	return {}
 
 
 ## Signs/props from km events, sorted by z inside the segment.
@@ -734,7 +890,7 @@ func _place_props(s: TrackSegment) -> void:
 		return
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(_seed * 7919 + s.index)
-	if s.city:
+	if s.city and not (s.water and BRIDGE_LAMP_EVERY_M.has(s.bridge)):
 		# street lights on both sides (procedural, lit at night)
 		var every := float(ConfigLoader.lookup(cfg, "road.streetlight_every_m", 33.0))
 		var phase := fposmod(s.z, every)
@@ -744,6 +900,8 @@ func _place_props(s: TrackSegment) -> void:
 			s.sprites.append({"kind": "object", "obj": "streetlight", "side": -1, "x": _prop_x(edges, -1, "outer", -0.6), "scale": 1.0, "z": s.z})
 	var clear := int(_clear.get(s.index, 0))
 	var sc: Dictionary = scenery_db.get(s.scenery, {})
+	if s.water:
+		sc = {}   # bridges: water beside the deck, no scenery
 	for rule: Dictionary in sc.get("props", []):
 		var every := float(rule.get("every_m", 30.0))
 		if fposmod(s.z + float(rule.get("phase_m", 0.0)), every) >= seg_len:
@@ -768,9 +926,11 @@ func _place_props(s: TrackSegment) -> void:
 			var dz := rng.randf_range(0.0, seg_len)
 			if off < 25.0 and (clear & (1 if side > 0 else 2)) != 0:
 				continue
+			if (clear & (4 if side > 0 else 8)) != 0:
+				continue
 			var p := {"kind": "prop", "set": str(rule["set"]), "x": _prop_x(edges, side, "outer", off),
 				"scale": scale, "side": side, "z": s.z + dz}
-			for key: String in ["fallback", "fallback_scale", "tint", "mirror", "align"]:
+			for key in PROP_KEYS:
 				if rule.has(key):
 					p[key] = rule[key]
 			s.sprites.append(p)
