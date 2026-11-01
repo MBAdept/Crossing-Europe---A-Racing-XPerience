@@ -4,7 +4,8 @@ extends RefCounted
 ## docs/renn-modul.md §6). All sizes in metres and slightly exaggerated for readability at speed.
 ## Geometry goes into the shared GeoBatch, text is drawn with draw_string at a few cached font sizes,
 ## scaled to the exact size with a transform.
-## Kinds: limit, unlimited, radar, fuel, fuel_lane, town, distance, border, tunnel, autobahn,
+## Kinds: limit, unlimited, radar, fuel, fuel_lane, town, town_ahead (advance sign of the City Limits: town board,
+## "in <n> km" plate and the city speed limit), distance, border, tunnel, autobahn,
 ## autobahn_end, start (gantry with countdown lights), finish (gantry with "ZIEL" banner), curve (warning
 ## triangle "Kurve", value = direction +1 right / -1 left) and chevron (red-white direction board on the
 ## outside of a sharp curve, arrows pointing into the bend).
@@ -26,7 +27,7 @@ const EU_YELLOW := Color("ffd21f")
 const FONT_SIZES := [8, 10, 12, 14, 16, 20, 24, 28, 32, 40, 48, 56, 64, 80, 96]
 ## Half width (m, scale 1) of the board of each sign kind (tunnel walls: Track fits the board inside).
 const HALF_WIDTH_M := {"limit": 0.85, "unlimited": 0.85, "radar": 1.05, "fuel": 1.5, "fuel_lane": 1.15,
-	"town": 1.9, "distance": 2.4, "border": 1.75, "tunnel": 1.7, "autobahn": 0.95, "autobahn_end": 0.95,
+	"town": 1.9, "town_ahead": 1.9, "distance": 2.4, "border": 1.75, "tunnel": 1.7, "autobahn": 0.95, "autobahn_end": 0.95,
 	"curve": 0.9, "chevron": 0.95}
 
 var font: Font
@@ -125,6 +126,8 @@ func draw(it: Dictionary, p: Vector3, lit: Color, alpha: float, edges_px: Vector
 			_fuel_lane_sign(p, lit, alpha, st["motorway"] if motorway else BLUE_AB)
 		"town":
 			_town_sign(p, lit, alpha, str(it.get("text", "")), st)
+		"town_ahead":
+			_town_ahead_sign(p, lit, alpha, str(it.get("text", "")), int(it.get("value", 0)), int(it.get("limit", 0)), st)
 		"distance":
 			_distance_sign(p, lit, alpha, str(it.get("text", "")), int(it.get("value", 0)),
 				st["motorway"] if motorway else st["road"], st["motorway_fg"] if motorway else st["road_fg"])
@@ -297,6 +300,37 @@ func _town_sign(p: Vector3, lit: Color, alpha: float, name: String, st: Dictiona
 		batch.rect(inner.grow(-0.05 * s), _c(bg, lit, alpha))
 	text(name, Vector2(p.x, r.position.y + 1.08 * s), 0.62 * s, _c(fg, lit, alpha), 3.3 * s)
 	text(tr("City Limits"), Vector2(p.x, r.end.y - 0.26 * s), 0.2 * s, _c(fg, lit, alpha), 3.0 * s)
+
+
+## Advance sign of the City Limits (review v0.5.0: in snow the slow, dense city traffic right behind the town sign
+## must not come as a surprise): the town board raised on its posts, below it a white plate "in <n> km" with the
+## city speed limit as a small disc beside the text.
+func _town_ahead_sign(p: Vector3, lit: Color, alpha: float, name: String, km: int, limit: int, st: Dictionary) -> void:
+	var s := p.z
+	var bg: Color = st["town_bg"]
+	var fg: Color = st["town_fg"]
+	var border: Color = st["town_border"]
+	var r := Rect2(p.x - 1.9 * s, p.y - 4.2 * s, 3.8 * s, 1.75 * s)
+	var plate := Rect2(p.x - 1.5 * s, r.end.y + 0.12 * s, 3.0 * s, 0.75 * s)
+	_post(p.x - 1.3 * s, p.y, plate.end.y, 0.1 * s, lit, alpha)
+	_post(p.x + 1.3 * s, p.y, plate.end.y, 0.1 * s, lit, alpha)
+	var thick := not border.is_equal_approx(fg)
+	_board(r, bg, lit, alpha, border, (0.11 if thick else 0.05) * s)
+	if 0.06 * s > 0.6:
+		var inner := r.grow(-(0.2 if thick else 0.12) * s)
+		batch.rect(inner, _c(border, lit, alpha))
+		batch.rect(inner.grow(-0.05 * s), _c(bg, lit, alpha))
+	text(name, Vector2(p.x, r.position.y + 1.08 * s), 0.62 * s, _c(fg, lit, alpha), 3.3 * s)
+	text(tr("City Limits"), Vector2(p.x, r.end.y - 0.26 * s), 0.2 * s, _c(fg, lit, alpha), 3.0 * s)
+	_board(plate, WHITE, lit, alpha, BLACK, 0.04 * s)
+	var tx := p.x if limit <= 0 else p.x - 0.42 * s
+	text(tr("in %d km") % km, Vector2(tx, plate.end.y - 0.2 * s), 0.38 * s, _c(BLACK, lit, alpha), 1.9 * s)
+	if limit > 0:
+		var c := Vector2(plate.end.x - 0.45 * s, plate.get_center().y)
+		var rr := 0.32 * s
+		batch.ellipse(c, Vector2(rr, rr), _c(RED, lit, alpha), _c(RED, lit, alpha), 12)
+		batch.ellipse(c, Vector2(rr * 0.76, rr * 0.76), _c(WHITE, lit, alpha), _c(WHITE, lit, alpha), 12)
+		text(str(limit), Vector2(c.x, c.y + 0.12 * s), 0.24 * s, _c(BLACK, lit, alpha), 0.5 * s)
 
 
 ## Direction sign "<destination>  <n> km" in the country's colours (motorway or other road).

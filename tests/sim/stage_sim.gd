@@ -228,7 +228,7 @@ func _run() -> void:
 		track.update_window(cam_z, 960.0)
 		var vis := 900.0 * env.visibility_factor(hour, weather, track.is_tunnel_at(cam_z + 5.0))
 		traffic.update(DT, {"z": pos_z, "x": vehicle.x, "speed": vehicle.speed}, {"hour": hour, "chase": police.chase_active(), "camera_z": cam_z, "visibility_m": vis,
-			"weather": weather, "brake_mps2": vehicle.brake_decel_mps2(track.grip_at(pos_z, env.grip(weather)))})
+			"weather": weather, "brake_mps2": vehicle.brake_decel_mps2(env.grip(weather))})
 		if not vehicle.invulnerable:
 			var hit := traffic.find_collision({"z": pos_z, "x": vehicle.x, "length": vehicle.length_m, "width": vehicle.width_m}, cam_z, _visible)
 			if hit != null:

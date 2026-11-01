@@ -6,7 +6,7 @@ extends RefCounted
 ##
 ## Rules (design document "Tageszeit und Wetter"):
 ##  * weather normal/rain/snow lowers max speed (driving.weather_vmax_factor) and visibility
-##    (weather.visibility_factor); night lowers visibility (weather.night_visibility_factor) and slightly
+##    (weather.visibility_factor); night lowers visibility (weather.night_visibility_factor, per weather) and slightly
 ##    max speed (driving.night_vmax_factor), smoothly over dusk and dawn (config "daytime")
 ##  * rain + night still allows 220 km/h for the slowest car (230 km/h * 0.975 * 0.99 = 222) – police escape;
 ##    snow may prevent an escape
@@ -62,11 +62,22 @@ func grip(weather: String) -> float:
 
 
 ## Multiplier for the draw distance (1 = clear day). In a tunnel only the tunnel lighting counts.
+## Night: weather.night_visibility_factor – one number for every weather, or one per weather (snow brightens the
+## night: with the halved braking in snow the sight must still cover the stopping distance to the slowest
+## traffic, docs/gameplay.md (i6)).
 func visibility_factor(hour: float, weather: String, in_tunnel: bool) -> float:
 	if in_tunnel:
 		return _f("weather.tunnel_visibility_factor", 0.4)
 	var v := _f("weather.visibility_factor." + weather, 1.0)
-	return v * lerpf(1.0, _f("weather.night_visibility_factor", 0.55), night_amount(hour))
+	return v * lerpf(1.0, night_visibility_factor(weather), night_amount(hour))
+
+
+## Visibility factor of a full night in this weather (weather.night_visibility_factor: a number or {weather: number}).
+func night_visibility_factor(weather: String) -> float:
+	var n: Variant = ConfigLoader.lookup(cfg, "weather.night_visibility_factor", 0.55)
+	if n is Dictionary:
+		return float((n as Dictionary).get(weather, (n as Dictionary).get("normal", 0.55)))
+	return float(n)
 
 
 ## Deterministic weather for a race stage. climate: north|continental|alpine|mediterranean|default.
@@ -98,10 +109,14 @@ func pick_weather(seed: int, climate: String, hint: String = "") -> String:
 
 
 ## Weather of a stage within a race: deterministic for (race seed, stage, leg index), using the stage's
-## climate and weather hint according to weather.race_mode.
+## climate and weather hint according to weather.race_mode. The tutorial stage (StagePlan.tutorial) is driven in
+## weather.tutorial_weather (dry; empty = race weather) – like RaceState.leg_weather in the menus.
 func race_weather(plan: StagePlan, race_seed: int, leg_index: int = 0) -> String:
 	if plan == null:
 		return "normal"
+	var tut := str(ConfigLoader.lookup(cfg, "weather.tutorial_weather", "normal"))
+	if plan.tutorial and weather_types().has(tut):
+		return tut
 	var s := hash("%d:%s:%d:%d" % [race_seed, plan.stage_id, int(plan.reversed), leg_index]) & 0x7fffffff
 	return pick_weather(s, plan.climate, plan.weather_hint)
 

@@ -229,7 +229,7 @@ func _drive(weather: String, vehicle_id: String, km_to: float) -> Dictionary:
 		track.update_window(cam_z, draw + 60.0)
 		traffic.update(DT, {"z": z, "x": v.x, "speed": v.speed}, {"hour": clock.hour(), "chase": false, "camera_z": cam_z,
 			"visibility_m": draw * env.visibility_factor(clock.hour(), weather, track.is_tunnel_at(cam_z + 5.0)), "weather": weather,
-			"brake_mps2": v.brake_decel_mps2(track.grip_at(z, grip))})
+			"brake_mps2": v.brake_decel_mps2(grip)})
 		if not v.invulnerable:
 			var hit := traffic.find_collision({"z": z, "x": v.x, "length": v.length_m, "width": v.width_m}, cam_z, proj.visible_fraction)
 			if hit != null:

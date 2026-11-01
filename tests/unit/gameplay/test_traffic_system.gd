@@ -146,6 +146,57 @@ func test_following_distance_and_brake_lights() -> void:
 	assert_true(gap >= min_gap + slow.speed / 3.6 * follow * 0.8, "Folgeabstand ~ min_gap + v * follow_time: %.1f m" % gap)
 
 
+## Review v0.5.0: in snow the traffic braked with up to 8 m/s² – nearly the player's whole snow braking (9.7). Now its
+## braking follows the weather (traffic.weather.<w>.decel_factor, snow × 0.5: at most 4 m/s², comfortable 1.25),
+## it starts earlier and still stops behind a standing car; behind the player the dry limit stays (he may brake
+## hard or cut in – nobody runs into him).
+func test_traffic_brakes_softer_in_snow() -> void:
+	var c := _empty_cfg()
+	var max_dry := float(ConfigLoader.lookup(c, "traffic.max_decel_mps2", 8.0))
+	var f_snow := float(ConfigLoader.lookup(c, "traffic.weather.snow.decel_factor", 1.0))
+	assert_between(f_snow, 0.4, 0.6, "Schnee etwa halbe Bremsung wie beim Spieler")
+	var out := {}
+	for weather in ["normal", "snow"]:
+		var track := FakeTrack.new(30000.0, "landstrasse", 1)
+		var ts := _system(c, track)
+		var ctx := {"hour": 12.0, "weather": weather}
+		ts.update(0.0, {"z": 900.0, "x": -60.0, "speed": 0.0}, ctx)
+		var stopped := _car(ts, c, 1, 1130.0, 0, 0.0)
+		var car := _car(ts, c, 2, 1000.0, 0, 90.0)
+		var peak := 0.0
+		var gap_min := INF
+		for i in 900:
+			var v0 := car.speed
+			ts.update(DT, {"z": 900.0, "x": -60.0, "speed": 0.0}, ctx)
+			stopped.z = 1130.0   # a car standing in the lane (pinned)
+			stopped.speed = 0.0
+			peak = maxf(peak, (v0 - car.speed) / 3.6 / DT)
+			gap_min = minf(gap_min, stopped.z - car.z - 4.5)
+		out[weather] = peak
+		assert_true(gap_min > 2.0, "%s: hält hinter dem stehenden Auto (%.1f m)" % [weather, gap_min])
+		assert_true(car.speed < 1.0, "%s: steht (%.1f km/h)" % [weather, car.speed])
+	assert_true(float(out["snow"]) <= max_dry * f_snow + 0.05, "Schnee höchstens %.1f m/s²: %.2f" % [max_dry * f_snow, float(out["snow"])])
+	assert_true(float(out["normal"]) <= max_dry + 0.05, "trocken höchstens %.1f m/s²: %.2f" % [max_dry, float(out["normal"])])
+	# behind the player (standing in the lane) the dry limit applies: no car runs into him, also in snow
+	var track2 := FakeTrack.new(30000.0, "landstrasse", 1)
+	var ts2 := _system(c, track2)
+	var ctx2 := {"hour": 12.0, "weather": "snow"}
+	var pz := 1100.0
+	var px := float(track2.lane_center_x(pz, 0))
+	ts2.update(0.0, {"z": pz, "x": px, "speed": 0.0}, ctx2)
+	var car2 := _car(ts2, c, 3, 1000.0, 0, 90.0)
+	var peak2 := 0.0
+	var gap2 := INF
+	for i in 900:
+		var v0 := car2.speed
+		ctx2["camera_z"] = pz - 9.0
+		ts2.update(DT, {"z": pz, "x": px, "speed": 0.0}, ctx2)
+		peak2 = maxf(peak2, (v0 - car2.speed) / 3.6 / DT)
+		gap2 = minf(gap2, pz - car2.z - 4.6)
+	assert_true(gap2 > 0.0, "fährt nicht in den Spieler (%.1f m)" % gap2)
+	assert_true(peak2 > max_dry * f_snow + 0.5, "hinter dem Spieler darf es stärker bremsen: %.2f m/s²" % peak2)
+
+
 func test_overtakes_slower_car_and_keeps_right() -> void:
 	var c := _empty_cfg()
 	var track := FakeTrack.new(30000.0, "autobahn", 2)

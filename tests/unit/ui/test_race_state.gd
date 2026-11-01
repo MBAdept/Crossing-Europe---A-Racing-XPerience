@@ -128,6 +128,44 @@ func test_weather_modes() -> void:
 		assert_true(int(counts[k]) > 50, "random ~ gleichverteilt: " + k)
 
 
+## Review v0.5.0: the tutorial stage (Kiel – Hamburg, first stage of the first race) got the race weather – 8 % snow
+## in the north – and a first-time player then had half the braking. Now it is always dry (weather.tutorial_weather);
+## every other stage keeps the race weather.
+func test_tutorial_stage_is_dry() -> void:
+	var c := cfg()
+	var tut := StagePlan.new()
+	tut.stage_id = "kiel_hamburg"
+	tut.tutorial = true
+	tut.climate = "north"
+	var other := StagePlan.new()
+	other.stage_id = "hamburg_bremen"
+	other.climate = "north"
+	var counts := {"normal": 0, "rain": 0, "snow": 0}
+	for mode in ["region", "random"]:
+		var mc := ConfigLoader.deep_merge(c, {"weather": {"race_mode": mode}})
+		for i in 400:
+			assert_eq(RaceState.leg_weather(mc, tut, i), "normal", "Tutorial-Etappe trocken (%s, Seed %d)" % [mode, i])
+			counts[RaceState.leg_weather(mc, other, i)] += 1
+			assert_eq(RaceState.leg_weather(mc, other, i), RaceState.choose_weather(mc, "north", "", i), "andere Etappen: Rennwetter")
+	assert_true(int(counts["rain"]) > 100 and int(counts["snow"]) > 20, "andere Etappen weiter mit Regen und Schnee: %s" % str(counts))
+	var fixed := ConfigLoader.deep_merge(c, {"weather": {"race_mode": "fixed"}})
+	tut.weather_hint = "snow"
+	assert_eq(RaceState.leg_weather(fixed, tut, 3), "normal", "auch mit Wetterfeld")
+	var off := ConfigLoader.deep_merge(c, {"weather": {"race_mode": "fixed", "tutorial_weather": ""}})
+	assert_eq(RaceState.leg_weather(off, tut, 3), "snow", "tutorial_weather leer = Rennwetter")
+	var env := EnvironmentModel.new()
+	env.setup(c)
+	for i in 100:
+		assert_eq(env.race_weather(tut, i, 0), "normal", "EnvironmentModel.race_weather: Tutorial trocken")
+	# the real network: Kiel – Hamburg is the tutorial stage
+	var net: Dictionary = ConfigLoader.load_json("res://data/network.json")
+	var found := false
+	for st: Dictionary in net.get("stages", []):
+		if str(st.get("id", "")) == "kiel_hamburg":
+			found = bool(st.get("tutorial", false))
+	assert_true(found, "Kiel – Hamburg ist die Tutorial-Etappe")
+
+
 func test_route_enumeration() -> void:
 	# kiel - hamburg, then hamburg -> kassel -> nuernberg or hamburg -> frankfurt -> nuernberg (no waypoint)
 	var graph := {

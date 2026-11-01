@@ -205,13 +205,16 @@ Signal `pull_over` (Polizei überholt und stoppt den Wagen; `caught` erst im Sta
 `FuelSystem` Signale `tow_started`, `reserve_reached`, `can_abort_refuel()`, `holds_car()`; `VehicleModel`
 Steigungsabzug erst ab `driving.grade_free_percent`. Details: docs/gameplay.md.
 v0.5.0 (Schwierigkeit, gameplay.md „Verkehr als Hindernis“, „Wetter“): `TrafficSystem.update` liest im `ctx` zusätzlich
-`weather` (Tempo und Abstände des Verkehrs) und `brake_mps2` (Vollbremsung des Spielers im Wetter – Untergrenze fürs
-Einscheren vor ihm), neu `cruise_speed_for(road, cls, frac, limit)`, `vehicle_class(car)`, `cut_in_floor_m(rel_mps,
-lead_s)`, Felder `weather, player_brake_mps2, cut_ins, last_cut_in`; `Car` mit `bus, signal_dir, signal_lane, signal_t,
+`weather` (Tempo, Abstände und Bremsen des Verkehrs) und `brake_mps2` (Vollbremsung des Spielers mit der Haftung des
+Wetters, auch im Tunnel – Untergrenze fürs Einscheren vor ihm), neu `cruise_speed_for(road, cls, frac, limit)`,
+`slowest_speed_kmh(road, limit)`, `set_weather(w)`, `vehicle_class(car)`, `cut_in_floor_m(rel_mps, lead_s)`, Felder
+`weather, player_brake_mps2, cut_ins, last_cut_in`; `Car` mit `bus, signal_dir, signal_lane, signal_t,
 signal_age, signal_wait, signal_mandatory, elephant_t, elephant_cool`. `VehicleModel`: `curve_grip(g)`,
 `brake_decel_mps2(g)`, `traction_mps2(g)`, `steer_response_s(g)`, `steer_speed_mps(g)`, `traction_crossover(vtop,
 trac)`, `accelerate(v, vtop, t, trac_kmh_s = INF)` – die Haftung `road.grip` wirkt auf Kurvengrenze, Bremsen, Traktion
-und Lenken. `PoliceSystem.curve_speed_mps` nutzt dieselbe Kurvenhaftung.
+und Lenken. `PoliceSystem.curve_speed_mps` nutzt dieselbe Kurvenhaftung. `EnvironmentModel.night_visibility_factor(w)`:
+`weather.night_visibility_factor` ist eine Zahl oder eine Zahl je Wetter (Schnee nachts 338 m Sicht); `race_weather`
+gibt der Tutorial-Etappe `weather.tutorial_weather` (trocken).
 
 ## 8. Rennsitzung (`scripts/race/race_session.gd`, Szene `scenes/race/race.tscn`)
 

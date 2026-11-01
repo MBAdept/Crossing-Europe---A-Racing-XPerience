@@ -152,6 +152,8 @@ var _acc_car := 1.6
 var _acc_truck := 0.7
 var _comfort := 2.5
 var _max_decel := 8.0
+var _eff_comfort := 2.5      ## comfortable braking in the current weather (traffic.weather.<w>.decel_factor)
+var _eff_max_decel := 8.0    ## strongest braking in the current weather (behind the player: always _max_decel)
 var _lc_safe := 3.0
 var _lc_threshold := 0.2
 var _lc_threshold_truck := 0.6
@@ -364,7 +366,8 @@ func _vec2(path: String, default: Vector2) -> Vector2:
 
 
 ## Weather factors of the traffic (traffic.weather.<w>: speed_factor for cars, heavy_speed_factor for trucks/buses,
-## follow_time_factor and min_gap_factor for the following distance). Unknown weather = normal.
+## follow_time_factor and min_gap_factor for the following distance, lane_change_factor, decel_factor for the
+## comfortable and the strongest braking – like the player's braking, about grip^0.87). Unknown weather = normal.
 func _apply_weather(w: String) -> void:
 	weather = w
 	var e: Variant = _weather_cfg.get(w, {})
@@ -377,6 +380,10 @@ func _apply_weather(w: String) -> void:
 	_eff_follow = _follow_time * _w_follow
 	_eff_lc_mps = _lane_change_mps * maxf(0.1, float(d.get("lane_change_factor", 1.0)))
 	_w_margin = _w_speed
+	# braking (review v0.5.0: in snow the traffic stopped with up to 8 m/s², close to the player's whole snow braking)
+	var dec := clampf(float(d.get("decel_factor", 1.0)), 0.1, 1.0)
+	_eff_comfort = _comfort * dec
+	_eff_max_decel = _max_decel * dec
 
 
 # --- Public queries -------------------------------------------------------------------------
@@ -421,6 +428,23 @@ func cruise_speed_for(road: String, cls: int, frac: float, limit: int = 0) -> fl
 	if limit > 0:
 		v = minf(v, float(limit) * (lerpf(_limit_tol.x, _limit_tol.y, frac) if cls == 0 else 1.0))
 	return v * (_w_speed if cls == 0 else _w_heavy) * speed_factor(_hour)
+
+
+## Desired speed (km/h) of the slowest vehicle on road type `road` with the speed limit `limit` (0 = none) in the
+## current weather and hour: cars, trucks and buses at the careful end of their range (cruise_speed_for with
+## frac 0); heavy = 0 only cars, 1 only trucks and buses, -1 all. The sight check of the traffic
+## (tests/sim/sight_check.gd) brakes for it.
+func slowest_speed_kmh(road: String, limit: int = 0, heavy: int = -1) -> float:
+	var v := INF
+	for cls in 3:
+		if heavy < 0 or (heavy == 0) == (cls == 0):
+			v = minf(v, cruise_speed_for(road, cls, 0.0, limit))
+	return v
+
+
+## Sets the weather of the traffic (speeds, gaps, braking) without an update – sight checks and tests.
+func set_weather(w: String) -> void:
+	_apply_weather(w)
 
 
 ## Vehicle class of a car: 0 car, 1 truck, 2 bus.
@@ -919,15 +943,19 @@ func _lane_usable(c: Car, lane: int) -> bool:
 	return _lane_end_distance(c, lane) == INF
 
 
-## Acceleration (m/s²) of a car: IDM towards its leader, plus a stop before the end of its lane.
+## Acceleration (m/s²) of a car: IDM towards its leader, plus a stop before the end of its lane. Braking is limited
+## by the weather (traffic.weather.<w>.decel_factor) – except behind the player: he may brake with his full
+## braking or cut in, and traffic must never run into him (the dry limit, as before).
 func _accel_for(c: Car) -> float:
 	var v0 := _desired_speed(c, c.lane)
-	var a := _idm(c, v0, _leader(c, c.lane))
+	var lead := _leader(c, c.lane)
+	var a := _idm(c, v0, lead)
 	var end_d := _cached_lane_end(c)
 	if end_d < INF:
 		var a_max := _acc_truck if c.heavy else _acc_car
 		a = minf(a, _idm_free(c, v0, a_max) + _idm_interaction(c, a_max, 0.0, end_d - c.length * 0.5 - 3.0))
-	return clampf(a, -_max_decel, _acc_truck if c.heavy else _acc_car)
+	var limit := _max_decel if lead == player_obstacle else _eff_max_decel
+	return clampf(a, -limit, _acc_truck if c.heavy else _acc_car)
 
 
 func _desired_speed(c: Car, lane: int) -> float:
@@ -945,7 +973,7 @@ func _desired_speed(c: Car, lane: int) -> float:
 		var d := _fuel_lane_ahead(c.z)
 		if d < INF:
 			var vf := _fuel_speed / 3.6
-			v = minf(v, sqrt(vf * vf + 2.0 * _comfort * 0.6 * maxf(0.0, d - 10.0)) * 3.6)
+			v = minf(v, sqrt(vf * vf + 2.0 * _eff_comfort * 0.6 * maxf(0.0, d - 10.0)) * 3.6)
 	return v
 
 
@@ -963,14 +991,14 @@ func _idm_free(c: Car, v0_kmh: float, a_max: float) -> float:
 	var vd := maxf(v0_kmh / 3.6, 0.5)
 	if v <= vd:
 		return a_max * (1.0 - pow(v / vd, 4.0))
-	return -minf(_comfort, 0.4 * (v - vd) + 0.2)
+	return -minf(_eff_comfort, 0.4 * (v - vd) + 0.2)
 
 
 ## IDM interaction term. Minimum gap and time gap of the current weather (traffic.weather.<w>: longer in rain
 ## and snow).
 func _idm_interaction(c: Car, a_max: float, v_lead: float, gap: float) -> float:
 	var v := c.speed / 3.6
-	var s_star := _eff_gap + maxf(0.0, v * _eff_follow + v * (v - v_lead) / (2.0 * sqrt(a_max * _comfort)))
+	var s_star := _eff_gap + maxf(0.0, v * _eff_follow + v * (v - v_lead) / (2.0 * sqrt(a_max * _eff_comfort)))
 	return -a_max * pow(s_star / maxf(gap, 0.5), 2.0)
 
 

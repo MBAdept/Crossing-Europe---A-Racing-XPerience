@@ -14,7 +14,7 @@ Verträge stehen in [ARCHITECTURE.md](../ARCHITECTURE.md) §5, §6, §8 und für
 | `scripts/race/projection.gd` | `RoadProjection` | Kameramathematik, Ein-Drittel-Regel (`visible_fraction`) |
 | `scripts/race/road_renderer.gd` | `RoadRenderer` | Pseudo-3D-Renderer (Node2D, `_draw`) |
 | `scripts/race/backdrop.gd` | `RaceBackdrop` | Himmel (Verlauf, Sonne, Mond, Sterne, Wolken) und Hintergrund-Silhouetten je Landschaftsstil |
-| `scripts/race/sign_painter.gd` | `SignPainter` | prozedurale Schilder mit Text (Tempo, Radar, Tankstelle, Ortsschild, EU-Grenze, Tunnel, Autobahn, Start/Ziel) |
+| `scripts/race/sign_painter.gd` | `SignPainter` | prozedurale Schilder mit Text (Tempo, Radar, Tankstelle, Ortsschild und sein Vorschild, EU-Grenze, Tunnel, Autobahn, Start/Ziel) |
 | `scripts/race/geo_batch.gd` | `GeoBatch` | sammelt farbige Vierecke und schickt sie als ein Dreiecks-Array an den RenderingServer |
 | `scripts/race/vehicle_pose.gd` | `VehiclePose` | Fahrzeugdarstellung v2, reine Mathematik: Darstellungswinkel mit Fahrzeuglänge, kritisch gedämpfte Glättung, Zellwahl mit Hysterese, Gierwinkel und Neigung des Spielerautos |
 | `scripts/race/box_vehicle.gd` | `BoxVehicle` | Lkw/Busse als texturierte Quader: sichtbare Flächen, Abschnitte entlang der Straße, nahe Ebene, Texturkoordinaten |
@@ -115,7 +115,10 @@ nähere Hintergrundebenen drehen sich etwas schneller (Parallaxe).
 - **Ereignisse** (`_build_events`): Tankstellenschilder 30/15/5 km, Spur-Hinweis, Preis-Pylon; Radarwarnung 10 km vorher
   (mit Limit), Tempo-Schilder beidseitig am Radarfeld + Wiederholung, Blitzer, Aufhebung am Ende; Tempolimits und
   Autobahn-Beginn/-Ende an Abschnittsgrenzen; Tunnelschild (Name + Länge); EU-Grenzschilder (Landesname in Landessprache,
-  auch kyrillisch), Grenzstation (Dach über der Fahrbahn mit Landesnamen, Zollhäuschen), neues Tempolimit; Ortsschild
+  auch kyrillisch), Grenzstation (Dach über der Fahrbahn mit Landesnamen, Zollhäuschen), neues Tempolimit; Vorschild der
+  City Limits `city_limits.announce_km` (4 km = 333 m) vorher rechts (`town_ahead`: Ortsschild, darunter weiße Tafel
+  „in 4 km“ mit dem Stadtlimit als kleiner Scheibe; Review v0.5.0 – im Schnee steht hinter dem Ortsschild oft eine
+  langsame Kolonne; 5 km fiele auf das Entfernungsschild „25 km“), Ortsschild
   (Zielname, im Stil des Ziellandes) beidseitig + Stadtlimit; Entfernungsschilder („Hamburg 50 km“, Farben des Landes);
   Start-Portal mit Ampel (Countdown) und Ziel-Portal. Um Schilder, Portale und Bauwerke bleiben Landschaftsrequisiten weg.
   Jedes Schild trägt `country` (Land am Standort; Grenzschilder: das neue Land) und `road` (Straßentyp) für seinen Stil.
@@ -306,7 +309,11 @@ additives Leuchten (`_indicator`), hell genug für den Tag, nachts kräftiger: b
 gedrehten Sprites (wie die Rücklicht-Leuchtpunkte), bei Lkw/Bussen an den unteren Ecken der Heckfläche
 (`BoxVehicle.rear_rect`). Takt `INDICATOR_PERIOD_S` = 0,72 s, an in der ersten Hälfte (≈ 83 Mal je Minute, das erste Mal
 sofort, `RoadRenderer.indicator_lit(blink_t)`). Der Blinker bleibt an, solange das Auto auf eine Lücke wartet und
-während es hinüberzieht.
+während es hinüberzieht. Review: in 150–250 m, wo Autos im Schnee vor dem Spieler herausziehen, ist ein Auto nur 5–8 px
+breit – Leuchte und Leuchten haben deshalb eine Mindestgröße auf dem Bildschirm (`INDICATOR_MIN_PX` 2,4 × 2 px,
+`INDICATOR_MIN_GLOW_PX` 4,5 px Radius, nachts +1, `indicator_glow_px`), und der Blinker blendet wie Rück- und
+Bremslichter mit dem Lichtalpha aus (nachts × 1,6), nicht mit dem Alpha der Karosserie – im Nebel verschwindet er nicht
+mehr vor den Rücklichtern.
 
 **Testdaten und Bildfolgen**: `tests/fixtures/make_fixtures.py` (Pillow + numpy, kleiner Z-Buffer-Rasterizer) erzeugt
 nach Vertrag einen 17-Winkel-Pkw (`grid_cols` 9, Drehung um das Heck), eine Polizei mit Blaulicht-Ebenen, ein
@@ -352,10 +359,19 @@ Zonenmeldungen → Tutorial-Hinweise → Ziel.
 - **Haftung**: `road_info` gibt im Tunnel Haftung 1,0 (trockene Fahrbahn unter dem Dach, `Track.grip_at`), sonst die
   Wetterhaftung – ebenso Autopilot, Tutorial-Kurvenhinweis, Polizei und Sichtprüfung. Seit v0.5.0 wirkt sie im
   Fahrmodell auf Kurvengrenze, Bremsen, Traktion und Lenken (gameplay.md „Wetter“).
-- **Verkehr und Wetter** (v0.5.0): `traffic.update` bekommt im Kontext `weather` (Tempo und Abstände des Verkehrs) und
-  `brake_mps2` = `vehicle.brake_decel_mps2(Haftung unter dem Wagen)` (`_player_brake_mps2`): kein Verkehrsauto zieht
+- **Verkehr und Wetter** (v0.5.0): `traffic.update` bekommt im Kontext `weather` (Tempo, Abstände und Bremsen des
+  Verkehrs) und `brake_mps2` = `vehicle.brake_decel_mps2(Wetterhaftung)` (`_player_brake_mps2`): kein Verkehrsauto zieht
   näher vor dem Spieler heraus, als er mit dieser Bremsleistung noch bremsen könnte (gameplay.md „Verkehr als
-  Hindernis“).
+  Hindernis“). Review: die Wetterhaftung auch im Tunnel (vorher die Haftung unter dem Wagen – im Tunnel trocken: hinter
+  der Ausfahrt hätte ein Auto mit der trockenen Untergrenze herausziehen können, die der Spieler draußen im Schnee nicht
+  mehr schafft) und auch beim Aufbau des Verkehrs (`_warm_up_traffic`, Screenshots/Demos).
+- **Wetterhinweis** (Review v0.5.0): bei Regen und Schnee zeigt das HUD beim Countdown (Countdown + 4 s), was das Wetter
+  bewirkt – „Schnee: Bremsweg ×2, der Wagen rutscht nach dem Spurwechsel weiter – früh gegenlenken“, „Regen: Bremsweg
+  ×1,3, die Lenkung reagiert träger – früher bremsen“ (`SessionRules.weather_hint`, Faktor = trockene / nasse
+  Vollbremsung aus `driving.grip_effects`). Die Tutorial-Etappe fährt immer trocken (gameplay.md „Wetter im Rennen“).
+- **City Limits ankündigen** (Review v0.5.0): am Vorschild (`city_limits.announce_km` vor den City Limits) die Meldung
+  „City Limits Würzburg in 4 km – Tempo 50“ (`SessionRules.city_announce_due`/`city_announce_text`, einmal je Etappe, nie
+  in den City Limits) – 333 m genügen, um selbst bei Schnee aus Höchsttempo auf das Stadttempo zu bremsen.
 - **Leitplankentreffer** (`vehicle.rail_hit`): Kamerawackeln von `render.rail_shake_min_s` (0,15 s, Berühren) bis
   `render.rail_shake_max_s` (0,45 s wie ein Unfall) mit der Abdrift, die hineinrutscht (`vehicle.rail_impact` /
   `render.rail_shake_full_mps` 8 m/s), ab `render.rail_flash_min_mps` (2 m/s) zusätzlich ein kurzes orangefarbenes
@@ -369,7 +385,8 @@ Zonenmeldungen → Tutorial-Hinweise → Ziel.
 
 Meldungen (HUD `show_message`): Tankstelle 30/15/5 km, Tanken, vollgetankt/abgebrochen, Reserve, Tank leer,
 Abschleppstrafe, Radarwarnung, Radarfeld Anfang/Ende, geblitzt, Verfolgung, entkommen, „Führerschein, bitte!“,
-„Gute Fahrt!“, Grenze (Land + Name in Landessprache), City Limits, Tunnelname, LOS, ZIEL, Tutorial-Hinweise (§9a).
+„Gute Fahrt!“, Grenze (Land + Name in Landessprache), City Limits (4 km vorher angekündigt), Tunnelname, LOS, ZIEL,
+Wetterhinweis beim Countdown (Regen, Schnee), Tutorial-Hinweise (§9a).
 Audio: Motor, Wind, Sirene (mit Abstand), Regen, Rutschen, Einzeltöne (beep je Countdown-Sekunde, go, crash, flash,
 fuel_start/fuel_done, finish). Pause: Baum pausiert, Ton stumm, Fokusverlust pausiert (nicht im Autopilot).
 Ziel: Zeit wird eingefroren, „ZIEL!“-Meldung, Wagen rollt aus (`render.finish_decel_kmh_s`), der Spieler lenkt weiter,
@@ -494,10 +511,12 @@ xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
   Geometriegrenzen, Requisiten, vollständige `scenery.json`, Schilder im Tunnel an der Wand, Land/Straßentyp der
   Schilder, Kurvenschilder: Warnschild vor jeder scharfen Kurve und Richtungstafeln außen, gleiche Schilder beim
   Streamen und schon in Sichtweite vorhanden, Sichtprüfung der Teststrecke für den Gran Turismo bei Tag und bei
-  Schnee in der Nacht), Projektion, Palette, GeoBatch, Autopilot-Bremskurve, Autopilot auf Bergstraße und kurviger
+  Schnee in der Nacht – Kurven und, seit dem Review v0.5.0, der langsamste Verkehr aus dem Nebel bei Schnee/Regen/Nacht
+  `test_traffic_is_seen_in_time`; Vorschild der City Limits), Projektion, Palette, GeoBatch, Autopilot-Bremskurve, Autopilot auf Bergstraße und kurviger
   Autobahn ohne Untersteuern (GT bei Schnee, Kompakt; ohne Kurvenbremsen untersteuert er), Spiegeln und Vorderkante aller kantenbündigen
   Requisiten mit dem echten Manifest, Schilderstile je Land, Sitzungsregeln (Kollisionen in geskripteten Phasen,
-  HUD-Tankstelle, Ausrollen in die Tankspur, Überholweg der Polizei), Tutorial-Warteschlange und -Texte;
+  HUD-Tankstelle, Ausrollen in die Tankspur, Überholweg der Polizei, Wetterhinweis und City-Limits-Ansage),
+  Tutorial-Warteschlange und -Texte;
   Fahrzeugdarstellung v2: `test_vehicle_pose.gd` (Lkw 30 m voraus in der Nachbarspur ≈ 4,6° statt 12°, Front des
   Sprites an der wahren perspektivischen Position über Kurven/Spuren/Längen, Eigenrichtung beim Spurwechsel, kein
   Zellflackern auf gleichmäßiger Kurve trotz Rauschen und schwankender Bildzeit, Hysterese-Band, kritische Dämpfung,
@@ -603,7 +622,9 @@ Anstrahlung), `landmark_range_factor` (2,0 × Sichtweite), `skyline_distance_m` 
   `generation_lead_m()` (Vorlauf der Erzeugung vor dem Fenster, Kurvenschilder §4), `grip_at(z, weather_grip)`
   (Haftung: im Tunnel 1,0), `curve_signs_cut` (Diagnose: Warnschilder abgeschnittener Kurvenstücke),
   Konstanten `WALL_SIGN_GAP_M`, `WALL_SIGN_OVERHANG_M`; Schild-Requisiten zusätzlich `country`, `road`, im Tunnel
-  `wall` (und `scale` < 1); Schildarten `curve` (Warnschild) und `chevron` (Richtungstafel), `value` = Richtung.
+  `wall` (und `scale` < 1); Schildarten `curve` (Warnschild) und `chevron` (Richtungstafel), `value` = Richtung;
+  `town_ahead` (Vorschild der City Limits: `text` Ziel, `value` km, `limit` Stadtlimit), `city_announce_km()`
+  (`city_limits.announce_km`, Review v0.5.0).
 - `Autopilot`: `curve_brake`, `curve_margin`, `curve_lookahead_m`, `curve_step_m`, `curve_lead_m`,
   `curve_speed_ahead(track, vehicle, z, grip)`, statisch `pedals(speed, want)` → `{throttle, brake}`.
 - Rennsitzung: `drive_stats` (`off_road_s`, `limit_s`, `rail_hits`, `understeer_s`, `understeer_max`), in
@@ -658,7 +679,11 @@ Anstrahlung), `landmark_range_factor` (2,0 × Sichtweite), `skyline_distance_m` 
   `next_station_km(plan, km, refueling)`, `roll_distance_m(speed, target, decel)`, `can_roll_into_lane(z, speed,
   decel, trigger, lane_open_z, lane_z1)`, `police_pass_side(player_x, left_edge, lane_w)`, `police_car_x(offset,
   player_x, side, lane_w, pull_over_m, clear_m)`, `police_curve_cap_kmh(track, police, z, weather_grip)`
-  (Kurvengrenze des Polizeiwagens für `PoliceSystem.update`).
+  (Kurvengrenze des Polizeiwagens für `PoliceSystem.update`); Review v0.5.0: `weather_hint(cfg, weather)` (Wetterhinweis
+  beim Countdown, "" bei trocken), `city_announce_text(name, km, limit)`, `city_announce_due(km_before, km_now,
+  city_limits_km, announce_km)`.
+- `RoadRenderer` (Blinker, Review v0.5.0): Konstanten `INDICATOR_MIN_PX`, `INDICATOR_MIN_GLOW_PX`, statisch
+  `indicator_glow_px(s, lights)`.
 - HUD-Zustand zusätzlich `escape_kmh` (aktuelle Fluchtschwelle der Polizei, `PoliceSystem.escape_kmh`).
 - `TutorialCoach`: `setup(cfg)`, `trigger(topic, args) → Anzahl`, `hold(s)`, `update(dt) → Text|""`, `pending()`,
   `hints_for(topic, args)`, `hint_s`, `gap_s`, `shown`; Themen `start, fuel_low, fuel_hud, fuel_announce, fuel_lane,

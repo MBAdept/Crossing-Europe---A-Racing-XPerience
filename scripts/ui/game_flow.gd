@@ -199,7 +199,9 @@ func select_vehicle(vehicle_id: String) -> void:
 
 func select_start_time(hour: float) -> void:
 	var r := UiData.race(str(draft.get("race_id", "")))
-	race = RaceState.create(r, str(draft.get("vehicle", "limousine")), hour, randi() % 1000000)
+	# --race-seed=<n> (tests/race/run_race.gd): reproducible race weather and traffic
+	var race_seed := int(CliArgs.get_float("race-seed", -1.0)) if CliArgs.has("race-seed") else randi() % 1000000
+	race = RaceState.create(r, str(draft.get("vehicle", "limousine")), hour, race_seed)
 	mode = "race"
 	_save_race()
 	_race_next(true)
@@ -264,7 +266,8 @@ func choose_leg(leg: Dictionary, reset_history: bool = false) -> void:
 	var plan := UiData.stage_plan(str(leg.get("id", "")), str(leg.get("from", "")))
 	pending_weather = "normal"
 	if plan != null and race != null:
-		pending_weather = RaceState.choose_weather(Config.data, plan.climate, plan.weather_hint, race.stage_seed(str(leg["id"])))
+		# tutorial stage: dry (weather.tutorial_weather), every other stage the race weather
+		pending_weather = RaceState.leg_weather(Config.data, plan, race.stage_seed(str(leg["id"])))
 	go("stage_screen", {}, reset_history)
 
 

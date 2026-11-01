@@ -6,6 +6,36 @@ extends RefCounted
 ## it overtakes the player and how fast the curves let it chase. Owner: race module.
 
 
+## Weather hint at the start of a rain or snow stage (review v0.5.0: since then rain and snow cost a lot of braking
+## and the car slides after a lane change – a player must know that before the first car ahead), "" when dry.
+## The braking distance factor comes from the configuration: dry full braking / full braking of the weather
+## (driving.weather_grip_factor ^ driving.grip_effects.brake_exp): snow ×2, rain ×1,3.
+static func weather_hint(config: Dictionary, weather: String) -> String:
+	if weather != "rain" and weather != "snow":
+		return ""
+	var g := float(ConfigLoader.lookup(config, "driving.weather_grip_factor." + weather, 1.0))
+	var e := float(ConfigLoader.lookup(config, "driving.grip_effects.brake_exp", 0.87))
+	var factor := 1.0 / pow(clampf(g, 0.05, 1.0), e)
+	var f := UiFormat.number(snappedf(factor, 0.1), 1)
+	if weather == "snow":
+		return UiFormat.t("Schnee: Bremsweg ×%s, der Wagen rutscht nach dem Spurwechsel weiter – früh gegenlenken") % f
+	return UiFormat.t("Regen: Bremsweg ×%s, die Lenkung reagiert träger – früher bremsen") % f
+
+
+## HUD text announcing the City Limits city_limits.announce_km ahead (the advance sign stands at the same point).
+static func city_announce_text(city_name: String, km: float, limit: int) -> String:
+	return UiFormat.t("City Limits %s in %s km – Tempo %d") % [city_name, UiFormat.number(km, 1), limit]
+
+
+## True when a car stepping from km_before to km_now passes the announcement point of the City Limits
+## (city_limits_km - announce_km) – once per stage; never inside the City Limits.
+static func city_announce_due(km_before: float, km_now: float, city_limits_km: float, announce_km: float) -> bool:
+	if announce_km <= 0.0:
+		return false
+	var at := city_limits_km - announce_km
+	return km_now >= at and km_before < at and km_now < city_limits_km
+
+
 ## True when TrafficSystem.find_collision runs in this simulation step.
 ## Off while the car is invulnerable (crash sequence and grace time) and during scripted standstill
 ## phases (refuelling, police stop, tow). On while the car rolls out with an empty tank and in every

@@ -161,6 +161,12 @@ func test_events() -> void:
 	assert_true(_has_near(signs.get("radar", []), float(p.radars[0]["warn_km"])), "Radarwarnung 10 km vorher")
 	assert_true(_has_near(signs.get("limit", []), float(p.radars[0]["km"])), "Tempolimit am Radar")
 	assert_true(_has_near(signs.get("town", []), p.city_limits_km), "Ortsschild an den City Limits")
+	var ann := float(ConfigLoader.lookup(cfg(), "city_limits.announce_km", 4.0))
+	assert_true(ann >= 3.0, "City Limits mindestens 3 km (250 m) vorher angekündigt")
+	assert_eq((signs.get("town_ahead", []) as Array).size(), 1, "ein Vorschild der City Limits")
+	assert_true(_has_near(signs.get("town_ahead", []), p.city_limits_km - ann), "Vorschild %s km vor den City Limits" % str(ann))
+	for k: float in signs.get("distance", []):
+		assert_true(absf(k - (p.city_limits_km - ann)) > 0.3, "Vorschild steht nicht auf einem Entfernungsschild (km %.1f)" % k)
 	assert_true(_has_near(signs.get("finish", []), p.length_km), "Ziel am Etappenende")
 	assert_true(_has_near(signs.get("border", []), float(p.borders[0]["km"]), 0.4), "Grenzschild vor der Grenze")
 	assert_true(_has_near(signs.get("tunnel", []), float(p.tunnels[0]["start_km"]), 0.8), "Tunnelschild vor dem Tunnel")
@@ -405,6 +411,29 @@ func test_curves_are_seen_in_time() -> void:
 			assert_true(int(r["summary"]["stretches"]) > 5, "Kurven, die Bremsen verlangen (%s)" % str(opts))
 			assert_true(m != null and float(m) >= 0.0, "ab %s, %s: Reserve %s m (schlechteste: %s)" % [from_id, str(opts), str(m),
 				str((r["cases"] as Array).slice(0, 1))])
+
+
+## Traffic case of the sight check (review v0.5.0 „Schnee in der Nacht“): from the moment the slowest traffic of the
+## weather (City Limits queue in snow ≈ 21 km/h) comes out of the fog, the fastest car (Gran Turismo at its top
+## speed in this weather) can stop with 1 s reaction and the full braking of the weather – also at night in snow
+## (sight 338 m since the fix; with 248 m it was 47 m short) and at dusk. Crests are reported separately
+## (docs/gameplay.md (i6)): only the fog part is decided by the weather.
+func test_traffic_is_seen_in_time() -> void:
+	var sight: GDScript = load("res://tests/sim/sight_check.gd")
+	var plan := _plan()
+	for opts: Dictionary in [{"weather": "snow", "night": true}, {"weather": "snow", "hour": 19.5}, {"weather": "rain", "night": true},
+			{"weather": "normal", "night": true}, {"weather": "snow"}]:
+		opts["vehicle"] = "gran_turismo"
+		opts["crests"] = false
+		opts["top_speed"] = true
+		var r: Dictionary = sight.call("check_traffic", cfg(), plan, opts)
+		var m: Variant = r["summary"]["min_margin_m"]
+		assert_true(int(r["summary"]["points"]) > 500, "Punkte geprüft (%s)" % str(opts))
+		assert_true(m != null and float(m) >= 10.0, "%s: Reserve %s m (schlechteste: %s)" % [str(opts), str(m), str((r["cases"] as Array).slice(0, 1))])
+	# the old sight in snow at night (0.5 * 0.55 * 900 = 248 m) was too short – the check notices it
+	var old := ConfigLoader.deep_merge(cfg(), {"weather": {"night_visibility_factor": 0.55}})
+	var r2: Dictionary = sight.call("check_traffic", old, plan, {"vehicle": "gran_turismo", "weather": "snow", "night": true, "crests": false, "top_speed": true})
+	assert_true(float(r2["summary"]["min_margin_m"]) < 0.0, "mit 248 m Sicht zu knapp: %s m" % str(r2["summary"]["min_margin_m"]))
 
 
 ## Inside a tunnel the road is dry: Track.grip_at gives 1.0 there and the weather grip outside (curve limits of the

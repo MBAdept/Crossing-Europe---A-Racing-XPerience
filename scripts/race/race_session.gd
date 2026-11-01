@@ -61,6 +61,7 @@ var _record: Dictionary = {}
 var _flash := 0.0
 var _last_country := ""
 var _was_city := false
+var _zones_km := -1.0                ## odometer km of the last zone check (City Limits announcement)
 var _was_bridge := false
 var _was_tunnel := false
 var _was_radar_zone := false
@@ -195,6 +196,7 @@ func _build() -> void:
 			"weather": weather, "brake_mps2": _player_brake_mps2()})
 	_last_country = plan.country_at(pos_km)
 	_was_city = plan.is_city(pos_km)
+	_zones_km = pos_km
 	_was_tunnel = plan.in_tunnel(pos_km)
 	_record = Leaderboards.record(plan.board_key)
 
@@ -210,6 +212,10 @@ func _build() -> void:
 	pause_menu.resume_requested.connect(_on_resume)
 	pause_menu.restart_requested.connect(_on_restart)
 	pause_menu.quit_requested.connect(_on_quit)
+	# rain and snow: what the weather does to the car, during the countdown (SessionRules.weather_hint)
+	var weather_hint := SessionRules.weather_hint(cfg, weather)
+	if weather_hint != "":
+		hud.show_message(weather_hint, "warn", float(ConfigLoader.lookup(cfg, "time.countdown_s", 3.0)) + 4.0)
 
 	if bool(setup.get("autopilot", false)):
 		autopilot = Autopilot.new()
@@ -242,10 +248,11 @@ func _build() -> void:
 	_start_wall_ms = Time.get_ticks_msec()
 
 
-## Full braking (m/s²) of the player's car on the road under it in this weather (TrafficSystem ctx.brake_mps2: no
-## car pulls out in front of the player closer than he can still brake for).
+## Full braking (m/s²) of the player's car in this weather (TrafficSystem ctx.brake_mps2: no car pulls out in front
+## of the player closer than he can still brake for). The weather grip also inside a tunnel: the dry tunnel road
+## would let a car beyond the exit pull out at the dry floor, which the player cannot meet back on snow.
 func _player_brake_mps2() -> float:
-	return vehicle.brake_decel_mps2(track.grip_at(pos_z, env.grip(weather)))
+	return vehicle.brake_decel_mps2(env.grip(weather))
 
 
 ## Current sight distance (m): draw distance reduced by night, weather and tunnels.
@@ -262,7 +269,7 @@ func _warm_up_traffic() -> void:
 		var step := minf(14.0, pos_z - fake)
 		fake += step
 		traffic.update(0.2, {"z": fake, "x": vehicle.x, "speed": 250.0}, {"hour": hour, "chase": false, "camera_z": fake - proj.cam_distance,
-			"weather": weather})
+			"weather": weather, "brake_mps2": _player_brake_mps2()})
 	for c in traffic.cars:
 		if absf(c.z - pos_z) < 25.0 and absf(c.x - vehicle.x) < 2.5:
 			c.z += 40.0
@@ -606,6 +613,9 @@ func _check_zones() -> void:
 		var name := GameData.country_name(country)
 		hud.show_message((tr("Grenze: %s") % name) + ("" if local == "" or local == name else "  ·  " + local), "info", 3.0)
 	var city := plan.is_city(pos_km)
+	if SessionRules.city_announce_due(_zones_km, pos_km, plan.city_limits_km, track.city_announce_km()):
+		hud.show_message(SessionRules.city_announce_text(plan.to_name, track.city_announce_km(), plan.city_speed_limit), "info", 3.5)
+	_zones_km = pos_km
 	if city and not _was_city:
 		hud.show_message(tr("City Limits %s – Tempo %d") % [plan.to_name, plan.city_speed_limit], "info", 3.0)
 		_tutorial("city", {"limit": plan.city_speed_limit})

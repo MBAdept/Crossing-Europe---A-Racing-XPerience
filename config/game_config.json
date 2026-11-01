@@ -128,7 +128,7 @@
 	},
 
 	"traffic": {
-		"_doc": "Verkehr fährt nur in Fahrtrichtung auf festen Spuren und ist seit v0.5.0 ein echtes Hindernis (Spieltest v0.4.0: „man kann zu leicht an anderen Autos vorbeifahren“, docs/gameplay.md „Verkehr als Hindernis“). Dichte = base_density_per_km (Fahrzeuge je sichtbarem km) * hourly_density[Stunde] * Faktoren (Nacht, Verfolgung, City Limits, Abschnitt). Wunschtempo: Pkw im Design-Bereich je Straßentyp (speeds_kmh, schnelle Autos erscheinen links, langsame rechts: lane_speed_spread), Lkw realistisch (truck_speeds_kmh, Autobahn 80–90), Busse (bus_speeds_kmh, bus_share der schweren Fahrzeuge); Tempolimit des Abschnitts: Pkw höchstens Limit * limit_tolerance (vorsichtige darunter, schnelle etwas darüber), Lkw/Busse höchstens das Limit; Wetter: weather.<w> (speed_factor Pkw, heavy_speed_factor Lkw/Busse, follow_time_factor und min_gap_factor für längere Abstände, lane_change_factor für vorsichtigere, langsamere Spurwechsel). Nachts kein Tempobonus mehr (night.speed_factor 1,0 – schnellerer Verkehr machte das Überholen noch leichter), dafür weniger Verkehr (hourly_density).",
+		"_doc": "Verkehr fährt nur in Fahrtrichtung auf festen Spuren und ist seit v0.5.0 ein echtes Hindernis (Spieltest v0.4.0: „man kann zu leicht an anderen Autos vorbeifahren“, docs/gameplay.md „Verkehr als Hindernis“). Dichte = base_density_per_km (Fahrzeuge je sichtbarem km) * hourly_density[Stunde] * Faktoren (Nacht, Verfolgung, City Limits, Abschnitt). Wunschtempo: Pkw im Design-Bereich je Straßentyp (speeds_kmh, schnelle Autos erscheinen links, langsame rechts: lane_speed_spread), Lkw realistisch (truck_speeds_kmh, Autobahn 80–90), Busse (bus_speeds_kmh, bus_share der schweren Fahrzeuge); Tempolimit des Abschnitts: Pkw höchstens Limit * limit_tolerance (vorsichtige darunter, schnelle etwas darüber), Lkw/Busse höchstens das Limit; Wetter: weather.<w> (speed_factor Pkw, heavy_speed_factor Lkw/Busse, follow_time_factor und min_gap_factor für längere Abstände, lane_change_factor für vorsichtigere, langsamere Spurwechsel, decel_factor für Bremsen: komfortabel und höchstens comfort_decel_mps2/max_decel_mps2 × Faktor – wie die Vollbremsung des Spielers etwa Haftung^0,87, Schnee 4 m/s²; hinter dem Spieler weiter max_decel_mps2, damit kein Auto ihm auffährt). Nachts kein Tempobonus mehr (night.speed_factor 1,0 – schnellerer Verkehr machte das Überholen noch leichter), dafür weniger Verkehr (hourly_density).",
 		"speeds_kmh": { "autobahn": [110, 150], "landstrasse": [70, 100], "city": [40, 60] },
 		"truck_speeds_kmh": { "autobahn": [80, 90], "landstrasse": [65, 80], "city": [35, 50] },
 		"bus_speeds_kmh": { "autobahn": [95, 100], "landstrasse": [70, 85], "city": [35, 50] },
@@ -137,8 +137,8 @@
 		"lane_speed_spread": 1.4,
 		"weather": {
 			"normal": { "speed_factor": 1.0, "heavy_speed_factor": 1.0, "follow_time_factor": 1.0, "min_gap_factor": 1.0, "lane_change_factor": 1.0 },
-			"rain": { "speed_factor": 0.85, "heavy_speed_factor": 0.88, "follow_time_factor": 1.3, "min_gap_factor": 1.2, "lane_change_factor": 0.85 },
-			"snow": { "speed_factor": 0.65, "heavy_speed_factor": 0.68, "follow_time_factor": 1.8, "min_gap_factor": 1.5, "lane_change_factor": 0.65 }
+			"rain": { "speed_factor": 0.85, "heavy_speed_factor": 0.88, "follow_time_factor": 1.3, "min_gap_factor": 1.2, "lane_change_factor": 0.85, "decel_factor": 0.78 },
+			"snow": { "speed_factor": 0.65, "heavy_speed_factor": 0.68, "follow_time_factor": 1.8, "min_gap_factor": 1.5, "lane_change_factor": 0.65, "decel_factor": 0.5 }
 		},
 		"base_density_per_km": { "autobahn": 16.0, "landstrasse": 10.0, "city": 8.0 },
 		"hourly_density": [0.22, 0.16, 0.13, 0.12, 0.14, 0.24, 0.50, 0.92, 1.0, 0.82, 0.68, 0.66, 0.70, 0.70, 0.72, 0.80, 0.95, 1.0, 0.98, 0.78, 0.58, 0.44, 0.34, 0.27],
@@ -248,17 +248,19 @@
 	},
 
 	"city_limits": {
-		"_doc": "Die letzten length_km jeder Etappe: mehr Verkehr, keine Tankstellen, kein Radar.",
+		"_doc": "Die letzten length_km jeder Etappe: mehr Verkehr, keine Tankstellen, kein Radar. announce_km vorher kündigen ein Vorschild (Ortsschild mit „in 4 km“ und Tempolimit) und das HUD sie an – bei Schnee steht direkt hinter dem Ortsschild oft eine langsame Kolonne (4 km = 333 m Straße: genug, um selbst bei Schnee aus Höchsttempo auf das Stadttempo zu bremsen). 0 = keine Ankündigung.",
 		"length_km": 20.0,
+		"announce_km": 4.0,
 		"density_factor": 2.5,
 		"road": "city"
 	},
 
 	"weather": {
-		"_doc": "Wetter senkt Höchstgeschwindigkeit (driving.weather_vmax_factor) und Sicht. race_mode: region = zufällig gewichtet nach Klima der Landschaft, random = gleichverteilt, fixed = Feld 'weather' der Etappe.",
+		"_doc": "Wetter senkt Höchstgeschwindigkeit (driving.weather_vmax_factor) und Sicht (visibility_factor, nachts zusätzlich night_visibility_factor je Wetter: Schnee hellt die Nacht auf – Schnee nachts 338 m statt 248 m, damit der Anhalteweg mit der halben Bremsung bis zum langsamsten Verkehr in der Sicht liegt, docs/gameplay.md (i6)). race_mode: region = zufällig gewichtet nach Klima der Landschaft, random = gleichverteilt, fixed = Feld 'weather' der Etappe. tutorial_weather: Wetter der Tutorial-Etappe im Rennen (leer = Rennwetter wie jede Etappe).",
 		"types": ["normal", "rain", "snow"],
 		"visibility_factor": { "normal": 1.0, "rain": 0.65, "snow": 0.5 },
-		"night_visibility_factor": 0.55,
+		"night_visibility_factor": { "normal": 0.55, "rain": 0.55, "snow": 0.75 },
+		"tutorial_weather": "normal",
 		"tunnel_visibility_factor": 0.4,
 		"race_mode": "region",
 		"climate_weights": {
