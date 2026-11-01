@@ -69,6 +69,11 @@ chmod +x CrossingEurope.x86_64
 ./CrossingEurope.x86_64
 ```
 
+Windows 10/11 (64 Bit): `CrossingEurope-windows-x86_64.zip` entpacken und `CrossingEurope.exe` starten – ebenfalls eine
+einzige Datei ohne Installation. Die Datei ist nicht signiert, beim ersten Start warnt deshalb Windows SmartScreen:
+„Weitere Informationen“ → „Trotzdem ausführen“. Spielstände, Prüfsummen, Selbstbauen (`tools/build_windows.sh`, beide
+Plattformen auf einmal mit `tools/build_release.sh`) und was geprüft ist: [docs/windows.md](docs/windows.md).
+
 | Aktion | Tastatur | Gamepad |
 |---|---|---|
 | Lenken | ← → oder A D | linker Stick / Steuerkreuz |
