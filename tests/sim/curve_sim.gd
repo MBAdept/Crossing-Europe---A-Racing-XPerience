@@ -102,12 +102,12 @@ func run(vehicle_id: String) -> Dictionary:
 		track.update_window(z - 6.6, 960.0)
 		var want := 1000.0
 		if not no_brake:
-			want = v.safe_curve_speed(track.curve_at(z), grip) * margin
+			want = v.safe_curve_speed(track.curve_at(z), track.grip_at(z, grip)) * margin
 			var d := 10.0
 			while d <= lookahead:
 				var c := track.curve_at(z + d)
 				if absf(c) > 0.001:
-					var vt := v.safe_curve_speed(c, grip) * margin / 3.6
+					var vt := v.safe_curve_speed(c, track.grip_at(z + d, grip)) * margin / 3.6
 					want = minf(want, sqrt(vt * vt + 2.0 * decel * maxf(0.0, d - 12.0)) * 3.6)
 				d += 10.0
 		var tx := track.lane_center_x(z + 12.0, track.lane_count_at(z + 12.0) - 1)
@@ -122,7 +122,7 @@ func run(vehicle_id: String) -> Dictionary:
 		var e := track.road_edges_at(z)
 		var seg := track.segment_at(z)
 		v.update(DT, input, {"curve": track.curve_at(z), "grade": track.grade_at(z), "left_edge": e.x, "right_edge": e.y,
-			"shoulder_m": track.shoulder_w, "guardrail": seg.guardrail or seg.tunnel, "grip": grip}, {"vmax_factor": vf})
+			"shoulder_m": track.shoulder_w, "guardrail": seg.guardrail or seg.tunnel, "grip": track.grip_at(z, grip)}, {"vmax_factor": vf})
 		z += v.speed / 3.6 * DT
 		t += DT
 		if v.off_road > 0:
@@ -142,7 +142,7 @@ func run(vehicle_id: String) -> Dictionary:
 		per_level[lvl] = float(per_level.get(lvl, 0.0)) + DT
 		if trace_to > trace_from and track.z_to_km(z) >= trace_from and track.z_to_km(z) <= trace_to and fmod(t, 0.25) < DT:
 			print("T %7.2f km %6.2f v %5.1f want %6.1f safe %6.1f x %6.2f c %5.2f us %4.2f push %5.2f lat %5.2f off %d thr %.1f brk %.2f" % [t,
-				track.z_to_km(z), v.speed, want, v.safe_curve_speed(track.curve_at(z), grip), v.x, track.curve_at(z), v.understeer,
+				track.z_to_km(z), v.speed, want, v.safe_curve_speed(track.curve_at(z), track.grip_at(z, grip)), v.x, track.curve_at(z), v.understeer,
 				v.push_speed, v.lat_speed, v.off_road, float(input["throttle"]), float(input["brake"])])
 	st["time_s"] = t
 	st["avg_kmh"] = Units.avg_speed_kmh(plan.length_km, t, track.time_scale)

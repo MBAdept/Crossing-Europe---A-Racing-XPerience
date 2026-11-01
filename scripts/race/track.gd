@@ -54,6 +54,11 @@ var _c_is_curve := false
 var _c_last := 0.0
 var _c_new := false                    ## the last _next_curve() started a curve piece
 var _c_in_piece := false               ## the last _next_curve() was part of a curve piece (not a fade)
+var _c_in_fade := false                ## the last _next_curve() was the fade-out of a piece cut by a break
+## Warning signs decided early because a section / tunnel break cut their curve piece during its ramp-in
+## (diagnostics for tests, see _place_curve_signs).
+var curve_signs_cut := 0
+var _chev_i := 0                       ## segment counter of the running piece incl. its fade (chevron spacing)
 var _sign_pending := false             ## warning sign of the running curve piece not decided yet
 var _sign_start_z := 0.0               ## z of the first segment of that piece
 var _warn_curve := 0.25                ## road.curve_warning_min_curve
@@ -228,13 +233,15 @@ func _calm(z: float, near_start: float, near_end: float) -> float:
 func _next_curve(sec: Dictionary, s: TrackSegment) -> float:
 	_c_new = false
 	_c_in_piece = false
+	_c_in_fade = false
 	if _c_fade > 0:
 		_c_fade -= 1
+		_c_in_fade = absf(_c_fade_from) > 0.0005
 		return _c_fade_from * smoothstep(0.0, 1.0, float(_c_fade) / float(_c_fade_n))
 	if _c_pos >= _c_len:
 		_c_pos = 0
 		var level := int(sec.get("curviness", 1))
-		var maxes: Array = ConfigLoader.lookup(cfg, "road.curviness_max_curve", [0.0, 0.22, 0.45, 0.9])
+		var maxes: Array = ConfigLoader.lookup(cfg, "road.curviness_max_curve", [0.0, 0.30, 0.45, 0.9])
 		var max_curve := float(maxes[clampi(level, 0, maxes.size() - 1)])
 		if s.tunnel:
 			max_curve = minf(max_curve, 0.25)
@@ -258,40 +265,51 @@ func _next_curve(sec: Dictionary, s: TrackSegment) -> float:
 	return _c_mag * ease * _calm(s.z, 40.0, 60.0)
 
 
-## Curve signs of a curve piece (not in tunnels or City Limits, not where the start/finish calm zone flattens
-## it). Warning sign road.curve_warning_m before its first segment on the right (inserted into that earlier
-## segment, on the tunnel wall if that is inside a tunnel) when it is sharp (|magnitude| >=
-## road.curve_warning_min_curve) or blind: |magnitude| >= road.curve_warning_blind_min_curve and some point of
-## its ramp-in hidden behind a crest from road.curve_warning_sight_m before it. Decided at the end of the
-## ramp-in (30 % of the piece), when the heights of that part exist. Sharp pieces also get a chevron board every
-## road.chevron_every_m on the outside of the bend along their strong part (|curve| >= 60 % of the magnitude).
-## value = direction (+1 right, -1 left).
+## Curve signs of a curve piece (not in tunnels, not where the start/finish calm zone flattens it). Warning sign
+## road.curve_warning_m before its first segment on the right (inserted into that earlier segment, on the tunnel
+## wall if that is inside a tunnel) when it is sharp (|magnitude| >= road.curve_warning_min_curve) or blind:
+## |magnitude| >= road.curve_warning_blind_min_curve and some point of its ramp-in hidden behind a crest from
+## road.curve_warning_sight_m before it. Decided at the end of the ramp-in (30 % of the piece), when the heights of
+## that part exist – or earlier, when a section / tunnel break cuts the piece: its 60-m fade-out starts at the
+## value the piece had reached (_c_fade_from), which is then its peak. Sharp pieces also get a chevron board every
+## road.chevron_every_m on the outside of the bend along their strong part (|curve| >= 60 % of the magnitude,
+## the fade included; not in City Limits). Warning signs also stand in City Limits (no radar there, so cars arrive
+## at full speed). value = direction (+1 right, -1 left).
 func _place_curve_signs(s: TrackSegment) -> void:
 	if _c_new:
 		_sign_pending = true
 		_sign_start_z = s.z
-	if not _c_in_piece or s.runout:
+		_chev_i = 0
+	if s.runout or not (_c_in_piece or _c_in_fade):
 		_sign_pending = false
 		return
-	if absf(_c_mag) < minf(_warn_curve, _warn_blind) or s.tunnel or s.city:
+	var mag := _c_fade_from if _c_in_fade else _c_mag
+	var i := _chev_i
+	_chev_i += 1
+	if absf(mag) < minf(_warn_curve, _warn_blind) or s.tunnel:
+		if _c_in_fade:
+			_sign_pending = false
 		return
-	var dir := 1 if _c_mag > 0.0 else -1
-	var sharp := absf(_c_mag) >= _warn_curve
-	if _sign_pending and (float(_c_pos) >= 0.3 * float(_c_len) or _c_pos >= _c_len):
+	var dir := 1 if mag > 0.0 else -1
+	var sharp := absf(mag) >= _warn_curve
+	if _sign_pending and (_c_in_fade or float(_c_pos) >= 0.3 * float(_c_len) or _c_pos >= _c_len):
 		_sign_pending = false
-		if _calm(_sign_start_z + float(_c_len) * seg_len * 0.5, 40.0, 60.0) > 0.6 and (sharp or _blind(_sign_start_z, s.z)):
+		var mid := s.z if _c_in_fade else _sign_start_z + float(_c_len) * seg_len * 0.5
+		if _calm(mid, 40.0, 60.0) > 0.6 and (sharp or _blind(_sign_start_z, s.z)):
 			_place_warning_sign(_sign_start_z - _warn_m, dir)
-	if sharp and (_c_pos - 1) % _chev_n == 0 and absf(s.curve) >= 0.6 * absf(_c_mag):
+			if _c_in_fade:
+				curve_signs_cut += 1
+	if sharp and not s.city and i % _chev_n == 0 and absf(s.curve) >= 0.6 * absf(mag):
 		s.sprites.append({"kind": "sign", "sign": "chevron", "value": dir, "side": -dir, "z": s.z, "scale": 1.0,
 			"x": _prop_x(road_edges_at(s.z), -dir, "outer", 0.6), "country": s.country, "road": s.road})
 		_sort_sprites(s)
 
 
-## Warning sign "Kurve" at zw on the right (on the tunnel wall inside a tunnel, none in City Limits), inserted
-## into its already generated segment.
+## Warning sign "Kurve" at zw on the right (on the tunnel wall inside a tunnel), inserted into its already
+## generated segment.
 func _place_warning_sign(zw: float, dir: int) -> void:
 	var target: TrackSegment = _segs.get(segment_index_at(zw)) if zw > 0.0 else null
-	if target == null or target.city:
+	if target == null:
 		return
 	var p := {"kind": "sign", "sign": "curve", "value": dir, "side": 1, "z": zw, "scale": 1.0,
 		"x": _prop_x(road_edges_at(zw), 1, "outer", 1.0), "country": target.country, "road": target.road}
@@ -490,6 +508,12 @@ func speed_limit_at(z: float) -> int:
 
 func curve_at(z: float) -> float:
 	return get_segment(segment_index_at(z)).curve
+
+
+## Grip factor of the road at z for the driving model (VehicleModel road "grip", curve limits): the weather
+## grip (EnvironmentModel.grip) in the open, 1.0 inside a tunnel (the roof keeps the road dry).
+func grip_at(z: float, weather_grip: float) -> float:
+	return 1.0 if get_segment(segment_index_at(z)).tunnel else weather_grip
 
 
 ## Road height at z (visual metres, interpolated between segment starts).

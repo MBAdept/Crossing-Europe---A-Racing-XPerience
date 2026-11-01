@@ -20,7 +20,7 @@ Verträge stehen in [ARCHITECTURE.md](../ARCHITECTURE.md) §5, §6, §8 und für
 | `scripts/race/box_vehicle.gd` | `BoxVehicle` | Lkw/Busse als texturierte Quader: sichtbare Flächen, Abschnitte entlang der Straße, nahe Ebene, Texturkoordinaten |
 | `scripts/race/palette.gd` | `Palette` | Farben nach Tageszeit, Wetter, Tunnel |
 | `scripts/race/race_session.gd` | (Szene `scenes/race/race.tscn`) | Rennsitzung: Countdown, Simulation, HUD/Audio/Renderer füttern, Meldungen, Pause, Ziel |
-| `scripts/race/session_rules.gd` | `SessionRules` | reine Regeln der Rennsitzung (Kollisionen in geskripteten Phasen, HUD-Tankstelle, Ausrollen in die Tankspur, Überholweg der Polizei) – testbar ohne Szene |
+| `scripts/race/session_rules.gd` | `SessionRules` | reine Regeln der Rennsitzung (Kollisionen in geskripteten Phasen, HUD-Tankstelle, Ausrollen in die Tankspur, Überholweg der Polizei, Kurvengrenze der Polizei) – testbar ohne Szene |
 | `scripts/race/tutorial_coach.gd` | `TutorialCoach` | Tutorial-Hinweise der Etappe Kiel – Hamburg (Warteschlange, Texte mit Konfigurationswerten) |
 | `scripts/race/autopilot.gd` | `Autopilot` | Testfahrer (Spur halten, überholen, bremsen, tanken, Radar beachten) |
 | `data/scenery.json` | – | 22 Landschaften: Grasfarben, Hintergrund, Klima, Requisiten-Regeln |
@@ -100,8 +100,13 @@ nähere Hintergrundebenen drehen sich etwas schneller (Parallaxe).
   (Sichtlinie aus der Kamerahöhe über die bereits erzeugten Höhen) – auch dann steht das Warnschild. Entschieden wird am
   Ende der Einlaufphase, das Schild wird in das schon erzeugte Segment 200 m vor dem Kurvenanfang eingefügt (im Tunnel
   an der Wand); weil die Erzeugung `generation_lead_m()` vorausläuft, ist es da, bevor das Segment in Sichtweite kommt
-  (Test: Streamen = Gesamterzeugung). Keine Kurvenschilder in City Limits und Tunneln, nicht in den ruhigen Zonen an
-  Start und Ziel. Sichtprüfung über alle Etappen: gameplay.md (i5).
+  (Test: Streamen = Gesamterzeugung). Schneidet ein Abschnitts- oder Tunnelwechsel das Kurvenstück schon in der
+  Einlaufphase ab, entscheidet die erreichte Stärke (Beginn der 60-m-Ausblendung) sofort, und die Richtungstafeln laufen
+  in der Ausblendung weiter (vorher fiel das Schild weg; `curve_signs_cut` zählt solche Schilder, im Netz 9). In City
+  Limits steht das Warnschild ebenfalls – dort gibt es kein Radar, man kommt mit vollem Tempo –, Richtungstafeln nicht.
+  Keine Kurvenschilder in Tunneln (dort höchstens 0,25) und in den ruhigen Zonen an Start und Ziel. Ergebnis im ganzen
+  Netz: alle 691 scharfen Kurvenstücke (55 davon in City Limits) haben ihr Warnschild (Test
+  `test_every_sharp_curve_has_a_warning_sign`). Sichtprüfung über alle Etappen: gameplay.md (i5).
 - **Spuren**: Autobahn 3, Landstraße 2, Stadt 2 (`road.lanes`). Wechsel über `road.lane_transition_m` weich
   (`lanes_at` gebrochen); `lane_count_at` meldet dem Verkehr schon vor und während des Übergangs die kleinere Zahl.
 - **Tankspur**: `fuel_lane_factor` 0..1 mit `road.fuel_lane_taper_m` Ein-/Ausfädelung; `fuel_lane_at` nur bei ganz offener
@@ -308,6 +313,20 @@ Zonenmeldungen → Tutorial-Hinweise → Ziel.
 - **HUD-Tank**: Reichweite beim aktuellen Tempo (`fuel.range_km(speed)`, im Stand 60 km/h); „Nächste Tankstelle“ = 0,
   solange der Wagen an der Tankstelle ist (im km-Bereich der Tankspur – die Zapfsäulen stehen entlang der ganzen Spur –
   oder beim Tanken), sonst die Entfernung (`SessionRules.next_station_km`).
+- **Kurvengrenze der Polizei**: Während einer Verfolgung (und solange ein Radar angekündigt ist) gibt die Sitzung
+  `police.update` die Kurvengrenze des Polizeiwagens an der Position des Spielers mit
+  (`SessionRules.police_curve_cap_kmh`: seine Kurvengeschwindigkeit – `PoliceSystem.curve_speed_mps`, Agilität 1 –
+  an jedem Punkt der nächsten `police.curve_lookahead_m` (300 m, alle 10 m), erreichbar mit
+  `police.curve_brake_mps2`; Haftung je Punkt aus `Track.grip_at`). Die Polizei bremst also wie der Spieler für
+  Kurven, die Fluchtschwelle sinkt dort entsprechend (gameplay.md „Verfolgung“); das HUD zeigt sie
+  („Flucht ab 187 km/h halten!“, HUD-Schlüssel `escape_kmh`).
+- **Haftung**: `road_info` gibt im Tunnel Haftung 1,0 (trockene Fahrbahn unter dem Dach, `Track.grip_at`), sonst die
+  Wetterhaftung – ebenso Autopilot, Tutorial-Kurvenhinweis, Polizei und Sichtprüfung.
+- **Leitplankentreffer** (`vehicle.rail_hit`): Kamerawackeln von `render.rail_shake_min_s` (0,15 s, Berühren) bis
+  `render.rail_shake_max_s` (0,45 s wie ein Unfall) mit der Abdrift, die hineinrutscht (`vehicle.rail_impact` /
+  `render.rail_shake_full_mps` 8 m/s), ab `render.rail_flash_min_mps` (2 m/s) zusätzlich ein kurzes orangefarbenes
+  Aufblitzen (`hud.flash`) – ein Rutscher in die Leitplanke kostet bis zur Hälfte des Tempos und soll spürbar sein.
+  Den Aufprallklang liefert das Audio-Modul (`rail_hit`/`rail_impact`, noch offen).
 - **Polizeiwagen**: gezeichnet bei `police.police_car_offset_m()` (Animation im Gameplay-Modul). Seitlich fährt er
   eine Spur neben dem Spieler, solange er hinter oder neben ihm ist (links, wenn dort eine Spur ist, sonst rechts;
   gewählt, solange er noch außer Sicht hinter der Kamera ist), und zieht vor dem Spieler ein, sobald sein Heck frei
@@ -355,12 +374,14 @@ Hysterese, nur wenn die Spur frei ist), folgt sonst mit Sicherheitsabstand; brem
 (Limit + 6 %) und für Autos im Fahrweg; verlässt endende Spuren rechtzeitig. Tanken: entscheidet 14 km vor jeder
 Tankstelle (`auto`: wenn der Sprit nicht bis zur übernächsten Tankstelle/zum Ziel reicht; `always`/`never` per
 `--autopilot-refuel`), fädelt in die Tankspur ein und fährt unter 60 km/h; während des Tankens gibt er kein Gas (sonst
-bricht das Tanken ab).
+bricht das Tanken ab). Rollt der Wagen mit leerem Tank aus (`fuel.rolling_out`), bremst er nur für Kurven – die Bremse
+wirkt dabei (gameplay.md „Automatik“), und Bremsen für die Tankspur würde ihn vor ihr anhalten.
 
 **Kurven** (`curve_speed_ahead`): Seit dem Untersteuern (gameplay.md „Untersteuern“) darf er nie über die Kurvengrenze.
 Bremskurve über `curve_lookahead_m` (300 m, alle `curve_step_m` = 10 m): an jedem Punkt soll er
 `curve_margin` (96 %) der sicheren Kurvengeschwindigkeit `curve_lead_m` (12 m) früher erreicht haben, geplant mit
-`brake_decel_mps2` (15 m/s², unter den echten 70 km/h/s = 19,4 m/s²); dazu der Punkt unter dem Auto. Pedale
+`brake_decel_mps2` (15 m/s², unter den echten 70 km/h/s = 19,4 m/s²; Haftung je Punkt aus `Track.grip_at`, im
+Tunnel trocken); dazu der Punkt unter dem Auto. Pedale
 (`pedals`): Vollgas unter dem Ziel, über Ziel + 2 km/h fest bremsen (30 % bis voll bei 12 km/h darüber), dazwischen
 60 % Gas. Ergebnis: auf allen gemessenen Etappen und beiden ganzen Rennen `understeer` = 0 und kein Bankett/keine
 Leitplanke durch Kurven (gameplay.md (i4)). Debug: `--autopilot-target=<km/h>` (Wunschtempo statt
@@ -434,7 +455,13 @@ xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
   Platz bzw. links; Ausrollen mit leerem Tank in ein langsameres Auto → Kollision, Abschleppen erst nach dem
   Abschleppen gezählt; leer in die Tankspur gerollt → getankt, kein Abschleppen; Auslaufen nach dem Ziel →
   Kollision statt Durchfahren; Verfolgung bis in den Tankstopp → Polizei genau beim Tanken blockiert, HUD-Werte;
-  Kiel – Hamburg zeigt alle Tutorial-Hinweise, andere Etappen keine. Ausgabe `CHECK <name> OK|FEHLER`, Exit-Code.
+  Kiel – Hamburg zeigt alle Tutorial-Hinweise, andere Etappen keine; Untersteuer-Rutscher in die Leitplanke →
+  Tempoverlust, Kamerawackeln, Aufblitzen. Ausgabe `CHECK <name> OK|FEHLER`, Exit-Code.
+- `godot --headless --path . -s res://tests/sim/check_escapes.gd [-- --only=good]` – Polizeiflucht im ganzen Netz
+  (≈ 60 s, läuft in `tools/run_tests.sh` nach den Szenarien): jedes Radarfeld × jedes Auto × trocken am Tag / Regen in
+  der Nacht, Fahrer „ideal“ (an der eigenen Kurvengrenze, Bremsen mit 70 km/h/s) und „gut“ (97 %, Bremsen mit nur
+  10 m/s²) – jede Verfolgung muss zu entkommen sein (gameplay.md (e3)). `tests/unit/race/test_police_curves.gd`: die
+  kurvigsten Radar-Etappen im Unit-Test, Abtastung der Sitzung = exakte Bremskurve.
 - `xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --audio-driver Dummy -s
   res://tests/race/check_sprite_flip.gd` – prüft mit echtem Renderer, dass Godot gespiegelte Rechtecke an Ort und
   Stelle zeichnet (Grundlage von `flipped_draw_rect`).
@@ -470,7 +497,9 @@ zwischengespeichert, Lichtüberlagerungen nur bei Licht, Zellsuche ab der aktuel
 `road`: `lane_width_m`, `lanes`, `shoulder_width_m`, `guardrail`, `curve_radius_at_1_m`, `curviness_max_curve`,
 `hills_max_grade`, `lane_transition_m`, `fuel_lane_taper_m`, `runout_m`, `delineator_every_m`, `streetlight_every_m`,
 `crosswalk_every_m`, Kurvenschilder (§4): `curve_warning_min_curve` (0,25), `curve_warning_blind_min_curve` (0,12),
-`curve_warning_sight_m` (150), `curve_warning_m` (200), `chevron_every_m` (30).
+`curve_warning_sight_m` (150), `curve_warning_m` (200), `chevron_every_m` (30). `curviness_max_curve` [0; 0,30;
+0,45; 0,9] (Kurvigkeit 1 seit dem Spieltest „Kurven immer mit Top Speed“ 0,30 statt 0,22: R ≥ 400 statt 545 m,
+gameplay.md (i)).
 
 `render`: `segment_length_m`, `draw_distance_m`, `fov_deg`, `camera_height_m`, `camera_distance_m`, `horizon_y_frac`,
 `fog_start_frac`, `hill_height_scale`, `stripes` (`grass`, `road`, `dash` je Straßentyp in Segmenten),
@@ -480,7 +509,8 @@ zwischengespeichert, Lichtüberlagerungen nur bei Licht, Zellsuche ab der aktuel
 `finish_decel_kmh_s`, `finish_hold_s`, `procedural_props` (`auto` = Zapfsäulen/Shop/Zollhaus/Blitzer prozedural
 zeichnen, solange das Sprite-Manifest nur Platzhalter enthält; `always`/`never`), `scripted_collision_min_kmh`
 (30: darüber kollidiert der Wagen auch in geskripteten Phasen), `tutorial_hint_s` (6: Anzeigedauer eines
-Tutorial-Hinweises). Fahrzeugdarstellung (§8): `vehicle_yaw_smooth_s` (0,12), `vehicle_cell_hysteresis` (0,3 Schritte),
+Tutorial-Hinweises), Leitplankentreffer (§9): `rail_shake_min_s` (0,15), `rail_shake_max_s` (0,45),
+`rail_shake_full_mps` (8), `rail_flash_min_mps` (2). Fahrzeugdarstellung (§8): `vehicle_yaw_smooth_s` (0,12), `vehicle_cell_hysteresis` (0,3 Schritte),
 `vehicle_yaw_max_deg` (30), `vehicle_warp` (an), `vehicle_warp_min_ratio` (0,06), `box_slice_m` (2), `box_slice_ratio` (0,12), `box_subdiv_px` (1,5),
 `player_curve_lookahead_m` (10), `player_curve_gain` (1), `player_steer_deg` (3), `player_lateral_gain` (1),
 `player_understeer_deg` (6), `player_view_gain` (1), `player_yaw_max_deg` (20), `player_yaw_smooth_s` (0,15),
@@ -492,7 +522,8 @@ Tutorial-Hinweises). Fahrzeugdarstellung (§8): `vehicle_yaw_smooth_s` (0,12), `
 ## 15. API-Erweiterungen (zusätzlich zu ARCHITECTURE.md)
 
 - `Track`: `zones`, `runout_m`, `hill_scale`, `window_size()`, `distance_to_fuel_lane(z)`, `events_for_segment(i)`,
-  `generation_lead_m()` (Vorlauf der Erzeugung vor dem Fenster, Kurvenschilder §4),
+  `generation_lead_m()` (Vorlauf der Erzeugung vor dem Fenster, Kurvenschilder §4), `grip_at(z, weather_grip)`
+  (Haftung: im Tunnel 1,0), `curve_signs_cut` (Diagnose: Warnschilder abgeschnittener Kurvenstücke),
   Konstanten `WALL_SIGN_GAP_M`, `WALL_SIGN_OVERHANG_M`; Schild-Requisiten zusätzlich `country`, `road`, im Tunnel
   `wall` (und `scale` < 1); Schildarten `curve` (Warnschild) und `chevron` (Richtungstafel), `value` = Richtung.
 - `Autopilot`: `curve_brake`, `curve_margin`, `curve_lookahead_m`, `curve_step_m`, `curve_lead_m`,
@@ -539,7 +570,9 @@ Tutorial-Hinweises). Fahrzeugdarstellung (§8): `vehicle_yaw_smooth_s` (0,12), `
 - `SessionRules` (statisch): `collisions_active(invulnerable, scripted, speed_kmh, rolling_out, min_scripted_kmh)`,
   `next_station_km(plan, km, refueling)`, `roll_distance_m(speed, target, decel)`, `can_roll_into_lane(z, speed,
   decel, trigger, lane_open_z, lane_z1)`, `police_pass_side(player_x, left_edge, lane_w)`, `police_car_x(offset,
-  player_x, side, lane_w, pull_over_m, clear_m)`.
+  player_x, side, lane_w, pull_over_m, clear_m)`, `police_curve_cap_kmh(track, police, z, weather_grip)`
+  (Kurvengrenze des Polizeiwagens für `PoliceSystem.update`).
+- HUD-Zustand zusätzlich `escape_kmh` (aktuelle Fluchtschwelle der Polizei, `PoliceSystem.escape_kmh`).
 - `TutorialCoach`: `setup(cfg)`, `trigger(topic, args) → Anzahl`, `hold(s)`, `update(dt) → Text|""`, `pending()`,
   `hints_for(topic, args)`, `hint_s`, `gap_s`, `shown`; Themen `start, fuel_low, fuel_hud, fuel_announce, fuel_lane,
   refuel, radar, chase, unlimited, city, collision`.

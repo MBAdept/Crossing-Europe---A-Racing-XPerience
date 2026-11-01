@@ -10,8 +10,15 @@ extends RefCounted
 ##    (120 -> from 138 km/h); each radar triggers at most once, never during a chase or a stop
 ##  * triggered -> flash + police chase. The police car starts police.start_gap_m behind and drives
 ##    police.police_speed_kmh (220): the gap shrinks while the player is slower, grows while faster
-##  * escape: average speed over the last police.escape_window_s >= police.escape_speed_kmh (220)
-##    and the chase lasted at least that window
+##  * curves (since the understeer rework): the police car obeys the same curve physics. update() takes the
+##    curve limit of the road at the player's position (road_cap_kmh, computed by the race session with
+##    curve_speed_mps() – police.agility 1, below every player car – and police.curve_brake_mps2 braking
+##    for the curves ahead); after a curve the police speed rises again with police.curve_accel_mps2 over the
+##    distance driven. police_kmh = min(police_speed_kmh, that profile) drives the gap
+##  * escape: average speed over the last police.escape_window_s >= escape_kmh and the chase lasted at
+##    least that window. escape_kmh = the average of min(escape_speed_kmh, police profile) over the same
+##    window: 220 on a straight (design rule unchanged), less where curves slow the police down too –
+##    "faster than the police for 12 s"
 ##  * caught: gap reaches 0 or police.catch_timeout_s passed -> STOPPING (control_request brakes the car to
 ##    a standstill) -> STOPPED for police.stop_duration_s ("Führerschein, bitte!") -> released, the car
 ##    starts from standstill. Effective loss about 15–20 s
@@ -47,6 +54,8 @@ var chase_time := 0.0
 var gap_m := 0.0                 ## distance of the police car behind the player (visual m)
 var escape_progress := 0.0       ## 0..1 (HUD)
 var avg_speed := 0.0             ## rolling average over the escape window (km/h)
+var police_kmh := 0.0            ## speed of the police car this frame (km/h): police_speed_kmh, slower in curves
+var escape_kmh := 0.0            ## escape threshold (km/h): rolling average of min(escape_speed_kmh, police profile)
 var stop_time_left := 0.0
 var active_radar: Dictionary = {}  ## radar warned about or being driven through ({} if none)
 # --- additions ---
@@ -65,9 +74,13 @@ var _in_zone: Dictionary = {}
 var _triggered: Dictionary = {}
 var _samples_dt := PackedFloat64Array()
 var _samples_v := PackedFloat64Array()
+var _samples_e := PackedFloat64Array()
 var _head := 0
 var _sum_t := 0.0
 var _sum_vt := 0.0
+var _sum_et := 0.0
+var _road_kmh := 0.0             ## police speed profile at the player's position (km/h, curve limit + acceleration)
+var _cap_kmh := INF              ## road_cap_kmh of the current update()
 # cached configuration
 var _tolerance := 0.15
 var _warn_window := 1.5
@@ -85,6 +98,13 @@ var _bar_range := 60.0
 var _chase_factor := 0.2
 var _overtake_s := 2.2
 var _overtake_from := 16.0
+var _lat_grip := 5.6             ## lateral grip of the police car (m/s², agility rating police.agility)
+var _radius_at_1 := 120.0
+var _curve_accel := 1.5
+var _curve_brake := 8.0
+var curve_lookahead_m := 300.0   ## police.curve_lookahead_m: how far ahead the curve limit is checked
+var curve_step_m := 10.0         ## police.curve_step_m: sample spacing of that look-ahead
+var curve_brake_mps2 := 8.0      ## police.curve_brake_mps2 (read-only copy for the race session)
 
 
 func setup(config: Dictionary, stage_plan: StagePlan) -> void:
@@ -105,6 +125,10 @@ func setup(config: Dictionary, stage_plan: StagePlan) -> void:
 	stops = 0
 	blocked = false
 	overtake_time = 0.0
+	police_kmh = 0.0
+	escape_kmh = 0.0
+	_road_kmh = 0.0
+	_cap_kmh = INF
 	_warned.clear()
 	_in_zone.clear()
 	_triggered.clear()
@@ -132,6 +156,14 @@ func _read_config() -> void:
 	_chase_factor = _f("traffic.chase_density_factor", 0.2)
 	_overtake_s = maxf(0.05, _f("police.overtake_s", 2.2))
 	_overtake_from = maxf(0.0, _f("police.overtake_from_m", 16.0))
+	var agility := clampi(int(_f("police.agility", 1.0)), 1, 5)
+	_lat_grip = maxf(0.1, _f("police.lat_grip", _f("vehicles.agility_ratings.%d.lat_grip" % agility, 5.6)))
+	_radius_at_1 = maxf(1.0, _f("road.curve_radius_at_1_m", 120.0))
+	_curve_accel = maxf(0.0, _f("police.curve_accel_mps2", 1.5))
+	_curve_brake = maxf(0.1, _f("police.curve_brake_mps2", 8.0))
+	curve_brake_mps2 = _curve_brake
+	curve_lookahead_m = maxf(0.0, _f("police.curve_lookahead_m", 300.0))
+	curve_step_m = maxf(1.0, _f("police.curve_step_m", 10.0))
 
 
 ## Speed (km/h) from which a radar with this limit flashes: limit * (1 + radar.tolerance), 120 -> 138.
@@ -139,7 +171,11 @@ func trigger_speed(limit_kmh: float) -> float:
 	return roundf(limit_kmh * (1.0 + _tolerance) * 100.0) / 100.0
 
 
-func update(dt: float, pos_km: float, speed_kmh: float) -> void:
+## One step. road_cap_kmh: the curve limit of the police car at the player's position (race session:
+## SessionRules.police_curve_cap_kmh – its curve speed here and braking for the curves ahead); INF = straight
+## road / unknown (then the police drives police_speed_kmh and the escape needs escape_speed_kmh, as designed).
+func update(dt: float, pos_km: float, speed_kmh: float, road_cap_kmh: float = INF) -> void:
+	_cap_kmh = road_cap_kmh if not is_nan(road_cap_kmh) else INF
 	var prev := state
 	_update_radars(pos_km, speed_kmh)
 	if prev != state:
@@ -211,18 +247,50 @@ func _start_chase(speed_kmh: float) -> void:
 	avg_speed = speed_kmh
 	chases += 1
 	_clear_samples()
+	# the police car is at its top speed or at the curve limit of the road here
+	_road_kmh = minf(_top_kmh(), _cap_kmh)
+	police_kmh = minf(_police_speed, _road_kmh)
+	escape_kmh = minf(_escape_speed, _road_kmh)
 	chase_started.emit()
+
+
+## Top speed of the police speed profile (km/h): the larger of police and escape speed, so that each keeps its
+## own value on a straight.
+func _top_kmh() -> float:
+	return maxf(_police_speed, _escape_speed)
+
+
+## Police speed profile at the player's position: limited by the road (curve speed, braking for curves ahead,
+## road_cap_kmh) and, after a curve, rising with police.curve_accel_mps2 over the distance the player drove –
+## a function of the road position, like an ideal police driver's speed along the road.
+func _advance_police(dt: float, speed_kmh: float) -> void:
+	if _road_kmh < _top_kmh():
+		var v := _road_kmh / 3.6
+		var dz := maxf(speed_kmh, 0.0) / 3.6 * dt
+		_road_kmh = minf(sqrt(v * v + 2.0 * _curve_accel * dz) * 3.6, _top_kmh())
+	_road_kmh = minf(_road_kmh, _cap_kmh)
+	police_kmh = minf(_police_speed, _road_kmh)
+
+
+## Speed (m/s) at which the police car takes a curve of this strength (-1..1) with this grip (weather; 1 in a
+## tunnel): sqrt(lat_grip of police.agility · grip · road.curve_radius_at_1_m / |curve|). INF on a straight.
+func curve_speed_mps(curve: float, grip: float = 1.0) -> float:
+	var c := absf(curve)
+	if c < 0.0001:
+		return INF
+	return sqrt(maxf(0.0, _lat_grip * grip * _radius_at_1 / c))
 
 
 func _update_chase(dt: float, speed_kmh: float) -> void:
 	if dt <= 0.0:
 		return
 	chase_time += dt
-	_push_sample(dt, speed_kmh)
-	gap_m = clampf(gap_m + (speed_kmh - _police_speed) / 3.6 * dt * _gap_rate, 0.0, _max_gap)
-	var level := clampf((avg_speed - (_escape_speed - _bar_range)) / _bar_range, 0.0, 1.0)
+	_advance_police(dt, speed_kmh)
+	_push_sample(dt, speed_kmh, minf(_escape_speed, _road_kmh))
+	gap_m = clampf(gap_m + (speed_kmh - police_kmh) / 3.6 * dt * _gap_rate, 0.0, _max_gap)
+	var level := clampf((avg_speed - (escape_kmh - _bar_range)) / _bar_range, 0.0, 1.0)
 	escape_progress = minf(chase_time / _window, 1.0) * level
-	if chase_time >= _window - 0.000001 and avg_speed >= _escape_speed - 0.000001:
+	if chase_time >= _window - 0.000001 and avg_speed >= escape_kmh - 0.000001:
 		state = State.IDLE
 		escape_progress = 1.0
 		gap_m = 0.0
@@ -238,29 +306,38 @@ func _update_chase(dt: float, speed_kmh: float) -> void:
 func _clear_samples() -> void:
 	_samples_dt = PackedFloat64Array()
 	_samples_v = PackedFloat64Array()
+	_samples_e = PackedFloat64Array()
 	_head = 0
 	_sum_t = 0.0
 	_sum_vt = 0.0
+	_sum_et = 0.0
 
 
-## Time-weighted rolling average of the speed over the last escape window (exact window edge).
-func _push_sample(dt: float, v: float) -> void:
+## Time-weighted rolling averages over the last escape window (exact window edge): the player's speed v
+## (avg_speed) and the escape threshold e (escape_kmh) with the same weights.
+func _push_sample(dt: float, v: float, e: float) -> void:
 	_samples_dt.append(dt)
 	_samples_v.append(v)
+	_samples_e.append(e)
 	_sum_t += dt
 	_sum_vt += v * dt
+	_sum_et += e * dt
 	while _head < _samples_dt.size() - 1 and _sum_t - _samples_dt[_head] >= _window:
 		_sum_t -= _samples_dt[_head]
 		_sum_vt -= _samples_dt[_head] * _samples_v[_head]
+		_sum_et -= _samples_dt[_head] * _samples_e[_head]
 		_head += 1
 	var excess := _sum_t - _window
 	if excess > 0.0:
 		avg_speed = (_sum_vt - excess * _samples_v[_head]) / _window
+		escape_kmh = (_sum_et - excess * _samples_e[_head]) / _window
 	else:
 		avg_speed = _sum_vt / maxf(_sum_t, 0.000001)
+		escape_kmh = _sum_et / maxf(_sum_t, 0.000001)
 	if _head > 4096:
 		_samples_dt = _samples_dt.slice(_head)
 		_samples_v = _samples_v.slice(_head)
+		_samples_e = _samples_e.slice(_head)
 		_head = 0
 
 

@@ -414,7 +414,7 @@ func road_info(z: float) -> Dictionary:
 		"right_edge": edges.y,
 		"shoulder_m": track.shoulder_w,
 		"guardrail": seg.guardrail or seg.tunnel,
-		"grip": env.grip(weather),
+		"grip": track.grip_at(z, env.grip(weather)),   # dry inside tunnels
 	}
 
 
@@ -480,7 +480,7 @@ func _step(dt: float) -> void:
 	# while the fuel system holds the car (refuelling, tow) the police stop waits: a capture during
 	# refuelling is served after the refuel
 	police.set_blocked(fuel.state != FuelSystem.State.NORMAL)
-	police.update(dt, pos_km, vehicle.speed)
+	police.update(dt, pos_km, vehicle.speed, _police_curve_cap())
 	var pen := fuel.take_penalty()
 	if pen > 0.0:
 		penalty_time += pen
@@ -502,8 +502,16 @@ func _step(dt: float) -> void:
 		_finish()
 
 
-## Driving diagnostics (drive_stats) and the curve hint of the tutorial stage: it comes when the car
-## understeers or a curve within the next 250 m needs clearly less than the current speed.
+## Curve limit of the police car at the player's position (PoliceSystem.update road_cap_kmh): only needed
+## while a chase runs or one can start (a radar is announced/active), INF otherwise.
+func _police_curve_cap() -> float:
+	if police.state != PoliceSystem.State.CHASE and police.active_radar.is_empty():
+		return INF
+	return SessionRules.police_curve_cap_kmh(track, police, pos_z, env.grip(weather))
+
+
+## Driving diagnostics (drive_stats), the feedback of a guardrail hit and the curve hint of the tutorial stage:
+## it comes when the car understeers or a curve within the next 250 m needs clearly less than the current speed.
 func _track_driving(dt: float) -> void:
 	if vehicle.off_road > 0:
 		drive_stats["off_road_s"] += dt
@@ -511,6 +519,7 @@ func _track_driving(dt: float) -> void:
 		drive_stats["limit_s"] += dt
 	if vehicle.rail_hit:
 		drive_stats["rail_hits"] += 1
+		_rail_feedback(vehicle.rail_impact)
 	if vehicle.understeer > 0.0:
 		drive_stats["understeer_s"] += dt
 	drive_stats["understeer_max"] = maxf(float(drive_stats["understeer_max"]), vehicle.understeer)
@@ -520,10 +529,23 @@ func _track_driving(dt: float) -> void:
 	var grip := env.grip(weather)
 	var d := 20.0
 	while not warn and d <= 250.0:
-		warn = vehicle.speed > vehicle.safe_curve_speed(track.curve_at(pos_z + d), grip) * 1.05
+		warn = vehicle.speed > vehicle.safe_curve_speed(track.curve_at(pos_z + d), track.grip_at(pos_z + d, grip)) * 1.05
 		d += 10.0
 	if warn:
 		_tutorial("curve")
+
+
+## A guardrail hit is felt (the speed loss of an understeer slide into the rail can be half the speed): camera
+## shake from render.rail_shake_min_s (a touch) up to render.rail_shake_max_s with the drift that hit the rail
+## (rail_impact / render.rail_shake_full_mps), and from render.rail_flash_min_mps of drift a short flash.
+## The impact sound belongs to the audio module (vehicle.rail_hit / rail_impact).
+func _rail_feedback(impact_mps: float) -> void:
+	var k := clampf(impact_mps / maxf(0.01, float(ConfigLoader.lookup(cfg, "render.rail_shake_full_mps", 8.0))), 0.0, 1.0)
+	var lo := float(ConfigLoader.lookup(cfg, "render.rail_shake_min_s", 0.15))
+	var hi := float(ConfigLoader.lookup(cfg, "render.rail_shake_max_s", 0.45))
+	_shake_t = maxf(_shake_t, lerpf(lo, hi, k))
+	if impact_mps >= float(ConfigLoader.lookup(cfg, "render.rail_flash_min_mps", 2.0)):
+		hud.flash(Color(1.0, 0.55, 0.25, 0.12 + 0.2 * k), 0.12 + 0.1 * k)
 
 
 ## Finish roll-out: the clock is frozen, the car brakes (render.finish_decel_kmh_s) while the player keeps
@@ -788,6 +810,7 @@ func _hud_state(hour: float) -> Dictionary:
 		"police_state": st_police,
 		"police_gap_m": police.gap_m,
 		"escape01": police.escape_progress,
+		"escape_kmh": police.escape_kmh,
 		"refuel": {"active": fuel.state == FuelSystem.State.REFUELING, "progress01": fuel.refuel_progress, "liters": fuel.liters_added, "time_left_s": fuel.refuel_time_left} if fuel.state == FuelSystem.State.REFUELING else {},
 		"tow": {"active": true} if fuel.state == FuelSystem.State.TOWING else {},
 		"weather": weather,

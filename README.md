@@ -85,14 +85,15 @@ Hero-Banner, transparentes Logo und Icon, jeweils auch in doppelter Auflösung. 
 - **Fünf Fahrzeuge** (Kompakt, Kombi, Limousine, Sportwagen, Gran Turismo) mit den Werten aus dem Design-Dokument;
   Arcade-Fahrmodell ohne Übersteuern; wer zu schnell in die Kurve fährt, untersteuert deutlich: der Wagen rutscht nach
   außen, Gegenlenken hilft nur bei knapp zu hohem Tempo, Bremsen vor der Kurve ist die Abhilfe. Die Agilität bestimmt das
-  Kurventempo (Kompakt fährt Autobahnkurven voll, der Gran Turismo muss vom Gas); Warnschilder und rot-weiße
-  Richtungstafeln kündigen scharfe und hinter Kuppen versteckte Kurven an.
+  Kurventempo: in den schärferen Autobahnkurven muss jedes Auto vom Gas, der Gran Turismo schon in den mittleren;
+  Warnschilder und rot-weiße Richtungstafeln kündigen scharfe und hinter Kuppen versteckte Kurven an.
 - **Verkehr** nur in Fahrtrichtung mit Tageskurve, Nachtbonus, Lkw rechts, Spurwechseln; Kollisionen nach den Regeln
   des Dokuments (3 s auf 10 km/h, seitlich schieben, blinken, Ein-Drittel-Regel für Überholer von hinten).
 - **Tanken**: Verbrauch 14 + 0,00034·v², Tankstellen alle 60–90 km mit Ankündigung 30/15/5 km, Tankspur,
   „Volltanken? – Gas = Weiterfahren“, Abschleppdienst bei leerem Tank.
-- **Radar und Polizei**: Warnung 10 km vorher, 5-km-Feld, 15 % Toleranz, Verfolgung mit Flucht ab 220 km/h,
-  „Führerschein, bitte!“; City Limits in den letzten 20 km jeder Etappe.
+- **Radar und Polizei**: Warnung 10 km vorher, 5-km-Feld, 15 % Toleranz, Verfolgung mit Flucht ab 220 km/h – in
+  Kurven muss auch die Polizei bremsen, dort reicht weniger –, „Führerschein, bitte!“; City Limits in den letzten 20 km
+  jeder Etappe.
 - **Tageszeit und Wetter**: frei wählbare Startzeit, nächste Etappe 12 h Weltzeit nach dem Ende der vorigen,
   Dämmerung/Nacht/Sonnenaufgang während der Fahrt, Regen und Schnee.
 - **Streckennetz** komplett in Datendateien: 45 Städte, 51 Etappen (in beide Richtungen fahrbar), Fähre

@@ -2,7 +2,7 @@ extends RefCounted
 ## Sight check of the curves (driving model): is braking from the moment a curve becomes visible always enough?
 ## Used by tests/sim/curve_sight.gd (all stages) and tests/unit/race/test_track.gd.
 ## For a stage (real StagePlan/Track) every stretch whose safe curve speed is below the approach speed is
-## checked. Approach speed: full throttle out of the previous curve up to the top speed in that weather (opts
+## checked (weather grip; dry inside tunnels, Track.grip_at). Approach speed: full throttle out of the previous curve up to the top speed in that weather (opts
 ## top_speed: always the top speed, as if every curve came out of a long straight). The curve "becomes
 ## visible" when its first such point is within the visibility (render.draw_distance_m * weather/night factor,
 ## tunnels) and not hidden behind a crest (line of sight from the camera, render.camera_height_m above the road
@@ -43,12 +43,15 @@ static func check(cfg: Dictionary, plan: StagePlan, opts: Dictionary = {}) -> Di
 	# the whole road: curve and height per segment (sequential generation keeps every segment)
 	var curve := PackedFloat32Array()
 	var height := PackedFloat32Array()
+	var gk := PackedFloat32Array()   # grip per segment: weather grip, dry (1.0) inside tunnels (Track.grip_at)
 	curve.resize(n)
 	height.resize(n)
+	gk.resize(n)
 	for i in n:
 		var s := track.get_segment(i)
 		curve[i] = s.curve
 		height[i] = s.y
+		gk[i] = 1.0 if s.tunnel else grip
 	var warn_z: Array[float] = []
 	if bool(opts.get("signs", true)):
 		for i in n:
@@ -61,7 +64,7 @@ static func check(cfg: Dictionary, plan: StagePlan, opts: Dictionary = {}) -> Di
 	v_fwd.resize(n)
 	var vf := 0.0                     # standstill at the start line
 	for k in n:
-		vf = minf(v.safe_curve_speed(curve[k], grip), v.accelerate(vf, vtop, seg / maxf(vf / 3.6, 1.0)))
+		vf = minf(v.safe_curve_speed(curve[k], gk[k]), v.accelerate(vf, vtop, seg / maxf(vf / 3.6, 1.0)))
 		v_fwd[k] = vtop if always_top else vf
 	var cases: Array = []
 	var min_margin := INF
@@ -74,14 +77,14 @@ static func check(cfg: Dictionary, plan: StagePlan, opts: Dictionary = {}) -> Di
 		var v_app := vtop / 3.6
 		if not always_top:
 			v_app = minf(vtop, v.accelerate(v_fwd[i - 1], vtop, seg / maxf(v_fwd[i - 1] / 3.6, 1.0))) / 3.6
-		if v.safe_curve_speed(curve[i], grip) / 3.6 >= v_app - 0.3:
+		if v.safe_curve_speed(curve[i], gk[i]) / 3.6 >= v_app - 0.3:
 			i += 1
 			continue
 		# stretch [i, j) where the safe speed is below the approach speed
 		var j := i
 		var min_safe := INF
-		while j < n and v.safe_curve_speed(curve[j], grip) / 3.6 < v_app:
-			min_safe = minf(min_safe, v.safe_curve_speed(curve[j], grip))
+		while j < n and v.safe_curve_speed(curve[j], gk[j]) / 3.6 < v_app:
+			min_safe = minf(min_safe, v.safe_curve_speed(curve[j], gk[j]))
 			j += 1
 		if min_safe / 3.6 * tol >= v_app:
 			i = j
@@ -101,7 +104,7 @@ static func check(cfg: Dictionary, plan: StagePlan, opts: Dictionary = {}) -> Di
 				by_sign = true
 		var margin := INF
 		for k in range(i, j):
-			var vk := v.safe_curve_speed(curve[k], grip) / 3.6 * tol
+			var vk := v.safe_curve_speed(curve[k], gk[k]) / 3.6 * tol
 			if vk < v_app:
 				var need := v_app * reaction + (v_app * v_app - vk * vk) / (2.0 * brake)
 				margin = minf(margin, float(k) * seg - z_see - need)

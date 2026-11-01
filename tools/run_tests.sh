@@ -25,7 +25,8 @@ if grep -qE "SCRIPT ERROR|Parse Error|^ERROR:" "$LOG"; then
 	CODE=1
 fi
 rm -f "$LOG"
-# Integration scenarios of the race session (headless, ~30 s) – skipped with a filter argument.
+# Integration scenarios of the race session (headless, ~30 s) and the network-wide police escape check
+# (~60 s) – skipped with a filter argument.
 if [ $# -eq 0 ] && [ $CODE -eq 0 ]; then
 	SLOG=$(mktemp)
 	timeout 300 "$GODOT" --headless --path . -s res://tests/race/check_session.gd >"$SLOG" 2>&1
@@ -33,6 +34,14 @@ if [ $# -eq 0 ] && [ $CODE -eq 0 ]; then
 	grep -E "^CHECK" "$SLOG"
 	if [ $SCODE -ne 0 ] || grep -qE "SCRIPT ERROR" "$SLOG"; then
 		echo "==> Integrationsszenarien fehlgeschlagen"
+		CODE=1
+	fi
+	# Police escapes on the whole network with the curve physics (~60 s): every radar × car × dry day / rain night
+	timeout 600 "$GODOT" --headless --path . -s res://tests/sim/check_escapes.gd >"$SLOG" 2>&1
+	SCODE=$?
+	grep -E "^CHECK|^    " "$SLOG"
+	if [ $SCODE -ne 0 ] || grep -qE "SCRIPT ERROR" "$SLOG"; then
+		echo "==> Polizeiflucht im Streckennetz fehlgeschlagen"
 		CODE=1
 	fi
 	rm -f "$SLOG"

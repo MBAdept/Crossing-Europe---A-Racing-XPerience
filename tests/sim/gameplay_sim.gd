@@ -611,11 +611,47 @@ static func understeer_run(cfg: Dictionary, id: String, over: float, steer: floa
 	return r
 
 
+## A real curve piece as Track builds it: right bend of length_m with smoothstep ramp-in/-out over 30 % of the piece,
+## its peak `over` too fast for the car at top speed. A lane-keeping driver (steer = clamp((lane_x − x) · gain), the
+## proportional counter-steer of a player holding a lane) keeps full throttle (which holds vmax) from the lane at
+## lane_x (0 = middle lane of a three-lane autobahn with guardrails) until 150 m after the piece.
+## Returns dev_max (largest distance from the lane, m), out_max (outwards = left), shoulder / limit (outer shoulder
+## or guardrail reached), rail_hits, us_s (seconds with understeer), v_min.
+static func curve_piece_run(cfg: Dictionary, id: String, over: float, length_m: float, lane_x: float = 0.0, gain: float = 1.5, grip: float = 1.0, dt: float = DT) -> Dictionary:
+	var v := Fx.vehicle(cfg, id)
+	var vmax := v.max_speed(0.0, 1.0)
+	v.speed = vmax
+	v.x = lane_x
+	var peak := curve_for_overspeed(v, vmax, over, grip)
+	var road := Fx.flat_road(3, true, 0.0, grip)
+	var out := {"dev_max": 0.0, "out_max": 0.0, "shoulder": false, "limit": false, "rail_hits": 0, "us_s": 0.0, "v_min": vmax, "peak": peak}
+	var z := -30.0
+	while z < length_m + 150.0:
+		var tt := clampf(z / length_m, 0.0, 1.0)
+		var ease := smoothstep(0.0, 0.3, tt) * (1.0 - smoothstep(0.7, 1.0, tt))
+		road["curve"] = peak * ease if z >= 0.0 and z <= length_m else 0.0
+		var steer := clampf((lane_x - v.x) * gain, -1.0, 1.0)
+		v.update(dt, {"steer": steer, "throttle": 1.0}, road, {"vmax_factor": 1.0})
+		z += v.speed / 3.6 * dt
+		out["dev_max"] = maxf(float(out["dev_max"]), absf(v.x - lane_x))
+		out["out_max"] = maxf(float(out["out_max"]), lane_x - v.x)
+		out["v_min"] = minf(float(out["v_min"]), v.speed)
+		if v.off_road >= 1 and v.x < lane_x:
+			out["shoulder"] = true
+		if v.off_road == 2 and v.x < lane_x:
+			out["limit"] = true
+		if v.rail_hit:
+			out["rail_hits"] = int(out["rail_hits"]) + 1
+		if v.understeer > 0.0:
+			out["us_s"] = float(out["us_s"]) + dt
+	return out
+
+
 ## Safe curve speed (km/h) of a vehicle at the sharpest and the median curve of a curviness level
 ## (road.curviness_max_curve; Track draws curve magnitudes uniformly from 35–100 % of the maximum).
 static func curviness_speeds(cfg: Dictionary, id: String, level: int, grip: float = 1.0) -> Vector2:
 	var v := Fx.vehicle(cfg, id)
-	var maxes: Array = ConfigLoader.lookup(cfg, "road.curviness_max_curve", [0.0, 0.22, 0.45, 0.9])
+	var maxes: Array = ConfigLoader.lookup(cfg, "road.curviness_max_curve", [0.0, 0.30, 0.45, 0.9])
 	var c := float(maxes[clampi(level, 0, maxes.size() - 1)])
 	return Vector2(v.safe_curve_speed(c, grip), v.safe_curve_speed(c * 0.675, grip))
 
@@ -624,7 +660,7 @@ static func curviness_speeds(cfg: Dictionary, id: String, level: int, grip: floa
 ## is below the vehicle's top speed, i.e. that need a lift or braking at full speed.
 static func lift_share(cfg: Dictionary, id: String, level: int, grip: float = 1.0) -> float:
 	var v := Fx.vehicle(cfg, id)
-	var maxes: Array = ConfigLoader.lookup(cfg, "road.curviness_max_curve", [0.0, 0.22, 0.45, 0.9])
+	var maxes: Array = ConfigLoader.lookup(cfg, "road.curviness_max_curve", [0.0, 0.30, 0.45, 0.9])
 	var cmax := float(maxes[clampi(level, 0, maxes.size() - 1)])
 	if cmax <= 0.0:
 		return 0.0
@@ -677,6 +713,16 @@ static func table_understeer(cfg: Dictionary) -> String:
 			"%.2f" % float(r["drift_after_m"]), "%.1f" % float(r["x_min"])])
 	out += Fx.table("(i3) Erholung: Limousine, 0,6 s zu schnell mit Gegenlenken, dann Vollbremsung (Lenkung los, sobald unter der Grenze)",
 		["zu schnell", "Drift max m/s", "unter Grenze nach s", "Drift < 10 % nach s", "danach weiter nach außen m", "x min m"], rows3)
+	var rows4: Array = []
+	for id: String in ["kompakt", "limousine", "gran_turismo"]:
+		for over: float in [0.03, 0.05, 0.08, 0.10, 0.15]:
+			var row := [id, "%d %%" % roundi(over * 100.0)]
+			for length_m: float in [150.0, 300.0, 520.0]:
+				var r := curve_piece_run(cfg, id, over, length_m)
+				row.append("%.2f%s" % [float(r["out_max"]), " L" if bool(r["limit"]) else (" B" if bool(r["shoulder"]) else "")])
+			rows4.append(row)
+	out += Fx.table("(i2b) Spurhalten (Gegenlenken proportional zur Abweichung, Verstärkung 1,5/m) mit Vollgas durch ein echtes Kurvenstück (Einlauf/Auslauf je 30 %), Spitze X % zu schnell: größte Abweichung nach außen (m), B = Bankett, L = Leitplanke",
+		["Fahrzeug", "zu schnell", "150 m", "300 m", "520 m"], rows4)
 	return out
 
 

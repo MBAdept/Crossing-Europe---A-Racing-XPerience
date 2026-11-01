@@ -218,16 +218,21 @@ func test_agility_orders_curve_speeds() -> void:
 		assert_true(float(by_agility[levels[i]]) > float(by_agility[levels[i - 1]]) + 3.0,
 			"Agilität %d (%.0f km/h) > Agilität %d (%.0f km/h)" % [levels[i], by_agility[levels[i]], levels[i - 1], by_agility[levels[i - 1]]])
 	# curviness 2 (sharpest curve): about 140–170 km/h, mountain roads (curviness 3) about 100–120
-	var maxes: Array = ConfigLoader.lookup(c, "road.curviness_max_curve", [0.0, 0.22, 0.45, 0.9])
+	var maxes: Array = ConfigLoader.lookup(c, "road.curviness_max_curve", [0.0, 0.30, 0.45, 0.9])
 	for id: String in Fx.VEHICLES:
 		var v := Fx.vehicle(c, id)
 		assert_between(v.safe_curve_speed(float(maxes[2]), 1.0), 140.0, 170.0, id + " Kurvigkeit 2")
 		assert_between(v.safe_curve_speed(float(maxes[3]), 1.0), 98.0, 120.0, id + " Kurvigkeit 3")
-	# the agile Kompakt takes even the sharpest curviness-1 curve flat out, the Gran Turismo has to lift
+	# playtest v0.3.0 "Kurven immer mit Top Speed": the sharpest autobahn curve (curviness 1) needs a lift with every
+	# car – more than the 5 % that counter-steering holds –, the median one only the heavy cars
 	var kompakt := Fx.vehicle(c, "kompakt")
 	var gt := Fx.vehicle(c, "gran_turismo")
-	assert_true(kompakt.safe_curve_speed(float(maxes[1]), 1.0) > kompakt.max_speed(0.0, 1.0), "Kompakt: Kurvigkeit 1 mit Vollgas")
-	assert_true(gt.safe_curve_speed(float(maxes[1]), 1.0) < gt.max_speed(0.0, 1.0) * 0.9, "Gran Turismo: Kurvigkeit 1 verlangt Gas weg")
+	for id: String in Fx.VEHICLES:
+		var v := Fx.vehicle(c, id)
+		assert_true(v.safe_curve_speed(float(maxes[1]), 1.0) * 1.05 < v.max_speed(0.0, 1.0),
+			"%s: schärfste Kurve Kurvigkeit 1 verlangt Gas weg (%.0f km/h)" % [id, v.safe_curve_speed(float(maxes[1]), 1.0)])
+	assert_true(kompakt.safe_curve_speed(float(maxes[1]) * 0.675, 1.0) > kompakt.max_speed(0.0, 1.0), "Kompakt: mittlere Kurve Kurvigkeit 1 mit Vollgas")
+	assert_true(gt.safe_curve_speed(float(maxes[1]) * 0.675, 1.0) < gt.max_speed(0.0, 1.0) * 0.9, "Gran Turismo: auch die mittlere verlangt Gas weg")
 	# same speed, same curve: the agile car stays on its line, the heavy one drifts
 	var road := Fx.flat_road(3, true, 0.35)
 	kompakt.speed = 180.0
@@ -280,14 +285,20 @@ func test_understeer_drift_grows_with_excess_and_time() -> void:
 	assert_near(u.understeer, 0.5, 0.02, "halb bei halbem full_excess")
 
 
-## Feel targets (docs/gameplay.md, table (i2)): top speed into a bend that is X % too fast, middle lane of a
-## three-lane autobahn, full counter-steer: 5 % is held, 15 % still drifts a lane outwards within ~1.5 s,
-## 30 % reaches the shoulder / guardrail within ~1–1.5 s.
+## Feel targets (docs/gameplay.md, tables (i2), (i2b)): top speed into a bend that is X % too fast, middle lane of
+## a three-lane autobahn: a player who keeps the lane (counter-steer proportional to the deviation) holds it at 5 %
+## through a whole real curve piece (ramps, up to 520 m); at 10 % the long piece ends at the guardrail. With full
+## counter-steer 15 % still drifts a lane outwards within ~1.5 s, 30 % reaches the shoulder / guardrail in ~1–1.5 s.
 func test_counter_steer_holds_slightly_but_not_clearly_too_fast() -> void:
 	var c := cfg()
+	for id: String in Fx.VEHICLES:
+		for length_m: float in [150.0, 300.0, 520.0]:
+			var hold := Sim.curve_piece_run(c, id, 0.05, length_m)
+			assert_true(float(hold["dev_max"]) < 1.0 and not bool(hold["shoulder"]),
+				"%s 5 %%, %d m: Spur gehalten (höchstens %.2f m daneben)" % [id, roundi(length_m), float(hold["dev_max"])])
+		var lost := Sim.curve_piece_run(c, id, 0.10, 520.0)
+		assert_true(bool(lost["limit"]), "%s 10 %%, 520 m: trotz Gegenlenken an der Leitplanke (%.2f m)" % [id, float(lost["out_max"])])
 	for id: String in ["kompakt", "limousine", "gran_turismo"]:
-		var r5 := Sim.understeer_run(c, id, 0.05, 1.0, 2.5)
-		assert_true(float(r5["x_min"]) > -0.3, "%s 5 %%: Gegenlenken hält die Linie (x min %.2f)" % [id, float(r5["x_min"])])
 		var free5 := Sim.understeer_run(c, id, 0.05, 0.0, 2.5)
 		assert_true(float(free5["x_min"]) < -2.5, "%s 5 %%: ohne Lenken schiebt der Wagen (x min %.2f)" % [id, float(free5["x_min"])])
 		var r15 := Sim.understeer_run(c, id, 0.15, 1.0, 3.0)
@@ -363,6 +374,39 @@ func test_weather_grip_lowers_curve_speed() -> void:
 	_run(b, 1.0, {"throttle": 0.3}, Fx.flat_road(3, true, 0.45, env.grip("snow")))
 	assert_near(a.x, 0.0, 0.0001, "trocken: hält die Linie")
 	assert_true(b.x < -1.0, "Schnee: schiebt nach außen (%.2f m)" % b.x)
+
+
+## Rolling out with an empty tank (scripted 18 km/h/s, the player steers) the brake still works: in a bend 25 %
+## too fast the scripted roll-out alone slides into the guardrail, braking avoids it.
+func test_brake_works_while_rolling_out() -> void:
+	var c := cfg()
+	for use_brake: bool in [false, true]:
+		var v := Fx.vehicle(c, "limousine")
+		v.speed = v.max_speed(0.0, 1.0)
+		var bend := Fx.flat_road(3, true, Sim.curve_for_overspeed(v, v.speed, 0.25))
+		var hits := 0
+		var t := 0.0
+		while t < 3.0:
+			v.auto_control(0.0, 18.0)
+			v.update(DT, {"steer": clampf(-v.x * 1.5, -1.0, 1.0), "brake": 1.0 if use_brake else 0.0}, bend, {"vmax_factor": 1.0})
+			t += DT
+			hits += 1 if v.rail_hit else 0
+		if use_brake:
+			assert_eq(hits, 0, "mit Bremse: keine Leitplanke (x %.2f)" % v.x)
+			assert_true(v.x > -3.75, "mit Bremse: bleibt in der Nachbarspur (x %.2f)" % v.x)
+		else:
+			assert_true(hits > 0, "nur Ausrollen: rutscht in die Leitplanke")
+	# the brake only adds: a weak pedal does not slow the scripted roll-out down
+	var a := Fx.vehicle(c, "limousine")
+	var b := Fx.vehicle(c, "limousine")
+	a.speed = 200.0
+	b.speed = 200.0
+	a.auto_control(0.0, 18.0)
+	b.auto_control(0.0, 18.0)
+	a.update(0.5, {}, Fx.flat_road(), {"vmax_factor": 1.0})
+	b.update(0.5, {"brake": 0.1, "throttle": 1.0}, Fx.flat_road(), {"vmax_factor": 1.0})
+	assert_near(a.speed, 191.0, 0.01, "Ausrollen 18 km/h/s")
+	assert_near(b.speed, 191.0, 0.01, "schwache Bremse (7 km/h/s) und Gas ändern nichts")
 
 
 ## The drift integrates exactly per step: 30 Hz and 144 Hz give the same path.

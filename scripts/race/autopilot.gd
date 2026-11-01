@@ -111,6 +111,12 @@ func drive(session: Node) -> Dictionary:
 	# --- controls
 	var err := target_x - v.x
 	var out := pedals(speed, want)
+	if fuel.rolling_out:
+		# empty tank: the FuelSystem rolls the car out. The brake works then (VehicleModel.auto_control), so brake
+		# only where a curve needs it – braking for the fuel lane would stop the car short of it
+		out = pedals(speed, curve_speed_ahead(track, v, z, grip) if curve_brake else INF)
+		out["throttle"] = 0.0
+		last_reason = "rollout"
 	out["steer"] = 0.0 if absf(err) < 0.05 else clampf(err * 0.7, -1.0, 1.0)
 	return out
 
@@ -131,13 +137,14 @@ static func pedals(speed: float, want: float) -> Dictionary:
 
 ## Highest speed now that still reaches curve_margin * the safe speed of every curve point within
 ## curve_lookahead_m (curve_lead_m early, braking with brake_decel_mps2) – and of the point under the car.
+## grip = weather grip; inside tunnels the road is dry (Track.grip_at).
 func curve_speed_ahead(track: Track, v: VehicleModel, z: float, grip: float) -> float:
-	var want := v.safe_curve_speed(track.curve_at(z), grip) * curve_margin
+	var want := v.safe_curve_speed(track.curve_at(z), track.grip_at(z, grip)) * curve_margin
 	var d := curve_step_m
 	while d <= curve_lookahead_m:
 		var c := track.curve_at(z + d)
 		if absf(c) > 0.001:
-			want = minf(want, _speed_for(v.safe_curve_speed(c, grip) * curve_margin, d - curve_lead_m))
+			want = minf(want, _speed_for(v.safe_curve_speed(c, track.grip_at(z + d, grip)) * curve_margin, d - curve_lead_m))
 		d += curve_step_m
 	return want
 

@@ -418,7 +418,9 @@ func _draw_police(w: float, y: float) -> void:
 	var sub := ""
 	match ps:
 		"chase":
-			sub = tr("Flucht ab %d km/h halten!") % int(_escape_kmh)
+			# escape threshold (PoliceSystem.escape_kmh): 220 on a straight, lower where curves slow the police too
+			var esc := _f("escape_kmh", 0.0)
+			sub = tr("Flucht ab %d km/h halten!") % roundi(esc if esc > 0.0 else _escape_kmh)
 		"stopping":
 			title = tr("ANHALTEN!")
 			sub = tr("Die Polizei winkt dich raus")

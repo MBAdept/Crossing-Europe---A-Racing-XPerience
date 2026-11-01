@@ -413,7 +413,12 @@ func _update_crash(dt: float) -> void:
 
 func _update_auto(dt: float, input: Dictionary, road: Dictionary) -> void:
 	braking = speed > _auto_target + 0.5
-	speed = maxf(0.0, move_toward(speed, _auto_target, _auto_rate * dt))
+	var rate := _auto_rate
+	if is_nan(_auto_steer_x):
+		# the player still steers – and may brake harder than the scripted rate (an empty tank or a police
+		# stop does not disable the brakes: rolling out at 245 km/h towards a sharp curve, braking avoids the slide)
+		rate = maxf(rate, clampf(float(input.get("brake", 0.0)), 0.0, 1.0) * _brake_decel)
+	speed = maxf(0.0, move_toward(speed, _auto_target, rate * dt))
 	if not is_nan(_auto_steer_x):
 		x = move_toward(x, _auto_steer_x, _auto_steer * dt)
 		lat_speed = 0.0
@@ -521,8 +526,9 @@ func push_direction(dx: float, space_left: float, space_right: float) -> int:
 
 
 ## Scripted control (refuelling stop, police stop, towing): move speed to target_kmh at rate_kmh_s.
-## With steer_x the car is steered there; without it (NAN) the player keeps steering. Throttle and brake
-## are ignored until release_auto(). Ignored during a collision. Safe to call every frame.
+## With steer_x the car is steered there; without it (NAN) the player keeps steering and may brake harder
+## than rate_kmh_s (input "brake" × driving.brake_decel_kmh_s, e.g. before a curve while rolling out with an
+## empty tank). Throttle is ignored until release_auto(). Ignored during a collision. Safe to call every frame.
 func auto_control(target_kmh: float, rate_kmh_s: float, steer_x: float = NAN) -> void:
 	if state == State.CRASH:
 		return
