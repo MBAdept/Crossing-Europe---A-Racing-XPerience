@@ -155,6 +155,17 @@ func _ensure_buses() -> void:
 			var idx := AudioServer.bus_count - 1
 			AudioServer.set_bus_name(idx, bus_name)
 			AudioServer.set_bus_send(idx, "Master")
+	# safety limiter on the master: engine, close trucks, siren and crash can coincide (no clipping)
+	var master := AudioServer.get_bus_index("Master")
+	var has_limiter := false
+	for i in AudioServer.get_bus_effect_count(master):
+		if AudioServer.get_bus_effect(master, i) is AudioEffectHardLimiter:
+			has_limiter = true
+	if not has_limiter:
+		var lim := AudioEffectHardLimiter.new()
+		lim.ceiling_db = float(ConfigLoader.lookup(ConfigLoader.load_merged(), "audio.limiter_ceiling_db", -0.8))
+		lim.release = 0.12
+		AudioServer.add_bus_effect(master, lim)
 
 
 ## Applies Settings.master/sfx/music_volume (0..1) to the buses.
