@@ -47,7 +47,7 @@ CODE = {
     "player": ["curves.py", "carbody.py", "cardetail.py", "player_cars.py", "textgeo.py"],
     "truck": ["vehicles.py", "heavy.py", "textgeo.py"],
     "bus": ["vehicles.py", "heavy.py", "textgeo.py"],
-    "prop": ["props.py", "props_nature.py", "props_buildings.py", "props_road.py"],
+    "prop": ["props.py", "props_nature.py", "props_buildings.py", "props_road.py", "props_cities.py"],
     "icon": ["icons.py"],
 }
 
@@ -65,7 +65,8 @@ def code_hash(builder, spec=None):
         # props: only the module that defines the prop (+ shared facade helpers for buildings/road)
         from cesprites import props
         mod = props.PROPS[spec["params"]["name"]][0].__module__.split(".")[-1] + ".py"
-        files = CODE["common"] + [mod] + (["props_buildings.py"] if mod == "props_road.py" else [])
+        deps = {"props_road.py": ["props_buildings.py"], "props_cities.py": ["props_buildings.py", "props_nature.py"]}
+        files = CODE["common"] + [mod] + deps.get(mod, [])
     key = builder + ":" + ",".join(files)
     if key in _code_cache:
         return _code_cache[key]
