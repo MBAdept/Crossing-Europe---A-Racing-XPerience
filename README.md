@@ -168,7 +168,7 @@ Alle Werte stehen in `config/game_config.json` und lassen sich ohne Neubau ände
 | Bestenlisten gemeinsam oder getrennt? | beides: gespeichert je Fahrzeugtyp, angezeigt gemeinsam mit umschaltbarem Fahrzeugfilter |
 | Wetter im Rennen | zufällig, gewichtet nach Klima der Region (alternativ `random` oder fest pro Etappe); die Tutorial-Etappe Kiel – Hamburg ist immer trocken |
 | Tempo-Abzug Regen / Schnee / Nacht | −2,5 % / −12 % / −1 %; Regen + Nacht erlaubt jedem Auto noch 220 km/h |
-| Verkehr (seit v0.5.0, Spieltest v0.4.0: „zu leicht“) | Lkw 80–90 km/h, Busse 95–100 km/h (Design: alle 110–150), kein Nachtbonus (Design: +15 %), bei Regen 15 %, bei Schnee 35 % langsamer |
+| Verkehr (seit v0.5.0, Spieltest v0.4.0: „zu leicht“) | Lkw 80–90 km/h, Busse 95–100 km/h (ursprünglich alle 110–150), kein Nachtbonus (ursprünglich +15 %), bei Regen 15 %, bei Schnee 35 % langsamer |
 | Zeitstrafe leerer Tank | 90 s Abschleppdienst, danach halber Tank |
 | Straßenrand | Bankett bremst auf 90 km/h; Autobahn mit Leitplanke (abprallen), sonst Wiese (bremst auf 40 km/h) |
 | Plattform und Eingabe | Linux x86_64 und Windows 10/11 x86_64, Tastatur und Gamepad |

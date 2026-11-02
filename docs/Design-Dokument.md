@@ -2,6 +2,8 @@
 
 Design-Dokument · 30. Okt. 2026 · @Michi
 
+Überarbeitet am 2. Nov. 2026 nach dem Spieltest von v0.4.0 („zu leicht“): Verkehr, Wetter und Fahrverhalten, City Limits, Tutorial. Geänderte und neue Regeln sind mit *(seit v0.5.0)* markiert.
+
 ## Überblick
 
 „Crossing Europe – A Racing Xperience“ ist ein schneller Arcade-Racer in Pseudo-3D, in dem man Etappenrennen quer durch Europa auf Bestzeit fährt. Vorbilder sind Enduro (Atari VCS) und The Great American Cross-Country Road Race (Activision).
@@ -44,6 +46,7 @@ Das Fahrmodell ist reines Arcade ohne Physik-Engine: Der Wagen folgt der Straße
 - Eingaben: Lenken, Gas, Bremse.
 - Grundwert Höchstgeschwindigkeit 250 km/h. Wetter, Steigung und Nacht senken das Maximum.
 - Kein Übersteuern, kein Dreher. Ist der Wagen in einer Kurve zu schnell, untersteuert er: Er wird proportional zur Überschreitung nach außen gedrückt, und die Lenkung greift schwächer.
+- *(seit v0.5.0)* Regen und Schnee senken außerdem die Haftung: Regen auf 75 %, Schnee auf 45 %. Sie wirkt auf Kurventempo, Bremsen, Beschleunigen und Lenken: Bei Schnee ist der Bremsweg etwa doppelt so lang, 0–100 km/h dauert mit jedem Fahrzeug rund 8,4 Sekunden, und nach einem Spurwechsel rutscht der Wagen weiter, sodass man früh gegenlenken muss. Übersteuern und Dreher gibt es auch hier nicht.
 
 ### Fahrzeugtypen (Vorschlag)
 
@@ -63,16 +66,21 @@ Vor jedem Rennen wird eines von fünf Fahrzeugen gewählt, das für alle Etappen
 
 ## Verkehr
 
-Alle anderen Fahrzeuge fahren in dieselbe Richtung wie der Spieler, auf festen Spuren.
+Alle anderen Fahrzeuge fahren in dieselbe Richtung wie der Spieler, auf festen Spuren. *(seit v0.5.0)* Der Verkehr ist ein echtes Hindernis: Im Spieltest von v0.4.0 ließ er sich selbst mit Höchsttempo in aller Ruhe überholen.
 
-| Straßentyp | Grundgeschwindigkeit |
-|---|---|
-| Autobahn | 110–150 km/h |
-| Landstraße | 70–100 km/h |
-| City Limits | 40–60 km/h |
+| Straßentyp | Grundgeschwindigkeit Pkw | Lkw *(seit v0.5.0)* | Busse *(seit v0.5.0)* |
+|---|---|---|---|
+| Autobahn | 110–150 km/h | 80–90 km/h | 95–100 km/h |
+| Landstraße | 70–100 km/h | 65–80 km/h | 70–85 km/h |
+| City Limits | 40–60 km/h | 35–50 km/h | 35–50 km/h |
 
+- *(seit v0.5.0)* Die Grundgeschwindigkeit galt ursprünglich für alle Fahrzeuge. Jetzt fahren Lkw und Busse langsamer, und Pkw richten sich nach dem Tempolimit des Abschnitts (je nach Fahrer etwas darunter oder darüber); schnelle Pkw fahren eher links, langsame rechts.
 - Die Dichte folgt einer Tageskurve: Spitzen etwa 7–9 und 16–19 Uhr, Minimum 1–5 Uhr.
-- Nachts von 23 bis 4 Uhr sind weniger Fahrzeuge unterwegs, und sie fahren 15 % schneller (Spielraum 15–20 %).
+- Nachts von 23 bis 4 Uhr sind weniger Fahrzeuge unterwegs. *(seit v0.5.0)* Sie fahren nicht mehr schneller als tagsüber: Der ursprüngliche Nachtbonus von 15 % (Spielraum 15–20 %) machte das Überholen noch leichter.
+- *(seit v0.5.0)* Bei Regen fährt der Verkehr etwa 15 % langsamer, bei Schnee etwa 35 % (Lkw und Busse 12 % bzw. 32 %), mit größeren Abständen und vorsichtigeren Spurwechseln. Man kommt also trotz geringerer Höchstgeschwindigkeit etwa so schnell auf ihn zu wie im Trockenen – bei längerem Bremsweg.
+- *(seit v0.5.0)* Niemand macht dem Spieler Platz. Spurwechsel werden mit dem Blinker angekündigt, bei Pkw 1–1,5 Sekunden vorher, bei Lkw und Bussen etwas früher; nur wer einem langsameren Spieler im Notfall ausweicht, zieht sofort hinüber. Autos ziehen auch vor einem schnell herankommenden Spieler heraus, aber nie so knapp, dass Bremsen im aktuellen Wetter nicht mehr reicht.
+- *(seit v0.5.0)* Auf Straßen mit mindestens drei Spuren überholt ein Lkw oder Bus ein langsameres schweres Fahrzeug („Elefantenrennen“) und gibt nach spätestens 45 Sekunden auf; die linke Spur bleibt dabei frei. Langsame Fahrzeuge ziehen kleine Kolonnen hinter sich her, und an Spurenden wird im Reißverschluss eingefädelt.
+- *(seit v0.5.0)* Grundsatz: schwer, aber fair. Was zum Bremsen zwingt, soll rechtzeitig zu sehen oder angekündigt sein – auch bei Schnee in der Nacht (Sicht, Blinker, Vorschild der City Limits, Warnschild „Kuppe“ vor blinden Kuppen).
 - Während einer Polizeiverfolgung wird der Verkehr um 80 % reduziert.
 - In den City Limits ist deutlich mehr Verkehr.
 - Gelegentlich nutzt ein Verkehrsauto die Tankspur.
@@ -130,6 +138,7 @@ Radarfallen lösen eine Polizeiverfolgung aus; wer erwischt wird, verliert effek
 
 - Die letzten 20 km jeder Etappe.
 - Mehr Verkehr, keine Tankstellen, kein Radar.
+- *(seit v0.5.0)* Ankündigung 4 km vorher (Vorschild und Einblendung), weil hinter dem Ortsschild oft eine langsame Kolonne steht.
 
 ## Tageszeit und Wetter
 
@@ -139,8 +148,8 @@ Bei einem Rennen legt der Spieler die Startuhrzeit fest; jede weitere Etappe beg
 - Die Uhr läuft im Zeitraffer mit: 10 Spielminuten entsprechen 2 Stunden. Dämmerung, Nacht und Sonnenaufgang sind während einer Etappe sichtbar.
 - Durch die Pause verschiebt sich die Startzeit von Etappe zu Etappe um die Fahrzeit. Die gewählte Startzeit wirkt so auf das ganze Rennen.
 - Einzelne Etappe außerhalb eines Rennens: Uhrzeit und Wetter frei wählbar.
-- Wetter: Normal, Regen, Schnee. Es wird vor der Etappe angezeigt und senkt Höchstgeschwindigkeit und Sicht.
-- Nacht: schlechtere Sicht, dafür weniger Verkehr (siehe Verkehr).
+- Wetter: Normal, Regen, Schnee. Es wird vor der Etappe angezeigt und senkt Höchstgeschwindigkeit und Sicht. *(seit v0.5.0)* Außerdem senkt es die Haftung (siehe Fahrzeug und Steuerung) und das Tempo des Verkehrs (siehe Verkehr); bei Regen und Schnee sagt ein Hinweis im Countdown, was das Wetter bewirkt.
+- Nacht: schlechtere Sicht, dafür weniger Verkehr (siehe Verkehr). *(seit v0.5.0)* Schnee hellt die Nacht auf: Die Sicht sinkt dann nachts weniger stark, damit man auch mit dem doppelten Bremsweg rechtzeitig vor langsamem Verkehr anhalten kann.
 
 ## Streckennetz, Etappen und Rennen
 
@@ -184,7 +193,7 @@ Die City Limits ergeben sich automatisch aus den letzten 20 km jeder Etappe und 
 
 ### Erstes Rennen: Kiel – Nürnberg
 
-- Kiel – Hamburg: alternativlose Startetappe, gleichzeitig Tutorial.
+- Kiel – Hamburg: alternativlose Startetappe, gleichzeitig Tutorial. *(seit v0.5.0)* Im Rennen ist sie immer trocken, damit Einsteiger nicht gleich bei Regen oder Schnee beginnen.
 - Ab Hamburg Wahl zwischen der Route über Kassel und der Route über Frankfurt (mehr Verkehr). Etappen über ca. 300 km bekommen eine Zwischenstation, etwa Hannover.
 
 ### Weitere Rennen
