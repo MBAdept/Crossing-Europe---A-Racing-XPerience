@@ -38,6 +38,7 @@ var countdown := -1.0             ## seconds left of the start countdown (start 
 var countries: Dictionary = {}    ## country code -> countries.json entry (GameData.countries), for sign styles
 var _styles: Dictionary = {}      ## country code -> style_for() (cache)
 var _wall := false                ## the sign being drawn hangs on a tunnel wall (no posts)
+var board_rect := Rect2()         ## screen rect around the boards of the last sign drawn (RoadRenderer: hides lights behind it)
 
 
 ## Half width (m) of the board of a sign kind at scale 1.
@@ -110,6 +111,7 @@ func setup(canvas: CanvasItem, geo: GeoBatch) -> void:
 func draw(it: Dictionary, p: Vector3, lit: Color, alpha: float, edges_px: Vector2) -> void:
 	var kind := str(it.get("sign", ""))
 	var s := p.z
+	board_rect = Rect2()
 	if s < 0.6:
 		return
 	_wall = bool(it.get("wall", false))
@@ -163,6 +165,7 @@ func _post(x: float, ground_y: float, top_y: float, w: float, lit: Color, alpha:
 
 
 func _board(r: Rect2, col: Color, lit: Color, alpha: float, border: Color = Color(0, 0, 0, 0), border_w: float = 0.0) -> void:
+	board_rect = r if board_rect.size == Vector2.ZERO else board_rect.merge(r)
 	if border.a > 0.0 and border_w > 0.4:
 		batch.rect(r, _c(border, lit, alpha))
 		batch.rect(r.grow(-border_w), _c(col, lit, alpha))

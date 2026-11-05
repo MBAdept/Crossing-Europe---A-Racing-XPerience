@@ -29,7 +29,7 @@ Verträge stehen in [ARCHITECTURE.md](../ARCHITECTURE.md) §5, §6, §8 und für
 | `tests/race/run_race.gd` | – | ganzes Rennen durch den echten Menüablauf (Autopilot) |
 | `tests/race/check_session.gd` | – | Szenario-Prüfungen in der echten Rennszene (Kollisionsrichtung, Ausrollen, Abschleppen, Polizei beim Tanken, HUD-Werte, Tutorial) |
 | `tests/race/check_sprite_flip.gd` | – | Render-Prüfung (Xvfb): gespiegelte Sprites liegen an Ort und Stelle |
-| `tests/race/check_glow_occlusion.gd` | – | Render-Prüfung (Xvfb): verdeckte Fahrzeuge leuchten nicht durch Kuppe und Lkw, sichtbare Lichter unverändert (§2, §12) |
+| `tests/race/check_glow_occlusion.gd` | – | Render-Prüfung (Xvfb): verdeckte Fahrzeuge leuchten nicht durch Kuppe, Lkw und Bus, sichtbare Lichter unverändert – auch über dem Spielerauto (§2, §12) |
 | `tests/race/bench_render.gd` | – | Render-Benchmark an festen Streckenpositionen |
 | `tests/race/shoot_vehicles.gd` | – | Fahrzeug-Szenarien als Bildfolgen (Xvfb, feste Bildrate): Kurven, Überholen eines Lkw, Spurwechsel, Polizei, Tunnel |
 | `tests/fixtures/make_fixtures.py` | – | erzeugt die Testdaten `tests/fixtures/sprites/*` (17-Winkel-Pkw, Polizei, 21-Winkel-Spielerauto perspektivisch, Lkw als Quader) |
@@ -51,8 +51,8 @@ Verträge stehen in [ARCHITECTURE.md](../ARCHITECTURE.md) §5, §6, §8 und für
    (Horizont oder Kuppe), damit Berge auch bergauf sichtbar bleiben.
 5. **Maleralgorithmus**: Scheiben von hinten nach vorn – Boden (Grasbänder, Bankett/Standstreifen/Gehweg, Asphalt,
    Markierungen), Bauwerke (Leitplanken, Leitpfosten, Tunnelwände/-decke/-lampen, Tankstellendächer, Grenzstation),
-   dann die Sprites der Scheibe nach Tiefe sortiert (Requisiten, Schilder, Fahrzeuge), am Ende der Scheibe das
-   Leuchten ihrer Fahrzeuglichter und Laternen (additiv, siehe „Lichter und Verdeckung“), danach ggf. das Tunnelportal.
+   dann die Sprites der Scheibe nach Tiefe sortiert (Requisiten, Schilder, Fahrzeuge), direkt nach jedem davon das
+   Leuchten seiner Lichter (additiv, siehe „Lichter und Verdeckung“), danach ggf. das Tunnelportal.
    Lkw/Busse als Quader werden an den Scheibengrenzen geteilt: jede Scheibe zeichnet den Teil des Quaders, der in ihr
    liegt (§8) – so verdecken Kuppen auch Lkw richtig, und ein Lkw neben dem Spieler steht in der richtigen Reihenfolge.
    Dadurch verdecken Kuppen Straße und Verkehr, Tunnelwände in Kurven die Autos dahinter usw.
@@ -71,26 +71,43 @@ Jetzt leuchtet ein Licht nur, wo seine Quelle zu sehen ist:
 
 - **Fahrzeuglichter und frei stehende Lampen** (Rück-, Brems- und Blinklicht, Blaulicht, Spielerauto, Heckleuchten der
   Lkw/Busse, Straßenlaternen, Preis-Pylon, Startampel, Warnlicht der Brückenpylone; prozedural auch Zapfsäule und
-  Brückenlaterne) sind additive Vierecke im `GeoBatch`, gezeichnet am Ende ihrer Scheibe in der Malerreihenfolge: was
-  näher ist – Kuppe, Lkw, Auto, Haus, Baum, Tunnelwand, Portal –, verdeckt ihr Leuchten wie das Fahrzeug selbst. Dafür
-  trägt das CanvasItem des Renderers den Shader `GLOW_SHADER`: vormultipliziertes Alpha (für alles Gezeichnete dieselbe
-  Mischung wie bisher), Ecken mit UV.x ≥ 2 sind Leuchten und geben Alpha 0 ab – dieselbe Mischung addiert sie. Die
-  Leuchttextur liegt mit einem weißen Block in einem 72 × 64-Atlas (`glow_atlas_image`, byte-genau die
-  `GradientTexture2D` der Leuchtebene); die übrige Geometrie desselben Befehls tastet den weißen Block ab
-  (`GeoBatch.glow_rect`, `WHITE_UV`). Ohne etwas davor sieht ein Leuchten aus wie auf der Ebene (≤ 1/255).
+  Brückenlaterne) sind additive Vierecke im `GeoBatch`, gezeichnet direkt nach ihrem Fahrzeug oder ihrer Lampe in der
+  Malerreihenfolge (`_emit_item_glows`): was danach kommt und näher ist – Kuppe, Lkw, Auto, Haus, Baum, Tunnelwand,
+  Portal –, verdeckt ihr Leuchten wie das Fahrzeug selbst, auch innerhalb derselben Scheibe (fern fasst eine Scheibe
+  20–72 m zusammen, hinter einer Kuppe bis 192 m; Überprüfung v0.5.1: am Ende der Scheibe gezeichnet schien der Blinker
+  eines Autos über den Lkw davor). Dafür trägt das CanvasItem des Renderers den Shader `GLOW_SHADER`: vormultipliziertes
+  Alpha, die Farbe vorher auf 0..1 begrenzt (für alles Gezeichnete dieselbe Mischung wie bisher, auch für beleuchtete
+  Geometrie mit Farben über 1 und Alpha unter 1 – Tunnelausfahrt am Tag, Ränder im Nebel), Ecken mit UV.x ≥ 2 sind
+  Leuchten und geben Alpha 0 ab – dieselbe Mischung addiert sie. Die Leuchttextur liegt mit einem weißen Block in einem
+  72 × 64-Atlas (`glow_atlas_image`, byte-genau die `GradientTexture2D` der Leuchtebene); die übrige Geometrie
+  desselben Befehls tastet den weißen Block ab (`GeoBatch.glow_rect`, `WHITE_UV`). Ohne etwas davor sieht ein Leuchten
+  aus wie auf der Ebene (≤ 1/255).
 - **Kuppe**: Liegt vor der Scheibe eine Kuppe – die Scheibe ist unsichtbarer Boden oder die Bodenlinie davor (`_clip`
   der nahen Zeile, das laufende Minimum der näheren Bodenzeilen) liegt über ihrer nahen Zeile –, wird jedes Leuchten
   mit der Sichtbarkeit seiner Quelle über dieser Kuppenlinie gewichtet (`glow_visibility`: linear über den hellen Kern
   0,25 r, mindestens 0,75 px – 1 darüber, 0,5 auf der Linie, 0 darunter). Ein Auto, das hinter der Kuppe versinkt,
   verliert sein Leuchten mit der Leuchte; kein Lichthof bleibt über der Kuppe stehen, unter der Kuppenlinie deckt der
   Boden der Kuppe ihn ab wie alles dahinter. Auf ebener oder steigender Strecke verdeckt der Boden davor nichts, das
-  Leuchten bleibt unverändert. Das Spielerauto ist ausgenommen.
-- **Lichthof über der Straße davor**: Auf ebener oder steigender Strecke wird der Teil eines Lichthofs unter der
-  Bodenlinie (Blinker nachts, Blaulicht, ferne Lichter mit Mindestgröße) nicht von der näheren Fahrbahn abgeschnitten:
-  er wird in waagrechten Bändern gezeichnet, jedes direkt nach dem Boden der näheren Scheibe, die diesen Bildstreifen
-  zuletzt bemalt (`glow_bands`: zwischen `_clip[j]` und `_clip[j − 1]` liegt der Boden der Zeilen j − 1 .. j, je
-  Scheibe ein Band) – unter deren Leitplanken, Fahrzeugen und Requisiten. Hinter einer Kuppe geschieht das nicht
-  (sonst würde dort das Licht einer Laterne hinter einem Baum auf die Kuppe fallen).
+  Leuchten bleibt unverändert – außer bei einem Fahrzeug, das dort unter der Bodenlinie steht (Tunnel, Dach oder
+  Tankstelle direkt hinter einer Kuppe: diese Zeilen gelten nie als verdeckt). Das Spielerauto ist ausgenommen.
+- **Lichthof über der Straße davor**: Der Teil eines Lichthofs unter der Bodenlinie (Blinker nachts, Blaulicht, ferne
+  Lichter mit Mindestgröße) wird nicht von der näheren Fahrbahn abgeschnitten: er wird in waagrechten Bändern
+  gezeichnet, jedes direkt nach dem Boden der näheren Scheibe, die diesen Bildstreifen zuletzt bemalt (`glow_bands`:
+  zwischen `_clip[j]` und `_clip[j − 1]` liegt der Boden der Zeilen j − 1 .. j, je Scheibe ein Band) – unter deren
+  Leitplanken, Fahrzeugen und Requisiten. Die Bänder sind gewichtet mit dem Bodenpunkt ihres Fahrzeugs oder ihrer
+  Lampe: 1, solange dieser auf der Bodenlinie liegt (ebene Strecke, ein Auto oben auf der Kuppe), 0, sobald er einen
+  Kernradius darunter liegt – fährt ein Auto über die Kuppe, verschwindet der Lichthof unter der Kuppenlinie über
+  einige Bilder statt in einem (Überprüfung v0.5.1). Weiter hinter einer Kuppe gibt es keine Bänder (sonst würde dort
+  das Licht einer Laterne hinter einem Baum auf die Kuppe fallen).
+- **Spielerauto davor** (Überprüfung v0.5.1): Was das Spielerauto verdeckt, verdeckt es auch in der Malerreihenfolge.
+  Leuchtet aber ein Auto davor über das Dach oder neben dem Wagen vorbei – Bremslicht und Blinker beim dichten
+  Auffahren –, liegt der Lichthof wie bisher über dem Spielerauto: der Teil unter dessen Oberkante wird erst direkt nach
+  ihm gezeichnet (`_pd`, `_finish_player_glows`), gewichtet mit der Sichtbarkeit der Leuchte am Umriss
+  (`edge_visibility` des Abstands zur Silhouette, linear über den Kern wie an der Kuppe), der Rest wie gewohnt.
+  Silhouette (`player_silhouette`, vor der Welt berechnet): Karosseriequader und Dach des Wagens wie das Sprite
+  projiziert und gehüllt, die Dachlinie auf die des Sprites gesetzt (`fit_top`, die Zellen beginnen 8–11 Zeilen über dem
+  Dach) – an den fünf Spielerautos angepasst (Überdeckung 0,88–0,93). Rück- und Bremsleuchten der Pkw-Sprites sitzen
+  0,15 Wagenhöhen über der Mitte ihres Leuchtens (`CAR_LAMP_ABOVE_GLOW`, gemessen) – geprüft wird dort.
 - **Befestigte Lichter** (Reflektoren der Leitplanken, Leitpfosten, Tunnellampen und Notrufnischen, Lampen unter
   Tankstellendach und Grenzstation; prozedural Fenster von Tankstelle und Zollhaus, Blitzer): ihr Lichthof überdeckt
   den eigenen Träger – die Abschrägung der nächsten Tunnelmeter, die Dachunterseite. In der Malerreihenfolge würde er
@@ -99,10 +116,14 @@ Jetzt leuchtet ein Licht nur, wo seine Quelle zu sehen ist:
   Zeile der Schnitt der Röhrenquerschnitte aller Tunnelzeilen zwischen Kamera und Zeile – Wände, Decke und die
   Abschrägungen als Halbebenen mit festen Normalen, weich über den Kern (`tunnel_window_visibility`; die Lampen sitzen
   auf dem Rand ihrer eigenen Zeile und bleiben dort ganz sichtbar). Es verdeckt Lampen hinter der Innenwand einer
-  Kurve, das Innere jenseits des Portals von außen und alles hinter dem dunklen Abschluss nach `render.tunnel.peek_m`;
-  **Fahrzeuge davor** (`_resolve_fixture_glows`): liegt die Quelle im Umriss eines mindestens 0,5 m näheren Fahrzeugs
-  – die gezeichneten Flächen eines Lkw/Busses, der Heckkörper eines Pkw –, entfällt ihr Leuchten (Tunnellampen hinter
-  einem Lkw).
+  Kurve, das Innere jenseits des Portals von außen – dessen Öffnung um den Rahmen des Portals verengt
+  (`PORTAL_FRAME_M`, sonst lagen die Lampen gleich hinter den abgeschrägten Ecken als helle Flecken auf der
+  Stirnwand) – und alles hinter dem dunklen Abschluss nach `render.tunnel.peek_m`; **Fahrzeuge und Schilder davor**
+  (`_resolve_fixture_glows`, `_vehicle_visibility`): die Quelle wird mit ihrem Abstand zum Umriss jedes mindestens
+  0,5 m näheren Lkw/Busses (Hülle aller gezeichneten Flächen und Teile eines Fahrzeugs), Pkw (Heckkörper) und
+  Schilds (Tafeln, `SignPainter.board_rect` – die Notrufnische hinter dem Grenzschild an der Tunnelwand) gewichtet
+  (`edge_visibility`): eine Tunnellampe, die hinter einem Lkw hervorkommt, blendet über einige Bilder auf, statt auf
+  einen Schlag zu erscheinen (Überprüfung v0.5.1).
 - `render.glow_occlusion: false` (oder `--no-glow-occlusion`) = Verhalten von v0.5.0: alles auf der Leuchtebene, kein
   Shader – Rückfall für einen Grafiktreiber ohne den Shader und A/B-Vergleich. Zähler je Bild: `glow_counts()`, in
   `perf_stats()["glows"]`.
@@ -112,11 +133,15 @@ Jetzt leuchtet ein Licht nur, wo seine Quelle zu sehen ist:
   deren Punkt nichts Näheres übermalt): Würzburg nachts, 34 Laternen hinter einem Baum – Licht verdeckter Quellen
   v0.5.0 11 370 px (bis 178/255), jetzt 1 356 px (bis 66/255); San Sebastián 2 606 → 261 px. (2) Der Lichthof einer
   sichtbaren Lampe endet an näheren Objekten, die ihn überdecken (Baumkrone, Mast, Hausecke, ein Auto daneben), statt
-  über ihnen zu liegen – in den Attract-Szenen 0–116 px, Wien in der Morgendämmerung 667 px (bis 41/255). (3) Regenschlieren und
-  Schneeflocken liegen vor dem Leuchten der Fahrzeuge und Laternen. (4) Durch die Lücke unter einem Auflieger kann
-  das Licht eines verdeckten Autos auf der Straße schimmern (≤ 4/255). (5) Befestigte Lichter verdecken nur Kuppe,
-  Tunnel und Fahrzeuge, nicht Häuser, Bäume oder Schilder (Leitpfosten in einer Waldkurve). (6) Innerhalb einer
-  Scheibe (nah 3 m, fern bis 72 m) verdecken sich Fahrzeuge nicht gegenseitig.
+  über ihnen zu liegen – in den Attract-Szenen 0–116 px, Wien in der Morgendämmerung 667 px (bis 41/255); nur das
+  Spielerauto ist davon ausgenommen (siehe oben). Steht ein Auto so dicht davor, dass seine Leuchte hinter dem Dach
+  des Spielerautos liegt (Blinker ab etwa 3 m Abstand, Bremslicht noch näher), endet sein Lichthof dort.
+  (3) Regenschlieren und Schneeflocken liegen vor dem Leuchten der Fahrzeuge und Laternen. (4) Durch die Lücke unter
+  einem Auflieger oder Bus kann das Licht eines verdeckten Autos auf der Straße schimmern (fern bis 79/255; Licht auf
+  der Straße, die Leuchte ist dort zu sehen).
+  (5) Befestigte Lichter verdecken nur Kuppe, Tunnel, Fahrzeuge und Schildtafeln, nicht Häuser oder Bäume (Leitpfosten
+  in einer Waldkurve). (6) Innerhalb eines einzelnen Gegenstands (eines Lkw-Teils, eines Hauses) gibt es keine
+  Reihenfolge; befestigte Lichter prüfen Fahrzeuge erst ab 0,5 m vor der nahen Zeile ihrer Scheibe.
 
 ## 3. Kamera und Tempogefühl
 
@@ -652,16 +677,23 @@ xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
   `glow_visibility` an der Kuppenlinie (1 / 0,5 / 0, linear über den Kern, monoton), `glow_bands` (Bänder auf ebener
   Straße, hinter der Kuppe auf dem Boden der Kuppe, an der Kamera), Atlas (Größe, Rand = Spalte 63, weißer Block,
   Symmetrie), `GeoBatch`-Leuchtvierecke (markierte UVs, ein Befehl, ohne Leuchten wie bisher), Tunnelfenster (gerade
-  Röhre, Lampe am Rand der eigenen Zeile sichtbar, hinter der Innenwand einer Kurve verdeckt, Abschluss), Punkt im
-  Viereck, Zeile → Scheibe. Render-Prüfung (braucht einen echten Renderer, darum nicht in `tools/run_tests.sh`, ≈ 30 s):
+  Röhre, Lampe am Rand der eigenen Zeile sichtbar, hinter der Innenwand einer Kurve verdeckt, Abschluss; von außen
+  verdeckt der Portalrahmen die Lampe gleich hinter der Ecke), Punkt im Viereck, Zeile → Scheibe, Abstand zum
+  konvexen Umriss und weiche Kante (`convex_signed_distance`, `edge_visibility`), Silhouette des Spielerautos (konvex,
+  symmetrisch, Rücklichter innen, Dachlinie, `fit_top`), Ausgabe nach dem Gegenstand (`_emit_item_glows`: Band auf
+  ebener Strecke, Auto oben auf der Kuppe volles Gewicht, dahinter keins, ein Auto unter der Bodenlinie einer ebenen
+  Scheibe verdeckt; Lichthof über dem Spielerauto nur bei sichtbarer Leuchte). Render-Prüfung (braucht einen echten Renderer, darum nicht in `tools/run_tests.sh`, ≈ 5 min):
   `xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --audio-driver Dummy --resolution
   1280x720 -s res://tests/race/check_glow_occlusion.gd [-- --only=crest_day,truck_night --out=/tmp/glow]` – friert die
-  Rennszene auf der Testetappe ein, setzt Fahrzeuge und vergleicht je Fall Bilder mit und ohne die verdeckten Fahrzeuge,
-  mit und ohne `glow_occlusion`: Atlas byte-genau wie die `GradientTexture2D`; blinkende/bremsende Autos und ein Lkw
-  hinter der Kuppe km 34,6 bei Tag und Nacht, ein Auto direkt vor einem Lkw bei Tag und Nacht – 0 px Leck (v0.5.0:
-  145–204 px); Tunnellampen hinter einem Lkw – kein Leuchten der Ebene beginnt im Lkw (v0.5.0: 19); sichtbare
-  Lichter unverändert (≤ 2/255, 0 px) auf der Nachtautobahn, im Tunnel, vor dem Portal, an der Tankstelle bei Nacht,
-  an der Startampel und vor der Kuppe. Ausgabe `GLOW-CHECK <fall> OK|FEHLER`, Exit-Code.
+  Rennszene ein (Testetappe, für einen fernen Bus die A7), setzt Fahrzeuge und vergleicht je Fall Bilder mit und ohne
+  die verdeckten Fahrzeuge, mit und ohne `glow_occlusion`: Atlas byte-genau wie die `GradientTexture2D`;
+  blinkende/bremsende Autos und ein Lkw hinter der Kuppe km 34,6 bei Tag und Nacht, ein Auto direkt vor einem Lkw bei
+  Tag und Nacht, ein Auto direkt vor einem Bus 190 m voraus in derselben Scheibe (geprüft) bei Tag und Nacht – 0 px
+  Leck (v0.5.0: 8–204 px); Tunnellampen hinter einem Lkw – kein Leuchten der Ebene beginnt mehr als einen Kernradius
+  tief im Lkw (v0.5.0: 17); sichtbare Lichter unverändert (≤ 2/255, 0 px) auf der Nachtautobahn, im Tunnel, vor dem Portal,
+  an der Tankstelle bei Nacht, an der Startampel, vor der Kuppe, an der Tunnelausfahrt am Tag und bei einem Auto 5 m
+  vor dem Spielerauto bei Tag und Nacht (bremsend, blinkend: sein Lichthof liegt über dem Dach wie in v0.5.0). Ausgabe
+  `GLOW-CHECK <fall> OK|FEHLER`, Exit-Code.
 - `tests/unit/race/test_autopilot_weather.gd` (v0.5.0): PD-Lenkung des Autopiloten pendelt bei keinem Wetter
   (Spurwechsel bei 200 km/h < 0,4 m Überschwingen, nach < 2,5 s in der Spur), Planverzögerung nach Wetter, dichter
   Berufsverkehr bei Schnee (Gran Turismo, 110 km) und Regen (Kompakt, 80 km) ohne Kollision, Bankett und Untersteuern,
@@ -716,6 +748,14 @@ Geometrie teilen sich die Befehle des Batches), auf der GPU drei Rechenschritte 
 einmal beim Rennstart übersetzt (Countdown). Maßnahmen: Bänder je Scheibe statt je Zeile (vorher 223 je Bild vor
 Frankfurt), Fahrzeug-Umrisse erst geprüft, wenn ein befestigtes Licht sie braucht, Tunnelfenster nur mit Tunnel im
 Bild.
+
+Überprüfung v0.5.1 (Leuchten direkt nach jedem Fahrzeug, Lichthof über dem Spielerauto, weiche Kanten an Fahrzeugen
+und Schildern; gemessen wie oben, Mittel aus zwei Läufen, Stand vor → nach der Überprüfung): Würzburg nachts
+6,26 → 6,37 ms, Feierabendverkehr vor Frankfurt 6,80 → 7,19 ms (42 statt 29 Bänder: Lichthöfe, die zum Teil über dem
+Spielerauto liegen, werden dort geteilt), Somport-Tunnel nachts 5,13 → 5,07 ms, Gotthard am Tag mit Lkw 3,60 →
+3,73 ms. Die Arbeit für die Leuchten der Fahrzeuge steckt jetzt in der Phase `w_items` (sie werden dort ausgegeben),
+`w_glow` misst nur noch die Bänder nach dem Boden. Zeichenbefehle +0–4 je Bild (Leuchten zwischen zwei Sprites
+beenden einen Befehl), im Rauschen der Läufe (±0,2–0,4 ms).
 
 ## 14. Stellschrauben (Konfiguration)
 
@@ -823,12 +863,16 @@ Anstrahlung), `landmark_range_factor` (2,0 × Sichtweite), `skyline_distance_m` 
 - `RoadRenderer` (Blinker, Review v0.5.0): Konstanten `INDICATOR_MIN_PX`, `INDICATOR_MIN_GLOW_PX`, statisch
   `indicator_glow_px(s, lights)`.
 - `RoadRenderer` (Lichter und Verdeckung, v0.5.1, §2): `glow_occlusion`, `set_glow_occlusion(on)`, `vehicle_outlines()`
-  (Umrisse der Fahrzeuge des letzten Bildes als Vierecke, Tests), `glow_counts()`
+  (Umrisse der Fahrzeuge des letzten Bildes als Vierecke, Tests), `player_glow_silhouette()` (Silhouette des
+  Spielerautos des letzten Bildes, Tests), `glow_counts()`
   (je Bild: `items`, `bands`, `fixtures`, `layer`, `culled_crest`, `culled_tunnel`, `culled_vehicle`, `batch_quads`;
-  auch in `perf_stats()["glows"]`), Konstanten `GLOW_SHADER`, `GLOW_FIXTURE_MARGIN_M`, `TUNNEL_WINDOW_STRIDE`;
-  statisch `glow_visibility(y, clip, r)`, `glow_bands(top, bot, clip_y, row_clip, row)` → `[y0, y1, Zeile]…`,
-  `glow_atlas_image(gradient)`, `tunnel_window(tunnel, sx, sy, ss, xl, xr, wall_h, ceil_h, haunch, closed_from)`,
-  `tunnel_window_visibility(p, r, window, offset, wall_h, ceil_h, haunch)`, `point_in_quad(p, a, b, c, d)`.
+  auch in `perf_stats()["glows"]`), Konstanten `GLOW_SHADER`, `GLOW_FIXTURE_MARGIN_M`, `TUNNEL_WINDOW_STRIDE`,
+  `PORTAL_FRAME_M`, `PLAYER_SIL_*`, `CAR_LAMP_ABOVE_GLOW`; statisch `glow_visibility(y, clip, r)`,
+  `glow_bands(top, bot, clip_y, row_clip, row)` → `[y0, y1, Zeile]…`, `glow_atlas_image(gradient)`,
+  `tunnel_window(tunnel, sx, sy, ss, xl, xr, wall_h, ceil_h, haunch, closed_from, portal_row, frame_m)`,
+  `tunnel_window_visibility(p, r, window, offset, wall_h, ceil_h, haunch)`, `point_in_quad(p, a, b, c, d)`,
+  `convex_signed_distance(p, poly)`, `edge_visibility(sd, r)`, `player_silhouette(obj, yaw, d, hcam, k)`,
+  `fit_top(poly, top_y)`. `SignPainter.board_rect` (Tafeln des zuletzt gezeichneten Schilds).
 - `GeoBatch` (v0.5.1): `glow_rect(x0, y0, x1, y1, col, v0, v1)` (additives Leuchtviereck, Atlaszeilen v0..v1),
   `glow_tex`, `glow_quads`, `pending_glows()`, `glow_uvs()`; Konstanten `GLOW_U1`, `WHITE_UV`, `GLOW_FLAG_U`.
 - HUD-Zustand zusätzlich `escape_kmh` (aktuelle Fluchtschwelle der Polizei, `PoliceSystem.escape_kmh`).

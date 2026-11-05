@@ -9,7 +9,8 @@ extends SceneTree
 ## Checks per case: "leak" (hidden vehicles): on = on_ref (they add nothing, also no halo cap above the crest) while
 ## off ≠ off_ref (the scene shows the v0.5.0 bug); "same": on_ref = off_ref (visible lights unchanged, ≤ 2/255) and
 ## off_ref ≠ off_dark (the scene has glows); "layer_sources": no glow of the additive layer starts inside the truck
-## (tunnel lamps behind it), while v0.5.0 had some. A region restricts a check to the truck's box body (the hidden car
+## deeper than its bright core (tunnel lamps behind it; on the edge they fade), while v0.5.0 had some. A region
+## restricts a check to the truck's box body (the hidden car
 ## may legitimately light the road beside the truck). First of all: the atlas of the painter's-order glows holds the
 ## gradient of the layer's GradientTexture2D byte for byte.
 ##   xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --audio-driver Dummy \
@@ -57,6 +58,28 @@ const CASES := [
 	{"name": "fuel_night", "km": 19.33, "hour": 22.0, "lane": 2, "cars": [], "hidden": [], "checks": ["same"]},
 	# start lights during the countdown
 	{"name": "start_lights", "km": 0.0, "hour": 21.0, "lane": 1, "cars": [], "hidden": [], "checks": ["same"], "countdown": true},
+	# review v0.5.1: a car right in front of the player car (5.1 m gap, its rear 16.5 m from the camera) on the flat A7,
+	# braking and blinking – its lamps are visible above the player car, their halo lies over its roof as in v0.5.0
+	# (v0.5.1 before the review cut it at the roof: 300–1500 px)
+	{"name": "ahead_day", "stage": "kassel_wuerzburg", "km": 3.0, "hour": 12.0, "lane": 1,
+		"cars": [["traffic/sedan_red", 1, 5.1, 1, 1]], "hidden": [], "checks": ["same"]},
+	{"name": "ahead_night", "stage": "kassel_wuerzburg", "km": 3.0, "hour": 22.0, "lane": 1,
+		"cars": [["traffic/sedan_red", 1, 5.1, 1, 1]], "hidden": [], "checks": ["same"]},
+	# review v0.5.1: a blinking, braking car right in front of a bus 190 m ahead on the A7 – both in the same merged
+	# slice (20–72 m deep there, asserted): the bus covers its glow too (glows follow their own item, not the slice;
+	# drawn at the end of the slice, v0.5.1 before the review let it shine over the bus: 9/18 px). A bus, as that far
+	# a car's lamps show through the gap under a trailer; checked on its body above the gap under it (the hidden car's
+	# underside and the lower edge of its halo show there, its right edge peeks out beside the bus in the curve)
+	{"name": "far_bus_day", "stage": "kassel_wuerzburg", "km": 2.0, "hour": 12.0, "lane": 2,
+		"cars": [["traffic/bus_white", 2, 178.6, 0, 0], ["traffic/sedan_red", 2, 193.6, -1, 1]],
+		"hidden": [1], "checks": ["leak"], "region": "body", "same_slice": [0, 1]},
+	{"name": "far_bus_night", "stage": "kassel_wuerzburg", "km": 2.0, "hour": 22.0, "lane": 2,
+		"cars": [["traffic/bus_white", 2, 178.6, 0, 0], ["traffic/sedan_red", 2, 193.6, -1, 1]],
+		"hidden": [1], "checks": ["leak"], "region": "body", "same_slice": [0, 1]},
+	# review v0.5.1: the exit of the test tunnel by day from inside – the over-exposed outside (vertex colours above 1
+	# with alpha below 1 at fog-faded and sprite edges) keeps its brightness (GLOW_SHADER clamps before premultiplying)
+	{"name": "tunnel_exit_day", "km": 53.85, "hour": 12.0, "lane": 1,
+		"cars": [["traffic/sedan_blue", 0, 60, 0, 1], ["traffic/hatch_red", 1, 230, 0, 0]], "hidden": [], "checks": ["same"]},
 ]
 const TUNNEL_IN_KM := 50.3    ## straight part of the test tunnel (from km 50.45 on lamps behind the inner wall of the bend are hidden)
 const SAME_TOL := 2           ## max channel difference (1/255) for "unchanged"
@@ -79,6 +102,7 @@ var _ok := 0
 var _rr: GDScript
 var _occ_quads := PackedVector2Array()
 var _sources: Dictionary = {}      ## variant -> layer glow sources inside the occluder outline
+var _slice_msg := ""               ## same_slice: "" or why the scene does not show the case
 
 
 func _initialize() -> void:
@@ -108,7 +132,7 @@ func _next_case() -> void:
 		quit(1 if _errors > 0 or _ok == 0 else 0)
 		return
 	var c: Dictionary = _cases[_ci]
-	var setup := {"mode": "single", "race_id": "", "stage_id": "dev_testetappe", "from_city": "", "vehicle": "limousine",
+	var setup := {"mode": "single", "race_id": "", "stage_id": str(c.get("stage", "dev_testetappe")), "from_city": "", "vehicle": "limousine",
 		"start_world_minutes": float(c["hour"]) * 60.0, "weather": "normal", "start_km": float(c["km"]), "autopilot": false,
 		"no_countdown": not bool(c.get("countdown", false)), "seed": 5}
 	_sc = (load("res://scenes/race/race.tscn") as PackedScene).instantiate()
@@ -239,8 +263,9 @@ func _on_post_draw() -> void:
 	var r: Object = _sc.get("renderer")
 	if variant == "on":
 		_occ_quads = r.call("vehicle_outlines")
-		_occ_rect = _occluder_rect(str(c.get("region", "")) == "trailer")
-	_sources[variant] = _sources_inside(r.get("_gp"))
+		_occ_rect = _occluder_rect(r, str(c.get("region", "")))
+		_slice_msg = _check_same_slice(r, c)
+	_sources[variant] = _sources_inside(r.get("_gp"), r.get("_gr"))
 	if _out != "":
 		img.save_png("%s_%s_%s.png" % [_out, str(c["name"]), variant])
 	_pi += 1
@@ -252,28 +277,65 @@ func _on_post_draw() -> void:
 	_wait = 4
 
 
-## Screen rect of the vehicles drawn as occluders (bounding box of their outlines), shrunk by 2 px; empty without
-## vehicles. trailer: only the upper 60 % (the box body of a truck seen from behind, above its rear bumper and the
-## open space under the trailer).
-func _occluder_rect(trailer: bool) -> Rect2:
-	if _occ_quads.is_empty():
+## Screen rect of the trucks and buses drawn as occluders (bounding box of their drawn faces; a car hidden behind
+## one may peek out beside it), shrunk by 2 px (a tenth of a small one); empty without one. mode "trailer": its upper
+## 60 % only (the box body of a truck seen from behind, above its rear bumper and the open space under the trailer);
+## "body": its upper 80 % (a bus above the gap under it).
+func _occluder_rect(r: Object, mode: String) -> Rect2:
+	var pts := PackedVector2Array()
+	for q: PackedVector2Array in r.get("_occ_b"):
+		pts.append_array(q)
+	if pts.is_empty():
 		return Rect2()
-	var out := Rect2(_occ_quads[0], Vector2.ZERO)
-	for q in _occ_quads:
+	var out := Rect2(pts[0], Vector2.ZERO)
+	for q in pts:
 		out = out.expand(q)
-	if trailer:
+	if mode == "trailer":
 		out.size.y *= 0.6
-	out = out.grow(-2.0).intersection(Rect2(0, 0, 1280, 720))
+	elif mode == "body":
+		out.size.y *= 0.8
+	out = out.grow(-clampf(minf(out.size.x, out.size.y) * 0.1, 0.5, 2.0)).intersection(Rect2(0, 0, 1280, 720))
 	return out
 
 
-## Number of glow sources of the additive layer (positions) inside the occluder outline of the "on" frame.
-func _sources_inside(gp: PackedVector2Array) -> int:
+## same_slice [i, j]: the rears of vehicles i and j lie in the same scene slice of the renderer ("" if so).
+func _check_same_slice(r: Object, c: Dictionary) -> String:
+	if not c.has("same_slice"):
+		return ""
+	var sa: PackedInt32Array = r.get("_sl_a")
+	var sb: PackedInt32Array = r.get("_sl_b")
+	var base := int(r.get("_base"))
+	var seg := float(r.get("_seg_len"))
+	var sl: Array[int] = []
+	for i: int in c["same_slice"]:
+		var car: TrafficSystem.Car = _cars[i]
+		var k := int(floor((car.z - car.length * 0.5) / seg)) - base
+		var idx := -1
+		for si in sa.size():
+			if k >= sa[si] and k < sb[si]:
+				idx = si
+				break
+		sl.append(idx)
+	if sl[0] < 0 or sl[0] != sl[1]:
+		return "Fahrzeuge nicht in derselben Scheibe (%s) – Szene anpassen" % str(sl)
+	return ""
+
+
+## Number of glow sources of the additive layer (positions, radii) inside the occluder outline of the "on" frame –
+## deeper than the bright core of their glow (a lamp on the edge of the truck fades in and out over its core,
+## RoadRenderer.edge_visibility, review v0.5.1).
+func _sources_inside(gp: PackedVector2Array, gr: PackedFloat32Array) -> int:
+	var hull := Geometry2D.convex_hull(_occ_quads)
+	if hull.size() > 1 and hull[0] == hull[hull.size() - 1]:
+		hull.resize(hull.size() - 1)
 	var n := 0
-	for p in gp:
+	for i in gp.size():
+		var p := gp[i]
 		for q in range(0, _occ_quads.size() - 3, 4):
 			if bool(_rr.call("point_in_quad", p, _occ_quads[q], _occ_quads[q + 1], _occ_quads[q + 2], _occ_quads[q + 3])):
-				n += 1
+				var sd: float = _rr.call("convex_signed_distance", p, hull)
+				if sd < -maxf(0.75, 0.25 * gr[i]):
+					n += 1
 				break
 	return n
 
@@ -289,6 +351,9 @@ func _evaluate() -> void:
 			return
 	var msgs: Array[String] = []
 	var ok := true
+	if _slice_msg != "":
+		ok = false
+		msgs.append(_slice_msg)
 	for check: String in c["checks"]:
 		match check:
 			"leak":
