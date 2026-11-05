@@ -8,8 +8,18 @@ Nachtankzwang, Radarfallen und Polizei, Tageszeit und Wetter. Vorbilder: *Enduro
 - Technik: [ARCHITECTURE.md](ARCHITECTURE.md) und die Moduldokus in [docs/](docs/)
 - Engine: Godot 4.7.2 (GDScript, Renderer „GL Compatibility“), alle Fahrzeuge, Bäume, Gebäude, Tankstellen und
   Symbole prozedural in Blender 5.2 modelliert und als Sprites gerendert
-- Stand: **v0.5.0 – Verkehr als Hindernis, Schnee mit Folgen, Attract-Modus, Windows**; alle acht Schritte des
-  Prototyp-Plans sind umgesetzt, alle Zahlen sind Startwerte zum Testen.
+- Stand: **v0.5.1** – Fehlerbehebung zu v0.5.0 (Verkehr als Hindernis, Schnee mit Folgen, Attract-Modus, Windows);
+  alle acht Schritte des Prototyp-Plans sind umgesetzt, alle Zahlen sind Startwerte zum Testen.
+
+## Neu in v0.5.1
+
+- **Lichter verdeckter Fahrzeuge scheinen nicht mehr durch**: Der Blinker eines Autos hinter einer Kuppe leuchtete
+  durch die Fahrbahn (Spieltest) – ebenso Rück-, Brems- und Blaulichter hinter Kuppen und Lkw, Laternen hinter Häusern
+  und Bäumen und Tunnellampen hinter der Tunnelwand. Ein Licht leuchtet jetzt nur noch dort, wo seine Quelle zu sehen
+  ist; sichtbare Lichter sehen aus wie bisher, auch der Lichthof des Autos direkt vor dir über dem eigenen Dach
+  ([docs/renn-modul.md](docs/renn-modul.md), §2 „Lichter und Verdeckung“).
+- **Design-Dokument** an v0.5.0 angepasst: Verkehr, Wetter und Fahrverhalten, City Limits, Tutorial
+  ([docs/Design-Dokument.md](docs/Design-Dokument.md), Änderungen markiert mit *(seit v0.5.0)*).
 
 ## Neu in v0.5.0
 
