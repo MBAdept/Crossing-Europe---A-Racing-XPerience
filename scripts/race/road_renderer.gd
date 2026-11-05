@@ -11,6 +11,13 @@ extends Node2D
 ## cars) sorted by depth, then tunnel portal faces; (5) weather particles, overlays, additive glows.
 ## Hills hide road and traffic behind crests automatically because nearer ground overdraws them.
 ## Coloured geometry is batched into few triangle-array commands (GeoBatch).
+## Glows (v0.5.1, render.glow_occlusion): a light only glows where its source is visible. Vehicle lights and
+## free-standing lamps are additive quads in the batch, drawn with their slice in painter's order (GLOW_SHADER), so
+## nearer road, vehicles, buildings and tunnel walls cover them; on level ground the part of a halo below the ground
+## line in front of its slice follows right after the ground of the nearer slices (the road in front never cuts it).
+## Fixtures whose halo overlaps their own carrier (reflectors, delineators, tunnel/canopy lamps, windows) stay on the
+## additive layer, faded by the visibility of their source (crest line, tunnel window, nearer vehicles). Every glow
+## fades with its source at the crest line in front (glow_visibility).
 ## Night: per-vertex lighting of the near ground (player headlight cone, traffic headlights, street
 ## lamps, canopy lights); signs and markings are retro-reflective.
 ## Vehicles (docs/fahrzeug-darstellung.md, docs/renn-modul.md §8): ortho sprites rotated about the rear
@@ -54,6 +61,32 @@ const INDICATOR_PERIOD_S := 0.72
 const INDICATOR_COLOR := Color(1.0, 0.58, 0.06)
 const INDICATOR_MIN_PX := Vector2(2.4, 2.0)   ## smallest lamp on screen (px)
 const INDICATOR_MIN_GLOW_PX := 4.5            ## smallest glow radius on screen (px), +1 px at night
+## Glow occlusion (render.glow_occlusion): shader of this canvas item. Premultiplied alpha is the normal blend for
+## everything drawn here (sprites, text, batch, box and warp triangles – all with UVs in 0..1); a vertex with
+## UV.x >= 2 belongs to a glow quad (GeoBatch.glow_rect, UV shifted back by 2), whose fragments leave alpha 0, so the
+## same blend (ONE, ONE_MINUS_SRC_ALPHA) adds them – additive glows in painter's order, looking as on the layer.
+const GLOW_SHADER := """shader_type canvas_item;
+render_mode blend_premul_alpha;
+
+varying flat float v_add;
+
+void vertex() {
+	v_add = 0.0;
+	if (UV.x > 1.5) {
+		UV.x -= 2.0;
+		v_add = 1.0;
+	}
+}
+
+void fragment() {
+	COLOR.rgb *= COLOR.a;
+	if (v_add > 0.5) {
+		COLOR.a = 0.0;
+	}
+}
+"""
+const GLOW_FIXTURE_MARGIN_M := 0.5            ## a vehicle hides a fixture glow when it is this much nearer
+const TUNNEL_WINDOW_STRIDE := 5               ## floats per row of the tunnel window (left, right, top, c1, c2)
 # indices of the cached sprite metadata (_spinfo)
 const SI_TEX := 0
 const SI_PPM := 1
@@ -208,6 +241,32 @@ var _glow_tex: GradientTexture2D
 var _gp := PackedVector2Array()
 var _gr := PackedFloat32Array()
 var _gc := PackedColorArray()
+# glow occlusion (render.glow_occlusion; false = v0.5.0: every glow on the layer)
+var glow_occlusion := true
+var _glow_atlas: ImageTexture
+var _glow_shader_mat: ShaderMaterial
+var _glow_si := -1                    ## slice being drawn (-1: outside the world pass – glows go to the layer)
+var _glow_k := 0                      ## its near row
+var _glow_clip := 1.0e9               ## the ground line in front of it (_clip of the near row)
+var _glow_level := true               ## level ground in front: a visible slice whose own near row is that ground line
+var _glow_z := 0.0                    ## depth of its near row
+var _glow_fade := true                ## false while the player's glows are collected (never faded)
+var _ip := PackedVector2Array()       ## item glows of the slice being drawn (emitted at its end)
+var _ir := PackedFloat32Array()
+var _ic := PackedColorArray()
+var _if := PackedByteArray()          ## 1 = fades with the crest line
+var _bands: Dictionary = {}           ## slice -> PackedFloat32Array of [x0, y0, x1, y1, v0, v1, r, g, b, a] (after its ground)
+var _fp := PackedVector2Array()       ## fixture glows (additive layer after the vehicle test)
+var _fr := PackedFloat32Array()
+var _fc := PackedColorArray()
+var _fz := PackedFloat32Array()       ## depth of their slice
+var _occ_r := PackedFloat32Array()    ## car occluders (body below the window line): x0, y0, x1, y1, depth
+var _occ_b: Array[PackedVector2Array] = []   ## truck/bus occluders: copies of the drawn face quads (4 points each)
+var _occ_bd := PackedFloat32Array()   ## their depth
+var _occ_bb := PackedFloat32Array()   ## their bounding boxes, built when the first fixture glow is tested
+var _tw := PackedFloat32Array()       ## tunnel window per row (TUNNEL_WINDOW_STRIDE floats), empty without tunnel
+var _any_tunnel := false              ## a tunnel row is in view (_project)
+var _gs := PackedInt32Array([0, 0, 0, 0, 0, 0, 0])   ## items, bands, fixtures, layer, culled crest/tunnel/vehicle
 
 # vehicle poses: id -> PackedFloat64Array [yaw (rad), yaw velocity, cell, last x, last time, lateral m/s, frame]
 var _poses: Dictionary = {}
@@ -237,7 +296,7 @@ var _frames := 0
 var _last_us := 0
 var _max_us := 0
 var _sum_us := 0
-var _phase_us := {"sky": 0, "background": 0, "project": 0, "world": 0, "weather": 0, "glow": 0, "w_ground": 0, "w_struct": 0, "w_items": 0, "slices": 0}
+var _phase_us := {"sky": 0, "background": 0, "project": 0, "world": 0, "weather": 0, "glow": 0, "w_ground": 0, "w_struct": 0, "w_items": 0, "w_glow": 0, "slices": 0}
 
 
 func setup(t: Track, p: RoadProjection, config: Dictionary, scenery: Dictionary) -> void:
@@ -321,12 +380,53 @@ func setup(t: Track, p: RoadProjection, config: Dictionary, scenery: Dictionary)
 	_glow_tex.fill_to = Vector2(1.0, 0.5)
 	_glow_tex.width = 64
 	_glow_tex.height = 64
+	# glows in painter's order: the same gradient in an atlas with a white block, drawn through GLOW_SHADER
+	_glow_atlas = ImageTexture.create_from_image(glow_atlas_image(g))
+	batch.glow_tex = _glow_atlas.get_rid()
+	var sh := Shader.new()
+	sh.code = GLOW_SHADER
+	_glow_shader_mat = ShaderMaterial.new()
+	_glow_shader_mat.shader = sh
+	set_glow_occlusion(bool(r.get("glow_occlusion", true)))
 	_wrng.seed = 77
 
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_PREDELETE and _glow_ci.is_valid():
 		RenderingServer.free_rid(_glow_ci)
+
+
+## Glow occlusion on (default, render.glow_occlusion) or off (v0.5.0: every glow on the additive layer over the whole
+## frame – fallback for a driver that cannot compile GLOW_SHADER, A/B comparisons in tests and screenshots).
+func set_glow_occlusion(on: bool) -> void:
+	glow_occlusion = on
+	material = _glow_shader_mat if on else null
+	queue_redraw()
+
+
+## Atlas of the glows drawn in the batch (72 × 64 RGBA8, no mipmaps): x 0–63 the radial gradient g exactly as the
+## 64 × 64 GradientTexture2D of the glow layer stores it (pos = (x, y) / 63, offset = |pos − (0.5, 0.5)| / 0.5,
+## colour bytes rounded), x 64–67 copies of column 63 (bilinear filtering at the region edge = clamping as on the
+## layer), x 68–71 white (GeoBatch.WHITE_UV: untextured geometry in the same flush keeps its colour).
+static func glow_atlas_image(g: Gradient) -> Image:
+	var data := PackedByteArray()
+	data.resize(72 * 64 * 4)
+	data.fill(255)
+	for y in 64:
+		for x in 64:
+			var pos := Vector2(float(x) / 63.0, float(y) / 63.0)
+			var c := g.sample(clampf((pos - Vector2(0.5, 0.5)).length() / 0.5, 0.0, 1.0))
+			var o := (y * 72 + x) * 4
+			data[o] = roundi(clampf(c.r * 255.0, 0.0, 255.0))
+			data[o + 1] = roundi(clampf(c.g * 255.0, 0.0, 255.0))
+			data[o + 2] = roundi(clampf(c.b * 255.0, 0.0, 255.0))
+			data[o + 3] = roundi(clampf(c.a * 255.0, 0.0, 255.0))
+		var e := (y * 72 + 63) * 4
+		for x in range(64, 68):
+			var o2 := (y * 72 + x) * 4
+			for ch in 4:
+				data[o2 + ch] = data[e + ch]
+	return Image.create_from_data(72, 64, false, Image.FORMAT_RGBA8, data)
 
 
 ## Country data (GameData.countries) for the country-specific sign styles; {} without the autoload.
@@ -356,7 +456,7 @@ func perf_stats() -> Dictionary:
 	return {"frames": _frames, "avg_ms": float(_sum_us) / float(_frames) / 1000.0,
 		"p95_ms": float(arr[int(float(n - 1) * 0.95)]) / 1000.0, "max_ms": float(_max_us) / 1000.0,
 		"last_ms": float(_last_us) / 1000.0, "triangles": batch.triangles, "commands": batch.commands,
-		"phases_avg_ms": _phase_avg()}
+		"phases_avg_ms": _phase_avg(), "glows": glow_counts()}
 
 
 func _phase_avg() -> Dictionary:
@@ -380,6 +480,7 @@ func _draw() -> void:
 	_gp.clear()
 	_gr.clear()
 	_gc.clear()
+	_glow_begin()
 	_prepare()
 	_project()
 	_pose_tick()
@@ -411,7 +512,9 @@ func _draw() -> void:
 	_draw_overlays()
 	batch.flush()
 	var t5 := Time.get_ticks_usec()
+	_resolve_fixture_glows()
 	_submit_glows(shake)
+	_glow_end()
 	var t6 := Time.get_ticks_usec()
 	_phase_us["project"] += t1 - t0
 	_phase_us["sky"] += t2 - t1
@@ -436,7 +539,8 @@ func _record_time(us: int) -> void:
 
 func _draw_stats() -> void:
 	var st := perf_stats()
-	var t := "draw %.2f ms (avg %.2f, p95 %.2f)  tris %d  cmds %d  slices %d" % [float(st["last_ms"]), float(st["avg_ms"]), float(st["p95_ms"]), batch.triangles, batch.commands, _sl_a.size()]
+	var t := "draw %.2f ms (avg %.2f, p95 %.2f)  tris %d  cmds %d  slices %d  glows %d+%d/%d hidden %d" % [float(st["last_ms"]), float(st["avg_ms"]), float(st["p95_ms"]), batch.triangles, batch.commands, _sl_a.size(),
+		_gs[0], _gs[1], _gs[3], _gs[4] + _gs[5] + _gs[6]]
 	draw_string(ThemeDB.fallback_font, Vector2(12, proj.screen.y - 12), t, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(1, 1, 0.6))
 
 
@@ -607,6 +711,7 @@ func _project() -> void:
 	if any_tunnel:
 		for k in count + 1:
 			a_ft[k] = pow(clampf((a_dz[k] - 12.0) / t_fog, 0.0, 1.0), 0.8)
+	_any_tunnel = any_tunnel
 	_dz = a_dz
 	_zw = a_zw
 	_xw = a_xw
@@ -933,16 +1038,391 @@ static func indicator_glow_px(s: float, lights: float) -> float:
 	return clampf((0.55 + 0.35 * lights) * s, INDICATOR_MIN_GLOW_PX + lights, 70.0)
 
 
+# --- glows: additive light with occlusion (v0.5.1, docs/renn-modul.md §2) ----------------------------------------
+# v0.5.0 drew every glow on the additive layer over the whole frame, so lights of hidden vehicles shone through the
+# road at crests, through trucks, buildings and tunnel walls. Now a glow is only where its source is visible: item
+# glows in painter's order, fixture glows on the layer faded by the visibility of their source.
+
+## Visibility (0..1) of a glow source at screen y behind the ground line `clip` (running minimum of the ground rows in
+## front of its slice – everything below it is covered by nearer ground, e.g. behind a crest): linear over the bright
+## core of the glow texture (0.25 r, where its alpha falls from 1 to 0.55; at least 0.75 px) – 1 above, 0.5 on the
+## line, 0 below. A light sinking behind a crest fades out with its lamp instead of leaving its halo above the crest.
+static func glow_visibility(y: float, clip: float, r: float) -> float:
+	return clampf((clip - y) / (2.0 * maxf(0.75, 0.25 * r)) + 0.5, 0.0, 1.0)
+
+
+## Rows receiving the part of a glow (top..bot on screen) below the ground line clip_y in front of its slice (near row
+## `row`). The ground of the rows nearer than `row` covers everything below clip_y; at each y the nearest row whose
+## ground reaches it is drawn last. Walking from `row` towards the camera, the part between row_clip[j] and
+## row_clip[j − 1] (row_clip = running minimum of the ground rows, _clip) therefore lies on the slice that contains
+## rows j − 1 .. j. Returns triples [y0, y1, row j − 1] from top to bottom; a rest below row 0 gets row −1.
+static func glow_bands(top: float, bot: float, clip_y: float, row_clip: PackedFloat32Array, row: int) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	var ys := maxf(top, clip_y)
+	var j := mini(row, row_clip.size() - 1)
+	while ys < bot and j > 0:
+		var hi := row_clip[j - 1]
+		if hi > ys:
+			var ye := minf(hi, bot)
+			out.append(ys)
+			out.append(ye)
+			out.append(float(j - 1))
+			ys = ye
+		j -= 1
+	if ys < bot:
+		out.append(ys)
+		out.append(bot)
+		out.append(-1.0)
+	return out
+
+
+## Tunnel window per row k (TUNNEL_WINDOW_STRIDE floats: left, right, top, c1, c2): running intersection of the tube
+## cross-sections of all tunnel rows from the camera up to row k on screen – wall to wall, ceiling, and both haunch
+## chamfers as half-planes n·p >= c with the constant normals n1 = (ceil_h − wall_h, haunch) and
+## n2 = (−(ceil_h − wall_h), haunch). A point beyond row k is seen through the tube only inside it (walls of a bend,
+## the portal from outside, the exit from inside). tunnel[k] = 1 for tunnel rows in front of the camera, xl/xr their
+## wall positions (m); from row closed_from on nothing is visible (tube capped there). Rows before the first tunnel
+## row are unbounded (±1e9).
+static func tunnel_window(tunnel: PackedByteArray, sx: PackedFloat32Array, sy: PackedFloat32Array, ss: PackedFloat32Array,
+		xl: PackedFloat32Array, xr: PackedFloat32Array, wall_h: float, ceil_h: float, haunch: float, closed_from: int) -> PackedFloat32Array:
+	var n := tunnel.size()
+	var out := PackedFloat32Array()
+	out.resize(n * TUNNEL_WINDOW_STRIDE)
+	var big := 1.0e9
+	var l := -big
+	var r := big
+	var t := -big
+	var c1 := -big
+	var c2 := -big
+	var n1 := Vector2(ceil_h - wall_h, haunch)
+	var n2 := Vector2(-(ceil_h - wall_h), haunch)
+	for k in n:
+		if tunnel[k] == 1:
+			var s := ss[k]
+			var lx := sx[k] + xl[k] * s
+			var rx := sx[k] + xr[k] * s
+			var wy := sy[k] - wall_h * s
+			l = maxf(l, lx)
+			r = minf(r, rx)
+			t = maxf(t, sy[k] - ceil_h * s)
+			c1 = maxf(c1, n1.dot(Vector2(lx, wy)))
+			c2 = maxf(c2, n2.dot(Vector2(rx, wy)))
+		if k >= closed_from:
+			l = big
+			r = -big
+		var o := k * TUNNEL_WINDOW_STRIDE
+		out[o] = l
+		out[o + 1] = r
+		out[o + 2] = t
+		out[o + 3] = c1
+		out[o + 4] = c2
+	return out
+
+
+## Visibility (0..1) of a fixture glow at p (radius r) through the tunnel window w (offset o = row × stride): signed
+## distance of p to the nearest window edge, relative to the bright core 0.25 r. 1 on the edge itself – the tunnel
+## lamps sit on the haunches, the edge of their own row – 0 once the core is outside (behind a wall in a bend).
+static func tunnel_window_visibility(p: Vector2, r: float, w: PackedFloat32Array, o: int, wall_h: float, ceil_h: float, haunch: float) -> float:
+	if o < 0 or o + 4 >= w.size():
+		return 1.0
+	var n1 := Vector2(ceil_h - wall_h, haunch)
+	var n2 := Vector2(-(ceil_h - wall_h), haunch)
+	var e := minf(minf(p.x - w[o], w[o + 1] - p.x), p.y - w[o + 2])
+	e = minf(e, (n1.dot(p) - w[o + 3]) / n1.length())
+	e = minf(e, (n2.dot(p) - w[o + 4]) / n2.length())
+	return clampf(e / maxf(0.75, 0.25 * r) + 1.0, 0.0, 1.0)
+
+
+## True when p lies inside the convex quad a b c d (either winding, edges included); degenerate quads contain nothing.
+static func point_in_quad(p: Vector2, a: Vector2, b: Vector2, c: Vector2, d: Vector2) -> bool:
+	if absf((c - a).cross(d - b)) < 0.01:
+		return false
+	var s1 := (b - a).cross(p - a)
+	var s2 := (c - b).cross(p - b)
+	var s3 := (d - c).cross(p - c)
+	var s4 := (a - d).cross(p - d)
+	return (s1 >= 0.0 and s2 >= 0.0 and s3 >= 0.0 and s4 >= 0.0) or (s1 <= 0.0 and s2 <= 0.0 and s3 <= 0.0 and s4 <= 0.0)
+
+
+func _glow_begin() -> void:
+	_glow_si = -1
+	_glow_clip = 1.0e9
+	_glow_level = true
+	_glow_fade = true
+	_ip.clear()
+	_ir.clear()
+	_ic.clear()
+	_if.clear()
+	_bands.clear()
+	_fp.clear()
+	_fr.clear()
+	_fc.clear()
+	_fz.clear()
+	_occ_r.clear()
+	_occ_b.clear()
+	_occ_bd.clear()
+	_occ_bb.clear()
+	_tw = PackedFloat32Array()
+	_gs.fill(0)
+
+
+func _glow_end() -> void:
+	_gs[3] = _gp.size()
+
+
+## Glow counts of the last frame: item glows in painter's order, deferred bands, fixture glows and all glows on the
+## additive layer, glows hidden by the crest line, the tunnel window and nearer vehicles, glow quads in the batch.
+func glow_counts() -> Dictionary:
+	return {"items": _gs[0], "bands": _gs[1], "fixtures": _gs[2], "layer": _gs[3], "culled_crest": _gs[4],
+		"culled_tunnel": _gs[5], "culled_vehicle": _gs[6], "batch_quads": batch.glow_quads}
+
+
+## Glow of an item (vehicle lights, lamps on poles, start lights …): with glow occlusion it is drawn at the end of its
+## slice in painter's order (_emit_item_glows); otherwise – and outside the world pass (screen overlays) – on the layer.
 func _glow(pos: Vector2, r: float, col: Color) -> void:
 	if r < 0.6 or col.a < 0.01:
 		return
 	if pos.x < -r or pos.x > proj.screen.x + r or pos.y < -r or pos.y > proj.screen.y + r:
 		return
-	_gp.append(pos)
-	_gr.append(r)
-	_gc.append(col)
+	if _glow_si < 0 or not glow_occlusion:
+		_gp.append(pos)
+		_gr.append(r)
+		_gc.append(col)
+		return
+	_ip.append(pos)
+	_ir.append(r)
+	_ic.append(col)
+	_if.append(1 if _glow_fade else 0)
 
 
+## Glow of a fixture whose halo overlaps its own carrier (guardrail reflectors, delineators, tunnel lamps and niches,
+## canopy and border-cover lamps, station and booth windows, the radar flash): painter's order would cut the halo at
+## the nearer parts of the carrier (the haunch of the next metres, the canopy underside), so it stays on the additive
+## layer, faded by the visibility of its source – crest line in front of its slice (behind a crest), window of the
+## tunnel tube between the camera and it, vehicles drawn nearer (_resolve_fixture_glows).
+func _glow_fixture(pos: Vector2, r: float, col: Color) -> void:
+	if r < 0.6 or col.a < 0.01:
+		return
+	if pos.x < -r or pos.x > proj.screen.x + r or pos.y < -r or pos.y > proj.screen.y + r:
+		return
+	if _glow_si < 0 or not glow_occlusion:
+		_gp.append(pos)
+		_gr.append(r)
+		_gc.append(col)
+		return
+	var vis := 1.0 if _glow_level else glow_visibility(pos.y, _glow_clip, r)
+	if vis <= 0.0:
+		_gs[4] += 1
+		return
+	if not _tw.is_empty():
+		vis *= tunnel_window_visibility(pos, r, _tw, _glow_k * TUNNEL_WINDOW_STRIDE, _t_wall_h, _t_ceil_h, _t_haunch)
+		if vis <= 0.0:
+			_gs[5] += 1
+			return
+	_fp.append(pos)
+	_fr.append(r)
+	_fc.append(Color(col, col.a * vis))
+	_fz.append(_glow_z)
+
+
+## End of a slice: its item glows go into the batch, so nearer slices (road, vehicles, props, walls, portal) cover
+## them. On level or rising ground (_glow_level: the slice is visible and its own near row is the ground line in
+## front) nothing in it is hidden by the ground, and the part of a halo below that line – where the nearer road will be
+## drawn – is deferred to right after the ground of the slices covering it (glow_bands, _emit_bands): the road in front
+## of a car never cuts its glow, the vehicles, props and walls standing on that road still do. Behind a crest each
+## glow fades with its source at the crest line (glow_visibility) and its halo is cut there like everything behind
+## it (deferring it would let a light hidden by a tree or a house behind the crest shine onto the crest).
+func _emit_item_glows() -> void:
+	var clip := _glow_clip
+	var level := _glow_level
+	for i in _ip.size():
+		var p := _ip[i]
+		var r := _ir[i]
+		var c := _ic[i]
+		if _if[i] == 1 and not level:
+			var vis := glow_visibility(p.y, clip, r)
+			if vis <= 0.0:
+				_gs[4] += 1
+				continue
+			c.a *= vis
+		_gs[0] += 1
+		var x0 := p.x - r
+		var x1 := p.x + r
+		var top := p.y - r
+		var bot := p.y + r
+		if bot <= clip or not level:
+			batch.glow_rect(x0, top, x1, bot, c)
+			continue
+		var d := 2.0 * r
+		var bands := glow_bands(top, bot, clip, _clip, _glow_k)
+		if bands.size() > 0 and bands[0] > top:
+			batch.glow_rect(x0, top, x1, bands[0], c, 0.0, (bands[0] - top) / d)
+		# one band per slice: consecutive rows of a merged slice share its ground
+		var cur := -2
+		var by0 := 0.0
+		var by1 := 0.0
+		for o in range(0, bands.size(), 3):
+			var si := _slice_of_row(int(bands[o + 2]))
+			if si != cur:
+				if cur != -2:
+					_place_band(cur, x0, by0, x1, by1, top, d, c)
+				cur = si
+				by0 = bands[o]
+			by1 = bands[o + 1]
+		if cur != -2:
+			_place_band(cur, x0, by0, x1, by1, top, d, c)
+	_ip.clear()
+	_ir.clear()
+	_ic.clear()
+	_if.clear()
+
+
+## Index of the slice containing rows k .. k + 1 (-1 for rows before the first slice).
+func _slice_of_row(k: int) -> int:
+	if k < 0 or _sl_a.is_empty():
+		return -1
+	var i := _sl_a.bsearch(k, false) - 1
+	if i < 0 or k >= _sl_b[i]:
+		return -1
+	return i
+
+
+## Band y0..y1 of a glow (top, diameter d): deferred to the nearer slice si (drawn after its ground), or drawn now when
+## no nearer slice covers it.
+func _place_band(si: int, x0: float, y0: float, x1: float, y1: float, top: float, d: float, c: Color) -> void:
+	var v0 := (y0 - top) / d
+	var v1 := (y1 - top) / d
+	if si < 0 or si >= _glow_si:
+		batch.glow_rect(x0, y0, x1, y1, c, v0, v1)
+		return
+	var arr: PackedFloat32Array
+	if _bands.has(si):
+		arr = _bands[si]
+	else:
+		arr = PackedFloat32Array()
+		_bands[si] = arr
+	arr.append(x0)
+	arr.append(y0)
+	arr.append(x1)
+	arr.append(y1)
+	arr.append(v0)
+	arr.append(v1)
+	arr.append(c.r)
+	arr.append(c.g)
+	arr.append(c.b)
+	arr.append(c.a)
+	_bands[si] = arr
+	_gs[1] += 1
+
+
+## Deferred glow bands of slice si, right after its ground (see _emit_item_glows).
+func _emit_bands(si: int) -> void:
+	var arr: PackedFloat32Array = _bands[si]
+	for o in range(0, arr.size(), 10):
+		batch.glow_rect(arr[o], arr[o + 1], arr[o + 2], arr[o + 3], Color(arr[o + 6], arr[o + 7], arr[o + 8], arr[o + 9]),
+			arr[o + 4], arr[o + 5])
+	_bands.erase(si)
+
+
+## A car drawn at depth (m): its body below the window line hides fixture glows farther behind it.
+func _add_car_occluder(x0: float, y0: float, x1: float, y1: float, depth: float) -> void:
+	_occ_r.append(x0)
+	_occ_r.append(y0)
+	_occ_r.append(x1)
+	_occ_r.append(y1)
+	_occ_r.append(depth)
+
+
+## A truck/bus part drawn at depth (m): the face quads of BoxVehicle (copied – its arrays are reused) hide fixture glows
+## behind it. Only copied here; bounding boxes and tests follow when a fixture glow needs them (_behind_vehicle).
+func _add_box_occluder(pts: PackedVector2Array, depth: float) -> void:
+	if pts.size() >= 4:
+		_occ_b.append(pts.duplicate())
+		_occ_bd.append(depth)
+
+
+## Outline of every vehicle registered as an occluder in the last frame, as quads (4 points each; tests, debug).
+func vehicle_outlines() -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for o in range(0, _occ_r.size(), 5):
+		out.append_array(PackedVector2Array([Vector2(_occ_r[o], _occ_r[o + 1]), Vector2(_occ_r[o + 2], _occ_r[o + 1]),
+			Vector2(_occ_r[o + 2], _occ_r[o + 3]), Vector2(_occ_r[o], _occ_r[o + 3])]))
+	for pts in _occ_b:
+		out.append_array(pts.slice(0, pts.size() - pts.size() % 4))
+	return out
+
+
+## Fixture glows (_glow_fixture) whose source lies inside a vehicle drawn more than GLOW_FIXTURE_MARGIN_M nearer are
+## hidden; the others join the additive layer.
+func _resolve_fixture_glows() -> void:
+	var any := not _occ_r.is_empty() or not _occ_b.is_empty()
+	for i in _fp.size():
+		var p := _fp[i]
+		if any and _behind_vehicle(p, _fz[i] - GLOW_FIXTURE_MARGIN_M):
+			_gs[6] += 1
+			continue
+		_gp.append(p)
+		_gr.append(_fr[i])
+		_gc.append(_fc[i])
+		_gs[2] += 1
+
+
+func _behind_vehicle(p: Vector2, depth: float) -> bool:
+	for o in range(0, _occ_r.size(), 5):
+		if _occ_r[o + 4] < depth and p.x >= _occ_r[o] and p.x <= _occ_r[o + 2] and p.y >= _occ_r[o + 1] and p.y <= _occ_r[o + 3]:
+			return true
+	if _occ_b.is_empty():
+		return false
+	if _occ_bb.size() != _occ_b.size() * 4:
+		_occ_bb.resize(_occ_b.size() * 4)
+		for i in _occ_b.size():
+			var pts := _occ_b[i]
+			var x0 := INF
+			var y0 := INF
+			var x1 := -INF
+			var y1 := -INF
+			for q in pts:
+				x0 = minf(x0, q.x)
+				y0 = minf(y0, q.y)
+				x1 = maxf(x1, q.x)
+				y1 = maxf(y1, q.y)
+			_occ_bb[i * 4] = x0
+			_occ_bb[i * 4 + 1] = y0
+			_occ_bb[i * 4 + 2] = x1
+			_occ_bb[i * 4 + 3] = y1
+	for i in _occ_b.size():
+		var o := i * 4
+		if _occ_bd[i] >= depth or p.x < _occ_bb[o] or p.x > _occ_bb[o + 2] or p.y < _occ_bb[o + 1] or p.y > _occ_bb[o + 3]:
+			continue
+		var pts := _occ_b[i]
+		for q in range(0, pts.size() - 3, 4):
+			if point_in_quad(p, pts[q], pts[q + 1], pts[q + 2], pts[q + 3]):
+				return true
+	return false
+
+
+## Builds the tunnel window of this frame (only with glow occlusion and a tunnel row in view).
+func _build_tunnel_window(closed_from: int) -> void:
+	_tw = PackedFloat32Array()
+	if not glow_occlusion or not _any_tunnel:
+		return
+	var n := _n + 1
+	var tun := PackedByteArray()
+	tun.resize(n)
+	var xl := PackedFloat32Array()
+	var xr := PackedFloat32Array()
+	xl.resize(n)
+	xr.resize(n)
+	for k in n:
+		var seg := _segs[k]
+		if seg.tunnel and _dz[k] > proj.near:
+			tun[k] = 1
+			xl[k] = -seg.lanes * _lw * 0.5 - _sh
+			xr[k] = seg.lanes * _lw * 0.5 + seg.fuel_lane * _lw + _sh
+	_tw = tunnel_window(tun, _sx, _sy, _ss, xl, xr, _t_wall_h, _t_ceil_h, _t_haunch, closed_from)
+
+
+## The additive layer: glows outside the world pass, fixture glows, and every glow without glow occlusion.
 func _submit_glows(shake: Vector2) -> void:
 	RenderingServer.canvas_item_clear(_glow_ci)
 	RenderingServer.canvas_item_set_transform(_glow_ci, Transform2D(0.0, shake))
@@ -980,6 +1460,7 @@ func _draw_world() -> void:
 				break
 	elif _segs[_n - 1].tunnel and _dz[_n] > proj.near:
 		_tunnel_cap(_n)
+	_build_tunnel_window(_n + 1 if _cam_in_tunnel else skip_from)
 	for si in range(_sl_a.size() - 1, -1, -1):
 		var a := _sl_a[si]
 		var b := _sl_b[si]
@@ -987,23 +1468,39 @@ func _draw_world() -> void:
 			continue
 		var hidden := _inv[a] == 1
 		_ctx(_segs[a].tunnel)
+		# glows of this slice: occluded by the ground in front of row a (_clip) and everything drawn later
+		_glow_si = si
+		_glow_k = a
+		_glow_clip = _clip[a]
+		_glow_level = not hidden and _glow_clip >= _sy[a] - 0.5
+		_glow_z = _dz[a]
 		var q0 := Time.get_ticks_usec()
 		if not hidden:
 			_draw_ground(a, b)
 		var q1 := Time.get_ticks_usec()
-		_draw_structures(a, b, hidden)
+		if _bands.has(si):
+			_emit_bands(si)
 		var q2 := Time.get_ticks_usec()
-		_draw_items(a, b, buckets)
+		_draw_structures(a, b, hidden)
 		var q3 := Time.get_ticks_usec()
+		_draw_items(a, b, buckets)
+		var q4 := Time.get_ticks_usec()
+		if not _ip.is_empty():
+			_emit_item_glows()
+		var q5 := Time.get_ticks_usec()
 		_phase_us["w_ground"] += q1 - q0
-		_phase_us["w_struct"] += q2 - q1
-		_phase_us["w_items"] += q3 - q2
+		_phase_us["w_struct"] += q3 - q2
+		_phase_us["w_items"] += q4 - q3
+		_phase_us["w_glow"] += q2 - q1 + q5 - q4
 		_phase_us["slices"] += 1
 		if a > 0 and _dz[a] > proj.near:
 			var near_seg := _segs[a - 1]
 			var far_seg := _segs[a]
 			if far_seg.tunnel and not near_seg.tunnel:
 				_draw_portal(a)
+	_glow_si = -1
+	_glow_clip = 1.0e9
+	_glow_level = true
 
 
 ## Dark cross-section of the tunnel tube at row k.
@@ -1318,7 +1815,7 @@ func _guardrail(a: int, b: int, xa: float, xb: float, merged: bool) -> void:
 			if _lit:
 				var l := _light(_zw[a], xa)
 				if l > 0.05:
-					_glow(Vector2(px, _sy[a] - 0.63 * s), maxf(2.0, 0.35 * s), Color(1.0, 0.8, 0.5, minf(0.6, l * 0.6)))
+					_glow_fixture(Vector2(px, _sy[a] - 0.63 * s), maxf(2.0, 0.35 * s), Color(1.0, 0.8, 0.5, minf(0.6, l * 0.6)))
 
 
 func _delineators(a: int, b: int, seg: TrackSegment, xl: float, xr: float, both: bool) -> void:
@@ -1353,7 +1850,7 @@ func _delineator(k: int, f: float, x: float, right: bool) -> void:
 	var rc := _shade(refl, k, x, 4.0)
 	batch.rect(Rect2(p.x - w * 0.3, p.y - h + 0.16 * s, w * 0.6, 0.12 * s), rc)
 	if l > 0.04:
-		_glow(Vector2(p.x, p.y - h + 0.22 * s), maxf(2.5, 0.4 * s), Color(refl, minf(0.7, l * 0.8)))
+		_glow_fixture(Vector2(p.x, p.y - h + 0.22 * s), maxf(2.5, 0.4 * s), Color(refl, minf(0.7, l * 0.8)))
 
 
 func _tunnel_segment(a: int, b: int, xla: float, xra: float, xlb: float, xrb: float) -> void:
@@ -1394,7 +1891,7 @@ func _tunnel_segment(a: int, b: int, xla: float, xra: float, xlb: float, xrb: fl
 					var lw2 := maxf(1.2, 0.7 * p.z)
 					var lh := maxf(1.0, 0.22 * p.z)
 					batch.rect(Rect2(p.x - lw2 * 0.5, p.y - lh * 0.5, lw2, lh), Color(LAMP_COL.lerp(Color.WHITE, 0.4), al))
-					_glow(Vector2(p.x, p.y), maxf(3.0, 1.6 * p.z), Color(LAMP_COL, 0.45 * al))
+					_glow_fixture(Vector2(p.x, p.y), maxf(3.0, 1.6 * p.z), Color(LAMP_COL, 0.45 * al))
 		z += _t_lamp_every
 	# emergency niches (green signs) every 150 m on the right wall
 	if fposmod(_zw[a], 150.0) < _seg_len and b - a == 1:
@@ -1402,7 +1899,7 @@ func _tunnel_segment(a: int, b: int, xla: float, xra: float, xlb: float, xrb: fl
 		if p2.z > 0.0:
 			var gw := 0.9 * p2.z
 			batch.rect(Rect2(p2.x - gw, p2.y - 0.45 * p2.z, gw, 0.5 * p2.z), Color(Color("1f9d4a") * (0.6 + 0.4 * (1.0 - _ft_tun[a])), 1.0))
-			_glow(Vector2(p2.x - gw * 0.5, p2.y - 0.2 * p2.z), maxf(2.0, 0.8 * p2.z), Color(0.2, 1.0, 0.4, 0.3 * (1.0 - _ft_tun[a])))
+			_glow_fixture(Vector2(p2.x - gw * 0.5, p2.y - 0.2 * p2.z), maxf(2.0, 0.8 * p2.z), Color(0.2, 1.0, 0.4, 0.3 * (1.0 - _ft_tun[a])))
 
 
 ## Tunnel entrance seen from outside: an overgrown hill with a concrete portal (headwall,
@@ -1526,7 +2023,7 @@ func _fuel_structures(a: int, b: int, sa: TrackSegment, ra: float, rb: float) ->
 				if p.z > 0.0:
 					batch.rect(Rect2(p.x - 0.5 * p.z, p.y - 0.18 * p.z, 1.0 * p.z, 0.36 * p.z), lamp)
 					if _lights > 0.05:
-						_glow(Vector2(p.x, p.y), maxf(3.0, 1.8 * p.z), Color(1, 0.97, 0.9, 0.3 * _lights))
+						_glow_fixture(Vector2(p.x, p.y), maxf(3.0, 1.8 * p.z), Color(1, 0.97, 0.9, 0.3 * _lights))
 		if (fz & TrackSegment.FUEL_CANOPY_FRONT) != 0:
 			var s := _ss[a]
 			var xx := _sx[a]
@@ -1550,7 +2047,7 @@ func _border_cover(a: int, b: int, sa: TrackSegment, xla: float, xra: float, xlb
 			var p := _proj_at(a, 0.5, lerpf(xla, xra, t), h0 - 0.05)
 			if p.z > 0.0:
 				batch.rect(Rect2(p.x - 0.9 * p.z, p.y - 0.1 * p.z, 1.8 * p.z, 0.2 * p.z), Color(1, 1, 0.95, _lights))
-				_glow(Vector2(p.x, p.y), maxf(3.0, 2.0 * p.z), Color(1, 0.97, 0.9, 0.3 * _lights))
+				_glow_fixture(Vector2(p.x, p.y), maxf(3.0, 2.0 * p.z), Color(1, 0.97, 0.9, 0.3 * _lights))
 	if sa.cover_front:
 		var s := _ss[a]
 		var xx := _sx[a]
@@ -2028,6 +2525,10 @@ func _draw_car(k: int, f: float, it: Dictionary, p: Vector3, alpha: float, light
 	var cw := obj.x
 	var ch := obj.z
 	var s := p.z
+	if glow_occlusion and _glow_si >= 0:
+		# the body below the window line hides fixture glows (reflectors, delineators) behind the car
+		var hw := 0.45 * cw * s
+		_add_car_occluder(p.x - hw, p.y - 0.85 * ch * s, p.x + hw, p.y, proj.focal / s)
 	# glows: tail/brake lights (night or braking), police beacon; they follow the yawed rear (pivot) a little
 	var glow_a := clampf(tail * lights * 0.9 + brake * (0.35 + 0.4 * lights), 0.0, 1.0) * alpha
 	var yaw := deg_to_rad((info[SI_YAWS] as PackedFloat32Array)[cell]) if cell >= 0 else 0.0
@@ -2256,9 +2757,11 @@ func _draw_player(k: int, it: Dictionary, info: Array, p_rear: Vector3, alpha: f
 	var gr := clampf((0.32 + brake * 0.12 + lights * 0.18) * s_rear, 2.0, 70.0)
 	var gcol := Color(1.0, 0.16, 0.06, 0.5 * glow_a)
 	var ground := PackedVector2Array()
+	_glow_fade = false   # the player's lights are always visible (nearest object): never faded at a crest line
 	for i in 2:
 		_glow(rot * (pts[i] - anchor_pt), gr, gcol)
 		ground.append(rot * (pts[3 + i] - anchor_pt))
+	_glow_fade = true
 	if _wet > 0.0 and lights > 0.2:
 		_wet_reflections(ground, s_rear, 0.12 * glow_a * _wet, 0.45 * s_rear)
 
@@ -2345,6 +2848,9 @@ func _draw_box_item(it: Dictionary) -> void:
 			PackedInt32Array(), PackedFloat32Array(), (info[SI_TEX] as Texture2D).get_rid())
 		batch.triangles += _box.quads * 2
 		batch.commands += 1
+		if glow_occlusion and _glow_si >= 0:
+			# the drawn faces (exact outline) hide fixture glows behind the box, e.g. tunnel lamps behind a truck
+			_add_box_occluder(_box.pts, maxf(road_at(z0).z, proj.near))
 	if not _box.rear_drawn:
 		return
 	var blink := int(car.get("blink", 0))
@@ -2474,7 +2980,7 @@ func _station(k: int, p: Vector3, alpha: float, light: float) -> void:
 	batch.rect(Rect2(r.position.x + 1.5 * s, r.position.y + 1.2 * s, bw * 0.55, 2.4 * s), win)
 	batch.rect(Rect2(r.end.x - 4.5 * s, r.position.y + 1.2 * s, 2.0 * s, 3.4 * s), _oc(Color("5a6470"), k, light, alpha))
 	if _lights > 0.3:
-		_glow(Vector2(r.position.x + 1.5 * s + bw * 0.275, r.position.y + 2.4 * s), maxf(4.0, 7.0 * s), Color(1.0, 0.8, 0.5, 0.25 * _lights * alpha))
+		_glow_fixture(Vector2(r.position.x + 1.5 * s + bw * 0.275, r.position.y + 2.4 * s), maxf(4.0, 7.0 * s), Color(1.0, 0.8, 0.5, 0.25 * _lights * alpha))
 	signs.text(tr("TANKSTELLE"), Vector2(r.get_center().x, r.position.y - 0.15 * s), 0.6 * s, Color(1, 1, 1, alpha) if _lights > 0.3 else _oc(Color.WHITE, k, light, alpha, 1.0), bw * 0.9)
 
 
@@ -2487,7 +2993,7 @@ func _radar_cam(k: int, p: Vector3, alpha: float, light: float) -> void:
 	batch.rect(Rect2(box.position.x + 0.1 * s, box.position.y + 0.12 * s, 0.5 * s, 0.32 * s), _oc(Color("202428"), k, light, alpha))
 	var flash := float(view.get("radar_flash01", 0.0))
 	if flash > 0.05:
-		_glow(box.get_center(), maxf(6.0, 6.0 * s * flash), Color(1, 1, 1, flash * alpha))
+		_glow_fixture(box.get_center(), maxf(6.0, 6.0 * s * flash), Color(1, 1, 1, flash * alpha))
 
 
 func _booth(k: int, p: Vector3, side: int, alpha: float, light: float) -> void:
@@ -2500,7 +3006,7 @@ func _booth(k: int, p: Vector3, side: int, alpha: float, light: float) -> void:
 	var win := Color(1.0, 0.88, 0.6, alpha) if _lights > 0.3 else _oc(Color("8aaccc"), k, light, alpha)
 	batch.rect(Rect2(r.position.x + 0.3 * s, r.position.y + 0.6 * s, bw - 0.6 * s, 1.0 * s), win)
 	if _lights > 0.3:
-		_glow(r.get_center(), maxf(3.0, 2.5 * s), Color(1.0, 0.85, 0.55, 0.25 * _lights * alpha))
+		_glow_fixture(r.get_center(), maxf(3.0, 2.5 * s), Color(1.0, 0.85, 0.55, 0.25 * _lights * alpha))
 	var _unused := side
 
 
