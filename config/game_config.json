@@ -305,6 +305,8 @@
 		"finish_hold_s": 6.0,
 		"lod_detail_m": 260.0,
 		"procedural_props": "auto",
+		"_doc_glow": "glow_occlusion (v0.5.1): Lichter leuchten nur, wo ihre Quelle sichtbar ist – Fahrzeuglichter und Laternen additiv in der Malerreihenfolge, direkt nach ihrem Fahrzeug (Kuppen, Lkw, Häuser und Tunnelwände davor verdecken sie; über dem Spielerauto liegt der Lichthof wie bisher, solange die Leuchte daneben oder darüber zu sehen ist), Reflektoren, Leitpfosten, Tunnel- und Dachlampen auf der additiven Ebene, ausgeblendet nach der Sichtbarkeit ihrer Quelle (Kuppenlinie, Tunnelfenster mit Portalrahmen, Fahrzeuge und Schilder davor). false = Verhalten von v0.5.0 (alle Lichter über dem ganzen Bild, Rückfall für Grafiktreiber ohne den Shader). Siehe docs/renn-modul.md §2.",
+		"glow_occlusion": true,
 		"_doc_session": "Rennsitzung: scripted_collision_min_kmh = in geskripteten Phasen (Anhalten für Polizei/Tankstelle, Auslaufen nach dem Ziel) kollidiert der Wagen mit Verkehr, solange er schneller fährt (beim Ausrollen mit leerem Tank immer); tutorial_hint_s = Anzeigedauer eines Tutorial-Hinweises (Etappe mit tutorial: true). Leitplankentreffer (vehicle.rail_hit): Kamerawackeln rail_shake_min_s (Berühren) bis rail_shake_max_s, wenn die Untersteuer-Abdrift mit rail_shake_full_mps (vehicle.rail_impact) hineinrutscht; ab rail_flash_min_mps Abdrift zusätzlich ein kurzes Aufblitzen (der Aufprallklang gehört dem Audio-Modul).",
 		"scripted_collision_min_kmh": 30.0,
 		"tutorial_hint_s": 6.0,

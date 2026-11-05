@@ -149,6 +149,8 @@ func _build() -> void:
 	renderer = RoadRenderer.new()
 	add_child(renderer)
 	renderer.setup(track, proj, cfg, GameData.scenery)
+	if CliArgs.has("no-glow-occlusion"):
+		renderer.set_glow_occlusion(false)   # debug: lights as in v0.5.0 (A/B screenshots, docs/renn-modul.md §11)
 
 	vehicle = VehicleModel.new()
 	vehicle.setup(cfg, str(setup.get("vehicle", "limousine")))
