@@ -193,6 +193,9 @@ func _check_atlas() -> void:
 func _freeze() -> void:
 	var c: Dictionary = _cases[_ci]
 	_sc.set_physics_process(false)
+	# render interpolation (v0.6.0) draws between the last two simulation steps at Engine's fraction, which varies
+	# with the frame timing: the frozen view must show the placed state itself in every variant
+	_sc.set("_view_alpha", 1.0)
 	_sc.set("running", not bool(c.get("countdown", false)))
 	(_sc.get("hud") as CanvasItem).visible = false
 	var traffic: Object = _sc.get("traffic")
