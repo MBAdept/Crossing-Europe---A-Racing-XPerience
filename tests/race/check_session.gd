@@ -13,10 +13,12 @@ extends SceneTree
 ##   tutorial        Kiel – Hamburg shows the tutorial hints, the dev stage none (TUT-1)
 ##   rail_feedback   an understeer slide into the guardrail: speed loss, camera shake and flash (review: the hit
 ##                   showed only on the speedometer)
+##   preload         the last 25 km into Frankfurt (City Limits, buildings, landmarks, skyline, traffic): every sprite
+##                   sheet was loaded before the start, none while driving (QA v0.5.1: 13–35 ms hitches)
 ## Prints "CHECK <name> OK …" or "CHECK <name> FEHLER …" per scenario; exit code 0 when all pass.
 ## The scene is accessed untyped (this script compiles before the autoloads the scene uses).
 
-const SCENARIOS := ["coll_right", "coll_left", "coll_middle", "dry_rollout", "dry_into_lane", "finish_rollout", "refuel_chase", "tutorial", "no_tutorial", "rail_feedback"]
+const SCENARIOS := ["coll_right", "coll_left", "coll_middle", "dry_rollout", "dry_into_lane", "finish_rollout", "refuel_chase", "tutorial", "no_tutorial", "rail_feedback", "preload"]
 
 var _queue: Array[String] = []
 var _name := ""
@@ -388,3 +390,22 @@ func _tick_no_tutorial() -> void:
 	if _t > 40.0:
 		var tips: Array = (_d.get("messages", []) as Array).filter(func(m: String) -> bool: return m.begins_with("Tipp:"))
 		_done(tips.is_empty() and _sc.get("coach") == null, "andere Etappe ohne Tutorial-Hinweise (%d)" % tips.size())
+
+
+# --- QA v0.5.1: sprite sheets loaded before the start ---------------------------------------------------------
+
+func _start_preload() -> void:
+	_launch("dortmund_frankfurt", 200.0, {"autopilot": true, "from_city": "dortmund", "start_speed_kmh": 150.0})
+	var db := root.get_node("SpriteDB")
+	_d["loads0"] = int(db.get("loads"))
+	_d["pre"] = (_sc.get("preloaded_sets") as Array).size()
+
+
+func _tick_preload() -> void:
+	if bool(_sc.get("finished")) or _t > 300.0:
+		var db := root.get_node("SpriteDB")
+		var n := int(db.get("loads")) - int(_d["loads0"])
+		var log: Array = db.get("load_log")
+		var late: Array = log.slice(maxi(0, log.size() - n)) if n > 0 else []
+		_done(n == 0 and bool(_sc.get("finished")), "Dortmund – Frankfurt ab km 200: %d Blätter vorab, %d während der Fahrt nachgeladen %s" % [
+			int(_d["pre"]), n, str(late)])

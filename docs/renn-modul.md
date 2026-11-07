@@ -477,6 +477,41 @@ Zonenmeldungen → Tutorial-Hinweise → Ziel.
   `render.rail_shake_full_mps` 8 m/s), ab `render.rail_flash_min_mps` (2 m/s) zusätzlich ein kurzes orangefarbenes
   Aufblitzen (`hud.flash`) – ein Rutscher in die Leitplanke kostet bis zur Hälfte des Tempos und soll spürbar sein.
   Den Aufprallklang liefert das Audio-Modul (`rail_hit`/`rail_impact`, noch offen).
+- **Render-Interpolation** (Gamepad-/Deck-Prüfung v0.5.1): `_physics_process` merkt vor jedem Schritt den Stand
+  (`_snapshot`: Position, Querlage, Hintergrundrichtung, Zeit, Polizei-Abstand, je Verkehrsauto `prev_z`/`prev_x`);
+  `_process` zeichnet den Stand zwischen den letzten zwei Schritten beim Bruchteil
+  `Engine.get_physics_interpolation_fraction()` (`view_state()`, `SessionRules.lerp_view`; Sprünge über 30 m – neues
+  Auto – werden nicht überblendet). Ohne sie bewegte sich die Straße bei 40 fps abwechselnd um einen und zwei Schritte,
+  bei 45 fps 1-2-1, bei 90 Hz stand jedes dritte Bild still (steam-deck.md, „Bildtakt“). Die Simulation, Rangliste und
+  Autopilot sind unverändert; die Ansicht liegt höchstens einen Schritt (16,7 ms) zurück. Tests können den Bruchteil
+  mit `_view_alpha` festlegen.
+- **Lenken mit dem Stick**: `_read_input` → `player_steer()`: die Rohwerte von `steer_right`/`steer_left`
+  (`Input.get_action_raw_strength`: Tasten und Steuerkreuz jedes Pads, 1,0) und der linke Stick nur des zuletzt
+  benutzten Pads (`Input.get_joy_axis(InputMode.device, JOY_AXIS_LEFT_X)`), je Richtung der stärkere
+  (`SessionRules.pad_steer`), mit einer eigenen Kurve (`SessionRules.stick_steer`): unter `input.stick_deadzone` (0,12)
+  nichts, ab `input.stick_full` (0,92) volle Lenkung, dazwischen linear; Tasten und Steuerkreuz lenken voll wie
+  bisher. Vorher galt die Totzone 0,2 der Aktion ohne Außensättigung (30° schräg nur 83 % Lenkung). Der Stick ist an
+  keine Aktion gebunden: Als er für alle Geräte in den Lenkaktionen lag, zählte der größte Wert aller Pads – ein
+  herumliegendes zweites Pad mit 0,16 Drift lenkte 5 % (Nachprüfung v0.5.1). `InputMode.device` folgt dem zuletzt
+  benutzten Pad (Taste oder Ausschlag ≥ 0,5), auch mitten im Rennen; Autopilot und Demos lesen keine Eingaben.
+- **Vibration** (`Haptics`, `scripts/core/haptics.gd`): Kollision (Puls 0,5/0,9 für 0,35 s), Leitplankentreffer
+  (je nach Abdrift 0,12–0,35 s, stark 0,3–0,9), Schleifen an der Leitplanke, Bankett/Gras ab 30 km/h (schwacher Motor
+  0,12–0,25 nach Tempo), Untersteuern ab 0,15 (0,1 + 0,35 × Untersteuern), Radarblitz – alles `input.vibration.*`.
+  Je Schritt `update()` mit dem Dauerpegel; höchstens 15 Befehle je Sekunde an das zuletzt benutzte Gamepad
+  (`InputMode.device`), jeder gilt nur 0,25 s. Aus mit `Settings.vibration`, mit Autopilot (Demos), solange eine
+  Tastatur fährt, in der Pause, ab dem Ziel und beim Verlassen der Szene.
+- **Pause ohne Pause-Taste** (`auto_pause`): Fokusverlust (seit der Prüfung v0.5.1 auch im Countdown), das benutzte
+  Gamepad getrennt (`InputSetup.pad_disconnected` mit `in_use`, `InputMode.pad_lost`: das aktive Pad, solange ein
+  Gamepad das Eingabegerät ist, oder eines, das noch eine Taste, einen Stick oder Trigger über 0,2 hielt – das ruhende
+  Pad eines Tastaturspielers pausiert nicht; seine Eingaben gibt Godot beim Trennen selbst frei, nur seine: eine
+  gehaltene Taste und andere Pads bleiben, deshalb gibt die Rennsitzung nichts frei) und die Rückkehr aus dem
+  Standby (`SessionRules.resumed_from_sleep`: die Wanduhr sprang mehr als 2 s weiter als die monotone Uhr) – nicht mit
+  Autopilot, im Debug-Start und nach dem Ziel. Das Pausenmenü zeichnet mit `FrameCap.IDLE_FPS` (30).
+- **Sprite-Blätter vorab** (`_preload_sprites`): Spielerauto, alle Verkehrs- und Lkw/Bus-Sätze, die Polizei der
+  Länder der Etappe, `Track.sprite_sets()` (Ereignis-Requisiten, Wahrzeichen und ihre Parkbäume, Skyline, Requisiten
+  aller Landschaften der Etappe samt City Limits; fehlt ein Satz, sein `fallback`) und die Wetter-/Tageszeit-Symbole des
+  HUD. Vorher lud `SpriteDB` ein Blatt beim ersten Zeichnen mitten im Bild (13–35 ms). `preloaded_sets` listet sie,
+  `SpriteDB.loads` zählt alle Ladevorgänge (Test `check_session.gd` „preload“: keiner während der Fahrt).
 - **Polizeiwagen**: gezeichnet bei `police.police_car_offset_m()` (Animation im Gameplay-Modul). Seitlich fährt er
   eine Spur neben dem Spieler, solange er hinter oder neben ihm ist (links, wenn dort eine Spur ist, sonst rechts;
   gewählt, solange er noch außer Sicht hinter der Kamera ist), und zieht vor dem Spieler ein, sobald sein Heck frei
@@ -488,7 +523,9 @@ Abschleppstrafe, Radarwarnung, Radarfeld Anfang/Ende, geblitzt, Verfolgung, entk
 „Gute Fahrt!“, Grenze (Land + Name in Landessprache), City Limits (4 km vorher angekündigt), Tunnelname, LOS, ZIEL,
 Wetterhinweis beim Countdown (Regen, Schnee), Tutorial-Hinweise (§9a).
 Audio: Motor, Wind, Sirene (mit Abstand), Regen, Rutschen, Einzeltöne (beep je Countdown-Sekunde, go, crash, flash,
-fuel_start/fuel_done, finish). Pause: Baum pausiert, Ton stumm, Fokusverlust pausiert (nicht im Autopilot).
+fuel_start/fuel_done, finish). Pause: Baum pausiert, Ton und Vibration aus, 30 Bilder/s; Fokusverlust, das getrennte
+benutzte Gamepad und Standby pausieren auch (nicht im Autopilot). Während des Countdowns zeigt das HUD unter der
+Startampel die Pause-Taste.
 Ziel: Zeit wird eingefroren, „ZIEL!“-Meldung, Wagen rollt aus (`render.finish_decel_kmh_s`), der Spieler lenkt weiter,
 Verkehr kollidiert weiter (zählt aber nicht mehr zu `collisions` der Etappe); Ergebnis nach dem Stillstand
 oder spätestens `render.finish_hold_s`. Ergebnis-Wörterbuch unverändert (ARCHITECTURE.md §8).
@@ -603,6 +640,7 @@ Zusätzlich zu ARCHITECTURE.md §13 (`--stage --from --vehicle --hour --weather 
 | `--tutorial` | Tutorial-Hinweise auch auf anderen Etappen |
 | `--sprite-manifest=<pfad>` | weiteres Sprite-Manifest über das echte legen (`SpriteDB`, Dateipfade relativ zu ihm, `aliases` zeigen echte Sets auf andere); z. B. die Testdaten `res://tests/fixtures/sprites/manifest.json` (§8) |
 | `--no-glow-occlusion` | Lichter wie in v0.5.0: alles Leuchten über dem ganzen Bild (`render.glow_occlusion` aus, A/B-Bilder, §2) |
+| `--no-sprite-preload` | Sprite-Blätter erst beim ersten Zeichnen laden wie in v0.5.1 (A/B-Messung der Lade- und Bildzeiten); das eigene Auto wird wie in v0.5.1 trotzdem vorab geladen |
 
 `--timescale=<f>` setzt `Engine.time_scale` und die Physiktakte auf 60·f, damit jeder Schritt 1/60 s bleibt.
 Setup-Schlüssel für Tests: `no_countdown`, `autopilot_speeding`, `autopilot_refuel`, `autopilot_target`,
@@ -756,6 +794,18 @@ Spielerauto liegen, werden dort geteilt), Somport-Tunnel nachts 5,13 → 5,07 ms
 3,73 ms. Die Arbeit für die Leuchten der Fahrzeuge steckt jetzt in der Phase `w_items` (sie werden dort ausgegeben),
 `w_glow` misst nur noch die Bänder nach dem Boden. Zeichenbefehle +0–4 je Bild (Leuchten zwischen zwei Sprites
 beenden einen Befehl), im Rauschen der Läufe (±0,2–0,4 ms).
+
+Gamepad-/Deck-Prüfung v0.5.1 (headless, Editor-Binary, nur CPU; steam-deck.md „Prüfung v0.5.1“):
+
+- **Sprite-Blätter vorab** – Dortmund – Frankfurt ab km 200 (City Limits, Gebäude, Wahrzeichen, Skyline, Verkehr),
+  je zwei kalte Starts, 600 Bilder: Aufbau der Szene 1071/1069 ms → 1296/1366 ms (+0,23–0,30 s, 69 Blätter);
+  während der Fahrt nachgeladen 29 → 0 Blätter, längstes Bild 82/79 → 31/31 ms, p99 11,4/22,9 → 11,0/15,2 ms
+  (`--no-sprite-preload` für den Vergleich).
+- **Bildtakt** – Feierabendverkehr vor Frankfurt, 240 Bilder bei fester Bildrate (`--fixed-fps`, gegengeprüft mit
+  `--max-fps` in Echtzeit): ungleiche Bildpaare (Kamera-Vorschub weicht > 25 % vom vorigen ab) ohne / mit
+  Interpolation: 60 fps 0 / 0 %, 40 fps 100 / 0 %, 45 fps 67 / 0 %, 90 fps 67 / 0 %, 30 fps 0 / 0 %. Die
+  Interpolation kostet eine Schleife über die Verkehrsautos je Schritt und ein paar Rechenschritte je Auto und Bild
+  (nicht eigens gemessen).
 
 ## 14. Stellschrauben (Konfiguration)
 

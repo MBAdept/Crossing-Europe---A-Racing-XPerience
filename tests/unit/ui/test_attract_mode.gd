@@ -344,3 +344,25 @@ func test_title_backdrop_cover_fit() -> void:
 		assert_true(at_card.x > 0.5, "Menükarte rechts vom roten Auto (%s: u %.2f)" % [view, at_card.x])
 		var left := TitleBackdrop.photo_uv(Vector2(0, view.y * 0.6), view, img, 22.5)
 		assert_true(left.x < 0.18, "Auto ganz im Bild (%s: u %.2f)" % [view, left.x])
+
+
+## Gamepad / Steam Deck check v0.5.1: after attract.max_idle_s (600 s) without any input no more demos start (the
+## title stays static, the screen may sleep); the next input brings them back.
+func test_no_demos_after_long_idle() -> void:
+	var clock := FakeClock.new()
+	var a := _mode(clock)
+	a.max_idle_s = 600.0
+	a.set("_last_input", 0.0)
+	clock.t = 61.0
+	assert_true(a.idle_due(clock.t, true), "nach 60 s Leerlauf: Demo")
+	a.set("_last_activity", 500.0)   # demos ending by themselves restart the idle timer, not the input clock
+	clock.t = 599.0
+	assert_false(a.long_idle(clock.t), "599 s ohne Eingabe: noch Demos")
+	clock.t = 601.0
+	assert_true(a.long_idle(clock.t), "601 s ohne Eingabe: lange Ruhe")
+	assert_false(a.idle_due(clock.t, true), "keine Demo mehr")
+	assert_false(a.handle_input(_key(KEY_SHIFT)), "Eingabe im Leerlauf nicht verbraucht")
+	assert_false(a.long_idle(clock.t), "Eingabe: wieder wach")
+	clock.t = 662.0
+	assert_true(a.idle_due(clock.t, true), "60 s nach der Eingabe wieder eine Demo")
+	a.free()

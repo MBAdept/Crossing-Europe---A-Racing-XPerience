@@ -919,6 +919,51 @@ func near_bridge(z: float, margin_m: float) -> bool:
 	return false
 
 
+## Every sprite set the track of this stage can show: the event props (fuel station, radar cameras, customs, bridge
+## parts, ships, landmarks and their park trees), the destination's skyline and the scenery props of every scenery on
+## the stage (sections, City Limits outskirts / centre, "city"). The race session loads their sheets before the
+## start (segments are generated while driving – SpriteDB loaded a sheet when it was first drawn, a hitch in the race).
+func sprite_sets() -> Array[String]:
+	var seen := {}
+	for evs: Array in _events.values():
+		for e: Dictionary in evs:
+			seen[str(e.get("set", ""))] = true
+	for e: Dictionary in plan.skyline:
+		seen[str(e.get("set", ""))] = true
+	var sceneries := {}
+	for sec: Dictionary in plan.sections:
+		sceneries[str(sec.get("scenery", ""))] = true
+	for id: String in [plan.city_scenery_outskirts, plan.city_scenery_center, "city"]:
+		sceneries[id] = true
+	for sc: String in sceneries:
+		var d: Variant = scenery_db.get(sc, {})
+		if d is Dictionary:
+			for rule: Dictionary in (d as Dictionary).get("props", []):
+				seen[str(rule.get("set", ""))] = true
+	seen.erase("")
+	var out: Array[String] = []
+	for id: String in seen:
+		out.append(id)
+	out.sort()
+	return out
+
+
+## Fallback set of a prop set (drawn when the set itself is missing): set id -> fallback id.
+func sprite_fallbacks() -> Dictionary:
+	var out := {}
+	for evs: Array in _events.values():
+		for e: Dictionary in evs:
+			if e.has("fallback"):
+				out[str(e.get("set", ""))] = str(e["fallback"])
+	for sc: String in scenery_db:
+		var d: Variant = scenery_db[sc]
+		if d is Dictionary:
+			for rule: Dictionary in (d as Dictionary).get("props", []):
+				if rule.has("fallback"):
+					out[str(rule.get("set", ""))] = str(rule["fallback"])
+	return out
+
+
 ## Signs/props from km events, sorted by z inside the segment.
 func events_for_segment(index: int) -> Array:
 	return _events.get(index, [])

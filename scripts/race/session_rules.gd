@@ -22,6 +22,45 @@ static func weather_hint(config: Dictionary, weather: String) -> String:
 	return UiFormat.t("Regen: Bremsweg ×%s, die Lenkung reagiert träger – früher bremsen") % f
 
 
+## Steering from the raw values to the right and to the left (each 0..1: the stick's deflection, 1.0 for a key or the
+## D-pad): an own curve instead of the action's deadzone – nothing below `deadzone` (input.stick_deadzone, 0.12:
+## resting noise), linear up to full lock at `full` (input.stick_full, 0.92: a stick rarely reaches 1.0, least of
+## all diagonally). Keys and the D-pad give 1.0 and steer fully as before. QA v0.5.1: with the deadzone of 0.2 small
+## corrections did nothing (the car stayed 0.5 m beside the lane centre in 11 of 30 modelled lane changes) and a
+## full push 30° above the horizontal steered only 83 % (now 93 %).
+static func stick_steer(right_raw: float, left_raw: float, deadzone: float, full: float) -> float:
+	return stick_curve(right_raw, deadzone, full) - stick_curve(left_raw, deadzone, full)
+
+
+## The player's steering from the steer actions (Input.get_action_raw_strength of steer_right / steer_left: keys and
+## the D-pad of every pad, 1.0) and `stick_x`, the left stick of the active pad only (-1..1, race_session.gd
+## player_steer): per direction the stronger of the two, through stick_steer() – with one pad the same as before,
+## when the stick was part of the actions; another pad's stick (resting, drifting) does not count.
+static func pad_steer(right_raw: float, left_raw: float, stick_x: float, deadzone: float, full: float) -> float:
+	return stick_steer(maxf(right_raw, stick_x), maxf(left_raw, -stick_x), deadzone, full)
+
+
+static func stick_curve(raw: float, deadzone: float, full: float) -> float:
+	if raw <= deadzone:
+		return 0.0
+	return clampf((raw - deadzone) / maxf(full - deadzone, 0.01), 0.0, 1.0)
+
+
+## Render interpolation of the race view: the value between `prev` (before the last simulation step) and `cur` at
+## the fraction `a` of the frame; `cur` when there is no previous value (NAN) or it jumped more than `snap` metres
+## (a spawn, a reset – nothing sweeps across the screen).
+static func lerp_view(prev: float, cur: float, a: float, snap: float = 30.0) -> float:
+	if is_nan(prev) or absf(cur - prev) > snap:
+		return cur
+	return lerpf(prev, cur, a)
+
+
+## True when the wall clock went on more than `gap_s` further than the monotonic frame clock between two frames:
+## the device slept (standby) – a hitch or a stopped process moves both clocks alike.
+static func resumed_from_sleep(wall_dt_s: float, mono_dt_s: float, gap_s: float = 2.0) -> bool:
+	return wall_dt_s - mono_dt_s > gap_s
+
+
 ## HUD text announcing the City Limits city_limits.announce_km ahead (the advance sign stands at the same point).
 static func city_announce_text(city_name: String, km: float, limit: int) -> String:
 	return UiFormat.t("City Limits %s in %s km – Tempo %d") % [city_name, UiFormat.number(km, 1), limit]

@@ -10,7 +10,8 @@ extends RefCounted
 ## chase, City Limits, curve) jump the queue, because the situation they explain is happening right now.
 ## The texts use the configured numbers.
 ## The control hints follow the active input: with a gamepad (InputMode.gamepad at setup, e.g. on the
-## Steam Deck) only the gamepad hint, otherwise keyboard first, then gamepad.
+## Steam Deck) only the gamepad hints (stick or D-pad, triggers; then Start = pause and A / X), otherwise keyboard
+## first (with Esc = pause), then gamepad.
 ## Pure logic (no autoloads, no nodes). Owner: race module.
 
 const URGENT := ["fuel_lane", "refuel", "radar", "chase", "city", "curve", "blinker", "elephant"]
@@ -79,10 +80,13 @@ func hints_for(topic: String, args: Dictionary = {}) -> Array[String]:
 	var out: Array[String] = []
 	match topic:
 		"start":
-			if not gamepad:
+			if gamepad:
+				out.append(tr("Tipp: Stick oder Steuerkreuz lenkt, rechter Trigger Gas, linker Trigger Bremse"))
+				out.append(tr("Tipp: Start pausiert – Gas geht auch mit A, Bremse mit X"))
+			else:
 				out.append(tr("Tipp: Lenken mit den Pfeiltasten links/rechts oder A/D"))
-				out.append(tr("Tipp: Gas mit Pfeil hoch oder W, Bremse mit Pfeil runter oder S"))
-			out.append(tr("Tipp: Gamepad – Stick lenkt, rechter Trigger Gas, linker Trigger Bremse"))
+				out.append(tr("Tipp: Gas mit Pfeil hoch oder W, Bremse mit Pfeil runter oder S – Esc pausiert"))
+				out.append(tr("Tipp: Gamepad – Stick lenkt, rechter Trigger Gas, linker Trigger Bremse"))
 		"fuel_low":
 			out.append(tr("Tipp: Nur %d %% im Tank – unterwegs an der Tankstelle nachtanken!") % int(round(float(args.get("percent", 35.0)))))
 		"fuel_hud":

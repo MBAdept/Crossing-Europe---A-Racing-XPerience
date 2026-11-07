@@ -41,11 +41,13 @@ var last_setup: Dictionary = {}
 var last_result: Dictionary = {}
 var sample_mode := false
 var attract: AttractMode = null     ## attract mode: demo after a minute without input on the title (docs/ui.md)
+var title_choice := -1              ## title entry chosen last (focused again on the way back, -1 = default)
 var _history: Array[Dictionary] = []
 var _screen_name := ""
 var _screen_params: Dictionary = {}
 var _focus_sound_after := 0
 var _result_pending := false        ## the save holds PENDING_RESULT_KEY
+var _loading := false               ## start_pending_stage(): "Etappe wird geladen …" is showing
 
 
 func _ready() -> void:
@@ -53,6 +55,14 @@ func _ready() -> void:
 	attract = AttractMode.new()
 	attract.name = "AttractMode"
 	add_child(attract)
+
+
+## A window without focus (Alt+Tab, the Steam overlay where it takes the focus) draws at FrameCap.IDLE_FPS.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		FrameCap.hold("focus", true)
+	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
+		FrameCap.hold("focus", false)
 
 
 ## Central config leaderboard.default_filter: applies while the player has not picked a filter in the
@@ -319,11 +329,29 @@ func stage_setup() -> Dictionary:
 	return s
 
 
+## "Start" on the stage screen: shows "Etappe wird geladen …" over the screen for two frames (it is drawn), then
+## builds the race scene – loading a stage takes 0.3–0.8 s here (more on a Steam Deck) and froze the menu without
+## any feedback (QA v0.5.1). A second press while it loads does nothing.
 func start_pending_stage() -> void:
 	if sample_mode:
 		AudioManager.play("go")
 		return
-	start_stage(stage_setup())
+	if _loading:
+		return
+	_loading = true
+	var setup := stage_setup()
+	var screen: Variant = shell.current_screen if shell != null and is_instance_valid(shell) else null
+	if screen is Control and (screen as Control).is_inside_tree():
+		var overlay := LoadingOverlay.new()
+		(screen as Control).add_child(overlay)
+		get_viewport().gui_release_focus()
+		await get_tree().process_frame
+		await get_tree().process_frame
+		if not is_instance_valid(screen) or shell == null or shell.current_screen != screen:
+			_loading = false   # the screen went away in the meantime (nothing to start from)
+			return
+	_loading = false
+	start_stage(setup)
 
 
 func _on_stage_finished(result: Dictionary) -> void:

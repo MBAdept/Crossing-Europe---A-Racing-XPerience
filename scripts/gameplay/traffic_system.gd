@@ -86,6 +86,11 @@ class Car:
 	var elephant_t := -1.0
 	## Seconds until a heavy vehicle that gave up an Elefantenrennen tries again (traffic.elephant.retry_s).
 	var elephant_cool := 0.0
+	# --- render interpolation (gamepad / Steam Deck check of v0.5.1) ---
+	## Position before the last simulation step (set by the race session; NAN = new car): the view interpolates
+	## between it and z / x (render interpolation, docs/renn-modul.md).
+	var prev_z := NAN
+	var prev_x := NAN
 
 
 const FUEL_LANE := 99

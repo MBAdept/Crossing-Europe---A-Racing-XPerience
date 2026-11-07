@@ -1,9 +1,13 @@
 class_name NameEntryBox
 extends Control
 ## Modal on-screen keyboard for a name (gamepad without a keyboard, e.g. Steam Deck): dimmed backdrop,
-## panel with a title and a NameEntry. A on "OK" or in the field takes the name (`submitted`, may be
-## empty), B deletes the last character (NameEntry), keyboard Esc closes without a change
-## (`cancelled`). The box frees itself after an answer. Used by the options screen (player name).
+## panel with a title and a NameEntry. A on "OK", A or Start in the field take the name (`submitted`; OK
+## may take an empty one), B deletes the last character (NameEntry) and closes without a change once the
+## field is empty, like keyboard Esc (`cancelled`). The hints in the box follow the focus (NameEntry
+## hints_changed: "Tippen" / "Eintragen", "Löschen" / "Schließen"). The box frees itself after an answer.
+## Used by the options screen (player name).
+
+signal hints_changed(hints: Array)
 
 signal submitted(player_name: String)
 signal cancelled
@@ -19,7 +23,11 @@ func _init(p_title: String = "", p_initial: String = "") -> void:
 	initial = p_initial
 	entry = NameEntry.new(initial)
 	entry.alignment = BoxContainer.ALIGNMENT_CENTER
+	entry.can_close = true
 	entry.submitted.connect(func(_n: String) -> void: answer(true))
+	entry.close_requested.connect(func() -> void:
+		UiKit.sound("ui_back")
+		answer(false))
 
 
 func _ready() -> void:
@@ -47,10 +55,13 @@ func _ready() -> void:
 	box.add_child(UiKit.label(title_text.to_upper(), UiTheme.F.TITLE, 30, UiTheme.ACCENT_2, HORIZONTAL_ALIGNMENT_CENTER))
 	box.add_child(entry)
 	# the screen's footer is dimmed behind the box: the hints of the entry inside it
-	var keys := KeyHints.new(NameEntry.key_hints())
+	var keys := KeyHints.new(entry.current_hints())
 	keys.align = HORIZONTAL_ALIGNMENT_CENTER
-	keys.custom_minimum_size = Vector2(500, 34)
+	keys.custom_minimum_size = Vector2(600, 34)   # with a keyboard the row is ~590 px wide
 	box.add_child(keys)
+	entry.hints_changed.connect(func(h: Array) -> void:
+		keys.set_hints(h)
+		hints_changed.emit(h))
 	entry.focus_line.call_deferred()
 
 

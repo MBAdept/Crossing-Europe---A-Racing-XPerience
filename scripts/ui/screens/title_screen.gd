@@ -6,14 +6,18 @@ extends UiScreen
 ## starten, Rennen fortsetzen, Einzelne Etappe, Bestenlisten, Optionen, Beenden) and the description of the
 ## focused entry sit on a frosted-glass card (GlassPanel) over the right side of the road, where the picture
 ## matters least. After a minute without input the attract mode shows a demo (AttractMode, GameFlow).
+## "Beenden" asks first (ConfirmBox, "Abbrechen" focused – one A too many on the Steam Deck ended the game). Coming
+## back from Einzelne Etappe, Bestenlisten or Optionen, that entry has the focus again (GameFlow.title_choice).
 
 const LOGO_RIGHT := 1236.0
 const CARD := Rect2(846, 244, 390, 414)
 const CARD_PAD := Vector2(26, 20)
+## Entries the title focuses again on the way back (GameFlow.title_choice): Einzelne Etappe, Bestenlisten, Optionen.
+const REMEMBERED := [2, 3, 4]
 
 var _desc: Label
 var _buttons: Array[Button] = []
-var confirm_box: ConfirmBox          ## open "overwrite the saved race?" question (null if none)
+var confirm_box: ConfirmBox          ## open question – overwrite the saved race / quit (null if none)
 
 
 func build() -> void:
@@ -34,8 +38,8 @@ func build() -> void:
 		[tr("Rennen fortsetzen"), _save_text(), GameFlow.continue_race, has_save],
 		[tr("Einzelne Etappe"), tr("Eine Etappe frei wählen: Richtung, Uhrzeit und Wetter."), GameFlow.single_stage, true],
 		[tr("Bestenlisten"), tr("Top 10 aller Etappen und Rennen."), func() -> void: GameFlow.go("leaderboards"), true],
-		[tr("Optionen"), tr("Lautstärke, Vollbild, Spielername und Steuerung."), func() -> void: GameFlow.go("options"), true],
-		[tr("Beenden"), tr("Zurück auf den Boden der Tatsachen."), GameFlow.quit_game, true],
+		[tr("Optionen"), tr("Lautstärke, Vollbild, Vibration, Spielername und Steuerung."), func() -> void: GameFlow.go("options"), true],
+		[tr("Beenden"), tr("Zurück auf den Boden der Tatsachen."), _quit, true],
 	]
 	for it in items:
 		var b := UiKit.button(str(it[0]), 24)
@@ -45,6 +49,8 @@ func build() -> void:
 		if b.disabled:
 			b.focus_mode = Control.FOCUS_NONE
 		var cb: Callable = it[2]
+		var index := _buttons.size()
+		b.pressed.connect(func() -> void: GameFlow.title_choice = remembered_choice(index))
 		b.pressed.connect(cb)
 		var d := str(it[1])
 		b.focus_entered.connect(func() -> void: _desc.text = d)
@@ -63,8 +69,21 @@ func build() -> void:
 	_desc.custom_minimum_size = Vector2(0, 48)
 	content.add_child(_desc)
 	default_focus = _buttons[1] if has_save else _buttons[0]
+	# back from Einzelne Etappe, Bestenlisten or Optionen: that entry again; after a race the race entries decide
+	# by the save as before (a race in progress: "Rennen fortsetzen")
+	var last := GameFlow.title_choice
+	if REMEMBERED.has(last) and last < _buttons.size() and not _buttons[last].disabled:
+		default_focus = _buttons[last]
 	var ver := UiKit.label("v" + str(ProjectSettings.get_setting("application/config/version", "0.1")), UiTheme.F.MONO, 18, UiTheme.TEXT_MUTED, HORIZONTAL_ALIGNMENT_RIGHT)
 	UiKit.place(self, ver, Rect2(1036, 684, 200, 24))
+
+
+## What GameFlow.title_choice keeps when the entry `index` is chosen: Einzelne Etappe, Bestenlisten and Optionen are
+## focused again on the way back; any other entry clears it (-1 = default focus) – the race entries leave the focus to
+## the save (a race in progress: "Rennen fortsetzen"), and "Beenden" is not remembered: after a cancelled quit
+## question every later title (back from a screen, after an attract demo) focused "Beenden" (QA v0.5.1 review).
+static func remembered_choice(index: int) -> int:
+	return index if REMEMBERED.has(index) else -1
 
 
 ## Logo over the sky at the top right: soft dark halo behind it, chrome gradient text, cyan tagline.
@@ -125,6 +144,14 @@ func _new_race() -> void:
 		tr("Gespeichert: %s\nEin neues Rennen ersetzt diesen Spielstand, sobald du seine Startzeit bestätigst.") % _save_text(),
 		tr("Neues Rennen"), tr("Abbrechen"))
 	confirm_box.confirmed.connect(GameFlow.new_race)
+	add_child(confirm_box)
+
+
+## "Beenden": quit after a question – the race in progress and the leaderboards are saved anyway (after every stage).
+func _quit() -> void:
+	confirm_box = ConfirmBox.new(tr("Spiel beenden?"),
+		tr("Rennstand, Bestenlisten und Einstellungen bleiben gespeichert."), tr("Beenden"), tr("Abbrechen"))
+	confirm_box.confirmed.connect(GameFlow.quit_game)
 	add_child(confirm_box)
 
 

@@ -19,6 +19,7 @@ var _board := ""
 var _entry: Dictionary = {}
 var _legs_scroll: ScrollContainer
 var _leg_table: Control
+var _name_entry: NameEntry
 
 
 func build() -> void:
@@ -80,10 +81,12 @@ func build() -> void:
 		var ne := NameEntry.new(str(Settings.player_name))
 		ne.alignment = BoxContainer.ALIGNMENT_CENTER
 		ne.submitted.connect(_on_name)
+		ne.hints_changed.connect(set_hints)   # "Tippen" on the keys, "Eintragen" in the field
+		_name_entry = ne
 		_right.add_child(ne)
 		_done.visible = false
 		default_focus = ne.line
-		hints = NameEntry.key_hints()
+		hints = ne.current_hints()
 	else:
 		GameFlow.finish_race()   # nothing to enter: the race is complete, the save can go
 		_board_view("", 0)
@@ -93,7 +96,9 @@ func build() -> void:
 
 
 func _on_name(player_name: String) -> void:
-	GameFlow.remember_player_name(player_name)
+	# "Unbekannt" (OK on an empty field) goes into the list, but is not remembered as the player's name
+	if _name_entry == null or _name_entry.typed_name() != "":
+		GameFlow.remember_player_name(player_name)
 	_entry["name"] = player_name
 	UiData.submit(_board, _entry)
 	GameFlow.finish_race()   # entry stored -> the save game is no longer needed
@@ -139,9 +144,9 @@ func _input(event: InputEvent) -> void:
 	if _legs_scroll == null or _done == null or not _done.visible or get_viewport().gui_get_focus_owner() != _done:
 		return
 	var d := 0
-	if event.is_action_pressed("ui_down", true):
+	if UiKit.ui_step(event, "ui_down"):
 		d = 1
-	elif event.is_action_pressed("ui_up", true):
+	elif UiKit.ui_step(event, "ui_up"):
 		d = -1
 	if d != 0:
 		_legs_scroll.scroll_vertical += int(d * LEG_ROW_H * 2.0)

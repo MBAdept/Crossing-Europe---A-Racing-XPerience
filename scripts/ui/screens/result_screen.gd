@@ -9,6 +9,7 @@ var _right: VBoxContainer
 var _next: Button
 var _board := ""
 var _entry: Dictionary = {}
+var _name_entry: NameEntry
 
 
 func build() -> void:
@@ -92,10 +93,12 @@ func build() -> void:
 		var ne := NameEntry.new(str(Settings.player_name))
 		ne.alignment = BoxContainer.ALIGNMENT_CENTER
 		ne.submitted.connect(_on_name)
+		ne.hints_changed.connect(set_hints)   # "Tippen" on the keys, "Eintragen" in the field
+		_name_entry = ne
 		_right.add_child(ne)
 		_next.visible = false
 		default_focus = ne.line
-		hints = NameEntry.key_hints()
+		hints = ne.current_hints()
 	else:
 		_show_board("", 0)
 		default_focus = _next
@@ -108,7 +111,9 @@ static func next_start_caption(config: Dictionary) -> String:
 
 
 func _on_name(player_name: String) -> void:
-	GameFlow.remember_player_name(player_name)
+	# "Unbekannt" (OK on an empty field) goes into the list, but is not remembered as the player's name
+	if _name_entry == null or _name_entry.typed_name() != "":
+		GameFlow.remember_player_name(player_name)
 	_entry["name"] = player_name
 	UiKit.sound("finish")
 	UiData.submit(_board, _entry)

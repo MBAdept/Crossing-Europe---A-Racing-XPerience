@@ -56,10 +56,10 @@ func build() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_left", true):
+	if UiKit.ui_step(event, "ui_left"):
 		_switch(-1)
 		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("ui_right", true):
+	elif UiKit.ui_step(event, "ui_right"):
 		_switch(1)
 		get_viewport().set_input_as_handled()
 

@@ -68,13 +68,13 @@ static func start_note(c: Dictionary) -> String:
 
 func _input(event: InputEvent) -> void:
 	var d := 0
-	if event.is_action_pressed("ui_left", true):
+	if UiKit.ui_step(event, "ui_left"):
 		d = -1
-	elif event.is_action_pressed("ui_right", true):
+	elif UiKit.ui_step(event, "ui_right"):
 		d = 1
-	elif event.is_action_pressed("ui_up", true):
+	elif UiKit.ui_step(event, "ui_up"):
 		d = _per_hour
-	elif event.is_action_pressed("ui_down", true):
+	elif UiKit.ui_step(event, "ui_down"):
 		d = -_per_hour
 	if d != 0:
 		_step(d)
