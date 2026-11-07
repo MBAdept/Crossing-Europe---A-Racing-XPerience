@@ -354,8 +354,8 @@ func test_pad_disconnect_counts_only_a_pad_in_use() -> void:
 	var setup: Node = load("res://scripts/core/input_setup.gd").new()
 	var got: Array = []
 	setup.connect("pad_disconnected", func(d: int, in_use: bool) -> void: got.append([d, in_use]))
-	InputMode.gamepad = true
-	InputMode.device = 5
+	InputMode.note(_pad(JOY_BUTTON_A, 5))         # pad 5 is used: the active pad
+	InputMode.note(_pad(JOY_BUTTON_A, 5, false))
 	setup.call("_on_joy_connection_changed", 5, false)
 	setup.call("_on_joy_connection_changed", 6, true)
 	assert_eq(got, [[5, true]], "Trennen des aktiven Pads gemeldet, Verbinden nicht")
@@ -363,6 +363,44 @@ func test_pad_disconnect_counts_only_a_pad_in_use() -> void:
 	InputMode.device = old_dev
 	InputMode.gamepad = old_pad
 	InputMode._held = old_held
+
+
+## A pad steers by its stick only once it was used since it connected (InputMode.stick_device): a keyboard player's only
+## pad lying around with a drifting stick steers nothing (review v0.6.0: InputSetup._ready makes the first connected
+## pad the active one), and a pad that reconnects by itself and drops again does not pause the race unless it was used
+## in between.
+func test_unused_pad_neither_steers_nor_pauses() -> void:
+	_ensure_input_map()
+	var old_dev := InputMode.device
+	var old_pad := InputMode.gamepad
+	var old_used: Dictionary = InputMode._used.duplicate()
+	var old_held: Dictionary = InputMode._held.duplicate(true)
+	var dz := 0.12
+	var full := 0.92
+	InputMode.pad_connected(7)
+	InputMode.device = 7            # the first connected pad (InputSetup._ready)
+	InputMode.gamepad = true
+	_feed(_axis(JOY_AXIS_LEFT_X, 0.18, 7))     # drift, below the use threshold
+	assert_false(InputMode.used(7), "Drift zählt nicht als Benutzung")
+	assert_eq(InputMode.stick_device(), -1, "unbenutztes Pad: kein Lenk-Stick")
+	assert_eq(RaceScript.player_steer(dz, full), 0.0, "Drift 0,18 eines unbenutzten Pads lenkt nicht")
+	_feed(_key(KEY_RIGHT))
+	assert_near(RaceScript.player_steer(dz, full), 1.0, 0.001, "Tastatur lenkt weiter voll")
+	_feed(_key(KEY_RIGHT, false))
+	_feed(_pad(JOY_BUTTON_A, 7))
+	_feed(_pad(JOY_BUTTON_A, 7, false))
+	assert_eq(InputMode.stick_device(), 7, "nach A: das Pad lenkt")
+	assert_true(RaceScript.player_steer(dz, full) > 0.0, "benutztes Pad: sein Stick lenkt")
+	# it reconnects by itself (Bluetooth): unused again, dropping once more pauses nothing
+	InputMode.pad_connected(7)
+	assert_eq(InputMode.stick_device(), -1, "neu verbunden: wieder unbenutzt")
+	assert_eq(RaceScript.player_steer(dz, full), 0.0, "neu verbunden: der Stick lenkt erst nach Benutzung")
+	assert_false(InputMode.pad_lost(7, []), "wieder getrennt, ohne benutzt worden zu sein: keine Pause")
+	_feed(_axis(JOY_AXIS_LEFT_X, 0.0, 7))
+	InputMode._used = old_used
+	InputMode._held = old_held
+	InputMode.device = old_dev
+	InputMode.gamepad = old_pad
 
 
 ## The title focuses Einzelne Etappe, Bestenlisten or Optionen again on the way back (GameFlow.title_choice) – nothing

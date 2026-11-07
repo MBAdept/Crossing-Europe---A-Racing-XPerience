@@ -263,7 +263,7 @@ muss auf dem Gerät gemessen werden.
 
 ### Nachprüfung der Änderungen
 
-Eine Durchsicht der Änderungen fand sieben kleinere Punkte (alle niedrig); behoben vor v0.6.0, geprüft mit
+Zwei Durchsichten der Änderungen fanden acht kleinere Punkte (alle niedrig); behoben vor v0.6.0, geprüft mit
 `test_gamepad.gd` und `check_menu_pad.gd` (Prüfungen `drift`, `trennen`, `beenden`; gegen den Stand davor schlagen alle
 drei fehl).
 
@@ -274,6 +274,7 @@ drei fehl).
 | Titel merkte sich „Beenden“: nach einer abgebrochenen Abfrage stand jeder spätere Titel, auch nach einer Demo, auf „Beenden“ | nur Einzelne Etappe, Bestenlisten und Optionen werden gemerkt (`TitleScreen.remembered_choice`) | nach dem Abbrechen: Titel auf dem Standardeintrag |
 | Fußzeilen von Einzelne Etappe und Bestenlisten: „LB RB Seite“ ohne Tasten, obwohl Bild ↑/↓ blättern | mit Tastatur „Bild↑ Bild↓ LB RB Seite“ (Tastenkappen mit gezeichnetem Pfeil – die Schriften haben keine Pfeile), mit Gamepad „LB RB Seite“ | Breite mit Tastatur 822 / 670 px, mit Gamepad 594 / 492 px von 1152 px; Screenshots bei 1280×720 und 1280×800 |
 | Vollbild: Dateien von v0.5.0/v0.5.1 enthielten „fullscreen“ immer – ein einmal angedockt gespeichertes „Aus“ galt als Wahl, der Deck startete im Spielmodus weiter im Fenster | `settings_version` 2; ohne Version zählt nur ein gespeichertes „An“ als Wahl | Unit-Test mit Dateien beider Fassungen |
+| Ein unbenutztes Pad (das einzige oder erste neben einem Tastaturspieler; eines, das sich von selbst neu verbindet) lenkte mit seinem Drift und pausierte beim erneuten Trennen das Rennen | Ein Pad gilt erst als benutzt, wenn seit dem Verbinden eine Taste oder ein Ausschlag ≥ 0,5 kam (`InputMode.used`, `stick_device`, `pad_connected`); erst dann lenkt sein Stick und erst dann pausiert sein Trennen | Drift 0,18 eines unbenutzten Pads → Lenkung 0; nach A lenkt es; neu verbunden und wieder getrennt ohne Benutzung: keine Pause (`test_unused_pad_neither_steers_nor_pauses`) |
 | Kleinigkeiten: Beschreibung von „Optionen“ im Titel ohne Vibration; `--no-sprite-preload` lud anders als v0.5.1 auch das eigene Auto nicht vor; ein Doku-Kommentar in `track.gd` stand über der falschen Funktion | „Lautstärke, Vollbild, Vibration, Spielername und Steuerung.“; das eigene Auto wird immer vorab geladen; Kommentar zurück an `events_for_segment` | – |
 
 ### Bildtakt

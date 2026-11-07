@@ -73,6 +73,7 @@ func _process(delta: float) -> void:
 ## the mode changes and reported to the race (pad_disconnected).
 func _on_joy_connection_changed(device: int, connected: bool) -> void:
 	if connected:
+		InputMode.pad_connected(device)   # unused until pressed: no steering by its stick, no pause when it drops again
 		InputMode.gamepad = true
 		return
 	pad_disconnected.emit(device, InputMode.pad_lost(device, Input.get_connected_joypads()))

@@ -550,9 +550,13 @@ func _read_input() -> Dictionary:
 ## the left stick of the active gamepad only (InputMode.device – the pad used last, it follows a switch of pads in the
 ## race) through the stick curve (SessionRules.pad_steer). With every pad's stick in the actions, a resting second pad
 ## with a drifting stick (0.13–0.2, above the deadzone 0.12) steered (QA v0.5.1 review).
+## Only a pad used since it connected steers by its stick (InputMode.stick_device()): a keyboard player's resting pad with
+## a drifting stick steers nothing (review v0.6.0).
 static func player_steer(deadzone: float, full: float) -> float:
+	var dev := InputMode.stick_device()
+	var stick := Input.get_joy_axis(dev, JOY_AXIS_LEFT_X) if dev >= 0 else 0.0
 	return SessionRules.pad_steer(Input.get_action_raw_strength("steer_right"), Input.get_action_raw_strength("steer_left"),
-		Input.get_joy_axis(InputMode.device, JOY_AXIS_LEFT_X), deadzone, full)
+		stick, deadzone, full)
 
 
 func road_info(z: float) -> Dictionary:
