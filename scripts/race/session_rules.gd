@@ -22,14 +22,22 @@ static func weather_hint(config: Dictionary, weather: String) -> String:
 	return UiFormat.t("Regen: Bremsweg ×%s, die Lenkung reagiert träger – früher bremsen") % f
 
 
-## Steering from the raw stick / D-pad / key values of steer_right and steer_left (Input.get_action_raw_strength,
-## each 0..1): an own curve instead of the action's deadzone – nothing below `deadzone` (input.stick_deadzone, 0.12:
+## Steering from the raw values to the right and to the left (each 0..1: the stick's deflection, 1.0 for a key or the
+## D-pad): an own curve instead of the action's deadzone – nothing below `deadzone` (input.stick_deadzone, 0.12:
 ## resting noise), linear up to full lock at `full` (input.stick_full, 0.92: a stick rarely reaches 1.0, least of
 ## all diagonally). Keys and the D-pad give 1.0 and steer fully as before. QA v0.5.1: with the deadzone of 0.2 small
 ## corrections did nothing (the car stayed 0.5 m beside the lane centre in 11 of 30 modelled lane changes) and a
 ## full push 30° above the horizontal steered only 83 % (now 93 %).
 static func stick_steer(right_raw: float, left_raw: float, deadzone: float, full: float) -> float:
 	return stick_curve(right_raw, deadzone, full) - stick_curve(left_raw, deadzone, full)
+
+
+## The player's steering from the steer actions (Input.get_action_raw_strength of steer_right / steer_left: keys and
+## the D-pad of every pad, 1.0) and `stick_x`, the left stick of the active pad only (-1..1, race_session.gd
+## player_steer): per direction the stronger of the two, through stick_steer() – with one pad the same as before,
+## when the stick was part of the actions; another pad's stick (resting, drifting) does not count.
+static func pad_steer(right_raw: float, left_raw: float, stick_x: float, deadzone: float, full: float) -> float:
+	return stick_steer(maxf(right_raw, stick_x), maxf(left_raw, -stick_x), deadzone, full)
 
 
 static func stick_curve(raw: float, deadzone: float, full: float) -> float:

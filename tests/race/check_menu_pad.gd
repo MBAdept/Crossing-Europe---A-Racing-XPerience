@@ -12,9 +12,14 @@ extends SceneTree
 ##   tippen       options: the name field reached with the D-pad takes typed keys (Steam keyboard / PC keyboard)
 ##   tastatur     options: A opens the on-screen keyboard, B deletes one character, B in the empty field closes it,
 ##                the name is unchanged
-##   beenden      title: "Beenden" asks first (the game keeps running), B cancels
-##   rennen       race: RT and the stick of device 1 drive, Start (device 1) pauses; a disconnected pad pauses; a
-##                collision vibrates the pad, the pause stops it; the view is interpolated between two steps
+##   beenden      title: "Beenden" asks first (the game keeps running), B cancels; the title is not left on
+##                "Beenden" afterwards (GameFlow.title_choice)
+##   rennen       race: RT and the stick of device 1 drive, Start (device 1) pauses; a collision vibrates the pad, the
+##                pause stops it; the view is interpolated between two steps
+##   drift        race: pad 0 lies around with a drifting stick (0.16) while pad 1 drives – no steering; a clear push
+##                on pad 0 takes the steering over (InputMode.device), pad 1 takes it back
+##   trennen      race: a keyboard player's idle pad disconnected – no pause, the held key keeps its throttle; a pad
+##                still holding RT – pause, the key's throttle stays; the active pad – pause (InputSetup.pad_disconnected)
 ## Prints "CHECK <name> OK|FEHLER …"; exit code 0 when all pass. Settings go to a test file (user://), which is
 ## removed afterwards. Autoloads are accessed untyped (this script compiles before they exist).
 
@@ -101,6 +106,18 @@ func _flick(a: JoyAxis, sign_: float) -> void:
 		_axis(a, v * sign_)
 		await process_frame
 	await _frames(4)
+
+
+func _key_state(code: Key, pressed: bool) -> void:
+	var e := InputEventKey.new()
+	e.keycode = code
+	e.physical_keycode = code
+	e.pressed = pressed
+	_send(e)
+
+
+func _steer(sc: Node) -> float:
+	return float((sc.get("last_input") as Dictionary).get("steer", 0.0))
 
 
 func _key(code: Key, ch: String = "") -> void:
@@ -286,7 +303,12 @@ func _check_quit() -> void:
 	await _tap(JOY_BUTTON_B)
 	await _frames(4)
 	var gone := not bool(title.call("has_modal"))
-	_check("beenden", asked and gone, "Abfrage vor dem Beenden (%s), B bricht ab (%s)" % [asked, gone])
+	var choice := int(_gf.get("title_choice"))
+	var again: Node = await _go("title")   # like the title after an attract demo
+	var again_buttons: Array = again.get("_buttons")
+	var on_quit: bool = _focus() == again_buttons[again_buttons.size() - 1]
+	_check("beenden", asked and gone and choice == -1 and not on_quit,
+		"Abfrage vor dem Beenden (%s), B bricht ab (%s), gemerkte Wahl %d, neuer Titel auf „Beenden“ %s" % [asked, gone, choice, on_quit])
 
 
 func _check_race() -> void:
@@ -299,29 +321,65 @@ func _check_race() -> void:
 	if sc == null or sc.get("plan") == null:
 		_check("rennen", false, "Rennszene fehlt")
 		return
-	# device 1 drives
+	# device 1 drives; pad 0 lies around with a drifting stick – only the active pad's stick steers
+	var im: GDScript = load("res://scripts/core/input_mode.gd")
+	_axis(JOY_AXIS_LEFT_X, 0.16, 0)
 	_axis(JOY_AXIS_TRIGGER_RIGHT, 1.0, 1)
+	await _wait(0.2)
+	var drift := _steer(sc)
 	_axis(JOY_AXIS_LEFT_X, 1.0, 1)
 	await _wait(0.4)
 	var inp: Dictionary = sc.get("last_input")
 	var steer := float(inp.get("steer", 0.0))
 	var throttle := float(inp.get("throttle", 0.0))
+	# switching pads in the race: a clear push on pad 0 takes the steering over, pad 1 takes it back
+	_axis(JOY_AXIS_LEFT_X, -1.0, 0)
+	await _frames(4)
+	var steer_pad0 := _steer(sc)
+	var dev_pad0 := int(im.get("device"))
+	_axis(JOY_AXIS_LEFT_X, 0.16, 0)
+	_axis(JOY_AXIS_LEFT_X, 0.6, 1)
+	await _frames(4)
+	var steer_back := _steer(sc)
+	_check("drift", absf(drift) < 0.001 and dev_pad0 == 0 and steer_pad0 < -0.99 and absf(steer_back - 0.6) < 0.01,
+		"Pad 0 driftet 0,16, Pad 1 fährt: Lenkung %.3f (vorher 0,05); Pad 0 übernimmt (Gerät %d): %.2f; Pad 1 zurück: %.2f" % [
+			drift, dev_pad0, steer_pad0, steer_back])
 	_axis(JOY_AXIS_LEFT_X, 0.0, 1)
 	await _tap(JOY_BUTTON_START, 1)
 	var was_paused := paused
 	await _wait(0.2)   # the pause menu ignores input in its first 120 ms
 	await _tap(JOY_BUTTON_START, 1)
 	var resumed := not paused
-	# pad disconnected: the race pauses, held axes are released
-	sc.call("_on_joy_connection_changed", 1, false)
+	# pads disconnected (the engine releases the pad's own state itself – here only the signal, through InputSetup):
+	# a keyboard player's idle pad 0 – no pause, the held key keeps its throttle
+	var input_setup := root.get_node("InputSetup")
+	_key_state(KEY_UP, true)
 	await _frames(2)
-	var paused_dc := paused
-	var throttle_released := Input.get_action_strength("accelerate") == 0.0
+	input_setup.call("_on_joy_connection_changed", 0, false)
+	await _frames(2)
+	var idle_paused := paused
+	var idle_gas := Input.get_action_strength("accelerate")
+	# pad 1 still holds RT while the keyboard drives: pause; once the engine dropped the pad, the key still gives gas
+	input_setup.call("_on_joy_connection_changed", 1, false)
+	await _frames(2)
+	var held_paused := paused
+	_axis(JOY_AXIS_TRIGGER_RIGHT, 0.0, 1)   # what the engine forgot with the pad
+	var key_gas := Input.get_action_strength("accelerate")
 	sc.call("_on_resume")
-	_axis(JOY_AXIS_TRIGGER_RIGHT, 0.0, 1)
+	_key_state(KEY_UP, false)
 	await _frames(4)
+	# the active pad (A on pad 1, nothing held any more): pause
+	await _tap(JOY_BUTTON_A, 1)
+	input_setup.call("_on_joy_connection_changed", 1, false)
+	await _frames(2)
+	var active_paused := paused
+	sc.call("_on_resume")
+	await _frames(4)
+	_check("trennen", not idle_paused and idle_gas == 1.0 and held_paused and key_gas == 1.0 and active_paused,
+		"ruhendes Pad (Tastatur fährt): Pause %s, Gas %.2f; Pad hält RT: Pause %s, Gas der Taste %.2f; aktives Pad: Pause %s" % [
+			idle_paused, idle_gas, held_paused, key_gas, active_paused])
+	_axis(JOY_AXIS_LEFT_X, 0.0, 0)
 	# a collision vibrates the pad in use, the pause stops it
-	var im: GDScript = load("res://scripts/core/input_mode.gd")
 	im.set("gamepad", true)
 	im.set("device", 1)
 	var haptics: Object = sc.get("haptics")
@@ -340,8 +398,8 @@ func _check_race() -> void:
 	var cur_z := float(sc.get("pos_z"))
 	var mid_ok := absf(float(vs["pos_z"]) - (prev_z + cur_z) * 0.5) < 0.001 and cur_z > prev_z
 	sc.set("_view_alpha", -1.0)
-	_check("rennen", steer > 0.9 and throttle > 0.9 and was_paused and resumed and paused_dc and throttle_released and vib.y > 0.5 and vib_stop == Vector2.ZERO and mid_ok,
-		"Gerät 1: Lenkung %.2f, Gas %.2f, Start pausiert %s / weiter %s; Gamepad getrennt: Pause %s, Gas losgelassen %s; Kollision: Vibration %s, Pause: %s; Ansicht halb zwischen zwei Schritten %s" % [
-			steer, throttle, was_paused, resumed, paused_dc, throttle_released, str(vib), str(vib_stop), mid_ok])
+	_check("rennen", steer > 0.9 and throttle > 0.9 and was_paused and resumed and vib.y > 0.5 and vib_stop == Vector2.ZERO and mid_ok,
+		"Gerät 1: Lenkung %.2f, Gas %.2f, Start pausiert %s / weiter %s; Kollision: Vibration %s, Pause: %s; Ansicht halb zwischen zwei Schritten %s" % [
+			steer, throttle, was_paused, resumed, str(vib), str(vib_stop), mid_ok])
 	_gf.call("show_title")
 	await _frames(6)

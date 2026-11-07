@@ -2,7 +2,8 @@ class_name KeyHints
 extends Control
 ## Footer with input hints, keyboard keycaps and gamepad buttons side by side:
 ##   hints = [[["Enter", "pad:A"], "Auswählen"], [["Esc", "pad:B"], "Zurück"], [["lr"], "Ändern"]]
-## Special key names: "lr" / "ud" (arrow pairs), "left" / "right" / "up" / "down" (single arrows),
+## Special key names: "lr" / "ud" (arrow pairs), "left" / "right" / "up" / "down" (single arrows), "pgup" / "pgdn"
+## (PageUp / PageDown as on a German keyboard: "Bild" with a drawn arrow – the fonts have no arrow glyphs),
 ## "pad:A|B|X|Y|LB|RB|LT|RT|LS|RS|Start", "dpad:<directions>" (D-pad with the arms u/d/l/r lit).
 ## While a gamepad is the active input (InputMode.gamepad) only gamepad glyphs are drawn
 ## (visible_hints()); a key press switches back to keycaps and pad buttons side by side.
@@ -13,6 +14,9 @@ const PAD_COLORS := {"A": Color("3fbf5f"), "B": Color("e0434f"), "X": Color("3b7
 const ARROWS := {"left": Vector2(-1, 0), "right": Vector2(1, 0), "up": Vector2(0, -1), "down": Vector2(0, 1)}
 const ARROW_DIRS := {"left": "l", "right": "r", "up": "u", "down": "d", "lr": "lr", "ud": "ud"}
 const STICKS := ["LS", "RS"]
+## PageUp / PageDown keycaps: the direction of the drawn arrow (screen y) after the key's label.
+const PAGE_KEYS := {"pgup": -1.0, "pgdn": 1.0}
+const PAGE_LABEL := "Bild"
 
 var hints: Array = []
 var align := HORIZONTAL_ALIGNMENT_LEFT
@@ -73,12 +77,23 @@ func _key_width(k: String) -> float:
 
 
 func _total_width(shown: Array) -> float:
+	return row_width(shown, _font, _font_bold)
+
+
+## Width of the drawn hints `shown` (keys with their gaps, labels and the space after each hint).
+static func row_width(shown: Array, font: Font, font_bold: Font) -> float:
 	var w := 0.0
 	for h in shown:
 		for k in h[0]:
-			w += _key_width(str(k)) + 4.0
-		w += _font.get_string_size(str(h[1]), HORIZONTAL_ALIGNMENT_LEFT, -1, 19).x + 30.0
+			w += glyph_width(str(k), font_bold) + 4.0
+		w += font.get_string_size(str(h[1]), HORIZONTAL_ALIGNMENT_LEFT, -1, 19).x + 30.0
 	return w
+
+
+## Width the hint row `p_hints` takes with the glyphs of the device (keyboard or gamepad, visible_hints()) in the
+## footer's fonts – a screen's footer must fit UiScreen.FOOTER (the same at 1280×720 and 1280×800).
+static func drawn_width(p_hints: Array, gamepad: bool) -> float:
+	return row_width(visible_hints(p_hints, gamepad), UiTheme.font(UiTheme.F.BODY), UiTheme.font(UiTheme.F.BODY_BOLD))
 
 
 func _draw() -> void:
@@ -118,6 +133,8 @@ static func glyph_width(key: String, font_bold: Font) -> float:
 		return 26.0
 	if key == "lr" or key == "ud":
 		return 44.0
+	if PAGE_KEYS.has(key):
+		return font_bold.get_string_size(PAGE_LABEL, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x + 26.0
 	return maxf(26.0, font_bold.get_string_size(key, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x + 16.0)
 
 
@@ -157,6 +174,16 @@ static func draw_glyph(ci: CanvasItem, r: Rect2, key: String, font_bold: Font) -
 	box.set_corner_radius_all(4)
 	ci.draw_style_box(box, r)
 	var ink := Color(0.08, 0.09, 0.16)
+	if PAGE_KEYS.has(key):
+		# "Bild" and an arrow (↑ / ↓) behind it, 7 px wide, centred on the cap height of the label
+		ci.draw_string(font_bold, Vector2(r.position.x + 8.0, r.position.y + 18), PAGE_LABEL, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, ink)
+		var ax := r.position.x + 8.0 + font_bold.get_string_size(PAGE_LABEL, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x + 6.5
+		var cy := r.position.y + 12.5
+		var s: float = PAGE_KEYS[key]
+		var tip := Vector2(ax, cy + s * 5.5)
+		ci.draw_colored_polygon(PackedVector2Array([tip, tip + Vector2(-3.5, -s * 4.5), tip + Vector2(3.5, -s * 4.5)]), ink)
+		ci.draw_line(Vector2(ax, cy - s * 5.5), Vector2(ax, tip.y - s * 4.0), ink, 2.0)
+		return
 	if ARROWS.has(key):
 		var d: Vector2 = ARROWS[key]
 		var n := Vector2(-d.y, d.x)

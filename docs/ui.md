@@ -54,7 +54,7 @@ schräge Schaltflächen (StyleBoxFlat mit `skew`), Panels mit abgeschrägten Eck
 | `tools/audio/render_engine_demo.gd` | Demo-WAV einer Motorbank mit geskripteter Fahrt |
 | `assets/audio/music/title_theme.ogg` | Titelmelodie (Menümusik, Schleife nach dem Intro; Abschnitt *Titelmelodie*) |
 | `tools/audio/music_synth.py`, `music_preview.py` | Titelmelodie offline erzeugen; prüfen (Lautheit, Balance, Harmonik, Schleifennaht) und Vorschau |
-| `tests/unit/ui/*` | Tests: Rennlogik, Formatierung, Laufschrift, Audio-Synthese, Getriebe, Karten-Zoom, Routenoptionen (`test_route_info`), Texte aus der Konfiguration (`test_ui_texts`), Gamepad/Fokus/Spielstand (`test_menu_input`), Eingabegerät/Gamepad-Hinweise/Namenseingabe in den Optionen (`test_steam_deck`), Motor: Bank (`test_engine_bank`), Getriebe (`test_engine_gearbox`), Mischkern (`test_engine_audio`) mit den Testbänken aus `tests/fixtures/engines/`, Verkehrsgeräusche und Raumklang (`test_traffic_audio`) mit den Platzhalterschleifen aus `tests/fixtures/traffic/`, Attract-Modus und Titelbild (`test_attract_mode`), Gamepad-Prüfung v0.5.1 (`test_gamepad`: alle Geräte, Stick-Schritt, Wiederholung, LB/RB, Bildschirmtastatur, Abfrage, Stickkurve, Vibration, Vollbild, Standby, Interpolation, vorab geladene Sprite-Sätze); das ganze Spiel mit Demo: `tests/race/check_attract.gd`, mit Gamepad: `tests/race/check_menu_pad.gd` |
+| `tests/unit/ui/*` | Tests: Rennlogik, Formatierung, Laufschrift, Audio-Synthese, Getriebe, Karten-Zoom, Routenoptionen (`test_route_info`), Texte aus der Konfiguration (`test_ui_texts`), Gamepad/Fokus/Spielstand (`test_menu_input`), Eingabegerät/Gamepad-Hinweise/Namenseingabe in den Optionen (`test_steam_deck`), Motor: Bank (`test_engine_bank`), Getriebe (`test_engine_gearbox`), Mischkern (`test_engine_audio`) mit den Testbänken aus `tests/fixtures/engines/`, Verkehrsgeräusche und Raumklang (`test_traffic_audio`) mit den Platzhalterschleifen aus `tests/fixtures/traffic/`, Attract-Modus und Titelbild (`test_attract_mode`), Gamepad-Prüfung v0.5.1 (`test_gamepad`: alle Geräte, Stick-Schritt, Wiederholung, LB/RB, Bildschirmtastatur, Abfrage, Stickkurve, Stick nur am benutzten Pad, getrenntes Pad, Titel merkt sich nur Bildschirme, Fußzeilen mit Bild ↑/↓, Vibration, Vollbild samt alter Einstellungsdatei, Standby, Interpolation, vorab geladene Sprite-Sätze); das ganze Spiel mit Demo: `tests/race/check_attract.gd`, mit Gamepad: `tests/race/check_menu_pad.gd` |
 
 ## Bildschirmablauf
 
@@ -254,7 +254,13 @@ Auswahlwerte (Fahrzeug, Uhrzeit, Optionen, Filter) mit ◀ ▶. Gamepad-Prüfung
 
 - **Jedes Gamepad**: Alle Gamepad-Belegungen von `InputSetup` gelten für alle Geräte (`device` −1 wie Godots ui_*):
   ein zweites Pad, der angedockte Steam Deck mit externem Controller oder ein zuerst erkanntes anderes Gerät bestätigen,
-  gehen zurück, fahren und pausieren wie Gerät 0 (vorher bewegten sie nur den Fokus).
+  gehen zurück, fahren und pausieren wie Gerät 0 (vorher bewegten sie nur den Fokus). Gelenkt wird im Rennen mit dem
+  Stick des zuletzt benutzten Pads (`InputMode.device`: eine Taste oder ein deutlicher Ausschlag ≥ 0,5 macht ein Pad zum
+  benutzten, auch mitten im Rennen); der Stick ist nicht an `steer_left`/`steer_right` gebunden – sonst lenkte ein
+  herumliegendes zweites Pad mit driftendem Stick mit (alle Geräte zählten, der größte Wert gewann). Tasten und
+  Steuerkreuz jedes Pads lenken voll. Wird ein Gamepad getrennt, pausiert das Rennen nur, wenn es das benutzte war oder
+  noch eine Taste, einen Stick oder Trigger hielt (`InputSetup.pad_disconnected`, `InputMode.pad_lost`; das ruhende
+  Funk-Pad eines Tastaturspielers schaltet sich ab, ohne dass etwas passiert).
 - **Ein Stick-Stoß = ein Schritt** (`UiKit.ui_step`): Die eigenen ◀▶/▲▼-Handler (Fahrzeug, Startzeit,
   Optionszeilen, Bestenlisten-Filter, Etappentabelle des Rennergebnisses) zählen einen Stick nur in dem Bild, in dem er
   die Aktion betritt (`Input.is_action_just_pressed`, höchstens einmal je Bild) – wie Godots eigene Fokussuche. Tasten
@@ -265,11 +271,14 @@ Auswahlwerte (Fahrzeug, Uhrzeit, Optionen, Filter) mit ◀ ▶. Gamepad-Prüfung
   durch den Viewport (Fokussuche und ◀▶-Handler nehmen ihn wie das Echo einer Taste). Nur für eine vom Gamepad gedrückte
   Richtung (die Tastatur wiederholt selbst) und nur, solange ein Element den Fokus hat. Vorher: einmal.
 - **LB / RB** (Bild ↑ / Bild ↓, Aktionen `ui_page_up`/`ui_page_down`): springen in der Etappenliste (51 Einträge) und
-  in den Bestenlisten (106) um `UiKit.PAGE_STEP` (8) Einträge, am Anfang/Ende bleibt der Fokus stehen; Hinweis „LB RB
-  Seite“.
+  in den Bestenlisten (106) um `UiKit.PAGE_STEP` (8) Einträge, am Anfang/Ende bleibt der Fokus stehen; Hinweis
+  „Bild↑ Bild↓ LB RB Seite“, mit Gamepad „LB RB Seite“ (`footer_hints()` beider Bildschirme; Breite mit Tastatur 822
+  bzw. 670 px, mit Gamepad 594 bzw. 492 px von 1152 px – bei 1280×720 und 1280×800 gleich).
 - **Zurück behält die Auswahl**: Die Rennauswahl fokussiert das zuletzt gewählte Rennen (`GameFlow.draft.race_id`),
   der Titel nach Einzelne Etappe, Bestenlisten oder Optionen wieder diesen Eintrag (`GameFlow.title_choice`; nach
-  einem Rennen wie bisher „Rennen fortsetzen“, solange ein Spielstand da ist).
+  einem Rennen wie bisher „Rennen fortsetzen“, solange ein Spielstand da ist). Nur diese drei merkt er sich
+  (`TitleScreen.remembered_choice`); jeder andere Eintrag löscht die Wahl – sonst stand nach einer abgebrochenen
+  Abfrage „Spiel beenden?“ jeder spätere Titel, auch nach einer Demo, auf „Beenden“.
 - **„Beenden“ fragt** (`ConfirmBox` „Spiel beenden?“, Standard „Abbrechen“): ein A zu viel beendete das Spiel.
 - **Etappe wird geladen**: „Start“ im Etappenbildschirm zeigt zwei Bilder lang „Etappe wird geladen …“
   (`LoadingOverlay`), dann baut `GameFlow.start_pending_stage()` die Rennszene (0,3–0,8 s, auf dem Deck mehr); ein
@@ -279,7 +288,9 @@ Auswahlwerte (Fahrzeug, Uhrzeit, Optionen, Filter) mit ◀ ▶. Gamepad-Prüfung
   Gamepad, ein Tastendruck zurück, Maus/Touch/Trackpad schalten nicht. Startwert: Gamepad, wenn eines angeschlossen ist
   (Steam Deck: immer). Mit Gamepad zeigen die Fußzeilen nur Gamepad-Symbole: `pad:*` bleibt, Pfeiltasten werden zu einem
   gezeichneten Steuerkreuz (`dpad:udlr`, nur wo der Hinweis keine Gamepad-Taste hat), andere Tasten entfallen; mit
-  Tastatur wie bisher Tasten und Gamepad nebeneinander. Weitere Symbole: `pad:LS`/`pad:RS` (Stick).
+  Tastatur wie bisher Tasten und Gamepad nebeneinander. Weitere Symbole: `pad:LS`/`pad:RS` (Stick), `pgup`/`pgdn`
+  (Tastenkappen „Bild ↑“/„Bild ↓“; der Pfeil ist gezeichnet – Barlow Condensed hat keine Pfeile, „Bild↑“ als Text wäre
+  ein Ersatzkästchen).
   Das Tutorial nennt mit Gamepad nur die Gamepad-Tipps (Stick oder Steuerkreuz, Trigger; dann Start = Pause und A/X,
   `TutorialCoach.gamepad`, beim Start der Etappe gesetzt).
 - **Spielername in den Optionen per Gamepad**: A im Namensfeld öffnet `NameEntryBox` (dieselbe Bildschirmtastatur wie
@@ -291,8 +302,11 @@ Auswahlwerte (Fahrzeug, Uhrzeit, Optionen, Filter) mit ◀ ▶. Gamepad-Prüfung
 - **Vollbild**: Startwert `Settings.default_fullscreen()` – an auf Bildschirmen bis 800 px Höhe (Steam Deck: ein
   1280×720-Fenster mit Titelleiste passt nicht, und nur im Vollbild füllen die Menüs 16:10) und immer unter
   *gamescope* (Spielmodus des Steam Deck, auch angedockt mit „Nativ“ 1920×1080), sonst aus. Gespeichert wird der Wert
-  nur, wenn der Spieler „Vollbild“ in den Optionen umgeschaltet hat (`Settings.fullscreen_chosen`; ältere
-  `settings.json` mit dem Schlüssel gelten als gewählt) – sonst gilt bei jedem Start der Startwert.
+  nur, wenn der Spieler „Vollbild“ in den Optionen umgeschaltet hat (`Settings.fullscreen_chosen`) – sonst gilt bei
+  jedem Start der Startwert. Die Datei trägt dafür `settings_version` 2. Dateien ohne Version (v0.5.1 und älter)
+  enthielten den Wert immer, gewählt oder nicht: dort gilt nur ein gespeichertes „An“ als Wahl, ein „Aus“ als nicht
+  gewählt (`Settings.fullscreen_stored_as_choice`) – sonst startete ein Deck, der das „Aus“ einmal angedockt gespeichert
+  hatte, auch im Spielmodus weiter im Fenster.
 - **Vibration** (Optionen, Standard An, `Settings.vibration`): Rumble des Gamepads im Rennen (`Haptics`, siehe
   [renn-modul.md](renn-modul.md) §9); beim Einschalten ein kurzer Probepuls.
 - **Namenseingabe**: Tastatur tippt direkt ins Feld; Gamepad nutzt die Bildschirmtastatur (A–Z, ÄÖÜß,
@@ -324,9 +338,11 @@ Die Flüsse lassen sich mit echten Tastatur-/Gamepad-Ereignissen prüfen (`Input
 SceneTree-Skript, das `res://scenes/main.tscn` lädt); die Unit-Tests prüfen Verdrahtung und Handler, weil
 `tests/run_tests.gd` vor dem Eintritt des Viewports in den Baum läuft. `tests/race/check_menu_pad.gd` (Teil von
 `tools/run_tests.sh`) tut das für die Gamepad-Prüfung v0.5.1: ein Stick-Stoß = ein Schritt, Halten wiederholt, LB/RB,
-zweites Gamepad, Tippen ins per Steuerkreuz erreichte Namensfeld, Bildschirmtastatur, Abfrage vor dem Beenden, Fahren
-und Pause mit Gamepad 2, Pause beim Trennen, Vibration, interpolierte Ansicht; `test_gamepad.gd` prüft die Teile
-einzeln.
+zweites Gamepad, Tippen ins per Steuerkreuz erreichte Namensfeld, Bildschirmtastatur, Abfrage vor dem Beenden (danach
+steht der Titel nicht auf „Beenden“), Fahren und Pause mit Gamepad 2, ein driftendes zweites Pad lenkt nicht und ein
+Wechsel des Pads mitten im Rennen übernimmt die Lenkung, Trennen (ruhendes Pad eines Tastaturspielers: keine Pause und
+die gehaltene Taste gibt weiter Gas; Pad mit gehaltenem RT und benutztes Pad: Pause), Vibration, interpolierte Ansicht;
+`test_gamepad.gd` prüft die Teile einzeln.
 
 ## HUD
 

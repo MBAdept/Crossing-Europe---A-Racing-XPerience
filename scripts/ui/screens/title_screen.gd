@@ -12,6 +12,8 @@ extends UiScreen
 const LOGO_RIGHT := 1236.0
 const CARD := Rect2(846, 244, 390, 414)
 const CARD_PAD := Vector2(26, 20)
+## Entries the title focuses again on the way back (GameFlow.title_choice): Einzelne Etappe, Bestenlisten, Optionen.
+const REMEMBERED := [2, 3, 4]
 
 var _desc: Label
 var _buttons: Array[Button] = []
@@ -36,7 +38,7 @@ func build() -> void:
 		[tr("Rennen fortsetzen"), _save_text(), GameFlow.continue_race, has_save],
 		[tr("Einzelne Etappe"), tr("Eine Etappe frei wählen: Richtung, Uhrzeit und Wetter."), GameFlow.single_stage, true],
 		[tr("Bestenlisten"), tr("Top 10 aller Etappen und Rennen."), func() -> void: GameFlow.go("leaderboards"), true],
-		[tr("Optionen"), tr("Lautstärke, Vollbild, Spielername und Steuerung."), func() -> void: GameFlow.go("options"), true],
+		[tr("Optionen"), tr("Lautstärke, Vollbild, Vibration, Spielername und Steuerung."), func() -> void: GameFlow.go("options"), true],
 		[tr("Beenden"), tr("Zurück auf den Boden der Tatsachen."), _quit, true],
 	]
 	for it in items:
@@ -48,7 +50,7 @@ func build() -> void:
 			b.focus_mode = Control.FOCUS_NONE
 		var cb: Callable = it[2]
 		var index := _buttons.size()
-		b.pressed.connect(func() -> void: GameFlow.title_choice = index)
+		b.pressed.connect(func() -> void: GameFlow.title_choice = remembered_choice(index))
 		b.pressed.connect(cb)
 		var d := str(it[1])
 		b.focus_entered.connect(func() -> void: _desc.text = d)
@@ -70,10 +72,18 @@ func build() -> void:
 	# back from Einzelne Etappe, Bestenlisten or Optionen: that entry again; after a race the race entries decide
 	# by the save as before (a race in progress: "Rennen fortsetzen")
 	var last := GameFlow.title_choice
-	if last >= 2 and last < _buttons.size() and not _buttons[last].disabled:
+	if REMEMBERED.has(last) and last < _buttons.size() and not _buttons[last].disabled:
 		default_focus = _buttons[last]
 	var ver := UiKit.label("v" + str(ProjectSettings.get_setting("application/config/version", "0.1")), UiTheme.F.MONO, 18, UiTheme.TEXT_MUTED, HORIZONTAL_ALIGNMENT_RIGHT)
 	UiKit.place(self, ver, Rect2(1036, 684, 200, 24))
+
+
+## What GameFlow.title_choice keeps when the entry `index` is chosen: Einzelne Etappe, Bestenlisten and Optionen are
+## focused again on the way back; any other entry clears it (-1 = default focus) – the race entries leave the focus to
+## the save (a race in progress: "Rennen fortsetzen"), and "Beenden" is not remembered: after a cancelled quit
+## question every later title (back from a screen, after an attract demo) focused "Beenden" (QA v0.5.1 review).
+static func remembered_choice(index: int) -> int:
+	return index if REMEMBERED.has(index) else -1
 
 
 ## Logo over the sky at the top right: soft dark halo behind it, chrome gradient text, cyan tagline.

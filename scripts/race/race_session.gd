@@ -22,9 +22,11 @@ extends Node2D
 ##   in turn (judder); now every frame shows the state at its own moment (view_state()).
 ## - steering with the stick: an own curve on the raw stick value (input.stick_deadzone 0.12, full lock from
 ##   input.stick_full 0.92 – SessionRules.stick_steer) instead of the action's 0.2 deadzone; keys and D-pad stay 1.0.
+##   Only the stick of the pad used last steers (InputMode.device, player_steer()): a resting second pad with a
+##   drifting stick does not.
 ## - gamepad vibration (Haptics, Optionen "Vibration"): collisions, guardrail, shoulder/grass, understeer, radar.
-## - pause: the pause key, focus loss (also during the countdown), a gamepad disconnected, back from standby; the
-##   paused race draws at FrameCap.IDLE_FPS.
+## - pause: the pause key, focus loss (also during the countdown), the gamepad in use disconnected
+##   (InputSetup.pad_disconnected), back from standby; the paused race draws at FrameCap.IDLE_FPS.
 ## - every sprite sheet the stage can show is loaded before the start (no loading hitch in the race).
 
 signal stage_finished(result: Dictionary)
@@ -180,6 +182,7 @@ func _build() -> void:
 
 	vehicle = VehicleModel.new()
 	vehicle.setup(cfg, str(setup.get("vehicle", "limousine")))
+	SpriteDB.preload_sets([str(vehicle.spec.get("sprite", ""))])   # as in v0.5.1, also with --no-sprite-preload
 	var stick: Variant = ConfigLoader.lookup(cfg, "input", {})
 	if stick is Dictionary:
 		_stick_dz = clampf(float((stick as Dictionary).get("stick_deadzone", _stick_dz)), 0.0, 0.9)
@@ -266,8 +269,8 @@ func _build() -> void:
 	haptics.configure(cfg)
 	haptics.device = InputMode.device
 	haptics.enabled = autopilot == null and bool(Settings.vibration)
-	if not Input.joy_connection_changed.is_connected(_on_joy_connection_changed):
-		Input.joy_connection_changed.connect(_on_joy_connection_changed)
+	if not InputSetup.pad_disconnected.is_connected(_on_pad_disconnected):
+		InputSetup.pad_disconnected.connect(_on_pad_disconnected)
 
 	_connect_signals()
 	countdown = float(ConfigLoader.lookup(cfg, "time.countdown_s", 3.0))
@@ -477,8 +480,8 @@ func _pause_now() -> void:
 	pause_menu.open()
 
 
-## Pause without the player's pause key – the window lost the focus, the gamepad was disconnected, the game came back
-## from standby: in the countdown as well (the race would start without the player), not in demos, debug runs and
+## Pause without the player's pause key – the window lost the focus, the gamepad in use was disconnected, the game came
+## back from standby: in the countdown as well (the race would start without the player), not in demos, debug runs and
 ## after the finish.
 func auto_pause() -> void:
 	if plan != null and not finished and autopilot == null and not standalone:
@@ -494,14 +497,14 @@ func _notification(what: int) -> void:
 		FrameCap.hold("pause", false)
 
 
-## A gamepad was disconnected (battery, Bluetooth, the docked Steam Deck's external pad): the held stick and
-## triggers are released and the race pauses – it must not go on at full throttle or with the wheel turned.
-func _on_joy_connection_changed(_device: int, connected: bool) -> void:
-	if connected:
-		return
-	for a in ["steer_left", "steer_right", "accelerate", "brake"]:
-		Input.action_release(a)
-	auto_pause()
+## A gamepad was disconnected (InputSetup.pad_disconnected: battery, Bluetooth, the docked Steam Deck's external pad).
+## The engine has released what that pad held – only its own state: a key the player holds and the other pads keep
+## theirs. The race pauses when the pad was in use – the active pad, or one still holding a button, stick or trigger
+## (InputMode.pad_lost) –: it must not go on without the player's throttle or steering. A keyboard player's idle pad
+## switching off changes nothing (QA v0.5.1 review: every disconnect paused and released the keyboard as well).
+func _on_pad_disconnected(_device: int, in_use: bool) -> void:
+	if in_use:
+		auto_pause()
 
 
 func _on_resume() -> void:
@@ -537,10 +540,19 @@ func _read_input() -> Dictionary:
 	if autopilot != null:
 		return autopilot.drive(self)
 	return {
-		"steer": SessionRules.stick_steer(Input.get_action_raw_strength("steer_right"), Input.get_action_raw_strength("steer_left"), _stick_dz, _stick_full),
+		"steer": player_steer(_stick_dz, _stick_full),
 		"throttle": Input.get_action_strength("accelerate"),
 		"brake": Input.get_action_strength("brake"),
 	}
+
+
+## The player's steering (-1 left … 1 right): keys and the D-pad of every pad (steer_left / steer_right, full lock) and
+## the left stick of the active gamepad only (InputMode.device – the pad used last, it follows a switch of pads in the
+## race) through the stick curve (SessionRules.pad_steer). With every pad's stick in the actions, a resting second pad
+## with a drifting stick (0.13–0.2, above the deadzone 0.12) steered (QA v0.5.1 review).
+static func player_steer(deadzone: float, full: float) -> float:
+	return SessionRules.pad_steer(Input.get_action_raw_strength("steer_right"), Input.get_action_raw_strength("steer_left"),
+		Input.get_joy_axis(InputMode.device, JOY_AXIS_LEFT_X), deadzone, full)
 
 
 func road_info(z: float) -> Dictionary:

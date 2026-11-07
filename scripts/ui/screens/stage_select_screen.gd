@@ -23,9 +23,15 @@ var _buttons: Dictionary = {}          ## stage id -> list Button
 var _list: Array[Button] = []          ## list buttons in order (LB / RB)
 
 
+## Footer: ▲▼ choose, a page with Bild ↑ / Bild ↓ or LB / RB, ◀▶ change, confirm, back.
+static func footer_hints() -> Array:
+	return [[["ud"], UiFormat.t("Wählen")], [["pgup", "pgdn", "pad:LB", "pad:RB"], UiFormat.t("Seite")], [["lr"], UiFormat.t("Ändern")],
+		[["Enter", "pad:A"], UiFormat.t("Bestätigen")], [["Esc", "pad:B"], UiFormat.t("Zurück")]]
+
+
 func build() -> void:
 	add_header(tr("Einzelne Etappe"), tr("Freie Wahl von Strecke, Richtung, Uhrzeit und Wetter"))
-	hints = [[["ud"], tr("Wählen")], [["pad:LB", "pad:RB"], tr("Seite")], [["lr"], tr("Ändern")], [["Enter", "pad:A"], tr("Bestätigen")], [["Esc", "pad:B"], tr("Zurück")]]
+	hints = footer_hints()
 	_ids = UiData.visible_stage_ids()
 	_ids.sort_custom(func(a: String, b: String) -> bool: return _label(a) < _label(b))
 	var lst: Array = UiKit.scroll_list(6)

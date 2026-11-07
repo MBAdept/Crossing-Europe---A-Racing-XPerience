@@ -2,6 +2,11 @@ extends Node
 ## Autoload "Settings": user preferences stored in user://settings.json.
 
 const PATH := "user://settings.json"
+## Version of the settings file ("settings_version"): 2 since only a chosen "Vollbild" is saved (fullscreen_chosen).
+## Files without it (v0.5.1 and older) always had "fullscreen", chosen or not – there only a stored true counts as the
+## player's choice; a false is taken as not chosen, so the start value applies (a Steam Deck that once saved false
+## while docked on a large screen kept starting windowed in game mode – QA v0.5.1 review).
+const SETTINGS_VERSION := 2
 
 var master_volume := 0.8
 var sfx_volume := 1.0
@@ -12,9 +17,9 @@ var fullscreen := false:
 	set(value):
 		fullscreen = value
 		fullscreen_chosen = true
-## The player chose "Vollbild" (options) or the settings file has it: only then it is saved – otherwise the start
-## value (default_fullscreen()) applies at every start, so a file saved while the Steam Deck was docked (e.g. by a
-## leaderboard name) does not keep the handheld in a window (QA v0.5.1).
+## The player chose "Vollbild" (options) or the settings file has it (an old file without SETTINGS_VERSION: only "An"):
+## only then it is saved – otherwise the start value (default_fullscreen()) applies at every start, so a file saved
+## while the Steam Deck was docked (e.g. by a leaderboard name) does not keep the handheld in a window (QA v0.5.1).
 var fullscreen_chosen := false
 var vibration := true             ## gamepad vibration in the race (Haptics)
 var player_name := ""
@@ -97,7 +102,7 @@ func load_settings() -> void:
 	master_volume = float(d.get("master_volume", master_volume))
 	sfx_volume = float(d.get("sfx_volume", sfx_volume))
 	music_volume = float(d.get("music_volume", music_volume))
-	if d.has("fullscreen"):
+	if d.has("fullscreen") and fullscreen_stored_as_choice(d):
 		fullscreen = bool(d["fullscreen"])   # marks it chosen
 	vibration = bool(d.get("vibration", vibration))
 	player_name = str(d.get("player_name", player_name))
@@ -125,8 +130,18 @@ func has_unsaved_changes() -> bool:
 	return to_dict() != _stored
 
 
+## True if the settings file `d` holds "fullscreen" as the player's choice: always from SETTINGS_VERSION on; in an
+## older file (no version, "fullscreen" always written) only a stored true – a false may be the start value of a
+## docked Steam Deck or a large screen, saved along with a name or a volume.
+static func fullscreen_stored_as_choice(d: Dictionary) -> bool:
+	if not d.has("fullscreen"):
+		return false
+	return int(d.get("settings_version", 1)) >= SETTINGS_VERSION or bool(d["fullscreen"])
+
+
 func to_dict() -> Dictionary:
 	var d := {
+		"settings_version": SETTINGS_VERSION,
 		"master_volume": master_volume, "sfx_volume": sfx_volume, "music_volume": music_volume,
 		"vibration": vibration, "player_name": player_name, "language": language,
 		"leaderboard_filter": leaderboard_filter,

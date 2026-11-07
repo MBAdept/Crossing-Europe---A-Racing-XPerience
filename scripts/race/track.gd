@@ -919,7 +919,6 @@ func near_bridge(z: float, margin_m: float) -> bool:
 	return false
 
 
-## Signs/props from km events, sorted by z inside the segment.
 ## Every sprite set the track of this stage can show: the event props (fuel station, radar cameras, customs, bridge
 ## parts, ships, landmarks and their park trees), the destination's skyline and the scenery props of every scenery on
 ## the stage (sections, City Limits outskirts / centre, "city"). The race session loads their sheets before the
@@ -965,6 +964,7 @@ func sprite_fallbacks() -> Dictionary:
 	return out
 
 
+## Signs/props from km events, sorted by z inside the segment.
 func events_for_segment(index: int) -> Array:
 	return _events.get(index, [])
 

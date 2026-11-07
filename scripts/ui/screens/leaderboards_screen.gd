@@ -15,9 +15,15 @@ var _table: LeaderboardTable
 var _list: Array[Button] = []       ## board buttons in order (LB / RB)
 
 
+## Footer: ▲▼ the list, a page with Bild ↑ / Bild ↓ or LB / RB, ◀▶ the vehicle filter, back.
+static func footer_hints() -> Array:
+	return [[["ud"], UiFormat.t("Liste")], [["pgup", "pgdn", "pad:LB", "pad:RB"], UiFormat.t("Seite")], [["lr"], UiFormat.t("Fahrzeugfilter")],
+		[["Esc", "pad:B"], UiFormat.t("Zurück")]]
+
+
 func build() -> void:
 	add_header(tr("Bestenlisten"), tr("Top 10 je Etappe, Richtung und Rennen"))
-	hints = [[["ud"], tr("Liste")], [["pad:LB", "pad:RB"], tr("Seite")], [["lr"], tr("Fahrzeugfilter")], [["Esc", "pad:B"], tr("Zurück")]]
+	hints = footer_hints()
 	var c := cfg()
 	for v in ConfigLoader.lookup(c, "vehicles.order", []):
 		_filters.append(str(v))

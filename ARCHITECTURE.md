@@ -56,8 +56,8 @@ Abschnitte der zentralen Konfiguration `config/game_config.json`:
 | Name | Datei | Aufgabe |
 |---|---|---|
 | `Config` | `scripts/core/config.gd` | zentrale Konfiguration (`data`, `value("a.b")`, `f()`, `i()`, `section()`) |
-| `InputSetup` | `scripts/core/input_setup.gd` | registriert Aktionen `steer_left/right`, `accelerate`, `brake`, `pause` (Tastatur + Gamepad, alle Geräte) und Gamepad A/B/LB/RB für `ui_accept/ui_cancel/ui_page_up/ui_page_down`; meldet das aktive Eingabegerät an `InputMode` (Tastenhinweise, Gerät für die Vibration); wiederholt gehaltene Gamepad-Richtungen in Menüs (`PadRepeat`) |
-| `Settings` | `scripts/core/settings.gd` | Nutzer-Einstellungen `user://settings.json` (Lautstärke, Vollbild – nur gespeichert, wenn gewählt –, Vibration, Name, Sprache, Bestenlisten-Filter) |
+| `InputSetup` | `scripts/core/input_setup.gd` | registriert Aktionen `steer_left/right`, `accelerate`, `brake`, `pause` (Tastatur + Gamepad, alle Geräte; den linken Stick liest das Rennen direkt am zuletzt benutzten Pad, `InputMode.device`) und Gamepad A/B/LB/RB für `ui_accept/ui_cancel/ui_page_up/ui_page_down`; meldet das aktive Eingabegerät an `InputMode` (Tastenhinweise, Gerät für Lenkung und Vibration); wiederholt gehaltene Gamepad-Richtungen in Menüs (`PadRepeat`); meldet ein getrenntes Gamepad mit „war in Benutzung“ (`pad_disconnected`, das Rennen pausiert dann) |
+| `Settings` | `scripts/core/settings.gd` | Nutzer-Einstellungen `user://settings.json` (`settings_version` 2; Lautstärke, Vollbild – nur gespeichert, wenn gewählt; aus Dateien ohne Version zählt nur „An“ –, Vibration, Name, Sprache, Bestenlisten-Filter) |
 | `GameData` | `scripts/data/game_data.gd` | Netz, Länder, Landschaften, Karte; liefert `StagePlan`s und Routenoptionen |
 | `SpriteDB` | `scripts/core/sprite_db.gd` | Sprite-Manifest, Texturen, Zellen je Winkel/Ebene |
 | `Leaderboards` | `scripts/data/leaderboards.gd` | Bestenlisten `user://leaderboards.json` |

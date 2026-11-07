@@ -4,6 +4,9 @@ extends Control
 ## input hints, default focus for keyboard/gamepad, ui_cancel -> on_cancel() (default: GameFlow.back()).
 ## Screens read their data from `params` (set by GameFlow) and call GameFlow for navigation.
 
+## Footer with the key hints in the 1280×720 screen (at 16:10 the screen stays 1280×720 in the middle, MenuShell).
+const FOOTER := Rect2(64, 676, 1152, 34)
+
 var params: Dictionary = {}
 var default_focus: Control
 var bg_dim := 0.55
@@ -23,7 +26,7 @@ func _ready() -> void:
 		hints = [[["Enter", "pad:A"], tr("Auswählen")], [["Esc", "pad:B"], tr("Zurück")]]
 	build()
 	footer = KeyHints.new(hints)
-	UiKit.place(self, footer, Rect2(64, 676, 1152, 34))
+	UiKit.place(self, footer, FOOTER)
 	_grab_default.call_deferred()
 
 

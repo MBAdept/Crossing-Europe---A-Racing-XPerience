@@ -4,10 +4,13 @@ extends TestCase
 ## page long lists, the on-screen keyboard (B deletes one character, closes when empty; A / Start in an empty field
 ## go to the keys), the question box names its keys, steering with the stick (SessionRules.stick_steer), vibration
 ## (Haptics), the full-screen start value under gamescope and only the chosen value saved, standby detection, the
-## interpolated race view and the sprite sets a stage loads before the start. The live input path (frames, the
-## Input singleton) is checked by tests/race/check_menu_pad.gd.
+## interpolated race view and the sprite sets a stage loads before the start. Review of the fixes: only the active
+## pad's stick steers (a drifting second pad does not), a disconnected pad pauses only when it was in use, the title
+## does not remember "Beenden", the list footers name PageUp / PageDown, an old settings file's "Vollbild: Aus" is not
+## a choice. The live input path (frames, the Input singleton) is checked by tests/race/check_menu_pad.gd.
 
 const SettingsScript := preload("res://scripts/core/settings.gd")
+const RaceScript := preload("res://scripts/race/race_session.gd")
 const DIR := "user://test_gamepad"
 const SETTINGS_FILE := DIR + "/settings.json"
 
@@ -33,11 +36,27 @@ func _axis(axis: JoyAxis, value: float, device: int = 0) -> InputEventJoypadMoti
 	return e
 
 
+func _key(code: Key, pressed: bool = true) -> InputEventKey:
+	var e := InputEventKey.new()
+	e.keycode = code
+	e.physical_keycode = code
+	e.pressed = pressed
+	return e
+
+
+## Through the Input singleton (its state) and InputMode (InputSetup._input does that in the game).
+func _feed(e: InputEvent) -> void:
+	Input.parse_input_event(e)
+	Input.flush_buffered_events()
+	InputMode.note(e)
+
+
 func test_every_gamepad_drives_and_confirms() -> void:
 	_ensure_input_map()
 	for dev in [0, 1, 3]:
 		var tag := "Gerät %d" % dev
-		assert_near(_axis(JOY_AXIS_LEFT_X, 1.0, dev).get_action_strength("steer_right"), 1.0, 0.001, tag + ": Stick lenkt")
+		# the stick is read from the active pad (InputMode.device, test_only_the_active_pads_stick_steers)
+		assert_false(_axis(JOY_AXIS_LEFT_X, 1.0, dev).is_action("steer_right"), tag + ": Stick nicht in der Lenkaktion")
 		assert_near(_axis(JOY_AXIS_TRIGGER_RIGHT, 1.0, dev).get_action_strength("accelerate"), 1.0, 0.001, tag + ": RT gibt Gas")
 		assert_near(_axis(JOY_AXIS_TRIGGER_LEFT, 1.0, dev).get_action_strength("brake"), 1.0, 0.001, tag + ": LT bremst")
 		assert_true(_pad(JOY_BUTTON_A, dev).is_action_pressed("accelerate"), tag + ": A gibt Gas")
@@ -243,6 +262,145 @@ func test_stick_steering_curve() -> void:
 	assert_true(SessionRules.stick_steer(0.2, 0.0, dz, full) > 0.05, "kleine Korrektur 0,2 lenkt (vorher 0)")
 	assert_near(SessionRules.stick_steer(0.0, 1.0, dz, full), -1.0, 0.001, "Taste/Steuerkreuz links: voll")
 	assert_near(SessionRules.stick_steer(0.6, 1.0, dz, full), 0.6 - 1.0, 0.001, "Steuerkreuz links + Stick rechts")
+	# actions (keys / D-pad) and the active pad's stick: per direction the stronger, as with the stick in the actions
+	assert_near(SessionRules.pad_steer(0.0, 0.0, 0.6, dz, full), 0.6, 0.001, "Stick rechts 0,6")
+	assert_near(SessionRules.pad_steer(0.0, 0.0, -1.0, dz, full), -1.0, 0.001, "Stick links voll")
+	assert_near(SessionRules.pad_steer(0.0, 1.0, 0.6, dz, full), 0.6 - 1.0, 0.001, "Steuerkreuz links + Stick rechts")
+	assert_near(SessionRules.pad_steer(1.0, 0.0, 0.3, dz, full), 1.0, 0.001, "Taste rechts + Stick rechts: voll")
+	assert_eq(SessionRules.pad_steer(0.0, 0.0, 0.1, dz, full), 0.0, "Ruherauschen des aktiven Pads")
+
+
+## Steering reads the left stick of the active pad only (InputMode.device, race_session.gd player_steer): a resting
+## second pad with a drifting stick does not steer (QA v0.5.1 review: 0.16 drift = 5 % steering), a switch of pads in
+## the race moves the steering to the pad used last, keys and the D-pad of every pad steer fully. Two devices in the
+## real Input state.
+func test_only_the_active_pads_stick_steers() -> void:
+	_ensure_input_map()
+	var old_dev := InputMode.device
+	var old_pad := InputMode.gamepad
+	var dz := 0.12
+	var full := 0.92
+	_feed(_axis(JOY_AXIS_LEFT_X, 0.16, 0))          # pad 0 lies around, its stick drifts
+	_feed(_pad(JOY_BUTTON_A, 1))                    # pad 1 is used
+	_feed(_pad(JOY_BUTTON_A, 1, false))
+	assert_eq(InputMode.device, 1, "Gerät 1 benutzt (A)")
+	assert_eq(RaceScript.player_steer(dz, full), 0.0, "Pad 0 driftet (0,16): keine Lenkung (vorher 0,05)")
+	_feed(_axis(JOY_AXIS_LEFT_X, 0.6, 1))
+	assert_near(RaceScript.player_steer(dz, full), 0.6, 0.001, "Stick von Pad 1: 0,6")
+	_feed(_axis(JOY_AXIS_LEFT_X, -0.3, 1))
+	assert_near(RaceScript.player_steer(dz, full), -0.225, 0.001, "kleine Korrektur links, nicht vom Drift gemindert (vorher -0,175)")
+	# switching pads in the race: a clear push on pad 0 makes it the active pad
+	_feed(_axis(JOY_AXIS_LEFT_X, -1.0, 0))
+	assert_eq(InputMode.device, 0, "Pad 0 übernimmt (deutlicher Ausschlag)")
+	_feed(_axis(JOY_AXIS_LEFT_X, 0.8, 1))           # a clear push on pad 1 takes it back
+	assert_eq(InputMode.device, 1, "Pad 1 wieder (deutlicher Ausschlag)")
+	assert_near(RaceScript.player_steer(dz, full), 0.85, 0.001, "nur Pad 1 lenkt (Pad 0 hält noch −1,0)")
+	_feed(_axis(JOY_AXIS_LEFT_X, 0.3, 0))           # a light touch on pad 0 does not take over
+	assert_eq(InputMode.device, 1, "leichte Berührung von Pad 0 wechselt nicht")
+	_feed(_axis(JOY_AXIS_LEFT_X, 0.0, 1))
+	assert_eq(RaceScript.player_steer(dz, full), 0.0, "Pad 1 in Mittelstellung, Pad 0 bei 0,3: geradeaus")
+	# keys and the D-pad of any pad: full lock, the active pad does not matter
+	_feed(_pad(JOY_BUTTON_DPAD_LEFT, 3))
+	assert_near(RaceScript.player_steer(dz, full), -1.0, 0.001, "Steuerkreuz von Pad 3: voll links")
+	_feed(_pad(JOY_BUTTON_DPAD_LEFT, 3, false))
+	_feed(_key(KEY_RIGHT))
+	assert_near(RaceScript.player_steer(dz, full), 1.0, 0.001, "Pfeil rechts: voll")
+	_feed(_key(KEY_RIGHT, false))
+	for d in [0, 1]:
+		_feed(_axis(JOY_AXIS_LEFT_X, 0.0, d))
+	assert_eq(RaceScript.player_steer(dz, full), 0.0, "alles los: geradeaus")
+	InputMode.device = old_dev
+	InputMode.gamepad = old_pad
+
+
+## A disconnected gamepad (InputSetup.pad_disconnected; the race pauses on `in_use`): only the active pad or one still
+## holding a button, stick or trigger is in use – a keyboard player's idle pad switching off is not (QA v0.5.1 review:
+## every disconnect paused the race and released the keyboard's throttle as well). The engine has released the pad's
+## own state already (Input::joy_connection_changed) – the race releases nothing.
+func test_pad_disconnect_counts_only_a_pad_in_use() -> void:
+	var old_dev := InputMode.device
+	var old_pad := InputMode.gamepad
+	var old_held: Dictionary = InputMode._held.duplicate(true)
+	InputMode._held.clear()   # earlier tests note presses without their release
+	# a keyboard player; pad 0 lies around with a drifting stick
+	InputMode.note(_pad(JOY_BUTTON_A, 0))
+	InputMode.note(_pad(JOY_BUTTON_A, 0, false))
+	InputMode.note(_axis(JOY_AXIS_LEFT_X, 0.16, 0))
+	InputMode.note(_key(KEY_UP))
+	assert_false(InputMode.gamepad, "Tastatur aktiv")
+	assert_false(InputMode.holds(0), "Drift 0,16 gilt als Ruhe")
+	assert_false(InputMode.pad_lost(0, [1]), "ruhendes Pad eines Tastaturspielers: nicht in Benutzung")
+	# the active pad, nothing held
+	InputMode.note(_pad(JOY_BUTTON_A, 1))
+	InputMode.note(_pad(JOY_BUTTON_A, 1, false))
+	assert_true(InputMode.pad_lost(1, [0]), "aktives Pad: in Benutzung")
+	assert_eq(InputMode.device, 0, "das verbliebene Pad übernimmt (Lenkung, Vibration)")
+	assert_true(InputMode.gamepad, "eines ist noch da: Gamepad bleibt aktiv")
+	# a pad that still holds the trigger while the keyboard drives
+	InputMode.note(_axis(JOY_AXIS_TRIGGER_RIGHT, 0.8, 2))
+	InputMode.note(_key(KEY_UP))
+	assert_true(InputMode.holds(2), "Trigger gehalten")
+	assert_true(InputMode.pad_lost(2, [0]), "Pad hält noch den Trigger: in Benutzung")
+	assert_false(InputMode.holds(2), "vergessen")
+	# a held button counts, a released one not
+	InputMode.note(_pad(JOY_BUTTON_X, 3))
+	InputMode.note(_key(KEY_UP))
+	assert_true(InputMode.pad_lost(3, [0]), "Pad hält X: in Benutzung")
+	InputMode.note(_pad(JOY_BUTTON_Y, 4))
+	InputMode.note(_pad(JOY_BUTTON_Y, 4, false))
+	InputMode.note(_key(KEY_UP))
+	assert_false(InputMode.pad_lost(4, [0]), "Y losgelassen, Tastatur aktiv: nicht in Benutzung")
+	# InputSetup reports it (decided before the mode changes: with no pad left the keyboard is active afterwards)
+	var setup: Node = load("res://scripts/core/input_setup.gd").new()
+	var got: Array = []
+	setup.connect("pad_disconnected", func(d: int, in_use: bool) -> void: got.append([d, in_use]))
+	InputMode.gamepad = true
+	InputMode.device = 5
+	setup.call("_on_joy_connection_changed", 5, false)
+	setup.call("_on_joy_connection_changed", 6, true)
+	assert_eq(got, [[5, true]], "Trennen des aktiven Pads gemeldet, Verbinden nicht")
+	setup.free()
+	InputMode.device = old_dev
+	InputMode.gamepad = old_pad
+	InputMode._held = old_held
+
+
+## The title focuses Einzelne Etappe, Bestenlisten or Optionen again on the way back (GameFlow.title_choice) – nothing
+## else: after a cancelled quit question every later title (also after an attract demo) focused "Beenden" (QA v0.5.1
+## review); the race entries leave it to the save.
+func test_title_remembers_only_the_screens_it_comes_back_from() -> void:
+	assert_eq(TitleScreen.remembered_choice(2), 2, "Einzelne Etappe")
+	assert_eq(TitleScreen.remembered_choice(3), 3, "Bestenlisten")
+	assert_eq(TitleScreen.remembered_choice(4), 4, "Optionen")
+	assert_eq(TitleScreen.remembered_choice(5), -1, "Beenden wird nicht gemerkt")
+	assert_eq(TitleScreen.remembered_choice(0), -1, "Rennen starten: der Spielstand entscheidet")
+	assert_eq(TitleScreen.remembered_choice(1), -1, "Rennen fortsetzen: der Spielstand entscheidet")
+
+
+## LB / RB page the long lists, PageUp / PageDown as well: the footers of Einzelne Etappe and Bestenlisten name both
+## (keycaps "Bild ↑" / "Bild ↓", drawn – the fonts have no arrows) and fit the footer with keyboard and gamepad (QA
+## v0.5.1 review: "LB RB Seite" only).
+func test_list_footers_name_the_page_keys_and_fit() -> void:
+	_ensure_input_map()
+	var page_keys := {}
+	for e in InputMap.action_get_events("ui_page_up") + InputMap.action_get_events("ui_page_down"):
+		if e is InputEventKey:
+			page_keys[(e as InputEventKey).keycode] = true
+	assert_true(page_keys.has(KEY_PAGEUP) and page_keys.has(KEY_PAGEDOWN), "Bild ↑ / Bild ↓ blättern (ui_page_up/down)")
+	var fb := UiTheme.font(UiTheme.F.BODY_BOLD)
+	assert_true(KeyHints.glyph_width("pgup", fb) > KeyHints.glyph_width("Esc", fb), "Taste „Bild ↑“: Beschriftung und Pfeil")
+	var screens := {"Einzelne Etappe": StageSelectScreen.footer_hints(), "Bestenlisten": LeaderboardsScreen.footer_hints()}
+	for n: String in screens:
+		var h: Array = screens[n]
+		var page: Array = []
+		for hint in h:
+			if str(hint[1]) == "Seite":
+				page = hint
+		assert_eq(page, [["pgup", "pgdn", "pad:LB", "pad:RB"], "Seite"], n + ": Tastatur und Gamepad")
+		assert_eq(KeyHints.visible_hints([page], true), [[["pad:LB", "pad:RB"], "Seite"]], n + ": mit Gamepad nur LB RB")
+		for gamepad in [false, true]:
+			var w := KeyHints.drawn_width(h, gamepad)
+			assert_true(w <= UiScreen.FOOTER.size.x, "%s: Fußzeile %s %.0f px ≤ %.0f px" % [n, "Gamepad" if gamepad else "Tastatur", w, UiScreen.FOOTER.size.x])
 
 
 func test_haptics_pulses_levels_and_rate() -> void:
@@ -309,6 +467,54 @@ func test_fullscreen_start_value_under_gamescope_and_only_the_choice_saved() -> 
 	assert_false(bool(t.get("vibration")), "Vibration aus geladen")
 	s.free()
 	t.free()
+	JsonFile.remove_all(SETTINGS_FILE)
+
+
+## settings.json of v0.5.1 and older always held "fullscreen": without "settings_version" only a stored true counts as
+## chosen – a false (e.g. saved while the Steam Deck was docked on a large screen) gives the start value again (QA
+## v0.5.1 review: the Deck kept starting windowed in game mode). From version 2 on the stored value is the choice.
+func test_old_settings_file_counts_only_a_stored_fullscreen_true() -> void:
+	assert_false(SettingsScript.fullscreen_stored_as_choice({"fullscreen": false}), "alt, Aus: nicht gewählt")
+	assert_true(SettingsScript.fullscreen_stored_as_choice({"fullscreen": true}), "alt, An: gewählt")
+	assert_true(SettingsScript.fullscreen_stored_as_choice({"fullscreen": false, "settings_version": 2.0}), "v2, Aus: gewählt")
+	assert_false(SettingsScript.fullscreen_stored_as_choice({"settings_version": 2}), "v2 ohne Vollbild: nicht gewählt")
+	DirAccess.make_dir_recursive_absolute(DIR)
+	JsonFile.remove_all(SETTINGS_FILE)
+	# a v0.5.1 file written while docked: "fullscreen": false; the start value in game mode is full screen
+	assert_true(JsonFile.save_atomic(SETTINGS_FILE, {"master_volume": 0.5, "fullscreen": false, "player_name": "Deck"}), "alte Datei")
+	var s: Node = SettingsScript.new()
+	s.set("file_path", SETTINGS_FILE)
+	s.set("fullscreen", true)
+	s.set("fullscreen_chosen", false)
+	s.call("load_settings")
+	assert_true(bool(s.get("fullscreen")), "alte Datei mit Vollbild Aus: Startwert bleibt (Vollbild)")
+	assert_false(bool(s.get("fullscreen_chosen")), "nicht als Wahl gezählt")
+	assert_eq(str(s.get("player_name")), "Deck", "übrige Werte gelesen")
+	assert_false(bool(s.call("has_unsaved_changes")), "nur gelesen: nichts zu speichern")
+	s.set("master_volume", 0.6)
+	assert_true(bool(s.call("save_settings")), "gespeichert")
+	var d: Variant = ConfigLoader.load_json(SETTINGS_FILE)
+	assert_true(d is Dictionary and int((d as Dictionary).get("settings_version", 0)) == 2, "Version 2 geschrieben")
+	assert_true(d is Dictionary and not (d as Dictionary).has("fullscreen"), "Vollbild nicht gewählt: nicht mehr gespeichert")
+	s.free()
+	# a v0.5.1 file with "fullscreen": true stays full screen (chosen); a v2 file with false is the player's choice
+	JsonFile.remove_all(SETTINGS_FILE)
+	JsonFile.save_atomic(SETTINGS_FILE, {"fullscreen": true})
+	var t: Node = SettingsScript.new()
+	t.set("file_path", SETTINGS_FILE)
+	t.call("load_settings")
+	assert_true(bool(t.get("fullscreen")) and bool(t.get("fullscreen_chosen")), "alte Datei mit Vollbild An: gewählt")
+	t.free()
+	JsonFile.remove_all(SETTINGS_FILE)
+	JsonFile.save_atomic(SETTINGS_FILE, {"settings_version": 2, "fullscreen": false})
+	var u: Node = SettingsScript.new()
+	u.set("file_path", SETTINGS_FILE)
+	u.set("fullscreen", true)
+	u.set("fullscreen_chosen", false)
+	u.call("load_settings")
+	assert_false(bool(u.get("fullscreen")), "Version 2 mit Vollbild Aus: Fenster (gewählt)")
+	assert_true(bool(u.get("fullscreen_chosen")), "als Wahl gezählt")
+	u.free()
 	JsonFile.remove_all(SETTINGS_FILE)
 
 

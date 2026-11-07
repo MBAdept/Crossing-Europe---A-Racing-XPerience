@@ -485,19 +485,26 @@ Zonenmeldungen → Tutorial-Hinweise → Ziel.
   bei 45 fps 1-2-1, bei 90 Hz stand jedes dritte Bild still (steam-deck.md, „Bildtakt“). Die Simulation, Rangliste und
   Autopilot sind unverändert; die Ansicht liegt höchstens einen Schritt (16,7 ms) zurück. Tests können den Bruchteil
   mit `_view_alpha` festlegen.
-- **Lenken mit dem Stick**: `_read_input` liest die Rohwerte von `steer_right`/`steer_left`
-  (`Input.get_action_raw_strength`) und legt eine eigene Kurve darauf (`SessionRules.stick_steer`): unter
-  `input.stick_deadzone` (0,12) nichts, ab `input.stick_full` (0,92) volle Lenkung, dazwischen linear; Tasten und
-  Steuerkreuz liefern 1,0 und lenken voll wie bisher. Vorher galt die Totzone 0,2 der Aktion ohne Außensättigung
-  (30° schräg nur 83 % Lenkung).
+- **Lenken mit dem Stick**: `_read_input` → `player_steer()`: die Rohwerte von `steer_right`/`steer_left`
+  (`Input.get_action_raw_strength`: Tasten und Steuerkreuz jedes Pads, 1,0) und der linke Stick nur des zuletzt
+  benutzten Pads (`Input.get_joy_axis(InputMode.device, JOY_AXIS_LEFT_X)`), je Richtung der stärkere
+  (`SessionRules.pad_steer`), mit einer eigenen Kurve (`SessionRules.stick_steer`): unter `input.stick_deadzone` (0,12)
+  nichts, ab `input.stick_full` (0,92) volle Lenkung, dazwischen linear; Tasten und Steuerkreuz lenken voll wie
+  bisher. Vorher galt die Totzone 0,2 der Aktion ohne Außensättigung (30° schräg nur 83 % Lenkung). Der Stick ist an
+  keine Aktion gebunden: Als er für alle Geräte in den Lenkaktionen lag, zählte der größte Wert aller Pads – ein
+  herumliegendes zweites Pad mit 0,16 Drift lenkte 5 % (Nachprüfung v0.5.1). `InputMode.device` folgt dem zuletzt
+  benutzten Pad (Taste oder Ausschlag ≥ 0,5), auch mitten im Rennen; Autopilot und Demos lesen keine Eingaben.
 - **Vibration** (`Haptics`, `scripts/core/haptics.gd`): Kollision (Puls 0,5/0,9 für 0,35 s), Leitplankentreffer
   (je nach Abdrift 0,12–0,35 s, stark 0,3–0,9), Schleifen an der Leitplanke, Bankett/Gras ab 30 km/h (schwacher Motor
   0,12–0,25 nach Tempo), Untersteuern ab 0,15 (0,1 + 0,35 × Untersteuern), Radarblitz – alles `input.vibration.*`.
   Je Schritt `update()` mit dem Dauerpegel; höchstens 15 Befehle je Sekunde an das zuletzt benutzte Gamepad
   (`InputMode.device`), jeder gilt nur 0,25 s. Aus mit `Settings.vibration`, mit Autopilot (Demos), solange eine
   Tastatur fährt, in der Pause, ab dem Ziel und beim Verlassen der Szene.
-- **Pause ohne Pause-Taste** (`auto_pause`): Fokusverlust (seit der Prüfung v0.5.1 auch im Countdown), ein getrenntes
-  Gamepad (`Input.joy_connection_changed`; Lenkung, Gas und Bremse werden losgelassen) und die Rückkehr aus dem
+- **Pause ohne Pause-Taste** (`auto_pause`): Fokusverlust (seit der Prüfung v0.5.1 auch im Countdown), das benutzte
+  Gamepad getrennt (`InputSetup.pad_disconnected` mit `in_use`, `InputMode.pad_lost`: das aktive Pad, solange ein
+  Gamepad das Eingabegerät ist, oder eines, das noch eine Taste, einen Stick oder Trigger über 0,2 hielt – das ruhende
+  Pad eines Tastaturspielers pausiert nicht; seine Eingaben gibt Godot beim Trennen selbst frei, nur seine: eine
+  gehaltene Taste und andere Pads bleiben, deshalb gibt die Rennsitzung nichts frei) und die Rückkehr aus dem
   Standby (`SessionRules.resumed_from_sleep`: die Wanduhr sprang mehr als 2 s weiter als die monotone Uhr) – nicht mit
   Autopilot, im Debug-Start und nach dem Ziel. Das Pausenmenü zeichnet mit `FrameCap.IDLE_FPS` (30).
 - **Sprite-Blätter vorab** (`_preload_sprites`): Spielerauto, alle Verkehrs- und Lkw/Bus-Sätze, die Polizei der
@@ -516,9 +523,9 @@ Abschleppstrafe, Radarwarnung, Radarfeld Anfang/Ende, geblitzt, Verfolgung, entk
 „Gute Fahrt!“, Grenze (Land + Name in Landessprache), City Limits (4 km vorher angekündigt), Tunnelname, LOS, ZIEL,
 Wetterhinweis beim Countdown (Regen, Schnee), Tutorial-Hinweise (§9a).
 Audio: Motor, Wind, Sirene (mit Abstand), Regen, Rutschen, Einzeltöne (beep je Countdown-Sekunde, go, crash, flash,
-fuel_start/fuel_done, finish). Pause: Baum pausiert, Ton und Vibration aus, 30 Bilder/s; Fokusverlust, getrenntes
-Gamepad und Standby pausieren auch (nicht im Autopilot). Während des Countdowns zeigt das HUD unter der Startampel die
-Pause-Taste.
+fuel_start/fuel_done, finish). Pause: Baum pausiert, Ton und Vibration aus, 30 Bilder/s; Fokusverlust, das getrennte
+benutzte Gamepad und Standby pausieren auch (nicht im Autopilot). Während des Countdowns zeigt das HUD unter der
+Startampel die Pause-Taste.
 Ziel: Zeit wird eingefroren, „ZIEL!“-Meldung, Wagen rollt aus (`render.finish_decel_kmh_s`), der Spieler lenkt weiter,
 Verkehr kollidiert weiter (zählt aber nicht mehr zu `collisions` der Etappe); Ergebnis nach dem Stillstand
 oder spätestens `render.finish_hold_s`. Ergebnis-Wörterbuch unverändert (ARCHITECTURE.md §8).
@@ -633,7 +640,7 @@ Zusätzlich zu ARCHITECTURE.md §13 (`--stage --from --vehicle --hour --weather 
 | `--tutorial` | Tutorial-Hinweise auch auf anderen Etappen |
 | `--sprite-manifest=<pfad>` | weiteres Sprite-Manifest über das echte legen (`SpriteDB`, Dateipfade relativ zu ihm, `aliases` zeigen echte Sets auf andere); z. B. die Testdaten `res://tests/fixtures/sprites/manifest.json` (§8) |
 | `--no-glow-occlusion` | Lichter wie in v0.5.0: alles Leuchten über dem ganzen Bild (`render.glow_occlusion` aus, A/B-Bilder, §2) |
-| `--no-sprite-preload` | Sprite-Blätter erst beim ersten Zeichnen laden wie in v0.5.1 (A/B-Messung der Lade- und Bildzeiten) |
+| `--no-sprite-preload` | Sprite-Blätter erst beim ersten Zeichnen laden wie in v0.5.1 (A/B-Messung der Lade- und Bildzeiten); das eigene Auto wird wie in v0.5.1 trotzdem vorab geladen |
 
 `--timescale=<f>` setzt `Engine.time_scale` und die Physiktakte auf 60·f, damit jeder Schritt 1/60 s bleibt.
 Setup-Schlüssel für Tests: `no_countdown`, `autopilot_speeding`, `autopilot_refuel`, `autopilot_target`,

@@ -236,9 +236,9 @@ muss auf dem Gerät gemessen werden.
 | Befund an v0.5.1 (gemessen, sofern nicht anders vermerkt) | Änderung | nachher (gemessen) |
 |---|---|---|
 | **Stick bei Auswahlwerten** (hoch): Jedes Stick-Ereignis über der Totzone zählte als neuer Tastendruck. Ein Stoß wechselte das Fahrzeug 3–5-mal, ein gehaltener Stick (0,75 ± 0,01, 0,4 s) stellte die Startzeit von 09:30 auf 23:30, die Gesamtlautstärke von 0,7 auf 0, blätterte die Rennergebnis-Tabelle ~10 Schritte. Das Steuerkreuz und die Menülisten waren in Ordnung. | `UiKit.ui_step` in allen fünf eigenen ◀▶/▲▼-Handlern: ein Stick zählt nur in dem Bild, in dem er die Aktion betritt, höchstens einmal je Bild – wie Godots Fokussuche. | 1 Schritt je Stoß (Fahrzeug, Startzeit ±30 min, ▲ +1 h, Lautstärke 8 → 7); gehaltener, rauschender Stick: 1 Schritt |
-| **Nur Gamepad 0** (mittel): Die Belegungen von `InputSetup` galten nur für Gerät 0. Ein zweites Gerät bewegte den Fokus, konnte aber nicht bestätigen, zurück, lenken, Gas geben oder pausieren. Abgeleitet: Am angedockten Deck mit externem Controller ist dieser meist Gerät 1. | alle Gamepad-Belegungen für alle Geräte (`device` −1) | Gerät 1: A bestätigt, B geht zurück, Lenkung 1,0, Gas 1,0, Start pausiert |
+| **Nur Gamepad 0** (mittel): Die Belegungen von `InputSetup` galten nur für Gerät 0. Ein zweites Gerät bewegte den Fokus, konnte aber nicht bestätigen, zurück, lenken, Gas geben oder pausieren. Abgeleitet: Am angedockten Deck mit externem Controller ist dieser meist Gerät 1. | alle Gamepad-Belegungen für alle Geräte (`device` −1); den Stick liest das Rennen nur am zuletzt benutzten Pad (siehe *Nachprüfung*) | Gerät 1: A bestätigt, B geht zurück, Lenkung 1,0, Gas 1,0, Start pausiert |
 | **Bildschirmtastatur** (mittel): Das erste B löschte den ganzen vorausgewählten Namen („Jörg“ → „“); per Pad ließ sich die Optionen-Tastatur nicht abbrechen; A im leeren Feld trug „Unbekannt“ ein und merkte es sich als Spielernamen; B, dann A in den Optionen speicherte einen leeren Namen. | B löscht immer nur das letzte Zeichen, im leeren Feld der Optionen-Tastatur schließt es ohne Änderung; A oder Start im leeren Feld springen auf die Tasten; Start = Fertig; „Unbekannt“ (OK im leeren Feld) wird nicht als Name gemerkt; die Hinweise folgen dem Fokus („Tippen“/„Eintragen“, „Löschen“/„Schließen“). | „Anke“ → B → „Ank“; leer → B schließt, Name bleibt „Anke“ |
-| **Halten wiederholt nicht** (mittel): Steuerkreuz oder Stick 1,5–2 s gehalten = 1 Schritt (Godot wiederholt Tasten, keine Gamepad-Knöpfe); Etappenliste 51, Bestenlisten 106 Einträge. | `PadRepeat`: nach 0,5 s alle 0,1 s ein Schritt (`input.repeat_*`; ein kürzerer Stick-Stoß bleibt ein Schritt); LB/RB springen 8 Einträge (auch Bild ↑/↓) | 1 s gehalten = 7 Einträge, 0,4-s-Stoß = 1; RB +8, LB −8 |
+| **Halten wiederholt nicht** (mittel): Steuerkreuz oder Stick 1,5–2 s gehalten = 1 Schritt (Godot wiederholt Tasten, keine Gamepad-Knöpfe); Etappenliste 51, Bestenlisten 106 Einträge. | `PadRepeat`: nach 0,5 s alle 0,1 s ein Schritt (`input.repeat_*`; ein kürzerer Stick-Stoß bleibt ein Schritt); LB/RB springen 8 Einträge (auch Bild ↑/↓, die Fußzeilen nennen beide) | 1 s gehalten = 7 Einträge, 0,4-s-Stoß = 1; RB +8, LB −8 |
 | **Namensfeld der Optionen nimmt keine Tasten** (mittel): Ein per Pfeil/Steuerkreuz erreichtes `LineEdit` ist in Godot 4.7 nicht im Bearbeitungsmodus; getippte Zeichen – auch die der Steam-Tastatur (STEAM + X) – wurden verworfen. | die erste getippte Taste startet die Bearbeitung | „Anke“ + Q, x → „AnkeQx“ |
 | **Bildtakt** (hoch): Die Simulation läuft in festen 1/60-s-Schritten, gezeichnet wurde der Stand des letzten Schritts. Bei 40 fps sprang die Kamera abwechselnd 1 und 2 Schritte, bei 45 fps 1-2-1, bei 90 Hz (Deck OLED, Standard laut Gerätespezifikation) stand jedes dritte Bild still. | Render-Interpolation: jedes Bild zeigt den Stand zwischen den letzten zwei Schritten (`Engine.get_physics_interpolation_fraction`) – Kamera, Spielerauto, Verkehr, Polizei, Hintergrund; die Simulation selbst bleibt unverändert | ungleiche Bildpaare 0 % bei 30/40/45/60/90 fps (Tabelle unten) |
 | **Nachladeruckler** (mittel): Ein Sprite-Blatt wurde beim ersten Zeichnen synchron geladen: Gebäude 13–20 ms, Lkw 16 ms, Frankfurter Skyline 33,5 ms bei 7,4 ms Median – auf dem Deck mehr (Kartenleser, GPU-Upload; abgeleitet). | alle Blätter der Etappe vor dem Start laden (Verkehr, Polizei der Länder, Requisiten aller Landschaften, Wahrzeichen, Skyline, HUD-Symbole) | Dortmund – Frankfurt ab km 200: 69 Blätter vorab, 0 nachgeladen (vorher 29); längstes Bild 79–82 → 31 ms; Aufbau +0,23–0,30 s |
@@ -249,17 +249,32 @@ muss auf dem Gerät gemessen werden.
 | Tankfenster „Gas = Weiterfahren“ ohne Pad-Symbol (niedrig) | mit Gamepad die Symbole RT und Ⓐ: „RT Ⓐ Weiterfahren“ | Screenshot |
 | Titel: „Beenden“ ohne Rückfrage (niedrig) | Abfrage „Spiel beenden?“, Standard „Abbrechen“ | B bricht ab |
 | Abfragen ohne eigene Hinweise (niedrig): dahinter stand die Fußzeile des Titels mit ▲▼, B fehlte | Hinweiszeile in der Box: ◀▶ Wählen, Ⓐ Bestätigen, Ⓑ Abbrechen | Screenshot |
-| Zurück verliert die Auswahl (niedrig) | Rennauswahl fokussiert das gewählte Rennen, der Titel nach Einzelne Etappe, Bestenlisten, Optionen diesen Eintrag (nach einem Rennen weiter „Rennen fortsetzen“) | QA-Ablauf: B → „München – Bremen“, Titel → „Optionen“ |
-| Gamepad getrennt mitten im Rennen (niedrig, abgeleitet: das Signal lässt sich nicht echt auslösen) | Rennen pausiert, Lenkung/Gas/Bremse werden losgelassen | Aufruf des Handlers: Pause, Gas 0 |
+| Zurück verliert die Auswahl (niedrig) | Rennauswahl fokussiert das gewählte Rennen, der Titel nach Einzelne Etappe, Bestenlisten, Optionen diesen Eintrag (nach einem Rennen weiter „Rennen fortsetzen“; „Beenden“ wird nicht gemerkt) | QA-Ablauf: B → „München – Bremen“, Titel → „Optionen“ |
+| Gamepad getrennt mitten im Rennen (niedrig, abgeleitet: das Signal lässt sich nicht echt auslösen) | Rennen pausiert, wenn es das benutzte Pad war oder noch eine Taste, einen Stick oder Trigger hielt; seine Eingaben gibt Godot beim Trennen selbst frei – nur seine (siehe *Nachprüfung*) | Aufruf des Handlers: benutztes Pad → Pause; ruhendes Pad eines Tastaturspielers → keine Pause, die gehaltene Taste gibt weiter Gas |
 | Fokusverlust im Countdown startete das Rennen ohne den Spieler; nach Standby lief das Rennen weiter (niedrig) | Pause auch im Countdown; nach Standby (Wanduhr sprang > 2 s weiter als die monotone Uhr) pausiert das Rennen | Regel geprüft; echter Standby nicht (abgeleitet: Linux zählt die monotone Uhr im Schlaf nicht) |
 | Leerlauf und Akku (niedrig): Pausenmenü und Fenster ohne Fokus zeichneten mit voller Bildrate (Pause: weiter 290 Zeichenbefehle je Bild), Attract-Demos liefen endlos, der Bildschirm blieb an | 30 fps im Pausenmenü und ohne Fokus (`FrameCap`); nach 10 min ohne Eingabe keine Demos mehr (`attract.max_idle_s`), dann darf sich der Bildschirm abschalten – im Rennen nie | – |
 | Etappenstart ohne Rückmeldung, Menü stand 0,3–0,8 s (niedrig) | „Etappe wird geladen …“ | Screenshot |
 | Motorklang-Aussetzer in den ersten 0,3 s (niedrig, mit dem Dummy-Treiber gemessen, auf dem Deck abgeleitet) | in der ersten Sekunde nach dem Motorstart 0,2 s Vorlauf statt 0,07 s (`audio.engine_start_latency_s`) | – |
 | „frei“ unter dem Aufhebungsschild ohne Panel (niedrig): Schnee mittags 1,87:1 | kleines HUD-Panel | 10,4:1 |
 | Attract: Hof des Logos über „DEMO“ und Szenenname, beide ~23 % dunkler (niedrig) | Hof hinter dem Overlay (`show_behind_parent`) | Schnee-Szene: Name 5,5:1 → 9,6:1, „DEMO“ 4,2:1 → 5,1:1 (hellstes Glyphenpixel gegen die Pille) |
-| Angedockt mit „Nativ“ (niedrig): auf 1920×1080 startete das Spiel im 1280×720-Fenster, gamescope skaliert es weich hoch (abgeleitet); einmal angedockt gespeichert, blieb der Deck auch im Handbetrieb im Fenster | unter gamescope immer Vollbild; „Vollbild“ wird nur gespeichert, wenn der Spieler es umgeschaltet hat | Regel geprüft; gamescope-Erkennung nicht am Gerät (abgeleitet) |
+| Angedockt mit „Nativ“ (niedrig): auf 1920×1080 startete das Spiel im 1280×720-Fenster, gamescope skaliert es weich hoch (abgeleitet); einmal angedockt gespeichert, blieb der Deck auch im Handbetrieb im Fenster | unter gamescope Vollbild; „Vollbild“ wird nur gespeichert, wenn der Spieler es umgeschaltet hat (`settings_version` 2). Dateien von v0.5.0/v0.5.1 enthielten den Wert immer – dort zählt nur ein gespeichertes „An“ als Wahl, ein „Aus“ gilt als nicht gewählt (siehe *Nachprüfung*) | Regel geprüft, auch mit Dateien beider Fassungen; gamescope-Erkennung nicht am Gerät (abgeleitet) |
 | Titel: Fußzeile auf hellem Asphalt an den hellsten Stellen 3,4:1 (niedrig) | weicher Schatten unter allen Fußzeilen-Beschriftungen | Screenshot |
 | Doku: Titelbild-Beschnitt „je ~4 %“ (niedrig) | korrigiert: je ~5 % (83 von 1672 px) | – |
+
+### Nachprüfung der Änderungen
+
+Eine Durchsicht der Änderungen fand sieben kleinere Punkte (alle niedrig); behoben vor v0.6.0, geprüft mit
+`test_gamepad.gd` und `check_menu_pad.gd` (Prüfungen `drift`, `trennen`, `beenden`; gegen den Stand davor schlagen alle
+drei fehl).
+
+| Befund | Änderung | nachher (gemessen) |
+|---|---|---|
+| Jedes getrennte Gamepad pausierte das Rennen und ließ Lenkung, Gas und Bremse aller Geräte los (`Input.action_release` löscht den Zustand jedes Geräts) – auch die gehaltene Taste eines Tastaturspielers, dessen ruhendes Funk-Pad sich abschaltete | Pause nur, wenn das getrennte Pad das benutzte war (`InputMode.device`, solange ein Gamepad das Eingabegerät ist) oder noch eine Taste, einen Stick oder Trigger über 0,2 hielt (`InputMode.pad_lost`, gemeldet von `InputSetup.pad_disconnected`). Die Rennsitzung gibt nichts mehr frei: Godot 4.7 verwirft beim Trennen selbst die Eingaben dieses Pads, nur seine (`Input::joy_connection_changed`) | ruhendes Pad: keine Pause, die Taste gibt weiter Gas (vorher 0); Pad hält RT: Pause, die Taste gibt weiter Gas; benutztes Pad: Pause |
+| Drift eines zweiten Pads: Der Stick jedes Pads lag in den Lenkaktionen, der größte Wert zählte, die Totzone liegt bei 0,12 – ein herumliegendes Pad mit 0,16 Drift lenkte 5 % und minderte eine Lenkung in die Gegenrichtung | Das Rennen liest den Stick nur am zuletzt benutzten Pad (`Input.get_joy_axis(InputMode.device, …)` durch die Stickkurve, `SessionRules.pad_steer`); Tasten und Steuerkreuz jedes Pads lenken voll. Eine Taste oder ein Ausschlag ≥ 0,5 macht ein Pad zum benutzten, auch mitten im Rennen | Drift 0,16 → Lenkung 0 (vorher 0,05); Wechsel im Rennen: Pad 0 übernimmt (−1,0, vorher hoben sich die Sticks auf: 0), Pad 1 zurück (0,6) |
+| Titel merkte sich „Beenden“: nach einer abgebrochenen Abfrage stand jeder spätere Titel, auch nach einer Demo, auf „Beenden“ | nur Einzelne Etappe, Bestenlisten und Optionen werden gemerkt (`TitleScreen.remembered_choice`) | nach dem Abbrechen: Titel auf dem Standardeintrag |
+| Fußzeilen von Einzelne Etappe und Bestenlisten: „LB RB Seite“ ohne Tasten, obwohl Bild ↑/↓ blättern | mit Tastatur „Bild↑ Bild↓ LB RB Seite“ (Tastenkappen mit gezeichnetem Pfeil – die Schriften haben keine Pfeile), mit Gamepad „LB RB Seite“ | Breite mit Tastatur 822 / 670 px, mit Gamepad 594 / 492 px von 1152 px; Screenshots bei 1280×720 und 1280×800 |
+| Vollbild: Dateien von v0.5.0/v0.5.1 enthielten „fullscreen“ immer – ein einmal angedockt gespeichertes „Aus“ galt als Wahl, der Deck startete im Spielmodus weiter im Fenster | `settings_version` 2; ohne Version zählt nur ein gespeichertes „An“ als Wahl | Unit-Test mit Dateien beider Fassungen |
+| Kleinigkeiten: Beschreibung von „Optionen“ im Titel ohne Vibration; `--no-sprite-preload` lud anders als v0.5.1 auch das eigene Auto nicht vor; ein Doku-Kommentar in `track.gd` stand über der falschen Funktion | „Lautstärke, Vollbild, Vibration, Spielername und Steuerung.“; das eigene Auto wird immer vorab geladen; Kommentar zurück an `events_for_segment` | – |
 
 ### Bildtakt
 
@@ -322,7 +337,8 @@ unten berücksichtigen das.
 ### Was abgeleitet bleibt
 
 - **Steam Input**: ob der eingebaute Controller Gerät 0 ist, die eigene Totzone der Deck-Sticks (deshalb reicht im
-  Spiel 0,12; ein am PC driftender Stick braucht in einer `game_config.json` z. B. `{"input": {"stick_deadzone": 0.2}}`)
+  Spiel 0,12; ein driftender Stick am benutzten Pad braucht in einer `game_config.json` z. B.
+  `{"input": {"stick_deadzone": 0.2}}` – ein zweites, nur herumliegendes Pad lenkt seit der Nachprüfung nicht mit)
   und wie Rumble auf die Haptik des Decks umgesetzt wird. Die Vibrationsstärken sind gewählt, nicht gespürt
   (einstellbar unter `input.vibration`).
 - **gamescope**: die Erkennung über `XDG_CURRENT_DESKTOP=gamescope` bzw. `GAMESCOPE_WAYLAND_DISPLAY`, ob das Steam-Menü
@@ -367,7 +383,7 @@ unten berücksichtigen das.
 - Belegung im Spiel: linker Stick oder Steuerkreuz lenkt, R2 (RT) oder A gibt Gas, L2 (LT) oder X bremst,
   ≡ pausiert; in Menüs A wählt, B geht zurück, gehaltenes Steuerkreuz oder gehaltener Stick laufen durch Listen,
   L1/R1 (LB/RB) blättern 8 Einträge weiter. Ein angedockter Deck mit externem Controller wird mit jedem der beiden
-  Controller gesteuert.
+  Controller gesteuert; gelenkt wird mit dem Stick des zuletzt benutzten.
 - Vibration im Rennen: Optionen → „Vibration“ (Standard An); Steam Input setzt sie in die Haptik des Decks um
   (abgeleitet, nicht am Gerät gespürt).
 
@@ -395,4 +411,6 @@ sichern. Eine `game_config.json` neben der ausführbaren Datei wirkt wie am PC (
 stellen – dann läuft es in der Auflösung des Bildschirms, füllt ihn ohne Balken und wird scharf skaliert (1080p:
 Faktor 1,5). Mit 1280×800 würde das 16:10-Bild samt Balken noch einmal in den 16:9-Bildschirm eingepasst. Im
 Spielmodus startet das Spiel dabei im Vollbild (vor der Prüfung v0.5.1: als 1280×720-Fenster, das gamescope weich
-hochskalierte); wer „Vollbild“ in den Optionen einmal ausgeschaltet hat, schaltet es dort wieder an.
+hochskalierte); wer „Vollbild“ in den Optionen einmal ausgeschaltet hat, schaltet es dort wieder an. Ein „Aus“, das
+v0.5.0 oder v0.5.1 gespeichert hat, zählt dabei nicht: Diese Fassungen schrieben den Wert immer mit, auch angedockt
+ohne Wahl des Spielers.
