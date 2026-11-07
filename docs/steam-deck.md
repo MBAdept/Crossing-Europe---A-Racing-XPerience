@@ -7,6 +7,10 @@ aufgehellt, die Tastenhinweise zeigen auf dem Deck nur noch Gamepad-Tasten, und 
 Optionen per Gamepad eingeben. Geprüft wurde unter Linux mit einem virtuellen 1280×800-Bildschirm und echten
 Gamepad-Ereignissen – **nicht auf einem echten Steam Deck**; die Leistung ist deshalb geschätzt (siehe unten).
 
+Zweite Prüfung an v0.5.1 (Padsteuerung): ein Stick-Stoß = ein Schritt in Auswahlwerten, jedes Gamepad fährt (nicht nur
+das erste), Bildschirmtastatur und Halten von Steuerkreuz/Stick verbessert, gleichmäßiger Bildtakt bei 40/45 fps und
+90 Hz, keine Nachladeruckler mehr, Vibration neu – Abschnitt [Prüfung v0.5.1](#prüfung-v051-padsteuerung-und-steam-deck).
+
 ## Ausgangslage
 
 | | Steam Deck | Spiel |
@@ -153,10 +157,12 @@ wird, auf dem Deck also nicht.
 Screenshots (1280×800, vorher/nachher, Kontaktbogen) entstehen mit `SCREEN=1280x800 tools/screenshot.sh` und den
 Argumenten aus [ui.md](ui.md) („Debug und Screenshots“); sie liegen nicht im Repository.
 
-## Leistung (Schätzung, nicht auf dem Deck gemessen)
+## Leistung (Schätzung von v0.3.0, nicht auf dem Deck gemessen)
 
-Gemessen mit `tests/race/bench_render.gd` (CPU-Zeit der Straßenzeichnung `RoadRenderer._draw`, fünf Positionen der
-Testetappe) auf dem Entwicklungsrechner, einer VM mit Intel Xeon 2,1 GHz (4 Kerne):
+Stand v0.3.0 – die Messungen an v0.5.1 und die korrigierte Einschätzung stehen unter
+[Prüfung v0.5.1](#leistung-stand-v051). Gemessen mit `tests/race/bench_render.gd` (CPU-Zeit der Straßenzeichnung
+`RoadRenderer._draw`, fünf Positionen der Testetappe) auf dem Entwicklungsrechner (damals als Intel Xeon 2,1 GHz
+eingeschätzt; gemessen läuft ein Kern mit 3,3 GHz – Abschnitt v0.5.1):
 
 | | Median | Spitzen (p90) |
 |---|---|---|
@@ -166,19 +172,21 @@ Testetappe) auf dem Entwicklungsrechner, einer VM mit Intel Xeon 2,1 GHz (4 Kern
 
 Dazu kommen die Simulation (≈ 0,3 ms je 1/60-s-Schritt, [renn-modul.md](renn-modul.md) §13), das HUD (ein
 einziges `_draw`) und die Engine.
-Der Steam Deck (AMD Zen 2, 4 Kerne/8 Threads bis 3,5 GHz) dürfte pro Kern etwa gleich schnell oder etwas schneller
-sein; GDScript nutzt im Wesentlichen einen Kern. **Erwartung: meist 7–10 ms CPU-Zeit je Bild, also stabile 60 fps;
-in seltenen Spitzen (dichter Verkehr, Nacht mit vielen Lichtern) knapp an 16,7 ms.** Die Grafik ist für die
+Der Steam Deck (AMD Zen 2, 4 Kerne/8 Threads bis 3,5 GHz) wurde damals pro Kern etwa gleich schnell eingeschätzt;
+GDScript nutzt im Wesentlichen einen Kern. *Erwartung von v0.3.0: meist 7–10 ms CPU-Zeit je Bild, also stabile 60 fps;
+in seltenen Spitzen knapp an 16,7 ms.* Die Prüfung v0.5.1 korrigiert das: Ein Deck-Kern ist geschätzt 1,4–1,7-mal
+langsamer als der der Messmaschine, in dichten Szenen reichen 60 fps wahrscheinlich nicht immer. Die Grafik ist für die
 RDNA-2-GPU (8 CUs) keine Last: 2D mit 2.500–4.300 Dreiecken je Bild bei 1280×720 über Mesa *radeonsi* (OpenGL 3.3;
 die exportierten Texturen sind S3TC/BPTC-komprimiert, das unterstützt radeonsi). Shader-Ruckler sind kaum zu
 erwarten – es gibt nur wenige 2D-Shader, und Mesa speichert übersetzte Shader zwischen.
 
-Falls es doch ruckelt: im Schnellzugriffsmenü die Bildrate auf 40 begrenzen (mit 40 Hz Bildwiederholrate), das
-läuft gleichmäßig und spart Akku. Die Rennsimulation läuft in festen 1/60-s-Schritten und bleibt dabei gleich.
+Die damalige Empfehlung „Bildrate 40 bei 40 Hz läuft gleichmäßig“ stimmte in v0.5.1 nicht (die Straße ruckelte im
+Wechsel von einem und zwei Simulationsschritten); seit der Render-Interpolation stimmt sie – siehe *Empfohlene
+Einstellungen*.
 
 ## Titelbild und Attract-Modus (v0.5.0)
 
-- **Titelbild** ([ui.md „Titelbildschirm“](ui.md)): füllt 16:10 per *cover fit* – links und rechts fallen je ~4 % des
+- **Titelbild** ([ui.md „Titelbildschirm“](ui.md)): füllt 16:10 per *cover fit* – links und rechts fallen je ~5 % des
   Bildes weg, oben und unten nichts; Logo, Milchglas-Menü und Tastenhinweise bleiben im 1280×720-Rahmen, das rote
   Auto bleibt links der Menükarte (auch beim stärksten Ken-Burns-Zoom, geprüft in `test_attract_mode.gd`). Der Shader
   (ein Bildzugriff je Pixel plus etwas Rechnung, Milchglas neun Zugriffe auf kleine Mip-Stufen) kostet auf der
@@ -186,6 +194,140 @@ läuft gleichmäßig und spart Akku. Die Rennsimulation läuft in festen 1/60-s-
 - **Attract-Modus** ([ui.md „Attract-Modus“](ui.md)): Die Demo läuft wie das Rennen mit 40-px-Balken; jede Taste des
   eingebauten Controllers, ein Stickausschlag, ein Fingertipp auf den Touchscreen oder ein Trackpad-Klick beendet sie
   und führt zurück zum Titel, ohne einen Menüpunkt auszulösen. Das Overlay zeigt dann das Ⓐ-Symbol.
+
+## Prüfung v0.5.1: Padsteuerung und Steam Deck
+
+Auftrag: „bitte auf Padsteuerung und Steam Deck-Tauglichkeit prüfen“. Geprüft wurde v0.5.1 (Build `eabb121`) in vier
+Durchgängen – Menüs, Fahren, Darstellung, Leistung –, danach wurden die echten Probleme behoben. Auch diesmal gab es
+**kein echtes Steam Deck und kein echtes Gamepad**; bei jedem Punkt steht, ob er gemessen oder abgeleitet ist.
+
+**Kurz:** Mit dem Gamepad war das Spiel bedienbar, aber an mehreren Stellen hakelig: Ein Stick-Stoß verstellte
+Auswahlwerte mehrfach, nur das erste Gamepad konnte bestätigen und fahren, die Bildschirmtastatur löschte mit dem ersten
+B den ganzen Namen, lange Listen ließen sich nicht durch Halten durchlaufen. Auf dem Deck kamen ein ungleichmäßiger
+Bildtakt bei 40 und 45 fps sowie bei 90 Hz (Deck OLED) und kurze Ruckler beim Nachladen von Gebäuden, Lkw und
+Wahrzeichen dazu. Das alles ist behoben; neu sind Vibration (abschaltbar), LB/RB zum Blättern und ein paar
+Komfortpunkte. Offen bleibt die CPU-Reserve für 60 fps in dichten Szenen auf dem Deck – das ist eine Schätzung und
+muss auf dem Gerät gemessen werden.
+
+### So wurde geprüft
+
+- **Gamepad im laufenden Spiel** (gemessen): Testskripte schicken `InputEventJoypadButton`/`InputEventJoypadMotion`
+  über `Input.parse_input_event` durch das echte Spiel – headless und unter Xvfb mit 1280×800 –, Stick-Stöße
+  realistisch als Folge von Bewegungsereignissen (eines je Bild, gehalten mit ±0,01 Rauschen), auch von Gerät 1.
+  Alle Menüflüsse (Titel, Rennen, Einzelne Etappe, Bestenlisten, Optionen, Etappen- und Rennergebnis mit
+  Namenseingabe, echte Fähre, Pausenmenü) und die Rennszene.
+- **Fahren** (gemessen + modelliert): Lenk-, Gas- und Bremswerte in der echten Rennszene (`--fixed-fps 60`); dazu ein
+  modellierter Fahrer (Reaktion 0,17–0,25 s, Daumen mit 7–25 % Überschwingen, Zittern 0,02–0,05, Tipp-Mindestdauer
+  40–100 ms) für je 30 Spurwechsel trocken und im Schnee mit Stick, Steuerkreuz und Tastatur, gegen die echte Szene
+  validiert (Abweichung ≤ 0,03 m).
+- **Darstellung** (gemessen): Screenshots 1280×800 mit Gamepad-Symbolen, WCAG-Kontrast gegen die im Bild gemessenen
+  Hintergründe, angedockt 1920×1080 (nur die Fensterwahl des Spiels; was gamescope daraus macht, ist abgeleitet).
+- **Leistung** (gemessen auf der Messmaschine, Deck geschätzt): CPU-Zeit je Bild des Release-Builds ohne GPU-Arbeit in
+  elf Szenen (je 1080 Bilder), GL auf llvmpipe, Bildtakt bei festen Bildraten, Fokusverlust und angehaltener Prozess
+  unter Xvfb, Ladezeiten. Die Messmaschine ist – anders als im Abschnitt *Leistung* unten von v0.3.0 angenommen – kein
+  2,1-GHz-Xeon: ihr Kern läuft gemessen mit 3,3 GHz (Emerald Rapids). Ein Deck-Kern (Zen 2) ist geschätzt
+  1,4–1,7-mal langsamer.
+- **Nach den Änderungen** (gemessen): `tests/race/check_menu_pad.gd` (Teil von `tools/run_tests.sh`) wiederholt die
+  wichtigsten Abläufe mit Gamepad-Ereignissen im echten Spiel, `tests/unit/ui/test_gamepad.gd` prüft die Teile
+  einzeln, `check_session.gd` (Szenario `preload`) das Nachladen; Bildtakt und Ladezeit wie unten.
+
+### Befunde und Änderungen
+
+| Befund an v0.5.1 (gemessen, sofern nicht anders vermerkt) | Änderung | nachher (gemessen) |
+|---|---|---|
+| **Stick bei Auswahlwerten** (hoch): Jedes Stick-Ereignis über der Totzone zählte als neuer Tastendruck. Ein Stoß wechselte das Fahrzeug 3–5-mal, ein gehaltener Stick (0,75 ± 0,01, 0,4 s) stellte die Startzeit von 09:30 auf 23:30, die Gesamtlautstärke von 0,7 auf 0, blätterte die Rennergebnis-Tabelle ~10 Schritte. Das Steuerkreuz und die Menülisten waren in Ordnung. | `UiKit.ui_step` in allen fünf eigenen ◀▶/▲▼-Handlern: ein Stick zählt nur in dem Bild, in dem er die Aktion betritt, höchstens einmal je Bild – wie Godots Fokussuche. | 1 Schritt je Stoß (Fahrzeug, Startzeit ±30 min, ▲ +1 h, Lautstärke 8 → 7); gehaltener, rauschender Stick: 1 Schritt |
+| **Nur Gamepad 0** (mittel): Die Belegungen von `InputSetup` galten nur für Gerät 0. Ein zweites Gerät bewegte den Fokus, konnte aber nicht bestätigen, zurück, lenken, Gas geben oder pausieren. Abgeleitet: Am angedockten Deck mit externem Controller ist dieser meist Gerät 1. | alle Gamepad-Belegungen für alle Geräte (`device` −1) | Gerät 1: A bestätigt, B geht zurück, Lenkung 1,0, Gas 1,0, Start pausiert |
+| **Bildschirmtastatur** (mittel): Das erste B löschte den ganzen vorausgewählten Namen („Jörg“ → „“); per Pad ließ sich die Optionen-Tastatur nicht abbrechen; A im leeren Feld trug „Unbekannt“ ein und merkte es sich als Spielernamen; B, dann A in den Optionen speicherte einen leeren Namen. | B löscht immer nur das letzte Zeichen, im leeren Feld der Optionen-Tastatur schließt es ohne Änderung; A oder Start im leeren Feld springen auf die Tasten; Start = Fertig; „Unbekannt“ (OK im leeren Feld) wird nicht als Name gemerkt; die Hinweise folgen dem Fokus („Tippen“/„Eintragen“, „Löschen“/„Schließen“). | „Anke“ → B → „Ank“; leer → B schließt, Name bleibt „Anke“ |
+| **Halten wiederholt nicht** (mittel): Steuerkreuz oder Stick 1,5–2 s gehalten = 1 Schritt (Godot wiederholt Tasten, keine Gamepad-Knöpfe); Etappenliste 51, Bestenlisten 106 Einträge. | `PadRepeat`: nach 0,5 s alle 0,1 s ein Schritt (`input.repeat_*`; ein kürzerer Stick-Stoß bleibt ein Schritt); LB/RB springen 8 Einträge (auch Bild ↑/↓) | 1 s gehalten = 7 Einträge, 0,4-s-Stoß = 1; RB +8, LB −8 |
+| **Namensfeld der Optionen nimmt keine Tasten** (mittel): Ein per Pfeil/Steuerkreuz erreichtes `LineEdit` ist in Godot 4.7 nicht im Bearbeitungsmodus; getippte Zeichen – auch die der Steam-Tastatur (STEAM + X) – wurden verworfen. | die erste getippte Taste startet die Bearbeitung | „Anke“ + Q, x → „AnkeQx“ |
+| **Bildtakt** (hoch): Die Simulation läuft in festen 1/60-s-Schritten, gezeichnet wurde der Stand des letzten Schritts. Bei 40 fps sprang die Kamera abwechselnd 1 und 2 Schritte, bei 45 fps 1-2-1, bei 90 Hz (Deck OLED, Standard laut Gerätespezifikation) stand jedes dritte Bild still. | Render-Interpolation: jedes Bild zeigt den Stand zwischen den letzten zwei Schritten (`Engine.get_physics_interpolation_fraction`) – Kamera, Spielerauto, Verkehr, Polizei, Hintergrund; die Simulation selbst bleibt unverändert | ungleiche Bildpaare 0 % bei 30/40/45/60/90 fps (Tabelle unten) |
+| **Nachladeruckler** (mittel): Ein Sprite-Blatt wurde beim ersten Zeichnen synchron geladen: Gebäude 13–20 ms, Lkw 16 ms, Frankfurter Skyline 33,5 ms bei 7,4 ms Median – auf dem Deck mehr (Kartenleser, GPU-Upload; abgeleitet). | alle Blätter der Etappe vor dem Start laden (Verkehr, Polizei der Länder, Requisiten aller Landschaften, Wahrzeichen, Skyline, HUD-Symbole) | Dortmund – Frankfurt ab km 200: 69 Blätter vorab, 0 nachgeladen (vorher 29); längstes Bild 79–82 → 31 ms; Aufbau +0,23–0,30 s |
+| **CPU-Reserve für 60 fps** (mittel, Schätzung): Hauptthread im Median 6–9,5 ms, p99 10–16 ms je Bild auf der Messmaschine; auf dem Deck geschätzt Feierabendverkehr Median 11–16 ms, p99 16–21 ms. | nicht geändert (siehe *Nicht geändert*) | – |
+| Lenken mit dem Stick (niedrig): Totzone 0,2 ohne Außensättigung – kleine Korrekturen unter 20 % wirkungslos (Modell: 11 von 30 Spurwechseln endeten ≥ 0,5 m neben der Spurmitte), 30° schräg nur 83 %, 45° 63 % | eigene Stickkurve auf dem Rohwert: Totzone 0,12, volle Lenkung ab 0,92 (`input.stick_deadzone`, `input.stick_full`); Tasten und Steuerkreuz unverändert 1,0 | 0,10 → 0; 0,20 → 0,10; 0,50 → 0,48; 30° → 0,93; 45° → 0,73. Modell der Prüfung mit Totzone 0,12 (ohne Außensättigung): 0 von 30, Einschwingen trocken 1,32 → 1,10 s |
+| keine Vibration (niedrig) | Vibration im Rennen (Optionen „Vibration“, Standard An): Kollision, Leitplanke (Treffer und Schleifen), Bankett/Gras ab 30 km/h, Untersteuern ab 0,15 („Gas weg“), Radarblitz; aus bei Pause, Ziel, Autopilot/Demo und wenn eine Tastatur fährt; höchstens 15 Befehle je Sekunde, jeder gilt 0,25 s | Kollision → schwach 0,5 / stark 0,9 am benutzten Gerät, Pause → 0. Gespürt wurde nichts (kein Gerät) |
+| Pause-Taste nirgends genannt (niedrig) | „Start Pause“ (Tastatur: „Esc Start Pause“) unter der Startampel, solange der Countdown läuft; Tutorial-Tipp „Start pausiert – Gas geht auch mit A, Bremse mit X“ | Screenshot |
+| Tankfenster „Gas = Weiterfahren“ ohne Pad-Symbol (niedrig) | mit Gamepad die Symbole RT und Ⓐ: „RT Ⓐ Weiterfahren“ | Screenshot |
+| Titel: „Beenden“ ohne Rückfrage (niedrig) | Abfrage „Spiel beenden?“, Standard „Abbrechen“ | B bricht ab |
+| Abfragen ohne eigene Hinweise (niedrig): dahinter stand die Fußzeile des Titels mit ▲▼, B fehlte | Hinweiszeile in der Box: ◀▶ Wählen, Ⓐ Bestätigen, Ⓑ Abbrechen | Screenshot |
+| Zurück verliert die Auswahl (niedrig) | Rennauswahl fokussiert das gewählte Rennen, der Titel nach Einzelne Etappe, Bestenlisten, Optionen diesen Eintrag (nach einem Rennen weiter „Rennen fortsetzen“) | QA-Ablauf: B → „München – Bremen“, Titel → „Optionen“ |
+| Gamepad getrennt mitten im Rennen (niedrig, abgeleitet: das Signal lässt sich nicht echt auslösen) | Rennen pausiert, Lenkung/Gas/Bremse werden losgelassen | Aufruf des Handlers: Pause, Gas 0 |
+| Fokusverlust im Countdown startete das Rennen ohne den Spieler; nach Standby lief das Rennen weiter (niedrig) | Pause auch im Countdown; nach Standby (Wanduhr sprang > 2 s weiter als die monotone Uhr) pausiert das Rennen | Regel geprüft; echter Standby nicht (abgeleitet: Linux zählt die monotone Uhr im Schlaf nicht) |
+| Leerlauf und Akku (niedrig): Pausenmenü und Fenster ohne Fokus zeichneten mit voller Bildrate (Pause: weiter 290 Zeichenbefehle je Bild), Attract-Demos liefen endlos, der Bildschirm blieb an | 30 fps im Pausenmenü und ohne Fokus (`FrameCap`); nach 10 min ohne Eingabe keine Demos mehr (`attract.max_idle_s`), dann darf sich der Bildschirm abschalten – im Rennen nie | – |
+| Etappenstart ohne Rückmeldung, Menü stand 0,3–0,8 s (niedrig) | „Etappe wird geladen …“ | Screenshot |
+| Motorklang-Aussetzer in den ersten 0,3 s (niedrig, mit dem Dummy-Treiber gemessen, auf dem Deck abgeleitet) | in der ersten Sekunde nach dem Motorstart 0,2 s Vorlauf statt 0,07 s (`audio.engine_start_latency_s`) | – |
+| „frei“ unter dem Aufhebungsschild ohne Panel (niedrig): Schnee mittags 1,87:1 | kleines HUD-Panel | 10,4:1 |
+| Attract: Hof des Logos über „DEMO“ und Szenenname, beide ~23 % dunkler (niedrig) | Hof hinter dem Overlay (`show_behind_parent`) | Schnee-Szene: Name 5,5:1 → 9,6:1, „DEMO“ 4,2:1 → 5,1:1 (hellstes Glyphenpixel gegen die Pille) |
+| Angedockt mit „Nativ“ (niedrig): auf 1920×1080 startete das Spiel im 1280×720-Fenster, gamescope skaliert es weich hoch (abgeleitet); einmal angedockt gespeichert, blieb der Deck auch im Handbetrieb im Fenster | unter gamescope immer Vollbild; „Vollbild“ wird nur gespeichert, wenn der Spieler es umgeschaltet hat | Regel geprüft; gamescope-Erkennung nicht am Gerät (abgeleitet) |
+| Titel: Fußzeile auf hellem Asphalt an den hellsten Stellen 3,4:1 (niedrig) | weicher Schatten unter allen Fußzeilen-Beschriftungen | Screenshot |
+| Doku: Titelbild-Beschnitt „je ~4 %“ (niedrig) | korrigiert: je ~5 % (83 von 1672 px) | – |
+
+### Bildtakt
+
+Gemessen headless mit `--fixed-fps N` (und gegengeprüft in Echtzeit mit `--max-fps 40` und `90`: gleiche Ergebnisse),
+Feierabendverkehr vor Frankfurt, 240 Bilder; „ungleich“ = der Kamera-Vorschub zweier aufeinanderfolgender Bilder
+weicht um mehr als 25 % ab. „Ohne“ entspricht v0.5.1 (die Ansicht zeigt den letzten Simulationsschritt).
+
+| Bildrate | Schritte je Bild | ungleiche Bildpaare ohne / mit Interpolation | Streuung des Vorschubs ohne / mit |
+|---|---|---|---|
+| 60 | 1 | 0 % / 0 % | 0,5 % / 0,5 % |
+| 40 | 1, 2, 1, 2 | **100 %** / 0 % | 33 % / 0,5 % |
+| 45 | 2, 1, 1 | **67 %** / 0 % | 35 % / 0,5 % |
+| 90 (Deck OLED) | 1, 1, 0 | **67 %** / 0 % | 71 % / 0,6 % |
+| 30 | 2 | 0 % / 0 % | 0,4 % / 0,4 % |
+
+Die Interpolation zeigt jedes Bild höchstens einen Simulationsschritt (16,7 ms) hinter dem neuesten Stand, im Mittel
+einen halben. Rangliste, Autopilot und alle Prüfungen bleiben gleich, weil nur die Darstellung interpoliert wird (die
+Attract-Szenen ergeben auf den Meter dieselben Werte wie vorher).
+
+### Leistung (Stand v0.5.1)
+
+Gemessen von der Leistungsprüfung am Release-Build v0.5.1 auf der Messmaschine (CPU-Zeit je Bild ohne GPU-Arbeit,
+1080 Bilder je Szene), Deck-Werte geschätzt (Faktor 1,4–1,7):
+
+| Szene | Median | p99 | max | Deck geschätzt (Median / p99) |
+|---|---|---|---|---|
+| Attract-Demo Feierabendverkehr 18:48 | 9,52 ms | 16,20 ms | 33,47 ms | 14–19 / 24–31 ms |
+| Feierabendverkehr Frankfurt 17 Uhr | 7,40 ms | 10,46 ms | 20,13 ms | 11–16 / 16–21 ms |
+| Paris nachts bei Regen | 5,95 ms | 9,46 ms | 11,77 ms | |
+| Würzburg nachts bei Regen (22 Lichter) | 6,09 ms | 10,76 ms | 12,53 ms | |
+| Schnee im Berufsverkehr A7 | 6,39 ms | 10,66 ms | 13,26 ms | |
+| Gotthard mit Lkw | 3,76 ms | 5,97 ms | 14,65 ms | |
+| Titel, Pause | 0,12 ms | | | |
+
+Der Straßenrenderer (`RoadRenderer._draw`) kostet davon 4–7,5 ms (Requisiten 2,4 ms, Boden 0,9 ms im
+Feierabendverkehr), die Simulation 0,4–1,6 ms. Seit v0.3.0 ist der Median dieser Szene um etwa 19 % gestiegen (7,3 →
+8,8 ms im Editor). Etappe laden 0,29–0,81 s (Release; jetzt +0,2–0,3 s für die vorab geladenen Blätter, beim ersten
+Mal), Texturspeicher im Rennen 247–259 MB. **Auf dem Deck dürften 60 fps in dichten Szenen und Städten nicht immer
+reichen** – geschätzt, nicht gemessen. Seit der Render-Interpolation laufen 40 und 45 fps gleichmäßig; die Empfehlungen
+unten berücksichtigen das.
+
+### Nicht geändert
+
+- **CPU-Reserve** (mittel, Schätzung): Den Hauptthread spürbar zu entlasten (Requisiten je Scheibe zwischenspeichern,
+  Projektion und Boden auf typisierte Packed-Arrays oder eine GDExtension, das Render-Thread-Modell „Separate“
+  erproben) ist ein eigenes Vorhaben und sollte erst nach einer Messung auf dem Deck angegangen werden. Billige
+  Stellschrauben bringen wenig (gemessen: `render.lod_merge_px` 4 spart 4 % von `_draw`, `render.draw_distance_m` 700
+  spart 8 % je Bild, ändert aber Sichtweite und Fairness). Messen auf dem Deck: im Schnellzugriffsmenü unter Leistung
+  die Overlay-Stufe 3 oder 4 (Frametime-Graph) einschalten; eine `game_config.json` neben der ausführbaren Datei mit
+  `{"hud": {"show_fps": true}, "debug": {"show_render_stats": true}}` blendet Bildrate und Renderzeiten im Spiel ein.
+  Szenen: die erste Attract-Demo (Titel eine Minute liegen lassen) und Feierabendverkehr vor Frankfurt.
+- **Analoges Gas hält kein Tempo** (niedrig): Halb gedrückter RT verlängert nur die Beschleunigung, am Ende steht
+  trotzdem die Höchstgeschwindigkeit. Das ist eine Entscheidung zum Fahrmodell (gegenüber der Tastatur kein Nachteil);
+  ein Zieltempo je Trigger-Stellung würde das Fahrgefühl ändern und sollte vorher entschieden werden.
+- **Schnee mit Steuerkreuz oder Tastatur** (niedrig, modelliert): Wer die Taste wie im Trockenen hält, pendelt (19 von
+  30 nach 8 s nicht ruhig), getippt geht es. Das ist die gewollte Schwierigkeit („früh gegenlenken“); der Wetterhinweis
+  ist mit 22 px und 1023 von 1080 px schon an der Breitengrenze, ein gerätebezogener Zusatz passt nicht hinein.
+  Lenkhilfen nur für digitale Eingaben würden die Balance zwischen den Geräten verschieben.
+
+### Was abgeleitet bleibt
+
+- **Steam Input**: ob der eingebaute Controller Gerät 0 ist, die eigene Totzone der Deck-Sticks (deshalb reicht im
+  Spiel 0,12; ein am PC driftender Stick braucht in einer `game_config.json` z. B. `{"input": {"stick_deadzone": 0.2}}`)
+  und wie Rumble auf die Haptik des Decks umgesetzt wird. Die Vibrationsstärken sind gewählt, nicht gespürt
+  (einstellbar unter `input.vibration`).
+- **gamescope**: die Erkennung über `XDG_CURRENT_DESKTOP=gamescope` bzw. `GAMESCOPE_WAYLAND_DISPLAY`, ob das Steam-Menü
+  dem Spiel den Fokus nimmt (dann pausiert es), Standby (die Regel ist geprüft, ein echter Schlafzustand nicht).
+- **Leistung, Akku und Ton auf dem Gerät**: CPU-Zeiten auf dem Deck, PipeWire-Aussetzer beim Motorstart.
 
 ## Verbleibende Grenzen
 
@@ -196,11 +338,15 @@ läuft gleichmäßig und spart Akku. Die Rennsimulation läuft in festen 1/60-s-
 - **Tastensymbole im Xbox-Stil**: A/B/X/Y, LT/RT und LS als Schrift-Symbole; das Deck nennt die Trigger R2/L2 und
   hat statt „Start“ die Taste ≡ – Lage und Funktion sind gleich. Eigene Deck-Symbole gibt es nicht.
 - **Steam-Menü pausiert nicht unbedingt**: Ob das Spiel beim Öffnen des Steam-Menüs oder des Schnellzugriffsmenüs
-  den Fokus verliert (und dann pausiert), hängt von gamescope ab – vorher mit ≡ pausieren.
+  den Fokus verliert (und dann pausiert, seit der Prüfung v0.5.1 auch im Countdown), hängt von gamescope ab – vorher
+  mit ≡ pausieren.
 - **Fortschritt innerhalb einer Etappe** wird nicht gespeichert (gespeichert wird nach jeder Etappe). Der
-  Standby des Decks behält das laufende Spiel.
-- **Nicht auf echter Hardware geprüft**: Leistung, Akkulaufzeit, Verhalten unter gamescope und die
-  Steam-Input-Belegung sind aus Messungen auf dem Entwicklungsrechner und den Eigenschaften des Decks abgeleitet.
+  Standby des Decks behält das laufende Spiel; nach dem Aufwachen ist das Rennen pausiert (abgeleitet, siehe oben).
+- **CPU-Reserve**: In dichten Szenen und Städten reichen 60 fps auf dem Deck wahrscheinlich nicht immer (Schätzung,
+  Abschnitt *Prüfung v0.5.1*); dann hilft eine Bildrate von 40 oder 45.
+- **Nicht auf echter Hardware geprüft**: Leistung, Akkulaufzeit, Verhalten unter gamescope, die
+  Steam-Input-Belegung und die Vibration sind aus Messungen auf dem Entwicklungsrechner und den Eigenschaften des
+  Decks abgeleitet.
 
 ## Empfohlene Einstellungen
 
@@ -219,15 +365,27 @@ läuft gleichmäßig und spart Akku. Die Rennsimulation läuft in festen 1/60-s-
 - Steam Input eingeschaltet lassen, Controller-Layout bzw. Vorlage **„Gamepad“** (Xbox-Belegung). „Gamepad mit
   Maus-Trackpad“ geht ebenso – Trackpad und Touchscreen stören die Hinweise nicht.
 - Belegung im Spiel: linker Stick oder Steuerkreuz lenkt, R2 (RT) oder A gibt Gas, L2 (LT) oder X bremst,
-  ≡ pausiert; in Menüs A wählt, B geht zurück.
+  ≡ pausiert; in Menüs A wählt, B geht zurück, gehaltenes Steuerkreuz oder gehaltener Stick laufen durch Listen,
+  L1/R1 (LB/RB) blättern 8 Einträge weiter. Ein angedockter Deck mit externem Controller wird mit jedem der beiden
+  Controller gesteuert.
+- Vibration im Rennen: Optionen → „Vibration“ (Standard An); Steam Input setzt sie in die Haptik des Decks um
+  (abgeleitet, nicht am Gerät gespürt).
 
-**Im Spiel**: Optionen → **Vollbild: An** – beim ersten Start auf dem Deck schon voreingestellt. Im Vollbild hat das
-Fenster genau 1280×800: Die Menüs füllen den Bildschirm, keine Skalierung von gamescope kann das Bild strecken, und
-im Desktop-Modus verdeckt keine Taskleiste das Spiel. Den Spielernamen am einfachsten gleich in den Optionen mit A im
-Namensfeld eingeben.
+**Im Spiel**: Optionen → **Vollbild: An** – auf dem Deck schon voreingestellt (im Spielmodus immer, solange „Vollbild“
+nicht ausgeschaltet wurde). Im Vollbild hat das Fenster genau 1280×800: Die Menüs füllen den Bildschirm, keine
+Skalierung von gamescope kann das Bild strecken, und im Desktop-Modus verdeckt keine Taskleiste das Spiel. Den
+Spielernamen am einfachsten gleich in den Optionen mit A im Namensfeld eingeben.
 
-**Schnellzugriffsmenü (Taste „…“) → Leistung**: Bildrate 60 (Standard). Skalierung so lassen bzw. nicht auf
-„Strecken“ stellen (das Bild ist 16:9). Bei Rucklern oder für mehr Akku: 40 Hz und Bildrate 40.
+**Schnellzugriffsmenü (Taste „…“) → Leistung**: Skalierung so lassen bzw. nicht auf „Strecken“ stellen (das Bild ist
+16:9). Bildrate:
+
+- **Deck LCD** (60 Hz): Bildrate 60 (Standard). Bei Rucklern in dichtem Verkehr oder für mehr Akku: 40 Hz
+  Bildwiederholrate und Bildrate 40, oder Bildrate 30.
+- **Deck OLED** (90 Hz): Bildwiederholrate 60 Hz mit Bildrate 60, oder 90 Hz mit Bildrate 45 (Akku: 30). Volle
+  90 fps schafft das Spiel in dichten Szenen voraussichtlich nicht (Schätzung).
+
+Seit der Render-Interpolation (Prüfung v0.5.1) läuft die Straße bei 30, 40, 45, 60 und 90 fps gleichmäßig – gemessen
+am Bildtakt der Simulation, nicht am Gerät.
 
 **Spielstände sichern**: Steam Cloud gilt nicht für Nicht-Steam-Spiele. Einstellungen, Spielstand und Bestenlisten
 liegen in `~/.local/share/godot/app_userdata/Crossing Europe – A Racing Xperience/` – diesen Ordner bei Bedarf
@@ -235,4 +393,6 @@ sichern. Eine `game_config.json` neben der ausführbaren Datei wirkt wie am PC (
 
 **Angedockt** an einem 16:9-Monitor oder Fernseher: in den Eigenschaften des Spiels die Spielauflösung auf „Nativ“
 stellen – dann läuft es in der Auflösung des Bildschirms, füllt ihn ohne Balken und wird scharf skaliert (1080p:
-Faktor 1,5). Mit 1280×800 würde das 16:10-Bild samt Balken noch einmal in den 16:9-Bildschirm eingepasst.
+Faktor 1,5). Mit 1280×800 würde das 16:10-Bild samt Balken noch einmal in den 16:9-Bildschirm eingepasst. Im
+Spielmodus startet das Spiel dabei im Vollbild (vor der Prüfung v0.5.1: als 1280×720-Fenster, das gamescope weich
+hochskalierte); wer „Vollbild“ in den Optionen einmal ausgeschaltet hat, schaltet es dort wieder an.

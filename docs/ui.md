@@ -45,7 +45,7 @@ schräge Schaltflächen (StyleBoxFlat mit `skew`), Panels mit abgeschrägten Eck
 | `scripts/ui/ui_data.gd`, `sample_data.gd` | Datenzugriff mit Fallbacks, Beispieldaten für Debug-Bildschirme |
 | `scripts/ui/route_info.gd` | `RouteInfo`: Routenoption als ganze Route bis zum nächsten Ziel (Fortsetzung, Summen; rein, getestet) |
 | `scripts/ui/screens/*.gd` | ein Skript je Bildschirm (Basisklasse `UiScreen`) |
-| `scripts/ui/widgets/*.gd` | Hintergrund, Logo-Text, Tastenhinweise, Optionszeile, Laufschrift, Bestenliste, Namenseingabe, Bildschirmtastatur als Abfrage (`NameEntryBox`), Tageszeit-Vorschau, Fahrzeug-Showroom, Routenkarte, Ja/Nein-Abfrage (`ConfirmBox`), Titelbild mit Ken-Burns-Shader (`TitleBackdrop`), Milchglas-Karte (`GlassPanel`), Demo-Overlay (`AttractOverlay`) |
+| `scripts/ui/widgets/*.gd` | Hintergrund, Logo-Text, Tastenhinweise, Optionszeile, Laufschrift, Bestenliste, Namenseingabe, Bildschirmtastatur als Abfrage (`NameEntryBox`), Tageszeit-Vorschau, Fahrzeug-Showroom, Routenkarte, Ja/Nein-Abfrage (`ConfirmBox`), Titelbild mit Ken-Burns-Shader (`TitleBackdrop`), Milchglas-Karte (`GlassPanel`), Demo-Overlay (`AttractOverlay`), „Etappe wird geladen …“ (`LoadingOverlay`) |
 | `scripts/core/input_mode.gd` | `InputMode`: aktives Eingabegerät (Gamepad/Tastatur) für Tastenhinweise und Tutorial |
 | `scripts/audio/audio_manager.gd` | Autoload `AudioManager` (API §11) |
 | `scripts/audio/sfx_synth.gd` | `SfxSynth`: Klangsynthese (rein, getestet) |
@@ -54,7 +54,7 @@ schräge Schaltflächen (StyleBoxFlat mit `skew`), Panels mit abgeschrägten Eck
 | `tools/audio/render_engine_demo.gd` | Demo-WAV einer Motorbank mit geskripteter Fahrt |
 | `assets/audio/music/title_theme.ogg` | Titelmelodie (Menümusik, Schleife nach dem Intro; Abschnitt *Titelmelodie*) |
 | `tools/audio/music_synth.py`, `music_preview.py` | Titelmelodie offline erzeugen; prüfen (Lautheit, Balance, Harmonik, Schleifennaht) und Vorschau |
-| `tests/unit/ui/*` | Tests: Rennlogik, Formatierung, Laufschrift, Audio-Synthese, Getriebe, Karten-Zoom, Routenoptionen (`test_route_info`), Texte aus der Konfiguration (`test_ui_texts`), Gamepad/Fokus/Spielstand (`test_menu_input`), Eingabegerät/Gamepad-Hinweise/Namenseingabe in den Optionen (`test_steam_deck`), Motor: Bank (`test_engine_bank`), Getriebe (`test_engine_gearbox`), Mischkern (`test_engine_audio`) mit den Testbänken aus `tests/fixtures/engines/`, Verkehrsgeräusche und Raumklang (`test_traffic_audio`) mit den Platzhalterschleifen aus `tests/fixtures/traffic/`, Attract-Modus und Titelbild (`test_attract_mode`); das ganze Spiel mit Demo: `tests/race/check_attract.gd` |
+| `tests/unit/ui/*` | Tests: Rennlogik, Formatierung, Laufschrift, Audio-Synthese, Getriebe, Karten-Zoom, Routenoptionen (`test_route_info`), Texte aus der Konfiguration (`test_ui_texts`), Gamepad/Fokus/Spielstand (`test_menu_input`), Eingabegerät/Gamepad-Hinweise/Namenseingabe in den Optionen (`test_steam_deck`), Motor: Bank (`test_engine_bank`), Getriebe (`test_engine_gearbox`), Mischkern (`test_engine_audio`) mit den Testbänken aus `tests/fixtures/engines/`, Verkehrsgeräusche und Raumklang (`test_traffic_audio`) mit den Platzhalterschleifen aus `tests/fixtures/traffic/`, Attract-Modus und Titelbild (`test_attract_mode`), Gamepad-Prüfung v0.5.1 (`test_gamepad`: alle Geräte, Stick-Schritt, Wiederholung, LB/RB, Bildschirmtastatur, Abfrage, Stickkurve, Vibration, Vollbild, Standby, Interpolation, vorab geladene Sprite-Sätze); das ganze Spiel mit Demo: `tests/race/check_attract.gd`, mit Gamepad: `tests/race/check_menu_pad.gd` |
 
 ## Bildschirmablauf
 
@@ -71,7 +71,7 @@ Titel ─┬─ Rennen starten [Abfrage, falls gespeichert] → Rennen wählen �
        │        └──────────────────────────────────────────────────────────┘
        ├─ Einzelne Etappe → Etappe/Richtung/Uhrzeit/Wetter → Fahrzeug → Etappenbildschirm → Rennen → Ergebnis
        ├─ Bestenlisten (Rennen + Etappen je Richtung, Filter je Fahrzeug)
-       ├─ Optionen (Lautstärken, Vollbild, Spielername, Steuerung)
+       ├─ Optionen (Lautstärken, Vollbild, Vibration, Spielername, Steuerung)
        ├─ Beenden
        └─ 60 s ohne Eingabe: Demo (Attract-Modus, 30 s) ── Taste oder Ende ──► Titel
 ```
@@ -138,7 +138,7 @@ Synthwave-Hintergrund (0,35 s; beim ersten Bildschirm sofort), alle anderen Bild
 Synthwave-Hintergrund. Aufbau:
 
 - **Bild**: `TitleBackdrop`, ein Canvas-Shader über das ganze Fenster: *cover fit* (16:9 zeigt das ganze Bild, 16:10
-  auf dem Steam Deck schneidet links und rechts je ~4 % ab, breitere Fenster oben und unten). Leben im Bild, ruhig und
+  auf dem Steam Deck schneidet links und rechts je ~5 % ab, breitere Fenster oben und unten). Leben im Bild, ruhig und
   ohne Effekthascherei: langsamer **Ken-Burns-Zoom** (bis 6,5 % in 45 s hin und zurück) um das rote Auto, dessen
   Brennpunkt in 72 s Richtung Skyline wandert (der Zoom ist eine Konvexkombination – nie ein Bildrand); die tief
   stehende **Sonne atmet** (weiches Glühen, schwacher waagrechter Lichtstreif, 7,2 s); feine **Fahrtstreifen** laufen
@@ -208,7 +208,8 @@ Szenen lassen sich ohne Neubau über `game_config.json` neben der ausführbaren 
   `AudioManager.set_music(true)` startet laufende Musik nicht neu (die Rückkehr zum Titel ruft es auf).
 - **Bild**: Overlay `AttractOverlay` im 1280×720-Rahmen des Rennens: oben mittig das Logo in einer Zeile über dem
   Himmel (Wahrzeichen stehen seitlich der Straße und bleiben frei), darunter „DEMO“ und der Name der Szene auf einer
-  dunklen Pille; unten links blinkend „Taste drücken“ mit den Symbolen des Eingabegeräts (Gamepad: Ⓐ, Tastatur:
+  dunklen Pille (der dunkle Hof des Logos liegt dahinter – `show_behind_parent`; vorher dunkelte er Plakette und Namen
+  um ~23 % ab, Prüfung v0.5.1); unten links blinkend „Taste drücken“ mit den Symbolen des Eingabegeräts (Gamepad: Ⓐ, Tastatur:
   Enter und Ⓐ) – die Bildmitte unten gehört dem eigenen Auto; am unteren Rand eine dünne Linie, die sich in 30 s
   füllt. Das HUD ist reduziert (`Hud.reduced`): nur Uhr-Panel (Uhrzeit, Wetter, Land, Etappe) und Tacho; keine
   Zeit/Rekord, kein Fortschrittsbalken, kein Tank, keine Schilder- und Polizei-Panels, keine Nachrichten, kein
@@ -220,7 +221,10 @@ Szenen lassen sich ohne Neubau über `game_config.json` neben der ausführbaren 
   geweckt hat, bestimmt die Hinweise im Titel (`InputMode`). Nach `demo_s` endet die Demo von selbst (über Schwarz),
   ebenso wenn die Etappe in der Demo ins Ziel kommt; danach zählt der Leerlauf-Timer neu.
 - **Leerlauf-Timer**: zählt nur, solange der Titel zu sehen und keine Abfrage offen ist (`TitleScreen.has_modal`);
-  jede Eingabe (auch Mausbewegung und Loslassen, nicht Stick-Rauschen unter 0,5) setzt ihn zurück. Die Zeiten zählen
+  jede Eingabe (auch Mausbewegung und Loslassen, nicht Stick-Rauschen unter 0,5) setzt ihn zurück. Nach
+  `attract.max_idle_s` (600 s) ganz ohne Eingabe kommen keine Demos mehr – der Titel bleibt stehen – und der Bildschirm
+  darf sich abschalten (`DisplayServer.screen_set_keep_on(false)`, Akku des Steam Deck); jede Eingabe hebt beides auf.
+  Während eines Rennens bleibt der Bildschirm an (Gamepad-Eingaben zählen für den Bildschirmschoner des Systems nicht). Die Zeiten zählen
   Bildzeit ohne `Engine.time_scale` – echte Sekunden für den Spieler, Videosekunden in einer Movie-Maker-Aufnahme.
 - **Nichts wird gespeichert**: Die Demo-Szene ist nicht mit dem Rennablauf von `GameFlow` verbunden
   (`start_attract_stage` statt `start_stage`; `stage_finished`/`stage_aborted` beenden nur die Demo) – kein
@@ -245,23 +249,60 @@ Szenen lassen sich ohne Neubau über `game_config.json` neben der ausführbaren 
 Tastatur, Gamepad und Maus. Menüs nutzen `ui_accept`/`ui_cancel`/`ui_up/down/left/right` (Gamepad A/B
 registriert `InputSetup`, Steuerkreuz/Stick sind in Godots ui_*-Aktionen), jede Seite setzt einen
 Standardfokus; der Fokus ist deutlich sichtbar (Magenta-Rahmen mit Glühen, goldene Schrift).
-Auswahlwerte (Fahrzeug, Uhrzeit, Optionen, Filter) mit ◀ ▶.
+Auswahlwerte (Fahrzeug, Uhrzeit, Optionen, Filter) mit ◀ ▶. Gamepad-Prüfung v0.5.1: [steam-deck.md](steam-deck.md)
+(„Prüfung v0.5.1“).
 
+- **Jedes Gamepad**: Alle Gamepad-Belegungen von `InputSetup` gelten für alle Geräte (`device` −1 wie Godots ui_*):
+  ein zweites Pad, der angedockte Steam Deck mit externem Controller oder ein zuerst erkanntes anderes Gerät bestätigen,
+  gehen zurück, fahren und pausieren wie Gerät 0 (vorher bewegten sie nur den Fokus).
+- **Ein Stick-Stoß = ein Schritt** (`UiKit.ui_step`): Die eigenen ◀▶/▲▼-Handler (Fahrzeug, Startzeit,
+  Optionszeilen, Bestenlisten-Filter, Etappentabelle des Rennergebnisses) zählen einen Stick nur in dem Bild, in dem er
+  die Aktion betritt (`Input.is_action_just_pressed`, höchstens einmal je Bild) – wie Godots eigene Fokussuche. Tasten
+  zählen mit ihrer Wiederholung, das Steuerkreuz je Druck. Vorher wertete jedes Stick-Ereignis über der Totzone als
+  neuer Druck: ein Stoß wechselte 3–5 Fahrzeuge, verstellte die Startzeit um bis zu 14 Stunden.
+- **Halten wiederholt** (`PadRepeat`, von `InputSetup` betrieben): Steuerkreuz oder Stick gehalten → nach
+  `input.repeat_delay_s` (0,5 s) alle `input.repeat_interval_s` (0,1 s) ein weiterer Schritt, als `InputEventAction`
+  durch den Viewport (Fokussuche und ◀▶-Handler nehmen ihn wie das Echo einer Taste). Nur für eine vom Gamepad gedrückte
+  Richtung (die Tastatur wiederholt selbst) und nur, solange ein Element den Fokus hat. Vorher: einmal.
+- **LB / RB** (Bild ↑ / Bild ↓, Aktionen `ui_page_up`/`ui_page_down`): springen in der Etappenliste (51 Einträge) und
+  in den Bestenlisten (106) um `UiKit.PAGE_STEP` (8) Einträge, am Anfang/Ende bleibt der Fokus stehen; Hinweis „LB RB
+  Seite“.
+- **Zurück behält die Auswahl**: Die Rennauswahl fokussiert das zuletzt gewählte Rennen (`GameFlow.draft.race_id`),
+  der Titel nach Einzelne Etappe, Bestenlisten oder Optionen wieder diesen Eintrag (`GameFlow.title_choice`; nach
+  einem Rennen wie bisher „Rennen fortsetzen“, solange ein Spielstand da ist).
+- **„Beenden“ fragt** (`ConfirmBox` „Spiel beenden?“, Standard „Abbrechen“): ein A zu viel beendete das Spiel.
+- **Etappe wird geladen**: „Start“ im Etappenbildschirm zeigt zwei Bilder lang „Etappe wird geladen …“
+  (`LoadingOverlay`), dann baut `GameFlow.start_pending_stage()` die Rennszene (0,3–0,8 s, auf dem Deck mehr); ein
+  zweiter Druck in dieser Zeit wirkt nicht.
 - **Tastenhinweise je Eingabegerät** (`InputMode`, `KeyHints.visible_hints`): `InputSetup` meldet jedes
   Eingabeereignis an `InputMode`; eine Gamepad-Taste oder ein deutlicher Stick-/Triggerausschlag (≥ 0,5) schaltet auf
   Gamepad, ein Tastendruck zurück, Maus/Touch/Trackpad schalten nicht. Startwert: Gamepad, wenn eines angeschlossen ist
   (Steam Deck: immer). Mit Gamepad zeigen die Fußzeilen nur Gamepad-Symbole: `pad:*` bleibt, Pfeiltasten werden zu einem
   gezeichneten Steuerkreuz (`dpad:udlr`, nur wo der Hinweis keine Gamepad-Taste hat), andere Tasten entfallen; mit
   Tastatur wie bisher Tasten und Gamepad nebeneinander. Weitere Symbole: `pad:LS`/`pad:RS` (Stick).
-  Das Tutorial nennt mit Gamepad nur den Gamepad-Tipp (`TutorialCoach.gamepad`, beim Start der Etappe gesetzt).
+  Das Tutorial nennt mit Gamepad nur die Gamepad-Tipps (Stick oder Steuerkreuz, Trigger; dann Start = Pause und A/X,
+  `TutorialCoach.gamepad`, beim Start der Etappe gesetzt).
 - **Spielername in den Optionen per Gamepad**: A im Namensfeld öffnet `NameEntryBox` (dieselbe Bildschirmtastatur wie
-  bei den Bestenlisten; OK übernimmt, B löscht, Esc auf einer Tastatur schließt ohne Änderung). Hat das Feld den Fokus,
-  zeigt die Fußzeile „(A) Bildschirmtastatur“.
+  bei den Bestenlisten; OK übernimmt, B löscht das letzte Zeichen und schließt im leeren Feld ohne Änderung, ebenso
+  Esc auf einer Tastatur). Hat das Feld den Fokus, zeigt die Fußzeile „(A) Bildschirmtastatur“. Eine Tastatur (auch die
+  Steam-Tastatur, STEAM + X) tippt direkt ins Feld – auch wenn der Fokus per Pfeiltaste/Steuerkreuz kam: Godot 4.7
+  startet die Bearbeitung eines so erreichten `LineEdit` nicht und verwarf die Tasten; die erste getippte Taste startet
+  sie jetzt (`NameEntry.begin_typing`).
 - **Vollbild**: Startwert `Settings.default_fullscreen()` – an auf Bildschirmen bis 800 px Höhe (Steam Deck: ein
-  1280×720-Fenster mit Titelleiste passt nicht, und nur im Vollbild füllen die Menüs 16:10), sonst aus; danach gilt der
-  in den Optionen gespeicherte Wert.
+  1280×720-Fenster mit Titelleiste passt nicht, und nur im Vollbild füllen die Menüs 16:10) und immer unter
+  *gamescope* (Spielmodus des Steam Deck, auch angedockt mit „Nativ“ 1920×1080), sonst aus. Gespeichert wird der Wert
+  nur, wenn der Spieler „Vollbild“ in den Optionen umgeschaltet hat (`Settings.fullscreen_chosen`; ältere
+  `settings.json` mit dem Schlüssel gelten als gewählt) – sonst gilt bei jedem Start der Startwert.
+- **Vibration** (Optionen, Standard An, `Settings.vibration`): Rumble des Gamepads im Rennen (`Haptics`, siehe
+  [renn-modul.md](renn-modul.md) §9); beim Einschalten ein kurzer Probepuls.
 - **Namenseingabe**: Tastatur tippt direkt ins Feld; Gamepad nutzt die Bildschirmtastatur (A–Z, ÄÖÜß,
-  Ziffern, Leerzeichen, Löschen, OK): A tippt, B löscht das letzte Zeichen, A im Feld oder auf OK trägt ein.
+  Ziffern, Leerzeichen, Löschen, OK): A tippt, B löscht das letzte Zeichen – auch wenn der gemerkte Name beim Start
+  ganz ausgewählt ist (vorher löschte das erste B alles) –, A im Feld oder auf OK trägt ein, Start ebenso. A oder Start
+  im **leeren** Feld tragen nicht „Unbekannt“ ein, sondern springen auf die Tasten (wer nach dem Rennen A drückt, um
+  weiterzukommen, legt keinen namenlosen Eintrag an); OK im leeren Feld trägt „Unbekannt“ ein, gemerkt wird als
+  Spielername aber nur ein getippter Name. Die Hinweise folgen dem Fokus (`NameEntry.hints_changed`): „(A) Tippen“
+  auf den Tasten und im leeren Feld, „(A) Eintragen“ im Feld mit Namen und auf OK, „(B) Löschen“ bzw. „(B) Schließen“
+  im leeren Feld der Box, „Start Fertig“.
   Feste Nachbarn: Tastenreihen laufen links/rechts herum, ▲ aus der ersten Reihe ins Feld, ▼ aus der letzten
   Reihe auf Leerzeichen/Löschen/OK.
 - **Einzelne Etappe**: Liste links (▲▼ läuft herum, der fokussierte Eintrag wird gewählt), Enter oder ▶ →
@@ -271,12 +312,21 @@ Auswahlwerte (Fahrzeug, Uhrzeit, Optionen, Filter) mit ◀ ▶.
 - **Rennergebnis**: Die Etappentabelle hat feste Zeilenhöhe und scrollt bei langen Rennen (Königsrennen:
   40 Etappen + Fähre) – Mausrad oder ▲▼, solange „Hauptmenü“ den Fokus hat (Hinweis „Etappen blättern“).
   Die Routenzeile ist auf zwei Zeilen begrenzt.
-- **Abfragen** (`ConfirmBox`): Fokus bleibt in der Box, Standard ist die sichere Antwort, Esc/B = Nein.
-- Pausenmenü: Esc/P/Start oder B setzt fort.
+- **Abfragen** (`ConfirmBox`): Fokus bleibt in der Box, Standard ist die sichere Antwort, Esc/B = Nein. Eine
+  Hinweiszeile in der Box nennt die Tasten (◀▶ Wählen, A Bestätigen, B = die sichere Antwort) – die Fußzeile des
+  Bildschirms liegt abgedunkelt dahinter.
+- Pausenmenü: Esc/P/Start oder B setzt fort. Die Pause-Taste zeigt das HUD unter der Startampel, solange der Countdown
+  läuft („Start Pause“, mit Tastatur „Esc Start Pause“); das Tutorial nennt sie ebenfalls.
+- **Fußzeilen** haben einen weichen Schatten unter der Beschriftung (über dem sonnigen Asphalt des Titelbilds lag
+  „Wählen“ an den hellsten Stellen bei 3,4:1).
 
 Die Flüsse lassen sich mit echten Tastatur-/Gamepad-Ereignissen prüfen (`Input.parse_input_event` in einem
 SceneTree-Skript, das `res://scenes/main.tscn` lädt); die Unit-Tests prüfen Verdrahtung und Handler, weil
-`tests/run_tests.gd` vor dem Eintritt des Viewports in den Baum läuft.
+`tests/run_tests.gd` vor dem Eintritt des Viewports in den Baum läuft. `tests/race/check_menu_pad.gd` (Teil von
+`tools/run_tests.sh`) tut das für die Gamepad-Prüfung v0.5.1: ein Stick-Stoß = ein Schritt, Halten wiederholt, LB/RB,
+zweites Gamepad, Tippen ins per Steuerkreuz erreichte Namensfeld, Bildschirmtastatur, Abfrage vor dem Beenden, Fahren
+und Pause mit Gamepad 2, Pause beim Trennen, Vibration, interpolierte Ansicht; `test_gamepad.gd` prüft die Teile
+einzeln.
 
 ## HUD
 

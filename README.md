@@ -20,6 +20,13 @@ Nachtankzwang, Radarfallen und Polizei, Tageszeit und Wetter. Vorbilder: *Enduro
   ([docs/renn-modul.md](docs/renn-modul.md), §2 „Lichter und Verdeckung“).
 - **Design-Dokument** an v0.5.0 angepasst: Verkehr, Wetter und Fahrverhalten, City Limits, Tutorial
   ([docs/Design-Dokument.md](docs/Design-Dokument.md), Änderungen markiert mit *(seit v0.5.0)*).
+- **Gamepad und Steam Deck geprüft** ([docs/steam-deck.md](docs/steam-deck.md), „Prüfung v0.5.1“): Ein Stick-Stoß
+  verstellt Fahrzeug, Startzeit und Optionen nur noch um einen Schritt; jedes angeschlossene Gamepad fährt und bedient
+  die Menüs (vorher nur das erste); gehaltenes Steuerkreuz oder gehaltener Stick laufen durch Listen, LB/RB blättern;
+  die Bildschirmtastatur löscht mit B nur noch ein Zeichen und schließt im leeren Feld; die Straße läuft auch bei 40,
+  45 und 90 Bildern pro Sekunde gleichmäßig (Steam Deck OLED); keine Nachladeruckler mehr bei Gebäuden, Lkw und
+  Wahrzeichen; **Vibration** im Rennen (Optionen, abschaltbar); Pause-Taste im Countdown, Abfrage vor dem Beenden,
+  „Etappe wird geladen …“.
 
 ## Neu in v0.5.0
 
@@ -117,15 +124,21 @@ Grafikprobleme, Spielstände, Prüfsummen, Selbstbauen (`tools/build_windows.sh`
 | Lenken | ← → oder A D | linker Stick / Steuerkreuz |
 | Gas | ↑ oder W | rechter Trigger / A |
 | Bremse | ↓ oder S | linker Trigger / X |
-| Pause | Esc oder P | Start |
-| Menü: wählen / bestätigen / zurück | Pfeiltasten / Enter / Esc | Stick / A / B |
+| Pause | Esc oder P | Start (Steam Deck: ≡) |
+| Menü: wählen / bestätigen / zurück | Pfeiltasten / Enter / Esc | Steuerkreuz oder Stick (gehalten: läuft weiter) / A / B |
+| Menü: lange Listen seitenweise | Bild ↑ / Bild ↓ | LB / RB |
+
+Jedes angeschlossene Gamepad funktioniert (auch ein zweites oder der externe Controller am angedockten Steam Deck).
+Optionen → „Vibration“ schaltet das Rumpeln bei Unfällen, an der Leitplanke, auf dem Bankett und beim Untersteuern
+an oder aus.
 
 ## Steam Deck
 
 Läuft als Nicht-Steam-Spiel auf dem Steam Deck und ist komplett mit dem eingebauten Controller spielbar: Die
 Tastenhinweise zeigen dort nur Gamepad-Tasten, Namen gibt man über eine Bildschirmtastatur ein, die Menüs füllen den
-16:10-Bildschirm. Prüfung, Messwerte und empfohlene Einstellungen (Vorlage „Gamepad“, Vollbild, kein Proton):
-[docs/steam-deck.md](docs/steam-deck.md).
+16:10-Bildschirm, die Vibration gibt Steam Input an die Haptik des Decks weiter. Prüfungen (v0.3.0 und v0.5.1),
+Messwerte und empfohlene Einstellungen (Vorlage „Gamepad“, Vollbild, kein Proton, Bildrate 60 oder für mehr Akku
+40/45/30): [docs/steam-deck.md](docs/steam-deck.md).
 
 ## Steam-Artwork
 
@@ -191,6 +204,9 @@ Alle Werte stehen in `config/game_config.json` und lassen sich ohne Neubau ände
   ```json
   { "fuel": { "tow_penalty_s": 120 }, "traffic": { "chase_density_factor": 0.3 } }
   ```
+
+  Ein Gamepad, dessen Stick in Ruhe driftet (das Auto zieht ohne Eingabe zur Seite): `{ "input": { "stick_deadzone":
+  0.2 } }`; Stärke der Vibration: `{ "input": { "vibration": { "scale": 0.5 } } }`.
 
 - Ein `network.json` neben der ausführbaren Datei (oder in einem Ordner `data/` daneben) ersetzt das eingebaute
   Streckennetz – neue Städte, Etappen und Rennen ohne Codeänderung (Format: [ARCHITECTURE.md](ARCHITECTURE.md) §4).
