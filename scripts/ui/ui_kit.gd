@@ -75,6 +75,58 @@ static func stat_line(caption: String, value: String, value_col: Color = UiTheme
 	return row
 
 
+static var _stick_frame := {}        ## action -> process frame of its last stick step (ui_step)
+
+
+## One step of a ui_* direction in a custom handler (◀▶ values, ▲▼ scrolling). Keys count with their echo (the held
+## key repeats), D-pad presses and the repeat of a held pad direction (PadRepeat, an InputEventAction) once each. A
+## stick sends a motion event for every change of its position, and every one above the action's deadzone reads as
+## "pressed" – so a stick counts only in the frame it enters the action (Input.is_action_just_pressed), and at
+## most once per frame, like Godot's own focus navigation: one push = one step (QA v0.5.1: one push changed the
+## vehicle 3–5 times and the start time by up to 14 hours).
+static func ui_step(event: InputEvent, action: StringName) -> bool:
+	if event is InputEventJoypadMotion:
+		if not event.is_action_pressed(action) or not Input.is_action_just_pressed(action):
+			return false
+		var f := Engine.get_process_frames()
+		if int(_stick_frame.get(action, -1)) == f:
+			return false
+		_stick_frame[action] = f
+		return true
+	return event.is_action_pressed(action, true)
+
+
+## Index `index` moved by `d` entries in a list of `count`, clamped (LB / RB, page keys: ±PAGE_STEP without
+## wrapping around, unlike the single steps of focus navigation).
+static func page_index(index: int, d: int, count: int) -> int:
+	if count <= 0:
+		return 0
+	return clampi(index + d, 0, count - 1)
+
+
+## Entries LB / RB (PageUp / PageDown) jump in long lists.
+const PAGE_STEP := 8
+
+
+## LB / RB (PageUp / PageDown): moves the focus `PAGE_STEP` entries up or down in `list` (focusable controls in
+## order) when one of them has the focus. Returns true if the event was a page step for this list.
+static func page_focus(event: InputEvent, list: Array, focus_owner: Control) -> bool:
+	var d := 0
+	if event.is_action_pressed("ui_page_down", true):
+		d = PAGE_STEP
+	elif event.is_action_pressed("ui_page_up", true):
+		d = -PAGE_STEP
+	if d == 0 or focus_owner == null:
+		return false
+	var i := list.find(focus_owner)
+	if i < 0:
+		return false
+	var target: Control = list[page_index(i, d, list.size())]
+	if target != focus_owner:
+		target.grab_focus()
+	return true
+
+
 static func sound(n: String) -> void:
 	var ml := Engine.get_main_loop()
 	if ml is SceneTree:

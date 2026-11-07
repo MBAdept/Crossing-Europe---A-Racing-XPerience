@@ -63,7 +63,7 @@ func test_key_hints_gamepad_only() -> void:
 		for k in h[0]:
 			assert_true(str(k).begins_with("pad:") or str(k).begins_with("dpad:"), "kein Tastatursymbol: %s" % str(k))
 	# every footer of the menus keeps at least one hint with a gamepad
-	assert_eq(KeyHints.visible_hints(NameEntry.key_hints(), true).size(), 3, "Namenseingabe: A, Steuerkreuz, B")
+	assert_eq(KeyHints.visible_hints(NameEntry.key_hints(), true).size(), 4, "Namenseingabe: A, Steuerkreuz, B, Start")
 
 
 func test_tutorial_control_hints_follow_the_device() -> void:
@@ -71,12 +71,18 @@ func test_tutorial_control_hints_follow_the_device() -> void:
 	c.setup(cfg())
 	c.gamepad = true
 	var pad := c.hints_for("start")
-	assert_eq(pad.size(), 1, "mit Gamepad nur der Gamepad-Hinweis")
-	assert_true(pad[0].contains("Gamepad") and pad[0].contains("Trigger"), "Gamepad-Hinweis (%s)" % pad[0])
+	assert_eq(pad.size(), 2, "mit Gamepad nur die Gamepad-Hinweise: Lenken/Pedale, Pause")
+	assert_true(pad[0].contains("Stick") and pad[0].contains("Steuerkreuz") and pad[0].contains("Trigger"), "Gamepad-Hinweis (%s)" % pad[0])
+	assert_true(pad[1].contains("Start pausiert"), "Pause-Taste genannt (%s)" % pad[1])
 	c.gamepad = false
 	var keys := c.hints_for("start")
 	assert_eq(keys.size(), 3, "Tastatur: Lenken, Gas/Bremse, Gamepad")
 	assert_true(keys[0].contains("Pfeiltasten"), "Tastatur zuerst (%s)" % keys[0])
+	assert_true(keys[1].contains("Esc pausiert"), "Pause-Taste genannt (%s)" % keys[1])
+	# the HUD shows hints of up to 1080 px at 28 px without shrinking them
+	var f := UiTheme.font(UiTheme.F.HEADING)
+	for t in pad + keys:
+		assert_true(f.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x <= 1080.0, "passt in 28 px: %s" % t)
 
 
 func test_options_name_with_gamepad_keyboard() -> void:

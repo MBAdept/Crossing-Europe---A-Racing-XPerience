@@ -10,6 +10,9 @@ extends RefCounted
 const AXIS_THRESHOLD := 0.5
 
 static var gamepad := false
+## Device id of the gamepad used last (vibration goes to it – on a docked Steam Deck or a PC with two pads the
+## active one is not always device 0).
+static var device := 0
 
 
 ## Updates the mode from an input event. Returns true if it changed.
@@ -18,9 +21,11 @@ static func note(event: InputEvent) -> bool:
 	if event is InputEventJoypadButton:
 		if (event as InputEventJoypadButton).pressed:
 			pad = true
+			device = event.device
 	elif event is InputEventJoypadMotion:
 		if absf((event as InputEventJoypadMotion).axis_value) >= AXIS_THRESHOLD:
 			pad = true
+			device = event.device
 	elif event is InputEventKey:
 		var k := event as InputEventKey
 		if k.pressed and not k.echo:

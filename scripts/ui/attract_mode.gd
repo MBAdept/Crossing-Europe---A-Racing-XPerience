@@ -12,6 +12,10 @@ extends Node
 ## idle timer then starts again. Nothing is saved: the demo scene is not connected to GameFlow's race flow (no
 ## savegame, leaderboard or settings writes; the race session itself writes nothing).
 ## Timers count frame time without Engine.time_scale (real seconds; video seconds in a Movie Maker recording).
+## After `max_idle_s` (config attract.max_idle_s, 600 s) without any input the demos stop (the title stays, static)
+## and the screen may dim / sleep (DisplayServer.screen_set_keep_on(false)) – a Steam Deck left on the title does not
+## run demos on battery for hours; any input brings both back. Gamepad input does not count as activity for the
+## system's screen saver, so the screen is kept on while somebody plays.
 ## Debug CLI: --attract-after=<s> (idle time), --attract-scene=<index|id> (first scene), --attract-demo-s=<s>,
 ## --attract-press=<s> (recordings: a key press – Enter, through the viewport like a player's – s seconds into the
 ## first demo), --no-attract.
@@ -35,6 +39,7 @@ const OVERLAY_LAYER := 60
 
 var enabled := true
 var idle_s := 60.0
+var max_idle_s := 600.0              ## no more demos (and the screen may sleep) after this long without input (0 = never)
 var demo_s := 30.0
 var fade_s := 0.6
 var guard_s := 0.4
@@ -54,6 +59,8 @@ var quiet_check: Callable
 
 var _clock_s := 0.0
 var _last_activity := 0.0
+var _last_input := 0.0               ## last real input (a demo ending by itself does not count)
+var _screen_kept_on := true
 var _demo_t0 := 0.0
 var _guard_until := -1.0
 var _swallow: Dictionary = {}        ## keys/buttons pressed during the demo: swallowed until released
@@ -78,6 +85,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	configure(_config())
 	_last_activity = now()
+	_last_input = now()
 
 
 ## Reads config attract.* and the debug command line.
@@ -86,6 +94,7 @@ func configure(cfg: Dictionary) -> void:
 	var ac: Dictionary = a if a is Dictionary else {}
 	enabled = bool(ac.get("enabled", true)) and not CliArgs.has("no-attract")
 	idle_s = maxf(0.1, float(ac.get("idle_s", 60.0)))
+	max_idle_s = maxf(0.0, float(ac.get("max_idle_s", 600.0)))
 	demo_s = maxf(1.0, float(ac.get("demo_s", 30.0)))
 	fade_s = clampf(float(ac.get("fade_s", 0.6)), 0.0, 3.0)
 	guard_s = clampf(float(ac.get("guard_s", 0.4)), 0.0, 3.0)
@@ -175,6 +184,8 @@ static func is_activity_event(e: InputEvent) -> bool:
 		return true
 	if e is InputEventMouseMotion:
 		return (e as InputEventMouseMotion).relative.length() >= 1.0
+	if e is InputEventAction:
+		return e.is_pressed()   # the repeat of a held D-pad / stick direction (PadRepeat)
 	return e is InputEventScreenDrag
 
 
@@ -221,6 +232,9 @@ func handle_input(event: InputEvent) -> bool:
 			return true
 		if is_activity_event(event):
 			_last_activity = t
+			_last_input = t
+		elif event is InputEventJoypadMotion and absf((event as InputEventJoypadMotion).axis_value) >= 0.2:
+			_last_input = t   # steering / throttle below the wake threshold: somebody is playing
 		return false
 	# STARTING, DEMO, ENDING: nothing reaches the menus or the race scene
 	if key != "":
@@ -229,6 +243,7 @@ func handle_input(event: InputEvent) -> bool:
 		else:
 			_swallow.erase(key)
 	if is_wake_event(event):
+		_last_input = t
 		InputMode.note(event)   # the device that woke the game shows its hints on the title
 		if state == State.STARTING:
 			_cancel_start()
@@ -245,6 +260,7 @@ func _process(delta: float) -> void:
 	# demo still shows 30 s of driving
 	_clock_s += delta / maxf(Engine.time_scale, 0.0001)
 	var t := now()
+	_keep_screen_on(not long_idle(t) or _racing())
 	match state:
 		State.IDLE:
 			if _unmute_by >= 0.0:
@@ -281,7 +297,32 @@ func idle_due(t: float, title_shown: bool) -> bool:
 	if not enabled or scenes.is_empty() or not title_shown:
 		_last_activity = t
 		return false
+	if long_idle(t):
+		return false   # nobody there for max_idle_s: the title stays static until the next input
 	return t - _last_activity >= idle_s
+
+
+## True after max_idle_s without real input (demos ending by themselves do not count).
+func long_idle(t: float) -> bool:
+	return max_idle_s > 0.0 and t - _last_input >= max_idle_s
+
+
+## A race of the player is running (not a demo, not paused): the screen stays on whatever the input.
+func _racing() -> bool:
+	var gf := get_parent()
+	if state != State.IDLE or gf == null or not is_inside_tree() or get_tree().paused:
+		return false
+	var cur: Variant = gf.get("current")
+	return cur != null and is_instance_valid(cur) and cur != gf.get("shell")
+
+
+## Lets the screen dim / sleep (system screen saver, Steam Deck) after max_idle_s without input; on again with input.
+func _keep_screen_on(on: bool) -> void:
+	if on == _screen_kept_on:
+		return
+	_screen_kept_on = on
+	if DisplayServer.get_name() != "headless":
+		DisplayServer.screen_set_keep_on(on)
 
 
 func _title_ready() -> bool:

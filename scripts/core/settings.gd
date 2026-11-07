@@ -6,7 +6,17 @@ const PATH := "user://settings.json"
 var master_volume := 0.8
 var sfx_volume := 1.0
 var music_volume := 0.7
-var fullscreen := false
+## "Vollbild". Setting it (options, a settings file) counts as the player's choice (fullscreen_chosen); the start
+## value of _ready() does not.
+var fullscreen := false:
+	set(value):
+		fullscreen = value
+		fullscreen_chosen = true
+## The player chose "Vollbild" (options) or the settings file has it: only then it is saved – otherwise the start
+## value (default_fullscreen()) applies at every start, so a file saved while the Steam Deck was docked (e.g. by a
+## leaderboard name) does not keep the handheld in a window (QA v0.5.1).
+var fullscreen_chosen := false
+var vibration := true             ## gamepad vibration in the race (Haptics)
 var player_name := ""
 var language := "de"
 var leaderboard_filter := "all"   # "all" or a vehicle type id
@@ -17,6 +27,7 @@ var _stored := {}                 ## values as last loaded or saved – see has_
 func _ready() -> void:
 	leaderboard_filter = str(ConfigLoader.lookup(ConfigLoader.load_merged(), "leaderboard.default_filter", "all"))
 	fullscreen = default_fullscreen()
+	fullscreen_chosen = false
 	load_settings()
 	if not CliArgs.has("no-settings-apply"):
 		apply()
@@ -31,17 +42,27 @@ func _notification(what: int) -> void:
 
 ## Start value of "Vollbild" (until the player sets it in the options): full screen on small screens
 ## like the Steam Deck's 1280×800, where a 1280×720 window with its title bar does not fit (and the menus
-## only fill a 16:10 screen in full screen); windowed on larger screens. On Windows measured in units of
-## the scaled desktop: a 1920×1080 screen at 150 % display scaling counts as 1280×720 (docs/windows.md).
+## only fill a 16:10 screen in full screen), and always in the Steam Deck's game mode (gamescope) – docked with
+## the game resolution "Nativ" the screen is 1920×1080, and gamescope would scale a 1280×720 window up softly;
+## windowed on larger desktop screens. On Windows measured in units of the scaled desktop: a 1920×1080
+## screen at 150 % display scaling counts as 1280×720 (docs/windows.md).
 static func default_fullscreen() -> bool:
 	if DisplayServer.get_name() == "headless":
 		return false
-	return fullscreen_by_default(DisplayServer.screen_get_size().y, desktop_scale())
+	return fullscreen_by_default(DisplayServer.screen_get_size().y, desktop_scale(), in_gamescope())
 
 
-## Decision behind default_fullscreen(): screen height in pixels, desktop scale (1.0 = 100 %).
-static func fullscreen_by_default(screen_height: int, scale: float) -> bool:
-	return screen_height / maxf(scale, 1.0) <= 800.0
+## Decision behind default_fullscreen(): screen height in pixels, desktop scale (1.0 = 100 %), running under
+## gamescope (Steam Deck game mode).
+static func fullscreen_by_default(screen_height: int, scale: float, gamescope: bool = false) -> bool:
+	return gamescope or screen_height / maxf(scale, 1.0) <= 800.0
+
+
+## True under gamescope, the compositor of the Steam Deck's game mode.
+static func in_gamescope() -> bool:
+	if OS.get_environment("XDG_CURRENT_DESKTOP").to_lower().contains("gamescope"):
+		return true
+	return OS.get_environment("GAMESCOPE_WAYLAND_DISPLAY") != ""
 
 
 ## Display scaling of the Windows desktop (screen DPI / 96, e.g. 1.5 at 150 %), 1.0 on other systems.
@@ -76,7 +97,9 @@ func load_settings() -> void:
 	master_volume = float(d.get("master_volume", master_volume))
 	sfx_volume = float(d.get("sfx_volume", sfx_volume))
 	music_volume = float(d.get("music_volume", music_volume))
-	fullscreen = bool(d.get("fullscreen", fullscreen))
+	if d.has("fullscreen"):
+		fullscreen = bool(d["fullscreen"])   # marks it chosen
+	vibration = bool(d.get("vibration", vibration))
 	player_name = str(d.get("player_name", player_name))
 	language = str(d.get("language", language))
 	leaderboard_filter = str(d.get("leaderboard_filter", leaderboard_filter))
@@ -103,11 +126,14 @@ func has_unsaved_changes() -> bool:
 
 
 func to_dict() -> Dictionary:
-	return {
+	var d := {
 		"master_volume": master_volume, "sfx_volume": sfx_volume, "music_volume": music_volume,
-		"fullscreen": fullscreen, "player_name": player_name, "language": language,
+		"vibration": vibration, "player_name": player_name, "language": language,
 		"leaderboard_filter": leaderboard_filter,
 	}
+	if fullscreen_chosen:
+		d["fullscreen"] = fullscreen
+	return d
 
 
 func _sample_mode() -> bool:

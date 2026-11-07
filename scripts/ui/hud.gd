@@ -375,7 +375,9 @@ func _draw_limit_and_radar(w: float) -> float:
 	var limit := int(_f("speed_limit"))
 	UiIcons.speed_sign(self, c, r, limit, _f_bold)
 	if limit <= 0:
-		_text(Vector2(c.x - 40, c.y + r + 19), tr("frei"), _f_bold, 19, UiTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 80)
+		# on a small panel like the other HUD texts: on a snowy midday sky the bare text had 1.9:1 (QA v0.5.1)
+		_hud_panel(Rect2(c.x - 30, c.y + r + 2, 60, 24), Color(UiTheme.ACCENT_2, 0.32), UiTheme.PANEL_HUD, 6.0)
+		_text(Vector2(c.x - 40, c.y + r + 20), tr("frei"), _f_bold, 19, UiTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 80)
 	var rw := _d("radar_warning")
 	if not rw.is_empty():
 		var in_zone := bool(rw.get("in_zone", false))
@@ -615,6 +617,9 @@ func _draw_countdown(w: float) -> void:
 		draw_string_outline(_f_logo, Vector2(c.x - tw * 0.5, c.y + asc * 0.4), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 10, Color(0, 0, 0, 0.6))
 		draw_string(_f_logo, Vector2(c.x - tw * 0.5, c.y + asc * 0.4), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
 		_draw_start_lights(c + Vector2(0, 92), 4 - cd)
+		# the pause key, once per stage while the lights count down (QA v0.5.1: neither HUD nor tutorial named it;
+		# on the Steam Deck it is the ≡ button)
+		_draw_key_row(c + Vector2(0, 146), [["Esc", "pad:Start"], tr("Pause")], UiTheme.TEXT, true)
 	elif _go_t > 0.0:
 		var k := _go_t / GO_TIME
 		var fs2 := int(130 * (1.0 + 0.25 * (1.0 - k)))
@@ -625,6 +630,29 @@ func _draw_countdown(w: float) -> void:
 		draw_string_outline(_f_logo, Vector2(c.x - tw2 * 0.5, c.y + asc2 * 0.4), txt2, HORIZONTAL_ALIGNMENT_LEFT, -1, fs2, 10, Color(0, 0, 0, 0.6 * a))
 		draw_string(_f_logo, Vector2(c.x - tw2 * 0.5, c.y + asc2 * 0.4), txt2, HORIZONTAL_ALIGNMENT_LEFT, -1, fs2, Color(UiTheme.GOOD, a))
 		_draw_start_lights(c + Vector2(0, 92), 4, a)
+
+
+## One hint centred at `c`: the key glyphs of the active device (KeyHints.visible_hints / draw_glyph) and the label,
+## on a HUD panel when `panel` is set.
+func _draw_key_row(c: Vector2, hint: Array, col: Color, panel: bool) -> void:
+	var shown := KeyHints.visible_hints([hint], InputMode.gamepad)
+	if shown.is_empty():
+		return
+	var keys: Array = shown[0][0]
+	var label := str(shown[0][1])
+	var w := 0.0
+	for k in keys:
+		w += KeyHints.glyph_width(str(k), _f_bold) + 4.0
+	var lw := _text_w(label, _f_head, 21)
+	w += 4.0 + lw
+	var x := c.x - w * 0.5
+	if panel:
+		_hud_panel(Rect2(x - 12, c.y - 18, w + 24, 36), Color(UiTheme.ACCENT_2, 0.32), UiTheme.PANEL_HUD, 8.0)
+	for k in keys:
+		var kw := KeyHints.glyph_width(str(k), _f_bold)
+		KeyHints.draw_glyph(self, Rect2(x, c.y - 13, kw, 26), str(k), _f_bold)
+		x += kw + 4.0
+	_text(Vector2(x + 4.0, c.y + 7), label, _f_head, 21, col)
 
 
 ## Start light gantry: `lit` red lamps (1..3), 4 = all green.
@@ -649,8 +677,12 @@ func _draw_refuel(w: float) -> float:
 	UiIcons.panel(self, r, Color(0.02, 0.05, 0.14, 0.88), UiTheme.GOOD, 14.0, 2.5)
 	UiIcons.pump(self, r.position + Vector2(44, 46), 46.0, UiTheme.GOOD)
 	_text(Vector2(r.position.x + 70, r.position.y + 48), tr("Volltanken?"), _f_title, 38, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 90)
-	var hint := tr("Gas = Weiterfahren")
-	_text(Vector2(r.position.x + 70, r.position.y + 76), hint, _f_head, 21, UiTheme.GOLD if _blink(1.2) else UiTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 90)
+	var hint_col := UiTheme.GOLD if _blink(1.2) else UiTheme.TEXT
+	if InputMode.gamepad:
+		# the gamepad's buttons instead of the word "Gas" (QA v0.5.1)
+		_draw_key_row(Vector2(r.position.x + 70 + (r.size.x - 90) * 0.5, r.position.y + 69), [["pad:RT", "pad:A"], tr("Weiterfahren")], hint_col, false)
+	else:
+		_text(Vector2(r.position.x + 70, r.position.y + 76), tr("Gas = Weiterfahren"), _f_head, 21, hint_col, HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 90)
 	var br := Rect2(r.position.x + 24, r.position.y + 92, r.size.x - 48, 16)
 	var p := clampf(float(rf.get("progress01", 0.0)), 0.0, 1.0)
 	_bar(br, p, UiTheme.GOOD)

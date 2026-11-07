@@ -3,7 +3,8 @@ extends UiScreen
 ## Single stage: free choice of stage and direction, start time and weather; map preview, stage
 ## facts and record. "Weiter" -> vehicle selection -> stage screen.
 ##
-## Focus (keyboard / gamepad): the stage list on the left (▲▼, wraps; focusing an entry selects it),
+## Focus (keyboard / gamepad): the stage list on the left (▲▼, wraps; focusing an entry selects it; LB / RB or
+## PageUp / PageDown jump UiKit.PAGE_STEP entries),
 ## Enter or ▶ on an entry -> the column Richtung / Startzeit / Wetter / Weiter (▲▼, wraps; ◀▶ change
 ## the values). ◀ on "Weiter" and Esc in the column return to the selected entry; Esc in the list
 ## leaves the screen. Explicit neighbours everywhere, so the geometric focus search can never jump
@@ -19,11 +20,12 @@ var _facts: VBoxContainer
 var _steps: Array[int] = []
 var _ok: Button
 var _buttons: Dictionary = {}          ## stage id -> list Button
+var _list: Array[Button] = []          ## list buttons in order (LB / RB)
 
 
 func build() -> void:
 	add_header(tr("Einzelne Etappe"), tr("Freie Wahl von Strecke, Richtung, Uhrzeit und Wetter"))
-	hints = [[["ud"], tr("Wählen")], [["lr"], tr("Ändern")], [["Enter", "pad:A"], tr("Bestätigen")], [["Esc", "pad:B"], tr("Zurück")]]
+	hints = [[["ud"], tr("Wählen")], [["pad:LB", "pad:RB"], tr("Seite")], [["lr"], tr("Ändern")], [["Enter", "pad:A"], tr("Bestätigen")], [["Esc", "pad:B"], tr("Zurück")]]
 	_ids = UiData.visible_stage_ids()
 	_ids.sort_custom(func(a: String, b: String) -> bool: return _label(a) < _label(b))
 	var lst: Array = UiKit.scroll_list(6)
@@ -33,7 +35,7 @@ func build() -> void:
 	var prev := str(GameFlow.single.get("stage_id", ""))
 	var first: Button = null
 	var preselect: Button = null
-	var list: Array[Button] = []
+	var list := _list
 	for id in _ids:
 		var b := UiKit.button(_label(id), 21)
 		b.custom_minimum_size = Vector2(384, 44)
@@ -139,6 +141,12 @@ func _refresh() -> void:
 	row.add_child(a)
 	row.add_child(UiKit.label(rt, UiTheme.F.BODY_BOLD, 19, UiTheme.GOLD, HORIZONTAL_ALIGNMENT_RIGHT))
 	_facts.add_child(row)
+
+
+## LB / RB (PageUp / PageDown) in the stage list: a page up or down (focusing an entry selects it).
+func _input(event: InputEvent) -> void:
+	if UiKit.page_focus(event, _list, get_viewport().gui_get_focus_owner()):
+		get_viewport().set_input_as_handled()
 
 
 ## Esc / gamepad B: from the option column back to the selected list entry, from the list back.

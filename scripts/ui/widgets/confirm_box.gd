@@ -2,7 +2,8 @@ class_name ConfirmBox
 extends Control
 ## Modal yes/no question in the menu style: dimmed backdrop, panel with title, message and two
 ## buttons. The safe answer ("no") has the default focus; Enter / gamepad A picks the focused button,
-## Esc / gamepad B answers "no". Focus stays inside the box, clicks outside it are swallowed.
+## Esc / gamepad B answers "no" – a hint row in the box says so (◀▶ Wählen, A Bestätigen, B <no text>; the
+## screen's footer is dimmed behind it). Focus stays inside the box, clicks outside it are swallowed.
 ## Usage: var box := ConfirmBox.new(title, message, yes_text, no_text); box.confirmed.connect(...);
 ##        screen.add_child(box)   – the box frees itself after an answer.
 
@@ -67,6 +68,10 @@ func _ready() -> void:
 	yes_button.add_theme_color_override("font_color", UiTheme.WARN)
 	yes_button.pressed.connect(func() -> void: _answer(true))
 	row.add_child(yes_button)
+	var keys := KeyHints.new(key_hints())
+	keys.align = HORIZONTAL_ALIGNMENT_CENTER
+	keys.custom_minimum_size = Vector2(600, 30)
+	box.add_child(keys)
 	# trap the focus inside the box (◀▶ switch, ▲▼ / Tab stay)
 	for b: Button in [no_button, yes_button]:
 		var other: Button = yes_button if b == no_button else no_button
@@ -78,6 +83,11 @@ func _ready() -> void:
 		b.focus_previous = b.get_path_to(other)
 	_prev_focus = get_viewport().gui_get_focus_owner()
 	no_button.grab_focus.call_deferred()
+
+
+## The hints in the box: ◀▶ choose, Enter / A confirm, Esc / B = the safe answer.
+func key_hints() -> Array:
+	return [[["lr"], tr("Wählen")], [["Enter", "pad:A"], tr("Bestätigen")], [["Esc", "pad:B"], no_text]]
 
 
 func _unhandled_input(event: InputEvent) -> void:

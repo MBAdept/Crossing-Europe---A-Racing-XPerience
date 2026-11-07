@@ -1,7 +1,8 @@
 class_name LeaderboardsScreen
 extends UiScreen
 ## Leaderboard browser: race boards and stage boards (both directions), filter all / per vehicle
-## (◀ ▶, remembered in Settings.leaderboard_filter).
+## (◀ ▶, remembered in Settings.leaderboard_filter). LB / RB (PageUp / PageDown) jump UiKit.PAGE_STEP entries in
+## the list of 106 boards.
 
 var _boards: Array[Dictionary] = []   ## {key, title, sub}
 var _filters: Array[String] = ["all"]
@@ -11,11 +12,12 @@ var _title: Label
 var _sub: Label
 var _filter_row: OptionRow
 var _table: LeaderboardTable
+var _list: Array[Button] = []       ## board buttons in order (LB / RB)
 
 
 func build() -> void:
 	add_header(tr("Bestenlisten"), tr("Top 10 je Etappe, Richtung und Rennen"))
-	hints = [[["ud"], tr("Liste")], [["lr"], tr("Fahrzeugfilter")], [["Esc", "pad:B"], tr("Zurück")]]
+	hints = [[["ud"], tr("Liste")], [["pad:LB", "pad:RB"], tr("Seite")], [["lr"], tr("Fahrzeugfilter")], [["Esc", "pad:B"], tr("Zurück")]]
 	var c := cfg()
 	for v in ConfigLoader.lookup(c, "vehicles.order", []):
 		_filters.append(str(v))
@@ -47,6 +49,7 @@ func build() -> void:
 		var sub := str(bd["sub"])
 		btn.focus_entered.connect(func() -> void: _show(key, title, sub))
 		box.add_child(btn)
+		_list.append(btn)
 		if first == null:
 			first = btn
 	var right := add_panel(Rect2(492, 104, 732, 560), UiTheme.GOLD, 6)
@@ -78,10 +81,12 @@ func build() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_left", true):
+	if UiKit.page_focus(event, _list, get_viewport().gui_get_focus_owner()):
+		get_viewport().set_input_as_handled()
+	elif UiKit.ui_step(event, "ui_left"):
 		_filter_row.step(-1)
 		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("ui_right", true):
+	elif UiKit.ui_step(event, "ui_right"):
 		_filter_row.step(1)
 		get_viewport().set_input_as_handled()
 

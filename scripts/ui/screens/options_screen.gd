@@ -1,11 +1,13 @@
 class_name OptionsScreen
 extends UiScreen
-## Options: master / effects / music volume, fullscreen, player name and the controls overview.
-## Changes apply immediately; settings are saved when leaving the screen.
+## Options: master / effects / music volume, fullscreen, gamepad vibration, player name and the controls
+## overview. Changes apply immediately; settings are saved when leaving the screen.
 ## Player name with a gamepad: A on the name field opens the on-screen keyboard (NameEntryBox); a
-## keyboard types into the field directly.
+## keyboard (or the Steam keyboard, STEAM + X) types into the field directly – also when the focus reached
+## it with the arrow keys / D-pad (the LineEdit is then not in edit mode; the first key starts it).
 
 var _name: LineEdit
+var vibration: OptionRow             ## "Vibration An/Aus" (Settings.vibration)
 var keyboard: NameEntryBox          ## open on-screen keyboard (null if none)
 var _base_hints: Array = []
 
@@ -27,10 +29,16 @@ func build() -> void:
 	left.add_child(music)
 	var full := OptionRow.new(tr("Vollbild"), [tr("Aus"), tr("An")], 1 if Settings.fullscreen else 0)
 	full.value_changed.connect(func(i: int) -> void:
-		Settings.fullscreen = i == 1
+		Settings.fullscreen = i == 1   # saved from now on (Settings.fullscreen_chosen)
 		if not GameFlow.sample_mode:
 			Settings.apply())
 	left.add_child(full)
+	vibration = OptionRow.new(tr("Vibration"), [tr("Aus"), tr("An")], 1 if Settings.vibration else 0)
+	vibration.value_changed.connect(func(i: int) -> void:
+		Settings.vibration = i == 1
+		if i == 1 and not GameFlow.sample_mode:
+			Haptics.test_pulse())   # a short pulse: this is what it feels like
+	left.add_child(vibration)
 	left.add_child(UiKit.label(tr("SPIELERNAME"), UiTheme.F.HEADING, 22, UiTheme.ACCENT_2))
 	_name = LineEdit.new()
 	_name.text = str(Settings.player_name)
@@ -47,7 +55,7 @@ func build() -> void:
 	var back := UiKit.button(tr("Zurück"), 24, HORIZONTAL_ALIGNMENT_CENTER)
 	back.pressed.connect(on_cancel)
 	left.add_child(back)
-	UiKit.chain_focus([master, sfx, music, full, _name, back])
+	UiKit.chain_focus([master, sfx, music, full, vibration, _name, back])
 	default_focus = master
 	var right := add_panel(Rect2(708, 104, 516, 560), UiTheme.ACCENT_2, 6)
 	right.add_child(UiKit.label(tr("STEUERUNG"), UiTheme.F.HEADING, 22, UiTheme.ACCENT_2))
@@ -61,11 +69,14 @@ func _name_hints() -> Array:
 	return [[["ud"], tr("Wählen")], [["pad:A"], tr("Bildschirmtastatur")], [["Esc", "pad:B"], tr("Zurück")]]
 
 
-## Gamepad A on the name field: on-screen keyboard (the keyboard's Enter is left to the LineEdit).
+## Gamepad A on the name field: on-screen keyboard (the keyboard's Enter is left to the LineEdit). A typed key
+## starts editing when the field is not in edit mode yet (focus by navigation).
 func _on_name_input(event: InputEvent) -> void:
 	if event is InputEventJoypadButton and event.is_action_pressed("ui_accept"):
 		_name.accept_event()
 		open_keyboard()
+	elif event is InputEventKey:
+		NameEntry.begin_typing(_name, event as InputEventKey)
 
 
 func open_keyboard() -> void:
@@ -74,8 +85,9 @@ func open_keyboard() -> void:
 	keyboard = NameEntryBox.new(tr("Spielername"), _name.text)
 	keyboard.submitted.connect(_on_keyboard_name)
 	keyboard.cancelled.connect(_close_keyboard)
+	keyboard.hints_changed.connect(set_hints)
 	add_child(keyboard)
-	set_hints(NameEntry.key_hints())
+	set_hints(keyboard.entry.current_hints())
 
 
 func _on_keyboard_name(player_name: String) -> void:
@@ -127,6 +139,7 @@ class _Controls extends Control:
 			[tr("Bremse"), tr("Pfeil runter, S"), tr("Linker Trigger, X")],
 			[tr("Pause"), "Esc, P", tr("Start")],
 			[tr("Menü: wählen"), tr("Pfeiltasten"), tr("Steuerkreuz, Stick")],
+			[tr("Menü: Seite"), tr("Bild auf/ab"), "LB, RB"],
 			[tr("Menü: bestätigen"), tr("Enter, Leertaste"), "A"],
 			[tr("Menü: zurück"), "Esc", "B"],
 		]

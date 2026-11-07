@@ -97,6 +97,12 @@ var _fb_gearbox: EngineGearbox = null
 var _engine_db := -3.0
 var _engine_latency := 0.07
 var _engine_buffer := 0.25
+## Queue of the engine generator in the first ENGINE_START_WINDOW_S after the engine started (start of a stage): the
+## first frames of a race take long (shader compilation, texture uploads – on a Steam Deck more than the 70 ms of
+## engine_latency_s), the queue ran empty and the start clip stuttered (QA v0.5.1, measured with the Dummy driver).
+var _engine_start_latency := 0.2
+var _eng_started_at := -100.0
+const ENGINE_START_WINDOW_S := 1.0
 var _preview_on := true
 var _preview: EngineAudio = null
 var _preview_next: EngineAudio = null
@@ -121,6 +127,7 @@ func _ready() -> void:
 	_engine_db = float(ConfigLoader.lookup(cfg, "audio.engine_db", -3.0))
 	_engine_latency = clampf(float(ConfigLoader.lookup(cfg, "audio.engine_latency_s", 0.07)), 0.02, 0.2)
 	_engine_buffer = clampf(float(ConfigLoader.lookup(cfg, "audio.engine_buffer_s", 0.25)), _engine_latency * 2.0, 1.0)
+	_engine_start_latency = clampf(float(ConfigLoader.lookup(cfg, "audio.engine_start_latency_s", 0.2)), _engine_latency, _engine_buffer * 0.85)
 	_preview_on = bool(ConfigLoader.lookup(cfg, "audio.engine_preview", true))
 	_bank_dir = str(ConfigLoader.lookup(cfg, "audio.engine_bank_dir", ENGINE_DIR))
 	_bank_override = CliArgs.get_string("engine-bank", "")
@@ -607,6 +614,7 @@ func _process_engine(delta: float, alive: bool) -> void:
 		if _eng_start_pending:
 			_eng_start_pending = false
 			_eng.start(true)
+			_eng_started_at = _time
 		_eng.update(delta, _engine_speed, _engine_throttle, _engine_vmax, _engine_active)
 		_eng.fade_to(1.0, ENGINE_FADE_S)
 	else:
@@ -614,7 +622,7 @@ func _process_engine(delta: float, alive: bool) -> void:
 	if sounds_ready:
 		if _eng.player == null and not _eng.is_silent():
 			_eng.attach(self, RoomAudio.ENGINE_BUS, _engine_buffer)
-		_eng.pump(_engine_latency, delta)
+		_eng.pump(_engine_latency if _time - _eng_started_at > ENGINE_START_WINDOW_S else _engine_start_latency, delta)
 
 
 func _process(delta: float) -> void:

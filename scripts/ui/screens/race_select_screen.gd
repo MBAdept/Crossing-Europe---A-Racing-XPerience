@@ -19,6 +19,8 @@ func build() -> void:
 	var box: VBoxContainer = lst[1]
 	UiKit.place(self, sc, Rect2(56, 104, 400, 560))
 	var first: Button = null
+	var chosen: Button = null
+	var prev := str(GameFlow.draft.get("race_id", ""))
 	for id in ids:
 		var b := UiKit.button(UiData.race_name(id), 24)
 		b.custom_minimum_size = Vector2(380, 50)
@@ -28,6 +30,8 @@ func build() -> void:
 		box.add_child(b)
 		if first == null:
 			first = b
+		if id == prev:
+			chosen = b
 	_map = MapView.new()
 	_map.set_network(UiData.cities(), UiData.stages(), UiData.ferries(), UiData.map_data())
 	UiKit.place(self, _map, Rect2(476, 104, 748, 262))
@@ -53,9 +57,10 @@ func build() -> void:
 		back.pressed.connect(GameFlow.back)
 		box.add_child(back)
 		first = back
-	default_focus = first
+	# back from the vehicle selection (B): the race chosen before keeps the focus
+	default_focus = chosen if chosen != null else first
 	if not ids.is_empty():
-		_show_race(ids[0])
+		_show_race(prev if chosen != null else ids[0])
 
 
 ## "Rekord" = the overall race record (the record holder); with a vehicle filter of the leaderboard

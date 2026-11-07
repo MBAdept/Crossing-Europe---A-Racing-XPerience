@@ -112,7 +112,7 @@ func _tutorial_box(plan: StagePlan) -> Control:
 	head.custom_minimum_size = Vector2(0, 30)
 	head.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	row.add_child(head)
-	# Pause (Esc / Start) is left out: the race shows it, and the row must fit the panel
+	# Pause (Esc / Start) is left out: the race shows it under the start lights, and the row must fit the panel
 	var keys := KeyHints.new([[["left", "right", "pad:LS"], tr("Lenken")], [["up", "pad:RT"], tr("Gas")], [["down", "pad:LT"], tr("Bremse")]])
 	keys.custom_minimum_size = Vector2(460, 30)
 	row.add_child(keys)

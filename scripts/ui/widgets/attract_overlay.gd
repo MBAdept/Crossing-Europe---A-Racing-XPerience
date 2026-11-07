@@ -36,6 +36,9 @@ func _ready() -> void:
 	halo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	halo.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	halo.modulate.a = 0.8
+	# behind the badge and the name, which this control draws itself (a child is drawn after the parent's _draw:
+	# the halo dimmed them by ~23 %, QA v0.5.1)
+	halo.show_behind_parent = true
 	UiKit.place(self, halo, Rect2(640 - 380, -70, 760, 230))
 	var logo := GradientText.new("CROSSING EUROPE", UiTheme.font(UiTheme.F.LOGO), LOGO_SIZE)
 	logo.align = HORIZONTAL_ALIGNMENT_CENTER

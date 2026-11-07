@@ -65,10 +65,10 @@ func step(d: int) -> void:
 
 
 func _gui_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_left", true):
+	if UiKit.ui_step(event, "ui_left"):
 		step(-1)
 		accept_event()
-	elif event.is_action_pressed("ui_right", true):
+	elif UiKit.ui_step(event, "ui_right"):
 		step(1)
 		accept_event()
 	elif event is InputEventMouseButton and event.pressed and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:

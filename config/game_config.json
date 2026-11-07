@@ -336,6 +336,29 @@
 		"player_roll_smooth_s": 0.2
 	},
 
+	"input": {
+		"_doc": "Eingabe (Kern, docs/steam-deck.md): stick_deadzone = Totzone des Lenkens mit dem Stick (Rohwert, darunter keine Lenkung – Ruherauschen), stick_full = ab diesem Stickweg volle Lenkung (ein Stick erreicht 1,0 selten, schräg erst recht); Tasten und Steuerkreuz lenken immer voll. Ein Stick, der in Ruhe driftet, braucht eine größere stick_deadzone (z. B. 0.2). repeat_delay_s / repeat_interval_s = gehaltenes Steuerkreuz oder gehaltener Stick in Menüs: nach dieser Zeit wiederholt, dann in diesem Abstand (Tasten wiederholt das System). vibration = Vibration des Gamepads im Rennen (Optionen „Vibration“): scale (0 = aus, 1 = normal), Pulse als [schwach, stark, Sekunden] (collision, rail_hit_min/rail_hit_max für einen leichten bzw. heftigen Leitplankentreffer, ab rail_hit_full_mps Seitendrift voll; radar_flash), Dauerwerte des schwachen Motors: rail_scrape (an der Leitplanke entlang), off_road [von, bis] auf Bankett/Gras ab off_road_min_kmh, understeer [Grundwert, je Untersteuern] ab understeer_from; höchstens max_rate_hz Befehle je Sekunde, jeder gilt refresh_s.",
+		"stick_deadzone": 0.12,
+		"stick_full": 0.92,
+		"repeat_delay_s": 0.5,
+		"repeat_interval_s": 0.1,
+		"vibration": {
+			"scale": 1.0,
+			"collision": [0.5, 0.9, 0.35],
+			"rail_hit_min": [0.4, 0.3, 0.12],
+			"rail_hit_max": [0.4, 0.9, 0.35],
+			"rail_hit_full_mps": 8.0,
+			"rail_scrape": 0.35,
+			"off_road": [0.12, 0.25],
+			"off_road_min_kmh": 30.0,
+			"understeer_from": 0.15,
+			"understeer": [0.1, 0.35],
+			"radar_flash": [0.2, 0.2, 0.2],
+			"max_rate_hz": 15.0,
+			"refresh_s": 0.25
+		}
+	},
+
 	"hud": {
 		"message_s": 3.0,
 		"show_fps": false,
@@ -345,9 +368,10 @@
 	},
 
 	"attract": {
-		"_doc": "Attract-Modus (docs/ui.md): Nach idle_s Sekunden ohne Eingabe im Titelbildschirm startet eine Demo von demo_s Sekunden – die echte Rennszene mit Autopilot, reihum eine der scenes (die nächste Demo zeigt die nächste Szene). Die Titelmusik läuft weiter, alle Effekt-Busse (SFX, Room, Engine, Siren, TrafficV…) sind stumm, das HUD zeigt nur Uhr und Tacho, nichts wird gespeichert. Jede Taste, Gamepad-Taste, ein deutlicher Stick-Ausschlag, Klick oder Fingertipp beendet die Demo sofort und führt zurück zum Titel, ohne einen Menüpunkt auszulösen (dieselbe Taste bleibt bis zum Loslassen bzw. guard_s Sekunden wirkungslos). fade_s = Überblendung über Schwarz. scenes[]: id, name (im Overlay), stage + from (Etappe und Startstadt), km (Start-Kilometer), hour (Weltzeit), weather (normal|rain|snow), vehicle, speed_kmh (Starttempo), cruise_kmh (Wunschtempo des Autopiloten; er bremst trotzdem für Kurven, Verkehr und Radar), lane (optional, 0 = links), seed (Verkehr). Starttempo und Spur setzt die Rennsitzung vor dem Aufbau des Verkehrs, der den Start dafür freiräumt. Jede Szene muss in demo_s ohne Ziel, Unfall, Leitplanke und Kriechfahrt auskommen (tests/race/check_attract_scenes.gd).",
+		"_doc": "Attract-Modus (docs/ui.md): Nach idle_s Sekunden ohne Eingabe im Titelbildschirm startet eine Demo von demo_s Sekunden – die echte Rennszene mit Autopilot, reihum eine der scenes (die nächste Demo zeigt die nächste Szene). Die Titelmusik läuft weiter, alle Effekt-Busse (SFX, Room, Engine, Siren, TrafficV…) sind stumm, das HUD zeigt nur Uhr und Tacho, nichts wird gespeichert. Jede Taste, Gamepad-Taste, ein deutlicher Stick-Ausschlag, Klick oder Fingertipp beendet die Demo sofort und führt zurück zum Titel, ohne einen Menüpunkt auszulösen (dieselbe Taste bleibt bis zum Loslassen bzw. guard_s Sekunden wirkungslos). fade_s = Überblendung über Schwarz. scenes[]: id, name (im Overlay), stage + from (Etappe und Startstadt), km (Start-Kilometer), hour (Weltzeit), weather (normal|rain|snow), vehicle, speed_kmh (Starttempo), cruise_kmh (Wunschtempo des Autopiloten; er bremst trotzdem für Kurven, Verkehr und Radar), lane (optional, 0 = links), seed (Verkehr). Starttempo und Spur setzt die Rennsitzung vor dem Aufbau des Verkehrs, der den Start dafür freiräumt. Jede Szene muss in demo_s ohne Ziel, Unfall, Leitplanke und Kriechfahrt auskommen (tests/race/check_attract_scenes.gd). Nach max_idle_s Sekunden ganz ohne Eingabe kommen keine Demos mehr (der Titel bleibt stehen) und der Bildschirm darf sich abschalten – bis zur nächsten Eingabe (0 = nie).",
 		"enabled": true,
 		"idle_s": 60.0,
+		"max_idle_s": 600.0,
 		"demo_s": 30.0,
 		"fade_s": 0.6,
 		"guard_s": 0.4,
@@ -363,10 +387,11 @@
 	},
 
 	"audio": {
-		"_doc": "Pegel in dB. Motor (docs/motorsound.md): Zyklusbank je Auto aus engine_bank_dir/<auto>.json, abgespielt über einen AudioStreamGenerator im Bus Engine (→ Room → SFX). engine_db = Pegel des Motors (zusätzlich zu mix.gain der Bank); engine_latency_s = Vorlauf, den die Laufzeit je Frame im Generator hält (kleiner = direktere Reaktion auf das Gas, aber Aussetzer bei Rucklern); engine_buffer_s = Puffergröße des Generators; engine_preview = kurzer Gasstoß beim Wechsel in der Fahrzeugwahl. Ohne Bank für ein Auto spielen die alten synthetischen Motorschleifen: engine_gears, engine_idle_hz und engine_max_hz gelten nur für diesen Rückfall. Menümusik (docs/ui.md, Titelmelodie): music_file = Titelmelodie (OGG Vorbis; die Import-Einstellungen lassen sie nach dem Intro als Schleife laufen, erzeugt mit tools/audio/music_synth.py; fehlt die Datei, spielt die alte synthetisierte Schleife); music_db = Pegel des Music-Busses (die Datei ist auf −14 LUFS gemastert); menu_music = Menümusik an/aus.",
+		"_doc": "Pegel in dB. Motor (docs/motorsound.md): Zyklusbank je Auto aus engine_bank_dir/<auto>.json, abgespielt über einen AudioStreamGenerator im Bus Engine (→ Room → SFX). engine_db = Pegel des Motors (zusätzlich zu mix.gain der Bank); engine_latency_s = Vorlauf, den die Laufzeit je Frame im Generator hält (kleiner = direktere Reaktion auf das Gas, aber Aussetzer bei Rucklern); engine_start_latency_s = Vorlauf in der ersten Sekunde nach dem Motorstart einer Etappe (die ersten Bilder dauern lange – Shader, Texturen); engine_buffer_s = Puffergröße des Generators; engine_preview = kurzer Gasstoß beim Wechsel in der Fahrzeugwahl. Ohne Bank für ein Auto spielen die alten synthetischen Motorschleifen: engine_gears, engine_idle_hz und engine_max_hz gelten nur für diesen Rückfall. Menümusik (docs/ui.md, Titelmelodie): music_file = Titelmelodie (OGG Vorbis; die Import-Einstellungen lassen sie nach dem Intro als Schleife laufen, erzeugt mit tools/audio/music_synth.py; fehlt die Datei, spielt die alte synthetisierte Schleife); music_db = Pegel des Music-Busses (die Datei ist auf −14 LUFS gemastert); menu_music = Menümusik an/aus.",
 		"master_db": 0.0,
 		"engine_db": -3.0,
 		"engine_latency_s": 0.07,
+		"engine_start_latency_s": 0.2,
 		"engine_buffer_s": 0.25,
 		"engine_preview": true,
 		"engine_bank_dir": "res://assets/audio/engines",

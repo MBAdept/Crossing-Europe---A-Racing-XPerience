@@ -15,6 +15,17 @@ extends Node2D
 ## without the car just hit; they stay active while the car rolls out (empty tank, finish) and in
 ## scripted phases faster than render.scripted_collision_min_kmh (SessionRules.collisions_active).
 ## On the tutorial stage (StagePlan.tutorial) a TutorialCoach adds explanatory hints.
+##
+## Steam Deck / gamepad (QA v0.5.1, docs/steam-deck.md "Prüfung v0.5.1"):
+## - the view is interpolated between the last two simulation steps (Engine.get_physics_interpolation_fraction):
+##   the simulation stays at fixed 1/60 s steps, but at 40 or 45 fps and at 90 Hz the road moved by 1 and 2 steps
+##   in turn (judder); now every frame shows the state at its own moment (view_state()).
+## - steering with the stick: an own curve on the raw stick value (input.stick_deadzone 0.12, full lock from
+##   input.stick_full 0.92 – SessionRules.stick_steer) instead of the action's 0.2 deadzone; keys and D-pad stay 1.0.
+## - gamepad vibration (Haptics, Optionen "Vibration"): collisions, guardrail, shoulder/grass, understeer, radar.
+## - pause: the pause key, focus loss (also during the countdown), a gamepad disconnected, back from standby; the
+##   paused race draws at FrameCap.IDLE_FPS.
+## - every sprite sheet the stage can show is loaded before the start (no loading hitch in the race).
 
 signal stage_finished(result: Dictionary)
 signal stage_aborted(reason: String)
@@ -91,6 +102,21 @@ var _police_rel_kmh := 0.0
 
 const POLICE_VIEW_ID := -2       ## vehicle id of the police car in the view (pose smoothing in the renderer)
 
+var haptics: Haptics             ## gamepad vibration (Settings.vibration, no autopilot)
+var preloaded_sets: Array[String] = []   ## sprite sets loaded before the start (_preload_sprites)
+var _stick_dz := 0.12            ## input.stick_deadzone
+var _stick_full := 0.92          ## input.stick_full
+# render interpolation: state before the last simulation step (_physics_process)
+var _prev_pos_z := NAN
+var _prev_x := NAN
+var _prev_bg := NAN
+var _prev_time := NAN
+var _prev_police_off := NAN
+var _view_alpha := -1.0          ## tests: fixed interpolation fraction (< 0 = Engine's)
+# standby detection: wall clock vs. monotonic clock between two frames
+var _wall_last := -1.0
+var _ticks_last := 0
+
 
 func _ready() -> void:
 	cfg = Config.data
@@ -154,7 +180,10 @@ func _build() -> void:
 
 	vehicle = VehicleModel.new()
 	vehicle.setup(cfg, str(setup.get("vehicle", "limousine")))
-	SpriteDB.preload_sets([str(vehicle.spec.get("sprite", ""))])
+	var stick: Variant = ConfigLoader.lookup(cfg, "input", {})
+	if stick is Dictionary:
+		_stick_dz = clampf(float((stick as Dictionary).get("stick_deadzone", _stick_dz)), 0.0, 0.9)
+		_stick_full = clampf(float((stick as Dictionary).get("stick_full", _stick_full)), _stick_dz + 0.05, 1.0)
 	AudioManager.set_vehicle(vehicle.type_id)   # engine sound of this car (cycle bank, start clip)
 
 	env = EnvironmentModel.new()
@@ -171,6 +200,8 @@ func _build() -> void:
 	traffic.setup(cfg, track, cars, heavy, plan.seed + 17 + int(setup.get("seed", 0)))
 	traffic.set_dimensions(SpriteDB.sets)
 	traffic_enabled = not CliArgs.has("no-traffic")
+	if not CliArgs.has("no-sprite-preload"):   # debug: sheets loaded when first drawn, as in v0.5.1 (A/B timing)
+		_preload_sprites(cars, heavy)
 
 	fuel = FuelSystem.new()
 	fuel.setup(cfg, vehicle.spec, plan)
@@ -231,6 +262,12 @@ func _build() -> void:
 	if plan.tutorial or CliArgs.has("tutorial") or bool(setup.get("tutorial", false)):
 		coach = TutorialCoach.new()
 		coach.setup(cfg)
+	haptics = Haptics.new()
+	haptics.configure(cfg)
+	haptics.device = InputMode.device
+	haptics.enabled = autopilot == null and bool(Settings.vibration)
+	if not Input.joy_connection_changed.is_connected(_on_joy_connection_changed):
+		Input.joy_connection_changed.connect(_on_joy_connection_changed)
 
 	_connect_signals()
 	countdown = float(ConfigLoader.lookup(cfg, "time.countdown_s", 3.0))
@@ -250,6 +287,31 @@ func _build() -> void:
 		Engine.physics_ticks_per_second = maxi(1, int(round(60.0 * ts)))
 		Engine.max_physics_steps_per_frame = clampi(int(ceil(ts)) * 2, 8, 128)
 	_start_wall_ms = Time.get_ticks_msec()
+
+
+## Loads every sprite sheet the stage can draw before the start: the player's car, all traffic and heavy vehicles,
+## the police of the stage's countries, the track's props, landmarks and skyline (Track.sprite_sets(), a missing
+## set by its fallback) and the HUD's weather / daytime icons (the daytime changes during a stage). SpriteDB loaded
+## a sheet when it was first drawn – synchronously in the middle of the frame: 13–20 ms for a building, 16 ms for a
+## truck, 33 ms for the Frankfurt skyline at a 7 ms median (QA v0.5.1; more on a Steam Deck reading from a microSD
+## card). Costs ~0.2–0.3 s more loading of the first stage; the sheets stay cached.
+func _preload_sprites(cars: Array[String], heavy: Array[String]) -> void:
+	var ids: Array[String] = [str(vehicle.spec.get("sprite", ""))]
+	ids.append_array(cars)
+	ids.append_array(heavy)
+	for code in plan.countries_in_order:
+		ids.append(GameData.police_set_for(str(code)))
+	ids.append_array(SpriteDB.ids_with_tag("icon"))
+	var fallbacks := track.sprite_fallbacks()
+	for id in track.sprite_sets():
+		ids.append(id)
+	preloaded_sets.clear()
+	for id in ids:
+		if id == "" or preloaded_sets.has(id):
+			continue
+		preloaded_sets.append(id)
+		if SpriteDB.texture(id) == null and fallbacks.has(id):
+			SpriteDB.texture(str(fallbacks[id]))
 
 
 ## Full braking (m/s²) of the player's car in this weather (TrafficSystem ctx.brake_mps2: no car pulls out in front
@@ -338,6 +400,7 @@ func _connect_signals() -> void:
 	police.flashed.connect(func(_r: Dictionary, _v: float) -> void:
 		stats["radar_flashes"] += 1
 		_flash = 1.0
+		haptics.radar_flash()
 		AudioManager.play("flash")
 		hud.show_message(tr("Geblitzt! Die Polizei ist hinter dir her!"), "alert", 3.5))
 	police.chase_started.connect(func() -> void:
@@ -361,6 +424,8 @@ func _connect_signals() -> void:
 			stats["collisions"] += 1   # a bump during the finish roll-out does not count for the stage
 			_tutorial("collision")
 		_shake_t = 0.45
+		if not finished:
+			haptics.collision()
 		AudioManager.play("crash")
 		hud.flash(Color(1, 0.3, 0.2, 0.35), 0.25))
 
@@ -391,25 +456,58 @@ func _unhandled_input(event: InputEvent) -> void:
 		if get_tree().paused:
 			_on_resume()
 		else:
-			get_tree().paused = true
-			AudioManager.set_engine(0.0, 0.0, vehicle.vmax_effective, false)
-			AudioManager.set_wind(0.0)
-			AudioManager.set_siren(false, 0.0)
-			AudioManager.set_rain(0.0)
-			AudioManager.set_skid(0.0)
-			pause_menu.open()
+			_pause_now()
 		get_viewport().set_input_as_handled()
 
 
+## Pauses the race and opens the pause menu: engine, wind, siren, rain and skid sounds off, vibration off, the
+## frame rate capped (FrameCap) while the paused picture stands.
+func _pause_now() -> void:
+	if get_tree().paused:
+		return
+	get_tree().paused = true
+	AudioManager.set_engine(0.0, 0.0, vehicle.vmax_effective, false)
+	AudioManager.set_wind(0.0)
+	AudioManager.set_siren(false, 0.0)
+	AudioManager.set_rain(0.0)
+	AudioManager.set_skid(0.0)
+	if haptics != null:
+		haptics.stop()
+	FrameCap.hold("pause", true)
+	pause_menu.open()
+
+
+## Pause without the player's pause key – the window lost the focus, the gamepad was disconnected, the game came back
+## from standby: in the countdown as well (the race would start without the player), not in demos, debug runs and
+## after the finish.
+func auto_pause() -> void:
+	if plan != null and not finished and autopilot == null and not standalone:
+		_pause_now()
+
+
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and plan != null and running and not finished and autopilot == null and not standalone:
-		if not get_tree().paused:
-			get_tree().paused = true
-			pause_menu.open()
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		auto_pause()
+	elif what == NOTIFICATION_EXIT_TREE:
+		if haptics != null:
+			haptics.stop()
+		FrameCap.hold("pause", false)
+
+
+## A gamepad was disconnected (battery, Bluetooth, the docked Steam Deck's external pad): the held stick and
+## triggers are released and the race pauses – it must not go on at full throttle or with the wheel turned.
+func _on_joy_connection_changed(_device: int, connected: bool) -> void:
+	if connected:
+		return
+	for a in ["steer_left", "steer_right", "accelerate", "brake"]:
+		Input.action_release(a)
+	auto_pause()
 
 
 func _on_resume() -> void:
 	get_tree().paused = false
+	FrameCap.hold("pause", false)
+	_wall_last = -1.0   # a standby during the pause must not pause the race again right after resuming
 	pause_menu.close()
 	if police.chase_active():
 		AudioManager.set_siren(true, _chase01())
@@ -417,6 +515,7 @@ func _on_resume() -> void:
 
 func _on_restart() -> void:
 	get_tree().paused = false
+	FrameCap.hold("pause", false)
 	AudioManager.stop_all()
 	if standalone:
 		get_tree().reload_current_scene()
@@ -426,6 +525,7 @@ func _on_restart() -> void:
 
 func _on_quit() -> void:
 	get_tree().paused = false
+	FrameCap.hold("pause", false)
 	AudioManager.stop_all()
 	if standalone:
 		get_tree().quit()
@@ -437,7 +537,7 @@ func _read_input() -> Dictionary:
 	if autopilot != null:
 		return autopilot.drive(self)
 	return {
-		"steer": Input.get_axis("steer_left", "steer_right"),
+		"steer": SessionRules.stick_steer(Input.get_action_raw_strength("steer_right"), Input.get_action_raw_strength("steer_left"), _stick_dz, _stick_full),
 		"throttle": Input.get_action_strength("accelerate"),
 		"brake": Input.get_action_strength("brake"),
 	}
@@ -460,12 +560,64 @@ func road_info(z: float) -> Dictionary:
 func _physics_process(dt: float) -> void:
 	if plan == null:
 		return
+	_snapshot()
 	var t0 := Time.get_ticks_usec()
 	_step(dt)
 	var us := Time.get_ticks_usec() - t0
 	_sim_us_sum += us
 	_sim_us_max = maxi(_sim_us_max, us)
 	_sim_steps += 1
+
+
+## State before a simulation step, for the interpolated view (view_state()): camera position, the car's lateral
+## position, background heading, time, the police car and every traffic car (TrafficSystem.Car.prev_z / prev_x).
+func _snapshot() -> void:
+	_prev_pos_z = pos_z
+	_prev_x = vehicle.x
+	_prev_bg = bg_offset
+	_prev_time = _real_time
+	_prev_police_off = police.police_car_offset_m()
+	if traffic_enabled:
+		for c in traffic.cars:
+			c.prev_z = c.z
+			c.prev_x = c.x
+
+
+## Interpolation fraction of the frame being drawn: how far the time of this frame is past the last simulation
+## step, in steps (Engine.get_physics_interpolation_fraction; tests may fix it with _view_alpha).
+func view_alpha() -> float:
+	if _view_alpha >= 0.0:
+		return _view_alpha
+	return clampf(Engine.get_physics_interpolation_fraction(), 0.0, 1.0)
+
+
+## What the frame shows: the state between the last two simulation steps at view_alpha() – camera / car z, the
+## car's x, background heading and time. The simulation itself stays at fixed steps (leaderboards, autopilot).
+func view_state() -> Dictionary:
+	var a := view_alpha()
+	return {"alpha": a, "pos_z": SessionRules.lerp_view(_prev_pos_z, pos_z, a), "x": SessionRules.lerp_view(_prev_x, vehicle.x, a),
+		"bg": SessionRules.lerp_view(_prev_bg, bg_offset, a, INF), "time": SessionRules.lerp_view(_prev_time, _real_time, a, INF)}
+
+
+## Vibration of this step (Haptics): the continuous level of the car's state and the running pulses – only while a
+## gamepad is the active input (a keyboard player's idle pad stays quiet).
+func _update_haptics(dt: float) -> void:
+	if haptics == null:
+		return
+	haptics.device = InputMode.device
+	haptics.active = InputMode.gamepad
+	haptics.update(dt, haptics.level_for(vehicle.speed, vehicle.off_road, vehicle.rail_contact, vehicle.understeer))
+
+
+## Back from standby (Steam Deck: power button) the race pauses: the wall clock went on during the sleep, the
+## monotonic clock of the frame times stood still (SessionRules.resumed_from_sleep). A hitch moves both alike.
+func _check_standby() -> void:
+	var wall := Time.get_unix_time_from_system()
+	var ticks := Time.get_ticks_msec()
+	if _wall_last >= 0.0 and SessionRules.resumed_from_sleep(wall - _wall_last, float(ticks - _ticks_last) / 1000.0):
+		auto_pause()
+	_wall_last = wall
+	_ticks_last = ticks
 
 
 ## One simulation step (fixed dt).
@@ -504,6 +656,7 @@ func _step(dt: float) -> void:
 	var hour := clock.hour()
 	vehicle.update(dt, input, road_info(pos_z), {"vmax_factor": env.vmax_factor(hour, weather)})
 	_track_driving(dt)
+	_update_haptics(dt)
 	var dz := vehicle.speed / 3.6 * dt
 	pos_z += dz
 	var dkm := Units.visual_m_to_km(dz, time_scale)
@@ -561,6 +714,7 @@ func _track_driving(dt: float) -> void:
 	if vehicle.rail_hit:
 		drive_stats["rail_hits"] += 1
 		_rail_feedback(vehicle.rail_impact)
+		haptics.rail_hit(vehicle.rail_impact)
 		# metal on metal: a light touch is a scrape, a slide into the rail (understeer drift) a loud bang
 		AudioManager.play("rail", clampf(-10.0 + 2.0 * vehicle.rail_impact, -10.0, 2.0))
 	if vehicle.understeer > 0.0:
@@ -685,6 +839,7 @@ func _check_zones() -> void:
 func _finish() -> void:
 	_final_time = stage_time + penalty_time
 	finished = true
+	haptics.stop()
 	_finish_timer = float(ConfigLoader.lookup(cfg, "render.finish_hold_s", 6.0))
 	pos_km = plan.length_km
 	AudioManager.play("finish")
@@ -763,12 +918,18 @@ func _chase01() -> float:
 func _process(delta: float) -> void:
 	if plan == null:
 		return
+	_check_standby()
 	_beacon_t += delta
+	# the frame shows the state at its own time, between the last two simulation steps (render interpolation)
+	var vs := view_state()
+	var a: float = vs["alpha"]
+	var vz: float = vs["pos_z"]
+	var vx: float = vs["x"]
 	var follow := float(ConfigLoader.lookup(cfg, "render.camera_follow", 7.0))
 	var lag := float(ConfigLoader.lookup(cfg, "render.camera_lag_max_m", 1.1))
-	cam_x = lerpf(cam_x, vehicle.x, 1.0 - exp(-follow * delta))
-	cam_x = clampf(cam_x, vehicle.x - lag, vehicle.x + lag)
-	var cam_z := pos_z - proj.cam_distance
+	cam_x = lerpf(cam_x, vx, 1.0 - exp(-follow * delta))
+	cam_x = clampf(cam_x, vx - lag, vx + lag)
+	var cam_z := vz - proj.cam_distance
 	var hour := clock.hour()
 	var cam_tunnel := track.is_tunnel_at(cam_z + 1.0)
 	var pal := Palette.compute(hour, weather, ConfigLoader.lookup(cfg, "daytime", {}), false)
@@ -777,7 +938,8 @@ func _process(delta: float) -> void:
 	var cars: Array = []
 	if traffic_enabled:
 		for c in traffic.cars:
-			cars.append({"kind": "car", "id": c.id, "set": c.set_id, "z": c.z - c.length * 0.5, "x": c.x, "length": c.length,
+			cars.append({"kind": "car", "id": c.id, "set": c.set_id, "z": SessionRules.lerp_view(c.prev_z, c.z, a) - c.length * 0.5,
+				"x": SessionRules.lerp_view(c.prev_x, c.x, a), "length": c.length,
 				"tail": lights, "brake": 1.0 if c.braking else 0.0, "speed": c.speed, "heavy": c.heavy,
 				"blink": c.signal_dir, "blink_t": c.signal_age})
 	# police car at PoliceSystem.police_car_offset_m() (animated by the gameplay module): it passes the
@@ -796,13 +958,14 @@ func _process(delta: float) -> void:
 		if off < -proj.cam_distance - 6.0:
 			# out of sight behind the camera: choose the side it will pass on
 			_police_side = SessionRules.police_pass_side(vehicle.x, track.road_edges_at(pos_z).x, track.lane_w)
-		var px := SessionRules.police_car_x(off, vehicle.x, _police_side, track.lane_w, _pull_over_m, (4.8 + vehicle.length_m) * 0.5)
-		cars.append({"kind": "car", "id": POLICE_VIEW_ID, "set": GameData.police_set_for(plan.country_at(clampf(pos_km, 0.0, plan.length_km))), "z": pos_z + off - 2.4,
+		var off_v := SessionRules.lerp_view(_prev_police_off, off, a)
+		var px := SessionRules.police_car_x(off_v, vx, _police_side, track.lane_w, _pull_over_m, (4.8 + vehicle.length_m) * 0.5)
+		cars.append({"kind": "car", "id": POLICE_VIEW_ID, "set": GameData.police_set_for(plan.country_at(clampf(pos_km, 0.0, plan.length_km))), "z": vz + off_v - 2.4,
 			"x": px, "tail": lights, "length": 4.8, "speed": maxf(0.0, vehicle.speed + _police_rel_kmh),
 			"beacon": "a" if fmod(_beacon_t, 0.5) < 0.25 else "b"})
 	# the renderer derives the visible yaw and body roll of the car from these (docs/renn-modul.md §8)
 	var player := {"kind": "car", "player": true, "set": str(vehicle.spec.get("sprite", "player/limousine")),
-		"z": pos_z - vehicle.length_m * 0.5, "x": vehicle.x, "length": vehicle.length_m, "width": vehicle.width_m,
+		"z": vz - vehicle.length_m * 0.5, "x": vx, "length": vehicle.length_m, "width": vehicle.width_m,
 		"steer": vehicle.steer_visual, "lat_speed": vehicle.lat_speed, "push_speed": vehicle.push_speed,
 		"understeer": vehicle.understeer,
 		"tail": lights, "brake": 1.0 if vehicle.braking else 0.0, "visible": vehicle.blink_visible, "speed": vehicle.speed}
@@ -815,16 +978,16 @@ func _process(delta: float) -> void:
 	renderer.render({
 		"camera_z": cam_z,
 		"camera_x": cam_x,
-		"camera_y": track.height_at(pos_z) + proj.cam_height,
+		"camera_y": track.height_at(vz) + proj.cam_height,
 		"camera_in_tunnel": cam_tunnel,
 		"visibility_m": vis,
 		"palette": pal,
 		"weather": weather,
-		"time": _real_time,
+		"time": float(vs["time"]),
 		"speed": vehicle.speed,
 		"cars": cars,
 		"player": player,
-		"bg_offset": bg_offset,
+		"bg_offset": float(vs["bg"]),
 		"scenery": plan.scenery_for(clampf(pos_km, 0.0, plan.length_km), GameData.scenery),
 		"shake": shake,
 		"countdown": countdown if not running else (-0.5 if _real_time < 1.0 + float(ConfigLoader.lookup(cfg, "time.countdown_s", 3.0)) else -1000.0),

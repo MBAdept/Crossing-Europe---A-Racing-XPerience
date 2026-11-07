@@ -31,6 +31,10 @@ var sets: Dictionary = {}
 var overlay_paths: Array[String] = []   ## manifests merged over the real one (debug)
 var _textures: Dictionary = {}
 var _meta: Dictionary = {}               ## set id -> derived data (see _meta_for)
+## Sheets loaded so far (count and the last ids, diagnostics: the race session loads a stage's sheets before the
+## start – tests check that none is loaded while driving).
+var loads := 0
+var load_log: Array[String] = []
 
 
 func _init() -> void:
@@ -151,6 +155,10 @@ func texture(id: String) -> Texture2D:
 		return _textures[id]
 	var s := get_set(id)
 	var tex: Texture2D = null
+	loads += 1
+	load_log.append(id)
+	if load_log.size() > 64:
+		load_log.remove_at(0)
 	if not s.is_empty():
 		var path: String = str(s.get("root", SPRITE_ROOT)) + str(s.get("file", ""))
 		if ResourceLoader.exists(path):
