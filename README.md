@@ -8,11 +8,31 @@ Nachtankzwang, Radarfallen und Polizei, Tageszeit und Wetter. Vorbilder: *Enduro
 - Technik: [ARCHITECTURE.md](ARCHITECTURE.md) und die Moduldokus in [docs/](docs/)
 - Engine: Godot 4.7.2 (GDScript, Renderer „GL Compatibility“), alle Fahrzeuge, Bäume, Gebäude, Tankstellen und
   Symbole prozedural in Blender 5.2 modelliert und als Sprites gerendert
-- Stand: **v0.5.1** – Fehlerbehebung zu v0.5.0 (Verkehr als Hindernis, Schnee mit Folgen, Attract-Modus, Windows);
-  alle acht Schritte des Prototyp-Plans sind umgesetzt, alle Zahlen sind Startwerte zum Testen.
+- Stand: **v0.6.0 – Gamepad und Steam Deck**; alle acht Schritte des Prototyp-Plans sind umgesetzt, alle Zahlen sind
+  Startwerte zum Testen.
 
-## Neu in v0.5.1
+## Neu in v0.6.0
 
+- **Gamepad und Steam Deck geprüft und verbessert** ([docs/steam-deck.md](docs/steam-deck.md), „Prüfung v0.5.1“):
+  - Ein Stick-Stoß verstellt Fahrzeug, Startzeit und Optionen nur noch um einen Schritt (vorher mehrere).
+  - Jedes angeschlossene Gamepad fährt und bedient die Menüs, nicht mehr nur das erste – auch der externe Controller
+    am angedockten Steam Deck. Gelenkt wird mit dem Stick des zuletzt benutzten Pads; ein herumliegendes Pad mit
+    driftendem Stick lenkt nicht mit, und schaltet es sich ab, pausiert das Rennen nicht.
+  - Gehaltenes Steuerkreuz oder gehaltener Stick laufen durch Listen, LB/RB (Bild ↑/↓) blättern seitenweise.
+  - Die Bildschirmtastatur löscht mit B nur noch ein Zeichen, schließt im leeren Feld, Start = Fertig; mit der
+    Tastatur (auch der Steam-Tastatur) lässt sich direkt ins Namensfeld tippen.
+  - Lenken mit dem Stick: kleinere Totzone, volle Lenkung schon vor dem Anschlag.
+  - **Vibration** bei Unfällen, an der Leitplanke, auf dem Bankett und beim Untersteuern (Optionen, abschaltbar); auf
+    dem Steam Deck über dessen Haptik.
+  - Die Straße läuft auch bei 40, 45 und 90 Bildern pro Sekunde gleichmäßig (Steam Deck OLED, Akku-Sparen), und es
+    gibt keine Nachladeruckler mehr bei Gebäuden, Lkw und Wahrzeichen: Alles für die Etappe wird vor dem Start
+    geladen („Etappe wird geladen …“).
+  - Das Rennen pausiert auch bei Fokusverlust im Countdown, nach dem Standby und wenn das benutzte Pad sich trennt.
+  - Pause-Taste im Countdown genannt, Gas-Symbol im Tankfenster, Abfrage vor dem Beenden, Tastenhinweise in jeder
+    Abfrage; Pausenmenü und Spiel ohne Fokus laufen mit 30 Bildern pro Sekunde (Akku); nach 10 Minuten ohne Eingabe
+    keine Demos mehr.
+  - Vollbild: Wer in v0.5.x „Vollbild: Aus“ gewählt hatte und auf einem Bildschirm bis 800 px Höhe spielt (Steam
+    Deck, kleine Laptops), startet einmal im Vollbild und stellt es bei Bedarf noch einmal aus.
 - **Lichter verdeckter Fahrzeuge scheinen nicht mehr durch**: Der Blinker eines Autos hinter einer Kuppe leuchtete
   durch die Fahrbahn (Spieltest) – ebenso Rück-, Brems- und Blaulichter hinter Kuppen und Lkw, Laternen hinter Häusern
   und Bäumen und Tunnellampen hinter der Tunnelwand. Ein Licht leuchtet jetzt nur noch dort, wo seine Quelle zu sehen
@@ -20,13 +40,6 @@ Nachtankzwang, Radarfallen und Polizei, Tageszeit und Wetter. Vorbilder: *Enduro
   ([docs/renn-modul.md](docs/renn-modul.md), §2 „Lichter und Verdeckung“).
 - **Design-Dokument** an v0.5.0 angepasst: Verkehr, Wetter und Fahrverhalten, City Limits, Tutorial
   ([docs/Design-Dokument.md](docs/Design-Dokument.md), Änderungen markiert mit *(seit v0.5.0)*).
-- **Gamepad und Steam Deck geprüft** ([docs/steam-deck.md](docs/steam-deck.md), „Prüfung v0.5.1“): Ein Stick-Stoß
-  verstellt Fahrzeug, Startzeit und Optionen nur noch um einen Schritt; jedes angeschlossene Gamepad fährt und bedient
-  die Menüs (vorher nur das erste); gehaltenes Steuerkreuz oder gehaltener Stick laufen durch Listen, LB/RB blättern;
-  die Bildschirmtastatur löscht mit B nur noch ein Zeichen und schließt im leeren Feld; die Straße läuft auch bei 40,
-  45 und 90 Bildern pro Sekunde gleichmäßig (Steam Deck OLED); keine Nachladeruckler mehr bei Gebäuden, Lkw und
-  Wahrzeichen; **Vibration** im Rennen (Optionen, abschaltbar); Pause-Taste im Countdown, Abfrage vor dem Beenden,
-  „Etappe wird geladen …“.
 
 ## Neu in v0.5.0
 
