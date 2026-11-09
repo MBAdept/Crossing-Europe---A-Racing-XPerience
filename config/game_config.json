@@ -378,13 +378,13 @@
 		"fade_s": 0.6,
 		"guard_s": 0.4,
 		"scenes": [
-			{"id": "rushhour", "name": "Feierabendverkehr vor Frankfurt", "stage": "dortmund_frankfurt", "from": "dortmund", "km": 195.0, "hour": 18.8, "weather": "normal", "vehicle": "sportwagen", "speed_kmh": 170, "cruise_kmh": 225, "seed": 8},
+			{"id": "rushhour", "name": "Feierabendverkehr vor Frankfurt", "stage": "dortmund_frankfurt", "from": "dortmund", "km": 197.5, "hour": 18.8, "weather": "normal", "vehicle": "sportwagen", "speed_kmh": 170, "cruise_kmh": 225, "seed": 8},
 			{"id": "pyrenaeen", "name": "Schneetreiben in den Pyrenäen", "stage": "saragossa_pau", "from": "saragossa", "km": 159.0, "hour": 11.0, "weather": "snow", "vehicle": "kompakt", "speed_kmh": 90, "cruise_kmh": 140, "seed": 4},
-			{"id": "paris", "name": "Ankunft in Paris", "stage": "luettich_paris", "from": "luettich", "km": 384.6, "hour": 20.0, "weather": "normal", "vehicle": "gran_turismo", "speed_kmh": 90, "cruise_kmh": 135, "seed": 3},
+			{"id": "paris", "name": "Ankunft in Paris", "stage": "luettich_paris", "from": "luettich", "km": 384.6, "hour": 20.0, "weather": "normal", "vehicle": "gran_turismo", "speed_kmh": 90, "cruise_kmh": 135, "seed": 1},
 			{"id": "hamburg", "name": "Über die Köhlbrandbrücke nach Hamburg", "stage": "kiel_hamburg", "from": "kiel", "km": 77.0, "hour": 12.5, "weather": "normal", "vehicle": "kombi", "speed_kmh": 90, "cruise_kmh": 160, "seed": 5},
-			{"id": "regen", "name": "Nachtfahrt im Regen nach Berlin", "stage": "leipzig_berlin", "from": "leipzig", "km": 157.0, "hour": 23.0, "weather": "rain", "vehicle": "limousine", "speed_kmh": 170, "cruise_kmh": 215, "seed": 3},
+			{"id": "regen", "name": "Nachtfahrt im Regen nach Berlin", "stage": "leipzig_berlin", "from": "leipzig", "km": 159.0, "hour": 23.0, "weather": "rain", "vehicle": "limousine", "speed_kmh": 170, "cruise_kmh": 215, "seed": 3},
 			{"id": "venedig", "name": "Über die Lagune nach Venedig", "stage": "mailand_venedig", "from": "mailand", "km": 267.6, "hour": 17.5, "weather": "normal", "vehicle": "sportwagen", "speed_kmh": 90, "cruise_kmh": 140, "seed": 2},
-			{"id": "wien", "name": "Morgendämmerung in Wien", "stage": "budapest_wien", "from": "budapest", "km": 233.5, "hour": 6.3, "weather": "normal", "vehicle": "kombi", "speed_kmh": 90, "cruise_kmh": 110, "seed": 9}
+			{"id": "wien", "name": "Morgendämmerung in Wien", "stage": "budapest_wien", "from": "budapest", "km": 234.5, "hour": 6.3, "weather": "normal", "vehicle": "kombi", "speed_kmh": 90, "cruise_kmh": 110, "seed": 9}
 		]
 	},
 

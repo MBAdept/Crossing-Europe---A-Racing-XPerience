@@ -690,6 +690,9 @@ sicheren Geschwindigkeit anzukommen (dort hält Gegenlenken die Linie)? Anfahrt:
 | Gran Turismo, Schnee + Nacht (338 m), Kurvenschilder wie bisher | – | – | 1 von 104 (−12,3 m, Würzburg ab Nürnberg km 108,1: blinde Kurve mit Betrag 0,21 150 m vor dem Ziel ohne Schild) |
 | dito, Schild nach der wirklich gefahrenen Kurve (`_piece_peak`, renn-modul.md §4) | – | – | **0** von 104 (+5,8 m, Wien – Prag km 145,7, Kurve hinter einer Kuppe: 71 m Sicht; Würzburg ab Nürnberg jetzt +112,6 m) |
 | Gran Turismo, Regen + Nacht / Tag; Kompakt, Tag | – | – | **0** (+61,9 m / +82,6 m / +238,1 m) |
+| v0.7.0 – ganzes Netz mit den neuen Rennen (64 Etappen = 128 Richtungen + Dev-Etappe), Tankstellen je Richtung | | | |
+| Gran Turismo, Schnee + Nacht (338 m) | – | – | **0** von 130 (+5,8 m, Wien – Prag km 145,7; neue Etappen ab +34,4 m, Prag – Nürnberg ab Nürnberg km 69,0) |
+| Gran Turismo, Regen + Nacht / Tag; Kompakt, Tag | – | – | **0** von 130 (+61,9 m / +82,6 m / +238,1 m; neue Etappen ab +90,6 m / +104,4 m Linz – Passau, +278,8 m Bukarest – Sibiu) |
 
 Mit der halben Bremsung im Schnee bleibt bei Nacht nur eine knappe Reserve – die Sicht bei Schnee darf nicht sinken; für
 den Verkehr musste sie steigen ((i6), „Wetter“). Mit Faktor 10 (v0.7.0) ist sie noch knapper (+5,8 m hinter einer Kuppe,
@@ -722,6 +725,7 @@ v_rel² / 2a + 2 m). Nur Nebel (das, was das Wetter entscheidet), Gran Turismo (
 | Regen, Tag | 585 m | +80,9 m |
 | trocken, Nacht / Tag | 495 / 900 m | +110,8 / +140,1 m |
 | Sportwagen, Schnee, Nacht | 338 m | +52,9 m |
+| v0.7.0: Schnee, Nacht, ganzes Netz (130 Etappenrichtungen, Faktor 10) | 338 m | **+27,5 m** (dieselbe Kolonne an den City Limits jeder Etappe, auch der neuen) |
 
 **Kuppen** sind davon unabhängig: auf hügeligen Etappen liegt ein Auto hinter einer Kuppe teils erst 55–90 m vor dem
 Spieler im Blick (die Hügel sind optisch doppelt so hoch, `render.hill_height_scale`). Aus vollem Tempo reicht das bei
@@ -744,7 +748,9 @@ mehr, die QA danach mit einem eigenen Fahrer-Bot auf rund 4 700 km Schnee (≈ 2
 Spuren erst 152 m vorher sichtbar, nötig 174 m – Aufprall mit 98 km/h trotz Vollbremsung. **Seitdem (QA-Review v0.5.0)
 steht vor jeder blinden Kuppe ein Warnschild „Kuppe“** (renn-modul.md §4 „Kuppenschilder“: verdeckt die Kuppe ein
 Fahrzeug innerhalb 180 m – etwa der Anhalteweg im Schnee aus 200 km/h Annäherung –, steht 150 m vor der Stelle das
-Schild; im Netz 5,4 je 100 km, an allen QA-Stellen – Burgos km 208,5, Saragossa – Pau km 147,1 und 75,8 – davor). Wer
+Schild; im Netz 5,4 je 100 km, an allen QA-Stellen – Burgos km 208,5, Saragossa – Pau km 147,1 und 75,8 – davor; seit
+v0.7.0 mit Faktor 10 6,6 je 100 km und die Schilder vor den schlimmsten Kuppen der neuen Straße – Burgos km 208,9,
+Saragossa – Pau km 186,4 und 148,0). Wer
 wie vor einer blinden Kurve vom Gas geht, kommt
 rechtzeitig zum Stehen; die optische Überhöhung der Hügel bleibt (flachere Hügel nur in den City Limits verbesserten
 die schlimmste Stelle dort nur von −97 auf −74 m Reserve).

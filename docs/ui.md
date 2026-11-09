@@ -185,13 +185,13 @@ der kuratierten Szenen aus `attract.scenes` – die nächste Demo zeigt die näc
 
 | id | Szene | Etappe, Start | Zeit, Wetter, Auto |
 |---|---|---|---|
-| `rushhour` | Feierabendverkehr vor Frankfurt (Abendrot, Skyline ab den City Limits) | Dortmund – Frankfurt, km 195 | 18:48, klar, Sportwagen |
+| `rushhour` | Feierabendverkehr vor Frankfurt (Abendrot, Skyline ab den City Limits) | Dortmund – Frankfurt, km 197,5 | 18:48, klar, Sportwagen |
 | `pyrenaeen` | Schneetreiben in den Pyrenäen (kurvige Landstraße vor dem Somport) | Saragossa – Pau, km 159 | 11:00, Schnee, Kompakt |
 | `paris` | Ankunft in Paris (Tunnel du Landy, Pont Alexandre III, Eiffelturm, Haussmann-Häuser) | Lüttich – Paris, km 384,6 | 20:00, Dämmerung, Gran Turismo |
 | `hamburg` | Über die Köhlbrandbrücke nach Hamburg (Elbphilharmonie, Michel) | Kiel – Hamburg, km 77 | 12:30, klar, Kombi |
-| `regen` | Nachtfahrt im Regen nach Berlin (Autobahn, dann der Fernsehturm) | Leipzig – Berlin, km 157 | 23:00, Regen, Limousine |
+| `regen` | Nachtfahrt im Regen nach Berlin (Autobahn, dann der Fernsehturm) | Leipzig – Berlin, km 159 | 23:00, Regen, Limousine |
 | `venedig` | Über die Lagune nach Venedig (Ponte della Libertà, Campanile) | Mailand – Venedig, km 267,6 | 17:30, klar, Sportwagen |
-| `wien` | Morgendämmerung in Wien (Riesenrad, Stephansdom) | Budapest – Wien, km 233,5 | 6:18, Morgendämmerung, Kombi |
+| `wien` | Morgendämmerung in Wien (Riesenrad, Stephansdom) | Budapest – Wien, km 234,5 | 6:18, Morgendämmerung, Kombi |
 
 Review v0.5.0 (QA nach dem Zusammenführen mit der neuen Schwierigkeit): Wien kam ins Ziel und stand bis zum vorzeitigen
 Ende (26 s) still – jetzt km 233,5 mit Wunschtempo 110 (Reichsbrücke 13–17 s, endet nach 30 s bei km 243,2); Regen
@@ -202,6 +202,17 @@ Autopilot an Spurenden (unten, renn-modul.md §10) – mit unveränderten Werten
 Ø 143 km/h mit den City Limits nach 14,5 s, Venedig kleinster Abstand 24,5 m. Alle Szenen prüft
 `tests/race/check_attract_scenes.gd` (in `tools/run_tests.sh`, ~2 min): jede endet nach `demo_s` ohne Ziel, Unfall,
 Leitplanke und Ausflug neben die Fahrbahn, nie näher als 10 m hinter einem Auto (in den ersten 3 s 15 m), Ø ≥ 70 km/h.
+
+v0.7.0 (Zeitraffer 10: jede Straße neu erzeugt, ein Kilometer ist 100 statt 83 m lang; Tankstellen je Fahrtrichtung):
+Paris kroch mit Ø 63 km/h hinter dem Stadtverkehr – jetzt Verkehrs-Seed 1 statt 3 (Ø 98 km/h); Wien startet bei
+km 234,5 (statt 233,5), Regen bei km 159 (statt 157), der Feierabendverkehr bei km 197,5 (statt 195, die neue
+Tankstelle dieser Richtung liegt bei km 194,7 – der Autopilot der Demo tankt nicht, die Szene soll nicht an der
+Tankspur beginnen). So zeigen die Szenen wieder, wofür sie da sind (Screenshots bei 4, 12, 21 und 29 s): Paris den
+Tunnel du Landy (4 s), den Pont Alexandre III (12 s) und Haussmann-Häuser mit der Spitze des Eiffelturms (21 s); Wien die
+Reichsbrücke mit Riesenrad und Stephansdom (12 s); Regen die Autobahn und ab den City Limits den Fernsehturm (29 s);
+der Feierabendverkehr die Kolonne vor den City Limits und die Skyline (21–29 s); Hamburg die Köhlbrandbrücke (4 s)
+und die Elbphilharmonie (21–29 s). `check_attract_scenes`: Feierabendverkehr Ø 103 km/h, Pyrenäen 120, Paris 98,
+Hamburg 90, Regen 184, Venedig 79, Wien 88 – keine Kollision, kleinster Abstand 14,5 m.
 
 Felder einer Szene: `id`, `name` (im Overlay), `stage` + `from`, `km`, `hour`, `weather`, `vehicle`, `speed_kmh`
 (Starttempo), `cruise_kmh` (Wunschtempo des Autopiloten – er bremst trotzdem für Kurven, Verkehr und Radar; in den

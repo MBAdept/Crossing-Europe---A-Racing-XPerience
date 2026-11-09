@@ -187,7 +187,7 @@ nähere Hintergrundebenen drehen sich etwas schneller (Parallaxe).
   (Test: Streamen = Gesamterzeugung). Schneidet ein Abschnitts- oder Tunnelwechsel das Kurvenstück schon in der
   Einlaufphase ab, entscheidet die erreichte Stärke (Beginn der 60-m-Ausblendung) sofort, und die Richtungstafeln laufen
   in der Ausblendung weiter (vorher fiel das Schild weg; `curve_signs_cut` zählt solche Schilder, im Netz 9 bei Faktor
-  12). In City Limits steht das Warnschild ebenfalls – dort gibt es kein Radar, man kommt mit vollem Tempo –,
+  12, im Netz von v0.7.0 bei Faktor 10 12). In City Limits steht das Warnschild ebenfalls – dort gibt es kein Radar, man kommt mit vollem Tempo –,
   Richtungstafeln nicht. Keine Kurvenschilder in Tunneln (dort höchstens 0,25) und in den ruhigen Zonen an Start und
   Ziel – dort flacht `_calm()` die Kurve ab. *(v0.7.0)* Ob sie das tut, entscheidet die wirklich gefahrene Kurve: Das
   Schild fehlt nur, wenn der Ruhefaktor am nominellen Mittelpunkt des Kurvenstücks ≤ 0,6 ist **und** die Kurve bis zur
@@ -195,8 +195,8 @@ nähere Hintergrundebenen drehen sich etwas schneller (Parallaxe).
   Vorher zählte nur der Mittelpunkt – lag er hinter der Ziellinie, blieb eine blinde Kurve davor ohne Schild (bei
   Faktor 10: Würzburg ab Nürnberg, Kurve mit Betrag 0,21 150 m vor dem Ziel, Sichtprüfung Gran Turismo Schnee Nacht
   −12,3 m). Ergebnis im ganzen Netz (v0.6.0, Faktor 12): alle 691 scharfen Kurvenstücke (55 davon in City Limits)
-  haben ihr Warnschild (Test `test_every_sharp_curve_has_a_warning_sign`). Sichtprüfung über alle Etappen:
-  gameplay.md (i5).
+  haben ihr Warnschild; v0.7.0 (64 Etappen, Faktor 10, beide Richtungen): alle 1 022 (80 in City Limits) (Test
+  `test_every_sharp_curve_has_a_warning_sign`). Sichtprüfung über alle Etappen: gameplay.md (i5).
 - **Kuppenschilder** (Review v0.5.0, QA: im Schnee tauchte langsamer Verkehr hinter Kuppen näher auf als der
   Anhalteweg – in den City Limits von Burgos war eine Kolonne auf beiden Spuren unvermeidbar): Ist von einem Punkt bis
   `road.crest_warning_check_m` (250 m) vor einer Kuppe ein Fahrzeug (`road.crest_target_height_m` 0,75 m hoch, halbe
@@ -207,8 +207,11 @@ nähere Hintergrundebenen drehen sich etwas schneller (Parallaxe).
   Entschieden wird, wenn die Straße 180 m hinter der Kuppe erzeugt ist; die Schilder verbrauchen keine Zufallszahlen –
   die Straße bleibt gleich (Test `test_blind_crests_have_a_warning_sign`: gleiche Höhen und Kurven mit und ohne, beim
   Streamen schon in Sichtweite vorhanden, je ein Schild vor den QA-Stellen San Sebastián – Burgos km 208,5 und
-  Saragossa – Pau km 147,1 / 75,8). Im ganzen Netz (beide Richtungen) 1 295 Schilder auf 24 160 km = 5,4 je 100 km,
-  höchstens 11 (Kassel – Würzburg ab Würzburg), flache Etappen keine.
+  Saragossa – Pau km 147,1 / 75,8; seit v0.7.0 mit der neuen Straße vor den schlimmsten Kuppenstellen der
+  Sichtprüfung im Schnee: City Limits Burgos km 208,9, Saragossa – Pau km 186,4 und 148,0). Im ganzen Netz (beide
+  Richtungen) 1 295 Schilder auf 24 160 km = 5,4 je 100 km, höchstens 11 je 100 km (Kassel – Würzburg ab Würzburg),
+  flache Etappen keine (v0.6.0, Faktor 12); v0.7.0 (Faktor 10, also ein Fünftel mehr Straße je km): 1 947 auf
+  29 400 km = 6,6 je 100 km, höchstens 12,9 je 100 km (Dortmund – Frankfurt ab Frankfurt), 7 flache Etappen ohne.
 - **Spuren**: Autobahn 3, Landstraße 2, Stadt 2 (`road.lanes`). Wechsel über `road.lane_transition_m` weich
   (`lanes_at` gebrochen); `lane_count_at` meldet dem Verkehr schon vor und während des Übergangs die kleinere Zahl.
 - **Tankspur**: `fuel_lane_factor` 0..1 mit `road.fuel_lane_taper_m` Ein-/Ausfädelung; `fuel_lane_at` nur bei ganz offener

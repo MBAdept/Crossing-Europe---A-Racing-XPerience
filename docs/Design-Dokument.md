@@ -4,7 +4,7 @@ Design-Dokument · 30. Okt. 2026 · @Michi
 
 Überarbeitet am 2. Nov. 2026 nach dem Spieltest von v0.4.0 („zu leicht“): Verkehr, Wetter und Fahrverhalten, City Limits, Tutorial. Geänderte und neue Regeln sind mit *(seit v0.5.0)* markiert.
 
-Überarbeitet am 9. Nov. 2026 nach dem Spieltest von v0.6.0 („Die Etappen sind ein wenig kurz“): Zeitraffer und Pause zwischen den Etappen eines Rennens. Geänderte Regeln sind mit *(seit v0.7.0)* markiert.
+Überarbeitet am 9. Nov. 2026 nach dem Spieltest von v0.6.0 („Die Etappen sind ein wenig kurz“): Zeitraffer und Pause zwischen den Etappen eines Rennens, der Tank geht im Rennen in die nächste Etappe mit (erste Tankstelle spätestens 20 km nach dem Start), zwei neue Rennen Wien – Hamburg und Bukarest – Calais. Geänderte und neue Regeln sind mit *(seit v0.7.0)* markiert.
 
 ## Überblick
 
@@ -219,6 +219,7 @@ Vor jeder Etappe zeigt ein Bildschirm die Strecke auf der Karte, das Wetter, den
 - Jeder Eintrag speichert Name, Zeit, Durchschnittstempo, Fahrzeugtyp, Wetter und Tageszeit. Wetter und Tageszeit erscheinen als kleines Symbol neben der Zeit.
 - Wer einen Platz in den Top 10 erreicht, gibt am Etappenende seinen Namen ein.
 - Speicherung lokal als JSON.
+- *(seit v0.7.0)* Gespeicherte Etappenzeiten werden auf den neuen Zeitraffer umgerechnet: gleicher Schnitt, Zeit × 1,2, Namen und Reihenfolge bleiben. Die Rennlisten beginnen neu, weil Zeitraffer, Pause und Tank-Übernahme die Rennzeiten verändern; die alten Listen bleiben als Sicherung erhalten.
 
 ## Zentrale Konfiguration und Prototyp-Plan
 

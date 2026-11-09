@@ -322,7 +322,7 @@ func test_scenery_file_complete() -> void:
 
 ## Curve signs (road.curve_warning_*): every sharp stretch (|curve| >= 0.3) has a warning sign with its
 ## direction 150–450 m before it on the right and chevron boards on the outside pointing into the bend;
-## gentle curves get no chevrons.
+## gentle curves get no chevrons. The test stage has 9 such stretches at factor 10 (v0.7.0; 10 at factor 12).
 func test_sharp_curves_have_warning_sign_and_chevrons() -> void:
 	var t := _track()
 	var n := int(t.length_z / t.seg_len)
@@ -364,7 +364,7 @@ func test_sharp_curves_have_warning_sign_and_chevrons() -> void:
 		assert_true(warned, "Warnschild vor der scharfen Kurve bei km %.1f" % s.km)
 		assert_true(chevrons >= 1, "Richtungstafeln an der scharfen Kurve bei km %.1f" % s.km)
 		i = j
-	assert_true(stretches >= 10, "Teststrecke hat scharfe Kurven (%d)" % stretches)
+	assert_true(stretches >= 8, "Teststrecke hat scharfe Kurven (%d)" % stretches)
 	for sg in signs:
 		if sg["kind"] == "chevron":
 			assert_true(absf(float(sg["curve"])) >= 0.14, "keine Richtungstafel an sanften Kurven (%.2f)" % float(sg["curve"]))
@@ -439,7 +439,10 @@ func test_traffic_is_seen_in_time() -> void:
 ## Blind crests (Review v0.5.0, QA): in snow a slow queue behind a crest came into view closer than the stopping
 ## distance – in the City Limits of Burgos (km 208.5, seen at 152 m, 174 m needed) unavoidably, on Saragossa – Pau
 ## (km 147.1 at 73 m, km 75.8 at 102 m) only just. Every crest that hides a vehicle within road.crest_warning_sight_m
-## gets a warning sign "Kuppe" before the place where it becomes blind: at those three spots it stands 0.3–4.5 km before.
+## gets a warning sign "Kuppe" before the place where it becomes blind: at the QA spots it stands 0.3–4.5 km before.
+## Since v0.7.0 (factor 10, a new road) the spots are the worst crest points of the traffic sight check (Gran Turismo,
+## snow, night: tests/sim/curve_sight.gd --traffic): City Limits Burgos km 208.88 (vehicle seen at 115 m, 125 m
+## short), Saragossa – Pau km 186.38 (70 m, 127 m short) and km 147.98 (64 m, 72 m short; the old spot km 147.1).
 ## The signs use no random numbers – the road is the same as without them – and stream like the curve signs.
 func test_blind_crests_have_a_warning_sign() -> void:
 	var net: Dictionary = ConfigLoader.load_json("res://data/network.json")
@@ -450,7 +453,7 @@ func test_blind_crests_have_a_warning_sign() -> void:
 	var stages := {}
 	for st: Dictionary in net.get("stages", []):
 		stages[str(st["id"])] = st
-	var spots := [["san_sebastian_burgos", "san_sebastian", 208.51], ["saragossa_pau", "saragossa", 147.08], ["saragossa_pau", "saragossa", 75.8]]
+	var spots := [["san_sebastian_burgos", "san_sebastian", 208.88], ["saragossa_pau", "saragossa", 186.38], ["saragossa_pau", "saragossa", 147.98]]
 	for spot: Array in spots:
 		var plan := StagePlan.build(stages[spot[0]], str(spot[1]), cities, countries, cfg())
 		var t := Track.new()
@@ -575,10 +578,12 @@ func _network_track(stage_id: String, from_id: String) -> Track:
 ## A section or tunnel break that cuts a sharp curve piece during its ramp-in (where the sign is decided) no
 ## longer drops its warning sign: the piece's peak decides (review: 5 sharp curves without sign). Sharp curves in
 ## City Limits get the warning sign too (no radar there, cars arrive at full speed), but no chevron boards.
+## Stages with cut pieces at factor 10 (v0.7.0): the dev stage and Leipzig – Erfurt from Leipzig, one each (12 in the
+## whole network).
 func test_every_sharp_curve_has_a_warning_sign() -> void:
 	var cut := 0
 	var city := 0
-	for case: Array in [["dev_testetappe", "dev_start"], ["bremen_dortmund", "bremen"], ["hamburg_bremen", "bremen"]]:
+	for case: Array in [["dev_testetappe", "dev_start"], ["bremen_dortmund", "bremen"], ["leipzig_erfurt", "leipzig"]]:
 		var t := _network_track(str(case[0]), str(case[1]))
 		assert_true(t != null, "Etappe %s" % case[0])
 		var r := _sign_coverage(t)
