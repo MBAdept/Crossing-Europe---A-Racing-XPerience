@@ -564,7 +564,7 @@ def doc_block(cities, stages, ferries, races, route_info):
 	for r in races:
 		routes, choices = route_info[r["id"]]
 		out.append("**%s** – Routen:\n" % r["name"])
-		if len(routes) > 1:
+		if routes:
 			out.append("| Route | km | Etappen | frei km | Radar | Tankstellen | Verkehr Ø | max. Hügel | Landstraße km |")
 			out.append("|---|---|---|---|---|---|---|---|---|")
 			for (km, cs, legs) in routes:
@@ -582,7 +582,10 @@ def doc_block(cities, stages, ferries, races, route_info):
 					land += st["length_km"] - auto
 					hills = max(hills, max(s["hills"] for s in st["sections"]))
 				diff = [cname[c] for c in cs if all(c not in o[1] for o in routes if o[1] is not cs)]
-				label = "über " + ", ".join(diff[:3]) if diff else " – ".join(cname[c] for c in cs[:3]) + " …"
+				if len(routes) == 1:
+					label = "einzige Route"
+				else:
+					label = "über " + ", ".join(diff[:3]) if diff else " – ".join(cname[c] for c in cs[:3]) + " …"
 				out.append("| %s | %s | %d | %s | %d | %d | %s | %d | %s |" % (
 					label, "{:,}".format(int(round(km))).replace(",", "."), sum(1 for l in legs if l[0] == "stage"),
 					r1(free), radars, stations, de_num(traffic / max(km, 1)), hills, r1(land)))

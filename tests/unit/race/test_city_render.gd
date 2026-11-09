@@ -99,3 +99,37 @@ func test_ground_blends_into_the_centre() -> void:
 		assert_true(f >= prev - 0.0001 and f - prev < 0.06, "stetig und monoton bei %.0f" % (z - c))
 		prev = f
 		z += 3.0
+
+
+## v0.7.0 procedural landmarks: the Atomium (stand-in without its sprite) and the Calais lighthouse draw by day; at
+## night the lighthouse adds its floodlight, the lit lantern and the turning beams – a cone for every beam seen from
+## the side, none for a beam pointing at or away from the viewer (then it flashes); nothing off screen.
+func test_atomium_and_lighthouse_procs() -> void:
+	var rid := RenderingServer.canvas_item_create()
+	var r := RoadRenderer.new()
+	r.proj = RoadProjection.new()
+	var p := Vector3(640.0, 500.0, 2.0)
+	var count := func(kind: String, it: Dictionary, lights: float, t: float, at: Vector3) -> int:
+		r.batch.begin(rid)
+		r._time = t
+		r._draw_landmark_proc(kind, it, at, lights)
+		return r.batch.verts.size()
+	var atom := {"height_m": 102.0, "width_m": 80.0}
+	var a_day: int = count.call("atomium", atom, 0.0, 0.0, p)
+	assert_true(a_day >= 9 * 4 * 9, "Atomium: neun Kugeln, Rohre, Stützen (%d Ecken)" % a_day)
+	assert_true(int(count.call("atomium", atom, 1.0, 0.0, p)) > a_day, "Atomium nachts mit Lichtern")
+	var lh := {"height_m": 51.0, "width_m": 10.0}
+	var l_day: int = count.call("lighthouse", lh, 0.0, 0.0, p)
+	assert_true(l_day > 20, "Leuchtturm bei Tag (%d Ecken)" % l_day)
+	assert_eq(int(count.call("lighthouse", lh, 0.0, 3.7, p)), l_day, "bei Tag keine Strahlen, unabhängig von der Zeit")
+	var period := RoadRenderer.LIGHTHOUSE_PERIOD_S
+	# t = 0: two beams across the view (cos = ±1), two pointing at / away from the viewer (no cone)
+	var side_on: int = count.call("lighthouse", lh, 1.0, 0.0, p)
+	# an eighth of a turn later all four beams are seen obliquely
+	var oblique: int = count.call("lighthouse", lh, 1.0, period / 8.0, p)
+	assert_true(side_on > l_day, "nachts angestrahlt, Laterne und Strahlen")
+	assert_true(oblique > side_on, "schräg gesehen vier Strahlenkegel statt zwei")
+	assert_eq(int(count.call("lighthouse", lh, 1.0, period, p)), side_on, "eine Umdrehung in %.0f s" % period)
+	assert_eq(int(count.call("lighthouse", lh, 1.0, 0.0, Vector3(-4000.0, 500.0, 2.0))), 0, "außerhalb des Bildes nichts")
+	r.free()
+	RenderingServer.free_rid(rid)

@@ -309,6 +309,8 @@ Die folgenden Tabellen erzeugt `tools/map/build_network.py` aus den Daten.
 | Kiel – Nürnberg (`kiel_nuernberg`) | Kiel → Nürnberg | 0 | 2 | 730–905 | 5–6 |
 | Dresden – Dortmund (`dresden_dortmund`) | Dresden → Dortmund | 0 | 2 | 580–595 | 4–4 |
 | München – Bremen (`muenchen_bremen`) | München → Bremen | 0 | 2 | 780–860 | 5–5 |
+| Wien – Hamburg (`wien_hamburg`) | Wien → Hamburg | 7 | 1 | 1.150–1.150 | 8–8 |
+| Bukarest – Calais (`bukarest_calais`) | Bukarest → Calais | 0 | 2 | 2.495–2.595 | 11–13 |
 | Königsrennen (`koenigsrennen`) | Kiel → Kiel | 17 | 2 | 9.200–9.255 | 33–34 |
 
 **Kiel – Nürnberg** – Routen:
@@ -343,6 +345,25 @@ Die folgenden Tabellen erzeugt `tools/map/build_network.py` aus den Daten.
 - 780 km, 5 Etappen: München – Nürnberg – Würzburg – Kassel – Hannover – Bremen
 - 860 km, 5 Etappen: München – Nürnberg – Würzburg – Frankfurt – Dortmund – Bremen
 - Wahlpunkte: Würzburg → Kassel / Frankfurt
+
+**Wien – Hamburg** – Routen:
+
+| Route | km | Etappen | frei km | Radar | Tankstellen | Verkehr Ø | max. Hügel | Landstraße km |
+|---|---|---|---|---|---|---|---|---|
+| einzige Route | 1.150 | 8 | 355 | 15 | 18 | 1,15 | 3 | 0 |
+
+- 1.150 km, 8 Etappen: Wien – Linz – Passau – Regensburg – Nürnberg – Fulda – Kassel – Hannover – Hamburg
+
+**Bukarest – Calais** – Routen:
+
+| Route | km | Etappen | frei km | Radar | Tankstellen | Verkehr Ø | max. Hügel | Landstraße km |
+|---|---|---|---|---|---|---|---|---|
+| über Linz, Passau, Regensburg | 2.495 | 13 | 295 | 29 | 37 | 1,18 | 2 | 140 |
+| über Prag | 2.595 | 11 | 260 | 28 | 36 | 1,17 | 2 | 170 |
+
+- 2.495 km, 13 Etappen: Bukarest – Sibiu – Timișoara – Budapest – Wien – Linz – Passau – Regensburg – Nürnberg – Würzburg – Frankfurt – Köln – Brüssel – Calais
+- 2.595 km, 11 Etappen: Bukarest – Sibiu – Timișoara – Budapest – Wien – Prag – Nürnberg – Würzburg – Frankfurt – Köln – Brüssel – Calais
+- Wahlpunkte: Wien → Linz / Prag
 
 **Königsrennen** – Routen:
 
@@ -413,6 +434,19 @@ Radar = Radarfallen vorwärts/rückwärts, Tank = Tankstellen vorwärts/rückwä
 | Białystok – Kaunas (`bialystok_kaunas`) | S8 · S61 · A5 (LT) | 230 | PL → LT | 195 / 0 | 2/2 | 3/3 | – | 0,95 |
 | Kaunas – Riga (`kaunas_riga`) | A8 · A10 (LT) · A7 (LV) | 255 | LT → LV | 130 / 0 | 3/3 | 3/3 | – | 0,95 |
 | Rostock – Kiel (`rostock_kiel`) | A20 · A21 | 210 | DE | 210 / 140 | 2/2 | 3/3 | – | 0,97 |
+| Wien – Linz (`wien_linz`) | A1 · A7 | 185 | AT | 185 / 0 | 3/3 | 3/3 | – | 1,25 |
+| Linz – Passau (`linz_passau`) | A7 · A25 · A8 · A3 | 115 | AT → DE | 115 / 0 | 2/2 | 2/2 | – | 1,12 |
+| Passau – Regensburg (`passau_regensburg`) | A3 | 120 | DE | 120 / 60 | 1/2 | 2/2 | – | 1,14 |
+| Regensburg – Nürnberg (`regensburg_nuernberg`) | A3 | 105 | DE | 105 / 35 | 1/2 | 2/2 | – | 1,20 |
+| Nürnberg – Fulda (`nuernberg_fulda`) | A3 · A7 | 205 | DE | 205 / 90 | 3/3 | 3/3 | – | 1,10 |
+| Fulda – Kassel (`fulda_kassel`) | A7 | 105 | DE | 105 / 30 | 1/2 | 2/2 | – | 1,11 |
+| Bukarest – Sibiu (`bukarest_sibiu`) | A1 · DN7 · A1 | 280 | RO | 155 / 0 | 3/3 | 4/4 | – | 1,21 |
+| Sibiu – Timișoara (`sibiu_timisoara`) | A1 · DN68A · A1 | 275 | RO | 260 / 0 | 3/3 | 4/4 | – | 1,03 |
+| Timișoara – Budapest (`timisoara_budapest`) | A1 · M43 · M5 | 320 | RO → HU | 320 / 0 | 4/4 | 4/4 | – | 1,04 |
+| Prag – Nürnberg (`prag_nuernberg`) | D5 · A6 | 290 | CZ → DE | 290 / 60 | 2/2 | 4/4 | Tunel Valík (0,4 km) | 1,10 |
+| Frankfurt – Köln (`frankfurt_koeln`) | A3 | 190 | DE | 190 / 65 | 2/2 | 3/3 | – | 1,35 |
+| Köln – Brüssel (`koeln_bruessel`) | A4 · A44 · E40 | 215 | DE → BE | 215 / 25 | 3/3 | 3/3 | – | 1,29 |
+| Brüssel – Calais (`bruessel_calais`) | E40 · A18 · A16 | 215 | BE → FR | 215 / 0 | 3/4 | 3/3 | – | 1,19 |
 
 ### Grenzübergänge
 
@@ -439,8 +473,13 @@ An jeder Grenze wechselt die Landschaft (Szenerie-ID des Abschnitts, ARCHITECTUR
 | Berlin – Posen | 95 | DE → PL | `heath` → `east_plain` | A12 Frankfurt (Oder) / A2 Lebuser Land |
 | Białystok – Kaunas | 140 | PL → LT | `baltic_forest` → `east_plain` | S61 Suwałki – Budzisko / A5 Kalvarija – Marijampolė (Suvalkija) |
 | Kaunas – Riga | 175 | LT → LV | `east_plain` → `baltic_forest` | A10 Pasvalys – Saločiai / A7 Bauska – Iecava |
+| Linz – Passau | 89 | AT → DE | `north_plain` → `forest_hills` | A8 Ried im Innkreis – Suben (Innbrücke) / A3 Pocking – Passau (Neuburger Wald) |
+| Timișoara – Budapest | 115 | RO → HU | `balkan_hills` → `pannonian_plain` | A1 Arad – Pecica – Nădlac / M43 Csanádpalota – Makó |
+| Prag – Nürnberg | 160 | CZ → DE | `bohemian` → `forest_hills` | D5 Přimda – Rozvadov (Český les) / A6 Waidhaus – Pfreimd (Oberpfälzer Wald) |
+| Köln – Brüssel | 80 | DE → BE | `forest_hills` → `ardennes` | A44 Aachen – Lichtenbusch / E40 Eupen – Battice (Herver Land) |
+| Brüssel – Calais | 160 | BE → FR | `polder` → `industrial` | A18 Adinkerke (De Panne) / A16 Dunkerque (Hafen, Stahlwerk) |
 
 Fähren: Fähre Riga – Rostock (`riga_rostock`, 240 s Rennzeit, 24 h Weltzeit)
 
-Summe aller Etappen: 12.080 km in 51 Etappen, 45 Städte.
+Summe aller Etappen: 14.700 km in 64 Etappen, 55 Städte.
 <!-- END NETZ -->

@@ -1,7 +1,7 @@
 {
 	"_doc": "Individuelle Städte (docs/staedte.md). Für jede Stadt: style (Baustil -> Landschaften styles[style].outskirts für km_to_finish > center_km und .center), optional center_km, landmarks (Wahrzeichen als Requisite: set, km_to_finish, side 1 rechts/-1 links, x_m = Abstand der Vorderkante vom Fahrbahnrand, optional scale, name, tint, clear_m [vorher, nachher] sichtbare Meter freier Platz, plaza park|square|none), skyline (Silhouetten im Hintergrund ab Beginn der City Limits: Set-ID oder {set, scale, azimuth_deg, name, tint}), bridges (km_to_finish = Anfang, length_m in sichtbaren Metern wie alle *_m-Werte, type truss_arch|cable_stayed|stone_arch|canal|causeway|river, optional name, height_m = Wasser unter der Fahrbahn, water, color (Geländer/Tragwerk), bank (Ufermauer), ships, boats, pylon_m) und background (überschreibt Schlüssel des Landschafts-Hintergrunds, z. B. features, roofs, height, behind). Fehlt die Stadt, gilt country_style ihres Landes, sonst german. landmark_sets: Katalog der Wahrzeichen-Sprites (echte Höhe height_m, Breite width_m, proc = prozeduraler Ersatz bis das Sprite existiert, fallback/fallback_scale/fallback_tint = Ersatz-Sprite, required = Pflicht laut Vertrag).",
 	"center_km": 8.0,
-	"country_style": {"DE": "german", "NL": "dutch", "BE": "belgian", "FR": "french", "ES": "spanish", "IT": "italian", "AT": "austrian", "CH": "swiss", "CZ": "central", "HU": "central", "SI": "central", "HR": "balkan", "RS": "balkan", "BG": "balkan", "PL": "eastern", "LT": "baltic", "LV": "baltic"},
+	"country_style": {"DE": "german", "NL": "dutch", "BE": "belgian", "FR": "french", "ES": "spanish", "IT": "italian", "AT": "austrian", "CH": "swiss", "CZ": "central", "HU": "central", "SI": "central", "HR": "balkan", "RS": "balkan", "BG": "balkan", "PL": "eastern", "LT": "baltic", "LV": "baltic", "RO": "balkan"},
 	"styles": {
 		"hanse": {"name": "Hanse (Backstein, Speicher, Hafen)", "outskirts": "city_hanse_outskirts", "center": "city_hanse_center"},
 		"german": {"name": "Deutsche Großstadt", "outskirts": "city_german_outskirts", "center": "city_german_center"},
@@ -58,7 +58,16 @@
 		"landmarks/hram_svetog_save": {"name": "Kirche des Heiligen Sava", "height_m": 82, "width_m": 90, "proc": "domed_church", "fallback": "props/church", "fallback_scale": 2.3, "fallback_tint": "#f0ece0", "dome": "#6f9c86", "wall": "#f0ece2"},
 		"landmarks/herkules_kassel": {"name": "Herkules", "height_m": 70, "width_m": 60, "proc": "octagon", "fallback": "props/church", "fallback_scale": 2.0, "fallback_tint": "#8f8a80", "wall": "#8f8a80", "dome": "#6f9c86"},
 		"landmarks/voelkerschlachtdenkmal": {"name": "Völkerschlachtdenkmal", "height_m": 91, "width_m": 124, "proc": "domed_church", "fallback": "props/church", "fallback_scale": 2.5, "fallback_tint": "#8a857a", "dome": "#77736a", "wall": "#8a857a", "cross": false},
-		"landmarks/neues_rathaus_hannover": {"name": "Neues Rathaus", "height_m": 98, "width_m": 120, "proc": "domed_church", "fallback": "props/church", "fallback_scale": 2.5, "fallback_tint": "#e4dccc", "dome": "#6f9c86", "wall": "#e4dccc", "cross": false}
+		"landmarks/neues_rathaus_hannover": {"name": "Neues Rathaus", "height_m": 98, "width_m": 120, "proc": "domed_church", "fallback": "props/church", "fallback_scale": 2.5, "fallback_tint": "#e4dccc", "dome": "#6f9c86", "wall": "#e4dccc", "cross": false},
+		"landmarks/dom_passau": {"name": "Dom St. Stephan", "height_m": 68, "width_m": 100, "proc": "domed_church", "fallback": "props/church", "fallback_scale": 1.9, "fallback_tint": "#f0ece2", "dome": "#5f8a78", "wall": "#f0ece2"},
+		"landmarks/dom_fulda": {"name": "Fuldaer Dom", "height_m": 65, "width_m": 80, "proc": "domed_church", "fallback": "props/church", "fallback_scale": 1.85, "fallback_tint": "#e6dccb", "dome": "#5f8a78", "wall": "#e6dccb"},
+		"landmarks/catedrala_mantuirii": {"name": "Kathedrale der Erlösung des Volkes", "height_m": 127, "width_m": 120, "proc": "domed_church", "fallback": "props/church", "fallback_scale": 3.6, "fallback_tint": "#ece6d6", "dome": "#d8b04a", "wall": "#ece6d6"},
+		"landmarks/catedrala_timisoara": {"name": "Metropolitankathedrale", "height_m": 90.5, "width_m": 63, "proc": "domed_church", "fallback": "props/church", "fallback_scale": 2.5, "fallback_tint": "#e8dcc4", "dome": "#3f7a5a", "wall": "#e8dcc4"},
+		"landmarks/colonius": {"name": "Colonius", "height_m": 266, "width_m": 30, "proc": "tv_tower", "fallback": "props/building_tall", "fallback_scale": 4.0, "fallback_tint": "#dcdcdc"},
+		"landmarks/atomium": {"name": "Atomium", "height_m": 102, "width_m": 80, "proc": "atomium", "fallback": "props/building_tall", "fallback_scale": 1.5, "fallback_tint": "#c8ccd4"},
+		"landmarks/basilika_koekelberg": {"name": "Basilika Koekelberg", "height_m": 89, "width_m": 167, "proc": "domed_church", "fallback": "props/church", "fallback_scale": 2.5, "fallback_tint": "#d9cfbf", "dome": "#4f7f6a", "wall": "#d9cfbf"},
+		"landmarks/beffroi_calais": {"name": "Belfried von Calais", "height_m": 75, "width_m": 14, "proc": "campanile", "fallback": "props/church", "fallback_scale": 2.1, "fallback_tint": "#b88a6c"},
+		"landmarks/phare_calais": {"name": "Leuchtturm von Calais", "height_m": 51, "width_m": 10, "proc": "lighthouse", "fallback": "props/church", "fallback_scale": 1.45, "fallback_tint": "#f0f0ec"}
 	},
 	"cities": {
 		"kiel": {
@@ -359,6 +368,93 @@
 				{"set": "landmarks/fernsehturm_riga", "azimuth_deg": 34}
 			],
 			"bridges": [{"km_to_finish": 3.6, "length_m": 150, "type": "cable_stayed", "name": "Vanšu-Brücke", "pylon_m": 100, "color": "#e4e4e0"}]
+		},
+		"linz": {
+			"style": "austrian",
+			"landmarks": [{"set": "landmarks/mariendom_linz", "km_to_finish": 1.4, "side": 1, "x_m": 30, "clear_m": [340, 40]}],
+			"skyline": ["landmarks/mariendom_linz"],
+			"bridges": [{"km_to_finish": 3.6, "length_m": 130, "type": "river", "name": "Nibelungenbrücke", "ships": 1}],
+			"background": {"features": ["chimneys", "spires"], "behind": {"style": "hills", "height": 0.9, "color": "#62775a", "haze": 0.3}}
+		},
+		"passau": {
+			"style": "bavarian",
+			"landmarks": [{"set": "landmarks/dom_passau", "km_to_finish": 1.0, "side": -1, "x_m": 20, "clear_m": [200, 40]}],
+			"skyline": ["landmarks/dom_passau"],
+			"bridges": [
+				{"km_to_finish": 5.0, "length_m": 90, "type": "river", "name": "Innbrücke", "water": "#5b8a7c"},
+				{"km_to_finish": 2.8, "length_m": 100, "type": "river", "name": "Luitpoldbrücke (Donau)", "ships": 1}
+			],
+			"background": {"behind": "hills"}
+		},
+		"regensburg": {
+			"style": "bavarian",
+			"landmarks": [{"set": "landmarks/dom_regensburg", "km_to_finish": 1.0, "side": 1, "x_m": 40, "clear_m": [300, 40]}],
+			"skyline": ["landmarks/dom_regensburg"],
+			"bridges": [{"km_to_finish": 3.0, "length_m": 120, "type": "stone_arch", "name": "Steinerne Brücke", "color": "#b8ad98"}]
+		},
+		"fulda": {
+			"style": "german_old",
+			"landmarks": [{"set": "landmarks/dom_fulda", "km_to_finish": 1.6, "side": 1, "x_m": 25, "clear_m": [200, 40]}],
+			"skyline": ["landmarks/dom_fulda"],
+			"bridges": [{"km_to_finish": 3.0, "length_m": 45, "type": "river", "name": "Fuldabrücke"}],
+			"background": {"behind": "hills"}
+		},
+		"bukarest": {
+			"style": "balkan",
+			"center_km": 10.0,
+			"landmarks": [
+				{"set": "landmarks/palatul_parlamentului", "km_to_finish": 3.4, "side": 1, "x_m": 40, "clear_m": [320, 60]},
+				{"set": "landmarks/catedrala_mantuirii", "km_to_finish": 1.6, "side": -1, "x_m": 30, "clear_m": [320, 40]}
+			],
+			"skyline": ["landmarks/catedrala_mantuirii", "landmarks/palatul_parlamentului"],
+			"bridges": [{"km_to_finish": 2.6, "length_m": 35, "type": "river", "name": "Dâmbovița (Podul Izvor)", "water": "#56695c"}],
+			"background": {"features": ["slabs", "domes", "towers"]}
+		},
+		"sibiu": {
+			"style": "central",
+			"landmarks": [{"set": "landmarks/stadtpfarrkirche_sibiu", "km_to_finish": 1.2, "side": 1, "x_m": 30, "clear_m": [220, 40]}],
+			"skyline": ["landmarks/stadtpfarrkirche_sibiu"],
+			"bridges": [{"km_to_finish": 2.4, "length_m": 35, "type": "river", "name": "Cibinbrücke"}],
+			"background": {"behind": {"style": "mountains", "height": 1.0, "color": "#6c7a88", "haze": 0.3}}
+		},
+		"timisoara": {
+			"style": "central",
+			"landmarks": [{"set": "landmarks/catedrala_timisoara", "km_to_finish": 1.4, "side": -1, "x_m": 20, "clear_m": [260, 40]}],
+			"skyline": ["landmarks/catedrala_timisoara"],
+			"bridges": [{"km_to_finish": 2.6, "length_m": 50, "type": "river", "name": "Begabrücke (Podul Mihai Viteazul)", "water": "#4a6656", "bank": "#5f7e4a"}],
+			"background": {"features": ["domes", "spires"]}
+		},
+		"koeln": {
+			"style": "german",
+			"center_km": 9.0,
+			"landmarks": [{"set": "landmarks/koelner_dom", "km_to_finish": 1.2, "side": -1, "x_m": 40, "clear_m": [420, 40]}],
+			"skyline": [
+				"landmarks/koelner_dom",
+				{"set": "landmarks/colonius", "azimuth_deg": -28}
+			],
+			"bridges": [{"km_to_finish": 3.6, "length_m": 140, "type": "cable_stayed", "name": "Severinsbrücke", "pylon_m": 77, "ships": 2, "color": "#c9ccce"}],
+			"background": {"features": ["towers", "spires"], "height": 1.1}
+		},
+		"bruessel": {
+			"style": "belgian",
+			"center_km": 9.0,
+			"landmarks": [
+				{"set": "landmarks/atomium", "km_to_finish": 2.6, "side": 1, "x_m": 30, "clear_m": [300, 60]},
+				{"set": "landmarks/basilika_koekelberg", "km_to_finish": 1.2, "side": -1, "x_m": 40, "clear_m": [260, 40]}
+			],
+			"skyline": ["landmarks/atomium", "landmarks/basilika_koekelberg"],
+			"bridges": [{"km_to_finish": 4.0, "length_m": 60, "type": "river", "name": "Pont Van Praet (Kanal)", "water": "#45605a"}],
+			"background": {"features": ["towers", "spires", "domes"]}
+		},
+		"calais": {
+			"style": "belgian",
+			"landmarks": [
+				{"set": "landmarks/phare_calais", "km_to_finish": 3.0, "side": 1, "x_m": 40, "clear_m": [200, 40]},
+				{"set": "landmarks/beffroi_calais", "km_to_finish": 1.2, "side": -1, "x_m": 30, "clear_m": [220, 40]}
+			],
+			"skyline": ["landmarks/beffroi_calais", "landmarks/phare_calais"],
+			"bridges": [{"km_to_finish": 4.6, "length_m": 70, "type": "river", "name": "Pont Mollien", "water": "#4a6670", "ships": 1, "color": "#7d8a90"}],
+			"background": {"features": ["cranes"]}
 		}
 	}
 }

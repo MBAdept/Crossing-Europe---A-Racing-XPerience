@@ -24,11 +24,14 @@ static func load_network(config: Dictionary) -> RoadNetwork:
 func test_network_loads() -> void:
 	var n := net()
 	assert_true(n.load_warnings.is_empty(), "keine Ladewarnungen: %s" % str(n.load_warnings))
-	# 45 cities + 2 dev cities: towns passed by long Königsrennen stages (Groningen, Niš, …) are no stage ends
-	assert_true(n.cities.size() >= 45, "mindestens 45 Städte, sind %d" % n.cities.size())
-	assert_true(n.stages.size() >= 50, "mindestens 50 Etappen, sind %d" % n.stages.size())
-	for id in ["kiel_nuernberg", "dresden_dortmund", "muenchen_bremen", "koenigsrennen"]:
+	# 55 cities + 2 dev cities: towns passed by long Königsrennen stages (Groningen, Niš, …) are no stage ends;
+	# v0.7.0: 10 cities and 13 stages for Wien – Hamburg and Bukarest – Calais
+	assert_true(n.cities.size() >= 55, "mindestens 55 Städte, sind %d" % n.cities.size())
+	assert_true(n.stages.size() >= 64, "mindestens 64 Etappen, sind %d" % n.stages.size())
+	for id in ["kiel_nuernberg", "dresden_dortmund", "muenchen_bremen", "wien_hamburg", "bukarest_calais", "koenigsrennen"]:
 		assert_true(n.races.has(id), "Rennen %s vorhanden" % id)
+	assert_eq(n.race_order, ["kiel_nuernberg", "dresden_dortmund", "muenchen_bremen", "wien_hamburg", "bukarest_calais", "koenigsrennen"] as Array[String],
+		"Reihenfolge der Rennen (Menü)")
 	assert_true(n.ferries.has("riga_rostock"), "Fähre Riga – Rostock")
 
 
@@ -198,6 +201,20 @@ func test_real_tunnels_and_borders() -> void:
 		return
 	assert_eq(g.borders.size(), 1, "Amsterdam → Bremen: eine Grenze")
 	assert_eq(str(g.borders[0]["to"]), "DE", "Rückrichtung Amsterdam → Bremen nach DE")
+	# v0.7.0: the D5 tunnel near Plzeň, the five new borders of Wien – Hamburg and Bukarest – Calais
+	assert_near(float(found.get("Tunel Valík", 0.0)), 0.4, 0.05, "Valík-Tunnel bei Plzeň")
+	var expect := {"linz_passau": ["linz", 89.0, "DE"], "timisoara_budapest": ["timisoara", 115.0, "HU"],
+		"prag_nuernberg": ["prag", 160.0, "DE"], "koeln_bruessel": ["koeln", 80.0, "BE"], "bruessel_calais": ["bruessel", 160.0, "FR"]}
+	for id: String in expect:
+		var e: Array = expect[id]
+		var b := n.get_stage_plan(id, str(e[0]))
+		assert_eq(b.borders.size(), 1, "%s: eine Grenze" % id)
+		if b.borders.size() == 1:
+			assert_near(float(b.borders[0]["km"]), float(e[1]), 0.01, "%s: Grenze bei km %.0f" % [id, float(e[1])])
+			assert_eq(str(b.borders[0]["to"]), str(e[2]), "%s: nach %s" % [id, str(e[2])])
+	var ro := n.get_stage_plan("timisoara_budapest", "budapest")
+	assert_eq(str(ro.borders[0]["to"]), "RO", "Budapest → Timișoara nach Rumänien")
+	assert_eq(str(n.countries["RO"]["police"]), "police/ro", "rumänische Polizei")
 
 
 ## Design: "Grenzübergänge: Wechsel von Schildern, Landschaft und Polizeifahrzeugen" (review BORDER-1: 15 of 20
@@ -223,7 +240,7 @@ func test_landscape_changes_at_every_border() -> void:
 				assert_true(p.scenery_at(km - 0.05) != p.scenery_at(km + 0.05), "%s ab %s: Landschaft wechselt bei km %.1f" % [id, from_id, km])
 				assert_true(km <= p.city_limits_km - margin + 0.001, "%s ab %s: Grenze bei km %.1f vor den City Limits (%.1f)" % [id, from_id, km, p.city_limits_km])
 				assert_eq(p.country_at(km + 0.05), str(b["to"]), "%s ab %s: Land nach der Grenze" % [id, from_id])
-	assert_true(borders >= 19, "alle Grenzen geprüft (%d)" % borders)
+	assert_true(borders >= 24, "alle Grenzen geprüft (%d)" % borders)
 
 
 ## Design (Königsrennen): "Lange Abschnitte werden in Etappen von 200–400 km geteilt" (review KOEN-LEN-1). Every

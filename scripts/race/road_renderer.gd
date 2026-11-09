@@ -53,6 +53,8 @@ const RAIL := {"canal": Color("2c3430"), "causeway": Color("c9c6bd"), "river": C
 const SKY_OFFSETS: Array[float] = [0.2, -0.34, 0.44, -0.12, 0.31, -0.48]   ## skyline-only silhouettes (rad)
 const LANDMARK_FLOOD := Color(1.0, 0.86, 0.62)   ## floodlight on plain props used as landmarks (night)
 const LANDMARK_FLOOD_K := 0.55
+const LIGHTHOUSE_PERIOD_S := 15.0   ## one revolution of the lighthouse proc (Calais: four flashes every 15 s)
+const LIGHTHOUSE_BEAM_M := 240.0    ## visible length of a beam seen from the side (m)
 const GROUND_BLEND_M := 150.0          ## outskirts ground blends into the centre ground over these visible m
 const STATS_N := 600
 ## Indicators of the traffic (car item "blink" -1/+1, "blink_t" = seconds since it came on; TrafficSystem signals
@@ -3891,6 +3893,10 @@ func _draw_landmark_proc(proc: String, it: Dictionary, p: Vector3, lights_a: flo
 			_lm_palace(p, hgt, lights_a)
 		"skyscrapers":
 			_lm_skyscrapers(p, hgt, lights_a)
+		"atomium":
+			_lm_atomium(p, hgt, lights_a)
+		"lighthouse":
+			_lm_lighthouse(p, hgt, lights_a)
 
 
 ## Half width (m) of the Eiffel tower's silhouette at height h (exponential profile of the real tower).
@@ -4201,6 +4207,105 @@ func _lm_palace(p: Vector3, hgt: float, lights_a: float) -> void:
 		_lm_glow(Vector2(p.x, p.y - 172.0 * s), maxf(3.0, 6.0 * s), Color(1.0, 0.95, 0.8, 0.6 * lights_a))
 		if fmod(_time, 1.5) < 0.75:
 			_lm_glow(Vector2(p.x, p.y - 237.0 * s), maxf(2.5, 4.0 * s), Color(1, 0.12, 0.08, 0.85 * lights_a))
+
+
+## Atomium (Brussels, 102 m): nine steel spheres (18 m) on the corners and in the centre of a cube standing on its
+## body diagonal, joined by the twelve edges and the eight half diagonals, bipods under the three lower spheres; at
+## night small lights run over the spheres. Stand-in for landmarks/atomium (the sprite exists, this draws without it).
+func _lm_atomium(p: Vector3, hgt: float, lights_a: float) -> void:
+	var s := p.z * hgt / 102.0
+	var y0 := 9.0       # centre of the lowest sphere
+	var d := 84.0       # body diagonal between the sphere centres
+	var r := 39.6       # distance of the six middle spheres from the axis (edge 48.5 m)
+	var view := 0.35    # turn of the cube against the view (rad)
+	var pts: Array[Vector3] = [Vector3(0.0, y0, 0.0)]   # x (m, across), height (m), depth (for the painter's order)
+	for i in 3:
+		var a := view + TAU * float(i) / 3.0
+		pts.append(Vector3(r * cos(a), y0 + d / 3.0, r * sin(a)))
+	for i in 3:
+		var a := view + TAU * float(i) / 3.0 + PI / 3.0
+		pts.append(Vector3(r * cos(a), y0 + 2.0 * d / 3.0, r * sin(a)))
+	pts.append(Vector3(0.0, y0 + d, 0.0))
+	var centre := Vector3(0.0, y0 + d * 0.5, 0.0)
+	var edges: Array[Vector2i] = [Vector2i(0, 1), Vector2i(0, 2), Vector2i(0, 3), Vector2i(7, 4), Vector2i(7, 5), Vector2i(7, 6),
+		Vector2i(1, 4), Vector2i(1, 6), Vector2i(2, 4), Vector2i(2, 5), Vector2i(3, 5), Vector2i(3, 6)]
+	var steel := _lmc(Color("c4c9d1"))
+	var tube := _lmc(Color("9aa1ab"))
+	var sp := func(v: Vector3) -> Vector2:
+		return Vector2(p.x + v.x * s, p.y - v.y * s)
+	for i in [1, 2, 3]:
+		var b: Vector3 = pts[i]
+		batch.line(sp.call(b), Vector2(p.x + b.x * 0.75 * s, p.y), maxf(1.0, 2.2 * s), _lmc(Color("a8a39a")))
+	batch.rect(Rect2(p.x - 9.0 * s, p.y - 4.0 * s, 18.0 * s, 4.0 * s), _lmc(Color("8f8a82")))
+	var tw := maxf(1.0, 3.3 * s)
+	for e in edges:
+		batch.line(sp.call(pts[e.x]), sp.call(pts[e.y]), tw, tube)
+	for v: Vector3 in pts:
+		batch.line(sp.call(v), sp.call(centre), tw, tube)
+	var all: Array[Vector3] = pts.duplicate()
+	all.append(centre)
+	all.sort_custom(func(u: Vector3, w: Vector3) -> bool: return u.z > w.z)   # back to front
+	for v: Vector3 in all:
+		var c: Vector2 = sp.call(v)
+		batch.ellipse(c, Vector2(9.0 * s, 9.0 * s), steel, _lmc(Color("7d848f")), 18)
+		batch.ellipse(c + Vector2(-3.0 * s, -3.4 * s), Vector2(2.6 * s, 2.6 * s), _lmc(Color("eef1f5")), steel, 10)
+		if lights_a > 0.02:
+			var k := int(absf(v.x) * 13.0 + v.y * 7.0)
+			for j in 5:
+				var ph := fmod(_time * 0.7 + float((k + j * 37) % 100) / 100.0, 1.0)
+				var ang := float((k * 31 + j * 71) % 360) * PI / 180.0
+				var rr := 6.5 * float((k + j * 17) % 10) / 10.0
+				_lm_glow(c + Vector2(cos(ang), sin(ang)) * rr * s, maxf(1.2, 1.1 * s), Color(1.0, 0.95, 0.8, lights_a * (0.4 + 0.6 * sin(ph * PI))))
+
+
+## Lighthouse (Phare de Calais, 51 m): white octagonal tower tapering upwards with its shaded faces, windows, the
+## keeper's house at the foot, black gallery, lantern and dome. At night the tower is floodlit and the light turns:
+## four beams, one revolution in LIGHTHOUSE_PERIOD_S (the real light flashes four times every 15 s). A beam is a soft
+## cone, longest seen from the side, short when it points at or away from the viewer (rising towards him, sinking
+## towards the horizon away from him), brighter towards the viewer; pointing at him it flashes.
+func _lm_lighthouse(p: Vector3, hgt: float, lights_a: float) -> void:
+	var s := p.z * hgt / 51.0
+	var shade := _lmc(Color("c9cbc8"))
+	var black := _lmc(Color("2b2d30"))
+	batch.quad(Vector2(p.x - 5.0 * s, p.y), Vector2(p.x + 5.0 * s, p.y), Vector2(p.x + 3.4 * s, p.y - 40.0 * s), Vector2(p.x - 3.4 * s, p.y - 40.0 * s), _lmc(Color("f0f0ec")))
+	batch.quad(Vector2(p.x + 1.6 * s, p.y), Vector2(p.x + 5.0 * s, p.y), Vector2(p.x + 3.4 * s, p.y - 40.0 * s), Vector2(p.x + 1.1 * s, p.y - 40.0 * s), shade)
+	if 51.0 * s > 30.0:
+		var win := _lmc(Color("3a3e44"))
+		for i in 4:
+			batch.rect(Rect2(p.x - 0.5 * s, p.y - (9.0 + float(i) * 8.0) * s, 1.0 * s, 2.0 * s), win)
+	batch.rect(Rect2(p.x - 9.0 * s, p.y - 5.0 * s, 18.0 * s, 5.0 * s), _lmc(Color("e6e3dc")))
+	batch.rect(Rect2(p.x + 4.0 * s, p.y - 5.0 * s, 5.0 * s, 5.0 * s), shade)
+	batch.quad(Vector2(p.x - 9.6 * s, p.y - 5.0 * s), Vector2(p.x + 9.6 * s, p.y - 5.0 * s), Vector2(p.x + 8.2 * s, p.y - 7.4 * s), Vector2(p.x - 8.2 * s, p.y - 7.4 * s), _lmc(Color("4f565e")))
+	batch.rect(Rect2(p.x - 4.6 * s, p.y - 41.5 * s, 9.2 * s, 1.5 * s), black)
+	batch.rect(Rect2(p.x - 2.4 * s, p.y - 47.0 * s, 4.8 * s, 5.5 * s), _lmc(Color("5d6670")))
+	batch.half_ellipse(Vector2(p.x, p.y - 47.0 * s), Vector2(2.6 * s, 3.0 * s), black, 10)
+	batch.line(Vector2(p.x, p.y - 50.0 * s), Vector2(p.x, p.y - 51.0 * s), maxf(0.8, 0.4 * s), black)
+	if lights_a <= 0.02:
+		return
+	var flood := Color(1.0, 0.93, 0.8, 0.24 * lights_a)
+	batch.quad(Vector2(p.x - 5.0 * s, p.y), Vector2(p.x + 5.0 * s, p.y), Vector2(p.x + 3.4 * s, p.y - 40.0 * s), Vector2(p.x - 3.4 * s, p.y - 40.0 * s), flood)
+	batch.rect(Rect2(p.x - 9.0 * s, p.y - 5.0 * s, 18.0 * s, 5.0 * s), flood)
+	var lamp := Vector2(p.x, p.y - 44.2 * s)
+	batch.rect(Rect2(p.x - 2.0 * s, p.y - 46.4 * s, 4.0 * s, 4.4 * s), Color(1.0, 0.95, 0.8, 0.85 * lights_a))
+	var turn := fmod(_time * TAU / LIGHTHOUSE_PERIOD_S, TAU)
+	var flash := 0.0
+	for i in 4:
+		var b := turn + float(i) * PI * 0.5
+		var across := cos(b)
+		var toward := sin(b)
+		flash = maxf(flash, maxf(0.0, toward) ** 24.0)
+		var len_m := LIGHTHOUSE_BEAM_M * absf(across)
+		if len_m * s < 6.0:
+			continue
+		var tip := lamp + Vector2(signf(across) * len_m * s, -toward * len_m * 0.12 * s)
+		var k := lights_a * lerpf(0.45, 1.0, 0.5 + 0.5 * toward)
+		var near := Color(1.0, 0.96, 0.82, 0.2 * k)
+		var far := Color(1.0, 0.96, 0.82, 0.0)
+		var spread := 0.07 * len_m * s
+		batch.quad4(lamp + Vector2(0.0, -1.4 * s), tip + Vector2(0.0, -spread), tip + Vector2(0.0, spread), lamp + Vector2(0.0, 1.4 * s), near, far, far, near)
+		var core := Color(1.0, 0.97, 0.88, 0.3 * k)
+		batch.quad4(lamp + Vector2(0.0, -0.6 * s), tip + Vector2(0.0, -spread * 0.3), tip + Vector2(0.0, spread * 0.3), lamp + Vector2(0.0, 0.6 * s), core, far, far, core)
+	_lm_glow(lamp, maxf(2.5, (3.5 + 22.0 * flash) * s), Color(1.0, 0.95, 0.75, (0.5 + 0.5 * flash) * lights_a))
 
 
 ## Cluster of high-rises (Frankfurt's banking district, Madrid's Cuatro Torres): glass towers of different

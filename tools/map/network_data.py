@@ -26,6 +26,11 @@ Design rules checked by build_network.py (and again by the Godot tests):
     into several stages, every one of them is stages.split_length_km (200–400 km) long. A natural stage between two
     consecutive waypoints may be shorter (Kiel – Hamburg 95, Hamburg – Bremen 120, Leipzig – Berlin 190).
     Towns on the way (Groningen, Valenciennes, Zagreb, Niš, Szeged) are therefore passed, not stage ends.
+Races: "waypoints" are Pflichtstationen in their order (Wien – Hamburg lists every city of the user's route, so the
+router cannot leave it), "avoid_stages" are stages the router never offers in that race – every new stage can open
+unplanned choices in the old races (v0.7.0: Nürnberg – Fulda – Kassel would be a third way for Kiel – Nürnberg and
+München – Bremen, Prag – Leipzig a detour for Bukarest – Calais); the designed choices are pinned by test_routing.gd.
+Stages may pass a city that is no stage end of theirs (Prag – Leipzig passes Dresden, Köln – Brüssel passes Lüttich).
 """
 
 FREE = None
@@ -96,6 +101,17 @@ CITIES = [
 	("bialystok", "Białystok", "PL", 53.133, 23.169, ""),
 	("kaunas", "Kaunas", "LT", 54.899, 23.904, ""),
 	("riga", "Riga", "LV", 56.950, 24.105, "Rīga"),
+	# v0.7.0: Wien – Hamburg (Donau, A3, A7) and Bukarest – Calais
+	("linz", "Linz", "AT", 48.306, 14.286, ""),
+	("passau", "Passau", "DE", 48.574, 13.465, ""),
+	("regensburg", "Regensburg", "DE", 49.019, 12.097, ""),
+	("fulda", "Fulda", "DE", 50.554, 9.677, ""),
+	("bukarest", "Bukarest", "RO", 44.427, 26.103, "București"),
+	("sibiu", "Sibiu", "RO", 45.797, 24.152, ""),
+	("timisoara", "Timișoara", "RO", 45.754, 21.226, ""),
+	("koeln", "Köln", "DE", 50.941, 6.958, ""),
+	("bruessel", "Brüssel", "BE", 50.847, 4.352, "Bruxelles · Brussel"),
+	("calais", "Calais", "FR", 50.951, 1.854, ""),
 ]
 
 # Developer cities/stage (hidden in menus) – kept exactly as other modules rely on them.
@@ -592,6 +608,141 @@ STAGES = [
 		A(25, "north_plain", "DE", FREE, c=1, h=1, t=1.0, name="A21 Bornhöved"),
 		A(20, "north_plain", "DE", 100, c=1, h=0, t=1.3, name="A21 Kiel"),
 	], radars=[(66, 120), (128, 120)], fuel="normal", doc="Schlussetappe des Königsrennens."),
+	# ------------------------------------------------------------------ Wien – Hamburg (v0.7.0) ------
+	stage("wien_linz", "wien", "linz", 185, "A1 · A7", [
+		A(20, "forest_hills", "AT", 100, c=1, h=1, t=1.5, name="A1 Wien-Auhof – Wienerwald"),
+		A(25, "forest_hills", "AT", DEF, c=2, h=2, t=1.2, name="A1 Wienerwald – Altlengbach"),
+		A(25, "north_plain", "AT", DEF, c=1, h=1, t=1.3, name="A1 St. Pölten"),
+		A(35, "forest_hills", "AT", DEF, c=1, h=1, t=1.1, name="A1 Melk – Ybbs (Stift Melk)"),
+		A(35, "forest_hills", "AT", DEF, c=1, h=2, t=1.1, name="A1 Amstetten – Strengberge"),
+		A(25, "north_plain", "AT", 100, c=1, h=0, t=1.3, name="A1 Enns – Linz (IG-L 100)"),
+		A(20, "industrial", "AT", 100, c=1, h=0, t=1.5, name="A1/A7 Knoten Linz – Linz (VOEST)"),
+	], radars=[(25, 130, "fwd"), (55, 130), (115, 130), (150, 100, "rev")], fuel="normal",
+		doc="Westautobahn durch den Wienerwald, an Stift Melk vorbei, über die Strengberge und mit Tempo 100 (Luft-Hunderter) nach Linz."),
+	stage("linz_passau", "linz", "passau", 115, "A7 · A25 · A8 · A3", [
+		A(15, "industrial", "AT", 100, c=1, h=0, t=1.5, name="A7/A1 Linz – Knoten Haid"),
+		A(20, "north_plain", "AT", DEF, c=0, h=0, t=1.2, name="A25 Welser Heide"),
+		A(30, "forest_hills", "AT", DEF, c=1, h=2, t=1.0, name="A8 Hausruck – Haag"),
+		A(24, "north_plain", "AT", DEF, c=1, h=1, t=1.0, name="A8 Ried im Innkreis – Suben (Innbrücke)"),
+		A(26, "forest_hills", "DE", 120, c=1, h=2, t=1.1, name="A3 Pocking – Passau (Neuburger Wald)"),
+	], radars=[(20, 130, "fwd"), (52, 130), (75, 130, "rev")], fuel="normal",
+		doc="Über die Welser Heide und durch Hausruck- und Innviertel zur Grenze an der Innbrücke Suben, dann auf "
+			"der A3 nach Passau."),
+	stage("passau_regensburg", "passau", "regensburg", 120, "A3", [
+		A(20, "forest_hills", "DE", 120, c=1, h=2, t=1.2, name="A3 Passau – Vilshofen"),
+		A(25, "forest_hills", "DE", FREE, c=1, h=2, t=1.0, name="A3 Hengersberg (Bayerischer Wald)"),
+		A(15, "north_plain", "DE", 120, c=1, h=1, t=1.2, name="A3 Deggendorf (Donaubrücke)"),
+		A(35, "north_plain", "DE", FREE, c=0, h=0, t=1.0, name="A3 Gäuboden – Straubing"),
+		A(25, "north_plain", "DE", 120, c=1, h=0, t=1.4, name="A3 Rosenhof – Regensburg"),
+	], radars=[(50, 120), (100, 120, "rev")], fuel="normal",
+		doc="A3 am Rand des Bayerischen Walds, bei Deggendorf über die Donau und durch den flachen Gäuboden "
+			"nach Regensburg."),
+	stage("regensburg_nuernberg", "regensburg", "nuernberg", 105, "A3", [
+		A(15, "forest_hills", "DE", 120, c=1, h=1, t=1.4, name="A3 Regensburg – Sinzinger Donaubrücke"),
+		A(35, "forest_hills", "DE", FREE, c=2, h=2, t=1.0, name="A3 Laabertal – Parsberg (Oberpfälzer Jura)"),
+		A(25, "forest_hills", "DE", 120, c=1, h=2, t=1.1, name="A3 Velburg – Neumarkt"),
+		A(30, "forest_hills", "DE", 120, c=1, h=1, t=1.4, name="A3 Nürnberg-Feucht – Nürnberg"),
+	], radars=[(50, 120), (80, 120, "rev")], fuel="normal",
+		doc="A3 durch das Laabertal und über den Oberpfälzer Jura (Steigungen bei Parsberg und Velburg) nach "
+			"Nürnberg."),
+	stage("nuernberg_fulda", "nuernberg", "fulda", 205, "A3 · A7", [
+		A(25, "forest_hills", "DE", 120, c=1, h=1, t=1.4, name="A3 Nürnberg – Erlangen"),
+		A(20, "forest_hills", "DE", 120, c=1, h=1, t=1.1, name="A3 Höchstadt"),
+		A(35, "forest_hills", "DE", FREE, c=1, h=2, t=1.0, name="A3 Steigerwald"),
+		A(15, "forest_hills", "DE", 120, c=1, h=1, t=1.2, name="A3 Kitzingen – Kreuz Biebelried"),
+		A(25, "north_plain", "DE", FREE, c=1, h=1, t=1.0, name="A7 Würzburg-Estenfeld – Werneck (Mainfranken)"),
+		A(30, "forest_hills", "DE", FREE, c=1, h=1, t=1.0, name="A7 Hammelburg"),
+		A(35, "forest_hills", "DE", 100, c=2, h=3, t=1.0, name="A7 Rhön (Kalte Buche)"),
+		A(20, "forest_hills", "DE", 120, c=1, h=1, t=1.3, name="A7 Fulda-Süd – Fulda"),
+	], radars=[(30, 120, "fwd"), (82, 120), (150, 100), (165, 100, "rev")], fuel="few",
+		doc="A3 durch den Steigerwald bis zum Kreuz Biebelried, dann A7 an Würzburg vorbei und über die Rhön nach Fulda."),
+	stage("fulda_kassel", "fulda", "kassel", 105, "A7", [
+		A(20, "forest_hills", "DE", 120, c=1, h=1, t=1.3, name="A7 Fulda – Hünfeld"),
+		A(30, "forest_hills", "DE", FREE, c=1, h=2, t=1.0, name="A7 Kirchheimer Dreieck – Bad Hersfeld"),
+		A(20, "forest_hills", "DE", 120, c=1, h=2, t=1.0, name="A7 Homberg (Efze)"),
+		A(15, "forest_hills", "DE", 100, c=2, h=3, t=1.0, name="A7 Söhre – Melsungen (Kasseler Berge)"),
+		A(20, "forest_hills", "DE", 120, c=1, h=1, t=1.3, name="A7 Kassel-Ost – Kassel"),
+	], radars=[(50, 120), (72, 100, "rev")], fuel="few",
+		doc="A7 nach Norden: Kirchheimer Dreieck, Bad Hersfeld und die steilen Kasseler Berge."),
+	# ------------------------------------------------------------------ Bukarest – Calais (v0.7.0) ---
+	stage("bukarest_sibiu", "bukarest", "sibiu", 280, "A1 · DN7 · A1", [
+		A(20, "industrial", "RO", 100, c=1, h=0, t=1.5, name="A1 București – Chiajna"),
+		A(50, "pannonian_plain", "RO", DEF, c=0, h=0, t=1.1, name="A1 Walachische Tiefebene – Găești"),
+		A(50, "balkan_hills", "RO", DEF, c=1, h=1, t=1.2, name="A1 Argeș – Pitești"),
+		L(65, "balkan_hills", "RO", DEF, c=2, h=2, t=1.3, name="DN7 Pitești – Râmnicu Vâlcea"),
+		L(30, "alps", "RO", 70, c=3, h=2, t=1.2, name="DN7 Olttal – Kloster Cozia"),
+		L(30, "alps", "RO", 70, c=3, h=2, t=1.1, name="DN7 Olt-Durchbruch – Câineni – Boița"),
+		A(15, "balkan_hills", "RO", DEF, c=1, h=1, t=1.0, name="A1 Boița – Sibiu"),
+		A(20, "balkan_hills", "RO", 100, c=1, h=0, t=1.3, name="A1 Sibiu (Umfahrung)"),
+	], radars=[(55, 130), (140, 90), (195, 70)], fuel="normal",
+		doc="A1 durch die Walachei nach Pitești, dann DN7 durch das enge Olttal über die Karpaten – Bergstraße mit vielen Lkw."),
+	stage("sibiu_timisoara", "sibiu", "timisoara", 275, "A1 · DN68A · A1", [
+		A(20, "balkan_hills", "RO", 100, c=1, h=1, t=1.3, name="A1 Sibiu – Săliște"),
+		A(45, "balkan_hills", "RO", DEF, c=1, h=2, t=1.0, name="A1 Mărginimea Sibiului – Sebeș"),
+		A(55, "balkan_hills", "RO", DEF, c=1, h=1, t=1.0, name="A1 Mureștal – Orăștie – Deva"),
+		A(40, "forest_hills", "RO", DEF, c=2, h=2, t=0.9, name="A1 Deva – Ilia – Margina"),
+		L(15, "forest_hills", "RO", 70, c=3, h=2, t=1.2, name="DN68A Margina – Holdea (Lücke der A1)"),
+		A(40, "forest_hills", "RO", DEF, c=1, h=1, t=0.9, name="A1 Holdea – Făget – Lugoj"),
+		A(40, "pannonian_plain", "RO", DEF, c=0, h=0, t=1.0, name="A1 Banat – Remetea Mare"),
+		A(20, "pannonian_plain", "RO", 100, c=1, h=0, t=1.4, name="A1/DN6 Timișoara"),
+	], radars=[(75, 130), (135, 130), (195, 130)], fuel="normal",
+		doc="A1 durch das Mureștal an Deva vorbei, kurvige DN68A durch die Autobahnlücke Margina – Holdea, dann durch das Banat."),
+	stage("timisoara_budapest", "timisoara", "budapest", 320, "A1 · M43 · M5", [
+		A(20, "pannonian_plain", "RO", 100, c=1, h=0, t=1.3, name="Timișoara – A1"),
+		A(45, "pannonian_plain", "RO", DEF, c=0, h=0, t=1.0, name="A1 Banat – Arad"),
+		A(50, "balkan_hills", "RO", DEF, c=0, h=0, t=0.9, name="A1 Arad – Pecica – Nădlac"),
+		A(30, "pannonian_plain", "HU", DEF, c=0, h=0, t=0.9, name="M43 Csanádpalota – Makó"),
+		A(25, "pannonian_plain", "HU", DEF, c=1, h=0, t=1.0, name="M43 Theißbrücke – Szeged"),
+		A(65, "heath", "HU", DEF, c=0, h=0, t=0.9, name="M5 Kiskunság-Puszta – Kiskunfélegyháza"),
+		A(50, "pannonian_plain", "HU", DEF, c=0, h=0, t=1.1, name="M5 Kecskemét"),
+		A(35, "pannonian_plain", "HU", 110, c=1, h=0, t=1.5, name="M5/M0 Budapest"),
+	], radars=[(55, 130), (125, 130), (200, 130), (250, 130)], fuel="normal",
+		doc="A1 über Arad zur Grenze bei Nădlac, M43 über die Theiß nach Szeged, dann M5 durch die Kiskunság nach Budapest."),
+	stage("prag_nuernberg", "prag", "nuernberg", 290, "D5 · A6", [
+		A(20, "bohemian", "CZ", 100, c=1, h=1, t=1.4, name="D5 Praha – Zličín"),
+		A(40, "bohemian", "CZ", DEF, c=1, h=2, t=1.1, name="D5 Beroun – Brdy"),
+		A(35, "bohemian", "CZ", DEF, c=1, h=1, t=1.2, name="D5 Rokycany – Plzeň (Valík-Tunnel)"),
+		A(40, "bohemian", "CZ", DEF, c=1, h=1, t=1.0, name="D5 Stříbro – Bor"),
+		A(25, "bohemian", "CZ", DEF, c=1, h=2, t=1.0, name="D5 Přimda – Rozvadov (Český les)"),
+		A(35, "forest_hills", "DE", FREE, c=1, h=2, t=0.9, name="A6 Waidhaus – Pfreimd (Oberpfälzer Wald)"),
+		A(25, "forest_hills", "DE", FREE, c=1, h=1, t=1.0, name="A6 Amberg (Vilstal)"),
+		A(25, "forest_hills", "DE", 120, c=1, h=2, t=1.0, name="A6 Sulzbach-Rosenberg – Alfeld"),
+		A(45, "forest_hills", "DE", 120, c=1, h=1, t=1.3, name="A6 Altdorf – Nürnberg"),
+	], radars=[(55, 130), (225, 120)], tunnels=[(88, 0.4, "Tunel Valík")], fuel="normal",
+		doc="D5 an Plzeň vorbei (Valík-Tunnel) zur Grenze Rozvadov/Waidhaus, dann A6 durch den Oberpfälzer Wald nach Nürnberg."),
+	stage("frankfurt_koeln", "frankfurt", "koeln", 190, "A3", [
+		A(20, "rhine_main", "DE", 100, c=1, h=0, t=1.6, name="A3 Frankfurter Kreuz – Mönchhof-Dreieck"),
+		A(30, "forest_hills", "DE", 120, c=1, h=2, t=1.3, name="A3 Wiesbadener Kreuz – Idstein (Taunus)"),
+		A(25, "forest_hills", "DE", FREE, c=1, h=1, t=1.2, name="A3 Goldener Grund – Limburg (Lahntalbrücke)"),
+		A(40, "forest_hills", "DE", FREE, c=1, h=2, t=1.2, name="A3 Montabaur – Westerwald"),
+		A(35, "forest_hills", "DE", 120, c=2, h=2, t=1.3, name="A3 Neustadt (Wied) – Siebengebirge"),
+		A(20, "rhine_main", "DE", 100, c=1, h=0, t=1.5, name="A3 Siegburg – Köln-Heumar"),
+		A(20, "industrial", "DE", 100, c=1, h=0, t=1.6, name="A4/A3 Köln-Ost – Köln (Rheinbrücke)"),
+	], radars=[(30, 120, "fwd"), (120, 120), (155, 100, "rev")], fuel="many",
+		doc="A3 über Taunus, Lahntalbrücke und Westerwald, durch das Siebengebirge nach Köln – sechs Spuren, viel Verkehr."),
+	stage("koeln_bruessel", "koeln", "bruessel", 215, "A4 · A44 · E40", [
+		A(20, "industrial", "DE", 100, c=1, h=0, t=1.5, name="A4 Köln – Kreuz Kerpen"),
+		A(25, "industrial", "DE", FREE, c=1, h=0, t=1.3, name="A4 Kerpen – Düren (Tagebau Hambach)"),
+		A(25, "forest_hills", "DE", 120, c=1, h=1, t=1.3, name="A4 Eschweiler – Aachen"),
+		A(10, "forest_hills", "DE", 120, c=1, h=1, t=1.2, name="A44 Aachen – Lichtenbusch"),
+		A(30, "ardennes", "BE", DEF, c=1, h=2, t=1.1, name="E40 Eupen – Battice (Herver Land)"),
+		A(20, "industrial", "BE", DEF, c=1, h=1, t=1.4, name="E40 Lüttich-Nord (Loncin)"),
+		A(45, "farmland_fr", "BE", DEF, c=0, h=1, t=1.1, name="E40 Haspengau – Tienen"),
+		A(20, "rhine_main", "BE", DEF, c=1, h=1, t=1.4, name="E40 Leuven – Kraainem"),
+		A(20, "industrial", "BE", 100, c=1, h=0, t=1.6, name="E40 Brüssel (Reyers)"),
+	], radars=[(50, 120), (95, 120), (140, 120)], fuel="normal",
+		doc="A4 durch das Braunkohlerevier nach Aachen, E40 über das Herver Land, an Lüttich vorbei und durch den Haspengau nach Brüssel."),
+	stage("bruessel_calais", "bruessel", "calais", 215, "E40 · A18 · A16", [
+		A(20, "industrial", "BE", 100, c=1, h=0, t=1.6, name="E40 Brüssel – Groot-Bijgaarden"),
+		A(30, "farmland_fr", "BE", DEF, c=0, h=1, t=1.4, name="E40 Aalst – Wetteren"),
+		A(20, "farmland_fr", "BE", DEF, c=1, h=0, t=1.5, name="E40 Gent (Zwijnaarde)"),
+		A(40, "polder", "BE", DEF, c=0, h=0, t=1.1, name="E40 Meetjesland – Brügge"),
+		A(40, "polder", "BE", DEF, c=0, h=0, t=0.9, name="A18 Jabbeke – Veurne (Westhoek)"),
+		A(10, "polder", "BE", DEF, c=0, h=0, t=0.9, name="A18 Adinkerke (De Panne)"),
+		A(25, "industrial", "FR", 110, c=1, h=0, t=1.2, name="A16 Dunkerque (Hafen, Stahlwerk)"),
+		A(30, "coast", "FR", DEF, c=1, h=0, t=1.1, name="A16 Gravelines – Calais (Opalküste)"),
+	], radars=[(55, 120), (95, 120), (130, 120), (170, 110, "rev")], fuel="normal",
+		doc="E40 an Gent und Brügge vorbei, durch die Polder des Westhoek nach Frankreich und auf der A16 die Opalküste entlang nach Calais."),
 ]
 
 FERRIES = [
@@ -602,7 +753,7 @@ FERRIES = [
 RACES = [
 	{
 		"id": "kiel_nuernberg", "name": "Kiel – Nürnberg", "start": "kiel", "finish": "nuernberg", "waypoints": [],
-		"avoid_stages": ["hannover_bremen", "hannover_dortmund", "kassel_dortmund"],
+		"avoid_stages": ["hannover_bremen", "hannover_dortmund", "kassel_dortmund", "fulda_kassel", "nuernberg_fulda"],
 		"description": "Das erste Rennen. Kiel – Hamburg ist die Tutorial-Etappe. Ab Hamburg geht es entweder "
 			"über Hannover und Kassel (kürzer, Kasseler Berge und Rhön, mehr Tempolimits und Radarfallen, weniger "
 			"Tankstellen) oder über Frankfurt (länger, mehr Verkehr, dafür mehr freie Autobahn, weniger Radar, mehr "
@@ -616,8 +767,24 @@ RACES = [
 	},
 	{
 		"id": "muenchen_bremen", "name": "München – Bremen", "start": "muenchen", "finish": "bremen", "waypoints": [],
+		"avoid_stages": ["fulda_kassel", "nuernberg_fulda"],
 		"description": "Von Süden nach Norden. Über Nürnberg nach Würzburg, dann über Kassel und Hannover (kürzer, "
 			"hügelig, mehr Radar) oder über Frankfurt und Dortmund (länger, mehr Verkehr, mehr freie Autobahn).",
+	},
+	{
+		"id": "wien_hamburg", "name": "Wien – Hamburg", "start": "wien", "finish": "hamburg",
+		"waypoints": ["linz", "passau", "regensburg", "nuernberg", "fulda", "kassel", "hannover"],
+		"description": "Von der Donau an die Elbe in acht Etappen, jede Stadt ein Etappenziel: auf der Westautobahn "
+			"nach Linz, über die Grenze bei Passau und auf der A3 an der Donau entlang über Regensburg nach Nürnberg, "
+			"dann über die Rhön nach Fulda und auf der A7 über Kassel und Hannover nach Hamburg.",
+	},
+	{
+		"id": "bukarest_calais", "name": "Bukarest – Calais", "start": "bukarest", "finish": "calais", "waypoints": [],
+		"avoid_stages": ["prag_leipzig"],
+		"description": "Quer durch Europa: durch das Olttal über die Karpaten nach Sibiu, über Timișoara und die "
+			"ungarische Tiefebene nach Budapest und Wien. Ab Wien an der Donau entlang über Linz, Passau und "
+			"Regensburg (kürzer, mehr Etappen) oder über Prag (länger) nach Nürnberg, dann über Frankfurt, Köln und "
+			"Brüssel an den Ärmelkanal.",
 	},
 	{
 		"id": "koenigsrennen", "name": "Königsrennen", "start": "kiel", "finish": "kiel", "tour": True,

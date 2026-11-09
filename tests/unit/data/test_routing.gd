@@ -10,6 +10,8 @@ const DESIGNED_CHOICES := {
 	"kiel_nuernberg": {"hamburg": 2},
 	"dresden_dortmund": {"leipzig": 2},
 	"muenchen_bremen": {"wuerzburg": 2},
+	"wien_hamburg": {},
+	"bukarest_calais": {"wien": 2},
 	"koenigsrennen": {"saragossa": 2},
 }
 
@@ -334,8 +336,11 @@ func test_waypoint_helpers() -> void:
 func test_shortest_path_and_board_length() -> void:
 	var n := net()
 	var p := n.shortest_path("kiel", "nuernberg")
-	assert_near(float(p["km"]), 730.0, 0.01, "Kiel → Nürnberg kürzester Weg")
+	# v0.7.0: the shortest way leads over Kassel and Fulda (720 km); the race avoids Fulda (avoid_stages) and keeps
+	# its two designed routes, so its board length stays 730 km
+	assert_near(float(p["km"]), 720.0, 0.01, "Kiel → Nürnberg kürzester Weg (seit v0.7.0 über Fulda)")
 	assert_eq(str(p["cities"][2]), "hannover", "über Hannover")
+	assert_true((p["cities"] as Array).has("fulda"), "über Fulda")
 	assert_near(n.board_length_km("race:kiel_nuernberg"), 730.0, 0.01, "Rennlänge = kürzeste Route")
 	assert_near(n.board_length_km("stage:kiel_hamburg:rev"), 95.0, 0.01, "Etappenlänge")
 	assert_eq(n.board_length_km("race:gibtsnicht"), 0.0, "unbekanntes Rennen")
@@ -391,3 +396,76 @@ func test_synthetic_network_rules() -> void:
 	assert_true(n.validate().is_empty(), "synthetisches Netz gültig: %s" % str(n.validate()))
 	var free := n.next_options("", "a", 0, ["a", "b"])
 	assert_eq(_to_ids(free), ["c", "e"] as Array[String], "ohne Rennen: alle unbesuchten Verbindungen")
+
+
+## v0.7.0: Wien – Hamburg is exactly the user's route – every "über" city a Pflichtstation and a stage end, no choice,
+## the last two stages driven against their definition (Kassel → Hannover → Hamburg).
+func test_wien_hamburg_user_route() -> void:
+	var n := net()
+	var routes := n.race_routes("wien_hamburg")
+	assert_eq(routes.size(), 1, "Wien – Hamburg: genau eine Route")
+	if routes.is_empty():
+		return
+	assert_eq(routes[0]["cities"], ["wien", "linz", "passau", "regensburg", "nuernberg", "fulda", "kassel", "hannover", "hamburg"],
+		"Wien – Linz – Passau – Regensburg – Nürnberg – Fulda – Kassel – Hannover – Hamburg")
+	assert_near(float(routes[0]["km"]), 1150.0, 0.01, "1.150 km")
+	assert_eq((routes[0]["legs"] as Array).size(), 8, "acht Etappen")
+	assert_eq(n.race_targets("wien_hamburg"), ["linz", "passau", "regensburg", "nuernberg", "fulda", "kassel", "hannover", "hamburg"] as Array[String],
+		"jede Stadt eine Pflichtstation")
+	var reversed: Array[String] = []
+	for leg: Dictionary in routes[0]["legs"]:
+		assert_eq(str(leg["kind"]), "stage", "keine Fähre")
+		if str(n.stages[str(leg["id"])]["from"]) != str(leg["from"]):
+			reversed.append(str(leg["id"]))
+	assert_eq(reversed, ["hannover_kassel", "hamburg_hannover"] as Array[String], "Kassel → Hannover → Hamburg gegen die Definitionsrichtung")
+	var s := n.race_summary("wien_hamburg")
+	assert_eq(s["countries"], ["AT", "DE"] as Array[String], "Österreich, Deutschland")
+	assert_eq(int(s["min_stages"]), 8, "acht Etappen")
+
+
+## v0.7.0: Bukarest – Calais has one designed choice in Wien (along the Donau over Linz/Passau/Regensburg, or over
+## Prag); Prag – Leipzig is avoided (it would offer a third way), the rest of the race has no choice.
+func test_bukarest_calais_choice_in_wien() -> void:
+	var n := net()
+	var visited := ["bukarest", "sibiu", "timisoara", "budapest", "wien"]
+	assert_eq(_to_ids(n.next_options("bukarest_calais", "bukarest", 0, ["bukarest"])), ["sibiu"] as Array[String], "Bukarest: nur Sibiu (Olttal)")
+	var opts := n.next_options("bukarest_calais", "wien", 0, visited)
+	assert_eq(_to_ids(opts), ["linz", "prag"] as Array[String], "Wien: über Linz (kürzer) oder über Prag")
+	if opts.size() == 2:
+		assert_near(float(opts[0]["route_km"]), 1375.0, 0.01, "über Linz 1.375 km bis Calais")
+		assert_near(float(opts[1]["route_km"]), 1475.0, 0.01, "über Prag 1.475 km bis Calais")
+		var donau: Dictionary = opts[0]["route_summary"]
+		var prag: Dictionary = opts[1]["route_summary"]
+		assert_eq(int(donau["stages"]) - int(prag["stages"]), 2, "Donau: zwei Etappen mehr")
+		assert_true(float(prag["landstrasse_km"]) > float(donau["landstrasse_km"]), "Prag: Landstraße bei Mikulov")
+		assert_true(float(donau["unlimited_km"]) > float(prag["unlimited_km"]), "Donau: mehr freie Autobahn (A3)")
+		assert_eq(int(prag["tunnels"]) - int(donau["tunnels"]), 1, "Prag: Valík-Tunnel")
+		assert_eq(opts[0]["via_distinct"], ["linz", "passau", "regensburg"] as Array[String], "Donau über Linz, Passau, Regensburg")
+		assert_eq(opts[1]["via_distinct"], ["prag"] as Array[String], "über Prag")
+	var p := n.next_options("bukarest_calais", "prag", 0, visited + ["prag"])
+	assert_eq(_to_ids(p), ["nuernberg"] as Array[String], "Prag: nur Nürnberg (prag_leipzig gemieden)")
+	var routes := n.race_routes("bukarest_calais")
+	assert_eq(routes.size(), 2, "zwei Routen")
+	if routes.size() == 2:
+		assert_true((routes[0]["cities"] as Array).has("linz") and (routes[1]["cities"] as Array).has("prag"), "kürzere Route über Linz, längere über Prag")
+		assert_eq(int(routes[0]["stages"]), 13, "über Linz 13 Etappen")
+		assert_eq(int(routes[1]["stages"]), 11, "über Prag 11 Etappen")
+		for r: Dictionary in routes:
+			assert_eq((r["cities"] as Array).slice(-6), ["nuernberg", "wuerzburg", "frankfurt", "koeln", "bruessel", "calais"],
+				"ab Nürnberg über Würzburg, Frankfurt, Köln und Brüssel")
+	var s := n.race_summary("bukarest_calais")
+	assert_eq(s["countries"], ["RO", "HU", "AT", "DE", "BE", "FR"] as Array[String], "kürzeste Route: Rumänien bis Frankreich")
+
+
+## v0.7.0: the new stages around Fulda would open unplanned choices in the old races – avoid_stages keeps their routes
+## (Kiel – Nürnberg at Kassel, München – Bremen at Nürnberg).
+func test_new_stages_keep_the_old_routes() -> void:
+	var n := net()
+	assert_eq(_to_ids(n.next_options("kiel_nuernberg", "kassel", 0, ["kiel", "hamburg", "hannover", "kassel"])), ["wuerzburg"] as Array[String],
+		"Kiel – Nürnberg: Kassel → nur Würzburg")
+	assert_eq(_to_ids(n.next_options("muenchen_bremen", "nuernberg", 0, ["muenchen", "nuernberg"])), ["wuerzburg"] as Array[String],
+		"München – Bremen: Nürnberg → nur Würzburg")
+	assert_near(n.board_length_km("race:kiel_nuernberg"), 730.0, 0.01, "Kiel – Nürnberg bleibt 730 km")
+	assert_near(n.board_length_km("race:muenchen_bremen"), 780.0, 0.01, "München – Bremen bleibt 780 km")
+	assert_near(n.board_length_km("race:wien_hamburg"), 1150.0, 0.01, "Wien – Hamburg 1.150 km")
+	assert_near(n.board_length_km("race:bukarest_calais"), 2495.0, 0.01, "Bukarest – Calais 2.495 km (über Linz)")
