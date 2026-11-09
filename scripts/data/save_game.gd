@@ -3,7 +3,8 @@ extends Node
 ## Race state (owned by GameFlow): {race_id, vehicle, start_hour, current_city, waypoint_index,
 ##   legs: [{kind, id, from, to, time_s, avg_kmh, weather, start_world_minutes, end_world_minutes}],
 ##   total_time_s, world_minutes (start of the next stage), route: [city ids], seed,
-##   fuel_l (v0.7.0: litres carried into the next stage; -1 = unknown, e.g. a save from v0.6.0 → that stage starts full)}
+##   fuel_l (v0.7.0: litres carried into the next stage; -1 = unknown, e.g. a save from v0.6.0 → that stage starts full),
+##   time_scale (factor of the times, since v0.7.0 – RaceState.from_dict converts a save without it, factor 12)}
 ## Owner: data module.
 ## File: {"version": 2, "saved_at": "...", "game_version": "...", "race": state}, written atomically
 ## (JsonFile: temp file + rename, previous version kept as .bak). Loading is robust: a missing or damaged

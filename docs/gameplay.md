@@ -5,6 +5,11 @@ Umwelt – umgesetzt nach dem [Design-Dokument](Design-Dokument.md) und ARCHITEC
 Alle Zahlen stehen in `config/game_config.json` (Abschnitte `time, daytime, vehicles, driving, collision,
 traffic, fuel, radar, police, city_limits, weather`). Alles ist für einen Seed deterministisch.
 
+**Zeitraffer** *(seit v0.7.0 Faktor 10, bis v0.6.0 Faktor 12, ARCHITECTURE.md §2)*: Messungen dieses Dokuments bis
+v0.6.0 sind mit Faktor 12 entstanden. Was in echten Sekunden oder sichtbaren Metern gilt (Beschleunigung, Unfälle,
+Polizeistopp, Tanken, Kurven, Sicht, Verkehrsdichte), hängt nicht vom Faktor ab; Etappen- und Rennzeiten werden mit
+Faktor 10 bei gleichem Schnitt um ein Fünftel länger (× 1,2). Solche älteren Zeiten sind mit „Faktor 12“ markiert.
+
 | Datei | Inhalt |
 |---|---|
 | `scripts/gameplay/vehicle_model.gd` | `VehicleModel` – Arcade-Fahrmodell, Straßenrand, Kollision, Automatik |
@@ -118,7 +123,7 @@ Weitere Festlegungen:
   jedes Radar höchstens einmal, nie während Verfolgung/Anhalten.
 - **Verfolgung**: Polizeiwagen startet 320 m (sichtbare Meter) hinter dem Spieler und fährt 220 km/h; der Abstand
   ändert sich mit (v − 220)/3,6 m/s. Flucht, wenn der zeitgewichtete gleitende Durchschnitt der letzten 12 s
-  ≥ 220 km/h ist und die Verfolgung mindestens 12 s lief. Erwischt bei Abstand 0 oder nach 60 s →
+  ≥ 220 km/h ist und die Verfolgung mindestens 12 s lief. Erwischt bei Abstand 0 oder nach 72 s (bis v0.6.0 60 s) →
   `STOPPING` (40 km/h/s auf 0, Signal `pull_over`) → `STOPPED` 10 s (Signal `caught` = „Führerschein, bitte!“
   genau für die Standzeit) → `released`. `escape_progress` = min(t/12 s, 1) · clamp((Ø − (Schwelle − 60))/60, 0, 1).
   - **Kurven** (Review: die Polizei fuhr 220 durch jede Kurve, an mehreren Radarfeldern konnte niemand entkommen –
@@ -137,11 +142,15 @@ Weitere Festlegungen:
     idealer Fahrt an 3 (trocken) bzw. 6 (Regen + Nacht) Radarfeldern nicht entkommen, Agilität 2 schon einen Kombi mit
     95 % der Kurvengrenze bei Regen in der Nacht nicht (Tabelle (e3)). Das HUD zeigt die aktuelle Schwelle
     („Flucht ab 187 km/h halten!“).
-  - **Zeitlimit** `police.catch_timeout_s` = 60 s (nicht im Design, verhindert endlose Verfolgungen knapp unter
+  - **Zeitlimit** `police.catch_timeout_s` = 72 s (nicht im Design, verhindert endlose Verfolgungen knapp unter
     220 km/h). Es ist so lang, dass die Design-Regel „Eine Verfolgung kann in die City Limits hineinlaufen“ im Spiel
     vorkommt: Radarfelder enden ≥ 30 km vor den City Limits (Feldanfang ≥ 35 km); wer dort geblitzt wird und mit
-    200–219 km/h zu fliehen versucht, wird erst in den City Limits gestellt (Tabelle (e2): Würzburg – Kassel
-    3–9 km in den City Limits). Mit 40 s war das auf keiner Etappe möglich (max. ≈ 29 km Verfolgung).
+    205–219 km/h zu fliehen versucht, wird erst in den City Limits gestellt (Tabelle (e2): Würzburg – Kassel
+    7–9 km in den City Limits). Die Reichweite in km hängt am Zeitraffer: 72 s bei 210 km/h sind mit Faktor 10
+    42 km – genau wie 60 s mit Faktor 12 bis v0.6.0 (der Wert skaliert mit 12/`time.time_scale`). Der Abstand
+    `start_gap_m` (320 sichtbare m) blieb, die Verfolgung dauert in Sekunden gleich lang; nur bei genau 200 km/h ist
+    die Polizei jetzt 3 km vor den City Limits dran (57,6 s = 32 km, mit Faktor 12 waren es 38,4 km). Mit 40 s war
+    das Hineinlaufen auf keiner Etappe möglich (max. ≈ 29 km Verfolgung bei Faktor 12).
   - **Blockiert** (`set_blocked(true)`, die Rennsitzung übergibt jeden Schritt vor `update`, ob das Tanksystem den
     Wagen hält – `FuelSystem.holds_car()`, also Tanken oder Abschleppen): `STOPPING` wird nicht zu `STOPPED`,
     `STOPPED` zählt nicht herunter. Ein Zugriff während des Tankens wird danach abgesessen, in beiden Reihenfolgen
@@ -329,10 +338,11 @@ Polizeiflucht (`check_escapes.gd`) und Sichtprüfung der Kurven (i5) bleiben gr�
 **Nach dem Review** (fair heißt: alles vorher sichtbar, nichts unvermeidbar – geprüft mit (i6) und einem simulierten
 menschlichen Fahrer): Bei Schnee in der Nacht reichte die Sicht (248 m) nicht mehr für den halbierten Bremsweg – eine
 langsame Kolonne aus dem Nebel ließ sich nur umfahren. Jetzt: Sicht bei Schnee nachts 338 m (Abschnitt „Wetter“), City
-Limits 4 km (333 m) vorher angekündigt (Vorschild und „City Limits Würzburg in 4 km – Tempo 50“), der Verkehr bremst bei
-Regen und Schnee sanfter (Schnee höchstens 4 statt 8 m/s²), das Einscheren rechnet auch im Tunnel mit der Bremsung des
-Wetters, Blinker sind auf 150–250 m deutlich zu sehen, die Tutorial-Etappe ist immer trocken, und jede Regen- oder
-Schnee-Etappe sagt beim Countdown, was das Wetter bewirkt. Die Schwierigkeit selbst bleibt (Tabelle (j)).
+Limits 4 km (333 m bei Faktor 12, seit v0.7.0 400 m) vorher angekündigt (Vorschild und „City Limits Würzburg in 4 km –
+Tempo 50“), der Verkehr bremst bei Regen und Schnee sanfter (Schnee höchstens 4 statt 8 m/s²), das Einscheren rechnet
+auch im Tunnel mit der Bremsung des Wetters, Blinker sind auf 150–250 m deutlich zu sehen, die Tutorial-Etappe ist immer
+trocken, und jede Regen- oder Schnee-Etappe sagt beim Countdown, was das Wetter bewirkt. Die Schwierigkeit selbst bleibt
+(Tabelle (j)).
 
 ### Verkehr als Hindernis
 
@@ -489,16 +499,18 @@ Reichweite je Fahrzeug (voller Tank): Kompakt 45 L × 0,85 → 268/212/150 km be
 355/280/199; Limousine 60 L → 304/240/170; Sportwagen 55 L × 1,15 → 242/191/136; Gran Turismo 60 L × 1,3 →
 234/184/131 (bei vmax 166/214/174/132/119 km).
 
-**(e) Flucht** (Limousine, nach dem Blitzer Tempo halten): 200 km/h → erwischt nach 57,5 s (Abstand 0), 210/219 km/h
-→ erwischt nach 60 s (Zeitlimit; Abstand bleibt 153/303 m); **222 km/h → entkommen nach 12,0 s**, 230 → 12,0 s.
-Vollgas ab 140 km/h bei Regen in der Nacht: alle fünf entkommen (Kompakt 18,4 s, Kombi 22,3 s, Limousine 16,8 s,
-Sportwagen 13,8 s, Gran Turismo 14,5 s; kleinster Abstand 192 m) – auch bergauf mit 4,5 % (Hügelstufe 2: 19,8 /
-22,9 / 17,0 / 13,9 / 14,6 s).
+**(e) Flucht** (Limousine, nach dem Blitzer Tempo halten; v0.7.0, Zeitlimit 72 s): 200 km/h → erwischt nach 57,5 s
+(Abstand 0), 210/219 km/h → erwischt nach 72 s (Zeitlimit; Abstand bleibt 119/299 m – bis v0.6.0 nach 60 s, 153/303 m);
+**222 km/h → entkommen nach 12,0 s**, 230 → 12,0 s. Vollgas ab 140 km/h bei Regen in der Nacht: alle fünf entkommen
+(Kompakt 18,4 s, Kombi 22,3 s, Limousine 16,8 s, Sportwagen 13,8 s, Gran Turismo 14,5 s; kleinster Abstand 193 m) –
+auch bergauf mit 4,5 % (Hügelstufe 2: 19,8 / 22,9 / 17,0 / 13,9 / 14,6 s, kleinster Abstand 191 m).
 
 **(e2) Verfolgung in die City Limits** (echte Daten: das Radar am nächsten vor den City Limits, Würzburg – Kassel,
-Feld km 155–160, City Limits ab km 190; Kompakt, geblitzt am Feldanfang, hält das Tempo): 190 km/h → erwischt bei
-km 179,3; 200 → bei km 193,3 (3,3 km in den City Limits); 210 → km 197,0 (7,0 km); 219 → km 198,8 (8,8 km).
-Im Netz beginnen 13 von 213 Radarfeldern ≤ 42 km vor den City Limits (bei 210 km/h erreichbar).
+Feld km 155–160, City Limits ab km 190; Kompakt, geblitzt am Feldanfang, hält das Tempo; v0.7.0, Faktor 10, Zeitlimit
+72 s): 190 km/h → erwischt bei km 175,2 (nach 38,3 s); 200 → bei km 186,9 (57,5 s, 3,1 km vor den City Limits);
+210 → km 197,0 (72 s, 7,0 km in den City Limits); 219 → km 198,8 (8,8 km). Bis v0.6.0 (Faktor 12, 60 s): 190 →
+km 179,3, 200 → km 193,3 (3,3 km in den City Limits), 210 und 219 wie jetzt. Im Netz beginnen 13 von 213 Radarfeldern
+≤ 42 km vor den City Limits (bei 210 km/h erreichbar).
 
 **(e3) Flucht im echten Netz mit Kurven** (`check_escapes.gd`, `escape_sim.gd`: alle 215 Radarfelder beider
 Richtungen × 5 Autos, trocken 12 Uhr / Regen 2 Uhr; Fahrprofil ohne Verkehr: Höchsttempo mit Steigung/Wetter/Nacht,
@@ -516,6 +528,8 @@ v0.5.0 (Regen: Reifenhaftung 0,75, Kurvenhaftung 0,81 für Spieler **und** Poliz
 mit der Vollbremsung des Wetters, bei Regen 15,2 m/s²): `check_escapes.gd` weiter grün – ideal **0** (längste Flucht
 15,5 s), gut **0** (16,3 s) von je 2 150 Verfolgungen. Die Polizei verliert in Regenkurven so viel wie der Spieler, die
 Flucht bei leicht verschlechterten Bedingungen bleibt möglich; Schnee darf sie verhindern (Design).
+v0.7.0 (Faktor 10, neu erzeugte Straßen, Zeitlimit 72 s): weiter grün – ideal **0** (längste Flucht 15,5 s), gut **0**
+(16,7 s) von je 2 150 Verfolgungen (Streckennetz von v0.6.0).
 
 Vorher unentkommbar waren vor allem Erfurt – Kassel km 100 / Kassel km 50 und San Sebastián – Burgos km 50 / Burgos
 km 170 (Kurvigkeit 2–3: bester 12-s-Schnitt 137–161 km/h, nach 14–22 s erwischt). Zum Vergleich der Polizei-Agilität
@@ -642,14 +656,14 @@ Vollgas: 5–61 s auf dem Bankett, 7–23 Leitplankentreffer bzw. Gras je Etappe
 als gutes Bremsen. Der Autopilot untersteuert nie (`understeer` max 0,00) und verlässt nie die Fahrbahn. Auf kurvigen
 Etappen ist der Sportwagen (Agilität 4, Beschleunigung 5) am schnellsten, der Gran Turismo verliert am meisten.
 
-Ganze Etappen mit Verkehr, Radar (befolgt) und Tanken (`run_stage.gd`, Autopilot 235 km/h, 08:00; die drei Etappen
-aus (i4) × 5 Autos) gegenüber v0.3.0: im Mittel +12 s je Etappe (Streuung durch Verkehr und Tankentscheidungen
-−41 … +94 s); der Autopilot untersteuert nie, keine Leitplanke, 0–1,8 s neben der Fahrbahn (nur Tankspur). Ganze
-Rennen (`run_race.gd`, Autopilot, Rennwetter und Tageszeiten je Lauf verschieden), alle fehlerfrei, ohne Blitzer,
-Polizeistopp und Abschleppen: Kiel – Nürnberg (Limousine, 235 km/h) v0.3.0 25:20,8 → jetzt 25:03,8 (zweiter Lauf
-24:52,7); mit dem Gran Turismo bis vmax (`--autopilot-target=300`, Schnee/Regen auf 4 Etappen) 26:34,4; Königsrennen
-(33 Etappen, Limousine) 5:04:10,6 → 5:04:55,2. Die Unterschiede gehen im Rauschen von Wetter, Tageszeit und Verkehr
-unter – die Kurven kosten vor allem bei vmax, (i4).
+Ganze Etappen mit Verkehr, Radar (befolgt) und Tanken (`run_stage.gd`, Autopilot 235 km/h, 08:00; die drei Etappen aus
+(i4) × 5 Autos) gegenüber v0.3.0: im Mittel +12 s je Etappe (Streuung durch Verkehr und Tankentscheidungen −41 … +94 s);
+der Autopilot untersteuert nie, keine Leitplanke, 0–1,8 s neben der Fahrbahn (nur Tankspur). Ganze Rennen
+(`run_race.gd`, Autopilot, Rennwetter und Tageszeiten je Lauf verschieden), alle fehlerfrei, ohne Blitzer, Polizeistopp
+und Abschleppen (Zeiten mit Faktor 12): Kiel – Nürnberg (Limousine, 235 km/h) v0.3.0 25:20,8 → jetzt 25:03,8 (zweiter
+Lauf 24:52,7); mit dem Gran Turismo bis vmax (`--autopilot-target=300`, Schnee/Regen auf 4 Etappen) 26:34,4;
+Königsrennen (33 Etappen, Limousine) 5:04:10,6 → 5:04:55,2. Die Unterschiede gehen im Rauschen von Wetter, Tageszeit und
+Verkehr unter – die Kurven kosten vor allem bei vmax, (i4).
 Bestenlisten: Die Starteinträge (`leaderboard.seed_avg_kmh` 125–165 km/h) bleiben schlagbar – der vorsichtige
 Autopilot fährt im Königsrennen je nach Tageszeit und Wetter 97–193 km/h Schnitt (Median 150, 10 der 33 Etappen über
 dem besten Starteintrag); nur die kurze Tutorial-Etappe mit Pflicht-Tankstopp liegt wie vorher darunter, und der beste
@@ -672,9 +686,15 @@ sicheren Geschwindigkeit anzukommen (dort hält Gegenlenken die Linie)? Anfahrt:
 | Gran Turismo, Schnee + Nacht | – | – | **0** von 104 (+28 m, Saragossa – Barcelona km 178,8) |
 | Review: Schnee nachts 338 statt 248 m Sicht (für den Verkehr, (i6)) | | | |
 | Gran Turismo, Schnee + Nacht (338 m) | – | – | **0** von 104 (+28 m, dieselbe Kurve hinter einer Kuppe: 89 m Sicht, unabhängig vom Nebel; danach +34 m, Budapest – Wien km 185,5) |
+| v0.7.0 – Faktor 10 (neue Straßen: Kurven und Hügel in sichtbaren Metern) | | | |
+| Gran Turismo, Schnee + Nacht (338 m), Kurvenschilder wie bisher | – | – | 1 von 104 (−12,3 m, Würzburg ab Nürnberg km 108,1: blinde Kurve mit Betrag 0,21 150 m vor dem Ziel ohne Schild) |
+| dito, Schild nach der wirklich gefahrenen Kurve (`_piece_peak`, renn-modul.md §4) | – | – | **0** von 104 (+5,8 m, Wien – Prag km 145,7, Kurve hinter einer Kuppe: 71 m Sicht; Würzburg ab Nürnberg jetzt +112,6 m) |
+| Gran Turismo, Regen + Nacht / Tag; Kompakt, Tag | – | – | **0** (+61,9 m / +82,6 m / +238,1 m) |
 
 Mit der halben Bremsung im Schnee bleibt bei Nacht nur eine knappe Reserve – die Sicht bei Schnee darf nicht sinken; für
-den Verkehr musste sie steigen ((i6), „Wetter“).
+den Verkehr musste sie steigen ((i6), „Wetter“). Mit Faktor 10 (v0.7.0) ist sie noch knapper (+5,8 m hinter einer Kuppe,
+die die Kurve bis 71 m davor verdeckt) – nach jeder Änderung von Zeitraffer oder Streckennetz `curve_sight.gd` für
+Gran Turismo, Schnee + Nacht wiederholen.
 
 Ohne Schilder sind Kurven direkt hinter Kuppen die Falle (die Straße dahinter ist verdeckt, z. B. 153-km/h-Kurve erst
 84 m vorher sichtbar). Daher stehen Warnschilder vor scharfen **und vor blinden** Kurven (renn-modul.md §4) – jetzt auch
@@ -801,13 +821,22 @@ Tankspur (höchstens 0,9 s):
 | Saragossa – Pau | Kombi | Regen, 00:30 | 155,8 |
 | Kassel – Würzburg | Limousine | trocken, 08:00 | 125,4 |
 
-Kiel – Nürnberg (Limousine, Rennwetter und Tageszeiten aus dem Rennen): **27:05,5** (v0.4.0: 25:03,8) – Schnee auf der
-ersten Etappe (74 km/h mit Pflicht-Tankstopp), Regen auf der zweiten (146 km/h, nachts), sonst trocken 137–165 km/h.
+Kiel – Nürnberg (Limousine, Rennwetter und Tageszeiten aus dem Rennen, Faktor 12): **27:05,5** (v0.4.0: 25:03,8) –
+Schnee auf der ersten Etappe (74 km/h mit Pflicht-Tankstopp), Regen auf der zweiten (146 km/h, nachts), sonst trocken
+137–165 km/h.
 Nach dem Review (die Tutorial-Etappe ist jetzt immer trocken; `run_race.gd --race-seed`, Limousine, beide fehlerfrei,
 0 Kollisionen): Kiel – Nürnberg mit Renn-Seed 63352 **29:39,1** – Kiel – Hamburg trocken 97 km/h (Pflicht-Tankstopp),
 Hamburg – Hannover trocken nachts 157, Hannover – Kassel 138, **Kassel – Würzburg Schnee ab 23:07 Uhr 143 km/h** (Nacht,
 wenig Verkehr), **Würzburg – Nürnberg Schnee ab 12:35 Uhr 82 km/h**; München – Bremen mit Renn-Seed 95028 **28:41,7** –
 Regen auf der ersten Etappe (München – Nürnberg 112 km/h), sonst trocken 128–161 km/h.
+v0.7.0 (Faktor 10, 8 h Pause, Streckennetz von v0.6.0; Kiel – Nürnberg, Renn-Seed 63352, Limousine ab 08:00, fehlerfrei,
+0 Kollisionen): **40:38,9**, Etappenstarts 08:00, 16:57, 02:09, 11:03 und 20:47 Uhr (mit 12 h Pause: 08:00, 20:54,
+09:46, 22:53, 12:26) – Kiel – Hamburg 98 km/h, Hamburg – Hannover im Feierabendverkehr 126, Hannover – Kassel nachts
+182, Kassel – Würzburg Schnee 121, Würzburg – Nürnberg Schnee nachts nur 56 km/h: Der Autopilot hing 54 km lang
+(km 32–86) mit 46 km/h rechts hinter einem Lkw, der in der Mittelspur fuhr und die ganze Zeit nach rechts blinkte
+(`Autopilot._in_lane` zählt ihn wegen des Blinkers zur eigenen Spur und hält 34 m Abstand, der Lkw zieht nicht
+herüber; Nachstellen: `run_stage.gd -- --stage=wuerzburg_nuernberg --from=wuerzburg --hour=20.7833 --weather=snow
+--seed=18568 --trace=2`) – offen, ein Fall für den Autopiloten, nicht für den Zeitraffer.
 Bei diesen Läufen gefunden und behoben: (1) der Autopilot zog 700 m vor der Tankspur quer über alle Spuren – im Schnee
 in ein 95 km/h langsameres Auto in der Mittelspur (Saragossa – Pau, Sportwagen); jetzt Spur für Spur in freie Lücken
 (renn-modul.md §10, `test_fuel_lane_approach_waits_for_a_gap`). (2) Ein Auto, das einem Lkw nicht zügig vorbeikam,
@@ -825,9 +854,13 @@ als der Autopilot im Verkehr um 08:00 (4:43–5:30); auch kurze Etappen um 110�
 20 km City Limits endet und das Tutorial einen Pflicht-Tankstopp hat. Jetzt aus der Zusammensetzung (docs/daten.md
 „Starteinträge“): City Limits mit `seed_city_kmh` (60–80), der Rest so schnell, dass die typische Etappe
 (`seed_ref_km` 235 km) unverändert bleibt, + `seed_fuel_stop_s` (35 s) je Etappe mit teilgefülltem Tank + Fährzeiten.
-Kiel – Hamburg: Rekord 3:52,9, 10. Platz 4:55,2 (Rückrichtung ohne Tankstopp 3:17,9 / 4:21,9); 110–150 km 6–11 %
-langsamer, 210 km unverändert, 365–395 km 3–4 % schneller; Kiel – Nürnberg 24:02,2 … 31:18,8, Königsrennen mit Fähre
-4:39:02,6 … 6:05:15,4 (Test `test_seed_entries_follow_the_stage_make_up`).
+Kiel – Hamburg (Faktor 12): Rekord 3:52,9, 10. Platz 4:55,2 (Rückrichtung ohne Tankstopp 3:17,9 / 4:21,9); 110–150 km
+6–11 % langsamer, 210 km unverändert, 365–395 km 3–4 % schneller; Kiel – Nürnberg 24:02,2 … 31:18,8, Königsrennen mit
+Fähre 4:39:02,6 … 6:05:15,4 (Test `test_seed_entries_follow_the_stage_make_up`). Seit v0.7.0 (Faktor 10, gleiche
+Schnitte; der Tankstopp von 35 s und die Fähre sind echte Sekunden und wachsen nicht mit): Kiel – Hamburg 4:32,5 …
+5:47,3 (Rückrichtung 3:57,5 / 5:14,2), Kiel – Nürnberg 28:43,7 … 37:27,5, Königsrennen 5:33:56,1 … 7:17:23,5 (Stand
+des Streckennetzes von v0.6.0). Gespeicherte Starteinträge werden beim Umrechnen der Bestenlisten neu erzeugt
+(docs/daten.md).
 
 ## Hinweise für andere Module
 

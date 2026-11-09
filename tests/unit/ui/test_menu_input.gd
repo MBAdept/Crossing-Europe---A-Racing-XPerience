@@ -167,3 +167,46 @@ func test_pending_stage_result_stays_in_save_until_done() -> void:
 	sg.set("path", old_path)
 	gf.set("race", old_race)
 	gf.set("mode", old_mode)
+
+
+## v0.7.0 (time-lapse factor 10 instead of 12): a race saved by v0.6.0 (no "time_scale" = factor 12), closed at the name
+## prompt of a stage result, continues converted – race legs and the pending result × 12/10 (same average), saved once
+## with the new factor; continuing again changes nothing.
+func test_continue_converts_a_race_saved_with_factor_12() -> void:
+	var root := _root()
+	var gf := root.get_node_or_null("GameFlow")
+	var sg := root.get_node_or_null("SaveGame")
+	if gf == null or sg == null:
+		return
+	var old_path := str(sg.get("path"))
+	var old_race: Variant = gf.get("race")
+	var old_mode: Variant = gf.get("mode")
+	sg.set("path", "user://test_ui_v06_savegame.json")
+	var ts := float(ConfigLoader.lookup(cfg(), "time.time_scale", 10.0))
+	var race := RaceState.create({"id": "t", "name": "T", "start": "kiel", "finish": "nuernberg", "waypoints": []}, "kombi", 8.0, 3)
+	var res := {"board_key": "stage:a:fwd", "stage_id": "a", "time_s": 300.0, "penalty_s": 20.0, "avg_speed_kmh": 95.0,
+		"start_world_minutes": 480.0, "end_world_minutes": 540.0}
+	race.apply_stage_result({"kind": "stage", "id": "a", "from": "kiel", "to": "hamburg", "length_km": 95.0}, res,
+		ConfigLoader.deep_merge(cfg(), {"time": {"time_scale": 12.0, "stage_pause_hours": 12.0}}))
+	var d := race.to_dict()
+	d.erase("time_scale")   # as v0.6.0 saved it
+	d["version"] = 1
+	d[PENDING] = res
+	sg.call("save_race", d)
+	var pending: Dictionary = gf.call("restore_race", sg.call("load_race"))
+	assert_near(float(pending.get("time_s", 0.0)), 300.0 * 12.0 / ts, 0.001, "offenes Etappenergebnis umgerechnet")
+	assert_near(float(pending.get("penalty_s", 0.0)), 20.0 * 12.0 / ts, 0.001, "Strafzeit umgerechnet")
+	assert_near(float(pending.get("avg_speed_kmh", 0.0)), 95.0, 0.0001, "Schnitt bleibt")
+	var r: RaceState = gf.get("race")
+	assert_near(r.total_time_s, 300.0 * 12.0 / ts, 0.001, "Rennzeit umgerechnet")
+	assert_near(r.world_minutes, 540.0 + 12.0 * 60.0, 0.001, "nächster Start bleibt (schon angezeigt)")
+	var saved: Dictionary = sg.call("load_race")
+	assert_near(float(saved.get("time_scale", 0.0)), ts, 0.0001, "umgerechnet gespeichert")
+	assert_near(float((saved.get(PENDING, {}) as Dictionary).get("time_s", 0.0)), 300.0 * 12.0 / ts, 0.001, "offenes Ergebnis gespeichert")
+	var again: Dictionary = gf.call("restore_race", saved)
+	assert_near(float(again.get("time_s", 0.0)), 300.0 * 12.0 / ts, 0.001, "zweites Fortsetzen: unverändert")
+	assert_near((gf.get("race") as RaceState).total_time_s, 300.0 * 12.0 / ts, 0.001, "zweites Fortsetzen: Rennzeit unverändert")
+	gf.call("finish_race")
+	sg.set("path", old_path)
+	gf.set("race", old_race)
+	gf.set("mode", old_mode)

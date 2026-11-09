@@ -270,14 +270,17 @@ func test_no_new_radar_during_chase_and_each_radar_once() -> void:
 ## Design: "Eine Verfolgung kann in die City Limits hineinlaufen und gilt dort normal weiter." Driven
 ## continuously (no jumps) with the real VehicleModel from a radar zone at the closest distance the StagePlan
 ## allows (zone end radar.no_radar_before_city_km before the City Limits): a player who tries to flee but only
-## averages 200–219 km/h is still being chased inside the City Limits – and the chase ends normally there.
+## averages 205–219 km/h is still being chased inside the City Limits – and the chase ends normally there.
+## Since v0.7.0 (time-lapse factor 10 instead of 12) police.catch_timeout_s is 72 s, so a chase still reaches 42 km
+## at 210 km/h; at exactly 200 km/h the 320-m gap closes after 57.6 s = 32 km, 3 km before the City Limits (at
+## factor 12 it was 38.4 km, the test then started at 200 km/h).
 func test_chase_continues_into_city_limits() -> void:
 	var c := cfg()
 	var gap := float(ConfigLoader.lookup(c, "radar.no_radar_before_city_km", 30.0))
 	var zone := float(ConfigLoader.lookup(c, "radar.zone_length_km", 5.0))
 	var plan := Fx.make_plan(c, 120.0, [], [{"km": 100.0 - gap - zone, "limit": 120}])
 	assert_near(plan.city_limits_km, 100.0, 0.001, "Testaufbau: City Limits ab km 100")
-	for hold: float in [200.0, 210.0, 219.0]:
+	for hold: float in [205.0, 210.0, 219.0]:
 		var r := Sim.chase_into_city_run(c, plan, "limousine", hold)
 		assert_true(float(r["flash_km"]) <= plan.radars[0]["km"] + 0.05, "%d km/h: am Feldanfang geblitzt (%.2f)" % [int(hold), float(r["flash_km"])])
 		assert_true(float(r["city_chase_km"]) > 0.0, "%d km/h: Verfolgung läuft in die City Limits (%.2f km darin, Ende %s bei km %.1f)" % [int(hold), float(r["city_chase_km"]), str(r["end"]), float(r["end_km"])])

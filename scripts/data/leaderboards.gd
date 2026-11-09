@@ -30,6 +30,8 @@ func load_boards() -> void:
 	store.load_boards()
 	if store.load_problem != "":
 		push_warning(store.load_problem)
+	if store.conversion_note != "":
+		print(store.conversion_note)   # time-lapse factor changed (v0.7.0: 12 -> 10), LeaderboardStore
 
 
 func save_boards() -> void:

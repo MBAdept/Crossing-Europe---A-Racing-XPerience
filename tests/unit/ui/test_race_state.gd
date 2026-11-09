@@ -1,14 +1,22 @@
 extends TestCase
-## Race progression (RaceState): legs, totals, next stage world time = end + 12 h, waypoint advance,
-## ferry legs, save round trip, weather modes, route enumeration.
+## Race progression (RaceState): legs, totals, next stage world time = end + 8 h (since v0.7.0, before 12 h), waypoint
+## advance, ferry legs, save round trip, conversion of a race saved with another time-lapse factor, weather modes, route
+## enumeration.
 
 const RACE := {"id": "tour", "name": "Kiel – Nürnberg", "start": "kiel", "finish": "nuernberg", "waypoints": ["kassel"]}
 
 
-func _result(stage_id: String, from: String, to: String, time_s: float, start_min: float, km: float) -> Dictionary:
-	return {"stage_id": stage_id, "from_city": from, "to_city": to, "time_s": time_s, "penalty_s": 0.0,
-		"avg_speed_kmh": Units.avg_speed_kmh(km, time_s, 12.0), "distance_km": km, "weather": "rain",
-		"start_world_minutes": start_min, "end_world_minutes": start_min + Units.world_minutes_delta(time_s, 12.0),
+## Shipped time-lapse factor (time.time_scale, 10 since v0.7.0).
+func _ts() -> float:
+	return float(ConfigLoader.lookup(cfg(), "time.time_scale", 10.0))
+
+
+## A race session result; ts = factor it was measured with (<= 0: the shipped one).
+func _result(stage_id: String, from: String, to: String, time_s: float, start_min: float, km: float, ts: float = 0.0, penalty_s: float = 0.0) -> Dictionary:
+	var f := ts if ts > 0.0 else _ts()
+	return {"stage_id": stage_id, "from_city": from, "to_city": to, "time_s": time_s, "penalty_s": penalty_s,
+		"avg_speed_kmh": Units.avg_speed_kmh(km, time_s, f), "distance_km": km, "weather": "rain",
+		"start_world_minutes": start_min, "end_world_minutes": start_min + Units.world_minutes_delta(time_s, f),
 		"stage_name": "%s – %s" % [from, to], "daytime": "day"}
 
 
@@ -25,21 +33,23 @@ func test_create_initial_state() -> void:
 func test_stage_legs_totals_and_pause() -> void:
 	var c := cfg()
 	var s := RaceState.create(RACE, "kombi", 8.0, 1)
-	var r1 := _result("kiel_hamburg", "kiel", "hamburg", 200.0, s.world_minutes, 95.0)
+	var t1 := 40.0 * 60.0 / _ts()   # 40 world minutes (factor 10: 240 s)
+	var r1 := _result("kiel_hamburg", "kiel", "hamburg", t1, s.world_minutes, 95.0)
 	s.apply_stage_result({"kind": "stage", "id": "kiel_hamburg", "from": "kiel", "to": "hamburg", "length_km": 95.0}, r1, c)
 	assert_eq(s.current_city, "hamburg", "angekommen")
 	assert_eq(s.legs.size(), 1, "eine Etappe")
-	assert_near(s.total_time_s, 200.0, 0.001, "Gesamtzeit")
-	# 200 s game time = 40 world minutes; next stage = end + 12 h
+	assert_near(s.total_time_s, t1, 0.001, "Gesamtzeit")
+	assert_near(s.time_scale, _ts(), 0.0001, "Faktor der Zeiten")
+	# 40 world minutes of driving; next stage = end + 8 h (design document "Tageszeit und Wetter", since v0.7.0)
 	var end_min := 8.0 * 60.0 + 40.0
 	assert_near(float(s.legs[0]["end_world_minutes"]), end_min, 0.001, "Ende Weltzeit")
-	assert_near(s.world_minutes, end_min + 12.0 * 60.0, 0.001, "nächste Etappe = Ende + 12 h")
-	assert_near(s.next_start_hour(), 20.0 + 40.0 / 60.0, 0.001, "Startuhrzeit 20:40")
+	assert_near(s.world_minutes, end_min + 8.0 * 60.0, 0.001, "nächste Etappe = Ende + 8 h")
+	assert_near(s.next_start_hour(), 16.0 + 40.0 / 60.0, 0.001, "Startuhrzeit 16:40")
 	var r2 := _result("hamburg_kassel", "hamburg", "kassel", 400.0, s.world_minutes, 300.0)
 	s.apply_stage_result({"kind": "stage", "id": "hamburg_kassel", "from": "hamburg", "to": "kassel", "length_km": 300.0}, r2, c)
-	assert_near(s.total_time_s, 600.0, 0.001, "Summe der Etappenzeiten, Pausen zählen nicht")
+	assert_near(s.total_time_s, t1 + 400.0, 0.001, "Summe der Etappenzeiten, Pausen zählen nicht")
 	assert_near(s.total_distance_km(), 395.0, 0.001, "Distanz")
-	assert_near(s.average_kmh(12.0), Units.avg_speed_kmh(395.0, 600.0, 12.0), 0.001, "Durchschnitt")
+	assert_near(s.average_kmh(_ts()), Units.avg_speed_kmh(395.0, t1 + 400.0, _ts()), 0.001, "Durchschnitt")
 	assert_eq(s.next_stage_number(), 3, "Etappe 3")
 
 
@@ -88,7 +98,7 @@ func test_ferry_leg() -> void:
 	assert_eq(s.legs[0]["kind"], "ferry", "Fähren-Leg")
 	s.apply_stage_result({"id": "rk", "from": "rostock", "to": "kiel"}, _result("rk", "rostock", "kiel", 300.0, s.world_minutes, 200.0), c)
 	assert_near(s.total_time_s, 540.0, 0.001, "Fähre + Etappe")
-	assert_near(s.average_kmh(12.0), Units.avg_speed_kmh(200.0, 300.0, 12.0), 0.001, "Schnitt ohne Fährzeit")
+	assert_near(s.average_kmh(_ts()), Units.avg_speed_kmh(200.0, 300.0, _ts()), 0.001, "Schnitt ohne Fährzeit")
 	assert_true(s.is_finished(), "fertig")
 
 
@@ -138,9 +148,10 @@ func test_save_round_trip() -> void:
 	s.apply_stage_result({"id": "a", "from": "kiel", "to": "hamburg"}, _result("a", "kiel", "hamburg", 123.4, s.world_minutes, 95.0), c)
 	var json := JSON.stringify(s.to_dict())
 	var back: Dictionary = JSON.parse_string(json)
-	for k in ["race_id", "vehicle", "start_hour", "current_city", "waypoint_index", "legs", "total_time_s", "world_minutes", "route", "seed"]:
+	for k in ["race_id", "vehicle", "start_hour", "current_city", "waypoint_index", "legs", "total_time_s", "world_minutes", "route", "seed", "time_scale"]:
 		assert_true(back.has(k), "Schlüssel " + k)
-	var r := RaceState.from_dict(back, RACE)
+	assert_eq(int(back["version"]), RaceState.VERSION, "Version")
+	var r := RaceState.from_dict(back, RACE, _ts())
 	assert_eq(r.current_city, "hamburg", "Stadt")
 	assert_eq(r.vehicle, "limousine", "Fahrzeug")
 	assert_near(r.total_time_s, 123.4, 0.001, "Gesamtzeit")
@@ -149,6 +160,53 @@ func test_save_round_trip() -> void:
 	assert_eq(r.seed, 99, "Seed")
 	assert_eq(r.next_target(), "kassel", "Ziel")
 	assert_eq(r.stage_seed("x"), s.stage_seed("x"), "deterministischer Etappen-Seed")
+	assert_near(r.time_scale, _ts(), 0.0001, "Faktor gespeichert, nichts umgerechnet")
+	assert_near(float(r.legs[0]["time_s"]), 123.4, 0.0001, "gleicher Faktor: Etappenzeit unverändert")
+
+
+## v0.7.0: time-lapse factor 10 instead of 12. A race saved by v0.6.0 (no "time_scale" = factor 12) continues with its
+## times converted: stage times and penalties × 12/10, the average stays, the ferry keeps its fixed 240 s, the next
+## start stays at the world time already shown (12-h pause). The pending stage result (closed at the name prompt) is
+## converted with the same ratio. Works in both directions (time_scale override), a save at the current factor stays.
+func test_saved_race_converted_to_new_time_scale() -> void:
+	var c12 := ConfigLoader.deep_merge(cfg(), {"time": {"time_scale": 12.0, "stage_pause_hours": 12.0}})
+	var race := {"id": "r", "name": "Riga – Kiel", "start": "riga", "finish": "kiel", "waypoints": []}
+	var s := RaceState.create(race, "kombi", 10.0, 3)
+	s.apply_ferry({"id": "riga_rostock", "from": "riga", "to": "rostock", "fixed_time_s": 240.0, "world_hours": 24.0},
+		{"kind": "ferry", "id": "riga_rostock", "from": "riga", "to": "rostock"})
+	var res := _result("rl", "rostock", "luebeck", 300.0, s.world_minutes, 150.0, 12.0, 30.0)
+	s.apply_stage_result({"id": "rl", "from": "rostock", "to": "luebeck"}, res, c12)
+	var old_avg := s.average_kmh(12.0)
+	var d := s.to_dict()
+	d.erase("time_scale")   # as v0.6.0 saved it
+	d["version"] = 1
+	assert_near(RaceState.saved_time_scale(d), 12.0, 0.0001, "Spielstand ohne Faktor: 12")
+	var r := RaceState.from_dict(d, race, 10.0)
+	assert_near(r.time_scale, 10.0, 0.0001, "umgerechnet auf Faktor 10")
+	assert_near(float(r.legs[1]["time_s"]), 360.0, 0.001, "Etappenzeit × 12/10")
+	assert_near(float(r.legs[1]["penalty_s"]), 36.0, 0.001, "Strafzeit × 12/10")
+	assert_near(float(r.legs[1]["avg_kmh"]), float(res["avg_speed_kmh"]), 0.0001, "Etappenschnitt unverändert")
+	assert_near(float(r.legs[0]["time_s"]), 240.0, 0.0001, "Fähre: feste Zeit bleibt")
+	assert_near(r.total_time_s, 600.0, 0.001, "Gesamtzeit neu summiert")
+	assert_near(r.average_kmh(10.0), old_avg, 0.0001, "Rennschnitt unverändert")
+	assert_near(r.world_minutes, s.world_minutes, 0.0001, "nächster Start bleibt")
+	assert_near(float(r.legs[1]["end_world_minutes"]), float(s.legs[1]["end_world_minutes"]), 0.0001, "Weltzeiten bleiben")
+	var pending := RaceState.rescaled_result(res, RaceState.saved_time_scale(d) / 10.0)
+	assert_near(float(pending["time_s"]), 360.0, 0.001, "offenes Etappenergebnis umgerechnet")
+	assert_near(float(pending["penalty_s"]), 36.0, 0.001, "offenes Ergebnis: Strafzeit")
+	assert_near(float(pending["avg_speed_kmh"]), float(res["avg_speed_kmh"]), 0.0001, "offenes Ergebnis: Schnitt bleibt")
+	# saved again (version 2 with its factor): loading it again changes nothing, the way back gives the old times
+	var again := RaceState.from_dict(r.to_dict(), race, 10.0)
+	assert_near(float(again.legs[1]["time_s"]), 360.0, 0.001, "zweites Laden: unverändert")
+	var back := RaceState.from_dict(r.to_dict(), race, 12.0)
+	assert_near(float(back.legs[1]["time_s"]), 300.0, 0.001, "zurück auf Faktor 12")
+	assert_near(back.total_time_s, 540.0, 0.001, "zurück: Gesamtzeit")
+	# a stage driven with another factor converts the earlier ones first – a race total never mixes factors
+	var mixed := RaceState.from_dict(d, race)
+	assert_near(mixed.time_scale, 12.0, 0.0001, "ohne Zielfaktor: nichts umgerechnet")
+	mixed.apply_stage_result({"id": "lk", "from": "luebeck", "to": "kiel"}, _result("lk", "luebeck", "kiel", 100.0, mixed.world_minutes, 80.0, 10.0), cfg())
+	assert_near(mixed.total_time_s, 240.0 + 360.0 + 100.0, 0.001, "neue Etappe mit Faktor 10, frühere umgerechnet")
+	assert_true(RaceState.saved_time_scale(RaceState.create(race, "kombi", 8.0, 1).to_dict()) == 0.0, "neues Rennen ohne Etappe: kein Faktor nötig")
 
 
 func test_weather_modes() -> void:

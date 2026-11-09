@@ -72,6 +72,7 @@ var curve_signs_cut := 0
 var _chev_i := 0                       ## segment counter of the running piece incl. its fade (chevron spacing)
 var _sign_pending := false             ## warning sign of the running curve piece not decided yet
 var _sign_start_z := 0.0               ## z of the first segment of that piece
+var _piece_peak := 0.0                 ## largest |curve| of the running piece so far (after the start/finish calm)
 var _warn_curve := 0.25                ## road.curve_warning_min_curve
 var _warn_blind := 0.12                ## road.curve_warning_blind_min_curve
 var _warn_sight := 150.0               ## road.curve_warning_sight_m
@@ -307,8 +308,12 @@ func _next_curve(sec: Dictionary, s: TrackSegment) -> float:
 ## |magnitude| >= road.curve_warning_blind_min_curve and some point of its ramp-in hidden behind a crest from
 ## road.curve_warning_sight_m before it. Decided at the end of the ramp-in (30 % of the piece), when the heights of
 ## that part exist – or earlier, when a section / tunnel break cuts the piece: its 60-m fade-out starts at the
-## value the piece had reached (_c_fade_from), which is then its peak. Sharp pieces also get a chevron board every
-## road.chevron_every_m on the outside of the bend along their strong part (|curve| >= 60 % of the magnitude,
+## value the piece had reached (_c_fade_from), which is then its peak. The calm zone counts as flattening the piece
+## only while the curve really driven (largest |curve| so far, _piece_peak) stays below
+## road.curve_warning_blind_min_curve: the calm factor at the nominal midpoint of the piece alone missed a piece whose
+## midpoint lay past the finish line although its ramp-in before the line was a blind curve (v0.7.0, factor 10:
+## Würzburg from Nürnberg, 150 m before the finish, tests/sim/curve_sight.gd). Sharp pieces also get a chevron board
+## every road.chevron_every_m on the outside of the bend along their strong part (|curve| >= 60 % of the magnitude,
 ## the fade included; not in City Limits). Warning signs also stand in City Limits (no radar there, so cars arrive
 ## at full speed). value = direction (+1 right, -1 left).
 func _place_curve_signs(s: TrackSegment) -> void:
@@ -316,6 +321,8 @@ func _place_curve_signs(s: TrackSegment) -> void:
 		_sign_pending = true
 		_sign_start_z = s.z
 		_chev_i = 0
+		_piece_peak = 0.0
+	_piece_peak = maxf(_piece_peak, absf(s.curve))
 	if s.runout or not (_c_in_piece or _c_in_fade):
 		_sign_pending = false
 		return
@@ -331,7 +338,7 @@ func _place_curve_signs(s: TrackSegment) -> void:
 	if _sign_pending and (_c_in_fade or float(_c_pos) >= 0.3 * float(_c_len) or _c_pos >= _c_len):
 		_sign_pending = false
 		var mid := s.z if _c_in_fade else _sign_start_z + float(_c_len) * seg_len * 0.5
-		if _calm(mid, 40.0, 60.0) > 0.6 and (sharp or _blind(_sign_start_z, s.z)):
+		if (_calm(mid, 40.0, 60.0) > 0.6 or _piece_peak >= _warn_blind) and (sharp or _blind(_sign_start_z, s.z)):
 			_place_warning_sign(_sign_start_z - _warn_m, dir)
 			if _c_in_fade:
 				curve_signs_cut += 1

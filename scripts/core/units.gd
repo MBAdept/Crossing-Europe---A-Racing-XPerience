@@ -2,7 +2,8 @@ class_name Units
 extends RefCounted
 ## Unit conventions (see ARCHITECTURE.md):
 ##  * speed: km/h
-##  * stage distance ("km", odometer): advances time_scale (12) times faster than the visual road
+##  * stage distance ("km", odometer): advances time_scale (time.time_scale, 10 since v0.7.0) times faster than the
+##    visual road
 ##  * visual distance ("m", z): what the renderer scrolls; 1 km/h on the speedometer = 1 km/h visually
 ##  * game time: real seconds; world time: minutes, advancing time_scale times faster
 

@@ -112,7 +112,7 @@ func build() -> void:
 		default_focus = _next
 
 
-## "Nächster Start (12 h Pause)" – the pause is time.stage_pause_hours (what RaceState really adds).
+## "Nächster Start (8 h Pause)" – the pause is time.stage_pause_hours (what RaceState really adds).
 static func next_start_caption(config: Dictionary) -> String:
 	var pause_h := float(ConfigLoader.lookup(config, "time.stage_pause_hours", 12.0))
 	return UiFormat.t("Nächster Start (%s h Pause)") % UiFormat.number(pause_h)

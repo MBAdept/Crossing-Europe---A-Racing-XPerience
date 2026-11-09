@@ -2,14 +2,16 @@ extends TestCase
 ## Core conventions: time-lapse, units, config, stage plan rules (design document tables).
 
 
+## Design document "Zeit und Strecke" (since v0.7.0 factor 10, 1 hour world time = 6 game minutes; until v0.6.0 factor 12).
 func test_time_table_from_design_document() -> void:
 	var ts := float(ConfigLoader.lookup(cfg(), "time.time_scale", 0.0))
-	assert_eq(ts, 12.0, "Zeitraffer-Faktor")
-	assert_near(Units.game_seconds_for(100.0, 100.0, ts), 300.0, 0.01, "100 km bei 100 km/h = 5:00")
-	assert_near(Units.game_seconds_for(100.0, 160.0, ts), 187.5, 0.01, "100 km bei 160 km/h = 3:08")
-	assert_near(Units.game_seconds_for(100.0, 250.0, ts), 120.0, 0.01, "100 km bei 250 km/h = 2:00")
-	assert_near(Units.game_seconds_for(60.0, 100.0, ts), 180.0, 0.01, "60 km bei 100 km/h = 3:00")
-	assert_near(Units.game_seconds_for(90.0, 250.0, ts), 108.0, 0.01, "90 km bei 250 km/h = 1:48")
+	assert_eq(ts, 10.0, "Zeitraffer-Faktor")
+	assert_near(Units.game_seconds_for(100.0, 100.0, ts), 360.0, 0.01, "100 km bei 100 km/h = 6:00")
+	assert_near(Units.game_seconds_for(100.0, 160.0, ts), 225.0, 0.01, "100 km bei 160 km/h = 3:45")
+	assert_near(Units.game_seconds_for(100.0, 250.0, ts), 144.0, 0.01, "100 km bei 250 km/h = 2:24")
+	assert_near(Units.game_seconds_for(60.0, 100.0, ts), 216.0, 0.01, "60 km bei 100 km/h = 3:36")
+	assert_near(Units.game_seconds_for(90.0, 250.0, ts), 129.6, 0.01, "90 km bei 250 km/h = 2:10")
+	assert_near(Units.world_minutes_delta(360.0, ts), 60.0, 0.0001, "1 Stunde Weltzeit = 6 Spielminuten")
 
 
 func test_avg_speed_matches_speedometer() -> void:

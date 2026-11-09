@@ -18,16 +18,19 @@ func test_number_and_hours() -> void:
 	assert_eq(UiFormat.hours(1.0), "1 Stunde", "Einzahl")
 
 
+## Since v0.7.0 the shipped values are an 8-h pause and factor 10 (1 hour = 6 game minutes; until v0.6.0 12 h and
+## factor 12) – the texts follow the configuration, the tuned case uses values different from the shipped ones.
 func test_texts_follow_config_values() -> void:
 	var shipped := cfg()
-	assert_true(StartTimeScreen.start_note(shipped).contains("12 Stunden"), "Pause 12 h")
-	assert_true(StartTimeScreen.start_note(shipped).contains("1 Stunde dauert 5 Spielminuten"), "Zeitraffer 12")
-	assert_eq(ResultScreen.next_start_caption(shipped), "Nächster Start (12 h Pause)", "Ergebnis: Pause")
+	assert_true(StartTimeScreen.start_note(shipped).contains("8 Stunden"), "Pause 8 h")
+	assert_true(StartTimeScreen.start_note(shipped).contains("1 Stunde dauert 6 Spielminuten"), "Zeitraffer 10")
+	assert_eq(ResultScreen.next_start_caption(shipped), "Nächster Start (8 h Pause)", "Ergebnis: Pause")
 	assert_true(OptionsScreen.lane_note(shipped).contains("unter 60 km/h"), "Tankspur 60")
-	var tuned := _cfg_with({"time": {"stage_pause_hours": 10.0, "time_scale": 10.0}, "fuel": {"lane_trigger_speed_kmh": 50.0}})
+	var tuned := _cfg_with({"time": {"stage_pause_hours": 10.0, "time_scale": 12.0}, "fuel": {"lane_trigger_speed_kmh": 50.0}})
 	assert_true(StartTimeScreen.start_note(tuned).contains("10 Stunden"), "Pause aus der Konfiguration")
-	assert_true(StartTimeScreen.start_note(tuned).contains("1 Stunde dauert 6 Spielminuten"), "Zeitraffer aus der Konfiguration")
-	assert_false(StartTimeScreen.start_note(tuned).contains("12"), "keine fest verdrahtete 12 mehr")
+	assert_true(StartTimeScreen.start_note(tuned).contains("1 Stunde dauert 5 Spielminuten"), "Zeitraffer aus der Konfiguration")
+	assert_false(StartTimeScreen.start_note(tuned).contains("8"), "keine fest verdrahtete 8")
+	assert_false(StartTimeScreen.start_note(tuned).contains("6 Spielminuten"), "keine fest verdrahteten 6 Spielminuten")
 	assert_eq(ResultScreen.next_start_caption(tuned), "Nächster Start (10 h Pause)", "Ergebnis: Pause aus der Konfiguration")
 	assert_true(OptionsScreen.lane_note(tuned).contains("unter 50 km/h"), "Tankspur aus der Konfiguration")
 

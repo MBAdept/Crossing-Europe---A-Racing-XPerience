@@ -186,11 +186,17 @@ nähere Hintergrundebenen drehen sich etwas schneller (Parallaxe).
   an der Wand); weil die Erzeugung `generation_lead_m()` vorausläuft, ist es da, bevor das Segment in Sichtweite kommt
   (Test: Streamen = Gesamterzeugung). Schneidet ein Abschnitts- oder Tunnelwechsel das Kurvenstück schon in der
   Einlaufphase ab, entscheidet die erreichte Stärke (Beginn der 60-m-Ausblendung) sofort, und die Richtungstafeln laufen
-  in der Ausblendung weiter (vorher fiel das Schild weg; `curve_signs_cut` zählt solche Schilder, im Netz 9). In City
-  Limits steht das Warnschild ebenfalls – dort gibt es kein Radar, man kommt mit vollem Tempo –, Richtungstafeln nicht.
-  Keine Kurvenschilder in Tunneln (dort höchstens 0,25) und in den ruhigen Zonen an Start und Ziel. Ergebnis im ganzen
-  Netz: alle 691 scharfen Kurvenstücke (55 davon in City Limits) haben ihr Warnschild (Test
-  `test_every_sharp_curve_has_a_warning_sign`). Sichtprüfung über alle Etappen: gameplay.md (i5).
+  in der Ausblendung weiter (vorher fiel das Schild weg; `curve_signs_cut` zählt solche Schilder, im Netz 9 bei Faktor
+  12). In City Limits steht das Warnschild ebenfalls – dort gibt es kein Radar, man kommt mit vollem Tempo –,
+  Richtungstafeln nicht. Keine Kurvenschilder in Tunneln (dort höchstens 0,25) und in den ruhigen Zonen an Start und
+  Ziel – dort flacht `_calm()` die Kurve ab. *(v0.7.0)* Ob sie das tut, entscheidet die wirklich gefahrene Kurve: Das
+  Schild fehlt nur, wenn der Ruhefaktor am nominellen Mittelpunkt des Kurvenstücks ≤ 0,6 ist **und** die Kurve bis zur
+  Entscheidung (`_piece_peak`, größter Betrag nach der Beruhigung) unter `road.curve_warning_blind_min_curve` blieb.
+  Vorher zählte nur der Mittelpunkt – lag er hinter der Ziellinie, blieb eine blinde Kurve davor ohne Schild (bei
+  Faktor 10: Würzburg ab Nürnberg, Kurve mit Betrag 0,21 150 m vor dem Ziel, Sichtprüfung Gran Turismo Schnee Nacht
+  −12,3 m). Ergebnis im ganzen Netz (v0.6.0, Faktor 12): alle 691 scharfen Kurvenstücke (55 davon in City Limits)
+  haben ihr Warnschild (Test `test_every_sharp_curve_has_a_warning_sign`). Sichtprüfung über alle Etappen:
+  gameplay.md (i5).
 - **Kuppenschilder** (Review v0.5.0, QA: im Schnee tauchte langsamer Verkehr hinter Kuppen näher auf als der
   Anhalteweg – in den City Limits von Burgos war eine Kolonne auf beiden Spuren unvermeidbar): Ist von einem Punkt bis
   `road.crest_warning_check_m` (250 m) vor einer Kuppe ein Fahrzeug (`road.crest_target_height_m` 0,75 m hoch, halbe
@@ -209,14 +215,15 @@ nähere Hintergrundebenen drehen sich etwas schneller (Parallaxe).
   Spur im StagePlan-Bereich. Zapfsäuleninseln, Dächer und der Tankstellen-Shop sind Bauwerke/Objekte entlang der Spur.
 - **Ereignisse** (`_build_events`): Tankstellenschilder 30/15/5 km, Spur-Hinweis, Preis-Pylon; Radarwarnung 10 km vorher
   (mit Limit), Tempo-Schilder beidseitig am Radarfeld + Wiederholung, Blitzer, Aufhebung am Ende; Tempolimits und
-  Autobahn-Beginn/-Ende an Abschnittsgrenzen; Tunnelschild (Name + Länge); EU-Grenzschilder (Landesname in Landessprache,
-  auch kyrillisch), Grenzstation (Dach über der Fahrbahn mit Landesnamen, Zollhäuschen), neues Tempolimit; Vorschild der
-  City Limits `city_limits.announce_km` (4 km = 333 m) vorher rechts (`town_ahead`: Ortsschild, darunter weiße Tafel
-  „in 4 km“ mit dem Stadtlimit als kleiner Scheibe; Review v0.5.0 – im Schnee steht hinter dem Ortsschild oft eine
-  langsame Kolonne; 5 km fiele auf das Entfernungsschild „25 km“), Ortsschild
-  (Zielname, im Stil des Ziellandes) beidseitig + Stadtlimit; Entfernungsschilder („Hamburg 50 km“, Farben des Landes);
-  Start-Portal mit Ampel (Countdown) und Ziel-Portal. Um Schilder, Portale und Bauwerke bleiben Landschaftsrequisiten weg.
-  Jedes Schild trägt `country` (Land am Standort; Grenzschilder: das neue Land) und `road` (Straßentyp) für seinen Stil.
+  Autobahn-Beginn/-Ende an Abschnittsgrenzen; Tunnelschild (Name + Länge); EU-Grenzschilder (Landesname in
+  Landessprache, auch kyrillisch), Grenzstation (Dach über der Fahrbahn mit Landesnamen, Zollhäuschen), neues
+  Tempolimit; Vorschild der City Limits `city_limits.announce_km` (4 km = 400 m Straße seit v0.7.0, bei Faktor 12 333 m)
+  vorher rechts (`town_ahead`: Ortsschild, darunter weiße Tafel „in 4 km“ mit dem Stadtlimit als kleiner Scheibe; Review
+  v0.5.0 – im Schnee steht hinter dem Ortsschild oft eine langsame Kolonne; 5 km fiele auf das Entfernungsschild
+  „25 km“), Ortsschild (Zielname, im Stil des Ziellandes) beidseitig + Stadtlimit; Entfernungsschilder („Hamburg 50 km“,
+  Farben des Landes); Start-Portal mit Ampel (Countdown) und Ziel-Portal. Um Schilder, Portale und Bauwerke bleiben
+  Landschaftsrequisiten weg. Jedes Schild trägt `country` (Land am Standort; Grenzschilder: das neue Land) und `road`
+  (Straßentyp) für seinen Stil.
 - **Schilder im Tunnel**: im Tunnel gibt es keinen Straßenrand – Schilder, deren km im Tunnel liegt (z. B. die
   30/15/5-km-Ankündigungen im Gotthard, Entfernungsschilder, Tempolimits an Abschnittsgrenzen, Grenzschilder im
   Somport), hängen an der Tunnelwand (`wall: true`, ohne Pfosten): die Tafel liegt ganz in der Röhre (Abstand
@@ -471,7 +478,8 @@ Zonenmeldungen → Tutorial-Hinweise → Ziel.
   überdeckte sie den unteren Rand des Hinweises.
 - **City Limits ankündigen** (Review v0.5.0): am Vorschild (`city_limits.announce_km` vor den City Limits) die Meldung
   „City Limits Würzburg in 4 km – Tempo 50“ (`SessionRules.city_announce_due`/`city_announce_text`, einmal je Etappe, nie
-  in den City Limits) – 333 m genügen, um selbst bei Schnee aus Höchsttempo auf das Stadttempo zu bremsen.
+  in den City Limits) – 400 m (bei Faktor 12: 333 m) genügen, um selbst bei Schnee aus Höchsttempo auf das Stadttempo zu
+  bremsen.
 - **Leitplankentreffer** (`vehicle.rail_hit`): Kamerawackeln von `render.rail_shake_min_s` (0,15 s, Berühren) bis
   `render.rail_shake_max_s` (0,45 s wie ein Unfall) mit der Abdrift, die hineinrutscht (`vehicle.rail_impact` /
   `render.rail_shake_full_mps` 8 m/s), ab `render.rail_flash_min_mps` (2 m/s) zusätzlich ein kurzes orangefarbenes
