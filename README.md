@@ -13,22 +13,46 @@ Nachtankzwang, Radarfallen und Polizei, Tageszeit und Wetter. Vorbilder: *Enduro
 
 ## Neu in v0.7.0
 
-- **Längere Etappen** (Spieltest v0.6.0: „Die Etappen sind ein wenig kurz“): Zeitraffer 10 statt 12 – jede Etappe
-  dauert ein Fünftel länger, eine mittlere Etappe für einen guten Fahrer rund 9 statt 7½ Minuten, Kiel – Nürnberg
-  rund 29 statt 24 Minuten, das Königsrennen gut 5½ statt knapp 5 Stunden. Kilometer, Tankstellen, Radarfallen und
+Aus dem Spieltest von v0.6.0: „Die Etappen sind ein wenig kurz“, im Rennen 8 statt 12 Stunden Pause, der Tank geht in
+die nächste Etappe mit, und zwei neue Rennen – Wien – Hamburg und Bukarest – Calais.
+
+- **Längere Etappen**: Zeitraffer 10 statt 12 – jede Etappe dauert ein Fünftel länger (1 Stunde Weltzeit = 6 statt
+  5 Spielminuten), eine mittlere Etappe für einen guten Fahrer rund 9 statt 7½ Minuten. Kilometer, Radarfallen und
   City Limits bleiben, wo sie sind (sie dauern nur länger); die Straße selbst ist neu erzeugt, mit einem Fünftel mehr
   Kurven und Hügeln je Etappe ([docs/Design-Dokument.md](docs/Design-Dokument.md) „Zeit und Strecke“).
 - **8 Stunden Pause** zwischen den Etappen eines Rennens statt 12: Die Startzeit wandert in etwa zweieinhalb Etappen
   einmal um die Uhr – Morgen, Nachmittag, Nacht … –, statt nur zwischen zwei Tageszeiten hin und her zu springen
-  (Kiel – Nürnberg ab 8 Uhr: Etappen gegen 8, 17, 2, 11 und 20 Uhr).
+  (Kiel – Nürnberg ab 8 Uhr: Etappen gegen 8, 17, 2, 11 und 21 Uhr).
+- **Tank im Rennen**: Was im Ziel einer Etappe im Tank ist, geht in die nächste Etappe mit (auch über die Fähre); die
+  erste Tankstelle liegt dafür in jeder Fahrtrichtung spätestens 20 km nach dem Start (meist nach 12 km; Tankstellen
+  gibt es jetzt je Fahrtrichtung, alle 60–90 km wie bisher). Reicht der Tank nicht einmal mit 60 km/h bis dorthin,
+  kommt vor dem Start der Abschleppdienst (1:30, halber Tank). Etappenbildschirm und Countdown zeigen den Tank, die
+  erste Tankstelle und ob es reicht („reicht auch mit Vollgas“ / „höchstens … km/h“). Wer an der letzten Tankstelle
+  einer Etappe volltankt, kommt in jedem Auto mit Vollgas bis zur ersten der nächsten. Einzelne Etappen starten wie
+  bisher mit eigener Füllung ([docs/gameplay.md](docs/gameplay.md) „Tank im Rennen“).
+- **Zwei neue Rennen**: **Wien – Hamburg** genau wie gewünscht über Linz, Passau, Regensburg, Nürnberg, Fulda, Kassel
+  und Hannover (8 Etappen, 1.150 km, jede Stadt ein Etappenziel) und **Bukarest – Calais** quer durch Europa (rund
+  2.500 km: durch das Olttal über die Karpaten nach Sibiu, über Timișoara, Budapest und Wien, ab Wien an der Donau
+  entlang oder über Prag nach Nürnberg, dann über Frankfurt, Köln und Brüssel an den Ärmelkanal). Neu sind Rumänien
+  mit eigener Polizei und zehn Städte mit eigenen Wahrzeichen (Kölner Dom, Regensburger und Passauer Dom, Mariendom
+  Linz, Parlamentspalast Bukarest, Atomium, Leuchtturm von Calais …); die Europakarte reicht jetzt bis Bukarest
+  ([docs/daten.md](docs/daten.md), [docs/staedte.md](docs/staedte.md)).
+- **So lange dauern die Rennen jetzt** – der vorsichtige Autopilot (Limousine, Start 8 Uhr, Wetter des Rennens):
+  Kiel – Nürnberg 38:14 über Kassel bzw. 44:20 über Frankfurt (v0.6.0: 27:51), München – Bremen 35:48, Wien – Hamburg
+  56:01, Bukarest – Calais 1:56:37 über Linz, das Königsrennen im Kombi 6:48:35. Die Rekorde der Starteinträge in den
+  Bestenlisten (gute Fahrer): Kiel – Nürnberg 31:04, Wien – Hamburg 48:47, Bukarest – Calais 1:40:04, Königsrennen
+  5:52:36.
 - **Bestenlisten umgerechnet**: Etappenzeiten gelten mit dem neuen Zeitraffer – gleicher Schnitt, Zeit × 1,2, Namen
   und Reihenfolge bleiben, die Starteinträge sind neu berechnet. Die Rennlisten beginnen neu (Zeitraffer, Pause und
   Tank-Übernahme ändern die Rennzeiten); die alte Datei bleibt als `leaderboards.json.v06` neben den Bestenlisten
-  erhalten. Ein laufendes Rennen wird beim Fortsetzen ebenso umgerechnet ([docs/daten.md](docs/daten.md)).
+  erhalten. Ein laufendes Rennen wird beim Fortsetzen ebenso umgerechnet und startet seine nächste Etappe einmal mit
+  vollem Tank ([docs/daten.md](docs/daten.md)).
 - Polizei: Eine Verfolgung endet spätestens nach 72 statt 60 Sekunden – so reicht sie wie bisher bis zu 42 km weit
   und kann in die City Limits hineinlaufen.
 - Warnschild vor blinden Kurven kurz vor dem Ziel: Lag die Mitte des Kurvenstücks hinter der Ziellinie, fehlte es
   (mit dem neuen Zeitraffer 150 m vor dem Ziel in Würzburg aufgefallen, [docs/renn-modul.md](docs/renn-modul.md) §4).
+- Demo-Szenen auf die neue Straße eingestellt (Paris, Wien, Regen, Feierabendverkehr), Tutorial: die Tankstelle kommt
+  nach 15 km, der Hinweis auf den knappen Tank kommt gleich nach dem Start.
 
 ## Neu in v0.6.0
 
@@ -210,7 +234,7 @@ Einrichten steht in [marketing/steam/README.md](marketing/steam/README.md).
   München – Bremen, Wien – Hamburg (über Linz, Passau, Regensburg, Nürnberg, Fulda, Kassel und Hannover, 1.150 km
   in 8 Etappen), Bukarest – Calais (rund 2.500 km in 11–13 Etappen, ab Wien an der Donau entlang oder über Prag)
   und das Königsrennen (rund 9.200 km in 33 Etappen plus Fähre).
-- **Etappenbildschirm** mit Karte (Natural Earth), Wetter, Rekord-Laufschrift und Top 10; Bestenlisten pro Etappe
+- **Etappenbildschirm** mit Karte (Natural Earth), Wetter, Tank, Rekord-Laufschrift und Top 10; Bestenlisten pro Etappe
   und Rennen mit Fahrzeug, Wetter- und Tageszeit-Symbol; Namenseingabe auch per Gamepad; Spielstand nach jeder Etappe.
 - **Sound** komplett prozedural: fünf eigene Motoren aus einem physikalisch angelehnten Modell mit Getriebe je Auto
   ([docs/motorsound.md](docs/motorsound.md)), Wind, Martinshorn, Blitzer, Tanken; Titelmelodie (Synthwave-Rock, offline

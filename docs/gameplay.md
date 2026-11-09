@@ -240,10 +240,11 @@ Tankstelle zur Verfügung steht.“ Bis v0.6.0 startete jede Etappe voll (nur da
   sagt sie deshalb direkt nach dem Start mit ihrer echten Entfernung an, außer eine Ansageschwelle fällt ohnehin
   auf den Start oder in die ersten 1,5 km (erste Tankstelle 15–16,5 km: die 15-km-Ansage) – `announce_start`.
 - **Was taugt der Tank?** `FuelSystem.start_check(cfg, spec, plan, litres)` rechnet bis zur **offenen** Tankspur
-  der ersten Tankstelle (Spuranfang + Einfädelstrecke `road.fuel_lane_taper_m`, 0,48 km bei Faktor 12): `ok` =
+  der ersten Tankstelle (Spuranfang + Einfädelstrecke `road.fuel_lane_taper_m`, 40 m = 0,4 km bei Faktor 10): `ok` =
   reicht auch mit vmax, `tight` = nur bis `max_kmh` (gleichmäßiges Tempo, auf 5 km/h abgerundet), `tow` = nicht
   einmal mit `fuel.lane_trigger_speed_kmh` (60 km/h). Ohne weitere Reserve gerechnet: ein leer gewordener Wagen
-  rollt noch aus (bei Faktor 12 bis zum Stillstand von 200 km/h 3,7 km, von 140 km/h 1,8 km, von 60 km/h 0,3 km)
+  rollt noch aus (bei Faktor 10 bis zum Stillstand von 200 km/h 3,1 km, von 140 km/h 1,5 km, von 60 km/h 0,3 km –
+  dieselben sichtbaren Meter wie bei Faktor 12 mit 3,7 / 1,8 / 0,3 km)
   und kann in die Tankspur rollen, wo ein leeres Auto immer tankt.
 - **Abschleppen vor dem Start**: Reicht der übernommene Tank nicht einmal mit 60 km/h bis zur Tankspur, kommt der
   Abschleppdienst vor dem Start – zum Preis wie unterwegs: `fuel.tow_penalty_s` (90 s) in der Etappenzeit (und auf
@@ -314,6 +315,28 @@ jedem Auto mit Vollgas.
   jeder gefahrenen Etappe bei 8,5–12 km. Mit den Zeitwerten von v0.7.0 als Override (Faktor 10, 8 h Pause,
   Verfolgung 72 s): Wien – Hamburg, Limousine, Seed 63352: 56:01,08 (+21,6 %), Starts um 8:00, 17:59, 3:09, 11:49,
   20:42, 6:07, 15:03 und 0:28 Uhr.
+- **Messungen v0.7.0, Endstand** (alles zusammen: Faktor 10, 8 h Pause, Verfolgung 72 s, Tankstellen je Richtung,
+  Tank-Übernahme, neues Netz; Autopilot, `run_race.gd --race-seed`, Start 8 Uhr, Rennwetter des Seeds). Alle Läufe
+  `RACE-RUN OK`: lückenlose Übernahme (Start-Tank = Tank im Ziel der vorigen Etappe, auch über die Fähre), Start =
+  Ende + 8 h, erste Tankstelle jeder Etappe ≤ 20 km, ein Polizei-Sprite für jedes Land; kein Abschleppen, keine
+  Kollision, kein Blitzer.
+
+| Rennen (Route) | Auto, Seed | Zeit | Etappen | Tankstopps | Etappenstarts (Uhr) | Wetter |
+|---|---|---|---|---|---|---|
+| Kiel – Nürnberg (Kassel) | Limousine, 63352 | **38:14,40** | 5 | 5 (199 L) | 08:00, 16:54, 02:18, 11:17, 21:21 | 3× trocken, 2× Schnee |
+| Kiel – Nürnberg (Frankfurt) | Limousine, 63352 | **44:19,63** | 6 | 6 (237 L) | 08:00, 16:54, 01:58, 11:13, 21:43, 06:24 | 4× trocken, Regen, Schnee |
+| Dresden – Dortmund (Erfurt) | Sportwagen, 777 | **27:46,83** | 4 | 6 (144 L) | 08:00, 16:53, 02:21, 11:20 | 2× trocken, 2× Regen |
+| München – Bremen (Kassel) | Limousine, 95028 | **35:48,30** | 5 | 5 (181 L) | 08:00, 17:35, 02:30, 11:47, 21:07 | 4× trocken, Regen |
+| Wien – Hamburg | Limousine, 63352 | **56:01,08** | 8 | 6 (241 L) | 08:00, 17:59, 03:09, 11:49, 20:42, 06:07, 15:03, 00:28 | 5× trocken, 2× Regen, Schnee |
+| Bukarest – Calais (Linz) | Limousine, 63352 | **1:56:36,9** | 13 | 16 (597 L) | 08:00, 18:34, 04:30, 14:40, 00:40, 09:52, 18:51, 03:48, 12:30, 21:20, 06:12, 15:59, 02:10 | 9× trocken, 3× Regen, Schnee |
+| Königsrennen | Kombi, 2026 | **6:48:35,3** | 33 + Fähre | 53 (2 327 L) | 08:00, 16:55, 01:55, 12:03, 22:14, … 07:25, Fähre, 17:35 | 23× trocken, 9× Regen, Schnee |
+
+  Langsamste Etappen: Wetter (Kassel – Würzburg im Schnee 102 km/h, Dortmund – Frankfurt im Schnee 90, Köln – Brüssel
+  im Regen 98, Leipzig – Berlin im Schnee 90), schnellste 166–188 km/h (Hannover – Kassel nachts, Bremen – Dortmund,
+  Burgos – Madrid 177). Kleinster übernommener Tank 20,0 L (München – Bremen, Würzburg – Kassel) – der Autopilot tankt
+  an der letzten Tankstelle für die erste der nächsten Etappe mit. Die Kriechfahrt aus der Messung mit Faktor 10 auf
+  dem Netz von v0.6.0 (Würzburg – Nürnberg im Schnee 56 km/h, unten) kam mit diesem Seed nicht wieder: Würzburg –
+  Nürnberg startete jetzt um 21:21 Uhr und lief im Schnee mit 109 km/h.
 
 ## Schwierigkeit (v0.5.0)
 
@@ -868,7 +891,11 @@ Kiel – Hamburg (Faktor 12): Rekord 3:52,9, 10. Platz 4:55,2 (Rückrichtung ohn
 Fähre 4:39:02,6 … 6:05:15,4 (Test `test_seed_entries_follow_the_stage_make_up`). Seit v0.7.0 (Faktor 10, gleiche
 Schnitte; der Tankstopp von 35 s und die Fähre sind echte Sekunden und wachsen nicht mit): Kiel – Hamburg 4:32,5 …
 5:47,3 (Rückrichtung 3:57,5 / 5:14,2), Kiel – Nürnberg 28:43,7 … 37:27,5, Königsrennen 5:33:56,1 … 7:17:23,5 (Stand
-des Streckennetzes von v0.6.0). Gespeicherte Starteinträge werden beim Umrechnen der Bestenlisten neu erzeugt
+des Streckennetzes von v0.6.0, ohne Tank-Übernahme). Endstand v0.7.0 – die Rennlisten zählen einen Tankstopp je
+Etappe nach der ersten (Tank-Übernahme): Kiel – Nürnberg 31:03,7 … 39:47,5 (5 Tankstopps), Dresden – Dortmund
+24:16,7 … 31:19,9, München – Bremen 32:07,0 … 41:21,9, Wien – Hamburg 48:46,6 … 1:02:48,8 (7 Tankstopps),
+Bukarest – Calais 1:40:03,8 … 2:09:12,2 (kürzeste Route über Linz, 12 Tankstopps), Königsrennen 5:52:36,1 …
+7:36:03,5; die Etappenlisten wie oben (Kiel – Hamburg 4:32,5 … 5:47,3). Gespeicherte Starteinträge werden beim Umrechnen der Bestenlisten neu erzeugt
 (docs/daten.md).
 
 ## Hinweise für andere Module

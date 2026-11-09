@@ -492,8 +492,10 @@ Mitte vorn, echte Maße, Tag `landmark`, **kein** `mirror_left` – Wahrzeichen 
   `--stage=bremen_amsterdam --start-km=357.6` (Grachten), `--stage=budapest_wien --start-km=237.3` (Reichsbrücke,
   Riesenrad, Stephansdom), `--stage=warschau_bialystok --start-km=182` bzw. `--stage=posen_warschau --start-km=287`
   (Einfamilienhäuser mit Zäunen, Kulturpalast in der Ferne), `--stage=mailand_venedig --start-km=269` (Damm, Campanile).
-  Seit v0.7.0 (mit `--start-speed=60 --autopilot --no-countdown --shot-times=1.5,6`, nachts `--hour=22`):
-  `--stage=wien_linz --start-km=177.5` (Mariendom), `--stage=linz_passau --start-km=110.4` (Innbrücke, dann
+  Seit v0.7.0 (mit `--start-speed=60 --autopilot --no-countdown --shot-times=1.5,6`, nachts `--hour=22`; mit
+  Faktor 10 geprüft – jede Ankunft zeigt ihr Wahrzeichen):
+  `--stage=wien_linz --start-km=180.6` (Mariendom an der Donau, Nibelungenbrücke; 177.5 zeigt den Dom nur von fern),
+  `--stage=linz_passau --start-km=110.4` (Innbrücke, dann
   Luitpoldbrücke mit dem Dom), `--stage=passau_regensburg --start-km=116.6` (Steinerne Brücke, Dom),
   `--stage=nuernberg_fulda --start-km=200.6`, `--stage=bukarest_sibiu --from=sibiu --start-km=272.5`
   (Parlamentspalast, Kathedrale), `--stage=bukarest_sibiu --start-km=275.5` (Sibiu, Karpaten),
