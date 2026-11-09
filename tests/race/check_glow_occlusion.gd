@@ -32,13 +32,14 @@ const CASES := [
 			["traffic/hatch_red", 1, 240, 0, 0]],
 		"hidden": [1, 2, 3], "checks": ["leak", "same"]},
 	# a car directly in front of a truck (hidden by the 4 m box from the 3.4 m camera), blinking and braking by day;
-	# a car in the next lane blinks visibly
-	{"name": "truck_day", "km": 30.0, "hour": 12.0, "lane": 1,
+	# a car in the next lane blinks visibly. On the straight climb before the left bend: km 25 since v0.7.0 (time scale
+	# 10, the same visible metres as km 30 before; km 30 now lies at the end of the bend on a crest, 7 px leak)
+	{"name": "truck_day", "km": 25.0, "hour": 12.0, "lane": 1,
 		"cars": [["traffic/truck_white", 1, 25, 0, 0], ["traffic/sedan_red", 1, 44, 1, 1], ["traffic/hatch_yellow", 0, 70, -1, 0]],
 		"hidden": [1], "checks": ["leak", "same"]},
 	# the same at night. The hidden car still lights the road beside the truck and, through the gap under the
 	# trailer, the road just behind it (light on the road, not a glow through the truck) – checked on the trailer box
-	{"name": "truck_night", "km": 30.0, "hour": 22.0, "lane": 1,
+	{"name": "truck_night", "km": 25.0, "hour": 22.0, "lane": 1,
 		"cars": [["traffic/truck_white", 1, 25, 0, 0], ["traffic/sedan_red", 1, 44, 1, 1]],
 		"hidden": [1], "checks": ["leak"], "region": "trailer"},
 	# tunnel lamps beyond a truck in the tunnel: no glow of the additive layer starts inside the truck (lamps just
@@ -47,11 +48,11 @@ const CASES := [
 		"cars": [["traffic/truck_white", 1, 12, 0, 0]],
 		"hidden": [], "checks": ["layer_sources"]},
 	# nothing hidden: visible lights look as before
-	{"name": "night_road", "km": 30.0, "hour": 22.0, "lane": 1,
+	{"name": "night_road", "km": 25.0, "hour": 22.0, "lane": 1,
 		"cars": [["traffic/sedan_red", 0, 40, 1, 1], ["traffic/suv_black", 2, 70, -1, 0], ["traffic/hatch_yellow", 1, 110, 0, 1],
 			["traffic/wagon_white", 0, 160, 1, 0]],
 		"hidden": [], "checks": ["same"]},
-	{"name": "tunnel_in", "km": TUNNEL_IN_KM, "hour": 12.0, "lane": 1,
+	{"name": "tunnel_in", "stage": "bern_mailand", "km": TUNNEL_IN_KM, "hour": 12.0, "lane": 1,
 		"cars": [["traffic/sedan_blue", 0, 80, 0, 0], ["traffic/hatch_red", 0, 180, 0, 1]],
 		"hidden": [], "checks": ["same"]},
 	{"name": "portal_out", "km": 49.93, "hour": 22.0, "lane": 1, "cars": [], "hidden": [], "checks": ["same"]},
@@ -69,11 +70,13 @@ const CASES := [
 	# slice (20–72 m deep there, asserted): the bus covers its glow too (glows follow their own item, not the slice;
 	# drawn at the end of the slice, v0.5.1 before the review let it shine over the bus: 9/18 px). A bus, as that far
 	# a car's lamps show through the gap under a trailer; checked on its body above the gap under it (the hidden car's
-	# underside and the lower edge of its halo show there, its right edge peeks out beside the bus in the curve)
-	{"name": "far_bus_day", "stage": "kassel_wuerzburg", "km": 2.0, "hour": 12.0, "lane": 2,
+	# underside and the lower edge of its halo show there). Since v0.7.0 (time scale 10, the right bend of the A7 at
+	# the start ends ~10 m later) at km 2.4: bus and car on the straight after the bend – from km 1.8 to 2.2 the car's
+	# right edge peeks out beside the bus in the bend (1–2 px "leak" that is the car itself, not a glow)
+	{"name": "far_bus_day", "stage": "kassel_wuerzburg", "km": 2.4, "hour": 12.0, "lane": 2,
 		"cars": [["traffic/bus_white", 2, 178.6, 0, 0], ["traffic/sedan_red", 2, 193.6, -1, 1]],
 		"hidden": [1], "checks": ["leak"], "region": "body", "same_slice": [0, 1]},
-	{"name": "far_bus_night", "stage": "kassel_wuerzburg", "km": 2.0, "hour": 22.0, "lane": 2,
+	{"name": "far_bus_night", "stage": "kassel_wuerzburg", "km": 2.4, "hour": 22.0, "lane": 2,
 		"cars": [["traffic/bus_white", 2, 178.6, 0, 0], ["traffic/sedan_red", 2, 193.6, -1, 1]],
 		"hidden": [1], "checks": ["leak"], "region": "body", "same_slice": [0, 1]},
 	# review v0.5.1: the exit of the test tunnel by day from inside – the over-exposed outside (vertex colours above 1
@@ -81,7 +84,11 @@ const CASES := [
 	{"name": "tunnel_exit_day", "km": 53.85, "hour": 12.0, "lane": 1,
 		"cars": [["traffic/sedan_blue", 0, 60, 0, 1], ["traffic/hatch_red", 1, 230, 0, 0]], "hidden": [], "checks": ["same"]},
 ]
-const TUNNEL_IN_KM := 50.3    ## straight part of the test tunnel (from km 50.45 on lamps behind the inner wall of the bend are hidden)
+## tunnel_in: inside a straight tunnel with nothing hidden – since v0.7.0 the Gotthard road tunnel (Bern – Mailand
+## from Bern, 80 m inside, ~500 m straight ahead): at time scale 10 the test tunnel's straight part is only 130 m long
+## and lamps behind the inner wall of its bend are hidden (correct, but then the v0.5.0 path differs: 39–56 px); up to
+## v0.6.0 the test tunnel at km 50.3
+const TUNNEL_IN_KM := 186.0
 const SAME_TOL := 2           ## max channel difference (1/255) for "unchanged"
 const LEAK_MIN_PX := 8        ## the v0.5.0 path must show at least this many leak pixels (> 8/255)
 

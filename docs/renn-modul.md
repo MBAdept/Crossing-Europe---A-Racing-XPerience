@@ -758,7 +758,12 @@ xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
   tief im Lkw (v0.5.0: 17); sichtbare Lichter unverändert (≤ 2/255, 0 px) auf der Nachtautobahn, im Tunnel, vor dem Portal,
   an der Tankstelle bei Nacht, an der Startampel, vor der Kuppe, an der Tunnelausfahrt am Tag und bei einem Auto 5 m
   vor dem Spielerauto bei Tag und Nacht (bremsend, blinkend: sein Lichthof liegt über dem Dach wie in v0.5.0). Ausgabe
-  `GLOW-CHECK <fall> OK|FEHLER`, Exit-Code.
+  `GLOW-CHECK <fall> OK|FEHLER`, Exit-Code. *(v0.7.0)* Mit Zeitraffer 10 ist jede Straße neu erzeugt; die Szenen stehen
+  deshalb neu: Lkw-Fälle und Nachtautobahn bei km 25 statt 30 (dieselben sichtbaren Meter: gerader Anstieg vor der
+  Linkskurve), der ferne Bus bei km 2,4 statt 2,0 (hinter der Rechtskurve der A7 – in ihr ragt das verdeckte Auto
+  1–2 px neben dem Bus hervor), „im Tunnel“ im Gotthard-Straßentunnel (Bern – Mailand km 186, 500 m gerade): die
+  Gerade des Testtunnels ist nur noch 130 m lang, dahinter verdeckt die Innenwand der Kurve Lampen – richtig, aber kein
+  Fall für „unverändert“. Ergebnis 16 von 16 OK (Leck 0 px, v0.5.0 13–204 px).
 - `tests/unit/race/test_autopilot_weather.gd` (v0.5.0): PD-Lenkung des Autopiloten pendelt bei keinem Wetter
   (Spurwechsel bei 200 km/h < 0,4 m Überschwingen, nach < 2,5 s in der Spur), Planverzögerung nach Wetter, dichter
   Berufsverkehr bei Schnee (Gran Turismo, 110 km) und Regen (Kompakt, 80 km) ohne Kollision, Bankett und Untersteuern,

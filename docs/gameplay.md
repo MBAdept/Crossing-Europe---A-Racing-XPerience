@@ -510,7 +510,10 @@ Feld km 155–160, City Limits ab km 190; Kompakt, geblitzt am Feldanfang, hält
 72 s): 190 km/h → erwischt bei km 175,2 (nach 38,3 s); 200 → bei km 186,9 (57,5 s, 3,1 km vor den City Limits);
 210 → km 197,0 (72 s, 7,0 km in den City Limits); 219 → km 198,8 (8,8 km). Bis v0.6.0 (Faktor 12, 60 s): 190 →
 km 179,3, 200 → km 193,3 (3,3 km in den City Limits), 210 und 219 wie jetzt. Im Netz beginnen 13 von 213 Radarfeldern
-≤ 42 km vor den City Limits (bei 210 km/h erreichbar).
+≤ 42 km vor den City Limits (bei 210 km/h erreichbar); im Netz von v0.7.0 (beide Richtungen, ohne Dev-Etappe) 25 von
+281, 13 davon auf den neuen Etappen (meist 35–40 km: Feldende 30 km vor den City Limits wie überall).
+`check_escapes` im Netz von v0.7.0: 281 Radarfelder × 10 Auto/Wetter = 2 810 Verfolgungen, keine ohne Entkommen,
+längste Flucht 15,5 s (ideal) bzw. 16,7 s (guter Fahrer).
 
 **(e3) Flucht im echten Netz mit Kurven** (`check_escapes.gd`, `escape_sim.gd`: alle 215 Radarfelder beider
 Richtungen × 5 Autos, trocken 12 Uhr / Regen 2 Uhr; Fahrprofil ohne Verkehr: Höchsttempo mit Steigung/Wetter/Nacht,
