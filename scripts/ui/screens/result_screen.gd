@@ -75,7 +75,7 @@ func build() -> void:
 		left.add_child(s2)
 		left.add_child(UiKit.stat_line(tr("Rennzeit nach Etappe %d") % race.stage_count(), UiFormat.time(race.total_time_s), UiTheme.GOLD, 22))
 		if not race.is_finished():
-			left.add_child(UiKit.stat_line(next_start_caption(c), tr("%s Uhr") % Units.format_clock(race.world_minutes), UiTheme.TEXT, 20))
+			left.add_child(UiKit.stat_line(next_start_caption(c, race), tr("%s Uhr") % Units.format_clock(race.world_minutes), UiTheme.TEXT, 20))
 			# v0.7.0: the tank at the finish goes into the next stage
 			var fuel_end := float(result.get("fuel_end_l", -1.0))
 			if fuel_end >= 0.0:
@@ -112,9 +112,17 @@ func build() -> void:
 		default_focus = _next
 
 
-## "Nächster Start (8 h Pause)" – the pause is time.stage_pause_hours (what RaceState really adds).
-static func next_start_caption(config: Dictionary) -> String:
+## "Nächster Start (8 h Pause)" – the pause is time.stage_pause_hours (what RaceState adds). With the race: the pause
+## really between the end of its last stage and the next start – a race continued from v0.6.0 on its pending stage
+## result keeps the start time v0.6.0 showed, 12 h after the stage (QA v0.7.0: the caption said 8 h).
+static func next_start_caption(config: Dictionary, race: RaceState = null) -> String:
 	var pause_h := float(ConfigLoader.lookup(config, "time.stage_pause_hours", 12.0))
+	if race != null:
+		var leg := race.last_leg()
+		if str(leg.get("kind", "")) == "stage" and leg.has("end_world_minutes"):
+			var real_h := (race.world_minutes - float(leg["end_world_minutes"])) / 60.0
+			if real_h > 0.0:
+				pause_h = snappedf(real_h, 0.1)
 	return UiFormat.t("Nächster Start (%s h Pause)") % UiFormat.number(pause_h)
 
 

@@ -454,6 +454,9 @@ func _debug_screen(screen_name: String) -> void:
 	var rid := CliArgs.get_string("race", ids[0] if not ids.is_empty() else "")
 	var done := int(CliArgs.get_float("stages-done", -1.0))
 	match screen_name:
+		"race_select":
+			draft = {"race_id": rid} if CliArgs.has("race") else {}   # the race in focus
+			go("race_select", {}, true)
 		"vehicle":
 			mode = "race"
 			draft = {"race_id": rid}

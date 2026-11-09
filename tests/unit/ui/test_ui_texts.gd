@@ -33,6 +33,14 @@ func test_texts_follow_config_values() -> void:
 	assert_false(StartTimeScreen.start_note(tuned).contains("6 Spielminuten"), "keine fest verdrahteten 6 Spielminuten")
 	assert_eq(ResultScreen.next_start_caption(tuned), "Nächster Start (10 h Pause)", "Ergebnis: Pause aus der Konfiguration")
 	assert_true(OptionsScreen.lane_note(tuned).contains("unter 50 km/h"), "Tankspur aus der Konfiguration")
+	# with the race: the pause really added after its last stage (QA v0.7.0 – a race continued from v0.6.0 keeps the
+	# start time it showed then, 12 h after the stage)
+	var race := RaceState.create({"id": "t", "name": "T", "start": "kiel", "finish": "nuernberg", "waypoints": []}, "kombi", 8.0, 1)
+	race.apply_stage_result({"kind": "stage", "id": "a", "from": "kiel", "to": "hamburg"},
+		{"time_s": 300.0, "start_world_minutes": 480.0, "end_world_minutes": 540.0}, shipped)
+	assert_eq(ResultScreen.next_start_caption(shipped, race), "Nächster Start (8 h Pause)", "Rennen: die Pause der Konfiguration")
+	race.world_minutes = 540.0 + 12.0 * 60.0
+	assert_eq(ResultScreen.next_start_caption(shipped, race), "Nächster Start (12 h Pause)", "Rennen aus v0.6.0: die Pause, die damals galt")
 
 
 func test_tutorial_tips_from_config_and_stage() -> void:

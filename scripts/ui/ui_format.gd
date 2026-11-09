@@ -266,6 +266,23 @@ static func route_via(via_names: Array, target_name: String) -> String:
 	return t("Route über %s") % " › ".join(parts)
 
 
+## route_via() within `width` pixels of `font` at size fs: whole city names while they fit, then " › …" – never cut
+## inside a name ("Route über Prag › Nürnberg › Würzburg › …").
+static func route_via_fit(via_names: Array, target_name: String, font: Font, fs: int, width: float) -> String:
+	var full := route_via(via_names, target_name)
+	if via_names.is_empty() or font == null or font.get_string_size(full, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x <= width:
+		return full
+	var parts: Array[String] = []
+	var best := t("Route über %s") % "…"
+	for n in via_names:
+		parts.append(str(n))
+		var s := t("Route über %s") % (" › ".join(parts) + " › …")
+		if font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > width:
+			break
+		best = s
+	return best
+
+
 ## Pace delta during a stage: actual time minus the record time scaled to the covered share.
 static func pace_delta(stage_time_s: float, record_time_s: float, stage_km: float, length_km: float) -> float:
 	if record_time_s <= 0.0 or length_km <= 0.0:

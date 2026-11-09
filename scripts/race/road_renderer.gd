@@ -2374,10 +2374,12 @@ func _border_cover(a: int, b: int, sa: TrackSegment, xla: float, xra: float, xlb
 # --- sprites and objects --------------------------------------------------------------------
 
 ## The sprites of a slice sorted by depth; the glows of each item follow right after it (_emit_item_glows), so the
-## nearer items of the same slice cover them.
+## nearer items of the same slice cover them. Rows behind the start line (world index _base + k < 0) repeat segment 0
+## (_project): its sprites belong to its own row only – QA v0.7.0: the "Tankstelle 15 km" sign at km 0 of the
+## tutorial stood a second time, huge, beside the car during the countdown.
 func _draw_items(a: int, b: int, buckets: Dictionary) -> void:
 	if b - a == 1 and not buckets.has(a):
-		if _dz[a + 1] <= proj.near:
+		if _dz[a + 1] <= proj.near or _base + a < 0:
 			return
 		for p: Dictionary in _segs[a].sprites:
 			_draw_item(a, p)
@@ -2389,8 +2391,9 @@ func _draw_items(a: int, b: int, buckets: Dictionary) -> void:
 		var seg := _segs[k]
 		if _dz[k + 1] <= proj.near:
 			continue
-		for p: Dictionary in seg.sprites:
-			items.append([k, p])
+		if _base + k >= 0:
+			for p: Dictionary in seg.sprites:
+				items.append([k, p])
 		if buckets.has(k):
 			for c: Dictionary in buckets[k]:
 				items.append([k, c])

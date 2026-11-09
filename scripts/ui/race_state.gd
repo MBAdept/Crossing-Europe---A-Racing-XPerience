@@ -17,7 +17,9 @@ extends RefCounted
 ##    (StagePlan.start_fuel_fraction – the tutorial's 35 % – else fuel.start_fill_fraction)
 ##  * stage times are real seconds at the time-lapse factor time_scale (saved since version 2; a save without it is
 ##    from before v0.7.0, factor 12): from_dict() with the current time.time_scale converts them (rescale()) – same
-##    average speed, ferries unchanged
+##    average speed, ferries unchanged. The stages such a save had driven stay marked (legacy_legs): they ran under
+##    the rules of v0.6.0 (a full tank at every start, 12 h pause), so the race gets no place on the race board, whose
+##    v0.6.0 entries were archived for exactly that reason (QA v0.7.0)
 
 const VERSION := 2
 ## Factor of a saved race without "time_scale" (version 1, up to v0.6.0).
@@ -44,6 +46,9 @@ var fuel_l := -1.0
 ## Time-lapse factor (time.time_scale) the stage times are measured with; 0 = none driven yet. Set by
 ## apply_stage_result(), converted by rescale().
 var time_scale := 0.0
+## Stage legs driven under the rules of v0.6.0 (a save without "time_scale": full tank at every start, 12 h pause,
+## factor 12 – converted, but not comparable): > 0 keeps the race off the race board (RaceResultScreen). Saved.
+var legacy_legs := 0
 
 
 ## New race from a race definition {id, name, start, finish, waypoints}.
@@ -89,9 +94,18 @@ static func from_dict(d: Dictionary, race: Dictionary = {}, to_time_scale: float
 		s.total_time_s = s.sum_leg_times()
 	s.waypoint_index = clampi(s.waypoint_index, 0, s.waypoints.size())
 	s.time_scale = saved_time_scale(d)
+	s.legacy_legs = maxi(0, int(d.get("legacy_legs", 0))) if d.get("legacy_legs", 0) is float or d.get("legacy_legs", 0) is int else 0
+	if not has_time_scale(d):
+		s.legacy_legs = s.stage_count()   # a save of v0.6.0: every stage so far ran under its rules
 	if to_time_scale > 0.0:
 		s.rescale(to_time_scale)
 	return s
+
+
+## True when a saved race names its time-lapse factor (saved since v0.7.0, version 2).
+static func has_time_scale(d: Dictionary) -> bool:
+	var ts: Variant = d.get("time_scale", null)
+	return (ts is float or ts is int) and float(ts) >= 0.0 and not is_inf(float(ts))
 
 
 ## Factor of a saved race's stage times: its "time_scale"; LEGACY_TIME_SCALE (12) for a save with stage legs but
@@ -162,6 +176,7 @@ func to_dict() -> Dictionary:
 		"seed": seed,
 		"fuel_l": fuel_l,
 		"time_scale": time_scale,
+		"legacy_legs": legacy_legs,
 	}
 
 

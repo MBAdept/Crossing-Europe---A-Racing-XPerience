@@ -87,12 +87,12 @@ func test_design_rules_both_directions() -> void:
 
 
 ## v0.7.0: in a race the tank carries over – whoever fills up at the last station of a stage (at the start of its lane)
-## reaches the first fuel lane of the next stage (also across the ferry) at full speed in every car, on every route of
-## every race. The generic rule behind it: test_full_tank_at_the_last_station_reaches_the_next_first_station.
-func test_race_legs_full_tank_reaches_the_next_first_lane() -> void:
+## reaches the first station of the next stage (also across the ferry) at full speed in every car, on every route of
+## every race: its stage screen and countdown then say "reicht auch mit Vollgas" (FuelSystem.start_check counts to the
+## station itself since QA v0.7.0). The generic rule behind it: test_full_tank_at_the_last_station_reaches_the_next_first_station.
+func test_race_legs_full_tank_reaches_the_next_first_station() -> void:
 	var n := net()
 	var c := cfg()
-	var taper := Units.visual_m_to_km(float(ConfigLoader.lookup(c, "road.fuel_lane_taper_m", 40.0)), float(ConfigLoader.lookup(c, "time.time_scale", 12.0)))
 	var range_min := INF
 	for id in ConfigLoader.lookup(c, "vehicles.order", []):
 		var spec := VehicleModel.resolve_spec(c, str(id))
@@ -107,9 +107,9 @@ func test_race_legs_full_tank_reaches_the_next_first_lane() -> void:
 					continue   # the ferry: the tank goes on as it is
 				var p := n.get_stage_plan(str(leg["id"]), str(leg["from"]))
 				if prev != null:
-					var gap := prev.length_km - float(prev.fuel_lanes[-1]["start_km"]) + float(p.fuel_lanes[0]["start_km"]) + taper
+					var gap := prev.length_km - float(prev.fuel_lanes[-1]["start_km"]) + float(p.fuel_lanes[0]["station_km"])
 					worst = maxf(worst, gap)
-					assert_true(gap <= range_min, "%s: %s → %s: %.1f km von der letzten bis zur ersten Tankspur, Reichweite bei vmax %.1f km" % [
+					assert_true(gap <= range_min, "%s: %s → %s: %.1f km von der letzten Tankspur bis zur ersten Tankstelle, Reichweite bei vmax %.1f km" % [
 						race_id, prev.display_name, p.display_name, gap, range_min])
 				prev = p
 	assert_between(worst, 1.0, range_min, "Etappenübergänge geprüft (größter Abstand %.1f km)" % worst)

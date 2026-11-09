@@ -116,13 +116,16 @@ Titel ─┬─ Rennen starten [Abfrage, falls gespeichert] → Rennen wählen �
   darauf zurück (`GameFlow.apply_default_leaderboard_filter()`, `UiData.effective_filter`).
 - **Routenwahl**: Optionen kommen aus `GameData.next_options()`. Jede Karte zeigt die ganze Route bis zum
   nächsten Pflichtziel (`UiData.route_option` → `RouteInfo`): große Zahl = km bis zum Ziel, „Route über
-  Hannover › Kassel › Würzburg“, nächste Etappe mit Länge und Etappenzahl, Summen über alle Etappen bis zum Ziel
+  Hannover › Kassel › Würzburg“ (zu lang: ganze Städtenamen, solange sie passen, dann „ › …“ –
+  `UiFormat.route_via_fit`, *QA v0.7.0*), nächste Etappe mit Länge und Etappenzahl, Summen über alle Etappen bis zum Ziel
   (Autobahn, frei, Radar, Tankstellen, Tunnel, Verkehr, Länder). Die Fortsetzung kommt aus dem Feld
   `continuation` der Option (Datenmodul), sonst aus der kürzesten passenden Route von `race_routes()`, sonst aus
   `via`; `route_km` und eine Zusammenfassung unter `route_summary`/`summary` gewinnen, wenn vorhanden. Die Karte
   hebt die erste Etappe und gestrichelt die Fortsetzung der gewählten Option hervor und beschriftet die
   Zwischenstationen. Rennauswahl zeigt Längen- und Etappenspanne aller Routen (`GameData.race_routes()`/
-  `race_summary()` falls vorhanden, sonst Aufzählung mit `next_options`, begrenzt).
+  `race_summary()` falls vorhanden, sonst Aufzählung mit `next_options`, begrenzt) und die Zahl der Routen („1 mögliche
+  Route“ / „3 mögliche Routen“); passen die Pflichtstationen nicht in die Zeile, stehen Anzahl, erste und letzte da
+  („7 Pflichtstationen (Linz … Hannover)“, `RaceSelectScreen.facts_line`, *QA v0.7.0*).
 - **Etappenbildschirm**: unter den Infokacheln die Etappenbeschreibung (`StagePlan.description`, max. zwei
   Zeilen). Tutorial-Etappen (`StagePlan.tutorial`, Kiel – Hamburg) bekommen einen Kasten „So geht's“:
   Steuerung (Tasten + Gamepad), Tanken (Tankspur, `fuel.lane_trigger_speed_kmh`, Gas bricht ab, Startfüllung
@@ -133,8 +136,9 @@ Titel ─┬─ Rennen starten [Abfrage, falls gespeichert] → Rennen wählen �
   „35 %“ beim Tutorial – `UiFormat.fuel_origin`), Tankanzeige wie im HUD (gelb unter 30 %, rot unter der Reserve
   mit Reservestrich), rechts „Erste Tankstelle nach 12 km“ (`UiFormat.first_station_text`) und darunter, was der
   Tank bis dorthin taugt (`FuelSystem.start_check` mit dem gewählten Auto, `UiFormat.fuel_verdict`): grün
-  „reicht auch mit Vollgas“, gelb „bis dorthin höchstens 135 km/h“, rot „Abschleppdienst vor dem Start:
-  +1:30.00“ (dann auch der Rahmen der Leiste gelb bzw. rot). Genau das entscheidet die Rennsitzung beim Start.
+  „reicht auch mit Vollgas“, gelb „bis dorthin höchstens 120 km/h“ (gerechnet bis zur Tankstelle selbst: wer sich
+  daran hält, sieht im HUD keine rote Reichweite), rot „Abschleppdienst vor dem Start: +1:30.00“ (dann auch der
+  Rahmen der Leiste gelb bzw. rot). Genau das entscheidet die Rennsitzung beim Start.
 - **Etappenergebnis** *(seit v0.7.0)*: im Rennen unter „Nächster Start“ die Zeile „Tank für die nächste Etappe
   23 / 60 L“ (gelb unter der Reserve).
 
@@ -390,12 +394,14 @@ Abschleppen, Nachrichten) erscheinen nur zeitweise. Ergänzungen zum Vertrag:
   zeigt „hier“, -1 „keine mehr“ (`UiFormat.station_distance`).
 - *(seit v0.7.0)* Im Rennen nennt der Countdown in einer Zeile den übernommenen Tank und was er bis zur ersten
   Tankstelle taugt („Tank: 23 L aus der letzten Etappe – reicht bis zur Tankstelle in 12 km“, gelb „… höchstens
-  135 km/h“, rot „Tank: 2 L reicht nicht bis zur Tankstelle – Abschleppdienst vor dem Start: +1:30.00“,
+  120 km/h“, rot „Tank: 2 L reicht nicht bis zur Tankstelle – Abschleppdienst vor dem Start: +1:30.00“,
   `SessionRules.carry_messages`); die Meldung ersetzt die Startansage der Tankstelle und die Reservewarnung der ersten
   Meter. Bei Regen oder Schnee steht dort schon der Wetterhinweis (eine zweite Zeile reichte bis an die
   Countdown-Ziffer) – dann kommt die Tankmeldung 1,2 s nach dem Start, wenn „LOS!“ weg ist. Ohne übernommenen Tank sagt `FuelSystem` eine erste Tankstelle, die näher liegt als die 30-km-Ansage,
-  direkt nach dem Start mit ihrer echten Entfernung an („Tankstelle in 12 km“). Bei der 5-km-Ansage der letzten
-  Tankstelle einer Rennetappe: „Letzte Tankstelle vor dem Ziel – der Tank geht in die nächste Etappe mit“.
+  direkt nach dem Start mit ihrer echten Entfernung an („Tankstelle in 12 km“, „in 8,5 km“ – auf 0,1 km wie Countdown,
+  Etappenbildschirm und HUD). Bei der 5-km-Ansage der letzten Tankstelle einer Rennetappe: „Letzte Tankstelle vor dem
+  Ziel – der Tank geht in die nächste Etappe mit“; mit dem Tutorial-Trainer (Kiel – Hamburg als erste Rennetappe)
+  erst hinter der Tankstelle: „Das war die letzte Tankstelle vor dem Ziel – …“.
 - Abschlepp-Overlay beschreibt die Mechanik: Der Wagen bleibt stehen, wo er liegen geblieben ist, der
   Abschleppdienst bringt Sprit (`fuel.tow_refill_fraction`, „für einen halben Tank“), Zeitstrafe
   `fuel.tow_penalty_s` („Weiterfahrt von hier · Zeitstrafe +1:30.00“, `UiFormat.tow_text`).
@@ -413,10 +419,15 @@ Abschleppen, Nachrichten) erscheinen nur zeitweise. Ergänzungen zum Vertrag:
 `label_ids`, `fit_to(ids)`. Ländergrenzen aus `data/map/europe_map.json` (§4.5; Polygone werden einmal
 trianguliert und als Mesh gezeichnet, Länder der Route heller). Ohne Kartendatei: Meer und Gitter, Netz und
 Städte bleiben sichtbar. Städte ohne `map_pos` werden aus `latlon` projiziert (`MapView.project_latlon`).
-Ortsnamen: wichtige zuerst (aktuelle Stadt, Route, Hervorhebungen, `label_ids`), je fünf Plätze um den Punkt, gierig
-ohne Überlappung untereinander; *(seit v0.7.0)* auch nicht über dem Punkt einer anderen wichtigen Stadt
-(`_label_spot`) – auf der niedrigen Karte des Tutorials lag „Kiel“ sonst auf dem Punkt von Hamburg. Findet sich so
-kein Platz, gilt wie vorher nur „keine Überlappung der Namen“.
+Ortsnamen: wichtige zuerst (aktuelle Stadt, dann die Ziele der angebotenen Etappen – Hervorhebungen außer
+`planned` –, dann Route und `label_ids`), je acht Plätze um den Punkt (rechts, links, darüber, darunter, rechts und
+links darunter, rechts und links darüber), gierig ohne Überlappung untereinander; *(seit v0.7.0)* auch nicht über dem
+Punkt einer anderen wichtigen Stadt (`_label_spot`) – auf der niedrigen Karte des Tutorials lag „Kiel“ sonst auf dem
+Punkt von Hamburg. Findet sich so kein Platz, bekommt nur die aktuelle Stadt trotzdem ihren Namen (dann nur ohne
+Überlappung der Namen); jede andere Stadt bleibt lieber ohne Namen, als dass ihr Name auf dem Punkt einer Nachbarstadt
+steht (QA v0.7.0: im engen Donaukorridor stand „Passau“ auf Regensburg, „Regensburg“ auf Nürnberg, und in der Wahl in
+Wien fehlte Prag). Folge: Auf der Karte des Königsrennens stehen 18 statt 25 Namen, keiner auf einem fremden Punkt;
+in der Wahl in Wien bleiben Nürnberg, Regensburg und Würzburg ohne Namen – die Routenkarten nennen sie.
 Debug: `--map-file=<pfad>` lädt eine andere Kartendatei gleichen Formats.
 
 ## Audio
@@ -726,7 +737,8 @@ Eingabegerät beim Start fest (Gamepad-Hinweise ohne angeschlossenes Gamepad).
 Mit `--screen` laufen die Bildschirme mit Beispieldaten: Ist das echte Netz noch dünn (Stub), wird ein kleines
 Beispielnetz um Kiel – Nürnberg verwendet; Bestenlisten werden erzeugt und nur im Speicher gehalten, es wird
 nichts nach `user://` geschrieben, „Start“ startet kein Rennen. `--race=<id>` wählt das Rennen der
-Rennbildschirme, `--stages-done=<n>` den Fortschritt des Beispielrennens (jeweils erste Option), z. B.
+Rennbildschirme (in der Rennauswahl das fokussierte Rennen), `--stages-done=<n>` den Fortschritt des Beispielrennens
+(jeweils erste Option), z. B.
 `--screen=stage_screen --stages-done=0` (Tutorial Kiel – Hamburg), `--screen=route_choice --race=koenigsrennen
 --stages-done=13` (Wahl bei Saragossa), `--screen=race_result --race=koenigsrennen` (41 Legs).
 `--sample-fuel=<Liter>` legt den übernommenen Tank des Beispielrennens fest (Tankleiste des Etappenbildschirms,

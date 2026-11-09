@@ -24,12 +24,14 @@ extends RefCounted
 ##    StagePlan.start_fuel_fraction (the tutorial's 35 %), else fuel.start_fill_fraction. The first station lies
 ##    5–20 km after the start (fuel.first_station_min_km/max_km), closer than the 30-km announcement: it is
 ##    announced once at the start with its real distance (announce_start). start_check() tells whether a carried
-##    tank reaches the first fuel lane – at full speed, only gently (max_kmh) or not even at the lane trigger speed
-##    (then the race session calls the tow service before the start, at the price of one on the road)
+##    tank reaches the first station – at full speed, only gently (max_kmh) or not even the open fuel lane at the lane
+##    trigger speed (then the race session calls the tow service before the start, at the price of one on the road)
 
 enum State { NORMAL, REFUELING, TOWING }
 
-signal announced(km_before: int, station_km: float)
+## km_before: the threshold (30 / 15 / 5), or at the start the real distance to the first station rounded to 0.1 km
+## (12.0, 8.5 – the texts show it with UiFormat.number(km, 1), like the stage screen and the HUD).
+signal announced(km_before: float, station_km: float)
 signal refuel_started
 signal refuel_finished(liters: float, aborted: bool)
 signal ran_dry
@@ -188,13 +190,18 @@ static func consumption_for(config: Dictionary, vehicle_spec: Dictionary, speed_
 	return base_consumption(config, speed_kmh) * float(vehicle_spec.get("consumption_factor", 1.0))
 
 
-## Does a tank of `litres` reach the first fuel lane of the stage (v0.7.0, the tank carried over in a race)?
-## The lane counts from where it is open: its start plus the taper road.fuel_lane_taper_m (visual metres). Returns
+## What is a tank of `litres` good for on the way to the first station of the stage (v0.7.0, the tank carried over in
+## a race)? The verdict is planned to the station itself (first_km) – the distance the countdown, the stage screen and
+## the HUD's "Nächste Tankstelle" name, and the HUD's range turns red below it (QA v0.7.0: planned to the open lane,
+## "höchstens X km/h" left 0.05–0.11 L and a red range all the way). The fuel lane before the station (1–2 km) is the
+## margin. Only the tow before the start counts to the open lane (its start plus the taper road.fuel_lane_taper_m,
+## visual metres): a car that reaches it at the lane trigger speed refuels there. Returns
 ##   first_km    first station (km after the start; -1 = no station, then the finish is the target)
 ##   lane_km     odometer km to the open fuel lane (or to the finish)
-##   need_l      litres to get there at fuel.lane_trigger_speed_kmh (below it the lane refuels)
-##   need_full_l litres to get there at the car's vmax_kmh
-##   max_kmh     fastest steady speed that still gets there, rounded down to 5 km/h (vmax when the tank is enough)
+##   need_l      litres to the open lane at fuel.lane_trigger_speed_kmh (below it the lane refuels) – less: "tow"
+##   need_full_l litres to the station (or the finish) at the car's vmax_kmh – at least: "ok"
+##   max_kmh     fastest steady speed that still reaches the station, rounded down to 5 km/h (vmax when the tank is
+##               enough; at least the lane trigger speed, which reaches the open lane)
 ##   state       "ok" (even at full speed), "tight" (only up to max_kmh – drive gently or risk the tow) or "tow"
 ##               (not even at the lane trigger speed: the race session calls the tow service before the start –
 ##               fuel.tow_penalty_s, then fuel.tow_refill_fraction, the price of a tow on the road)
@@ -203,16 +210,19 @@ static func start_check(config: Dictionary, vehicle_spec: Dictionary, stage_plan
 	var trigger := float(ConfigLoader.lookup(config, "fuel.lane_trigger_speed_kmh", 60.0))
 	var first := -1.0
 	var lane := 0.0
+	var target := 0.0
 	if stage_plan != null:
 		lane = stage_plan.length_km
+		target = stage_plan.length_km
 		if not stage_plan.fuel_lanes.is_empty():
 			var l: Dictionary = stage_plan.fuel_lanes[0]
 			first = float(l["station_km"])
+			target = first
 			var taper := Units.visual_m_to_km(float(ConfigLoader.lookup(config, "road.fuel_lane_taper_m", 40.0)),
 				float(ConfigLoader.lookup(config, "time.time_scale", 12.0)))
 			lane = minf(float(l["start_km"]) + taper, first)
 	var need := lane * consumption_for(config, vehicle_spec, trigger) / 100.0
-	var need_full := lane * consumption_for(config, vehicle_spec, vmax) / 100.0
+	var need_full := target * consumption_for(config, vehicle_spec, vmax) / 100.0
 	var out := {"first_km": first, "lane_km": lane, "need_l": need, "need_full_l": need_full, "max_kmh": vmax, "state": "ok"}
 	if litres >= need_full:
 		return out
@@ -220,12 +230,13 @@ static func start_check(config: Dictionary, vehicle_spec: Dictionary, stage_plan
 		out["state"] = "tow"
 		out["max_kmh"] = 0.0
 		return out
-	# fastest steady speed: litres / lane_km per km = consumption(v) / 100 – solved for v (consumption is
-	# base + quad · v², times the vehicle factor), rounded down to 5 km/h as a margin
+	# fastest steady speed: litres / target km per km = consumption(v) / 100 – solved for v (consumption is
+	# base + quad · v², times the vehicle factor), rounded down to 5 km/h as a margin; a tank that reaches the open lane
+	# only below the trigger speed is told the trigger speed (it reaches the lane, the station lies beyond)
 	var base := float(ConfigLoader.lookup(config, "fuel.base_l_per_100km", 14.0))
 	var quad := float(ConfigLoader.lookup(config, "fuel.quad_coeff", 0.00034))
 	var factor := maxf(float(vehicle_spec.get("consumption_factor", 1.0)), 0.001)
-	var per100 := litres / maxf(lane, 0.001) * 100.0 / factor
+	var per100 := litres / maxf(target, 0.001) * 100.0 / factor
 	var v := sqrt(maxf(per100 - base, 0.0) / maxf(quad, 0.0000001))
 	out["state"] = "tight"
 	out["max_kmh"] = clampf(floorf(v / 5.0) * 5.0, trigger, vmax)
@@ -325,12 +336,13 @@ func _announce_stations(pos_km: float) -> void:
 				if pos_km < at + _announce_window:
 					fire = k
 		if fire >= 0:
-			announced.emit(fire, s)
+			announced.emit(float(fire), s)
 
 
 ## v0.7.0: the first station lies 5–20 km after the start, closer than the first announcement (30 km), and usually
 ## the 15-km one lies before the start line as well (no sign there either). At a real stage start (pos_km below
-## fuel.announce_window_km) such a station is announced once with its real distance ("Tankstelle in 12 km") – unless
+## fuel.announce_window_km) such a station is announced once with its real distance to 0.1 km ("Tankstelle in 12 km",
+## "in 8,5 km" – the same figure as the countdown, the stage screen and the HUD) – unless
 ## a threshold fires right there or within announce_window_km anyway (a station 15–16.5 km ahead: the 15-km
 ## announcement does it) or announce_start is off (the race session names it in the countdown). The thresholds behind
 ## the start are marked as done. A start in the middle of a stage (debug) skips passed thresholds silently as before.
@@ -346,7 +358,7 @@ func _announce_first(pos_km: float) -> void:
 		if first - float(k) <= pos_km:
 			_announced["%d@%.3f" % [k, first]] = true
 	if announce_start:
-		announced.emit(roundi(first - pos_km), first)
+		announced.emit(snappedf(first - pos_km, 0.1), first)
 
 
 func _lane_valid(pos_km: float) -> bool:

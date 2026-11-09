@@ -207,7 +207,8 @@ führte der kürzeste Weg über Prag und Leipzig).
   (Linz – Passau, Regensburg – Nürnberg, Fulda – Kassel) – so liegen die Städte; 355 km ohne Tempolimit, 15
   Radarfallen, 18 Tankstellen.
 - **Bukarest – Calais** *(seit v0.7.0)* (Wahl in Wien): quer durch Europa, 11–13 Etappen. Bis Wien eine Route
-  (A1 und DN7 durch das Olttal über die Karpaten nach Sibiu, A1 mit der Autobahnlücke Margina – Holdea nach
+  (A1 und DN7 durch das Olttal über die Karpaten nach Sibiu – die DN7 ist die Europastraße E81, auf der in Rumänien
+  außerorts 100 km/h gelten, im engen Olttal 70 –, A1 mit der Autobahnlücke zwischen Holdea und Margina (DN68A) nach
   Timișoara, über Arad und die Grenze bei Nădlac, M43 und M5 nach Budapest, M1/A4 nach Wien), ab Nürnberg wieder
   eine (Würzburg, Frankfurt, A3 nach Köln, A4/E40 an Lüttich vorbei nach Brüssel, E40/A18/A16 nach Calais).
   In Wien: **Donau** über Linz, Passau und Regensburg (1.375 km bis Calais, 100 km kürzer, vier Etappen bis Nürnberg,
@@ -258,18 +259,27 @@ sich ohne Codeänderung ergänzen.
   gelesen.
 - **Zeitraffer und gespeicherte Zeiten** (v0.7.0: Faktor 12 → 10, „Etappen etwas kurz“): Zeiten sind echte Sekunden
   bei `time.time_scale`; dieselbe Fahrt (gleicher Schnitt) dauert mit einem anderen Faktor anders lange. Die Datei
-  trägt daher ihren Faktor (fehlt er, Version ≤ 2: 12), und `load_boards()` rechnet um, sobald er nicht zur
-  Konfiguration passt – einmal, in beide Richtungen (auch nach einem `time_scale`-Override in `game_config.json`):
-  - echte Einträge: `t' = (t − fixed_s) · f_Datei / f_neu + fixed_s` auf 1/100 s (`fixed_s` = Fährzeit einer
+  trägt daher ihren Faktor (fehlt er, Version ≤ 2: 12) und jeder Eintrag seinen eigenen (`ts`, *QA v0.7.0*: v0.6.0
+  schreibt die Datei als Version 2 ohne Faktor, behält aber unbekannte Felder der Einträge – ohne Stempel wurden die
+  schon umgerechneten Zeiten nach einem Abstecher zu v0.6.0 noch einmal umgerechnet, × 1,44). `load_boards()` rechnet
+  jeden Eintrag um, dessen Faktor (sein `ts`, sonst der der Datei) nicht zur Konfiguration passt – einmal, in beide
+  Richtungen (auch nach einem `time_scale`-Override in `game_config.json`):
+  - echte Einträge: `t' = (t − fixed_s) · f_Eintrag / f_neu + fixed_s` auf 1/100 s (`fixed_s` = Fährzeit einer
     Rennliste aus `board_profile`, sonst 0) – Schnitt (`avg_kmh`), Name, Fahrzeug, Wetter, Datum und Reihenfolge
-    bleiben, von 12 auf 10 werden die Zeiten × 1,2;
-  - Starteinträge werden verworfen und neu erzeugt (wie bei einer Neuinstallation; eine geleerte Liste bleibt leer);
-  - eine Datei von vor v0.7.0 (Version ≤ 2): die Etappenlisten so, die **Rennlisten** werden archiviert und beginnen
-    neu mit frischen Starteinträgen – Tank-Übernahme, 8-h-Pause und Zeitraffer ändern die Rennzeiten;
-  - vorher wird die Datei einmal kopiert: `leaderboards.json.v06` (Version ≤ 2) bzw. `leaderboards.json.f<Faktor>`
-    (z. B. `.f10`, Version 3 mit anderem Faktor); eine vorhandene Kopie wird nie überschrieben. Danach wird mit dem
-    aktuellen Faktor gespeichert, ein zweites Laden ändert nichts. Das Log meldet die Umrechnung
-    (`LeaderboardStore.conversion_note`). Tests: `test_v06_file_converted_once`,
+    der eigenen Einträge bleiben, von 12 auf 10 werden die Zeiten × 1,2;
+  - Starteinträge eines anderen Faktors werden verworfen und neu erzeugt (wie bei einer Neuinstallation; eine
+    geleerte Liste bleibt leer). Sie können sich dabei zwischen die eigenen Einträge schieben: Im Tutorial
+    (Pflicht-Tankstopp) wird der Tankstopp eines echten Eintrags mit × 1,2 skaliert, der eines Starteintrags bleibt
+    `seed_fuel_stop_s` (35 s);
+  - eine Datei von vor v0.7.0 (Version ≤ 2): die Etappenlisten so, die **Renneinträge ohne Stempel** (mit v0.6.0
+    gefahren) werden archiviert – Tank-Übernahme, 8-h-Pause und Zeitraffer ändern die Rennzeiten; eine Rennliste ohne
+    echte Einträge beginnt neu mit frischen Starteinträgen. Renneinträge mit Stempel (mit v0.7.0 gefahren, ein
+    Abstecher zu v0.6.0 dazwischen) bleiben;
+  - vorher wird die Datei kopiert: `leaderboards.json.v06` (Version ≤ 2) bzw. `leaderboards.json.f<Faktor>`
+    (z. B. `.f10`, Version 3 mit anderem Faktor); ist der Name schon vergeben (eine zweite Umrechnung), `.v06.2`,
+    `.v06.3` … – eine vorhandene Kopie wird nie überschrieben. Danach wird mit dem aktuellen Faktor gespeichert, ein
+    zweites Laden ändert nichts. Das Log meldet die Umrechnung (`LeaderboardStore.conversion_note`). Tests:
+    `test_v06_file_converted_once`, `test_round_trip_through_v06_keeps_converted_times`,
     `test_time_scale_override_converts_both_ways`.
 
 ## Spielstand (`SaveGame`)
@@ -286,6 +296,12 @@ Etappenergebnis (`pending_result`) ebenso; der nächste Start (`world_minutes`) 
 Seit v0.7.0 hat der Rennstand `fuel_l` – die Liter, die in die nächste Etappe mitgehen (Tank im Ziel der letzten
 Etappe, über die Fähre unverändert); die Legs speichern `fuel_start_l` / `fuel_end_l`. Ein Spielstand aus v0.6.0
 hat das Feld nicht und bekommt −1 (unbekannt): seine nächste Etappe startet einmal voll, danach gilt die Übernahme.
+Seine bis dahin gefahrenen Etappen bleiben markiert (`legacy_legs`, gespeichert): Sie liefen nach den Regeln von
+v0.6.0 (voller Tank bei jedem Start, 12 h Pause) – genau deshalb wurden die Rennlisten von v0.6.0 archiviert. Ein
+solches Rennen kommt nicht in die neue Rennliste: Das Rennergebnis zeigt Gesamtzeit und Liste ohne Namenseingabe und
+sagt „Rennen mit 2 Etappen nach den Regeln von v0.6.0 – keine Wertung in der neuen Rennliste“ (*QA v0.7.0*: vorher
+landete es dort auf Platz 1). Das Etappenergebnis eines solchen Spielstands nennt die Pause, die v0.6.0 gerechnet hat
+(„Nächster Start (12 h Pause)“ – `ResultScreen.next_start_caption` mit dem Rennen).
 
 ## Karte (`data/map/europe_map.json`)
 
@@ -492,7 +508,7 @@ Radar = Radarfallen vorwärts/rückwärts, Tank = Tankstellen vorwärts/rückwä
 | Kaunas – Riga (`kaunas_riga`) | A8 · A10 (LT) · A7 (LV) | 255 | LT → LV | 130 / 0 | 3/3 | 3/3 | – | 0,95 |
 | Rostock – Kiel (`rostock_kiel`) | A20 · A21 | 210 | DE | 210 / 140 | 2/2 | 3/3 | – | 0,97 |
 | Wien – Linz (`wien_linz`) | A1 · A7 | 185 | AT | 185 / 0 | 3/3 | 3/3 | – | 1,25 |
-| Linz – Passau (`linz_passau`) | A7 · A25 · A8 · A3 | 115 | AT → DE | 115 / 0 | 2/2 | 2/2 | – | 1,12 |
+| Linz – Passau (`linz_passau`) | A7 · A1 · A25 · A8 · A3 | 115 | AT → DE | 115 / 0 | 2/2 | 2/2 | – | 1,12 |
 | Passau – Regensburg (`passau_regensburg`) | A3 | 120 | DE | 120 / 60 | 1/2 | 2/2 | – | 1,14 |
 | Regensburg – Nürnberg (`regensburg_nuernberg`) | A3 | 105 | DE | 105 / 35 | 1/2 | 2/2 | – | 1,20 |
 | Nürnberg – Fulda (`nuernberg_fulda`) | A3 · A7 | 205 | DE | 205 / 90 | 3/3 | 3/3 | – | 1,10 |

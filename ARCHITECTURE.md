@@ -267,7 +267,8 @@ in der echten Rennszene (Autopilot, Titelmusik, Effekte stumm, nichts wird gespe
 
 **Rennstand** (`SaveGame`): `{race_id, vehicle, start_hour, current_city, waypoint_index, legs[{kind, id, from, to,
 time_s, avg_kmh, weather, start_world_minutes, end_world_minutes, fuel_start_l, fuel_end_l}], total_time_s,
-world_minutes, route[], seed, fuel_l, time_scale}` (`RaceState.VERSION` 2, beide Felder seit v0.7.0). `fuel_l` = Tank
+world_minutes, route[], seed, fuel_l, time_scale, legacy_legs}` (`RaceState.VERSION` 2, die drei Felder seit v0.7.0;
+`legacy_legs` = Etappen eines Spielstands aus v0.6.0, das Rennen kommt nicht in die Rennliste). `fuel_l` = Tank
 für die nächste Etappe (Tank im Ziel der letzten, über die Fähre unverändert; fehlt er, −1: die nächste Etappe startet
 einmal voll). `time_scale` = Faktor der Zeiten; fehlt er (bis v0.6.0: Faktor 12), rechnet
 `RaceState.from_dict(d, race, time_scale)` beim Fortsetzen um: Etappenzeiten und Strafen × alter/neuer Faktor (gleicher
@@ -276,9 +277,10 @@ Schnitt), Fähren fest, `world_minutes` bleibt (der nächste Start war schon ang
 
 **Bestenlisten** (`Leaderboards`): `top(key, vehicle_filter="", count=10)`, `record(key, filter)`,
 `would_rank(key, time_s, filter) → 1..10 | 0`, `submit(key, entry) → Rang`. Eintrag: `{name, time_s, avg_kmh,
-vehicle, weather, start_hour, daytime, date, route?}`. Datei `{"version": 3, "time_scale": 10, "boards": {…}}`;
-Version 2 (ohne Faktor = 12) wird beim ersten Laden umgerechnet: Etappenlisten × 12/10 (gleicher Schnitt, neue
-Starteinträge), Rennlisten neu, Sicherung `leaderboards.json.v06` (docs/daten.md).
+vehicle, weather, start_hour, daytime, date, route?, ts}` (`ts` = Faktor der Zeit, seit v0.7.0). Datei
+`{"version": 3, "time_scale": 10, "boards": {…}}`; Version 2 (ohne Faktor = 12) wird beim ersten Laden umgerechnet:
+Etappeneinträge × 12/10 (gleicher Schnitt, neue Starteinträge), Renneinträge ohne `ts` archiviert, Sicherung
+`leaderboards.json.v06` (docs/daten.md).
 
 ## 11. Audio (`AudioManager`)
 

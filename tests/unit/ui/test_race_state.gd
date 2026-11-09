@@ -148,7 +148,7 @@ func test_save_round_trip() -> void:
 	s.apply_stage_result({"id": "a", "from": "kiel", "to": "hamburg"}, _result("a", "kiel", "hamburg", 123.4, s.world_minutes, 95.0), c)
 	var json := JSON.stringify(s.to_dict())
 	var back: Dictionary = JSON.parse_string(json)
-	for k in ["race_id", "vehicle", "start_hour", "current_city", "waypoint_index", "legs", "total_time_s", "world_minutes", "route", "seed", "time_scale"]:
+	for k in ["race_id", "vehicle", "start_hour", "current_city", "waypoint_index", "legs", "total_time_s", "world_minutes", "route", "seed", "time_scale", "legacy_legs"]:
 		assert_true(back.has(k), "Schlüssel " + k)
 	assert_eq(int(back["version"]), RaceState.VERSION, "Version")
 	var r := RaceState.from_dict(back, RACE, _ts())
@@ -162,6 +162,7 @@ func test_save_round_trip() -> void:
 	assert_eq(r.stage_seed("x"), s.stage_seed("x"), "deterministischer Etappen-Seed")
 	assert_near(r.time_scale, _ts(), 0.0001, "Faktor gespeichert, nichts umgerechnet")
 	assert_near(float(r.legs[0]["time_s"]), 123.4, 0.0001, "gleicher Faktor: Etappenzeit unverändert")
+	assert_eq(r.legacy_legs, 0, "Rennen von v0.7.0: keine Etappen nach alten Regeln")
 
 
 ## v0.7.0: time-lapse factor 10 instead of 12. A race saved by v0.6.0 (no "time_scale" = factor 12) continues with its
@@ -186,6 +187,13 @@ func test_saved_race_converted_to_new_time_scale() -> void:
 	var r := RaceState.from_dict(d, race, 10.0)
 	assert_near(r.time_scale, 10.0, 0.0001, "umgerechnet auf Faktor 10")
 	assert_eq(r.fuel_l, -1.0, "Spielstand aus v0.6.0 ohne Tank: die nächste Etappe startet einmal mit eigener Füllung")
+	# QA v0.7.0: its stage ran under the rules of v0.6.0 (full tank, 12 h pause) – marked, so the race stays off the
+	# new race board; the mark survives saving and further stages
+	assert_eq(r.legacy_legs, 1, "eine Etappe nach den Regeln von v0.6.0")
+	assert_eq(RaceState.from_dict(r.to_dict(), race, 10.0).legacy_legs, 1, "Markierung gespeichert")
+	var later := RaceState.from_dict(r.to_dict(), race, 10.0)
+	later.apply_stage_result({"id": "lk", "from": "luebeck", "to": "kiel"}, _result("lk", "luebeck", "kiel", 100.0, later.world_minutes, 80.0, 10.0), cfg())
+	assert_eq(RaceState.from_dict(later.to_dict(), race, 10.0).legacy_legs, 1, "neue Etappen ändern die Markierung nicht")
 	assert_near(float(r.legs[1]["time_s"]), 360.0, 0.001, "Etappenzeit × 12/10")
 	assert_near(float(r.legs[1]["penalty_s"]), 36.0, 0.001, "Strafzeit × 12/10")
 	assert_near(float(r.legs[1]["avg_kmh"]), float(res["avg_speed_kmh"]), 0.0001, "Etappenschnitt unverändert")

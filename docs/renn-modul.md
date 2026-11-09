@@ -535,9 +535,12 @@ Anfang/Ende, geblitzt, Verfolgung, entkommen, „Führerschein, bitte!“, „Gu
 Landessprache), City Limits (4 km vorher angekündigt), Tunnelname, LOS, ZIEL, Wetterhinweis beim Countdown (Regen,
 Schnee), Tutorial-Hinweise (§9a); im Rennen seit v0.7.0 der übernommene Tank beim Countdown
 (`SessionRules.carry_messages`) und bei der 5-km-Ansage der letzten Tankstelle „Letzte Tankstelle vor dem Ziel – der
-Tank geht in die nächste Etappe mit“ (nicht auf der letzten Etappe des Rennens, Setup `last_stage`).
+Tank geht in die nächste Etappe mit“ (nicht auf der letzten Etappe des Rennens, Setup `last_stage`; mit dem
+Tutorial-Trainer erst hinter der Tankstelle, „Das war die letzte Tankstelle …“ – sonst kamen dort drei Meldungen auf
+einmal). Die erste Tankstelle nennen Startansage und Countdown auf 0,1 km („in 8,5 km“) wie Etappenbildschirm und HUD.
 - **Tank aus der letzten Etappe** (v0.7.0, gameplay.md „Tank im Rennen“): Setup `start_fuel_l` ≥ 0 ersetzt die
-  Startfüllung der Etappe. `FuelSystem.start_check` entscheidet beim Aufbau: reicht der Tank nicht einmal mit
+  Startfüllung der Etappe. `FuelSystem.start_check` entscheidet beim Aufbau (das Urteil „reicht“ / „höchstens X km/h“
+  bis zur ersten Tankstelle selbst): reicht der Tank nicht einmal mit
   `fuel.lane_trigger_speed_kmh` bis zur ersten offenen Tankspur, kommt der Abschleppdienst vor dem Start
   (`_tow_before_start`: `fuel.tow_penalty_s` in `penalty_time` und auf der Weltuhr, Tank auf
   `fuel.tow_refill_fraction`, `stats.tows` + 1, Ergebnis `start_towed`). Der Countdown nennt Liter und Urteil
@@ -559,7 +562,9 @@ Design: „Kiel – Hamburg: alternativlose Startetappe, gleichzeitig Tutorial.�
 Tankstopp gehört dazu; `StagePlan.tutorial`, `FuelSystem`) – nur in Fahrtrichtung Kiel → Hamburg, die Rückrichtung
 (Einzeletappe) ist seit dem Review v0.5.0 eine normale Etappe. Auf dieser Etappe (oder mit `--tutorial`) erzeugt die
 Sitzung einen `TutorialCoach`, der jedes Thema einmal als kurzen „Tipp: …“ (HUD-Meldung, `render.tutorial_hint_s`
-= 6 s) zeigt, nacheinander mit 0,6 s Pause; dringende Themen kommen sofort, weil die Situation gerade eintritt:
+= 6 s) zeigt, nacheinander mit 0,6 s Pause; dringende Themen kommen sofort, weil die Situation gerade eintritt –
+untereinander in ihrer Reihenfolge und erst nach den 1,2 s, die „LOS!“ allein steht (`hold`; *QA v0.7.0*: der
+Blinker-Hinweis des Startverkehrs kam sonst mit „LOS!“ und schob den knappen Tank um einen Hinweis nach hinten):
 
 | Auslöser | Hinweis (Zahlen aus der Konfiguration) |
 |---|---|

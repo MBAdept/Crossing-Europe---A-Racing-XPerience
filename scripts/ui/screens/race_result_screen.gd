@@ -9,6 +9,9 @@ extends UiScreen
 ## The save game is cleared only when the result is safe: right away without a placement, otherwise
 ## after the name entry – closing the game at the name prompt keeps "Rennen fortsetzen", which shows
 ## this screen again.
+## A race continued from a save of v0.6.0 (RaceState.legacy_legs: stages under the old rules – a full tank at every
+## start, 12 h pause) gets no name entry: its total is shown with the board, but it does not go onto the race board,
+## whose v0.6.0 entries were archived because such totals do not compare (QA v0.7.0).
 
 const LEG_ROW_H := 28.0
 const LEG_FS := 18
@@ -47,6 +50,11 @@ func build() -> void:
 	route_l.max_lines_visible = 2   # long tours: the table below lists every leg anyway
 	route_l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	left.add_child(route_l)
+	var legacy := race.legacy_legs > 0
+	if legacy:
+		var note := UiKit.label(legacy_note(race.legacy_legs), UiTheme.F.BODY_MEDIUM, 18, UiTheme.WARN)
+		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		left.add_child(note)
 	var head := _LegTable.new()
 	head.legs = race.legs.duplicate()
 	head.header_only = true
@@ -67,8 +75,8 @@ func build() -> void:
 	_done = UiKit.button(tr("Hauptmenü"), 28, HORIZONTAL_ALIGNMENT_CENTER)
 	_done.pressed.connect(GameFlow.leave_race_to_title)
 	UiKit.place(self, _done, Rect2(700, 614, 540, 50))
-	var rank := UiData.would_rank(_board, race.total_time_s, "") if race.total_time_s > 0.0 else 0
-	var rank_v := UiData.would_rank(_board, race.total_time_s, race.vehicle) if race.total_time_s > 0.0 and race.vehicle != "" else 0
+	var rank := UiData.would_rank(_board, race.total_time_s, "") if race.total_time_s > 0.0 and not legacy else 0
+	var rank_v := UiData.would_rank(_board, race.total_time_s, race.vehicle) if race.total_time_s > 0.0 and race.vehicle != "" and not legacy else 0
 	if rank > 0 or rank_v > 0:
 		_entry = {"time_s": race.total_time_s, "avg_kmh": race.average_kmh(ts), "vehicle": race.vehicle,
 			"weather": str(race.stage_legs()[0].get("weather", "normal")) if race.stage_count() > 0 else "normal",
@@ -93,6 +101,13 @@ func build() -> void:
 		default_focus = _done
 		_update_hints.call_deferred()
 	UiKit.sound("finish")
+
+
+## Line on the result of a race continued from v0.6.0: "Rennen mit 3 Etappen nach den Regeln von v0.6.0 – keine
+## Wertung in der neuen Rennliste".
+static func legacy_note(legs: int) -> String:
+	var what := UiFormat.t("1 Etappe") if legs == 1 else UiFormat.t("%d Etappen") % legs
+	return UiFormat.t("Rennen mit %s nach den Regeln von v0.6.0 – keine Wertung in der neuen Rennliste") % what
 
 
 func _on_name(player_name: String) -> void:

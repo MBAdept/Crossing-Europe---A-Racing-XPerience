@@ -9,7 +9,9 @@ extends RefCounted
 ## render.tutorial_hint_s seconds apart, for Hud.show_message. Urgent topics (fuel lane, refuelling, radar,
 ## chase, City Limits, curve) jump the queue, because the situation they explain is happening right now – since
 ## v0.7.0 also the low tank at the start (fuel_low): the first station is only 15 km away, the hint must come
-## before the control hints, not after the fuel lane.
+## before the control hints, not after the fuel lane. Urgent hints keep their order among themselves (a later one
+## queues behind an urgent hint still waiting) and respect hold() – QA v0.7.0: the blinker hint of the start traffic
+## came with "LOS!" and pushed the low tank back by a whole hint.
 ## The texts use the configured numbers.
 ## The control hints follow the active input: with a gamepad (InputMode.gamepad at setup, e.g. on the
 ## Steam Deck) only the gamepad hints (stick or D-pad, triggers; then Start = pause and A / X), otherwise keyboard
@@ -25,7 +27,9 @@ var gamepad := false               ## gamepad is the active input: control hints
 
 var _cfg: Dictionary = {}
 var _queue: Array[String] = []
+var _urgent_n := 0                 ## urgent hints at the front of _queue (in the order they were triggered)
 var _wait := 0.0
+var _hold := 0.0                   ## rest of the hold() time: no hint before it ends, not even an urgent one
 
 
 func setup(config: Dictionary) -> void:
@@ -34,7 +38,9 @@ func setup(config: Dictionary) -> void:
 	gamepad = InputMode.gamepad
 	shown.clear()
 	_queue.clear()
+	_urgent_n = 0
 	_wait = 0.0
+	_hold = 0.0
 
 
 func _f(path: String, default: float) -> float:
@@ -51,25 +57,30 @@ func trigger(topic: String, args: Dictionary = {}) -> int:
 		return 0
 	shown.append(topic)
 	if URGENT.has(topic):
-		for i in range(texts.size() - 1, -1, -1):
-			_queue.push_front(texts[i])
-		_wait = minf(_wait, 0.0)
+		# before the other hints, behind the urgent ones still waiting; at once, but not within a hold()
+		for i in texts.size():
+			_queue.insert(_urgent_n + i, texts[i])
+		_urgent_n += texts.size()
+		_wait = minf(_wait, maxf(_hold, 0.0))
 	else:
 		_queue.append_array(texts)
 	return texts.size()
 
 
-## Keeps the next queued hint back for at least `seconds` (urgent topics still come at once).
+## Keeps every hint back for at least `seconds` – urgent topics too (they come right when it ends).
 func hold(seconds: float) -> void:
 	_wait = maxf(_wait, seconds)
+	_hold = maxf(_hold, seconds)
 
 
 ## Advances the timer; returns the hint to show now or "" (at most one per call).
 func update(dt: float) -> String:
 	_wait -= dt
+	_hold -= dt
 	if _queue.is_empty() or _wait > 0.0:
 		return ""
 	_wait = hint_s + gap_s
+	_urgent_n = maxi(0, _urgent_n - 1)
 	return _queue.pop_front()
 
 
@@ -93,7 +104,7 @@ func hints_for(topic: String, args: Dictionary = {}) -> Array[String]:
 			var pct := int(round(float(args.get("percent", 35.0))))
 			var km := float(args.get("km", -1.0))
 			if km > 0.0:
-				out.append(tr("Tipp: Nur %d %% im Tank – in %d km kommt die Tankstelle, dort nachtanken!") % [pct, roundi(km)])
+				out.append(tr("Tipp: Nur %d %% im Tank – in %s km kommt die Tankstelle, dort nachtanken!") % [pct, UiFormat.number(km, 1)])
 			else:
 				out.append(tr("Tipp: Nur %d %% im Tank – unterwegs an der Tankstelle nachtanken!") % pct)
 		"fuel_hud":

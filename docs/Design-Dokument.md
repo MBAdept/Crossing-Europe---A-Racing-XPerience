@@ -151,7 +151,7 @@ Bei einem Rennen legt der Spieler die Startuhrzeit fest; jede weitere Etappe beg
 
 - Die 8-Stunden-Pause zählt nicht zur Gesamtzeit.
 - Die Uhr läuft im Zeitraffer mit: 12 Spielminuten entsprechen 2 Stunden *(seit v0.7.0, vorher 10 Spielminuten)*. Dämmerung, Nacht und Sonnenaufgang sind während einer Etappe sichtbar.
-- *(seit v0.7.0)* Durch die Pause rückt die Startzeit von Etappe zu Etappe um 8 Stunden plus die Fahrzeit weiter und wandert in etwa zweieinhalb Etappen einmal um die Uhr: Wer Kiel – Nürnberg um 8 Uhr beginnt, startet die Etappen gegen 8, 17, 2, 11 und 20 Uhr. Die gewählte Startzeit wirkt so auf das ganze Rennen.
+- *(seit v0.7.0)* Durch die Pause rückt die Startzeit von Etappe zu Etappe um 8 Stunden plus die Fahrzeit weiter und wandert in etwa zweieinhalb Etappen einmal um die Uhr: Wer Kiel – Nürnberg um 8 Uhr beginnt, startet die Etappen gegen 8, 17, 2, 11 und 21 Uhr. Die gewählte Startzeit wirkt so auf das ganze Rennen.
 - Einzelne Etappe außerhalb eines Rennens: Uhrzeit und Wetter frei wählbar.
 - Wetter: Normal, Regen, Schnee. Es wird vor der Etappe angezeigt und senkt Höchstgeschwindigkeit und Sicht. *(seit v0.5.0)* Außerdem senkt es die Haftung (siehe Fahrzeug und Steuerung) und das Tempo des Verkehrs (siehe Verkehr); bei Regen und Schnee sagt ein Hinweis im Countdown, was das Wetter bewirkt.
 - Nacht: schlechtere Sicht, dafür weniger Verkehr (siehe Verkehr). *(seit v0.5.0)* Schnee hellt die Nacht auf: Die Sicht sinkt dann nachts weniger stark, damit man auch mit dem doppelten Bremsweg rechtzeitig vor langsamem Verkehr anhalten kann.
@@ -219,7 +219,7 @@ Vor jeder Etappe zeigt ein Bildschirm die Strecke auf der Karte, das Wetter, den
 - Jeder Eintrag speichert Name, Zeit, Durchschnittstempo, Fahrzeugtyp, Wetter und Tageszeit. Wetter und Tageszeit erscheinen als kleines Symbol neben der Zeit.
 - Wer einen Platz in den Top 10 erreicht, gibt am Etappenende seinen Namen ein.
 - Speicherung lokal als JSON.
-- *(seit v0.7.0)* Gespeicherte Etappenzeiten werden auf den neuen Zeitraffer umgerechnet: gleicher Schnitt, Zeit × 1,2, Namen und Reihenfolge bleiben. Die Rennlisten beginnen neu, weil Zeitraffer, Pause und Tank-Übernahme die Rennzeiten verändern; die alten Listen bleiben als Sicherung erhalten.
+- *(seit v0.7.0)* Gespeicherte Etappenzeiten werden auf den neuen Zeitraffer umgerechnet: gleicher Schnitt, Zeit × 1,2, die Namen und die Reihenfolge der eigenen Einträge bleiben; die neu berechneten Starteinträge können sich dazwischenschieben. Die Rennlisten beginnen neu, weil Zeitraffer, Pause und Tank-Übernahme die Rennzeiten verändern; die alten Listen bleiben als Sicherung erhalten. Aus demselben Grund kommt ein Rennen, das mit v0.6.0 begonnen und mit v0.7.0 fortgesetzt wird, nicht in die neue Rennliste.
 
 ## Zentrale Konfiguration und Prototyp-Plan
 

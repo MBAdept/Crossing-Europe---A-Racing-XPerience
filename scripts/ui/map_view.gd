@@ -301,20 +301,27 @@ func _draw_cities() -> void:
 			draw_arc(cp, 7.0 + ph * 16.0, 0.0, TAU, 32, Color(UiTheme.ACCENT, 1.0 - ph), 2.5, true)
 			draw_circle(cp, 6.5, UiTheme.ACCENT)
 			draw_circle(cp, 3.0, Color.WHITE)
-	# labels (important first, greedy without overlaps)
+	# labels (important first, greedy without overlaps): the current city, the destinations of the offered legs (QA
+	# v0.7.0: at the choice in Wien the alternative's Prag had no label), then the other important cities
 	var placed: Array[Rect2] = []
 	var order: Array = []
 	if current_city != "":
 		order.append(current_city)
+	for h in highlight:
+		var hto := str(h.get("to", ""))
+		if str(h.get("style", "")) != "planned" and hto != current_city and not order.has(hto):
+			order.append(hto)
 	for id in important:
-		if id != current_city:
+		if id != current_city and not order.has(id):
 			order.append(id)
 	if show_all_labels:
 		for id in cities:
 			if not important.has(id) and not bool(cities[id].get("dev", false)):
 				order.append(id)
 	# the dots of the important cities: a label keeps off the other ones (v0.7.0 – on the small map of the tutorial stage
-	# Kiel's label covered Hamburg's dot); if no place is free of them, labels only avoid each other as before
+	# Kiel's label covered Hamburg's dot). Eight places around the dot; if none is free of them, only the current city is
+	# labelled anyway (avoiding the other labels) – any other city stays without a name rather than read one city off
+	# (QA v0.7.0: in the Danube corridor "Passau" stood on Regensburg's dot, "Regensburg" on Nürnberg's)
 	var dots := {}
 	for id in important:
 		var dp := _p(str(id))
@@ -329,9 +336,10 @@ func _draw_cities() -> void:
 		var fs := 18 if is_imp else 14
 		var font := _font_bold if is_imp else _font
 		var sz := font.get_string_size(city_label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs)
-		var cands := [Vector2(9, -6), Vector2(-9 - sz.x, -6), Vector2(-sz.x * 0.5, -12), Vector2(-sz.x * 0.5, sz.y + 6), Vector2(9, sz.y * 0.6)]
+		var cands := [Vector2(9, -6), Vector2(-9 - sz.x, -6), Vector2(-sz.x * 0.5, -12), Vector2(-sz.x * 0.5, sz.y + 6), Vector2(9, sz.y * 0.6),
+				Vector2(-9 - sz.x, sz.y * 0.6), Vector2(9, -sz.y * 0.7), Vector2(-9 - sz.x, -sz.y * 0.7)]
 		var spot := _label_spot(p, sz, cands, placed, dots, id)
-		if spot == Vector2.INF:
+		if spot == Vector2.INF and str(id) == current_city:
 			spot = _label_spot(p, sz, cands, placed, {}, id)
 		if spot == Vector2.INF:
 			continue

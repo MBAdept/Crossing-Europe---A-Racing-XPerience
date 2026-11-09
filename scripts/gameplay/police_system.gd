@@ -27,9 +27,9 @@ extends RefCounted
 ##    after the refuel, so the stop always adds its full time
 ##  * during the chase traffic is reduced by 80 % (traffic_factor())
 ##  * a chase can continue into the City Limits; no radar zones there (StagePlan guarantees that). The
-##    time limit police.catch_timeout_s (60 s, not in the design) is long enough for a chase that started in
-##    the last radar zone before the City Limits (zone end >= 30 km before them) to run into them at
-##    200–219 km/h
+##    time limit police.catch_timeout_s (72 s since v0.7.0 = 60 s × 12 / time_scale, not in the design: 42 km at
+##    210 km/h as before) is long enough for a chase that started in the last radar zone before the City Limits
+##    (zone end >= 30 km before them) to run into them at 205–219 km/h
 ##  * visuals (police_car_offset_m()): during the chase the police car stays behind the camera; on pull_over
 ##    it overtakes from police.overtake_from_m behind to police.pull_over_offset_m in front within
 ##    police.overtake_s (the race module draws it one lane beside the player while passing)

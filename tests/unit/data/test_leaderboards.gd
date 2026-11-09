@@ -45,11 +45,14 @@ func _path(name: String) -> String:
 	return p
 
 
-## The file with its temp/backup/corrupt companions and the backups of a time-lapse conversion.
+## The file with its temp/backup/corrupt companions and the backups of a time-lapse conversion (".2", ".3" … when a
+## backup of that name already existed).
 func _remove(p: String) -> void:
 	JsonFile.remove_all(p)
 	for suffix in [LeaderboardStore.LEGACY_BACKUP_SUFFIX, ".f10", ".f12"]:
 		JsonFile.remove_all(p + suffix)
+		for n in range(2, 5):
+			JsonFile.remove_all("%s%s.%d" % [p, suffix, n])
 
 
 func _names(list: Array) -> Array[String]:
@@ -344,6 +347,53 @@ func test_v06_file_converted_once() -> void:
 	_assert_times_near(_times(s2.entries(stage)), _times(conv), "zweites Laden: gleiche Zeiten")
 	assert_eq(FileAccess.get_file_as_string(p), text, "Datei unverändert")
 	assert_eq(FileAccess.get_file_as_string(p + LeaderboardStore.LEGACY_BACKUP_SUFFIX), bak_text, "Sicherung unverändert")
+	_remove(p)
+
+
+## QA v0.7.0: a round trip v0.7.0 → v0.6.0 → v0.7.0. v0.6.0 rewrites the file as version 2 without a factor but keeps
+## the entries' fields – the stamp "ts" of every v0.7.0 entry survives. Back in v0.7.0 those stay as they are (before:
+## converted once more, × 1.44 in total), the stage entry v0.6.0 added is converted × 12/10, its race entry archived, the
+## race entry of v0.7.0 kept (before: dropped with the whole race board). The file of the round trip is kept as well
+## (".v06.2"; the first ".v06" stays as it was).
+func test_round_trip_through_v06_keeps_converted_times() -> void:
+	var n := NetworkTest.load_network(cfg())
+	var lengths := Callable(n, "board_length_km")
+	var profiles := Callable(n, "board_profile")
+	var stage := "stage:hamburg_hannover:fwd"
+	var race := "race:kiel_nuernberg"
+	var km := n.board_length_km(stage)
+	var race_km := n.board_length_km(race)
+	var p := _path("lb_roundtrip_v06.json")
+	_write(p, {"version": 2, "boards": {stage: [_real("Schnell", km, 200.0, "sportwagen", 12.0)],
+		race: [_real("Rennfahrer", race_km, 170.0, "limousine", 12.0)]}})
+	var s := _store(p, lengths, {}, profiles)
+	s.load_boards()
+	var schnell := _find(s.entries(stage), "Schnell")
+	assert_near(float(schnell["ts"]), _ts(), 0.0001, "umgerechneter Eintrag trägt seinen Faktor")
+	s.submit(race, _real("Prüfer", race_km, 160.0, "kombi", _ts()))
+	var pruefer := float(_find(s.entries(race), "Prüfer")["time_s"])
+	var first_bak := FileAccess.get_file_as_string(p + LeaderboardStore.LEGACY_BACKUP_SUFFIX)
+	# v0.6.0 on the same data: keeps the entries with their fields, adds its own, writes version 2 without a factor
+	var raw: Dictionary = JsonFile.read(p)
+	var b: Dictionary = raw["boards"]
+	(b[stage] as Array).append(_real("Alt", km, 190.0, "kompakt", 12.0))
+	(b[race] as Array).append(_real("AltRennen", race_km, 150.0, "kompakt", 12.0))
+	_write(p, {"version": 2, "boards": b})
+	var back := _store(p, lengths, {}, profiles)
+	back.load_boards()
+	assert_ne_str(back.conversion_note, "", "Datei aus v0.6.0: umgerechnet")
+	assert_near(float(_find(back.entries(stage), "Schnell")["time_s"]), float(schnell["time_s"]), 0.001, "umgerechnete Etappenzeit bleibt (nicht noch einmal × 1,2)")
+	var alt := _find(back.entries(stage), "Alt")
+	assert_near(float(alt["time_s"]), float(_real("Alt", km, 190.0, "kompakt", 12.0)["time_s"]) * 12.0 / _ts(), 0.01, "neuer Eintrag aus v0.6.0: × 12/10")
+	assert_near(float(alt["avg_kmh"]), 190.0, 0.0001, "sein Schnitt bleibt")
+	assert_near(float(_find(back.entries(race), "Prüfer")["time_s"]), pruefer, 0.001, "Renneintrag von v0.7.0 bleibt")
+	assert_true(_find(back.entries(race), "AltRennen").is_empty(), "Renneintrag von v0.6.0 archiviert")
+	var bak2: Variant = JsonFile.read(p + LeaderboardStore.LEGACY_BACKUP_SUFFIX + ".2")
+	assert_true(bak2 is Dictionary and not _find(bak2["boards"][race], "AltRennen").is_empty(), "Datei der Rundreise als .v06.2 aufbewahrt")
+	assert_eq(FileAccess.get_file_as_string(p + LeaderboardStore.LEGACY_BACKUP_SUFFIX), first_bak, "erste Sicherung .v06 unverändert")
+	var again := _store(p, lengths, {}, profiles)
+	again.load_boards()
+	assert_eq(again.conversion_note, "", "danach: nichts mehr umgerechnet")
 	_remove(p)
 
 

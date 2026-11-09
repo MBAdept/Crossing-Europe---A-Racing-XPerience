@@ -13,6 +13,8 @@ var info: Dictionary = {}          ## UiData.route_option(): {legs, continuation
 var summary: Dictionary = {}       ## figures shown: route totals, or the next stage's summary
 var dest := ""
 var via := ""                      ## subtitle ("Route über …", "direkt nach …", ferry name)
+var via_names: Array[String] = []  ## the cities of "Route über …" (the card shortens the line to its width)
+var via_target := ""
 var next_stage := ""               ## small line: next stage, its length, stages to the target
 var km_text := ""
 var target_text := ""
@@ -37,10 +39,10 @@ func _init(p_leg: Dictionary = {}, p_info: Dictionary = {}) -> void:
 		if not info.is_empty():
 			summary = info.get("totals", {})
 			var target := str(info.get("target", ""))
-			var names: Array[String] = []
 			for c in info.get("via", []):
-				names.append(UiData.city_name(str(c)))
-			via = UiFormat.route_via(names, UiData.city_name(target))
+				via_names.append(UiData.city_name(str(c)))
+			via_target = UiData.city_name(target)
+			via = UiFormat.route_via(via_names, via_target)
 			km_text = UiFormat.km(float(info.get("km", summary.get("km", 0.0))))
 			target_text = tr("bis %s") % UiData.city_name(target)
 			var n := int(summary.get("stages", 1))
@@ -71,7 +73,10 @@ func _draw() -> void:
 		draw_string(f_bold, Vector2(x, 104), tr("Feste Überfahrtszeit, +%d h Weltzeit – kein Tanken, kein Radar") % int(ferry.get("world_hours", 0)), HORIZONTAL_ALIGNMENT_LEFT, size.x - 50, 20, UiTheme.ACCENT_2)
 		return
 	draw_string(mono, Vector2(0, 42), km_text, HORIZONTAL_ALIGNMENT_RIGHT, size.x - 24, 30, Color.WHITE)
-	draw_string(f_body, Vector2(x, 65), via, HORIZONTAL_ALIGNMENT_LEFT, size.x - x - 150.0, 19, UiTheme.ACCENT_2 if focused else UiTheme.TEXT)
+	# whole city names while they fit, then " › …" (QA v0.7.0: the long routes of Bukarest – Calais were cut mid-word)
+	var via_w := size.x - x - 150.0
+	var via_shown := UiFormat.route_via_fit(via_names, via_target, f_body, 19, via_w) if not via_names.is_empty() else via
+	draw_string(f_body, Vector2(x, 65), via_shown, HORIZONTAL_ALIGNMENT_LEFT, via_w, 19, UiTheme.ACCENT_2 if focused else UiTheme.TEXT)
 	if target_text != "":
 		draw_string(f_body, Vector2(0, 65), target_text, HORIZONTAL_ALIGNMENT_RIGHT, size.x - 24, 17, UiTheme.TEXT_DIM)
 	# countries (flag colours) on the right of the small line

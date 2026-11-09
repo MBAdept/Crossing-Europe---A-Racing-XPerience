@@ -436,8 +436,13 @@ Vertrag: [Individuelle Städte §3](staedte.md). Modul `tools/blender/cesprites/
 | `catedrala_timisoara` | Timișoara | 90,5 m | Mitropolitan-Kathedrale: Bänder aus rotem und gelbem Backstein, Blendnischen, Reihe grüner Glasurscheiben, elf Türme auf Sternsockeln, Dächer und Hauben aus grün glasierten Ziegeln mit gelben und roten Rauten (seit v0.7.0) |
 | `stadtpfarrkirche_sibiu` | Sibiu | 73,3 m | Evangelische Stadtpfarrkirche: graue gotische Hallenkirche mit Strebepfeilern, schmalerer Chor, Westturm mit Wehrgang, Helm mit vier Ecktürmchen aus glasierten Ziegeln (seit v0.7.0) |
 | `beffroi_calais` | Calais | 75 m | Rathaus im flämischen Neorenaissance-Stil: roter Backstein mit weißen Steinbändern, Treppengiebel, Schieferdächer mit Gauben, Belfried mit Uhren, Steinachteck, grüner Kupferhaube, Laterne und goldenem Drachen (seit v0.7.0) |
-| `atomium` | Brüssel | 102 m | neun Edelstahlkugeln (18 m) auf den Ecken und in der Mitte eines auf der Raumdiagonale stehenden Würfels, 20 Röhren, Mittelsäule, drei Zweibeine, Fensterband der oberen Kugel; nachts funkelnde Lichtpunkte (seit v0.7.0; die prozedurale Form `atomium` bleibt Ersatz) |
+| `atomium` | Brüssel | 102 m | neun Edelstahlkugeln (18 m) auf den Ecken und in der Mitte eines auf der Raumdiagonale stehenden Würfels, 20 Röhren, Mittelsäule, drei Zweibeine, Fensterband der oberen Kugel; nachts funkelnde Lichtpunkte (seit v0.7.0; die prozedurale Form `atomium` bleibt Ersatz – Abweichung von der Planung, siehe unten) |
 | `basilika_koekelberg` | Brüssel | 89 m | Art-déco-Basilika aus hellem Backstein, Lisenen, zwei Fronttürme mit grünen Helmen, grüne Rippenkuppel auf hohem Tambour (seit v0.7.0) |
+
+**Atomium – Abweichung von der Planung (v0.7.0):** Geplant war für das Atomium (wie für den Leuchtturm von Calais)
+nur die prozedurale Form. Das Sprite entstand trotzdem; es sieht bei Tag und Nacht richtig aus (QA v0.7.0) und
+bleibt deshalb, die Form `atomium` ist nur noch Ersatz. Zurück zur Planung: `landmarks/atomium` aus
+`assets/sprites/manifest.json` nehmen (spart 0,26 MB) – dann zeichnet die Laufzeit wieder die Form.
 
 Die ersten 15 sind Pflicht (`validate_manifest.py` verlangt sie: ein Winkel `c`, Ebenen `base` + `lights`,
 Tags `prop` + `landmark`, kein `mirror_left`, Breite/Länge/Höhe, Höhe ↔ gemessene Pixel). Neues

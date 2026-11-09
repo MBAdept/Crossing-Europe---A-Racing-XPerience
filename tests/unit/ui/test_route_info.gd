@@ -121,6 +121,39 @@ func test_via_cities_exclude_target() -> void:
 	assert_eq(UiFormat.route_via([], "Nürnberg"), "direkt nach Nürnberg", "direkt zum Ziel")
 
 
+## QA v0.7.0: the long routes of Bukarest – Calais were cut mid-word on the route card ("… › Köln › Brüss") – the line
+## keeps whole city names while they fit, then " › …".
+func test_route_via_fit_keeps_whole_names() -> void:
+	var font := ThemeDB.fallback_font
+	var names := ["Prag", "Nürnberg", "Würzburg", "Frankfurt", "Köln", "Brüssel"]
+	var full := UiFormat.route_via(names, "Calais")
+	var full_w := font.get_string_size(full, HORIZONTAL_ALIGNMENT_LEFT, -1, 19).x
+	assert_eq(UiFormat.route_via_fit(names, "Calais", font, 19, full_w + 1.0), full, "passt: ganze Zeile")
+	for frac: float in [0.9, 0.7, 0.5, 0.3]:
+		var w := full_w * frac
+		var fit := UiFormat.route_via_fit(names, "Calais", font, 19, w)
+		assert_true(fit.ends_with(" › …"), "gekürzt mit „ › …“: %s" % fit)
+		assert_true(font.get_string_size(fit, HORIZONTAL_ALIGNMENT_LEFT, -1, 19).x <= w, "passt in %.0f px: %s" % [w, fit])
+		var shown := fit.trim_prefix("Route über ").trim_suffix(" › …").split(" › ")
+		for i in shown.size():
+			assert_eq(shown[i], names[i], "ganze Namen in der Reihenfolge: %s" % fit)
+	assert_eq(UiFormat.route_via_fit([], "Calais", font, 19, 10.0), "direkt nach Calais", "direkt bleibt")
+
+
+## QA v0.7.0: Wien – Hamburg's seven stations did not fit into the race select's fact line ("…, Kasse…") – then the
+## count with the first and the last one; a short list stays complete.
+func test_race_select_facts_line() -> void:
+	var font := ThemeDB.fallback_font
+	var wps: Array[String] = ["Linz", "Passau", "Regensburg", "Nürnberg", "Fulda", "Kassel", "Hannover"]
+	var full := RaceSelectScreen.facts_line("Wien", "Hamburg", wps, font, 20, 5000.0)
+	assert_eq(full, "Start Wien  ·  Ziel Hamburg  ·  Pflichtstationen: Linz, Passau, Regensburg, Nürnberg, Fulda, Kassel, Hannover", "passt: alle")
+	var short := RaceSelectScreen.facts_line("Wien", "Hamburg", wps, font, 20, 300.0)
+	assert_eq(short, "Start Wien  ·  Ziel Hamburg  ·  7 Pflichtstationen (Linz … Hannover)", "zu lang: Anzahl, erste und letzte")
+	var one: Array[String] = ["Kassel"]
+	assert_eq(RaceSelectScreen.facts_line("Kiel", "Nürnberg", one, font, 20, 10.0), "Start Kiel  ·  Ziel Nürnberg  ·  Pflichtstationen: Kassel", "eine Station bleibt ausgeschrieben")
+	assert_eq(RaceSelectScreen.facts_line("Kiel", "Nürnberg", [] as Array[String], font, 20, 10.0), "Start Kiel  ·  Ziel Nürnberg", "ohne Stationen")
+
+
 ## Real network (GameData autoload, present in the test runner): at every first route choice of the
 ## visible races the card's number is the distance to the next target (next_options total_km) and the
 ## totals cover the option plus its continuation.

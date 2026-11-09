@@ -4,7 +4,7 @@ extends RefCounted
 ## Owner: data module.
 ##  * Board keys: "stage:<stage_id>:fwd|rev", "race:<race_id>".
 ##  * Entry: {name, time_s, avg_kmh, vehicle, weather, start_hour, daytime, date, route? (race boards),
-##    seeded? (true for generated default entries)}.
+##    seeded? (true for generated default entries), ts (time-lapse factor of time_s, since v0.7.0)}.
 ##  * Storage: per board one list sorted by time (ties: earlier entry first). With
 ##    leaderboard.store_per_vehicle every vehicle type keeps its own top `size` (so a filtered view is always
 ##    complete); otherwise only the overall top `size` is kept.
@@ -21,21 +21,27 @@ extends RefCounted
 ##  * File: {"version": 3, "time_scale": f, "boards": {key: [entries]}} written atomically (JsonFile); a corrupt file
 ##    is kept as "<path>.corrupt" and the store starts empty (or from the ".bak" copy).
 ##  * Time-lapse factor (v0.7.0, docs/daten.md): times are real seconds at time.time_scale, so the file stores the
-##    factor they were measured with (version <= 2: LEGACY_TIME_SCALE, factor 12). load_boards() converts a file with
-##    another factor once – in both directions, e.g. after a time_scale override in game_config.json: real entries
-##    t' = (t - fixed_s) * f_file / time_scale + fixed_s (fixed_s = the ferry time of a race board, else 0) – average
-##    speed, names and order stay; seeded entries are generated anew (as on a fresh install). A file from before
-##    v0.7.0 (version <= 2) keeps its stage boards that way, but its race boards are archived and start afresh (fuel
-##    carry-over, the 8-h pause and the factor change race totals). Before converting, the file is copied once to
-##    "<path>.v06" (version <= 2) or "<path>.f<factor>" (e.g. leaderboards.json.f10) and then saved with the current
-##    factor, so a second load changes nothing.
+##    factor they were measured with (version <= 2: LEGACY_TIME_SCALE, factor 12) and every entry its own ("ts" –
+##    QA v0.7.0: v0.6.0 rewrites the file as version 2 without a factor but keeps unknown entry fields, so a stamp
+##    survives a round trip v0.7.0 → v0.6.0 → v0.7.0; without it the converted times were converted again, × 1.44).
+##    load_boards() converts every entry whose factor (its "ts", else the file's) is not time.time_scale – in both
+##    directions, e.g. after a time_scale override in game_config.json: real entries
+##    t' = (t - fixed_s) * f_entry / time_scale + fixed_s (fixed_s = the ferry time of a race board, else 0) – average
+##    speed, names and order stay; seeded entries of another factor are generated anew (as on a fresh install). In a
+##    file from before v0.7.0 (version <= 2) the race entries without a stamp – driven under v0.6.0 – are archived
+##    (fuel carry-over, the 8-h pause and the factor change race totals); a race board left without real entries starts
+##    afresh. Before converting, the file is copied to "<path>.v06" (version <= 2) or "<path>.f<factor>" (e.g.
+##    leaderboards.json.f10) – a name already taken gets ".2", ".3" … – and then saved with the current factor, so a
+##    second load changes nothing.
 
 const VERSION := 3
 const ALL := "all"
 ## Factor of a file without "time_scale" (version <= 2, up to v0.6.0).
 const LEGACY_TIME_SCALE := 12.0
-## Backup of a file from before v0.7.0 (version <= 2), written once before its boards are converted.
+## Backup of a file from before v0.7.0 (version <= 2), written before its boards are converted.
 const LEGACY_BACKUP_SUFFIX := ".v06"
+## Entry field: the time-lapse factor its time_s was measured with (since v0.7.0).
+const STAMP := "ts"
 
 var path := ""
 var boards: Dictionary = {}          ## key -> Array of entry dictionaries, sorted by time_s
@@ -127,8 +133,35 @@ func load_boards() -> void:
 		_sort(clean)
 		boards[key] = _pruned(clean)
 	var file_ts := file_time_scale(d, LEGACY_TIME_SCALE if version < 3 else time_scale)
-	if not boards.is_empty() and (version < 3 or not is_equal_approx(file_ts, time_scale)):
+	if boards.is_empty():
+		return
+	if version < 3 or _needs_conversion(file_ts):
 		_convert_loaded(source, d, file_ts, version < 3)
+		return
+	# a version-3 file of the current factor written before the stamps: stamped now, saved with the next change
+	for key: String in boards:
+		for e: Dictionary in boards[key]:
+			if not is_stamped(e):
+				e[STAMP] = time_scale
+
+
+## True when an entry carries its time-lapse factor ("ts" > 0).
+static func is_stamped(e: Dictionary) -> bool:
+	var ts: Variant = e.get(STAMP, null)
+	return (ts is float or ts is int) and float(ts) > 0.0 and not is_inf(float(ts))
+
+
+## Time-lapse factor of an entry's time: its stamp, else `fallback` (the factor of its file).
+static func entry_time_scale(e: Dictionary, fallback: float) -> float:
+	return float(e[STAMP]) if is_stamped(e) else fallback
+
+
+func _needs_conversion(file_ts: float) -> bool:
+	for key: String in boards:
+		for e: Dictionary in boards[key]:
+			if not is_equal_approx(entry_time_scale(e, file_ts), time_scale):
+				return true
+	return false
 
 
 func save_boards() -> bool:
@@ -153,25 +186,40 @@ static func convert_time(time_s: float, from_ts: float, to_ts: float, fixed_s: f
 	return snappedf((time_s - fixed) * from_ts / maxf(to_ts, 0.001) + fixed, 0.01)
 
 
-## Converts the boards just loaded from source_file (data file_data, measured with factor file_ts) to time_scale, see
-## the class comment. legacy = a file from before v0.7.0 (version <= 2): its race boards are archived (dropped here,
-## seeded afresh on first access). Keeps the file once ("<path>.v06" / "<path>.f<factor>") and saves the result.
+## Converts the boards just loaded from source_file (data file_data, measured with factor file_ts unless an entry is
+## stamped) to time_scale, see the class comment. legacy = a file from before v0.7.0 (version <= 2): its race entries
+## without a stamp are archived; a race board without real entries is dropped (seeded afresh on first access). Keeps
+## the file ("<path>.v06" / "<path>.f<factor>", never overwriting an older copy) and saves the result.
 func _convert_loaded(source_file: String, file_data: Dictionary, file_ts: float, legacy: bool) -> void:
-	var backup := path + (LEGACY_BACKUP_SUFFIX if legacy else ".f" + factor_text(file_ts))
-	if not FileAccess.file_exists(backup) and not JsonFile.copy(source_file, backup):
+	var backup := free_backup_path(path + (LEGACY_BACKUP_SUFFIX if legacy else ".f" + factor_text(file_ts)))
+	if not JsonFile.copy(source_file, backup):
 		JsonFile.save_atomic(backup, file_data)
 	var converted := 0
 	var archived := 0
 	for key: String in boards.keys():
-		if legacy and key.begins_with("race:"):
+		var archive := legacy and key.begins_with("race:")
+		var r := _converted_board(key, boards[key], file_ts, archive)
+		converted += int(r[1])
+		archived += int(r[2])
+		var list: Array = r[0]
+		if archive and list.filter(func(e: Dictionary) -> bool: return not bool(e.get("seeded", false))).is_empty():
 			boards.erase(key)
-			archived += 1
 		else:
-			boards[key] = _converted_board(key, boards[key], file_ts)
-			converted += 1
-	conversion_note = "Bestenlisten von Faktor %s auf %s: %d umgerechnet, %d Rennlisten neu begonnen (Sicherung %s)" % [
+			boards[key] = list
+	conversion_note = "Bestenlisten von Faktor %s auf %s: %d Einträge umgerechnet, %d Renneinträge von v0.6.0 archiviert (Sicherung %s)" % [
 		factor_text(file_ts), factor_text(time_scale), converted, archived, backup.get_file()]
 	save_boards()
+
+
+## `base` if no such file exists, else the first free "<base>.2", "<base>.3" … (an older backup is never overwritten).
+static func free_backup_path(base: String) -> String:
+	if not FileAccess.file_exists(base):
+		return base
+	for n in range(2, 1000):
+		var p := "%s.%d" % [base, n]
+		if not FileAccess.file_exists(p):
+			return p
+	return base + ".last"
 
 
 ## "12" for 12.0, "9.5" for 9.5 (backup file names, log).
@@ -179,27 +227,41 @@ static func factor_text(ts: float) -> String:
 	return str(roundi(ts)) if is_equal_approx(ts, roundf(ts)) else String.num(ts)
 
 
-## One board converted from factor from_ts to time_scale: real entries keep average speed, name and order; seeded
-## entries are replaced by fresh ones (none if the board can no longer be seeded: unknown board, seeding off).
-func _converted_board(board_key: String, list: Array, from_ts: float) -> Array:
+## One board at time_scale: a real entry measured with another factor (its stamp, else from_ts – the file's) is
+## converted, keeping average speed, name and order, and stamped; archive_unstamped (a race board of a file from before
+## v0.7.0): real entries without a stamp are dropped. Seeded entries of another factor are replaced by fresh ones (none
+## if the board can no longer be seeded: unknown board, seeding off). Returns [entries, converted, archived].
+func _converted_board(board_key: String, list: Array, from_ts: float, archive_unstamped: bool = false) -> Array:
 	var fixed := 0.0
 	if board_key.begins_with("race:") and profile_provider.is_valid():
 		var p: Variant = profile_provider.call(board_key)
 		if p is Dictionary:
 			fixed = maxf(0.0, float((p as Dictionary).get("fixed_s", 0.0)))
 	var out: Array = []
-	var had_seeds := false
+	var seeds: Array = []
+	var stale_seeds := false
+	var converted := 0
+	var archived := 0
 	for e: Dictionary in list:
+		var ets := entry_time_scale(e, from_ts)
 		if bool(e.get("seeded", false)):
-			had_seeds = true
+			if is_equal_approx(ets, time_scale):
+				seeds.append(e)
+			else:
+				stale_seeds = true
+			continue
+		if archive_unstamped and not is_stamped(e):
+			archived += 1
 			continue
 		var c := e.duplicate(true)
-		c["time_s"] = convert_time(float(e["time_s"]), from_ts, time_scale, fixed)
+		if not is_equal_approx(ets, time_scale):
+			c["time_s"] = convert_time(float(e["time_s"]), ets, time_scale, fixed)
+			converted += 1
+		c[STAMP] = time_scale
 		out.append(c)
-	if had_seeds:
-		out.append_array(_seeds(board_key))
+	out.append_array(_seeds(board_key) if stale_seeds else seeds)
 	_sort(out)
-	return _pruned(out)
+	return [_pruned(out), converted, archived]
 
 
 ## Entry with the expected field types; {} if unusable (no positive finite time).
@@ -290,6 +352,7 @@ func submit(board_key: String, entry: Dictionary, vehicle_filter: String = "") -
 	if e.is_empty():
 		return 0
 	e.erase("seeded")
+	e[STAMP] = time_scale
 	var rank := would_rank(board_key, float(e["time_s"]), vehicle_filter)
 	var list: Array = entries(board_key).duplicate()
 	var pos := list.size()
@@ -363,6 +426,7 @@ func seed_entries_for(board_key: String, length_km: float, profile: Dictionary =
 			"daytime": _daytime(hour),
 			"date": "",
 			"seeded": true,
+			STAMP: time_scale,
 		}
 		if board_key.begins_with("race:"):
 			e["route"] = []

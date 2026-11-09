@@ -203,12 +203,61 @@ func test_continue_converts_a_race_saved_with_factor_12() -> void:
 	assert_near(r.total_time_s, 300.0 * 12.0 / ts, 0.001, "Rennzeit umgerechnet")
 	assert_near(r.world_minutes, 540.0 + 12.0 * 60.0, 0.001, "nächster Start bleibt (schon angezeigt)")
 	assert_eq(r.fuel_l, -1.0, "kein Tank gespeichert: die nächste Etappe startet einmal mit eigener Füllung")
+	assert_eq(r.legacy_legs, 1, "die Etappe lief nach den Regeln von v0.6.0 – keine Wertung in der neuen Rennliste")
+	assert_eq(ResultScreen.next_start_caption(cfg(), r), "Nächster Start (12 h Pause)", "Ergebnis: die Pause, die v0.6.0 gerechnet hat")
 	var saved: Dictionary = sg.call("load_race")
 	assert_near(float(saved.get("time_scale", 0.0)), ts, 0.0001, "umgerechnet gespeichert")
 	assert_near(float((saved.get(PENDING, {}) as Dictionary).get("time_s", 0.0)), 300.0 * 12.0 / ts, 0.001, "offenes Ergebnis gespeichert")
 	var again: Dictionary = gf.call("restore_race", saved)
 	assert_near(float(again.get("time_s", 0.0)), 300.0 * 12.0 / ts, 0.001, "zweites Fortsetzen: unverändert")
 	assert_near((gf.get("race") as RaceState).total_time_s, 300.0 * 12.0 / ts, 0.001, "zweites Fortsetzen: Rennzeit unverändert")
+	assert_eq((gf.get("race") as RaceState).legacy_legs, 1, "zweites Fortsetzen: Markierung bleibt")
+	gf.call("finish_race")
+	sg.set("path", old_path)
+	gf.set("race", old_race)
+	gf.set("mode", old_mode)
+
+
+func _labels_with(n: Node, part: String) -> Array[Label]:
+	var out: Array[Label] = []
+	if n is Label and (n as Label).text.contains(part):
+		out.append(n)
+	for c in n.get_children():
+		out.append_array(_labels_with(c, part))
+	return out
+
+
+## QA v0.7.0: a race continued from a save of v0.6.0 landed on the new race board (1st place in the test) – its stages
+## ran under the old rules (full tank at every start, 12 h pause), the reason why the v0.6.0 race boards were archived.
+## Its result shows the total and the board, says why there is no entry, asks for no name even with a winning time and
+## clears the save at once; a race of v0.7.0 with the same time asks for the name.
+func test_race_from_v06_gets_no_race_board_entry() -> void:
+	var root := _root()
+	var gf := root.get_node_or_null("GameFlow")
+	var sg := root.get_node_or_null("SaveGame")
+	if gf == null or sg == null or root.get_node_or_null("GameData") == null or root.get_node_or_null("Leaderboards") == null:
+		return
+	var old_path := str(sg.get("path"))
+	var old_race: Variant = gf.get("race")
+	var old_mode: Variant = gf.get("mode")
+	sg.set("path", "user://test_ui_v06_race_result.json")
+	for legacy: bool in [true, false]:
+		var race := RaceState.create({"id": "kiel_nuernberg", "name": "Kiel – Nürnberg", "start": "kiel", "finish": "hamburg", "waypoints": []}, "kombi", 8.0, 3)
+		race.apply_stage_result({"kind": "stage", "id": "kiel_hamburg", "from": "kiel", "to": "hamburg", "length_km": 95.0},
+			{"time_s": 1.0, "avg_speed_kmh": 300.0, "distance_km": 95.0, "start_world_minutes": 480.0, "end_world_minutes": 481.0}, cfg())
+		race.legacy_legs = 1 if legacy else 0
+		gf.set("race", race)
+		gf.set("mode", "race")
+		gf.call("_save_race")
+		var s := RaceResultScreen.new()
+		s.build()
+		var tag := "v0.6.0" if legacy else "v0.7.0"
+		assert_eq(s.get("_name_entry") == null, legacy, "%s: Namenseingabe %s" % [tag, "nein" if legacy else "ja (Bestzeit)"])
+		assert_eq(_labels_with(s, "Regeln von v0.6.0").size(), 1 if legacy else 0, "%s: Hinweis auf die alten Regeln" % tag)
+		assert_eq((sg.call("load_race") as Dictionary).is_empty(), legacy, "%s: Spielstand %s" % [tag, "gleich gelöscht" if legacy else "bis zur Namenseingabe behalten"])
+		s.queue_free()
+	assert_eq(RaceResultScreen.legacy_note(3), "Rennen mit 3 Etappen nach den Regeln von v0.6.0 – keine Wertung in der neuen Rennliste", "Hinweistext")
+	assert_true(RaceResultScreen.legacy_note(1).begins_with("Rennen mit 1 Etappe nach"), "Einzahl")
 	gf.call("finish_race")
 	sg.set("path", old_path)
 	gf.set("race", old_race)

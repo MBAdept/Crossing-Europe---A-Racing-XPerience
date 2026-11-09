@@ -381,8 +381,7 @@
 			"landmarks": [{"set": "landmarks/dom_passau", "km_to_finish": 1.0, "side": -1, "x_m": 20, "clear_m": [200, 40]}],
 			"skyline": ["landmarks/dom_passau"],
 			"bridges": [
-				{"km_to_finish": 5.0, "length_m": 90, "type": "river", "name": "Innbrücke", "water": "#5b8a7c"},
-				{"km_to_finish": 2.8, "length_m": 100, "type": "river", "name": "Luitpoldbrücke (Donau)", "ships": 1}
+				{"km_to_finish": 5.0, "length_m": 90, "type": "river", "name": "Innbrücke", "water": "#5b8a7c"}
 			],
 			"background": {"behind": "hills"}
 		},
@@ -390,7 +389,7 @@
 			"style": "bavarian",
 			"landmarks": [{"set": "landmarks/dom_regensburg", "km_to_finish": 1.0, "side": 1, "x_m": 40, "clear_m": [300, 40]}],
 			"skyline": ["landmarks/dom_regensburg"],
-			"bridges": [{"km_to_finish": 3.0, "length_m": 120, "type": "stone_arch", "name": "Steinerne Brücke", "color": "#b8ad98"}]
+			"bridges": [{"km_to_finish": 3.0, "length_m": 120, "type": "river", "name": "Eiserne Brücke (Donau)", "color": "#7d8a90", "ships": 1}]
 		},
 		"fulda": {
 			"style": "german_old",

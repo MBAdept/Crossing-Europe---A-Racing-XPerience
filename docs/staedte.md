@@ -236,8 +236,8 @@ weiterhin ganz zu sehen.
 | Kaunas | `baltic` | Christi-Auferstehungs-Kirche | Aleksotas-Brücke (river) |
 | Riga | `baltic` | Freiheitsdenkmal, Petrikirche und Fernsehturm (Silhouetten) | Vanšu-Brücke (cable_stayed) |
 | Linz *(seit v0.7.0)* | `austrian` | Mariendom | Nibelungenbrücke (river, Donau, Schiff); Schornsteine der VOEST, Hügel am Horizont |
-| Passau *(seit v0.7.0)* | `bavarian` | Dom St. Stephan (links, 1,0 km vor dem Ziel) | Innbrücke (river, grünes Innwasser), Luitpoldbrücke (river, Donau, Schiff) |
-| Regensburg *(seit v0.7.0)* | `bavarian` | Regensburger Dom | Steinerne Brücke (stone_arch) |
+| Passau *(seit v0.7.0)* | `bavarian` | Dom St. Stephan (links, 1,0 km vor dem Ziel) | Innbrücke (river, grünes Innwasser) – über den Inn auf die Halbinsel zum Dom; eine Donaubrücke dahinter führte von der Altstadt weg (QA v0.7.0) |
+| Regensburg *(seit v0.7.0)* | `bavarian` | Regensburger Dom | Eiserne Brücke (river, Stahl, Donau, Schiff) – die Steinerne Brücke ist seit 2008 für Autos gesperrt (QA v0.7.0) |
 | Fulda *(seit v0.7.0)* | `german_old` | Fuldaer Dom | Fuldabrücke (river) |
 | Bukarest *(seit v0.7.0)* | `balkan` | Parlamentspalast (rechts, 3,4 km), Kathedrale der Erlösung des Volkes (links, 1,6 km) | Dâmbovița (river, Podul Izvor) |
 | Sibiu *(seit v0.7.0)* | `central` | Evangelische Stadtpfarrkirche | Cibinbrücke (river); Karpaten am Horizont |

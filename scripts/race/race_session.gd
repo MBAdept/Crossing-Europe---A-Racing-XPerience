@@ -86,7 +86,11 @@ var start_check: Dictionary = {}
 ## start (fuel.tow_penalty_s in penalty_time, the tank at fuel.tow_refill_fraction, one tow in the statistics).
 var start_towed := false
 var _final_fuel_l := -1.0          ## litres when the car crossed the finish line (the roll-out after it uses none)
-var _last_station_noted := false   ## race: "last station before the finish" was shown
+var _last_station_noted := false   ## race: "last station before the finish" was shown (or is waiting, see below)
+## Race with the tutorial coach (Kiel – Hamburg as a race's first stage): the note on the last station waits until the
+## car has passed it (km of that station; -1 = nothing waiting) – at the 5-km announcement the coach explains the fuel
+## lane, three messages at once filled the HUD (QA v0.7.0).
+var _last_station_after := -1.0
 var _carry_pending: Array[Dictionary] = []   ## carried-tank message waiting for the end of "LOS!" (weather hint first)
 const CARRY_AFTER_GO_S := 1.2      ## … shown this long after the start (the HUD's "LOS!" stands 1.1 s)
 var _record: Dictionary = {}
@@ -412,17 +416,22 @@ func warm_up_clear_m(car_kmh: float) -> float:
 
 
 func _connect_signals() -> void:
-	fuel.announced.connect(func(k: int, st: float) -> void:
-		if k <= 5:
-			hud.show_message(tr("Tankstelle in %d km – Tankspur rechts") % k, "info", 3.5)
+	# k = the threshold (30 / 15 / 5) or, at the start, the real distance to the first station (0.1 km: "in 8,5 km")
+	fuel.announced.connect(func(k: float, st: float) -> void:
+		if k <= 5.0:
+			hud.show_message(tr("Tankstelle in %s km – Tankspur rechts") % UiFormat.number(k, 1), "info", 3.5)
 			_tutorial("fuel_lane")
-			# race (v0.7.0): at the lane of the last station the tank is decided for the next stage as well
+			# race (v0.7.0): at the lane of the last station the tank is decided for the next stage as well – with the
+			# tutorial coach (it explains the fuel lane right now) said once the car has passed the station
 			if tank_carries_on() and not _last_station_noted and not plan.fuel_stations_km.is_empty() \
 					and absf(st - plan.fuel_stations_km[-1]) < 0.001:
 				_last_station_noted = true
-				hud.show_message(tr("Letzte Tankstelle vor dem Ziel – der Tank geht in die nächste Etappe mit"), "info", 4.0)
+				if coach != null:
+					_last_station_after = st
+				else:
+					hud.show_message(tr("Letzte Tankstelle vor dem Ziel – der Tank geht in die nächste Etappe mit"), "info", 4.0)
 		else:
-			hud.show_message(tr("Tankstelle in %d km") % k, "info")
+			hud.show_message(tr("Tankstelle in %s km") % UiFormat.number(k, 1), "info")
 			_tutorial("fuel_announce"))
 	fuel.refuel_started.connect(func() -> void:
 		stats["refuels"] += 1
@@ -893,6 +902,9 @@ func _check_zones() -> void:
 		for m: Dictionary in _carry_pending:
 			hud.show_message(str(m["text"]), str(m["kind"]), 6.0)
 		_carry_pending.clear()
+	if _last_station_after >= 0.0 and pos_km > _last_station_after + 0.05 and fuel.state == FuelSystem.State.NORMAL:
+		_last_station_after = -1.0
+		hud.show_message(tr("Das war die letzte Tankstelle vor dem Ziel – der Tank geht in die nächste Etappe mit"), "info", 4.0)
 	var country := plan.country_at(pos_km)
 	if country != _last_country:
 		_last_country = country

@@ -142,7 +142,9 @@ func test_tutorial_texts_use_the_configuration() -> void:
 
 
 ## v0.7.0: the tutorial's first station lies only 15 km after the start – the low tank is urgent (it comes right after
-## "LOS!", before the control hints) and names the distance; without one it keeps the old text.
+## "LOS!", before the control hints) and names the distance; without one it keeps the old text. QA v0.7.0: an urgent
+## topic of the start traffic right after "LOS!" (the blinker) neither comes with "LOS!" nor jumps ahead of the tank –
+## urgent hints keep their order and wait for the hold.
 func test_tutorial_low_tank_comes_first() -> void:
 	var c := TutorialCoach.new()
 	c.setup(cfg())
@@ -151,14 +153,26 @@ func test_tutorial_low_tank_comes_first() -> void:
 	c.trigger("start")
 	c.trigger("fuel_hud")
 	c.hold(1.2)
-	assert_eq(c.update(1.0), "", "„LOS!“ steht erst allein")
+	assert_eq(c.update(0.3), "", "„LOS!“ steht erst allein")
+	c.trigger("blinker")
+	assert_eq(c.update(0.7), "", "auch ein dringender Hinweis wartet, bis „LOS!“ allein stand")
 	var first := c.update(0.3)
 	assert_true(first.contains("35 %") and first.contains("15 km"), "zuerst der Tank mit der Entfernung: %s" % first)
+	assert_eq(c.update(c.hint_s), "", "dann die normale Pause")
+	var second := c.update(c.gap_s + 0.01)
+	assert_true(second.contains("Blinker"), "danach der Blinker: %s" % second)
+	var third := c.update(c.hint_s + c.gap_s + 0.01)
+	assert_true(third.contains("Lenken") or third.contains("Stick"), "dann die Bedienung: %s" % third)
+	# without a hold an urgent topic still comes at once, ahead of the waiting control hints
+	c.trigger("radar", {"limit": 120.0})
+	assert_true(c.update(0.01).contains("Toleranz"), "Radar sofort")
 	assert_true(c.hints_for("fuel_low", {"percent": 35.0})[0].contains("unterwegs"), "ohne Entfernung der alte Text")
+	assert_true(c.hints_for("fuel_low", {"percent": 35.0, "km": 8.5})[0].contains("in 8,5 km"), "Entfernung auf 0,1 km wie Ansage und HUD")
 
 
 ## v0.7.0, race: the countdown names the carried tank and what it is good for (FuelSystem.start_check) – nothing for a
-## full tank or nothing carried, a tight tank with its top speed, a tow before the start with its penalty.
+## full tank or nothing carried, a tight tank with its top speed, a tow before the start with its penalty. The station
+## km to 0.1 km (QA v0.7.0: the countdown said "in 9 km" for a station at 8,5 km, the start announcement "in 8 km").
 func test_carry_messages() -> void:
 	var c := cfg()
 	assert_eq(SessionRules.carry_messages(c, {}, 20.0, 60.0, false), [] as Array[Dictionary], "nichts übernommen")
@@ -170,7 +184,7 @@ func test_carry_messages() -> void:
 	assert_true(str(m[0]["text"]).contains("24 L") and str(m[0]["text"]).contains("12 km"), "Liter wie die Tankanzeige (aufgerundet), Entfernung: %s" % m[0]["text"])
 	var tight := SessionRules.carry_messages(c, {"state": "tight", "first_km": 8.5, "max_kmh": 145.0}, 3.0, 60.0, false)
 	assert_eq(str(tight[0]["kind"]), "warn", "knapp: Warnung")
-	assert_true(str(tight[0]["text"]).contains("höchstens 145 km/h") and str(tight[0]["text"]).contains("9 km"), "Höchsttempo: %s" % tight[0]["text"])
+	assert_true(str(tight[0]["text"]).contains("höchstens 145 km/h") and str(tight[0]["text"]).contains("in 8,5 km"), "Höchsttempo, Entfernung auf 0,1 km wie Ansage, Etappenbildschirm und HUD: %s" % tight[0]["text"])
 	var tow := SessionRules.carry_messages(c, {"state": "tow", "first_km": 12.0, "max_kmh": 0.0}, 0.3, 60.0, true)
 	assert_eq(tow.size(), 1, "eine Zeile (eine zweite reichte bis an die Countdown-Ziffer)")
 	assert_eq(str(tow[0]["kind"]), "alert", "Abschleppen: Alarm")

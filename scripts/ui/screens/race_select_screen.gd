@@ -3,6 +3,9 @@ extends UiScreen
 ## Race selection: list of races, map preview of all possible routes of the focused race, length
 ## range, stage count, mandatory stations, description and race record.
 
+## Text width of the info panel's fact lines (the panel is 748 px wide, its description wraps at 708).
+const FACTS_W := 708.0
+
 var _map: MapView
 var _title: Label
 var _desc: Label
@@ -81,8 +84,20 @@ static func record_text(race_id: String, filter: String) -> String:
 	return s
 
 
-## One-line label of the info panel: clipped with "…" so a long line (17 Pflichtstationen of the
-## Königsrennen) can never widen the panel beyond the screen.
+## First fact line: "Start Wien  ·  Ziel Hamburg  ·  Pflichtstationen: Linz, Passau, …" – when the stations do not fit
+## into `width` pixels (QA v0.7.0: Wien – Hamburg lost Kassel and Hannover to the "…"), the count with the first and the
+## last one: "7 Pflichtstationen (Linz … Hannover)".
+static func facts_line(start_name: String, finish_name: String, waypoint_names: Array[String], font: Font, fs: int, width: float) -> String:
+	var line := UiFormat.t("Start %s  ·  Ziel %s") % [start_name, finish_name]
+	if waypoint_names.is_empty():
+		return line
+	var full := line + "  ·  " + UiFormat.t("Pflichtstationen: %s") % ", ".join(waypoint_names)
+	if waypoint_names.size() < 3 or font == null or font.get_string_size(full, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x <= width:
+		return full
+	return line + "  ·  " + UiFormat.t("%d Pflichtstationen (%s … %s)") % [waypoint_names.size(), waypoint_names[0], waypoint_names[-1]]
+
+
+## One-line label of the info panel: clipped with "…" so a long line can never widen the panel beyond the screen.
 func _line_label(text: String, kind: int, col: Color) -> Label:
 	var l := UiKit.label(text, kind, 20, col)
 	l.clip_text = true
@@ -102,12 +117,10 @@ func _show_race(race_id: String) -> void:
 	var wps: Array = r.get("waypoints", [])
 	var routes := UiData.race_routes(race_id)
 	var st := UiData.race_summary(race_id)
-	var line1 := tr("Start %s  ·  Ziel %s") % [UiData.city_name(start), UiData.city_name(finish)]
-	if not wps.is_empty():
-		var names: Array[String] = []
-		for w in wps:
-			names.append(UiData.city_name(str(w)))
-		line1 += "  ·  " + tr("Pflichtstationen: %s") % ", ".join(names)
+	var names: Array[String] = []
+	for w in wps:
+		names.append(UiData.city_name(str(w)))
+	var line1 := facts_line(UiData.city_name(start), UiData.city_name(finish), names, UiTheme.font(UiTheme.F.BODY_BOLD), 20, FACTS_W)
 	_facts.add_child(_line_label(line1, UiTheme.F.BODY_BOLD, UiTheme.TEXT))
 	var line2 := tr("Strecke wird noch geplant")
 	if int(st.get("count", 0)) > 0:
@@ -117,7 +130,9 @@ func _show_race(race_id: String) -> void:
 		var stg := str(st["min_stages"])
 		if int(st["max_stages"]) != int(st["min_stages"]):
 			stg = "%d – %d" % [int(st["min_stages"]), int(st["max_stages"])]
-		line2 = tr("%s  ·  %s Etappen  ·  %d mögliche Routen") % [km_txt, stg, int(st["count"])]
+		var n_routes := int(st["count"])
+		var routes_txt := tr("1 mögliche Route") if n_routes == 1 else tr("%d mögliche Routen") % n_routes
+		line2 = tr("%s  ·  %s Etappen  ·  %s") % [km_txt, stg, routes_txt]
 		if bool(st.get("ferry", false)):
 			line2 += "  ·  " + tr("mit Fähre")
 	_facts.add_child(_line_label(line2, UiTheme.F.BODY_MEDIUM, UiTheme.ACCENT_2))

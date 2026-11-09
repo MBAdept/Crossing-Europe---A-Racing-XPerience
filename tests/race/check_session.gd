@@ -14,7 +14,8 @@ extends SceneTree
 ##                   the tow service before the start (+tow penalty, half a tank, one tow), said in the countdown
 ##   carry_eco       race (v0.7.0): a carried tank that reaches the first lane only gently -> the countdown names the
 ##                   top speed, the autopilot drives the economy pace and refuels there, no tow
-##   tutorial        Kiel – Hamburg shows the tutorial hints, the dev stage none (TUT-1)
+##   tutorial        Kiel – Hamburg shows the tutorial hints, the dev stage none (TUT-1); since QA v0.7.0 as the first
+##                   stage of a race: the low tank is the first hint, the note on the last station comes after it
 ##   rail_feedback   an understeer slide into the guardrail: speed loss, camera shake and flash (review: the hit
 ##                   showed only on the speedometer)
 ##   preload         the last 25 km into Frankfurt (City Limits, buildings, landmarks, skyline, traffic): every sprite
@@ -424,14 +425,16 @@ func _tick_rail_feedback() -> void:
 
 # --- TUT-1 ---------------------------------------------------------------------------------------
 
+## Kiel – Hamburg as the first stage of a race (the tank carries on into Hamburg – Hannover).
 func _start_tutorial() -> void:
-	_launch("kiel_hamburg", 0.0, {"autopilot": true})
+	_launch("kiel_hamburg", 0.0, {"autopilot": true, "mode": "race", "race_id": "kiel_nuernberg", "from_city": "kiel"})
 
 
 func _tick_tutorial() -> void:
 	_collect_messages()
 	if bool(_sc.get("finished")) or _t > 400.0:
-		var tips: Array = (_d.get("messages", []) as Array).filter(func(m: String) -> bool: return m.begins_with("Tipp:"))
+		var msgs: Array = _d.get("messages", [])
+		var tips: Array = msgs.filter(func(m: String) -> bool: return m.begins_with("Tipp:"))
 		var want := ["Lenken", "Gas mit", "Gamepad", "% im Tank", "Unten links", "angekündigt", "Kein Tempolimit", "Toleranz", "Tankspur und unter", "Gas geben bricht", "City Limits –"]
 		var missing: Array[String] = []
 		for w: String in want:
@@ -439,7 +442,14 @@ func _tick_tutorial() -> void:
 				missing.append(w)
 		for m in tips:
 			print("    ", m)
-		_done(missing.is_empty() and bool(_sc.get("finished")), "Tutorial: %d Hinweise, fehlend %s" % [tips.size(), str(missing)])
+		# QA v0.7.0: the low tank is the first hint (urgent hints keep their order, none comes with "LOS!"), and in a race
+		# the note on the last station comes behind it – not with the 5-km announcement and the coach's fuel-lane hint
+		var first_ok := not tips.is_empty() and str(tips[0]).contains("% im Tank")
+		var early := msgs.has("Letzte Tankstelle vor dem Ziel – der Tank geht in die nächste Etappe mit")
+		var late := not msgs.filter(func(m: String) -> bool: return m.begins_with("Das war die letzte Tankstelle")).is_empty()
+		_done(missing.is_empty() and bool(_sc.get("finished")) and first_ok and late and not early,
+			"Tutorial: %d Hinweise, fehlend %s, zuerst der Tank %s, letzte Tankstelle danach %s (nicht an der Ansage %s)" % [
+			tips.size(), str(missing), str(first_ok), str(late), str(not early)])
 
 
 func _start_no_tutorial() -> void:

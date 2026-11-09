@@ -238,34 +238,42 @@ Tankstelle zur Verfügung steht.“ Bis v0.6.0 startete jede Etappe voll (nur da
   `first_station_max_km`), erzeugt meist bei 12 km (8,5–15 km, Daten: [daten.md](daten.md)). Sie liegt näher als
   die 30-km-Ansage und meist auch als die 15-km-Ansage, deren Schilder vor der Startlinie stünden: `FuelSystem`
   sagt sie deshalb direkt nach dem Start mit ihrer echten Entfernung an, außer eine Ansageschwelle fällt ohnehin
-  auf den Start oder in die ersten 1,5 km (erste Tankstelle 15–16,5 km: die 15-km-Ansage) – `announce_start`.
-- **Was taugt der Tank?** `FuelSystem.start_check(cfg, spec, plan, litres)` rechnet bis zur **offenen** Tankspur
-  der ersten Tankstelle (Spuranfang + Einfädelstrecke `road.fuel_lane_taper_m`, 40 m = 0,4 km bei Faktor 10): `ok` =
-  reicht auch mit vmax, `tight` = nur bis `max_kmh` (gleichmäßiges Tempo, auf 5 km/h abgerundet), `tow` = nicht
-  einmal mit `fuel.lane_trigger_speed_kmh` (60 km/h). Ohne weitere Reserve gerechnet: ein leer gewordener Wagen
-  rollt noch aus (bei Faktor 10 bis zum Stillstand von 200 km/h 3,1 km, von 140 km/h 1,5 km, von 60 km/h 0,3 km –
-  dieselben sichtbaren Meter wie bei Faktor 12 mit 3,7 / 1,8 / 0,3 km)
-  und kann in die Tankspur rollen, wo ein leeres Auto immer tankt.
+  auf den Start oder in die ersten 1,5 km (erste Tankstelle 15–16,5 km: die 15-km-Ansage) – `announce_start`. Die
+  Entfernung steht überall gleich da, auf 0,1 km: Startansage, Countdown, Etappenbildschirm und HUD („in 8,5 km“;
+  *QA v0.7.0*: vorher sagte der Countdown „in 9 km“, die Startansage „in 8 km“).
+- **Was taugt der Tank?** `FuelSystem.start_check(cfg, spec, plan, litres)` rechnet das Urteil bis zur **ersten
+  Tankstelle** selbst – die Entfernung, die Countdown, Etappenbildschirm und HUD („Nächste Tankstelle“) nennen und
+  gegen die das HUD die Reichweite rot färbt: `ok` = reicht auch mit vmax, `tight` = nur bis `max_kmh`
+  (gleichmäßiges Tempo, auf 5 km/h abgerundet, mindestens 60 km/h). Die Tankspur davor (1–2 km) ist die Reserve.
+  Nur das Abschleppen vor dem Start zählt bis zur **offenen** Tankspur (Spuranfang + Einfädelstrecke
+  `road.fuel_lane_taper_m`, 40 m = 0,4 km bei Faktor 10): `tow` = nicht einmal mit `fuel.lane_trigger_speed_kmh`
+  (60 km/h) bis dorthin. *QA v0.7.0*: Bis zur offenen Spur gerechnet kam, wer „höchstens X km/h“ genau befolgte, mit
+  0,05–0,11 L an, und das HUD zeigte die Reichweite die ganze Zeit rot (Gran Turismo mit 3 L ab Hamburg: jetzt
+  höchstens 120 statt 135 km/h, die Reichweite bleibt weiß). Ein leer gewordener Wagen rollt außerdem noch aus (bei
+  Faktor 10 bis zum Stillstand von 200 km/h 3,1 km, von 140 km/h 1,5 km, von 60 km/h 0,3 km – dieselben sichtbaren
+  Meter wie bei Faktor 12 mit 3,7 / 1,8 / 0,3 km) und kann in die Tankspur rollen, wo ein leeres Auto immer tankt.
 - **Abschleppen vor dem Start**: Reicht der übernommene Tank nicht einmal mit 60 km/h bis zur Tankspur, kommt der
   Abschleppdienst vor dem Start – zum Preis wie unterwegs: `fuel.tow_penalty_s` (90 s) in der Etappenzeit (und auf
   der Weltuhr, wie unterwegs), danach `fuel.tow_refill_fraction` (halber Tank), ein Abschleppen in der Statistik
   (`RaceSession._tow_before_start`, Ergebnis `start_towed`). Eine Gratis-Reserve gibt es nicht – sie nähme der
   Übernahme am unteren Ende den Sinn. Fair, weil der Etappenbildschirm und der Countdown es vorher sagen, weil jede
   Etappe eine Tankstelle 26–90 km vor dem Ziel hat und weil die Garantie unten gilt. Dazwischen entscheidet der
-  Spieler: gefühlvoll fahren oder das Abschleppen riskieren (Gran Turismo mit 3 L ab Hamburg: höchstens ~135 km/h).
+  Spieler: gefühlvoll fahren oder das Abschleppen riskieren (Gran Turismo mit 3 L ab Hamburg: höchstens 120 km/h).
 - **Anzeige**: Etappenbildschirm mit Tankleiste (übernommene Liter, erste Tankstelle, Urteil – [ui.md](ui.md)),
   Countdown im Rennen (`SessionRules.carry_messages`, eine Zeile: „Tank: 23 L aus der letzten Etappe – reicht bis
-  zur Tankstelle in 12 km“ / „… höchstens 135 km/h“ / „Tank: 2 L reicht nicht bis zur Tankstelle –
+  zur Tankstelle in 12 km“ / „… höchstens 120 km/h“ / „Tank: 2 L reicht nicht bis zur Tankstelle –
   Abschleppdienst vor dem Start: +1:30.00“; ersetzt die Startansage der Tankstelle und die Reservewarnung der ersten
   Meter; bei Regen und Schnee erst 1,2 s nach dem Start, im Countdown steht dann der Wetterhinweis), bei der 5-km-Ansage
   der letzten Tankstelle einer Rennetappe „Letzte Tankstelle vor dem Ziel – der Tank geht in die nächste Etappe
-  mit“, Etappenergebnis „Tank für die nächste Etappe“. Liter wie auf der Tankanzeige (aufgerundet).
-- **Garantie**: Wer an der letzten Tankstelle einer Etappe volltankt, erreicht die erste Tankspur der nächsten
-  Etappe in jedem Auto auch mit Vollgas: höchstens 90 km (letzte Tankstelle vor dem Ziel) + 2 km (Tankspur) + 20 km
-  + 0,5 km Einfädelstrecke = 112,5 km gegen die Reichweite bei vmax (Tabelle; Test
+  mit“ – mit dem Tutorial (Kiel – Hamburg als erste Rennetappe) erst hinter der Tankstelle als „Das war die letzte
+  Tankstelle vor dem Ziel – …“, weil der Trainer an der 5-km-Ansage die Tankspur erklärt (*QA v0.7.0*: drei Meldungen
+  auf einmal) –, Etappenergebnis „Tank für die nächste Etappe“. Liter wie auf der Tankanzeige (aufgerundet).
+- **Garantie**: Wer an der letzten Tankstelle einer Etappe volltankt, erreicht die erste Tankstelle der nächsten
+  Etappe in jedem Auto auch mit Vollgas – ihr Etappenbildschirm sagt dann „reicht auch mit Vollgas“: höchstens 90 km
+  (letzte Tankstelle vor dem Ziel) + 2 km (Tankspur) + 20 km = 112 km gegen die Reichweite bei vmax (Tabelle; Test
   `test_full_tank_at_the_last_station_reaches_the_next_first_station`). Auf den echten Routen aller Rennen ist der
-  größte Abstand 92,9 km (Kiel – Hamburg → Hamburg – Hannover, `test_race_legs_full_tank_reaches_the_next_first_lane`).
-  Knapp ist nur der Gran Turismo (9 km Luft) – wer Tankgrößen, Verbrauch oder die 90/20-km-Regeln ändert, merkt
+  größte Abstand 93,5 km (Kiel – Hamburg → Hamburg – Hannover, `test_race_legs_full_tank_reaches_the_next_first_station`).
+  Knapp ist nur der Gran Turismo (7 km Luft) – wer Tankgrößen, Verbrauch oder die 90/20-km-Regeln ändert, merkt
   es am Test.
 
 | Auto | Tank | vmax | voller Tank reicht bei vmax | 12 km bei vmax / 60 km/h | 8-L-Reserve reicht bei vmax |
@@ -288,12 +296,17 @@ jedem Auto mit Vollgas.
 - **Tutorial**: Kiel → Hamburg hat die einzige Tankstelle dieser Richtung bei 15 km (`first_fuel={"fwd": 15}`,
   die 15-km-Ansage kommt genau beim Start). Der Hinweis „Nur 35 % im Tank – in 15 km kommt die Tankstelle, dort
   nachtanken!“ ist dringend (`TutorialCoach.URGENT`): er kommt 1,2 s nach „LOS!“ vor den Steuerungshinweisen –
-  sonst stand er erst nach dem Tankspur-Hinweis, der Autopilot war nach gut 30 s an der Tankspur.
+  sonst stand er erst nach dem Tankspur-Hinweis, der Autopilot war nach gut 30 s an der Tankspur. Dringende Hinweise
+  behalten untereinander ihre Reihenfolge und warten die 1,2 s nach „LOS!“ ab (*QA v0.7.0*: der Blinker-Hinweis des
+  Startverkehrs kam sonst mit „LOS!“ und schob den Tank-Hinweis um einen ganzen Hinweis nach hinten, auf km 1–2).
+  Das Schild „Tankstelle 15 km“ steht genau am Start; der Renderer zeichnet es nur einmal (die Reihen hinter der
+  Startlinie wiederholen das erste Straßenstück, aber nicht seine Requisiten – vorher stand es im Countdown ein
+  zweites Mal riesig neben dem Auto).
 - **Bestenlisten**: Einzeletappen-Listen bleiben, wie sie sind – eine Einzeletappe startet voll, eine Rennetappe
   mit übernommenem Tank kann dort nie schneller sein. Die Starteinträge der Rennlisten zählen einen Tankstopp je
   Etappe nach der ersten (`RoadNetwork.board_profile`, [daten.md](daten.md)).
 - **Prüfungen**: `check_session` „carry_tow“ (Gran Turismo mit 1,9 L ab Hamburg: Abschleppdienst vor dem Start,
-  +90 s, 30 L, Meldung im Countdown) und „carry_eco“ (3 L: Ansage „höchstens 135 km/h“, Spartempo, getankt bei
+  +90 s, 30 L, Meldung im Countdown) und „carry_eco“ (3 L: Ansage „höchstens 120 km/h“, Spartempo, getankt bei
   km 11,4, kein Abschleppen); `refuel_chase` fährt seit v0.7.0 auf der Dev-Etappe (Kiel – Hamburg hat ab km 20
   keine Tankstelle mehr vor sich). `run_race.gd` prüft auf jeder Etappe: Start-Tank = Tank im Ziel der vorigen
   (auch über die Fähre), das Ergebnis meldet diesen Start-Tank, kein Abschleppen.

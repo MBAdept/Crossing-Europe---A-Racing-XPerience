@@ -42,11 +42,14 @@ die nächste Etappe mit, und zwei neue Rennen – Wien – Hamburg und Bukarest 
   56:01, Bukarest – Calais 1:56:37 über Linz, das Königsrennen im Kombi 6:48:35. Die Rekorde der Starteinträge in den
   Bestenlisten (gute Fahrer): Kiel – Nürnberg 31:04, Wien – Hamburg 48:47, Bukarest – Calais 1:40:04, Königsrennen
   5:52:36.
-- **Bestenlisten umgerechnet**: Etappenzeiten gelten mit dem neuen Zeitraffer – gleicher Schnitt, Zeit × 1,2, Namen
-  und Reihenfolge bleiben, die Starteinträge sind neu berechnet. Die Rennlisten beginnen neu (Zeitraffer, Pause und
+- **Bestenlisten umgerechnet**: Etappenzeiten gelten mit dem neuen Zeitraffer – gleicher Schnitt, Zeit × 1,2, die
+  Namen und die Reihenfolge der eigenen Einträge bleiben; die Starteinträge sind neu berechnet und können sich
+  dazwischenschieben (im Tutorial zählt ihr Tankstopp fest 35 s). Die Rennlisten beginnen neu (Zeitraffer, Pause und
   Tank-Übernahme ändern die Rennzeiten); die alte Datei bleibt als `leaderboards.json.v06` neben den Bestenlisten
   erhalten. Ein laufendes Rennen wird beim Fortsetzen ebenso umgerechnet und startet seine nächste Etappe einmal mit
-  vollem Tank ([docs/daten.md](docs/daten.md)).
+  vollem Tank; weil seine ersten Etappen noch nach den alten Regeln liefen, kommt es nicht in die neue Rennliste. Jeder
+  Eintrag trägt seinen Zeitraffer-Faktor – wer zwischendurch v0.6.0 auf denselben Daten startet, verliert nichts
+  ([docs/daten.md](docs/daten.md)).
 - Polizei: Eine Verfolgung endet spätestens nach 72 statt 60 Sekunden – so reicht sie wie bisher bis zu 42 km weit
   und kann in die City Limits hineinlaufen.
 - Warnschild vor blinden Kurven kurz vor dem Ziel: Lag die Mitte des Kurvenstücks hinter der Ziellinie, fehlte es

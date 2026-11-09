@@ -28,13 +28,13 @@ static func weather_hint(config: Dictionary, weather: String) -> String:
 ## (nearly) full; otherwise one line [{text, kind}] (one line: a second one would reach the countdown digit): "info"
 ## reaches the station even at full speed, "warn" only up to check.max_kmh, "alert" did not reach it at all – the tow
 ## service before the start with its penalty (fuel.tow_penalty_s). Litres as on the HUD gauge (rounded up), the station
-## km rounded like the fuel announcements.
+## km to 0.1 km like the start announcement, the stage screen and the HUD ("in 12 km", "in 8,5 km").
 static func carry_messages(config: Dictionary, check: Dictionary, litres: float, tank_l: float, towed: bool) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	if check.is_empty():
 		return out
 	var first := float(check.get("first_km", -1.0))
-	var where := UiFormat.t("bis zur Tankstelle in %d km") % roundi(first) if first >= 0.0 else UiFormat.t("bis ins Ziel")
+	var where := UiFormat.t("bis zur Tankstelle in %s km") % UiFormat.number(first, 1) if first >= 0.0 else UiFormat.t("bis ins Ziel")
 	if towed or str(check.get("state", "")) == "tow":
 		out.append({"text": UiFormat.t("Tank: %d L reicht nicht bis zur Tankstelle – Abschleppdienst vor dem Start: +%s") % [
 			shown_litres(litres), Units.format_race_time(float(ConfigLoader.lookup(config, "fuel.tow_penalty_s", 90.0)))], "kind": "alert"})
