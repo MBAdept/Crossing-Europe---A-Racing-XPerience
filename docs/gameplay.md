@@ -295,6 +295,16 @@ jedem Auto mit Vollgas.
   (328 L), kein Abschleppen. Königsrennen, Kombi, Seed 2026: die ersten 28 Etappen (Kiel – Posen) mit lückenloser
   Übernahme und ohne Abschleppen; über die Fähre geprüft ab Riga (Beispielstand nach 32 Etappen, 12,9 L): die Fähre
   lässt den Tank unverändert, Rostock – Kiel startet mit 12,9 L (`last_stage`), tankt zweimal, kein Abschleppen.
+- **Messungen der neuen Rennen** (gleiche Bedingungen; `run_race.gd` prüft zusätzlich je Etappe die erste
+  Tankstelle ≤ 20 km und ein Polizei-Sprite für jedes Land): Wien – Hamburg, Limousine, Seed 63352: 46:03,33 mit
+  6 Tankstopps (241 L); Gran Turismo, Seed 4711, Start 20 Uhr: 48:06,78 mit 9 Stopps (323 L). Bukarest – Calais
+  über Linz, Limousine, Seed 63352: 1:37:48,0 mit 16 Stopps (608 L); Sportwagen, Seed 777, Start 14 Uhr:
+  1:40:19,7 mit 24 Stopps (677 L); über Prag, Gran Turismo, Seed 4711, Start 22 Uhr: 1:42:44,6 mit 30 Stopps
+  (796 L); Kompakt, Seed 63352: 1:48:33,8 mit 23 Stopps (504 L, Wien – Prag im Schnee mit Ø 85 km/h). Alle mit
+  lückenloser Übernahme, ohne Abschleppen, Blitzer und Kollision; die erste Tankstelle lag auf
+  jeder gefahrenen Etappe bei 8,5–12 km. Mit den Zeitwerten von v0.7.0 als Override (Faktor 10, 8 h Pause,
+  Verfolgung 72 s): Wien – Hamburg, Limousine, Seed 63352: 56:01,08 (+21,6 %), Starts um 8:00, 17:59, 3:09, 11:49,
+  20:42, 6:07, 15:03 und 0:28 Uhr.
 
 ## Schwierigkeit (v0.5.0)
 

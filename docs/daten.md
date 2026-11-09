@@ -197,6 +197,9 @@ führte der kürzeste Weg über Prag und Leipzig).
   viel LKW-Verkehr auf der A2, mehr Tankstellen).
 - **München – Bremen** (Wahl in Würzburg): spiegelt Kiel – Nürnberg – über Kassel/Hannover (kürzer, hügelig,
   mehr Radar) oder über Frankfurt/Dortmund (länger, mehr Verkehr, mehr freie Autobahn).
+- **Königsrennen** (Wahl in Saragossa): Küste über Barcelona (Autopista, dichter Verkehr um Barcelona,
+  7 Radare) oder Pyrenäen über den Somport-Tunnel (55 km länger, ~115 km kurvige Bergstraße, wenig Verkehr,
+  4 Radare, mehr Tankstellen).
 - **Wien – Hamburg** *(seit v0.7.0)*: keine Wahl – genau die Route des Nutzerwunschs „von Wien über Linz, Passau,
   Regensburg, Nürnberg, Fulda, Kassel und Hannover nach Hamburg“, jede dieser Städte Pflichtstation und
   Etappenziel: 8 Etappen, 1.150 km (Westautobahn mit Tempo 100 um Linz, Grenze an der Innbrücke Suben, A3 an der
