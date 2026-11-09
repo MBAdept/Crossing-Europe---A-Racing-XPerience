@@ -76,7 +76,7 @@ Alle Erweiterungen sind optional; ältere Dateien bleiben gültig.
 - Tankstellen je Fahrtrichtung *(seit v0.7.0)*: die erste `fuel.first_station_min_km`–`first_station_max_km`
   (5–20 km) nach dem Start, danach alle 60–90 km, die letzte ≥ 25 km (nie in den City Limits) und ≤ 90 km vor dem
   Ziel. Der Generator zielt auf 12 km für die erste (dann reicht die 8-L-Reserve in jedem Auto auch mit Vollgas
-  dorthin, Gran Turismo 15,9 km; Fenster 8–15 km, außerhalb nur um Hindernisse herum: Hamburg ab Hannover 8,5 km
+  dorthin, Gran Turismo 15,9 km; Fenster 8–15 km, abweichend nur um Hindernisse herum: Hannover → Hamburg 8,5 km
   wegen eines Radars, Paris → Lüttich 13,5 km wegen des Tunnel du Landy; das Tutorial Kiel → Hamburg bekommt mit
   `first_fuel={"fwd": 15}` 15 km – die 15-km-Ansage kommt dann genau beim Start), auf den Klassenabstand
   (`few` ~88, `normal` ~75, `many` ~62 km) und auf Klassenabstand − 12 km für die letzte, damit der Takt mit der

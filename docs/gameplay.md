@@ -290,7 +290,11 @@ jedem Auto mit Vollgas.
 - **Messungen** (Autopilot, `run_race.gd`, Faktor 12, Rennwetter des Seeds): Kiel – Nürnberg über Kassel,
   Limousine, Seed 63352: 30:45,68 mit 5 Tankstopps (207 L) statt 27:51,18 mit 2 (89 L) in v0.6.0 – +10,4 %, kein
   Abschleppen. Dresden – Dortmund über Erfurt, Sportwagen, Seed 777: 23:34,03 mit 5 Tankstopps (144 L), kein
-  Abschleppen; die dritte Etappe endete mit 16,4 L, die vierte startete damit.
+  Abschleppen; die dritte Etappe endete mit 16,4 L, die vierte startete damit. Über Magdeburg: 21:53,98, 7 Stopps
+  (160 L). Kiel – Nürnberg über Frankfurt, Gran Turismo mit Ziel 300 km/h, Seed 4242: 36:39,07 mit 11 Stopps
+  (328 L), kein Abschleppen. Königsrennen, Kombi, Seed 2026: die ersten 28 Etappen (Kiel – Posen) mit lückenloser
+  Übernahme und ohne Abschleppen; über die Fähre geprüft ab Riga (Beispielstand nach 32 Etappen, 12,9 L): die Fähre
+  lässt den Tank unverändert, Rostock – Kiel startet mit 12,9 L (`last_stage`), tankt zweimal, kein Abschleppen.
 
 ## Schwierigkeit (v0.5.0)
 

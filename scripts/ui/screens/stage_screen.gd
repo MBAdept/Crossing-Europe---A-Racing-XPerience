@@ -161,7 +161,6 @@ func _fuel_strip(plan: StagePlan, race: RaceState) -> Control:
 	strip.origin = UiFormat.fuel_origin(carried, strip.litres, strip.tank)
 	strip.reserve = float(ConfigLoader.lookup(cfg(), "fuel.reserve_warning_l", 8.0))
 	var check := FuelSystem.start_check(cfg(), spec, plan, strip.litres)
-	strip.state = str(check["state"])
 	strip.station = UiFormat.first_station_text(float(check["first_km"]))
 	var verdict := UiFormat.fuel_verdict(check, cfg())
 	strip.verdict = verdict[0]
@@ -176,8 +175,7 @@ class _FuelStrip extends Control:
 	var origin := ""
 	var station := ""
 	var verdict := ""
-	var verdict_kind := "good"
-	var state := "ok"
+	var verdict_kind := "good"         ## good | warn | bad (UiFormat.fuel_verdict)
 
 	func _draw() -> void:
 		var r := Rect2(Vector2.ZERO, size)
