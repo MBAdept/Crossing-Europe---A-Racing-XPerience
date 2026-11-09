@@ -12,6 +12,9 @@ extends RefCounted
 ##  * a ferry is a fixed intermediate time: fixed_time_s is added to the race total, world_hours
 ##    to the world clock; the next stage starts when the ferry arrives
 ##  * race finished = finish city reached after all mandatory waypoints
+##  * (v0.7.0, design document "Tanken") the fuel left at the end of a stage is the fuel at the start of the next
+##    one (fuel_l, also across a ferry); only the race's first stage starts with the stage's own filling
+##    (StagePlan.start_fuel_fraction – the tutorial's 35 % – else fuel.start_fill_fraction)
 
 const VERSION := 1
 
@@ -29,6 +32,10 @@ var total_time_s := 0.0              ## race time so far (stage times incl. pena
 var world_minutes := 0.0             ## absolute world time at which the next leg starts
 var route: Array[String] = []        ## visited city ids in order (start city first)
 var seed := 0
+## Litres in the tank at the start of the next stage = what was left at the finish line of the previous one (v0.7.0;
+## a ferry does not change it). -1 = unknown – a new race, or a save from v0.6.0 –: the stage's own start filling
+## (StagePlan.start_fuel_fraction, else fuel.start_fill_fraction), so such a race starts its next stage full once.
+var fuel_l := -1.0
 
 
 ## New race from a race definition {id, name, start, finish, waypoints}.
@@ -68,6 +75,7 @@ static func from_dict(d: Dictionary, race: Dictionary = {}) -> RaceState:
 		s.route.append(s.start_city if s.start_city != "" else s.current_city)
 	s.world_minutes = float(d.get("world_minutes", s.start_hour * 60.0))
 	s.total_time_s = float(d.get("total_time_s", 0.0))
+	s.fuel_l = float(d.get("fuel_l", -1.0))
 	if not s.legs.is_empty():
 		s.total_time_s = s.sum_leg_times()
 	s.waypoint_index = clampi(s.waypoint_index, 0, s.waypoints.size())
@@ -97,6 +105,7 @@ func to_dict() -> Dictionary:
 		"world_minutes": world_minutes,
 		"route": route.duplicate(),
 		"seed": seed,
+		"fuel_l": fuel_l,
 	}
 
 
@@ -112,6 +121,16 @@ func next_target() -> String:
 
 func is_finished() -> bool:
 	return waypoint_index >= waypoints.size() and current_city == finish_city and not legs.is_empty()
+
+
+## True when driving `leg` {to, …} from here ends the race (every waypoint visited, the finish reached) – the race's
+## last stage: its tank goes nowhere (v0.7.0, GameFlow.stage_setup "last_stage").
+func finishes_race(leg: Dictionary) -> bool:
+	var to := str(leg.get("to", ""))
+	var idx := waypoint_index
+	while idx < waypoints.size() and waypoints[idx] == to:
+		idx += 1
+	return idx >= waypoints.size() and to == finish_city
 
 
 ## Visited cities (for GameData.next_options).
@@ -177,7 +196,8 @@ func stage_seed(stage_id: String) -> int:
 
 
 ## Records a finished stage. leg = chosen option {kind, id, from, to, length_km};
-## result = race session result (ARCHITECTURE.md §8). Returns the stored leg record.
+## result = race session result (ARCHITECTURE.md §8). Returns the stored leg record (with fuel_start_l / fuel_end_l);
+## the fuel at the finish (result fuel_end_l, -1 if missing) becomes fuel_l for the next stage.
 func apply_stage_result(leg: Dictionary, result: Dictionary, config: Dictionary) -> Dictionary:
 	var time_scale := float(ConfigLoader.lookup(config, "time.time_scale", 12.0))
 	var time_s := float(result.get("time_s", 0.0))
@@ -197,16 +217,20 @@ func apply_stage_result(leg: Dictionary, result: Dictionary, config: Dictionary)
 		"daytime": str(result.get("daytime", "")),
 		"start_world_minutes": start_min,
 		"end_world_minutes": end_min,
+		"fuel_start_l": float(result.get("fuel_start_l", -1.0)),
+		"fuel_end_l": float(result.get("fuel_end_l", -1.0)),
 	}
 	legs.append(rec)
 	total_time_s += time_s
+	fuel_l = float(result.get("fuel_end_l", -1.0))
 	_arrive(str(rec["to"]))
 	world_minutes = EnvironmentModel.next_stage_start(end_min, config)
 	return rec
 
 
 ## Records a ferry crossing {id, from, to, name, fixed_time_s, world_hours}: fixed time counts,
-## the world clock advances by world_hours, the next stage starts on arrival.
+## the world clock advances by world_hours, the next stage starts on arrival – with the fuel of before (fuel_l
+## unchanged: the car takes the ferry as it is).
 func apply_ferry(ferry: Dictionary, leg: Dictionary = {}) -> Dictionary:
 	var fixed := float(ferry.get("fixed_time_s", 0.0))
 	var hours := float(ferry.get("world_hours", 0.0))

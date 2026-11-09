@@ -108,7 +108,9 @@ Verbrauch (L/100 km) = 14 + 0,00034 · v²
 | 250 km/h | 35,3 L | ca. 140 km |
 
 - Tankstellen alle 60–90 km, rechts der Straße. Die letzte spätestens etwa 25 km vor dem Etappenziel, also vor den City Limits.
-- Ankündigung 30 km, 15 km und 5 km vorher.
+- *(seit v0.7.0)* Die erste Tankstelle liegt in jeder Fahrtrichtung spätestens 20 km nach dem Etappenstart. Tankstellen gibt es deshalb je Fahrtrichtung, wie Radarfallen.
+- *(seit v0.7.0)* Im Rennen geht der Tankinhalt am Etappenende in die nächste Etappe mit, auch über die Fähre. Reicht er nicht einmal mit 60 km/h bis zur ersten Tankstelle, kommt vor dem Start der Abschleppdienst, mit derselben Zeitstrafe wie unterwegs. Der Etappenbildschirm zeigt den Tank und die Entfernung zur ersten Tankstelle, der Countdown sagt, ob der Tank dorthin reicht. Einzelne Etappen starten weiter mit ihrer eigenen Füllung, in der Regel voll.
+- Ankündigung 30 km, 15 km und 5 km vorher. *(seit v0.7.0)* Liegt die erste Tankstelle näher, wird sie beim Start mit ihrer Entfernung angekündigt.
 - Tankspur rechts, beginnt nach der 5-km-Ankündigung und ist 1–2 km lang. Fällt der Wagen dort unter 60 km/h, läuft der Tankvorgang automatisch ab. Wer schneller bleibt, fährt durch, und die Spur mündet wieder ein.
 - Tankdauer: 2 Sekunden pro 5 Liter plus etwa 5 Sekunden fest. Ein leerer 50-Liter-Tank braucht damit rund 25 Sekunden.
 - Beim Tanken erscheint „Volltanken?“ und darunter „Gas = Weiterfahren“. Gas geben bricht den Tankvorgang ab.
@@ -193,15 +195,17 @@ Die City Limits ergeben sich automatisch aus den letzten 20 km jeder Etappe und 
 
 ### Erstes Rennen: Kiel – Nürnberg
 
-- Kiel – Hamburg: alternativlose Startetappe, gleichzeitig Tutorial. *(seit v0.5.0)* Im Rennen ist sie immer trocken, damit Einsteiger nicht gleich bei Regen oder Schnee beginnen.
+- Kiel – Hamburg: alternativlose Startetappe, gleichzeitig Tutorial. *(seit v0.5.0)* Im Rennen ist sie immer trocken, damit Einsteiger nicht gleich bei Regen oder Schnee beginnen. *(seit v0.7.0)* Sie startet mit gut einem Drittel Tank, die Tankstelle kommt nach 15 km; was im Ziel in Hamburg übrig ist, geht in die nächste Etappe mit.
 - Ab Hamburg Wahl zwischen der Route über Kassel und der Route über Frankfurt (mehr Verkehr). Etappen über ca. 300 km bekommen eine Zwischenstation, etwa Hannover.
 
 ### Weitere Rennen
 
 - Zum Beispiel Dresden – Dortmund, München – Bremen.
+- *(seit v0.7.0)* Wien – Hamburg über Linz, Passau, Regensburg, Nürnberg, Fulda, Kassel und Hannover: Jede dieser Städte ist Pflichtstation und Etappenziel, die Route ist also fest (8 Etappen, rund 1.150 km; drei davon sind nur gut 100 km lang, weil die Städte so dicht liegen).
+- *(seit v0.7.0)* Bukarest – Calais, mit Etappen von Stadt zu Stadt entlang der großen Straßen: Bukarest – Sibiu (durch das Olttal über die Karpaten) – Timișoara – Budapest – Wien, ab Wien wahlweise an der Donau entlang über Linz, Passau und Regensburg (kürzer, mehr Etappen) oder über Prag (länger, weniger Etappen) nach Nürnberg, dann Würzburg – Frankfurt – Köln – Brüssel – Calais. Rund 2.500–2.600 km in 11–13 Etappen; neues Land Rumänien.
 - Königsrennen als Tour: Kiel – Hamburg – Bremen – Amsterdam – Lüttich – Paris – Madrid – Bern – Mailand – Sofia – Budapest – Wien – Prag – Leipzig – Berlin – Warschau – Riga – Fähre – Rostock – Kiel.
 - Die Tour umfasst grob 11.000–12.000 km. Lange Abschnitte werden in Etappen von 200–400 km geteilt; nach jeder Etappe wird gespeichert.
-- Die Fähre Riga – Rostock ist eine feste Zwischenzeit mit kurzer Szene.
+- Die Fähre Riga – Rostock ist eine feste Zwischenzeit mit kurzer Szene. *(seit v0.7.0)* Der Tank geht unverändert mit auf die Fähre.
 
 ## Etappenbildschirm und Bestenlisten
 

@@ -609,9 +609,11 @@ func board_length_km(board_key: String) -> float:
 
 
 ## What a board's default entries are computed from (Review v0.5.0, LeaderboardStore.seed_entries_for): {length_km,
-## stages (each ends in City Limits), fuel_stops (stages that start with a partly filled tank – the stop belongs to
-## them, like the tutorial Kiel – Hamburg in its driving direction), fixed_s (ferry time)} – a stage board, or the
-## shortest route of a race. {} for an unknown board.
+## stages (each ends in City Limits), fuel_stops, fixed_s (ferry time)} – a stage board, or the shortest route of a
+## race. {} for an unknown board. fuel_stops: a stage board counts one when the stage starts with a partly filled tank
+## (the stop belongs to it, like the tutorial Kiel – Hamburg in its driving direction); a stage starting full needs
+## none. A race (v0.7.0: the tank carries over from stage to stage, so every stage after the first starts with what
+## the last one left) counts one for every stage after the first, plus the first stage's partly filled tank.
 func board_profile(board_key: String) -> Dictionary:
 	var parts := board_key.split(":")
 	if parts.size() >= 2 and parts[0] == "stage" and stages.has(parts[1]):
@@ -629,7 +631,8 @@ func board_profile(board_key: String) -> Dictionary:
 			if str(l["kind"]) == "stage":
 				out["stages"] = int(out["stages"]) + 1
 				var st: Dictionary = stages.get(str(l["id"]), {})
-				if str(l["from"]) == str(st.get("from", "")) and _partial_tank(st):
+				var first := int(out["stages"]) == 1
+				if not first or (str(l["from"]) == str(st.get("from", "")) and _partial_tank(st)):
 					out["fuel_stops"] = int(out["fuel_stops"]) + 1
 			else:
 				out["fixed_s"] = float(out["fixed_s"]) + float(ferries.get(str(l["id"]), {}).get("fixed_time_s", 0.0))
@@ -678,7 +681,8 @@ func city_map_pos(city_id: String) -> Vector2:
 # --- Validation ----------------------------------------------------------------------------------
 
 ## Full consistency check of the data: referential integrity, section sums, scenery ids, design rules of
-## every stage in both directions (StagePlan warnings, dev stages forward only), fuel spacing, radar limits,
+## every stage in both directions (StagePlan warnings, dev stages forward only), fuel spacing (the first station
+## of every direction fuel.first_station_min_km–first_station_max_km after the start, since v0.7.0), radar limits,
 ## landscape change at every border (outside the City Limits), routability of every race, stage lengths of
 ## tours (split_violations), map positions. Returns human-readable problems (empty = all fine).
 func validate() -> Array[String]:
@@ -785,11 +789,18 @@ func _validate_plan_extras(p: StagePlan, w: Array[String]) -> void:
 	var spacing: Array = ConfigLoader.lookup(cfg, "fuel.station_spacing_km", [60, 90])
 	var lo := float(spacing[0]) - 0.5
 	var hi := float(spacing[1]) + 0.5
+	# v0.7.0: the first station of every direction fuel.first_station_min_km–first_station_max_km (5–20 km) after
+	# the start – in a race the tank carries over from the previous stage (it was 'within 90 km' before)
+	var first_min := float(ConfigLoader.lookup(cfg, "fuel.first_station_min_km", 5.0))
+	var first_max := float(ConfigLoader.lookup(cfg, "fuel.first_station_max_km", 20.0))
 	var prev := 0.0
-	for st in p.fuel_stations_km:
+	for i in p.fuel_stations_km.size():
+		var st := p.fuel_stations_km[i]
 		var gap := st - prev
-		if (prev > 0.0 and (gap < lo or gap > hi)) or (prev == 0.0 and gap > hi):
-			w.append("%s: Tankstellenabstand %.1f km (Soll 60–90)" % [tag, gap])
+		if i == 0 and (gap > first_max + 0.05 or gap < first_min - 0.05):
+			w.append("%s: erste Tankstelle bei km %.1f (Soll %.0f–%.0f km nach dem Start)" % [tag, gap, first_min, first_max])
+		elif i > 0 and (gap < lo or gap > hi):
+			w.append("%s: Tankstellenabstand %.1f km (Soll %.0f–%.0f)" % [tag, gap, float(spacing[0]), float(spacing[1])])
 		prev = st
 	if p.fuel_stations_km.is_empty() or p.length_km - prev > hi:
 		w.append("%s: zu großer Abstand von der letzten Tankstelle zum Ziel" % tag)

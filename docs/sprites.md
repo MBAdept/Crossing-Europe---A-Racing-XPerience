@@ -181,10 +181,10 @@ Frontkennzeichen.
 | Spieler | `player/kompakt`, `kombi`, `limousine`, `sportwagen`, `gran_turismo` – base/tail/brake, 21 Winkel | perspektivisch, Supersampling 1,65–1,9 |
 | Showroom | `showroom/<typ>`: 3/4-Ansicht von vorn, 768×480, base | – |
 | Verkehr | `traffic/<modell>_<farbe>`: hatch (5 Farben), sedan (4), wagon (4), suv (4), van (4), sports (5) – 17 Winkel; truck (4, Sattelzug 16,5 m), bus (3, Reisebus 12,8 m) als Quader | Pkw 52 px/m (9°); Lkw/Bus 100/80 px/m |
-| Polizei | `police/<land>` – 17 Länder, landestypische Farben, Wort auf Flanken und Heck, Blaulichtbalken (beacon_a = linke, beacon_b = rechte Hälfte), 17 Winkel | 56 px/m, 9° |
+| Polizei | `police/<land>` – 18 Länder, landestypische Farben, Wort auf Flanken und Heck, Blaulichtbalken (beacon_a = linke, beacon_b = rechte Hälfte), 17 Winkel | 56 px/m, 9° |
 | Requisiten | `props/<name>` (36 Stück, siehe unten) + 50 für die Städte (46 Gebäude `props/city_*`, Brückenteile, Hausboot); `lights` bei Gebäuden, Laternen, Leitpfosten, Tankstelle, Windrad (Flugfeuer) … | Bäume 256–384 px hoch, Gebäude bis 512 (Stadtgebäude 192–448) |
 | UI | `ui/weather_normal`, `_rain`, `_snow`, `ui/daytime_day`, `_night`, `_dawn`, `_dusk` – 96×96, dunkle Kontur | – |
-| Wahrzeichen | `landmarks/<name>` (21, siehe „Wahrzeichen“): base + lights (Anstrahlung), echte Maße, 3/4-Ansicht | 2,4–6 px/m, Zellen bis 1024 px |
+| Wahrzeichen | `landmarks/<name>` (33, siehe „Wahrzeichen“): base + lights (Anstrahlung), echte Maße, 3/4-Ansicht | 2,4–6 px/m, Zellen bis 1024 px |
 
 Polizei (keine echten Wappen/Logos, generische Lackierungen):
 
@@ -207,6 +207,7 @@ Polizei (keine echten Wappen/Logos, generische Lackierungen):
 | pl | POLICJA | Limousine | unten dunkelblau, oben weiß |
 | lt | POLICIJA | SUV | hellgrau, blau/gelbgrünes Karomuster |
 | lv | POLICIJA | Schrägheck | weiß, dunkelblau/gelbes Karomuster |
+| ro | POLIȚIA | Limousine | weiß, blau/gelbgrünes Karomuster (Warnmarkierung wie seit 2020 in Rumänien) |
 
 Requisiten: Bäume `tree_oak, tree_beech, tree_birch, tree_pine, tree_spruce, tree_poplar, tree_cypress,
 tree_olive, tree_palm`; `bush_round, bush_low, heather, rock_a, rock_b, cliff, haybale`; Gebäude `farmhouse,
@@ -323,17 +324,18 @@ Die Fahrzeug-Sheets (`player/`, `traffic/`, `police/`) werden **VRAM-komprimiert
 Requisiten und UI bleiben verlustfrei. Die `.import`-Dateien liegen im Repository.
 
 `python3 tools/blender/set_vram_import.py` setzt diese Parameter (danach `godot --headless --path . --import`)
-und gibt die Größen aus. Stand v2:
+und gibt die Größen aus. Stand v0.7.0:
 
 | Gruppe | PNG | GPU (alles geladen, inkl. Mipmaps) |
 |---|---|---|
 | player (5 Sheets, je bis 4096 × 3500) | 17,4 MB | 90,5 MB (BPTC, ≈ 18 MB je Auto) |
 | traffic (26 Pkw + 7 Lkw/Bus-Quader) | 19,4 MB | 93,9 MB (BPTC) |
-| police (17) | 11,5 MB | 78,8 MB (BPTC, ≈ 4,6 MB je Land) |
-| props (36 + 50 Städte) | 3,2 + 6,0 MB | 31,8 + 48,7 MB (verlustfrei) |
+| police (18) | 12,1 MB | 83,6 MB (BPTC, ≈ 4,6 MB je Land) |
+| props (36 + 50 Städte) | 3,2 + 5,9 MB | 80,4 MB (verlustfrei) |
+| landmarks (33) | 9,5 MB | 84,0 MB (verlustfrei) |
 | showroom (5) | 0,9 MB | 9,4 MB (verlustfrei) |
 | ui (7) | 0,1 MB | 0,3 MB |
-| **gesamt** | **58,3 MB** (Budget ≈ 60 MB) | **353 MB**, davon Fahrzeuge 263 MB |
+| **gesamt** | **68,5 MB** (Prüfgrenze 70 MB) | **442 MB**, davon Fahrzeuge 268 MB |
 
 In einem Rennen ist nur ein Spielerauto und die Polizei des aktuellen Landes geladen (SpriteDB lädt bei
 Bedarf): typisch ≈ 150 MB, wenn alle Verkehrsmodelle und -farben vorkommen. Von den Stadtgebäuden braucht
@@ -389,13 +391,16 @@ Vertrag: [Individuelle Städte §3](staedte.md). Modul `tools/blender/cesprites/
 - **Schrägansicht und Anker**: Bei sehr breiten Wahrzeichen (Parlament 268 m, Eiffelturm) liegt die vordere
   Ecke durch die Drehung vor dem Anker und reicht 1–2 m unter die Ankerlinie (`validate_manifest.py` warnt,
   unbedenklich).
-- **Größe**: 21 Sets, 6,1 MB PNG (mit dem Bestand 58,5 MB bei 60 MB Budget), GPU 56 MB wenn alle geladen;
-  eine Etappe lädt nur die 1–3 Wahrzeichen ihrer Zielstadt (2–9 MB). Damit die Lichtebenen klein bleiben,
-  ist die Anstrahlung rauschfrei (glatte Flächen packen gut). Rendern: 21 Sets in 7,5 min (2 Threads,
-  6–38 s je Set).
+- **Größe**: 33 Sets, 9,5 MB PNG (mit dem Bestand 68,5 MB bei der Prüfgrenze von 70 MB), GPU 84 MB wenn alle
+  geladen; eine Etappe lädt nur die 1–3 Wahrzeichen ihrer Zielstadt (2–9 MB). Damit die Lichtebenen klein
+  bleiben, ist die Anstrahlung rauschfrei (glatte Flächen packen gut). Rendern: die ersten 21 Sets in 7,5 min
+  (2 Threads, 6–38 s je Set), die 12 Sets von v0.7.0 in 3,1 min (4 Threads, 7–35 s je Set).
 - **Render-Cache je Wahrzeichen**: Parameter `rev` = Hash aus dem gemeinsamen Teil des Moduls (Hilfen,
   Materialien, Konstanten) und dem eigenen Builder; `render_all.CODE["landmark"]` enthält das Modul
-  deshalb nicht. Eine Änderung an einem Wahrzeichen rendert nur dieses neu.
+  deshalb nicht. Eine Änderung an einem Wahrzeichen rendert nur dieses neu. Die Hilfen von v0.7.0
+  (`oct_ring`, `spire_ribs`, `openwork` = durchbrochene Turmhelme, `tracery_lines` = Blendmaßwerk,
+  `lancet_openings`, `lean_to` = Pultdächer der Seitenschiffe, `_baroque_church` für Passau und Fulda,
+  `glazed_tiles` = glasierte Ziegel im Rautenmuster, `tube`) gehören zum gemeinsamen Teil.
 - **Import**: verlustfrei wie die anderen Requisiten (kein VRAM-Format, Mipmaps an).
 
 | Set | Stadt | Höhe | Merkmale |
@@ -421,6 +426,18 @@ Vertrag: [Individuelle Städte §3](staedte.md). Modul `tools/blender/cesprites/
 | `freiheitsdenkmal_riga` | Riga | 42 m | Granitsockel, Travertinsäule, Milda mit drei goldenen Sternen |
 | `kathedrale_burgos` | Burgos | 88 m | weiße Gotik, durchbrochene Turmspitzen, Rosette, Vierungslaterne |
 | `basilica_pilar` | Saragossa | 92 m | vier Ecktürme, elf Kuppeln mit grün-gelb-weiß-blauen Ziegeln |
+| `koelner_dom` | Köln | 157,4 m | fast schwarzer Sandstein mit helleren erneuerten Quadern, Doppelturmfassade mit Wimpergen, Fialen und Blendmaßwerk, durchbrochene Turmhelme mit Rippen, Krabben und Kreuzblumen, fünfschiffiges Langhaus mit zwei Reihen Strebebögen, Querhaus, Chorkapellenkranz, Bleidach, Vierungsturm mit goldenem Stern (seit v0.7.0) |
+| `dom_regensburg` | Regensburg | 105 m | hellgrauer Kalkstein, Westtürme mit achteckigen Glockengeschossen und durchbrochenen Helmen (1859–69), Dreieckportal, Strebebögen, Kupferdach mit Dachreiter (seit v0.7.0) |
+| `mariendom_linz` | Linz | 134,8 m | heller Sandstein, ein Westturm mit Uhr, Achteck mit Ecktürmchen und Krabbenhelm, Giebel der Seitenschiffe, Querhaus, Chorkapellenkranz, grüne Kupferdächer (seit v0.7.0) |
+| `dom_passau` | Passau | 68 m | weiße Barockfassade mit grauen Pilastern, achteckige Glockengeschosse mit Zwiebelhauben, Vierungskuppel mit Laterne (seit v0.7.0) |
+| `dom_fulda` | Fulda | 65 m | heller Putz mit rotem Sandstein (Pilaster, Gesimse), quadratische Glockengeschosse mit Uhren und Welschen Hauben, geschweifter Mittelgiebel mit Salvator, Tambourkuppel (seit v0.7.0) |
+| `palatul_parlamentului` | Bukarest | 86 m | Parlamentspalast 270 × 240 m: gestufte Baumassen, Arkaden, Fensterreihen mit Pilastern, Kolossalportikus mit Terrasse, Säulenkranz oben, Fahnenmast (seit v0.7.0) |
+| `catedrala_mantuirii` | Bukarest | 127 m | Kathedrale der Erlösung des Volkes: heller Stein, Arkaden, Goldmosaik über dem Portal, Mittelturm, Glockenturm und vier Ecktürme mit goldenen Kuppeln (seit v0.7.0) |
+| `catedrala_timisoara` | Timișoara | 90,5 m | Mitropolitan-Kathedrale: Bänder aus rotem und gelbem Backstein, Blendnischen, Reihe grüner Glasurscheiben, elf Türme auf Sternsockeln, Dächer und Hauben aus grün glasierten Ziegeln mit gelben und roten Rauten (seit v0.7.0) |
+| `stadtpfarrkirche_sibiu` | Sibiu | 73,3 m | Evangelische Stadtpfarrkirche: graue gotische Hallenkirche mit Strebepfeilern, schmalerer Chor, Westturm mit Wehrgang, Helm mit vier Ecktürmchen aus glasierten Ziegeln (seit v0.7.0) |
+| `beffroi_calais` | Calais | 75 m | Rathaus im flämischen Neorenaissance-Stil: roter Backstein mit weißen Steinbändern, Treppengiebel, Schieferdächer mit Gauben, Belfried mit Uhren, Steinachteck, grüner Kupferhaube, Laterne und goldenem Drachen (seit v0.7.0) |
+| `atomium` | Brüssel | 102 m | neun Edelstahlkugeln (18 m) auf den Ecken und in der Mitte eines auf der Raumdiagonale stehenden Würfels, 20 Röhren, Mittelsäule, drei Zweibeine, Fensterband der oberen Kugel; nachts funkelnde Lichtpunkte (seit v0.7.0; die prozedurale Form `atomium` bleibt Ersatz) |
+| `basilika_koekelberg` | Brüssel | 89 m | Art-déco-Basilika aus hellem Backstein, Lisenen, zwei Fronttürme mit grünen Helmen, grüne Rippenkuppel auf hohem Tambour (seit v0.7.0) |
 
 Die ersten 15 sind Pflicht (`validate_manifest.py` verlangt sie: ein Winkel `c`, Ebenen `base` + `lights`,
 Tags `prop` + `landmark`, kein `mirror_left`, Breite/Länge/Höhe, Höhe ↔ gemessene Pixel). Neues
@@ -447,6 +464,8 @@ oder die allgemeine Kirche `props/church` ([staedte.md](staedte.md) §9). Reihen
 | `landmarks/sacre_coeur` | Paris | weißer Travertin, Kuppeln (Silhouette am Horizont) | `domed_church` |
 | `landmarks/fernsehturm_riga`, `landmarks/florianturm` | Riga, Dortmund | Fernsehtürme 368 / 209 m | `tv_tower` |
 | `landmarks/herkules_kassel` | Kassel | Oktogon, Pyramide, Kupferstatue (Silhouette) | `octagon` |
+| `landmarks/colonius` *(seit v0.7.0)* | Köln | Fernsehturm 266 m (Silhouette) | `tv_tower` |
+| `landmarks/phare_calais` *(seit v0.7.0, optional)* | Calais | weißer Achteckturm, 51 m, schwarze Laterne; das Drehfeuer (Strahlen, Blitz) zeichnet nur die prozedurale Form – ein Sprite bräuchte dafür einen eigenen Lichtpass | `lighthouse` |
 | Kirchen | Kaunas (Christi-Auferstehung: weißer moderner Turm), Toulouse (Saint-Sernin: achteckiger Backsteinturm), Bordeaux (Saint-André), San Sebastián (Buen Pastor), Lyon (Fourvière: weiße Basilika mit vier Türmen), Rostock (Marienkirche), Posen (Dom) | wie die übrigen Wahrzeichen | `props/church` bzw. fremdes Sprite |
 | `props/city_paris_hlm` | Paris (Banlieue) | Wohnriegel, 10 Geschosse, 40 × 30 m | `city_eastern_plattenbau` hell getönt |
 | `props/bridge_pylon` (neu) | alle Schrägseilbrücken | Zelle ≥ 1024 px hoch, **ohne** Seilfächer, schwächere Lichtebene; die Laufzeit zeichnet Seile und Höhe (`pylon_m`) | prozedural (`prefer_proc`) |

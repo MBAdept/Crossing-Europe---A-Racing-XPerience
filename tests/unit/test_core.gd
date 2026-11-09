@@ -58,6 +58,42 @@ func test_stage_plan_rules_and_reverse() -> void:
 		assert_true(s <= 175.0, "Rückrichtung: keine Tankstelle in den letzten 25 km")
 
 
+## v0.7.0: fuel stations per driving direction – {"km", "dir"} counts only in that direction (km from 'from' like
+## radars, mirrored in reverse), a number in both. A station a few km after the start of one direction lies in the
+## other direction's City Limits: it is skipped before the drop (no warning); an unknown direction counts for both.
+func test_stage_plan_fuel_stations_per_direction() -> void:
+	var stage := {
+		"id": "t", "from": "a", "to": "b", "length_km": 150,
+		"sections": [{"length_km": 150, "road": "autobahn", "country": "DE"}],
+		"fuel_stations_km": [{"km": 12, "dir": "fwd"}, {"km": 64, "dir": "rev"}, {"km": 86, "dir": "fwd"}, {"km": 141.5, "dir": "rev"}],
+	}
+	var countries := {"DE": {"limits": {"autobahn": null, "city": 50}}}
+	var cities := {"a": {"name": "A", "country": "DE"}, "b": {"name": "B", "country": "DE"}}
+	var p := StagePlan.build(stage, "a", cities, countries, cfg())
+	assert_eq(p.fuel_stations_km, [12.0, 86.0] as Array[float], "vorwärts nur die fwd-Tankstellen")
+	assert_eq(p.fuel_lanes.size(), 2, "je Tankstelle eine Tankspur")
+	assert_true(p.warnings.is_empty(), "vorwärts ohne Warnung: %s" % str(p.warnings))
+	var r := StagePlan.build(stage, "b", cities, countries, cfg())
+	assert_eq(r.fuel_stations_km, [8.5, 86.0] as Array[float], "rückwärts die rev-Tankstellen, gespiegelt (150 − 141,5; 150 − 64)")
+	assert_true(r.warnings.is_empty(), "die fwd-Tankstelle bei km 12 landet nicht in den City Limits der Rückrichtung: %s" % str(r.warnings))
+	stage["fuel_stations_km"] = [60, {"km": 10, "dir": "fwd"}]
+	assert_eq(StagePlan.build(stage, "a", cities, countries, cfg()).fuel_stations_km, [10.0, 60.0] as Array[float], "Zahl = beide Richtungen")
+	assert_eq(StagePlan.build(stage, "b", cities, countries, cfg()).fuel_stations_km, [90.0] as Array[float], "rückwärts nur die Zahl")
+	stage["fuel_stations_km"] = [{"km": 70, "dir": "hin"}]
+	var u := StagePlan.build(stage, "b", cities, countries, cfg())
+	assert_eq(u.fuel_stations_km, [80.0] as Array[float], "unbekannte Richtung gilt in beiden")
+	assert_true(str(u.warnings).contains("unbekannter Richtung"), "mit Warnung")
+	# without a list (old or test data): generated from the seed, the first one 5–20 km after the start
+	stage.erase("fuel_stations_km")
+	stage["length_km"] = 300
+	stage["sections"] = [{"length_km": 300, "road": "autobahn", "country": "DE"}]
+	for from_id in ["a", "b"]:
+		var g := StagePlan.build(stage, from_id, cities, countries, cfg())
+		assert_between(g.fuel_stations_km[0], float(ConfigLoader.lookup(cfg(), "fuel.first_station_min_km", 5.0)),
+			float(ConfigLoader.lookup(cfg(), "fuel.first_station_max_km", 20.0)), "erzeugt ab %s: erste Tankstelle nach 5–20 km" % from_id)
+		assert_true(g.warnings.is_empty(), "erzeugt ab %s ohne Warnung" % from_id)
+
+
 func test_projection_visible_fraction() -> void:
 	var pr := RoadProjection.new()
 	pr.setup(ConfigLoader.lookup(cfg(), "render", {}), Vector2(1280, 720))

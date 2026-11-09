@@ -10,7 +10,7 @@ func test_wrapper_api() -> void:
 	assert_true(races.has("kiel_nuernberg"), "Rennen geladen")
 	assert_eq(str(gd.get("network_source")), "res://data/network.json", "eingebautes Netz")
 	var visible_races: Array = gd.call("visible_race_ids")
-	assert_eq(visible_races, ["kiel_nuernberg", "dresden_dortmund", "muenchen_bremen", "koenigsrennen"], "Rennen im Menü")
+	assert_eq(visible_races, ["kiel_nuernberg", "dresden_dortmund", "muenchen_bremen", "wien_hamburg", "bukarest_calais", "koenigsrennen"], "Rennen im Menü")
 	var visible_stages: Array = gd.call("visible_stage_ids")
 	assert_false(visible_stages.has("dev_testetappe"), "Entwickler-Etappe versteckt")
 	assert_eq(str(visible_stages[0]), "kiel_hamburg", "Tutorial-Etappe zuerst")

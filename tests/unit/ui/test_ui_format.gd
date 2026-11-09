@@ -44,6 +44,21 @@ func test_marquee_text() -> void:
 	assert_true(empty.contains("Kiel – Hamburg") and empty.contains("kein Rekord"), "ohne Rekord")
 
 
+## v0.7.0: the fuel strip of the stage screen – where the tank comes from, the first station, the verdict.
+func test_fuel_strip_texts() -> void:
+	assert_eq(UiFormat.fuel_origin(true, 23.4, 60.0), "übernommen", "Rennen: aus der letzten Etappe")
+	assert_eq(UiFormat.fuel_origin(false, 60.0, 60.0), "voll", "voller Tank")
+	assert_eq(UiFormat.fuel_origin(false, 21.0, 60.0), "35 %", "Tutorial")
+	assert_eq(UiFormat.first_station_text(12.0), "Erste Tankstelle nach 12 km", "ganze km")
+	assert_eq(UiFormat.first_station_text(8.5), "Erste Tankstelle nach 8,5 km", "halbe km")
+	assert_true(UiFormat.first_station_text(-1.0).begins_with("Keine"), "ohne Tankstelle")
+	assert_eq(UiFormat.fuel_verdict({"state": "ok"}, cfg()), ["reicht auch mit Vollgas", "good"] as Array[String], "reicht")
+	assert_eq(UiFormat.fuel_verdict({"state": "tight", "max_kmh": 145.0}, cfg()), ["bis dorthin höchstens 145 km/h", "warn"] as Array[String], "knapp")
+	var tow := UiFormat.fuel_verdict({"state": "tow"}, cfg())
+	assert_eq(tow[1], "bad", "Abschleppen")
+	assert_true(tow[0].contains(UiFormat.time(float(ConfigLoader.lookup(cfg(), "fuel.tow_penalty_s", 90.0)))), "Strafe aus der Konfiguration: %s" % tow[0])
+
+
 func test_pace_delta() -> void:
 	assert_near(UiFormat.pace_delta(110.0, 200.0, 50.0, 100.0), 10.0, 0.001, "10 s hinter Rekordtempo")
 	assert_near(UiFormat.pace_delta(90.0, 200.0, 50.0, 100.0), -10.0, 0.001, "10 s vor Rekordtempo")

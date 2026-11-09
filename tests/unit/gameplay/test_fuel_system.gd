@@ -75,6 +75,114 @@ func test_announcements_once_per_station() -> void:
 	assert_eq(got2, [[15, 60.0]], "15-km-Ansage")
 
 
+## v0.7.0: the first station lies 5–20 km after the start – before its 30- and 15-km announcements. It is announced at
+## the start with its real distance; a station exactly at a threshold (15 km) by that threshold; a start in the middle
+## of a stage stays silent as before; announce_start = false (the race countdown names it) only marks the thresholds.
+func test_first_station_is_announced_at_the_start() -> void:
+	var c := cfg()
+	var runs := {12.0: [[12, 12.0], [5, 12.0]], 15.0: [[15, 15.0], [5, 15.0]], 16.0: [[15, 16.0], [5, 16.0]],
+		44.0: [[30, 44.0], [15, 44.0], [5, 44.0]]}
+	for first: float in runs:
+		var f := _fuel(c, Fx.make_plan(c, 200.0, [first, first + 75.0]), 500.0)
+		var got: Array = []
+		f.announced.connect(func(k: int, s: float) -> void:
+			if s == first:
+				got.append([k, s]))
+		var km := 0.0
+		while km < first:
+			f.update(DT, km, 0.05, 150.0, false, 1.0)
+			km += 0.05
+		assert_eq(got, runs[first], "erste Tankstelle bei km %.0f" % first)
+	var mid := _fuel(c, Fx.make_plan(c, 200.0, [50.0]), 500.0)
+	var got_mid: Array = []
+	mid.announced.connect(func(k: int, s: float) -> void: got_mid.append([k, s]))
+	mid.update(DT, 40.0, 0.0, 150.0, false, 1.0)
+	assert_eq(got_mid, [], "Start mitten in der Etappe: keine Ansage mit krummer Entfernung")
+	var quiet := _fuel(c, Fx.make_plan(c, 200.0, [12.0]), 500.0)
+	quiet.announce_start = false
+	var got_q: Array = []
+	quiet.announced.connect(func(k: int, s: float) -> void: got_q.append([k, s]))
+	var q := 0.0
+	while q < 12.0:
+		quiet.update(DT, q, 0.05, 150.0, false, 1.0)
+		q += 0.05
+	assert_eq(got_q, [[5, 12.0]], "announce_start aus: nur die 5-km-Ansage")
+
+
+## v0.7.0, race: the tank of the last stage goes on – it replaces the stage's own filling (the tutorial's 35 %) and is
+## clamped to the tank; -1 = the stage's own filling.
+func test_carried_start_fuel() -> void:
+	var c := cfg()
+	var plan := Fx.make_plan(c, 200.0, [12.0])
+	var f := FuelSystem.new()
+	f.setup(c, {"tank_l": 60.0}, plan)
+	assert_near(f.fuel_l, 60.0 * float(ConfigLoader.lookup(c, "fuel.start_fill_fraction", 1.0)), 0.0001, "ohne Übernahme: Startfüllung der Konfiguration")
+	plan.start_fuel_fraction = 0.35
+	f.setup(c, {"tank_l": 60.0}, plan)
+	assert_near(f.fuel_l, 21.0, 0.0001, "Startfüllung der Etappe (Tutorial)")
+	assert_near(FuelSystem.start_fill_fraction(c, plan), 0.35, 0.0001, "start_fill_fraction")
+	f.setup(c, {"tank_l": 60.0}, plan, 7.5)
+	assert_near(f.fuel_l, 7.5, 0.0001, "übernommener Tank geht vor")
+	f.setup(c, {"tank_l": 60.0}, plan, 0.0)
+	assert_eq(f.fuel_l, 0.0, "auch ein leerer Tank wird übernommen")
+	f.setup(c, {"tank_l": 60.0}, plan, 75.0)
+	assert_eq(f.fuel_l, 60.0, "höchstens der Tank")
+	f.setup(c, {"tank_l": 60.0}, plan, -1.0)
+	assert_near(f.fuel_l, 21.0, 0.0001, "-1 = Startfüllung der Etappe")
+
+
+## v0.7.0: start_check – does a carried tank reach the first fuel lane (open = lane start + taper)? "ok" even at vmax,
+## "tight" only up to max_kmh (a multiple of 5 that really reaches it), "tow" not even at the lane trigger speed.
+func test_start_check() -> void:
+	var c := cfg()
+	var spec := VehicleModel.resolve_spec(c, "gran_turismo")
+	var plan := Fx.make_plan(c, 150.0, [12.0, 86.0], [], 1.5)
+	var taper := Units.visual_m_to_km(float(ConfigLoader.lookup(c, "road.fuel_lane_taper_m", 40.0)), float(ConfigLoader.lookup(c, "time.time_scale", 12.0)))
+	var lane := 10.5 + taper
+	var trigger := float(ConfigLoader.lookup(c, "fuel.lane_trigger_speed_kmh", 60.0))
+	var vmax := float(spec["vmax_kmh"])
+	var per := func(v: float) -> float: return FuelSystem.consumption_for(c, spec, v) / 100.0
+	var ok := FuelSystem.start_check(c, spec, plan, lane * per.call(vmax) + 0.01)
+	assert_eq(str(ok["state"]), "ok", "reicht mit Vollgas")
+	assert_near(float(ok["first_km"]), 12.0, 0.0001, "erste Tankstelle")
+	assert_near(float(ok["lane_km"]), lane, 0.0001, "offene Tankspur = Spuranfang + Einfädelstrecke")
+	assert_eq(float(ok["max_kmh"]), vmax, "max = vmax")
+	var tow := FuelSystem.start_check(c, spec, plan, lane * per.call(trigger) - 0.01)
+	assert_eq(str(tow["state"]), "tow", "reicht nicht einmal mit %d km/h" % roundi(trigger))
+	assert_near(float(tow["need_l"]), lane * per.call(trigger), 0.0001, "Bedarf bei der Auslösegeschwindigkeit")
+	for litres: float in [lane * per.call(trigger) + 0.01, 3.0, lane * per.call(vmax) - 0.05]:
+		var t := FuelSystem.start_check(c, spec, plan, litres)
+		var m := float(t["max_kmh"])
+		assert_eq(str(t["state"]), "tight", "%.2f L: nur mit Gefühl" % litres)
+		assert_near(fmod(m, 5.0), 0.0, 0.0001, "%.2f L: auf 5 km/h abgerundet" % litres)
+		assert_true(lane * per.call(m) <= litres + 0.0001, "%.2f L: %d km/h reichen" % [litres, roundi(m)])
+		assert_true(m >= vmax - 5.0 or lane * per.call(m + 5.0) > litres, "%.2f L: 5 km/h mehr reichen nicht" % litres)
+	# fuel study, Gran Turismo from Hamburg (first station 12 km): 1.9 L → tow before the start, 3 L → gently
+	assert_eq(str(FuelSystem.start_check(c, spec, plan, 1.9)["state"]), "tow", "GT mit 1,9 L: Abschleppdienst")
+	assert_eq(str(FuelSystem.start_check(c, spec, plan, 3.0)["state"]), "tight", "GT mit 3 L: nur mit Gefühl")
+	var none := FuelSystem.start_check(c, spec, Fx.make_plan(c, 150.0, []), 10.0)
+	assert_eq(float(none["first_km"]), -1.0, "ohne Tankstelle")
+	assert_near(float(none["lane_km"]), 150.0, 0.0001, "dann zählt das Ziel")
+
+
+## Guarantee of the fuel rules (v0.7.0, the tank carries over in a race): whoever fills up at the last station of a
+## stage reaches the next stage's first fuel lane at full speed in every car – the last station at most
+## station_spacing_km[1] (90) km before the finish, refuelled at the start of its lane (lane_length_km[1] before
+## it), the next first station at most first_station_max_km (20) km after the start plus the lane's taper. With
+## Gran Turismo (60 L, ×1.3, 270 km/h): 119 km range against 112.5 km. A change of tank sizes, consumption or the
+## 90/20 km rules that breaks it fails here.
+func test_full_tank_at_the_last_station_reaches_the_next_first_station() -> void:
+	var c := cfg()
+	var spacing: Array = ConfigLoader.lookup(c, "fuel.station_spacing_km", [60, 90])
+	var lane_len: Array = ConfigLoader.lookup(c, "fuel.lane_length_km", [1.0, 2.0])
+	var taper := Units.visual_m_to_km(float(ConfigLoader.lookup(c, "road.fuel_lane_taper_m", 40.0)), float(ConfigLoader.lookup(c, "time.time_scale", 12.0)))
+	var need_km := float(spacing[1]) + float(lane_len[1]) + float(ConfigLoader.lookup(c, "fuel.first_station_max_km", 20.0)) + taper
+	for id: String in Fx.VEHICLES:
+		var spec := VehicleModel.resolve_spec(c, id)
+		var range_km := float(spec["tank_l"]) / FuelSystem.consumption_for(c, spec, float(spec["vmax_kmh"])) * 100.0
+		assert_true(range_km >= need_km, "%s: voller Tank reicht bei %d km/h %.1f km, nötig %.1f km" % [id, int(spec["vmax_kmh"]), range_km, need_km])
+
+
 func test_distance_to_next_station() -> void:
 	var c := cfg()
 	var f := _fuel(c, Fx.make_plan(c, 200.0, [60.0, 140.0]))

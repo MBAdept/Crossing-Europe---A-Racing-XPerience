@@ -206,6 +206,35 @@ static func tow_text(refill_fraction: float) -> String:
 	return t("Tank leer – der Abschleppdienst bringt Sprit %s.") % amount
 
 
+## Stage screen, fuel strip (v0.7.0): where the tank comes from – "übernommen" (a race: the tank of the last
+## stage), "voll", or the start filling of the stage in percent ("35 %", the tutorial).
+static func fuel_origin(carried: bool, litres: float, tank_l: float) -> String:
+	if carried:
+		return t("übernommen")
+	if litres >= tank_l - 0.5:
+		return t("voll")
+	return "%d %%" % roundi(100.0 * litres / maxf(tank_l, 0.001))
+
+
+## Stage screen, fuel strip: "Erste Tankstelle nach 12 km" / "nach 8,5 km" (FuelSystem.start_check first_km).
+static func first_station_text(first_km: float) -> String:
+	if first_km < 0.0:
+		return t("Keine Tankstelle auf dieser Etappe")
+	return t("Erste Tankstelle nach %s km") % number(first_km, 1)
+
+
+## Stage screen, fuel strip: what the tank is good for on the way to the first station – [text, kind] with kind
+## "good" (even at full speed), "warn" (only up to check.max_kmh) or "bad" (the tow service before the start, its
+## penalty from fuel.tow_penalty_s). check = FuelSystem.start_check().
+static func fuel_verdict(check: Dictionary, config: Dictionary) -> Array[String]:
+	match str(check.get("state", "ok")):
+		"tow":
+			return [t("Abschleppdienst vor dem Start: +%s") % time(float(ConfigLoader.lookup(config, "fuel.tow_penalty_s", 90.0))), "bad"] as Array[String]
+		"tight":
+			return [t("bis dorthin höchstens %d km/h") % roundi(float(check.get("max_kmh", 0.0))), "warn"] as Array[String]
+	return [t("reicht auch mit Vollgas"), "good"] as Array[String]
+
+
 ## Speed (km/h) from which a radar with this limit flashes (PoliceSystem: limit * (1 + radar.tolerance)).
 static func radar_trigger_kmh(limit_kmh: float, config: Dictionary) -> float:
 	var tol := float(ConfigLoader.lookup(config, "radar.tolerance", 0.15))

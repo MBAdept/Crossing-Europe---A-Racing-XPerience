@@ -141,6 +141,47 @@ func test_tutorial_texts_use_the_configuration() -> void:
 			assert_true(h.begins_with("Tipp:"), "als Tipp erkennbar: %s" % h)
 
 
+## v0.7.0: the tutorial's first station lies only 15 km after the start – the low tank is urgent (it comes right after
+## "LOS!", before the control hints) and names the distance; without one it keeps the old text.
+func test_tutorial_low_tank_comes_first() -> void:
+	var c := TutorialCoach.new()
+	c.setup(cfg())
+	assert_true(TutorialCoach.URGENT.has("fuel_low"), "Tankhinweis dringend")
+	c.trigger("fuel_low", {"percent": 35.0, "km": 15.0})
+	c.trigger("start")
+	c.trigger("fuel_hud")
+	c.hold(1.2)
+	assert_eq(c.update(1.0), "", "„LOS!“ steht erst allein")
+	var first := c.update(0.3)
+	assert_true(first.contains("35 %") and first.contains("15 km"), "zuerst der Tank mit der Entfernung: %s" % first)
+	assert_true(c.hints_for("fuel_low", {"percent": 35.0})[0].contains("unterwegs"), "ohne Entfernung der alte Text")
+
+
+## v0.7.0, race: the countdown names the carried tank and what it is good for (FuelSystem.start_check) – nothing for a
+## full tank or nothing carried, a tight tank with its top speed, a tow before the start with its penalty.
+func test_carry_messages() -> void:
+	var c := cfg()
+	assert_eq(SessionRules.carry_messages(c, {}, 20.0, 60.0, false), [] as Array[Dictionary], "nichts übernommen")
+	var ok := {"state": "ok", "first_km": 12.0, "max_kmh": 270.0}
+	assert_eq(SessionRules.carry_messages(c, ok, 59.8, 60.0, false), [] as Array[Dictionary], "voller Tank: keine Meldung")
+	var m := SessionRules.carry_messages(c, ok, 23.4, 60.0, false)
+	assert_eq(m.size(), 1, "eine Meldung")
+	assert_eq(str(m[0]["kind"]), "info", "reicht: Info")
+	assert_true(str(m[0]["text"]).contains("24 L") and str(m[0]["text"]).contains("12 km"), "Liter wie die Tankanzeige (aufgerundet), Entfernung: %s" % m[0]["text"])
+	var tight := SessionRules.carry_messages(c, {"state": "tight", "first_km": 8.5, "max_kmh": 145.0}, 3.0, 60.0, false)
+	assert_eq(str(tight[0]["kind"]), "warn", "knapp: Warnung")
+	assert_true(str(tight[0]["text"]).contains("höchstens 145 km/h") and str(tight[0]["text"]).contains("9 km"), "Höchsttempo: %s" % tight[0]["text"])
+	var tow := SessionRules.carry_messages(c, {"state": "tow", "first_km": 12.0, "max_kmh": 0.0}, 0.3, 60.0, true)
+	assert_eq(tow.size(), 1, "eine Zeile (eine zweite reichte bis an die Countdown-Ziffer)")
+	assert_eq(str(tow[0]["kind"]), "alert", "Abschleppen: Alarm")
+	assert_true(str(tow[0]["text"]).contains("1 L") and str(tow[0]["text"]).contains("Abschleppdienst vor dem Start"), "vor dem Start: %s" % tow[0]["text"])
+	assert_true(str(tow[0]["text"]).contains(Units.format_race_time(float(ConfigLoader.lookup(c, "fuel.tow_penalty_s", 90.0)))), "Strafe aus der Konfiguration: %s" % tow[0]["text"])
+	for msg: Dictionary in m + tight + tow:
+		assert_true(str(msg["text"]).length() <= 90, "kurz genug fürs HUD: %s" % msg["text"])
+	assert_eq(SessionRules.shown_litres(0.3), 1, "0,3 L zeigt 1 L")
+	assert_eq(SessionRules.shown_litres(0.0), 0, "leer zeigt 0")
+
+
 ## Review v0.5.0: rain and snow cost a lot of braking – the HUD says so at the start of such a stage, with the
 ## factor from the configuration; the City Limits are announced city_limits.announce_km ahead (once, never inside).
 func test_weather_hint_and_city_announcement() -> void:

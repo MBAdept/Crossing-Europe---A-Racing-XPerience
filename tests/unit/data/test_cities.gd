@@ -9,7 +9,7 @@ const REQUIRED_LANDMARKS: Array[String] = ["eiffel_tower", "elbphilharmonie", "m
 const CONTRACT_STYLES: Array[String] = ["hanse", "german", "german_old", "dutch", "belgian", "paris", "french", "spanish",
 	"italian", "vienna", "austrian", "swiss", "central", "eastern", "balkan", "baltic"]
 const PROC_KINDS: Array[String] = ["lattice_tower", "tv_tower", "ferris_wheel", "column", "octagon", "campanile", "domed_church",
-	"parliament", "palace_tower", "skyscrapers"]
+	"parliament", "palace_tower", "skyscrapers", "atomium", "lighthouse"]
 
 var _net: RoadNetwork = null
 
@@ -180,7 +180,8 @@ func test_required_landmarks_and_bridges() -> void:
 	assert_true((types.call("venedig") as Array).has("causeway"), "Venedig: Damm über die Lagune")
 	var kiel: Array = CityData.city_entry(d, "kiel").get("bridges", [])
 	assert_true(not kiel.is_empty() and float((kiel[0] as Dictionary).get("height_m", 0.0)) >= 12.0, "Kiel: Hochbrücke über den Kanal")
-	for cid: String in ["paris", "prag", "dresden", "budapest", "wien", "bordeaux", "lyon", "belgrad", "riga", "warschau"]:
+	for cid: String in ["paris", "prag", "dresden", "budapest", "wien", "bordeaux", "lyon", "belgrad", "riga", "warschau",
+			"linz", "passau", "regensburg", "koeln", "bukarest", "calais"]:
 		assert_false((types.call(cid) as Array).is_empty(), "%s: Flussbrücke" % cid)
 
 
@@ -232,3 +233,51 @@ func test_skyline_prefers_procedural_stand_ins() -> void:
 	assert_eq(k.skyline.size(), 1, "Herkules als Silhouette")
 	assert_eq(str(k.skyline[0].get("proc", "")), "octagon", "Herkules: Oktogon mit Pyramide und Statue")
 	assert_false(k.skyline[0].has("fallback"), "Herkules ohne Ersatz-Kirche")
+
+
+## v0.7.0: the ten cities of Wien – Hamburg and Bukarest – Calais – each with its style, a landmark of its own (a
+## landmarks/* sprite; the Calais lighthouse procedural) also on the skyline, and a bridge over its river; Romania's
+## towns are balkan by default, Linz is the first city in the austrian style.
+func test_v070_cities() -> void:
+	var d := db()
+	var sp := sprites()
+	var sets: Dictionary = d.get("landmark_sets", {})
+	var expect := {"linz": "austrian", "passau": "bavarian", "regensburg": "bavarian", "fulda": "german_old",
+		"bukarest": "balkan", "sibiu": "central", "timisoara": "central", "koeln": "german", "bruessel": "belgian",
+		"calais": "belgian"}
+	for cid: String in expect:
+		var c: Dictionary = net().cities.get(cid, {})
+		assert_false(c.is_empty(), "%s im Netz" % cid)
+		assert_eq(CityData.style_for(d, cid, str(c.get("country", ""))), str(expect[cid]), "%s: Stil" % cid)
+		var e := CityData.city_entry(d, cid)
+		var lms: Array = e.get("landmarks", [])
+		assert_false(lms.is_empty(), "%s: Wahrzeichen" % cid)
+		for lm: Dictionary in lms:
+			var sid := str(lm["set"])
+			assert_true(sid.begins_with("landmarks/"), "%s: eigenes Wahrzeichen statt einer getönten Kirche (%s)" % [cid, sid])
+			assert_true(sp.has(sid) or str((sets.get(sid, {}) as Dictionary).get("proc", "")) != "", "%s: %s als Sprite oder prozedural" % [cid, sid])
+			var on_skyline := false
+			for sk: Variant in e.get("skyline", []):
+				var sk_id := str((sk as Dictionary).get("set", "")) if sk is Dictionary else str(sk)
+				on_skyline = on_skyline or sk_id == sid
+			assert_true(on_skyline, "%s: %s auch als Silhouette" % [cid, sid])
+		assert_false((e.get("bridges", []) as Array).is_empty(), "%s: Brücke" % cid)
+	assert_eq(str(d.get("country_style", {}).get("RO", "")), "balkan", "Rumänien: balkan")
+	for sid: String in ["koelner_dom", "dom_regensburg", "mariendom_linz", "dom_passau", "dom_fulda", "palatul_parlamentului",
+			"catedrala_mantuirii", "catedrala_timisoara", "stadtpfarrkirche_sibiu", "atomium", "basilika_koekelberg", "beffroi_calais"]:
+		assert_true(sp.has("landmarks/" + sid), "Sprite landmarks/%s vorhanden" % sid)
+	assert_true(sp.has("police/ro"), "Polizei-Sprite police/ro (ohne wäre die Polizei in Rumänien unsichtbar)")
+	assert_eq(str((sets.get("landmarks/phare_calais", {}) as Dictionary).get("proc", "")), "lighthouse", "Leuchtturm von Calais prozedural")
+	assert_eq(str((sets.get("landmarks/atomium", {}) as Dictionary).get("proc", "")), "atomium", "Atomium: prozeduraler Ersatz, falls das Sprite fehlt")
+	# arrival in Calais from Brüssel: the lighthouse, then the belfry; the lighthouse silhouette without a fallback sprite
+	var n := net()
+	var p := StagePlan.build(n.stages["bruessel_calais"], "bruessel", n.cities, n.countries, cfg(), d)
+	assert_eq(p.to_id, "calais", "Ankunft in Calais")
+	assert_eq(p.landmarks.size(), 2, "zwei Wahrzeichen")
+	if p.landmarks.size() == 2:
+		assert_eq(str(p.landmarks[0]["set"]), "landmarks/phare_calais", "erst der Leuchtturm")
+		assert_eq(str(p.landmarks[1]["set"]), "landmarks/beffroi_calais", "dann der Belfried")
+	for e: Dictionary in p.skyline:
+		if str(e["set"]) == "landmarks/phare_calais":
+			assert_eq(str(e.get("proc", "")), "lighthouse", "Leuchtturm-Silhouette prozedural")
+			assert_false(e.has("fallback"), "Leuchtturm-Silhouette ohne Ersatz-Kirche")

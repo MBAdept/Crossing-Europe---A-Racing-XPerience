@@ -24,11 +24,14 @@ static func load_network(config: Dictionary) -> RoadNetwork:
 func test_network_loads() -> void:
 	var n := net()
 	assert_true(n.load_warnings.is_empty(), "keine Ladewarnungen: %s" % str(n.load_warnings))
-	# 45 cities + 2 dev cities: towns passed by long Königsrennen stages (Groningen, Niš, …) are no stage ends
-	assert_true(n.cities.size() >= 45, "mindestens 45 Städte, sind %d" % n.cities.size())
-	assert_true(n.stages.size() >= 50, "mindestens 50 Etappen, sind %d" % n.stages.size())
-	for id in ["kiel_nuernberg", "dresden_dortmund", "muenchen_bremen", "koenigsrennen"]:
+	# 55 cities + 2 dev cities: towns passed by long Königsrennen stages (Groningen, Niš, …) are no stage ends;
+	# v0.7.0: 10 cities and 13 stages for Wien – Hamburg and Bukarest – Calais
+	assert_true(n.cities.size() >= 55, "mindestens 55 Städte, sind %d" % n.cities.size())
+	assert_true(n.stages.size() >= 64, "mindestens 64 Etappen, sind %d" % n.stages.size())
+	for id in ["kiel_nuernberg", "dresden_dortmund", "muenchen_bremen", "wien_hamburg", "bukarest_calais", "koenigsrennen"]:
 		assert_true(n.races.has(id), "Rennen %s vorhanden" % id)
+	assert_eq(n.race_order, ["kiel_nuernberg", "dresden_dortmund", "muenchen_bremen", "wien_hamburg", "bukarest_calais", "koenigsrennen"] as Array[String],
+		"Reihenfolge der Rennen (Menü)")
 	assert_true(n.ferries.has("riga_rostock"), "Fähre Riga – Rostock")
 
 
@@ -55,6 +58,8 @@ func test_design_rules_both_directions() -> void:
 	var n := net()
 	var c := cfg()
 	var spacing: Array = ConfigLoader.lookup(c, "fuel.station_spacing_km", [60, 90])
+	var first_min := float(ConfigLoader.lookup(c, "fuel.first_station_min_km", 5.0))
+	var first_max := float(ConfigLoader.lookup(c, "fuel.first_station_max_km", 20.0))
 	for id in n.stage_order:
 		var s: Dictionary = n.stages[id]
 		if bool(s.get("dev", false)):
@@ -62,15 +67,14 @@ func test_design_rules_both_directions() -> void:
 		for from_id in [str(s["from"]), str(s["to"])]:
 			var p := n.get_stage_plan(id, from_id)
 			var tag := "%s ab %s" % [id, from_id]
-			var prev := 0.0
-			for st in p.fuel_stations_km:
-				var gap := st - prev
-				if prev > 0.0:
-					assert_between(gap, float(spacing[0]) - 0.5, float(spacing[1]) + 0.5, tag + " Tankabstand")
-				else:
-					assert_true(gap <= float(spacing[1]) + 0.5, tag + " erste Tankstelle spätestens nach 90 km")
+			# v0.7.0 (the tank carries over in a race): the first station of every direction 5–20 km after the start
+			assert_between(p.fuel_stations_km[0], first_min - 0.05, first_max + 0.05, tag + " erste Tankstelle 5–20 km nach dem Start")
+			var prev := p.fuel_stations_km[0]
+			for st in p.fuel_stations_km.slice(1):
+				assert_between(st - prev, float(spacing[0]) - 0.5, float(spacing[1]) + 0.5, tag + " Tankabstand")
 				prev = st
 			assert_true(p.length_km - prev >= 25.0, tag + " letzte Tankstelle ≥ 25 km vor dem Ziel")
+			assert_true(p.length_km - prev <= float(spacing[1]) + 0.5, tag + " letzte Tankstelle ≤ 90 km vor dem Ziel")
 			assert_true(prev <= p.city_limits_km, tag + " keine Tankstelle in den City Limits")
 			for r in p.radars:
 				assert_true(float(r["end_km"]) <= p.length_km - 50.0 + 0.001, tag + " kein Radar in den letzten 50 km")
@@ -80,6 +84,35 @@ func test_design_rules_both_directions() -> void:
 						assert_eq(int(sec["speed_limit"]), int(r["limit"]), tag + " Radarlimit = Tempolimit des Abschnitts")
 			for t in p.tunnels:
 				assert_true(float(t["start_km"]) >= 0.0 and float(t["end_km"]) <= p.length_km, tag + " Tunnel in der Etappe")
+
+
+## v0.7.0: in a race the tank carries over – whoever fills up at the last station of a stage (at the start of its lane)
+## reaches the first fuel lane of the next stage (also across the ferry) at full speed in every car, on every route of
+## every race. The generic rule behind it: test_full_tank_at_the_last_station_reaches_the_next_first_station.
+func test_race_legs_full_tank_reaches_the_next_first_lane() -> void:
+	var n := net()
+	var c := cfg()
+	var taper := Units.visual_m_to_km(float(ConfigLoader.lookup(c, "road.fuel_lane_taper_m", 40.0)), float(ConfigLoader.lookup(c, "time.time_scale", 12.0)))
+	var range_min := INF
+	for id in ConfigLoader.lookup(c, "vehicles.order", []):
+		var spec := VehicleModel.resolve_spec(c, str(id))
+		range_min = minf(range_min, float(spec["tank_l"]) / FuelSystem.consumption_for(c, spec, float(spec["vmax_kmh"])) * 100.0)
+	assert_true(range_min < INF, "Fahrzeuge in der Konfiguration")
+	var worst := 0.0
+	for race_id in n.race_order:
+		for route in n.race_routes(race_id):
+			var prev: StagePlan = null
+			for leg: Dictionary in route["legs"]:
+				if str(leg["kind"]) != "stage":
+					continue   # the ferry: the tank goes on as it is
+				var p := n.get_stage_plan(str(leg["id"]), str(leg["from"]))
+				if prev != null:
+					var gap := prev.length_km - float(prev.fuel_lanes[-1]["start_km"]) + float(p.fuel_lanes[0]["start_km"]) + taper
+					worst = maxf(worst, gap)
+					assert_true(gap <= range_min, "%s: %s → %s: %.1f km von der letzten bis zur ersten Tankspur, Reichweite bei vmax %.1f km" % [
+						race_id, prev.display_name, p.display_name, gap, range_min])
+				prev = p
+	assert_between(worst, 1.0, range_min, "Etappenübergänge geprüft (größter Abstand %.1f km)" % worst)
 
 
 func test_sections_sum_and_allowed_values() -> void:
@@ -168,6 +201,20 @@ func test_real_tunnels_and_borders() -> void:
 		return
 	assert_eq(g.borders.size(), 1, "Amsterdam → Bremen: eine Grenze")
 	assert_eq(str(g.borders[0]["to"]), "DE", "Rückrichtung Amsterdam → Bremen nach DE")
+	# v0.7.0: the D5 tunnel near Plzeň, the five new borders of Wien – Hamburg and Bukarest – Calais
+	assert_near(float(found.get("Tunel Valík", 0.0)), 0.4, 0.05, "Valík-Tunnel bei Plzeň")
+	var expect := {"linz_passau": ["linz", 89.0, "DE"], "timisoara_budapest": ["timisoara", 115.0, "HU"],
+		"prag_nuernberg": ["prag", 160.0, "DE"], "koeln_bruessel": ["koeln", 80.0, "BE"], "bruessel_calais": ["bruessel", 160.0, "FR"]}
+	for id: String in expect:
+		var e: Array = expect[id]
+		var b := n.get_stage_plan(id, str(e[0]))
+		assert_eq(b.borders.size(), 1, "%s: eine Grenze" % id)
+		if b.borders.size() == 1:
+			assert_near(float(b.borders[0]["km"]), float(e[1]), 0.01, "%s: Grenze bei km %.0f" % [id, float(e[1])])
+			assert_eq(str(b.borders[0]["to"]), str(e[2]), "%s: nach %s" % [id, str(e[2])])
+	var ro := n.get_stage_plan("timisoara_budapest", "budapest")
+	assert_eq(str(ro.borders[0]["to"]), "RO", "Budapest → Timișoara nach Rumänien")
+	assert_eq(str(n.countries["RO"]["police"]), "police/ro", "rumänische Polizei")
 
 
 ## Design: "Grenzübergänge: Wechsel von Schildern, Landschaft und Polizeifahrzeugen" (review BORDER-1: 15 of 20
@@ -193,7 +240,7 @@ func test_landscape_changes_at_every_border() -> void:
 				assert_true(p.scenery_at(km - 0.05) != p.scenery_at(km + 0.05), "%s ab %s: Landschaft wechselt bei km %.1f" % [id, from_id, km])
 				assert_true(km <= p.city_limits_km - margin + 0.001, "%s ab %s: Grenze bei km %.1f vor den City Limits (%.1f)" % [id, from_id, km, p.city_limits_km])
 				assert_eq(p.country_at(km + 0.05), str(b["to"]), "%s ab %s: Land nach der Grenze" % [id, from_id])
-	assert_true(borders >= 19, "alle Grenzen geprüft (%d)" % borders)
+	assert_true(borders >= 24, "alle Grenzen geprüft (%d)" % borders)
 
 
 ## Design (Königsrennen): "Lange Abschnitte werden in Etappen von 200–400 km geteilt" (review KOEN-LEN-1). Every

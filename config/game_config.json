@@ -194,11 +194,13 @@
 	},
 
 	"fuel": {
-		"_doc": "Verbrauch (L/100 km) = base + quad_coeff * v². Tankstellen alle 60–90 km rechts; Tankspur 1–2 km vor der Tankstelle; unter 60 km/h in der Spur startet das Tanken automatisch. Dauer = fix + 2 s je 5 L. Ein frischer Gasstoß bricht das Tanken ab, aber erst wenn mindestens abort_min_fuel_l im Tank sind (mit leerem Tank ist Weiterfahren unmöglich). Ein leeres Auto in der Tankspur tankt immer (nie Abschleppen an der Zapfsäule).",
+		"_doc": "Verbrauch (L/100 km) = base + quad_coeff * v². Tankstellen alle 60–90 km rechts; Tankspur 1–2 km vor der Tankstelle; unter 60 km/h in der Spur startet das Tanken automatisch. Dauer = fix + 2 s je 5 L. Ein frischer Gasstoß bricht das Tanken ab, aber erst wenn mindestens abort_min_fuel_l im Tank sind (mit leerem Tank ist Weiterfahren unmöglich). Ein leeres Auto in der Tankspur tankt immer (nie Abschleppen an der Zapfsäule). Seit v0.7.0: die erste Tankstelle liegt in jeder Fahrtrichtung first_station_min_km–first_station_max_km (5–20 km) nach dem Etappenstart; im Rennen geht der Tank am Etappenende in die nächste Etappe mit (auch über die Fähre) – reicht er nicht einmal mit lane_trigger_speed_kmh bis zur ersten Tankspur, kommt vor dem Start der Abschleppdienst (tow_penalty_s, danach tow_refill_fraction).",
 		"base_l_per_100km": 14.0,
 		"quad_coeff": 0.00034,
 		"station_spacing_km": [60, 90],
 		"last_station_min_before_end_km": 25.0,
+		"first_station_min_km": 5.0,
+		"first_station_max_km": 20.0,
 		"announce_km": [30, 15, 5],
 		"lane_length_km": [1.0, 2.0],
 		"lane_trigger_speed_kmh": 60.0,
@@ -436,7 +438,7 @@
 	},
 
 	"leaderboard": {
-		"_doc": "Bestenlisten pro Etappe (und Richtung) und pro Rennen. Einträge werden auch je Fahrzeugtyp gespeichert (store_per_vehicle: je Typ die besten 'size'), damit sowohl eine gemeinsame als auch getrennte Ansicht möglich ist. seed_entries: nie beschriebene Listen bekommen 'size' Starteinträge (Namen aus seed_names) aus der Zusammensetzung der Etappe bzw. der kürzesten Rennroute (Review v0.5.0, docs/daten.md): seed_avg_kmh ist der Schnitt einer typischen Etappe von seed_ref_km km (davon city_limits.length_km City Limits); die City Limits jeder Etappe zählen mit seed_city_kmh, der Rest mit dem Tempo, das auf der typischen Etappe seed_avg_kmh ergibt; dazu seed_fuel_stop_s für jede Etappe, die mit teilgefülltem Tank startet (Tankstopp des Tutorials), und die Fährzeiten eines Rennens. Kurze Etappen mit ihren festen 20 km City Limits sind so im Schnitt langsamer, lange schneller.",
+		"_doc": "Bestenlisten pro Etappe (und Richtung) und pro Rennen. Einträge werden auch je Fahrzeugtyp gespeichert (store_per_vehicle: je Typ die besten 'size'), damit sowohl eine gemeinsame als auch getrennte Ansicht möglich ist. seed_entries: nie beschriebene Listen bekommen 'size' Starteinträge (Namen aus seed_names) aus der Zusammensetzung der Etappe bzw. der kürzesten Rennroute (Review v0.5.0, docs/daten.md): seed_avg_kmh ist der Schnitt einer typischen Etappe von seed_ref_km km (davon city_limits.length_km City Limits); die City Limits jeder Etappe zählen mit seed_city_kmh, der Rest mit dem Tempo, das auf der typischen Etappe seed_avg_kmh ergibt; dazu seed_fuel_stop_s für jede Etappe, die mit teilgefülltem Tank startet (Tankstopp des Tutorials) – in einem Rennen seit v0.7.0 auch für jede Etappe nach der ersten, weil der Tank in die nächste Etappe mitgeht –, und die Fährzeiten eines Rennens. Kurze Etappen mit ihren festen 20 km City Limits sind so im Schnitt langsamer, lange schneller.",
 		"size": 10,
 		"store_per_vehicle": true,
 		"default_filter": "all",

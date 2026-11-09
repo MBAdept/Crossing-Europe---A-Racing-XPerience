@@ -88,6 +88,12 @@ Titel ─┬─ Rennen starten [Abfrage, falls gespeichert] → Rennen wählen �
 - **Nächste Etappe**: Start = Ende + `time.stage_pause_hours` (12 h, `EnvironmentModel.next_stage_start`),
   die Pause zählt nicht. **Fähre**: `fixed_time_s` zählt zur Rennzeit, `world_hours` zur Weltzeit; die
   nächste Etappe startet bei Ankunft (die Fähre ersetzt die Pause).
+- **Tank im Rennen** *(seit v0.7.0)*: Der Tank im Ziel einer Etappe ist der Tank am Start der nächsten
+  (`RaceState.fuel_l` aus dem Ergebnis `fuel_end_l`, über die Fähre unverändert, im Spielstand gespeichert);
+  `GameFlow.stage_setup()` gibt ihn im Rennen als `start_fuel_l` an die Rennsitzung (−1 = die eigene Startfüllung
+  der Etappe: erste Etappe des Rennens, ein Spielstand aus v0.6.0). „Etappe neu starten“ und „Aufgeben“ nutzen
+  dasselbe Setup, also denselben Tank. Einzeletappen und Demo starten wie bisher mit ihrer eigenen Füllung (voll,
+  das Tutorial Kiel – Hamburg mit 35 %). Regeln und Zahlen: [gameplay.md](gameplay.md), Abschnitt „Tank im Rennen“.
 - **Wetter im Rennen**: `RaceState.leg_weather(cfg, plan, seed)` → `RaceState.choose_weather()` nach
   `weather.race_mode` (`region` → `EnvironmentModel.pick_weather(seed, plan.climate)`, `random` gleichverteilt,
   `fixed` = Feld `weather` der Etappe). Der Seed hängt von Renn-Seed, Leg-Nummer und Etappe ab – nach „Fortsetzen“ ist
@@ -122,11 +128,22 @@ Titel ─┬─ Rennen starten [Abfrage, falls gespeichert] → Rennen wählen �
   Steuerung (Tasten + Gamepad), Tanken (Tankspur, `fuel.lane_trigger_speed_kmh`, Gas bricht ab, Startfüllung
   `StagePlan.start_fuel_fraction`) und Radar (`radar.tolerance` mit Beispiel am ersten Radar der Etappe,
   Polizeiflucht ab `police.escape_speed_kmh`) – `UiFormat.tutorial_tips`.
+  *(seit v0.7.0)* Unter der Karte (beim Tutorial zwischen Karte und „So geht's“; die Karte ist dafür 62 px
+  niedriger) eine **Tankleiste**: Zapfsäule, „TANK 23 / 60 L“ mit Herkunft („übernommen“ im Rennen, „voll“,
+  „35 %“ beim Tutorial – `UiFormat.fuel_origin`), Tankanzeige wie im HUD (gelb unter 30 %, rot unter der Reserve
+  mit Reservestrich), rechts „Erste Tankstelle nach 12 km“ (`UiFormat.first_station_text`) und darunter, was der
+  Tank bis dorthin taugt (`FuelSystem.start_check` mit dem gewählten Auto, `UiFormat.fuel_verdict`): grün
+  „reicht auch mit Vollgas“, gelb „bis dorthin höchstens 135 km/h“, rot „Abschleppdienst vor dem Start:
+  +1:30.00“ (dann auch der Rahmen der Leiste gelb bzw. rot). Genau das entscheidet die Rennsitzung beim Start.
+- **Etappenergebnis** *(seit v0.7.0)*: im Rennen unter „Nächster Start“ die Zeile „Tank für die nächste Etappe
+  23 / 60 L“ (gelb unter der Reserve).
 
 ### Rennstand (`RaceState.to_dict()`)
 
 Format aus ARCHITECTURE.md §10 plus `version`, `race_name`; Legs zusätzlich mit `name`, `penalty_s`,
 `distance_km`, `daytime`. `total_time_s` = Summe der Leg-Zeiten (Etappen inkl. Strafen + Fähren).
+Seit v0.7.0 `fuel_l` (Liter für die nächste Etappe, −1 = unbekannt) und je Etappen-Leg `fuel_start_l` /
+`fuel_end_l`.
 Im Spielstand optional `pending_result` (`GameFlow.PENDING_RESULT_KEY`, siehe Speichern).
 
 ## Titelbildschirm
@@ -360,6 +377,14 @@ Abschleppen, Nachrichten) erscheinen nur zeitweise. Ergänzungen zum Vertrag:
 - Jedes Frame ruft die HUD `AudioManager.hud_hints(state)` auf (siehe Audio).
 - „Nächste Tankstelle“: `next_station_km` 0 (die Rennsitzung schickt 0, solange der Wagen in der Tankspur ist)
   zeigt „hier“, -1 „keine mehr“ (`UiFormat.station_distance`).
+- *(seit v0.7.0)* Im Rennen nennt der Countdown in einer Zeile den übernommenen Tank und was er bis zur ersten
+  Tankstelle taugt („Tank: 23 L aus der letzten Etappe – reicht bis zur Tankstelle in 12 km“, gelb „… höchstens
+  135 km/h“, rot „Tank: 2 L reicht nicht bis zur Tankstelle – Abschleppdienst vor dem Start: +1:30.00“,
+  `SessionRules.carry_messages`); die Meldung ersetzt die Startansage der Tankstelle und die Reservewarnung der ersten
+  Meter. Bei Regen oder Schnee steht dort schon der Wetterhinweis (eine zweite Zeile reichte bis an die
+  Countdown-Ziffer) – dann kommt die Tankmeldung 1,2 s nach dem Start, wenn „LOS!“ weg ist. Ohne übernommenen Tank sagt `FuelSystem` eine erste Tankstelle, die näher liegt als die 30-km-Ansage,
+  direkt nach dem Start mit ihrer echten Entfernung an („Tankstelle in 12 km“). Bei der 5-km-Ansage der letzten
+  Tankstelle einer Rennetappe: „Letzte Tankstelle vor dem Ziel – der Tank geht in die nächste Etappe mit“.
 - Abschlepp-Overlay beschreibt die Mechanik: Der Wagen bleibt stehen, wo er liegen geblieben ist, der
   Abschleppdienst bringt Sprit (`fuel.tow_refill_fraction`, „für einen halben Tank“), Zeitstrafe
   `fuel.tow_penalty_s` („Weiterfahrt von hier · Zeitstrafe +1:30.00“, `UiFormat.tow_text`).
@@ -689,6 +714,9 @@ nichts nach `user://` geschrieben, „Start“ startet kein Rennen. `--race=<id>
 Rennbildschirme, `--stages-done=<n>` den Fortschritt des Beispielrennens (jeweils erste Option), z. B.
 `--screen=stage_screen --stages-done=0` (Tutorial Kiel – Hamburg), `--screen=route_choice --race=koenigsrennen
 --stages-done=13` (Wahl bei Saragossa), `--screen=race_result --race=koenigsrennen` (41 Legs).
+`--sample-fuel=<Liter>` legt den übernommenen Tank des Beispielrennens fest (Tankleiste des Etappenbildschirms,
+z. B. `--screen=stage_screen --stages-done=2 --sample-fuel=3` für „höchstens … km/h“, `=0.5` für den
+Abschleppdienst; das Beispielrennen fährt den Sportwagen).
 
 ## Konfiguration
 

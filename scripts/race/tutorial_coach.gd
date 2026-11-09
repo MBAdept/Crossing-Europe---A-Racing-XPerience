@@ -7,14 +7,16 @@ extends RefCounted
 ## ahead, the first truck overtaking a truck); the coach turns every topic
 ## into short German hints – each topic once per stage – and hands them out one after another,
 ## render.tutorial_hint_s seconds apart, for Hud.show_message. Urgent topics (fuel lane, refuelling, radar,
-## chase, City Limits, curve) jump the queue, because the situation they explain is happening right now.
+## chase, City Limits, curve) jump the queue, because the situation they explain is happening right now – since
+## v0.7.0 also the low tank at the start (fuel_low): the first station is only 15 km away, the hint must come
+## before the control hints, not after the fuel lane.
 ## The texts use the configured numbers.
 ## The control hints follow the active input: with a gamepad (InputMode.gamepad at setup, e.g. on the
 ## Steam Deck) only the gamepad hints (stick or D-pad, triggers; then Start = pause and A / X), otherwise keyboard
 ## first (with Esc = pause), then gamepad.
 ## Pure logic (no autoloads, no nodes). Owner: race module.
 
-const URGENT := ["fuel_lane", "refuel", "radar", "chase", "city", "curve", "blinker", "elephant"]
+const URGENT := ["fuel_low", "fuel_lane", "refuel", "radar", "chase", "city", "curve", "blinker", "elephant"]
 
 var hint_s := 6.0                  ## seconds a hint stays on screen (render.tutorial_hint_s)
 var gap_s := 0.6                   ## pause between two queued hints
@@ -88,7 +90,12 @@ func hints_for(topic: String, args: Dictionary = {}) -> Array[String]:
 				out.append(tr("Tipp: Gas mit Pfeil hoch oder W, Bremse mit Pfeil runter oder S – Esc pausiert"))
 				out.append(tr("Tipp: Gamepad – Stick lenkt, rechter Trigger Gas, linker Trigger Bremse"))
 		"fuel_low":
-			out.append(tr("Tipp: Nur %d %% im Tank – unterwegs an der Tankstelle nachtanken!") % int(round(float(args.get("percent", 35.0)))))
+			var pct := int(round(float(args.get("percent", 35.0))))
+			var km := float(args.get("km", -1.0))
+			if km > 0.0:
+				out.append(tr("Tipp: Nur %d %% im Tank – in %d km kommt die Tankstelle, dort nachtanken!") % [pct, roundi(km)])
+			else:
+				out.append(tr("Tipp: Nur %d %% im Tank – unterwegs an der Tankstelle nachtanken!") % pct)
 		"fuel_hud":
 			out.append(tr("Tipp: Unten links stehen Tankstand, Reichweite und nächste Tankstelle"))
 		"fuel_announce":

@@ -6,12 +6,17 @@ extends UiScreen
 ## stage description and the top 10 (name, time + weather/daytime icons, avg, vehicle; vehicle
 ## filter of the leaderboard browser). Tutorial stages (StagePlan.tutorial, Kiel – Hamburg) get a
 ## "So geht's" box: controls, refuelling and radar tolerance (numbers from the configuration).
+## Fuel strip under the map (v0.7.0): the tank the stage starts with – in a race the tank of the last stage
+## (RaceState.fuel_l), else the stage's own filling – with gauge, the first station and what the tank is good for on
+## the way there (FuelSystem.start_check with the chosen car: even at full speed / at most X km/h / the tow service
+## before the start).
 ## "Start" launches the race scene.
 
 var _filter := "all"
 var marquee: Marquee
 var description_label: Label        ## stage description (null if the stage has none)
 var tutorial_box: Control           ## "So geht's" panel (null unless plan.tutorial)
+var fuel_strip: Control             ## the tank at the start and the way to the first station (null without a plan)
 
 
 func build() -> void:
@@ -44,8 +49,14 @@ func build() -> void:
 		map.label_ids.append(race.next_target())
 	map.current_city = from
 	map.highlight = [{"from": from, "to": str(leg.get("to", "")), "style": "current"}]
-	UiKit.place(self, map, Rect2(40, 146, 640, 204 if tutorial else 372))
+	# v0.7.0: the fuel strip takes the bottom of the map's room (above the tutorial box on the tutorial stage)
+	var strip_h := 54.0 if plan != null else 0.0
+	var map_h := (204.0 if tutorial else 372.0) - (strip_h + 8.0 if plan != null else 0.0)
+	UiKit.place(self, map, Rect2(40, 146, 640, map_h))
 	map.fit_to(focus)
+	if plan != null:
+		fuel_strip = _fuel_strip(plan, race)
+		UiKit.place(self, fuel_strip, Rect2(40, 146 + map_h + 8.0, 640, strip_h))
 	if tutorial:
 		tutorial_box = _tutorial_box(plan)
 		UiKit.place(self, tutorial_box, Rect2(40, 358, 640, 162))
@@ -135,6 +146,63 @@ func _tutorial_box(plan: StagePlan) -> Control:
 		l.add_theme_constant_override("line_spacing", -3)
 		tip.add_child(l)
 	return p
+
+
+## Fuel strip (v0.7.0): the tank of the chosen car at the start – carried over in a race (RaceState.fuel_l >= 0),
+## else the stage's own filling (FuelSystem.start_fill_fraction) – and FuelSystem.start_check for the way to the
+## first station, exactly what the race session decides at the start.
+func _fuel_strip(plan: StagePlan, race: RaceState) -> Control:
+	var vehicle_id := race.vehicle if race != null else str(GameFlow.single.get("vehicle", ConfigLoader.lookup(cfg(), "vehicles.default", "limousine")))
+	var spec := VehicleModel.resolve_spec(cfg(), vehicle_id)
+	var strip := _FuelStrip.new()
+	strip.tank = float(spec.get("tank_l", ConfigLoader.lookup(cfg(), "vehicles.base_tank_l", 50.0)))
+	var carried := race != null and race.fuel_l >= 0.0
+	strip.litres = clampf(race.fuel_l, 0.0, strip.tank) if carried else strip.tank * FuelSystem.start_fill_fraction(cfg(), plan)
+	strip.origin = UiFormat.fuel_origin(carried, strip.litres, strip.tank)
+	strip.reserve = float(ConfigLoader.lookup(cfg(), "fuel.reserve_warning_l", 8.0))
+	var check := FuelSystem.start_check(cfg(), spec, plan, strip.litres)
+	strip.station = UiFormat.first_station_text(float(check["first_km"]))
+	var verdict := UiFormat.fuel_verdict(check, cfg())
+	strip.verdict = verdict[0]
+	strip.verdict_kind = verdict[1]
+	return strip
+
+
+class _FuelStrip extends Control:
+	var litres := 0.0
+	var tank := 50.0
+	var reserve := 8.0
+	var origin := ""
+	var station := ""
+	var verdict := ""
+	var verdict_kind := "good"         ## good | warn | bad (UiFormat.fuel_verdict)
+
+	func _draw() -> void:
+		var r := Rect2(Vector2.ZERO, size)
+		var col: Color = {"good": UiTheme.GOOD, "warn": UiTheme.WARN, "bad": UiTheme.BAD}.get(verdict_kind, UiTheme.TEXT)
+		UiIcons.panel(self, r, UiTheme.PANEL, Color(col, 0.55) if verdict_kind != "good" else Color(UiTheme.ACCENT_2, 0.35), 10.0)
+		var fh := UiTheme.font(UiTheme.F.BODY_BOLD)
+		var fm := UiTheme.font(UiTheme.F.MONO)
+		var fb := UiTheme.font(UiTheme.F.BODY_MEDIUM)
+		var low := litres < reserve
+		UiIcons.pump(self, Vector2(26, size.y * 0.5), 26.0, UiTheme.BAD if low else UiTheme.TEXT)
+		draw_string(fh, Vector2(50, 22), tr("TANK"), HORIZONTAL_ALIGNMENT_LEFT, -1, 15, UiTheme.TEXT_MUTED)
+		draw_string(fm, Vector2(96, 23), "%d / %d L" % [SessionRules.shown_litres(litres), roundi(tank)], HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color.WHITE)
+		draw_string(fb, Vector2(50, 23), origin, HORIZONTAL_ALIGNMENT_RIGHT, 246, 15, UiTheme.TEXT_DIM)
+		# gauge like the HUD's: segments, green / yellow below 30 % / red below the reserve, reserve mark
+		var segs := 24
+		var gx := 50.0
+		var gw := 246.0
+		var sw := gw / segs
+		var frac := clampf(litres / maxf(tank, 1.0), 0.0, 1.0)
+		var lit := int(ceilf(frac * segs - 0.001))
+		var fill := UiTheme.BAD if low else (UiTheme.GOOD if frac > 0.3 else UiTheme.WARN)
+		for i in segs:
+			draw_rect(Rect2(gx + i * sw + 1, 32, sw - 2, 11), fill if i < lit else Color(1, 1, 1, 0.1))
+		var rx := gx + gw * clampf(reserve / maxf(tank, 1.0), 0.0, 1.0)
+		draw_line(Vector2(rx, 29), Vector2(rx, 46), Color(UiTheme.BAD, 0.9), 2.0)
+		draw_string(fh, Vector2(318, 23), station, HORIZONTAL_ALIGNMENT_LEFT, size.x - 330, 17, UiTheme.TEXT)
+		draw_string(fh, Vector2(318, 45), verdict, HORIZONTAL_ALIGNMENT_LEFT, size.x - 330, 17, col)
 
 
 class _TipIcon extends Control:
