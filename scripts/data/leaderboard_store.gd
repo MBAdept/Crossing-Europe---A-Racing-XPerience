@@ -15,7 +15,8 @@ extends RefCounted
 ##    Review v0.5.0: from the make-up of the board (profile_provider, RoadNetwork.board_profile) – seed_avg_kmh is
 ##    the average of a typical stage (seed_ref_km with city_limits.length_km of City Limits); the City Limits of every
 ##    stage are driven at seed_city_kmh, the rest at the open-road speed that gives seed_avg_kmh on the typical stage,
-##    plus seed_fuel_stop_s for each stage that starts with a partly filled tank (the tutorial's stop) and the ferry
+##    plus seed_fuel_stop_s per fuel stop of the profile (a stage that starts with a partly filled tank – the
+##    tutorial's stop; in a race since v0.7.0 also every stage after the first, the tank carries over) and the ferry
 ##    times of a race. Short stages with their fixed 20 km of City Limits are no longer unreachable.
 ##  * File: {"version": 2, "boards": {key: [entries]}} written atomically (JsonFile); a corrupt file is kept
 ##    as "<path>.corrupt" and the store starts empty (or from the ".bak" copy).

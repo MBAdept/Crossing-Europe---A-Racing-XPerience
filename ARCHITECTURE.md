@@ -96,6 +96,9 @@ ausführbaren Datei** und `user://game_config.json` – so lassen sich Werte ohn
 - `traffic`: Dichtefaktor des Abschnitts (z. B. Ruhrgebiet 1.5).
 - Etappen sind **in beide Richtungen** fahrbar; in Gegenrichtung werden Abschnitte umgedreht und Positionen gespiegelt.
 - Fehlt `fuel_stations_km`, werden Tankstellen automatisch alle 60–90 km gesetzt (deterministisch).
+  Seit v0.7.0 ist ein Eintrag eine Zahl (beide Richtungen) oder `{"km": 12, "dir": "fwd"|"rev"}` (nur in dieser
+  Fahrtrichtung, km ab `from` wie beim Radar); die erste Tankstelle jeder Richtung liegt
+  `fuel.first_station_min_km`–`first_station_max_km` (5–20 km) nach dem Start (docs/daten.md).
 - Grenzen ergeben sich zusätzlich automatisch aus Länderwechseln der Abschnitte.
 - `dev: true` blendet Städte/Etappen/Rennen in Menüs aus (z. B. `dev_testetappe` mit allen Elementen).
 - Szenerie-IDs (Inhalt in `data/scenery.json`): `north_plain, heath, forest_hills, rhine_main, industrial, polder,
@@ -125,6 +128,8 @@ city_center_km, city_background, landmarks[], bridges[], skyline[]`, Abfragen `s
 bridge_at, on_bridge` – Formate in [docs/staedte.md](docs/staedte.md) §6–§7.
 Regeln werden beim Bauen erzwungen (Verstöße → `warnings`): letzte Tankstelle ≥ 25 km vor dem Ziel und nie in den
 City Limits; kein Radarfeld in den 30 km vor den City Limits; Tankspur = die letzten 1–2 km vor der Tankstelle.
+Tankstellen der anderen Fahrtrichtung (`dir`) werden vorher still übersprungen; die erste Tankstelle nach 5–20 km
+prüft `RoadNetwork.validate()` (seit v0.7.0).
 
 ### 4.4 `GameData` (Autoload)
 
@@ -193,7 +198,7 @@ Einschalten): der Renderer zeichnet den Blinker (renn-modul.md §8 „Blinker de
 |---|---|
 | `VehicleModel` | `setup(cfg, vehicle_id)`, `resolve_spec()` (statisch), `update(dt, input{steer,throttle,brake}, road{curve,grade,left_edge,right_edge,shoulder_m,guardrail,grip}, env{vmax_factor})`, `start_crash(other_x, space_left, space_right)`, `auto_control(target_kmh, rate_kmh_s, steer_x=NAN)`, `release_auto()`, `is_controllable()`, `safe_curve_speed(curve, grip)`, `max_speed(grade, factor)`; Felder `speed, x, state (DRIVING/CRASH/AUTO), invulnerable, blink_visible, steer_visual, braking, understeer, off_road, vmax_effective, length_m, width_m, spec`; Signale `crash_started(dir)`, `crash_finished` |
 | `TrafficSystem` | `setup(cfg, track, car_set_ids, heavy_set_ids, seed)`, `update(dt, player{z,x,speed}, ctx{hour,chase,camera_z})`, `find_collision(player{z,x,length,width}, camera_z, visible_fraction: Callable) → Car`, `space_beside(z, x, half_len, left, right) → Vector2`, `density_factor(hour)`, `speed_factor(hour)`; `cars: Array[Car]` mit `z, x, lane, speed, cruise_speed, set_id, length, width, height, heavy, braking, in_fuel_lane` |
-| `FuelSystem` | `setup(cfg, vehicle_spec, plan)`, `update(dt, pos_km, delta_km, speed, in_fuel_lane, throttle)`, `control_request()`, `take_penalty()`, `consumption_per_100km(v)`, `base_consumption(cfg, v)` (statisch), `range_km(v)`, `distance_to_next_station(km)`; Felder `tank_l, fuel_l, state (NORMAL/REFUELING/TOWING), refuel_progress, refuel_time_left, liters_added`; Signale `announced(km_before, station_km)`, `refuel_started`, `refuel_finished(liters, aborted)`, `ran_dry`, `tow_finished(penalty_s)` |
+| `FuelSystem` | `setup(cfg, vehicle_spec, plan, start_fuel_l = -1)` (seit v0.7.0: übernommener Tank im Rennen), `update(dt, pos_km, delta_km, speed, in_fuel_lane, throttle)`, `control_request()`, `take_penalty()`, `consumption_per_100km(v)`, `base_consumption(cfg, v)` (statisch), `range_km(v)`, `distance_to_next_station(km)`; seit v0.7.0 `litres_for(km, v)`, statisch `start_fill_fraction(cfg, plan)`, `consumption_for(cfg, spec, v)`, `start_check(cfg, spec, plan, litres) → {first_km, lane_km, need_l, need_full_l, max_kmh, state: ok/tight/tow}`, Feld `announce_start`; Felder `tank_l, fuel_l, state (NORMAL/REFUELING/TOWING), refuel_progress, refuel_time_left, liters_added`; Signale `announced(km_before, station_km)`, `refuel_started`, `refuel_finished(liters, aborted)`, `ran_dry`, `tow_finished(penalty_s)` |
 | `PoliceSystem` | `setup(cfg, plan)`, `update(dt, pos_km, speed)`, `chase_active()`, `traffic_factor()`, `control_request()`, `police_car_offset_m()`; Felder `state (IDLE/CHASE/STOPPING/STOPPED), chase_time, gap_m, escape_progress, avg_speed, stop_time_left, active_radar`; Signale `radar_warning(radar)`, `radar_zone(radar, entered)`, `flashed(radar, speed)`, `chase_started`, `escaped`, `caught`, `released` |
 | `WorldClock` | `setup(cfg, start_world_minutes)`, `advance(real_dt)`, `hour()`, `day_index()`, `text()`, `daytime_category(hour, cfg)` (statisch: night/dawn/day/dusk) |
 | `EnvironmentModel` | `setup(cfg)`, `night_amount(hour)`, `is_night(hour)`, `vmax_factor(hour, weather)`, `grip(weather)`, `visibility_factor(hour, weather, in_tunnel)`, `pick_weather(seed, climate)`, `next_stage_start(end_min, cfg)` (statisch) |
@@ -221,12 +226,18 @@ gibt der Tutorial-Etappe `weather.tutorial_weather` (trocken).
 ## 8. Rennsitzung (`scripts/race/race_session.gd`, Szene `scenes/race/race.tscn`)
 
 `setup` (vor dem Einhängen gesetzt; leer = Kommandozeile): `{mode: "race"|"single", race_id, stage_id, from_city,
-vehicle, start_world_minutes, weather, start_km?, autopilot?, seed}`.
+vehicle, start_world_minutes, weather, start_km?, autopilot?, seed, start_fuel_l?, last_stage?}` – seit v0.7.0 im
+Rennen `start_fuel_l` (Liter aus der letzten Etappe, −1 = eigene Startfüllung der Etappe) und `last_stage` (die
+Etappe beendet das Rennen).
 Signale: `stage_finished(result)`, `stage_aborted(reason)`, `restart_requested`.
 
 **Ergebnis** (`result`): `board_key, stage_id, from_city, to_city, stage_name, time_s (inkl. Strafen), penalty_s,
 avg_speed_kmh, distance_km, vehicle, weather, start_world_minutes, end_world_minutes, start_hour, daytime,
-collisions, refuels, liters_refueled, radar_flashes, police_stops, police_escapes, tow_events, aborted`.
+collisions, refuels, liters_refueled, radar_flashes, police_stops, police_escapes, tow_events, aborted`; seit v0.7.0
+`fuel_start_l` (Tank beim Start, vor einem Abschleppen), `fuel_end_l` (Tank an der Ziellinie), `tank_l`,
+`start_towed` (Abschleppdienst vor dem Start: der übernommene Tank reichte nicht einmal mit 60 km/h bis zur ersten
+Tankspur – 90 s Strafe, halber Tank, zählt in `tow_events`). Im Rennen wird `fuel_end_l` zu `RaceState.fuel_l`
+(Rennstand-Feld `fuel_l`, Legs mit `fuel_start_l`/`fuel_end_l`) und damit zum `start_fuel_l` der nächsten Etappe.
 
 ## 9. HUD (`Hud`, `scripts/ui/hud.gd`)
 
@@ -321,6 +332,8 @@ Argumente nach `--`: `--stage=<id> --from=<city> --vehicle=<typ> --hour=<0..24> 
 --screenshot=<pfad-präfix> --shot-times=1,2.5 --quit-at-finish --engine-bank=<motorbank.json>
 --traffic-sounds=<traffic_sounds.json> --audio-config=<schlüssel=wert,…> --mute-bus=<bus,…> --perf`. Die Rennszene läuft auch allein:
 `godot --path . res://scenes/race/race.tscn -- --stage=dev_testetappe --start-km=48 --hour=21`.
+`--carry-fuel=<Liter>` startet die Etappe als Rennetappe mit diesem übernommenen Tank (v0.7.0: Countdown-Meldung,
+Abschleppdienst vor dem Start).
 Menüs: `--screen=<bildschirm>`, `--input=gamepad|keyboard`, Titelbild und Demo `--title-time=<s>
 --attract-after=<s> --attract-scene=<index|id> --attract-demo-s=<s> --attract-press=<s> --no-attract` (docs/ui.md).
 

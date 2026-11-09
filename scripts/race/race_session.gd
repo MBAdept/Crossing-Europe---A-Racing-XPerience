@@ -5,8 +5,14 @@ extends Node2D
 ## the command line (see ARCHITECTURE.md §Debug-CLI and docs/renn-modul.md). Owner: race module.
 ##
 ## setup: {mode: "race"|"single", race_id, stage_id, from_city, vehicle, start_world_minutes,
-##         weather, start_km (debug), autopilot (debug), seed}
-## result (signal stage_finished): see ARCHITECTURE.md §Ergebnis.
+##         weather, start_km (debug), autopilot (debug), seed, start_fuel_l (race, v0.7.0: litres carried over from
+##         the last stage; missing or -1 = the stage's own filling), last_stage (race, v0.7.0: the stage ends the
+##         race – its tank goes nowhere)}
+## result (signal stage_finished): see ARCHITECTURE.md §Ergebnis (v0.7.0 adds fuel_start_l, fuel_end_l, tank_l,
+## start_towed).
+## Fuel carried over (v0.7.0): FuelSystem.start_check() decides at the build – a tank that does not reach the first
+## fuel lane even at the lane trigger speed gets the tow service before the start (_tow_before_start); the countdown
+## names the carried litres and what they are good for (SessionRules.carry_messages).
 ##
 ## Simulation runs in _physics_process (fixed steps), the view in _process. Scripted control
 ## requests (fuel before police) are handed to VehicleModel.auto_control(); while the FuelSystem holds
@@ -70,6 +76,19 @@ var traffic_enabled := true
 var drive_stats := {"off_road_s": 0.0, "limit_s": 0.0, "rail_hits": 0, "understeer_s": 0.0, "understeer_max": 0.0}
 
 var _start_world_minutes := 0.0
+## Fuel at the start (v0.7.0): the litres the stage started with – carried over from the last stage of a race
+## (setup start_fuel_l) or the stage's own filling – before a tow at the start.
+var start_fuel_l := 0.0
+## FuelSystem.start_check() of a carried tank ({} without one): reaches the first fuel lane at full speed / only
+## gently / not at all.
+var start_check: Dictionary = {}
+## The carried tank did not reach the first fuel lane even at the lane trigger speed: the tow service came before the
+## start (fuel.tow_penalty_s in penalty_time, the tank at fuel.tow_refill_fraction, one tow in the statistics).
+var start_towed := false
+var _final_fuel_l := -1.0          ## litres when the car crossed the finish line (the roll-out after it uses none)
+var _last_station_noted := false   ## race: "last station before the finish" was shown
+var _carry_pending: Array[Dictionary] = []   ## carried-tank message waiting for the end of "LOS!" (weather hint first)
+const CARRY_AFTER_GO_S := 1.2      ## … shown this long after the start (the HUD's "LOS!" stands 1.1 s)
 var _record: Dictionary = {}
 var _flash := 0.0
 var _last_country := ""
@@ -132,7 +151,7 @@ func _ready() -> void:
 static func setup_from_cli() -> Dictionary:
 	var c := ConfigLoader.load_merged()
 	var hour := CliArgs.get_float("hour", float(ConfigLoader.lookup(c, "time.default_start_hour", 8.0)))
-	return {
+	var s := {
 		"mode": "single",
 		"race_id": "",
 		"stage_id": CliArgs.get_string("stage", "kiel_hamburg"),
@@ -144,6 +163,11 @@ static func setup_from_cli() -> Dictionary:
 		"autopilot": CliArgs.has("autopilot"),
 		"seed": int(CliArgs.get_float("seed", 0.0)),
 	}
+	# --carry-fuel=<litres>: a race stage that starts with this tank carried over from the last one (v0.7.0)
+	if CliArgs.has("carry-fuel"):
+		s["mode"] = "race"
+		s["start_fuel_l"] = maxf(0.0, CliArgs.get_float("carry-fuel", 0.0))
+	return s
 
 
 func _build() -> void:
@@ -207,9 +231,17 @@ func _build() -> void:
 		_preload_sprites(cars, heavy)
 
 	fuel = FuelSystem.new()
-	fuel.setup(cfg, vehicle.spec, plan)
+	# race (v0.7.0): the tank of the last stage goes on (setup start_fuel_l, -1 = the stage's own filling)
+	var carried := float(setup.get("start_fuel_l", -1.0))
+	fuel.setup(cfg, vehicle.spec, plan, carried)
 	if CliArgs.has("fuel"):
 		fuel.fuel_l = fuel.tank_l * clampf(CliArgs.get_float("fuel", 1.0), 0.0, 1.0)
+		carried = fuel.fuel_l if str(setup.get("mode", "")) == "race" else -1.0
+	start_fuel_l = fuel.fuel_l
+	if carried >= 0.0:
+		start_check = FuelSystem.start_check(cfg, vehicle.spec, plan, fuel.fuel_l)
+		if str(start_check["state"]) == "tow":
+			_tow_before_start()
 	police = PoliceSystem.new()
 	police.setup(cfg, plan)
 
@@ -254,6 +286,18 @@ func _build() -> void:
 	var weather_hint := SessionRules.weather_hint(cfg, weather)
 	if weather_hint != "":
 		hud.show_message(weather_hint, "warn", float(ConfigLoader.lookup(cfg, "time.countdown_s", 3.0)) + 4.0)
+	# race (v0.7.0): what the carried tank means for the way to the first station – it replaces the start announcement
+	# of that station and the reserve warning of the first metres. During the countdown; on a rain or snow stage the
+	# weather hint holds the line above the countdown digit (a second line would reach it), then right after "LOS!".
+	var carry_msgs := SessionRules.carry_messages(cfg, start_check, start_fuel_l, fuel.tank_l, start_towed)
+	if not carry_msgs.is_empty():
+		fuel.announce_start = false
+		_reserve_warned = fuel.fuel_l < float(ConfigLoader.lookup(cfg, "fuel.reserve_warning_l", 8.0))
+		if weather_hint == "":
+			for m: Dictionary in carry_msgs:
+				hud.show_message(str(m["text"]), str(m["kind"]), float(ConfigLoader.lookup(cfg, "time.countdown_s", 3.0)) + 4.0)
+		else:
+			_carry_pending = carry_msgs
 
 	if bool(setup.get("autopilot", false)):
 		autopilot = Autopilot.new()
@@ -262,6 +306,10 @@ func _build() -> void:
 		autopilot.obey_radar = not CliArgs.has("autopilot-speeding") and not bool(setup.get("autopilot_speeding", false))
 		autopilot.refuel_mode = CliArgs.get_string("autopilot-refuel", str(setup.get("autopilot_refuel", "auto")))
 		autopilot.curve_brake = not CliArgs.has("autopilot-no-curve-brake") and not bool(setup.get("autopilot_no_curve_brake", false))
+		# race (v0.7.0): the fuel at the finish starts the next stage – the refuel decision at the last station
+		# covers the way to the next stage's first station as well (at most fuel.first_station_max_km)
+		if tank_carries_on():
+			autopilot.carry_km = float(ConfigLoader.lookup(cfg, "fuel.first_station_max_km", 20.0))
 	if plan.tutorial or CliArgs.has("tutorial") or bool(setup.get("tutorial", false)):
 		coach = TutorialCoach.new()
 		coach.setup(cfg)
@@ -364,10 +412,15 @@ func warm_up_clear_m(car_kmh: float) -> float:
 
 
 func _connect_signals() -> void:
-	fuel.announced.connect(func(k: int, _st: float) -> void:
+	fuel.announced.connect(func(k: int, st: float) -> void:
 		if k <= 5:
 			hud.show_message(tr("Tankstelle in %d km – Tankspur rechts") % k, "info", 3.5)
 			_tutorial("fuel_lane")
+			# race (v0.7.0): at the lane of the last station the tank is decided for the next stage as well
+			if tank_carries_on() and not _last_station_noted and not plan.fuel_stations_km.is_empty() \
+					and absf(st - plan.fuel_stations_km[-1]) < 0.001:
+				_last_station_noted = true
+				hud.show_message(tr("Letzte Tankstelle vor dem Ziel – der Tank geht in die nächste Etappe mit"), "info", 4.0)
 		else:
 			hud.show_message(tr("Tankstelle in %d km") % k, "info")
 			_tutorial("fuel_announce"))
@@ -437,6 +490,25 @@ func _connect_signals() -> void:
 func _tutorial(topic: String, args: Dictionary = {}) -> void:
 	if coach != null:
 		coach.trigger(topic, args)
+
+
+## Race (v0.7.0): the fuel at the finish goes into the next stage – in a race, except on its last stage (setup
+## last_stage, GameFlow.stage_setup).
+func tank_carries_on() -> bool:
+	return str(setup.get("mode", "")) == "race" and not bool(setup.get("last_stage", false))
+
+
+## Race (v0.7.0): the tank carried over from the last stage does not reach the first fuel lane even at the lane
+## trigger speed (FuelSystem.start_check "tow") – the tow service comes before the start, at the price of a tow on
+## the road: fuel.tow_penalty_s in the stage time (and on the world clock, as on the road), the tank filled up to
+## fuel.tow_refill_fraction, one tow in the statistics. The countdown says so (SessionRules.carry_messages).
+func _tow_before_start() -> void:
+	var pen := float(ConfigLoader.lookup(cfg, "fuel.tow_penalty_s", 90.0))
+	start_towed = true
+	penalty_time += pen
+	clock.advance(pen)
+	fuel.fuel_l = maxf(fuel.fuel_l, fuel.tank_l * float(ConfigLoader.lookup(cfg, "fuel.tow_refill_fraction", 0.5)))
+	stats["tows"] += 1
 
 
 ## True when the car that just ran dry can still roll into a fuel lane slowly enough to refuel there
@@ -651,11 +723,13 @@ func _step(dt: float) -> void:
 			hud.show_message(tr("LOS!"), "info", 1.2)
 			AudioManager.play("go")
 			if coach != null:
-				coach.hold(1.2)   # let "LOS!" stand alone for a moment
-				coach.trigger("start")
+				# v0.7.0: the first station is only 15 km away – the low tank comes first (urgent), then the controls
 				if fuel.fuel_l < fuel.tank_l * 0.6:
-					coach.trigger("fuel_low", {"percent": 100.0 * fuel.fuel_l / maxf(fuel.tank_l, 0.001)})
+					coach.trigger("fuel_low", {"percent": 100.0 * fuel.fuel_l / maxf(fuel.tank_l, 0.001),
+						"km": fuel.distance_to_next_station(pos_km)})
+				coach.trigger("start")
 				coach.trigger("fuel_hud")
+				coach.hold(1.2)   # let "LOS!" stand alone for a moment
 		return
 	if finished:
 		_step_finished(dt)
@@ -815,6 +889,10 @@ func _check_collision(cam_z: float, scripted: bool) -> void:
 
 
 func _check_zones() -> void:
+	if not _carry_pending.is_empty() and stage_time >= CARRY_AFTER_GO_S:
+		for m: Dictionary in _carry_pending:
+			hud.show_message(str(m["text"]), str(m["kind"]), 6.0)
+		_carry_pending.clear()
 	var country := plan.country_at(pos_km)
 	if country != _last_country:
 		_last_country = country
@@ -853,6 +931,7 @@ func _check_zones() -> void:
 
 
 func _finish() -> void:
+	_final_fuel_l = fuel.fuel_l
 	_final_time = stage_time + penalty_time
 	finished = true
 	haptics.stop()
@@ -895,6 +974,10 @@ func build_result() -> Dictionary:
 		"police_stops": stats["police_stops"],
 		"police_escapes": stats["police_escapes"],
 		"tow_events": stats["tows"],
+		"fuel_start_l": start_fuel_l,
+		"fuel_end_l": _final_fuel_l if _final_fuel_l >= 0.0 else fuel.fuel_l,
+		"tank_l": fuel.tank_l,
+		"start_towed": start_towed,
 		"aborted": false,
 	}
 

@@ -9,10 +9,15 @@ Section helpers:  A(...) = autobahn / motorway / expressway,  L(...) = landstras
   limit: FREE (= null, no limit; German autobahn only) | DEF (= country default, key omitted) | int km/h
 Stage helper:
   stage(id, from, to, km, roads, sections, radars=[(km, limit[, "fwd"|"rev"])], tunnels=[(km, length, name)],
-        fuel="few"|"normal"|"many"|[km, …])
+        fuel="few"|"normal"|"many"|{"fwd": [km, …], "rev": [km, …]}, first_fuel={"fwd"|"rev": km})
   km = expected length (checked against the section sum). Radars without direction are valid in both
   directions and must lie between km 50 and length-55 (no radar in the last 50 km of either direction).
-  Fuel stations are placed automatically every 60–90 km ("few" ~ 88 km, "normal" ~ 75 km, "many" ~ 62 km).
+  Fuel stations are placed automatically for EACH driving direction (v0.7.0: the tank carries over from stage to
+  stage in a race): the first one fuel.first_station_min_km–first_station_max_km (5–20 km) after the start, aimed at
+  12 km (first_fuel overrides it per direction, e.g. the tutorial {"fwd": 15}), then every 60–90 km ("few" ~ 88 km,
+  "normal" ~ 75 km, "many" ~ 62 km), the last 26–90 km before the finish (aimed at the spacing − 12 km, so that
+  together with the next stage's first station the rhythm goes on across the stage end). An explicit
+  fuel={"fwd": […], "rev": […]} gives the stations per direction in driving km (km after that direction's start).
 Design rules checked by build_network.py (and again by the Godot tests):
   * Border crossings (country change between two sections) always change the landscape: the sections on both
     sides use different scenery ids, and the border lies at least stages.border_min_before_city_km (5 km)
@@ -37,10 +42,11 @@ def L(km, scenery, country, limit=DEF, c=2, h=1, t=1.0, name=""):
 			"country": country, "speed_limit": limit, "traffic": t, "name": name}
 
 
-def stage(sid, frm, to, km, roads, sections, radars=(), tunnels=(), fuel="normal", doc="", tutorial=False, start_fuel=None):
+def stage(sid, frm, to, km, roads, sections, radars=(), tunnels=(), fuel="normal", doc="", tutorial=False, start_fuel=None,
+		  first_fuel=None):
 	return {"id": sid, "from": frm, "to": to, "km": km, "roads": roads, "sections": list(sections),
 			"radars": list(radars), "tunnels": list(tunnels), "fuel": fuel, "doc": doc,
-			"tutorial": tutorial, "start_fuel": start_fuel}
+			"tutorial": tutorial, "start_fuel": start_fuel, "first_fuel": dict(first_fuel or {})}
 
 
 # id, name (German), country, lat, lon, local name (signs/info; "" = same)
@@ -125,7 +131,7 @@ STAGES = [
 		A(20, "north_plain", "DE", FREE, c=0, h=0, t=1.0, name="A7 Holstein"),
 		A(15, "north_plain", "DE", 120, c=1, h=0, t=1.2, name="A7 Quickborn"),
 		A(20, "north_plain", "DE", 100, c=1, h=0, t=1.4, name="A7 Hamburg-Schnelsen"),
-	], radars=[(28, 120, "fwd"), (62, 120, "rev")], fuel="normal",
+	], radars=[(28, 120, "fwd"), (62, 120, "rev")], fuel="normal", first_fuel={"fwd": 15},
 		doc="Tutorial: einfache Autobahn, eine Tankstelle, ein Radar je Richtung. Start mit gut einem Drittel Tank – der Tankstopp gehört dazu.",
 		tutorial=True, start_fuel=0.35),
 	stage("hamburg_hannover", "hamburg", "hannover", 150, "A7", [

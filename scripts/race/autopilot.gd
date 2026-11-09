@@ -13,6 +13,8 @@ extends RefCounted
 ## speeds are huge in snow), counts a car with its indicator on as already in the lane it signals into, needs
 ## longer gaps for its own lane changes when the steering responds slowly, and steers with a PD controller tuned
 ## to the response time of the steering (VehicleModel.steer_response_s) – no swinging on a slippery road.
+## Fuel carried over in a race (v0.7.0): at the last station it plans for carry_km past the finish (the next stage's
+## first station), and a tank too small for the next station at its pace makes it drive the economy pace (_eco_kmh).
 ## Used by headless stage simulations (tests/race/run_stage.gd) and screenshot runs. Owner: race module.
 
 var target_kmh := 235.0
@@ -31,6 +33,9 @@ var follow_time_s := 0.9           ## time gap behind a slower car (plus 12 m)
 ## a driver who does not adapt.
 var weather_aware := true
 var reserve_l := 4.0
+## Race (v0.7.0): the tank goes into the next stage – the refuel decision at the last station also covers this many km
+## past the finish (the next stage's first station, fuel.first_station_max_km). 0 = single stage.
+var carry_km := 0.0
 var lane_end_margin_m := 25.0      ## without a gap to leave an ending lane: stop this far before its end
 var lane_change_s := 6.0           ## lane horizon: braking distance (_look_m) plus this many seconds of driving
 var behind_brake_mps2 := 3.0       ## gap check: braking a faster car behind in the target lane may need (gentle)
@@ -103,6 +108,13 @@ func drive(session: Node) -> Dictionary:
 			if ew < want:
 				want = ew
 				last_reason = "lane end"
+	# too little fuel for the next station at the target pace (v0.7.0: a tank carried over from the last stage of a
+	# race): drive at the pace that still reaches it (economy pace, _eco_kmh) – not when it never refuels anyway
+	if refuel_mode != "never" and next_st >= 0.0 and next_st - km > 0.05 and fuel.state == FuelSystem.State.NORMAL:
+		var eco := _eco_kmh(fuel, next_st - km)
+		if eco < want:
+			want = eco
+			last_reason = "fuel eco"
 	var target_x := track.lane_center_x(z + 12.0, _lane)
 	var use_fuel_lane := _refuel and next_st >= 0.0
 	# still in the fuel lane after refuelling (or after driving through it): back into the right lane only through
@@ -267,7 +279,7 @@ func _needs_fuel(fuel: FuelSystem, plan: StagePlan, km: float, station_km: float
 		return true
 	if refuel_mode == "never":
 		return false
-	var after := plan.length_km
+	var after := plan.length_km + carry_km
 	for s in plan.fuel_stations_km:
 		if s > station_km + 0.5:
 			after = s
@@ -275,6 +287,25 @@ func _needs_fuel(fuel: FuelSystem, plan: StagePlan, km: float, station_km: float
 	var cruise := clampf(target_kmh, 90.0, 260.0)
 	var need := (after - km) * fuel.consumption_per_100km(cruise) / 100.0 * 1.12 + reserve_l
 	return fuel.fuel_l < need
+
+
+## Economy pace (v0.7.0): the fastest steady speed (km/h, at least 60) at which the fuel still lasts `km` with a
+## 0.5 L margin (bisection on FuelSystem.litres_for); INF when the target pace is fine
+## – or when not even 60 km/h would do: then it keeps its pace, rolling out from speed reaches further (into the lane;
+## check_session "dry_into_lane").
+func _eco_kmh(fuel: FuelSystem, km: float) -> float:
+	var litres := fuel.fuel_l - 0.5
+	if fuel.litres_for(km, target_kmh) <= litres or fuel.litres_for(km, 60.0) > litres:
+		return INF
+	var lo := 60.0
+	var hi := target_kmh
+	for i in 20:
+		var mid := (lo + hi) * 0.5
+		if fuel.litres_for(km, mid) <= litres:
+			lo = mid
+		else:
+			hi = mid
+	return lo
 
 
 func _nearest_lane(track: Track, z: float, x: float) -> int:

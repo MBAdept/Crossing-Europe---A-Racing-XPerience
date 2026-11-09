@@ -106,8 +106,9 @@ func test_route_options_show_whole_route() -> void:
 	assert_eq(int(ws["stages"]), 5, "West: 5 Etappen")
 	assert_eq(int(es["radars"]), 7, "Ost: 7 Radarfallen")
 	assert_eq(int(ws["radars"]), 3, "West: 3 Radarfallen")
-	assert_eq(int(es["stations"]), 8, "Ost: 8 Tankstellen")
-	assert_eq(int(ws["stations"]), 11, "West: 11 Tankstellen")
+	# v0.7.0: stations per driving direction, the first 5–20 km after every stage start
+	assert_eq(int(es["stations"]), 9, "Ost: 9 Tankstellen")
+	assert_eq(int(ws["stations"]), 14, "West: 14 Tankstellen")
 	assert_near(float(es["unlimited_km"]), 250.0, 0.01, "Ost: 250 km frei")
 	assert_near(float(ws["unlimited_km"]), 475.0, 0.01, "West: 475 km frei")
 	assert_eq(int(es["tunnels"]), 1, "Ost: Elbtunnel")
@@ -196,7 +197,7 @@ func test_legs_summary_of_race_routes() -> void:
 	var east := n.legs_summary(routes[0]["legs"])
 	assert_near(float(east["length_km"]), 730.0, 0.01, "Ost 730 km")
 	assert_eq(int(east["radars"]), 8, "Ost: 8 Radarfallen")
-	assert_eq(int(east["stations"]), 9, "Ost: 9 Tankstellen")
+	assert_eq(int(east["stations"]), 10, "Ost: 10 Tankstellen")
 	assert_near(float(east["unlimited_km"]), 283.0, 0.01, "Ost: 283 km frei")
 	for race_id in n.race_order:
 		for route in n.race_routes(race_id):
@@ -354,17 +355,22 @@ func test_tolerance_from_config() -> void:
 
 func test_synthetic_network_rules() -> void:
 	# a-b-d (100+100) vs a-c-d (100+120) vs a-e-d (100+300); ferry d~f; waypoint d, finish f
+	# fuel: driving km, the same layout in both directions (v0.7.0: per direction, the first 5–20 km after the start)
 	var stage := func(id: String, a: String, b: String, km: float, fuel: Array) -> Dictionary:
-		return {"id": id, "from": a, "to": b, "length_km": km, "fuel_stations_km": fuel,
+		var stations: Array = []
+		for x in fuel:
+			stations.append({"km": x, "dir": "fwd"})
+			stations.append({"km": km - float(x), "dir": "rev"})
+		return {"id": id, "from": a, "to": b, "length_km": km, "fuel_stations_km": stations,
 			"sections": [{"length_km": km, "road": "autobahn", "country": "DE", "scenery": "north_plain"}]}
 	var cities: Array = []
 	for id in ["a", "b", "c", "d", "e", "f"]:
 		cities.append({"id": id, "name": id.to_upper(), "country": "DE", "latlon": [50, 10]})
 	var data := {
 		"cities": cities,
-		"stages": [stage.call("ab", "a", "b", 100.0, [50]), stage.call("bd", "b", "d", 100.0, [50]),
-			stage.call("ac", "a", "c", 100.0, [50]), stage.call("cd", "c", "d", 120.0, [60]),
-			stage.call("ae", "a", "e", 100.0, [50]), stage.call("ed", "e", "d", 300.0, [50, 120, 190, 250])],
+		"stages": [stage.call("ab", "a", "b", 100.0, [12]), stage.call("bd", "b", "d", 100.0, [12]),
+			stage.call("ac", "a", "c", 100.0, [12]), stage.call("cd", "c", "d", 120.0, [12, 75]),
+			stage.call("ae", "a", "e", 100.0, [12]), stage.call("ed", "e", "d", 300.0, [12, 80, 150, 220])],
 		"ferries": [{"id": "df", "from": "f", "to": "d", "name": "Fähre", "fixed_time_s": 100, "world_hours": 5}],
 		"races": [
 			{"id": "r", "name": "R", "start": "a", "finish": "f", "waypoints": ["d"]},

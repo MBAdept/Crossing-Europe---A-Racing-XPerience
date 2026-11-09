@@ -9,7 +9,11 @@ extends SceneTree
 ##   dry_into_lane   empty tank rolls into the fuel lane and refuels -> no tow counted (FUEL-3)
 ##   finish_rollout  after the finish line the car collides instead of driving through (COLL-3)
 ##   refuel_chase    police chase into a refuel: police blocked while refuelling, HUD range at the
-##                   current speed and next station 0 at the pumps (POL-1, FUEL-5, FUEL-7)
+##                   current speed and next station 0 at the pumps (POL-1, FUEL-5, FUEL-7; dev stage since v0.7.0)
+##   carry_tow       race (v0.7.0): a tank carried over that does not reach the first fuel lane even at 60 km/h ->
+##                   the tow service before the start (+tow penalty, half a tank, one tow), said in the countdown
+##   carry_eco       race (v0.7.0): a carried tank that reaches the first lane only gently -> the countdown names the
+##                   top speed, the autopilot drives the economy pace and refuels there, no tow
 ##   tutorial        Kiel – Hamburg shows the tutorial hints, the dev stage none (TUT-1)
 ##   rail_feedback   an understeer slide into the guardrail: speed loss, camera shake and flash (review: the hit
 ##                   showed only on the speedometer)
@@ -18,7 +22,7 @@ extends SceneTree
 ## Prints "CHECK <name> OK …" or "CHECK <name> FEHLER …" per scenario; exit code 0 when all pass.
 ## The scene is accessed untyped (this script compiles before the autoloads the scene uses).
 
-const SCENARIOS := ["coll_right", "coll_left", "coll_middle", "dry_rollout", "dry_into_lane", "finish_rollout", "refuel_chase", "tutorial", "no_tutorial", "rail_feedback", "preload"]
+const SCENARIOS := ["coll_right", "coll_left", "coll_middle", "dry_rollout", "dry_into_lane", "finish_rollout", "refuel_chase", "carry_tow", "carry_eco", "tutorial", "no_tutorial", "rail_feedback", "preload"]
 
 var _queue: Array[String] = []
 var _name := ""
@@ -290,16 +294,19 @@ func _tick_finish_rollout() -> void:
 # --- POL-1 (session side), FUEL-5, FUEL-7 -----------------------------------------------------------
 
 func _start_refuel_chase() -> void:
-	_launch("kiel_hamburg", 20.0, {"autopilot": true, "autopilot_speeding": true, "autopilot_refuel": "always"})
+	# v0.7.0: on the dev stage (radar zone km 12–17, station at km 20). It ran on Kiel – Hamburg from km 20 (radar at
+	# 28, station at 45.9); since the first station of every direction lies 5–20 km after the start, Kiel – Hamburg
+	# has its only forward station at km 15 – none ahead of km 20.
+	_launch("dev_testetappe", 3.0, {"autopilot": true, "autopilot_speeding": true, "autopilot_refuel": "always"})
 
 
 func _tick_refuel_chase() -> void:
 	if not _d.has("set"):
 		_d["set"] = true
 		_fuel().fuel_l = _fuel().tank_l * 0.5
-		# 180 km/h: too slow to escape – also where the police has to slow down for the curves of this stretch
-		# (the escape threshold follows the police: 220 on a straight, less in curves) –, and the police starts
-		# police.max_gap_m behind (set below), so the chase is still running when the car refuels 27 s later.
+		# 180 km/h: too slow to escape – also where the police has to slow down for curves (the escape threshold
+		# follows the police: 220 on a straight, less in curves) –, and the police starts police.max_gap_m behind
+		# (set below), so the chase is still running when the car reaches the fuel lane a few km after the radar.
 		# No traffic: a slower car ahead would let the police catch up before the fuel lane.
 		(_sc.get("autopilot") as Object).set("target_kmh", 180.0)
 		_sc.set("traffic_enabled", false)
@@ -331,6 +338,60 @@ func _tick_refuel_chase() -> void:
 		_done(ok, "Verfolgung beim Tanken: Polizei blockiert genau beim Tanken (Abweichungen %d), HUD beim Tanken (Abweichungen %d), Stillstand %.1f s (Tanken + Polizei-Stopp)" % [int(_d["bad_block"]), int(_d["bad_hud"]), float(_d.get("stand_s", 0.0))])
 	elif _t > 120.0:
 		_done(false, "Zeitlimit (Tankstatus %d, Polizei %d, Tanken gesehen %s, Verfolgung beim Tanken %s)" % [f.state, p.state, str(_d.get("refuel_seen", false)), str(_d.get("chase_during_refuel", false))])
+
+
+# --- v0.7.0: the tank carried over in a race ---------------------------------------------------------------
+
+## Race stage Hamburg – Hannover (first station 12 km) in the Gran Turismo with a carried tank of `litres`.
+func _launch_carry(litres: float) -> void:
+	_launch("hamburg_hannover", 0.0, {"mode": "race", "race_id": "kiel_nuernberg", "from_city": "hamburg",
+		"vehicle": "gran_turismo", "start_fuel_l": litres, "autopilot": true, "autopilot_target": 300.0})
+
+
+func _start_carry_tow() -> void:
+	_launch_carry(1.9)
+
+
+func _tick_carry_tow() -> void:
+	_collect_messages()
+	var cfg := ConfigLoader.load_merged()
+	var pen := float(ConfigLoader.lookup(cfg, "fuel.tow_penalty_s", 90.0))
+	var f := _fuel()
+	var msgs: Array = _d["messages"]
+	var told := not msgs.filter(func(m: String) -> bool: return m.contains("Abschleppdienst vor dem Start")).is_empty()
+	var ok := bool(_sc.get("start_towed")) and absf(float(_sc.get("penalty_time")) - pen) < 0.001 and int(_stats()["tows"]) == 1 \
+		and f.fuel_l >= f.tank_l * float(ConfigLoader.lookup(cfg, "fuel.tow_refill_fraction", 0.5)) - 0.5 and told
+	var res: Dictionary = _sc.call("build_result")
+	ok = ok and absf(float(res["fuel_start_l"]) - 1.9) < 0.001 and bool(res["start_towed"])
+	_done(ok, "1,9 L im Gran Turismo: vor dem Start abgeschleppt %s, Strafe %.0f s, Abschleppen %d, Tank %.1f L, Meldung %s" % [
+		str(_sc.get("start_towed")), float(_sc.get("penalty_time")), int(_stats()["tows"]), f.fuel_l, str(told)])
+
+
+func _start_carry_eco() -> void:
+	_launch_carry(3.0)
+
+
+func _tick_carry_eco() -> void:
+	_collect_messages()
+	var f := _fuel()
+	var km := float(_sc.get("pos_km"))
+	var first := float((_sc.get("plan") as StagePlan).fuel_stations_km[0])
+	if km < first - 2.0:
+		_d["max_v"] = maxf(float(_d.get("max_v", 0.0)), _vehicle().speed)
+	if f.state == FuelSystem.State.REFUELING:
+		_d["refuel_km"] = km
+	if _d.has("refuel_km") and f.state == FuelSystem.State.NORMAL:
+		var msgs: Array = _d["messages"]
+		var told := not msgs.filter(func(m: String) -> bool: return m.contains("höchstens")).is_empty()
+		var check: Dictionary = _sc.get("start_check")
+		var ok := not bool(_sc.get("start_towed")) and int(_stats()["tows"]) == 0 and told and str(check.get("state", "")) == "tight" \
+			and float(_d["refuel_km"]) <= first + 0.001 and float(_d.get("max_v", 999.0)) <= float(check.get("max_kmh", 0.0)) + 1.0
+		_done(ok, "3 L im Gran Turismo: Sparfahrt bis %.0f km/h (Ansage höchstens %.0f km/h), getankt bei km %.2f (Tankstelle %.1f), Abschleppen %d, Meldung %s" % [
+			float(_d.get("max_v", 0.0)), float(check.get("max_kmh", 0.0)), float(_d["refuel_km"]), first, int(_stats()["tows"]), str(told)])
+	elif f.state == FuelSystem.State.TOWING or int(_stats()["tows"]) > 0:
+		_done(false, "abgeschleppt statt Sparfahrt")
+	elif _t > 120.0:
+		_done(false, "Zeitlimit (km %.1f, Tank %.2f L)" % [km, f.fuel_l])
 
 
 # --- guardrail hit feedback ------------------------------------------------------------------------

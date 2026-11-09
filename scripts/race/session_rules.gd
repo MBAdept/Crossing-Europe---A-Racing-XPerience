@@ -22,6 +22,37 @@ static func weather_hint(config: Dictionary, weather: String) -> String:
 	return UiFormat.t("Regen: Bremsweg ×%s, die Lenkung reagiert träger – früher bremsen") % f
 
 
+## Countdown message of a race stage that starts with the tank of the last one (v0.7.0): what the carried litres are
+## good for on the way to the first station – check = FuelSystem.start_check() of the carried litres ({} = nothing
+## carried: no message), towed = the tow service came before the start. [] when nothing was carried or the tank is
+## (nearly) full; otherwise one line [{text, kind}] (one line: a second one would reach the countdown digit): "info"
+## reaches the station even at full speed, "warn" only up to check.max_kmh, "alert" did not reach it at all – the tow
+## service before the start with its penalty (fuel.tow_penalty_s). Litres as on the HUD gauge (rounded up), the station
+## km rounded like the fuel announcements.
+static func carry_messages(config: Dictionary, check: Dictionary, litres: float, tank_l: float, towed: bool) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if check.is_empty():
+		return out
+	var first := float(check.get("first_km", -1.0))
+	var where := UiFormat.t("bis zur Tankstelle in %d km") % roundi(first) if first >= 0.0 else UiFormat.t("bis ins Ziel")
+	if towed or str(check.get("state", "")) == "tow":
+		out.append({"text": UiFormat.t("Tank: %d L reicht nicht bis zur Tankstelle – Abschleppdienst vor dem Start: +%s") % [
+			shown_litres(litres), Units.format_race_time(float(ConfigLoader.lookup(config, "fuel.tow_penalty_s", 90.0)))], "kind": "alert"})
+		return out
+	if litres >= tank_l - 0.5:
+		return out
+	if str(check.get("state", "")) == "tight":
+		out.append({"text": UiFormat.t("Tank: %d L aus der letzten Etappe – %s höchstens %d km/h") % [shown_litres(litres), where, roundi(float(check.get("max_kmh", 0.0)))], "kind": "warn"})
+	else:
+		out.append({"text": UiFormat.t("Tank: %d L aus der letzten Etappe – reicht %s") % [shown_litres(litres), where], "kind": "info"})
+	return out
+
+
+## Litres as the HUD gauge shows them: rounded up (0.3 L = "1 L", only an empty tank shows 0).
+static func shown_litres(litres: float) -> int:
+	return maxi(0, ceili(litres - 0.01))
+
+
 ## Steering from the raw values to the right and to the left (each 0..1: the stick's deflection, 1.0 for a key or the
 ## D-pad): an own curve instead of the action's deadzone – nothing below `deadzone` (input.stick_deadzone, 0.12:
 ## resting noise), linear up to full lock at `full` (input.stick_full, 0.92: a stick rarely reaches 1.0, least of

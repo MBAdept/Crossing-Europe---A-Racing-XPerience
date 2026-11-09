@@ -99,6 +99,23 @@ func test_old_or_incomplete_files() -> void:
 	JsonFile.remove_all(p)
 
 
+## v0.7.0: the race state carries the tank into the next stage (fuel_l); a save from v0.6.0 has none and gets -1
+## (unknown: the next stage starts with its own filling once).
+func test_fuel_carried_over_in_the_save() -> void:
+	var sg := _save_game("save_fuel.json")
+	var p := str(sg.get("path"))
+	var st := _state("hamburg", 120.5)
+	st["fuel_l"] = 17.25
+	sg.call("save_race", st)
+	var r: Dictionary = sg.call("load_race")
+	assert_eq(typeof(r["fuel_l"]), TYPE_FLOAT, "fuel_l als Zahl")
+	assert_near(float(r["fuel_l"]), 17.25, 0.0001, "Tank gespeichert")
+	sg.call("save_race", _state("hamburg", 120.5))
+	assert_eq(float((sg.call("load_race") as Dictionary)["fuel_l"]), -1.0, "alter Spielstand: unbekannt")
+	sg.free()
+	JsonFile.remove_all(p)
+
+
 func test_clear_race() -> void:
 	var sg := _save_game("save_clear.json")
 	var p := str(sg.get("path"))

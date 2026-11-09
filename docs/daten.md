@@ -49,6 +49,15 @@ Alle Erweiterungen sind optional; ältere Dateien bleiben gültig.
 - Radar: `"dir": "fwd" | "rev"` – nur in einer Fahrtrichtung (fwd = from→to, rev = to→from). Positionen bleiben
   in km ab `from`. Viele echte Blitzer sind gerichtet; kurze Etappen (Kiel – Hamburg, 95 km) können so in jeder
   Richtung ein Radar haben, obwohl dort kein Ort beide Regeln („nie in den letzten 50 km“) zugleich erfüllt.
+- Tankstellen *(seit v0.7.0)*: ein Eintrag in `fuel_stations_km` ist eine Zahl (gilt in beiden Richtungen – alte
+  Dateien, die Dev-Etappe, Testdaten) oder `{"km": 12, "dir": "fwd"}` (nur in dieser Fahrtrichtung, km ab `from`
+  wie beim Radar). `StagePlan` überspringt die Einträge der anderen Richtung **vor** dem Spiegeln und vor der Regel
+  „nicht in den letzten 25 km / City Limits“ – eine Tankstelle 12 km hinter dem Start der einen Richtung liegt in
+  den City Limits der anderen und wäre dort sonst mit Warnung verworfen worden. Eine unbekannte Richtung gilt mit
+  Warnung in beiden. `build_network.py` schreibt nur noch `dir`-Einträge (je Richtung erzeugt, siehe Regeln).
+  Grund: Im Rennen geht der Tank in die nächste Etappe mit (Design „Tanken“), deshalb liegt die erste Tankstelle
+  jeder Richtung höchstens 20 km nach dem Start – mit einer gemeinsamen Liste für beide Richtungen ist das nicht
+  möglich (alle 102 Richtungen verletzten die Regel, die erste Tankstelle lag bei 27–60 km).
 - Rennen: `avoid_stages` – Etappen, die das Routing dieses Rennens ignoriert (hält die geplanten Routen
   sauber, siehe unten), `description`, `tour: true` – Rundfahrt mit Pflichtstationen, für die die Regel
   „Lange Abschnitte werden in Etappen von 200–400 km geteilt“ gilt (Königsrennen, siehe unten).
@@ -64,9 +73,23 @@ Alle Erweiterungen sind optional; ältere Dateien bleiben gültig.
 
 - Abschnittssumme = `length_km`; Landschaften nur aus der Liste in ARCHITECTURE.md §4.1 (`city` nie manuell);
   `speed_limit: null` (ohne Limit) nur auf deutscher Autobahn; erster/letzter Abschnitt im Land der Start-/Zielstadt.
-- Tankstellen alle 60–90 km, die erste spätestens nach 90 km, die letzte ≥ 25 km vor dem Ziel – in beiden
-  Richtungen, also zwischen km 26 und Länge−26. Keine Tankspur in Tunneln (neue `StagePlan`-Warnung), Abstand zu
-  Radarzonen, Tunneln und Grenzen ≥ 3 km (Generator).
+- Tankstellen je Fahrtrichtung *(seit v0.7.0)*: die erste `fuel.first_station_min_km`–`first_station_max_km`
+  (5–20 km) nach dem Start, danach alle 60–90 km, die letzte ≥ 25 km (nie in den City Limits) und ≤ 90 km vor dem
+  Ziel. Der Generator zielt auf 12 km für die erste (dann reicht die 8-L-Reserve in jedem Auto auch mit Vollgas
+  dorthin, Gran Turismo 15,9 km; Fenster 8–15 km, außerhalb nur um Hindernisse herum: Hamburg ab Hannover 8,5 km
+  wegen eines Radars, Paris → Lüttich 13,5 km wegen des Tunnel du Landy; das Tutorial Kiel → Hamburg bekommt mit
+  `first_fuel={"fwd": 15}` 15 km – die 15-km-Ansage kommt dann genau beim Start), auf den Klassenabstand
+  (`few` ~88, `normal` ~75, `many` ~62 km) und auf Klassenabstand − 12 km für die letzte, damit der Takt mit der
+  ersten Tankstelle der nächsten Etappe über das Etappenende weitergeht. Ergebnis: erste 8,5–15 km (Median 12),
+  Abstände 60–87,6 km, letzte 30,3–83 km vor dem Ziel, 332 Tankstellen in 102 Richtungen (vorher 324); über ein
+  Etappenende hinweg 42–92 km. Keine Tankspur in Tunneln (`StagePlan`-Warnung), Abstand der Tankspur zu Tunneln,
+  den Radarzonen **dieser** Richtung und Grenzen ≥ 1 km (Generator). Geprüft von `build_network.py` (je Richtung),
+  `RoadNetwork.validate()` und `test_design_rules_both_directions`.
+- Folge für das Rennen: Wer an der letzten Tankstelle einer Etappe volltankt, erreicht die erste Tankspur der
+  nächsten mit jedem Auto auch mit Vollgas – höchstens 90 + 2 km (Tankspur) + 20 km + Einfädelstrecke gegen 119 km
+  Reichweite des Gran Turismo bei 270 km/h (`test_full_tank_at_the_last_station_reaches_the_next_first_station`;
+  auf den echten Routen aller Rennen `test_race_legs_full_tank_reaches_the_next_first_lane`, größter Abstand
+  93 km).
 - Radarzonen (5 km) nie in den letzten 50 km (= 20 km City Limits + 30 km davor) einer Richtung: beidseitige
   Radare zwischen km 50 und Länge−55. Das Radarlimit entspricht dem Tempolimit der Abschnitte unter der Zone.
 - Tunnel liegen innerhalb der Etappe und überlappen sich nicht; Grenzen ergeben sich aus Länderwechseln.
@@ -148,10 +171,11 @@ zwei geplanten Routen. Die Tests prüfen für jedes Rennen, dass nur an den gepl
 ## Balancing der Routenwahl
 
 - **Kiel – Nürnberg** (Wahl in Hamburg): Ost über Hannover – Kassel – Würzburg (A7, 730 km) ist 175 km kürzer,
-  hat aber die Kasseler Berge und die Rhön (Hügel 3), mehr Tempolimits, 8 Radarfallen und nur 9 Tankstellen
-  (Abstand 70–85 km). West „über Frankfurt“ (A1/A45/A3, 905 km) ist länger und voller (Ruhrgebiet und
-  Rhein-Main: Verkehr 1,3–1,6), dafür 508 statt 283 km Autobahn ohne Limit, nur 4 Radarfallen und 12 Tankstellen
-  (alle ~60–78 km). Wer schnell fährt und Polizei meidet, holt im Westen auf; sicherer und kürzer ist der Osten.
+  hat aber die Kasseler Berge und die Rhön (Hügel 3), mehr Tempolimits, 8 Radarfallen und nur 10 Tankstellen
+  (Abstand 60–92 km, im Mittel 76 km). West „über Frankfurt“ (A1/A45/A3, 905 km) ist länger und voller
+  (Ruhrgebiet und Rhein-Main: Verkehr 1,3–1,6), dafür 508 statt 283 km Autobahn ohne Limit, nur 4 Radarfallen und
+  15 Tankstellen (im Mittel alle 60 km). Wer schnell fährt und Polizei meidet, holt im Westen auf; sicherer und
+  kürzer ist der Osten. (Zahlen je Fahrtrichtung seit v0.7.0, vorher 9 und 12 Tankstellen.)
 - **Dresden – Dortmund** (Wahl in Leipzig): Süd über Erfurt/Kassel (Saaletal, Jagdbergtunnel, Hörselberge,
   25 km Landstraße in der Lücke der A44, mehr Radar) gegen Nord über Magdeburg/Hannover (15 km länger, flach,
   viel LKW-Verkehr auf der A2, mehr Tankstellen).
@@ -188,8 +212,12 @@ sich ohne Codeänderung ergänzen.
   `seed_ref_km` (235 km, Median des Netzes) samt ihren 20 km City Limits; die City Limits jeder Etappe zählen mit
   `seed_city_kmh` (60–80 km/h), der Rest mit dem Tempo, das auf der typischen Etappe genau `seed_avg_kmh` ergibt
   (≈ 139–183 km/h); dazu `seed_fuel_stop_s` (35 s: in die Tankspur, ~50 L tanken, wieder beschleunigen) für jede
-  Etappe, die mit teilgefülltem Tank startet (`start_fuel_fraction`, das Tutorial in Fahrtrichtung), und die
-  Fährzeiten eines Rennens (`fixed_time_s`). Vorher galt 125–165 km/h auf jede Länge – auf dem kurzen Tutorial mit
+  Etappe, die mit teilgefülltem Tank startet (`start_fuel_fraction`, das Tutorial in Fahrtrichtung) – in einem
+  Rennen seit v0.7.0 auch für jede Etappe nach der ersten, weil der Tank in die nächste Etappe mitgeht
+  (`fuel_stops` = Etappen − 1 + Tutorial: Kiel – Nürnberg 5 statt 1, Dresden – Dortmund 3 statt 0) –, und die
+  Fährzeiten eines Rennens (`fixed_time_s`). Einzeletappen-Listen bleiben unverändert: eine Einzeletappe startet
+  voll (bzw. mit den 35 % des Tutorials), eine Rennetappe mit dem übernommenen Tank kann dort also nie schneller
+  sein. Vorher galt 125–165 km/h auf jede Länge – auf dem kurzen Tutorial mit
   Pflicht-Tankstopp war das unerreichbar (Rekord 2:52,73 statt jetzt 3:52,9). So gibt es immer einen Rekord als
   Laufschrift. Sie werden erst mit dem ersten echten Eintrag gespeichert.
 - Datei `user://leaderboards.json`: `{"version": 2, "boards": {…}}`, atomar geschrieben (Temp-Datei + Umbenennen,
@@ -203,6 +231,9 @@ Datei `{"version": 2, "saved_at", "game_version", "race": state}`, atomar mit `.
 ergänzt und Typen hergestellt (`waypoint_index`, `seed` als int, Zeiten als float); kaputte Datei → `.bak`,
 sonst „kein Spielstand“. `has_race()` prüft im laufenden Spiel zusätzlich, ob Rennen und Stadt noch existieren
 (ein alter Königsrennen-Stand in einer heute durchfahrenen Stadt wie Groningen oder Niš gilt damit als beendet).
+Seit v0.7.0 hat der Rennstand `fuel_l` – die Liter, die in die nächste Etappe mitgehen (Tank im Ziel der letzten
+Etappe, über die Fähre unverändert); die Legs speichern `fuel_start_l` / `fuel_end_l`. Ein Spielstand aus v0.6.0
+hat das Feld nicht und bekommt −1 (unbekannt): seine nächste Etappe startet einmal voll, danach gilt die Übernahme.
 
 ## Karte (`data/map/europe_map.json`)
 
@@ -284,8 +315,8 @@ Die folgenden Tabellen erzeugt `tools/map/build_network.py` aus den Daten.
 
 | Route | km | Etappen | frei km | Radar | Tankstellen | Verkehr Ø | max. Hügel | Landstraße km |
 |---|---|---|---|---|---|---|---|---|
-| über Hannover, Kassel | 730 | 5 | 283 | 8 | 9 | 1,11 | 3 | 0 |
-| über Bremen, Dortmund, Frankfurt | 905 | 6 | 508 | 4 | 12 | 1,25 | 2 | 0 |
+| über Hannover, Kassel | 730 | 5 | 283 | 8 | 10 | 1,11 | 3 | 0 |
+| über Bremen, Dortmund, Frankfurt | 905 | 6 | 508 | 4 | 15 | 1,25 | 2 | 0 |
 
 - 730 km, 5 Etappen: Kiel – Hamburg – Hannover – Kassel – Würzburg – Nürnberg
 - 905 km, 6 Etappen: Kiel – Hamburg – Bremen – Dortmund – Frankfurt – Würzburg – Nürnberg
@@ -295,8 +326,8 @@ Die folgenden Tabellen erzeugt `tools/map/build_network.py` aus den Daten.
 
 | Route | km | Etappen | frei km | Radar | Tankstellen | Verkehr Ø | max. Hügel | Landstraße km |
 |---|---|---|---|---|---|---|---|---|
-| über Erfurt, Kassel | 580 | 4 | 310 | 5 | 7 | 1,13 | 2 | 25 |
-| über Magdeburg, Hannover | 595 | 4 | 327 | 4 | 8 | 1,29 | 2 | 0 |
+| über Erfurt, Kassel | 580 | 4 | 310 | 5 | 8 | 1,13 | 2 | 25 |
+| über Magdeburg, Hannover | 595 | 4 | 327 | 4 | 9 | 1,29 | 2 | 0 |
 
 - 580 km, 4 Etappen: Dresden – Leipzig – Erfurt – Kassel – Dortmund
 - 595 km, 4 Etappen: Dresden – Leipzig – Magdeburg – Hannover – Dortmund
@@ -306,8 +337,8 @@ Die folgenden Tabellen erzeugt `tools/map/build_network.py` aus den Daten.
 
 | Route | km | Etappen | frei km | Radar | Tankstellen | Verkehr Ø | max. Hügel | Landstraße km |
 |---|---|---|---|---|---|---|---|---|
-| über Kassel, Hannover | 780 | 5 | 350 | 8 | 10 | 1,12 | 3 | 0 |
-| über Frankfurt, Dortmund | 860 | 5 | 500 | 4 | 11 | 1,26 | 2 | 0 |
+| über Kassel, Hannover | 780 | 5 | 350 | 8 | 11 | 1,12 | 3 | 0 |
+| über Frankfurt, Dortmund | 860 | 5 | 500 | 4 | 14 | 1,26 | 2 | 0 |
 
 - 780 km, 5 Etappen: München – Nürnberg – Würzburg – Kassel – Hannover – Bremen
 - 860 km, 5 Etappen: München – Nürnberg – Würzburg – Frankfurt – Dortmund – Bremen
@@ -327,61 +358,61 @@ Die folgenden Tabellen erzeugt `tools/map/build_network.py` aus den Daten.
 
 ### Etappen
 
-Radar = Radarfallen vorwärts/rückwärts, Tank = Tankstellen, Verkehr = längengewichteter Faktor, frei = Autobahn ohne Tempolimit.
+Radar = Radarfallen vorwärts/rückwärts, Tank = Tankstellen vorwärts/rückwärts (die erste je Richtung höchstens 20 km nach dem Start), Verkehr = längengewichteter Faktor, frei = Autobahn ohne Tempolimit.
 
 | Etappe (`id`) | Straßen | km | Länder | Autobahn / frei km | Radar | Tank | Tunnel | Verkehr |
 |---|---|---|---|---|---|---|---|---|
-| Kiel – Hamburg (`kiel_hamburg`) | A215 · A7 | 95 | DE | 95 / 33 | 1/1 | 1 | – | 1,10 |
-| Hamburg – Hannover (`hamburg_hannover`) | A7 | 150 | DE | 150 / 75 | 2/2 | 2 | Elbtunnel (3,3 km) | 1,12 |
-| Hannover – Kassel (`hannover_kassel`) | A7 | 165 | DE | 165 / 65 | 1/2 | 2 | – | 1,10 |
-| Kassel – Würzburg (`kassel_wuerzburg`) | A7 | 210 | DE | 210 / 70 | 3/3 | 3 | – | 1,06 |
-| Hamburg – Bremen (`hamburg_bremen`) | A1 | 120 | DE | 120 / 80 | 0/0 | 2 | – | 1,25 |
-| Bremen – Dortmund (`bremen_dortmund`) | A1 | 235 | DE | 235 / 150 | 1/1 | 3 | – | 1,24 |
-| Dortmund – Frankfurt (`dortmund_frankfurt`) | A45 · A5 | 225 | DE | 225 / 135 | 1/1 | 3 | – | 1,34 |
-| Frankfurt – Würzburg (`frankfurt_wuerzburg`) | A3 | 120 | DE | 120 / 70 | 0/0 | 2 | – | 1,27 |
-| Würzburg – Nürnberg (`wuerzburg_nuernberg`) | A3 | 110 | DE | 110 / 40 | 1/1 | 1 | – | 1,19 |
-| München – Nürnberg (`muenchen_nuernberg`) | A9 | 170 | DE | 170 / 105 | 1/1 | 2 | – | 1,21 |
-| Hannover – Bremen (`hannover_bremen`) | A7 · A27 | 125 | DE | 125 / 70 | 1/1 | 2 | – | 1,10 |
-| Dresden – Leipzig (`dresden_leipzig`) | A4 · A14 | 115 | DE | 115 / 65 | 1/1 | 1 | – | 1,15 |
-| Leipzig – Erfurt (`leipzig_erfurt`) | A9 · A4 | 150 | DE | 150 / 65 | 1/1 | 2 | Jagdbergtunnel (3,1 km) | 1,15 |
-| Erfurt – Kassel (`erfurt_kassel`) | A4 · B7 · A44 | 155 | DE | 130 / 75 | 2/2 | 2 | – | 1,06 |
-| Kassel – Dortmund (`kassel_dortmund`) | A44 | 160 | DE | 160 / 105 | 1/1 | 2 | – | 1,17 |
-| Leipzig – Magdeburg (`leipzig_magdeburg`) | A14 | 125 | DE | 125 / 67 | 1/1 | 2 | – | 1,17 |
-| Magdeburg – Hannover (`magdeburg_hannover`) | A2 | 145 | DE | 145 / 85 | 1/1 | 2 | – | 1,36 |
-| Hannover – Dortmund (`hannover_dortmund`) | A2 | 210 | DE | 210 / 110 | 1/1 | 3 | – | 1,39 |
-| Bremen – Amsterdam (`bremen_amsterdam`) | A28 · A31 · A7 (NL) · A6 · A10 | 365 | DE → NL | 365 / 80 | 3/4 | 5 | Emstunnel (0,9 km) | 1,08 |
-| Amsterdam – Lüttich (`amsterdam_luettich`) | A2 · E25 | 235 | NL → BE | 235 / 0 | 2/2 | 3 | Koning-Willem-Alexander-Tunnel (2,3 km) | 1,26 |
-| Lüttich – Paris (`luettich_paris`) | E42 · E19 · A2 · A1 | 395 | BE → FR | 395 / 0 | 4/5 | 5 | Tunnel du Landy (1,3 km) | 1,16 |
-| Paris – Tours (`paris_tours`) | A10 | 240 | FR | 240 / 0 | 2/2 | 3 | – | 1,10 |
-| Tours – Bordeaux (`tours_bordeaux`) | A10 | 345 | FR | 345 / 0 | 3/3 | 5 | – | 1,01 |
-| Bordeaux – San Sebastián (`bordeaux_san_sebastian`) | A63 · AP-8 | 240 | FR → ES | 240 / 0 | 2/2 | 3 | – | 1,12 |
-| San Sebastián – Burgos (`san_sebastian_burgos`) | A-15 · A-1 · AP-1 | 225 | ES | 225 / 0 | 2/2 | 3 | – | 1,06 |
-| Burgos – Madrid (`burgos_madrid`) | A-1 | 240 | ES | 240 / 0 | 2/2 | 3 | – | 1,04 |
-| Madrid – Saragossa (`madrid_saragossa`) | A-2 | 315 | ES | 315 / 0 | 3/3 | 4 | – | 1,04 |
-| Saragossa – Barcelona (`saragossa_barcelona`) | AP-2 · AP-7 | 300 | ES | 300 / 0 | 3/3 | 4 | – | 1,08 |
-| Barcelona – Montpellier (`barcelona_montpellier`) | AP-7 · A9 | 350 | ES → FR | 350 / 0 | 4/4 | 5 | – | 1,13 |
-| Saragossa – Pau (`saragossa_pau`) | A-23 · N-330 · N134 | 260 | ES → FR | 145 / 0 | 1/1 | 4 | Somport-Tunnel (8,6 km) | 0,82 |
-| Pau – Toulouse (`pau_toulouse`) | A64 | 200 | FR | 200 / 0 | 1/1 | 3 | – | 1,04 |
-| Toulouse – Montpellier (`toulouse_montpellier`) | A61 · A9 | 245 | FR | 245 / 0 | 2/2 | 4 | – | 1,10 |
-| Montpellier – Lyon (`montpellier_lyon`) | A9 · A7 | 305 | FR | 305 / 0 | 3/3 | 4 | – | 1,33 |
-| Lyon – Bern (`lyon_bern`) | A42 · A40 · A1 · A12 | 310 | FR → CH | 310 / 0 | 3/3 | 4 | Tunnel de Chamoise (3,3 km) | 1,17 |
-| Bern – Mailand (`bern_mailand`) | A1 · A2 · A9 (I) | 365 | CH → IT | 348 / 0 | 3/4 | 5 | Sonnenbergtunnel (1,5 km), Seelisbergtunnel (9,3 km), Gotthard-Strassentunnel (16,9 km) | 1,18 |
-| Mailand – Venedig (`mailand_venedig`) | A4 | 275 | IT | 275 / 0 | 3/3 | 4 | – | 1,31 |
-| Venedig – Ljubljana (`venedig_ljubljana`) | A4 · RA13 · A3/A1 (SI) | 245 | IT → SI | 245 / 0 | 2/2 | 3 | – | 1,11 |
-| Ljubljana – Slavonski Brod (`ljubljana_slavonski_brod`) | A2 (SI) · A3 (HR) | 335 | SI → HR | 335 / 0 | 3/3 | 4 | – | 1,01 |
-| Slavonski Brod – Belgrad (`slavonski_brod_belgrad`) | A3 | 205 | HR → RS | 205 / 0 | 2/2 | 3 | – | 1,01 |
-| Belgrad – Sofia (`belgrad_sofia`) | A1 · A4 · I-8 · A6 | 395 | RS → BG | 365 / 0 | 3/3 | 5 | – | 0,99 |
-| Belgrad – Budapest (`belgrad_budapest`) | A1 · M5 | 400 | RS → HU | 400 / 0 | 4/4 | 5 | – | 1,05 |
-| Budapest – Wien (`budapest_wien`) | M1 · A4 | 245 | HU → AT | 245 / 0 | 3/3 | 3 | – | 1,15 |
-| Wien – Prag (`wien_prag`) | A5 · I/52 · D52 · D1 | 335 | AT → CZ | 305 / 0 | 4/3 | 4 | – | 1,20 |
-| Prag – Leipzig (`prag_leipzig`) | D8 · A17 · A4 · A14 | 265 | CZ → DE | 265 / 65 | 2/3 | 4 | Tunel Radejčín (0,6 km), Tunnel Dölzschen (1,1 km) | 1,13 |
-| Leipzig – Berlin (`leipzig_berlin`) | A9 · A10 · A115 | 190 | DE | 190 / 105 | 1/2 | 3 | – | 1,18 |
-| Berlin – Posen (`berlin_posen`) | A12 · A2 (PL) | 270 | DE → PL | 270 / 45 | 3/3 | 4 | – | 1,13 |
-| Posen – Warschau (`posen_warschau`) | A2 | 305 | PL | 305 / 0 | 3/3 | 4 | – | 1,10 |
-| Warschau – Białystok (`warschau_bialystok`) | S8 | 200 | PL | 200 / 0 | 2/2 | 3 | – | 1,03 |
-| Białystok – Kaunas (`bialystok_kaunas`) | S8 · S61 · A5 (LT) | 230 | PL → LT | 195 / 0 | 2/2 | 3 | – | 0,95 |
-| Kaunas – Riga (`kaunas_riga`) | A8 · A10 (LT) · A7 (LV) | 255 | LT → LV | 130 / 0 | 3/3 | 3 | – | 0,95 |
-| Rostock – Kiel (`rostock_kiel`) | A20 · A21 | 210 | DE | 210 / 140 | 2/2 | 3 | – | 0,97 |
+| Kiel – Hamburg (`kiel_hamburg`) | A215 · A7 | 95 | DE | 95 / 33 | 1/1 | 1/1 | – | 1,10 |
+| Hamburg – Hannover (`hamburg_hannover`) | A7 | 150 | DE | 150 / 75 | 2/2 | 2/2 | Elbtunnel (3,3 km) | 1,12 |
+| Hannover – Kassel (`hannover_kassel`) | A7 | 165 | DE | 165 / 65 | 1/2 | 2/2 | – | 1,10 |
+| Kassel – Würzburg (`kassel_wuerzburg`) | A7 | 210 | DE | 210 / 70 | 3/3 | 3/3 | – | 1,06 |
+| Hamburg – Bremen (`hamburg_bremen`) | A1 | 120 | DE | 120 / 80 | 0/0 | 2/2 | – | 1,25 |
+| Bremen – Dortmund (`bremen_dortmund`) | A1 | 235 | DE | 235 / 150 | 1/1 | 4/4 | – | 1,24 |
+| Dortmund – Frankfurt (`dortmund_frankfurt`) | A45 · A5 | 225 | DE | 225 / 135 | 1/1 | 4/4 | – | 1,34 |
+| Frankfurt – Würzburg (`frankfurt_wuerzburg`) | A3 | 120 | DE | 120 / 70 | 0/0 | 2/2 | – | 1,27 |
+| Würzburg – Nürnberg (`wuerzburg_nuernberg`) | A3 | 110 | DE | 110 / 40 | 1/1 | 2/2 | – | 1,19 |
+| München – Nürnberg (`muenchen_nuernberg`) | A9 | 170 | DE | 170 / 105 | 1/1 | 2/2 | – | 1,21 |
+| Hannover – Bremen (`hannover_bremen`) | A7 · A27 | 125 | DE | 125 / 70 | 1/1 | 2/2 | – | 1,10 |
+| Dresden – Leipzig (`dresden_leipzig`) | A4 · A14 | 115 | DE | 115 / 65 | 1/1 | 2/2 | – | 1,15 |
+| Leipzig – Erfurt (`leipzig_erfurt`) | A9 · A4 | 150 | DE | 150 / 65 | 1/1 | 2/2 | Jagdbergtunnel (3,1 km) | 1,15 |
+| Erfurt – Kassel (`erfurt_kassel`) | A4 · B7 · A44 | 155 | DE | 130 / 75 | 2/2 | 2/2 | – | 1,06 |
+| Kassel – Dortmund (`kassel_dortmund`) | A44 | 160 | DE | 160 / 105 | 1/1 | 2/2 | – | 1,17 |
+| Leipzig – Magdeburg (`leipzig_magdeburg`) | A14 | 125 | DE | 125 / 67 | 1/1 | 2/2 | – | 1,17 |
+| Magdeburg – Hannover (`magdeburg_hannover`) | A2 | 145 | DE | 145 / 85 | 1/1 | 2/2 | – | 1,36 |
+| Hannover – Dortmund (`hannover_dortmund`) | A2 | 210 | DE | 210 / 110 | 1/1 | 3/3 | – | 1,39 |
+| Bremen – Amsterdam (`bremen_amsterdam`) | A28 · A31 · A7 (NL) · A6 · A10 | 365 | DE → NL | 365 / 80 | 3/4 | 5/5 | Emstunnel (0,9 km) | 1,08 |
+| Amsterdam – Lüttich (`amsterdam_luettich`) | A2 · E25 | 235 | NL → BE | 235 / 0 | 2/2 | 3/3 | Koning-Willem-Alexander-Tunnel (2,3 km) | 1,26 |
+| Lüttich – Paris (`luettich_paris`) | E42 · E19 · A2 · A1 | 395 | BE → FR | 395 / 0 | 4/5 | 5/5 | Tunnel du Landy (1,3 km) | 1,16 |
+| Paris – Tours (`paris_tours`) | A10 | 240 | FR | 240 / 0 | 2/2 | 3/3 | – | 1,10 |
+| Tours – Bordeaux (`tours_bordeaux`) | A10 | 345 | FR | 345 / 0 | 3/3 | 5/5 | – | 1,01 |
+| Bordeaux – San Sebastián (`bordeaux_san_sebastian`) | A63 · AP-8 | 240 | FR → ES | 240 / 0 | 2/2 | 3/3 | – | 1,12 |
+| San Sebastián – Burgos (`san_sebastian_burgos`) | A-15 · A-1 · AP-1 | 225 | ES | 225 / 0 | 2/2 | 3/3 | – | 1,06 |
+| Burgos – Madrid (`burgos_madrid`) | A-1 | 240 | ES | 240 / 0 | 2/2 | 3/3 | – | 1,04 |
+| Madrid – Saragossa (`madrid_saragossa`) | A-2 | 315 | ES | 315 / 0 | 3/3 | 4/4 | – | 1,04 |
+| Saragossa – Barcelona (`saragossa_barcelona`) | AP-2 · AP-7 | 300 | ES | 300 / 0 | 3/3 | 4/4 | – | 1,08 |
+| Barcelona – Montpellier (`barcelona_montpellier`) | AP-7 · A9 | 350 | ES → FR | 350 / 0 | 4/4 | 5/5 | – | 1,13 |
+| Saragossa – Pau (`saragossa_pau`) | A-23 · N-330 · N134 | 260 | ES → FR | 145 / 0 | 1/1 | 4/4 | Somport-Tunnel (8,6 km) | 0,82 |
+| Pau – Toulouse (`pau_toulouse`) | A64 | 200 | FR | 200 / 0 | 1/1 | 3/3 | – | 1,04 |
+| Toulouse – Montpellier (`toulouse_montpellier`) | A61 · A9 | 245 | FR | 245 / 0 | 2/2 | 4/4 | – | 1,10 |
+| Montpellier – Lyon (`montpellier_lyon`) | A9 · A7 | 305 | FR | 305 / 0 | 3/3 | 4/4 | – | 1,33 |
+| Lyon – Bern (`lyon_bern`) | A42 · A40 · A1 · A12 | 310 | FR → CH | 310 / 0 | 3/3 | 4/4 | Tunnel de Chamoise (3,3 km) | 1,17 |
+| Bern – Mailand (`bern_mailand`) | A1 · A2 · A9 (I) | 365 | CH → IT | 348 / 0 | 3/4 | 5/5 | Sonnenbergtunnel (1,5 km), Seelisbergtunnel (9,3 km), Gotthard-Strassentunnel (16,9 km) | 1,18 |
+| Mailand – Venedig (`mailand_venedig`) | A4 | 275 | IT | 275 / 0 | 3/3 | 4/4 | – | 1,31 |
+| Venedig – Ljubljana (`venedig_ljubljana`) | A4 · RA13 · A3/A1 (SI) | 245 | IT → SI | 245 / 0 | 2/2 | 3/3 | – | 1,11 |
+| Ljubljana – Slavonski Brod (`ljubljana_slavonski_brod`) | A2 (SI) · A3 (HR) | 335 | SI → HR | 335 / 0 | 3/3 | 4/4 | – | 1,01 |
+| Slavonski Brod – Belgrad (`slavonski_brod_belgrad`) | A3 | 205 | HR → RS | 205 / 0 | 2/2 | 3/3 | – | 1,01 |
+| Belgrad – Sofia (`belgrad_sofia`) | A1 · A4 · I-8 · A6 | 395 | RS → BG | 365 / 0 | 3/3 | 5/5 | – | 0,99 |
+| Belgrad – Budapest (`belgrad_budapest`) | A1 · M5 | 400 | RS → HU | 400 / 0 | 4/4 | 5/5 | – | 1,05 |
+| Budapest – Wien (`budapest_wien`) | M1 · A4 | 245 | HU → AT | 245 / 0 | 3/3 | 3/3 | – | 1,15 |
+| Wien – Prag (`wien_prag`) | A5 · I/52 · D52 · D1 | 335 | AT → CZ | 305 / 0 | 4/3 | 4/4 | – | 1,20 |
+| Prag – Leipzig (`prag_leipzig`) | D8 · A17 · A4 · A14 | 265 | CZ → DE | 265 / 65 | 2/3 | 4/4 | Tunel Radejčín (0,6 km), Tunnel Dölzschen (1,1 km) | 1,13 |
+| Leipzig – Berlin (`leipzig_berlin`) | A9 · A10 · A115 | 190 | DE | 190 / 105 | 1/2 | 3/3 | – | 1,18 |
+| Berlin – Posen (`berlin_posen`) | A12 · A2 (PL) | 270 | DE → PL | 270 / 45 | 3/3 | 4/4 | – | 1,13 |
+| Posen – Warschau (`posen_warschau`) | A2 | 305 | PL | 305 / 0 | 3/3 | 4/4 | – | 1,10 |
+| Warschau – Białystok (`warschau_bialystok`) | S8 | 200 | PL | 200 / 0 | 2/2 | 3/3 | – | 1,03 |
+| Białystok – Kaunas (`bialystok_kaunas`) | S8 · S61 · A5 (LT) | 230 | PL → LT | 195 / 0 | 2/2 | 3/3 | – | 0,95 |
+| Kaunas – Riga (`kaunas_riga`) | A8 · A10 (LT) · A7 (LV) | 255 | LT → LV | 130 / 0 | 3/3 | 3/3 | – | 0,95 |
+| Rostock – Kiel (`rostock_kiel`) | A20 · A21 | 210 | DE | 210 / 140 | 2/2 | 3/3 | – | 0,97 |
 
 ### Grenzübergänge
 

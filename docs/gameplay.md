@@ -13,7 +13,7 @@ traffic, fuel, radar, police, city_limits, weather`). Alles ist für einen Seed 
 | `scripts/gameplay/police_system.gd` | `PoliceSystem` – Radarwarnung/-feld, Verfolgung, Flucht, Anhalten |
 | `scripts/gameplay/world_clock.gd` | `WorldClock` – Weltzeit im Zeitraffer |
 | `scripts/gameplay/environment_model.gd` | `EnvironmentModel` – Tageszeit/Wetter: vmax, Haftung, Sicht, Rennwetter |
-| `tests/unit/gameplay/test_*.gd` | 103 Unit-Tests: Regeln je System + Designzahlen (a)–(h) (`test_design_numbers.gd`, seit v0.5.0 mit den Abweichungen von den Design-Startwerten als festen Zahlen) |
+| `tests/unit/gameplay/test_*.gd` | 111 Unit-Tests: Regeln je System + Designzahlen (a)–(h) (`test_design_numbers.gd`, seit v0.5.0 mit den Abweichungen von den Design-Startwerten als festen Zahlen) |
 | `tests/sim/difficulty_sim.gd` | Schwierigkeit (Tabelle (j)): echte Etappen mit Verkehr, Fahrer „naiv“ (weicht nur aus), „spät“ (bremst wie auf trockener Straße) und Autopilot – Kollisionen, Annäherung, blockierte Spuren, Spurwechsel |
 | `tests/sim/gameplay_sim.gd` | Simulationen (a)–(i), (b2), (e2), Tabellen; `tests/sim/run_sims.gd` druckt alle |
 | `tests/sim/stage_sim.gd` | Etappe mit echtem `StagePlan`/`Track` und Bot-Fahrer, Kollisions-/Ereignisprotokoll |
@@ -43,7 +43,7 @@ godot --headless --path . -s res://tests/sim/difficulty_sim.gd -- [--stages=kass
 | Offener Punkt | Entscheidung (Konfiguration) |
 |---|---|
 | Wie stark senken Regen, Schnee und Nacht die Höchstgeschwindigkeit? | Regen −2,5 % (`driving.weather_vmax_factor.rain` 0,975), Schnee −12 % (0,88), Nacht −1 % (`driving.night_vmax_factor` 0,99, weich über die Dämmerung). Regen + Nacht = −3,5 %: das langsamste Auto (230) schafft 222 km/h → Flucht möglich; Schnee verhindert sie bei Kompakt/Kombi/Limousine. Haftung seit v0.5.0 (Spieltest: „Schnee macht die Steuerung nur leicht schwammiger, ohne ernsthafte Probleme“): Reifenhaftung Regen 0,75, Schnee 0,45 (vorher 0,88/0,72, nur für die Kurvengrenze), wirkt auf Kurvengrenze, Bremsen, Traktion und Lenken (Abschnitt „Wetter“). **Steigung**: bis `driving.grade_free_percent` (4 %) kein Verlust, darüber 1,2 % je Prozentpunkt (`grade_vmax_loss_per_percent`). „Leicht verschlechterte Bedingungen“ (Design: jedes Auto schafft dann noch 220 km/h) = Regen und/oder Nacht auf normalem Hügelland bis Hügelstufe 2 (≤ 4,5 %): Kompakt bei Regen + Nacht an 4,5 % noch 220,7 km/h, Flucht gelingt (Tabellen (e), (f)). Deutlich schlechter = Schnee oder steile Bergstrecken (Hügelstufe 3, 7 %: −3,6 %, Kompakt bei Regen + Nacht 214 km/h). |
-| Länge der Zeitstrafe bei leerem Tank | `fuel.tow_penalty_s` = **90 s** Strafe + Ausrollen (18 km/h/s) + 4 s Einblendung `TOWING`, danach halber Tank (`tow_refill_fraction` 0,5). Effektiv ≈ 110 s, etwa das 2,5-Fache eines vollen Tankstopps (25 s + Bremsen/Anfahren). Wer mit leerem Tank in eine Tankspur rollt, tankt dort normal (kein Abschleppen) – ein leeres Auto in der Tankspur wird nie abgeschleppt, und Gas bricht das Tanken erst ab, wenn mindestens `fuel.abort_min_fuel_l` (1 L) im Tank sind. |
+| Länge der Zeitstrafe bei leerem Tank | `fuel.tow_penalty_s` = **90 s** Strafe + Ausrollen (18 km/h/s) + 4 s Einblendung `TOWING`, danach halber Tank (`tow_refill_fraction` 0,5). Effektiv ≈ 110 s, etwa das 2,5-Fache eines vollen Tankstopps (25 s + Bremsen/Anfahren). Wer mit leerem Tank in eine Tankspur rollt, tankt dort normal (kein Abschleppen) – ein leeres Auto in der Tankspur wird nie abgeschleppt, und Gas bricht das Tanken erst ab, wenn mindestens `fuel.abort_min_fuel_l` (1 L) im Tank sind. *(seit v0.7.0)* Derselbe Preis gilt vor dem Start einer Rennetappe, wenn der übernommene Tank nicht einmal mit 60 km/h bis zur ersten Tankspur reicht (Abschnitt „Tank im Rennen“). |
 | Verhalten am Straßenrand | **Bankett** (2,5 m, `road.shoulder_width_m`): ragt die Karosserie > 0,5 m über den Fahrbahnrand, bremst der Wagen auf 90 km/h (35 km/h/s), `off_road = 1`; loser Belag: dort nur 60 % Kurvenhaftung (`driving.shoulder.grip_factor` 0,51, mit Exponent 0,75 = 0,60), ein untersteuernder Wagen rutscht also weiter. **Harte Grenze** am Bankettende: mit Leitplanke (Autobahn) Kontakt → Tempo × 0,9 je Treffer (höchstens alle 0,6 s), Abprallen mit 1,5 m/s nach innen, Schleifen 20 km/h/s – nur solange Lenken oder Abdrift den Wagen gegen die Leitplanke drücken: ein Wagen, der sie nur berührt oder dort steht (nach einem Unfall, beim Rechtsranfahren), fährt mit Gas frei weg (Review v0.5.0: im Schnee liegt die Traktion mit 11,9 km/h/s unter dem Schleifen – der Wagen blieb sonst für immer stehen, `test_guardrail_never_pins_a_standing_car`); trifft die Untersteuer-Abdrift die Leitplanke, kostet jeder m/s über 1 m/s weitere 5 % (`driving.guardrail.impact_*`, bis Tempo × 0,5 – ungebremst seitlich hinein); ohne Leitplanke (Landstraße, Stadt) **Gras** → stark bremsen auf 40 km/h (60 km/h/s); beides `off_road = 2`, die Abdrift endet dort. |
 | Wetter im Rennen | `weather.race_mode`: `region` (Standard, gewichtet nach Klima des Etappenlandes), `random` (gleichverteilt), `fixed` (Feld `weather` der Etappe, sonst Region). `EnvironmentModel.race_weather(plan, race_seed, leg_index)` ist deterministisch. Seit dem Review v0.5.0 fährt die Tutorial-Etappe (Kiel – Hamburg) immer bei `weather.tutorial_weather` = trocken (`RaceState.leg_weather`): vorher bekam sie das Rennwetter (Norden: 32 % Regen, 8 % Schnee) – ein Erstspieler hatte dann die halbe Bremsung und einen nachrutschenden Wagen, ohne jeden Hinweis (Autopilot Kompakt: trocken 287 s, Schnee 434 s). Alle anderen Etappen behalten das Rennwetter; jede Regen- oder Schnee-Etappe zeigt beim Countdown, was das Wetter bewirkt („Schnee: Bremsweg ×2, der Wagen rutscht nach dem Spurwechsel weiter – früh gegenlenken“, `SessionRules.weather_hint`, Faktor aus `driving.grip_effects`). |
 | Abweichungen von Startwerten des Design-Dokuments (v0.5.0, Spieltest „zu leicht“) | (1) Verkehr nachts nicht mehr schneller (ursprünglicher Design-Startwert: +15 %, Spielraum 15–20 %; `traffic.night.speed_factor` 1,0), (2) Lkw auf der Autobahn 80–90 km/h, Busse 95–100 km/h (ursprünglicher Design-Startwert: alle Fahrzeuge 110–150; Pkw bleiben im Design-Bereich), (3) Regen und Schnee machen den Verkehr langsamer (Pkw × 0,85 / × 0,65). Vom Nutzer bestätigt und am 2. Nov. 2026 ins Design-Dokument übernommen (Abschnitte „Fahrzeug und Steuerung“, „Verkehr“, „City Limits“, „Tageszeit und Wetter“ und „Erstes Rennen: Kiel – Nürnberg“, markiert mit *(seit v0.5.0)*). `test_design_numbers.gd` prüft die neuen Zahlen ausdrücklich (nicht die Konfiguration gegen sich selbst). |
@@ -111,7 +111,9 @@ Weitere Festlegungen:
   nie an der Zapfsäule abgeschleppt. `ran_dry` kommt einmal je leerem Tank, `tow_started` erst, wenn wirklich
   abgeschleppt wird (Wagen steht außerhalb einer Tankspur). Ansagen 30/15/5 km je Tankstelle einmal; mehrere
   gleichzeitig überquerte Schwellen → nur die nächste; bei Start mitten in der Etappe werden längst überfahrene
-  Schwellen still übersprungen (nie eine falsche Entfernung).
+  Schwellen still übersprungen (nie eine falsche Entfernung). *(seit v0.7.0)* Eine erste Tankstelle, die näher als
+  die 30-km-Ansage am Start liegt, wird direkt nach dem Start mit ihrer echten Entfernung angesagt („Tankstelle in
+  12 km“) – Abschnitt „Tank im Rennen“.
 - **Radar**: Warnung einmal bei `warn_km`; Auslösen ab limit · 1,15 (120 → 138,0 km/h, „ab“ = ≥) irgendwo im Feld,
   jedes Radar höchstens einmal, nie während Verfolgung/Anhalten.
 - **Verfolgung**: Polizeiwagen startet 320 m (sichtbare Meter) hinter dem Spieler und fährt 220 km/h; der Abstand
@@ -208,6 +210,87 @@ Weitere Festlegungen:
   - Größen der Fahrzeuge: per `set_dimensions(SpriteDB.sets)` aus dem Manifest, sonst aus der Set-ID geschätzt.
   - Leistung: die Streckengeometrie wird alle 4 m einmal abgefragt und zwischengespeichert; ≈ 0,45 ms je Bild für
     15 Autos (gemessen auf der Dev-Etappe).
+
+## Tank im Rennen (v0.7.0)
+
+Wunsch des Nutzers: „Bei RENNEN sollte die nach einem Etappenende übriggebliebene Tankfüllung auch die Tankfüllung
+zum Start der nächsten Etappe sein. Dafür bitte sicherstellen, dass spätestens 20 km nach Etappenstart eine
+Tankstelle zur Verfügung steht.“ Bis v0.6.0 startete jede Etappe voll (nur das Tutorial mit 35 %).
+
+- **Übernahme**: Der Tank an der Ziellinie (Ergebnis `fuel_end_l`; das Ausrollen hinter dem Ziel verbraucht
+  nichts) wird `RaceState.fuel_l` und über `GameFlow.stage_setup()` (`start_fuel_l`) der Tank am Start der
+  nächsten Etappe (`FuelSystem.setup(…, start_fuel_l)` – vor `StagePlan.start_fuel_fraction` und
+  `fuel.start_fill_fraction`). Über die Fähre unverändert, im Spielstand gespeichert. Nur im Rennen: Einzeletappe
+  und Demo starten mit ihrer eigenen Füllung (voll; das Tutorial Kiel → Hamburg mit 35 %, im Rennen also nur als
+  erste Etappe). Ein Spielstand aus v0.6.0 (ohne `fuel_l`) startet seine nächste Etappe einmal voll. Neustart und
+  Aufgeben einer Etappe nutzen denselben Tank. Auf der letzten Etappe eines Rennens (`last_stage`) geht der Tank
+  nirgendwohin.
+- **Erste Tankstelle**: je Fahrtrichtung 5–20 km nach dem Start (`fuel.first_station_min_km` /
+  `first_station_max_km`), erzeugt meist bei 12 km (8,5–15 km, Daten: [daten.md](daten.md)). Sie liegt näher als
+  die 30-km-Ansage und meist auch als die 15-km-Ansage, deren Schilder vor der Startlinie stünden: `FuelSystem`
+  sagt sie deshalb direkt nach dem Start mit ihrer echten Entfernung an, außer eine Ansageschwelle fällt ohnehin
+  auf den Start oder in die ersten 1,5 km (erste Tankstelle 15–16,5 km: die 15-km-Ansage) – `announce_start`.
+- **Was taugt der Tank?** `FuelSystem.start_check(cfg, spec, plan, litres)` rechnet bis zur **offenen** Tankspur
+  der ersten Tankstelle (Spuranfang + Einfädelstrecke `road.fuel_lane_taper_m`, 0,48 km bei Faktor 12): `ok` =
+  reicht auch mit vmax, `tight` = nur bis `max_kmh` (gleichmäßiges Tempo, auf 5 km/h abgerundet), `tow` = nicht
+  einmal mit `fuel.lane_trigger_speed_kmh` (60 km/h). Ohne weitere Reserve gerechnet: ein leer gewordener Wagen
+  rollt noch aus (bei Faktor 12 bis zum Stillstand von 200 km/h 3,7 km, von 140 km/h 1,8 km, von 60 km/h 0,3 km)
+  und kann in die Tankspur rollen, wo ein leeres Auto immer tankt.
+- **Abschleppen vor dem Start**: Reicht der übernommene Tank nicht einmal mit 60 km/h bis zur Tankspur, kommt der
+  Abschleppdienst vor dem Start – zum Preis wie unterwegs: `fuel.tow_penalty_s` (90 s) in der Etappenzeit (und auf
+  der Weltuhr, wie unterwegs), danach `fuel.tow_refill_fraction` (halber Tank), ein Abschleppen in der Statistik
+  (`RaceSession._tow_before_start`, Ergebnis `start_towed`). Eine Gratis-Reserve gibt es nicht – sie nähme der
+  Übernahme am unteren Ende den Sinn. Fair, weil der Etappenbildschirm und der Countdown es vorher sagen, weil jede
+  Etappe eine Tankstelle 26–90 km vor dem Ziel hat und weil die Garantie unten gilt. Dazwischen entscheidet der
+  Spieler: gefühlvoll fahren oder das Abschleppen riskieren (Gran Turismo mit 3 L ab Hamburg: höchstens ~135 km/h).
+- **Anzeige**: Etappenbildschirm mit Tankleiste (übernommene Liter, erste Tankstelle, Urteil – [ui.md](ui.md)),
+  Countdown im Rennen (`SessionRules.carry_messages`, eine Zeile: „Tank: 23 L aus der letzten Etappe – reicht bis
+  zur Tankstelle in 12 km“ / „… höchstens 135 km/h“ / „Tank: 2 L reicht nicht bis zur Tankstelle –
+  Abschleppdienst vor dem Start: +1:30.00“; ersetzt die Startansage der Tankstelle und die Reservewarnung der ersten
+  Meter; bei Regen und Schnee erst 1,2 s nach dem Start, im Countdown steht dann der Wetterhinweis), bei der 5-km-Ansage
+  der letzten Tankstelle einer Rennetappe „Letzte Tankstelle vor dem Ziel – der Tank geht in die nächste Etappe
+  mit“, Etappenergebnis „Tank für die nächste Etappe“. Liter wie auf der Tankanzeige (aufgerundet).
+- **Garantie**: Wer an der letzten Tankstelle einer Etappe volltankt, erreicht die erste Tankspur der nächsten
+  Etappe in jedem Auto auch mit Vollgas: höchstens 90 km (letzte Tankstelle vor dem Ziel) + 2 km (Tankspur) + 20 km
+  + 0,5 km Einfädelstrecke = 112,5 km gegen die Reichweite bei vmax (Tabelle; Test
+  `test_full_tank_at_the_last_station_reaches_the_next_first_station`). Auf den echten Routen aller Rennen ist der
+  größte Abstand 92,9 km (Kiel – Hamburg → Hamburg – Hannover, `test_race_legs_full_tank_reaches_the_next_first_lane`).
+  Knapp ist nur der Gran Turismo (9 km Luft) – wer Tankgrößen, Verbrauch oder die 90/20-km-Regeln ändert, merkt
+  es am Test.
+
+| Auto | Tank | vmax | voller Tank reicht bei vmax | 12 km bei vmax / 60 km/h | 8-L-Reserve reicht bei vmax |
+|---|---|---|---|---|---|
+| Kompakt | 45 L | 230 km/h | 165,5 km | 3,3 / 1,6 L | 29,4 km |
+| Kombi | 70 L | 235 km/h | 213,6 km | 3,9 / 1,8 L | 24,4 km |
+| Limousine | 60 L | 245 km/h | 174,4 km | 4,1 / 1,8 L | 23,3 km |
+| Sportwagen | 55 L | 255 km/h | 132,5 km | 5,0 / 2,1 L | 19,3 km |
+| Gran Turismo | 60 L | 270 km/h | 119,0 km | 6,1 / 2,4 L | 15,9 km |
+
+Wer bei der Reservewarnung (8 L) die Etappe beendet, erreicht die erste Tankstelle der nächsten (≤ 15 km) also in
+jedem Auto mit Vollgas.
+
+- **Autopilot**: Er plant an der letzten Tankstelle einer Rennetappe die erste Tankstelle der nächsten Etappe mit
+  (`carry_km` = `fuel.first_station_max_km`; nicht auf der letzten Etappe des Rennens). Reicht ein übernommener Tank
+  bei seinem Tempo nicht bis zur nächsten Tankstelle, fährt er das Spartempo, mit dem er sie mit 0,5 L Rest
+  erreicht (`_eco_kmh`, Gran Turismo mit 3 L ab Hamburg: 78 km/h) – aber nur, wenn wenigstens 60 km/h reichen,
+  sonst behält er sein Tempo (aus dem Tempo rollt ein leeres Auto weiter, bis in die Tankspur; `check_session`
+  „dry_into_lane“).
+- **Tutorial**: Kiel → Hamburg hat die einzige Tankstelle dieser Richtung bei 15 km (`first_fuel={"fwd": 15}`,
+  die 15-km-Ansage kommt genau beim Start). Der Hinweis „Nur 35 % im Tank – in 15 km kommt die Tankstelle, dort
+  nachtanken!“ ist dringend (`TutorialCoach.URGENT`): er kommt 1,2 s nach „LOS!“ vor den Steuerungshinweisen –
+  sonst stand er erst nach dem Tankspur-Hinweis, der Autopilot war nach gut 30 s an der Tankspur.
+- **Bestenlisten**: Einzeletappen-Listen bleiben, wie sie sind – eine Einzeletappe startet voll, eine Rennetappe
+  mit übernommenem Tank kann dort nie schneller sein. Die Starteinträge der Rennlisten zählen einen Tankstopp je
+  Etappe nach der ersten (`RoadNetwork.board_profile`, [daten.md](daten.md)).
+- **Prüfungen**: `check_session` „carry_tow“ (Gran Turismo mit 1,9 L ab Hamburg: Abschleppdienst vor dem Start,
+  +90 s, 30 L, Meldung im Countdown) und „carry_eco“ (3 L: Ansage „höchstens 135 km/h“, Spartempo, getankt bei
+  km 11,4, kein Abschleppen); `refuel_chase` fährt seit v0.7.0 auf der Dev-Etappe (Kiel – Hamburg hat ab km 20
+  keine Tankstelle mehr vor sich). `run_race.gd` prüft auf jeder Etappe: Start-Tank = Tank im Ziel der vorigen
+  (auch über die Fähre), das Ergebnis meldet diesen Start-Tank, kein Abschleppen.
+- **Messungen** (Autopilot, `run_race.gd`, Faktor 12, Rennwetter des Seeds): Kiel – Nürnberg über Kassel,
+  Limousine, Seed 63352: 30:45,68 mit 5 Tankstopps (207 L) statt 27:51,18 mit 2 (89 L) in v0.6.0 – +10,4 %, kein
+  Abschleppen. Dresden – Dortmund über Erfurt, Sportwagen, Seed 777: 23:34,03 mit 5 Tankstopps (144 L), kein
+  Abschleppen; die dritte Etappe endete mit 16,4 L, die vierte startete damit.
 
 ## Schwierigkeit (v0.5.0)
 

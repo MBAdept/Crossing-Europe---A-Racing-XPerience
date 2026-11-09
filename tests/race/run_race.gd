@@ -2,10 +2,13 @@ extends SceneTree
 ## End-to-end run of a complete race through the real GameFlow: race selection -> vehicle ->
 ## start time -> (route choices) -> stage screen -> stage driven by the autopilot -> result ->
 ## ... -> ferry -> race result. Prints one line per leg and checks the race rules on the way
-## (next stage starts time.stage_pause_hours after the previous one ended; race time = sum of legs).
+## (next stage starts time.stage_pause_hours after the previous one ended; race time = sum of legs; v0.7.0: every
+## stage after the first starts with the fuel the previous one ended with – also across the ferry –, the first one
+## with the stage's own filling; the autopilot is never towed, neither on the road nor before a start).
 ##   godot --headless --path . -s res://tests/race/run_race.gd -- --race=kiel_nuernberg --autopilot \
 ##       --no-countdown [--pick=0|1] [--vehicle=limousine] [--hour=8] [--timescale=40] [--max-legs=60]
 ##       [--race-seed=<n>] (GameFlow: fixed race seed – reproducible race weather, e.g. snow on a leg)
+##       [--allow-tows] (a tow is no error, e.g. with --autopilot-refuel=never)
 ## Exit code 0 = race result reached and all checks passed.
 ## Note: autoload classes are accessed untyped (this script compiles before the autoloads exist).
 
@@ -22,6 +25,11 @@ var _sum_time := 0.0
 var _prev_end_min := -1.0
 var _errors: Array[String] = []
 var _pause_h := 12.0
+var _prev_fuel_end := -1.0         ## fuel at the finish of the last stage (-1 before the first)
+var _setup_fuel := -1.0            ## start_fuel_l of the stage being driven (from GameFlow.stage_setup)
+var _tows := 0
+var _refuels := 0
+var _liters := 0.0
 
 
 func _initialize() -> void:
@@ -82,6 +90,10 @@ func _flow_step() -> void:
 			var start_min := float(setup["start_world_minutes"])
 			if _prev_end_min >= 0.0 and absf(start_min - (_prev_end_min + _pause_h * 60.0)) > 0.01:
 				_errors.append("Etappe %s startet %.1f min statt Ende + %.0f h" % [setup["stage_id"], start_min, _pause_h])
+			# v0.7.0: the tank of the next stage is what was left at the end of the previous one
+			_setup_fuel = float(setup.get("start_fuel_l", -1.0))
+			if absf(_setup_fuel - _prev_fuel_end) > 0.001:
+				_errors.append("Etappe %s startet mit %.2f L statt %.2f L (Tank im Ziel der letzten Etappe)" % [setup["stage_id"], _setup_fuel, _prev_fuel_end])
 			_gf.call("start_pending_stage")
 			_state = "racing"
 		"ferry":
@@ -96,7 +108,7 @@ func _flow_step() -> void:
 			var total := float(race.get("total_time_s"))
 			if absf(total - _sum_time) > 0.05:
 				_errors.append("Rennzeit %.2f ≠ Summe der Etappen %.2f" % [total, _sum_time])
-			print("RENNERGEBNIS  Etappen %d  Zeit %s  Route %s" % [_legs_done, Units.format_race_time(total), " – ".join(race.get("route"))])
+			print("RENNERGEBNIS  Etappen %d  Zeit %s  Tankstopps %d (%.0f L)  Abschleppen %d  Route %s" % [_legs_done, Units.format_race_time(total), _refuels, _liters, _tows, " – ".join(race.get("route"))])
 			for e in _errors:
 				print("FEHLER: ", e)
 			print("RACE-RUN ", "OK" if _errors.is_empty() else "FEHLER", "  wall %.0f s" % ((Time.get_ticks_msec() - _wall0) / 1000.0))
@@ -112,10 +124,25 @@ func _on_leg_result(r: Dictionary) -> void:
 	_legs_done += 1
 	_sum_time += float(r["time_s"])
 	_prev_end_min = float(r["end_world_minutes"])
-	print("  ETAPPE %2d %-28s %s  Ø %3.0f km/h  %-6s Start %s  Koll %d  Tank %d  Blitz %d  Stopp %d  Abschl %d" % [_legs_done, str(r["stage_name"]),
+	print("  ETAPPE %2d %-28s %s  Ø %3.0f km/h  %-6s Start %s  Koll %d  Tank %d (%.0f L)  Blitz %d  Stopp %d  Abschl %d  Sprit %5.1f → %5.1f L%s" % [_legs_done, str(r["stage_name"]),
 		Units.format_race_time(float(r["time_s"])), float(r["avg_speed_kmh"]), str(r["weather"]),
-		Units.format_clock(float(r["start_world_minutes"])), int(r["collisions"]), int(r["refuels"]), int(r["radar_flashes"]),
-		int(r["police_stops"]), int(r["tow_events"])])
+		Units.format_clock(float(r["start_world_minutes"])), int(r["collisions"]), int(r["refuels"]), float(r["liters_refueled"]), int(r["radar_flashes"]),
+		int(r["police_stops"]), int(r["tow_events"]), float(r.get("fuel_start_l", -1.0)), float(r.get("fuel_end_l", -1.0)),
+		"  (Abschleppen vor dem Start)" if bool(r.get("start_towed", false)) else ""])
+	# the session really started with the carried tank (the first stage: the stage's own filling)
+	var fs := float(r.get("fuel_start_l", -1.0))
+	if _setup_fuel >= 0.0 and absf(fs - _setup_fuel) > 0.001:
+		_errors.append("Etappe %s: Ergebnis meldet Start mit %.2f L statt der übernommenen %.2f L" % [str(r["stage_name"]), fs, _setup_fuel])
+	if _setup_fuel < 0.0 and _legs_done > 1:
+		_errors.append("Etappe %s ohne übernommenen Tank" % str(r["stage_name"]))
+	if int(r["tow_events"]) > 0 and not CliArgs.has("allow-tows"):
+		_errors.append("Etappe %s: %d× abgeschleppt%s" % [str(r["stage_name"]), int(r["tow_events"]), " (vor dem Start)" if bool(r.get("start_towed", false)) else ""])
+	_prev_fuel_end = float(r.get("fuel_end_l", -1.0))
+	if _prev_fuel_end < 0.0:
+		_errors.append("Etappe %s ohne Tank im Ziel" % str(r["stage_name"]))
+	_tows += int(r["tow_events"])
+	_refuels += int(r["refuels"])
+	_liters += float(r["liters_refueled"])
 	if _legs_done >= _max_legs:
 		print("FEHLER: zu viele Etappen")
 		quit(1)

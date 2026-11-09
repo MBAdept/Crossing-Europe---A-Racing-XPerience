@@ -92,6 +92,46 @@ func test_ferry_leg() -> void:
 	assert_true(s.is_finished(), "fertig")
 
 
+## v0.7.0: the fuel at the finish of a stage is the fuel at the start of the next one – kept across a ferry, in the
+## save game and in the leg record; unknown (-1) in a new race and in a save from v0.6.0 (the next stage starts
+## with the stage's own filling once).
+func test_fuel_carries_over() -> void:
+	var c := cfg()
+	var race := {"id": "r", "start": "warschau", "finish": "kiel", "waypoints": []}
+	var s := RaceState.create(race, "kombi", 10.0, 3)
+	assert_eq(s.fuel_l, -1.0, "neues Rennen: Startfüllung der Etappe")
+	var r1 := _result("wr", "warschau", "riga", 300.0, s.world_minutes, 200.0)
+	r1["fuel_start_l"] = 70.0
+	r1["fuel_end_l"] = 23.4
+	s.apply_stage_result({"id": "wr", "from": "warschau", "to": "riga"}, r1, c)
+	assert_near(s.fuel_l, 23.4, 0.0001, "Tank im Ziel = Tank der nächsten Etappe")
+	assert_near(float(s.legs[0]["fuel_start_l"]), 70.0, 0.0001, "Leg: Tank am Start")
+	assert_near(float(s.legs[0]["fuel_end_l"]), 23.4, 0.0001, "Leg: Tank im Ziel")
+	s.apply_ferry({"id": "riga_rostock", "from": "riga", "to": "rostock", "fixed_time_s": 240.0, "world_hours": 24.0},
+		{"kind": "ferry", "id": "riga_rostock", "from": "riga", "to": "rostock"})
+	assert_near(s.fuel_l, 23.4, 0.0001, "die Fähre ändert den Tank nicht")
+	var saved: Dictionary = JSON.parse_string(JSON.stringify(s.to_dict()))
+	var back := RaceState.from_dict(saved, race)
+	assert_near(back.fuel_l, 23.4, 0.0001, "gespeichert und geladen")
+	var old := s.to_dict()
+	old.erase("fuel_l")
+	assert_eq(RaceState.from_dict(old, race).fuel_l, -1.0, "Spielstand aus v0.6.0: unbekannt")
+	s.apply_stage_result({"id": "rk", "from": "rostock", "to": "kiel"}, _result("rk", "rostock", "kiel", 300.0, s.world_minutes, 200.0), c)
+	assert_eq(s.fuel_l, -1.0, "Ergebnis ohne Tankangabe: unbekannt")
+
+
+## v0.7.0: the race's last stage (its tank goes into no further stage – GameFlow.stage_setup "last_stage").
+func test_finishes_race() -> void:
+	var c := cfg()
+	var s := RaceState.create(RACE, "kombi", 8.0, 1)
+	assert_false(s.finishes_race({"from": "kiel", "to": "nuernberg"}), "Pflichtziel Kassel fehlt noch")
+	assert_false(s.finishes_race({"from": "kiel", "to": "kassel"}), "Kassel ist nicht das Ziel")
+	s.apply_stage_result({"id": "b", "from": "kiel", "to": "kassel"}, _result("b", "kiel", "kassel", 100.0, s.world_minutes, 90.0), c)
+	assert_true(s.finishes_race({"from": "kassel", "to": "nuernberg"}), "Kassel erreicht: nach Nürnberg ist Schluss")
+	var tour := RaceState.create({"id": "t", "start": "kiel", "finish": "kiel", "waypoints": ["hamburg"]}, "kombi", 8.0, 1)
+	assert_false(tour.finishes_race({"from": "kiel", "to": "hamburg"}), "Rundkurs: die erste Etappe endet ihn nicht")
+
+
 func test_save_round_trip() -> void:
 	var c := cfg()
 	var s := RaceState.create(RACE, "limousine", 23.5, 99)

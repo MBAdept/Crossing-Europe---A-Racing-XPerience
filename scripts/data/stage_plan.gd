@@ -12,6 +12,13 @@ extends RefCounted
 ## skipped silently in the other one); sections may carry a "name" (e.g. "A7 Kasseler Berge"); stages
 ## "roads" and "description". Additional warnings: unknown road type, fuel lane inside a tunnel, tunnel
 ## outside the stage.
+## Fuel stations (v0.7.0): an entry of "fuel_stations_km" is a number (valid in both directions) or
+## {"km": x, "dir": "fwd"|"rev"} (only in that driving direction, km from 'from' like radars). Entries of the
+## other direction are skipped silently before mirroring, so a station a few km after the start of one direction
+## never shows up in the other one's City Limits. The tools/map/build_network.py layout puts the first station of
+## every direction fuel.first_station_min_km–first_station_max_km (5–20 km) after the start (the tank carries
+## over from stage to stage in a race); RoadNetwork.validate() checks it. Without a list (old/test data) the
+## stations are generated from the seed with the same rule.
 
 const ROAD_TYPES: Array[String] = ["autobahn", "landstrasse"]
 
@@ -171,15 +178,30 @@ static func _build_stations(p: StagePlan, stage: Dictionary, cfg: Dictionary) ->
 	if stage.has("fuel_stations_km"):
 		raw = stage["fuel_stations_km"]
 	else:
+		# no list: the first station fuel.first_station_min_km–first_station_max_km after the start, then every
+		# fuel.station_spacing_km (km from 'from', so that the mirroring below gives driving km again)
 		var spacing: Array = ConfigLoader.lookup(cfg, "fuel.station_spacing_km", [60, 90])
-		var k := rng.randf_range(float(spacing[0]), float(spacing[1]))
+		var first_min := float(ConfigLoader.lookup(cfg, "fuel.first_station_min_km", 5.0))
+		var first_max := float(ConfigLoader.lookup(cfg, "fuel.first_station_max_km", 20.0))
+		var k := rng.randf_range(first_min, maxf(first_min, first_max))
 		while k <= last_ok:
 			raw.append(k if not p.reversed else p.length_km - k)
 			k += rng.randf_range(float(spacing[0]), float(spacing[1]))
 	var lane_len: Array = ConfigLoader.lookup(cfg, "fuel.lane_length_km", [1.0, 2.0])
 	var out: Array[float] = []
 	for v in raw:
-		var km := float(v)
+		var dir := "both"
+		var km := 0.0
+		if v is Dictionary:
+			dir = str((v as Dictionary).get("dir", "both"))
+			km = float((v as Dictionary).get("km", 0.0))
+			if dir != "both" and dir != "fwd" and dir != "rev":
+				p.warnings.append("Tankstelle mit unbekannter Richtung '%s' – gilt in beiden Richtungen" % dir)
+				dir = "both"
+		else:
+			km = float(v)
+		if (dir == "fwd" and p.reversed) or (dir == "rev" and not p.reversed):
+			continue   # a station of the other driving direction
 		if p.reversed:
 			km = p.length_km - km
 		if km < 2.0 or km > last_ok:

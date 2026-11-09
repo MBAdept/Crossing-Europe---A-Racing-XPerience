@@ -129,6 +129,7 @@ static func race_state(race_id: String, stages_done: int, config: Dictionary) ->
 	var s := RaceState.create(race, "sportwagen", 7.5, 4711)
 	var ts := float(ConfigLoader.lookup(config, "time.time_scale", 12.0))
 	var avgs := [182.0, 176.5, 191.2, 169.8, 187.3, 179.9, 184.0, 172.6]
+	var fuel_ends := [23.4, 31.0, 9.6, 41.2, 17.8, 4.2, 27.5, 12.9]   # v0.7.0: the tank goes into the next stage
 	var guard := 0
 	while not s.is_finished() and s.stage_count() < stages_done and guard < 200:   # Königsrennen: 40 stages + ferry
 		guard += 1
@@ -146,7 +147,8 @@ static func race_state(race_id: String, stages_done: int, config: Dictionary) ->
 		var res := {"stage_id": leg["id"], "from_city": leg["from"], "to_city": leg["to"], "time_s": t, "penalty_s": 0.0,
 			"avg_speed_kmh": avg, "distance_km": km, "weather": weather, "start_world_minutes": s.world_minutes,
 			"end_world_minutes": s.world_minutes + Units.world_minutes_delta(t, ts),
-			"stage_name": "%s – %s" % [UiData.city_name(str(leg["from"])), UiData.city_name(str(leg["to"]))]}
+			"stage_name": "%s – %s" % [UiData.city_name(str(leg["from"])), UiData.city_name(str(leg["to"]))],
+			"fuel_start_l": s.fuel_l if s.fuel_l >= 0.0 else 55.0, "fuel_end_l": fuel_ends[s.stage_count() % fuel_ends.size()]}
 		s.apply_stage_result(leg, res, config)
 	return s
 
@@ -176,4 +178,5 @@ static func stage_result(stage_id: String, from_city: String, config: Dictionary
 		"end_world_minutes": 7.5 * 60.0 + Units.world_minutes_delta(t, ts), "start_hour": 7.5, "daytime": "day",
 		"collisions": 2, "refuels": 1, "liters_refueled": 38.4, "radar_flashes": 1, "police_stops": 0,
 		"police_escapes": 1, "tow_events": 0, "aborted": false,
+		"fuel_start_l": 23.4, "fuel_end_l": 31.0, "tank_l": 55.0, "start_towed": false,
 	}

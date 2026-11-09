@@ -6,7 +6,10 @@
 
 What it does:
   * converts the compact stage definitions into the network.json format (ARCHITECTURE.md §4.1),
-  * places fuel stations every 60–90 km (deterministic, clear of tunnels, radar zones and borders),
+  * places fuel stations per driving direction (v0.7.0 – in a race the tank carries over from stage to stage): the
+    first fuel.first_station_min_km–first_station_max_km (5–20 km, aimed at 12) after the start, then every
+    60–90 km, the last 26–90 km before the finish (deterministic, clear of tunnels, that direction's radar zones and
+    borders); written as {"km", "dir"} entries in km from 'from' (like radars),
   * derives explicit border entries from country changes between sections,
   * checks the StagePlan rules for BOTH driving directions (fuel/radar distances, section sums, …),
   * checks that the landscape (scenery) changes at every border and that borders lie outside the City Limits,
@@ -65,7 +68,12 @@ TOLERANCE = float(CFG["routing"]["detour_tolerance"])
 MAX_OPTIONS = int(CFG["routing"]["max_options"])
 SPLIT_KM = [float(v) for v in CFG["stages"].get("split_length_km", [200, 400])]
 BORDER_MARGIN = float(CFG["stages"].get("border_min_before_city_km", 5.0))
-EDGE_MIN = LAST_STATION + 1.0     # stations keep this distance to both ends (both directions)
+EDGE_MIN = LAST_STATION + 1.0     # the last station keeps this distance to the finish (each direction)
+FIRST_MAX = float(CFG["fuel"].get("first_station_max_km", 20.0))  # first station at the latest (each direction)
+FIRST_MIN = float(CFG["fuel"].get("first_station_min_km", 5.0))   # … and not before (lane + taper after the start)
+FIRST_TARGET = 12.0               # aim: the 8-L reserve reaches it at vmax in every car (Gran Turismo 15.9 km)
+FIRST_WINDOW = (8.0, 15.0)        # preferred first-station window; outside it (5–20) only around obstacles
+END_MAX = SPACING[1]              # last station -> finish at most 90 km
 RADAR_MIN = CITY_LEN + NO_RADAR   # radar zones end at least this far before the finish (50 km)
 BORDER_EDGE = CITY_LEN + BORDER_MARGIN  # borders lie at least this far from both ends (25 km)
 
@@ -107,11 +115,15 @@ def limits_in(secs, a, b):
 	return {section_limit(x) for x in secs if x["end"] > a + 1e-6 and x["start"] < b - 1e-6}
 
 
-def obstacles_of(s, secs):
+def obstacles_of(s, secs, d="both"):
+	"""Obstacles in km from 'from': tunnels, radar zones valid in driving direction d, borders."""
 	obs = []
 	for (km, length, _name) in s["tunnels"]:
 		obs.append((km - 0.5, km + length + 0.5))
 	for r in s["radars"]:
+		rd = r[2] if len(r) > 2 else "both"
+		if d != "both" and rd != "both" and rd != d:
+			continue
 		obs.append((r[0] - 0.5, r[0] + RADAR_ZONE + 0.5))
 	for i in range(1, len(secs)):
 		if secs[i]["country"] != secs[i - 1]["country"]:
@@ -119,46 +131,86 @@ def obstacles_of(s, secs):
 	return obs
 
 
-def station_clear(st, obs):
-	# fuel lane = last 1–2 km before the station; in reverse direction it lies on the other side
-	a, b = st - LANE_MAX - 1.0, st + LANE_MAX + 1.0
-	return all(b <= o0 or a >= o1 for (o0, o1) in obs)
+def mirror(obs, length, d):
+	"""Obstacles in driving km of direction d."""
+	return obs if d == "fwd" else [(length - b, length - a) for (a, b) in obs]
+
+
+def station_clear(x, obs_d):
+	# station at driving km x: its fuel lane is the last 1–2 km before it (right side) – keep 1 km margin
+	a, b = x - LANE_MAX - 1.0, x + 1.0
+	return all(b <= o0 or a >= o1 for (o0, o1) in obs_d)
+
+
+def place_direction(s, length, obs_d, d):
+	"""Stations of one driving direction in driving km: first within the start window, then 60–90 km gaps near the
+	class target, the last 26–90 km before the finish aimed at (target − 12) km."""
+	target = FUEL_TARGET[s["fuel"]]
+	aim = float(s.get("first_fuel", {}).get(d, FIRST_TARGET))
+	e_aim = min(max(target - FIRST_TARGET, EDGE_MIN), END_MAX)
+	grid = [FIRST_MIN + 0.5 * i for i in range(int((FIRST_MAX - FIRST_MIN) / 0.5) + 1)]
+	lo, hi = min(FIRST_WINDOW[0], aim), max(FIRST_WINDOW[1], aim)
+	ok = [x for x in grid if station_clear(x, obs_d)]
+	inside = sorted([x for x in ok if lo <= x <= hi], key=lambda x: (abs(x - aim), x))
+	outside = sorted([x for x in ok if not lo <= x <= hi], key=lambda x: (abs(x - aim), x))
+	if not inside and not outside:
+		err("%s (%s): keine Tankstelle in den ersten %.0f km möglich" % (s["id"], d, FIRST_MAX))
+		return []
+	x0 = (inside or outside)[0]
+	best = None
+	if EDGE_MIN <= length - x0 <= END_MAX:
+		best = (0.0, [x0])        # one station is enough (Kiel – Hamburg)
+	for k in range(1, 9):
+		e = EDGE_MIN
+		while e <= END_MAX + 1e-9:
+			g = (length - e - x0) / k
+			if SPACING[0] <= g <= SPACING[1]:
+				c = k * (g - target) ** 2 + 0.5 * (e - e_aim) ** 2
+				if best is None or c < best[0]:
+					best = (c, [x0 + i * g for i in range(k + 1)])
+			e += 0.5
+	if best is None:
+		err("%s (%s): keine Tankstellenfolge 60–90 km möglich" % (s["id"], d))
+		return [x0]
+	out = [x0]
+	for i in range(1, len(best[1])):
+		want = best[1][i] + stable_jitter("%s:%s:%d" % (s["id"], d, i), 3.0)
+		placed = None
+		for step in range(0, 61):
+			x = round(want + (step + 1) // 2 * 0.5 * (1 if step % 2 else -1), 1)
+			if not (SPACING[0] <= x - out[-1] <= SPACING[1]) or x > length - EDGE_MIN:
+				continue
+			if i == len(best[1]) - 1 and length - x > END_MAX:
+				continue
+			if station_clear(x, obs_d):
+				placed = x
+				break
+		if placed is None:
+			err("%s (%s): Tankstelle %d nicht platzierbar (Basis %.1f km)" % (s["id"], d, i, want))
+			placed = round(want, 1)
+		out.append(placed)
+	return out
 
 
 def place_stations(s, length, secs):
+	"""{"fwd": [driving km], "rev": [driving km]} – v0.7.0: one layout per driving direction."""
 	fuel = s["fuel"]
-	if isinstance(fuel, list):
-		return [float(v) for v in fuel]
-	target = FUEL_TARGET[fuel]
-	n = max(1, int(round(length / target)))
-	while n > 1 and length / n < SPACING[0]:
-		n -= 1
-	while length / n > SPACING[1] and n > 1 or (n == 1 and length / 2.0 > SPACING[1]):
-		n += 1
-	obs = obstacles_of(s, secs)
-	out = []
-	for i in range(n):
-		base = (i + 0.5) * length / n + stable_jitter("%s:%d" % (s["id"], i), 3.0)
-		placed = None
-		for step in range(0, 49):
-			off = (step + 1) // 2 * 0.5 * (1 if step % 2 else -1)
-			cand = round(base + off, 1)
-			if cand < EDGE_MIN or cand > length - EDGE_MIN:
-				continue
-			if out and not (SPACING[0] <= cand - out[-1] <= SPACING[1]):
-				continue
-			if not out and cand > SPACING[1]:
-				continue
-			if i == n - 1 and length - cand > SPACING[1]:
-				continue
-			if not station_clear(cand, obs):
-				continue
-			placed = cand
-			break
-		if placed is None:
-			err("%s: Tankstelle %d nicht platzierbar (Basis %.1f km)" % (s["id"], i, base))
-			placed = round(base, 1)
-		out.append(placed)
+	if isinstance(fuel, dict):
+		return {d: [float(v) for v in fuel.get(d, [])] for d in ("fwd", "rev")}
+	if isinstance(fuel, (list, tuple)):
+		# old format (before v0.7.0): km from 'from', the same stations in both directions – checked per direction
+		xs = sorted(float(v) for v in fuel)
+		return {"fwd": xs, "rev": sorted(length - x for x in xs)}
+	out = {}
+	for d in ("fwd", "rev"):
+		out[d] = place_direction(s, length, mirror(obstacles_of(s, secs, d), length, d), d)
+	return out
+
+
+def station_entries(stations, length):
+	"""network.json entries in km from 'from': {"km": x, "dir": "fwd"|"rev"}."""
+	out = [{"km": r1(x), "dir": "fwd"} for x in stations["fwd"]] + [{"km": r1(length - x), "dir": "rev"} for x in stations["rev"]]
+	out.sort(key=lambda e: (float(e["km"]), e["dir"]))
 	return out
 
 
@@ -180,21 +232,26 @@ def check_stage(s, secs, length, stations):
 			err("%s: 'ohne Limit' nur auf deutscher Autobahn (%s)" % (sid, sec["name"]))
 		if not (0 <= sec["curviness"] <= 3 and 0 <= sec["hills"] <= 3):
 			err("%s: Kurvigkeit/Hügel außerhalb 0–3" % sid)
-	# fuel stations: both directions → [EDGE_MIN, L-EDGE_MIN], spacing 60–90, ends ≤ 90
-	prev = 0.0
-	for st in stations:
-		if st < LAST_STATION or st > length - LAST_STATION:
-			err("%s: Tankstelle bei %.1f verletzt den 25-km-Abstand" % (sid, st))
-		gap = st - prev
-		if prev > 0.0 and not (SPACING[0] - 0.01 <= gap <= SPACING[1] + 0.01):
-			err("%s: Tankstellenabstand %.1f km" % (sid, gap))
-		if prev == 0.0 and gap > SPACING[1] + 0.01:
-			err("%s: erste Tankstelle erst bei %.1f km" % (sid, st))
-		prev = st
-	if stations and length - stations[-1] > SPACING[1] + 0.01:
-		err("%s: letzte Tankstelle %.1f km vor dem Ziel" % (sid, length - stations[-1]))
-	if not stations:
-		err("%s: keine Tankstelle" % sid)
+	# fuel stations, each driving direction (driving km): first within FIRST_MIN–FIRST_MAX, spacing 60–90, the last
+	# ≥ 25 km (never in the City Limits) and ≤ 90 km before the finish, no fuel lane at a tunnel
+	for d in ("fwd", "rev"):
+		xs = stations[d]
+		if not xs:
+			err("%s (%s): keine Tankstelle" % (sid, d))
+			continue
+		if not (FIRST_MIN - 0.01 <= xs[0] <= FIRST_MAX + 0.01):
+			err("%s (%s): erste Tankstelle bei km %.1f (Soll %.0f–%.0f)" % (sid, d, xs[0], FIRST_MIN, FIRST_MAX))
+		for a, b in zip(xs, xs[1:]):
+			if not (SPACING[0] - 0.01 <= b - a <= SPACING[1] + 0.01):
+				err("%s (%s): Tankstellenabstand %.1f km" % (sid, d, b - a))
+		if length - xs[-1] < LAST_STATION or xs[-1] > length - CITY_LEN:
+			err("%s (%s): letzte Tankstelle %.1f km vor dem Ziel (Regel ≥ %.0f)" % (sid, d, length - xs[-1], LAST_STATION))
+		if length - xs[-1] > END_MAX + 0.01:
+			err("%s (%s): letzte Tankstelle %.1f km vor dem Ziel (> %.0f)" % (sid, d, length - xs[-1], END_MAX))
+		tun = mirror([(tk, tk + tl) for (tk, tl, _n) in s["tunnels"]], length, d)
+		for x in xs:
+			if any(x - LANE_MAX < t1 and x > t0 for (t0, t1) in tun):
+				err("%s (%s): Tankspur bei km %.1f im Tunnel" % (sid, d, x))
 	# radars
 	for r in s["radars"]:
 		km, lim = r[0], r[1]
@@ -265,7 +322,7 @@ def convert_stage(s):
 	if s.get("start_fuel") is not None:
 		st["start_fuel_fraction"] = s["start_fuel"]
 	st["sections"] = out_secs
-	st["fuel_stations_km"] = [r1(v) for v in stations]
+	st["fuel_stations_km"] = station_entries(stations, length)
 	st["radars"] = radars
 	st["tunnels"] = [{"km": r1(t[0]), "length_km": r1(t[1]), "name": t[2]} for t in s["tunnels"]]
 	st["borders"] = borders
@@ -416,8 +473,9 @@ def write_network(cities, stages, ferries, races):
 		"Streckennetz: Städte (Knoten), Etappen (Verbindungen, in beide Richtungen fahrbar), Fähren und Rennen "
 		"(Start, Ziel, Pflichtstationen). Positionen von Tankstellen, Radar, Tunneln und Grenzen in km ab 'from'. "
 		"City Limits = automatisch die letzten 20 km. Radar 'dir': nur in einer Richtung (fwd = from→to, "
-		"rev = to→from). Erzeugt mit tools/map/build_network.py (Quelle tools/map/network_data.py), map_pos mit "
-		"tools/map/build_map.mjs – Details in docs/daten.md."))
+		"rev = to→from). Tankstellen: Zahl = beide Richtungen, {km, dir} = nur in dieser Richtung (seit v0.7.0 je "
+		"Richtung erzeugt, die erste 5–20 km nach dem Start). Erzeugt mit tools/map/build_network.py (Quelle "
+		"tools/map/network_data.py), map_pos mit tools/map/build_map.mjs – Details in docs/daten.md."))
 	lines.append('\t"version": 2,')
 	lines.append('\t"cities": [')
 	lines.append(",\n".join("\t\t" + obj_line(c) for c in cities))
@@ -481,6 +539,11 @@ def stage_stats(st):
 	return auto, free, traffic, countries, rad_f, rad_r
 
 
+def stations_in(st, d):
+	"""Fuel stations valid in driving direction d (a number = both directions)."""
+	return sum(1 for e in st["fuel_stations_km"] if not isinstance(e, dict) or e.get("dir", "both") in ("both", d))
+
+
 def doc_block(cities, stages, ferries, races, route_info):
 	cname = {c["id"]: c["name"] for c in cities}
 	sname = {s["id"]: "%s – %s" % (cname[s["from"]], cname[s["to"]]) for s in stages}
@@ -514,7 +577,7 @@ def doc_block(cities, stages, ferries, races, route_info):
 					auto, fr, tr, _c, rf, rr = stage_stats(st)
 					free += fr
 					radars += rf if a == st["from"] else rr
-					stations += len(st["fuel_stations_km"])
+					stations += stations_in(st, "fwd" if a == st["from"] else "rev")
 					traffic += tr * st["length_km"]
 					land += st["length_km"] - auto
 					hills = max(hills, max(s["hills"] for s in st["sections"]))
@@ -541,8 +604,8 @@ def doc_block(cities, stages, ferries, races, route_info):
 					", ".join("%s – %s (%s km)" % (cname[a], cname[b], r1(km)) for (_id, a, b, km) in short) or "keine"))
 		out.append("")
 	out.append("### Etappen\n")
-	out.append("Radar = Radarfallen vorwärts/rückwärts, Tank = Tankstellen, Verkehr = längengewichteter Faktor, "
-			   "frei = Autobahn ohne Tempolimit.\n")
+	out.append("Radar = Radarfallen vorwärts/rückwärts, Tank = Tankstellen vorwärts/rückwärts (die erste je Richtung "
+			   "höchstens %.0f km nach dem Start), Verkehr = längengewichteter Faktor, frei = Autobahn ohne Tempolimit.\n" % FIRST_MAX)
 	out.append("| Etappe (`id`) | Straßen | km | Länder | Autobahn / frei km | Radar | Tank | Tunnel | Verkehr |")
 	out.append("|---|---|---|---|---|---|---|---|---|")
 	for st in stages:
@@ -550,9 +613,9 @@ def doc_block(cities, stages, ferries, races, route_info):
 			continue
 		auto, free, traffic, countries, rf, rr = stage_stats(st)
 		tunnels = ", ".join("%s (%s km)" % (t["name"], str(t["length_km"]).replace(".", ",")) for t in st["tunnels"]) or "–"
-		out.append("| %s (`%s`) | %s | %s | %s | %s / %s | %d/%d | %d | %s | %s |" % (
+		out.append("| %s (`%s`) | %s | %s | %s | %s / %s | %d/%d | %d/%d | %s | %s |" % (
 			sname[st["id"]], st["id"], st.get("roads", ""), str(st["length_km"]).replace(".", ","), " → ".join(countries),
-			r1(auto), r1(free), rf, rr, len(st["fuel_stations_km"]), tunnels, de_num(traffic)))
+			r1(auto), r1(free), rf, rr, stations_in(st, "fwd"), stations_in(st, "rev"), tunnels, de_num(traffic)))
 	out.append("")
 	out.append("### Grenzübergänge\n")
 	out.append("An jeder Grenze wechselt die Landschaft (Szenerie-ID des Abschnitts, ARCHITECTURE.md §4.1); die Grenze "

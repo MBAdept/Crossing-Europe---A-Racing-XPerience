@@ -146,6 +146,19 @@ func test_seed_entries_follow_the_stage_make_up() -> void:
 	assert_near(float(with_ferry[0]["time_s"]) - float(plain[0]["time_s"]), float(kr["fixed_s"]), 0.05, "Fährzeit in den Starteinträgen")
 
 
+## v0.7.0: in a race the tank carries over – every stage after the first starts with what the last one left, so the
+## default entries of a race board count a fuel stop for each of them (plus the tutorial's partly filled first tank).
+## A stage board is unchanged: a single stage starts full (the tutorial with its 35 %).
+func test_race_board_counts_a_fuel_stop_per_carried_stage() -> void:
+	var n := NetworkTest.load_network(cfg())
+	var kn := n.board_profile("race:kiel_nuernberg")
+	assert_eq(int(kn["stages"]), 5, "Kiel – Nürnberg: 5 Etappen auf der kürzesten Route")
+	assert_eq(int(kn["fuel_stops"]), 5, "4 Etappen mit übernommenem Tank + Tutorial mit 35 %")
+	var dd := n.board_profile("race:dresden_dortmund")
+	assert_eq(int(dd["fuel_stops"]), int(dd["stages"]) - 1, "Dresden – Dortmund: voller Start, dann je Etappe ein Stopp")
+	assert_eq(int(n.board_profile("stage:hamburg_hannover:fwd")["fuel_stops"]), 0, "Einzeletappe startet voll")
+
+
 func test_race_board_seeded_from_shortest_route() -> void:
 	var n := NetworkTest.load_network(cfg())
 	var s := _store("", Callable(n, "board_length_km"))

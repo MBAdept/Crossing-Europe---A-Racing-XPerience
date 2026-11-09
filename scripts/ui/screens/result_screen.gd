@@ -1,7 +1,8 @@
 class_name ResultScreen
 extends UiScreen
 ## Stage result: time, average, penalties, record comparison and statistics; in a race also the
-## standing and the start of the next stage. Top-10 time -> name entry (remembered in Settings) ->
+## standing, the start of the next stage and the tank it starts with (v0.7.0: the tank carries over). Top-10 time ->
+## name entry (remembered in Settings) ->
 ## leaderboard with the new entry highlighted.
 
 var result: Dictionary = {}
@@ -75,6 +76,13 @@ func build() -> void:
 		left.add_child(UiKit.stat_line(tr("Rennzeit nach Etappe %d") % race.stage_count(), UiFormat.time(race.total_time_s), UiTheme.GOLD, 22))
 		if not race.is_finished():
 			left.add_child(UiKit.stat_line(next_start_caption(c), tr("%s Uhr") % Units.format_clock(race.world_minutes), UiTheme.TEXT, 20))
+			# v0.7.0: the tank at the finish goes into the next stage
+			var fuel_end := float(result.get("fuel_end_l", -1.0))
+			if fuel_end >= 0.0:
+				var tank := float(result.get("tank_l", 0.0))
+				var low := fuel_end < float(ConfigLoader.lookup(c, "fuel.reserve_warning_l", 8.0))
+				left.add_child(UiKit.stat_line(tr("Tank für die nächste Etappe"), ("%d / %d L" % [SessionRules.shown_litres(fuel_end), roundi(tank)]) if tank > 0.0 else UiFormat.liters(fuel_end),
+					UiTheme.WARN if low else UiTheme.TEXT, 20))
 	# right: name entry or leaderboard
 	_right = add_panel(Rect2(644, 104, 596, 508), UiTheme.GOLD, 10)
 	_next = UiKit.button(tr("Weiter") if race == null or not race.is_finished() else tr("Zum Rennergebnis"), 28, HORIZONTAL_ALIGNMENT_CENTER)

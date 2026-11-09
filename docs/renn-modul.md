@@ -518,17 +518,28 @@ Zonenmeldungen → Tutorial-Hinweise → Ziel.
   ist (Haltepunkt `police.pull_over_offset_m` vor dem Spieler, `SessionRules.police_car_x`) – er fährt nie durch den
   Wagen des Spielers.
 
-Meldungen (HUD `show_message`): Tankstelle 30/15/5 km, Tanken, vollgetankt/abgebrochen, Reserve, Tank leer,
-Abschleppstrafe, Radarwarnung, Radarfeld Anfang/Ende, geblitzt, Verfolgung, entkommen, „Führerschein, bitte!“,
-„Gute Fahrt!“, Grenze (Land + Name in Landessprache), City Limits (4 km vorher angekündigt), Tunnelname, LOS, ZIEL,
-Wetterhinweis beim Countdown (Regen, Schnee), Tutorial-Hinweise (§9a).
+Meldungen (HUD `show_message`): Tankstelle 30/15/5 km (seit v0.7.0 eine nähere erste Tankstelle beim Start mit ihrer
+Entfernung), Tanken, vollgetankt/abgebrochen, Reserve, Tank leer, Abschleppstrafe, Radarwarnung, Radarfeld
+Anfang/Ende, geblitzt, Verfolgung, entkommen, „Führerschein, bitte!“, „Gute Fahrt!“, Grenze (Land + Name in
+Landessprache), City Limits (4 km vorher angekündigt), Tunnelname, LOS, ZIEL, Wetterhinweis beim Countdown (Regen,
+Schnee), Tutorial-Hinweise (§9a); im Rennen seit v0.7.0 der übernommene Tank beim Countdown
+(`SessionRules.carry_messages`) und bei der 5-km-Ansage der letzten Tankstelle „Letzte Tankstelle vor dem Ziel – der
+Tank geht in die nächste Etappe mit“ (nicht auf der letzten Etappe des Rennens, Setup `last_stage`).
+- **Tank aus der letzten Etappe** (v0.7.0, gameplay.md „Tank im Rennen“): Setup `start_fuel_l` ≥ 0 ersetzt die
+  Startfüllung der Etappe. `FuelSystem.start_check` entscheidet beim Aufbau: reicht der Tank nicht einmal mit
+  `fuel.lane_trigger_speed_kmh` bis zur ersten offenen Tankspur, kommt der Abschleppdienst vor dem Start
+  (`_tow_before_start`: `fuel.tow_penalty_s` in `penalty_time` und auf der Weltuhr, Tank auf
+  `fuel.tow_refill_fraction`, `stats.tows` + 1, Ergebnis `start_towed`). Der Countdown nennt Liter und Urteil
+  (ersetzt dann die Startansage der Tankstelle – `fuel.announce_start` – und die Reservewarnung der ersten Meter).
+  Ergebnis zusätzlich `fuel_start_l`, `fuel_end_l` (Tank an der Ziellinie; das Ausrollen danach verbraucht nichts),
+  `tank_l`, `start_towed`.
 Audio: Motor, Wind, Sirene (mit Abstand), Regen, Rutschen, Einzeltöne (beep je Countdown-Sekunde, go, crash, flash,
 fuel_start/fuel_done, finish). Pause: Baum pausiert, Ton und Vibration aus, 30 Bilder/s; Fokusverlust, das getrennte
 benutzte Gamepad und Standby pausieren auch (nicht im Autopilot). Während des Countdowns zeigt das HUD unter der
 Startampel die Pause-Taste.
 Ziel: Zeit wird eingefroren, „ZIEL!“-Meldung, Wagen rollt aus (`render.finish_decel_kmh_s`), der Spieler lenkt weiter,
 Verkehr kollidiert weiter (zählt aber nicht mehr zu `collisions` der Etappe); Ergebnis nach dem Stillstand
-oder spätestens `render.finish_hold_s`. Ergebnis-Wörterbuch unverändert (ARCHITECTURE.md §8).
+oder spätestens `render.finish_hold_s`. Ergebnis-Wörterbuch wie ARCHITECTURE.md §8 (seit v0.7.0 mit den Tankfeldern).
 
 ## 9a. Tutorial (Kiel – Hamburg)
 
@@ -541,8 +552,8 @@ Sitzung einen `TutorialCoach`, der jedes Thema einmal als kurzen „Tipp: …“
 
 | Auslöser | Hinweis (Zahlen aus der Konfiguration) |
 |---|---|
-| LOS (+1,2 s) | Lenken (Pfeiltasten, A/D), Gas/Bremse (Pfeil hoch/runter, W/S), Gamepad (Stick, Trigger); ist beim Start ein Gamepad das aktive Eingabegerät (`InputMode`, z. B. Steam Deck), nur der Gamepad-Hinweis (`TutorialCoach.gamepad`) |
-| Start mit < 60 % Tank | „Nur 35 % im Tank – unterwegs an der Tankstelle nachtanken!“ |
+| Start mit < 60 % Tank (dringend seit v0.7.0: LOS + 1,2 s, vor den Steuerungshinweisen – die Tankstelle kommt nach 15 km) | „Nur 35 % im Tank – in 15 km kommt die Tankstelle, dort nachtanken!“ |
+| LOS (+1,2 s, danach) | Lenken (Pfeiltasten, A/D), Gas/Bremse (Pfeil hoch/runter, W/S), Gamepad (Stick, Trigger); ist beim Start ein Gamepad das aktive Eingabegerät (`InputMode`, z. B. Steam Deck), nur der Gamepad-Hinweis (`TutorialCoach.gamepad`) |
 | Start | Tankanzeige unten links: Tankstand, Reichweite, nächste Tankstelle |
 | erste Ankündigung 30/15 km | „Tankstellen werden 30, 15 und 5 km vorher angekündigt“ (`fuel.announce_km`) |
 | 5-km-Ankündigung (dringend) | „Rechts in die Tankspur und unter 60 km/h rollen – dann wird getankt“ (`fuel.lane_trigger_speed_kmh`) |
@@ -570,6 +581,11 @@ fädelt aus der rechten Spur in die Tankspur ein und fährt unter 60 km/h (wer d
 erreicht, tankt an der nächsten Tankstelle); während des Tankens gibt er kein Gas (sonst
 bricht das Tanken ab). Rollt der Wagen mit leerem Tank aus (`fuel.rolling_out`), bremst er nur für Kurven – die Bremse
 wirkt dabei (gameplay.md „Automatik“), und Bremsen für die Tankspur würde ihn vor ihr anhalten.
+Seit v0.7.0 (der Tank geht im Rennen in die nächste Etappe mit): an der letzten Tankstelle einer Rennetappe zählt
+„zum Ziel“ `carry_km` = `fuel.first_station_max_km` (20 km) weiter – bis zur ersten Tankstelle der nächsten Etappe
+(nicht auf der letzten Etappe des Rennens); reicht ein übernommener Tank bei seinem Tempo nicht bis zur nächsten
+Tankstelle, fährt er das Spartempo (`_eco_kmh`: das schnellste Tempo, mit dem er sie mit 0,5 L Rest erreicht –
+nur wenn wenigstens 60 km/h reichen, sonst behält er sein Tempo und rollt aus ihm in die Tankspur).
 
 **Kurven** (`curve_speed_ahead`): Seit dem Untersteuern (gameplay.md „Untersteuern“) darf er nie über die Kurvengrenze.
 Bremskurve über `curve_lookahead_m` (300 m, alle `curve_step_m` = 10 m): an jedem Punkt soll er

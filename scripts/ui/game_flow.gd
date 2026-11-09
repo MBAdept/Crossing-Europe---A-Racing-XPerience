@@ -8,7 +8,8 @@ extends Node
 ## The attract mode (child AttractMode, `attract`) shows a demo after a minute without input on the title; its
 ## race scene comes from start_attract_stage() and never reaches the race flow (nothing is saved).
 ## Debug: --screen=<title|race_select|vehicle|start_time|stage_select|route_choice|stage_screen|
-## result|race_result|leaderboards|options|ferry> shows a screen with sample data (screenshots).
+## result|race_result|leaderboards|options|ferry> shows a screen with sample data (screenshots); with
+## --sample-fuel=<litres> the stage screen shows that tank carried over from the last stage.
 
 const RACE_SCENE := "res://scenes/race/race.tscn"
 ## Save-game key (addition to the race state): result of the last stage while its result screen /
@@ -306,14 +307,18 @@ func ferry_done() -> void:
 	_race_next(true)
 
 
-## Setup dictionary for the race session (ARCHITECTURE.md §8).
+## Setup dictionary for the race session (ARCHITECTURE.md §8). In a race the tank of the last stage goes into this
+## one (start_fuel_l = RaceState.fuel_l, -1 = the stage's own filling: the race's first stage); a single stage starts
+## with the stage's own filling. A restart or an abort of the stage reuses the same setup, so the same fuel.
+## last_stage: this stage ends the race – its tank goes into no further stage.
 func stage_setup() -> Dictionary:
 	var s := {}
 	if mode == "race" and race != null:
 		s = {"mode": "race", "race_id": race.race_id, "stage_id": str(pending_leg.get("id", "")),
 			"from_city": str(pending_leg.get("from", "")), "vehicle": race.vehicle,
 			"start_world_minutes": race.world_minutes, "weather": pending_weather,
-			"seed": race.stage_seed(str(pending_leg.get("id", ""))) % 100000}
+			"seed": race.stage_seed(str(pending_leg.get("id", ""))) % 100000, "start_fuel_l": race.fuel_l,
+			"last_stage": race.finishes_race(pending_leg)}
 	else:
 		s = {"mode": "single", "race_id": "", "stage_id": str(single.get("stage_id", "")),
 			"from_city": str(single.get("from_city", "")), "vehicle": str(single.get("vehicle", "limousine")),
@@ -442,6 +447,8 @@ func _debug_screen(screen_name: String) -> void:
 		"route_choice", "stage_screen":
 			mode = "race"
 			race = SampleData.race_state(rid, done if done >= 0 else 1, c)
+			if CliArgs.has("sample-fuel"):
+				race.fuel_l = CliArgs.get_float("sample-fuel", -1.0)   # the tank carried into the stage (v0.7.0)
 			var opts := UiData.next_options(race.race_id, race.current_city, race.waypoint_index, race.visited())
 			if screen_name == "route_choice" or opts.is_empty():
 				go("route_choice", {"options": opts}, true)

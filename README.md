@@ -178,7 +178,9 @@ Einrichten steht in [marketing/steam/README.md](marketing/steam/README.md).
   und Reißverschluss an Spurenden; Kollisionen nach den Regeln
   des Dokuments (3 s auf 10 km/h, seitlich schieben, blinken, Ein-Drittel-Regel für Überholer von hinten).
 - **Tanken**: Verbrauch 14 + 0,00034·v², Tankstellen alle 60–90 km mit Ankündigung 30/15/5 km, Tankspur,
-  „Volltanken? – Gas = Weiterfahren“, Abschleppdienst bei leerem Tank.
+  „Volltanken? – Gas = Weiterfahren“, Abschleppdienst bei leerem Tank. Seit v0.7.0 je Fahrtrichtung die erste
+  Tankstelle spätestens 20 km nach dem Start; im Rennen geht der Tank in die nächste Etappe mit (reicht er nicht
+  einmal mit 60 km/h bis zur ersten Tankstelle, kommt vor dem Start der Abschleppdienst).
 - **Radar und Polizei**: Warnung 10 km vorher, 5-km-Feld, 15 % Toleranz, Verfolgung mit Flucht ab 220 km/h – in
   Kurven muss auch die Polizei bremsen, dort reicht weniger –, „Führerschein, bitte!“; City Limits in den letzten 20 km
   jeder Etappe.
