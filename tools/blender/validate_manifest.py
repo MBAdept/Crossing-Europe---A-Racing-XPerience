@@ -37,7 +37,7 @@ LAYER_NAMES = {"base", "tail", "brake", "beacon_a", "beacon_b", "lights"}
 FACES = ("rear", "left", "right", "top")
 PLAYERS = ["kompakt", "kombi", "limousine", "sportwagen", "gran_turismo"]
 TRAFFIC_MODELS = ["hatch", "sedan", "wagon", "suv", "van", "sports", "truck", "bus"]
-POLICE = ["de", "nl", "be", "fr", "es", "ch", "it", "si", "hr", "rs", "bg", "hu", "at", "cz", "pl", "lt", "lv"]
+POLICE = ["de", "nl", "be", "fr", "es", "ch", "it", "si", "hr", "rs", "bg", "hu", "at", "cz", "pl", "lt", "lv", "ro"]
 PROPS = ["tree_oak", "tree_beech", "tree_birch", "tree_pine", "tree_spruce", "tree_poplar", "tree_cypress", "tree_olive",
          "tree_palm", "bush_round", "bush_low", "heather", "rock_a", "rock_b", "cliff", "haybale", "farmhouse", "barn",
          "church", "windmill", "wind_turbine", "power_pylon", "factory", "house_med", "building_block_a",

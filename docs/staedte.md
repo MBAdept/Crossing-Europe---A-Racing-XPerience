@@ -103,7 +103,11 @@ Freiheitsdenkmal Riga, Kathedrale Burgos, Basílica del Pilar Saragossa).
 
 Geliefert (Details, Maße und Zellgrößen: [docs/sprites.md „Wahrzeichen“](sprites.md)): alle 15 Pflicht-Sets und
 zusätzlich `frankfurt_skyline` (Frankfurt), `kaiserburg_nuernberg` (Nürnberg), `st_petri_riga` und
-`freiheitsdenkmal_riga` (Riga), `kathedrale_burgos` (Burgos), `basilica_pilar` (Saragossa). Anker = Mitte
+`freiheitsdenkmal_riga` (Riga), `kathedrale_burgos` (Burgos), `basilica_pilar` (Saragossa). Seit v0.7.0 für
+die Rennen Wien – Hamburg und Bukarest – Calais: `koelner_dom` (Köln), `dom_regensburg` (Regensburg),
+`mariendom_linz` (Linz), `dom_passau` (Passau), `dom_fulda` (Fulda), `palatul_parlamentului` und
+`catedrala_mantuirii` (Bukarest), `catedrala_timisoara` (Timișoara), `stadtpfarrkirche_sibiu` (Sibiu),
+`atomium` und `basilika_koekelberg` (Brüssel), `beffroi_calais` (Calais). Anker = Mitte
 der nahen Seite am Boden, `extent_m` wie bei allen Requisiten, kein `mirror_left` (nie spiegeln).
 
 ## 4. Brückenbauteile
@@ -449,7 +453,7 @@ Mitte vorn, echte Maße, Tag `landmark`, **kein** `mirror_left` – Wahrzeichen 
   (Einfamilienhäuser mit Zäunen, Kulturpalast in der Ferne), `--stage=mailand_venedig --start-km=269` (Damm, Campanile).
 - **Geliefert** (Manifest, [sprites.md](sprites.md)): 46 Stadtgebäude in 15 Stilen (`props/city_*`, Namen wie in
   sprites.md „Städte“, nicht wie in der Wunschliste §8), `bridge_truss_arch`, `bridge_pylon`, `bridge_lamp`,
-  `houseboat` und 21 Wahrzeichen (die 15 Pflicht-Sets und 6 weitere).
+  `houseboat` und 33 Wahrzeichen (die 15 Pflicht-Sets und 18 weitere, davon 12 seit v0.7.0).
 - **Noch ohne Asset** (läuft prozedural oder mit Ersatz):
   - Wahrzeichen nur prozedural: `florianturm`, `fernsehturm_riga` (`tv_tower`), `cuatro_torres` (`skyscrapers`),
     `sacre_coeur`, `hram_svetog_save`, `voelkerschlachtdenkmal`, `neues_rathaus_hannover` (`domed_church`),

@@ -2346,6 +2346,1488 @@ def basilica_pilar(rig, p):
     return dict(object=obj_size(141.0, 92.0, 78.0))
 
 
+# --- v0.7.0: landmarks of the new races Wien - Hamburg and Bukarest - Calais ---------------------------
+
+def oct_ring(bm, cx, cy, r, z, w, h=None):
+    """Horizontal octagonal frame (apothem r) at height z: tracery bands of openwork spires, galleries."""
+    pts = octagon(cx, cy, r)
+    for k in range(8):
+        a, b = pts[k], pts[(k + 1) % 8]
+        beam(bm, (a[0], a[1], z), (b[0], b[1], z), w, h)
+
+
+def spire_ribs(bm, cx, cy, r0, z0, z1, w=0.6, crockets=8, ck=0.6, rings=(), ring_w=0.45):
+    """The eight edge ribs of an octagonal spire (apothem r0 at z0, apex at z1) with crockets along them
+    and horizontal tracery rings at the heights in rings."""
+    R0 = r0 / math.cos(math.pi / 8)
+    for k in range(8):
+        a = math.pi / 8 + k * math.pi / 4
+        ca, sa = math.cos(a), math.sin(a)
+        beam(bm, (cx + R0 * ca, cy + R0 * sa, z0), (cx, cy, z1), w)
+        for j in range(1, crockets + 1):
+            t = j / (crockets + 1.0)
+            r = R0 * (1.0 - t) + ck * 0.3
+            MU.bm_box(ck, ck, ck * 0.8, (cx + r * ca, cy + r * sa, z0 + (z1 - z0) * t), bm=bm)
+    for z in rings:
+        oct_ring(bm, cx, cy, r0 * (1.0 - (z - z0) / (z1 - z0)), z, ring_w)
+
+
+def lancet_mask(nb, du, dz, wu, wz):
+    """1 inside a pointed (equilateral) lancet of width wu and height wz; du = |offset along the face|,
+    dz = offset from the window centre (both sockets)."""
+    w = nb.AND(nb.lt(du, wu / 2), nb.lt(nb.absf(dz), wz / 2))
+    cz = nb.sub(dz, wz / 2 - 0.866 * wu)
+    dd = nb.add(du, wu / 2)
+    return nb.mul(w, nb.OR(nb.lt(cz, 0.0), nb.lt(nb.add(nb.mul(dd, dd), nb.mul(cz, cz)), wu * wu)))
+
+
+def openwork(s, z0, z1, pu, pz, wu, wz, stagger=True):
+    """Cuts rows of pointed tracery openings into the faces of a material (openwork spires): one lancet of
+    wu x wz in every pu x pz cell (u along the face, staggered every other row), between z0 and z1."""
+    nb = s.nb
+    u = nb.madd(s.x, nb.mul(s.ny, -1.0), nb.mul(s.y, s.nx))
+    row = nb.math("FLOOR", nb.math("DIVIDE", nb.sub(s.z, z0), pz))
+    if stagger:
+        u = nb.madd(nb.math("FLOORED_MODULO", row, 2.0), pu / 2, u)
+    du = nb.absf(nb.sub(nb.math("FLOORED_MODULO", u, pu), pu / 2))
+    dz = nb.sub(nb.math("FLOORED_MODULO", nb.sub(s.z, z0), pz), pz / 2)
+    hole = nb.AND(lancet_mask(nb, du, dz, wu, wz), nb.band(s.z, z0, z1))
+    s.cut = hole if s.cut is None else nb.OR(s.cut, hole)
+    return hole
+
+
+def tracery_lines(s, z0, z1, pitch, w, color, face="any", u0=-1000.0, u1=1000.0):
+    """Blind tracery: thin vertical lines (mullions, panelling) painted on the vertical faces."""
+    nb = s.nb
+    test, u = s.face_u(face)
+    m = nb.AND(nb.lt(nb.math("FLOORED_MODULO", u, pitch), w), nb.band(s.z, z0, z1), nb.band(u, u0, u1), test)
+    s.paint(m, color)
+
+
+def lancet_openings(bm, c, a, half_w, z0, z1, n=1, gap=0.6, out=0.08):
+    """Dark lancet openings (belfry windows) as polygons just in front of a vertical face with outward
+    direction angle a, centred at c (x, y): n lancets side by side between z0 and z1."""
+    t = Vector((-math.sin(a), math.cos(a), 0.0))
+    nv = Vector((math.cos(a), math.sin(a), 0.0))
+    w = (2 * half_w - gap * (n - 1)) / n
+    for i in range(n):
+        xc = -half_w + w / 2 + i * (w + gap)
+        base = Vector((c[0], c[1], 0.0)) + nv * out + t * xc
+        rise = 0.866 * w
+        pts = [(-w / 2, z0), (w / 2, z0), (w / 2, z1 - rise)]
+        for k in range(1, 5):
+            ang = math.radians(60.0 * k / 5)
+            pts.append((-w / 2 + w * math.cos(ang), z1 - rise + w * math.sin(ang)))
+        pts.append((0.0, z1))
+        for k in range(1, 5):
+            ang = math.radians(60.0 - 60.0 * k / 5)
+            pts.append((w / 2 - w * math.cos(ang), z1 - rise + w * math.sin(ang)))
+        pts.append((-w / 2, z1 - rise))
+        bm.faces.new([bm.verts.new(base + t * dx + Vector((0, 0, zz))) for (dx, zz) in pts])
+    return bm
+
+
+def lean_to(bm, x_out, x_in, z_out, z_in, y0, y1):
+    """Lean-to roof of an aisle along y: from the outer wall (x_out, z_out) up to the clerestory
+    (x_in, z_in)."""
+    xa, xb = sorted((x_out, x_in))
+    za = z_out if xa == x_out else z_in
+    zb = z_in if xa == x_out else z_out
+    z0 = min(z_out, z_in) - 0.6
+    return gable_xz(bm, [(xa, z0), (xb, z0), (xb, zb), (xa, za)], y0, y1 - y0)
+
+
+# --- Cologne: Cathedral -------------------------------------------------------------------------------
+
+def koelner_dom(rig, p):
+    """Cologne Cathedral (1248-1880): the twin west towers (157.4 m) with their openwork spires and
+    finials, the five-aisled nave and choir with two tiers of flying buttresses and a forest of
+    pinnacles, the transept with its gabled facades, the chevet of chapels, the steep dark lead roof
+    (ridge 61 m) and the crossing turret with its golden star (109 m). Weathered, almost black sandstone
+    and trachyte with lighter restored blocks, floodlit at night. 144.6 m long, 86.3 m across the
+    transept, west front 61.5 m. West front towards the road, the north side visible."""
+    FX, CX, Y0, TD = 30.75, 7.0, 3.0, 27.0           # half front, half centre bay, tower face, tower depth
+    YT0, YT1, YC1, L = 64.0, 93.0, 130.0, 144.6      # transept (with aisles), choir straight end, length
+    XA, XI, XN, XT = 22.5, 14.75, 7.5, 43.1          # outer aisle wall, inner piers, clerestory, transept end
+    ZA, ZC, ZR = 20.0, 44.0, 61.1                    # aisle walls, clerestory top, roof ridge
+    dark, dark2, light = "#69645d", "#514d48", "#857f75"
+
+    def stone(name, noise=0.08):
+        s = Shade(name, dark, rough=0.88, spec=0.22, color2=dark2, noise=noise, nscale=0.28)
+        block_patches(s, light, p_lo=0.0, p_hi=0.3, region=0.66, rscale=0.035, bw=1.4, bh=0.7)
+        return s
+
+    # --- west towers -----------------------------------------------------------------------------
+    tw = stone("kd_tower")
+    kw = dict(glass="#1f2124", pointed=True, frame="#3e3b37", frame_w=0.25)
+    for sx in (-1, 1):
+        tcx = sx * (CX + FX) / 2
+        tw.grid("front", (tcx - 3.4, tcx + 3.4), (0.4, 15.0), (6.8, 14.6), (5.6, 14.6), lit=0.0, **kw)   # portals
+        tw.grid("front", (tcx - 9.0, tcx + 9.0), (19.0, 32.0), (6.0, 13.0), (3.4, 12.0), lit=0.0, **kw)
+        tw.grid("front", (tcx - 9.0, tcx + 9.0), (36.0, 60.0), (6.0, 24.0), (3.2, 22.0), lit=0.0, **kw)
+        tw.grid("front", (tcx - 8.0, tcx + 8.0), (65.0, 94.0), (5.3, 29.0), (3.0, 28.0), lit=0.0, **kw)
+    u0, u1 = -Y0 - TD + 0.5, -Y0 - 0.5                                     # north side of the north tower
+    tw.grid("left", (u0, u1), (19.0, 32.0), (6.4, 13.0), (3.4, 12.0), lit=0.0, **kw)
+    tw.grid("left", (u0, u1), (36.0, 60.0), (6.4, 24.0), (3.2, 22.0), lit=0.0, **kw)
+    tw.grid("left", (u0 + 1.2, u1 - 1.2), (65.0, 94.0), (5.6, 29.0), (3.0, 28.0), lit=0.0, **kw)
+    tw.grid("front", (-4.6, 4.6), (0.4, 19.5), (9.2, 19.1), (8.2, 19.0), lit=0.0, **kw)               # main portal
+    tw.grid("front", (-5.0, 5.0), (25.0, 52.0), (10.0, 27.0), (9.0, 27.0), lit=0.0, glass="#24262a",
+            pointed=True, frame="#3e3b37", frame_w=0.3)                                               # west window
+    tracery_lines(tw, 0.0, 96.0, 0.95, 0.13, "#34322f")
+    tw.bands([(33.6, 34.4), (61.6, 62.4), (95.4, 96.4)], "#4a4743")
+    tw.flood(FLOOD, 2.6, grad=(0.0, 157.0, 0.75))
+    tw_m = tw.finish()
+    bm = bmesh.new()
+    stages = ((0.0, 34.0, 0.0), (34.0, 62.0, 0.7), (62.0, 96.0, 1.7))
+    for sx in (-1, 1):
+        x_in, x_out = sx * CX, sx * FX
+        tcx, tcy = sx * (CX + FX) / 2, Y0 + TD / 2
+        for (z0, z1, ins) in stages:
+            box(bm, min(x_in, x_out) + (ins if sx < 0 else 0.0), max(x_in, x_out) - (ins if sx > 0 else 0.0),
+                Y0 + ins, Y0 + TD - ins, z0, z1)
+        # front buttresses (three per tower) and outer side buttresses, stepping back at every stage
+        for bx in (x_in + sx * 1.2, tcx, x_out - sx * 1.2):
+            for (z0, z1, d, wd) in ((0.0, 34.0, 3.0, 2.6), (34.0, 62.0, 2.1, 2.2), (62.0, 92.0, 1.4, 1.9)):
+                box(bm, bx - wd / 2, bx + wd / 2, Y0 - d, Y0 + 2.5, z0, z1)
+                pinnacle(bm, bx, Y0 - d + 0.9, z1, 1.5, 7.5 if z1 < 90 else 16.0, top=0.5)
+        for by in (Y0 + 1.2, Y0 + TD / 2, Y0 + TD - 1.2):
+            for (z0, z1, d, wd) in ((0.0, 34.0, 3.0, 2.6), (34.0, 62.0, 2.1, 2.2), (62.0, 92.0, 1.4, 1.9)):
+                xo = x_out + sx * d
+                xi_ = x_out - sx * 2.5
+                box(bm, min(xi_, xo), max(xi_, xo), by - wd / 2, by + wd / 2, z0, z1)
+                pinnacle(bm, xo - sx * 0.9, by, z1, 1.5, 7.5 if z1 < 90 else 16.0, top=0.5)
+        # gables over the side portals and the belfry windows, rows of small pinnacles at the stage tops
+        face_gable(bm, (tcx, Y0), -math.pi / 2, 3.6, 15.0, 23.5, 0.7)
+        for k in (-1, 1):
+            face_gable(bm, (tcx + k * 4.5, Y0 + 0.7), -math.pi / 2, 2.4, 57.5, 66.0, 0.5)
+            face_gable(bm, (tcx + k * 4.5, Y0 + 1.7), -math.pi / 2, 2.3, 93.0, 99.0, 0.5)
+        for z in (34.0, 62.0):
+            for i in range(7):
+                x = x_in + sx * (2.6 + i * (abs(x_out - x_in) - 5.2) / 6)
+                pinnacle(bm, x, Y0 + 0.3, z, 0.7, 3.6)
+        # octagon with corner pinnacle towers
+        prism(bm, octagon(tcx, tcy, 8.0), 96.0, 110.0)
+        prism(bm, octagon(tcx, tcy, 8.5), 110.0, 111.2)
+        for ddx in (-1, 1):
+            for ddy in (-1, 1):
+                px, py = tcx + ddx * 8.8, tcy + ddy * 8.8
+                box(bm, px - 1.3, px + 1.3, py - 1.3, py + 1.3, 96.0, 106.0)
+                pinnacle(bm, px, py, 106.0, 2.2, 14.0, top=0.55)
+        for k in range(8):
+            a = 2 * math.pi * k / 8
+            face_gable(bm, (tcx + 8.05 * math.cos(a), tcy + 8.05 * math.sin(a)), a, 2.4, 109.0, 116.0, 0.5)
+            R = 8.5 / math.cos(math.pi / 8)
+            pinnacle(bm, tcx + R * math.cos(a + math.pi / 8), tcy + R * math.sin(a + math.pi / 8), 111.2, 0.9, 6.5)
+    # centre bay: recessed front with the main portal, west window and the gable between the towers
+    box(bm, -CX, CX, Y0 + 1.0, Y0 + TD, 0.0, 56.0)
+    gable_xz(bm, [(-CX, 56.0), (CX, 56.0), (0.0, 66.0)], Y0 + 1.0, 1.5)
+    face_gable(bm, (0.0, Y0 + 1.0), -math.pi / 2, 5.6, 20.0, 34.0, 0.9)
+    pinnacle(bm, 0.0, Y0 + 1.6, 64.0, 1.2, 7.0)
+    for x in (-5.0, -2.5, 0.0, 2.5, 5.0):                                   # gallery above the portal
+        pinnacle(bm, x, Y0 + 0.6, 52.0, 0.6, 3.4)
+    make(rig, "kd_tower", bm, tw_m)
+    # belfry openings on the octagons
+    op = plain("kd_open", "#1d1e20", rough=0.7, glow=("#ffcf8a", 0.12))
+    bm = bmesh.new()
+    for sx in (-1, 1):
+        tcx, tcy = sx * (CX + FX) / 2, Y0 + TD / 2
+        for k in range(8):
+            a = 2 * math.pi * k / 8
+            lancet_openings(bm, (tcx + 8.0 * math.cos(a), tcy + 8.0 * math.sin(a)), a, 2.0, 98.0, 108.5, n=2, gap=0.5)
+    make(rig, "kd_open", bm, op)
+    # openwork spires with ribs, crockets, tracery rings and the finials
+    sp = Shade("kd_spire", "#5f5b56", rough=0.88, spec=0.22, color2="#4a4743", noise=0.07, nscale=0.3)
+    openwork(sp, 113.0, 145.0, 2.2, 3.1, 1.25, 2.5)
+    sp.flood(FLOOD, 2.4, grad=(100.0, 157.0, 0.85))
+    sp_m = sp.finish()
+    bm = bmesh.new()
+    bmr = bmesh.new()
+    for sx in (-1, 1):
+        tcx, tcy = sx * (CX + FX) / 2, Y0 + TD / 2
+        pyramid(bm, octagon(tcx, tcy, 7.2), 111.2, (tcx, tcy, 148.6))
+        spire_ribs(bmr, tcx, tcy, 7.3, 111.2, 148.6, w=0.75, crockets=9, ck=0.75,
+                   rings=(117.0, 123.5, 130.0, 136.5, 142.5), ring_w=0.5)
+        # finial (Kreuzblume): stem, four leaves, knob
+        box(bmr, tcx - 0.8, tcx + 0.8, tcy - 0.8, tcy + 0.8, 146.0, 155.6)
+        for (dx, dy) in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            beam(bmr, (tcx, tcy, 151.0), (tcx + dx * 2.4, tcy + dy * 2.4, 152.6), 1.1, 0.9)
+            beam(bmr, (tcx, tcy, 148.8), (tcx + dx * 1.7, tcy + dy * 1.7, 149.9), 0.8, 0.7)
+        MU.bm_sphere(1.0, center=(tcx, tcy, 156.3), subdiv=1, bm=bmr)
+        box(bmr, tcx - 0.25, tcx + 0.25, tcy - 0.25, tcy + 0.25, 156.0, 157.38)
+    make(rig, "kd_spires", bm, sp_m)
+    make(rig, "kd_ribs", bmr, tw_m)
+    # --- nave, transept and choir -------------------------------------------------------------------
+    bd = stone("kd_body")
+    kwb = dict(glass="#202226", pointed=True, frame="#3e3b37", frame_w=0.25, color="#ffcf8a", strength=0.75)
+    # windows between the buttress piers (piers at y_n0 + 3.5 + 7.4 i and YT1 + 3.7 + 7.4 i)
+    for (u0, u1) in ((-(Y0 + TD + 3.5 + 7.4 * 4), -Y0 - TD - 3.5), (-(YT1 + 3.7 + 7.4 * 4), -YT1 - 3.7)):
+        bd.grid("left", (u0, u1), (5.0, 17.5), (7.4, 12.5), (4.0, 12.0), lit=0.2, **kwb)           # aisles
+        bd.grid("left", (u0, u1), (27.0, 42.5), (7.4, 15.5), (4.6, 15.0), lit=0.15, seed=1, **kwb)   # clerestory
+    bd.grid("left", (-YT1 + 1.0, -YT0 - 1.0), (0.3, 14.0), (27.0, 13.7), (8.0, 13.5), lit=0.0, **kwb)  # portal
+    bd.grid("left", (-YT1 + 2.0, -YT0 - 2.0), (22.0, 42.0), (25.0, 20.0), (12.0, 19.0), lit=0.0, seed=2, **kwb)
+    bd.grid("front", (-XT, -XA - 1.0), (5.0, 17.5), (6.8, 12.5), (4.0, 12.0), lit=0.2, seed=3, **kwb)
+    tracery_lines(bd, ZA + 1.0, ZC, 1.1, 0.12, "#36332f")
+    bd.flood(FLOOD, 2.6, grad=(0.0, 157.0, 0.75))
+    bd_m = bd.finish()
+    bm = bmesh.new()
+    y_n0 = Y0 + TD
+    box(bm, -XN, XN, y_n0, YC1, 0.0, ZC)                                    # nave + choir central vessel
+    box(bm, -XA, XA, y_n0, YT0, 0.0, ZA)                                    # nave aisles
+    box(bm, -XA, XA, YT1, YC1, 0.0, ZA)                                     # choir aisles
+    box(bm, -XT, XT, YT0 + 6.0, YT1 - 7.0, 0.0, ZC)                         # transept central vessel
+    box(bm, -XT, XT, YT0, YT1, 0.0, ZA)                                     # transept aisles
+    apse = [(XN * math.cos(a), YC1 + XN * math.sin(a)) for a in [math.radians(d) for d in range(0, 181, 30)]]
+    prism(bm, apse, 0.0, ZC)
+    chev = [(XA * math.cos(a), YC1 + (L - YC1) * math.sin(a)) for a in [math.radians(d) for d in range(0, 181, 18)]]
+    prism(bm, chev, 0.0, ZA)
+    # parapet galleries along the eaves
+    for sx in (-1, 1):
+        box(bm, sx * XN - 0.4, sx * XN + 0.4, y_n0, YT0 + 6.0, ZC, ZC + 1.6)
+        box(bm, sx * XN - 0.4, sx * XN + 0.4, YT1 - 7.0, YC1, ZC, ZC + 1.6)
+        box(bm, min(sx * XN, sx * XT), max(sx * XN, sx * XT), YT0 + 5.6, YT0 + 6.4, ZC, ZC + 1.6)
+        box(bm, min(sx * XN, sx * XT), max(sx * XN, sx * XT), YT1 - 7.4, YT1 - 6.6, ZC, ZC + 1.6)
+    # flying buttresses: outer piers with pinnacles, inner piers, two tiers of flyers to the clerestory
+    bays = [y_n0 + 3.5 + 7.4 * i for i in range(5)] + [YT1 + 3.7 + 7.4 * i for i in range(5)]
+    for y in bays:
+        for sx in (-1, 1):
+            xo = sx * (XA + 1.6)
+            box(bm, min(sx * XA, sx * (XA + 3.2)), max(sx * XA, sx * (XA + 3.2)), y - 1.1, y + 1.1, 0.0, 33.0)
+            pinnacle(bm, xo, y, 33.0, 1.7, 13.0, top=0.55)
+            box(bm, sx * XI - 0.8, sx * XI + 0.8, y - 0.8, y + 0.8, ZA, 36.0)
+            pinnacle(bm, sx * XI, y, 36.0, 1.3, 10.0, top=0.55)
+            beam(bm, (xo, y, 30.0), (sx * XI, y, 33.0), 0.8, 1.2)
+            beam(bm, (sx * XI, y, 37.5), (sx * (XN + 0.3), y, 41.5), 0.8, 1.1)
+            beam(bm, (xo, y, 24.5), (sx * XI, y, 27.5), 0.7, 1.0)
+            beam(bm, (sx * XI, y, 31.0), (sx * (XN + 0.3), y, 34.0), 0.7, 1.0)
+            pinnacle(bm, sx * XN, y, ZC + 1.6, 0.9, 5.0)
+    # chevet: radiating buttresses with pinnacles
+    for d in range(15, 180, 30):
+        a = math.radians(d)
+        ca, sa = math.cos(a), math.sin(a)
+        po = (XA * 1.08 * ca, YC1 + (L - YC1) * 1.08 * sa)
+        pinnacle(bm, po[0], po[1], 26.0, 1.6, 12.0, top=0.55)
+        box(bm, po[0] - 1.0, po[0] + 1.0, po[1] - 1.0, po[1] + 1.0, 0.0, 26.0)
+        beam(bm, (po[0], po[1], 24.0), (XN * ca * 1.05, YC1 + XN * sa * 1.05, 40.0), 0.7, 1.0)
+    # transept facades: turrets at the corners, gable tracery, portal gable
+    for sx in (-1, 1):
+        for y in (YT0 + 0.8, YT1 - 0.8):
+            box(bm, sx * XT - 1.4, sx * XT + 1.4, y - 1.4, y + 1.4, 0.0, 48.0)
+            pinnacle(bm, sx * XT, y, 48.0, 2.2, 16.0, top=0.55)
+        a = 0.0 if sx > 0 else math.pi
+        face_gable(bm, (sx * XT, (YT0 + YT1) / 2), a, 6.5, 14.0, 26.0, 0.8)
+        for yy in (YT0 + 9.0, YT1 - 9.0):
+            pinnacle(bm, sx * (XT + 0.3), yy, ZC, 1.0, 6.0)
+    make(rig, "kd_body", bm, bd_m)
+    # roofs: dark lead
+    rf = Shade("kd_roof", "#474c52", rough=0.5, spec=0.45, metal=0.3, noise=0.05, nscale=0.6)
+    rf.flood(FLOOD_WHITE, 0.45)
+    rf_m = rf.finish()
+    bm = bmesh.new()
+    gable_roof(bm, -XN - 0.5, XN + 0.5, y_n0, YC1, ZC, ZR, axis="y")
+    gable_roof(bm, -XT, XT, YT0 + 5.5, YT1 - 6.5, ZC, ZR, axis="x")
+    half = [(0.0, YC1)] + [((XN + 0.5) * math.cos(a), YC1 + (XN + 0.5) * math.sin(a))
+                           for a in [math.radians(d) for d in range(0, 181, 30)]]
+    for i in range(1, len(half) - 1):
+        pyramid(bm, [half[0], half[i], half[i + 1]], ZC, (0.0, YC1, ZR))
+    for sx in (-1, 1):
+        lean_to(bm, sx * XA, sx * XN, ZA, ZA + 6.0, y_n0, YT0)
+        lean_to(bm, sx * XA, sx * XN, ZA, ZA + 6.0, YT1, YC1)
+    gable_roof(bm, -XT, XT, YT0, YT0 + 6.0, ZA, ZA + 4.0, axis="x")
+    gable_roof(bm, -XT, XT, YT1 - 7.0, YT1, ZA, ZA + 4.0, axis="x")
+    ring = [(0.0, YC1)] + [((XA + 0.4) * math.cos(a), YC1 + (L - YC1 + 0.4) * math.sin(a))
+                           for a in [math.radians(d) for d in range(0, 181, 18)]]
+    for i in range(1, len(ring) - 1):
+        pyramid(bm, [ring[0], ring[i], ring[i + 1]], ZA, (0.0, YC1, ZA + 9.0))
+    make(rig, "kd_roof", bm, rf_m)
+    # crossing turret (lead) with the golden star
+    bm = bmesh.new()
+    cy = (YT0 + YT1) / 2
+    lathe(bm, [(2.6, 57.0), (2.6, 72.0), (3.0, 72.4), (0.0, 72.6)], 8, 0.0, cy, math.pi / 8)
+    pyramid(bm, octagon(0.0, cy, 2.4), 72.6, (0.0, cy, 105.0))
+    for k in range(8):
+        a = 2 * math.pi * k / 8 + math.pi / 8
+        pinnacle(bm, 2.9 * math.cos(a), cy + 2.9 * math.sin(a), 72.6, 0.5, 4.0)
+    make(rig, "kd_turret", bm, rf_m)
+    bm = bmesh.new()
+    for k in range(4):
+        a = math.pi * k / 4
+        beam(bm, (-1.8 * math.cos(a), cy, 107.2 - 1.8 * math.sin(a)), (1.8 * math.cos(a), cy, 107.2 + 1.8 * math.sin(a)), 0.35)
+    beam(bm, (0.0, cy, 104.5), (0.0, cy, 109.0), 0.3)
+    make(rig, "kd_star", bm, gold("kd_gold", flood=0.9))
+    return dict(object=obj_size(2 * XT, 157.4, L))
+
+
+# --- Regensburg: Cathedral of St. Peter -----------------------------------------------------------------
+
+def dom_regensburg(rig, p):
+    """Regensburg Cathedral St. Peter (1273-1520, spires 1859-1869): light grey-green limestone, the twin
+    west towers (105 m) with octagonal belfries and openwork spires on the medieval square storeys, the
+    triangular porch in front of the main portal, a basilica with flying buttresses (central vessel 32 m
+    with the roof gallery, aisles 19 m), the steep weathered copper roof with its ridge turret and the
+    polygonal choir. 90 m long, 34.8 m wide, west front 39 m. West front towards the road."""
+    FX, CX, Y0, TD = 19.5, 6.6, 2.5, 13.5             # half front, half centre bay, tower face, tower depth
+    XN, XA, ZN, ZA, ZR = 7.2, 17.4, 32.0, 19.0, 51.0   # central vessel, aisles, eaves, ridge
+    YN0, YC, L = Y0 + TD, 80.0, 90.0
+    st = Shade("rd_stone", "#bdb6a2", rough=0.85, spec=0.25, color2="#a39f8b", noise=0.08, nscale=0.3)
+    block_patches(st, "#8f8b7a", p_lo=0.0, p_hi=0.25, region=0.6, rscale=0.04, bw=1.2, bh=0.6, zfade=60.0)
+    kw = dict(glass="#2a2d30", pointed=True, frame="#a39e8c", frame_w=0.22)
+    for sx in (-1, 1):
+        tcx = sx * (CX + FX) / 2
+        st.grid("front", (tcx - 3.2, tcx + 3.2), (15.0, 26.0), (6.4, 11.0), (3.0, 9.5), lit=0.0, **kw)
+        st.grid("front", (tcx - 3.2, tcx + 3.2), (29.0, 44.0), (3.2, 15.0), (1.7, 13.0), lit=0.0, **kw)
+        st.grid("front", (tcx - 3.0, tcx + 3.0), (47.0, 58.0), (3.0, 11.0), (1.8, 10.0), lit=0.0, **kw)
+    st.grid("left", (-Y0 - TD + 0.8, -Y0 - 0.8), (29.0, 44.0), (3.0, 15.0), (1.7, 13.0), lit=0.0, **kw)
+    st.grid("left", (-Y0 - TD + 0.8, -Y0 - 0.8), (47.0, 58.0), (3.0, 11.0), (1.8, 10.0), lit=0.0, **kw)
+    st.grid("front", (-4.2, 4.2), (17.0, 38.0), (8.4, 21.0), (7.0, 20.0), lit=0.0, **kw)           # west window
+    kwn = dict(glass="#2a2d30", pointed=True, frame="#a39e8c", frame_w=0.22, color="#ffd49a", strength=0.75)
+    st.grid("left", (-(YN0 + 6.8 * 9), -YN0), (4.0, 16.0), (6.8, 12.0), (3.4, 10.5), lit=0.2, **kwn)        # aisles
+    st.grid("left", (-(YN0 + 6.8 * 9), -YN0), (22.0, 31.0), (6.8, 9.0), (3.6, 8.2), lit=0.15, seed=1, **kwn)
+    tracery_lines(st, 0.0, 58.0, 1.4, 0.12, "#a29d8a")
+    st.bands([(26.6, 27.4), (44.6, 45.4), (58.4, 59.4)], "#aaa48f")
+    st.flood(FLOOD, 1.25, grad=(0.0, 105.0, 0.8))
+    st_m = st.finish()
+    bm = bmesh.new()
+    for sx in (-1, 1):
+        x_in, x_out = sx * CX, sx * FX
+        tcx, tcy = sx * (CX + FX) / 2, Y0 + TD / 2
+        for (z0, z1, ins) in ((0.0, 27.0, 0.0), (27.0, 45.0, 0.5), (45.0, 59.0, 1.0)):
+            box(bm, min(x_in, x_out) + (ins if sx < 0 else 0.0), max(x_in, x_out) - (ins if sx > 0 else 0.0),
+                Y0 + ins, Y0 + TD - ins, z0, z1)
+        for bx in (x_in + sx * 0.9, x_out - sx * 1.0):                       # corner buttresses
+            for (z0, z1, d, wd) in ((0.0, 27.0, 2.4, 2.0), (27.0, 45.0, 1.6, 1.7), (45.0, 57.0, 1.0, 1.5)):
+                box(bm, bx - wd / 2, bx + wd / 2, Y0 - d, Y0 + 2.0, z0, z1)
+                pinnacle(bm, bx, Y0 - d + 0.7, z1, 1.1, 5.0 if z1 < 50 else 9.0, top=0.5)
+        for by in (Y0 + 1.0, Y0 + TD - 1.0):
+            for (z0, z1, d, wd) in ((0.0, 27.0, 2.4, 2.0), (27.0, 45.0, 1.6, 1.7), (45.0, 57.0, 1.0, 1.5)):
+                xo, xi_ = x_out + sx * d, x_out - sx * 2.0
+                box(bm, min(xi_, xo), max(xi_, xo), by - wd / 2, by + wd / 2, z0, z1)
+                pinnacle(bm, xo - sx * 0.7, by, z1, 1.1, 5.0 if z1 < 50 else 9.0, top=0.5)
+        face_gable(bm, (tcx, Y0), -math.pi / 2, 3.4, 25.0, 31.0, 0.5)
+        # octagonal belfry (1859-69) with gables and pinnacles, then the openwork spire
+        prism(bm, octagon(tcx, tcy, 5.4), 59.0, 73.0)
+        prism(bm, octagon(tcx, tcy, 5.8), 73.0, 74.0)
+        for k in range(8):
+            a = 2 * math.pi * k / 8
+            face_gable(bm, (tcx + 5.45 * math.cos(a), tcy + 5.45 * math.sin(a)), a, 1.8, 71.0, 76.5, 0.4)
+            R = 5.8 / math.cos(math.pi / 8)
+            pinnacle(bm, tcx + R * math.cos(a + math.pi / 8), tcy + R * math.sin(a + math.pi / 8), 74.0, 0.7, 5.0)
+        for ddx in (-1, 1):
+            for ddy in (-1, 1):
+                pinnacle(bm, tcx + ddx * 5.6, tcy + ddy * 5.6, 59.0, 1.5, 11.0, top=0.55)
+    # centre bay with the west window and the gable, the triangular porch in front of the main portal
+    box(bm, -CX, CX, Y0 + 0.8, YN0, 0.0, 41.0)
+    gable_xz(bm, [(-CX, 41.0), (CX, 41.0), (0.0, 50.0)], Y0 + 0.8, 1.2)
+    pinnacle(bm, 0.0, Y0 + 1.4, 48.5, 1.0, 5.0)
+    for x in (-4.5, -1.5, 1.5, 4.5):
+        pinnacle(bm, x, Y0 + 1.0, 38.0, 0.6, 3.6)
+    tri = [(-5.6, Y0 + 0.8), (5.6, Y0 + 0.8), (0.0, Y0 - 5.2)]
+    prism(bm, tri, 0.0, 12.0)
+    prism(bm, [(-6.0, Y0 + 0.8), (6.0, Y0 + 0.8), (0.0, Y0 - 5.6)], 12.0, 13.0)
+    for (x, y) in tri:
+        pinnacle(bm, x, y, 13.0, 1.0, 5.0)
+    for (a, (cx_, cy_)) in ((-math.pi / 2 - 0.82, (-2.8, Y0 - 2.2)), (-math.pi / 2 + 0.82, (2.8, Y0 - 2.2))):
+        face_gable(bm, (cx_, cy_), a, 2.6, 13.0, 18.0, 0.4)
+    # nave: central vessel, aisles, polygonal choir, gallery, flying buttresses
+    box(bm, -XN, XN, YN0, YC, 0.0, ZN)
+    box(bm, -XA, XA, YN0, YC - 4.0, 0.0, ZA)
+    apse = [(XN * math.cos(a), YC + (L - YC) * math.sin(a)) for a in [math.radians(d) for d in range(0, 181, 30)]]
+    prism(bm, apse, 0.0, ZN)
+    for sx in (-1, 1):
+        box(bm, sx * XN - 0.35, sx * XN + 0.35, YN0, YC, ZN, ZN + 1.3)
+    for i in range(9):
+        y = YN0 + 6.8 * (i + 1)
+        if y > YC - 4.5:
+            break
+        for sx in (-1, 1):
+            box(bm, min(sx * XA, sx * (XA + 2.2)), max(sx * XA, sx * (XA + 2.2)), y - 0.9, y + 0.9, 0.0, 24.0)
+            pinnacle(bm, sx * (XA + 1.1), y, 24.0, 1.3, 8.0, top=0.55)
+            beam(bm, (sx * (XA + 1.1), y, 22.5), (sx * (XN + 0.3), y, 29.0), 0.6, 0.9)
+            pinnacle(bm, sx * XN, y, ZN + 1.3, 0.7, 3.8)
+    for d in range(15, 180, 30):
+        a = math.radians(d)
+        x, y = (XN + 1.2) * math.cos(a), YC + (L - YC + 1.2) * math.sin(a)
+        box(bm, x - 0.8, x + 0.8, y - 0.8, y + 0.8, 0.0, 26.0)
+        pinnacle(bm, x, y, 26.0, 1.1, 7.0, top=0.55)
+    make(rig, "rd_stone", bm, st_m)
+    # belfry openings
+    op = plain("rd_open", "#26292b", rough=0.7, glow=("#ffd49a", 0.12))
+    bm = bmesh.new()
+    for sx in (-1, 1):
+        tcx, tcy = sx * (CX + FX) / 2, Y0 + TD / 2
+        for k in range(8):
+            a = 2 * math.pi * k / 8
+            lancet_openings(bm, (tcx + 5.4 * math.cos(a), tcy + 5.4 * math.sin(a)), a, 1.3, 61.0, 71.0, n=2, gap=0.35)
+    for (a, (cx_, cy_)) in ((-math.pi / 2 - 0.82, (-2.8, Y0 - 2.2)), (-math.pi / 2 + 0.82, (2.8, Y0 - 2.2))):
+        lancet_openings(bm, (cx_, cy_), a, 2.2, 0.0, 10.5, n=1, out=0.05)
+    make(rig, "rd_open", bm, op)
+    # openwork spires (lighter stone of the 1860s)
+    sp = Shade("rd_spire", "#cbc4b0", rough=0.85, spec=0.25, color2="#b6af9a", noise=0.06, nscale=0.3)
+    openwork(sp, 76.0, 100.0, 1.6, 2.4, 0.95, 1.9)
+    sp.flood(FLOOD, 1.2, grad=(60.0, 105.0, 0.85))
+    sp_m = sp.finish()
+    bm = bmesh.new()
+    bmr = bmesh.new()
+    for sx in (-1, 1):
+        tcx, tcy = sx * (CX + FX) / 2, Y0 + TD / 2
+        pyramid(bm, octagon(tcx, tcy, 5.0), 74.0, (tcx, tcy, 101.0))
+        spire_ribs(bmr, tcx, tcy, 5.1, 74.0, 101.0, w=0.5, crockets=7, ck=0.55, rings=(80.0, 86.5, 93.0), ring_w=0.35)
+        box(bmr, tcx - 0.5, tcx + 0.5, tcy - 0.5, tcy + 0.5, 99.5, 104.0)
+        for (dx, dy) in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            beam(bmr, (tcx, tcy, 102.0), (tcx + dx * 1.5, tcy + dy * 1.5, 103.0), 0.7, 0.6)
+        MU.bm_sphere(0.6, center=(tcx, tcy, 104.4), subdiv=1, bm=bmr)
+    make(rig, "rd_spires", bm, sp_m)
+    make(rig, "rd_ribs", bmr, sp_m)
+    # weathered copper roofs, ridge turret
+    cu = copper("rd_roof", flood=0.45, color="#5d746c", color2="#4b5f58")
+    cu_m = cu.finish()
+    bm = bmesh.new()
+    gable_roof(bm, -XN - 0.4, XN + 0.4, YN0, YC, ZN, ZR, axis="y")
+    half = [(0.0, YC)] + [((XN + 0.4) * math.cos(a), YC + (L - YC + 0.4) * math.sin(a))
+                          for a in [math.radians(d) for d in range(0, 181, 30)]]
+    for i in range(1, len(half) - 1):
+        pyramid(bm, [half[0], half[i], half[i + 1]], ZN, (0.0, YC, ZR))
+    for sx in (-1, 1):
+        lean_to(bm, sx * XA, sx * XN, ZA, ZA + 5.0, YN0, YC - 4.0)
+    tx_, ty_ = 0.0, YC - 14.0
+    lathe(bm, [(1.6, ZR - 3.0), (1.6, ZR + 5.0), (1.9, ZR + 5.4), (0.0, ZR + 5.6)], 8, tx_, ty_, math.pi / 8)
+    pyramid(bm, octagon(tx_, ty_, 1.5), ZR + 5.6, (tx_, ty_, ZR + 16.0))
+    make(rig, "rd_roof", bm, cu_m)
+    return dict(object=obj_size(2 * FX, 105.0, L))
+
+
+# --- Linz: Mariendom (New Cathedral) -------------------------------------------------------------------
+
+def mariendom_linz(rig, p):
+    """Mariä-Empfängnis-Dom, Linz (1862-1924), Austria's largest church: neo-gothic in light sandstone,
+    the single west tower (134.8 m) with square storeys, octagonal belfry with corner turrets and the
+    crocketed stone spire, gabled aisle fronts beside it, a basilica (27.5 m wide) with flying
+    buttresses, the transept (60 m), the choir with its chevet of chapels, steep green copper roofs.
+    130 m long. West front towards the road, the north side visible."""
+    TW, Y0 = 8.6, 3.0                                 # half tower width, tower face
+    XN, XA, XT = 6.6, 13.75, 30.0                     # central vessel, aisles, transept ends
+    ZN, ZA, ZR = 28.0, 15.0, 46.0                     # eaves of nave and aisles, ridge
+    YN0, YT0, YT1, YC, L = Y0 + 2 * TW, 76.0, 92.0, 110.0, 130.0
+    st = Shade("ml_stone", "#cdbfa1", rough=0.85, spec=0.25, color2="#b8aa8b", noise=0.08, nscale=0.3)
+    block_patches(st, "#a99b7f", p_lo=0.0, p_hi=0.22, region=0.6, rscale=0.04, bw=1.2, bh=0.6)
+    kw = dict(glass="#2a2d30", pointed=True, frame="#b1a387", frame_w=0.22)
+    kwn = dict(kw, color="#ffd49a", strength=0.75)
+    st.grid("front", (-4.0, 4.0), (0.3, 15.0), (8.0, 14.7), (6.0, 14.4), lit=0.0, **kw)             # portal
+    st.grid("front", (-3.6, 3.6), (31.0, 53.0), (7.2, 22.0), (6.0, 21.0), lit=0.0, **kw)            # tower window
+    st.grid("front", (-6.0, 6.0), (60.0, 76.0), (4.0, 16.0), (1.9, 15.0), lit=0.0, **kw)            # belfry
+    st.grid("left", (-Y0 - 2 * TW + 2.0, -Y0 - 2.0), (31.0, 53.0), (13.2, 22.0), (5.0, 21.0), lit=0.0, **kw)
+    st.grid("left", (-Y0 - 2 * TW + 2.0, -Y0 - 2.0), (60.0, 76.0), (4.4, 16.0), (1.9, 15.0), lit=0.0, **kw)
+    for sx in (-1, 1):                                                                               # aisle fronts
+        st.grid("front", sorted((sx * TW, sx * XA)), (4.0, 17.0), (abs(XA - TW), 13.0), (2.8, 11.0), lit=0.0, **kw)
+    st.grid("left", (-(YN0 + 6.9 * 8), -YN0), (3.5, 13.0), (6.9, 9.5), (3.0, 8.5), lit=0.2, **kwn)  # aisles
+    st.grid("left", (-(YN0 + 6.9 * 8), -YN0), (17.5, 27.0), (6.9, 9.5), (3.4, 8.6), lit=0.15, seed=1, **kwn)
+    st.grid("left", (-YT1 + 2.0, -YT0 - 2.0), (4.0, 14.0), (12.0, 10.0), (6.0, 9.6), lit=0.0, **kw)  # transept
+    st.grid("left", (-YT1 + 2.0, -YT0 - 2.0), (17.0, 27.5), (12.0, 10.5), (8.0, 10.0), lit=0.0, seed=2, **kw)
+    st.grid("left", (-(YT1 + 6.0 * 3), -YT1), (17.5, 27.0), (6.0, 9.5), (3.0, 8.6), lit=0.15, seed=3, **kwn)
+    tracery_lines(st, 0.0, 78.0, 1.3, 0.12, "#ad9f83")
+    st.bands([(30.0, 31.0), (57.0, 58.2), (77.4, 78.6)], "#b5a78a")
+    st.flood(FLOOD, 1.2, grad=(0.0, 135.0, 0.75))
+    st_m = st.finish()
+    bm = bmesh.new()
+    # tower: square storeys with corner buttresses
+    for (z0, z1, ins) in ((0.0, 30.0, 0.0), (30.0, 58.0, 0.5), (58.0, 78.0, 1.1)):
+        box(bm, -TW + ins, TW - ins, Y0 + ins, Y0 + 2 * TW - ins, z0, z1)
+    for sx in (-1, 1):
+        for (bx, by) in ((sx * (TW - 0.9), Y0), (sx * TW, Y0 + 0.9), (sx * TW, Y0 + 2 * TW - 0.9)):
+            front = by == Y0
+            for (z0, z1, d, wd) in ((0.0, 30.0, 2.4, 2.0), (30.0, 58.0, 1.7, 1.8), (58.0, 76.0, 1.1, 1.5)):
+                if front:
+                    box(bm, bx - wd / 2, bx + wd / 2, Y0 - d, Y0 + 2.0, z0, z1)
+                    pinnacle(bm, bx, Y0 - d + 0.7, z1, 1.1, 6.0 if z1 < 70 else 10.0, top=0.5)
+                else:
+                    xo, xi_ = sx * (TW + d), sx * (TW - 2.0)
+                    box(bm, min(xo, xi_), max(xo, xi_), by - wd / 2, by + wd / 2, z0, z1)
+                    pinnacle(bm, xo - sx * 0.7, by, z1, 1.1, 6.0 if z1 < 70 else 10.0, top=0.5)
+    face_gable(bm, (0.0, Y0), -math.pi / 2, 4.6, 16.0, 26.0, 0.8)
+    face_gable(bm, (0.0, Y0 + 0.5), -math.pi / 2, 4.2, 53.0, 60.5, 0.5)
+    for k in (-1, 0, 1):
+        face_gable(bm, (k * 4.0, Y0 + 1.1), -math.pi / 2, 1.8, 76.0, 80.5, 0.4)
+    # octagonal belfry with corner turrets, gables, gallery
+    ty = Y0 + TW
+    prism(bm, octagon(0.0, ty, 6.6), 78.0, 95.0)
+    prism(bm, octagon(0.0, ty, 7.1), 95.0, 96.2)
+    for k in range(8):
+        a = 2 * math.pi * k / 8
+        face_gable(bm, (6.65 * math.cos(a), ty + 6.65 * math.sin(a)), a, 2.1, 92.0, 99.0, 0.45)
+        R = 7.1 / math.cos(math.pi / 8)
+        pinnacle(bm, R * math.cos(a + math.pi / 8), ty + R * math.sin(a + math.pi / 8), 96.2, 0.7, 5.0)
+    for ddx in (-1, 1):
+        for ddy in (-1, 1):
+            cx_, cy_ = ddx * (TW - 2.0), ty + ddy * (TW - 2.0)
+            prism(bm, octagon(cx_, cy_, 1.5), 78.0, 94.0)
+            pyramid(bm, octagon(cx_, cy_, 1.7), 94.0, (cx_, cy_, 104.0))
+    # aisle fronts with gables, nave, transept, choir with the chevet
+    for sx in (-1, 1):
+        x0, x1 = sorted((sx * TW, sx * XA))
+        box(bm, x0, x1, Y0 + 1.0, YN0, 0.0, ZA + 3.0)
+        gable_xz(bm, [(x0, ZA + 3.0), (x1, ZA + 3.0), ((x0 + x1) / 2, ZA + 10.0)], Y0 + 1.0, 1.0)
+        pinnacle(bm, sx * XA, Y0 + 1.5, ZA + 3.0, 1.1, 7.0)
+    box(bm, -XN, XN, YN0, YC, 0.0, ZN)
+    box(bm, -XA, XA, YN0, YT0, 0.0, ZA)
+    box(bm, -XA, XA, YT1, YC, 0.0, ZA)
+    box(bm, -XT, XT, YT0, YT1, 0.0, ZN)
+    apse = [(XN * math.cos(a), YC + 9.0 * math.sin(a)) for a in [math.radians(d) for d in range(0, 181, 30)]]
+    prism(bm, apse, 0.0, ZN)
+    chev = [(XA * math.cos(a), YC + (L - YC) * math.sin(a)) for a in [math.radians(d) for d in range(0, 181, 20)]]
+    prism(bm, chev, 0.0, ZA)
+    for sx in (-1, 1):
+        box(bm, sx * XN - 0.35, sx * XN + 0.35, YN0, YC, ZN, ZN + 1.2)
+        for y in (YT0 + 0.8, YT1 - 0.8):
+            box(bm, sx * XT - 1.1, sx * XT + 1.1, y - 1.1, y + 1.1, 0.0, ZN + 4.0)
+            pinnacle(bm, sx * XT, y, ZN + 4.0, 1.6, 10.0, top=0.55)
+        face_gable(bm, (sx * XT, (YT0 + YT1) / 2), 0.0 if sx > 0 else math.pi, 4.5, 14.0, 22.0, 0.6)
+    piers = [YN0 + 6.9 * (i + 1) for i in range(8) if YN0 + 6.9 * (i + 1) < YT0 - 1.0] + \
+        [YT1 + 6.0 * (i + 1) for i in range(3)]
+    for y in piers:
+        for sx in (-1, 1):
+            box(bm, min(sx * XA, sx * (XA + 2.0)), max(sx * XA, sx * (XA + 2.0)), y - 0.85, y + 0.85, 0.0, 21.0)
+            pinnacle(bm, sx * (XA + 1.0), y, 21.0, 1.2, 8.0, top=0.55)
+            beam(bm, (sx * (XA + 1.0), y, 19.5), (sx * (XN + 0.3), y, 25.5), 0.6, 0.9)
+            pinnacle(bm, sx * XN, y, ZN + 1.2, 0.7, 3.8)
+    for d in range(10, 180, 20):
+        a = math.radians(d)
+        x, y = (XA + 1.0) * math.cos(a), YC + (L - YC + 1.0) * math.sin(a)
+        box(bm, x - 0.8, x + 0.8, y - 0.8, y + 0.8, 0.0, 19.0)
+        pinnacle(bm, x, y, 19.0, 1.1, 7.0, top=0.55)
+        beam(bm, (x, y, 17.5), (XN * 1.05 * math.cos(a), YC + 9.5 * math.sin(a), 25.0), 0.55, 0.8)
+    make(rig, "ml_stone", bm, st_m)
+    # belfry openings and the clock
+    op = plain("ml_open", "#26292b", rough=0.7, glow=("#ffd49a", 0.12))
+    bm = bmesh.new()
+    for k in range(8):
+        a = 2 * math.pi * k / 8
+        lancet_openings(bm, (6.6 * math.cos(a), ty + 6.6 * math.sin(a)), a, 1.7, 80.0, 92.0, n=2, gap=0.4)
+    make(rig, "ml_open", bm, op)
+    dial = Shade("ml_dial", "#e9e2d0", rough=0.4, spec=0.4, noise=0.0)
+    dial.glow(None, "#fff1d0", 0.4)
+    bm = bmesh.new()
+    MU.bm_cyl(2.3, 2.3, 0.3, center=(0.0, Y0 + 0.95, 66.0), axis="Y", segs=24, bm=bm)
+    MU.bm_cyl(2.3, 2.3, 0.3, center=(-TW + 0.95, ty, 66.0), axis="X", segs=24, bm=bm)
+    make(rig, "ml_dial", bm, dial.finish())
+    # crocketed stone spire with small openings, gilded cross
+    sp = Shade("ml_spire", "#d3c6a9", rough=0.85, spec=0.25, color2="#bdb092", noise=0.06, nscale=0.3)
+    openwork(sp, 99.0, 124.0, 1.6, 2.6, 0.7, 1.6)
+    sp.flood(FLOOD, 1.15, grad=(78.0, 135.0, 0.85))
+    sp_m = sp.finish()
+    bm = bmesh.new()
+    bmr = bmesh.new()
+    pyramid(bm, octagon(0.0, ty, 6.0), 96.2, (0.0, ty, 130.5))
+    spire_ribs(bmr, 0.0, ty, 6.1, 96.2, 130.5, w=0.55, crockets=10, ck=0.6, rings=(104.0, 112.0, 120.0), ring_w=0.35)
+    make(rig, "ml_spire", bm, sp_m)
+    make(rig, "ml_ribs", bmr, sp_m)
+    bm = MU.bm_sphere(0.7, center=(0.0, ty, 130.8), subdiv=1)
+    beam(bm, (0.0, ty, 130.5), (0.0, ty, 134.8), 0.3)
+    beam(bm, (-1.0, ty, 133.6), (1.0, ty, 133.6), 0.25)
+    make(rig, "ml_cross", bm, gold("ml_gold", flood=0.85))
+    # green copper roofs
+    cu = copper("ml_roof", flood=0.5, color="#5b8273", color2="#4a6c60")
+    bm = bmesh.new()
+    gable_roof(bm, -XN - 0.4, XN + 0.4, YN0, YC, ZN, ZR, axis="y")
+    gable_roof(bm, -XT - 0.4, XT + 0.4, YT0 - 0.4, YT1 + 0.4, ZN, ZR, axis="x")
+    half = [(0.0, YC)] + [((XN + 0.4) * math.cos(a), YC + 9.4 * math.sin(a)) for a in [math.radians(d) for d in range(0, 181, 30)]]
+    for i in range(1, len(half) - 1):
+        pyramid(bm, [half[0], half[i], half[i + 1]], ZN, (0.0, YC, ZR))
+    for sx in (-1, 1):
+        lean_to(bm, sx * XA, sx * XN, ZA, ZA + 5.0, YN0, YT0)
+        lean_to(bm, sx * XA, sx * XN, ZA, ZA + 5.0, YT1, YC)
+    ring = [(0.0, YC)] + [((XA + 0.4) * math.cos(a), YC + (L - YC + 0.4) * math.sin(a))
+                          for a in [math.radians(d) for d in range(0, 181, 20)]]
+    for i in range(1, len(ring) - 1):
+        pyramid(bm, [ring[0], ring[i], ring[i + 1]], ZA, (0.0, YC, ZA + 8.0))
+    cxr, cyr = 0.0, (YT0 + YT1) / 2
+    lathe(bm, [(1.5, ZR - 3.0), (1.5, ZR + 4.5), (1.8, ZR + 4.9), (0.0, ZR + 5.1)], 8, cxr, cyr, math.pi / 8)
+    pyramid(bm, octagon(cxr, cyr, 1.4), ZR + 5.1, (cxr, cyr, ZR + 15.0))
+    make(rig, "ml_roof", bm, cu.finish())
+    return dict(object=obj_size(2 * XT, 134.8, L))
+
+
+# --- Passau: Cathedral of St. Stephen / Fulda: Cathedral of St. Salvator ------------------------------------
+
+def _pilasters(bm, x0, x1, y0, z0, z1, n, w=1.1, d=0.35, side=None):
+    """n pilasters (incl. the corners) evenly spread on a front face (y0, facing -y) from x0 to x1 or, with
+    side = (x, y0, y1), on a side face at x facing outward (-x for x < 0)."""
+    if side is None:
+        for i in range(n):
+            x = x0 + (x1 - x0) * i / (n - 1)
+            x = min(max(x, x0 + w / 2), x1 - w / 2)
+            box(bm, x - w / 2, x + w / 2, y0 - d, y0 + 0.2, z0, z1)
+    else:
+        xs, ya, yb = side
+        xa, xb = (xs - d, xs + 0.2) if xs < 0 else (xs - 0.2, xs + d)
+        for i in range(n):
+            y = ya + (yb - ya) * i / (n - 1)
+            y = min(max(y, ya + w / 2), yb - w / 2)
+            box(bm, xa, xb, y - w / 2, y + w / 2, z0, z1)
+    return bm
+
+
+def _cornice(bm, x0, x1, y0, y1, z, h=0.9, o=0.45):
+    return box(bm, x0 - o, x1 + o, y0 - o, y1 + o, z - h / 2, z + h / 2)
+
+
+def _baroque_church(rig, p, pre, cfg):
+    """Baroque twin-tower cathedral with a crossing dome (Passau, Fulda): plastered walls with stone
+    pilasters and cornices, west front with portal, window and curved gable, towers with belfries and
+    copper domes, nave with aisles, transept, crossing dome with drum and lantern, choir."""
+    FX, CX, Y0, TD = cfg["FX"], cfg["CX"], 2.0, cfg["TD"]
+    XN, XA, XT = cfg["XN"], cfg["XA"], cfg["XT"]
+    ZN, ZA, ZR, ZTW = cfg["ZN"], cfg["ZA"], cfg["ZR"], cfg["ZTW"]
+    YN0 = Y0 + TD
+    YT0, YT1, YC, L = cfg["YT0"], cfg["YT1"], cfg["YC"], cfg["L"]
+    wall = Shade(pre + "_wall", cfg["wall"], rough=0.85, spec=0.25, noise=0.04, nscale=0.4)
+    kw = dict(glass="#2b2f33", arch=True, frame=cfg["trim"], frame_w=0.3)
+    kwn = dict(kw, color="#ffd49a", strength=0.8)
+    tz = cfg["tower_z"]
+    storeys = [(cfg["win1"][0], cfg["win1"][1])] + [(za + 2.6, zb - 2.0) for (za, zb) in zip(tz[1:-1], tz[2:])]
+    for sx in (-1, 1):
+        tcx = sx * (CX + FX) / 2
+        tw2 = (FX - CX) / 2
+        for i, (za, zb) in enumerate(storeys):
+            wall.grid("front", (tcx - tw2, tcx + tw2), (za, zb), (FX - CX, zb - za), (2.4, zb - za), lit=0.0, seed=i,
+                      **kw)
+    for i, (za, zb) in enumerate(storeys[1:]):
+        wall.grid("left", (-YN0 + 0.5, -Y0 - 0.5), (za, zb), (TD - 1.0, zb - za), (2.4, zb - za), lit=0.0, seed=i + 5,
+                  **kw)
+    pz = cfg["portal"]
+    wall.grid("front", (-CX + 1.0, CX - 1.0), (0.3, pz), (2 * CX - 2.0, pz - 0.3), (cfg["portal_w"], pz - 0.3), lit=0.0,
+              glass="#3a2c22", arch=True, frame=cfg["trim"], frame_w=0.5)
+    w0, w1, ww = cfg["west"]
+    wall.grid("front", (-CX + 1.0, CX - 1.0), (w0, w1), (2 * CX - 2.0, w1 - w0), (ww, w1 - w0), lit=0.0, **kw)
+    # nave bays between the pilasters, transept window
+    nbay = max(1, int(round((YT0 - YN0) / cfg["bay"])))
+    bay = (YT0 - YN0) / nbay
+    for (key, lit, seed) in (("nave_win", 0.25, 0), ("aisle_win", 0.2, 3)):
+        z0, z1, ww, wh = cfg[key]
+        wall.grid("left", (-YT0, -YN0), (z0, z1), (bay, z1 - z0), (ww, min(wh, z1 - z0)), lit=lit, seed=seed, **kwn)
+    z0, z1 = cfg["nave_win"][0], cfg["nave_win"][1]
+    wall.grid("left", (-YT1 + 1.5, -YT0 - 1.5), (z0, z1), (YT1 - YT0 - 3.0, z1 - z0), (4.0, z1 - z0), lit=0.0, seed=4,
+              **kw)
+    wall.flood(FLOOD, 1.15, grad=(0.0, ZTW, 0.8))
+    wall_m = wall.finish()
+    trim = Shade(pre + "_trim", cfg["trim"], rough=0.8, spec=0.3, noise=0.06, nscale=0.3)
+    trim.flood(FLOOD, 1.1, grad=(0.0, ZTW, 0.8))
+    trim_m = trim.finish()
+    bm = bmesh.new()
+    bt = bmesh.new()
+    for sx in (-1, 1):
+        x0, x1 = sorted((sx * CX, sx * FX))
+        box(bm, x0, x1, Y0, YN0, 0.0, tz[-1])
+        for z in tz[1:]:
+            _cornice(bt, x0, x1, Y0, YN0, z)
+        for (za, zb) in zip(tz[:-1], tz[1:]):
+            _pilasters(bt, x0, x1, Y0, za + 0.45, zb - 0.45, 2)
+            _pilasters(bt, x0, x1, Y0, za + 0.45, zb - 0.45, 2, side=(sx * FX, Y0, YN0))
+    # centre bay with the curved gable and the statue
+    box(bm, -CX, CX, Y0 + 0.6, YN0, 0.0, cfg["centre_z"])
+    gz0, gz1 = cfg["centre_z"], cfg["gable_z"]
+    prof = [(-CX, gz0), (CX, gz0)]
+    for i in range(11):
+        t = i / 10.0
+        x = CX * (1.0 - 2.0 * t)
+        prof.append((x, gz0 + (gz1 - gz0) * (math.sin(math.pi * t) ** 0.8) * (0.55 + 0.45 * (1 - abs(2 * t - 1)))))
+    gable_xz(bm, prof[:2] + prof[3:-1], Y0 + 0.6, 1.4)
+    _cornice(bt, -CX, CX, Y0 + 0.6, Y0 + 2.0, gz0, 1.0, 0.4)
+    _pilasters(bt, -CX, CX, Y0 + 0.6, 0.0, gz0 - 0.5, 4, w=1.2)
+    box(bt, -0.7, 0.7, Y0 + 1.0, Y0 + 2.0, gz1 - 0.2, gz1 + 3.2)
+    # nave, aisles, transept, choir
+    box(bm, -XN, XN, YN0, YC, 0.0, ZN)
+    box(bm, -XA, XA, YN0, YT0, 0.0, ZA)
+    box(bm, -XT, XT, YT0, YT1, 0.0, ZN)
+    box(bm, -XA, XA, YT1, YC, 0.0, ZA)
+    apse = [(XN * math.cos(a), YC + (L - YC) * math.sin(a)) for a in [math.radians(d) for d in range(0, 181, 30)]]
+    prism(bm, apse, 0.0, ZN)
+    _cornice(bt, -XN, XN, YN0, YC, ZN, 0.9, 0.35)
+    _cornice(bt, -XT, XT, YT0, YT1, ZN, 0.9, 0.35)
+    _cornice(bt, -XA, XA, YN0, YT0, ZA, 0.7, 0.3)
+    _pilasters(bt, 0, 0, 0, 0.0, ZA - 0.4, nbay + 1, w=0.9, side=(-XA, YN0, YT0))
+    _pilasters(bt, 0, 0, 0, ZA + 0.4, ZN - 0.4, nbay + 1, w=0.9, side=(-XN, YN0, YT0))
+    _pilasters(bt, 0, 0, 0, 0.0, ZN - 0.4, 3, w=1.2, side=(-XT, YT0, YT1))
+    make(rig, pre + "_wall", bm, wall_m)
+    make(rig, pre + "_trim", bt, trim_m)
+    bt = bmesh.new()
+    # belfries
+    bf = Shade(pre + "_belfry", cfg["wall"], rough=0.85, spec=0.25, noise=0.04, nscale=0.4)
+    bz0, bz1 = tz[-1], cfg["belfry_z"]
+    bf.flood(FLOOD, 1.15)
+    bm = bmesh.new()
+    op = plain(pre + "_open", "#2a2c2e", rough=0.7, glow=("#ffd49a", 0.15))
+    bo = bmesh.new()
+    dial = Shade(pre + "_dial", "#ece6d6", rough=0.4, spec=0.4, noise=0.0)
+    dial.glow(None, "#fff1d0", 0.4)
+    bd_ = bmesh.new()
+    for sx in (-1, 1):
+        tcx, tcy = sx * (CX + FX) / 2, Y0 + TD / 2
+        r = cfg["belfry_r"]
+        if cfg["belfry"] == "octagon":
+            prism(bm, octagon(tcx, tcy, r), bz0, bz1)
+            prism(bt, octagon(tcx, tcy, r + 0.5), bz1, bz1 + 0.9)
+            for k in range(8):
+                a = 2 * math.pi * k / 8
+                c = (tcx + (r + 0.02) * math.cos(a), tcy + (r + 0.02) * math.sin(a))
+                t = Vector((-math.sin(a), math.cos(a), 0.0))
+                cc = Vector((c[0], c[1], 0.0)) + Vector((math.cos(a), math.sin(a), 0.0)) * 0.06
+                arch = arch_pts(0.0, bz0 + (bz1 - bz0) * 0.62, 0.75, 0.75, 8)
+                pts = [(-0.75, bz0 + 1.6)] + arch + [(0.75, bz0 + 1.6)]
+                bo.faces.new([bo.verts.new(cc + t * dx + Vector((0, 0, zz))) for (dx, zz) in pts])
+                if k % 2 == 0:
+                    MU.bm_cyl(1.1, 1.1, 0.2, center=tuple(cc + Vector((0, 0, bz0 + (bz1 - bz0) * 0.85))),
+                              axis="X" if abs(math.cos(a)) > 0.5 else "Y", segs=20, bm=bd_)
+        else:
+            box(bm, tcx - r, tcx + r, tcy - r, tcy + r, bz0, bz1)
+            _cornice(bt, tcx - r, tcx + r, tcy - r, tcy + r, bz1, 0.9, 0.4)
+            for (nx, ny) in ((0, -1), (-1, 0), (1, 0), (0, 1)):
+                t = Vector((-ny, nx, 0.0))
+                cc = Vector((tcx + nx * (r + 0.06), tcy + ny * (r + 0.06), 0.0))
+                for k in (-1, 1):
+                    arch = arch_pts(0.0, bz0 + (bz1 - bz0) * 0.55, 0.8, 0.8, 8)
+                    pts = [(-0.8, bz0 + 1.2)] + arch + [(0.8, bz0 + 1.2)]
+                    off = t * (k * 1.6)
+                    bo.faces.new([bo.verts.new(cc + off + t * dx + Vector((0, 0, zz))) for (dx, zz) in pts])
+                MU.bm_cyl(1.2, 1.2, 0.2, center=tuple(cc + Vector((0, 0, bz1 - 1.6))), axis="Y" if ny else "X",
+                          segs=20, bm=bd_)
+            for ddx in (-1, 1):
+                for ddy in (-1, 1):
+                    box(bt, tcx + ddx * r - 0.55, tcx + ddx * r + 0.55, tcy + ddy * r - 0.55, tcy + ddy * r + 0.55,
+                        bz0, bz1 - 0.4)
+    make(rig, pre + "_belfry", bm, bf.finish())
+    make(rig, pre + "_trim2", bt, trim_m)
+    make(rig, pre + "_open", bo, op)
+    make(rig, pre + "_dial", bd_, dial.finish())
+    # roofs (slate / sheet metal) and copper domes
+    rf = Shade(pre + "_roof", cfg["roof"], rough=0.6, spec=0.35, metal=0.2, noise=0.06, nscale=0.6)
+    rf.flood(FLOOD_WHITE, 0.35)
+    bm = bmesh.new()
+    gable_roof(bm, -XN - 0.4, XN + 0.4, YN0, YC, ZN, ZR, axis="y")
+    gable_roof(bm, -XT - 0.4, XT + 0.4, YT0 - 0.4, YT1 + 0.4, ZN, ZR, axis="x")
+    half = [(0.0, YC)] + [((XN + 0.4) * math.cos(a), YC + (L - YC + 0.4) * math.sin(a))
+                          for a in [math.radians(d) for d in range(0, 181, 30)]]
+    for i in range(1, len(half) - 1):
+        pyramid(bm, [half[0], half[i], half[i + 1]], ZN, (0.0, YC, ZR))
+    for sx in (-1, 1):
+        lean_to(bm, sx * XA, sx * XN, ZA, ZA + 4.0, YN0, YT0)
+        lean_to(bm, sx * XA, sx * XN, ZA, ZA + 4.0, YT1, YC)
+    make(rig, pre + "_roof", bm, rf.finish())
+    cu = copper(pre + "_copper", flood=0.8, color=cfg["copper"][0], color2=cfg["copper"][1])
+    bm = bmesh.new()
+    bmg = bmesh.new()
+    for sx in (-1, 1):
+        tcx, tcy = sx * (CX + FX) / 2, Y0 + TD / 2
+        z = bz1 + 0.9
+        for (r, h, kind, segs) in cfg["helm"]:
+            if kind == "neck":
+                lathe(bm, [(r, z), (r, z + h), (0.0, z + h)], segs, tcx, tcy, math.pi / 8)
+            else:
+                lathe(bm, dome_profile(r, h, kind, 12, z0=z), segs, tcx, tcy, math.pi / 8 if segs == 8 else 0.0)
+            z += h
+        MU.bm_sphere(0.45, center=(tcx, tcy, z + 0.3), subdiv=2, bm=bmg)
+        beam(bmg, (tcx, tcy, z), (tcx, tcy, ZTW), 0.22)
+        beam(bmg, (tcx - 0.7, tcy, ZTW - 0.8), (tcx + 0.7, tcy, ZTW - 0.8), 0.2)
+    # crossing dome: drum, dome, lantern
+    dr, dz0, dz1 = cfg["drum"]
+    cy = (YT0 + YT1) / 2
+    seg = cfg.get("drum_segs", 8)
+    ph = math.pi / 8 if seg == 8 else 0.0
+    drum = Shade(pre + "_drum", cfg["wall"], rough=0.85, spec=0.25, noise=0.04, nscale=0.4)
+    pu = 2 * math.pi * dr / 8                                          # one window per face of the octagon
+    drum.grid("round", (-pu * 10.5, pu * 10.5), (dz0 + 2.0, dz1 - 2.0), (pu, dz1 - dz0 - 4.0), (2.4, dz1 - dz0 - 5.0),
+              lit=0.5, cx=0.0, cy=cy, r=dr, seed=5, **kwn)
+    drum.flood(FLOOD, 1.15)
+    drum_m = drum.finish()
+    dm = bmesh.new()
+    lathe(dm, [(dr, dz0 - 3.0), (dr, dz1), (dr + 0.6, dz1 + 0.4), (dr + 0.6, dz1 + 1.0), (0.0, dz1 + 1.0)], seg, 0.0, cy, ph)
+    make(rig, pre + "_drum", dm, drum_m)
+    z = dz1 + 1.0
+    lathe(bm, dome_profile(dr + 0.2, cfg["dome_h"], cfg.get("dome_kind", "dome"), 12, z0=z), seg if seg > 8 else 16, 0.0, cy)
+    z += cfg["dome_h"]
+    lr, lh = cfg["lantern"]
+    ln = bmesh.new()
+    lathe(ln, [(lr, z - 0.8), (lr, z + lh), (lr + 0.3, z + lh + 0.2), (0.0, z + lh + 0.3)], 8, 0.0, cy, math.pi / 8)
+    make(rig, pre + "_lantern", ln, drum_m)
+    z += lh + 0.3
+    lathe(bm, dome_profile(lr + 0.2, cfg["lantern_cap"], "onion", 10, z0=z), 12, 0.0, cy)
+    z += cfg["lantern_cap"]
+    MU.bm_sphere(0.4, center=(0.0, cy, z + 0.2), subdiv=2, bm=bmg)
+    beam(bmg, (0.0, cy, z), (0.0, cy, cfg["dome_top"]), 0.2)
+    beam(bmg, (-0.6, cy, cfg["dome_top"] - 0.7), (0.6, cy, cfg["dome_top"] - 0.7), 0.18)
+    make(rig, pre + "_copper", bm, cu.finish(), smooth=True, sharp=50.0)
+    make(rig, pre + "_gold", bmg, gold(pre + "_gold", flood=0.8))
+    return dict(object=obj_size(2 * XT, ZTW, L))
+
+
+def dom_passau(rig, p):
+    """Passau Cathedral St. Stephan (baroque, 1668-1693, on the hill between Danube and Inn): white facade
+    with grey pilasters, twin towers (68 m) with octagonal belfries and green copper onion domes, the
+    big roof of the nave, the octagonal crossing dome with lantern (60 m) and the late gothic choir.
+    102 m long. West front towards the road."""
+    cfg = dict(FX=17.5, CX=7.0, TD=10.5, XN=9.0, XA=16.0, XT=17.0, ZN=30.0, ZA=19.0, ZR=41.0, ZTW=68.0,
+               YT0=72.0, YT1=82.0, YC=92.0, L=102.0, wall="#efebe3", trim="#c9c3b6", roof="#5d6664",
+               copper=("#6fa892", "#5a907c"), tower_z=[0.0, 15.0, 30.0, 44.0], belfry="octagon", belfry_r=4.4,
+               belfry_z=53.5, helm=[(4.4, 1.0, "neck", 8), (4.2, 6.0, "onion", 16), (1.2, 2.2, "neck", 8),
+                                    (1.5, 2.4, "onion", 12)],
+               centre_z=34.0, gable_z=41.0, portal=10.0, portal_w=4.0, west=(15.0, 27.0, 5.0),
+               win1=(3.0, 11.0, 2.4, 6.0), win2=(18.0, 26.0, 2.4, 6.4), nave_win=(21.0, 28.0, 3.2, 5.6),
+               aisle_win=(6.0, 15.0, 3.0, 6.0), bay=7.6, drum=(7.2, 37.0, 46.5), dome_h=7.5, lantern=(1.8, 4.2),
+               lantern_cap=2.4, dome_top=64.0, drum_segs=8)
+    return _baroque_church(rig, p, "dp", cfg)
+
+
+def dom_fulda(rig, p):
+    """Fulda Cathedral St. Salvator (Johann Dientzenhofer, 1704-1712): light plaster with reddish
+    sandstone pilasters, cornices and frames, twin towers (65 m) with square belfries, clocks and copper
+    helmets (Welsche Hauben) with lanterns, the curved central gable with the Salvator statue, nave with
+    aisles, transept and the drum dome over the crossing (60 m). 99 m long. West front towards the road."""
+    cfg = dict(FX=18.5, CX=7.5, TD=11.0, XN=8.0, XA=14.5, XT=24.0, ZN=25.0, ZA=15.0, ZR=37.0, ZTW=65.0,
+               YT0=58.0, YT1=74.0, YC=88.0, L=99.0, wall="#ebe3d3", trim="#a87e6a", roof="#5a5f64",
+               copper=("#5d8c78", "#4c7564"), tower_z=[0.0, 14.0, 27.0, 40.0], belfry="square", belfry_r=4.6,
+               belfry_z=50.0, helm=[(4.4, 8.2, "helmet", 16), (1.1, 2.2, "neck", 8), (1.3, 1.6, "onion", 12)],
+               centre_z=30.0, gable_z=40.0, portal=9.5, portal_w=4.0, west=(13.0, 25.0, 4.6),
+               win1=(3.0, 11.0, 2.4, 6.0), win2=(17.0, 25.0, 2.4, 6.2), nave_win=(17.0, 23.5, 3.0, 5.0),
+               aisle_win=(5.0, 12.5, 2.8, 5.6), bay=7.0, drum=(8.4, 33.0, 42.0), dome_h=8.5, lantern=(1.9, 4.6),
+               lantern_cap=2.2, dome_top=61.5, drum_segs=24, dome_kind="dome")
+    return _baroque_church(rig, p, "df", cfg)
+
+
+# --- Bucharest: Palace of the Parliament -------------------------------------------------------------------
+
+def palatul_parlamentului(rig, p):
+    """Palace of the Parliament, Bucharest (1984-1997), one of the largest buildings in the world:
+    270 x 240 m, 86 m high, white stone. Stepped neo-classical mass: the wide base with arcades and
+    corner pavilions, set-back upper tiers with rows of windows, cornices and colonnades, the colossal
+    portico of the main (north) front and the colonnaded crown on top. Main front towards the road."""
+    W, D = 135.0, 240.0
+    st = Shade("pp_stone", "#e9e4d8", rough=0.75, spec=0.3, noise=0.03, nscale=0.25)
+    nb = st.nb
+    kw = dict(glass="#3c434b", color="#ffdca6", strength=0.85)
+    st.grid("any", (-1000.0, 1000.0), (9.5, 23.0), (4.6, 4.5), (1.9, 2.8), lit=0.08, **kw)
+    st.grid("any", (-1000.0, 1000.0), (26.0, 39.0), (4.6, 4.33), (1.9, 2.8), lit=0.08, seed=1, **kw)
+    st.grid("any", (-1000.0, 1000.0), (42.0, 53.0), (4.6, 3.67), (1.9, 2.6), lit=0.1, seed=2, **kw)
+    st.grid("any", (-1000.0, 1000.0), (56.0, 71.0), (4.0, 5.0), (1.8, 3.4), lit=0.12, seed=3, **kw)
+    st.grid("any", (-1000.0, 1000.0), (1.0, 8.5), (5.2, 7.5), (3.2, 7.0), lit=0.15, arch=True, seed=4,
+            glass="#4a4f55", color="#ffdca6", strength=0.85)                                    # ground floor arcades
+    st.grid("any", (-1000.0, 1000.0), (74.0, 81.0), (3.0, 7.0), (1.6, 6.0), lit=0.3, arch=True, seed=5, **kw)
+    # pilasters between the window columns
+    _t, u = st.face_u("any")
+    pil = nb.AND(nb.lt(nb.math("FLOORED_MODULO", nb.add(u, 2.175), 4.6), 0.75), nb.band(st.z, 9.0, 53.0), st.vert)
+    st.paint(pil, "#f1ede4")
+    st.bands([(8.6, 9.4), (23.4, 24.0), (39.4, 40.0), (53.4, 54.0), (71.4, 72.0)], "#d7d1c3")
+    st.flood("#ffd7a0", 1.0, grad=(0.0, 86.0, 0.85))
+    st_m = st.finish()
+    bm = bmesh.new()
+    tiers = [((-W, W), (0.0, D), (0.0, 24.0)), ((-108.0, 108.0), (12.0, D - 12.0), (24.0, 40.0)),
+             ((-78.0, 78.0), (26.0, 196.0), (40.0, 54.0)), ((-34.0, 34.0), (40.0, 112.0), (54.0, 72.0)),
+             ((-22.0, 22.0), (52.0, 100.0), (72.0, 82.0))]
+    for (x, y, z) in tiers:
+        box(bm, x[0], x[1], y[0], y[1], z[0], z[1])
+        box(bm, x[0] - 0.8, x[1] + 0.8, y[0] - 0.8, y[1] + 0.8, z[1] - 0.6, z[1] + 0.9)       # cornice
+        box(bm, x[0] + 0.3, x[1] - 0.3, y[0] + 0.3, y[1] - 0.3, z[1] + 0.9, z[1] + 2.0)       # attic
+    # corner pavilions and side risalits of the base, risalits of the second tier
+    for sx in (-1, 1):
+        for (x0, x1) in ((sx * W, sx * (W - 22.0)), (sx * 62.0, sx * 80.0)):
+            xa, xb = sorted((x0, x1))
+            box(bm, xa, xb, -2.5, 10.0, 0.0, 30.0)
+            box(bm, xa - 0.6, xb + 0.6, -3.1, 10.6, 29.4, 30.9)
+        xa, xb = sorted((sx * 40.0, sx * 56.0))
+        box(bm, xa, xb, 10.0, 24.0, 24.0, 46.0)
+        box(bm, xa - 0.6, xb + 0.6, 9.4, 24.6, 45.4, 46.9)
+    # colossal portico of the main front with its terrace (columns: plain stone, no windows)
+    col = plain("pp_column", "#ece8de", rough=0.7, flood=("#ffd7a0", 1.0), noise=0.03)
+    bc = bmesh.new()
+    box(bm, -42.0, 42.0, -10.0, 0.5, 0.0, 2.0)
+    box(bm, -42.0, 42.0, -10.0, -6.5, 27.0, 30.5)
+    box(bm, -42.5, 42.5, -10.5, 0.5, 30.5, 31.6)
+    for i in range(16):
+        x = -39.0 + i * 5.2
+        lathe(bc, [(1.15, 2.0), (1.0, 27.0), (0.0, 27.0)], 12, x, -8.2)
+    for i in range(29):                                                   # balustrade of the terrace
+        x = -41.0 + i * (82.0 / 28)
+        box(bm, x - 0.25, x + 0.25, -10.2, -9.7, 31.6, 33.0)
+    box(bm, -42.0, 42.0, -10.3, -9.6, 33.0, 33.6)
+    # colonnade of the crown
+    for (n, x0, y0, x1, y1) in ((13, -21.0, 51.0, 21.0, 51.0), (15, -23.0, 53.0, -23.0, 99.0)):
+        for i in range(n):
+            t = i / (n - 1)
+            x, y = x0 + (x1 - x0) * t, y0 + (y1 - y0) * t
+            lathe(bc, [(0.6, 72.0), (0.55, 81.0), (0.0, 81.0)], 8, x, y)
+    box(bm, -2.0, 2.0, 74.0, 78.0, 82.0, 84.0)
+    make(rig, "pp_stone", bm, st_m)
+    make(rig, "pp_columns", bc, col)
+    # flat roofs (grey) and the flag mast
+    rf = Shade("pp_roof", "#9a9a94", rough=0.8, spec=0.3, noise=0.04)
+    rf.flood(FLOOD_WHITE, 0.25)
+    bm = bmesh.new()
+    for (x, y, z) in tiers:
+        box(bm, x[0] + 0.5, x[1] - 0.5, y[0] + 0.5, y[1] - 0.5, z[1] + 1.9, z[1] + 2.05)
+    make(rig, "pp_roof", bm, rf.finish())
+    bm = bmesh.new()
+    beam(bm, (0.0, 76.0, 84.0), (0.0, 76.0, 86.0), 0.25)
+    make(rig, "pp_mast", bm, plain("pp_mast", "#d8d8d8", rough=0.4, flood=(FLOOD_WHITE, 0.6)))
+    return dict(object=obj_size(2 * W, 86.0, D))
+
+
+# --- Timisoara: Metropolitan Cathedral --------------------------------------------------------------------
+
+def glazed_tiles(name, base, colors, pitch=(1.7, 1.25), size=0.3, flood=0.75, center=None, r=None):
+    """Glazed roof tiles in a diamond pattern: diamonds in the colours (one colour per diamond row) on a
+    base colour. u along the roof (horizontal), or around a tower axis (center = (x, y), arc length at r)."""
+    s = Shade(name, base, rough=0.3, spec=0.6, noise=0.03)
+    nb = s.nb
+    if center is not None:
+        u = nb.mul(nb.math("ARCTAN2", nb.sub(s.y, center[1]), nb.sub(s.x, center[0])), r)
+    else:
+        u = nb.madd(s.x, nb.absf(s.ny), nb.mul(s.y, nb.absf(s.nx)))
+    pu, pz = pitch
+    rowf = nb.math("FLOOR", nb.mul(s.z, 1.0 / pz))
+    u = nb.madd(nb.math("FLOORED_MODULO", rowf, 2.0), pu / 2, u)
+    fu = nb.absf(nb.sub(nb.math("FLOORED_MODULO", nb.mul(u, 1.0 / pu), 1.0), 0.5))
+    fz = nb.absf(nb.sub(nb.math("FLOORED_MODULO", nb.mul(s.z, 1.0 / pz), 1.0), 0.5))
+    dia = nb.lt(nb.add(fu, fz), size)
+    n = float(len(colors))
+    col = nb.ramp(nb.math("DIVIDE", nb.add(nb.math("FLOORED_MODULO", rowf, n), 0.5), n),
+                  [(i / n, M.srgb(c)) for i, c in enumerate(colors)])
+    col.node.color_ramp.interpolation = "CONSTANT"
+    s.set_col(nb.mix(dia, M.srgb(base), col))
+    s.flood(FLOOD_WHITE, flood)
+    return s
+
+
+def catedrala_timisoara(rig, p):
+    """Metropolitan Cathedral of the Three Holy Hierarchs, Timisoara (1936-1946, Ion Traianescu):
+    neo-Romanian (Moldavian) style with red and yellow-orange brick, blind niches and rows of green glazed
+    discs, eleven towers on star-shaped bases with tall drums and pointed bulbous roofs, the central tower
+    90.5 m with its cross, the bell tower over the entrance, steep roofs of green glazed tiles with yellow
+    and red diamonds. 63 m long, 32 m wide. Entrance front towards the road."""
+    st = Shade("ct_brick", "#b4563b", rough=0.85, spec=0.25, color2="#9c4632", noise=0.07, nscale=0.6)
+    nb = st.nb
+    st.paint(nb.AND(nb.lt(nb.math("FLOORED_MODULO", st.z, 1.6), 0.55), st.vert), "#d08b47")      # yellow bands
+    _t, u = st.face_u("any")
+    fu = nb.sub(nb.math("FLOORED_MODULO", u, 1.25), 0.625)
+    fz = nb.sub(st.z, 15.6)
+    disc = nb.AND(nb.lt(nb.add(nb.mul(fu, fu), nb.mul(fz, fz)), 0.13), st.vert)
+    st.paint(disc, "#2f7a4c", 0.3, 0.6)                                                               # glazed discs
+    st.paint(nb.AND(nb.band(st.z, 15.0, 16.2), st.vert, nb.NOT(disc)), "#e3d3b0")
+    kw = dict(glass="#2a2724", arch=True, frame="#e1cfa8", frame_w=0.25, color="#ffd49a", strength=0.8)
+    st.grid("any", (-1000.0, 1000.0), (3.5, 13.0), (3.0, 9.5), (1.7, 8.2), lit=0.0, glass="#86402e", arch=True)  # niches
+    st.grid("front", (-3.0, 3.0), (0.3, 11.0), (6.0, 10.7), (4.6, 10.4), lit=0.0, glass="#3a2a20", arch=True,
+            frame="#e1cfa8", frame_w=0.5)                                                         # portal
+    st.grid("left", (-46.0, -22.0), (4.0, 13.0), (6.0, 9.0), (2.0, 6.5), lit=0.3, **kw)
+    st.flood(FLOOD, 1.2, grad=(0.0, 90.0, 0.8))
+    st_m = st.finish()
+    # drums: brick with tall narrow windows
+    dr = Shade("ct_drum", "#b4563b", rough=0.85, spec=0.25, color2="#9c4632", noise=0.07, nscale=0.6)
+    nb = dr.nb
+    dr.paint(nb.AND(nb.lt(nb.math("FLOORED_MODULO", dr.z, 1.6), 0.55), dr.vert), "#d08b47")
+    dr.flood(FLOOD, 1.2, grad=(0.0, 90.0, 0.8))
+    bm = bmesh.new()
+    box(bm, -12.0, 12.0, 2.0, 18.0, 0.0, 19.0)                            # pronaos with the entrance
+    box(bm, -4.5, 4.5, 0.0, 2.2, 0.0, 14.0)                               # portal frame
+    box(bm, -16.0, 16.0, 18.0, 50.0, 0.0, 21.0)                           # naos
+    for sx in (-1, 1):                                                    # lateral apses (trefoil plan)
+        lathe(bm, [(8.0, 0.0), (8.0, 18.0), (0.0, 18.0)], 16, sx * 16.0, 34.0)
+    apse = [(10.0 * math.cos(a), 50.0 + 13.0 * math.sin(a)) for a in [math.radians(d) for d in range(0, 181, 30)]]
+    prism(bm, apse, 0.0, 18.0)
+    # central tower: square base and two rotated squares (star base)
+    box(bm, -9.0, 9.0, 25.0, 43.0, 21.0, 31.0)
+    for rot in (0.0, math.pi / 4):
+        pts = [(9.4 * math.cos(rot + math.pi / 4 + k * math.pi / 2) * 0.9, 34.0 + 9.4 * math.sin(rot + math.pi / 4 + k * math.pi / 2) * 0.9)
+               for k in range(4)]
+        prism(bm, pts, 31.0, 36.0)
+    # bell tower over the entrance
+    box(bm, -6.0, 6.0, 4.0, 16.0, 19.0, 33.0)
+    make(rig, "ct_brick", bm, st_m)
+    towers = [(0.0, 34.0, 6.4, 36.0, 61.0, 7.0, 24.0, 90.5),            # (x, y, r, z0, z1, helmet r, h, top)
+              (0.0, 10.0, 4.6, 33.0, 46.0, 5.0, 11.5, 62.0)]
+    for (x, y) in ((-12.0, 23.0), (12.0, 23.0), (-12.0, 45.0), (12.0, 45.0)):
+        towers.append((x, y, 2.8, 21.0, 34.0, 3.2, 7.5, 47.5))
+    for (x, y) in ((-11.0, 3.0), (11.0, 3.0), (-8.5, 56.0), (8.5, 56.0)):
+        towers.append((x, y, 1.9, 18.0, 27.0, 2.2, 5.5, 35.5))
+    towers.append((0.0, 58.5, 1.6, 18.0, 25.0, 1.9, 4.5, 32.0))
+    bm = bmesh.new()
+    op = plain("ct_open", "#2a2622", rough=0.7, glow=("#ffd49a", 0.3))
+    bo = bmesh.new()
+    for (x, y, r, z0, z1, hr, hh, top) in towers:
+        lathe(bm, [(r + 0.6, z0), (r + 0.6, z0 + 0.8), (r, z0 + 0.8), (r, z1), (r + 0.5, z1 + 0.3), (r + 0.5, z1 + 0.9),
+                   (0.0, z1 + 0.9)], 8, x, y, math.pi / 8)
+        n = 8 if r > 3.0 else 4
+        for k in range(n):
+            a = 2 * math.pi * k / n
+            c = Vector((x + (r * math.cos(math.pi / 8) + 0.05) * math.cos(a), y + (r * math.cos(math.pi / 8) + 0.05) * math.sin(a), 0.0))
+            t = Vector((-math.sin(a), math.cos(a), 0.0))
+            ww = min(0.9, r * 0.28)
+            zs, ze = z0 + 2.5, z1 - 2.0
+            pts = [(-ww, zs), (ww, zs)] + [(ww * math.cos(math.pi * i / 6), ze + ww * math.sin(math.pi * i / 6))
+                                            for i in range(7)]
+            bo.faces.new([bo.verts.new(c + t * dx + Vector((0, 0, zz))) for (dx, zz) in pts])
+    make(rig, "ct_drums", bm, dr.finish())
+    make(rig, "ct_open", bo, op)
+    # roofs and helmets: green glazed tiles with yellow and red diamonds
+    tiles = glazed_tiles("ct_tiles", "#2f7a52", ["#e2b83c", "#b8402e"], pitch=(2.4, 1.8), size=0.4)
+    tiles_m = tiles.finish()
+    bm = bmesh.new()
+    gable_roof(bm, -12.5, 12.5, 1.5, 18.5, 19.0, 27.0, axis="y")
+    gable_roof(bm, -16.5, 16.5, 17.5, 50.5, 21.0, 31.0, axis="y")
+    for sx in (-1, 1):
+        lathe(bm, dome_profile(8.4, 7.0, "dome", 8, z0=18.0), 16, sx * 16.0, 34.0)
+    half = [(0.0, 50.0)] + [(10.5 * math.cos(a), 50.0 + 13.5 * math.sin(a)) for a in [math.radians(d) for d in range(0, 181, 30)]]
+    for i in range(1, len(half) - 1):
+        pyramid(bm, [half[0], half[i], half[i + 1]], 18.0, (0.0, 50.0, 28.0))
+    make(rig, "ct_roofs", bm, tiles_m)
+    hel = glazed_tiles("ct_helm", "#2f7a52", ["#e2b83c", "#b8402e"], pitch=(2.2, 1.7), size=0.4, center=(0.0, 34.0),
+                       r=6.5)
+    bm = bmesh.new()
+    bms = bmesh.new()
+    bmg = bmesh.new()
+    for i, (x, y, r, z0, z1, hr, hh, top) in enumerate(towers):
+        prof = dome_profile(hr, hh, "onion", 14, z0=z1 + 0.9)
+        prof = [(rr * (1.0 - 0.25 * (zz - z1 - 0.9) / hh), zz) for (rr, zz) in prof]
+        lathe(bm if i == 0 else bms, prof, 16, x, y)
+        zt = z1 + 0.9 + hh
+        MU.bm_sphere(0.35 + 0.1 * r, center=(x, y, zt + 0.2), subdiv=2, bm=bmg)
+        beam(bmg, (x, y, zt), (x, y, top), 0.12 + 0.03 * r)
+        cw = 0.5 + 0.18 * r
+        beam(bmg, (x - cw, y, top - 0.35 * (top - zt)), (x + cw, y, top - 0.35 * (top - zt)), 0.1 + 0.03 * r)
+    make(rig, "ct_helm", bm, hel.finish(), smooth=True, sharp=50.0)
+    make(rig, "ct_helms", bms, tiles_m, smooth=True, sharp=50.0)
+    make(rig, "ct_gold", bmg, gold("ct_gold", flood=0.85))
+    return dict(object=obj_size(48.0, 90.5, 63.0))
+
+
+# --- Sibiu: Lutheran Cathedral (Evangelische Stadtpfarrkirche) ---------------------------------------------
+
+def stadtpfarrkirche_sibiu(rig, p):
+    """Lutheran Cathedral of St. Mary, Sibiu / Hermannstadt (14th-16th century): gothic hall church in
+    light grey plastered stone with stepped buttresses, steep roofs, the narrower polygonal choir and the
+    west tower (73.3 m), the tallest in Transylvania: plain shaft, overhanging gallery and the steep
+    spire with four corner turrets covered with coloured glazed tiles. 70 m long. West front towards the
+    road, the north side visible."""
+    st = Shade("sb_wall", "#d9d4c6", rough=0.88, spec=0.22, color2="#c4beb0", noise=0.06, nscale=0.35)
+    kw = dict(glass="#2b2e31", pointed=True, frame="#b7b0a1", frame_w=0.25, color="#ffd49a", strength=0.8)
+    st.grid("left", (-62.0, -22.0), (5.0, 17.0), (8.0, 12.0), (3.0, 11.0), lit=0.25, **kw)
+    st.grid("left", (-82.0, -64.0), (6.0, 18.0), (6.0, 12.0), (2.4, 11.0), lit=0.2, seed=1, **kw)
+    st.grid("front", (-11.0, -6.5), (5.0, 15.0), (4.5, 10.0), (2.6, 9.0), lit=0.0, **kw)
+    st.grid("front", (6.5, 11.0), (5.0, 15.0), (4.5, 10.0), (2.6, 9.0), lit=0.0, seed=2, **kw)
+    st.grid("front", (-2.0, 2.0), (0.3, 7.0), (4.0, 6.7), (2.8, 6.5), lit=0.0, glass="#3a2a20", pointed=True,
+            frame="#b7b0a1", frame_w=0.35)                                                     # tower portal
+    st.grid("front", (-2.0, 2.0), (14.0, 44.0), (4.0, 7.5), (1.0, 2.6), lit=0.0, glass="#2b2e31", seed=3)
+    st.grid("left", (-15.0, -5.0), (14.0, 44.0), (10.0, 7.5), (1.0, 2.6), lit=0.0, glass="#2b2e31", seed=4)
+    st.bands([(46.6, 47.4)], "#bdb6a6")
+    st.flood(FLOOD, 1.1, grad=(0.0, 73.0, 0.8))
+    st_m = st.finish()
+    bm = bmesh.new()
+    TX, TY, TW = 0.0, 10.0, 6.0                                            # tower centre, half width
+    box(bm, TX - TW, TX + TW, TY - TW, TY + TW, 0.0, 47.0)                # tower shaft
+    box(bm, -13.0, 13.0, 16.0, 62.0, 0.0, 22.0)                           # hall nave
+    box(bm, -13.0, 13.0, 4.0, 16.5, 0.0, 17.0)                            # west hall (ferula) beside the tower
+    box(bm, -8.5, 8.5, 62.0, 76.0, 0.0, 24.0)                             # choir
+    apse = [(8.5 * math.cos(a), 76.0 + 7.0 * math.sin(a)) for a in [math.radians(d) for d in range(0, 181, 30)]]
+    prism(bm, apse, 0.0, 24.0)
+    for i in range(6):                                                    # stepped buttresses
+        y = 22.0 + i * 8.0
+        for sx in (-1, 1):
+            box(bm, min(sx * 13.0, sx * 15.4), max(sx * 13.0, sx * 15.4), y - 0.8, y + 0.8, 0.0, 12.0)
+            box(bm, min(sx * 13.0, sx * 14.4), max(sx * 13.0, sx * 14.4), y - 0.7, y + 0.7, 12.0, 19.0)
+            gable_xz(bm, [(min(sx * 13.0, sx * 14.4), 19.0), (max(sx * 13.0, sx * 14.4), 19.0),
+                          ((sx * 13.0 if sx < 0 else sx * 13.0), 20.5)], y - 0.7, 1.4)
+    for d in range(15, 180, 30):
+        a = math.radians(d)
+        x, y = 9.6 * math.cos(a), 76.0 + 8.0 * math.sin(a)
+        box(bm, x - 0.7, x + 0.7, y - 0.7, y + 0.7, 0.0, 16.0)
+    box(bm, TX - TW - 0.9, TX + TW + 0.9, TY - TW - 0.9, TY + TW + 0.9, 47.0, 48.0)   # gallery floor
+    make(rig, "sb_wall", bm, st_m)
+    # overhanging timber gallery (Wehrgang) with small openings
+    gl = Shade("sb_gallery", "#e3ddd0", rough=0.85, spec=0.2, noise=0.04)
+    gl.grid("any", (-1000.0, 1000.0), (48.6, 51.4), (1.6, 2.8), (0.7, 1.6), lit=0.0, glass="#2a2b2c", arch=True)
+    gl.flood(FLOOD, 1.1)
+    bm = bmesh.new()
+    box(bm, TX - TW - 0.8, TX + TW + 0.8, TY - TW - 0.8, TY + TW + 0.8, 48.0, 52.0)
+    make(rig, "sb_gallery", bm, gl.finish())
+    # roofs: red-brown tiles; spire and corner turrets: coloured glazed tiles
+    rf = Shade("sb_roof", "#94503b", rough=0.75, spec=0.3, color2="#7c4030", noise=0.08, nscale=0.7)
+    rf.flood(FLOOD, 0.5)
+    bm = bmesh.new()
+    gable_roof(bm, -13.6, 13.6, 15.5, 62.6, 22.0, 42.0, axis="y")
+    gable_roof(bm, -9.0, 9.0, 61.0, 76.0, 24.0, 37.0, axis="y")
+    half = [(0.0, 76.0)] + [(9.0 * math.cos(a), 76.0 + 7.5 * math.sin(a)) for a in [math.radians(d) for d in range(0, 181, 30)]]
+    for i in range(1, len(half) - 1):
+        pyramid(bm, [half[0], half[i], half[i + 1]], 24.0, (0.0, 76.0, 37.0))
+    gable_roof(bm, -13.6, 13.6, 3.5, 17.0, 17.0, 25.0, axis="x", hip=3.0)
+    make(rig, "sb_roof", bm, rf.finish())
+    sp = glazed_tiles("sb_spire", "#4a6a4c", ["#c9a23a", "#7a3b2a"], pitch=(1.3, 1.0), size=0.28, flood=0.6)
+    bm = bmesh.new()
+    pyramid(bm, rect(TX, TY, 2 * TW + 1.6, 2 * TW + 1.6), 52.0, (TX, TY, 56.5))
+    pyramid(bm, octagon(TX, TY, 4.6), 55.5, (TX, TY, 71.2))
+    for ddx in (-1, 1):
+        for ddy in (-1, 1):
+            cx_, cy_ = TX + ddx * (TW - 0.2), TY + ddy * (TW - 0.2)
+            pyramid(bm, octagon(cx_, cy_, 0.9), 52.0, (cx_, cy_, 60.5))
+    make(rig, "sb_spire", bm, sp.finish())
+    bm = MU.bm_sphere(0.45, center=(TX, TY, 71.4), subdiv=2)
+    beam(bm, (TX, TY, 71.0), (TX, TY, 73.3), 0.16)
+    beam(bm, (TX - 0.6, TY, 72.6), (TX + 0.6, TY, 72.6), 0.14)
+    for ddx in (-1, 1):
+        for ddy in (-1, 1):
+            MU.bm_sphere(0.22, center=(TX + ddx * (TW - 0.2), TY + ddy * (TW - 0.2), 60.7), subdiv=1, bm=bm)
+    make(rig, "sb_gold", bm, gold("sb_gold", flood=0.8))
+    dial = Shade("sb_dial", "#ece6d6", rough=0.4, spec=0.4, noise=0.0)
+    dial.glow(None, "#fff1d0", 0.4)
+    bm = bmesh.new()
+    MU.bm_cyl(1.6, 1.6, 0.25, center=(TX, TY - TW - 0.1, 41.5), axis="Y", segs=20, bm=bm)
+    MU.bm_cyl(1.6, 1.6, 0.25, center=(TX - TW - 0.1, TY, 41.5), axis="X", segs=20, bm=bm)
+    make(rig, "sb_dial", bm, dial.finish())
+    return dict(object=obj_size(30.8, 73.3, 83.0))
+
+
+# --- Calais: Town hall with its belfry -------------------------------------------------------------------
+
+def beffroi_calais(rig, p):
+    """Hotel de Ville of Calais (1911-1925, neo-Flemish Renaissance) with its belfry (75 m, UNESCO World
+    Heritage): red brick with bands and frames of white stone, steep slate roofs with dormers and stepped
+    gables, the square belfry shaft with clocks, the octagonal stone lantern, green copper dome, open
+    lantern and spire with the golden dragon weathervane. Main front towards the road."""
+    W, Dp = 42.0, 26.0
+    br = Shade("bc_brick", "#a5483a", rough=0.85, spec=0.25, color2="#8d3c30", noise=0.07, nscale=0.8)
+    nb = br.nb
+    br.paint(nb.AND(nb.lt(nb.math("FLOORED_MODULO", br.z, 2.7), 0.5), br.vert), "#e8e1d3")       # stone bands
+    kw = dict(glass="#2b3036", frame="#ece6da", frame_w=0.35, color="#ffd9a0", strength=0.85)
+    br.grid("front", (-W + 1.0, W - 1.0), (2.5, 8.5), (4.2, 6.0), (2.2, 4.4), lit=0.2, arch=True, **kw)
+    br.grid("front", (-W + 1.0, W - 1.0), (10.5, 16.5), (4.2, 6.0), (2.2, 4.6), lit=0.2, seed=1, **kw)
+    br.grid("left", (-Dp + 1.0, -1.0), (2.5, 8.5), (4.0, 6.0), (2.2, 4.4), lit=0.2, arch=True, seed=2, **kw)
+    br.grid("left", (-Dp + 1.0, -1.0), (10.5, 16.5), (4.0, 6.0), (2.2, 4.6), lit=0.2, seed=3, **kw)
+    br.grid("front", (-3.5, 3.5), (24.0, 38.0), (7.0, 14.0), (2.4, 11.0), lit=0.0, arch=True, glass="#2b3036",
+            frame="#ece6da", frame_w=0.35)                                                    # belfry windows
+    br.grid("left", (-12.5, -3.5), (24.0, 38.0), (9.0, 14.0), (2.4, 11.0), lit=0.0, arch=True, glass="#2b3036",
+            frame="#ece6da", frame_w=0.35, seed=4)
+    br.flood(FLOOD, 1.15, grad=(0.0, 75.0, 0.8))
+    br_m = br.finish()
+    stn = Shade("bc_stone", "#e9e3d6", rough=0.8, spec=0.3, noise=0.04)
+    stn.grid("any", (-1000.0, 1000.0), (48.8, 55.8), (2.2, 7.0), (1.2, 5.6), lit=0.0, glass="#2b3036", arch=True)
+    stn.flood(FLOOD_WHITE, 1.1)
+    stn_m = stn.finish()
+    bm = bmesh.new()
+    bs = bmesh.new()
+    box(bm, -W, W, 0.0, Dp, 0.0, 18.0)                                    # town hall
+    box(bm, -9.5, 9.5, -3.0, 4.0, 0.0, 21.0)                              # central pavilion
+    for sx in (-1, 1):                                                    # end pavilions
+        x0, x1 = sorted((sx * W, sx * (W - 11.0)))
+        box(bm, x0, x1, -1.8, Dp, 0.0, 19.0)
+        # stepped gable
+        xm = (x0 + x1) / 2
+        prof = []
+        for k in range(5):
+            hw = (x1 - x0) / 2 * (1.0 - k / 5.0)
+            z = 19.0 + 2.2 * k
+            prof += [(xm + hw, z), (xm + hw, z + 2.2)]
+        rightside = prof
+        leftside = [(2 * xm - x, z) for (x, z) in reversed(prof)]
+        gable_xz(bm, [(x0, 19.0), (x1, 19.0)] + rightside[1:] + [(xm, 19.0 + 11.6)] + leftside[:-1], -1.8, 1.0)
+    # pavilion gable
+    gable_xz(bm, [(-9.5, 21.0), (9.5, 21.0), (5.0, 26.0), (5.0, 28.0), (0.0, 31.0), (-5.0, 28.0), (-5.0, 26.0)], -3.0, 1.0)
+    # belfry shaft behind the pavilion
+    BX, BY, BW = 0.0, 8.0, 4.6
+    box(bm, BX - BW, BX + BW, BY - BW, BY + BW, 0.0, 46.0)
+    for ddx in (-1, 1):                                                   # stone quoins
+        for ddy in (-1, 1):
+            for k in range(16):
+                z0 = 18.0 + k * 1.75
+                ww = 1.1 if k % 2 == 0 else 0.7
+                box(bs, BX + ddx * BW - ww / 2, BX + ddx * BW + ww / 2, BY + ddy * BW - ww / 2, BY + ddy * BW + ww / 2,
+                    z0, z0 + 0.9)
+    box(bs, BX - BW - 0.7, BX + BW + 0.7, BY - BW - 0.7, BY + BW + 0.7, 46.0, 47.5)   # balcony
+    for k in range(32):
+        a = 2 * math.pi * k / 32
+        box(bs, BX + 5.0 * math.cos(a) - 0.12, BX + 5.0 * math.cos(a) + 0.12, BY + 5.0 * math.sin(a) - 0.12,
+            BY + 5.0 * math.sin(a) + 0.12, 47.5, 48.6)
+    prism(bs, octagon(BX, BY, 3.9), 47.5, 57.0)                           # octagonal stone stage
+    prism(bs, octagon(BX, BY, 4.3), 57.0, 58.0)
+    for k in range(8):
+        a = 2 * math.pi * k / 8 + math.pi / 8
+        R = 4.3 / math.cos(math.pi / 8)
+        pinnacle(bs, BX + R * math.cos(a), BY + R * math.sin(a), 58.0, 0.5, 2.6, top=0.5)
+    lathe(bs, [(1.5, 64.5), (1.5, 68.0), (1.8, 68.3), (0.0, 68.5)], 8, BX, BY, math.pi / 8)       # open lantern
+    # window frames of white stone on the town hall, cornice
+    box(bs, -W - 0.4, W + 0.4, -0.4, Dp + 0.4, 17.6, 18.4)
+    make(rig, "bc_brick", bm, br_m)
+    make(rig, "bc_stone", bs, stn_m)
+    # slate roofs with dormers
+    rf = Shade("bc_slate", "#4c545b", rough=0.6, spec=0.35, noise=0.05, nscale=0.6)
+    rf.flood(FLOOD_WHITE, 0.35)
+    bm = bmesh.new()
+    gable_roof(bm, -W + 11.0, W - 11.0, -0.5, Dp + 0.5, 18.0, 30.0, axis="x")
+    for sx in (-1, 1):
+        x0, x1 = sorted((sx * W, sx * (W - 11.0)))
+        gable_roof(bm, x0 + 0.3, x1 - 0.3, -1.8, Dp + 0.5, 19.0, 30.0, axis="y")
+    gable_roof(bm, -9.5, 9.5, -3.0, 6.0, 21.0, 30.5, axis="y")
+    for i in range(6):
+        x = -27.0 + i * 10.8
+        if abs(x) < 10.0:
+            continue
+        box(bm, x - 1.2, x + 1.2, 1.2, 3.4, 20.0, 23.5)
+        gable_roof(bm, x - 1.5, x + 1.5, 1.0, 4.0, 23.5, 25.5, axis="y")
+    make(rig, "bc_slate", bm, rf.finish())
+    dm = plain("bc_dormer_glass", "#2b3036", rough=0.2, glow=("#ffd9a0", 0.15))
+    bm = bmesh.new()
+    for i in range(6):
+        x = -27.0 + i * 10.8
+        if abs(x) < 10.0:
+            continue
+        box(bm, x - 0.7, x + 0.7, 1.12, 1.2, 20.6, 22.9)
+    make(rig, "bc_dormers", bm, dm)
+    # clocks
+    dial = Shade("bc_dial", "#f0ead8", rough=0.4, spec=0.4, noise=0.0)
+    dial.glow(None, "#fff1d0", 0.45)
+    bm = bmesh.new()
+    MU.bm_cyl(2.0, 2.0, 0.25, center=(BX, BY - BW - 0.1, 42.0), axis="Y", segs=24, bm=bm)
+    MU.bm_cyl(2.0, 2.0, 0.25, center=(BX - BW - 0.1, BY, 42.0), axis="X", segs=24, bm=bm)
+    make(rig, "bc_dial", bm, dial.finish())
+    # copper dome and lantern cap, golden dragon vane
+    cu = copper("bc_dome", flood=0.75)
+    bm = bmesh.new()
+    lathe(bm, dome_profile(4.1, 6.5, "bell", 12, z0=58.0), 16, BX, BY)
+    lathe(bm, [(1.9, 64.2), (1.9, 64.6), (0.0, 64.6)], 8, BX, BY, math.pi / 8)
+    lathe(bm, dome_profile(1.9, 2.8, "onion", 10, z0=68.4), 12, BX, BY)
+    lathe(bm, [(0.35, 71.0), (0.12, 73.6), (0.0, 73.8)], 8, BX, BY)
+    make(rig, "bc_dome", bm, cu.finish(), smooth=True, sharp=50.0)
+    bm = MU.bm_sphere(0.35, center=(BX, BY, 72.2), subdiv=2)
+    beam(bm, (BX, BY, 73.0), (BX, BY, 75.0), 0.12)
+    beam(bm, (BX - 1.0, BY, 74.3), (BX + 1.2, BY, 74.6), 0.35, 0.5)
+    make(rig, "bc_gold", bm, gold("bc_gold", flood=0.85))
+    return dict(object=obj_size(2 * W, 75.0, Dp))
+
+
+# --- Brussels: Atomium -----------------------------------------------------------------------------------
+
+def tube(bm, a, b, r, segs=12):
+    """Round tube (closed cylinder) of radius r from point a to point b."""
+    from mathutils import Matrix
+    a, b = Vector(a), Vector(b)
+    d = b - a
+    res = bmesh.ops.create_cone(bm, cap_ends=True, cap_tris=False, segments=segs, radius1=r, radius2=r,
+                                depth=d.length)
+    m = Matrix.Translation((a + b) * 0.5) @ Vector((0.0, 0.0, 1.0)).rotation_difference(d.normalized()).to_matrix().to_4x4()
+    bmesh.ops.transform(bm, matrix=m, verts=res["verts"])
+    return bm
+
+
+def atomium(rig, p):
+    """Atomium, Brussels (1958 world fair): the unit cell of an iron crystal - nine stainless steel spheres
+    (18 m) on the corners and in the centre of a cube standing on its body diagonal (102 m), connected by
+    twenty tubes, the lowest sphere on a central column, three bipods under the lower spheres, the window
+    band of the top sphere. At night rows of small lights sparkle on the spheres."""
+    A, R, Z0 = 41.0, 9.0, 22.0                        # cube edge (centre to centre), sphere radius, lowest centre
+    cx, cy = 0.0, 42.0
+    q = Vector((1.0, 1.0, 1.0)).normalized().rotation_difference(Vector((0.0, 0.0, 1.0)))
+    pts = {}
+    for i in (0, 1):
+        for j in (0, 1):
+            for k in (0, 1):
+                pts[(i, j, k)] = q @ Vector((i * A, j * A, k * A))
+    centre = q @ Vector((A / 2, A / 2, A / 2))
+    # turn about the axis so that one lower corner points straight at the viewer (classic hexagon view)
+    low = pts[(1, 0, 0)]
+    turn = math.atan2(low.y, low.x) - (-math.pi / 2)
+    rz = [[math.cos(-turn), -math.sin(-turn)], [math.sin(-turn), math.cos(-turn)]]
+
+    def place(v):
+        return Vector((cx + rz[0][0] * v.x + rz[0][1] * v.y, cy + rz[1][0] * v.x + rz[1][1] * v.y, Z0 + v.z))
+    P = {key: place(v) for key, v in pts.items()}
+    C = place(centre)
+    st = Shade("at_steel", "#c8ccd1", rough=0.22, spec=0.6, metal=1.0, noise=0.0)
+    nb = st.nb
+    # panel seams and the window band of the top sphere
+    seam = nb.OR(nb.lt(nb.math("FLOORED_MODULO", st.z, 2.2), 0.08),
+                 nb.lt(nb.math("FLOORED_MODULO", nb.mul(nb.math("ARCTAN2", st.y, st.x), 18.0), 1.0), 0.04))
+    st.paint(seam, "#9ea3a9", 0.35)
+    ztop = P[(1, 1, 1)].z
+    band = nb.AND(nb.band(st.z, ztop - 0.6, ztop + 1.8), st.vert)
+    st.paint(band, "#2b333b", 0.15)
+    st.glow(band, "#ffdcaa", 0.55)
+    # sparkling lights: small dots scattered in rows over the spheres
+    v = nb.voronoi(0.42, out="Distance")
+    dots = nb.AND(nb.lt(v, 0.14), nb.NOT(band))
+    st.glow(dots, "#fff6e2", 1.0)
+    st.flood(FLOOD_WHITE, 0.18)
+    st_m = st.finish()
+    bm = bmesh.new()
+    for key, c in P.items():
+        MU.bm_sphere(R, center=tuple(c), subdiv=4, bm=bm)
+    MU.bm_sphere(R, center=tuple(C), subdiv=4, bm=bm)
+    make(rig, "at_spheres", bm, st_m, smooth=True, sharp=80.0)
+    tb = Shade("at_tube", "#b9bdc2", rough=0.3, spec=0.5, metal=1.0, noise=0.0)
+    tb.flood(FLOOD_WHITE, 0.15)
+    tb_m = tb.finish()
+    bm = bmesh.new()
+    keys = list(P.keys())
+    for a in range(len(keys)):
+        for b in range(a + 1, len(keys)):
+            ka, kb = keys[a], keys[b]
+            if sum(abs(x - y) for x, y in zip(ka, kb)) == 1:          # the 12 cube edges
+                tube(bm, P[ka], P[kb], 1.65)
+        tube(bm, P[keys[a]], C, 1.65)                                  # the 8 half diagonals
+    bottom = P[(0, 0, 0)]
+    tube(bm, (bottom.x, bottom.y, 0.0), (bottom.x, bottom.y, bottom.z - R + 1.0), 1.9)   # central column
+    # bipods under the three lower spheres
+    for key in ((1, 0, 0), (0, 1, 0), (0, 0, 1)):
+        c = P[key]
+        d = Vector((c.x - cx, c.y - cy, 0.0)).normalized()
+        t = Vector((-d.y, d.x, 0.0))
+        top = Vector((c.x, c.y, c.z - R * 0.85)) - d * 1.5
+        for s in (-1, 1):
+            foot = Vector((c.x, c.y, 0.0)) + d * 8.0 + t * (s * 7.0)
+            tube(bm, foot, top, 1.0, segs=8)
+    make(rig, "at_tubes", bm, tb_m, smooth=True, sharp=60.0)
+    # entrance pavilion at the foot
+    pv = Shade("at_pavilion", "#3a4048", rough=0.3, spec=0.5, noise=0.0)
+    pv.glow(None, "#ffe0b0", 0.25)
+    bm = bmesh.new()
+    lathe(bm, [(7.0, 0.0), (7.0, 4.0), (0.0, 4.0)], 16, bottom.x, bottom.y)
+    make(rig, "at_pavilion", bm, pv.finish())
+    xs = [c.x for c in P.values()]
+    ys = [c.y for c in P.values()]
+    return dict(object=obj_size(max(xs) - min(xs) + 2 * R, ztop + R, max(ys) - min(ys) + 2 * R))
+
+
+# --- Brussels: National Basilica of the Sacred Heart (Koekelberg) ------------------------------------------
+
+def basilika_koekelberg(rig, p):
+    """National Basilica of the Sacred Heart, Koekelberg (1905-1970), one of the largest Art Deco
+    buildings: buff brick and terracotta, a cross plan with long side wings, the front with two slim
+    towers with green spires, and the green copper dome on its high drum with ribs and tall windows (89 m).
+    167 m long. Front towards the road, the north side visible."""
+    br = Shade("kb_brick", "#c9a77d", rough=0.85, spec=0.25, color2="#b8946b", noise=0.06, nscale=0.6)
+    nb = br.nb
+    _t, u = br.face_u("any")
+    rib = nb.AND(nb.lt(nb.math("FLOORED_MODULO", u, 3.2), 0.7), nb.band(br.z, 4.0, 30.0), br.vert)
+    br.paint(rib, "#d9bc93")                                                         # Art Deco piers
+    kw = dict(glass="#2c3034", arch=True, color="#ffd49a", strength=0.8)
+    br.grid("left", (-120.0, -20.0), (6.0, 26.0), (6.4, 20.0), (2.4, 18.0), lit=0.2, **kw)
+    br.grid("front", (-9.0, 9.0), (0.3, 18.0), (18.0, 17.7), (8.0, 17.5), lit=0.0, glass="#3a2c22", arch=True)
+    br.grid("front", (-36.0, -12.0), (6.0, 24.0), (4.8, 18.0), (2.2, 16.0), lit=0.15, **kw)
+    br.grid("front", (12.0, 36.0), (6.0, 24.0), (4.8, 18.0), (2.2, 16.0), lit=0.15, seed=1, **kw)
+    br.flood(FLOOD, 1.1, grad=(0.0, 89.0, 0.8))
+    br_m = br.finish()
+    bm = bmesh.new()
+    YC = 84.0                                                         # crossing
+    box(bm, -14.0, 14.0, 4.0, 150.0, 0.0, 34.0)                       # nave
+    box(bm, -36.0, 36.0, 4.0, 150.0, 0.0, 26.0)                       # side wings / aisles
+    box(bm, -60.0, 60.0, YC - 16.0, YC + 16.0, 0.0, 34.0)             # transept
+    box(bm, -12.0, 12.0, 0.0, 6.0, 0.0, 30.0)                         # porch
+    apse = [(14.0 * math.cos(a), 150.0 + 17.0 * math.sin(a)) for a in [math.radians(d) for d in range(0, 181, 30)]]
+    prism(bm, apse, 0.0, 34.0)
+    for sx in (-1, 1):                                                # front towers
+        tx = sx * 18.0
+        box(bm, tx - 4.5, tx + 4.5, 0.0, 9.0, 0.0, 52.0)
+        box(bm, tx - 3.6, tx + 3.6, 0.9, 8.1, 52.0, 58.0)
+    # crossing: square base, octagonal drum (ribs + tall windows)
+    box(bm, -20.0, 20.0, YC - 20.0, YC + 20.0, 34.0, 42.0)
+    make(rig, "kb_brick", bm, br_m)
+    dr = Shade("kb_drum", "#c9a77d", rough=0.85, spec=0.25, color2="#b8946b", noise=0.06, nscale=0.6)
+    pu = 2 * math.pi * 16.0 / 16                                      # windows between the ribs
+    dr.grid("round", (-pu * 10, pu * 10), (45.0, 60.0), (pu, 15.0), (2.6, 13.5), lit=0.3, cx=0.0, cy=YC, r=16.0, **kw)
+    dr.flood(FLOOD, 1.1)
+    bm = bmesh.new()
+    lathe(bm, [(17.0, 40.0), (17.0, 43.0), (16.0, 43.0), (16.0, 62.0), (17.2, 62.6), (17.2, 63.6), (0.0, 63.6)], 16,
+          0.0, YC, math.pi / 16)
+    for k in range(16):                                               # ribs on the drum
+        a = 2 * math.pi * k / 16
+        box(bm, 16.3 * math.cos(a) - 0.7, 16.3 * math.cos(a) + 0.7, YC + 16.3 * math.sin(a) - 0.7,
+            YC + 16.3 * math.sin(a) + 0.7, 43.0, 62.6)
+    make(rig, "kb_drum", bm, dr.finish())
+    # roofs (grey), green copper dome with ribs, lantern, tower spires
+    rf = Shade("kb_roof", "#6e7378", rough=0.6, spec=0.35, noise=0.05)
+    rf.flood(FLOOD_WHITE, 0.3)
+    bm = bmesh.new()
+    gable_roof(bm, -14.5, 14.5, 4.0, 150.0, 34.0, 44.0, axis="y")
+    gable_roof(bm, -60.5, 60.5, YC - 16.5, YC + 16.5, 34.0, 44.0, axis="x")
+    for sx in (-1, 1):
+        lean_to(bm, sx * 36.0, sx * 14.0, 26.0, 31.0, 4.0, 150.0)
+    make(rig, "kb_roof", bm, rf.finish())
+    cu = copper("kb_dome", flood=0.75, color="#5f9a84", color2="#4e826f")
+    bm = bmesh.new()
+    lathe(bm, dome_profile(16.6, 17.0, "dome", 14, z0=63.6), 32, 0.0, YC)
+    for k in range(16):
+        a = 2 * math.pi * k / 16
+        prof = dome_profile(16.9, 17.2, "dome", 10, z0=63.6)
+        for (r0, z0), (r1, z1) in zip(prof[:-2], prof[1:-1]):
+            beam(bm, (r0 * math.cos(a), YC + r0 * math.sin(a), z0), (r1 * math.cos(a), YC + r1 * math.sin(a), z1), 0.6)
+    lathe(bm, [(3.0, 79.5), (3.0, 85.0), (3.6, 85.4), (0.0, 86.4)], 8, 0.0, YC, math.pi / 8)
+    for sx in (-1, 1):
+        tx = sx * 18.0
+        pyramid(bm, octagon(tx, 4.5, 3.3), 58.0, (tx, 4.5, 70.0))
+    make(rig, "kb_dome", bm, cu.finish())
+    bm = MU.bm_sphere(0.5, center=(0.0, YC, 86.6), subdiv=2)
+    beam(bm, (0.0, YC, 86.4), (0.0, YC, 89.0), 0.25)
+    beam(bm, (-0.8, YC, 88.2), (0.8, YC, 88.2), 0.22)
+    make(rig, "kb_gold", bm, gold("kb_gold", flood=0.85))
+    return dict(object=obj_size(120.0, 89.0, 167.0))
+
+
+# --- Bucharest: People's Salvation Cathedral ---------------------------------------------------------------
+
+def catedrala_mantuirii(rig, p):
+    """People's Salvation Cathedral, Bucharest (consecrated 2018) next to the Palace of the Parliament:
+    the tallest Orthodox church in the world, light stone with arcades and golden mosaics, the central
+    tower on its square base with an octagonal drum and the golden dome (127 m with the cross), four
+    corner towers and the bell tower over the entrance with golden domes. 126 m long, 67.5 m wide."""
+    st = Shade("cm_stone", "#e6dfcd", rough=0.8, spec=0.3, color2="#d6cdb8", noise=0.05, nscale=0.4)
+    kw = dict(glass="#2d3135", arch=True, frame="#cbbfa4", frame_w=0.35, color="#ffd49a", strength=0.85)
+    st.grid("any", (-1000.0, 1000.0), (4.0, 16.0), (5.0, 12.0), (2.4, 10.0), lit=0.15, **kw)
+    st.grid("any", (-1000.0, 1000.0), (22.0, 33.0), (5.0, 11.0), (2.2, 9.0), lit=0.15, seed=1, **kw)
+    st.grid("front", (-6.0, 6.0), (2.0, 15.0), (12.0, 13.0), (8.0, 12.5), lit=0.0, glass="#c39a3c", arch=True,
+            glass_rough=0.35)                                                             # golden mosaic
+    st.flood(FLOOD, 1.15, grad=(0.0, 127.0, 0.8))
+    st_m = st.finish()
+    bm = bmesh.new()
+    YC = 70.0
+    box(bm, -33.75, 33.75, 20.0, 110.0, 0.0, 36.0)                    # main body
+    box(bm, -18.0, 18.0, 0.0, 20.0, 0.0, 30.0)                        # narthex with the bell tower
+    apse = [(16.0 * math.cos(a), 110.0 + 16.0 * math.sin(a)) for a in [math.radians(d) for d in range(0, 181, 30)]]
+    prism(bm, apse, 0.0, 30.0)
+    box(bm, -16.0, 16.0, YC - 16.0, YC + 16.0, 36.0, 60.0)            # tower base
+    box(bm, -9.0, 9.0, 1.0, 19.0, 30.0, 56.0)                         # bell tower
+    for (x, y) in ((-24.0, 30.0), (24.0, 30.0), (-24.0, 100.0), (24.0, 100.0)):
+        box(bm, x - 6.0, x + 6.0, y - 6.0, y + 6.0, 36.0, 48.0)
+    make(rig, "cm_stone", bm, st_m)
+    dr = Shade("cm_drum", "#e6dfcd", rough=0.8, spec=0.3, color2="#d6cdb8", noise=0.05, nscale=0.4)
+    pu = 2 * math.pi * 12.0 / 12                                      # one window per face of the 12-gon
+    dr.grid("round", (-pu * 10, pu * 10), (64.0, 86.0), (pu, 22.0), (2.4, 19.0), lit=0.35, cx=0.0, cy=YC, r=12.0, **kw)
+    dr.flood(FLOOD, 1.15, grad=(0.0, 127.0, 0.8))
+    dr_m = dr.finish()
+    towers = [(0.0, YC, 12.5, 60.0, 89.0, 13.0, 25.0, 127.0), (0.0, 10.0, 6.5, 56.0, 70.0, 7.0, 12.0, 91.0)]
+    for (x, y) in ((-24.0, 30.0), (24.0, 30.0), (-24.0, 100.0), (24.0, 100.0)):
+        towers.append((x, y, 4.4, 48.0, 58.0, 4.8, 8.0, 71.0))
+    bm = bmesh.new()
+    for (x, y, r, z0, z1, hr, hh, top) in towers:
+        lathe(bm, [(r + 0.6, z0), (r + 0.6, z0 + 1.0), (r, z0 + 1.0), (r, z1), (r + 0.6, z1 + 0.4), (r + 0.6, z1 + 1.2),
+                   (0.0, z1 + 1.2)], 12, x, y)
+    make(rig, "cm_drums", bm, dr_m)
+    gd = Shade("cm_gilded", "#d8ad45", rough=0.3, spec=0.6, metal=1.0, noise=0.03)
+    gd.glow(None, "#ffd27a", 0.7)
+    gd_m = gd.finish()
+    bm = bmesh.new()
+    for (x, y, r, z0, z1, hr, hh, top) in towers:
+        prof = dome_profile(hr, hh, "onion", 14, z0=z1 + 1.2)
+        prof = [(rr * (1.0 - 0.2 * (zz - z1 - 1.2) / hh), zz) for (rr, zz) in prof]
+        lathe(bm, prof, 24, x, y)
+        zt = z1 + 1.2 + hh
+        beam(bm, (x, y, zt - 0.5), (x, y, top), 0.25 + 0.03 * r)
+        cw = 0.8 + 0.2 * r
+        beam(bm, (x - cw, y, top - 0.3 * (top - zt)), (x + cw, y, top - 0.3 * (top - zt)), 0.2 + 0.03 * r)
+    make(rig, "cm_domes", bm, gd_m, smooth=True, sharp=50.0)
+    rf = Shade("cm_roof", "#8f938f", rough=0.5, spec=0.4, metal=0.3, noise=0.04)
+    rf.flood(FLOOD_WHITE, 0.3)
+    bm = bmesh.new()
+    gable_roof(bm, -34.0, 34.0, 19.6, 110.4, 36.0, 42.0, axis="y")
+    gable_roof(bm, -18.4, 18.4, -0.4, 20.4, 30.0, 34.0, axis="x")
+    half = [(0.0, 110.0)] + [(16.4 * math.cos(a), 110.0 + 16.4 * math.sin(a)) for a in [math.radians(d) for d in range(0, 181, 30)]]
+    for i in range(1, len(half) - 1):
+        pyramid(bm, [half[0], half[i], half[i + 1]], 30.0, (0.0, 110.0, 38.0))
+    make(rig, "cm_roof", bm, rf.finish())
+    return dict(object=obj_size(67.5, 127.0, 126.0))
+
+
 # --- registry -------------------------------------------------------------------------------------
 
 #  glow per light layer [(sigma_m, strength)] (bloom in post), margins (side, top, bottom) in metres
@@ -2377,6 +3859,19 @@ LANDMARKS = {
     "freiheitsdenkmal_riga": (freiheitsdenkmal_riga, 288, -20.0, (1.0, 1.5, 0.6), G_FLOOD, 30.0, 256, 1.0),
     "kathedrale_burgos": (kathedrale_burgos, 448, -22.0, (1.5, 2.0, 1.0), G_FLOOD, 130.0, 512, 1.0),
     "basilica_pilar": (basilica_pilar, 448, -12.0, (1.5, 2.0, 1.0), G_FLOOD, 160.0, 704, 1.0),
+    # v0.7.0: Wien - Hamburg, Bukarest - Calais
+    "koelner_dom": (koelner_dom, 768, -20.0, (2.5, 3.0, 1.2), G_FLOOD, 170.0, 640, 1.0),
+    "dom_regensburg": (dom_regensburg, 576, -24.0, (2.0, 2.5, 1.2), G_FLOOD, 110.0, 448, 1.0),
+    "mariendom_linz": (mariendom_linz, 704, -20.0, (2.0, 3.0, 1.2), G_FLOOD, 140.0, 512, 1.0),
+    "dom_passau": (dom_passau, 448, -24.0, (1.5, 2.0, 1.0), G_FLOOD, 110.0, 448, 1.0),
+    "dom_fulda": (dom_fulda, 448, -22.0, (1.5, 2.0, 1.0), G_FLOOD, 110.0, 448, 1.0),
+    "palatul_parlamentului": (palatul_parlamentului, 320, -14.0, (3.0, 3.0, 1.5), G_FLOOD, 300.0, 960, 1.0),
+    "catedrala_timisoara": (catedrala_timisoara, 512, -24.0, (1.5, 2.0, 1.0), G_FLOOD, 90.0, 448, 1.0),
+    "stadtpfarrkirche_sibiu": (stadtpfarrkirche_sibiu, 416, -22.0, (1.5, 2.0, 1.0), G_FLOOD, 100.0, 448, 1.0),
+    "beffroi_calais": (beffroi_calais, 416, -18.0, (1.5, 2.0, 1.0), G_FLOOD, 110.0, 512, 1.0),
+    "atomium": (atomium, 512, -12.0, (2.0, 2.5, 1.2), G_LATTICE, 100.0, 512, 1.0),
+    "basilika_koekelberg": (basilika_koekelberg, 448, -22.0, (1.5, 2.0, 1.0), G_FLOOD, 180.0, 640, 1.0),
+    "catedrala_mantuirii": (catedrala_mantuirii, 576, -22.0, (1.5, 2.5, 1.0), G_FLOOD, 140.0, 448, 1.0),
 }
 
 

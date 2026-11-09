@@ -2,6 +2,18 @@
  "version": 1,
  "generator": "blender-cesprites-2",
  "sets": {
+  "landmarks/atomium": {
+   "file": "landmarks/atomium.png",
+   "cell": [416, 512],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
+   "image_width_m": 87.77,
+   "anchor": [0.6093, 0.9861],
+   "object": {"width_m": 75.98, "height_m": 102.01, "length_m": 84.95},
+   "tags": ["prop", "landmark"],
+   "elevation_deg": 3.0,
+   "extent_m": [51.16, 32.18]
+  },
   "landmarks/basilica_pilar": {
    "file": "landmarks/basilica_pilar.png",
    "cell": [704, 448],
@@ -14,6 +26,30 @@
    "elevation_deg": 3.0,
    "extent_m": [84.02, 70.09]
   },
+  "landmarks/basilika_koekelberg": {
+   "file": "landmarks/basilika_koekelberg.png",
+   "cell": [600, 448],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
+   "image_width_m": 129.2067,
+   "anchor": [0.7394, 0.9843],
+   "object": {"width_m": 120.0, "height_m": 89.0, "length_m": 167.0},
+   "tags": ["prop", "landmark"],
+   "elevation_deg": 3.0,
+   "extent_m": [93.6, 31.95]
+  },
+  "landmarks/beffroi_calais": {
+   "file": "landmarks/beffroi_calais.png",
+   "cell": [484, 416],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
+   "image_width_m": 91.9928,
+   "anchor": [0.5434, 0.9776],
+   "object": {"width_m": 84.0, "height_m": 75.0, "length_m": 26.0},
+   "tags": ["prop", "landmark"],
+   "elevation_deg": 3.0,
+   "extent_m": [48.47, 40.48]
+  },
   "landmarks/campanile_venezia": {
    "file": "landmarks/campanile_venezia.png",
    "cell": [388, 512],
@@ -25,6 +61,66 @@
    "tags": ["prop", "landmark"],
    "elevation_deg": 3.0,
    "extent_m": [32.93, 40.38]
+  },
+  "landmarks/catedrala_mantuirii": {
+   "file": "landmarks/catedrala_mantuirii.png",
+   "cell": [432, 576],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
+   "image_width_m": 100.5727,
+   "anchor": [0.7421, 0.9899],
+   "object": {"width_m": 67.5, "height_m": 127.0, "length_m": 126.0},
+   "tags": ["prop", "landmark"],
+   "elevation_deg": 3.0,
+   "extent_m": [72.54, 23.84]
+  },
+  "landmarks/catedrala_timisoara": {
+   "file": "landmarks/catedrala_timisoara.png",
+   "cell": [276, 512],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
+   "image_width_m": 51.3037,
+   "anchor": [0.7487, 0.9878],
+   "object": {"width_m": 48.0, "height_m": 90.5, "length_m": 63.0},
+   "tags": ["prop", "landmark"],
+   "elevation_deg": 3.0,
+   "extent_m": [36.74, 11.41]
+  },
+  "landmarks/dom_fulda": {
+   "file": "landmarks/dom_fulda.png",
+   "cell": [448, 440],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
+   "image_width_m": 70.4835,
+   "anchor": [0.7377, 0.9817],
+   "object": {"width_m": 48.0, "height_m": 65.0, "length_m": 99.0},
+   "tags": ["prop", "landmark"],
+   "elevation_deg": 3.0,
+   "extent_m": [50.42, 17.07]
+  },
+  "landmarks/dom_passau": {
+   "file": "landmarks/dom_passau.png",
+   "cell": [444, 448],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
+   "image_width_m": 71.1576,
+   "anchor": [0.7548, 0.9822],
+   "object": {"width_m": 34.0, "height_m": 68.0, "length_m": 102.0},
+   "tags": ["prop", "landmark"],
+   "elevation_deg": 3.0,
+   "extent_m": [52.11, 15.85]
+  },
+  "landmarks/dom_regensburg": {
+   "file": "landmarks/dom_regensburg.png",
+   "cell": [368, 576],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
+   "image_width_m": 70.0775,
+   "anchor": [0.6992, 0.9853],
+   "object": {"width_m": 39.0, "height_m": 105.0, "length_m": 90.0},
+   "tags": ["prop", "landmark"],
+   "elevation_deg": 3.0,
+   "extent_m": [46.9, 18.98]
   },
   "landmarks/duomo_milano": {
    "file": "landmarks/duomo_milano.png",
@@ -146,6 +242,18 @@
    "elevation_deg": 3.0,
    "extent_m": [52.82, 14.47]
   },
+  "landmarks/koelner_dom": {
+   "file": "landmarks/koelner_dom.png",
+   "cell": [516, 768],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
+   "image_width_m": 109.5711,
+   "anchor": [0.6967, 0.9893],
+   "object": {"width_m": 86.2, "height_m": 157.4, "length_m": 144.6},
+   "tags": ["prop", "landmark"],
+   "elevation_deg": 3.0,
+   "extent_m": [73.79, 30.68]
+  },
   "landmarks/kulturpalast_warschau": {
    "file": "landmarks/kulturpalast_warschau.png",
    "cell": [656, 800],
@@ -157,6 +265,18 @@
    "tags": ["prop", "landmark"],
    "elevation_deg": 3.0,
    "extent_m": [114.27, 80.55]
+  },
+  "landmarks/mariendom_linz": {
+   "file": "landmarks/mariendom_linz.png",
+   "cell": [388, 708],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
+   "image_width_m": 76.8957,
+   "anchor": [0.8167, 0.9905],
+   "object": {"width_m": 60.0, "height_m": 134.8, "length_m": 130.0},
+   "tags": ["prop", "landmark"],
+   "elevation_deg": 3.0,
+   "extent_m": [60.82, 12.11]
   },
   "landmarks/michel": {
    "file": "landmarks/michel.png",
@@ -181,6 +301,18 @@
    "tags": ["prop", "landmark"],
    "elevation_deg": 3.0,
    "extent_m": [44.19, 14.38]
+  },
+  "landmarks/palatul_parlamentului": {
+   "file": "landmarks/palatul_parlamentului.png",
+   "cell": [960, 284],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
+   "image_width_m": 328.343,
+   "anchor": [0.5879, 0.9657],
+   "object": {"width_m": 270.0, "height_m": 86.0, "length_m": 240.0},
+   "tags": ["prop", "landmark"],
+   "elevation_deg": 3.0,
+   "extent_m": [189.95, 132.23]
   },
   "landmarks/parlament_budapest": {
    "file": "landmarks/parlament_budapest.png",
@@ -229,6 +361,18 @@
    "tags": ["prop", "landmark"],
    "elevation_deg": 3.0,
    "extent_m": [34.81, 38.79]
+  },
+  "landmarks/stadtpfarrkirche_sibiu": {
+   "file": "landmarks/stadtpfarrkirche_sibiu.png",
+   "cell": [288, 420],
+   "angles": ["c"],
+   "layers": ["base", "lights"],
+   "image_width_m": 53.1353,
+   "anchor": [0.7584, 0.9863],
+   "object": {"width_m": 30.8, "height_m": 73.3, "length_m": 83.0},
+   "tags": ["prop", "landmark"],
+   "elevation_deg": 3.0,
+   "extent_m": [38.82, 11.18]
   },
   "landmarks/stephansdom": {
    "file": "landmarks/stephansdom.png",
@@ -599,6 +743,22 @@
    "anchor": [0.5, 0.9712],
    "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.61},
    "tags": ["police", "pl"],
+   "projection": "ortho",
+   "pivot": "rear",
+   "elevation_deg": 9.0,
+   "extent_m": [1.07, 1.07]
+  },
+  "police/ro": {
+   "file": "police/ro.png",
+   "cell": [308, 136],
+   "grid_cols": 6,
+   "angles": ["l24", "l21", "l18", "l15", "l12", "l9", "l6", "l3", "c", "r3", "r6", "r9", "r12", "r15", "r18", "r21", "r24"],
+   "yaw_deg": [-24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0, 0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0],
+   "layers": ["base", "tail", "brake", "beacon_a", "beacon_b"],
+   "image_width_m": 5.5,
+   "anchor": [0.5, 0.9712],
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.61},
+   "tags": ["police", "ro"],
    "projection": "ortho",
    "pivot": "rear",
    "elevation_deg": 9.0,
