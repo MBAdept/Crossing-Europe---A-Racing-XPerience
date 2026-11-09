@@ -85,9 +85,9 @@ Titel ─┬─ Rennen starten [Abfrage, falls gespeichert] → Rennen wählen �
   fortsetzen“ wieder zum Rennergebnis.
 - **Nur ein Spielstand**: „Rennen starten“ fragt bei einem gespeicherten Rennen nach (`ConfirmBox`, Standard
   „Abbrechen“, Esc/B = Nein), weil die Bestätigung der Startzeit des neuen Rennens den Spielstand ersetzt.
-- **Nächste Etappe**: Start = Ende + `time.stage_pause_hours` (12 h, `EnvironmentModel.next_stage_start`),
-  die Pause zählt nicht. **Fähre**: `fixed_time_s` zählt zur Rennzeit, `world_hours` zur Weltzeit; die
-  nächste Etappe startet bei Ankunft (die Fähre ersetzt die Pause).
+- **Nächste Etappe**: Start = Ende + `time.stage_pause_hours` (8 h seit v0.7.0, vorher 12 h – die Startzeit wandert so
+  über die Etappen um die Uhr; `EnvironmentModel.next_stage_start`), die Pause zählt nicht. **Fähre**: `fixed_time_s`
+  zählt zur Rennzeit, `world_hours` zur Weltzeit; die nächste Etappe startet bei Ankunft (die Fähre ersetzt die Pause).
 - **Wetter im Rennen**: `RaceState.leg_weather(cfg, plan, seed)` → `RaceState.choose_weather()` nach
   `weather.race_mode` (`region` → `EnvironmentModel.pick_weather(seed, plan.climate)`, `random` gleichverteilt,
   `fixed` = Feld `weather` der Etappe). Der Seed hängt von Renn-Seed, Leg-Nummer und Etappe ab – nach „Fortsetzen“ ist
@@ -705,7 +705,8 @@ an/aus), `music_file` (Titelmelodie; fehlt sie, spielt die synthetisierte Schlei
 
 **Zahlen in Spielertexten** kommen aus der Konfiguration, damit sie nach dem Abstimmen (auch per
 `game_config.json` neben der ausführbaren Datei) stimmen: Etappenpause `time.stage_pause_hours` und Zeitraffer
-`time.time_scale` (Startzeit-Bildschirm, „Nächster Start (12 h Pause)“), Schrittweite
+`time.time_scale` (Startzeit-Bildschirm: „… startet 8 Stunden nach dem Ende der vorherigen … 1 Stunde dauert 6
+Spielminuten“, Ergebnis: „Nächster Start (8 h Pause)“), Schrittweite
 `time.start_hour_step_minutes` (Startzeit-Hinweise), Tankspur `fuel.lane_trigger_speed_kmh` (Optionen,
 Tutorial), Abschleppen `fuel.tow_refill_fraction`/`fuel.tow_penalty_s`, Radar `radar.tolerance`, Polizei
 `police.escape_speed_kmh`, Startwert des Bestenlisten-Filters `leaderboard.default_filter`.

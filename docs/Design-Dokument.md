@@ -4,6 +4,8 @@ Design-Dokument · 30. Okt. 2026 · @Michi
 
 Überarbeitet am 2. Nov. 2026 nach dem Spieltest von v0.4.0 („zu leicht“): Verkehr, Wetter und Fahrverhalten, City Limits, Tutorial. Geänderte und neue Regeln sind mit *(seit v0.5.0)* markiert.
 
+Überarbeitet am 9. Nov. 2026 nach dem Spieltest von v0.6.0 („Die Etappen sind ein wenig kurz“): Zeitraffer und Pause zwischen den Etappen eines Rennens. Geänderte Regeln sind mit *(seit v0.7.0)* markiert.
+
 ## Überblick
 
 „Crossing Europe – A Racing Xperience“ ist ein schneller Arcade-Racer in Pseudo-3D, in dem man Etappenrennen quer durch Europa auf Bestzeit fährt. Vorbilder sind Enduro (Atari VCS) und The Great American Cross-Country Road Race (Activision).
@@ -26,18 +28,19 @@ Die Straße wird als klassisches Pseudo-3D aus vielen kurzen Segmenten gezeichne
 
 ## Zeit und Strecke
 
-Eine Stunde Weltzeit entspricht 5 Spielminuten, der Zeitraffer-Faktor ist also 12.
+*(seit v0.7.0)* Eine Stunde Weltzeit entspricht 6 Spielminuten, der Zeitraffer-Faktor ist also 10. Vorher waren es 5 Spielminuten (Faktor 12) – im Spieltest von v0.6.0 waren die Etappen etwas kurz; jetzt dauert jede ein Fünftel länger.
 
-Spielminuten = Strecke in km / Tempo in km/h × 5
+Spielminuten = Strecke in km / Tempo in km/h × 6
 
 | Tempo | 100 km dauern | Tankabstand 60–90 km |
 |---|---|---|
-| 100 km/h | 5:00 min | 3:00–4:30 min |
-| 160 km/h | 3:08 min | 1:53–2:49 min |
-| 250 km/h | 2:00 min | 1:12–1:48 min |
+| 100 km/h | 6:00 min | 3:36–5:24 min |
+| 160 km/h | 3:45 min | 2:15–3:23 min |
+| 250 km/h | 2:24 min | 1:26–2:10 min |
 
-- Die Straße scrollt so, dass sich das Tempo auf dem Tacho richtig anfühlt. Nur Kilometerzähler und Uhr laufen zwölfmal schneller.
-- Kernlänge einer Etappe: 150–300 km, also etwa 4–10 Spielminuten. Längere Abschnitte werden in mehrere Etappen geteilt.
+- Die Straße scrollt so, dass sich das Tempo auf dem Tacho richtig anfühlt. Nur Kilometerzähler und Uhr laufen zehnmal schneller.
+- Kernlänge einer Etappe: 150–300 km, also etwa 5–12 Spielminuten. Längere Abschnitte werden in mehrere Etappen geteilt.
+- *(seit v0.7.0)* Alle Regeln in Kilometern (Tankstellen, Radar, City Limits, Ankündigungen) bleiben, wie sie sind – sie dauern nur ein Fünftel länger.
 
 ## Fahrzeug und Steuerung
 
@@ -142,11 +145,11 @@ Radarfallen lösen eine Polizeiverfolgung aus; wer erwischt wird, verliert effek
 
 ## Tageszeit und Wetter
 
-Bei einem Rennen legt der Spieler die Startuhrzeit fest; jede weitere Etappe beginnt 12 Stunden Weltzeit nach dem Ende der vorherigen.
+Bei einem Rennen legt der Spieler die Startuhrzeit fest; jede weitere Etappe beginnt 8 Stunden Weltzeit nach dem Ende der vorherigen. *(seit v0.7.0; vorher 12 Stunden – die Startzeiten sprangen damit nur zwischen zwei Tageszeiten hin und her)*
 
-- Die 12-Stunden-Pause zählt nicht zur Gesamtzeit.
-- Die Uhr läuft im Zeitraffer mit: 10 Spielminuten entsprechen 2 Stunden. Dämmerung, Nacht und Sonnenaufgang sind während einer Etappe sichtbar.
-- Durch die Pause verschiebt sich die Startzeit von Etappe zu Etappe um die Fahrzeit. Die gewählte Startzeit wirkt so auf das ganze Rennen.
+- Die 8-Stunden-Pause zählt nicht zur Gesamtzeit.
+- Die Uhr läuft im Zeitraffer mit: 12 Spielminuten entsprechen 2 Stunden *(seit v0.7.0, vorher 10 Spielminuten)*. Dämmerung, Nacht und Sonnenaufgang sind während einer Etappe sichtbar.
+- *(seit v0.7.0)* Durch die Pause rückt die Startzeit von Etappe zu Etappe um 8 Stunden plus die Fahrzeit weiter und wandert in etwa zweieinhalb Etappen einmal um die Uhr: Wer Kiel – Nürnberg um 8 Uhr beginnt, startet die Etappen gegen 8, 17, 2, 11 und 20 Uhr. Die gewählte Startzeit wirkt so auf das ganze Rennen.
 - Einzelne Etappe außerhalb eines Rennens: Uhrzeit und Wetter frei wählbar.
 - Wetter: Normal, Regen, Schnee. Es wird vor der Etappe angezeigt und senkt Höchstgeschwindigkeit und Sicht. *(seit v0.5.0)* Außerdem senkt es die Haftung (siehe Fahrzeug und Steuerung) und das Tempo des Verkehrs (siehe Verkehr); bei Regen und Schnee sagt ein Hinweis im Countdown, was das Wetter bewirkt.
 - Nacht: schlechtere Sicht, dafür weniger Verkehr (siehe Verkehr). *(seit v0.5.0)* Schnee hellt die Nacht auf: Die Sicht sinkt dann nachts weniger stark, damit man auch mit dem doppelten Bremsweg rechtzeitig vor langsamem Verkehr anhalten kann.

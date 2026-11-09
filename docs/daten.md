@@ -190,18 +190,39 @@ sich ohne Codeänderung ergänzen.
   (≈ 139–183 km/h); dazu `seed_fuel_stop_s` (35 s: in die Tankspur, ~50 L tanken, wieder beschleunigen) für jede
   Etappe, die mit teilgefülltem Tank startet (`start_fuel_fraction`, das Tutorial in Fahrtrichtung), und die
   Fährzeiten eines Rennens (`fixed_time_s`). Vorher galt 125–165 km/h auf jede Länge – auf dem kurzen Tutorial mit
-  Pflicht-Tankstopp war das unerreichbar (Rekord 2:52,73 statt jetzt 3:52,9). So gibt es immer einen Rekord als
-  Laufschrift. Sie werden erst mit dem ersten echten Eintrag gespeichert.
-- Datei `user://leaderboards.json`: `{"version": 2, "boards": {…}}`, atomar geschrieben (Temp-Datei + Umbenennen,
-  Vorversion als `.bak`). Beschädigte Datei: wird als `.corrupt` aufbewahrt, gelesen wird die `.bak`-Kopie
-  (sonst leer); ungültige Einträge werden verworfen. Version 1 (Stub-Format) wird gelesen.
+  Pflicht-Tankstopp war das unerreichbar (Rekord 2:52,73 statt 3:52,9, beides mit Faktor 12; mit Faktor 10 seit
+  v0.7.0 4:32,5). So gibt es immer einen Rekord als Laufschrift. Sie werden erst mit dem ersten echten Eintrag
+  gespeichert. Die Zeit eines Starteintrags ist Stunden × 3600 / `time.time_scale` + feste Sekunden (Tankstopp, Fähre).
+- Datei `user://leaderboards.json`: `{"version": 3, "time_scale": 10, "boards": {…}}`, atomar geschrieben
+  (Temp-Datei + Umbenennen, Vorversion als `.bak`). Beschädigte Datei: wird als `.corrupt` aufbewahrt, gelesen wird
+  die `.bak`-Kopie (sonst leer); ungültige Einträge werden verworfen. Versionen 1 und 2 (ohne `time_scale`) werden
+  gelesen.
+- **Zeitraffer und gespeicherte Zeiten** (v0.7.0: Faktor 12 → 10, „Etappen etwas kurz“): Zeiten sind echte Sekunden
+  bei `time.time_scale`; dieselbe Fahrt (gleicher Schnitt) dauert mit einem anderen Faktor anders lange. Die Datei
+  trägt daher ihren Faktor (fehlt er, Version ≤ 2: 12), und `load_boards()` rechnet um, sobald er nicht zur
+  Konfiguration passt – einmal, in beide Richtungen (auch nach einem `time_scale`-Override in `game_config.json`):
+  - echte Einträge: `t' = (t − fixed_s) · f_Datei / f_neu + fixed_s` auf 1/100 s (`fixed_s` = Fährzeit einer
+    Rennliste aus `board_profile`, sonst 0) – Schnitt (`avg_kmh`), Name, Fahrzeug, Wetter, Datum und Reihenfolge
+    bleiben, von 12 auf 10 werden die Zeiten × 1,2;
+  - Starteinträge werden verworfen und neu erzeugt (wie bei einer Neuinstallation; eine geleerte Liste bleibt leer);
+  - eine Datei von vor v0.7.0 (Version ≤ 2): die Etappenlisten so, die **Rennlisten** werden archiviert und beginnen
+    neu mit frischen Starteinträgen – Tank-Übernahme, 8-h-Pause und Zeitraffer ändern die Rennzeiten;
+  - vorher wird die Datei einmal kopiert: `leaderboards.json.v06` (Version ≤ 2) bzw. `leaderboards.json.f<Faktor>`
+    (z. B. `.f10`, Version 3 mit anderem Faktor); eine vorhandene Kopie wird nie überschrieben. Danach wird mit dem
+    aktuellen Faktor gespeichert, ein zweites Laden ändert nichts. Das Log meldet die Umrechnung
+    (`LeaderboardStore.conversion_note`). Tests: `test_v06_file_converted_once`,
+    `test_time_scale_override_converts_both_ways`.
 
 ## Spielstand (`SaveGame`)
 
 `save_race(state) -> bool`, `load_race()`, `has_race()`, `clear_race()`; `path` ist änderbar (Tests).
 Datei `{"version": 2, "saved_at", "game_version", "race": state}`, atomar mit `.bak`. Beim Laden werden Felder
 ergänzt und Typen hergestellt (`waypoint_index`, `seed` als int, Zeiten als float); kaputte Datei → `.bak`,
-sonst „kein Spielstand“. `has_race()` prüft im laufenden Spiel zusätzlich, ob Rennen und Stadt noch existieren
+sonst „kein Spielstand“. Der Rennstand trägt seit v0.7.0 den Faktor seiner Zeiten (`time_scale`, `RaceState.VERSION`
+2); ein Stand ohne ihn (bis v0.6.0, Faktor 12) wird beim Fortsetzen umgerechnet (`RaceState.from_dict(d, race,
+time_scale)`, `GameFlow.continue_race`): Etappenzeiten und Strafen × 12/10, Fähren fest, gleicher Schnitt, das offene
+Etappenergebnis (`pending_result`) ebenso; der nächste Start (`world_minutes`) bleibt, ab der nächsten Etappe gilt die
+8-h-Pause. `has_race()` prüft im laufenden Spiel zusätzlich, ob Rennen und Stadt noch existieren
 (ein alter Königsrennen-Stand in einer heute durchfahrenen Stadt wie Groningen oder Niš gilt damit als beendet).
 
 ## Karte (`data/map/europe_map.json`)

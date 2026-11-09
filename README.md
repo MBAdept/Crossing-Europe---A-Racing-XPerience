@@ -11,6 +11,25 @@ Nachtankzwang, Radarfallen und Polizei, Tageszeit und Wetter. Vorbilder: *Enduro
 - Stand: **v0.6.0 – Gamepad und Steam Deck**; alle acht Schritte des Prototyp-Plans sind umgesetzt, alle Zahlen sind
   Startwerte zum Testen.
 
+## Neu in v0.7.0
+
+- **Längere Etappen** (Spieltest v0.6.0: „Die Etappen sind ein wenig kurz“): Zeitraffer 10 statt 12 – jede Etappe
+  dauert ein Fünftel länger, eine mittlere Etappe für einen guten Fahrer rund 9 statt 7½ Minuten, Kiel – Nürnberg
+  rund 29 statt 24 Minuten, das Königsrennen gut 5½ statt knapp 5 Stunden. Kilometer, Tankstellen, Radarfallen und
+  City Limits bleiben, wo sie sind (sie dauern nur länger); die Straße selbst ist neu erzeugt, mit einem Fünftel mehr
+  Kurven und Hügeln je Etappe ([docs/Design-Dokument.md](docs/Design-Dokument.md) „Zeit und Strecke“).
+- **8 Stunden Pause** zwischen den Etappen eines Rennens statt 12: Die Startzeit wandert in etwa zweieinhalb Etappen
+  einmal um die Uhr – Morgen, Nachmittag, Nacht … –, statt nur zwischen zwei Tageszeiten hin und her zu springen
+  (Kiel – Nürnberg ab 8 Uhr: Etappen gegen 8, 17, 2, 11 und 20 Uhr).
+- **Bestenlisten umgerechnet**: Etappenzeiten gelten mit dem neuen Zeitraffer – gleicher Schnitt, Zeit × 1,2, Namen
+  und Reihenfolge bleiben, die Starteinträge sind neu berechnet. Die Rennlisten beginnen neu (Zeitraffer, Pause und
+  Tank-Übernahme ändern die Rennzeiten); die alte Datei bleibt als `leaderboards.json.v06` neben den Bestenlisten
+  erhalten. Ein laufendes Rennen wird beim Fortsetzen ebenso umgerechnet ([docs/daten.md](docs/daten.md)).
+- Polizei: Eine Verfolgung endet spätestens nach 72 statt 60 Sekunden – so reicht sie wie bisher bis zu 42 km weit
+  und kann in die City Limits hineinlaufen.
+- Warnschild vor blinden Kurven kurz vor dem Ziel: Lag die Mitte des Kurvenstücks hinter der Ziellinie, fehlte es
+  (mit dem neuen Zeitraffer 150 m vor dem Ziel in Würzburg aufgefallen, [docs/renn-modul.md](docs/renn-modul.md) §4).
+
 ## Neu in v0.6.0
 
 - **Gamepad und Steam Deck geprüft und verbessert** ([docs/steam-deck.md](docs/steam-deck.md), „Prüfung v0.5.1“):
@@ -166,8 +185,8 @@ Einrichten steht in [marketing/steam/README.md](marketing/steam/README.md).
 
 - **Pseudo-3D** aus kurzen Segmenten (Node2D mit `_draw`), Kurven, Hügel mit Kuppen, Tunnel mit Lichterreihen,
   Grenzübergänge mit EU-Schild, Zollhäuschen, neuer Landschaft und landestypischer Polizei.
-- **Zeitraffer 12**: Die Straße scrollt mit Tachotempo, Kilometerzähler und Uhr laufen zwölfmal schneller
-  (100 km bei 100 km/h = 5:00 min).
+- **Zeitraffer 10** *(seit v0.7.0, vorher 12)*: Die Straße scrollt mit Tachotempo, Kilometerzähler und Uhr laufen
+  zehnmal schneller (100 km bei 100 km/h = 6:00 min).
 - **Fünf Fahrzeuge** (Kompakt, Kombi, Limousine, Sportwagen, Gran Turismo) mit den Werten aus dem Design-Dokument;
   Arcade-Fahrmodell ohne Übersteuern; wer zu schnell in die Kurve fährt, untersteuert deutlich: der Wagen rutscht nach
   außen, Gegenlenken hilft nur bei knapp zu hohem Tempo, Bremsen vor der Kurve ist die Abhilfe. Die Agilität bestimmt das
@@ -182,8 +201,8 @@ Einrichten steht in [marketing/steam/README.md](marketing/steam/README.md).
 - **Radar und Polizei**: Warnung 10 km vorher, 5-km-Feld, 15 % Toleranz, Verfolgung mit Flucht ab 220 km/h – in
   Kurven muss auch die Polizei bremsen, dort reicht weniger –, „Führerschein, bitte!“; City Limits in den letzten 20 km
   jeder Etappe.
-- **Tageszeit und Wetter**: frei wählbare Startzeit, nächste Etappe 12 h Weltzeit nach dem Ende der vorigen,
-  Dämmerung/Nacht/Sonnenaufgang während der Fahrt, Regen und Schnee.
+- **Tageszeit und Wetter**: frei wählbare Startzeit, nächste Etappe 8 h Weltzeit nach dem Ende der vorigen (die
+  Startzeit wandert über die Etappen um die Uhr), Dämmerung/Nacht/Sonnenaufgang während der Fahrt, Regen und Schnee.
 - **Streckennetz** komplett in Datendateien: 45 Städte, 51 Etappen (in beide Richtungen fahrbar), Fähre
   Riga – Rostock, vier Rennen: Kiel – Nürnberg (Route über Kassel oder über Frankfurt), Dresden – Dortmund,
   München – Bremen und das Königsrennen (rund 9.200 km in 33 Etappen plus Fähre).
@@ -204,6 +223,7 @@ Alle Werte stehen in `config/game_config.json` und lassen sich ohne Neubau ände
 | Bestenlisten gemeinsam oder getrennt? | beides: gespeichert je Fahrzeugtyp, angezeigt gemeinsam mit umschaltbarem Fahrzeugfilter |
 | Wetter im Rennen | zufällig, gewichtet nach Klima der Region (alternativ `random` oder fest pro Etappe); die Tutorial-Etappe Kiel – Hamburg ist immer trocken |
 | Tempo-Abzug Regen / Schnee / Nacht | −2,5 % / −12 % / −1 %; Regen + Nacht erlaubt jedem Auto noch 220 km/h |
+| Zeitraffer und Pause (seit v0.7.0, Spieltest v0.6.0: „Etappen ein wenig kurz“) | Faktor 10 (ursprünglich 12): 1 Stunde Weltzeit = 6 Spielminuten, Etappen ein Fünftel länger; 8 h Pause zwischen den Etappen eines Rennens (ursprünglich 12 h) |
 | Verkehr (seit v0.5.0, Spieltest v0.4.0: „zu leicht“) | Lkw 80–90 km/h, Busse 95–100 km/h (ursprünglich alle 110–150), kein Nachtbonus (ursprünglich +15 %), bei Regen 15 %, bei Schnee 35 % langsamer |
 | Zeitstrafe leerer Tank | 90 s Abschleppdienst, danach halber Tank |
 | Straßenrand | Bankett bremst auf 90 km/h; Autobahn mit Leitplanke (abprallen), sonst Wiese (bremst auf 40 km/h) |

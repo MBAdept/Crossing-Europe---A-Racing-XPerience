@@ -159,7 +159,9 @@ func _save_text() -> String:
 	var d := UiData.load_race()
 	if d.is_empty():
 		return tr("Kein gespeichertes Rennen.")
-	var rs := RaceState.from_dict(d, UiData.race(str(d.get("race_id", ""))))
+	# times saved with another time-lapse factor (v0.6.0: 12) shown converted, as "Rennen fortsetzen" will continue them
+	var ts := float(ConfigLoader.lookup(cfg(), "time.time_scale", 10.0))
+	var rs := RaceState.from_dict(d, UiData.race(str(d.get("race_id", ""))), ts)
 	if rs.is_finished():
 		# kept until the race result's name entry is done (GameFlow.finish_race)
 		return tr("%s – im Ziel nach %s, Eintrag in die Bestenliste offen") % [rs.race_name, UiFormat.time(rs.total_time_s)]

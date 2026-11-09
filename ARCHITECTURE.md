@@ -32,10 +32,15 @@ Abschnitte der zentralen Konfiguration `config/game_config.json`:
 
 - Geschwindigkeit in **km/h**.
 - **km** = Kilometerzähler (Etappenkilometer). Alle Positionen in den Daten sind km.
-- **m / z** = sichtbare Meter der Straße. `m = km * 1000 / time_scale` (bei Faktor 12: 1 km = 83,3 m).
-  Der Renderer scrollt mit Tachotempo, Kilometerzähler und Uhr laufen 12-mal schneller.
-- **Spielzeit** = echte Sekunden; **Weltzeit** = Minuten (absolut, Tag 0 00:00 = 0), läuft 12-mal schneller.
-  100 km bei 100 km/h = 300 s = 5:00. Durchschnittstempo = `Units.avg_speed_kmh(km, s, 12)`.
+- **m / z** = sichtbare Meter der Straße. `m = km * 1000 / time_scale` (`time.time_scale` = 10 seit v0.7.0:
+  1 km = 100 m; bis v0.6.0 Faktor 12: 1 km = 83,3 m). Der Renderer scrollt mit Tachotempo, Kilometerzähler und Uhr
+  laufen 10-mal schneller. Kurven, Hügel, Schilder und Sichtweiten sind in sichtbaren Metern festgelegt – ein anderer
+  Faktor erzeugt jede Straße neu (andere Kurven, Kuppen, Schilder).
+- **Spielzeit** = echte Sekunden; **Weltzeit** = Minuten (absolut, Tag 0 00:00 = 0), läuft 10-mal schneller.
+  100 km bei 100 km/h = 360 s = 6:00. Durchschnittstempo = `Units.avg_speed_kmh(km, s, 10)`.
+- Gespeicherte Zeiten (Bestenlisten, Rennstand) sind echte Sekunden bei einem Faktor und tragen ihn mit
+  (`time_scale`); ändert er sich, werden sie beim Laden umgerechnet – gleicher Schnitt, Zeit × alter/neuer Faktor
+  (§10).
 - Lateral **x** in Metern, 0 = Straßenmitte, + = rechts. Spur 0 = ganz links.
 
 **GDScript-Stil**:
@@ -244,16 +249,23 @@ finished, understeer, collision`.
 `boot()` (vom Hauptszenen-Skript), `start_stage(setup)`. Bildschirme: Titel/Hauptmenü (Rennen, Fortsetzen, Einzelne
 Etappe, Bestenlisten, Optionen, Beenden) → Rennen wählen → Fahrzeug wählen → Startuhrzeit → [Routenwahl] →
 Etappenbildschirm (Karte, Wetter, Rekord-Laufschrift, Top 10) → Rennen → Ergebnis + Namenseingabe → nächste Etappe
-(Start = Ende + 12 h Weltzeit, Pause zählt nicht) / Fähre (Szene, feste Zeit) → Rennergebnis + Rennbestenliste.
+(Start = Ende + `time.stage_pause_hours` = 8 h Weltzeit seit v0.7.0, vorher 12 h; Pause zählt nicht) / Fähre (Szene,
+feste Zeit) → Rennergebnis + Rennbestenliste.
 Nach jeder Etappe `SaveGame.save_race(state)`. Nach 60 s ohne Eingabe im Titel zeigt der Attract-Modus eine 30-s-Demo
 in der echten Rennszene (Autopilot, Titelmusik, Effekte stumm, nichts wird gespeichert; docs/ui.md „Attract-Modus“).
 
 **Rennstand** (`SaveGame`): `{race_id, vehicle, start_hour, current_city, waypoint_index, legs[{kind, id, from, to,
-time_s, avg_kmh, weather, start_world_minutes, end_world_minutes}], total_time_s, world_minutes, route[], seed}`.
+time_s, avg_kmh, weather, start_world_minutes, end_world_minutes}], total_time_s, world_minutes, route[], seed,
+time_scale}` (`RaceState.VERSION` 2). `time_scale` = Faktor der Zeiten; fehlt er (bis v0.6.0: Faktor 12), rechnet
+`RaceState.from_dict(d, race, time_scale)` beim Fortsetzen um: Etappenzeiten und Strafen × alter/neuer Faktor (gleicher
+Schnitt), Fähren fest, `world_minutes` bleibt (der nächste Start war schon angezeigt); das offene Etappenergebnis
+(`pending_result`) ebenso.
 
 **Bestenlisten** (`Leaderboards`): `top(key, vehicle_filter="", count=10)`, `record(key, filter)`,
 `would_rank(key, time_s, filter) → 1..10 | 0`, `submit(key, entry) → Rang`. Eintrag: `{name, time_s, avg_kmh,
-vehicle, weather, start_hour, daytime, date, route?}`.
+vehicle, weather, start_hour, daytime, date, route?}`. Datei `{"version": 3, "time_scale": 10, "boards": {…}}`;
+Version 2 (ohne Faktor = 12) wird beim ersten Laden umgerechnet: Etappenlisten × 12/10 (gleicher Schnitt, neue
+Starteinträge), Rennlisten neu, Sicherung `leaderboards.json.v06` (docs/daten.md).
 
 ## 11. Audio (`AudioManager`)
 

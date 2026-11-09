@@ -240,10 +240,9 @@ func continue_race() -> void:
 	if d.is_empty():
 		show_title()
 		return
-	race = RaceState.from_dict(d, UiData.race(str(d.get("race_id", ""))))
+	var pending := restore_race(d)
 	mode = "race"
-	var pending: Variant = d.get(PENDING_RESULT_KEY, null)
-	if pending is Dictionary and not (pending as Dictionary).is_empty():
+	if not pending.is_empty():
 		# the game was closed on a stage result (e.g. at the name prompt): show it again
 		_result_pending = true
 		last_result = pending
@@ -251,6 +250,25 @@ func continue_race() -> void:
 		go("result", {"result": pending}, true)
 		return
 	_race_next(true)
+
+
+## Sets `race` from a saved race (SaveGame) and returns its pending stage result ({} if none). Times saved with another
+## time-lapse factor (v0.6.0: 12, no "time_scale") are converted to time.time_scale once – the race and the pending
+## result alike (RaceState.from_dict / rescaled_result: same averages; the next start keeps the world time already
+## shown) – and the converted state is saved.
+func restore_race(d: Dictionary) -> Dictionary:
+	var ts := float(ConfigLoader.lookup(Config.data, "time.time_scale", 10.0))
+	var saved_ts := RaceState.saved_time_scale(d)
+	race = RaceState.from_dict(d, UiData.race(str(d.get("race_id", ""))), ts)
+	var pending: Dictionary = {}
+	var p: Variant = d.get(PENDING_RESULT_KEY, null)
+	if p is Dictionary:
+		pending = p
+	if saved_ts > 0.0 and ts > 0.0 and not is_equal_approx(saved_ts, ts):
+		if not pending.is_empty():
+			pending = RaceState.rescaled_result(pending, saved_ts / ts)
+		_save_race(pending)
+	return pending
 
 
 ## Saves the running race (SaveGame). `pending_result` = a stage result whose screen is not done yet.

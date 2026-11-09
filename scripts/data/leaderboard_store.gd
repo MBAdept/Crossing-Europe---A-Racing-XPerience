@@ -17,11 +17,24 @@ extends RefCounted
 ##    stage are driven at seed_city_kmh, the rest at the open-road speed that gives seed_avg_kmh on the typical stage,
 ##    plus seed_fuel_stop_s for each stage that starts with a partly filled tank (the tutorial's stop) and the ferry
 ##    times of a race. Short stages with their fixed 20 km of City Limits are no longer unreachable.
-##  * File: {"version": 2, "boards": {key: [entries]}} written atomically (JsonFile); a corrupt file is kept
-##    as "<path>.corrupt" and the store starts empty (or from the ".bak" copy).
+##  * File: {"version": 3, "time_scale": f, "boards": {key: [entries]}} written atomically (JsonFile); a corrupt file
+##    is kept as "<path>.corrupt" and the store starts empty (or from the ".bak" copy).
+##  * Time-lapse factor (v0.7.0, docs/daten.md): times are real seconds at time.time_scale, so the file stores the
+##    factor they were measured with (version <= 2: LEGACY_TIME_SCALE, factor 12). load_boards() converts a file with
+##    another factor once – in both directions, e.g. after a time_scale override in game_config.json: real entries
+##    t' = (t - fixed_s) * f_file / time_scale + fixed_s (fixed_s = the ferry time of a race board, else 0) – average
+##    speed, names and order stay; seeded entries are generated anew (as on a fresh install). A file from before
+##    v0.7.0 (version <= 2) keeps its stage boards that way, but its race boards are archived and start afresh (fuel
+##    carry-over, the 8-h pause and the factor change race totals). Before converting, the file is copied once to
+##    "<path>.v06" (version <= 2) or "<path>.f<factor>" (e.g. leaderboards.json.f10) and then saved with the current
+##    factor, so a second load changes nothing.
 
-const VERSION := 2
+const VERSION := 3
 const ALL := "all"
+## Factor of a file without "time_scale" (version <= 2, up to v0.6.0).
+const LEGACY_TIME_SCALE := 12.0
+## Backup of a file from before v0.7.0 (version <= 2), written once before its boards are converted.
+const LEGACY_BACKUP_SUFFIX := ".v06"
 
 var path := ""
 var boards: Dictionary = {}          ## key -> Array of entry dictionaries, sorted by time_s
@@ -42,6 +55,8 @@ var seed_city_kmh := Vector2(60.0, 80.0)
 var seed_fuel_stop_s := 35.0
 var city_km := 20.0                  ## city_limits.length_km
 var load_problem := ""               ## non-empty if the file could not be read
+## What the last load_boards() converted ("" = nothing): factors, boards, backup file (for the log).
+var conversion_note := ""
 
 
 ## cfg = merged configuration; file_path "" = memory only.
@@ -81,14 +96,17 @@ func setup(cfg: Dictionary, file_path: String, lengths: Callable = Callable(), p
 func load_boards() -> void:
 	boards = {}
 	load_problem = ""
+	conversion_note = ""
 	if path == "" or not (FileAccess.file_exists(path) or FileAccess.file_exists(path + JsonFile.BAK_SUFFIX)):
 		return
 	var main: Variant = JsonFile.read(path)
 	var d: Dictionary = main if main is Dictionary else {}
+	var source := path   # the file d comes from (kept as the backup of a conversion)
 	if not main is Dictionary and FileAccess.file_exists(path):
 		load_problem = "Bestenlisten-Datei beschädigt – Sicherung gelesen"
 		JsonFile.preserve_corrupt(path)
 		d = JsonFile.load_dict(path)
+		source = path + JsonFile.BAK_SUFFIX
 	var version := int(d.get("version", 1)) if d.get("version", 1) is float or d.get("version", 1) is int else 1
 	if version > VERSION:
 		push_warning("Bestenlisten aus neuerer Version (%d) – lese kompatible Felder" % version)
@@ -107,12 +125,80 @@ func load_boards() -> void:
 				clean.append(s)
 		_sort(clean)
 		boards[key] = _pruned(clean)
+	var file_ts := file_time_scale(d, LEGACY_TIME_SCALE if version < 3 else time_scale)
+	if not boards.is_empty() and (version < 3 or not is_equal_approx(file_ts, time_scale)):
+		_convert_loaded(source, d, file_ts, version < 3)
 
 
 func save_boards() -> bool:
 	if path == "":
 		return true
-	return JsonFile.save_atomic(path, {"version": VERSION, "boards": boards})
+	return JsonFile.save_atomic(path, {"version": VERSION, "time_scale": time_scale, "boards": boards})
+
+
+## Time-lapse factor the times of a leaderboard file were measured with: its "time_scale", else fallback
+## (LEGACY_TIME_SCALE = 12 for a file from before v0.7.0, version <= 2).
+static func file_time_scale(file_data: Dictionary, fallback: float = LEGACY_TIME_SCALE) -> float:
+	var ts: Variant = file_data.get("time_scale", null)
+	if (ts is float or ts is int) and float(ts) > 0.0 and not is_inf(float(ts)):
+		return float(ts)
+	return fallback
+
+
+## A real entry's time measured with factor from_ts, at factor to_ts: the driven part scales with from_ts / to_ts (same
+## average speed), fixed_s (a race's ferry time, real seconds) stays. Rounded to 1/100 s.
+static func convert_time(time_s: float, from_ts: float, to_ts: float, fixed_s: float = 0.0) -> float:
+	var fixed := clampf(fixed_s, 0.0, time_s)
+	return snappedf((time_s - fixed) * from_ts / maxf(to_ts, 0.001) + fixed, 0.01)
+
+
+## Converts the boards just loaded from source_file (data file_data, measured with factor file_ts) to time_scale, see
+## the class comment. legacy = a file from before v0.7.0 (version <= 2): its race boards are archived (dropped here,
+## seeded afresh on first access). Keeps the file once ("<path>.v06" / "<path>.f<factor>") and saves the result.
+func _convert_loaded(source_file: String, file_data: Dictionary, file_ts: float, legacy: bool) -> void:
+	var backup := path + (LEGACY_BACKUP_SUFFIX if legacy else ".f" + factor_text(file_ts))
+	if not FileAccess.file_exists(backup) and not JsonFile.copy(source_file, backup):
+		JsonFile.save_atomic(backup, file_data)
+	var converted := 0
+	var archived := 0
+	for key: String in boards.keys():
+		if legacy and key.begins_with("race:"):
+			boards.erase(key)
+			archived += 1
+		else:
+			boards[key] = _converted_board(key, boards[key], file_ts)
+			converted += 1
+	conversion_note = "Bestenlisten von Faktor %s auf %s: %d umgerechnet, %d Rennlisten neu begonnen (Sicherung %s)" % [
+		factor_text(file_ts), factor_text(time_scale), converted, archived, backup.get_file()]
+	save_boards()
+
+
+## "12" for 12.0, "9.5" for 9.5 (backup file names, log).
+static func factor_text(ts: float) -> String:
+	return str(roundi(ts)) if is_equal_approx(ts, roundf(ts)) else String.num(ts)
+
+
+## One board converted from factor from_ts to time_scale: real entries keep average speed, name and order; seeded
+## entries are replaced by fresh ones (none if the board can no longer be seeded: unknown board, seeding off).
+func _converted_board(board_key: String, list: Array, from_ts: float) -> Array:
+	var fixed := 0.0
+	if board_key.begins_with("race:") and profile_provider.is_valid():
+		var p: Variant = profile_provider.call(board_key)
+		if p is Dictionary:
+			fixed = maxf(0.0, float((p as Dictionary).get("fixed_s", 0.0)))
+	var out: Array = []
+	var had_seeds := false
+	for e: Dictionary in list:
+		if bool(e.get("seeded", false)):
+			had_seeds = true
+			continue
+		var c := e.duplicate(true)
+		c["time_s"] = convert_time(float(e["time_s"]), from_ts, time_scale, fixed)
+		out.append(c)
+	if had_seeds:
+		out.append_array(_seeds(board_key))
+	_sort(out)
+	return _pruned(out)
 
 
 ## Entry with the expected field types; {} if unusable (no positive finite time).
@@ -297,16 +383,21 @@ func seed_hours(length_km: float, city_len_km: float, avg_kmh: float, city_kmh: 
 func _ensure(board_key: String) -> void:
 	if boards.has(board_key):
 		return
-	var list: Array = []
-	if seed_enabled and length_provider.is_valid():
-		var length: Variant = length_provider.call(board_key)
-		if length is float or length is int:
-			var profile: Dictionary = {}
-			if profile_provider.is_valid():
-				var p: Variant = profile_provider.call(board_key)
-				profile = p if p is Dictionary else {}
-			list = seed_entries_for(board_key, float(length), profile)
-	boards[board_key] = list
+	boards[board_key] = _seeds(board_key)
+
+
+## The default entries of a board from the length and profile providers ([] without seeding, length or provider).
+func _seeds(board_key: String) -> Array:
+	if not (seed_enabled and length_provider.is_valid()):
+		return []
+	var length: Variant = length_provider.call(board_key)
+	if not (length is float or length is int):
+		return []
+	var profile: Dictionary = {}
+	if profile_provider.is_valid():
+		var p: Variant = profile_provider.call(board_key)
+		profile = p if p is Dictionary else {}
+	return seed_entries_for(board_key, float(length), profile)
 
 
 func _daytime(hour: float) -> String:

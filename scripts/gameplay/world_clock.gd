@@ -26,7 +26,7 @@ func hour() -> float:
 	return Units.hour_of_day(world_minutes)
 
 
-## Day number since day 0 (stage pauses of 12 h move on to the next day).
+## Day number since day 0 (stage pauses – time.stage_pause_hours, 8 h – move on to the next day).
 func day_index() -> int:
 	return int(floor(world_minutes / 1440.0))
 

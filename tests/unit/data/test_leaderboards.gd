@@ -16,6 +16,23 @@ func _store(file: String = "", lengths: Callable = Callable(), lb: Dictionary = 
 	return s
 
 
+## Store with another time-lapse factor (a time.time_scale override in game_config.json).
+func _store_ts(file: String, time_scale: float, lengths: Callable = Callable(), profiles: Callable = Callable()) -> LeaderboardStore:
+	var s := LeaderboardStore.new()
+	s.setup(ConfigLoader.deep_merge(cfg(), {"time": {"time_scale": time_scale}}), file, lengths, profiles)
+	return s
+
+
+## Shipped time-lapse factor (time.time_scale).
+func _ts() -> float:
+	return float(ConfigLoader.lookup(cfg(), "time.time_scale", 10.0))
+
+
+## Largest difference between an entry's time and length / avg_kmh: avg_kmh is rounded to 0.1 km/h.
+func _avg_tolerance(e: Dictionary) -> float:
+	return float(e["time_s"]) * 0.05 / maxf(float(e["avg_kmh"]) - 0.05, 1.0) + 0.01
+
+
 func _entry(name: String, time_s: float, vehicle: String) -> Dictionary:
 	return {"name": name, "time_s": time_s, "avg_kmh": 150.0, "vehicle": vehicle, "weather": "normal",
 		"start_hour": 8.0, "daytime": "day", "date": "2026-10-30"}
@@ -24,8 +41,15 @@ func _entry(name: String, time_s: float, vehicle: String) -> Dictionary:
 func _path(name: String) -> String:
 	DirAccess.make_dir_recursive_absolute(DIR)
 	var p := DIR.path_join(name)
-	JsonFile.remove_all(p)
+	_remove(p)
 	return p
+
+
+## The file with its temp/backup/corrupt companions and the backups of a time-lapse conversion.
+func _remove(p: String) -> void:
+	JsonFile.remove_all(p)
+	for suffix in [LeaderboardStore.LEGACY_BACKUP_SUFFIX, ".f10", ".f12"]:
+		JsonFile.remove_all(p + suffix)
 
 
 func _names(list: Array) -> Array[String]:
@@ -33,6 +57,44 @@ func _names(list: Array) -> Array[String]:
 	for e in list:
 		out.append(str(e["name"]))
 	return out
+
+
+func _times(list: Array) -> Array[float]:
+	var out: Array[float] = []
+	for e in list:
+		out.append(float(e["time_s"]))
+	return out
+
+
+## Same times within 1 ms (a JSON round trip may move a value rounded to 1/100 s by one unit in the last place).
+func _assert_times_near(actual: Array[float], expected: Array[float], msg: String) -> void:
+	assert_eq(actual.size(), expected.size(), msg + ": Anzahl")
+	for i in mini(actual.size(), expected.size()):
+		assert_near(actual[i], expected[i], 0.001, "%s (%d)" % [msg, i])
+
+
+## A real entry over km at avg_kmh, measured with factor ts (plus fixed_s, a race's ferry time).
+func _real(name: String, km: float, avg_kmh: float, vehicle: String, ts: float, fixed_s: float = 0.0) -> Dictionary:
+	var e := _entry(name, snappedf(Units.game_seconds_for(km, avg_kmh, ts) + fixed_s, 0.01), vehicle)
+	e["avg_kmh"] = avg_kmh
+	return e
+
+
+func _find(list: Array, name: String) -> Dictionary:
+	for e in list:
+		if str(e["name"]) == name:
+			return e
+	return {}
+
+
+func _seeded(list: Array, seeded: bool) -> Array:
+	return list.filter(func(e: Dictionary) -> bool: return bool(e.get("seeded", false)) == seeded)
+
+
+func _write(file: String, data: Dictionary) -> void:
+	var f := FileAccess.open(file, FileAccess.WRITE)
+	f.store_string(JSON.stringify(data, "\t"))
+	f.close()
 
 
 func test_ranking_and_ties() -> void:
@@ -94,7 +156,7 @@ func test_seeded_entries() -> void:
 		assert_true(bool(e.get("seeded", false)), "als seeded markiert")
 		assert_true(names.has(str(e["name"])), "Name aus seed_names")
 		assert_between(float(e["avg_kmh"]), float(avg[0]) - 0.1, float(avg[1]) + 0.1, "Schnitt im Bereich")
-		assert_near(float(e["time_s"]), ref / float(e["avg_kmh"]) * 300.0, 0.3, "Zeit passt zu Länge und Schnitt")
+		assert_near(float(e["time_s"]), ref / float(e["avg_kmh"]) * 3600.0 / _ts(), _avg_tolerance(e), "Zeit passt zu Länge und Schnitt")
 		assert_true(float(e["time_s"]) >= prev, "sortiert")
 		prev = float(e["time_s"])
 	var again := _store("", lengths).top("stage:kiel_hamburg:fwd", "all", 10)
@@ -151,10 +213,10 @@ func test_race_board_seeded_from_shortest_route() -> void:
 	var s := _store("", Callable(n, "board_length_km"))
 	var best: Dictionary = s.record("race:kiel_nuernberg")
 	var shortest := float(n.race_routes("kiel_nuernberg")[0]["km"])
-	assert_near(float(best["time_s"]), shortest / float(best["avg_kmh"]) * 300.0, 0.5, "Rennliste aus der kürzesten Route")
+	assert_near(float(best["time_s"]), shortest / float(best["avg_kmh"]) * 3600.0 / _ts(), _avg_tolerance(best), "Rennliste aus der kürzesten Route")
 	assert_true(best.has("route"), "Renn-Einträge haben route")
 	var stage_best: Dictionary = s.record("stage:hamburg_hannover:fwd")
-	assert_near(float(stage_best["time_s"]), 150.0 / float(stage_best["avg_kmh"]) * 300.0, 0.5, "Etappenliste aus der Etappenlänge")
+	assert_near(float(stage_best["time_s"]), 150.0 / float(stage_best["avg_kmh"]) * 3600.0 / _ts(), _avg_tolerance(stage_best), "Etappenliste aus der Etappenlänge")
 
 
 func test_persistence_roundtrip() -> void:
@@ -167,12 +229,15 @@ func test_persistence_roundtrip() -> void:
 	assert_true(FileAccess.file_exists(p + ".bak"), "Sicherung der Vorversion")
 	var raw: Variant = JsonFile.read(p)
 	assert_eq(int(raw["version"]), LeaderboardStore.VERSION, "Version in der Datei")
+	assert_near(float(raw["time_scale"]), _ts(), 0.0001, "Zeitraffer-Faktor in der Datei")
 	var s2 := _store(p, Callable(), {"seed_entries": false})
 	s2.load_boards()
 	assert_eq(_names(s2.top(KEY)), ["A"] as Array[String], "Etappenliste geladen")
+	assert_near(float(s2.record(KEY)["time_s"]), 120.0, 0.0001, "gleicher Faktor: Zeit unverändert")
 	assert_eq(str(s2.record("race:kiel_nuernberg")["vehicle"]), "kompakt", "Rennliste geladen")
 	assert_eq(s2.board_keys(), ["race:kiel_nuernberg", KEY] as Array[String], "Schlüssel")
-	JsonFile.remove_all(p)
+	assert_eq(s2.conversion_note, "", "nichts umgerechnet")
+	_remove(p)
 
 
 func test_corrupt_and_old_files() -> void:
@@ -202,9 +267,113 @@ func test_corrupt_and_old_files() -> void:
 	s3.load_boards()
 	assert_eq(s3.entries(KEY).size(), 1, "ungültige Einträge verworfen, Version 1 gelesen")
 	assert_eq(str(s3.record(KEY)["name"]), "ok", "gültiger Eintrag")
+	assert_near(float(s3.record(KEY)["time_s"]), 50.0 * LeaderboardStore.LEGACY_TIME_SCALE / _ts(), 0.01, "Version 1 ohne Faktor: Faktor 12 umgerechnet")
 	assert_true(s3.load_problem == "", "kein Fehler bei alter Version")
-	JsonFile.remove_all(p)
+	_remove(p)
 	JsonFile.quiet = false
+
+
+## v0.7.0 (time-lapse factor 10 instead of 12): a leaderboards file of v0.6.0 (version 2, no "time_scale" = factor 12) is
+## converted once. Stage boards: real entries × 12/10 – average speed, names and order stay –, the default entries
+## new (as on a fresh install). Race boards are archived and start afresh with new default entries (fuel carry-over,
+## the 8-h pause and the factor change race totals). The old file stays as leaderboards.json.v06, the new one is
+## version 3 with "time_scale" – a second load changes nothing.
+func test_v06_file_converted_once() -> void:
+	var n := NetworkTest.load_network(cfg())
+	var lengths := Callable(n, "board_length_km")
+	var profiles := Callable(n, "board_profile")
+	var stage := "stage:hamburg_hannover:fwd"
+	var race := "race:kiel_nuernberg"
+	var km := n.board_length_km(stage)
+	var old := _store_ts("", 12.0, lengths, profiles)   # what v0.6.0 seeded and stored (factor 12)
+	var old_stage: Array = old.entries(stage).duplicate(true)
+	var mine := [_real("Profi", km, 200.0, "sportwagen", 12.0), _real("Zweite", km, 180.0, "kombi", 12.0),
+		_real("Langsam", km, 120.0, "kompakt", 12.0)]
+	old_stage.append_array(mine)
+	var old_race: Array = old.entries(race).duplicate(true)
+	old_race.append(_real("Rennfahrer", n.board_length_km(race), 170.0, "limousine", 12.0))
+	var p := _path("lb_v06.json")
+	_write(p, {"version": 2, "boards": {stage: old_stage, race: old_race}})
+	var s := _store(p, lengths, {}, profiles)
+	s.load_boards()
+	assert_ne_str(s.conversion_note, "", "umgerechnet")
+	var conv := s.entries(stage)
+	var reals := _seeded(conv, false)
+	assert_eq(_names(reals), ["Profi", "Zweite", "Langsam"] as Array[String], "echte Einträge: gleiche Reihenfolge")
+	for i in mini(reals.size(), mine.size()):
+		var before: Dictionary = mine[i]
+		var t := float(reals[i]["time_s"])
+		assert_near(t, float(before["time_s"]) * 12.0 / _ts(), 0.01, "%s: Zeit × 12/10" % before["name"])
+		assert_near(float(reals[i]["avg_kmh"]), float(before["avg_kmh"]), 0.0001, "%s: Schnitt bleibt" % before["name"])
+		assert_near(Units.avg_speed_kmh(km, t, _ts()), float(before["avg_kmh"]), 0.05, "%s: Zeit passt zum Schnitt" % before["name"])
+	var fresh := _store("", lengths, {}, profiles).entries(stage)   # a fresh install at the new factor
+	var seeds := _seeded(conv, true)
+	assert_eq(_names(seeds), _names(fresh), "Starteinträge wie bei einer Neuinstallation")
+	assert_eq(_times(seeds), _times(fresh), "Startzeiten wie bei einer Neuinstallation")
+	var rb := s.entries(race)
+	assert_eq(_times(rb), _times(_store("", lengths, {}, profiles).entries(race)), "Rennliste neu begonnen")
+	assert_true(_seeded(rb, false).is_empty(), "Rennliste: nur Starteinträge")
+	var bak: Variant = JsonFile.read(p + LeaderboardStore.LEGACY_BACKUP_SUFFIX)
+	assert_true(bak is Dictionary, "alte Datei als .v06 aufbewahrt")
+	if bak is Dictionary:
+		assert_eq(int(bak["version"]), 2, "Sicherung: Version 2")
+		assert_eq((bak["boards"][race] as Array).size(), old_race.size(), "Sicherung: Rennliste vollständig")
+	var raw: Variant = JsonFile.read(p)
+	assert_eq(int(raw["version"]), LeaderboardStore.VERSION, "neue Datei: Version 3")
+	assert_near(float(raw["time_scale"]), _ts(), 0.0001, "neue Datei: Faktor")
+	assert_false((raw["boards"] as Dictionary).has(race), "Rennliste nicht mehr in der Datei")
+	# a second load changes nothing
+	var text := FileAccess.get_file_as_string(p)
+	var bak_text := FileAccess.get_file_as_string(p + LeaderboardStore.LEGACY_BACKUP_SUFFIX)
+	var s2 := _store(p, lengths, {}, profiles)
+	s2.load_boards()
+	assert_eq(s2.conversion_note, "", "zweites Laden: nichts umgerechnet")
+	_assert_times_near(_times(s2.entries(stage)), _times(conv), "zweites Laden: gleiche Zeiten")
+	assert_eq(FileAccess.get_file_as_string(p), text, "Datei unverändert")
+	assert_eq(FileAccess.get_file_as_string(p + LeaderboardStore.LEGACY_BACKUP_SUFFIX), bak_text, "Sicherung unverändert")
+	_remove(p)
+
+
+## A later change of the factor (a time.time_scale override in game_config.json) converts a version-3 file the same way,
+## in both directions – race boards too, their ferry time stays. The file of each factor is kept once as
+## "<path>.f<factor>"; back at the first factor the times are the original ones.
+func test_time_scale_override_converts_both_ways() -> void:
+	var lengths := func(key: String) -> float: return 300.0 if key.begins_with("stage:") else 1200.0
+	var profiles := func(key: String) -> Dictionary: return {"stages": 5, "fixed_s": 240.0} if key.begins_with("race:") else {"stages": 1}
+	var race := "race:test"
+	var p := _path("lb_override.json")
+	var s := _store(p, lengths, {}, profiles)
+	s.submit(KEY, _real("A", 300.0, 200.0, "kombi", _ts()))
+	s.submit(KEY, _real("B", 300.0, 170.0, "kompakt", _ts()))
+	s.submit(race, _real("R", 1200.0, 180.0, "limousine", _ts(), 240.0))
+	var a0 := float(_find(s.entries(KEY), "A")["time_s"])
+	var b0 := float(_find(s.entries(KEY), "B")["time_s"])
+	var r0 := float(_find(s.entries(race), "R")["time_s"])
+	var first_text := FileAccess.get_file_as_string(p)
+	var first_bak := p + ".f" + LeaderboardStore.factor_text(_ts())
+	var s12 := _store_ts(p, 12.0, lengths, profiles)
+	s12.load_boards()
+	assert_ne_str(s12.conversion_note, "", "Faktor 12: umgerechnet")
+	assert_near(float(_find(s12.entries(KEY), "A")["time_s"]), a0 * _ts() / 12.0, 0.01, "Etappe: Zeit × 10/12")
+	var r := _find(s12.entries(race), "R")
+	assert_near(float(r["time_s"]), (r0 - 240.0) * _ts() / 12.0 + 240.0, 0.01, "Rennen: gefahrene Zeit × 10/12, Fähre bleibt")
+	assert_near(Units.avg_speed_kmh(1200.0, float(r["time_s"]) - 240.0, 12.0), 180.0, 0.05, "Rennschnitt ohne Fähre bleibt")
+	assert_near(float(r["avg_kmh"]), 180.0, 0.0001, "Schnitt-Feld bleibt")
+	assert_eq(_times(_seeded(s12.entries(KEY), true)), _times(_store_ts("", 12.0, lengths, profiles).entries(KEY)), "Starteinträge für Faktor 12 neu")
+	assert_eq(FileAccess.get_file_as_string(first_bak), first_text, "Datei mit Faktor 10 aufbewahrt")
+	assert_near(float(JsonFile.read(p)["time_scale"]), 12.0, 0.0001, "Datei jetzt mit Faktor 12")
+	var back := _store(p, lengths, {}, profiles)
+	back.load_boards()
+	assert_near(float(_find(back.entries(KEY), "A")["time_s"]), a0, 0.01, "zurück: Zeit A wie vorher")
+	assert_near(float(_find(back.entries(KEY), "B")["time_s"]), b0, 0.01, "zurück: Zeit B wie vorher")
+	assert_near(float(_find(back.entries(race), "R")["time_s"]), r0, 0.01, "zurück: Rennzeit wie vorher")
+	assert_eq(_names(back.top(KEY)), _names(s.top(KEY)), "zurück: gleiche Liste")
+	assert_true(FileAccess.file_exists(p + ".f12"), "Datei mit Faktor 12 aufbewahrt")
+	assert_eq(FileAccess.get_file_as_string(first_bak), first_text, "erste Sicherung nicht überschrieben")
+	var again := _store(p, lengths, {}, profiles)
+	again.load_boards()
+	assert_eq(again.conversion_note, "", "drittes Laden: nichts umgerechnet")
+	_remove(p)
 
 
 func assert_ne_str(actual: String, unexpected: String, msg: String) -> void:

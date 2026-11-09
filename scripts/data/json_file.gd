@@ -81,6 +81,13 @@ static func preserve_corrupt(path: String) -> void:
 		DirAccess.copy_absolute(_os_path(path), _os_path(path + CORRUPT_SUFFIX))
 
 
+## Copies a file byte for byte (e.g. a backup before a conversion). False if it is missing or could not be copied.
+static func copy(from_path: String, to_path: String) -> bool:
+	if not FileAccess.file_exists(from_path):
+		return false
+	return DirAccess.copy_absolute(_os_path(from_path), _os_path(to_path)) == OK
+
+
 ## Removes a file if it exists (no error otherwise).
 static func remove(path: String) -> void:
 	if FileAccess.file_exists(path):

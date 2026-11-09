@@ -134,7 +134,7 @@ durch. Ohne `cities.json` (oder ohne Stil-Landschaft in `scenery.json`) bleibt a
 | Feld | Einheit / Regel |
 |---|---|
 | `km_to_finish` | Kilometerzähler-km vor dem Ziel (Anfang einer Brücke, Standort eines Wahrzeichens) |
-| `length_m` (Brücke) | **sichtbare Meter** wie alle `*_m`-Werte (ARCHITECTURE.md §2: 1 km = 83,3 m) – eine Brücke von 200 m ist 2,4 km lang und bei 150 km/h rund 5 s zu sehen; eine Gracht von 40 m ist eine kurze Brücke |
+| `length_m` (Brücke) | **sichtbare Meter** wie alle `*_m`-Werte (ARCHITECTURE.md §2: 1 km = 100 m seit v0.7.0, Faktor 10) – eine Brücke von 200 m ist 2 km lang (bei Faktor 12 waren es 2,4 km) und bei 150 km/h rund 5 s zu sehen; eine Gracht von 40 m ist eine kurze Brücke |
 | `height_m` (Brücke) | Wasser unter der Fahrbahn in Metern; Standard je Typ: Gracht 1,8, Damm 1,4, Fluss 3,0, Steinbrücke 3,2, Fachwerkbogen 3,6, Schrägseil 5,0. Hochbrücken nur bei langen Brücken (Kiel 16 m auf 200 m Länge): auf kurzen hohen Brücken verbirgt das Deck das Wasser, beidseits liegt nur die Böschung in Deckhöhe (Bern: 15 → 8 m) |
 | `x_m` (Wahrzeichen) | Abstand der **Vorderkante** vom Fahrbahnrand (die Laufzeit rückt den Anker um die Ausdehnung zur Straße weg, `align: edge`) |
 | `center_km` | Länge des Zentrums vor dem Ziel (Standard 8 km); davor der Stadtrand. Je Stadt überschreibbar (Paris, Berlin, Madrid 10, München, Wien 9, Venedig 6,6 = ab dem Damm) |

@@ -41,7 +41,7 @@ func _track(seed_override: int = -1) -> Track:
 
 func test_conversions() -> void:
 	var t := _track()
-	assert_near(t.km_to_z(12.0), 1000.0, 0.001, "12 km = 1000 sichtbare m bei Faktor 12")
+	assert_near(t.km_to_z(10.0), 1000.0, 0.001, "10 km = 1000 sichtbare m bei Faktor 10 (seit v0.7.0)")
 	assert_near(t.z_to_km(t.km_to_z(37.5)), 37.5, 0.0001, "km <-> z")
 	assert_near(t.length_z, t.km_to_z(120.0), 0.001, "Länge in m")
 	assert_true(float(t.segment_count) * t.seg_len >= t.length_z + t.runout_m, "Auslaufstrecke hinter dem Ziel")

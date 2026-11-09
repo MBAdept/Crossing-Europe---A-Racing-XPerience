@@ -4,17 +4,19 @@ extends TestCase
 const Fx := preload("res://tests/sim/fixtures.gd")
 
 
+## Design document "Tageszeit und Wetter": the clock runs with the time-lapse – since v0.7.0 factor 10, 12 game minutes
+## = 2 hours (until v0.6.0 factor 12: 10 game minutes).
 func test_clock_time_lapse() -> void:
 	var c := cfg()
 	var clock := WorldClock.new()
 	clock.setup(c, 8.0 * 60.0)
 	assert_eq(clock.text(), "08:00", "Start")
-	clock.advance(600.0)
-	assert_eq(clock.text(), "10:00", "10 Spielminuten = 2 Stunden")
+	clock.advance(720.0)
+	assert_eq(clock.text(), "10:00", "12 Spielminuten = 2 Stunden")
 	assert_near(clock.hour(), 10.0, 0.0001, "Stunde")
 	assert_near(clock.elapsed_world_minutes(), 120.0, 0.0001, "vergangene Weltzeit")
-	assert_near(clock.elapsed_game_seconds(), 600.0, 0.0001, "vergangene Spielzeit")
-	clock.advance(300.0 * 15.0)
+	assert_near(clock.elapsed_game_seconds(), 720.0, 0.0001, "vergangene Spielzeit")
+	clock.advance(360.0 * 15.0)
 	assert_eq(clock.day_index(), 1, "nächster Tag")
 	assert_eq(clock.text(), "01:00", "über Mitternacht")
 	assert_eq(WorldClock.world_minutes_at(2, 6.5), 2.0 * 1440.0 + 390.0, "Tag + Uhrzeit")
@@ -121,11 +123,16 @@ func test_weather_race_modes() -> void:
 	assert_eq(region.race_weather(plan, 99, 0), w1, "Rennwetter deterministisch")
 
 
-func test_next_stage_starts_12h_later() -> void:
+## Design document "Tageszeit und Wetter" (since v0.7.0; before 12 h): the next stage of a race starts 8 hours world time
+## after the end of the previous one – the start time moves on by 8 hours plus the driving time.
+func test_next_stage_starts_8h_later() -> void:
 	var c := cfg()
-	assert_eq(EnvironmentModel.next_stage_start(600.0, c), 600.0 + 12.0 * 60.0, "Pause 12 h")
+	assert_eq(EnvironmentModel.next_stage_start(600.0, c), 600.0 + 8.0 * 60.0, "Pause 8 h")
+	var ts := float(ConfigLoader.lookup(c, "time.time_scale", 10.0))
 	var clock := WorldClock.new()
 	clock.setup(c, 8.0 * 60.0)
 	clock.advance(400.0)
 	var next := EnvironmentModel.next_stage_start(clock.world_minutes, c)
-	assert_near(Units.hour_of_day(next), fposmod(8.0 + 400.0 * 12.0 / 3600.0 + 12.0, 24.0), 0.0001, "Startzeit verschiebt sich um die Fahrzeit")
+	assert_near(Units.hour_of_day(next), fposmod(8.0 + 400.0 * ts / 3600.0 + 8.0, 24.0), 0.0001, "Startzeit verschiebt sich um die Fahrzeit")
+	var tuned := ConfigLoader.deep_merge(c, {"time": {"stage_pause_hours": 12.0}})
+	assert_eq(EnvironmentModel.next_stage_start(600.0, tuned), 600.0 + 12.0 * 60.0, "Pause aus der Konfiguration")

@@ -7,13 +7,18 @@ extends RefCounted
 ## (plus a few additional keys: race_name, version; legs also carry distance_km, penalty_s, name).
 ##
 ## Rules (design document "Tageszeit und Wetter", "Streckennetz, Etappen und Rennen"):
-##  * next stage starts stage_pause_hours (12 h) world time after the end of the previous stage
-##    (EnvironmentModel.next_stage_start) – the pause does not count towards the race time
+##  * next stage starts stage_pause_hours (8 h since v0.7.0, before 12 h) world time after the end of the previous
+##    stage (EnvironmentModel.next_stage_start) – the pause does not count towards the race time
 ##  * a ferry is a fixed intermediate time: fixed_time_s is added to the race total, world_hours
 ##    to the world clock; the next stage starts when the ferry arrives
 ##  * race finished = finish city reached after all mandatory waypoints
+##  * stage times are real seconds at the time-lapse factor time_scale (saved since version 2; a save without it is
+##    from before v0.7.0, factor 12): from_dict() with the current time.time_scale converts them (rescale()) – same
+##    average speed, ferries unchanged
 
-const VERSION := 1
+const VERSION := 2
+## Factor of a saved race without "time_scale" (version 1, up to v0.6.0).
+const LEGACY_TIME_SCALE := 12.0
 
 var race_id := ""
 var race_name := ""
@@ -29,6 +34,9 @@ var total_time_s := 0.0              ## race time so far (stage times incl. pena
 var world_minutes := 0.0             ## absolute world time at which the next leg starts
 var route: Array[String] = []        ## visited city ids in order (start city first)
 var seed := 0
+## Time-lapse factor (time.time_scale) the stage times are measured with; 0 = none driven yet. Set by
+## apply_stage_result(), converted by rescale().
+var time_scale := 0.0
 
 
 ## New race from a race definition {id, name, start, finish, waypoints}.
@@ -47,8 +55,9 @@ static func create(race: Dictionary, vehicle_id: String, start_hour_value: float
 	return s
 
 
-## Restores a saved race state. `race` is the race definition (for start/finish/waypoints).
-static func from_dict(d: Dictionary, race: Dictionary = {}) -> RaceState:
+## Restores a saved race state. `race` is the race definition (for start/finish/waypoints). to_time_scale > 0 (the
+## current time.time_scale): times saved with another factor are converted to it (rescale()).
+static func from_dict(d: Dictionary, race: Dictionary = {}, to_time_scale: float = 0.0) -> RaceState:
 	var s := RaceState.new()
 	s._read_race(race)
 	s.race_id = str(d.get("race_id", race.get("id", "")))
@@ -71,7 +80,53 @@ static func from_dict(d: Dictionary, race: Dictionary = {}) -> RaceState:
 	if not s.legs.is_empty():
 		s.total_time_s = s.sum_leg_times()
 	s.waypoint_index = clampi(s.waypoint_index, 0, s.waypoints.size())
+	s.time_scale = saved_time_scale(d)
+	if to_time_scale > 0.0:
+		s.rescale(to_time_scale)
 	return s
+
+
+## Factor of a saved race's stage times: its "time_scale"; LEGACY_TIME_SCALE (12) for a save with stage legs but
+## without the field (version 1, up to v0.6.0); 0 for a save without stage times.
+static func saved_time_scale(d: Dictionary) -> float:
+	var ts: Variant = d.get("time_scale", null)
+	if (ts is float or ts is int) and float(ts) > 0.0 and not is_inf(float(ts)):
+		return float(ts)
+	for l in d.get("legs", []):
+		if l is Dictionary and str((l as Dictionary).get("kind", "stage")) == "stage":
+			return LEGACY_TIME_SCALE
+	return 0.0
+
+
+## Converts the stage times to another time-lapse factor (v0.7.0: 12 -> 10, or a time_scale override in
+## game_config.json): stage times and penalties scale with time_scale / to_time_scale (same average speed, the legs'
+## avg_kmh stays), ferries keep their fixed time, the total is recomputed. World times stay: the next start was already
+## shown with the old rules (up to v0.6.0 a 12-h pause), the current pause applies from the next stage on. Returns the
+## ratio applied (1 = nothing to convert).
+func rescale(to_time_scale: float) -> float:
+	if to_time_scale <= 0.0:
+		return 1.0
+	var ratio := 1.0
+	if time_scale > 0.0 and not is_equal_approx(time_scale, to_time_scale):
+		ratio = time_scale / to_time_scale
+		for l in legs:
+			if str(l.get("kind", "stage")) == "stage":
+				l["time_s"] = float(l.get("time_s", 0.0)) * ratio
+				l["penalty_s"] = float(l.get("penalty_s", 0.0)) * ratio
+		total_time_s = sum_leg_times()
+	time_scale = to_time_scale
+	return ratio
+
+
+## A stage result (race session format, e.g. the one GameFlow keeps for the result screen) converted by ratio
+## (rescale()): time and penalty; average speed, distance and world times stay.
+static func rescaled_result(result: Dictionary, ratio: float) -> Dictionary:
+	var r := result.duplicate(true)
+	for k: String in ["time_s", "penalty_s"]:
+		var v: Variant = r.get(k, null)
+		if v is float or v is int:
+			r[k] = float(v) * ratio
+	return r
 
 
 func _read_race(race: Dictionary) -> void:
@@ -97,6 +152,7 @@ func to_dict() -> Dictionary:
 		"world_minutes": world_minutes,
 		"route": route.duplicate(),
 		"seed": seed,
+		"time_scale": time_scale,
 	}
 
 
@@ -157,9 +213,9 @@ func driven_time_s() -> float:
 	return t
 
 
-## Average speed over all driven stages (ferry time excluded), speedometer-consistent.
-func average_kmh(time_scale: float) -> float:
-	return Units.avg_speed_kmh(total_distance_km(), driven_time_s(), time_scale)
+## Average speed over all driven stages (ferry time excluded), speedometer-consistent; factor = time.time_scale.
+func average_kmh(factor: float) -> float:
+	return Units.avg_speed_kmh(total_distance_km(), driven_time_s(), factor)
 
 
 ## Hour of day (0..24) at which the next leg starts.
@@ -177,12 +233,14 @@ func stage_seed(stage_id: String) -> int:
 
 
 ## Records a finished stage. leg = chosen option {kind, id, from, to, length_km};
-## result = race session result (ARCHITECTURE.md §8). Returns the stored leg record.
+## result = race session result (ARCHITECTURE.md §8), measured with the configured time.time_scale (earlier stages
+## with another factor are converted first, rescale()). Returns the stored leg record.
 func apply_stage_result(leg: Dictionary, result: Dictionary, config: Dictionary) -> Dictionary:
-	var time_scale := float(ConfigLoader.lookup(config, "time.time_scale", 12.0))
+	var ts := float(ConfigLoader.lookup(config, "time.time_scale", 12.0))
+	rescale(ts)
 	var time_s := float(result.get("time_s", 0.0))
 	var start_min := float(result.get("start_world_minutes", world_minutes))
-	var end_min := float(result.get("end_world_minutes", start_min + Units.world_minutes_delta(time_s, time_scale)))
+	var end_min := float(result.get("end_world_minutes", start_min + Units.world_minutes_delta(time_s, ts)))
 	var rec := {
 		"kind": "stage",
 		"id": str(leg.get("id", result.get("stage_id", ""))),
