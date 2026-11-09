@@ -168,6 +168,7 @@ func test_save_round_trip() -> void:
 ## times converted: stage times and penalties × 12/10, the average stays, the ferry keeps its fixed 240 s, the next
 ## start stays at the world time already shown (12-h pause). The pending stage result (closed at the name prompt) is
 ## converted with the same ratio. Works in both directions (time_scale override), a save at the current factor stays.
+## Such a save has no tank either (fuel_l): its next stage starts with the stage's own filling once (lead decision v0.7.0).
 func test_saved_race_converted_to_new_time_scale() -> void:
 	var c12 := ConfigLoader.deep_merge(cfg(), {"time": {"time_scale": 12.0, "stage_pause_hours": 12.0}})
 	var race := {"id": "r", "name": "Riga – Kiel", "start": "riga", "finish": "kiel", "waypoints": []}
@@ -179,10 +180,12 @@ func test_saved_race_converted_to_new_time_scale() -> void:
 	var old_avg := s.average_kmh(12.0)
 	var d := s.to_dict()
 	d.erase("time_scale")   # as v0.6.0 saved it
+	d.erase("fuel_l")
 	d["version"] = 1
 	assert_near(RaceState.saved_time_scale(d), 12.0, 0.0001, "Spielstand ohne Faktor: 12")
 	var r := RaceState.from_dict(d, race, 10.0)
 	assert_near(r.time_scale, 10.0, 0.0001, "umgerechnet auf Faktor 10")
+	assert_eq(r.fuel_l, -1.0, "Spielstand aus v0.6.0 ohne Tank: die nächste Etappe startet einmal mit eigener Füllung")
 	assert_near(float(r.legs[1]["time_s"]), 360.0, 0.001, "Etappenzeit × 12/10")
 	assert_near(float(r.legs[1]["penalty_s"]), 36.0, 0.001, "Strafzeit × 12/10")
 	assert_near(float(r.legs[1]["avg_kmh"]), float(res["avg_speed_kmh"]), 0.0001, "Etappenschnitt unverändert")

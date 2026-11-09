@@ -171,7 +171,8 @@ func test_pending_stage_result_stays_in_save_until_done() -> void:
 
 ## v0.7.0 (time-lapse factor 10 instead of 12): a race saved by v0.6.0 (no "time_scale" = factor 12), closed at the name
 ## prompt of a stage result, continues converted – race legs and the pending result × 12/10 (same average), saved once
-## with the new factor; continuing again changes nothing.
+## with the new factor; continuing again changes nothing. It carries no tank (fuel_l): the next stage starts with the
+## stage's own filling once.
 func test_continue_converts_a_race_saved_with_factor_12() -> void:
 	var root := _root()
 	var gf := root.get_node_or_null("GameFlow")
@@ -190,6 +191,7 @@ func test_continue_converts_a_race_saved_with_factor_12() -> void:
 		ConfigLoader.deep_merge(cfg(), {"time": {"time_scale": 12.0, "stage_pause_hours": 12.0}}))
 	var d := race.to_dict()
 	d.erase("time_scale")   # as v0.6.0 saved it
+	d.erase("fuel_l")
 	d["version"] = 1
 	d[PENDING] = res
 	sg.call("save_race", d)
@@ -200,6 +202,7 @@ func test_continue_converts_a_race_saved_with_factor_12() -> void:
 	var r: RaceState = gf.get("race")
 	assert_near(r.total_time_s, 300.0 * 12.0 / ts, 0.001, "Rennzeit umgerechnet")
 	assert_near(r.world_minutes, 540.0 + 12.0 * 60.0, 0.001, "nächster Start bleibt (schon angezeigt)")
+	assert_eq(r.fuel_l, -1.0, "kein Tank gespeichert: die nächste Etappe startet einmal mit eigener Füllung")
 	var saved: Dictionary = sg.call("load_race")
 	assert_near(float(saved.get("time_scale", 0.0)), ts, 0.0001, "umgerechnet gespeichert")
 	assert_near(float((saved.get(PENDING, {}) as Dictionary).get("time_s", 0.0)), 300.0 * 12.0 / ts, 0.001, "offenes Ergebnis gespeichert")
