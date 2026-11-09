@@ -186,9 +186,11 @@ Einrichten steht in [marketing/steam/README.md](marketing/steam/README.md).
   jeder Etappe.
 - **Tageszeit und Wetter**: frei wählbare Startzeit, nächste Etappe 12 h Weltzeit nach dem Ende der vorigen,
   Dämmerung/Nacht/Sonnenaufgang während der Fahrt, Regen und Schnee.
-- **Streckennetz** komplett in Datendateien: 45 Städte, 51 Etappen (in beide Richtungen fahrbar), Fähre
-  Riga – Rostock, vier Rennen: Kiel – Nürnberg (Route über Kassel oder über Frankfurt), Dresden – Dortmund,
-  München – Bremen und das Königsrennen (rund 9.200 km in 33 Etappen plus Fähre).
+- **Streckennetz** komplett in Datendateien: 55 Städte, 64 Etappen (in beide Richtungen fahrbar), Fähre
+  Riga – Rostock, sechs Rennen: Kiel – Nürnberg (Route über Kassel oder über Frankfurt), Dresden – Dortmund,
+  München – Bremen, Wien – Hamburg (über Linz, Passau, Regensburg, Nürnberg, Fulda, Kassel und Hannover, 1.150 km
+  in 8 Etappen), Bukarest – Calais (rund 2.500 km in 11–13 Etappen, ab Wien an der Donau entlang oder über Prag)
+  und das Königsrennen (rund 9.200 km in 33 Etappen plus Fähre).
 - **Etappenbildschirm** mit Karte (Natural Earth), Wetter, Rekord-Laufschrift und Top 10; Bestenlisten pro Etappe
   und Rennen mit Fahrzeug, Wetter- und Tageszeit-Symbol; Namenseingabe auch per Gamepad; Spielstand nach jeder Etappe.
 - **Sound** komplett prozedural: fünf eigene Motoren aus einem physikalisch angelehnten Modell mit Getriebe je Auto

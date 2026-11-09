@@ -54,7 +54,8 @@ const SKY_OFFSETS: Array[float] = [0.2, -0.34, 0.44, -0.12, 0.31, -0.48]   ## sk
 const LANDMARK_FLOOD := Color(1.0, 0.86, 0.62)   ## floodlight on plain props used as landmarks (night)
 const LANDMARK_FLOOD_K := 0.55
 const LIGHTHOUSE_PERIOD_S := 15.0   ## one revolution of the lighthouse proc (Calais: four flashes every 15 s)
-const LIGHTHOUSE_BEAM_M := 240.0    ## visible length of a beam seen from the side (m)
+const LIGHTHOUSE_BEAM_M := 240.0    ## visible length of a beam seen from the side (m) …
+const LIGHTHOUSE_BEAM_MAX_PX := 360.0   ## … at most this long on screen (close up it swept across the whole sky)
 const GROUND_BLEND_M := 150.0          ## outskirts ground blends into the centre ground over these visible m
 const STATS_N := 600
 ## Indicators of the traffic (car item "blink" -1/+1, "blink_t" = seconds since it came on; TrafficSystem signals
@@ -4261,7 +4262,8 @@ func _lm_atomium(p: Vector3, hgt: float, lights_a: float) -> void:
 ## Lighthouse (Phare de Calais, 51 m): white octagonal tower tapering upwards with its shaded faces, windows, the
 ## keeper's house at the foot, black gallery, lantern and dome. At night the tower is floodlit and the light turns:
 ## four beams, one revolution in LIGHTHOUSE_PERIOD_S (the real light flashes four times every 15 s). A beam is a soft
-## cone, longest seen from the side, short when it points at or away from the viewer (rising towards him, sinking
+## cone, longest seen from the side (LIGHTHOUSE_BEAM_M, on screen at most LIGHTHOUSE_BEAM_MAX_PX – close up the beams
+## otherwise swept across the whole sky), short when it points at or away from the viewer (rising towards him, sinking
 ## towards the horizon away from him), brighter towards the viewer; pointing at him it flashes.
 func _lm_lighthouse(p: Vector3, hgt: float, lights_a: float) -> void:
 	var s := p.z * hgt / 51.0
@@ -4289,22 +4291,24 @@ func _lm_lighthouse(p: Vector3, hgt: float, lights_a: float) -> void:
 	batch.rect(Rect2(p.x - 2.0 * s, p.y - 46.4 * s, 4.0 * s, 4.4 * s), Color(1.0, 0.95, 0.8, 0.85 * lights_a))
 	var turn := fmod(_time * TAU / LIGHTHOUSE_PERIOD_S, TAU)
 	var flash := 0.0
+	var beam_px := minf(LIGHTHOUSE_BEAM_M * s, LIGHTHOUSE_BEAM_MAX_PX)
 	for i in 4:
 		var b := turn + float(i) * PI * 0.5
 		var across := cos(b)
 		var toward := sin(b)
 		flash = maxf(flash, maxf(0.0, toward) ** 24.0)
-		var len_m := LIGHTHOUSE_BEAM_M * absf(across)
-		if len_m * s < 6.0:
+		var len_px := beam_px * absf(across)
+		if len_px < 6.0:
 			continue
-		var tip := lamp + Vector2(signf(across) * len_m * s, -toward * len_m * 0.12 * s)
+		var tip := lamp + Vector2(signf(across) * len_px, -toward * len_px * 0.12)
 		var k := lights_a * lerpf(0.45, 1.0, 0.5 + 0.5 * toward)
-		var near := Color(1.0, 0.96, 0.82, 0.2 * k)
+		var near := Color(1.0, 0.96, 0.82, 0.16 * k)
 		var far := Color(1.0, 0.96, 0.82, 0.0)
-		var spread := 0.07 * len_m * s
-		batch.quad4(lamp + Vector2(0.0, -1.4 * s), tip + Vector2(0.0, -spread), tip + Vector2(0.0, spread), lamp + Vector2(0.0, 1.4 * s), near, far, far, near)
-		var core := Color(1.0, 0.97, 0.88, 0.3 * k)
-		batch.quad4(lamp + Vector2(0.0, -0.6 * s), tip + Vector2(0.0, -spread * 0.3), tip + Vector2(0.0, spread * 0.3), lamp + Vector2(0.0, 0.6 * s), core, far, far, core)
+		var spread := 0.07 * len_px
+		var w0 := minf(1.4 * s, 4.0)
+		batch.quad4(lamp + Vector2(0.0, -w0), tip + Vector2(0.0, -spread), tip + Vector2(0.0, spread), lamp + Vector2(0.0, w0), near, far, far, near)
+		var core := Color(1.0, 0.97, 0.88, 0.24 * k)
+		batch.quad4(lamp + Vector2(0.0, -w0 * 0.45), tip + Vector2(0.0, -spread * 0.3), tip + Vector2(0.0, spread * 0.3), lamp + Vector2(0.0, w0 * 0.45), core, far, far, core)
 	_lm_glow(lamp, maxf(2.5, (3.5 + 22.0 * flash) * s), Color(1.0, 0.95, 0.75, (0.5 + 0.5 * flash) * lights_a))
 
 

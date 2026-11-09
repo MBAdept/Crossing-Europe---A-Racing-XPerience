@@ -4,7 +4,8 @@ extends SceneTree
 ## ... -> ferry -> race result. Prints one line per leg and checks the race rules on the way
 ## (next stage starts time.stage_pause_hours after the previous one ended; race time = sum of legs; v0.7.0: every
 ## stage after the first starts with the fuel the previous one ended with – also across the ferry –, the first one
-## with the stage's own filling; the autopilot is never towed, neither on the road nor before a start).
+## with the stage's own filling; the autopilot is never towed, neither on the road nor before a start; every stage has
+## its first fuel station within fuel.first_station_max_km and a police sprite for every country it passes).
 ##   godot --headless --path . -s res://tests/race/run_race.gd -- --race=kiel_nuernberg --autopilot \
 ##       --no-countdown [--pick=0|1] [--vehicle=limousine] [--hour=8] [--timescale=40] [--max-legs=60]
 ##       [--race-seed=<n>] (GameFlow: fixed race seed – reproducible race weather, e.g. snow on a leg)
@@ -94,6 +95,7 @@ func _flow_step() -> void:
 			_setup_fuel = float(setup.get("start_fuel_l", -1.0))
 			if absf(_setup_fuel - _prev_fuel_end) > 0.001:
 				_errors.append("Etappe %s startet mit %.2f L statt %.2f L (Tank im Ziel der letzten Etappe)" % [setup["stage_id"], _setup_fuel, _prev_fuel_end])
+			_check_plan(str(setup["stage_id"]), str(setup["from_city"]))
 			_gf.call("start_pending_stage")
 			_state = "racing"
 		"ferry":
@@ -118,6 +120,34 @@ func _flow_step() -> void:
 			_gf.call("result_continue")
 		_:
 			pass
+
+
+## v0.7.0 (new races, fuel carry-over): the stage about to be driven has its first fuel station within
+## fuel.first_station_max_km in this driving direction, and a police sprite set for every country it passes (a missing
+## set would make the police invisible there, e.g. Romania). Prints the stage's stations and borders.
+func _check_plan(stage_id: String, from_city: String) -> void:
+	var gd := root.get_node_or_null("/root/GameData")
+	var sprites := root.get_node_or_null("/root/SpriteDB")
+	var plan: Object = gd.call("get_stage_plan", stage_id, from_city) if gd != null else null
+	if plan == null:
+		_errors.append("Etappe %s ab %s: kein Plan" % [stage_id, from_city])
+		return
+	var first_max := float(ConfigLoader.lookup(ConfigLoader.load_merged(), "fuel.first_station_max_km", 20.0))
+	var stations: Array = Array(plan.get("fuel_stations_km"))
+	if stations.is_empty() or float(stations[0]) > first_max + 0.01:
+		_errors.append("Etappe %s ab %s: erste Tankstelle %s (Soll ≤ %.0f km)" % [stage_id, from_city, str(stations.slice(0, 1)), first_max])
+	var borders: Array[String] = []
+	for b: Dictionary in plan.get("borders"):
+		borders.append("%s bei km %.0f" % [str(b["to"]), float(b["km"])])
+	var police: Array[String] = []
+	for c in plan.get("countries_in_order"):
+		var set_id := str(gd.call("police_set_for", str(c)))
+		police.append(set_id)
+		if sprites != null and not bool(sprites.call("has_set", set_id)):
+			_errors.append("Etappe %s: Polizei-Sprite %s für %s fehlt (Polizei unsichtbar)" % [stage_id, set_id, str(c)])
+	print("    %s ab %s: Tankstellen bei km %s · Grenze %s · Polizei %s" % [stage_id, from_city,
+		", ".join(stations.map(func(x: Variant) -> String: return "%.1f" % float(x))),
+		", ".join(borders) if not borders.is_empty() else "–", ", ".join(police)])
 
 
 func _on_leg_result(r: Dictionary) -> void:

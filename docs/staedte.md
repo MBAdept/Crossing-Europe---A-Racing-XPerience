@@ -5,7 +5,7 @@ Landschaft `city` (fünf Gebäudetypen, allgemeine Skyline). Wunsch: Städte ind
 Einfamilienhäuser am Stadtrand in Osteuropa, Einfahrt über Brücken in Hamburg und Amsterdam, Renaissance-Gebäude in
 Wien, der Eiffelturm in Paris.
 
-Lösung: drei Bausteine, alles datengetrieben und für jede der 45 Städte einstellbar.
+Lösung: drei Bausteine, alles datengetrieben und für jede der 55 Städte (seit v0.7.0; vorher 45) einstellbar.
 
 1. **Baustil** je Stadt (aus dem Land vorbelegt, je Stadt überschreibbar) mit eigener Landschaft für den
    **Stadtrand** (äußerer Teil der City Limits) und das **Zentrum** (innerer Teil): eigene Gebäude-Sprites, Bodenfarbe,
@@ -24,7 +24,7 @@ Lösung: drei Bausteine, alles datengetrieben und für jede der 45 Städte einst
   "country_style": {"DE": "german", "NL": "dutch", "BE": "belgian", "FR": "french", "ES": "spanish",
                     "IT": "italian", "AT": "austrian", "CH": "swiss", "CZ": "central", "HU": "central",
                     "SI": "central", "HR": "balkan", "RS": "balkan", "BG": "balkan", "PL": "eastern",
-                    "LT": "baltic", "LV": "baltic"},
+                    "LT": "baltic", "LV": "baltic", "RO": "balkan"},
   "styles": {
     "eastern": {"name": "Osteuropa", "outskirts": "city_eastern_outskirts", "center": "city_eastern_center"},
     "…": {}
@@ -68,22 +68,22 @@ Tags `prop`, `building`, `city`, `mirror_left`). Namen `props/city_<stil>_<name>
 | Stil | Städte | Gebäude (Stadtrand / Zentrum) |
 |---|---|---|
 | `hanse` | Hamburg, Bremen, Kiel, Rostock | Einfamilienhäuser (Klinkerton), wenige Giebelhäuser und Mietshäuser, Hafenkran / Kaufmannshäuser mit Giebeln, Speicher, Kontorhaus |
-| `german` | Hannover, Kassel, Frankfurt, Berlin | Einfamilienhäuser mit Satteldach / Mietshäuser, Gründerzeit, Bürotürme (Frankfurt) |
+| `german` | Hannover, Kassel, Frankfurt, Berlin, Köln | Einfamilienhäuser mit Satteldach / Mietshäuser, Gründerzeit, Bürotürme (Frankfurt) |
 | `german_east` | Magdeburg, Leipzig | wie `german`, am Stadtrand Plattenbauten hinter den Häusern |
 | `ruhr` | Dortmund | wie `german`, am Stadtrand Backstein-Reihenhäuser (Zechensiedlung), Fabriken, Strommasten |
-| `german_old` | Nürnberg, Würzburg, Erfurt | Fachwerkhäuser, barocke Bürgerhäuser |
-| `bavarian` | München | Einfamilien- und Mietshäuser mit Fichten / Gründerzeit-Zinshäuser, Barockhäuser (kein Fachwerk) |
+| `german_old` | Nürnberg, Würzburg, Erfurt, Fulda | Fachwerkhäuser, barocke Bürgerhäuser |
+| `bavarian` | München, Passau, Regensburg | Einfamilien- und Mietshäuser mit Fichten / Gründerzeit-Zinshäuser, Barockhäuser (kein Fachwerk) |
 | `dutch` | Amsterdam | Grachtenhäuser (Treppen-, Glocken-, Halsgiebel), Hausboote, Windmühlen am Stadtrand |
-| `belgian` | Lüttich | Backstein-Reihenhäuser, Stein |
+| `belgian` | Lüttich, Brüssel, Calais | Backstein-Reihenhäuser, Stein |
 | `paris` | Paris | Pavillons, Immeubles, HLM-Riegel / Haussmann-Blöcke (heller Stein, Mansarddächer, Balkone) |
 | `french` | Tours, Pau | Loire-Häuser (Tuffstein, Schiefer) / Stadthäuser mit Fensterläden |
 | `french_south` | Lyon, Bordeaux, Toulouse, Montpellier | Häuser mit Mönch-Nonne-Ziegeln, Zypressen, Ölbäume / ockerfarbene Stadthäuser |
 | `spanish` / `spanish_north` / `italian` | Madrid, Barcelona, Saragossa / San Sebastián, Burgos (grün, Eichen und Pappeln statt Palmen) / Mailand, Venedig | weiße Häuser, Wohnblöcke mit Balkonen, Terrakotta-Dächer; Italien: Villette und Casette am Stadtrand, Palazzi |
-| `vienna` / `austrian` | Wien | Zinshäuser am Stadtrand / Renaissance-/Gründerzeitpalais, Zinshäuser, Kuppelkirche |
+| `vienna` / `austrian` | Wien / Linz | Zinshäuser am Stadtrand / Renaissance-/Gründerzeitpalais, Zinshäuser, Kuppelkirche |
 | `swiss` | Bern | Chalets am Stadtrand, Laubenhäuser |
-| `central` | Prag, Budapest, Ljubljana, Dresden | Würfelhäuser (Kostka, Kádár-kocka), Paneláky im Hintergrund / barocke und Jugendstil-Bürgerhäuser, Türme |
+| `central` | Prag, Budapest, Ljubljana, Dresden, Sibiu, Timișoara | Würfelhäuser (Kostka, Kádár-kocka), Paneláky im Hintergrund / barocke und Jugendstil-Bürgerhäuser, Türme |
 | `eastern` | Warschau, Posen, Białystok | **kleine Einfamilienhäuser mit Zaun und Garten am Stadtrand**, Plattenbauten im Zentrum |
-| `balkan` | Belgrad, Sofia, Slavonski Brod | Einfamilienhäuser (oft unverputzt), Plattenbauten (im Zentrum hinter der Straßenfront), orthodoxe Kirche |
+| `balkan` | Belgrad, Sofia, Slavonski Brod, Bukarest | Einfamilienhäuser (oft unverputzt), Plattenbauten (im Zentrum hinter der Straßenfront), orthodoxe Kirche |
 | `baltic` | Riga, Kaunas | Holzhäuser und vereinzelte Plattenbauten am Stadtrand, Jugendstil im Zentrum |
 
 Die 16 Stile des Vertrags sind Pflicht; die regionalen Stile `german_east`, `ruhr`, `bavarian`, `french_south`
@@ -128,7 +128,7 @@ selbst.
 
 ## 6. Umsetzung – Daten (`data/cities.json`, `CityData`)
 
-Alle 45 Städte stehen in `data/cities.json` (Format wie §1, Beschreibung auch im `_doc` der Datei). Aufgelöst wird
+Alle 55 Städte stehen in `data/cities.json` (Format wie §1, Beschreibung auch im `_doc` der Datei). Aufgelöst wird
 für die **Zielstadt** einer Etappe (beide Fahrtrichtungen) von `CityData.apply()` (`scripts/data/city_data.gd`, rein,
 ohne Autoloads), aufgerufen aus `StagePlan.build(…, city_db)`; `GameData` lädt die Datei (`city_db`) und reicht sie
 durch. Ohne `cities.json` (oder ohne Stil-Landschaft in `scenery.json`) bleibt alles bei der Landschaft `city`.
@@ -235,8 +235,27 @@ weiterhin ganz zu sehen.
 | Białystok | `eastern` | Pfarrkirche (Fara) | – |
 | Kaunas | `baltic` | Christi-Auferstehungs-Kirche | Aleksotas-Brücke (river) |
 | Riga | `baltic` | Freiheitsdenkmal, Petrikirche und Fernsehturm (Silhouetten) | Vanšu-Brücke (cable_stayed) |
+| Linz *(seit v0.7.0)* | `austrian` | Mariendom | Nibelungenbrücke (river, Donau, Schiff); Schornsteine der VOEST, Hügel am Horizont |
+| Passau *(seit v0.7.0)* | `bavarian` | Dom St. Stephan (links, 1,0 km vor dem Ziel) | Innbrücke (river, grünes Innwasser), Luitpoldbrücke (river, Donau, Schiff) |
+| Regensburg *(seit v0.7.0)* | `bavarian` | Regensburger Dom | Steinerne Brücke (stone_arch) |
+| Fulda *(seit v0.7.0)* | `german_old` | Fuldaer Dom | Fuldabrücke (river) |
+| Bukarest *(seit v0.7.0)* | `balkan` | Parlamentspalast (rechts, 3,4 km), Kathedrale der Erlösung des Volkes (links, 1,6 km) | Dâmbovița (river, Podul Izvor) |
+| Sibiu *(seit v0.7.0)* | `central` | Evangelische Stadtpfarrkirche | Cibinbrücke (river); Karpaten am Horizont |
+| Timișoara *(seit v0.7.0)* | `central` | Metropolitankathedrale | Begabrücke (river, grüne Böschung) |
+| Köln *(seit v0.7.0)* | `german` | Kölner Dom (links, freier Platz 420 m), Colonius (Silhouette, prozedural `tv_tower`) | Severinsbrücke (cable_stayed, Pylon 77 m, Schiffe) |
+| Brüssel *(seit v0.7.0)* | `belgian` | Atomium (rechts, 2,6 km), Basilika Koekelberg (links, 1,2 km) | Pont Van Praet (river, Kanal) |
+| Calais *(seit v0.7.0)* | `belgian` | Leuchtturm (prozedural `lighthouse`, rechts, 3,0 km), Belfried (links, 1,2 km) | Pont Mollien (river, Hafenbecken, Schiff); Hafenkräne |
 
-Der Stil `austrian` wird von keiner Stadt genutzt (Wien hat `vienna`), ist aber als Landesvorgabe für AT vollständig.
+Die zehn Städte der Rennen Wien – Hamburg und Bukarest – Calais *(seit v0.7.0)* haben alle ein eigenes
+Wahrzeichen-Sprite (§3), nur der Leuchtturm von Calais und der Kölner Colonius sind prozedural; jedes steht auch
+als Silhouette in der Skyline. Lage nach der Regel aus §6: 0,6–1,0 km hinter dem Ende einer Brücke (das Wasser
+öffnet den Blick), freier Platz ≈ 2,5–3 · Höhe (Kölner Dom 157 m: 420 m, Mariendom 135 m: 340 m). Weil Brücken in
+sichtbaren Metern zählen, wächst dieser Abstand mit kleinerem Zeitraffer-Faktor (Regensburg: Steinerne Brücke 120 m
+= 1,44 km bei Faktor 12, 1,2 km bei Faktor 10 – der Dom steht 0,56 bzw. 0,8 km hinter ihr). Wasserfarben: grünes
+Inn-Wasser in Passau, trübe Dâmbovița, Bega und die Kanäle in Brüssel und Calais eigene Töne (`water`). Rumänien
+bekommt über `country_style` den Stil `balkan` (Sibiu und Timișoara mit barocker Altstadt: `central`).
+
+Den Stil `austrian` nutzt seit v0.7.0 Linz (Wien hat `vienna`); er ist zugleich die Landesvorgabe für AT.
 
 ## 7. Umsetzung – Laufzeit
 
@@ -293,7 +312,14 @@ Die Rennsitzung nimmt `scenery_for` für den Hintergrund und meldet Brückenname
   nachts golden mit stündlichem Glitzern), `tv_tower`, `ferris_wheel`, `column`, `octagon` (Oktogon mit Pyramide und
   Statue, Herkules), `campanile`, `domed_church` (Farben `dome`/`wall`, `cross`; aus der Nähe mit Fassade aus
   Fensterreihen und Portal statt einer leeren weißen Wand), `parliament`, `palace_tower`,
-  `skyscrapers` (aus der Nähe mit Geschossbändern alle 4 m und Pfosten alle 3 m – Glasfassade statt glatter Fläche).
+  `skyscrapers` (aus der Nähe mit Geschossbändern alle 4 m und Pfosten alle 3 m – Glasfassade statt glatter Fläche),
+  seit v0.7.0 `atomium` (neun Stahlkugeln auf den Ecken und in der Mitte eines auf der Raumdiagonale stehenden Würfels,
+  Rohre, Stützen, nachts wandernde Lichter – Ersatz, falls das Sprite `landmarks/atomium` fehlt) und `lighthouse`
+  (Leuchtturm von Calais, 51 m: weißer achteckiger Turm mit Wärterhaus, schwarze Galerie und Laterne; nachts
+  angestrahlt, das Licht dreht sich – vier Strahlen, eine Umdrehung in 15 s wie die vier Blitze alle 15 s des echten
+  Feuers. Ein Strahl ist ein weicher Kegel von höchstens 240 m (auf dem Bildschirm höchstens 360 px – aus der Nähe
+  zogen die Strahlen sonst über den ganzen Himmel), von der Seite gesehen am längsten, zum Betrachter hin
+  heller und steigend, von ihm weg zum Horizont sinkend; zeigt er auf den Betrachter, blitzt die Laterne).
   Ihre Lichter sind weiche Punkte in der Malerreihenfolge (`_soft`), damit Häuser und Hügel davor sie verdecken – die
   additive Leuchtebene würde durchscheinen (auch für Lampen-Spiegelungen auf dem Wasser). Gewöhnliche Requisiten als
   Wahrzeichen (`props/church` als Dom …) haben nachts nur Fenster in der Lichtebene: der Renderer strahlt sie warm an
@@ -423,6 +449,17 @@ Mitte vorn, echte Maße, Tag `landmark`, **kein** `mirror_left` – Wahrzeichen 
 | `kathedrale_burgos` | Kathedrale von Burgos | 88 × 60 | nach Zeit | `church` × 2,5 |
 | `basilica_pilar` | Basílica del Pilar | 80 × 130 | nach Zeit | prozedural `domed_church` |
 | `florianturm`, `fernsehturm_riga`, `cuatro_torres`, `sacre_coeur`, `hram_svetog_save`, `herkules_kassel` | optional | siehe `cities.json` | nein | prozedural bzw. `church` |
+| `koelner_dom` *(seit v0.7.0, Sprite)* | Kölner Dom | 157 × 86 | nein | `kathedrale_burgos` × 1,78, dunkel getönt |
+| `dom_regensburg` *(Sprite)* | Regensburger Dom | 105 × 39 | nein | `kathedrale_burgos` × 1,19 |
+| `mariendom_linz` *(Sprite)* | Mariendom | 135 × 60 | nein | `church` × 3,8 |
+| `dom_passau`, `dom_fulda` *(Sprites)* | Dom St. Stephan, Fuldaer Dom | 68 × 100, 65 × 80 | nein | prozedural `domed_church` |
+| `palatul_parlamentului` *(Sprite)* | Parlamentspalast | 86 × 270 | nein | `building_block_a` × 3,0 |
+| `catedrala_mantuirii`, `catedrala_timisoara` *(Sprites)* | Kathedrale der Erlösung des Volkes, Metropolitankathedrale | 127 × 120, 90,5 × 63 | nein | prozedural `domed_church` (goldene bzw. grüne Kuppeln) |
+| `stadtpfarrkirche_sibiu` *(Sprite)* | Evangelische Stadtpfarrkirche | 73 × 31 | nein | `church` × 2,06 |
+| `atomium` *(Sprite)* | Atomium | 102 × 80 | nein | prozedural `atomium` |
+| `basilika_koekelberg` *(Sprite)* | Basilika Koekelberg | 89 × 167 | nein | prozedural `domed_church` |
+| `beffroi_calais` *(Sprite)* | Belfried von Calais | 75 × 14 | nein | prozedural `campanile` |
+| `colonius`, `phare_calais` *(seit v0.7.0)* | Colonius (Köln), Leuchtturm von Calais | 266 × 30, 51 × 10 | nein | nur prozedural: `tv_tower`, `lighthouse` |
 
 ## 9. Tests, Screenshots, offene Assets
 
@@ -433,7 +470,11 @@ Mitte vorn, echte Maße, Tag `landmark`, **kein** `mirror_left` – Wahrzeichen 
   Warnung** (Brücken in der Etappe und nicht im Tunnel, Wahrzeichen in den City Limits, nicht im Tunnel, nicht im
   Wasser), Pflicht-Wahrzeichen und -Brücken,
   Auflösung der Hamburger Ankunft (km, Länge in sichtbaren Metern, Sortierung, Skyline ↔ Requisite), ungültige Brücken
-  werden mit Warnung verworfen.
+  werden mit Warnung verworfen; seit v0.7.0 `test_v070_cities`: die zehn neuen Städte mit Stil, eigenem
+  Wahrzeichen (Sprite vorhanden oder prozedural) auch in der Skyline und einer Brücke, `police/ro`, die Ankunft in
+  Calais (Leuchtturm, dann Belfried; Leuchtturm-Silhouette ohne Ersatz-Kirche). `test_city_render.gd`
+  `test_atomium_and_lighthouse_procs`: beide Procs zeichnen, der Leuchtturm nachts mit Kegeln, die mit der Drehung
+  kommen und gehen.
 - `tests/unit/race/test_city_track.gd`: Stadtrand/Zentrum je Segment, Brücken als Wasser-Zonen mit Ufer, Boden unter
   dem Deck (Kaimauer/Böschung), keine Landschaft auf dem Wasser, Portale alle 40 m über der ganzen Fahrbahn, Pylone
   (prozedural, `prefer_proc`), Laternen, Hausboote und Schiff auf Wasserhöhe, Wahrzeichen als Ereignis mit freiem
@@ -451,13 +492,24 @@ Mitte vorn, echte Maße, Tag `landmark`, **kein** `mirror_left` – Wahrzeichen 
   `--stage=bremen_amsterdam --start-km=357.6` (Grachten), `--stage=budapest_wien --start-km=237.3` (Reichsbrücke,
   Riesenrad, Stephansdom), `--stage=warschau_bialystok --start-km=182` bzw. `--stage=posen_warschau --start-km=287`
   (Einfamilienhäuser mit Zäunen, Kulturpalast in der Ferne), `--stage=mailand_venedig --start-km=269` (Damm, Campanile).
+  Seit v0.7.0 (mit `--start-speed=60 --autopilot --no-countdown --shot-times=1.5,6`, nachts `--hour=22`):
+  `--stage=wien_linz --start-km=177.5` (Mariendom), `--stage=linz_passau --start-km=110.4` (Innbrücke, dann
+  Luitpoldbrücke mit dem Dom), `--stage=passau_regensburg --start-km=116.6` (Steinerne Brücke, Dom),
+  `--stage=nuernberg_fulda --start-km=200.6`, `--stage=bukarest_sibiu --from=sibiu --start-km=272.5`
+  (Parlamentspalast, Kathedrale), `--stage=bukarest_sibiu --start-km=275.5` (Sibiu, Karpaten),
+  `--stage=sibiu_timisoara --start-km=269.8`, `--stage=frankfurt_koeln --start-km=182` (Dom von fern; 186.2 =
+  Severinsbrücke), `--stage=koeln_bruessel --start-km=208.4` (Atomium, Koekelberg),
+  `--stage=bruessel_calais --start-km=210.2` (Pont Mollien, Leuchtturm, Belfried; nachts 206.5 für die Strahlen).
 - **Geliefert** (Manifest, [sprites.md](sprites.md)): 46 Stadtgebäude in 15 Stilen (`props/city_*`, Namen wie in
   sprites.md „Städte“, nicht wie in der Wunschliste §8), `bridge_truss_arch`, `bridge_pylon`, `bridge_lamp`,
   `houseboat` und 33 Wahrzeichen (die 15 Pflicht-Sets und 18 weitere, davon 12 seit v0.7.0).
 - **Noch ohne Asset** (läuft prozedural oder mit Ersatz):
-  - Wahrzeichen nur prozedural: `florianturm`, `fernsehturm_riga` (`tv_tower`), `cuatro_torres` (`skyscrapers`),
-    `sacre_coeur`, `hram_svetog_save`, `voelkerschlachtdenkmal`, `neues_rathaus_hannover` (`domed_church`),
-    `herkules_kassel` (`octagon`).
+  - Wahrzeichen nur prozedural: `florianturm`, `fernsehturm_riga`, `colonius` (`tv_tower`), `cuatro_torres`
+    (`skyscrapers`), `sacre_coeur`, `hram_svetog_save`, `voelkerschlachtdenkmal`, `neues_rathaus_hannover`
+    (`domed_church`), `herkules_kassel` (`octagon`), `phare_calais` (`lighthouse`). Die zehn Städte von v0.7.0
+    haben sonst alle ein eigenes Wahrzeichen-Sprite; ihre Katalogeinträge behalten den Ersatz (`proc` bzw.
+    `fallback`, §8) für den Fall, dass ein Sprite fehlt – der Kölner und der Regensburger Dom stünden dann auf dem
+    Sprite der Kathedrale von Burgos, Linz und Sibiu auf `props/church`.
   - Wahrzeichen mit dem Sprite eines anderen: Festung Marienberg, Burg Ljubljana, Château de Pau (Kaiserburg),
     Marienkirche Rostock (Petrikirche Riga), Posener Dom (Frauenkirche München), Notre-Dame de Fourvière
     (`city_vienna_kirche`).

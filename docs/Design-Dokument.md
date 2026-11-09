@@ -201,6 +201,8 @@ Die City Limits ergeben sich automatisch aus den letzten 20 km jeder Etappe und 
 ### Weitere Rennen
 
 - Zum Beispiel Dresden – Dortmund, München – Bremen.
+- *(seit v0.7.0)* Wien – Hamburg über Linz, Passau, Regensburg, Nürnberg, Fulda, Kassel und Hannover: Jede dieser Städte ist Pflichtstation und Etappenziel, die Route ist also fest (8 Etappen, rund 1.150 km; drei davon sind nur gut 100 km lang, weil die Städte so dicht liegen).
+- *(seit v0.7.0)* Bukarest – Calais, mit Etappen von Stadt zu Stadt entlang der großen Straßen: Bukarest – Sibiu (durch das Olttal über die Karpaten) – Timișoara – Budapest – Wien, ab Wien wahlweise an der Donau entlang über Linz, Passau und Regensburg (kürzer, mehr Etappen) oder über Prag (länger, weniger Etappen) nach Nürnberg, dann Würzburg – Frankfurt – Köln – Brüssel – Calais. Rund 2.500–2.600 km in 11–13 Etappen; neues Land Rumänien.
 - Königsrennen als Tour: Kiel – Hamburg – Bremen – Amsterdam – Lüttich – Paris – Madrid – Bern – Mailand – Sofia – Budapest – Wien – Prag – Leipzig – Berlin – Warschau – Riga – Fähre – Rostock – Kiel.
 - Die Tour umfasst grob 11.000–12.000 km. Lange Abschnitte werden in Etappen von 200–400 km geteilt; nach jeder Etappe wird gespeichert.
 - Die Fähre Riga – Rostock ist eine feste Zwischenzeit mit kurzer Szene. *(seit v0.7.0)* Der Tank geht unverändert mit auf die Fähre.

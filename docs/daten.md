@@ -81,8 +81,9 @@ Alle Erweiterungen sind optional; ältere Dateien bleiben gültig.
   `first_fuel={"fwd": 15}` 15 km – die 15-km-Ansage kommt dann genau beim Start), auf den Klassenabstand
   (`few` ~88, `normal` ~75, `many` ~62 km) und auf Klassenabstand − 12 km für die letzte, damit der Takt mit der
   ersten Tankstelle der nächsten Etappe über das Etappenende weitergeht. Ergebnis: erste 8,5–15 km (Median 12),
-  Abstände 60–87,6 km, letzte 30,3–83 km vor dem Ziel, 332 Tankstellen in 102 Richtungen (vorher 324); über ein
-  Etappenende hinweg 42–92 km. Keine Tankspur in Tunneln (`StagePlan`-Warnung), Abstand der Tankspur zu Tunneln,
+  Abstände 60–87,6 km, letzte 27–83 km vor dem Ziel, 410 Tankstellen in 128 Richtungen (die 51 Etappen vor den
+  neuen Rennen: 332 statt vorher 324; die 13 neuen Etappen: erste überall bei km 12, Abstände 60,1–80,3 km, letzte
+  27–72 km vor dem Ziel); über ein Etappenende hinweg 40–92 km. Keine Tankspur in Tunneln (`StagePlan`-Warnung), Abstand der Tankspur zu Tunneln,
   den Radarzonen **dieser** Richtung und Grenzen ≥ 1 km (Generator). Geprüft von `build_network.py` (je Richtung),
   `RoadNetwork.validate()` und `test_design_rules_both_directions`.
 - Folge für das Rennen: Wer an der letzten Tankstelle einer Etappe volltankt, erreicht die erste Tankspur der
@@ -99,6 +100,11 @@ Alle Erweiterungen sind optional; ältere Dateien bleiben gültig.
   `balkan_hills` → BG `karst` bei Dragoman, ES `pyrenees` → FR `alps` für das grüne Aspe-Tal). Damit der
   Wechsel sichtbar ist, liegt jede Grenze in beiden Richtungen mindestens `stages.border_min_before_city_km`
   (5 km) vor den City Limits (dort zeigen beide Seiten `city`). Liste aller Grenzen: Tabelle „Grenzübergänge“.
+  Seit v0.7.0 *(neue Rennen)*: Linz – Passau ist dafür gestreckt – die Grenze an der Innbrücke Suben liegt 26 km
+  vor Passau (echt rund 19 km), sonst läge sie von Passau aus in den City Limits; zwischen Arad und Nădlac ist die
+  Ebene auf beiden Seiten der Grenze gleich flach, die rumänische Seite nutzt deshalb `balkan_hills` (Eichen,
+  Dörfer mit Kirche, Hügel am Horizont – die Straße bleibt mit Kurvigkeit und Hügel 0 flach), die ungarische
+  `pannonian_plain`.
   Geprüft von `build_network.py`, `RoadNetwork.validate()` und `test_landscape_changes_at_every_border`.
 - Etappen sind 90–`stages.max_length_km` (400) km lang; im Königsrennen gilt zusätzlich die Tour-Regel (unten).
 - `dev`-Etappen (z. B. `dev_testetappe`) werden nur vorwärts geprüft – ihre Testpositionen (Radar bei km 12,
@@ -114,6 +120,9 @@ sondern werden durchfahren: Bremen – Amsterdam (365 km, an Groningen vorbei), 
 Valenciennes vorbei), Ljubljana – Slavonski Brod (335 km, an Zagreb vorbei), Belgrad – Sofia (395 km, an Niš
 vorbei, auch zurück Sofia – Belgrad), Belgrad – Budapest (400 km, an Szeged vorbei), Prag – Leipzig (265 km,
 an Dresden vorbei; `dresden_leipzig` bleibt für Dresden – Dortmund) und Pau – Toulouse mit realistischen 200 km.
+Dasselbe Muster außerhalb der Tour *(seit v0.7.0)*: Köln – Brüssel (215 km) fährt an Lüttich vorbei, statt in
+zwei kurze Etappen Köln – Lüttich (125 km) und Lüttich – Brüssel (100 km) zu zerfallen; Lüttich behält nur seine
+Etappen des Königsrennens.
 Prüfung: `build_network.py`, `RoadNetwork.split_violations()` in `validate()` und
 `test_koenigsrennen_split_stages_200_400` (unabhängig nachgerechnet). Der Weg zwischen zwei Zielen:
 `GameData.target_segments(race_id, legs)`.
@@ -164,6 +173,13 @@ Fährzeit – Grundlage der Starteinträge), `leg_name(leg)`, `get_stage/get_rac
 Bremen, Hannover – Dortmund, Kassel – Dortmund) böte Kiel – Nürnberg sonst ungeplante Querwechsel (z. B. in
 Dortmund weiter über Kassel, Umweg nur 5 %). Kiel – Nürnberg schließt diese drei Etappen aus und hat so genau die
 zwei geplanten Routen. Die Tests prüfen für jedes Rennen, dass nur an den geplanten Orten gewählt werden kann.
+Jede neue Etappe kann solche Querwechsel öffnen *(seit v0.7.0)*: Über Nürnberg – Fulda – Kassel (310 km) ist
+Kiel → Nürnberg nur noch 720 statt 730 km lang (`shortest_path`), Kiel – Nürnberg bekäme in Kassel und München –
+Bremen in Nürnberg eine dritte Wahl. Beide meiden deshalb `fulda_kassel` und `nuernberg_fulda` – ihre Routen,
+Längen und Bestenlisten bleiben wie in v0.6.0 (`test_new_stages_keep_the_old_routes`). Bukarest – Calais meidet
+`prag_leipzig`: sonst gäbe es ab Prag eine Route über Leipzig, Erfurt/Magdeburg und Kassel/Hannover, und aus zwei
+Routen würden 20. Wien – Hamburg braucht kein `avoid_stages` – jede Stadt der Route ist Pflichtstation (ohne sie
+führte der kürzeste Weg über Prag und Leipzig).
 
 **Optionaler Ersatz ohne Neubau:** Eine `network.json` neben der exportierten ausführbaren Datei (oder in
 `data/` daneben) ersetzt das eingebaute Netz, wenn sie Städte und Etappen enthält (`GameData.network_source`).
@@ -181,12 +197,24 @@ zwei geplanten Routen. Die Tests prüfen für jedes Rennen, dass nur an den gepl
   viel LKW-Verkehr auf der A2, mehr Tankstellen).
 - **München – Bremen** (Wahl in Würzburg): spiegelt Kiel – Nürnberg – über Kassel/Hannover (kürzer, hügelig,
   mehr Radar) oder über Frankfurt/Dortmund (länger, mehr Verkehr, mehr freie Autobahn).
-- **Königsrennen** (Wahl in Saragossa): Küste über Barcelona (Autopista, dichter Verkehr um Barcelona,
-  7 Radare) oder Pyrenäen über den Somport-Tunnel (55 km länger, ~115 km kurvige Bergstraße, wenig Verkehr,
-  4 Radare, mehr Tankstellen).
+- **Wien – Hamburg** *(seit v0.7.0)*: keine Wahl – genau die Route des Nutzerwunschs „von Wien über Linz, Passau,
+  Regensburg, Nürnberg, Fulda, Kassel und Hannover nach Hamburg“, jede dieser Städte Pflichtstation und
+  Etappenziel: 8 Etappen, 1.150 km (Westautobahn mit Tempo 100 um Linz, Grenze an der Innbrücke Suben, A3 an der
+  Donau, A3/A7 durch Steigerwald und Rhön, Kasseler Berge, A7 durch die Heide). Drei Etappen sind nur 105–115 km lang
+  (Linz – Passau, Regensburg – Nürnberg, Fulda – Kassel) – so liegen die Städte; 355 km ohne Tempolimit, 15
+  Radarfallen, 18 Tankstellen.
+- **Bukarest – Calais** *(seit v0.7.0)* (Wahl in Wien): quer durch Europa, 11–13 Etappen. Bis Wien eine Route
+  (A1 und DN7 durch das Olttal über die Karpaten nach Sibiu, A1 mit der Autobahnlücke Margina – Holdea nach
+  Timișoara, über Arad und die Grenze bei Nădlac, M43 und M5 nach Budapest, M1/A4 nach Wien), ab Nürnberg wieder
+  eine (Würzburg, Frankfurt, A3 nach Köln, A4/E40 an Lüttich vorbei nach Brüssel, E40/A18/A16 nach Calais).
+  In Wien: **Donau** über Linz, Passau und Regensburg (1.375 km bis Calais, 100 km kürzer, vier Etappen bis Nürnberg,
+  Tempo 100 um Linz, 95 km freie A3 in Bayern) oder **über Prag** (1.475 km, nur zwei Etappen bis Nürnberg, 30 km
+  Landstraße I/52 bei Mikulov, 25 km Baustelle auf der D1, Valík-Tunnel, 60 km freie A6) – das sind 7 % Umweg
+  (Toleranz 35 %). Über Linz 2.495 km in 13 Etappen, über Prag 2.595 km in 11.
 
 Diese Abwägung sieht der Spieler an der Wahlstelle nur über die ganze Route (`route_summary` der Optionen,
-Routing Punkt 5) – die erste Etappe allein zeigt in allen vier Rennen die kürzere Etappe auf der längeren Route.
+Routing Punkt 5) – die erste Etappe allein zeigt in den vier älteren Rennen die kürzere Etappe auf der längeren
+Route (in Bukarest – Calais passt sie: Wien – Linz 185 km gegen Wien – Prag 335 km).
 
 Das Königsrennen ist mit realistischen Straßenentfernungen rund **9.200 km** lang (Somport-Variante 9.255 km,
 33–34 Etappen von 95–400 km + Fähre, Etappenlängen siehe oben). Das Design-Dokument schätzt 11.000–12.000 km;
@@ -238,20 +266,25 @@ hat das Feld nicht und bekommt −1 (unbekannt): seine nächste Etappe startet e
 ## Karte (`data/map/europe_map.json`)
 
 ```json
-{ "version": 1, "size": [1000, 777], "projection": "Lambertsche flächentreue Azimutalprojektion …",
-  "projection_params": { "type": "azimuthal_equal_area", "center_lonlat": [15, 52], "scale": 2455.99,
-                         "translate": [672.0, 291.2], "earth_radius_km": 6371.0088, "km_per_px": 2.594 },
-  "source": "…", "countries": [ { "code": "DE", "name": "Deutschland", "name_en": "Germany", "label": [546.9, 328.7],
+{ "version": 1, "size": [1000, 721], "projection": "Lambertsche flächentreue Azimutalprojektion …",
+  "projection_params": { "type": "azimuthal_equal_area", "center_lonlat": [15, 52], "scale": 2280.879,
+                         "translate": [624.1, 270.4], "earth_radius_km": 6371.0088, "km_per_px": 2.7932 },
+  "source": "…", "countries": [ { "code": "DE", "name": "Deutschland", "name_en": "Germany", "label": [507.9, 305.2],
                                  "polygons": [[[x, y], …], …] } ] }
 ```
 
 - `name` deutsch (sonst englischer Natural-Earth-Name), `label` = Schwerpunkt des größten Polygons (Anker für
   Ländernamen; bei am Rand abgeschnittenen Ländern nahe am Rand).
 - Pixelkoordinaten (y nach unten) im selben Raum wie `cities[].map_pos`; Kartenausschnitt = alle Städte + 170 km
-  Rand, 1000 px breit, ~2,6 km/px. 41 Länder mit ISO-3166-Alpha-2-Code (Kosovo = `XK`), nur Außenringe
+  Rand, 1000 px breit, ~2,8 km/px. 43 Länder mit ISO-3166-Alpha-2-Code (Kosovo = `XK`), nur Außenringe
   (Enklaven entfallen), im Uhrzeigersinn, an den Rand geschnitten, Inseln < 4 px² entfernt. Alle Polygone sind
   mit `Geometry2D.triangulate_polygon` triangulierbar (getestet) – also direkt mit `draw_colored_polygon` /
-  `Polygon2D` zeichenbar. ~5.400 Punkte, 76 KiB.
+  `Polygon2D` zeichenbar. 5.589 Punkte, 78 KiB (`--min-area=0.8`).
+- Seit v0.7.0 neu erzeugt: Bukarest und Calais erweitern den Ausschnitt (Bukarest läge in der alten Projektion bei
+  x = 1011 auf einer 1000 px breiten Karte). Statt 1000 × 777 px bei 2,594 km/px jetzt 1000 × 721 px bei
+  2,793 km/px, dazu Moldau und die Türkei (am Rand); alle `map_pos` sind neu geschrieben. Feste
+  Kartenkoordinaten gibt es im Code nicht (`MapView` passt den Ausschnitt an die Städte an, die Tests vergleichen
+  `map_pos` mit der Projektion).
 - Projektion: `GameData.project_latlon(lat, lon)` (Formel auch in der Datei), z. B. für Fähr-Linien oder
   zusätzliche Orte. Länderfarben stehen in `countries.json` (`colors`).
 

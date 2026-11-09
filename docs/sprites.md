@@ -464,6 +464,8 @@ oder die allgemeine Kirche `props/church` ([staedte.md](staedte.md) §9). Reihen
 | `landmarks/sacre_coeur` | Paris | weißer Travertin, Kuppeln (Silhouette am Horizont) | `domed_church` |
 | `landmarks/fernsehturm_riga`, `landmarks/florianturm` | Riga, Dortmund | Fernsehtürme 368 / 209 m | `tv_tower` |
 | `landmarks/herkules_kassel` | Kassel | Oktogon, Pyramide, Kupferstatue (Silhouette) | `octagon` |
+| `landmarks/colonius` *(seit v0.7.0)* | Köln | Fernsehturm 266 m (Silhouette) | `tv_tower` |
+| `landmarks/phare_calais` *(seit v0.7.0, optional)* | Calais | weißer Achteckturm, 51 m, schwarze Laterne; das Drehfeuer (Strahlen, Blitz) zeichnet nur die prozedurale Form – ein Sprite bräuchte dafür einen eigenen Lichtpass | `lighthouse` |
 | Kirchen | Kaunas (Christi-Auferstehung: weißer moderner Turm), Toulouse (Saint-Sernin: achteckiger Backsteinturm), Bordeaux (Saint-André), San Sebastián (Buen Pastor), Lyon (Fourvière: weiße Basilika mit vier Türmen), Rostock (Marienkirche), Posen (Dom) | wie die übrigen Wahrzeichen | `props/church` bzw. fremdes Sprite |
 | `props/city_paris_hlm` | Paris (Banlieue) | Wohnriegel, 10 Geschosse, 40 × 30 m | `city_eastern_plattenbau` hell getönt |
 | `props/bridge_pylon` (neu) | alle Schrägseilbrücken | Zelle ≥ 1024 px hoch, **ohne** Seilfächer, schwächere Lichtebene; die Laufzeit zeichnet Seile und Höhe (`pylon_m`) | prozedural (`prefer_proc`) |
