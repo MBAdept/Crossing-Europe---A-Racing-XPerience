@@ -431,6 +431,8 @@ v0.5.0 (Regen: Reifenhaftung 0,75, Kurvenhaftung 0,81 für Spieler **und** Poliz
 mit der Vollbremsung des Wetters, bei Regen 15,2 m/s²): `check_escapes.gd` weiter grün – ideal **0** (längste Flucht
 15,5 s), gut **0** (16,3 s) von je 2 150 Verfolgungen. Die Polizei verliert in Regenkurven so viel wie der Spieler, die
 Flucht bei leicht verschlechterten Bedingungen bleibt möglich; Schnee darf sie verhindern (Design).
+v0.7.0 (Faktor 10, neu erzeugte Straßen, Zeitlimit 72 s): weiter grün – ideal **0** (längste Flucht 15,5 s), gut **0**
+(16,7 s) von je 2 150 Verfolgungen (Streckennetz von v0.6.0).
 
 Vorher unentkommbar waren vor allem Erfurt – Kassel km 100 / Kassel km 50 und San Sebastián – Burgos km 50 / Burgos
 km 170 (Kurvigkeit 2–3: bester 12-s-Schnitt 137–161 km/h, nach 14–22 s erwischt). Zum Vergleich der Polizei-Agilität
@@ -593,7 +595,9 @@ sicheren Geschwindigkeit anzukommen (dort hält Gegenlenken die Linie)? Anfahrt:
 | Gran Turismo, Regen + Nacht / Tag; Kompakt, Tag | – | – | **0** (+61,9 m / +82,6 m / +238,1 m) |
 
 Mit der halben Bremsung im Schnee bleibt bei Nacht nur eine knappe Reserve – die Sicht bei Schnee darf nicht sinken; für
-den Verkehr musste sie steigen ((i6), „Wetter“).
+den Verkehr musste sie steigen ((i6), „Wetter“). Mit Faktor 10 (v0.7.0) ist sie noch knapper (+5,8 m hinter einer Kuppe,
+die die Kurve bis 71 m davor verdeckt) – nach jeder Änderung von Zeitraffer oder Streckennetz `curve_sight.gd` für
+Gran Turismo, Schnee + Nacht wiederholen.
 
 Ohne Schilder sind Kurven direkt hinter Kuppen die Falle (die Straße dahinter ist verdeckt, z. B. 153-km/h-Kurve erst
 84 m vorher sichtbar). Daher stehen Warnschilder vor scharfen **und vor blinden** Kurven (renn-modul.md §4) – jetzt auch
@@ -728,6 +732,14 @@ Nach dem Review (die Tutorial-Etappe ist jetzt immer trocken; `run_race.gd --rac
 Hamburg – Hannover trocken nachts 157, Hannover – Kassel 138, **Kassel – Würzburg Schnee ab 23:07 Uhr 143 km/h** (Nacht,
 wenig Verkehr), **Würzburg – Nürnberg Schnee ab 12:35 Uhr 82 km/h**; München – Bremen mit Renn-Seed 95028 **28:41,7** –
 Regen auf der ersten Etappe (München – Nürnberg 112 km/h), sonst trocken 128–161 km/h.
+v0.7.0 (Faktor 10, 8 h Pause, Streckennetz von v0.6.0; Kiel – Nürnberg, Renn-Seed 63352, Limousine ab 08:00, fehlerfrei,
+0 Kollisionen): **40:38,9**, Etappenstarts 08:00, 16:57, 02:09, 11:03 und 20:47 Uhr (mit 12 h Pause: 08:00, 20:54,
+09:46, 22:53, 12:26) – Kiel – Hamburg 98 km/h, Hamburg – Hannover im Feierabendverkehr 126, Hannover – Kassel nachts
+182, Kassel – Würzburg Schnee 121, Würzburg – Nürnberg Schnee nachts nur 56 km/h: Der Autopilot hing 54 km lang
+(km 32–86) mit 46 km/h rechts hinter einem Lkw, der in der Mittelspur fuhr und die ganze Zeit nach rechts blinkte
+(`Autopilot._in_lane` zählt ihn wegen des Blinkers zur eigenen Spur und hält 34 m Abstand, der Lkw zieht nicht
+herüber; Nachstellen: `run_stage.gd -- --stage=wuerzburg_nuernberg --from=wuerzburg --hour=20.7833 --weather=snow
+--seed=18568 --trace=2`) – offen, ein Fall für den Autopiloten, nicht für den Zeitraffer.
 Bei diesen Läufen gefunden und behoben: (1) der Autopilot zog 700 m vor der Tankspur quer über alle Spuren – im Schnee
 in ein 95 km/h langsameres Auto in der Mittelspur (Saragossa – Pau, Sportwagen); jetzt Spur für Spur in freie Lücken
 (renn-modul.md §10, `test_fuel_lane_approach_waits_for_a_gap`). (2) Ein Auto, das einem Lkw nicht zügig vorbeikam,

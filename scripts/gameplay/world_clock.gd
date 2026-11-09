@@ -1,7 +1,7 @@
 class_name WorldClock
 extends RefCounted
-## World time with time-lapse (1 h world = 5 game minutes, factor time.time_scale = 12):
-## 10 game minutes = 2 world hours. world_minutes is absolute (day 0 00:00 = 0). Owner: gameplay module.
+## World time with time-lapse (factor time.time_scale = 10 since v0.7.0, before 12: 1 h world = 6 game minutes,
+## 12 game minutes = 2 world hours). world_minutes is absolute (day 0 00:00 = 0). Owner: gameplay module.
 ## Time penalties (towing) advance the clock as well (the race session calls advance(penalty)).
 
 var world_minutes := 0.0
