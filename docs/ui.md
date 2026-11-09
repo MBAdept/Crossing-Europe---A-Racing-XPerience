@@ -413,6 +413,10 @@ Abschleppen, Nachrichten) erscheinen nur zeitweise. Ergänzungen zum Vertrag:
 `label_ids`, `fit_to(ids)`. Ländergrenzen aus `data/map/europe_map.json` (§4.5; Polygone werden einmal
 trianguliert und als Mesh gezeichnet, Länder der Route heller). Ohne Kartendatei: Meer und Gitter, Netz und
 Städte bleiben sichtbar. Städte ohne `map_pos` werden aus `latlon` projiziert (`MapView.project_latlon`).
+Ortsnamen: wichtige zuerst (aktuelle Stadt, Route, Hervorhebungen, `label_ids`), je fünf Plätze um den Punkt, gierig
+ohne Überlappung untereinander; *(seit v0.7.0)* auch nicht über dem Punkt einer anderen wichtigen Stadt
+(`_label_spot`) – auf der niedrigen Karte des Tutorials lag „Kiel“ sonst auf dem Punkt von Hamburg. Findet sich so
+kein Platz, gilt wie vorher nur „keine Überlappung der Namen“.
 Debug: `--map-file=<pfad>` lädt eine andere Kartendatei gleichen Formats.
 
 ## Audio

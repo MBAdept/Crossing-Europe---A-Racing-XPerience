@@ -313,6 +313,13 @@ func _draw_cities() -> void:
 		for id in cities:
 			if not important.has(id) and not bool(cities[id].get("dev", false)):
 				order.append(id)
+	# the dots of the important cities: a label keeps off the other ones (v0.7.0 – on the small map of the tutorial stage
+	# Kiel's label covered Hamburg's dot); if no place is free of them, labels only avoid each other as before
+	var dots := {}
+	for id in important:
+		var dp := _p(str(id))
+		if dp != Vector2.INF:
+			dots[id] = Rect2(dp - Vector2(7, 7), Vector2(14, 14))
 	for id in order:
 		var p := _p(str(id))
 		if p == Vector2.INF:
@@ -323,22 +330,37 @@ func _draw_cities() -> void:
 		var font := _font_bold if is_imp else _font
 		var sz := font.get_string_size(city_label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs)
 		var cands := [Vector2(9, -6), Vector2(-9 - sz.x, -6), Vector2(-sz.x * 0.5, -12), Vector2(-sz.x * 0.5, sz.y + 6), Vector2(9, sz.y * 0.6)]
-		for off: Vector2 in cands:
-			var base := p + off
-			var rect := Rect2(base.x - 2, base.y - sz.y * 0.8, sz.x + 4, sz.y)
-			if not Rect2(Vector2.ZERO, size).encloses(rect):
-				continue
-			var hit := false
-			for q in placed:
-				if q.intersects(rect):
+		var spot := _label_spot(p, sz, cands, placed, dots, id)
+		if spot == Vector2.INF:
+			spot = _label_spot(p, sz, cands, placed, {}, id)
+		if spot == Vector2.INF:
+			continue
+		placed.append(Rect2(spot.x - 2, spot.y - sz.y * 0.8, sz.x + 4, sz.y))
+		var col := Color.WHITE if is_imp else Color(0.7, 0.75, 0.95, 0.75)
+		if str(id) == current_city:
+			col = UiTheme.GOLD
+		draw_string_outline(font, spot, city_label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 4, Color(0.02, 0.03, 0.1, 0.85))
+		draw_string(font, spot, city_label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
+
+
+## First label position (text base line) of the candidates around p that lies inside the map and overlaps neither a
+## placed label nor the dot of another city in `dots` (id -> Rect2); Vector2.INF if there is none.
+func _label_spot(p: Vector2, sz: Vector2, cands: Array, placed: Array[Rect2], dots: Dictionary, own_id: Variant) -> Vector2:
+	for off: Vector2 in cands:
+		var base := p + off
+		var rect := Rect2(base.x - 2, base.y - sz.y * 0.8, sz.x + 4, sz.y)
+		if not Rect2(Vector2.ZERO, size).encloses(rect):
+			continue
+		var hit := false
+		for q in placed:
+			if q.intersects(rect):
+				hit = true
+				break
+		if not hit:
+			for other: Variant in dots:
+				if other != own_id and (dots[other] as Rect2).intersects(rect):
 					hit = true
 					break
-			if hit:
-				continue
-			placed.append(rect)
-			var col := Color.WHITE if is_imp else Color(0.7, 0.75, 0.95, 0.75)
-			if str(id) == current_city:
-				col = UiTheme.GOLD
-			draw_string_outline(font, base, city_label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 4, Color(0.02, 0.03, 0.1, 0.85))
-			draw_string(font, base, city_label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
-			break
+		if not hit:
+			return base
+	return Vector2.INF
