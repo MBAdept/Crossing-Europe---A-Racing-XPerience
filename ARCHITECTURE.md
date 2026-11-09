@@ -303,7 +303,7 @@ Fahrzeug-Sheets VRAM-komprimiert (BPTC) mit Mipmaps.
   `beacon_a`/`beacon_b` (Blaulicht-Phasen), `lights` (Requisiten: Fenster/Lampen nachts).
 - Set-IDs: `player/<kompakt|kombi|limousine|sportwagen|gran_turismo>`, `showroom/<dieselben>` (3/4-Ansicht vorn),
   `traffic/<modell>_<farbe>` (Modelle: hatch, sedan, wagon, suv, van, sports, truck, bus; Tags `traffic` + `car`
-  bzw. `heavy`), `police/<land>` (de, nl, be, fr, es, ch, it, si, hr, rs, bg, hu, at, cz, pl, lt, lv),
+  bzw. `heavy`), `police/<land>` (de, nl, be, fr, es, ch, it, si, hr, rs, bg, hu, at, cz, pl, lt, lv, ro),
   `props/<name>` (tree_oak, tree_beech, tree_birch, tree_pine, tree_spruce, tree_poplar, tree_cypress, tree_olive,
   tree_palm, bush_round, bush_low, heather, rock_a, rock_b, cliff, haybale, farmhouse, barn, church, windmill,
   wind_turbine, power_pylon, factory, house_med, building_block_a, building_block_b, building_tall,

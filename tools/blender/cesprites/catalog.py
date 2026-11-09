@@ -97,6 +97,9 @@ POLICE = {
     "pl": dict(model="sedan", word="POLICJA", style="lower", body="#eceff2", c1="#16336e", c2="#16336e", metal=0.5),
     "lt": dict(model="suv", word="POLICIJA", style="check", body="#e9ecef", c1="#1b3c8a", c2="#d8e01c"),
     "lv": dict(model="hatch", word="POLICIJA", style="check", body="#f2f2ef", c1="#1c2f6e", c2="#e3dc1c"),
+    # Romania (since 2020): white Dacia Logan / BMW 3 Series saloons, blue + fluorescent yellow-green
+    # high-visibility checks, the word on the white upper doors
+    "ro": dict(model="sedan", word="POLIȚIA", style="check", body="#f2f2ef", c1="#1b3c8f", c2="#c6e01e"),
 }
 
 
