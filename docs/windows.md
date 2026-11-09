@@ -7,9 +7,9 @@ nicht.
 
 ## Download und Start
 
-1. `CrossingEurope-windows-x86_64.zip` (rund 120 MB) herunterladen und entpacken – Rechtsklick → „Alle
+1. `CrossingEurope-windows-x86_64.zip` (rund 127 MB) herunterladen und entpacken – Rechtsklick → „Alle
    extrahieren …“, z. B. nach `C:\Spiele\Crossing Europe\`.
-2. `CrossingEurope.exe` (rund 420 MB) starten. Die Datei enthält das ganze Spiel; es wird nichts installiert. Das Spiel
+2. `CrossingEurope.exe` (rund 435 MB) starten. Die Datei enthält das ganze Spiel; es wird nichts installiert. Das Spiel
    legt nur den Ordner für Spielstände und Einstellungen unter `%APPDATA%` an (siehe unten).
 
 Neben der `.exe` liegt `LIZENZEN.txt` mit den Lizenzhinweisen der Godot Engine, der Schriften und der Kartendaten. Zum

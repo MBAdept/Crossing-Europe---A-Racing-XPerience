@@ -8,8 +8,8 @@ Nachtankzwang, Radarfallen und Polizei, Tageszeit und Wetter. Vorbilder: *Enduro
 - Technik: [ARCHITECTURE.md](ARCHITECTURE.md) und die Moduldokus in [docs/](docs/)
 - Engine: Godot 4.7.2 (GDScript, Renderer „GL Compatibility“), alle Fahrzeuge, Bäume, Gebäude, Tankstellen und
   Symbole prozedural in Blender 5.2 modelliert und als Sprites gerendert
-- Stand: **v0.6.0 – Gamepad und Steam Deck**; alle acht Schritte des Prototyp-Plans sind umgesetzt, alle Zahlen sind
-  Startwerte zum Testen.
+- Stand: **v0.7.0 – Längere Etappen, Tank im Rennen, Wien – Hamburg und Bukarest – Calais**; alle acht Schritte des
+  Prototyp-Plans sind umgesetzt, alle Zahlen sind Startwerte zum Testen.
 
 ## Neu in v0.7.0
 
