@@ -54,6 +54,11 @@ def ensure_cache():
     if not os.path.exists(gi):
         with open(gi, "w") as fh:
             fh.write("# intermediates of tools/blender/export_models.py - never committed\n*\n")
+    gd = os.path.join(CACHE, ".gdignore")
+    if not os.path.exists(gd):
+        # Godot must not import the intermediates (it would turn every model.glb into a scene)
+        with open(gd, "w") as fh:
+            fh.write("")
 
 
 def worker(ids, force):

@@ -21,8 +21,8 @@ const GLOBALS: Array = [
 	["ce_fog_color", RenderingServer.GLOBAL_VAR_TYPE_COLOR, Color(0.75, 0.8, 0.85)],
 	["ce_fog_range", RenderingServer.GLOBAL_VAR_TYPE_VEC2, Vector2(400.0, 900.0)],
 	["ce_sun_dir", RenderingServer.GLOBAL_VAR_TYPE_VEC3, Vector3(0.4, 0.8, 0.45)],
-	["ce_sun_color", RenderingServer.GLOBAL_VAR_TYPE_COLOR, Color(1.0, 0.97, 0.9)],
-	["ce_ambient", RenderingServer.GLOBAL_VAR_TYPE_COLOR, Color(0.42, 0.46, 0.52)],
+	["ce_sun_color", RenderingServer.GLOBAL_VAR_TYPE_COLOR, Color(1.0, 0.93, 0.79)],     # light_value(): linear
+	["ce_ambient", RenderingServer.GLOBAL_VAR_TYPE_COLOR, Color(0.15, 0.18, 0.23)],
 	["ce_tunnel", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, 0.0],
 	["ce_headlight_pos", RenderingServer.GLOBAL_VAR_TYPE_VEC3, Vector3.ZERO],
 	["ce_headlight_dir", RenderingServer.GLOBAL_VAR_TYPE_VEC3, Vector3(0.0, 0.0, -1.0)],
@@ -54,6 +54,16 @@ static func ensure_globals() -> void:
 ## Sets a ce_* global (convenience for small rigs; EnvironmentRig may call the RenderingServer directly).
 static func set_global(name: String, value: Variant) -> void:
 	RenderingServer.global_shader_parameter_set(StringName(name), value)
+
+
+## Value of ce_sun_color / ce_ambient for a light colour (as picked: sRGB) and its energy: the linear
+## colour times the energy - what the renderer itself multiplies a linear albedo with for a
+## DirectionalLight3D (light_color, light_energy) and for Environment.ambient_light_color / _energy.
+## Shaders that imitate lit surfaces (billboards, far ground) need exactly that; keep every rig on this
+## one definition.
+static func light_value(color: Color, energy: float) -> Color:
+	var c := color.srgb_to_linear()
+	return Color(c.r * energy, c.g * energy, c.b * energy)
 
 
 ## Shader of a class: "vpbr", "glass", "baked", "baked_cutout", "leaves", "billboard".

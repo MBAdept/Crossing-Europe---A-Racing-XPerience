@@ -43,7 +43,10 @@ BRAKE_RED = "#ff2414"
 #   off      scale of the height of the patches over the body, min_off = smallest height (m)
 #   wheel    scale of the segment counts of lathed parts (wheels, liners, exhaust tips)
 #   extras   lamp parts only the real-time models have (indicators, reverse light)
-DETAIL = dict(ring=1.0, step=1.0, res=1.0, off=1.0, min_off=0.0, wheel=1.0, extras=False)
+#   graze    patches end where the body turns away from their projection: triangles on surface whose
+#            normal is at less than this cosine to the projection axis are dropped. The sprites show such
+#            stretched triangles edge-on (0 = keep them); seen from the side they are streaks on the flank
+DETAIL = dict(ring=1.0, step=1.0, res=1.0, off=1.0, min_off=0.0, wheel=1.0, extras=False, graze=0.0)
 
 
 def _prof(v):
@@ -570,8 +573,13 @@ class SmoothCar:
             h = self.cast(proj, p[0], p[1], sgn, target)
             hits.append(h)
         vmap = {}
+        graze = self.detail["graze"]
+        axis = {"rear": Vector((0.0, 1.0, 0.0)), "front": Vector((0.0, -1.0, 0.0)), "side": Vector((-sgn, 0.0, 0.0)),
+                "top": Vector((0.0, 0.0, -1.0))}[proj]
         for fi in faces:
             if any(hits[i] is None for i in fi):
+                continue
+            if graze > 0.0 and min(abs(hits[i][1].dot(axis)) for i in fi) < graze:
                 continue
             vs = []
             for i in fi:

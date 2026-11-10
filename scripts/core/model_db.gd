@@ -37,7 +37,9 @@ static func available() -> bool:
 
 ## (Re)loads a manifest; "" = the shipped one. Tests load fixtures: mesh and texture paths are then relative
 ## to the folder of that manifest. Returns false (and resolves nothing) if it is missing or invalid.
-static func reload(manifest_path: String = "") -> bool:
+## (Not called "reload": on a class name GDScript resolves that to Script.reload(keep_state) of the script
+## resource - ModelDB.reload("...") from another script would never reach a static function of that name.)
+static func load_manifest(manifest_path: String = "") -> bool:
 	release_all()
 	_loaded = true
 	_ok = false
@@ -61,7 +63,7 @@ static func reload(manifest_path: String = "") -> bool:
 
 static func _ensure() -> void:
 	if not _loaded:
-		reload()
+		load_manifest()
 
 
 ## All model ids / all set ids of the manifest (sorted).

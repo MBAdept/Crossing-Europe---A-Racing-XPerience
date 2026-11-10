@@ -15,7 +15,7 @@ func _initialize() -> void:
 		elif a.begins_with("--manifest="):
 			manifest = a.substr(11)
 	if manifest != "":
-		ModelDB.reload(manifest)
+		ModelDB.load_manifest(manifest)
 	var report := {"available": ModelDB.available(), "meshes": {}, "textures": {}}
 	if ModelDB.available():
 		for mid: String in ModelDB.model_ids():
@@ -42,6 +42,9 @@ func _mesh(rel: String) -> Dictionary:
 	var d := {"surfaces": [], "bytes": FileAccess.get_file_as_bytes(ModelDB.ROOT + rel).size(), "has_materials": false}
 	var lo := Vector3(INF, INF, INF)
 	var hi := Vector3(-INF, -INF, -INF)
+	# the stored surfaces carry the automatic levels (index buffers of a decimated mesh) - an ArrayMesh has
+	# no other way to ask for them
+	var stored: Array = mesh.get("_surfaces") if mesh.get("_surfaces") is Array else []
 	for s in mesh.get_surface_count():
 		var arr := mesh.surface_get_arrays(s)
 		var verts: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
@@ -51,7 +54,7 @@ func _mesh(rel: String) -> Dictionary:
 			"tris": ((idx as PackedInt32Array).size() / 3) if idx != null else verts.size() / 3,
 			"compressed": (fmt & Mesh.ARRAY_FLAG_COMPRESS_ATTRIBUTES) != 0,
 			"tangents": arr[Mesh.ARRAY_TANGENT] != null,
-			"lods": (mesh.surface_get_lods(s) as Dictionary).size() if mesh.has_method("surface_get_lods") else 0}
+			"lods": _lod_count(stored[s]) if s < stored.size() else 0}
 		if mesh.surface_get_material(s) != null:
 			d["has_materials"] = true
 		for v: Vector3 in verts:
@@ -96,6 +99,14 @@ func _mesh(rel: String) -> Dictionary:
 		(d["surfaces"] as Array).append(sd)
 	d["aabb"] = [lo.x, lo.y, lo.z, hi.x, hi.y, hi.z]
 	return d
+
+
+## Number of automatic levels of a stored surface: "lods" is a flat list (edge length, index data, ...).
+func _lod_count(surface: Variant) -> int:
+	if not surface is Dictionary:
+		return 0
+	var lods: Variant = (surface as Dictionary).get("lods", [])
+	return (lods as Array).size() / 2 if lods is Array else 0
 
 
 func _texture(rel: String) -> Dictionary:

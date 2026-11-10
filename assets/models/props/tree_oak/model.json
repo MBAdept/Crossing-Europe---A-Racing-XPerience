@@ -43,8 +43,8 @@
   "cards": {"lod0": 420, "lod1": 140},
   "auto_lod": false,
   "tags": ["prop", "tree"],
-  "bytes": 430771,
-  "hash": "45a928b47fc838fbd406607b9836511b24089607"
+  "bytes": 426630,
+  "hash": "017d646106c8d69475b7754105b2da3751e5be00"
  },
  "sets": {
   "props/tree_oak": {"model": "props/tree_oak"}

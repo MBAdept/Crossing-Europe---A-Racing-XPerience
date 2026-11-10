@@ -57,18 +57,27 @@ func _initialize() -> void:
 		r["bake_s"] = snappedf(float(Time.get_ticks_msec() - t0) / 1000.0, 0.01)
 		report[id] = r
 		print("%-28s %7d Dreiecke  %2d Netze  %8d Bytes  %5.2f s" % [id, int(r["tris"]), int(r["meshes"]), int(r["bytes"]), float(r["bake_s"])])
-	# timings and sizes for reports (never committed)
-	var rf := FileAccess.open(cache.path_join("bake_report.json"), FileAccess.WRITE)
+	# timings and sizes for reports (never committed): the models of this run replace their entries
+	var report_path := cache.path_join("bake_report.json")
+	var all: Dictionary = {}
+	if FileAccess.file_exists(report_path):
+		var old: Variant = JSON.parse_string(FileAccess.get_file_as_string(report_path))
+		if old is Dictionary:
+			all = old
+	all.merge(report, true)
+	var rf := FileAccess.open(report_path, FileAccess.WRITE)
 	if rf != null:
-		rf.store_string(JSON.stringify(report, " ", true) + "\n")
+		rf.store_string(JSON.stringify(all, " ", true) + "\n")
 		rf.close()
-	# .import files of the textures (one implementation: the Python tool)
-	var tool := ProjectSettings.globalize_path("res://tools/models/set_model_import.py")
-	var res: Array = []
-	var code := OS.execute("python3", [tool, "--root", out, "--quiet"], res, true)
-	if code != 0:
-		print("bake_models: set_model_import.py meldet Fehler:\n", "\n".join(res))
-		_failed += 1
+	# .import files of the textures (one implementation: the Python tool). Only inside the project: a test
+	# bake into a folder outside of it has no res:// paths an .import file could name.
+	if ProjectSettings.localize_path(out).begins_with("res://"):
+		var tool := ProjectSettings.globalize_path("res://tools/models/set_model_import.py")
+		var res: Array = []
+		var code := OS.execute("python3", [tool, "--root", out, "--quiet"], res, true)
+		if code != 0:
+			print("bake_models: set_model_import.py meldet Fehler:\n", "\n".join(res))
+			_failed += 1
 	print("bake_models: %d Modelle in %.1f s, %d Fehler" % [report.size(), float(Time.get_ticks_msec() - t_all) / 1000.0, _failed])
 	quit(1 if _failed > 0 else 0)
 

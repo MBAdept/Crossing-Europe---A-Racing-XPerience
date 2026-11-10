@@ -31,10 +31,11 @@ SPECIES = {
 }
 OPAQUE = 0.82            # part of a card (from its centre) that counts as silhouette
 IMPOSTOR_PX = 256
-# The impostor picture is the albedo of the tree times this gain: measured against lod1 in the contact sheet
-# (billboard.gdshader then lights it like the leaves shader lights the cards, for the sun in front, beside
-# and behind the tree within about 10 %)
-IMPOSTOR_GAIN = 1.9
+# The impostor picture is the albedo of the tree times this gain (linear): measured against lod1 in the
+# contact sheet with the ambient light alone. billboard.gdshader then lights the picture with the renderer's
+# own arithmetic, the cards' share of the sun as sun_min .. sun_max (measured for the sun in front, beside
+# and behind the tree, by day and by moonlight).
+IMPOSTOR_GAIN = 1.19
 
 
 def _source(spec3d):

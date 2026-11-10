@@ -15,11 +15,12 @@ from . import core
 #   ring   points per cross-section segment (x N_* of carbody)      step  station spacing along the car
 #   res    grid of the conformal patches                            off   height of patches over the body
 #   wheel  segments of the lathed wheel parts                       min_off  smallest patch height (m)
+#   graze  patches end where the body turns away from their projection (cosine; sprites: 0 = never)
 PLAYER_DETAIL = {
     # showroom: close-up, turning slowly
-    "show": dict(ring=0.6, step=2.0, res=2.0, off=1.5, wheel=0.75, min_off=0.0),
+    "show": dict(ring=0.6, step=2.0, res=2.0, off=1.5, wheel=0.75, min_off=0.0, graze=0.22),
     # race: 9 m in front of the camera, about 250 px wide
-    "lod0": dict(ring=0.4, step=3.5, res=3.5, off=2.5, wheel=0.5, min_off=0.0015),
+    "lod0": dict(ring=0.4, step=3.5, res=3.5, off=2.5, wheel=0.5, min_off=0.0015, graze=0.22),
     # shadow caster: bare body shells
     "shadow": dict(ring=0.2, step=9.0, res=12.0, off=4.0, wheel=0.2, min_off=0.0),
 }

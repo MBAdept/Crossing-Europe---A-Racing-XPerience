@@ -4,15 +4,18 @@ extends SceneTree
 ## Needs OpenGL - run it through tools/models_contact_sheet.sh (Xvfb):
 ##   godot --path . --rendering-driver opengl3 --audio-driver Dummy -s res://tools/models/contact_sheet.gd --
 ##       --out=<abs.png> [--only=<glob>] [--night] [--tile=480x320] [--cols=4] [--lods=lod0,show]
-##       [--showroom] [--manifest=<path>] [--sun=x,y,z]
+##       [--showroom] [--channels] [--manifest=<path>] [--sun=x,y,z] [--sun-energy=<e>] [--ambient-energy=<e>]
 ## --sun: direction to the sun in camera space (default -0.55,0.92,0.55 = upper left, from the viewer's side;
-##        e.g. 0.3,0.6,-1 = back light).
+##        e.g. 0.3,0.6,-1 = back light). --sun-energy / --ambient-energy: energies of the rig (day 0.8 / 1.0,
+##        night 0.1 / 0.55), e.g. --sun-energy=0 to look at the ambient part alone.
 ## Day sheet:   every level of detail from the approach / rear view and from the far side, the colour sets
 ##              of vehicles, the impostor of trees.
 ## Night sheet: ce_night = 1 (lit windows, lamps of props); vehicles once per lamp channel:
 ##              tail, brake, both indicators, head, reverse, beacons.
 ## --showroom:  the `show` level of the player cars from the camera of the Cycles showroom sprites
 ##              (for A/B pictures; 768x480 per tile).
+## --channels:  no model - a strip of 15 panels, one per lamp channel of the vpbr format (0 on the left),
+##              once per lamp state: shows that every channel answers to its instance uniform or global.
 
 const VEHICLE_KINDS: Array[String] = ["vehicle", "heavy"]
 const LAMP_STATES: Array = [
@@ -28,6 +31,22 @@ const LAMP_STATES: Array = [
 	["Blinker rechts (vorn)", Vector4(1, 0, 0, 1), Vector4(1, 0, 0, 0), 150.0],
 	["Blaulicht A", Vector4(1, 0, 0, 0), Vector4(1, 0, 1, 0), 30.0],
 	["Blaulicht B", Vector4(1, 0, 0, 0), Vector4(1, 0, 0, 1), 30.0],
+]
+
+## lamp channels 0..14: lit colours of the test strip (--channels)
+const CHANNEL_COLORS: Array[String] = ["#ff1a0e", "#ff2414", "#ff2010", "#ffa01a", "#ffa01a", "#fff3d6", "#f4f8ff",
+	"#f4f6ff", "#fff6e0", "#ffb040", "#2a5cff", "#2a5cff", "#ffe0a0", "#40ff80", "#c8c0b0"]
+const CHANNEL_STATES: Array = [
+	["alle Lampenwerte 0, Tag: nur 6 (Tagfahrlicht) und 13 (immer an) leuchten", Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0), 0.0],
+	["Rücklicht (lamp_a.x): 0, 2 mit 35 %, 8 Kennzeichen, 9 Umriss", Vector4(1, 0, 0, 0), Vector4(0, 0, 0, 0), 0.0],
+	["Bremslicht (lamp_a.y): 1 und 2", Vector4(0, 1, 0, 0), Vector4(0, 0, 0, 0), 0.0],
+	["Blinker links (lamp_a.z): 3", Vector4(0, 0, 1, 0), Vector4(0, 0, 0, 0), 0.0],
+	["Blinker rechts (lamp_a.w): 4", Vector4(0, 0, 0, 1), Vector4(0, 0, 0, 0), 0.0],
+	["Scheinwerfer (lamp_b.x): 5, Tagfahrlicht 6 gedimmt", Vector4(0, 0, 0, 0), Vector4(1, 0, 0, 0), 0.0],
+	["Rückfahrlicht (lamp_b.y): 7", Vector4(0, 0, 0, 0), Vector4(0, 1, 0, 0), 0.0],
+	["Blaulicht A (lamp_b.z): 10", Vector4(0, 0, 0, 0), Vector4(0, 0, 1, 0), 0.0],
+	["Blaulicht B (lamp_b.w): 11", Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 1), 0.0],
+	["Nacht (ce_night = 1): 12 Lichter, 14 angestrahlte Fläche", Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0), 1.0],
 ]
 
 var _args: Dictionary = {}
@@ -59,12 +78,12 @@ func _run() -> void:
 		quit(1)
 		return
 	if _args.has("manifest"):
-		ModelDB.reload(str(_args["manifest"]))
+		ModelDB.load_manifest(str(_args["manifest"]))
 	if not ModelDB.available():
 		print("contact_sheet: kein gültiges Modell-Manifest")
 		quit(1)
 		return
-	_night = _args.has("night")
+	_night = _args.has("night") or _args.has("channels")
 	var showroom := _args.has("showroom")
 	if showroom:
 		_tile = Vector2i(768, 480)
@@ -76,9 +95,14 @@ func _run() -> void:
 	_build_rig()
 	var tiles: Array = []
 	var only := str(_args.get("only", "*"))
-	for mid: String in ModelDB.model_ids():
-		if mid.match(only):
-			tiles.append_array(_showroom_tiles(mid) if showroom else _tiles_for(mid))
+	if _args.has("channels"):
+		for st: Array in CHANNEL_STATES:
+			tiles.append({"strip": true, "lamp_a": st[1], "lamp_b": st[2], "night": st[3], "yaw": 0.0, "el": 4.0,
+				"aabb": [0.0, 0.0, -0.1, 15.0 * 0.62 - 0.12, 0.95, 0.1], "text": str(st[0])})
+	else:
+		for mid: String in ModelDB.model_ids():
+			if mid.match(only):
+				tiles.append_array(_showroom_tiles(mid) if showroom else _tiles_for(mid))
 	if tiles.is_empty():
 		print("contact_sheet: kein Modell passt auf ", only)
 		quit(1)
@@ -107,11 +131,19 @@ func _tiles_for(mid: String) -> Array:
 	if VEHICLE_KINDS.has(kind):
 		var first := str(sets[0]) if not sets.is_empty() else ""
 		if _night:
+			first = _lightest_set(sets)
 			for st: Array in LAMP_STATES:
 				if (str(st[0]).begins_with("Blaulicht")) and not _has_light(m, "beacon_a"):
 					continue
-				out.append({"set": first, "model": mid, "lod": "lod0", "yaw": st[3], "el": 12.0,
-					"lamp_a": st[1], "lamp_b": st[2], "text": "%s · %s" % [mid, st[0]]})
+				var tile := {"set": first, "model": mid, "lod": "lod0", "yaw": st[3], "el": 12.0,
+					"lamp_a": st[1], "lamp_b": st[2], "text": "%s · %s" % [mid, st[0]]}
+				if st != LAMP_STATES[0]:
+					# close-up of the end of the car that carries the lamps (the first tile shows the whole car)
+					var bb: Array = m.get("aabb", [-1, 0, -2, 1, 1.5, 2])
+					var rear := float(st[3]) < 90.0
+					var z0 := (float(bb[5]) - 1.2) if rear else float(bb[2])
+					tile["aabb"] = [float(bb[0]), 0.2, z0, float(bb[3]), float(bb[4]) * 0.82, z0 + 1.2]
+				out.append(tile)
 			return out
 		for l: Variant in m.get("lods", []):
 			var ln := str((l as Dictionary)["name"])
@@ -162,11 +194,66 @@ func _sets_of(mid: String) -> Array:
 	return out
 
 
+## The set with the lightest paint: a black car shows nothing of its body on the night sheet.
+func _lightest_set(sets: Array) -> String:
+	var best := ""
+	var best_l := -1.0
+	for sid: Variant in sets:
+		var paint: Dictionary = ModelDB.resolve(str(sid)).get("paint", {})
+		var l := Color(str(paint.get("paint", "#808080"))).get_luminance()
+		if l > best_l:
+			best_l = l
+			best = str(sid)
+	return best
+
+
 func _has_light(m: Dictionary, role: String) -> bool:
 	for l: Variant in m.get("lights", []):
 		if str((l as Dictionary).get("role", "")) == role:
 			return true
 	return false
+
+
+## Test strip of the vpbr lamp channels: 15 upright panels, channel 0 on the left, each with its number.
+func _channel_strip() -> Node3D:
+	var root := Node3D.new()
+	var verts := PackedVector3Array()
+	var normals := PackedVector3Array()
+	var colors := PackedColorArray()
+	var uv := PackedVector2Array()
+	var uv2 := PackedVector2Array()
+	var idx := PackedInt32Array()
+	for ch in CHANNEL_COLORS.size():
+		var x0 := float(ch) * 0.62
+		var base := verts.size()
+		for c: Vector2 in [Vector2(x0, 0.9), Vector2(x0 + 0.5, 0.9), Vector2(x0 + 0.5, 0.3), Vector2(x0, 0.3)]:
+			verts.append(Vector3(c.x, c.y, 0.0))
+			normals.append(Vector3(0.0, 0.0, 1.0))
+			colors.append(Color(CHANNEL_COLORS[ch]))          # alpha 1 = fixed colour
+			uv.append(Vector2(0.5, 0.0))                       # roughness, metallic
+			uv2.append(Vector2(float(ch) + 0.5, 1.0))          # lamp channel, weight
+		idx.append_array(PackedInt32Array([base, base + 1, base + 2, base, base + 2, base + 3]))
+		var lab := Label3D.new()
+		lab.text = str(ch)
+		lab.font_size = 56
+		lab.pixel_size = 0.0035
+		lab.position = Vector3(x0 + 0.25, 0.14, 0.02)
+		root.add_child(lab)
+	var arr := []
+	arr.resize(Mesh.ARRAY_MAX)
+	arr[Mesh.ARRAY_VERTEX] = verts
+	arr[Mesh.ARRAY_NORMAL] = normals
+	arr[Mesh.ARRAY_COLOR] = colors
+	arr[Mesh.ARRAY_TEX_UV] = uv
+	arr[Mesh.ARRAY_TEX_UV2] = uv2
+	arr[Mesh.ARRAY_INDEX] = idx
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+	mesh.surface_set_material(0, _mats.material("vpbr"))
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	root.add_child(mi)
+	return root
 
 
 # --- rig -------------------------------------------------------------------------------------------------
@@ -199,20 +286,23 @@ func _build_rig() -> void:
 	_env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	# daylight close to the Cycles rig of the sprites (sun 2.4 W/m2 = energy 0.76 here, sky about 0.35)
 	_env.ambient_light_color = Color(0.1, 0.12, 0.2) if _night else Color(0.6, 0.64, 0.7)
-	_env.ambient_light_energy = 0.55 if _night else 1.0
+	_env.ambient_light_energy = float(str(_args.get("ambient-energy", "0.55" if _night else "1.0")))
 	_env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	_env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
 	_env.adjustment_enabled = true
+	# glow only adds light around what is brighter than white; the default blend mode (soft light) would
+	# change the contrast of the whole picture and crush the dark tones of the night sheet
 	_env.glow_enabled = true
+	_env.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
 	_env.glow_intensity = 0.7 if _night else 0.25
-	_env.glow_bloom = 0.04
+	_env.glow_bloom = 0.0
 	_env.glow_hdr_threshold = 1.0
 	var we := WorldEnvironment.new()
 	we.environment = _env
 	_sv.add_child(we)
 	_sun = DirectionalLight3D.new()
 	_sun.rotation_degrees = Vector3(-38.0, 205.0, 0.0)
-	_sun.light_energy = 0.1 if _night else 0.8
+	_sun.light_energy = float(str(_args.get("sun-energy", "0.1" if _night else "0.8")))
 	_sun.light_color = Color(0.62, 0.72, 1.0) if _night else Color(1.0, 0.97, 0.92)
 	_sun.shadow_enabled = true
 	_sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
@@ -238,11 +328,8 @@ func _build_rig() -> void:
 	_label.add_theme_constant_override("outline_size", 5)
 	_sv.add_child(_label)
 	ModernMaterials.set_global("ce_night", 1.0 if _night else 0.0)
-	# colours stay sRGB-encoded in the shaders of the Compatibility renderer: energies go in as e^(1/2.2)
-	var se := pow(_sun.light_energy, 0.4545)
-	var ae := pow(_env.ambient_light_energy, 0.4545)
-	ModernMaterials.set_global("ce_sun_color", Color(_sun.light_color.r * se, _sun.light_color.g * se, _sun.light_color.b * se))
-	ModernMaterials.set_global("ce_ambient", Color(_env.ambient_light_color.r * ae, _env.ambient_light_color.g * ae, _env.ambient_light_color.b * ae))
+	ModernMaterials.set_global("ce_sun_color", ModernMaterials.light_value(_sun.light_color, _sun.light_energy))
+	ModernMaterials.set_global("ce_ambient", ModernMaterials.light_value(_env.ambient_light_color, _env.ambient_light_energy))
 	ModernMaterials.set_global("ce_time", 1.7)
 	ModernMaterials.set_global("ce_wind", Vector4(1.0, 0.0, 0.3, 0.0))
 
@@ -250,13 +337,16 @@ func _build_rig() -> void:
 func _render(t: Dictionary) -> Image:
 	for c: Node in _holder.get_children():
 		c.free()
-	var m := ModelDB.model(str(t["model"]))
-	var vehicle := VEHICLE_KINDS.has(str(m.get("kind", "")))
+	var m := ModelDB.model(str(t.get("model", "")))
+	var vehicle := VEHICLE_KINDS.has(str(m.get("kind", ""))) or t.has("strip")
+	ModernMaterials.set_global("ce_night", float(t.get("night", 1.0 if _night else 0.0)))
 	var gm: StandardMaterial3D = _ground.material_override
 	gm.albedo_color = Color(0.2, 0.2, 0.21) if vehicle else Color(0.22, 0.33, 0.14)
 	gm.roughness = 0.85 if vehicle else 0.95
 	var node: Node3D = null
-	if str(t["lod"]) == "impostor":
+	if t.has("strip"):
+		node = _channel_strip()
+	elif str(t["lod"]) == "impostor":
 		node = ModelFactory.build_impostor(str(t["set"]), _mats)
 	else:
 		node = ModelFactory.build(str(t["set"]), str(t["lod"]), _mats)
@@ -274,7 +364,7 @@ func _render(t: Dictionary) -> Image:
 				mi.visible = mi.name == "shadow"
 				if mi.name == "shadow":
 					mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-	var bb: Array = m.get("aabb", [-1, 0, -1, 1, 2, 1])
+	var bb: Array = t.get("aabb", m.get("aabb", [-1, 0, -1, 1, 2, 1]))
 	var lo := Vector3(float(bb[0]), float(bb[1]), float(bb[2]))
 	var hi := Vector3(float(bb[3]), float(bb[4]), float(bb[5]))
 	var centre := (lo + hi) * 0.5
@@ -340,12 +430,14 @@ func _showroom_camera(m: Dictionary) -> void:
 	var dist := 1.72 * length
 	var target := Vector3(0.0, height * 0.4, 0.0)
 	# Blender: camera at (0, -dist cos el, tz + dist sin el), car turned by -142 deg about Z. Here the car
-	# stays and the camera goes around it: Blender -y is model +Z.
+	# stays and the camera goes around it by +142 deg about the model's Y axis (Blender -y is model +Z):
+	# it ends up in front of the car on its right-hand side.
 	var a := deg_to_rad(142.0)
-	_cam.position = target + Vector3(-sin(a) * cos(el), sin(el), cos(a) * cos(el)) * dist
+	_cam.position = target + Vector3(sin(a) * cos(el), sin(el), cos(a) * cos(el)) * dist
 	_cam.look_at(target, Vector3.UP)
 	_cam.keep_aspect = Camera3D.KEEP_WIDTH
 	_cam.fov = rad_to_deg(2.0 * atan(18.0 / 56.0))
 	_cam.near = 0.1
 	_cam.far = 500.0
-	_cam.v_offset = 0.0
+	# lens shift of the sprite camera (shift_y = -0.03 of the picture width): the car sits higher in the frame
+	_cam.v_offset = -0.03 * 2.0 * dist * (18.0 / 56.0)
