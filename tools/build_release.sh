@@ -75,7 +75,7 @@ sha256sum -c SHA256SUMS
 	echo "Commit: $(git rev-parse HEAD)${DIRTY:+ (mit nicht committeten Änderungen – kein Release)}"
 	echo "Commit-Zeit: $(date -u -d "@$SOURCE_DATE_EPOCH" '+%Y-%m-%d %H:%M:%S UTC') (SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH)"
 	echo "Godot: $("$GODOT" --version 2>/dev/null | tail -n 1)"
-	echo "Archive: Linux $(( $(stat -c %s CrossingEurope-linux-x86_64.tar.gz) / 1000000 )) MB, Windows $(( $(stat -c %s CrossingEurope-windows-x86_64.zip) / 1000000 )) MB (Grenze 330 MB, hartes Limit 350 MB)"
+	echo "Archive: Linux $(( ($(stat -c %s CrossingEurope-linux-x86_64.tar.gz) + 500000) / 1000000 )) MB, Windows $(( ($(stat -c %s CrossingEurope-windows-x86_64.zip) + 500000) / 1000000 )) MB (Grenze 330 MB, hartes Limit 350 MB)"
 	echo
 	cat SHA256SUMS
 } > BUILDINFO.txt
