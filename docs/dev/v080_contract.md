@@ -1479,6 +1479,11 @@ night-rain stage in Modern.
 
 ## 9. Open questions for the user – defaults used until answered
 
+**Confirmed by the user on 2026-11-10** ("Punkte 1–5 passen so"): question 1 (one switch, sound follows, separate
+sound choice in the options), 2 (race music on by default in Modern, can be switched off), 3 (one-time chooser for
+everyone), 5 (shared leaderboards) and 9 (curve camera as default; final decision after the gate-1 build). The
+user also confirmed the basic direction: real 3D. Questions 4, 6, 7, 8 keep their defaults.
+
 1. One switch or two? Default: the chooser and „Grafik“ set the mode; „Klang“ = „Wie Grafik“ unless the player picks
    Arcade or Modern sound separately.
 2. Music in races with the Modern sound – on by default? Default: yes („Musik im Rennen: An“, can be switched off).
