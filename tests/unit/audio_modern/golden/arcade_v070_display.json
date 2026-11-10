@@ -1,0 +1,397 @@
+{
+	"buses": [
+		{
+			"bypass": false,
+			"effects": [
+				{
+					"class": "AudioEffectHardLimiter",
+					"enabled": true,
+					"params": {
+						"ceiling_db": -0.800000011920929,
+						"pre_gain_db": 0.0,
+						"release": 0.119999997317791
+					}
+				}
+			],
+			"mute": false,
+			"name": "Master",
+			"send": "",
+			"solo": false,
+			"volume_db": -1.93820023536682
+		},
+		{
+			"bypass": false,
+			"effects": [],
+			"mute": false,
+			"name": "SFX",
+			"send": "Master",
+			"solo": false,
+			"volume_db": 0.0
+		},
+		{
+			"bypass": false,
+			"effects": [],
+			"mute": false,
+			"name": "Music",
+			"send": "Master",
+			"solo": false,
+			"volume_db": -12.0980396270752
+		},
+		{
+			"bypass": false,
+			"effects": [
+				{
+					"class": "AudioEffectDelay",
+					"enabled": true,
+					"params": {
+						"dry": 1.0,
+						"feedback_active": false,
+						"feedback_delay_ms": 340.0,
+						"feedback_level_db": -6.0,
+						"feedback_lowpass": 16000.0,
+						"tap1_active": true,
+						"tap1_delay_ms": 17.0,
+						"tap1_level_db": -16.0,
+						"tap1_pan": -0.150000005960464,
+						"tap2_active": true,
+						"tap2_delay_ms": 23.0,
+						"tap2_level_db": -16.0,
+						"tap2_pan": 0.150000005960464
+					}
+				},
+				{
+					"class": "AudioEffectReverb",
+					"enabled": true,
+					"params": {
+						"damping": 0.449999988079071,
+						"dry": 1.0,
+						"hipass": 0.0299999993294477,
+						"predelay_feedback": 0.300000011920929,
+						"predelay_msec": 22.0,
+						"room_size": 0.860000014305115,
+						"spread": 1.0,
+						"wet": 0.0
+					}
+				}
+			],
+			"mute": false,
+			"name": "Room",
+			"send": "SFX",
+			"solo": false,
+			"volume_db": 0.0
+		},
+		{
+			"bypass": false,
+			"effects": [
+				{
+					"class": "AudioEffectReverb",
+					"enabled": true,
+					"params": {
+						"damping": 0.699999988079071,
+						"dry": 1.0,
+						"hipass": 0.100000001490116,
+						"predelay_feedback": 0.0,
+						"predelay_msec": 3.0,
+						"room_size": 0.100000001490116,
+						"spread": 1.0,
+						"wet": 0.600000023841858
+					}
+				}
+			],
+			"mute": false,
+			"name": "Engine",
+			"send": "Room",
+			"solo": false,
+			"volume_db": 0.0
+		},
+		{
+			"bypass": false,
+			"effects": [
+				{
+					"class": "AudioEffectLowPassFilter",
+					"enabled": true,
+					"params": {
+						"cutoff_hz": 20000.0,
+						"db": 0,
+						"resonance": 0.5
+					}
+				}
+			],
+			"mute": false,
+			"name": "TrafficV0",
+			"send": "Room",
+			"solo": false,
+			"volume_db": 0.0
+		},
+		{
+			"bypass": false,
+			"effects": [
+				{
+					"class": "AudioEffectLowPassFilter",
+					"enabled": true,
+					"params": {
+						"cutoff_hz": 20000.0,
+						"db": 0,
+						"resonance": 0.5
+					}
+				}
+			],
+			"mute": false,
+			"name": "TrafficV1",
+			"send": "Room",
+			"solo": false,
+			"volume_db": 0.0
+		},
+		{
+			"bypass": false,
+			"effects": [
+				{
+					"class": "AudioEffectLowPassFilter",
+					"enabled": true,
+					"params": {
+						"cutoff_hz": 20000.0,
+						"db": 0,
+						"resonance": 0.5
+					}
+				}
+			],
+			"mute": false,
+			"name": "TrafficV2",
+			"send": "Room",
+			"solo": false,
+			"volume_db": 0.0
+		},
+		{
+			"bypass": false,
+			"effects": [
+				{
+					"class": "AudioEffectLowPassFilter",
+					"enabled": true,
+					"params": {
+						"cutoff_hz": 20000.0,
+						"db": 0,
+						"resonance": 0.5
+					}
+				}
+			],
+			"mute": false,
+			"name": "TrafficV3",
+			"send": "Room",
+			"solo": false,
+			"volume_db": 0.0
+		},
+		{
+			"bypass": false,
+			"effects": [
+				{
+					"class": "AudioEffectLowPassFilter",
+					"enabled": true,
+					"params": {
+						"cutoff_hz": 20000.0,
+						"db": 0,
+						"resonance": 0.5
+					}
+				}
+			],
+			"mute": false,
+			"name": "TrafficV4",
+			"send": "Room",
+			"solo": false,
+			"volume_db": 0.0
+		},
+		{
+			"bypass": false,
+			"effects": [
+				{
+					"class": "AudioEffectLowPassFilter",
+					"enabled": true,
+					"params": {
+						"cutoff_hz": 20000.0,
+						"db": 0,
+						"resonance": 0.5
+					}
+				}
+			],
+			"mute": false,
+			"name": "TrafficV5",
+			"send": "Room",
+			"solo": false,
+			"volume_db": 0.0
+		},
+		{
+			"bypass": false,
+			"effects": [
+				{
+					"class": "AudioEffectLowPassFilter",
+					"enabled": true,
+					"params": {
+						"cutoff_hz": 20000.0,
+						"db": 0,
+						"resonance": 0.5
+					}
+				}
+			],
+			"mute": false,
+			"name": "Siren",
+			"send": "Room",
+			"solo": false,
+			"volume_db": 0.0
+		}
+	],
+	"display": "X11",
+	"engine": {
+		"fixture_v4": {
+			"peak": 0.976144969463348,
+			"rms": 0.220114243214013,
+			"samples": 177866,
+			"sha256": "1a0a86f123e755c06efadf38d5fff63f1543227b5b2d00c8ccf5a887c0a11723"
+		},
+		"gran_turismo": {
+			"peak": 0.910596013069153,
+			"rms": 0.17888241021878,
+			"samples": 355733,
+			"sha256": "704e0d2f336e84801362216e0720bc3e09631fe4b5f94666d987dd78478a77af"
+		},
+		"kombi": {
+			"peak": 0.404353231191635,
+			"rms": 0.0764495453754504,
+			"samples": 355733,
+			"sha256": "9225e5947e776bada11deaba514e1d9155b649618aae51b26882fe0bc2850d31"
+		},
+		"kompakt": {
+			"peak": 0.510950982570648,
+			"rms": 0.113576542409435,
+			"samples": 355733,
+			"sha256": "f9573f0a46829f20b5ae27e7f16d66580e059c34b70dc6301626919ef0c8ca4f"
+		},
+		"limousine": {
+			"peak": 0.652892291545868,
+			"rms": 0.108159874626033,
+			"samples": 355733,
+			"sha256": "0d4c5e7b1189bb7de6199cfd7bb173ef65be556ce441ac72769d29ab3c28a92e"
+		},
+		"sportwagen": {
+			"peak": 0.653425097465515,
+			"rms": 0.120161737987711,
+			"samples": 355733,
+			"sha256": "c8482a91ea673f7f78fe100b825bfbb6d7d5dc47e2bc51f3e183230a855862bc"
+		}
+	},
+	"files": {
+		"res://assets/audio/engines/gran_turismo.f32": "fa59f9bd7458a79646981f101acb89be85a99887bba4e5bdde9c46794cc71640",
+		"res://assets/audio/engines/gran_turismo.json": "173aa222d86181b93c96fbcc5a138506b1b2b99d87c7f3fc44846c62408d356e",
+		"res://assets/audio/engines/kombi.f32": "e21ce6cdbc99c819d93b060b5afba309793b75b9c530ffc2263692b6970049bc",
+		"res://assets/audio/engines/kombi.json": "499d8bb23bda899cfbb67e80fd5754f9266b13c7b562efd5c7fada4b57a1d559",
+		"res://assets/audio/engines/kompakt.f32": "b2b609378e04b1ae251a9cbd8b3d4135309af11990c73bf9ae7def277584a1e7",
+		"res://assets/audio/engines/kompakt.json": "70a67a11f3b501ae5c575062adc3d05215e8f7f11ac19b8fb29b970c4211cbbf",
+		"res://assets/audio/engines/limousine.f32": "63dcb82cba345aa7dff43001095713133087927f710b7b224bc3a2a36baed2fa",
+		"res://assets/audio/engines/limousine.json": "ae181d5d82e8751e5df1c319da050e60714d6706862ccd212ea8adadb1e4963d",
+		"res://assets/audio/engines/sportwagen.f32": "8f12df29e8b9421a4dd4d92a6aea185220fee64df2446ad2bee84e60566d2a91",
+		"res://assets/audio/engines/sportwagen.json": "6fe079a1748c75e93068d90468a23c06e18663aa6727048563342a1a8a405a74",
+		"res://assets/audio/music/title_theme.ogg": "cb65aaf954c5e4f10685302db8fd2efa74fee67d9319daf716c18e0612f1278b",
+		"res://assets/audio/music/title_theme.ogg.import": "003b1d5ef56892d16d54f4059d84a32bcb09199bebcff5bb16d69f6efd0de1f9",
+		"res://assets/audio/traffic/air.wav": "e19ef04fbe1b3b9b7ce7c6d4029864b44f8aa7d07223fa8a556129f603e25f4c",
+		"res://assets/audio/traffic/air.wav.import": "5d039a5d3326526a4ef1dfe9ad78880f3d1527cd3cfa136da4b31aca808aa1b6",
+		"res://assets/audio/traffic/bus_diesel.wav": "f5980dc256940235012e93888c12f9a28a969050b3e72b93fffddbc11d480d49",
+		"res://assets/audio/traffic/bus_diesel.wav.import": "9b5c75180b32a6aab6501089fcf05b3fe8fb0fbba03056e60391b261a12519ad",
+		"res://assets/audio/traffic/car_diesel.wav": "9e5d1b7c235bef4862f4b18799b60c93f4f356d3a922c851ba3d43b806e661d6",
+		"res://assets/audio/traffic/car_diesel.wav.import": "4d890187747bc837c358f7012a0aa2940735719ad0a6e220320c7f2058ff4332",
+		"res://assets/audio/traffic/car_petrol.wav": "c5adc044a33136a2951e3028af3fd1db3a2cd83c349d4a18bf72be6222688975",
+		"res://assets/audio/traffic/car_petrol.wav.import": "877057a61292b30914538da2fec94fdec2ac232217899f0a42c8526b305a50cf",
+		"res://assets/audio/traffic/car_sport.wav": "ec385f1e569ef7a9ac30e203041cac2279ddedc60e8e09392f4bcb4fc552729a",
+		"res://assets/audio/traffic/car_sport.wav.import": "bebb0f7b23bde8b5fa49753717817eac7902547f8d317b4342aa142a4869e795",
+		"res://assets/audio/traffic/tires_car.wav": "c8618318169e97b61aef5e93a6f35ade9ad21787d21aa4513f31f7066bce188c",
+		"res://assets/audio/traffic/tires_car.wav.import": "3741825dab6807847459149daa02c18f5f4e8740be0cc90f87f9e89d5d1ad110",
+		"res://assets/audio/traffic/tires_truck.wav": "c1fac36cc66e947c0781219f52322a8149b2573f913a352f81274652cac7162e",
+		"res://assets/audio/traffic/tires_truck.wav.import": "ee450a402e34d64091a2f416b6d49acdb5efb8b5c6bf72f01ec253c1eb898cac",
+		"res://assets/audio/traffic/traffic_sounds.json": "4e00cc3105c70c278a082f514a3b0b4362618401fc488cd0b55dab5510709433",
+		"res://assets/audio/traffic/truck_diesel.wav": "5f62183902bb84a469969507f8ac185a5770e520b791f6bfe673428102ce7d44",
+		"res://assets/audio/traffic/truck_diesel.wav.import": "cc7f55d9c1be8b02614bb00e44d2802ba3d64daeea2900958f0d57135d9375b2",
+		"res://assets/audio/traffic/van_diesel.wav": "650e9fffd6310a80847369c67911995315509377734a167aaa15996ed4618143",
+		"res://assets/audio/traffic/van_diesel.wav.import": "8723658d5ce915a4cfa31880a7ae9ade5340ed4b7d64a4c125eb6ab5c12d4573",
+		"res://scripts/audio/engine_audio.gd": "f98acc02cf468913aaaa5fa353788fe54bc267a360c734722aff4cc596c317a5",
+		"res://scripts/audio/engine_bank.gd": "1b686f3d2bdcb1b8a5bbe312a92fe36ba9e3fdeeef1bea3e8da61d7a5b7c0574",
+		"res://scripts/audio/engine_gearbox.gd": "bb8cb72ec5c46951d5153654750a9ad558d97c278722aae37a67ecf3447a505b",
+		"res://scripts/audio/room_audio.gd": "4b7856e3c4e2d21870fd6e0cd06f0cf0d719fec45ded9f3abbf5dd51f4424993",
+		"res://scripts/audio/sfx_synth.gd": "3a195f102f1407b50fede8090f2c04f925a5dfc9bbca9ffde86b7d143cc4d9a6",
+		"res://scripts/audio/traffic_audio.gd": "d6679d6176bf1008d584c7e7b16f1fcc080c15ec298f0310bc083689b8a29b0c",
+		"res://tools/audio/engine_synth.py": "5897824e57f8cc3fafd273e386577b0ea7d9a6ab09a1d3892b82d52c0673c6da",
+		"res://tools/audio/music_synth.py": "fbb4977e16b5667d0c2e7ef7a575b6ba9b8e955df4742a7cf51116f5b88958dd",
+		"res://tools/audio/traffic_synth.py": "ae32b0717665a341983fb2718c50297a977175c674baf3c3f3e45b22a94fa849"
+	},
+	"godot": "4.7.2-stable (official)",
+	"sfx": {
+		"beep": {
+			"samples": 3969,
+			"sha256": "16bb2afd60b1f8a4f4b360fe158a23c50dd3c96511819182377d656956054bea"
+		},
+		"crash": {
+			"samples": 24255,
+			"sha256": "52df73fb1dceb94b3ac6ee88305dae279fbc851e275dfc199ed40e6753f04bcc"
+		},
+		"engine_off": {
+			"samples": 16384,
+			"sha256": "894d5b3102c33ef2dd19fa91631d48141adc0796fb7a5a0e63f93bb574a64d01"
+		},
+		"engine_on": {
+			"samples": 16384,
+			"sha256": "df13b4ab5412f03e94b556b6fda5659d4bce43d747b3543605b8efb4ca5bb094"
+		},
+		"finish": {
+			"samples": 37485,
+			"sha256": "f23437e0dc5af7883611cc85cb6eb83bc684abf3dd0743245cd60a8d381ade58"
+		},
+		"flash": {
+			"samples": 12127,
+			"sha256": "67fa2bb0d38d6dbbb4b1daa31b3e46718e4c3e5f9ad471d99572d73de09a26e2"
+		},
+		"fuel_done": {
+			"samples": 19845,
+			"sha256": "4ef3e80d6fa4e9a57d6304a56bbf0d003f046bce3af4751f62e14bbaac86fc8a"
+		},
+		"fuel_start": {
+			"samples": 17640,
+			"sha256": "d57950f293fb62ce5cad52d116c8aae30b74823aa45ba1ee82f66999c72f2e93"
+		},
+		"go": {
+			"samples": 15434,
+			"sha256": "7314c90909f749c30f29d03731c7468db00e9123a46d13e12e6b0914eb978c6e"
+		},
+		"rail": {
+			"samples": 15434,
+			"sha256": "5db679c7e023a9d3e327be698c1afbc8adb2bb9279edd53f4086a0f9e8a9a442"
+		},
+		"rain": {
+			"samples": 44100,
+			"sha256": "8adfc6c926028632190b66bc72f10a7db5a2d8221056b1be2afa9bd614b93eb8"
+		},
+		"siren": {
+			"samples": 27342,
+			"sha256": "e1742dd70f9ad56106357ef6adbec8dbd355dd42c49cedfcabe56df201df387f"
+		},
+		"skid": {
+			"samples": 22050,
+			"sha256": "c2017b76589b13d6463bee00e7e651789dbd00cf4c5bf8f9dfb8b4517212f9ca"
+		},
+		"ui_back": {
+			"samples": 3528,
+			"sha256": "0b62b784bfa6037bb80883227a2f24774cb191981fd8be54c5be8c27c7bc7eb7"
+		},
+		"ui_move": {
+			"samples": 1102,
+			"sha256": "1179384295b0dea6a220a7d4da7a5a33e8a5dae0b5d9bbc0c2251eb080342dea"
+		},
+		"ui_ok": {
+			"samples": 3528,
+			"sha256": "eab8177ff26f38250c5977374097289c3b634468da8ded45a132891759c9d29f"
+		},
+		"wind": {
+			"samples": 44100,
+			"sha256": "fc4d66846665fe5c26df07ceef330ee7af92d22ecdc5586f798c9c24c0da7e76"
+		}
+	},
+	"traffic": {
+		"sha256": "6513764eabe70f70040a9e0fd3253ef260daa1b1f5b469ff863c25e36f0385b2",
+		"values": 37200
+	}
+}

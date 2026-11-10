@@ -1,0 +1,8 @@
+{
+	"format": "ce-engine-bank-2-platzhalter",
+	"sample_rate": 32000,
+	"channels": 2,
+	"frames": 16000,
+	"data": "platzhalter.i16",
+	"note": "Platzhalter (Welle 0): wird im Spiel nie abgespielt"
+}
