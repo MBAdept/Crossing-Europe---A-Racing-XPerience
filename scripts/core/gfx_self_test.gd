@@ -23,9 +23,14 @@ const QUAD_TOLERANCE := 0.12   ## per channel
 ## Builds the test scene under `parent`, waits `frames` frames plus the next drawn one, and returns
 ## {"ok": bool, "reason": "" | "black" | "shader" | "readback", "ms": float} (+ the judged values "lit", "dark",
 ## "quad" for logs; "skipped": true without a renderer). Awaitable: `var r: Dictionary = await GfxSelfTest.run(self)`.
+## A parent that leaves the tree while the test runs ends it without a verdict ("aborted": true, ok false) – call
+## it from a static function or keep the caller alive: a member coroutine of a freed node cannot be resumed.
 static func run(parent: Node, frames: int = 3) -> Dictionary:
 	if DisplayServer.get_name() == "headless":
 		return {"ok": true, "reason": "", "ms": 0.0, "skipped": true}
+	if parent == null or not parent.is_inside_tree():
+		return {"ok": false, "reason": "readback", "ms": 0.0, "aborted": true}
+	var tree := parent.get_tree()
 	var t0 := Time.get_ticks_usec()
 	var vp := SubViewport.new()
 	vp.size = Vector2i(SIZE, SIZE)
@@ -65,8 +70,12 @@ static func run(parent: Node, frames: int = 3) -> Dictionary:
 	quad.material_override = sm
 	vp.add_child(quad)
 	for i in maxi(1, frames):
-		await parent.get_tree().process_frame
+		await tree.process_frame
+		if not is_instance_valid(vp) or not vp.is_inside_tree():
+			return {"ok": false, "reason": "readback", "ms": 0.0, "aborted": true}
 	await RenderingServer.frame_post_draw
+	if not is_instance_valid(vp) or not vp.is_inside_tree():
+		return {"ok": false, "reason": "readback", "ms": 0.0, "aborted": true}
 	var tex := vp.get_texture()
 	var img: Image = tex.get_image() if tex != null else null
 	vp.queue_free()

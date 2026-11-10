@@ -19,6 +19,7 @@ const PLANE_SIZE_M := 6000.0
 
 ## Result of the render self-test of this run ({} = not run yet): one test per start of the game.
 static var selftest: Dictionary = {}
+static var _selftest_running := false
 
 var track: Track
 var proj: RoadProjection
@@ -36,7 +37,6 @@ var _far := 2600.0
 var _ctx: Dictionary = {}
 var _preparing := false
 var _prepared := false
-var _testing := false
 var _fail := ""
 var _frames := 0
 var _render_us := 0
@@ -114,7 +114,7 @@ func is_prepared() -> bool:
 
 
 func prepare_progress() -> float:
-	return 1.0 if _prepared else (0.5 if _testing else 0.0)
+	return 1.0 if _prepared else (0.5 if _selftest_running else 0.0)
 
 
 ## False when Modern cannot draw this stage; fail_reason() says why: "selftest:<reason>", "manifest", "shader",
@@ -128,22 +128,28 @@ func fail_reason() -> String:
 
 
 func _process(_delta: float) -> void:
-	if not _preparing or _testing:
+	if not _preparing:
 		return
-	if _fail != "" or DisplayServer.get_name() == "headless" or not selftest.is_empty():
-		if _fail == "" and not selftest.is_empty() and not bool(selftest.get("ok", true)):
-			_fail = "selftest:" + str(selftest.get("reason", ""))
-		_preparing = false
-		_prepared = true
+	if _fail == "" and DisplayServer.get_name() != "headless" and selftest.is_empty():
+		# the first Modern stage of this run with a real renderer: wait for the render self-test
+		if not _selftest_running:
+			_run_selftest(self)
 		return
-	_testing = true
-	_run_selftest()
+	if _fail == "" and not bool(selftest.get("ok", true)):
+		_fail = "selftest:" + str(selftest.get("reason", ""))
+	_preparing = false
+	_prepared = true
 
 
-func _run_selftest() -> void:
-	var res: Dictionary = await GfxSelfTest.run(self)
-	selftest = res
-	_testing = false
+## Runs the render self-test and keeps its verdict for the rest of the run. Static: the test outlives a renderer
+## that is freed in the middle of it (a member coroutine cannot be resumed once its node is gone); a test that lost
+## its renderer has no verdict – the next stage tests again.
+static func _run_selftest(parent: Node) -> void:
+	_selftest_running = true
+	var res: Dictionary = await GfxSelfTest.run(parent)
+	_selftest_running = false
+	if not bool(res.get("aborted", false)):
+		selftest = res
 
 
 ## Draws the frame of `view` (ARCHITECTURE.md §6; Modern also reads hour, dt and player.type).

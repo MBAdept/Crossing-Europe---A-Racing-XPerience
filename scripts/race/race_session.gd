@@ -56,6 +56,10 @@ extends Node2D
 signal stage_finished(result: Dictionary)
 signal stage_aborted(reason: String)
 signal restart_requested
+## The stage starts to run (v0.8.0): emitted before its first simulation step – at once in an Arcade stage, after
+## the renderer's preparation in Modern (the loading overlay goes). Whoever times something from the start of a
+## stage (attract demo, Leistungstest) counts from here; is_live() asks for the same.
+signal stage_live
 
 var setup: Dictionary = {}
 var standalone := false
@@ -257,8 +261,9 @@ func _build() -> void:
 		_guard_armed = true
 		_guard_owner = get_instance_id()
 		if _create_renderer(Gfx.MODERN):
-			_gfx_state = GfxState.PREPARING
 			get_tree().root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND   # Modern fills the window
+			if renderer.has_method(&"prepare"):   # the Modern-only part of the interface (RaceRenderers)
+				_gfx_state = GfxState.PREPARING
 		else:
 			_abandon_modern("renderer")
 	if gfx == Gfx.ARCADE:
@@ -408,12 +413,20 @@ func _build() -> void:
 		Engine.max_physics_steps_per_frame = clampi(int(ceil(ts)) * 2, 8, 128)
 	if _gfx_state == GfxState.PREPARING:
 		_begin_prepare()
+	elif gfx == Gfx.MODERN:
+		_guard_s = CRASH_GUARD_S   # a renderer without prepare(): the stage runs at once
 	elif gfx_fallback != "":
 		_show_fallback_message()
 	_start_wall_ms = Time.get_ticks_msec()
 
 
 # --- graphics modes (v0.8.0) --------------------------------------------------------------------------------
+
+## True once the stage runs (signal stage_live): from its first simulation step on – in Modern not while the renderer
+## still prepares the stage behind the loading overlay.
+func is_live() -> bool:
+	return _stage_start_sent
+
 
 ## Creates the renderer of `mode` as the first child (below the HUD's canvas layer) and sets it up. False when the
 ## Modern renderer cannot be created.
@@ -446,7 +459,8 @@ func _begin_prepare() -> void:
 	_loading.add_child(cover)
 	_loading_overlay = LoadingOverlay.new(tr("Etappe wird geladen …"))
 	_loading.add_child(_loading_overlay)
-	renderer.apply_quality(Settings.quality_levels())
+	if renderer.has_method(&"apply_quality"):
+		renderer.apply_quality(Settings.quality_levels())
 	renderer.prepare({"sets": _stage_sets.duplicate(), "plan": plan, "vehicle": vehicle.type_id, "weather": weather,
 		"hour": clock.hour(), "sync": CliArgs.has("gfx-sync")})
 
@@ -454,11 +468,11 @@ func _begin_prepare() -> void:
 ## Every frame while the Modern renderer prepares: progress of the loading overlay, the end of the preparation, or
 ## the fallback to Arcade when the renderer reports that it cannot draw the stage.
 func _poll_prepare() -> void:
-	if not bool(renderer.healthy()):
-		_fall_back(str(renderer.fail_reason()))
-	elif bool(renderer.is_prepared()):
+	if renderer.has_method(&"healthy") and not bool(renderer.healthy()):
+		_fall_back(str(renderer.fail_reason()) if renderer.has_method(&"fail_reason") else "")
+	elif not renderer.has_method(&"is_prepared") or bool(renderer.is_prepared()):
 		_gfx_state = GfxState.PREPARED
-	elif _loading_overlay != null and _loading_overlay.has_method(&"set_progress"):
+	elif _loading_overlay != null and _loading_overlay.has_method(&"set_progress") and renderer.has_method(&"prepare_progress"):
 		_loading_overlay.call(&"set_progress", clampf(float(renderer.prepare_progress()), 0.0, 1.0))
 
 
@@ -929,6 +943,7 @@ func _physics_process(dt: float) -> void:
 		_go_live()
 	if not _stage_start_sent:
 		_stage_start_sent = true
+		stage_live.emit()
 		_audio_event("stage_start", {"countdown_s": countdown})
 	_snapshot()
 	var t0 := Time.get_ticks_usec()

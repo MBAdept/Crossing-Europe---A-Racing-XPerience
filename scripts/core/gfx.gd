@@ -74,9 +74,9 @@ const DEFAULT_WATCHDOG := {"countdown_min_fps": 30.0, "slow_factor": 1.3, "too_s
 const SOFTWARE_HINTS: Array[String] = ["llvmpipe", "softpipe", "swiftshader", "lavapipe", "basic render", "gdi generic",
 	"warp", "software"]
 const DECK_HINTS: Array[String] = ["vangogh", "van gogh", "custom gpu 0405", "custom gpu 0932", "sephiroth"]
-const WEAK_HINTS: Array[String] = ["hd graphics", "uhd graphics 6", "iris graphics", "gma ", "radeon hd", "radeon r5",
-	"radeon r7", "geforce gt ", "geforce 9", "geforce 6", "geforce 7", "geforce 8", "videocore", "mali", "adreno",
-	"powervr"]
+## Intel "HD Graphics" and "UHD Graphics" are judged in classify_adapter (UHD 7xx is not weak).
+const WEAK_HINTS: Array[String] = ["iris graphics", "gma ", "radeon hd", "radeon r5", "radeon r7", "geforce gt ",
+	"geforce 9", "geforce 6", "geforce 7", "geforce 8", "videocore", "mali", "adreno", "powervr"]
 
 
 ## Tier of a graphics adapter – "software" | "weak" | "deck" | "ok" – from its name and vendor
@@ -94,6 +94,10 @@ static func classify_adapter(adapter: String, vendor: String = "", api: String =
 			return "deck"
 	if gamescope and (n.contains("amd") or n.contains("radeon")):
 		return "deck"
+	# Intel: "HD Graphics" (until 2017) and "UHD Graphics" up to the 6xx series and without a number are weak; the
+	# "UHD Graphics 7xx" of the desktop chips since 2021 is not
+	if n.contains("hd graphics") and not n.contains("uhd graphics 7"):
+		return "weak"
 	for h in WEAK_HINTS:
 		if n.contains(h):
 			return "weak"

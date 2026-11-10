@@ -206,6 +206,11 @@ func _check_ablauf() -> void:
 	# rain: a weather hint is in the HUD from the start (its timer must stand while the stage is prepared)
 	var sc := _launch({"gfx": "modern", "weather": "rain", "autopilot": true}, rec)
 	_flow_scene = sc
+	var live := [0, 0]   # emissions of stage_live, simulation steps done at the first one
+	sc.connect("stage_live", func() -> void:
+		live[0] += 1
+		if int(live[0]) == 1:
+			live[1] = int(sc.get("_sim_steps")))
 	_need(p, bool(_probe.get("marker_at_init")), "Marker vor dem Erzeugen des Renderers")
 	_need(p, _marker_exists(), "Marker nach dem Aufbau")
 	_need(p, " ".join(_probe_log()) == "init setup apply_quality prepare", "Reihenfolge init, setup, apply_quality, prepare (ist: %s)" % " ".join(_probe_log()))
@@ -236,20 +241,21 @@ func _check_ablauf() -> void:
 		hud_state = hud_state or not (hud.get("state") as Dictionary).is_empty()
 		clock_moved = clock_moved or not is_equal_approx(float(sc.get("countdown")), countdown0) or float(sc.get("_real_time")) != 0.0 \
 			or float(sc.get("stage_time")) != 0.0 or float(sc.get("_beacon_t")) != 0.0
-		hooks_early = maxi(hooks_early, rec.states.size() + rec.events.size())
+		hooks_early = maxi(hooks_early, rec.states.size() + rec.events.size() + int(live[0]) + (1 if bool(sc.call("is_live")) else 0))
 		overlay_gone_early = overlay_gone_early or _loading_layer(sc) == null
 	_need(p, frames >= 8, "Vorbereitung über mehrere Bilder (%d)" % frames)
 	_need(p, worst_steps == 0, "kein Simulationsschritt vor is_prepared() (%d)" % worst_steps)
 	_need(p, not clock_moved, "Countdown, Etappenzeit und Uhren stehen")
 	_need(p, not hud_moved, "HUD-Meldungen altern nicht")
 	_need(p, not hud_state, "HUD bekommt keinen Zustand (kein Countdown-Piep)")
-	_need(p, hooks_early == 0, "keine Klang-Hooks vor dem Start (%d)" % hooks_early)
+	_need(p, hooks_early == 0, "keine Klang-Hooks, kein stage_live vor dem Start (%d)" % hooks_early)
 	_need(p, not overlay_gone_early, "Ladebild bleibt bis zum Start")
 	var before := int(_probe.get("views_before_prepared"))
 	_need(p, before >= 7, "die Startansicht wird während der Vorbereitung gezeichnet (%d Bilder)" % before)
 	# the stage starts with the next simulation step
 	await _until(func() -> bool: return int(sc.get("_sim_steps")) > 0, 200)
 	_need(p, int(sc.get("_sim_steps")) > 0, "die Simulation startet nach der Vorbereitung")
+	_need(p, int(live[0]) == 1 and int(live[1]) == 0 and bool(sc.call("is_live")), "Signal stage_live einmal, vor dem ersten Schritt (%s)" % str(live))
 	_need(p, _loading_layer(sc) == null, "Ladebild weg")
 	_need(p, (hud as Node).is_processing(), "HUD läuft")
 	_need(p, not rec.events.is_empty() and str(rec.events[0][0]) == "stage_start"
@@ -428,8 +434,11 @@ func _check_klang() -> void:
 	var track: Object = sc.get("track")
 	var plan: Object = sc.get("plan")
 	_need(p, rec.tracks.size() == 1 and rec.tracks[0][0] == track and rec.tracks[0][1] == plan, "set_track(track, plan) beim Aufbau")
-	_need(p, rec.events.is_empty(), "vor dem ersten Schritt kein Ereignis")
+	_need(p, rec.events.is_empty() and not bool(sc.call("is_live")), "vor dem ersten Schritt kein Ereignis")
+	var live := [0]
+	sc.connect("stage_live", func() -> void: live[0] += 1)
 	await _until(func() -> bool: return bool(sc.get("running")))
+	_need(p, int(live[0]) == 1 and bool(sc.call("is_live")), "Signal stage_live auch in Arcade, genau einmal (%d)" % int(live[0]))
 	var names := " ".join(rec.names())
 	_need(p, names == "stage_start countdown countdown countdown go", "stage_start, countdown ×3, go (ist: %s)" % names)
 	var counts: Array = []

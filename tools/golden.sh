@@ -30,7 +30,7 @@ MODE=${1:-}
 FILTER=${2:-}
 
 usage() {
-	sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//'
+	sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//'
 	exit 2
 }
 
@@ -54,7 +54,7 @@ render_one() {
 	# shellcheck disable=SC2086
 	nice -n 10 timeout 900 xvfb-run -a -s "-screen 0 1280x720x24" "$GODOT" --path "$proj" --rendering-driver opengl3 \
 		--audio-driver Dummy --resolution 1280x720 --fixed-fps 60 res://scenes/race/race.tscn -- \
-		--screenshot="$out/$id" --shot-times="$times" $args --graphics=arcade --shot-fast >"$out/$id.log" 2>&1
+		--screenshot="$out/$id" --shot-times="$times" $args --graphics=arcade --shot-fast --gfx-sync >"$out/$id.log" 2>&1
 	local code=$?
 	if [ $code -ne 0 ] || grep -qE "SCRIPT ERROR|Parse Error" "$out/$id.log"; then
 		echo "    $id: FEHLER (Exit $code)"

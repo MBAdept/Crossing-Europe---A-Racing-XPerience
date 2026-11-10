@@ -138,7 +138,21 @@ func _check_selbsttest() -> void:
 	_need(p, bool(second.get("ok", false)), "zweiter Lauf gut (%s)" % str(second))
 	_need(p, float(first.get("lit", 0.0)) > 0.5 and float(first.get("dark", 1.0)) < 0.05, "Kugel beleuchtet, Hintergrund schwarz")
 	_need(p, float(first.get("ms", 0.0)) > 0.0, "Dauer gemessen")
-	_report("selbsttest", p, "Selbsttest %s: Kugel %.2f, Hintergrund %.2f, Shader-Fläche %s, %.0f ms beim ersten und %.0f ms beim zweiten Mal" % [
+	# the node the test hangs on is freed in the middle of it (a stage left during its first frames): no verdict
+	var holder := Node.new()
+	root.add_child(holder)
+	var cut := [{}]
+	var runner := func() -> void:
+		cut[0] = await script.call("run", holder, 6)
+	runner.call()
+	await _frames(2)
+	holder.queue_free()
+	await _frames(10)
+	var cut_res: Dictionary = cut[0]
+	_need(p, bool(cut_res.get("aborted", false)) and not bool(cut_res.get("ok", true)), "abgebrochener Selbsttest ohne Urteil (%s)" % str(cut_res))
+	var third: Dictionary = await script.call("run", root)
+	_need(p, bool(third.get("ok", false)), "danach wieder ein gültiger Lauf")
+	_report("selbsttest", p, "Selbsttest %s: Kugel %.2f, Hintergrund %.2f, Shader-Fläche %s, %.0f ms beim ersten und %.0f ms beim zweiten Mal; abgebrochen ohne Urteil" % [
 		"bestanden" if bool(first.get("ok", false)) else "NICHT bestanden", float(first.get("lit", 0.0)), float(first.get("dark", 0.0)),
 		str(first.get("quad", "")), float(first.get("ms", 0.0)), float(second.get("ms", 0.0))])
 

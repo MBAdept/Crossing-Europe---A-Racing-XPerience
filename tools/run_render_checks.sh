@@ -22,7 +22,7 @@ TIMEOUT=${RENDER_CHECK_TIMEOUT:-900}
 case "$WHAT" in
 arcade | modern | all) ;;
 *)
-	sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'
+	sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'
 	exit 2
 	;;
 esac

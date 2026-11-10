@@ -252,7 +252,10 @@ vehicle, start_world_minutes, weather, start_km?, autopilot?, seed, start_fuel_l
 Rennen `start_fuel_l` (Liter aus der letzten Etappe, −1 = eigene Startfüllung der Etappe) und `last_stage` (die
 Etappe beendet das Rennen); seit v0.8.0 optional `gfx` (`"arcade"|"modern"`: Grafikmodus dieser Etappe für
 Attract-Demos, Leistungstest und Tests – fehlt er, gilt `Settings.effective_graphics()`, §15).
-Signale: `stage_finished(result)`, `stage_aborted(reason)`, `restart_requested`.
+Signale: `stage_finished(result)`, `stage_aborted(reason)`, `restart_requested`; seit v0.8.0 `stage_live` – die
+Etappe beginnt zu laufen (vor dem ersten Simulationsschritt: in „Arcade“ sofort, in „Modern“ nach der Vorbereitung
+des Renderers; `is_live()` fragt dasselbe ab). Wer Zeit ab dem Start der Etappe misst (Attract-Demo, Leistungstest),
+zählt ab diesem Signal.
 
 **Ergebnis** (`result`): `board_key, stage_id, from_city, to_city, stage_name, time_s (inkl. Strafen), penalty_s,
 avg_speed_kmh, distance_km, vehicle, weather, start_world_minutes, end_world_minutes, start_hour, daytime,
@@ -525,9 +528,10 @@ langsam).
 
 `GfxSelfTest` (`scripts/core/gfx_self_test.gd`): `await GfxSelfTest.run(parent, frames = 3)` rendert eine beleuchtete
 Kugel und eine Fläche mit eigenem Shader in ein 96×96-`SubViewport` und liefert
-`{"ok", "reason": ""|"black"|"shader"|"readback", "ms"}` (headless übersprungen = bestanden); das reine Urteil über
-ein Bild ist `GfxSelfTest.judge(img)`. Gemessen auf der Test-VM (llvmpipe): 164–325 ms beim ersten Lauf, 49–86 ms
-danach.
+`{"ok", "reason": ""|"black"|"shader"|"readback", "ms"}` (headless übersprungen = bestanden; verlässt `parent`
+währenddessen den Baum, endet der Test ohne Urteil mit `"aborted": true` – der Renderer ruft ihn deshalb aus einer
+statischen Funktion und merkt sich nur ein Urteil); das reine Urteil über ein Bild ist `GfxSelfTest.judge(img)`.
+Gemessen auf der Test-VM (llvmpipe): 164–325 ms beim ersten Lauf, 49–86 ms danach.
 
 ### 15.2 Qualität von „Modern“
 
