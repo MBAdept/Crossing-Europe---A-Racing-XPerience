@@ -13,6 +13,15 @@ tools/blender/fixtures/geometry_v070.json, which was written from tag v0.7.0 bef
   topo      hash of polygons, material indices, smooth flags, corner normals (1e-4) and object flags
   mats      hash of the materials (node trees with all values and links)
   info      hash of what the builder returns for the manifest (object size, box parts, lights)
+  ctopo     topo without the order of the faces: every polygon as its cycle of vertex indices (from the
+            smallest index on) with material index and smooth flag, polygons sorted; sharp edges; object flags
+  nstat     six sums over all corner normals (weighted by object and vertex index), compared with a
+            tolerance - normals without their order and without rounding to a hash
+
+Blender's UV sphere (bmesh.ops.create_uvsphere, used by one landmark) returns its faces in another order in
+every process - also with the untouched generators of v0.7.0. Such a set can never repeat "topo". It counts
+as identical when everything else is equal, "ctopo" is equal and "nstat" is within the tolerance: same
+vertices, same polygons, same normals, only stored in another order.
 
 Usage (from the repository root):
   /home/user/tools/bpyenv/bin/python tools/blender/check_sprite_geometry.py [--only PREFIX[,PREFIX..]]
@@ -31,11 +40,13 @@ import subprocess
 import sys
 import tempfile
 import time
+import zlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 FIXTURE = os.path.join(HERE, "fixtures", "geometry_v070.json")
-FIELDS = ("objects", "verts", "polys", "tris", "bbox", "pos", "qpos", "topo", "mats", "info")
+FIELDS = ("objects", "verts", "polys", "tris", "bbox", "pos", "qpos", "topo", "mats", "info", "ctopo", "nstat")
+NSTAT_TOL = 2e-3            # absolute, plus 1e-6 of the value
 # rough build cost per builder (seconds, measured on the 4-core VM) - only used to balance the workers
 COST = {"player": 22.0, "car": 2.5, "police": 3.0, "truck": 3.0, "bus": 4.5, "prop": 3.0, "landmark": 5.0, "icon": 0.3}
 
@@ -110,6 +121,8 @@ def measure(rig, info):
     obs = [o for o in rig.root.children_recursive if o.type in ("MESH", "CURVE", "FONT", "SURFACE")]
     obs.sort(key=lambda o: o.name)
     h_pos, h_q, h_topo, h_mat = hashlib.sha1(), hashlib.sha1(), hashlib.sha1(), hashlib.sha1()
+    h_ct = hashlib.sha1()
+    nstat = np.zeros(6)
     nv = npoly = ntri = 0
     lo = np.full(3, 1e30)
     hi = np.full(3, -1e30)
@@ -147,7 +160,15 @@ def measure(rig, info):
         h_topo.update(flags.encode("utf-8"))
         for a in (lv, ls, mi, sm.astype(np.int8), np.round(cn.astype(np.float64) * 1e4).astype(np.int32)):
             h_topo.update(a.tobytes())
-        h_topo.update(",".join(s.material.name if s.material else "-" for s in ob.material_slots).encode("utf-8"))
+        slots = ",".join(s.material.name if s.material else "-" for s in ob.material_slots)
+        h_topo.update(slots.encode("utf-8"))
+        h_ct.update((flags + "|" + slots).encode("utf-8"))
+        h_ct.update(_canonical_polygons(np, me, lv, ls, mi, sm).tobytes())
+        h_ct.update(_sharp_edges(np, me).tobytes())
+        wob = 1.0 + (zlib.crc32(ob.name.encode("utf-8")) % 7)
+        n3 = cn.reshape(-1, 3).astype(np.float64)
+        nstat[:3] += wob * n3.sum(axis=0)
+        nstat[3:] += wob * ((((lv % 31) + 1) / 16.0)[:, None] * n3).sum(axis=0)
         nv += n
         npoly += npo
         ntri += len(me.loop_triangles)
@@ -169,7 +190,46 @@ def measure(rig, info):
                 bbox=[round(float(v), 4) + 0.0 for v in list(lo) + list(hi)],
                 pos=h_pos.hexdigest()[:20], qpos=h_q.hexdigest()[:20], topo=h_topo.hexdigest()[:20],
                 mats=h_mat.hexdigest()[:20],
-                info=hashlib.sha1(json.dumps(clean, sort_keys=True).encode("utf-8")).hexdigest()[:20])
+                info=hashlib.sha1(json.dumps(clean, sort_keys=True).encode("utf-8")).hexdigest()[:20],
+                ctopo=h_ct.hexdigest()[:20], nstat=[round(float(v), 4) + 0.0 for v in nstat])
+
+
+def _canonical_polygons(np, me, lv, ls, mi, sm):
+    """Sorted 64-bit hashes of the polygons, each read as its cycle of vertex indices from the smallest
+    index on (winding kept) with material index and smooth flag - independent of the order of the faces and
+    of the corner a face starts with."""
+    npo = len(ls)
+    if npo == 0:
+        return np.zeros(0, dtype=np.uint64)
+    lt = np.empty(npo, dtype=np.int32)
+    me.polygons.foreach_get("loop_total", lt)
+    idx = np.arange(len(lv), dtype=np.int64)
+    total = np.repeat(lt.astype(np.int64), lt)
+    vmin = np.repeat(np.minimum.reduceat(lv, ls), lt)
+    first = np.repeat(np.minimum.reduceat(np.where(lv == vmin, idx, len(lv)), ls), lt)
+    off = (idx - first) % total                    # position of the corner in the canonical cycle
+    with np.errstate(over="ignore"):
+        term = (lv.astype(np.uint64) + np.uint64(1)) * np.power(np.uint64(1000003), off.astype(np.uint64))
+        h = np.add.reduceat(term, ls)
+        h = h * np.uint64(31) + lt.astype(np.uint64)
+        h = h * np.uint64(1009) + mi.astype(np.uint64) * np.uint64(2) + sm.astype(np.uint64)
+    return np.sort(h)
+
+
+def _sharp_edges(np, me):
+    """Sorted (v0, v1) pairs of the edges marked sharp."""
+    ne = len(me.edges)
+    if ne == 0:
+        return np.zeros(0, dtype=np.int64)
+    sharp = np.zeros(ne, dtype=bool)
+    try:
+        me.edges.foreach_get("use_edge_sharp", sharp)
+    except (AttributeError, TypeError, RuntimeError):
+        return np.zeros(0, dtype=np.int64)
+    ev = np.empty(ne * 2, dtype=np.int32)
+    me.edges.foreach_get("vertices", ev)
+    ev = np.sort(ev.reshape(-1, 2)[sharp].astype(np.int64), axis=1)
+    return np.sort(ev[:, 0] * (len(me.vertices) + 1) + ev[:, 1])
 
 
 def _plain(v):
@@ -255,7 +315,7 @@ def write_fixture(path, sets):
     """One line per set: stable text, small diffs."""
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as fh:
-        fh.write('{\n "version": 1,\n "source": "tag v0.7.0 (cesprites before the first 3D hook)",\n "fields": %s,\n'
+        fh.write('{\n "version": 2,\n "source": "tag v0.7.0 (cesprites before the first 3D hook)",\n "fields": %s,\n'
                  ' "sets": {\n' % json.dumps(list(FIELDS)))
         fh.write(",\n".join("  %s: %s" % (json.dumps(k), json.dumps(sets[k])) for k in sorted(sets)))
         fh.write("\n }\n}\n")
@@ -300,6 +360,7 @@ def main():
     fields = fx["fields"]
     bad = 0
     noise = 0
+    order = 0
     for sid, _b in items:
         r = res.get(sid)
         if r is None or "error" in r:
@@ -312,8 +373,15 @@ def main():
             bad += 1
             continue
         w = dict(zip(fields, want))
-        diff = [f for f in fields if r.get(f) != w.get(f)]
+        diff = [f for f in fields if f != "nstat" and r.get(f) != w.get(f)]
+        if "nstat" in fields and any(abs(a - b) > NSTAT_TOL + 1e-6 * abs(b) for a, b in zip(r["nstat"], w["nstat"])):
+            diff.append("nstat")
         if not diff:
+            continue
+        if diff == ["topo"] and "ctopo" in fields:
+            # same vertices, same polygons, same sharp edges, same normals - stored in another order
+            order += 1
+            print("REIHENFOLGE %-37s gleiche Flächen und Normalen, andere Reihenfolge im Netz (zählt als identisch)" % sid)
             continue
         if diff == ["pos"]:
             # same vertices within 0.01 mm, same counts, topology, normals and materials: float noise only
@@ -329,8 +397,8 @@ def main():
     for sid in missing:
         print("FEHLT    %-40s steht in der Fixture, aber nicht mehr im Katalog" % sid)
     n = len(items)
-    print("%d Sprite-Sets gebaut in %.0f s: %d identisch, %d nur Fließkomma-Rauschen, %d verändert, %d fehlen" % (
-        n, dt, n - bad - noise, noise, bad, len(missing)))
+    print("%d Sprite-Sets gebaut in %.0f s: %d identisch (davon %d mit anderer Flächenreihenfolge), "
+          "%d nur Fließkomma-Rauschen, %d verändert, %d fehlen" % (n, dt, n - bad - noise, order, noise, bad, len(missing)))
     ok = bad == 0 and noise == 0 and not missing
     print("CHECK sprite_geometry %s" % ("OK" if ok else "FEHLER"))
     sys.exit(0 if ok else 1)
