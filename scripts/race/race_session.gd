@@ -40,7 +40,9 @@ extends Node2D
 ## renderers behind the same interface (RaceRenderers) – "arcade" = RoadRenderer as before, "modern" = ModernRenderer
 ## (real 3D). The mode is setup.gfx (attract demos, Leistungstest, tests) or Settings.effective_graphics(), fixed for
 ## the whole stage. The simulation is the same in both modes and never reads the renderer. Modern only:
-## - the crash-guard marker is written before the renderer is built and removed after CRASH_GUARD_S of drawn frames;
+## - the crash-guard marker is written before the renderer is built and removed after CRASH_GUARD_S of drawn frames
+##   (or when the stage falls back to Arcade or leaves the tree in an orderly way before that): it only survives a
+##   crash or a hang that had to be killed – then the next start of the game is Arcade (Settings.crash_guard);
 ## - the window is filled (stretch aspect "expand"); Arcade keeps "keep" (GameFlow);
 ## - the renderer prepares the stage over several frames behind a loading overlay (canvas layer 6). Until
 ##   is_prepared() nothing of the stage runs: no simulation step, no countdown, no HUD timer, no sound, and the
@@ -160,7 +162,12 @@ var _gfx_state := GfxState.LIVE
 var _loading: CanvasLayer        ## loading overlay while a Modern renderer prepares the stage
 var _loading_overlay: LoadingOverlay
 var _shot: Screenshotter         ## --screenshot: its clock is held while the stage is prepared
-var _guard_s := -1.0             ## Modern: seconds left until the crash-guard marker is removed (< 0: nothing to do)
+var _guard_armed := false        ## Modern: the crash-guard marker of this stage is still out
+var _guard_s := -1.0             ## … drawn seconds left until it is removed (< 0: the stage has not started yet)
+## The session that gave the sound its track / armed the crash guard last (instance ids). GameFlow adds the scene of
+## the next stage before the one before has left the tree: a leaving stage must not take away what the new one set.
+static var _track_owner := 0
+static var _guard_owner := 0
 var _pause_wanted := false       ## auto_pause() came while the stage was prepared: pause at the start
 var _stage_sets: Array[String] = []   ## every sprite set the stage can show (_stage_sprite_sets)
 var _stage_start_sent := false   ## sound event "stage_start" (before the first simulation step)
@@ -247,6 +254,8 @@ func _build() -> void:
 	if gfx == Gfx.MODERN:
 		# first of all the crash-guard marker: a crash or hang while Modern builds or draws leaves it for the next start
 		Settings.arm_crash_guard()
+		_guard_armed = true
+		_guard_owner = get_instance_id()
 		if _create_renderer(Gfx.MODERN):
 			_gfx_state = GfxState.PREPARING
 			get_tree().root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND   # Modern fills the window
@@ -267,6 +276,7 @@ func _build() -> void:
 	var sink := _audio_receiver()
 	_hooks_state = sink != null and sink.has_method(&"set_vehicle_state")
 	_audio_call(&"set_track", [track, plan])
+	_track_owner = get_instance_id()
 
 	env = EnvironmentModel.new()
 	env.setup(cfg)
@@ -461,9 +471,9 @@ func _go_live() -> void:
 		_loading = null
 		_loading_overlay = null
 	hud.set_process(true)
-	if _shot != null:
+	if is_instance_valid(_shot):   # the attract mode frees the session's Screenshotter
 		_shot.hold = false
-	if gfx == Gfx.MODERN:
+	if gfx == Gfx.MODERN and _guard_armed:
 		_guard_s = CRASH_GUARD_S
 	if _pause_wanted:
 		_pause_wanted = false
@@ -489,12 +499,11 @@ func _fall_back(reason: String) -> void:
 
 
 ## Book-keeping of a fallback: mode and reason of the result; the crash-guard marker of this stage goes (Modern
-## failed in an orderly way – a marker of the last run stays for the question on the title).
+## failed in an orderly way).
 func _abandon_modern(reason: String) -> void:
 	gfx = Gfx.ARCADE
 	gfx_fallback = reason if reason != "" else "unknown"
-	if not Settings.crash_guard:
-		Settings.disarm_crash_guard(false)
+	_release_crash_guard(false)
 	push_warning("Modus Modern nicht möglich (%s) – die Etappe läuft im Modus Arcade" % gfx_fallback)
 
 
@@ -505,11 +514,32 @@ func _show_fallback_message() -> void:
 
 ## Modern: the crash-guard marker goes after CRASH_GUARD_S of drawn frames (real seconds, also in fast time).
 func _tick_crash_guard(delta: float) -> void:
-	if _guard_s <= 0.0:
+	if not _guard_armed or _guard_s <= 0.0:
 		return
 	_guard_s -= delta / maxf(Engine.time_scale, 0.001)
 	if _guard_s <= 0.0:
-		Settings.disarm_crash_guard()
+		_release_crash_guard(true)
+
+
+## Takes back the crash-guard marker of this stage. works = Modern has drawn for CRASH_GUARD_S: a marker of the last
+## run is settled as well (Modern may be used again in this run). Otherwise – fallback to Arcade, the stage leaves
+## the tree in an orderly way – a marker of the last run stays for the question on the title. A marker that a newer
+## stage has armed in the meantime is not ours to remove.
+func _release_crash_guard(works: bool) -> void:
+	if not _guard_armed:
+		return
+	_guard_armed = false
+	_guard_s = -1.0
+	if _guard_owner != get_instance_id():
+		return
+	_guard_owner = 0
+	var settings := get_node_or_null("/root/Settings")
+	if settings == null:
+		return
+	if works:
+		settings.call("disarm_crash_guard")
+	elif not bool(settings.get("crash_guard")):
+		settings.call("disarm_crash_guard", false)
 
 
 ## The receiver of the sound hooks (audio_hooks or the AudioManager); null once it is gone (the game is quitting).
@@ -802,17 +832,16 @@ func _notification(what: int) -> void:
 		_leave_stage()
 
 
-## The scene leaves the tree: the sound gets its track back (set_track(null, null)); a Modern stage that had started
-## and ends in an orderly way before CRASH_GUARD_S takes its crash-guard marker along (a marker of the last run
-## stays; so does the marker of a stage that never got past its preparation).
+## The scene leaves the tree in an orderly way (next stage, back to the menus, the game quits): the sound gets its
+## track back (set_track(null, null)) and a Modern stage takes its crash-guard marker along, also when it was still
+## preparing – unless the next stage has already set its own (see _track_owner).
 func _leave_stage() -> void:
 	if plan == null:
 		return
-	_audio_call(&"set_track", [null, null])
-	var settings := get_node_or_null("/root/Settings")
-	if gfx == Gfx.MODERN and _guard_s > 0.0 and settings != null and not bool(settings.get("crash_guard")):
-		settings.call("disarm_crash_guard", false)
-	_guard_s = -1.0
+	if _track_owner == get_instance_id():
+		_track_owner = 0
+		_audio_call(&"set_track", [null, null])
+	_release_crash_guard(false)
 
 
 ## A gamepad was disconnected (InputSetup.pad_disconnected: battery, Bluetooth, the docked Steam Deck's external pad).

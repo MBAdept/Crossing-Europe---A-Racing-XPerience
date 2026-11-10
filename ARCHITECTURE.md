@@ -608,11 +608,13 @@ von „Modern“, 5 HUD und Pausemenü, 6 Ladebild der Sitzung. Arcade zeichnet 
    starten. Das Spiel läuft im Modus „Arcade“ weiter.“, Ergebnis `gfx = "arcade"`, `gfx_fallback = <Grund>`
    (`"renderer"`, wenn er sich nicht erzeugen ließ). Der Klang ändert sich dadurch nicht.
 5. Absturz-Marker `user://modern_start.lock`: entfernt nach 2 s gezeichneter Bilder der gestarteten Etappe (dann
-   ist auch ein Marker des letzten Laufs erledigt), bei einem Rückfall und wenn eine gestartete Etappe vorher
-   ordentlich endet. Er bleibt, wenn das Spiel in „Modern“ abstürzt, hängt oder während der Vorbereitung beendet
-   wird: Der nächste Start findet ihn (`Settings.crash_guard`), läuft in Arcade (`reason = "crash_guard"`) und
-   lässt die gespeicherte Wahl stehen, bis der Spieler die Frage auf dem Titel beantwortet
-   (`Settings.disarm_crash_guard()`) oder eine Modern-Etappe 2 s gelaufen ist.
+   ist auch ein Marker des letzten Laufs erledigt), bei einem Rückfall und wenn die Etappe vorher ordentlich endet
+   (nächste Etappe, zurück ins Menü, Spiel beendet – auch während der Vorbereitung). Er bleibt nur, wenn das Spiel
+   in „Modern“ abstürzt oder hängt und abgeschossen wird: Der nächste Start findet ihn (`Settings.crash_guard`),
+   läuft in Arcade (`reason = "crash_guard"`) und lässt die gespeicherte Wahl stehen, bis der Spieler die Frage auf
+   dem Titel beantwortet (`Settings.disarm_crash_guard()`) oder eine Modern-Etappe 2 s gelaufen ist. `GameFlow`
+   hängt die Szene der nächsten Etappe ein, bevor die alte den Baum verlassen hat – eine abgehende Etappe nimmt
+   deshalb weder den Marker noch die Strecke des Klangs (`set_track`) der neuen mit.
 6. Pause: Der Baum wird pausiert wie bisher; in „Modern“ muss das Bild vollständig stehen (alles Bewegte läuft auf
    `view.time`).
 
@@ -636,8 +638,8 @@ von „Modern“, 5 HUD und Pausemenü, 6 Ladebild der Sitzung. Arcade zeichnet 
 - `tests/race3d/check_seam.gd` (headless, über den Haken von `run_tests.sh`): die Naht mit einem Prüf-Renderer
   (`tests/race3d/fixtures/seam_probe_renderer.gd`, über `RaceRenderers.modern_script`), der eine einstellbare Zahl
   von Bildern zum Vorbereiten braucht und ausfallen kann – Reihenfolge der Aufrufe, Marker vor dem Renderer,
-  Stillstand bis `is_prepared()`, nur `ui/*` als Sprite-Blätter, Marker nach 2 s weg, Rückfall, fehlender
-  Renderer, alle Klang-Hooks, Marker des letzten Laufs.
+  Stillstand bis `is_prepared()`, nur `ui/*` als Sprite-Blätter, Marker nach 2 s weg, früher Abgang und
+  Etappenwechsel, Rückfall, fehlender Renderer, alle Klang-Hooks, Marker des letzten Laufs.
 - `tests/race3d/render/check_seam_render.gd` (Xvfb): Selbsttest auf dem echten Renderer, Bild des Gerüsts, gleiche
   Simulationsschritte bei gleicher Aufnahmezeit in beiden Modi, Rückfall bildgleich mit Arcade, Arcade vor und
   nach einer Modern-Etappe im selben Prozess bildgleich, 16:10-Fenster (Modern füllt, Arcade mit Balken).

@@ -306,9 +306,9 @@ func arm_crash_guard() -> void:
 		f.close()
 
 
-## Crash guard: removes the marker – Modern has drawn for a while (race session), failed in an orderly way (fallback
-## to Arcade) or the player answered the question on the title. lift = also forget the marker of the last run
-## (Modern may be used again in this run); false leaves effective_graphics() as it is.
+## Crash guard: removes the marker – Modern has drawn for a while (race session), the stage fell back to Arcade or
+## left in an orderly way, or the player answered the question on the title. lift = also forget the marker of the
+## last run (Modern may be used again in this run); false leaves effective_graphics() as it is.
 func disarm_crash_guard(lift: bool = true) -> void:
 	if FileAccess.file_exists(marker_path):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(marker_path))

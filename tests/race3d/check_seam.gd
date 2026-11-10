@@ -12,8 +12,9 @@ extends SceneTree
 ##               the view keys of v0.8.0 (hour, dt, player.type), result gfx. Only the HUD icons are loaded as
 ##               sprite sheets – no vehicle, prop or landmark sheet (first scenario: nothing is cached yet).
 ##   marker      the marker stays while the stage is prepared and for the first 2 s of frames, then it is removed
-##   abgang      a stage that ends before those 2 s takes its marker along; one that never got past the preparation
-##               leaves it (the next start is Arcade)
+##   abgang      a stage that leaves in an orderly way before those 2 s – also while it is still preparing – takes
+##               its marker along (only a killed process leaves it); a marker of the last run stays; a stage that is
+##               added before the one before has left keeps its marker and the sound's track
 ##   rueckfall   the renderer fails in the middle of the preparation: Arcade renderer and sprites, HUD message,
 ##               16:9 window, result gfx = "arcade" + gfx_fallback, marker removed, nothing ran before the start
 ##   ohne_renderer  the Modern renderer cannot be created: the stage is an Arcade stage from the start
@@ -327,16 +328,38 @@ func _check_abgang() -> void:
 	await _free(sc)
 	_need(p, not _marker_exists(), "a) früh, aber ordentlich beendet: Marker entfernt")
 	_need(p, _probe_log().has("exit"), "a) Renderer mit der Szene freigegeben")
-	# b) left while the renderer was still preparing (the player closed a game that hung): the marker stays
+	# b) left in an orderly way while the renderer was still preparing (a demo ended by a key, the window closed
+	# during a long warm-up): no crash either – only a killed process leaves the marker behind
 	_use_probe(1000000)
 	sc = _launch({"gfx": "modern", "autopilot": true})
 	await _frames(5)
-	_need(p, int(sc.get("_sim_steps")) == 0 and _marker_exists(), "b) noch in der Vorbereitung")
+	_need(p, int(sc.get("_sim_steps")) == 0 and _marker_exists(), "b) noch in der Vorbereitung, Marker steht")
 	await _free(sc)
-	var stays := _marker_exists()
-	_need(p, stays, "b) nie gestartet: Marker bleibt für den nächsten Start")
+	_need(p, not _marker_exists(), "b) in der Vorbereitung ordentlich beendet: Marker entfernt")
+	# c) a marker of the last run is not this stage's to remove: it waits for the question on the title
+	_settings.call("arm_crash_guard")
+	_settings.set("crash_guard", true)
+	_use_probe(3)
+	sc = _launch({"gfx": "modern", "autopilot": true, "no_countdown": true})
+	await _until(func() -> bool: return int(sc.get("_sim_steps")) > 0, 200)
+	await _free(sc)
+	_need(p, _marker_exists() and bool(_settings.get("crash_guard")), "c) Marker des letzten Laufs bleibt nach einem frühen Abgang")
 	_settings.call("disarm_crash_guard")
-	_report("abgang", p, "nach dem Start früh beendet: Marker weg; in der Vorbereitung beendet: Marker %s" % ("bleibt" if stays else "FEHLT"))
+	# d) the next stage is added before the one before has left the tree (as GameFlow does): the leaving stage must
+	# not take away the marker and the sound's track of the new one
+	_use_probe(3)
+	var rec := HookRecorder.new()
+	var first := _launch({"gfx": "modern", "autopilot": true, "no_countdown": true}, rec)
+	await _until(func() -> bool: return int(first.get("_sim_steps")) > 0, 200)
+	first.queue_free()
+	var second := _launch({"gfx": "modern", "autopilot": true, "no_countdown": true}, rec)
+	await _frames(3)
+	_need(p, not is_instance_valid(first) and _marker_exists(), "d) Marker der neuen Etappe überlebt den Abgang der alten")
+	_need(p, rec.tracks.size() == 2 and rec.tracks[1][0] == second.get("track"), "d) der Klang behält die Strecke der neuen Etappe (%d Aufrufe)" % rec.tracks.size())
+	await _until(func() -> bool: return int(second.get("_sim_steps")) > 0, 200)
+	await _free(second)
+	_need(p, not _marker_exists() and rec.tracks.size() == 3 and rec.tracks[2][0] == null, "d) am Ende der neuen Etappe: Marker weg, set_track(null, null)")
+	_report("abgang", p, "ordentlich beendet (nach dem Start, in der Vorbereitung): Marker weg; Marker des letzten Laufs bleibt; Etappenwechsel: Marker und Strecke der neuen Etappe bleiben")
 
 
 # --- rueckfall: the renderer fails while preparing --------------------------------------------------------------------------
