@@ -99,6 +99,11 @@ static func engine_hash(bank_path: String, mixer_seed: int = SEED) -> Dictionary
 	var b := EngineBank.load_file(bank_path)
 	if not b.ok():
 		return {"error": str(b.errors)}
+	return engine_hash_bank(b, mixer_seed)
+
+
+## The same for a bank that is loaded already (e.g. the one the AudioManager caches and every profile plays from).
+static func engine_hash_bank(b: EngineBank, mixer_seed: int = SEED) -> Dictionary:
 	var e := EngineAudio.new(b, mixer_seed)
 	e.start(true)
 	var out := PackedFloat32Array()

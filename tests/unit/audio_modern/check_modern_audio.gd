@@ -19,7 +19,8 @@ extends SceneTree
 ##   race           16 s of the test stage through its tunnel with the Modern profile: the session's calls arrive
 ##                  (engine, traffic, tunnel reverb, feed, events, race music); without --live also the finish with
 ##                  Modern and the same 16 s with the Arcade profile – the same simulation at every second (Rule 3)
-##   arcade_after   after all that: Arcade profile, the Arcade bus list as in v0.7.0
+##   arcade_after   after all that: Arcade profile, the Arcade bus list as in v0.7.0, and the cycle bank both
+##                  profiles played from still gives the seeded mixer output of v0.7.0 (SHA-256)
 ## --live: plays although the run is headless – builds the Arcade sounds as on a display (the AudioManager's own
 ## functions), ModernAudio.force_live, and switches the placeholders on (audio.modern.placeholders).
 ## Prints "CHECK <name> OK|FEHLER …" per scenario; exit code 0 when all pass. The scene is accessed untyped (this
@@ -33,6 +34,7 @@ const RACE_SCENE := "res://scenes/race/race.tscn"
 var _am: Node
 var _tool: GDScript
 var _golden: Array = []
+var _golden_engine: Dictionary = {}   ## car -> {samples, sha256, …} of the seeded Arcade mixer output in v0.7.0
 var _live := false
 var _failed: Array[String] = []
 var _wall0 := 0
@@ -125,6 +127,7 @@ func _run() -> void:
 	var golden_file := "arcade_v070_headless.json" if (headless and not _live) else "arcade_v070_display.json"
 	var g: Variant = ConfigLoader.load_json(GOLDEN_DIR.path_join(golden_file))
 	_golden = (g as Dictionary).get("buses", []) if g is Dictionary else []
+	_golden_engine = (g as Dictionary).get("engine", {}) if g is Dictionary else {}
 	var only := CliArgs.get_string("only", "")
 	for s in SCENARIOS:
 		if only != "" and not only.split(",").has(s):
@@ -652,7 +655,14 @@ func _scenario_arcade_after(golden_file: String) -> void:
 	var close := true
 	for line in strict:
 		close = close and (line.contains("tap1_level_db") or line.contains("tap2_level_db") or line.contains(".wet") or line.contains("cutoff_hz"))
-	var ok := str(_am.call("profile")) == "arcade" and _modern() == null and names_ok and close
-	_check("arcade_after", ok, "nach allem: Profil Arcade, %d Busse mit Sends, Pegeln und Effekten wie in v0.7.0 (%s)%s%s" % [now.size(), golden_file,
+	# the cycle bank both profiles played from (the AudioManager's cached object) still gives the seeded mixer
+	# output of v0.7.0, sample for sample
+	var bank: Variant = _am.call("bank_for", "limousine")
+	var eh: Dictionary = _tool.call("engine_hash_bank", bank) if bank != null else {}
+	var want_engine: Dictionary = _golden_engine.get("limousine", {})
+	var engine_ok := eh.has("sha256") and str(eh["sha256"]) == str(want_engine.get("sha256", "?"))
+	var ok := str(_am.call("profile")) == "arcade" and _modern() == null and names_ok and close and engine_ok
+	_check("arcade_after", ok, "nach allem: Profil Arcade, %d Busse mit Sends, Pegeln und Effekten wie in v0.7.0 (%s)%s%s; Motor-Mischer mit der von beiden Profilen benutzten Bank der Limousine: %d Abtastwerte, SHA-256 %s" % [now.size(), golden_file,
 		"" if notes.is_empty() else " – abweichend: " + ", ".join(notes),
-		"" if strict.is_empty() else "; nach dem Arcade-Rennen ruhen %d Raumklang-/Filterwerte neben dem Startwert (wie in v0.7.0)" % strict.size()])
+		"" if strict.is_empty() else "; nach dem Arcade-Rennen ruhen %d Raumklang-/Filterwerte neben dem Startwert (wie in v0.7.0)" % strict.size(),
+		int(eh.get("samples", 0)), "wie in v0.7.0" if engine_ok else "ANDERS als in v0.7.0"])

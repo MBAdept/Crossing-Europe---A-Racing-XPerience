@@ -252,8 +252,8 @@ Gemessen (Impulsantwort der Kette): 62 Hz −1,0 dB, 125 Hz −1,4 dB, 250 Hz �
 −0,01 dB). Der EQ blendet mit dem Kontext in 0,4 s ein und aus (`race_eq_fade_s`), außerhalb des Rennens sind die
 Filter abgeschaltet.
 
-Die Mulde nimmt Musik 1,4 dB (Titelmelodie) bis 1,7 dB (Platzhalter-Stück) ihrer Lautheit (gemessen);
-`context_db.race` = +1,0 dB gleicht das mit aus. Mit echten Stücken stimmt AU-D1/AU-E den Wert nach – oder je
+Die Mulde nimmt Musik einen Teil ihrer Lautheit: 1,7 dB beim Platzhalter-Stück (im Spiel gemessen), 1,4 dB bei der
+Titelmelodie (mit der gemessenen Impulsantwort berechnet). `context_db.race` = +1,0 dB gleicht das mit aus. Mit echten Stücken stimmt AU-D1/AU-E den Wert nach – oder je
 Stück über `gain_db` im Manifest.
 
 ### 6.4 Mischzustände
@@ -422,7 +422,7 @@ Fahrt; mit `--placeholders` das Platzhalter-Stück); `--mute-bus=MEnv` lässt nu
    Speicher. Bei 20 Profilwechseln mit laufendem Motor und Vorschau blieb der Audio-Thread in 4 von 29 Läufen
    hängen (im Debugger: Abtastrate −2,1e37, Endlosschleife im Resampler, Hauptthread wartet auf die Audio-Sperre).
    `ModernAudioContext.keep_alive(stream)` hält solche Streams zwei Sekunden über ihren Player hinaus: 0 von
-   54 Läufen. Dasselbe Muster steht in der eingefrorenen Arcade-Klasse `EngineAudio.detach()`; dort ließ es sich in
+   66 Läufen. Dasselbe Muster steht in der eingefrorenen Arcade-Klasse `EngineAudio.detach()`; dort ließ es sich in
    1500 nachgestellten Etappenwechseln nicht auslösen (Abschnitt 13).
 9. **Unit-Tests laufen in `_initialize()`**: Der Baum existiert noch nicht, die Autoloads haben kein `_ready()`
    hinter sich, es gibt nur den Bus `Master`. Was den laufenden `AudioManager` braucht, prüft
@@ -440,7 +440,7 @@ Fahrt; mit `--placeholders` das Platzhalter-Stück); `--mute-bus=MEnv` lässt nu
 ## 12. Prüfungen
 
 `tests/unit/audio_modern/` (laufen mit `tools/run_tests.sh`, allein mit `tools/run_tests.sh audio_modern`,
-54 Tests, etwa 45 s):
+56 Tests, etwa 45 s):
 
 | Datei | prüft |
 |---|---|
@@ -456,7 +456,8 @@ Fahrt; mit `--placeholders` das Platzhalter-Stück); `--mute-bus=MEnv` lässt nu
 mit Arcade nichts · 22 Modern-Busse hinter den vorhandenen · **20 × Profilwechsel** ohne zusätzlichen Knoten oder
 Bus · Delegation in beide Richtungen · Pegelkette, Ducking, Pause-Tiefpass und Renn-EQ gemessen (`--live`) · ein
 Stück der Testetappe mit Modern und Platzhaltern, ohne Wiedergabe zusätzlich die Zieleinfahrt und dieselbe Strecke
-mit Arcade bei gleicher Simulation in jeder Sekunde (Regel 3) · danach wieder Arcade wie in v0.7.0.
+mit Arcade bei gleicher Simulation in jeder Sekunde (Regel 3) · danach wieder Arcade wie in v0.7.0 – die
+Busliste und der Motor-Mischer mit der Bank, aus der beide Profile gespielt haben, Abtastwert für Abtastwert.
 
 ```
 godot --headless --path . -s res://tests/unit/audio_modern/check_modern_audio.gd -- --graphics=arcade [--live] [--only=mix,race]
