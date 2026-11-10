@@ -134,8 +134,13 @@ var _traffic_listener: Dictionary = {}
 var _traffic_t := -100.0
 var _tunnel := false
 
-# sound profile "modern" (v0.8.0): null = the Arcade profile, everything in this file as before
-var _modern: ModernAudio = null
+# sound profile "modern" (v0.8.0): null = the Arcade profile, everything in this file as before.
+# Untyped and loaded at run time (MODERN_SCRIPT) on purpose: a variable typed ModernAudio makes this autoload compile
+# all of scripts/audio/modern at every start of the game, also when the profile stays Arcade (measured: 19 scripts,
+# +82 … +118 ms on "Load Autoloads", +3.6 MiB static memory). An Arcade start loads nothing of the Modern sound –
+# tests/unit/audio_modern/check_arcade_lean.gd holds that.
+const MODERN_SCRIPT := "res://scripts/audio/modern/modern_audio.gd"
+var _modern = null
 var _audio_cfg: Dictionary = {}
 var _race_music := true
 var _music_ctx := ""             ## last set_music_context() ("" = never called)
@@ -487,7 +492,7 @@ func set_profile(id: String) -> void:
 		var music_on := _music_wanted
 		stop_all()   # the Arcade sound (no ModernAudio yet)
 		_set_arcade_music(false)
-		_modern = ModernAudio.new()
+		_modern = (load(MODERN_SCRIPT) as GDScript).new()
 		add_child(_modern)
 		_modern.start(_audio_cfg if not _audio_cfg.is_empty() else ConfigLoader.load_merged(),
 			{"streams": _streams, "arcade_traffic": _traffic, "bank_provider": Callable(self, "bank_for")})
@@ -499,7 +504,7 @@ func set_profile(id: String) -> void:
 		if _music_ctx != "" and _music_ctx_last:
 			_modern.set_music_context(_music_ctx, _music_ctx_args)
 	else:
-		var music_on := _modern.music != null and _modern.music.wanted()
+		var music_on: bool = _modern.music != null and _modern.music.wanted()
 		_modern.shutdown()
 		_modern.queue_free()
 		_modern = null

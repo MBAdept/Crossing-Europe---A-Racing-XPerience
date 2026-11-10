@@ -21,8 +21,10 @@ Per sound (each file of an entry):
                 point, no larger than the largest ones anywhere in the loop
   import        the .import file next to the sound says the same as the manifest (loop mode and points, PCM without
                 compression; for Ogg: loop, loop_offset, bpm, beat_count, bar_beats)
-Per folder: files the manifest does not know. Overall: bytes per folder against the budgets of contract §4.11
-(sounds <= 23 MB, music <= 25 MB), loudness range and short-term maximum as information.
+Per folder: a file the manifest does not know is an error – the export takes every file of the folder
+(export filter all_resources), and such a file would ship without any loudness, peak or seam check.
+--allow-unknown turns that into a hint (work in progress). Overall: bytes per folder against the budgets of
+contract §4.11 (sounds <= 23 MB, music <= 25 MB), loudness range and short-term maximum as information.
 
 Exit code 0 = everything passes. Lines: "QC <folder>/<id> OK|FEHLER ..."; with --json the full numbers.
 """
@@ -234,7 +236,7 @@ def check_sound(folder: str, sid: str, e: dict, base: str, with_import: bool, re
         print(f"     - {err}")
 
 
-def check_folder(folder: str, base: str, with_import: bool, rep: Report) -> None:
+def check_folder(folder: str, base: str, with_import: bool, rep: Report, allow_unknown: bool = False) -> None:
     d = os.path.join(base, folder)
     mpath = os.path.join(d, "manifest.json")
     info = {"files": 0, "bytes": 0, "sounds": 0, "placeholders": 0}
@@ -270,7 +272,12 @@ def check_folder(folder: str, base: str, with_import: bool, rep: Report) -> None
         info["files"] += 1
         info["bytes"] += os.path.getsize(p)
         if name not in known and not name.endswith(".uid"):
-            rep.warnings.append(f"{folder}/{name}: steht in keinem Manifest-Eintrag")
+            text = f"{folder}/{name}: steht in keinem Manifest-Eintrag"
+            if allow_unknown:
+                rep.warnings.append(text + " (ungeprüft, --allow-unknown)")
+            else:
+                rep.problem(text + " – ungeprüfte Datei im Export (Eintrag ergänzen oder Datei entfernen)")
+                print(f"QC {folder + '/' + name:34s} FEHLER steht in keinem Manifest-Eintrag")
 
 
 def size_report(rep: Report, budgets: dict) -> None:
@@ -370,6 +377,8 @@ def main() -> int:
     ap.add_argument("--budget-sounds-mb", type=float, default=BUDGET_MB["sounds"])
     ap.add_argument("--budget-music-mb", type=float, default=BUDGET_MB["music"])
     ap.add_argument("--json", default="", help="vollständigen Bericht als JSON schreiben")
+    ap.add_argument("--allow-unknown", action="store_true",
+                    help="Dateien ohne Manifest-Eintrag nur als Hinweis melden (Arbeitsstand), nicht als Fehler")
     args = ap.parse_args()
     folders = [f for f in args.folders.split(",") if f]
     for f in folders:
@@ -378,7 +387,7 @@ def main() -> int:
             return 2
     rep = Report()
     for folder in folders:
-        check_folder(folder, args.root, not args.no_import, rep)
+        check_folder(folder, args.root, not args.no_import, rep, args.allow_unknown)
     size_report(rep, {"sounds": args.budget_sounds_mb, "music": args.budget_music_mb})
     if args.determinism:
         check_determinism(args.root, folders, rep)

@@ -524,6 +524,25 @@ func test_music_contexts() -> void:
 		_steps(m, 2)
 		assert_eq(m.music.current_key(), MusicDirector.ARCADE_KEY, "Kontext %s: Titelmelodie" % c)
 	_done(m)
+	# the Arcade title theme arrives after the menu context was set (synthesised in a thread while the Modern profile
+	# is already active): silence until then – never a piece noted as started without a stream –, then it starts
+	var late_streams := {}
+	var late := _modern({}, {"streams": late_streams})
+	late.set_music_context("menu")
+	late.set_music(true)
+	_steps(late, 40)
+	assert_eq(late.music.context, "menu", "Menü-Kontext gesetzt")
+	assert_eq(late.music.current_key(), "", "ohne Stream läuft kein Stück")
+	assert_true(late.music.resolve().is_empty(), "resolve() nennt kein Stück ohne Stream")
+	late_streams["music"] = title
+	_steps(late, 3)
+	assert_eq(late.music.current_key(), MusicDirector.ARCADE_KEY, "mit dem Stream beginnt die Titelmelodie")
+	assert_true(late.music.resolve().get("stream") == title, "… mit genau diesem Stream")
+	late.set_music(false)
+	late.set_music(true)
+	_steps(late, 3)
+	assert_eq(late.music.current_key(), MusicDirector.ARCADE_KEY, "aus und wieder an: läuft")
+	_done(late)
 	# without placeholders there is no race music yet (nothing plays a stand-in)
 	var n := _modern({}, {"streams": {"music": title}})
 	n.set_music_context("race")

@@ -2,7 +2,11 @@ extends SceneTree
 ## The two sound profiles in the running game (v0.8.0, contract §6 AU-A – acceptance):
 ##   godot --headless --path . -s res://tests/unit/audio_modern/check_modern_audio.gd -- --graphics=arcade [--live] [--only=a,b]
 ## Started twice by tests/unit/audio_modern/test_modern_checks.gd (so tools/run_tests.sh covers it); also runs under
-## Xvfb with --audio-driver Dummy (then the AudioManager builds every Arcade bus by itself).
+## Xvfb with --audio-driver Dummy (then the AudioManager builds every Arcade bus by itself and both profiles play:
+## what the scenarios expect of the playback follows the display, not the flag --live). On a display the race
+## scenario takes its time scale from the measured frame time – software OpenGL draws a frame of the stage in
+## 50–150 ms, and a frame must span well under ModernAudio.ALIVE_S of game time or the sound counts the session as
+## gone. With --fixed-fps 60 a display run reaches the time scale 8 of the headless run.
 ##
 ##   arcade_boot    the game starts with the Arcade profile; its bus list and every effect parameter equal the
 ##                  fingerprint written from tag v0.7.0 (golden/arcade_v070_headless.json, with players
@@ -10,7 +14,9 @@ extends SceneTree
 ##   new_api        the calls of contract §4.7.1 do nothing with the Arcade profile (buses, nodes, state unchanged)
 ##   modern_buses   set_profile("modern") adds the 22 Modern buses behind the Arcade ones and changes none of them
 ##   switch_20      20 × arcade ↔ modern with sound running: afterwards the same number of nodes, buses and
-##                  children of the AudioManager, no orphan nodes, the Arcade buses as in v0.7.0
+##                  children of the AudioManager, no orphan nodes, the Arcade buses as in v0.7.0; the generator
+##                  streams held over their players (ModernAudioContext.keep_alive) are released a good 2 s later
+##                  although the profile is Arcade again – then the plain object count is the one from before
 ##   delegation     with the Modern profile the existing API reaches ModernAudio and the Arcade sound does not run;
 ##                  back in Arcade the old engine works again; the menu music is handed over both ways
 ##   mix            (--live) a tone through the Modern buses, captured: the level chain of the plan, the music ducks
@@ -37,11 +43,15 @@ var _am: Node
 var _tool: GDScript
 var _golden: Array = []
 var _golden_engine: Dictionary = {}   ## car -> {samples, sha256, …} of the seeded Arcade mixer output in v0.7.0
-var _live := false
+var _live := false       ## --live: playback forced in a headless run, placeholders in every scenario
+var _plays := false      ## players exist and sound plays: --live or a display
 var _failed: Array[String] = []
 var _wall0 := 0
 var _sc: Node = null
 var _inject := false
+var _frame_delta := 0.0  ## process time of the last frame (s, scaled by Engine.time_scale)
+var _adaptive := false   ## race scenario on a display: the time scale follows the measured frame time (_drive)
+var _race_ts := 8.0      ## time scale the race scenario ran with (the last one chosen)
 
 
 func _initialize() -> void:
@@ -49,7 +59,8 @@ func _initialize() -> void:
 	_run.call_deferred()
 
 
-func _process(_delta: float) -> bool:
+func _process(delta: float) -> bool:
+	_frame_delta = delta
 	if Time.get_ticks_msec() - _wall0 > 170000:
 		print("CHECK zeitlimit       FEHLER  nach 170 s abgebrochen")
 		quit(2)
@@ -115,6 +126,7 @@ func _run() -> void:
 		quit(1)
 		return
 	var headless := DisplayServer.get_name() == "headless"
+	_plays = _live or not headless
 	if _live:
 		ModernAudio.force_live = true
 		var cfg: Dictionary = _am.get("_audio_cfg")
@@ -217,8 +229,10 @@ func _scenario_switch_20(_g: String) -> void:
 	_am.call("stop_all")
 	await _wait(0.25)
 	var before := _counts()
-	# generator streams are held for two seconds after their player went (ModernAudioContext.keep_alive): not leaks
-	var objects := int(Performance.get_monitor(Performance.OBJECT_COUNT)) - ModernAudioContext.kept_count()
+	# generator streams are held for two seconds after their player went (ModernAudioContext.keep_alive): streams of
+	# the scenarios before this one must be gone before the objects are counted
+	await _until_released()
+	var objects := int(Performance.get_monitor(Performance.OBJECT_COUNT))
 	var max_children := 0
 	for i in 20:
 		_am.call("set_profile", "modern")
@@ -245,15 +259,26 @@ func _scenario_switch_20(_g: String) -> void:
 	_am.call("stop_all")
 	await _wait(0.25)
 	var after := _counts()
+	# the profile is Arcade again and no ModernAudio exists: the held generator streams must still be released
+	var kept_at_end := ModernAudioContext.kept_count()
+	var waited := await _until_released()
 	var kept := ModernAudioContext.kept_count()
-	var objects_after := int(Performance.get_monitor(Performance.OBJECT_COUNT)) - kept
+	var objects_after := int(Performance.get_monitor(Performance.OBJECT_COUNT))
 	var diff := _arcade_diff()
-	var ok := after == before and diff.is_empty() and objects_after <= objects + 8 and (max_children > 0) == _live
-	_check("switch_20", ok, "20 × arcade ↔ modern (%s): Knoten %d → %d, Busse %d → %d, Kinder des AudioManagers %d → %d, verwaiste Knoten %d → %d, Objekte %d → %d%s; Arcade-Busse wie in v0.7.0%s" % [
-		"mit bis zu %d Playern" % max_children if _live else "ohne Wiedergabe", before["nodes"], after["nodes"], before["buses"],
-		after["buses"], before["children"], after["children"], before["orphans"], after["orphans"], objects, objects_after,
-		" (ohne %d noch gehaltene Generator-Streams)" % kept if kept > 0 else "",
-		"" if diff.is_empty() else " NICHT: " + "; ".join(diff.slice(0, 3))])
+	var ok := after == before and diff.is_empty() and kept == 0 and objects_after <= objects + 8 and (max_children > 0) == _plays \
+		and (kept_at_end > 0) == _plays
+	_check("switch_20", ok, "20 × arcade ↔ modern (%s): Knoten %d → %d, Busse %d → %d, Kinder des AudioManagers %d → %d, verwaiste Knoten %d → %d; %d gehaltene Generator-Streams %.1f s nach dem letzten Wechsel freigegeben (Profil Arcade, noch gehalten: %d), Objekte danach %d → %d; Arcade-Busse wie in v0.7.0%s" % [
+		"mit bis zu %d Playern" % max_children if _plays else "ohne Wiedergabe", before["nodes"], after["nodes"], before["buses"],
+		after["buses"], before["children"], after["children"], before["orphans"], after["orphans"], kept_at_end, waited, kept,
+		objects, objects_after, "" if diff.is_empty() else " NICHT: " + "; ".join(diff.slice(0, 3))])
+
+
+## Waits until no generator stream is held any more (at most 4 s – they are held for 2 s); returns the seconds waited.
+func _until_released() -> float:
+	var t0 := Time.get_ticks_msec()
+	while ModernAudioContext.kept_count() > 0 and Time.get_ticks_msec() - t0 < 4000:
+		await process_frame
+	return float(Time.get_ticks_msec() - t0) / 1000.0
 
 
 func _scenario_delegation(_g: String) -> void:
@@ -299,7 +324,7 @@ func _scenario_delegation(_g: String) -> void:
 		and int((st["events"] as Dictionary).get("collision", 0)) == 1 and traffic.has("tunnel_blend") \
 		and (_am.call("engine_perf") as Dictionary).has("skips") and (_am.call("traffic_perf") as Dictionary).has("avg_ms")
 	var live_ok := true
-	if _live:
+	if _plays:
 		live_ok = bool(slots["engine"]["playing"]) and int(slots["traffic"]["voices"]) == 1 and bool(slots["traffic"]["ok"]) \
 			and int((_am.call("engine_perf") as Dictionary)["frames"]) > 0
 	# the Arcade side saw none of it: its engine time stamp and engine object are those from before, nothing plays
@@ -328,7 +353,7 @@ func _scenario_delegation(_g: String) -> void:
 	var ok := arcade_rpm > 1000.0 and arcade_music and handed and reached and live_ok and arcade_idle and race_handover \
 		and arcade_rpm2 > 1000.0 and back_to_menu
 	_check("delegation", ok, "Arcade-Motor %.0f/min; Modern: Aufrufe kommen an (Motor %.0f/min, Wind, Quietschen, Regen, Horn, Tunnel, Einmalklänge, Ereignis)%s, Arcade steht dabei still (%s); Menümusik übergeben (%s/%s/%s); zurück in Arcade läuft der alte Motor (%.0f/min)" % [
-		arcade_rpm, modern_rpm, " – hörbar: Motor spielt, 1 Verkehrsstimme" if (_live and live_ok) else ("" if not _live else " – Wiedergabe FEHLT"),
+		arcade_rpm, modern_rpm, " – hörbar: Motor spielt, 1 Verkehrsstimme" if (_plays and live_ok) else ("" if not _plays else " – Wiedergabe FEHLT"),
 		str(arcade_idle), str(handed), str(race_handover), str(back_to_menu), arcade_rpm2])
 
 
@@ -520,6 +545,10 @@ func _drive(seconds: float, until_finish: bool = false) -> Dictionary:
 	var states := 0
 	var total_frames := 0
 	var alive_frames := 0
+	var adapt_frames := 0
+	var adapt_s := 0.0
+	if _adaptive:
+		_set_time_scale(1.0)
 	var wall := Time.get_ticks_msec()
 	while Time.get_ticks_msec() - wall < 60000:
 		await physics_frame
@@ -531,6 +560,13 @@ func _drive(seconds: float, until_finish: bool = false) -> Dictionary:
 			hashes.append(_sim_hash())
 		if Engine.get_process_frames() != frames:
 			frames = Engine.get_process_frames()
+			if _adaptive and adapt_frames < ADAPT_SKIP_FRAMES + ADAPT_FRAMES:
+				adapt_frames += 1
+				if adapt_frames > ADAPT_SKIP_FRAMES:
+					adapt_s += _frame_delta
+				if adapt_frames == ADAPT_SKIP_FRAMES + ADAPT_FRAMES:
+					_race_ts = clampf(floorf(FRAME_GAME_S_MAX / maxf(adapt_s / float(ADAPT_FRAMES), 0.001)), 1.0, 8.0)
+					_set_time_scale(_race_ts)
 			if _inject and bool(_sc.get("running")):
 				_am.call("set_vehicle_state", _state_for_audio())
 				states += 1
@@ -569,13 +605,27 @@ func _end_stage() -> void:
 	await _frames(3)
 
 
-func _scenario_race(_g: String) -> void:
-	# time scale 8: quick, and a frame still spans well under ModernAudio.ALIVE_S of game time (at 20 the session
-	# would count as gone between two frames – for the Arcade sound as well)
-	var ts := 8.0
+## Time scale of the race scenario. Headless it is 8 from the start: quick, and a frame still spans well under
+## ModernAudio.ALIVE_S of game time (at 20 the session would count as gone between two frames – for the Arcade sound
+## as well). On a display every drive starts in real time and takes its scale from the process time of its frames
+## 5–10 (_drive): frame seconds × scale <= 0.15 s, at least 1, at most 8. With --fixed-fps 60 that is 8 (a frame is
+## 1/60 s of process time however long it took to draw); software OpenGL without it draws a frame of the stage in
+## 50–150 ms and gets 1 or 2. The simulation runs in fixed steps, so the scale does not change what is compared.
+const ADAPT_SKIP_FRAMES := 4
+const ADAPT_FRAMES := 6
+const FRAME_GAME_S_MAX := 0.15
+
+
+func _set_time_scale(ts: float) -> void:
 	Engine.time_scale = ts
 	Engine.physics_ticks_per_second = int(60.0 * ts)
 	Engine.max_physics_steps_per_frame = 32
+
+
+func _scenario_race(_g: String) -> void:
+	_adaptive = DisplayServer.get_name() != "headless"
+	_race_ts = 1.0 if _adaptive else 8.0
+	_set_time_scale(_race_ts)
 	# Modern with the placeholder sounds (also in the plain headless run, where the other scenarios use the shipped
 	# setting without them): 16 s from km 49.4 through the Testtunnel (km 50–54), in the rain
 	var modern_cfg: Dictionary = (_am.get("_audio_cfg") as Dictionary)["audio"]["modern"]
@@ -594,10 +644,10 @@ func _scenario_race(_g: String) -> void:
 	var hooks := int(events.get("stage_start", 0)) >= 1 and int(events.get("go", 0)) >= 1 and bool(feed["valid"]) \
 		and int(events.get("tunnel_in", 0)) == 1 and int(events.get("tunnel_out", 0)) == 1 \
 		and int(mod["tunnel_frames"]) > 0 and float(mod["max_rpm"]) > 1500.0 and int(mod["alive_frames"]) > int(mod["frames"]) * 0.9 \
-		and ((int(mod["max_voices"]) >= 1) == _live) and int((st["plays"] as Dictionary).get("go", 0)) == 1
+		and ((int(mod["max_voices"]) >= 1) == _plays) and int((st["plays"] as Dictionary).get("go", 0)) == 1
 	var music_ok := str(music["context"]) == "race" and str(music["key"]) == "music/platzhalter_takt" and bool(st["placeholders"])
-	var text := "Teststadt – Testdorp ab km 49,4 im Regen, 16 s mit dem Profil Modern und Platzhaltern bis km %.2f: Motor bis %.0f/min, Sitzung in %d von %d Bildern da, Tunnelhall in %d Bildern, Feed gültig (Zone %s, Ereignisse %s), bis zu %d Verkehrsstimmen, Musik %s („%s“)" % [
-		float(mod["km"]), float(mod["max_rpm"]), int(mod["alive_frames"]), int(mod["frames"]), int(mod["tunnel_frames"]), str(feed["zone"]),
+	var text := "Teststadt – Testdorp ab km 49,4 im Regen, 16 s (Zeitraffer %d×) mit dem Profil Modern und Platzhaltern bis km %.2f: Motor bis %.0f/min, Sitzung in %d von %d Bildern da, Tunnelhall in %d Bildern, Feed gültig (Zone %s, Ereignisse %s), bis zu %d Verkehrsstimmen, Musik %s („%s“)" % [
+		int(_race_ts), float(mod["km"]), float(mod["max_rpm"]), int(mod["alive_frames"]), int(mod["frames"]), int(mod["tunnel_frames"]), str(feed["zone"]),
 		JSON.stringify(events), int(mod["max_voices"]), str(music["context"]), str(music["key"])]
 	var ok := hooks and music_ok and (st["asset_errors"] as Array).is_empty() and modern_diff.is_empty()
 	text += "; Arcade-Busse dabei unverändert" if modern_diff.is_empty() else "; ARCADE-BUSSE GEÄNDERT: " + "; ".join(modern_diff.slice(0, 3))

@@ -78,7 +78,11 @@ func event(event_name: String, _args: Dictionary) -> void:
 		_race_over = true
 
 
-## The piece for the context in force: {key, stream, db} or {} for silence.
+## The piece for the context in force: {key, stream, db} or {} for silence. Never a piece without a stream: a key
+## that update() notes as started is not started again, so a stream that arrives later would stay silent for good
+## (the Arcade title theme is synthesised in a thread when audio.music_file is missing – with the Modern profile
+## active at boot it arrives after the menu context was set). While the stream is missing the answer is {}; the
+## piece starts in the frame the stream exists.
 func resolve() -> Dictionary:
 	if context == "off" or not ROLE_OF.has(context):
 		return {}
@@ -94,11 +98,12 @@ func resolve() -> Dictionary:
 	if not ids.is_empty():
 		var id := ids[maxi(_race_index, 0) % ids.size()] if role == "race" else ids[0]
 		var e := ctx.assets.entry("music", id)
-		return {"key": "music/" + id, "stream": ctx.assets.stream("music", id), "db": db + e.gain_db}
+		var s := ctx.assets.stream("music", id)
+		return {"key": "music/" + id, "stream": s, "db": db + e.gain_db} if s != null else {}
 	if context == "race":
 		return {}
 	var f: Variant = ctx.fallback_streams.get("music")
-	return {"key": ARCADE_KEY, "stream": f if f is AudioStream else null, "db": db}
+	return {"key": ARCADE_KEY, "stream": f, "db": db} if f is AudioStream else {}
 
 
 func update(frame: ModernAudioFrame) -> void:
