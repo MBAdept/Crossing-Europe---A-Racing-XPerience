@@ -281,10 +281,32 @@ static func scan_path(geo: Dictionary, opts: Dictionary = {}) -> Dictionary:
 		"loop_min_sep_m": float(loop_min_k) * d_pt, "loop_min_km": float(loop_min_i) * d_pt * kpm}
 
 
+## Largest |curve| the generator can produce on a stage: the limit of the curviest section
+## (road.curviness_max_curve; tunnels and City Limits only lower it, fades start below it).
+static func max_curve_of_stage(cfg: Dictionary, stage: Dictionary) -> float:
+	var maxes: Array = ConfigLoader.lookup(cfg, "road.curviness_max_curve", [0.0, 0.30, 0.45, 0.9])
+	var out := 0.0
+	for sec: Dictionary in stage.get("sections", []):
+		out = maxf(out, float(maxes[clampi(int(sec.get("curviness", 1)), 0, maxes.size() - 1)]))
+	return out
+
+
+## True when a road whose curvature never exceeds 1 / radius cannot come closer to itself than dist_m between
+## sep_min_m and sep_max_m of path. Schwarz's arc theorem: an arc with curvature <= 1/R between two points d <= 2R
+## apart is either at most as long as the short arc of the circle of radius R through them or at least as long as
+## the long one – so no arc length in between is possible. A margin of 10 % / 5 % covers the 3-m polyline.
+static func proven_clear(radius: float, dist_m: float, sep_min_m: float, sep_max_m: float) -> bool:
+	if dist_m >= 2.0 * radius:
+		return false
+	var short_arc := 2.0 * radius * asin(dist_m / (2.0 * radius))
+	var long_arc := TAU * radius - short_arc
+	return short_arc <= 0.9 * sep_min_m and long_arc >= 1.05 * sep_max_m
+
+
 ## Free width of the ribbon (RoadPath3D.clearance on every 8th boundary, both sides) and the chunk load of the
 ## streamer rule along the stage: {sides, free: {width: sides with at least that much}, min_clear_m,
 ## chunks_max (wanted chunks without the cap), cap_hits (camera positions that want more than max_chunks),
-## cap_nearest_m (nearest distance by air of a chunk left out by the cap; INF = none)}.
+## cap_nearest_m (nearest distance by air of a chunk the streamer leaves out because of the cap; INF = none)}.
 static func scan_ribbon(cfg: Dictionary, geo: Dictionary, opts: Dictionary = {}) -> Dictionary:
 	var path: RoadPath3D = geo["path"]
 	var seg: float = geo["seg"]
@@ -313,10 +335,10 @@ static func scan_ribbon(cfg: Dictionary, geo: Dictionary, opts: Dictionary = {})
 				if c >= w:
 					free[w] = int(free[w]) + 1
 		k += RoadPath3D.CLEAR_ROW_STEP
-	# chunks the streamer's load rule wants along the stage (camera every chunk length), without the cap
+	# chunks the streamer's load rule wants along the stage (camera every chunk length): without the cap, and what
+	# the cap of max_chunks leaves out
 	var st := ChunkStreamer.new()
 	st.setup(path, null, geo["track"], cfg, {}, true)
-	st.max_chunks = 1000
 	var chunks_max := 0
 	var cap_hits := 0
 	var cap_nearest := INF
@@ -325,13 +347,18 @@ static func scan_ribbon(cfg: Dictionary, geo: Dictionary, opts: Dictionary = {})
 	while cam < n - 2:
 		positions += 1
 		var cam_z := float(cam) * seg
+		st.max_chunks = 1000
 		var wanted := st.wanted_for(cam_z, vis)
 		chunks_max = maxi(chunks_max, wanted.size())
 		if wanted.size() > max_chunks:
 			cap_hits += 1
+			st.max_chunks = max_chunks
+			var kept := st.wanted_for(cam_z, vis)
 			var cp := path.centre_at(cam_z)
-			for q in range(max_chunks, wanted.size()):
-				var a := wanted[q] * chunk_n
+			for ci: int in wanted:
+				if kept.has(ci):
+					continue
+				var a := ci * chunk_n
 				var b := mini(a + chunk_n, n - 1)
 				for row: int in [a, (a + b) / 2, b]:
 					var p := path.point(row)
@@ -344,10 +371,11 @@ static func scan_ribbon(cfg: Dictionary, geo: Dictionary, opts: Dictionary = {})
 
 # --- F1 / F2 ------------------------------------------------------------------------------------------------------
 
-## Frustum check. For every camera position (every cam_step-th boundary, camera on the centreline) and every target
-## distance d (path distance, d_from..d_to in d_step, optionally the near field near_from..d_from in near_step) a
-## target on the road at three lateral positions (0, ± one lane): a "case" is a target Arcade has on screen that
-## lies outside the Modern frustum. Returns {samples, cams, cases: {d: count}, f1_cases (d <= f1_limit_m),
+## Frustum check. For every camera position (every cam_step-th boundary) and every target distance d (path
+## distance, d_from..d_to in d_step, with near_from > 0 also the near field near_from..d_from in near_step) a target
+## on the road at the lateral positions `lats` (default: the centre and ± one lane) seen from a camera at the lateral
+## positions `cam_lats` (default: the centreline): a "case" is a target Arcade has on screen that lies outside the
+## Modern frustum. Returns {samples, cams, cases: {d: count}, f1_cases (d <= f1_limit_m), f1_nearest_m,
 ## max_need: {d: [dry, rain, snow]}, worst: {weather: {ratio, d, km, need_m, v_kmh, curve}}, max_yaw_deg,
 ## check_samples, check_mismatch, check_vertical} – "check_*": the same samples through ChaseCamera3D.transform() /
 ## project() and RoadProjection.project().
@@ -378,6 +406,12 @@ static func scan_frustum(geo: Dictionary, cam: ChaseCamera3D, proj: RoadProjecti
 	var near_from := int(opts.get("near_from", 0))
 	var near_step := int(opts.get("near_step", 15))
 	var check_every := int(opts.get("check_every", 4099))
+	var lats := PackedFloat64Array(opts.get("lats", [-lane, 0.0, lane]))
+	var cam_lats := PackedFloat64Array(opts.get("cam_lats", [0.0]))
+	var nl := lats.size()
+	var lat_max := 0.0
+	for v in lats:
+		lat_max = maxf(lat_max, absf(v))
 	var dists := PackedInt32Array()
 	if near_from > 0:
 		var dn := near_from
@@ -408,14 +442,15 @@ static func scan_frustum(geo: Dictionary, cam: ChaseCamera3D, proj: RoadProjecti
 	var samples := 0
 	var cams := 0
 	var f1 := 0
+	var f1_nearest := INF
 	var max_yaw := 0.0
 	var check_n := 0
 	var check_bad := 0
 	var check_vert := 0
 	var counter := 0
-	var lats := PackedFloat64Array([-lane, 0.0, lane])
 	var c_end := nz - int(float(d_to + d_step) / seg) - 2
 	var kpm: float = geo["km_per_m"]
+	var curve: PackedFloat32Array = geo["curve"]
 	var c := 4
 	while c < c_end:
 		cams += 1
@@ -425,64 +460,65 @@ static func scan_frustum(geo: Dictionary, cam: ChaseCamera3D, proj: RoadProjecti
 		var yaw := th[c] + yaw_l
 		var cy := cos(yaw)
 		var sy := sin(yaw)
-		var cx := xs[c]
-		var cz := zs[c]
 		var uc := us[c]
 		var tc := th[c]
-		samples += nd * 3
-		for di in nd:
-			var k := ks[di]
-			var j := c + k
-			var dk := float(k) * seg
-			var fa := focal / dk
-			var xa := us[j] - uc - dk * tc
-			var sxa := xa * fa
-			var lane_px := lane * fa
-			counter += 1
-			var check := counter % check_every == 0
-			if not check:
-				if sxa - lane_px > half or sxa + lane_px < -half:
-					continue      # Arcade shows none of the three
-			var tx := xs[j] - cx
-			var tz := zs[j] - cz
-			var depth_c := tx * sy - tz * cy
-			var vx_c := tx * cy + tz * sy
-			if not check:
-				if depth_c - lane > near and (absf(vx_c) + lane) * focal <= half * (depth_c - lane):
-					continue      # Modern shows all three
-			for li in 3:
-				var xt := lats[li]
-				var on_a := absf(sxa + xt * fa) <= half
-				var wx := tx + xt * rxs[j]
-				var wz := tz + xt * rzs[j]
-				var depth := wx * sy - wz * cy
-				var vx := wx * cy + wz * sy
-				var on_3 := depth > near and absf(vx) * focal <= half * depth
-				var bad := on_a and not on_3
-				if bad or check:
-					# the same sample through the shipped camera functions
-					var ref := _reference_sample(geo, cam, proj, c, k, xt, car_off)
-					check_n += 1
-					if not bool(ref["borderline"]) and (bool(ref["on_a"]) != on_a or bool(ref["on_3"]) != on_3):
-						check_bad += 1
-					if bool(ref["vertical"]):
-						check_vert += 1
-				if not bad:
-					continue
-				cases[di] += 1
-				var d := float(dists[di])
-				if d <= f1_limit:
-					f1 += 1
-				var car := mini(c + car_off, n - 1)
-				for wi in 3:
-					if d > seen_lim[wi]:
+		for cam_x: float in cam_lats:
+			var cx := xs[c] + cam_x * rxs[c]
+			var cz := zs[c] + cam_x * rzs[c]
+			samples += nd * nl
+			for di in nd:
+				var k := ks[di]
+				var j := c + k
+				var dk := float(k) * seg
+				var fa := focal / dk
+				var sxa := (us[j] - uc - dk * tc - cam_x) * fa
+				var lat_px := lat_max * fa
+				counter += 1
+				var check := counter % check_every == 0
+				if not check:
+					if sxa - lat_px > half or sxa + lat_px < -half:
+						continue      # Arcade shows none of them
+				var tx := xs[j] - cx
+				var tz := zs[j] - cz
+				var depth_c := tx * sy - tz * cy
+				var vx_c := tx * cy + tz * sy
+				if not check:
+					if depth_c - lat_max > near and (absf(vx_c) + lat_max) * focal <= half * (depth_c - lat_max):
+						continue      # Modern shows all of them
+				for li in nl:
+					var xt := lats[li]
+					var on_a := absf(sxa + xt * fa) <= half
+					var wx := tx + xt * rxs[j]
+					var wz := tz + xt * rzs[j]
+					var depth := wx * sy - wz * cy
+					var vx := wx * cy + wz * sy
+					var on_3 := depth > near and absf(vx) * focal <= half * depth
+					var bad := on_a and not on_3
+					if bad or check:
+						# the same sample through the shipped camera functions
+						var ref := _reference_sample(geo, cam, proj, c, k, xt, cam_x, car_off)
+						check_n += 1
+						if not bool(ref["borderline"]) and (bool(ref["on_a"]) != on_a or bool(ref["on_3"]) != on_3):
+							check_bad += 1
+						if bool(ref["vertical"]):
+							check_vert += 1
+					if not bad:
 						continue
-					var need: float = needs[wi][car]
-					if need > max_need[di * 3 + wi]:
-						max_need[di * 3 + wi] = need
-					if need / d > float(worst[wi]["ratio"]):
-						worst[wi] = {"ratio": need / d, "d": d, "name": geo["name"], "km": float(c) * seg * kpm, "need_m": need,
-							"v_kmh": speeds[wi][car] * 3.6, "curve": absf((geo["curve"] as PackedFloat32Array)[car])}
+					cases[di] += 1
+					var d := float(dists[di])
+					if d <= f1_limit:
+						f1 += 1
+						f1_nearest = minf(f1_nearest, d)
+					var car := mini(c + car_off, n - 1)
+					for wi in 3:
+						if d > seen_lim[wi]:
+							continue
+						var need: float = needs[wi][car]
+						if need > max_need[di * 3 + wi]:
+							max_need[di * 3 + wi] = need
+						if need / d > float(worst[wi]["ratio"]):
+							worst[wi] = {"ratio": need / d, "d": d, "name": geo["name"], "km": float(c) * seg * kpm, "need_m": need,
+								"v_kmh": speeds[wi][car] * 3.6, "curve": absf(curve[car])}
 		c += cam_step
 	var cases_d := {}
 	var need_d := {}
@@ -493,24 +529,25 @@ static func scan_frustum(geo: Dictionary, cam: ChaseCamera3D, proj: RoadProjecti
 	var worst_d := {}
 	for wi in 3:
 		worst_d[WEATHERS[wi]] = worst[wi]
-	return {"name": geo["name"], "samples": samples, "cams": cams, "cases": cases_d, "f1_cases": f1, "max_need": need_d,
-		"worst": worst_d, "max_yaw_deg": rad_to_deg(max_yaw), "check_samples": check_n, "check_mismatch": check_bad,
-		"check_vertical": check_vert}
+	return {"name": geo["name"], "samples": samples, "cams": cams, "cases": cases_d, "f1_cases": f1, "f1_nearest_m": f1_nearest,
+		"max_need": need_d, "worst": worst_d, "max_yaw_deg": rad_to_deg(max_yaw), "check_samples": check_n,
+		"check_mismatch": check_bad, "check_vertical": check_vert}
 
 
 ## One sample of scan_frustum() through the shipped functions: {on_a, on_3 (horizontally on screen, in front of the
 ## near plane), borderline (within 0.05 px of a picture edge), vertical (on screen horizontally but not vertically)}.
-static func _reference_sample(geo: Dictionary, cam: ChaseCamera3D, proj: RoadProjection, c: int, k: int, xt: float, car_off: int) -> Dictionary:
+static func _reference_sample(geo: Dictionary, cam: ChaseCamera3D, proj: RoadProjection, c: int, k: int, xt: float, cam_x: float,
+		car_off: int) -> Dictionary:
 	var seg: float = geo["seg"]
 	var path: RoadPath3D = geo["path"]
 	var ys: PackedFloat64Array = geo["y"]
 	var n: int = geo["n"]
 	var cam_y := ys[mini(c + car_off, n - 1)] + proj.cam_height
-	var view := {"camera_z": float(c) * seg, "camera_x": 0.0, "camera_y": cam_y}
+	var view := {"camera_z": float(c) * seg, "camera_x": cam_x, "camera_y": cam_y}
 	var xf := cam.transform(view, path)
 	var fr := cam.frustum(proj.screen)
 	var p3 := ChaseCamera3D.project(xf, fr, proj.screen, path.world(float(c + k) * seg, xt, 0.0))
-	var pa := proj.project(arcade_x(geo, c, k) + xt, ys[c + k] - cam_y, float(k) * seg)
+	var pa := proj.project(arcade_x(geo, c, k) + xt - cam_x, ys[c + k] - cam_y, float(k) * seg)
 	var w := proj.screen.x
 	var h := proj.screen.y
 	var on_3 := p3.z > cam.near and p3.x >= 0.0 and p3.x <= w
@@ -862,38 +899,6 @@ static func scan_corridor(geo: Dictionary, terr: Dictionary) -> Dictionary:
 
 
 # --- helpers ------------------------------------------------------------------------------------------------------
-
-## Runs fn(job) for every job on `threads` threads (1 = here). Results in job order.
-static func run_jobs(jobs: Array, fn: Callable, threads: int) -> Array:
-	var results: Array = []
-	results.resize(jobs.size())
-	if threads <= 1 or jobs.size() <= 1:
-		for i in jobs.size():
-			results[i] = fn.call(jobs[i])
-		return results
-	var state := {"next": 0}
-	var mutex := Mutex.new()
-	var worker := func() -> void:
-		while true:
-			mutex.lock()
-			var i: int = state["next"]
-			state["next"] = i + 1
-			mutex.unlock()
-			if i >= jobs.size():
-				return
-			var r: Variant = fn.call(jobs[i])
-			mutex.lock()
-			results[i] = r
-			mutex.unlock()
-	var pool: Array[Thread] = []
-	for t in mini(threads, jobs.size()):
-		var th := Thread.new()
-		th.start(worker)
-		pool.append(th)
-	for th: Thread in pool:
-		th.wait_to_finish()
-	return results
-
 
 static func percentile(values: PackedFloat32Array, p: float) -> float:
 	if values.is_empty():

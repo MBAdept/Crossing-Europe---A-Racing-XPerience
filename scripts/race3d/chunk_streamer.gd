@@ -8,8 +8,9 @@ extends Node3D
 ##    is more than rebase_m from the floating origin (signal rebased(shift): every origin-relative position the
 ##    renderer keeps moves by shift; the chunk nodes are moved here),
 ##  * a chunk is wanted when its near edge is at most load_path_m of path ahead AND at most
-##    visibility + one chunk length away by air; at most max_chunks are held (nearest first); a chunk is freed
-##    once its far edge lies more than keep_behind_m behind the camera,
+##    visibility + one chunk length away by air; at most max_chunks are held (when the rule wants more, the
+##    farthest by air – in the fog at the end of the visibility – wait); a chunk is freed once its far edge lies
+##    more than keep_behind_m behind the camera,
 ##  * a new chunk is collected on the main thread (ChunkContext.capture + ChunkBuilder.collect), built on the
 ##    WorkerThreadPool (ChunkBuilder.build) and committed on the main thread (ChunkBuilder.commit), at most
 ##    commits_per_frame chunks per update. The first update after a start or a camera jump loads everything that is
@@ -75,7 +76,10 @@ var _builds := 0
 var _build_us_sum := 0
 var _build_us_max := 0
 var _collect_us_max := 0
+var _collect_us_sum := 0
+var _collects := 0
 var _commit_us_max := 0
+var _commit_us_sum := 0
 var _commits := 0
 var _rebases := 0
 var _restarts := 0
@@ -160,11 +164,14 @@ func update(cam_z: float, visibility_m: float) -> void:
 	if not path.is_ready() or path.track != track or cam_seg > path.last() \
 			or (cam_seg < path.first and track.get_segment(cam_seg).index == cam_seg):
 		_restart(cam_z, cam_seg)
-	path.ensure(cam_seg + int(landmark_path_m / seg_len))
+	# every frame a little: the path always reaches as far as the farthest chunk that can be collected needs it
+	# (clearance, valley floor, late signs), so collecting a chunk never has to generate road
+	var ahead := int(_ahead_m() / seg_len)
+	path.ensure(cam_seg + ahead)
 	if path.last() < cam_seg:
 		# the road between the old path and the camera is gone from the track window (a jump ahead)
 		_restart(cam_z, cam_seg)
-		path.ensure(cam_seg + int(landmark_path_m / seg_len))
+		path.ensure(cam_seg + ahead)
 	if cam_seg < path.first:
 		# the camera is behind everything the track still holds: stream from the oldest road there is
 		cam_seg = path.first
@@ -180,17 +187,22 @@ func update(cam_z: float, visibility_m: float) -> void:
 		_trim(cam_seg)
 	var at_once := sync or not _loaded
 	# collect: everything at once at load / in sync mode, else one chunk per update
+	var collected := false
 	for ci: int in _wanted:
 		if _chunks.has(ci):
 			continue
 		if not _make_room(ci, cam_seg):
 			break
-		if _collect(ci, threaded) and not at_once:
-			break
+		if _collect(ci, threaded):
+			collected = true
+			if not at_once:
+				break
 	if at_once:
 		flush()
 		_loaded = true
 		return
+	if collected:
+		return   # one main-thread job per frame: a frame that collected a chunk commits none
 	# threaded mode: commit finished builds, nearest first
 	var done := 0
 	while done < commits_per_frame:
@@ -254,13 +266,28 @@ func snapshot() -> Dictionary:
 			"origin_index": path.origin_index if path != null else 0}}
 
 
-## Timing and counters for perf_stats(): chunks, pending, builds, build_ms_avg, build_ms_max, collect_ms_max,
-## commit_ms_max, commits, rebases, restarts.
+## Timing and counters for perf_stats(): chunks, pending, builds, build_ms_avg / _max (ChunkBuilder.build of all
+## builders per chunk), collect_ms_avg / _max (snapshot on the main thread), commit_ms_avg / _max, commits, rebases,
+## restarts.
 func stats() -> Dictionary:
 	return {"chunks": _chunks.size(), "pending": pending_count(), "builds": _builds,
 		"build_ms_avg": float(_build_us_sum) / maxf(1.0, float(_builds)) / 1000.0, "build_ms_max": float(_build_us_max) / 1000.0,
-		"collect_ms_max": float(_collect_us_max) / 1000.0, "commit_ms_max": float(_commit_us_max) / 1000.0,
+		"collect_ms_avg": float(_collect_us_sum) / maxf(1.0, float(_collects)) / 1000.0, "collect_ms_max": float(_collect_us_max) / 1000.0,
+		"commit_ms_avg": float(_commit_us_sum) / maxf(1.0, float(_commits)) / 1000.0, "commit_ms_max": float(_commit_us_max) / 1000.0,
 		"commits": _commits, "rebases": _rebases, "restarts": _restarts}
+
+
+## Forgets the timing maxima (after the load, so that perf_stats() shows the drive).
+func reset_stats() -> void:
+	_builds = 0
+	_build_us_sum = 0
+	_build_us_max = 0
+	_collect_us_max = 0
+	_collect_us_sum = 0
+	_collects = 0
+	_commit_us_max = 0
+	_commit_us_sum = 0
+	_commits = 0
 
 
 ## The chunk node of a chunk index (null when it is not committed).
@@ -274,6 +301,12 @@ func wanted_for(cam_z: float, visibility_m: float) -> Array[int]:
 	var cam_seg := clampi(int(floor(cam_z / track.seg_len)), 0, track.segment_count - 1)
 	path.ensure(cam_seg + int(landmark_path_m / track.seg_len))
 	return _compute_wanted(cam_z, cam_seg, visibility_m)
+
+
+## How far ahead of the camera (m of path) the path is kept integrated: the farthest row a chunk can have when it
+## is collected plus what clearance() looks at beyond it – at least landmark_path_m.
+func _ahead_m() -> float:
+	return maxf(landmark_path_m, load_path_m + float(chunk_segments) * track.seg_len + path.clear_reach_m)
 
 
 # --- internals ------------------------------------------------------------------------------------------------
@@ -314,8 +347,10 @@ func _free_behind(cam_z: float) -> void:
 			_chunks.erase(ci)
 
 
+## The chunks the load rule wants, most important first: the chunk under the camera and those behind it, then by
+## distance by air. When the rule wants more than max_chunks, the farthest by air are left out – they lie in the
+## fog at the end of the visibility.
 func _compute_wanted(cam_z: float, cam_seg: int, vis: float) -> Array[int]:
-	var out: Array[int] = []
 	var n := chunk_segments
 	var seg_len := track.seg_len
 	var chunk_m := float(n) * seg_len
@@ -325,36 +360,43 @@ func _compute_wanted(cam_z: float, cam_seg: int, vis: float) -> Array[int]:
 	var cam_p := path.centre_at(cam_z)
 	var lim := vis + chunk_m
 	var lim2 := lim * lim
+	var list: Array = []          # [distance², chunk index]
 	for ci in range(c_lo, c_hi + 1):
 		var a := ci * n
 		var b := mini(a + n, end_seg)
 		if b <= a:
 			break
+		var d2 := -1.0 + float(ci - c_lo) * 1.0e-6     # at or behind the camera: always wanted, nearest first
 		if a > cam_seg:
-			var d2 := INF
+			d2 = INF
 			for k: int in [a, (a + b) / 2, b]:
 				var p := path.point(k)
 				d2 = minf(d2, (p.x - cam_p.x) * (p.x - cam_p.x) + (p.z - cam_p.z) * (p.z - cam_p.z))
 			if d2 > lim2:
 				continue
-		out.append(ci)
+		list.append([d2, ci])
+	list.sort_custom(func(u: Array, v: Array) -> bool: return float(u[0]) < float(v[0]) or (float(u[0]) == float(v[0]) and int(u[1]) < int(v[1])))
+	var out: Array[int] = []
+	for e: Array in list:
 		if out.size() >= max_chunks:
 			break
+		out.append(int(e[1]))
 	return out
 
 
-## Makes sure one more chunk fits: when max_chunks are held, the farthest one ahead that is farther than ci goes.
-func _make_room(ci: int, _cam_seg: int) -> bool:
+## Makes sure one more chunk fits: when max_chunks are held, a chunk that is no longer wanted goes (the farthest
+## ahead first).
+func _make_room(_ci: int, _cam_seg: int) -> bool:
 	if _chunks.size() < max_chunks:
 		return true
-	var far := -1
+	var victim := -1
 	for k: int in _chunks.keys():
-		if k > far:
-			far = k
-	if far <= ci:
+		if k > victim and not _wanted.has(k):
+			victim = k
+	if victim < 0:
 		return false
-	_drop(_chunks[far])
-	_chunks.erase(far)
+	_drop(_chunks[victim])
+	_chunks.erase(victim)
 	return true
 
 
@@ -367,7 +409,7 @@ func _collect(ci: int, start_task: bool) -> bool:
 		return false
 	var t0 := Time.get_ticks_usec()
 	# signs are inserted into segments that were generated earlier: the road must be generated generation_lead_m
-	# beyond the chunk before its sprites are copied (clearance() below reaches much farther anyway)
+	# beyond the chunk before its sprites are copied (update() keeps the path much farther ahead anyway)
 	path.ensure(b + int(track.generation_lead_m() / track.seg_len) + 2)
 	var c := Chunk.new()
 	c.index = ci
@@ -382,7 +424,10 @@ func _collect(ci: int, start_task: bool) -> bool:
 		c.inputs.append(bld.collect(ctx))
 	c.state = COLLECTED
 	_chunks[ci] = c
-	_collect_us_max = maxi(_collect_us_max, Time.get_ticks_usec() - t0)
+	var us := Time.get_ticks_usec() - t0
+	_collect_us_max = maxi(_collect_us_max, us)
+	_collect_us_sum += us
+	_collects += 1
 	if start_task:
 		c.task = WorkerThreadPool.add_task(c.run.bind(_builders), false, "Modern chunk %d" % ci)
 		c.state = BUILDING
@@ -420,7 +465,9 @@ func _commit(c: Chunk) -> void:
 	c.node = node
 	c.state = COMMITTED
 	_commits += 1
-	_commit_us_max = maxi(_commit_us_max, Time.get_ticks_usec() - t0)
+	var us := Time.get_ticks_usec() - t0
+	_commit_us_max = maxi(_commit_us_max, us)
+	_commit_us_sum += us
 
 
 func _drop(c: Chunk) -> void:

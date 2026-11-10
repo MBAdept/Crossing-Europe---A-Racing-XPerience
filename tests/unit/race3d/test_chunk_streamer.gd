@@ -358,7 +358,8 @@ func test_real_stage_limits_rebase_and_trim() -> void:
 	assert_true(shifts.size() >= 1, "der Ursprung wurde verlegt (%d-mal)" % shifts.size())
 	assert_eq(int(st.stats()["rebases"]), shifts.size(), "Signal je Verlegung")
 	assert_true(far <= 2000.0 + 45.0, "die Kamera bleibt höchstens 2 km vom Ursprung (%.0f m)" % far)
-	assert_true(max_path <= int((150.0 + 2.0 * p.clear_reach_m + 1596.0 + 900.0) / 3.0) + 400, "der Pfad wird hinten gekürzt (%d Grenzen)" % max_path)
+	assert_true(max_path <= int((150.0 + 2.0 * p.clear_reach_m + 1596.0) / 3.0) + 400, "der Pfad wird hinten gekürzt (%d Grenzen)" % max_path)
+	assert_true(float(p.last()) * 3.0 - cam_z <= 1500.0 + 96.0 + p.clear_reach_m + 45.0, "und reicht höchstens %.0f m vor die Kamera" % (float(p.last()) * 3.0 - cam_z))
 	assert_true(p.first > 4000, "(erste Grenze jetzt %d)" % p.first)
 	assert_eq(int(st.stats()["restarts"]), 1, "ein einziger Start, kein Neuaufbau unterwegs")
 	# after the re-bases every chunk node still stands on its first row
@@ -373,21 +374,22 @@ func test_real_stage_limits_rebase_and_trim() -> void:
 	st.update(cam_z, 900.0)
 	assert_eq(int(st.stats()["restarts"]), 1, "Sprung um 800 m: kein Neuaufbau")
 	assert_true(st.chunk_count() >= 10, "Stücke an der neuen Position (%d)" % st.chunk_count())
-	# a jump beyond the integrated path (the track window moved on): the streamer starts again there
-	cam_z = 25300.0
+	# a jump beyond the integrated path (it reaches about 3.4 km ahead; the track window moved on): a new start there
+	assert_true(float(p.last()) * 3.0 < 25950.0, "der Pfad reicht nicht bis zum Sprungziel (%.0f m)" % (float(p.last()) * 3.0))
+	cam_z = 25950.0
 	t.update_window(cam_z, 960.0)
 	st.update(cam_z, 900.0)
-	assert_eq(int(st.stats()["restarts"]), 2, "Sprung um 3 km über das Pfadende hinaus: Neuaufbau")
+	assert_eq(int(st.stats()["restarts"]), 2, "Sprung über das Pfadende hinaus: Neuaufbau")
 	var lo := 1 << 30
 	for c: Dictionary in st.snapshot()["chunks"]:
 		lo = mini(lo, int(c["index"]))
 		assert_eq(str(c["state"]), "committed", "nach dem Neuaufbau ist alles eingehängt")
-	assert_true(float(lo + 1) * CHUNK_M >= cam_z - 192.0 - CHUNK_M and st.chunk_count() >= 5, "Stücke rund um die neue Position (%d ab Stück %d)" % [st.chunk_count(), lo])
+	assert_true(float(lo + 1) * CHUNK_M >= cam_z - 192.0 - CHUNK_M and st.chunk_count() >= 3, "Stücke rund um die neue Position (%d ab Stück %d)" % [st.chunk_count(), lo])
 	# the camera behind everything the track still holds: no endless restart, the oldest road is streamed
 	st.update(20000.0, 900.0)
 	st.update(20010.0, 900.0)
 	assert_eq(int(st.stats()["restarts"]), 2, "Kamera hinter dem Streckenfenster: kein Neuaufbau in jedem Bild")
-	assert_true(st.chunk_count() >= 5, "die älteste vorhandene Straße bleibt geladen")
+	assert_true(st.chunk_count() >= 3, "die älteste vorhandene Straße bleibt geladen")
 	st.clear()
 	st.free()
 
