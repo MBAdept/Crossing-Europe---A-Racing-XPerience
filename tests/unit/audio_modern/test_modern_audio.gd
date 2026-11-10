@@ -344,7 +344,8 @@ func test_snapshots_follow_the_game() -> void:
 		m.set_siren(true, 0.5)
 		_steps(m, 1)
 	assert_true(m.mix.weight("siren") > 0.99, "Verfolgung aktiv")
-	assert_near(m.buses.gain_db("MMusic"), float(ConfigLoader.lookup(cfg(), "audio.modern.snapshots.siren.gain_db.MMusic", 0.0)), 0.05, "Musik unter dem Horn")
+	assert_near(m.buses.gain_db("MMusic") - m.mix.duck_db, float(ConfigLoader.lookup(cfg(), "audio.modern.snapshots.siren.gain_db.MMusic", 0.0)), 0.05, "Musik unter dem Horn (zusätzlich zur Absenkung unter dem Auto)")
+	assert_true(m.mix.duck_db < -1.0, "und unter dem fahrenden Auto (%.1f dB)" % m.mix.duck_db)
 	m.set_siren(false, 0.0)
 	# collision event
 	m.event("collision", {"speed_kmh": 120.0, "heavy": true, "side": -1})
@@ -361,25 +362,39 @@ func test_snapshots_follow_the_game() -> void:
 	_steps(m, 60)
 	assert_near(m.mix.weight("result"), 0.0, 1.0e-6, "mit dem Verlassen der Etappe vorbei")
 	assert_near(m.buses.gain_db("MCar"), 0.0, 0.01, "Auto-Bus wieder neutral")
-	# the race EQ of the music follows the context
-	assert_true(m.buses.music_eq_on(), "im Rennen ist der Musik-EQ an")
+	# the race EQ of the music follows the context – gliding, so the level of the music never steps
+	assert_near(m.buses.music_eq_amount(), 1.0, 1.0e-6, "im Rennen ist der Musik-EQ ganz an")
 	m.set_music_context("menu")
 	_steps(m, 1)
+	assert_between(m.buses.music_eq_amount(), 0.5, 0.999, "er blendet aus")
+	_steps(m, 60)
 	assert_false(m.buses.music_eq_on(), "im Menü aus")
+	m.set_music_context("race")
+	_steps(m, 1)
+	assert_between(m.buses.music_eq_amount(), 0.001, 0.5, "und wieder ein")
+	_steps(m, 60)
+	assert_near(m.buses.music_eq_amount(), 1.0, 1.0e-6, "ganz an")
 	_done(m)
 
 
-func test_ducking_uses_the_level_of_the_car_bus() -> void:
+func test_ducking_follows_the_car() -> void:
 	var m := _modern()
-	assert_eq(m.mix.duck_key, "MCar", "Schlüsselbus")
-	m.key_db_override = -6.0   # a loud car (the meter itself needs a running AudioServer: check_modern_audio.gd)
-	_steps(m, 60)
 	var depth := float(ConfigLoader.lookup(cfg(), "audio.modern.duck.depth_db", 0.0))
-	assert_near(m.buses.gain_db("MMusic"), -depth, 0.05, "Musik um die volle Tiefe abgesenkt")
 	assert_true(depth >= 3.0, "mindestens 3 dB")
-	m.key_db_override = -60.0
-	_steps(m, 240)
-	assert_near(m.buses.gain_db("MMusic"), 0.0, 0.02, "und wieder zurück")
+	m.set_vehicle("kompakt")
+	_drive(m, 90, 0.0, 0.0)
+	assert_near(m.buses.gain_db("MMusic"), 0.0, 0.02, "im Leerlauf bleibt die Musik oben")
+	assert_near(m.mix.car, float(m.mix.loudness["idle_lufs"]), 0.5, "Auto nach Plan im Leerlauf")
+	_drive(m, 150, 150.0, 1.0)
+	assert_near(m.buses.gain_db("MMusic"), -depth, 0.1, "Vollgas: Musik um die volle Tiefe abgesenkt")
+	assert_near(m.mix.car, float(m.mix.loudness["full_throttle_lufs"]), 0.5, "Auto nach Plan bei Vollgas")
+	# the session leaves (stop calling): the music comes back within about two seconds
+	_steps(m, 150)
+	assert_near(m.buses.gain_db("MMusic"), 0.0, 0.05, "und wieder zurück")
+	# tests may give the loudness of the car directly
+	m.car_lufs_override = -16.0
+	_steps(m, 60)
+	assert_near(m.buses.gain_db("MMusic"), -depth, 0.05, "vorgegebene Lautheit des Autos")
 	_done(m)
 
 
@@ -388,7 +403,7 @@ func test_effects_mute_follows_the_arcade_sfx_bus_and_the_setting() -> void:
 	AudioServer.set_bus_name(1, "SFX")
 	var m := _modern()
 	var msfx := AudioServer.get_bus_index("MSfx")
-	m.key_db_override = -6.0
+	m.car_lufs_override = -16.0
 	_steps(m, 30)
 	assert_false(AudioServer.is_bus_mute(msfx), "Ausgangslage: Effekte hörbar")
 	assert_true(m.buses.gain_db("MMusic") < -3.0, "Musik unter dem Auto abgesenkt")
@@ -431,6 +446,15 @@ func test_volume_settings_and_plan_levels_on_the_buses() -> void:
 	assert_true(AudioServer.is_bus_mute(AudioServer.get_bus_index("MMusic")), "Musik 0: stumm")
 	assert_false(AudioServer.is_bus_mute(AudioServer.get_bus_index("MSfx")), "Effekte hörbar")
 	_done(m)
+	# debug: --mute-bus names stay muted through every volume change and frame
+	var d := _modern({}, {"mute_buses": ["MEnv", "MMusic", "Gibtsnicht"]})
+	d.apply_volumes(1.0, 1.0)
+	_steps(d, 3)
+	assert_true(AudioServer.is_bus_mute(AudioServer.get_bus_index("MEnv")), "--mute-bus=MEnv bleibt stumm")
+	assert_true(AudioServer.is_bus_mute(AudioServer.get_bus_index("MMusic")), "--mute-bus=MMusic bleibt stumm")
+	assert_false(AudioServer.is_bus_mute(AudioServer.get_bus_index("MSfx")), "die anderen nicht")
+	assert_false(d.frame.effects_muted, "ein stummer Teilbus gilt nicht als „Effekte aus“")
+	_done(d)
 
 
 func test_music_contexts() -> void:

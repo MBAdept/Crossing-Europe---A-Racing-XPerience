@@ -15,9 +15,9 @@ extends Node
 ##   • one-shots: play(name) goes to the first slot that takes it. A play() and the session event of the same
 ##     moment (PLAY_EVENTS) never sound twice: when a slot claims the event, the play() is dropped if the event
 ##     came within DEDUP_MS, or held that long for it – and played if no event comes;
-##   • mix: feeds ModernMix the level of the car bus, holds the snapshots (pause while the tree is paused, siren
-##     during a chase, result from "stage_finish" until the stage is left, impact on a collision) and writes
-##     fader gains, low-passes and the music EQ to the buses;
+##   • mix: gives ModernMix the driving state (the car's loudness after the plan steers the ducking of the music),
+##     holds the snapshots (pause while the tree is paused, siren during a chase, result from "stage_finish" until
+##     the stage is left, impact on a collision) and writes fader gains, low-passes and the music EQ to the buses;
 ##   • effects off: MSfx is muted when the volume "Effekte" is 0 and whenever the Arcade bus SFX is muted – that
 ##     is how the attract demo (and --mute-bus=SFX) silences the effects, without knowing the profile.
 ## Nothing here reads the graphics mode or the renderer (Rule 4), and nothing feeds back into the simulation
@@ -59,8 +59,8 @@ var started := false
 
 ## Tests: wall clock in ms for the one-shot timing (−1 = Time.get_ticks_msec()).
 var clock_ms := -1
-## Tests / headless: level of the key bus used instead of its meter while nothing plays (dBFS).
-var key_db_override := ModernMix.KEY_FLOOR_DB
+## Tests: loudness of the car (LUFS) used for the ducking instead of the one of the driving state.
+var car_lufs_override := ModernMix.KEY_FLOOR_DB
 var plays: Dictionary = {}       ## one-shot name -> times it reached a slot
 var dropped: Dictionary = {}     ## one-shot name -> times it was dropped for its event
 var events_seen: Dictionary = {} ## event name -> count (session and feed events)
@@ -93,12 +93,15 @@ var _state_t := -100.0
 var _stopped_frame := -1
 var _result := false
 var _music_context := "off"
+var _eq_amount := 0.0            ## race EQ of the music: 0 off … 1 full (glides with the context)
+var _eq_fade_s := 0.4
 var _last_play: Dictionary = {}
 var _event_ms: Dictionary = {}
 var _pending: Dictionary = {}    ## one-shot name -> [ms, gain_db]
 var _claimed: Dictionary = {}    ## event name -> true
 var _sfx_volume := 1.0
 var _music_volume := 0.7
+var _debug_muted: Dictionary = {}   ## Modern buses muted by --mute-bus
 
 
 func _init() -> void:
@@ -111,7 +114,7 @@ func _init() -> void:
 ## Builds the profile: buses, mix, sound files, feed and every slot. cfg = the game configuration; opts (all
 ## optional): "streams" (AudioManager's streams by name), "arcade_traffic" (its TrafficAudio), "bank_provider"
 ## (Callable id -> EngineBank), "live" (create players; default: not headless), "sync" (no mixer thread), "quiet"
-## (no start line in the log).
+## (no start line in the log), "mute_buses" (Modern bus names kept muted; default: --mute-bus).
 func start(cfg: Dictionary, opts: Dictionary = {}) -> void:
 	if started:
 		return
@@ -132,12 +135,17 @@ func start(cfg: Dictionary, opts: Dictionary = {}) -> void:
 	buses = ModernBuses.new()
 	buses.build(ctx.modern)
 	ctx.buses = buses
-	for bus_name in CliArgs.get_string("mute-bus", "").split(",", false):
+	# debug: --mute-bus=MEnv,… (as for the Arcade buses) keeps these Modern buses muted
+	var muted: Variant = opts.get("mute_buses", CliArgs.get_string("mute-bus", "").split(",", false))
+	_debug_muted.clear()
+	for bus_name: String in muted:
 		if ModernBuses.names().has(bus_name):
-			buses.set_mute(bus_name, true)
+			_debug_muted[bus_name] = true
 	mix = ModernMix.new()
 	mix.setup(ctx.modern)
 	ctx.mix = mix
+	_eq_amount = 0.0
+	_eq_fade_s = maxf(ctx.number("music.race_eq_fade_s", 0.4), 0.01)
 	assets = ModernAudioAssets.new()
 	assets.use_placeholders = bool(ctx.value("placeholders", false))
 	assets.load_all(str(ctx.value("assets_dir", ModernAudioAssets.ROOT)))
@@ -345,10 +353,10 @@ func apply_volumes(sfx_volume: float, music_volume: float) -> void:
 		return
 	mix.set_volumes(sfx_volume, music_volume)
 	for bus: String in mix.levels:
-		if bus == "MSfx":
-			buses.set_static_db(bus, mix.static_db(bus), mix.static_mute(bus) or mix.effects_muted)
-		else:
-			buses.set_static_db(bus, mix.static_db(bus), mix.static_mute(bus))
+		var mute := mix.static_mute(bus) or _debug_muted.has(bus) or (bus == "MSfx" and mix.effects_muted)
+		buses.set_static_db(bus, mix.static_db(bus), mute)
+	for bus: String in _debug_muted:
+		buses.set_mute(bus, true)
 
 
 # --- contract §4.7.1 ------------------------------------------------------------------------------
@@ -453,18 +461,22 @@ func step(delta: float, paused: bool) -> void:
 			if now - int(p[0]) > DEDUP_MS:
 				_pending.erase(sound)
 				_play_now(sound, float(p[1]))
+	# slots (they see the effects mute of the frame before)
+	for m in modules:
+		m.update(f)
+		if m == engine:
+			f.engine = engine.state()
 	# mix
 	var mute_request := mix.static_mute("MSfx") or _arcade_effects_muted()
 	mix.set_active("pause", paused)
 	mix.set_active("siren", f.siren_on)
 	mix.set_active("result", _result)
-	mix.step(delta, _key_db(), mute_request, buses.peak_db("MEnv") if ctx.live else ModernMix.KEY_FLOOR_DB)
+	var car := mix.car_lufs(f.alive, f.speed, f.vmax, float(f.engine.get("load", f.throttle)))
+	if car_lufs_override > ModernMix.KEY_FLOOR_DB:
+		car = car_lufs_override
+	mix.step(delta, car, mute_request, buses.peak_db("MEnv") if ctx.live else ModernMix.KEY_FLOOR_DB)
 	f.effects_muted = mix.effects_muted
-	# slots
-	for m in modules:
-		m.update(f)
-		if m == engine:
-			f.engine = engine.state()
+	_eq_amount = move_toward(_eq_amount, 1.0 if _music_context == "race" else 0.0, delta / _eq_fade_s)
 	_apply_mix()
 
 
@@ -473,14 +485,8 @@ func _apply_mix() -> void:
 		buses.set_gain_db(bus, mix.gain_db(bus))
 	for bus in ModernBuses.LOWPASS_BUSES:
 		buses.set_lowpass_hz(bus, mix.lowpass_hz(bus))
-	buses.set_music_eq(_music_context == "race")
-	buses.set_mute("MSfx", mix.effects_muted)
-
-
-func _key_db() -> float:
-	if ctx.live and key_db_override <= ModernMix.KEY_FLOOR_DB:
-		return buses.peak_db(mix.duck_key)
-	return key_db_override
+	buses.set_music_eq_amount(_eq_amount)
+	buses.set_mute("MSfx", mix.effects_muted or _debug_muted.has("MSfx"))
 
 
 ## The Arcade effects bus is muted: volume "Effekte" 0, the attract demo, --mute-bus=SFX.

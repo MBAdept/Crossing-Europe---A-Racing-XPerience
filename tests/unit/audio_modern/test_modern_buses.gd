@@ -83,7 +83,7 @@ func _path(bus: String) -> Array[String]:
 func test_base_effects() -> void:
 	var b := _built()
 	assert_eq(_classes("MMaster"), ["AudioEffectCompressor"] as Array[String], "MMaster: Summenkompressor")
-	assert_eq(_classes("MMusic"), ["AudioEffectEQ10", "AudioEffectLowPassFilter", "AudioEffectAmplify"] as Array[String], "MMusic")
+	assert_eq(_classes("MMusic"), ["AudioEffectLowShelfFilter", "AudioEffectLowShelfFilter", "AudioEffectLowPassFilter", "AudioEffectAmplify"] as Array[String], "MMusic: Renn-EQ (zwei Kuhschwanzfilter), Tiefpass, Fader")
 	assert_eq(_classes("MEnv"), ["AudioEffectDelay", "AudioEffectReverb", "AudioEffectLowPassFilter", "AudioEffectAmplify"] as Array[String], "MEnv: trocken + Reflexionen + Hall")
 	assert_eq(_classes("MCar"), ["AudioEffectAmplify"] as Array[String], "MCar: Fader")
 	assert_eq(_classes("MWorld"), ["AudioEffectAmplify"] as Array[String], "MWorld: Fader")
@@ -103,7 +103,10 @@ func test_base_effects() -> void:
 	# snapshot low-passes and the race EQ are off, the faders neutral
 	for n in ModernBuses.LOWPASS_BUSES:
 		assert_false(_enabled(n, "AudioEffectLowPassFilter"), "Tiefpass von %s aus" % n)
-	assert_false(_enabled("MMusic", "AudioEffectEQ10"), "Renn-EQ aus")
+	assert_false(b.music_eq_on(), "Renn-EQ aus")
+	for fx in b.music_eq():
+		assert_false(_enabled_fx("MMusic", fx), "Filter des Renn-EQ aus")
+		assert_near(fx.gain, 1.0, 1.0e-6, "und neutral")
 	for n in ModernBuses.FADER_BUSES:
 		assert_near(b.gain_db(n), 0.0, 1.0e-6, "Fader %s neutral" % n)
 		assert_true(_enabled(n, "AudioEffectAmplify"), "Fader %s an" % n)
@@ -116,6 +119,18 @@ func _enabled(bus: String, cls: String) -> bool:
 		if AudioServer.get_bus_effect(idx, j).get_class() == cls:
 			return AudioServer.is_bus_effect_enabled(idx, j)
 	return false
+
+
+func _enabled_fx(bus: String, fx: AudioEffect) -> bool:
+	var idx := AudioServer.get_bus_index(bus)
+	for j in AudioServer.get_bus_effect_count(idx):
+		if AudioServer.get_bus_effect(idx, j) == fx:
+			return AudioServer.is_bus_effect_enabled(idx, j)
+	return false
+
+
+func _shelf_db(fx: AudioEffectFilter) -> float:
+	return 40.0 * log(fx.gain) / log(10.0)   # the gain of the shelf is the square of the filter's "gain"
 
 
 func _effect(bus: String, cls: String) -> AudioEffect:
@@ -140,15 +155,39 @@ func test_fader_lowpass_and_eq() -> void:
 	assert_false(_enabled("MMusic", "AudioEffectLowPassFilter"), "bei 20 kHz wieder aus")
 	b.set_lowpass_hz("MMusic", 0.0)
 	assert_false(_enabled("MMusic", "AudioEffectLowPassFilter"), "0 = aus")
+	# race EQ: shelving filters in series (a broad dip around 500 Hz that makes room for the engine); its response
+	# is measured by check_modern_audio.gd --live
+	var eq := b.music_eq()
+	var want: Array = ConfigLoader.lookup(cfg(), "audio.modern.music.race_eq", [])
+	assert_eq(eq.size(), want.size(), "ein Filter je Eintrag")
+	assert_true(eq.size() >= 1, "es gibt eine Klangregelung fürs Rennen")
 	b.set_music_eq(true)
-	assert_true(_enabled("MMusic", "AudioEffectEQ10"), "Renn-EQ an")
-	var eq := _effect("MMusic", "AudioEffectEQ10") as AudioEffectEQ10
-	var want: Dictionary = ConfigLoader.lookup(cfg(), "audio.modern.music.race_eq_db", {})
-	for i in ModernBuses.EQ10_HZ.size():
-		assert_near(eq.get_band_gain_db(i), float(want.get(str(ModernBuses.EQ10_HZ[i]), 0.0)), 1.0e-5, "Band %d Hz" % ModernBuses.EQ10_HZ[i])
-	assert_near(eq.get_band_gain_db(4), -3.0, 1.0e-5, "500 Hz um 3 dB abgesenkt (Platz für den Motor)")
+	assert_true(b.music_eq_on(), "Renn-EQ an")
+	var bass_db := 0.0
+	for i in eq.size():
+		var spec: Dictionary = want[i]
+		assert_true(_enabled_fx("MMusic", eq[i]), "Filter %d an" % i)
+		assert_true(eq[i] is AudioEffectLowShelfFilter or eq[i] is AudioEffectHighShelfFilter, "Kuhschwanzfilter")
+		assert_near(eq[i].cutoff_hz, float(spec["hz"]), 0.01, "Eckfrequenz %d" % i)
+		assert_near(_shelf_db(eq[i]), float(spec["db"]), 1.0e-3, "Gewinn der Stufe %d" % i)
+		assert_near(eq[i].resonance, 0.5, 1.0e-6, "ohne Überhöhung")
+		assert_eq(int(eq[i].db), int(AudioEffectFilter.FILTER_6DB), "Flankeneinstellung, für die der Gewinn gemessen ist")
+		if eq[i] is AudioEffectLowShelfFilter:
+			bass_db += _shelf_db(eq[i])
+	assert_between(bass_db, -2.0, 0.0, "der Bass bleibt fast, wie er ist (%.1f dB)" % bass_db)
+	b.set_music_eq_amount(0.5)
+	assert_near(b.music_eq_amount(), 0.5, 1.0e-6, "halb eingeblendet")
+	for i in eq.size():
+		assert_near(_shelf_db(eq[i]), 0.5 * float((want[i] as Dictionary)["db"]), 1.0e-3, "halber Gewinn der Stufe %d" % i)
+		assert_true(_enabled_fx("MMusic", eq[i]), "Filter %d bleibt an" % i)
 	b.set_music_eq(false)
-	assert_false(_enabled("MMusic", "AudioEffectEQ10"), "Renn-EQ aus")
+	assert_false(b.music_eq_on(), "Renn-EQ aus")
+	for i in eq.size():
+		assert_false(_enabled_fx("MMusic", eq[i]), "Filter %d aus" % i)
+		assert_near(eq[i].gain, 1.0, 1.0e-6, "neutral")
+	assert_near(ModernBuses.shelf_gain(-6.0), 0.70795, 1.0e-4, "−6 dB: Gewinn 0,708 (gemessen −6,00 dB)")
+	assert_true(ModernBuses.shelf_filter({"shelf": "low", "hz": 200.0, "db": 0.0}) == null, "0 dB: kein Filter")
+	assert_true(ModernBuses.shelf_filter({"shelf": "high", "hz": 4000.0, "db": 2.0}) is AudioEffectHighShelfFilter, "Höhen")
 	b.set_static_db("MSfx", -3.0, true)
 	var si := AudioServer.get_bus_index("MSfx")
 	assert_near(AudioServer.get_bus_volume_db(si), -3.0, 1.0e-5, "fester Pegel")
@@ -166,7 +205,8 @@ func test_slot_effect_goes_before_lowpass_and_fader() -> void:
 	assert_true(b.effect("MEngine", "AudioEffectReverb") == width, "derselbe beim zweiten Mal")
 	var chorus := b.effect("MMusic", "AudioEffectChorus")
 	assert_true(chorus != null, "auf einem Bus mit Fader")
-	assert_eq(_classes("MMusic"), ["AudioEffectEQ10", "AudioEffectChorus", "AudioEffectLowPassFilter", "AudioEffectAmplify"] as Array[String], "vor Tiefpass und Fader")
+	assert_eq(_classes("MMusic"), ["AudioEffectLowShelfFilter", "AudioEffectLowShelfFilter", "AudioEffectChorus", "AudioEffectLowPassFilter", "AudioEffectAmplify"] as Array[String], "vor Tiefpass und Fader")
+	assert_true(b.effect("MMusic", "AudioEffectLowShelfFilter", false) == null, "die Filter des Renn-EQ werden nicht herausgegeben")
 	assert_true(b.effect("MMusic", "AudioEffectAmplify", false) == null, "der Fader selbst wird nicht herausgegeben")
 	assert_true(b.effect("Gibtsnicht", "AudioEffectReverb") == null, "unbekannter Bus")
 	b.remove()
@@ -234,12 +274,12 @@ func test_build_twice_and_leftovers() -> void:
 	var a := _built()
 	a.build(_modern_cfg())
 	assert_eq(AudioServer.bus_count, 1 + CONTRACT_NAMES.size(), "zweites build() ändert nichts")
-	assert_eq(_classes("MMusic").size(), 3, "keine doppelten Effekte")
+	assert_eq(_classes("MMusic").size(), 4, "keine doppelten Effekte (zwei Filter des Renn-EQ, Tiefpass, Fader)")
 	# buses left behind by an object that was never removed: a new one starts clean
 	var b := ModernBuses.new()
 	b.build(_modern_cfg())
 	assert_eq(AudioServer.bus_count, 1 + CONTRACT_NAMES.size(), "keine doppelten Busse")
-	assert_eq(_classes("MMusic").size(), 3, "Effekte einmal")
+	assert_eq(_classes("MMusic").size(), 4, "Effekte einmal")
 	assert_true(b.verify().is_empty(), "Graph in Ordnung")
 	b.remove()
 	assert_eq(AudioServer.bus_count, 1, "aufgeräumt")

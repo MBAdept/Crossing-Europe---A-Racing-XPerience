@@ -14,7 +14,8 @@ extends SceneTree
 ##   delegation     with the Modern profile the existing API reaches ModernAudio and the Arcade sound does not run;
 ##                  back in Arcade the old engine works again; the menu music is handed over both ways
 ##   mix            (--live) a tone through the Modern buses, captured: the level chain of the plan, the music ducks
-##                  under a loud car bus and comes back, the pause low-pass closes and opens
+##                  while the car is driven flat out and comes back, the pause low-pass closes and opens, the race
+##                  EQ of the music takes about 1 / 3 / 0 dB at 62 Hz / 500 Hz / 5 kHz
 ##   race           16 s of the test stage through its tunnel with the Modern profile: the session's calls arrive
 ##                  (engine, traffic, tunnel reverb, feed, events, race music); without --live also the finish with
 ##                  Modern and the same 16 s with the Arcade profile – the same simulation at every second (Rule 3)
@@ -392,16 +393,26 @@ func _scenario_mix(_g: String) -> void:
 	var want_ui := -23.01 + buses.path_db("MUI")
 	var want_music := -23.01 + buses.path_db("MMusic")
 	var chain_ok := absf(ui_db - want_ui) < 0.4 and absf(music_db - want_music) < 0.4
-	# 2. ducking: the music (still playing) under a loud tone on the car bus, then released
+	# 2. ducking: the music (still playing) while the car is driven flat out, then after the session stopped calling
 	var before: float = await _level(music_cap, 0.3)
-	var car := _player("MRoad", _tone(180.0, 0.5, 0.6))
-	await _wait(0.5)
-	var ducked: float = await _level(music_cap, 0.3)
+	_am.call("set_vehicle", "limousine")
+	var until := Time.get_ticks_msec() + 800
+	var ducked := 0.0
+	while Time.get_ticks_msec() < until + 300:
+		_am.call("set_engine", 200.0, 1.0, 245.0, true)
+		if Time.get_ticks_msec() >= until and ducked == 0.0:
+			music_cap.clear_buffer()
+			ducked = -1.0
+		await process_frame
+	var fr := music_cap.get_buffer(music_cap.get_frames_available())
+	var sq := 0.0
+	for v in fr:
+		sq += v.x * v.x + v.y * v.y
+	ducked = 10.0 * log(maxf(sq / (2.0 * maxf(fr.size(), 1.0)), 1.0e-20)) / log(10.0)
 	var duck_state := float(((m.call("debug_state") as Dictionary)["mix"] as Dictionary)["duck_db"])
-	car.stop()
+	_am.call("stop_all")
 	await _wait(1.8)
 	var after: float = await _level(music_cap, 0.3)
-	car.queue_free()
 	var duck_ok := before - ducked >= 3.0 and absf(after - before) < 0.5 and duck_state <= -3.0
 	# 3. pause: low-pass and dip on the music bus (a 5-kHz tone nearly disappears), back after the pause
 	p.stream = _tone(5000.0, 0.5, 0.1)
@@ -417,6 +428,24 @@ func _scenario_mix(_g: String) -> void:
 	await _wait(0.8)
 	var reopened: float = await _level(music_cap, 0.3)
 	var pause_ok := open - closed >= 12.0 and absf(reopened - open) < 0.6 and lp < 2000.0
+	# 4. race EQ of the music: in the context "race" (no race music plays here) tones at 62 Hz / 500 Hz / 5 kHz leave
+	#    the bus about 1 / 3 / 0 dB lower than outside a race; neutral again afterwards
+	_am.call("set_race_music", false)
+	var eq_drop: Array[float] = []
+	for hz: float in [62.0, 500.0, 5000.0]:
+		p.stream = _tone(hz, 0.5, 0.1)
+		p.play()
+		_am.call("set_music_context", "off", {})
+		await _wait(0.7)
+		var flat: float = await _level(music_cap, 0.3)
+		_am.call("set_music_context", "race", {})
+		await _wait(0.7)
+		var shaped: float = await _level(music_cap, 0.3)
+		eq_drop.append(flat - shaped)
+	_am.call("set_music_context", "off", {})
+	_am.call("set_race_music", true)
+	await _wait(0.7)
+	var eq_ok := absf(eq_drop[0] - 1.0) < 0.4 and absf(eq_drop[1] - 3.0) < 0.4 and absf(eq_drop[2]) < 0.3 and not buses.music_eq_on()
 	p.stop()
 	p.queue_free()
 	for j in range(AudioServer.get_bus_effect_count(mi) - 1, -1, -1):
@@ -427,8 +456,9 @@ func _scenario_mix(_g: String) -> void:
 			AudioServer.remove_bus_effect(0, j)
 	Engine.max_fps = 0
 	await _frames(3)
-	_check("mix", chain_ok and duck_ok and pause_ok, "Pegelkette: Ton über MUI %.2f dB (Plan %.2f), über MMusic %.2f dB (Plan %.2f); Ducking: Musik %.2f → %.2f dB unter lautem Auto-Bus (−%.1f dB, Zustand %.1f dB), danach %.2f dB; Pause: 5-kHz-Ton %.1f → %.1f dB (Tiefpass %.0f Hz), danach %.1f dB" % [
-		ui_db, want_ui, music_db, want_music, before, ducked, before - ducked, duck_state, after, open, closed, lp, reopened])
+	_check("mix", chain_ok and duck_ok and pause_ok and eq_ok, "Pegelkette: Ton über MUI %.2f dB (Plan %.2f), über MMusic %.2f dB (Plan %.2f); Ducking: Musik %.2f → %.2f dB bei Vollgas (−%.1f dB, Zustand %.1f dB), danach %.2f dB; Pause: 5-kHz-Ton %.1f → %.1f dB (Tiefpass %.0f Hz), danach %.1f dB; Renn-EQ der Musik: 62 Hz −%.2f dB, 500 Hz −%.2f dB, 5 kHz −%.2f dB" % [
+		ui_db, want_ui, music_db, want_music, before, ducked, before - ducked, duck_state, after, open, closed, lp, reopened,
+		eq_drop[0], eq_drop[1], eq_drop[2]])
 	_am.call("set_profile", "arcade")
 	await _frames(2)
 

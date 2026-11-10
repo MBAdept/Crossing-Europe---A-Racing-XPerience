@@ -6,7 +6,7 @@ extends RefCounted
 ##
 ##   Master
 ##   └─ MMaster                 glue compressor (audio.modern.glue)
-##      ├─ MMusic               music: EQ of the race context, pause low-pass, fader (ducking, dips)
+##      ├─ MMusic               music: EQ of the race context (shelves), pause low-pass, fader (ducking, dips)
 ##      └─ MSfx                 effects group: volume setting "Effekte", level of the plan
 ##         ├─ MUI               menu and countdown sounds, stingers
 ##         ├─ MEnv              surroundings: dry + early reflections + reverb (one path – a bus has one send)
@@ -29,6 +29,13 @@ extends RefCounted
 ## plays (ducking, snapshot dips) goes through an AudioEffectAmplify "fader" on the bus. Reason, measured (Godot
 ## 4.7.2, 100 Hz sine, −6 dB): a bus volume change is applied at a mix-block boundary without a ramp (step 15–33×
 ## the signal's own steepness = a click), AudioEffectAmplify ramps across the block (1.0–1.5×).
+##
+## Race EQ of the music (audio.modern.music.race_eq): shelving filters in series – not AudioEffectEQ6/10/21. Those
+## sum band-passes and are not neutral: with every band at 0 dB the EQ10 raises the signal by 1.4 to 3.3 dB (ripple
+## from band to band), the EQ21 by about 3.9 dB, the EQ6 by 0.5 to 2.6 dB (measured from impulse responses, Godot
+## 4.7.2). A shelving filter is exact: 0 dB outside the shelf, and the square of its "gain" inside (measured: gain
+## 0.841 → −3.01 dB, 1.122 → +2.00 dB; half of it at the cutoff, the transition spans about an octave to each side)
+## – with the filter's default slope setting and resonance 0.5 (other slope settings change the gain of the shelf).
 
 const MASTER := "Master"
 const TRAFFIC_VOICES := 8
@@ -46,16 +53,15 @@ const GRAPH: Array = [
 const FADER_BUSES: Array[String] = ["MMusic", "MEnv", "MCar", "MWorld", "MAmb"]
 ## Buses with a low-pass for snapshots (pause): disabled while not needed.
 const LOWPASS_BUSES: Array[String] = ["MMusic", "MEnv", "MAmb"]
-## Centre frequencies of AudioEffectEQ10 (band index = position).
-const EQ10_HZ: Array[int] = [31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
 
 var built := false
 var _faders: Dictionary = {}      ## bus -> AudioEffectAmplify
 var _lowpass: Dictionary = {}     ## bus -> AudioEffectLowPassFilter
 var _gain_db: Dictionary = {}     ## bus -> last fader value
 var _lp_hz: Dictionary = {}       ## bus -> last cutoff (LOWPASS_OFF_HZ = off)
-var _music_eq: AudioEffectEQ10 = null
-var _music_eq_on := false
+var _music_eq: Array[AudioEffectFilter] = []   ## shelving filters of the race EQ on MMusic
+var _music_eq_db: Array[float] = []            ## the gain of each shelf in dB when fully on
+var _music_eq_amount := 0.0                    ## 0 = off (filters disabled) … 1 = the full shelves
 var _glue: AudioEffectCompressor = null
 var _reflections: AudioEffectDelay = null
 var _reverb: AudioEffectReverb = null
@@ -92,6 +98,29 @@ static func compressor_ratio(effective: float) -> float:
 	return clampf(1.0 / maxf(1.0 - want, 0.021), 1.0, 48.0)
 
 
+## Value of the "gain" property of Godot's shelving filters for a shelf of `db` decibels (its square is the gain).
+static func shelf_gain(db: float) -> float:
+	return clampf(pow(10.0, db / 40.0), 0.05, 4.0)
+
+
+## A neutral shelving filter (gain 1) for an entry of audio.modern.music.race_eq – {"shelf": "low" | "high", "hz":
+## cutoff, "db": gain of the shelf}; null for an entry that would do nothing.
+static func shelf_filter(spec: Dictionary) -> AudioEffectFilter:
+	var hz := float(spec.get("hz", 0.0))
+	if hz <= 0.0 or absf(float(spec.get("db", 0.0))) < 0.01:
+		return null
+	var f: AudioEffectFilter
+	if str(spec.get("shelf", "low")) == "high":
+		f = AudioEffectHighShelfFilter.new()
+	else:
+		f = AudioEffectLowShelfFilter.new()
+	f.cutoff_hz = clampf(hz, 20.0, 20000.0)
+	f.resonance = 0.5
+	f.db = AudioEffectFilter.FILTER_6DB
+	f.gain = 1.0
+	return f
+
+
 ## Creates the buses (appended after every existing bus), their sends and base effects. `modern` = audio.modern.
 ## Does nothing when this object built them already.
 func build(modern: Dictionary = {}) -> void:
@@ -115,14 +144,18 @@ func build(modern: Dictionary = {}) -> void:
 	_glue.mix = 1.0
 	AudioServer.add_bus_effect(index("MMaster"), _glue)
 	AudioServer.set_bus_effect_enabled(index("MMaster"), 0, bool(glue.get("enabled", true)))
-	# MMusic: EQ of the race context (off outside races)
-	_music_eq = AudioEffectEQ10.new()
-	var eq: Dictionary = _dict(_dict(modern.get("music", {})).get("race_eq_db", {}))
-	for i in EQ10_HZ.size():
-		_music_eq.set_band_gain_db(i, float(eq.get(str(EQ10_HZ[i]), 0.0)))
-	AudioServer.add_bus_effect(index("MMusic"), _music_eq)
-	AudioServer.set_bus_effect_enabled(index("MMusic"), 0, false)
-	_music_eq_on = false
+	# MMusic: EQ of the race context (off outside races) – shelving filters in series
+	var eq: Variant = _dict(modern.get("music", {})).get("race_eq", [])
+	var mi := index("MMusic")
+	for spec: Variant in (eq if eq is Array else []):
+		var sh := shelf_filter(_dict(spec))
+		if sh == null:
+			continue
+		AudioServer.add_bus_effect(mi, sh)
+		AudioServer.set_bus_effect_enabled(mi, AudioServer.get_bus_effect_count(mi) - 1, false)
+		_music_eq.append(sh)
+		_music_eq_db.append(float(_dict(spec).get("db", 0.0)))
+	_music_eq_amount = 0.0
 	# MEnv: dry + early reflections + reverb (parameters: slot EnvAcoustics)
 	_reflections = AudioEffectDelay.new()
 	_reflections.dry = 1.0
@@ -171,7 +204,9 @@ func remove() -> void:
 	_lowpass.clear()
 	_gain_db.clear()
 	_lp_hz.clear()
-	_music_eq = null
+	_music_eq.clear()
+	_music_eq_db.clear()
+	_music_eq_amount = 0.0
 	_glue = null
 	_reflections = null
 	_reverb = null
@@ -235,19 +270,39 @@ func lowpass_hz(bus: String) -> float:
 	return float(_lp_hz.get(bus, LOWPASS_OFF_HZ))
 
 
-## EQ of the music bus on (race context) or off.
-func set_music_eq(on: bool) -> void:
-	if _music_eq == null or on == _music_eq_on:
+## Race EQ of the music bus: 0 = off (its filters are disabled), 1 = the full shelves, between them a share of
+## their dB (ModernAudio glides the amount, so switching the context does not step the level of the music).
+func set_music_eq_amount(amount: float) -> void:
+	var a := clampf(amount, 0.0, 1.0)
+	if not built or a == _music_eq_amount:
 		return
-	_music_eq_on = on
-	var idx := index("MMusic")
-	for j in AudioServer.get_bus_effect_count(idx):
-		if AudioServer.get_bus_effect(idx, j) == _music_eq:
-			AudioServer.set_bus_effect_enabled(idx, j, on)
+	var was_on := _music_eq_amount > 0.0
+	_music_eq_amount = a
+	for i in _music_eq.size():
+		_music_eq[i].gain = shelf_gain(_music_eq_db[i] * a)
+	if was_on != (a > 0.0):
+		var idx := index("MMusic")
+		for j in AudioServer.get_bus_effect_count(idx):
+			if _is_eq(AudioServer.get_bus_effect(idx, j)):
+				AudioServer.set_bus_effect_enabled(idx, j, a > 0.0)
+
+
+## Race EQ fully on or off at once.
+func set_music_eq(on: bool) -> void:
+	set_music_eq_amount(1.0 if on else 0.0)
 
 
 func music_eq_on() -> bool:
-	return _music_eq_on
+	return _music_eq_amount > 0.0
+
+
+func music_eq_amount() -> float:
+	return _music_eq_amount
+
+
+## The shelving filters of the race EQ, in the order of audio.modern.music.race_eq.
+func music_eq() -> Array[AudioEffectFilter]:
+	return _music_eq
 
 
 ## The two effects of the environment path on MEnv (parameters belong to the slot EnvAcoustics).
@@ -264,14 +319,15 @@ func glue() -> AudioEffectCompressor:
 
 
 ## The first effect of that class on a bus; created in front of the snapshot low-pass / fader when missing
-## (effects a slot owns, e.g. the stereo width of a mono engine). null for a missing bus.
+## (effects a slot owns, e.g. the stereo width of a mono engine). null for a missing bus. Never one of the effects
+## this object owns (fader, snapshot low-pass, race EQ).
 func effect(bus: String, cls: String, create: bool = true) -> AudioEffect:
 	var idx := index(bus)
 	if idx < 0:
 		return null
 	for j in AudioServer.get_bus_effect_count(idx):
 		var fx := AudioServer.get_bus_effect(idx, j)
-		if fx.get_class() == cls and fx != _faders.get(bus) and fx != _lowpass.get(bus):
+		if fx.get_class() == cls and fx != _faders.get(bus) and fx != _lowpass.get(bus) and not _is_eq(fx):
 			return fx
 	if not create or not ClassDB.can_instantiate(cls):
 		return null
@@ -340,6 +396,11 @@ func verify() -> Array[String]:
 		if sidx < 0 or sidx >= idx:
 			out.append("Bus %s (Index %d) sendet an %s (Index %d): das Ziel braucht einen kleineren Index" % [n, idx, send, sidx])
 	return out
+
+
+## fx is one of the shelving filters of the race EQ.
+func _is_eq(fx: AudioEffect) -> bool:
+	return fx is AudioEffectFilter and _music_eq.has(fx)
 
 
 static func _dict(v: Variant) -> Dictionary:

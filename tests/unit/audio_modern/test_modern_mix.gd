@@ -4,6 +4,9 @@ extends TestCase
 ## shipped configuration.
 
 const DT := 1.0 / 60.0
+## Loudness the race EQ (audio.modern.music.race_eq) takes from music – measured: title theme 1.4 dB, placeholder
+## piece 1.7 dB (docs/audio-modern.md "Pegelplan").
+const RACE_EQ_LOSS_DB := 1.5
 
 
 func _mix(over: Dictionary = {}) -> ModernMix:
@@ -15,10 +18,11 @@ func _mix(over: Dictionary = {}) -> ModernMix:
 	return mix
 
 
-func _run(mix: ModernMix, seconds: float, key_db: float, mute: bool = false, tail_db: float = -200.0) -> void:
+## Steps the mix for a while with a loudness of the car (LUFS).
+func _run(mix: ModernMix, seconds: float, car_lufs: float, mute: bool = false, tail_db: float = -200.0) -> void:
 	var n := int(round(seconds / DT))
 	for i in n:
-		mix.step(DT, key_db, mute, tail_db)
+		mix.step(DT, car_lufs, mute, tail_db)
 
 
 func test_static_levels_follow_plan_and_settings() -> void:
@@ -37,8 +41,28 @@ func test_static_levels_follow_plan_and_settings() -> void:
 	assert_true(mix.static_mute("MSfx"), "Effekte 0 = stumm")
 
 
+## The key of the ducking: the loudness the plan gives the car in its driving state.
+func test_car_loudness_after_the_plan() -> void:
+	var mix := _mix({"loudness": {"idle_lufs": -24.0, "cruise_lufs": -21.0, "full_throttle_lufs": -16.0}, "duck": {"pace_cruise": 0.5}})
+	assert_near(mix.car_lufs(true, 0.0, 250.0, 0.0), -24.0, 1.0e-6, "im Stand: Leerlauf")
+	assert_near(mix.car_lufs(true, 125.0, 250.0, 0.0), -21.0, 1.0e-6, "rollt mit halbem Höchsttempo: Reisetempo")
+	assert_near(mix.car_lufs(true, 250.0, 250.0, 0.0), -21.0, 1.0e-6, "schneller rollen macht den Plan nicht lauter")
+	assert_near(mix.car_lufs(true, 62.5, 250.0, 0.0), -22.5, 1.0e-6, "dazwischen linear")
+	assert_near(mix.car_lufs(true, 0.0, 250.0, 1.0), -16.0, 1.0e-6, "Vollgas im Stand")
+	assert_near(mix.car_lufs(true, 200.0, 250.0, 1.0), -16.0, 1.0e-6, "Vollgas in Fahrt")
+	assert_near(mix.car_lufs(true, 125.0, 250.0, 0.2), -20.0, 1.0e-6, "Reisetempo mit etwas Last")
+	assert_near(mix.car_lufs(true, 125.0, 250.0, 7.0), -16.0, 1.0e-6, "Last begrenzt")
+	assert_near(mix.car_lufs(false, 200.0, 250.0, 1.0), ModernMix.KEY_FLOOR_DB, 1.0e-6, "niemand fährt: still")
+	# with the shipped thresholds: nothing at idle, about half at cruise, the full depth at full throttle
+	var plan := _mix()
+	assert_near(plan.duck_target_db(plan.car_lufs(true, 0.0, 250.0, 0.0)), 0.0, 1.0e-6, "Leerlauf: Musik oben")
+	assert_near(plan.duck_target_db(plan.car_lufs(true, 250.0, 250.0, 1.0)), -plan.duck_depth_db, 1.0e-6, "Vollgas: volle Tiefe")
+	assert_between(plan.duck_target_db(plan.car_lufs(true, 140.0, 250.0, 0.2)), -0.75 * plan.duck_depth_db, -0.25 * plan.duck_depth_db, "Reisetempo: teilweise")
+	assert_near(plan.duck_target_db(plan.car_lufs(false, 250.0, 250.0, 1.0)), 0.0, 1.0e-6, "ohne Auto keine Absenkung")
+
+
 func test_duck_target_curve() -> void:
-	var mix := _mix({"duck": {"from_db": -24.0, "to_db": -10.0, "depth_db": 4.5}})
+	var mix := _mix({"duck": {"from_lufs": -24.0, "to_lufs": -10.0, "depth_db": 4.5}})
 	assert_near(mix.duck_target_db(-200.0), 0.0, 1.0e-6, "Stille: keine Absenkung")
 	assert_near(mix.duck_target_db(-24.0), 0.0, 1.0e-6, "an der unteren Schwelle 0 dB")
 	assert_near(mix.duck_target_db(-17.0), -2.25, 1.0e-5, "in der Mitte die halbe Tiefe")
@@ -47,7 +71,7 @@ func test_duck_target_curve() -> void:
 
 
 func test_duck_attack_and_release_times() -> void:
-	var mix := _mix({"duck": {"from_db": -24.0, "to_db": -10.0, "depth_db": 4.0, "attack_s": 0.05, "release_s": 0.45}, "snapshots": {}})
+	var mix := _mix({"duck": {"from_lufs": -24.0, "to_lufs": -10.0, "depth_db": 4.0, "attack_s": 0.05, "release_s": 0.45}, "snapshots": {}})
 	# attack: after one time constant (50 ms = 3 frames) 63 % of the way, after 0.25 s practically there
 	_run(mix, 0.05, -6.0)
 	assert_between(mix.duck_db, -4.0 * 0.70, -4.0 * 0.55, "nach 50 ms rund 63 % der Tiefe")
@@ -166,8 +190,9 @@ func test_loudness_plan_in_the_configuration() -> void:
 	assert_near(float(mix.loudness["true_peak_dbtp"]), -1.0, 1.0e-6, "True Peak −1")
 	assert_near(mix.duck_attack_s, 0.05, 1.0e-6, "Ducking Attack 50 ms")
 	assert_near(mix.duck_release_s, 0.45, 1.0e-6, "Ducking Release 450 ms")
-	assert_eq(mix.duck_key, "MCar", "gesteuert vom Auto-Bus")
 	assert_eq(mix.duck_bus, "MMusic", "wirkt auf die Musik")
+	assert_true(mix.duck_from_lufs > float(mix.loudness["idle_lufs"]), "im Leerlauf keine Absenkung")
+	assert_true(mix.duck_to_lufs <= float(mix.loudness["full_throttle_lufs"]), "bei Vollgas die volle Tiefe")
 	for s: String in ["pause", "impact", "siren", "result"]:
 		assert_true(mix.has_snapshot(s), "Zustand %s" % s)
 	# default sliders: Gesamt 0.8, Musik 0.7
@@ -176,8 +201,9 @@ func test_loudness_plan_in_the_configuration() -> void:
 	var master := float(mix.loudness["master_lufs"])
 	assert_near(master + mix.music_context_db("menu") + sliders, float(mix.loudness["menu_music_lufs"]), 0.25, "Menümusik bei Standardreglern")
 	assert_near(master + mix.music_context_db("title") + sliders, float(mix.loudness["menu_music_lufs"]), 0.25, "Titel wie Menü")
-	# race: with the car at full throttle the ducked music sits music_under_car_db below it
-	var ducked := master + mix.music_context_db("race") + sliders - mix.duck_depth_db
+	# race: with the car at full throttle the ducked music sits music_under_car_db below it (the race EQ of the
+	# music bus takes RACE_EQ_LOSS_DB of its loudness)
+	var ducked := master + mix.music_context_db("race") - RACE_EQ_LOSS_DB + sliders - mix.duck_depth_db
 	assert_near(ducked, float(mix.loudness["full_throttle_lufs"]) - float(mix.loudness["music_under_car_db"]), 0.6, "Musik im Rennen unter Vollgas")
 	assert_true(mix.music_context_db("gibtsnicht") == 0.0, "unbekannter Kontext: 0 dB")
 	for c in ModernMix.CONTEXTS:
