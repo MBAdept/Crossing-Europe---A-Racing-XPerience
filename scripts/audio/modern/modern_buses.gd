@@ -139,7 +139,7 @@ func build(modern: Dictionary = {}) -> void:
 	# snapshot low-passes (off) and faders (0 dB), in this order at the end of the chain
 	for n in LOWPASS_BUSES:
 		var lp := AudioEffectLowPassFilter.new()
-		lp.cutoff_hz = LOWPASS_OFF_HZ
+		lp.cutoff_hz = LOWPASS_OFF_HZ   # slope: the effect's default (one biquad stage, 12 dB per octave)
 		var idx := index(n)
 		AudioServer.add_bus_effect(idx, lp)
 		AudioServer.set_bus_effect_enabled(idx, AudioServer.get_bus_effect_count(idx) - 1, false)

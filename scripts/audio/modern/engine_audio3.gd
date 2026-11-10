@@ -65,8 +65,7 @@ func set_vehicle(id: String) -> void:
 	vehicle_id = id
 	var vmax := float(ConfigLoader.lookup(ctx.cfg, "vehicles.types.%s.vmax_kmh" % id, 250.0))
 	_fallback = EngineGearbox.generic(vmax, _gears)
-	if _eng != null:
-		_eng.detach()
+	_detach(_eng)
 	_eng = null
 	_start_pending = false
 	var bank := _bank(id)
@@ -146,6 +145,7 @@ func _update_preview(dt: float) -> void:
 	if _preview == null:
 		return
 	if _preview_next != null and _preview.is_silent():
+		_keep_stream(_preview)
 		_preview_next.take_output(_preview, ctx.host, BUS, _buffer)
 		_preview = _preview_next
 		_preview_next = null
@@ -163,15 +163,28 @@ func _update_preview(dt: float) -> void:
 
 
 func _stop_preview() -> void:
-	if _preview != null:
-		_preview.detach()
+	_detach(_preview)
 	_preview = null
 	_preview_next = null
 
 
+## Detaches an engine from its player. The generator stream is kept alive a little longer than the player (see
+## ModernAudioContext.keep_alive: the audio thread still mixes a fade-out block of it).
+func _detach(e: EngineAudio) -> void:
+	if e == null:
+		return
+	_keep_stream(e)
+	e.detach()
+
+
+func _keep_stream(e: EngineAudio) -> void:
+	if e != null and e.player != null and is_instance_valid(e.player):
+		ModernAudioContext.keep_alive(e.player.stream)
+
+
 func stop_all() -> void:
 	if _eng != null:
-		_eng.detach()
+		_detach(_eng)
 		_eng.reset()
 	_stop_preview()
 	if _fallback != null:
@@ -179,8 +192,7 @@ func stop_all() -> void:
 
 
 func teardown() -> void:
-	if _eng != null:
-		_eng.detach()
+	_detach(_eng)
 	_eng = null
 	_stop_preview()
 

@@ -1,0 +1,315 @@
+extends TestCase
+## AudioFeed v0 (contract D28, §4.7.2): what the Modern sound derives from the Track at the player's car – surfaces
+## per side, zone, structures with their in/out events and joints, passed roadside objects – on a synthetic track
+## and on a real one. It only reads, and only at and behind the car.
+
+const COUNTRIES := {"DE": {"name": "Deutschland", "name_local": "Deutschland", "limits": {"autobahn": null, "landstrasse": 100, "city": 50}}}
+const CITIES := {"a": {"name": "Astadt", "country": "DE"}, "b": {"name": "Bdorf", "country": "DE"}}
+
+
+## A track with just what the feed reads; remembers the highest segment index asked for.
+class FakeTrack:
+	extends RefCounted
+	var seg_len := 3.0
+	var time_scale := 10.0
+	var shoulder_w := 2.5
+	var scenery_db := {"wald": {"background": {"style": "forest"}}, "berg": {"background": {"style": "alps"}},
+		"flach": {"background": {"style": "plain"}}, "vorstadt": {"background": {"style": "suburb"}}}
+	var bridges: Array[Dictionary] = []
+	var zones: Array[Dictionary] = []
+	var plan := FakePlan.new()
+	var segs: Dictionary = {}
+	var max_asked := -1
+	var asked := 0
+	var scenery := "flach"
+	var city := false
+	var guardrail := true
+
+	func get_segment(index: int) -> TrackSegment:
+		max_asked = maxi(max_asked, index)
+		asked += 1
+		if not segs.has(index):
+			var s := TrackSegment.new()
+			s.index = index
+			s.z = index * seg_len
+			s.scenery = scenery
+			s.city = city
+			s.guardrail = guardrail
+			s.road = "autobahn"
+			segs[index] = s
+		return segs[index]
+
+	func road_edges_at(_z: float) -> Vector2:
+		return Vector2(-5.625, 5.625)
+
+	func put(z: float, p: Dictionary) -> void:
+		get_segment(int(floor(z / seg_len))).sprites.append(p)
+		max_asked = -1
+		asked = 0
+
+
+class FakePlan:
+	extends RefCounted
+	var tunnels: Array[Dictionary] = []
+
+
+func _feed(track: Object) -> AudioFeed:
+	var f := AudioFeed.new()
+	var m: Variant = ConfigLoader.lookup(cfg(), "audio.modern", {})
+	f.setup(m if m is Dictionary else {})
+	f.set_track(track)
+	return f
+
+
+func _state(z: float, x: float = 0.0, extra: Dictionary = {}) -> Dictionary:
+	var s := {"z": z, "x": x, "speed": 130.0, "road_left": -5.625, "road_right": 5.625, "shoulder_m": 2.5,
+		"off_road": 0, "rail_contact": false, "weather": "normal"}
+	s.merge(extra, true)
+	return s
+
+
+## Drives from z0 to z1 in steps and returns every event.
+func _drive(f: AudioFeed, z0: float, z1: float, step: float = 1.2, x: float = 0.0, extra: Dictionary = {}) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var z := z0
+	while z <= z1:
+		f.update(_state(z, x, extra))
+		for e in f.events:
+			out.append(e.duplicate())
+		z += step
+	return out
+
+
+func _names(events: Array[Dictionary]) -> Array[String]:
+	var out: Array[String] = []
+	for e in events:
+		out.append(str(e["name"]))
+	return out
+
+
+func test_without_track_or_position_nothing_is_derived() -> void:
+	var f := AudioFeed.new()
+	f.update(_state(100.0))
+	assert_false(f.valid, "ohne Strecke ungültig")
+	assert_false(f.has_track(), "keine Strecke")
+	f.set_track(FakeTrack.new())
+	assert_true(f.has_track(), "Strecke gesetzt")
+	f.update({"speed": 100.0})
+	assert_false(f.valid, "ohne Position ungültig")
+	f.update(_state(100.0))
+	assert_true(f.valid, "mit Position gültig")
+	f.set_track(null)
+	assert_false(f.has_track(), "Strecke wieder weg")
+	assert_eq(f.zone, "open", "neutrale Werte")
+
+
+func test_surface_under_a_wheel() -> void:
+	var f := AudioFeed.new()
+	f.rumble_in_m = 0.3
+	f.rumble_out_m = 0.5
+	var l := -5.625
+	var r := 5.625
+	assert_eq(f.surface_at(0.0, l, r, 2.5, false), "asphalt", "Fahrbahnmitte")
+	assert_eq(f.surface_at(r - 0.31, l, r, 2.5, false), "asphalt", "knapp vor der Randlinie")
+	assert_eq(f.surface_at(r - 0.2, l, r, 2.5, false), "rumble", "auf der Randlinie")
+	assert_eq(f.surface_at(r + 0.4, l, r, 2.5, false), "rumble", "auf dem Rüttelstreifen")
+	assert_eq(f.surface_at(r + 0.6, l, r, 2.5, false), "shoulder", "Bankett")
+	assert_eq(f.surface_at(l - 1.5, l, r, 2.5, false), "shoulder", "Bankett links")
+	assert_eq(f.surface_at(r + 2.6, l, r, 2.5, false), "grass", "jenseits des Banketts")
+	assert_eq(f.surface_at(r + 1.0, l, r, 2.5, true), "grass", "am offenen Rand: Gras")
+	for s in [f.surface_at(0.0, l, r, 2.5, false), f.surface_at(r + 9.0, l, r, 2.5, false)]:
+		assert_true(AudioFeed.SURFACES.has(s), "bekannte Oberfläche")
+
+
+func test_surfaces_per_side_from_the_state() -> void:
+	var f := _feed(FakeTrack.new())
+	f.set_vehicle_width(1.86)
+	assert_near(f.track_half_m, 0.78, 0.01, "halbe Spurweite aus der Fahrzeugbreite")
+	f.update(_state(50.0, 0.0))
+	assert_eq([f.surface_l, f.surface_r], ["asphalt", "asphalt"], "mittig")
+	f.update(_state(51.0, 5.0))        # right wheels at 5.78: over the edge by 0.16 m
+	assert_eq([f.surface_l, f.surface_r], ["asphalt", "rumble"], "rechte Räder auf dem Rüttelstreifen")
+	f.update(_state(52.0, 6.0))        # right wheels on the shoulder, left wheels still on the road
+	assert_eq([f.surface_l, f.surface_r], ["asphalt", "shoulder"], "rechts auf dem Bankett")
+	f.update(_state(53.0, -6.0))
+	assert_eq([f.surface_l, f.surface_r], ["shoulder", "asphalt"], "links auf dem Bankett")
+	f.update(_state(53.5, 6.2))        # further out: the left wheels reach the edge line
+	assert_eq([f.surface_l, f.surface_r], ["rumble", "shoulder"], "linke Räder auf der Randlinie")
+	f.update(_state(54.0, 7.2, {"off_road": 2, "rail_contact": true}))
+	assert_eq(f.surface_r, "shoulder", "an der Leitplanke: Bankett, kein Gras")
+	f.update(_state(55.0, 7.2, {"off_road": 2, "rail_contact": false}))
+	assert_eq(f.surface_r, "grass", "am offenen Rand rechts: Gras")
+	assert_eq(f.surface_l, "shoulder", "die linken Räder noch auf dem Bankett")
+	# weather: wet / snow outside, dry in a tunnel
+	f.update(_state(56.0, 0.0, {"weather": "rain"}))
+	assert_near(f.wet, 1.0, 1.0e-6, "Regen: nass")
+	f.update(_state(57.0, 0.0, {"weather": "snow"}))
+	assert_near(f.snow, 1.0, 1.0e-6, "Schnee")
+	assert_near(f.wet, 0.0, 1.0e-6, "Schnee ist nicht nass")
+
+
+func test_structures_and_their_events() -> void:
+	var t := FakeTrack.new()
+	t.plan.tunnels = [{"start_km": 3.0, "end_km": 4.0, "name": "T"}]          # z 300 … 400
+	t.bridges = [{"z0": 600.0, "z1": 690.0, "type": "truss", "depth": 8.0}]
+	t.zones = [{"kind": "fuel", "z0": 100.0, "z1": 200.0}, {"kind": "fuel_canopy", "z0": 120.0, "z1": 132.0},
+		{"kind": "border", "z0": 800.0, "z1": 818.0, "country": "NL"}]
+	var f := _feed(t)
+	assert_eq(f.structures().size(), 4, "Tunnel, Brücke, zwei Dächer (die Tankzone selbst ist kein Bauwerk)")
+	var ev := _drive(f, 90.0, 140.0)
+	assert_eq(_names(ev), ["cover_in", "cover_out"] as Array[String], "unter dem Tankstellendach durch")
+	assert_eq(str(ev[0]["kind"]), "fuel", "Art des Dachs")
+	assert_near(float(ev[0]["z"]), 120.0, 1.0e-6, "Ort des Ereignisses")
+	# tunnel
+	ev = _drive(f, 280.0, 420.0, 1.2, 0.0, {"weather": "rain"})
+	assert_eq(_names(ev), ["tunnel_in", "tunnel_out"] as Array[String], "Tunnel")
+	f.update(_state(350.0, 0.0, {"weather": "rain"}))
+	assert_true(f.tunnel, "im Tunnel")
+	assert_eq(f.zone, "tunnel", "Zone Tunnel")
+	assert_near(f.depth_m, 50.0, 1.0e-6, "50 m bis zum näheren Portal")
+	assert_near(f.wet, 0.0, 1.0e-6, "im Tunnel trocken")
+	# bridge: joints at both ends and every joint_every_m in between
+	f.update(_state(590.0))
+	ev = _drive(f, 591.0, 700.0)
+	var names := _names(ev)
+	assert_eq(names[0], "bridge_in", "Brücke beginnt")
+	assert_eq(names[1], "joint", "Fuge am Anfang")
+	assert_eq(names[names.size() - 2], "joint", "Fuge am Ende")
+	assert_eq(names[names.size() - 1], "bridge_out", "Brücke endet")
+	var joints: Array[float] = []
+	for e in ev:
+		if str(e["name"]) == "joint":
+			joints.append(float(e["z"]))
+	assert_eq(joints, [600.0, 624.0, 648.0, 672.0, 690.0] as Array[float], "Fugen alle 24 m und an den Enden (keine dicht vor dem Ende)")
+	f.update(_state(640.0))
+	assert_eq(f.bridge, "truss", "Brückentyp")
+	assert_eq(f.zone, "bridge", "Zone Brücke")
+	ev = _drive(f, 790.0, 830.0)
+	assert_eq(_names(ev), ["cover_in", "cover_out"] as Array[String], "Grenzstation")
+	assert_eq(str(ev[0]["kind"]), "border", "Grenzdach")
+
+
+func test_zone_from_scenery_and_city() -> void:
+	var t := FakeTrack.new()
+	var f := _feed(t)
+	for pair: Array in [["flach", "open"], ["wald", "forest"], ["berg", "valley"], ["vorstadt", "city"], ["unbekannt", "open"]]:
+		t.scenery = str(pair[0])
+		t.segs.clear()
+		f.update(_state(30.0))
+		assert_eq(f.zone, str(pair[1]), "Landschaft %s" % str(pair[0]))
+		assert_true(AudioFeed.ZONES.has(f.zone), "bekannte Zone")
+	t.scenery = "wald"
+	t.city = true
+	t.segs.clear()
+	f.update(_state(33.0))
+	assert_eq(f.zone, "city", "City Limits gehen vor")
+	assert_true(f.city, "Stadt")
+	assert_true(f.guardrail, "Leitplanke aus dem Segment")
+	assert_eq(f.road, "autobahn", "Straßentyp")
+
+
+func test_passed_objects() -> void:
+	var t := FakeTrack.new()
+	t.put(30.5, {"kind": "prop", "set": "props/tree_oak", "x": 9.0, "side": 1, "scale": 1.2, "z": 31.0})
+	t.put(40.0, {"kind": "prop", "set": "props/bush_round", "x": 8.0, "side": 1, "scale": 1.0, "z": 40.5})
+	t.put(51.0, {"kind": "sign", "sign": "limit", "x": -8.4, "side": -1, "scale": 1.0})
+	t.put(60.0, {"kind": "sign", "sign": "start", "x": 0.0, "side": 0, "scale": 1.0})
+	t.put(72.0, {"kind": "prop", "set": "props/wind_turbine", "x": 120.0, "side": 1, "scale": 1.0, "z": 72.5})
+	t.put(81.0, {"kind": "object", "obj": "streetlight", "x": 7.5, "side": 1, "scale": 1.0, "z": 81.0})
+	t.put(90.0, {"kind": "prop", "set": "props/city_hanse_gabled", "x": -11.0, "side": -1, "scale": 1.0, "z": 91.0})
+	t.put(300.0, {"kind": "prop", "set": "props/tree_oak", "x": 9.0, "side": 1, "scale": 1.0, "z": 300.5})
+	var f := _feed(t)
+	var ev := _drive(f, 20.0, 110.0, 1.4, 1.875)
+	assert_eq(_names(ev), ["pass_object", "pass_object", "pass_object", "pass_object", "pass_object"] as Array[String], "fünf Objekte am Rand, Busch und fernes Windrad nicht")
+	assert_eq(str(ev[0]["kind"]), "tree", "Baum")
+	assert_eq(int(ev[0]["side"]), 1, "rechts")
+	assert_near(float(ev[0]["dist_m"]), 9.0 - 1.875, 1.0e-5, "Abstand vom Auto, nicht von der Mitte")
+	assert_near(float(ev[0]["size"]), 1.2, 1.0e-5, "Größe mit Skalierung")
+	assert_eq(str(ev[0]["set"]), "props/tree_oak", "Set")
+	assert_eq([str(ev[1]["kind"]), int(ev[1]["side"])], ["sign", -1], "Schild links")
+	assert_eq([str(ev[2]["kind"]), int(ev[2]["side"])], ["gantry", 0], "Schilderbrücke über der Fahrbahn")
+	assert_near(float(ev[2]["dist_m"]), 0.0, 1.0e-6, "über dem Auto")
+	assert_eq(str(ev[3]["kind"]), "post", "Laterne")
+	assert_eq(str(ev[4]["kind"]), "building", "Haus")
+	# each object once, in the order of the road
+	var last := -1.0
+	for e in ev:
+		assert_true(float(e["z"]) > last, "in Fahrtrichtung geordnet")
+		last = float(e["z"])
+	# read-only and never ahead: the segment of the car is the farthest one asked for
+	assert_eq(t.max_asked, int(floor(f.z / 3.0)), "kein Segment vor dem Auto angefasst")
+	assert_true(t.asked < 400, "wenige Abfragen (%d)" % t.asked)
+	# object kinds
+	assert_eq(AudioFeed.object_kind({"kind": "prop", "set": "props/heather"})[0], "", "Heide klingt nicht")
+	assert_eq(AudioFeed.object_kind({"kind": "prop", "set": "props/etwas_neues"})[0], "object", "Unbekanntes als Objekt")
+	assert_eq(AudioFeed.object_kind({"kind": "prop", "set": "landmarks/michel"})[0], "building", "Wahrzeichen als Bauwerk")
+
+
+func test_jumps_make_no_events() -> void:
+	var t := FakeTrack.new()
+	t.plan.tunnels = [{"start_km": 3.0, "end_km": 4.0, "name": "T"}]
+	t.put(250.0, {"kind": "prop", "set": "props/tree_oak", "x": 8.0, "side": 1, "scale": 1.0, "z": 250.5})
+	var f := _feed(t)
+	f.update(_state(10.0))
+	f.update(_state(500.0))      # start-km jump across a tree and a tunnel
+	assert_true(f.events.is_empty(), "Versetzen: keine Ereignisse")
+	assert_false(f.tunnel, "hinter dem Tunnel")
+	f.update(_state(350.0))      # backwards (new stage)
+	assert_true(f.events.is_empty(), "rückwärts: keine Ereignisse")
+	assert_true(f.tunnel, "aber der Zustand stimmt")
+	# the number of events per update is bounded
+	var crowd := FakeTrack.new()
+	for i in 40:
+		crowd.put(30.0 + i * 0.05, {"kind": "prop", "set": "props/tree_oak", "x": 8.0, "side": 1, "scale": 1.0, "z": 30.0 + i * 0.05})
+	var g := _feed(crowd)
+	g.update(_state(20.0))
+	g.update(_state(40.0))
+	assert_eq(g.events.size(), g.max_events, "höchstens max_events je Bild")
+
+
+## A real track: the feed finds its tunnel where the plan has it and never generates road ahead of the car.
+func test_on_a_real_track() -> void:
+	var stage := {"id": "t_feed", "from": "a", "to": "b", "length_km": 60, "seed": 4711,
+		"sections": [{"length_km": 30, "road": "autobahn", "curviness": 2, "hills": 2, "scenery": "forest_hills", "country": "DE", "speed_limit": null},
+			{"length_km": 30, "road": "landstrasse", "curviness": 3, "hills": 3, "scenery": "north_plain", "country": "DE"}],
+		"fuel_stations_km": [20], "radars": [], "tunnels": [{"km": 10, "length_km": 2, "name": "Testtunnel"}], "borders": []}
+	var plan := StagePlan.build(stage, "a", CITIES, COUNTRIES, cfg())
+	var sc: Variant = ConfigLoader.load_json("res://data/scenery.json")
+	var track := Track.new()
+	track.setup(plan, cfg(), (sc as Dictionary).get("scenery", {}))
+	var f := _feed(track)
+	var has_tunnel := false
+	for s in f.structures():
+		has_tunnel = has_tunnel or str(s["kind"]) == "tunnel"
+	assert_true(has_tunnel, "der Tunnel des Plans ist erfasst")
+	var z0 := track.km_to_z(8.0)
+	var z1 := track.km_to_z(12.5)
+	var z := z0
+	var names: Array[String] = []
+	var passes := 0
+	var mismatches := 0
+	while z <= z1:
+		track.update_window(z - 9.0, 300.0)   # as the race session does (camera behind the car)
+		var gen_before := int(track.get("_gen_next"))
+		f.update(_state(z, 0.0, {"road_left": track.road_edges_at(z).x, "road_right": track.road_edges_at(z).y}))
+		assert_eq(int(track.get("_gen_next")), gen_before, "die Auswertung erzeugt keine Strecke")
+		if f.tunnel != track.is_tunnel_at(z):
+			mismatches += 1
+		for e in f.events:
+			if str(e["name"]) == "pass_object":
+				passes += 1
+			else:
+				names.append(str(e["name"]))
+		z += 130.0 / 3.6 / 60.0
+	assert_eq(mismatches, 0, "Tunnel wie im Plan")
+	assert_eq(names, ["tunnel_in", "tunnel_out"] as Array[String], "ein Tunnel durchfahren")
+	assert_true(passes >= 3, "Objekte am Rand gemeldet (%d)" % passes)
+	assert_eq(f.zone, "forest", "Mittelgebirge: Wald")
+	assert_eq(f.road, "autobahn", "Straßentyp aus dem Segment")
+	# alone (no session generating the road): asking at the car creates segments up to the car at most
+	var fresh := Track.new()
+	fresh.setup(plan, cfg(), (sc as Dictionary).get("scenery", {}))
+	var g := _feed(fresh)
+	g.update(_state(600.0))
+	g.update(_state(601.0))
+	assert_true(int(fresh.get("_gen_next")) <= fresh.segment_index_at(601.0) + 1, "nie weiter als bis zum Auto")

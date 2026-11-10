@@ -66,6 +66,41 @@ func player(bus: String, node_name: String = "") -> AudioStreamPlayer:
 static func free_player(p: AudioStreamPlayer) -> void:
 	if p == null or not is_instance_valid(p):
 		return
+	if p.stream is AudioStreamGenerator:
+		keep_alive(p.stream)
 	p.stop()
 	p.stream = null
 	p.queue_free()
+
+
+## Streams that must outlive their playback: [[stream, release at ticks ms], …]
+static var _kept: Array = []
+const KEEP_ALIVE_MS := 2000
+
+
+## Holds a reference to a generator stream for KEEP_ALIVE_MS. Call it before the player of an
+## AudioStreamGenerator is stopped and freed: the engine's AudioStreamGeneratorPlayback keeps a plain pointer to
+## its AudioStreamGenerator and the audio thread still mixes a fade-out block after stop(). When the player is
+## freed in the same frame, the stream goes with it and the mixer reads the sample rate from freed memory.
+## Measured (Godot 4.7.2, profile switches with a running engine and a preview, playback forced in a headless run):
+## without this the audio thread hung in 4 of 29 runs – spinning in the resampler with a sample rate of −2.1e37
+## read through the dangling pointer, the main thread blocked on the audio lock; with it 0 of 30
+## (docs/audio-modern.md "Fallen").
+static func keep_alive(stream: Resource) -> void:
+	release_kept()
+	if stream != null:
+		_kept.append([stream, Time.get_ticks_msec() + KEEP_ALIVE_MS])
+
+
+## Number of streams held at the moment (tests: they are not leaks).
+static func kept_count() -> int:
+	return _kept.size()
+
+
+## Drops the kept streams whose time is over (called every frame by ModernAudio).
+static func release_kept() -> void:
+	if _kept.is_empty():
+		return
+	var now := Time.get_ticks_msec()
+	while not _kept.is_empty() and int(_kept[0][1]) <= now:
+		_kept.pop_front()

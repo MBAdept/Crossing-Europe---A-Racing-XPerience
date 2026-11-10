@@ -407,6 +407,7 @@ func event(event_name: String, args: Dictionary = {}) -> void:
 func step(delta: float, paused: bool) -> void:
 	if not started or delta <= 0.0:
 		return
+	ModernAudioContext.release_kept()
 	_time += delta
 	_paused = paused
 	var f := frame
