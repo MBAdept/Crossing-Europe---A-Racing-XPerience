@@ -5,12 +5,24 @@ extends Node
 ## Files: <prefix>_<index>.png (index starting at 0, two digits).
 ## A window larger than the 16:9 picture (e.g. 1280×800 like the Steam Deck, stretch aspect "keep")
 ## is saved whole: the picture centred with black bars, exactly as the screen shows it.
+##
+## --shot-fast (v0.8.0, with --fixed-fps): the game runs every frame, but the picture is only rendered from
+## FAST_LEAD_S before each shot on (RenderingServer.render_loop_enabled) – software OpenGL otherwise spends its time
+## on pictures nobody looks at. Scripts, _draw() and the simulation run as always, so the shots are the same
+## pictures (tools/golden.sh compares them with fully rendered runs), about 4× faster.
+## hold: the clock stands while it is true – the race session holds it until a Modern renderer has prepared its
+## stage, so equal shot times show equal simulation states in both graphics modes.
 
 signal all_done
+
+## --shot-fast: seconds before a shot from which the picture is rendered again (6 frames at 60 fps).
+const FAST_LEAD_S := 0.1
 
 var prefix := ""
 var times: Array[float] = []
 var quit_when_done := true
+var hold := false
+var fast := false
 var _t := 0.0
 var _next := 0
 var _busy := false
@@ -21,20 +33,30 @@ func configure(path_prefix: String, shot_times: Array[float], quit_after: bool =
 	times = shot_times.duplicate()
 	times.sort()
 	quit_when_done = quit_after
+	fast = CliArgs.has("shot-fast")
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
 
 func _process(delta: float) -> void:
-	if prefix == "" or _busy:
+	if prefix == "" or _busy or hold:
 		return
 	_t += delta
+	if fast and _next < times.size():
+		RenderingServer.render_loop_enabled = _t >= times[_next] - FAST_LEAD_S
 	if _next < times.size() and _t >= times[_next]:
 		_capture(_next)
 		_next += 1
 
 
+func _exit_tree() -> void:
+	if fast:
+		RenderingServer.render_loop_enabled = true
+
+
 func _capture(index: int) -> void:
 	_busy = true
+	if fast:
+		RenderingServer.render_loop_enabled = true
 	await RenderingServer.frame_post_draw
 	var img := window_image(get_viewport().get_texture().get_image())
 	var path := "%s_%02d.png" % [prefix, index]

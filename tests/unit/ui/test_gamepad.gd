@@ -532,7 +532,8 @@ func test_old_settings_file_counts_only_a_stored_fullscreen_true() -> void:
 	s.set("master_volume", 0.6)
 	assert_true(bool(s.call("save_settings")), "gespeichert")
 	var d: Variant = ConfigLoader.load_json(SETTINGS_FILE)
-	assert_true(d is Dictionary and int((d as Dictionary).get("settings_version", 0)) == 2, "Version 2 geschrieben")
+	# v0.8.0 writes version 3; "Vollbild" counts as chosen from version 2 on (Settings.FULLSCREEN_CHOICE_SINCE)
+	assert_true(d is Dictionary and int((d as Dictionary).get("settings_version", 0)) == 3, "Version 3 geschrieben")
 	assert_true(d is Dictionary and not (d as Dictionary).has("fullscreen"), "Vollbild nicht gewählt: nicht mehr gespeichert")
 	s.free()
 	# a v0.5.1 file with "fullscreen": true stays full screen (chosen); a v2 file with false is the player's choice
