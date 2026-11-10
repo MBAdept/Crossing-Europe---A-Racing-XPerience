@@ -204,6 +204,9 @@ func shutdown() -> void:
 
 
 func _exit_tree() -> void:
+	# the game quits with this profile: --perf prints the timing as the Arcade AudioManager does
+	if started and CliArgs.has("perf"):
+		print("AUDIO_PERF ", JSON.stringify({"profile": "modern", "traffic": traffic_perf(), "engine": engine_perf()}))
 	shutdown()
 
 

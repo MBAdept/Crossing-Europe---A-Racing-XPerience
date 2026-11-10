@@ -185,8 +185,8 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	if _modern != null:
-		_modern.shutdown()   # its players, threads and buses; the node goes with this one
-	if CliArgs.has("perf") and _traffic != null and _traffic.perf_calls > 0:
+		_modern.shutdown()   # its players, threads and buses; the node goes with this one (--perf: its own AUDIO_PERF)
+	elif CliArgs.has("perf") and _traffic != null and _traffic.perf_calls > 0:
 		print("AUDIO_PERF ", JSON.stringify({"traffic": traffic_perf(), "engine": engine_perf()}))
 	if _traffic != null:
 		_traffic.detach()

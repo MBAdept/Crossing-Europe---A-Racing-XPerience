@@ -1,7 +1,7 @@
 class_name ModernAudioModule
 extends RefCounted
 ## Base class of a slot of the Modern sound (docs/audio-modern.md "Bausteine"). ModernAudio creates one object per
-## slot (ModernAudio.SLOTS: engine, layers, road, impact, ambience, env, traffic, sfx, music), calls the hooks below
+## slot (ModernAudio.SLOTS: env, engine, layers, road, impact, ambience, traffic, music, sfx), calls the hooks below
 ## in that order and frees it when the profile ends. A slot owns its players and its part of the configuration
 ## (audio.modern.<slot>); it gets everything else through `ctx` and the frame and never talks to another slot or
 ## to the AudioManager.

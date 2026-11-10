@@ -5,7 +5,7 @@ extends RefCounted
 ##
 ## manifest.json (format "ce-audio-manifest-1", written by the tools under tools/audio/modern, checked by
 ## tools/audio/qc/audio_qc.py):
-##   {"format": "ce-audio-manifest-1", "folder": "ui", "generator": "<tool that writes the folder>",
+##   {"format": "ce-audio-manifest-1", "folder": "ui",
 ##    "sounds": {"<id>": {
 ##       "file": "x.wav" | "files": ["a.wav", "b.wav"],   one file or variants (one-shots: a random one each time)
 ##       "kind": "oneshot" | "loop" | "music" | "bank",  bank = raw engine data (<car>.i16 next to <car>.json)
@@ -16,6 +16,7 @@ extends RefCounted
 ##       "loop": [0, 44100] | null,                       loop points in frames [begin, end) – as in the import settings
 ##       "bpm": 120.0, "beats": 8, "bar_beats": 4,        music: tempo, length in beats, beats per bar
 ##       "bytes": 52964, "sha256": "…",                   per file (lists for variants)
+##       "generator": "tools/audio/modern/<tool>.py",     the tool that writes this sound (several can share a folder)
 ##       "placeholder": true                              stand-in until the real sound exists (see below)
 ##    }}}
 ## Placeholders are only visible with use_placeholders (config audio.modern.placeholders – tests and pipeline
