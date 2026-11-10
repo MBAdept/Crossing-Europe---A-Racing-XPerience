@@ -7,9 +7,10 @@ extends Node2D
 ## setup: {mode: "race"|"single", race_id, stage_id, from_city, vehicle, start_world_minutes,
 ##         weather, start_km (debug), autopilot (debug), seed, start_fuel_l (race, v0.7.0: litres carried over from
 ##         the last stage; missing or -1 = the stage's own filling), last_stage (race, v0.7.0: the stage ends the
-##         race – its tank goes nowhere)}
+##         race – its tank goes nowhere), gfx (v0.8.0, optional: "arcade" | "modern" – graphics mode of this stage
+##         for attract demos, the Leistungstest and tests; missing = Settings.effective_graphics())}
 ## result (signal stage_finished): see ARCHITECTURE.md §Ergebnis (v0.7.0 adds fuel_start_l, fuel_end_l, tank_l,
-## start_towed).
+## start_towed; v0.8.0 gfx and, after a fallback from Modern to Arcade, gfx_fallback).
 ## Fuel carried over (v0.7.0): FuelSystem.start_check() decides at the build – a tank that does not reach the first
 ## fuel lane even at the lane trigger speed gets the tow service before the start (_tow_before_start); the countdown
 ## names the carried litres and what they are good for (SessionRules.carry_messages).
@@ -34,10 +35,31 @@ extends Node2D
 ## - pause: the pause key, focus loss (also during the countdown), the gamepad in use disconnected
 ##   (InputSetup.pad_disconnected), back from standby; the paused race draws at FrameCap.IDLE_FPS.
 ## - every sprite sheet the stage can show is loaded before the start (no loading hitch in the race).
+##
+## Graphics modes (v0.8.0, ARCHITECTURE.md §15, docs/dev/v080_contract.md §4.4): the stage is drawn by one of two
+## renderers behind the same interface (RaceRenderers) – "arcade" = RoadRenderer as before, "modern" = ModernRenderer
+## (real 3D). The mode is setup.gfx (attract demos, Leistungstest, tests) or Settings.effective_graphics(), fixed for
+## the whole stage. The simulation is the same in both modes and never reads the renderer. Modern only:
+## - the crash-guard marker is written before the renderer is built and removed after CRASH_GUARD_S of drawn frames
+##   (or when the stage falls back to Arcade or leaves the tree in an orderly way before that): it only survives a
+##   crash or a hang that had to be killed – then the next start of the game is Arcade (Settings.crash_guard);
+## - the window is filled (stretch aspect "expand"); Arcade keeps "keep" (GameFlow);
+## - the renderer prepares the stage over several frames behind a loading overlay (canvas layer 6). Until
+##   is_prepared() nothing of the stage runs: no simulation step, no countdown, no HUD timer, no sound, and the
+##   Screenshotter's clock stands – equal shot times show equal simulation states in both modes (_gfx_state);
+## - a renderer that is not healthy() is replaced by the Arcade renderer before the start (_fall_back): message in
+##   the HUD, result fields gfx = "arcade" and gfx_fallback = <reason>;
+## - only the HUD icons are loaded as sprite sheets – the vehicle, prop and landmark sheets stay unloaded.
+## Both modes send the hooks of the Modern sound (set_track, set_vehicle_state, event – contract §4.7.2) to the
+## AudioManager where it has them; the sound profile is independent of the graphics mode.
 
 signal stage_finished(result: Dictionary)
 signal stage_aborted(reason: String)
 signal restart_requested
+## The stage starts to run (v0.8.0): emitted before its first simulation step – at once in an Arcade stage, after
+## the renderer's preparation in Modern (the loading overlay goes). Whoever times something from the start of a
+## stage (attract demo, Leistungstest) counts from here; is_live() asks for the same.
+signal stage_live
 
 var setup: Dictionary = {}
 var standalone := false
@@ -45,7 +67,7 @@ var cfg: Dictionary = {}
 var plan: StagePlan
 var track: Track
 var proj: RoadProjection
-var renderer: RoadRenderer
+var renderer                     ## RoadRenderer (Arcade) or ModernRenderer (Modern), see RaceRenderers – untyped
 var vehicle: VehicleModel
 var traffic: TrafficSystem
 var fuel: FuelSystem
@@ -127,6 +149,35 @@ var _police_rel_kmh := 0.0
 
 const POLICE_VIEW_ID := -2       ## vehicle id of the police car in the view (pose smoothing in the renderer)
 
+## Graphics mode the stage is drawn in (Gfx.ARCADE | Gfx.MODERN); "arcade" after a fallback (result field gfx).
+var gfx := Gfx.ARCADE
+## Why Modern could not draw this stage and Arcade took over ("" = no fallback): the renderer's fail_reason() –
+## "selftest:<reason>", "manifest", "shader", "timeout" – or "renderer" (it could not be created). Result field.
+var gfx_fallback := ""
+## Receiver of the sound hooks set_track / set_vehicle_state / event (contract §4.7.2); null = the AudioManager.
+## Tests set a recorder before the scene enters the tree.
+var audio_hooks: Object = null
+## Modern start-up: PREPARING = the renderer prepares the stage (loading overlay, nothing runs), PREPARED = done in
+## the last frame, the next simulation step starts the stage (_go_live), LIVE = running. Arcade is LIVE at once.
+enum GfxState { LIVE, PREPARING, PREPARED }
+const CRASH_GUARD_S := 2.0       ## Modern: drawn seconds after which the crash-guard marker is removed
+const LOADING_LAYER := 6         ## canvas layer of the loading overlay (HUD and pause menu: 5)
+var _gfx_state := GfxState.LIVE
+var _loading: CanvasLayer        ## loading overlay while a Modern renderer prepares the stage
+var _loading_overlay: LoadingOverlay
+var _shot: Screenshotter         ## --screenshot: its clock is held while the stage is prepared
+var _guard_armed := false        ## Modern: the crash-guard marker of this stage is still out
+var _guard_s := -1.0             ## … drawn seconds left until it is removed (< 0: the stage has not started yet)
+## The session that gave the sound its track / armed the crash guard last (instance ids). GameFlow adds the scene of
+## the next stage before the one before has left the tree: a leaving stage must not take away what the new one set.
+static var _track_owner := 0
+static var _guard_owner := 0
+var _pause_wanted := false       ## auto_pause() came while the stage was prepared: pause at the start
+var _stage_sets: Array[String] = []   ## every sprite set the stage can show (_stage_sprite_sets)
+var _stage_start_sent := false   ## sound event "stage_start" (before the first simulation step)
+var _hooks_state := false        ## the sound receiver takes set_vehicle_state (checked once)
+var _hit_info: Dictionary = {}   ## collision that starts the next crash (sound event "collision")
+
 var haptics: Haptics             ## gamepad vibration (Settings.vibration, no autopilot)
 var preloaded_sets: Array[String] = []   ## sprite sets loaded before the start (_preload_sprites)
 var _stick_dz := 0.12            ## input.stick_deadzone
@@ -202,20 +253,35 @@ func _build() -> void:
 	track = Track.new()
 	track.setup(plan, cfg, GameData.scenery)
 
-	renderer = RoadRenderer.new()
-	add_child(renderer)
-	renderer.setup(track, proj, cfg, GameData.scenery)
-	if CliArgs.has("no-glow-occlusion"):
-		renderer.set_glow_occlusion(false)   # debug: lights as in v0.5.0 (A/B screenshots, docs/renn-modul.md §11)
+	# graphics mode of this stage (v0.8.0): chosen once, the renderer is never swapped while the stage runs
+	gfx = Gfx.MODERN if str(setup.get("gfx", Settings.effective_graphics()["mode"])) == Gfx.MODERN else Gfx.ARCADE
+	if gfx == Gfx.MODERN:
+		# first of all the crash-guard marker: a crash or hang while Modern builds or draws leaves it for the next start
+		Settings.arm_crash_guard()
+		_guard_armed = true
+		_guard_owner = get_instance_id()
+		if _create_renderer(Gfx.MODERN):
+			get_tree().root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND   # Modern fills the window
+			if renderer.has_method(&"prepare"):   # the Modern-only part of the interface (RaceRenderers)
+				_gfx_state = GfxState.PREPARING
+		else:
+			_abandon_modern("renderer")
+	if gfx == Gfx.ARCADE:
+		_create_renderer(Gfx.ARCADE)
 
 	vehicle = VehicleModel.new()
 	vehicle.setup(cfg, str(setup.get("vehicle", "limousine")))
-	SpriteDB.preload_sets([str(vehicle.spec.get("sprite", ""))])   # as in v0.5.1, also with --no-sprite-preload
+	if gfx == Gfx.ARCADE:
+		SpriteDB.preload_sets([str(vehicle.spec.get("sprite", ""))])   # as in v0.5.1, also with --no-sprite-preload
 	var stick: Variant = ConfigLoader.lookup(cfg, "input", {})
 	if stick is Dictionary:
 		_stick_dz = clampf(float((stick as Dictionary).get("stick_deadzone", _stick_dz)), 0.0, 0.9)
 		_stick_full = clampf(float((stick as Dictionary).get("stick_full", _stick_full)), _stick_dz + 0.05, 1.0)
 	AudioManager.set_vehicle(vehicle.type_id)   # engine sound of this car (cycle bank, start clip)
+	var sink := _audio_receiver()
+	_hooks_state = sink != null and sink.has_method(&"set_vehicle_state")
+	_audio_call(&"set_track", [track, plan])
+	_track_owner = get_instance_id()
 
 	env = EnvironmentModel.new()
 	env.setup(cfg)
@@ -231,8 +297,11 @@ func _build() -> void:
 	traffic.setup(cfg, track, cars, heavy, plan.seed + 17 + int(setup.get("seed", 0)))
 	traffic.set_dimensions(SpriteDB.sets)
 	traffic_enabled = not CliArgs.has("no-traffic")
-	if not CliArgs.has("no-sprite-preload"):   # debug: sheets loaded when first drawn, as in v0.5.1 (A/B timing)
-		_preload_sprites(cars, heavy)
+	_stage_sets = _stage_sprite_sets(cars, heavy)
+	if gfx == Gfx.MODERN:
+		_preload_sprites(SpriteDB.ids_with_tag("icon"))   # HUD icons only: the models are the renderer's job (prepare)
+	elif not CliArgs.has("no-sprite-preload"):   # debug: sheets loaded when first drawn, as in v0.5.1 (A/B timing)
+		_preload_sprites(_stage_sets)
 
 	fuel = FuelSystem.new()
 	# race (v0.7.0): the tank of the last stage goes on (setup start_fuel_l, -1 = the stage's own filling)
@@ -336,12 +405,185 @@ func _build() -> void:
 		if times.is_empty():
 			times = [1.0]
 		shot.configure(CliArgs.get_string("screenshot"), times)
+		_shot = shot
 	if CliArgs.has("timescale"):
 		var ts := clampf(CliArgs.get_float("timescale", 1.0), 0.05, 200.0)
 		Engine.time_scale = ts
 		Engine.physics_ticks_per_second = maxi(1, int(round(60.0 * ts)))
 		Engine.max_physics_steps_per_frame = clampi(int(ceil(ts)) * 2, 8, 128)
+	if _gfx_state == GfxState.PREPARING:
+		_begin_prepare()
+	elif gfx == Gfx.MODERN:
+		_guard_s = CRASH_GUARD_S   # a renderer without prepare(): the stage runs at once
+	elif gfx_fallback != "":
+		_show_fallback_message()
 	_start_wall_ms = Time.get_ticks_msec()
+
+
+# --- graphics modes (v0.8.0) --------------------------------------------------------------------------------
+
+## True once the stage runs (signal stage_live): from its first simulation step on – in Modern not while the renderer
+## still prepares the stage behind the loading overlay.
+func is_live() -> bool:
+	return _stage_start_sent
+
+
+## Creates the renderer of `mode` as the first child (below the HUD's canvas layer) and sets it up. False when the
+## Modern renderer cannot be created.
+func _create_renderer(mode: String) -> bool:
+	var r: Node = RaceRenderers.create(mode)
+	if r == null:
+		return false
+	renderer = r
+	add_child(r)
+	move_child(r, 0)
+	renderer.setup(track, proj, cfg, GameData.scenery)
+	if mode == Gfx.ARCADE and CliArgs.has("no-glow-occlusion"):
+		renderer.set_glow_occlusion(false)   # debug: lights as in v0.5.0 (A/B screenshots, docs/renn-modul.md §11)
+	return true
+
+
+## Modern: the renderer prepares the stage over several frames (render self-test, models, shader warm-up) behind
+## the loading overlay. The HUD's timers and the Screenshotter's clock stand until the stage starts (_go_live).
+func _begin_prepare() -> void:
+	hud.set_process(false)
+	if _shot != null:
+		_shot.hold = true
+	_loading = CanvasLayer.new()
+	_loading.layer = LOADING_LAYER
+	add_child(_loading)
+	var cover := ColorRect.new()   # opaque: the warm-up pictures behind it are not for the player
+	cover.color = Color(0.015, 0.02, 0.07)
+	cover.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cover.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_loading.add_child(cover)
+	_loading_overlay = LoadingOverlay.new(tr("Etappe wird geladen …"))
+	_loading.add_child(_loading_overlay)
+	if renderer.has_method(&"apply_quality"):
+		renderer.apply_quality(Settings.quality_levels())
+	renderer.prepare({"sets": _stage_sets.duplicate(), "plan": plan, "vehicle": vehicle.type_id, "weather": weather,
+		"hour": clock.hour(), "sync": CliArgs.has("gfx-sync")})
+
+
+## Every frame while the Modern renderer prepares: progress of the loading overlay, the end of the preparation, or
+## the fallback to Arcade when the renderer reports that it cannot draw the stage.
+func _poll_prepare() -> void:
+	if renderer.has_method(&"healthy") and not bool(renderer.healthy()):
+		_fall_back(str(renderer.fail_reason()) if renderer.has_method(&"fail_reason") else "")
+	elif not renderer.has_method(&"is_prepared") or bool(renderer.is_prepared()):
+		_gfx_state = GfxState.PREPARED
+	elif _loading_overlay != null and _loading_overlay.has_method(&"set_progress") and renderer.has_method(&"prepare_progress"):
+		_loading_overlay.call(&"set_progress", clampf(float(renderer.prepare_progress()), 0.0, 1.0))
+
+
+## The first simulation step after the preparation starts the stage: the loading overlay goes, HUD timers and the
+## Screenshotter's clock run from this frame on – as from the first frame of an Arcade stage.
+func _go_live() -> void:
+	_gfx_state = GfxState.LIVE
+	if _loading != null:
+		_loading.queue_free()
+		_loading = null
+		_loading_overlay = null
+	hud.set_process(true)
+	if is_instance_valid(_shot):   # the attract mode frees the session's Screenshotter
+		_shot.hold = false
+	if gfx == Gfx.MODERN and _guard_armed:
+		_guard_s = CRASH_GUARD_S
+	if _pause_wanted:
+		_pause_wanted = false
+		auto_pause.call_deferred()
+
+
+## Modern cannot draw this stage (render self-test failed, model manifest missing or broken, shader error, timeout):
+## the Arcade renderer takes over before the stage starts – its sprite sheets are loaded now, the window goes back
+## to 16:9 with bars, the HUD says so and the result carries gfx = "arcade" and gfx_fallback = <reason>.
+func _fall_back(reason: String) -> void:
+	if renderer != null:
+		remove_child(renderer)
+		renderer.queue_free()
+		renderer = null
+	_abandon_modern(reason)
+	get_tree().root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+	_create_renderer(Gfx.ARCADE)
+	SpriteDB.preload_sets([str(vehicle.spec.get("sprite", ""))])
+	if not CliArgs.has("no-sprite-preload"):
+		_preload_sprites(_stage_sets)
+	_show_fallback_message()
+	_gfx_state = GfxState.PREPARED
+
+
+## Book-keeping of a fallback: mode and reason of the result; the crash-guard marker of this stage goes (Modern
+## failed in an orderly way).
+func _abandon_modern(reason: String) -> void:
+	gfx = Gfx.ARCADE
+	gfx_fallback = reason if reason != "" else "unknown"
+	_release_crash_guard(false)
+	push_warning("Modus Modern nicht möglich (%s) – die Etappe läuft im Modus Arcade" % gfx_fallback)
+
+
+func _show_fallback_message() -> void:
+	hud.show_message(tr("Der Modus „Modern“ lässt sich mit dieser Grafik nicht starten. Das Spiel läuft im Modus „Arcade“ weiter."),
+		"warn", float(ConfigLoader.lookup(cfg, "time.countdown_s", 3.0)) + 6.0)
+
+
+## Modern: the crash-guard marker goes after CRASH_GUARD_S of drawn frames (real seconds, also in fast time).
+func _tick_crash_guard(delta: float) -> void:
+	if not _guard_armed or _guard_s <= 0.0:
+		return
+	_guard_s -= delta / maxf(Engine.time_scale, 0.001)
+	if _guard_s <= 0.0:
+		_release_crash_guard(true)
+
+
+## Takes back the crash-guard marker of this stage. works = Modern has drawn for CRASH_GUARD_S: a marker of the last
+## run is settled as well (Modern may be used again in this run). Otherwise – fallback to Arcade, the stage leaves
+## the tree in an orderly way – a marker of the last run stays for the question on the title. A marker that a newer
+## stage has armed in the meantime is not ours to remove.
+func _release_crash_guard(works: bool) -> void:
+	if not _guard_armed:
+		return
+	_guard_armed = false
+	_guard_s = -1.0
+	if _guard_owner != get_instance_id():
+		return
+	_guard_owner = 0
+	var settings := get_node_or_null("/root/Settings")
+	if settings == null:
+		return
+	if works:
+		settings.call("disarm_crash_guard")
+	elif not bool(settings.get("crash_guard")):
+		settings.call("disarm_crash_guard", false)
+
+
+## The receiver of the sound hooks (audio_hooks or the AudioManager); null once it is gone (the game is quitting).
+func _audio_receiver() -> Object:
+	var a: Object = audio_hooks if audio_hooks != null else AudioManager
+	return a if is_instance_valid(a) else null
+
+
+## Calls a hook of the Modern sound if the receiver has it (set_track, set_vehicle_state, event – contract §4.7.2;
+## with the Arcade sound profile the AudioManager ignores them).
+func _audio_call(method: StringName, args: Array) -> void:
+	var a := _audio_receiver()
+	if a != null and a.has_method(method):
+		a.callv(method, args)
+
+
+## Sound event of the stage (in addition to the unchanged AudioManager.play() calls).
+func _audio_event(event_name: String, args: Dictionary = {}) -> void:
+	_audio_call(&"event", [event_name, args])
+
+
+## The car's state for the sound, every frame of a running stage (contract §4.7.2): position of the car centre,
+## driving state, road edges at the car, camera in a tunnel, weather and hour.
+func _audio_state(vz: float, vx: float, throttle: float, cam_tunnel: bool, hour: float) -> Dictionary:
+	var edges := track.road_edges_at(pos_z)
+	return {"z": vz, "x": vx, "speed": vehicle.speed, "throttle": throttle, "brake": float(last_input.get("brake", 0.0)),
+		"steer": float(last_input.get("steer", 0.0)), "understeer": vehicle.understeer, "lat_speed": vehicle.lat_speed,
+		"off_road": vehicle.off_road, "rail_contact": vehicle.rail_contact, "road_left": edges.x, "road_right": edges.y,
+		"shoulder_m": track.shoulder_w, "in_tunnel": cam_tunnel, "weather": weather, "hour": hour,
+		"crash": vehicle.state == VehicleModel.State.CRASH, "finished": finished}
 
 
 ## Loads every sprite sheet the stage can draw before the start: the player's car, all traffic and heavy vehicles,
@@ -350,16 +592,9 @@ func _build() -> void:
 ## a sheet when it was first drawn – synchronously in the middle of the frame: 13–20 ms for a building, 16 ms for a
 ## truck, 33 ms for the Frankfurt skyline at a 7 ms median (QA v0.5.1; more on a Steam Deck reading from a microSD
 ## card). Costs ~0.2–0.3 s more loading of the first stage; the sheets stay cached.
-func _preload_sprites(cars: Array[String], heavy: Array[String]) -> void:
-	var ids: Array[String] = [str(vehicle.spec.get("sprite", ""))]
-	ids.append_array(cars)
-	ids.append_array(heavy)
-	for code in plan.countries_in_order:
-		ids.append(GameData.police_set_for(str(code)))
-	ids.append_array(SpriteDB.ids_with_tag("icon"))
+## Modern (v0.8.0) loads only the HUD icons this way; the list of the stage's sets goes to its renderer (prepare).
+func _preload_sprites(ids: Array[String]) -> void:
 	var fallbacks := track.sprite_fallbacks()
-	for id in track.sprite_sets():
-		ids.append(id)
 	preloaded_sets.clear()
 	for id in ids:
 		if id == "" or preloaded_sets.has(id):
@@ -367,6 +602,24 @@ func _preload_sprites(cars: Array[String], heavy: Array[String]) -> void:
 		preloaded_sets.append(id)
 		if SpriteDB.texture(id) == null and fallbacks.has(id):
 			SpriteDB.texture(str(fallbacks[id]))
+
+
+## Every sprite set the stage can show, each once, in loading order: the player's car, all traffic and heavy
+## vehicles, the police of the stage's countries, the HUD icons, the track's props, landmarks and skyline.
+func _stage_sprite_sets(cars: Array[String], heavy: Array[String]) -> Array[String]:
+	var ids: Array[String] = [str(vehicle.spec.get("sprite", ""))]
+	ids.append_array(cars)
+	ids.append_array(heavy)
+	for code in plan.countries_in_order:
+		ids.append(GameData.police_set_for(str(code)))
+	ids.append_array(SpriteDB.ids_with_tag("icon"))
+	for id in track.sprite_sets():
+		ids.append(id)
+	var out: Array[String] = []
+	for id in ids:
+		if id != "" and not out.has(id):
+			out.append(id)
+	return out
 
 
 ## Full braking (m/s²) of the player's car in this weather (TrafficSystem ctx.brake_mps2: no car pulls out in front
@@ -493,6 +746,17 @@ func _connect_signals() -> void:
 			haptics.collision()
 		AudioManager.play("crash")
 		hud.flash(Color(1, 0.3, 0.2, 0.35), 0.25))
+	# sound events of the Modern profile (v0.8.0, contract §4.7.2): sent next to the play() calls above, in both
+	# graphics modes and both sound profiles (connected after them – the play() of an event comes first)
+	fuel.refuel_started.connect(func() -> void: _audio_event("refuel_start"))
+	fuel.refuel_finished.connect(func(l: float, aborted: bool) -> void: _audio_event("refuel_done", {"liters": l, "aborted": aborted}))
+	fuel.ran_dry.connect(func() -> void: _audio_event("out_of_fuel"))
+	fuel.tow_started.connect(func() -> void: _audio_event("tow"))
+	police.flashed.connect(func(_r: Dictionary, _v: float) -> void: _audio_event("radar_flash"))
+	police.chase_started.connect(func() -> void: _audio_event("chase_start"))
+	police.escaped.connect(func() -> void: _audio_event("escaped"))
+	police.caught.connect(func() -> void: _audio_event("busted"))
+	vehicle.crash_started.connect(func(_d: int) -> void: _audio_event("collision", _hit_info))
 
 
 ## Tutorial stage: queue the hints of a topic (no-op on other stages).
@@ -566,6 +830,9 @@ func _pause_now() -> void:
 ## after the finish.
 func auto_pause() -> void:
 	if plan != null and not finished and autopilot == null and not standalone:
+		if _gfx_state != GfxState.LIVE:
+			_pause_wanted = true   # Modern is still preparing the stage: pause when it starts (_go_live)
+			return
 		_pause_now()
 
 
@@ -576,6 +843,19 @@ func _notification(what: int) -> void:
 		if haptics != null:
 			haptics.stop()
 		FrameCap.hold("pause", false)
+		_leave_stage()
+
+
+## The scene leaves the tree in an orderly way (next stage, back to the menus, the game quits): the sound gets its
+## track back (set_track(null, null)) and a Modern stage takes its crash-guard marker along, also when it was still
+## preparing – unless the next stage has already set its own (see _track_owner).
+func _leave_stage() -> void:
+	if plan == null:
+		return
+	if _track_owner == get_instance_id():
+		_track_owner = 0
+		_audio_call(&"set_track", [null, null])
+	_release_crash_guard(false)
 
 
 ## A gamepad was disconnected (InputSetup.pad_disconnected: battery, Bluetooth, the docked Steam Deck's external pad).
@@ -657,6 +937,14 @@ func road_info(z: float) -> Dictionary:
 func _physics_process(dt: float) -> void:
 	if plan == null:
 		return
+	if _gfx_state != GfxState.LIVE:
+		if _gfx_state == GfxState.PREPARING:
+			return   # Modern is still preparing the stage: nothing of it runs yet
+		_go_live()
+	if not _stage_start_sent:
+		_stage_start_sent = true
+		stage_live.emit()
+		_audio_event("stage_start", {"countdown_s": countdown})
 	_snapshot()
 	var t0 := Time.get_ticks_usec()
 	_step(dt)
@@ -727,10 +1015,12 @@ func _step(dt: float) -> void:
 		var sec := int(ceil(countdown))
 		if sec < _last_beep and sec > 0:
 			_last_beep = sec   # the HUD plays the beep when the countdown number changes
+			_audio_event("countdown", {"n": sec})
 		if countdown <= 0.0:
 			running = true
 			hud.show_message(tr("LOS!"), "info", 1.2)
 			AudioManager.play("go")
+			_audio_event("go")
 			if coach != null:
 				# v0.7.0: the first station is only 15 km away – the low tank comes first (urgent), then the controls
 				if fuel.fuel_l < fuel.tank_l * 0.6:
@@ -816,6 +1106,8 @@ func _track_driving(dt: float) -> void:
 		haptics.rail_hit(vehicle.rail_impact)
 		# metal on metal: a light touch is a scrape, a slide into the rail (understeer drift) a loud bang
 		AudioManager.play("rail", clampf(-10.0 + 2.0 * vehicle.rail_impact, -10.0, 2.0))
+		var rail_edges := track.road_edges_at(pos_z)
+		_audio_event("rail_hit", {"impact_mps": vehicle.rail_impact, "side": -1 if vehicle.x < (rail_edges.x + rail_edges.y) * 0.5 else 1})
 	if vehicle.understeer > 0.0:
 		drive_stats["understeer_s"] += dt
 	drive_stats["understeer_max"] = maxf(float(drive_stats["understeer_max"]), vehicle.understeer)
@@ -894,6 +1186,10 @@ func _check_collision(cam_z: float, scripted: bool) -> void:
 		return
 	var edges := track.road_edges_at(pos_z)
 	var space := traffic.space_beside(pos_z, vehicle.x, vehicle.length_m * 0.5, edges.x - track.shoulder_w, edges.y + track.shoulder_w, hit)
+	# for the sound event "collision": the player's speed, the closing speed, a heavy vehicle, the side it is on
+	var hit_dx: float = hit.x - vehicle.x
+	_hit_info = {"speed_kmh": vehicle.speed, "rel_kmh": vehicle.speed - float(hit.speed), "heavy": bool(hit.heavy),
+		"side": 0 if absf(hit_dx) < 0.3 else (-1 if hit_dx < 0.0 else 1)}
 	vehicle.start_crash(hit.x, space.x, space.y)
 
 
@@ -951,6 +1247,8 @@ func _finish() -> void:
 	pos_km = plan.length_km
 	AudioManager.play("finish")
 	AudioManager.set_siren(false, 0.0)
+	var best := float(_record.get("time_s", -1.0))
+	_audio_event("stage_finish", {"record": best < 0.0 or _final_time < best, "last_stage": bool(setup.get("last_stage", false))})
 	hud.show_message(tr("ZIEL!  %s") % Units.format_race_time(_final_time), "info", 5.0)
 
 
@@ -963,7 +1261,7 @@ func total_time() -> float:
 func build_result() -> Dictionary:
 	var t := total_time()
 	var start_hour := Units.hour_of_day(_start_world_minutes)
-	return {
+	var r := {
 		"board_key": plan.board_key,
 		"stage_id": plan.stage_id,
 		"from_city": plan.from_id,
@@ -991,12 +1289,17 @@ func build_result() -> Dictionary:
 		"tank_l": fuel.tank_l,
 		"start_towed": start_towed,
 		"aborted": false,
+		# v0.8.0: graphics mode the stage was drawn in (hidden field for later analysis – never shown, never a filter)
+		"gfx": gfx,
 	}
+	if gfx_fallback != "":
+		r["gfx_fallback"] = gfx_fallback   # Modern was wanted, Arcade drew the stage: why
+	return r
 
 
 ## Simulation and render timing (for tests/race/run_stage.gd and --perf), plus drive_stats as "drive".
 func perf_stats() -> Dictionary:
-	var r := renderer.perf_stats() if renderer != null else {}
+	var r: Dictionary = renderer.perf_stats() if renderer != null else {}
 	r["sim_steps"] = _sim_steps
 	r["sim_avg_ms"] = float(_sim_us_sum) / maxf(1.0, float(_sim_steps)) / 1000.0
 	r["sim_max_ms"] = float(_sim_us_max) / 1000.0
@@ -1029,8 +1332,14 @@ func _chase01() -> float:
 func _process(delta: float) -> void:
 	if plan == null:
 		return
-	_check_standby()
-	_beacon_t += delta
+	if _gfx_state == GfxState.PREPARING:
+		_poll_prepare()
+	# Modern prepares the stage: the frozen start view is still drawn (behind the loading overlay – the renderer
+	# builds and warms up what the first frame shows), but HUD, sound and every clock wait for the start
+	var live := _gfx_state == GfxState.LIVE
+	if live:
+		_check_standby()
+		_beacon_t += delta
 	# the frame shows the state at its own time, between the last two simulation steps (render interpolation)
 	var vs := view_state()
 	var a: float = vs["alpha"]
@@ -1076,6 +1385,7 @@ func _process(delta: float) -> void:
 			"beacon": "a" if fmod(_beacon_t, 0.5) < 0.25 else "b"})
 	# the renderer derives the visible yaw and body roll of the car from these (docs/renn-modul.md §8)
 	var player := {"kind": "car", "player": true, "set": str(vehicle.spec.get("sprite", "player/limousine")),
+		"type": vehicle.type_id,
 		"z": vz - vehicle.length_m * 0.5, "x": vx, "length": vehicle.length_m, "width": vehicle.width_m,
 		"steer": vehicle.steer_visual, "lat_speed": vehicle.lat_speed, "push_speed": vehicle.push_speed,
 		"understeer": vehicle.understeer,
@@ -1104,7 +1414,13 @@ func _process(delta: float) -> void:
 		"countdown": countdown if not running else (-0.5 if _real_time < 1.0 + float(ConfigLoader.lookup(cfg, "time.countdown_s", 3.0)) else -1000.0),
 		"chase01": chase,
 		"radar_flash01": _flash,
+		# v0.8.0, ignored by the Arcade renderer: world hour and the seconds of this frame
+		"hour": hour,
+		"dt": delta,
 	})
+	if not live:
+		return
+	_tick_crash_guard(delta)
 	hud.update_state(_hud_state(hour))
 	var throttle := float(last_input.get("throttle", 0.0)) if autopilot != null else Input.get_action_strength("accelerate")
 	AudioManager.set_engine(vehicle.speed, throttle, vehicle.vmax_effective, not finished or vehicle.speed > 1.0)
@@ -1118,6 +1434,8 @@ func _process(delta: float) -> void:
 	if not _result_sent:
 		AudioManager.set_traffic(cars, {"z": cam_z, "x": cam_x, "speed": vehicle.speed})
 	AudioManager.set_environment({"tunnel": cam_tunnel})
+	if _hooks_state:
+		_audio_call(&"set_vehicle_state", [_audio_state(vz, vx, throttle, cam_tunnel, hour)])
 
 
 func _hud_state(hour: float) -> Dictionary:

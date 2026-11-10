@@ -11,6 +11,9 @@
 #   SHA256SUMS                          checksums with bare file names (cd build && sha256sum -c SHA256SUMS)
 #   BUILDINFO.txt                       version, git commit and Godot version of this build (own records)
 # The archives are reproducible: same commit, same Godot and tools -> same bytes (file times = commit time).
+# Size (v0.8.0, tools/pck_report.py): both build scripts print megabytes per part of the size budget (engine,
+# Arcade sprites and audio, UI/scripts/data, Modern meshes, textures, sounds, music); each archive must stay below
+# 350 MB – a warning above 300 MB, the build fails above 330 MB.
 # Needs Godot 4.7.2 with the Linux and Windows export templates, Python 3 with pefile, zip, tar, gzip, git.
 # ALLOW_DIRTY=1 also builds from a modified checkout (test builds only; BUILDINFO.txt then says so).
 set -euo pipefail
@@ -61,6 +64,9 @@ chmod 644 LIZENZEN.txt
 touch -d "@$SOURCE_DATE_EPOCH" CrossingEurope.x86_64 LIZENZEN.txt
 tar --sort=name --mtime="@$SOURCE_DATE_EPOCH" --owner=0 --group=0 --numeric-owner -cf - CrossingEurope.x86_64 LIZENZEN.txt \
 	| gzip -n -9 > CrossingEurope-linux-x86_64.tar.gz
+# Size gate on the two archives (the tables per part were printed by the build scripts above)
+"$PYTHON" ../tools/pck_report.py --gate-only --archive CrossingEurope-linux-x86_64.tar.gz
+"$PYTHON" ../tools/pck_report.py --gate-only --archive CrossingEurope-windows-x86_64.zip
 sha256sum CrossingEurope.x86_64 CrossingEurope-linux-x86_64.tar.gz CrossingEurope.exe \
 	CrossingEurope-windows-x86_64.zip LIZENZEN.txt > SHA256SUMS
 sha256sum -c SHA256SUMS
@@ -69,6 +75,7 @@ sha256sum -c SHA256SUMS
 	echo "Commit: $(git rev-parse HEAD)${DIRTY:+ (mit nicht committeten Änderungen – kein Release)}"
 	echo "Commit-Zeit: $(date -u -d "@$SOURCE_DATE_EPOCH" '+%Y-%m-%d %H:%M:%S UTC') (SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH)"
 	echo "Godot: $("$GODOT" --version 2>/dev/null | tail -n 1)"
+	echo "Archive: Linux $(( ($(stat -c %s CrossingEurope-linux-x86_64.tar.gz) + 500000) / 1000000 )) MB, Windows $(( ($(stat -c %s CrossingEurope-windows-x86_64.zip) + 500000) / 1000000 )) MB (Grenze 330 MB, hartes Limit 350 MB)"
 	echo
 	cat SHA256SUMS
 } > BUILDINFO.txt

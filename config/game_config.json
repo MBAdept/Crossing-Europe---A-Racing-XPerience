@@ -468,5 +468,64 @@
 	"debug": {
 		"autopilot_target_kmh": 235.0,
 		"show_render_stats": false
+	},
+
+	"graphics": {
+		"_doc": "Grafikmodi (v0.8.0, ARCHITECTURE.md §15): „Arcade“ = der Pseudo-3D-Renderer wie bisher (liest nichts aus diesem Abschnitt), „Modern“ = der zweite, echte 3D-Renderer. force_mode = Modus erzwingen, \"\" | \"arcade\" | \"modern\" (für Tests und als Notschalter neben der ausführbaren Datei; die Kommandozeile --graphics= gewinnt). presets = Qualitäts-Voreinstellungen von Modern (Optionen „Voreinstellung“: Steam Deck, Niedrig, Mittel, Hoch), je fünf Werte: shadows 0–3 (Aus, Niedrig, Mittel, Hoch), details 0–2 (Niedrig, Mittel, Hoch), scale = 3D-Auflösung in Prozent (50, 67, 75, 85, 100, 125, 150), aa 0–2 (Aus, MSAA 2×, MSAA 4×), effects 0–2 (Aus, Einfach, Voll). levels = was jede Stufe für den Renderer bedeutet (Gfx.levels macht daraus die Parameter für ModernRenderer.apply_quality): shadows[] mit shadow_casters (0 keine – Blob-Schatten unter Fahrzeugen, 1 Fahrzeuge und Bauwerke, 2 zusätzlich Gebäude und Baum-Stellvertreter, 3 alle Requisiten), shadow_splits (1 = orthogonal, 2, 4), shadow_blend (Überblenden der Stufen), shadow_atlas (Pixel), shadow_distance_m, shadow_filter (0 hart, 1 weich niedrig, 2 weich mittel), blob_shadows; details[] mit vehicle_lod0_m / vehicle_lod1_m und prop_lod0_m / prop_lod1_m (Entfernung, bis zu der die feinste bzw. mittlere Detailstufe gilt), deco_density (Dichte rein dekorativer Requisiten), terrain_outer_m (äußerster Geländering); aa[] = MSAA-Stufen; effects[] mit glow, particles (Höchstzahl), spray, wet_reflections, ssao, ssao_quality, sky_reflections, omni_pool (echte Punktlichter). Keine Qualitätsstufe dünnt aus, kürzt oder dunkelt ab, worauf der Spieler reagieren muss (Fahrzeuge, ihre Lichter und Blinker, Schilder, Fahrbahnränder, Markierungen, Leitplanken, Tunnelwände). modern = Parameter des Renderers: camera (look_gain × Peilung der Fahrbahnmitte look_m voraus = Blick in die Kurve, höchstens yaw_max_deg; near_m / far_m = Schnittebenen), chunk_segments (Segmente je Geländestück), load_path_m / landmark_path_m (so weit voraus wird Welt bzw. werden Wahrzeichen geladen), keep_behind_m, threaded_build, commits_per_frame, fog (Beginn und Ende als Anteil der Sichtweite), terrain (Ringe in Metern jenseits des Banketts, Begrenzung in Kurveninnenseiten, Talboden), lights (Scheinwerfer-Spots, Lichtkegel im Fahrbahn-Shader), sky_update_s, prewarm (Shader vor dem Start aufwärmen). watchdog = Langsamkeits-Wächter: countdown_min_fps (darunter senkt der Renderer im Countdown einmal die Voreinstellung), slow_factor / too_slow_factor × Bildzeit der Bildwiederholrate = „langsam“ / „zu langsam“ (Gfx.watchdog_verdict). benchmark = der eingebaute Leistungstest: seconds je Szene, scenes[] wie attract.scenes (id, name, stage + from, km, hour, weather, vehicle, speed_kmh, cruise_kmh, seed). budgets = Obergrenzen je Voreinstellung für die Leistungsprüfung (tests/race3d/bench_modern.gd): draw_calls und primitives einschließlich Schattendurchgängen, script_ms = GDScript-Zeit von render() im Mittel, commit_ms = längstes Einhängen eines Geländestücks – Zielwerte für eine echte Grafikkarte (abgeleitet, nicht gemessen).",
+		"force_mode": "",
+		"presets": {
+			"deck": {"shadows": 1, "details": 1, "scale": 100, "aa": 1, "effects": 1},
+			"low": {"shadows": 0, "details": 0, "scale": 75, "aa": 0, "effects": 0},
+			"medium": {"shadows": 2, "details": 1, "scale": 100, "aa": 1, "effects": 1},
+			"high": {"shadows": 3, "details": 2, "scale": 100, "aa": 2, "effects": 2}
+		},
+		"levels": {
+			"shadows": [
+				{"shadow_casters": 0, "shadow_splits": 1, "shadow_blend": false, "shadow_atlas": 1024, "shadow_distance_m": 0.0, "shadow_filter": 0, "blob_shadows": true},
+				{"shadow_casters": 1, "shadow_splits": 2, "shadow_blend": false, "shadow_atlas": 2048, "shadow_distance_m": 80.0, "shadow_filter": 1, "blob_shadows": false},
+				{"shadow_casters": 2, "shadow_splits": 2, "shadow_blend": false, "shadow_atlas": 2048, "shadow_distance_m": 120.0, "shadow_filter": 1, "blob_shadows": false},
+				{"shadow_casters": 3, "shadow_splits": 4, "shadow_blend": true, "shadow_atlas": 4096, "shadow_distance_m": 200.0, "shadow_filter": 2, "blob_shadows": false}
+			],
+			"details": [
+				{"vehicle_lod0_m": 25.0, "vehicle_lod1_m": 90.0, "prop_lod0_m": 40.0, "prop_lod1_m": 120.0, "deco_density": 0.6, "terrain_outer_m": 480.0},
+				{"vehicle_lod0_m": 40.0, "vehicle_lod1_m": 120.0, "prop_lod0_m": 60.0, "prop_lod1_m": 200.0, "deco_density": 1.0, "terrain_outer_m": 480.0},
+				{"vehicle_lod0_m": 60.0, "vehicle_lod1_m": 160.0, "prop_lod0_m": 120.0, "prop_lod1_m": 350.0, "deco_density": 1.3, "terrain_outer_m": 1000.0}
+			],
+			"aa": [0, 2, 4],
+			"effects": [
+				{"glow": false, "particles": 300, "spray": false, "wet_reflections": false, "ssao": false, "ssao_quality": 0, "sky_reflections": false, "omni_pool": 2},
+				{"glow": true, "particles": 1500, "spray": true, "wet_reflections": false, "ssao": false, "ssao_quality": 0, "sky_reflections": true, "omni_pool": 4},
+				{"glow": true, "particles": 4000, "spray": true, "wet_reflections": true, "ssao": true, "ssao_quality": 1, "sky_reflections": true, "omni_pool": 8}
+			]
+		},
+		"modern": {
+			"camera": {"look_gain": 0.6, "look_m": 100.0, "yaw_max_deg": 14.0, "near_m": 1.0, "far_m": 2600.0},
+			"chunk_segments": 32,
+			"load_path_m": 1500.0,
+			"landmark_path_m": 1900.0,
+			"keep_behind_m": 150.0,
+			"threaded_build": true,
+			"commits_per_frame": 1,
+			"fog": {"begin_frac": 0.45, "end_frac": 1.0},
+			"terrain": {"rings_m": [0, 5, 15, 40, 100, 220, 480], "inside_bend_factor": 0.8, "floor_window_m": 900.0, "floor_drop_m": 4.5, "far_ground_drop_m": 4.0},
+			"lights": {"spots": 2, "pools_lamps": 16, "pools_traffic": 6},
+			"sky_update_s": 2.0,
+			"prewarm": true
+		},
+		"watchdog": {"countdown_min_fps": 30.0, "slow_factor": 1.3, "too_slow_factor": 2.0},
+		"benchmark": {
+			"seconds": 20.0,
+			"scenes": [
+				{"id": "autobahn", "name": "Autobahn bei Tag", "stage": "dortmund_frankfurt", "from": "dortmund", "km": 121.0, "hour": 12.0, "weather": "normal", "vehicle": "limousine", "speed_kmh": 170, "cruise_kmh": 200, "seed": 21},
+				{"id": "stadt_nacht_regen", "name": "Stadt bei Nacht im Regen", "stage": "dortmund_frankfurt", "from": "dortmund", "km": 216.0, "hour": 22.0, "weather": "rain", "vehicle": "kombi", "speed_kmh": 100, "cruise_kmh": 110, "seed": 22},
+				{"id": "berg_tunnel", "name": "Bergstrecke mit Tunnel", "stage": "bern_mailand", "from": "bern", "km": 180.5, "hour": 15.0, "weather": "normal", "vehicle": "sportwagen", "speed_kmh": 130, "cruise_kmh": 150, "seed": 23}
+			]
+		},
+		"budgets": {
+			"deck": {"draw_calls": 650, "primitives": 450000, "script_ms": 1.5, "commit_ms": 3.0},
+			"low": {"draw_calls": 400, "primitives": 250000, "script_ms": 1.2, "commit_ms": 3.0},
+			"medium": {"draw_calls": 900, "primitives": 700000, "script_ms": 1.5, "commit_ms": 3.0},
+			"high": {"draw_calls": 1500, "primitives": 1500000, "script_ms": 2.0, "commit_ms": 4.0}
+		}
 	}
 }
