@@ -167,17 +167,27 @@ static func centred_window_position(area: Rect2i, size: Vector2i, deco: Vector2i
 
 
 ## Reads the settings file; a damaged file falls back to the previous version (".bak", JsonFile).
+## Every value is read behind a type check: a value of the wrong type (a hand-edited file, a later version that
+## changed a type) counts as not stored – the value of this run stays – and never keeps the rest of the file from
+## being read (an unchecked float(null) or bool("x") is a script error that ends the whole function: everything
+## read after it and the unknown keys were lost, and the next save removed them from the file).
 func load_settings() -> void:
 	var d := JsonFile.load_dict(file_path)
-	master_volume = float(d.get("master_volume", master_volume))
-	sfx_volume = float(d.get("sfx_volume", sfx_volume))
-	music_volume = float(d.get("music_volume", music_volume))
-	if d.has("fullscreen") and fullscreen_stored_as_choice(d):
+	# first of all the keys this version does not know: nothing below may lose them
+	_extra = {}
+	for k: Variant in d:
+		if not KNOWN_KEYS.has(str(k)):
+			_extra[k] = d[k]
+	master_volume = _stored_number(d, "master_volume", master_volume)
+	sfx_volume = _stored_number(d, "sfx_volume", sfx_volume)
+	music_volume = _stored_number(d, "music_volume", music_volume)
+	if fullscreen_stored_as_choice(d):
 		fullscreen = bool(d["fullscreen"])   # marks it chosen
-	vibration = bool(d.get("vibration", vibration))
-	player_name = str(d.get("player_name", player_name))
-	language = str(d.get("language", language))
-	leaderboard_filter = str(d.get("leaderboard_filter", leaderboard_filter))
+	if _is_flag(d.get("vibration", null)):
+		vibration = bool(d["vibration"])
+	player_name = _stored_text(d, "player_name", player_name)
+	language = _stored_text(d, "language", language)
+	leaderboard_filter = _stored_text(d, "leaderboard_filter", leaderboard_filter)
 	# v0.8.0: only a valid value the file really holds is a choice (anything else: not chosen)
 	if d.get("graphics_mode", null) is String and Gfx.MODES.has(d["graphics_mode"]):
 		graphics_mode = d["graphics_mode"]
@@ -189,11 +199,27 @@ func load_settings() -> void:
 		gfx_preset = d["gfx_preset"]
 	if d.get("race_music", null) is bool:
 		race_music = d["race_music"]   # marks it chosen
-	_extra = {}
-	for k: Variant in d:
-		if not KNOWN_KEYS.has(str(k)):
-			_extra[k] = d[k]
 	_stored = to_dict()
+
+
+## A number of the settings file (JSON numbers arrive as float); anything else, NaN and infinity: `fallback`.
+static func _stored_number(d: Dictionary, key: String, fallback: float) -> float:
+	var v: Variant = d.get(key, null)
+	if (v is float or v is int) and is_finite(float(v)):
+		return float(v)
+	return fallback
+
+
+## A text of the settings file; anything that is not a String: `fallback`.
+static func _stored_text(d: Dictionary, key: String, fallback: String) -> String:
+	var v: Variant = d.get(key, null)
+	return v if v is String else fallback
+
+
+## True for what the old keys "fullscreen" and "vibration" may hold: a bool, or a number (bool(1) worked before
+## v0.8.0). A String, null, a list or a dictionary is not a stored value.
+static func _is_flag(v: Variant) -> bool:
+	return v is bool or v is int or v is float
 
 
 ## Writes the settings atomically like the savegame (temp file, previous version kept as ".bak"), so a
@@ -218,10 +244,11 @@ func has_unsaved_changes() -> bool:
 ## True if the settings file `d` holds "fullscreen" as the player's choice: always from version
 ## FULLSCREEN_CHOICE_SINCE (2) on; in an older file (no version, "fullscreen" always written) only a stored true – a
 ## false may be the start value of a docked Steam Deck or a large screen, saved along with a name or a volume.
+## A "fullscreen" that is no bool or number is not a choice; a version that is no number counts as an old file.
 static func fullscreen_stored_as_choice(d: Dictionary) -> bool:
-	if not d.has("fullscreen"):
+	if not _is_flag(d.get("fullscreen", null)):
 		return false
-	return int(d.get("settings_version", 1)) >= FULLSCREEN_CHOICE_SINCE or bool(d["fullscreen"])
+	return _stored_number(d, "settings_version", 1.0) >= float(FULLSCREEN_CHOICE_SINCE) or bool(d["fullscreen"])
 
 
 func to_dict() -> Dictionary:

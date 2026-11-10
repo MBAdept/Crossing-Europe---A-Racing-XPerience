@@ -198,6 +198,19 @@ func test_custom_values_and_limits() -> void:
 		{"shadows": 2, "details": 1, "scale": 100, "aa": 1, "effects": 1}, "keine Zahl = Mittel; Zahlen aus JSON sind float")
 	for s in Gfx.SCALE_STEPS:
 		assert_eq(Gfx.sanitized({"scale": s})["scale"], s, "Stufe %d bleibt" % s)
+	# numbers beyond the integer range and NaN: the range is applied before the conversion (an overflowing
+	# conversion came out at the wrong end: aa=1e30 -> 0, scale=-1e400 -> 150, NaN -> 150)
+	assert_eq(Gfx.sanitized({"aa": 1e30, "shadows": 1e300, "details": INF, "effects": 4.0e18}),
+		{"shadows": 3, "details": 2, "scale": 100, "aa": 2, "effects": 2}, "riesige Werte = oberes Ende")
+	assert_eq(Gfx.sanitized({"aa": -1e30, "shadows": -INF, "details": -4.0e18, "effects": -1e300}),
+		{"shadows": 0, "details": 0, "scale": 100, "aa": 0, "effects": 0}, "riesige negative Werte = unteres Ende")
+	assert_eq(Gfx.sanitized({"scale": INF})["scale"], 150, "Skalierung unendlich = 150")
+	assert_eq(Gfx.sanitized({"scale": -INF})["scale"], 50, "Skalierung minus unendlich = 50")
+	assert_eq(Gfx.sanitized({"scale": 1e30})["scale"], 150, "Skalierung 1e30 = 150")
+	assert_eq(Gfx.sanitized({"scale": NAN, "aa": NAN, "shadows": NAN, "details": NAN, "effects": NAN}),
+		{"shadows": 2, "details": 1, "scale": 100, "aa": 1, "effects": 1}, "NaN = fehlt = Mittel")
+	assert_eq(Gfx.sanitized({"shadows": 2.5, "details": 0.49, "scale": 92, "aa": -0.4, "effects": 1.5}),
+		{"shadows": 3, "details": 0, "scale": 85, "aa": 0, "effects": 2}, "Runden wie bisher (92 liegt gleich weit von 85 und 100: die kleinere Stufe)")
 
 
 func test_command_line_overrides_of_the_quality() -> void:
@@ -213,6 +226,8 @@ func test_command_line_overrides_of_the_quality() -> void:
 	assert_eq(Gfx.with_cli(base, "", "shadows=1", p)["preset"], "deck", "Einzelwerte, die einer Voreinstellung gleichen, heißen wie sie")
 	assert_eq(Gfx.with_cli(base, "", "shadows=99, nonsense=3, details, aa=x", p),
 		{"preset": "custom", "shadows": 3, "details": 1, "scale": 100, "aa": 1, "effects": 1}, "begrenzt, Unbekanntes ignoriert")
+	assert_eq(Gfx.with_cli(base, "", "aa=1e30,scale=-1e400", p),
+		{"preset": "custom", "shadows": 2, "details": 1, "scale": 50, "aa": 2, "effects": 1}, "--gfx mit Zahlen jenseits des Ganzzahlbereichs")
 
 
 func test_levels_are_flat_typed_renderer_parameters() -> void:
@@ -272,6 +287,14 @@ func test_watchdog_verdict() -> void:
 	assert_eq(Gfx.watchdog_verdict(25.0, 27.0, 25.0, wd, false), "ok", "40 Hz voll erreicht")
 	assert_eq(Gfx.watchdog_verdict(36.0, 40.0, 25.0, wd, false), "slow", "28 Bilder/s an 40 Hz")
 	assert_eq(Gfx.watchdog_verdict(24.0, 30.0, hz60, {}, false), "slow", "ohne Konfiguration die Startwerte")
+	# no usable target (DisplayServer.screen_get_refresh_rate() = -1 for an unknown rate): judged against 60 Hz –
+	# not "every frame time is too slow"
+	for unknown: float in [-1.0, 0.0, NAN, -INF]:
+		assert_eq(Gfx.watchdog_verdict(5.0, 5.0, unknown, wd, true), "ok", "Ziel %s unbekannt: 200 Bilder/s sind nicht langsam" % str(unknown))
+		assert_eq(Gfx.watchdog_verdict(15.0, 19.0, unknown, wd, false), "ok", "Ziel %s unbekannt: 60 Bilder/s" % str(unknown))
+		assert_eq(Gfx.watchdog_verdict(24.0, 30.0, unknown, wd, false), "slow", "Ziel %s unbekannt: ~40 Bilder/s gegen 60 Hz" % str(unknown))
+		assert_eq(Gfx.watchdog_verdict(40.0, 55.0, unknown, wd, true), "too_slow", "Ziel %s unbekannt: 25 Bilder/s auf der niedrigsten Stufe" % str(unknown))
+	assert_near(Gfx.WATCHDOG_FALLBACK_TARGET_MS, 16.667, 0.001, "Ersatzziel 60 Hz")
 
 
 # --- Settings: file version 3 ----------------------------------------------------------------------------------
@@ -425,6 +448,54 @@ func test_damaged_values_count_as_not_chosen() -> void:
 	t.set("gfx_preset", "ultra")
 	assert_eq(str(t.get("gfx_preset")), "", "ungültige Voreinstellung gesetzt")
 	t.free()
+
+
+func test_wrongly_typed_old_keys_do_not_stop_the_reading() -> void:
+	# one value of the wrong type in a key of v0.7.0 (a hand-edited file, a later version that changes a type) was a
+	# script error that ended load_settings(): everything read after it – the graphics mode, the sound profile, the
+	# name – and the unknown keys were lost, and the next save removed them from the file
+	var files: Array[Dictionary] = [
+		{"settings_version": 3, "vibration": "x", "player_name": "Maik", "graphics_mode": "modern", "sound_profile": "modern", "hdr": true},
+		{"settings_version": 3, "fullscreen": null, "player_name": "Maik", "graphics_mode": "modern", "sound_profile": "modern", "hdr": true},
+		{"settings_version": 3, "master_volume": null, "player_name": "Maik", "graphics_mode": "modern", "sound_profile": "modern", "hdr": true},
+		{"settings_version": "drei", "sfx_volume": "laut", "music_volume": [1], "fullscreen": {"an": 1}, "vibration": [], "language": 5,
+			"leaderboard_filter": null, "player_name": "Maik", "graphics_mode": "modern", "sound_profile": "modern", "hdr": true},
+	]
+	for i in files.size():
+		var s := _settings(files[i])
+		var tag := "Datei %d: " % i
+		assert_eq(str(s.get("player_name")), "Maik", tag + "Name gelesen")
+		assert_eq(str(s.get("graphics_mode")), "modern", tag + "Grafikmodus gelesen")
+		assert_eq(str(s.get("sound_profile")), "modern", tag + "Klangprofil gelesen")
+		assert_eq(s.call("effective_graphics"), {"mode": "modern", "reason": ""}, tag + "also Modern")
+		assert_near(float(s.get("master_volume")), 0.8, 0.0001, tag + "Lautstärke: Startwert")
+		assert_near(float(s.get("sfx_volume")), 1.0, 0.0001, tag + "Effekte: Startwert")
+		assert_near(float(s.get("music_volume")), 0.7, 0.0001, tag + "Musik: Startwert")
+		assert_true(bool(s.get("vibration")), tag + "Vibration: Startwert")
+		assert_false(bool(s.get("fullscreen_chosen")), tag + "Vollbild nicht gewählt")
+		assert_eq(str(s.get("language")), "de", tag + "Sprache: Startwert")
+		assert_eq(str(s.get("leaderboard_filter")), "all", tag + "Filter: Startwert")
+		s.set("master_volume", 0.33)
+		assert_true(bool(s.call("save_settings")), tag + "speichern")
+		var d := _stored()
+		assert_true(d.get("hdr", false) == true, tag + "unbekannter Schlüssel bleibt in der Datei")
+		assert_eq(str(d.get("graphics_mode", "")), "modern", tag + "Grafikmodus bleibt in der Datei")
+		assert_eq(str(d.get("sound_profile", "")), "modern", tag + "Klangprofil bleibt in der Datei")
+		assert_eq(str(d.get("player_name", "")), "Maik", tag + "Name bleibt in der Datei")
+		assert_false(d.has("fullscreen"), tag + "kein Vollbild erfunden")
+		s.free()
+	# what v0.7.0 read without an error keeps its meaning: numbers as flags, whole numbers as volumes
+	var t := _settings({"settings_version": 2, "fullscreen": 0, "vibration": 0.0, "master_volume": 1, "music_volume": 0.25})
+	assert_true(bool(t.get("fullscreen_chosen")) and not bool(t.get("fullscreen")), "Vollbild 0 = Aus, gewählt")
+	assert_false(bool(t.get("vibration")), "Vibration 0.0 = Aus")
+	assert_near(float(t.get("master_volume")), 1.0, 0.0001, "ganze Zahl als Lautstärke")
+	assert_near(float(t.get("music_volume")), 0.25, 0.0001, "Musik")
+	t.free()
+	# the fullscreen trap with damaged values: no bool, no number = not stored; a version that is no number = old file
+	assert_false(SettingsScript.fullscreen_stored_as_choice({"settings_version": 3, "fullscreen": "an"}), "Text ist keine Wahl")
+	assert_false(SettingsScript.fullscreen_stored_as_choice({"settings_version": 3, "fullscreen": null}), "null ist keine Wahl")
+	assert_false(SettingsScript.fullscreen_stored_as_choice({"settings_version": "3", "fullscreen": false}), "Version als Text = alte Datei: Aus zählt nicht")
+	assert_true(SettingsScript.fullscreen_stored_as_choice({"settings_version": null, "fullscreen": true}), "Version null = alte Datei: An zählt")
 
 
 func test_sound_follows_the_chosen_graphics_and_signals() -> void:

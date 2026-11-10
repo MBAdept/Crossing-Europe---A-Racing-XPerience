@@ -67,7 +67,13 @@ const DEFAULT_LEVELS := {
 			"sky_reflections": true, "omni_pool": 8},
 	],
 }
+## Start values of config graphics.watchdog. slow_factor / too_slow_factor: watchdog_verdict() below.
+## countdown_min_fps is not read by anything in this file: it belongs to the renderer's watchdog
+## (scripts/race3d/perf_probe.gd, renderer package of wave 1; tuned by the performance package of wave 8), which
+## steps the preset down once during the countdown when the measured frame rate there is below it (contract D34 c).
 const DEFAULT_WATCHDOG := {"countdown_min_fps": 30.0, "slow_factor": 1.3, "too_slow_factor": 2.0}
+## Frame time watchdog_verdict() judges against when the caller has no usable target (60 Hz).
+const WATCHDOG_FALLBACK_TARGET_MS := 1000.0 / 60.0
 
 ## Adapter tiers (classify_adapter): "software" = CPU rasteriser (llvmpipe, SwiftShader, WARP …); "weak" = old or
 ## small integrated graphics; "deck" = Steam Deck APU (or an AMD handheld under gamescope); "ok" = everything else.
@@ -192,21 +198,24 @@ static func preset_of(q: Dictionary, presets: Dictionary) -> String:
 
 
 ## The five quality values of `q`, each forced into its range (a hand-edited settings file or command line must
-## not break the renderer): missing or non-numeric values = "medium", the scale snaps to the nearest SCALE_STEPS.
+## not break the renderer): missing or non-numeric values and NaN = "medium", the scale snaps to the nearest
+## SCALE_STEPS. The range is applied to the float before it becomes an integer – a huge number (--gfx=aa=1e30,
+## scale=-1e400) would overflow the integer and come out at the wrong end.
 static func sanitized(q: Dictionary) -> Dictionary:
 	var medium: Dictionary = DEFAULT_PRESETS["medium"]
 	var out := {}
 	for k in QUALITY_KEYS:
-		var raw: Variant = q.get(k, medium[k])
-		var v := int(round(float(raw))) if _is_number(raw) else int(medium[k])
+		var raw: Variant = q.get(k, null)
+		var f := float(raw) if _is_number(raw) and not is_nan(float(raw)) else float(medium[k])
 		if k == "scale":
+			var v := int(round(clampf(f, float(SCALE_STEPS[0]), float(SCALE_STEPS[SCALE_STEPS.size() - 1]))))
 			var best := SCALE_STEPS[0]
 			for s in SCALE_STEPS:
 				if absi(s - v) < absi(best - v):
 					best = s
 			out[k] = best
 		else:
-			out[k] = clampi(v, 0, int(QUALITY_MAX[k]))
+			out[k] = int(round(clampf(f, 0.0, float(QUALITY_MAX[k]))))
 	return out
 
 
@@ -283,11 +292,13 @@ static func _level_entry(table: Dictionary, key: String, index: int) -> Dictiona
 ## preset down once / suggest a lower one) | "too_slow" (nothing lower is left: offer Arcade). median_ms / p95_ms =
 ## frame times of the window, target_ms = frame time of the display refresh or the frame cap (a Steam Deck capped
 ## at 40 Hz is not slow at 25 ms), wd_cfg = config graphics.watchdog (slow_factor, too_slow_factor), lowest = the
-## lowest preset is already in use.
+## lowest preset is already in use. A target of 0 or less (or NaN) means "unknown" – DisplayServer.
+## screen_get_refresh_rate() returns -1 when it cannot tell – and is judged against 60 Hz
+## (WATCHDOG_FALLBACK_TARGET_MS), never as "everything is too slow".
 static func watchdog_verdict(median_ms: float, p95_ms: float, target_ms: float, wd_cfg: Dictionary, lowest: bool) -> String:
 	var slow_f := maxf(1.0, _num(wd_cfg.get("slow_factor", null), float(DEFAULT_WATCHDOG["slow_factor"])))
 	var bad_f := maxf(slow_f, _num(wd_cfg.get("too_slow_factor", null), float(DEFAULT_WATCHDOG["too_slow_factor"])))
-	var t := maxf(target_ms, 0.001)
+	var t := target_ms if target_ms > 0.0 and is_finite(target_ms) else WATCHDOG_FALLBACK_TARGET_MS
 	if median_ms > t * bad_f or p95_ms > t * bad_f * 2.0:
 		return "too_slow" if lowest else "slow"
 	if median_ms > t * slow_f:
