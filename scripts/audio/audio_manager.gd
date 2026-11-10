@@ -32,6 +32,21 @@ extends Node
 ## traffic: no set_traffic() for 0.35 s or a paused tree fades all voices out; stop_all() silences them at once.
 ## Debug: --traffic-sounds=<traffic_sounds.json> (e.g. the test fixtures), --audio-config=key=value,… (audio.* for
 ## this run), --mute-bus=Engine (measure the traffic alone; muting SFX would also mute Room), --perf (AUDIO_PERF at exit).
+##
+## Sound profiles (v0.8.0, contract docs/dev/v080_contract.md §4.7.1, docs/audio-modern.md): everything above is the
+## profile "arcade" and stays as it is. With the profile "modern" every call of this API is handed to a ModernAudio
+## node (scripts/audio/modern/modern_audio.gd), which set_profile() builds and frees; the Arcade sound is then silent
+## and does not run. Additions:
+##   set_profile(id), profile()      – "arcade" | "modern"; idempotent; never during a stage
+##   set_race_music(on)              – option "Musik im Rennen" (Modern)
+##   set_music_context(ctx, args)    – "title" | "menu" | "race_menu" | "race" | "result" | "off"
+##   set_track(track, plan)          – race session after building its track; (null, null) when it leaves
+##   set_vehicle_state(state)        – race session every frame (keys: contract §4.7.2)
+##   event(name, args)               – session events (contract §4.7.2)
+## The last five do nothing with the Arcade profile (the music context and the race-music switch are remembered for
+## the next change of profile). At start the profile is --sound=arcade|modern, else config audio.profile, else
+## "arcade"; the stored setting "Klang" reaches set_profile() through GameFlow (Settings.sound()). This file never
+## reads the graphics mode.
 
 const ONESHOT_DB := {
 	"crash": -1.0, "rail": -5.0, "flash": -3.0, "go": -4.0, "beep": -6.0, "finish": -3.0, "fuel_start": -5.0,
@@ -47,6 +62,8 @@ const MUSIC_FILE := "res://assets/audio/music/title_theme.ogg"
 ## audio.music_db (−9 dB) is set for the title theme (mastered to −14 LUFS); the synthesised fallback loop (−20 LUFS)
 ## was mixed for −4 dB on the bus and gets the difference, so it keeps its old level.
 const FALLBACK_MUSIC_DB := 5.0
+const PROFILE_ARCADE := "arcade"
+const PROFILE_MODERN := "modern"
 
 var sounds_ready := false
 var _streams: Dictionary = {}
@@ -117,6 +134,14 @@ var _traffic_listener: Dictionary = {}
 var _traffic_t := -100.0
 var _tunnel := false
 
+# sound profile "modern" (v0.8.0): null = the Arcade profile, everything in this file as before
+var _modern: ModernAudio = null
+var _audio_cfg: Dictionary = {}
+var _race_music := true
+var _music_ctx := ""             ## last set_music_context() ("" = never called)
+var _music_ctx_args: Dictionary = {}
+var _music_ctx_last := false     ## that call came after the last set_music()
+
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -143,16 +168,24 @@ func _ready() -> void:
 	for bus_name in CliArgs.get_string("mute-bus", "").split(",", false):
 		if AudioServer.get_bus_index(bus_name) >= 0:
 			AudioServer.set_bus_mute(AudioServer.get_bus_index(bus_name), true)
+	_audio_cfg = room_cfg
+	var settings: Node = get_node_or_null("/root/Settings")
+	if settings != null and settings.get("race_music") is bool:
+		_race_music = bool(settings.get("race_music"))
 	if DisplayServer.get_name() == "headless":
+		set_profile(_boot_profile())
 		return
 	_load_traffic_sounds(room_cfg)
 	_build_sounds()
 	if bool(ConfigLoader.lookup(cfg, "audio.menu_music", true)):
 		if not _load_music(str(ConfigLoader.lookup(cfg, "audio.music_file", MUSIC_FILE))):
 			_music_thread_task = WorkerThreadPool.add_task(_generate_music, false, "menu music")
+	set_profile(_boot_profile())
 
 
 func _exit_tree() -> void:
+	if _modern != null:
+		_modern.shutdown()   # its players, threads and buses; the node goes with this one
 	if CliArgs.has("perf") and _traffic != null and _traffic.perf_calls > 0:
 		print("AUDIO_PERF ", JSON.stringify({"traffic": traffic_perf(), "engine": engine_perf()}))
 	if _traffic != null:
@@ -202,6 +235,8 @@ func apply_volumes() -> void:
 	_set_bus("Master", master, offset)
 	_set_bus("SFX", sfx, 0.0)
 	_set_bus("Music", music, float(ConfigLoader.lookup(ConfigLoader.load_merged(), "audio.music_db", -4.0)))
+	if _modern != null:
+		_modern.apply_volumes(sfx, music)
 
 
 ## Debug/measurements: --audio-config=engine_width=0,traffic_db=-3 overrides audio.* keys of the traffic and room
@@ -342,6 +377,9 @@ func _on_music_ready() -> void:
 ## Ignored while the tree is paused (the engine fades out then; the values from before the pause stay) and
 ## in the frame of stop_all() (a race scene that is being freed must not restart the engine).
 func set_engine(speed_kmh: float, throttle: float, vmax_kmh: float, active: bool) -> void:
+	if _modern != null:
+		_modern.set_engine(speed_kmh, throttle, vmax_kmh, active)
+		return
 	if is_inside_tree() and get_tree().paused:
 		return
 	if Engine.get_process_frames() == _stopped_frame:
@@ -354,21 +392,33 @@ func set_engine(speed_kmh: float, throttle: float, vmax_kmh: float, active: bool
 
 
 func set_wind(speed_kmh: float) -> void:
+	if _modern != null:
+		_modern.set_wind(speed_kmh)
+		return
 	_wind_speed = maxf(speed_kmh, 0.0)
 
 
 ## Police siren on/off; distance01 = 1 close … 0 far.
 func set_siren(on: bool, distance01: float) -> void:
+	if _modern != null:
+		_modern.set_siren(on, distance01)
+		return
 	_siren_on = on
 	_siren_dist = clampf(distance01, 0.0, 1.0)
 
 
 func set_rain(intensity: float) -> void:
+	if _modern != null:
+		_modern.set_rain(intensity)
+		return
 	_rain_explicit = clampf(intensity, 0.0, 1.0)
 	_rain_explicit_t = _time
 
 
 func set_skid(amount01: float) -> void:
+	if _modern != null:
+		_modern.set_skid(amount01)
+		return
 	_skid_explicit = clampf(amount01, 0.0, 1.0)
 	_skid_explicit_t = _time
 
@@ -377,6 +427,9 @@ func set_skid(amount01: float) -> void:
 ## "ui_ok", "ui_back".
 ## One-shot sound; gain_db is added to its base level (e.g. a guardrail hit scaled by the impact).
 func play(sound_name: String, gain_db: float = 0.0) -> void:
+	if _modern != null:
+		_modern.play(sound_name, gain_db)
+		return
 	if not sounds_ready or not _streams.has(sound_name) or _oneshots.is_empty():
 		return
 	var now := Time.get_ticks_msec()
@@ -391,6 +444,9 @@ func play(sound_name: String, gain_db: float = 0.0) -> void:
 
 
 func stop_all() -> void:
+	if _modern != null:
+		_modern.stop_all()
+		return
 	for n in _loop_players:
 		(_loop_players[n] as AudioStreamPlayer).stop()
 		_vol[n] = 0.0
@@ -418,6 +474,89 @@ func stop_all() -> void:
 		_room.reset()
 
 
+# --- sound profiles (v0.8.0, contract §4.7.1) ------------------------------------------------
+
+## Sound profile: "arcade" = this file as before, "modern" = the calls go to a ModernAudio node built here (any
+## other id counts as "arcade"). Idempotent. On a change the sound of the old profile stops at once and the menu
+## music continues in the new one. Never called during a stage.
+func set_profile(id: String) -> void:
+	var want := PROFILE_MODERN if id == PROFILE_MODERN else PROFILE_ARCADE
+	if want == profile():
+		return
+	if want == PROFILE_MODERN:
+		var music_on := _music_wanted
+		stop_all()   # the Arcade sound (no ModernAudio yet)
+		_set_arcade_music(false)
+		_modern = ModernAudio.new()
+		add_child(_modern)
+		_modern.start(_audio_cfg if not _audio_cfg.is_empty() else ConfigLoader.load_merged(),
+			{"streams": _streams, "arcade_traffic": _traffic, "bank_provider": Callable(self, "bank_for")})
+		_modern.set_race_music(_race_music)
+		# the music calls so far, in their order (the last one wins – MusicDirector)
+		if _music_ctx != "" and not _music_ctx_last:
+			_modern.set_music_context(_music_ctx, _music_ctx_args)
+		_modern.set_music(music_on)
+		if _music_ctx != "" and _music_ctx_last:
+			_modern.set_music_context(_music_ctx, _music_ctx_args)
+	else:
+		var music_on := _modern.music != null and _modern.music.wanted()
+		_modern.shutdown()
+		_modern.queue_free()
+		_modern = null
+		_stopped_frame = -1
+		_set_arcade_music(music_on)
+	apply_volumes()
+
+
+func profile() -> String:
+	return PROFILE_MODERN if _modern != null else PROFILE_ARCADE
+
+
+## Profile at start: --sound=arcade|modern, else config audio.profile, else "arcade".
+static func _boot_profile() -> String:
+	for v: String in [CliArgs.get_string("sound", ""), str(ConfigLoader.lookup(ConfigLoader.load_merged(), "audio.profile", ""))]:
+		if v == PROFILE_ARCADE or v == PROFILE_MODERN:
+			return v
+	return PROFILE_ARCADE
+
+
+## Option "Musik im Rennen" of the Modern profile (Arcade has no music in races).
+func set_race_music(on: bool) -> void:
+	_race_music = on
+	if _modern != null:
+		_modern.set_race_music(on)
+
+
+## Where the game is, for the music of the Modern profile: "title" | "menu" | "race_menu" (screens between stages) |
+## "race" | "result" | "off". Arcade: remembered only (its menu music follows set_music()).
+func set_music_context(ctx: String, args: Dictionary = {}) -> void:
+	_music_ctx = ctx
+	_music_ctx_args = args
+	_music_ctx_last = true
+	if _modern != null:
+		_modern.set_music_context(ctx, args)
+
+
+## The race session after building its track; (null, null) when it leaves the stage. Arcade: nothing.
+func set_track(track: Object, plan: Object) -> void:
+	if _modern != null:
+		_modern.set_track(track, plan)
+
+
+## The car's state, every frame of a race (keys: contract §4.7.2). Arcade: nothing.
+func set_vehicle_state(state: Dictionary) -> void:
+	if _modern != null:
+		_modern.set_vehicle_state(state)
+
+
+## Session event (contract §4.7.2: "stage_start", "countdown", "go", "collision", "rail_hit", "radar_flash",
+## "chase_start", "escaped", "busted", "refuel_start", "refuel_done", "out_of_fuel", "tow", "stage_finish").
+## Arcade: nothing.
+func event(event_name: String, args: Dictionary = {}) -> void:
+	if _modern != null:
+		_modern.event(event_name, args)
+
+
 # --- additions -----------------------------------------------------------------------------
 
 ## Traffic pass-by sounds and the spatial siren (docs/verkehrsgeraeusche.md), called by the race session each frame:
@@ -425,6 +564,9 @@ func stop_all() -> void:
 ## id −2; listener = the chase camera {z, x, speed (km/h)} (TrafficAudio adds audio.traffic_listener_ahead_m).
 ## Ignored while paused and in the frame of stop_all(); without calls for ALIVE_S everything fades out.
 func set_traffic(vehicles: Array, listener: Dictionary) -> void:
+	if _modern != null:
+		_modern.set_traffic(vehicles, listener)
+		return
 	if is_inside_tree() and get_tree().paused:
 		return
 	if Engine.get_process_frames() == _stopped_frame:
@@ -436,6 +578,9 @@ func set_traffic(vehicles: Array, listener: Dictionary) -> void:
 
 ## Surroundings of the listener: {"tunnel": bool} (camera in a tunnel) – the tunnel reverb fades in and out.
 func set_environment(env: Dictionary) -> void:
+	if _modern != null:
+		_modern.set_environment(env)
+		return
 	if Engine.get_process_frames() == _stopped_frame:
 		return
 	_tunnel = bool(env.get("tunnel", false))
@@ -443,6 +588,8 @@ func set_environment(env: Dictionary) -> void:
 
 ## Debug/tests: voices of the last frame (TrafficAudio.state()) plus the room blend.
 func traffic_state() -> Dictionary:
+	if _modern != null:
+		return _modern.traffic_state()
 	if _traffic == null:
 		return {}
 	var s: Dictionary = _traffic.state()
@@ -453,6 +600,8 @@ func traffic_state() -> Dictionary:
 ## GDScript time of the traffic voices per frame (update + apply): {avg_ms, max_ms, frames, apply_avg_ms,
 ## apply_max_ms (pushing the values to the players alone)}.
 func traffic_perf() -> Dictionary:
+	if _modern != null:
+		return _modern.traffic_perf()
 	if _traffic == null or _traffic.perf_calls == 0:
 		return {"avg_ms": 0.0, "max_ms": 0.0, "frames": 0, "apply_avg_ms": 0.0, "apply_max_ms": 0.0}
 	return {"avg_ms": _traffic.perf_us_sum / 1000.0 / _traffic.perf_calls, "max_ms": _traffic.perf_us_max / 1000.0,
@@ -463,6 +612,14 @@ func traffic_perf() -> Dictionary:
 ## Menu music on/off (Music bus). On starts the title theme from its beginning (the intro plays once, then the
 ## loop); while it plays, further set_music(true) calls change nothing - it keeps running (attract mode, screens).
 func set_music(on: bool) -> void:
+	_music_ctx_last = false
+	if _modern != null:
+		_modern.set_music(on)
+		return
+	_set_arcade_music(on)
+
+
+func _set_arcade_music(on: bool) -> void:
 	_music_wanted = on
 	if _music == null:
 		return
@@ -475,6 +632,9 @@ func set_music(on: bool) -> void:
 ## HUD state of the current frame (see Hud.update_state): fallback values for rain, skid and the
 ## siren distance. Explicit set_rain/set_skid calls of the last second take precedence.
 func hud_hints(state: Dictionary) -> void:
+	if _modern != null:
+		_modern.hud_hints(state)
+		return
 	_hint_t = _time
 	var w := str(state.get("weather", "normal"))
 	_hint_rain = 1.0 if (w == "rain" and not bool(state.get("in_tunnel", false))) else 0.0
@@ -497,6 +657,9 @@ static func gear_for(speed_kmh: float, vmax_kmh: float, gears: int = 6) -> Vecto
 ## lazily and cached; the next set_engine() starts the engine (start clip of the bank). Without a usable
 ## bank the old SfxSynth engine loops play.
 func set_vehicle(id: String) -> void:
+	if _modern != null:
+		_modern.set_vehicle(id)
+		return
 	_vehicle_id = id
 	_stopped_frame = -1
 	var vmax := float(ConfigLoader.lookup(ConfigLoader.load_merged(), "vehicles.types.%s.vmax_kmh" % id, 250.0))
@@ -540,6 +703,8 @@ func bank_for(id: String) -> EngineBank:
 ## Engine state of the race car (tests, HUD): {rpm, gear (0 = neutral, 1..n), load 0..1, boost 0..1}.
 ## Without a bank: the generic gearbox that runs alongside the fallback loops.
 func engine_state() -> Dictionary:
+	if _modern != null:
+		return _modern.engine_state()
 	if _eng != null:
 		return _eng.state()
 	if _fb_gearbox != null:
@@ -550,6 +715,8 @@ func engine_state() -> Dictionary:
 ## Render time of the bank engine (live playback): {avg_ms, max_ms per filling call, frames = filling calls,
 ## samples rendered, skips = generator underruns of the current playback}.
 func engine_perf() -> Dictionary:
+	if _modern != null:
+		return _modern.engine_perf()
 	if _eng == null or _eng.perf_calls == 0:
 		return {"avg_ms": 0.0, "max_ms": 0.0, "frames": 0, "samples": 0, "skips": 0}
 	return {"avg_ms": _eng.perf_us_sum / 1000.0 / _eng.perf_calls, "max_ms": _eng.perf_us_max / 1000.0,
@@ -560,6 +727,9 @@ func engine_perf() -> Dictionary:
 ## blip fades out first and the new one follows in the same stream – they never overlap. Needs the car's
 ## cycle bank (no blip with the fallback loops) and config audio.engine_preview.
 func preview_engine(id: String) -> void:
+	if _modern != null:
+		_modern.preview_engine(id)
+		return
 	if not _preview_on or not sounds_ready:
 		return
 	var bank := bank_for(id)
@@ -627,6 +797,8 @@ func _process_engine(delta: float, alive: bool) -> void:
 
 func _process(delta: float) -> void:
 	_time += delta
+	if _modern != null:
+		return   # profile "modern": the Arcade sound was stopped by set_profile() and does not run
 	var paused := get_tree().paused
 	var alive := (_time - _engine_t) < 0.35 and not paused
 	_process_engine(delta, alive)
