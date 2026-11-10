@@ -10,11 +10,13 @@ extends RefCounted
 ##   ducking       gain of duck.bus (MMusic) = −depth_db · clamp((car − from_lufs) / (to_lufs − from_lufs), 0, 1),
 ##                 smoothed with attack_s when the music has to go down and release_s when it comes back. "car"
 ##                 is the loudness the plan gives the car in its driving state (car_lufs(): idle_lufs standing,
-##                 cruise_lufs rolling at pace_cruise × top speed, full_throttle_lufs under full load) – scripted
-##                 and the same in every run. It is not metered from the car bus: the engine offers only peak
-##                 meters, and neither the peak nor the RMS of an engine sound follows its loudness (measured on
-##                 the car bus with the stand-in engine, idle / 130 km/h / full throttle at −20.4 / −22.7 / −16.2
-##                 LUFS: peak −6.4 / −11.1 / −0.3 dBFS, RMS −15.3 / −20.7 / −14.4 dBFS).
+##                 cruise_lufs rolling at pace_cruise × top speed, full_throttle_lufs under full load), less what
+##                 the mix states take from the car (car_path_db(): behind the finish line it is turned down and
+##                 no longer ducks the music) – scripted and the same in every run. It is not metered from the
+##                 car bus: the engine offers only peak meters, and neither the peak nor the RMS of an engine
+##                 sound follows its loudness (measured on the car bus with the stand-in engine, idle / 130 km/h /
+##                 full throttle at −20.4 / −22.7 / −16.2 LUFS: peak −6.4 / −11.1 / −0.3 dBFS, RMS −15.3 / −20.7 /
+##                 −14.4 dBFS).
 ##   snapshots     named states with a weight 0..1 that moves with attack_s / release_s: gain_db per bus (added,
 ##                 weighted) and lowpass_hz per bus (cutoff glides from 20 kHz to the value; the lowest wins).
 ##                 set_active(name, on) holds one; trigger(name) fires it for its hold_s.
@@ -183,6 +185,12 @@ func car_lufs(alive: bool, speed_kmh: float, vmax_kmh: float, load: float) -> fl
 	var full := float(loudness.get("full_throttle_lufs", -16.0))
 	var pace := clampf(speed_kmh / maxf(vmax_kmh, 1.0) / pace_cruise, 0.0, 1.0)
 	return lerpf(lerpf(idle, cruise, pace), full, clampf(load, 0.0, 1.0))
+
+
+## What the mix states take from the car on its way out, in dB (<= 0): the scripted gains of the car's bus and of
+## the environment path it runs through (state "result": the car is turned down).
+func car_path_db() -> float:
+	return gain_db("MCar") + gain_db("MEnv")
 
 
 ## Wanted ducking gain (<= 0 dB) for a loudness of the car (LUFS).

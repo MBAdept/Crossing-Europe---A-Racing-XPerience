@@ -475,6 +475,8 @@ func step(delta: float, paused: bool) -> void:
 	mix.set_active("siren", f.siren_on)
 	mix.set_active("result", _result)
 	var car := mix.car_lufs(f.alive, f.speed, f.vmax, float(f.engine.get("load", f.throttle)))
+	if car > ModernMix.KEY_FLOOR_DB:
+		car += mix.car_path_db()   # a car the mix has turned down (behind the finish line) does not duck the music
 	if car_lufs_override > ModernMix.KEY_FLOOR_DB:
 		car = car_lufs_override
 	mix.step(delta, car, mute_request, buses.peak_db("MEnv") if ctx.live else ModernMix.KEY_FLOOR_DB)

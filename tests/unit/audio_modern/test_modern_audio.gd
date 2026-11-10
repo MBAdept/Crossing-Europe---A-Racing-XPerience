@@ -398,6 +398,20 @@ func test_ducking_follows_the_car() -> void:
 	_done(m)
 
 
+func test_no_ducking_for_a_car_the_mix_turned_down() -> void:
+	var m := _modern()
+	var depth := float(ConfigLoader.lookup(cfg(), "audio.modern.duck.depth_db", 0.0))
+	m.set_vehicle("kompakt")
+	_drive(m, 150, 150.0, 1.0)
+	assert_near(m.buses.gain_db("MMusic"), -depth, 0.1, "Vollgas: Musik abgesenkt")
+	# behind the finish line the state "result" turns the car down: still flat out, but the music comes back
+	m.event("stage_finish", {"record": false, "last_stage": false})
+	_drive(m, 240, 150.0, 1.0)
+	assert_true(m.buses.gain_db("MCar") < -6.0, "Auto leise gestellt (%.1f dB)" % m.buses.gain_db("MCar"))
+	assert_near(m.buses.gain_db("MMusic"), 0.0, 0.1, "ein leise gestelltes Auto senkt die Musik nicht ab")
+	_done(m)
+
+
 func test_effects_mute_follows_the_arcade_sfx_bus_and_the_setting() -> void:
 	AudioServer.add_bus()
 	AudioServer.set_bus_name(1, "SFX")

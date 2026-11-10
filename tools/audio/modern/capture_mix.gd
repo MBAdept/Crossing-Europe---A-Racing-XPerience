@@ -9,6 +9,8 @@ extends SceneTree
 ##                                         --placeholders the placeholder)
 ## Then: python3 tools/audio/modern/measure_mix.py /tmp/mix_modern_gt.wav
 ##
+##   … --mute-bus=MEnv                     with race_music: the music alone (the car's group is muted, the ducking
+##                                         still follows the drive)
 ## Output: <out>.wav (16 bit, 44.1 kHz, the signal after the Master volume and limiter – what reaches the sound
 ## card) and <out>.json with the phases of the scenario {name, t0, t1} and the settings; with the Modern profile
 ## each phase also has car_plan_lufs (the car's loudness after the plan, the key of the ducking), duck_db (the
@@ -113,7 +115,8 @@ func _run() -> void:
 	var err := wav.save_to_wav(out)
 	var info := {"profile": str(_am.call("profile")), "scenario": scenario, "vehicle": vehicle, "seconds": snappedf(total, 0.01),
 		"mix_rate": int(wav.mix_rate), "master_db": AudioServer.get_bus_volume_db(0), "phases": _phases,
-		"placeholders": CliArgs.has("placeholders"), "engine": _am.call("engine_perf")}
+		"placeholders": CliArgs.has("placeholders"), "mute_buses": CliArgs.get_string("mute-bus", "").split(",", false),
+		"engine": _am.call("engine_perf")}
 	var f := FileAccess.open(out.get_basename() + ".json", FileAccess.WRITE)
 	f.store_string(JSON.stringify(info, "\t") + "\n")
 	f.close()

@@ -229,7 +229,9 @@ Absenkung = −depth_db · clamp((Auto − from_lufs) / (to_lufs − from_lufs),
 mit Attack 50 ms nach unten und Release 450 ms zurück (`audio.modern.duck`: Tiefe 4,5 dB, von −23 bis −17 LUFS).
 „Auto“ ist **die Lautheit, die der Plan dem Auto in seinem Fahrzustand gibt** (`ModernMix.car_lufs()`): Leerlauf im
 Stand, zum Reisetempo hin mit dem Rollen (erreicht bei `pace_cruise` × Höchsttempo), zu Vollgas hin mit der
-Motorlast aus `frame.engine.load`. Ohne fahrendes Auto (Menü, Pause, Sitzung weg) gibt es keine Absenkung.
+Motorlast aus `frame.engine.load`. Was die Mischzustände dem Auto nehmen, wird abgezogen: Hinter der Ziellinie ist
+das Auto 9 dB leiser gestellt und senkt die Musik nicht mehr ab. Ohne fahrendes Auto (Menü, Pause, Sitzung weg) gibt
+es keine Absenkung.
 
 Warum nicht der Pegel des Auto-Busses: Die Engine misst an einem Bus nur Spitzen, und weder Spitze noch
 Effektivwert folgen der Lautheit eines Motors. Gemessen am Auto-Bus mit dem Platzhalter-Motor bei Leerlauf /

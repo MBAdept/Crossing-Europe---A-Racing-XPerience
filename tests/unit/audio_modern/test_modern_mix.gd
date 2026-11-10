@@ -61,6 +61,21 @@ func test_car_loudness_after_the_plan() -> void:
 	assert_near(plan.duck_target_db(plan.car_lufs(false, 250.0, 250.0, 1.0)), 0.0, 1.0e-6, "ohne Auto keine Absenkung")
 
 
+## A car the mix states have turned down counts with what is left of it.
+func test_car_path_counts_the_mix_states() -> void:
+	var mix := _mix()
+	assert_near(mix.car_path_db(), 0.0, 1.0e-6, "ohne Zustand: nichts")
+	mix.set_active("result", true)
+	_run(mix, 6.0, ModernMix.KEY_FLOOR_DB)
+	var dips: Dictionary = ConfigLoader.lookup(cfg(), "audio.modern.snapshots.result.gain_db", {})
+	var want := float(dips.get("MCar", 0.0)) + float(dips.get("MEnv", 0.0))
+	assert_true(want <= -6.0, "hinter der Ziellinie wird das Auto deutlich leiser gestellt (%.1f dB)" % want)
+	assert_near(mix.car_path_db(), want, 0.05, "Zustand result: der Weg des Autos")
+	# full throttle behind the finish line: what is left of the car no longer ducks the music
+	var left := mix.car_lufs(true, 200.0, 250.0, 1.0) + mix.car_path_db()
+	assert_near(mix.duck_target_db(left), 0.0, 1.0e-6, "kein Ducking für ein leise gestelltes Auto")
+
+
 func test_duck_target_curve() -> void:
 	var mix := _mix({"duck": {"from_lufs": -24.0, "to_lufs": -10.0, "depth_db": 4.5}})
 	assert_near(mix.duck_target_db(-200.0), 0.0, 1.0e-6, "Stille: keine Absenkung")
