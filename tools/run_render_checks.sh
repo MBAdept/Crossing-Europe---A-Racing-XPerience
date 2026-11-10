@@ -12,6 +12,8 @@
 # failed, reported a script error or printed no check line at all.
 # All runs of one call share one XDG_DATA_HOME and one MESA_SHADER_CACHE_DIR (a cold shader cache costs 0.5–1.9 s
 # per shader variant with llvmpipe). Environment: GODOT, RENDER_CHECK_TIMEOUT (seconds per file, default 900).
+# XDG_DATA_HOME of the caller is used only if it is an absolute path (Godot ignores a relative one and falls back to
+# ~/.local/share – the real user folder); otherwise user:// lies in a temporary folder.
 # A new render check only needs its file in tests/race3d/render/ – nobody edits this script for it.
 set -uo pipefail
 cd "$(dirname "$0")/.."
@@ -22,15 +24,20 @@ TIMEOUT=${RENDER_CHECK_TIMEOUT:-900}
 case "$WHAT" in
 arcade | modern | all) ;;
 *)
-	sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'
+	sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'
 	exit 2
 	;;
 esac
 OWN_HOME=""
-if [ -z "${XDG_DATA_HOME:-}" ]; then
+case "${XDG_DATA_HOME:-}" in
+/*) ;;
+*)
+	[ -n "${XDG_DATA_HOME:-}" ] && echo "==> XDG_DATA_HOME=\"$XDG_DATA_HOME\" ist kein absoluter Pfad (Godot würde ihn ignorieren) – die Prüfungen nutzen einen temporären Ordner"
 	OWN_HOME=$(mktemp -d "${TMPDIR:-/tmp}/ce_render_checks.XXXXXX")
+	OWN_HOME=$(cd "$OWN_HOME" && pwd)   # absolute also with a relative TMPDIR
 	export XDG_DATA_HOME="$OWN_HOME"
-fi
+	;;
+esac
 export MESA_SHADER_CACHE_DIR="${MESA_SHADER_CACHE_DIR:-$XDG_DATA_HOME/mesa_shader_cache}"
 mkdir -p "$XDG_DATA_HOME" "$MESA_SHADER_CACHE_DIR"
 LOG=$(mktemp)

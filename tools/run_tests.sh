@@ -7,19 +7,27 @@
 #   4. v0.8.0, generic hook: every tests/race3d/check_*.gd and tests/sim/modern_*.gd runs on its own with
 #      "godot --headless --path . -s <file>", prints "CHECK <name> OK|FEHLER" lines and returns an exit code.
 #      A new check only needs its file – nobody edits this script for it. (With a filter: the files whose name
-#      contains it.)
+#      contains it.) A file fails on an exit code other than 0, on a script error, on a "CHECK <name> FEHLER" line
+#      and when it prints no "CHECK <name> OK" line at all – the exit code alone is not trusted.
 # Everything that needs OpenGL is in tools/run_render_checks.sh, the Arcade pictures in tools/golden.sh.
-# The tests never see the player's own data: without XDG_DATA_HOME set by the caller, user:// lies in a temporary
-# folder (no stored settings – in particular no stored graphics mode –, no override of the configuration).
+# The tests never see the player's own data: user:// lies in a temporary folder (no stored settings – in particular
+# no stored graphics mode –, no override of the configuration) unless the caller sets XDG_DATA_HOME to an ABSOLUTE
+# path. Godot ignores a relative XDG_DATA_HOME and falls back to ~/.local/share – the real user folder –, so a
+# relative value is not used either.
 # The runs of the whole game and of the race scene name their graphics mode: -- --graphics=arcade.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 GODOT=${GODOT:-godot}
 OWN_HOME=""
-if [ -z "${XDG_DATA_HOME:-}" ]; then
+case "${XDG_DATA_HOME:-}" in
+/*) ;;
+*)
+	[ -n "${XDG_DATA_HOME:-}" ] && echo "==> XDG_DATA_HOME=\"$XDG_DATA_HOME\" ist kein absoluter Pfad (Godot würde ihn ignorieren) – die Tests nutzen einen temporären Ordner"
 	OWN_HOME=$(mktemp -d "${TMPDIR:-/tmp}/ce_tests.XXXXXX")
+	OWN_HOME=$(cd "$OWN_HOME" && pwd)   # absolute also with a relative TMPDIR
 	export XDG_DATA_HOME="$OWN_HOME"
-fi
+	;;
+esac
 LOG=$(mktemp)
 SLOG=$(mktemp)
 trap 'rm -f "$LOG" "$SLOG"; [ -n "$OWN_HOME" ] && rm -rf "$OWN_HOME"' EXIT
@@ -96,10 +104,12 @@ if [ $CODE -eq 0 ]; then
 		timeout 600 "$GODOT" --headless --path . -s "res://$f" >"$SLOG" 2>&1
 		SCODE=$?
 		grep -E "^CHECK" "$SLOG"
-		if [ $SCODE -ne 0 ] || grep -qE "SCRIPT ERROR|Parse Error" "$SLOG"; then
+		if [ $SCODE -ne 0 ] || grep -qE "SCRIPT ERROR|Parse Error" "$SLOG" || grep -qE "^CHECK +[^ ]+ +FEHLER" "$SLOG" \
+			|| ! grep -qE "^CHECK +[^ ]+ +OK" "$SLOG"; then
 			echo "==> $f fehlgeschlagen (Exit $SCODE)"
 			grep -E -A4 "SCRIPT ERROR|Parse Error" "$SLOG" | head -20
 			[ $SCODE -eq 124 ] && echo "    Zeitlimit überschritten"
+			grep -qE "^CHECK +[^ ]+ +(OK|FEHLER)" "$SLOG" || echo "    keine Zeile \"CHECK <name> OK|FEHLER\" ausgegeben"
 			CODE=1
 		fi
 	done

@@ -109,6 +109,7 @@ make)
 		exit 1
 	fi
 	TMP=$(mktemp -d "${TMPDIR:-/tmp}/ce_golden_make.XXXXXX")
+	TMP=$(cd "$TMP" && pwd)   # absolute also with a relative TMPDIR: Godot ignores a relative XDG_DATA_HOME
 	trap 'rm -rf "$TMP"' EXIT
 	export XDG_DATA_HOME="$TMP/xdg" MESA_SHADER_CACHE_DIR="${MESA_SHADER_CACHE_DIR:-$TMP/mesa}"
 	mkdir -p "$TMP/ref" "$XDG_DATA_HOME" "$MESA_SHADER_CACHE_DIR"
@@ -147,6 +148,7 @@ check)
 		exit 1
 	fi
 	TMP=$(mktemp -d "${TMPDIR:-/tmp}/ce_golden_check.XXXXXX")
+	TMP=$(cd "$TMP" && pwd)   # absolute also with a relative TMPDIR: Godot ignores a relative XDG_DATA_HOME
 	trap 'rm -rf "$TMP"' EXIT
 	export XDG_DATA_HOME="$TMP/xdg" MESA_SHADER_CACHE_DIR="${MESA_SHADER_CACHE_DIR:-$TMP/mesa}"
 	mkdir -p "$XDG_DATA_HOME" "$MESA_SHADER_CACHE_DIR"
