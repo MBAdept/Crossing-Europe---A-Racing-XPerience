@@ -163,5 +163,5 @@ func _print_ribbon(ribbons: Array) -> void:
 		print("RIBBON   >= %3.0f m frei: %6.2f %% der Seiten (nicht: %d = %.1f km Straßenseite)" % [w, 100.0 * float(free[w]) / maxf(1.0, float(sides)),
 			sides - int(free[w]), float(sides - int(free[w])) * 24.0 / 1000.0])
 	print("RIBBON   kleinste freie Breite %.1f m (%s)" % [min_clear, min_name])
-	print("CHUNKS Laderegel bei 900 m Sicht, Kamera alle 96 m (%d Positionen): höchstens %d Stücke gewünscht (%s); über der Grenze von 16: %d Positionen%s" % [
-		positions, chunks_max, chunks_name, cap_hits, (", nächstes ausgelassenes Stück %.0f m Luftlinie" % cap_nearest) if cap_nearest < INF else ""])
+	print("CHUNKS Laderegel bei 900 m Sicht, Kamera alle 96 m (%d Positionen): höchstens %d Stücke gewünscht (%s); über der Grenze von %d (graphics.modern.max_chunks): %d Positionen%s" % [
+		positions, chunks_max, chunks_name, int(ConfigLoader.lookup(ConfigLoader.load_merged(), "graphics.modern.max_chunks", 16)), cap_hits, (", nächstes ausgelassenes Stück %.0f m Luftlinie" % cap_nearest) if cap_nearest < INF else ""])

@@ -264,7 +264,8 @@ func test_debug_road_builder() -> void:
 	parent.free()
 
 
-## Acceptance: sync mode gives the same snapshot twice; at most 16 chunks; freed behind the camera.
+## Acceptance: sync mode gives the same snapshot twice; at most max_chunks chunks (config graphics.modern.max_chunks,
+## 16); freed behind the camera.
 func test_sync_mode_is_deterministic() -> void:
 	var snaps: Array = []
 	for run in 2:
@@ -293,7 +294,10 @@ func test_sync_mode_is_deterministic() -> void:
 			assert_true(float(hi + 1) * CHUNK_M >= minf(cam_z + 700.0, 8900.0), "und weit voraus (bis Stück %d bei Kamera %.0f m)" % [hi, cam_z])
 			out.append(JSON.stringify(snap))
 			cam_z += 53.0
-		assert_true(max_chunks <= 16, "höchstens 16 Stücke (größte Zahl %d)" % max_chunks)
+		var cap := int(ConfigLoader.lookup(cfg(), "graphics.modern.max_chunks", -1))
+		assert_eq(cap, 16, "die Grenze steht in der Konfiguration (graphics.modern.max_chunks; Vertrag §4.5.5: 16)")
+		assert_eq(st.max_chunks, cap, "der Streamer nimmt die Grenze aus der Konfiguration")
+		assert_true(max_chunks <= cap, "höchstens %d Stücke (größte Zahl %d)" % [cap, max_chunks])
 		assert_true(max_chunks >= 11, "bei 900 m Sicht etwa 11 und mehr (%d)" % max_chunks)
 		assert_eq(probe.collects_off_main + probe.commits_off_main + probe.builds_off_main, 0, "sync: alles im Hauptthread")
 		snaps.append(out)
@@ -370,7 +374,7 @@ func test_real_stage_limits_rebase_and_trim() -> void:
 		max_path = maxi(max_path, p.last() - p.first)
 		far = maxf(far, p.origin_distance(int(cam_z / 3.0)))
 		cam_z += 41.0
-	assert_true(max_chunks <= 16, "höchstens 16 Stücke auf der Bergstrecke (%d)" % max_chunks)
+	assert_true(max_chunks <= st.max_chunks, "höchstens %d Stücke auf der Bergstrecke (%d)" % [st.max_chunks, max_chunks])
 	assert_true(shifts.size() >= 1, "der Ursprung wurde verlegt (%d-mal)" % shifts.size())
 	assert_eq(int(st.stats()["rebases"]), shifts.size(), "Signal je Verlegung")
 	assert_true(far <= 2000.0 + 45.0, "die Kamera bleibt höchstens 2 km vom Ursprung (%.0f m)" % far)

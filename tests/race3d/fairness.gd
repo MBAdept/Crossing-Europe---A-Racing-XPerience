@@ -21,6 +21,9 @@ const SIGN_H := 2.8                 ## a sign board
 const WEATHERS: Array[String] = ["normal", "rain", "snow"]
 const NO_GROUND := -1.0e6
 const LOS_TOLERANCE_M := 0.05
+## Largest distance (logical px) between the vertical pixel of the shipped camera and the pixel of the eye the sight
+## scans assume (_reference_sample: eye_px).
+const EYE_TOLERANCE_PX := 0.5
 ## The stage directions of the sampled run: the ten with the tightest bends (closest approach of the true path to
 ## itself) and the two with the largest loss of sight over crests in true 3D.
 const HARDEST: Array[String] = ["bukarest_sibiu__sibiu", "saragossa_pau__saragossa", "bukarest_sibiu__bukarest",
@@ -381,8 +384,9 @@ static func scan_ribbon(cfg: Dictionary, geo: Dictionary, opts: Dictionary = {})
 ## positions `cam_lats` (default: the centreline): a "case" is a target Arcade has on screen that lies outside the
 ## Modern frustum. Returns {samples, cams, cases: {d: count}, f1_cases (d <= f1_limit_m), f1_nearest_m,
 ## max_need: {d: [dry, rain, snow]}, worst: {weather: {ratio, d, km, need_m, v_kmh, curve}}, max_yaw_deg,
-## check_samples, check_mismatch, check_vertical} – "check_*": the same samples through ChaseCamera3D.transform() /
-## project() and RoadProjection.project().
+## check_samples, check_mismatch, check_vertical, check_eye, check_eye_max_px} – "check_*": the same samples through
+## ChaseCamera3D.transform() / project() and RoadProjection.project() (_reference_sample; check_eye = samples whose
+## vertical pixel is more than EYE_TOLERANCE_PX away from where the eye F3 and F7 assume puts it).
 ## profiles: speed_profile() per weather, envs: envelopes().
 static func scan_frustum(geo: Dictionary, cam: ChaseCamera3D, proj: RoadProjection, profiles: Dictionary, envs: Dictionary,
 		opts: Dictionary = {}) -> Dictionary:
@@ -451,6 +455,8 @@ static func scan_frustum(geo: Dictionary, cam: ChaseCamera3D, proj: RoadProjecti
 	var check_n := 0
 	var check_bad := 0
 	var check_vert := 0
+	var check_eye := 0
+	var check_eye_max := 0.0
 	var counter := 0
 	var c_end := nz - int(float(d_to + d_step) / seg) - 2
 	var kpm: float = geo["km_per_m"]
@@ -506,6 +512,11 @@ static func scan_frustum(geo: Dictionary, cam: ChaseCamera3D, proj: RoadProjecti
 							check_bad += 1
 						if bool(ref["vertical"]):
 							check_vert += 1
+						var eye_px: float = ref["eye_px"]
+						if eye_px > EYE_TOLERANCE_PX:
+							check_eye += 1
+						if eye_px > check_eye_max:
+							check_eye_max = eye_px
 					if not bad:
 						continue
 					cases[di] += 1
@@ -535,11 +546,18 @@ static func scan_frustum(geo: Dictionary, cam: ChaseCamera3D, proj: RoadProjecti
 		worst_d[WEATHERS[wi]] = worst[wi]
 	return {"name": geo["name"], "samples": samples, "cams": cams, "cases": cases_d, "f1_cases": f1, "f1_nearest_m": f1_nearest,
 		"max_need": need_d, "worst": worst_d, "max_yaw_deg": rad_to_deg(max_yaw), "check_samples": check_n,
-		"check_mismatch": check_bad, "check_vertical": check_vert}
+		"check_mismatch": check_bad, "check_vertical": check_vert, "check_eye": check_eye, "check_eye_max_px": check_eye_max}
 
 
 ## One sample of scan_frustum() through the shipped functions: {on_a, on_3 (horizontally on screen, in front of the
-## near plane), borderline (within 0.05 px of a picture edge), vertical (on screen horizontally but not vertically)}.
+## near plane), borderline (within 0.05 px of a picture edge), vertical (on screen horizontally but not vertically),
+## eye_px}.
+## eye_px ties the eye of the shipped camera class to the one the sight scans compute with: scan_crests() (F3) and
+## the session put the eye cam_height above the road at the car (view.camera_y), without pitch or roll. Then,
+## whatever the yaw, a point at the view depth d and the height y lies focal * (y - camera_y) / d pixels above the
+## horizon row. eye_px = how far the pixel of ChaseCamera3D.transform() / project() is from that (0 for a point
+## behind the near plane). A camera class that stood higher or lower, or pitched, would pass F1–F3 unnoticed
+## without it: 0.5 px is 1 cm of eye height for a target 15 m ahead, 19 cm at 270 m, or a pitch of 0.04°.
 static func _reference_sample(geo: Dictionary, cam: ChaseCamera3D, proj: RoadProjection, c: int, k: int, xt: float, cam_x: float,
 		car_off: int) -> Dictionary:
 	var seg: float = geo["seg"]
@@ -558,7 +576,11 @@ static func _reference_sample(geo: Dictionary, cam: ChaseCamera3D, proj: RoadPro
 	var on_a := pa.x >= 0.0 and pa.x <= w
 	var edge := minf(minf(absf(p3.x), absf(p3.x - w)), minf(absf(pa.x), absf(pa.x - w)))
 	var vertical := (on_3 and (p3.y < 0.0 or p3.y > h)) or (on_a and (pa.y < 0.0 or pa.y > h))
-	return {"on_a": on_a, "on_3": on_3, "borderline": edge < 0.05, "vertical": vertical, "modern": p3, "arcade": pa}
+	var eye_px := 0.0
+	if p3.z > cam.near:
+		var target_y := path.world(float(c + k) * seg, xt, 0.0).y
+		eye_px = absf(p3.y - (proj.horizon_y - proj.focal * (target_y - cam_y) / p3.z))
+	return {"on_a": on_a, "on_3": on_3, "borderline": edge < 0.05, "vertical": vertical, "eye_px": eye_px, "modern": p3, "arcade": pa}
 
 
 # --- F3 -----------------------------------------------------------------------------------------------------------

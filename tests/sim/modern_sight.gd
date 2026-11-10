@@ -12,7 +12,9 @@ extends SceneTree
 ##   modern_sight_f3        crests: no vehicle (0.75 m) or sign (2.8 m) is seen later than in Arcade and then inside
 ##                          the stopping sight distance
 ##   modern_sight_f7        the terrain is never above the road inside the sight corridor
-##   modern_sight_model     the fast inner loop agrees with ChaseCamera3D.transform() / project() and RoadProjection
+##   modern_sight_model     the fast inner loop agrees with ChaseCamera3D.transform() / project() and RoadProjection,
+##                          and the shipped camera has the eye F3 and F7 compute with (cam_height above the road at
+##                          the car, no pitch, no roll): vertical pixel within 0.5 px of that eye's
 ##   godot --headless --path . -s res://tests/sim/modern_sight.gd [-- --full] [--stage=<id>[,<id>…]] [--verbose]
 ##       [--study-terrain[=100]]
 ## Normal run: the twelve hardest stage directions (tests/race3d/fairness.gd HARDEST; about 20 s). --full: the
@@ -68,6 +70,8 @@ func _initialize() -> void:
 	var check_n := 0
 	var check_bad := 0
 	var check_vert := 0
+	var check_eye := 0
+	var check_eye_max := 0.0
 	var f3 := {"targets": 0}
 	for tg: String in ["car", "sign"]:
 		f3[tg] = {"later": 0, "later30": 0, "earlier": 0, "short_a": 0, "short_3": 0, "fail": 0, "limited": 0,
@@ -115,6 +119,8 @@ func _initialize() -> void:
 			check_n += int(res["check_samples"])
 			check_bad += int(res["check_mismatch"])
 			check_vert += int(res["check_vertical"])
+			check_eye += int(res["check_eye"])
+			check_eye_max = maxf(check_eye_max, float(res["check_eye_max_px"]))
 			for w: String in Fair.WEATHERS:
 				if float(res["worst"][w]["ratio"]) > float(worst[w]["ratio"]):
 					worst[w] = res["worst"][w]
@@ -214,7 +220,7 @@ func _initialize() -> void:
 	var f3_fail := int(f3["car"]["fail"]) + int(f3["sign"]["fail"])
 	var ok3 := f3_fail == 0 and int(f3["targets"]) > 0
 	var ok7 := int(f7["violations"]) == 0 and int(f7["sides"]) > 0
-	var okm := check_bad == 0 and check_vert == 0 and check_n > 0
+	var okm := check_bad == 0 and check_vert == 0 and check_eye == 0 and check_n > 0
 	print("CHECK modern_sight_f1       %s %d Fälle bis %.0f m (erster Fall bei %s) in %d Stichproben, %d Etappenrichtungen" % [
 		"OK    " if ok1 else "FEHLER", f1_cases, F1_LIMIT_M, ("%d m" % first_d) if first_d >= 0 else "–", samples, dirs.size()])
 	print("CHECK modern_sight_f1_lanes %s %d Fälle bis %.0f m mit der Kamera in den Außenspuren (erster Fall bei %s) in %d Stichproben" % [
@@ -226,6 +232,6 @@ func _initialize() -> void:
 		"OK    " if ok3 else "FEHLER", int(f3["car"]["fail"]), int(f3["targets"]), int(f3["sign"]["fail"])])
 	print("CHECK modern_sight_f7       %s %d von %d Querschnittsseiten mit Gelände über der Fahrbahn im Sichtkorridor" % [
 		"OK    " if ok7 else "FEHLER", int(f7["violations"]), int(f7["sides"])])
-	print("CHECK modern_sight_model    %s %d Stichproben über ChaseCamera3D/RoadProjection nachgerechnet: %d abweichend, %d senkrecht außerhalb (%.0f s)" % [
-		"OK    " if okm else "FEHLER", check_n, check_bad, check_vert, secs])
+	print("CHECK modern_sight_model    %s %d Stichproben über ChaseCamera3D/RoadProjection nachgerechnet: %d abweichend, %d senkrecht außerhalb, %d mit dem Augpunkt mehr als %.1f px neben dem der Sichtprüfung (größte Abweichung %.4f px) (%.0f s)" % [
+		"OK    " if okm else "FEHLER", check_n, check_bad, check_vert, check_eye, Fair.EYE_TOLERANCE_PX, check_eye_max, secs])
 	quit(0 if ok1 and ok1b and ok2 and ok3 and ok7 and okm else 1)
