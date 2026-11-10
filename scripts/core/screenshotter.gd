@@ -7,22 +7,38 @@ extends Node
 ## is saved whole: the picture centred with black bars, exactly as the screen shows it.
 ##
 ## --shot-fast (v0.8.0, with --fixed-fps): the game runs every frame, but the picture is only rendered from
-## FAST_LEAD_S before each shot on (RenderingServer.render_loop_enabled) – software OpenGL otherwise spends its time
-## on pictures nobody looks at. Scripts, _draw() and the simulation run as always, so the shots are the same
-## pictures (tools/golden.sh compares them with fully rendered runs), about 4× faster.
-## hold: the clock stands while it is true – the race session holds it until a Modern renderer has prepared its
-## stage, so equal shot times show equal simulation states in both graphics modes.
+## fast_lead_s before each shot on (RenderingServer.render_loop_enabled) – software OpenGL otherwise spends its time
+## on pictures nobody looks at. Scripts, _draw() and the simulation run as always, so the shots of the mode "Arcade"
+## are the same pictures (tools/golden.sh compares them with fully rendered runs), about 4× faster.
+## What the RenderingServer itself advances while it draws stands still while the render loop is off – GPU particles
+## above all (measured: 300 particles with a lifetime of 4 s show 1,307 instead of 20,191 lit pixels after 114
+## skipped frames). A picture of the mode "Modern" with such effects needs --shot-fast-lead=<s> of at least their
+## longest lifetime (default FAST_LEAD_S), or no --shot-fast at all.
+##
+## The clock stands
+## - while `hold` is true: the race session holds its own Screenshotter until a Modern renderer has prepared the
+##   stage, and
+## - while `preparing` > 0: any race session prepares a Modern stage – this also stops a Screenshotter the session
+##   does not know (GameFlow's during an attract demo) and keeps the picture rendered (the renderer's self-test and
+##   shader warm-up wait for drawn frames),
+## so equal shot times show equal simulation states in both graphics modes.
 
 signal all_done
 
-## --shot-fast: seconds before a shot from which the picture is rendered again (6 frames at 60 fps).
+## --shot-fast: seconds before a shot from which the picture is rendered again (6 frames at 60 fps) – the default
+## of --shot-fast-lead.
 const FAST_LEAD_S := 0.1
+
+## Number of race sessions that are preparing a Modern stage right now (RaceSession raises it in _begin_prepare()
+## and lowers it when the stage starts or leaves). Static: it reaches every Screenshotter of the process.
+static var preparing := 0
 
 var prefix := ""
 var times: Array[float] = []
 var quit_when_done := true
 var hold := false
 var fast := false
+var fast_lead_s := FAST_LEAD_S   ## --shot-fast-lead=<s>
 var _t := 0.0
 var _next := 0
 var _busy := false
@@ -34,18 +50,31 @@ func configure(path_prefix: String, shot_times: Array[float], quit_after: bool =
 	times.sort()
 	quit_when_done = quit_after
 	fast = CliArgs.has("shot-fast")
+	fast_lead_s = maxf(0.0, CliArgs.get_float("shot-fast-lead", FAST_LEAD_S))
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
 
 func _process(delta: float) -> void:
-	if prefix == "" or _busy or hold:
+	if prefix == "" or _busy:
+		return
+	if hold or preparing > 0:
+		if fast:
+			RenderingServer.render_loop_enabled = true   # a stage is being prepared: that needs drawn frames
 		return
 	_t += delta
 	if fast and _next < times.size():
-		RenderingServer.render_loop_enabled = _t >= times[_next] - FAST_LEAD_S
+		RenderingServer.render_loop_enabled = _t >= times[_next] - fast_lead_s
 	if _next < times.size() and _t >= times[_next]:
 		_capture(_next)
 		_next += 1
+
+
+## Moves the clock forward by `seconds`. The race session calls it when a Modern stage starts, with the time its
+## scene was drawn before its first simulation step: started through GameFlow at boot (--stage) the scene enters
+## the tree after the physics callbacks of that frame, so an Arcade stage counts one frame before its first step –
+## the clock of a Modern stage, held until then, gets the same head start.
+func skip(seconds: float) -> void:
+	_t += maxf(0.0, seconds)
 
 
 func _exit_tree() -> void:

@@ -173,6 +173,13 @@ var _guard_s := -1.0             ## … drawn seconds left until it is removed (
 static var _track_owner := 0
 static var _guard_owner := 0
 var _pause_wanted := false       ## auto_pause() came while the stage was prepared: pause at the start
+var _holds_shots := false        ## this stage counts in Screenshotter.preparing (every Screenshotter's clock stands)
+## Seconds this scene was drawn before its first physics callback: 0 when it entered the tree between two frames
+## (the race scene as main scene, a stage started from a menu), one frame when GameFlow starts it at boot (--stage:
+## the deferred GameFlow.boot() runs after the physics callbacks of that frame). An Arcade stage has counted these
+## frames on its clocks before its first simulation step; a Modern stage, held until then, gets them at its start.
+var _lead_s := 0.0
+var _ticked := false             ## the scene has had a physics callback (_lead_s is complete)
 var _stage_sets: Array[String] = []   ## every sprite set the stage can show (_stage_sprite_sets)
 var _stage_start_sent := false   ## sound event "stage_start" (before the first simulation step)
 var _hooks_state := false        ## the sound receiver takes set_vehicle_state (checked once)
@@ -449,6 +456,10 @@ func _begin_prepare() -> void:
 	hud.set_process(false)
 	if _shot != null:
 		_shot.hold = true
+	# … and so does the clock of a Screenshotter this scene does not know (GameFlow's in an attract demo); with
+	# --shot-fast the picture stays rendered – the renderer's self-test and warm-up wait for drawn frames
+	Screenshotter.preparing += 1
+	_holds_shots = true
 	_loading = CanvasLayer.new()
 	_loading.layer = LOADING_LAYER
 	add_child(_loading)
@@ -476,17 +487,31 @@ func _poll_prepare() -> void:
 		_loading_overlay.call(&"set_progress", clampf(float(renderer.prepare_progress()), 0.0, 1.0))
 
 
+## The stage no longer holds the Screenshotters' clocks (it starts, or it leaves while it was still preparing).
+func _release_shots() -> void:
+	if _holds_shots:
+		_holds_shots = false
+		Screenshotter.preparing = maxi(0, Screenshotter.preparing - 1)
+
+
 ## The first simulation step after the preparation starts the stage: the loading overlay goes, HUD timers and the
-## Screenshotter's clock run from this frame on – as from the first frame of an Arcade stage.
+## Screenshotter's clock run from this frame on – as from the first frame of an Arcade stage. Frames an Arcade stage
+## started the same way would have drawn before its first step (_lead_s) are credited to the clocks that stood:
+## the Screenshotter, the HUD's timers and the beacon phase.
 func _go_live() -> void:
 	_gfx_state = GfxState.LIVE
+	_release_shots()
 	if _loading != null:
 		_loading.queue_free()
 		_loading = null
 		_loading_overlay = null
 	hud.set_process(true)
+	if _lead_s > 0.0:
+		hud._process(_lead_s)
+		_beacon_t += _lead_s
 	if is_instance_valid(_shot):   # the attract mode frees the session's Screenshotter
 		_shot.hold = false
+		_shot.skip(_lead_s)
 	if gfx == Gfx.MODERN and _guard_armed:
 		_guard_s = CRASH_GUARD_S
 	if _pause_wanted:
@@ -852,6 +877,7 @@ func _notification(what: int) -> void:
 func _leave_stage() -> void:
 	if plan == null:
 		return
+	_release_shots()
 	if _track_owner == get_instance_id():
 		_track_owner = 0
 		_audio_call(&"set_track", [null, null])
@@ -937,6 +963,7 @@ func road_info(z: float) -> Dictionary:
 func _physics_process(dt: float) -> void:
 	if plan == null:
 		return
+	_ticked = true
 	if _gfx_state != GfxState.LIVE:
 		if _gfx_state == GfxState.PREPARING:
 			return   # Modern is still preparing the stage: nothing of it runs yet
@@ -1332,6 +1359,8 @@ func _chase01() -> float:
 func _process(delta: float) -> void:
 	if plan == null:
 		return
+	if not _ticked:
+		_lead_s += delta   # drawn before the first physics callback (see _lead_s)
 	if _gfx_state == GfxState.PREPARING:
 		_poll_prepare()
 	# Modern prepares the stage: the frozen start view is still drawn (behind the loading overlay – the renderer

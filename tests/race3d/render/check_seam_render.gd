@@ -8,7 +8,9 @@ extends SceneTree
 ##   modern_bild   a Modern stage draws: sky colour of the palette above the horizon (through the canvas layer),
 ##                 the ground plane below, the horizon at 45 % of the height, the HUD on top – no black frame
 ##   gleiche_zeit  the same stage in Arcade and in Modern with a Screenshotter: at the shot the simulation has made
-##                 the same number of steps and stands at the same place (equal shot times = equal states)
+##                 the same number of steps and stands at the same place (equal shot times = equal states) – for a
+##                 scene that enters the tree between two frames and for one that enters after the physics callbacks
+##                 of a frame, as GameFlow starts a stage at boot (--stage, the only start of an exported build)
 ##   rueckfall     a renderer that is not healthy(): the picture is the Arcade picture of the same moment, pixel for
 ##                 pixel below the message line
 ##   arcade_gleich Arcade frame, then a Modern stage, then the Arcade frame again in the same process: identical
@@ -57,18 +59,25 @@ func _need(problems: Array[String], cond: bool, what: String) -> void:
 		problems.append(what)
 
 
-## Starts a stage the way the game does: the scene enters the tree between two frames, so its first frame begins
-## with a simulation step and then draws – as when the race scene is the main scene (tools/golden.sh, screenshots)
-## and when GameFlow starts a stage. (Added at the "process_frame" signal instead, the first frame would draw
-## before any step: the Arcade stage would be one step behind at every shot time.)
-func _launch(extra: Dictionary) -> Node:
+## Starts a stage the way the game does. Default: the scene enters the tree between two frames, so its first frame
+## begins with a simulation step and then draws – as when the race scene is the main scene (tools/golden.sh,
+## screenshots) and when a menu starts a stage.
+## late: the scene enters the tree after the physics callbacks of a frame and before its drawing, so it is drawn once
+## before its first simulation step – as when GameFlow starts a stage at boot ("-- --stage=…": boot.gd defers
+## GameFlow.boot(), the message queue runs it after the physics callbacks of the first frame). An Arcade stage is
+## then one step behind at every shot time; a Modern stage must be exactly as far (race_session._lead_s).
+func _launch(extra: Dictionary, late: bool = false) -> Node:
 	var setup := {"mode": "single", "race_id": "", "stage_id": "kiel_hamburg", "from_city": "kiel", "vehicle": "limousine",
 		"start_world_minutes": 12.0 * 60.0, "weather": "normal", "start_km": 2.0, "autopilot": true, "seed": 11, "traffic_warmup": true}
 	setup.merge(extra, true)
 	var sc: Node = (load(RACE) as PackedScene).instantiate()
 	sc.set("setup", setup)
 	await physics_frame
-	root.add_child(sc)
+	if late:
+		root.add_child.call_deferred(sc)   # runs after the physics callbacks of this frame
+		await process_frame
+	else:
+		root.add_child(sc)
 	return sc
 
 
@@ -195,15 +204,16 @@ func _check_modern_bild() -> void:
 # --- gleiche_zeit ----------------------------------------------------------------------------------------------
 
 ## Runs the stage with a Screenshotter (one shot at 2.5 s) and returns the simulation state at the shot.
-func _state_at_shot(mode: String, extra: Dictionary = {}) -> Dictionary:
+## late: started as GameFlow starts a stage at boot (_launch).
+func _state_at_shot(mode: String, extra: Dictionary = {}, late: bool = false) -> Dictionary:
 	var cli := CliArgs.all()
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(SHOT_PREFIX.get_base_dir()))
-	var prefix := ProjectSettings.globalize_path(SHOT_PREFIX) + "_" + mode + str(extra.size())
+	var prefix := ProjectSettings.globalize_path(SHOT_PREFIX) + "_" + mode + str(extra.size()) + ("_spaet" if late else "")
 	cli["screenshot"] = prefix
 	cli["shot-times"] = "2.5"
 	var setup := {"gfx": mode}
 	setup.merge(extra, true)
-	var sc: Node = await _launch(setup)
+	var sc: Node = await _launch(setup, late)
 	cli.erase("screenshot")
 	cli.erase("shot-times")
 	var shot: Node = null
@@ -265,8 +275,22 @@ func _check_gleiche_zeit() -> void:
 				_need(p, different == 0 and white > 100, "HUD-Ziffern in %s auf denselben Pixeln (%d verschieden, %d weiß)" % [str(r), different, white])
 		for f: String in [str(a["file"]), str(m["file"])]:
 			DirAccess.remove_absolute(f)
-	_report("gleiche_zeit", p, "Aufnahme bei 2,5 s: Arcade nach %d Bildern, Modern nach %d Bildern – beide nach %d Simulationsschritten, HUD %s" % [
-		int(a.get("frames", -1)), int(m.get("frames", -1)), int(m.get("steps", -1)), str(m.get("hud_messages", ""))])
+	# the same pair started as GameFlow starts a stage at boot: the scene is drawn once before its first step, so the
+	# Arcade stage is one step behind the pair above at the shot – and the Modern stage with it
+	var al: Dictionary = await _state_at_shot("arcade", {"weather": "rain"}, true)
+	var ml: Dictionary = await _state_at_shot("modern", {"weather": "rain"}, true)
+	_need(p, not al.is_empty() and not ml.is_empty(), "beide Läufe mit spätem Start")
+	if not al.is_empty() and not ml.is_empty():
+		_need(p, not a.is_empty() and int(al["steps"]) == int(a["steps"]) - 1, "später Start: Arcade einen Schritt zurück (%d statt %d)" % [int(al["steps"]), int(a.get("steps", -1))])
+		_need(p, int(al["steps"]) == int(ml["steps"]), "später Start: gleiche Zahl von Simulationsschritten (%d / %d)" % [int(al["steps"]), int(ml["steps"])])
+		_need(p, float(al["pos_z"]) == float(ml["pos_z"]) and float(al["real_time"]) == float(ml["real_time"]) and float(al["countdown"]) == float(ml["countdown"]),
+			"später Start: gleicher Ort, gleiche Zeit, gleicher Countdown")
+		_need(p, int(al["hud_countdown"]) == int(ml["hud_countdown"]) and str(al["hud_messages"]) == str(ml["hud_messages"]) and str(al["hud_messages"]) != "",
+			"später Start: gleicher HUD-Zustand (%s / %s)" % [str(al["hud_messages"]), str(ml["hud_messages"])])
+		for f: String in [str(al["file"]), str(ml["file"])]:
+			DirAccess.remove_absolute(f)
+	_report("gleiche_zeit", p, "Aufnahme bei 2,5 s: Arcade nach %d Bildern, Modern nach %d Bildern – beide nach %d Simulationsschritten, HUD %s; Start nach den Physik-Rückrufen (wie GameFlow mit --stage): beide nach %d Schritten" % [
+		int(a.get("frames", -1)), int(m.get("frames", -1)), int(m.get("steps", -1)), str(m.get("hud_messages", "")), int(ml.get("steps", -1))])
 
 
 # --- rueckfall -------------------------------------------------------------------------------------------------

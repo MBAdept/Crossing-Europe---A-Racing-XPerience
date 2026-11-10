@@ -23,12 +23,16 @@ extends SceneTree
 ##               police, stage_finish, set_track(null, null) at the end
 ##   startmarker a marker found at the start of the game: the stored choice Modern runs as Arcade (reason
 ##               "crash_guard") until the guard is lifted
+##   aufnahmeuhr the clock of a Screenshotter the stage does not know (GameFlow's in an attract demo) stands while a
+##               Modern stage is prepared and --shot-fast keeps the picture rendered meanwhile; it runs again from
+##               the start of the stage, after a fallback and when the stage leaves while it was still preparing
+##               (Screenshotter.preparing is back at 0); an Arcade stage never stops it
 ## Prints "CHECK <name> OK|FEHLER …" per check; exit code 0 when all pass.
 ## (The scene and the autoloads are accessed untyped: -s scripts compile before the autoloads exist.)
 
 const PROBE := "res://tests/race3d/fixtures/seam_probe_renderer.gd"
 const RACE := "res://scenes/race/race.tscn"
-const CHECKS := ["ablauf", "marker", "abgang", "rueckfall", "ohne_renderer", "klang", "startmarker"]
+const CHECKS := ["ablauf", "marker", "abgang", "rueckfall", "ohne_renderer", "klang", "startmarker", "aufnahmeuhr"]
 const FALLBACK_TEXT := "Der Modus „Modern“ lässt sich mit dieser Grafik nicht starten. Das Spiel läuft im Modus „Arcade“ weiter."
 const STATE_KEYS := ["brake", "crash", "finished", "hour", "in_tunnel", "lat_speed", "off_road", "rail_contact", "road_left",
 	"road_right", "shoulder_m", "speed", "steer", "throttle", "understeer", "weather", "x", "z"]
@@ -556,3 +560,74 @@ func _check_startmarker() -> void:
 	_settings.set("graphics_mode", chosen_before)
 	_settings.call("disarm_crash_guard")
 	_report("startmarker", p, "Marker des letzten Laufs: Arcade mit Grund crash_guard, nach dem Aufheben wieder Modern")
+
+
+# --- aufnahmeuhr: Screenshotters wait for the preparation of a Modern stage -----------------------------------------
+
+func _check_aufnahmeuhr() -> void:
+	var p: Array[String] = []
+	var shots: GDScript = load("res://scripts/core/screenshotter.gd")
+	# a Screenshotter of its own under the root, as GameFlow's in a --screenshot run of the menus and attract demos;
+	# its only shot lies far in the future, so it never captures
+	var shot: Node = shots.new()
+	root.add_child(shot)
+	var cli := CliArgs.all()
+	cli["shot-fast"] = true
+	var times: Array[float] = [1.0e9]
+	shot.call("configure", "user://test_seam_no_shot", times, false)
+	cli.erase("shot-fast")
+	var clock := func() -> float: return float(shot.get("_t"))
+	_need(p, bool(shot.get("fast")) and int(shots.get("preparing")) == 0, "Ausgangslage: --shot-fast, niemand bereitet vor")
+	await _frames(3)
+	var t0: float = clock.call()
+	_need(p, t0 > 0.0 and not RenderingServer.render_loop_enabled, "ohne Etappe läuft die Uhr, --shot-fast rechnet kein Bild")
+	# a) Modern prepares for 12 frames: the clock stands, the picture is rendered (self-test and warm-up need frames)
+	_use_probe(12)
+	var sc := _launch({"gfx": "modern", "autopilot": true, "no_countdown": true})
+	_need(p, int(shots.get("preparing")) == 1, "a) die Etappe zählt als in Vorbereitung")
+	var t_held: float = clock.call()
+	await _frames(6)
+	_need(p, int(sc.get("_sim_steps")) == 0 and is_equal_approx(float(clock.call()), t_held), "a) die Uhr steht während der Vorbereitung (%.4f -> %.4f)" % [t_held, float(clock.call())])
+	_need(p, RenderingServer.render_loop_enabled, "a) das Bild wird während der Vorbereitung gerechnet (--shot-fast)")
+	await _until(func() -> bool: return int(sc.get("_sim_steps")) > 0, 400)
+	_need(p, int(shots.get("preparing")) == 0, "a) mit dem Start zählt niemand mehr")
+	await _frames(3)
+	_need(p, float(clock.call()) > t_held and not RenderingServer.render_loop_enabled, "a) ab dem Start läuft die Uhr wieder, --shot-fast rechnet wieder kein Bild")
+	await _free(sc)
+	# b) the stage leaves while it is still preparing: the clock is released
+	_use_probe(1000000)
+	sc = _launch({"gfx": "modern", "autopilot": true})
+	await _frames(4)
+	var t_b: float = clock.call()
+	_need(p, int(shots.get("preparing")) == 1, "b) in Vorbereitung")
+	await _free(sc)
+	await _frames(3)
+	_need(p, int(shots.get("preparing")) == 0 and float(clock.call()) > t_b, "b) Abgang in der Vorbereitung gibt die Uhr frei (Zähler %d)" % int(shots.get("preparing")))
+	# c) the renderer fails while preparing: the clock runs again from the start of the Arcade stage
+	_use_probe(1000000, 4, "shader")
+	sc = _launch({"gfx": "modern", "autopilot": true, "no_countdown": true})
+	await _until(func() -> bool: return int(sc.get("_sim_steps")) > 0, 400)
+	_need(p, str(sc.get("gfx_fallback")) == "shader" and int(shots.get("preparing")) == 0, "c) nach dem Rückfall zählt niemand mehr")
+	await _free(sc)
+	# d) two stages overlap (GameFlow adds the next before the last has left): the counter follows both
+	_use_probe(1000000)
+	var first := _launch({"gfx": "modern", "autopilot": true})
+	var second := _launch({"gfx": "modern", "autopilot": true})
+	_need(p, int(shots.get("preparing")) == 2, "d) zwei Etappen in Vorbereitung")
+	first.queue_free()
+	await _frames(2)
+	_need(p, int(shots.get("preparing")) == 1, "d) eine bleibt")
+	await _free(second)
+	_need(p, int(shots.get("preparing")) == 0, "d) keine mehr")
+	# e) an Arcade stage never stops the clock
+	_renderers.set("modern_script", _renderers.get("MODERN_SCRIPT"))
+	sc = _launch({"gfx": "arcade", "autopilot": true, "no_countdown": true})
+	var t_e: float = clock.call()
+	_need(p, int(shots.get("preparing")) == 0, "e) Arcade bereitet nichts vor")
+	await _frames(3)
+	_need(p, float(clock.call()) > t_e, "e) die Uhr läuft in einer Arcade-Etappe durch")
+	await _free(sc)
+	shot.queue_free()
+	await _frames(2)
+	_need(p, RenderingServer.render_loop_enabled, "der Screenshotter schaltet das Rechnen der Bilder beim Abgang wieder ein")
+	_report("aufnahmeuhr", p, "fremder Screenshotter mit --shot-fast: Uhr steht in der Vorbereitung von Modern (Bild wird gerechnet), läuft ab dem Start, nach Rückfall und frühem Abgang; Arcade hält sie nie an")
