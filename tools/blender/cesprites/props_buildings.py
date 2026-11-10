@@ -221,12 +221,19 @@ def door(rig, name, x, w, h, y, mat, z0=0.0):
 
 def farmhouse(rig, p):
     W, D, H = 11.0, 17.0, 3.6
-    wall = facade("farm_wall", "#9a4a32", [
+    grids = [
         dict(face="side", u=(1.2, 15.8), z=(0.9, 2.5), pitch=(2.4, 2.0), win=(0.9, 1.15), lit=0.4),
         dict(face="front", u=(-5.2, -2.4), z=(0.9, 2.5), pitch=(1.4, 2.0), win=(0.8, 1.1), lit=0.6),
         dict(face="front", u=(2.4, 5.2), z=(0.9, 2.5), pitch=(1.4, 2.0), win=(0.8, 1.1), lit=0.6),
         dict(face="front", u=(-1.4, 1.4), z=(4.3, 5.6), pitch=(1.4, 1.3), win=(0.7, 0.8), lit=0.3),
-    ], brick=("#9b4a32", "#83402c", "#d8cfc2", 3.2), frame="#f0ede4",
+    ]
+    if p.get("allround"):
+        # 3D model (ce3d): the back gable, never seen in the sprite, gets windows like the front
+        grids += [
+            dict(face="back", u=(-5.2, 5.2), z=(0.9, 2.5), pitch=(2.6, 2.0), win=(0.9, 1.15), lit=0.4),
+            dict(face="back", u=(-1.4, 1.4), z=(4.3, 5.6), pitch=(1.4, 1.3), win=(0.7, 0.8), lit=0.3),
+        ]
+    wall = facade("farm_wall", "#9a4a32", grids, brick=("#9b4a32", "#83402c", "#d8cfc2", 3.2), frame="#f0ede4",
         decals=[dict(face="front", sym=True, poly=[(0.0, 0.0), (1.55, 0.0), (1.55, 2.9), (0.0, 3.25)], mat="#5a3a22"),
                 dict(face="front", sym=True, poly=[(0.0, 0.0), (0.06, 0.0), (0.06, 3.2), (0.0, 3.25)], mat="#2d1d10")])
     walls(rig, "farm_walls", W, D, H, wall)

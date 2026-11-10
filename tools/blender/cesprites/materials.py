@@ -6,7 +6,12 @@ The render passes only change the values inside that group:
   layer passes  -> base=0, <layer>=1: the material outputs pure emission = its colour for that layer
                    (black for everything that does not glow -> occludes, becomes transparent later).
 So procedural masks (e.g. lit windows) drive the base look and the night layer consistently.
+
+Hook of the 3D model pipeline (tools/blender/ce3d/roles.py): every material carries the custom properties
+"ce_role" (flat | paint | glass | lens | surface | proc | fx) and "ce_data" (JSON with its constants). They
+tell the exporter how the material is translated; they do not change the node tree or the renders.
 """
+import json
 import math
 
 import bpy
@@ -28,6 +33,31 @@ def srgb(c, alpha=1.0):
 
 def scale_rgb(c, k):
     return (c[0] * k, c[1] * k, c[2] * k, 1.0)
+
+
+def tag(m, role, **data):
+    """3D pipeline hook: role and constants of a material as custom properties (see module docstring).
+    Colours are linear rgb; emit = {layer: rgb with the strength folded in}; sockets are left out."""
+    clean = {}
+    for k, v in data.items():
+        if v is None:
+            continue
+        if k == "emit":
+            v = {layer: [round(float(x), 6) for x in c[:3]] for layer, c in v.items() if isinstance(c, tuple)}
+            if not v:
+                continue
+        elif isinstance(v, (tuple, list)):
+            v = [round(float(x), 6) for x in v[:3]]
+        elif isinstance(v, bool) or isinstance(v, str):
+            pass
+        elif isinstance(v, (int, float)):
+            v = round(float(v), 6)
+        else:
+            continue
+        clean[k] = v
+    m["ce_role"] = role
+    m["ce_data"] = json.dumps(clean, sort_keys=True)
+    return m
 
 
 def reset():
@@ -267,6 +297,8 @@ def finish(m, nb, bsdf_out, emit=None):
     nb.links.new(em.outputs[0], mix.inputs[2])
     out = nb.node("ShaderNodeOutputMaterial")
     nb.links.new(mix.outputs[0], out.inputs["Surface"])
+    if m.get("ce_role") is None:
+        m["ce_role"] = "proc"       # procedural unless the factory function below says otherwise
     return m
 
 
@@ -316,7 +348,8 @@ def basic(name, color, rough=0.5, metal=0.0, coat=0.0, spec=0.5, emit=None, bump
     em = None
     if emit:
         em = {k: emit_col(v[0], v[1]) for k, v in emit.items()}
-    return finish(m, nb, out, em)
+    return tag(finish(m, nb, out, em), "flat", color=c1, color2=None if color2 is None else c2,
+               var=bool(var_scale), rough=rough, metal=metal, coat=coat, emit=em)
 
 
 def paint(name, color, metal=0.4, rough=0.3, coat=1.0, coat_rough=0.03, emit=None):
@@ -325,14 +358,14 @@ def paint(name, color, metal=0.4, rough=0.3, coat=1.0, coat_rough=0.03, emit=Non
     c = srgb(color) if isinstance(color, str) else color
     out = principled(nb, c, rough=rough, metal=metal, coat=coat, coat_rough=coat_rough, spec=0.5)
     em = {k: emit_col(v[0], v[1]) for k, v in emit.items()} if emit else None
-    return finish(m, nb, out, em)
+    return tag(finish(m, nb, out, em), "paint", color=c, rough=rough, metal=metal, coat=coat, emit=em)
 
 
 def glass_mat(name, tint="#0d1115", rough=0.012):
     """Car glass (opaque, dark tint): strong Fresnel reflections of the sky/horizon."""
     m, nb = new_material(name)
     out = principled(nb, srgb(tint), rough=rough, metal=0.0, coat=0.6, coat_rough=0.008, spec=0.8)
-    return finish(m, nb, out, None)
+    return tag(finish(m, nb, out, None), "glass", color=srgb(tint), rough=rough)
 
 
 def lens(name, tint="#9c1209", refl=0.07, rough=0.015, emit=None, frost=0.0):
@@ -385,7 +418,8 @@ def lens(name, tint="#9c1209", refl=0.07, rough=0.015, emit=None, frost=0.0):
     nb.links.new(add.outputs[0], sw.inputs[2])
     out = nb.node("ShaderNodeOutputMaterial")
     nb.links.new(sw.outputs[0], out.inputs["Surface"])
-    return m
+    return tag(m, "lens", tint=srgb(tint), frost=float(frost),
+               emit={k: emit_col(v[0], v[1]) for k, v in emit.items()} if emit else None)
 
 
 def emissive_only(name, base_color, emit, rough=0.3):
@@ -397,7 +431,7 @@ def glass(name, tint="#1b232b", rough=0.03, emit=None):
     m, nb = new_material(name)
     out = principled(nb, srgb(tint), rough=rough, metal=0.0, spec=1.0, coat=0.0)
     em = {k: emit_col(v[0], v[1]) for k, v in emit.items()} if emit else None
-    return finish(m, nb, out, em)
+    return tag(finish(m, nb, out, em), "glass", color=srgb(tint), rough=rough, emit=em)
 
 
 # --- surface shader: paint + livery bands + windows + decals --------------------------------------
@@ -540,7 +574,7 @@ def surface(name, color, metal=0.35, rough=0.3, coat=0.7, livery=None, windows=N
                         spec=par["spec"])
     b = shader.node
     nb.feed(b.inputs["Coat Weight"], par["coat"])
-    return finish(m, nb, shader, emit or None)
+    return tag(finish(m, nb, shader, emit or None), "surface", color=base, rough=rough, metal=metal, coat=coat)
 
 
 def car_paint(name, color, **kw):

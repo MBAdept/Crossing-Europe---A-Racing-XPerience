@@ -60,13 +60,17 @@ def _lathe_x(bm, prof, segs, mat_index=0, a0=0.0, a1=360.0, closed=True):
     return rings
 
 
-def wheel_mesh(name, R, r_rim, tw, st, mats):
+def wheel_mesh(name, R, r_rim, tw, st, mats, sg=None):
     """One wheel (tyre, rim, spokes, disc, caliper) in local space: axis X, outer face towards +X,
-    centre at the origin. mats: dict tyre, rim, rim_dark, disc, caliper. Returns a list of objects."""
+    centre at the origin. mats: dict tyre, rim, rim_dark, disc, caliper. Returns a list of objects.
+    sg: segment count at the detail level of a 3D build (None = as designed, the sprite model)."""
+    if sg is None:
+        def sg(n):
+            return n
     objs = []
     # tyre
     bm = bmesh.new()
-    _lathe_x(bm, _tyre_profile(R, r_rim, tw), 64)
+    _lathe_x(bm, _tyre_profile(R, r_rim, tw), sg(64))
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     me = bpy.data.meshes.new(name + "_tyre")
     bm.to_mesh(me)
@@ -78,10 +82,10 @@ def wheel_mesh(name, R, r_rim, tw, st, mats):
     xo = tw / 2 - 0.012              # outer face of the lip
     bm = bmesh.new()
     barrel = [(r_rim - 0.012, xo - 0.03), (r_rim - 0.012, -tw / 2 + 0.03), (r_rim * 0.5, -tw / 2 + 0.03)]
-    _lathe_x(bm, barrel, 48, mat_index=1)
+    _lathe_x(bm, barrel, sg(48), mat_index=1)
     lip = [(r_rim + 0.012, xo - 0.016), (r_rim + 0.014, xo - 0.004), (r_rim + 0.006, xo + 0.002),
            (r_rim - 0.012, xo + 0.001), (r_rim - 0.02, xo - 0.006), (r_rim - 0.018, xo - 0.03)]
-    _lathe_x(bm, lip, 64, mat_index=0)
+    _lathe_x(bm, lip, sg(64), mat_index=0)
     dish = st.get("dish", 0.03)
     r0, r1 = st.get("hub_r", 0.07), r_rim - 0.016
     n = st.get("spokes", 5)
@@ -137,7 +141,7 @@ def wheel_mesh(name, R, r_rim, tw, st, mats):
     # hub + centre cap
     hub = [(0.0, face_x(r0) + 0.004), (r0 * 0.55, face_x(r0) + 0.003), (r0 * 0.9, face_x(r0) - 0.004),
            (r0 * 1.05, face_x(r0) - depth)]
-    _lathe_x(bm, hub, 32, mat_index=0)
+    _lathe_x(bm, hub, sg(32), mat_index=0)
     # wheel nuts
     for i in range(5):
         a = 2 * math.pi * i / 5 + 0.3
@@ -155,7 +159,7 @@ def wheel_mesh(name, R, r_rim, tw, st, mats):
     bm = bmesh.new()
     xd = face_x(r0) - depth - 0.03
     disc = [(0.06, xd), (r_rim - 0.04, xd), (r_rim - 0.04, xd - 0.026), (0.06, xd - 0.026)]
-    _lathe_x(bm, disc, 40, mat_index=0)
+    _lathe_x(bm, disc, sg(40), mat_index=0)
     rc0, rc1 = r_rim - 0.105, r_rim - 0.03
     cal = [(rc0, xd + 0.022), (rc1, xd + 0.022), (rc1, xd - 0.05), (rc0, xd - 0.05)]
     ca0 = st.get("caliper_angle", 125.0)
@@ -185,9 +189,12 @@ def wheels(car, st):
         disc=car.mat("disc", "#77797c", rough=0.42, metal=0.85),
         caliper=M.basic(car.name + "_caliper", st.get("caliper", "#2a2b2d"), rough=0.3, coat=0.6),
     )
+    # 3D models: the calipers do not spin - their faces belong to the node "body" (ce3d/roles.py)
+    mats["caliper"]["ce_node"] = "body"
     meshes = {}
     for key, tw in (("f", d["tw"]), ("r", d.get("tw_r", d["tw"]))):
-        meshes[key] = wheel_mesh(car.name + "_wheel_" + key, R, r_rim, tw, st, mats)
+        meshes[key] = wheel_mesh(car.name + "_wheel_" + key, R, r_rim, tw, st, mats,
+                                 sg=None if car.detail["wheel"] == 1.0 else car.n_wheel)
     inset = d.get("wheel_inset", 0.02)
     out = []
     for key, ya in (("r", car.y_ra), ("f", car.y_fa)):
@@ -196,14 +203,16 @@ def wheels(car, st):
         x_out = car.W2 - inset
         for side in (1, -1):
             xc = side * (x_out - tw / 2)
-            for me in meshes[key]:
-                ob = bpy.data.objects.new(me.name, me)
-                ob.location = (xc, ya, R)
-                ob.scale = (side, 1.0, 1.0)
-                if key == "f" and st.get("steer"):
-                    ob.rotation_euler = (0.0, 0.0, math.radians(st["steer"]))
-                MU._link(ob, car.center)
-                out.append(ob)
+            # 3D models: every wheel is its own node, pivot = the object origin (the wheel centre)
+            with MU.node("wheel_%d%s" % (0 if key == "f" else 1, "r" if side > 0 else "l")):
+                for me in meshes[key]:
+                    ob = bpy.data.objects.new(me.name, me)
+                    ob.location = (xc, ya, R)
+                    ob.scale = (side, 1.0, 1.0)
+                    if key == "f" and st.get("steer"):
+                        ob.rotation_euler = (0.0, 0.0, math.radians(st["steer"]))
+                    MU._link(ob, car.center)
+                    out.append(ob)
     return out
 
 
@@ -251,6 +260,7 @@ def glass(car, g):
     car.patch(poly, "side", seal, offset=0.0012, res=0.012, name="dlo_seal", target=target)
     inner = C.ccw(_inset_poly(poly, seal_w))
     car.patch(inner, "side", gm, offset=0.0022, res=0.012, name="dlo_glass", target=target)
+    car.glass_outlines.append(("side", True, inner))
     for (yb, yt, w) in s.get("pillars", []):
         zb = _belt(car, yb) - 0.01
         zt = car.green_half(yt)[1]["zs"] + 0.01
@@ -274,6 +284,7 @@ def glass(car, g):
     car.patch(poly, "top", seal, offset=0.0012, res=0.014, sym=False, name="ws_seal", target=target)
     car.patch(C.ccw(_inset_poly(C.ccw(poly), seal_w)), "top", gm, offset=0.0022, res=0.014, sym=False,
               name="ws_glass", target=target)
+    car.glass_outlines.append(("top", False, C.ccw(_inset_poly(C.ccw(poly), seal_w))))
     # --- rear window
     r = g["rw"]
     proj = r.get("proj", "rear")
@@ -290,6 +301,7 @@ def glass(car, g):
     car.patch(poly, proj, seal, offset=0.0012, res=0.012, sym=False, name="rw_seal", target=target)
     car.patch(C.ccw(_inset_poly(poly, seal_w)), proj, gm, offset=0.0022, res=0.012, sym=False, name="rw_glass",
               target=target)
+    car.glass_outlines.append((proj, False, C.ccw(_inset_poly(poly, seal_w))))
     return gm
 
 
@@ -366,6 +378,10 @@ def part_mat(car, kind, part):
 
 _OFF = {"chrome": 0.0035, "dark": 0.003, "tail": 0.0045, "brake": 0.005, "guide": 0.0075, "reverse": 0.004,
         "indicator": 0.004, "reflector": 0.004, "white": 0.004}
+# 3D models: lamp channel of a part whose sprite material has no light layer (ce3d/roles.py). Key: part kind,
+# or (lamp tag, part kind) - the dark projector lenses of a headlight are its low beam. A part may name its
+# channel itself with the key "lamp".
+_LAMP3D = {"reverse": "reverse", "indicator": "ind", "white": "drl", ("head", "dark"): "head"}
 
 
 def lamp(car, spec, tag="tail"):
@@ -387,11 +403,13 @@ def lamp(car, spec, tag="tail"):
         nm = "%s_%s%d" % (tag, kind, i)
         if "path" in part:
             pts = C.smooth_open(part["path"], 6) if part.get("smooth", True) and len(part["path"]) > 2 else part["path"]
-            car.stripe(pts, part["width"], proj, mat, offset=off, res=min(res, part["width"] * 0.6), sym=sym,
-                       name=nm, target=tgt, walls=part.get("walls", 0.0), wall_mat=mat if part.get("walls") else None)
+            pob = car.stripe(pts, part["width"], proj, mat, offset=off, res=min(res, part["width"] * 0.6), sym=sym,
+                             name=nm, target=tgt, walls=part.get("walls", 0.0),
+                             wall_mat=mat if part.get("walls") else None)
         else:
-            car.patch(part["outline"], proj, mat, offset=off, res=part.get("res", res), sym=sym, name=nm, target=tgt,
-                      walls=part.get("walls", 0.0), wall_mat=mat if part.get("walls") else None)
+            pob = car.patch(part["outline"], proj, mat, offset=off, res=part.get("res", res), sym=sym, name=nm,
+                            target=tgt, walls=part.get("walls", 0.0), wall_mat=mat if part.get("walls") else None)
+        MU.tag(pob, lamp=part.get("lamp", _LAMP3D.get((tag, kind), _LAMP3D.get(kind))))
     lenses = spec.get("lenses") or [dict(outline=spec["outline"], tint=spec.get("tint", "#c41a0f"))]
     for i, ln in enumerate(lenses):
         lm = M.lens(car.name + "_lens_%s%d" % (tag, i), tint=ln.get("tint", "#c41a0f"), refl=ln.get("refl", 0.06),
@@ -504,7 +522,8 @@ def plate(car, center, proj="rear", size=(0.52, 0.112), text="CE 2026", target="
         j = (i + 1) % n
         bm.faces.new((vf[i], vb[i], vb[j], vf[j]))
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    MU.make(car.name + "_plate", bm, pm, parent=car.center)
+    pob = MU.make(car.name + "_plate", bm, pm, parent=car.center)
+    MU.tag(pob, lamp="plate:0.6" if proj == "rear" else "none")     # 3D models: only the rear plate is lit
     bmat = car.mat("plate_band", band, rough=0.45)
     bw = 0.045
     xl = cu - (w / 2 - bw / 2 - 0.004) * sgn
@@ -537,10 +556,11 @@ def exhaust(car, x, z, kind="round", r=0.045, w=0.12, h=0.06, y_tip=-0.006, leng
         if kind == "round":
             prof = [(r * 0.86, y_tip + 0.012), (r * 0.93, y_tip + 0.002), (r, y_tip + 0.004), (r * 1.02, y_tip + 0.03),
                     (r * 1.0, y_tip + length)]
-            _lathe_y(bm, prof, 40, (xx, z))
+            _lathe_y(bm, prof, car.n_wheel(40), (xx, z))
             MU.make(car.name + "_exh", bm, chrome, parent=car.center, smooth=True, sharp_deg=70)
             bm = bmesh.new()
-            _lathe_y(bm, [(r * 0.87, y_tip + 0.012), (r * 0.87, y_tip + 0.08), (0.0, y_tip + 0.08)], 32, (xx, z))
+            _lathe_y(bm, [(r * 0.87, y_tip + 0.012), (r * 0.87, y_tip + 0.08), (0.0, y_tip + 0.08)], car.n_wheel(32),
+                     (xx, z))
             MU.make(car.name + "_exh_in", bm, inner, parent=car.center, smooth=True)
         else:
             if kind == "oval":
@@ -669,7 +689,7 @@ def mirrors(car, y, z, mat, glass_mat=None, size=(0.19, 0.088, 0.108), indicator
         if indicator:
             im = car.mat("mirror_ind", "#d07a22", rough=0.15, coat=0.6)
             bm = MU.bm_box(sx * 0.42, 0.012, 0.016, (xc + side * sx * 0.22, y + sy * 0.38, z - sz * 0.22))
-            MU.make(car.name + "_mirror_ind", bm, im, parent=car.center)
+            MU.tag(MU.make(car.name + "_mirror_ind", bm, im, parent=car.center), lamp="ind")
     return out
 
 

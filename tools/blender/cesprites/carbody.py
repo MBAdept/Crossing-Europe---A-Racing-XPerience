@@ -36,6 +36,18 @@ N_GB, N_GS, N_GR, N_ROOF = 3, 14, 10, 14
 TAIL_RED = "#ff1a0e"
 BRAKE_RED = "#ff2414"
 
+# 3D pipeline hook (ce3d/lod.py): level of detail of a build. These defaults give the sprite model.
+#   ring     scale of the points per cross-section segment (N_* above)
+#   step     scale of the station spacing along the car (lofts)
+#   res      scale of the grid of the conformal patches
+#   off      scale of the height of the patches over the body, min_off = smallest height (m)
+#   wheel    scale of the segment counts of lathed parts (wheels, liners, exhaust tips)
+#   extras   lamp parts only the real-time models have (indicators, reverse light)
+#   graze    patches end where the body turns away from their projection: triangles on surface whose
+#            normal is at less than this cosine to the projection axis are dropped. The sprites show such
+#            stretched triangles edge-on (0 = keep them); seen from the side they are streaks on the flank
+DETAIL = dict(ring=1.0, step=1.0, res=1.0, off=1.0, min_off=0.0, wheel=1.0, extras=False, graze=0.0)
+
 
 def _prof(v):
     if isinstance(v, C.Profile):
@@ -57,9 +69,15 @@ class Frame:
 
 
 class SmoothCar:
-    def __init__(self, rig, d, paint="#888888", metal=0.4, name="car", rough=0.3):
+    def __init__(self, rig, d, paint="#888888", metal=0.4, name="car", rough=0.3, detail=None):
         self.rig = rig
         self.d = d
+        self.detail = dict(DETAIL)
+        self.detail.update(detail or {})
+        self.N = {k: self.n_ring(v) for k, v in (
+            ("under", N_UNDER), ("rb", N_RB), ("ls", N_LS), ("us", N_US), ("re", N_RE), ("deck", N_DECK),
+            ("gb", N_GB), ("gs", N_GS), ("gr", N_GR), ("roof", N_ROOF))}
+        self.glass_outlines = []        # (projection, symmetric, outline) of every pane (ce3d/vehicles3d.py)
         self.name = name
         self.paint_hex = paint
         self.metal = metal
@@ -88,6 +106,18 @@ class SmoothCar:
         self._bvh = {}
         self.mats = {}
         self.paint = M.paint(name + "_paint", paint, metal=metal, rough=rough)
+
+    # ------------------------------------------------------------------ detail level (3D pipeline hook)
+
+    def n_ring(self, n):
+        """Point count of a cross-section segment at the detail level (ring 1.0 = unchanged)."""
+        k = self.detail["ring"]
+        return n if k == 1.0 else max(2, int(round(n * k)))
+
+    def n_wheel(self, n):
+        """Segment count of a lathed part at the detail level (wheel 1.0 = unchanged)."""
+        k = self.detail["wheel"]
+        return n if k == 1.0 else max(8, int(round(n * k)))
 
     # ------------------------------------------------------------------ profiles / sections
 
@@ -162,12 +192,13 @@ class SmoothCar:
         z0 = f.z_start
         x_low = self.side_x(f, z0 + f.r_b)
         xu = max(0.02, x_low - f.r_b)
-        for i in range(N_UNDER):
-            pts.append((xu * i / N_UNDER, z0))
+        N = self.N
+        for i in range(N["under"]):
+            pts.append((xu * i / N["under"], z0))
         # bottom rounding
-        pts += C.arc(xu, z0 + f.r_b, f.r_b, -90, 0, N_RB, rx=x_low - xu)
+        pts += C.arc(xu, z0 + f.r_b, f.r_b, -90, 0, N["rb"], rx=x_low - xu)
         # lower side up to the shoulder
-        zs = [z0 + f.r_b + (f.z_sh - z0 - f.r_b) * t for t in C.spacing(N_LS, "cos")[1:]]
+        zs = [z0 + f.r_b + (f.z_sh - z0 - f.r_b) * t for t in C.spacing(N["ls"], "cos")[1:]]
         for z in zs:
             pts.append((self.side_x(f, z), z))
         k_sh = len(pts) - 1
@@ -175,7 +206,7 @@ class SmoothCar:
         z_e1 = f.z_edge - f.r_e
         x_sh = pts[-1][0]
         xa = f.w - f.tumble_up
-        for t in C.spacing(N_US, "lin")[1:]:
+        for t in C.spacing(N["us"], "lin")[1:]:
             z = f.z_sh + (z_e1 - f.z_sh) * t
             pts.append((x_sh + (xa - x_sh) * t ** 1.35, z))
         # deck edge rounding (Bezier, tangents of upper side and crowned deck)
@@ -187,9 +218,9 @@ class SmoothCar:
         p0 = (xa, z_e1)
         p3 = (x_de, f.z_edge)
         pts += C.bezier(p0, (p0[0] + t0[0] * k, p0[1] + t0[1] * k), (p3[0] - t3[0] * k, p3[1] - t3[1] * k), p3,
-                        N_RE, include_start=False)
+                        N["re"], include_start=False)
         # deck
-        for t in C.spacing(N_DECK, "lin")[1:]:
+        for t in C.spacing(N["deck"], "lin")[1:]:
             x = x_de * (1.0 - t)
             pts.append((x, f.z_deck - f.crown * (x / x_de) ** 2))
         return pts, k_sh, f
@@ -219,9 +250,10 @@ class SmoothCar:
         x_rc = max(0.05, xs - rr)
         bulge = d.get("glass_bulge", 0.012) * min(1.0, h / 0.35)
         pts = []
-        for i in range(N_GB):
-            pts.append((xb * i / N_GB, zb))
-        for t in C.spacing(N_GS, "lin"):
+        N = self.N
+        for i in range(N["gb"]):
+            pts.append((xb * i / N["gb"], zb))
+        for t in C.spacing(N["gs"], "lin"):
             z = zb + (zs - zb) * t
             pts.append((xb + (xs - xb) * t + bulge * math.sin(math.pi * t), z))
         sd = _norm(xs - xb - bulge * math.pi, zs - zb)
@@ -230,8 +262,8 @@ class SmoothCar:
         p0 = (xs, zs)
         p3 = (x_rc, zr - rc)
         pts += C.bezier(p0, (p0[0] + sd[0] * k, p0[1] + sd[1] * k), (p3[0] - t3[0] * k, p3[1] - t3[1] * k), p3,
-                        N_GR, include_start=False)
-        for t in C.spacing(N_ROOF, "lin")[1:]:
+                        N["gr"], include_start=False)
+        for t in C.spacing(N["roof"], "lin")[1:]:
             x = x_rc * (1.0 - t)
             pts.append((x, zr - rc * (x / x_rc) ** 2))
         return pts, dict(xb=xb, zb=zb, xs=xs, zs=zs, zr=zr, rr=rr, x_rc=x_rc, rc=rc)
@@ -300,11 +332,13 @@ class SmoothCar:
         feats = []
         for ya in (self.y_ra, self.y_fa):
             feats += [ya - self.Ra - 0.002, ya - self.Ra + 0.002, ya + self.Ra - 0.002, ya + self.Ra + 0.002]
-        dense = [(ya - self.Ra - 0.15, ya + self.Ra + 0.15, 0.012) for ya in (self.y_ra, self.y_fa)]
+        ks = self.detail["step"]                    # 1.0 for the sprite model
+        dense = [(ya - self.Ra - 0.15, ya + self.Ra + 0.15, 0.012 * ks) for ya in (self.y_ra, self.y_fa)]
         rp = d.get("r_plan", (0.3, 0.4))
         rt = d.get("r_top", (0.1, 0.12))
-        ys = C.stations(self.lb0, self.lb1, d.get("step", 0.022),
-                        ends=((max(rp[0], rt[0]) + 0.02, 14), (max(rp[1], rt[1]) + 0.02, 14)),
+        ne = self.n_ring(14)
+        ys = C.stations(self.lb0, self.lb1, d.get("step", 0.022) * ks,
+                        ends=((max(rp[0], rt[0]) + 0.02, ne), (max(rp[1], rt[1]) + 0.02, ne)),
                         features=feats + list(d.get("y_features", [])), dense=dense)
         _, k_sh, _ = self.lower_half(ys[len(ys) // 2])
         crease = [k_sh] if d.get("shoulder_crease", True) else []
@@ -324,7 +358,7 @@ class SmoothCar:
         while y < g1:
             ys.add(round(y, 5))
             sl = abs(roof.deriv(y))
-            y += max(0.004, d.get("g_step", 0.02) / (1.0 + 1.5 * sl))
+            y += max(0.004 * self.detail["step"], d.get("g_step", 0.02) * self.detail["step"] / (1.0 + 1.5 * sl))
         ys.add(g1)
         ys = sorted(ys)
         ob = self._loft_object(self.name + "_greenhouse", ys, self.green_half, mat or self.paint)
@@ -368,17 +402,18 @@ class SmoothCar:
             pts = []
             xbot = self.side_x(f, zb + rb) + o - pin
             xu = max(0.02, xbot - rb)
-            for i in range(4):
-                pts.append((xu * i / 4, zb))
-            pts += C.arc(xu, zb + rb, rb, -90, 0, 5, rx=xbot - xu)
-            n = 10
+            n4, n5, n6 = self.n_ring(4), self.n_ring(5), self.n_ring(6)
+            for i in range(n4):
+                pts.append((xu * i / n4, zb))
+            pts += C.arc(xu, zb + rb, rb, -90, 0, n5, rx=xbot - xu)
+            n = self.n_ring(10)
             for t in C.spacing(n, "lin")[1:]:
                 z = zb + rb + (zt - rt - zb - rb) * t
                 pts.append((self.side_x(f, z) + o - pin, z))
             xt = pts[-1][0]
-            pts += C.arc(xt - rt, zt - rt, rt, 0, 90, 5, include_start=False)
+            pts += C.arc(xt - rt, zt - rt, rt, 0, 90, n5, include_start=False)
             xin = xt - rt
-            for t in C.spacing(6, "lin")[1:]:
+            for t in C.spacing(n6, "lin")[1:]:
                 pts.append((xin * (1 - t), zt))
             return (pts,)
         return half
@@ -389,11 +424,11 @@ class SmoothCar:
             b = self.d["bump_" + which]
             if which == "rear":
                 y0, y1 = 0.0, self.y_ra - self.Ra - 0.004
-                ends = ((b.get("r_plan", 0.3) + 0.05, 14), (0.0, 0))
+                ends = ((b.get("r_plan", 0.3) + 0.05, self.n_ring(14)), (0.0, 0))
             else:
                 y0, y1 = self.y_fa + self.Ra + 0.004, self.L
-                ends = ((0.0, 0), (b.get("r_plan", 0.4) + 0.05, 14))
-            ys = C.stations(y0, y1, 0.02, ends=ends)
+                ends = ((0.0, 0), (b.get("r_plan", 0.4) + 0.05, self.n_ring(14)))
+            ys = C.stations(y0, y1, 0.02 * self.detail["step"], ends=ends)
             ob = self._loft_object(self.name + "_bumper_" + which, ys, self.bumper_half_fn(which), mat or self.paint)
             self.objects.append(ob)
             self.targets["bumper_" + which] = [ob]
@@ -408,7 +443,7 @@ class SmoothCar:
             f = self.frame(ya)
             xw = f.w - 0.03
             prof = [(self.Ra - 0.004, -xw), (self.Ra - 0.004, xw)]
-            segs = 36
+            segs = self.n_wheel(36)
             verts = []
             for i in range(segs + 1):
                 a = math.radians(-12 + (180 + 24) * i / segs)
@@ -478,6 +513,13 @@ class SmoothCar:
         """Conformal patch from a counter-clockwise 2-D outline in the projection plane:
         rear/front: (x, z) - mirrored to -x when sym; side: (y, z) on the right flank (+ left when sym);
         top: (x, y). walls > 0: side walls down to the surface (raised element of that height = offset)."""
+        dt = self.detail
+        if dt["res"] != 1.0 or dt["off"] != 1.0 or dt["min_off"] > 0.0:
+            # 3D levels of detail: coarser grids, and patches high enough over the coarser body
+            res = res * dt["res"]
+            if walls > 0.0:
+                walls = max(walls * dt["off"], dt["min_off"])
+            offset = max(offset * dt["off"], dt["min_off"])
         outline = C.ccw(outline)
         variants = [(outline, side)]
         if sym:
@@ -531,8 +573,13 @@ class SmoothCar:
             h = self.cast(proj, p[0], p[1], sgn, target)
             hits.append(h)
         vmap = {}
+        graze = self.detail["graze"]
+        axis = {"rear": Vector((0.0, 1.0, 0.0)), "front": Vector((0.0, -1.0, 0.0)), "side": Vector((-sgn, 0.0, 0.0)),
+                "top": Vector((0.0, 0.0, -1.0))}[proj]
         for fi in faces:
             if any(hits[i] is None for i in fi):
+                continue
+            if graze > 0.0 and min(abs(hits[i][1].dot(axis)) for i in fi) < graze:
                 continue
             vs = []
             for i in fi:

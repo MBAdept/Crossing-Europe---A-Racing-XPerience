@@ -35,7 +35,7 @@ def text_mesh(rig, text, size, mat, bold=0.035, extrude=0.0012, name="txt", spac
     ob = bpy.data.objects.new(name, me)
     rig.col.objects.link(ob)
     ob.parent = rig.root
-    return ob
+    return MU.tag(ob)
 
 
 def width_of(ob):

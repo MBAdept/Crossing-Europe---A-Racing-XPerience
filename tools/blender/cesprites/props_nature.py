@@ -95,6 +95,11 @@ def _rand_in_ellipsoid(rng, a, b, c, shell=0.55):
             return Vector((v.x * a, v.y * b, v.z * c))
 
 
+# 3D pipeline hook (ce3d/veg3d.py): a list here receives (centre, radius, z scale) of every crown blob - the
+# card trees of the mode "Modern" grow their leaf cards on the same blobs. None for sprite builds.
+CROWN_LOG = None
+
+
 def crown(rig, name, center, a, b, c, n, r0, r1, mat, seed, disp=0.35, shell=0.6, subdiv=2, flat_bottom=None):
     rng = random.Random(seed)
     bm = bmesh.new()
@@ -103,11 +108,15 @@ def crown(rig, name, center, a, b, c, n, r0, r1, mat, seed, disp=0.35, shell=0.6
         if flat_bottom is not None and p.z < flat_bottom:
             p.z = flat_bottom + (p.z - flat_bottom) * 0.3
         r = rng.uniform(r0, r1) * (0.75 + 0.25 * (1 - abs(p.z) / c))
+        zs = rng.uniform(0.75, 1.0)
         MU.bm_sphere(r, center=(center[0] + p.x, center[1] + p.y, center[2] + p.z),
-                     scale=(1.0, 1.0, rng.uniform(0.75, 1.0)), subdiv=subdiv, bm=bm)
+                     scale=(1.0, 1.0, zs), subdiv=subdiv, bm=bm)
+        if CROWN_LOG is not None:
+            CROWN_LOG.append(((center[0] + p.x, center[1] + p.y, center[2] + p.z), r, zs))
     ob = MU.make(name, bm, mat, parent=rig.root, smooth=True, sharp_deg=80)
     if disp > 0:
         MU.displace(ob, disp, size=max(0.4, (r0 + r1) * 0.35), kind="CLOUDS", depth=2, seed=seed)
+    MU.tag(ob, node_name="crown")       # 3D models replace the blob crown by a core and leaf cards
     return ob
 
 
