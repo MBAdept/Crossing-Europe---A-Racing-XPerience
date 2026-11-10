@@ -7,6 +7,52 @@ from mathutils import Matrix, Vector
 
 _COLLECTION = None
 
+# --- hooks of the 3D model pipeline (tools/blender/ce3d/roles.py) -----------------------------------------
+# Objects are tagged with the node of the real-time model they belong to ("ce_node": body, wheel_0l, ...;
+# "none" = sprite only). Sprite builds never switch tagging on: no property is written, nothing changes.
+_TAGS = {"on": False, "node": "body", "pivot": None}
+
+
+def tagging(on):
+    """ce3d: tag every object created from now on (default node "body")."""
+    _TAGS["on"] = bool(on)
+    _TAGS["node"] = "body"
+    _TAGS["pivot"] = None
+
+
+class node:
+    """with MU.node("wheel_0l", pivot=(x, y, z)): objects created inside belong to that node; pivot = its
+    origin in build space (wheel centre). Does nothing while tagging is off."""
+
+    def __init__(self, name, pivot=None):
+        self.name = name
+        self.pivot = pivot
+
+    def __enter__(self):
+        self.old = (_TAGS["node"], _TAGS["pivot"])
+        _TAGS["node"] = self.name
+        _TAGS["pivot"] = self.pivot
+        return self
+
+    def __exit__(self, *exc):
+        _TAGS["node"], _TAGS["pivot"] = self.old
+        return False
+
+
+def tag(ob, lamp=None, node_name=None):
+    """Writes the node tag of an object (and optionally its lamp channel, e.g. "ind", "head:0.8") while
+    tagging is on. node_name overrides the current node ("none" = not part of the 3D model)."""
+    if _TAGS["on"] and ob is not None:
+        if node_name is not None:
+            ob["ce_node"] = node_name
+        elif ob.get("ce_node") is None:
+            ob["ce_node"] = _TAGS["node"]
+            if _TAGS["pivot"] is not None:
+                ob["ce_pivot"] = [float(v) for v in _TAGS["pivot"]]
+        if lamp is not None:
+            ob["ce_lamp"] = lamp
+    return ob
+
 
 def set_collection(col):
     global _COLLECTION
@@ -18,7 +64,7 @@ def _link(ob, parent=None):
     col.objects.link(ob)
     if parent is not None:
         ob.parent = parent
-    return ob
+    return tag(ob)
 
 
 def empty(name, parent=None, loc=(0, 0, 0)):

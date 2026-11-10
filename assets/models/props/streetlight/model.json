@@ -1,0 +1,40 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/streetlight",
+ "model": {
+  "kind": "furniture",
+  "object": {"width_m": 2.4, "height_m": 9.45},
+  "extent_m": {"left": 2.33, "right": 0.16},
+  "aabb": [-2.325, 0, -0.16, 0.16, 9.395, 0.16],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 312,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/streetlight/lod0_body.res",
+      "classes": ["vpbr"]
+     }
+    ]
+   }
+  ],
+  "lights": [
+   {
+    "role": "lights",
+    "pos": [-1.97, 9.24, 0],
+    "size": 0.609,
+    "color": "#fff0cf"
+   }
+  ],
+  "auto_lod": true,
+  "tags": ["prop", "road", "mirror_left"],
+  "bytes": 5023,
+  "hash": "01142e68d1a27ee225bbcbd0f38667b187106495"
+ },
+ "sets": {
+  "props/streetlight": {"model": "props/streetlight"}
+ }
+}

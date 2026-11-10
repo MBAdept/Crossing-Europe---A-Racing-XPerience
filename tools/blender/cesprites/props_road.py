@@ -44,10 +44,12 @@ def light_cone(rig, name, apex, height, radius, strength):
     t = nb.math("DIVIDE", nb.sub(apex[2], z), height)          # 0 at the lamp, 1 at the ground
     fade = nb.mul(nb.math("POWER", nb.sub(1.0, t), 1.4), nb.madd(t, 0.0, 1.0))
     col = nb.color_scale(M.emit_col(LAMP, strength), fade)
-    mat = M.finish(m, nb, tr.outputs[0], {"lights": col})
+    mat = M.tag(M.finish(m, nb, tr.outputs[0], {"lights": col}), "fx")
     bm = MU.bm_cyl(radius, 0.12, height, center=(apex[0], apex[1], apex[2] - height / 2), segs=20, caps=False)
     ob = MU.make(name, bm, mat, parent=rig.root, smooth=True)
     ob.visible_shadow = False
+    # 3D models: the light volume is a sprite effect - real light pools replace it (manifest "lights")
+    MU.tag(ob, node_name="none")
     return ob
 
 

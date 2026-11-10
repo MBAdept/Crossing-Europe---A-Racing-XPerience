@@ -1,0 +1,908 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "models": {
+  "landmarks/michel": {
+   "kind": "landmark",
+   "object": {"width_m": 72, "height_m": 132, "length_m": 44},
+   "extent_m": {"left": 49.4, "right": 27.54},
+   "aabb": [-41.4, 0, -44.6, 31.8, 132, 0.8],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 3024,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/michel/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/michel/albedo.webp", "emit": "landmarks/michel/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 440949,
+   "hash": "17f842e877e00dc397b43e5ead7623d6ea4f2c46"
+  },
+  "props/farmhouse": {
+   "kind": "building",
+   "object": {"width_m": 11.9, "height_m": 8.6, "length_m": 17},
+   "extent_m": {"left": 12.53, "right": 5.62},
+   "aabb": [-5.95, 0, -17.45, 5.95, 8.9, 0.45],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 104,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/farmhouse/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [3, 3.2, 0.12],
+     "size": 0.686,
+     "color": "#ffd890"
+    }
+   ],
+   "textures": {"albedo": "props/farmhouse/albedo.png", "emit": "props/farmhouse/emit.png"},
+   "roughness": 0.9,
+   "auto_lod": true,
+   "tags": ["prop", "building", "mirror_left"],
+   "bytes": 755381,
+   "hash": "f7530a479e1e585507c66fdf0b0a70e48e94a104"
+  },
+  "props/streetlight": {
+   "kind": "furniture",
+   "object": {"width_m": 2.4, "height_m": 9.45},
+   "extent_m": {"left": 2.33, "right": 0.16},
+   "aabb": [-2.325, 0, -0.16, 0.16, 9.395, 0.16],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 312,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/streetlight/lod0_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [-1.97, 9.24, 0],
+     "size": 0.609,
+     "color": "#fff0cf"
+    }
+   ],
+   "auto_lod": true,
+   "tags": ["prop", "road", "mirror_left"],
+   "bytes": 5023,
+   "hash": "01142e68d1a27ee225bbcbd0f38667b187106495"
+  },
+  "props/tree_oak": {
+   "kind": "tree",
+   "object": {"width_m": 12, "height_m": 13.5},
+   "extent_m": {"left": 6.35, "right": 6.44},
+   "aabb": [-6.642, -0.016, -5.535, 6.721, 13.597, 5.652],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 1220,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/tree_oak/lod0_body.res",
+       "classes": ["vpbr", "leaves"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 200,
+     "tris": 459,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/tree_oak/lod1_body.res",
+       "classes": ["vpbr", "leaves"]
+      }
+     ]
+    }
+   ],
+   "shadow": {"mesh": "props/tree_oak/shadow.res", "tris": 179},
+   "textures": {"leaves": "props/tree_oak/leaves.png"},
+   "impostor": {
+    "texture": "props/tree_oak/impostor.png",
+    "size_m": [13.287, 13.702],
+    "anchor_x": 0.4966
+   },
+   "cards": {"lod0": 420, "lod1": 140},
+   "auto_lod": false,
+   "tags": ["prop", "tree"],
+   "bytes": 430771,
+   "hash": "45a928b47fc838fbd406607b9836511b24089607"
+  }
+ },
+ "sets": {
+  "landmarks/atomium": {
+   "fallback": "sprite",
+   "object": {"width_m": 75.98, "height_m": 102.01, "length_m": 84.95}
+  },
+  "landmarks/basilica_pilar": {
+   "fallback": "sprite",
+   "object": {"width_m": 141.0, "height_m": 92.0, "length_m": 78.0}
+  },
+  "landmarks/basilika_koekelberg": {
+   "fallback": "sprite",
+   "object": {"width_m": 120.0, "height_m": 89.0, "length_m": 167.0}
+  },
+  "landmarks/beffroi_calais": {
+   "fallback": "sprite",
+   "object": {"width_m": 84.0, "height_m": 75.0, "length_m": 26.0}
+  },
+  "landmarks/campanile_venezia": {
+   "fallback": "sprite",
+   "object": {"width_m": 76.0, "height_m": 98.6, "length_m": 80.0}
+  },
+  "landmarks/catedrala_mantuirii": {
+   "fallback": "sprite",
+   "object": {"width_m": 67.5, "height_m": 127.0, "length_m": 126.0}
+  },
+  "landmarks/catedrala_timisoara": {
+   "fallback": "sprite",
+   "object": {"width_m": 48.0, "height_m": 90.5, "length_m": 63.0}
+  },
+  "landmarks/dom_fulda": {
+   "fallback": "sprite",
+   "object": {"width_m": 48.0, "height_m": 65.0, "length_m": 99.0}
+  },
+  "landmarks/dom_passau": {
+   "fallback": "sprite",
+   "object": {"width_m": 34.0, "height_m": 68.0, "length_m": 102.0}
+  },
+  "landmarks/dom_regensburg": {
+   "fallback": "sprite",
+   "object": {"width_m": 39.0, "height_m": 105.0, "length_m": 90.0}
+  },
+  "landmarks/duomo_milano": {
+   "fallback": "sprite",
+   "object": {"width_m": 92.0, "height_m": 108.5, "length_m": 158.0}
+  },
+  "landmarks/eiffel_tower": {
+   "fallback": "sprite",
+   "object": {"width_m": 125.0, "height_m": 330.0, "length_m": 125.0}
+  },
+  "landmarks/elbphilharmonie": {
+   "fallback": "sprite",
+   "object": {"width_m": 110.0, "height_m": 110.0, "length_m": 78.0}
+  },
+  "landmarks/fernsehturm_berlin": {
+   "fallback": "sprite",
+   "object": {"width_m": 78.0, "height_m": 368.0, "length_m": 70.0}
+  },
+  "landmarks/frankfurt_skyline": {
+   "fallback": "sprite",
+   "object": {"width_m": 320.0, "height_m": 300.0, "length_m": 80.0}
+  },
+  "landmarks/frauenkirche_dresden": {
+   "fallback": "sprite",
+   "object": {"width_m": 46.4, "height_m": 91.0, "length_m": 55.2}
+  },
+  "landmarks/frauenkirche_muenchen": {
+   "fallback": "sprite",
+   "object": {"width_m": 40.0, "height_m": 98.6, "length_m": 109.0}
+  },
+  "landmarks/freiheitsdenkmal_riga": {
+   "fallback": "sprite",
+   "object": {"width_m": 18.0, "height_m": 42.0, "length_m": 18.0}
+  },
+  "landmarks/kaiserburg_nuernberg": {
+   "fallback": "sprite",
+   "object": {"width_m": 158.0, "height_m": 66.0, "length_m": 46.0}
+  },
+  "landmarks/kathedrale_burgos": {
+   "fallback": "sprite",
+   "object": {"width_m": 59.0, "height_m": 88.0, "length_m": 106.0}
+  },
+  "landmarks/koelner_dom": {
+   "fallback": "sprite",
+   "object": {"width_m": 86.2, "height_m": 157.4, "length_m": 144.6}
+  },
+  "landmarks/kulturpalast_warschau": {
+   "fallback": "sprite",
+   "object": {"width_m": 190.0, "height_m": 237.0, "length_m": 68.0}
+  },
+  "landmarks/mariendom_linz": {
+   "fallback": "sprite",
+   "object": {"width_m": 60.0, "height_m": 134.8, "length_m": 130.0}
+  },
+  "landmarks/michel": {"model": "landmarks/michel"},
+  "landmarks/nevsky_kathedrale": {
+   "fallback": "sprite",
+   "object": {"width_m": 55.0, "height_m": 53.0, "length_m": 72.0}
+  },
+  "landmarks/palatul_parlamentului": {
+   "fallback": "sprite",
+   "object": {"width_m": 270.0, "height_m": 86.0, "length_m": 240.0}
+  },
+  "landmarks/parlament_budapest": {
+   "fallback": "sprite",
+   "object": {"width_m": 268.0, "height_m": 96.0, "length_m": 123.0}
+  },
+  "landmarks/riesenrad": {
+   "fallback": "sprite",
+   "object": {"width_m": 63.0, "height_m": 64.75, "length_m": 24.0}
+  },
+  "landmarks/sagrada_familia": {
+   "fallback": "sprite",
+   "object": {"width_m": 93.0, "height_m": 172.5, "length_m": 62.0}
+  },
+  "landmarks/st_petri_riga": {
+   "fallback": "sprite",
+   "object": {"width_m": 75.0, "height_m": 123.25, "length_m": 30.0}
+  },
+  "landmarks/stadtpfarrkirche_sibiu": {
+   "fallback": "sprite",
+   "object": {"width_m": 30.8, "height_m": 73.3, "length_m": 83.0}
+  },
+  "landmarks/stephansdom": {
+   "fallback": "sprite",
+   "object": {"width_m": 113.0, "height_m": 136.4, "length_m": 49.0}
+  },
+  "landmarks/veitsdom_prag": {
+   "fallback": "sprite",
+   "object": {"width_m": 174.0, "height_m": 96.5, "length_m": 80.0}
+  },
+  "player/gran_turismo": {
+   "fallback": "box",
+   "object": {"width_m": 1.95, "length_m": 4.95, "height_m": 1.285},
+   "paint": {"paint": "#b2b7bd", "metal": 0.9}
+  },
+  "player/kombi": {
+   "fallback": "box",
+   "object": {"width_m": 1.85, "length_m": 4.8, "height_m": 1.537},
+   "paint": {"paint": "#1d6b45", "metal": 0.55}
+  },
+  "player/kompakt": {
+   "fallback": "box",
+   "object": {"width_m": 1.78, "length_m": 4.1, "height_m": 1.435},
+   "paint": {"paint": "#f0b30a", "metal": 0.0}
+  },
+  "player/limousine": {
+   "fallback": "box",
+   "object": {"width_m": 1.86, "length_m": 4.85, "height_m": 1.448},
+   "paint": {"paint": "#1d4ea8", "metal": 0.55}
+  },
+  "player/sportwagen": {
+   "fallback": "box",
+   "object": {"width_m": 1.9, "length_m": 4.45, "height_m": 1.232},
+   "paint": {"paint": "#cc1419", "metal": 0.15}
+  },
+  "police/at": {
+   "fallback": "box",
+   "object": {"width_m": 1.9, "length_m": 4.62, "height_m": 1.88},
+   "paint": {"paint": "#eef0f2", "paint2": "#1e4597", "paint3": "#d3262c", "metal": 0.3}
+  },
+  "police/be": {
+   "fallback": "box",
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.65},
+   "paint": {"paint": "#f2f2ef", "paint2": "#1b3a8f", "paint3": "#e6dc1f", "metal": 0.3}
+  },
+  "police/bg": {
+   "fallback": "box",
+   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.64},
+   "paint": {"paint": "#f2f2ef", "paint2": "#1b3f8f", "paint3": "#d22a2a", "metal": 0.3}
+  },
+  "police/ch": {
+   "fallback": "box",
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.65},
+   "paint": {"paint": "#f2f2ef", "paint2": "#e04a16", "paint3": "#f2d21c", "metal": 0.3}
+  },
+  "police/cz": {
+   "fallback": "box",
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.65},
+   "paint": {"paint": "#e9ecef", "paint2": "#1c3f8f", "paint3": "#e9d81f", "metal": 0.3}
+  },
+  "police/de": {
+   "fallback": "box",
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.65},
+   "paint": {"paint": "#c9cdd3", "paint2": "#1f4c9c", "paint3": "#1f4c9c", "metal": 0.6}
+  },
+  "police/es": {
+   "fallback": "box",
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.61},
+   "paint": {"paint": "#f2f2ef", "paint2": "#1b3d8c", "paint3": "#1b3d8c", "metal": 0.3}
+  },
+  "police/fr": {
+   "fallback": "box",
+   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.64},
+   "paint": {"paint": "#f2f2ef", "paint2": "#1c2f7a", "paint3": "#d6262b", "metal": 0.3}
+  },
+  "police/hr": {
+   "fallback": "box",
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.61},
+   "paint": {"paint": "#f2f2ef", "paint2": "#1b3a8c", "paint3": "#1b3a8c", "metal": 0.3}
+  },
+  "police/hu": {
+   "fallback": "box",
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.61},
+   "paint": {"paint": "#f2f2ef", "paint2": "#1b3a8a", "paint3": "#e3d61c", "metal": 0.3}
+  },
+  "police/it": {
+   "fallback": "box",
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.61},
+   "paint": {"paint": "#1f5fa8", "paint2": "#f2f2ef", "paint3": "#c9242b", "metal": 0.45}
+  },
+  "police/lt": {
+   "fallback": "box",
+   "object": {"width_m": 1.9, "length_m": 4.62, "height_m": 1.88},
+   "paint": {"paint": "#e9ecef", "paint2": "#1b3c8a", "paint3": "#d8e01c", "metal": 0.3}
+  },
+  "police/lv": {
+   "fallback": "box",
+   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.64},
+   "paint": {"paint": "#f2f2ef", "paint2": "#1c2f6e", "paint3": "#e3dc1c", "metal": 0.3}
+  },
+  "police/nl": {
+   "fallback": "box",
+   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.64},
+   "paint": {"paint": "#f2f2ef", "paint2": "#1b3f93", "paint3": "#e5531b", "metal": 0.3}
+  },
+  "police/pl": {
+   "fallback": "box",
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.61},
+   "paint": {"paint": "#eceff2", "paint2": "#16336e", "paint3": "#16336e", "metal": 0.5}
+  },
+  "police/ro": {
+   "fallback": "box",
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.61},
+   "paint": {"paint": "#f2f2ef", "paint2": "#1b3c8f", "paint3": "#c6e01e", "metal": 0.3}
+  },
+  "police/rs": {
+   "fallback": "box",
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.61},
+   "paint": {"paint": "#f2f2ef", "paint2": "#1b4a9a", "paint3": "#1b4a9a", "metal": 0.3}
+  },
+  "police/si": {
+   "fallback": "box",
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.65},
+   "paint": {"paint": "#f2f2ef", "paint2": "#1c4f96", "paint3": "#2f9a4a", "metal": 0.3}
+  },
+  "props/barn": {
+   "fallback": "sprite",
+   "object": {"width_m": 11.0, "height_m": 8.1, "length_m": 14.0}
+  },
+  "props/bridge_lamp": {
+   "fallback": "sprite",
+   "object": {"width_m": 2.2, "height_m": 4.85, "length_m": 0.72}
+  },
+  "props/bridge_pylon": {
+   "fallback": "sprite",
+   "object": {"width_m": 9.0, "height_m": 88.8, "length_m": 165.2}
+  },
+  "props/bridge_truss_arch": {
+   "fallback": "sprite",
+   "object": {"width_m": 32.4, "height_m": 15.6, "length_m": 1.8}
+  },
+  "props/building_block_a": {
+   "fallback": "sprite",
+   "object": {"width_m": 18.3, "height_m": 19.5, "length_m": 12.0}
+  },
+  "props/building_block_b": {
+   "fallback": "sprite",
+   "object": {"width_m": 20.4, "height_m": 22.1, "length_m": 13.0}
+  },
+  "props/building_oldtown": {
+   "fallback": "sprite",
+   "object": {"width_m": 8.4, "height_m": 20.0, "length_m": 12.0}
+  },
+  "props/building_shop": {
+   "fallback": "sprite",
+   "object": {"width_m": 14.3, "height_m": 8.65, "length_m": 10.0}
+  },
+  "props/building_tall": {
+   "fallback": "sprite",
+   "object": {"width_m": 22.3, "height_m": 65.9, "length_m": 22.0}
+  },
+  "props/bush_low": {
+   "fallback": "sprite",
+   "object": {"width_m": 5.0, "height_m": 1.3}
+  },
+  "props/bush_round": {
+   "fallback": "sprite",
+   "object": {"width_m": 3.0, "height_m": 2.2}
+  },
+  "props/church": {
+   "fallback": "sprite",
+   "object": {"width_m": 10.8, "height_m": 35.4, "length_m": 28.0}
+  },
+  "props/city_balkan_church": {
+   "fallback": "sprite",
+   "object": {"width_m": 17.6, "height_m": 24.2, "length_m": 23.0}
+  },
+  "props/city_balkan_house": {
+   "fallback": "sprite",
+   "object": {"width_m": 15.7, "height_m": 7.6, "length_m": 9.0}
+  },
+  "props/city_balkan_house_b": {
+   "fallback": "sprite",
+   "object": {"width_m": 15.7, "height_m": 9.0, "length_m": 10.0}
+  },
+  "props/city_balkan_plattenbau": {
+   "fallback": "sprite",
+   "object": {"width_m": 28.8, "height_m": 39.8, "length_m": 14.0}
+  },
+  "props/city_baltic_jugendstil": {
+   "fallback": "sprite",
+   "object": {"width_m": 18.8, "height_m": 26.5, "length_m": 14.0}
+  },
+  "props/city_baltic_wood": {
+   "fallback": "sprite",
+   "object": {"width_m": 17.6, "height_m": 10.9, "length_m": 10.0}
+  },
+  "props/city_baltic_wood_b": {
+   "fallback": "sprite",
+   "object": {"width_m": 15.2, "height_m": 9.3, "length_m": 11.0}
+  },
+  "props/city_belgian_stone": {
+   "fallback": "sprite",
+   "object": {"width_m": 10.0, "height_m": 17.5, "length_m": 13.0}
+  },
+  "props/city_belgian_terrace": {
+   "fallback": "sprite",
+   "object": {"width_m": 22.6, "height_m": 15.6, "length_m": 10.0}
+  },
+  "props/city_central_barock": {
+   "fallback": "sprite",
+   "object": {"width_m": 20.0, "height_m": 20.6, "length_m": 14.0}
+  },
+  "props/city_central_eckturm": {
+   "fallback": "sprite",
+   "object": {"width_m": 19.6, "height_m": 30.6, "length_m": 16.0}
+  },
+  "props/city_central_jugendstil": {
+   "fallback": "sprite",
+   "object": {"width_m": 14.6, "height_m": 23.0, "length_m": 14.0}
+  },
+  "props/city_dutch_canal": {
+   "fallback": "sprite",
+   "object": {"width_m": 19.0, "height_m": 17.6, "length_m": 14.0}
+  },
+  "props/city_dutch_canal_b": {
+   "fallback": "sprite",
+   "object": {"width_m": 20.0, "height_m": 16.6, "length_m": 14.0}
+  },
+  "props/city_dutch_terrace": {
+   "fallback": "sprite",
+   "object": {"width_m": 22.3, "height_m": 10.9, "length_m": 9.0}
+  },
+  "props/city_eastern_house_a": {
+   "fallback": "sprite",
+   "object": {"width_m": 20.4, "height_m": 9.7, "length_m": 9.4}
+  },
+  "props/city_eastern_house_b": {
+   "fallback": "sprite",
+   "object": {"width_m": 15.0, "height_m": 8.5, "length_m": 11.0}
+  },
+  "props/city_eastern_house_c": {
+   "fallback": "sprite",
+   "object": {"width_m": 19.0, "height_m": 8.7, "length_m": 9.5}
+  },
+  "props/city_eastern_plattenbau": {
+   "fallback": "sprite",
+   "object": {"width_m": 28.8, "height_m": 35.0, "length_m": 12.0}
+  },
+  "props/city_french_immeuble": {
+   "fallback": "sprite",
+   "object": {"width_m": 16.8, "height_m": 20.04, "length_m": 12.0}
+  },
+  "props/city_french_maison": {
+   "fallback": "sprite",
+   "object": {"width_m": 16.6, "height_m": 13.46, "length_m": 9.0}
+  },
+  "props/city_french_sud": {
+   "fallback": "sprite",
+   "object": {"width_m": 19.0, "height_m": 8.5, "length_m": 10.0}
+  },
+  "props/city_german_gruenderzeit": {
+   "fallback": "sprite",
+   "object": {"width_m": 19.2, "height_m": 23.7, "length_m": 14.0}
+  },
+  "props/city_german_house": {
+   "fallback": "sprite",
+   "object": {"width_m": 14.8, "height_m": 8.95, "length_m": 9.0}
+  },
+  "props/city_german_mietshaus": {
+   "fallback": "sprite",
+   "object": {"width_m": 20.9, "height_m": 19.3, "length_m": 11.0}
+  },
+  "props/city_german_office": {
+   "fallback": "sprite",
+   "object": {"width_m": 31.6, "height_m": 129.5, "length_m": 31.0}
+  },
+  "props/city_german_old_barock": {
+   "fallback": "sprite",
+   "object": {"width_m": 20.5, "height_m": 20.5, "length_m": 14.0}
+  },
+  "props/city_german_old_fachwerk": {
+   "fallback": "sprite",
+   "object": {"width_m": 23.0, "height_m": 15.8, "length_m": 13.0}
+  },
+  "props/city_german_old_fachwerk_b": {
+   "fallback": "sprite",
+   "object": {"width_m": 17.0, "height_m": 22.0, "length_m": 13.0}
+  },
+  "props/city_hanse_crane": {
+   "fallback": "sprite",
+   "object": {"width_m": 23.47, "height_m": 32.15, "length_m": 12.0}
+  },
+  "props/city_hanse_gabled": {
+   "fallback": "sprite",
+   "object": {"width_m": 24.0, "height_m": 17.2, "length_m": 16.0}
+  },
+  "props/city_hanse_kontor": {
+   "fallback": "sprite",
+   "object": {"width_m": 28.7, "height_m": 35.3, "length_m": 20.0}
+  },
+  "props/city_hanse_speicher": {
+   "fallback": "sprite",
+   "object": {"width_m": 26.9, "height_m": 32.19, "length_m": 20.0}
+  },
+  "props/city_italian_block": {
+   "fallback": "sprite",
+   "object": {"width_m": 20.0, "height_m": 21.9, "length_m": 13.0}
+  },
+  "props/city_italian_palazzo": {
+   "fallback": "sprite",
+   "object": {"width_m": 26.7, "height_m": 23.25, "length_m": 18.0}
+  },
+  "props/city_italian_venezia": {
+   "fallback": "sprite",
+   "object": {"width_m": 17.3, "height_m": 17.4, "length_m": 14.0}
+  },
+  "props/city_paris_corner": {
+   "fallback": "sprite",
+   "object": {"width_m": 22.3, "height_m": 26.27, "length_m": 18.0}
+  },
+  "props/city_paris_haussmann": {
+   "fallback": "sprite",
+   "object": {"width_m": 23.7, "height_m": 26.27, "length_m": 15.0}
+  },
+  "props/city_spanish_block": {
+   "fallback": "sprite",
+   "object": {"width_m": 20.6, "height_m": 27.8, "length_m": 16.0}
+  },
+  "props/city_spanish_casa": {
+   "fallback": "sprite",
+   "object": {"width_m": 18.0, "height_m": 7.92, "length_m": 10.0}
+  },
+  "props/city_spanish_ladrillo": {
+   "fallback": "sprite",
+   "object": {"width_m": 19.0, "height_m": 30.2, "length_m": 14.0}
+  },
+  "props/city_swiss_chalet": {
+   "fallback": "sprite",
+   "object": {"width_m": 14.7, "height_m": 8.67, "length_m": 11.0}
+  },
+  "props/city_swiss_laube": {
+   "fallback": "sprite",
+   "object": {"width_m": 21.0, "height_m": 22.43, "length_m": 15.0}
+  },
+  "props/city_vienna_kirche": {
+   "fallback": "sprite",
+   "object": {"width_m": 24.0, "height_m": 39.2, "length_m": 26.0}
+  },
+  "props/city_vienna_palais": {
+   "fallback": "sprite",
+   "object": {"width_m": 29.3, "height_m": 22.85, "length_m": 20.0}
+  },
+  "props/city_vienna_zinshaus": {
+   "fallback": "sprite",
+   "object": {"width_m": 22.0, "height_m": 24.0, "length_m": 14.0}
+  },
+  "props/cliff": {
+   "fallback": "sprite",
+   "object": {"width_m": 26.0, "height_m": 14.0, "length_m": 5.0}
+  },
+  "props/customs_booth": {
+   "fallback": "sprite",
+   "object": {"width_m": 4.4, "height_m": 3.05, "length_m": 3.8}
+  },
+  "props/delineator": {
+   "fallback": "sprite",
+   "object": {"width_m": 0.12, "height_m": 1.0, "length_m": 0.1}
+  },
+  "props/factory": {
+   "fallback": "sprite",
+   "object": {"width_m": 34.0, "height_m": 34.5, "length_m": 29.0}
+  },
+  "props/farmhouse": {"model": "props/farmhouse"},
+  "props/ferry_ship": {
+   "fallback": "sprite",
+   "object": {"width_m": 182.0, "height_m": 38.0, "length_m": 28.0}
+  },
+  "props/fuel_pump": {
+   "fallback": "sprite",
+   "object": {"width_m": 1.3, "height_m": 4.35, "length_m": 3.8}
+  },
+  "props/fuel_station": {
+   "fallback": "sprite",
+   "object": {"width_m": 31.0, "height_m": 7.0, "length_m": 12.0}
+  },
+  "props/haybale": {
+   "fallback": "sprite",
+   "object": {"width_m": 3.4, "height_m": 1.5, "length_m": 1.4}
+  },
+  "props/heather": {
+   "fallback": "sprite",
+   "object": {"width_m": 5.6, "height_m": 0.75, "length_m": 2.6}
+  },
+  "props/house_med": {
+   "fallback": "sprite",
+   "object": {"width_m": 11.0, "height_m": 9.0, "length_m": 8.0}
+  },
+  "props/houseboat": {
+   "fallback": "sprite",
+   "object": {"width_m": 16.0, "height_m": 4.5, "length_m": 4.6}
+  },
+  "props/power_pylon": {
+   "fallback": "sprite",
+   "object": {"width_m": 17.5, "height_m": 47.0, "length_m": 7.2}
+  },
+  "props/radar_camera": {
+   "fallback": "sprite",
+   "object": {"width_m": 0.9, "height_m": 3.05, "length_m": 0.8}
+  },
+  "props/rock_a": {
+   "fallback": "sprite",
+   "object": {"width_m": 3.6, "height_m": 1.6, "length_m": 2.4}
+  },
+  "props/rock_b": {
+   "fallback": "sprite",
+   "object": {"width_m": 3.8, "height_m": 1.3, "length_m": 2.4}
+  },
+  "props/streetlight": {"model": "props/streetlight"},
+  "props/tree_beech": {
+   "fallback": "sprite",
+   "object": {"width_m": 9.5, "height_m": 15.5}
+  },
+  "props/tree_birch": {
+   "fallback": "sprite",
+   "object": {"width_m": 5.2, "height_m": 12.8}
+  },
+  "props/tree_cypress": {
+   "fallback": "sprite",
+   "object": {"width_m": 2.8, "height_m": 14.0}
+  },
+  "props/tree_oak": {"model": "props/tree_oak"},
+  "props/tree_olive": {
+   "fallback": "sprite",
+   "object": {"width_m": 7.4, "height_m": 5.4}
+  },
+  "props/tree_palm": {
+   "fallback": "sprite",
+   "object": {"width_m": 8.5, "height_m": 11.0}
+  },
+  "props/tree_pine": {
+   "fallback": "sprite",
+   "object": {"width_m": 7.0, "height_m": 18.0}
+  },
+  "props/tree_poplar": {
+   "fallback": "sprite",
+   "object": {"width_m": 4.0, "height_m": 21.8}
+  },
+  "props/tree_spruce": {
+   "fallback": "sprite",
+   "object": {"width_m": 7.0, "height_m": 19.3}
+  },
+  "props/wind_turbine": {
+   "fallback": "sprite",
+   "object": {"width_m": 88.0, "height_m": 133.6, "length_m": 12.0}
+  },
+  "props/windmill": {
+   "fallback": "sprite",
+   "object": {"width_m": 25.0, "height_m": 32.3, "length_m": 9.0}
+  },
+  "showroom/gran_turismo": {
+   "fallback": "sprite",
+   "object": {"width_m": 1.95, "length_m": 4.95, "height_m": 1.285}
+  },
+  "showroom/kombi": {
+   "fallback": "sprite",
+   "object": {"width_m": 1.85, "length_m": 4.8, "height_m": 1.537}
+  },
+  "showroom/kompakt": {
+   "fallback": "sprite",
+   "object": {"width_m": 1.78, "length_m": 4.1, "height_m": 1.435}
+  },
+  "showroom/limousine": {
+   "fallback": "sprite",
+   "object": {"width_m": 1.86, "length_m": 4.85, "height_m": 1.448}
+  },
+  "showroom/sportwagen": {
+   "fallback": "sprite",
+   "object": {"width_m": 1.9, "length_m": 4.45, "height_m": 1.232}
+  },
+  "traffic/bus_blue": {
+   "fallback": "box",
+   "object": {"width_m": 2.55, "length_m": 12.8, "height_m": 3.65},
+   "paint": {"paint": "#1f4f9a", "metal": 0.45}
+  },
+  "traffic/bus_red": {
+   "fallback": "box",
+   "object": {"width_m": 2.55, "length_m": 12.8, "height_m": 3.65},
+   "paint": {"paint": "#b3242a", "metal": 0.3}
+  },
+  "traffic/bus_white": {
+   "fallback": "box",
+   "object": {"width_m": 2.55, "length_m": 12.8, "height_m": 3.65},
+   "paint": {"paint": "#efefeb", "metal": 0.1}
+  },
+  "traffic/hatch_blue": {
+   "fallback": "box",
+   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.51},
+   "paint": {"paint": "#2c5fa8", "metal": 0.45}
+  },
+  "traffic/hatch_green": {
+   "fallback": "box",
+   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.51},
+   "paint": {"paint": "#3d8a45", "metal": 0.4}
+  },
+  "traffic/hatch_red": {
+   "fallback": "box",
+   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.51},
+   "paint": {"paint": "#b5282a", "metal": 0.3}
+  },
+  "traffic/hatch_white": {
+   "fallback": "box",
+   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.51},
+   "paint": {"paint": "#e8e8e5", "metal": 0.1}
+  },
+  "traffic/hatch_yellow": {
+   "fallback": "box",
+   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.51},
+   "paint": {"paint": "#e5bd1c", "metal": 0.15}
+  },
+  "traffic/sedan_black": {
+   "fallback": "box",
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.48},
+   "paint": {"paint": "#1c1e21", "metal": 0.35}
+  },
+  "traffic/sedan_blue": {
+   "fallback": "box",
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.48},
+   "paint": {"paint": "#24509e", "metal": 0.45}
+  },
+  "traffic/sedan_red": {
+   "fallback": "box",
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.48},
+   "paint": {"paint": "#b52424", "metal": 0.3}
+  },
+  "traffic/sedan_silver": {
+   "fallback": "box",
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.48},
+   "paint": {"paint": "#a9adb4", "metal": 0.75}
+  },
+  "traffic/sports_black": {
+   "fallback": "box",
+   "object": {"width_m": 1.95, "length_m": 4.45, "height_m": 1.26},
+   "paint": {"paint": "#18191b", "metal": 0.35}
+  },
+  "traffic/sports_blue": {
+   "fallback": "box",
+   "object": {"width_m": 1.95, "length_m": 4.45, "height_m": 1.26},
+   "paint": {"paint": "#2350c8", "metal": 0.45}
+  },
+  "traffic/sports_orange": {
+   "fallback": "box",
+   "object": {"width_m": 1.95, "length_m": 4.45, "height_m": 1.26},
+   "paint": {"paint": "#ec6a12", "metal": 0.2}
+  },
+  "traffic/sports_red": {
+   "fallback": "box",
+   "object": {"width_m": 1.95, "length_m": 4.45, "height_m": 1.26},
+   "paint": {"paint": "#d01f1f", "metal": 0.3}
+  },
+  "traffic/sports_yellow": {
+   "fallback": "box",
+   "object": {"width_m": 1.95, "length_m": 4.45, "height_m": 1.26},
+   "paint": {"paint": "#f2c30f", "metal": 0.15}
+  },
+  "traffic/suv_black": {
+   "fallback": "box",
+   "object": {"width_m": 1.9, "length_m": 4.62, "height_m": 1.75},
+   "paint": {"paint": "#1b1c1f", "metal": 0.35}
+  },
+  "traffic/suv_brown": {
+   "fallback": "box",
+   "object": {"width_m": 1.9, "length_m": 4.62, "height_m": 1.75},
+   "paint": {"paint": "#6e4f37", "metal": 0.5}
+  },
+  "traffic/suv_grey": {
+   "fallback": "box",
+   "object": {"width_m": 1.9, "length_m": 4.62, "height_m": 1.75},
+   "paint": {"paint": "#5f646a", "metal": 0.55}
+  },
+  "traffic/suv_white": {
+   "fallback": "box",
+   "object": {"width_m": 1.9, "length_m": 4.62, "height_m": 1.75},
+   "paint": {"paint": "#ececea", "metal": 0.1}
+  },
+  "traffic/truck_blue": {
+   "fallback": "box",
+   "object": {"width_m": 2.55, "length_m": 16.5, "height_m": 4.0},
+   "paint": {"paint": "#21468f", "metal": 0.45}
+  },
+  "traffic/truck_green": {
+   "fallback": "box",
+   "object": {"width_m": 2.55, "length_m": 16.5, "height_m": 4.0},
+   "paint": {"paint": "#2e6b3a", "metal": 0.4}
+  },
+  "traffic/truck_red": {
+   "fallback": "box",
+   "object": {"width_m": 2.55, "length_m": 16.5, "height_m": 4.0},
+   "paint": {"paint": "#b02a24", "metal": 0.3}
+  },
+  "traffic/truck_white": {
+   "fallback": "box",
+   "object": {"width_m": 2.55, "length_m": 16.5, "height_m": 4.0},
+   "paint": {"paint": "#ececea", "metal": 0.1}
+  },
+  "traffic/van_darkblue": {
+   "fallback": "box",
+   "object": {"width_m": 2.02, "length_m": 5.4, "height_m": 2.49},
+   "paint": {"paint": "#203a6b", "metal": 0.5}
+  },
+  "traffic/van_red": {
+   "fallback": "box",
+   "object": {"width_m": 2.02, "length_m": 5.4, "height_m": 2.49},
+   "paint": {"paint": "#a82a25", "metal": 0.3}
+  },
+  "traffic/van_silver": {
+   "fallback": "box",
+   "object": {"width_m": 2.02, "length_m": 5.4, "height_m": 2.49},
+   "paint": {"paint": "#b3b7bc", "metal": 0.75}
+  },
+  "traffic/van_white": {
+   "fallback": "box",
+   "object": {"width_m": 2.02, "length_m": 5.4, "height_m": 2.49},
+   "paint": {"paint": "#ececea", "metal": 0.1}
+  },
+  "traffic/wagon_darkblue": {
+   "fallback": "box",
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.52},
+   "paint": {"paint": "#1f3157", "metal": 0.5}
+  },
+  "traffic/wagon_green": {
+   "fallback": "box",
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.52},
+   "paint": {"paint": "#2f5d3a", "metal": 0.4}
+  },
+  "traffic/wagon_silver": {
+   "fallback": "box",
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.52},
+   "paint": {"paint": "#aeb2b8", "metal": 0.75}
+  },
+  "traffic/wagon_white": {
+   "fallback": "box",
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.52},
+   "paint": {"paint": "#e6e6e3", "metal": 0.1}
+  }
+ }
+}
