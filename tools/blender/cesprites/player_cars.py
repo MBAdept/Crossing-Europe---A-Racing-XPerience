@@ -425,7 +425,11 @@ def features_limousine(car, d, mats):
             dict(kind="guide", path=[(0.53, 0.958), (0.72, 0.962), (0.88, 0.966), (0.905, 0.94), (0.90, 0.875)],
                  width=0.011),
             dict(kind="guide", path=[(0.56, 0.902), (0.82, 0.866)], width=0.008),
-        ]), tag="tail")
+        ] + ([
+            # real-time model only: indicator strip at the outer end, reverse light at the inner end
+            dict(kind="indicator", path=[(0.884, 0.952), (0.888, 0.884)], width=0.013, smooth=False, offset=0.0062),
+            dict(kind="reverse", outline=C.rounded_rect(0.585, 0.935, 0.07, 0.026, 0.009, 3), offset=0.0062),
+        ] if car.detail["extras"] else [])), tag="tail")
     bar = [(-0.52, 0.935), (0.52, 0.935), (0.52, 0.957), (-0.52, 0.957)]
     CD.lamp(car, dict(outline=bar, sym=False, tint="#c41a0f", depth=0.009, parts=[
         dict(kind="guide", path=[(-0.515, 0.946), (0.515, 0.946)], width=0.008, smooth=False, tail=0.9, brake=0.5)]),
@@ -457,7 +461,10 @@ def features_limousine(car, d, mats):
         dict(kind="dark", outline=C.ellipse(0.62, 0.712, 0.032, 0.022, 24)),
         dict(kind="dark", outline=C.ellipse(0.73, 0.706, 0.032, 0.022, 24)),
         dict(kind="white", path=[(0.49, 0.737), (0.82, 0.724), (0.88, 0.70)], width=0.01),
-    ])
+    ] + ([
+        # real-time model only: indicator at the outer end of the headlight
+        dict(kind="indicator", path=[(0.835, 0.703), (0.878, 0.694)], width=0.013, smooth=False, offset=0.0052),
+    ] if car.detail["extras"] else []))
     car.patch([(-0.38, 0.52), (0.38, 0.52), (0.40, 0.71), (-0.40, 0.71)], "front", grille_mat(car, "slats", "#0a0a0b",
               "#3a3d41", 40.0), offset=0.0015, res=0.01, sym=False, name="grille")
     ring(car, [(-0.38, 0.52), (0.38, 0.52), (0.40, 0.71), (-0.40, 0.71)], 0.014, "front", chrome, 0.003, sym=False,
@@ -599,7 +606,8 @@ FEATURES = {"kompakt": features_kompakt, "kombi": features_kombi, "limousine": f
 
 def build(rig, p):
     d = DESIGNS[p["design"]]
-    car = CB.SmoothCar(rig, d, paint=p["paint"], metal=p.get("metal", 0.3), name=p["design"])
+    car = CB.SmoothCar(rig, d, paint=p["paint"], metal=p.get("metal", 0.3), name=p["design"],
+                       detail=p.get("detail"))        # detail: level of detail of a 3D build (ce3d/lod.py)
     car.build_lower()
     car.build_greenhouse()
     car.build_bumpers()

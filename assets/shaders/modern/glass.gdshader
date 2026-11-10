@@ -5,8 +5,9 @@
 shader_type spatial;
 render_mode blend_mix, depth_draw_never, cull_back;
 
-instance uniform float fade = 1.0;            // path-distance fade (dither discard, as class vpbr)
-instance uniform float sun = 1.0;             // 0 inside tunnels: masks the directional light
+// same indices as in vpbr.gdshader: both surfaces of a body share the instance
+instance uniform float fade : instance_index(5) = 1.0;          // path-distance fade (dither discard)
+instance uniform float sun : instance_index(6) = 1.0;           // 0 inside tunnels: masks the directional light
 
 uniform float fresnel_boost = 0.85;
 

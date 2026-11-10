@@ -28,10 +28,13 @@ PLAYER_DETAIL = {
 #   subsurf  subdivision level of the body lofts (sprite: 1)         ring  refinement of the cross-section
 #   step     scale of the station spacing                            wheel segments of tyres and rims
 CAR_DETAIL = {
-    "lod0": dict(subsurf=0, ring=2, step=1.0, wheel=1.0),
-    "lod1": dict(subsurf=0, ring=1, step=2.0, wheel=0.45),
-    "lod2": dict(subsurf=0, ring=0, step=5.0, wheel=0.3),
-    "shadow": dict(subsurf=0, ring=0, step=5.0, wheel=0.3),
+    # up to 40 m: finer cross-sections than the sprite's control polygon, all decals cut in
+    "lod0": dict(subsurf=0, ring=2, step=1.9, wheel=0.65),
+    # 40 - 120 m: the control polygon, no seams and handles, plain mirrors, drum wheels
+    "lod1": dict(subsurf=0, ring=1, step=2.5, wheel=0.45, bevel=False, small=False),
+    # beyond: 5-point cross-sections, a station every 30 cm at most, no mirrors
+    "lod2": dict(subsurf=0, ring=0, step=6.0, wheel=0.2, bevel=False, mirrors=False, small=False),
+    "shadow": dict(subsurf=0, ring=0, step=6.0, wheel=0.2, bevel=False, mirrors=False, small=False),
 }
 # default swap distances (m) of the manifest; the renderer scales them with the "Details" level
 VEHICLE_LOD_DIST = {"lod0": 40, "lod1": 120, "lod2": 100000}
