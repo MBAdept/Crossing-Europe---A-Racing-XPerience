@@ -1,0 +1,7 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- perf.chunkgen
+PROBE: chunk_12x25_quads = { "vertices": 338, "triangles": 600, "gdscript_fill_ms": 0.106, "arraymesh_create_ms": 0.034, "node_add_ms": 0.006 }
+PROBE: chunk_24x50_quads = { "vertices": 1275, "triangles": 2400, "gdscript_fill_ms": 0.323, "arraymesh_create_ms": 0.078, "node_add_ms": 0.007 }
+PROBE: chunk_4x25_quads = { "vertices": 130, "triangles": 200, "gdscript_fill_ms": 0.056, "arraymesh_create_ms": 0.02, "node_add_ms": 0.006 }
+PROBE: queue_free_per_chunk_ms_incl_2_frames = 0.022

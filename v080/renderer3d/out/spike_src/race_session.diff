@@ -1,0 +1,42 @@
+--- /home/user/crossing-europe---a-racing-xperience/scripts/race/race_session.gd	2026-11-09 15:55:34.273340019 +0000
++++ /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/renderer3d/proj/scripts/race/race_session.gd	2026-11-10 09:11:31.004388188 +0000
+@@ -45,7 +45,7 @@
+ var plan: StagePlan
+ var track: Track
+ var proj: RoadProjection
+-var renderer: RoadRenderer
++var renderer: Variant   # spike: RoadRenderer or the 3D spike (same interface)
+ var vehicle: VehicleModel
+ var traffic: TrafficSystem
+ var fuel: FuelSystem
+@@ -202,11 +202,16 @@
+ 	track = Track.new()
+ 	track.setup(plan, cfg, GameData.scenery)
+ 
+-	renderer = RoadRenderer.new()
+-	add_child(renderer)
+-	renderer.setup(track, proj, cfg, GameData.scenery)
+-	if CliArgs.has("no-glow-occlusion"):
+-		renderer.set_glow_occlusion(false)   # debug: lights as in v0.5.0 (A/B screenshots, docs/renn-modul.md §11)
++	if CliArgs.get_string("gfx", "arcade") == "modern":
++		renderer = load("res://spike/road_renderer_3d.gd").new()   # spike v0.8.0: real 3D behind the same interface
++		add_child(renderer)
++		renderer.setup(track, proj, cfg, GameData.scenery)
++	else:
++		renderer = RoadRenderer.new()
++		add_child(renderer)
++		renderer.setup(track, proj, cfg, GameData.scenery)
++		if CliArgs.has("no-glow-occlusion"):
++			renderer.set_glow_occlusion(false)   # debug: lights as in v0.5.0 (A/B screenshots, docs/renn-modul.md §11)
+ 
+ 	vehicle = VehicleModel.new()
+ 	vehicle.setup(cfg, str(setup.get("vehicle", "limousine")))
+@@ -996,7 +1001,7 @@
+ 
+ ## Simulation and render timing (for tests/race/run_stage.gd and --perf), plus drive_stats as "drive".
+ func perf_stats() -> Dictionary:
+-	var r := renderer.perf_stats() if renderer != null else {}
++	var r: Dictionary = renderer.perf_stats() if renderer != null else {}
+ 	r["sim_steps"] = _sim_steps
+ 	r["sim_avg_ms"] = float(_sim_us_sum) / maxf(1.0, float(_sim_steps)) / 1000.0
+ 	r["sim_max_ms"] = float(_sim_us_max) / 1000.0

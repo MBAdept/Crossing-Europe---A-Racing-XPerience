@@ -1,0 +1,14 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- misc.lod
+PROBE: variant 0_visibility_range_hlod_150m | vis_draw_calls=578 | vis_primitives=482440 | vis_objects=578 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | frame_ms_median=100.37 | render_cpu_ms_median=82.03 | render_gpu_ms_median=95.9
+PROBE: variant 1_visibility_range_fade_self | vis_draw_calls=579 | vis_primitives=486664 | vis_objects=579 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=0.0024 | diff_vs_prev_max=250.0
+PROBE: fade_self_diff = { "mean": 0.0024, "max": 250.0, "psnr": 51.6 }
+PROBE: variant 2_before_instance_transparency | vis_draw_calls=580 | vis_primitives=490888 | vis_objects=580 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=1.0557 | diff_vs_prev_max=255.0
+PROBE: variant 2_instance_transparency_0.7 | vis_draw_calls=580 | vis_primitives=490888 | vis_objects=580 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=0.0 | diff_vs_prev_max=0.0
+PROBE: instance_transparency_diff = { "mean": 0.0, "max": 0.0, "psnr": 10000000000.0 }
+PROBE: importer_mesh_lod_count = 11
+PROBE: importer_mesh_lod_triangles = [8320, 4160, 2080, 1040, 520, 260, 130, 64, 32, 16, 8]
+PROBE: variant 3_lod_disabled_threshold0 | vis_draw_calls=547 | vis_primitives=1096456 | vis_objects=547 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | frame_ms_median=169.67 | render_cpu_ms_median=157.13 | render_gpu_ms_median=172.75 | diff_vs_prev_mean=8.3435 | diff_vs_prev_max=255.0
+PROBE: variant 3_lod_threshold1px | vis_draw_calls=547 | vis_primitives=101356 | vis_objects=547 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | frame_ms_median=48.45 | render_cpu_ms_median=24.56 | render_gpu_ms_median=42.65 | diff_vs_prev_mean=0.0223 | diff_vs_prev_max=226.0
+PROBE: variant 3_lod_threshold4px | vis_draw_calls=547 | vis_primitives=98938 | vis_objects=547 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | frame_ms_median=53.3 | render_cpu_ms_median=27.12 | render_gpu_ms_median=45.05 | diff_vs_prev_mean=0.0533 | diff_vs_prev_max=226.0

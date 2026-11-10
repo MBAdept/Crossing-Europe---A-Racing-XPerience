@@ -1,0 +1,4 @@
+ROOT [EMPTY]
+  oak_br [MESH] verts=126 polys=98 mats=1 mods=[]
+  oak_crown [MESH] verts=2940 polys=5600 mats=1 mods=['DISPLACE']
+  oak_trunk [MESH] verts=40 polys=32 mats=1 mods=[]

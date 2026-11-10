@@ -1,0 +1,7 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- refl.wet_ssr
+PROBE: variant 0_wet_night_sky_radiance_only | vis_draw_calls=1229 | vis_primitives=519780 | vis_objects=1229 | shadow_draw_calls=0 | shadow_primitives=610454 | canvas_draw_calls=0 | frame_ms_median=212.5 | render_cpu_ms_median=201.37 | render_gpu_ms_median=201.29
+PROBE: variant 1_wet_night_custom_ssr_overlay | vis_draw_calls=1239 | vis_primitives=519800 | vis_objects=1239 | shadow_draw_calls=0 | shadow_primitives=610454 | canvas_draw_calls=0 | frame_ms_median=231.3 | render_cpu_ms_median=224.63 | render_gpu_ms_median=224.45 | diff_vs_prev_mean=1.2947 | diff_vs_prev_max=255.0
+PROBE: variant 2_wet_night_custom_ssr_msaa4x | vis_draw_calls=1239 | vis_primitives=519800 | vis_objects=1239 | shadow_draw_calls=0 | shadow_primitives=610454 | canvas_draw_calls=0 | frame_ms_median=415.48 | render_cpu_ms_median=410.15 | render_gpu_ms_median=409.92 | diff_vs_prev_mean=0.3114 | diff_vs_prev_max=255.0
+PROBE: variant 3_wet_day_custom_ssr | vis_draw_calls=1239 | vis_primitives=519800 | vis_objects=1239 | shadow_draw_calls=0 | shadow_primitives=610454 | canvas_draw_calls=0 | frame_ms_median=220.51 | render_cpu_ms_median=217.74 | render_gpu_ms_median=217.62 | diff_vs_prev_mean=101.7194 | diff_vs_prev_max=255.0

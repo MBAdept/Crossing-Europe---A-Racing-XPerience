@@ -1,0 +1,6 @@
+00:00.489  cycles           | WARNING CUEW initialization failed: Error opening the library
+player_kompakt_opt1        tris   82687 verts   55874 surfaces 14  glb   2439.3 kB  build  20.3s export   1.5s  
+player_kompakt_opt3        tris   51767 verts   39370 surfaces 14  glb   1685.8 kB  build  20.9s export   1.6s  
+player_kompakt_opt3c50     tris   29746 verts   23580 surfaces 14  glb   1009.4 kB  build  20.8s export   1.7s  
+player_kompakt_opt5c25     tris   12509 verts   10812 surfaces 14  glb    465.0 kB  build  21.7s export   1.5s  
+player_kompakt_c06         tris    4508 verts    4236 surfaces 14  glb    190.8 kB  build  22.2s export   1.3s  

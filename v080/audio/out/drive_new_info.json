@@ -1,0 +1,30 @@
+{
+ "events": {
+  "crackle": 32,
+  "shift": 8,
+  "thump": 21,
+  "blowoff": 2,
+  "tipin": 1
+ },
+ "gain_db": -3.741114189221145,
+ "stems_lufs_flat_out": {
+  "engine_cycles": -15.1,
+  "clips": -120.7,
+  "turbo": -28.1,
+  "driveline": -34.8,
+  "reflections": -29.3,
+  "tyres": -19.1,
+  "wind": -18.3,
+  "world": -25.7
+ },
+ "stems_lufs_cruise130": {
+  "engine_cycles": -20.7,
+  "clips": -44.2,
+  "turbo": -55.7,
+  "driveline": -48.5,
+  "reflections": -33.3,
+  "tyres": -29.3,
+  "wind": -36.3,
+  "world": -31.6
+ }
+}

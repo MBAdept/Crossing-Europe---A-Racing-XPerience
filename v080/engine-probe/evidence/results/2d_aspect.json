@@ -1,0 +1,46 @@
+{
+  "content_scale_size": "(1280, 720)",
+  "expand_image_size": "(1280, 800)",
+  "expand_visible_rect": "[P: (0.0, 0.0), S: (1280.0, 800.0)]",
+  "keep_image_size": "(1280, 720)",
+  "keep_visible_rect": "[P: (0.0, 0.0), S: (1280.0, 720.0)]",
+  "suite": "2d",
+  "test": "aspect",
+  "variants": [
+    {
+      "buffer_mem_mb": 15.4,
+      "canvas_draw_calls": 7,
+      "draw_calls_total": 906,
+      "name": "0_keep",
+      "objects_total": 992,
+      "png": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/engine-probe/shots/2d_aspect_0_keep.png",
+      "primitives_total": 708770,
+      "shadow_draw_calls": 0,
+      "shadow_objects": 0,
+      "shadow_primitives": 272944,
+      "texture_mem_mb": 9.6,
+      "video_mem_mb": 25.1,
+      "vis_draw_calls": 899,
+      "vis_objects": 899,
+      "vis_primitives": 435640
+    },
+    {
+      "buffer_mem_mb": 15.4,
+      "canvas_draw_calls": 7,
+      "draw_calls_total": 905,
+      "name": "1_expand",
+      "objects_total": 991,
+      "png": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/engine-probe/shots/2d_aspect_1_expand.png",
+      "primitives_total": 708002,
+      "shadow_draw_calls": 0,
+      "shadow_objects": 0,
+      "shadow_primitives": 272944,
+      "texture_mem_mb": 10.4,
+      "video_mem_mb": 25.9,
+      "vis_draw_calls": 898,
+      "vis_objects": 898,
+      "vis_primitives": 434872
+    }
+  ],
+  "window_size": "(1280, 800)"
+}

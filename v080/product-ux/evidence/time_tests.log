@@ -1,0 +1,9 @@
+import                     4.1 s  exit 0  load 0.46
+check_scripts              3.3 s  exit 0  load 0.46
+unit_tests               145.4 s  exit 0  load 0.96
+check_session             40.7 s  exit 0  load 0.98
+check_attract             30.2 s  exit 0  load 0.87
+check_menu_pad             6.8 s  exit 0  load 0.88
+check_attract_scenes     119.1 s  exit 0  load 1.09
+check_escapes             84.4 s  exit 0  load 1.28
+DONE

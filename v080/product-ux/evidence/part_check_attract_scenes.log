@@ -1,0 +1,15 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+AudioManager: Motorbank sportwagen: 32000 Hz, 14 Drehzahlpunkte 949–9208/min, 224 Zyklen, 11 Clips, 1.7 MB geladen in 2 ms
+CHECK rushhour   OK      Ende time, Ø 103 km/h (min 32), Kollisionen 0, Leitplanke 0, neben der Fahrbahn 0.0 s, kleinster Abstand 14.5 m (t=25.4 s), in den ersten 3 s 139.3 m
+AudioManager: Motorbank kompakt: 32000 Hz, 13 Drehzahlpunkte 849–7007/min, 208 Zyklen, 12 Clips, 1.9 MB geladen in 4 ms
+CHECK pyrenaeen  OK      Ende time, Ø 120 km/h (min 57), Kollisionen 0, Leitplanke 0, neben der Fahrbahn 0.0 s, kleinster Abstand 26.4 m (t=30.0 s), in den ersten 3 s 465.0 m
+AudioManager: Motorbank gran_turismo: 32000 Hz, 13 Drehzahlpunkte 699–7204/min, 208 Zyklen, 12 Clips, 2.1 MB geladen in 4 ms
+CHECK paris      OK      Ende time, Ø 98 km/h (min 52), Kollisionen 0, Leitplanke 0, neben der Fahrbahn 0.0 s, kleinster Abstand 25.0 m (t=29.5 s), in den ersten 3 s 157.8 m
+AudioManager: Motorbank kombi: 32000 Hz, 11 Drehzahlpunkte 779–4800/min, 176 Zyklen, 1 Clips, 1.8 MB geladen in 5 ms
+CHECK hamburg    OK      Ende time, Ø 90 km/h (min 47), Kollisionen 0, Leitplanke 0, neben der Fahrbahn 0.0 s, kleinster Abstand 23.7 m (t=23.4 s), in den ersten 3 s 327.9 m
+AudioManager: Motorbank limousine: 32000 Hz, 13 Drehzahlpunkte 649–7204/min, 208 Zyklen, 10 Clips, 2.2 MB geladen in 4 ms
+CHECK regen      OK      Ende time, Ø 184 km/h (min 117), Kollisionen 0, Leitplanke 0, neben der Fahrbahn 0.0 s, kleinster Abstand 41.8 m (t=4.0 s), in den ersten 3 s 468.5 m
+CHECK venedig    OK      Ende time, Ø 79 km/h (min 55), Kollisionen 0, Leitplanke 0, neben der Fahrbahn 0.0 s, kleinster Abstand 25.8 m (t=22.6 s), in den ersten 3 s 31.3 m
+CHECK wien       OK      Ende time, Ø 88 km/h (min 42), Kollisionen 0, Leitplanke 0, neben der Fahrbahn 0.0 s, kleinster Abstand 14.5 m (t=24.5 s), in den ersten 3 s 282.4 m
+CHECKS OK  (0 fehlgeschlagen, 118 s)

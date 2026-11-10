@@ -1,0 +1,38 @@
+camera positions x 3 lanes: 710280 (every 12 m, 128 stage directions)
+distance m           50      100      150      200      250      300      400      500      600      755
+arcade on %     100.000  100.000  100.000  100.000   99.991   99.932   99.861   99.776   99.684   99.530
+tangent on%     100.000  100.000  100.000   99.995   99.912   99.844   99.717   99.583   99.407   99.081
+  A on, 3D off        0        0        0       35      564      622     1019     1368     1961     3189
+  A off, 3D on        0        0        0        0        0        0        0        0        0        0
+    max camera yaw 0.0 deg; player car off-centre: p50 0.0 px, p99 10.6 px, max 23.8 px
+look 0.5@60 on%  100.000  100.000  100.000  100.000   99.951   99.903   99.770   99.651   99.481   99.195
+  A on, 3D off        0        0        0        0      282      203      644      884     1438     2382
+  A off, 3D on        0        0        0        0        0        0        0        0        0        0
+    max camera yaw 6.4 deg; player car off-centre: p50 0.0 px, p99 24.6 px, max 56.1 px
+look 0.75@60 on%  100.000  100.000  100.000  100.000   99.987   99.915   99.792   99.676   99.518   99.240
+  A on, 3D off        0        0        0        0       31      121      488      710     1179     2064
+  A off, 3D on        0        0        0        0        0        0        0        0        2        2
+    max camera yaw 9.6 deg; player car off-centre: p50 0.0 px, p99 42.1 px, max 95.7 px
+look 1.0@60 on%  100.000  100.000  100.000  100.000  100.000   99.928   99.816   99.696   99.552   99.281
+  A on, 3D off        0        0        0        0        0       73      346      597      975     1807
+  A off, 3D on        0        0        0        0       63       48       24       31       38       37
+    max camera yaw 12.8 deg; player car off-centre: p50 0.0 px, p99 59.6 px, max 136.4 px
+look 0.75@80 on%  100.000  100.000  100.000  100.000  100.000   99.930   99.817   99.696   99.556   99.282
+  A on, 3D off        0        0        0        0        0       56      331      590      935     1786
+  A off, 3D on        0        0        0        0       63       40       19       27       31       26
+    max camera yaw 12.5 deg; player car off-centre: p50 0.0 px, p99 57.2 px, max 132.3 px
+look 0.6@100 on%  100.000  100.000  100.000  100.000  100.000   99.933   99.823   99.702   99.564   99.292
+  A on, 3D off        0        0        0        0        0       35      290      552      879     1719
+  A off, 3D on        0        0        0        0       63       45       23       28       33       30
+    max camera yaw 12.6 deg; player car off-centre: p50 0.0 px, p99 57.5 px, max 134.5 px
+apparent size in 3D relative to arcade (road distance / view depth), target on screen in both:
+  d= 50: p50 1.000  p99 1.004  max 1.022  min 1.000
+  d=100: p50 1.000  p99 1.017  max 1.096  min 1.000
+  d=150: p50 1.000  p99 1.037  max 1.240  min 1.000
+  d=200: p50 1.000  p99 1.061  max 1.474  min 1.000
+  d=250: p50 1.000  p99 1.086  max 1.507  min 1.000
+  d=300: p50 1.000  p99 1.111  max 1.585  min 1.000
+  d=400: p50 1.001  p99 1.159  max 1.698  min 1.000
+  d=500: p50 1.004  p99 1.200  max 1.834  min 1.000
+  d=600: p50 1.008  p99 1.238  max 2.003  min 1.000
+  d=755: p50 1.014  p99 1.277  max 2.310  min 1.000

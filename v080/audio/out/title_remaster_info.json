@@ -1,0 +1,35 @@
+{
+ "levels": {
+  "kick": -19.3,
+  "snare": -20.5,
+  "clap": -26.95,
+  "toms": -21.5,
+  "hats": -30.5,
+  "crash": -28.5,
+  "bass_pick": -19.5,
+  "bass_syn": -21.5,
+  "gtr_L": -22.5,
+  "gtr_R": -22.5,
+  "lead_syn": -19.0,
+  "pad": -25.5,
+  "arp": -26.5,
+  "brass": -24.0,
+  "fx": -27.0,
+  "kick2": -25.0,
+  "snare2": -19.8,
+  "shaker": -37.0,
+  "sub": -27.0,
+  "gtr_L2": -27.5,
+  "gtr_R2": -27.5,
+  "lead_wide": -24.5
+ },
+ "master": {
+  "mb_low_gr_db": -1.93,
+  "mb_mid_gr_db": -0.94,
+  "mb_high_gr_db": -1.12,
+  "glue_gr_db": -0.99,
+  "limiter_gr_db": 0.0,
+  "lufs": -13.25
+ },
+ "seconds": 37.2
+}

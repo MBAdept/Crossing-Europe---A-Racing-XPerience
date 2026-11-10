@@ -1,0 +1,56 @@
+{
+ "props/tree_spruce": {
+  "build_s": 0.07,
+  "objects": 2,
+  "triangles": 530,
+  "info": {
+   "object": {
+    "width_m": 7.0,
+    "height_m": 19.3
+   }
+  },
+  "raw": {
+   "bytes": 26336,
+   "export_s": 0.04
+  },
+  "materials": {
+   "spruce_bark": {
+    "kind": "principled",
+    "base": [
+     0.068,
+     0.037,
+     0.019
+    ],
+    "metal": 0.0,
+    "rough": 0.85,
+    "coat": 0.0,
+    "emission": null,
+    "emission_strength": 0.0,
+    "alpha": 1.0
+   },
+   "spruce_needles": {
+    "kind": "principled",
+    "base": [
+     0.013,
+     0.047,
+     0.016
+    ],
+    "metal": 0.0,
+    "rough": 0.75,
+    "coat": 0.0,
+    "emission": null,
+    "emission_strength": 0.0,
+    "alpha": 1.0
+   }
+  },
+  "flat": {
+   "bytes": 26032,
+   "export_s": 0.01
+  },
+  "merged": {
+   "bytes": 25960,
+   "objects": 1,
+   "materials_on_body": 2
+  }
+ }
+}

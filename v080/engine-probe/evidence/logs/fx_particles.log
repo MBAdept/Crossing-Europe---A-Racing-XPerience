@@ -1,0 +1,37 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- fx.particles
+PROBE: proc_ms_no_particles = 267.805
+PROBE: variant 0_no_particles | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=134.51 | render_cpu_ms_median=95.0 | render_gpu_ms_median=130.14
+PROBE: variant 1_gpu_rain8000_spray300 | vis_draw_calls=901 | vis_primitives=452240 | vis_objects=901 | shadow_draw_calls=0 | shadow_primitives=338144 | canvas_draw_calls=0 | frame_ms_median=182.87 | render_cpu_ms_median=106.22 | render_gpu_ms_median=162.99 | diff_vs_prev_mean=7.768 | diff_vs_prev_max=132.0
+PROBE: proc_ms_gpu_rain8000_spray300 = 207.376
+PROBE: variant 1_gpu_rain30000 | vis_draw_calls=901 | vis_primitives=496240 | vis_objects=901 | shadow_draw_calls=0 | shadow_primitives=514144 | canvas_draw_calls=0 | frame_ms_median=324.64 | render_cpu_ms_median=178.62 | render_gpu_ms_median=314.99 | diff_vs_prev_mean=11.2257 | diff_vs_prev_max=129.0
+PROBE: variant 2_gpu_snow6000_turbulence | vis_draw_calls=900 | vis_primitives=447640 | vis_objects=900 | shadow_draw_calls=0 | shadow_primitives=320944 | canvas_draw_calls=0 | frame_ms_median=248.24 | render_cpu_ms_median=160.17 | render_gpu_ms_median=216.44 | diff_vs_prev_mean=17.1875 | diff_vs_prev_max=174.0
+PROBE: proc_ms_gpu_snow6000 = 260.408
+PROBE: variant 3_gpu_sparks150_collision_box | vis_draw_calls=900 | vis_primitives=435940 | vis_objects=900 | shadow_draw_calls=0 | shadow_primitives=273544 | canvas_draw_calls=0 | frame_ms_median=214.04 | render_cpu_ms_median=150.44 | render_gpu_ms_median=203.22 | diff_vs_prev_mean=2.701 | diff_vs_prev_max=223.0
+WARNING: The Compatibility renderer does not support particle trails.
+     at: particles_set_trails (drivers/gles3/storage/particles_storage.cpp:303)
+     GDScript backtrace (most recent call first):
+         [0] make_sparks (res://t_fx.gd:130)
+         [1] test_particles (res://t_fx.gd:191)
+         [2] variant (res://probe_base.gd:256)
+         [3] frame_ms (res://probe_base.gd:232)
+WARNING: Particle trails are only available when using the Forward+ or Mobile renderer.
+     at: set_code (drivers/gles3/storage/material_storage.cpp:3163)
+     GDScript backtrace (most recent call first):
+         [0] make_sparks (res://t_fx.gd:139)
+         [1] test_particles (res://t_fx.gd:191)
+         [2] variant (res://probe_base.gd:256)
+         [3] frame_ms (res://probe_base.gd:232)
+WARNING: The Compatibility renderer does not support particle trails.
+     at: particles_set_trail_bind_poses (drivers/gles3/storage/particles_storage.cpp:309)
+     GDScript backtrace (most recent call first):
+         [0] make_sparks (res://t_fx.gd:139)
+         [1] test_particles (res://t_fx.gd:191)
+         [2] variant (res://probe_base.gd:256)
+         [3] frame_ms (res://probe_base.gd:232)
+PROBE: variant 4_gpu_sparks150_trails | vis_draw_calls=900 | vis_primitives=442840 | vis_objects=900 | shadow_draw_calls=0 | shadow_primitives=287344 | canvas_draw_calls=0 | frame_ms_median=226.21 | render_cpu_ms_median=137.87 | render_gpu_ms_median=192.44 | diff_vs_prev_mean=8.1453 | diff_vs_prev_max=223.0
+PROBE: variant 5_cpu_rain8000_spray300 | vis_draw_calls=901 | vis_primitives=452240 | vis_objects=901 | shadow_draw_calls=0 | shadow_primitives=338144 | canvas_draw_calls=0 | frame_ms_median=217.28 | render_cpu_ms_median=138.83 | render_gpu_ms_median=217.93 | diff_vs_prev_mean=14.178 | diff_vs_prev_max=199.0
+PROBE: proc_ms_cpu_rain8000_spray300 = 229.247
+PROBE: variant 6_cpu_snow6000 | vis_draw_calls=900 | vis_primitives=447640 | vis_objects=900 | shadow_draw_calls=0 | shadow_primitives=320944 | canvas_draw_calls=0 | frame_ms_median=165.77 | render_cpu_ms_median=109.02 | render_gpu_ms_median=143.82 | diff_vs_prev_mean=9.5754 | diff_vs_prev_max=140.0
+PROBE: proc_ms_cpu_snow6000 = 189.728

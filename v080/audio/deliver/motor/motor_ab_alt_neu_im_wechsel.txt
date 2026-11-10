@@ -1,0 +1,6 @@
+  0.0 –  15.2 s  ALT – Vollgas durch die Gänge
+ 15.7 –  30.9 s  NEU – Vollgas durch die Gänge
+ 31.4 –  41.6 s  ALT – Vollgas 266 km/h, Gas weg, Bremsen
+ 42.1 –  52.3 s  NEU – Vollgas 266 km/h, Gas weg, Bremsen
+ 52.8 –  66.3 s  ALT – 130 km/h, Kick-down, Stopp
+ 66.8 –  80.2 s  NEU – 130 km/h, Kick-down, Stopp

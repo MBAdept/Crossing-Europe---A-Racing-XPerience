@@ -1,0 +1,35 @@
+--- /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/renderer3d/out/spike_src/road_chunk3d.gd	2026-11-10 09:34:22.012737535 +0000
++++ /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/synthesis/game/spike/road_chunk3d.gd	2026-11-10 12:29:22.044743134 +0000
+@@ -50,6 +50,15 @@
+ 		R.append(RoadPath3D.right_of(path.heading(k)))
+ 		segs.append(track.get_segment(k))
+ 	var up := Vector3.UP
++	# synthesis experiment: "valley floor" of this chunk = lowest road within +-900 m of path - 4.5 m
++	var floor_y := INF
++	if OS.get_cmdline_user_args().has("--terrain-floor"):
++		var k0 := maxi(path.first, a - 300)
++		var k1 := mini(track.segment_count - 2, b + 300)
++		path.ensure(k1)
++		for k in range(k0, k1 + 1, 4):
++			floor_y = minf(floor_y, path.point(k).y)
++		floor_y -= 4.5
+ 	for i in n:
+ 		var sa := segs[i]
+ 		var sb := segs[i + 1]
+@@ -91,8 +100,14 @@
+ 					if sa.water:
+ 						h0 = sa.water_level if r > 0 else 0.0
+ 						h1 = sa.water_level
+-					_quad(oa + ra_v * x0a + up * h0, oa + ra_v * x1a + up * h1, ob + rb_v * x1b + up * h1, ob + rb_v * x0b + up * h0,
+-						gn, gcol.darkened(0.04 * float(r)))
++					var p0 := oa + ra_v * x0a + up * h0
++					var p1 := oa + ra_v * x1a + up * h1
++					var p2 := ob + rb_v * x1b + up * h1
++					var p3 := ob + rb_v * x0b + up * h0
++					if floor_y < INF and r == RING_OFF.size() - 2:
++						p1.y = minf(p1.y, floor_y)   # the outer edge of the last ring lies on the valley floor
++						p2.y = minf(p2.y, floor_y)
++					_quad(p0, p1, p2, p3, (p1 - p0).cross(p3 - p0).normalized() * (1.0 if side > 0 else -1.0) if floor_y < INF and r == RING_OFF.size() - 2 else gn, gcol.darkened(0.04 * float(r)))
+ 		# --- shoulders / median / sidewalks
+ 		if tunnel:
+ 			var sc2 := Palette.SHOULDER_PAVED.darkened(0.1)

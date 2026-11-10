@@ -1,0 +1,6 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- env.glow_day
+PROBE: variant 0_day_glow_off | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=143.44 | render_cpu_ms_median=106.71 | render_gpu_ms_median=132.88
+PROBE: variant 1_day_glow_thr1.0 | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=157.8 | render_cpu_ms_median=153.17 | render_gpu_ms_median=153.06 | diff_vs_prev_mean=3.0715 | diff_vs_prev_max=99.0
+PROBE: variant 2_day_glow_bloom0.2 | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=151.67 | render_cpu_ms_median=152.54 | render_gpu_ms_median=152.41 | diff_vs_prev_mean=8.7859 | diff_vs_prev_max=47.0

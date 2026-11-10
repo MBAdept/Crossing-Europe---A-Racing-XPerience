@@ -1,0 +1,10 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- bend.bend_wrong
+ERROR: This function should never be used outside the editor, it can severely damage performance.
+   at: global_shader_parameter_get_list (drivers/gles3/storage/material_storage.cpp:1918)
+   GDScript backtrace (most recent call first):
+       [0] add_globals (res://t_bend.gd:62)
+       [1] test_bend_wrong (res://t_bend.gd:99)
+       [2] _ready (res://main.gd:41)
+PROBE: variant 0_bend_relative_to_pass_camera | vis_draw_calls=3745 | vis_primitives=475188 | vis_objects=3745 | shadow_draw_calls=0 | shadow_primitives=1900752 | canvas_draw_calls=0 | frame_ms_median=222.68 | render_cpu_ms_median=172.49 | render_gpu_ms_median=207.95

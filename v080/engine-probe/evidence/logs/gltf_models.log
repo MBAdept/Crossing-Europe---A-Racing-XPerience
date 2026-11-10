@@ -1,0 +1,42 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- gltf.models
+PROBE: sportwagen_raw_load_ms = 38
+PROBE: sportwagen_raw_instantiate_ms = 1
+PROBE: sportwagen_raw_stats = { "mesh_instances": 93, "surfaces": 106, "vertices": 159861, "triangles_lod0": 276053, "lods_max": 0, "materials": 45, "compressed_surfaces": 106, "has_color": 0, "has_tangent": 106, "shadow_meshes": 93 }
+PROBE: sportwagen_raw_tree_head = ["player_sportwagen_raw [Node3D]", "  ROOT [Node3D]", "    sportwagen_center [Node3D]", "      sportwagen_body [MeshInstance3D]", "      sportwagen_brake3 [MeshInstance3D]", "      sportwagen_bumper_front [MeshInstance3D]", "      sportwagen_bumper_rear [MeshInstance3D]", "      sportwagen_diffuser [MeshInstance3D]", "      sportwagen_dlo_glass [MeshInstance3D]", "      sportwagen_dlo_seal [MeshInstance3D]", "      sportwagen_emblem [MeshInstance3D]", "      sportwagen_emblem_001 [MeshInstance3D]", "      sportwagen_endplate [MeshInstance3D]", "      sportwagen_endplate_001 [MeshInstance3D]"]
+PROBE: variant 0_sportwagen_raw_materials | vis_draw_calls=375 | vis_primitives=42911 | vis_objects=375 | shadow_draw_calls=0 | shadow_primitives=106765 | canvas_draw_calls=0 | frame_ms_median=284.17 | render_cpu_ms_median=272.93 | render_gpu_ms_median=272.79
+PROBE: sportwagen_flat_load_ms = 33
+PROBE: sportwagen_flat_instantiate_ms = 1
+PROBE: sportwagen_flat_stats = { "mesh_instances": 93, "surfaces": 106, "vertices": 159861, "triangles_lod0": 276053, "lods_max": 0, "materials": 45, "compressed_surfaces": 106, "has_color": 0, "has_tangent": 106, "shadow_meshes": 93 }
+PROBE: sportwagen_flat_tree_head = ["player_sportwagen_flat [Node3D]", "  ROOT [Node3D]", "    sportwagen_center [Node3D]", "      sportwagen_body [MeshInstance3D]", "      sportwagen_brake3 [MeshInstance3D]", "      sportwagen_bumper_front [MeshInstance3D]", "      sportwagen_bumper_rear [MeshInstance3D]", "      sportwagen_diffuser [MeshInstance3D]", "      sportwagen_dlo_glass [MeshInstance3D]", "      sportwagen_dlo_seal [MeshInstance3D]", "      sportwagen_emblem [MeshInstance3D]", "      sportwagen_emblem_001 [MeshInstance3D]", "      sportwagen_endplate [MeshInstance3D]", "      sportwagen_endplate_001 [MeshInstance3D]"]
+PROBE: variant 1_sportwagen_flat_materials | vis_draw_calls=375 | vis_primitives=42911 | vis_objects=375 | shadow_draw_calls=0 | shadow_primitives=106765 | canvas_draw_calls=0 | frame_ms_median=277.25 | render_cpu_ms_median=271.76 | render_gpu_ms_median=271.58 | diff_vs_prev_mean=0.5314 | diff_vs_prev_max=238.0
+PROBE: variant 1_sportwagen_flat_rear | vis_draw_calls=264 | vis_primitives=42408 | vis_objects=264 | shadow_draw_calls=0 | shadow_primitives=70712 | canvas_draw_calls=0 | frame_ms_median=252.3 | render_cpu_ms_median=260.74 | render_gpu_ms_median=260.64 | diff_vs_prev_mean=37.8545 | diff_vs_prev_max=255.0
+PROBE: variant 1_sportwagen_flat_rear_lod_off | vis_draw_calls=264 | vis_primitives=276055 | vis_objects=264 | shadow_draw_calls=0 | shadow_primitives=511157 | canvas_draw_calls=0 | frame_ms_median=561.92 | render_cpu_ms_median=552.95 | render_gpu_ms_median=552.85 | diff_vs_prev_mean=0.0923 | diff_vs_prev_max=178.0
+PROBE: wheel_node_found = true
+PROBE: wheel_node_origin = (0.8095, 0.342, -3.48)
+PROBE: sedan_flat_load_ms = 6
+PROBE: sedan_flat_instantiate_ms = 0
+PROBE: sedan_flat_stats = { "mesh_instances": 24, "surfaces": 24, "vertices": 22466, "triangles_lod0": 38844, "lods_max": 0, "materials": 11, "compressed_surfaces": 24, "has_color": 0, "has_tangent": 24, "shadow_meshes": 24 }
+PROBE: sedan_flat_tree_head = ["traffic_sedan_red_flat [Node3D]", "  ROOT [Node3D]", "    sedan_dish [MeshInstance3D]", "    sedan_dish_001 [MeshInstance3D]", "    sedan_dish_002 [MeshInstance3D]", "    sedan_dish_003 [MeshInstance3D]", "    sedan_exh [MeshInstance3D]", "    sedan_exhi [MeshInstance3D]", "    sedan_fbumper [MeshInstance3D]", "    sedan_greenhouse [MeshInstance3D]", "    sedan_lower [MeshInstance3D]", "    sedan_mirror [MeshInstance3D]", "    sedan_mirror_001 [MeshInstance3D]", "    sedan_mirrorglass [MeshInstance3D]"]
+PROBE: variant 2_sedan_flat | vis_draw_calls=82 | vis_primitives=11240 | vis_objects=82 | shadow_draw_calls=0 | shadow_primitives=29596 | canvas_draw_calls=0 | frame_ms_median=195.0 | render_cpu_ms_median=198.45 | render_gpu_ms_median=198.27 | diff_vs_prev_mean=41.9303 | diff_vs_prev_max=255.0
+PROBE: police_flat_load_ms = 7
+PROBE: police_flat_instantiate_ms = 0
+PROBE: police_flat_stats = { "mesh_instances": 32, "surfaces": 32, "vertices": 25362, "triangles_lod0": 42115, "lods_max": 0, "materials": 18, "compressed_surfaces": 28, "has_color": 0, "has_tangent": 32, "shadow_meshes": 32 }
+PROBE: police_flat_tree_head = ["police_de_flat [Node3D]", "  ROOT [Node3D]", "    pol_bar [MeshInstance3D]", "    pol_feet [MeshInstance3D]", "    pol_lens [MeshInstance3D]", "    pol_lens_001 [MeshInstance3D]", "    pol_mid [MeshInstance3D]", "    pol_word_rear [MeshInstance3D]", "    pol_word_side [MeshInstance3D]", "    pol_word_side_001 [MeshInstance3D]", "    police_dish [MeshInstance3D]", "    police_dish_001 [MeshInstance3D]", "    police_dish_002 [MeshInstance3D]", "    police_dish_003 [MeshInstance3D]"]
+PROBE: variant 3_police_flat | vis_draw_calls=108 | vis_primitives=12765 | vis_objects=108 | shadow_draw_calls=0 | shadow_primitives=33332 | canvas_draw_calls=0 | frame_ms_median=214.64 | render_cpu_ms_median=210.06 | render_gpu_ms_median=210.07 | diff_vs_prev_mean=1.4817 | diff_vs_prev_max=245.0
+PROBE: oak_flat_load_ms = 1
+PROBE: oak_flat_instantiate_ms = 0
+PROBE: oak_flat_stats = { "mesh_instances": 3, "surfaces": 3, "vertices": 3210, "triangles_lod0": 5900, "lods_max": 0, "materials": 2, "compressed_surfaces": 3, "has_color": 0, "has_tangent": 3, "shadow_meshes": 3 }
+PROBE: oak_flat_tree_head = ["props_tree_oak_flat [Node3D]", "  ROOT [Node3D]", "    oak_br [MeshInstance3D]", "    oak_crown [MeshInstance3D]", "    oak_trunk [MeshInstance3D]"]
+PROBE: variant 4_tree_oak_flat | vis_draw_calls=14 | vis_primitives=5902 | vis_objects=14 | shadow_draw_calls=0 | shadow_primitives=11808 | canvas_draw_calls=0 | frame_ms_median=192.71 | render_cpu_ms_median=193.09 | render_gpu_ms_median=193.07 | diff_vs_prev_mean=27.4964 | diff_vs_prev_max=247.0
+PROBE: oldtown_flat_load_ms = 1
+PROBE: oldtown_flat_instantiate_ms = 0
+PROBE: oldtown_flat_stats = { "mesh_instances": 4, "surfaces": 4, "vertices": 372, "triangles_lod0": 184, "lods_max": 0, "materials": 3, "compressed_surfaces": 3, "has_color": 0, "has_tangent": 4, "shadow_meshes": 4 }
+PROBE: oldtown_flat_tree_head = ["props_building_oldtown_flat [Node3D]", "  ROOT [Node3D]", "    old_caps [MeshInstance3D]", "    old_gable [MeshInstance3D]", "    old_roof [MeshInstance3D]", "    old_walls [MeshInstance3D]"]
+PROBE: variant 5_building_oldtown_flat | vis_draw_calls=13 | vis_primitives=186 | vis_objects=13 | shadow_draw_calls=0 | shadow_primitives=192 | canvas_draw_calls=0 | frame_ms_median=138.01 | render_cpu_ms_median=136.4 | render_gpu_ms_median=136.32 | diff_vs_prev_mean=19.4203 | diff_vs_prev_max=248.0
+PROBE: eiffel_flat_load_ms = 4
+PROBE: eiffel_flat_instantiate_ms = 0
+PROBE: eiffel_flat_stats = { "mesh_instances": 8, "surfaces": 8, "vertices": 50338, "triangles_lod0": 25152, "lods_max": 0, "materials": 7, "compressed_surfaces": 8, "has_color": 0, "has_tangent": 8, "shadow_meshes": 8 }
+PROBE: eiffel_flat_tree_head = ["landmarks_eiffel_tower_flat [Node3D]", "  ROOT [Node3D]", "    eif_antenna [MeshInstance3D]", "    eif_beacon [MeshInstance3D]", "    eif_friezes [MeshInstance3D]", "    eif_lattice [MeshInstance3D]", "    eif_pavilions [MeshInstance3D]", "    eif_piers [MeshInstance3D]", "    eif_red [MeshInstance3D]", "    eif_top [MeshInstance3D]"]
+PROBE: variant 6_eiffel_flat | vis_draw_calls=19 | vis_primitives=25154 | vis_objects=19 | shadow_draw_calls=0 | shadow_primitives=25156 | canvas_draw_calls=0 | frame_ms_median=191.68 | render_cpu_ms_median=195.93 | render_gpu_ms_median=195.86 | diff_vs_prev_mean=22.8782 | diff_vs_prev_max=217.0

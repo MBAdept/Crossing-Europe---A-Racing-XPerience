@@ -1,0 +1,61 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- aa.aa
+PROBE: variant 0_no_aa | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=149.82 | render_cpu_ms_median=102.47 | render_gpu_ms_median=136.99
+PROBE: variant 1_msaa_2x | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=311.82 | render_cpu_ms_median=299.5 | render_gpu_ms_median=301.92 | diff_vs_prev_mean=0.3904 | diff_vs_prev_max=201.0
+PROBE: msaa2_diff_vs_ref = { "mean": 0.3904, "max": 201.0, "psnr": 34.9 }
+PROBE: variant 1_msaa_4x | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=292.42 | render_cpu_ms_median=295.42 | render_gpu_ms_median=297.76 | diff_vs_prev_mean=0.0 | diff_vs_prev_max=0.0
+PROBE: msaa4_diff_vs_ref = { "mean": 0.3904, "max": 201.0, "psnr": 34.9 }
+PROBE: variant 1_msaa_8x | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=272.29 | render_cpu_ms_median=272.92 | render_gpu_ms_median=272.85 | diff_vs_prev_mean=0.0 | diff_vs_prev_max=0.0
+PROBE: msaa8_diff_vs_ref = { "mean": 0.3904, "max": 201.0, "psnr": 34.9 }
+WARNING: Screen-space AA is only available when using the Forward+ or Mobile renderer.
+     at: viewport_set_screen_space_aa (servers/rendering/renderer_viewport.cpp:1435)
+     GDScript backtrace (most recent call first):
+         [0] test_aa (res://t_aa.gd:14)
+         [1] variant (res://probe_base.gd:256)
+         [2] frame_ms (res://probe_base.gd:232)
+PROBE: variant 2_fxaa | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=141.07 | render_cpu_ms_median=102.46 | render_gpu_ms_median=137.8 | diff_vs_prev_mean=0.3904 | diff_vs_prev_max=201.0
+PROBE: fxaa_diff_vs_ref = { "mean": 0.0, "max": 0.0, "psnr": 10000000000.0 }
+PROBE: variant 2_smaa | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=142.85 | render_cpu_ms_median=98.15 | render_gpu_ms_median=139.01 | diff_vs_prev_mean=0.0 | diff_vs_prev_max=0.0
+PROBE: smaa_diff_vs_ref = { "mean": 0.0, "max": 0.0, "psnr": 10000000000.0 }
+WARNING: TAA is only available when using the Forward+ renderer.
+     at: viewport_set_use_taa (servers/rendering/renderer_viewport.cpp:1450)
+     GDScript backtrace (most recent call first):
+         [0] test_aa (res://t_aa.gd:21)
+         [1] variant (res://probe_base.gd:256)
+         [2] frame_ms (res://probe_base.gd:232)
+PROBE: variant 2_taa | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=136.78 | render_cpu_ms_median=95.86 | render_gpu_ms_median=128.55 | diff_vs_prev_mean=0.0 | diff_vs_prev_max=0.0
+PROBE: taa_diff_vs_ref = { "mean": 0.0, "max": 0.0, "psnr": 10000000000.0 }
+PROBE: variant 2_debanding | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=140.35 | render_cpu_ms_median=110.91 | render_gpu_ms_median=138.75 | diff_vs_prev_mean=0.0 | diff_vs_prev_max=0.0
+PROBE: debanding_diff_vs_ref = { "mean": 0.0, "max": 0.0, "psnr": 10000000000.0 }
+PROBE: variant 3_scale_0.50_bilinear | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=127.47 | render_cpu_ms_median=121.71 | render_gpu_ms_median=121.65 | diff_vs_prev_mean=4.3122 | diff_vs_prev_max=237.0
+PROBE: scale0.50_diff_vs_ref = { "mean": 4.3122, "max": 237.0, "psnr": 27.51 }
+PROBE: variant 3_scale_0.67_bilinear | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=131.72 | render_cpu_ms_median=137.86 | render_gpu_ms_median=137.63 | diff_vs_prev_mean=1.0779 | diff_vs_prev_max=193.0
+PROBE: scale0.67_diff_vs_ref = { "mean": 3.9983, "max": 247.0, "psnr": 28.31 }
+PROBE: variant 3_scale_0.75_bilinear | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=127.88 | render_cpu_ms_median=123.22 | render_gpu_ms_median=123.23 | diff_vs_prev_mean=0.8606 | diff_vs_prev_max=201.0
+PROBE: scale0.75_diff_vs_ref = { "mean": 3.9144, "max": 239.0, "psnr": 28.75 }
+PROBE: variant 3_scale_1.50_bilinear | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=206.58 | render_cpu_ms_median=181.54 | render_gpu_ms_median=181.31 | diff_vs_prev_mean=0.8191 | diff_vs_prev_max=182.0
+PROBE: scale1.50_diff_vs_ref = { "mean": 3.5811, "max": 216.0, "psnr": 30.1 }
+PROBE: variant 3_scale_2.00_bilinear | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=262.1 | render_cpu_ms_median=260.42 | render_gpu_ms_median=260.3 | diff_vs_prev_mean=0.3789 | diff_vs_prev_max=157.0
+PROBE: scale2.00_diff_vs_ref = { "mean": 3.5586, "max": 205.0, "psnr": 30.24 }
+PROBE: variant 4_scale_0.50_nearest | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=135.19 | render_cpu_ms_median=124.53 | render_gpu_ms_median=124.4 | diff_vs_prev_mean=1.1543 | diff_vs_prev_max=255.0
+WARNING: FSR1 3D scaling is only available when using the Forward+ renderer.
+     at: viewport_set_scaling_3d_mode (servers/rendering/renderer_viewport.cpp:1028)
+     GDScript backtrace (most recent call first):
+         [0] test_aa (res://t_aa.gd:36)
+         [1] variant (res://probe_base.gd:256)
+         [2] frame_ms (res://probe_base.gd:232)
+PROBE: variant 4_scale_0.50_fsr1 | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=113.27 | render_cpu_ms_median=114.62 | render_gpu_ms_median=114.54 | diff_vs_prev_mean=0.0 | diff_vs_prev_max=0.0
+WARNING: FSR2 3D scaling is only available when using the Forward+ renderer.
+     at: viewport_set_scaling_3d_mode (servers/rendering/renderer_viewport.cpp:1032)
+     GDScript backtrace (most recent call first):
+         [0] test_aa (res://t_aa.gd:38)
+         [1] variant (res://probe_base.gd:256)
+         [2] frame_ms (res://probe_base.gd:232)
+PROBE: variant 4_scale_0.50_fsr2 | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=126.59 | render_cpu_ms_median=134.39 | render_gpu_ms_median=134.3 | diff_vs_prev_mean=0.0 | diff_vs_prev_max=0.0
+PROBE: variant 4_scale_0.50_bilinear_again | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=115.14 | render_cpu_ms_median=121.47 | render_gpu_ms_median=121.43 | diff_vs_prev_mean=1.0895 | diff_vs_prev_max=142.0
+PROBE: fsr1_vs_bilinear_diff = { "mean": 1.0895, "max": 142.0, "psnr": 33.1 }
+PROBE: fsr2_vs_bilinear_diff = { "mean": 1.0895, "max": 142.0, "psnr": 33.1 }
+PROBE: variant 5_scale_0.75_msaa4x | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=241.17 | render_cpu_ms_median=228.89 | render_gpu_ms_median=230.83 | diff_vs_prev_mean=0.9469 | diff_vs_prev_max=157.0
+PROBE: variant 6_msaa4x_glow | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=321.53 | render_cpu_ms_median=318.78 | render_gpu_ms_median=318.52 | diff_vs_prev_mean=1.0934 | diff_vs_prev_max=155.0
+PROBE: variant 6_glow_no_msaa | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=154.09 | render_cpu_ms_median=152.11 | render_gpu_ms_median=151.94 | diff_vs_prev_mean=0.3584 | diff_vs_prev_max=230.0

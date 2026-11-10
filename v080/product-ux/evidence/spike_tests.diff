@@ -1,0 +1,392 @@
+
+--- a/tests/race/check_options_tabs.gd	1970-01-01 00:00:00.000000000 +0000
++++ b/tests/race/check_options_tabs.gd	2026-11-10 11:27:51.199187648 +0000
+@@ -0,0 +1,99 @@
++extends SceneTree
++## SPIKE v0.8.0 – options with the pages ALLGEMEIN / GRAFIK, operated with a gamepad in the real game (headless):
++##   godot --headless --path . -s res://tests/race/check_options_tabs.gd
++## RB / LB switch the page and move the focus to its first row; ◀▶ on "Grafik" switch Arcade / Modern; in Arcade the
++## quality rows are skipped by the focus; a changed single value makes the preset "Eigene"; B saves.
++
++const SETTINGS_TEST := "user://test_check_options_tabs.json"
++
++var _gf: Node
++var _settings: Node
++var _failed: Array[String] = []
++
++
++func _initialize() -> void:
++	_run.call_deferred()
++
++
++func _check(name: String, ok: bool, msg: String = "") -> void:
++	print("CHECK %-14s %s  %s" % [name, "OK    " if ok else "FEHLER", msg])
++	if not ok:
++		_failed.append(name)
++
++
++func _frames(n: int) -> void:
++	for i in n:
++		await process_frame
++
++
++func _tap(b: JoyButton) -> void:
++	for pressed in [true, false]:
++		var e := InputEventJoypadButton.new()
++		e.device = 0
++		e.button_index = b
++		e.pressed = pressed
++		e.pressure = 1.0 if pressed else 0.0
++		Input.parse_input_event(e)
++		Input.flush_buffered_events()
++		await _frames(3)
++	await _frames(4)
++
++
++func _focus_label() -> String:
++	var f := root.gui_get_focus_owner()
++	if f == null:
++		return "<kein Fokus>"
++	if f is Button and str(f.get("label_text")) != "" and f.get("label_text") != null:
++		return str(f.get("label_text"))
++	return str((f as Button).text) if f is Button else f.get_class()
++
++
++func _run() -> void:
++	_gf = root.get_node_or_null("GameFlow")
++	_settings = root.get_node_or_null("Settings")
++	var old_path := str(_settings.get("file_path"))
++	_settings.set("file_path", SETTINGS_TEST)
++	_settings.set("graphics_mode", "")
++	(_gf.get("attract") as Node).set("enabled", false)
++	_gf.call("boot")
++	await _frames(10)
++	_gf.call("go", "options", {}, true)
++	await _frames(8)
++	var screen: Node = (_gf.get("shell") as Node).get("current_screen")
++	_check("start", int(screen.get("tab")) == 0 and _focus_label() == "Gesamtlautstärke", "Seite %d, Fokus %s" % [int(screen.get("tab")), _focus_label()])
++	await _tap(JOY_BUTTON_RIGHT_SHOULDER)
++	_check("rb_grafik", int(screen.get("tab")) == 1 and _focus_label() == "Grafik", "Seite %d, Fokus %s" % [int(screen.get("tab")), _focus_label()])
++	# no choice yet (headless resolves to Arcade): ▶ chooses Modern
++	await _tap(JOY_BUTTON_DPAD_RIGHT)
++	_check("modern", str(_settings.get("graphics_mode")) == "modern" and str(_settings.get("sound_profile")) == "modern",
++		"Grafik %s, Klang %s" % [_settings.get("graphics_mode"), _settings.get("sound_profile")])
++	await _tap(JOY_BUTTON_DPAD_DOWN)
++	await _tap(JOY_BUTTON_DPAD_DOWN)
++	_check("modern_zeilen", _focus_label() == "Voreinstellung", "Fokus " + _focus_label())
++	await _tap(JOY_BUTTON_DPAD_DOWN)
++	var before := str(_settings.get("gfx_preset"))
++	await _tap(JOY_BUTTON_DPAD_RIGHT)
++	_check("eigene", _focus_label() == "Schatten" and str(_settings.get("gfx_preset")) == "custom",
++		"Fokus %s, Preset %s -> %s, %s" % [_focus_label(), before, _settings.get("gfx_preset"), str(_settings.get("gfx_custom"))])
++	# back to Arcade: the quality rows are skipped
++	for i in 3:
++		await _tap(JOY_BUTTON_DPAD_UP)
++	_check("zurueck_oben", _focus_label() == "Grafik", "Fokus " + _focus_label())
++	await _tap(JOY_BUTTON_DPAD_LEFT)
++	await _tap(JOY_BUTTON_DPAD_DOWN)
++	await _tap(JOY_BUTTON_DPAD_DOWN)
++	_check("arcade_springt", str(_settings.get("graphics_mode")) == "arcade" and _focus_label() == "Zurück",
++		"Grafik %s, Fokus %s" % [_settings.get("graphics_mode"), _focus_label()])
++	_check("klang_bleibt", str(_settings.get("sound_profile")) == "modern", "Klang " + str(_settings.get("sound_profile")))
++	await _tap(JOY_BUTTON_LEFT_SHOULDER)
++	_check("lb_allgemein", int(screen.get("tab")) == 0 and _focus_label() == "Gesamtlautstärke", "Seite %d, Fokus %s" % [int(screen.get("tab")), _focus_label()])
++	await _tap(JOY_BUTTON_B)
++	var d: Dictionary = JsonFile.load_dict(SETTINGS_TEST)
++	_check("gespeichert", str(_gf.call("current_screen_name")) == "title" and str(d.get("graphics_mode", "")) == "arcade"
++		and int(d.get("settings_version", 0)) == 3 and str(d.get("gfx_preset", "")) == "custom", JSON.stringify(d))
++	_settings.set("file_path", old_path)
++	for suffix in ["", ".bak", ".tmp"]:
++		if FileAccess.file_exists(SETTINGS_TEST + suffix):
++			DirAccess.remove_absolute(ProjectSettings.globalize_path(SETTINGS_TEST + suffix))
++	print("CHECKS %s (%d fehlgeschlagen)" % ["OK" if _failed.is_empty() else "FEHLER", _failed.size()])
++	quit(0 if _failed.is_empty() else 1)
+
+--- a/tests/race/probe_headless3d.gd	1970-01-01 00:00:00.000000000 +0000
++++ b/tests/race/probe_headless3d.gd	2026-11-10 11:31:16.564918340 +0000
+@@ -0,0 +1,68 @@
++extends SceneTree
++## SPIKE: what of a 3D renderer can be tested headless (dummy rendering server)?
++##   godot --headless --path . -s res://tests/race/probe_headless3d.gd
++
++func _initialize() -> void:
++	_run.call_deferred()
++
++
++func _run() -> void:
++	var out := {}
++	out["display"] = DisplayServer.get_name()
++	out["adapter"] = RenderingServer.get_video_adapter_name()
++	# 1. meshes: surfaces, arrays and AABB survive in the dummy server?
++	var st := SurfaceTool.new()
++	st.begin(Mesh.PRIMITIVE_TRIANGLES)
++	for v in [Vector3(0, 0, 0), Vector3(4, 0, 0), Vector3(0, 0, -100), Vector3(4, 0, 0), Vector3(4, 0.5, -100), Vector3(0, 0, -100)]:
++		st.set_normal(Vector3.UP)
++		st.add_vertex(v)
++	var mesh := st.commit()
++	out["mesh_surfaces"] = mesh.get_surface_count()
++	out["mesh_aabb"] = str(mesh.get_aabb())
++	var arrays := mesh.surface_get_arrays(0) if mesh.get_surface_count() > 0 else []
++	out["mesh_vertices_read_back"] = (arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).size() if arrays.size() > 0 and arrays[Mesh.ARRAY_VERTEX] != null else -1
++	# 2. glTF scene instancing headless
++	var ps: PackedScene = load("res://assets/models3d/player/kompakt.glb")
++	var car: Node3D = ps.instantiate()
++	root.add_child(car)
++	var meshes := 0
++	var tris := 0
++	for n in car.find_children("*", "MeshInstance3D", true, false):
++		meshes += 1
++		var m: Mesh = (n as MeshInstance3D).mesh
++		for s in m.get_surface_count():
++			var a := m.surface_get_arrays(s)
++			if a.size() > 0 and a[Mesh.ARRAY_INDEX] != null:
++				tris += (a[Mesh.ARRAY_INDEX] as PackedInt32Array).size() / 3
++	out["glb_mesh_instances"] = meshes
++	out["glb_triangles_read_back"] = tris
++	# 3. camera maths: unproject_position / is_position_behind / frustum without a GPU
++	var cam := Camera3D.new()
++	cam.fov = 60.0
++	cam.keep_aspect = Camera3D.KEEP_HEIGHT
++	cam.near = 0.5
++	cam.far = 2000.0
++	root.add_child(cam)
++	cam.global_position = Vector3(0, 1.2, 0)
++	cam.make_current()
++	await process_frame
++	out["viewport_size"] = str(root.get_visible_rect().size)
++	out["unproject_100m_ahead_on_ground"] = str(cam.unproject_position(Vector3(0, 0, -100)))
++	out["unproject_100m_ahead_3_5m_right"] = str(cam.unproject_position(Vector3(3.5, 0, -100)))
++	out["behind"] = cam.is_position_behind(Vector3(0, 0, 5))
++	out["in_frustum_30m_left_40m"] = cam.is_position_in_frustum(Vector3(-30, 0, -40))
++	out["frustum_planes"] = cam.get_frustum().size()
++	# 4. MultiMesh bookkeeping
++	var mm := MultiMesh.new()
++	mm.transform_format = MultiMesh.TRANSFORM_3D
++	mm.mesh = mesh
++	mm.instance_count = 500
++	mm.visible_instance_count = 120
++	mm.set_instance_transform(7, Transform3D(Basis(), Vector3(1, 2, 3)))
++	out["multimesh_instance_readback"] = str(mm.get_instance_transform(7).origin)
++	out["multimesh_visible"] = mm.visible_instance_count
++	# 5. render statistics are not available headless
++	await process_frame
++	out["draw_calls_monitor"] = Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)
++	print("HEADLESS3D ", JSON.stringify(out, "  "))
++	quit(0)
+
+--- a/tests/race/probe_parity.gd	1970-01-01 00:00:00.000000000 +0000
++++ b/tests/race/probe_parity.gd	2026-11-10 11:32:09.155762662 +0000
+@@ -0,0 +1,79 @@
++extends SceneTree
++## SPIKE: parity of a real Camera3D with the Arcade projection (RoadProjection), headless:
++##   godot --headless --path . -s res://tests/race/probe_parity.gd
++## The Arcade camera looks horizontally with the horizon at 45 % of the height – a shifted frustum. A Camera3D with
++## PROJECTION_FRUSTUM and frustum_offset reproduces it exactly; a pitched perspective camera (the "natural" 3D
++## camera) is compared too. Prints the largest screen-space error over a grid of points on and above a flat road
++## and the visible fraction (1/3 rule) of cars beside / behind the player for both cameras.
++
++func _initialize() -> void:
++	_run.call_deferred()
++
++
++func _run() -> void:
++	var cfg: Dictionary = ConfigLoader.load_merged()
++	var rc: Dictionary = cfg.get("render", {})
++	var proj := RoadProjection.new()
++	var screen := Vector2(1280, 720)
++	proj.setup(rc, screen)
++	var n := 0.3
++	# A: shifted frustum, camera horizontal
++	var cam_a := Camera3D.new()
++	root.add_child(cam_a)
++	var size_h := screen.y * n / proj.focal
++	cam_a.keep_aspect = Camera3D.KEEP_HEIGHT
++	cam_a.set_frustum(size_h, Vector2(0, -(screen.y * 0.5 - proj.horizon_y) * n / proj.focal), n, 3000.0)
++	cam_a.global_position = Vector3(0, proj.cam_height, 0)
++	# B: ordinary perspective camera pitched down so that the horizon sits at the same row
++	var cam_b := Camera3D.new()
++	root.add_child(cam_b)
++	cam_b.keep_aspect = Camera3D.KEEP_WIDTH
++	cam_b.fov = float(rc.get("fov_deg", 84.0))
++	cam_b.near = n
++	cam_b.far = 3000.0
++	cam_b.global_position = Vector3(0, proj.cam_height, 0)
++	cam_b.rotation.x = -atan((screen.y * 0.5 - proj.horizon_y) / proj.focal)
++	await process_frame
++	var worst_a := 0.0
++	var worst_b := 0.0
++	var worst_b_at := ""
++	var count := 0
++	for dz: float in [5.0, 9.0, 15.0, 30.0, 60.0, 120.0, 250.0, 500.0, 900.0]:
++		for dx: float in [-11.0, -5.5, -1.8, 0.0, 1.8, 5.5, 11.0, 25.0]:
++			for h: float in [0.0, 1.5, 4.0, 12.0]:
++				var a := proj.project(dx, h - proj.cam_height, dz)
++				var w := Vector3(dx, h, -dz)
++				var pa := cam_a.unproject_position(w)
++				var pb := cam_b.unproject_position(w)
++				worst_a = maxf(worst_a, pa.distance_to(Vector2(a.x, a.y)))
++				if a.x < 0.0 or a.x > screen.x or a.y < 0.0 or a.y > screen.y:
++					continue   # the pitched camera is compared on screen only
++				var eb := pb.distance_to(Vector2(a.x, a.y))
++				if eb > worst_b:
++					worst_b = eb
++					worst_b_at = "dz %.0f dx %.1f h %.1f: arcade (%.1f, %.1f) pitched (%.1f, %.1f)" % [dz, dx, h, a.x, a.y, pb.x, pb.y]
++				count += 1
++	# 1/3 rule: visible fraction of a 1.5 m high car at rear depth dz (Arcade) vs. the share of its height inside the
++	# frustum of each camera (car standing on the ground straight ahead)
++	var rows: Array = []
++	for dz: float in [2.0, 3.0, 4.0, 4.3, 5.0, 6.0, 8.0]:
++		var arc := proj.visible_fraction(dz, 1.5)
++		var fa := _frac(cam_a, dz, 1.5, screen)
++		var fb := _frac(cam_b, dz, 1.5, screen)
++		rows.append("dz %.1f m: arcade %.2f  frustum %.2f  pitched %.2f" % [dz, arc, fa, fb])
++	print("PARITY ", JSON.stringify({
++		"points": count, "focal_px": snappedf(proj.focal, 0.01), "horizon_y": proj.horizon_y,
++		"pitch_deg_of_camera_b": snappedf(rad_to_deg(-cam_b.rotation.x), 0.01),
++		"max_error_px_shifted_frustum": snappedf(worst_a, 0.001),
++		"max_error_px_pitched_perspective": snappedf(worst_b, 0.01), "worst_pitched": worst_b_at,
++		"visible_fraction_1_5m_car": rows,
++	}, "  "))
++	quit(0)
++
++
++## Share of a vertical 0..height segment at depth dz (x = 0) that lies inside the screen rows of `cam`.
++func _frac(cam: Camera3D, dz: float, height: float, screen: Vector2) -> float:
++	var bottom := cam.unproject_position(Vector3(0, 0, -dz)).y
++	var top := cam.unproject_position(Vector3(0, height, -dz)).y
++	var vis := minf(bottom, screen.y) - maxf(top, 0.0)
++	return clampf(vis / maxf(bottom - top, 0.001), 0.0, 1.0)
+
+--- a/tests/race/probe_selftest.gd	1970-01-01 00:00:00.000000000 +0000
++++ b/tests/race/probe_selftest.gd	2026-11-10 11:43:57.361540753 +0000
+@@ -0,0 +1,13 @@
++extends SceneTree
++## SPIKE: GfxSelfTest under a real renderer (Xvfb) – healthy and with a deliberately broken shader; headless: skipped.
++
++func _initialize() -> void:
++	_run.call_deferred()
++
++
++func _run() -> void:
++	var st: GDScript = load("res://scripts/core/gfx_self_test.gd")
++	var good: Dictionary = await st.call("run", root, false)
++	var bad: Dictionary = await st.call("run", root, true)
++	print("SELFTEST ", JSON.stringify({"display": DisplayServer.get_name(), "healthy": good, "broken_shader": bad}))
++	quit(0)
+
+--- a/tests/unit/test_gfx_settings.gd	1970-01-01 00:00:00.000000000 +0000
++++ b/tests/unit/test_gfx_settings.gd	2026-11-10 11:43:29.935220363 +0000
+@@ -0,0 +1,113 @@
++extends TestCase
++## SPIKE v0.8.0: graphics mode, quality presets, settings file version 3 and its migration from version 2 / none.
++
++const SettingsScript := preload("res://scripts/core/settings.gd")
++const FILE := "user://test_gfx_settings.json"
++
++
++func _settings(file_content: Variant = null) -> Node:
++	for suffix in ["", ".bak", ".tmp"]:   # JsonFile falls back to the ".bak" of an earlier test
++		if FileAccess.file_exists(FILE + suffix):
++			DirAccess.remove_absolute(ProjectSettings.globalize_path(FILE + suffix))
++	if file_content != null:
++		JsonFile.save_atomic(FILE, file_content)
++	var s: Node = SettingsScript.new()
++	s.set("file_path", FILE)
++	s.call("load_settings")
++	return s
++
++
++func test_adapter_tiers() -> void:
++	assert_eq(Gfx.classify_adapter("llvmpipe (LLVM 20.1.2, 256 bits)", "Mesa"), "software", "llvmpipe")
++	assert_eq(Gfx.classify_adapter("ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero)), SwiftShader driver)", "Google"), "software", "SwiftShader")
++	assert_eq(Gfx.classify_adapter("ANGLE (Microsoft, Microsoft Basic Render Driver Direct3D11 vs_5_0 ps_5_0, D3D11)", "Google Inc. (Microsoft)"), "software", "WARP")
++	assert_eq(Gfx.classify_adapter("AMD Custom GPU 0405 (radeonsi, vangogh, LLVM 17.0.6, DRM 3.57, 6.5.0-valve22)", "AMD"), "deck", "Deck LCD")
++	assert_eq(Gfx.classify_adapter("AMD Custom GPU 0932 (radeonsi, sephiroth, LLVM 17, DRM 3.57)", "AMD"), "deck", "Deck OLED")
++	assert_eq(Gfx.classify_adapter("AMD Radeon Graphics (radeonsi, rembrandt)", "AMD", true), "deck", "AMD handheld under gamescope")
++	assert_eq(Gfx.classify_adapter("ANGLE (Intel, Intel(R) HD Graphics 4000 Direct3D11 vs_5_0 ps_5_0, D3D11)", "Google Inc. (Intel)"), "weak", "Intel HD 4000 via ANGLE")
++	assert_eq(Gfx.classify_adapter("NVIDIA GeForce RTX 3060/PCIe/SSE2", "NVIDIA Corporation"), "ok", "RTX")
++	assert_eq(Gfx.classify_adapter("Mesa Intel(R) Xe Graphics (TGL GT2)", "Intel"), "ok", "Xe")
++
++
++func test_mode_of_a_run() -> void:
++	# no choice yet: Modern on real graphics, Arcade on a software rasteriser and without a renderer
++	assert_eq(Gfx.resolve_mode("", "", "ok", false, false), {"mode": "modern", "reason": "default"}, "Standard")
++	assert_eq(Gfx.resolve_mode("", "", "software", false, false), {"mode": "arcade", "reason": "default"}, "Software")
++	assert_eq(Gfx.resolve_mode("modern", "", "ok", true, false), {"mode": "arcade", "reason": "headless"}, "headless")
++	# the player's choice wins over the tier (Modern on llvmpipe is allowed – that is how it is tested here)
++	assert_eq(Gfx.resolve_mode("modern", "", "software", false, false), {"mode": "modern", "reason": ""}, "gewählt")
++	assert_eq(Gfx.resolve_mode("arcade", "", "ok", false, false), {"mode": "arcade", "reason": ""}, "gewählt Arcade")
++	# command line beats the choice (tests, screenshots, bug reports), the marker and a missing renderer
++	assert_eq(Gfx.resolve_mode("arcade", "modern", "ok", false, false), {"mode": "modern", "reason": "cli"}, "CLI")
++	assert_eq(Gfx.resolve_mode("", "modern", "ok", true, false), {"mode": "modern", "reason": "cli"}, "CLI headless (Tests)")
++	assert_eq(Gfx.resolve_mode("modern", "arcade", "ok", false, true), {"mode": "arcade", "reason": "cli"}, "CLI Rettung")
++	# Modern did not survive its last start: this run is Arcade, the choice stays stored
++	assert_eq(Gfx.resolve_mode("modern", "", "ok", false, true), {"mode": "arcade", "reason": "crash_guard"}, "Marker")
++	assert_eq(Gfx.resolve_mode("", "", "ok", false, true), {"mode": "arcade", "reason": "crash_guard"}, "Marker ohne Wahl")
++	assert_eq(Gfx.resolve_mode("arcade", "", "ok", false, true), {"mode": "arcade", "reason": ""}, "Marker, Arcade gewählt")
++
++
++func test_presets_and_custom() -> void:
++	for id in ["deck", "low", "medium", "high"]:
++		assert_eq(Gfx.preset_of(Gfx.quality(id)), id, "Preset " + id)
++	var q := Gfx.quality("medium")
++	q["shadows"] = 0
++	assert_eq(Gfx.preset_of(q), "custom", "ein Wert geändert")
++	assert_eq(Gfx.quality("custom", q)["shadows"], 0, "eigene Werte")
++	assert_eq(Gfx.sanitized({"shadows": 9, "details": -1, "scale": 90, "aa": 7, "effects": 3}),
++		{"shadows": 3, "details": 0, "scale": 85, "aa": 2, "effects": 2}, "Grenzen")
++	assert_eq(Gfx.recommended_preset("deck"), "deck", "Deck")
++	assert_eq(Gfx.recommended_preset("weak"), "low", "schwach")
++	assert_eq(Gfx.recommended_preset("ok"), "medium", "normal")
++
++
++func test_watchdog() -> void:
++	assert_eq(Gfx.watchdog_verdict(15.0, 19.0, "medium"), "ok", "60 fps")
++	assert_eq(Gfx.watchdog_verdict(24.0, 30.0, "medium"), "slow", "~40 fps")
++	assert_eq(Gfx.watchdog_verdict(40.0, 55.0, "medium"), "slow", "25 fps mit Reserve nach unten")
++	assert_eq(Gfx.watchdog_verdict(40.0, 55.0, "low"), "too_slow", "25 fps auf der niedrigsten Stufe")
++
++
++func test_new_player_has_no_choice_and_saves_none() -> void:
++	var s := _settings()
++	assert_eq(str(s.get("graphics_mode")), "", "keine Wahl")
++	assert_true(s.call("save_settings"), "speichern")
++	var d: Dictionary = JsonFile.load_dict(FILE)
++	assert_eq(int(d.get("settings_version", 0)), 3, "Version 3")
++	assert_false(d.has("graphics_mode"), "ohne Wahl nicht gespeichert")
++	assert_false(d.has("gfx_preset"), "ohne Wahl kein Preset")
++	s.free()
++
++
++func test_file_of_v070_keeps_everything_and_gets_no_mode() -> void:
++	# v0.7.0 file: version 2, fullscreen false chosen
++	var s := _settings({"settings_version": 2, "master_volume": 0.5, "fullscreen": false, "player_name": "Maik", "vibration": false})
++	assert_eq(str(s.get("graphics_mode")), "", "bestehender Spieler: keine Wahl -> Auswahl erscheint einmal")
++	assert_false(bool(s.get("fullscreen")), "Vollbild Aus bleibt")
++	assert_true(bool(s.get("fullscreen_chosen")), "… und bleibt eine Wahl (Version 2 zählt weiter)")
++	assert_eq(str(s.get("player_name")), "Maik", "Name")
++	s.set("graphics_mode", "modern")
++	s.set("sound_profile", "modern")
++	s.call("save_settings")
++	var d: Dictionary = JsonFile.load_dict(FILE)
++	assert_eq(str(d.get("graphics_mode", "")), "modern", "Wahl gespeichert")
++	assert_eq(bool(d.get("fullscreen", true)), false, "Vollbild weiter gespeichert")
++	s.free()
++
++
++func test_keys_of_a_newer_version_survive() -> void:
++	var s := _settings({"settings_version": 4, "graphics_mode": "modern", "hdr": true, "gfx_ray": {"a": 1}})
++	s.set("master_volume", 0.3)
++	s.call("save_settings")
++	var d: Dictionary = JsonFile.load_dict(FILE)
++	assert_true(bool(d.get("hdr", false)), "unbekannter Schlüssel bleibt")
++	assert_true(d.has("gfx_ray"), "unbekanntes Wörterbuch bleibt")
++	s.free()
++
++
++func test_damaged_values_fall_back() -> void:
++	var s := _settings({"settings_version": 3, "graphics_mode": "ultra", "gfx_preset": "mega", "gfx_custom": {"scale": 9999}})
++	assert_eq(str(s.get("graphics_mode")), "", "unbekannter Modus = keine Wahl")
++	assert_eq(str(s.get("gfx_preset")), "", "unbekanntes Preset = Empfehlung")
++	assert_eq(int((s.get("gfx_custom") as Dictionary).get("scale", 0)), 150, "Skalierung begrenzt")
++	s.free()

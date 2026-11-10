@@ -1,0 +1,29 @@
+policy: yaw = 0.60 x bearing of the centreline 100 m ahead; samples 49712250
+d (m): cases [Arcade on screen, 3D off] / max stopping sight distance there (m) / max drivable speed (km/h)
+  280:     13   need <= 113.1 m   v <= 163.1 km/h   OK
+  290:     45   need <= 128.9 m   v <= 176.9 km/h   OK
+  300:     73   need <= 144.5 m   v <= 189.8 km/h   OK
+  310:     99   need <= 152.9 m   v <= 196.4 km/h   OK
+  320:    115   need <= 167.4 m   v <= 207.6 km/h   OK
+  330:    142   need <= 175.7 m   v <= 213.6 km/h   OK
+  340:    185   need <= 183.2 m   v <= 219.1 km/h   OK
+  350:    242   need <= 190.6 m   v <= 224.4 km/h   OK
+  360:    334   need <= 204.9 m   v <= 234.2 km/h   OK
+  370:    395   need <= 212.2 m   v <= 239.2 km/h   OK
+  380:    449   need <= 219.6 m   v <= 244.1 km/h   OK
+  390:    526   need <= 227.5 m   v <= 249.2 km/h   OK
+  400:    580   need <= 234.8 m   v <= 253.9 km/h   OK
+  410:    630   need <= 242.1 m   v <= 258.5 km/h   OK
+  420:    688   need <= 249.4 m   v <= 263.0 km/h   OK
+  430:    724   need <= 249.7 m   v <= 263.2 km/h   OK
+  440:    758   need <= 249.7 m   v <= 263.2 km/h   OK
+  450:    808   need <= 249.7 m   v <= 263.2 km/h   OK
+  460:    852   need <= 249.7 m   v <= 263.2 km/h   OK
+  470:    905   need <= 249.7 m   v <= 263.2 km/h   OK
+  480:   1001   need <= 249.7 m   v <= 263.2 km/h   OK
+  490:   1053   need <= 249.7 m   v <= 263.2 km/h   OK
+  worst need/d 0.59: d=420 saragossa_pau__saragossa km 170.3 need 249 m v 263 km/h |curve| 0.00
+  worst need/d 0.59: d=420 saragossa_pau__saragossa km 170.3 need 249 m v 263 km/h |curve| 0.00
+  worst need/d 0.59: d=420 saragossa_pau__saragossa km 170.3 need 249 m v 263 km/h |curve| 0.00
+  worst need/d 0.59: d=420 bukarest_sibiu__sibiu km 56.7 need 249 m v 263 km/h |curve| 0.00
+  worst need/d 0.59: d=420 bukarest_sibiu__sibiu km 56.7 need 249 m v 263 km/h |curve| 0.00

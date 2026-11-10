@@ -1,0 +1,157 @@
+{
+  "shader_cache_enabled": true,
+  "spike_alpha_scissor_multimesh_forest": {
+    "baseline_ms": 100.4,
+    "first_frames_ms": [
+      197.1,
+      117.7,
+      111.2,
+      144.8
+    ],
+    "hitch_ms": 66.9,
+    "steady_after_ms": 130.3
+  },
+  "spike_custom_bend_shader": {
+    "baseline_ms": 158.9,
+    "first_frames_ms": [
+      239.6,
+      171.7,
+      149.9,
+      155.4
+    ],
+    "hitch_ms": 81.4,
+    "steady_after_ms": 158.3
+  },
+  "spike_emission_material": {
+    "baseline_ms": 71.5,
+    "first_frames_ms": [
+      99.1,
+      76.3,
+      84.7,
+      85.3
+    ],
+    "hitch_ms": 20.7,
+    "steady_after_ms": 78.4
+  },
+  "spike_fog_enabled": {
+    "baseline_ms": 100.7,
+    "first_frames_ms": [
+      120.5,
+      101.0,
+      100.5,
+      116.5
+    ],
+    "hitch_ms": 13.3,
+    "steady_after_ms": 107.2
+  },
+  "spike_gpu_particles_rain": {
+    "baseline_ms": 130.6,
+    "first_frames_ms": [
+      171.9,
+      184.3,
+      139.5,
+      143.0
+    ],
+    "hitch_ms": 47.7,
+    "steady_after_ms": 136.5
+  },
+  "spike_imported_glb_car": {
+    "baseline_ms": 138.4,
+    "first_frames_ms": [
+      297.6,
+      163.4,
+      173.0,
+      164.3
+    ],
+    "hitch_ms": 126.3,
+    "steady_after_ms": 171.3
+  },
+  "spike_omni_light": {
+    "baseline_ms": 108.6,
+    "first_frames_ms": [
+      138.1,
+      108.9,
+      117.6,
+      111.3
+    ],
+    "hitch_ms": 37.3,
+    "steady_after_ms": 100.9
+  },
+  "spike_spot_light": {
+    "baseline_ms": 109.5,
+    "first_frames_ms": [
+      137.9,
+      109.9,
+      107.9,
+      110.1
+    ],
+    "hitch_ms": 31.1,
+    "steady_after_ms": 106.8
+  },
+  "spike_spot_light_with_shadow": {
+    "baseline_ms": 100.8,
+    "first_frames_ms": [
+      153.2,
+      113.8,
+      107.9,
+      98.4
+    ],
+    "hitch_ms": 46.7,
+    "steady_after_ms": 106.5
+  },
+  "spike_standard_material_metal": {
+    "baseline_ms": 79.5,
+    "first_frames_ms": [
+      73.6,
+      77.0,
+      78.5,
+      75.4
+    ],
+    "hitch_ms": 2.5,
+    "steady_after_ms": 76.0
+  },
+  "spike_sun_shadow_pssm4": {
+    "baseline_ms": 77.9,
+    "first_frames_ms": [
+      178.4,
+      99.0,
+      106.0,
+      97.2
+    ],
+    "hitch_ms": 80.3,
+    "steady_after_ms": 98.2
+  },
+  "spike_transparent_glass": {
+    "baseline_ms": 164.0,
+    "first_frames_ms": [
+      218.5,
+      163.4,
+      163.5,
+      158.3
+    ],
+    "hitch_ms": 52.5,
+    "steady_after_ms": 166.0
+  },
+  "suite": "warm",
+  "test": "cold",
+  "user_dir": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/engine-probe/xdg_cold/godot/app_userdata/CE Engine Probe",
+  "variants": [
+    {
+      "buffer_mem_mb": 15.5,
+      "canvas_draw_calls": 0,
+      "draw_calls_total": 711,
+      "name": "end",
+      "objects_total": 599,
+      "png": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/engine-probe/shots/cold1/warm_cold_end.png",
+      "primitives_total": 184759,
+      "shadow_draw_calls": 0,
+      "shadow_objects": 0,
+      "shadow_primitives": 150719,
+      "texture_mem_mb": 16.2,
+      "video_mem_mb": 31.7,
+      "vis_draw_calls": 711,
+      "vis_objects": 599,
+      "vis_primitives": 34040
+    }
+  ]
+}

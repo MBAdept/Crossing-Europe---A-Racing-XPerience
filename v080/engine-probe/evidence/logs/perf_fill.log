@@ -1,0 +1,39 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- perf.fill
+PROBE: fill 0_base_no_shadow = 24.1 ms
+PROBE: fill 1_shadow_ortho = 45.8 ms
+PROBE: fill 1_shadow_pssm4 = 65.9 ms
+PROBE: fill 1_shadow_pssm4_hard = 51.4 ms
+PROBE: fill 1_shadow_pssm4_soft_ultra = 71.2 ms
+PROBE: fill 2_plus_fog = 66.6 ms
+PROBE: fill 3_plus_glow = 88.3 ms
+PROBE: fill 4_plus_adjustments = 85.0 ms
+PROBE: fill 5_plus_ssao_q0 = 90.1 ms
+PROBE: fill 5_plus_ssao_q2 = 99.8 ms
+PROBE: fill 5_plus_ssao_q4 = 159.7 ms
+PROBE: fill 6_glow_fog_msaa2x = 121.3 ms
+PROBE: fill 6_glow_fog_msaa4x = 112.8 ms
+PROBE: fill 7_glow_fog_scale0.75 = 72.0 ms
+PROBE: fill 7_glow_fog_scale0.5 = 55.0 ms
+PROBE: fill 8_plus_2_spots = 93.4 ms
+PROBE: fill 8_plus_6_omnis = 105.1 ms
+PROBE: fill 8_plus_1_spot_shadow = 115.6 ms
+PROBE: fill 0_base_no_shadow_run2 = 25.9 ms
+PROBE: fill 1_shadow_ortho_run2 = 46.1 ms
+PROBE: fill 1_shadow_pssm4_run2 = 63.1 ms
+PROBE: fill 1_shadow_pssm4_hard_run2 = 49.6 ms
+PROBE: fill 1_shadow_pssm4_soft_ultra_run2 = 73.2 ms
+PROBE: fill 2_plus_fog_run2 = 66.5 ms
+PROBE: fill 3_plus_glow_run2 = 67.4 ms
+PROBE: fill 4_plus_adjustments_run2 = 67.1 ms
+PROBE: fill 5_plus_ssao_q0_run2 = 68.1 ms
+PROBE: fill 5_plus_ssao_q2_run2 = 72.3 ms
+PROBE: fill 5_plus_ssao_q4_run2 = 119.9 ms
+PROBE: fill 6_glow_fog_msaa2x_run2 = 90.5 ms
+PROBE: fill 6_glow_fog_msaa4x_run2 = 137.8 ms
+PROBE: fill 7_glow_fog_scale0.75_run2 = 69.6 ms
+PROBE: fill 7_glow_fog_scale0.5_run2 = 43.1 ms
+PROBE: fill 8_plus_2_spots_run2 = 75.6 ms
+PROBE: fill 8_plus_6_omnis_run2 = 77.7 ms
+PROBE: fill 8_plus_1_spot_shadow_run2 = 87.4 ms

@@ -1,0 +1,1083 @@
+
+--- a/scripts/core/gfx.gd	1970-01-01 00:00:00.000000000 +0000
++++ b/scripts/core/gfx.gd	2026-11-10 11:43:15.694303555 +0000
+@@ -0,0 +1,127 @@
++class_name Gfx
++extends RefCounted
++## SPIKE v0.8.0 – graphics mode ("arcade" | "modern") and the quality settings of Modern. Pure helpers (no
++## autoload access; unit tested): which mode a session really gets, classification of the graphics adapter, quality
++## presets, the "Modern did not survive its last start" marker. Settings (autoload) stores the player's choices.
++
++const ARCADE := "arcade"
++const MODERN := "modern"
++const MODES: Array[String] = [ARCADE, MODERN]
++
++## Quality presets of Modern (order of the option row). "custom" = the single values were changed by hand.
++const PRESET_ORDER: Array[String] = ["deck", "low", "medium", "high", "custom"]
++## Fields of a quality set: shadows 0..3 (Aus, Niedrig, Mittel, Hoch), details 0..2 (Niedrig, Mittel, Hoch),
++## scale = 3D resolution in percent, aa 0..2 (Aus, MSAA 2×, MSAA 4×), effects 0..2 (Aus, Einfach, Voll).
++## Start values – the real numbers behind every step live in config graphics.* (renderer study).
++const PRESETS := {
++	"deck": {"shadows": 1, "details": 1, "scale": 100, "aa": 1, "effects": 1},
++	"low": {"shadows": 0, "details": 0, "scale": 75, "aa": 0, "effects": 0},
++	"medium": {"shadows": 2, "details": 1, "scale": 100, "aa": 1, "effects": 1},
++	"high": {"shadows": 3, "details": 2, "scale": 100, "aa": 2, "effects": 2},
++}
++const QUALITY_KEYS: Array[String] = ["shadows", "details", "scale", "aa", "effects"]
++const SCALE_STEPS: Array[int] = [50, 67, 75, 85, 100, 125, 150]
++
++## Marker file: written before the first Modern scene of a run is built, removed after it has drawn for a while.
++## Still there at the next start = Modern crashed or hung the last time -> this run starts in Arcade with a message.
++const BOOT_MARKER := "user://modern_start.lock"
++
++## Adapter tiers (classify_adapter): "software" = CPU rasteriser (llvmpipe, SwiftShader, WARP …) – Modern is refused
++## as a default and the chooser explains why; "weak" = old integrated graphics – Modern allowed, preset "low",
++## the stage watchdog decides; "deck" = Steam Deck APU; "ok" = everything else.
++const SOFTWARE_HINTS: Array[String] = ["llvmpipe", "softpipe", "swiftshader", "lavapipe", "basic render", "gdi generic", "warp", "software"]
++const DECK_HINTS: Array[String] = ["vangogh", "van gogh", "custom gpu 0405", "custom gpu 0932", "sephiroth"]
++const WEAK_HINTS: Array[String] = ["hd graphics", "uhd graphics 6", "iris graphics", "gma ", "mesa dri intel(r) hd", "radeon hd", "radeon r5", "radeon r7", "geforce gt ", "geforce 9", "geforce 6", "geforce 7", "geforce 8", "videocore", "mali", "adreno", "powervr"]
++
++
++## Tier of a graphics adapter from its name (RenderingServer.get_video_adapter_name()), the API string
++## (get_video_adapter_api_version(), ANGLE shows up there) and whether the game runs under gamescope.
++static func classify_adapter(adapter: String, vendor: String = "", gamescope: bool = false) -> String:
++	var n := (adapter + " " + vendor).to_lower()
++	for h in SOFTWARE_HINTS:
++		if n.contains(h):
++			return "software"
++	for h in DECK_HINTS:
++		if n.contains(h):
++			return "deck"
++	if gamescope and n.contains("amd"):
++		return "deck"
++	for h in WEAK_HINTS:
++		if n.contains(h):
++			return "weak"
++	return "ok"
++
++
++## The mode the chooser preselects / a session without a choice gets: Modern unless the adapter is a software
++## rasteriser or there is no renderer at all (headless).
++static func recommended_mode(tier: String, headless: bool) -> String:
++	return ARCADE if headless or tier == "software" else MODERN
++
++
++## Quality preset recommended for an adapter tier.
++static func recommended_preset(tier: String) -> String:
++	match tier:
++		"deck":
++			return "deck"
++		"weak", "software":
++			return "low"
++	return "medium"
++
++
++## The mode a session really runs in. `chosen` = the player's stored choice ("" = none yet), `cli` = --graphics=…
++## of the command line ("" = none; it wins over everything – tests, screenshots, the rescue switch of a shortcut),
++## `marker` = the boot marker of the last run is still there, `headless` = no renderer.
++## Returns {mode, reason}: reason "" (as chosen), "cli", "headless", "default", "crash_guard".
++static func resolve_mode(chosen: String, cli: String, tier: String, headless: bool, marker: bool) -> Dictionary:
++	if MODES.has(cli):
++		return {"mode": cli, "reason": "cli"}   # also headless: the tests build the Modern scene without a GPU
++	if headless:
++		return {"mode": ARCADE, "reason": "headless"}
++	if marker and chosen != ARCADE:
++		return {"mode": ARCADE, "reason": "crash_guard"}
++	if MODES.has(chosen):
++		return {"mode": chosen, "reason": ""}
++	return {"mode": recommended_mode(tier, headless), "reason": "default"}
++
++
++## Quality set of a preset; "custom" (or an unknown id) returns `custom` completed from "medium".
++static func quality(preset: String, custom: Dictionary = {}) -> Dictionary:
++	if PRESETS.has(preset):
++		return (PRESETS[preset] as Dictionary).duplicate()
++	var q: Dictionary = (PRESETS["medium"] as Dictionary).duplicate()
++	for k in QUALITY_KEYS:
++		if custom.has(k):
++			q[k] = int(custom[k])
++	return sanitized(q)
++
++
++## Preset id whose values equal `q` ("custom" if none does).
++static func preset_of(q: Dictionary) -> String:
++	for id in PRESET_ORDER:
++		if PRESETS.has(id) and sanitized(q) == sanitized(PRESETS[id]):
++			return id
++	return "custom"
++
++
++## Clamps every field into its range (a hand-edited settings file must not break the renderer).
++static func sanitized(q: Dictionary) -> Dictionary:
++	var scale := int(q.get("scale", 100))
++	var best := SCALE_STEPS[0]
++	for s in SCALE_STEPS:
++		if absi(s - scale) < absi(best - scale):
++			best = s
++	return {
++		"shadows": clampi(int(q.get("shadows", 2)), 0, 3), "details": clampi(int(q.get("details", 1)), 0, 2),
++		"scale": best, "aa": clampi(int(q.get("aa", 1)), 0, 2), "effects": clampi(int(q.get("effects", 1)), 0, 2),
++	}
++
++
++## Watchdog verdict for a stage driven in Modern: median and 95th percentile of the frame time in ms over the
++## measured window (after the countdown, without the first seconds). "ok", "slow" (suggest a lower preset once),
++## "too_slow" (offer Arcade after the stage). Thresholds: below ~45 fps median / ~30 fps median.
++static func watchdog_verdict(median_ms: float, p95_ms: float, preset: String) -> String:
++	if median_ms > 33.4 or p95_ms > 66.0:
++		return "too_slow" if preset == "low" else "slow"
++	if median_ms > 22.0:
++		return "slow"
++	return "ok"
+
+--- a/scripts/core/gfx_self_test.gd	1970-01-01 00:00:00.000000000 +0000
++++ b/scripts/core/gfx_self_test.gd	2026-11-10 11:44:21.190672530 +0000
+@@ -0,0 +1,72 @@
++class_name GfxSelfTest
++extends RefCounted
++## SPIKE v0.8.0 – "can this computer draw the Modern mode at all?": renders a tiny lit 3D scene (a white sphere under
++## a directional light with a shadow-casting light, a custom-shader quad in a known colour) into a 96×96 SubViewport,
++## reads the picture back and checks a few pixels. A driver that fails to compile the 3D shaders or draws nothing
++## gives a black or uniform picture -> Modern is refused for this run (Arcade with a message). Costs three frames
++## once per start of Modern (behind the loading screen). Headless: skipped ("skipped").
++
++const SIZE := 96
++const QUAD_COLOR := Color(0.1, 0.8, 0.3)
++
++
++## Builds the test scene under `parent`, waits `frames` frames, returns {ok, reason, lit, dark, quad, ms}.
++static func run(parent: Node, break_shader: bool = false, frames: int = 3) -> Dictionary:
++	if DisplayServer.get_name() == "headless":
++		return {"ok": true, "reason": "skipped"}
++	var t0 := Time.get_ticks_usec()
++	var vp := SubViewport.new()
++	vp.size = Vector2i(SIZE, SIZE)
++	vp.own_world_3d = true
++	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
++	parent.add_child(vp)
++	var env := Environment.new()
++	env.background_mode = Environment.BG_COLOR
++	env.background_color = Color.BLACK
++	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
++	env.ambient_light_color = Color.BLACK
++	var we := WorldEnvironment.new()
++	we.environment = env
++	vp.add_child(we)
++	var cam := Camera3D.new()
++	cam.position = Vector3(0, 0, 4)
++	vp.add_child(cam)
++	var sun := DirectionalLight3D.new()
++	sun.rotation_degrees = Vector3(-30, 40, 0)
++	sun.shadow_enabled = true
++	vp.add_child(sun)
++	var ball := MeshInstance3D.new()
++	ball.mesh = SphereMesh.new()
++	ball.position = Vector3(-0.9, 0, 0)
++	var white := StandardMaterial3D.new()
++	white.albedo_color = Color.WHITE
++	ball.material_override = white
++	vp.add_child(ball)
++	var quad := MeshInstance3D.new()
++	quad.mesh = QuadMesh.new()
++	quad.position = Vector3(0.9, 0, 0)
++	var sh := Shader.new()
++	# the same kind of shader the Modern road uses: spatial, unshaded, a uniform colour (broken on purpose for the test)
++	sh.code = "shader_type spatial;\nrender_mode unshaded;\nuniform vec4 tint : source_color;\nvoid fragment() { ALBEDO = %s; }\n" % ("vec3(0.0)" if break_shader else "tint.rgb")
++	var sm := ShaderMaterial.new()
++	sm.shader = sh
++	sm.set_shader_parameter("tint", QUAD_COLOR)
++	quad.material_override = sm
++	vp.add_child(quad)
++	for i in frames:
++		await parent.get_tree().process_frame
++	await RenderingServer.frame_post_draw
++	var img := vp.get_texture().get_image()
++	vp.queue_free()
++	if img == null or img.is_empty():
++		return {"ok": false, "reason": "no_image"}
++	# the ball's centre projects to x = 0.5 - 0.9 / (2 · 4 · tan(37.5°)) = 0.353 of the width (camera fov 75°, 4 m away)
++	var lit := img.get_pixel(int(SIZE * 0.353), int(SIZE * 0.5))      # sunlit front of the ball
++	var dark := img.get_pixel(3, 3)                                   # background
++	var q := img.get_pixel(int(SIZE * 0.68), int(SIZE * 0.5))        # shader quad
++	var res := {"lit": snappedf(lit.get_luminance(), 0.01), "dark": snappedf(dark.get_luminance(), 0.01),
++		"quad": "%.2f %.2f %.2f" % [q.r, q.g, q.b], "ms": snappedf((Time.get_ticks_usec() - t0) / 1000.0, 0.1)}
++	var quad_ok := absf(q.r - QUAD_COLOR.r) < 0.12 and absf(q.g - QUAD_COLOR.g) < 0.12 and absf(q.b - QUAD_COLOR.b) < 0.12
++	res["ok"] = lit.get_luminance() > 0.35 and dark.get_luminance() < 0.05 and quad_ok
++	res["reason"] = "" if res["ok"] else ("lighting" if lit.get_luminance() <= 0.35 else ("shader" if not quad_ok else "background"))
++	return res
+
+--- a/scripts/core/screenshotter.gd	2026-11-01 20:28:36.336129627 +0000
++++ b/scripts/core/screenshotter.gd	2026-11-10 11:32:35.365340426 +0000
+@@ -28,6 +28,10 @@
+ 	if prefix == "" or _busy:
+ 		return
+ 	_t += delta
++	# SPIKE (--shot-fast, with --fixed-fps): the simulation runs every frame, the picture is only rendered for the
++	# last frames before a shot – software OpenGL spends its time on pictures nobody looks at otherwise
++	if CliArgs.has("shot-fast") and _next < times.size():
++		RenderingServer.render_loop_enabled = _t >= times[_next] - 0.1
+ 	if _next < times.size() and _t >= times[_next]:
+ 		_capture(_next)
+ 		_next += 1
+@@ -35,6 +39,7 @@
+ 
+ func _capture(index: int) -> void:
+ 	_busy = true
++	RenderingServer.render_loop_enabled = true
+ 	await RenderingServer.frame_post_draw
+ 	var img := window_image(get_viewport().get_texture().get_image())
+ 	var path := "%s_%02d.png" % [prefix, index]
+
+--- a/scripts/core/settings.gd	2026-11-07 16:40:54.563013864 +0000
++++ b/scripts/core/settings.gd	2026-11-10 11:19:09.920601335 +0000
+@@ -6,7 +6,15 @@
+ ## Files without it (v0.5.1 and older) always had "fullscreen", chosen or not – there only a stored true counts as the
+ ## player's choice; a false is taken as not chosen, so the start value applies (a Steam Deck that once saved false
+ ## while docked on a large screen kept starting windowed in game mode – QA v0.5.1 review).
+-const SETTINGS_VERSION := 2
++## 3 since v0.8.0: graphics mode ("graphics_mode"), sound profile ("sound_profile"), quality preset of Modern
++## ("gfx_preset", "gfx_custom"), music in the race ("race_music") – each saved only once the player has chosen it.
++## Keys this version does not know (a newer version's) are kept when saving (SPIKE).
++const SETTINGS_VERSION := 3
++const FULLSCREEN_CHOICE_SINCE := 2
++## Keys written by this version (everything else in the file is kept untouched in `_extra`).
++const KNOWN_KEYS: Array[String] = ["settings_version", "master_volume", "sfx_volume", "music_volume", "fullscreen",
++	"vibration", "player_name", "language", "leaderboard_filter", "graphics_mode", "sound_profile", "gfx_preset",
++	"gfx_custom", "race_music"]
+ 
+ var master_volume := 0.8
+ var sfx_volume := 1.0
+@@ -22,6 +30,15 @@
+ ## while the Steam Deck was docked (e.g. by a leaderboard name) does not keep the handheld in a window (QA v0.5.1).
+ var fullscreen_chosen := false
+ var vibration := true             ## gamepad vibration in the race (Haptics)
++## "Grafik": "arcade" | "modern", "" = not chosen yet (the chooser appears; until then Gfx.resolve_mode() decides).
++var graphics_mode := ""
++## "Klang": "arcade" | "modern", "" = not chosen yet (follows the first graphics choice).
++var sound_profile := ""
++## Quality preset of Modern (Gfx.PRESET_ORDER), "" = the one recommended for this adapter; "custom" uses gfx_custom.
++var gfx_preset := ""
++var gfx_custom: Dictionary = {}
++var race_music := true            ## music during races (sound profile "modern" only)
++var _extra: Dictionary = {}       ## keys of a newer version: kept when saving
+ var player_name := ""
+ var language := "de"
+ var leaderboard_filter := "all"   # "all" or a vehicle type id
+@@ -108,6 +125,19 @@
+ 	player_name = str(d.get("player_name", player_name))
+ 	language = str(d.get("language", language))
+ 	leaderboard_filter = str(d.get("leaderboard_filter", leaderboard_filter))
++	var gm := str(d.get("graphics_mode", ""))
++	graphics_mode = gm if Gfx.MODES.has(gm) else ""
++	var sp := str(d.get("sound_profile", ""))
++	sound_profile = sp if Gfx.MODES.has(sp) else ""
++	var pr := str(d.get("gfx_preset", ""))
++	gfx_preset = pr if Gfx.PRESET_ORDER.has(pr) else ""
++	var gc: Variant = d.get("gfx_custom", {})
++	gfx_custom = Gfx.sanitized(gc) if gc is Dictionary and not (gc as Dictionary).is_empty() else {}
++	race_music = bool(d.get("race_music", race_music))
++	_extra = {}
++	for k: String in d:
++		if not KNOWN_KEYS.has(k):
++			_extra[k] = d[k]
+ 	_stored = to_dict()
+ 
+ 
+@@ -136,7 +166,9 @@
+ static func fullscreen_stored_as_choice(d: Dictionary) -> bool:
+ 	if not d.has("fullscreen"):
+ 		return false
+-	return int(d.get("settings_version", 1)) >= SETTINGS_VERSION or bool(d["fullscreen"])
++	# version 2 introduced "saved only when chosen" – NOT ">= SETTINGS_VERSION": with version 3 a file of v0.6/v0.7
++	# (version 2, "fullscreen": false) would lose the player's choice (SPIKE finding)
++	return int(d.get("settings_version", 1)) >= FULLSCREEN_CHOICE_SINCE or bool(d["fullscreen"])
+ 
+ 
+ func to_dict() -> Dictionary:
+@@ -148,9 +180,42 @@
+ 	}
+ 	if fullscreen_chosen:
+ 		d["fullscreen"] = fullscreen
++	if graphics_mode != "":
++		d["graphics_mode"] = graphics_mode
++	if sound_profile != "":
++		d["sound_profile"] = sound_profile
++	if gfx_preset != "":
++		d["gfx_preset"] = gfx_preset
++	if gfx_preset == "custom" and not gfx_custom.is_empty():
++		d["gfx_custom"] = gfx_custom.duplicate()
++	if not race_music:
++		d["race_music"] = false
++	for k: String in _extra:
++		d[k] = _extra[k]
+ 	return d
+ 
+ 
++## The graphics mode of this run (Gfx.resolve_mode): the stored choice, the command line (--graphics=arcade|modern),
++## Arcade without a renderer or after a failed start of Modern. Decided once per run for the race; the menus
++## follow the stored choice at once.
++func graphics() -> Dictionary:
++	var headless := DisplayServer.get_name() == "headless"
++	var tier := "ok" if headless else Gfx.classify_adapter(RenderingServer.get_video_adapter_name(), RenderingServer.get_video_adapter_vendor(), in_gamescope())
++	return Gfx.resolve_mode(graphics_mode, CliArgs.get_string("graphics", ""), tier, headless, FileAccess.file_exists(Gfx.BOOT_MARKER))
++
++
++func is_modern() -> bool:
++	return str(graphics().get("mode", Gfx.ARCADE)) == Gfx.MODERN
++
++
++## Effective quality values of Modern: the stored preset, or the one recommended for the adapter.
++func quality() -> Dictionary:
++	var preset := gfx_preset
++	if preset == "":
++		preset = Gfx.recommended_preset(Gfx.classify_adapter(RenderingServer.get_video_adapter_name(), RenderingServer.get_video_adapter_vendor(), in_gamescope()))
++	return Gfx.quality(preset, gfx_custom)
++
++
+ func _sample_mode() -> bool:
+ 	var flow: Node = get_node_or_null("/root/GameFlow") if is_inside_tree() else null
+ 	return flow != null and flow.get("sample_mode") == true
+
+--- a/scripts/race/modern/test_sky.gdshader	1970-01-01 00:00:00.000000000 +0000
++++ b/scripts/race/modern/test_sky.gdshader	2026-11-10 11:33:22.464946710 +0000
+@@ -0,0 +1,5 @@
++shader_type spatial;
++// SPIKE: a shader file to check that the export picks .gdshader resources up
++render_mode unshaded;
++uniform vec4 tint : source_color = vec4(1.0);
++void fragment() { ALBEDO = tint.rgb; }
+
+--- a/scripts/ui/game_flow.gd	2026-11-09 15:55:34.277340019 +0000
++++ b/scripts/ui/game_flow.gd	2026-11-10 11:28:28.264735033 +0000
+@@ -28,6 +28,7 @@
+ 	"leaderboards": "res://scripts/ui/screens/leaderboards_screen.gd",
+ 	"options": "res://scripts/ui/screens/options_screen.gd",
+ 	"ferry": "res://scripts/ui/screens/ferry_screen.gd",
++	"graphics_choice": "res://scripts/ui/screens/graphics_choice_screen.gd",   # SPIKE v0.8.0
+ }
+ 
+ var current: Node = null
+@@ -98,6 +99,10 @@
+ 	if CliArgs.has("screen"):
+ 		_debug_screen(CliArgs.get_string("screen", "title"))
+ 		return
++	# SPIKE v0.8.0: first start of this version (no graphics mode chosen yet) – ask once, then the title
++	if Settings.graphics_mode == "" and not CliArgs.has("graphics") and DisplayServer.get_name() != "headless":
++		go("graphics_choice", {}, true)
++		return
+ 	show_title()
+ 
+ 
+@@ -460,6 +465,8 @@
+ 		"vehicle":
+ 			mode = "race"
+ 			draft = {"race_id": rid}
++			if CliArgs.has("sample-vehicle"):
++				draft["vehicle"] = CliArgs.get_string("sample-vehicle", "limousine")   # SPIKE: car in focus
+ 			go("vehicle", {"mode": "race"}, true)
+ 		"start_time":
+ 			mode = "race"
+
+--- a/scripts/ui/screens/graphics_choice_screen.gd	1970-01-01 00:00:00.000000000 +0000
++++ b/scripts/ui/screens/graphics_choice_screen.gd	2026-11-10 11:28:28.248908335 +0000
+@@ -0,0 +1,103 @@
++class_name GraphicsChoiceScreen
++extends UiScreen
++## SPIKE v0.8.0 – shown once at the first start of v0.8.0 (no "graphics_mode" in the settings yet; new and existing
++## players alike): two cards "Arcade" and "Modern" with a picture of the same road in each mode. ◀▶ choose, A / Enter
++## confirms; the card recommended for this computer has the focus and a badge (Gfx.recommended_mode: Modern unless the
++## graphics adapter is a software rasteriser). The choice sets graphics mode and sound profile together and is saved;
++## both can be changed any time in the options.
++
++const CARD_W := 560.0
++const CARD_H := 470.0
++
++var cards: Array[Button] = []
++var recommended := Gfx.MODERN
++
++
++func build() -> void:
++	var existing := bool(params.get("existing_player", FileAccess.file_exists(Settings.file_path)))
++	add_header(tr("Grafik wählen"), tr("Neu in v0.8.0: der Modus „Modern“") if existing else tr("Wie soll Crossing Europe aussehen?"))
++	hints = [[["lr"], tr("Wählen")], [["Enter", "pad:A"], tr("Übernehmen")]]
++	var tier := Gfx.classify_adapter(RenderingServer.get_video_adapter_name(), RenderingServer.get_video_adapter_vendor(), Settings.in_gamescope())
++	recommended = Gfx.recommended_mode(tier, DisplayServer.get_name() == "headless")
++	if CliArgs.has("recommend"):
++		recommended = CliArgs.get_string("recommend", recommended)   # debug: screenshots of both cases
++	var texts := {
++		Gfx.ARCADE: [tr("ARCADE"), tr("Das Spiel wie bisher: Pseudo-3D mit Sprites im Stil der 80er-Arcade-Racer, der bisherige Klang.\nLäuft auf jedem Rechner mit 60 Bildern pro Sekunde.")],
++		Gfx.MODERN: [tr("MODERN"), tr("Echtes 3D: feinere Modelle, Sonnenlicht und Schatten, Scheinwerfer bei Nacht, neuer Klang und neue Musik.\nBraucht eine Grafikkarte oder einen Grafikchip ab etwa 2015.")],
++	}
++	for i in Gfx.MODES.size():
++		var id := Gfx.MODES[i]
++		var card := _Card.new()
++		card.mode = id
++		card.title = str(texts[id][0])
++		card.body = str(texts[id][1])
++		card.recommended = id == recommended
++		var path := "res://assets/ui/gfx_preview_%s.png" % id
++		card.picture = load(path) if ResourceLoader.exists(path) else null
++		card.pressed.connect(_choose.bind(id))
++		UiKit.place(self, card, Rect2(64 + i * (CARD_W + 32), 100, CARD_W, CARD_H))
++		cards.append(card)
++	cards[0].focus_neighbor_right = cards[0].get_path_to(cards[1])
++	cards[1].focus_neighbor_left = cards[1].get_path_to(cards[0])
++	var note := UiKit.label(tr("Strecken, Verkehr, Regeln, Spielstand und Bestenlisten sind in beiden Modi gleich. Umschalten jederzeit unter Optionen → Grafik."),
++		UiTheme.F.BODY_MEDIUM, 20, UiTheme.TEXT_DIM, HORIZONTAL_ALIGNMENT_CENTER)
++	UiKit.place(self, note, Rect2(64, 584, 1152, 30))
++	if tier == "software":
++		var warn := UiKit.label(tr("Dieser Rechner zeichnet ohne Grafikkarte (Software-Grafik) – „Modern“ läuft hier voraussichtlich sehr langsam."),
++			UiTheme.F.BODY_BOLD, 20, UiTheme.WARN, HORIZONTAL_ALIGNMENT_CENTER)
++		UiKit.place(self, warn, Rect2(64, 616, 1152, 30))
++	default_focus = cards[Gfx.MODES.find(recommended)]
++
++
++func _choose(id: String) -> void:
++	Settings.graphics_mode = id
++	Settings.sound_profile = id
++	if not GameFlow.sample_mode:
++		Settings.save_settings()
++	GameFlow.show_title()
++
++
++func on_cancel() -> void:
++	pass   # no way around it: one of the two cards (a single A on the recommended one)
++
++
++class _Card extends Button:
++	var mode := ""
++	var title := ""
++	var body := ""
++	var recommended := false
++	var picture: Texture2D
++
++	func _init() -> void:
++		focus_mode = Control.FOCUS_ALL
++		flat = true
++		add_theme_stylebox_override("focus", StyleBoxEmpty.new())
++
++	func _draw() -> void:
++		var focused := has_focus()
++		var r := Rect2(Vector2.ZERO, size)
++		draw_rect(r, Color(0.035, 0.05, 0.14, 0.92))
++		if focused:
++			for i in 4:
++				draw_rect(r.grow(2.0 + i * 2.0), Color(UiTheme.ACCENT, 0.22 - i * 0.05), false, 2.0)
++		draw_rect(r, UiTheme.ACCENT if focused else UiTheme.PANEL_LINE, false, 3.0 if focused else 1.5)
++		var pic := Rect2(18, 18, size.x - 36, (size.x - 36) * 9.0 / 16.0)
++		if picture != null:
++			draw_texture_rect(picture, pic, false, Color.WHITE if focused else Color(0.72, 0.72, 0.78))
++		else:
++			draw_rect(pic, Color(0.1, 0.12, 0.25))
++		var y := pic.end.y + 44.0
++		draw_string(UiTheme.font(UiTheme.F.TITLE), Vector2(20, y), title, HORIZONTAL_ALIGNMENT_LEFT, -1, 40, UiTheme.GOLD if focused else Color.WHITE)
++		if recommended:
++			var f := UiTheme.font(UiTheme.F.BODY_BOLD)
++			var txt := tr("EMPFOHLEN FÜR DIESEN RECHNER")
++			var tw := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 17).x
++			var badge := Rect2(size.x - tw - 44, y - 30, tw + 24, 30)
++			draw_rect(badge, Color(UiTheme.GOOD, 0.18))
++			draw_rect(badge, UiTheme.GOOD, false, 1.5)
++			draw_string(f, Vector2(badge.position.x + 12, badge.position.y + 22), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 17, UiTheme.GOOD)
++		draw_multiline_string(UiTheme.font(UiTheme.F.BODY_MEDIUM), Vector2(20, y + 32), body, HORIZONTAL_ALIGNMENT_LEFT, size.x - 40, 20, 4, UiTheme.TEXT)
++
++	func _notification(what: int) -> void:
++		if what == NOTIFICATION_FOCUS_ENTER or what == NOTIFICATION_FOCUS_EXIT:
++			queue_redraw()
+
+--- a/scripts/ui/screens/options_screen.gd	2026-11-07 16:40:54.563985966 +0000
++++ b/scripts/ui/screens/options_screen.gd	2026-11-10 11:26:54.767577340 +0000
+@@ -12,12 +12,74 @@
+ var _base_hints: Array = []
+ 
+ 
++## SPIKE v0.8.0: two pages – ALLGEMEIN (sound, vibration, name, controls) and GRAFIK (mode Arcade / Modern, full
++## screen, quality of Modern) – switched with LB / RB (Bild ↑ / Bild ↓) or a click on the tab.
++const TABS: Array[String] = ["ALLGEMEIN", "GRAFIK"]
++const QUALITY_ROWS: Array[String] = ["shadows", "details", "scale", "aa", "effects"]
++
++var tab := 0
++var _pages: Array[Control] = []
++var _tab_labels: Array[Button] = []
++var _page_focus: Array[Control] = [null, null]
++var gfx_mode: OptionRow              ## "Grafik  Arcade / Modern"
++var gfx_preset: OptionRow            ## "Voreinstellung"
++var _quality: Dictionary = {}        ## key -> OptionRow
++var _preview: TextureRect
++var _preview_name: Label
++var _help: Label
++var _status: Label
++
++
+ func build() -> void:
+ 	add_header(tr("Optionen"))
+-	_base_hints = [[["ud"], tr("Wählen")], [["lr"], tr("Ändern")], [["Esc", "pad:B"], tr("Zurück")]]
++	_base_hints = [[["ud"], tr("Wählen")], [["lr"], tr("Ändern")], [["pgup", "pgdn", "pad:LB", "pad:RB"], tr("Seite")], [["Esc", "pad:B"], tr("Zurück")]]
+ 	hints = _base_hints
+-	var left := add_panel(Rect2(48, 104, 640, 560), UiTheme.ACCENT, 8)
+-	left.add_child(UiKit.label(tr("TON UND BILD"), UiTheme.F.HEADING, 22, UiTheme.ACCENT_2))
++	# tab strip right of the title
++	var x := 700.0
++	for i in TABS.size():
++		var b := Button.new()
++		b.text = tr(TABS[i])
++		b.focus_mode = Control.FOCUS_NONE
++		b.add_theme_font_size_override("font_size", 22)
++		b.pressed.connect(show_tab.bind(i))
++		UiKit.place(self, b, Rect2(x, 26, 236, 44))
++		_tab_labels.append(b)
++		x += 248.0
++	for i in TABS.size():
++		var page := Control.new()
++		page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
++		page.mouse_filter = Control.MOUSE_FILTER_IGNORE
++		add_child(page)
++		_pages.append(page)
++	_build_general(_pages[0])
++	_build_graphics(_pages[1])
++	tab = int(params.get("tab", 1 if CliArgs.get_string("options-tab", "") == "grafik" else 0))
++	show_tab(tab, false)
++	default_focus = _page_focus[tab]
++
++
++func show_tab(i: int, focus: bool = true) -> void:
++	tab = clampi(i, 0, TABS.size() - 1)
++	for k in _pages.size():
++		_pages[k].visible = k == tab
++		_tab_labels[k].add_theme_color_override("font_color", UiTheme.GOLD if k == tab else UiTheme.TEXT_DIM)
++		_tab_labels[k].add_theme_stylebox_override("normal", UiTheme.button_box(Color(0.12, 0.16, 0.4, 0.85) if k == tab else Color(0.05, 0.07, 0.2, 0.5), UiTheme.ACCENT if k == tab else Color(1, 1, 1, 0.14), 0, 2))
++	if focus and _page_focus[tab] != null:
++		UiKit.sound("ui_move")
++		_page_focus[tab].grab_focus()
++
++
++func _input(event: InputEvent) -> void:
++	if keyboard != null and is_instance_valid(keyboard):
++		return
++	if event.is_action_pressed("ui_page_down") or event.is_action_pressed("ui_page_up"):
++		show_tab(posmod(tab + (1 if event.is_action_pressed("ui_page_down") else -1), TABS.size()))
++		get_viewport().set_input_as_handled()
++
++
++func _build_general(page: Control) -> void:
++	var left := _page_panel(page, Rect2(48, 104, 640, 560), UiTheme.ACCENT, 8)
++	left.add_child(UiKit.label(tr("TON"), UiTheme.F.HEADING, 22, UiTheme.ACCENT_2))
+ 	var master := _volume_row(tr("Gesamtlautstärke"), float(Settings.master_volume))
+ 	master.value_changed.connect(func(i: int) -> void: _set_volume("master_volume", i))
+ 	left.add_child(master)
+@@ -27,24 +89,27 @@
+ 	var music := _volume_row(tr("Musik"), float(Settings.music_volume))
+ 	music.value_changed.connect(func(i: int) -> void: _set_volume("music_volume", i))
+ 	left.add_child(music)
+-	var full := OptionRow.new(tr("Vollbild"), [tr("Aus"), tr("An")], 1 if Settings.fullscreen else 0)
+-	full.value_changed.connect(func(i: int) -> void:
+-		Settings.fullscreen = i == 1   # saved from now on (Settings.fullscreen_chosen)
+-		if not GameFlow.sample_mode:
+-			Settings.apply())
+-	left.add_child(full)
++	var modern_sound := _sound_profile() == Gfx.MODERN
++	var klang := OptionRow.new(tr("Klang"), [tr("Arcade"), tr("Modern")], 1 if modern_sound else 0)
++	left.add_child(klang)
++	var race_music := OptionRow.new(tr("Musik im Rennen"), [tr("Aus"), tr("An")], 1 if Settings.race_music else 0)
++	race_music.value_changed.connect(func(i: int) -> void: Settings.race_music = i == 1)
++	left.add_child(race_music)
++	klang.value_changed.connect(func(i: int) -> void:
++		Settings.sound_profile = Gfx.MODES[i]
++		_set_enabled(race_music, i == 1))
++	_set_enabled(race_music, modern_sound)
+ 	vibration = OptionRow.new(tr("Vibration"), [tr("Aus"), tr("An")], 1 if Settings.vibration else 0)
+ 	vibration.value_changed.connect(func(i: int) -> void:
+ 		Settings.vibration = i == 1
+ 		if i == 1 and not GameFlow.sample_mode:
+ 			Haptics.test_pulse())   # a short pulse: this is what it feels like
+ 	left.add_child(vibration)
+-	left.add_child(UiKit.label(tr("SPIELERNAME"), UiTheme.F.HEADING, 22, UiTheme.ACCENT_2))
+ 	_name = LineEdit.new()
+ 	_name.text = str(Settings.player_name)
+ 	_name.max_length = NameEntry.MAX_LEN
+-	_name.placeholder_text = tr("Name für die Bestenlisten")
+-	_name.custom_minimum_size = Vector2(0, 54)
++	_name.placeholder_text = tr("Spielername für die Bestenlisten")
++	_name.custom_minimum_size = Vector2(0, 50)
+ 	_name.text_changed.connect(func(t: String) -> void: Settings.player_name = t.strip_edges())
+ 	_name.gui_input.connect(_on_name_input)
+ 	_name.focus_entered.connect(func() -> void: set_hints(_name_hints()))
+@@ -55,15 +120,175 @@
+ 	var back := UiKit.button(tr("Zurück"), 24, HORIZONTAL_ALIGNMENT_CENTER)
+ 	back.pressed.connect(on_cancel)
+ 	left.add_child(back)
+-	UiKit.chain_focus([master, sfx, music, full, vibration, _name, back])
+-	default_focus = master
+-	var right := add_panel(Rect2(708, 104, 516, 560), UiTheme.ACCENT_2, 6)
++	for r: Control in [master, sfx, music, klang, race_music, vibration]:
++		r.custom_minimum_size.y = 46
++	UiKit.chain_focus(_focusable([master, sfx, music, klang, race_music, vibration, _name, back]))
++	_page_focus[0] = master
++	var right := _page_panel(page, Rect2(708, 104, 516, 560), UiTheme.ACCENT_2, 6)
+ 	right.add_child(UiKit.label(tr("STEUERUNG"), UiTheme.F.HEADING, 22, UiTheme.ACCENT_2))
+ 	var ctl := _Controls.new()
+ 	ctl.custom_minimum_size = Vector2(480, 470)
+ 	right.add_child(ctl)
+ 
+ 
++func _build_graphics(page: Control) -> void:
++	var left := _page_panel(page, Rect2(48, 104, 640, 560), UiTheme.ACCENT, 6)
++	left.add_child(UiKit.label(tr("GRAFIK"), UiTheme.F.HEADING, 22, UiTheme.ACCENT_2))
++	var modern := _graphics_mode() == Gfx.MODERN
++	gfx_mode = OptionRow.new(tr("Grafik"), [tr("Arcade"), tr("Modern")], 1 if modern else 0)
++	gfx_mode.value_changed.connect(_on_mode)
++	left.add_child(gfx_mode)
++	var full := OptionRow.new(tr("Vollbild"), [tr("Aus"), tr("An")], 1 if Settings.fullscreen else 0)
++	full.value_changed.connect(func(i: int) -> void:
++		Settings.fullscreen = i == 1   # saved from now on (Settings.fullscreen_chosen)
++		if not GameFlow.sample_mode:
++			Settings.apply())
++	left.add_child(full)
++	left.add_child(UiKit.label(tr("QUALITÄT IM MODUS MODERN"), UiTheme.F.HEADING, 22, UiTheme.ACCENT_2))
++	var q := Settings.quality()
++	var preset_names := [tr("Steam Deck"), tr("Niedrig"), tr("Mittel"), tr("Hoch"), tr("Eigene")]
++	gfx_preset = OptionRow.new(tr("Voreinstellung"), preset_names, Gfx.PRESET_ORDER.find(Gfx.preset_of(q)))
++	gfx_preset.value_changed.connect(_on_preset)
++	left.add_child(gfx_preset)
++	var defs := {
++		"shadows": [tr("Schatten"), [tr("Aus"), tr("Niedrig"), tr("Mittel"), tr("Hoch")]],
++		"details": [tr("Details"), [tr("Niedrig"), tr("Mittel"), tr("Hoch")]],
++		"scale": [tr("Auflösung"), Gfx.SCALE_STEPS.map(func(v: int) -> String: return "%d %%" % v)],
++		"aa": [tr("Kantenglättung"), [tr("Aus"), "MSAA 2×", "MSAA 4×"]],
++		"effects": [tr("Effekte"), [tr("Aus"), tr("Einfach"), tr("Voll")]],
++	}
++	var rows: Array = [gfx_mode, full, gfx_preset]
++	for key: String in QUALITY_ROWS:
++		var d: Array = defs[key]
++		var idx := Gfx.SCALE_STEPS.find(int(q[key])) if key == "scale" else int(q[key])
++		var row := OptionRow.new(str(d[0]), d[1], idx)
++		row.wrap = false
++		row.value_changed.connect(_on_quality.bind(key))
++		left.add_child(row)
++		_quality[key] = row
++		rows.append(row)
++	var back := UiKit.button(tr("Zurück"), 24, HORIZONTAL_ALIGNMENT_CENTER)
++	back.pressed.connect(on_cancel)
++	left.add_child(back)
++	rows.append(back)
++	for r: Control in rows:
++		r.custom_minimum_size.y = 44
++		r.focus_entered.connect(_on_gfx_focus.bind(r))
++	_page_focus[1] = gfx_mode
++	# right: preview of the mode, what the focused row does, adapter and when it applies
++	var right := _page_panel(page, Rect2(708, 104, 516, 560), UiTheme.ACCENT_2, 8)
++	_preview_name = UiKit.label("", UiTheme.F.HEADING, 22, UiTheme.ACCENT_2)
++	right.add_child(_preview_name)
++	_preview = TextureRect.new()
++	_preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
++	_preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
++	_preview.custom_minimum_size = Vector2(480, 270)
++	right.add_child(_preview)
++	_help = UiKit.label("", UiTheme.F.BODY_MEDIUM, 20, UiTheme.TEXT)
++	_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
++	_help.custom_minimum_size = Vector2(480, 104)
++	_help.vertical_alignment = VERTICAL_ALIGNMENT_TOP
++	right.add_child(_help)
++	_status = UiKit.label("", UiTheme.F.BODY_MEDIUM, 18, UiTheme.TEXT_DIM)
++	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
++	right.add_child(_status)
++	_refresh_graphics()
++	_on_gfx_focus(gfx_mode)
++	UiKit.chain_focus(_focusable(rows))
++
++
++func _page_panel(page: Control, rect: Rect2, accent: Color, sep: int) -> VBoxContainer:
++	var p := UiKit.panel(UiTheme.PANEL, accent)
++	UiKit.place(page, p, rect)
++	var box := UiKit.vbox(sep)
++	p.add_child(box)
++	return box
++
++
++func _focusable(list: Array) -> Array:
++	return list.filter(func(c: Control) -> bool: return c.focus_mode != Control.FOCUS_NONE)
++
++
++func _set_enabled(row: Control, on: bool) -> void:
++	row.focus_mode = Control.FOCUS_ALL if on else Control.FOCUS_NONE
++	row.modulate.a = 1.0 if on else 0.38
++	row.mouse_filter = Control.MOUSE_FILTER_STOP if on else Control.MOUSE_FILTER_IGNORE
++
++
++func _graphics_mode() -> String:
++	return Settings.graphics_mode if Settings.graphics_mode != "" else str(Settings.graphics().get("mode", Gfx.ARCADE))
++
++
++func _sound_profile() -> String:
++	return Settings.sound_profile if Settings.sound_profile != "" else _graphics_mode()
++
++
++func _on_mode(i: int) -> void:
++	Settings.graphics_mode = Gfx.MODES[i]
++	if Settings.sound_profile == "":
++		Settings.sound_profile = Gfx.MODES[i]
++	_refresh_graphics()
++	_on_gfx_focus(gfx_mode)
++
++
++func _on_preset(i: int) -> void:
++	var id := Gfx.PRESET_ORDER[i]
++	Settings.gfx_preset = id
++	if id != "custom":
++		Settings.gfx_custom = {}
++	_refresh_graphics()
++
++
++func _on_quality(i: int, key: String) -> void:
++	var q := Settings.quality()
++	q[key] = Gfx.SCALE_STEPS[i] if key == "scale" else i
++	Settings.gfx_preset = Gfx.preset_of(q)
++	Settings.gfx_custom = q if Settings.gfx_preset == "custom" else {}
++	_refresh_graphics()
++
++
++## Rows follow the settings: quality rows show the effective values and are dimmed (not focusable) in Arcade.
++func _refresh_graphics() -> void:
++	var modern := _graphics_mode() == Gfx.MODERN
++	var q := Settings.quality()
++	gfx_preset.set_values(gfx_preset.values.duplicate(), Gfx.PRESET_ORDER.find(Gfx.preset_of(q)))
++	_set_enabled(gfx_preset, modern)
++	for key: String in _quality:
++		var row: OptionRow = _quality[key]
++		row.set_values(row.values.duplicate(), Gfx.SCALE_STEPS.find(int(q[key])) if key == "scale" else int(q[key]))
++		_set_enabled(row, modern)
++	var all: Array = [gfx_mode]
++	for c in gfx_mode.get_parent().get_children():
++		if c is Button and c != gfx_mode:
++			all.append(c)
++	UiKit.chain_focus(_focusable(all))
++	_preview_name.text = tr("VORSCHAU: MODERN") if modern else tr("VORSCHAU: ARCADE")
++	var path := "res://assets/ui/gfx_preview_%s.png" % ("modern" if modern else "arcade")
++	_preview.texture = load(path) if ResourceLoader.exists(path) else null
++	var tier := Gfx.classify_adapter(RenderingServer.get_video_adapter_name(), RenderingServer.get_video_adapter_vendor(), Settings.in_gamescope())
++	var adapter := RenderingServer.get_video_adapter_name()
++	if adapter.length() > 44:
++		adapter = adapter.substr(0, 43) + "…"
++	var rec := tr("Empfohlen: Arcade (Software-Grafik ohne Grafikkarte)") if tier == "software" else tr("Empfohlen: Modern, Voreinstellung %s") % gfx_preset.values[Gfx.PRESET_ORDER.find(Gfx.recommended_preset(tier))]
++	_status.text = tr("Grafik: %s\n%s\nÄnderungen gelten in den Menüs sofort, im Rennen ab dem nächsten Start.") % [adapter, rec]
++
++
++func _on_gfx_focus(row: Control) -> void:
++	if _help == null:
++		return
++	var texts := {
++		gfx_mode: tr("Arcade: das Spiel wie bisher – Pseudo-3D mit Sprites, läuft überall.\nModern: echtes 3D mit feineren Modellen, Sonnenlicht, Schatten und Scheinwerfern. Strecken, Verkehr, Regeln und Bestenlisten sind in beiden Modi gleich."),
++		gfx_preset: tr("Stellt Schatten, Details, Auflösung, Kantenglättung und Effekte gemeinsam ein. „Steam Deck“ ist auf 1280×800 und den eingebauten Grafikchip abgestimmt."),
++	}
++	if _quality.has("shadows"):
++		texts[_quality["shadows"]] = tr("Schatten von Sonne und Laternen. Kostet am meisten Leistung – bei Rucklern zuerst senken.")
++		texts[_quality["details"]] = tr("Sichtweite und Dichte von Bäumen, Gebäuden und Kleinteilen. Fahrzeuge, Schilder und alles, worauf du reagieren musst, sind immer gleich weit zu sehen.")
++		texts[_quality["scale"]] = tr("Auflösung des 3D-Bilds. Unter 100 % wird das Bild weicher und schneller; HUD und Schrift bleiben scharf.")
++		texts[_quality["aa"]] = tr("Glättet Kanten (MSAA). 2× ist ein guter Kompromiss, 4× für starke Grafikkarten.")
++		texts[_quality["effects"]] = tr("Leuchten (Glow), Gischt und Schneetreiben, Spiegelungen auf nasser Fahrbahn.")
++	_help.text = str(texts.get(row, tr("Vollbild ohne Rahmen. Auf dem Steam Deck immer an.")))
++
++
+ ## Footer while the name field has the focus: gamepad A opens the on-screen keyboard.
+ func _name_hints() -> Array:
+ 	return [[["ud"], tr("Wählen")], [["pad:A"], tr("Bildschirmtastatur")], [["Esc", "pad:B"], tr("Zurück")]]
+
+--- a/scripts/ui/widgets/car_showcase.gd	2026-10-30 12:07:30.880527279 +0000
++++ b/scripts/ui/widgets/car_showcase.gd	2026-11-10 11:20:21.062951554 +0000
+@@ -8,6 +8,7 @@
+ var _anim := 1.0
+ var _dir := 1.0
+ var _t := 0.0
++var stage3d: Showroom3D              ## SPIKE: real-time 3D showroom in the graphics mode "Modern" (null = sprite)
+ 
+ 
+ func _ready() -> void:
+@@ -19,9 +20,24 @@
+ 	sprite_id = showroom_set
+ 	_anim = 0.0
+ 	_dir = dir
++	_show_3d(id, dir)
+ 	queue_redraw()
+ 
+ 
++## SPIKE: in the graphics mode "Modern" the car's 3D model replaces the sprite (cars without a model keep it).
++func _show_3d(id: String, dir: float) -> void:
++	var st: Node = get_node_or_null("/root/Settings")
++	var modern := st != null and st.has_method("is_modern") and bool(st.call("is_modern"))
++	if not modern or not Showroom3D.has_model(id):
++		if stage3d != null:
++			stage3d.visible = false
++		return
++	if stage3d == null:
++		stage3d = Showroom3D.new()
++		add_child(stage3d)
++	stage3d.show_vehicle(id, dir)
++
++
+ func _process(delta: float) -> void:
+ 	_t += delta
+ 	_anim = minf(1.0, _anim + delta * 4.0)
+@@ -29,6 +45,8 @@
+ 
+ 
+ func _draw() -> void:
++	if stage3d != null and stage3d.visible:
++		return   # the 3D showroom draws platform and car
+ 	var c := Vector2(size.x * 0.5, size.y * 0.78)
+ 	# platform
+ 	for i in 4:
+
+--- a/scripts/ui/widgets/showroom_3d.gd	1970-01-01 00:00:00.000000000 +0000
++++ b/scripts/ui/widgets/showroom_3d.gd	2026-11-10 11:22:16.412248405 +0000
+@@ -0,0 +1,251 @@
++class_name Showroom3D
++extends Control
++## SPIKE v0.8.0 – real-time 3D showroom of the vehicle selection in the graphics mode "Modern": the car's glTF model
++## on a turntable in its own small 3D world (SubViewport, transparent background – the menu background shows
++## through), lit by a key light with shadow, a fill light and two rim lights in the UI accent colours; reflections
++## from a small procedural studio sky. Lives inside CarShowcase (same place, same API), which keeps drawing the
++## sprite when a car has no model.
++## The SubViewport is sized in PHYSICAL pixels (design size × the window's stretch scale): with the stretch mode
++## canvas_items a SubViewportContainer with `stretch` would render 660×400 and scale that up softly in a 1080p window.
++
++const MODEL_DIR := "res://assets/models3d/player/"
++const TURN_DEG_S := 14.0
++const START_YAW_DEG := -148.0        ## 3/4 front view like the showroom sprites
++const SLIDE_PX := 120.0
++
++var vehicle_id := ""
++var viewport: SubViewport
++var msaa := Viewport.MSAA_4X
++var shadows := true
++var turn := true                     ## false: frozen (screenshots, tests)
++var _view: TextureRect
++var _pivot: Node3D
++var _car: Node3D
++var _cam: Camera3D
++var _anim := 1.0
++var _dir := 1.0
++var _yaw := START_YAW_DEG
++var _models: Dictionary = {}         ## id -> PackedScene (loaded once)
++var last_bounds := AABB()
++
++
++static func model_path(id: String) -> String:
++	return MODEL_DIR + id + ".glb"
++
++
++static func has_model(id: String) -> bool:
++	return ResourceLoader.exists(model_path(id))
++
++
++func _ready() -> void:
++	mouse_filter = Control.MOUSE_FILTER_IGNORE
++	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
++	viewport = SubViewport.new()
++	viewport.own_world_3d = true
++	viewport.transparent_bg = true
++	if CliArgs.has("showroom-msaa"):
++		msaa = int(CliArgs.get_float("showroom-msaa", 2.0)) as Viewport.MSAA
++	if CliArgs.has("showroom-no-shadow"):
++		shadows = false
++	if CliArgs.has("showroom-still"):
++		turn = false
++	viewport.msaa_3d = msaa
++	viewport.render_target_update_mode = SubViewport.UPDATE_WHEN_VISIBLE
++	viewport.positional_shadow_atlas_size = 1024
++	add_child(viewport)
++	_build_world()
++	_view = TextureRect.new()
++	_view.texture = viewport.get_texture()
++	_view.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
++	_view.stretch_mode = TextureRect.STRETCH_SCALE
++	_view.mouse_filter = Control.MOUSE_FILTER_IGNORE
++	_view.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
++	add_child(_view)
++	resized.connect(_fit)
++	get_viewport().size_changed.connect(_fit)
++	_fit()
++
++
++## Render size = this control's size in physical pixels (stretch scale of the window), at least 16 px.
++func _fit() -> void:
++	if viewport == null or not is_inside_tree():
++		return
++	var scale := get_viewport().get_stretch_transform().get_scale()
++	if CliArgs.has("showroom-naive"):
++		scale = Vector2.ONE   # debug A/B: logical size like SubViewportContainer.stretch (soft in a scaled window)
++	var px := Vector2i((size * scale).round()).max(Vector2i(16, 16))
++	if viewport.size != px:
++		viewport.size = px
++
++
++func _build_world() -> void:
++	var env := Environment.new()
++	env.background_mode = Environment.BG_CLEAR_COLOR          # keeps the viewport transparent
++	var sky_mat := ProceduralSkyMaterial.new()                 # studio "soft box": bright band at the horizon
++	sky_mat.sky_top_color = Color(0.10, 0.12, 0.22)
++	sky_mat.sky_horizon_color = Color(0.85, 0.9, 1.0)
++	sky_mat.ground_bottom_color = Color(0.02, 0.02, 0.05)
++	sky_mat.ground_horizon_color = Color(0.25, 0.2, 0.4)
++	sky_mat.sky_curve = 0.08
++	sky_mat.sun_angle_max = 0.0
++	var sky := Sky.new()
++	sky.sky_material = sky_mat
++	sky.radiance_size = Sky.RADIANCE_SIZE_128
++	env.sky = sky
++	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
++	env.ambient_light_energy = 0.55
++	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
++	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
++	var we := WorldEnvironment.new()
++	we.environment = env
++	viewport.add_child(we)
++	var key := DirectionalLight3D.new()
++	key.rotation_degrees = Vector3(-48, -35, 0)
++	key.light_energy = 1.5
++	key.shadow_enabled = shadows
++	key.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
++	key.directional_shadow_max_distance = 14.0
++	viewport.add_child(key)
++	var fill := DirectionalLight3D.new()
++	fill.rotation_degrees = Vector3(-20, 120, 0)
++	fill.light_energy = 0.35
++	viewport.add_child(fill)
++	for spec: Array in [[Vector3(-3.6, 1.2, -2.4), UiTheme.ACCENT], [Vector3(3.6, 1.0, -2.6), UiTheme.ACCENT_2]]:
++		var rim := OmniLight3D.new()
++		rim.position = spec[0]
++		rim.light_color = spec[1]
++		rim.light_energy = 3.0
++		rim.omni_range = 7.0
++		viewport.add_child(rim)
++	# turntable: dark glossy disc with a glowing cyan rim (the 2D platform's look)
++	var disc := MeshInstance3D.new()
++	var cyl := CylinderMesh.new()
++	cyl.top_radius = 3.1
++	cyl.bottom_radius = 3.2
++	cyl.height = 0.08
++	cyl.radial_segments = 64
++	disc.mesh = cyl
++	disc.position.y = -0.04
++	var dm := StandardMaterial3D.new()
++	dm.albedo_color = Color(0.03, 0.04, 0.09)
++	dm.metallic = 0.6
++	dm.roughness = 0.25
++	disc.material_override = dm
++	viewport.add_child(disc)
++	var ring := MeshInstance3D.new()
++	var tor := TorusMesh.new()
++	tor.inner_radius = 3.12
++	tor.outer_radius = 3.2
++	tor.rings = 96
++	tor.ring_segments = 6
++	ring.mesh = tor
++	ring.position.y = 0.01
++	var rm := StandardMaterial3D.new()
++	rm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
++	rm.albedo_color = UiTheme.ACCENT_2
++	ring.material_override = rm
++	viewport.add_child(ring)
++	_pivot = Node3D.new()
++	viewport.add_child(_pivot)
++	_cam = Camera3D.new()
++	_cam.fov = 24.0
++	_cam.position = Vector3(0.0, 2.3, 12.2)
++	_cam.look_at_from_position(_cam.position, Vector3(0.0, 0.5, 0.0), Vector3.UP)
++	viewport.add_child(_cam)
++
++
++## Shows the car `id` (true) or reports that it has no model (false – CarShowcase then draws the sprite).
++func show_vehicle(id: String, dir: float = 1.0) -> bool:
++	if not has_model(id):
++		visible = false
++		return false
++	if not _models.has(id):
++		_models[id] = load(model_path(id))
++	var scene: PackedScene = _models[id]
++	if scene == null:
++		visible = false
++		return false
++	if _car != null:
++		_car.queue_free()
++	_car = scene.instantiate()
++	_pivot.add_child(_car)
++	# the models keep the sprite pipeline's origin (traffic: rear edge) – centre the footprint on the turntable
++	var box := _bounds(_car, Transform3D.IDENTITY)
++	_car.position = Vector3(-box.get_center().x, -box.position.y, -box.get_center().z)
++	last_bounds = box
++	vehicle_id = id
++	visible = true
++	_anim = 0.0
++	_dir = dir
++	_yaw = START_YAW_DEG
++	return true
++
++
++## Bounding box of all meshes below `node` in the space of the model root.
++static func _bounds(node: Node, xf: Transform3D) -> AABB:
++	var out := AABB()
++	var first := true
++	var local := xf
++	if node is Node3D:
++		local = xf * (node as Node3D).transform
++	if node is MeshInstance3D and (node as MeshInstance3D).mesh != null:
++		out = local * (node as MeshInstance3D).mesh.get_aabb()
++		first = false
++	for c in node.get_children():
++		var b := _bounds(c, local)
++		if b.size == Vector3.ZERO:
++			continue
++		out = b if first else out.merge(b)
++		first = false
++	return out
++
++
++var _probe_frames := 0
++var _probe_ms: Array[float] = []
++
++
++## Debug (--showroom-probe): after 120 frames prints render statistics of the menu with the 3D showroom.
++func _probe(delta: float) -> void:
++	_probe_frames += 1
++	if _probe_frames == 2:
++		RenderingServer.viewport_set_measure_render_time(viewport.get_viewport_rid(), true)
++		RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
++	if _probe_frames > 30:
++		_probe_ms.append(delta * 1000.0)
++	if _probe_frames == 90:
++		_probe_ms.sort()
++		var rid := viewport.get_viewport_rid()
++		var root := get_viewport().get_viewport_rid()
++		print("SHOWROOM_PROBE ", JSON.stringify({
++			"window": DisplayServer.window_get_size(), "stretch_scale": get_viewport().get_stretch_transform().get_scale(),
++			"subviewport_px": viewport.size, "msaa": viewport.msaa_3d, "bounds_m": last_bounds.size,
++			"frame_ms_median": snappedf(_probe_ms[_probe_ms.size() / 2], 0.01),
++			"draw_calls_frame": Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
++			"primitives_frame": Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME),
++			"objects_frame": Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME),
++			"sub_draw_calls": RenderingServer.viewport_get_render_info(rid, RenderingServer.VIEWPORT_RENDER_INFO_TYPE_VISIBLE, RenderingServer.VIEWPORT_RENDER_INFO_DRAW_CALLS_IN_FRAME),
++			"sub_shadow_draw_calls": RenderingServer.viewport_get_render_info(rid, RenderingServer.VIEWPORT_RENDER_INFO_TYPE_SHADOW, RenderingServer.VIEWPORT_RENDER_INFO_DRAW_CALLS_IN_FRAME),
++			"sub_primitives": RenderingServer.viewport_get_render_info(rid, RenderingServer.VIEWPORT_RENDER_INFO_TYPE_VISIBLE, RenderingServer.VIEWPORT_RENDER_INFO_PRIMITIVES_IN_FRAME),
++			"sub_cpu_ms": snappedf(RenderingServer.viewport_get_measured_render_time_cpu(rid), 0.01),
++			"sub_gpu_ms": snappedf(RenderingServer.viewport_get_measured_render_time_gpu(rid), 0.01),
++			"root_cpu_ms": snappedf(RenderingServer.viewport_get_measured_render_time_cpu(root), 0.01),
++			"root_gpu_ms": snappedf(RenderingServer.viewport_get_measured_render_time_gpu(root), 0.01),
++			"video_mem_mb": snappedf(Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0, 0.1),
++			"adapter": RenderingServer.get_video_adapter_name(), "vendor": RenderingServer.get_video_adapter_vendor(),
++			"api": RenderingServer.get_video_adapter_api_version(), "type": RenderingServer.get_video_adapter_type(),
++			"tier": Gfx.classify_adapter(RenderingServer.get_video_adapter_name(), RenderingServer.get_video_adapter_vendor()),
++		}))
++
++
++func _process(delta: float) -> void:
++	if not visible:
++		return
++	if CliArgs.has("showroom-probe"):
++		_probe(delta)
++	_anim = minf(1.0, _anim + delta * 4.0)
++	if turn:
++		_yaw = fposmod(_yaw + TURN_DEG_S * delta, 360.0)
++	_pivot.rotation_degrees.y = _yaw
++	var e := 1.0 - pow(1.0 - _anim, 3.0)
++	_view.position.x = (1.0 - e) * SLIDE_PX * _dir
++	_view.modulate.a = e

@@ -1,0 +1,161 @@
+00:00.627  cycles           | WARNING CUEW initialization failed: Error opening the library
+player/kompakt                           player    obj   98 tris   280822  mats  47   22.0s  {'flat': 267309, 'lens': 8926, 'proc': 4587}
+showroom/kompakt                         player    obj   98 tris   280822  mats  47   22.0s  {'flat': 267309, 'lens': 8926, 'proc': 4587}
+player/kombi                             player    obj   93 tris   322595  mats  41   46.5s  {'flat': 307236, 'mask': 2932, 'lens': 10127, 'proc': 2300}
+showroom/kombi                           player    obj   93 tris   322595  mats  41   47.5s  {'flat': 307236, 'mask': 2932, 'lens': 10127, 'proc': 2300}
+player/limousine                         player    obj   91 tris   304070  mats  42   31.6s  {'flat': 289595, 'lens': 9364, 'mask': 3130, 'proc': 1981}
+showroom/limousine                       player    obj   91 tris   304070  mats  42   30.5s  {'flat': 289595, 'lens': 9364, 'mask': 3130, 'proc': 1981}
+player/sportwagen                        player    obj   93 tris   276053  mats  45   22.5s  {'flat': 259654, 'lens': 6576, 'proc': 9823}
+showroom/sportwagen                      player    obj   93 tris   276053  mats  45   22.7s  {'flat': 259654, 'lens': 6576, 'proc': 9823}
+player/gran_turismo                      player    obj   88 tris   289215  mats  42   26.5s  {'flat': 278831, 'lens': 6428, 'mask': 3956}
+showroom/gran_turismo                    player    obj   88 tris   289215  mats  42   25.6s  {'flat': 278831, 'lens': 6428, 'mask': 3956}
+traffic/hatch_green                      car       obj   24 tris    38412  mats  11    1.7s  {'flat': 3276, 'mask': 35136}
+traffic/sedan_red                        car       obj   24 tris    38844  mats  11    1.8s  {'flat': 3276, 'mask': 35568}
+traffic/wagon_silver                     car       obj   25 tris    41100  mats  12    2.1s  {'flat': 3516, 'mask': 37584}
+traffic/suv_black                        car       obj   27 tris    41652  mats  12    2.1s  {'flat': 3636, 'mask': 38016}
+traffic/van_white                        car       obj   24 tris    44892  mats  11    1.5s  {'flat': 3420, 'mask': 41472}
+traffic/sports_red                       car       obj   31 tris    39768  mats  12    1.1s  {'flat': 4200, 'mask': 35568}
+traffic/truck_white                      truck     obj   35 tris    11792  mats   9    2.0s  {'mask': 388, 'flat': 11404}
+traffic/truck_red                        truck     obj   33 tris     9100  mats   8    5.2s  {'mask': 388, 'flat': 8712}
+traffic/truck_blue                       truck     obj   35 tris    12660  mats   9    1.9s  {'mask': 388, 'flat': 12272}
+traffic/truck_green                      truck     obj   33 tris     9100  mats   8    5.3s  {'mask': 388, 'flat': 8712}
+traffic/bus_white                        bus       obj   12 tris     8388  mats   4    4.2s  {'mask': 4380, 'flat': 4008}
+traffic/bus_red                          bus       obj   12 tris     8388  mats   4    4.4s  {'mask': 4380, 'flat': 4008}
+traffic/bus_blue                         bus       obj   12 tris     8388  mats   4    4.1s  {'mask': 4380, 'flat': 4008}
+police/de                                police    obj   32 tris    42115  mats  18    2.1s  {'flat': 4531, 'mask': 37584}
+police/nl                                police    obj   32 tris    39508  mats  18    1.9s  {'flat': 4372, 'mask': 35136}
+police/be                                police    obj   32 tris    42160  mats  18    2.4s  {'flat': 4576, 'mask': 37584}
+police/fr                                police    obj   32 tris    39712  mats  18    1.7s  {'flat': 4576, 'mask': 35136}
+police/es                                police    obj   32 tris    40279  mats  18    1.7s  {'flat': 4711, 'mask': 35568}
+police/ch                                police    obj   32 tris    42115  mats  18    2.6s  {'flat': 4531, 'mask': 37584}
+police/it                                police    obj   32 tris    40180  mats  18    2.1s  {'flat': 4612, 'mask': 35568}
+police/si                                police    obj   32 tris    42355  mats  18    2.3s  {'flat': 4771, 'mask': 37584}
+police/hr                                police    obj   32 tris    40339  mats  18    1.8s  {'flat': 4771, 'mask': 35568}
+police/rs                                police    obj   32 tris    40531  mats  18    1.9s  {'flat': 4963, 'mask': 35568}
+police/bg                                police    obj   32 tris    40084  mats  18    2.0s  {'flat': 4948, 'mask': 35136}
+police/hu                                police    obj   32 tris    41173  mats  18    1.9s  {'flat': 5605, 'mask': 35568}
+police/at                                police    obj   34 tris    42667  mats  18    2.4s  {'flat': 4651, 'mask': 38016}
+police/cz                                police    obj   32 tris    42190  mats  18    2.5s  {'flat': 4606, 'mask': 37584}
+police/pl                                police    obj   32 tris    40309  mats  18    1.8s  {'flat': 4741, 'mask': 35568}
+police/lt                                police    obj   34 tris    42907  mats  18    2.9s  {'flat': 4891, 'mask': 38016}
+police/lv                                police    obj   32 tris    39907  mats  18    2.5s  {'flat': 4771, 'mask': 35136}
+police/ro                                police    obj   32 tris    40045  mats  18    2.3s  {'flat': 4477, 'mask': 35568}
+props/tree_oak                           prop      obj    3 tris     5900  mats   2    0.3s  {'proc': 5900}
+props/tree_beech                         prop      obj    3 tris     5388  mats   2    0.2s  {'proc': 5388}
+props/tree_birch                         prop      obj    3 tris     3040  mats   2    0.1s  {'proc': 3040}
+props/tree_pine                          prop      obj    4 tris     3424  mats   3    0.3s  {'proc': 3424}
+props/tree_spruce                        prop      obj    2 tris      530  mats   2    0.1s  {'proc': 530}
+props/tree_poplar                        prop      obj    2 tris     7656  mats   2    0.3s  {'proc': 7656}
+props/tree_cypress                       prop      obj    2 tris      996  mats   2    0.3s  {'proc': 996}
+props/tree_olive                         prop      obj    4 tris     3524  mats   2    0.1s  {'proc': 3524}
+props/tree_palm                          prop      obj    3 tris     2312  mats   3    0.1s  {'proc': 2212, 'flat': 100}
+props/bush_round                         prop      obj    1 tris     1760  mats   1    0.1s  {'proc': 1760}
+props/bush_low                           prop      obj    1 tris     2080  mats   1    0.1s  {'proc': 2080}
+props/heather                            prop      obj    2 tris     3200  mats   2    0.1s  {'proc': 3200}
+props/rock_a                             prop      obj    2 tris      640  mats   1    0.1s  {'proc': 640}
+props/rock_b                             prop      obj    3 tris      960  mats   1    0.2s  {'proc': 960}
+props/cliff                              prop      obj    4 tris    10624  mats   2    0.4s  {'proc': 10624}
+props/haybale                            prop      obj    2 tris      672  mats   1    0.2s  {'proc': 672}
+props/farmhouse                          prop      obj    6 tris      104  mats   4    0.6s  {'flat': 24, 'proc': 80}
+props/barn                               prop      obj    5 tris       92  mats   3    0.2s  {'proc': 80, 'flat': 12}
+props/church                             prop      obj    7 tris      154  mats   3    0.8s  {'flat': 24, 'proc': 130}
+props/windmill                           prop      obj    6 tris     1640  mats   5    0.2s  {'proc': 384, 'flat': 1256}
+props/wind_turbine                       prop      obj    5 tris      984  mats   2    0.1s  {'flat': 984}
+props/power_pylon                        prop      obj    2 tris     5080  mats   2    0.2s  {'flat': 5080}
+props/factory                            prop      obj   14 tris      418  mats   6    0.2s  {'proc': 138, 'flat': 280}
+props/house_med                          prop      obj    3 tris      228  mats   3    0.2s  {'flat': 168, 'proc': 60}
+props/building_block_a                   prop      obj    4 tris      296  mats   3    0.3s  {'flat': 252, 'proc': 44}
+props/building_block_b                   prop      obj    2 tris       68  mats   2    0.3s  {'flat': 24, 'proc': 44}
+props/building_tall                      prop      obj    4 tris      128  mats   4    0.2s  {'proc': 44, 'flat': 84}
+props/building_oldtown                   prop      obj    4 tris      184  mats   3    0.8s  {'flat': 60, 'proc': 124}
+props/building_shop                      prop      obj    4 tris       80  mats   4    0.3s  {'mask': 12, 'flat': 24, 'proc': 44}
+props/streetlight                        prop      obj    4 tris      352  mats   4    0.2s  {'lens': 40, 'flat': 188, 'proc': 124}
+props/delineator                         prop      obj    1 tris       12  mats   1    0.1s  {'mask': 12}
+props/fuel_station                       prop      obj   15 tris     1154  mats  15    0.5s  {'mask': 756, 'flat': 60, 'lens': 2, 'proc': 336}
+props/fuel_pump                          prop      obj    6 tris      384  mats   6    0.1s  {'mask': 180, 'flat': 72, 'proc': 132}
+props/radar_camera                       prop      obj    3 tris      328  mats   3    0.1s  {'mask': 160, 'flat': 168}
+props/customs_booth                      prop      obj    3 tris      100  mats   3    0.3s  {'flat': 12, 'mask': 44, 'proc': 44}
+props/ferry_ship                         prop      obj   12 tris     3280  mats  10    0.2s  {'flat': 1552, 'proc': 324, 'mask': 1404}
+props/city_hanse_gabled                  prop      obj   17 tris     1444  mats  10    6.8s  {'flat': 996, 'proc': 448}
+props/city_hanse_kontor                  prop      obj   10 tris      860  mats   7    1.4s  {'proc': 860}
+props/city_hanse_speicher                prop      obj   20 tris     1412  mats   8    3.5s  {'proc': 624, 'flat': 788}
+props/city_hanse_crane                   prop      obj   10 tris     1228  mats   6    0.4s  {'proc': 1124, 'flat': 104}
+props/city_german_house                  prop      obj   18 tris     6456  mats  14    1.3s  {'proc': 6288, 'flat': 168}
+props/city_german_mietshaus              prop      obj   17 tris      676  mats  13    4.4s  {'flat': 612, 'proc': 64}
+props/city_german_gruenderzeit           prop      obj   11 tris     2822  mats  10    9.0s  {'proc': 182, 'flat': 2640}
+props/city_german_office                 prop      obj    6 tris      222  mats   5    0.2s  {'mask': 22, 'flat': 144, 'proc': 56}
+props/city_german_old_fachwerk           prop      obj   26 tris     1676  mats  15   29.5s  {'flat': 1460, 'proc': 216}
+props/city_german_old_fachwerk_b         prop      obj   21 tris     1088  mats  14    8.6s  {'flat': 904, 'proc': 184}
+props/city_german_old_barock             prop      obj   19 tris     2794  mats  12    6.7s  {'flat': 2368, 'proc': 426}
+props/city_dutch_canal                   prop      obj   20 tris     2008  mats  14    3.8s  {'flat': 1464, 'proc': 544}
+props/city_dutch_canal_b                 prop      obj   21 tris     1592  mats  12    4.0s  {'proc': 488, 'flat': 1104}
+props/city_dutch_terrace                 prop      obj   18 tris     5156  mats  16    7.9s  {'flat': 1220, 'proc': 3936}
+props/city_belgian_terrace               prop      obj   16 tris     1064  mats  13   10.2s  {'flat': 984, 'proc': 80}
+props/city_belgian_stone                 prop      obj    5 tris      280  mats   3    4.9s  {'proc': 136, 'flat': 144}
+props/city_paris_haussmann               prop      obj   21 tris     3518  mats  19   10.0s  {'flat': 3168, 'proc': 350}
+props/city_paris_corner                  prop      obj   21 tris     2799  mats  19   24.4s  {'proc': 291, 'flat': 2508}
+props/city_french_maison                 prop      obj   29 tris     6608  mats  24    1.4s  {'proc': 5160, 'flat': 1448}
+props/city_french_sud                    prop      obj   21 tris     8220  mats  19    1.4s  {'flat': 3636, 'proc': 4584}
+props/city_french_immeuble               prop      obj   17 tris     2426  mats  14    5.5s  {'mask': 24, 'flat': 2336, 'proc': 66}
+props/city_spanish_block                 prop      obj   14 tris     3968  mats  14    1.5s  {'flat': 3924, 'proc': 44}
+props/city_spanish_casa                  prop      obj   19 tris     3424  mats  16    1.4s  {'flat': 1480, 'proc': 1944}
+props/city_spanish_ladrillo              prop      obj   19 tris     5354  mats  14    1.5s  {'proc': 274, 'flat': 5080}
+props/city_italian_palazzo               prop      obj    5 tris     3612  mats   5    5.8s  {'flat': 3580, 'proc': 32}
+props/city_italian_block                 prop      obj   13 tris     3236  mats  13    0.8s  {'mask': 72, 'proc': 32, 'flat': 3132}
+props/city_italian_venezia               prop      obj   10 tris     1120  mats   8    5.8s  {'flat': 1056, 'proc': 64}
+props/city_vienna_palais                 prop      obj    7 tris     4292  mats   5    5.6s  {'flat': 4248, 'proc': 44}
+props/city_vienna_kirche                 prop      obj   19 tris     3632  mats   9    6.4s  {'proc': 1892, 'flat': 1740}
+props/city_vienna_zinshaus               prop      obj   18 tris     4020  mats  12    5.6s  {'flat': 3264, 'proc': 756}
+props/city_swiss_chalet                  prop      obj   11 tris     2196  mats   9    3.0s  {'flat': 1308, 'proc': 888}
+props/city_swiss_laube                   prop      obj   14 tris     2820  mats  11    2.6s  {'proc': 492, 'flat': 2328}
+props/city_central_barock                prop      obj   16 tris     3344  mats   8    5.2s  {'flat': 2788, 'proc': 556}
+props/city_central_jugendstil            prop      obj    9 tris     1456  mats   8    3.0s  {'flat': 1352, 'proc': 104}
+props/city_central_eckturm               prop      obj   15 tris     2204  mats   9    2.5s  {'proc': 136, 'flat': 2068}
+props/city_eastern_house_a               prop      obj   21 tris     8836  mats  21    1.0s  {'proc': 4628, 'flat': 4208}
+props/city_eastern_house_b               prop      obj   22 tris     4504  mats  18    1.5s  {'flat': 2760, 'proc': 1744}
+props/city_eastern_house_c               prop      obj   18 tris    23428  mats  18    2.9s  {'proc': 21940, 'flat': 1488}
+props/city_eastern_plattenbau            prop      obj    9 tris     2240  mats   9    4.1s  {'proc': 24, 'flat': 2216}
+props/city_balkan_house                  prop      obj   10 tris     3252  mats  10    2.1s  {'proc': 2188, 'flat': 1064}
+props/city_balkan_house_b                prop      obj   16 tris     7008  mats  16    1.4s  {'flat': 3564, 'proc': 3444}
+props/city_balkan_church                 prop      obj   22 tris     3156  mats   6   21.5s  {'proc': 2940, 'flat': 216}
+props/city_balkan_plattenbau             prop      obj    7 tris     3288  mats   7    0.7s  {'flat': 2808, 'proc': 480}
+props/city_baltic_wood                   prop      obj   18 tris     6244  mats  13    0.9s  {'proc': 3364, 'flat': 2880}
+props/city_baltic_wood_b                 prop      obj   13 tris     4200  mats   8    2.3s  {'flat': 2476, 'proc': 1724}
+props/city_baltic_jugendstil             prop      obj    9 tris     1570  mats   7    3.4s  {'proc': 130, 'flat': 1440}
+props/bridge_truss_arch                  prop      obj    4 tris     3372  mats   4    0.1s  {'flat': 1272, 'proc': 2100}
+props/bridge_pylon                       prop      obj    5 tris      600  mats   4    0.1s  {'flat': 500, 'proc': 100}
+props/bridge_lamp                        prop      obj   12 tris      900  mats   3    0.1s  {'flat': 900}
+props/houseboat                          prop      obj   13 tris     2684  mats  13    0.4s  {'proc': 2252, 'flat': 340, 'mask': 92}
+landmarks/eiffel_tower                   landmark  obj    8 tris    25152  mats   7    6.8s  {'proc': 25052, 'flat': 100}
+landmarks/fernsehturm_berlin             landmark  obj    5 tris     4548  mats   5    0.2s  {'mask': 478, 'proc': 3610, 'flat': 460}
+landmarks/riesenrad                      landmark  obj    8 tris    17816  mats   8    1.5s  {'flat': 4500, 'proc': 13316}
+landmarks/elbphilharmonie                landmark  obj    3 tris      908  mats   4    0.1s  {'proc': 896, 'mask': 12}
+landmarks/michel                         landmark  obj    8 tris     3024  mats   7    1.1s  {'proc': 2528, 'flat': 496}
+landmarks/stephansdom                    landmark  obj    4 tris     3410  mats   4    0.5s  {'proc': 3410}
+landmarks/frauenkirche_dresden           landmark  obj    3 tris     4124  mats   3    2.0s  {'proc': 4124}
+landmarks/frauenkirche_muenchen          landmark  obj    5 tris     1782  mats   5    0.3s  {'proc': 1782}
+landmarks/sagrada_familia                landmark  obj    5 tris    17100  mats   5    0.3s  {'proc': 14064, 'mask': 944, 'flat': 2092}
+landmarks/duomo_milano                   landmark  obj    2 tris     5062  mats   2    0.8s  {'proc': 5062}
+landmarks/campanile_venezia              landmark  obj    7 tris     3728  mats   7    0.3s  {'proc': 3728}
+landmarks/parlament_budapest             landmark  obj    2 tris     3804  mats   2    0.8s  {'proc': 3804}
+landmarks/veitsdom_prag                  landmark  obj    6 tris     1718  mats   6    0.3s  {'proc': 1718}
+landmarks/kulturpalast_warschau          landmark  obj    4 tris     5788  mats   4    0.3s  {'proc': 5400, 'flat': 388}
+landmarks/nevsky_kathedrale              landmark  obj    4 tris     4590  mats   4    0.5s  {'proc': 4590}
+landmarks/frankfurt_skyline              landmark  obj   12 tris     1936  mats  12    0.3s  {'mask': 116, 'proc': 598, 'flat': 1222}
+landmarks/kaiserburg_nuernberg           landmark  obj    4 tris     1016  mats   4    0.3s  {'proc': 1016}
+landmarks/st_petri_riga                  landmark  obj    4 tris     1308  mats   4    0.4s  {'proc': 1308}
+landmarks/freiheitsdenkmal_riga          landmark  obj    4 tris      422  mats   4    0.1s  {'proc': 422}
+landmarks/kathedrale_burgos              landmark  obj    2 tris     1266  mats   2    0.2s  {'proc': 1266}
+landmarks/basilica_pilar                 landmark  obj    4 tris    12580  mats   4    0.3s  {'proc': 2728, 'mask': 9852}
+landmarks/koelner_dom                    landmark  obj    8 tris    11900  mats   6    7.8s  {'proc': 11900}
+landmarks/dom_regensburg                 landmark  obj    5 tris     6806  mats   4    4.5s  {'proc': 6806}
+landmarks/mariendom_linz                 landmark  obj    7 tris     5888  mats   6    5.8s  {'proc': 5704, 'flat': 184}
+landmarks/dom_passau                     landmark  obj   11 tris     4316  mats   9    5.4s  {'proc': 3708, 'flat': 608}
+landmarks/dom_fulda                      landmark  obj   11 tris     4560  mats   9    5.3s  {'proc': 3952, 'flat': 608}
+landmarks/palatul_parlamentului          landmark  obj    4 tris     2380  mats   4    1.1s  {'proc': 2380}
+landmarks/catedrala_timisoara            landmark  obj    7 tris     8228  mats   6    0.5s  {'proc': 8228}
+landmarks/stadtpfarrkirche_sibiu         landmark  obj    6 tris     1012  mats   6    1.5s  {'flat': 152, 'proc': 860}
+landmarks/beffroi_calais                 landmark  obj    7 tris     2890  mats   7    1.4s  {'proc': 2706, 'flat': 184}
+landmarks/atomium                        landmark  obj    3 tris    12674  mats   3    0.1s  {'flat': 1154, 'proc': 11520}
+landmarks/basilika_koekelberg            landmark  obj    5 tris     3354  mats   5    0.6s  {'proc': 3354}
+landmarks/catedrala_mantuirii            landmark  obj    4 tris     5176  mats   4    0.5s  {'proc': 5176}

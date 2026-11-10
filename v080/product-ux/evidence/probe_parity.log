@@ -1,0 +1,21 @@
+PARITY {
+  "focal_px": 710.79,
+  "horizon_y": 324.0,
+  "max_error_px_pitched_perspective": 364.49,
+  "max_error_px_shifted_frustum": 0.0,
+  "pitch_deg_of_camera_b": 2.9,
+  "points": 288,
+  "visible_fraction_1_5m_car": [
+    "dz 2.0 m: arcade 0.00  frustum 0.00  pitched 0.00",
+    "dz 3.0 m: arcade 0.00  frustum 0.00  pitched 0.00",
+    "dz 4.0 m: arcade 0.22  frustum 0.22  pitched 0.26",
+    "dz 4.3 m: arcade 0.33  frustum 0.33  pitched 0.38",
+    "dz 5.0 m: arcade 0.59  frustum 0.59  pitched 0.64",
+    "dz 6.0 m: arcade 0.96  frustum 0.96  pitched 1.00",
+    "dz 8.0 m: arcade 1.00  frustum 1.00  pitched 1.00"
+  ],
+  "worst_pitched": "dz 5 dx 25.0 h 12.0: arcade (4194.0, -898.6) pitched (4538.1, -1018.7)"
+}
+  "max_error_px_pitched_perspective": 10.13,
+  "max_error_px_shifted_frustum": 0.0,
+  "worst_pitched": "dz 30 dx 25.0 h 12.0: arcade (1232.3, 120.2) pitched (1241.8, 116.7)"

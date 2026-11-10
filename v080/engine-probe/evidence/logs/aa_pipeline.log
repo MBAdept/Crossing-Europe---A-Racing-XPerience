@@ -1,0 +1,24 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- aa.pipeline
+PROBE: variant 0_plain | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0
+PROBE: 0_plain = grass=(135,249,121) road=(79,86,99) car=(255,1,0) building=(150,173,197) sky=(141,158,181)
+PROBE: variant 1_msaa4x | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | diff_vs_prev_mean=0.3904 | diff_vs_prev_max=201.0
+PROBE: 1_msaa4x = grass=(135,249,121) road=(79,86,99) car=(255,1,0) building=(150,173,197) sky=(141,158,181)
+PROBE: variant 2_glow_intensity0 | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | diff_vs_prev_mean=3.2964 | diff_vs_prev_max=198.0
+PROBE: 2_glow_intensity0 = grass=(140,225,127) road=(83,92,106) car=(228,0,0) building=(151,172,195) sky=(141,158,181)
+PROBE: variant 3_adjustment_identity | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | diff_vs_prev_mean=0.3202 | diff_vs_prev_max=2.0
+PROBE: 3_adjustment_identity = grass=(140,225,128) road=(84,92,106) car=(228,0,0) building=(151,172,196) sky=(141,158,181)
+PROBE: variant 4_scale0.99 | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | diff_vs_prev_mean=0.8146 | diff_vs_prev_max=209.0
+PROBE: 4_scale0.99 = grass=(140,225,128) road=(84,92,106) car=(228,0,0) building=(150,172,196) sky=(140,158,181)
+PROBE: variant 5_ssao_intensity0 | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | diff_vs_prev_mean=0.8146 | diff_vs_prev_max=209.0
+PROBE: 5_ssao_intensity0 = grass=(140,225,128) road=(84,92,106) car=(228,0,0) building=(151,172,196) sky=(141,158,181)
+PROBE: variant 6_hdr2d | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | diff_vs_prev_mean=3.3654 | diff_vs_prev_max=30.0
+PROBE: 6_hdr2d = grass=(135,249,121) road=(79,86,99) car=(255,1,0) building=(150,172,197) sky=(140,157,181)
+PROBE: 6_hdr2d_format = 11
+PROBE: variant 7_plain_again | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | diff_vs_prev_mean=0.3771 | diff_vs_prev_max=1.0
+PROBE: 7_plain_again = grass=(135,249,121) road=(79,86,99) car=(255,1,0) building=(150,173,197) sky=(141,158,181)
+PROBE: variant 8_noshadow_plain | vis_draw_calls=539 | vis_primitives=435640 | vis_objects=539 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=11.8497 | diff_vs_prev_max=107.0
+PROBE: 8_noshadow_plain = grass=(109,182,93) road=(61,66,74) car=(181,4,2) building=(144,167,191) sky=(141,158,181)
+PROBE: variant 9_noshadow_glow0 | vis_draw_calls=539 | vis_primitives=435640 | vis_objects=539 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=0.6546 | diff_vs_prev_max=8.0
+PROBE: 9_noshadow_glow0 = grass=(108,182,93) road=(59,64,74) car=(181,0,0) building=(145,167,191) sky=(141,158,181)

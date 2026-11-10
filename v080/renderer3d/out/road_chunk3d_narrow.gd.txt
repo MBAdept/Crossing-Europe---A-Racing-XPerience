@@ -1,0 +1,188 @@
+class_name RoadChunk3D
+extends RefCounted
+## Spike (v0.8.0 design study): mesh of one road chunk (segments a .. b) in true 3D, built from the real Track
+## segments: terrain rings, shoulders / median / sidewalks, asphalt with painted lines as coplanar strips, guardrails,
+## a simple tunnel tube. Vertices are relative to the chunk origin (road centre at boundary a, height absolute).
+## Everything is flat-shaded vertex colour like the arcade renderer – the point is geometry, cost and parity.
+
+const RING_OFF: Array[float] = [0.0, 5.0, 15.0, 40.0, 100.0]     ## terrain rings beyond the shoulder (m)
+const RING_DROP: Array[float] = [0.0, -0.35, -0.6, -1.1, -2.6]   ## their height relative to the road (never above: sight lines)
+
+var verts := PackedVector3Array()
+var norms := PackedVector3Array()
+var cols := PackedColorArray()
+var idx := PackedInt32Array()
+var quads := 0
+
+
+func _quad(a: Vector3, b: Vector3, c: Vector3, d: Vector3, n: Vector3, col: Color) -> void:
+	var i := verts.size()
+	# front faces are clockwise: keep the winding consistent with the normal (two-sided lighting flips back faces)
+	if (c - a).cross(b - a).dot(n) < 0.0:
+		var t := b
+		b = d
+		d = t
+	verts.append(a); verts.append(b); verts.append(c); verts.append(d)
+	norms.append(n); norms.append(n); norms.append(n); norms.append(n)
+	cols.append(col); cols.append(col); cols.append(col); cols.append(col)
+	idx.append(i); idx.append(i + 1); idx.append(i + 2); idx.append(i); idx.append(i + 2); idx.append(i + 3)
+	quads += 1
+
+
+## Builds the chunk. Returns {mesh, origin (path coordinates of boundary a, y = 0), quads, verts, us}.
+func build(track: Track, path: RoadPath3D, a: int, b: int, scenery_db: Dictionary) -> Dictionary:
+	var t0 := Time.get_ticks_usec()
+	verts.clear(); norms.clear(); cols.clear(); idx.clear()
+	quads = 0
+	path.ensure(b + 1)
+	var lw := track.lane_w
+	var sh := track.shoulder_w
+	var inv_r1 := path.inv_r1
+	var o := path.point(a)
+	var origin := Vector3(o.x, 0.0, o.z)
+	var n := b - a
+	# rows
+	var O: Array[Vector3] = []
+	var R: Array[Vector3] = []
+	var segs: Array[TrackSegment] = []
+	for k in range(a, b + 1):
+		O.append(path.point(k) - origin)
+		R.append(RoadPath3D.right_of(path.heading(k)))
+		segs.append(track.get_segment(k))
+	var up := Vector3.UP
+	for i in n:
+		var sa := segs[i]
+		var sb := segs[i + 1]
+		var oa := O[i]
+		var ob := O[i + 1]
+		var ra_v := R[i]
+		var rb_v := R[i + 1]
+		var d := ob - oa
+		var gn := ra_v.cross(d).normalized()          # ground normal (up, tilted with the grade)
+		var la := -sa.lanes * lw * 0.5
+		var lb := -sb.lanes * lw * 0.5
+		var ma := -la
+		var mb := -lb
+		var ra := ma + sa.fuel_lane * lw
+		var rb := mb + sb.fuel_lane * lw
+		var scen: Dictionary = scenery_db.get(sa.scenery, {})
+		var gcols: Array = scen.get("grass", ["#5d9a3e", "#56913a"])
+		var grass := Color(str(gcols[0])) if (sa.index / 4) % 2 == 0 else Color(str(gcols[mini(1, gcols.size() - 1)]))
+		var tunnel := sa.tunnel
+		# --- terrain rings (not inside tunnels); the inside of a bend is limited to 0.8 R
+		if not tunnel:
+			var kap := maxf(absf(sa.curve), absf(sb.curve)) * inv_r1
+			var lim := 0.8 / maxf(kap, 1.0e-5)
+			for side: int in [-1, 1]:
+				var ea := (la - sh) if side < 0 else (ra + sh)
+				var eb := (lb - sh) if side < 0 else (rb + sh)
+				var inside := (sa.curve > 0.0) == (side > 0) and kap > 1.0e-4
+				var sc := 1.0
+				if inside:
+					sc = clampf((lim - absf(ea)) / RING_OFF[RING_OFF.size() - 1], 0.05, 1.0)
+				var gcol := grass if not sa.water else Color("4b6878")
+				for r in RING_OFF.size() - 1:
+					var x0a := ea + float(side) * RING_OFF[r] * sc
+					var x1a := ea + float(side) * RING_OFF[r + 1] * sc
+					var x0b := eb + float(side) * RING_OFF[r] * sc
+					var x1b := eb + float(side) * RING_OFF[r + 1] * sc
+					var h0 := RING_DROP[r]
+					var h1 := RING_DROP[r + 1]
+					if sa.water:
+						h0 = sa.water_level if r > 0 else 0.0
+						h1 = sa.water_level
+					_quad(oa + ra_v * x0a + up * h0, oa + ra_v * x1a + up * h1, ob + rb_v * x1b + up * h1, ob + rb_v * x0b + up * h0,
+						gn, gcol.darkened(0.04 * float(r)))
+		# --- shoulders / median / sidewalks
+		if tunnel:
+			var sc2 := Palette.SHOULDER_PAVED.darkened(0.1)
+			_quad(oa + ra_v * (la - sh), oa + ra_v * la, ob + rb_v * lb, ob + rb_v * (lb - sh), gn, sc2)
+			_quad(oa + ra_v * ra, oa + ra_v * (ra + sh), ob + rb_v * (rb + sh), ob + rb_v * rb, gn, sc2)
+		elif sa.city:
+			var ch := up * 0.14
+			var walk := Palette.SIDEWALK if (sa.index / 2) % 2 == 0 else Palette.SIDEWALK_ALT
+			_quad(oa + ra_v * (la - sh) + ch, oa + ra_v * la + ch, ob + rb_v * lb + ch, ob + rb_v * (lb - sh) + ch, gn, walk)
+			_quad(oa + ra_v * ra + ch, oa + ra_v * (ra + sh) + ch, ob + rb_v * (rb + sh) + ch, ob + rb_v * rb + ch, gn, walk)
+			_quad(oa + ra_v * la + ch, oa + ra_v * la, ob + rb_v * lb, ob + rb_v * lb + ch, ra_v, Palette.CURB)
+			_quad(oa + ra_v * ra + ch, oa + ra_v * ra, ob + rb_v * rb, ob + rb_v * rb + ch, -ra_v, Palette.CURB)
+		else:
+			var shc := Palette.SHOULDER_PAVED if sa.road == "autobahn" else grass.lerp(Palette.SHOULDER, 0.65)
+			if sa.road == "autobahn":
+				_quad(oa + ra_v * (la - sh), oa + ra_v * (la - 0.8), ob + rb_v * (lb - 0.8), ob + rb_v * (lb - sh), gn, grass.darkened(0.08))
+				_quad(oa + ra_v * (la - 0.8), oa + ra_v * la, ob + rb_v * lb, ob + rb_v * (lb - 0.8), gn, shc)
+			else:
+				_quad(oa + ra_v * (la - sh), oa + ra_v * la, ob + rb_v * lb, ob + rb_v * (lb - sh), gn, shc)
+			_quad(oa + ra_v * ra, oa + ra_v * (ra + sh), ob + rb_v * (rb + sh), ob + rb_v * rb, gn, shc)
+		# --- asphalt with the painted lines as coplanar strips (no z-fighting, no overlay)
+		var rc := Palette.ROAD
+		if sa.road == "landstrasse":
+			rc = Palette.ROAD_LANDSTRASSE
+		elif sa.road == "city":
+			rc = Palette.ROAD_CITY
+		if (sa.index / 2) % 2 == 1:
+			rc = rc.lightened(0.025)
+		var white := Palette.LINE
+		var dash_on := (sa.index % 6) < 2 if sa.road != "city" else (sa.index % 3) < 1
+		# breakpoints: offsets from the left edge for row a / row b, colour of the strip that ends there
+		var xa: Array[float] = [la]
+		var xb: Array[float] = [lb]
+		var cc: Array[Color] = []
+		if not sa.city:
+			xa.append(la + 0.15); xb.append(lb + 0.15); cc.append(rc)
+			xa.append(la + 0.45); xb.append(lb + 0.45); cc.append(white)
+		var nl := int(ceil(maxf(sa.lanes, sb.lanes) - 0.01))
+		for j in range(1, nl):
+			var pa := la + float(j) * lw
+			var pb := lb + float(j) * lw
+			if pa > ma - 0.6 or pb > mb - 0.6:
+				continue
+			xa.append(pa - 0.075); xb.append(pb - 0.075); cc.append(rc)
+			xa.append(pa + 0.075); xb.append(pb + 0.075); cc.append(white if dash_on else rc)
+		if not sa.city:
+			xa.append(ma - 0.45); xb.append(mb - 0.45); cc.append(rc)
+			xa.append(ma - 0.15); xb.append(mb - 0.15); cc.append(white)
+		xa.append(ma); xb.append(mb); cc.append(rc)
+		if sa.fuel_lane > 0.02 or sb.fuel_lane > 0.02:
+			xa.append(ra); xb.append(rb); cc.append(rc)
+		for j in cc.size():
+			_quad(oa + ra_v * xa[j], oa + ra_v * xa[j + 1], ob + rb_v * xb[j + 1], ob + rb_v * xb[j], gn, cc[j])
+		# --- start / finish line (checkered) as two extra rows of cells slightly above the road
+		if absf(sa.z + track.seg_len * 0.5 - track.length_z) <= track.seg_len * 0.5 or absf(sa.z + track.seg_len * 0.5 - 14.0) <= track.seg_len * 0.5:
+			var cells := maxi(4, int((ra - la) / 1.0))
+			for c in cells:
+				var f0 := float(c) / float(cells)
+				var f1 := float(c + 1) / float(cells)
+				var col := Color.WHITE if c % 2 == 0 else Color(0.08, 0.08, 0.08)
+				var lift := up * 0.03
+				_quad(oa + ra_v * lerpf(la, ra, f0) + lift, oa + ra_v * lerpf(la, ra, f1) + lift,
+					oa.lerp(ob, 0.5) + ra_v.lerp(rb_v, 0.5) * lerpf(lerpf(la, lb, 0.5), lerpf(ra, rb, 0.5), f1) + lift,
+					oa.lerp(ob, 0.5) + ra_v.lerp(rb_v, 0.5) * lerpf(lerpf(la, lb, 0.5), lerpf(ra, rb, 0.5), f0) + lift, gn, col)
+		# --- structures
+		if tunnel:
+			var wall_h := 4.2
+			var ceil_h := 6.2
+			var tile := RoadRenderer.TILE if (sa.index / 2) % 2 == 0 else RoadRenderer.TILE.darkened(0.06)
+			_quad(oa + ra_v * (la - sh), oa + ra_v * (la - sh) + up * wall_h, ob + rb_v * (lb - sh) + up * wall_h, ob + rb_v * (lb - sh), ra_v, tile)
+			_quad(oa + ra_v * (ra + sh), oa + ra_v * (ra + sh) + up * wall_h, ob + rb_v * (rb + sh) + up * wall_h, ob + rb_v * (rb + sh), -ra_v, tile)
+			_quad(oa + ra_v * (la - sh) + up * wall_h, oa + ra_v * (la - sh + 1.8) + up * ceil_h, ob + rb_v * (lb - sh + 1.8) + up * ceil_h, ob + rb_v * (lb - sh) + up * wall_h, ra_v, RoadRenderer.HAUNCH)
+			_quad(oa + ra_v * (ra + sh) + up * wall_h, oa + ra_v * (ra + sh - 1.8) + up * ceil_h, ob + rb_v * (rb + sh - 1.8) + up * ceil_h, ob + rb_v * (rb + sh) + up * wall_h, -ra_v, RoadRenderer.HAUNCH)
+			_quad(oa + ra_v * (la - sh + 1.8) + up * ceil_h, oa + ra_v * (ra + sh - 1.8) + up * ceil_h, ob + rb_v * (rb + sh - 1.8) + up * ceil_h, ob + rb_v * (lb - sh + 1.8) + up * ceil_h, -up, RoadRenderer.CEILING)
+		elif sa.guardrail:
+			var g := Palette.GUARDRAIL
+			_quad(oa + ra_v * (la - sh) + up * 0.48, oa + ra_v * (la - sh) + up * 0.8, ob + rb_v * (lb - sh) + up * 0.8, ob + rb_v * (lb - sh) + up * 0.48, ra_v, g)
+			if sa.fuel_lane < 0.01 and sb.fuel_lane < 0.01 and sa.cover == "":
+				_quad(oa + ra_v * (ra + sh) + up * 0.48, oa + ra_v * (ra + sh) + up * 0.8, ob + rb_v * (rb + sh) + up * 0.8, ob + rb_v * (rb + sh) + up * 0.48, -ra_v, g)
+			if sa.index % 2 == 0:
+				# posts
+				var pw := ra_v * 0.07
+				var pl := oa + ra_v * (la - sh)
+				_quad(pl - pw, pl + pw, pl + pw + up * 0.74, pl - pw + up * 0.74, -d.normalized(), Color("6f747a"))
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = verts
+	arrays[Mesh.ARRAY_NORMAL] = norms
+	arrays[Mesh.ARRAY_COLOR] = cols
+	arrays[Mesh.ARRAY_INDEX] = idx
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	return {"mesh": mesh, "origin": origin, "quads": quads, "verts": verts.size(), "us": Time.get_ticks_usec() - t0}

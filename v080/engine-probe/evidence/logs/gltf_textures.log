@@ -1,0 +1,12 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- gltf.textures
+PROBE: texture_mem_before_mb = 7.89
+PROBE: tex_lossless_format = 4
+PROBE: tex_lossless_texture_mem_added_mb = 16.0
+PROBE: tex_vram_s3tc_format = 17
+PROBE: tex_vram_s3tc_texture_mem_added_mb = 2.67
+PROBE: tex_vram_bptc_format = 22
+PROBE: tex_vram_bptc_texture_mem_added_mb = 5.33
+PROBE: variant 0_lossless_s3tc_bptc_aniso | vis_draw_calls=20 | vis_primitives=8 | vis_objects=20 | shadow_draw_calls=0 | shadow_primitives=32 | canvas_draw_calls=0
+PROBE: anisotropic_filtering_level_setting = 2

@@ -1,0 +1,15 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+AudioManager: Verkehrsgeräusche res://assets/audio/traffic/traffic_sounds.json geladen in 5 ms (9 Klänge, 6 Klassen)
+AudioManager: Klänge erzeugt in 178 ms
+AudioManager: Titelmelodie res://assets/audio/music/title_theme.ogg geladen in 12 ms
+SWITCH stretch mode=1 aspect=1 root disable_3d=false msaa_3d=0
+AudioManager: Motorbank limousine: 32000 Hz, 13 Drehzahlpunkte 649–7204/min, 208 Zyklen, 10 Clips, 2.2 MB geladen in 4 ms
+SWITCH race a1_race frames=45 ms=5785 size=(1280, 720) canvas_draw_calls=130
+SWITCH race a2_race_again frames=45 ms=3897 size=(1280, 720) canvas_draw_calls=130
+SWITCH compare race vs race again (control, no 3D in between): max=0.0 mean=0.0 identical=true
+SWITCH 3d b_3d ms=3255 draw_calls=95
+SWITCH race a3_race_after_3d frames=45 ms=3288 size=(1280, 720) canvas_draw_calls=130
+SWITCH compare race vs race after the 3D scene: max=0.0 mean=0.0 identical=true
+SWITCH compare race again vs race after the 3D scene: max=0.0 mean=0.0 identical=true
+SWITCH orphan nodes=0.0 objects=2140.0 video_mem_mb=316.8

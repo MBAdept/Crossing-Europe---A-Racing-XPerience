@@ -1,0 +1,7 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- extra.signs
+PROBE: sign_image_format = 5
+PROBE: sign_image_size = (512, 192)
+PROBE: variant 0_signs_viewporttexture_imagetexture_label3d | vis_draw_calls=931 | vis_primitives=436486 | vis_objects=931 | shadow_draw_calls=0 | shadow_primitives=274508 | canvas_draw_calls=0 | frame_ms_median=137.94 | render_cpu_ms_median=86.93 | render_gpu_ms_median=118.22
+PROBE: variant 1_sign_close | vis_draw_calls=905 | vis_primitives=386596 | vis_objects=905 | shadow_draw_calls=0 | shadow_primitives=288516 | canvas_draw_calls=0 | frame_ms_median=127.46 | render_cpu_ms_median=101.7 | render_gpu_ms_median=128.57 | diff_vs_prev_mean=35.4926 | diff_vs_prev_max=255.0

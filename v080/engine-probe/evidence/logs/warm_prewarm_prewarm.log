@@ -1,0 +1,17 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- warm.prewarm
+PROBE: prewarm_total_ms = 6581
+PROBE: spike_standard_material_metal = { "baseline_ms": 88.1, "first_frames_ms": [85.7, 90.8, 90.3, 89.8], "steady_after_ms": 84.4, "hitch_ms": 6.4 }
+PROBE: spike_emission_material = { "baseline_ms": 86.5, "first_frames_ms": [357.2, 100.9, 96.4, 87.7], "steady_after_ms": 92.0, "hitch_ms": 265.2 }
+PROBE: spike_sun_shadow_pssm4 = { "baseline_ms": 91.8, "first_frames_ms": [760.6, 110.4, 105.3, 98.0], "steady_after_ms": 121.9, "hitch_ms": 638.6 }
+PROBE: spike_fog_enabled = { "baseline_ms": 125.2, "first_frames_ms": [742.2, 116.8, 112.4, 121.3], "steady_after_ms": 120.2, "hitch_ms": 621.9 }
+PROBE: spike_spot_light = { "baseline_ms": 117.8, "first_frames_ms": [772.4, 131.5, 125.6, 121.4], "steady_after_ms": 119.3, "hitch_ms": 653.1 }
+PROBE: spike_omni_light = { "baseline_ms": 119.0, "first_frames_ms": [1346.6, 117.3, 129.4, 123.9], "steady_after_ms": 133.0, "hitch_ms": 1213.5 }
+PROBE: spike_spot_light_with_shadow = { "baseline_ms": 137.2, "first_frames_ms": [1273.2, 142.3, 136.8, 138.9], "steady_after_ms": 136.0, "hitch_ms": 1137.2 }
+PROBE: spike_alpha_scissor_multimesh_forest = { "baseline_ms": 133.6, "first_frames_ms": [754.8, 147.7, 140.1, 156.2], "steady_after_ms": 154.1, "hitch_ms": 600.7 }
+PROBE: spike_gpu_particles_rain = { "baseline_ms": 150.6, "first_frames_ms": [199.6, 308.0, 159.1, 159.0], "steady_after_ms": 168.0, "hitch_ms": 140.0 }
+PROBE: spike_imported_glb_car = { "baseline_ms": 171.4, "first_frames_ms": [1561.4, 168.6, 177.0, 172.4], "steady_after_ms": 194.5, "hitch_ms": 1366.9 }
+PROBE: spike_custom_bend_shader = { "baseline_ms": 222.8, "first_frames_ms": [687.9, 210.0, 183.1, 174.5], "steady_after_ms": 189.2, "hitch_ms": 498.7 }
+PROBE: spike_transparent_glass = { "baseline_ms": 193.3, "first_frames_ms": [634.9, 204.7, 211.7, 207.9], "steady_after_ms": 195.5, "hitch_ms": 439.5 }
+PROBE: variant end | vis_draw_calls=711 | vis_primitives=34040 | vis_objects=599 | shadow_draw_calls=0 | shadow_primitives=150719 | canvas_draw_calls=0

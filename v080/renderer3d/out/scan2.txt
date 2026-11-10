@@ -1,0 +1,35 @@
+sections by curviness (odometer km): {0: 8920, 1: 16866, 2: 3120, 3: 494}  hills: {0: 11921, 1: 10882, 2: 5548, 3: 1049}
+true 3D: another part of the road (360..960 m of path away) closer than 100 m:       0 m of road = 0.000 %,   0 stage directions
+true 3D: another part of the road (360..960 m of path away) closer than 150 m:       0 m of road = 0.000 %,   0 stage directions
+true 3D: another part of the road (360..960 m of path away) closer than 200 m:       0 m of road = 0.000 %,   0 stage directions
+true 3D: another part of the road (360..960 m of path away) closer than 250 m:       0 m of road = 0.000 %,   0 stage directions
+true 3D: another part of the road (360..960 m of path away) closer than 300 m:    2136 m of road = 0.071 %,   7 stage directions
+true 3D: another part of the road (360..1900 m of path away) closer than 100 m:       0 m of road = 0.000 %,   0 stage directions
+true 3D: another part of the road (360..1900 m of path away) closer than 150 m:       0 m of road = 0.000 %,   0 stage directions
+true 3D: another part of the road (360..1900 m of path away) closer than 200 m:       0 m of road = 0.000 %,   0 stage directions
+true 3D: another part of the road (360..1900 m of path away) closer than 250 m:       0 m of road = 0.000 %,   0 stage directions
+true 3D: another part of the road (360..1900 m of path away) closer than 300 m:    2232 m of road = 0.074 %,   7 stage directions
+closest approach (within 960 m of path), worst 10:
+  bukarest_sibiu__sibiu              min  267.6 m  arc  360 m  dy   +1.4 m  dtheta  +138 deg  km   57.8  min radius  135 m
+  saragossa_pau__saragossa           min  267.7 m  arc  360 m  dy   -4.3 m  dtheta  +139 deg  km  198.0  min radius  134 m
+  bukarest_sibiu__bukarest           min  273.6 m  arc  360 m  dy  -11.2 m  dtheta  -132 deg  km  188.3  min radius  139 m
+  saragossa_pau__pau                 min  275.1 m  arc  360 m  dy  -26.3 m  dtheta  -126 deg  km   43.9  min radius  138 m
+  erfurt_kassel__kassel              min  277.2 m  arc  360 m  dy   -0.8 m  dtheta  +124 deg  km   56.0  min radius  139 m
+  belgrad_sofia__sofia               min  277.3 m  arc  360 m  dy  +32.7 m  dtheta  +130 deg  km  114.5  min radius  143 m
+  san_sebastian_burgos__san_sebastian min  280.9 m  arc  360 m  dy  -30.0 m  dtheta  -117 deg  km   27.5  min radius  139 m
+  erfurt_kassel__erfurt              min  306.4 m  arc  360 m  dy   -3.2 m  dtheta   -83 deg  km  108.6  min radius  144 m
+  belgrad_sofia__belgrad             min  312.0 m  arc  360 m  dy  -36.7 m  dtheta   +96 deg  km  284.9  min radius  170 m
+  san_sebastian_burgos__burgos       min  313.3 m  arc  360 m  dy  +23.3 m  dtheta   -89 deg  km  200.0  min radius  175 m
+closest approach (within 1900 m of path), worst 10:
+  bukarest_sibiu__sibiu              min  267.6 m  arc  360 m  dy   +1.4 m  dtheta  +138 deg  km   57.8
+  saragossa_pau__saragossa           min  267.7 m  arc  360 m  dy   -4.3 m  dtheta  +139 deg  km  198.0
+  bukarest_sibiu__bukarest           min  273.6 m  arc  360 m  dy  -11.2 m  dtheta  -132 deg  km  188.3
+  saragossa_pau__pau                 min  275.1 m  arc  360 m  dy  -26.3 m  dtheta  -126 deg  km   43.9
+  erfurt_kassel__kassel              min  277.2 m  arc  360 m  dy   -0.8 m  dtheta  +124 deg  km   56.0
+  belgrad_sofia__sofia               min  277.3 m  arc  360 m  dy  +32.7 m  dtheta  +130 deg  km  114.5
+  san_sebastian_burgos__san_sebastian min  280.9 m  arc  360 m  dy  -30.0 m  dtheta  -117 deg  km   27.5
+  erfurt_kassel__erfurt              min  306.4 m  arc  360 m  dy   -3.2 m  dtheta   -83 deg  km  108.6
+  belgrad_sofia__belgrad             min  312.0 m  arc  360 m  dy  -36.7 m  dtheta   +96 deg  km  284.9
+  san_sebastian_burgos__burgos       min  313.3 m  arc  360 m  dy  +23.3 m  dtheta   -89 deg  km  200.0
+max |coordinate| of the true path: 37.8 km; arcade X range max 136 km; max arcade slope |theta| 7.9 rad
+min radius over all: 134 m; stages with max|curve|>0.6: 11

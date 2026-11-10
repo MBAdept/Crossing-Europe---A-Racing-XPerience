@@ -1,0 +1,8 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- light.chunked
+PROBE: max_lights_per_object = 8
+PROBE: max_renderable_lights = 32
+PROBE: variant lamps64_chunked_road | vis_draw_calls=833 | vis_primitives=755460 | vis_objects=833 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | frame_ms_median=97.23 | render_cpu_ms_median=82.45 | render_gpu_ms_median=87.63
+PROBE: variant lamps30_chunked_road | vis_draw_calls=833 | vis_primitives=755460 | vis_objects=833 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | frame_ms_median=107.72 | render_cpu_ms_median=86.28 | render_gpu_ms_median=97.76 | diff_vs_prev_mean=5.175 | diff_vs_prev_max=255.0
+PROBE: variant lamps0_chunked_road | vis_draw_calls=833 | vis_primitives=755460 | vis_objects=833 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | frame_ms_median=100.95 | render_cpu_ms_median=81.65 | render_gpu_ms_median=87.74 | diff_vs_prev_mean=5.1731 | diff_vs_prev_max=255.0

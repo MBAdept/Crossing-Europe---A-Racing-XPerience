@@ -1,0 +1,6 @@
+e3_mode0_cast1 plane 121,121,121 box 180,38,38 draws 6
+e3_mode0_cast0 plane 121,121,121 box 180,38,38 draws 3
+e3_mode1_cast1 plane 121,121,121 box 178,36,36 draws 9
+e3_mode1_cast0 plane 121,121,121 box 180,38,38 draws 3
+e3_mode2_cast1 plane 121,121,121 box 180,38,38 draws 15
+e3_mode2_cast0 plane 121,121,121 box 180,38,38 draws 3

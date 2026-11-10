@@ -1,0 +1,71 @@
+{
+  "suite": "gltf",
+  "test": "vcol",
+  "variants": [
+    {
+      "buffer_mem_mb": 6.1,
+      "canvas_draw_calls": 0,
+      "draw_calls_total": 9,
+      "name": "0_as_imported_emission_off",
+      "objects_total": 9,
+      "png": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/engine-probe/shots/gltf_vcol_0_as_imported_emission_off.png",
+      "primitives_total": 138,
+      "shadow_draw_calls": 0,
+      "shadow_objects": 0,
+      "shadow_primitives": 104,
+      "texture_mem_mb": 7.9,
+      "video_mem_mb": 14.0,
+      "vis_draw_calls": 9,
+      "vis_objects": 9,
+      "vis_primitives": 34
+    },
+    {
+      "buffer_mem_mb": 6.1,
+      "canvas_draw_calls": 0,
+      "diff_vs_prev_max": 237.0,
+      "diff_vs_prev_mean": 30.565,
+      "draw_calls_total": 9,
+      "name": "1_vertex_color_use_as_albedo",
+      "objects_total": 9,
+      "png": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/engine-probe/shots/gltf_vcol_1_vertex_color_use_as_albedo.png",
+      "primitives_total": 138,
+      "shadow_draw_calls": 0,
+      "shadow_objects": 0,
+      "shadow_primitives": 104,
+      "texture_mem_mb": 7.9,
+      "video_mem_mb": 14.0,
+      "vis_draw_calls": 9,
+      "vis_objects": 9,
+      "vis_primitives": 34
+    }
+  ],
+  "vc_test_instantiate_ms": 0,
+  "vc_test_load_ms": 1,
+  "vc_test_stats": {
+    "compressed_surfaces": 1,
+    "has_color": 1,
+    "has_tangent": 1,
+    "lods_max": 0,
+    "materials": 1,
+    "mesh_instances": 1,
+    "shadow_meshes": 1,
+    "surfaces": 1,
+    "triangles_lod0": 128,
+    "vertices": 81
+  },
+  "vc_test_tree_head": [
+    "vc_test [Node3D]",
+    "  ROOT [Node3D]",
+    "  vc_plane [MeshInstance3D]"
+  ],
+  "vcol_first_colors": [
+    "(0.0, 0.0, 0.2, 1.0)",
+    "(0.498, 0.498, 0.2, 1.0)",
+    "(0.8745, 0.1216, 0.2, 1.0)"
+  ],
+  "vcol_flag_diff": {
+    "max": 237.0,
+    "mean": 30.565,
+    "psnr": 11.96
+  }
+}

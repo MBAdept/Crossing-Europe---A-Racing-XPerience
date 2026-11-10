@@ -1,0 +1,7 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- misc.transparent
+PROBE: variant 0_alpha_blend_sorting | vis_draw_calls=906 | vis_primitives=439936 | vis_objects=906 | shadow_draw_calls=0 | shadow_primitives=281584 | canvas_draw_calls=0 | frame_ms_median=232.37 | render_cpu_ms_median=139.01 | render_gpu_ms_median=221.14
+PROBE: variant 1_render_priority | vis_draw_calls=906 | vis_primitives=439936 | vis_objects=906 | shadow_draw_calls=0 | shadow_primitives=281584 | canvas_draw_calls=0 | frame_ms_median=259.96 | render_cpu_ms_median=175.97 | render_gpu_ms_median=240.2 | diff_vs_prev_mean=0.0194 | diff_vs_prev_max=38.0
+PROBE: variant 2_depth_prepass | vis_draw_calls=920 | vis_primitives=439936 | vis_objects=925 | shadow_draw_calls=0 | shadow_primitives=281584 | canvas_draw_calls=0 | frame_ms_median=199.99 | render_cpu_ms_median=150.48 | render_gpu_ms_median=222.66 | diff_vs_prev_mean=2.4039 | diff_vs_prev_max=153.0
+PROBE: variant 3_refraction | vis_draw_calls=906 | vis_primitives=439936 | vis_objects=906 | shadow_draw_calls=0 | shadow_primitives=281584 | canvas_draw_calls=0 | frame_ms_median=243.39 | render_cpu_ms_median=198.39 | render_gpu_ms_median=219.58 | diff_vs_prev_mean=2.6001 | diff_vs_prev_max=186.0

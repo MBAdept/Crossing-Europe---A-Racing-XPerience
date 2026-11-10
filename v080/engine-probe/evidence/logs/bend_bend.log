@@ -1,0 +1,17 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- bend.bend
+ERROR: This function should never be used outside the editor, it can severely damage performance.
+   at: global_shader_parameter_get_list (drivers/gles3/storage/material_storage.cpp:1918)
+   GDScript backtrace (most recent call first):
+       [0] add_globals (res://t_bend.gd:62)
+       [1] test_bend (res://t_bend.gd:67)
+       [2] _ready (res://main.gd:41)
+PROBE: variant 0_straight_no_bend | vis_draw_calls=1313 | vis_primitives=464484 | vis_objects=1313 | shadow_draw_calls=0 | shadow_primitives=421620 | canvas_draw_calls=0 | frame_ms_median=180.61 | render_cpu_ms_median=135.38 | render_gpu_ms_median=167.26
+PROBE: variant 1_curve_right_r625_margin0 | vis_draw_calls=1313 | vis_primitives=464484 | vis_objects=1313 | shadow_draw_calls=0 | shadow_primitives=421620 | canvas_draw_calls=0 | frame_ms_median=184.71 | render_cpu_ms_median=133.13 | render_gpu_ms_median=166.21 | diff_vs_prev_mean=9.9493 | diff_vs_prev_max=255.0
+PROBE: variant 2_curve_right_r625_margin2000 | vis_draw_calls=3745 | vis_primitives=475188 | vis_objects=3745 | shadow_draw_calls=0 | shadow_primitives=1900752 | canvas_draw_calls=0 | frame_ms_median=252.88 | render_cpu_ms_median=196.17 | render_gpu_ms_median=233.25 | diff_vs_prev_mean=0.0 | diff_vs_prev_max=0.0
+PROBE: variant 3_curve_left_crest_margin2000 | vis_draw_calls=3745 | vis_primitives=475188 | vis_objects=3745 | shadow_draw_calls=0 | shadow_primitives=1900752 | canvas_draw_calls=0 | frame_ms_median=240.59 | render_cpu_ms_median=203.82 | render_gpu_ms_median=226.2 | diff_vs_prev_mean=12.0389 | diff_vs_prev_max=255.0
+PROBE: variant 4_curve_right_valley_margin2000 | vis_draw_calls=3745 | vis_primitives=475188 | vis_objects=3745 | shadow_draw_calls=0 | shadow_primitives=1900752 | canvas_draw_calls=0 | frame_ms_median=248.47 | render_cpu_ms_median=208.85 | render_gpu_ms_median=249.99 | diff_vs_prev_mean=20.5958 | diff_vs_prev_max=255.0
+PROBE: variant 4_shadow_atlas_debug | vis_draw_calls=3745 | vis_primitives=475188 | vis_objects=3745 | shadow_draw_calls=0 | shadow_primitives=1900752 | canvas_draw_calls=0 | diff_vs_prev_mean=18.5175 | diff_vs_prev_max=255.0
+PROBE: variant 5_night_lamp_at_bent_position_margin2000 | vis_draw_calls=3748 | vis_primitives=479412 | vis_objects=3748 | shadow_draw_calls=0 | shadow_primitives=1909200 | canvas_draw_calls=0 | frame_ms_median=252.19 | render_cpu_ms_median=208.73 | render_gpu_ms_median=248.9 | diff_vs_prev_mean=75.9653 | diff_vs_prev_max=255.0
+PROBE: variant 6_night_lamp_margin0 | vis_draw_calls=1316 | vis_primitives=468708 | vis_objects=1316 | shadow_draw_calls=0 | shadow_primitives=430068 | canvas_draw_calls=0 | frame_ms_median=164.77 | render_cpu_ms_median=153.92 | render_gpu_ms_median=175.84 | diff_vs_prev_mean=0.216 | diff_vs_prev_max=13.0

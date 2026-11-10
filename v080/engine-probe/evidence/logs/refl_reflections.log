@@ -1,0 +1,13 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- refl.reflections
+PROBE: variant 0_sky_radiance_reflection | vis_draw_calls=1143 | vis_primitives=439908 | vis_objects=1143 | shadow_draw_calls=0 | shadow_primitives=475670 | canvas_draw_calls=0 | frame_ms_median=211.75 | render_cpu_ms_median=150.16 | render_gpu_ms_median=178.15
+PROBE: variant 1_reflections_disabled | vis_draw_calls=1143 | vis_primitives=439908 | vis_objects=1143 | shadow_draw_calls=0 | shadow_primitives=475670 | canvas_draw_calls=0 | frame_ms_median=222.99 | render_cpu_ms_median=185.3 | render_gpu_ms_median=213.94 | diff_vs_prev_mean=30.5952 | diff_vs_prev_max=242.0
+PROBE: variant 2_probe_once | vis_draw_calls=1143 | vis_primitives=439908 | vis_objects=1143 | shadow_draw_calls=0 | shadow_primitives=475670 | canvas_draw_calls=0 | frame_ms_median=313.16 | render_cpu_ms_median=255.26 | render_gpu_ms_median=284.24 | diff_vs_prev_mean=31.1894 | diff_vs_prev_max=244.0
+PROBE: variant 3_probe_once_boxprojection | vis_draw_calls=1143 | vis_primitives=439908 | vis_objects=1143 | shadow_draw_calls=0 | shadow_primitives=475670 | canvas_draw_calls=0 | frame_ms_median=184.1 | render_cpu_ms_median=168.98 | render_gpu_ms_median=199.45 | diff_vs_prev_mean=3.0459 | diff_vs_prev_max=240.0
+PROBE: variant 3_probe_once_boxprojection_shadows | vis_draw_calls=1143 | vis_primitives=439908 | vis_objects=1143 | shadow_draw_calls=0 | shadow_primitives=475670 | canvas_draw_calls=0 | frame_ms_median=190.1 | render_cpu_ms_median=156.12 | render_gpu_ms_median=187.46 | diff_vs_prev_mean=0.0197 | diff_vs_prev_max=139.0
+PROBE: variant 4_probe_always | vis_draw_calls=1143 | vis_primitives=439908 | vis_objects=1143 | shadow_draw_calls=0 | shadow_primitives=475670 | canvas_draw_calls=0 | frame_ms_median=419.85 | render_cpu_ms_median=136.52 | render_gpu_ms_median=167.62 | diff_vs_prev_mean=0.0 | diff_vs_prev_max=0.0
+PROBE: reflection_atlas_size = 256
+PROBE: reflection_atlas_count = 64
+PROBE: variant 5_night_probe_always_glow | vis_draw_calls=1186 | vis_primitives=507492 | vis_objects=1186 | shadow_draw_calls=0 | shadow_primitives=589718 | canvas_draw_calls=0 | frame_ms_median=664.04 | render_cpu_ms_median=229.05 | render_gpu_ms_median=229.03 | diff_vs_prev_mean=68.7027 | diff_vs_prev_max=255.0
+PROBE: variant 6_night_no_probe_glow | vis_draw_calls=1186 | vis_primitives=507492 | vis_objects=1186 | shadow_draw_calls=0 | shadow_primitives=589718 | canvas_draw_calls=0 | frame_ms_median=355.41 | render_cpu_ms_median=346.32 | render_gpu_ms_median=346.47 | diff_vs_prev_mean=35.4618 | diff_vs_prev_max=249.0

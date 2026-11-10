@@ -1,0 +1,20 @@
+Spike numbers (v0.8.0 design study, RoadRenderer3D), measured on this VM (4 shared cores, Mesa llvmpipe under Xvfb, Godot 4.7.2 Compatibility)
+
+Chunk building (headless, --bench3d, 96 m chunks = 32 segments, spike builder: terrain rings, shoulders, asphalt with painted lines as coplanar strips, guardrails, tunnel tube; all GDScript, main thread):
+  kassel_wuerzburg km 20+ (200 chunks):   mesh avg 1.009 ms  med 0.935  p95 1.546  max 1.865 | props (billboard MultiMeshes, 3.1 per chunk) avg 0.142 ms max 1.007 | Track generation (existing code) avg 1.526 ms p95 3.646 max 6.493 | 692 quads/chunk
+  saragossa_pau km 150+ (120 chunks):     mesh avg 1.089 ms  med 1.099  p95 1.305  max 2.297 | props avg 0.171 max 1.193 | Track generation avg 2.049 p95 5.802 max 10.064 | 523 quads/chunk
+  dortmund_frankfurt km 195+ (36 chunks): mesh avg 0.974 ms  med 0.877  p95 1.177  max 2.634 | props avg 0.179 max 1.238 | Track generation avg 0.908 max 1.648 | 546 quads/chunk
+  first frame (11-13 chunks at once): 13-23 ms; with sign SubViewports created on demand 31 ms (chunk max 10.5 ms -> pre-render sign textures at stage load)
+Per frame GDScript of RoadRenderer3D.render() (xvfb, 30 fps fixed, real session + autopilot + traffic):
+  1 car 0.26 ms avg (max 1.5) | 6 cars 0.34-0.50 | 12-13 cars 0.53-0.61 (max 2.2-3.6 in frames that build a chunk) | 23 cars (Frankfurt rush hour, rain) 1.14
+  Arcade reference on the same machine (tests/race/bench_render.gd, headless): mean of medians 5.36 ms (4.47-5.97), p90 5.8-8.1 ms
+Render load of the spike scene (RenderingServer.viewport_get_render_info, [draw calls, objects, primitives]):
+  Kassel-Wuerzburg km 60, 12 cars, billboard props, 2 shadow splits: visible [70, 70, 16272], shadow primitives 8664, canvas (HUD + backdrop) [94, 1096, 5367]
+  same without shadows: visible [62, 62, 16272]; without props and traffic: visible [22, 22, 15866]
+  Frankfurt City Limits km 221: visible [97, 97, 9690], shadow primitives 6964
+  wide terrain rings (480 m): visible [43, 43, 9654], shadow primitives 19092 (Saragossa-Pau km 198)
+Parity of projected road points, arcade projection vs 3D camera (tangent camera, Camera3D.unproject_position, px at 1280x720):
+  straight (Hamburg-Bremen km 60.6): 0.0 px at 10-600 m
+  slight curve (Kassel-Wuerzburg km 60.6, curve 0.1 at the camera): <= 4.9 px at 11 m (lateral points), <= 1.4 px 40-400 m, 3.2 px at 600 m
+  curve 0.30 = R 400 m (Kassel-Wuerzburg km 46.2): <= 6 px to 150 m, 7 / 11 / 14 / 19 px at 200 / 300 / 400 / 600 m
+  curve 0.88 = R 136 m (Saragossa-Pau km 198.3): 11-22 px to 100 m, 53 px at 150 m, 122 px at 200 m, beyond: off screen in both

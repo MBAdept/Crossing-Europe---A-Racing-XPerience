@@ -1,0 +1,27 @@
+{
+  "chunk_12x25_quads": {
+    "arraymesh_create_ms": 0.034,
+    "gdscript_fill_ms": 0.106,
+    "node_add_ms": 0.006,
+    "triangles": 600,
+    "vertices": 338
+  },
+  "chunk_24x50_quads": {
+    "arraymesh_create_ms": 0.078,
+    "gdscript_fill_ms": 0.323,
+    "node_add_ms": 0.007,
+    "triangles": 2400,
+    "vertices": 1275
+  },
+  "chunk_4x25_quads": {
+    "arraymesh_create_ms": 0.02,
+    "gdscript_fill_ms": 0.056,
+    "node_add_ms": 0.006,
+    "triangles": 200,
+    "vertices": 130
+  },
+  "queue_free_per_chunk_ms_incl_2_frames": 0.022,
+  "suite": "perf",
+  "test": "chunkgen",
+  "variants": []
+}

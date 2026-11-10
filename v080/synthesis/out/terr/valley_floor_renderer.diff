@@ -1,0 +1,70 @@
+--- /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/renderer3d/out/spike_src/road_renderer_3d.gd	2026-11-10 09:34:22.012770350 +0000
++++ /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/synthesis/game/spike/road_renderer_3d.gd	2026-11-10 12:47:09.103742526 +0000
+@@ -50,6 +50,7 @@
+ var _curve_r1 := 120.0
+ var _probe_done := false
+ var _backdrop: Node2D                  ## arcade backdrop as the 3D background (--backdrop3d)
++var proj2: RoadProjection              ## synthesis experiment: projection of the expanded viewport
+ 
+ 
+ func setup(t: Track, p: RoadProjection, config: Dictionary, scenery: Dictionary) -> void:
+@@ -58,6 +59,10 @@
+ 	cfg = config
+ 	scenery_db = scenery
+ 	_seg_len = t.seg_len
++	proj2 = RoadProjection.new()
++	var vps := Vector2(1280.0, 800.0) if CliArgs.has("expand1610") else p.screen
++	proj2.setup(ConfigLoader.lookup(cfg, "render", {}), vps)
++	proj2.focal = p.focal
+ 	_curve_r1 = float(ConfigLoader.lookup(cfg, "road.curve_radius_at_1_m", 120.0))
+ 	look_gain = CliArgs.get_float("look-gain", look_gain)
+ 	look_m = CliArgs.get_float("look-m", look_m)
+@@ -85,7 +90,7 @@
+ 		add_child(layer)
+ 		_backdrop = load("res://spike/backdrop_layer.gd").new()
+ 		layer.add_child(_backdrop)
+-		_backdrop.call("setup", proj)
++		_backdrop.call("setup", proj2)
+ 		env.background_mode = Environment.BG_CANVAS
+ 		env.background_canvas_max_layer = -10
+ 	var we := WorldEnvironment.new()
+@@ -98,8 +103,8 @@
+ 	add_child(sun)
+ 	cam = Camera3D.new()
+ 	# arcade projection: focal px at the logical width, horizon at horizon_y (frustum shifted down)
+-	var size := NEAR * proj.screen.y / proj.focal
+-	cam.set_frustum(size, Vector2(0.0, size * (proj.horizon_y / proj.screen.y - 0.5)), NEAR, FAR)
++	var size := NEAR * proj2.screen.y / proj.focal
++	cam.set_frustum(size, Vector2(0.0, size * (proj2.horizon_y / proj2.screen.y - 0.5)), NEAR, FAR)
+ 	add_child(cam)
+ 	cam.make_current()
+ 	_chunk_root = Node3D.new()
+@@ -278,8 +283,8 @@
+ 	var r := RoadPath3D.right_of(yaw)
+ 	cam.global_transform = Transform3D(Basis(r, Vector3.UP, -f), pos)
+ 	var shake: Vector2 = view.get("shake", Vector2.ZERO)
+-	var size := NEAR * proj.screen.y / proj.focal
+-	cam.frustum_offset = Vector2(-shake.x / proj.focal * NEAR, size * (proj.horizon_y / proj.screen.y - 0.5) + shake.y / proj.focal * NEAR)
++	var size := NEAR * proj2.screen.y / proj.focal
++	cam.frustum_offset = Vector2(-shake.x / proj.focal * NEAR, size * (proj2.horizon_y / proj2.screen.y - 0.5) + shake.y / proj.focal * NEAR)
+ 	# --- light, sky, fog from the palette
+ 	var lights := float(pal.get("lights", 0.0))
+ 	var amb: Color = pal["ambient"]
+@@ -314,6 +319,8 @@
+ 			if de > 30.0 and absf((pe - pos).dot(r)) < de * 0.9 + 60.0:
+ 				by = minf(by, proj.horizon_y - (pe.y - 2.6 - cam_y) * proj.focal / de)
+ 		by = maxf(by, proj.horizon_y - 120.0)
++		if CliArgs.has("terrain-floor"):
++			by = proj2.horizon_y   # synthesis experiment: silhouettes stand on the true horizon, the ground closes below it
+ 		_backdrop.call("update", pal, yaw, float(view.get("time", 0.0)), str(view.get("scenery", "")), scen_b.get("background", {}), hz * 0.9, by)
+ 	# --- base plane under the lowest road of the window
+ 	var lo := INF
+@@ -322,7 +329,7 @@
+ 	_base.position = Vector3(pos.x, lo - 4.0, pos.z)
+ 	var scen: Dictionary = scenery_db.get(str(view.get("scenery", "")), {})
+ 	var gcols: Array = scen.get("grass", ["#5d9a3e"])
+-	_base_mat.albedo_color = Color(str(gcols[0])).darkened(0.15)
++	_base_mat.albedo_color = Color(str(gcols[0])).darkened(0.2 if CliArgs.has("terrain-floor") else 0.15)
+ 	# --- vehicles
+ 	_car_seen.clear()
+ 	for car: Dictionary in view.get("cars", []):

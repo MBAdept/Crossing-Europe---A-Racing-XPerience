@@ -1,0 +1,271 @@
+{
+  "pass1_total_ms": 43273,
+  "pass2_total_ms": 33769,
+  "spike_pass1_alpha_scissor_multimesh_forest": {
+    "baseline_ms": 140.2,
+    "first_frames_ms": [
+      1240.0,
+      159.6,
+      146.7,
+      152.4
+    ],
+    "hitch_ms": 1091.4,
+    "steady_after_ms": 148.6
+  },
+  "spike_pass1_custom_bend_shader": {
+    "baseline_ms": 207.5,
+    "first_frames_ms": [
+      1017.9,
+      210.9,
+      173.4,
+      191.7
+    ],
+    "hitch_ms": 810.8,
+    "steady_after_ms": 207.1
+  },
+  "spike_pass1_emission_material": {
+    "baseline_ms": 84.3,
+    "first_frames_ms": [
+      553.3,
+      85.2,
+      86.4,
+      82.4
+    ],
+    "hitch_ms": 463.1,
+    "steady_after_ms": 90.2
+  },
+  "spike_pass1_fog_enabled": {
+    "baseline_ms": 122.7,
+    "first_frames_ms": [
+      903.3,
+      102.2,
+      109.5,
+      115.3
+    ],
+    "hitch_ms": 786.6,
+    "steady_after_ms": 116.7
+  },
+  "spike_pass1_gpu_particles_rain": {
+    "baseline_ms": 158.2,
+    "first_frames_ms": [
+      361.5,
+      663.2,
+      159.6,
+      170.2
+    ],
+    "hitch_ms": 500.4,
+    "steady_after_ms": 162.8
+  },
+  "spike_pass1_imported_glb_car": {
+    "baseline_ms": 162.2,
+    "first_frames_ms": [
+      1974.3,
+      190.7,
+      199.6,
+      200.3
+    ],
+    "hitch_ms": 1783.6,
+    "steady_after_ms": 190.7
+  },
+  "spike_pass1_omni_light": {
+    "baseline_ms": 127.9,
+    "first_frames_ms": [
+      809.5,
+      124.7,
+      131.0,
+      125.8
+    ],
+    "hitch_ms": 685.5,
+    "steady_after_ms": 123.9
+  },
+  "spike_pass1_spot_light": {
+    "baseline_ms": 125.4,
+    "first_frames_ms": [
+      786.4,
+      137.6,
+      129.3,
+      122.6
+    ],
+    "hitch_ms": 662.3,
+    "steady_after_ms": 124.1
+  },
+  "spike_pass1_spot_light_with_shadow": {
+    "baseline_ms": 132.9,
+    "first_frames_ms": [
+      1263.5,
+      135.4,
+      129.7,
+      132.6
+    ],
+    "hitch_ms": 1126.8,
+    "steady_after_ms": 136.7
+  },
+  "spike_pass1_standard_material_metal": {
+    "baseline_ms": 96.3,
+    "first_frames_ms": [
+      85.7,
+      85.7,
+      82.8,
+      81.4
+    ],
+    "hitch_ms": 1.7,
+    "steady_after_ms": 84.0
+  },
+  "spike_pass1_sun_shadow_pssm4": {
+    "baseline_ms": 82.8,
+    "first_frames_ms": [
+      1121.9,
+      123.4,
+      124.7,
+      120.7
+    ],
+    "hitch_ms": 1004.7,
+    "steady_after_ms": 117.1
+  },
+  "spike_pass1_transparent_glass": {
+    "baseline_ms": 198.6,
+    "first_frames_ms": [
+      889.1,
+      174.9,
+      193.4,
+      209.5
+    ],
+    "hitch_ms": 689.5,
+    "steady_after_ms": 199.6
+  },
+  "spike_pass2_alpha_scissor_multimesh_forest": {
+    "baseline_ms": 135.4,
+    "first_frames_ms": [
+      198.6,
+      149.4,
+      155.6,
+      154.7
+    ],
+    "hitch_ms": 42.8,
+    "steady_after_ms": 155.8
+  },
+  "spike_pass2_custom_bend_shader": {
+    "baseline_ms": 188.1,
+    "first_frames_ms": [
+      236.0,
+      199.2,
+      196.1,
+      173.4
+    ],
+    "hitch_ms": 37.5,
+    "steady_after_ms": 198.5
+  },
+  "spike_pass2_emission_material": {
+    "baseline_ms": 90.5,
+    "first_frames_ms": [
+      156.8,
+      90.3,
+      86.7,
+      82.6
+    ],
+    "hitch_ms": 72.4,
+    "steady_after_ms": 84.4
+  },
+  "spike_pass2_fog_enabled": {
+    "baseline_ms": 112.3,
+    "first_frames_ms": [
+      125.9,
+      117.0,
+      120.6,
+      121.0
+    ],
+    "hitch_ms": 0.3,
+    "steady_after_ms": 125.6
+  },
+  "spike_pass2_gpu_particles_rain": {
+    "baseline_ms": 154.4,
+    "first_frames_ms": [
+      164.4,
+      166.9,
+      152.7,
+      159.7
+    ],
+    "hitch_ms": 4.5,
+    "steady_after_ms": 162.5
+  },
+  "spike_pass2_imported_glb_car": {
+    "baseline_ms": 168.0,
+    "first_frames_ms": [
+      333.9,
+      191.3,
+      195.9,
+      180.6
+    ],
+    "hitch_ms": 138.0,
+    "steady_after_ms": 195.9
+  },
+  "spike_pass2_omni_light": {
+    "baseline_ms": 132.0,
+    "first_frames_ms": [
+      118.2,
+      117.9,
+      116.9,
+      126.0
+    ],
+    "hitch_ms": 0.0,
+    "steady_after_ms": 127.0
+  },
+  "spike_pass2_spot_light": {
+    "baseline_ms": 124.1,
+    "first_frames_ms": [
+      126.4,
+      118.3,
+      122.5,
+      127.3
+    ],
+    "hitch_ms": 0.0,
+    "steady_after_ms": 129.6
+  },
+  "spike_pass2_spot_light_with_shadow": {
+    "baseline_ms": 120.1,
+    "first_frames_ms": [
+      135.5,
+      139.1,
+      131.7,
+      130.4
+    ],
+    "hitch_ms": 6.2,
+    "steady_after_ms": 132.9
+  },
+  "spike_pass2_standard_material_metal": {
+    "baseline_ms": 90.6,
+    "first_frames_ms": [
+      88.2,
+      82.9,
+      84.2,
+      76.9
+    ],
+    "hitch_ms": 1.6,
+    "steady_after_ms": 86.6
+  },
+  "spike_pass2_sun_shadow_pssm4": {
+    "baseline_ms": 95.4,
+    "first_frames_ms": [
+      116.6,
+      125.4,
+      138.7,
+      131.0
+    ],
+    "hitch_ms": 25.6,
+    "steady_after_ms": 113.1
+  },
+  "spike_pass2_transparent_glass": {
+    "baseline_ms": 197.5,
+    "first_frames_ms": [
+      251.1,
+      225.5,
+      195.0,
+      195.1
+    ],
+    "hitch_ms": 45.3,
+    "steady_after_ms": 205.8
+  },
+  "suite": "warm",
+  "test": "replay",
+  "variants": []
+}

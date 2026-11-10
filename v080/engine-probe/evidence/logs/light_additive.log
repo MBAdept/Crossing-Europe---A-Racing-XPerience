@@ -1,0 +1,33 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- light.additive
+PROBE: variant plain_amb0.4_sun0.0_sh0 | vis_draw_calls=1 | vis_primitives=2 | vis_objects=1 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0
+PROBE: plain_amb0.4_sun0.0_sh0 = srgb8=(47,47,47) lin=(0.0284,0.0284,0.0284)
+PROBE: variant plain_amb0.0_sun0.5_sh0 | vis_draw_calls=1 | vis_primitives=2 | vis_objects=1 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=33.8282 | diff_vs_prev_max=46.0
+PROBE: plain_amb0.0_sun0.5_sh0 = srgb8=(92,92,92) lin=(0.1070,0.1070,0.1070)
+PROBE: variant plain_amb0.0_sun0.5_sh1 | vis_draw_calls=5 | vis_primitives=2 | vis_objects=5 | shadow_draw_calls=0 | shadow_primitives=8 | canvas_draw_calls=0 | diff_vs_prev_mean=0.0 | diff_vs_prev_max=0.0
+PROBE: plain_amb0.0_sun0.5_sh1 = srgb8=(92,92,92) lin=(0.1070,0.1070,0.1070)
+PROBE: variant plain_amb0.4_sun0.5_sh0 | vis_draw_calls=1 | vis_primitives=2 | vis_objects=1 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=8.2268 | diff_vs_prev_max=11.0
+PROBE: plain_amb0.4_sun0.5_sh0 = srgb8=(103,103,103) lin=(0.1356,0.1356,0.1356)
+PROBE: variant plain_amb0.4_sun0.5_sh1 | vis_draw_calls=5 | vis_primitives=2 | vis_objects=5 | shadow_draw_calls=0 | shadow_primitives=8 | canvas_draw_calls=0 | diff_vs_prev_mean=27.1821 | diff_vs_prev_max=37.0
+PROBE: plain_amb0.4_sun0.5_sh1 = srgb8=(139,139,139) lin=(0.2582,0.2582,0.2582)
+PROBE: variant glow_amb0.4_sun0.0_sh0 | vis_draw_calls=1 | vis_primitives=2 | vis_objects=1 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=69.9871 | diff_vs_prev_max=94.0
+PROBE: glow_amb0.4_sun0.0_sh0 = srgb8=(46,46,46) lin=(0.0273,0.0273,0.0273)
+PROBE: variant glow_amb0.0_sun0.5_sh0 | vis_draw_calls=1 | vis_primitives=2 | vis_objects=1 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=34.5804 | diff_vs_prev_max=47.0
+PROBE: glow_amb0.0_sun0.5_sh0 = srgb8=(92,92,92) lin=(0.1070,0.1070,0.1070)
+PROBE: variant glow_amb0.0_sun0.5_sh1 | vis_draw_calls=5 | vis_primitives=2 | vis_objects=5 | shadow_draw_calls=0 | shadow_primitives=8 | canvas_draw_calls=0 | diff_vs_prev_mean=0.0 | diff_vs_prev_max=0.0
+PROBE: glow_amb0.0_sun0.5_sh1 = srgb8=(92,92,92) lin=(0.1070,0.1070,0.1070)
+PROBE: variant glow_amb0.4_sun0.5_sh0 | vis_draw_calls=1 | vis_primitives=2 | vis_objects=1 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=8.2269 | diff_vs_prev_max=11.0
+PROBE: glow_amb0.4_sun0.5_sh0 = srgb8=(103,103,103) lin=(0.1356,0.1356,0.1356)
+PROBE: variant glow_amb0.4_sun0.5_sh1 | vis_draw_calls=5 | vis_primitives=2 | vis_objects=5 | shadow_draw_calls=0 | shadow_primitives=8 | canvas_draw_calls=0 | diff_vs_prev_mean=27.1846 | diff_vs_prev_max=37.0
+PROBE: glow_amb0.4_sun0.5_sh1 = srgb8=(139,139,139) lin=(0.2582,0.2582,0.2582)
+PROBE: variant hdr2d_amb0.4_sun0.0_sh0 | vis_draw_calls=1 | vis_primitives=2 | vis_objects=1 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=69.2419 | diff_vs_prev_max=93.0
+PROBE: hdr2d_amb0.4_sun0.0_sh0 = srgb8=(47,47,47) lin=(0.0284,0.0284,0.0284)
+PROBE: variant hdr2d_amb0.0_sun0.5_sh0 | vis_draw_calls=1 | vis_primitives=2 | vis_objects=1 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=33.7533 | diff_vs_prev_max=46.0
+PROBE: hdr2d_amb0.0_sun0.5_sh0 = srgb8=(92,92,92) lin=(0.1070,0.1070,0.1070)
+PROBE: variant hdr2d_amb0.0_sun0.5_sh1 | vis_draw_calls=5 | vis_primitives=2 | vis_objects=5 | shadow_draw_calls=0 | shadow_primitives=8 | canvas_draw_calls=0 | diff_vs_prev_mean=0.0 | diff_vs_prev_max=0.0
+PROBE: hdr2d_amb0.0_sun0.5_sh1 = srgb8=(92,92,92) lin=(0.1070,0.1070,0.1070)
+PROBE: variant hdr2d_amb0.4_sun0.5_sh0 | vis_draw_calls=1 | vis_primitives=2 | vis_objects=1 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=8.2467 | diff_vs_prev_max=11.0
+PROBE: hdr2d_amb0.4_sun0.5_sh0 = srgb8=(103,103,103) lin=(0.1356,0.1356,0.1356)
+PROBE: variant hdr2d_amb0.4_sun0.5_sh1 | vis_draw_calls=5 | vis_primitives=2 | vis_objects=5 | shadow_draw_calls=0 | shadow_primitives=8 | canvas_draw_calls=0 | diff_vs_prev_mean=27.0069 | diff_vs_prev_max=37.0
+PROBE: hdr2d_amb0.4_sun0.5_sh1 = srgb8=(139,139,139) lin=(0.2582,0.2582,0.2582)

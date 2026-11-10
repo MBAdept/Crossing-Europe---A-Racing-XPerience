@@ -1,0 +1,18 @@
+HEADLESS3D {
+  "adapter": "",
+  "behind": true,
+  "display": "headless",
+  "draw_calls_monitor": 0.0,
+  "frustum_planes": 6,
+  "glb_mesh_instances": 5,
+  "glb_triangles_read_back": 49984,
+  "in_frustum_30m_left_40m": true,
+  "mesh_aabb": "[P: (0.0, 0.0, -100.0), S: (4.0, 0.5, 100.0)]",
+  "mesh_surfaces": 1,
+  "mesh_vertices_read_back": 6,
+  "multimesh_instance_readback": "(0.0, 0.0, 0.0)",
+  "multimesh_visible": 120,
+  "unproject_100m_ahead_3_5m_right": "(661.8239, 367.4825)",
+  "unproject_100m_ahead_on_ground": "(640.0, 367.4825)",
+  "viewport_size": "(1280.0, 720.0)"
+}

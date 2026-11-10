@@ -1,0 +1,531 @@
+{
+ "traffic/sedan_red": {
+  "build_s": 1.9,
+  "export_s": 4.3,
+  "error": null,
+  "bytes": 775776,
+  "nodes": 25,
+  "meshes": 24,
+  "materials": 11,
+  "images": 0,
+  "tris": 38844,
+  "mats": [
+   {
+    "name": "sedan_rimdark",
+    "base": [
+     0.012983032502233982,
+     0.013702083379030228,
+     0.01599629409611225,
+     1
+    ],
+    "metal": 0.20000000298023224,
+    "rough": 0.5,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat"
+    ],
+    "alpha": null
+   },
+   {
+    "name": "sedan_chrome",
+    "base": [
+     0.672443151473999,
+     0.68668532371521,
+     0.7083757519721985,
+     1
+    ],
+    "metal": null,
+    "rough": 0.11999999731779099,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat"
+    ],
+    "alpha": null
+   },
+   {
+    "name": "sedan_pipe",
+    "base": [
+     0.0030352699104696512,
+     0.0030352699104696512,
+     0.0030352699104696512,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.800000011920929,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat"
+    ],
+    "alpha": null
+   },
+   {
+    "name": "sedan_bumper",
+    "base": null,
+    "metal": null,
+    "rough": null,
+    "emissive": [
+     1,
+     1,
+     1
+    ],
+    "ext": [],
+    "alpha": null
+   },
+   {
+    "name": "sedan_cabin",
+    "base": null,
+    "metal": null,
+    "rough": null,
+    "emissive": [
+     1,
+     1,
+     1
+    ],
+    "ext": [],
+    "alpha": null
+   },
+   {
+    "name": "sedan_body",
+    "base": null,
+    "metal": null,
+    "rough": null,
+    "emissive": [
+     1,
+     1,
+     1
+    ],
+    "ext": [],
+    "alpha": null
+   },
+   {
+    "name": "sedan_mglass",
+    "base": [
+     0.0423114113509655,
+     0.052860647439956665,
+     0.06480326503515244,
+     1
+    ],
+    "metal": 0.8999999761581421,
+    "rough": 0.05000000074505806,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat"
+    ],
+    "alpha": null
+   },
+   {
+    "name": "sedan_platetext",
+    "base": [
+     0.009134058840572834,
+     0.009134058840572834,
+     0.009134058840572834,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.6000000238418579,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat"
+    ],
+    "alpha": null
+   },
+   {
+    "name": "sedan_rim",
+    "base": [
+     0.4793201684951782,
+     0.5028864741325378,
+     0.5394794940948486,
+     1
+    ],
+    "metal": null,
+    "rough": 0.25,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat"
+    ],
+    "alpha": null
+   },
+   {
+    "name": "sedan_tyre",
+    "base": [
+     0.008568125776946545,
+     0.009134058840572834,
+     0.01032982300966978,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.8500000238418579,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_specular"
+    ],
+    "alpha": null
+   },
+   {
+    "name": "sedan_dark",
+    "base": [
+     0.006048833020031452,
+     0.006512090563774109,
+     0.006995410192757845,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.699999988079071,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat"
+    ],
+    "alpha": null
+   }
+  ],
+  "default_mats": 3
+ },
+ "props/city_german_gruenderzeit": {
+  "build_s": 9.0,
+  "export_s": 13.3,
+  "error": null,
+  "bytes": 154212,
+  "nodes": 12,
+  "meshes": 11,
+  "materials": 10,
+  "images": 0,
+  "tris": 2822,
+  "mats": [
+   {
+    "name": "gg_wall",
+    "base": null,
+    "metal": null,
+    "rough": null,
+    "emissive": [
+     1,
+     1,
+     1
+    ],
+    "ext": [
+     "KHR_materials_clearcoat"
+    ],
+    "alpha": null
+   },
+   {
+    "name": "gg_chm",
+    "base": [
+     0.2541520893573761,
+     0.10224173218011856,
+     0.06480326503515244,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.800000011920929,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat"
+    ],
+    "alpha": null
+   },
+   {
+    "name": "gg_dorm_fm",
+    "base": [
+     0.8631572127342224,
+     0.838798999786377,
+     0.7758222222328186,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.5,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat"
+    ],
+    "alpha": null
+   },
+   {
+    "name": "gg_dorm_glass",
+    "base": [
+     0.023153366521000862,
+     0.03433980792760849,
+     0.04666508734226227,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.07999999821186066,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_specular"
+    ],
+    "alpha": null
+   },
+   {
+    "name": "gg_dr",
+    "base": null,
+    "metal": 0.30000001192092896,
+    "rough": 0.44999998807907104,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_specular"
+    ],
+    "alpha": null
+   },
+   {
+    "name": "gg_orn",
+    "base": [
+     0.8879231214523315,
+     0.8227857351303101,
+     0.672443151473999,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.75,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat"
+    ],
+    "alpha": null
+   },
+   {
+    "name": "gg_erker",
+    "base": null,
+    "metal": null,
+    "rough": null,
+    "emissive": [
+     1,
+     1,
+     1
+    ],
+    "ext": [
+     "KHR_materials_clearcoat"
+    ],
+    "alpha": null
+   },
+   {
+    "name": "gg_slate",
+    "base": null,
+    "metal": 0,
+    "rough": 0.550000011920929,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_specular"
+    ],
+    "alpha": null
+   },
+   {
+    "name": "gg_tar",
+    "base": null,
+    "metal": 0.30000001192092896,
+    "rough": 0.44999998807907104,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_specular"
+    ],
+    "alpha": null
+   },
+   {
+    "name": "gg_rail_0",
+    "base": [
+     0.01599629409611225,
+     0.019382361322641373,
+     0.023153366521000862,
+     1
+    ],
+    "metal": 0.5,
+    "rough": 0.44999998807907104,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_specular"
+    ],
+    "alpha": null
+   }
+  ],
+  "default_mats": 0
+ },
+ "props/tree_oak": {
+  "build_s": 0.1,
+  "export_s": 0.0,
+  "error": null,
+  "bytes": 115368,
+  "nodes": 4,
+  "meshes": 3,
+  "materials": 2,
+  "images": 0,
+  "tris": 5900,
+  "mats": [
+   {
+    "name": "oak_bark",
+    "base": null,
+    "metal": 0,
+    "rough": 0.8500000238418579,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_specular"
+    ],
+    "alpha": null
+   },
+   {
+    "name": "oak_leaves",
+    "base": null,
+    "metal": 0,
+    "rough": 0.75,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_specular",
+     "KHR_materials_sheen"
+    ],
+    "alpha": null
+   }
+  ],
+  "default_mats": 0
+ },
+ "traffic/truck_white": {
+  "build_s": 2.2,
+  "export_s": 3.0,
+  "error": null,
+  "bytes": 396532,
+  "nodes": 36,
+  "meshes": 35,
+  "materials": 9,
+  "images": 0,
+  "tris": 11792,
+  "mats": [
+   {
+    "name": "tr_box",
+    "base": null,
+    "metal": null,
+    "rough": null,
+    "emissive": [
+     1,
+     1,
+     1
+    ],
+    "ext": [],
+    "alpha": null
+   },
+   {
+    "name": "tr_cab",
+    "base": null,
+    "metal": null,
+    "rough": null,
+    "emissive": null,
+    "ext": [],
+    "alpha": null
+   },
+   {
+    "name": "tr_dark",
+    "base": [
+     0.011612244881689548,
+     0.012286487966775894,
+     0.013702083379030228,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.6000000238418579,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat"
+    ],
+    "alpha": null
+   },
+   {
+    "name": "tr_rim",
+    "base": [
+     0.48514994978904724,
+     0.5088813304901123,
+     0.5394794940948486,
+     1
+    ],
+    "metal": 0.8999999761581421,
+    "rough": 0.30000001192092896,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat"
+    ],
+    "alpha": null
+   },
+   {
+    "name": "tr_tyre",
+    "base": [
+     0.008568125776946545,
+     0.009134058840572834,
+     0.01032982300966978,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.8500000238418579,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat",
+     "KHR_materials_specular"
+    ],
+    "alpha": null
+   },
+   {
+    "name": "tr_grey",
+    "base": [
+     0.15292614698410034,
+     0.16513219475746155,
+     0.18447498977184296,
+     1
+    ],
+    "metal": 0.30000001192092896,
+    "rough": 0.5,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat"
+    ],
+    "alpha": null
+   },
+   {
+    "name": "tr_lightbar",
+    "base": null,
+    "metal": null,
+    "rough": null,
+    "emissive": [
+     1,
+     1,
+     1
+    ],
+    "ext": [],
+    "alpha": null
+   },
+   {
+    "name": "tr_alu",
+    "base": [
+     0.4793201684951782,
+     0.5028864741325378,
+     0.533276379108429,
+     1
+    ],
+    "metal": null,
+    "rough": 0.25,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat"
+    ],
+    "alpha": null
+   },
+   {
+    "name": "txt_LOGISTIK",
+    "base": [
+     0.013702083379030228,
+     0.07818742096424103,
+     0.32314321398735046,
+     1
+    ],
+    "metal": 0,
+    "rough": 0.4000000059604645,
+    "emissive": null,
+    "ext": [
+     "KHR_materials_clearcoat"
+    ],
+    "alpha": null
+   }
+  ],
+  "default_mats": 3
+ }
+}

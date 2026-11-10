@@ -1,0 +1,18 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- warm.cold
+PROBE: shader_cache_enabled = true
+PROBE: user_dir = /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/engine-probe/xdg/godot/app_userdata/CE Engine Probe
+PROBE: spike_standard_material_metal = { "baseline_ms": 73.2, "first_frames_ms": [72.2, 70.3, 76.8, 67.3], "steady_after_ms": 73.7, "hitch_ms": 3.2 }
+PROBE: spike_emission_material = { "baseline_ms": 70.6, "first_frames_ms": [226.0, 75.4, 79.9, 78.3], "steady_after_ms": 76.5, "hitch_ms": 149.5 }
+PROBE: spike_sun_shadow_pssm4 = { "baseline_ms": 75.3, "first_frames_ms": [144.9, 88.8, 97.6, 99.4], "steady_after_ms": 97.5, "hitch_ms": 47.4 }
+PROBE: spike_fog_enabled = { "baseline_ms": 100.1, "first_frames_ms": [101.7, 101.8, 104.9, 105.8], "steady_after_ms": 102.7, "hitch_ms": 3.1 }
+PROBE: spike_spot_light = { "baseline_ms": 97.8, "first_frames_ms": [95.6, 91.0, 98.5, 104.1], "steady_after_ms": 105.7, "hitch_ms": 0.0 }
+PROBE: spike_omni_light = { "baseline_ms": 105.5, "first_frames_ms": [100.2, 111.2, 123.4, 109.9], "steady_after_ms": 114.9, "hitch_ms": 8.5 }
+PROBE: spike_spot_light_with_shadow = { "baseline_ms": 109.8, "first_frames_ms": [117.9, 112.5, 111.6, 109.8], "steady_after_ms": 107.8, "hitch_ms": 10.1 }
+PROBE: spike_alpha_scissor_multimesh_forest = { "baseline_ms": 107.6, "first_frames_ms": [187.8, 135.4, 130.8, 129.1], "steady_after_ms": 123.9, "hitch_ms": 63.9 }
+PROBE: spike_gpu_particles_rain = { "baseline_ms": 135.1, "first_frames_ms": [141.7, 164.7, 139.0, 133.9], "steady_after_ms": 134.5, "hitch_ms": 30.2 }
+PROBE: spike_imported_glb_car = { "baseline_ms": 132.3, "first_frames_ms": [408.9, 156.1, 159.0, 161.1], "steady_after_ms": 166.1, "hitch_ms": 242.8 }
+PROBE: spike_custom_bend_shader = { "baseline_ms": 174.9, "first_frames_ms": [222.0, 164.7, 150.5, 149.1], "steady_after_ms": 166.9, "hitch_ms": 55.1 }
+PROBE: spike_transparent_glass = { "baseline_ms": 159.3, "first_frames_ms": [206.9, 158.5, 166.8, 184.3], "steady_after_ms": 164.3, "hitch_ms": 42.5 }
+PROBE: variant end | vis_draw_calls=711 | vis_primitives=34040 | vis_objects=599 | shadow_draw_calls=0 | shadow_primitives=150719 | canvas_draw_calls=0

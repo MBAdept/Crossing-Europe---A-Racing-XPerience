@@ -1,0 +1,51 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- light.bisect
+PROBE: variant default_shadow0 | vis_draw_calls=495 | vis_primitives=435112 | vis_objects=495 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0
+PROBE: default_shadow0 = grass=(83,142,71) road=(46,49,54) car=(140,1,0) sky=(110,124,146)
+PROBE: variant default_shadow1 | vis_draw_calls=803 | vis_primitives=435112 | vis_objects=803 | shadow_draw_calls=0 | shadow_primitives=272320 | canvas_draw_calls=0 | diff_vs_prev_mean=8.7559 | diff_vs_prev_max=158.0
+PROBE: default_shadow1 = grass=(100,183,90) road=(59,64,73) car=(188,0,0) sky=(110,124,146)
+PROBE: variant default_shadow0 | vis_draw_calls=495 | vis_primitives=435112 | vis_objects=495 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=8.7559 | diff_vs_prev_max=158.0
+PROBE: default_shadow0 = grass=(83,142,71) road=(46,49,54) car=(140,1,0) sky=(110,124,146)
+PROBE: variant default_shadow1 | vis_draw_calls=803 | vis_primitives=435112 | vis_objects=803 | shadow_draw_calls=0 | shadow_primitives=272320 | canvas_draw_calls=0 | diff_vs_prev_mean=8.7559 | diff_vs_prev_max=158.0
+PROBE: default_shadow1 = grass=(100,183,90) road=(59,64,73) car=(188,0,0) sky=(110,124,146)
+PROBE: variant ambient_color_shadow0 | vis_draw_calls=495 | vis_primitives=435112 | vis_objects=495 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=10.4403 | diff_vs_prev_max=152.0
+PROBE: ambient_color_shadow0 = grass=(81,137,67) road=(44,45,48) car=(136,1,0) sky=(110,124,146)
+PROBE: variant ambient_color_shadow1 | vis_draw_calls=803 | vis_primitives=435112 | vis_objects=803 | shadow_draw_calls=0 | shadow_primitives=272320 | canvas_draw_calls=0 | diff_vs_prev_mean=6.6785 | diff_vs_prev_max=177.0
+PROBE: ambient_color_shadow1 = grass=(93,164,78) road=(52,55,61) car=(176,0,0) sky=(110,124,146)
+PROBE: variant ambient_color_shadow0 | vis_draw_calls=495 | vis_primitives=435112 | vis_objects=495 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=6.6785 | diff_vs_prev_max=177.0
+PROBE: ambient_color_shadow0 = grass=(81,137,67) road=(44,45,48) car=(136,1,0) sky=(110,124,146)
+PROBE: variant ambient_color_shadow1 | vis_draw_calls=803 | vis_primitives=435112 | vis_objects=803 | shadow_draw_calls=0 | shadow_primitives=272320 | canvas_draw_calls=0 | diff_vs_prev_mean=6.6785 | diff_vs_prev_max=177.0
+PROBE: ambient_color_shadow1 = grass=(93,164,78) road=(52,55,61) car=(176,0,0) sky=(110,124,146)
+PROBE: variant no_reflection_shadow0 | vis_draw_calls=495 | vis_primitives=435112 | vis_objects=495 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=8.8681 | diff_vs_prev_max=176.0
+PROBE: no_reflection_shadow0 = grass=(81,137,65) road=(41,41,43) car=(134,0,0) sky=(110,124,146)
+PROBE: variant no_reflection_shadow1 | vis_draw_calls=803 | vis_primitives=435112 | vis_objects=803 | shadow_draw_calls=0 | shadow_primitives=272320 | canvas_draw_calls=0 | diff_vs_prev_mean=3.6749 | diff_vs_prev_max=180.0
+PROBE: no_reflection_shadow1 = grass=(88,161,68) road=(41,41,44) car=(170,0,0) sky=(110,124,146)
+PROBE: variant no_reflection_shadow0 | vis_draw_calls=495 | vis_primitives=435112 | vis_objects=495 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=3.6749 | diff_vs_prev_max=180.0
+PROBE: no_reflection_shadow0 = grass=(81,137,65) road=(41,41,43) car=(134,0,0) sky=(110,124,146)
+PROBE: variant no_reflection_shadow1 | vis_draw_calls=803 | vis_primitives=435112 | vis_objects=803 | shadow_draw_calls=0 | shadow_primitives=272320 | canvas_draw_calls=0 | diff_vs_prev_mean=3.6749 | diff_vs_prev_max=180.0
+PROBE: no_reflection_shadow1 = grass=(88,161,68) road=(41,41,44) car=(170,0,0) sky=(110,124,146)
+PROBE: variant no_specular_shadow0 | vis_draw_calls=495 | vis_primitives=435112 | vis_objects=495 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=7.5401 | diff_vs_prev_max=255.0
+PROBE: no_specular_shadow0 = grass=(69,131,50) road=(29,29,32) car=(134,0,0) sky=(110,124,146)
+PROBE: variant no_specular_shadow1 | vis_draw_calls=803 | vis_primitives=435112 | vis_objects=803 | shadow_draw_calls=0 | shadow_primitives=272320 | canvas_draw_calls=0 | diff_vs_prev_mean=3.3358 | diff_vs_prev_max=179.0
+PROBE: no_specular_shadow1 = grass=(77,155,53) road=(29,29,32) car=(170,0,0) sky=(110,124,146)
+PROBE: variant no_specular_shadow0 | vis_draw_calls=495 | vis_primitives=435112 | vis_objects=495 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=3.3358 | diff_vs_prev_max=179.0
+PROBE: no_specular_shadow0 = grass=(69,131,50) road=(29,29,32) car=(134,0,0) sky=(110,124,146)
+PROBE: variant no_specular_shadow1 | vis_draw_calls=803 | vis_primitives=435112 | vis_objects=803 | shadow_draw_calls=0 | shadow_primitives=272320 | canvas_draw_calls=0 | diff_vs_prev_mean=3.3358 | diff_vs_prev_max=179.0
+PROBE: no_specular_shadow1 = grass=(77,155,53) road=(29,29,32) car=(170,0,0) sky=(110,124,146)
+PROBE: variant sun_overhead_shadow0 | vis_draw_calls=495 | vis_primitives=435112 | vis_objects=495 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=7.9745 | diff_vs_prev_max=196.0
+PROBE: sun_overhead_shadow0 = grass=(75,142,55) road=(38,38,41) car=(42,0,0) sky=(110,124,146)
+PROBE: variant sun_overhead_shadow1 | vis_draw_calls=727 | vis_primitives=435112 | vis_objects=727 | shadow_draw_calls=0 | shadow_primitives=199264 | canvas_draw_calls=0 | diff_vs_prev_mean=2.0262 | diff_vs_prev_max=118.0
+PROBE: sun_overhead_shadow1 = grass=(83,166,57) road=(38,38,42) car=(42,0,0) sky=(110,124,146)
+PROBE: variant sun_overhead_shadow0 | vis_draw_calls=495 | vis_primitives=435112 | vis_objects=495 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=2.0262 | diff_vs_prev_max=118.0
+PROBE: sun_overhead_shadow0 = grass=(75,142,55) road=(38,38,41) car=(42,0,0) sky=(110,124,146)
+PROBE: variant sun_overhead_shadow1 | vis_draw_calls=727 | vis_primitives=435112 | vis_objects=727 | shadow_draw_calls=0 | shadow_primitives=199264 | canvas_draw_calls=0 | diff_vs_prev_mean=2.0262 | diff_vs_prev_max=118.0
+PROBE: sun_overhead_shadow1 = grass=(83,166,57) road=(38,38,42) car=(42,0,0) sky=(110,124,146)
+PROBE: variant bg_color_shadow0 | vis_draw_calls=495 | vis_primitives=435112 | vis_objects=495 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=10.456 | diff_vs_prev_max=118.0
+PROBE: bg_color_shadow0 = grass=(75,142,55) road=(38,38,41) car=(42,0,0) sky=(77,102,153)
+PROBE: variant bg_color_shadow1 | vis_draw_calls=727 | vis_primitives=435112 | vis_objects=727 | shadow_draw_calls=0 | shadow_primitives=199264 | canvas_draw_calls=0 | diff_vs_prev_mean=2.0262 | diff_vs_prev_max=118.0
+PROBE: bg_color_shadow1 = grass=(83,166,57) road=(38,38,42) car=(42,0,0) sky=(77,102,153)
+PROBE: variant bg_color_shadow0 | vis_draw_calls=495 | vis_primitives=435112 | vis_objects=495 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=2.0262 | diff_vs_prev_max=118.0
+PROBE: bg_color_shadow0 = grass=(75,142,55) road=(38,38,41) car=(42,0,0) sky=(77,102,153)
+PROBE: variant bg_color_shadow1 | vis_draw_calls=727 | vis_primitives=435112 | vis_objects=727 | shadow_draw_calls=0 | shadow_primitives=199264 | canvas_draw_calls=0 | diff_vs_prev_mean=2.0262 | diff_vs_prev_max=118.0
+PROBE: bg_color_shadow1 = grass=(83,166,57) road=(38,38,42) car=(42,0,0) sky=(77,102,153)

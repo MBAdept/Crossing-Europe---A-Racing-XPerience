@@ -1,0 +1,18 @@
+policy: yaw = 0.60 x bearing of the centreline 100 m ahead; samples 34088400
+d (m): cases [Arcade on screen, 3D off] / max stopping sight distance there (m) / max drivable speed (km/h)
+  280:     13   need <= 108.5 m   v <= 134.0 km/h   OK
+  290:     45   need <= 123.5 m   v <= 144.8 km/h   OK
+  300:     73   need <= 138.3 m   v <= 154.9 km/h   OK
+  310:     99   need <= 146.3 m   v <= 160.1 km/h   OK
+  320:    115   need <= 160.2 m   v <= 168.9 km/h   OK
+  330:    142   need <= 168.1 m   v <= 173.7 km/h   OK
+  340:    185   need <= 175.3 m   v <= 178.0 km/h   OK
+  350:    242   need <= 182.5 m   v <= 182.2 km/h   OK
+  360:    334   need <= 196.1 m   v <= 189.9 km/h   OK
+  370:    395   need <= 203.2 m   v <= 193.8 km/h   OK
+  380:    449   need <= 210.2 m   v <= 197.7 km/h   OK
+  worst need/d 0.55: d=380 bukarest_sibiu__sibiu km 56.9 need 210 m v 198 km/h |curve| 0.00
+  worst need/d 0.55: d=380 bukarest_sibiu__sibiu km 56.9 need 210 m v 198 km/h |curve| 0.00
+  worst need/d 0.55: d=380 saragossa_pau__saragossa km 197.0 need 210 m v 198 km/h |curve| 0.00
+  worst need/d 0.55: d=380 saragossa_pau__saragossa km 197.0 need 210 m v 198 km/h |curve| 0.00
+  worst need/d 0.55: d=370 bukarest_sibiu__sibiu km 57.0 need 203 m v 194 km/h |curve| 0.00

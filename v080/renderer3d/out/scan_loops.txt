@@ -1,0 +1,15 @@
+closest approach of two road parts 1100..8000 m of path apart:
+     3.9 m  erfurt_kassel__erfurt              path apart  2688 m at km 86.9
+     4.1 m  sibiu_timisoara__sibiu             path apart  6336 m at km 138.0
+     4.7 m  san_sebastian_burgos__burgos       path apart  4680 m at km 159.4
+     4.8 m  san_sebastian_burgos__san_sebastian path apart  3960 m at km 24.5
+     8.7 m  bordeaux_san_sebastian__bordeaux   path apart  6576 m at km 169.4
+     9.2 m  saragossa_pau__saragossa           path apart  3216 m at km 186.0
+    10.4 m  saragossa_pau__pau                 path apart  5880 m at km 22.6
+    11.0 m  bukarest_sibiu__sibiu              path apart  2544 m at km 45.4
+    88.4 m  bukarest_sibiu__bukarest           path apart  3792 m at km 189.1
+   499.6 m  belgrad_sofia__sofia               path apart  1080 m at km 111.4
+   632.2 m  erfurt_kassel__kassel              path apart  1080 m at km 52.3
+   775.8 m  belgrad_sofia__belgrad             path apart  1080 m at km 281.3
+stage directions with such an approach < 100 m: 9, < 30 m (the true-3D road would cross itself): 8 of 128
+smallest path separation of an approach < 150 m: 2544 m

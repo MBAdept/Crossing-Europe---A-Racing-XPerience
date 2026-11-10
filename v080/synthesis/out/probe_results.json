@@ -1,0 +1,173 @@
+[
+  {
+    "ball_mid": "0,0,0",
+    "ball_top": "37,37,37",
+    "bg_top": "52,78,164",
+    "box": "64,9,9",
+    "draw_calls": 3,
+    "name": "e2_ambient_only",
+    "plane_front": "37,37,37"
+  },
+  {
+    "ball_mid": "0,0,0",
+    "ball_top": "109,109,109",
+    "bg_top": "52,78,164",
+    "box": "116,30,30",
+    "draw_calls": 3,
+    "name": "e2_sun_only_noshadow",
+    "plane_front": "84,84,84"
+  },
+  {
+    "ball_mid": "0,0,0",
+    "ball_top": "115,115,115",
+    "bg_top": "52,78,164",
+    "box": "131,34,34",
+    "draw_calls": 3,
+    "name": "e2_amb_sun_noshadow",
+    "plane_front": "91,91,91"
+  },
+  {
+    "ball_mid": "0,0,0",
+    "ball_top": "146,146,146",
+    "bg_top": "52,78,164",
+    "box": "180,39,39",
+    "draw_calls": 15,
+    "name": "e2_amb_sun_shadow",
+    "plane_front": "120,120,120"
+  },
+  {
+    "ball_mid": "0,0,0",
+    "ball_top": "146,146,146",
+    "bg_top": "52,78,164",
+    "box": "180,39,39",
+    "draw_calls": 3,
+    "name": "e2_amb_sun_shadowflag_nocasters",
+    "plane_front": "120,120,120"
+  },
+  {
+    "ball_mid": "0,0,0",
+    "ball_top": "146,146,146",
+    "bg_top": "52,78,164",
+    "box": "180,39,39",
+    "draw_calls": 7,
+    "name": "e2_amb_sun_shadow_maxdist1",
+    "plane_front": "120,120,120"
+  },
+  {
+    "ball_mid": "0,0,0",
+    "ball_top": "115,115,115",
+    "bg_top": "51,78,164",
+    "box": "131,32,32",
+    "draw_calls": 3,
+    "name": "e2p_amb_sun_noshadow_adj",
+    "plane_front": "92,92,92"
+  },
+  {
+    "ball_mid": "0,0,0",
+    "ball_top": "146,146,146",
+    "bg_top": "51,78,164",
+    "box": "180,38,38",
+    "draw_calls": 15,
+    "name": "e2p_amb_sun_shadow_adj",
+    "plane_front": "121,121,121"
+  },
+  {
+    "ball_mid": "0,0,0",
+    "ball_top": "146,146,146",
+    "bg_top": "51,78,164",
+    "box": "180,38,38",
+    "draw_calls": 3,
+    "name": "e2p_amb_sun_shadowflag_nocasters_adj",
+    "plane_front": "121,121,121"
+  },
+  {
+    "ball_mid": "0,0,0",
+    "ball_top": "146,146,146",
+    "bg_top": "51,78,164",
+    "box": "180,37,37",
+    "draw_calls": 15,
+    "name": "e2p_amb_sun_shadow_glow",
+    "plane_front": "120,120,120"
+  },
+  {
+    "ball_mid": "0,0,0",
+    "ball_top": "146,146,146",
+    "bg_top": "51,78,164",
+    "box": "180,37,37",
+    "draw_calls": 15,
+    "name": "e2p_amb_sun_shadow_glow_adj",
+    "plane_front": "120,120,120"
+  },
+  {
+    "ball_mid": "0,0,0",
+    "ball_top": "146,146,146",
+    "bg_top": "51,78,164",
+    "box": "180,38,38",
+    "draw_calls": 15,
+    "name": "e2p_amb_sun_shadow_scale075",
+    "plane_front": "121,121,121"
+  },
+  {
+    "ball_mid": "0,0,0",
+    "ball_top": "35,35,35",
+    "bg_top": "51,78,164",
+    "box": "64,3,3",
+    "draw_calls": 15,
+    "name": "e2p_amb_sun0_shadow_adj",
+    "plane_front": "35,35,35"
+  },
+  {
+    "ball_mid": "0,0,0",
+    "ball_top": "35,35,35",
+    "bg_top": "51,78,164",
+    "box": "64,3,3",
+    "draw_calls": 3,
+    "name": "e2p_ambient_only_adj",
+    "plane_front": "35,35,35"
+  },
+  {
+    "ball_mid": "10,10,10",
+    "ball_top": "147,147,150",
+    "bg_top": "51,78,164",
+    "box": "181,40,45",
+    "draw_calls": 15,
+    "name": "e1_bgsky_reflsky",
+    "plane_front": "121,121,124"
+  },
+  {
+    "ball_mid": "0,0,0",
+    "ball_top": "146,146,146",
+    "bg_top": "50,102,204",
+    "box": "180,38,38",
+    "draw_calls": 16,
+    "name": "e1_bgcanvas_norefl",
+    "plane_front": "121,121,121"
+  },
+  {
+    "ball_mid": "10,10,10",
+    "ball_top": "147,147,150",
+    "bg_top": "50,102,204",
+    "box": "181,40,45",
+    "draw_calls": 16,
+    "name": "e1_bgcanvas_reflsky",
+    "plane_front": "121,121,124"
+  },
+  {
+    "ball_mid": "10,10,10",
+    "ball_top": "118,133,186",
+    "bg_top": "50,102,204",
+    "box": "162,39,53",
+    "draw_calls": 16,
+    "name": "e1_bgcanvas_reflsky_ambsky",
+    "plane_front": "92,107,160"
+  },
+  {
+    "ball_mid": "9,10,9",
+    "ball_top": "225,240,253",
+    "bg_top": "50,102,203",
+    "box": "180,39,44",
+    "draw_calls": 16,
+    "name": "e1_bgcanvas_reflsky_glow_scale_msaa_fog",
+    "plane_front": "120,121,124"
+  }
+]

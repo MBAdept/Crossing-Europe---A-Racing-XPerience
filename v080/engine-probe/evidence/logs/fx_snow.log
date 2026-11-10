@@ -1,0 +1,13 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- fx.snow
+PROBE: variant 0_ref | vis_draw_calls=539 | vis_primitives=435640 | vis_objects=539 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0
+PROBE: variant 1_gpu_snow_turbulence | vis_draw_calls=540 | vis_primitives=447640 | vis_objects=540 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=0.0596 | diff_vs_prev_max=68.0
+PROBE: turbulence_diff_vs_ref = { "mean": 0.0596, "max": 68.0, "psnr": 46.88 }
+PROBE: variant 2_gpu_snow_no_turbulence | vis_draw_calls=540 | vis_primitives=447640 | vis_objects=540 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=0.1646 | diff_vs_prev_max=140.0
+PROBE: no_turbulence_diff_vs_ref = { "mean": 0.1059, "max": 140.0, "psnr": 42.69 }
+PROBE: variant 3_gpu_snow_weak_turbulence | vis_draw_calls=540 | vis_primitives=447640 | vis_objects=540 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=0.17 | diff_vs_prev_max=140.0
+PROBE: weak_turbulence_diff_vs_ref = { "mean": 0.065, "max": 63.0, "psnr": 46.53 }
+PROBE: variant 4_sparks_no_collider | vis_draw_calls=540 | vis_primitives=436040 | vis_objects=540 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=0.1401 | diff_vs_prev_max=176.0
+PROBE: variant 5_sparks_collider_box | vis_draw_calls=540 | vis_primitives=436040 | vis_objects=540 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=0.1074 | diff_vs_prev_max=176.0
+PROBE: collider_diff = { "mean": 0.1074, "max": 176.0, "psnr": 36.47 }

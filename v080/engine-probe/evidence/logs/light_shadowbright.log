@@ -1,0 +1,121 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- light.shadowbright
+PROBE: variant tm0_glow0_shadow0 | vis_draw_calls=495 | vis_primitives=435112 | vis_objects=495 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0
+PROBE: tm0_glow0_shadow0 = grass=(83,142,71) road=(46,49,54) car=(140,1,0) sky=(110,124,146)
+PROBE: variant tm0_glow0_shadow1 | vis_draw_calls=803 | vis_primitives=435112 | vis_objects=803 | shadow_draw_calls=0 | shadow_primitives=272320 | canvas_draw_calls=0 | diff_vs_prev_mean=8.7559 | diff_vs_prev_max=158.0
+PROBE: tm0_glow0_shadow1 = grass=(100,183,90) road=(59,64,73) car=(188,0,0) sky=(110,124,146)
+PROBE: variant tm0_glow1_shadow0 | vis_draw_calls=495 | vis_primitives=435112 | vis_objects=495 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=9.2074 | diff_vs_prev_max=157.0
+PROBE: tm0_glow1_shadow0 = grass=(83,142,70) road=(45,47,53) car=(140,0,0) sky=(110,124,146)
+PROBE: variant tm0_glow1_shadow1 | vis_draw_calls=803 | vis_primitives=435112 | vis_objects=803 | shadow_draw_calls=0 | shadow_primitives=272320 | canvas_draw_calls=0 | diff_vs_prev_mean=8.9995 | diff_vs_prev_max=157.0
+PROBE: tm0_glow1_shadow1 = grass=(100,182,90) road=(58,64,73) car=(187,0,0) sky=(110,124,146)
+PROBE: variant tm2_glow0_shadow0 | vis_draw_calls=495 | vis_primitives=435112 | vis_objects=495 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=13.7402 | diff_vs_prev_max=158.0
+PROBE: tm2_glow0_shadow0 = grass=(106,177,89) road=(56,59,66) car=(175,2,1) sky=(141,158,181)
+PROBE: variant tm2_glow0_shadow1 | vis_draw_calls=803 | vis_primitives=435112 | vis_objects=803 | shadow_draw_calls=0 | shadow_primitives=272320 | canvas_draw_calls=0 | diff_vs_prev_mean=9.9128 | diff_vs_prev_max=130.0
+PROBE: tm2_glow0_shadow1 = grass=(125,229,110) road=(70,75,86) car=(236,0,0) sky=(141,158,181)
+PROBE: variant tm2_glow1_shadow0 | vis_draw_calls=495 | vis_primitives=435112 | vis_objects=495 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=10.5438 | diff_vs_prev_max=130.0
+PROBE: tm2_glow1_shadow0 = grass=(106,177,87) road=(54,57,65) car=(175,0,0) sky=(141,158,181)
+PROBE: variant tm2_glow1_shadow1 | vis_draw_calls=803 | vis_primitives=435112 | vis_objects=803 | shadow_draw_calls=0 | shadow_primitives=272320 | canvas_draw_calls=0 | diff_vs_prev_mean=10.842 | diff_vs_prev_max=131.0
+PROBE: tm2_glow1_shadow1 = grass=(128,213,115) road=(72,79,92) car=(217,0,0) sky=(141,158,181)
+PROBE: variant tm3_glow0_shadow0 | vis_draw_calls=495 | vis_primitives=435112 | vis_objects=495 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=16.7701 | diff_vs_prev_max=131.0
+PROBE: tm3_glow0_shadow0 = grass=(105,180,86) road=(36,39,46) car=(169,0,2) sky=(139,158,184)
+PROBE: variant tm3_glow0_shadow1 | vis_draw_calls=803 | vis_primitives=435112 | vis_objects=803 | shadow_draw_calls=0 | shadow_primitives=272320 | canvas_draw_calls=0 | diff_vs_prev_mean=3.9337 | diff_vs_prev_max=148.0
+PROBE: tm3_glow0_shadow1 = grass=(100,209,89) road=(33,38,47) car=(196,0,0) sky=(139,158,184)
+PROBE: variant tm3_glow1_shadow0 | vis_draw_calls=495 | vis_primitives=435112 | vis_objects=495 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=3.9638 | diff_vs_prev_max=148.0
+PROBE: tm3_glow1_shadow0 = grass=(105,180,85) road=(34,37,45) car=(169,0,0) sky=(140,158,184)
+PROBE: variant tm3_glow1_shadow1 | vis_draw_calls=803 | vis_primitives=435112 | vis_objects=803 | shadow_draw_calls=0 | shadow_primitives=272320 | canvas_draw_calls=0 | diff_vs_prev_mean=13.165 | diff_vs_prev_max=150.0
+PROBE: tm3_glow1_shadow1 = grass=(150,221,126) road=(54,61,74) car=(232,0,9) sky=(140,158,184)
+PROBE: variant tm4_glow0_shadow0 | vis_draw_calls=495 | vis_primitives=435112 | vis_objects=495 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=27.0331 | diff_vs_prev_max=108.0
+PROBE: tm4_glow0_shadow0 = grass=(88,136,68) road=(40,42,48) car=(137,0,0) sky=(111,126,144)
+PROBE: variant tm4_glow0_shadow1 | vis_draw_calls=803 | vis_primitives=435112 | vis_objects=803 | shadow_draw_calls=0 | shadow_primitives=272320 | canvas_draw_calls=0 | diff_vs_prev_mean=6.1445 | diff_vs_prev_max=106.0
+PROBE: tm4_glow0_shadow1 = grass=(98,169,79) road=(44,49,58) car=(175,0,0) sky=(111,126,144)
+PROBE: variant tm4_glow1_shadow0 | vis_draw_calls=495 | vis_primitives=435112 | vis_objects=495 | shadow_draw_calls=0 | shadow_primitives=0 | canvas_draw_calls=0 | diff_vs_prev_mean=6.5689 | diff_vs_prev_max=106.0
+PROBE: tm4_glow1_shadow0 = grass=(88,136,67) road=(38,41,47) car=(137,0,0) sky=(111,126,144)
+PROBE: variant tm4_glow1_shadow1 | vis_draw_calls=803 | vis_primitives=435112 | vis_objects=803 | shadow_draw_calls=0 | shadow_primitives=272320 | canvas_draw_calls=0 | diff_vs_prev_mean=9.7646 | diff_vs_prev_max=106.0
+PROBE: tm4_glow1_shadow1 = grass=(116,166,95) road=(53,59,69) car=(181,12,0) sky=(111,126,144)
+ERROR: Can't compare HDR colors.
+   at: compute_image_metrics (core/io/image.cpp:4743)
+   GDScript backtrace (most recent call first):
+       [0] variant (res://probe_base.gd:241)
+       [1] grab (res://probe_base.gd:188)
+SCRIPT ERROR: Invalid access to property or key 'mean' on a base object of type 'Dictionary'.
+          at: variant (res://probe_base.gd:242)
+          GDScript backtrace (most recent call first):
+              [0] variant (res://probe_base.gd:242)
+              [1] grab (res://probe_base.gd:188)
+SCRIPT ERROR: Cannot call method 'get_pixel' on a null value.
+          at: px (res://t_light.gd:54)
+          GDScript backtrace (most recent call first):
+              [0] px (res://t_light.gd:54)
+              [1] sample (res://t_light.gd:58)
+              [2] test_shadowbright (res://t_light.gd:79)
+              [3] variant (res://probe_base.gd:242)
+              [4] grab (res://probe_base.gd:188)
+SCRIPT ERROR: Cannot call method 'get_pixel' on a null value.
+          at: px (res://t_light.gd:54)
+          GDScript backtrace (most recent call first):
+              [0] px (res://t_light.gd:54)
+              [1] sample (res://t_light.gd:58)
+              [2] test_shadowbright (res://t_light.gd:79)
+              [3] variant (res://probe_base.gd:242)
+              [4] grab (res://probe_base.gd:188)
+SCRIPT ERROR: Cannot call method 'get_pixel' on a null value.
+          at: px (res://t_light.gd:54)
+          GDScript backtrace (most recent call first):
+              [0] px (res://t_light.gd:54)
+              [1] sample (res://t_light.gd:58)
+              [2] test_shadowbright (res://t_light.gd:79)
+              [3] variant (res://probe_base.gd:242)
+              [4] grab (res://probe_base.gd:188)
+SCRIPT ERROR: Cannot call method 'get_pixel' on a null value.
+          at: px (res://t_light.gd:54)
+          GDScript backtrace (most recent call first):
+              [0] px (res://t_light.gd:54)
+              [1] sample (res://t_light.gd:58)
+              [2] test_shadowbright (res://t_light.gd:79)
+              [3] variant (res://probe_base.gd:242)
+              [4] grab (res://probe_base.gd:188)
+PROBE: tm2_hdr2d_shadow0 = grass= road= car= sky=
+ERROR: Can't compare HDR colors.
+   at: compute_image_metrics (core/io/image.cpp:4743)
+   GDScript backtrace (most recent call first):
+       [0] variant (res://probe_base.gd:241)
+       [1] grab (res://probe_base.gd:188)
+SCRIPT ERROR: Invalid access to property or key 'mean' on a base object of type 'Dictionary'.
+          at: variant (res://probe_base.gd:242)
+          GDScript backtrace (most recent call first):
+              [0] variant (res://probe_base.gd:242)
+              [1] grab (res://probe_base.gd:188)
+SCRIPT ERROR: Cannot call method 'get_pixel' on a null value.
+          at: px (res://t_light.gd:54)
+          GDScript backtrace (most recent call first):
+              [0] px (res://t_light.gd:54)
+              [1] sample (res://t_light.gd:58)
+              [2] test_shadowbright (res://t_light.gd:79)
+              [3] variant (res://probe_base.gd:242)
+              [4] grab (res://probe_base.gd:188)
+SCRIPT ERROR: Cannot call method 'get_pixel' on a null value.
+          at: px (res://t_light.gd:54)
+          GDScript backtrace (most recent call first):
+              [0] px (res://t_light.gd:54)
+              [1] sample (res://t_light.gd:58)
+              [2] test_shadowbright (res://t_light.gd:79)
+              [3] variant (res://probe_base.gd:242)
+              [4] grab (res://probe_base.gd:188)
+SCRIPT ERROR: Cannot call method 'get_pixel' on a null value.
+          at: px (res://t_light.gd:54)
+          GDScript backtrace (most recent call first):
+              [0] px (res://t_light.gd:54)
+              [1] sample (res://t_light.gd:58)
+              [2] test_shadowbright (res://t_light.gd:79)
+              [3] variant (res://probe_base.gd:242)
+              [4] grab (res://probe_base.gd:188)
+SCRIPT ERROR: Cannot call method 'get_pixel' on a null value.
+          at: px (res://t_light.gd:54)
+          GDScript backtrace (most recent call first):
+              [0] px (res://t_light.gd:54)
+              [1] sample (res://t_light.gd:58)
+              [2] test_shadowbright (res://t_light.gd:79)
+              [3] variant (res://probe_base.gd:242)
+              [4] grab (res://probe_base.gd:188)
+PROBE: tm2_hdr2d_shadow1 = grass= road= car= sky=

@@ -1,0 +1,24 @@
+category                        raw MB  deflate MB  ratio % of archive
+ENGINE (template)                73.52       28.31   0.39         24.2
+sprites/traffic                  98.54       18.16   0.18         15.5
+sprites/player                   94.97       17.03   0.18         14.5
+sprites/police                   87.67       12.06   0.14         10.3
+sprites/landmarks                11.70       11.63   0.99          9.9
+sprites/props                    11.11       11.06   0.99          9.4
+audio/engines                    10.16        9.35   0.92          8.0
+audio/music                       3.85        3.76   0.98          3.2
+assets/ui                         1.69        1.69   1.00          1.4
+audio/traffic                     1.74        1.61   0.93          1.4
+sprites/showroom                  1.05        1.05   1.00          0.9
+scripts                           0.87        0.86   0.99          0.7
+assets/fonts                      0.22        0.21   1.00          0.2
+assets/icons                      0.17        0.12   0.67          0.1
+sprites/ui                        0.08        0.08   0.99          0.1
+data+config                       0.36        0.08   0.22          0.1
+sprites/manifest.json             0.09        0.01   0.10          0.0
+godot-internal                    0.03        0.01   0.24          0.0
+other:icon.svg                    0.01        0.01   0.89          0.0
+other:project.binary              0.00        0.00   0.42          0.0
+other:scenes                      0.00        0.00   0.97          0.0
+other:icon.svg.import             0.00        0.00   0.86          0.0
+TOTAL                           397.83      117.08   0.29   (23 s)

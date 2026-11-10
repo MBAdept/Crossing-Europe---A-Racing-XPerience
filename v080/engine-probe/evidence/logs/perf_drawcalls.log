@@ -1,0 +1,20 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- perf.drawcalls
+PROBE: window_size = (320, 180)
+PROBE: n0 = { "render_cpu_ms": 0.137, "setup_cpu_ms": 0.004, "frame_wall_ms": 1.204, "draw_calls": 0, "objects": 0 }
+PROBE: same_material_n500 = { "render_cpu_ms": 2.951, "setup_cpu_ms": 0.015, "frame_wall_ms": 4.91, "draw_calls": 500, "objects": 500 }
+PROBE: same_material_n1000 = { "render_cpu_ms": 4.28, "setup_cpu_ms": 0.017, "frame_wall_ms": 6.336, "draw_calls": 1000, "objects": 1000 }
+PROBE: same_material_n2000 = { "render_cpu_ms": 9.899, "setup_cpu_ms": 0.024, "frame_wall_ms": 12.492, "draw_calls": 2000, "objects": 2000 }
+PROBE: same_material_n4000 = { "render_cpu_ms": 20.421, "setup_cpu_ms": 0.034, "frame_wall_ms": 24.407, "draw_calls": 4000, "objects": 4000 }
+PROBE: 16_materials_n4000 = { "render_cpu_ms": 16.868, "setup_cpu_ms": 0.031, "frame_wall_ms": 20.239, "draw_calls": 4000, "objects": 4000 }
+PROBE: 16_materials_n4000_shadow_pssm4 = { "render_cpu_ms": 49.069, "setup_cpu_ms": 0.032, "frame_wall_ms": 62.763, "draw_calls": 12000, "objects": 12000 }
+PROBE: 16_materials_n4000_shadow_pssm2 = { "render_cpu_ms": 37.61, "setup_cpu_ms": 0.031, "frame_wall_ms": 42.26, "draw_calls": 8000, "objects": 8000 }
+PROBE: 16_materials_n4000_shadow_ortho = { "render_cpu_ms": 35.004, "setup_cpu_ms": 0.032, "frame_wall_ms": 40.095, "draw_calls": 8000, "objects": 8000 }
+PROBE: gdscript_set_position_4000_nodes_us = 908.5
+PROBE: gdscript_set_transform_4000_nodes_us = 714.0
+PROBE: rs_instances_16_materials_n4000 = { "render_cpu_ms": 15.022, "setup_cpu_ms": 0.023, "frame_wall_ms": 19.961, "draw_calls": 4000, "objects": 4000 }
+PROBE: gdscript_rs_instance_set_transform_4000_us = 443.6
+PROBE: render_cpu_ms_when_4000_instances_move_each_frame = 14.611
+PROBE: multimesh_n4000 = { "render_cpu_ms": 10.493, "setup_cpu_ms": 0.005, "frame_wall_ms": 12.333, "draw_calls": 1, "objects": 1 }
+PROBE: local_rendering_device_available = false

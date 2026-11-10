@@ -1,0 +1,13 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+CHECK stick_wert   OK      Fahrzeug 1 / gehalten 1, Startzeit 1 / ▲ 2 (je Stunde 2), Lautstärke 8 → 7
+CHECK halten       OK      Steuerkreuz 1 s gehalten: 7 Einträge (vorher 1), RB +8, LB −8, 134 Einträge
+CHECK geraet1      OK      zweites Gamepad: A → stage_select, B → title
+CHECK tippen       OK      Feld per Steuerkreuz erreicht (Bearbeitung false), getippt Q, x → 'AnkeQx'
+CHECK tastatur     OK      A öffnet (true), erstes B: 'Ank', leer noch offen (true), B schließt (true), Name 'Anke'
+CHECK beenden      OK      Abfrage vor dem Beenden (true), B bricht ab (true), gemerkte Wahl -1, neuer Titel auf „Beenden“ false
+AudioManager: Motorbank limousine: 32000 Hz, 13 Drehzahlpunkte 649–7204/min, 208 Zyklen, 10 Clips, 2.2 MB geladen in 4 ms
+CHECK drift        OK      Pad 0 driftet 0,16, Pad 1 fährt: Lenkung 0.000 (vorher 0,05); Pad 0 übernimmt (Gerät 0): -1.00; Pad 1 zurück: 0.60
+CHECK trennen      OK      ruhendes Pad (Tastatur fährt): Pause false, Gas 1.00; Pad hält RT: Pause true, Gas der Taste 1.00; aktives Pad: Pause true
+CHECK rennen       OK      Gerät 1: Lenkung 1.00, Gas 1.00, Start pausiert true / weiter true; Kollision: Vibration (0.5, 0.9), Pause: (0.0, 0.0); Ansicht halb zwischen zwei Schritten true
+CHECKS OK  (0 fehlgeschlagen, 6 s)

@@ -1,0 +1,3 @@
+opengl3: SELFTEST {"broken_shader":{"dark":0.0,"lit":0.87,"ms":46.0,"ok":false,"quad":"0.00 0.00 0.00","reason":"shader"},"display":"X11","healthy":{"dark":0.0,"lit":0.87,"ms":139.8,"ok":true,"quad":"0.09 0.80 0.30","reason":""}}
+opengl3_es: SELFTEST {"broken_shader":{"dark":0.0,"lit":0.87,"ms":55.3,"ok":false,"quad":"0.00 0.00 0.00","reason":"shader"},"display":"X11","healthy":{"dark":0.0,"lit":0.87,"ms":156.1,"ok":true,"quad":"0.09 0.80 0.30","reason":""}}
+headless: SELFTEST {"broken_shader":{"ok":true,"reason":"skipped"},"display":"headless","healthy":{"ok":true,"reason":"skipped"}}

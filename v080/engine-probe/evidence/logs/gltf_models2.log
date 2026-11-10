@@ -1,0 +1,38 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- gltf.models2
+PROBE: sedan_merged_load_ms = 7
+PROBE: sedan_merged_instantiate_ms = 0
+PROBE: sedan_merged_stats = { "mesh_instances": 13, "surfaces": 20, "vertices": 22466, "triangles_lod0": 38844, "lods_max": 0, "materials": 11, "compressed_surfaces": 20, "has_color": 0, "has_tangent": 20, "shadow_meshes": 13 }
+PROBE: sedan_merged_tree_head = ["traffic_sedan_red_merged [Node3D]", "  ROOT [Node3D]", "    sedan_dish [MeshInstance3D]", "    sedan_dish_001 [MeshInstance3D]", "    sedan_dish_002 [MeshInstance3D]", "    sedan_dish_003 [MeshInstance3D]", "    sedan_exh [MeshInstance3D]", "    sedan_rim [MeshInstance3D]", "    sedan_rim_001 [MeshInstance3D]", "    sedan_rim_002 [MeshInstance3D]", "    sedan_rim_003 [MeshInstance3D]", "    sedan_tyre [MeshInstance3D]", "    sedan_tyre_001 [MeshInstance3D]", "    sedan_tyre_002 [MeshInstance3D]"]
+PROBE: sedan_merged_materials = ["sedan_rimdark albedo=1e1f22 metal=0.20 rough=0.50 emis=- e=1.0 vcol=false transp=0 clearcoat=false", "sedan_chrome albedo=d6d8db metal=1.00 rough=0.12 emis=- e=1.0 vcol=false transp=0 clearcoat=false", "sedan_body albedo=b52424 metal=0.00 rough=0.50 emis=- e=1.0 vcol=false transp=0 clearcoat=false", "sedan_cabin albedo=b52424 metal=0.00 rough=0.50 emis=- e=1.0 vcol=false transp=0 clearcoat=false", "sedan_bumper albedo=b52424 metal=0.00 rough=0.50 emis=- e=1.0 vcol=false transp=0 clearcoat=false", "sedan_dark albedo=121314 metal=0.00 rough=0.70 emis=- e=1.0 vcol=false transp=0 clearcoat=false", "sedan_mglass albedo=3a4148 metal=0.90 rough=0.05 emis=- e=1.0 vcol=false transp=0 clearcoat=false", "sedan_pipe albedo=0a0a0a metal=0.00 rough=0.80 emis=- e=1.0 vcol=false transp=0 clearcoat=false", "sedan_platetext albedo=181818 metal=0.00 rough=0.60 emis=- e=1.0 vcol=false transp=0 clearcoat=false", "sedan_rim albedo=b8bcc2 metal=1.00 rough=0.25 emis=- e=1.0 vcol=false transp=0 clearcoat=false", "sedan_tyre albedo=17181a metal=0.00 rough=0.85 emis=- e=1.0 vcol=false transp=0 clearcoat=false"]
+PROBE: variant 0_sedan_merged_rear | vis_draw_calls=41 | vis_primitives=12134 | vis_objects=41 | shadow_draw_calls=0 | shadow_primitives=22760 | canvas_draw_calls=0 | frame_ms_median=205.43 | render_cpu_ms_median=184.35 | render_gpu_ms_median=184.31
+PROBE: variant 0_sedan_merged_front | vis_draw_calls=76 | vis_primitives=10824 | vis_objects=76 | shadow_draw_calls=0 | shadow_primitives=30344 | canvas_draw_calls=0 | frame_ms_median=170.42 | render_cpu_ms_median=166.11 | render_gpu_ms_median=166.07 | diff_vs_prev_mean=42.6068 | diff_vs_prev_max=230.0
+PROBE: sedan_wheel_nodes = 4
+PROBE: police_merged_load_ms = 7
+PROBE: police_merged_instantiate_ms = 1
+PROBE: police_merged_stats = { "mesh_instances": 13, "surfaces": 27, "vertices": 25362, "triangles_lod0": 42115, "lods_max": 0, "materials": 18, "compressed_surfaces": 12, "has_color": 0, "has_tangent": 27, "shadow_meshes": 13 }
+PROBE: police_merged_tree_head = ["police_de_merged [Node3D]", "  ROOT [Node3D]", "    pol_bar [MeshInstance3D]", "    police_dish [MeshInstance3D]", "    police_dish_001 [MeshInstance3D]", "    police_dish_002 [MeshInstance3D]", "    police_dish_003 [MeshInstance3D]", "    police_rim [MeshInstance3D]", "    police_rim_001 [MeshInstance3D]", "    police_rim_002 [MeshInstance3D]", "    police_rim_003 [MeshInstance3D]", "    police_tyre [MeshInstance3D]", "    police_tyre_001 [MeshInstance3D]", "    police_tyre_002 [MeshInstance3D]"]
+PROBE: variant 1_police_merged | vis_draw_calls=62 | vis_primitives=13893 | vis_objects=62 | shadow_draw_calls=0 | shadow_primitives=26278 | canvas_draw_calls=0 | frame_ms_median=199.38 | render_cpu_ms_median=196.18 | render_gpu_ms_median=196.18 | diff_vs_prev_mean=38.6417 | diff_vs_prev_max=230.0
+PROBE: truck_merged_load_ms = 3
+PROBE: truck_merged_instantiate_ms = 0
+PROBE: truck_merged_stats = { "mesh_instances": 21, "surfaces": 27, "vertices": 13164, "triangles_lod0": 11792, "lods_max": 0, "materials": 9, "compressed_surfaces": 20, "has_color": 0, "has_tangent": 27, "shadow_meshes": 21 }
+PROBE: truck_merged_tree_head = ["traffic_truck_white_merged [Node3D]", "  ROOT [Node3D]", "    tr_box [MeshInstance3D]", "    tr_fw_rim [MeshInstance3D]", "    tr_fw_rim_001 [MeshInstance3D]", "    tr_fw_tyre [MeshInstance3D]", "    tr_fw_tyre_001 [MeshInstance3D]", "    tr_tw_rim [MeshInstance3D]", "    tr_tw_rim_001 [MeshInstance3D]", "    tr_tw_tyre [MeshInstance3D]", "    tr_tw_tyre_001 [MeshInstance3D]", "    tr_w_rim [MeshInstance3D]", "    tr_w_rim_001 [MeshInstance3D]", "    tr_w_rim_002 [MeshInstance3D]"]
+PROBE: variant 2_truck_merged | vis_draw_calls=47 | vis_primitives=4960 | vis_objects=47 | shadow_draw_calls=0 | shadow_primitives=9730 | canvas_draw_calls=0 | frame_ms_median=163.83 | render_cpu_ms_median=160.44 | render_gpu_ms_median=160.37 | diff_vs_prev_mean=13.8034 | diff_vs_prev_max=192.0
+PROBE: eiffel_merged_load_ms = 4
+PROBE: eiffel_merged_instantiate_ms = 0
+PROBE: eiffel_merged_stats = { "mesh_instances": 1, "surfaces": 7, "vertices": 50338, "triangles_lod0": 25152, "lods_max": 0, "materials": 7, "compressed_surfaces": 7, "has_color": 0, "has_tangent": 7, "shadow_meshes": 1 }
+PROBE: eiffel_merged_tree_head = ["landmarks_eiffel_tower_merged [Node3D]", "  ROOT [Node3D]", "    eif_antenna [MeshInstance3D]"]
+PROBE: variant 3_eiffel_merged | vis_draw_calls=17 | vis_primitives=25154 | vis_objects=17 | shadow_draw_calls=0 | shadow_primitives=25156 | canvas_draw_calls=0 | frame_ms_median=180.19 | render_cpu_ms_median=176.87 | render_gpu_ms_median=176.94 | diff_vs_prev_mean=33.5814 | diff_vs_prev_max=234.0
+PROBE: streetlight_load_ms = 1
+PROBE: streetlight_instantiate_ms = 0
+PROBE: streetlight_stats = { "mesh_instances": 1, "surfaces": 4, "vertices": 480, "triangles_lod0": 352, "lods_max": 0, "materials": 4, "compressed_surfaces": 4, "has_color": 0, "has_tangent": 4, "shadow_meshes": 1 }
+PROBE: streetlight_tree_head = ["props_streetlight_merged [Node3D]", "  ROOT [Node3D]", "    sl_cone [MeshInstance3D]"]
+PROBE: streetlight_materials = ["sl_cone albedo=bcbcbc metal=0.00 rough=0.50 emis=- e=1.0 vcol=false transp=0 clearcoat=false", "sl_pole albedo=9ea3a8 metal=0.70 rough=0.45 emis=- e=1.0 vcol=false transp=0 clearcoat=false", "sl_head albedo=5d6268 metal=0.50 rough=0.40 emis=- e=1.0 vcol=false transp=0 clearcoat=false", "sl_lens albedo=e9e6da metal=0.00 rough=0.20 emis=e9e6da e=1.0 vcol=false transp=0 clearcoat=false"]
+PROBE: variant 4_streetlight | vis_draw_calls=21 | vis_primitives=354 | vis_objects=21 | shadow_draw_calls=0 | shadow_primitives=1064 | canvas_draw_calls=0 | frame_ms_median=148.76 | render_cpu_ms_median=137.17 | render_gpu_ms_median=137.15 | diff_vs_prev_mean=33.0881 | diff_vs_prev_max=231.0
+PROBE: vc_test_load_ms = 1
+PROBE: vc_test_instantiate_ms = 0
+PROBE: vc_test_stats = { "mesh_instances": 1, "surfaces": 1, "vertices": 81, "triangles_lod0": 128, "lods_max": 0, "materials": 1, "compressed_surfaces": 1, "has_color": 1, "has_tangent": 1, "shadow_meshes": 1 }
+PROBE: vc_test_tree_head = ["vc_test [Node3D]", "  ROOT [Node3D]", "  vc_plane [MeshInstance3D]"]
+PROBE: vc_test_materials = ["vc_mat albedo=ffffff metal=0.00 rough=0.50 emis=00aaff e=2.0 vcol=false transp=0 clearcoat=false"]
+PROBE: variant 5_vertex_colour_and_emission | vis_draw_calls=9 | vis_primitives=34 | vis_objects=9 | shadow_draw_calls=0 | shadow_primitives=104 | canvas_draw_calls=0 | frame_ms_median=153.43 | render_cpu_ms_median=155.69 | render_gpu_ms_median=155.6 | diff_vs_prev_mean=44.9136 | diff_vs_prev_max=190.0

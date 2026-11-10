@@ -1,0 +1,32 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+AudioManager: Motorbank limousine: 32000 Hz, 13 Drehzahlpunkte 649–7204/min, 208 Zyklen, 10 Clips, 2.2 MB geladen in 4 ms
+CHECK coll_right      OK      Spur 2, Auffahrunfall genau von hinten -> geschoben nach links (erwartet links)
+CHECK coll_left       OK      Spur 0, Auffahrunfall genau von hinten -> geschoben nach rechts (erwartet rechts)
+CHECK coll_middle     OK      Spur 1, Auffahrunfall genau von hinten -> geschoben nach links (erwartet links)
+CHECK dry_rollout     OK      Ausrollen mit leerem Tank: Kollision true, tiefste Überlappung ohne Kollision 0.00 m, Abschleppen gezählt 0 -> 1
+CHECK dry_into_lane   OK      leer in die Tankspur gerollt und getankt: Abschleppen 0, Meldung ["Tank leer! Rechts in die Tankspur rollen lassen"]
+CHECK finish_rollout  OK      nach dem Ziel: Kollision true, tiefste Überlappung 0.09 m, Kollisionen der Etappe 0 (unverändert)
+CHECK refuel_chase    OK      Verfolgung beim Tanken: Polizei blockiert genau beim Tanken (Abweichungen 0), HUD beim Tanken (Abweichungen 0), Stillstand 27.8 s (Tanken + Polizei-Stopp)
+AudioManager: Motorbank gran_turismo: 32000 Hz, 13 Drehzahlpunkte 699–7204/min, 208 Zyklen, 12 Clips, 2.1 MB geladen in 4 ms
+CHECK carry_tow       OK      1,9 L im Gran Turismo: vor dem Start abgeschleppt true, Strafe 90 s, Abschleppen 1, Tank 30.0 L, Meldung true
+CHECK carry_eco       OK      3 L im Gran Turismo: Sparfahrt bis 78 km/h (Ansage höchstens 120 km/h), getankt bei km 11.35 (Tankstelle 12.0), Abschleppen 0, Meldung true
+    Tipp: Nur 35 % im Tank – in 15 km kommt die Tankstelle, dort nachtanken!
+    Tipp: Lenken mit den Pfeiltasten links/rechts oder A/D
+    Tipp: Gas mit Pfeil hoch oder W, Bremse mit Pfeil runter oder S – Esc pausiert
+    Tipp: Vor scharfen Kurven bremsen – sonst schiebt der Wagen nach außen
+    Tipp: Gamepad – Stick lenkt, rechter Trigger Gas, linker Trigger Bremse
+    Tipp: Rechts in die Tankspur und unter 60 km/h rollen – dann wird getankt
+    Tipp: Blinker heißt, der Wagen zieht gleich herüber – Gas weg!
+    Tipp: Unten links stehen Tankstand, Reichweite und nächste Tankstelle
+    Tipp: Gas geben bricht das Tanken ab – warte, bis der Tank voll ist
+    Tipp: Tankstellen werden 30, 15 und 5 km vorher angekündigt
+    Tipp: Kein Tempolimit – aber Vollgas kostet deutlich mehr Sprit
+    Tipp: Lkw überholt Lkw – zwei Spuren dicht, links bleibt frei
+    Tipp: Toleranz 15 % – bei Limit 120 blitzt das Radar erst ab 138 km/h
+    Tipp: City Limits – Tempo 50, dichter Verkehr, keine Tankstelle, kein Radar
+CHECK tutorial        OK      Tutorial: 14 Hinweise, fehlend [], zuerst der Tank true, letzte Tankstelle danach true (nicht an der Ansage true)
+CHECK no_tutorial     OK      andere Etappe ohne Tutorial-Hinweise (0)
+CHECK rail_feedback   OK      Leitplanke mit Abdrift 5.6 m/s: Tempo 200 -> 133 km/h, Wackeln 0.36 s, Aufblitzen (1.0, 0.55, 0.25, 0.2603)
+CHECK preload         OK      Dortmund – Frankfurt ab km 200: 69 Blätter vorab, 0 während der Fahrt nachgeladen []
+CHECKS OK  (0 fehlgeschlagen, 40 s)

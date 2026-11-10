@@ -1,0 +1,14 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- fx.multimesh
+PROBE: variant 0_no_forest | vis_draw_calls=720 | vis_primitives=37816 | vis_objects=720 | shadow_draw_calls=0 | shadow_primitives=52372 | canvas_draw_calls=0 | frame_ms_median=129.01 | render_cpu_ms_median=60.85 | render_gpu_ms_median=115.96
+PROBE: variant 1_forest5000_scissor | vis_draw_calls=725 | vis_primitives=57816 | vis_objects=725 | shadow_draw_calls=0 | shadow_primitives=132372 | canvas_draw_calls=0 | frame_ms_median=238.85 | render_cpu_ms_median=156.79 | render_gpu_ms_median=238.14 | diff_vs_prev_mean=26.2903 | diff_vs_prev_max=255.0
+PROBE: variant 1_forest5000_hash | vis_draw_calls=725 | vis_primitives=57816 | vis_objects=725 | shadow_draw_calls=0 | shadow_primitives=132372 | canvas_draw_calls=0 | frame_ms_median=171.9 | render_cpu_ms_median=110.26 | render_gpu_ms_median=181.8 | diff_vs_prev_mean=18.9144 | diff_vs_prev_max=255.0
+PROBE: variant 1_forest5000_prepass | vis_draw_calls=725 | vis_primitives=57816 | vis_objects=726 | shadow_draw_calls=0 | shadow_primitives=132372 | canvas_draw_calls=0 | frame_ms_median=340.58 | render_cpu_ms_median=167.38 | render_gpu_ms_median=329.38 | diff_vs_prev_mean=18.5995 | diff_vs_prev_max=255.0
+PROBE: variant 1_forest5000_blend | vis_draw_calls=721 | vis_primitives=57816 | vis_objects=721 | shadow_draw_calls=0 | shadow_primitives=132372 | canvas_draw_calls=0 | frame_ms_median=345.57 | render_cpu_ms_median=61.25 | render_gpu_ms_median=364.89 | diff_vs_prev_mean=9.5706 | diff_vs_prev_max=250.0
+PROBE: variant 2_forest20000_scissor | vis_draw_calls=725 | vis_primitives=117816 | vis_objects=725 | shadow_draw_calls=0 | shadow_primitives=372372 | canvas_draw_calls=0 | frame_ms_median=561.46 | render_cpu_ms_median=390.97 | render_gpu_ms_median=540.17 | diff_vs_prev_mean=25.318 | diff_vs_prev_max=255.0
+PROBE: variant 2_forest20000_scissor_no_shadow_cast | vis_draw_calls=721 | vis_primitives=117816 | vis_objects=721 | shadow_draw_calls=0 | shadow_primitives=52372 | canvas_draw_calls=0 | frame_ms_median=281.98 | render_cpu_ms_median=105.36 | render_gpu_ms_median=276.65 | diff_vs_prev_mean=16.0124 | diff_vs_prev_max=175.0
+PROBE: variant 3_visible_instance_count_2000 | vis_draw_calls=721 | vis_primitives=45816 | vis_objects=721 | shadow_draw_calls=0 | shadow_primitives=52372 | canvas_draw_calls=0 | frame_ms_median=148.78 | render_cpu_ms_median=61.65 | render_gpu_ms_median=145.45 | diff_vs_prev_mean=19.327 | diff_vs_prev_max=255.0
+PROBE: set_instance_transform_2000_us_per_frame = 196.8
+PROBE: buffer_bulk_update_2000_us_per_frame = 259.7
+PROBE: buffer_assign_only_2000_us_per_frame = 2.4

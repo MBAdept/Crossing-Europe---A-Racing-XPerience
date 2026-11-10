@@ -1,0 +1,12 @@
+{
+  "cpu_particles_rain_2000_frame_ms": 0.735,
+  "cpu_particles_rain_30000_frame_ms": 12.778,
+  "cpu_particles_rain_8000_frame_ms": 2.587,
+  "cpu_particles_snow_6000_frame_ms": 1.83,
+  "cpu_particles_spray_300_frame_ms": 0.157,
+  "empty_frame_ms": 0.068,
+  "renderer": "gl_compatibility / headless",
+  "suite": "cpu",
+  "test": "particles",
+  "variants": []
+}

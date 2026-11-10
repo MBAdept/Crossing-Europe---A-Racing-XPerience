@@ -1,0 +1,17 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- refl.probe_update2
+PROBE: always_after_20_frames_road_px = (0,0,0) chrome=(4,4,6)
+PROBE: always_after_40_frames_road_px = (0,0,0) chrome=(4,4,6)
+PROBE: always_after_60_frames_road_px = (0,0,0) chrome=(4,4,6)
+PROBE: always_after_80_frames_road_px = (0,0,0) chrome=(4,4,6)
+PROBE: always_after_100_frames_road_px = (0,0,0) chrome=(4,4,6)
+PROBE: always_after_120_frames_road_px = (0,0,0) chrome=(4,4,6)
+PROBE: variant 0_always_after_120_frames | vis_draw_calls=1143 | vis_primitives=439908 | vis_objects=1143 | shadow_draw_calls=0 | shadow_primitives=475670 | canvas_draw_calls=0
+PROBE: after_switch_to_once_per_frame = ["(0,0,0) dc=1143 prim=915578", "(0,0,0) dc=1143 prim=915578", "(0,0,0) dc=1143 prim=915578", "(0,0,0) dc=1143 prim=915578", "(0,0,0) dc=1143 prim=915578", "(0,0,0) dc=1143 prim=915578", "(0,0,0) dc=1143 prim=915578", "(39,67,99) dc=1143 prim=915578", "(39,67,99) dc=1143 prim=915578", "(39,67,99) dc=1143 prim=915578"]
+PROBE: variant 1_once | vis_draw_calls=1143 | vis_primitives=439908 | vis_objects=1143 | shadow_draw_calls=0 | shadow_primitives=475670 | canvas_draw_calls=0 | diff_vs_prev_mean=36.9426 | diff_vs_prev_max=249.0
+PROBE: once_sky_changed_not_retriggered_road_px = (39,67,99)
+PROBE: after_probe_moved_per_frame = ["(39,67,99) dc=1143 prim=915578", "(39,67,99) dc=1143 prim=915578", "(71,58,59) dc=1143 prim=915578", "(103,49,25) dc=1143 prim=915578", "(103,49,25) dc=1143 prim=915578", "(103,49,25) dc=1143 prim=915578", "(103,49,25) dc=1143 prim=915578", "(103,49,25) dc=1143 prim=915578", "(104,49,20) dc=1143 prim=915578", "(104,49,20) dc=1143 prim=915578", "(104,49,20) dc=1143 prim=915578", "(104,49,20) dc=1143 prim=915578"]
+PROBE: variant 2_once_retriggered_red_sky | vis_draw_calls=1143 | vis_primitives=439908 | vis_objects=1143 | shadow_draw_calls=0 | shadow_primitives=475670 | canvas_draw_calls=0 | diff_vs_prev_mean=50.3145 | diff_vs_prev_max=220.0
+PROBE: after_probe_moved_cullmask_sky_only_per_frame = ["(104,49,20) dc=1143 prim=915578", "(104,49,20) dc=1143 prim=915578", "(101,42,14) dc=1143 prim=915578", "(98,36,7) dc=1143 prim=915578", "(98,36,7) dc=1143 prim=915578", "(98,36,7) dc=1143 prim=915578", "(98,36,7) dc=1143 prim=915578", "(98,36,7) dc=1143 prim=915578", "(98,36,7) dc=1143 prim=915578", "(98,36,7) dc=1143 prim=915578", "(98,36,7) dc=1143 prim=915578", "(98,36,7) dc=1143 prim=915578"]
+PROBE: variant 3_once_cullmask_sky_only | vis_draw_calls=1143 | vis_primitives=439908 | vis_objects=1143 | shadow_draw_calls=0 | shadow_primitives=475670 | canvas_draw_calls=0 | diff_vs_prev_mean=4.8103 | diff_vs_prev_max=238.0

@@ -1,0 +1,14 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Failed to enable screen_keep_on.
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+
+WARNING: Failed to get SDR white level for adapterId: 0x00000000000003F0, id: 0
+   at: _get_sdr_white_level_for_hmonitor (platform/windows/display_server_windows.cpp:1740)
+AudioManager: Verkehrsgeräusche res://assets/audio/traffic/traffic_sounds.json geladen in 14 ms (9 Klänge, 6 Klassen)
+AudioManager: Klänge erzeugt in 252 ms
+AudioManager: Titelmelodie res://assets/audio/music/title_theme.ogg geladen in 12 ms
+SHOWROOM_PROBE {"adapter":"llvmpipe (LLVM 20.1.2, 256 bits)","api":"4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4","bounds_m":"(2.22, 1.437936, 4.122501)","draw_calls_frame":215.0,"frame_ms_median":16.67,"msaa":2,"objects_frame":1212.0,"primitives_frame":49394.0,"root_cpu_ms":3.09,"root_gpu_ms":20.46,"stretch_scale":"(1.0, 1.0)","sub_cpu_ms":51.72,"sub_draw_calls":32,"sub_gpu_ms":52.53,"sub_primitives":22214,"sub_shadow_draw_calls":0,"subviewport_px":"(660, 400)","tier":"software","type":0,"vendor":"Mesa","video_mem_mb":30.7,"window":"(1280, 720)"}
+Screenshot C:\ce\wine_showroom_00.png -> OK
+Screenshot C:\ce\wine_showroom_01.png -> OK
+X connection to :99 broken (explicit kill or server shutdown).
+X connection to :99 broken (explicit kill or server shutdown).

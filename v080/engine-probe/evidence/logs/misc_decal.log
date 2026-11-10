@@ -1,0 +1,9 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- misc.decal
+PROBE: variant 0_ref | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=145.23 | render_cpu_ms_median=102.18 | render_gpu_ms_median=127.3
+PROBE: variant 1_decal_node | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | diff_vs_prev_mean=0.0 | diff_vs_prev_max=0.0
+PROBE: decal_node_diff = { "mean": 0.0, "max": 0.0, "psnr": 10000000000.0 }
+PROBE: variant 2_quad_substitutes_markings_skid_lightpool | vis_draw_calls=942 | vis_primitives=435726 | vis_objects=942 | shadow_draw_calls=0 | shadow_primitives=272960 | canvas_draw_calls=0 | frame_ms_median=177.24 | render_cpu_ms_median=122.78 | render_gpu_ms_median=173.69 | diff_vs_prev_mean=0.2842 | diff_vs_prev_max=168.0
+PROBE: variant 3_low_camera_far_markings | vis_draw_calls=930 | vis_primitives=434958 | vis_objects=930 | shadow_draw_calls=0 | shadow_primitives=262892 | canvas_draw_calls=0 | frame_ms_median=230.04 | render_cpu_ms_median=168.12 | render_gpu_ms_median=211.39 | diff_vs_prev_mean=19.1847 | diff_vs_prev_max=255.0
+PROBE: variant 4_zoomed_far_markings_fov12 | vis_draw_calls=765 | vis_primitives=342546 | vis_objects=765 | shadow_draw_calls=0 | shadow_primitives=149740 | canvas_draw_calls=0 | frame_ms_median=196.73 | render_cpu_ms_median=146.15 | render_gpu_ms_median=201.32 | diff_vs_prev_mean=67.5765 | diff_vs_prev_max=255.0

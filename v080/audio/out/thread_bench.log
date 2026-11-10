@@ -1,0 +1,4 @@
+audio rendered 12.10 s in 12.01 s wall, output latency 0.0 ms, time to next mix 13.3 ms
+RESULT mode=main frames=679 hitches=6 skips=535  render: 5.759 ms per call (max 13.113), 6.04 % of real time, 1.007 ms per 1/60 s of stereo 48 kHz audio
+audio rendered 13.62 s in 12.00 s wall, output latency 0.0 ms, time to next mix 55.6 ms
+RESULT mode=thread frames=681 hitches=6 skips=0  render: 5.572 ms per call (max 15.610), 6.18 % of real time, 1.030 ms per 1/60 s of stereo 48 kHz audio

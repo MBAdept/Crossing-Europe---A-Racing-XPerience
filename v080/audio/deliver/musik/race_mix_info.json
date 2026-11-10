@@ -1,0 +1,23 @@
+{
+ "t_go": 5.02,
+ "music_start": 1.38,
+ "music_db": -4.5,
+ "vollgas_durch_die_gaenge": {
+  "auto": -16.1,
+  "musik": -24.0,
+  "summe": -15.5
+ },
+ "vollgas_266": {
+  "auto": -15.0,
+  "musik": -23.1,
+  "summe": -14.3
+ },
+ "gas_weg": {
+  "auto": -19.1,
+  "musik": -23.4,
+  "summe": -17.8
+ },
+ "duck_db_min": -4.0,
+ "true_peak": -3.75,
+ "integrated": -16.24
+}

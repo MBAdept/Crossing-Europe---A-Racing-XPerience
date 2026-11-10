@@ -1,0 +1,16 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- warm.prewarm_seq
+PROBE: prewarm_seq_total_ms = 11676
+PROBE: spike_standard_material_metal = { "baseline_ms": 97.3, "first_frames_ms": [98.2, 102.0, 96.7, 90.7], "steady_after_ms": 100.7, "hitch_ms": 1.4 }
+PROBE: spike_emission_material = { "baseline_ms": 92.4, "first_frames_ms": [115.2, 90.4, 93.6, 91.7], "steady_after_ms": 96.1, "hitch_ms": 19.1 }
+PROBE: spike_sun_shadow_pssm4 = { "baseline_ms": 89.6, "first_frames_ms": [130.2, 138.6, 122.4, 122.5], "steady_after_ms": 133.6, "hitch_ms": 5.0 }
+PROBE: spike_fog_enabled = { "baseline_ms": 125.9, "first_frames_ms": [135.7, 115.8, 111.0, 123.6], "steady_after_ms": 134.9, "hitch_ms": 0.8 }
+PROBE: spike_spot_light = { "baseline_ms": 129.4, "first_frames_ms": [549.8, 116.3, 125.9, 123.7], "steady_after_ms": 123.7, "hitch_ms": 426.1 }
+PROBE: spike_omni_light = { "baseline_ms": 143.4, "first_frames_ms": [878.5, 129.1, 120.2, 111.3], "steady_after_ms": 128.2, "hitch_ms": 750.3 }
+PROBE: spike_spot_light_with_shadow = { "baseline_ms": 118.7, "first_frames_ms": [1056.1, 119.8, 119.8, 115.8], "steady_after_ms": 136.7, "hitch_ms": 919.4 }
+PROBE: spike_alpha_scissor_multimesh_forest = { "baseline_ms": 135.6, "first_frames_ms": [796.9, 158.5, 148.6, 153.6], "steady_after_ms": 147.7, "hitch_ms": 649.2 }
+PROBE: spike_gpu_particles_rain = { "baseline_ms": 155.2, "first_frames_ms": [185.0, 295.9, 150.0, 150.7], "steady_after_ms": 156.6, "hitch_ms": 139.4 }
+PROBE: spike_imported_glb_car = { "baseline_ms": 171.4, "first_frames_ms": [1621.1, 221.4, 205.1, 197.4], "steady_after_ms": 191.3, "hitch_ms": 1429.9 }
+PROBE: spike_custom_bend_shader = { "baseline_ms": 195.9, "first_frames_ms": [760.5, 184.5, 199.9, 209.0], "steady_after_ms": 201.1, "hitch_ms": 559.5 }
+PROBE: spike_transparent_glass = { "baseline_ms": 180.9, "first_frames_ms": [653.6, 189.2, 205.1, 210.9], "steady_after_ms": 207.5, "hitch_ms": 446.1 }

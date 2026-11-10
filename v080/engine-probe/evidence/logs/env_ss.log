@@ -1,0 +1,44 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- env.ss
+PROBE: variant 0_ref | vis_draw_calls=908 | vis_primitives=435676 | vis_objects=908 | shadow_draw_calls=0 | shadow_primitives=273016 | canvas_draw_calls=0 | frame_ms_median=184.32 | render_cpu_ms_median=118.81 | render_gpu_ms_median=175.34
+PROBE: variant 1_ssao_default | vis_draw_calls=908 | vis_primitives=435676 | vis_objects=908 | shadow_draw_calls=0 | shadow_primitives=273016 | canvas_draw_calls=0 | frame_ms_median=195.26 | render_cpu_ms_median=186.39 | render_gpu_ms_median=186.25 | diff_vs_prev_mean=2.9932 | diff_vs_prev_max=94.0
+PROBE: ssao_diff = { "mean": 2.9932, "max": 94.0, "psnr": 32.57 }
+PROBE: variant 1_ssao_int4_radius2 | vis_draw_calls=908 | vis_primitives=435676 | vis_objects=908 | shadow_draw_calls=0 | shadow_primitives=273016 | canvas_draw_calls=0 | frame_ms_median=195.72 | render_cpu_ms_median=193.62 | render_gpu_ms_median=193.55 | diff_vs_prev_mean=0.259 | diff_vs_prev_max=58.0
+PROBE: ssao_strong_diff = { "mean": 3.1489, "max": 93.0, "psnr": 31.91 }
+PROBE: variant 2_ssao_quality0 | vis_draw_calls=908 | vis_primitives=435676 | vis_objects=908 | shadow_draw_calls=0 | shadow_primitives=273016 | canvas_draw_calls=0 | frame_ms_median=204.29 | render_cpu_ms_median=195.03 | render_gpu_ms_median=194.93 | diff_vs_prev_mean=0.4289 | diff_vs_prev_max=89.0
+PROBE: ssao_quality0_diff_vs_ref = { "mean": 3.3297, "max": 118.0, "psnr": 30.72 }
+PROBE: variant 2_ssao_quality1 | vis_draw_calls=908 | vis_primitives=435676 | vis_objects=908 | shadow_draw_calls=0 | shadow_primitives=273016 | canvas_draw_calls=0 | frame_ms_median=192.14 | render_cpu_ms_median=177.56 | render_gpu_ms_median=177.36 | diff_vs_prev_mean=0.4376 | diff_vs_prev_max=89.0
+PROBE: ssao_quality1_diff_vs_ref = { "mean": 3.2057, "max": 142.0, "psnr": 31.61 }
+PROBE: variant 2_ssao_quality2 | vis_draw_calls=908 | vis_primitives=435676 | vis_objects=908 | shadow_draw_calls=0 | shadow_primitives=273016 | canvas_draw_calls=0 | frame_ms_median=195.06 | render_cpu_ms_median=194.22 | render_gpu_ms_median=194.03 | diff_vs_prev_mean=0.2194 | diff_vs_prev_max=89.0
+PROBE: ssao_quality2_diff_vs_ref = { "mean": 3.1489, "max": 93.0, "psnr": 31.91 }
+PROBE: variant 2_ssao_quality3 | vis_draw_calls=908 | vis_primitives=435676 | vis_objects=908 | shadow_draw_calls=0 | shadow_primitives=273016 | canvas_draw_calls=0 | frame_ms_median=205.64 | render_cpu_ms_median=211.61 | render_gpu_ms_median=211.47 | diff_vs_prev_mean=0.1221 | diff_vs_prev_max=55.0
+PROBE: ssao_quality3_diff_vs_ref = { "mean": 3.1659, "max": 94.0, "psnr": 31.85 }
+PROBE: variant 2_ssao_quality4 | vis_draw_calls=908 | vis_primitives=435676 | vis_objects=908 | shadow_draw_calls=0 | shadow_primitives=273016 | canvas_draw_calls=0 | frame_ms_median=274.87 | render_cpu_ms_median=270.09 | render_gpu_ms_median=270.05 | diff_vs_prev_mean=0.0573 | diff_vs_prev_max=20.0
+PROBE: ssao_quality4_diff_vs_ref = { "mean": 3.1628, "max": 92.0, "psnr": 31.84 }
+PROBE: variant 2_ssao_debugdraw | vis_draw_calls=908 | vis_primitives=435676 | vis_objects=908 | shadow_draw_calls=0 | shadow_primitives=273016 | canvas_draw_calls=0 | diff_vs_prev_mean=0.0 | diff_vs_prev_max=0.0
+PROBE: variant 3_ref_again | vis_draw_calls=908 | vis_primitives=435676 | vis_objects=908 | shadow_draw_calls=0 | shadow_primitives=273016 | canvas_draw_calls=0 | diff_vs_prev_mean=3.1628 | diff_vs_prev_max=92.0
+WARNING: Screen-space reflections (SSR) are only available when using the Forward+ renderer.
+     at: environment_set_ssr (servers/rendering/storage/environment_storage.cpp:653)
+     GDScript backtrace (most recent call first):
+         [0] test_ss (res://t_env.gd:187)
+         [1] variant (res://probe_base.gd:256)
+         [2] grab (res://probe_base.gd:192)
+PROBE: variant 3_ssr_on | vis_draw_calls=908 | vis_primitives=435676 | vis_objects=908 | shadow_draw_calls=0 | shadow_primitives=273016 | canvas_draw_calls=0 | diff_vs_prev_mean=0.0 | diff_vs_prev_max=0.0
+PROBE: ssr_diff = { "mean": 0.0, "max": 0.0, "psnr": 10000000000.0 }
+WARNING: Screen-space indirect lighting (SSIL) is only available when using the Forward+ renderer.
+     at: environment_set_ssil (servers/rendering/storage/environment_storage.cpp:775)
+     GDScript backtrace (most recent call first):
+         [0] test_ss (res://t_env.gd:191)
+         [1] variant (res://probe_base.gd:256)
+         [2] grab (res://probe_base.gd:192)
+PROBE: variant 3_ssil_on | vis_draw_calls=908 | vis_primitives=435676 | vis_objects=908 | shadow_draw_calls=0 | shadow_primitives=273016 | canvas_draw_calls=0 | diff_vs_prev_mean=0.0 | diff_vs_prev_max=0.0
+PROBE: ssil_diff = { "mean": 0.0, "max": 0.0, "psnr": 10000000000.0 }
+WARNING: SDFGI is only available when using the Forward+ renderer.
+     at: environment_set_sdfgi (servers/rendering/storage/environment_storage.cpp:822)
+     GDScript backtrace (most recent call first):
+         [0] test_ss (res://t_env.gd:195)
+         [1] variant (res://probe_base.gd:256)
+         [2] grab (res://probe_base.gd:192)
+PROBE: variant 3_sdfgi_on | vis_draw_calls=908 | vis_primitives=435676 | vis_objects=908 | shadow_draw_calls=0 | shadow_primitives=273016 | canvas_draw_calls=0 | diff_vs_prev_mean=0.0 | diff_vs_prev_max=0.0
+PROBE: sdfgi_diff = { "mean": 0.0, "max": 0.0, "psnr": 10000000000.0 }

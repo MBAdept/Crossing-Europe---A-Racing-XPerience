@@ -1,0 +1,105 @@
+[
+ {
+  "extras": [],
+  "lods": [
+   0,
+   4,
+   3,
+   2,
+   0,
+   3,
+   2,
+   10,
+   3
+  ],
+  "node": "body",
+  "origin": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "parent": "player_kompakt_d2",
+  "save_err": 0,
+  "surfaces": [
+   "em_brake+tail_8c_02_00_ff_02_01",
+   "em_brake_ff_04_01",
+   "em_tail_19_17_12",
+   "em_tail_38_00_00",
+   "em_tail_4c_01_00",
+   "glass",
+   "lens",
+   "paint",
+   "trim"
+  ]
+ },
+ {
+  "extras": [],
+  "lods": [
+   2
+  ],
+  "node": "wheel_0r",
+  "origin": [
+   0.755500018596649,
+   0.321999996900558,
+   -1.23000001907349
+  ],
+  "parent": "player_kompakt_d2",
+  "save_err": 0,
+  "surfaces": [
+   "trim"
+  ]
+ },
+ {
+  "extras": [],
+  "lods": [
+   3
+  ],
+  "node": "wheel_0l",
+  "origin": [
+   -0.755500018596649,
+   0.321999996900558,
+   -1.23000001907349
+  ],
+  "parent": "player_kompakt_d2",
+  "save_err": 0,
+  "surfaces": [
+   "trim"
+  ]
+ },
+ {
+  "extras": [],
+  "lods": [
+   2
+  ],
+  "node": "wheel_1r",
+  "origin": [
+   0.755500018596649,
+   0.321999996900558,
+   1.3899998664856
+  ],
+  "parent": "player_kompakt_d2",
+  "save_err": 0,
+  "surfaces": [
+   "trim"
+  ]
+ },
+ {
+  "extras": [],
+  "lods": [
+   1,
+   3
+  ],
+  "node": "wheel_1l",
+  "origin": [
+   -0.755500018596649,
+   0.321999996900558,
+   1.3899998664856
+  ],
+  "parent": "player_kompakt_d2",
+  "save_err": 0,
+  "surfaces": [
+   "em_brake_ff_04_01",
+   "trim"
+  ]
+ }
+]

@@ -1,0 +1,34 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+class AudioStreamInteractive       ja
+class AudioStreamSynchronized      ja
+class AudioStreamPlaylist          ja
+class AudioStreamPolyphonic        ja
+class AudioStreamRandomizer        ja
+class AudioEffectCompressor        ja
+class AudioEffectHardLimiter       ja
+class AudioEffectEQ6               ja
+class AudioEffectEQ10              ja
+class AudioEffectStereoEnhance     ja
+class AudioEffectLowShelfFilter    ja
+class AudioEffectHighShelfFilter   ja
+class AudioEffectBandPassFilter    ja
+class AudioEffectChorus            ja
+class AudioEffectDistortion        ja
+class AudioEffectCapture           ja
+class AudioEffectSpectrumAnalyzer  ja
+class AudioEffectPitchShift        ja
+class AudioEffectPanner            ja
+class AudioEffectReverb            ja
+class AudioEffectDelay             ja
+AudioEffectCompressor: ["resource_local_to_scene", "resource_path", "resource_name", "threshold", "ratio", "gain", "attack_us", "release_ms", "mix", "sidechain", "script"]
+AudioStreamInteractive methods: ["_get_linked_undo_properties", "_inspector_array_swap_clip", "set_clip_count", "get_clip_count", "set_initial_clip", "get_initial_clip", "set_clip_name", "get_clip_name", "set_clip_stream", "get_clip_stream", "set_clip_auto_advance", "get_clip_auto_advance", "set_clip_auto_advance_next_clip", "get_clip_auto_advance_next_clip", "add_transition", "has_transition", "erase_transition", "get_transition_list", "get_transition_from_time", "get_transition_to_time", "get_transition_fade_mode", "get_transition_fade_beats", "is_transition_using_filler_clip", "get_transition_filler_clip", "is_transition_holding_previous", "_set_transitions", "_get_transitions"]
+  enum TransitionFromTime ["TRANSITION_FROM_TIME_IMMEDIATE", "TRANSITION_FROM_TIME_NEXT_BEAT", "TRANSITION_FROM_TIME_NEXT_BAR", "TRANSITION_FROM_TIME_END"]
+  enum TransitionToTime ["TRANSITION_TO_TIME_SAME_POSITION", "TRANSITION_TO_TIME_START", "TRANSITION_TO_TIME_PREVIOUS_POSITION"]
+  enum FadeMode ["FADE_DISABLED", "FADE_IN", "FADE_OUT", "FADE_CROSS", "FADE_AUTOMATIC"]
+  enum AutoAdvanceMode ["AUTO_ADVANCE_DISABLED", "AUTO_ADVANCE_ENABLED", "AUTO_ADVANCE_RETURN_TO_HOLD"]
+mix rate 44100 Hz (project setting audio/driver/mix_rate = 44100), output latency setting 15 ms
+int16 -> float32, 1621820 Samples in GDScript: 46 ms
+to_float32_array (heutiger Weg, 810910 Werte): 2 ms
+Seitenkette: Ton auf Music vor dem SFX-Stoß -15.0 dB, während -56.5 dB, danach -17.1 dB
+WARNING: 2 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)

@@ -1,0 +1,29 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- env.fog
+PROBE: variant 0_fog_off | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=160.13 | render_cpu_ms_median=96.64 | render_gpu_ms_median=146.25
+PROBE: variant 1_exp_density0.01 | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=154.92 | render_cpu_ms_median=105.37 | render_gpu_ms_median=153.49 | diff_vs_prev_mean=30.9598 | diff_vs_prev_max=219.0
+PROBE: variant 1_exp_density0.03 | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | diff_vs_prev_mean=13.9061 | diff_vs_prev_max=62.0
+PROBE: variant 1_exp_density0.03_skyaffect0.2 | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | diff_vs_prev_mean=7.2915 | diff_vs_prev_max=42.0
+PROBE: variant 2_height_fog_h6_d0.25 | vis_draw_calls=899 | vis_primitives=435640 | vis_objects=899 | shadow_draw_calls=0 | shadow_primitives=272944 | canvas_draw_calls=0 | frame_ms_median=156.91 | render_cpu_ms_median=106.34 | render_gpu_ms_median=158.8 | diff_vs_prev_mean=24.2997 | diff_vs_prev_max=99.0
+PROBE: variant 3_sun_scatter0.6_low_sun_ahead | vis_draw_calls=1666 | vis_primitives=435640 | vis_objects=1666 | shadow_draw_calls=0 | shadow_primitives=936736 | canvas_draw_calls=0 | frame_ms_median=165.89 | render_cpu_ms_median=112.04 | render_gpu_ms_median=166.49 | diff_vs_prev_mean=39.324 | diff_vs_prev_max=182.0
+PROBE: variant 4_aerial_perspective1.0 | vis_draw_calls=1666 | vis_primitives=435640 | vis_objects=1666 | shadow_draw_calls=0 | shadow_primitives=936736 | canvas_draw_calls=0 | frame_ms_median=167.81 | render_cpu_ms_median=112.27 | render_gpu_ms_median=164.4 | diff_vs_prev_mean=33.925 | diff_vs_prev_max=122.0
+PROBE: variant 5_depth_mode_30_220 | vis_draw_calls=1666 | vis_primitives=435640 | vis_objects=1666 | shadow_draw_calls=0 | shadow_primitives=936736 | canvas_draw_calls=0 | frame_ms_median=176.17 | render_cpu_ms_median=132.03 | render_gpu_ms_median=184.35 | diff_vs_prev_mean=28.1382 | diff_vs_prev_max=138.0
+PROBE: variant 5_depth_mode_30_220_curve2.5 | vis_draw_calls=1666 | vis_primitives=435640 | vis_objects=1666 | shadow_draw_calls=0 | shadow_primitives=936736 | canvas_draw_calls=0 | diff_vs_prev_mean=1.9047 | diff_vs_prev_max=89.0
+PROBE: variant 6_no_fog_ref | vis_draw_calls=1666 | vis_primitives=435640 | vis_objects=1666 | shadow_draw_calls=0 | shadow_primitives=936736 | canvas_draw_calls=0 | diff_vs_prev_mean=11.68 | diff_vs_prev_max=220.0
+WARNING: Volumetric fog is only available when using the Forward+ renderer.
+     at: environment_set_volumetric_fog (servers/rendering/storage/environment_storage.cpp:458)
+     GDScript backtrace (most recent call first):
+         [0] test_fog (res://t_env.gd:146)
+         [1] variant (res://probe_base.gd:256)
+         [2] grab (res://probe_base.gd:192)
+PROBE: variant 6_volumetric_fog_on | vis_draw_calls=1666 | vis_primitives=435640 | vis_objects=1666 | shadow_draw_calls=0 | shadow_primitives=936736 | canvas_draw_calls=0 | diff_vs_prev_mean=0.0 | diff_vs_prev_max=0.0
+PROBE: volumetric_fog_diff = { "mean": 0.0, "max": 0.0, "psnr": 10000000000.0 }
+ERROR: shader type fog not supported in OpenGL renderer
+   at: shader_set_code (drivers/gles3/storage/material_storage.cpp:2283)
+   GDScript backtrace (most recent call first):
+       [0] test_fog (res://t_env.gd:156)
+       [1] variant (res://probe_base.gd:256)
+       [2] grab (res://probe_base.gd:192)
+PROBE: variant 6_fogvolume_node | vis_draw_calls=1666 | vis_primitives=435640 | vis_objects=1666 | shadow_draw_calls=0 | shadow_primitives=936736 | canvas_draw_calls=0 | diff_vs_prev_mean=0.0 | diff_vs_prev_max=0.0
+PROBE: fogvolume_diff = { "mean": 0.0, "max": 0.0, "psnr": 10000000000.0 }

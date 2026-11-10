@@ -1,0 +1,20 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Failed to enable screen_keep_on.
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+WARNING: Failed to get SDR white level for adapterId: 0x00000000000003F0, id: 0
+   at: _get_sdr_white_level_for_hmonitor (platform/windows/display_server_windows.cpp:1740)
+PROBE: ---- smoke.all
+PROBE: adapter = llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: vendor = Mesa
+PROBE: api_version = 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4
+PROBE: rendering_method = gl_compatibility
+PROBE: rendering_driver = opengl3
+PROBE: os = Windows / Windows / 10.0.19043
+PROBE: executable = ProbeWindows.exe
+PROBE: is_exported = true
+PROBE: first_frames_ms = [1689.1, 1020.6, 1056.6, 1022.8, 898.4, 989.0]
+PROBE: variant day | vis_draw_calls=1211 | vis_primitives=483952 | vis_objects=1211 | shadow_draw_calls=0 | shadow_primitives=376546 | canvas_draw_calls=1 | frame_ms_median=942.64 | render_cpu_ms_median=905.97 | render_gpu_ms_median=905.71
+PROBE: variant night | vis_draw_calls=1211 | vis_primitives=483952 | vis_objects=1211 | shadow_draw_calls=0 | shadow_primitives=376546 | canvas_draw_calls=1 | frame_ms_median=1292.42 | render_cpu_ms_median=1078.17 | render_gpu_ms_median=1079.7 | diff_vs_prev_mean=35.3412 | diff_vs_prev_max=219.0
+PROBE: total_ms = 65270
+PROBE: static_memory_mb = 0.0
+X connection to :99 broken (explicit kill or server shutdown).

@@ -1,0 +1,11 @@
+CHECK start          OK      Seite 0, Fokus Gesamtlautstärke
+CHECK rb_grafik      OK      Seite 1, Fokus Grafik
+CHECK modern         OK      Grafik modern, Klang modern
+CHECK modern_zeilen  OK      Fokus Voreinstellung
+CHECK eigene         OK      Fokus Schatten, Preset  -> custom, { "shadows": 3, "details": 1, "scale": 100, "aa": 1, "effects": 1 }
+CHECK zurueck_oben   OK      Fokus Grafik
+CHECK arcade_springt OK      Grafik arcade, Fokus Zurück
+CHECK klang_bleibt   OK      Klang modern
+CHECK lb_allgemein   OK      Seite 0, Fokus Gesamtlautstärke
+CHECK gespeichert    OK      {"gfx_custom":{"aa":1.0,"details":1.0,"effects":1.0,"scale":100.0,"shadows":3.0},"gfx_preset":"custom","graphics_mode":"arcade","language":"de","leaderboard_filter":"all","master_volume":0.8,"music_volume":0.7,"player_name":"","settings_version":3.0,"sfx_volume":1.0,"sound_profile":"modern","vibration":true}
+CHECKS OK (0 fehlgeschlagen)

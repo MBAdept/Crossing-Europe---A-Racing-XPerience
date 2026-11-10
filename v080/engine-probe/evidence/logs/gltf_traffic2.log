@@ -1,0 +1,8 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+PROBE: ---- gltf.traffic2
+PROBE: without_cars = { "draw_calls_total": 657, "primitives_total": 633104, "objects_total": 657, "vis_draw_calls": 657, "vis_primitives": 401056, "vis_objects": 657, "shadow_draw_calls": 0, "shadow_primitives": 232048, "shadow_objects": 0, "canvas_draw_calls": 0, "video_mem_mb": 22.5, "texture_mem_mb": 7.9, "buffer_mem_mb": 14.6 }
+PROBE: variant 20_sedans_flat_lod_default | vis_draw_calls=1498 | vis_primitives=453728 | vis_objects=1498 | shadow_draw_calls=0 | shadow_primitives=290680 | canvas_draw_calls=0 | frame_ms_median=163.56 | render_cpu_ms_median=115.18 | render_gpu_ms_median=143.61
+PROBE: variant 20_sedans_flat_lod_off | vis_draw_calls=1498 | vis_primitives=1177936 | vis_objects=1498 | shadow_draw_calls=0 | shadow_primitives=843940 | canvas_draw_calls=0 | frame_ms_median=312.74 | render_cpu_ms_median=274.77 | render_gpu_ms_median=301.06 | diff_vs_prev_mean=0.0247 | diff_vs_prev_max=222.0
+PROBE: variant 20_sedans_merged_lod_default | vis_draw_calls=1365 | vis_primitives=452950 | vis_objects=1365 | shadow_draw_calls=0 | shadow_primitives=293404 | canvas_draw_calls=0 | frame_ms_median=150.15 | render_cpu_ms_median=113.72 | render_gpu_ms_median=145.91 | diff_vs_prev_mean=0.0269 | diff_vs_prev_max=222.0
+PROBE: variant 20_sedans_merged_lod_off | vis_draw_calls=1365 | vis_primitives=1177936 | vis_objects=1365 | shadow_draw_calls=0 | shadow_primitives=850528 | canvas_draw_calls=0 | frame_ms_median=313.98 | render_cpu_ms_median=295.78 | render_gpu_ms_median=327.17 | diff_vs_prev_mean=0.0269 | diff_vs_prev_max=222.0
