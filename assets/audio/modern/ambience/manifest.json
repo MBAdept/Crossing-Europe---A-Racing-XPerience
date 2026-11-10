@@ -1,0 +1,7 @@
+{
+	"format": "ce-audio-manifest-1",
+	"folder": "ambience",
+	"sounds": {
+		"platzhalter_bed": {"file": "platzhalter_bed.ogg", "kind": "loop", "bus": "MAmb", "gain_db": 0.0, "lufs": -29.13, "true_peak_db": -18.27, "sample_rate": 44100, "channels": 2, "frames": 176400, "loop": [0, 176400], "bytes": 41812, "sha256": "a5e8f24c6f21092cd14924cfa4438e3580ab03c640cdd3001cca98f8f6215db1", "placeholder": true, "generator": "tools/audio/modern/make_placeholders.py", "note": "Platzhalter (Welle 0): wird im Spiel nie abgespielt"}
+	}
+}
