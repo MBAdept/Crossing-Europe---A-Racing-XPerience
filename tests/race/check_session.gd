@@ -19,11 +19,19 @@ extends SceneTree
 ##   rail_feedback   an understeer slide into the guardrail: speed loss, camera shake and flash (review: the hit
 ##                   showed only on the speedometer)
 ##   preload         the last 25 km into Frankfurt (City Limits, buildings, landmarks, skyline, traffic): every sprite
-##                   sheet was loaded before the start, none while driving (QA v0.5.1: 13–35 ms hitches)
+##                   sheet was loaded before the start, none while driving (QA v0.5.1: 13–35 ms hitches). Arcade
+##                   (setup.gfx): Modern loads no sprite sheets but the HUD icons.
+##   gfx_independent v0.8.0: the last 22 km of the test stage with each renderer class (Modern, then Arcade): the same
+##                   result (except "gfx") and the same hash of the player's and every traffic car's state at every
+##                   second of the stage – the simulation does not depend on the graphics mode (Rule 3)
+##   gfx_fallback    v0.8.0: a Modern renderer that reports healthy() == false (--gfx-debug=fail): the stage runs with
+##                   the Arcade renderer and its sprites, the HUD says so, the window is 16:9 again, the result
+##                   carries gfx = "arcade" and gfx_fallback, no crash-guard marker is left behind
+## The scenarios without their own setup.gfx run in the mode of the command line (-- --graphics=arcade|modern).
 ## Prints "CHECK <name> OK …" or "CHECK <name> FEHLER …" per scenario; exit code 0 when all pass.
 ## The scene is accessed untyped (this script compiles before the autoloads the scene uses).
 
-const SCENARIOS := ["coll_right", "coll_left", "coll_middle", "dry_rollout", "dry_into_lane", "finish_rollout", "refuel_chase", "carry_tow", "carry_eco", "tutorial", "no_tutorial", "rail_feedback", "preload"]
+const SCENARIOS := ["coll_right", "coll_left", "coll_middle", "dry_rollout", "dry_into_lane", "finish_rollout", "refuel_chase", "carry_tow", "carry_eco", "tutorial", "no_tutorial", "rail_feedback", "preload", "gfx_independent", "gfx_fallback"]
 
 var _queue: Array[String] = []
 var _name := ""
@@ -48,7 +56,7 @@ func _initialize() -> void:
 
 
 func _physics_process(delta: float) -> bool:
-	if _sc == null:
+	if _sc == null and not _d.has("relaunch"):   # "relaunch": a scenario is between two scenes of its own
 		if _queue.is_empty():
 			print("CHECKS %s  (%d fehlgeschlagen, %.0f s)" % ["OK" if _failed.is_empty() else "FEHLER", _failed.size(), (Time.get_ticks_msec() - _wall0) / 1000.0])
 			quit(0 if _failed.is_empty() else 1)
@@ -82,6 +90,7 @@ func _done(ok: bool, msg: String) -> void:
 		_failed.append(_name)
 	_sc.queue_free()
 	_sc = null
+	root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP   # a Modern stage leaves "expand" (GameFlow resets it)
 
 
 func _vehicle() -> VehicleModel:
@@ -466,7 +475,7 @@ func _tick_no_tutorial() -> void:
 # --- QA v0.5.1: sprite sheets loaded before the start ---------------------------------------------------------
 
 func _start_preload() -> void:
-	_launch("dortmund_frankfurt", 200.0, {"autopilot": true, "from_city": "dortmund", "start_speed_kmh": 150.0})
+	_launch("dortmund_frankfurt", 200.0, {"autopilot": true, "from_city": "dortmund", "start_speed_kmh": 150.0, "gfx": "arcade"})
 	var db := root.get_node("SpriteDB")
 	_d["loads0"] = int(db.get("loads"))
 	_d["pre"] = (_sc.get("preloaded_sets") as Array).size()
@@ -480,3 +489,123 @@ func _tick_preload() -> void:
 		var late: Array = log.slice(maxi(0, log.size() - n)) if n > 0 else []
 		_done(n == 0 and bool(_sc.get("finished")), "Dortmund – Frankfurt ab km 200: %d Blätter vorab, %d während der Fahrt nachgeladen %s" % [
 			int(_d["pre"]), n, str(late)])
+
+
+# --- v0.8.0: graphics modes -------------------------------------------------------------------------------------
+
+## Script file of the scene's renderer ("road_renderer.gd" = Arcade, "modern_renderer.gd" = Modern).
+func _renderer_file() -> String:
+	var r: Variant = _sc.get("renderer")
+	if r == null or not (r is Object) or (r as Object).get_script() == null:
+		return ""
+	return str(((r as Object).get_script() as Script).resource_path).get_file()
+
+
+## Hash of the simulation state: the player's car and every traffic car (exact bits of the numbers).
+func _sim_hash() -> int:
+	var v := _vehicle()
+	var a := PackedFloat64Array([float(_sc.get("pos_z")), v.x, v.speed, _fuel().fuel_l, float(_sc.get("stage_time")),
+		float(_sc.get("penalty_time")), float(v.state)])
+	for c in _traffic().cars:
+		a.append_array(PackedFloat64Array([float(c.id), c.z, c.x, c.speed, float(c.lane), 1.0 if c.braking else 0.0]))
+	return hash(a.to_byte_array())
+
+
+func _launch_gfx(mode: String) -> void:
+	root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+	_launch("dev_testetappe", 108.0, {"autopilot": true, "gfx": mode, "seed": 5, "traffic_warmup": true, "start_speed_kmh": 120.0})
+	_d["mode"] = mode
+	_d["sec"] = -1
+	_d["hashes_" + mode] = []
+	_d["cars_" + mode] = 0
+
+
+func _start_gfx_independent() -> void:
+	_launch_gfx("modern")
+
+
+func _tick_gfx_independent() -> void:
+	if _d.has("relaunch"):
+		# the first scene was freed at the end of the last step
+		var next := str(_d["relaunch"])
+		_d.erase("relaunch")
+		_launch_gfx(next)
+		return
+	var mode := str(_d["mode"])
+	if not _d.has("class_" + mode):
+		_d["class_" + mode] = _renderer_file()
+		_d["scene_gfx_" + mode] = str(_sc.get("gfx"))
+		_d["aspect_" + mode] = int(root.content_scale_aspect)
+	var sec := int(floor(float(_sc.get("stage_time"))))
+	if bool(_sc.get("running")) and not bool(_sc.get("finished")) and sec != int(_d["sec"]):
+		_d["sec"] = sec
+		(_d["hashes_" + mode] as Array).append(_sim_hash())
+		_d["cars_" + mode] = maxi(int(_d["cars_" + mode]), _traffic().cars.size())
+	if not bool(_sc.get("finished")) and _t < 400.0:
+		return
+	_d["res_" + mode] = _sc.call("build_result")
+	_d["finished_" + mode] = bool(_sc.get("finished"))
+	if mode == "modern":
+		_sc.queue_free()   # gone at the end of this step; the Arcade scene starts in the next one
+		_sc = null
+		_d["relaunch"] = "arcade"
+		_t = 0.0
+		return
+	var a: Dictionary = (_d["res_arcade"] as Dictionary).duplicate()
+	var m: Dictionary = (_d["res_modern"] as Dictionary).duplicate()
+	var gfx_ok := str(a.get("gfx", "")) == "arcade" and str(m.get("gfx", "")) == "modern" and not m.has("gfx_fallback")
+	a.erase("gfx")
+	m.erase("gfx")
+	var ha: Array = _d["hashes_arcade"]
+	var hm: Array = _d["hashes_modern"]
+	var first_diff := -1
+	for i in mini(ha.size(), hm.size()):
+		if ha[i] != hm[i]:
+			first_diff = i
+			break
+	var ok := bool(_d["finished_arcade"]) and bool(_d["finished_modern"]) and gfx_ok and a == m and JSON.stringify(a) == JSON.stringify(m) \
+		and ha.size() == hm.size() and ha.size() >= 30 and first_diff < 0 and int(_d["cars_arcade"]) >= 3 \
+		and str(_d["class_modern"]) == "modern_renderer.gd" and str(_d["class_arcade"]) == "road_renderer.gd" \
+		and str(_d["scene_gfx_modern"]) == "modern" and int(_d["aspect_modern"]) == Window.CONTENT_SCALE_ASPECT_EXPAND \
+		and int(_d["aspect_arcade"]) == Window.CONTENT_SCALE_ASPECT_KEEP
+	_done(ok, "Teststadt – Testdorp ab km 108 mit %s und %s: Ergebnis gleich %s (Zeit %.3f / %.3f s), Verkehrs-Hash in %d / %d Sekunden gleich%s, bis zu %d Autos, Seitenverhältnis Modern %s" % [
+		str(_d["class_modern"]), str(_d["class_arcade"]), str(a == m), float(m.get("time_s", -1.0)), float(a.get("time_s", -2.0)),
+		hm.size(), ha.size(), "" if first_diff < 0 else " – erste Abweichung in Sekunde %d" % first_diff, int(_d["cars_arcade"]),
+		"füllt das Fenster" if int(_d["aspect_modern"]) == Window.CONTENT_SCALE_ASPECT_EXPAND else "FALSCH"])
+
+
+func _start_gfx_fallback() -> void:
+	root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+	var settings := root.get_node("Settings")
+	_d["marker"] = str(settings.get("marker_path"))
+	_d["guard_before"] = bool(settings.get("crash_guard"))
+	settings.set("crash_guard", false)
+	CliArgs.all()["gfx-debug"] = "fail"   # the Modern renderer reports healthy() == false
+	_launch("dev_testetappe", 3.0, {"autopilot": true, "gfx": "modern", "no_countdown": false})
+	CliArgs.all().erase("gfx-debug")
+	# right after the build: Modern is preparing, its marker is written
+	_d["class_start"] = _renderer_file()
+	_d["marker_start"] = FileAccess.file_exists(str(_d["marker"]))
+	_d["steps_start"] = int(_sc.get("_sim_steps"))
+
+
+func _tick_gfx_fallback() -> void:
+	_collect_messages()
+	if float(_sc.get("stage_time")) < 2.0 and _t < 30.0:
+		return   # until 2 s after the countdown (it only starts once the fallback is done)
+	var res: Dictionary = _sc.call("build_result")
+	var msgs: Array = _d.get("messages", [])
+	var told := msgs.has("Der Modus „Modern“ lässt sich mit dieser Grafik nicht starten. Das Spiel läuft im Modus „Arcade“ weiter.")
+	var pre: Array = _sc.get("preloaded_sets")
+	var settings := root.get_node("Settings")
+	var ok := str(_d["class_start"]) == "modern_renderer.gd" and bool(_d["marker_start"]) and int(_d["steps_start"]) == 0 \
+		and _renderer_file() == "road_renderer.gd" and str(_sc.get("gfx")) == "arcade" \
+		and str(_sc.get("gfx_fallback")) == "selftest:debug" and told and bool(_sc.get("running")) \
+		and str(res.get("gfx", "")) == "arcade" and str(res.get("gfx_fallback", "")) == "selftest:debug" \
+		and root.content_scale_aspect == Window.CONTENT_SCALE_ASPECT_KEEP and pre.has("player/limousine") and pre.size() > 20 \
+		and not FileAccess.file_exists(str(_d["marker"])) and _vehicle().speed > 5.0
+	settings.set("crash_guard", bool(_d["guard_before"]))
+	_done(ok, "erzwungener Fehler: erst %s (Marker %s), dann %s, gfx %s, gfx_fallback '%s', Meldung %s, %d Sprite-Sets geladen, Fenster 16:9 %s, Marker danach %s, Etappe läuft (%.0f km/h)" % [
+		str(_d["class_start"]), "geschrieben" if bool(_d["marker_start"]) else "FEHLT", _renderer_file(), str(res.get("gfx", "")),
+		str(res.get("gfx_fallback", "")), str(told), pre.size(), str(root.content_scale_aspect == Window.CONTENT_SCALE_ASPECT_KEEP),
+		"entfernt" if not FileAccess.file_exists(str(_d["marker"])) else "NOCH DA", _vehicle().speed])

@@ -6,6 +6,8 @@
 # check of version, icon and texts of the .exe needs the Python module pefile (pip install pefile).
 # Set by tools/build_release.sh: REQUIRE_PEFILE=1 (the check is mandatory), EXPECT_VERSION=0.5.0 (version
 # the .exe must carry), SOURCE_DATE_EPOCH (file time in the zip). Details: docs/windows.md.
+# At the end the size table of the build (tools/pck_report.py) and the size gate on the zip: a warning above
+# 300 MB, the script fails above 330 MB (v0.8.0).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 GODOT=${GODOT:-godot}
@@ -52,3 +54,6 @@ chmod 644 "$EXE" build/LIZENZEN.txt
 touch -d "@$EPOCH" "$EXE" build/LIZENZEN.txt
 (cd build && TZ=UTC zip -q -9 -X "$(basename "$ZIP")" "$(basename "$EXE")" LIZENZEN.txt)
 ls -la build/
+# Size table per part of the size budget and the size gate on the zip (v0.8.0: warning above 300 MB, the build
+# fails above 330 MB; tools/pck_report.py).
+"$PYTHON" tools/pck_report.py "$EXE" --archive "$ZIP"

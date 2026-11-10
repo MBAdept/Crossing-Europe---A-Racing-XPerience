@@ -9,3 +9,4 @@ __pycache__/
 *.pyc
 node_modules/
 /tools/blender/_cache/
+/tools/blender/_cache3d/

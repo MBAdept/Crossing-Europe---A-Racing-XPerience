@@ -9,3 +9,7 @@
 *.wav binary
 *.ogg binary
 *.f32 binary
+*.res binary
+*.glb binary
+*.webp binary
+*.i16 binary

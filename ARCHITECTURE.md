@@ -5,8 +5,12 @@ Datenformate und Konventionen. **Öffentliche APIs in diesem Dokument sind Vertr
 Signaturen ändern oder entfernen nicht.
 
 - Engine: **Godot 4.7.2**, GDScript, Renderer *GL Compatibility* (läuft auch auf schwacher Hardware).
+- Zwei Grafikmodi in einem Build (seit v0.8.0, §15): **„Arcade“** = der Pseudo-3D-Renderer wie bis v0.7.0,
+  bildgleich eingefroren; **„Modern“** = ein zweiter, echter 3D-Renderer. Simulation, Spielstände und Bestenlisten
+  sind in beiden Modi dieselben. Ohne gespeicherte Wahl ist das Spiel Arcade.
 - Auflösung: 1280×720 logisch, Stretch-Modus `canvas_items`; Seitenverhältnis `keep` im Rennen, `expand` in den
-  Menüs (der Menühintergrund füllt z. B. 16:10 auf dem Steam Deck, siehe [docs/steam-deck.md](docs/steam-deck.md)).
+  Menüs (der Menühintergrund füllt z. B. 16:10 auf dem Steam Deck, siehe [docs/steam-deck.md](docs/steam-deck.md));
+  im Modus „Modern“ füllt auch das Rennen das Fenster (`expand`).
 - Zielplattformen: Linux x86_64 und Windows x86_64 (10/11), jeweils als einzelne ausführbare Datei (PCK
   eingebettet); Windows-Details in [docs/windows.md](docs/windows.md).
 
@@ -20,11 +24,20 @@ Signaturen ändern oder entfernen nicht.
 | Daten | `scripts/data/*`, `data/network.json`, `data/countries.json`, `data/map/*`, `tools/map/*`, `tests/unit/data/*` |
 | UI und Audio | `scripts/ui/*`, `scripts/audio/*`, `scenes/main.tscn`, `scenes/ui/*`, `assets/fonts/*`, `assets/ui/*`, `tests/unit/ui/*` |
 | Sprites | `tools/blender/*`, `assets/sprites/*` (inkl. `manifest.json`) |
+| Grafikmodi (v0.8.0, §15) | Kern: `scripts/core/{gfx,gfx_self_test}.gd`, `scripts/race/race_renderers.gd`, `tests/unit/core/*`, `tests/race3d/check_seam.gd`, `tests/golden/*`, `tools/{golden,run_render_checks}.sh`, `tools/pck_report.py` · Renderer „Modern“: `scripts/race3d/*`, `assets/shaders/modern/*`, `tests/unit/race3d/*`, `tests/race3d/*` · Modelle: `assets/models/*`, `tools/blender/ce3d/*`, `tools/models/*` · Klang „Modern“: `scripts/audio/modern/*`, `assets/audio/modern/*`, `tools/audio/modern/*` |
+
+Seit v0.8.0 **eingefroren** (der Modus „Arcade“ muss bildgleich mit v0.7.0 bleiben, `tools/golden.sh`):
+`scripts/race/{road_renderer,backdrop,geo_batch,sign_painter,box_vehicle,vehicle_pose,palette,projection,track,
+track_segment,session_rules,autopilot,tutorial_coach}.gd`, `scripts/gameplay/*`, `scripts/data/*`,
+`scripts/audio/{engine_audio,engine_bank,engine_gearbox,room_audio,sfx_synth,traffic_audio}.gd`, `assets/sprites/*`,
+`assets/audio/{engines,traffic,music}/*`, `tools/audio/{engine,traffic,music}_synth.py`, `data/*`. Neuer Code darf
+sie benutzen (instanziieren, statische Helfer aufrufen, in einer neuen Datei ableiten), aber nicht ändern.
 
 Abschnitte der zentralen Konfiguration `config/game_config.json`:
 `time, daytime, vehicles, driving, collision, traffic, fuel, radar, police, city_limits, weather` → Gameplay ·
 `road, render, debug` → Renn-Modul · `hud, audio, attract` → UI · `leaderboard, routing, stages` → Daten ·
-`input` (Stick-Lenkkurve, Wiederholung gehaltener Gamepad-Richtungen, Vibration) → Kern.
+`input` (Stick-Lenkkurve, Wiederholung gehaltener Gamepad-Richtungen, Vibration) → Kern ·
+`graphics` (Grafikmodi, Qualität und Renderer „Modern“, §15) → Kern und Renderer „Modern“; Arcade liest nichts daraus.
 
 ## 2. Konventionen
 
@@ -62,7 +75,7 @@ Abschnitte der zentralen Konfiguration `config/game_config.json`:
 |---|---|---|
 | `Config` | `scripts/core/config.gd` | zentrale Konfiguration (`data`, `value("a.b")`, `f()`, `i()`, `section()`) |
 | `InputSetup` | `scripts/core/input_setup.gd` | registriert Aktionen `steer_left/right`, `accelerate`, `brake`, `pause` (Tastatur + Gamepad, alle Geräte; den linken Stick liest das Rennen direkt am zuletzt benutzten Pad, `InputMode.device`) und Gamepad A/B/LB/RB für `ui_accept/ui_cancel/ui_page_up/ui_page_down`; meldet das aktive Eingabegerät an `InputMode` (Tastenhinweise, Gerät für Lenkung und Vibration); wiederholt gehaltene Gamepad-Richtungen in Menüs (`PadRepeat`); meldet ein getrenntes Gamepad mit „war in Benutzung“ (`pad_disconnected`, das Rennen pausiert dann) |
-| `Settings` | `scripts/core/settings.gd` | Nutzer-Einstellungen `user://settings.json` (`settings_version` 2; Lautstärke, Vollbild – nur gespeichert, wenn gewählt; aus Dateien ohne Version zählt nur „An“ –, Vibration, Name, Sprache, Bestenlisten-Filter) |
+| `Settings` | `scripts/core/settings.gd` | Nutzer-Einstellungen `user://settings.json` (`settings_version` 3 seit v0.8.0; Lautstärke, Vollbild – nur gespeichert, wenn gewählt; aus Dateien ohne Version zählt nur „An“, ab Version 2 der gespeicherte Wert –, Vibration, Name, Sprache, Bestenlisten-Filter; seit v0.8.0 Grafikmodus, Klangprofil, Qualität von „Modern“, Musik im Rennen – §15) |
 | `GameData` | `scripts/data/game_data.gd` | Netz, Länder, Landschaften, Karte; liefert `StagePlan`s und Routenoptionen |
 | `SpriteDB` | `scripts/core/sprite_db.gd` | Sprite-Manifest, Texturen, Zellen je Winkel/Ebene |
 | `Leaderboards` | `scripts/data/leaderboards.gd` | Bestenlisten `user://leaderboards.json` |
@@ -196,6 +209,10 @@ Sitzung nicht mehr gesendet – der Renderer berechnet den Winkel selbst (Fahrze
 [docs/fahrzeug-darstellung.md](docs/fahrzeug-darstellung.md), Umsetzung in [docs/renn-modul.md](docs/renn-modul.md) §8).
 Seit v0.5.0 optional je Verkehrsauto `blink` (−1 links, +1 rechts, 0 aus) und `blink_t` (Sekunden seit dem
 Einschalten): der Renderer zeichnet den Blinker (renn-modul.md §8 „Blinker des Verkehrs“).
+Seit v0.8.0 zusätzlich `hour` (Weltzeit, float), `dt` (Sekunden dieses Bildes) und `player.type` (Fahrzeugtyp-ID):
+der Arcade-Renderer ignoriert sie, der Renderer des Modus „Modern“ liest sie. `RoadRenderer` ist seit v0.8.0
+eingefroren; die Rennsitzung erzeugt ihren Renderer über `RaceRenderers.create(mode)` (§15.4). Kein Renderer darf
+einen Schlüssel verlangen, den die Sitzung im anderen Modus nicht sendet.
 
 ## 7. Gameplay (`scripts/gameplay/*`, reine Logik)
 
@@ -233,7 +250,8 @@ gibt der Tutorial-Etappe `weather.tutorial_weather` (trocken).
 `setup` (vor dem Einhängen gesetzt; leer = Kommandozeile): `{mode: "race"|"single", race_id, stage_id, from_city,
 vehicle, start_world_minutes, weather, start_km?, autopilot?, seed, start_fuel_l?, last_stage?}` – seit v0.7.0 im
 Rennen `start_fuel_l` (Liter aus der letzten Etappe, −1 = eigene Startfüllung der Etappe) und `last_stage` (die
-Etappe beendet das Rennen).
+Etappe beendet das Rennen); seit v0.8.0 optional `gfx` (`"arcade"|"modern"`: Grafikmodus dieser Etappe für
+Attract-Demos, Leistungstest und Tests – fehlt er, gilt `Settings.effective_graphics()`, §15).
 Signale: `stage_finished(result)`, `stage_aborted(reason)`, `restart_requested`.
 
 **Ergebnis** (`result`): `board_key, stage_id, from_city, to_city, stage_name, time_s (inkl. Strafen), penalty_s,
@@ -243,6 +261,9 @@ collisions, refuels, liters_refueled, radar_flashes, police_stops, police_escape
 `start_towed` (Abschleppdienst vor dem Start: der übernommene Tank reichte nicht einmal mit 60 km/h bis zur ersten
 Tankspur – 90 s Strafe, halber Tank, zählt in `tow_events`). Im Rennen wird `fuel_end_l` zu `RaceState.fuel_l`
 (Rennstand-Feld `fuel_l`, Legs mit `fuel_start_l`/`fuel_end_l`) und damit zum `start_fuel_l` der nächsten Etappe.
+Seit v0.8.0 `gfx` (Grafikmodus, in dem die Etappe gezeichnet wurde: `"arcade"|"modern"` – ein verstecktes Feld für
+spätere Auswertung, nie angezeigt, nie ein Filter; Bestenlisten und Spielstände sind für beide Modi dieselben) und,
+nur nach einem Rückfall von „Modern“ auf „Arcade“, `gfx_fallback` (der Grund, §15.5).
 
 ## 9. HUD (`Hud`, `scripts/ui/hud.gd`)
 
@@ -295,6 +316,23 @@ Martinshorn an der Polizei; ohne Aufruf, in der Pause und nach `stop_all()` blen
 `set_environment({"tunnel": bool})` (Kamera im Tunnel: Tunnelhall blendet ein). `set_siren(on, distance01)` schaltet
 das Horn weiter ein und aus; ohne Polizei in der Fahrzeugliste spielt es wie bisher mittig. Weitere Ergänzungen (u. a.
 `preview_engine(id)` für die Fahrzeugwahl, `traffic_state()`, `traffic_perf()`): docs/ui.md „Audio“.
+
+**Klang-Hooks der Rennsitzung** (v0.8.0, für das Klangprofil „Modern“ – das Profil ist unabhängig vom Grafikmodus,
+`Settings.sound()`, §15.1): Die Sitzung sendet sie in beiden Grafikmodi und beiden Klangprofilen, zusätzlich zu den
+unveränderten Aufrufen oben, und nur, wenn der `AudioManager` die Methode hat (`has_method`; das Profil „Arcade“
+ignoriert sie):
+- `set_track(track, plan)` nach dem Aufbau der Strecke, `set_track(null, null)` beim Verlassen der Szene;
+- `set_vehicle_state(state)` in jedem Bild einer laufenden Etappe: `z`, `x` (Wagenmitte, m), `speed` (km/h),
+  `throttle`, `brake` (0..1), `steer` (−1..1), `understeer` (0..1), `lat_speed` (m/s), `off_road` (0 Fahrbahn,
+  1 Bankett, 2 Grenze), `rail_contact`, `road_left`, `road_right`, `shoulder_m` (m), `in_tunnel` (Kamera), `weather`,
+  `hour`, `crash`, `finished`;
+- `event(name, args)`: `stage_start {countdown_s}` (vor dem ersten Simulationsschritt), `countdown {n}` (3, 2, 1),
+  `go {}`, `collision {speed_kmh, rel_kmh, heavy, side}` (side: −1 links, 0 mittig, +1 rechts), `rail_hit
+  {impact_mps, side}`, `radar_flash {}`, `chase_start {}`, `escaped {}`, `busted {}`, `refuel_start {}`,
+  `refuel_done {liters, aborted}`, `out_of_fuel {}`, `tow {}`, `stage_finish {record, last_stage}`.
+Alles Weitere (Fahrbahnbelag, Rüttelstreifen, Fugen, Brücken, Stadt/Wald/offen, Vorbeifahrt an Objekten) leitet der
+Klang selbst aus `Track` ab – nie aus dem Renderer. Tests setzen `race_session.audio_hooks` auf einen Empfänger
+(tests/race3d/check_seam.gd „klang“).
 
 ## 12. Sprites (`assets/sprites/manifest.json`)
 
@@ -353,22 +391,255 @@ Abschleppdienst vor dem Start).
 Menüs: `--screen=<bildschirm>`, `--input=gamepad|keyboard`, Titelbild und Demo `--title-time=<s>
 --attract-after=<s> --attract-scene=<index|id> --attract-demo-s=<s> --attract-press=<s> --no-attract` (docs/ui.md).
 
+Grafikmodi (v0.8.0, §15), alle optional:
+
+| Argument | Bedeutung |
+|---|---|
+| `--graphics=arcade\|modern` | erzwingt den Modus und gewinnt über alles (Tests, Screenshots, Notschalter „Arcade“). Jeder Lauf des ganzen Spiels oder der Rennszene aus einem Werkzeug oder Test nennt ihn ausdrücklich. |
+| `--gfx-preset=deck\|low\|medium\|high` | Qualitäts-Voreinstellung von „Modern“ für diesen Lauf |
+| `--gfx=shadows=0,scale=75,…` | einzelne Qualitätswerte für diesen Lauf (`shadows`, `details`, `scale`, `aa`, `effects`) |
+| `--gfx-sync` | deterministischer Testmodus von „Modern“ (synchroner Aufbau, feste Zufallswerte, keine Wanduhr, kein Wächter) – steht in `prepare(ctx).sync` |
+| `--gfx-debug=<liste>` | Testansichten von „Modern“: `cover`, `ids`, `nolight`, `chunks`, `wire`, `fail` (`healthy()` meldet false – Prüfung des Rückfalls auf Arcade) |
+| `--no-prewarm`, `--no-watchdog` | Shader-Aufwärmen bzw. Langsamkeits-Wächter von „Modern“ auslassen |
+| `--sound=arcade\|modern` | erzwingt das Klangprofil für diesen Lauf |
+| `--audio-sync` | synchroner Motor-Mixer des Klangprofils „Modern“ (Tests, Movie Maker) |
+| `--shot-fast` | `Screenshotter`: das Bild wird erst 0,1 s vor jeder Aufnahme wieder berechnet (mit `--fixed-fps`; dieselben Bilder, etwa 4–5× schneller unter Software-OpenGL) |
+| `--bench=<szene\|all>`, `--bench-out=<datei.json>` | Leistungstest-Szenen fahren und beenden (ab Welle 2) |
+| `--no-chooser` | die Auswahl „GRAFIK WÄHLEN“ beim ersten Start nie zeigen (ab Welle 2) |
+
+In Welle 0 wertet der Kern `--graphics`, `--gfx-preset`, `--gfx`, `--gfx-sync` (an den Renderer gereicht),
+`--gfx-debug=fail`, `--sound` und `--shot-fast` aus; die übrigen Argumente gehören den Paketen, die sie umsetzen.
+
 ## 14. Tests, Screenshots, Build
 
-- `tools/run_tests.sh [filter]` – kompiliert alle Skripte (`tests/check_scripts.gd`) und startet alle
-  `tests/unit/**/test_*.gd` (Basisklasse `TestCase`). Bricht bei Skriptfehlern ab.
+- `tools/run_tests.sh [filter]` – ein Durchlauf, alles headless: kompiliert alle Skripte
+  (`tests/check_scripts.gd`) und startet alle `tests/unit/**/test_*.gd` (Basisklasse `TestCase`). Bricht bei
+  Skriptfehlern ab. Ohne Filter folgen die Integrationsläufe unten. Seit v0.8.0: Ohne `XDG_DATA_HOME` des Aufrufers
+  liegt `user://` in einem temporären Ordner (die Tests sehen weder gespeicherte Einstellungen noch eine
+  Konfiguration des Spielers); die Läufe des ganzen Spiels und der Rennszene nennen ihren Grafikmodus
+  (`-- --graphics=arcade`). **Allgemeiner Haken** für die Prüfungen des Modus „Modern“: jede
+  `tests/race3d/check_*.gd` und jede `tests/sim/modern_*.gd` läuft einzeln mit
+  `godot --headless --path . -s <datei>`, gibt Zeilen `CHECK <name> OK|FEHLER` aus und endet mit einem Exit-Code –
+  eine neue Prüfung braucht nur ihre Datei, niemand ändert dafür das Skript (mit Filter: die Dateien, deren Name
+  ihn enthält).
+- `tools/run_render_checks.sh [arcade|modern|all] [filter]` – alles, was einen echten Renderer braucht (Xvfb,
+  Software-OpenGL, feste 60 Bilder/s; nicht Teil von `run_tests.sh`): `arcade` = `tests/race/check_glow_occlusion.gd`
+  und `check_sprite_flip.gd` mit `--graphics=arcade`; `modern` = jede `tests/race3d/render/check_*.gd` mit
+  `--graphics=modern --gfx-sync --audio-sync`. Ausgabe der Prüfungen `RENDER-CHECK <name> OK|FEHLER`, dazu je Datei
+  `RENDER-CHECK-DATEI <datei> OK|FEHLER`; alle Läufe eines Aufrufs teilen sich ein `XDG_DATA_HOME` und einen
+  Mesa-Shader-Cache.
+- `tools/golden.sh make|check [filter]|list|compare <a> <b>` – **Bildgleichheit von „Arcade“ mit v0.7.0** (§15.6).
 - `tools/screenshot.sh <präfix> [args]` – rendert unter Xvfb (Software-OpenGL) und speichert PNGs;
-  `SCREEN=1280x800` rendert auf einem 1280×800-Bildschirm (Steam Deck, Screenshots samt Balken).
-- `tools/build_linux.sh` – exportiert `build/CrossingEurope.x86_64`.
+  `SCREEN=1280x800` rendert auf einem 1280×800-Bildschirm (Steam Deck, Screenshots samt Balken; im Modus „Modern“
+  füllt das Bild den Bildschirm). Aufnahmen der Rennszene mit `--graphics=arcade|modern`.
+- `tools/pck_report.py <exe|pck> [--archive <zip|tar.gz>]` – Größentabelle eines Builds nach den Teilen des
+  Größenbudgets (Programm, Arcade-Sprites, Arcade-Klang, UI/Skripte/Daten, Modern: Modelle, Texturen, Klang,
+  Musik; roh und im Archiv) und die Größengrenze: Warnung über 300 MB, Abbruch über 330 MB (hartes Limit des
+  Archivs 350 MB). Die Build-Skripte rufen es auf.
+- `tools/build_linux.sh` – exportiert `build/CrossingEurope.x86_64` und gibt die Größentabelle aus.
 - `tools/build_windows.sh` – exportiert `build/CrossingEurope.exe` (Vorgabe „Windows Desktop“, danach setzt
   `tools/windows/set_exe_icon.py` das vollständige Programm-Icon ein) und packt sie mit `LIZENZEN.txt`
   (`tools/write_licenses.gd`: Godot Engine samt Bestandteilen, Schriften, Kartendaten) in
   `build/CrossingEurope-windows-x86_64.zip`; `tools/build_release.sh <Version>` baut aus einem sauberen Commit mit
   dieser Version Linux und Windows, packt `CrossingEurope-linux-x86_64.tar.gz` und schreibt `build/SHA256SUMS` und
-  `build/BUILDINFO.txt`; die Archive sind reproduzierbar ([docs/windows.md](docs/windows.md)).
-- Integration: `tests/race/check_session.gd` (9 Szenarien der Rennsitzung: Kollisionsrichtung, leerer Tank,
-  Zielauslauf, Polizei beim Tanken, Tutorial), `tests/race/check_attract.gd` (Attract-Modus im ganzen Spiel:
+  `build/BUILDINFO.txt`; die Archive sind reproduzierbar ([docs/windows.md](docs/windows.md)). Seit v0.8.0 enden
+  beide Build-Skripte mit der Größentabelle, und der Build bricht ab, wenn ein Archiv 330 MB überschreitet.
+  Exportiert werden neben den Ressourcen `*.json`, `*.f32` und `*.i16` (rohe Motorbänke des Klangprofils „Modern“).
+- Integration: `tests/race/check_session.gd` (15 Szenarien der Rennsitzung: Kollisionsrichtung, leerer Tank,
+  Zielauslauf, Polizei beim Tanken, übernommener Tank, Tutorial, Leitplanke, vorab geladene Sprites; seit v0.8.0
+  `gfx_independent` – dieselbe Strecke mit beiden Renderern: gleiches Ergebnis und gleicher Verkehrs-Hash in jeder
+  Sekunde – und `gfx_fallback`), `tests/race3d/check_seam.gd` (die Naht zwischen Sitzung und Renderern mit einem
+  Prüf-Renderer, §15.6), `tests/race/check_attract.gd` (Attract-Modus im ganzen Spiel:
   Leerlauf, Demo, Abbruch per Taste/Gamepad/Klick ohne Menüpunkt, nichts gespeichert), `tests/race/check_sprite_flip.gd` (braucht Xvfb/OpenGL),
   `tests/race/run_stage.gd` (eine Etappe mit Autopilot), `tests/race/run_race.gd` (ein ganzes Rennen durch die Menüs),
   `tests/race/shoot_vehicles.gd` (Fahrzeugszenarien; mit `--write-movie <datei>.avi` samt Ton, `--audio-trace` für die
   Auswertung der Verkehrsgeräusche, docs/ui.md „Audio“).
+
+## 15. Grafikmodi „Arcade“ und „Modern“ (v0.8.0)
+
+Ein Build, zwei Renderer hinter derselben Schnittstelle. „Arcade“ ist der bisherige Pseudo-3D-Renderer
+(`RoadRenderer`, eingefroren, bildgleich mit v0.7.0), „Modern“ ein echter 3D-Renderer (`ModernRenderer`,
+`scripts/race3d/`). Verbindlicher Bauplan mit allen Entscheidungen: [docs/dev/v080_contract.md](docs/dev/v080_contract.md).
+**Stand Welle 0 (Gerüst):** Einstellungen, Modus-Auflösung, die Naht in der Rennsitzung, Werkzeuge und Prüfungen sind
+fertig; der Modern-Renderer ist ein Gerüst (Kamera mit Arcades Projektion, Himmelsfarbe über eine Canvas-Ebene, eine
+graue Ebene). Auswahlbildschirm, Optionen, Showroom, Klangprofil „Modern“ und der eigentliche Renderer folgen in
+den nächsten Wellen und halten sich an die Schnittstellen dieses Abschnitts.
+
+Grundregeln: Die Simulation ist in beiden Modi dieselbe und liest nie etwas aus einem Renderer
+(`RoadProjection.visible_fraction` bleibt die Projektion der Simulation, die Fahrzeugmaße kommen weiter aus dem
+Sprite-Manifest). Grafik und Klang sind unabhängig: `AudioManager` und alles unter `scripts/audio/` lesen nie den
+Grafikmodus, kein Renderer liest das Klangprofil – jede Kombination muss laufen.
+
+### 15.1 Einstellungen (`Settings`) und reine Helfer (`Gfx`)
+
+`user://settings.json`, `settings_version` 3. Neue Schlüssel – jeder wird erst gespeichert, wenn der Spieler ihn
+gewählt hat (Muster von `fullscreen`); ungültige Werte zählen als „nicht gewählt“; Schlüssel, die diese Version nicht
+kennt, bleiben beim Speichern erhalten:
+
+| Schlüssel | Werte | ohne Eintrag |
+|---|---|---|
+| `graphics_mode` | `"arcade"`, `"modern"` | nicht gewählt → das Spiel ist Arcade |
+| `sound_profile` | `"auto"`, `"arcade"`, `"modern"` | `"auto"` = wie die **gewählte** Grafik |
+| `gfx_preset` | `"deck"`, `"low"`, `"medium"`, `"high"`, `"custom"` | die für die Grafikkarte empfohlene |
+| `gfx_custom` | `{shadows 0..3, details 0..2, scale 50..150, aa 0..2, effects 0..2}` | Werte der Voreinstellung |
+| `race_music` | bool | `true` |
+
+Falle beim Versionssprung: `Settings.fullscreen_stored_as_choice()` vergleicht mit der festen Konstante
+`FULLSCREEN_CHOICE_SINCE := 2`, nicht mit `SETTINGS_VERSION` – sonst verlöre jeder Spieler von v0.6/v0.7 sein
+gespeichertes „Vollbild: Aus“.
+
+`Settings` (Autoload) – Felder `graphics_mode` (`""` = nicht gewählt), `sound_profile`, `gfx_preset`, `gfx_custom`,
+`race_music` (dazu `sound_profile_chosen`, `race_music_chosen`), `crash_guard`, `marker_path`; Signale
+`graphics_changed(mode)` (die gewählte Grafik hat sich geändert), `quality_changed(quality)`,
+`sound_profile_changed(profile)` (das **aufgelöste** Profil hat sich geändert); Methoden:
+
+| Methode | Ergebnis |
+|---|---|
+| `effective_graphics()` | `{"mode": "arcade"\|"modern", "reason": ""\|"cli"\|"config"\|"crash_guard"\|"default"}` |
+| `is_modern()` | `effective_graphics().mode == "modern"` |
+| `quality()` | `{"preset", "shadows", "details", "scale", "aa", "effects"}` samt `--gfx-preset` / `--gfx` |
+| `quality_levels()` | Renderer-Parameter: `Gfx.levels(quality(), config "graphics")` |
+| `sound()` | `"arcade"\|"modern"`: `--sound` > config `audio.profile` > `sound_profile`; `auto` = gewählte Grafik, sonst Arcade |
+| `adapter_tier()` | `"software"\|"weak"\|"deck"\|"ok"` der laufenden Grafikkarte |
+| `arm_crash_guard()`, `disarm_crash_guard(lift = true)` | Absturz-Marker schreiben / entfernen (§15.5) |
+
+**Auflösung des Modus** (`Gfx.resolve_mode(chosen, cli, force, marker)`): Kommandozeile `--graphics=` > config
+`graphics.force_mode` > Absturz-Marker des letzten Laufs (→ Arcade, Grund `crash_guard`; bei gewähltem „Arcade“
+ändert er nichts) > gespeicherte Wahl > **Arcade** (Grund `default`). Ohne gespeicherte Wahl verhält sich also jedes
+Werkzeug, jeder Test und jeder Start von der Kommandozeile wie vor v0.8.0. Eine geänderte Wahl gilt in den Menüs
+sofort, im Rennen ab dem nächsten Start einer Etappe; innerhalb einer Etappe wird der Renderer nie gewechselt.
+Das Klangprofil folgt bei `auto` der *gewählten* Grafik, nie der wirksamen: Ein Rückfall der Grafik oder ein
+`--graphics=` eines Tests ändert den Klang nicht.
+
+`Gfx` (`scripts/core/gfx.gd`, `RefCounted`, nur statische, reine Helfer ohne Autoload-Zugriff): Konstanten `ARCADE`,
+`MODERN`, `MODES`, `SOUND_PROFILES`, `PRESET_ORDER`, `QUALITY_KEYS`, `SCALE_STEPS` (50, 67, 75, 85, 100, 125, 150),
+`BOOT_MARKER` (`user://modern_start.lock`), `DEFAULT_PRESETS`, `DEFAULT_LEVELS`; Funktionen
+`classify_adapter(adapter, vendor = "", api = "", gamescope = false)` (nach dem *Namen* der Grafikkarte),
+`recommended_mode(tier)` (Modern für deck/ok, Arcade für software/weak), `recommended_preset(tier)` (deck → deck,
+weak/software → low, ok → medium), `resolve_mode(…)`, `resolve_sound(profile, chosen_graphics, cli = "", force = "")`,
+`quality(preset, custom, presets)`, `preset_values(id, presets)`, `preset_of(q, presets)`, `sanitized(q)` (jeder Wert
+in seinen Bereich, die Skalierung auf die nächste Stufe), `with_cli(q, preset_arg, set_arg, presets)`,
+`levels(q, gfx_cfg)`, `watchdog_verdict(median_ms, p95_ms, target_ms, wd_cfg, lowest)` → `"ok"|"slow"|"too_slow"`
+(`target_ms` = Bildzeit der Bildwiederholrate oder der Bildbegrenzung – ein Steam Deck mit 40 Hz ist bei 25 ms nicht
+langsam).
+
+`GfxSelfTest` (`scripts/core/gfx_self_test.gd`): `await GfxSelfTest.run(parent, frames = 3)` rendert eine beleuchtete
+Kugel und eine Fläche mit eigenem Shader in ein 96×96-`SubViewport` und liefert
+`{"ok", "reason": ""|"black"|"shader"|"readback", "ms"}` (headless übersprungen = bestanden); das reine Urteil über
+ein Bild ist `GfxSelfTest.judge(img)`. Gemessen auf der Test-VM (llvmpipe): 164–325 ms beim ersten Lauf, 49–86 ms
+danach.
+
+### 15.2 Qualität von „Modern“
+
+Eine Qualität sind fünf Werte: `shadows` 0–3 (Aus, Niedrig, Mittel, Hoch), `details` 0–2 (Niedrig, Mittel, Hoch),
+`scale` (3D-Auflösung in Prozent), `aa` 0–2 (Aus, MSAA 2×, MSAA 4×), `effects` 0–2 (Aus, Einfach, Voll).
+Voreinstellungen (config `graphics.presets`): `deck` {1, 1, 100, 1, 1}, `low` {0, 0, 75, 0, 0}, `medium`
+{2, 1, 100, 1, 1}, `high` {3, 2, 100, 2, 2}; `custom` = die eigenen Werte des Spielers. `Gfx.levels()` macht daraus
+mit config `graphics.levels` ein flaches Wörterbuch für `ModernRenderer.apply_quality()`:
+
+| Schlüssel | Bedeutung |
+|---|---|
+| `preset`, `shadows`, `details`, `scale`, `aa`, `effects` | die Qualität selbst |
+| `shadow_casters` | 0 keine (Blob-Schatten), 1 Fahrzeuge und Bauwerke, 2 + Gebäude und Baum-Stellvertreter, 3 + alle Requisiten |
+| `shadow_splits`, `shadow_blend`, `shadow_atlas`, `shadow_distance_m`, `shadow_filter`, `blob_shadows` | Schattenstufen (1 = orthogonal), Überblenden, Atlasgröße, Reichweite, Filter (0 hart, 1 weich niedrig, 2 weich mittel) |
+| `vehicle_lod0_m`, `vehicle_lod1_m`, `prop_lod0_m`, `prop_lod1_m` | Entfernung, bis zu der die feinste bzw. mittlere Detailstufe gilt |
+| `deco_density`, `terrain_outer_m` | Dichte rein dekorativer Requisiten, äußerster Geländering |
+| `glow`, `particles`, `spray`, `wet_reflections`, `ssao`, `ssao_quality`, `sky_reflections`, `omni_pool` | Effekte; `omni_pool` = echte Punktlichter (höchstens 8) |
+| `msaa`, `scale_3d` | MSAA 0/2/4, 3D-Skalierung 0,5–1,5 |
+
+Die Typen sind fest (JSON-Zahlen werden umgewandelt), fehlende oder beschädigte Einträge der Konfiguration fallen
+auf die eingebauten Startwerte zurück, zusätzliche Schlüssel der Konfiguration werden durchgereicht. **Keine
+Qualitätsstufe dünnt aus, kürzt oder dunkelt ab, worauf der Spieler reagieren muss** (Fahrzeuge, ihre Lichter und
+Blinker, Schilder, Fahrbahnränder, Markierungen, Leitplanken, Tunnelwände).
+
+### 15.3 Konfiguration `graphics` (`config/game_config.json`)
+
+`force_mode` (`""|"arcade"|"modern"`), `presets`, `levels` (`shadows[4]`, `details[3]`, `aa[3]`, `effects[3]`),
+`modern` (Kamera `look_gain`, `look_m`, `yaw_max_deg`, `near_m`, `far_m`; `chunk_segments`, `load_path_m`,
+`landmark_path_m`, `keep_behind_m`, `threaded_build`, `commits_per_frame`, `fog`, `terrain`, `lights`, `sky_update_s`,
+`prewarm`), `watchdog` (`countdown_min_fps`, `slow_factor`, `too_slow_factor`), `benchmark` (`seconds`, `scenes[]` wie
+`attract.scenes`), `budgets` je Voreinstellung (`draw_calls`, `primitives`, `script_ms`, `commit_ms` – Zielwerte für
+eine echte Grafikkarte, abgeleitet, nicht gemessen). Arcade liest nichts aus diesem Abschnitt.
+
+### 15.4 Renderer-Naht (`RaceRenderers`, `scripts/race/race_renderers.gd`)
+
+`RaceRenderers.create(mode) -> Node` liefert `RoadRenderer.new()` für `"arcade"` und den Modern-Renderer
+(`scripts/race3d/modern_renderer.gd`, zur Laufzeit geladen – Arcade berührt den 3D-Code nie) für `"modern"`; `null`,
+wenn der sich nicht erzeugen lässt. Die Variable `renderer` der Sitzung ist untypisiert.
+
+| Methode / Signal | Arcade (`RoadRenderer`) | Modern (`ModernRenderer`, `Node3D`) |
+|---|---|---|
+| `setup(track, proj, cfg, scenery_db)` | ja | ja |
+| `render(view)` jedes Bild | ja | ja – auch während der Vorbereitung (die eingefrorene Startansicht) |
+| `perf_stats() -> Dictionary` | ja | ja (`mode: "modern"`, `preset`, Zeiten, Zähler) |
+| `apply_quality(levels)` | – | einmal vor `prepare()`, nie während einer Etappe |
+| `prepare(ctx)` | – | startet Selbsttest, Laden der Modelle, Shader-Aufwärmen; über mehrere Bilder |
+| `is_prepared()`, `prepare_progress()` | – | ja |
+| `healthy()`, `fail_reason()` | – | false + Grund: `"selftest:<r>"`, `"manifest"`, `"shader"`, `"timeout"` |
+| `debug_snapshot()` | – | reine Daten für headless-Tests |
+| `world_to_screen(z, x, h) -> Vector3` | – | (Pixel x, Pixel y, Tiefe m) in logischen Pixeln |
+| `signal quality_lowered(preset)` | – | der Wächter hat die Voreinstellung gesenkt |
+
+Die Sitzung ruft die Modern-Methoden nur an einem Renderer mit `prepare`. `ctx` von `prepare()`: `{"sets":
+Array[String]` (jede Sprite-Set-ID, die die Etappe zeigen kann – Spielerauto, Verkehr, Polizei der Länder, HUD-Icons,
+Requisiten, Wahrzeichen, Skyline), `"plan": StagePlan, "vehicle": String` (Fahrzeugtyp), `"weather", "hour", "sync":
+bool` (`--gfx-sync`)`}`. `view.palette` ist in beiden Modi die Außenpalette (`Palette.compute`).
+
+Canvas-Ebenen im Rennen: −10 Hintergrund von „Modern“ (`Environment.BG_CANVAS`), 1–2 Bildeffekte und 2D-Überlagerungen
+von „Modern“, 5 HUD und Pausemenü, 6 Ladebild der Sitzung. Arcade zeichnet alles selbst wie bisher.
+
+### 15.5 Ablauf einer Etappe (`race_session.gd`)
+
+1. Modus = `setup.gfx`, sonst `Settings.effective_graphics().mode`. „Modern“: **zuerst** der Absturz-Marker
+   (`Settings.arm_crash_guard()`), dann der Renderer; das Fenster wird gefüllt (`content_scale_aspect = EXPAND`;
+   Arcade bleibt unberührt, `GameFlow` setzt `KEEP`). Die `RoadProjection` der Simulation bleibt in beiden Modi
+   1280×720.
+2. Sprite-Blätter: Arcade lädt wie bisher alle vorab. „Modern“ lädt nur die HUD-Icons (`ui/*`); Fahrzeug-,
+   Requisiten- und Wahrzeichen-Blätter (allein die Fahrzeuge 281 MB BPTC) bleiben ungeladen.
+3. `apply_quality(Settings.quality_levels())`, `prepare(ctx)`, Ladebild „Etappe wird geladen …“ (deckend, Ebene 6;
+   `LoadingOverlay.set_progress(p)`, sobald das Widget es hat). **Bis `is_prepared()` läuft nichts von der Etappe:**
+   kein Simulationsschritt, kein Countdown, keine HUD-Uhr, kein Klang-Hook, und die Uhr des `Screenshotter` steht
+   (`hold`) – gleiche Aufnahmezeiten zeigen in beiden Modi denselben Simulationszustand. Die Startansicht wird in
+   dieser Zeit weiter an `render(view)` gegeben (der Renderer baut und wärmt auf, was das erste Bild zeigt). Der
+   erste Simulationsschritt danach startet die Etappe wie das erste Bild einer Arcade-Etappe. Ein Fokusverlust
+   während der Vorbereitung pausiert beim Start.
+4. `not healthy()` (auch mitten in der Vorbereitung) oder kein Renderer → **Rückfall**: Modern-Renderer frei,
+   Arcade-Renderer und seine Sprites, `KEEP`, HUD-Meldung „Der Modus „Modern“ lässt sich mit dieser Grafik nicht
+   starten. Das Spiel läuft im Modus „Arcade“ weiter.“, Ergebnis `gfx = "arcade"`, `gfx_fallback = <Grund>`
+   (`"renderer"`, wenn er sich nicht erzeugen ließ). Der Klang ändert sich dadurch nicht.
+5. Absturz-Marker `user://modern_start.lock`: entfernt nach 2 s gezeichneter Bilder der gestarteten Etappe (dann
+   ist auch ein Marker des letzten Laufs erledigt), bei einem Rückfall und wenn eine gestartete Etappe vorher
+   ordentlich endet. Er bleibt, wenn das Spiel in „Modern“ abstürzt, hängt oder während der Vorbereitung beendet
+   wird: Der nächste Start findet ihn (`Settings.crash_guard`), läuft in Arcade (`reason = "crash_guard"`) und
+   lässt die gespeicherte Wahl stehen, bis der Spieler die Frage auf dem Titel beantwortet
+   (`Settings.disarm_crash_guard()`) oder eine Modern-Etappe 2 s gelaufen ist.
+6. Pause: Der Baum wird pausiert wie bisher; in „Modern“ muss das Bild vollständig stehen (alles Bewegte läuft auf
+   `view.time`).
+
+### 15.6 Prüfungen der Grafikmodi
+
+- **Bildgleichheit von Arcade** (harte Grenze nach jedem Arbeitspaket): `tools/golden.sh make` exportiert den
+  Git-Tag `v0.7.0` in einen temporären Ordner, rendert mit *diesem* Stand die 20 Bilder aus
+  `tests/golden/arcade_frames.txt` – 14 Bilder der sieben Attract-Szenen (bei 4 s und 12 s) und 6 Rennbilder mit
+  vollem HUD an Referenzpositionen (Countdown, „LOS!“ mit Wetterhinweis, Fahrt bei Tag, Regen, Dämmerung und im
+  Tunnel) – unter Xvfb mit Software-OpenGL bei festen 60 Bildern/s und schreibt ihre MD5-Summen nach
+  `tests/golden/arcade_v070.md5` (dazu `arcade_v070.env`: Godot-Version und OpenGL-Treiber). `tools/golden.sh check`
+  rendert dieselben Bilder mit der Arbeitskopie (`--graphics=arcade --shot-fast`) und vergleicht:
+  „GOLDEN arcade: 20 von 20 identisch“, sonst Exit-Code 1. Gemessen auf der Test-VM: `make` 725 s (jedes Bild wird
+  berechnet), `check` 153 s. Nach einem Wechsel von Godot oder Mesa die Liste mit `make` neu aus dem Tag erzeugen
+  (`check` weist darauf hin). `KEEP=<ordner>` behält die Bilder, `tools/golden.sh compare <a> <b>` zählt die
+  verschiedenen Pixel je Bild.
+- `tests/unit/core/test_gfx_settings.gd`: Migration der Einstellungsdatei (ohne Version, 2 → 3), die
+  Vollbild-Falle, unbekannte Schlüssel, die Matrizen von `resolve_mode` (128 Kombinationen) und `resolve_sound`
+  (144), Voreinstellungen, Grenzen, Kommandozeile, Renderer-Parameter, Wächter, Absturz-Marker, Urteil des
+  Selbsttests.
+- `tests/race3d/check_seam.gd` (headless, über den Haken von `run_tests.sh`): die Naht mit einem Prüf-Renderer
+  (`tests/race3d/fixtures/seam_probe_renderer.gd`, über `RaceRenderers.modern_script`), der eine einstellbare Zahl
+  von Bildern zum Vorbereiten braucht und ausfallen kann – Reihenfolge der Aufrufe, Marker vor dem Renderer,
+  Stillstand bis `is_prepared()`, nur `ui/*` als Sprite-Blätter, Marker nach 2 s weg, Rückfall, fehlender
+  Renderer, alle Klang-Hooks, Marker des letzten Laufs.
+- `tests/race3d/render/check_seam_render.gd` (Xvfb): Selbsttest auf dem echten Renderer, Bild des Gerüsts, gleiche
+  Simulationsschritte bei gleicher Aufnahmezeit in beiden Modi, Rückfall bildgleich mit Arcade, Arcade vor und
+  nach einer Modern-Etappe im selben Prozess bildgleich, 16:10-Fenster (Modern füllt, Arcade mit Balken).
+- `tests/race/run_stage.gd -- --stage=<id> --graphics=arcade|modern`: `ERGEBNIS` ist in beiden Modi dasselbe bis auf
+  `gfx`.
