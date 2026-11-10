@@ -146,7 +146,7 @@ Sibiu nach 2.544 m). Die Zahlen sind dieselben wie in der Entwurfsstudie.
 Der 360-m-Anfang ist die Sehne über eine einzelne enge Kurve: 267,6 m ist die Sehne über 360 m Bogen der engsten
 Kurve (R ≈ 134 m), kein zweiter Straßenast. Eine künftige Etappe, die eine Prüfung verfehlt, bekommt einen anderen Seed.
 
-Im normalen Lauf (24 s gemessen) werden die 74 Etappenrichtungen nicht erzeugt, deren Kurven dafür zu weit sind
+Im normalen Lauf (24–25 s gemessen) werden die 74 Etappenrichtungen nicht erzeugt, deren Kurven dafür zu weit sind
 (Kurvigkeit ≤ 1: R ≥ 400 m): Nach dem Bogensatz von Schwarz ist ein Bogen mit Krümmung ≤ 1/R zwischen zwei Punkten
 im Abstand d entweder höchstens so lang wie der kurze oder mindestens so lang wie der lange Kreisbogen vom Radius R
 durch sie – für d = 250 m und R = 400 m also ≤ 254 m oder ≥ 2.259 m, nie 360 … 2.000 m. `--full` rechnet alle 128 und
@@ -480,6 +480,9 @@ zwischen den Grenzen interpolierten Bodenhöhe.
 - **F1 gilt für Fahrzeuge in jeder Spur, nicht für jeden Bildpunkt.** Ziele am Fahrbahnrand (± 9,4 m) direkt neben
   dem Wagen – 15 m vor der Kamera, also 6 m vor dem Wagen, bis 13 m seitlich – zeigt Arcade noch am Bildrand, Modern
   in Kurven nicht mehr (120.852 von 199 Mio. Stichproben). Ab 30 m gibt es bis 260 m keinen Fall.
+  Ebenso die Tankspur (+ 7,5 m; gerechnet, als gäbe es sie überall): ein Ziel dort mit der Kamera in einer Spur 866
+  Fälle bei 15 m, Ziele in den Spuren mit der Kamera auf der Tankspur 1.031 Fälle bei 15 m – jeweils bis drei Spuren
+  quer, 6 m vor dem Wagen; von 30 bis 260 m kein Fall, bei 270 m einer bzw. zwei (je 99 Mio. Stichproben).
 - **270 m ist knapp.** Mit der Kamera in einer Außenspur liegt der erste Fall bei 270 m (1 von 298 Mio. Stichproben
   für Ziele in den Spuren), mit der Kamera in der Mitte bei 280 m. F2 hält in beiden Fällen.
 - **Der Blick in die Kurve trägt F1.** Mit der Tangentenkamera (`look_gain` 0) gäbe es in den vier härtesten
@@ -488,7 +491,9 @@ zwischen den Grenzen interpolierten Bodenhöhe.
   erreichen, hat den ersten Fall bei 270 m (das Netz: höchstens 0,892, erster Fall 280 m). Eine künftige Etappe,
   die F1 verfehlt, bekommt einen anderen Seed.
 - **Verdeckung durch Bauten und Bäume** prüfen diese Rechnungen nicht – nur Sichtkegel (F1/F2) und Gelände (F3/F7).
-  Tunnelwände verdecken in Kurven in beiden Modi gleich (Sichtweite etwa √(8 · R · halbe Röhrenbreite)).
+  Tunnelwände verdecken in Kurven in beiden Modi gleich weit (abgeleitet, nicht gemessen: die Sichtlinie an der
+  Innenwand vorbei reicht in der gescherten wie in der echten Röhre etwa √(8 · R · halbe Röhrenbreite), bei
+  R = 134 m und 6 m also rund 80 m).
 - F3 rechnet trocken bei Tag, wie die Entwurfsstudie.
 
 ### 7.5 Prüfungen bedienen
@@ -502,7 +507,7 @@ godot --headless --path . -s res://tests/sim/modern_path_check.gd [-- --full] [-
 |---|---|---|
 | `modern_sight.gd` | die zwölf härtesten Etappenrichtungen (`Fairness.HARDEST`): 103.583 Segmente, 44 Mio. Stichproben, 874 Kuppenziele | 18 s |
 | `modern_sight.gd -- --full` | ganzes Netz | 132 s |
-| `modern_path_check.gd` | ganzes Netz, 74 Etappenrichtungen über die Krümmungsschranke | 24 s |
+| `modern_path_check.gd` | ganzes Netz, 74 Etappenrichtungen über die Krümmungsschranke | 24–25 s |
 | `modern_path_check.gd -- --full` | ganzes Netz gerechnet, dazu freie Breite, Stückzahl und größte Koordinate | 53–56 s |
 
 Die Auswahl enthält die ungünstigsten Fälle des ganzen Netzes: ihr Lauf liefert dieselben F2-Werte (0,593 / 0,596 /
