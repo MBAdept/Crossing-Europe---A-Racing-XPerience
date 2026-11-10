@@ -16,13 +16,15 @@ extends SceneTree
 ##   mix            (--live) a tone through the Modern buses, captured: the level chain of the plan, the music ducks
 ##                  while the car is driven flat out and comes back, the pause low-pass closes and opens, the race
 ##                  EQ of the music takes about 1 / 3 / 0 dB at 62 Hz / 500 Hz / 5 kHz
-##   race           16 s of the test stage through its tunnel with the Modern profile: the session's calls arrive
-##                  (engine, traffic, tunnel reverb, feed, events, race music); without --live also the finish with
-##                  Modern and the same 16 s with the Arcade profile – the same simulation at every second (Rule 3)
+##   race           16 s of the test stage through its tunnel with the Modern profile and the placeholder sounds:
+##                  the session's calls arrive (engine, traffic, tunnel reverb, feed, events, race music); without
+##                  --live also the finish with Modern and the same 16 s with the Arcade profile – the same
+##                  simulation at every second (Rule 3)
 ##   arcade_after   after all that: Arcade profile, the Arcade bus list as in v0.7.0, and the cycle bank both
 ##                  profiles played from still gives the seeded mixer output of v0.7.0 (SHA-256)
 ## --live: plays although the run is headless – builds the Arcade sounds as on a display (the AudioManager's own
-## functions), ModernAudio.force_live, and switches the placeholders on (audio.modern.placeholders).
+## functions), ModernAudio.force_live, and switches the placeholders on for every scenario
+## (audio.modern.placeholders; without --live only the race uses them).
 ## Prints "CHECK <name> OK|FEHLER …" per scenario; exit code 0 when all pass. The scene is accessed untyped (this
 ## script compiles before the autoloads exist).
 
@@ -574,7 +576,11 @@ func _scenario_race(_g: String) -> void:
 	Engine.time_scale = ts
 	Engine.physics_ticks_per_second = int(60.0 * ts)
 	Engine.max_physics_steps_per_frame = 32
-	# Modern: 16 s from km 49.4 through the Testtunnel (km 50–54), in the rain
+	# Modern with the placeholder sounds (also in the plain headless run, where the other scenarios use the shipped
+	# setting without them): 16 s from km 49.4 through the Testtunnel (km 50–54), in the rain
+	var modern_cfg: Dictionary = (_am.get("_audio_cfg") as Dictionary)["audio"]["modern"]
+	var placeholders_before := bool(modern_cfg.get("placeholders", false))
+	modern_cfg["placeholders"] = true
 	_am.call("set_profile", "modern")
 	_am.call("set_music_context", "race", {"stage": "dev_testetappe"})
 	_launch(49.4, 5)
@@ -589,8 +595,8 @@ func _scenario_race(_g: String) -> void:
 		and int(events.get("tunnel_in", 0)) == 1 and int(events.get("tunnel_out", 0)) == 1 \
 		and int(mod["tunnel_frames"]) > 0 and float(mod["max_rpm"]) > 1500.0 and int(mod["alive_frames"]) > int(mod["frames"]) * 0.9 \
 		and ((int(mod["max_voices"]) >= 1) == _live) and int((st["plays"] as Dictionary).get("go", 0)) == 1
-	var music_ok := str(music["context"]) == "race" and ((str(music["key"]) == "music/platzhalter_takt") == _live)
-	var text := "Teststadt – Testdorp ab km 49,4 im Regen, 16 s mit dem Profil Modern bis km %.2f: Motor bis %.0f/min, Sitzung in %d von %d Bildern da, Tunnelhall in %d Bildern, Feed gültig (Zone %s, Ereignisse %s), bis zu %d Verkehrsstimmen, Musik %s („%s“)" % [
+	var music_ok := str(music["context"]) == "race" and str(music["key"]) == "music/platzhalter_takt" and bool(st["placeholders"])
+	var text := "Teststadt – Testdorp ab km 49,4 im Regen, 16 s mit dem Profil Modern und Platzhaltern bis km %.2f: Motor bis %.0f/min, Sitzung in %d von %d Bildern da, Tunnelhall in %d Bildern, Feed gültig (Zone %s, Ereignisse %s), bis zu %d Verkehrsstimmen, Musik %s („%s“)" % [
 		float(mod["km"]), float(mod["max_rpm"]), int(mod["alive_frames"]), int(mod["frames"]), int(mod["tunnel_frames"]), str(feed["zone"]),
 		JSON.stringify(events), int(mod["max_voices"]), str(music["context"]), str(music["key"])]
 	var ok := hooks and music_ok and (st["asset_errors"] as Array).is_empty() and modern_diff.is_empty()
@@ -626,6 +632,7 @@ func _scenario_race(_g: String) -> void:
 	Engine.physics_ticks_per_second = 60
 	Engine.max_physics_steps_per_frame = 8
 	_am.call("set_profile", "arcade")
+	modern_cfg["placeholders"] = placeholders_before
 	_check("race", ok, text + (" (Hooks von dieser Prüfung gesendet: %d Zustände)" % int(mod["injected_states"]) if _inject else " (Hooks von der Rennsitzung)"))
 
 
