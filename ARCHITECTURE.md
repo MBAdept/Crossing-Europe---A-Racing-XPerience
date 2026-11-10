@@ -465,7 +465,20 @@ Ein Build, zwei Renderer hinter derselben Schnittstelle. „Arcade“ ist der bi
 `scripts/race3d/`). Verbindlicher Bauplan mit allen Entscheidungen: [docs/dev/v080_contract.md](docs/dev/v080_contract.md).
 **Stand Welle 0 (Gerüst):** Einstellungen, Modus-Auflösung, die Naht in der Rennsitzung, Werkzeuge und Prüfungen sind
 fertig; der Modern-Renderer ist ein Gerüst (Kamera mit Arcades Projektion, Himmelsfarbe über eine Canvas-Ebene, eine
-graue Ebene). Auswahlbildschirm, Optionen, Showroom, Klangprofil „Modern“ und der eigentliche Renderer folgen in
+graue Ebene). Daneben stehen die Kerne der drei anderen Bereiche, jeder mit eigener Dokumentation:
+
+- **Geometrie-Kern des Renderers** (`scripts/race3d/`: Pfad der Straße im Raum, Kamera, Geländeprofil,
+  Stück-Streamer, Fairness-Prüfungen des ganzen Netzes) – [docs/renderer-modern.md](docs/renderer-modern.md). Das
+  Renderer-Gerüst benutzt ihn noch nicht.
+- **Modell-Pipeline** (`ModelDB`, `ModernMaterials`, `ModelFactory`, Shader in `assets/shaders/modern/`) mit sechs
+  Referenzmodellen; jedes Sprite-Set außer `ui/*` hat in `assets/models/manifest.json` einen Eintrag (Modell oder
+  Platzhalter) – [docs/modelle.md](docs/modelle.md).
+- **Audio-Kern des Klangprofils „Modern“** (`ModernAudio` hinter dem `AudioManager`, eigene Busse, Pegelplan; die
+  Bausteine spielen vorerst den Arcade-Klang über die Modern-Busse) – [docs/audio-modern.md](docs/audio-modern.md).
+  Bis `GameFlow` das gespeicherte Profil setzt (Welle 2), ist es nur über `--sound=modern` oder den
+  Konfigurationswert `audio.profile` zu hören.
+
+Auswahlbildschirm, Optionen, Showroom, die Klänge und die Musik von „Modern“ und der eigentliche Renderer folgen in
 den nächsten Wellen und halten sich an die Schnittstellen dieses Abschnitts.
 
 Grundregeln: Die Simulation ist in beiden Modi dieselbe und liest nie etwas aus einem Renderer
