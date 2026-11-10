@@ -225,6 +225,14 @@ func set_clear_max(m: float) -> void:
 		_clear_cache.clear()
 
 
+## Sets how far along the path (both directions) clearance() looks: the largest path distance between two parts of
+## the road that can be loaded at the same time.
+func set_clear_reach(m: float) -> void:
+	if m != clear_reach_m:
+		clear_reach_m = m
+		_clear_cache.clear()
+
+
 ## Forgets the boundaries before before_index (at least two are kept).
 func trim(before_index: int) -> void:
 	var n := mini(before_index - first, _px.size() - 2)

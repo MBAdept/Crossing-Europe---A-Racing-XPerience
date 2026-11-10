@@ -7,10 +7,11 @@ extends SceneTree
 ## Checks (whole network, both directions):
 ##   modern_path_clearance  two points of the road 360 m … 1,900 m of path apart are at least 250 m apart by air
 ##   modern_path_loops      an approach below 250 m beyond that only from 2,000 m of path on
-## Normal run (about 30 s): stage directions whose bends are too wide for any approach (curviness <= 1: radius
+## Normal run (about 25 s): stage directions whose bends are too wide for any approach (curviness <= 1: radius
 ## >= 400 m; Schwarz's arc theorem, Fairness.proven_clear) are not generated. --full generates every stage direction,
-## confirms that bound and adds the free ribbon width (RoadPath3D.clearance) and the chunk load of the streamer rule
-## (information for the terrain and the budgets, no check; about 70 s). Exit code 1 when a check fails.
+## confirms that bound and adds the largest coordinate of a path, the free ribbon width (RoadPath3D.clearance) and
+## the chunk load of the streamer rule (information for the terrain and the budgets, no check; about 55 s).
+## Exit code 1 when a check fails.
 ## Rules and numbers: docs/renderer-modern.md. Owner: race3d kernel.
 
 const Fair := preload("res://tests/race3d/fairness.gd")
@@ -72,8 +73,13 @@ func _initialize() -> void:
 	var loop_sep := INF
 	var loop_name := ""
 	var loops: Array = []
+	var far_m := 0.0
+	var far_name := ""
 	for p: Dictionary in rows:
 		total_m += float(p["length_m"])
+		if float(p["max_abs_m"]) > far_m:
+			far_m = float(p["max_abs_m"])
+			far_name = str(p["name"])
 		for lim: float in (p["near_m"] as Dictionary):
 			near[lim] = float(near.get(lim, 0.0)) + float(p["near_m"][lim])
 			if float(p["near_m"][lim]) > 0.0:
@@ -108,6 +114,9 @@ func _initialize() -> void:
 		var p: Dictionary = loops[i]
 		print("PATH Schleife        %-36s %6.1f m  nach %5.0f m Weg  km %6.1f" % [p["name"], float(p["loop_min_m"]), float(p["loop_min_sep_m"]), float(p["loop_min_km"])])
 	if full:
+		# only with every stage direction computed: the normal run leaves out the long, gentle ones
+		print("PATH größte Koordinate eines Pfads ab seinem Start: %.1f km (%s) – 32-Bit-Raster dort %.1f mm ohne schwimmenden Ursprung" % [
+			far_m / 1000.0, far_name, pow(2.0, floorf(log(maxf(far_m, 1.0)) / log(2.0)) - 23.0) * 1000.0])
 		_print_ribbon(ribbons)
 	var worst: Dictionary = rows[0] if not rows.is_empty() else {}
 	var min_m := float(worst.get("min_m", INF))

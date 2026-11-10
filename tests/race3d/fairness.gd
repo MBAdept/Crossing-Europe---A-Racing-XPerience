@@ -129,8 +129,8 @@ static func build_terrain(cfg: Dictionary, geo: Dictionary, scenery: Dictionary 
 	var terrain := TerrainProfile.new()
 	var path: RoadPath3D = geo["path"]
 	var chunk_m := float(int(ConfigLoader.lookup(cfg, "graphics.modern.chunk_segments", 32))) * float(geo["seg"])
-	path.clear_reach_m = float(ConfigLoader.lookup(cfg, "graphics.modern.load_path_m", 1500.0)) \
-		+ float(ConfigLoader.lookup(cfg, "graphics.modern.keep_behind_m", 150.0)) + 2.0 * chunk_m
+	path.set_clear_reach(float(ConfigLoader.lookup(cfg, "graphics.modern.load_path_m", 1500.0))
+		+ float(ConfigLoader.lookup(cfg, "graphics.modern.keep_behind_m", 150.0)) + 2.0 * chunk_m)
 	terrain.setup(path, geo["track"], tc, scenery)
 	return {"terrain": terrain, "rows": terrain.rows(0, int(geo["n"]) - 1)}
 
@@ -186,7 +186,8 @@ static func speed_profile(geo: Dictionary, e: Dictionary, tolerance: float = 1.0
 
 ## Closest approaches of the true path to itself. Points every `step` segments (12 m); pairs at least sep_min_m of
 ## path apart and closer than cell_m by air are found with a grid. Returns
-## {min_m, min_km, min_sep_m (closest approach within sep_min_m..sep_max_m of path), near_m: {limit: metres of road
+## {max_abs_m (largest |x| or |z| of the path relative to its start),
+## min_m, min_km, min_sep_m (closest approach within sep_min_m..sep_max_m of path), near_m: {limit: metres of road
 ## with such an approach below limit}, loop_sep_m (smallest path separation beyond sep_max_m of an approach below
 ## loop_m; INF = none), loop_min_m, loop_min_sep_m, loop_min_km (closest approach sep_loop_min_m..sep_loop_max_m apart
 ## on the 24-m points)}.
@@ -224,6 +225,9 @@ static func scan_path(geo: Dictionary, opts: Dictionary = {}) -> Dictionary:
 			grid[key] = cell_pts
 		else:
 			grid[key] = PackedInt32Array([i])
+	var max_abs := 0.0
+	for i in m:
+		max_abs = maxf(max_abs, maxf(absf(xs[i * step]), absf(zs[i * step])))
 	var mind := PackedFloat64Array()
 	mind.resize(m)
 	mind.fill(INF)
@@ -276,7 +280,7 @@ static func scan_path(geo: Dictionary, opts: Dictionary = {}) -> Dictionary:
 				cnt += 1
 		near[lim] = float(cnt) * d_pt
 	var kpm: float = geo["km_per_m"]
-	return {"name": geo["name"], "length_m": float(n) * seg, "min_m": best, "min_km": float(best_i) * d_pt * kpm,
+	return {"name": geo["name"], "length_m": float(n) * seg, "max_abs_m": max_abs, "min_m": best, "min_km": float(best_i) * d_pt * kpm,
 		"min_sep_m": float(best_k) * d_pt, "near_m": near, "loop_sep_m": loop_sep, "loop_min_m": loop_min,
 		"loop_min_sep_m": float(loop_min_k) * d_pt, "loop_min_km": float(loop_min_i) * d_pt * kpm}
 
@@ -318,7 +322,7 @@ static func scan_ribbon(cfg: Dictionary, geo: Dictionary, opts: Dictionary = {})
 	var keep_m := float(gm.get("keep_behind_m", 150.0))
 	var max_chunks := int(gm.get("max_chunks", 16))
 	var vis := float(opts.get("visibility_m", ConfigLoader.lookup(cfg, "render.draw_distance_m", 900.0)))
-	path.clear_reach_m = load_m + keep_m + 2.0 * chunk_m
+	path.set_clear_reach(load_m + keep_m + 2.0 * chunk_m)
 	var widths: Array = opts.get("widths_m", [40.0, 80.0, 120.0, 160.0, 240.0, 320.0, 480.0])
 	var free := {}
 	for w: float in widths:

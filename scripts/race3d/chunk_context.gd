@@ -37,6 +37,7 @@ var rings := 0                          ## terrain rings per side
 var ring_x := PackedFloat32Array()      ## terrain ring distances beyond the shoulder per row and side
 var ring_h := PackedFloat32Array()      ## terrain heights at those rings, relative to the road of the row
 var corridor := PackedVector2Array()    ## sight corridor beyond the shoulder per row (left, right), fairness rule F7
+var corridor_min := 5.5                 ## its width away from bends (TerrainProfile.corridor_min_m - shoulder)
 var origin := Vector3.ZERO              ## origin-relative position of row 0 when the snapshot was taken
 var seg_len := 3.0
 var lane_w := 3.75
@@ -83,6 +84,7 @@ func capture(chunk_index: int, a: int, b: int, p: RoadPath3D, t: TerrainProfile,
 	ring_x = tp["x"]
 	ring_h = tp["h"]
 	corridor = tp["corridor"]
+	corridor_min = maxf(0.0, t.corridor_min_m - shoulder_w)
 	var floors: PackedFloat64Array = tp["floor"]
 	floor_y.resize(count)
 	for q in count:
@@ -178,8 +180,8 @@ func ribbon_width(z: float, side: int) -> float:
 	return lerpf(ring_x[(i * 2 + si) * rings + rings - 1], ring_x[((i + 1) * 2 + si) * rings + rings - 1], t)
 
 
-## True when road coordinates (z, x) lie inside the sight corridor (fairness rule F7: no ground above the road, no
-## decorative vegetation on the inside of bends) or on the road itself.
+## True when road coordinates (z, x) lie inside the sight corridor (fairness rule F7: no ground above the road) or
+## on the road itself.
 func in_corridor(z: float, x: float) -> bool:
 	var f := z / seg_len - float(seg_a)
 	var i := clampi(int(floor(f)), 0, rows_o.size() - 2)
@@ -189,3 +191,18 @@ func in_corridor(z: float, x: float) -> bool:
 	var m := (-x + e.x if si == 0 else x - e.y) - shoulder_w
 	var c := corridor[i].lerp(corridor[i + 1], t)
 	return m <= (c.x if si == 0 else c.y)
+
+
+## True when (z, x) lies inside the sight corridor of a bend, on its inside – where fairness rule F7 allows no
+## decorative vegetation (the props builder leaves such props out). Away from bends the corridor is only the
+## corridor_min strip beside the road, and that strip does not count here.
+func in_bend_corridor(z: float, x: float) -> bool:
+	var f := z / seg_len - float(seg_a)
+	var i := clampi(int(floor(f)), 0, rows_o.size() - 2)
+	var t := clampf(f - float(i), 0.0, 1.0)
+	var si := 0 if x < 0.0 else 1
+	var e := rows_edge[i].lerp(rows_edge[i + 1], t)
+	var m := (-x + e.x if si == 0 else x - e.y) - shoulder_w
+	var c := corridor[i].lerp(corridor[i + 1], t)
+	var cw := c.x if si == 0 else c.y
+	return cw > corridor_min + 0.5 and m > 0.0 and m <= cw

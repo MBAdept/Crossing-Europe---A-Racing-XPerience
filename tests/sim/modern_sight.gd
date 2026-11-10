@@ -16,7 +16,7 @@ extends SceneTree
 ##   godot --headless --path . -s res://tests/sim/modern_sight.gd [-- --full] [--stage=<id>[,<id>…]] [--verbose]
 ##       [--study-terrain[=100]]
 ## Normal run: the twelve hardest stage directions (tests/race3d/fairness.gd HARDEST; about 20 s). --full: the
-## whole network (about 3 minutes; at the milestones). --study-terrain: F3 over the ground of the design study (road
+## whole network (a good 2 minutes; at the milestones). --study-terrain: F3 over the ground of the design study (road
 ## height up to 100 m from the centreline) instead of the shipped terrain – reproduces its numbers, validates the
 ## method. Exit code 1 when a check fails – never relax a limit here without the project lead.
 ## Owner: race3d kernel.
