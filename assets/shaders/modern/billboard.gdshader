@@ -25,6 +25,10 @@
 //                parts of the full sun as for an impostor
 // and every billboard takes the player's headlights from the globals ce_headlight_pos / _dir / ce_headlight
 // (range, intensity; intensity 0 = off): an unshaded material gets nothing from the real spot lights.
+// End of the sight (assembly of M1): beyond the end of the depth fog (ce_fog_range.y = the visibility) a prop is
+// pure fog colour – a pale silhouette standing in front of the backdrop's own hazy silhouettes (the "bright
+// diamonds" at the horizon of S1: impostors of far trees). It fades out with an ordered dither from 0.85 to 1.0 of
+// the fog end instead, as Arcade's scenery sprites fade at the end of the sight.
 // Load only through ModernMaterials - never with preload().
 shader_type spatial;
 render_mode unshaded, cull_disabled, depth_draw_opaque;
@@ -47,6 +51,7 @@ global uniform vec3 ce_sun_dir;
 global uniform vec3 ce_headlight_pos;
 global uniform vec3 ce_headlight_dir;
 global uniform vec2 ce_headlight;
+global uniform vec2 ce_fog_range;
 
 varying float v_sun;
 varying float v_head;
@@ -98,6 +103,10 @@ vec3 albedo_for(vec3 x) {
 void fragment() {
 	vec4 t = texture(tex, uv_rect.xy + UV * uv_rect.zw);
 	if (t.a < scissor || (t.a < shadow_cut && max(t.r, max(t.g, t.b)) < 0.1)) {
+		discard;
+	}
+	float far_keep = 1.0 - smoothstep(ce_fog_range.y * 0.85, ce_fog_range.y, length(VERTEX));
+	if (far_keep < 0.999 && fract(dot(floor(FRAGCOORD.xy), vec2(0.7548776662, 0.5698402910))) >= far_keep) {
 		discard;
 	}
 	vec3 a = to_lin(t.rgb * COLOR.rgb);

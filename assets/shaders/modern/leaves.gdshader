@@ -6,6 +6,10 @@
 // so a paused game freezes the trees.
 // Light: wrapped diffuse + translucency, and the sun's shadow only counts in part (shadow_part): the crown
 // would otherwise be shadowed by its own low-poly caster, which sits right behind the outer cards.
+// End of the sight (assembly of M1): beyond the end of the depth fog (ce_fog_range.y = the visibility) a prop is
+// pure fog colour – a pale silhouette standing in front of the backdrop's own hazy silhouettes (the "bright
+// diamonds" at the horizon of S1: impostors of far trees). It fades out with an ordered dither from 0.85 to 1.0 of
+// the fog end instead, as Arcade's scenery sprites fade at the end of the sight.
 // Load only through ModernMaterials - never with preload().
 shader_type spatial;
 render_mode cull_disabled, depth_draw_opaque;
@@ -20,6 +24,7 @@ uniform float shadow_part = 0.25;              // how much of the directional sh
 
 global uniform vec4 ce_wind;
 global uniform float ce_time;
+global uniform vec2 ce_fog_range;
 
 varying float v_bright;
 
@@ -45,6 +50,10 @@ void vertex() {
 void fragment() {
 	vec4 t = texture(leaf_tex, UV);
 	if (t.a < scissor) {
+		discard;
+	}
+	float far_keep = 1.0 - smoothstep(ce_fog_range.y * 0.85, ce_fog_range.y, length(VERTEX));
+	if (far_keep < 0.999 && fract(dot(floor(FRAGCOORD.xy), vec2(0.7548776662, 0.5698402910))) >= far_keep) {
 		discard;
 	}
 	if (!FRONT_FACING) {
