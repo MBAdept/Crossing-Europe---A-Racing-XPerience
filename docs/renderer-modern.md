@@ -931,7 +931,12 @@ Referenzpositionen des Schnitts auf Kiel – Hamburg (km 2, Tankspur ab km 13,6,
 km 94 vor dem Ziel; fliegender Start, Vorgabe 2 s nach dem Start). `GFX_ARGS` gilt nur für den Modern-Lauf,
 `SCREEN` setzt Bildschirm und Fenster, ein eigener `MESA_SHADER_CACHE_DIR` hält den Cache über viele Aufrufe warm.
 Fehlercode 1, wenn ein Lauf scheitert, ein Bild fehlt oder Modern auf Arcade zurückfällt. Gemessen: 21–23 s je
-Bildpaar mit dem Gerüst (Arcade 5–6 s, Modern 6–13 s).
+Bildpaar mit dem Gerüst (Arcade 5–6 s, Modern 6–13 s). Vier Aufrufe derselben Position (S3) lieferten viermal
+byte-gleiche Arcade- und viermal byte-gleiche Modern-Bilder.
+
+Zu beachten: Die Kilometer der Etappe sind gerafft – bei 146 km/h legt der Wagen in den 2 s bis zur Aufnahme etwa
+0,7 km zurück. `S5` (Start bei km 94) zeigt deshalb das Ziel unmittelbar voraus (km 94,7); eine spätere
+Aufnahmezeit läge dort hinter dem Ziel.
 
 ### 9.9 Prüfungen
 

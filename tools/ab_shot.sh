@@ -125,9 +125,12 @@ fi
 
 # side by side, labelled: what is shown stands under the pictures
 FONT=()
-if convert -list font 2>/dev/null | grep -q "Font: DejaVu-Sans-Bold$"; then
-	FONT=(-font DejaVu-Sans-Bold)
-fi
+# the list first, then the test: "convert -list font | grep -q" breaks the pipe as soon as grep has its match, and
+# with pipefail the lookup then fails in some calls (the label font changed from call to call)
+FONTS=$(convert -list font 2>/dev/null || true)
+case "$FONTS" in
+*"Font: DejaVu-Sans-Bold"*) FONT=(-font DejaVu-Sans-Bold) ;;
+esac
 CAPTION="${ARGS[*]}"
 [ -n "${GFX_ARGS:-}" ] && CAPTION="$CAPTION   |   Modern: $GFX_ARGS"
 COUNT=0
