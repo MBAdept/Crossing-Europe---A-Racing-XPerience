@@ -486,29 +486,17 @@
   "props/bridge_pylon": {
    "kind": "furniture",
    "object": {"width_m": 9, "height_m": 88.8, "length_m": 165.2},
-   "extent_m": {"left": 32.35, "right": 24.49},
-   "aabb": [-6.615, 0, -82.701, 3, 88.75, 82.701],
+   "extent_m": {"left": 32.33, "right": 24.44},
+   "aabb": [-1.575, 0, -36.15, 3.949, 88.75, 36.15],
    "lods": [
     {
      "name": "lod0",
-     "max_dist_m": 60,
-     "tris": 520,
+     "max_dist_m": 100000,
+     "tris": 232,
      "parts": [
       {
        "node": "body",
        "mesh": "props/bridge_pylon/lod0_body.res",
-       "classes": ["baked"]
-      }
-     ]
-    },
-    {
-     "name": "lod1",
-     "max_dist_m": 100000,
-     "tris": 520,
-     "parts": [
-      {
-       "node": "body",
-       "mesh": "props/bridge_pylon/lod1_body.res",
        "classes": ["baked"]
       }
      ]
@@ -517,7 +505,7 @@
    "lights": [
     {
      "role": "lights",
-     "pos": [-5.4653, 88.3, 0],
+     "pos": [0.45, 88.3, 0],
      "dir": [-1, 0, 0],
      "size": 0.9,
      "color": "#ff2a1a"
@@ -527,8 +515,43 @@
    "roughness": 0.85,
    "auto_lod": false,
    "tags": ["prop", "bridge", "mirror_left"],
-   "bytes": 255838,
-   "hash": "4172edca470678d550e51647caa57b1abca9306f"
+   "bytes": 223418,
+   "hash": "56dfef52e8a5cb833e95939ed34ce702c42e20ac"
+  },
+  "props/bridge_pylon_bare": {
+   "kind": "furniture",
+   "object": {"width_m": 6, "height_m": 88.8, "length_m": 8},
+   "extent_m": {"left": 2.59, "right": 5.08},
+   "aabb": [-1.3, 0, -4, 3.949, 88.75, 4],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 120,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/bridge_pylon_bare/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [0.45, 88.3, 0],
+     "dir": [-1, 0, 0],
+     "size": 0.9,
+     "color": "#ff2a1a"
+    }
+   ],
+   "textures": {"albedo": "props/bridge_pylon_bare/albedo.png", "emit": "props/bridge_pylon_bare/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": false,
+   "tags": ["prop", "bridge", "mirror_left"],
+   "bytes": 221247,
+   "hash": "21019365802b33d5bc54c44f5cfb851e8c8dbddf"
   },
   "props/bridge_truss_arch": {
    "kind": "furniture",
@@ -2645,6 +2668,7 @@
   "props/barn": {"model": "props/barn"},
   "props/bridge_lamp": {"model": "props/bridge_lamp"},
   "props/bridge_pylon": {"model": "props/bridge_pylon"},
+  "props/bridge_pylon_bare": {"model": "props/bridge_pylon_bare", "modern_only": true},
   "props/bridge_truss_arch": {"model": "props/bridge_truss_arch"},
   "props/building_block_a": {"model": "props/building_block_a"},
   "props/building_block_b": {"model": "props/building_block_b"},

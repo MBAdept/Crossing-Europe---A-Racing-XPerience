@@ -256,10 +256,26 @@ MODELS.update({
     "props/bridge_lamp": dict(builder="lantern", source="props/bridge_lamp", kind="furniture", auto_lod=False,
                               hidden_tops=("bl_lg",), glass=("bl_lg",), side_flood=0.85,
                               code=["cesprites/props_cities.py"]),
+    # AS4R (art review AS4, M1/M5): the leg upright and 0.9 m farther out (its foot and plinth end at the deck edge,
+    # model x -1.3 m), seven cables a side from the head to the deck edge (x -1.4 m, 1.1 m high, as Arcade draws
+    # them) within 36 m of the pylon - every cable-stayed bridge of the network has at least 40.5 m (Elisabeth- and
+    # Vansu-Bruecke); one level with 0.32 m cables; extent_m stays the sprite's (the pylon is not placed by it)
     "props/bridge_pylon": dict(builder="pylon", source="props/bridge_pylon", kind="furniture", atlas=(1024, 1024),
-                               ppm_max=40.0, roughness=0.85, view="allround", cable_w=(0.28, 0.34), beacon="bpy_red",
-                               split=("bpy_leg", (30.75, 61.5)), band_w=(1.0, 0.6, 0.45),
-                               code=["cesprites/props_cities.py"]),
+                               ppm_max=40.0, roughness=0.85, view="allround", cable_w=(0.32,), beacon="bpy_red",
+                               split=("bpy_leg", (30.75, 61.5)), band_w=(1.0, 0.6, 0.45), drop=("bpy_anch",),
+                               upright=dict(lean_deg=3.5, top=82.0, shift_x=0.9, clip_x=-2.2, clip_z=1.0),
+                               fan=dict(n=7, span=36.0, near=8.0, heads=(55.0, 79.0), deck=(-1.4, 1.1), head_y=0.6,
+                                        shift_x=0.9, leg_hw=(2.2, 1.35, 82.0)),
+                               extent_source=True, code=["cesprites/props_cities.py"]),
+    # the same pylon without cables, for a renderer that draws the cables of each bridge from its data (height_m,
+    # cables, deck edge - RoadRenderer._pylon): a set of the mode Modern only, placed by no stage
+    "props/bridge_pylon_bare": dict(builder="pylon", source="props/bridge_pylon", kind="furniture", atlas=(1024, 1024),
+                                    ppm_max=40.0, roughness=0.85, view="allround", cable_w=(0.32,), beacon="bpy_red",
+                                    split=("bpy_leg", (30.75, 61.5)), band_w=(1.0, 0.6, 0.45), drop=("bpy_anch",),
+                                    upright=dict(lean_deg=3.5, top=82.0, shift_x=0.9, clip_x=-2.2, clip_z=1.0),
+                                    bare=True, object={"width_m": 5.25, "height_m": 88.8, "length_m": 8.0},
+                                    sets={"props/bridge_pylon_bare": {"modern_only": True}},
+                                    code=["cesprites/props_cities.py"]),
     "props/bridge_truss_arch": dict(builder="truss", source="props/bridge_truss_arch", kind="furniture",
                                     atlas=(1024, 512), ppm=28.0, roughness=0.55, code=["cesprites/props_cities.py"]),
     # --- ships -------------------------------------------------------------------------------------------------

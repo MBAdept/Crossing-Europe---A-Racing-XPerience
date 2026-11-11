@@ -1,9 +1,11 @@
 """AS4 (wave 5): bridge parts of the mode "Modern" (docs/modelle.md section 15). Builders (catalog3d,
 export_models.BUILDERS):
 
-  pylon   the pylon of a cable-stayed bridge (props/bridge_pylon, category pylon: one draw call): concrete leg, head,
-          anchor plates and aviation light in ONE baked atlas; the stay cables rebuilt from the generator's beams as
-          four-sided prisms that all sample one solid patch of the cable colour; lod1 with thicker cables
+  pylon   the pylon of a cable-stayed bridge (props/bridge_pylon, category pylon: one draw call): concrete leg, head
+          and aviation light in ONE baked atlas; the stay cables as four-sided prisms that all sample one solid patch
+          of the cable colour. AS4R: the leg stands upright beside the deck edge and the cables run from the head to
+          the deck edge (model x -1.4 m, 1.1 m high, as Arcade draws them) within 36 m of the pylon - the room every
+          cable-stayed bridge of the network has; one level. props/bridge_pylon_bare: the same pylon without cables
   truss   the truss portal over the carriageway (props/bridge_truss_arch, furniture: one draw call): chords, posts,
           bases and ties as geometry, the web of each plane drawn into a mipmap-safe cut-out picture (class
           baked_cutout), lamps with light anchors over the deck
@@ -209,25 +211,123 @@ def _height_weight(wf, heights, band_w):
     return fn
 
 
+def _world_points(objs):
+    """All vertices of the objects in root (world) space, (N, 3)."""
+    pts = []
+    for ob in objs:
+        mw = np.array(ob.matrix_world, dtype=np.float64)
+        co = np.empty(len(ob.data.vertices) * 3, dtype=np.float64)
+        ob.data.vertices.foreach_get("co", co)
+        co = co.reshape(-1, 3)
+        pts.append(co @ mw[:3, :3].T + mw[:3, 3])
+    return np.concatenate(pts, axis=0) if pts else np.zeros((0, 3))
+
+
+def _upright(objs, spec):
+    """AS4R: stands the leaning leg of the generator upright and moves it away from the deck (art review AS4, M1).
+    spec = dict(lean_deg, top (z up to which the lean grows; above it the head keeps the offset of the top), shift_x
+    (m, + = away from the road), clip_x / clip_z (vertices below clip_z with x < clip_x are pulled to clip_x before the
+    shift: the plinth must not stand on the shoulder)). Applied to every object given (the cables are rebuilt)."""
+    t = math.tan(math.radians(float(spec.get("lean_deg", 0.0))))
+    top = float(spec.get("top", 1e9))
+    shift = float(spec.get("shift_x", 0.0))
+    clip_x, clip_z = spec.get("clip_x"), float(spec.get("clip_z", -1e9))
+    for ob in objs:
+        mw = np.array(ob.matrix_world, dtype=np.float64)
+        inv = np.linalg.inv(mw)
+        co = np.empty(len(ob.data.vertices) * 3, dtype=np.float64)
+        ob.data.vertices.foreach_get("co", co)
+        w = co.reshape(-1, 3) @ mw[:3, :3].T + mw[:3, 3]
+        w[:, 0] += t * np.minimum(w[:, 2], top)
+        if clip_x is not None:
+            low = w[:, 2] < clip_z
+            w[low, 0] = np.maximum(w[low, 0], float(clip_x))
+        w[:, 0] += shift
+        loc = w @ inv[:3, :3].T + inv[:3, 3]
+        ob.data.vertices.foreach_set("co", loc.reshape(-1))
+        ob.data.update()
+
+
+def fan_cables(spec, leg_hw):
+    """AS4R: the stay cables of the pylon as Arcade draws them (RoadRenderer._pylon: n cables per side, from the head
+    down to the deck edge, forwards and backwards) but as a semi-fan that does not cross: the highest anchor runs to the
+    farthest deck point. spec = dict(n, span (m along the road; at most the room to the nearer bridge end of every
+    cable-stayed bridge of the network: 40.5 m), near (m, the nearest deck point), heads=(z low, z high), deck=(x, z),
+    head_y (m, the two rows of anchors on the head), shift_x (the leg's offset, see _upright)). leg_hw(z) = half width of
+    the leg across the road at height z (the anchors sit on its road-side face). Returns [(a, b)] in Blender space."""
+    n = int(spec.get("n", 7))
+    span, near = float(spec.get("span", 36.0)), float(spec.get("near", 8.0))
+    z0, z1 = spec.get("heads", (55.0, 79.0))
+    xd, zd = spec.get("deck", (-1.4, 1.1))
+    hy = float(spec.get("head_y", 0.6))
+    sx = float(spec.get("shift_x", 0.0))
+    out = []
+    for side in (-1.0, 1.0):
+        for k in range(n):
+            f = k / max(1, n - 1)
+            za = float(z0) + (float(z1) - float(z0)) * f
+            xa = sx - leg_hw(za) + 0.05            # 5 cm inside the face: the cable comes out of the concrete
+            yd = side * (near + (span - near) * f)
+            out.append((np.array([xa, side * hy, za]), np.array([float(xd), yd, float(zd)])))
+    return out
+
+
+def _cable_axes(a, b):
+    """Cross-section axes (ew horizontal, eh) of a cable from a to b."""
+    d = (b - a) / max(1e-9, np.linalg.norm(b - a))
+    ew = np.cross(d, np.array([0.0, 0.0, 1.0]))
+    if np.linalg.norm(ew) < 1e-6:
+        ew = np.array([1.0, 0.0, 0.0])
+    ew /= np.linalg.norm(ew)
+    eh = np.cross(ew, d)
+    eh /= np.linalg.norm(eh)
+    return ew, eh
+
+
 def build_pylon(model_id, spec3d):
     """The pylon of a cable-stayed bridge (see the module text). Options: cables (object prefix), beacon (object prefix
     of the aviation light), beacon_dir (Blender axes), cable_w (cable width per level), split (object prefix, heights:
     chart bands), band_w (texel weight per band, bottom up: every object by its height), atlas, ppm_max, view,
-    roughness."""
+    roughness. AS4R (art review AS4, M1/M5): upright (see _upright), fan (the cables rebuilt by fan_cables instead of
+    the generator's beams, which ended 0.4 m inside the carriageway and 15 m before the bridge), bare (no cables at
+    all: the pylon for a renderer that draws the cables of each bridge itself), drop (object prefixes left out),
+    extent_source (extent_m from the generator's geometry: the sprite's value - the pylon is not placed by its extent),
+    object (the object size instead of the sprite's)."""
     t0 = time.time()
     rig, info, sspec = P._build_source(spec3d)
     objs = P._objects(rig)
     core.realize(objs)
+    src_pts = _world_points(objs) if spec3d.get("extent_source") else None
+    drop = tuple(spec3d.get("drop", ()))
+    if drop:
+        import bpy
+        for ob in [o for o in objs if o.name.startswith(drop)]:
+            objs.remove(ob)
+            bpy.data.objects.remove(ob, do_unlink=True)
+    cable_pre = spec3d.get("cables", "bpy_cables")
+    if spec3d.get("upright"):
+        _upright([o for o in objs if not o.name.startswith(cable_pre)], spec3d["upright"])
     if spec3d.get("split"):
         prefix, heights = spec3d["split"]
         _split_bands(objs, prefix, heights)
         if spec3d.get("band_w"):
             objs = _band_objects(objs, prefix, heights)
-    cable_obs = [o for o in objs if o.name.startswith(spec3d.get("cables", "bpy_cables"))]
-    cables = [bx for o in cable_obs for bx in boxes(o)]
+    cable_obs = [o for o in objs if o.name.startswith(cable_pre)]
+    if spec3d.get("bare"):
+        cables = []
+    elif spec3d.get("fan"):
+        fan = dict(spec3d["fan"])
+        hw0, hw1, h_leg = fan.get("leg_hw", (2.2, 1.35, 82.0))
+        segs = fan_cables(fan, lambda z: float(hw0) + (float(hw1) - float(hw0)) * min(1.0, max(0.0, z / float(h_leg))))
+        cables = []
+        for (a, b) in segs:
+            ew, eh = _cable_axes(a, b)
+            cables.append(dict(a=a, b=b, ew=ew, eh=eh))
+    else:
+        cables = [bx for o in cable_obs for bx in boxes(o)]
     rest = [o for o in objs if o not in cable_obs]
-    patch = _patch_object(rig, cable_obs[0].material_slots[0].material, "ce_patch_cable")
-    bake_objs = rest + [patch]
+    patch = _patch_object(rig, cable_obs[0].material_slots[0].material, "ce_patch_cable") if cables else None
+    bake_objs = rest + ([patch] if patch is not None else [])
     mats = {}
     for ob in bake_objs:
         for s in ob.material_slots:
@@ -240,7 +340,7 @@ def build_pylon(model_id, spec3d):
         wf = _height_weight(wf, spec3d["split"][1], spec3d["band_w"])
     baked = BK.bake_atlas(rig, bake_objs, [mats[k] for k in sorted(mats)], size, weight_fn=wf,
                           ppm_max=spec3d.get("ppm_max", 64.0), ao=spec3d.get("ao"))
-    cuv = _uv_centre(patch)
+    cuv = _uv_centre(patch) if patch is not None else None
     lods = []
     widths = list(spec3d.get("cable_w", (0.24, 0.4)))
     pts0 = None
@@ -259,7 +359,12 @@ def build_pylon(model_id, spec3d):
         name = "lod%d" % li
         lods.append(Lod(name, LOD0_M if li < len(widths) - 1 else 100000,
                         [Part("body", "%s_body" % name, mb.finish(min_height=1e-4), auto_lod=False)]))
-    model = P._finish_model(model_id, spec3d, sspec, info, pts0)
+    model = P._finish_model(model_id, spec3d, sspec, info, src_pts if src_pts is not None else pts0)
+    if spec3d.get("object"):
+        model.object = dict(spec3d["object"])
+    if isinstance(spec3d.get("sets"), dict):
+        # the catalog's set entries (modern_only) as veg3d._sets_of merges them
+        model.sets = {sid: dict({"model": model_id}, **spec3d["sets"][sid]) for sid in sorted(spec3d["sets"])}
     model.lods = lods
     model.auto_lod = False
     model.roughness = float(spec3d.get("roughness", 0.8))
