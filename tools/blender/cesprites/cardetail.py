@@ -403,7 +403,9 @@ _LAMP3D = {"reverse": "reverse", "indicator": "ind", "white": "drl", ("head", "d
 # ... and of the parts of a tail lamp when the build has the 3D lamp parts (detail "extras"): the lamp body glows
 # with the tail lights and lights up fully when braking, light guides are the tail-light signature, brake segments
 # only brake. Parts of other lamps (reflectors, fog lamps) keep the channel their emission gives them.
-_LAMP3D_TAIL = {"tail": "tail_brake:0.5", "guide": "tail", "brake": "brake"}
+# The lamp body has the full weight: at weight 0.5 it glowed at 0.35 x 0.5 = 17.5 % with the tail lights, and the
+# night rear was a thin outline of light guides (the sprite's tail layer lights the whole lamp)
+_LAMP3D_TAIL = {"tail": "tail_brake:1.0", "guide": "tail", "brake": "brake"}
 _TAIL_TAGS = ("tail", "bar", "ring")
 # depth (m) of the recess of a lamp unit in a 3D build by tag (default: 1.5 x the lens height of the sprite lamp)
 _DEPTH3D = {"head": 0.028, "bar": 0.01, "refl": 0.006, "fog": 0.008, "reverse": 0.008}
@@ -579,7 +581,10 @@ def plate(car, center, proj="rear", size=(0.52, 0.112), text="CE 2026", target="
     bm = MU.bm_box(bw, 0.001, hh - 0.008, (xl, y_pl + out_y * 0.0006, cv))
     MU.make(car.name + "_plateband", bm, bmat, parent=car.center)
     tm = car.mat("plate_text", "#111111", rough=0.5)
-    ob = textgeo.text_mesh(car.rig, text, hh * 0.62, tm, bold=0.06, extrude=0.0, name=car.name + "_platetext")
+    # 3D hook (detail "plate_bold", 1.0 = the sprite): bolder strokes - 8 px high characters of thin strokes
+    # shimmered while the real-time car turned
+    bold = 0.06 * float(car.detail.get("plate_bold", 1.0))
+    ob = textgeo.text_mesh(car.rig, text, hh * 0.62, tm, bold=bold, extrude=0.0, name=car.name + "_platetext")
     textgeo.fit(ob, w - bw - 0.05)
     ob.parent = car.center
     ob.location = (cu + (bw / 2 + 0.006) * sgn, y_pl + out_y * 0.0008, cv - hh * 0.02)

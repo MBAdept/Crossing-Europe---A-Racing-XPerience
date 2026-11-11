@@ -243,6 +243,10 @@ const REVIEW_VIEWS: Array = [
 	["Rückleuchte nah, Nacht: Rücklicht", 28.0, 12.0, "taillamp", true, Vector4(1, 0, 0, 0), Vector4(1, 0, 0, 0)],
 	["von oben hinten", 0.0, 38.0, "", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)],
 	["Front", 180.0, 6.0, "", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)],
+	["Vorderrad", 112.0, 7.0, "wheel_front", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)],
+	["Vorderrad von hinten (Radhaus)", 52.0, 9.0, "wheel_front", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)],
+	["Heck nah, Nacht: Rücklicht (Spielkamera-Höhe)", 0.0, 21.0, "rear", true, Vector4(1, 0, 0, 0), Vector4(1, 0, 0, 0)],
+	["Heck nah, Nacht: Bremslicht", 0.0, 21.0, "rear", true, Vector4(1, 1, 0, 0), Vector4(1, 0, 0, 0)],
 ]
 
 
@@ -258,11 +262,13 @@ func _part_aabb(m: Dictionary, part: String) -> Array:
 			return [x0, 0.15, z1 - 1.3, x1, h * 0.86, z1]
 		"front":
 			return [x0, 0.1, z0, x1, h * 0.8, z0 + 1.3]
-		"wheel":
+		"wheel", "wheel_front":
+			# the rear right wheel ("wheel") or the front right wheel ("wheel_front", for the arch and the bumper end)
+			var front := part == "wheel_front"
 			for l: Variant in m.get("lods", []):
 				for p: Variant in (l as Dictionary).get("parts", []):
 					var pd: Dictionary = p
-					if pd.has("wheel") and float((pd.get("pos", [0, 0, 0]) as Array)[0]) > 0.0 and float((pd.get("pos", [0, 0, 0]) as Array)[2]) > 0.0:
+					if pd.has("wheel") and float((pd.get("pos", [0, 0, 0]) as Array)[0]) > 0.0 and ((float((pd.get("pos", [0, 0, 0]) as Array)[2]) < 0.0) == front):
 						var pos: Array = pd["pos"]
 						var r := float((pd["wheel"] as Dictionary).get("radius", 0.33)) + 0.12
 						return [float(pos[0]) - 0.3, 0.0, float(pos[2]) - r, float(pos[0]) + 0.15, 2.0 * r, float(pos[2]) + r]
@@ -298,7 +304,7 @@ func _review_tiles(mid: String) -> Array:
 			var v: Array = REVIEW_VIEWS[vi]
 			if not pick.is_empty() and not pick.has(str(vi)):
 				continue
-			if str(ln) != "lod0" and str(ln) != "show" and (str(v[3]) == "wheel" or str(v[3]) == "cabin"):
+			if str(ln) != "lod0" and str(ln) != "show" and (str(v[3]).begins_with("wheel") or str(v[3]) == "cabin"):
 				continue
 			var tile := {"set": set_id, "model": mid, "lod": str(ln), "yaw": v[1], "el": v[2], "is_night": v[4],
 				"lamp_a": v[5], "lamp_b": v[6], "text": "%s · %s · %s" % [mid, ln, v[0]]}
@@ -560,6 +566,17 @@ func _render(t: Dictionary) -> Image:
 				mi.visible = mi.name == "shadow"
 				if mi.name == "shadow":
 					mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		if _args.has("clay"):
+			# --clay: the form alone - every surface plain grey, glass hidden (steps, blades and dents show)
+			var clay := StandardMaterial3D.new()
+			clay.albedo_color = Color(0.72, 0.72, 0.74)
+			clay.roughness = 0.65
+			for c: Node in node.find_children("*", "MeshInstance3D", true, false):
+				var mi := c as MeshInstance3D
+				if mi.name == "shadow":
+					continue
+				for si in mi.mesh.get_surface_count():
+					mi.set_surface_override_material(si, clay if mi.mesh.surface_get_name(si) != "glass" else _invisible())
 	var bb: Array = t.get("aabb", m.get("aabb", [-1, 0, -1, 1, 2, 1]))
 	var lo := Vector3(float(bb[0]), float(bb[1]), float(bb[2]))
 	var hi := Vector3(float(bb[3]), float(bb[4]), float(bb[5]))
@@ -645,6 +662,19 @@ func _render(t: Dictionary) -> Image:
 		img.resize(_tile.x, _tile.y, Image.INTERPOLATE_NEAREST)
 		text += " · %d-fach vergrößert" % k
 	return await _caption(img, text)
+
+
+var _invisible_mat: StandardMaterial3D = null
+
+
+## A material that draws nothing (glass in the --clay views).
+func _invisible() -> StandardMaterial3D:
+	if _invisible_mat == null:
+		_invisible_mat = StandardMaterial3D.new()
+		_invisible_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		_invisible_mat.albedo_color = Color(1, 1, 1, 0)
+		_invisible_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	return _invisible_mat
 
 
 ## Camera of the Cycles showroom sprites (tools/blender/cesprites/catalog.py, player_sets): the car turned

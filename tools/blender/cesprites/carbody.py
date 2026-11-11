@@ -64,9 +64,14 @@ BRAKE_RED = "#ff2414"
 #   ring_min  smallest point count of a cross-section segment (far levels of the traffic cars: 1)
 #   cap_sharp  False: the end caps of the lofts shade smoothly into the rounded ends (the flat cap of a coarse
 #            loft stood out as a panel of its own)       ends_n  stations in the rounded ends (None = by ring)
+#   bumper_clamp  True: the stations of a bumper stay between its ends. The rounding of the far end clusters
+#            stations over r_plan + 5 cm; on a short bumper (kompakt front: 46 cm) they reached past the wheel
+#            arch end, and the bumper ran 9 cm into the arch - its flat end cap stood in the front tyre (hidden
+#            behind the tyre in the sprite, 52 mm inside the tyre volume in the real-time model)
+#   plate_bold  scale of the stroke width of the number plate characters (cardetail.plate)
 DETAIL = dict(ring=1.0, step=1.0, res=1.0, off=1.0, min_off=0.0, wheel=1.0, extras=False, graze=0.0,
               conform=False, crease=0.0, arch_r=None, seam=1.0, wheel_plain=False, arch_n=None, gstep=None,
-              lamp_depth=0.0, ring_min=2, cap_sharp=True, ends_n=None)
+              lamp_depth=0.0, ring_min=2, cap_sharp=True, ends_n=None, bumper_clamp=False, plate_bold=1.0)
 
 
 def _prof(v):
@@ -478,6 +483,9 @@ class SmoothCar:
                 y0, y1 = self.y_fa + self.Ra + 0.004, self.L
                 ends = ((0.0, 0), (b.get("r_plan", 0.4) + 0.05, self.n_ring(14)))
             ys = C.stations(y0, y1, 0.02 * self.detail["step"], ends=ends)
+            if self.detail["bumper_clamp"]:
+                # 3D hook: no station beyond the arch end of the bumper (see DETAIL)
+                ys = [y for y in ys if y0 - 1e-9 <= y <= y1 + 1e-9]
             ob = self._loft_object(self.name + "_bumper_" + which, ys, self.bumper_half_fn(which), mat or self.paint)
             self.objects.append(ob)
             self.targets["bumper_" + which] = [ob]

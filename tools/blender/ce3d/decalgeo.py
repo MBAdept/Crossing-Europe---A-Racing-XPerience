@@ -394,8 +394,9 @@ def cut_holes(pos, nor, mat, proj, sign, holes, keeps=(), n_min=0.05):
 def pocket(pos, nor, mat, proj, sign, outline, depth, floor_mat, wall_mat, n_min=0.2):
     """A recess in a triangle set (lamp units of the player cars): the faces inside the outline that look
     against the projection are moved by depth along the projection axis into the body, walls close the step.
-    pos, nor (T, 3, 3), mat (T). Returns (pos, nor, mat, stats) - stats: floor and wall triangles and the mean
-    depth of the floor along the viewing axis (which of several objects under one outline is in front)."""
+    pos, nor (T, 3, 3), mat (T). Returns (pos, nor, mat, stats) - stats: floor and wall triangles, the floor area
+    (m2) and the mean depth of the floor along the viewing axis (which of several objects under one outline is in
+    front)."""
     axis = np.array([float(sign), 0.0, 0.0]) if proj == "side" else AXES[proj]
     t = Tris(pos, nor, mat)
     mark = -7
@@ -404,7 +405,7 @@ def pocket(pos, nor, mat, proj, sign, outline, depth, floor_mat, wall_mat, n_min
     sel = t.mat == mark
     nf = int(sel.sum())
     if nf == 0:
-        return pos, nor, np.asarray(mat, dtype=np.int32), dict(floor=0, walls=0, front=-1e30)
+        return pos, nor, np.asarray(mat, dtype=np.int32), dict(floor=0, walls=0, front=-1e30, area=0.0)
     fp = t.pos[sel]
     front = float((fp.mean(axis=1) @ axis).mean())
     # boundary edges of the recessed region (in the winding of their triangle)
@@ -440,7 +441,8 @@ def pocket(pos, nor, mat, proj, sign, outline, depth, floor_mat, wall_mat, n_min
         out_m.append(np.full(len(wp), wall_mat, dtype=np.int32))
     nn = np.concatenate(out_n)
     nn = nn / np.maximum(np.linalg.norm(nn, axis=2, keepdims=True), 1e-12)
-    return np.concatenate(out_p), nn, np.concatenate(out_m), dict(floor=nf, walls=len(wp), front=front)
+    return np.concatenate(out_p), nn, np.concatenate(out_m), dict(floor=nf, walls=len(wp), front=front,
+                                                                     area=_area3(fp))
 
 
 # --- the decals of a Car ---------------------------------------------------------------------------------

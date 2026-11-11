@@ -36,7 +36,7 @@
     {
      "name": "lod0",
      "max_dist_m": 100000,
-     "tris": 50080,
+     "tris": 47110,
      "parts": [
       {
        "node": "body",
@@ -78,7 +78,7 @@
     {
      "name": "show",
      "max_dist_m": 0,
-     "tris": 107042,
+     "tris": 99254,
      "parts": [
       {
        "node": "body",
@@ -122,7 +122,7 @@
    "lights": [
     {
      "role": "brake",
-     "pos": [-0.7096, 0.8752, 2.0013],
+     "pos": [-0.7095, 0.8752, 2.0013],
      "dir": [-0.425, 0.219, 0.878],
      "size": 0.263,
      "color": "#ff2414"
@@ -157,7 +157,7 @@
     },
     {
      "role": "ind_l",
-     "pos": [-0.793, 0.6888, -1.8142],
+     "pos": [-0.793, 0.6887, -1.8141],
      "dir": [-0.533, 0.653, -0.537],
      "size": 0.06,
      "color": "#ffa01a"
@@ -171,7 +171,7 @@
     },
     {
      "role": "ind_r",
-     "pos": [0.7232, 0.8745, 1.9982],
+     "pos": [0.7231, 0.8745, 1.9982],
      "dir": [0.465, 0.219, 0.858],
      "size": 0.129,
      "color": "#ffa01a"
@@ -199,7 +199,7 @@
     },
     {
      "role": "tail",
-     "pos": [0.7193, 0.866, 1.9994],
+     "pos": [0.7192, 0.866, 1.9994],
      "dir": [0.463, 0.24, 0.853],
      "size": 0.277,
      "color": "#ff2a10"
@@ -208,8 +208,8 @@
    "paint": {"paint": "#f0b30a", "metal": 0},
    "auto_lod": false,
    "tags": ["player"],
-   "bytes": 1742534,
-   "hash": "797759ce74c93a81683b8a09f9a52d5eca7b5683"
+   "bytes": 1640793,
+   "hash": "444049ee573dec3cd849dfba5ab22bcd2c4a83ca"
   },
   "player/limousine": {
    "kind": "vehicle",
@@ -219,7 +219,7 @@
     {
      "name": "lod0",
      "max_dist_m": 100000,
-     "tris": 45764,
+     "tris": 43649,
      "parts": [
       {
        "node": "body",
@@ -261,7 +261,7 @@
     {
      "name": "show",
      "max_dist_m": 0,
-     "tris": 99670,
+     "tris": 93529,
      "parts": [
       {
        "node": "body",
@@ -312,8 +312,9 @@
     },
     {
      "role": "brake",
-     "pos": [0, 1.3884, 0.65],
-     "size": 0.135,
+     "pos": [0, 1.3884, 0.651],
+     "dir": [0, 0, 1],
+     "size": 0.081,
      "color": "#ff2414"
     },
     {
@@ -397,8 +398,8 @@
    "paint": {"paint": "#1d4ea8", "metal": 0.55},
    "auto_lod": false,
    "tags": ["player"],
-   "bytes": 1573290,
-   "hash": "c0eeb5f1e9cd7330e81d2e86f6312ca92d5c75b1"
+   "bytes": 1508343,
+   "hash": "9aa8a7088de8efa3c6a38241df6ece7f07bb7f5a"
   },
   "props/farmhouse": {
    "kind": "building",
