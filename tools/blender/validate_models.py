@@ -135,6 +135,15 @@ def check_manifest(res):
         if sid not in sets:
             res.err(sid, "Sprite-Set ohne Eintrag in \"sets\"")
     for sid in sorted(sets):
+        # Modern-only sets (ground cover of the bend corridors, contract A-3) have no sprite: they carry
+        # "modern_only": true, must name a model and must not shadow a sprite set
+        modern_only = bool(sets[sid].get("modern_only")) if isinstance(sets[sid], dict) else False
+        if modern_only:
+            if sid in sprite["sets"]:
+                res.err(sid, "\"modern_only\" an einem Sprite-Set")
+            if "model" not in sets[sid]:
+                res.err(sid, "Set nur für Modern ohne Modell")
+            continue
         if sid not in sprite["sets"] or sid.startswith("ui/"):
             res.err(sid, "Eintrag in \"sets\" ohne Sprite-Set")
     models = man.get("models", {})

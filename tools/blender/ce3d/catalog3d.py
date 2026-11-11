@@ -89,6 +89,43 @@ MODELS = {
 }
 
 
+# --- AS1b (wave 2): the environment of the slice Kiel - Hamburg (docs/modelle.md section 14). Own block: it
+# replaces the wave-0 entries of tree_oak, farmhouse and streetlight above (kept there for the merge with the
+# vehicle packages) and adds the other props of the slice.
+#   variant_of   a second seed of a species: no sets of its own, the species' set lists it in "variants"
+#   source None  no sprite set behind the model (ground cover, contract A-3): its set is Modern-only
+#                ("modern_only": true in the manifest), the props builder places it inside bend corridors
+BUILDER_CODE.update({
+    "bush": ["ce3d/veg3d.py", "ce3d/leafatlas.py", "ce3d/props3d.py", "cesprites/props_nature.py",
+             "cesprites/props.py", "render_all.py"],
+    "grass": ["ce3d/veg3d.py", "ce3d/leafatlas.py"],
+})
+MODELS.update({
+    # --- vegetation: two seeds per species (the generator's default seed and one more) ----------------------
+    "props/tree_oak": dict(builder="tree", source="props/tree_oak", kind="tree", species="oak",
+                           sets={"props/tree_oak": {"variants": ["props/tree_oak", "props/tree_oak_b"]}}),
+    "props/tree_oak_b": dict(builder="tree", source="props/tree_oak", kind="tree", species="oak",
+                             variant_of="props/tree_oak", params={"seed": 47}),
+    "props/tree_birch": dict(builder="tree", source="props/tree_birch", kind="tree", species="birch",
+                             sets={"props/tree_birch": {"variants": ["props/tree_birch", "props/tree_birch_b"]}}),
+    "props/tree_birch_b": dict(builder="tree", source="props/tree_birch", kind="tree", species="birch",
+                               variant_of="props/tree_birch", params={"seed": 37}),
+    "props/bush_round": dict(builder="bush", source="props/bush_round", kind="plant", bush="bush_round",
+                             sets={"props/bush_round": {"variants": ["props/bush_round", "props/bush_round_b"]}}),
+    "props/bush_round_b": dict(builder="bush", source="props/bush_round", kind="plant", bush="bush_round",
+                               variant_of="props/bush_round", params={"seed": 83}),
+    "props/bush_low": dict(builder="bush", source="props/bush_low", kind="plant", bush="bush_low"),
+    # ground cover of at most 0.5 m for the inside of bends (A-3): a low shrub clump and grass tufts
+    "props/cover_bush": dict(builder="bush", source=None, kind="plant", bush="cover_bush",
+                             cover=dict(centre=(0.0, 0.0, 0.22), a=0.6, b=0.5, c=0.2, n=9, r0=0.2, r1=0.3),
+                             object={"width_m": 1.5, "height_m": 0.45, "length_m": 1.2},
+                             sets={"props/cover_bush": {"modern_only": True}}),
+    "props/cover_grass": dict(builder="grass", source=None, kind="plant", grass=dict(seed=23, tufts=7),
+                              object={"width_m": 1.0, "height_m": 0.42, "length_m": 0.9},
+                              sets={"props/cover_grass": {"modern_only": True}}),
+})
+
+
 def model_ids():
     return sorted(MODELS)
 
@@ -128,7 +165,7 @@ def key_data(model_id):
     from cesprites import catalog
     spec = MODELS[model_id]
     sets = {s["id"]: s for s in catalog.all_sets()}
-    data = {"source": _plain(sets[spec["source"]]),
+    data = {"source": _plain(sets[spec["source"]]) if spec.get("source") else None,
             "sets": {sid: _plain(sets.get(sid)) for sid in served_sets(spec, model_id)}}
     if spec["builder"] == "car":
         colours = dict(catalog.TRAFFIC_COLORS[spec["design"]])
@@ -199,7 +236,7 @@ def check_keys():
         catalog.PLAYER_COLORS[design] = saved
     for mid in sorted(MODELS):
         src = MODELS[mid]["source"]
-        if not src.startswith("props/") or src.split("/", 1)[1] not in props.PROPS:
+        if not src or not src.startswith("props/") or src.split("/", 1)[1] not in props.PROPS:
             continue
         name = src.split("/", 1)[1]
         row = props.PROPS[name]

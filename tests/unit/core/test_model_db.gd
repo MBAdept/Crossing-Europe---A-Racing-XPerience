@@ -54,7 +54,16 @@ func test_every_sprite_set_resolves() -> void:
 			assert_true(ModelDB.FALLBACKS.has(str(r["fallback"])), sid + ": Platzhalter " + str(r["fallback"]))
 			assert_false(ModelDB.has_model(sid), sid + ": has_model ohne Modell")
 	assert_true(with_model >= 10, "Sets mit Modell: %d" % with_model)
-	assert_eq(ModelDB.set_ids().size(), sets.size(), "sets im Manifest")
+	# sets only Modern has (ground cover of the bend corridors, contract A-3) carry "modern_only" and a model
+	var modern_only := 0
+	for sid: String in ModelDB.set_ids():
+		if sets.has(sid):
+			continue
+		var e: Dictionary = ModelDB._sets.get(sid, {})
+		assert_true(bool(e.get("modern_only", false)), sid + ": Set ohne Sprite-Set und ohne modern_only")
+		assert_true(ModelDB.has_model(sid), sid + ": Set nur für Modern ohne Modell")
+		modern_only += 1
+	assert_eq(ModelDB.set_ids().size() - modern_only, sets.size(), "sets im Manifest")
 	for sid: String in _json(SPRITES).get("sets", {}):
 		if sid.begins_with("ui/"):
 			assert_true(ModelDB.resolve(sid).is_empty(), sid + " hat keinen Eintrag")

@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/cover_grass",
+ "model": {
+  "kind": "plant",
+  "object": {"width_m": 1, "height_m": 0.42, "length_m": 0.9},
+  "extent_m": {"left": 0.45, "right": 0.6},
+  "aabb": [-0.453, 0, -0.526, 0.599, 0.42, 0.412],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 42,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/cover_grass/lod0_body.res",
+      "classes": ["leaves"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 200,
+    "tris": 12,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/cover_grass/lod1_body.res",
+      "classes": ["leaves"]
+     }
+    ]
+   }
+  ],
+  "textures": {"leaves": "props/cover_grass/leaves.png"},
+  "cards": {"lod0": 21, "lod1": 6},
+  "auto_lod": false,
+  "tags": ["prop", "plant", "ground_cover"],
+  "bytes": 257266,
+  "hash": "cc77617300f18c4f4336da524d8b241c071ec528"
+ },
+ "sets": {
+  "props/cover_grass": {"model": "props/cover_grass", "modern_only": true}
+ }
+}
