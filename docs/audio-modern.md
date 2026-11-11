@@ -67,10 +67,11 @@ statisch bzw. profilunabhängig. Mit `--perf` gibt beim Beenden das Profil in Kr
 
 **Spätes Laden.** `AudioManager` nennt `ModernAudio` nicht als Typ: `_modern` ist untypisiert, das Skript wird erst
 in `set_profile("modern")` über seinen Pfad geladen (`MODERN_SCRIPT`). Eine typisierte Variable ließ die Engine bei
-**jedem** Spielstart alle 19 Skripte aus `scripts/audio/modern` übersetzen, auch mit dem Profil Arcade (gemessen
-vor der Korrektur nach der Abnahme von Bauabschnitt 0: 19 geladene Skripte; statischer Speicher nach dem Start
-44,26 MiB, danach 40,69 MiB – je eine Messung mit einer Sonde auf dieser VM). Den Stand hält
-`check_arcade_lean.gd` fest (Abschnitt 12). Die Regel dahinter gilt für jede Datei, die ein Arcade-Start lädt
+**jedem** Spielstart alle 19 Skripte aus `scripts/audio/modern` übersetzen, auch mit dem Profil Arcade. Gemessen
+auf dieser VM vor und nach der Korrektur (nach der Abnahme von Bauabschnitt 0): 19 geladene Skripte gegen keins;
+„Load Autoloads“ im Engine-Benchmark (`godot --headless --benchmark --quit-after 3`, 15 Läufe abwechselnd) im
+Median 536 ms gegen 448 ms; statischer Speicher nach dem Start 44,26 MiB gegen 40,69 MiB (je eine Messung mit
+einer Sonde). Den Stand hält `check_arcade_lean.gd` fest (Abschnitt 12). Die Regel dahinter gilt für jede Datei, die ein Arcade-Start lädt
 (Autoloads, `race_session.gd`, HUD): Wer dort eine Klasse aus `scripts/audio/modern`, `scripts/race3d` oder
 `ModelDB` als Typ, in einem `preload` oder als Konstante nennt, lädt wieder den ganzen Ordner.
 
@@ -465,7 +466,7 @@ Fahrt; mit `--placeholders` das Platzhalter-Stück); `--mute-bus=MEnv` lässt nu
 ## 12. Prüfungen
 
 `tests/unit/audio_modern/` (laufen mit `tools/run_tests.sh`, allein mit `tools/run_tests.sh audio_modern`,
-57 Tests, etwa 50 s):
+57 Tests, gemessen 46 s):
 
 | Datei | prüft |
 |---|---|

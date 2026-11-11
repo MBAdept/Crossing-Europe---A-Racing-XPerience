@@ -640,6 +640,10 @@ von „Modern“, 5 HUD und Pausemenü, 6 Ladebild der Sitzung. Arcade zeichnet 
    Simulationsschritt läuft, und eine Arcade-Etappe ist an jeder Aufnahmezeit einen Schritt zurück. Die Sitzung
    misst diese Zeit (`_lead_s`: `_process`-Sekunden vor dem ersten `_physics_process`) und schreibt sie beim Start
    einer Modern-Etappe den Uhren gut, die standen (`Screenshotter.skip()`, HUD-Zeitgeber, Phase des Blaulichts).
+   Gemessen in einer Attract-Demo (fremder `Screenshotter`, Platzhalter-Renderer): bei Aufnahmezeit 6 s in beiden
+   Modi 267 Simulationsschritte und dieselbe Position, Modern brauchte dafür 6 Bilder mehr (die Vorbereitung).
+   Der eigene Zeitgeber der Demo (`attract_mode.gd`) läuft in dieser Zeit weiter – eine Demo in „Modern“ zeigt um
+   die Vorbereitungszeit weniger Fahrt, bis UI2 ihn an den Start der Etappe hängt.
 4. `not healthy()` (auch mitten in der Vorbereitung) oder kein Renderer → **Rückfall**: Modern-Renderer frei,
    Arcade-Renderer und seine Sprites, `KEEP`, HUD-Meldung „Der Modus „Modern“ lässt sich mit dieser Grafik nicht
    starten. Das Spiel läuft im Modus „Arcade“ weiter.“, Ergebnis `gfx = "arcade"`, `gfx_fallback = <Grund>`
@@ -682,7 +686,8 @@ von „Modern“, 5 HUD und Pausemenü, 6 Ladebild der Sitzung. Arcade zeichnet 
   frühem Abgang und zwei überlappenden Etappen wieder 0).
 - `tests/race3d/check_models.gd` (headless, über den Haken): `tools/blender/validate_models.py` besteht auf den
   eingecheckten Modellen; eine abgeschnittene, fremde oder fehlende Netzdatei ergibt kein halbes Modell
-  (docs/modelle.md).
+  (docs/modelle.md). Der Prüfer ist ein Python-Werkzeug: `tools/run_tests.sh` braucht seitdem `python3` im Pfad
+  (ohne es meldet die Prüfung „python3 ließ sich nicht starten“ und schlägt fehl).
 - `tests/race3d/render/check_seam_render.gd` (Xvfb): Selbsttest auf dem echten Renderer, Bild des Gerüsts, gleiche
   Simulationsschritte bei gleicher Aufnahmezeit in beiden Modi – für eine Szene, die zwischen zwei Bildern in den
   Baum kommt, und für eine, die wie beim Start über `GameFlow` nach den Physik-Rückrufen kommt –, Rückfall

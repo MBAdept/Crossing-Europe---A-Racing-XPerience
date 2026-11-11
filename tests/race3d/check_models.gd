@@ -1,7 +1,7 @@
 extends SceneTree
 ## Headless checks of the model pipeline of the mode "Modern" (v0.8.0; docs/modelle.md), run by the generic hook of
 ## tools/run_tests.sh (tests/race3d/check_*.gd):
-##   godot --headless --path . -s res://tests/race3d/check_models.gd [-- --only=validator,defekte_dateien]
+##   godot --headless --path . -s res://tests/race3d/check_models.gd [-- --only=models,defekte_dateien]
 ##   models           tools/blender/validate_models.py passes on the committed models: manifest, files, budgets,
 ##                    vertex codes, sizes, and the lamp rules (every lamp a driver reacts to shows enough area at
 ##                    every level of detail, light anchors on their lamps, no surface wound inside out). The

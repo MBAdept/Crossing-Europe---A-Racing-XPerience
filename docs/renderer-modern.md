@@ -547,7 +547,8 @@ Die Auswahl enthält die ungünstigsten Fälle des ganzen Netzes: ihr Lauf liefe
   Rest des Prozesses, auch in späteren Arcade-Etappen (gemessen in der Abnahme von Bauabschnitt 0 unter Xvfb bei
   1280 × 720: + 7.722.314 Bytes Texturspeicher nach der ersten Modern-Etappe, über drei weitere Wechsel
   unverändert; eine nackte `Camera3D` mit `Environment` belegt 7.372.800 Bytes = 1280 × 720 × 8 und gibt sie nach
-  dem Freigeben der Knoten nicht zurück, auch `disable_3d` nicht). Der Betrag wächst mit Fenstergröße und
+  dem Freigeben der Knoten nicht zurück, auch `disable_3d` nicht; nach den Korrekturen nachgemessen: dieselbe
+  Arcade-Etappe 314,4 MB allein und 321,8 MB nach einer Modern-Etappe). Der Betrag wächst mit Fenstergröße und
   3D-Auflösung (gefolgert, nicht gemessen). Für den Renderer (R1) heißt das: den Betrag in das Texturbudget beider
   Modi einrechnen und in der Leckprüfung als Grundlast führen – er ist kein Leck, zählt aber gegen „jeder Modus
   lädt nur seine eigenen Assets“ (Bauplan §4.11).
