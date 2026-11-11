@@ -2,7 +2,7 @@ extends SceneTree
 ## Review scene of the prop models (docs/modelle.md section 14): the models of the manifest beside a road, seen
 ## through the GAME camera (contract D12: 3.4 m high, no pitch, focal length 711 px at 720 px, horizon at 45 %),
 ## with the level of detail the props builder picks by distance (lod0 to 60 m, lod1 to 200 m, then the impostor
-## or the last level). Needs OpenGL - run it through tools/models_prop_scene.sh (Xvfb):
+## or the last level). Needs OpenGL - run it through tools/models/prop_scene.sh (Xvfb):
 ##   godot --path . --rendering-driver opengl3 --audio-driver Dummy -s res://tools/models/prop_scene.gd --
 ##       --out=<abs.png> --models=<id>,<id>... [--dist=15,40,100,250] [--x=9] [--night] [--zoom=2]
 ##       [--mode=dist|road|lods] [--tile=360x300] [--sun=x,y,z]

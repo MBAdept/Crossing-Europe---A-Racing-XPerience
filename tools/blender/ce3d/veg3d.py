@@ -613,7 +613,7 @@ def build_tree(model_id, spec3d):
         _shade_cards(cards, blobs, centre, top_z, seed=seed + li)
         if li == 1:
             # the larger cards of lod1 let more of the dark core through: lifted so that lod0 and lod1 show the
-            # same mean colour at the switch distance (measured with tools/models_prop_scene.sh --mode=lods)
+            # same mean colour at the switch distance (measured with tools/models/prop_scene.sh --mode=lods)
             cards["col"][:, :, 3] = np.clip(cards["col"][:, :, 3] * LOD1_LIFT, 0.0, 1.0)
         card_sets[name] = cards
         n_cards[name] = int(cards["quad"].shape[0])

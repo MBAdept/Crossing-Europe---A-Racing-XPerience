@@ -2,12 +2,12 @@
 # Review scene of the prop models of the mode "Modern" (docs/modelle.md section 14): the models beside a road
 # through the game camera, by distance (lod0 / lod1 / impostor as the props builder picks them), the levels side
 # by side, or a whole roadside. Rendered with the game's materials under a virtual X server (software OpenGL).
-# Usage: tools/models_prop_scene.sh <out.png> --models=<id>,<id>... [--mode=dist|lods|road] [--dist=15,40,100,250]
+# Usage: tools/models/prop_scene.sh <out.png> --models=<id>,<id>... [--mode=dist|lods|road] [--dist=15,40,100,250]
 #                                   [--x=9] [--night] [--zoom=4] [--tile=360x300] [--every=30] [--sun=x,y,z]
-#   tools/models_prop_scene.sh /tmp/trees.png --models=props/tree_oak,props/tree_oak_b
-#   tools/models_prop_scene.sh /tmp/road.png --mode=road --models=props/tree_oak,props/tree_birch,props/bush_round
+#   tools/models/prop_scene.sh /tmp/trees.png --models=props/tree_oak,props/tree_oak_b
+#   tools/models/prop_scene.sh /tmp/road.png --mode=road --models=props/tree_oak,props/tree_birch,props/bush_round
 set -euo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 GODOT=${GODOT:-godot}
 if [ $# -lt 2 ]; then
 	sed -n '2,9p' "$0"
