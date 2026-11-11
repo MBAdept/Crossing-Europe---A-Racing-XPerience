@@ -115,7 +115,7 @@
    {
     "name": "lod2",
     "max_dist_m": 100000,
-    "tris": 1298,
+    "tris": 1346,
     "parts": [
      {
       "node": "body",
@@ -237,8 +237,8 @@
   },
   "auto_lod": false,
   "tags": ["traffic", "heavy"],
-  "bytes": 170266,
-  "hash": "25b7ffe0c64ae325fca21bdccf3b1e688ea97e84"
+  "bytes": 170944,
+  "hash": "26f9baf605ad028e688d92b696907c50d41e0817"
  },
  "sets": {
   "traffic/truck_white": {

@@ -5040,7 +5040,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1298,
+     "tris": 1346,
      "parts": [
       {
        "node": "body",
@@ -5162,8 +5162,8 @@
    },
    "auto_lod": false,
    "tags": ["traffic", "heavy"],
-   "bytes": 170266,
-   "hash": "25b7ffe0c64ae325fca21bdccf3b1e688ea97e84"
+   "bytes": 170944,
+   "hash": "26f9baf605ad028e688d92b696907c50d41e0817"
   },
   "traffic/truck_tarp": {
    "kind": "heavy",
@@ -5278,7 +5278,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1222,
+     "tris": 1270,
      "parts": [
       {
        "node": "body",
@@ -5400,8 +5400,8 @@
    },
    "auto_lod": false,
    "tags": ["traffic", "heavy"],
-   "bytes": 209892,
-   "hash": "6fb061e1c4c5ad6508cca4f41dfe8b16d94bfbd2"
+   "bytes": 210702,
+   "hash": "ff174286dbeb45109095afb288cb431a8bd74409"
   },
   "traffic/truck_transport": {
    "kind": "heavy",
@@ -5516,7 +5516,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1298,
+     "tris": 1346,
      "parts": [
       {
        "node": "body",
@@ -5638,8 +5638,8 @@
    },
    "auto_lod": false,
    "tags": ["traffic", "heavy"],
-   "bytes": 171556,
-   "hash": "7d87fcac7f4d9fabf5a0ff50c1fe0b8f3f3a23ab"
+   "bytes": 172239,
+   "hash": "241d5289759cb64fa19023f3207b7e72dc44abea"
   },
   "traffic/van": {
    "kind": "vehicle",

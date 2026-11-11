@@ -372,7 +372,9 @@ def _trailer(b):
                 for z in (1.5, 2.2, 2.9, 3.6):
                     MU.bm_box(0.11, 0.028, 0.13, (sx * 1.2, -0.012, z), bm=bm)
             b.obj("doorhw", bm, alu, smooth=True, sharp=40.0)
-        elif lv == 1:
+        elif lv in (1, 2):
+            # the four lock rods as bars (lod2 too: they are the light lines of the rear at 60 - 180 m; without them
+            # the rear turned into a plain face at the switch at 180 m)
             bm = bmesh.new()
             for x in (-0.95, -0.33, 0.33, 0.95):
                 MU.bm_box(0.03, 0.03, BOX_Z1 - BOX_Z0 - 0.16, (x, -0.02, (BOX_Z0 + BOX_Z1) / 2), bm=bm)

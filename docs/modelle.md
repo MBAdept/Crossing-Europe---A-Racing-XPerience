@@ -390,17 +390,17 @@ Sportwagen 3 514, GT 3 412 Dreiecke (Showroom-Stufe 6 242–7 058).
 | `traffic/suv` (4 Farbsets) | lod0 17 824 · lod1 5 915 · lod2 1 169 · Schatten 1 004 | 6 / 1 / 1 | 280 642 B | – | 2,5 s | 0,03 s |
 | `traffic/van` (4 Farbsets) | lod0 17 655 · lod1 5 845 · lod2 1 189 · Schatten 1 064 | 6 / 1 / 1 | 270 960 B | – | 2,4 s | 0,03 s |
 | `traffic/sports` (5 Farbsets) | lod0 17 751 · lod1 5 741 · lod2 1 194 · Schatten 972 | 6 / 1 / 1 | 287 195 B | – | 2,5 s | 0,03 s |
-| `traffic/truck` (Koffer weiß, AS2b) | lod0 19 010 · lod1 5 174 · lod2 1 298 · Schatten 476 | 13 / 1 / 1 | 170 266 B | – | 1,6 s | 0,02 s |
-| `traffic/truck_transport` (Koffer blau) | lod0 19 134 · lod1 5 260 · lod2 1 298 · Schatten 476 | 13 / 1 / 1 | 171 556 B | – | 1,6 s | 0,02 s |
-| `traffic/truck_tarp` (Plane rot, grün) | lod0 23 412 · lod1 5 168 · lod2 1 222 · Schatten 476 | 13 / 1 / 1 | 209 892 B | – | 2,0 s | 0,03 s |
-| `traffic/bus` (3 Farbsets) | lod0 19 238 · lod1 6 398 · lod2 1 500 · Schatten 516 | 6 / 1 / 1 | 227 637 B | – | 3,1 s | 0,02 s |
-| `police/*` (18, je ein Modell) | lod0 19 778–21 970 · lod1 5 331–5 991 · lod2 1 044–1 185 · Schatten 950–1 014 | 6 / 1 / 1 | 293–344 kB | – | 2,7–3,6 s | 0,02 s |
+| `traffic/truck` (Koffer weiß, AS2b) | lod0 19 010 · lod1 5 174 · lod2 1 346 · Schatten 476 | 13 / 1 / 1 | 170 944 B | – | 1,6 s | 0,04 s |
+| `traffic/truck_transport` (Koffer blau) | lod0 19 134 · lod1 5 260 · lod2 1 346 · Schatten 476 | 13 / 1 / 1 | 172 239 B | – | 1,7 s | 0,03 s |
+| `traffic/truck_tarp` (Plane rot, grün) | lod0 23 412 · lod1 5 168 · lod2 1 270 · Schatten 476 | 13 / 1 / 1 | 210 702 B | – | 2,0 s | 0,02 s |
+| `traffic/bus` (3 Farbsets) | lod0 19 238 · lod1 6 398 · lod2 1 500 · Schatten 516 | 6 / 1 / 1 | 227 704 B | – | 3,5 s | 0,02 s |
+| `police/*` (18, je ein Modell) | lod0 19 778–21 970 · lod1 5 331–5 991 · lod2 1 044–1 185 · Schatten 1 020–1 084 | 6 / 1 / 1 | 294–345 kB | – | 2,4–3,5 s | 0,04–0,67 s |
 | `props/tree_oak` | lod0 1 220 (420 Karten) · lod1 459 (140) · Schatten 179 · Fernbild | 2 / 2 / 1 | 53 072 B | 373 558 B | 2,2 s | 0,01 s |
 | `props/farmhouse` | lod0 104 | 1 | 2 586 B | 752 795 B (1024², Nachtlicht 512²) | 58 s | 0,01 s |
 | `props/streetlight` | lod0 312 (keine automatische Stufe) | 1 | 4 395 B | – | 0,1 s | < 0,01 s |
 | `landmarks/michel` | lod0 3 024 | 1 | 63 648 B | 377 301 B (2048² WebP, Nachtlicht 1024²) | 329 s | 0,02 s |
 
-Zusammen (Stand AS2b): Netze 16,43 MB von 40 MB (AS2a: 10,28 MB; die 18 Polizeiautos 5,6 MB, Bus und Sattelzüge
+Zusammen (Stand AS2b): Netze 16,44 MB von 40 MB (AS2a: 10,28 MB; die 18 Polizeiautos 5,6 MB, Bus und Sattelzüge
 0,75 MB; MB = 2²⁰ Bytes wie im Prüfer), Texturen 4,59 MB im Grafikspeicher, Quellen 1,43 MB. Der Export des
 Michel besteht fast ganz aus dem Cycles-Bake des 2048er-Atlas (980 Karten). Die Sprite-Geometrieprüfung aller
 187 Sets dauert etwa 6 Minuten (2 Prozesse) bzw. 697 s (1 Prozess, AS2a). Alle Zeiten sind auf dieser VM
@@ -749,6 +749,8 @@ Requisiten und Wahrzeichen.
   `lod2` keine). Die Kanten der Plane laufen auf die Rahmen (vorher ein Spalt am Ober- und Untergurt).
 - **Fahrerhaus:** Scheiben in der Klasse `glass` (der Glaston der Verkehrsautos), fünf bernsteinfarbene
   Dachleuchten über der Sonnenblende (Kanal 9, ohne Lichtanker), Seitenblinker hinter den Türen (`lod0`).
+- **Heck in `lod2`:** die vier Verschlussstangen als Leisten wie in `lod1` (+48 Dreiecke). Ohne sie wurde das Heck
+  beim Wechsel bei 180 m zur glatten Fläche (27,5 % der Lkw-Pixel änderten sich, mit ihnen 1,2 %).
 - **Räder:** `truck3d._wheel` nimmt Radius und Spurbreite (der Bus benutzt dieselben Räder mit 0,5 m); die Reifen
   der fernen Stufen haben keine innere Flanke mehr (unsichtbar, kostete in `lod2` ein Fünftel des Budgets).
 - **Gruppen** unverändert: `tractor` (Drehpunkt [0, 0, −3,1]), `trailer` (Königszapfen [0, 1,19, −3,7]), in
@@ -777,6 +779,8 @@ Requisiten und Wahrzeichen.
   Spiegel an Armen (`lod2`: ein gerader Arm), Scheibenwischer.
 - **Lack:** `paint` = Aufbau, `paint2` = unterer Streifen, `paint3` = oberer Streifen; fast weißer Lack wird wie beim
   Lkw begrenzt (`truck3d._tone`).
+- **Schattenwerfer:** der grobe Loft 3 cm innerhalb der Haut – auch an den Enden (die Endflächen lagen zuerst in der
+  Ebene von Heck und Front und ragten im Bogen `--caster` heraus), dazu die Trommeln der Räder.
 - **Maße (gemessen):** Aufbau ohne Spiegel x ±1,275, y 0,37–3,65, z ±6,43 (Arcade ±1,275 × 0–3,65 × ±6,4;
   Stoßfänger je 30 mm). Die Spiegel reichen bis ±1,505 m und 0,435 m vor die Front – in 2,2 bis 2,9 m Höhe, über
   jedem Pkw-Dach.
@@ -808,7 +812,11 @@ Requisiten und Wahrzeichen.
   LED-Modulen auf einem Chrom-Reflektor, weißes Mittelmodul. Blaulicht A links (Kanal 10), B rechts (Kanal 11), mit
   Lichtankern; die Sitzung lässt sie abwechseln. `lod1`/`lod2`: leuchtende Blöcke auf derselben Fläche wie die
   Module (vorher sprang der Lichtpunkt beim Wechsel). Oberkante 0,13 m über dem Dach (Objekthöhe Auto + 0,13 wie im
-  Sprite). Der Schattenwerfer ist die Hülle des Verkehrsautos mit dem Balken als Block.
+  Sprite).
+- **Schattenwerfer:** die Hülle des Verkehrsautos, dazu der Balken aus Sockel, je einem Block in jedem LED-Modul und
+  dem Mittelteil – in jeder Stufe mindestens 1 cm innerhalb des sichtbaren Balkens. Ein einziger Block über den
+  ganzen Balken umschloss Module und Leuchtblöcke: Sie lagen bei Tag in seinem Schatten und wirkten dunkel. (Die
+  roten Räder im Bogen `--caster` sind die Trommeln des Verkehrsauto-Werfers, wie bei allen Verkehrsautos.)
 - **Budgets** (6 000 in `lod1` wie ein Verkehrsauto, obwohl Bänder, Wörter und Balken dazukommen):
   `catalog3d.POLICE_DETAIL` (gröbere Stationsabstände je Basis in `lod1`/`lod2`) und `POLICE_DETAIL_CC` (Karos,
   Ungarn mit dem längsten Wort, Rumänien, Österreich, Belgien/Schweiz).
@@ -816,9 +824,9 @@ Requisiten und Wahrzeichen.
 ### Prüfungen (gemessen, Stand AS2b)
 
 - `validate_models.py`: **CHECK models OK**, 37 Modelle, 180 Sets (65 mit Modell; ohne Modell nur Requisiten und
-  Wahrzeichen), Netze 16,43 MB von 40 MB. Höchstwerte gegen die Budgets: Polizei `lod0` 21 970 / 22 000, `lod1`
+  Wahrzeichen), Netze 16,44 MB von 40 MB. Höchstwerte gegen die Budgets: Polizei `lod0` 21 970 / 22 000, `lod1`
   5 991 / 6 000, `lod2` 1 185 / 1 200; Lkw/Bus `lod0` 23 412 / 25 000 (Plane), `lod1` 6 398 / 7 000 (Bus), `lod2`
-  1 476 / 1 500 (Bus), Schattenwerfer höchstens 1 014.
+  1 500 / 1 500 (Bus), Schattenwerfer höchstens 1 084 / 3 000.
 - Blaulicht A und B: im Nachtbogen je Kanal einzeln geschaltet, A links, B rechts (`--night`, Kontaktbogen).
 - Stufenwechsel (Spielkamera von hinten, Tag, Anteil der Fahrzeugpixel, die sich um mehr als 24 Stufen ändern;
   Fahrzeugpixel = mehr als 24 Stufen neben dem Hintergrund ihrer Zeile):
@@ -828,7 +836,7 @@ Requisiten und Wahrzeichen.
   | `police/de` | 40 m: 13,8 % | 120 m: 35,6 % |
   | `police/be` | 40 m: 18,8 % (vor den Karos in `lod1`: 29,9 %) | 120 m: 59,0 % (vorher 41,0 %) |
   | `traffic/bus` | 60 m: 6,7 % (vor dem Gitter in `lod1`: 16,7 %) | 180 m: 23,2 % (vorher 9,7 %) |
-  | `traffic/truck_tarp` | 60 m: 2,4 % | 180 m: 27,5 % |
+  | `traffic/truck_tarp` | 60 m: 2,4 % | 180 m: 1,2 % (ohne Verschlussstangen in `lod2`: 27,5 %) |
 
   Was beim nahen Wechsel der Polizei bleibt: Wörter und Kennzeichenzeichen (nur `lod0`) und der Lichtbalken – die
   Glaskuppel von `lod0` erscheint bei Tag heller als die Blöcke von `lod1`. Die Karos und das Lüftungsgitter
