@@ -81,13 +81,40 @@ PLAYER_OVERRIDES = {
     "paint:*": dict(rough=0.2),
     # alloy rims: a mirror-like metal shows the dark road and wheel arch in real time - less metallic, a bit rougher
     "*_rim": dict(metal=0.55, rough=0.3),
+    # brake discs: grey cast iron, matt (a polished disc caught the sun like a chrome dome)
+    "*_disc": dict(color="#5d6064", metal=0.6, rough=0.5),
+    # number plate: light grey instead of white - a pure white plate was the brightest thing on the car and its
+    # characters shimmered on it while the car turned
+    "*_plate": dict(color="#d3d4d0"),
 }
+# per design (on top of PLAYER_OVERRIDES): the Cycles sprite shows the silver rims of the limousine as anthracite -
+# its full metal mirrors the dark wheel arch and road; the real-time rim has nothing to mirror but the sky and came
+# out bright silver. The colour of the 3D rim is what the sprite shows.
+PLAYER_DESIGN_OVERRIDES = {
+    "limousine": {"*_rim": dict(color="#6a6e74", metal=0.65, rough=0.32)},
+}
+SHARP_DEG = {"_brake": 30.0}     # meshes (name suffix) with hard edges in the 3D build: the flat faces of the brake disc
+
+
+def _harden(objs):
+    """Hard edges the sprite build leaves smooth (the sprite never shows them up close): the brake disc is a
+    lathed box - smooth-shaded over its 90-degree edges its flat face shaded like a polished dome."""
+    done = set()
+    for ob in objs:
+        me = ob.data
+        base = me.name.split(".")[0]
+        for suffix, deg in SHARP_DEG.items():
+            if base.endswith(suffix) and me.name not in done:
+                me.set_sharp_from_angle(angle=math.radians(deg))
+                done.add(me.name)
 # look of the glazing and of the lamp lenses (class glass): opacity of the tinted panes over the cabin, of the
 # coloured lenses (the lamp parts under them carry the colour and the light) and of clear headlight lenses
 PLAYER_GLASS = dict(glass_opacity=0.36, lens_opacity=0.10, clear_lens_opacity=0.08)
 GLASS_OVERLAP_M = 0.008        # the panes overlap the edge of their opening by this much (the black band)
 POCKET_SPAN_M = 0.09           # objects whose faces under a lamp outline lie this close behind the front one share the recess
+POCKET_MIN_SHARE = 0.12        # ... if their part of the outline has at least this share of the largest part's area
 LINER = dict(color="#232427", rough=0.85)
+INTERIOR_MAX_TRIS = 6000       # contract 4.6.9: interior inside "body" of the race level (lining included)
 
 
 def _shift(outline, proj, dy):
@@ -99,15 +126,58 @@ def _shift(outline, proj, dy):
     return list(outline)
 
 
-def _open_cabin(car, lay, soups):
+LINING_COARSE = dict(ring=0.5, step=2.2)     # the lining: greenhouse loft at half the points, 2.2 x the station spacing
+
+
+def _lining_loft(car):
+    """The greenhouse once more, coarse: the lining of the open cabin is only seen from inside through tinted
+    glass. (The cut greenhouse itself was the lining before - 4,112 triangles lying back to back on the skin, and
+    the kompakt's cabin went over the interior budget of 6,000.) Its faces are chords of the convex skin, so they
+    lie on or inside it. Returns (pos, nor) in root space; the object is removed again."""
+    import bpy
+    saved = dict(car.N)
+    for k in ("gb", "gs", "gr", "roof"):
+        car.N[k] = max(2, int(round(saved[k] * LINING_COARSE["ring"])))
+    d = car.d
+    g0, g1 = d["g_range"]
+    gk = (car.detail["step"] if car.detail["gstep"] is None else car.detail["gstep"]) * LINING_COARSE["step"]
+    ys = set()
+    y = g0
+    while y < g1:
+        ys.add(round(y, 5))
+        y += max(0.004 * gk, d.get("g_step", 0.02) * gk / (1.0 + 1.5 * abs(car.roof.deriv(y))))
+    ys.add(g1)
+    try:
+        ob = car._loft_object(car.name + "_lining", sorted(ys), car.green_half, car.paint)
+    finally:
+        car.N.update(saved)
+    bpy.context.view_layer.update()
+    s = core.soups_of([ob])[0]
+    pos, nor = s.pos.copy(), s.nor.copy()
+    bpy.data.objects.remove(ob)
+    return pos, nor
+
+
+class _Tris:
+    """pos / nor / mi of a triangle set that the cut helpers below change in place (a stand-in for core.Soup)."""
+
+    def __init__(self, pos, nor):
+        self.pos, self.nor = pos, nor
+        self.mi = np.zeros(pos.shape[0], dtype=np.int32)
+        self.n = pos.shape[0]
+
+
+def _open_cabin(car, lay, soups, lining=None):
     """Transparent glazing needs openings: cuts the outline of every pane (inside its black band) out of the
     greenhouse and out of the seal patch under the glass, opens the deck of the lower body under the greenhouse
-    and removes the floor of the greenhouse loft. Returns the triangles of the lining (pos, nor): the remaining
-    greenhouse seen from inside."""
+    and removes the floor of the greenhouse loft. lining: (pos, nor) of a coarse greenhouse (_lining_loft) - it
+    gets the same openings. Returns the triangles of the lining (pos, nor), seen from inside: the cut coarse
+    greenhouse, or the cut greenhouse itself without one."""
     by_name = {s.name: s for s in soups}
     dy = -car.L / 2.0
     pillars = [(proj, [decalgeo.inset(_shift(o, proj, dy), 0.004)]) for (proj, _sym, o) in car.glass_pillars]
     green = by_name[car.green.name]
+    lin = _Tris(*lining) if lining is not None else None
     stats = dict(removed=0)
 
     def cut(soup, proj, signs, hole):
@@ -120,21 +190,27 @@ def _open_cabin(car, lay, soups):
         hole = decalgeo.inset(_shift(outline, proj, dy), GLASS_OVERLAP_M)
         signs = (1, -1) if (sym and proj == "side") else (1,)
         cut(green, proj, signs, hole)
+        if lin is not None:
+            cut(lin, proj, signs, hole)
         if seal_ob is not None and seal_ob.name in by_name:
             cut(by_name[seal_ob.name], proj, signs, hole)
     # floor of the greenhouse loft (lies inside the body): faces looking down
-    fn = np.cross(green.pos[:, 1] - green.pos[:, 0], green.pos[:, 2] - green.pos[:, 0])
-    fn /= np.maximum(np.linalg.norm(fn, axis=1, keepdims=True), 1e-12)
-    keep = fn[:, 2] > -0.5
-    green.pos, green.nor, green.mi = green.pos[keep], green.nor[keep], green.mi[keep]
-    green.n = green.pos.shape[0]
+    for s in (green, lin):
+        if s is None:
+            continue
+        fn = np.cross(s.pos[:, 1] - s.pos[:, 0], s.pos[:, 2] - s.pos[:, 0])
+        fn /= np.maximum(np.linalg.norm(fn, axis=1, keepdims=True), 1e-12)
+        keep = fn[:, 2] > -0.5
+        s.pos, s.nor, s.mi = s.pos[keep], s.nor[keep], s.mi[keep]
+        s.n = s.pos.shape[0]
     # deck of the lower body under the greenhouse
     body = by_name[car.body.name]
     hole = _shift(interior3d.deck_opening(car, lay), "top", dy)
     pos, nor, mat, n = decalgeo.cut_holes(body.pos, body.nor, body.mi, "top", 1, [hole], n_min=0.3)
     body.pos, body.nor, body.mi, body.n = pos, nor, mat, pos.shape[0]
     stats["removed"] += n
-    return green.pos[:, ::-1, :].copy(), -green.nor[:, ::-1, :], stats
+    src = lin if lin is not None else green
+    return src.pos[:, ::-1, :].copy(), -src.nor[:, ::-1, :], stats
 
 
 def _lamp_pockets(car, soups):
@@ -163,10 +239,17 @@ def _lamp_pockets(car, soups):
             if not found:
                 raise roles.RoleError("lamp unit '%s' of %s finds no body under its outline" % (pk["tag"], car.name))
             # a unit may lie on two objects (tail lamps of a hatchback: body and greenhouse); what is clearly
-            # behind the front one (a bumper under the body's end) stays as it is
+            # behind the front one (a bumper under the body's end) stays as it is, and so does an object the
+            # outline only grazes: the kompakt's tail lamp touched the foot of the greenhouse over 5 mm, and that
+            # sliver of a recess stood out of the shoulder as a black blade with its 16 mm deep wall
             front = max(f[4]["front"] for f in found)
+            big = max(f[4]["area"] for f in found)
             for (s, pos, nor, mat, st) in found:
-                if st["front"] < front - POCKET_SPAN_M:
+                skip = st["front"] < front - POCKET_SPAN_M or st["area"] < POCKET_MIN_SHARE * big
+                if os.environ.get("CE_STATS"):
+                    print("      pocket %-8s %-26s floor %6.1f cm2  front %+.3f%s" % (
+                        pk["tag"], s.name, st["area"] * 1e4, st["front"], "  (left as it is)" if skip else ""))
+                if skip:
                     continue
                 s.mats = list(s.mats) + [pk["housing"], pk["wall"]]
                 s.pos, s.nor, s.mi, s.n = pos, nor, mat, pos.shape[0]
@@ -197,17 +280,22 @@ def _player_level(spec3d, level):
     finally:
         MU.tagging(False)
     objs = core.model_objects(rig)
+    _harden(objs)
     soups = core.soups_of(objs)
+    lining = _lining_loft(car)
     shell = {}
     for s_ in soups:
         if s_.name in (car.body.name, car.bumper_rear.name, car.bumper_front.name):
             core.flatten_ends(s_.pos, s_.nor)        # the flat end caps shade into the rounded ends
-        if s_.name in (car.body.name, car.green.name):
-            # the closed lofts, before lamps and windows are cut out: the shadow caster is tucked inside them
-            shell["body" if s_.name == car.body.name else "green"] = s_.pos.copy()
     pocket_tris = _lamp_pockets(car, soups)
+    for s_ in soups:
+        if s_.name in (car.body.name, car.green.name):
+            # the closed lofts with the recesses of lamps and grilles, before the windows are cut out: the shadow
+            # caster is tucked inside them (taken before the recesses, it stood in front of the floor of the grille
+            # and of the deeper lamp recesses - deeper than its 12 mm - and shaded them)
+            shell["body" if s_.name == car.body.name else "green"] = s_.pos.copy()
     extras3d.uncover_pockets(car, {s.name: s for s in soups}, lambda o, pr: _shift(o, pr, -car.L / 2.0), decalgeo.cut_holes)
-    lin_pos, lin_nor, cut_stats = _open_cabin(car, lay, soups)
+    lin_pos, lin_nor, cut_stats = _open_cabin(car, lay, soups, lining)
     if os.environ.get("CE_STATS"):
         import re
         groups = {}
@@ -223,6 +311,7 @@ def _player_level(spec3d, level):
         for k, v in sorted(groups.items(), key=lambda kv: -kv[1][0])[:int(os.environ.get("CE_STATS") or 45)]:
             print("   %6d  %s%s" % (v[0], k, "   (%d wound against their normals)" % v[1] if v[1] else ""))
     over = dict(PLAYER_OVERRIDES)
+    over.update(PLAYER_DESIGN_OVERRIDES.get(spec3d["design"], {}))
     over.update(spec3d.get("overrides", {}))
     tr = roles.Translator(overrides=over, default_paint={"paint": params["paint"]},
                           glass_opacity=spec3d.get("glass_opacity", PLAYER_GLASS["glass_opacity"]),
@@ -242,7 +331,14 @@ def _player_level(spec3d, level):
     col[:3] = core.srgb8(core.hex_to_lin(LINER["color"]))
     col[3] = 255
     nodes["body"].add("vpbr", lin_pos, lin_nor, col, (LINER["rough"], 0.0), roles.NO_LAMP)
-    info["cabin"] = dict(lining_tris=int(lin_pos.shape[0]), removed=cut_stats["removed"], pocket_tris=pocket_tris)
+    # contract 4.6.9: at most 6,000 triangles of interior inside "body" (the lining counts: it is seen only from
+    # inside). The export stops above it - the kompakt was at 6,268 with the full-resolution lining
+    interior = int(sum(s.n for s in soups if "_int_" in s.name)) + int(lin_pos.shape[0])
+    if level == "lod0" and interior > INTERIOR_MAX_TRIS:
+        raise RuntimeError("%s %s: interior %d triangles (at most %d)" % (spec3d["design"], level, interior,
+                                                                          INTERIOR_MAX_TRIS))
+    info["cabin"] = dict(lining_tris=int(lin_pos.shape[0]), removed=cut_stats["removed"], pocket_tris=pocket_tris,
+                         interior_tris=interior)
     info["shell"] = shell
     return car, info, params, nodes, pivots, tr
 
@@ -311,7 +407,10 @@ def _player_shadow(spec3d, shell):
     for i in range(1, 12):
         ys.add(car.lb0 + (car.lb1 - car.lb0) * i / 12.0)
     for ya in (car.y_ra, car.y_fa):
-        ys.update((ya - car.Ra, ya - car.Ra * 0.5, ya, ya + car.Ra * 0.5, ya + car.Ra))
+        # the arch opening with its vertical edges (Ra - 1 cm; thinner bands turned over in the tuck): a coarser
+        # arch filled the corners of the opening over the wheels and threw its shadow on them
+        ys.update((ya - car.Ra, ya - car.Ra + 0.01, ya - car.Ra * 0.85, ya - car.Ra * 0.5, ya, ya + car.Ra * 0.5,
+                   ya + car.Ra * 0.85, ya + car.Ra - 0.01, ya + car.Ra))
     lower = car._loft_object("shadow_lower", sorted(ys), car.lower_half, car.paint)
     g0, g1 = d["g_range"]
     green = car._loft_object("shadow_green", [g0 + (g1 - g0) * i / 9.0 for i in range(10)], car.green_half, car.paint)
@@ -351,7 +450,8 @@ def build_player(model_id, spec3d):
             model = ModelData(model_id, spec3d["kind"], dict(info["object"]))
             model.lights = tr.lights()
             shell = info["shell"]
-        stats[level] = dict(build_s=round(time.time() - t1, 2))
+        stats[level] = dict(build_s=round(time.time() - t1, 2), interior_tris=info["cabin"]["interior_tris"],
+                            lining_tris=info["cabin"]["lining_tris"])
     smb, stats["shadow"] = _player_shadow(spec3d, shell)
     model.shadow = Part("body", "shadow", smb.finish())
     model.lods = lods

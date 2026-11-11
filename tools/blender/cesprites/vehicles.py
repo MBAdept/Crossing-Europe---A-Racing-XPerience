@@ -529,8 +529,10 @@ class Car:
         ch = dd.get("chmsl")
         if ch:
             z0, z1, hw = ch
+            # chmsl_lamp (3D hook): lamp channel of the real-time model, e.g. with a darker lit colour - unlit, a lamp
+            # is drawn with half its lit colour, and the third brake light was a bright red bar on the rear window
             dec.append(dict(face="rear", poly=[(0.0, z0), (hw, z0), (hw, z1), (0.0, z1)], mat="lamp_red_dark",
-                            emit={"brake": (BRAKE_RED, 6.0)}, n=0.2, lamp="brake"))
+                            emit={"brake": (BRAKE_RED, 6.0)}, n=0.2, lamp=dd.get("chmsl_lamp", "brake")))
         dec += dd.get("cabin_decals", [])
         return dec
 

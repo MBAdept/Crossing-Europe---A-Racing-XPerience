@@ -125,7 +125,7 @@
     ]
    }
   ],
-  "shadow": {"mesh": "traffic/truck/shadow.res", "tris": 356},
+  "shadow": {"mesh": "traffic/truck/shadow.res", "tris": 476},
   "lights": [
    {
     "role": "brake",
@@ -212,7 +212,7 @@
     "color": "#ff2010"
    }
   ],
-  "paint": {"paint": "#ececea", "paint2": "#ecece8", "paint3": "#1f4f9a", "metal": 0.1},
+  "paint": {"paint": "#d8d8d6", "paint2": "#d8d8d4", "paint3": "#1f4f9a", "metal": 0.1},
   "groups": {
    "tractor": {
     "pivot": [0, 0, -3.1]
@@ -223,13 +223,13 @@
   },
   "auto_lod": false,
   "tags": ["traffic", "heavy"],
-  "bytes": 160568,
-  "hash": "7252cc1e2912eb3dba4d35edbbbe201c3a7bbb68"
+  "bytes": 161851,
+  "hash": "ee125caa0f956a400bfb6efa990714b610d572bc"
  },
  "sets": {
   "traffic/truck_white": {
    "model": "traffic/truck",
-   "paint": {"paint": "#ececea", "paint2": "#ecece8", "paint3": "#1f4f9a", "metal": 0.1}
+   "paint": {"paint": "#d8d8d6", "paint2": "#d8d8d4", "paint3": "#1f4f9a", "metal": 0.1}
   },
   "traffic/truck_red": {
    "model": "traffic/truck",
@@ -237,11 +237,11 @@
   },
   "traffic/truck_blue": {
    "model": "traffic/truck",
-   "paint": {"paint": "#21468f", "paint2": "#21468f", "paint3": "#e9e9e5", "metal": 0.1}
+   "paint": {"paint": "#21468f", "paint2": "#21468f", "paint3": "#d8d8d4", "metal": 0.1}
   },
   "traffic/truck_green": {
    "model": "traffic/truck",
-   "paint": {"paint": "#2e6b3a", "paint2": "#e8e8e4", "paint3": "#2e6b3a", "metal": 0.1}
+   "paint": {"paint": "#2e6b3a", "paint2": "#d8d8d4", "paint3": "#2e6b3a", "metal": 0.1}
   }
  }
 }

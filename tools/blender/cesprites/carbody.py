@@ -64,9 +64,18 @@ BRAKE_RED = "#ff2414"
 #   ring_min  smallest point count of a cross-section segment (far levels of the traffic cars: 1)
 #   cap_sharp  False: the end caps of the lofts shade smoothly into the rounded ends (the flat cap of a coarse
 #            loft stood out as a panel of its own)       ends_n  stations in the rounded ends (None = by ring)
+#   bumper_clamp  True: the stations of a bumper stay between its ends. The rounding of the far end clusters
+#            stations over r_plan + 5 cm; on a short bumper (kompakt front: 46 cm) they reached past the wheel
+#            arch end, and the bumper ran 9 cm into the arch - its flat end cap stood in the front tyre (hidden
+#            behind the tyre in the sprite, 52 mm inside the tyre volume in the real-time model)
+#   plate_bold  scale of the stroke width of the number plate characters (cardetail.plate)
+#   bumper_end_r  radius (m) of a rounding at the wheel-arch end of the bumpers: the bumper turns into the body
+#            there instead of ending in a flat cap beside the wheel (a "glued-on box"; 0 = the sprite model)
+#   tyre_lite  tyres of 9 profile points (cardetail._tyre_profile_lite) - traffic cars, seen from 10 m and more
 DETAIL = dict(ring=1.0, step=1.0, res=1.0, off=1.0, min_off=0.0, wheel=1.0, extras=False, graze=0.0,
               conform=False, crease=0.0, arch_r=None, seam=1.0, wheel_plain=False, arch_n=None, gstep=None,
-              lamp_depth=0.0, ring_min=2, cap_sharp=True, ends_n=None)
+              lamp_depth=0.0, ring_min=2, cap_sharp=True, ends_n=None, bumper_clamp=False, plate_bold=1.0,
+              bumper_end_r=0.0, tyre_lite=False)
 
 
 def _prof(v):
@@ -434,6 +443,8 @@ class SmoothCar:
         y_body = self.lb0 + rp[0] + 0.02 if which == "rear" else self.lb1 - rp[1] - 0.02
         y_arch = (self.y_ra - self.Ra) if which == "rear" else (self.y_fa + self.Ra)
         flush = b.get("flush", 0.25)
+        r_ae = float(self.detail["bumper_end_r"])
+        y_ae = (self.y_ra - self.Ra - 0.004) if which == "rear" else (self.y_fa + self.Ra + 0.004)
 
         def half(y):
             dist = abs(y - y_end)
@@ -445,6 +456,9 @@ class SmoothCar:
             da = abs(y_arch - y)
             o = out * C.smoothstep(0.0, flush, da) + 0.003
             pin = C.round_end(dist, r_pl, p_pl)
+            if r_ae > 0.0:
+                # 3D hook: the arch end rounds into the body (see DETAIL)
+                pin += C.round_end(abs(y - y_ae), r_ae, 2.0)
             zt = zt_p(y) - C.round_end(dist, r_end_t)
             zb = zb_p(y) + C.round_end(dist, r_end_b)
             rb, rt = 0.03, b.get("r_top_edge", 0.03)
@@ -477,7 +491,15 @@ class SmoothCar:
             else:
                 y0, y1 = self.y_fa + self.Ra + 0.004, self.L
                 ends = ((0.0, 0), (b.get("r_plan", 0.4) + 0.05, self.n_ring(14)))
+            r_ae = float(self.detail["bumper_end_r"])
+            if r_ae > 0.0:
+                # 3D hook: stations for the rounding at the arch end
+                ne = max(3, self.n_ring(8))
+                ends = (((r_ae + 0.01, ne), ends[1]) if which == "front" else (ends[0], (r_ae + 0.01, ne)))
             ys = C.stations(y0, y1, 0.02 * self.detail["step"], ends=ends)
+            if self.detail["bumper_clamp"]:
+                # 3D hook: no station beyond the arch end of the bumper (see DETAIL)
+                ys = [y for y in ys if y0 - 1e-9 <= y <= y1 + 1e-9]
             ob = self._loft_object(self.name + "_bumper_" + which, ys, self.bumper_half_fn(which), mat or self.paint)
             self.objects.append(ob)
             self.targets["bumper_" + which] = [ob]

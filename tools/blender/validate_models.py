@@ -549,6 +549,11 @@ def check_anchors(res, mid, model, anchors):
     for light in lights:
         d = light.get("dir")
         if d is None:
+            if model.get("kind") in ("vehicle", "heavy"):
+                # contract A-4: anchors carry dir (where the lamp looks) - flares sit a little along it. Only lamps of
+                # baked models (light in the atlas) have none
+                res.err(mid, "Lichtanker %s bei %s ohne dir (Fahrzeuge: Pflicht, Vertrag A-4)"
+                        % (light.get("role"), light.get("pos")))
             continue
         if len(d) != 3 or abs(sum(float(v) ** 2 for v in d) ** 0.5 - 1.0) > 0.01:
             res.err(mid, "Lichtanker %s: dir %r ist kein Einheitsvektor" % (light.get("role"), d))

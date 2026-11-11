@@ -10,7 +10,7 @@
    {
     "name": "lod0",
     "max_dist_m": 100000,
-    "tris": 50080,
+    "tris": 47524,
     "parts": [
      {
       "node": "body",
@@ -52,7 +52,7 @@
    {
     "name": "show",
     "max_dist_m": 0,
-    "tris": 107042,
+    "tris": 100332,
     "parts": [
      {
       "node": "body",
@@ -92,7 +92,7 @@
     ]
    }
   ],
-  "shadow": {"mesh": "player/kompakt/shadow.res", "tris": 1872},
+  "shadow": {"mesh": "player/kompakt/shadow.res", "tris": 2320},
   "lights": [
    {
     "role": "brake",
@@ -103,7 +103,7 @@
    },
    {
     "role": "brake",
-    "pos": [0.7103, 0.8754, 2.0015],
+    "pos": [0.7102, 0.8754, 2.0015],
     "dir": [0.427, 0.221, 0.877],
     "size": 0.264,
     "color": "#ff2414"
@@ -145,7 +145,7 @@
    },
    {
     "role": "ind_r",
-    "pos": [0.7232, 0.8745, 1.9982],
+    "pos": [0.7231, 0.8745, 1.9982],
     "dir": [0.465, 0.219, 0.858],
     "size": 0.129,
     "color": "#ffa01a"
@@ -173,7 +173,7 @@
    },
    {
     "role": "tail",
-    "pos": [0.7193, 0.866, 1.9994],
+    "pos": [0.7192, 0.866, 1.9994],
     "dir": [0.463, 0.24, 0.853],
     "size": 0.277,
     "color": "#ff2a10"
@@ -182,8 +182,8 @@
   "paint": {"paint": "#f0b30a", "metal": 0},
   "auto_lod": false,
   "tags": ["player"],
-  "bytes": 1742534,
-  "hash": "797759ce74c93a81683b8a09f9a52d5eca7b5683"
+  "bytes": 1661802,
+  "hash": "6abe00a87365747cc49dc9cc49e2b299a798901f"
  },
  "sets": {
   "player/kompakt": {

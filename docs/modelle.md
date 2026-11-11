@@ -24,6 +24,7 @@ python3 tools/blender/export_models.py --manifest-only   # --defaults schreibt s
 python3 tools/blender/validate_models.py [--report]
 tools/models_contact_sheet.sh <bild.png> [--only=<glob>] [--night] [--showroom] [--channels] [--lods=lod0,show]
         [--tile=480x320] [--cols=4] [--sun=x,y,z] [--sun-energy=<e>] [--ambient-energy=<e>]
+        [--review [--views=0,4,..] [--set=<Set>]] [--chase=9,30 [--lane=<m>]] [--clay] [--caster]
 tools/run_render_checks.sh modern check_models           # Materialklassen, Lampenkanäle, Blinker, MultiMesh (Xvfb)
 # Sprite-Geometrie unverändert? (nach jeder Änderung an tools/blender/cesprites)
 /home/user/tools/bpyenv/bin/python tools/blender/check_sprite_geometry.py [--only PRÄFIX,..] [--jobs 2]
@@ -284,6 +285,11 @@ Regel: **Kein Sprite-Vertex bewegt sich.** Jeder Hook hat eine Voreinstellung, d
   Einheit (`patch(…, sink=…)`, das Objekt trägt `ce_sink = "<Projektion>:<Tiefe>"`), legt die Streuscheibe bündig
   in die Öffnung und merkt sich die Kontur in `car.lamp_pockets`; der Exporter schneidet die Mulde in die
   Karosserie (`decalgeo.pocket`: Boden, Wände, Öffnung) und verschiebt den Lichtanker an die Oberfläche.
+- **Seit der Nacharbeit (AS1R)**, alle mit Voreinstellung „wie im Sprite“: `bumper_clamp` (keine Station eines
+  Stoßfängers jenseits seines Endes am Radlauf), `bumper_end_r` (Radius, mit dem das Stoßfängerende in die
+  Karosserie läuft), `plate_bold` (Strichstärke der Kennzeichenzeichen), `tyre_lite` (Reifen mit 9 Profilpunkten,
+  Verkehrsautos) in `carbody.DETAIL`; `chmsl_lamp` (Lampenkanal der dritten Bremsleuchte) in den Entwürfen von
+  `vehicles.Car`.
 - **Kühlergrill** (`player_cars.grille`): im Sprite derselbe Aufruf wie zuvor, im 3D-Bau eine Vertiefung mit
   versenkten Lamellen. **Nur im 3D-Bau** (`detail["extras"]`): eigene Blinkerfelder und Rückfahrlicht des
   Kompakten; die 3D-Lampenteile der Verkehrsautos stehen in `ce3d/traffic3d.py` (`CAR_3D`), nicht im Generator.
@@ -339,14 +345,16 @@ Gesamt: Netze ≤ 40 MB, Texturen ≤ 240 MB im Grafikspeicher.
 
 ## 11. Referenzmodelle (gemessen)
 
+Fahrzeuge: Stand nach der Nacharbeit AS1R (Abschnitt 13); die übrigen Zeilen aus Bauabschnitt 0.
+
 | Modell | Dreiecke je Stufe | Aufrufe | Netze | Texturquellen | Export | Bake |
 |---|---|---|---|---|---|---|
-| `player/limousine` | lod0 45 764 · show 99 670 · Schatten 1 872 | 6 / 6 | 1 573 290 B | – | 11,6 s | 0,08 s |
-| `player/kompakt` | lod0 50 080 · show 107 042 · Schatten 1 872 | 6 / 6 | 1 742 534 B | – | 12,3 s | 0,10 s |
-| `traffic/sedan` (4 Farbsets) | lod0 17 695 · lod1 5 805 · lod2 1 123 · Schatten 636 | 6 / 1 / 1 | 260 279 B | – | 2,0 s | 0,02 s |
-| `traffic/hatch` (5 Farbsets) | lod0 17 317 · lod1 5 753 · lod2 1 136 · Schatten 652 | 6 / 1 / 1 | 256 895 B | – | 2,1 s | 0,02 s |
-| `traffic/wagon` (4 Farbsets) | lod0 17 888 · lod1 5 937 · lod2 1 103 · Schatten 604 | 6 / 1 / 1 | 269 062 B | – | 2,2 s | 0,02 s |
-| `traffic/truck` (4 Lackierungen) | lod0 18 084 · lod1 4 672 · lod2 1 490 · Schatten 356 | 13 / 1 / 1 | 160 568 B | – | 0,8 s | 0,02 s |
+| `player/limousine` | lod0 44 095 · show 94 629 · Schatten 2 320 | 6 / 6 | 1 527 819 B | – | 13,3 s | 0,07 s |
+| `player/kompakt` | lod0 47 524 · show 100 332 · Schatten 2 320 | 6 / 6 | 1 661 802 B | – | 13,2 s | 0,10 s |
+| `traffic/sedan` (4 Farbsets) | lod0 17 555 · lod1 5 809 · lod2 1 149 · Schatten 972 | 6 / 1 / 1 | 271 351 B | – | 2,3 s | 0,02 s |
+| `traffic/hatch` (5 Farbsets) | lod0 17 636 · lod1 5 661 · lod2 1 180 · Schatten 988 | 6 / 1 / 1 | 270 561 B | – | 2,2 s | 0,02 s |
+| `traffic/wagon` (4 Farbsets) | lod0 17 464 · lod1 5 941 · lod2 1 141 · Schatten 940 | 6 / 1 / 1 | 276 055 B | – | 2,5 s | 0,02 s |
+| `traffic/truck` (4 Lackierungen) | lod0 18 084 · lod1 4 672 · lod2 1 490 · Schatten 476 | 13 / 1 / 1 | 161 851 B | – | 1,0 s | 0,02 s |
 | `props/tree_oak` | lod0 1 220 (420 Karten) · lod1 459 (140) · Schatten 179 · Fernbild | 2 / 2 / 1 | 53 072 B | 373 558 B | 2,2 s | 0,01 s |
 | `props/farmhouse` | lod0 104 | 1 | 2 586 B | 752 795 B (1024², Nachtlicht 512²) | 58 s | 0,01 s |
 | `props/streetlight` | lod0 312 (keine automatische Stufe) | 1 | 4 395 B | – | 0,1 s | < 0,01 s |
@@ -458,8 +466,12 @@ Linie. Dazu gehört:
 - **Reihenfolge:** Der Rang eines Decals kommt aus der vollständigen Liste, nicht aus der gefilterten der Stufe;
   Blinker liegen immer oben (sonst deckte in `lod1` das Rücklicht den Blinker zu).
 - **Stufen:** `lod1` lässt dünne Decals und die schwarzen Lampenringe weg, `lod2` zusätzlich Seitenteile der
-  Leuchten, Rückfahrlicht, Tagfahrlicht, Kennzeichen und Schwellerteilung; die Scheiben von `lod2` sind nach der
+  Leuchten, Rückfahrlicht, Tagfahrlicht und Schwellerteilung; die Scheiben von `lod2` sind nach der
   Flächennormale gefärbt. Rücklicht, Bremslicht, Blinker und Scheinwerfer behalten ihre Kontur.
+- **Kennzeichen in allen Stufen** (`far_plate`): `lod1` und `lod2` zeigen es im Mittelwert des `lod0`-Kennzeichens
+  samt Zeichen und Euroband (`#c4c4c1`), `lod2` behält es. (Weiß ohne Zeichen sprang es bei 40 m heller und
+  verschwand bei 120 m – der hellste Punkt des Autos.) Der dunkle untere Teil des Heckstoßfängers wird in `lod2`
+  auf das Heckende geschnitten (`far_sill`; nicht beim Schrägheck: 68 Dreiecke, `lod2` hätte 1 248 statt 1 200).
 
 ### Stufen, die nicht knittern
 
@@ -475,7 +487,16 @@ der feinsten Stufe höchstens um `BOUNDS_TOL_M` abweichen (Pkw 3 cm, Spielerauto
 (`blend_premul_alpha`), die Spiegelung wächst mit dem Fresnel-Term (`fresnel_boost` 0,85, `mirror` 0,75), die
 Tönung kommt aus der Vertexfarbe. Spielerautos: Scheiben mit Deckkraft 0,36, Streuscheiben 0,10, klare 0,08;
 dahinter Sitze, Kopfstützen, Armaturenbrett, Lenkrad und Hutablage. Die Kabine wird dafür geöffnet
-(`_open_cabin`): die Scheiben aus dem Loft geschnitten, die Innenseite verkleidet.
+(`_open_cabin`): die Scheiben aus dem Loft geschnitten, die Innenseite verkleidet – mit einem groben zweiten Loft
+der Kabine (`_lining_loft`: halbe Punktzahl, 2,2-facher Stationsabstand; Kompakt 1 378 statt 4 112 Dreiecke).
+Der Innenraum der Rennstufe samt Verkleidung bleibt unter 6 000 Dreiecken (§4.6.9); der Export bricht sonst ab
+(gemessen: Limousine 3 560, Kompakt 3 658). Wanne und Armaturenbrett halten Abstand zu den Rädern, auch zu einem
+um 25° eingeschlagenen Vorderrad (`interior3d.wheel_houses`); die Hutablage folgt der Außenhaut (`outer_z`) – ihre
+Ecke stand beim Kompakten als schwarzes Blatt über den Rückleuchten aus der Schulter.
+
+Verkehrsautos: undurchsichtiges Glas, aber heller, glatter und leicht metallisch (`TRAFFIC_GLASS`: `#2a343e`,
+Rauheit 0,02, Metall 0,25), damit der Himmel sich spiegelt; `lod1`/`lod2` zeichnen es als `vpbr` mit denselben
+Werten.
 
 ### Schattenwerfer
 
@@ -485,11 +506,20 @@ Kompakten als dunkle Schraffur hinter dem vorderen Radlauf sichtbar (die Sehne d
 hinter dem ausgestellten Radlauf, gemessen 7,9 mm). `core.tuck_inside` zieht die Hülle deshalb 12 mm unter die
 Außenhaut von `lod0` (Stichproben an Ecken, Kantenmitten und im Inneren jedes Dreiecks; Radhäuser und nach unten
 blickende Flächen zählen nicht). Die Radtrommeln des Werfers sind nur die innere Hälfte des Reifens: Eine Kappe in
-der Ebene der Reifenflanke lag vor der Felge, die dann nie Sonne bekam. Der Lkw-Werfer ist ein Koffer, das
-Fahrerhaus nach seinem Profil und Trommeln, alles 3 cm nach innen gesetzt. Der Export bricht ab, wenn die Hülle
+der Ebene der Reifenflanke lag vor der Felge, die dann nie Sonne bekam. Der Export bricht ab, wenn die Hülle
 eines Pkw danach nicht mindestens 6 mm unter der Haut liegt; gemessen (Exportbericht, `levels.shadow`): vorher
-7,1–7,9 mm außerhalb (Spielerautos) bzw. 35 mm (Verkehr: die Hülle reicht über die Stoßfänger), nachher 11,9–12,0 mm
-innerhalb. Der Prüfer (`validate_models.py`) misst das noch nicht.
+7,1–30 mm außerhalb (Spielerautos; 30 mm = der Grund des Grills), nachher 12,0 mm innerhalb. Der Prüfer
+(`validate_models.py`) misst das noch nicht; der Kontaktbogen zeigt es (`--caster`: Werfer rot über dem Modell,
+rot ist, was aus der Hülle ragt).
+
+- Die Hülle wird **nach** dem Einschneiden der Lampen- und Grillmulden eingezogen: Vorher stand sie vor deren
+  Grund (Mulden bis 30 mm tief) und verschattete ihn.
+- Die Radläufe des Werfers sind offen wie die der Karosserie (Verkehr `arch_n` 6, Spielerautos mit Stationen an den
+  senkrechten Kanten der Öffnung): Eine geschlossene oder grob angedeutete Öffnung lag über den Rädern und warf
+  ihren Schatten auf sie.
+- Der Lkw-Werfer ist der Koffer, das Fahrerhaus nach seinem Profil und darunter nur, was wirklich da ist
+  (Stoßfänger, Kotflügel, Tritt- und Batteriekästen, Tanks, Rahmen), alles 3 cm innen, dazu die Trommeln. (Ein
+  Kasten über die ganze Breite unter dem Fahrerhaus und eine Platte unter dem ganzen Auflieger ragten aus der Hülle.)
 
 ### Sattelzug
 
@@ -500,14 +530,52 @@ innerhalb. Der Prüfer (`validate_models.py`) misst das noch nicht.
   ein Renderer Zugmaschine und Auflieger knicken kann. `ModelFactory` wertet `groups` noch nicht aus.
 - Lack: `paint` = Koffer, `paint2` = Fahrerhaus, `paint3` = Streifen und Schriftzug. Die vier Farbsets sind
   dasselbe Netz mit anderen Lackwerten (bei Rot und Grün ist `paint3` = `paint`: kein Streifen).
-- Heck: Türen mit Rahmen und Gestängen, rot-weiße Konturmarkierung als beleuchtete Fläche (Kanal 8), zwei rote
-  Umrissleuchten oben (Kanal 9, mit Lichtanker `marker`), Leuchtenträger mit Blinker, Rück-/Bremslicht und
-  Rückfahrlicht je Seite, Dreieckrückstrahler, Kennzeichen, Unterfahrschutz, Schmutzfänger.
+- Heck: Türen mit Rahmen und Gestängen, rote Konturmarkierung, zwei rote Umrissleuchten oben (Kanal 9, mit
+  Lichtanker `marker`), Leuchtenträger mit Blinker, Rück-/Bremslicht und Rückfahrlicht je Seite,
+  Dreieckrückstrahler, Kennzeichen, Unterfahrschutz, Schmutzfänger.
+- **Rückstrahlende Markierung** (Kontur hinten, gelbes Band an den Seiten, Dreieckrückstrahler): Kanal 14
+  (`flood`, Gewicht 0,8) – bei Tag ihre eigene Farbe, bei Nacht leuchtet sie mit `ce_night` (das Licht der
+  Scheinwerfer des Spielers, bis der Renderer eine echte Rückstrahlung hat). Als Kennzeichen-Fläche (Kanal 8:
+  Rücklicht × `plate_energy` 0,45) blieb die Kontur nachts fast dunkel – sie ist das Nachtmerkmal eines Lkw.
+- Fast weiße Lackierungen (alle Kanäle über 85 %) werden auf `#d8d8d6` begrenzt (`truck3d._tone`): Weißer Lack wirft
+  etwa 80 % des Lichts zurück; `#ececea` erschien in Echtzeit als reines Weiß ohne jede Form.
+
+### Nacharbeit nach der Kunstkritik (AS1R)
+
+Was die unabhängige Kritik der ersten Fassung fand und was am Modell geändert wurde (Lack, Belichtung und
+unbeleuchtete Lampen sind Sache des Renderers, siehe unten):
+
+| Befund | Ursache | Änderung |
+|---|---|---|
+| Rücklicht nachts nur dünne Lichtleiter | Leuchtenkörper Kanal 2 mit Gewicht 0,5: 0,35 × 0,5 = 17,5 % | Gewicht 1,0 (`cardetail._LAMP3D_TAIL`); die ganze Leuchte glimmt, Bremse bleibt ein großer Schritt |
+| Kompakt: Stoßfänger 52 mm im Vorderreifen | Die Stationen der vorderen Endrundung (r_plan + 5 cm) reichten über das Stoßfängerende hinaus: der Loft lief 9 cm in den Radlauf | Hook `bumper_clamp` |
+| Stoßfänger als aufgeklebter Kasten mit flacher Endkappe | Loft endet senkrecht am Radlauf | Hook `bumper_end_r` (5 cm): das Ende läuft rund in die Karosserie |
+| Kompakt: schwarzer Keil über den Rückleuchten | die Ecke der Hutablage stand aus der gerundeten Schulter | Hutablage folgt der Außenhaut |
+| Wanne im Reifen (bis 77 mm, verdeckt) | Boden und Türverkleidung liefen durch die Radhäuser | Wanne und Armaturenbrett mit Abstand zu den Rädern |
+| Bremsscheibe wie polierte Kugel | gedrehter Kasten, glatt schattiert | harte Kanten (30°), Gusseisen matt |
+| Limousinen- und Verkehrsfelgen hellsilber | im Sprite spiegelt das Metall das dunkle Radhaus: anthrazit | Felgenfarbe wie im Sprite |
+| Kennzeichen und Fugen flimmern | dünne Zeichen auf reinem Weiß, Fugen 7 mm | Kennzeichen hellgrau, Zeichen kräftiger (`plate_bold`), Fugen 8 mm |
+| Innenraum Kompakt 6 268 > 6 000 | Verkleidung = die volle Kabine | grober Verkleidungs-Loft, Export-Wächter |
+| Dritte Bremsleuchte der Limousine ohne `dir` | geschlossener Kasten: Normalen heben sich auf | nach hinten blickende Fläche; Prüfer verlangt `dir` bei Fahrzeugen |
+| Verkehr: dritte Bremsleuchte als roter Balken bei Tag | unbeleuchtet = halbe Leuchtfarbe | dunklere Leuchtfarbe (`chmsl_lamp`), mit Bremsverstärkung 2,2 leuchtet sie trotzdem voll |
+| Verkehr: Stufensprung bei 40/120 m | Kennzeichen hell bzw. weg, Spiegel lackfarben, Heck unten | Kennzeichen grau in allen Stufen, Spiegelglas in allen Stufen, dunkler Heckabschluss in `lod2` |
+| Verkehr: glattes Heck, schwebender Auspuffring | – | Kofferraum-/Heckklappenfugen, Emblem, Auspuff als dunkles Rohr |
+| Lkw: Kontur nachts dunkel, Weiß ohne Form, Werfer ragt heraus | siehe „Sattelzug“ und „Schattenwerfer“ | Kanal 14, `#d8d8d6`, Werfer aus Teilen |
+
+Gemessen (Spielkamera, Tag, Anteil der Autopixel, die sich beim Stufenwechsel um mehr als 24 Stufen ändern):
+40 m `lod0` → `lod1` 6,6–9,8 % (vorher 6–11 %), 120 m `lod1` → `lod2` 22–34 % (vorher 24–38 %). Der Rest bei
+120 m ist die grobe Kabine und der grobe Querschnitt von `lod2` (Budget 1 200 Dreiecke).
+
+**Was die Modelle vom Renderer brauchen** (nicht im Modell lösbar): unbeleuchtete Fahrzeuglampen dunkler
+(`lamp_off` etwa 0,25–0,3 statt 0,5 – rot und bernstein wirken bei Tag sonst eingeschaltet), Lackbelichtung ohne
+Übersteuern (Kompakt-Gelb, Weiß), Klarlack mit Spiegelung, Kontaktschatten, Schein an den Lichtankern (F6).
 
 ### Diagnose
 
 `CE_STATS=1` vor dem Export druckt je Stufe die Dreiecke je Objekt (Spielerautos) und je Projektion die Zahl der
 Konturen und Dreiecke vor und nach dem Schnitt. Auf die Dateien hat die Variable keinen Einfluss.
+Kontaktbogen: `--clay` (alles grau, Glas unsichtbar: Stufen, Blätter, Dellen), `--caster` (Schattenwerfer rot),
+`--review --views=17,18` (Vorderrad, Radhaus), `--views=19,20` (Heck bei Nacht aus Kamerahöhe).
 
 
 ## 14. Umgebung des Schnitts (Bauabschnitt 2)

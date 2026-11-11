@@ -110,10 +110,12 @@ class Tris:
         n = np.cross(self.pos[:, 1] - self.pos[:, 0], self.pos[:, 2] - self.pos[:, 0])
         return n / np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-12)
 
-    def split_z(self, z):
-        """Splits every triangle that crosses the height z (cladding line)."""
+    def split_z(self, z, where=None):
+        """Splits every triangle that crosses the height z (cladding line). where: (T) bool - only these."""
         d = self.pos[:, :, 2] - z
         cross = (d.min(axis=1) < -1e-6) & (d.max(axis=1) > 1e-6)
+        if where is not None:
+            cross &= where
         if not cross.any():
             return
         keep = ~cross
@@ -394,8 +396,9 @@ def cut_holes(pos, nor, mat, proj, sign, holes, keeps=(), n_min=0.05):
 def pocket(pos, nor, mat, proj, sign, outline, depth, floor_mat, wall_mat, n_min=0.2):
     """A recess in a triangle set (lamp units of the player cars): the faces inside the outline that look
     against the projection are moved by depth along the projection axis into the body, walls close the step.
-    pos, nor (T, 3, 3), mat (T). Returns (pos, nor, mat, stats) - stats: floor and wall triangles and the mean
-    depth of the floor along the viewing axis (which of several objects under one outline is in front)."""
+    pos, nor (T, 3, 3), mat (T). Returns (pos, nor, mat, stats) - stats: floor and wall triangles, the floor area
+    (m2) and the mean depth of the floor along the viewing axis (which of several objects under one outline is in
+    front)."""
     axis = np.array([float(sign), 0.0, 0.0]) if proj == "side" else AXES[proj]
     t = Tris(pos, nor, mat)
     mark = -7
@@ -404,7 +407,7 @@ def pocket(pos, nor, mat, proj, sign, outline, depth, floor_mat, wall_mat, n_min
     sel = t.mat == mark
     nf = int(sel.sum())
     if nf == 0:
-        return pos, nor, np.asarray(mat, dtype=np.int32), dict(floor=0, walls=0, front=-1e30)
+        return pos, nor, np.asarray(mat, dtype=np.int32), dict(floor=0, walls=0, front=-1e30, area=0.0)
     fp = t.pos[sel]
     front = float((fp.mean(axis=1) @ axis).mean())
     # boundary edges of the recessed region (in the winding of their triangle)
@@ -440,7 +443,8 @@ def pocket(pos, nor, mat, proj, sign, outline, depth, floor_mat, wall_mat, n_min
         out_m.append(np.full(len(wp), wall_mat, dtype=np.int32))
     nn = np.concatenate(out_n)
     nn = nn / np.maximum(np.linalg.norm(nn, axis=2, keepdims=True), 1e-12)
-    return np.concatenate(out_p), nn, np.concatenate(out_m), dict(floor=nf, walls=len(wp), front=front)
+    return np.concatenate(out_p), nn, np.concatenate(out_m), dict(floor=nf, walls=len(wp), front=front,
+                                                                     area=_area3(fp))
 
 
 # --- the decals of a Car ---------------------------------------------------------------------------------
@@ -553,7 +557,8 @@ def _window_items(w, pal, seal, glass, seals=True):
     return groups
 
 
-def car_surfaces(car, soups, cut=True, level=0, paint_rough=0.28, seals=True, far_glass=False):
+def car_surfaces(car, soups, cut=True, level=0, paint_rough=0.28, seals=True, far_glass=False, far_plate=None,
+                 glass_look=None, far_sill=False):
     """Cuts (or paints) the decals of a vehicles.Car into body lofts.
     car: the Car whose decal lists are used; car.body / car.cabin / car.bumper_obs name the lofts (those of the
     Car itself, or the SmoothCar lofts of ce3d.traffic3d). Without bumper objects (far levels whose body runs
@@ -565,6 +570,12 @@ def car_surfaces(car, soups, cut=True, level=0, paint_rough=0.28, seals=True, fa
     for nothing). far_glass: at level 2 the panes are not cut - every face of the greenhouse that is not roof
     becomes glass (a 16-point greenhouse has its edges where the panes end), and of the lamps only what is seen
     from straight behind / ahead is cut (no side wraps, no reverse and daytime lights).
+    far_plate: colour (hex) of the number plates at levels 1 and 2 - the mean of the plate with its characters
+    (which the coarse levels drop: a white plate jumped brighter at the swap), and the plate stays at level 2.
+    None: the plates keep their colour and level 2 drops them.
+    glass_look: dict(color, rough, metal) of the panes instead of the default dark glass.
+    far_sill: at level 2 (far_glass) the rear end below the plastic line of the bumper is dark plastic, as the
+    bumper of the nearer levels.
     Returns (Palette, {object name: Tris}, stats)."""
     d = car.d
     pal = Palette()
@@ -573,7 +584,7 @@ def car_surfaces(car, soups, cut=True, level=0, paint_rough=0.28, seals=True, fa
     plastic = pal.add("plastic", "flat", dict(color="#1a1b1d", rough=0.6, metal=0.0))
     bumper_base = pal.add("bumper", "flat", dict(color="#1b1c1e", rough=0.3, metal=0.0)) if black_bumper else paint
     seal = pal.add("seal", "flat", dict(color="#101112", rough=0.5, metal=0.0))
-    glass = pal.add("glass", "glass", dict(color="#151c23", rough=0.03, metal=0.0))
+    glass = pal.add("glass", "glass", dict(glass_look or dict(color="#151c23", rough=0.03, metal=0.0)))
     out = {}
     stats = dict(cut_tris=0, painted=0)
 
@@ -592,8 +603,10 @@ def car_surfaces(car, soups, cut=True, level=0, paint_rough=0.28, seals=True, fa
                     min(ext) > 0.05 and level >= 1 and not front1:
                 continue                # the black ring around a lamp: the lamp fills it at the far levels
             if dec.get("lamp") or dec.get("emit") or (level == 1 and size > 0.2 and (min(ext) > 0.05 or not far_glass)):
-                if level == 2 and far_glass and (dec.get("face", "rear") == "side" or
-                                                 str(dec.get("lamp", "")).split(":")[0] in ("reverse", "drl", "plate")):
+                lamp = str(dec.get("lamp", "")).split(":")[0]
+                if far_plate and lamp == "plate":
+                    dec = dict(dec, mat=dict(color=far_plate, rough=0.45, spec=0.4))
+                elif level == 2 and far_glass and (dec.get("face", "rear") == "side" or lamp in ("reverse", "drl", "plate")):
                     continue                # (a plate is 3 x 0.6 px at 120 m and costs 100 triangles on the end cap)
                 if (level == 2 or (level == 1 and far_glass and not front1)) and dec.get("inset"):
                     dec = dict(dec)
@@ -621,6 +634,15 @@ def car_surfaces(car, soups, cut=True, level=0, paint_rough=0.28, seals=True, fa
     t.mat[:] = paint
     if d.get("cladding") is not None and not (level == 2 and far_glass):
         t.paint_below(d["cladding"], plastic)       # (not at the far level: the cut along the sill costs 180 triangles)
+    elif level == 2 and far_glass and far_sill and d.get("cladding") is not None:
+        # the far level has no bumpers: the dark lower part of the rear bumper on its rear end only (what the
+        # following driver sees; along the flanks the cut would cost 180 triangles) - the bottom row of the car
+        # turned from dark plastic to paint at the 120 m swap
+        z_pl = d["bumper"].get("plastic", 0.25)
+        rear = t.face_normals()[:, 1] < -0.5
+        t.split_z(z_pl, where=rear)
+        rear = t.face_normals()[:, 1] < -0.5
+        t.mat[rear & (t.pos[:, :, 2].mean(axis=1) < z_pl)] = plastic
     full = car.body_decals() + d.get("body_decals_3d", [])
     run(t, _decal_items(small_filter(full), pal, order_from=full))
     if not car.bumper_obs:

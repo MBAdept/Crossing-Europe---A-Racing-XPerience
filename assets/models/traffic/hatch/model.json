@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 40,
-    "tris": 17317,
+    "tris": 17636,
     "parts": [
      {
       "node": "body",
@@ -53,7 +53,7 @@
    {
     "name": "lod1",
     "max_dist_m": 120,
-    "tris": 5753,
+    "tris": 5661,
     "parts": [
      {
       "node": "body",
@@ -65,7 +65,7 @@
    {
     "name": "lod2",
     "max_dist_m": 100000,
-    "tris": 1136,
+    "tris": 1180,
     "parts": [
      {
       "node": "body",
@@ -75,11 +75,11 @@
     ]
    }
   ],
-  "shadow": {"mesh": "traffic/hatch/shadow.res", "tris": 652},
+  "shadow": {"mesh": "traffic/hatch/shadow.res", "tris": 988},
   "lights": [
    {
     "role": "brake",
-    "pos": [-0.7274, 0.8495, 1.9674],
+    "pos": [-0.7275, 0.8495, 1.9674],
     "dir": [-0.433, 0.203, 0.878],
     "size": 0.242,
     "color": "#ff2010"
@@ -135,7 +135,7 @@
    },
    {
     "role": "tail",
-    "pos": [-0.7274, 0.8495, 1.9674],
+    "pos": [-0.7275, 0.8495, 1.9674],
     "dir": [-0.433, 0.203, 0.878],
     "size": 0.242,
     "color": "#ff2010"
@@ -151,8 +151,8 @@
   "paint": {"paint": "#3d8a45", "metal": 0.4},
   "auto_lod": false,
   "tags": ["traffic", "car"],
-  "bytes": 256895,
-  "hash": "5abc1ef36174cb33874a6809105335bca5bd0c38"
+  "bytes": 270561,
+  "hash": "0e5147c7e4ecdaded308d5bb4366e15c54d2e5d4"
  },
  "sets": {
   "traffic/hatch_green": {

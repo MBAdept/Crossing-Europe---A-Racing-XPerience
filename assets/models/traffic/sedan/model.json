@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 40,
-    "tris": 17695,
+    "tris": 17555,
     "parts": [
      {
       "node": "body",
@@ -53,7 +53,7 @@
    {
     "name": "lod1",
     "max_dist_m": 120,
-    "tris": 5805,
+    "tris": 5809,
     "parts": [
      {
       "node": "body",
@@ -65,7 +65,7 @@
    {
     "name": "lod2",
     "max_dist_m": 100000,
-    "tris": 1123,
+    "tris": 1149,
     "parts": [
      {
       "node": "body",
@@ -75,7 +75,7 @@
     ]
    }
   ],
-  "shadow": {"mesh": "traffic/sedan/shadow.res", "tris": 636},
+  "shadow": {"mesh": "traffic/sedan/shadow.res", "tris": 972},
   "lights": [
    {
     "role": "brake",
@@ -158,8 +158,8 @@
   "paint": {"paint": "#b52424", "metal": 0.3},
   "auto_lod": false,
   "tags": ["traffic", "car"],
-  "bytes": 260279,
-  "hash": "cc20ae33d99e6b64ce91a474ffe579aefceba0c1"
+  "bytes": 271351,
+  "hash": "513ef8cc43d5b0b945c16041a244880e9353aac4"
  },
  "sets": {
   "traffic/sedan_red": {

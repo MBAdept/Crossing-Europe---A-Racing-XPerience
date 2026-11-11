@@ -103,6 +103,37 @@ def cabin_half_width(car, y, margin=0.02):
     return car.green_half(y)[1]["xb"] - margin
 
 
+# clearance of the cabin from the tyres: inner tyre face + this (rear) / + the sweep of a front wheel steered by 25
+# degrees (its inner rear corner moves R sin 25 + tw/2 (1 - cos 25) further in)
+WHEEL_CLEAR_M = 0.03
+STEER_MAX_DEG = 25.0
+
+
+def wheel_houses(car):
+    """[(y0, y1, x_max)] of the wheel houses (build space): inside y0..y1 nothing of the cabin may reach out further
+    than x_max - the floor and door panels of the tub ran through the tyres (77 mm deep at the rear wheels of the
+    limousine, 45 mm at the kompakt: hidden in the body, but visible through the arch when the wheels steer)."""
+    d = car.d
+    inset = d.get("wheel_inset", 0.02)
+    out = []
+    for ya, tw, front in ((car.y_ra, d.get("tw_r", d["tw"]), False), (car.y_fa, d["tw"], True)):
+        x_in = car.W2 - inset - tw
+        sweep = 0.0
+        if front:
+            a = math.radians(STEER_MAX_DEG)
+            sweep = car.R * math.sin(a) + 0.5 * tw * (1.0 - math.cos(a))
+        out.append((ya - car.Ra - 0.04, ya + car.Ra + 0.04, x_in - WHEEL_CLEAR_M - sweep))
+    return out
+
+
+def tub_half_width(car, y):
+    w = cabin_half_width(car, y)
+    for (y0, y1, x_max) in wheel_houses(car):
+        if y0 <= y <= y1:
+            w = min(w, x_max)
+    return w
+
+
 def headroom(car, y, x):
     """Height the cabin offers at (y, x): inside of the roof / glass, with clearance."""
     g0, g1 = car.d["g_range"]
@@ -110,6 +141,57 @@ def headroom(car, y, x):
     gh = car.green_half(y)[1]
     x_rc = max(0.05, gh["x_rc"])
     return gh["zr"] - gh["rc"] * min(1.0, abs(x) / x_rc) ** 2 - 0.055
+
+
+def outer_z(car, y, x):
+    """Height of the outside of the car (deck of the lower body or the greenhouse over it) at (y, x)."""
+    z = car.deck_z_at(y, x)
+    g0, g1 = car.d["g_range"]
+    if g0 <= y <= g1:
+        pts = car.green_half(y)[0]
+        for (xa, za), (xb, zb) in zip(pts[:-1], pts[1:]):
+            if min(xa, xb) - 1e-9 <= x <= max(xa, xb) + 1e-9 and abs(xb - xa) > 1e-9:
+                z = max(z, za + (zb - za) * (x - xa) / (xb - xa))
+    return z
+
+
+SHELF_CLEAR_M = 0.008       # the parcel shelf stays this far under the outside of the car
+
+
+def _shelf(parts, car, ya, yb, hw_max, z, th=0.02, n=12):
+    """Parcel shelf / luggage cover: a 2 cm plate at height z from ya to yb, at most hw_max wide, cut back where
+    the outside of the car comes down - the rounded end of the deck and the low foot of the greenhouse at the
+    rear. (A box of the full width stood out of the shoulder of the kompakt above both tail lamps as a dark
+    blade.)"""
+    top = z + 0.5 * th + SHELF_CLEAR_M
+    right = []
+    for i in range(n + 1):
+        y = ya + (yb - ya) * i / n
+        if outer_z(car, y, 0.0) < top:
+            continue
+        lo, hi = 0.0, hw_max
+        if outer_z(car, y, hi) < top:
+            for _ in range(24):
+                mid = 0.5 * (lo + hi)
+                if outer_z(car, y, mid) >= top:
+                    lo = mid
+                else:
+                    hi = mid
+            hw = lo
+        else:
+            hw = hw_max
+        if hw >= 0.05:
+            right.append((hw, y))
+    if len(right) < 2:
+        return
+    poly = [(x, y) for (x, y) in reversed(right)] + [(-x, y) for (x, y) in right]
+    poly = [(p[0], p[1]) for p in poly]
+    # counter-clockwise seen from above (MU.prism expects it): right side front to rear, left side rear to front
+    MU.prism(list(reversed(poly)) if _area(poly) < 0 else poly, th, bm=parts.bm("shelf"), plane="XY", offset=z - 0.5 * th)
+
+
+def _area(poly):
+    return 0.5 * sum(a[0] * b[1] - b[0] * a[1] for a, b in zip(poly, poly[1:] + poly[:1]))
 
 
 def _seat(parts, car, lay, x, hip, width, recline, z_c, back_len, head=True, key="seat"):
@@ -155,10 +237,15 @@ def build_interior(car, fine=False):
     # --- tub: floor and door panels as a loft of U sections (normals inwards), closed at both ends -------------
     bm = parts.bm("tub")
     n = 14
+    ys = {round(y0 + (y1 - y0) * i / n, 5) for i in range(n + 1)}
+    for (a, b, _x) in wheel_houses(car):
+        # the tub steps in over the wheel houses (under the parcel shelf and the dashboard, out of sight)
+        for yb in (a - 0.012, a, b, b + 0.012):
+            if y0 < yb < y1:
+                ys.add(round(yb, 5))
     rings = []
-    for i in range(n + 1):
-        y = y0 + (y1 - y0) * i / n
-        w = cabin_half_width(car, y)
+    for y in sorted(ys):
+        w = tub_half_width(car, y)
         zt = CD._belt(car, y) + 0.004
         rings.append([Vector((-w, y, zt)), Vector((-w, y, zf)), Vector((w, y, zf)), Vector((w, y, zt))])
     vr = [[bm.verts.new(p) for p in ring] for ring in rings]
@@ -202,12 +289,15 @@ def build_interior(car, fine=False):
         shelf_z = CD._belt(car, shelf_y1) - 0.03
     if shelf_y1 > y0 + 0.06:
         ws_ = cabin_half_width(car, 0.5 * (y0 + shelf_y1)) - 0.004
-        parts.box("shelf", (2.0 * ws_, shelf_y1 - y0 + 0.02, 0.02), (0.0, 0.5 * (y0 + shelf_y1), shelf_z))
+        _shelf(parts, car, y0 - 0.01, shelf_y1 + 0.01, ws_, shelf_z)
     # --- dashboard: body under the windshield base, soft top, instrument hood, centre screen, console -----------
     yd0, yd1 = lay["y_dash0"], lay["y_dash1"]
     wd = cabin_half_width(car, yd0) - 0.006
     z_cowl = CD._belt(car, min(yd1, lay["ws_b"])) - 0.012
-    parts.box("dash", (2.0 * wd, yd1 - yd0, 0.30), (0.0, 0.5 * (yd0 + yd1), z_cowl - 0.15), taper=(1.0, 0.82))
+    # the dashboard stands over the front wheel houses: its underside stays above the tyres (it reached 12 mm
+    # into a front tyre steered by 20 degrees); below the belt nobody sees it
+    dh = min(0.30, z_cowl - (2.0 * car.R + WHEEL_CLEAR_M))
+    parts.box("dash", (2.0 * wd, yd1 - yd0, dh), (0.0, 0.5 * (yd0 + yd1), z_cowl - 0.5 * dh), taper=(1.0, 0.82))
     parts.box("dash_top", (2.0 * wd - 0.02, (yd1 - yd0) * 0.9, 0.022), (0.0, 0.5 * (yd0 + yd1) + 0.02, z_cowl + 0.004))
     parts.box("dash_top", (0.34, 0.16, 0.075), (-x_seat, yd0 + 0.10, z_cowl + 0.03), taper=(0.9, 0.7))     # hood
     parts.box("screen", (0.26, 0.012, 0.12), (0.0, yd0 - 0.004, z_cowl - 0.07), rot_x=-12.0)

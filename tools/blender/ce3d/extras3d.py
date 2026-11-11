@@ -57,7 +57,16 @@ def build_extras(car, fine=False):
         bm = MU.bm_box(0.36, 0.05, 0.03, (0.0, y + 0.012, z))
         MU.make(car.name + "_chmsl_house", bm, dark, parent=car.center)
         lamp = M.basic(car.name + "_chmsl", "#4a0806", rough=0.2, coat=0.6, emit={"brake": (CD.BRAKE_RED, 1.0)})
-        bm = MU.bm_box(0.32, 0.006, 0.016, (0.0, y - 0.015, z))
+        # the lit strip is the rear face of the housing only: a closed box has no direction (its normals cancel
+        # out), and the manifest anchor of the lamp had no "dir" (contract A-4 wants one)
+        bm = bmesh.new()
+        yl = y - 0.016                         # 3 mm in front of the rear face of the housing
+        vs = [bm.verts.new(p) for p in ((-0.16, yl, z - 0.008), (0.16, yl, z - 0.008), (0.16, yl, z + 0.008),
+                                        (-0.16, yl, z + 0.008))]
+        fc = bm.faces.new(vs)
+        bm.normal_update()
+        if fc.normal.y > 0.0:
+            fc.normal_flip()
         MU.tag(MU.make(car.name + "_chmsl_lamp", bm, lamp, parent=car.center), lamp="brake")
         made["chmsl"] = (round(y, 3), round(z, 3))
     # --- plate: frame around it and two lamps above it (lit with the tail lights, no light anchor)
@@ -115,7 +124,9 @@ def uncover_pockets(car, soups, shift, cut_holes):
     front of the recess). soups: {name: Soup} in root space, shift(outline, proj) -> outline in root space,
     cut_holes = decalgeo.cut_holes. Returns the number of removed triangles."""
     removed = 0
-    names = [n for n in soups if n.split(".")[0] in (car.name + "_seam", car.name + "_fuelflap")]
+    # (the black tail band of the kompakt ran 5 mm into the outline of its tail lamps: its end hung in front of the
+    # recess as a flat black blade)
+    names = [n for n in soups if n.split(".")[0] in (car.name + "_seam", car.name + "_fuelflap", car.name + "_tailband")]
     for pk in car.lamp_pockets:
         proj = pk["proj"]
         ol = shift(pk["outline"], proj)

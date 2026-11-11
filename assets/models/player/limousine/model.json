@@ -10,7 +10,7 @@
    {
     "name": "lod0",
     "max_dist_m": 100000,
-    "tris": 45764,
+    "tris": 44095,
     "parts": [
      {
       "node": "body",
@@ -52,7 +52,7 @@
    {
     "name": "show",
     "max_dist_m": 0,
-    "tris": 99670,
+    "tris": 94629,
     "parts": [
      {
       "node": "body",
@@ -92,7 +92,7 @@
     ]
    }
   ],
-  "shadow": {"mesh": "player/limousine/shadow.res", "tris": 1872},
+  "shadow": {"mesh": "player/limousine/shadow.res", "tris": 2320},
   "lights": [
    {
     "role": "brake",
@@ -103,8 +103,9 @@
    },
    {
     "role": "brake",
-    "pos": [0, 1.3884, 0.65],
-    "size": 0.135,
+    "pos": [0, 1.3884, 0.651],
+    "dir": [0, 0, 1],
+    "size": 0.081,
     "color": "#ff2414"
    },
    {
@@ -158,8 +159,8 @@
    },
    {
     "role": "ind_r",
-    "pos": [0.8647, 0.7, -2.1307],
-    "dir": [0.838, 0.193, -0.51],
+    "pos": [0.863, 0.6998, -2.1297],
+    "dir": [0.837, 0.203, -0.508],
     "size": 0.043,
     "color": "#ffa01a"
    },
@@ -188,8 +189,8 @@
   "paint": {"paint": "#1d4ea8", "metal": 0.55},
   "auto_lod": false,
   "tags": ["player"],
-  "bytes": 1573290,
-  "hash": "c0eeb5f1e9cd7330e81d2e86f6312ca92d5c75b1"
+  "bytes": 1527819,
+  "hash": "f205c2f8fd2ab1676fe911677b44072d815ffc92"
  },
  "sets": {
   "player/limousine": {

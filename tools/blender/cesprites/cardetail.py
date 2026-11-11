@@ -50,6 +50,15 @@ def _tyre_profile_plain(R, r_rim, tw):
     return [(r, -x) for (r, x) in half] + [(R + 0.001, 0.0)] + list(reversed(half))
 
 
+def _tyre_profile_lite(R, r_rim, tw):
+    """3D hook (detail "tyre_lite"): the tyre of the traffic cars seen from 10 m and more - bead, sidewall bulge,
+    rounded shoulder and crown in 9 points instead of 15 (about 300 triangles less per wheel)."""
+    h = R - r_rim
+    half = [(r_rim + 0.006, tw / 2 - 0.014), (r_rim + h * 0.45, tw / 2 + 0.008), (R - 0.012, tw / 2 - 0.006),
+            (R, tw / 2 - 0.04)]
+    return [(r, -x) for (r, x) in half] + [(R + 0.001, 0.0)] + list(reversed(half))
+
+
 def _lathe_x(bm, prof, segs, mat_index=0, a0=0.0, a1=360.0, closed=True):
     """Revolve (r, x) about the X axis into bm."""
     n = segs if closed else segs + 1
@@ -70,18 +79,23 @@ def _lathe_x(bm, prof, segs, mat_index=0, a0=0.0, a1=360.0, closed=True):
     return rings
 
 
-def wheel_mesh(name, R, r_rim, tw, st, mats, sg=None, plain=False):
+def wheel_mesh(name, R, r_rim, tw, st, mats, sg=None, plain=False, lite=False):
     """One wheel (tyre, rim, spokes, disc, caliper) in local space: axis X, outer face towards +X,
     centre at the origin. mats: dict tyre, rim, rim_dark, disc, caliper. Returns a list of objects.
     sg: segment count at the detail level of a 3D build (None = as designed, the sprite model).
-    plain (3D hook): tyre without grooves, spokes of three sections, no wheel nuts."""
+    plain (3D hook): tyre without grooves, spokes of three sections, no wheel nuts. lite (3D hook): a tyre profile of
+    9 points (_tyre_profile_lite)."""
     if sg is None:
         def sg(n):
             return n
     objs = []
     # tyre
     bm = bmesh.new()
-    _lathe_x(bm, _tyre_profile_plain(R, r_rim, tw) if plain else _tyre_profile(R, r_rim, tw), sg(64))
+    if lite:
+        prof = _tyre_profile_lite(R, r_rim, tw)
+    else:
+        prof = _tyre_profile_plain(R, r_rim, tw) if plain else _tyre_profile(R, r_rim, tw)
+    _lathe_x(bm, prof, sg(64))
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     me = bpy.data.meshes.new(name + "_tyre")
     bm.to_mesh(me)
@@ -206,7 +220,7 @@ def wheels(car, st):
     for key, tw in (("f", d["tw"]), ("r", d.get("tw_r", d["tw"]))):
         meshes[key] = wheel_mesh(car.name + "_wheel_" + key, R, r_rim, tw, st, mats,
                                  sg=None if car.detail["wheel"] == 1.0 else car.n_wheel,
-                                 plain=bool(car.detail.get("wheel_plain")))
+                                 plain=bool(car.detail.get("wheel_plain")), lite=bool(car.detail.get("tyre_lite")))
     inset = d.get("wheel_inset", 0.02)
     out = []
     for key, ya in (("r", car.y_ra), ("f", car.y_fa)):
@@ -403,7 +417,9 @@ _LAMP3D = {"reverse": "reverse", "indicator": "ind", "white": "drl", ("head", "d
 # ... and of the parts of a tail lamp when the build has the 3D lamp parts (detail "extras"): the lamp body glows
 # with the tail lights and lights up fully when braking, light guides are the tail-light signature, brake segments
 # only brake. Parts of other lamps (reflectors, fog lamps) keep the channel their emission gives them.
-_LAMP3D_TAIL = {"tail": "tail_brake:0.5", "guide": "tail", "brake": "brake"}
+# The lamp body has the full weight: at weight 0.5 it glowed at 0.35 x 0.5 = 17.5 % with the tail lights, and the
+# night rear was a thin outline of light guides (the sprite's tail layer lights the whole lamp)
+_LAMP3D_TAIL = {"tail": "tail_brake:1.0", "guide": "tail", "brake": "brake"}
 _TAIL_TAGS = ("tail", "bar", "ring")
 # depth (m) of the recess of a lamp unit in a 3D build by tag (default: 1.5 x the lens height of the sprite lamp)
 _DEPTH3D = {"head": 0.028, "bar": 0.01, "refl": 0.006, "fog": 0.008, "reverse": 0.008}
@@ -579,7 +595,10 @@ def plate(car, center, proj="rear", size=(0.52, 0.112), text="CE 2026", target="
     bm = MU.bm_box(bw, 0.001, hh - 0.008, (xl, y_pl + out_y * 0.0006, cv))
     MU.make(car.name + "_plateband", bm, bmat, parent=car.center)
     tm = car.mat("plate_text", "#111111", rough=0.5)
-    ob = textgeo.text_mesh(car.rig, text, hh * 0.62, tm, bold=0.06, extrude=0.0, name=car.name + "_platetext")
+    # 3D hook (detail "plate_bold", 1.0 = the sprite): bolder strokes - 8 px high characters of thin strokes
+    # shimmered while the real-time car turned
+    bold = 0.06 * float(car.detail.get("plate_bold", 1.0))
+    ob = textgeo.text_mesh(car.rig, text, hh * 0.62, tm, bold=bold, extrude=0.0, name=car.name + "_platetext")
     textgeo.fit(ob, w - bw - 0.05)
     ob.parent = car.center
     ob.location = (cu + (bw / 2 + 0.006) * sgn, y_pl + out_y * 0.0008, cv - hh * 0.02)
