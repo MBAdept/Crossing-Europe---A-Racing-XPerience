@@ -908,10 +908,10 @@ Lichtbalken, die es nur in `lod0` gibt.
   (gehört zu `lamp_off`, Renderer). Die zwei breiten Gitterstäbe im `lod2` des Busses (Budget 1 500 / 1 500) lesen
   sich anders als die sechs feinen von `lod1`. Weiß übersteuert (Renderer).
 
-**Was mit dem Renn-Look gemessen ist:** `TRAFFIC_GLASS_FAR` (und `truck3d.GLASS_FAR`), `FAR_PLATE` und `CHECK_MEAN_EXP` sind auf `LOOK` der
-Fahrzeug-Ebene (`env_energy` 1,6, `paint_base` 0,9, Glas 2,2) und das Licht des Kontaktbogens abgestimmt. Ändern sich
-Look, Belichtung oder Tonkurve, sind sie neu zu messen (mittlere Farbe von Scheibe, Kennzeichen und Karoband in
-beiden Stufen an den Wechselabständen).
+**Was mit dem Renn-Look gemessen ist:** `TRAFFIC_GLASS_FAR` (und `truck3d.GLASS_FAR`), `FAR_PLATE` und
+`CHECK_MEAN_EXP` sind auf `LOOK` der Fahrzeug-Ebene (`env_energy` 1,6, `paint_base` 0,9, Glas 2,2) und das Licht
+des Kontaktbogens abgestimmt. Ändern sich Look, Belichtung oder Tonkurve, sind sie neu zu messen (mittlere Farbe von
+Scheibe, Kennzeichen und Karoband in beiden Stufen an den Wechselabständen).
 
 **Kennzeichen und Zählweise:** Mit `FAR_PLATE` `#a2a2a0` stimmt die mittlere Helligkeit; die Zählung geänderter
 Pixel steigt dadurch bei 25–60 m etwas (SUV 40 m 5,6 -> 6,8 %, Limousine 13,2 -> 14,4 %), weil die weißen Pixel des
