@@ -5,7 +5,8 @@ prozeduralen Generatoren** wie die Sprites (`tools/blender/cesprites`, siehe [sp
 Generatoren haben dafür Schalter („Hooks“) bekommen, deren Voreinstellung exakt das Sprite-Modell von v0.7.0
 ergibt. Kein Modell wird von Hand gebaut oder importiert. Der Modus „Arcade“ benutzt nichts von alledem.
 
-Stand: Bauabschnitt 3 (alle fünf Spielerautos und alle sechs Verkehrsauto-Typen als Modelle, Abschnitt 14).
+Stand: Bauabschnitt 4 (jedes Fahrzeug-Set hat ein Modell: Spielerautos und Verkehrsautos aus Abschnitt 14,
+Sattelzüge, Busse und Polizei aus Abschnitt 15).
 Zahlen mit „gemessen“ stammen von der
 Build-VM (4 Kerne, mit anderen Aufträgen geteilt, Software-OpenGL), „abgeleitet“ ist gerechnet, nicht gemessen.
 
@@ -71,7 +72,7 @@ gespeichert werden, weichen sie selbst an vielen Stellen und manchmal in der Lä
 
 | Pfad | Inhalt |
 |---|---|
-| `tools/blender/ce3d/` | Exporter: `glb` (GLB-Schreiber), `core` (Netze einsammeln, Achsen, Verschweißen), `roles` (Material-Rollen -> Klassen, Lampenkanäle, Lichtanker), `export` (Modell -> GLB + Meta), `lod` (Detailtabellen), `bake` (Atlas-Bake), `manifest` (Budgets, Merge), `catalog3d` (Liste aller Modelle), dazu die Bauer `props3d`, `veg3d` + `leafatlas`, `vehicles3d` + `extras3d` (Spielerautos), `traffic3d` + `decalgeo` (Verkehrsautos), `truck3d` |
+| `tools/blender/ce3d/` | Exporter: `glb` (GLB-Schreiber), `core` (Netze einsammeln, Achsen, Verschweißen), `roles` (Material-Rollen -> Klassen, Lampenkanäle, Lichtanker), `export` (Modell -> GLB + Meta), `lod` (Detailtabellen), `bake` (Atlas-Bake), `manifest` (Budgets, Merge), `catalog3d` (Liste aller Modelle), dazu die Bauer `props3d`, `veg3d` + `leafatlas`, `vehicles3d` + `extras3d` (Spielerautos), `traffic3d` + `decalgeo` (Verkehrsautos), `truck3d` (Sattelzüge), `heavy3d` (Bus), `police3d` (Polizei) |
 | `tools/blender/cesprites/carinterior.py` | Innenraum der Spielerautos (nur 3D; die Sprites rufen es nie auf) |
 | `tools/blender/export_models.py`, `validate_models.py`, `check_sprite_geometry.py`, `fixtures/geometry_v070.json` | Export, Prüfer, Regressionsprüfung der Sprite-Geometrie |
 | `tools/models/` | `bake_models.gd`, `set_model_import.py` (.import-Dateien), `inspect_models.gd` (dekodiert die Netze für den Prüfer), `contact_sheet.gd` |
@@ -389,14 +390,18 @@ Sportwagen 3 514, GT 3 412 Dreiecke (Showroom-Stufe 6 242–7 058).
 | `traffic/suv` (4 Farbsets) | lod0 17 824 · lod1 5 915 · lod2 1 169 · Schatten 1 004 | 6 / 1 / 1 | 280 642 B | – | 2,5 s | 0,03 s |
 | `traffic/van` (4 Farbsets) | lod0 17 655 · lod1 5 845 · lod2 1 189 · Schatten 1 064 | 6 / 1 / 1 | 270 960 B | – | 2,4 s | 0,03 s |
 | `traffic/sports` (5 Farbsets) | lod0 17 751 · lod1 5 741 · lod2 1 194 · Schatten 972 | 6 / 1 / 1 | 287 195 B | – | 2,5 s | 0,03 s |
-| `traffic/truck` (4 Lackierungen) | lod0 18 084 · lod1 4 672 · lod2 1 490 · Schatten 476 | 13 / 1 / 1 | 161 851 B | – | 1,0 s | 0,02 s |
+| `traffic/truck` (Koffer weiß, AS2b) | lod0 19 010 · lod1 5 174 · lod2 1 298 · Schatten 476 | 13 / 1 / 1 | 170 266 B | – | 1,6 s | 0,02 s |
+| `traffic/truck_transport` (Koffer blau) | lod0 19 134 · lod1 5 260 · lod2 1 298 · Schatten 476 | 13 / 1 / 1 | 171 556 B | – | 1,6 s | 0,02 s |
+| `traffic/truck_tarp` (Plane rot, grün) | lod0 23 412 · lod1 5 168 · lod2 1 222 · Schatten 476 | 13 / 1 / 1 | 209 892 B | – | 2,0 s | 0,03 s |
+| `traffic/bus` (3 Farbsets) | lod0 19 238 · lod1 6 398 · lod2 1 500 · Schatten 516 | 6 / 1 / 1 | 227 637 B | – | 3,1 s | 0,02 s |
+| `police/*` (18, je ein Modell) | lod0 19 778–21 970 · lod1 5 331–5 991 · lod2 1 044–1 185 · Schatten 950–1 014 | 6 / 1 / 1 | 293–344 kB | – | 2,7–3,6 s | 0,02 s |
 | `props/tree_oak` | lod0 1 220 (420 Karten) · lod1 459 (140) · Schatten 179 · Fernbild | 2 / 2 / 1 | 53 072 B | 373 558 B | 2,2 s | 0,01 s |
 | `props/farmhouse` | lod0 104 | 1 | 2 586 B | 752 795 B (1024², Nachtlicht 512²) | 58 s | 0,01 s |
 | `props/streetlight` | lod0 312 (keine automatische Stufe) | 1 | 4 395 B | – | 0,1 s | < 0,01 s |
 | `landmarks/michel` | lod0 3 024 | 1 | 63 648 B | 377 301 B (2048² WebP, Nachtlicht 1024²) | 329 s | 0,02 s |
 
-Zusammen (Stand AS2a): Netze 10,28 MB von 40 MB (die zwölf Fahrzeuge 10,16 MB, davon die fünf Spielerautos
-8,43 MB; MB = 2²⁰ Bytes wie im Prüfer), Texturen 4,59 MB im Grafikspeicher, Quellen 1,43 MB. Der Export des
+Zusammen (Stand AS2b): Netze 16,43 MB von 40 MB (AS2a: 10,28 MB; die 18 Polizeiautos 5,6 MB, Bus und Sattelzüge
+0,75 MB; MB = 2²⁰ Bytes wie im Prüfer), Texturen 4,59 MB im Grafikspeicher, Quellen 1,43 MB. Der Export des
 Michel besteht fast ganz aus dem Cycles-Bake des 2048er-Atlas (980 Karten). Die Sprite-Geometrieprüfung aller
 187 Sets dauert etwa 6 Minuten (2 Prozesse) bzw. 697 s (1 Prozess, AS2a). Alle Zeiten sind auf dieser VM
 gemessen, während drei andere Läufe die vier Kerne mitbenutzten (2 Prozesse, `nice`): Sie schwanken von Lauf zu
@@ -441,9 +446,15 @@ Der GT hat mit 390 cm² das kleinste Rücklicht (eine 5 cm hohe Leiste über die
   das Heck ist eine fast senkrechte Fläche; Glas dunkel und spiegelnd, kein Innenraum. Die Blinkerfelder (71–120
   cm² je Seite) gibt es nur im 3D-Entwurf – das Sprite zeigt dort den schmalen Streifen. `lod2` hat
   dreieckige Radausschnitte mit sechseckigen Rädern – gedacht für mehr als 120 m.
-- **Sattelzug:** Zugmaschine und Koffer mit lesbarem Heck. Alle vier Lackierungen sind derselbe Koffer – eine
-  Plane (Rot, Grün im Sprite) gibt es nicht. Das Fahrerhaus ist ein Profilkörper mit eingeschnittenen Scheiben
-  (keine gewölbte Front), kein Innenraum.
+- **Sattelzug:** Zugmaschine und Auflieger mit lesbarem Heck; seit AS2b drei Bauarten wie im Sprite (Koffer mit
+  Schriftzug LOGISTIK bzw. TRANSPORT, Plane mit Gurten). Das Fahrerhaus ist ein Profilkörper mit Scheiben aus Glas
+  (keine gewölbte Front), kein Innenraum. Der Lack des weißen Koffers erscheint im Kontaktbogen noch als reines Weiß
+  (Belichtung des Renderers).
+- **Bus:** derselbe Reisebus wie das Sprite (Fensterband, Streifen, Lampen, Zielanzeige) als Körper mit Radläufen,
+  Stoßfängern und Spiegeln statt eines bemalten Quaders. Kein Innenraum: Die Scheiben sind dunkel.
+- **Polizei:** die Verkehrsautos mit eingeschnittener Lackierung, Wörtern und einem Lichtbalken mit Tiefe; in `lod0`
+  gleichwertig mit den Verkehrsautos, die Karos von Belgien, Schweiz, Litauen, Lettland, Rumänien zeigt `lod1` nur
+  an Heck und Front.
 - **Eiche:** Laubkarten statt Kugelhaufen – klar feiner als das Sprite, aber aus der Nähe als Karten erkennbar,
   ohne sichtbare Äste. Fernbild und `lod1` stimmen bei Tag in Rot und Grün auf 3 % überein, Blau liegt rund 20 %
   darunter (dem Fernbild fehlt der Himmelsglanz der Karten); bei Mondlicht sind beide gleich dunkel.
@@ -469,10 +480,11 @@ Der GT hat mit 390 cm² das kleinste Rücklicht (eine 5 cm hohe Leiste über die
 - Aufgesetzte Details der Verkehrsautos sind in die Karosserie geschnitten (eine Lage, kein Flimmern) – auch
   bei `lod1`/`lod2`, dort mit weniger Teilen.
 - Komprimierte Netze melden immer ein Tangenten-Array (mit den Normalen gepackt, kostet keine Bytes).
-- Die Lampenkanäle 10, 11, 13 und 14 benutzt noch kein Modell (die Anstrahlung des Michel steckt in seinem
-  Nachtlicht-Atlas); Kanal 9 (Umrissleuchten) und die Lackcodes `paint2`/`paint3` trägt der Sattelzug. Der
-  Prüfstreifen (`--channels`) zeigt alle 15 Kanäle, die Render-Prüfung `check_models.gd` schaltet die Lackcodes
-  an einem Prüfnetz durch.
+- Seit AS2b sind alle Fahrzeug-Lampenkanäle belegt: Blaulicht A/B (10, 11) die Polizei, „immer an“ (13) die
+  Zielanzeige des Busses, Rückstrahlung (14) Kontur und Dreiecke des Sattelzugs, Umrissleuchten (9) Sattelzug und
+  Bus (die Anstrahlung des Michel steckt weiter in seinem Nachtlicht-Atlas). Die Lackcodes `paint2`/`paint3`
+  tragen Sattelzug, Bus und Polizei. Der Prüfstreifen (`--channels`) zeigt alle 15 Kanäle, die Render-Prüfung
+  `check_models.gd` schaltet die Lackcodes an einem Prüfnetz durch.
 - Die Klasse `baked_cutout` benutzt noch kein Referenzmodell (sie kommt erst mit den Stadthäusern und
   Wahrzeichen aus `props_cities`/`props_landmarks`): Material und Prüfer kennen sie, der Weg vom Generator bis
   ins Bild ist dafür noch nicht einmal ganz durchlaufen worden.
@@ -710,5 +722,119 @@ Spiegelung der Umgebung, kein Klarlack-Glanzlicht über die Rundungen), es fehle
 Radhäusern und unter dem Auto und der Kontaktschatten, das Glas ist heller und spiegelt kaum, unter AgX wird Gelb
 blass. Alle `showroom`-Flags bleiben `false`. Was fehlt, liegt im Renderer (Umgebungsspiegelung und Licht des
 Showrooms, R3/UI1), nicht im Netz.
+
+## 15. Fahrzeuge des Bauabschnitts 4 (AS2b): Lkw, Busse, Polizei
+
+Seit diesem Abschnitt hat **jedes Fahrzeug-Set ein Modell**: neben Spieler- und Verkehrsautos die sieben schweren
+Sets (vier Sattelzüge, drei Busse) und alle 18 Polizeiautos. Platzhalter (`box`) gibt es nur noch unter den
+Requisiten und Wahrzeichen.
+
+| Modell | Bauer | Sets |
+|---|---|---|
+| `traffic/truck` | `truck` (`ce3d/truck3d.py`) | `traffic/truck_white` (Koffer, Schriftzug LOGISTIK) |
+| `traffic/truck_transport` | `truck` | `traffic/truck_blue` (Koffer, Schriftzug TRANSPORT) |
+| `traffic/truck_tarp` | `truck` | `traffic/truck_red`, `traffic/truck_green` (Planenauflieger) |
+| `traffic/bus` | `bus` (`ce3d/heavy3d.py`) | `traffic/bus_white`, `traffic/bus_red`, `traffic/bus_blue` |
+| `police/<land>` (18) | `police` (`ce3d/police3d.py`) | `police/<land>` |
+
+### Sattelzüge
+
+- **Drei Bauarten** nach `cesprites.heavy.TRUCK_VARIANTS` (Plane ja/nein, Schriftzug): ein Modell je Bauart, die
+  Farbsets einer Bauart unterscheiden sich nur im Lack (Instanz-Uniforms). `build_truck` bricht ab, wenn die Sets
+  eines Modells verschiedene Bauarten verlangen.
+- **Koffer:** Streifen und Schriftzug auf beiden Flanken (`paint3`), der Schriftzug aus den Glyphen der
+  Sprite-Schrift (`police3d.glyph_outlines`, in `lod0` mit zwei, in `lod1` mit einem Kurvenpunkt je Bogen, in `lod2`
+  ohne Schrift). Das Emblem des ersten Entwurfs ist entfallen (das Sprite hat keines).
+- **Plane:** gewellte Plane zwischen den Rahmen (14 mm Amplitude), 22 Spanngurte (`lod0` mit Schnallen, `lod1` ohne,
+  `lod2` keine). Die Kanten der Plane laufen auf die Rahmen (vorher ein Spalt am Ober- und Untergurt).
+- **Fahrerhaus:** Scheiben in der Klasse `glass` (der Glaston der Verkehrsautos), fünf bernsteinfarbene
+  Dachleuchten über der Sonnenblende (Kanal 9, ohne Lichtanker), Seitenblinker hinter den Türen (`lod0`).
+- **Räder:** `truck3d._wheel` nimmt Radius und Spurbreite (der Bus benutzt dieselben Räder mit 0,5 m); die Reifen
+  der fernen Stufen haben keine innere Flanke mehr (unsichtbar, kostete in `lod2` ein Fünftel des Budgets).
+- **Gruppen** unverändert: `tractor` (Drehpunkt [0, 0, −3,1]), `trailer` (Königszapfen [0, 1,19, −3,7]), in
+  `lod1`/`lod2` ein Netz `body`.
+- **Teilquader (gemessen, Netz-Dump `lod0`):** Auflieger x ±1,275, y 0,21–4,00, z −5,35…8,291 – Arcade-Teil
+  `trailer` ±1,275 × 0–4,0 × −5,35…8,25 (hinten 41 mm Unterfahrschutz und Leuchtenträger). Fahrerhaus ohne
+  Spiegel x ±1,24 (Teil `cab` ±1,25), Höhe 3,878 m (Teil 3,80: Dachspoiler, seit AS1), oberhalb des Rahmens bis
+  z −5,46 (Teil endet bei −5,75; die Rückwand liegt im 40-cm-Spalt zwischen den Teilen, der Auflieger beginnt bei
+  −5,35). Spiegel bis ±1,535 m. Der Rahmen der Zugmaschine reicht unter dem Auflieger bis z −2,075. Die Kollision
+  rechnet weiter mit den Arcade-Teilen.
+
+### Bus
+
+- **Starr** wie der Arcade-Quader (ein Teil `body`, 12,8 × 2,55 × 3,65 m): Knoten `body`, `wheel_0l|r` (vorn),
+  `wheel_1l|r` (hinten, Zwillingsräder); `lod1`/`lod2` ein Netz. Ein Gelenkbus braucht erst ein Sprite-Set mit zwei
+  Teilen.
+- **Hülle:** ein Loft mit gerundeten Enden, Dachkante und aus dem Boden geschnittenen Radläufen. Die langen Linien
+  der Flanken (Schürze, Streifen, Fensterband) sind Zeilen des Lofts (`ROWS`): ein Schnitt längs durch die Vierecke
+  einer Flanke kostet doppelt so viele Dreiecke.
+- **Eingeschnitten** (eine Lage): Fensterband mit Dichtungen und sieben Scheiben, Doppeltür rechts, Fahrerfenster
+  links, Streifen (`paint2` Keil, `paint3`), Gepäckklappen mit Griffen (`lod0`), Seitenmarkierungsleuchten,
+  Heckscheibe, Lüftungsgitter (`lod0`, `lod1`), hohe Rückleuchten mit Blinker und Rückfahrlicht, dritte
+  Bremsleuchte, rote Umrissleuchten, Frontscheibe mit Zielanzeige (bernsteinfarbene LED-Felder, Kanal 13 „immer
+  an“), Scheinwerfer, Blinker, Grill.
+- **Teile:** Stoßfänger (hinten mit Kennzeichen samt Zeichen in `lod0`), Radlaufverkleidungen (`lod0`, `lod1`),
+  Spiegel an Armen (`lod2`: ein gerader Arm), Scheibenwischer.
+- **Lack:** `paint` = Aufbau, `paint2` = unterer Streifen, `paint3` = oberer Streifen; fast weißer Lack wird wie beim
+  Lkw begrenzt (`truck3d._tone`).
+- **Maße (gemessen):** Aufbau ohne Spiegel x ±1,275, y 0,37–3,65, z ±6,43 (Arcade ±1,275 × 0–3,65 × ±6,4;
+  Stoßfänger je 30 mm). Die Spiegel reichen bis ±1,505 m und 0,435 m vor die Front – in 2,2 bis 2,9 m Höhe, über
+  jedem Pkw-Dach.
+
+### Polizei
+
+- **Basis:** das Verkehrsauto des Sprite-Katalogs (Kombi, Limousine, Schrägheck oder SUV) aus `traffic3d`. Der Bauer
+  hakt sich nur für die Dauer eines Baus in drei Schritte ein (`police3d._hooks`, zur Laufzeit; die Dateien der
+  Verkehrsautos bleiben unverändert, eine Nacharbeit an ihnen erreicht die Polizei mit): der Entwurf ohne Dachreling
+  und ohne Emblem unter dem Heckwort, `decalgeo.car_surfaces` gefolgt von Lackierung und Wörtern,
+  `SmoothCar.lower_half`/`bumper_half_fn` mit einer Loft-Zeile je Lackierungslinie.
+- **Lackierung** (`cesprites.police.livery`: Band, Band mit Linie, Streifen, Karos, unten, Italien) in die Karosserie
+  geschnitten: `paint` = Wagenfarbe, `paint2` = `c1`, `paint3` = `c2` (Lack des Sets). Flächen, die nach oben
+  schauen (n_z > 0,75), behalten wie im Sprite die Wagenfarbe – geteilt wird dafür nur im Bereich der Bänder. Die
+  flachen Endkappen werden mit den Lackierungslinien als Kanten neu trianguliert (`_recap`, Delaunay mit
+  Zwangskanten): Jede Linie kreuzte sonst alle langen Fächerdreiecke.
+- **Schwellen:** Eine Linie teilt nur Dreiecke, die quer zu ihr größer als 1 / 4 / 15 cm und größer als 2 / 40 /
+  300 cm² sind (`lod0` / `lod1` / `lod2`); kleinere nehmen die Farbe ihres Mittelpunkts (Sägezahn unter einem
+  Pixel bei 10 / 40 / 120 m). Streifen unter 10 cm fallen in `lod2` weg.
+- **Karos:** `lod0` überall. `lod1` nur auf den Stoßfängern (Heck und Front – was die Spielkamera sieht), die Flanken
+  in der Mischfarbe (linear gemittelt); die Enden der Karosserie liegen im Band hinter den Stoßfängern und werden
+  nicht geschnitten (sie kosteten 770 Dreiecke). `lod2` überall Mischfarbe.
+- **Wörter:** das Landeswort auf beiden Flanken (auf den Türen, zwischen den Achsen) und am Heck, aus den Glyphen der
+  Inter-Schrift, die Blender mitbringt (Kurve, fett um 3,5 % der Höhe); Löcher (O, A, P, R …) bestimmt die
+  Umlaufrichtung der Randkanten (bei sich überlappenden fetten Glyphen verlor ein Test „liegt in einer anderen
+  Kontur“ das L von POLIZEI). Nur `lod0`: Bei 40 m ist ein Buchstabe 3 px hoch. Der Export bricht ab, wenn die
+  Wörter die Fläche der Karosserie ändern.
+- **Lichtbalken:** Füße, dunkle Basis, je Seite eine klare blaue Kuppel (Klasse `glass`, Deckkraft 0,22) über drei
+  LED-Modulen auf einem Chrom-Reflektor, weißes Mittelmodul. Blaulicht A links (Kanal 10), B rechts (Kanal 11), mit
+  Lichtankern; die Sitzung lässt sie abwechseln. `lod1`/`lod2`: leuchtende Blöcke auf derselben Fläche wie die
+  Module (vorher sprang der Lichtpunkt beim Wechsel). Oberkante 0,13 m über dem Dach (Objekthöhe Auto + 0,13 wie im
+  Sprite). Der Schattenwerfer ist die Hülle des Verkehrsautos mit dem Balken als Block.
+- **Budgets** (6 000 in `lod1` wie ein Verkehrsauto, obwohl Bänder, Wörter und Balken dazukommen):
+  `catalog3d.POLICE_DETAIL` (gröbere Stationsabstände je Basis in `lod1`/`lod2`) und `POLICE_DETAIL_CC` (Karos,
+  Ungarn mit dem längsten Wort, Rumänien, Österreich, Belgien/Schweiz).
+
+### Prüfungen (gemessen, Stand AS2b)
+
+- `validate_models.py`: **CHECK models OK**, 37 Modelle, 180 Sets (65 mit Modell; ohne Modell nur Requisiten und
+  Wahrzeichen), Netze 16,43 MB von 40 MB. Höchstwerte gegen die Budgets: Polizei `lod0` 21 970 / 22 000, `lod1`
+  5 991 / 6 000, `lod2` 1 185 / 1 200; Lkw/Bus `lod0` 23 412 / 25 000 (Plane), `lod1` 6 398 / 7 000 (Bus), `lod2`
+  1 476 / 1 500 (Bus), Schattenwerfer höchstens 1 014.
+- Blaulicht A und B: im Nachtbogen je Kanal einzeln geschaltet, A links, B rechts (`--night`, Kontaktbogen).
+- Stufenwechsel (Spielkamera von hinten, Tag, Anteil der Fahrzeugpixel, die sich um mehr als 24 Stufen ändern;
+  Fahrzeugpixel = mehr als 24 Stufen neben dem Hintergrund ihrer Zeile):
+
+  | Modell | nah (`lod0` → `lod1`) | fern (`lod1` → `lod2`) |
+  |---|---|---|
+  | `police/de` | 40 m: 13,8 % | 120 m: 35,6 % |
+  | `police/be` | 40 m: 18,8 % (vor den Karos in `lod1`: 29,9 %) | 120 m: 59,0 % (vorher 41,0 %) |
+  | `traffic/bus` | 60 m: 6,7 % (vor dem Gitter in `lod1`: 16,7 %) | 180 m: 23,2 % (vorher 9,7 %) |
+  | `traffic/truck_tarp` | 60 m: 2,4 % | 180 m: 27,5 % |
+
+  Was beim nahen Wechsel der Polizei bleibt: Wörter und Kennzeichenzeichen (nur `lod0`) und der Lichtbalken – die
+  Glaskuppel von `lod0` erscheint bei Tag heller als die Blöcke von `lod1`. Die Karos und das Lüftungsgitter
+  wechseln jetzt beim fernen Wechsel, wo das Fahrzeug etwa 11 × 10 (Polizei) bzw. 10 × 14 Pixel (Bus) groß ist;
+  in Bildpunkten bei 1280 × 720 gezählt ändern beide Wechsel zusammen weniger als vorher (Belgien 270 statt 374,
+  Bus 151 statt 302; abgeleitet: Anteil × Fahrzeugpixel der Kachel ÷ Vergrößerung²).
+- `lod2` des Busses liegt mit 1 500 Dreiecken genau auf dem Budget (zwei breite Gitterstäbe statt sechs).
 
 

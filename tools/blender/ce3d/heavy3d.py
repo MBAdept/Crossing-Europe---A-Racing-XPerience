@@ -219,6 +219,10 @@ def _rear_items(b, lv, m):
         for i in range(6):
             z = 1.35 + i * 0.12
             it.append((_rect(0.0, z, 0.8, z + 0.035), b.i_dark, 7, True))
+    else:
+        # beyond 180 m two bars of three times the width: the same dark share of the panel, mixed with the paint
+        for z in (1.435, 1.795):
+            it.append((_rect(0.0, z, 0.8, z + 0.105), b.i_dark, 7, True))
     # lamp clusters at the corners: a dark housing, tail + brake, indicator, reverse light
     if lv <= 1:
         it.append((_rect(1.03, 0.71, 1.23, 2.31), m["housing"], 19, True))

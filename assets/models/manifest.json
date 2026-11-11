@@ -4202,7 +4202,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1476,
+     "tris": 1500,
      "parts": [
       {
        "node": "body",
@@ -4309,8 +4309,8 @@
    "paint": {"paint": "#d8d8d4", "paint2": "#1f4f9a", "paint3": "#d6262b", "metal": 0.25},
    "auto_lod": false,
    "tags": ["traffic", "heavy"],
-   "bytes": 227359,
-   "hash": "e7cf62513336dfcf75f05f61b8ed7cca2d19e3b3"
+   "bytes": 227637,
+   "hash": "784d11d190694285d971aa86f4c37745d338dc54"
   },
   "traffic/hatch": {
    "kind": "vehicle",

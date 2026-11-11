@@ -25,8 +25,9 @@ Nodes      lod0: tractor/body, tractor/wheel_0l|r (front, steered), tractor/whee
            that bends the truck turns every "trailer/..." part about the trailer pivot (model space).
 Paint      paint = trailer body, paint2 = cab, paint3 = stripe and emblem (a livery without them: paint3 = paint)
 Lamps      rear clusters: indicator (outside), tail + brake, reverse; contour tape and reflectors are lit
-           surfaces (channel 8: they keep their colour by day and shine with the tail lights); amber side
-           markers and the plate lamp follow the tail lights without a light anchor
+           surfaces (channel 14 "flood": their own colour by day, at night they shine with ce_night - the player's
+           headlights); amber side markers, the cab's roof markers (channel 9) and the plate lamp follow the tail
+           lights without a light anchor; side repeaters on the cab (indicator channels)
 Build space as in cesprites: y = 0 at the rear, +y forward, x = 0 centre (+x right), z = 0 ground.
 """
 import math
