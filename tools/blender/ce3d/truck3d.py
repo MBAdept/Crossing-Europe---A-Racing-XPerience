@@ -169,6 +169,7 @@ class _Build:
             for rank, it in enumerate(groups[key]):
                 items.append(dict(poly=it["poly"], mat=it["mat"], rank=rank, n_min=0.5))
             t.apply(key[0], key[1], items, cut=True)
+        t.normalize()
         self.panels.setdefault(self.nname(node), []).append(t)
         return t
 
@@ -524,6 +525,7 @@ def _tractor(b):
     for key in sorted(groups, key=lambda g: (g[0], -g[1])):
         t.apply(key[0], key[1], [dict(poly=it["poly"], mat=it["mat"], rank=r, n_min=0.5) for r, it in enumerate(groups[key])],
                 cut=True)
+    t.normalize()
     b.panels.setdefault(b.nname(node), []).append(t)
     import bpy
     bpy.data.objects.remove(shell)

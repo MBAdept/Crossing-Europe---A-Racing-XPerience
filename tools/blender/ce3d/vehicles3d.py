@@ -79,8 +79,10 @@ CAR_3D = {
     "wagon": dict(
         add=dict(
             tail_lamps=[
-                dict(part="indicator", poly=[(0.60, 0.772), (0.84, 0.76), (0.84, 0.805), (0.60, 0.812)], outline=False),
+                # the reverse light first: its material is that of the headlights, and the indicators must be the
+                # last material group (on top of everything)
                 dict(part="reverse", poly=[(0.54, 0.777), (0.588, 0.774), (0.588, 0.812), (0.548, 0.812)], outline=False),
+                dict(part="indicator", poly=[(0.60, 0.772), (0.84, 0.76), (0.84, 0.805), (0.60, 0.812)], outline=False),
             ],
             head_lamps=[
                 dict(face="front", part="indicator", poly=[(0.71, 0.647), (0.878, 0.633), (0.878, 0.698), (0.718, 0.698)],
@@ -159,7 +161,17 @@ def traffic_design(name):
     return d
 
 
-def _car_level(spec3d, level, paint_hex, metal):
+def _body_keys(car):
+    """Object name -> role of the lofts that carry decals (the same in every level of detail)."""
+    keys = {car.body.name: "body", car.cabin.name: "cabin"}
+    for which, ob in car.bumper_obs.items():
+        keys[ob.name] = "bumper_" + which
+    return keys
+
+
+def _car_level(spec3d, level, paint_hex, metal, fine=None):
+    """One level of a traffic car. fine: {role: (pos, nor)} of the lofts of lod0 - the coarser levels take their
+    normals from there (core.transfer_normals): they shade like lod0 and their decals end along the same lines."""
     from cesprites import meshutil as MU
     from cesprites import rig as R
     from cesprites import vehicles
@@ -180,7 +192,16 @@ def _car_level(spec3d, level, paint_hex, metal):
         mb = nodes.setdefault("body", core.MeshBuilder())
         for s in soups:
             mb.add("vpbr", s.pos, s.nor, GREY, (0.8, 0.0), roles.NO_LAMP)
-        return car, nodes, {}, origin, tr, stats
+        return car, nodes, {}, origin, tr, stats, {}
+    keys = _body_keys(car)
+    lofts = {}
+    for s in soups:
+        role = keys.get(s.name)
+        if role is None:
+            continue
+        if fine and role in fine:
+            s.nor = core.transfer_normals(s.pos, s.nor, fine[role][0], fine[role][1])
+        lofts[role] = (s.pos.copy(), s.nor.copy())
     pal, tris, stats = decalgeo.car_surfaces(car, {s.name: s for s in soups}, cut=True,
                                              level={"lod0": 0, "lod1": 1, "lod2": 2}[level])
     pivots = {}
@@ -199,7 +220,7 @@ def _car_level(spec3d, level, paint_hex, metal):
                 tr.add_role(mb, role, dict(data), t.pos[sel], t.nor[sel], lamp)
         else:
             _add_soup(nodes, tr, s, node)
-    return car, nodes, pivots, origin, tr, stats
+    return car, nodes, pivots, origin, tr, stats, lofts
 
 
 def build_car(model_id, spec3d):
@@ -215,8 +236,11 @@ def build_car(model_id, spec3d):
     lods = []
     stats = {}
     model = None
+    fine = None
     for level in ("lod0", "lod1", "lod2"):
-        car, nodes, pivots, origin, tr, st = _car_level(spec3d, level, paint_hex, metal)
+        car, nodes, pivots, origin, tr, st, lofts = _car_level(spec3d, level, paint_hex, metal, fine)
+        if level == "lod0":
+            fine = lofts
         stats[level] = st
         if level == "lod0":
             model = ModelData(model_id, spec3d["kind"], car.object_size())
@@ -231,7 +255,7 @@ def build_car(model_id, spec3d):
         else:
             lods.append(Lod(level, LOD.VEHICLE_LOD_DIST[level], [Part("body", level + "_body",
                                                                        nodes["body"].finish(origin=origin, min_height=SLIVER_M))]))
-    car, nodes, _p, origin, _tr, _st = _car_level(spec3d, "shadow", paint_hex, metal)
+    car, nodes, _p, origin, _tr, _st, _l = _car_level(spec3d, "shadow", paint_hex, metal)
     model.shadow = Part("body", "shadow", nodes["body"].finish(origin=origin, min_height=SLIVER_M))
     model.lods = lods
     model.paint = {"paint": paint_hex, "metal": metal}

@@ -10,7 +10,7 @@
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 18068,
+    "tris": 18098,
     "parts": [
      {
       "node": "tractor/body",
@@ -103,7 +103,7 @@
    {
     "name": "lod1",
     "max_dist_m": 180,
-    "tris": 4660,
+    "tris": 4676,
     "parts": [
      {
       "node": "body",
@@ -223,8 +223,8 @@
   },
   "auto_lod": false,
   "tags": ["traffic", "heavy"],
-  "bytes": 157508,
-  "hash": "cc70b9dfbcb2ad2ee7488097a1691ac05adde01d"
+  "bytes": 158601,
+  "hash": "28371c960fefae7be370076787eec293dbc2e405"
  },
  "sets": {
   "traffic/truck_white": {

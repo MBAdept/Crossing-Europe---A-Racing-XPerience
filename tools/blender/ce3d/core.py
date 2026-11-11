@@ -270,6 +270,60 @@ def weld(pos, nor, col=None, uv=None, uv2=None):
     return out
 
 
+def transfer_normals(pos, nor, fpos, fnor, pull=0.15, max_dist=0.12, agree=0.2):
+    """Corner normals for a coarse build from a finer build of the same surface (levels of detail).
+    pos, nor: (T, 3, 3) of the coarse triangles; fpos, fnor: the fine ones. Every corner takes the smooth normal
+    of the nearest point of the fine surface - the coarse level then shades like the fine one (flat facets with
+    the normals of the curved surface they stand for) and face tests on the smooth normal (decals) cut along
+    the same lines at every level. A corner whose fine normal looks away from its own face (cosine below
+    `agree`: a sharp edge of the fine build, the nearest point lies on the other side) asks again from a point
+    pulled towards the middle of its triangle; if that fails too it keeps its normal."""
+    from mathutils import Vector
+    from mathutils.bvhtree import BVHTree
+    fpos = np.asarray(fpos, dtype=np.float64).reshape(-1, 3, 3)
+    fnor = np.asarray(fnor, dtype=np.float64).reshape(-1, 3, 3)
+    pos = np.asarray(pos, dtype=np.float64).reshape(-1, 3, 3)
+    out = np.array(nor, dtype=np.float64).reshape(-1, 3, 3).copy()
+    if fpos.shape[0] == 0 or pos.shape[0] == 0:
+        return out
+    bvh = BVHTree.FromPolygons([Vector(p) for p in fpos.reshape(-1, 3)],
+                               [(3 * i, 3 * i + 1, 3 * i + 2) for i in range(fpos.shape[0])], all_triangles=True)
+    cfn = np.cross(pos[:, 1] - pos[:, 0], pos[:, 2] - pos[:, 0])
+    cfn = cfn / np.maximum(np.linalg.norm(cfn, axis=1, keepdims=True), 1e-12)
+    cache = {}
+
+    def lookup(p):
+        loc, _n, idx, dist = bvh.find_nearest(Vector(p))
+        if loc is None or dist > max_dist:
+            return None
+        a, b, c = fpos[idx]
+        v0, v1, v2 = b - a, c - a, np.array(loc) - a
+        d00, d01, d11, d20, d21 = v0 @ v0, v0 @ v1, v1 @ v1, v2 @ v0, v2 @ v1
+        den = d00 * d11 - d01 * d01
+        if abs(den) < 1e-18:
+            n = fnor[idx].mean(axis=0)
+        else:
+            w1 = (d11 * d20 - d01 * d21) / den
+            w2 = (d00 * d21 - d01 * d20) / den
+            w = np.clip(np.array([1.0 - w1 - w2, w1, w2]), 0.0, 1.0)
+            n = w @ fnor[idx]
+        ln = np.linalg.norm(n)
+        return n / ln if ln > 1e-9 else None
+    for t in range(pos.shape[0]):
+        cen = pos[t].mean(axis=0)
+        for i in range(3):
+            p = pos[t, i]
+            key = (int(round(p[0] * 1e5)), int(round(p[1] * 1e5)), int(round(p[2] * 1e5)))
+            if key not in cache:
+                cache[key] = lookup(p)
+            n = cache[key]
+            if n is None or n @ cfn[t] < agree:
+                n = lookup(p + pull * (cen - p))
+            if n is not None and n @ cfn[t] >= agree:
+                out[t, i] = n
+    return out
+
+
 def tri_count(surfaces):
     return int(sum(len(s["idx"]) // 3 for _c, s in surfaces))
 

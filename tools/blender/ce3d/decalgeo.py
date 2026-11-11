@@ -9,7 +9,11 @@ floating above the paint, nothing to z-fight:
     with the outlines (constrained Delaunay, mathutils.geometry.delaunay_2d_cdt); every resulting triangle
     lies inside one body triangle (its 3-D position and normal come from there) and takes the material of
     the top-most outline that contains it - the stacking order of the shader
-  * coarse levels (cut=False) only paint whole triangles by their centre
+  * the face test uses the SMOOTH normal, as the shader does: before the cut every triangle is split along
+    the line where its interpolated normal crosses the threshold of a decal (Tris.split_level). A decal that
+    wraps around a corner so ends along a clean line at every level of detail - with a test per triangle it
+    ended along the edges of the mesh (saw teeth of 5 - 10 cm on the coarse levels)
+  * cut=False only paints whole triangles by their centre (not used by the vehicles any more)
 
 Stacking order of materials.surface: paint, cladding below a height, window seals, glass, then the decals
 grouped per material in the order of first appearance. The order holds ACROSS the projections: every item
@@ -29,6 +33,8 @@ AXES = {"rear": np.array([0.0, -1.0, 0.0]), "front": np.array([0.0, 1.0, 0.0]), 
 # ranks of the stacking order: paint / cladding, window seals, glass, then the decal groups 0, 1, 2 ...
 BASE_RANK, SEAL_RANK, GLASS_RANK = -3, -2, -1
 END_DEPTH_M = 0.9          # rear / front decals reach this far into the body from its end
+FACING_MIN = 0.03          # a face takes decals of a projection only if its own normal looks that way (cosine)
+SLIVER_2D = 1.0e-4         # candidate triangles lower than this (m, in the projection plane) are left alone
 UV_AXES = {"rear": (0, 2), "front": (0, 2), "side": (1, 2), "top": (0, 1)}
 
 
@@ -128,6 +134,47 @@ class Tris:
         self.mat = np.concatenate(new_m)
         self.rank = np.concatenate(new_r)
 
+    def split_level(self, axis, thr, where=None):
+        """Splits every triangle that the level thr of (corner normal . axis) crosses. The field is linear
+        inside a triangle (normals of new corners are interpolated, not normalised), so afterwards every
+        triangle lies on one side of the line: a face test on the mean of the corner values is exact, and the
+        line is continuous across the edges of smooth faces. where: (T) bool - only these triangles."""
+        f = self.nor @ np.asarray(axis, dtype=np.float64)
+        d = f - thr
+        cross = (d.min(axis=1) < -1e-4) & (d.max(axis=1) > 1e-4)
+        if where is not None:
+            cross &= where
+        if not cross.any():
+            return 0
+        keep = ~cross
+        new_p, new_n, new_m, new_r = [self.pos[keep]], [self.nor[keep]], [self.mat[keep]], [self.rank[keep]]
+        for t in np.nonzero(cross)[0]:
+            p, nn, dd = self.pos[t], self.nor[t], d[t]
+            lo, hi = [], []
+            for i in range(3):
+                j = (i + 1) % 3
+                (hi if dd[i] >= 0 else lo).append((p[i], nn[i]))
+                if (dd[i] >= 0) != (dd[j] >= 0):
+                    k = dd[i] / (dd[i] - dd[j])
+                    q = (p[i] + (p[j] - p[i]) * k, nn[i] + (nn[j] - nn[i]) * k)
+                    lo.append(q)
+                    hi.append(q)
+            for poly in (lo, hi):
+                for i in range(1, len(poly) - 1):
+                    new_p.append(np.array([[poly[0][0], poly[i][0], poly[i + 1][0]]]))
+                    new_n.append(np.array([[poly[0][1], poly[i][1], poly[i + 1][1]]]))
+                    new_m.append(np.array([self.mat[t]], dtype=np.int32))
+                    new_r.append(np.array([self.rank[t]], dtype=np.int32))
+        self.pos = np.concatenate(new_p)
+        self.nor = np.concatenate(new_n)
+        self.mat = np.concatenate(new_m)
+        self.rank = np.concatenate(new_r)
+        return int(cross.sum())
+
+    def normalize(self):
+        """Unit corner normals (the splits interpolate without normalising)."""
+        self.nor = self.nor / np.maximum(np.linalg.norm(self.nor, axis=2, keepdims=True), 1e-12)
+
     def paint_below(self, z, mat):
         self.split_z(z)
         self.mat[self.pos[:, :, 2].mean(axis=1) < z] = mat
@@ -140,15 +187,36 @@ class Tris:
             return 0
         axis = np.array([float(sign), 0.0, 0.0]) if proj == "side" else AXES[proj]
         ua, va = UV_AXES[proj]
-        fn = self.face_normals()
-        dot = fn @ axis
-        n_lo = min(it["n_min"] for it in items)
         polys = [_ccw([(float(p[0]), float(p[1])) for p in it["poly"]]) for it in items]
-        allp = np.array([p for poly in polys for p in poly])
-        lo2, hi2 = allp.min(axis=0), allp.max(axis=0)
+
+        def facing():
+            """Triangles that really look towards the viewer (not edge-on in this projection)."""
+            return self.face_normals() @ axis > FACING_MIN
+
+        def under(sel):
+            """Triangles under the outlines of the items sel (bounding boxes in the projection plane)."""
+            pts = np.array([p for k in sel for p in polys[k]])
+            lo, hi = pts.min(axis=0), pts.max(axis=0)
+            u = self.pos[:, :, [ua, va]]
+            return (u[:, :, 0].max(axis=1) >= lo[0]) & (u[:, :, 0].min(axis=1) <= hi[0]) & \
+                (u[:, :, 1].max(axis=1) >= lo[1]) & (u[:, :, 1].min(axis=1) <= hi[1])
+        if cut:
+            # every triangle under a decal on one side of its face test (see split_level)
+            for thr in sorted({float(it["n_min"]) for it in items}):
+                sel = [k for k, it in enumerate(items) if float(it["n_min"]) == thr]
+                self.split_level(axis, thr, facing() & under(sel))
+            for thr in sorted({float(it["nx_max"]) for it in items if it.get("nx_max") is not None}):
+                sel = [k for k, it in enumerate(items) if it.get("nx_max") is not None and float(it["nx_max"]) == thr]
+                for sg in (1.0, -1.0):
+                    self.split_level((1.0, 0.0, 0.0), sg * thr, facing() & under(sel))
+        fn = self.face_normals()
+        # the face tests look at the smooth normal (mean of the corners); for flat faces that is the face normal
+        # (not normalised: the mean of the corner values is the linear field the splits were made along)
+        sn = self.nor.mean(axis=1)
+        dot = sn @ axis
+        n_lo = min(it["n_min"] for it in items)
         uv = self.pos[:, :, [ua, va]]
-        cand = (dot >= n_lo) & (uv[:, :, 0].max(axis=1) >= lo2[0]) & (uv[:, :, 0].min(axis=1) <= hi2[0]) & \
-            (uv[:, :, 1].max(axis=1) >= lo2[1]) & (uv[:, :, 1].min(axis=1) <= hi2[1])
+        cand = (dot >= n_lo) & (fn @ axis > FACING_MIN) & under(range(len(items)))
         if proj in ("rear", "front") and cand.any():
             # only the end of the body that faces the viewer: the walls of the wheel arches face the same
             # way further inside and would lie behind it in this projection
@@ -164,7 +232,7 @@ class Tris:
             for k, it in enumerate(items):
                 if dot[t] < it["n_min"]:
                     continue
-                if it.get("nx_max") is not None and abs(fn[t, 0]) >= it["nx_max"]:
+                if it.get("nx_max") is not None and abs(sn[t, 0]) >= it["nx_max"]:
                     continue
                 yr = it.get("y_range")
                 if yr is not None and not (yr[0] <= cy <= yr[1]):
@@ -202,7 +270,13 @@ class Tris:
             if len(set(tri)) < 3:
                 continue
             a = (verts[tri[1]] - verts[tri[0]]).cross(verts[tri[2]] - verts[tri[0]])
-            if abs(a) < 1e-10:
+            longest = max((verts[tri[1]] - verts[tri[0]]).length, (verts[tri[2]] - verts[tri[1]]).length,
+                          (verts[tri[0]] - verts[tri[2]]).length)
+            if abs(a) < SLIVER_2D * longest:
+                # slivers of earlier cuts keep what they show. (As input faces they also break the
+                # triangulation's bookkeeping: a face that is a line in this plane was reported as a source of
+                # EVERY output face, and the decal went to it instead of the real triangle - a comb of paint
+                # triangles along the top of the side glass.)
                 continue
             faces.append(tri if a > 0 else [tri[0], tri[2], tri[1]])
             body_of.append(int(t))
@@ -234,6 +308,12 @@ class Tris:
                 w1 = ((q[:, 0] - a0[0]) * (a2[1] - a0[1]) - (a2[0] - a0[0]) * (q[:, 1] - a0[1])) / det
                 w2 = ((a1[0] - a0[0]) * (q[:, 1] - a0[1]) - (q[:, 0] - a0[0]) * (a1[1] - a0[1])) / det
                 w = np.stack([1.0 - w1 - w2, w1, w2], axis=1)
+                # the piece must lie inside this body triangle (do not trust the bookkeeping blindly)
+                wc = w.mean(axis=0)
+                if wc.min() < -0.02 or wc.max() > 1.02:
+                    continue
+                w = np.clip(w, 0.0, 1.0)
+                w = w / np.maximum(w.sum(axis=1, keepdims=True), 1e-12)
                 h = float((w.mean(axis=0) @ self.pos[t]) @ axis)
                 pieces.append((t, w))
                 if h > best_h:
@@ -282,8 +362,61 @@ def cut_holes(pos, nor, mat, proj, sign, holes, keeps=(), n_min=0.05):
     items = [dict(poly=[(float(p[0]), float(p[1])) for p in h], mat=HOLE, rank=0, n_min=n_min) for h in holes]
     items += [dict(poly=[(float(p[0]), float(p[1])) for p in k], mat=None, rank=1, n_min=n_min) for k in keeps]
     t.apply(proj, sign, items, cut=True)
+    t.normalize()
     keep = t.mat != HOLE
     return t.pos[keep], t.nor[keep], t.mat[keep], int((~keep).sum())
+
+
+def pocket(pos, nor, mat, proj, sign, outline, depth, floor_mat, wall_mat, n_min=0.2):
+    """A recess in a triangle set (lamp units of the player cars): the faces inside the outline that look
+    against the projection are moved by depth along the projection axis into the body, walls close the step.
+    pos, nor (T, 3, 3), mat (T). Returns (pos, nor, mat, stats) - stats: floor and wall triangles and the mean
+    depth of the floor along the viewing axis (which of several objects under one outline is in front)."""
+    axis = np.array([float(sign), 0.0, 0.0]) if proj == "side" else AXES[proj]
+    t = Tris(pos, nor, mat)
+    mark = -7
+    t.apply(proj, sign, [dict(poly=[(float(p[0]), float(p[1])) for p in outline], mat=mark, rank=0, n_min=n_min)],
+            cut=True)
+    sel = t.mat == mark
+    nf = int(sel.sum())
+    if nf == 0:
+        return pos, nor, np.asarray(mat, dtype=np.int32), dict(floor=0, walls=0, front=-1e30)
+    fp = t.pos[sel]
+    front = float((fp.mean(axis=1) @ axis).mean())
+    # boundary edges of the recessed region (in the winding of their triangle)
+    key = np.round(fp * 2e5).astype(np.int64)
+    count = {}
+    for ti in range(nf):
+        for i in range(3):
+            a, b = tuple(key[ti, i]), tuple(key[ti, (i + 1) % 3])
+            e = (a, b) if a < b else (b, a)
+            count.setdefault(e, []).append((ti, i))
+    shift = -axis * float(depth)
+    wp, wn = [], []
+    for e, uses in count.items():
+        if len(uses) != 1:
+            continue
+        ti, i = uses[0]
+        a, b = fp[ti, i], fp[ti, (i + 1) % 3]
+        n = np.cross(axis, b - a)
+        ln = np.linalg.norm(n)
+        if ln < 1e-12:
+            continue
+        n = n / ln
+        wp.append([a, b, b + shift])
+        wp.append([a, b + shift, a + shift])
+        wn += [[n, n, n], [n, n, n]]
+    keep = ~sel
+    out_p = [t.pos[keep], fp + shift]
+    out_n = [t.nor[keep], t.nor[sel]]
+    out_m = [t.mat[keep], np.full(nf, floor_mat, dtype=np.int32)]
+    if wp:
+        out_p.append(np.array(wp))
+        out_n.append(np.array(wn))
+        out_m.append(np.full(len(wp), wall_mat, dtype=np.int32))
+    nn = np.concatenate(out_n)
+    nn = nn / np.maximum(np.linalg.norm(nn, axis=2, keepdims=True), 1e-12)
+    return np.concatenate(out_p), nn, np.concatenate(out_m), dict(floor=nf, walls=len(wp), front=front)
 
 
 # --- the decals of a Car ---------------------------------------------------------------------------------
@@ -451,4 +584,6 @@ def car_surfaces(car, soups, cut=True, level=0):
         skip = "front" if which == "rear" else "rear"
         run(t, _decal_items(small_filter(car.bumper_decals()), pal, proj_filter=lambda p, skip=skip: p != skip))
         out[ob.name] = t
+    for t in out.values():
+        t.normalize()
     return pal, out, stats
