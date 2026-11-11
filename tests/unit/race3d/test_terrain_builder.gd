@@ -232,12 +232,24 @@ func test_bands_follow_arcade_and_fade_into_the_mean() -> void:
 		var g0 := GroundLook.grass(scen, 0)
 		var g1 := GroundLook.grass(scen, 1)
 		var want := g0 if (int(seg["index"]) / band) % 2 == 0 else g1
-		var near := cols[33 * n + i * n]            # right side, at the shoulder
-		var far := cols[33 * n + i * n + n - 1]
+		var near := TerrainBuilder.band_tone(part, 33 * n + i * n)     # right side, at the shoulder
+		var left := TerrainBuilder.band_tone(part, i * n)               # left side, at the shoulder
+		var far := TerrainBuilder.band_tone(part, 33 * n + i * n + n - 1)
 		assert_true(absf(near.r - want.r) + absf(near.g - want.g) + absf(near.b - want.b) < 0.01, "am Bankett: Arcades Band (Reihe %d)" % i)
+		assert_true(absf(left.r - want.r) + absf(left.g - want.g) + absf(left.b - want.b) < 0.01, "links dasselbe Band (Reihe %d)" % i)
 		var mean := g0.lerp(g1, 0.5)
 		assert_true(absf(far.r - mean.r) + absf(far.g - mean.g) + absf(far.b - mean.b) < 0.01, "außen: das Mittel der beiden Töne")
-		assert_near(near.a, 1.0, 0.001, "Landschaft: Vegetation")
+		var c_near := cols[33 * n + i * n]
+		assert_true(absf(c_near.r - mean.r) + absf(c_near.g - mean.g) + absf(c_near.b - mean.b) < 0.01, "Eckpunktfarbe = Mittel, das Band zeichnet der Shader")
+		assert_near(c_near.a, 1.0, 0.001, "Landschaft: Vegetation")
+	# the band phase steps by 1 / band width per segment and its parity is Arcade's band – also across chunks
+	for ci: int in [20, 21, 37]:
+		var cx := _ctx(t, ci, scenery)
+		var px := _build(cx)
+		var uv: PackedVector2Array = px["uv"]
+		for i in cx.row_count():
+			var idx := int(cx.segs[i]["index"])
+			assert_eq(posmod(int(floor(uv[33 * cx.rings + i * cx.rings].y + 1.0e-4)), 2), (idx / band) % 2, "Stück %d Reihe %d: Bandphase = Arcades Band" % [ci, i])
 	assert_eq(GroundLook.GROUND_BLEND_M, RoadRenderer.GROUND_BLEND_M, "Überblendlänge wie in Arcade")
 	for z: float in [0.0, 800.0, 880.0, 925.0, 990.0, 1000.0, 1200.0]:
 		assert_near(GroundLook.ground_blend(z, 1000.0), RoadRenderer.ground_blend(z, 1000.0), 1.0e-6, "ground_blend wie in Arcade")

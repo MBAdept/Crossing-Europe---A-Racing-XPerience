@@ -11,10 +11,12 @@ extends ChunkBuilder
 ##    hole at the centre of a tight bend (the far-ground plane covers both where it lies above them);
 ##  * nothing inside tunnels (the tunnel builder closes portal and mound); on a bridge the rings lie on the water.
 ## 768 + 128 = 896 triangles per chunk of 32 segments with 7 rings (budget: 1,100).
-## Colours (per vertex, painted over by assets/shaders/modern/terrain.gdshader): the two grass tones of the scenery as
-## Arcade's alternating bands near the road, their mean from BAND_FADE_TO_M on, the outskirts -> centre blend of the
-## City Limits (GroundLook.ground_blend), the style of the scenery (patch colour and share, vegetation or paved
-## ground: GroundLook.style) and the fade of the outer ring into the far ground.
+## Colours (per vertex, painted over by assets/shaders/modern/terrain.gdshader): the mean of the scenery's two grass
+## tones with the outskirts -> centre blend of the City Limits (GroundLook.ground_blend), half their difference and
+## how much of it shows (Arcade's alternating bands: full near the road, gone from BAND_FADE_TO_M on; the shader draws
+## the bands with sharp edges from the band phase in UV.y – band_tone() repeats its arithmetic), the style of the
+## scenery (patch colour and share, vegetation or paved ground: GroundLook.style) and the fade of the outer ring into
+## the far ground.
 ## One shared ShaderMaterial for every chunk; it is registered for the light pools (ModernRenderer.add_pool_material)
 ## and follows the far ground and the floating origin in update() / rebased().
 ## build() runs on worker threads: it reads the ctx snapshot arrays and the plain input of collect() only.
@@ -24,7 +26,7 @@ const SHADER := "res://assets/shaders/modern/terrain.gdshader"
 const SKIRT_M := 60.0              ## depth of the skirt below the outer edge
 const BAND_FADE_FROM_M := 6.0      ## the two grass tones alternate up to here beyond the shoulder …
 const BAND_FADE_TO_M := 40.0       ## … and have become their mean here
-const UV_WRAP_M := 3072.0          ## UV.y = road position minus a multiple of this (per chunk)
+const CITY_BAND_SHARE := 0.35      ## inside the City Limits the bands keep this much of their contrast
 const WATER_STYLE := -1.0          ## CUSTOM0.a of a vertex on the water
 
 var material: ShaderMaterial       ## the one terrain material (null until the first commit)
@@ -72,13 +74,17 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 	var uvs := PackedVector2Array()
 	var uv2s := PackedVector2Array()
 	var custom := PackedFloat32Array()
+	var bands := PackedFloat32Array()
 	verts.resize(count)
 	norms.resize(count)
 	cols.resize(count)
 	uvs.resize(count)
 	uv2s.resize(count)
 	custom.resize(count * 4)
-	var z_base := floorf(float(ctx.seg_a) * ctx.seg_len / UV_WRAP_M) * UV_WRAP_M
+	bands.resize(count * 4)
+	# band phase = segment index / band width, counted from an even number of bands before the chunk (small numbers,
+	# the parity of floor() is Arcade's band of the segment)
+	var phase_base := (ctx.seg_a / (2 * band_w)) * (2 * band_w)
 	var tunnel_rows := PackedByteArray()
 	tunnel_rows.resize(rows)
 	var water_rows := 0
@@ -98,22 +104,23 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 		var g0: Color = cached[0]
 		var g1: Color = cached[1]
 		var mean := g0.lerp(g1, 0.5)
-		var banded := g0 if (int(seg["index"]) / band_w) % 2 == 0 else g1
+		var half := Color((g0.r - g1.r) * 0.5, (g0.g - g1.g) * 0.5, (g0.b - g1.b) * 0.5)
 		var st := GroundLook.style_at(scen_id, is_city, z, ctx.scenery_db, city, overrides)
 		var blended := GroundLook.ground_tone(scen_id, is_city, z, ctx.scenery_db, city)
 		if blended != mean:
-			# City Limits: the centre's ground comes in – for the banded tone as well
-			banded = blended.lerp(banded, 0.35)
+			# City Limits: the centre's ground comes in, the bands keep a part of their contrast
 			mean = blended
+			half = Color(half.r * CITY_BAND_SHARE, half.g * CITY_BAND_SHARE, half.b * CITY_BAND_SHARE)
 		var accent: Color = st["accent"]
 		var amount := float(st["amount"])
 		var nature := float(st["nature"])
 		if water:
 			water_rows += 1
 			mean = cached[2]
-			banded = mean
+			half = Color(0.0, 0.0, 0.0)
 			amount = WATER_STYLE
 			nature = 0.0
+		var phase := float(ctx.seg_a + i - phase_base) / float(band_w)
 		var o := ctx.rows_o[i]
 		var right := ctx.rows_r[i]
 		var edge := ctx.rows_edge[i]
@@ -127,14 +134,17 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 				var x := side * (base + m)
 				var v := vo + r
 				verts[v] = o + right * x + Vector3(0.0, ctx.ring_h[ro + r], 0.0)
-				var c := banded.lerp(mean, smoothstep(BAND_FADE_FROM_M, BAND_FADE_TO_M, m))
-				cols[v] = Color(c.r, c.g, c.b, nature)
-				uvs[v] = Vector2(m, z - z_base)
+				cols[v] = Color(mean.r, mean.g, mean.b, nature)
+				uvs[v] = Vector2(m, phase)
 				uv2s[v] = Vector2(x, 1.0 if r == n - 1 else 0.0)
 				custom[v * 4] = accent.r
 				custom[v * 4 + 1] = accent.g
 				custom[v * 4 + 2] = accent.b
 				custom[v * 4 + 3] = amount
+				bands[v * 4] = half.r
+				bands[v * 4 + 1] = half.g
+				bands[v * 4 + 2] = half.b
+				bands[v * 4 + 3] = 1.0 - smoothstep(BAND_FADE_FROM_M, BAND_FADE_TO_M, m)
 	# smooth normals from the neighbours in the grid (one-sided at the ends of the chunk and of the ribbon)
 	for si in 2:
 		for i in rows:
@@ -163,6 +173,7 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 				uv2s[v] = Vector2(uv2s[src].x, 1.0)
 				for q4 in 4:
 					custom[v * 4 + q4] = custom[src * 4 + q4]
+					bands[v * 4 + q4] = bands[src * 4 + q4]
 	# triangles: clockwise seen from the lit side
 	var idx := PackedInt32Array()
 	var quads := 0
@@ -192,8 +203,20 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 		box = AABB(verts[0], Vector3.ZERO)
 		for v in verts:
 			box = box.expand(v)
-	return {"verts": verts, "normals": norms, "colors": cols, "uv": uvs, "uv2": uv2s, "custom": custom, "indices": idx,
-		"aabb": box, "rings": n, "rows": rows, "quads": quads, "water_rows": water_rows}
+	return {"verts": verts, "normals": norms, "colors": cols, "uv": uvs, "uv2": uv2s, "custom": custom, "bands": bands,
+		"indices": idx, "aabb": box, "rings": n, "rows": rows, "quads": quads, "water_rows": water_rows}
+
+
+## The ground tone the shader starts from at vertex v of a built part (before its patterns): Arcade's band tone near
+## the road (tone 0 on an even band phase, tone 1 on an odd one), fading into the mean – terrain.gdshader's arithmetic
+## at the vertex (tests, top views).
+static func band_tone(part: Dictionary, v: int) -> Color:
+	var c: Color = (part["colors"] as PackedColorArray)[v]
+	var b: PackedFloat32Array = part["bands"]
+	var phase := float((part["uv"] as PackedVector2Array)[v].y)
+	var s := 1.0 if posmod(int(floor(phase + 1.0e-4)), 2) == 0 else -1.0
+	var k := b[v * 4 + 3] * s
+	return Color(c.r + b[v * 4] * k, c.g + b[v * 4 + 1] * k, c.b + b[v * 4 + 2] * k, c.a)
 
 
 func commit(_ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
@@ -218,10 +241,11 @@ static func mesh_of(part: Dictionary) -> ArrayMesh:
 	arrays[Mesh.ARRAY_TEX_UV] = part["uv"]
 	arrays[Mesh.ARRAY_TEX_UV2] = part["uv2"]
 	arrays[Mesh.ARRAY_CUSTOM0] = part["custom"]
+	arrays[Mesh.ARRAY_CUSTOM1] = part["bands"]
 	arrays[Mesh.ARRAY_INDEX] = part["indices"]
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays, [], {},
-		Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM0_SHIFT)
+		(Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM0_SHIFT) | (Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM1_SHIFT))
 	return mesh
 
 
