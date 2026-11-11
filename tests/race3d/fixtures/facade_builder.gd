@@ -3,7 +3,8 @@ extends ChunkBuilder
 ## skeleton): it has every optional hook of the facade (contract amendment A-7) next to collect / build / commit and
 ## records what the renderer and the streamer do with it. In commit() it uses the services of the chunk context as a
 ## real builder does: one static lamp per chunk through renderer.add_lamps() and its one material through
-## renderer.add_pool_material(). update() and rebased() exist only to prove that builders never get them.
+## renderer.add_pool_material(). Its update() and rebased() go into the records of the layer fixture under the
+## builder's id, so that one list shows the order of builders and layers.
 ## Statics, set by the test before a stage starts:
 ##   builder_id       id() of the builder ("facade_probe"; "terrain" lets it stand for the terrain builder)
 ##   pending_polls    number of polls for which prepare_pending() answers 1
@@ -20,7 +21,8 @@ static var services_in_commit: Array = []
 static var off_main := 0                    ## collect() / commit() calls that were not on the main thread
 static var commits := 0
 static var lamp_parents: Array = []         ## instance ids of the nodes the lamps were registered with
-static var forbidden := 0                   ## update() / rebased() calls (must stay 0)
+static var updates := 0                     ## update() calls
+static var at_update: Dictionary = {}       ## state of the renderer at the first update()
 static var warm_ids: Array[int] = []
 static var material: ShaderMaterial
 
@@ -44,7 +46,8 @@ static func reset() -> void:
 	off_main = 0
 	commits = 0
 	lamp_parents = []
-	forbidden = 0
+	updates = 0
+	at_update = {}
 	warm_ids.clear()
 	material = null
 
@@ -90,12 +93,31 @@ func warmup_nodes() -> Array:
 	return [n]
 
 
-func update(_view: Dictionary, _dt: float) -> void:
-	forbidden += 1
+func update(view: Dictionary, dt: float) -> void:
+	updates += 1
+	FacadeLayer.updates[builder_id] = updates
+	var into: Dictionary = FacadeLayer.dt_live if bool(renderer.call("is_prepared")) else FacadeLayer.dt_preparing
+	into[builder_id] = maxf(float(into.get(builder_id, 0.0)), absf(dt))
+	if updates > 1:
+		return
+	FacadeLayer.log.append(builder_id + ".update")
+	var path: RoadPath3D = renderer.get("path")
+	var chase: ChaseCamera3D = renderer.get("chase")
+	var camera: Camera3D = renderer.get("camera")
+	var streamer: ChunkStreamer = renderer.get("streamer")
+	var want := chase.transform(view, path) if path != null and path.is_ready() else Transform3D.IDENTITY
+	# the layers are updated after the builders: none of them has had its first update() yet
+	var layers_before := 0
+	for key: Variant in FacadeLayer.updates:
+		layers_before += 1 if str(key) != builder_id else 0
+	at_update = {"path_ready": path != null and path.is_ready(), "chunks": streamer.chunk_count(),
+		"pending_chunks": streamer.pending_count(), "camera_placed": camera.global_transform.origin.distance_to(want.origin) < 0.001,
+		"layers_before": layers_before}
 
 
-func rebased(_shift: Vector3) -> void:
-	forbidden += 1
+func rebased(shift: Vector3) -> void:
+	FacadeLayer.log.append(builder_id + ".rebased")
+	FacadeLayer.shifts.append([builder_id, shift])
 
 
 func perf() -> Dictionary:

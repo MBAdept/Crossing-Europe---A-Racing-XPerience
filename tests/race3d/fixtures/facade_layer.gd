@@ -17,6 +17,8 @@ static var at_setup: Dictionary = {}        ## id -> what the facade offered in 
 static var at_update: Dictionary = {}       ## id -> state of the renderer at the first update()
 static var at_warmup: Dictionary = {}       ## id -> state of the renderer when warmup_nodes() was asked
 static var updates: Dictionary = {}         ## id -> number of update() calls
+static var dt_preparing: Dictionary = {}    ## id -> largest dt of an update() while the renderer was not prepared yet
+static var dt_live: Dictionary = {}         ## id -> largest dt of an update() after that
 static var statics: Array = []              ## [id, instance id of the parent, lamps] of add_static()
 static var shifts: Array = []               ## [id, shift] of rebased()
 static var warm_ids: Array[int] = []        ## instance ids of the warm-up nodes handed out
@@ -38,6 +40,8 @@ static func reset() -> void:
 	at_update = {}
 	at_warmup = {}
 	updates = {}
+	dt_preparing = {}
+	dt_live = {}
 	statics = []
 	shifts = []
 	warm_ids.clear()
@@ -112,8 +116,10 @@ func warmup_nodes() -> Array:
 	return [n]
 
 
-func update(view: Dictionary, _dt: float) -> void:
+func update(view: Dictionary, dt: float) -> void:
 	updates[id] = int(updates.get(id, 0)) + 1
+	var into: Dictionary = dt_live if bool(renderer.call("is_prepared")) else dt_preparing
+	into[id] = maxf(float(into.get(id, 0.0)), absf(dt))
 	if int(updates[id]) > 1:
 		return
 	log.append(id + ".update")

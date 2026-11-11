@@ -21,16 +21,18 @@ extends Node3D
 ## every layer whose file scripts/race3d/layers/<id>.gd exists, in the order of BuilderRegistry.LAYERS. All of them
 ## exist before the first hook is called. Then, each time in the order environment, builders, layers:
 ## setup(renderer) on all, apply_quality(levels) on all, prepare(ctx) on all.
-## Optional hooks of the environment, of builders and of layers (any may be missing):
+## Optional hooks of the environment, of builders and of layers (duck-typed, any may be missing):
 ##   setup(renderer) · apply_quality(levels) · prepare(ctx) · prepare_pending() -> int · fail_reason() -> String ·
-##   warmup_nodes() -> Array · update(view, dt) (environment and layers) · rebased(shift) (environment and layers)
-##   · perf() -> Dictionary · snapshot() -> Dictionary; layers "lights" / "flares": add_static(parent, lamps)
+##   warmup_nodes() -> Array · update(view, dt) · rebased(shift) · perf() -> Dictionary · snapshot() -> Dictionary;
+##   layers "lights" / "flares": add_static(parent, lamps)
 ## The preparation then runs over frames (_advance): the render self-test once per process (not headless) → every
 ## prepare_pending() is 0 → the world starts: the streamer loads the chunks the start view shows, update() runs
 ## from now on → warmup_nodes() of every hook stand in front of the camera for WARMUP_FRAMES drawn frames (the
 ## session's loading cover hides them) and are freed → is_prepared(). Nothing is updated before the world
-## starts: a layer's update() can rely on its own preparation and on a path that is integrated around the camera.
-## Every render(view) after that: environment → streamer.update() → camera → layers' update(view, dt) in list order.
+## starts: an update() can rely on its own preparation and on a path that is integrated around the camera.
+## Every render(view) after that: environment update → streamer.update() → camera → update(view, dt) of the builders
+## that have one (registration order) → update(view, dt) of the layers in list order. While the stage is prepared
+## the view is the frozen start view and dt is 0.0: nothing moves before the start, however many frames it takes.
 ## healthy() is false with fail_reason() "selftest:<reason>" (--gfx-debug=fail: "selftest:debug"), whatever a hook's
 ## fail_reason() says while the stage is prepared ("manifest", "shader", …), "script:<file>" for a layer, builder
 ## or rig file that exists but does not load, or "timeout" (graphics.modern.prepare_timeout_s, not in sync mode).
@@ -83,9 +85,9 @@ var _environment: Node              ## the rig or the built-in PlainEnvironment
 var _plain_sky: Node                ## built-in backdrop while layers/backdrop.gd is missing
 var _layers: Dictionary = {}        ## layer id -> Node
 var _hooks: Array = []              ## environment, builders, (plain sky,) layers – the order of every hook phase
-var _updaters: Array = []           ## objects with update(view, dt) after the camera: (plain sky,) layers
+var _updaters: Array = []           ## objects with update(view, dt) after the camera: builders, (plain sky,) layers
 var _env_updates := false
-var _rebase_listeners: Array = []
+var _rebase_listeners: Array = []   ## objects with rebased(shift), in hook order
 var _pool_materials: Array = []     ## ShaderMaterial
 var _lamps := 0
 var _warm: Node3D
@@ -240,9 +242,18 @@ func _layer_script(id: String) -> String:
 	return BuilderRegistry.layer_path(id)
 
 
-## The chunk builders of this renderer, in build order.
+## The chunk builders of this renderer, in build order: every builder of the registry whose file exists (the debug
+## road while builders/road.gd is missing). A file that is there but gives no builder with that id() makes the
+## renderer unhealthy ("script:builders/<name>.gd").
 func _create_builders() -> Array[ChunkBuilder]:
-	return BuilderRegistry.create_all()
+	var out := BuilderRegistry.create_all()
+	for n: String in BuilderRegistry.existing_builders():
+		var found := false
+		for b: ChunkBuilder in out:
+			found = found or b.id() == n
+		if not found and _fail == "":
+			_fail = "script:builders/%s.gd" % n
+	return out
 
 
 ## Script file of the environment rig.
@@ -298,9 +309,6 @@ func _build() -> void:
 	for b: ChunkBuilder in _create_builders():
 		streamer.register(b)
 		_hooks.append(b)
-	for n: String in BuilderRegistry.existing_builders():
-		if builder(n) == null and _fail == "":
-			_fail = "script:builders/%s.gd" % n   # the file is there but gives no builder with that id()
 	var debug_road := builder(BuilderRegistry.DEBUG_ROAD)
 	if debug_road != null and builder("terrain") != null:
 		debug_road.set("terrain_rings", false)   # the real terrain is there: the stand-in only draws the road
@@ -341,14 +349,13 @@ func _build() -> void:
 	for h: Object in _hooks:
 		if h.has_method(&"prepare"):
 			h.call(&"prepare", prep)
+	# the environment is updated before the streamer and the camera, everything else after them (hook order:
+	# builders, then layers)
 	_env_updates = _environment != null and _environment.has_method(&"update")
 	for h: Object in _hooks:
-		if h == _environment or h is ChunkBuilder:
-			continue
-		if h.has_method(&"update"):
+		if h != _environment and h.has_method(&"update"):
 			_updaters.append(h)
-	for h: Object in _hooks:
-		if not (h is ChunkBuilder) and h.has_method(&"rebased"):
+		if h.has_method(&"rebased"):
 			_rebase_listeners.append(h)
 
 
@@ -494,13 +501,15 @@ static func _run_selftest(parent: Node) -> void:
 # --- every frame ------------------------------------------------------------------------------------------------
 
 ## Draws the frame of `view` (ARCHITECTURE.md §6; Modern also reads hour, dt and player.type). While the stage is
-## prepared the session passes the frozen start view; the world is updated from the moment every hook is ready.
+## prepared the session passes the frozen start view; the world is updated from the moment every hook is ready –
+## with dt = 0.0 until is_prepared(): the frozen view stands still, so the state at the start does not depend on
+## how many frames the preparation took (self-test and warm-up frames, none of them headless).
 func render(p_view: Dictionary) -> void:
 	var t0 := Time.get_ticks_usec()
 	view = p_view
 	visibility_m = float(p_view.get("visibility_m", visibility_m))
 	if _world_started:
-		_draw_world(float(p_view.get("dt", 0.0)))
+		_draw_world(float(p_view.get("dt", 0.0)) if _prepared else 0.0)
 	if _prepared:
 		if _last_tick > 0:
 			if _frame_us.size() < FRAME_WINDOW:
@@ -515,7 +524,7 @@ func render(p_view: Dictionary) -> void:
 		_render_us_max = maxi(_render_us_max, us)
 
 
-## environment → streamer → camera → layers.
+## environment → streamer → camera → builders with update() → layers.
 func _draw_world(dt: float) -> void:
 	if _env_updates:
 		_environment.call(&"update", view, dt)

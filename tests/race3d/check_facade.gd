@@ -4,18 +4,21 @@ extends SceneTree
 ##   godot --headless --path . -s res://tests/race3d/check_facade.gd [-- --only=haken,lampen]
 ## tools/run_tests.sh runs it through its generic hook (tests/race3d/check_*.gd). The renderer is the real one
 ## (tests/race3d/fixtures/facade_probe_renderer.gd only lets fixtures stand in for layers, builders and the rig);
-## the fixtures facade_layer.gd and facade_builder.gd have every hook and record what happens to them.
+## the fixtures facade_layer.gd and facade_builder.gd have every hook and record what happens to them. Every check
+## but "geruest" runs the skeleton alone ("bare": no layer, builder or rig file of scripts/race3d/ is loaded), so
+## the checks mean the same once the renderer packages have added their files.
 ##   haken      every hook of builders and layers is called in the documented order: all exist before the first
 ##              setup(); setup, apply_quality, prepare on all; nothing is updated and the stage does not start while
-##              a prepare_pending() is above 0; then the chunks of the start view, the first update() of every
-##              layer (path integrated, camera placed, chunks committed), warmup_nodes(); the warm-up nodes are
-##              freed; builders never get update() or rebased(); headless: no self-test, no warm-up frames
+##              a prepare_pending() is above 0; then the chunks of the start view, the first update() of the builder
+##              and of every layer (path integrated, camera placed, chunks committed), warmup_nodes(); the warm-up
+##              nodes are freed; dt is 0 until is_prepared(); headless: no self-test, no warm-up frames
 ##   fassade    the public members of amendment A-7, layer(id), builder(id), road_to_world(), world_to_screen() =
 ##              ChaseCamera3D.project() = Camera3D.unproject_position(), camera = ChaseCamera3D (transform and
 ##              frustum for the logical picture size), services in collect() and commit()
 ##   lampen     add_lamps() reaches the layers "lights" and "flares" (and only those) with the parent node and
 ##              the lamps; add_pool_material() / pool_materials()
-##   rebased    a move of the floating origin arrives at the layers and at the signal, with the streamer's shift
+##   rebased    a move of the floating origin arrives at the builder, at the layers and at the signal, with the
+##              streamer's shift
 ##   statistik  perf_stats() and debug_snapshot(): every key of contract §4.4.5, the hooks' perf() / snapshot()
 ##              merged in, the streamer's numbers
 ##   ausfall    a hook's fail_reason() during the preparation, a layer file that gives no node and a preparation
@@ -23,9 +26,10 @@ extends SceneTree
 ##   umgebung   an environment rig: exposed as `env`, first in every hook phase, updated before the camera is
 ##              placed; no built-in environment beside it. Without a rig: the built-in plain environment
 ##              (BG_CANVAS behind layer -10, exactly one DirectionalLight3D with shadow_enabled) and plain sky
-##   geruest    the shipped renderer without any fixture: prepared in two frames, the debug road with its terrain
-##              rings stands in for the road; with a terrain builder the debug road draws no rings; sync mode
-##              (--gfx-sync) leaves nothing pending after any render(); a stage that leaves frees every node
+##   geruest    the shipped renderer without any fixture, with whatever builders and layers exist: prepared (in two
+##              frames while nothing has to load), the road or the debug road that stands in for it; a layer
+##              exactly when its file exists; a stage that leaves frees every node. Bare: with a terrain builder
+##              the debug road draws no rings. Sync mode (--gfx-sync) leaves nothing pending after any render()
 ## Prints "CHECK <name> OK|FEHLER …" per check; exit code 0 when all pass.
 ## (The scene and the autoloads are accessed untyped: -s scripts compile before the autoloads exist.)
 
@@ -105,10 +109,12 @@ func _reset() -> void:
 	_builder.call("reset")
 
 
-## The probe renderer with fixtures: `layers` = ids that get the fixture layer, `with_builder` adds the fixture builder.
+## The probe renderer, bare, with fixtures: `layers` = ids that get the fixture layer, `with_builder` adds the
+## fixture builder (next to the debug road).
 func _use(layers: Array, with_builder: bool) -> void:
 	_reset()
 	_renderers.set("modern_script", PROBE)
+	_probe.set("bare", true)
 	var scripts := {}
 	for id: String in layers:
 		scripts[id] = LAYER
@@ -246,9 +252,13 @@ func _check_haken() -> void:
 	_need(p, early_steps == 0, "kein Simulationsschritt vor is_prepared()")
 	want.append_array(_phase("prepare_pending", ids))
 	want.append_array(["facade_probe.collect", "facade_probe.commit"] as Array[String])
-	want.append_array(_phase("update", FIXTURE_LAYERS))
+	want.append_array(_phase("update", ids))
 	want.append_array(_phase("warmup_nodes", ids))
-	_need(p, _log() == want, "danach: Stücke der Startansicht, erstes update() jeder Ebene, warmup_nodes() (ist: %s)" % " ".join(_log().slice(18)))
+	_need(p, _log() == want, "danach: Stücke der Startansicht, erstes update() des Builders und jeder Ebene, warmup_nodes() (ist: %s)" % " ".join(_log().slice(18)))
+	var bu: Dictionary = _builder.get("at_update")
+	_need(p, bool(bu.get("path_ready", false)) and bool(bu.get("camera_placed", false)) and int(bu.get("chunks", 0)) >= 4
+		and int(bu.get("pending_chunks", 1)) == 0 and int(bu.get("layers_before", 1)) == 0,
+		"Builder: erstes update() nach Streamer und Kamera, vor den Ebenen (%s)" % str(bu))
 	var at_update: Dictionary = _layer.get("at_update")
 	for id: String in FIXTURE_LAYERS:
 		var u: Dictionary = at_update.get(id, {})
@@ -267,11 +277,20 @@ func _check_haken() -> void:
 	_need(p, warm.size() == ids.size() and alive == 0, "die Aufwärm-Knoten sind nach der Vorbereitung freigegeben (%d von %d leben)" % [alive, warm.size()])
 	_need(p, (r.get("selftest") as Dictionary).is_empty(), "headless: kein Selbsttest")
 	await _until(func() -> bool: return float(sc.get("stage_time")) > 2.0, 600)
+	await _frames(12)   # the time lapse makes 2 s of the stage only a handful of frames
 	_need(p, int(sc.get("_sim_steps")) > 0 and str((sc.call("build_result") as Dictionary).get("gfx", "")) == "modern", "die Etappe läuft in Modern")
-	_need(p, int(_builder.get("forbidden")) == 0, "Builder bekommen weder update() noch rebased()")
 	_need(p, int(_builder.get("off_main")) == 0 and int(_builder.get("commits")) >= 4, "collect() und commit() im Hauptthread")
 	var ups: Dictionary = _layer.get("updates")
-	_need(p, int(ups.get("post", 0)) > 10 and int(ups.get("backdrop", 0)) == int(ups.get("post", 0)), "update() jedes Bild auf jeder Ebene")
+	_need(p, int(ups.get("post", 0)) > 10 and int(ups.get("backdrop", 0)) == int(ups.get("post", 0))
+		and int(ups.get("facade_probe", 0)) == int(ups.get("post", 0)), "update() jedes Bild am Builder und auf jeder Ebene (%s)" % str(ups))
+	# the frozen start view stands still: dt is 0 until is_prepared(), the frame time afterwards
+	var dt_prep: Dictionary = _layer.get("dt_preparing")
+	var dt_live: Dictionary = _layer.get("dt_live")
+	var dt_bad: Array[String] = []
+	for id: String in ids:
+		if not dt_prep.has(id) or float(dt_prep[id]) != 0.0 or float(dt_live.get(id, 0.0)) <= 0.0:
+			dt_bad.append(id)
+	_need(p, dt_bad.is_empty(), "dt = 0 während der Vorbereitung, danach die Bildzeit (falsch bei %s: %s / %s)" % [str(dt_bad), str(dt_prep), str(dt_live)])
 	_report("haken", p, "%d Haken-Aufrufe in der dokumentierten Reihenfolge; %d Bilder Vorbereitung mit offenem prepare_pending(), %d Aufwärm-Knoten gezeigt und freigegeben" % [
 		_log().size(), frames, warm.size()])
 
@@ -401,15 +420,15 @@ func _check_rebased() -> void:
 		var who: Array = []
 		for s: Array in mine:
 			who.append(str(s[0]))
-		_need(p, _same_list(who, FIXTURE_LAYERS), "rebased(shift) an jede Ebene in Listenfolge (%s)" % str(who))
-		_need(p, order[0] == FIXTURE_LAYERS.size(), "erst die Ebenen, dann das Signal")
+		var ids: Array = ["facade_probe"] + FIXTURE_LAYERS
+		_need(p, _same_list(who, ids), "rebased(shift) an den Builder und an jede Ebene in Listenfolge (%s)" % str(who))
+		_need(p, order[0] == ids.size(), "erst Builder und Ebenen, dann das Signal")
 		_need(p, from_streamer.size() >= 1 and from_streamer[0] == got[0] and got[0].length() > 150.0 and got[0].y == 0.0, "die Verschiebung des Streamers (%s)" % str(got[0]))
 		_need(p, r.camera.global_transform.origin.length() < 60.0 and cam0.length() > 150.0, "die Kamera steht wieder nahe am Ursprung (%.0f m, vorher %.0f m)" % [
 			r.camera.global_transform.origin.length(), cam0.length()])
 		_need(p, int(r.perf_stats()["streamer"]["rebases"]) >= 1, "Zähler des Streamers")
-	_need(p, int(_builder.get("forbidden")) == 0, "Builder bekommen rebased() nicht")
 	r.streamer.rebase_m = 2000.0
-	_report("rebased", p, "Ursprung verlegt um %s: %d Ebenen und das Signal benachrichtigt" % [str(got[0]) if not got.is_empty() else "–", FIXTURE_LAYERS.size()])
+	_report("rebased", p, "Ursprung verlegt um %s: der Builder, %d Ebenen und das Signal benachrichtigt" % [str(got[0]) if not got.is_empty() else "–", FIXTURE_LAYERS.size()])
 
 
 # --- statistik: perf_stats, debug_snapshot ------------------------------------------------------------------------
@@ -610,8 +629,11 @@ func _check_geruest() -> void:
 	var sc := _launch({})
 	var r: ModernRenderer = sc.get("renderer")
 	_need(p, _renderer_file(sc) == "modern_renderer.gd", "der ausgelieferte Renderer")
-	var frames: int = await _until(func() -> bool: return r.is_prepared(), 100)
-	_need(p, frames <= 2 and r.healthy(), "headless in höchstens zwei Bildern vorbereitet (%d)" % frames)
+	# the skeleton alone has nothing to load; content of the renderer packages may take frames (models, sign textures)
+	var content := not BuilderRegistry.existing_builders().is_empty() or not BuilderRegistry.existing_layers().is_empty() \
+		or ResourceLoader.exists("res://scripts/race3d/environment_rig.gd")
+	var frames: int = await _until(func() -> bool: return r.is_prepared(), 2000)
+	_need(p, r.is_prepared() and r.healthy() and (content or frames <= 2), "headless vorbereitet, das Gerüst allein in höchstens zwei Bildern (%d)" % frames)
 	await _until(func() -> bool: return int(sc.get("_sim_steps")) > 0, 100)
 	var snap := r.debug_snapshot()
 	var chunks: Array = snap.get("chunks", [])
