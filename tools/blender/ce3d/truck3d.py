@@ -66,6 +66,10 @@ RED_TAPE = "#d21c14"
 YELLOW_TAPE = "#f0cc18"
 LAMP_RED = "#ff1a0e"
 AMBER = "#ffa21a"
+# panes of the far levels (vpbr): the far colour of the traffic cars (traffic3d.TRAFFIC_GLASS_FAR, measured against
+# the glass class of lod0 with the race look). AS2R: the bus rear window at the 60 m swap was (59, 77, 100) in lod1
+# against (78, 97, 121) in lod0 - 43 % of its pixels changed by more than 24 levels
+GLASS_FAR = "#3a4652"
 
 
 def _rect(u0, v0, u1, v1):
@@ -120,8 +124,9 @@ class _Build:
         self.i_grey = self.flat(GREY, 0.5, 0.2)
         self.i_seal = self.flat("#0c0d0e", 0.5)
         # the traffic cars' glass (traffic3d.TRAFFIC_GLASS): lighter, glossy, a little metallic - the black panes of the
-        # cab read as painted (art review of AS1, C4)
-        self.i_glass = p.add("glass", "glass", dict(color="#2a343e", rough=0.02, metal=0.25))
+        # cab read as painted (art review of AS1, C4). (AS2R) The far levels draw the panes as vpbr, which mirrors the
+        # sky about half as strongly as the glass class: they take the far colour of the traffic cars (GLASS_FAR)
+        self.i_glass = p.add("glass", "glass", dict(color="#2a343e" if level == 0 else GLASS_FAR, rough=0.02, metal=0.25))
 
     # --- materials ---------------------------------------------------------------------------------------
 

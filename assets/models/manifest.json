@@ -4309,8 +4309,8 @@
    "paint": {"paint": "#d8d8d4", "paint2": "#1f4f9a", "paint3": "#d6262b", "metal": 0.25},
    "auto_lod": false,
    "tags": ["traffic", "heavy"],
-   "bytes": 227704,
-   "hash": "0b3b4d81434a68a15c76a6dd066ce8b325c32aac"
+   "bytes": 227703,
+   "hash": "b3293de95db2296e8bf2c46556cf746c2e8a86fd"
   },
   "traffic/hatch": {
    "kind": "vehicle",
@@ -5163,7 +5163,7 @@
    "auto_lod": false,
    "tags": ["traffic", "heavy"],
    "bytes": 170944,
-   "hash": "26f9baf605ad028e688d92b696907c50d41e0817"
+   "hash": "14df34c0c2ee4eb8730d3cc641b9d7f485908b75"
   },
   "traffic/truck_tarp": {
    "kind": "heavy",
@@ -5401,7 +5401,7 @@
    "auto_lod": false,
    "tags": ["traffic", "heavy"],
    "bytes": 210702,
-   "hash": "ff174286dbeb45109095afb288cb431a8bd74409"
+   "hash": "ab625706e44eb7d80df4b509ffac2d5d81fd1af8"
   },
   "traffic/truck_transport": {
    "kind": "heavy",
@@ -5639,7 +5639,7 @@
    "auto_lod": false,
    "tags": ["traffic", "heavy"],
    "bytes": 172239,
-   "hash": "241d5289759cb64fa19023f3207b7e72dc44abea"
+   "hash": "dff17f9da69feb38f217032abfa29e20e6cceb07"
   },
   "traffic/van": {
    "kind": "vehicle",

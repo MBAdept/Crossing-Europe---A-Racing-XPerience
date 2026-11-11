@@ -171,8 +171,8 @@
   "paint": {"paint": "#d8d8d4", "paint2": "#1f4f9a", "paint3": "#d6262b", "metal": 0.25},
   "auto_lod": false,
   "tags": ["traffic", "heavy"],
-  "bytes": 227704,
-  "hash": "0b3b4d81434a68a15c76a6dd066ce8b325c32aac"
+  "bytes": 227703,
+  "hash": "b3293de95db2296e8bf2c46556cf746c2e8a86fd"
  },
  "sets": {
   "traffic/bus_white": {

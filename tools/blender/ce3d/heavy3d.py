@@ -49,7 +49,8 @@ SECTION = {0: dict(side=4, top=6, bot=2, roof=3), 1: dict(side=2, top=3, bot=1, 
 ROWS = (PLASTIC_Z, 0.95, 1.2, 1.72, 3.28)
 SIDE_SUB = {0: (0, 1, 0, 1, 2, 0), 1: (0, 0, 0, 0, 1, 0), 2: (0, 0, 0, 0, 0, 0)}
 FAR_STRIPE = (0.95, 1.2)               # lod2: the wedge of the lower stripe as a band of its mean height
-GLASS = dict(color="#2a343e", rough=0.02, metal=0.25)      # the traffic cars' glass (traffic3d.TRAFFIC_GLASS)
+GLASS = dict(color="#2a343e", rough=0.02, metal=0.25)      # the traffic cars' glass (traffic3d.TRAFFIC_GLASS);
+#                                                             far levels: the colour truck3d.GLASS_FAR (AS2R)
 LINER = "#141516"
 BUMPER = "#2a2c2f"
 LED = "-on:0.55:#ffb030"               # destination display: amber LEDs, always on, no light anchor
@@ -428,7 +429,7 @@ def _materials(b):
     b.i_plastic = b.flat("#1a1b1d", 0.6)
     b.i_liner = b.flat(LINER, 0.9)
     b.bus_mats = dict(
-        glass=b.pal.add("bus_glass", "glass", dict(GLASS)),
+        glass=b.pal.add("bus_glass", "glass", dict(GLASS) if b.lv == 0 else dict(GLASS, color=TK.GLASS_FAR)),
         handle=b.flat("#2c2e31", 0.4, 0.4),
         marker_side=b.flat("#c86a12", 0.2, 0.0, "-marker:1:" + TK.AMBER),
         marker=b.flat("#8a0c0a", 0.2, 0.0, "marker:1:" + TK.LAMP_RED),
