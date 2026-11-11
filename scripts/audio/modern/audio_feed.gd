@@ -9,7 +9,8 @@ extends RefCounted
 ## v1 (AU-C1). update(state) fills:
 ##   surface_l / surface_r   what the left / right wheels run on: the paving of the road ("asphalt", "concrete",
 ##                           "cobbles", "deck" – a steel bridge deck), "rumble" (profiled edge line and rumble strip,
-##                           only on rumble_roads), "shoulder" (gravel beside the road), "grass" (beyond the shoulder,
+##                           only on rumble_roads; not on the right while the segment has a fuel lane – its edge is a
+##                           plain dashed line, AU-R), "shoulder" (gravel beside the road), "grass" (beyond the shoulder,
 ##                           no guardrail). In tunnels, on bridges and in the City Limits the shoulder is paved.
 ##   paving                  the paving at the car: "asphalt", "concrete" (sections of concrete_roads, chosen per
 ##                           section from concrete_share – the same section has the same paving in both directions),
@@ -24,6 +25,8 @@ extends RefCounted
 ##   events                  what the car passed since the last update, in order:
 ##                           {"name": "tunnel_in" | "tunnel_out" | "bridge_in" | "bridge_out" | "cover_in" | "cover_out", "z", "kind"}
 ##                           {"name": "joint", "z", "kind": "bridge_end" | "bridge", "deck"}  expansion joints of a bridge
+##                              (spacing per deck, joint_every: steel at both ends and between the spans, concrete
+##                              viaducts every 32 m, stone arches none – AU-R)
 ##                           {"name": "pass_object", "z", "side": −1 | 0 | 1, "dist_m", "size", "kind", "set", "contact"}
 ##                              roadside things within pass_max_m: kind "tree", "building", "post", "sign", "gantry"
 ##                              (overhead, side 0), "rock", "object"; the delineator posts of roads without a guardrail
@@ -61,7 +64,11 @@ var track_half_m := 0.78         ## half the track width of the car (wheel posit
 var body_half_m := 0.93          ## half the body width of the car (contact with a delineator)
 var pass_max_m := 18.0           ## roadside objects farther from the car than this are not reported
 var max_scan_m := 90.0           ## a larger step than this is a jump (no events)
-var joint_every_m := 24.0        ## expansion joints on a bridge (0 = only at its ends)
+## Expansion joints of a bridge per deck material (feed.joint_every_m – a table, or one number for every deck):
+## metres between the joints (visible metres), 0 = only at the two ends, < 0 = none at all. A continuous steel
+## girder has joints at its abutments and between its spans, a masonry arch none, an old concrete viaduct of simply
+## supported spans one every span (KRITIK-FAHRBAHN B5).
+var joint_every: Dictionary = {"steel": 100.0, "stone": -1.0, "concrete": 32.0}
 var max_events := 12             ## per update
 var rumble_roads: Array[String] = ["autobahn"]       ## road types with profiled edge lines
 var concrete_roads: Array[String] = ["autobahn"]     ## road types that can be concrete
@@ -96,6 +103,7 @@ var scenery := ""
 var city := false
 var guardrail := false
 var lanes := 3.0
+var fuel_lane := 0.0             ## share of the fuel lane on the right of the segment at the car (0 = none)
 var events: Array[Dictionary] = []
 
 var _structures: Array[Dictionary] = []   ## {kind: "tunnel"|"bridge"|"cover", type, z0, z1}, sorted by z0
@@ -120,7 +128,14 @@ func setup(modern: Dictionary) -> void:
 	track_half_m = clampf(float(d.get("track_half_m", track_half_m)), 0.3, 1.5)
 	pass_max_m = maxf(float(d.get("pass_max_m", pass_max_m)), 0.0)
 	max_scan_m = maxf(float(d.get("max_scan_m", max_scan_m)), 3.0)
-	joint_every_m = maxf(float(d.get("joint_every_m", joint_every_m)), 0.0)
+	var je: Variant = d.get("joint_every_m", null)
+	if je is Dictionary:
+		for k: String in je:
+			if not k.begins_with("_"):
+				joint_every[k] = float(je[k])
+	elif je is float or je is int:
+		for k: String in ["steel", "stone", "concrete"]:
+			joint_every[k] = float(je)
 	max_events = clampi(int(d.get("max_events", max_events)), 1, 64)
 	rumble_roads = _strings(d.get("rumble_roads", rumble_roads))
 	concrete_roads = _strings(d.get("concrete_roads", concrete_roads))
@@ -197,6 +212,7 @@ func _reset_values() -> void:
 	city = false
 	guardrail = false
 	lanes = 3.0
+	fuel_lane = 0.0
 	_rock_z = [-1.0e9, -1.0e9]
 
 
@@ -234,6 +250,12 @@ static func deck_of(bridge_type: String) -> String:
 	return str(BRIDGE_DECKS.get(bridge_type, "concrete"))
 
 
+## Metres between the expansion joints of a deck: > 0 every so many metres and at both ends, 0 only at the ends,
+## < 0 none at all.
+func joint_spacing(deck_material: String) -> float:
+	return float(joint_every.get(deck_material, joint_every.get("concrete", 32.0)))
+
+
 ## One frame: `state` = the vehicle state of §4.7.2 (needs "z" and "x"). Without a track or a position nothing is
 ## derived (valid = false, neutral values).
 func update(state: Dictionary) -> void:
@@ -269,19 +291,20 @@ func _update_structures(moved: bool) -> void:
 		if moved:
 			# boundaries crossed since the last update
 			var dk := deck_of(str(s["type"])) if kind == "bridge" else ""
+			var every := joint_spacing(dk) if kind == "bridge" else -1.0
 			if _prev_z < z0 and z >= z0:
 				_event({"name": kind + "_in", "z": z0, "kind": str(s["type"])})
-				if kind == "bridge":
+				if kind == "bridge" and every >= 0.0:
 					_event({"name": "joint", "z": z0, "kind": "bridge_end", "deck": dk})
-			if kind == "bridge" and joint_every_m > 0.0 and z > z0 and _prev_z < z1:
-				var a := int(floor((clampf(_prev_z, z0, z1) - z0) / joint_every_m))
-				var b := int(floor((clampf(z, z0, z1) - z0) / joint_every_m))
+			if kind == "bridge" and every > 0.0 and z > z0 and _prev_z < z1:
+				var a := int(floor((clampf(_prev_z, z0, z1) - z0) / every))
+				var b := int(floor((clampf(z, z0, z1) - z0) / every))
 				for j in range(a + 1, b + 1):
-					var zj := z0 + float(j) * joint_every_m
-					if zj < z1 - 0.5 * joint_every_m:
+					var zj := z0 + float(j) * every
+					if zj < z1 - 0.5 * every:
 						_event({"name": "joint", "z": zj, "kind": "bridge", "deck": dk})
 			if _prev_z < z1 and z >= z1:
-				if kind == "bridge":
+				if kind == "bridge" and every >= 0.0:
 					_event({"name": "joint", "z": z1, "kind": "bridge_end", "deck": dk})
 				_event({"name": kind + "_out", "z": z1, "kind": str(s["type"])})
 		if z >= z0 and z < z1:
@@ -315,6 +338,8 @@ func _update_segment(state: Dictionary) -> void:
 		city = bool(seg.get("city"))
 		guardrail = bool(seg.get("guardrail"))
 		lanes = float(seg.get("lanes"))
+		var fl: Variant = seg.get("fuel_lane")
+		fuel_lane = float(fl) if (fl is float or fl is int) else 0.0
 	var w := str(state.get("weather", "normal"))
 	wet = 1.0 if (w == "rain" and not tunnel) else 0.0
 	snow = 1.0 if (w == "snow" and not tunnel) else 0.0
@@ -387,9 +412,25 @@ func _cobbled(km: float) -> bool:
 	return yes
 
 
-## A number in [0, 1) from a text – the same on every machine and in every run.
+## A number in [0, 1) from a text – the same on every machine and in every run. String.hash() is djb2: keys that
+## differ only in their last character ("hamburg|0", "hamburg|1") differ only in the last bits of the hash, and the
+## low 24 bits used before AU-R gave every block of a city the same decision (KRITIK-FAHRBAHN B2: Hamburg always
+## cobbled, Paris never). The finaliser of MurmurHash3 (fmix32) spreads every input bit over the whole word.
 static func unit_hash(key: String) -> float:
-	return float(key.hash() & 0xFFFFFF) / float(0x1000000)
+	var h := key.hash() & 0xFFFFFFFF
+	h ^= h >> 16
+	h = _mul32(h, 0x85EBCA6B)
+	h ^= h >> 13
+	h = _mul32(h, 0xC2B2AE35)
+	h ^= h >> 16
+	return float(h >> 8) / float(0x1000000)
+
+
+## (a · b) mod 2^32 for 32-bit unsigned a, b without overflowing the 64-bit int (16-bit halves of b).
+static func _mul32(a: int, b: int) -> int:
+	var lo := a * (b & 0xFFFF)
+	var hi := ((a * (b >> 16)) & 0xFFFF) << 16
+	return (lo + hi) & 0xFFFFFFFF
 
 
 func _update_zone() -> void:
@@ -423,7 +464,9 @@ func _update_surfaces(state: Dictionary) -> void:
 	var wl := x - track_half_m
 	var wr := x + track_half_m
 	surface_l = wheel_surface(surface_at(wl, left, right, shoulder, at_limit and x < (left + right) * 0.5), wl >= left and wl <= right)
-	surface_r = wheel_surface(surface_at(wr, left, right, shoulder, at_limit and x >= (left + right) * 0.5), wr >= left and wr <= right)
+	# the right edge of a fuel lane is a plain dashed line without a profile, paved on both sides (KRITIK-FAHRBAHN B13)
+	surface_r = wheel_surface(surface_at(wr, left, right, shoulder, at_limit and x >= (left + right) * 0.5), wr >= left and wr <= right,
+		fuel_lane > 0.0)
 
 
 ## Surface under a wheel at lateral position wx: paved between left and right (the edge line counts as "rumble"),
@@ -441,14 +484,17 @@ func surface_at(wx: float, left: float, right: float, shoulder_m: float, on_gras
 
 
 ## What a wheel really runs on on this road: the paving instead of plain "asphalt"; the edge line is a rumble only
-## on rumble roads (elsewhere paving inside the edge, shoulder outside); in tunnels, on bridges and in the City
-## Limits the shoulder is paved (walkway, deck, pavement).
-func wheel_surface(raw: String, inside: bool) -> String:
+## on rumble roads (elsewhere paving inside the edge, shoulder outside); `plain_edge`: this edge is the dashed line
+## of a fuel lane – paving on both sides of it; in tunnels, on bridges and in the City Limits the shoulder is paved
+## (walkway, deck, pavement).
+func wheel_surface(raw: String, inside: bool, plain_edge: bool = false) -> String:
 	var paved_shoulder := tunnel or bridge != "" or city
 	match raw:
 		"asphalt":
 			return paving
 		"rumble":
+			if plain_edge:
+				return paving
 			if rumble_road:
 				return "rumble"
 			return paving if (inside or paved_shoulder) else "shoulder"
@@ -545,4 +591,4 @@ func state() -> Dictionary:
 	return {"valid": valid, "z": z, "x": x, "surface_l": surface_l, "surface_r": surface_r, "paving": paving,
 		"deck": deck, "rumble_road": rumble_road, "wet": wet, "snow": snow, "zone": zone, "tunnel": tunnel,
 		"bridge": bridge, "cover": cover, "depth_m": depth_m, "road": road, "scenery": scenery, "city": city,
-		"guardrail": guardrail, "lanes": lanes, "events": events.size()}
+		"guardrail": guardrail, "lanes": lanes, "fuel_lane": fuel_lane, "events": events.size()}

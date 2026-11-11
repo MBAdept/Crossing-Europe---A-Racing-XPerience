@@ -9,8 +9,9 @@ their manifest.json (format "ce-audio-manifest-1").
     python3 tools/audio/qc/audio_qc.py --folders ui,music --json report.json
 
 Per sound (each file of an entry):
-  format        the kind fits the folder rules: music and ambience Ogg Vorbis, loops and one-shots 16-bit WAV, all
-                44.1 kHz; engine data raw int16 at 32 kHz stereo
+  format        the kind fits the folder rules: music and ambience Ogg Vorbis, loops and one-shots 16-bit WAV (the
+                loops of the car in vehicle/ also Ogg Vorbis – noise), all 44.1 kHz; engine data raw int16 at 32 kHz
+                stereo
   manifest      the file is what the manifest says: sha256, bytes, frames, channels, sample rate, loudness and true
                 peak (re-measured: BS.1770 integrated loudness, 4x oversampled peak)
   level         true peak <= -1 dBTP; music at -14 +-1 LUFS (masters); an entry may set its own limits:
@@ -110,8 +111,10 @@ def check_sound(folder: str, sid: str, e: dict, base: str, with_import: bool, re
         if not os.path.exists(path):
             errs.append(f"{name} fehlt")
             continue
-        # --- format rules
-        want_ext = {"bank": ("i16",), "music": ("ogg",)}.get(kind, ("ogg",) if folder == "ambience" else ("wav",))
+        # --- format rules (noise loops of the car may be Ogg Vorbis – AU-R: contract §4.7.3 names WAV for tonal loops,
+        # and the long per-side loops of road and wind would not fit the sound budget as PCM)
+        want_ext = {"bank": ("i16",), "music": ("ogg",)}.get(kind, ("ogg",) if folder == "ambience" else
+                                                             (("wav", "ogg") if (folder == "vehicle" and kind == "loop") else ("wav",)))
         if ext not in want_ext:
             errs.append(f"{name}: Art {kind} in {folder} erwartet .{'/.'.join(want_ext)}")
             continue

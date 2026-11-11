@@ -188,7 +188,7 @@ func test_structures_and_their_events() -> void:
 	assert_eq(f.zone, "tunnel", "Zone Tunnel")
 	assert_near(f.depth_m, 50.0, 1.0e-6, "50 m bis zum näheren Portal")
 	assert_near(f.wet, 0.0, 1.0e-6, "im Tunnel trocken")
-	# bridge: joints at both ends and every joint_every_m in between
+	# bridge (an unknown type: a concrete deck): joints at both ends and every 32 m in between
 	f.update(_state(590.0))
 	ev = _drive(f, 591.0, 700.0)
 	var names := _names(ev)
@@ -200,7 +200,7 @@ func test_structures_and_their_events() -> void:
 	for e in ev:
 		if str(e["name"]) == "joint":
 			joints.append(float(e["z"]))
-	assert_eq(joints, [600.0, 624.0, 648.0, 672.0, 690.0] as Array[float], "Fugen alle 24 m und an den Enden (keine dicht vor dem Ende)")
+	assert_eq(joints, [600.0, 632.0, 664.0, 690.0] as Array[float], "Betondeck: Fugen alle 32 m und an den Enden (keine dicht vor dem Ende)")
 	f.update(_state(640.0))
 	assert_eq(f.bridge, "truss", "Brückentyp")
 	assert_eq(f.zone, "bridge", "Zone Brücke")
@@ -518,3 +518,80 @@ func test_cutting_between_rocks() -> void:
 	assert_eq(f.zone, "open", "60 m danach wieder offen")
 	_drive(f, 390.0, 420.0, 1.0)
 	assert_eq(f.zone, "open", "ein ferner Fels auf einer Seite macht keinen Einschnitt")
+
+
+# --- AU-R: joints per deck, no rumble at the fuel lane, a mixed hash ----------------------------------------------
+
+## Expansion joints by deck material: steel at both ends and about every 100 m between the spans, a concrete
+## viaduct every 32 m, a stone arch none at all (KRITIK-FAHRBAHN B5).
+func test_joints_per_deck() -> void:
+	var expect := {"cable_stayed": [300.0, 400.0, 500.0, 561.0], "truss_arch": [300.0, 400.0, 500.0, 561.0],
+		"river": [300.0, 332.0, 364.0, 396.0, 428.0, 460.0, 492.0, 524.0, 561.0], "stone_arch": []}
+	for type: String in expect:
+		var b := FakeTrack.new()
+		b.bridges = [{"z0": 300.0, "z1": 561.0, "type": type}]
+		var bf := _feed_with(b, {})
+		bf.update(_state(290.0))
+		var ev := _drive(bf, 291.0, 580.0, 1.7)
+		var joints: Array = []
+		for e in ev:
+			if str(e["name"]) == "joint":
+				joints.append(float(e["z"]))
+		assert_eq(joints, expect[type], "Fugen auf %s" % type)
+		assert_true(_names(ev).has("bridge_in") and _names(ev).has("bridge_out"), "Brücke %s gemeldet" % type)
+	# one number for every deck (the format before AU-R); 0 = only the ends
+	var t := FakeTrack.new()
+	t.bridges = [{"z0": 300.0, "z1": 400.0, "type": "stone_arch"}]
+	var f := _feed_with(t, {"joint_every_m": 0.0})
+	f.update(_state(290.0))
+	var zs: Array = []
+	for e in _drive(f, 291.0, 420.0, 1.7):
+		if str(e["name"]) == "joint":
+			zs.append(float(e["z"]))
+	assert_eq(zs, [300.0, 400.0], "eine Zahl für alle Decks: 0 = nur an den Enden")
+	assert_near(f.joint_spacing("gibtsnicht"), 0.0, 1.0e-6, "unbekanntes Deck wie Beton")
+
+
+## While the segment has a fuel lane the right edge is a plain dashed line: no rumble on the right.
+func test_no_rumble_at_the_fuel_lane() -> void:
+	var t := FakeTrack.new()
+	var f := _feed_with(t, {})
+	f.update(_state(50.0, 5.0))        # right wheels at 5.78: on the profiled edge line
+	assert_eq(f.surface_r, "rumble", "ohne Tankspur: Rüttellinie")
+	for i in range(15, 40):
+		t.get_segment(i).fuel_lane = 0.6
+	f.update(_state(60.0, 5.0))
+	assert_near(f.fuel_lane, 0.6, 1.0e-6, "Tankspur am Auto")
+	assert_eq(f.surface_r, "asphalt", "Rand der Tankspur: Fahrbahn, keine Rüttellinie")
+	f.update(_state(61.0, 5.6))        # right wheels at 6.38: outside the paved edge
+	assert_eq(f.surface_r, "shoulder", "außen: Bankett")
+	f.update(_state(62.0, -5.0))       # left wheels at -5.78: the left edge keeps its profile
+	assert_eq(f.surface_l, "rumble", "links bleibt die Rüttellinie")
+
+
+## The hash mixes keys that differ only in their last character (KRITIK-FAHRBAHN B2: djb2 gave every block of a
+## city the same decision); the values are those of the reference in Python (murmur3 fmix32 over djb2).
+func test_unit_hash_mixes_neighbouring_keys() -> void:
+	assert_near(AudioFeed.unit_hash("hamburg|0"), 0.3253776431083679, 1.0e-9, "Bezugswert (Python)")
+	assert_near(AudioFeed.unit_hash("hamburg|1"), 0.7149350643157959, 1.0e-9, "Bezugswert (Python)")
+	assert_near(AudioFeed.unit_hash("A7|Holstein"), 0.48531436920166016, 1.0e-9, "Bezugswert (Python)")
+	var yes := 0
+	var n := 0
+	var sum := 0.0
+	for city in 40:
+		for block in 10:
+			var u := AudioFeed.unit_hash("stadt%d|%d" % [city, block])
+			assert_true(u >= 0.0 and u < 1.0, "in [0, 1)")
+			sum += u
+			yes += 1 if u < 0.6 else 0
+			n += 1
+	assert_near(sum / n, 0.5, 0.03, "gleich verteilt (Mittel %.3f)" % (sum / n))
+	assert_near(float(yes) / n, 0.6, 0.05, "Anteil 0,6 getroffen (%.3f)" % (float(yes) / n))
+	var same := 0
+	for city in 40:
+		var first := AudioFeed.unit_hash("stadt%d|0" % city) < 0.6
+		var all_same := true
+		for block in range(1, 10):
+			all_same = all_same and ((AudioFeed.unit_hash("stadt%d|%d" % [city, block]) < 0.6) == first)
+		same += 1 if all_same else 0
+	assert_true(same <= 2, "kaum eine Stadt ganz oder gar nicht gepflastert (%d von 40; erwartet 0,4)" % same)
