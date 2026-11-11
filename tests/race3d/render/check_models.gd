@@ -248,7 +248,9 @@ func _check_klassen() -> void:
 			await _drop(rig)
 			continue
 		(rig["holder"] as Node3D).add_child(node)
-		node.rotation.y = deg_to_rad(180.0) if str(job[4]) == "baked" else 0.0      # the approach side towards the camera
+		# the camera looks along -Z: it sees the +Z side, the approach side of a prop model (amendment A-4; the
+		# farmhouse of wave 0 still showed it on -Z, the one of AS1b follows A-4 and lights its windows there)
+		node.rotation.y = 0.0
 		img = await _shot(rig, "klassen_" + str(job[4]))
 		var drawn := _count(img, Rect2i(0, 0, 320, 240), _lit)
 		var mean := _mean(img, Rect2i(120, 60, 80, 90))

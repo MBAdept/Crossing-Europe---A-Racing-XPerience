@@ -228,6 +228,12 @@ func _check_lkw() -> void:
 	var lights := float((view["palette"] as Dictionary).get("lights", 0.0))
 	var truck := _car(9701, "traffic/truck_white", cam_z + 30.0, x, {"tail": lights})
 	var car := _car(9702, "traffic/sedan_red", cam_z + 50.0, x, {"tail": lights, "brake": 1.0, "blink": -1, "blink_t": 0.1})
+	# The headlight cone of the hidden car lights the road AHEAD of it (lights layer, Arcade's traffic cones) – beside
+	# the semitrailer that road is rightly visible. This check is about the car and its lamps showing through the
+	# truck, so the traffic cones are left out here (the lights layer of the assembly of M1).
+	var lt: Variant = r.call("layer", "lights")
+	if lt is Object:
+		(lt as Object).set("_max_traffic", 0)
 	var only_truck := await _shot([truck])
 	var both := await _shot([truck, car])
 	var d := _diff(only_truck, both)
