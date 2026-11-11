@@ -2,7 +2,7 @@
 the sprite sets it serves. No bpy at import time (export_models.py --list / --manifest-only).
 
 Entry: model id "<group>/<name>" (group = player | traffic | police | props | landmarks) ->
-  builder   player | car | heavy | tree | prop_vpbr | prop_baked    (ce3d.export_models.BUILDERS)
+  builder   player | car | police | heavy | bus | tree | prop_vpbr | prop_baked    (ce3d.export_models.BUILDERS)
   source    sprite set whose generator build is the source (colour variants: any one of them)
   kind      vehicle | heavy | tree | plant | rock | building | landmark | furniture
   sets      sprite set ids served by the model; default = [model id]. Vehicles: {set id: paint dict}
@@ -39,6 +39,12 @@ BUILDER_CODE = {
     "car": ["ce3d/traffic3d.py", "ce3d/vehicles3d.py", "ce3d/truck3d.py", "ce3d/decalgeo.py", "cesprites/vehicles.py",
             "cesprites/designs.py", "cesprites/carbody.py", "cesprites/cardetail.py", "cesprites/curves.py"],
     "heavy": ["ce3d/truck3d.py", "ce3d/vehicles3d.py", "ce3d/decalgeo.py", "cesprites/heavy.py"],
+    # police: the traffic car of traffic3d (all of its code) with livery, words and light bar
+    "police": ["ce3d/police3d.py", "ce3d/traffic3d.py", "ce3d/vehicles3d.py", "ce3d/truck3d.py", "ce3d/decalgeo.py",
+               "cesprites/vehicles.py", "cesprites/designs.py", "cesprites/carbody.py", "cesprites/cardetail.py",
+               "cesprites/curves.py", "cesprites/police.py", "cesprites/textgeo.py"],
+    "bus": ["ce3d/heavy3d.py", "ce3d/truck3d.py", "ce3d/vehicles3d.py", "ce3d/decalgeo.py", "cesprites/heavy.py",
+            "cesprites/textgeo.py"],
     "tree": ["ce3d/veg3d.py", "ce3d/leafatlas.py", "ce3d/bake.py", "ce3d/props3d.py", "cesprites/props_nature.py",
              "cesprites/props.py", "render_all.py"],
     "prop_vpbr": ["ce3d/props3d.py", "cesprites/props.py", "render_all.py"],
@@ -114,6 +120,45 @@ MODELS = {
 }
 
 
+# --- police (AS2b): one model per country - base car, livery, word and colours of cesprites.catalog.POLICE -----------
+# POLICE_DETAIL: detail overrides per base car on top of the traffic car's own (catalog entry "traffic/<base>"), to
+# make room for the livery cuts and the light bar inside the police budgets (contract 4.6.9)
+POLICE_DETAIL = {
+    "sedan": {"lod1": {"step": 24.0, "gstep": 30.0}, "lod2": {"ring": 0.07, "step": 80.0, "gstep": 80.0, "ends_n": 1}},
+    "hatch": {"lod1": {"step": 24.0, "gstep": 30.0}, "lod2": {"ring": 0.07, "step": 80.0, "gstep": 80.0, "ends_n": 1}},
+    "wagon": {"lod1": {"step": 32.0, "gstep": 44.0}, "lod2": {"ring": 0.07, "step": 110.0}},
+    "suv": {"lod1": {"step": 38.0, "gstep": 50.0}, "lod2": {"ring": 0.07, "step": 100.0, "gstep": 90.0, "ends_n": 1}},
+}
+# ... and per livery: the checks cost about 4,000 triangles at lod0 (rows and cells), the Hungarian word twice the
+# others - a longer station spacing of the lod0 lofts makes the room (the ends and the wheel arches keep their own
+# stations)
+POLICE_DETAIL_CC = {
+    "check": {"lod0": {"step": 12.0, "gstep": 12.0}},
+    "hu": {"lod0": {"step": 8.8}, "lod1": {"step": 30.0}},
+    "ro": {"lod0": {"step": 13.0}},
+    "at": {"lod1": {"step": 48.0, "gstep": 64.0}},
+}
+
+
+def _police_models():
+    from cesprites import catalog
+    out = {}
+    for cc in sorted(catalog.POLICE):
+        p = catalog.POLICE[cc]
+        e = dict(builder="police", source="police/" + cc, kind="vehicle", cc=cc, sets={"police/" + cc: {}})
+        detail = {}
+        for over in (POLICE_DETAIL.get(p["model"], {}), POLICE_DETAIL_CC.get(p["style"], {}), POLICE_DETAIL_CC.get(cc, {})):
+            for lv, vals in over.items():
+                detail.setdefault(lv, {}).update(vals)
+        if detail:
+            e["detail"] = detail
+        out["police/" + cc] = e
+    return out
+
+
+MODELS.update(_police_models())
+
+
 def model_ids():
     return sorted(MODELS)
 
@@ -164,6 +209,15 @@ def key_data(model_id):
         from cesprites import heavy
         data["colours"] = _plain(catalog.TRAFFIC_COLORS[spec["design"]])
         data["variants"] = _plain(heavy.TRUCK_VARIANTS)
+    elif spec["builder"] == "bus":
+        from cesprites import heavy
+        data["colours"] = _plain(catalog.TRAFFIC_COLORS["bus"])
+        data["variants"] = _plain(heavy.BUS_VARIANTS)
+    elif spec["builder"] == "police":
+        # the traffic car it is built on: that entry's options (detail per level ...) and the police table row
+        base = catalog.POLICE[spec["cc"]]["model"]
+        data["police"] = _plain(catalog.POLICE[spec["cc"]])
+        data["base"] = _plain(MODELS["traffic/" + base])
     return data
 
 
