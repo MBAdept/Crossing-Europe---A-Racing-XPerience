@@ -27,11 +27,21 @@ extends ModernAudioModule
 
 const BUS := "MEngine"
 const FADE_S := 0.12             ## fade on pause / scene change / resume
-const START_WINDOW_S := 1.0      ## synchronous mode: after the engine start the generator queue is start_latency_s long
+const START_WINDOW_S := 1.0      ## after the engine start of a stage the generator queue is start_latency_s long
 const NEUTRAL_BOOST := 0.45      ## revving without load (standstill) builds only this share of the boost
 const MOVING_KMH := 20.0         ## a car that already drives when its engine sound starts gets no start clip
 const BANK_CACHE := 3
 const SYNC_SEED := 20261111      ## seed of the mixers in synchronous mode (sample-identical runs)
+const HITCH_S := 0.25            ## a frame at least this long may be a hitch and not a session that is gone
+
+
+## The car is driven in this frame. ModernAudio counts a session as gone when it did not call for ALIVE_S (0.35 s) –
+## and a single frame that took that long looks just the same: frame.alive is false for it, although the session
+## calls again right after. The mixer thread plays through such a hitch; fading the engine out for one frame would
+## put a dip where there was none. So a long frame that follows a driven one still counts (the pause does not).
+## A session that is really gone is seen one frame later.
+static func driven(frame: ModernAudioFrame, was_driven: bool) -> bool:
+	return frame.alive or (was_driven and not frame.paused and frame.dt >= HITCH_S)
 
 
 ## One sounding engine.
@@ -156,6 +166,7 @@ var vehicle_id := ""
 var bank_override: Dictionary = {}
 
 var _unit: Unit = null
+var _driven := false
 var _start_pending := false
 var _started_at := -100.0
 var _fallback: EngineGearbox = null
@@ -315,12 +326,15 @@ func _release_output(u: Unit) -> void:
 	ModernAudioContext.free_player(u.mix.detach())
 
 
-func _pump(u: Unit, dt: float, node_name: String, latency_sync: float) -> void:
+## Keeps the generator of a unit fed. starting: the first second of a stage – long frames (shaders, textures) and a
+## driver whose block size is not known yet: the longer queue.
+func _pump(u: Unit, dt: float, node_name: String, starting: bool) -> void:
 	if not ctx.live:
 		return
 	if u.mix.player == null and not u.mix.is_silent():
 		u.mix.attach(ctx.player(BUS, node_name), _buffer)
-	u.mix.pump(latency_sync if ctx.sync else _latency, dt, not ctx.sync)
+	var latency := _sync_latency if ctx.sync else _latency
+	u.mix.pump(_start_latency if starting else latency, dt, not ctx.sync)
 
 
 func set_vehicle(id: String) -> void:
@@ -339,11 +353,12 @@ func set_vehicle(id: String) -> void:
 
 func update(frame: ModernAudioFrame) -> void:
 	_time = frame.time
+	_driven = driven(frame, _driven)
 	if _unit == null:
-		if _fallback != null and frame.alive:
+		if _fallback != null and _driven:
 			_fallback.update(frame.dt, frame.speed, frame.throttle, frame.vmax, frame.active)
 	else:
-		if frame.alive:
+		if _driven:
 			if _start_pending:
 				_start_pending = false
 				_unit.start(frame.speed < MOVING_KMH)
@@ -352,7 +367,7 @@ func update(frame: ModernAudioFrame) -> void:
 			_unit.mix.fade_to(1.0, FADE_S)
 		else:
 			_unit.mix.fade_to(0.0, FADE_S)
-		_pump(_unit, frame.dt, "EngineV3", _sync_latency if _time - _started_at > START_WINDOW_S else _start_latency)
+		_pump(_unit, frame.dt, "EngineV3", _time - _started_at <= START_WINDOW_S)
 	_update_preview(frame.dt)
 
 
@@ -407,7 +422,7 @@ func _update_preview(dt: float) -> void:
 		if _preview_t >= EngineAudio.PREVIEW_S - 0.25:
 			_preview.mix.fade_to(0.0, 0.25)
 	_preview.update(dt, 0.0, thr, 0.0, false)
-	_pump(_preview, dt, "EnginePreview", _sync_latency)
+	_pump(_preview, dt, "EnginePreview", false)
 	if _preview_wanted == "" and (not ctx.live or _preview.mix.is_silent()) and _preview_t > EngineAudio.PREVIEW_S + 0.5:
 		_stop_preview()
 
@@ -418,6 +433,7 @@ func _stop_preview() -> void:
 
 
 func stop_all() -> void:
+	_driven = false
 	if _unit != null:
 		_release_output(_unit)
 		_unit.reset()

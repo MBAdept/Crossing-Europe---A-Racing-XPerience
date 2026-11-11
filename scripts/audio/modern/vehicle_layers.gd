@@ -57,6 +57,7 @@ var _turbo_db := 0.0
 var _driveline_db := 0.0
 var _shots_db := 0.0
 var _has_car := false
+var _driven := false
 var _scale_db := 0.0             # the car's mix.gain and the engine level
 var _redline := 6500.0
 var _turbo_on := false
@@ -179,8 +180,9 @@ func update(frame: ModernAudioFrame) -> void:
 	var e := frame.engine
 	boost = float(e.get("boost", 0.0))
 	var dt := maxf(frame.dt, 0.0001)
-	var on := _has_car and frame.alive and not frame.effects_muted and not e.is_empty()
-	var k := 1.0 - exp(-dt / (SMOOTH_S if on else FADE_S))
+	_driven = EngineAudio3.driven(frame, _driven)      # a single long frame is not a session that is gone
+	var on := _has_car and _driven and not frame.effects_muted and not e.is_empty()
+	var k := 1.0 - exp(-minf(dt, 0.1) / (SMOOTH_S if on else FADE_S))
 	var t_tone := 0.0
 	var t_hiss := 0.0
 	var t_fd := 0.0
@@ -263,6 +265,7 @@ func _shot(kind: String, id: String, gain: float, now: float) -> void:
 
 
 func stop_all() -> void:
+	_driven = false
 	turbo.silence()
 	hiss.silence()
 	final_drive.silence()

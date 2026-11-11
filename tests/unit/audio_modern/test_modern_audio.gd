@@ -134,8 +134,10 @@ func test_engine_follows_the_session() -> void:
 	assert_near(m.road.wind.level, 0.0, 0.01, "Wind ausgeblendet")
 	assert_eq(int(m.engine_perf()["frames"]), 0, "ohne Wiedergabe wird nichts gemischt")
 	# a car without a bank: the generic gearbox still gives a state
+	# (engine v3, AU-B: the banks are the Modern ones of assets/audio/modern/engines, not those of the Arcade bank
+	# provider – a car without a bank is one the folder does not know)
 	var n := _modern({}, {"bank_provider": Callable()})
-	n.set_vehicle("limousine")
+	n.set_vehicle("gibtsnicht")
 	_drive(n, 120, 120.0, 1.0)
 	assert_true(float(n.engine_state()["rpm"]) > 500.0, "Getriebe ohne Bank läuft")
 	assert_false(bool(n.debug_state()["slots"]["engine"]["bank"]), "keine Bank")

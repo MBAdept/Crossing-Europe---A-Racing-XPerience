@@ -63,7 +63,7 @@ N_VAR_IN = 4                     # mono variants of "in", two per stereo block
 FILE_PEAK = 0.84                 # every bank is stored with this sample peak (its "gain" restores the level)
 REF_PEAK = 0.708                 # designed peak of the full-load bank at the reference rpm (before mix.gain)
 PAN_REF_X = 0.9                  # a source this far off the centre line (m) gets the full pan
-INTERNAL_LUFS = -16.0            # designed full-load loudness of a car inside the mixer (before the buses), plus its "loudness"
+INTERNAL_LUFS = -14.6            # designed full-load loudness of a car inside the mixer (before the buses), plus its "loudness"
 CARS = list(es.CARS)
 MODE_ST, MODE_L, MODE_R = 0, 1, 2
 
@@ -90,8 +90,8 @@ CHAR: dict = {
     "kompakt": {
         "retune": {"rasp": 4.0, "jet": 5.0, "intake": 4.0, "whoosh": 5.0, "mech": 2.0, "hiss": 3.0},
         "nl": 1.5, "pan": "centre", "width": 0.0, "noise": 0.85, "clip_pan": 0.25, "voice": [[520.0, 0.9, 5.0]],
-        "on": ON_CURVE, "off": OFF_CURVE, "loudness": 0.5, "idle_db": 2.0, "low_db": 1.5,
-        "mix": {"in_gain": 1.0, "idle_load": 0.2, "load_curve": 0.5},
+        "on": ON_CURVE, "off": OFF_CURVE, "loudness": 0.6, "idle_db": 1.3, "low_db": 0.0,
+        "mix": {"in_gain": 1.0, "idle_load": 0.2, "load_curve": 0.55},
         "saturation": 1.0, "turbo_depth": 0.25,
         "turbo": {"tone": "turbo_single", "tone_level": 0.060, "hiss_level": 0.030},
         "blowoff": {"sound": "blowoff_hatch"},
@@ -101,7 +101,7 @@ CHAR: dict = {
     "kombi": {
         "retune": {"rasp": 2.0, "jet": 3.0, "intake": 3.0, "whoosh": 6.0, "mech": 2.0, "knock": 1.0},
         "nl": 1.3, "pan": "centre", "width": 0.0, "noise": 0.75, "clip_pan": 0.0,
-        "on": ON_CURVE, "off": OFF_CURVE, "loudness": -0.5, "idle_db": 3.9, "low_db": 2.0,
+        "on": ON_CURVE, "off": OFF_CURVE, "loudness": 0.1, "idle_db": 1.8, "low_db": 1.3,
         "mix": {"in_gain": 1.0, "idle_load": 0.25, "load_curve": 0.45},
         "saturation": 0.5, "turbo_depth": 0.3,
         "turbo": {"tone": "turbo_single", "tone_level": 0.050, "hiss_level": 0.045},
@@ -112,7 +112,7 @@ CHAR: dict = {
     "limousine": {
         "retune": {"rasp": 2.5, "jet": 4.0, "intake": 3.0, "whoosh": 3.0, "mech": 1.0, "hiss": 2.0},
         "nl": 1.25, "pan": "centre", "width": 0.0, "noise": 0.8, "clip_pan": 0.5, "voice": [[420.0, 0.7, 4.0]],
-        "on": ON_CURVE, "off": OFF_CURVE, "loudness": -0.3, "idle_db": 3.4, "low_db": 2.5,
+        "on": ON_CURVE, "off": OFF_CURVE, "loudness": -0.85, "idle_db": 2.6, "low_db": 3.5,
         "mix": {"in_gain": 0.9, "idle_load": 0.2, "load_curve": 0.4},
         "saturation": 0.6, "turbo_depth": 0.2,
         "turbo": {"tone": "turbo_single", "tone_level": 0.022, "hiss_level": 0.020},
@@ -123,7 +123,7 @@ CHAR: dict = {
     "sportwagen": {
         "retune": {"rasp": 1.5, "jet": 2.5, "intake": 6.0, "whoosh": 2.0, "mech": 3.0, "hiss": 2.0},
         "nl": 1.5, "pan": "group", "width": 0.55, "pan_from_hz": 300.0, "noise": 0.9, "clip_pan": 0.45,
-        "on": ON_CURVE, "off": OFF_CURVE, "loudness": 1.0, "idle_db": 0.0, "low_db": 0.0,
+        "on": ON_CURVE, "off": OFF_CURVE, "loudness": 0.45, "idle_db": -0.7, "low_db": 0.7,
         "mix": {"in_gain": 1.15, "idle_load": 0.2, "load_curve": 0.65},
         "saturation": 1.35, "turbo_depth": 0.0,
         "turbo": None, "blowoff": None,
@@ -133,7 +133,7 @@ CHAR: dict = {
     "gran_turismo": {
         "retune": {"rasp": 3.0, "jet": 4.0, "intake": 5.0, "whoosh": 5.0, "mech": 2.0, "hiss": 3.0},
         "nl": 1.5, "pan": "tailpipe", "width": 0.62, "mono_below_hz": 150.0, "noise": 0.9, "clip_pan": 0.0, "voice": [[330.0, 0.8, 5.0]],
-        "on": ON_CURVE, "off": OFF_CURVE, "loudness": 0.2, "idle_db": 2.6, "low_db": 1.0,
+        "on": ON_CURVE, "off": OFF_CURVE, "loudness": -0.5, "idle_db": 1.8, "low_db": 0.0,
         "mix": {"in_gain": 1.0, "idle_load": 0.2, "load_curve": 0.55},
         "saturation": 1.25, "turbo_depth": 0.25,
         "turbo": {"tone": "turbo_twin", "tone_level": 0.036, "hiss_level": 0.030},

@@ -30,6 +30,9 @@ extends RefCounted
 ## caller of render() / pump() in synchronous mode. reset() and detach() stop the worker first.
 ## The worker keeps `latency` seconds queued (more when the audio driver takes larger blocks) in chunks of CHUNK
 ## frames and fades the engine out when the game thread sent nothing for WATCHDOG_S (a frozen window, a long load).
+## A playback never starts empty: pump() renders the first `latency` seconds before the player starts and pushes
+## them right after; the size of the driver's blocks is remembered for the whole process (known_burst_s), so a later
+## engine (next stage, preview, resume after the pause) starts with the right queue length.
 ##
 ## Use (EngineAudio3 owns one per sounding engine):
 ##   drive(rpm, load, throttle, boost, limiter, dt)   once per frame
@@ -54,6 +57,11 @@ const MIN_RHO := -0.6            ## coherence floor of the power-true rpm blend
 const SLOW_TAU := 2.5            ## s, correlation time of the slow movement
 const MAX_CLIPS := 10
 const MAX_EVENTS := 32           ## pending control events (they are taken with every rendered chunk)
+const MAX_RAMP_S := 0.05         ## the rpm reaches a new value within the frame time, at most within this (after a hitch)
+
+## Largest block the audio driver took from a generator between two fills, in seconds (decaying maximum of the
+## mixer that played last) – the Dummy driver of headless runs takes about 93 ms at once, sound servers 10–25 ms.
+static var known_burst_s := 0.0
 
 var bank: EngineBank2
 var rng := RandomNumberGenerator.new()
@@ -189,6 +197,8 @@ var _playback: AudioStreamGeneratorPlayback = null
 var _capacity := 0
 var _frames := PackedVector2Array()
 var _tail := PackedVector2Array()
+var _pre := PackedVector2Array()
+var _buffer_frames := 0
 var _frame_dt := 1.0 / 60.0
 var _queued := 0
 var _burst := 0.0
@@ -253,7 +263,7 @@ func _init(p_bank: EngineBank2, p_seed: int = -1) -> void:
 # --- control (game thread) ------------------------------------------------------------------------
 
 ## One frame of the engine: rpm, engine load 0..1 (throttle, cut while shifting), pedal 0..1 (induction), boost
-## 0..1, limiter active, frame time (the rpm ramps to the new value within dt of audio).
+## 0..1, limiter active, frame time (the rpm ramps to the new value within dt of audio, at most MAX_RAMP_S).
 func drive(rpm: float, load: float, throttle: float, boost: float, limiter_on: bool, dt: float) -> void:
 	_mutex.lock()
 	_c_rpm = rpm
@@ -261,7 +271,7 @@ func drive(rpm: float, load: float, throttle: float, boost: float, limiter_on: b
 	_c_thr = clampf(throttle, 0.0, 1.0)
 	_c_boost = clampf(boost, 0.0, 1.0)
 	_c_limiter = limiter_on
-	_c_dt = maxf(dt, 0.001)
+	_c_dt = clampf(dt, 0.001, MAX_RAMP_S)
 	_c_seq += 1
 	_c_usec = Time.get_ticks_usec()
 	_mutex.unlock()
@@ -918,6 +928,7 @@ func attach(p_player: AudioStreamPlayer, buffer_s: float = 0.25) -> void:
 	gen.buffer_length = buffer_s
 	p_player.stream = gen
 	player = p_player
+	_buffer_frames = int(buffer_s * _sr)
 
 
 ## Once per frame on the game thread. Synchronous mode (threaded false): renders what is needed to keep latency_s
@@ -939,14 +950,31 @@ func pump(latency_s: float, frame_dt: float = 0.0, threaded: bool = false) -> in
 	_silent_s = 0.0
 	if not player.playing or _playback == null:
 		stop_thread()
+		# the first block is rendered before the player starts and pushed right after: the driver never finds an
+		# empty generator, however its blocks fall
+		_burst = known_burst_s * _sr
+		var pre := clampi(maxi(int(latency_s * _sr), int(_burst * 1.25)), CHUNK, maxi(int(_buffer_frames * 0.85), CHUNK))
+		if _pre.size() != pre:
+			_pre.resize(pre)
+		var t0 := Time.get_ticks_usec()
+		render(_pre, 0, pre)
+		var us := Time.get_ticks_usec() - t0
 		player.play()
 		_playback = player.get_stream_playback() as AudioStreamGeneratorPlayback
 		if _playback == null:
 			return 0
 		_capacity = _playback.get_frames_available()
 		_queued = 0
-		_burst = 0.0
+		if pre <= _capacity:
+			_playback.push_buffer(_pre)
+			_queued = pre
 		_pump_usec = Time.get_ticks_usec()
+		_mutex.lock()
+		_s_calls += 1
+		_s_us_sum += us
+		_s_us_max = maxi(_s_us_max, us)
+		_s_samples += pre
+		_mutex.unlock()
 	if threaded:
 		_mutex.lock()
 		_t_latency = latency_s
@@ -969,6 +997,7 @@ func _fill(latency_s: float, chunks_only: bool) -> int:
 	var queued := _capacity - free
 	var now := Time.get_ticks_usec()
 	_burst = maxf(float(_queued - queued), _burst * exp(-float(now - _pump_usec) / 3.3e6))
+	known_burst_s = _burst / _sr
 	_pump_usec = now
 	var target := mini(maxi(int(latency_s * _sr), int(_burst * 1.25)), int(_capacity * 0.9))
 	var need := mini(target - queued, free)
