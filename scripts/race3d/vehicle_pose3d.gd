@@ -24,6 +24,12 @@ const REAR_MERGE_M := 0.25
 ## Kinds of a flare (custom data .w of the flare MultiMesh, flare.gdshader).
 const KIND_GLOW := 0.0               ## plain glow
 const KIND_INDICATOR := 1.0          ## glow + lamp core of Arcade's minimum size (INDICATOR_MIN_PX)
+## Arcade's indicator (RoadRenderer.INDICATOR_PERIOD_S, INDICATOR_MIN_PX, INDICATOR_MIN_GLOW_PX – copied, not named:
+## this file must compile in scripts started with -s, before the autoloads RoadRenderer depends on exist;
+## tests/unit/race3d/test_vehicles.gd checks that the copies equal Arcade's values).
+const INDICATOR_PERIOD_S := 0.72
+const INDICATOR_MIN_PX := Vector2(2.4, 2.0)
+const INDICATOR_MIN_GLOW_PX := 4.5
 ## Arcade's indicator lamp and glow (RoadRenderer._indicator, indicator_glow_px).
 const INDICATOR_CORE_W := 0.2        ## core width (m at the vehicle's scale), at least INDICATOR_MIN_PX.x
 const INDICATOR_CORE_H := 0.13       ## core height (m), at least INDICATOR_MIN_PX.y
@@ -177,7 +183,7 @@ static func lod_index(limits: PackedFloat32Array, dist_m: float, lod0_k: float, 
 static func lamp_a(car: Dictionary, in_tunnel: bool) -> Vector4:
 	var tail := maxf(float(car.get("tail", 0.0)), 1.0 if in_tunnel else 0.0)
 	var blink := int(car.get("blink", 0))
-	var lit := blink != 0 and RoadRenderer.indicator_lit(float(car.get("blink_t", 0.0)))
+	var lit := blink != 0 and indicator_lit(float(car.get("blink_t", 0.0)))
 	return Vector4(tail, clampf(float(car.get("brake", 0.0)), 0.0, 1.0), 1.0 if lit and blink < 0 else 0.0,
 		1.0 if lit and blink > 0 else 0.0)
 
@@ -208,7 +214,7 @@ static func flare_params(role: String, a: Vector4, b: Vector4, lights: float) ->
 		"ind_l", "ind_r":
 			var on := a.z if role == "ind_l" else a.w
 			return Vector4(on * (0.75 + 0.2 * lights), INDICATOR_GLOW_DAY + INDICATOR_GLOW_NIGHT * lights,
-				RoadRenderer.INDICATOR_MIN_GLOW_PX + lights, KIND_INDICATOR)
+				INDICATOR_MIN_GLOW_PX + lights, KIND_INDICATOR)
 		"beacon_a":
 			return Vector4(b.z * 0.7, 1.2 + lights, 3.0, KIND_GLOW)
 		"beacon_b":
@@ -270,6 +276,12 @@ static func flare_points(lights: Array) -> Array:
 	return out
 
 
+## True while an indicator switched on blink_t seconds ago is lit: the first half of every INDICATOR_PERIOD_S
+## (RoadRenderer.indicator_lit).
+static func indicator_lit(blink_t: float) -> bool:
+	return fposmod(maxf(blink_t, 0.0), INDICATOR_PERIOD_S) < INDICATOR_PERIOD_S * 0.5
+
+
 ## Radius (logical px) of a glow with radius factor k at s px per metre: k * s, at least min_px, at most 70 px
 ## (Arcade's clamp).
 static func glow_px(k: float, s: float, min_px: float) -> float:
@@ -279,8 +291,8 @@ static func glow_px(k: float, s: float, min_px: float) -> float:
 ## Size (logical px) of an indicator's lamp core at s px per metre (RoadRenderer._indicator: 0.2 s x 0.13 s,
 ## at least INDICATOR_MIN_PX).
 static func indicator_core_px(s: float) -> Vector2:
-	return Vector2(clampf(INDICATOR_CORE_W * s, RoadRenderer.INDICATOR_MIN_PX.x, 30.0),
-		clampf(INDICATOR_CORE_H * s, RoadRenderer.INDICATOR_MIN_PX.y, 20.0))
+	return Vector2(clampf(INDICATOR_CORE_W * s, INDICATOR_MIN_PX.x, 30.0),
+		clampf(INDICATOR_CORE_H * s, INDICATOR_MIN_PX.y, 20.0))
 
 
 ## Rotation angle (rad) of a wheel about its local X after the vehicle has covered `distance_m` (rolling without

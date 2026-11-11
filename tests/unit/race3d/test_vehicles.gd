@@ -142,6 +142,16 @@ func test_lamps_follow_view_flags() -> void:
 	assert_eq(VehiclePose3D.lamp_b({"beacon": "b"}, false), Vector4(0.0, 0.0, 0.0, 1.0), "Blaulicht B")
 
 
+func test_indicator_constants_equal_arcade() -> void:
+	# VehiclePose3D carries copies (it must compile in -s scripts, before RoadRenderer's autoloads exist)
+	assert_eq(VehiclePose3D.INDICATOR_PERIOD_S, RoadRenderer.INDICATOR_PERIOD_S, "Blinkperiode = Arcade")
+	assert_eq(VehiclePose3D.INDICATOR_MIN_PX, RoadRenderer.INDICATOR_MIN_PX, "kleinste Blinkerlampe = Arcade")
+	assert_eq(VehiclePose3D.INDICATOR_MIN_GLOW_PX, RoadRenderer.INDICATOR_MIN_GLOW_PX, "kleinster Blinkerschein = Arcade")
+	for i in 60:
+		var t := float(i) * 0.037
+		assert_eq(VehiclePose3D.indicator_lit(t), RoadRenderer.indicator_lit(t), "Blinktakt = Arcade bei %.3f s" % t)
+
+
 func test_flares_keep_arcade_sizes() -> void:
 	# indicator: core at least INDICATOR_MIN_PX, glow at least INDICATOR_MIN_GLOW_PX (+1 at night)
 	var s300 := 711.0 / 300.0

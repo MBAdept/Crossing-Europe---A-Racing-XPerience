@@ -754,6 +754,27 @@ func snapshot() -> Dictionary:
 	return {"vehicles": list, "vehicle_flares": _flare_n}
 
 
+## The unit nodes of an articulated car of the view (tests): [] for a rigid one or an unknown id.
+func debug_units(id: int) -> Array:
+	var car: Car = _cars.get(id)
+	var out: Array = []
+	if car != null:
+		for g: Array in car.groups:
+			out.append(g[0])
+	return out
+
+
+## The world transform of a car's level node and of its units (tests, pictures): {"pose", "units": [Transform3D]}.
+func debug_pose(id: int) -> Dictionary:
+	var car: Car = _cars.get(id)
+	if car == null:
+		return {}
+	var units: Array = []
+	for g: Array in car.groups:
+		units.append(car.pose * (g[0] as Node3D).transform)
+	return {"pose": car.pose, "units": units, "lod": car.lod}
+
+
 func perf() -> Dictionary:
 	var pooled := 0
 	for k: Variant in _free:
