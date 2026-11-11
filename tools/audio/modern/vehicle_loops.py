@@ -302,7 +302,11 @@ def tyre_rumble(n: int, rate_hz: float) -> np.ndarray:
         at = int(k * per + rng.uniform(-0.08, 0.08) * per) % n
         place(out, kern, at, float(np.clip(1.0 + 0.22 * rng.standard_normal(), 0.4, 1.6)))
     out /= rms(out)
-    return out + 0.15 * pnoise(n, 1802, lambda f: bp(f, 100.0, 1500.0, 1))
+    y = out + 0.15 * pnoise(n, 1802, lambda f: bp(f, 100.0, 1500.0, 1))
+    # the strongest bumps softly limited (crest 13 → about 10 dB): at 200 km/h the strip alone reached the master
+    # limiter (measured)
+    r = rms(y)
+    return 2.8 * r * np.tanh(y / (2.8 * r))
 
 
 def slab_loop(ref_kmh: float, seed: int, slabs: int = 8, slab_m: float = 5.0, wheelbase_m: float = 2.7) -> np.ndarray:
