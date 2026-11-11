@@ -1599,7 +1599,7 @@ Binding. Where §§1–10 differ, this section wins. "Lead decision" = decided b
   `-- --stage=…` and compare export frames with export frames; the golden list is for the project run only.
 - Watchdog: `Gfx.watchdog_verdict` judges against the display's frame time, so a steady 60 fps would count as slow
   on a 120/144 Hz display (inferred from the code). It must judge against `max(display frame time, 1/60 s)`.
-  One-off ownership exception: **R1** fixes it in `scripts/core/gfx.gd` with a unit test.
+  **UI1** (owner of `scripts/core/gfx.gd` in this push, A-8) fixes it with a unit test.
 - Attract demos count their 30 s from `RaceSession.stage_live` (UI1), not from the scene start.
 
 **A-3 Kernel (§3 D3, D12, D14, §4.5)**
@@ -1765,10 +1765,21 @@ the pools at an origin-relative world position). A material whose shader include
 (road and terrain in wave 1).
 
 **A-8 Plan changes (lead decisions)**
-- Wave 1 starts with a short skeleton step (package id **R1a**): `modern_renderer.gd` with the facade of A-7 on top
-  of the kernel (debug road, camera, layers and hooks by file name, services, `add_lamps`, `add_pool_material`,
-  the include `inc/pools.gdshaderinc` in a first version) and the adapted seam checks. R1, R2 and R3 start from that
-  commit; AS1 and AU-B start from the wave base at once.
-- **AU-B moves from wave 2 to wave 1** (it shares no file with the wave-1 packages; `config/game_config.json` →
-  `audio.modern` belongs to AU-B in wave 1).
-- File ownership of wave 1 otherwise as in §5; `scripts/core/gfx.gd` → R1 for the watchdog fix only (A-2).
+
+M1 (waves 1 and 2 of §6) is built as one push in three workflows, because the harness runs only two agents of a
+workflow at a time:
+- **(A) renderer**: a short skeleton step **R1a** – `modern_renderer.gd` with the facade of A-7 on top of the kernel
+  (debug road, camera, a plain sun and ambient light, layers and hooks by file name, services, `add_lamps`,
+  `add_pool_material`, `inc/pools.gdshaderinc` in a first version), the adapted seam checks and the picture tool
+  `tools/ab_shot.sh` (Arcade | Modern of the same simulation state). **R1, R2 and R3** start from that commit. Then
+  the assembly step **RINT** merges the three and makes Kiel – Hamburg drive in Modern.
+- **(B) content**: **AS1** → an independent art review → rework → **AS1b** (same pipeline files, therefore in
+  sequence); **AU-B**; **UI1**. They start from the push base.
+- **(C)**: integration of everything, three QA lenses, fixes, then **QA1** with the gate-1 package.
+
+Ownership in this push: R1, R2, R3 and AS1 as in the W1 column of §5; UI1, AS1b and AU-B as in the W2 column.
+`scripts/race/race_session.gd`, `race_renderers.gd` and `config/game_config.json` → `graphics`: R1, after it RINT,
+then the integration and QA1. `tools/{run_tests,run_render_checks,golden}.sh`, `tools/build_*.sh`,
+`tools/pck_report.py`, `tests/golden/**`: the integration (C) and QA1 – packages that need a new check hooked in
+report it. `assets/shaders/modern/glass.gdshader`: R3 owns the instance uniforms and the fade, AS1 the look of the
+glass (tint, reflection, opacity); both keep the other part untouched. `scripts/core/gfx.gd` belongs to UI1.
