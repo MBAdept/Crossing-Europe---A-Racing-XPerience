@@ -75,7 +75,7 @@
     ]
    }
   ],
-  "shadow": {"mesh": "police/bg/shadow.res", "tris": 998},
+  "shadow": {"mesh": "police/bg/shadow.res", "tris": 1068},
   "lights": [
    {
     "role": "beacon_a",
@@ -165,8 +165,8 @@
   "paint": {"paint": "#f2f2ef", "paint2": "#1b3f8f", "paint3": "#d22a2a", "metal": 0.12},
   "auto_lod": false,
   "tags": ["police", "bg"],
-  "bytes": 329137,
-  "hash": "b8e827eae416ac65bee96bcb1fbf323e60bda691"
+  "bytes": 329770,
+  "hash": "ca3f906fbdb39be8684fab56d40f8a4dfb7b29f9"
  },
  "sets": {
   "police/bg": {

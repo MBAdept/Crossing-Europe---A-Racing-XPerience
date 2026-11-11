@@ -143,7 +143,12 @@ def _stations(lv):
 def _shell(b, lv, inset=0.0):
     """The shell as a Blender object (node "none": its triangles are cut and added as a panel)."""
     rings = []
-    for y in _stations(lv):
+    ys = _stations(lv)
+    if inset > 0.0:
+        # the caster's ends lie inside the skin as well: caps in the plane of the skin's end faces stood out of the
+        # hull there (contact sheet --caster: the whole rear face red)
+        ys = sorted({round(min(max(y, inset), L - inset), 5) for y in ys})
+    for y in ys:
         half = _half(y, lv, inset)
         ring = [(x, y, z) for (x, z) in half] + [(-x, y, z) for (x, z) in reversed(half[1:-1])]
         rings.append(ring)

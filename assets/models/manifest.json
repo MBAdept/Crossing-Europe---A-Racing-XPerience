@@ -1030,7 +1030,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "police/at/shadow.res", "tris": 1014},
+   "shadow": {"mesh": "police/at/shadow.res", "tris": 1084},
    "lights": [
     {
      "role": "beacon_a",
@@ -1120,8 +1120,8 @@
    "paint": {"paint": "#eef0f2", "paint2": "#1e4597", "paint3": "#d3262c", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "at"],
-   "bytes": 330524,
-   "hash": "7dcb87c087d3643a45cc6161c3a9348644ae82bb"
+   "bytes": 331143,
+   "hash": "ae40c3b88730890b1f2c1d05d38b52a68ddb9a15"
   },
   "police/be": {
    "kind": "vehicle",
@@ -1196,7 +1196,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "police/be/shadow.res", "tris": 950},
+   "shadow": {"mesh": "police/be/shadow.res", "tris": 1020},
    "lights": [
     {
      "role": "beacon_a",
@@ -1293,8 +1293,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1b3a8f", "paint3": "#e6dc1f", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "be"],
-   "bytes": 341971,
-   "hash": "68f053197f7ebcad36c2188a2f069fb3924ce2f7"
+   "bytes": 342775,
+   "hash": "c50d5819f868ead273576b3cd8705cb11e0076a8"
   },
   "police/bg": {
    "kind": "vehicle",
@@ -1369,7 +1369,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "police/bg/shadow.res", "tris": 998},
+   "shadow": {"mesh": "police/bg/shadow.res", "tris": 1068},
    "lights": [
     {
      "role": "beacon_a",
@@ -1459,8 +1459,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1b3f8f", "paint3": "#d22a2a", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "bg"],
-   "bytes": 329137,
-   "hash": "b8e827eae416ac65bee96bcb1fbf323e60bda691"
+   "bytes": 329770,
+   "hash": "ca3f906fbdb39be8684fab56d40f8a4dfb7b29f9"
   },
   "police/ch": {
    "kind": "vehicle",
@@ -1535,7 +1535,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "police/ch/shadow.res", "tris": 950},
+   "shadow": {"mesh": "police/ch/shadow.res", "tris": 1020},
    "lights": [
     {
      "role": "beacon_a",
@@ -1632,8 +1632,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#e04a16", "paint3": "#f2d21c", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "ch"],
-   "bytes": 340527,
-   "hash": "9910ce16c283bc16e3dae3902779b328fd26c6df"
+   "bytes": 341293,
+   "hash": "a8a509368ed128b1c3ec0b3292efbb93ffbd4bfa"
   },
   "police/cz": {
    "kind": "vehicle",
@@ -1708,7 +1708,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "police/cz/shadow.res", "tris": 950},
+   "shadow": {"mesh": "police/cz/shadow.res", "tris": 1020},
    "lights": [
     {
      "role": "beacon_a",
@@ -1805,8 +1805,8 @@
    "paint": {"paint": "#e9ecef", "paint2": "#1c3f8f", "paint3": "#e9d81f", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "cz"],
-   "bytes": 330940,
-   "hash": "b3dea8c929e4d5eaa94968aef8efa314a9d67045"
+   "bytes": 331714,
+   "hash": "f38896b5b51f455c5b52f87c125e6513ae2c2641"
   },
   "police/de": {
    "kind": "vehicle",
@@ -1881,7 +1881,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "police/de/shadow.res", "tris": 950},
+   "shadow": {"mesh": "police/de/shadow.res", "tris": 1020},
    "lights": [
     {
      "role": "beacon_a",
@@ -1978,8 +1978,8 @@
    "paint": {"paint": "#c9cdd3", "paint2": "#1f4c9c", "paint3": "#1f4c9c", "metal": 0.6},
    "auto_lod": false,
    "tags": ["police", "de"],
-   "bytes": 306583,
-   "hash": "15b78f626cc6e480ca8d6a335199521a5326b8f8"
+   "bytes": 307366,
+   "hash": "30fe38ebf4a8b66be049a5d455e51a0d18c7685b"
   },
   "police/es": {
    "kind": "vehicle",
@@ -2054,7 +2054,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "police/es/shadow.res", "tris": 982},
+   "shadow": {"mesh": "police/es/shadow.res", "tris": 1052},
    "lights": [
     {
      "role": "beacon_a",
@@ -2151,8 +2151,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1b3d8c", "paint3": "#1b3d8c", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "es"],
-   "bytes": 310421,
-   "hash": "b42177fef586f9f7b8a7bae602c4c5fcdd6d6e44"
+   "bytes": 311066,
+   "hash": "ac1135c9d990d730004fa1310d9cb35bd17428cd"
   },
   "police/fr": {
    "kind": "vehicle",
@@ -2227,7 +2227,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "police/fr/shadow.res", "tris": 998},
+   "shadow": {"mesh": "police/fr/shadow.res", "tris": 1068},
    "lights": [
     {
      "role": "beacon_a",
@@ -2317,8 +2317,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1c2f7a", "paint3": "#d6262b", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "fr"],
-   "bytes": 293188,
-   "hash": "047ed9aebf4a0ea8fd0165070b07d4be3688dfbf"
+   "bytes": 293856,
+   "hash": "006c39c98a46d8b575938c9c337d6e708e39c7b8"
   },
   "police/hr": {
    "kind": "vehicle",
@@ -2393,7 +2393,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "police/hr/shadow.res", "tris": 982},
+   "shadow": {"mesh": "police/hr/shadow.res", "tris": 1052},
    "lights": [
     {
      "role": "beacon_a",
@@ -2490,8 +2490,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1b3a8c", "paint3": "#1b3a8c", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "hr"],
-   "bytes": 299477,
-   "hash": "74b7acd0ba19a75ff98ee9d579d410eedc01ca90"
+   "bytes": 300115,
+   "hash": "a2e98bbd01ff0d03b111bfc3a63cd6d955ee5201"
   },
   "police/hu": {
    "kind": "vehicle",
@@ -2566,7 +2566,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "police/hu/shadow.res", "tris": 982},
+   "shadow": {"mesh": "police/hu/shadow.res", "tris": 1052},
    "lights": [
     {
      "role": "beacon_a",
@@ -2663,8 +2663,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1b3a8a", "paint3": "#e3d61c", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "hu"],
-   "bytes": 328046,
-   "hash": "9b85e08b5a79a6e621e0b16b49fc9617739f7f92"
+   "bytes": 328693,
+   "hash": "c0e0f4811c84d51ce8f12053ad9e0a215a2af81b"
   },
   "police/it": {
    "kind": "vehicle",
@@ -2739,7 +2739,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "police/it/shadow.res", "tris": 982},
+   "shadow": {"mesh": "police/it/shadow.res", "tris": 1052},
    "lights": [
     {
      "role": "beacon_a",
@@ -2836,8 +2836,8 @@
    "paint": {"paint": "#1f5fa8", "paint2": "#f2f2ef", "paint3": "#c9242b", "metal": 0.45},
    "auto_lod": false,
    "tags": ["police", "it"],
-   "bytes": 335158,
-   "hash": "86296ac5af14aee705c0753014c3030deae15692"
+   "bytes": 335803,
+   "hash": "167c02ba320f8aa852cb0a4a13a622fee98ede7a"
   },
   "police/lt": {
    "kind": "vehicle",
@@ -2912,7 +2912,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "police/lt/shadow.res", "tris": 1014},
+   "shadow": {"mesh": "police/lt/shadow.res", "tris": 1084},
    "lights": [
     {
      "role": "beacon_a",
@@ -3002,8 +3002,8 @@
    "paint": {"paint": "#e9ecef", "paint2": "#1b3c8a", "paint3": "#d8e01c", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "lt"],
-   "bytes": 333219,
-   "hash": "c0024a1578065a26e631aa1a6b99abb7dc24b163"
+   "bytes": 333844,
+   "hash": "5ab3e1ca1d529da3f79af9f94ef22caca4c28c30"
   },
   "police/lv": {
    "kind": "vehicle",
@@ -3078,7 +3078,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "police/lv/shadow.res", "tris": 998},
+   "shadow": {"mesh": "police/lv/shadow.res", "tris": 1068},
    "lights": [
     {
      "role": "beacon_a",
@@ -3168,8 +3168,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1c2f6e", "paint3": "#e3dc1c", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "lv"],
-   "bytes": 339170,
-   "hash": "8e7f994eea10bc38513c3a7edc12e5c8ca6a903a"
+   "bytes": 339837,
+   "hash": "bb3b610d43b769107fc61568e1cc86b5546f43cd"
   },
   "police/nl": {
    "kind": "vehicle",
@@ -3244,7 +3244,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "police/nl/shadow.res", "tris": 998},
+   "shadow": {"mesh": "police/nl/shadow.res", "tris": 1068},
    "lights": [
     {
      "role": "beacon_a",
@@ -3334,8 +3334,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1b3f93", "paint3": "#e5531b", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "nl"],
-   "bytes": 328507,
-   "hash": "fbd8608d32410f9b21f742f3cbbbe6feb0ff264d"
+   "bytes": 329151,
+   "hash": "d3c172f2fec68153b87d360cdcb67a186c4b3759"
   },
   "police/pl": {
    "kind": "vehicle",
@@ -3410,7 +3410,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "police/pl/shadow.res", "tris": 982},
+   "shadow": {"mesh": "police/pl/shadow.res", "tris": 1052},
    "lights": [
     {
      "role": "beacon_a",
@@ -3507,8 +3507,8 @@
    "paint": {"paint": "#eceff2", "paint2": "#16336e", "paint3": "#16336e", "metal": 0.5},
    "auto_lod": false,
    "tags": ["police", "pl"],
-   "bytes": 298156,
-   "hash": "5f255ec248c47b4006405db05f7514458ad42500"
+   "bytes": 298794,
+   "hash": "5009ddac64c861657add391c49aabfa59c198128"
   },
   "police/ro": {
    "kind": "vehicle",
@@ -3583,7 +3583,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "police/ro/shadow.res", "tris": 982},
+   "shadow": {"mesh": "police/ro/shadow.res", "tris": 1052},
    "lights": [
     {
      "role": "beacon_a",
@@ -3680,8 +3680,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1b3c8f", "paint3": "#c6e01e", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "ro"],
-   "bytes": 344341,
-   "hash": "321f8353e700968c278575548bd4e8bc8d8ed38e"
+   "bytes": 344991,
+   "hash": "9cb4eccede6afaab109722c30dcd32fe7c842dc9"
   },
   "police/rs": {
    "kind": "vehicle",
@@ -3756,7 +3756,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "police/rs/shadow.res", "tris": 982},
+   "shadow": {"mesh": "police/rs/shadow.res", "tris": 1052},
    "lights": [
     {
      "role": "beacon_a",
@@ -3853,8 +3853,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1b4a9a", "paint3": "#1b4a9a", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "rs"],
-   "bytes": 309390,
-   "hash": "287bb791a199077469fb014dac24247f634e713c"
+   "bytes": 310035,
+   "hash": "2b4ce491f2bbf1059ed5db55af67ebafc4533adf"
   },
   "police/si": {
    "kind": "vehicle",
@@ -3929,7 +3929,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "police/si/shadow.res", "tris": 950},
+   "shadow": {"mesh": "police/si/shadow.res", "tris": 1020},
    "lights": [
     {
      "role": "beacon_a",
@@ -4026,8 +4026,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1c4f96", "paint3": "#2f9a4a", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "si"],
-   "bytes": 331658,
-   "hash": "4c99a8cc873724b94ef1fd80ada558a3ad6df1d9"
+   "bytes": 332436,
+   "hash": "7eb05d8c7cd71c9e5c6bb5696c4b7846c74eee46"
   },
   "props/farmhouse": {
    "kind": "building",
@@ -4309,8 +4309,8 @@
    "paint": {"paint": "#d8d8d4", "paint2": "#1f4f9a", "paint3": "#d6262b", "metal": 0.25},
    "auto_lod": false,
    "tags": ["traffic", "heavy"],
-   "bytes": 227637,
-   "hash": "784d11d190694285d971aa86f4c37745d338dc54"
+   "bytes": 227704,
+   "hash": "0b3b4d81434a68a15c76a6dd066ce8b325c32aac"
   },
   "traffic/hatch": {
    "kind": "vehicle",

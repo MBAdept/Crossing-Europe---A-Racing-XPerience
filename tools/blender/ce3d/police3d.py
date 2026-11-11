@@ -705,16 +705,30 @@ def _bar_objects(sc, car, level):
 
 
 def _shadow_bar(mb, sc, car):
-    """The bar in the shadow caster: one block, 1 cm inside its outline."""
+    """The bar in the shadow caster, inside the visible bar of every level: the base, a block in each LED module of
+    lod0 (= inside the lens blocks of lod1 / lod2) and the white middle, all at least 1 cm in. (One block over the
+    whole bar enclosed the modules and the lens blocks: they lay in its shadow by day and looked dark.)"""
     from .truck3d import _box_faces
     from .vehicles3d import GREY
     y, z_roof, _at = _roof(sc, car)
     e = 0.01
-    f = _box_faces(-BAR_W / 2 + e, BAR_W / 2 - e, y - BAR_D / 2 + e, y + BAR_D / 2 - e, z_roof + FOOT_H + e,
-                   z_roof + BAR_HEIGHT - e, faces="rflRt")
-    pos = np.concatenate([q[0] for q in f.values()])
-    nor = np.concatenate([q[1] for q in f.values()])
-    mb.add("vpbr", pos, nor, GREY, (0.8, 0.0), roles.NO_LAMP)
+    hw, hd = BAR_W / 2.0, BAR_D / 2.0
+    zb = z_roof + FOOT_H
+    z_base = zb + BASE_H
+    z_top = z_roof + BAR_HEIGHT
+    boxes = [(-hw + e, hw - e, y - hd + e, y + hd - e, zb + e, z_base - e),
+             (-MID_W / 2 + 0.015, MID_W / 2 - 0.015, y - hd + 0.035, y + hd - 0.035, z_base - 2 * e, z_top - 0.025)]
+    for sgn in (-1, 1):
+        for i in range(3):
+            cx = sgn * (MID_W / 2 + 0.02 + 0.079 + i * 0.168)          # the modules of _bar_objects
+            # y: inside the reflector bed of lod0 (+-0.095) and the modules / lens blocks (+-0.11)
+            boxes.append((cx - 0.069, cx + 0.069, y - 0.085, y + 0.085, z_base - 2 * e, z_base + 0.056))
+    pos, nor = [], []
+    for b in boxes:
+        f = _box_faces(*b, faces="rflRt")
+        pos += [q[0] for q in f.values()]
+        nor += [q[1] for q in f.values()]
+    mb.add("vpbr", np.concatenate(pos), np.concatenate(nor), GREY, (0.8, 0.0), roles.NO_LAMP)
 
 
 # --- the model -------------------------------------------------------------------------------------------------
