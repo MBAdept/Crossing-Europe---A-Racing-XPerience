@@ -192,14 +192,33 @@ class MeshBuilder:
                 self.chunks.setdefault(cls, []).append((pos + (0.0 if offset is None else np.asarray(offset)),
                                                         nor, col, uv, uv2))
 
-    def finish(self, origin=None):
+    def finish(self, origin=None, min_height=0.0):
         """[(class, dict(pos, nor, idx, col, uv, uv2))] in CLASS_ORDER; positions relative to origin
-        (Blender space) and converted to model space. Degenerate triangles are dropped."""
+        (Blender space) and converted to model space. Degenerate triangles are dropped.
+        min_height (m): also drops slivers - triangles whose smallest height is below it. The cuts of decals and
+        openings leave triangles a few hundredths of a millimetre high; the baked meshes store positions in
+        16 bits (0.07 mm for a car), so such a triangle can come out wound the other way (the validator counted
+        them as inside-out faces). What they leave open is narrower than they were."""
         out = []
         for cls in CLASS_ORDER:
             cs = self.chunks.get(cls)
             if not cs:
                 continue
+            if min_height > 0.0:
+                kept = []
+                for c in cs:
+                    p = c[0]
+                    e = np.stack([np.linalg.norm(p[:, 1] - p[:, 0], axis=1), np.linalg.norm(p[:, 2] - p[:, 1], axis=1),
+                                  np.linalg.norm(p[:, 0] - p[:, 2], axis=1)], axis=1)
+                    area2 = np.linalg.norm(np.cross(p[:, 1] - p[:, 0], p[:, 2] - p[:, 0]), axis=1)
+                    ok = area2 >= min_height * e.max(axis=1)
+                    if ok.all():
+                        kept.append(c)
+                    elif ok.any():
+                        kept.append(tuple(None if a is None else a[ok] for a in c))
+                cs = kept
+                if not cs:
+                    continue
             pos = np.concatenate([c[0] for c in cs])
             nor = np.concatenate([c[1] for c in cs])
 
@@ -249,6 +268,196 @@ def weld(pos, nor, col=None, uv=None, uv2=None):
     out["uv"] = uv.reshape(m, 2)[sel] if uv is not None else None
     out["uv2"] = uv2.reshape(m, 2)[sel] if uv2 is not None else None
     return out
+
+
+def transfer_normals(pos, nor, fpos, fnor, pull=0.15, max_dist=0.12, agree=0.2, near=0.012):
+    """Corner normals for a coarse build from a finer build of the same surface (levels of detail).
+    pos, nor: (T, 3, 3) of the coarse triangles; fpos, fnor: the fine ones. Every corner takes the smooth normal
+    of the nearest point of the fine surface - the coarse level then shades like the fine one (flat facets with
+    the normals of the curved surface they stand for) and face tests on the smooth normal (decals) cut along
+    the same lines at every level. A corner whose fine normal looks away from its own face (cosine below
+    `agree`: a sharp edge of the fine build, the nearest point lies on the other side) asks again from a point
+    pulled towards the middle of its triangle; if that fails too it keeps its normal."""
+    from mathutils import Vector
+    from mathutils.bvhtree import BVHTree
+    fpos = np.asarray(fpos, dtype=np.float64).reshape(-1, 3, 3)
+    fnor = np.asarray(fnor, dtype=np.float64).reshape(-1, 3, 3)
+    pos = np.asarray(pos, dtype=np.float64).reshape(-1, 3, 3)
+    out = np.array(nor, dtype=np.float64).reshape(-1, 3, 3).copy()
+    if fpos.shape[0] == 0 or pos.shape[0] == 0:
+        return out
+    bvh = BVHTree.FromPolygons([Vector(p) for p in fpos.reshape(-1, 3)],
+                               [(3 * i, 3 * i + 1, 3 * i + 2) for i in range(fpos.shape[0])], all_triangles=True)
+    cfn = np.cross(pos[:, 1] - pos[:, 0], pos[:, 2] - pos[:, 0])
+    cfn = cfn / np.maximum(np.linalg.norm(cfn, axis=1, keepdims=True), 1e-12)
+    cache = {}
+
+    ffn = np.cross(fpos[:, 1] - fpos[:, 0], fpos[:, 2] - fpos[:, 0])
+    ffn = ffn / np.maximum(np.linalg.norm(ffn, axis=1, keepdims=True), 1e-12)
+
+    def lookup(p, face_n):
+        # of the fine faces close to the point the one that looks most like the coarse face: at a sharp edge of
+        # the fine build (the flat end cap next to the rounded end) the nearest one is a matter of chance
+        best = None
+        for (loc, _n, idx, dist) in bvh.find_nearest_range(Vector(p), near):
+            score = float(ffn[idx] @ face_n) - dist * 8.0
+            if best is None or score > best[0]:
+                best = (score, loc, idx)
+        if best is None:
+            loc, _n, idx, dist = bvh.find_nearest(Vector(p))
+            if loc is None or dist > max_dist:
+                return None
+        else:
+            _s, loc, idx = best
+        a, b, c = fpos[idx]
+        v0, v1, v2 = b - a, c - a, np.array(loc) - a
+        d00, d01, d11, d20, d21 = v0 @ v0, v0 @ v1, v1 @ v1, v2 @ v0, v2 @ v1
+        den = d00 * d11 - d01 * d01
+        if abs(den) < 1e-18:
+            n = fnor[idx].mean(axis=0)
+        else:
+            w1 = (d11 * d20 - d01 * d21) / den
+            w2 = (d00 * d21 - d01 * d20) / den
+            w = np.clip(np.array([1.0 - w1 - w2, w1, w2]), 0.0, 1.0)
+            n = w @ fnor[idx]
+        ln = np.linalg.norm(n)
+        return n / ln if ln > 1e-9 else None
+    for t in range(pos.shape[0]):
+        cen = pos[t].mean(axis=0)
+        fq = (int(round(cfn[t, 0] * 6)), int(round(cfn[t, 1] * 6)), int(round(cfn[t, 2] * 6)))
+        for i in range(3):
+            p = pos[t, i]
+            key = (int(round(p[0] * 1e5)), int(round(p[1] * 1e5)), int(round(p[2] * 1e5)), fq)
+            if key not in cache:
+                cache[key] = lookup(p, cfn[t])
+            n = cache[key]
+            if n is None or n @ cfn[t] < agree:
+                n = lookup(p + pull * (cen - p), cfn[t])
+            if n is not None and n @ cfn[t] >= agree:
+                out[t, i] = n
+    return out
+
+
+def flatten_ends(pos, nor, axis=1, tol=1e-5):
+    """Lofts closed by a flat cap (cesprites.carbody): every corner that lies in the plane of an end cap gets
+    the cap's normal. The rounded end of the loft runs into the cap tangentially, but its last ring of faces
+    stands at an angle - smooth-shaded, the flat cap stood out as a panel of its own; with the cap's normal on
+    the shared ring the shading runs through. pos, nor (T, 3, 3); nor is changed in place."""
+    v = pos[:, :, axis]
+    for end, sign in ((float(v.min()), -1.0), (float(v.max()), 1.0)):
+        on = np.abs(v - end) < tol
+        if not on.all(axis=1).any():
+            continue                    # no cap triangles at this end
+        n = np.zeros(3)
+        n[axis] = sign
+        nor[on] = n
+    return nor
+
+
+_TUCK_W = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [0.5, 0.5, 0.0], [0.0, 0.5, 0.5],
+                    [0.5, 0.0, 0.5], [1.0 / 3, 1.0 / 3, 1.0 / 3], [0.6, 0.2, 0.2], [0.2, 0.6, 0.2], [0.2, 0.2, 0.6]])
+
+
+def tuck_inside(pos, shell_pos, margin=0.012, reach=0.3, rounds=30, max_move=0.06, down=-0.25, agree=0.7,
+                holes=(), rigid=0.06, nor=None):
+    """Shadow casters: moves the corners of a coarse hull (pos (T, 3, 3), changed in place) until the hull lies
+    at least `margin` inside a shell (shell_pos (S, 3, 3): ONE closed solid wound counter-clockwise seen from
+    outside - with several solids in one shell the faces of one that lie inside another would count as skin).
+
+    The body of a vehicle does not cast shadows, a coarse hull does it for the body (ModelFactory: shadows only).
+    Where the hull stands out of the body - the chord of a coarse loft over a hollow of the fine one: behind a
+    flared wheel arch, in the scallop of a door - the body lies in the shadow of its own caster: dark hatching
+    along the line where the two surfaces cross. Sampled at the corners, edge centres and inside every triangle;
+    a triangle whose worst sample is not `margin` inside is moved in by the difference along the shell's normal
+    there (every corner takes the largest move of its triangles, at most max_move in total). Only the skin of
+    the shell counts: faces that look down (normal z below `down`: floor, wheel houses) or at another part of
+    the shell (the walls of a wheel house) are left out - the sun never sees them, and a coarse hull cannot
+    follow a wheel house; and a sample is only measured against a face that looks the way of its own triangle
+    (dot of the normals at least `agree`): the hull that bridges the corner of a wheel arch opening is not
+    proud of the rolled edge of the arch. holes: [(y, z, radius)] of the wheel houses - samples inside these
+    cylinders about the X axis do not count either. Corners closer together than `rigid` move alike (the
+    narrow faces along a wheel arch would turn over if their corners went different ways). Hull parts farther
+    than `reach` from the skin stay. A triangle that turned over all the same (the slivers on the rim of an end
+    cap) gets its corners - and those of nor (T, 3, 3), if given - in reverse order: it faces outwards again.
+    Returns (largest height above the shell before, after, number of moved corners, triangles turned over)."""
+    from mathutils.bvhtree import BVHTree
+
+    def bvh(tris):
+        v = np.ascontiguousarray(tris, dtype=np.float64).reshape(-1, 3)
+        return BVHTree.FromPolygons(v.tolist(), [(3 * i, 3 * i + 1, 3 * i + 2) for i in range(v.shape[0] // 3)])
+    sfn = np.cross(shell_pos[:, 1] - shell_pos[:, 0], shell_pos[:, 2] - shell_pos[:, 0])
+    sfn /= np.maximum(np.linalg.norm(sfn, axis=1, keepdims=True), 1e-12)
+    # the skin: faces that do not look down and do not look at another part of the shell
+    whole = bvh(shell_pos)
+    cen = shell_pos.mean(axis=1) + sfn * 0.002
+    skin = np.array([sfn[i, 2] >= down and whole.ray_cast(cen[i].tolist(), sfn[i].tolist(), 3.0)[0] is None
+                     for i in range(shell_pos.shape[0])], dtype=bool)
+    sfn = sfn[skin]
+    tree = bvh(shell_pos[skin])
+    flat = pos.reshape(-1, 3)
+    key = np.round(flat * 1e5).astype(np.int64)
+    _u, first, inv = np.unique(key, axis=0, return_index=True, return_inverse=True)
+    start = flat[first].copy()
+    verts = start.copy()
+    tri = inv.reshape(-1, 3)
+    nt, ns = tri.shape[0], _TUCK_W.shape[0]
+    rows = np.arange(nt)
+    hfn = np.cross(pos[:, 1] - pos[:, 0], pos[:, 2] - pos[:, 0])
+    hfn /= np.maximum(np.linalg.norm(hfn, axis=1, keepdims=True), 1e-12)
+    edges = np.concatenate([tri[:, [0, 1]], tri[:, [1, 2]], tri[:, [2, 0]]])
+    edges = edges[np.linalg.norm(start[edges[:, 0]] - start[edges[:, 1]], axis=1) < rigid]
+    before = after = -reach
+    for it in range(rounds + 1):
+        pts = np.einsum("sw,twk->tsk", _TUCK_W, verts[tri]).reshape(-1, 3)
+        h = np.full(pts.shape[0], -reach)
+        nn = np.zeros((pts.shape[0], 3))
+        count = np.ones(pts.shape[0], dtype=bool)
+        for (hy, hz, hr) in holes:
+            count &= (pts[:, 1] - hy) ** 2 + (pts[:, 2] - hz) ** 2 > hr * hr
+        for k in np.nonzero(count)[0]:
+            loc, _n, idx, _d = tree.find_nearest(pts[k].tolist(), reach)
+            if loc is None or sfn[idx] @ hfn[k // ns] < agree:
+                continue
+            nn[k] = sfn[idx]
+            h[k] = float((pts[k] - np.array(loc)) @ sfn[idx])
+        h = h.reshape(nt, ns)
+        nn = nn.reshape(nt, ns, 3)
+        after = float(h.max())
+        if it == 0:
+            before = after
+        worst = h.argmax(axis=1)
+        over = h[rows, worst] + margin
+        if it == rounds or over.max() <= 1e-4:
+            break
+        order = np.argsort(over)
+        order = order[over[order] > 1e-4]
+        amount = np.zeros(verts.shape[0])
+        direction = np.zeros((verts.shape[0], 3))
+        for c in range(3):
+            amount[tri[order, c]] = over[order]              # ascending: the largest move of a corner stays
+            direction[tri[order, c]] = nn[order, worst[order]]
+        for _pass in range(3):                               # short edges: both ends take the larger move
+            for a, b in ((0, 1), (1, 0)):
+                take = amount[edges[:, a]] > amount[edges[:, b]] + 1e-9
+                src = edges[take, a]
+                dst = edges[take, b]
+                o2 = np.argsort(amount[src])
+                amount[dst[o2]] = amount[src[o2]]
+                direction[dst[o2]] = direction[src[o2]]
+        verts -= direction * (amount * 1.1)[:, None]
+        off = verts - start
+        far = np.linalg.norm(off, axis=1)
+        clip = far > max_move
+        verts[clip] = start[clip] + off[clip] * (max_move / far[clip])[:, None]
+    g0 = np.cross(pos[:, 1] - pos[:, 0], pos[:, 2] - pos[:, 0])
+    pos[:] = verts[tri]
+    g1 = np.cross(pos[:, 1] - pos[:, 0], pos[:, 2] - pos[:, 0])
+    moved = int((np.linalg.norm(verts - start, axis=1) > 1e-6).sum())
+    turned = np.einsum("ij,ij->i", g0, g1) < 0.0
+    pos[turned] = pos[turned][:, ::-1]
+    if nor is not None:
+        nor[turned] = nor[turned][:, ::-1]
+    return before, after, moved, int(turned.sum())
 
 
 def tri_count(surfaces):

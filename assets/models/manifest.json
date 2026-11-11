@@ -28,15 +28,198 @@
    "bytes": 440949,
    "hash": "17f842e877e00dc397b43e5ead7623d6ea4f2c46"
   },
-  "player/limousine": {
+  "player/kompakt": {
    "kind": "vehicle",
-   "object": {"width_m": 1.86, "length_m": 4.85, "height_m": 1.448},
-   "aabb": [-1.15, 0, -2.432, 1.15, 1.448, 2.437],
+   "object": {"width_m": 1.78, "length_m": 4.1, "height_m": 1.435},
+   "aabb": [-1.11, 0.001, -2.057, 1.11, 1.483, 2.064],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 100000,
-     "tris": 49716,
+     "tris": 50080,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "player/kompakt/lod0_body.res",
+       "classes": ["vpbr", "glass"]
+      },
+      {
+       "node": "wheel_0l",
+       "mesh": "player/kompakt/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [-0.7555, 0.322, -1.23],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.322, "steer": true}
+      },
+      {
+       "node": "wheel_0r",
+       "mesh": "player/kompakt/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [0.7555, 0.322, -1.23],
+       "wheel": {"radius": 0.322, "steer": true}
+      },
+      {
+       "node": "wheel_1l",
+       "mesh": "player/kompakt/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [-0.7555, 0.322, 1.39],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.322, "steer": false}
+      },
+      {
+       "node": "wheel_1r",
+       "mesh": "player/kompakt/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [0.7555, 0.322, 1.39],
+       "wheel": {"radius": 0.322, "steer": false}
+      }
+     ]
+    },
+    {
+     "name": "show",
+     "max_dist_m": 0,
+     "tris": 107042,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "player/kompakt/show_body.res",
+       "classes": ["vpbr", "glass"]
+      },
+      {
+       "node": "wheel_0l",
+       "mesh": "player/kompakt/show_wheel.res",
+       "classes": ["vpbr"],
+       "pos": [-0.7555, 0.322, -1.23],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.322, "steer": true}
+      },
+      {
+       "node": "wheel_0r",
+       "mesh": "player/kompakt/show_wheel.res",
+       "classes": ["vpbr"],
+       "pos": [0.7555, 0.322, -1.23],
+       "wheel": {"radius": 0.322, "steer": true}
+      },
+      {
+       "node": "wheel_1l",
+       "mesh": "player/kompakt/show_wheel.res",
+       "classes": ["vpbr"],
+       "pos": [-0.7555, 0.322, 1.39],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.322, "steer": false}
+      },
+      {
+       "node": "wheel_1r",
+       "mesh": "player/kompakt/show_wheel.res",
+       "classes": ["vpbr"],
+       "pos": [0.7555, 0.322, 1.39],
+       "wheel": {"radius": 0.322, "steer": false}
+      }
+     ]
+    }
+   ],
+   "shadow": {"mesh": "player/kompakt/shadow.res", "tris": 1872},
+   "lights": [
+    {
+     "role": "brake",
+     "pos": [-0.7096, 0.8752, 2.0013],
+     "dir": [-0.425, 0.219, 0.878],
+     "size": 0.263,
+     "color": "#ff2414"
+    },
+    {
+     "role": "brake",
+     "pos": [0.7103, 0.8754, 2.0015],
+     "dir": [0.427, 0.221, 0.877],
+     "size": 0.264,
+     "color": "#ff2414"
+    },
+    {
+     "role": "head",
+     "pos": [-0.6115, 0.678, -1.9429],
+     "dir": [-0.354, 0.354, -0.866],
+     "size": 0.087,
+     "color": "#fff3d6"
+    },
+    {
+     "role": "head",
+     "pos": [0.6115, 0.678, -1.9429],
+     "dir": [0.354, 0.354, -0.866],
+     "size": 0.087,
+     "color": "#fff3d6"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-1.0967, 1.0112, -0.8434],
+     "dir": [-1, 0, 0],
+     "size": 0.079,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-0.793, 0.6888, -1.8142],
+     "dir": [-0.533, 0.653, -0.537],
+     "size": 0.06,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-0.7229, 0.8743, 1.9977],
+     "dir": [-0.465, 0.218, 0.858],
+     "size": 0.129,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [0.7232, 0.8745, 1.9982],
+     "dir": [0.465, 0.219, 0.858],
+     "size": 0.129,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [0.7937, 0.6898, -1.8148],
+     "dir": [0.532, 0.656, -0.534],
+     "size": 0.06,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [1.0967, 1.0112, -0.8434],
+     "dir": [1, 0, 0],
+     "size": 0.079,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "tail",
+     "pos": [-0.7187, 0.8658, 1.9995],
+     "dir": [-0.462, 0.239, 0.854],
+     "size": 0.277,
+     "color": "#ff2a10"
+    },
+    {
+     "role": "tail",
+     "pos": [0.7193, 0.866, 1.9994],
+     "dir": [0.463, 0.24, 0.853],
+     "size": 0.277,
+     "color": "#ff2a10"
+    }
+   ],
+   "paint": {"paint": "#f0b30a", "metal": 0},
+   "auto_lod": false,
+   "tags": ["player"],
+   "bytes": 1742534,
+   "hash": "797759ce74c93a81683b8a09f9a52d5eca7b5683"
+  },
+  "player/limousine": {
+   "kind": "vehicle",
+   "object": {"width_m": 1.86, "length_m": 4.85, "height_m": 1.448},
+   "aabb": [-1.15, 0.001, -2.432, 1.15, 1.488, 2.437],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 45764,
      "parts": [
       {
        "node": "body",
@@ -78,7 +261,7 @@
     {
      "name": "show",
      "max_dist_m": 0,
-     "tris": 102586,
+     "tris": 99670,
      "parts": [
       {
        "node": "body",
@@ -122,30 +305,36 @@
    "lights": [
     {
      "role": "brake",
-     "pos": [-0.7552, 0.9149, 2.3867],
-     "dir": [-0.373, 0.146, 0.916],
-     "size": 0.1,
+     "pos": [-0.7784, 0.9241, 2.3688],
+     "dir": [-0.507, 0.187, 0.842],
+     "size": 0.255,
      "color": "#ff2414"
     },
     {
      "role": "brake",
-     "pos": [0.7552, 0.9149, 2.3866],
-     "dir": [0.372, 0.146, 0.917],
-     "size": 0.1,
+     "pos": [0, 1.3884, 0.65],
+     "size": 0.135,
+     "color": "#ff2414"
+    },
+    {
+     "role": "brake",
+     "pos": [0.7719, 0.9238, 2.3704],
+     "dir": [0.488, 0.179, 0.855],
+     "size": 0.251,
      "color": "#ff2414"
     },
     {
      "role": "head",
-     "pos": [-0.6754, 0.7159, -2.2807],
-     "dir": [-0.418, 0.517, -0.747],
-     "size": 0.09,
+     "pos": [-0.6805, 0.7166, -2.2806],
+     "dir": [-0.431, 0.509, -0.745],
+     "size": 0.089,
      "color": "#fff3d6"
     },
     {
      "role": "head",
-     "pos": [0.6756, 0.7159, -2.2809],
-     "dir": [0.419, 0.515, -0.748],
-     "size": 0.09,
+     "pos": [0.6776, 0.7134, -2.2758],
+     "dir": [0.429, 0.511, -0.744],
+     "size": 0.089,
      "color": "#fff3d6"
     },
     {
@@ -157,30 +346,30 @@
     },
     {
      "role": "ind_l",
-     "pos": [-0.8671, 0.7032, -2.1351],
-     "dir": [-0.798, 0.299, -0.523],
-     "size": 0.046,
+     "pos": [-0.8638, 0.6998, -2.1301],
+     "dir": [-0.837, 0.192, -0.512],
+     "size": 0.043,
      "color": "#ffa01a"
     },
     {
      "role": "ind_l",
-     "pos": [-0.7823, 0.9169, 2.3797],
-     "dir": [-0.477, 0.178, 0.86],
-     "size": 0.114,
+     "pos": [-0.8016, 0.9204, 2.3558],
+     "dir": [-0.567, 0.217, 0.795],
+     "size": 0.122,
      "color": "#ffa01a"
     },
     {
      "role": "ind_r",
-     "pos": [0.781, 0.9164, 2.3774],
-     "dir": [0.477, 0.178, 0.861],
-     "size": 0.114,
+     "pos": [0.8017, 0.9202, 2.3561],
+     "dir": [0.567, 0.215, 0.795],
+     "size": 0.122,
      "color": "#ffa01a"
     },
     {
      "role": "ind_r",
-     "pos": [0.8671, 0.7032, -2.1351],
-     "dir": [0.798, 0.299, -0.523],
-     "size": 0.046,
+     "pos": [0.8647, 0.7, -2.1307],
+     "dir": [0.838, 0.193, -0.51],
+     "size": 0.043,
      "color": "#ffa01a"
     },
     {
@@ -192,24 +381,24 @@
     },
     {
      "role": "tail",
-     "pos": [-0.7001, 0.8764, 2.4114],
-     "dir": [-0.357, 0.095, 0.929],
-     "size": 0.116,
+     "pos": [-0.7749, 0.916, 2.3699],
+     "dir": [-0.513, 0.181, 0.839],
+     "size": 0.261,
      "color": "#ff1a0e"
     },
     {
      "role": "tail",
-     "pos": [0.7001, 0.8763, 2.4114],
-     "dir": [0.356, 0.094, 0.929],
-     "size": 0.116,
+     "pos": [0.7753, 0.9157, 2.3698],
+     "dir": [0.508, 0.179, 0.843],
+     "size": 0.256,
      "color": "#ff1a0e"
     }
    ],
    "paint": {"paint": "#1d4ea8", "metal": 0.55},
    "auto_lod": false,
    "tags": ["player"],
-   "bytes": 1451415,
-   "hash": "8a08110e9befc19b66f8e6a67ebe455211aa7ed7"
+   "bytes": 1573290,
+   "hash": "c0eeb5f1e9cd7330e81d2e86f6312ca92d5c75b1"
   },
   "props/farmhouse": {
    "kind": "building",
@@ -322,16 +511,168 @@
    "bytes": 426630,
    "hash": "017d646106c8d69475b7754105b2da3751e5be00"
   },
-  "traffic/sedan": {
+  "traffic/hatch": {
    "kind": "vehicle",
-   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.48},
-   "extent_m": {"left": 1.07, "right": 1.07},
-   "aabb": [-1.065, 0, -2.35, 1.065, 1.48, 2.373],
+   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.51},
+   "extent_m": {"left": 1.04, "right": 1.04},
+   "aabb": [-1.035, 0, -2.025, 1.035, 1.51, 2.027],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 40,
-     "tris": 17300,
+     "tris": 17317,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/hatch/lod0_body.res",
+       "classes": ["vpbr", "glass"]
+      },
+      {
+       "node": "wheel_0l",
+       "mesh": "traffic/hatch/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [-0.7415, 0.31, -1.21],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.31, "steer": true}
+      },
+      {
+       "node": "wheel_0r",
+       "mesh": "traffic/hatch/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [0.7415, 0.31, -1.21],
+       "wheel": {"radius": 0.31, "steer": true}
+      },
+      {
+       "node": "wheel_1l",
+       "mesh": "traffic/hatch/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [-0.7415, 0.31, 1.37],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.31, "steer": false}
+      },
+      {
+       "node": "wheel_1r",
+       "mesh": "traffic/hatch/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [0.7415, 0.31, 1.37],
+       "wheel": {"radius": 0.31, "steer": false}
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 120,
+     "tris": 5753,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/hatch/lod1_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    },
+    {
+     "name": "lod2",
+     "max_dist_m": 100000,
+     "tris": 1136,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/hatch/lod2_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    }
+   ],
+   "shadow": {"mesh": "traffic/hatch/shadow.res", "tris": 652},
+   "lights": [
+    {
+     "role": "brake",
+     "pos": [-0.7274, 0.8495, 1.9674],
+     "dir": [-0.433, 0.203, 0.878],
+     "size": 0.242,
+     "color": "#ff2010"
+    },
+    {
+     "role": "brake",
+     "pos": [0.7275, 0.8495, 1.9676],
+     "dir": [0.433, 0.202, 0.879],
+     "size": 0.242,
+     "color": "#ff2010"
+    },
+    {
+     "role": "head",
+     "pos": [-0.6078, 0.6596, -1.9616],
+     "dir": [-0.273, 0.299, -0.915],
+     "size": 0.118,
+     "color": "#fff3d6"
+    },
+    {
+     "role": "head",
+     "pos": [0.6078, 0.6596, -1.9616],
+     "dir": [0.271, 0.3, -0.914],
+     "size": 0.118,
+     "color": "#fff3d6"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-0.7914, 0.6537, -1.8493],
+     "dir": [-0.79, 0.065, -0.609],
+     "size": 0.158,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-0.7595, 0.7684, 1.9658],
+     "dir": [-0.492, -0.008, 0.871],
+     "size": 0.122,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [0.7596, 0.7684, 1.9658],
+     "dir": [0.492, -0.009, 0.871],
+     "size": 0.122,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [0.7913, 0.6537, -1.8493],
+     "dir": [0.79, 0.069, -0.609],
+     "size": 0.158,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "tail",
+     "pos": [-0.7274, 0.8495, 1.9674],
+     "dir": [-0.433, 0.203, 0.878],
+     "size": 0.242,
+     "color": "#ff2010"
+    },
+    {
+     "role": "tail",
+     "pos": [0.7275, 0.8495, 1.9676],
+     "dir": [0.433, 0.202, 0.879],
+     "size": 0.242,
+     "color": "#ff2010"
+    }
+   ],
+   "paint": {"paint": "#3d8a45", "metal": 0.4},
+   "auto_lod": false,
+   "tags": ["traffic", "car"],
+   "bytes": 256895,
+   "hash": "5abc1ef36174cb33874a6809105335bca5bd0c38"
+  },
+  "traffic/sedan": {
+   "kind": "vehicle",
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.48},
+   "extent_m": {"left": 1.07, "right": 1.07},
+   "aabb": [-1.065, 0, -2.35, 1.065, 1.48, 2.352],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 40,
+     "tris": 17695,
      "parts": [
       {
        "node": "body",
@@ -342,7 +683,7 @@
        "node": "wheel_0l",
        "mesh": "traffic/sedan/wheel.res",
        "classes": ["vpbr"],
-       "pos": [-0.7525, 0.32, -1.415],
+       "pos": [-0.7665, 0.32, -1.415],
        "yaw_deg": 180,
        "wheel": {"radius": 0.32, "steer": true}
       },
@@ -350,14 +691,14 @@
        "node": "wheel_0r",
        "mesh": "traffic/sedan/wheel.res",
        "classes": ["vpbr"],
-       "pos": [0.7525, 0.32, -1.415],
+       "pos": [0.7665, 0.32, -1.415],
        "wheel": {"radius": 0.32, "steer": true}
       },
       {
        "node": "wheel_1l",
        "mesh": "traffic/sedan/wheel.res",
        "classes": ["vpbr"],
-       "pos": [-0.7525, 0.32, 1.385],
+       "pos": [-0.7665, 0.32, 1.385],
        "yaw_deg": 180,
        "wheel": {"radius": 0.32, "steer": false}
       },
@@ -365,7 +706,7 @@
        "node": "wheel_1r",
        "mesh": "traffic/sedan/wheel.res",
        "classes": ["vpbr"],
-       "pos": [0.7525, 0.32, 1.385],
+       "pos": [0.7665, 0.32, 1.385],
        "wheel": {"radius": 0.32, "steer": false}
       }
      ]
@@ -373,7 +714,7 @@
     {
      "name": "lod1",
      "max_dist_m": 120,
-     "tris": 4151,
+     "tris": 5805,
      "parts": [
       {
        "node": "body",
@@ -385,7 +726,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1168,
+     "tris": 1123,
      "parts": [
       {
        "node": "body",
@@ -395,91 +736,474 @@
      ]
     }
    ],
-   "shadow": {"mesh": "traffic/sedan/shadow.res", "tris": 632},
+   "shadow": {"mesh": "traffic/sedan/shadow.res", "tris": 636},
    "lights": [
     {
      "role": "brake",
-     "pos": [-0.7545, 0.8852, 2.287],
-     "dir": [-0.466, 0.233, 0.854],
-     "size": 0.24,
-     "color": "#ff2414"
+     "pos": [-0.7486, 0.8864, 2.2908],
+     "dir": [-0.48, 0.25, 0.841],
+     "size": 0.237,
+     "color": "#ff2010"
     },
     {
      "role": "brake",
-     "pos": [0, 1.3155, 0.9852],
-     "dir": [0, 0.842, 0.539],
+     "pos": [0, 1.3178, 0.9985],
+     "dir": [0, 0.839, 0.543],
      "size": 0.168,
-     "color": "#ff2414"
+     "color": "#ff2010"
     },
     {
      "role": "brake",
-     "pos": [0.7538, 0.8849, 2.2859],
-     "dir": [0.465, 0.234, 0.854],
-     "size": 0.24,
-     "color": "#ff2414"
+     "pos": [0.7488, 0.8863, 2.2909],
+     "dir": [0.48, 0.249, 0.841],
+     "size": 0.237,
+     "color": "#ff2010"
     },
     {
      "role": "head",
-     "pos": [-0.6321, 0.6931, -2.2832],
-     "dir": [-0.298, 0.332, -0.895],
-     "size": 0.113,
+     "pos": [-0.6294, 0.6939, -2.2851],
+     "dir": [-0.296, 0.283, -0.912],
+     "size": 0.107,
      "color": "#fff3d6"
     },
     {
      "role": "head",
-     "pos": [0.632, 0.693, -2.2828],
-     "dir": [0.296, 0.335, -0.894],
-     "size": 0.113,
+     "pos": [0.6294, 0.6939, -2.2851],
+     "dir": [0.296, 0.283, -0.912],
+     "size": 0.107,
      "color": "#fff3d6"
     },
     {
      "role": "ind_l",
-     "pos": [-0.8071, 0.6897, -2.1904],
-     "dir": [-0.698, 0.143, -0.701],
-     "size": 0.134,
+     "pos": [-0.8093, 0.6884, -2.1764],
+     "dir": [-0.78, 0.04, -0.625],
+     "size": 0.143,
      "color": "#ffa01a"
     },
     {
      "role": "ind_l",
-     "pos": [-0.7429, 0.8258, 2.2997],
-     "dir": [-0.309, 0.066, 0.949],
-     "size": 0.117,
+     "pos": [-0.7483, 0.8256, 2.3079],
+     "dir": [-0.331, 0.039, 0.943],
+     "size": 0.119,
      "color": "#ffa01a"
     },
     {
      "role": "ind_r",
-     "pos": [0.7429, 0.8258, 2.2997],
-     "dir": [0.308, 0.066, 0.949],
-     "size": 0.117,
+     "pos": [0.7482, 0.8256, 2.308],
+     "dir": [0.33, 0.038, 0.943],
+     "size": 0.119,
      "color": "#ffa01a"
     },
     {
      "role": "ind_r",
-     "pos": [0.8071, 0.6896, -2.1904],
-     "dir": [0.699, 0.142, -0.701],
-     "size": 0.134,
+     "pos": [0.8093, 0.6884, -2.1764],
+     "dir": [0.779, 0.043, -0.625],
+     "size": 0.143,
      "color": "#ffa01a"
     },
     {
      "role": "tail",
-     "pos": [-0.7545, 0.8852, 2.287],
-     "dir": [-0.466, 0.233, 0.854],
-     "size": 0.24,
+     "pos": [-0.7486, 0.8864, 2.2908],
+     "dir": [-0.48, 0.25, 0.841],
+     "size": 0.237,
      "color": "#ff2010"
     },
     {
      "role": "tail",
-     "pos": [0.7538, 0.8849, 2.2859],
-     "dir": [0.465, 0.234, 0.854],
-     "size": 0.24,
+     "pos": [0.7488, 0.8863, 2.2909],
+     "dir": [0.48, 0.249, 0.841],
+     "size": 0.237,
      "color": "#ff2010"
     }
    ],
    "paint": {"paint": "#b52424", "metal": 0.3},
    "auto_lod": false,
    "tags": ["traffic", "car"],
-   "bytes": 248318,
-   "hash": "b63b3b4c57a199f09b2e5de7a9a7e6b3c9d99df3"
+   "bytes": 260279,
+   "hash": "cc20ae33d99e6b64ce91a474ffe579aefceba0c1"
+  },
+  "traffic/truck": {
+   "kind": "heavy",
+   "object": {"width_m": 2.55, "length_m": 16.5, "height_m": 4},
+   "aabb": [-1.535, 0, -8.25, 1.535, 4, 8.291],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 18084,
+     "parts": [
+      {
+       "node": "tractor/body",
+       "mesh": "traffic/truck/lod0_tractor.res",
+       "classes": ["vpbr", "glass"]
+      },
+      {
+       "node": "tractor/wheel_0l",
+       "mesh": "traffic/truck/wheel_front.res",
+       "classes": ["vpbr"],
+       "pos": [-1.085, 0.53, -7],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.53, "steer": true}
+      },
+      {
+       "node": "tractor/wheel_0r",
+       "mesh": "traffic/truck/wheel_front.res",
+       "classes": ["vpbr"],
+       "pos": [1.085, 0.53, -7],
+       "wheel": {"radius": 0.53, "steer": true}
+      },
+      {
+       "node": "tractor/wheel_1l",
+       "mesh": "traffic/truck/wheel_drive.res",
+       "classes": ["vpbr"],
+       "pos": [-0.9175, 0.53, -3.1],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.53, "steer": false}
+      },
+      {
+       "node": "tractor/wheel_1r",
+       "mesh": "traffic/truck/wheel_drive.res",
+       "classes": ["vpbr"],
+       "pos": [0.9175, 0.53, -3.1],
+       "wheel": {"radius": 0.53, "steer": false}
+      },
+      {
+       "node": "trailer/body",
+       "mesh": "traffic/truck/lod0_trailer.res",
+       "classes": ["vpbr"],
+       "pos": [0, 1.19, -3.7]
+      },
+      {
+       "node": "trailer/wheel_0l",
+       "mesh": "traffic/truck/wheel_trailer.res",
+       "classes": ["vpbr"],
+       "pos": [-1.0525, 0.53, 2.63],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.53, "steer": false}
+      },
+      {
+       "node": "trailer/wheel_0r",
+       "mesh": "traffic/truck/wheel_trailer.res",
+       "classes": ["vpbr"],
+       "pos": [1.0525, 0.53, 2.63],
+       "wheel": {"radius": 0.53, "steer": false}
+      },
+      {
+       "node": "trailer/wheel_1l",
+       "mesh": "traffic/truck/wheel_trailer.res",
+       "classes": ["vpbr"],
+       "pos": [-1.0525, 0.53, 3.94],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.53, "steer": false}
+      },
+      {
+       "node": "trailer/wheel_1r",
+       "mesh": "traffic/truck/wheel_trailer.res",
+       "classes": ["vpbr"],
+       "pos": [1.0525, 0.53, 3.94],
+       "wheel": {"radius": 0.53, "steer": false}
+      },
+      {
+       "node": "trailer/wheel_2l",
+       "mesh": "traffic/truck/wheel_trailer.res",
+       "classes": ["vpbr"],
+       "pos": [-1.0525, 0.53, 5.25],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.53, "steer": false}
+      },
+      {
+       "node": "trailer/wheel_2r",
+       "mesh": "traffic/truck/wheel_trailer.res",
+       "classes": ["vpbr"],
+       "pos": [1.0525, 0.53, 5.25],
+       "wheel": {"radius": 0.53, "steer": false}
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 180,
+     "tris": 4672,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/truck/lod1_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    },
+    {
+     "name": "lod2",
+     "max_dist_m": 100000,
+     "tris": 1490,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/truck/lod2_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    }
+   ],
+   "shadow": {"mesh": "traffic/truck/shadow.res", "tris": 356},
+   "lights": [
+    {
+     "role": "brake",
+     "pos": [-0.8525, 0.82, 8.25],
+     "dir": [0, 0, 1],
+     "size": 0.234,
+     "color": "#ff2010"
+    },
+    {
+     "role": "brake",
+     "pos": [0.8525, 0.82, 8.25],
+     "dir": [0, 0, 1],
+     "size": 0.234,
+     "color": "#ff2010"
+    },
+    {
+     "role": "head",
+     "pos": [-0.875, 0.96, -8.25],
+     "dir": [0, 0, -1],
+     "size": 0.252,
+     "color": "#fff3d6"
+    },
+    {
+     "role": "head",
+     "pos": [0.875, 0.96, -8.25],
+     "dir": [0, 0, -1],
+     "size": 0.252,
+     "color": "#fff3d6"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-1.1, 0.96, -8.25],
+     "dir": [0, 0, -1],
+     "size": 0.202,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-1.0875, 0.82, 8.25],
+     "dir": [0, 0, 1],
+     "size": 0.239,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [1.0875, 0.82, 8.25],
+     "dir": [0, 0, 1],
+     "size": 0.239,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [1.1, 0.96, -8.25],
+     "dir": [0, 0, -1],
+     "size": 0.202,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "marker",
+     "pos": [-1.14, 3.945, 8.25],
+     "dir": [0, 0, 1],
+     "size": 0.124,
+     "color": "#ff1a0e"
+    },
+    {
+     "role": "marker",
+     "pos": [1.14, 3.945, 8.25],
+     "dir": [0, 0, 1],
+     "size": 0.124,
+     "color": "#ff1a0e"
+    },
+    {
+     "role": "tail",
+     "pos": [-0.8525, 0.82, 8.25],
+     "dir": [0, 0, 1],
+     "size": 0.234,
+     "color": "#ff2010"
+    },
+    {
+     "role": "tail",
+     "pos": [0.8525, 0.82, 8.25],
+     "dir": [0, 0, 1],
+     "size": 0.234,
+     "color": "#ff2010"
+    }
+   ],
+   "paint": {"paint": "#ececea", "paint2": "#ecece8", "paint3": "#1f4f9a", "metal": 0.1},
+   "groups": {
+    "tractor": {
+     "pivot": [0, 0, -3.1]
+    },
+    "trailer": {
+     "pivot": [0, 1.19, -3.7]
+    }
+   },
+   "auto_lod": false,
+   "tags": ["traffic", "heavy"],
+   "bytes": 160568,
+   "hash": "7252cc1e2912eb3dba4d35edbbbe201c3a7bbb68"
+  },
+  "traffic/wagon": {
+   "kind": "vehicle",
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.52},
+   "extent_m": {"left": 1.08, "right": 1.08},
+   "aabb": [-1.075, 0, -2.4, 1.075, 1.557, 2.402],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 40,
+     "tris": 17888,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/wagon/lod0_body.res",
+       "classes": ["vpbr", "glass"]
+      },
+      {
+       "node": "wheel_0l",
+       "mesh": "traffic/wagon/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [-0.7765, 0.32, -1.435],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.32, "steer": true}
+      },
+      {
+       "node": "wheel_0r",
+       "mesh": "traffic/wagon/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [0.7765, 0.32, -1.435],
+       "wheel": {"radius": 0.32, "steer": true}
+      },
+      {
+       "node": "wheel_1l",
+       "mesh": "traffic/wagon/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [-0.7765, 0.32, 1.365],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.32, "steer": false}
+      },
+      {
+       "node": "wheel_1r",
+       "mesh": "traffic/wagon/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [0.7765, 0.32, 1.365],
+       "wheel": {"radius": 0.32, "steer": false}
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 120,
+     "tris": 5937,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/wagon/lod1_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    },
+    {
+     "name": "lod2",
+     "max_dist_m": 100000,
+     "tris": 1103,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/wagon/lod2_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    }
+   ],
+   "shadow": {"mesh": "traffic/wagon/shadow.res", "tris": 604},
+   "lights": [
+    {
+     "role": "brake",
+     "pos": [-0.7714, 0.916, 2.3268],
+     "dir": [-0.558, 0.217, 0.801],
+     "size": 0.295,
+     "color": "#ff2010"
+    },
+    {
+     "role": "brake",
+     "pos": [0, 1.4155, 2.2311],
+     "dir": [0, 0.606, 0.796],
+     "size": 0.139,
+     "color": "#ff2010"
+    },
+    {
+     "role": "brake",
+     "pos": [0.7712, 0.9152, 2.3272],
+     "dir": [0.555, 0.216, 0.803],
+     "size": 0.294,
+     "color": "#ff2010"
+    },
+    {
+     "role": "head",
+     "pos": [-0.6351, 0.674, -2.336],
+     "dir": [-0.287, 0.293, -0.912],
+     "size": 0.11,
+     "color": "#fff3d6"
+    },
+    {
+     "role": "head",
+     "pos": [0.635, 0.674, -2.336],
+     "dir": [0.287, 0.294, -0.912],
+     "size": 0.11,
+     "color": "#fff3d6"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-0.8202, 0.6684, -2.2248],
+     "dir": [-0.785, 0.042, -0.619],
+     "size": 0.144,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-0.7281, 0.7871, 2.3626],
+     "dir": [-0.194, 0.013, 0.981],
+     "size": 0.117,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [0.7281, 0.7871, 2.3626],
+     "dir": [0.194, 0.012, 0.981],
+     "size": 0.117,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [0.8201, 0.6685, -2.2249],
+     "dir": [0.784, 0.045, -0.619],
+     "size": 0.144,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "tail",
+     "pos": [-0.7714, 0.916, 2.3268],
+     "dir": [-0.558, 0.217, 0.801],
+     "size": 0.295,
+     "color": "#ff2010"
+    },
+    {
+     "role": "tail",
+     "pos": [0.7712, 0.9152, 2.3272],
+     "dir": [0.555, 0.216, 0.803],
+     "size": 0.294,
+     "color": "#ff2010"
+    }
+   ],
+   "paint": {"paint": "#aeb2b8", "metal": 0.75},
+   "auto_lod": false,
+   "tags": ["traffic", "car"],
+   "bytes": 269062,
+   "hash": "3b007e89cf084b94c9ef766be2f5678aa1d92751"
   }
  },
  "sets": {
@@ -623,9 +1347,8 @@
    "paint": {"paint": "#1d6b45", "metal": 0.55}
   },
   "player/kompakt": {
-   "fallback": "box",
-   "object": {"width_m": 1.78, "length_m": 4.1, "height_m": 1.435},
-   "paint": {"paint": "#f0b30a", "metal": 0.0}
+   "model": "player/kompakt",
+   "paint": {"paint": "#f0b30a", "metal": 0}
   },
   "player/limousine": {
    "model": "player/limousine",
@@ -1070,8 +1793,10 @@
    "object": {"width_m": 1.85, "length_m": 4.8, "height_m": 1.537}
   },
   "showroom/kompakt": {
-   "fallback": "sprite",
-   "object": {"width_m": 1.78, "length_m": 4.1, "height_m": 1.435}
+   "model": "player/kompakt",
+   "lod": "show",
+   "showroom": false,
+   "paint": {"paint": "#f0b30a", "metal": 0}
   },
   "showroom/limousine": {
    "model": "player/limousine",
@@ -1099,28 +1824,23 @@
    "paint": {"paint": "#efefeb", "metal": 0.1}
   },
   "traffic/hatch_blue": {
-   "fallback": "box",
-   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.51},
+   "model": "traffic/hatch",
    "paint": {"paint": "#2c5fa8", "metal": 0.45}
   },
   "traffic/hatch_green": {
-   "fallback": "box",
-   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.51},
+   "model": "traffic/hatch",
    "paint": {"paint": "#3d8a45", "metal": 0.4}
   },
   "traffic/hatch_red": {
-   "fallback": "box",
-   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.51},
+   "model": "traffic/hatch",
    "paint": {"paint": "#b5282a", "metal": 0.3}
   },
   "traffic/hatch_white": {
-   "fallback": "box",
-   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.51},
+   "model": "traffic/hatch",
    "paint": {"paint": "#e8e8e5", "metal": 0.1}
   },
   "traffic/hatch_yellow": {
-   "fallback": "box",
-   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.51},
+   "model": "traffic/hatch",
    "paint": {"paint": "#e5bd1c", "metal": 0.15}
   },
   "traffic/sedan_black": {
@@ -1185,24 +1905,20 @@
    "paint": {"paint": "#ececea", "metal": 0.1}
   },
   "traffic/truck_blue": {
-   "fallback": "box",
-   "object": {"width_m": 2.55, "length_m": 16.5, "height_m": 4.0},
-   "paint": {"paint": "#21468f", "metal": 0.45}
+   "model": "traffic/truck",
+   "paint": {"paint": "#21468f", "paint2": "#21468f", "paint3": "#e9e9e5", "metal": 0.1}
   },
   "traffic/truck_green": {
-   "fallback": "box",
-   "object": {"width_m": 2.55, "length_m": 16.5, "height_m": 4.0},
-   "paint": {"paint": "#2e6b3a", "metal": 0.4}
+   "model": "traffic/truck",
+   "paint": {"paint": "#2e6b3a", "paint2": "#e8e8e4", "paint3": "#2e6b3a", "metal": 0.1}
   },
   "traffic/truck_red": {
-   "fallback": "box",
-   "object": {"width_m": 2.55, "length_m": 16.5, "height_m": 4.0},
-   "paint": {"paint": "#b02a24", "metal": 0.3}
+   "model": "traffic/truck",
+   "paint": {"paint": "#b02a24", "paint2": "#b02a24", "paint3": "#b02a24", "metal": 0.1}
   },
   "traffic/truck_white": {
-   "fallback": "box",
-   "object": {"width_m": 2.55, "length_m": 16.5, "height_m": 4.0},
-   "paint": {"paint": "#ececea", "metal": 0.1}
+   "model": "traffic/truck",
+   "paint": {"paint": "#ececea", "paint2": "#ecece8", "paint3": "#1f4f9a", "metal": 0.1}
   },
   "traffic/van_darkblue": {
    "fallback": "box",
@@ -1225,23 +1941,19 @@
    "paint": {"paint": "#ececea", "metal": 0.1}
   },
   "traffic/wagon_darkblue": {
-   "fallback": "box",
-   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.52},
+   "model": "traffic/wagon",
    "paint": {"paint": "#1f3157", "metal": 0.5}
   },
   "traffic/wagon_green": {
-   "fallback": "box",
-   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.52},
+   "model": "traffic/wagon",
    "paint": {"paint": "#2f5d3a", "metal": 0.4}
   },
   "traffic/wagon_silver": {
-   "fallback": "box",
-   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.52},
+   "model": "traffic/wagon",
    "paint": {"paint": "#aeb2b8", "metal": 0.75}
   },
   "traffic/wagon_white": {
-   "fallback": "box",
-   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.52},
+   "model": "traffic/wagon",
    "paint": {"paint": "#e6e6e3", "metal": 0.1}
   }
  }
