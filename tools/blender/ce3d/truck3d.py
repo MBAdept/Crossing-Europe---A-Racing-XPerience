@@ -574,7 +574,7 @@ def _tractor(b):
             u0, u1 = sorted((sx * 0.75, sx * 1.18))
             items.append(dict(poly=_rect(u0, 0.805, u1, 0.842), mat=i_drl))
         if lv <= 1:
-            items.append(dict(poly=_rect(-0.26, 0.86, -0.222, 0.968), mat=b.flat("#1d3c9c", 0.45)))
+            items.append(dict(poly=_rect(0.222, 0.86, 0.26, 0.968), mat=b.flat("#1d3c9c", 0.45)))    # left as seen from ahead
     b.panel(node, b.flat("#3a3d42", 0.45, 0.1), [bmp["f"]], {("front", 1): items})
     b.panel(node, b.flat("#3a3d42", 0.45, 0.1), [bmp[k] for k in "lRtb"])
     with b.node(node):
@@ -610,13 +610,17 @@ def _tractor(b):
                 MU.bm_box(1.9, 0.14, 0.14, (0.0, Y_DRIVE, R), bm=bm)
                 MU.bm_box(0.9, 0.9, 0.09, (0.0, 11.9, 1.135), bm=bm)
         b.obj("frame", bm, chassis)
-        bm = bmesh.new()
-        for sx in (-1, 1):
-            if lv <= 1:
+        if lv <= 1:
+            bm = bmesh.new()
+            for sx in (-1, 1):
                 MU.bm_cyl(0.33, 0.33, 1.25, center=(sx * 0.94, 13.05, 0.8), axis="Y", segs=16 if lv == 0 else 8, bm=bm)
-            else:
-                MU.bm_box(0.6, 1.25, 0.6, (sx * 0.94, 13.05, 0.8), bm=bm)
-        b.obj("tanks", bm, alu, smooth=lv <= 1, sharp=50.0)
+            b.obj("tanks", bm, alu, smooth=True, sharp=50.0)
+        else:
+            # far level: the mirrors as plain blocks (they are part of the bounding box of every level)
+            bm = bmesh.new()
+            for sx in (-1, 1):
+                MU.bm_box(0.13, 0.1, 0.76, (sx * 1.47, 16.2, 2.6), bm=bm)
+            b.obj("mirrors", bm, dark)
         if lv <= 1:
             bm = bmesh.new()
             for sx in (-1, 1):

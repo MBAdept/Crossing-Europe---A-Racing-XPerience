@@ -65,7 +65,7 @@
    {
     "name": "lod2",
     "max_dist_m": 100000,
-    "tris": 1079,
+    "tris": 1103,
     "parts": [
      {
       "node": "body",
@@ -158,8 +158,8 @@
   "paint": {"paint": "#aeb2b8", "metal": 0.75},
   "auto_lod": false,
   "tags": ["traffic", "car"],
-  "bytes": 267069,
-  "hash": "82be9578bf4489fa3333d7f54c748ee4e3ca5ec6"
+  "bytes": 267520,
+  "hash": "074a63fbdb9efee58b2d94fc7ab7b41c3c859313"
  },
  "sets": {
   "traffic/wagon_silver": {

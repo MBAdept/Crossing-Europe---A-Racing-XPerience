@@ -270,7 +270,7 @@ def _level(spec3d, level, paint_hex, metal, fine=None):
                     MU.bm_beam((side * (sc.W2 - 0.1), ym + 0.02, zm - 0.03), (side * (sc.W2 + 0.04), ym + 0.01, zm - 0.02),
                                0.045, 0.03, bm=bm)
             MU.make(name + "_mirror_far", bm, sc.paint, parent=sc.center)
-        if "roof_rails" in ex and level in ("lod0", "lod1"):
+        if "roof_rails" in ex and level != "shadow":
             y0, y1 = ex["roof_rails"]
             railm = M.basic(name + "_rail", ex.get("rail_color", "#9a9ea4"), rough=0.35, metal=0.6)
             bm = bmesh.new()
