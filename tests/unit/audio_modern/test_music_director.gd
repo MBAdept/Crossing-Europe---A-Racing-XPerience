@@ -97,6 +97,24 @@ func test_race_piece_waits_for_the_stage_and_lands_on_go() -> void:
 	_done(m)
 
 
+func test_countdown_numbers_reanchor_the_start() -> void:
+	var m := _modern()
+	m.set_music_context("race")
+	m.event("stage_start", {"countdown_s": 3.0})
+	m.event("countdown", {"n": 3})
+	var countin: float = _st(m)["countin_s"]
+	assert_near(float(_st(m)["start_in"]), 3.0 - countin, 1.0e-6, "„3“: wie geplant")
+	# the frames ran ahead of the countdown (a hitch the physics did not catch up): 0.5 s of frames, but the
+	# countdown says "2" – the start follows the countdown, not the frames
+	_steps(m, 30)
+	assert_near(float(_st(m)["start_in"]), 3.0 - countin - 0.5, 1.0e-3, "nach 0,5 s Bildzeit")
+	m.event("countdown", {"n": 2})
+	assert_near(float(_st(m)["start_in"]), 2.0 - countin, 1.0e-6, "„2“: neu verankert, %.3f s vor dem Start" % (2.0 - countin))
+	m.event("countdown", {"n": 1})
+	assert_near(float(_st(m)["start_in"]), 2.0 - countin, 1.0e-6, "„1“ kommt nach dem Start des Einzählers: ändert nichts")
+	_done(m)
+
+
 func test_short_countdown_go_and_fallback_start() -> void:
 	var m := _modern()
 	# a countdown shorter than the count-in: the piece starts at once

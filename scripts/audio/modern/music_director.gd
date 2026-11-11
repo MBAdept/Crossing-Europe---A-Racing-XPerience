@@ -80,6 +80,16 @@ var _race_gen := 0
 var _race_piece: Dictionary = {}         ## the piece of the current stage: {id, key, stream, db, countin_s, bpm, ending}
 var _alive_t := 0.0
 var _streams: Dictionary = {}            ## piece id -> AudioStreamInteractive (built once per profile)
+## The clock of the scheduled start: the session's countdown runs in physics steps, so the start is counted in
+## physics steps too (Engine.get_physics_frames(), without the paused ones) – a long frame, after which the physics
+## catches up or drops time, then shifts the countdown and the music alike. Without physics (unit tests, tools that
+## drive the slots themselves) the frame time counts once no physics step has come for WAIT_NO_PHYSICS_S.
+var _sched_left := 0.0
+var _phys_seen := 0
+var _phys_steps := 0
+var _wait_dt := 0.0
+var _physics_runs := false               ## a physics step came while waiting: race_t is counted in steps too
+const WAIT_NO_PHYSICS_S := 0.25
 
 
 func _setup() -> void:
@@ -133,13 +143,22 @@ func event(event_name: String, args: Dictionary) -> void:
 		"stage_start":
 			if race_phase == RACE_ARMED:
 				var countdown := maxf(float(args.get("countdown_s", 0.0)), 0.0)
-				start_in = maxf(countdown - float(_race_piece.get("countin_s", 0.0)), 0.0)
+				_schedule(maxf(countdown - float(_race_piece.get("countin_s", 0.0)), 0.0))
 				race_phase = RACE_WAITING
+		"countdown":
+			# each new countdown number is n seconds before "LOS!": schedule from the latest one
+			if race_phase == RACE_WAITING:
+				var left := float(args.get("n", 0)) - float(_race_piece.get("countin_s", 0.0))
+				if left >= 0.0:
+					_schedule(left)
 		"go":
 			if race_phase == RACE_ARMED or race_phase == RACE_WAITING:
 				_start_race()
 			if race_phase == RACE_PLAYING and is_nan(go_offset_s):
-				go_offset_s = race_t - float(_race_piece.get("countin_s", 0.0))
+				# "go" comes inside a physics step: count the steps since the last frame as well
+				var steps := _phys_steps + (Engine.get_physics_frames() - _phys_seen)
+				var t := steps * _step_s() if _physics_runs else race_t
+				go_offset_s = t - float(_race_piece.get("countin_s", 0.0))
 		"stage_finish":
 			if race_phase == RACE_PLAYING:
 				race_phase = RACE_ENDING
@@ -165,6 +184,38 @@ func _start_race() -> void:
 	race_phase = RACE_PLAYING
 	start_in = -1.0
 	race_t = 0.0
+	# from here on the same physics clock measures how long the piece has played
+	_phys_seen = Engine.get_physics_frames()
+	_phys_steps = 0
+	_wait_dt = 0.0
+
+
+## Game seconds per physics step (the countdown's dt).
+static func _step_s() -> float:
+	return Engine.time_scale / float(Engine.physics_ticks_per_second)
+
+
+## The start comes `left` seconds of game time after now (called from the session's events, inside a physics step).
+func _schedule(left: float) -> void:
+	_sched_left = left
+	start_in = left
+	_phys_seen = Engine.get_physics_frames()
+	_phys_steps = 0
+	_wait_dt = 0.0
+	_physics_runs = false
+
+
+## Game seconds since the last _schedule(): physics steps × their length, or the frame time without physics.
+func _waited(frame: ModernAudioFrame) -> float:
+	var now := Engine.get_physics_frames()
+	if not frame.paused:
+		_phys_steps += now - _phys_seen
+		_wait_dt += frame.dt
+	_phys_seen = now
+	if _phys_steps > 0:
+		_physics_runs = true
+		return _phys_steps * _step_s()
+	return _wait_dt if _wait_dt >= WAIT_NO_PHYSICS_S else 0.0
 
 
 ## Music ids of a role (sorted). Placeholders (visible only with audio.modern.placeholders) count only while the role
@@ -272,17 +323,24 @@ func _step_race(frame: ModernAudioFrame) -> void:
 		return
 	match race_phase:
 		RACE_WAITING:
-			if not frame.paused:
-				start_in -= frame.dt
-				if start_in <= 0.0:
-					_start_race()
+			start_in = _sched_left - _waited(frame)
+			# start in the frame nearest to the planned moment (the next frame would be about frame.dt late):
+			# the start is off by at most half a frame instead of up to a whole one
+			if not frame.paused and start_in <= 0.5 * frame.dt:
+				_start_race()
 		RACE_ARMED:
 			if frame.alive:
 				_alive_t += frame.dt
 				if _alive_t >= START_FALLBACK_S:
 					_start_race()
 		RACE_PLAYING, RACE_ENDING:
-			if not frame.paused:
+			if _physics_runs:
+				var now := Engine.get_physics_frames()
+				if not frame.paused:
+					_phys_steps += now - _phys_seen
+				_phys_seen = now
+				race_t = _phys_steps * _step_s()
+			elif not frame.paused:
 				race_t += frame.dt
 
 
