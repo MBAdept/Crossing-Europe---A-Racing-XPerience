@@ -796,8 +796,13 @@ gleich) hat einen Nachfolger in einem eigenen Modul:
 - **Vorhangfassade** (Büroturm, `curtain`): die Wände werden ersetzt durch Brüstungsbänder (gebacken, aus dem
   Material des Turms), zurückgesetzte Scheiben je Achse und Geschoss (vpbr: spiegeln den Himmel, ein Drittel leuchtet
   nachts) und Lisenen; Eckpfosten schließen die Ecken.
-- **lod1** ohne Feinteile (Rahmen, Sprossen, Sohlbänke, Rinnen, Lamellen, Marken, Geländerstäbe): ab der ersten
-  Umschaltentfernung des Requisiten-Builders. Rahmen von 6 cm sind dort unter einem Pixel und würden nur flimmern.
+- **lod1** ohne Feinteile (Sprossen, Sohlbänke, Rinnen, Lamellen, Marken, Geländerstäbe): ab der ersten
+  Umschaltentfernung des Requisiten-Builders (40 / 60 / 120 m je Detailstufe). Sprossen von 4,5 cm sind dort unter
+  einem Pixel und würden nur flimmern. Damit das Fenster beim Umschalten nicht dunkler wird (ohne Ersatz änderten sich
+  bei den Wohnblöcken 6 % der Pixel um mehr als 24 Stufen), bekommt lod1 statt Rahmen und Sprossen **einen breiteren
+  Rahmenring mit derselben Fläche** (`_far_inset`): gleiche mittlere Farbe bei Tag, nachts derselbe Anteil leuchtender
+  Scheibe. Die Seiten der Lisenen des Büroturms bleiben in lod1 (streifend gesehen verdecken sie das Glas einer
+  Seite).
 
 **Bake mit Lochfüllern.** Die Öffnungen werden vor dem Bake geschnitten. Würde man die Löcher im Atlas einfach
 auffüllen (Dilatation), stünde dort die Farbe des gemalten Rahmens – in den kleineren Mipmap-Stufen umgab dann ein
@@ -813,9 +818,12 @@ Die Generatoren stehen in `cesprites/props_cities.py` (Stadtpakete) und bleiben 
 Balken des Generatornetzes zurück (`boxes()`: Achse, Enden, Querschnitt jedes Kastens).
 
 - **Pylon** (Bauer `pylon`, Kategorie Mast: ein Zeichenaufruf): Beton, Kopf, Ankerplatten und Flugbefeuerung in
-  einem Atlas; der Pylon ist in drei Höhenbänder geteilt (eine 82 m lange Karte begrenzt den Atlas auf 12 px/m). Die
-  Seile sind vierseitige Prismen, deren Dreiecke alle ein einfarbiges Feld des Atlas lesen. `lod1` hat 0,4 m statt
-  0,24 m starke Seile (ein Seil von 0,24 m ist ab etwa 170 m schmaler als ein Pixel). Die Flugbefeuerung hat einen
+  einem Atlas; der Pylon ist in drei Höhenbänder geteilt (eine 82 m lange Karte begrenzt den Atlas auf 12 px/m), und
+  die Texeldichte folgt der Höhe (`band_w` 1 / 0,6 / 0,45: der Fuß neben der Fahrbahn bekommt 29,9 px/m, der Kopf,
+  den man erst aus 100 m und mehr sieht, 13,4 px/m; vorher überall 21,8 px/m). Die
+  Seile sind vierseitige Prismen, deren Dreiecke alle ein einfarbiges Feld des Atlas lesen. `lod1` hat 0,34 m statt
+  0,28 m starke Seile (dicker hält sie bis 400 m bei 0,6 px – mit MSAA eine durchgehende Linie –, ein größerer Sprung
+  wäre beim Umschalten zu sehen: 0,24 → 0,4 m änderte 7 % der Pixel bei 60 m). Die Flugbefeuerung hat einen
   Lichtanker mit Richtung (Fernglühen der Flare-Ebene).
 - **Fachwerkportal** (Bauer `truss`, Straßenmöbel: ein Zeichenaufruf): Gurte, Pfosten, Sockel und Querriegel als
   Geometrie; Streben und Knotenbleche jeder Ebene als gezeichnetes Ausschneidebild (Streben ≥ 2,5 Texel, Halo 0,33 –
@@ -832,8 +840,9 @@ Balken des Generatornetzes zurück (`boxes()`: Achse, Enden, Querschnitt jedes K
   Breitseite schaut zum anfahrenden Spieler, der Bug nach +X (wie im Sprite rechts). Hook `lowpoly3d` in
   `props_road.ferry_ship` (Rumpfstationen nur, wo sich der Querschnitt ändert; Rettungsboote mit weniger Flächen;
   Decklampen als Würfel). Die vielen Kabinenfenster bleiben gemalt (nachts im Nachtlicht-Atlas), Rumpf und Aufbauten
-  sind in Stücke von höchstens 82 m geschnitten (Atlas-Karten). Decklampen leuchten ohne Anker, die drei
-  Positionslichter haben Anker.
+  sind in Stücke von höchstens 82 m geschnitten (Atlas-Karten). Decklampen und die drei Positionslichter leuchten
+  ohne Anker: Ein Signallicht beleuchtet kein Deck, und die Anker einer Rolle bekommen in `roles.lights()` die Farbe
+  ihrer ersten Lampe (die weißen Toplichter warfen grüne Lichtflecken).
 - **Hausboot:** Seine Wände kommen aus `props_cities.wallmat`, das kein Fensterlog schreibt. Während das Modell
   gebaut wird, wird die Funktion von außen umhüllt (`_log_city_walls`): Ihre Raster gehen als Rechtecke ins Log.
   Das ausgeschnittene Geländer (Stäbe von 3 cm) ist als Pfosten und Holme neu gebaut, die Topfpflanzen sind dezimiert

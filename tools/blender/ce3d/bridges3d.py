@@ -155,10 +155,65 @@ def _split_bands(objs, prefix, heights, tol=0.05):
     return n
 
 
+def _band_objects(objs, prefix, heights):
+    """Splits objects (name prefix) into one object per height band (faces by their centre height; the bands meet at
+    edges that _split_bands has cut): the bake weight can then follow the height (_height_weight)."""
+    import bpy
+    import bmesh
+    edges = [-1e9] + sorted(float(h) for h in heights) + [1e9]
+    out = []
+    for ob in objs:
+        if not ob.name.startswith(prefix):
+            out.append(ob)
+            continue
+        mw = np.array(ob.matrix_world, dtype=np.float64)
+        for k in range(len(edges) - 1):
+            nob = ob.copy()
+            nob.data = ob.data.copy()
+            nob.name = "%s_band%d" % (ob.name, k)
+            for col in ob.users_collection:
+                col.objects.link(nob)
+            bm = bmesh.new()
+            bm.from_mesh(nob.data)
+            drop = []
+            for f in bm.faces:
+                z = float((mw[:3, :3] @ np.array(f.calc_center_median()) + mw[:3, 3])[2])
+                if not edges[k] <= z < edges[k + 1]:
+                    drop.append(f)
+            bmesh.ops.delete(bm, geom=drop, context="FACES")
+            bm.to_mesh(nob.data)
+            bm.free()
+            nob.data.update()
+            if len(nob.data.polygons):
+                out.append(nob)
+            else:
+                bpy.data.objects.remove(nob, do_unlink=True)
+        bpy.data.objects.remove(ob, do_unlink=True)
+    return out
+
+
+def _height_weight(wf, heights, band_w):
+    """Texel weight by height: wf times band_w[k] for the band k that holds the centre of the object's bounds - the
+    foot next to the carriageway keeps the density, the head 60-88 m up (seen from 100 m and more) gets less."""
+    hs = sorted(float(h) for h in heights)
+    cache = {}
+
+    def fn(n, ob):
+        z = cache.get(ob.name)
+        if z is None:
+            zs = [float((ob.matrix_world @ v.co)[2]) for v in ob.data.vertices]
+            z = (min(zs) + max(zs)) / 2.0 if zs else 0.0
+            cache[ob.name] = z
+        k = min(sum(1 for h in hs if z >= h), len(band_w) - 1)
+        return wf(n, ob) * float(band_w[k])
+    return fn
+
+
 def build_pylon(model_id, spec3d):
     """The pylon of a cable-stayed bridge (see the module text). Options: cables (object prefix), beacon (object prefix
     of the aviation light), beacon_dir (Blender axes), cable_w (cable width per level), split (object prefix, heights:
-    chart bands), atlas, ppm_max, view, roughness."""
+    chart bands), band_w (texel weight per band, bottom up: every object by its height), atlas, ppm_max, view,
+    roughness."""
     t0 = time.time()
     rig, info, sspec = P._build_source(spec3d)
     objs = P._objects(rig)
@@ -166,6 +221,8 @@ def build_pylon(model_id, spec3d):
     if spec3d.get("split"):
         prefix, heights = spec3d["split"]
         _split_bands(objs, prefix, heights)
+        if spec3d.get("band_w"):
+            objs = _band_objects(objs, prefix, heights)
     cable_obs = [o for o in objs if o.name.startswith(spec3d.get("cables", "bpy_cables"))]
     cables = [bx for o in cable_obs for bx in boxes(o)]
     rest = [o for o in objs if o not in cable_obs]
@@ -179,6 +236,8 @@ def build_pylon(model_id, spec3d):
                 mats[s.material.name] = s.material
     size = tuple(spec3d.get("atlas", (1024, 1024)))
     wf = weight_fn(spec3d.get("view", "allround"), dict(spec3d.get("weights") or {}))
+    if spec3d.get("split") and spec3d.get("band_w"):
+        wf = _height_weight(wf, spec3d["split"][1], spec3d["band_w"])
     baked = BK.bake_atlas(rig, bake_objs, [mats[k] for k in sorted(mats)], size, weight_fn=wf,
                           ppm_max=spec3d.get("ppm_max", 64.0), ao=spec3d.get("ao"))
     cuv = _uv_centre(patch)

@@ -218,6 +218,31 @@ def _outline(a, b, c, d, top=None, inset=0.0, n_arc=8, rise=0.16):
     return pts
 
 
+def _area(pts):
+    """Area of a polygon [(u, z)] (shoelace)."""
+    s = 0.0
+    for i in range(len(pts)):
+        (u0, z0), (u1, z1) = pts[i], pts[(i + 1) % len(pts)]
+        s += u0 * z1 - u1 * z0
+    return abs(s) * 0.5
+
+
+def _far_inset(a, b, c, d, top, frame_area):
+    """Inset of the lod1 frame ring: the ring between the outline and this inset covers frame_area (the frame ring and
+    the glazing bars of lod0). lod1 has no bars (under a pixel there, they would only flicker), but from afar the
+    window keeps the mean colour of lod0, and at night the same share of a lit pane."""
+    full = _area(_outline(a, b, c, d, top=top))
+    lo, hi = FRAME_W, max(FRAME_W, min(b - a, d - c) * 0.3)
+    for _i in range(24):
+        mid = (lo + hi) * 0.5
+        inner = _outline(a, b, c, d, top=top, inset=mid)
+        if not inner or full - _area(inner) > frame_area:
+            hi = mid
+        else:
+            lo = mid
+    return lo
+
+
 def _half_width_at(outline, z):
     """(u_min, u_max) of a convex outline at height z, or None."""
     xs = []
@@ -487,6 +512,7 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
     step_mat = mats.baked("ce_step", opt.get("step_color", "#b3ada3"))
     lit_w = opt.get("pane_lit", (0.55, 0.9))
     pane_k = float(opt.get("pane_k", PANE_K))
+    far_ring = bool(opt.get("far_ring", True))
     louvre = opt.get("louvre")
     fac = [o for o in objs if any(s.material is not None and s.material.name in by_mat for s in o.material_slots)]
     if not fac:
@@ -649,6 +675,7 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
                                  "lod0")
                 vf, hf = _bars(kind, b - a, d - c, opt, g)
                 bw = float(opt.get("bar_w", BAR_W)) * 0.5
+                bar_area = 0.0
                 for fu in vf:
                     um = a + (b - a) * fu
                     top_z = _top_at(inner, um) if inner else None      # up to the frame - under an arch to the arch
@@ -656,6 +683,7 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
                         top_z = d - FRAME_W
                     geo.quad(fm, p3(um - bw, c + FRAME_W, fd - 0.002), p3(um + bw, c + FRAME_W, fd - 0.002),
                              p3(um + bw, top_z, fd - 0.002), p3(um - bw, top_z, fd - 0.002), n, "lod0")
+                    bar_area += 2.0 * bw * max(0.0, top_z - c - FRAME_W)
                 for fz in hf:
                     zt = c + (d - c) * fz
                     span = _half_width_at(inner, zt)
@@ -663,6 +691,16 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
                         continue
                     geo.quad(fm, p3(span[0], zt - bw, fd - 0.003), p3(span[1], zt - bw, fd - 0.003),
                              p3(span[1], zt + bw, fd - 0.003), p3(span[0], zt + bw, fd - 0.003), n, "lod0")
+                    bar_area += 2.0 * bw * (span[1] - span[0]) - (4.0 * bw * bw) * len(vf)
+                # lod1: one wider frame ring with the area of frame and bars (no pop of the window colour at the switch)
+                if far_ring and len(inner) == len(h.outline):
+                    ring = _area(h.outline) - _area(inner) + max(0.0, bar_area)
+                    inner1 = _outline(a, b, c, d, top=h.top, inset=_far_inset(a, b, c, d, h.top, ring))
+                    if len(inner1) == len(h.outline):
+                        for i in range(len(h.outline)):
+                            j = (i + 1) % len(h.outline)
+                            geo.quad(fm, p3(*h.outline[i], fd), p3(*h.outline[j], fd), p3(*inner1[j], fd),
+                                     p3(*inner1[i], fd), n, "lod1")
                 if e.get("shutters") and g.get("shutters", True) and kind == "win":
                     _shutters(geo, mats, e["shutters"], (a, b, c, d), g, e, p3, n, u_ax)
                     n_shut += 1
@@ -1088,10 +1126,12 @@ def _curtain(rig, objs, geo, mats, spec, stats):
             q = [p(u - mull * 0.5, z_base, fin), p(u + mull * 0.5, z_base, fin), p(u + mull * 0.5, H, fin),
                  p(u - mull * 0.5, H, fin)]
             geo.quad(fin_mat, q[0], q[1], q[2], q[3], nrm)
+            # the sides of the fins stay in lod1: seen at a grazing angle they hide most of the glass of a face (without
+            # them the side of the tower turned from grey to blue at the switch - 18 % of the pixels changed at 60 m)
             geo.quad(fin_mat, p(u - mull * 0.5, z_base, -recess), p(u - mull * 0.5, z_base, fin), p(u - mull * 0.5, H, fin),
-                     p(u - mull * 0.5, H, -recess), -uax, "lod0")
+                     p(u - mull * 0.5, H, -recess), -uax)
             geo.quad(fin_mat, p(u + mull * 0.5, z_base, -recess), p(u + mull * 0.5, z_base, fin), p(u + mull * 0.5, H, fin),
-                     p(u + mull * 0.5, H, -recess), uax, "lod0")
+                     p(u + mull * 0.5, H, -recess), uax)
     stats.update(panes=n_pane, panes_lit=n_lit)
 
 

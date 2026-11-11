@@ -256,8 +256,9 @@ MODELS.update({
                               hidden_tops=("bl_lg",), glass=("bl_lg",), side_flood=0.85,
                               code=["cesprites/props_cities.py"]),
     "props/bridge_pylon": dict(builder="pylon", source="props/bridge_pylon", kind="furniture", atlas=(1024, 1024),
-                               ppm_max=40.0, roughness=0.85, view="allround", cable_w=(0.24, 0.4), beacon="bpy_red",
-                               split=("bpy_leg", (30.75, 61.5)), code=["cesprites/props_cities.py"]),
+                               ppm_max=40.0, roughness=0.85, view="allround", cable_w=(0.28, 0.34), beacon="bpy_red",
+                               split=("bpy_leg", (30.75, 61.5)), band_w=(1.0, 0.6, 0.45),
+                               code=["cesprites/props_cities.py"]),
     "props/bridge_truss_arch": dict(builder="truss", source="props/bridge_truss_arch", kind="furniture",
                                     atlas=(1024, 512), ppm=28.0, roughness=0.55, code=["cesprites/props_cities.py"]),
     # --- ships -------------------------------------------------------------------------------------------------
@@ -269,7 +270,12 @@ MODELS.update({
                              extent_view=0.0, openings=False, gutters=False, caps=False, baked_lamps=("ferry_bridge",),
                              split=dict(objects=("ferry_hull", "ferry_deck"), axis=0, at=(-36.4, 9.1)),
                              weights=dict(roof=0.3, away=0.3),
-                             overrides={"ferry_deckl": dict(lamp="-lights:0.9")},
+                             # navigation lights glow without anchors: a signal light lights no deck (and the anchors
+                             # of one role share the colour of its first lamp - the white lights came out green)
+                             overrides={"ferry_deckl": dict(lamp="-lights:0.9"),
+                                        "ferry_nav_g": dict(lamp="-lights:1:#18ff50"),
+                                        "ferry_nav_w": dict(lamp="-lights:1:#ffffff"),
+                                        "ferry_nav_w2": dict(lamp="-lights:1:#ffffff")},
                              ao=dict(distance=3.0, floor=0.5, gamma=1.0, samples=24),
                              code=["cesprites/props_road.py", "cesprites/props_buildings.py"]),
     # the Amsterdam houseboat: its cabin walls come from props_cities.wallmat (window log taken from outside); the

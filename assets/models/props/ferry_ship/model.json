@@ -21,29 +21,6 @@
     ]
    }
   ],
-  "lights": [
-   {
-    "role": "lights",
-    "pos": [-80.3388, 14.0606, -0.098],
-    "dir": [-0.934, 0.188, -0.303],
-    "size": 1.491,
-    "color": "#18ff50"
-   },
-   {
-    "role": "lights",
-    "pos": [38.3388, 37.3394, 0.098],
-    "dir": [0.934, -0.188, 0.303],
-    "size": 1.491,
-    "color": "#18ff50"
-   },
-   {
-    "role": "lights",
-    "pos": [50.3366, 27.3467, 13.1093],
-    "dir": [0.934, -0.188, 0.303],
-    "size": 1.449,
-    "color": "#18ff50"
-   }
-  ],
   "textures": {"albedo": "props/ferry_ship/albedo.png", "emit": "props/ferry_ship/emit.png"},
   "roughness": 0.55,
   "auto_lod": false,

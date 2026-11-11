@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 100000,
-    "tris": 2277,
+    "tris": 2485,
     "parts": [
      {
       "node": "body",
@@ -46,8 +46,8 @@
   "roughness": 0.6,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left"],
-  "bytes": 141743,
-  "hash": "6f00e3518ad35fd3ead269b15bca1c7b658a7859"
+  "bytes": 144253,
+  "hash": "921bf2593c27682e6052ffee2fe6753f55691646"
  },
  "sets": {
   "props/building_tall": {"model": "props/building_tall"}

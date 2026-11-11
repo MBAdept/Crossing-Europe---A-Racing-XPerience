@@ -486,8 +486,8 @@
   "props/bridge_pylon": {
    "kind": "furniture",
    "object": {"width_m": 9, "height_m": 88.8, "length_m": 165.2},
-   "extent_m": {"left": 32.33, "right": 24.46},
-   "aabb": [-6.615, 0, -82.686, 3, 88.75, 82.686],
+   "extent_m": {"left": 32.35, "right": 24.49},
+   "aabb": [-6.615, 0, -82.701, 3, 88.75, 82.701],
    "lods": [
     {
      "name": "lod0",
@@ -527,8 +527,8 @@
    "roughness": 0.85,
    "auto_lod": false,
    "tags": ["prop", "bridge", "mirror_left"],
-   "bytes": 265023,
-   "hash": "5b985e71d47b030f6862a671f1877cf0f64e1fb4"
+   "bytes": 255838,
+   "hash": "4172edca470678d550e51647caa57b1abca9306f"
   },
   "props/bridge_truss_arch": {
    "kind": "furniture",
@@ -593,7 +593,7 @@
     {
      "name": "lod1",
      "max_dist_m": 100000,
-     "tris": 2196,
+     "tris": 3156,
      "parts": [
       {
        "node": "body",
@@ -607,8 +607,8 @@
    "roughness": 0.85,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left"],
-   "bytes": 183943,
-   "hash": "db7b1db7f07a2b0e83fc65563ea5280fe9f3559c"
+   "bytes": 190418,
+   "hash": "677b19b7ce6825d0f59032f9e9736ae5d1d0d9c0"
   },
   "props/building_block_b": {
    "kind": "building",
@@ -631,7 +631,7 @@
     {
      "name": "lod1",
      "max_dist_m": 100000,
-     "tris": 2340,
+     "tris": 3476,
      "parts": [
       {
        "node": "body",
@@ -645,8 +645,8 @@
    "roughness": 0.85,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left"],
-   "bytes": 901409,
-   "hash": "435fd4b7b619827f34ef41b9b5565f5d1f068aab"
+   "bytes": 909920,
+   "hash": "9e5a237e3c13ec5d5a66c161d0e56baeb7b37dff"
   },
   "props/building_oldtown": {
    "kind": "building",
@@ -669,7 +669,7 @@
     {
      "name": "lod1",
      "max_dist_m": 100000,
-     "tris": 1118,
+     "tris": 1574,
      "parts": [
       {
        "node": "body",
@@ -683,8 +683,8 @@
    "roughness": 0.85,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left"],
-   "bytes": 548153,
-   "hash": "70b5e3abf6248c68541ec7b55505467eec25b84c"
+   "bytes": 550869,
+   "hash": "739acd12df2997a0807a26d5202431637ae7fcfa"
   },
   "props/building_shop": {
    "kind": "building",
@@ -707,7 +707,7 @@
     {
      "name": "lod1",
      "max_dist_m": 100000,
-     "tris": 541,
+     "tris": 757,
      "parts": [
       {
        "node": "body",
@@ -721,8 +721,8 @@
    "roughness": 0.85,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left"],
-   "bytes": 321925,
-   "hash": "ded9d680a16df910ffdbf401ae3ad0b7b8b853a4"
+   "bytes": 323276,
+   "hash": "e069799fb5afb4d73c331199bcc974bd588b12e9"
   },
   "props/building_tall": {
    "kind": "building",
@@ -745,7 +745,7 @@
     {
      "name": "lod1",
      "max_dist_m": 100000,
-     "tris": 2277,
+     "tris": 2485,
      "parts": [
       {
        "node": "body",
@@ -768,8 +768,8 @@
    "roughness": 0.6,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left"],
-   "bytes": 141743,
-   "hash": "6f00e3518ad35fd3ead269b15bca1c7b658a7859"
+   "bytes": 144253,
+   "hash": "921bf2593c27682e6052ffee2fe6753f55691646"
   },
   "props/bush_low": {
    "kind": "plant",
@@ -906,7 +906,7 @@
     {
      "name": "lod1",
      "max_dist_m": 100000,
-     "tris": 987,
+     "tris": 1275,
      "parts": [
       {
        "node": "body",
@@ -920,8 +920,8 @@
    "roughness": 0.85,
    "auto_lod": false,
    "tags": ["prop", "building", "mirror_left"],
-   "bytes": 589384,
-   "hash": "68479a12fbe345b945fa7f4cb1095cae0da5d41a"
+   "bytes": 591790,
+   "hash": "8a51778ba6220f28827e82f7f4ca4cb052136389"
   },
   "props/cover_bush": {
    "kind": "plant",
@@ -1081,7 +1081,7 @@
     {
      "name": "lod1",
      "max_dist_m": 100000,
-     "tris": 1124,
+     "tris": 1324,
      "parts": [
       {
        "node": "body",
@@ -1104,8 +1104,8 @@
    "roughness": 0.8,
    "auto_lod": false,
    "tags": ["prop", "building", "mirror_left"],
-   "bytes": 694263,
-   "hash": "28ebd63a4c8ca7d9c2f58f98d73c678fa6d14517"
+   "bytes": 695754,
+   "hash": "946a376dd47cc0f21c1c7216a7b5da50fafe6036"
   },
   "props/farmhouse": {
    "kind": "building",
@@ -1159,29 +1159,6 @@
        "classes": ["vpbr", "baked"]
       }
      ]
-    }
-   ],
-   "lights": [
-    {
-     "role": "lights",
-     "pos": [-80.3388, 14.0606, -0.098],
-     "dir": [-0.934, 0.188, -0.303],
-     "size": 1.491,
-     "color": "#18ff50"
-    },
-    {
-     "role": "lights",
-     "pos": [38.3388, 37.3394, 0.098],
-     "dir": [0.934, -0.188, 0.303],
-     "size": 1.491,
-     "color": "#18ff50"
-    },
-    {
-     "role": "lights",
-     "pos": [50.3366, 27.3467, 13.1093],
-     "dir": [0.934, -0.188, 0.303],
-     "size": 1.449,
-     "color": "#18ff50"
     }
    ],
    "textures": {"albedo": "props/ferry_ship/albedo.png", "emit": "props/ferry_ship/emit.png"},
@@ -1348,7 +1325,7 @@
     {
      "name": "lod1",
      "max_dist_m": 100000,
-     "tris": 609,
+     "tris": 761,
      "parts": [
       {
        "node": "body",
@@ -1362,8 +1339,8 @@
    "roughness": 0.9,
    "auto_lod": false,
    "tags": ["prop", "building", "mirror_left"],
-   "bytes": 511765,
-   "hash": "11fb6696e1e2fbffc940c8812e3e122f71fa766d"
+   "bytes": 511848,
+   "hash": "75fd2750d6619e70f171676cb7a9b9f094cd07d3"
   },
   "props/houseboat": {
    "kind": "building",
@@ -1397,8 +1374,8 @@
    "roughness": 0.7,
    "auto_lod": false,
    "tags": ["prop", "boat", "water", "mirror_left"],
-   "bytes": 230909,
-   "hash": "d50b28d958dc43a367ad9b183d3de7b14470394a"
+   "bytes": 230942,
+   "hash": "bfa195bb34685848c82211154006f90f55bcbe0a"
   },
   "props/power_pylon": {
    "kind": "furniture",

@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 100000,
-    "tris": 987,
+    "tris": 1275,
     "parts": [
      {
       "node": "body",
@@ -37,8 +37,8 @@
   "roughness": 0.85,
   "auto_lod": false,
   "tags": ["prop", "building", "mirror_left"],
-  "bytes": 589384,
-  "hash": "68479a12fbe345b945fa7f4cb1095cae0da5d41a"
+  "bytes": 591790,
+  "hash": "8a51778ba6220f28827e82f7f4ca4cb052136389"
  },
  "sets": {
   "props/church": {"model": "props/church"}

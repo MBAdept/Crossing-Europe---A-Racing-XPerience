@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 100000,
-    "tris": 609,
+    "tris": 761,
     "parts": [
      {
       "node": "body",
@@ -37,8 +37,8 @@
   "roughness": 0.9,
   "auto_lod": false,
   "tags": ["prop", "building", "mirror_left"],
-  "bytes": 511765,
-  "hash": "11fb6696e1e2fbffc940c8812e3e122f71fa766d"
+  "bytes": 511848,
+  "hash": "75fd2750d6619e70f171676cb7a9b9f094cd07d3"
  },
  "sets": {
   "props/house_med": {"model": "props/house_med"}

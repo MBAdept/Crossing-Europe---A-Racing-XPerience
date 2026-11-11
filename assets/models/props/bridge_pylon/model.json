@@ -5,8 +5,8 @@
  "model": {
   "kind": "furniture",
   "object": {"width_m": 9, "height_m": 88.8, "length_m": 165.2},
-  "extent_m": {"left": 32.33, "right": 24.46},
-  "aabb": [-6.615, 0, -82.686, 3, 88.75, 82.686],
+  "extent_m": {"left": 32.35, "right": 24.49},
+  "aabb": [-6.615, 0, -82.701, 3, 88.75, 82.701],
   "lods": [
    {
     "name": "lod0",
@@ -46,8 +46,8 @@
   "roughness": 0.85,
   "auto_lod": false,
   "tags": ["prop", "bridge", "mirror_left"],
-  "bytes": 265023,
-  "hash": "5b985e71d47b030f6862a671f1877cf0f64e1fb4"
+  "bytes": 255838,
+  "hash": "4172edca470678d550e51647caa57b1abca9306f"
  },
  "sets": {
   "props/bridge_pylon": {"model": "props/bridge_pylon"}

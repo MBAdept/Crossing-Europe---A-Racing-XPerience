@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 100000,
-    "tris": 1118,
+    "tris": 1574,
     "parts": [
      {
       "node": "body",
@@ -37,8 +37,8 @@
   "roughness": 0.85,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left"],
-  "bytes": 548153,
-  "hash": "70b5e3abf6248c68541ec7b55505467eec25b84c"
+  "bytes": 550869,
+  "hash": "739acd12df2997a0807a26d5202431637ae7fcfa"
  },
  "sets": {
   "props/building_oldtown": {"model": "props/building_oldtown"}

@@ -51,7 +51,7 @@ from ce3d import manifest as M  # noqa: E402
 ROOT = M.ROOT
 # AS4 (wave 5): the contract gives rural and city buildings and pylons an automatic lod1 ("auto"), but amendment A-4
 # forbids automatic levels on meshes with lamp channels - and every building has lit panes. An explicit far level from
-# the generator's detail (D21: lod0 without frames, glazing bars, sills, gutters ...; the bridge pylon with thicker
+# the generator's detail (D21: lod0 without glazing bars, sills, gutters ...; the bridge pylon with thicker
 # cables) is allowed instead, within the triangle budget of lod0. (Here, not in ce3d/manifest.py: that file is part of
 # the cache key of every model.)
 for _cat in ("rural", "city", "pylon"):

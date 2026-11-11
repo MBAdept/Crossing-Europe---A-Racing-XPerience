@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 100000,
-    "tris": 1124,
+    "tris": 1324,
     "parts": [
      {
       "node": "body",
@@ -46,8 +46,8 @@
   "roughness": 0.8,
   "auto_lod": false,
   "tags": ["prop", "building", "mirror_left"],
-  "bytes": 694263,
-  "hash": "28ebd63a4c8ca7d9c2f58f98d73c678fa6d14517"
+  "bytes": 695754,
+  "hash": "946a376dd47cc0f21c1c7216a7b5da50fafe6036"
  },
  "sets": {
   "props/factory": {"model": "props/factory"}

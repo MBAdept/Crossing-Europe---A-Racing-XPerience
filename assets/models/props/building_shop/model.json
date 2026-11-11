@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 100000,
-    "tris": 541,
+    "tris": 757,
     "parts": [
      {
       "node": "body",
@@ -37,8 +37,8 @@
   "roughness": 0.85,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left"],
-  "bytes": 321925,
-  "hash": "ded9d680a16df910ffdbf401ae3ad0b7b8b853a4"
+  "bytes": 323276,
+  "hash": "e069799fb5afb4d73c331199bcc974bd588b12e9"
  },
  "sets": {
   "props/building_shop": {"model": "props/building_shop"}
