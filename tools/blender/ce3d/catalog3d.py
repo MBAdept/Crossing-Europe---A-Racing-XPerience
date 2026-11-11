@@ -36,7 +36,8 @@ COMMON_CODE = ["ce3d/__init__.py", "ce3d/glb.py", "ce3d/core.py", "ce3d/roles.py
 BUILDER_CODE = {
     "player": ["ce3d/vehicles3d.py", "ce3d/decalgeo.py", "ce3d/interior3d.py", "ce3d/extras3d.py", "cesprites/curves.py",
                "cesprites/carbody.py", "cesprites/cardetail.py", "cesprites/player_cars.py", "cesprites/textgeo.py"],
-    "car": ["ce3d/vehicles3d.py", "ce3d/decalgeo.py", "cesprites/vehicles.py", "cesprites/designs.py"],
+    "car": ["ce3d/traffic3d.py", "ce3d/vehicles3d.py", "ce3d/truck3d.py", "ce3d/decalgeo.py", "cesprites/vehicles.py",
+            "cesprites/designs.py", "cesprites/carbody.py", "cesprites/cardetail.py", "cesprites/curves.py"],
     "heavy": ["ce3d/truck3d.py", "ce3d/vehicles3d.py", "ce3d/decalgeo.py", "cesprites/heavy.py"],
     "tree": ["ce3d/veg3d.py", "ce3d/leafatlas.py", "ce3d/bake.py", "ce3d/props3d.py", "cesprites/props_nature.py",
              "cesprites/props.py", "render_all.py"],
@@ -61,6 +62,8 @@ MODELS = {
               "traffic/hatch_red": {}}),
     "traffic/wagon": dict(
         builder="car", source="traffic/wagon_silver", kind="vehicle", design="wagon",
+        detail={"lod0": {"step": 7.7, "gstep": 8.5}, "lod1": {"step": 16.0, "gstep": 24.0},
+                "lod2": {"gstep": 120.0, "ends_n": 1}, "shadow": {"gstep": 120.0}},              # the long greenhouse
         sets={"traffic/wagon_silver": {}, "traffic/wagon_darkblue": {}, "traffic/wagon_green": {},
               "traffic/wagon_white": {}}),
     "traffic/truck": dict(

@@ -32,7 +32,22 @@ PLAYER_DETAIL = {
 #   arch_n   stations per wheel arch at equal angles     gstep   station spacing of the greenhouse
 #   lamp_depth  lamp units as recesses in the body (scale of their depth; 0 = parts stacked on the body)
 
-# --- traffic cars (cesprites.vehicles.Car, hook parameter "detail") ----------------------------------------
+# --- traffic cars on SmoothCar lofts (ce3d.traffic3d; the parameters of PLAYER_DETAIL) -----------------------
+#   ring_min  smallest point count of a cross-section segment
+TRAFFIC_DETAIL = {
+    # up to 40 m: every decal cut in, spoked wheels with brake discs
+    "lod0": dict(ring=0.3, step=6.6, wheel=0.3, wheel_plain=True, arch_n=9, gstep=7.0, crease=0.006, arch_r=0.012,
+                 cap_sharp=False, ends_n=6),
+    # 40 - 120 m: coarser lofts, drum wheels, plain mirrors, no seams and handles
+    "lod1": dict(ring=0.15, step=13.5, wheel=0.3, arch_n=5, gstep=18.0, crease=0.006, arch_r=0.012, cap_sharp=False,
+                 ends_n=3),
+    # beyond: 14-point sections, the body runs to the full length, only lamps, plates and dark panes
+    "lod2": dict(ring=0.1, ring_min=1, step=60.0, wheel=0.22, arch_n=2, gstep=40.0, cap_sharp=False, ends_n=2),
+    "shadow": dict(ring=0.1, ring_min=1, step=60.0, wheel=0.22, arch_n=2, gstep=40.0, ends_n=2),
+}
+
+# --- traffic cars (cesprites.vehicles.Car, hook parameter "detail"; not used by the models any more: the lofts
+#     of the sprite generator crumple at the coarse levels - see ce3d.traffic3d) ------------------------------
 #   subsurf  subdivision level of the body lofts (sprite: 1)         ring  refinement of the cross-section
 #   step     scale of the station spacing                            wheel segments of tyres and rims
 CAR_DETAIL = {

@@ -6,12 +6,12 @@
   "kind": "vehicle",
   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.52},
   "extent_m": {"left": 1.08, "right": 1.08},
-  "aabb": [-1.075, 0, -2.4, 1.075, 1.549, 2.423],
+  "aabb": [-1.075, 0, -2.4, 1.075, 1.557, 2.402],
   "lods": [
    {
     "name": "lod0",
     "max_dist_m": 40,
-    "tris": 20971,
+    "tris": 17934,
     "parts": [
      {
       "node": "body",
@@ -22,7 +22,7 @@
       "node": "wheel_0l",
       "mesh": "traffic/wagon/wheel.res",
       "classes": ["vpbr"],
-      "pos": [-0.7625, 0.32, -1.435],
+      "pos": [-0.7765, 0.32, -1.435],
       "yaw_deg": 180,
       "wheel": {"radius": 0.32, "steer": true}
      },
@@ -30,14 +30,14 @@
       "node": "wheel_0r",
       "mesh": "traffic/wagon/wheel.res",
       "classes": ["vpbr"],
-      "pos": [0.7625, 0.32, -1.435],
+      "pos": [0.7765, 0.32, -1.435],
       "wheel": {"radius": 0.32, "steer": true}
      },
      {
       "node": "wheel_1l",
       "mesh": "traffic/wagon/wheel.res",
       "classes": ["vpbr"],
-      "pos": [-0.7625, 0.32, 1.365],
+      "pos": [-0.7765, 0.32, 1.365],
       "yaw_deg": 180,
       "wheel": {"radius": 0.32, "steer": false}
      },
@@ -45,7 +45,7 @@
       "node": "wheel_1r",
       "mesh": "traffic/wagon/wheel.res",
       "classes": ["vpbr"],
-      "pos": [0.7625, 0.32, 1.365],
+      "pos": [0.7765, 0.32, 1.365],
       "wheel": {"radius": 0.32, "steer": false}
      }
     ]
@@ -53,7 +53,7 @@
    {
     "name": "lod1",
     "max_dist_m": 120,
-    "tris": 5734,
+    "tris": 5954,
     "parts": [
      {
       "node": "body",
@@ -65,7 +65,7 @@
    {
     "name": "lod2",
     "max_dist_m": 100000,
-    "tris": 1925,
+    "tris": 1094,
     "parts": [
      {
       "node": "body",
@@ -75,84 +75,91 @@
     ]
    }
   ],
-  "shadow": {"mesh": "traffic/wagon/shadow.res", "tris": 904},
+  "shadow": {"mesh": "traffic/wagon/shadow.res", "tris": 476},
   "lights": [
    {
     "role": "brake",
-    "pos": [-0.7742, 0.9323, 2.3099],
-    "dir": [-0.468, 0.255, 0.846],
-    "size": 0.32,
+    "pos": [-0.7714, 0.916, 2.3268],
+    "dir": [-0.558, 0.217, 0.801],
+    "size": 0.295,
     "color": "#ff2010"
    },
    {
     "role": "brake",
-    "pos": [0.6568, 1.0328, 2.3338],
-    "dir": [0.391, 0.352, 0.851],
-    "size": 0.352,
+    "pos": [0, 1.4155, 2.2311],
+    "dir": [0, 0.606, 0.796],
+    "size": 0.139,
+    "color": "#ff2010"
+   },
+   {
+    "role": "brake",
+    "pos": [0.7712, 0.9152, 2.3272],
+    "dir": [0.555, 0.216, 0.803],
+    "size": 0.294,
     "color": "#ff2010"
    },
    {
     "role": "head",
-    "pos": [-0.6402, 0.6744, -2.3327],
-    "dir": [-0.291, 0.344, -0.893],
-    "size": 0.115,
+    "pos": [-0.6351, 0.674, -2.336],
+    "dir": [-0.287, 0.293, -0.912],
+    "size": 0.11,
     "color": "#fff3d6"
    },
    {
     "role": "head",
-    "pos": [0.6401, 0.6741, -2.3322],
-    "dir": [0.291, 0.346, -0.892],
-    "size": 0.115,
+    "pos": [0.635, 0.674, -2.336],
+    "dir": [0.287, 0.294, -0.912],
+    "size": 0.11,
     "color": "#fff3d6"
    },
    {
     "role": "ind_l",
-    "pos": [-0.8153, 0.6697, -2.2418],
-    "dir": [-0.684, 0.147, -0.714],
-    "size": 0.132,
+    "pos": [-0.8202, 0.6684, -2.2248],
+    "dir": [-0.785, 0.042, -0.619],
+    "size": 0.144,
     "color": "#ffa01a"
    },
    {
     "role": "ind_l",
-    "pos": [-0.7263, 0.7872, 2.3571],
-    "dir": [-0.203, 0.038, 0.979],
-    "size": 0.116,
+    "pos": [-0.7281, 0.7871, 2.3626],
+    "dir": [-0.194, 0.013, 0.981],
+    "size": 0.117,
     "color": "#ffa01a"
    },
    {
     "role": "ind_r",
-    "pos": [0.7263, 0.7872, 2.3571],
-    "dir": [0.202, 0.039, 0.979],
-    "size": 0.116,
+    "pos": [0.7281, 0.7871, 2.3626],
+    "dir": [0.194, 0.012, 0.981],
+    "size": 0.117,
     "color": "#ffa01a"
    },
    {
     "role": "ind_r",
-    "pos": [0.8152, 0.6697, -2.2418],
-    "dir": [0.685, 0.146, -0.714],
-    "size": 0.132,
+    "pos": [0.8201, 0.6685, -2.2249],
+    "dir": [0.784, 0.045, -0.619],
+    "size": 0.144,
     "color": "#ffa01a"
    },
    {
     "role": "tail",
-    "pos": [-0.7742, 0.9323, 2.3099],
-    "dir": [-0.468, 0.255, 0.846],
-    "size": 0.32,
+    "pos": [-0.7714, 0.916, 2.3268],
+    "dir": [-0.558, 0.217, 0.801],
+    "size": 0.295,
     "color": "#ff2010"
    },
    {
     "role": "tail",
-    "pos": [0.774, 0.9322, 2.3096],
-    "dir": [0.464, 0.256, 0.848],
-    "size": 0.32,
+    "pos": [0.7712, 0.9152, 2.3272],
+    "dir": [0.555, 0.216, 0.803],
+    "size": 0.294,
     "color": "#ff2010"
    }
   ],
   "paint": {"paint": "#aeb2b8", "metal": 0.75},
   "auto_lod": false,
   "tags": ["traffic", "car"],
-  "bytes": 326485,
-  "hash": "5a0d4d98181b764cd72d8bb9fe8dc5fc3ec0f92e"
+  "bytes": 270244,
+  "hash": "22ab1791ed03244a033d2eebbaad2c60148b3727"
  },
  "sets": {
   "traffic/wagon_silver": {

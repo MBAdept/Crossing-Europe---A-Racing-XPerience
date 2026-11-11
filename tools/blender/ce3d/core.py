@@ -270,7 +270,7 @@ def weld(pos, nor, col=None, uv=None, uv2=None):
     return out
 
 
-def transfer_normals(pos, nor, fpos, fnor, pull=0.15, max_dist=0.12, agree=0.2):
+def transfer_normals(pos, nor, fpos, fnor, pull=0.15, max_dist=0.12, agree=0.2, near=0.012):
     """Corner normals for a coarse build from a finer build of the same surface (levels of detail).
     pos, nor: (T, 3, 3) of the coarse triangles; fpos, fnor: the fine ones. Every corner takes the smooth normal
     of the nearest point of the fine surface - the coarse level then shades like the fine one (flat facets with
@@ -292,10 +292,23 @@ def transfer_normals(pos, nor, fpos, fnor, pull=0.15, max_dist=0.12, agree=0.2):
     cfn = cfn / np.maximum(np.linalg.norm(cfn, axis=1, keepdims=True), 1e-12)
     cache = {}
 
-    def lookup(p):
-        loc, _n, idx, dist = bvh.find_nearest(Vector(p))
-        if loc is None or dist > max_dist:
-            return None
+    ffn = np.cross(fpos[:, 1] - fpos[:, 0], fpos[:, 2] - fpos[:, 0])
+    ffn = ffn / np.maximum(np.linalg.norm(ffn, axis=1, keepdims=True), 1e-12)
+
+    def lookup(p, face_n):
+        # of the fine faces close to the point the one that looks most like the coarse face: at a sharp edge of
+        # the fine build (the flat end cap next to the rounded end) the nearest one is a matter of chance
+        best = None
+        for (loc, _n, idx, dist) in bvh.find_nearest_range(Vector(p), near):
+            score = float(ffn[idx] @ face_n) - dist * 8.0
+            if best is None or score > best[0]:
+                best = (score, loc, idx)
+        if best is None:
+            loc, _n, idx, dist = bvh.find_nearest(Vector(p))
+            if loc is None or dist > max_dist:
+                return None
+        else:
+            _s, loc, idx = best
         a, b, c = fpos[idx]
         v0, v1, v2 = b - a, c - a, np.array(loc) - a
         d00, d01, d11, d20, d21 = v0 @ v0, v0 @ v1, v1 @ v1, v2 @ v0, v2 @ v1
@@ -311,14 +324,15 @@ def transfer_normals(pos, nor, fpos, fnor, pull=0.15, max_dist=0.12, agree=0.2):
         return n / ln if ln > 1e-9 else None
     for t in range(pos.shape[0]):
         cen = pos[t].mean(axis=0)
+        fq = (int(round(cfn[t, 0] * 6)), int(round(cfn[t, 1] * 6)), int(round(cfn[t, 2] * 6)))
         for i in range(3):
             p = pos[t, i]
-            key = (int(round(p[0] * 1e5)), int(round(p[1] * 1e5)), int(round(p[2] * 1e5)))
+            key = (int(round(p[0] * 1e5)), int(round(p[1] * 1e5)), int(round(p[2] * 1e5)), fq)
             if key not in cache:
-                cache[key] = lookup(p)
+                cache[key] = lookup(p, cfn[t])
             n = cache[key]
             if n is None or n @ cfn[t] < agree:
-                n = lookup(p + pull * (cen - p))
+                n = lookup(p + pull * (cen - p), cfn[t])
             if n is not None and n @ cfn[t] >= agree:
                 out[t, i] = n
     return out

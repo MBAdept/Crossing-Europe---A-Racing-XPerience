@@ -22,6 +22,7 @@ what ranks at most as high. (The projections are applied one after the other - w
 part of a tail lamp, applied last, painted over an indicator the rear projection had put on the corner.)
 """
 import math
+import os
 
 import numpy as np
 from mathutils import Vector
@@ -194,13 +195,18 @@ class Tris:
             return self.face_normals() @ axis > FACING_MIN
 
         def under(sel):
-            """Triangles under the outlines of the items sel (bounding boxes in the projection plane)."""
-            pts = np.array([p for k in sel for p in polys[k]])
-            lo, hi = pts.min(axis=0), pts.max(axis=0)
+            """Triangles under the outline of one of the items sel (each item's own bounding box in the
+            projection plane - the box around ALL of them would be the whole flank for a tail and a head lamp)."""
             u = self.pos[:, :, [ua, va]]
-            return (u[:, :, 0].max(axis=1) >= lo[0]) & (u[:, :, 0].min(axis=1) <= hi[0]) & \
-                (u[:, :, 1].max(axis=1) >= lo[1]) & (u[:, :, 1].min(axis=1) <= hi[1])
-        if cut:
+            u0, u1 = u[:, :, 0].min(axis=1), u[:, :, 0].max(axis=1)
+            v0, v1 = u[:, :, 1].min(axis=1), u[:, :, 1].max(axis=1)
+            hit = np.zeros(self.pos.shape[0], dtype=bool)
+            for k in sel:
+                pts = np.array(polys[k])
+                lo, hi = pts.min(axis=0), pts.max(axis=0)
+                hit |= (u1 >= lo[0]) & (u0 <= hi[0]) & (v1 >= lo[1]) & (v0 <= hi[1])
+            return hit
+        if cut and not os.environ.get("CE_NOSPLIT"):
             # every triangle under a decal on one side of its face test (see split_level)
             for thr in sorted({float(it["n_min"]) for it in items}):
                 sel = [k for k, it in enumerate(items) if float(it["n_min"]) == thr]
@@ -443,16 +449,23 @@ class Palette:
         return self.add(key, "flat", data, lamp)
 
 
-def _decal_items(decals, pal, proj_filter=None):
+def _decal_items(decals, pal, proj_filter=None, order_from=None):
     """{(proj, sign): [item]} of a decal list in the stacking order of materials.surface (grouped per
-    material preset, groups in the order of first appearance; item["rank"] = index of the group)."""
+    material preset, groups in the order of first appearance; item["rank"] = index of the group).
+    order_from: the full list the decals were selected from - the groups keep the order they have there (a far
+    level that drops the rings of the tail lamps must not get the ring of the headlight on top of its lamp)."""
     order = {}
+    for d in (order_from or []):
+        order.setdefault(repr(sorted(M._preset(d.get("mat", "black")).items())), len(order))
     rows = []
     for d in decals:
         p = M._preset(d.get("mat", "black"))
         key = repr(sorted(p.items()))
         order.setdefault(key, len(order))
-        rows.append((order[key], len(rows), d))
+        # indicators are on top of whatever lamp they lie in, in every selection of the list (their group came
+        # first when a level dropped the reverse light that shares its material with the headlights)
+        top = 1000 if str(d.get("lamp", "")).split(":")[0] == "ind" else 0
+        rows.append((order[key] + top, len(rows), d))
     rows.sort(key=lambda r: (r[0], r[1]))
     groups = {}
     for (rank, _i, d) in rows:
@@ -522,16 +535,23 @@ def _window_items(w, pal, seal, glass, seals=True):
     return groups
 
 
-def car_surfaces(car, soups, cut=True, level=0):
-    """Cuts (or paints) the decals of a built vehicles.Car into its body lofts.
+def car_surfaces(car, soups, cut=True, level=0, paint_rough=0.28, seals=True, far_glass=False):
+    """Cuts (or paints) the decals of a vehicles.Car into body lofts.
+    car: the Car whose decal lists are used; car.body / car.cabin / car.bumper_obs name the lofts (those of the
+    Car itself, or the SmoothCar lofts of ce3d.traffic3d). Without bumper objects (far levels whose body runs
+    to the full length) the body takes the bumper's decals. d["<list>_3d"]: decals only the 3D builds have.
     soups: {object name: core.Soup} of the lower body, greenhouse and bumpers.
     level: 0 = every decal (lod0); 1 = no seams, handles and other small parts (lod1); 2 = only lamps,
     plates and the panes without their seals (lod2).
+    seals=False: the panes fill their frames at every level (dark glass next to a dark seal is one more outline
+    for nothing). far_glass: at level 2 the panes are not cut - every face of the greenhouse that is not roof
+    becomes glass (a 16-point greenhouse has its edges where the panes end), and of the lamps only what is seen
+    from straight behind / ahead is cut (no side wraps, no reverse and daytime lights).
     Returns (Palette, {object name: Tris}, stats)."""
     d = car.d
     pal = Palette()
     black_bumper = bool(d.get("black_bumpers"))
-    paint = pal.add("paint", "paint", dict(slot="paint", rough=0.28, metal=car.metal))
+    paint = pal.add("paint", "paint", dict(slot="paint", rough=paint_rough, metal=car.metal))
     plastic = pal.add("plastic", "flat", dict(color="#1a1b1d", rough=0.6, metal=0.0))
     bumper_base = pal.add("bumper", "flat", dict(color="#1b1c1e", rough=0.3, metal=0.0)) if black_bumper else paint
     seal = pal.add("seal", "flat", dict(color="#101112", rough=0.5, metal=0.0))
@@ -546,10 +566,18 @@ def car_surfaces(car, soups, cut=True, level=0):
         keep = []
         for dec in decals:
             polys = dec["poly"] if isinstance(dec["poly"][0][0], (list, tuple)) else [dec["poly"]]
-            size = max(max(p[0] for p in polys[0]) - min(p[0] for p in polys[0]),
-                       max(p[1] for p in polys[0]) - min(p[1] for p in polys[0]))
-            if dec.get("lamp") or dec.get("emit") or (level == 1 and size > 0.2):
-                if level == 2 and dec.get("inset"):
+            ext = (max(p[0] for p in polys[0]) - min(p[0] for p in polys[0]),
+                   max(p[1] for p in polys[0]) - min(p[1] for p in polys[0]))
+            size = max(ext)
+            front1 = level == 1 and dec.get("face") == "front"     # headlights keep ring and size at the middle level
+            if far_glass and not (dec.get("lamp") or dec.get("emit")) and dec.get("mat") == "gloss_black" and \
+                    min(ext) > 0.05 and level >= 1 and not front1:
+                continue                # the black ring around a lamp: the lamp fills it at the far levels
+            if dec.get("lamp") or dec.get("emit") or (level == 1 and size > 0.2 and (min(ext) > 0.05 or not far_glass)):
+                if level == 2 and far_glass and (dec.get("face", "rear") == "side" or
+                                                 str(dec.get("lamp", "")).split(":")[0] in ("reverse", "drl", "plate")):
+                    continue                # (a plate is 3 x 0.6 px at 120 m and costs 100 triangles on the end cap)
+                if (level == 2 or (level == 1 and far_glass and not front1)) and dec.get("inset"):
                     dec = dict(dec)
                     dec.pop("inset")            # the lamp fills its (dropped) black outline
                 keep.append(dec)
@@ -557,23 +585,39 @@ def car_surfaces(car, soups, cut=True, level=0):
 
     def run(tris, groups):
         for (proj, sgn) in sorted(groups, key=lambda g: (g[0], -g[1])):
+            before = tris.pos.shape[0]
             n = tris.apply(proj, sgn, groups[(proj, sgn)], cut=cut)
             stats["cut_tris" if cut else "painted"] += n
+            if os.environ.get("CE_STATS"):
+                print("      decals %-5s %+d: %2d outlines, %5d -> %5d triangles" % (proj, sgn, len(groups[(proj, sgn)]),
+                                                                                 before, tris.pos.shape[0]))
 
     # lower body: paint, cladding below a height, decals
     s = soups[car.body.name]
     t = Tris(s.pos, s.nor)
     t.mat[:] = paint
-    if d.get("cladding") is not None:
-        t.paint_below(d["cladding"], plastic)
-    run(t, _decal_items(small_filter(car.body_decals()), pal))
+    if d.get("cladding") is not None and not (level == 2 and far_glass):
+        t.paint_below(d["cladding"], plastic)       # (not at the far level: the cut along the sill costs 180 triangles)
+    full = car.body_decals() + d.get("body_decals_3d", [])
+    run(t, _decal_items(small_filter(full), pal, order_from=full))
+    if not car.bumper_obs:
+        full = car.bumper_decals() + d.get("bumper_decals_3d", [])
+        run(t, _decal_items(small_filter(full), pal, order_from=full))
     out[car.body.name] = t
     # greenhouse: paint, window seals and glass, decals
     s = soups[car.cabin.name]
     t = Tris(s.pos, s.nor)
     t.mat[:] = paint
-    run(t, _window_items(car.windows(), pal, seal, glass, seals=level < 2))
-    run(t, _decal_items(small_filter(car.cabin_decals()), pal))
+    if level == 2 and far_glass:
+        fn = t.face_normals()
+        belt = min(p[1] for poly in car.windows().get("side", []) for p in poly) if car.windows().get("side") else 0.0
+        pane = ((np.abs(fn[:, 0]) > 0.6) | ((fn[:, 2] < 0.97) & (np.abs(fn[:, 1]) > 0.3))) & \
+            (t.pos[:, :, 2].mean(axis=1) > belt + 0.02) & (fn[:, 2] > -0.3)
+        t.mat[pane] = glass
+        t.rank[pane] = GLASS_RANK
+    else:
+        run(t, _window_items(car.windows(), pal, seal, glass, seals=seals and level < 2))
+    run(t, _decal_items(small_filter(car.cabin_decals()), pal, order_from=car.cabin_decals()))
     out[car.cabin.name] = t
     # bumpers: the rear one takes the rear and side decals, the front one the front and side decals
     for which, ob in sorted(car.bumper_obs.items()):
@@ -582,7 +626,8 @@ def car_surfaces(car, soups, cut=True, level=0):
         t.mat[:] = bumper_base
         t.paint_below(d["bumper"].get("plastic", 0.25), plastic)
         skip = "front" if which == "rear" else "rear"
-        run(t, _decal_items(small_filter(car.bumper_decals()), pal, proj_filter=lambda p, skip=skip: p != skip))
+        full = car.bumper_decals() + d.get("bumper_decals_3d", [])
+        run(t, _decal_items(small_filter(full), pal, proj_filter=lambda p, skip=skip: p != skip, order_from=full))
         out[ob.name] = t
     for t in out.values():
         t.normalize()

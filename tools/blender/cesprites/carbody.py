@@ -61,9 +61,12 @@ BRAKE_RED = "#ff2414"
 #   lamp_depth  scale of the depth of the lamp units (cardetail.lamp): > 0 = the lamp is a recess in the body -
 #            its parts are sunk by the depth of the unit, the lens lies flush in the opening, and the exporter
 #            cuts the recess into the body (ce3d: car.lamp_pockets). 0 = lamp parts stacked on the body
+#   ring_min  smallest point count of a cross-section segment (far levels of the traffic cars: 1)
+#   cap_sharp  False: the end caps of the lofts shade smoothly into the rounded ends (the flat cap of a coarse
+#            loft stood out as a panel of its own)       ends_n  stations in the rounded ends (None = by ring)
 DETAIL = dict(ring=1.0, step=1.0, res=1.0, off=1.0, min_off=0.0, wheel=1.0, extras=False, graze=0.0,
               conform=False, crease=0.0, arch_r=None, seam=1.0, wheel_plain=False, arch_n=None, gstep=None,
-              lamp_depth=0.0)
+              lamp_depth=0.0, ring_min=2, cap_sharp=True, ends_n=None)
 
 
 def _prof(v):
@@ -132,7 +135,7 @@ class SmoothCar:
     def n_ring(self, n):
         """Point count of a cross-section segment at the detail level (ring 1.0 = unchanged)."""
         k = self.detail["ring"]
-        return n if k == 1.0 else max(2, int(round(n * k)))
+        return n if k == 1.0 else max(int(self.detail["ring_min"]), int(round(n * k)))
 
     def n_wheel(self, n):
         """Segment count of a lathed part at the detail level (wheel 1.0 = unchanged)."""
@@ -341,12 +344,12 @@ class SmoothCar:
                 e = bm.edges.get((a[col % n], b[col % n]))
                 if e:
                     sharp.add(e)
-        if cap0:
+        if cap0 and self.detail["cap_sharp"]:
             for i in range(n):
                 e = bm.edges.get((vr[0][i], vr[0][(i + 1) % n]))
                 if e:
                     sharp.add(e)
-        if cap1:
+        if cap1 and self.detail["cap_sharp"]:
             for i in range(n):
                 e = bm.edges.get((vr[-1][i], vr[-1][(i + 1) % n]))
                 if e:
@@ -364,11 +367,16 @@ class SmoothCar:
     def build_lower(self, mat=None):
         d = self.d
         feats = []
+        an = self.detail["arch_n"]
         for ya in (self.y_ra, self.y_fa):
-            feats += [ya - self.Ra - 0.002, ya - self.Ra + 0.002, ya + self.Ra - 0.002, ya + self.Ra + 0.002]
+            if an and an <= 2:
+                # 3D hook, far levels: one station per edge of the opening instead of the pair that makes the
+                # edge vertical
+                feats += [ya - self.Ra, ya + self.Ra]
+            else:
+                feats += [ya - self.Ra - 0.002, ya - self.Ra + 0.002, ya + self.Ra - 0.002, ya + self.Ra + 0.002]
         ks = self.detail["step"]                    # 1.0 for the sprite model
         dense = [(ya - self.Ra - 0.15, ya + self.Ra + 0.15, 0.012 * ks) for ya in (self.y_ra, self.y_fa)]
-        an = self.detail["arch_n"]
         if an:
             # 3D hook: stations at equal angles of the arch circle
             dense = []
@@ -376,7 +384,7 @@ class SmoothCar:
                 feats += [ya + self.Ra * math.cos(math.pi * i / an) for i in range(1, an)]
         rp = d.get("r_plan", (0.3, 0.4))
         rt = d.get("r_top", (0.1, 0.12))
-        ne = self.n_ring(14)
+        ne = self.n_ring(14) if self.detail["ends_n"] is None else int(self.detail["ends_n"])
         ys = C.stations(self.lb0, self.lb1, d.get("step", 0.022) * ks,
                         ends=((max(rp[0], rt[0]) + 0.02, ne), (max(rp[1], rt[1]) + 0.02, ne)),
                         features=feats + list(d.get("y_features", [])), dense=dense)
