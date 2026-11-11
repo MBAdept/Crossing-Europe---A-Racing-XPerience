@@ -1165,7 +1165,10 @@ Wagenmitte, und zwischen ihm und der Kamera steht nichts.
 Auges, wenn die Kamera im Tunnel ist), Licht der eigenen Scheinwerfer, der Kegel des Verkehrs voraus und der festen
 Lampen (Straßenlaternen in Städten, Tankdächer, Überdachungen), Arcades Nebeltönung der Zeile. Das Spielerbild heller
 wie in Arcade. Die Lichtebenen des Blatts (Rücklicht, Bremse, Blaulicht A/B) liegen „über“ dem Wagen wie in Arcades
-Zeichenfolge. Zwei Durchgänge aus derselben Quelle: deckend mit Alpha-Schnitt 0,8 (der Wagen schreibt Tiefe – Kuppen
+Zeichenfolge. Gerechnet wird in Anzeigewerten wie auf Arcades Leinwand; der Shader gibt das ALBEDO aus, das der
+Compatibility-Renderer als genau diesen Wert zeigt (`albedo_for`, wie `billboard.gdshader` – sonst führt er ein
+unbeleuchtetes ALBEDO durch sein Polynom sRGB → linear, und dunkle Werte, nachts das ganze Bild, erscheinen bis zu
+25 % dunkler). Zwei Durchgänge aus derselben Quelle: deckend mit Alpha-Schnitt 0,8 (der Wagen schreibt Tiefe – Kuppen
 und andere Fahrzeuge verdecken ihn, die Lichtpunkte sehen ihn in der Tiefentextur), dazu weich (`CE_SOFT`, als
 `next_pass`) die Teile, die der deckende Durchgang auslässt: Schlagschatten (Alpha 0,5–0,75) und Ränder.
 (`depth_prepass_alpha` taugt dafür nicht: was so gezeichnet wird, fehlt in der Tiefentextur.)
@@ -1189,14 +1192,18 @@ Modellen (`_pose_groups`).
 Manifests), dazu `standin` („sprite“, „boxtex“ oder „painted“), `cell`, `fold`, `pull`. `perf()`: `standin_cars`,
 `standin_sheets`, `standin_sheets_mb`; `standin_state()` für Prüfungen. Ein Bild ist eine Instanz im MultiMesh seines
 Blatts (zwei Zeichenaufrufe je Blatt mit Autos, ein Blatt ohne Autos kostet nichts). Gemessen (headless, geteilte VM,
-dieselbe Szene abwechselnd): 38,8–38,9 µs je Auto und Bild mit Ersatzbildern gegen 32,4–32,9 µs mit gemalten Kästen
-(34 Autos, davon 14 Ersatzbilder); `check_vehicles leistung` ≤ 40 µs.
+dieselbe Szene abwechselnd in einem Prozess, 34 Autos, davon 14 Ersatzbilder): 38,8–41,0 µs je Auto und Bild mit
+Ersatzbildern gegen 32,4–36,5 µs mit gemalten Kästen, je nach Last der Maschine – ein Ersatzbild kostet 4–9 µs mehr
+als ein gemalter Kasten. `check_vehicles leistung` (≤ 40 µs) hält damit knapp (38,7–39,7 µs unter Last 10).
 
 | Prüfung | Inhalt |
 |---|---|
 | `tests/unit/race3d/test_vehicle_standin.gd` | Zelle = `RoadRenderer._vehicle_cell` und Spielerzelle = `_update_player_pose` (Bild für Bild), Eingaben aus der 3D-Kamera, Faltung = `VehiclePose.warp_columns`, Faltregel = `_car_warp`, Modulation = `_modulate` nach `_prepare`/`_project` (Tag, Dämmerung, Nacht, Stadt, Tunnel), welches Set welches Bild bekommt (Fixture-Blätter), Kasten und Einheiten, gezogenes Bild |
-| `tests/race3d/render/check_vehicle_standin.gd` | gegen Arcades Bild desselben Augenblicks: Spielerautos (Rechteck und Pixel ≤ 3 px, Helligkeit ± 10 %), Verkehr bei 20/60/150 m, Bus, Nacht (22 Uhr: Karosserie von Spieler und Auto bei 20/60 m, Helligkeit ± 10 %); Verdeckung hinter einer Kuppe (0 Pixel, Tag und Nacht, Lampen an); kein Blatt-Laden während der Fahrt |
+| `tests/race3d/render/check_vehicle_standin.gd` | gegen Arcades Bild desselben Augenblicks: Spielerautos (Rechteck und Pixel ≤ 3 px, Helligkeit ± 10 %), Verkehr bei 20/60/150 m, Bus, Nacht (22 Uhr: Karosserie von Spieler und hellem Auto bei 20/60 m, Helligkeit ± 10 %); Verdeckung hinter einer Kuppe (0 Pixel, Tag und Nacht, Lampen an); kein Blatt-Laden während der Fahrt |
 
 Grenzen: Das Bild ist Arcades Bild – sein Licht ist eingebacken und folgt nicht der Sonne von Modern, und es kennt nur
-die Ansichten der Zellen (± 24° bzw. ± 20°). Arcade (eingefroren) lässt bei Bussen und Lkw selten die Heckfläche weg
-(Rundung in `BoxVehicle.emit`); das Ersatzbild in Modern zeigt sie.
+die Ansichten der Zellen (± 24° bzw. ± 20°). Sehr dunkle Werte zeigt der 3D-Pfad trotz `albedo_for` einige Stufen
+dunkler als Arcades Leinwand (gemessen am pixelgleichen Spielerbild: 11 → 7, 19 → 16, 28 → 26,5 von 255, ab etwa 56
+gleich) – das betrifft jeden 3D-Inhalt, nicht nur Ersatzbilder; die Nachtprüfung misst deshalb an einem hellen Auto.
+Arcade (eingefroren) lässt bei Bussen und Lkw selten die Heckfläche weg (Rundung in `BoxVehicle.emit`); das Ersatzbild
+in Modern zeigt sie.

@@ -365,13 +365,16 @@ func _set_info(set_id: String) -> Dictionary:
 			push_warning("Fahrzeuge: Bild von %s nicht vorbereitet – Ersatzkasten statt Ladens während der Fahrt" % set_id)
 	var pts := VehiclePose3D.flare_points(lights)
 	var rear_pts: Array = []
+	var known := true
 	for p: Dictionary in pts:
 		p["code"] = _role_code(str(p["role"]))
+		known = known and int(p["code"]) >= 0
 		# the glows Arcade draws over its picture: rear lamps (they look backwards, model +Z) and beacons
 		if str(p["role"]).begins_with("beacon") or (p["dir"] as Vector3).z > 0.0:
 			rear_pts.append(p)
 	info["points"] = pts
 	info["points_rear"] = rear_pts
+	info["codes_known"] = known
 	var lv := VehiclePose3D.lod_levels(model)
 	info["lod_names"] = lv[0]
 	info["lod_limits"] = lv[1]
@@ -881,6 +884,9 @@ static func _role_code(role: String) -> int:
 ## its unit (articulated: the unit it belongs to). A sprite stand-in only has the points Arcade draws a glow for (its
 ## rear lamps and beacons: info "points_rear").
 func _add_flares(car: Car, info: Dictionary, la: Vector4, lb: Vector4, lights: float, alpha: float, light_alpha: float) -> void:
+	# nothing switched on (most cars by day): every lamp of a known role is dark (_lamp_level 0) – no loop
+	if la == Vector4.ZERO and lb == Vector4.ZERO and bool(info.get("codes_known", false)):
+		return
 	var pts: Array = info["points_rear"] if car.flare_ref > 0.0 else info["points"]
 	for p: Dictionary in pts:
 		if _lamp_level(int(p["code"]), la, lb, lights) <= 0.0:
