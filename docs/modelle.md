@@ -345,14 +345,16 @@ Gesamt: Netze ≤ 40 MB, Texturen ≤ 240 MB im Grafikspeicher.
 
 ## 11. Referenzmodelle (gemessen)
 
+Fahrzeuge: Stand nach der Nacharbeit AS1R (Abschnitt 13); die übrigen Zeilen aus Bauabschnitt 0.
+
 | Modell | Dreiecke je Stufe | Aufrufe | Netze | Texturquellen | Export | Bake |
 |---|---|---|---|---|---|---|
-| `player/limousine` | lod0 45 764 · show 99 670 · Schatten 1 872 | 6 / 6 | 1 573 290 B | – | 11,6 s | 0,08 s |
-| `player/kompakt` | lod0 50 080 · show 107 042 · Schatten 1 872 | 6 / 6 | 1 742 534 B | – | 12,3 s | 0,10 s |
-| `traffic/sedan` (4 Farbsets) | lod0 17 695 · lod1 5 805 · lod2 1 123 · Schatten 636 | 6 / 1 / 1 | 260 279 B | – | 2,0 s | 0,02 s |
-| `traffic/hatch` (5 Farbsets) | lod0 17 317 · lod1 5 753 · lod2 1 136 · Schatten 652 | 6 / 1 / 1 | 256 895 B | – | 2,1 s | 0,02 s |
-| `traffic/wagon` (4 Farbsets) | lod0 17 888 · lod1 5 937 · lod2 1 103 · Schatten 604 | 6 / 1 / 1 | 269 062 B | – | 2,2 s | 0,02 s |
-| `traffic/truck` (4 Lackierungen) | lod0 18 084 · lod1 4 672 · lod2 1 490 · Schatten 356 | 13 / 1 / 1 | 160 568 B | – | 0,8 s | 0,02 s |
+| `player/limousine` | lod0 44 095 · show 94 629 · Schatten 2 320 | 6 / 6 | 1 527 819 B | – | 13,3 s | 0,07 s |
+| `player/kompakt` | lod0 47 524 · show 100 332 · Schatten 2 320 | 6 / 6 | 1 661 802 B | – | 13,2 s | 0,10 s |
+| `traffic/sedan` (4 Farbsets) | lod0 17 555 · lod1 5 809 · lod2 1 149 · Schatten 972 | 6 / 1 / 1 | 271 351 B | – | 2,3 s | 0,02 s |
+| `traffic/hatch` (5 Farbsets) | lod0 17 636 · lod1 5 661 · lod2 1 180 · Schatten 988 | 6 / 1 / 1 | 270 561 B | – | 2,2 s | 0,02 s |
+| `traffic/wagon` (4 Farbsets) | lod0 17 464 · lod1 5 941 · lod2 1 141 · Schatten 940 | 6 / 1 / 1 | 276 055 B | – | 2,5 s | 0,02 s |
+| `traffic/truck` (4 Lackierungen) | lod0 18 084 · lod1 4 672 · lod2 1 490 · Schatten 476 | 13 / 1 / 1 | 161 851 B | – | 1,0 s | 0,02 s |
 | `props/tree_oak` | lod0 1 220 (420 Karten) · lod1 459 (140) · Schatten 179 · Fernbild | 2 / 2 / 1 | 53 072 B | 373 558 B | 2,2 s | 0,01 s |
 | `props/farmhouse` | lod0 104 | 1 | 2 586 B | 752 795 B (1024², Nachtlicht 512²) | 58 s | 0,01 s |
 | `props/streetlight` | lod0 312 (keine automatische Stufe) | 1 | 4 395 B | – | 0,1 s | < 0,01 s |
