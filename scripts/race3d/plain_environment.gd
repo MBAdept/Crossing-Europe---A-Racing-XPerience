@@ -17,9 +17,10 @@ extends Node3D
 ## 35 % under rain or snow, none at night) and the rest as ambient light. The GL Compatibility renderer converts
 ## the ambient pass and the pass of the one shadow-casting light to display values separately and adds them
 ## (docs/modelle.md §4), so the split is made in display values and turned into linear light with the renderer's
-## own approximations for one albedo (REF_ALBEDO). Level ground then shows Arcade's colour: by day within -4 ..
-## +7 % for albedos 0.3 .. 0.9 (computed, unit test); darker albedos come out darker and, at night, bright ones
-## up to a quarter brighter – the renderer's display curve is not a plain factor on dark values. Shadows show the
+## own approximations for one albedo (REF_ALBEDO). Level ground then shows Arcade's colour by day within -4 ..
+## +7 % for albedos 0.3 .. 0.9 (computed, unit test; -13 % at 0.2); at dusk and at night dark albedos come out far
+## darker (down to -59 % at 0.2 in rain) and bright ones up to a third brighter (+35 % at 0.9) – the renderer's
+## display curve is not a plain factor on dark values (computed table: docs/renderer-modern.md §9.6). Shadows show the
 ## ambient part only, faces towards the sun are a little brighter than level ground.
 ## Direction: where RaceBackdrop draws the sun (sun_pos.x * 1.1 rad of the panorama, turned with view.bg_offset),
 ## held against the road heading at the car, so it does not swing with the bends; elevation 12 .. 62 degrees,

@@ -250,7 +250,8 @@ func _check_ablauf() -> void:
 	var frames := 0
 	var worst_steps := 0
 	var hud_moved := false
-	var hud_state := false
+	var hud_updated := false   # update_state() was called (it sets _last_countdown from -1 and beeps the countdown)
+	var hud_face := false      # the HUD holds the start state and draws it behind the cover (its shaders warm up)
 	var clock_moved := false
 	var hooks_early := 0
 	var overlay_gone_early := false
@@ -262,7 +263,8 @@ func _check_ablauf() -> void:
 		worst_steps = maxi(worst_steps, int(sc.get("_sim_steps")))
 		msgs = hud.get("_messages")
 		hud_moved = hud_moved or msgs.is_empty() or not is_equal_approx(float((msgs[0] as Dictionary)["t"]), hint_t0)
-		hud_state = hud_state or not (hud.get("state") as Dictionary).is_empty()
+		hud_updated = hud_updated or int(hud.get("_last_countdown")) != -1
+		hud_face = hud_face or not (hud.get("state") as Dictionary).is_empty()
 		clock_moved = clock_moved or not is_equal_approx(float(sc.get("countdown")), countdown0) or float(sc.get("_real_time")) != 0.0 \
 			or float(sc.get("stage_time")) != 0.0 or float(sc.get("_beacon_t")) != 0.0
 		hooks_early = maxi(hooks_early, rec.states.size() + rec.events.size() + int(live[0]) + (1 if bool(sc.call("is_live")) else 0))
@@ -271,7 +273,8 @@ func _check_ablauf() -> void:
 	_need(p, worst_steps == 0, "kein Simulationsschritt vor is_prepared() (%d)" % worst_steps)
 	_need(p, not clock_moved, "Countdown, Etappenzeit und Uhren stehen")
 	_need(p, not hud_moved, "HUD-Meldungen altern nicht")
-	_need(p, not hud_state, "HUD bekommt keinen Zustand (kein Countdown-Piep)")
+	_need(p, not hud_updated, "HUD bekommt vor dem Start kein update_state() (kein Countdown-Piep)")
+	_need(p, hud_face, "HUD zeichnet den Startzustand hinter dem Ladebild (seine Shader werden mit aufgewärmt)")
 	_need(p, hooks_early == 0, "keine Klang-Hooks, kein stage_live vor dem Start (%d)" % hooks_early)
 	_need(p, not overlay_gone_early, "Ladebild bleibt bis zum Start")
 	var before := int(_probe.get("views_before_prepared"))
