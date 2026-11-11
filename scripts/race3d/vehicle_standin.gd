@@ -169,19 +169,24 @@ static func player_cell(st: PackedFloat32Array, yaws: PackedFloat32Array, curve_
 	return cell
 
 
-## Margin below the lowest row of a pulled perspective picture (vehicle_sprite.gdshader: pull_margin).
+## Margin below the lowest row of a pulled picture (vehicle_sprite.gdshader: pull_margin – the player's, room for
+## the body roll – and pull_margin_ortho).
 const PULL_MARGIN_M := 0.15
+const PULL_MARGIN_ORTHO_M := 0.02
+## Alpha from which a pixel of a sheet is the opaque body (vehicle_sprite.gdshader: scissor): the baked ground
+## shadows of the sheets lie at 0.5 – 0.75 and blend in the soft pass, as in Arcade.
+const SCISSOR := 0.8
 
 
-## Factor (<= 1) by which an upright perspective picture is pulled towards the eye (scaled about it: the same pixels,
-## a nearer depth) so that its lowest row does not reach under the road: ay = height of its anchor relative to the eye
+## Factor (<= 1) by which an upright picture is pulled towards the eye (scaled about it: the same pixels, a nearer
+## depth) so that its lowest row does not reach under the road: ay = height of its anchor relative to the eye
 ## (negative below it), vb = its lowest row relative to the anchor (negative). The same as persp_pull() of
 ## vehicle_sprite.gdshader. The player's picture reaches far below its anchor – the rear of the car is nearer than the
-## ground point under its centre – and would otherwise be cut off by the road.
-static func persp_pull(ay: float, vb: float) -> float:
+## ground point under its centre – and would otherwise be cut off by the road; a flat traffic picture only a little.
+static func persp_pull(ay: float, vb: float, margin: float = PULL_MARGIN_M) -> float:
 	if ay > -0.1:
 		return 1.0
-	return clampf(ay / (ay + vb - PULL_MARGIN_M), 0.3, 1.0)
+	return clampf(ay / (ay + vb - margin), 0.3, 1.0)
 
 
 ## True when Arcade draws the cell through its flank warp (RoadRenderer._car_warp): render.vehicle_warp on, a set with
@@ -407,23 +412,26 @@ static func layer_strength(level: float, alpha: float, light_alpha: float) -> fl
 
 # --- nodes: sprite sheets ----------------------------------------------------------------------------------------
 
-## Mesh of a sprite instance: 4 columns x 2 rows (UV.x = column 0..3, UV.y = 0 top / 1 bottom), three quads – the
-## shader places the columns (flat quad or the fold).
+## Mesh of a sprite instance: 4 columns x 3 rows (UV.x = column 0..3, UV.y = row: 0 top of the cell, 1 its ground
+## line, 2 its bottom) – the shader places the vertices (flat quad, or the fold with the rows below the ground line
+## laid onto the road).
 static func sprite_mesh() -> ArrayMesh:
 	var v := PackedVector3Array()
 	var uv := PackedVector2Array()
 	var col := PackedColorArray()
 	var nrm := PackedVector3Array()
 	for c in 4:
-		for r in 2:
+		for r in 3:
 			v.append(Vector3(float(c), -float(r), 0.0))
 			uv.append(Vector2(float(c), float(r)))
 			col.append(Color.WHITE)
 			nrm.append(Vector3.BACK)
 	var idx := PackedInt32Array()
 	for c in 3:
-		var a := c * 2
-		idx.append_array([a, a + 2, a + 1, a + 1, a + 2, a + 3])
+		for r in 2:
+			var a := c * 3 + r
+			var b := (c + 1) * 3 + r
+			idx.append_array([a, b, a + 1, a + 1, b, b + 1])
 	var arr := []
 	arr.resize(Mesh.ARRAY_MAX)
 	arr[Mesh.ARRAY_VERTEX] = v

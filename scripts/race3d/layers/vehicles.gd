@@ -75,6 +75,7 @@ class Car:
 	var rear_pivot := false                ## sprite stand-in: Arcade warps it (explicit rear pivot)
 	var persp := false                     ## sprite stand-in: perspective cells (player)
 	var has_beacon := false                ## sprite stand-in: its sheet has beacon layers (police)
+	var v_bot := 0.0                       ## sprite stand-in: lowest row of its cell below the anchor (m, negative)
 	var mod := Color(-1, -1, -1, -1)   ## box stand-in: modulate set last
 	var ovl := Vector4(-1, -1, -1, -1) ## box stand-in: lamp layers set last
 	var la := Vector4(-1, -1, -1, -1)
@@ -653,8 +654,7 @@ func _update_sprite(car: Car, c: Dictionary, info: Dictionary, is_player: bool, 
 				speed_mps, float(c.get("understeer", 0.0)), track.curve_at(zc), atan2(vc.x, maxf(depth, 0.3)), _pl_k_arcade, sim_dt,
 				_pl_tau, _veh_hyst)
 		car.fold = false
-		var size_m: Vector2 = sheet["size_m"]
-		car.pull = VehicleStandIn.persp_pull(vc.y, ((sheet["anchor"] as Vector2).y - 1.0) * size_m.y)
+		car.pull = VehicleStandIn.persp_pull(vc.y, car.v_bot)
 		anchor_t = Transform3D(car.pose.basis, centre)
 		cu = Vector4(float(car.cell), tail_k, brake_k, deg_to_rad(_pl_roll))
 		mod = VehicleStandIn.ArcadeShade.player_modulate(mod)
@@ -673,7 +673,9 @@ func _update_sprite(car: Car, c: Dictionary, info: Dictionary, is_player: bool, 
 		if not car.fold and depth <= STANDIN_NEAR_M:
 			_show(car, false)
 			return
-		car.pull = 1.0
+		# a flat picture is pulled a little towards the eye (its lowest rows stay above the road, as the shader does);
+		# a folded one lays those rows onto the road
+		car.pull = 1.0 if car.fold else VehicleStandIn.persp_pull((_cam_inv * rear).y, car.v_bot, VehicleStandIn.PULL_MARGIN_ORTHO_M)
 		var bcode := 0.0
 		if car.has_beacon:
 			var beacon := str(c.get("beacon", ""))
@@ -1013,6 +1015,7 @@ func _acquire(set_id: String, id: int) -> Car:
 			car.rear_pivot = bool(sheet["rear"])
 			car.persp = bool(sheet["persp"])
 			car.has_beacon = (sheet["rows"] as Dictionary).has("beacon_a") or (sheet["rows"] as Dictionary).has("beacon_b")
+			car.v_bot = ((sheet["anchor"] as Vector2).y - 1.0) * (sheet["size_m"] as Vector2).y
 	car.id = id
 	car.la = Vector4(-1, -1, -1, -1)
 	car.lb = Vector4(-1, -1, -1, -1)

@@ -47,8 +47,10 @@ uniform float yaws[32];                       // yaw of every angle (degrees)
 instance uniform vec4 modulate = vec4(1.0);
 instance uniform vec4 ovl = vec4(0.0);        // tail, brake (0..1)
 
-uniform float pull_margin = 0.15;             // m below the lowest row the pulled picture keeps clear (body roll)
-uniform float scissor = 0.5;                  // alpha from which a pixel belongs to the opaque body
+uniform float pull_margin = 0.15;             // m below the lowest row the pulled player picture keeps clear (roll)
+uniform float pull_margin_ortho = 0.02;       // … the pulled flat traffic picture
+uniform float scissor = 0.8;                  // alpha from which a pixel belongs to the opaque body (the baked ground
+                                              // shadows of the sheets lie at 0.5 – 0.75: they blend, as in Arcade)
 
 varying flat vec4 v_cell;                     // kind 0: (cell, tail, brake, beacon row)
 varying vec4 v_mod;
@@ -58,11 +60,11 @@ varying vec4 v_ovl_uv;                        // kind 1: tail uv, brake uv
 // Factor (<= 1) by which an upright picture whose anchor is ay m above the eye (negative: below) is pulled towards
 // the eye so that its lowest row (vb m below the anchor, negative) does not reach under the road there – scaling
 // about the eye keeps every pixel where it was. VehicleStandIn.persp_pull() is the same on the CPU.
-float persp_pull(float ay, float vb) {
+float persp_pull(float ay, float vb, float margin) {
 	if (ay > -0.1) {
 		return 1.0;
 	}
-	return clamp(ay / (ay + vb - pull_margin), 0.3, 1.0);
+	return clamp(ay / (ay + vb - margin), 0.3, 1.0);
 }
 
 void vertex() {
@@ -75,8 +77,9 @@ void vertex() {
 		float xr = (1.0 - anchor.x) * W;
 		float v_top = anchor.y * H;
 		float v_bot = (anchor.y - 1.0) * H;
-		float vy = UV.y < 0.5 ? v_top : v_bot;
 		int col = int(UV.x + 0.5);
+		int row = int(UV.y + 0.5);          // 0 top of the cell, 1 the ground line, 2 bottom of the cell
+		float v;                            // height of the row in the picture, m above the anchor row
 		float wcode = persp ? 0.0 : cu.w;
 		bool fold = !persp && wcode >= 3.5;
 		float beacon = wcode - (fold ? 4.0 : 0.0);
@@ -91,18 +94,18 @@ void vertex() {
 		if (!fold) {
 			// upright quad parallel to the picture through the anchor (camera without pitch and roll: view y = up)
 			x = mix(xl, xr, float(col) / 3.0);
-			vec2 off = vec2(x, vy);
+			v = row == 0 ? v_top : (row == 1 ? clamp(0.0, v_bot, v_top) : v_bot);
+			vec2 off = vec2(x, v);
 			if (persp) {
 				float r = cu.w;     // body roll: Arcade turns its player sprite about the anchor on the screen
 				off = vec2(off.x * cos(r) + off.y * sin(r), -off.x * sin(r) + off.y * cos(r));
 			}
 			vec3 a = (MODELVIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
 			VERTEX = a + vec3(off, 0.0);
-			if (persp) {
-				// a perspective cell reaches far below its anchor (the rear of the car is nearer than its centre):
-				// pulled towards the eye until its lowest row stands on the road – the same picture, nearer
-				VERTEX *= persp_pull(a.y, v_bot);
-			}
+			// the rows below the anchor would reach under the road (a perspective cell far below: the rear of the car
+			// is nearer than its centre): pulled towards the eye until the lowest row stands on the road – the same
+			// picture, nearer
+			VERTEX *= persp_pull(a.y, v_bot, persp ? pull_margin : pull_margin_ortho);
 		} else {
 			// Arcade's warp columns (VehiclePose.warp_columns) with one strip per face: the GPU interpolates each
 			// planar strip perspective-correctly, so four columns are exact
@@ -142,12 +145,22 @@ void vertex() {
 					x = max(xr, corner); s = x / cs; t = 0.0;
 				}
 			}
-			// the column's ground point on the car, its picture height above that local ground (Arcade: warp_screen)
-			float vg = (t * cs - s * sn) * sin(elev);
-			vec3 g = (MODELVIEW_MATRIX * vec4(s, 0.0, -t, 1.0)).xyz;
-			VERTEX = g + vec3(0.0, vy - vg, 0.0);
+			// the column's ground point on the car and the row where the picture shows it (Arcade: warp_screen – a
+			// ground point dz deeper appears dz sin(elev) higher): above it the column stands upright on the car;
+			// below it the picture shows the road nearer to the camera (the baked shadow) – laid onto the road where
+			// the ortho camera saw it, instead of reaching under it
+			float se = sin(elev);
+			float vg = (t * cs - s * sn) * se;
+			v = row == 0 ? v_top : (row == 1 ? clamp(vg, v_bot, v_top) : v_bot);
+			if (v >= vg - 1.0e-5) {
+				vec3 g = (MODELVIEW_MATRIX * vec4(s, 0.0, -t, 1.0)).xyz;
+				VERTEX = g + vec3(0.0, v - vg, 0.0);
+			} else {
+				float f = v / max(se, 0.01);
+				VERTEX = (MODELVIEW_MATRIX * vec4(x * cs - f * sn, 0.0, -(x * sn + f * cs), 1.0)).xyz;
+			}
 		}
-		v_uv = vec2((x - xl) / W, UV.y < 0.5 ? 0.0 : 1.0);
+		v_uv = vec2((x - xl) / W, (v_top - v) / H);
 		NORMAL = vec3(0.0, 0.0, 1.0);
 	} else {
 		v_mod = modulate;
