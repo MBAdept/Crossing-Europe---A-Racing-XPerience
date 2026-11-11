@@ -498,7 +498,7 @@ gilt auch für die Ebenen:
 | Achsheulen | Tempo / Radumfang × Achsübersetzung × Ritzelzähne (130 km/h ≈ 676 Hz) | `fd_level · (v / 250)^1,2 · (0,45 + 0,55 · Last)`, blendet bis 25 km/h ein |
 | Getriebeheulen | Drehzahl / 60 × `mesh_teeth` | `gm_level · (n / Nenndrehzahl)^1,5 · (0,3 + 0,7 · Last)`, nur mit eingelegtem Gang |
 | Gasannahme (`tipin`) | – | einmal, wenn das Pedal binnen 0,25 s von ≤ 0,35 auf ≥ 0,9 geht (in Fahrt, Gang eingelegt) |
-| Lastwechselschlag (`thump`) | – | bei jedem Gangwechsel; beim Hochschalten stärker mit dem Pedal |
+| Lastwechselschlag (`thump`) | – | bei jedem Gangwechsel, so stark wie sein Drehmomentsprung: Hochschalten `level · (0,3 … 1 mit Pedal oder Last)`, Zurückschalten `level · (0,2 im Schub … 0,6 beim Kick-down)` |
 | Schubumluft (`blowoff`) | – | wenn der Motor-Baustein sie meldet (Gas weg mit Ladedruck ≥ `min_boost`) |
 
 Anlasser, Leerlauf, Begrenzer, Schaltknall und Schubknallen gehören zum Zyklenmischer – sie müssen im Takt seiner

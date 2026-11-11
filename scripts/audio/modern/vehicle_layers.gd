@@ -12,7 +12,8 @@ extends ModernAudioModule
 ##   gear mesh       gear whine of the gearbox: pitch with the engine speed (mesh teeth)
 ##   tip-in          one-shot when the pedal goes down hard while driving: induction gulp and the driveline taking
 ##                   up the torque
-##   shift thump     one-shot on every gear change (stronger on a loaded upshift)
+##   shift thump     one-shot on every gear change, as strong as its torque step (full on a loaded upshift,
+##                   soft on a downshift on the overrun)
 ##   blow-off        one-shot when the driver lifts with boost (the engine slot decides when and how loud)
 ## The engine itself – starter and first fires, idle, limiter cut, shift cracks, crackles – is the cycle mixer of the
 ## slot "engine" (EngineAudio3): those sounds have to stay in step with its cycles.
@@ -39,6 +40,9 @@ const TIPIN_LOW := 0.35          ## pedal below this …
 const TIPIN_HIGH := 0.9          ## … then above this within TIPIN_S
 const TIPIN_S := 0.25
 const SHOT_GAP_S := 0.08         ## the same one-shot not twice within this time
+const THUMP_COAST := 0.3         ## shift thump of an upshift with a closed pedal (× the car's level; 1 at full load)
+const THUMP_DOWN := 0.2          ## … of a downshift on the overrun
+const THUMP_KICK := 0.6          ## … of a downshift with the pedal down (kick-down)
 
 var vehicle_id := ""
 ## Tests/tools: folder with the bank descriptions (<car>.json) instead of the one the manifest names.
@@ -222,11 +226,15 @@ func _events(frame: ModernAudioFrame, e: Dictionary, load: float) -> void:
 	var down := int(e.get("downshifts", 0))
 	var blow := int(e.get("blowoffs", 0))
 	if _seen_valid:
+		# The thump is the lash of the driveline taken up: its level follows the torque step of the gear change.
 		if up > _seen_up:
 			# the load is cut during the shift: the pedal tells how much torque comes back
-			_shot("thump", _thump_id, _thump_level * (0.5 + 0.5 * clampf(maxf(frame.throttle, load), 0.0, 1.0)), frame.time)
+			_shot("thump", _thump_id, _thump_level * lerpf(THUMP_COAST, 1.0, clampf(maxf(frame.throttle, load), 0.0, 1.0)), frame.time)
 		elif down > _seen_down:
-			_shot("thump", _thump_id, _thump_level * 0.45, frame.time)
+			# on the overrun only the engine braking steps (braking to a stop shifts down seven times within three
+			# seconds - measured in the in-game capture, at 0.45 each thump stood 10 to 15 dB above the engine's
+			# mid band); a kick-down brings the torque back
+			_shot("thump", _thump_id, _thump_level * lerpf(THUMP_DOWN, THUMP_KICK, clampf(frame.throttle, 0.0, 1.0)), frame.time)
 		if blow > _seen_blow:
 			_shot("blowoff", _blowoff_id, 2.0 * float(e.get("blowoff_level", 0.0)), frame.time)
 	_seen_valid = true
