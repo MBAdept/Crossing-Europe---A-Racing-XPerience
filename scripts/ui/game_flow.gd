@@ -73,6 +73,7 @@ var _focus_sound_after := 0
 var _result_pending := false        ## the save holds PENDING_RESULT_KEY
 var _loading := false               ## start_pending_stage(): "Etappe wird geladen …" is showing
 var benchmark: Node = null          ## running Leistungstest (ModernBenchmark), null otherwise
+var _bench_layer: CanvasLayer       ## its overlay (BenchOverlay) above the race picture
 var _sound_pending := false         ## the sound profile changed while a stage ran: applied with the menus / next stage
 var _release_pending := false       ## the mode "Modern" was left while a stage ran: its caches go with the menus
 var _music_context := ""            ## music context set last ("" = none since the last set_music())
@@ -117,10 +118,6 @@ func boot() -> void:
 	var vp := get_viewport()
 	if not vp.gui_focus_changed.is_connected(_on_focus_changed):
 		vp.gui_focus_changed.connect(_on_focus_changed)
-	if CliArgs.has("bench"):
-		# the Leistungstest from the command line: runs its scenes, writes the result file(s) and quits
-		start_benchmark(bench_scene_ids(CliArgs.get_string("bench", "all")), {"quit": true})
-		return
 	if CliArgs.has("stage"):
 		var race_script: GDScript = load("res://scripts/race/race_session.gd")
 		start_stage(race_script.setup_from_cli())
@@ -132,6 +129,10 @@ func boot() -> void:
 		if times.is_empty():
 			times = [1.5]
 		shot.configure(CliArgs.get_string("screenshot"), times)
+	if CliArgs.has("bench"):
+		# the Leistungstest from the command line: runs its scenes, writes the result file(s) and quits
+		start_benchmark(bench_scene_ids(CliArgs.get_string("bench", "all")), {"quit": true})
+		return
 	if CliArgs.has("screen"):
 		_debug_screen(CliArgs.get_string("screen", "title"))
 		return
@@ -320,6 +321,17 @@ func start_benchmark(scene_ids: Array = [], opts: Dictionary = {}) -> bool:
 		benchmark.set("out_path", str(opts["out"]))
 	add_child(benchmark)
 	benchmark.connect("finished", _on_benchmark_finished.bind(bool(opts.get("quit", false))))
+	# what is going on, over the race picture: which scene, how far, how to end it
+	_bench_layer = CanvasLayer.new()
+	_bench_layer.layer = BenchOverlay.LAYER
+	_bench_layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(_bench_layer)
+	var overlay := BenchOverlay.new()
+	overlay.runner = benchmark
+	_bench_layer.add_child(overlay)
+	benchmark.connect("progress", func(_id: String, p: float) -> void:
+		if is_instance_valid(overlay):
+			overlay.progress = p)
 	benchmark.call("start", scene_ids)
 	return true
 
@@ -328,6 +340,9 @@ func _on_benchmark_finished(result: Dictionary, quit_after: bool) -> void:
 	if benchmark != null and is_instance_valid(benchmark):
 		benchmark.queue_free()
 	benchmark = null
+	if _bench_layer != null and is_instance_valid(_bench_layer):
+		_bench_layer.queue_free()
+	_bench_layer = null
 	AudioManager.stop_all()
 	if quit_after:
 		print("LEISTUNGSTEST ", JSON.stringify(result))
