@@ -50,6 +50,15 @@ def _tyre_profile_plain(R, r_rim, tw):
     return [(r, -x) for (r, x) in half] + [(R + 0.001, 0.0)] + list(reversed(half))
 
 
+def _tyre_profile_lite(R, r_rim, tw):
+    """3D hook (detail "tyre_lite"): the tyre of the traffic cars seen from 10 m and more - bead, sidewall bulge,
+    rounded shoulder and crown in 9 points instead of 15 (about 300 triangles less per wheel)."""
+    h = R - r_rim
+    half = [(r_rim + 0.006, tw / 2 - 0.014), (r_rim + h * 0.45, tw / 2 + 0.008), (R - 0.012, tw / 2 - 0.006),
+            (R, tw / 2 - 0.04)]
+    return [(r, -x) for (r, x) in half] + [(R + 0.001, 0.0)] + list(reversed(half))
+
+
 def _lathe_x(bm, prof, segs, mat_index=0, a0=0.0, a1=360.0, closed=True):
     """Revolve (r, x) about the X axis into bm."""
     n = segs if closed else segs + 1
@@ -70,18 +79,23 @@ def _lathe_x(bm, prof, segs, mat_index=0, a0=0.0, a1=360.0, closed=True):
     return rings
 
 
-def wheel_mesh(name, R, r_rim, tw, st, mats, sg=None, plain=False):
+def wheel_mesh(name, R, r_rim, tw, st, mats, sg=None, plain=False, lite=False):
     """One wheel (tyre, rim, spokes, disc, caliper) in local space: axis X, outer face towards +X,
     centre at the origin. mats: dict tyre, rim, rim_dark, disc, caliper. Returns a list of objects.
     sg: segment count at the detail level of a 3D build (None = as designed, the sprite model).
-    plain (3D hook): tyre without grooves, spokes of three sections, no wheel nuts."""
+    plain (3D hook): tyre without grooves, spokes of three sections, no wheel nuts. lite (3D hook): a tyre profile of
+    9 points (_tyre_profile_lite)."""
     if sg is None:
         def sg(n):
             return n
     objs = []
     # tyre
     bm = bmesh.new()
-    _lathe_x(bm, _tyre_profile_plain(R, r_rim, tw) if plain else _tyre_profile(R, r_rim, tw), sg(64))
+    if lite:
+        prof = _tyre_profile_lite(R, r_rim, tw)
+    else:
+        prof = _tyre_profile_plain(R, r_rim, tw) if plain else _tyre_profile(R, r_rim, tw)
+    _lathe_x(bm, prof, sg(64))
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     me = bpy.data.meshes.new(name + "_tyre")
     bm.to_mesh(me)
@@ -206,7 +220,7 @@ def wheels(car, st):
     for key, tw in (("f", d["tw"]), ("r", d.get("tw_r", d["tw"]))):
         meshes[key] = wheel_mesh(car.name + "_wheel_" + key, R, r_rim, tw, st, mats,
                                  sg=None if car.detail["wheel"] == 1.0 else car.n_wheel,
-                                 plain=bool(car.detail.get("wheel_plain")))
+                                 plain=bool(car.detail.get("wheel_plain")), lite=bool(car.detail.get("tyre_lite")))
     inset = d.get("wheel_inset", 0.02)
     out = []
     for key, ya in (("r", car.y_ra), ("f", car.y_fa)):

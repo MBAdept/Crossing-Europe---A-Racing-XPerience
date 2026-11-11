@@ -10,7 +10,7 @@
    {
     "name": "lod0",
     "max_dist_m": 100000,
-    "tris": 47110,
+    "tris": 47524,
     "parts": [
      {
       "node": "body",
@@ -52,7 +52,7 @@
    {
     "name": "show",
     "max_dist_m": 0,
-    "tris": 99254,
+    "tris": 100332,
     "parts": [
      {
       "node": "body",
@@ -96,14 +96,14 @@
   "lights": [
    {
     "role": "brake",
-    "pos": [-0.7095, 0.8752, 2.0013],
+    "pos": [-0.7096, 0.8752, 2.0013],
     "dir": [-0.425, 0.219, 0.878],
     "size": 0.263,
     "color": "#ff2414"
    },
    {
     "role": "brake",
-    "pos": [0.7103, 0.8754, 2.0015],
+    "pos": [0.7102, 0.8754, 2.0015],
     "dir": [0.427, 0.221, 0.877],
     "size": 0.264,
     "color": "#ff2414"
@@ -131,7 +131,7 @@
    },
    {
     "role": "ind_l",
-    "pos": [-0.793, 0.6887, -1.8141],
+    "pos": [-0.793, 0.6888, -1.8142],
     "dir": [-0.533, 0.653, -0.537],
     "size": 0.06,
     "color": "#ffa01a"
@@ -182,8 +182,8 @@
   "paint": {"paint": "#f0b30a", "metal": 0},
   "auto_lod": false,
   "tags": ["player"],
-  "bytes": 1640793,
-  "hash": "444049ee573dec3cd849dfba5ab22bcd2c4a83ca"
+  "bytes": 1657889,
+  "hash": "a69b982283af5206f7cab3aa144fd560f18921a4"
  },
  "sets": {
   "player/kompakt": {

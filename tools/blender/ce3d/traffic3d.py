@@ -99,12 +99,31 @@ CAR_3D = {
 }
 PLATE_CHARS = [1, 1, 0, 1, 1, 0, 1, 1, 1]
 
+# Look of the real-time traffic cars where the sprite's look comes from Cycles, not from the design values
+# (art review of AS1, findings B3 - B5):
+#   rims   the sprite's silver rims (metal 1.0) mirror the dark wheel arch and road and read as anthracite; in
+#          real time they had nothing to mirror and came out bright white-silver ("toy-like") - the 3D rim takes
+#          the colour the sprite shows, at every level (lod1/lod2 used the bright colour as well)
+#   plate  levels 1 and 2 drop the characters: the plate of those levels has the mean colour of the lod0 plate
+#          with its characters and blue band (a white plate jumped brighter at 40 m and vanished at 120 m)
+#   glass  lighter, glossier and a little metallic: the dark navy panes had no visible reflection and looked
+#          painted (lod1/lod2 draw them as vpbr with the same values)
+#   chmsl  the third brake light with a darker lit colour: unlit, a lamp shows half its lit colour, and the
+#          bright red bar on the rear window looked switched on by day (lit, brake gain 2.2 still saturates it)
+TRAFFIC_RIM = dict(color="#5a5d62", metal=0.6, rough=0.35)
+FAR_PLATE = "#c4c4c1"
+TRAFFIC_GLASS = dict(color="#2a343e", rough=0.02, metal=0.25)
+CHMSL_LAMP = "brake:1:#b8160c"
+EXHAUST = dict(color="#3c3d40", rough=0.4, metal=0.6, length=0.3)
+MIRROR_GLASS = dict(color="#2c3238", rough=0.03, metal=0.9)
+
 
 def traffic_design(name):
     """The design of cesprites.designs with the lamp parts of the 3D builds (CAR_3D) and the characters of the
     rear plate as decals (the sprite model sets small blocks in front of the plate)."""
     from cesprites import designs
     d = copy.deepcopy(designs.TRAFFIC_MODELS[name])
+    d["chmsl_lamp"] = CHMSL_LAMP
     spec = CAR_3D.get(name, {})
     for k, parts in spec.get("replace", {}).items():
         lst = list(d.get(k, []))
@@ -170,8 +189,8 @@ def smooth_design(car, full_length=False):
         g_inset=0.005, tumble=d.get("tumble", 0.22), r_roof=d.get("roof_rc", 0.075), roof_crown=0.03,
         roof_taper=[(g0, 0.03), (g0 + 0.5, 0.0), (g1 - 0.9, 0.0), (g1, 0.02)],
         wheel_inset=0.036,
-        rims=dict(color=d.get("rim_color", "#b8bcc2"), metal=1.0, rough=0.25, coat=0.4, spokes=d.get("spokes", 5),
-                  kind="straight", spoke_w=(0.05, 0.036), dish=0.028, caliper="#3a3c3f"),
+        rims=dict(color=d.get("rim_color", TRAFFIC_RIM["color"]), metal=TRAFFIC_RIM["metal"], rough=TRAFFIC_RIM["rough"], coat=0.4,
+                  spokes=d.get("spokes", 5), kind="straight", spoke_w=(0.05, 0.036), dish=0.028, caliper="#3a3c3f"),
     )
 
 
@@ -184,7 +203,7 @@ def _drum_wheels(sc, d, segs, rim_color):
     R = sc.R
     r_rim = R - 0.095
     tyre = sc.mat("tyre", "#141415", rough=0.82, spec=0.35)
-    rim = M.basic(sc.name + "_rimdisc", rim_color, rough=0.3, metal=0.55)
+    rim = M.basic(sc.name + "_rimdisc", rim_color, rough=TRAFFIC_RIM["rough"], metal=TRAFFIC_RIM["metal"])
     inset = d.get("wheel_inset", 0.02)
     for ya, tw in ((sc.y_ra, d.get("tw_r", d["tw"])), (sc.y_fa, d["tw"])):
         for side in (1, -1):
@@ -195,7 +214,8 @@ def _drum_wheels(sc, d, segs, rim_color):
                         (R - 0.03, -tw / 2), (r_rim, -tw / 2 + 0.02)]
                 disc = [(0.0, xo - 0.005), (r_rim * 0.3, xo - 0.005), (r_rim * 0.55, xo - 0.03), (r_rim * 1.02, xo)]
             else:
-                prof = [(r_rim * 0.95, tw / 2), (R, tw / 2), (R, -tw / 2), (r_rim * 0.95, -tw / 2)]
+                # (no inner sidewall: beyond 120 m nobody looks under the car - room for the number plate in lod2)
+                prof = [(r_rim * 0.95, tw / 2), (R, tw / 2), (R, -tw / 2)]
                 disc = [(0.0, xo), (r_rim, xo)]
             bm = bmesh.new()
             _lathe_x(bm, prof, segs)
@@ -212,7 +232,7 @@ def _drum_wheels(sc, d, segs, rim_color):
 def _mirrors(sc, ym, zm):
     """Door mirrors of the near level: a rounded housing on a foot, dark mirror glass facing backwards."""
     from cesprites import meshutil as MU
-    glass = sc.mat("mirrorglass", "#2c3238", rough=0.03, metal=0.9)
+    glass = sc.mat("mirrorglass", MIRROR_GLASS["color"], rough=MIRROR_GLASS["rough"], metal=MIRROR_GLASS["metal"])
     for side in (-1, 1):
         xm = side * (sc.W2 + 0.0925)
         bm = MU.bm_box(0.125, 0.085, 0.105, (xm, ym + 0.005, zm + 0.006))
@@ -258,9 +278,11 @@ def _level(spec3d, level, paint_hex, metal, fine=None):
         if level == "lod0":
             CD.wheels(sc, sd["rims"])
             _mirrors(sc, ym, zm)
-            chrome = sc.mat("chrome", "#d6d8db", rough=0.12, metal=1.0)
+            # exhaust: a dark pipe coming from under the car (a short chrome ring hung under the bumper)
+            pipe = sc.mat("pipe", EXHAUST["color"], rough=EXHAUST["rough"], metal=EXHAUST["metal"])
             for (xe, ze, *rest) in ex.get("exhaust", [(0.5, 0.28)]):
-                CD.exhaust(sc, xe, ze, "round", r=rest[0] if rest else 0.04, y_tip=-0.004, length=0.12, sym=False, mat=chrome)
+                CD.exhaust(sc, xe, ze, "round", r=rest[0] if rest else 0.04, y_tip=-0.004, length=EXHAUST["length"],
+                           sym=False, mat=pipe)
         elif level != "shadow":
             _drum_wheels(sc, sd, 12 if level == "lod1" else 6, sd["rims"]["color"])
             bm = bmesh.new()
@@ -270,6 +292,19 @@ def _level(spec3d, level, paint_hex, metal, fine=None):
                     MU.bm_beam((side * (sc.W2 - 0.1), ym + 0.02, zm - 0.03), (side * (sc.W2 + 0.04), ym + 0.01, zm - 0.02),
                                0.045, 0.03, bm=bm)
             MU.make(name + "_mirror_far", bm, sc.paint, parent=sc.center)
+            # the dark mirror glass looks backwards at every level (the far mirrors were paint all over and changed
+            # colour at the 40 m swap)
+            bm = bmesh.new()
+            for side in (-1, 1):
+                xm, yg, zg = side * (sc.W2 + 0.0925), ym + 0.005 - 0.0425 - 0.002, zm + 0.006
+                vs = [bm.verts.new(p) for p in ((xm - 0.05, yg, zg - 0.039), (xm + 0.05, yg, zg - 0.039),
+                                                (xm + 0.05, yg, zg + 0.039), (xm - 0.05, yg, zg + 0.039))]
+                fc = bm.faces.new(vs)
+                bm.normal_update()
+                if fc.normal.y > 0.0:
+                    fc.normal_flip()
+            glass = sc.mat("mirrorglass", MIRROR_GLASS["color"], rough=MIRROR_GLASS["rough"], metal=MIRROR_GLASS["metal"])
+            MU.make(name + "_mirrorglass_far", bm, glass, parent=sc.center)
         if "roof_rails" in ex and level != "shadow":
             y0, y1 = ex["roof_rails"]
             railm = M.basic(name + "_rail", ex.get("rail_color", "#9a9ea4"), rough=0.35, metal=0.6)
@@ -293,8 +328,8 @@ def _level(spec3d, level, paint_hex, metal, fine=None):
     soups = core.soups_of(core.model_objects(rig))
     origin = np.array([0.0, car.L / 2.0, 0.0])
     nodes = {}
-    tr = roles.Translator(overrides={"*_rim": dict(metal=0.55, rough=0.3)}, glass_class=(level == "lod0"),
-                          default_paint={"paint": paint_hex})
+    tr = roles.Translator(overrides={"*_rim": dict(metal=TRAFFIC_RIM["metal"], rough=TRAFFIC_RIM["rough"])},
+                          glass_class=(level == "lod0"), default_paint={"paint": paint_hex})
     if level == "shadow":
         # the hull is tucked inside the skin of lod0: where it stood out, the body lay in its own shadow
         mb = nodes.setdefault("body", core.MeshBuilder())
@@ -330,7 +365,8 @@ def _level(spec3d, level, paint_hex, metal, fine=None):
         lofts[role] = (s.pos.copy(), s.nor.copy())
     pal, tris, stats = decalgeo.car_surfaces(car, {s.name: s for s in soups}, cut=True,
                                              level={"lod0": 0, "lod1": 1, "lod2": 2}[level], paint_rough=0.24,
-                                             seals=False, far_glass=True)
+                                             seals=False, far_glass=True, far_plate=FAR_PLATE, glass_look=TRAFFIC_GLASS,
+                                             far_sill=spec3d.get("far_sill", True))
     pivots = {}
     for s in soups:
         node = roles.node_of(s.ob)

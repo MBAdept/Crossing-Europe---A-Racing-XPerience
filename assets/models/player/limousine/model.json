@@ -10,7 +10,7 @@
    {
     "name": "lod0",
     "max_dist_m": 100000,
-    "tris": 43649,
+    "tris": 44095,
     "parts": [
      {
       "node": "body",
@@ -52,7 +52,7 @@
    {
     "name": "show",
     "max_dist_m": 0,
-    "tris": 93529,
+    "tris": 94629,
     "parts": [
      {
       "node": "body",
@@ -159,8 +159,8 @@
    },
    {
     "role": "ind_r",
-    "pos": [0.8647, 0.7, -2.1307],
-    "dir": [0.838, 0.193, -0.51],
+    "pos": [0.863, 0.6998, -2.1297],
+    "dir": [0.837, 0.203, -0.508],
     "size": 0.043,
     "color": "#ffa01a"
    },
@@ -189,8 +189,8 @@
   "paint": {"paint": "#1d4ea8", "metal": 0.55},
   "auto_lod": false,
   "tags": ["player"],
-  "bytes": 1508343,
-  "hash": "9aa8a7088de8efa3c6a38241df6ece7f07bb7f5a"
+  "bytes": 1523791,
+  "hash": "be932cf5de2f572f1cef48e2abc23d8e0b3c15e5"
  },
  "sets": {
   "player/limousine": {

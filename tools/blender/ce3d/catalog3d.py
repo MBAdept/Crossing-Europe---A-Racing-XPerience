@@ -58,6 +58,7 @@ MODELS = {
         sets={"traffic/sedan_red": {}, "traffic/sedan_blue": {}, "traffic/sedan_silver": {}, "traffic/sedan_black": {}}),
     "traffic/hatch": dict(
         builder="car", source="traffic/hatch_green", kind="vehicle", design="hatch",
+        far_sill=False,           # lod2: no dark sill on the rear end - the cut costs 68 triangles, lod2 had 20 left
         sets={"traffic/hatch_green": {}, "traffic/hatch_yellow": {}, "traffic/hatch_white": {}, "traffic/hatch_blue": {},
               "traffic/hatch_red": {}}),
     "traffic/wagon": dict(
