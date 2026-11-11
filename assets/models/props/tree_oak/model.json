@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 2479,
+    "tris": 2471,
     "parts": [
      {
       "node": "body",
@@ -43,8 +43,8 @@
   "cards": {"lod0": 67, "lod1": 67},
   "auto_lod": false,
   "tags": ["prop", "tree"],
-  "bytes": 2024741,
-  "hash": "ad1c9fe5a65f66f5ee532ee1e3e5f51f976737ef"
+  "bytes": 2020236,
+  "hash": "78ddb833ccef2d0b7b75256404a8501907fadb0f"
  },
  "sets": {
   "props/tree_oak": {

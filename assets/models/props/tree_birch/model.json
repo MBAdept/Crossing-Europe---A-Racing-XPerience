@@ -6,12 +6,12 @@
   "kind": "tree",
   "object": {"width_m": 5.2, "height_m": 12.8},
   "extent_m": {"left": 2.81, "right": 3.29},
-  "aabb": [-2.81, -0.575, -2.859, 3.29, 13, 1.936],
+  "aabb": [-2.81, -0.575, -2.859, 3.29, 12.988, 1.936],
   "lods": [
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 2474,
+    "tris": 2466,
     "parts": [
      {
       "node": "body",
@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 200,
-    "tris": 802,
+    "tris": 806,
     "parts": [
      {
       "node": "body",
@@ -43,8 +43,8 @@
   "cards": {"lod0": 33, "lod1": 33},
   "auto_lod": false,
   "tags": ["prop", "tree"],
-  "bytes": 2071570,
-  "hash": "68569ea396ff301600af60639636ca4fbe5ac8fd"
+  "bytes": 2070599,
+  "hash": "1ed461d82342dadcb4e894265576de4242359720"
  },
  "sets": {
   "props/tree_birch": {

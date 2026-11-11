@@ -63,14 +63,14 @@ from .export import Lod, ModelData, Part, sprite_extent
 #           the axis the rays start from (slender crowns)
 # clumps    k-means clumps of the blobs, one limb each;  limb_r: limb radius at the wood / at the end
 # sink      the trunk foot reaches this far below the ground (m);  imp: impostor gain / blue tint / sky shading
-# rims ... vis_w (AS3R): one rim per dome for both levels (_rim_plan: rim_n = fewest / most rim vertices, about one
-#           per rim_seg_m of the blob's girth; rings_extra = rings lod0 may add before the rim), the rim frayed
-#           (fray: angle share of a step, radius share, hang of every second vertex in blob radii) and the domes
-#           seen from below and from the side refined first (vis_w); levels: the AS3 per-level plans (rims False)
+# rims ... vis_w (AS3R): lod1 on lod0's rim (_rim_plan: rim_n0 vertices in lod0, every second one in lod1;
+#           rings_extra = rings lod0 may add before the rim), the rim frayed (fray: angle share of a step, radius
+#           share, hang of every second vertex in blob radii), the domes seen from below and from the side refined
+#           first (vis_w); levels: the AS3 per-level plans (rims False: heather)
 DEFAULTS = dict(
     levels=(((1, 6, 12), (1, 6, 12, 12)), ((1, 6), (1, 4, 8))), tris=(2480, 890),
-    rims=True, rim_n=(6, 16), rim_seg_m=0.42, rings_extra=2, fray=(0.35, 0.12, (0.05, 0.1)), vis_w=1.0,
-    caps=((48.0, 118.0), (48.0, 118.0)), cap_margin=14.0, fringe=0.8, rim_out=0.05, jitter=0.07, lift=(1.0, 1.0),
+    rims=True, rim_n0=12, rings_extra=1, fray=(0.35, 0.12, (0.05, 0.1)), vis_w=1.0,
+    caps=((48.0, 118.0), (48.0, 118.0)), cap_margin=14.0, fringe=0.8, rim_out=0.05, jitter=0.07, lift=(1.0, 1.06),
     sky_lo=0.6, limbs1=False,
     cards=(420, 165), half=(0.6, 0.92), roll=0.35, el=(-34.0, 40.0), crown_w=0.22, up_w=0.08,
     ao=(0.42, 1.0, 0.9), stiff=0.55, core=dict(shrink=0.86, subdiv=(1, 0), bright=0.78, axis=0.0),
@@ -81,27 +81,27 @@ DEFAULTS = dict(
 
 SPECIES = {
     "oak": dict(atlas=dict(leaf="lobed", base=("#3d6b25", "#5c8a30"), sat=0.72, gain=1.12, tint=(1.0, 1.0, 1.12)),
-                bark=[("", ("#3b3025", "#544536"))], clumps=9, limb_r=(0.13, 0.05), atlas_seed=7,
+                bark=[("", ("#3b3025", "#544536"))], clumps=9, limb_r=(0.13, 0.05), atlas_seed=7, lift=(1.0, 1.14),
                 imp=dict(gain=1.1)),
     "birch": dict(atlas=dict(leaf="birch", base=("#6f9a32", "#93b84a"), leaf_w=0.62, twig="#4a3a2a", sat=0.82,
                              gain=0.97, tint=(1.0, 1.0, 1.1)),
                   bark=[("", ("#e4e1d8", "#2b2722"))], birch=True, clumps=7, limb_r=(0.06, 0.025), atlas_seed=11,
-                  core=dict(subdiv=(-1, -1)), ao=(0.55, 1.0, 0.9), imp=dict(gain=1.27, tint=(1.04, 1.0, 1.4))),
+                  core=dict(subdiv=(-1, -1)), ao=(0.55, 1.0, 0.9), imp=dict(gain=1.23, tint=(1.04, 1.0, 1.4), sat=1.15)),
     # AS3: broad, dense, bright green crown on a smooth grey trunk
     "beech": dict(atlas=dict(leaf="ovate", base=("#4a7a2a", "#6a9a35"), sat=0.78, gain=1.06, tint=(1.0, 1.0, 1.1)),
                   bark=[("", ("#66645e", "#85837c"))], clumps=9, limb_r=(0.11, 0.045), atlas_seed=23,
-                  imp=dict(gain=1.13)),
+                  lift=(1.0, 1.12), imp=dict(gain=1.13)),
     # tall narrow column (avenues): rays of the core from the crown's axis
     "poplar": dict(atlas=dict(leaf="birch", base=("#43712a", "#5f8f35"), leaf_w=0.72, sat=0.8, gain=1.06,
                               tint=(1.0, 1.0, 1.1)),
                    bark=[("", ("#55514a", "#6e695f"))], clumps=8, limb_r=(0.07, 0.03), atlas_seed=29,
-                   core=dict(axis=6.0), stiff=0.35, imp=dict(gain=1.09)),
+                   core=dict(axis=6.0), stiff=0.35, lift=(1.0, 1.13), imp=dict(gain=1.09)),
     # small silver-grey crown on a gnarled twin trunk; narrow leaves with pale undersides (AS3R, art review M10: fewer
     # and less pale undersides - under 20 m the crown read as a camouflage pattern)
     "olive": dict(atlas=dict(leaf="lanceolate", base=("#6f7d4f", "#9aa77a"), leaf_w=0.3, underside="#b4bc9e",
                              underside_share=0.15, sat=0.85, gain=1.04, tint=(1.0, 1.0, 1.06)),
                   bark=[("", ("#463e35", "#5c5246"))], clumps=6, limb_r=(0.09, 0.04), atlas_seed=53, gnarl=0.05,
-                  imp=dict(gain=1.12, tint=(1.0, 1.0, 1.08))),
+                  lift=(1.0, 1.12), imp=dict(gain=1.1, tint=(1.0, 1.0, 1.08))),
     # Scots pine (as its sprite): a tall trunk, dark below, orange-red above, flat pads of needles on top
     "pine": dict(atlas=dict(leaf="needles", base=("#2c4f2a", "#3f6634"), sat=0.68, gain=1.16, tint=(1.0, 1.0, 1.08),
                             ball_leaf=(0.05, 0.075), ball_leaves=1300),
@@ -109,22 +109,22 @@ SPECIES = {
                  bark=[("pine_trunk2", ("#834829", "#8f5631")), ("pine_br", ("#7e4727", "#885231")),
                        ("pine_trunk", ("#4a382a", "#3c2d22")), ("", ("#7e4727", "#885231"))],
                  clumps=6, limb_r=(0.08, 0.03), atlas_seed=31, core=dict(subdiv=(-1, -1)), sky_lo=0.5,
-                 imp=dict(gain=1.18, tint=(1.04, 1.0, 1.05))),
+                 imp=dict(gain=0.98, tint=(1.04, 1.0, 1.05), sat=0.95)),
     # special crowns (ce3d/veg3d_shapes.py)
     "spruce": dict(shape="spruce", atlas=dict(leaf="needles", base=("#1e3d22", "#2d5530"), sat=0.55, gain=1.16,
                                               tint=(1.06, 1.0, 1.0)),
                    bark=[("", ("#3e2e21", "#4a3626"))], atlas_seed=7, stiff=0.7, lift=(1.0, 1.16),
-                   imp=dict(gain=1.38)),
+                   imp=dict(gain=1.38, relief=0.3, lit=0.25, sat=1.05)),
     "cypress": dict(shape="cypress", atlas=dict(leaf="sprig", base=("#1f3a1f", "#2f4e28"), sat=0.45, gain=1.48,
                                                 tint=(1.04, 1.0, 1.04), ball_leaf=(0.05, 0.08), ball_leaves=1500),
                     bark=[("", ("#3e2e21", "#4a3626"))], atlas_seed=3, stiff=0.75,
-                    core=dict(axis=5.5, shrink=0.85, bright=1.0), imp=dict(gain=1.06, tint=(0.98, 1.0, 1.12))),
+                    core=dict(axis=5.5, shrink=0.85, bright=1.0), imp=dict(gain=1.09, tint=(0.98, 1.0, 1.12))),
     "palm": dict(shape="palm", atlas=dict(leaf="frond", base=("#3f7a2a", "#6f9a38"), sat=0.85, gain=0.83,
                                           tint=(1.0, 1.0, 1.06)),
                  # AS3R (art review M8): a darker trunk (the light, warm pole stayed visible in the fog and at night)
                  # and a 512 px impostor (the thin fronds got lost at 256 px)
                  bark=[("", ("#4e4234", "#5f5141"))], atlas_seed=29, stiff=0.15,
-                 imp=dict(gain=1.72, tint=(1.04, 1.0, 1.6), px=512)),
+                 imp=dict(gain=1.42, tint=(1.04, 1.0, 1.6), px=512)),
 }
 
 
@@ -146,13 +146,13 @@ def _spec(name):
 # (its dark hole at 100 m); the leaf balls are more saturated with fewer pale highlights (sheen).
 BUSHES = {
     "bush_round": dict(atlas=dict(leaf="ovate", base=("#3f6b28", "#5f8a33"), sat=0.72, gain=1.13, tint=(1.0, 1.0, 1.12),
-                                  sheen=0.07),
-                       atlas_seed=13, merge=14),
+                                  sheen=0.07, contrast=0.2),
+                       atlas_seed=13, merge=15, lift=(1.0, 1.27)),
     "bush_low": dict(atlas=dict(leaf="ovate", base=("#466f2c", "#6a9037"), sat=0.72, gain=1.07, tint=(1.0, 1.0, 1.12),
-                                sheen=0.07),
-                     atlas_seed=17, merge=14),
+                                sheen=0.07, contrast=0.2),
+                     atlas_seed=17, merge=15),
     "cover_bush": dict(atlas=dict(leaf="ovate", base=("#466f2c", "#6a9037"), sat=0.72, gain=1.07, tint=(1.0, 1.0, 1.12),
-                                  sheen=0.07),
+                                  sheen=0.07, contrast=0.2),
                        atlas_seed=19),
     # AS3: heather - the generator's pink and green tufts (props_nature.SHAPE_LOG "heather"), fine sprigs; the pink
     # ones densely set with blossoms
@@ -161,7 +161,7 @@ BUSHES = {
                     flowers=dict(leaf="sprig", base=("#634470", "#80548e"), flower=("#9658a8", "#a466b6", "#b47ac6"),
                                  flower_share=0.9, sat=0.9, gain=0.92, ball_leaf=(0.06, 0.09), ball_leaves=1100),
                     atlas_seed=47, levels=(((1, 6), (1, 5, 10)), ((1, 3), (1, 5))), tris=(396, 118), sway=0.25,
-                    rims=False, core_subdiv=(0, 0), lift=(1.0, 1.1)),
+                    rims=False, core_subdiv=(0, 0), lift=(1.0, 1.16)),
 }
 # AS3: darker blades with more contrast and more of them - at 15 m the tufts of wave 2 read as one light-green spot
 GRASS = dict(colors=("#3f5c22", "#4f6d28", "#5e7a2f", "#38521f", "#6b8236"), shade="#1a2614", tip="#86964a",
@@ -575,59 +575,51 @@ def _dome_frames(exp, bc, br, bz, centre, sp, cap):
     return frames
 
 
-def _rim_n_cap(r, sp):
-    """Most rim vertices for a dome of radius r: about one per RIM_SEG_M of its girth, even, within sp rim_n."""
-    lo, hi = sp.get("rim_n", (6, 16))
-    n = int(round(2.0 * math.pi * r / sp.get("rim_seg_m", 0.42) / 2.0)) * 2
-    return max(lo, min(hi, n))
-
-
 def _rim_plan(frames, br, budget0, budget1, sp):
-    """Ring patterns of every dome in lod0 and lod1 with ONE rim per dome (AS3R, art review M6: at the swap the
-    leaf pattern jumped because lod1 had other rims). The rim (vertex count, jitter, texture placement) is the same
-    in both levels; lod1 is the fan (1, n) inside it, lod0 the dome (1, n/2, n) refined by rings of n before the
-    rim. Rims start at sp rim_n[0] and grow by 2 in the order of `prio` while lod1's budget allows; lod0 is refined
-    in the same order. Domes that do not fit into lod1 even at the smallest rim keep (1, n/2, n) in lod0 only (the
-    least important ones, mostly covered). Returns ({frame: rings} lod0, {frame: rings} lod1)."""
+    """Ring patterns of every dome in lod0 and lod1 (AS3R, art review M3/M6). lod0: every dome a frayed rim of
+    rim_n0 (12) vertices, (1, 6, 12), refined by a ring of 12 before the rim, (1, 6, 12, 12), in the order of `prio`
+    (visibility from the road) within lod0's budget. lod1 lies on the SAME rim: every second of its vertices (same
+    position, jitter, hang and texture placement), as (1, 3, 6) where lod1's budget allows (prio order), else as the
+    fan (1, 6). (A lod1 of plain fans over the whole rim was tried: the flat cones sink into the blob, the core shows
+    through - lod1 was 26 % darker, 15 % smaller and spiky, measured.) Over lod0's budget the least important domes
+    become fans of six, then go. Returns ({frame: {"rings", "src"}} lod0, same for lod1); src = rim count the rim
+    vertices come from."""
     order = sorted(range(len(frames)), key=lambda i: -frames[i]["prio"])
-    n_lo = sp.get("rim_n", (6, 16))[0]
-    n = {}
-    used1 = 0
-    for i in order:
-        if used1 + n_lo <= budget1:
-            n[i] = n_lo
-            used1 += n_lo
-    grow = True
-    while grow:
-        grow = False
-        for i in order:
-            if i in n and n[i] < _rim_n_cap(br[frames[i]["b"]], sp) and used1 + 2 <= budget1:
-                n[i] += 2
-                used1 += 2
-                grow = True
-    plan0, plan1 = {}, {}
-    used0 = 0
-    for i in order:
-        k = n.get(i, n_lo)
-        plan0[i] = (1, k // 2, k)
-        used0 += 2 * k
-        if i in n:
-            plan1[i] = (1, k)
-    # over lod0's budget (never seen so far): the least important domes go from both levels
+    n0 = int(sp.get("rim_n0", 12))
+    half = n0 // 2
+    c_base, c_fan, c_ring = 2 * n0, half, 2 * n0
+    plan0 = {i: {"rings": (1, half, n0), "src": n0} for i in order}
+    used0 = c_base * len(order)
     for i in reversed(order):
         if used0 <= budget0:
             break
-        used0 -= 2 * n.get(i, n_lo)
-        plan0.pop(i, None)
-        plan1.pop(i, None)
-    for _extra in range(int(sp.get("rings_extra", 2))):
+        plan0[i] = {"rings": (1, half), "src": n0}
+        used0 -= c_base - c_fan
+    for i in reversed(order):
+        if used0 <= budget0:
+            break
+        if i in plan0:
+            used0 -= c_fan if len(plan0[i]["rings"]) == 2 else c_base
+            plan0.pop(i)
+    for _extra in range(int(sp.get("rings_extra", 1))):
         for i in order:
-            if i not in plan0:
-                continue
-            k = plan0[i][-1]
-            if used0 + 2 * k <= budget0:
-                plan0[i] = plan0[i][:-1] + (k, k)
-                used0 += 2 * k
+            if i in plan0 and len(plan0[i]["rings"]) >= 3 and used0 + c_ring <= budget0:
+                r = plan0[i]["rings"]
+                plan0[i] = {"rings": r[:-1] + (n0, n0), "src": n0}
+                used0 += c_ring
+    plan1 = {}
+    used1 = 0
+    for i in order:
+        if i in plan0 and used1 + half <= budget1:
+            plan1[i] = {"rings": (1, half), "src": n0}
+            used1 += half
+    mid = half // 2
+    if mid >= 2 and half % mid == 0:
+        extra = mid + _pattern_tris((mid, half)) - half
+        for i in order:
+            if i in plan1 and used1 + extra <= budget1:
+                plan1[i] = {"rings": (1, mid, half), "src": n0}
+                used1 += extra
     return plan0, plan1
 
 
@@ -649,7 +641,11 @@ def _dome_cards(frames, plan, bc, br, bz, centre, ext, rects, seed, sp, blob_rec
     for fi, fr in enumerate(frames):
         if fi not in plan:
             continue
-        rings = plan[fi]
+        p_entry = plan[fi]
+        if isinstance(p_entry, dict):
+            rings, src = tuple(p_entry["rings"]), int(p_entry["src"])
+        else:
+            rings, src = tuple(p_entry), int(p_entry[-1])
         n_rings = len(rings)
         b = fr["b"]
         axis, e1, e2, theta = fr["axis"], fr["e1"], fr["e2"], fr["theta"]
@@ -663,10 +659,11 @@ def _dome_cards(frames, plan, bc, br, bz, centre, ext, rects, seed, sp, blob_rec
         cu, cv = (ua + ub) * 0.5, (va + vb) * 0.5
         ru, rv = (ub - ua) * 0.5 * 0.98, (vb - va) * 0.5 * 0.98
         ph = brng.random()
-        n_rim = rings[-1]
-        rim_turn = brng.uniform(0.0, 2.0 * math.pi / n_rim)
+        # the rim of `src` vertices (lod0's); a coarser level takes every step-th of them, unchanged
+        step = max(1, src // rings[-1])
+        rim_turn = brng.uniform(0.0, 2.0 * math.pi / src)
         rim = [(brng.uniform(-fray_a, fray_a), brng.uniform(-fray_r, fray_r),
-                brng.uniform(hang[0], hang[1]) if j % 2 else 0.0, brng.uniform(-0.04, 0.04)) for j in range(n_rim)]
+                brng.uniform(hang[0], hang[1]) if j % 2 else 0.0, brng.uniform(-0.04, 0.04)) for j in range(src)]
         irng = random.Random(seed * 104729 + b * 31 + n_rings)
         o0 = len(pos)
         offs = []
@@ -677,8 +674,9 @@ def _dome_cards(frames, plan, bc, br, bz, centre, ext, rects, seed, sp, blob_rec
             last = ri == n_rings - 1
             for j in range(n):
                 if last:
-                    ja, jr, jh, jp = rim[j]
-                    phi = 2.0 * math.pi * (j + ja) / n + rim_turn
+                    js = j * step
+                    ja, jr, jh, jp = rim[js]
+                    phi = 2.0 * math.pi * (js + ja) / src + rim_turn
                     out = 1.0 + sp["out"] + sp.get("rim_out", 0.04) + jr
                 elif ri == 0:
                     jh, jp, phi = 0.0, irng.uniform(-0.04, 0.04), 0.0
@@ -1360,7 +1358,7 @@ def _bush_core(bc, br, bz, centre, sp, li):
 SKIRT_TOP_M = 0.18       # bushes and heather: the core's skirt starts this high ...
 SKIRT_M = 0.4            # ... and reaches this far below the ground (contract: base below 0 - on a slope no gap)
 BUSH_DEFAULTS = dict(sway=0.45, core_shrink=0.8, core_bright=0.78, core_subdiv=(0, 0), tris=(396, 118),
-                     caps=((48.0, 118.0), (48.0, 118.0)), lift=(1.0, 1.05), rims=False, vis_w=0.5,
+                     caps=((48.0, 118.0), (48.0, 118.0)), lift=(1.0, 1.05), vis_w=0.5,
                      levels=(((1, 6, 12), (1, 6, 12, 12)), ((1, 6), (1, 4, 8))),
                      crown_w=0.3, up_w=0.1, ao=(0.45, 1.0, 0.9), stiff=0.6, samples=40, out=0.03, z_floor=0.02)
 
@@ -1529,6 +1527,43 @@ def _relief(nor, sun):
     return IMPOSTOR_SKY * sky + (1.0 - IMPOSTOR_SKY) * s
 
 
+def _lit_blend(rig, flat, tmp, lit, samples):
+    """The impostor once more under the sprite rig's light (sky + sun with its shadows, Cycles; AS3R, art review M5:
+    the spruce's tiers only show through the shadow each tier casts on the one below), normalised to the mean of the
+    plain picture `flat` and blended into it by `lit` (0..1): the shadows come in, the mean (the gain measured
+    against lod1) stays. Every emission of the impostor materials becomes a diffuse surface of the same colour."""
+    import bpy
+    from PIL import Image
+    for mat in bpy.data.materials:
+        if not mat.name.startswith("imp_") or mat.node_tree is None:
+            continue
+        nt = mat.node_tree
+        for em in [n for n in nt.nodes if n.type == "EMISSION"]:
+            dif = nt.nodes.new("ShaderNodeBsdfDiffuse")
+            if em.inputs["Color"].links:
+                nt.links.new(em.inputs["Color"].links[0].from_socket, dif.inputs["Color"])
+            else:
+                dif.inputs["Color"].default_value = em.inputs["Color"].default_value
+            for link in list(em.outputs[0].links):
+                nt.links.new(dif.outputs[0], link.to_socket)
+    sc = rig.scene
+    sc.world = rig.world_sky
+    rig.sun.hide_render = False
+    sc.cycles.samples = max(samples, 32)
+    sc.cycles.max_bounces = 2
+    sc.cycles.diffuse_bounces = 1
+    path = os.path.join(tmp, "impostor_lit.png")
+    rig.render(path)
+    a = np.array(flat).astype(np.float64)
+    b = np.array(Image.open(path).convert("RGBA")).astype(np.float64)
+    m = a[:, :, 3] >= 128
+    w = np.array([0.2126, 0.7152, 0.0722])
+    k = float((a[m][:, :3] @ w).mean()) / max(1e-3, float((b[m][:, :3] @ w).mean()))
+    out = a.copy()
+    out[:, :, :3] = np.clip(a[:, :, :3] * (1.0 - lit) + b[:, :, :3] * k * lit, 0.0, 255.0)
+    return Image.fromarray(np.round(out).astype(np.uint8), "RGBA")
+
+
 def render_impostor(mb, atlas_img, ref_lo, ref_hi, imp=None, px=IMPOSTOR_PX, samples=16):
     """Picture of the card tree seen from the road (orthographic): the albedo of leaves and wood with the corner
     brightness and a soft sky shading (a part `sky` of the light comes regardless of the normal, the rest grows
@@ -1590,7 +1625,11 @@ def render_impostor(mb, atlas_img, ref_lo, ref_hi, imp=None, px=IMPOSTOR_PX, sam
         k_up = (1.0 - sky) * 0.5
         shade = nb.math("MULTIPLY_ADD", sep.outputs[2], k_up * gain, (sky + k_up) * gain)
         if relief > 0.0:
-            shade = nb.mul(shade, relief_of(nb, geo.outputs["Normal"]))
+            # the model's own shading normal (attribute ce_nrm): Cycles turns the normal of a face seen from its
+            # back towards the camera - a card seen from behind would get the light of its other side
+            att_n = nb.node("ShaderNodeAttribute")
+            att_n.attribute_name = "ce_nrm"
+            shade = nb.mul(shade, relief_of(nb, att_n.outputs["Vector"]))
         em = nb.node("ShaderNodeEmission")
         if textured:
             tex = nb.node("ShaderNodeTexImage")
@@ -1637,6 +1676,9 @@ def render_impostor(mb, atlas_img, ref_lo, ref_hi, imp=None, px=IMPOSTOR_PX, sam
             col[:, :, :3] = core.srgb_to_lin(col[:, :, :3])     # vertex colours are sRGB bytes
         ca = me.color_attributes.new("ce_col", "FLOAT_COLOR", "CORNER")
         ca.data.foreach_set("color", col.reshape(-1).astype(np.float32))
+        nrm4 = np.concatenate([nor.reshape(-1, 3), np.ones((nor.reshape(-1, 3).shape[0], 1))], axis=1)
+        na = me.color_attributes.new("ce_nrm", "FLOAT_COLOR", "CORNER")
+        na.data.foreach_set("color", nrm4.reshape(-1).astype(np.float32))
         for p in me.polygons:
             p.use_smooth = True
         me.normals_split_custom_set(nor.reshape(-1, 3).tolist())
@@ -1671,6 +1713,9 @@ def render_impostor(mb, atlas_img, ref_lo, ref_hi, imp=None, px=IMPOSTOR_PX, sam
     rig.render(path)
     from PIL import Image
     im = Image.open(path).convert("RGBA")
+    lit = float(imp.get("lit", 0.0))
+    if lit > 0.0:
+        im = _lit_blend(rig, im, tmp, lit, samples)
     if imp.get("halo", True):
         im = leafatlas.halo(im, alpha=IMPOSTOR_HALO, px=2, scissor=0.5)
     im = leafatlas.bleed(im, steps=8)

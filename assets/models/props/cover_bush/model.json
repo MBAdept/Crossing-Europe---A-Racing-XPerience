@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 200,
-    "tris": 114,
+    "tris": 116,
     "parts": [
      {
       "node": "body",
@@ -37,8 +37,8 @@
   "cards": {"lod0": 9, "lod1": 9},
   "auto_lod": false,
   "tags": ["prop", "plant", "ground_cover", "ground_align"],
-  "bytes": 445986,
-  "hash": "698b575e4c6d94aa87d66009ea42290cd75036f3"
+  "bytes": 449717,
+  "hash": "a7b4e748e2195a8f4f026e128905802156991562"
  },
  "sets": {
   "props/cover_bush": {"model": "props/cover_bush", "modern_only": true}

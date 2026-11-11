@@ -37,8 +37,8 @@
   "cards": {"lod0": 30, "lod1": 30},
   "auto_lod": false,
   "tags": ["prop", "plant", "ground_align"],
-  "bytes": 468796,
-  "hash": "f44604ed1829169cf079171e292d75807ce05051"
+  "bytes": 468785,
+  "hash": "4902374892c2f14d2345224d0a79400960cc65e5"
  },
  "sets": {
   "props/heather": {"model": "props/heather"}

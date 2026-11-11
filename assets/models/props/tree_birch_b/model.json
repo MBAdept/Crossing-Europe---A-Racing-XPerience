@@ -6,12 +6,12 @@
   "kind": "tree",
   "object": {"width_m": 5.2, "height_m": 12.8},
   "extent_m": {"left": 2.41, "right": 3.27},
-  "aabb": [-2.414, -0.575, -2.582, 3.266, 12.586, 3.014],
+  "aabb": [-2.414, -0.575, -2.582, 3.266, 12.68, 3.014],
   "lods": [
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 2477,
+    "tris": 2465,
     "parts": [
      {
       "node": "body",
@@ -44,8 +44,8 @@
   "cards": {"lod0": 34, "lod1": 34},
   "auto_lod": false,
   "tags": ["prop", "tree"],
-  "bytes": 174209,
-  "hash": "088ae77cf17ef53e11e001ef288ec40f5b4361ce"
+  "bytes": 174748,
+  "hash": "2aeb35656b427cbeaf5c72b819f3a7e0e35ecf04"
  },
  "sets": {}
 }

@@ -6,12 +6,12 @@
   "kind": "tree",
   "object": {"width_m": 9.5, "height_m": 15.5},
   "extent_m": {"left": 5.06, "right": 5.51},
-  "aabb": [-5.101, -0.55, -5.228, 5.506, 15.554, 4.668],
+  "aabb": [-5.115, -0.55, -5.252, 5.506, 15.554, 4.668],
   "lods": [
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 2467,
+    "tris": 2459,
     "parts": [
      {
       "node": "body",
@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 200,
-    "tris": 890,
+    "tris": 870,
     "parts": [
      {
       "node": "body",
@@ -43,8 +43,8 @@
   "cards": {"lod0": 62, "lod1": 62},
   "auto_lod": false,
   "tags": ["prop", "tree"],
-  "bytes": 2060130,
-  "hash": "8d12d068576599ff30156c82dc13dc4e064961a9"
+  "bytes": 2054830,
+  "hash": "30e712e7f4b1d68bb5866de3a2b085d13a0f3faa"
  },
  "sets": {
   "props/tree_beech": {

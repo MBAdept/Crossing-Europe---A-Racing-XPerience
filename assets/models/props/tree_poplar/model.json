@@ -6,12 +6,12 @@
   "kind": "tree",
   "object": {"width_m": 4, "height_m": 21.8},
   "extent_m": {"left": 2.18, "right": 2.64},
-  "aabb": [-2.182, -0.55, -2.565, 2.825, 20.97, 2.544],
+  "aabb": [-2.253, -0.55, -2.565, 2.824, 20.97, 2.544],
   "lods": [
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 2478,
+    "tris": 2462,
     "parts": [
      {
       "node": "body",
@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 200,
-    "tris": 890,
+    "tris": 886,
     "parts": [
      {
       "node": "body",
@@ -43,8 +43,8 @@
   "cards": {"lod0": 82, "lod1": 82},
   "auto_lod": false,
   "tags": ["prop", "tree"],
-  "bytes": 2030190,
-  "hash": "678be8e0df5c77397e3d16558ea6f7671532da7f"
+  "bytes": 2027981,
+  "hash": "88e1ce58f11aaf25d5aa4f1581710815dec2f801"
  },
  "sets": {
   "props/tree_poplar": {
