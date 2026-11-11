@@ -55,7 +55,10 @@ BELLS_A = [
     "0:6:E5 6:6:G5 12:4:C6", "0:12:B5 12:4:G5", "0:6:F#5 6:6:A5 12:4:D6", "0:16:B5",
     "0:6:E5 6:6:G5 12:4:C6", "0:12:D6 12:4:B5", "0:6:A5 6:6:C6 12:4:E6", "0:8:D#6 8:8:F#5",
 ]
-SOFT_T = ["0:12:C5 12:4:E5", "0:8:D#5 8:8:F#5"]
+# the turnaround's line ends 0.75 s before the loop point: a synth phrase is rendered 0.6 s past its last note, and
+# the length of that buffer (int of a float time span) can differ by one frame between the two passes – it must end
+# before the loop starts, or the seam differs there by one frame (-67 dBFS, measured)
+SOFT_T = ["0:12:C5 12:4:E5", "0:8:D#5 8:3:F#5"]
 COLOUR = {"Em": "Em9", "C": "Cmaj7", "G": "Gadd9", "D": "D", "Am": "Am7", "B": "B7"}
 CLEAN_CELL = (0, 2, 3, 1, 2, 3, 1, 2)       # eighths over root, third, fifth, top
 

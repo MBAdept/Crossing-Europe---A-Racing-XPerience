@@ -177,6 +177,20 @@ class Timeline:
         return y
 
 
+PHRASE_END_FADE_S = 0.06
+
+
+def phrase_end(y: np.ndarray) -> np.ndarray:
+    """The last 60 ms of a synth phrase faded out. music_synth.synth_lead renders 0.6 s past the last note and cuts
+    there – with the patch "soft" (release 0.16 s) its tail is still 34 dB under the phrase's peak at the cut (measured):
+    a faint click in quiet passages. The fade takes it to zero (the patch "lead" is at -63 dB there anyway)."""
+    m = min(len(y), int(PHRASE_END_FADE_S * SR))
+    y = np.array(y)
+    w = 0.5 + 0.5 * np.cos(np.linspace(0.0, np.pi, m))
+    y[-m:] *= w if y.ndim == 1 else w[:, None]
+    return y
+
+
 def auto_gain(rules: dict | None, tl: Timeline, n: int) -> np.ndarray | None:
     """Section automation (dB) of a track group: kind -> dB or (kind, first bar, last bar) -> dB; 60 ms ramps."""
     if not rules:
@@ -357,11 +371,11 @@ def render(comp, tl: Timeline, n: int, sp: dict, seed: str, ref: dict | None = N
                 continue
             notes = ms.phrase(lines, i0 + j0, tr)
             tt, y = ms.synth_lead(notes, patch, f"{seed}:{pid}:{j0}:{track}", vel)
-            (harm if track.startswith("harm_syn") else lead).place(tl.cut_at_gap(y, tt, i0 + j0), tt, 1.0)
+            (harm if track.startswith("harm_syn") else lead).place(tl.cut_at_gap(phrase_end(y), tt, i0 + j0), tt, 1.0)
             if track.endswith("+wide"):
                 for ch, pt in ((0, "super_l"), (1, "super_r")):
                     tw, yw = ms.synth_lead(notes, pt, f"{seed}:{pid}:{j0}:wide{ch}", vel)
-                    wide.place_channel(tl.cut_at_gap(yw, tw, i0 + j0), tw, ch)
+                    wide.place_channel(tl.cut_at_gap(phrase_end(yw), tw, i0 + j0), tw, ch)
     add("lead_syn", lead)
     add("lead_wide", wide)
     add("harm_syn", harm)

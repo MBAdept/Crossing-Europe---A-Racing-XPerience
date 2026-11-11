@@ -169,16 +169,19 @@ def check_extras(piece: str, bpm: float, key: dict, ending: tuple) -> dict:
             if ww is not None and _root(g) != mlib.chord_root_pc(ww):
                 res["ok"] = False
                 res["misses"].append(f"{k}[{i}]: Partitur {ww}, gehört {g}")
-    # the stingers sound over the running piece: their key (all bars of the clip) is the minor tonic of the piece
+    # the stingers sound over the running piece: "busted" is in the minor key of the piece (key over its three bars);
+    # "out of fuel" lands on the minor tonic (its last note bends down an octave and smears a key estimate)
     minor = mlib.NOTE_NAMES[mlib.chord_root_pc(Tm)] + "-Moll"
-    for k, nb in (("polizei", 3), ("tank", 2)):
-        x = _read(f(k))
-        _c, chs = _chords(x, [i * bar for i in range(nb)], bar)
-        kk = _minor(mlib.key_of(chs.sum(axis=0)))
-        res["clips"][k] = res["clips"][k] + [f"Tonart {kk}"]
-        if kk != minor:
-            res["ok"] = False
-            res["misses"].append(f"{k}: Tonart {kk} statt {minor}")
+    x = _read(f("polizei"))
+    _c, chs = _chords(x, [i * bar for i in range(3)], bar)
+    kk = _minor(mlib.key_of(chs.sum(axis=0)))
+    res["clips"]["polizei"] = res["clips"]["polizei"] + [f"Tonart {kk}"]
+    if kk != minor:
+        res["ok"] = False
+        res["misses"].append(f"polizei: Tonart {kk} statt {minor}")
+    if _root(got["tank"][0]) != mlib.chord_root_pc(Tm):
+        res["ok"] = False
+        res["misses"].append(f"tank: Schlussakkord {got['tank'][0]} statt {Tm}")
     # the finale ends in major: its last chord is a major triad (no "m")
     fin = got["schluss_finale"][-1]
     res["finale_major"] = bool(fin) and not fin.endswith("m")
