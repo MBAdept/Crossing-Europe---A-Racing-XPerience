@@ -211,7 +211,7 @@ class Tris:
                 lo, hi = pts.min(axis=0), pts.max(axis=0)
                 hit |= (u1 >= lo[0]) & (u0 <= hi[0]) & (v1 >= lo[1]) & (v0 <= hi[1])
             return hit
-        if cut and not os.environ.get("CE_NOSPLIT"):
+        if cut:
             # every triangle under a decal on one side of its face test (see split_level)
             for thr in sorted({float(it["n_min"]) for it in items}):
                 sel = [k for k, it in enumerate(items) if float(it["n_min"]) == thr]
