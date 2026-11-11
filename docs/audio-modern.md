@@ -20,6 +20,10 @@ anderes dasteht) oder als **abgeleitet** gekennzeichnet.
   `AudioManager` und aneinander müssen sie dafür nichts ändern.
 - Unter `assets/audio/modern/` liegt je Ordner eine kleine erzeugte **Platzhalter-Datei** mit Manifest. Sie belegt
   Format, Import und Prüfwerkzeug; im Spiel klingt nie ein Platzhalter (Abschnitt 9).
+- **Seit AU-B (Welle 2)** sind die Bausteine `engine` und `layers` keine Platzhalter mehr: Motor v3 mit eigenen
+  Stereobanken, einem Mischer-Thread und nativ gemischten Fahrzeugebenen – beschrieben in
+  [motorsound.md](motorsound.md), Abschnitt 6. `levels.MSfx` steht seitdem auf 0 dB (Abschnitt 6.1). Für die
+  übrigen Bausteine gilt die Liste weiter.
 - Niemand schaltet das Profil bisher im Spiel um: Die Einstellung „Klang“ und der Aufruf
   `AudioManager.set_profile(Settings.sound())` kommen mit Welle 2 (UI1). Bis dahin wählt man Modern mit
   `--sound=modern` oder `audio.profile` (Abschnitt 2).
@@ -108,8 +112,8 @@ Inhalt der Datei und behält beides.
 | Baustein | Datei · Klasse | Busse | Platzhalter in Welle 0 | ersetzt durch |
 |---|---|---|---|---|
 | `env` | `env_acoustics.gd` · `EnvAcoustics` | Effekte auf `MEnv` | heutiger Raumklang: zwei frühe Reflexionen, Tunnelhall (`RoomAudio` nur als Rechenmodell) | AU-C2 |
-| `engine` | `engine_audio3.gd` · `EngineAudio3` | `MEngine` | Arcade-Zyklenbank über die unveränderten Klassen `EngineAudio` / `EngineBank` / `EngineGearbox`, im Hauptthread, mit dem Breiten-Hall des Arcade-Motorbusses | AU-B |
-| `layers` | `vehicle_layers.gd` · `VehicleLayers` | `MEngineFx` | still (die Arcade-Bank trägt ihr Turbopfeifen selbst) | AU-B |
+| `engine` | `engine_audio3.gd` · `EngineAudio3` | `MEngine` | Arcade-Zyklenbank über die unveränderten Klassen `EngineAudio` / `EngineBank` / `EngineGearbox`, im Hauptthread, mit dem Breiten-Hall des Arcade-Motorbusses | AU-B – **erledigt**: Motor v3 (Stereobank `EngineBank2`, Mischer-Thread `EngineMixThread`, kein Hall auf dem Bus; [motorsound.md](motorsound.md) 6) |
+| `layers` | `vehicle_layers.gd` · `VehicleLayers` | `MEngineFx` | still (die Arcade-Bank trägt ihr Turbopfeifen selbst) | AU-B – **erledigt**: Lader, Antriebsheulen, Gasannahme, Lastwechselschlag, Schubumluft |
 | `road` | `road_audio.gd` · `RoadAudio` | `MRoad`, `MWind` | Wind und Reifenquietschen mit den Arcade-Formeln | AU-C1 |
 | `impact` | `impact_audio.gd` · `ImpactAudio` | `MImpact` | `crash` und `rail` als Einmalklänge mit den Arcade-Pegeln | AU-C1 |
 | `ambience` | `ambience_audio.gd` · `AmbienceAudio` | `MAmb` | Regenschleife | AU-C2 |
@@ -119,7 +123,8 @@ Inhalt der Datei und behält beides.
 
 Reihenfolge je Bild (`ModernAudio.SLOTS`): `env`, `engine`, `layers`, `road`, `impact`, `ambience`, `traffic`,
 `music`, `sfx`. Nach dem Motor steht dessen Zustand als `frame.engine` (`rpm`, `gear`, `load`, `boost`) für die
-folgenden Bausteine bereit.
+folgenden Bausteine bereit – mit dem Motor v3 zusätzlich `shaft` (Laderdrehzahl 0…1), `limiter`, `shifting`,
+`throttle` und Zähler, die nur wachsen (`upshifts`, `downshifts`, `blowoffs` mit `blowoff_level`, `starts`).
 
 Haken (`scripts/audio/modern/modern_audio_module.gd`; was ein Baustein nicht braucht, lässt er weg):
 
@@ -225,8 +230,26 @@ setzt `levels.MSfx` neu**, sobald der Motor v3 seine eigenen Pegel mitbringt. Di
 gemessen); für das ganze Stück ergibt die Kette −20,2 LUFS (abgeleitet: −14,1 − 1,0 Kontext − 3,1 Regler
 − 1,9 Gesamtlautstärke).
 
-Pegelkette mit einem Messton (gemessen in `check_modern_audio.gd --live`): 1 kHz mit −23,0 dB Effektivwert über
-`MUI` kommt mit −26,05 dB am Master an (Plan −26,01), über `MMusic` mit −26,11 dB (Plan −26,11).
+**Mit dem Motor v3 (AU-B, Welle 2)** steht `levels.MSfx` auf 0 dB; die Banken bringen ihren Pegel mit. Dieselbe
+Aufnahme für alle fünf Autos (gemessen, Einzelheiten und die Arcade-Werte je Auto in
+[motorsound.md](motorsound.md) 6.6):
+
+| Abschnitt | Kompakt | Kombi | Limousine | Sportwagen | Gran Turismo | Plan |
+|---|---|---|---|---|---|---|
+| Vollgas durch die Gänge | −16,0 | −16,1 | −17,1 | −16,3 | −16,2 | −16 ± 1,5 |
+| … Kurzzeit höchstens / Median | −14,8 / −16,0 | −15,1 / −16,0 | −16,2 / −17,2 | −15,1 / −16,6 | −15,5 / −16,2 | |
+| Höchsttempo | −16,6 | −15,8 | −15,0 | −16,2 | −15,3 | −16 |
+| Leerlauf | −23,9 | −25,1 | −24,2 | −24,2 | −23,5 | ≈ −24 |
+| 130 km/h | −21,9 | −21,5 | −21,6 | −20,9 | −22,3 | ≈ −21 |
+| True Peak | −6,1 | −6,0 | −6,5 | −5,9 | −6,1 dBTP | ≤ −1 |
+
+Leerlauf und Reisetempo sind gegen den Wind des Platzhalter-Bausteins `road` abgestimmt; mit Fahrbahn und Wind
+von AU-C1 ändert sich die Summe.
+
+Pegelkette mit einem Messton (gemessen in `check_modern_audio.gd --live` in Welle 0, also mit `MSfx` auf −3 dB):
+1 kHz mit −23,0 dB Effektivwert über `MUI` kommt mit −26,05 dB am Master an (Plan −26,01), über `MMusic` mit
+−26,11 dB (Plan −26,11). Mit `MSfx` auf 0 dB liegt der Weg über `MUI` 3 dB höher (abgeleitet; die Prüfung
+rechnet ihren Plan aus der Konfiguration und besteht weiter), der über `MMusic` ist unverändert.
 
 ### 6.2 Ducking der Musik unter dem Auto
 
@@ -462,11 +485,31 @@ Fahrt; mit `--placeholders` das Platzhalter-Stück); `--mute-bus=MEnv` lässt nu
     übersprang jedes Bild dort mehr als 0,35 s Spielzeit (Falle 10), und das Szenario scheiterte in jedem frei
     laufenden Lauf. Gemessen nach der Korrektur: 7 von 7 Läufen unter Xvfb bestehen (frei laufend mit `--live` 3,
     ohne 2, mit `--fixed-fps 60` je 1).
+13. **Naht einer `AudioStreamWAV`-Schleife, die mit ihren Daten endet** (AU-B): Liegt `loop_end` am Ende der
+    Daten, spielt Godot an jeder Naht einen Abtastwert, der nicht aus der Schleife stammt. Gemessen mit einer
+    Schleife aus dem konstanten Wert 0,5: an jeder Naht ein Frame nahe 0, bei Tonhöhe 1 und 0,77; mit 16 Frames
+    Fortsetzung hinter `loop_end` (die ersten Frames der Schleife noch einmal) keiner, und ein Sinus läuft dann
+    bei Tonhöhe 0,77 / 1 / 1,63 ohne Knick durch. Der falsche Wert ist von Lauf zu Lauf nicht gleich: Zwei
+    Movie-Maker-Läufe mit `--audio-sync` unterschieden sich deshalb an 49 Abtastwerten – mit der Fortsetzung sind
+    sie gleich. Hörbar ist das bei Schleifen, deren Signal an der Naht nicht nahe 0 ist (tonale Schleifen).
+    `engine_synth3.py` schreibt die Fortsetzung (`LOOP_GUARD`); für die übrigen Schleifen siehe Abschnitt 13.
+14. **Meldungen am Prozessende** (AU-B): Endet ein Prozess, während irgendein `AudioStreamPlayer` spielt, schreibt
+    Godot „ObjectDB instances were leaked at exit“ und „resources still in use at exit“ – auch mit einem einzigen
+    Player ohne jeden Modern-Code (nachgestellt; mit `stop()` vor `quit()` bleibt es still). Prüfungen, die bei
+    laufendem Klang enden, übergehen genau diese beiden Hinweise (`test_engine3_checks.gd`).
+15. **Ein langes Bild sieht aus wie ein Sitzungsende** (zu Falle 10): Nach einem Hänger von mehr als 0,35 s ist
+    `frame.alive` ein Bild lang falsch. Ein Baustein, der durch Hänger hindurch spielen soll, braucht dafür eine
+    eigene Regel – der Motor und die Fahrzeugebenen nehmen `EngineAudio3.driven()` (ein Bild ≥ 0,25 s nach einem
+    gefahrenen Bild, keine Pause, zählt noch).
+16. **Der Dummy-Treiber holt Blöcke von etwa 93 ms**: Ein Generator, der mit 50 ms Vorlauf startet, läuft beim
+    ersten Block leer, und ein Vorlauf, der sich erst an den Blöcken hochtastet, noch einige Male (gemessen 30–34
+    Aussetzer am Start, alle in der ersten Sekunde). `EngineMixThread` rendert den ersten Vorlauf vor `play()`,
+    merkt sich die Blockgröße für den Prozess und hält einen Block plus Reserve: 0 Aussetzer.
 
 ## 12. Prüfungen
 
 `tests/unit/audio_modern/` (laufen mit `tools/run_tests.sh`, allein mit `tools/run_tests.sh audio_modern`,
-57 Tests, gemessen 46 s):
+83 Tests, gemessen 87 s – vor AU-B 57 Tests und 46 s):
 
 | Datei | prüft |
 |---|---|
@@ -477,6 +520,7 @@ Fahrt; mit `--placeholders` das Platzhalter-Stück); `--mute-bus=MEnv` lässt nu
 | `test_audio_feed.gd` | Oberflächen je Seite, Zonen, Bauwerke, Fugen, Vorbeifahrten, Sprünge, „nur lesen“ |
 | `test_modern_audio.gd` | `ModernAudio` ohne Szenenbaum: Lebenszyklus, Frame-Semantik, Einmalklänge und Ereignisse (50 ms), Mischung, Musik-Kontexte, Stummschaltung |
 | `test_modern_checks.gd` | startet `check_modern_audio.gd` zweimal (ohne und mit Wiedergabe) und `check_arcade_lean.gd` als eigene Prozesse |
+| `test_engine3_bank.gd`, `test_engine3_mix.gd`, `test_engine3_slot.gd`, `test_engine3_checks.gd` | Motor v3 (AU-B): Bank-Lader, Mischer (Knackser an den Zyklusgrenzen, Leistung beim Überblenden, Kanalabgleich, Monosumme), Baustein und Fahrzeugebenen, `check_engine3.gd` als eigene Prozesse (Thread-Bank mit sechs Hängern von 400 ms, Profilwechsel, Beenden) – [motorsound.md](motorsound.md) 6.7 |
 
 `check_modern_audio.gd` prüft im laufenden Spiel: Start mit Arcade und Busliste wie in v0.7.0 · die neue API tut
 mit Arcade nichts · 22 Modern-Busse hinter den vorhandenen · **20 × Profilwechsel** ohne zusätzlichen Knoten oder
@@ -505,7 +549,22 @@ Die Fingerabdrücke sind für eine Maschine und einen Engine-Stand exakt. Nach e
 - **Attract-Modus**: Er schaltet die Arcade-Busse stumm; Modern folgt dem über den Zustand von `SFX`
   (Abschnitt 6.6). `tests/race/check_attract.gd` schaut auf den Arcade-Musikplayer und passt mit dem Profil Modern
   noch nicht (UI2 / AU-E).
-- **Motor-Thread** (D27): `audio.modern.engine_thread` und `--audio-sync` werden gelesen (`ctx.sync`); der
-  Thread-Mischer selbst ist AU-B. Der Platzhalter-Motor mischt im Hauptthread.
-- **Pegel**: `levels.MSfx`, die Mischzustände, `duck.*` und `context_db` sind Startwerte; AU-B (Motor), AU-C1/C2
-  (Fahrbahn, Welt) und AU-E (Gesamtabstimmung, Movie-Maker-Szenarien) stimmen sie ab.
+- **Motor-Thread** (D27): erledigt mit AU-B – der Motor v3 mischt in einem eigenen Thread, synchron mit
+  `--audio-sync` oder `audio.modern.engine_thread = false` ([motorsound.md](motorsound.md) 6.3).
+- **Pegel**: Der Motor bringt seine Pegel mit, `levels.MSfx` steht auf 0 dB (Abschnitt 6.1). Die Mischzustände,
+  `duck.*` und `context_db` sind Startwerte; AU-C1/C2 (Fahrbahn, Welt) und AU-E (Gesamtabstimmung,
+  Movie-Maker-Szenarien) stimmen sie ab. Mit `MSfx` auf 0 dB spielt alles Übrige unter `MSfx` 3 dB lauter als in
+  Welle 0 (Wind, Reifen, Kollisionen, Verkehr, Ambiente, Menü- und Countdown-Klänge) – diese Platzhalter waren
+  gegen den alten Wert nie abgestimmt; ihr Verhältnis zum Motor ist Sache der genannten Pakete.
+- **Schleifen ohne Fortsetzung** (Falle 13): Die Platzhalter-Schleifen (`make_placeholders.py`) und jede künftige
+  WAV-Schleife von AU-C1/C2 brauchen Frames hinter `loop_end`, sonst knackt die Naht leise und `--audio-sync` ist
+  nicht reproduzierbar. Am saubersten in `modern_lib.py` (eine Stelle für alle Generatoren) und als Regel in
+  `audio_qc.py` („hinter dem Schleifenende liegen Daten“). Für die Schleifen, die der eingefrorene Arcade-Code
+  zur Laufzeit baut, ist das nicht untersucht.
+- **`modern_lib.write_wav_import()` / `write_ogg_import()` verlieren den Kopf der `.import`-Datei**: Sie öffnen
+  die Datei zum Schreiben, bevor `_import_head()` sie liest. Nach jedem erneuten Erzeugen fehlen uid und
+  Importpfad, und das Spiel meldet „Failed loading resource“, bis `godot --import` gelaufen ist (dann mit neuer
+  uid). `engine_synth3.py` umgeht das mit `write_wav_import_keep()`; die Korrektur gehört in `modern_lib.py`.
+- **Breite des Motors**: Der Motor v3 ist trocken; bei Kompakt, Kombi und Limousine sitzt er in der Mitte
+  (Kanalkorrelation im Spiel 0,97–1,00, der Arcade-Motor mit seinem Hall 0,80–0,99). Raum und Breite sind Sache
+  von `env` (AU-C2) – siehe [motorsound.md](motorsound.md) 6.9.
