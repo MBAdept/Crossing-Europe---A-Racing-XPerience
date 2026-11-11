@@ -254,12 +254,18 @@ func _layer_script(id: String) -> String:
 ## renderer unhealthy ("script:builders/<name>.gd").
 func _create_builders() -> Array[ChunkBuilder]:
 	var out := BuilderRegistry.create_all()
+	var ids: Array[String] = []
+	for b: ChunkBuilder in out:
+		ids.append(b.id())
 	for n: String in BuilderRegistry.existing_builders():
-		var found := false
-		for b: ChunkBuilder in out:
-			found = found or b.id() == n
-		if not found and _fail == "":
+		if not ids.has(n) and _fail == "":
 			_fail = "script:builders/%s.gd" % n
+	if not ids.has("terrain") and not ids.has(BuilderRegistry.DEBUG_ROAD):
+		# the road is there, the terrain is not (yet): the debug road stands in with its ribbon alone
+		var ribbon := BuilderRegistry.create(BuilderRegistry.DEBUG_ROAD)
+		if ribbon != null:
+			ribbon.set("road_strips", false)
+			out.append(ribbon)
 	return out
 
 

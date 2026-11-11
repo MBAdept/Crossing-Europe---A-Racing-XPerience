@@ -1,25 +1,29 @@
-// Modern: analytical light pools of the road and terrain materials (contract D8, §4.5.6, amendment A-7) –
-// first version. The light of street, tunnel and canopy lamps and of the traffic's headlights on the ground is
-// not a real light but a sum in the shader of the ground itself: at most 22 pools (16 lamps + 6 traffic cones).
+// Modern: analytical light pools of the road and terrain materials (contract D8, §4.5.6, amendment A-7).
+// The light of street, tunnel and canopy lamps and of the traffic's headlights on the ground is not a real light
+// but a sum in the shader of the ground itself: at most 22 pools (16 lamps + 6 traffic cones).
 //
 // Use:   #include "res://assets/shaders/modern/inc/pools.gdshaderinc"
 //        varying vec3 v_world;                    // origin-relative world position
 //        void vertex()   { v_world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
 //        void fragment() { ALBEDO = …; EMISSION = ce_pools_emission(ALBEDO, v_world); }
 // A material whose shader includes this file is registered with ModernRenderer.add_pool_material(); the layer
-// "lights" then sets the three uniforms on it once per frame (ModernRenderer.pool_materials()). Without that
-// layer pool_count stays 0 and ce_pools() returns black.
+// "lights" then sets the uniforms on it once per frame (ModernRenderer.pool_materials()). Without that layer
+// pool_count stays 0 and ce_pools() returns black. (The player's own low beam on the ground is a separate file,
+// inc/headlight.gdshaderinc.)
 //
-//   pool_pos_r[i]  xyz = centre of the pool on the ground, origin-relative world position (the space of
-//                  ModernRenderer.road_to_world() – it moves with the floating origin, so it is set every frame);
-//                  w = radius in metres (<= 0: the entry is skipped)
+//   pool_pos_r[i]  xyz = centre of the pool on the ground – for a cone: the nose of the car –, origin-relative
+//                  world position (the space of ModernRenderer.road_to_world() – it moves with the floating
+//                  origin, so it is set every frame); w = radius / reach in metres (<= 0: the entry is skipped)
 //   pool_col[i]    rgb = LINEAR light value at the centre (ModernMaterials.light_value(colour, energy));
-//                  a = kind – 0 lamp pool, 1 headlight pool of a traffic car. This version draws every kind as a
-//                  round pool; the layer "lights" may give kind 1 its own shape later.
+//                  a = kind – 0 lamp pool, 1 headlight cone of a traffic car
+//   pool_dir[i]    kind 1: xyz = unit vector the car points along (level). A zero vector draws the entry as a
+//                  round pool whatever its kind.
 //   pool_count     number of entries in use (0 .. 22)
-// Law of a pool (Arcade's lamp pools, RoadRenderer._light): e = 1 - d² / r², light = colour * e² inside the radius –
-// full at the centre, value and slope 0 at the radius, nothing beyond. d is the distance in space, so ground far
-// below the pool gets less.
+// Law of a lamp pool (Arcade's lamp pools, RoadRenderer._light): e = 1 - d² / r², light = colour * e² inside the
+// radius – full at the centre, value and slope 0 at the radius, nothing beyond. d is the distance in space, so
+// ground far below the pool gets less.
+// Law of a traffic cone (Arcade's kind-1 lights): dz = metres ahead of the nose, q = metres beside the axis divided
+// by 0.9 + 0.18 dz: light = colour * smoothstep(-1, 3, dz) * (1 - smoothstep(0.3 r, r, dz)) / (1 + q⁴).
 //
 // Colour space: ce_pools() is LINEAR light. In GL Compatibility fragment() writes sRGB-encoded ALBEDO and EMISSION
 // and the renderer turns both into linear values afterwards (docs/modelle.md §4), so the light cannot simply be
@@ -32,6 +36,7 @@
 
 uniform vec4 pool_pos_r[22];
 uniform vec4 pool_col[22];
+uniform vec4 pool_dir[22];
 uniform int pool_count = 0;
 
 // Summed linear light of the pools at an origin-relative world position.
@@ -46,6 +51,17 @@ vec3 ce_pools(vec3 world_pos) {
 			continue;
 		}
 		vec3 d = world_pos - pool_pos_r[i].xyz;
+		vec3 axis = pool_dir[i].xyz;
+		if (pool_col[i].a > 0.5 && dot(axis, axis) > 0.25) {
+			// headlight cone of a traffic car
+			float dz = dot(d.xz, axis.xz);
+			if (dz > -1.0 && dz < r) {
+				float q = length(d.xz - axis.xz * dz) / (0.9 + max(dz, 0.0) * 0.18);
+				float q2 = q * q;
+				sum += pool_col[i].rgb * (smoothstep(-1.0, 3.0, dz) * (1.0 - smoothstep(r * 0.3, r, dz)) / (1.0 + q2 * q2));
+			}
+			continue;
+		}
 		float e = 1.0 - dot(d, d) / (r * r);
 		if (e > 0.0) {
 			sum += pool_col[i].rgb * (e * e);

@@ -3,6 +3,8 @@ extends ChunkBuilder
 ## terrain rings of the TerrainProfile, unshaded, one mesh per chunk. It stands in for builders/road.gd until that
 ## exists (BuilderRegistry.create_all) and is the example of the three builder rules: every vertex comes from
 ## ChunkContext.local(), nothing depends on the chunk node's transform, nothing is cached in world space.
+## With road_strips = false it draws the ribbon alone: ModernRenderer uses it that way as the stand-in for a
+## missing builders/terrain.gd, with terrain_rings = false it draws the road alone.
 ## Unshaded means: it shows neither the light of the environment nor shadows; inside the renderer its update() hook
 ## tints it with the ambient colour of the palette, as Arcade tints its road and ground.
 ## Owner: race3d kernel.
@@ -20,6 +22,7 @@ const EDGE_LINE_OUT_M := 0.45
 const LINE_LIFT_M := 0.02
 
 var terrain_rings := true          ## also draw the terrain ribbon
+var road_strips := true            ## draw the road itself (false: only the ribbon – the stand-in for a missing terrain builder)
 var _material: StandardMaterial3D
 
 
@@ -41,15 +44,16 @@ func build(ctx: ChunkContext, _input: Variant) -> Dictionary:
 		var eb := ctx.rows_edge[i + 1]
 		var tunnel := bool(sa["tunnel"])
 		var road := TUNNEL_ROAD if tunnel else (ASPHALT if (int(sa["index"]) / 2) % 2 == 0 else ASPHALT_ALT)
-		# shoulders and asphalt
-		_strip(ctx, verts, cols, idx, z0, z1, ea.x - sh, ea.x, eb.x - sh, eb.x, 0.0, SHOULDER)
-		_strip(ctx, verts, cols, idx, z0, z1, ea.x, ea.y, eb.x, eb.y, 0.0, road)
-		_strip(ctx, verts, cols, idx, z0, z1, ea.y, ea.y + sh, eb.y, eb.y + sh, 0.0, SHOULDER)
-		# edge lines (a little above the asphalt)
-		_strip(ctx, verts, cols, idx, z0, z1, ea.x + EDGE_LINE_IN_M, ea.x + EDGE_LINE_OUT_M, eb.x + EDGE_LINE_IN_M,
-			eb.x + EDGE_LINE_OUT_M, LINE_LIFT_M, LINE)
-		_strip(ctx, verts, cols, idx, z0, z1, ea.y - EDGE_LINE_OUT_M, ea.y - EDGE_LINE_IN_M, eb.y - EDGE_LINE_OUT_M,
-			eb.y - EDGE_LINE_IN_M, LINE_LIFT_M, LINE)
+		if road_strips:
+			# shoulders and asphalt
+			_strip(ctx, verts, cols, idx, z0, z1, ea.x - sh, ea.x, eb.x - sh, eb.x, 0.0, SHOULDER)
+			_strip(ctx, verts, cols, idx, z0, z1, ea.x, ea.y, eb.x, eb.y, 0.0, road)
+			_strip(ctx, verts, cols, idx, z0, z1, ea.y, ea.y + sh, eb.y, eb.y + sh, 0.0, SHOULDER)
+			# edge lines (a little above the asphalt)
+			_strip(ctx, verts, cols, idx, z0, z1, ea.x + EDGE_LINE_IN_M, ea.x + EDGE_LINE_OUT_M, eb.x + EDGE_LINE_IN_M,
+				eb.x + EDGE_LINE_OUT_M, LINE_LIFT_M, LINE)
+			_strip(ctx, verts, cols, idx, z0, z1, ea.y - EDGE_LINE_OUT_M, ea.y - EDGE_LINE_IN_M, eb.y - EDGE_LINE_OUT_M,
+				eb.y - EDGE_LINE_IN_M, LINE_LIFT_M, LINE)
 		if not terrain_rings or tunnel or ctx.rings < 2:
 			continue
 		var ground := WATER if bool(sa["water"]) else (GRASS if (int(sa["index"]) / 4) % 2 == 0 else GRASS_ALT)
