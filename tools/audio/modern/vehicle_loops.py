@@ -511,16 +511,37 @@ def rail_scrape(n: int) -> np.ndarray:
 OLD_SECONDS = {"tyre_asphalt": 2.0, "tyre_concrete": 2.0, "tyre_deck": 2.0, "tyre_cobbles": 2.5, "tyre_gravel": 2.5,
                "tyre_grass": 2.5, "tyre_wet": 2.0, "tyre_rumble": 1.0, "wind_low": 2.0, "wind_mid": 2.0, "wind_high": 2.0,
                "wind_buffet": 3.0}
+# The pans of AU-C1's two players per layer (road.tyres.pan, road.wind.pan of its configuration).
+OLD_PAN = {"MRoad": 0.55, "MWind": 0.7}
+# Layers that sound on one side at a time: the rumble strip is under the wheels that leave the lane, AU-C1's other
+# player was silent – what was heard is the loop itself.
+ONE_SIDED = ("tyre_rumble",)
+
+
+def heard(ref: np.ndarray, pan: float) -> np.ndarray:
+    """What AU-C1 played of its loop ref: two players panned to ±pan (equal-power law) reading the same loop half a
+    loop apart at the same pitch. In each channel the two copies add with the loop's harmonics (multiples of 1 /
+    length) alternately in phase and out of phase; for a texture with a strong rhythm (cobbles, rumble strip) that
+    shapes the third octaves by up to 2.4 dB (measured in the game: Pflaster 50 km/h +1.0 dB at 126 Hz). The energy
+    over both channels is that of ref + a · (ref shifted by half a loop), with 2a / (1 + a²) = cos(pan · π/2), the
+    correlation of the two players' channel gains."""
+    c = float(np.cos(pan * np.pi / 2.0))
+    a = (1.0 - np.sqrt(1.0 - c * c)) / c if c > 1e-9 else 0.0
+    return ref + a * np.roll(ref, len(ref) // 2)
 
 
 def _pair(sid: str, sec_a: float, sec_b: float, fn, bus: str, ref_kmh: float, pexp: float, note: str) -> list[tuple]:
     """A layer of the two panned players: the left side's loop and the right side's own loop (seed + SIDE_B), both
-    matched to the third-octave balance of AU-C1's loop of this layer (where there was one)."""
+    matched to the spectral balance of AU-C1's loop of this layer as its two players sounded (heard; where there was
+    one). The new sides are independent, their energies add."""
     old = OLD_SECONDS.get(sid)
 
     def make(n: int, s: int, f=fn) -> np.ndarray:
         y = f(n, s)
-        return match_loop(y, f(int(round(old * SR)), 0)) if old else y
+        if not old:
+            return y
+        ref = f(int(round(old * SR)), 0)
+        return match_loop(y, ref if sid in ONE_SIDED else heard(ref, OLD_PAN.get(bus, 0.55)))
     return [(sid, sec_a, lambda n: make(n, 0), bus, ref_kmh, pexp, note + "; linke Seite", "ogg", sid + "_b"),
             (sid + "_b", sec_b, lambda n: make(n, SIDE_B), bus, ref_kmh, pexp,
              note + "; rechte Seite: eigene Schleife (anderer Seed, andere Länge)", "ogg", "")]
