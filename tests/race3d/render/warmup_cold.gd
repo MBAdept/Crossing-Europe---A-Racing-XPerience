@@ -105,10 +105,12 @@ func _run() -> void:
 	if cache_dir != "":
 		cache_note = "%d Shader-Varianten im Cache vor dem Start, während der Fahrt %d neu übersetzt%s" % [known.size(), compiled.size(),
 			"" if compiled.is_empty() else " (bei " + ", ".join(compiled.slice(0, 12)) + ")"]
-	print("RENDER-CHECK warmup_kalt %s  %s km %s %s Uhr, %s%s: %s; %d Bilder in den ersten %.0f s nach dem Ladebild, Median %.1f ms, längstes %.0f ms (Grenze %.0f ms), die fünf längsten %s ms; Vorbereitung %.0f ms (Selbsttest %.0f ms, Aufwärmen %.0f ms, %d Aufwärm-Knoten)%s" % [
+	print("RENDER-CHECK warmup_kalt %s  %s km %s %s Uhr, %s%s: %s; %d Bilder in den ersten %.0f s nach dem Ladebild, Median %.1f ms, längstes %.0f ms (Grenze %.0f ms), die fünf längsten %s ms; Vorbereitung %.0f ms (Selbsttest %.0f ms, Aufwärmen %.0f ms, %d Aufwärm-Knoten); render() im Mittel %.3f ms, Einhängen eines Stücks höchstens %.2f ms, Bauen im Mittel %.2f ms, %d Zeichenaufrufe (%d im Schatten), %d Dreiecke%s" % [
 		"OK    " if ok else "FEHLER", str(setup["stage_id"]), str(setup["start_km"]), str(hour), str(cli.get("gfx-preset", "")),
 		" ohne Aufwärmen" if cli.has("no-prewarm") else "", cache_note, frames.size(), seconds, median, worst, FACTOR * median, ", ".join(top),
 		float(st.get("prepare_ms", 0.0)), float(st.get("selftest_ms", 0.0)), float(st.get("prewarm_ms", 0.0)), int(st.get("warmup_nodes", 0)),
+		float(st.get("render_ms_avg", 0.0)), float(st.get("chunk_commit_ms_max", 0.0)), float(st.get("chunk_build_ms_avg", 0.0)),
+		int(st.get("draw_calls", 0)), int(st.get("draw_calls_shadow", 0)), int(st.get("primitives", 0)),
 		"" if over.is_empty() else "  –  Bilder über der Grenze: " + "; ".join(over.slice(0, 12))])
 	sc.queue_free()
 	await process_frame
