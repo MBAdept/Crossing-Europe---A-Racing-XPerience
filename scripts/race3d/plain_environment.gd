@@ -49,6 +49,7 @@ var state: Dictionary = {}         ## light_state() of the last update()
 var _renderer: Node
 var _fog_begin := 0.45
 var _fog_end := 1.0
+var _heading := 0.0                ## road heading at the car, of the last update() inside the integrated path
 
 
 func _init() -> void:
@@ -109,13 +110,16 @@ func apply_quality(levels: Dictionary) -> void:
 func update(view: Dictionary, _dt: float) -> void:
 	var pal: Dictionary = view.get("palette", {})
 	var tunnel := bool(view.get("camera_in_tunnel", false))
-	var heading := 0.0
 	if _renderer != null:
 		var path: RoadPath3D = _renderer.get("path")
 		var proj: RoadProjection = _renderer.get("proj")
 		if path != null and path.is_ready() and proj != null:
-			heading = path.heading_at(float(view.get("camera_z", 0.0)) + proj.cam_distance)
-	state = light_state(pal, tunnel, heading, float(view.get("bg_offset", 0.0)))
+			# only inside the integrated path (the streamer extends it after this update; a position beyond it
+			# would make the path integrate all the way there): else the heading of the last frame stays
+			var z := float(view.get("camera_z", 0.0)) + proj.cam_distance
+			if z >= float(path.first) * path.seg_len and z <= float(path.last()) * path.seg_len:
+				_heading = path.heading_at(z)
+	state = light_state(pal, tunnel, _heading, float(view.get("bg_offset", 0.0)))
 	var direct: Array = light_for(state["sun"])
 	var ambient: Array = light_for(state["ambient"])
 	var to_sun: Vector3 = state["to_sun"]

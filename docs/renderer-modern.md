@@ -620,7 +620,9 @@ ersten Etappe, Aufwärmbilder nur mit echtem Renderer).
 - `selftest:<grund>` (Selbsttest; `--gfx-debug=fail` ergibt `selftest:debug`),
 - dem, was ein Haken während der Vorbereitung in `fail_reason()` meldet (`manifest`, `shader`, …),
 - `script:<datei>`, wenn eine Ebenen-, Builder- oder Rig-Datei da ist, aber keinen Knoten bzw. Builder ergibt,
-- `timeout` nach `graphics.modern.prepare_timeout_s` (Vorgabe im Code: 120 s; nie im Sync-Modus – Regel 10).
+- `timeout` nach `graphics.modern.prepare_timeout_s` (Vorgabe im Code: 120 s; nie im Sync-Modus – Regel 10). Es
+  zählen nur gezeichnete Bilder, jedes mit höchstens 0,25 s: ein minimiertes Fenster zeichnet nichts (Selbsttest
+  und Aufwärmen warten darauf), und ein Rechner, der schlief, ist kein hängender Renderer.
 
 ### 9.3 Fassade
 
@@ -668,7 +670,8 @@ Alle sind freiwillig und werden per `has_method` gefunden – bei der Umgebung, 
 
 Bauplan A-7 nennt `update` und `rebased` nur für Ebenen; das Gerüst ruft beide auch an Buildern, die sie haben
 (nützlich für Dinge, die ein Builder für die ganze Etappe hält, etwa ein Material mit dem Countdown der Startbrücke).
-Ein Builder hält weiterhin keinen Zustand je Stück.
+Ein Builder hält weiterhin keinen Zustand je Stück, und sein `update()` läuft im Hauptthread, **während** `build()`
+auf einem Arbeiter-Thread laufen kann: es fasst nur an, was `build()` nie liest (Materialien, Knoten).
 
 ### 9.5 Beispiel
 

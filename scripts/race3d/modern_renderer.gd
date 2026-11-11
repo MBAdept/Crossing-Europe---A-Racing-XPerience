@@ -33,9 +33,12 @@ extends Node3D
 ## Every render(view) after that: environment update → streamer.update() → camera → update(view, dt) of the builders
 ## that have one (registration order) → update(view, dt) of the layers in list order. While the stage is prepared
 ## the view is the frozen start view and dt is 0.0: nothing moves before the start, however many frames it takes.
+## (A builder's update() runs on the main thread while its build() may run on a worker thread: it only touches
+## what build() never reads – materials, nodes.)
 ## healthy() is false with fail_reason() "selftest:<reason>" (--gfx-debug=fail: "selftest:debug"), whatever a hook's
 ## fail_reason() says while the stage is prepared ("manifest", "shader", …), "script:<file>" for a layer, builder
-## or rig file that exists but does not load, or "timeout" (graphics.modern.prepare_timeout_s, not in sync mode).
+## or rig file that exists but does not load, or "timeout" (graphics.modern.prepare_timeout_s of drawn frames, not
+## in sync mode).
 ## The simulation never reads anything from here (Rule 3); nothing here reads the sound profile (Rule 4).
 
 signal quality_lowered(preset: String)
@@ -52,6 +55,7 @@ const LAMP_LAYERS: Array[String] = ["lights", "flares"]   ## add_lamps() forward
 const WARMUP_FRAMES := 2            ## drawn frames the warm-up nodes (and the start view) are shown before the start
 const WARMUP_AHEAD_M := 14.0        ## … this far in front of the camera, on the road
 const PREPARE_TIMEOUT_S := 120.0    ## default of graphics.modern.prepare_timeout_s
+const TIMEOUT_FRAME_MS := 250.0     ## a single frame counts at most this much towards the time limit
 const FRAME_WINDOW := 240           ## frames behind frame_ms_median / frame_ms_p95
 
 enum Stage { IDLE, SELFTEST, HOOKS, CHUNKS, WARMUP, DONE }
@@ -100,6 +104,9 @@ var _timeout_s := PREPARE_TIMEOUT_S
 var _pending := 0
 var _pending_max := 0
 var _prep_t0 := 0
+var _wait_ms := 0.0                 ## time of the preparation that counts towards the time limit
+var _wait_tick := 0
+var _wait_drawn := -1
 var _prepare_ms := 0.0
 var _warm_from := 0
 var _warm_t0 := 0
@@ -402,7 +409,15 @@ func _advance() -> void:
 		_stage = Stage.HOOKS
 	_pending = _poll_hooks()
 	_pending_max = maxi(_pending_max, _pending)
-	if _fail == "" and not sync and _timeout_s > 0.0 and float(Time.get_ticks_msec() - _prep_t0) > _timeout_s * 1000.0:
+	# the time limit counts frames that were drawn, each with at most TIMEOUT_FRAME_MS: a minimised window draws
+	# nothing (self-test and warm-up wait for it), and a computer that slept is not a renderer that hangs
+	var now := Time.get_ticks_msec()
+	var drawn := Engine.get_frames_drawn()
+	if _wait_tick > 0 and (drawn != _wait_drawn or DisplayServer.get_name() == "headless"):
+		_wait_ms += minf(float(now - _wait_tick), TIMEOUT_FRAME_MS)
+	_wait_tick = now
+	_wait_drawn = drawn
+	if _fail == "" and not sync and _timeout_s > 0.0 and _wait_ms > _timeout_s * 1000.0:
 		_fail = "timeout"
 	if _fail != "":
 		push_warning("ModernRenderer: Vorbereitung abgebrochen (%s)" % _fail)
