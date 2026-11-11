@@ -17,7 +17,8 @@ extends SceneTree
 ##                music on MMusic is ducked by >= 3 dB (captured after the fader against before the fader), and
 ##                after the session has gone it comes back to within 1 dB; every frame spans < 0.35 s of game time
 ##   arcade       the Arcade profile plays nothing new: no ModernAudio, no Modern bus, no file of
-##                assets/audio/modern/music loaded – also after the music contexts and race events of a stage – and
+##                assets/audio/modern/music or assets/audio/modern/ui loaded – also after the music contexts and race
+##                events of a stage (stingers: busted, out_of_fuel) and the UI sounds (ui_move … ui/ui_error) – and
 ##                its menu music is the title theme of v0.7.0
 ##   quit_menu    (own process) the game quits while the title remaster plays in the menu: the director's players
 ##   quit_race    (own process) … while the race piece plays: no "leaked at exit" (checked by the launcher)
@@ -25,6 +26,7 @@ extends SceneTree
 
 const SCENARIOS: Array[String] = ["interactive", "race", "arcade"]
 const MUSIC_DIR := "res://assets/audio/modern/music/"
+const UI_DIR := "res://assets/audio/modern/ui/"
 const RACE_SCENE := "res://scenes/race/race.tscn"
 const STEP := 512
 const MIX_RATE := 44100.0
@@ -589,27 +591,40 @@ func _music_files() -> Array[String]:
 	return out
 
 
+## the Modern music and the Modern UI sounds (AU-D2): none of them may load in the Arcade profile
+func _modern_files() -> Array[String]:
+	var out := _music_files()
+	for f in DirAccess.get_files_at(UI_DIR):
+		if f.ends_with(".wav"):
+			out.append(UI_DIR + f)
+	return out
+
+
 func _scenario_arcade() -> void:
 	_am.call("set_profile", "arcade")
 	await _frames(3)
 	var cached_before: Array[String] = []
-	for f in _music_files():
+	for f in _modern_files():
 		if ResourceLoader.has_cached(f):
 			cached_before.append(f)
 	# the menu, a whole stage's calls and the race context: with Arcade nothing of the Modern music may load or play
 	_am.call("set_music", true)
 	_am.call("set_music_context", "title")
+	for s in ["ui_move", "ui_ok", "ui_back", "ui/ui_tab", "ui/ui_toggle", "ui/ui_error"]:
+		_am.call("play", s)
 	await _frames(5)
 	_am.call("set_music", false)
 	_am.call("set_music_context", "race", {"stage_id": "kiel_hamburg"})
-	for ev in ["stage_start", "countdown", "go", "stage_finish"]:
-		_am.call("event", ev, {"countdown_s": 3.0, "n": 1})
+	for ev in ["stage_start", "countdown", "go", "busted", "out_of_fuel", "stage_finish"]:
+		_am.call("event", ev, {"countdown_s": 3.0, "n": 1, "record": true, "last_stage": true})
 	await _frames(5)
-	_am.call("set_music_context", "result")
+	_am.call("set_music_context", "race_menu")
 	_am.call("set_music", true)
 	await _frames(5)
+	_am.call("set_music_context", "result")
+	await _frames(5)
 	var loaded: Array[String] = []
-	for f in _music_files():
+	for f in _modern_files():
 		if ResourceLoader.has_cached(f) and not cached_before.has(f):
 			loaded.append(f.get_file())
 	var buses: Array[String] = []
@@ -627,7 +642,7 @@ func _scenario_arcade() -> void:
 			players += 1
 	var ok := _modern() == null and buses.is_empty() and loaded.is_empty() and str(_am.call("profile")) == "arcade" \
 		and arcade_stream.ends_with("assets/audio/music/title_theme.ogg")
-	_check("arcade", ok, "Profil Arcade nach Menü, Rennkontext und Etappenereignissen: ModernAudio %s, Modern-Busse %s, geladene Modern-Musik %s, Menümusik %s (%d Player spielen)" % [
+	_check("arcade", ok, "Profil Arcade nach Menü, UI-Klängen, Rennkontext, Etappenereignissen (mit Stingern) und Zwischenspiel-Kontext: ModernAudio %s, Modern-Busse %s, geladene Modern-Musik/UI-Klänge %s, Menümusik %s (%d Player spielen)" % [
 		"keins" if _modern() == null else "DA", "keine" if buses.is_empty() else str(buses),
 		"keine" if loaded.is_empty() else str(loaded), arcade_stream, players])
 	_am.call("set_music", false)

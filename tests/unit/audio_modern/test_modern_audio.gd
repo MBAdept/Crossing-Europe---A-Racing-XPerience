@@ -249,7 +249,10 @@ func test_one_shots_reach_their_slot() -> void:
 	assert_eq(int(m.sfx.counts.get("ui_move", 0)), 1, "ui_move bei der SfxBank")
 	assert_eq(int(m.sfx.counts.get("flash", 0)), 1, "flash bei der SfxBank")
 	assert_eq(int(m.sfx.counts.get("crash", 0)), 0, "crash nicht doppelt")
-	assert_eq(str(m.sfx.sources.get("ui_move", "")), "arcade", "ohne Modern-Datei der Arcade-Klang")
+	# ui_move has its Modern file since AU-D2 (assets/audio/modern/ui); a name without one keeps the Arcade sound
+	assert_eq(str(m.sfx.sources.get("ui_move", "")), "modern", "ui_move: die Modern-Datei (AU-D2)")
+	var flash_src := "modern" if m.assets.entry("sfx", "flash") != null else "arcade"
+	assert_eq(str(m.sfx.sources.get("flash", "")), flash_src, "flash: ohne Modern-Datei der Arcade-Klang")
 	assert_false(m.plays.has("gibt_es_nicht"), "Unbekanntes spielt nicht")
 	assert_false(m.plays.has("ui/platzhalter_blip"), "Platzhalter spielen im Spiel nicht")
 	assert_near(m.mix.weight("impact"), 0.0, 1.0e-6, "Zustand impact ist ausgelöst, aber noch nicht gerechnet")
