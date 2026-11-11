@@ -1,13 +1,13 @@
 {
-	"_doc": "Gemeinsame Mischentscheidungen aller Musikstücke des Klangprofils Modern (docs/audio-modern.md, Abschnitt 14.2). Jeder Musik-Generator liest diese Datei; nach einer Änderung rendert `python3 tools/audio/music/render_all.py` jedes Stück gleich neu (danach `godot --headless --import`). Alle Werte 0 = der Stand der Hörproben vom 11.11.2026 (bitgleich).",
+	"_doc": "Gemeinsame Mischentscheidungen aller Musikstücke des Klangprofils Modern (docs/audio-modern.md, Abschnitt 14.10). Jeder Musik-Generator liest diese Datei; nach einer Änderung rendert `python3 tools/audio/music/render_all.py` jedes Stück gleich neu (danach `godot --headless --import`). Alle Werte 0 = der Stand der Hörproben vom 11.11.2026 (bitgleich).",
 	"_keys": {
 		"sub_db": "Tiefbass: Sub-Bass unter der Basslinie und Sub-Kick (dB, je Stück auf dessen eigenen Wert addiert)",
 		"bass_db": "Bassinstrumente: gezupfter Bass und Synth-Bass (dB)",
 		"high_shelf_db": "Höhen der Summe: Kuhschwanzfilter oberhalb high_shelf_hz im Master (dB; 0 = kein Filter)",
 		"high_shelf_hz": "Eckfrequenz dieses Kuhschwanzfilters (Hz)",
-		"race_music_db": "Musik im Rennen gegen das Auto: gain_db aller Rennstücke, ihrer Schlüsse und Stinger im Manifest (dB; ohne neues Rendern)",
-		"menu_music_db": "Menümusik: gain_db von Titel-Remaster und Zwischenspiel im Manifest (dB; ohne neues Rendern)",
-		"ui_db": "UI-Klänge: gain_db der Menüklänge im Manifest (dB; ohne neues Rendern)"
+		"race_music_db": "Musik im Rennen gegen das Auto: gain_db aller Rennstücke, ihrer Schlüsse und Stinger im Manifest (dB; ändert nur den Eintrag im Manifest, nicht den Klang der Dateien)",
+		"menu_music_db": "Menümusik: gain_db von Titel-Remaster und Zwischenspiel im Manifest (dB; ändert nur den Eintrag im Manifest)",
+		"ui_db": "UI-Klänge: gain_db der Menüklänge im Manifest (dB; ändert nur den Eintrag im Manifest)"
 	},
 	"sub_db": 0.0,
 	"bass_db": 0.0,

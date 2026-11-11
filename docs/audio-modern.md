@@ -585,52 +585,86 @@ Die Fingerabdrücke sind für eine Maschine und einen Engine-Stand exakt. Nach e
   (Kanalkorrelation im Spiel 0,97–1,00, der Arcade-Motor mit seinem Hall 0,80–0,99). Raum und Breite sind Sache
   von `env` (AU-C2) – siehe [motorsound.md](motorsound.md) 6.9.
 
-## 14. Musik (Paket AU-D1)
+## 14. Musik (Pakete AU-D1, AU-D2)
 
 Vertrag D26, D29, D30, §4.7, A-5. Alle Zahlen gemessen auf der Entwicklungsmaschine (Godot 4.7.2, ohne Bildschirm,
 Dummy-Audiotreiber), sofern nicht „abgeleitet“ dasteht. **Wie die Musik klingt, hat hier niemand gehört** – das
-beurteilt der Nutzer (Hörproben unter `<scratch>/v080/deliver/AU-D1/`).
+beurteilt der Nutzer (Hörproben unter `<scratch>/v080/deliver/AU-D1/` und `<scratch>/v080/deliver/AU-D2/`). Der
+Stil der ersten Hörproben (Rennstück 1, Titel-Remaster) ist vom Nutzer bestätigt („der Stil passt super“); Bass und
+Pegel beurteilt er noch – dafür liegen alle Mischentscheidungen, die er ändern könnte, an einer Stelle (14.10).
 
 ### 14.1 Die Stücke
 
 `assets/audio/modern/music/` (Manifest `manifest.json`, Rollen für den `MusicDirector`):
 
-| Datei | Rolle | Länge | Schleife | Lautheit / True Peak (nach Vorbis) | Größe |
-|---|---|---|---|---|---|
-| `titel_remaster.ogg` | `title` | 202,5 s | Intro 15 s einmal, dann Takte 9–108 (187,5 s) | −14,1 LUFS / −1,7 dBTP | 3,93 MB |
-| `linke_spur.ogg` | `race` | 176,4 s | Einzähler + A1 (9 Takte, 16,36 s) einmal, dann 88 Takte = 160,0 s | −14,2 LUFS / −1,8 dBTP | 3,36 MB |
-| `linke_spur_schluss.ogg` | `race_ending` | 7,8 s | – | −15,7 LUFS / −2,4 dBTP | 0,15 MB |
+| Datei | Rolle | bpm | Länge | Schleife | Lautheit / True Peak (nach Vorbis) | Größe |
+|---|---|---|---|---|---|---|
+| `titel_remaster.ogg` | `title` | 128 | 202,5 s | ab Frame 661500 (15,00 s), 100 Takte = 187,50 s | −14,1 LUFS / −1,7 dBTP | 3,93 MB |
+| `zwischenspiel.ogg` | `interlude` | 100 | 81,6 s | ab Frame 211680 (4,80 s), 32 Takte = 76,80 s | −14,1 LUFS / −1,5 dBTP | 1,61 MB |
+| `linke_spur.ogg` | `race` | 132 | 176,4 s | ab Frame 721636 (16,36 s), 88 Takte = 160,00 s | −14,2 LUFS / −1,8 dBTP | 3,36 MB |
+| `linke_spur_schluss.ogg` | `race_ending` | 132 | 7,8 s | – | −15,7 LUFS / −2,4 dBTP | 0,15 MB |
+| `linke_spur_schluss_rekord.ogg` | `race_ending` | 132 | 10,1 s | – | −15,3 LUFS / −2,5 dBTP | 0,17 MB |
+| `linke_spur_schluss_finale.ogg` | `race_ending` | 132 | 11,9 s | – | −14,7 LUFS / −2,2 dBTP | 0,21 MB |
+| `linke_spur_ziel.ogg` | `race_ziel` | 132 | 6,4 s | – | −17,8 LUFS / −3,0 dBTP | 0,09 MB |
+| `linke_spur_polizei.ogg` | `race_stinger` | 132 | 10,1 s | – | −16,1 LUFS / −3,0 dBTP | 0,13 MB |
+| `linke_spur_tank.ogg` | `race_stinger` | 132 | 8,2 s | – | −19,2 LUFS / −5,0 dBTP | 0,12 MB |
+| `nachtfahrt.ogg` | `race` | 105 | 203,4 s | ab Frame 907199 (20,57 s), 80 Takte = 182,86 s | −14,2 LUFS / −1,5 dBTP | 3,93 MB |
+| `nachtfahrt_schluss.ogg` | `race_ending` | 105 | 8,8 s | – | −15,3 LUFS / −2,2 dBTP | 0,17 MB |
+| `nachtfahrt_schluss_rekord.ogg` | `race_ending` | 105 | 11,5 s | – | −14,8 LUFS / −1,7 dBTP | 0,20 MB |
+| `nachtfahrt_schluss_finale.ogg` | `race_ending` | 105 | 13,7 s | – | −14,3 LUFS / −2,0 dBTP | 0,24 MB |
+| `nachtfahrt_ziel.ogg` | `race_ziel` | 105 | 6,9 s | – | −16,5 LUFS / −2,3 dBTP | 0,09 MB |
+| `nachtfahrt_polizei.ogg` | `race_stinger` | 105 | 11,5 s | – | −15,4 LUFS / −2,5 dBTP | 0,15 MB |
+| `nachtfahrt_tank.ogg` | `race_stinger` | 105 | 9,2 s | – | −17,9 LUFS / −4,8 dBTP | 0,14 MB |
+| `rueckenwind.ogg` | `race` | 150 | 155,2 s | ab Frame 635040 (14,40 s), 88 Takte = 140,80 s | −14,2 LUFS / −1,8 dBTP | 2,98 MB |
+| `rueckenwind_schluss.ogg` | `race_ending` | 150 | 7,4 s | – | −16,0 LUFS / −2,1 dBTP | 0,14 MB |
+| `rueckenwind_schluss_rekord.ogg` | `race_ending` | 150 | 9,4 s | – | −15,7 LUFS / −2,2 dBTP | 0,16 MB |
+| `rueckenwind_schluss_finale.ogg` | `race_ending` | 150 | 11,0 s | – | −14,8 LUFS / −2,6 dBTP | 0,19 MB |
+| `rueckenwind_ziel.ogg` | `race_ziel` | 150 | 6,2 s | – | −18,7 LUFS / −3,0 dBTP | 0,09 MB |
+| `rueckenwind_polizei.ogg` | `race_stinger` | 150 | 9,4 s | – | −15,8 LUFS / −3,2 dBTP | 0,12 MB |
+| `rueckenwind_tank.ogg` | `race_stinger` | 150 | 7,8 s | – | −19,3 LUFS / −6,4 dBTP | 0,11 MB |
 
-Mit dem Platzhalter von AU-A zusammen 7,48 MB von 25 MB Budget (§4.11). `audio_qc.py` besteht für alle
-Dateien (Naht ×0,11 / ×0,08). Alle drei Einträge tragen `bpm` und `bar_beats` (Titel 128, Rennstück 132; in den
-Import-Einstellungen ebenso, `beat_count` 0), über das Format hinaus `piece`, Titel und Rennstück `intro_bars` und
-`loop_bars` (8 + 100 bzw. 9 + 88 Takte), das Rennstück `ending` (die id des Schlusses) und `countin_beats`; der
-Schluss eigene QC-Grenzen der Lautheit
-(`"qc": {"lufs": [-20, -10]}`): Er wird mit dem Master der Schleife bearbeitet und nicht für sich auf −14 LUFS
-gebracht, sonst spränge der Pegel am Übergang.
+Mit dem Platzhalter von AU-A zusammen 18,51 MB von 25 MB Budget (§4.11). Alle Dateien tragen `bpm` und
+`bar_beats` (in den Import-Einstellungen ebenso, `beat_count` 0). Über das Format hinaus: die Rennstücke `piece`,
+`ending` (normaler Schluss), `endings` (`rekord`, `finale`), `ziel` (Schlag an der Ziellinie), `stingers` (`busted`,
+`out_of_fuel`), `countin_beats`, `intro_bars`, `loop_bars`, `rotation` (Reihenfolge, 1 = erstes Stück einer Sitzung)
+und `key`; Schlüsse und Stinger `piece`, `variant` bzw. `event` und `bars` (musikalische Länge, für die Absenkung
+darunter); das Zwischenspiel `intro_bars`, `loop_bars`, `key`. Eigene QC-Grenzen der Lautheit: der normale Schluss
+`[-20, -10]`, die Zusatzclips `[-30, -10]` – sie werden mit dem Master und den Spurpegeln ihres Stücks bearbeitet und
+nicht für sich auf −14 LUFS gebracht, sonst spränge der Pegel am Übergang.
 
 ### 14.2 Die Kette (`tools/audio/music/`)
 
 | Datei | Inhalt |
 |---|---|
-| `music_lib.py` | die Produktionsschicht über dem eingefrorenen `tools/audio/music_synth.py` (importiert, nie geändert): Sub-Kick- und Snare-Ebenen, Shaker, Sub-Bass, zwei Supersaw-Leads für die Breite, neue Platte und Halle; `Mixer` (eine Spur nach der anderen in Busse und Sends – ein Stück von drei Minuten liegt nie mit allen Spuren im Speicher); `Master` (EQ, drei Bänder bei 140 Hz und 3,2 kHz, Kleber, M/S, Lautheit, Soft-Clip, True-Peak-Begrenzer) mit `pre()`/`fit_gain()`/`post()`; `encode_checked()` schreibt Vorbis q5 bitgenau, dekodiert und misst – liegt der True Peak nach der Kodierung über −1,08 dBTP, sinkt die Grenze des Begrenzers und die Datei wird neu geschrieben; `write_ogg_import_keep()` (Import mit erhaltener uid, `loop_offset` mit allen Stellen); Chroma, Dreiklang, Tonart für die Prüfung |
+| `music_lib.py` | die Produktionsschicht über dem eingefrorenen `tools/audio/music_synth.py` (importiert, nie geändert): Sub-Kick- und Snare-Ebenen, Shaker, Sub-Bass, zwei Supersaw-Leads für die Breite, neue Platte und Halle; `Mixer` (eine Spur nach der anderen in Busse und Sends; zeichnet seine Pegelentscheidungen als `fit` auf und mischt mit `ref` eine andere Zeitleiste genau damit); `Master` (EQ, drei Bänder bei 140 Hz und 3,2 kHz, Kleber, M/S, Lautheit, Soft-Clip, True-Peak-Begrenzer) mit `pre()`/`fit_gain()`/`post()`/`post_at()`; `encode_checked()` schreibt Vorbis q5 bitgenau, dekodiert und misst – liegt der True Peak nach der Kodierung über −1,08 dBTP, sinkt die Grenze des Begrenzers und die Datei wird neu geschrieben; `write_ogg_import_keep()`; `prefs()`/`apply_prefs()` (14.10); Chroma, Dreiklang, Tonart für die Prüfung |
+| `mischung.json` | die gemeinsamen Mischentscheidungen aller Stücke (14.10) |
+| `race_lib.py` | die gemeinsame Rennstück-Kette (AU-D2): Voicings für jede Tonart nach den Regeln von „Linke Spur“, Zeitleiste, Render-Schleife, `RacePiece` (Hauptdatei mit Einzähler, Schleife, Schluss, Import, Manifest) und `Extras` (Zusatzclips, 14.7) |
 | `title_remaster.py` | das Titel-Remaster (14.3) |
-| `linke_spur.py` | Rennstück 1 (14.4) |
-| `check_music.py` | die Noten-Prüfung (14.6) |
+| `linke_spur.py` | Rennstück 1 (14.4) und seine Zusatzclips |
+| `nachtfahrt.py`, `rueckenwind.py` | Rennstücke 2 und 3 (14.5, 14.6) und ihre Zusatzclips |
+| `zwischenspiel.py` | das Zwischenspiel (14.8) |
+| `ui_klaenge.py` | die UI-Klänge (14.9, schreibt nach `assets/audio/modern/ui/`) |
+| `render_all.py` | alle Generatoren nacheinander (nach einer Änderung von `mischung.json`) |
+| `check_music.py` | die Noten-Prüfung (14.12) |
 
 ```
-python3 tools/audio/music/title_remaster.py            # 295 s auf einem Kern (gemessen)
-python3 tools/audio/music/linke_spur.py                # 283–291 s
-python3 tools/audio/music/linke_spur.py --info         # Form, Clip-Längen
-python3 tools/audio/music/title_remaster.py --bars 32:48 --wav /tmp/x   # Skizze einzelner Takte (37 s)
-python3 tools/audio/music/linke_spur.py --sketch 12 --wav /tmp/x        # Einzähler + 12 Takte (25 s)
-python3 tools/audio/music/check_music.py
-python3 tools/audio/qc/audio_qc.py --folders music --determinism
+python3 tools/audio/music/render_all.py                  # alle Stücke und UI-Klänge ins Repository (etwa 25–27 min)
+python3 tools/audio/music/title_remaster.py              # 264–295 s auf einem Kern (gemessen)
+python3 tools/audio/music/linke_spur.py                  # 330–407 s mit den Zusatzclips (gemessen)
+python3 tools/audio/music/nachtfahrt.py                  # 400–447 s (gemessen)
+python3 tools/audio/music/rueckenwind.py                 # 305–337 s (gemessen)
+python3 tools/audio/music/zwischenspiel.py               # 76–81 s (gemessen)
+python3 tools/audio/music/ui_klaenge.py                  # wenige Sekunden
+python3 tools/audio/music/nachtfahrt.py --info           # Form, Clip-Längen (jedes Rennstück)
+python3 tools/audio/music/nachtfahrt.py --sketch 16 --wav /tmp/x   # Einzähler + 16 Takte
+python3 tools/audio/music/check_music.py [--only nachtfahrt] [--music <Ordner eines --out-Laufs>]
+python3 tools/audio/qc/audio_qc.py --folders music,ui --determinism
 ```
 
 Jeder Generator nimmt `--out <Ordner>` (dann ohne Import-Dateien; so ruft `audio_qc.py --determinism` ihn zweimal
-auf) und `--wav <Ordner>` (zusätzlich der ganze Master als Float-WAV für Hörproben). Feste Seeds, kein Zeitstempel,
-Vorbis über ffmpeg mit den Bitexakt-Schaltern: zwei Läufe schreiben dieselben Bytes. Danach `godot --headless --import`.
+auf) und `--wav <Ordner>` (zusätzlich der ganze Master als Float-WAV für Hörproben; `ui_klaenge.py` legt dort eine
+Hörprobe aller Klänge ab). Feste Seeds, kein Zeitstempel, Vorbis über ffmpeg mit den Bitexakt-Schaltern: zwei Läufe
+schreiben dieselben Bytes. Danach `godot --headless --import`.
 
 ### 14.3 Titel-Remaster
 
@@ -680,7 +714,7 @@ Titelmelodie: Synthwave-Rock aus den Instrumenten von `music_synth.py` und den n
 B1 … T, A1 (`loop_offset` auf dem ersten Frame von B1, die Schleife endet am Dateiende) – wie die Titelmelodie. Der
 geplante dritte Clip (Einzähler als eigene Datei mit Auto-Advance in die Schleife) scheitert an der Engine: Ein
 Auto-Advance startet den nächsten Clip zu früh (gemessen 640 Frames bei der Clip-Reihenfolge Einzähler → Schleife,
-128 bei der umgekehrten, Falle 14.7.1) – der Übergang würde doppelt klingen. Die Schleife endet mit A1, so liegt die
+128 bei der umgekehrten, Falle 14.13.1) – der Übergang würde doppelt klingen. Die Schleife endet mit A1, so liegt die
 Naht mitten in der Musik (A1 → B1) und ist exakt: Was nach dem A1 des Anfangs in B1 nachklingt, klingt auch nach dem
 A1 am Ende der Schleife nach. Gemessen: Die Fortsetzung im Rendering weicht vom Schleifenbeginn um −172 dBFS ab, und
 in Godot gleicht die Ausgabe nach dem Dateiende dem ersten Durchgang Frame für Frame.
@@ -704,51 +738,210 @@ Vollgas durch die Gänge −23,7 LUFS (Plan −24, also 7,7 dB unter dem Auto mi
 130 km/h −21,6. Auto und Musik zusammen: Vollgas −15,5 LUFS, ganze Fahrt −16,1 LUFS, True Peak −5,1 dBTP.
 `gain_db` bleibt 0: Die Renn-EQ-Mulde und `context_db.race` (+1 dB) gleichen sich für dieses Stück aus.
 
-### 14.5 Der `MusicDirector`
+**Seit AU-D2** schreibt `linke_spur.py` nach Hauptdatei und Schluss auch die Zusatzclips (14.7) in d-Moll; Hauptdatei
+und Schluss sind dabei bitgleich geblieben (sha256 nach dem neuen Rendering gleich). Rotation 1: das erste Rennstück
+einer Sitzung.
+
+### 14.5 Rennstück 2 „Nachtfahrt“
+
+Das dunkle der drei Rennstücke: c-Moll, 105 bpm (1 Takt = 16/7 s, eine Sechzehntel genau 6300 Frames), eine
+Nachtfahrt im Markenklang. Wo „Linke Spur“ (d-Moll, 132 bpm) auf vier Vierteln rollt, pulsiert dieses: Halbtakt-Groove
+in den Strophen (Kick auf 1 und auf „und“ von 3, große Snare mit Gate-Hall auf 3, Sechzehntel-Hi-Hats), ein
+sequenzierter Sechzehntel-Synth-Bass mit Oktavsprüngen (der Sub folgt den Vierteln), ein hypnotisches Arpeggio
+(Grundton – Quinte – Spitze – Terz) über weiten Flächen mit Farbakkorden (Cm9, A♭maj7, E♭add9, Fm7, B♭add9), sparsame
+dunkle Gitarren, das Motiv auf der weichen Lead-Stimme und ein hoher Hook über ♭VI – ♭III – ♭VII – i.
+
+| Abschnitt | Takte | Akkorde | Inhalt |
+|---|---|---|---|
+| Einzähler | 1 | G | Hi-Hats schwellen an, Toms, Riser – keine Kicks neben den Countdown-Pieptönen |
+| A1 | 8 | c A♭ f G c A♭ f G | Halbtakt-Groove, Synth-Bass, Arpeggio; Motiv (weiche Lead) ab Takt 5 |
+| B1 | 8 | A♭ E♭ B♭ c A♭ E♭ B♭ G | Hook mit Supersaw-Dopplung, Vierviertel-Kick, Gitarrenwand |
+| A2 | 8 | wie A1 | Motiv und Antwort auf der Leadgitarre, Shaker, gedämpfte Gitarren |
+| C1 | 8 | f f A♭ A♭ B♭ B♭ G G | Aufstieg: Toms, Bläser-Stöße, gedämpfte Sechzehntel, Snare-Wirbel |
+| B2 | 8 | wie B1 | Hook mit Harmonie, Leadgitarre eine Oktave tiefer |
+| D | 8 | A♭ E♭ f c A♭ E♭ f G | Breakdown: FM-Glocken über dem Arpeggio, weiche Melodie |
+| S | 8 | c A♭ E♭ B♭ c A♭ f G | Gitarrensolo |
+| C2 | 8 | wie C1 | Aufstieg, Leadgitarre doppelt |
+| B3 | 8 | wie B1 | Hook mit allem: Harmonie, Gitarre, Bläser |
+| T | 8 | c c A♭ A♭ f f G G | Kehre im Halbtakt, Tom-Wirbel in A1 |
+| Schluss | 2 + Nachklang | A♭ – B♭ – c | Schläge, Tom-Wirbel, Schlussakkord Cm9 mit Lead auf es''' |
+
+`nachtfahrt.ogg`: Einzähler und A1 einmal, dann die Schleife B1 … T, A1 (80 Takte = 182,86 s, 8 064 000 Frames) –
+dieselbe Bauart wie „Linke Spur“ (die Naht liegt in A1 → B1; der zweite Durchgang weicht vom ersten um −186,7 dBFS
+ab, gemessen vor der Kodierung). Bis zur ersten Wiederholung 203,4 s. Rotation 2.
+
+### 14.6 Rennstück 3 „Rückenwind“
+
+Das helle der drei: A-Dur, 150 bpm (1 Takt = 1,6 s, eine Sechzehntel genau 4410 Frames), aufbrechender
+Synthwave-Rock. Gegen „Linke Spur“ und „Nachtfahrt“: Dur, das schnellste Tempo, ein Disco-Rock-Beat (Kick auf allen
+Vierteln, offene Hi-Hats auf den Achtel-Nachschlägen), Oktav-Achtelbässe, Gitarren im 3-3-2-Rhythmus des Markenklangs,
+ein funkelndes aufsteigendes Arpeggio, der heroische Aufstieg ♭VI – ♭VII – I (F – G – A) und ein Hook, der bis zum
+hohen a''' steigt.
+
+| Abschnitt | Takte | Akkorde | Inhalt |
+|---|---|---|---|
+| Einzähler | 1 | E | Claps schwellen an, Snare-Wirbel, Riser |
+| A1 | 8 | A E f♯ D A E D E | Groove, Gitarren 3-3-2, Motiv ab Takt 5 |
+| B1 | 8 | D E c♯ f♯ D E A E | Hook mit Supersaw-Dopplung, Crash alle zwei Takte |
+| A2 | 8 | wie A1 | Motiv und Antwort auf der Leadgitarre |
+| P1 | 8 | F G A A F G E E | Aufstieg ♭VI – ♭VII – I, Bläser, Tom-Groove |
+| B2 | 8 | wie B1 | Hook mit Harmonie, Leadgitarre eine Oktave tiefer |
+| D | 8 | f♯ D A E f♯ D E E | Breakdown: Glocken, weiche Melodie |
+| S | 8 | wie A1 | Gitarrensolo |
+| P2 | 8 | wie P1 | Aufstieg, Leadgitarre doppelt |
+| B3 | 8 | wie B1 | Hook mit allem |
+| A3 | 8 | wie A1 | Motiv und Antwort in Oktaven |
+| T | 8 | A A D D f♯ f♯ E E | Kehre: Halbtakt, dann 3-3-2 |
+| Schluss | 2 + Nachklang | F – G – A | Schläge, Tom-Wirbel, Schlussakkord Aadd9 mit Lead auf cis''' |
+
+`rueckenwind.ogg`: Einzähler und A1 einmal, dann die Schleife B1 … T, A1 (88 Takte = 140,8 s, 6 209 280 Frames;
+Naht −175,7 dBFS, gemessen). Bis zur ersten Wiederholung 155,2 s. Rotation 3.
+
+**Gemessen an beiden Stücken**: Lautheit und True Peak in 14.1; die Klangbalance (Langzeitspektrum in acht Bändern
+von 25 Hz bis 18 kHz, bezogen auf die Gesamtenergie) liegt in jedem Band höchstens 1,0 dB von „Linke Spur“ entfernt
+(Nachtfahrt: tiefe Mitten +1,0 dB, Bass −0,5 dB; Rückenwind: Mitten bis Luft +0,7 bis +0,8 dB). Noten
+(`check_music.py`): „Nachtfahrt“ Grundton in 83 von 89 Takten wie in der Partitur (93,3 %), Tonart c-Moll; „Rückenwind“
+in 87 von 97 Takten (89,7 %), Tonart A-Dur – die übrigen sind Farbakkorde und Obertöne (Falle 15).
+
+### 14.7 Schlüsse, Ziel-Schlag und Stinger
+
+Jedes Rennstück hat fünf Zusatzclips in seiner Tonart, gespielt von seinen eigenen Instrumenten (`race_lib.Extras`,
+eine Partitur für jede Tonart und jedes Tempo):
+
+| Clip | Takte | Inhalt | wann |
+|---|---|---|---|
+| `<stück>_ziel` | 1 | Schlag auf der Tonika: Kick, Crash, Snare, Clap, Impact, Gitarren- und Bläserakkord, ein kurzes Quint-Oktav-Motiv | sofort an der Ziellinie, über der abgesenkten Schleife – nur wenn der Taktstrich des Schlusses mehr als 0,3 s entfernt ist |
+| `<stück>_schluss_rekord` | 3 | der Schluss (Kadenz – Tonika) mit einer Fanfare im 3-3-2-Rhythmus die Tonika hinauf, Glocken | neuer Rekord: am nächsten Taktstrich statt des normalen Schlusses |
+| `<stück>_schluss_finale` | 4 | die Kadenz zweimal (beim zweiten Mal höher, mit Snare-Wirbel), dann die **Dur**-Tonika mit Fanfare auf ihrer Terz (Moll-Stücke enden picardisch in Dur: d → D, c → C) | letzte Etappe eines Rennens: am nächsten Taktstrich |
+| `<stück>_polizei` | 3 | „Erwischt“: Schläge auf i – ♭II (phrygisch) – i, dann ein chromatischer Fall von der Quinte zum Grundton, Tom-Wirbel, Schlussschlag | Ereignis `busted`, auf dem nächsten Schlag |
+| `<stück>_tank` | 2 | „Tank leer“: ein seufzender chromatischer Abstieg, dann sinkt der Grundton um eine Oktave; das Arpeggio geht aus | Ereignis `out_of_fuel`, auf dem nächsten Schlag |
+
+Dur-Stücke („Rückenwind“) leihen sich für die Stinger das gleichnamige Moll (a-Moll, ♭II = B, iv = d). **Gleicher
+Klang, gleicher Pegel wie das Stück**: Die Zusatzclips werden nach der Hauptdatei auf einer eigenen Zeitleiste
+gerendert (je Clip gefolgt von vier leeren Takten, damit kein Hall in den nächsten reicht) und mit den Spurpegeln des
+Stücks gemischt (`Mixer(ref=fit)`: Normierung, Kompressorschwellen, Sättigungsbezug, Schlagzeugbus aus dem Rendering
+des Stücks) und mit seinem gemessenen Master bearbeitet (`Master.post`); ein Clip, dessen True Peak nach Vorbis zu
+hoch läge, bekommt nur für sich eine tiefere Begrenzergrenze. So bleibt die Hauptdatei von „Linke Spur“ bitgleich,
+und ihre Zusatzclips klingen trotzdem wie sie.
+
+### 14.8 Zwischenspiel
+
+Die ruhige Schleife der Bildschirme zwischen den Etappen (Kontext `race_menu`, und `result`, solange es kein eigenes
+Stück gibt): e-Moll wie die Titelmelodie, 100 bpm (1 Takt = 2,4 s, eine Sechzehntel 6615 Frames), im Markenklang,
+aber leise gespielt – Flächen (Em9, Cmaj7, Gadd9, Am7, B7), FM-Glocken, ein weiches Achtel-Arpeggio, eine cleane
+Gitarre (das Saitenmodell ohne Verstärker), ein runder Synth-Bass, ein weicher Halbtakt-Beat ohne Crash und Impact.
+
+| Abschnitt | Takte | Akkorde | Inhalt |
+|---|---|---|---|
+| T (Intro) | 2 | a H | die Kehre der Schleife, einmal |
+| A | 8 | C G D e C G a H | eine eigene Glockenmelodie über den Flächen |
+| B | 8 | e C G D e C G D | **der Hook der Titelmelodie** auf der weichen Lead-Stimme (Wiedererkennung), Arpeggio, Shaker |
+| A' | 8 | wie A | die Glockenmelodie auf der weichen Lead eine Oktave tiefer, cleane Gitarre |
+| B' | 6 | e C G D e C | der Hook mit Harmonie, cleane Gitarre |
+| T | 2 | a H | Kehre, Tom-Auftakt in A |
+
+`zwischenspiel.ogg`: das Intro (= die letzten zwei Takte der Schleife) einmal, dann 32 Takte = 76,8 s
+(3 386 880 Frames) in Schleife bis zum Dateiende; die Naht liegt in der Musik (zweiter Durchgang −112,9 dBFS vom
+ersten entfernt – der Ausklang der Echos, unhörbar; gemessen). Datei auf −14 LUFS wie jedes Stück;
+im Spiel bringt die Kette (Kontext `race_menu` −1 dB, Regler) es auf die Menü-Lautheit von −20 LUFS (abgeleitet wie
+beim Titel, 6.1). Vom Ergebnisbildschirm zum Etappenbildschirm läuft es ohne Neustart weiter.
+
+### 14.9 UI-Klänge
+
+`assets/audio/modern/ui/` (Generator `tools/audio/music/ui_klaenge.py`): weiche Menüklänge im Markenklang – der
+gezupfte Synth und die FM-Glocke der Musik, e-Moll-Pentatonik (die Tonart von Titel und Zwischenspiel unter den
+Menüs), ein Hauch der Platte der Musik-Kette; 16-Bit-WAV, 44,1 kHz Stereo, je auf eine eigene Momentanlautheit
+(400 ms) gebracht, True Peak höchstens −3 dBTP.
+
+| id | Dateien | wofür | Lautheit / True Peak (Datei) | Größe |
+|---|---|---|---|---|
+| `ui_move` | `ui_move_1.wav`, `ui_move_2.wav` | Fokus wandert (Momentanlautheit −23 LUFS) | −23,0 LUFS / −13,1 dBTP | 145 kB |
+| `ui_ok` | `ui_ok.wav` | Bestätigen (Momentanlautheit −18 LUFS) | −22,1 LUFS / −8,4 dBTP | 146 kB |
+| `ui_back` | `ui_back.wav` | Zurück (Momentanlautheit −19,5 LUFS) | −22,7 LUFS / −9,6 dBTP | 121 kB |
+| `ui_tab` | `ui_tab.wav` | Reiter wechseln (Momentanlautheit −20,5 LUFS) | −22,5 LUFS / −10,8 dBTP | 138 kB |
+| `ui_toggle` | `ui_toggle.wav` | Wert ändern (Momentanlautheit −21,5 LUFS) | −24,2 LUFS / −11,1 dBTP | 86 kB |
+| `ui_error` | `ui_error.wav` | Geht nicht (Momentanlautheit −20 LUFS) | −20,1 LUFS / −11,2 dBTP | 78 kB |
+
+Zusammen 713 kB (ohne den Platzhalter von AU-A). Pegel im Spiel (abgeleitet): `MUI` 0 dB, `MSfx` 0 dB,
+Gesamtlautstärke 0,8 (−1,9 dB): „Bestätigen“ erreicht etwa −20 LUFS momentan – so laut wie die Menümusik integriert,
+„Fokus“ etwa −25 LUFS; der Arcade-Klang „ui_ok“ liegt ebenso bei etwa −21 LUFS momentan (berechnet aus `SfxSynth`
+und `ONESHOT_DB`).
+
+**Verdrahtung**: `ui_move`, `ui_ok` und `ui_back` sind die Namen, die die Menüs heute spielen (`UiKit.sound()`,
+`AudioManager.play()`): Mit dem Profil Modern nimmt `SfxBank` dafür die Datei aus `ui/` (`ROUTES`), `ui_move` mit zwei
+Varianten reihum. `ui_tab`, `ui_toggle` und `ui_error` gibt es als Namen im Spiel noch nicht: Die UI spielt sie mit
+`AudioManager.play("ui/ui_tab")` usw. (`SfxBank` nimmt „<Ordner>/<id>“; das Profil Arcade kennt die Namen nicht und
+bleibt still) – offener Punkt für UI2 (14.14). Das Profil Arcade behält seine Klänge.
+
+### 14.10 Gemeinsame Mischung (`tools/audio/music/mischung.json`)
+
+Was der Nutzer am Klang noch ändern könnte, steht für alle Stücke an einer Stelle; jeder Generator liest die Datei.
+
+| Schlüssel | wirkt auf | Standard |
+|---|---|---|
+| `sub_db` | Tiefbass: Sub-Bass unter der Basslinie und Sub-Kick (auf den Pegel jedes Stücks addiert) | 0 |
+| `bass_db` | gezupfter Bass und Synth-Bass | 0 |
+| `high_shelf_db`, `high_shelf_hz` | Höhen der Summe: ein Kuhschwanzfilter im Master (bei 0 dB gibt es keinen) | 0 dB, 6000 Hz |
+| `race_music_db` | Musik im Rennen gegen das Auto: `gain_db` der Rennstücke, ihrer Schlüsse und Stinger | 0 |
+| `menu_music_db` | `gain_db` von Titel-Remaster und Zwischenspiel | 0 |
+| `ui_db` | `gain_db` der UI-Klänge | 0 |
+
+Nach einer Änderung: `python3 tools/audio/music/render_all.py` (alle Stücke, etwa 25 Minuten auf einem Kern), dann
+`godot --headless --import`. `race_music_db`, `menu_music_db` und `ui_db` ändern nur `gain_db` im Manifest, nicht
+den Klang der Dateien; dorthin kommen sie trotzdem mit einem ganzen Lauf (einen schnelleren Weg gibt es nicht). Bei
+allen Werten 0 schreiben die Generatoren die Dateien vom 11.11.2026
+bitgleich (gemessen: Titel-Remaster und „Linke Spur“ nach dem Umbau mit gleicher sha256).
+
+### 14.11 Der `MusicDirector`
 
 | Kontext | Stück |
 |---|---|
 | `title`, `menu` | Rolle `title`: das Titel-Remaster (ohne Modern-Datei die Titelmelodie von heute) |
-| `race_menu`, `result` | Rolle `interlude` bzw. `result`, solange es keine gibt das Titel-Remaster – es läuft dann ohne Neustart weiter |
-| `race` | ein Rennstück (Rolle `race`, reihum eins je Etappe) |
+| `race_menu` | Rolle `interlude`: das Zwischenspiel (ohne es das Titel-Remaster) |
+| `result` | Rolle `result`; ohne eigenes Stück das Zwischenspiel, dann das Titel-Remaster |
+| `race` | ein Rennstück (Rolle `race`, reihum eins je Etappe in der Reihenfolge `rotation`: Linke Spur, Nachtfahrt, Rückenwind, …) |
 | `off` | Stille |
 
 Das Rennstück und die Etappe:
 
 | Phase | wann | was |
 |---|---|---|
-| `armed` | `set_music_context("race")` – jede Etappe, auch ein Neustart | die Menümusik blendet aus, das Stück wartet |
+| `armed` | `set_music_context("race")` – jede Etappe, auch ein Neustart | die Menümusik blendet aus, das nächste Stück der Rotation wartet |
 | `waiting` | Ereignis `stage_start` {countdown_s} | Start in countdown_s − Einzähler; jede Countdown-Zahl (`countdown` {n}) verankert neu: Start in n − Einzähler |
 | `playing` | der Start ist da (das Bild, das dem geplanten Moment am nächsten liegt), `go` ohne `stage_start`, oder 0,5 s Fahrt ohne jedes Ereignis (Werkzeuge) | `play()` des `AudioStreamInteractive`; der erste Schlag nach dem Einzähler fällt auf „LOS!“ |
-| `ending` | `stage_finish` | Wechsel zum Schluss am nächsten Taktstrich |
-| `over` | `stage_finish`, bevor das Stück begonnen hat | bleibt still |
+| `ending` | `stage_finish` {record, last_stage} | der Schluss am nächsten Taktstrich: `finale` auf der letzten Etappe, sonst `rekord` bei neuem Rekord, sonst der normale; davor sofort der Ziel-Schlag, wenn der Taktstrich mehr als 0,3 s entfernt ist |
+| `over` | `stage_finish` ohne spielendes Stück („Musik im Rennen: Aus“ oder vor dem Start) | der passende Schluss sofort als Einzelklang – der Zielklang der Etappe |
 
-- **Die Uhr des Starts** sind die Physikschritte (`Engine.get_physics_frames()`, ohne die pausierten) – die Uhr des
-  Countdowns. Ein langes Bild, nach dem die Physik aufholt oder Zeit verwirft, verschiebt Countdown und Musik gleich.
-  Ohne Physik (Unit-Tests) zählt die Bildzeit. Gemessen in einem Rennen mit Countdown: der Schlag liegt in Spielzeit
-  1,5 ms vor „LOS!“; in der Ausgabe eines Laufs ohne Bildschirm 53,4 ms oder eine Treiber-Portion mehr danach – der
-  Dummy-Treiber startet jeden Klang an seiner nächsten Portion von 4096 Frames (Falle 14.7.9); ein echter Treiber mischt
-  in Schritten von 512 Frames (abgeleitet: dann bestimmt das halbe Bild die Genauigkeit).
-- **Pause im Einzähler**: Der Stream pausiert mit dem Countdown (`stream_paused`). Nach „LOS!“ läuft die Musik in
-  der Pause weiter, gefiltert vom Mischzustand `pause`.
-- **„Musik im Rennen: Aus“** lässt das Rennstück still; wieder an, beginnt es mit seinem Einzähler.
-- **Platzhalter** spielen nur, solange eine Rolle kein echtes Stück hat (`audio.modern.placeholders`).
-- **Pegel**: Player auf `context_db` + `gain_db`; Ducking, Renn-EQ, Pause-Tiefpass und Dips wirken auf dem Bus.
-  Überblenden mit gleicher Leistung über die Player-Lautstärke (die der Mischer je Block rampt).
-- **Ende**: `teardown()` hält und gibt die Player frei. Ein `quit()` direkt danach kann bei jedem Profil
-  „leaked at exit“ melden (Falle 14.7.10).
+- **Das Ziel gehört der Musik**: Der Director beansprucht `stage_finish` (`claims()`, nur wenn ein Rennstück Schlüsse
+  hat) – der „finish“-Jingle des `AudioManager` (C-Dur-Arpeggio) entfällt in diesem Moment (Abschnitt 7) und klingt
+  nicht gegen den Schluss in d-Moll, c-Moll oder A-Dur. Folge: Mit dem Regler „Musik“ auf 0 ist das Ziel im Profil
+  Modern still (der Zielklang ist Musik).
+- **Der Schluss klingt aus**: Verlässt das Spiel die Etappe in einen Menü-Kontext (Ergebnisbildschirm 6 s nach dem
+  Ziel), spielt der Schluss weiter, bis er bis auf 1,2 s ausgeklungen ist (höchstens 10 s); erst dann blendet das
+  Zwischenspiel ein. Ein Kontext außerhalb der Menüs (`off`, `race`) beendet das sofort.
+- **Stinger**: `busted` und `out_of_fuel` spielen den Stinger des laufenden Stücks auf dem nächsten Schlag auf einem
+  eigenen Player (`MusicSting` auf `MMusic`); das Rennstück sinkt darunter um `sting_duck_db` (−9 dB, Attack 50 ms),
+  hält die musikalische Länge des Stingers und kommt in `sting_release_s` (1 s) zurück. Nur solange das Stück spielt
+  (Stinger sind Musik): ohne „Musik im Rennen“, vor dem Start und nach dem Ziel keine. Beide Werte liest der Director
+  aus `audio.modern.music`, falls jemand sie dort einträgt (heute steht dort keiner – Standardwerte im Code).
+- **Die Taktuhr** `music_t`: Sekunden, die der Stream spielt – auch in der Pause nach „LOS!“, in der die Musik nur
+  gefiltert weiterläuft (die Spielzeit-Uhr `race_t` steht dort). Aus ihr folgen der nächste Taktstrich (Ziel-Schlag)
+  und der nächste Schlag (Stinger); das Taktraster beginnt mit Frame 0 der Datei, die Schleife ist ganze Takte lang.
+- Weiter wie bei AU-D1: **Uhr des Starts** (Physikschritte), **Pause im Einzähler**, **„Musik im Rennen: Aus“** (das
+  Stück bleibt still; wieder an, beginnt es mit seinem Einzähler), **Platzhalter** nur ohne echtes Stück, **Pegel**
+  `context_db` + `gain_db`, **Ende** (`teardown()` gibt alle drei Player frei).
 
-### 14.6 Prüfungen
+### 14.12 Prüfungen
 
 | Datei | prüft |
 |---|---|
-| `tests/unit/audio_modern/test_music_director.gd` | 8 Tests ohne Szenenbaum: Stücke je Kontext, Start und „LOS!“ (Spielzeit), Neuverankerung an den Countdown-Zahlen, kurzer Countdown, `go`, Start ohne Ereignisse, Ziel, Neustart, Ziel vor dem Start, „Musik im Rennen“, Pause im Einzähler, der gebaute `AudioStreamInteractive`, Platzhalter |
-| `tests/unit/audio_modern/check_music.gd` | eigene Prozesse: **interactive** – das Rennstück offline in 512er-Schritten wie der Mischer: Hauptdatei Frame für Frame, nach dem Dateiende Abweichung 0 zum ersten Durchgang, Schluss 2,9 ms vor dem Taktstrich, keine Lücke, kein doppelter Schlag (+0,01 dB); **race** – Kiel – Hamburg mit Countdown und Autopilot: Schlag auf „LOS!“, Musik nach dem Fader −4,5 dB unter Vollgas, ohne Sitzung wieder −0,1 dB, kein Bild über 0,35 s Spielzeit; **arcade** – mit dem Profil Arcade nach Menü, Rennkontext und Etappenereignissen kein `ModernAudio`, kein Modern-Bus, keine Modern-Musik geladen, die Menümusik ist die Titelmelodie von v0.7.0; **quit_menu**, **quit_race** – Musik spielt, Profil endet, nichts bleibt übrig |
-| `tests/unit/audio_modern/test_music_checks.gd` | startet `check_music.gd` (so deckt `tools/run_tests.sh` es ab); keine Fehler- oder Warnzeile, auch kein „leaked at exit“ |
-| `tools/audio/music/check_music.py` | Noten und Tonart (14.3, 14.4) |
+| `tests/unit/audio_modern/test_music_director.gd` | ohne Szenenbaum: Stücke je Kontext, das Zwischenspiel (race_menu, result, ohne Neustart zwischen beiden), Start und „LOS!“, Rotation der drei Stücke (Einzähler je Tempo, Schlüsse, Stinger), Neuverankerung, kurzer Countdown, `go`, Start ohne Ereignisse, Ziel mit Ausklingen in den Ergebnisbildschirm, Neustart, Ziel vor dem Start (Schluss als Zielklang), Schluss-Varianten und Ziel-Schlag (nur fern vom Taktstrich, Absenkung bis zum Taktstrich), Stinger auf dem Schlag mit Absenkung und Rückkehr, keine Stinger ohne Rennmusik oder nach dem Ziel, Ziel ohne Rennmusik, „Musik im Rennen“, Pause im Einzähler, die Taktuhr in der Pause, der gebaute `AudioStreamInteractive` (vier Clips), Platzhalter |
+| `tests/unit/audio_modern/check_music.gd` | eigene Prozesse: **interactive** – jedes Rennstück offline in 512er-Schritten wie der Mischer: die ganze Hauptdatei Frame für Frame, nach dem Dateiende Abweichung 0 zum ersten Durchgang, der normale Schluss nach der Schleife am Taktstrich (höchstens 3 ms davor), ohne Lücke, ohne doppelten Schlag; die Varianten `rekord` und `finale` (Nachtfahrt, im ersten Durchgang) ebenso (gemessen: alle Schlüsse 2,90–2,93 ms vor dem Taktstrich, leisestes 5-ms-Fenster 6,4–7,6 dB unter der Musik davor, erste 100 ms −0,04 bis +0,01 dB gegenüber dem Clip allein); die Naht des Zwischenspiels (nach dem Dateiende Abweichung 0 zum ersten Durchgang); **arcade** – wie bei AU-D1, dazu nach den Ereignissen `busted`, `out_of_fuel`, den UI-Klängen und dem Kontext `race_menu`: keine Datei aus `music/` oder `ui/` geladen; **race**, **quit_menu**, **quit_race** wie bei AU-D1 |
+| `tests/unit/audio_modern/test_music_checks.gd` | startet `check_music.gd` (so deckt `tools/run_tests.sh` es ab) |
+| `tools/audio/music/check_music.py` | Noten: Titel gegen Original; jedes Rennstück gegen seine Partitur (Grundton je Takt oder ein Dreiklang aus den Tönen des gespielten Farbakkords), Tonart, Schluss; die Zusatzclips (Ziel-Schlag auf der Tonika, Rekord auf der Tonika, Finale in Dur, Stinger in der Moll-Tonart des Stücks) |
 | `tools/audio/qc/audio_qc.py` | Dateien, Pegel, Nähte, Import, Größe; `--determinism` |
 
-### 14.7 Fallen (gemessen, Godot 4.7.2)
+### 14.13 Fallen (gemessen, Godot 4.7.2)
 
 1. **Auto-Advance startet zu früh**: `_queue()` rechnet die Wartezeit von der Position des Decoders, der dem Ausgang
    bis zu 128 Frames voraus ist, und der neue Clip zählt den laufenden Mischblock schon mit – gemessen 640 Frames zu
@@ -774,17 +967,54 @@ Das Rennstück und die Etappe:
     zwischen dem Ende des Profils und `quit()`: 0 von 16.
 11. **`modern_lib.write_ogg_import()` verliert den Kopf der `.import`-Datei** (Abschnitt 13): `music_lib` hat dafür
     `write_ogg_import_keep()`.
+12. **Tempo und Schleife** (AU-D2): Damit die zwei Durchgänge über den Schleifenbeginn gleich sind, braucht ein
+    Stück zwei Dinge. (a) Eine Sechzehntel ist eine ganze Zahl von Frames – bei 112 und 144 bpm (5906,25 / 4593,75
+    Frames) lagen Einsätze auf halben Frames und rundeten im ersten und im zweiten Durchgang verschieden: die
+    Fortsetzung wich vom Schleifenbeginn um −30 dBFS ab (gemessen; die Lead-Noten ab dem zweiten Ton jedes Takts um
+    einen Frame verschoben). (b) Die Schleife ist ein Vielfaches von 63 Frames: Der eingefrorene Kompressor
+    (`music_synth.compressor_gain`) misst den Pegel in Blöcken zu 63 Frames ab Frame 0 – sonst liegt das Raster in
+    beiden Durchgängen anders und die Kompressoren regeln um etwa 0,1 dB verschieden (gemessen bei 108 bpm: −34 dBFS
+    über die ganze Schleife). Beides erfüllen 100, 105, 125, 140, 150 bpm für jede Taktzahl (eine Sechzehntel ist ein
+    Vielfaches von 63 Frames); `race_lib.check_tempo()` lehnt andere Tempi ab. „Linke Spur“ (132 bpm, Schleife
+    7 056 000 = 63 × 112 000 Frames) trifft nie genau einen halben Frame und ist exakt (−172 dBFS).
+13. **Sub-Faltung** (AU-D2): `sub_bass` faltet in 36–75 Hz; in c-Moll und A-Dur landen F und E dabei bei 42–44 Hz –
+    im 40-Hz-Terzband +5,8 / +6,3 dB gegenüber „Linke Spur“ (gemessen). Die neuen Stücke falten in 45–94 Hz
+    (`RacePiece.SUB_FOLD`); Titel und „Linke Spur“ bleiben bei 36 Hz (bitgleich).
+14. **Ende einer Synth-Phrase** (AU-D2): `music_synth.synth_lead` rendert eine Phrase bis 0,6 s nach ihrer letzten
+    Note und schneidet dort ab. Mit dem Patch „soft“ (Ausklang 0,16 s) liegt der Ausklang an der Schnittstelle noch
+    34 dB unter der Spitze der Phrase (gemessen; „lead“: −63 dB) – ein leises Knacken in ruhigen Stellen.
+    `race_lib.phrase_end()` blendet die letzten 60 ms aus (alle Stücke über `race_lib`, das Zwischenspiel); die
+    Hauptdatei von „Linke Spur“ behält es (bitgleich zu AU-D1, offener Punkt). Dieselbe Länge (`int` einer
+    Fließkomma-Zeitspanne) kann in zwei Durchgängen um einen Frame verschieden sein – endet eine Phrase nach dem
+    Schleifenpunkt, weicht die Naht dort um einen Frame ab (Zwischenspiel vor der Korrektur: −67 dBFS, danach
+    −112,9 dBFS).
+15. **Akkorderkennung der Prüfung** (AU-D2): Farbakkorde (A♭maj7 enthält c-Moll, Cm9 enthält E♭-Dur) und die dritte
+    Harmonische der Quinten im Bläser- und Gitarrenakkord (D4 → A5) ziehen die Chroma zum Nachbar-Dreiklang. Die
+    Prüfung zählt deshalb einen Dreiklang aus den Tönen des gespielten Akkords als Treffer, beurteilt beim Schluss
+    den ersten Akkord und die Tonika und bei den Stingern die Tonart.
 
-### 14.8 Offene Punkte
+### 14.14 Offene Punkte
 
-- **Hören**: Titel-Remaster, Rennstück 1, Schluss und Pegel muss der Nutzer beurteilen.
-- **Stücke 2–3, Zwischenspiel, Stinger, UI-Klänge** (AU-D2): je Stück ein Generator nach dem Muster von
-  `linke_spur.py` (ein Rendering, ein Master, Hauptdatei mit Intro und Schleife, Schluss). Der Director nimmt weitere
-  Rennstücke reihum und Rollen `interlude`/`result` ohne Änderung.
+- **Hören**: „Nachtfahrt“, „Rückenwind“, Zwischenspiel, Schlüsse, Stinger und UI-Klänge muss der Nutzer beurteilen
+  (Hörproben `<scratch>/v080/deliver/AU-D2/`). Bass und Pegel ändert `mischung.json` für alle Stücke zugleich (14.10).
+- **UI2**: `ui_tab` (Reiter LB/RB der Optionen), `ui_toggle` (Wert einer Optionszeile) und `ui_error` (nicht möglich)
+  aufrufen – Vorschlag: `UiKit.sound("ui/ui_tab")` usw. an den Stellen, die heute `ui_move` spielen, und für Arcade
+  dort weiter `ui_move` (das Profil Arcade kennt die neuen Namen nicht). Sauberer wäre ein Eintrag in
+  `SfxBank.ROUTES` und `AudioManager.ONESHOT_DB` (Ersatz: der Arcade-Klang `ui_move` bzw. `ui_back`) – das gehört
+  AU-E bzw. dem Eigentümer des `AudioManager`.
+- **AU-E**: die Stinger im Rennen mit der ganzen Kette messen (`capture_mix.gd`), `sting_duck_db`/`sting_release_s`
+  gegebenenfalls in `audio.modern.music` eintragen; ob der Ziel-Schlag mit echtem Treiber auf den Taktstrich passt
+  (die Taktuhr zählt ab `play()`, die Ausgabe beginnt eine Treiberportion später – abgeleitet: Absenkung endet bis zu
+  einer Portion zu früh).
 - **Beenden des Spiels** (UI / AU-E): `GameFlow.quit_game()` sollte den Klang anhalten und 0,3 s warten, bevor es
   `quit()` ruft (Falle 10) – betrifft beide Profile.
-- **`capture_mix.gd --scenario=race_music`** sendet kein `stage_start`: Das Rennstück beginnt nach 0,5 s Fahrt, sein
-  Einzähler und der erste Schlag fallen in das Messfenster „idle“ (gemessen −18,75 LUFS gegen Plan −19,5) – für das
-  Leerlauf-Ziel nicht vergleichbar.
+- **`capture_mix.gd --scenario=race_music`** sendet kein `stage_start` (AU-D1) – für das Leerlauf-Ziel nicht
+  vergleichbar.
 - **QC-Regel und Godot**: `audio_qc.py` vergleicht `beats` mit der Schleifenlänge, Godot zählt `beat_count` vom
   Dateianfang (Falle 5).
+- **„Linke Spur“, Hauptdatei**: Die weiche Lead-Stimme (Breakdown D, Kehre T) endet je Phrase mit dem leisen Schnitt
+  von Falle 14.13.14. Beim nächsten Rendering von Stück 1 (etwa nach dem Urteil des Nutzers zu Bass und Pegel) lässt
+  sich das in `linke_spur.py` mit `race_lib.phrase_end()` beheben – dann ist die Datei nicht mehr bitgleich zu den
+  Hörproben vom 11.11.2026, darum ist es heute nicht geschehen.
+- **Stücke 4–5**: nur, wenn alles andere fertig ist (Vertrag D30); `race_lib.RacePiece` macht ein weiteres Stück zu
+  einer Partitur-Datei (Muster: `nachtfahrt.py`).
