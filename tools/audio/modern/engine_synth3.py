@@ -83,9 +83,9 @@ OFF_CURVE = [(0.0, -8.6), (0.12, -9.6), (0.28, -9.0), (0.5, -8.4), (0.75, -7.4),
 CHAR: dict = {
     "kompakt": {
         "retune": {"rasp": 4.0, "jet": 5.0, "intake": 4.0, "whoosh": 5.0, "mech": 2.0, "hiss": 3.0},
-        "nl": 1.5, "pan": "centre", "width": 0.0, "noise": 0.55, "clip_pan": 0.25,
+        "nl": 1.5, "pan": "centre", "width": 0.0, "noise": 0.85, "clip_pan": 0.25, "voice": [[520.0, 0.9, 5.0]],
         "on": ON_CURVE, "off": OFF_CURVE, "loudness": -0.2,
-        "mix": {"in_gain": 1.0, "idle_load": 0.2},
+        "mix": {"in_gain": 1.0, "idle_load": 0.2, "load_curve": 0.65},
         "saturation": 1.0, "turbo_depth": 0.25,
         "turbo": {"tone": "turbo_single", "tone_level": 0.060, "hiss_level": 0.030},
         "blowoff": {"sound": "blowoff_hatch"},
@@ -94,9 +94,9 @@ CHAR: dict = {
     },
     "kombi": {
         "retune": {"rasp": 2.0, "jet": 3.0, "intake": 3.0, "whoosh": 6.0, "mech": 2.0, "knock": 1.0},
-        "nl": 1.3, "pan": "centre", "width": 0.0, "noise": 0.5, "clip_pan": 0.0,
+        "nl": 1.3, "pan": "centre", "width": 0.0, "noise": 0.75, "clip_pan": 0.0,
         "on": ON_CURVE, "off": OFF_CURVE, "loudness": -1.0,
-        "mix": {"in_gain": 1.0, "idle_load": 0.25},
+        "mix": {"in_gain": 1.0, "idle_load": 0.25, "load_curve": 0.65},
         "saturation": 0.5, "turbo_depth": 0.3,
         "turbo": {"tone": "turbo_single", "tone_level": 0.050, "hiss_level": 0.045},
         "blowoff": None,
@@ -105,9 +105,9 @@ CHAR: dict = {
     },
     "limousine": {
         "retune": {"rasp": 2.5, "jet": 4.0, "intake": 3.0, "whoosh": 3.0, "mech": 1.0, "hiss": 2.0},
-        "nl": 1.25, "pan": "centre", "width": 0.0, "noise": 0.4, "clip_pan": 0.5,
+        "nl": 1.25, "pan": "centre", "width": 0.0, "noise": 0.8, "clip_pan": 0.5, "voice": [[420.0, 0.7, 4.0]],
         "on": ON_CURVE, "off": OFF_CURVE, "loudness": -0.5,
-        "mix": {"in_gain": 0.9, "idle_load": 0.2},
+        "mix": {"in_gain": 0.9, "idle_load": 0.2, "load_curve": 0.65},
         "saturation": 0.6, "turbo_depth": 0.2,
         "turbo": {"tone": "turbo_single", "tone_level": 0.022, "hiss_level": 0.020},
         "blowoff": {"sound": "blowoff_soft"},
@@ -116,9 +116,9 @@ CHAR: dict = {
     },
     "sportwagen": {
         "retune": {"rasp": 4.0, "jet": 5.0, "intake": 6.0, "whoosh": 3.0, "mech": 3.0, "hiss": 3.0},
-        "nl": 1.5, "pan": "group", "width": 0.55, "noise": 0.8, "clip_pan": 0.45,
+        "nl": 1.5, "pan": "group", "width": 0.55, "pan_from_hz": 300.0, "noise": 0.9, "clip_pan": 0.45,
         "on": ON_CURVE, "off": OFF_CURVE, "loudness": 0.5,
-        "mix": {"in_gain": 1.15, "idle_load": 0.2},
+        "mix": {"in_gain": 1.15, "idle_load": 0.2, "load_curve": 0.65},
         "saturation": 1.35, "turbo_depth": 0.0,
         "turbo": None, "blowoff": None,
         "driveline": {"fd_level": 0.012, "gm_level": 0.012},
@@ -126,9 +126,9 @@ CHAR: dict = {
     },
     "gran_turismo": {
         "retune": {"rasp": 4.0, "jet": 6.0, "intake": 5.0, "whoosh": 5.0, "mech": 2.0, "hiss": 3.0},
-        "nl": 1.5, "pan": "tailpipe", "width": 0.62, "noise": 0.8, "clip_pan": 0.0,
+        "nl": 1.5, "pan": "tailpipe", "width": 0.62, "noise": 0.9, "clip_pan": 0.0, "voice": [[330.0, 0.8, 5.0]],
         "on": ON_CURVE, "off": OFF_CURVE, "loudness": 0.8,
-        "mix": {"in_gain": 1.0, "idle_load": 0.2},
+        "mix": {"in_gain": 1.0, "idle_load": 0.2, "load_curve": 0.65},
         "saturation": 1.25, "turbo_depth": 0.25,
         "turbo": {"tone": "turbo_twin", "tone_level": 0.036, "hiss_level": 0.030},
         "blowoff": {"sound": "blowoff_gt"},
@@ -160,6 +160,46 @@ def _listener_path_panned(f, pos, shadow=None):
 
 
 es.listener_path = _listener_path_panned
+
+
+def peaking_response(f: np.ndarray, f0: float, q: float, gain_db: float) -> np.ndarray:
+    """Complex frequency response of a peaking biquad (causal, minimum phase) at the bank rate."""
+    a = 10.0 ** (gain_db / 40.0)
+    w0 = 2.0 * math.pi * f0 / SR
+    alpha = math.sin(w0) / (2.0 * q)
+    z = np.exp(-2j * np.pi * np.asarray(f, float) / SR)
+    num = (1.0 + alpha * a) - 2.0 * math.cos(w0) * z + (1.0 - alpha * a) * z * z
+    den = (1.0 + alpha / a) - 2.0 * math.cos(w0) * z + (1.0 - alpha / a) * z * z
+    return num / den
+
+
+def give_voice(model, voice: list) -> None:
+    """Formants of the exhaust path of a model (CHAR "voice": [[Hz, Q, dB], ...]): every impulse response of its
+    exhaust network (cylinder ports and crackle nodes -> listener) passes the peaking filters. Fixed resonances the
+    engine orders move through - what a tailpipe and a muffler shell add to an exhaust note and what the plane-wave
+    network does not carry. Replaces model.exhaust_tf on the instance, so the calibration, the banks and the clip
+    generators of the frozen tool all hear the same voice."""
+    if not voice:
+        return
+    orig = model.exhaust_tf
+
+    def shaped(h: np.ndarray) -> np.ndarray:
+        n = es.fft_size(len(h) + 2048)
+        f = np.fft.rfftfreq(n, 1.0 / SR)
+        g = np.ones(len(f), complex)
+        for f0, q, gain_db in voice:
+            g = g * peaking_response(f, f0, q, gain_db)
+        return np.fft.irfft(np.fft.rfft(h, n) * g, n)[:len(h)]
+
+    def exhaust_tf(T_hdr: float) -> dict:
+        res = orig(T_hdr)
+        if not res.get("voiced"):
+            res["h"] = [shaped(h) for h in res["h"]]
+            res["h_crackle"] = [shaped(h) for h in res["h_crackle"]]
+            res["voiced"] = True
+        return res
+
+    model.exhaust_tf = exhaust_tf
 
 
 class Chan:
@@ -202,6 +242,7 @@ class StereoCar:
         with Chan(0):
             self.mc = es.CarModel(car)
             self.mc.op = dict(self.mc.op, nl=self.mc.op["nl"] * self.ch["nl"])
+            give_voice(self.mc, self.ch.get("voice"))
             self.mc.calibrate()
         self.k = dict(self.mc.cal["k"])
         for comp, d in self.ch["retune"].items():
@@ -214,6 +255,7 @@ class StereoCar:
                     m = es.CarModel(car)
                     m.op = dict(self.mc.op)
                     m.cal = dict(self.mc.cal, k=self.k)
+                    give_voice(m, self.ch.get("voice"))
                     self.side[c] = m
         # cylinder bank -> pan (mode "group"): bank a to the left, b to the right
         self.group_pan = {"a": -self.ch["width"], "b": self.ch["width"]}
@@ -237,11 +279,22 @@ class StereoCar:
                 gl, gr = pan_gains(pan)
                 for c, gain in ((0, gl), (1, gr)):
                     sel = [x if self.mc.geo["groups"][k] == g else None for k, x in zip(cyls, sl[c])]
-                    out[:, c] += gain * es.fft_convolve_sum(sel, self.mc.exhaust_tf(T_hdr)[key], n_len)
+                    x = es.fft_convolve_sum(sel, self.mc.exhaust_tf(T_hdr)[key], n_len)
+                    out[:, c] += self._pan_split(x, gain)
             return out
         for c, chn in ((0, -1), (1, 1)):
             out[:, c] = es.fft_convolve_sum(sl[c], self._tf(chn, T_hdr)[key], n_len)
         return out
+
+    def _pan_split(self, x: np.ndarray, gain: float) -> np.ndarray:
+        """A cylinder bank's share of one channel (pan mode "group"): panned with `gain` above pan_from_hz, in the
+        centre (gain 1) below it. The two banks of a boxer fire in turn - their half orders are in antiphase between
+        the banks, and the low ones carry most of the energy on overrun: panned in full they would cancel in mono."""
+        fc = float(self.ch.get("pan_from_hz", 0.0))
+        if fc <= 0.0:
+            return gain * x
+        lo = es.spectral_filter(x, lambda f: 1.0 / (1.0 + (np.asarray(f, float) / fc) ** 4))
+        return lo + gain * (x - lo)
 
     def _pair(self, rng_l, rng_r, n: int, lo: float, hi: float, slope: float) -> tuple:
         """Two noise signals with the car's common share (rho) and an independent share per channel."""
@@ -306,8 +359,8 @@ class StereoCar:
                 src = mc.mech_sources(sub, opp, n_len, np.random.default_rng(es.seed_of(seed, "mech", g)))["mech"]
                 x = es.fft_convolve_sum([src], [mc.mech_full["mech"]], n_len)
                 gl, gr = pan_gains(0.6 * pan)
-                st[:, 0] += gl * x
-                st[:, 1] += gr * x
+                st[:, 0] += self._pan_split(x, gl)
+                st[:, 1] += self._pan_split(x, gr)
             parts["mech"] = st
         return parts
 
@@ -341,16 +394,49 @@ class StereoCar:
                 ys = {"on": self.layer(parts, [c for c in es.COMPONENTS if c not in ("intake", "whoosh", "hiss")]),
                       "in": self.layer(parts, ["intake", "whoosh"])}
             for name, y in ys.items():
+                if name == "in":
+                    out["in_steady"] = y[:, 0].copy()     # cut by align_induction()
+                    out["in_a0"] = a0
+                    continue
                 cyc = []
                 for i in range(N_VAR):
                     c = y[a0 + i * period:a0 + i * period + period + OVERLAP].copy()
                     c -= np.mean(c[:period], axis=0)      # no DC per cycle (random variants would wobble)
                     cyc.append(c)
                 out[name] = cyc
-        out["in"] = [c[:, 0].copy() for c in out["in"][:N_VAR_IN]]
         if rpm < ON_LOW_X * mc.eng["idle_rpm"]:
             out["on"] = out["on"][:N_VAR_ON_LOW]
         return out
+
+
+def align_induction(pts: list) -> None:
+    """Cuts the induction cycles of every rpm point (pts ascending in rpm) out of its steady signal - each point
+    shifted within its cycle so that its mean cycle lines up with the one of the point below.
+    The other layers start their cycle with the arrival of cylinder 1's exhaust pulse, which keeps neighbouring rpm
+    points in phase. The induction travels another way (runners, plenum, airbox, the car's length): cut at the same
+    instants, neighbouring points came out with a coherence between +0.9 and -0.6, and a blend of two of them
+    partly cancelled. The mixer reads all layers of a point at the same cycle phase; where inside the cycle the
+    induction sits against the exhaust is not audible."""
+    n_pts = 2048
+    prev = None
+    for pt in pts:
+        P, y, a0 = pt["period"], pt["in_steady"], pt["in_a0"]
+        m = np.mean([y[a0 + i * P:a0 + (i + 1) * P] for i in range(N_VAR)], axis=0)
+        m = np.interp(np.arange(n_pts) * (P / n_pts), np.arange(P), m, period=P)
+        m = m - np.mean(m)
+        lag = 0
+        if prev is not None:
+            xc = np.fft.irfft(np.fft.rfft(m) * np.conj(np.fft.rfft(prev)), n_pts)   # xc[k] = sum m[n + k] prev[n]
+            lag = int(np.argmax(xc))
+        shift = int(round(lag * P / n_pts)) % P
+        cyc = []
+        for i in range(N_VAR_IN):
+            c = y[a0 + shift + i * P:a0 + shift + i * P + P + OVERLAP].copy()
+            c -= np.mean(c[:P])
+            cyc.append(c)
+        pt["in"] = cyc
+        pt["in_shift"] = shift / P
+        prev = np.roll(m, -lag)
 
 
 # ------------------------------------------------------------------------------------------------------------------
@@ -400,10 +486,18 @@ def coherence(ca: list, pa: int, cb: list, pb: int) -> float:
     return float(np.mean(ma * mb) / math.sqrt(pwa * pwb))
 
 
+SAT_BIAS, SAT_COMP, SAT_FLOOR = 0.10, 0.55, 0.4
+
+
+def sat_drive(amount: float, load: float, rpm_share: float) -> float:
+    """Drive of the runtime saturation (engine_mix_thread.gd _drive_of)."""
+    return 1.0 + amount * load * (SAT_FLOOR + (1.0 - SAT_FLOOR) * min(max(rpm_share, 0.0), 1.0))
+
+
 def saturate(x: np.ndarray, drive: float) -> np.ndarray:
     """The load-dependent saturation of the runtime mixer (engine_mix_thread.gd), for the level calibration."""
-    bias = 0.10 * (drive - 1.0)
-    return (np.tanh(x * drive + bias) - math.tanh(bias)) / drive ** 0.55
+    bias = SAT_BIAS * (drive - 1.0)
+    return (np.tanh(x * drive + bias) - math.tanh(bias)) / drive ** SAT_COMP
 
 
 # ------------------------------------------------------------------------------------------------------------------
@@ -457,6 +551,7 @@ class Clips:
             self.mono.op = dict(sc.mc.op)
             self.mono.cal = dict(sc.mc.cal, k=sc.k)
             self.mono._tf_cache = sc.mc._tf_cache      # same networks, solved once
+            give_voice(self.mono, sc.ch.get("voice"))
 
     def _run(self, fn, *args) -> list:
         """A clip generator -> list of raw clips; stereo arrays for "tailpipe", mono arrays otherwise."""
@@ -523,6 +618,7 @@ def build_car(car: str, out_dir: str, log=print) -> dict:
     idle, red = float(eng["idle_rpm"]), float(eng["redline_rpm"])
     periods = es.rpm_points(eng, prof["ratios"])
     pts = [sc.render_point(P) for P in periods]
+    align_induction(pts)
     banks = []
     for pt in pts:
         P = pt["period"]
@@ -579,7 +675,7 @@ def build_car(car: str, out_dir: str, log=print) -> dict:
         n = min(len(on["cycles"]), len(inn["cycles"]))
         y = np.concatenate([on["cycles"][i][:P] * on["g"]
                             + (inn["cycles"][i][:P] * inn["g"] * ch["mix"]["in_gain"])[:, None] for i in range(n)], axis=0)
-        full.append(lufs_st(saturate(y, 1.0 + drive_amt * min(on["rpm"] / red, 1.0))))
+        full.append(lufs_st(saturate(y, sat_drive(drive_amt, 1.0, on["rpm"] / red))))
     loud_full = float(np.mean(full))
     # --- clips
     idle_b = by[(rpm_sorted[0], "off")]
@@ -626,7 +722,7 @@ def build_car(car: str, out_dir: str, log=print) -> dict:
             jb["gain"] = round(jb["gain"] / file_scale, 6)
     arc = prof["layers"]
     layers: dict = {"limiter": dict(arc["limiter"], pop=ch["limiter_pop"]),
-                    "saturation": {"amount": ch["saturation"], "bias": 0.10, "comp": 0.55},
+                    "saturation": {"amount": ch["saturation"], "bias": SAT_BIAS, "comp": SAT_COMP, "floor": SAT_FLOOR},
                     "driveline": dict({"wheel_m": 2.05, "final_ratio": 3.2, "pinion_teeth": 12, "mesh_teeth": 29,
                                        "sound": "driveline_whine"}, **ch["driveline"]),
                     "tipin": dict({"sound": "tipin"}, **ch["tipin"]),
@@ -641,9 +737,9 @@ def build_car(car: str, out_dir: str, log=print) -> dict:
         layers["shift"] = {"pan": ch["clip_pan"]}
     meta = {"format": FORMAT, "car": car, "sample_rate": SR, "channels": 2, "data": f"{car}.i16",
             "engine": prof["engine"], "gearbox": prof["gearbox"], "banks": jbanks, "clips": jclips, "layers": layers,
-            "mix": dict({"gain": 1.0, "off_gain": 1.0, "clip_gain": round(1.0 / file_scale, 6)}, **ch["mix"]),
+            "mix": dict({"gain": 1.0, "off_gain": 1.0, "clip_gain": {k: round(1.0 / file_scale, 6) for k in jclips}}, **ch["mix"]),
             "synth": {"generator": GENERATOR, "model": 3, "pan": ch["pan"], "width": ch["width"], "noise": ch["noise"],
-                      "retune_db": ch["retune"], "nl_scale": ch["nl"], "ref_rpm": round(ref_rpm),
+                      "retune_db": ch["retune"], "nl_scale": ch["nl"], "voice": ch.get("voice", []), "ref_rpm": round(ref_rpm),
                       "loudness_full": round(loud_full, 2), "loudness_offset_db": ch["loudness"],
                       "balance_db_max": round(max(abs(b["bal_db"]) for b in banks), 2),
                       "cycles": "[offset, length, mode] in frames; mode 0 = stereo, 1 = mono in the left samples, 2 = mono in the right samples",

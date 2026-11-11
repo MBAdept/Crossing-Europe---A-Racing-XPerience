@@ -301,6 +301,9 @@ func _make_unit(id: String, bank: EngineBank2, level_db: float) -> Unit:
 	u.mix.motion_level_db = float(_motion.get("level_db", u.mix.motion_level_db))
 	u.mix.motion_load = float(_motion.get("load", u.mix.motion_load))
 	u.mix.motion_cycle_db = float(_motion.get("cycle_db", u.mix.motion_cycle_db))
+	u.mix.motion_rpm_slow = float(_motion.get("rpm_slow", u.mix.motion_rpm_slow))
+	u.mix.motion_level_slow_db = float(_motion.get("level_slow_db", u.mix.motion_level_slow_db))
+	u.mix.motion_load_slow = float(_motion.get("load_slow", u.mix.motion_load_slow))
 	return u
 
 

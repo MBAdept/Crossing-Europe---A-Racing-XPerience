@@ -14,10 +14,13 @@ extends RefCounted
 ##     turbo engine's "on" grows with the boost (layers.turbo.depth);
 ##   • blends keep the power: between two rpm points with the measured coherence of the pair (bank.xrpm), between
 ##     the loads with bank.xload and the banks' powers – no level dip where two banks do not add up in phase;
-##   • slow movement, never a static loop: band-limited random drift of the engine speed (motion_rpm), of the level
-##     of the load layer (motion_level_db) and of the load itself (motion_load), and a gain step per cycle
-##     (motion_cycle_db);
-##   • saturation that grows with load × rpm (layers.saturation): y = (tanh(x·d + b) − tanh b) / d^comp;
+##   • movement, never a static loop: random drift of the engine speed, of the level of the exhaust layers and of
+##     the load – each as a quick process (roughness, motion_rpm / motion_level_db / motion_load) plus a slow one
+##     (breathing over seconds, motion_rpm_slow / motion_level_slow_db / motion_load_slow) – and a gain step per
+##     cycle (motion_cycle_db);
+##   • saturation that grows with the load and with the rpm (layers.saturation: amount, floor = share of it that
+##     is there from idle on): d = 1 + amount · load · (floor + (1 − floor) · rpm / redline),
+##     y = (tanh(x·d + b) − tanh b) / d^comp – the bark of an engine that is asked for torque;
 ##   • clips of the bank after the saturation: crackles (Poisson-timed after lifting), shift cracks, the start clip,
 ##     pops on the limiter; mono clips are panned, each clip group has its gain (mix.clip_gain);
 ##   • mix.gain × level, the output fade and a soft limit (linear up to SOFT, tanh towards ±1) at the end.
@@ -48,17 +51,22 @@ const START_OVERLAP_S := 0.3     ## the cycle sound fades in this long before th
 const WATCHDOG_S := 0.75         ## worker: no control for this long -> the engine fades out until control returns
 const WATCHDOG_FADE_S := 0.12
 const MIN_RHO := -0.6            ## coherence floor of the power-true rpm blend
+const SLOW_TAU := 2.5            ## s, correlation time of the slow movement
 const MAX_CLIPS := 10
 const MAX_EVENTS := 32           ## pending control events (they are taken with every rendered chunk)
 
 var bank: EngineBank2
 var rng := RandomNumberGenerator.new()
 var level := 1.0                 ## linear gain on top of mix.gain (config audio.modern.engine.level_db)
-## Slow movement (see above); 0 switches a part off (tests of the plain mixer).
+## Movement (see above); 0 switches a part off (tests of the plain mixer). Standard deviations: rpm and load
+## relative, levels in dB.
 var motion_rpm := 0.0012
 var motion_level_db := 0.6
 var motion_load := 0.05
 var motion_cycle_db := 0.5
+var motion_rpm_slow := 0.003
+var motion_level_slow_db := 0.5
+var motion_load_slow := 0.07
 ## Debug/test hooks (render side): with debug_wraps, `wraps` collects the frame positions of all cycle starts,
 ## `variants_log` the variant chosen for bank `debug_bank`, `gates_log` the limiter gate at each of them.
 var debug_wraps := false
@@ -124,9 +132,12 @@ var _loop_goal := 1.0
 var _start_wait := 0             # frames until the cycle sound fades in under the start clip
 var _wd := 1.0                   # watchdog gain
 var _wd_goal := 1.0
-var _m_rpm := 0.0                # slow movement: unit-variance drift processes
+var _m_rpm := 0.0                # movement: unit-variance drift processes, quick (…) and slow (…s)
 var _m_amp := 0.0
 var _m_load := 0.0
+var _ms_rpm := 0.0
+var _ms_amp := 0.0
+var _ms_load := 0.0
 var _cyc_goal := 1.0
 var _cyc_g := 1.0
 var _e_r := 800.0                # values at the end of the last block (start of the next one)
@@ -159,6 +170,7 @@ var _g1 := PackedFloat64Array()
 var _sat_amount := 1.0
 var _sat_bias := 0.1
 var _sat_comp := 0.55
+var _sat_floor := 0.4
 var _turbo_depth := 0.0
 var _in_base := 1.0
 var _crackle := false
@@ -212,6 +224,7 @@ func _init(p_bank: EngineBank2, p_seed: int = -1) -> void:
 	_sat_amount = maxf(float(sat.get("amount", 0.0)), 0.0)
 	_sat_bias = float(sat.get("bias", 0.1))
 	_sat_comp = float(sat.get("comp", 0.55))
+	_sat_floor = clampf(float(sat.get("floor", 0.4)), 0.0, 1.0)
 	var t := bank.layer("turbo")
 	_turbo_depth = clampf(float(t.get("depth", 0.0)), 0.0, 0.9)
 	_in_base = 0.55 if not t.is_empty() else 1.0
@@ -395,7 +408,7 @@ func _take_control() -> void:
 		if dt <= 0.0:
 			_rpm = rpm
 			_rpm_step = 0.0
-			_e_r = rpm * (1.0 - _droop) * (1.0 + motion_rpm * _m_rpm)
+			_e_r = rpm * (1.0 - _droop) * (1.0 + motion_rpm * _m_rpm + motion_rpm_slow * _ms_rpm)
 			_load_s = maxf(load, _idle_share())
 			_thr_s = thr
 			_boost_s = boost
@@ -443,7 +456,7 @@ func _in_level() -> float:
 
 
 func _drive_of(l: float) -> float:
-	return 1.0 + _sat_amount * l * clampf(_rpm / _redline, 0.0, 1.0)
+	return 1.0 + _sat_amount * l * (_sat_floor + (1.0 - _sat_floor) * clampf(_rpm / _redline, 0.0, 1.0))
 
 
 ## Starts a clip variant (−1 = random, not the last one of this clip) after `wait` frames.
@@ -499,14 +512,14 @@ func render(out: PackedVector2Array, offset: int, count: int) -> void:
 
 
 ## The six voice gains (lo off/on/in, hi off/on/in) for a place between two rpm points (wh 0..1), a load, the
-## induction level, the level of the load layer and the loop fade.
-func _gains(out: PackedFloat64Array, lo: int, hi: int, wh: float, l: float, inn: float, on_amp: float, fade: float) -> void:
+## induction level, the levels of the two exhaust layers (movement; "on" also the boost) and the loop fade.
+func _gains(out: PackedFloat64Array, lo: int, hi: int, wh: float, l: float, inn: float, on_amp: float, off_amp: float, fade: float) -> void:
 	var bk := bank
 	var a := 1.0 - wh
 	var b := wh
 	var lc := pow(l, bk.load_curve) if l > 0.0 else 0.0
 	var s := sin(lc * PI * 0.5) * on_amp
-	var c := cos(lc * PI * 0.5) * bk.off_gain
+	var c := cos(lc * PI * 0.5) * bk.off_gain * off_amp
 	# the load blend keeps the power: s² · P_on + c² · P_off, whatever the coherence of the two layers
 	var p_on := a * bk.power[lo * 3 + 1] + b * bk.power[hi * 3 + 1]
 	var p_off := a * bk.power[lo * 3] + b * bk.power[hi * 3]
@@ -533,16 +546,19 @@ func _render_block(out: PackedVector2Array, o: int, n: int) -> void:
 	var nf := float(n)
 	var bk := bank
 	var dt := nf / sr
-	# --- slow movement: three drift processes (unit variance) and the gain of the running cycle
+	# --- movement: drift processes (unit variance; quick and slow) and the gain of the running cycle
 	_m_rpm += -_m_rpm * (dt / 0.25) + rng.randfn() * sqrt(2.0 * dt / 0.25)
 	_m_amp += -_m_amp * (dt / 0.12) + rng.randfn() * sqrt(2.0 * dt / 0.12)
 	_m_load += -_m_load * (dt / 0.2) + rng.randfn() * sqrt(2.0 * dt / 0.2)
+	_ms_rpm += -_ms_rpm * (dt / SLOW_TAU) + rng.randfn() * sqrt(2.0 * dt / SLOW_TAU)
+	_ms_amp += -_ms_amp * (dt / SLOW_TAU) + rng.randfn() * sqrt(2.0 * dt / SLOW_TAU)
+	_ms_load += -_ms_load * (dt / SLOW_TAU) + rng.randfn() * sqrt(2.0 * dt / SLOW_TAU)
 	_cyc_g += (_cyc_goal - _cyc_g) * 0.5
 	# --- control values at the end of the block (the start values are those of the last block's end)
 	var r_start := _e_r
 	_rpm = move_toward(_rpm, _rpm_goal, _rpm_step * nf)
 	_droop += ((0.03 if _gate < 0.5 else 0.0) - _droop) * (1.0 - exp(-dt / 0.025))
-	var r_end := _rpm * (1.0 - _droop) * (1.0 + motion_rpm * _m_rpm)
+	var r_end := _rpm * (1.0 - _droop) * (1.0 + motion_rpm * _m_rpm + motion_rpm_slow * _ms_rpm)
 	_e_r = r_end
 	var load_goal := maxf(_load_goal, _idle_share())
 	if _load_goal > 0.6:
@@ -552,13 +568,13 @@ func _render_block(out: PackedVector2Array, o: int, n: int) -> void:
 	_thr_s += (_thr_goal - _thr_s) * (1.0 - exp(-dt / (THR_UP_S if _thr_goal > _thr_s else THR_DOWN_S)))
 	_boost_s += (_boost_goal - _boost_s) * (1.0 - exp(-dt / BOOST_TAU))
 	var l0 := _e_l
-	var l1 := clampf(_load_s * _gate_s * (1.0 + motion_load * _m_load), 0.0, 1.0)
+	var l1 := clampf(_load_s * _gate_s * (1.0 + motion_load * _m_load + motion_load_slow * _ms_load), 0.0, 1.0)
 	_e_l = l1
 	var in0 := _e_in
 	var in1 := _in_level()
 	_e_in = in1
 	var amp0 := _e_amp
-	var amp1 := exp(0.115129 * (motion_level_db * _m_amp)) * _cyc_g
+	var amp1 := exp(0.115129 * (motion_level_db * _m_amp + motion_level_slow_db * _ms_amp)) * _cyc_g
 	_e_amp = amp1
 	var on0 := _e_on
 	var on1 := 1.0 - _turbo_depth * (1.0 - _boost_s)
@@ -589,8 +605,8 @@ func _render_block(out: PackedVector2Array, o: int, n: int) -> void:
 		wh1 = clampf((log(maxf(r_end, 1.0)) - la) / span, 0.0, 1.0)
 	var g0 := _g0
 	var g1 := _g1
-	_gains(g0, lo, hi, wh0, l0, in0, amp0 * on0, lp0)
-	_gains(g1, lo, hi, wh1, l1, in1, amp1 * on1, _loop)
+	_gains(g0, lo, hi, wh0, l0, in0 * sqrt(amp0), amp0 * on0, amp0, lp0)
+	_gains(g1, lo, hi, wh1, l1, in1 * sqrt(amp1), amp1 * on1, amp1, _loop)
 	# --- cycle phase per frame; cycle starts (wraps) split the block into segments
 	var inv := 1.0 / (120.0 * sr)
 	var inc := r_start * inv
