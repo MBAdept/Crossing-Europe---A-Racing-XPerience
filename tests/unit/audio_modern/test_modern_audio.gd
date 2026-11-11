@@ -474,20 +474,22 @@ func test_volume_settings_and_plan_levels_on_the_buses() -> void:
 
 
 func test_music_contexts() -> void:
+	# without Modern music files (an empty asset folder): the menu contexts play today's title theme, a race is silent
 	var title := AudioStreamWAV.new()
-	var m := _modern({"placeholders": true}, {"streams": {"music": title}})
+	var none := {"assets_dir": "res://tests/unit/audio_modern/fixtures/ohne_klaenge"}
+	var m := _modern(none, {"streams": {"music": title}})
 	assert_eq(m.music.context, "off", "am Anfang still")
 	assert_false(m.music.wanted(), "keine Menümusik gewünscht")
 	# the menu code's switch alone (waves 0 and 1): menu music = today's title theme at the plan's level
 	m.set_music(true)
 	_steps(m, 40)
 	assert_eq(m.music.context, "menu", "set_music(true) = Menü")
-	assert_eq(m.music.current_key(), MusicDirector.ARCADE_KEY, "die Titelmelodie von heute")
+	assert_eq(m.music.current_key(), MusicDirector.ARCADE_KEY, "ohne Modern-Datei: die Titelmelodie von heute")
 	assert_near(float(m.music.debug_state()["db"]), m.mix.music_context_db("menu"), 1.0e-6, "Pegel des Kontexts")
 	assert_true(m.music.wanted(), "Menümusik gewünscht")
 	m.set_music(true)
 	assert_eq(m.music.context, "menu", "nochmal an: bleibt")
-	# contexts: the screens between stages keep the piece, a race gets its own
+	# contexts: the screens between stages keep the piece
 	m.set_music_context("race_menu")
 	_steps(m, 5)
 	assert_eq(m.music.current_key(), MusicDirector.ARCADE_KEY, "ohne Zwischenspiel läuft die Titelmelodie weiter")
@@ -496,22 +498,11 @@ func test_music_contexts() -> void:
 	m.set_music(false)
 	assert_eq(m.music.context, "off", "set_music(false) = aus")
 	m.set_music_context("race", {"stage": "kiel_hamburg"})
+	m.event("stage_start", {"countdown_s": 0.0})
 	_steps(m, 40)
-	assert_eq(m.music.current_key(), "music/platzhalter_takt", "Rennstück (hier der Platzhalter)")
-	assert_near(float(m.music.debug_state()["db"]), m.mix.music_context_db("race"), 1.0e-6, "Pegel des Rennens")
+	assert_eq(m.music.current_key(), "", "ohne Rennstück bleibt es im Rennen still")
 	assert_false(m.music.wanted(), "im Rennen keine Menümusik")
 	assert_eq(m.frame.music_context, "race", "die Bausteine kennen den Kontext")
-	# option "Musik im Rennen"
-	m.set_race_music(false)
-	_steps(m, 2)
-	assert_eq(m.music.current_key(), "", "Musik im Rennen aus")
-	m.set_race_music(true)
-	_steps(m, 2)
-	assert_eq(m.music.current_key(), "music/platzhalter_takt", "wieder an")
-	# the finish ends the race piece; stop_all() does not touch music
-	m.event("stage_finish", {"record": false, "last_stage": false})
-	_steps(m, 2)
-	assert_eq(m.music.current_key(), "", "nach der Ziellinie blendet das Rennstück aus")
 	m.set_music(true)
 	_steps(m, 2)
 	assert_eq(m.music.context, "menu", "zurück im Menü")
@@ -529,7 +520,7 @@ func test_music_contexts() -> void:
 	# the Arcade title theme arrives after the menu context was set (synthesised in a thread while the Modern profile
 	# is already active): silence until then – never a piece noted as started without a stream –, then it starts
 	var late_streams := {}
-	var late := _modern({}, {"streams": late_streams})
+	var late := _modern(none, {"streams": late_streams})
 	late.set_music_context("menu")
 	late.set_music(true)
 	_steps(late, 40)
@@ -545,12 +536,34 @@ func test_music_contexts() -> void:
 	_steps(late, 3)
 	assert_eq(late.music.current_key(), MusicDirector.ARCADE_KEY, "aus und wieder an: läuft")
 	_done(late)
-	# without placeholders there is no race music yet (nothing plays a stand-in)
-	var n := _modern({}, {"streams": {"music": title}})
-	n.set_music_context("race")
-	_steps(n, 5)
-	assert_eq(n.music.current_key(), "", "ohne echtes Rennstück bleibt es im Rennen still")
-	_done(n)
+	# the shipped files (AU-D1): the title remaster in the menus, race piece 1 from the start of the stage, the option
+	# "Musik im Rennen", the ending at the finish (details: test_music_director.gd)
+	var r := _modern({"placeholders": true}, {"streams": {"music": title}})
+	r.set_music(true)
+	_steps(r, 5)
+	assert_eq(r.music.current_key(), "music/titel_remaster", "Menü: das Titel-Remaster")
+	r.set_music(false)
+	r.set_music_context("race", {"stage": "kiel_hamburg"})
+	_steps(r, 5)
+	assert_eq(r.music.current_key(), "", "Rennkontext: bereit, bis die Etappe beginnt")
+	r.event("stage_start", {"countdown_s": 0.0})
+	_steps(r, 3)
+	var race_key := r.music.current_key()
+	assert_true(race_key.begins_with("race/linke_spur#"), "Rennstück 1, kein Platzhalter (%s)" % race_key)
+	assert_near(float(r.music.debug_state()["db"]), r.mix.music_context_db("race") + r.assets.entry("music", "linke_spur").gain_db, 1.0e-6, "Pegel des Rennens")
+	r.set_race_music(false)
+	_steps(r, 2)
+	assert_eq(r.music.current_key(), "", "Musik im Rennen aus")
+	r.set_race_music(true)
+	_steps(r, 2)
+	assert_eq(r.music.current_key(), race_key, "wieder an")
+	r.event("stage_finish", {"record": false, "last_stage": false})
+	_steps(r, 2)
+	assert_eq(str(r.music.debug_state()["race_phase"]), MusicDirector.RACE_ENDING, "nach der Ziellinie: der Schluss des Stücks")
+	r.set_music(true)
+	_steps(r, 2)
+	assert_eq(r.music.current_key(), "music/titel_remaster", "zurück im Menü")
+	_done(r)
 
 
 func test_track_and_state_reach_the_feed_and_the_slots() -> void:

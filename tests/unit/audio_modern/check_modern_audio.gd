@@ -645,7 +645,9 @@ func _scenario_race(_g: String) -> void:
 		and int(events.get("tunnel_in", 0)) == 1 and int(events.get("tunnel_out", 0)) == 1 \
 		and int(mod["tunnel_frames"]) > 0 and float(mod["max_rpm"]) > 1500.0 and int(mod["alive_frames"]) > int(mod["frames"]) * 0.9 \
 		and ((int(mod["max_voices"]) >= 1) == _plays) and int((st["plays"] as Dictionary).get("go", 0)) == 1
-	var music_ok := str(music["context"]) == "race" and str(music["key"]) == "music/platzhalter_takt" and bool(st["placeholders"])
+	# the race piece (since AU-D1 a real one – a placeholder never takes its turn) plays from "stage_start" on
+	var music_ok := str(music["context"]) == "race" and str(music["key"]).begins_with("race/") \
+		and str(music.get("race_phase", "")) == "playing" and bool(st["placeholders"])
 	var text := "Teststadt – Testdorp ab km 49,4 im Regen, 16 s (Zeitraffer %d×) mit dem Profil Modern und Platzhaltern bis km %.2f: Motor bis %.0f/min, Sitzung in %d von %d Bildern da, Tunnelhall in %d Bildern, Feed gültig (Zone %s, Ereignisse %s), bis zu %d Verkehrsstimmen, Musik %s („%s“)" % [
 		int(_race_ts), float(mod["km"]), float(mod["max_rpm"]), int(mod["alive_frames"]), int(mod["frames"]), int(mod["tunnel_frames"]), str(feed["zone"]),
 		JSON.stringify(events), int(mod["max_voices"]), str(music["context"]), str(music["key"])]
