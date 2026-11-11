@@ -269,6 +269,11 @@ def build_interior(car, fine=False):
         # rear bench: one cushion, one backrest, two headrests
         hr = lay["hip_r"]
         bw = 2.0 * cabin_half_width(car, hr) - 0.10
+        # the bench (cushion and reclined backrest: hip -0.42..+0.42 m) stays out of the rear wheel houses - the 2+2
+        # of the sports car and the GT sit over the rear axle, their bench reached 89 / 60 mm into the rear tyres
+        y0, y1, x_max = wheel_houses(car)[0]
+        if hr - 0.42 < y1 and hr + 0.42 > y0:
+            bw = min(bw, 2.0 * x_max)
         a = math.radians(lay["recline_r"])
         parts.box("seat", (bw, 0.50, 0.14), (0.0, hr + 0.15, z_c - 0.09), rot_x=5.0, pivot=(0.0, hr - 0.1, z_c - 0.02))
         back_len = 0.56

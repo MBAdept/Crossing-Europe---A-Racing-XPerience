@@ -151,8 +151,8 @@
   "paint": {"paint": "#d01f1f", "metal": 0.3},
   "auto_lod": false,
   "tags": ["traffic", "car"],
-  "bytes": 287209,
-  "hash": "b3a26655a691d4743fc1c49bd7349ad60f763179"
+  "bytes": 287195,
+  "hash": "9fad217110cdd2dbd8d27cd3b76fc5f7cfade611"
  },
  "sets": {
   "traffic/sports_red": {

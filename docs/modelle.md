@@ -5,7 +5,8 @@ prozeduralen Generatoren** wie die Sprites (`tools/blender/cesprites`, siehe [sp
 Generatoren haben dafür Schalter („Hooks“) bekommen, deren Voreinstellung exakt das Sprite-Modell von v0.7.0
 ergibt. Kein Modell wird von Hand gebaut oder importiert. Der Modus „Arcade“ benutzt nichts von alledem.
 
-Stand: Bauabschnitt 0 (Pipeline-Kern und sechs Referenzmodelle). Zahlen mit „gemessen“ stammen von der
+Stand: Bauabschnitt 3 (alle fünf Spielerautos und alle sechs Verkehrsauto-Typen als Modelle, Abschnitt 14).
+Zahlen mit „gemessen“ stammen von der
 Build-VM (4 Kerne, mit anderen Aufträgen geteilt, Software-OpenGL), „abgeleitet“ ist gerechnet, nicht gemessen.
 
 ## 1. Ablauf und Befehle
@@ -22,9 +23,10 @@ godot --headless --path . --import                      # Texturen importieren (
 python3 tools/blender/export_models.py --manifest-only   # --defaults schreibt sets_default.json neu
 # 4 prüfen und ansehen
 python3 tools/blender/validate_models.py [--report]
-tools/models_contact_sheet.sh <bild.png> [--only=<glob>] [--night] [--showroom] [--channels] [--lods=lod0,show]
+tools/models_contact_sheet.sh <bild.png> [--only=<glob>[,<glob>..]] [--night] [--showroom] [--channels] [--lods=lod0,show]
         [--tile=480x320] [--cols=4] [--sun=x,y,z] [--sun-energy=<e>] [--ambient-energy=<e>]
-        [--review [--views=0,4,..] [--set=<Set>]] [--chase=9,30 [--lane=<m>]] [--clay] [--caster]
+        [--review [--views=0,4,..] [--set=<Set>]] [--chase=9,30 [--lane=<m>] [--day] [--arcade]] [--clay] [--caster]
+        [--look=race|neutral] [--tonemap=agx]
 tools/run_render_checks.sh modern check_models           # Materialklassen, Lampenkanäle, Blinker, MultiMesh (Xvfb)
 # Sprite-Geometrie unverändert? (nach jeder Änderung an tools/blender/cesprites)
 /home/user/tools/bpyenv/bin/python tools/blender/check_sprite_geometry.py [--only PRÄFIX,..] [--jobs 2]
@@ -69,7 +71,8 @@ gespeichert werden, weichen sie selbst an vielen Stellen und manchmal in der Lä
 
 | Pfad | Inhalt |
 |---|---|
-| `tools/blender/ce3d/` | Exporter: `glb` (GLB-Schreiber), `core` (Netze einsammeln, Achsen, Verschweißen), `roles` (Material-Rollen -> Klassen, Lampenkanäle, Lichtanker), `export` (Modell -> GLB + Meta), `lod` (Detailtabellen), `bake` (Atlas-Bake), `manifest` (Budgets, Merge), `catalog3d` (Liste aller Modelle), dazu die Bauer `props3d`, `veg3d` + `leafatlas`, `vehicles3d` + `decalgeo` |
+| `tools/blender/ce3d/` | Exporter: `glb` (GLB-Schreiber), `core` (Netze einsammeln, Achsen, Verschweißen), `roles` (Material-Rollen -> Klassen, Lampenkanäle, Lichtanker), `export` (Modell -> GLB + Meta), `lod` (Detailtabellen), `bake` (Atlas-Bake), `manifest` (Budgets, Merge), `catalog3d` (Liste aller Modelle), dazu die Bauer `props3d`, `veg3d` + `leafatlas`, `vehicles3d` + `extras3d` (Spielerautos), `traffic3d` + `decalgeo` (Verkehrsautos), `truck3d` |
+| `tools/blender/cesprites/carinterior.py` | Innenraum der Spielerautos (nur 3D; die Sprites rufen es nie auf) |
 | `tools/blender/export_models.py`, `validate_models.py`, `check_sprite_geometry.py`, `fixtures/geometry_v070.json` | Export, Prüfer, Regressionsprüfung der Sprite-Geometrie |
 | `tools/models/` | `bake_models.gd`, `set_model_import.py` (.import-Dateien), `inspect_models.gd` (dekodiert die Netze für den Prüfer), `contact_sheet.gd` |
 | `assets/models/` | `manifest.json`, `sets_default.json`, je Modell ein Ordner |
@@ -293,6 +296,30 @@ Regel: **Kein Sprite-Vertex bewegt sich.** Jeder Hook hat eine Voreinstellung, d
 - **Kühlergrill** (`player_cars.grille`): im Sprite derselbe Aufruf wie zuvor, im 3D-Bau eine Vertiefung mit
   versenkten Lamellen. **Nur im 3D-Bau** (`detail["extras"]`): eigene Blinkerfelder und Rückfahrlicht des
   Kompakten; die 3D-Lampenteile der Verkehrsautos stehen in `ce3d/traffic3d.py` (`CAR_3D`), nicht im Generator.
+- **Seit Bauabschnitt 3 (AS2a)**, alle nur im 3D-Bau (`detail["extras"]` bzw. Lampen als Mulde), die Sprites
+  bauen exakt wie vorher:
+  - `grille(…, proj=, sym=)`: auch Kühlergrill und Lufteinlass von Kombi und GT, Lufteinlass und Heckgitter des
+    Sportwagens sind Mulden mit Lamellen (im Sprite dieselbe Fläche mit dem Lamellen- bzw. Wabenshader). Die Mulde
+    geht in alle Körper unter der Kontur (Ziel `all`): Die Front der Karosserie liegt 1–4 cm hinter der Haut des
+    Stoßfängers, der Boden einer Mulde nur im Stoßfänger lag dort, und zwischen den Lamellen schien der Lack durch.
+  - Blinker (Heck ≥ 60 cm², Front ≥ 15 cm² je Seite) für Kombi, Sportwagen und GT; beim Sportwagen und GT ein
+    eigener schmaler Blinkerstreifen unter der Leuchte (`tag="ind"`), weil die runden bzw. 5 cm hohen Leuchten keinen
+    Platz haben. Zusätzlicher Projektor im Scheinwerfer von Sportwagen und GT (Abblendlicht ≥ 80 cm²).
+  - `cardetail.lamp`: die Projektoren eines Scheinwerfers liegen über dem Chromreflektor (im Sprite einen Hauch
+    darunter – im Echtzeitmodell war das Abblendlicht unsichtbar); **Rückleuchten laufen um die Ecke** (`WRAP3D`,
+    `_lamp_wrap`): Wo die Heckleuchte auf der Karosserie endet (äußerster Strahl von hinten, dessen Fläche nach
+    hinten schaut – die Sprite-Umrisse ragen über die Ecke hinaus), beginnt eine seitlich projizierte Mulde von
+    16 cm Länge mit Füllung (Rück- und Bremslicht), Lichtleiter und Streuscheibe. Runde Leuchten (Sportwagen)
+    nicht (`wrap3d=False`). Befund A9 der Kritik.
+  - `cardetail.mirrors`: Der Spiegelarm beginnt 1,5 cm in der Karosserie (Strahl von der Seite) statt bei
+    halber Breite − 3 cm, wo er neben schmaleren Flanken in der Luft hing.
+  - `player_cars.brake3`: dritte Bremsleuchte als dunkles Gehäuse mit einer nach hinten leuchtenden Fläche (ein
+    geschlossener Kasten hat keine Richtung – der Lichtanker braucht eine).
+  - `vehicles.LAMP_TAGS["reflector"] = "-tail:0.3"`: Rückstrahler glimmen mit dem Rücklicht, sind aber keine
+    Lichtquelle (kein Lichtanker; die Stoßfänger-Rückstrahler des SUV zogen den Anker der Rückleuchte 4,5 mm
+    unter die Lampe). Nur 3D-Modelle lesen `LAMP_TAGS`.
+- Der Innenraum der Spielerautos ist seit Bauabschnitt 3 ein Generator-Modul (`cesprites/carinterior.py`, vorher
+  `ce3d/interior3d.py`); die Sprites rufen es nie auf.
 
 `check_sprite_geometry.py` baut jedes Sprite-Set (ohne zu rendern) und vergleicht Zählwerte, Hüllquader,
 Positions-Hash, Topologie, Materialien und Builder-Angaben mit `fixtures/geometry_v070.json`. Die Fixture stammt
@@ -301,7 +328,7 @@ Prozess in anderer Reihenfolge (auch in v0.7.0; betrifft die Kugel des Berliner 
 neben `topo` die Felder `ctopo` (Polygone als Eckenzyklen, sortiert) und `nstat` (Summen der Normalen, mit
 Toleranz); weicht nur `topo` ab, zählt das Set als identisch.
 Gemessen nach allen Hooks (Stand Bauabschnitt 1): **187 von 187 Sets identisch** (eines davon mit anderer
-Flächenreihenfolge), 346 s.
+Flächenreihenfolge), 346 s. Stand Bauabschnitt 3: siehe Abschnitt 14.
 
 ## 9. Ein Modell hinzufügen
 
@@ -440,8 +467,8 @@ Lampe, Spielerautos bis 33 mm (der Anker liegt in der Öffnung der Mulde, die Le
 
 | Modell | Builder | woraus |
 |---|---|---|
-| `player/limousine`, `player/kompakt` | `player` (`ce3d/vehicles3d.py`) | `cesprites.player_cars` in den Stufen `PLAYER_DETAIL` (`lod0`, `show`), dazu `ce3d/extras3d.py` (dritte Bremsleuchte, Kennzeichenrahmen mit zwei Leuchten, Dachantenne, Scheibenwischer) und `ce3d/interior3d.py` (Sitze, Kopfstützen, Armaturenbrett, Lenkrad links, Hutablage, Verkleidung) |
-| `traffic/sedan`, `traffic/hatch`, `traffic/wagon` | `car` (`ce3d/traffic3d.py`) | Karosserie aus den Lofts von `carbody.SmoothCar`, gespeist aus den Entwurfstabellen `cesprites.designs` (`smooth_design`); Fenster, Lampen, Kennzeichen, Griffe und Fugen aus den Decal-Listen von `vehicles.Car`, als Geometrie eingeschnitten |
+| `player/limousine`, `player/kompakt`, `player/kombi`, `player/sportwagen`, `player/gran_turismo` | `player` (`ce3d/vehicles3d.py`) | `cesprites.player_cars` in den Stufen `PLAYER_DETAIL` (`lod0`, `show`), dazu `ce3d/extras3d.py` (dritte Bremsleuchte, Kennzeichenrahmen mit zwei Leuchten, Dachantenne, Scheibenwischer) und `cesprites/carinterior.py` (Sitze, Kopfstützen, Armaturenbrett, Lenkrad links, Hutablage, Verkleidung) |
+| `traffic/sedan`, `traffic/hatch`, `traffic/wagon`, `traffic/suv`, `traffic/van`, `traffic/sports` | `car` (`ce3d/traffic3d.py`) | Karosserie aus den Lofts von `carbody.SmoothCar`, gespeist aus den Entwurfstabellen `cesprites.designs` (`smooth_design`); Fenster, Lampen, Kennzeichen, Griffe und Fugen aus den Decal-Listen von `vehicles.Car`, als Geometrie eingeschnitten |
 | `traffic/truck` | `heavy` (`ce3d/truck3d.py`) | eigener Aufbau mit den Maßen von `cesprites.heavy`: Zugmaschine und Kofferauflieger |
 
 Die Sprite-Generatoren `vehicles.Car` und `heavy` werden dafür **nicht** gebaut, nur gelesen: Ihre groben Lofts
@@ -485,13 +512,15 @@ der feinsten Stufe höchstens um `BOUNDS_TOL_M` abweichen (Pkw 3 cm, Spielerauto
 
 `glass.gdshader` (Aussehen; `fade`, `sun` und `light()` unverändert): vormultipliziertes Alpha
 (`blend_premul_alpha`), die Spiegelung wächst mit dem Fresnel-Term (`fresnel_boost` 0,85, `mirror` 0,75), die
-Tönung kommt aus der Vertexfarbe. Spielerautos: Scheiben mit Deckkraft 0,36, Streuscheiben 0,10, klare 0,08;
-dahinter Sitze, Kopfstützen, Armaturenbrett, Lenkrad und Hutablage. Die Kabine wird dafür geöffnet
+Tönung kommt aus der Vertexfarbe. Spielerautos: Scheiben mit Deckkraft 0,48 (bis Bauabschnitt 1: 0,36 – im
+A/B gegen die Sprites zu hell und bläulich), Streuscheiben 0,10, klare 0,08;
+dahinter Sitze, Kopfstützen, Armaturenbrett, Lenkrad und Hutablage (`cesprites/carinterior.py`, bis Bauabschnitt 1
+`ce3d/interior3d.py`). Die Kabine wird dafür geöffnet
 (`_open_cabin`): die Scheiben aus dem Loft geschnitten, die Innenseite verkleidet – mit einem groben zweiten Loft
 der Kabine (`_lining_loft`: halbe Punktzahl, 2,2-facher Stationsabstand; Kompakt 1 378 statt 4 112 Dreiecke).
 Der Innenraum der Rennstufe samt Verkleidung bleibt unter 6 000 Dreiecken (§4.6.9); der Export bricht sonst ab
 (gemessen: Limousine 3 560, Kompakt 3 658). Wanne und Armaturenbrett halten Abstand zu den Rädern, auch zu einem
-um 25° eingeschlagenen Vorderrad (`interior3d.wheel_houses`); die Hutablage folgt der Außenhaut (`outer_z`) – ihre
+um 25° eingeschlagenen Vorderrad (`carinterior.wheel_houses`); die Hutablage folgt der Außenhaut (`outer_z`) – ihre
 Ecke stand beim Kompakten als schwarzes Blatt über den Rückleuchten aus der Schulter.
 
 Verkehrsautos: undurchsichtiges Glas, aber heller, glatter und leicht metallisch (`TRAFFIC_GLASS`: `#2a343e`,
@@ -576,5 +605,74 @@ Gemessen (Spielkamera, Tag, Anteil der Autopixel, die sich beim Stufenwechsel um
 Konturen und Dreiecke vor und nach dem Schnitt. Auf die Dateien hat die Variable keinen Einfluss.
 Kontaktbogen: `--clay` (alles grau, Glas unsichtbar: Stufen, Blätter, Dellen), `--caster` (Schattenwerfer rot),
 `--review --views=17,18` (Vorderrad, Radhaus), `--views=19,20` (Heck bei Nacht aus Kamerahöhe).
+Seit Bauabschnitt 3 druckt `CE_STATS` auch die Lage der Rückleuchten-Fortsetzung um die Ecke (`wrap …`).
+
+## 14. Fahrzeuge des Bauabschnitts 3 (AS2a)
+
+Seit diesem Abschnitt hat **jedes Pkw-Set ein Modell**: die fünf Spielerautos (je mit Showroom-Stufe) und alle 26
+Farbsets der sechs Verkehrsauto-Typen. Platzhalter (`box`) gibt es unter den Fahrzeugen nur noch für Lkw, Busse und
+Polizei (Bauabschnitt 4).
+
+### Verkehrsautos SUV, Transporter, Sportwagen
+
+Derselbe Bau wie Limousine, Schrägheck und Kombi (Abschnitt 13), mit den Lampenteilen und Fugen der 3D-Entwürfe in
+`ce3d/traffic3d.py`:
+
+- **Lampen** (`CAR_3D`): Blinker im unteren Band der Rückleuchte und im äußeren Ende des Scheinwerfers,
+  Rückfahrlicht am inneren Ende der Rückleuchte, Tagfahrlicht unter dem Scheinwerfer. Der Transporter hat seinen
+  Blinker oben in der hohen Eckleuchte schon im Entwurf; in 3D bleibt er auf der Heckfläche (bis 0,992 statt 1,02 m
+  – um die Ecke lag sein Lichtanker 5,6 mm unter der Lampe).
+- **Reihenfolge der Lampenliste** (`order`): Der Schnitt stapelt die Decals nach Materialgruppen in der Reihenfolge,
+  in der eine Gruppe zuerst vorkommt. Der Leuchtbalken des Sportwagens (rot, ohne schwarzen Rand) stand vor seinen
+  Eckleuchten (rot mit Rand) – der schwarze Rand lag dann über dem Rot, in `lod0` waren die Leuchten schwarz. In
+  3D kommen die Eckleuchten zuerst.
+- **Fugen** (`REAR_LID`): Heckklappe des SUV, Kofferraumdeckel des Sportwagens (mit Längsfugen auf dem Deck), beim
+  Transporter zwei Hecktüren bis unter das Dach (`cabin`: die Linien laufen auf dem Aufbau weiter, das Emblem sitzt
+  auf der Tür).
+- **Heckflügel** des Sportwagens (`_wing`): in `lod0` ein gewölbtes Profil mit Endplatten auf zwei Stützen, in
+  `lod1`/`lod2` der Kasten des Sprites auf seinen Stützen – derselbe Umriss in jeder Stufe.
+- **Schulter** (`SMOOTH_3D`): Die Gürtellinie des Sportwagens liegt so tief, dass die Schulterkante über den Scheitel
+  der großen Radläufe lief; die Öffnung wurde darunter abgeschnitten und der Loft faltete sich an den Radlaufkanten.
+  Seine Schulter liegt 4,5 cm höher.
+- **Verdrehte Splitter** (`_drop_flipped_slivers`): Wo der Boden des Lofts an der Kante eines Radlaufs zwischen zwei
+  4 mm entfernten Stationen hochspringt, verdrehen sich die Ringe; ein paar etwa 1 mm hohe Dreiecke zeigen gegen ihre
+  Normalen (Sportwagen 12, Kombi 5, Limousine 3). Sie werden von der Seite, die sie zeigen sollen, ohnehin
+  weggeschnitten und fallen jetzt weg; Decal-Dreiecke behalten die Wicklung ihrer Fläche und sind nie betroffen.
+- **Budgets** über Detail-Overrides je Modell in `catalog3d` (längere Stationsabstände): SUV, Transporter und
+  Sportwagen tragen mehr Decals (Verkleidung, Dachreling, Flügel, vier Endrohre).
+- Rückstrahler (SUV) ohne Lichtanker und in `lod2` ohne Schnitt (`decalgeo`: Lampen mit `-`).
+- **Scheiben in `lod2`** (`far_glass`): Die Fließheckscheibe des Sportwagens liegt 17° flach, genau auf der
+  Schwelle der Normalenregel (eine Fläche ist Front- oder Heckscheibe, wenn ihre Normale mit mehr als 0,3 längs
+  zeigt): In jedem ihrer zwei Vierecke blieb ein Dreieck Lack, eine diagonale halbe Scheibe, die beim Wechsel bei
+  120 m 43 % der Autopixel änderte. `CAR_3D["sports"]["design"]` setzt `far_pane_ny` auf 0,25. (Eine Regel über
+  den Scheibenbereich des Entwurfs schnitt bei der Limousine Dreiecke der Dachkante mit – verworfen.)
+
+### Spielerautos Kombi, Sportwagen, Gran Turismo
+
+Derselbe Bau wie Limousine und Kompakt (Abschnitt 13): Rennstufe, Showroom-Stufe, Schattenwerfer, Innenraum,
+durchsichtiges Glas. Neu für alle fünf: Rückleuchten um die Ecke, sichtbare Projektoren, dritte Bremsleuchte mit
+Richtung, Spiegelarme aus der Karosserie, Kühlergrill bzw. Lufteinlass als Mulde mit Lamellen (Abschnitt 8).
+Felgen: jedes Auto behält seinen Stil (Kompakt 6 Doppelspeichen schwarz, Kombi 10 gerade Speichen, Limousine 5
+Doppelspeichen, Sportwagen 5 Y-Speichen schwarz, GT 10 gebogene Turbinenspeichen); die silbernen Felgen von Kombi
+und GT tragen das Silber, das ihr Sprite zeigt (in Echtzeit waren sie weiß wie die der Limousine vor AS1R).
+Der Kombi hat in `lod0` einen längeren Stationsabstand (4,8 m Länge; der Karosserie-Loft allein hatte 20 000
+Dreiecke). Gefaltete Pfadflächen (der L-förmige Lichtleiter des Kombi: 13 Dreiecke gegen ihre Normalen) und
+Splitter an den Radlaufkanten entfernt der Exporter (`vehicles3d._drop_flipped`).
+
+Nur in 3D (das Sprite bleibt, wie es ist): Blinker vorn als schmaler Streifen am Scheinwerfer bzw. auf der
+Lichtleiste (Sportwagen, GT: der Prüfer verlangt 15 cm² je Seite), je ein zusätzlicher Projektor in den schmalen
+Scheinwerfern von Sportwagen und GT (Scheinwerferfläche ≥ 80 cm²), beim Kombi das Rückfahrlicht im weißen Feld der
+Rückleuchte. Die Rückbank der 2+2-Sitzer (Sportwagen, GT) sitzt über der Hinterachse: Sie bleibt schmaler als die
+Kabine, bis sie aus den Radhäusern heraus ist (vorher 89 bzw. 60 mm im Hinterreifen, verdeckt).
+
+### Showroom-Entscheid
+
+A/B mit derselben Kamera (Showroom-Ansicht der Sprites, Kontaktbogen `--showroom --tonemap=agx`): Form,
+Fugen, Lampen, Felgen und Kennzeichen der Stufe `show` stimmen mit dem Cycles-Sprite überein, der Innenraum ist
+durch das Glas sogar zu sehen. Gleichwertig ist sie trotzdem bei keinem der fünf Autos: Der Lack ist flach (keine
+Spiegelung der Umgebung, kein Klarlack-Glanzlicht über die Rundungen), es fehlen Umgebungsverdeckung in Fugen,
+Radhäusern und unter dem Auto und der Kontaktschatten, das Glas ist heller und spiegelt kaum, unter AgX wird Gelb
+blass. Alle `showroom`-Flags bleiben `false`. Was fehlt, liegt im Renderer (Umgebungsspiegelung und Licht des
+Showrooms, R3/UI1), nicht im Netz.
 
 

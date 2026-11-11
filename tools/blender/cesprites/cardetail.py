@@ -1,6 +1,7 @@
 """Detail builders for carbody.SmoothCar: wheels, glass, lamps, plates, exhausts, diffusers, spoilers,
 wings, mirrors, roof rails, badges and seams. Units metres, vehicle space of carbody (y = 0 at the rear)."""
 import math
+import os
 
 import bmesh
 import bpy
@@ -531,14 +532,13 @@ def _lamp_wrap(car, spec, tag, tgt, hm, rear_sink):
     y0 = hit[0].y + rear_sink + 0.003
     ln_, hgt = float(w["len"]), z_hi - z_lo
     side = [(y0, z_lo + 0.004), (y0 + ln_, z_lo + hgt * float(w["rise"])), (y0 + ln_, z_hi - 0.006), (y0, z_hi)]
-    import os
     if os.environ.get("CE_STATS"):
         print("      wrap %-8s outer end x %.3f at y %.3f (normal %s), wrap y %.3f..%.3f z %.3f..%.3f" % (
             tag, hit[0].x, hit[0].y, tuple(round(v, 2) for v in hit[1]), y0, y0 + ln_, z_lo, z_hi))
     sink = float(car.detail.get("lamp_depth", 0.0)) * float(w["depth"])
     car.lamp_pockets.append(dict(tag=tag + "_wrap", proj="side", sym=True, outline=list(side), target=tgt, depth=sink,
                                  housing=hm, wall=car.mat("lampwall", spec.get("wall3d", "#0d0d0f"), rough=0.4)))
-    fill =[(y0 - 0.002, z_lo + 0.009), (y0 + ln_ - 0.006, z_lo + hgt * float(w["rise"]) + 0.004),
+    fill = [(y0 - 0.002, z_lo + 0.009), (y0 + ln_ - 0.006, z_lo + hgt * float(w["rise"]) + 0.004),
             (y0 + ln_ - 0.006, z_hi - 0.011), (y0 - 0.002, z_hi - 0.005)]
     parts = [dict(kind="tail", outline=fill, tail=0.2),
              dict(kind="guide", path=[(y0 - 0.002, z_hi - 0.016), (y0 + ln_ - 0.012, z_hi - 0.02)], width=0.008,

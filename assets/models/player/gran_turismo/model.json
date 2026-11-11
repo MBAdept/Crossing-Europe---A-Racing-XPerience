@@ -182,8 +182,8 @@
   "paint": {"paint": "#b2b7bd", "metal": 0.9},
   "auto_lod": false,
   "tags": ["player"],
-  "bytes": 1773849,
-  "hash": "0223618ae112ddedad55fd352783c69d71ba0fd6"
+  "bytes": 1772777,
+  "hash": "7be2f8b6bc9a5c0464f37a3831932c0bd3d82e3f"
  },
  "sets": {
   "player/gran_turismo": {

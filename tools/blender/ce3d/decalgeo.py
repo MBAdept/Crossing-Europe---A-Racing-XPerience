@@ -658,7 +658,11 @@ def car_surfaces(car, soups, cut=True, level=0, paint_rough=0.28, seals=True, fa
     if level == 2 and far_glass:
         fn = t.face_normals()
         belt = min(p[1] for poly in car.windows().get("side", []) for p in poly) if car.windows().get("side") else 0.0
-        pane = ((np.abs(fn[:, 0]) > 0.6) | ((fn[:, 2] < 0.97) & (np.abs(fn[:, 1]) > 0.3))) & \
+        # d["far_pane_ny"]: how far a face must look along the car to be a front or rear pane. The fastback glass
+        # of the traffic sports car lies at 17 degrees, on the default threshold: in each of its two quads one
+        # triangle stayed paint - a diagonal half pane (43 % of the car's pixels changed at the 120 m swap)
+        ny = float(d.get("far_pane_ny", 0.3))
+        pane = ((np.abs(fn[:, 0]) > 0.6) | ((fn[:, 2] < 0.97) & (np.abs(fn[:, 1]) > ny))) & \
             (t.pos[:, :, 2].mean(axis=1) > belt + 0.02) & (fn[:, 2] > -0.3)
         t.mat[pane] = glass
         t.rank[pane] = GLASS_RANK

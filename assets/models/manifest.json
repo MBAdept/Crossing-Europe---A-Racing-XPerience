@@ -208,8 +208,8 @@
    "paint": {"paint": "#b2b7bd", "metal": 0.9},
    "auto_lod": false,
    "tags": ["player"],
-   "bytes": 1773849,
-   "hash": "0223618ae112ddedad55fd352783c69d71ba0fd6"
+   "bytes": 1772777,
+   "hash": "7be2f8b6bc9a5c0464f37a3831932c0bd3d82e3f"
   },
   "player/kombi": {
    "kind": "vehicle",
@@ -219,7 +219,7 @@
     {
      "name": "lod0",
      "max_dist_m": 100000,
-     "tris": 54086,
+     "tris": 54306,
      "parts": [
       {
        "node": "body",
@@ -261,7 +261,7 @@
     {
      "name": "show",
      "max_dist_m": 0,
-     "tris": 116888,
+     "tris": 117206,
      "parts": [
       {
        "node": "body",
@@ -398,8 +398,8 @@
    "paint": {"paint": "#1d6b45", "metal": 0.55},
    "auto_lod": false,
    "tags": ["player"],
-   "bytes": 1958081,
-   "hash": "0d379250e3925efa007b94307571cfbd80dbb791"
+   "bytes": 1964901,
+   "hash": "e3ac582005c1a07f3998a09b11029e3d4d32bca7"
   },
   "player/kompakt": {
    "kind": "vehicle",
@@ -409,7 +409,7 @@
     {
      "name": "lod0",
      "max_dist_m": 100000,
-     "tris": 48855,
+     "tris": 49155,
      "parts": [
       {
        "node": "body",
@@ -451,7 +451,7 @@
     {
      "name": "show",
      "max_dist_m": 0,
-     "tris": 106215,
+     "tris": 106649,
      "parts": [
       {
        "node": "body",
@@ -581,8 +581,8 @@
    "paint": {"paint": "#f0b30a", "metal": 0},
    "auto_lod": false,
    "tags": ["player"],
-   "bytes": 1762059,
-   "hash": "cfeffd39f3a0f2c308794ab3ccca97c74ca369cf"
+   "bytes": 1770933,
+   "hash": "424506bd56baff07d5c2baca481525b1543ed09a"
   },
   "player/limousine": {
    "kind": "vehicle",
@@ -592,7 +592,7 @@
     {
      "name": "lod0",
      "max_dist_m": 100000,
-     "tris": 47712,
+     "tris": 47904,
      "parts": [
       {
        "node": "body",
@@ -634,7 +634,7 @@
     {
      "name": "show",
      "max_dist_m": 0,
-     "tris": 98482,
+     "tris": 98786,
      "parts": [
       {
        "node": "body",
@@ -771,8 +771,8 @@
    "paint": {"paint": "#1d4ea8", "metal": 0.55},
    "auto_lod": false,
    "tags": ["player"],
-   "bytes": 1630526,
-   "hash": "937f5d883c4e07943885f06c9604c8a4add3e031"
+   "bytes": 1637806,
+   "hash": "bf12ac6a4d5a0a3c7ebfdf86330b6eccdfe333fa"
   },
   "player/sportwagen": {
    "kind": "vehicle",
@@ -782,7 +782,7 @@
     {
      "name": "lod0",
      "max_dist_m": 100000,
-     "tris": 46470,
+     "tris": 46940,
      "parts": [
       {
        "node": "body",
@@ -824,7 +824,7 @@
     {
      "name": "show",
      "max_dist_m": 0,
-     "tris": 94589,
+     "tris": 95375,
      "parts": [
       {
        "node": "body",
@@ -954,8 +954,8 @@
    "paint": {"paint": "#cc1419", "metal": 0.15},
    "auto_lod": false,
    "tags": ["player"],
-   "bytes": 1670158,
-   "hash": "52a120e186090802597d8f9859366a465bb008b4"
+   "bytes": 1690967,
+   "hash": "eb1b0c49361d7a86d35da8fa15072c7f80cc1eb5"
   },
   "props/farmhouse": {
    "kind": "building",
@@ -1528,8 +1528,8 @@
    "paint": {"paint": "#d01f1f", "metal": 0.3},
    "auto_lod": false,
    "tags": ["traffic", "car"],
-   "bytes": 287209,
-   "hash": "b3a26655a691d4743fc1c49bd7349ad60f763179"
+   "bytes": 287195,
+   "hash": "9fad217110cdd2dbd8d27cd3b76fc5f7cfade611"
   },
   "traffic/suv": {
    "kind": "vehicle",

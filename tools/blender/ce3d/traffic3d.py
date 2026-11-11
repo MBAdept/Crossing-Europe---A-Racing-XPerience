@@ -153,6 +153,8 @@ CAR_3D = {
                      outline=False),
             ],
         ),
+        # the fastback pane (17 degrees) is a pane at the far level as well (decalgeo.car_surfaces, far_glass)
+        design=dict(far_pane_ny=0.25),
     ),
 }
 PLATE_CHARS = [1, 1, 0, 1, 1, 0, 1, 1, 1]
@@ -210,6 +212,7 @@ def traffic_design(name):
         d[k] = lst
     for k, extra in spec.get("add", {}).items():
         d[k] = list(d.get(k, [])) + copy.deepcopy(extra)
+    d.update(copy.deepcopy(spec.get("design", {})))      # design values only the 3D builds read
     lid = REAR_LID.get(name)
     if lid:
         # the shut lines of the trunk lid / tailgate and a badge (art review B6: the rear was a plain block up close);

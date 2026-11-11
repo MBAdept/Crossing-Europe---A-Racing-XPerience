@@ -180,7 +180,10 @@ def grille(car, outline, mat, name, target="all", res=0.01, bars=5, bar_color="#
         return car.patch(outline, proj, mat, offset=0.0015, res=res, sym=sym, name=name, target=target)
     sink = depth * k
     floor = car.mat("grille_floor", "#060607", rough=0.6)
-    car.lamp_pockets.append(dict(tag=name, proj=proj, sym=sym, outline=list(outline), target=target, depth=sink,
+    # the recess goes into every object under the outline: the body's own front lies 1-4 cm behind the skin of the
+    # front bumper - an intake sunk into the bumper alone had its floor there, and the paint showed between the
+    # bars (sports car: red bands)
+    car.lamp_pockets.append(dict(tag=name, proj=proj, sym=sym, outline=list(outline), target="all", depth=sink,
                                  housing=floor, wall=floor))
     zs = [p[1] for p in outline]
     z0, z1 = min(zs), max(zs)
