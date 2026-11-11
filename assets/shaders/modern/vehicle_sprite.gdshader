@@ -15,11 +15,18 @@
 //   none). Instance uniforms modulate (rgb, a = fade) and ovl (tail, brake).
 // The sheets carry baked light: unshaded, modulated like Arcade (the Compatibility renderer turns an unshaded ALBEDO
 // back into the same display value, see billboard.gdshader). Light layers are composited "over" like Arcade's draw
-// order (base, tail, brake, beacon). Opaque parts write depth in a pre-pass (occlusion by crests and vehicles, and
-// the flares read it); soft parts (baked ground shadow, edges) blend. Fade: ordered dither like vpbr (F5).
+// order (base, tail, brake, beacon). Two passes of the same source: this one is opaque with an alpha scissor – the
+// body writes depth in the opaque pass, so crests and vehicles hide it and the flares see it in the depth texture
+// (they test against it); compiled with CE_SOFT (VehicleStandIn.soft_shader(), the material's next_pass) it blends
+// the soft parts the opaque pass left out (the baked ground shadow, thin parts far away) over what lies behind.
+// Fade: ordered dither like vpbr (F5).
 // Load only through ModernMaterials.shader() – never with preload(). Owner: R3E (vehicles).
 shader_type spatial;
-render_mode unshaded, cull_disabled, depth_prepass_alpha, fog_disabled, shadows_disabled, skip_vertex_transform;
+#ifdef CE_SOFT
+render_mode unshaded, cull_disabled, blend_mix, depth_draw_never, fog_disabled, shadows_disabled, skip_vertex_transform;
+#else
+render_mode unshaded, cull_disabled, depth_draw_opaque, fog_disabled, shadows_disabled, skip_vertex_transform;
+#endif
 
 uniform sampler2D sheet : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform int kind = 0;
@@ -41,6 +48,7 @@ instance uniform vec4 modulate = vec4(1.0);
 instance uniform vec4 ovl = vec4(0.0);        // tail, brake (0..1)
 
 uniform float pull_margin = 0.15;             // m below the lowest row the pulled picture keeps clear (body roll)
+uniform float scissor = 0.5;                  // alpha from which a pixel belongs to the opaque body
 
 varying flat vec4 v_cell;                     // kind 0: (cell, tail, brake, beacon row)
 varying vec4 v_mod;
@@ -202,9 +210,16 @@ void fragment() {
 			acc = over(acc, texture(sheet, v_ovl_uv.zw), v_cell.y);
 		}
 	}
-	if (acc.a < 0.004) {
+#ifdef CE_SOFT
+	// only what the opaque pass left out (the same alpha in both passes: the split is exact)
+	if (acc.a >= scissor || acc.a < 0.004) {
 		discard;
 	}
 	ALBEDO = acc.rgb;
 	ALPHA = acc.a;
+#else
+	ALBEDO = acc.rgb;
+	ALPHA = acc.a;
+	ALPHA_SCISSOR_THRESHOLD = scissor;
+#endif
 }

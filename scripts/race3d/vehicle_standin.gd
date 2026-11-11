@@ -238,20 +238,29 @@ class ArcadeShade:
 	var ls_x := PackedFloat32Array()
 	var ls_r := PackedFloat32Array()
 	var ls_i := PackedFloat32Array()
+	var ls_kind := PackedInt32Array()     ## 1 = cone of a car ahead, 0 = pool of a static lamp
+	var cam_distance := 9.0
+	var lamp_every := 33.0
+	var vis := 900.0
 
-	## render.* of the configuration (headlight_range_m, headlight_intensity, fog_start_frac, tunnel.darkness_m).
-	func setup(render_cfg: Dictionary, segment_length: float) -> void:
+	## render.* of the configuration (headlight_range_m, headlight_intensity, fog_start_frac, tunnel.darkness_m), the
+	## segment length, the camera distance (render.camera_distance_m) and road.streetlight_every_m.
+	func setup(render_cfg: Dictionary, segment_length: float, camera_distance: float = 9.0, streetlight_every: float = 33.0) -> void:
 		hl_range = float(render_cfg.get("headlight_range_m", 80.0))
 		hl_int = float(render_cfg.get("headlight_intensity", 0.95))
 		fog_start_frac = float(render_cfg.get("fog_start_frac", 0.45))
 		var tun: Variant = render_cfg.get("tunnel", {})
 		t_fog = float((tun as Dictionary).get("darkness_m", 260.0)) if tun is Dictionary else 260.0
 		seg_len = maxf(0.1, segment_length)
+		cam_distance = camera_distance
+		lamp_every = maxf(1.0, streetlight_every)
 
-	## Once per frame (RoadRenderer._prepare): palette, tunnel state of the camera, headlights.
-	func prepare(view: Dictionary, camera_in_tunnel: bool) -> void:
+	## Once per frame (RoadRenderer._prepare and the light part of _project): palette, tunnel state of the camera,
+	## headlights of the player and the traffic ahead, and – lit – the pools of the static lamps of the track near
+	## the camera (RoadRenderer._collect_static_lights: city street lights, fuel canopies, covers).
+	func prepare(view: Dictionary, camera_in_tunnel: bool, track: Track = null) -> void:
 		var pal: Dictionary = view.get("palette", {})
-		var vis := float(view.get("visibility_m", 900.0))
+		vis = float(view.get("visibility_m", 900.0))
 		cam_z = float(view.get("camera_z", 0.0))
 		fog_start = vis * fog_start_frac
 		fog_span = maxf(1.0, vis - fog_start)
@@ -278,17 +287,54 @@ class ArcadeShade:
 		ls_x.clear()
 		ls_r.clear()
 		ls_i.clear()
+		ls_kind.clear()
 		if lit and lights > 0.04:
 			for c: Variant in view.get("cars", []):
 				var cd: Dictionary = c
 				var cz := float(cd.get("z", 0.0)) + float(cd.get("length", 4.5))
 				if cz > cam_z and cz < cam_z + 140.0 and ls_z.size() < 6:
-					ls_z.append(cz)
-					ls_x.append(float(cd.get("x", 0.0)))
-					ls_r.append(34.0)
-					ls_i.append(0.5 * lights)
+					_add(cz, float(cd.get("x", 0.0)), 34.0, 0.5 * lights, 1)
+			if track != null:
+				_static_lights(track, float(view.get("camera_distance", cam_distance)))
 
-	## Extra light at road position (z, x) – RoadRenderer._light (player's cone, cones of the traffic ahead).
+	func _add(z: float, x: float, r: float, i: float, kind: int) -> void:
+		ls_z.append(z)
+		ls_x.append(x)
+		ls_r.append(r)
+		ls_i.append(i)
+		ls_kind.append(kind)
+
+	## RoadRenderer._collect_static_lights over the rows of RoadRenderer._project that are lit (depth below the
+	## camera distance + headlight reach + 10 m, at least 150 m when a city starts within 100 m), every third row
+	## from the camera's segment on.
+	func _static_lights(track: Track, cam_dist: float) -> void:
+		var base := mini(int(floor(cam_z / seg_len)), track.segment_count - 2)
+		var lit_limit := cam_dist + hl_range + 10.0
+		if track.is_city_at(cam_z + 100.0):
+			lit_limit = maxf(lit_limit, 150.0)
+		var rows := 0
+		var row_cap := mini(int(vis / seg_len) + 2, track.segment_count - 1 - base) + 1
+		while rows < row_cap and float(base + rows) * seg_len - cam_z < lit_limit:
+			rows += 1
+		var lw := track.lane_w
+		for k in range(0, rows, 3):
+			var seg := track.get_segment(maxi(base + k, 0))
+			if seg == null:
+				continue
+			var z := float(base + k) * seg_len
+			if seg.city and ls_z.size() < 24:
+				if fposmod(z, lamp_every) < seg_len * 3.0:
+					var zl := z - fposmod(z, lamp_every) + seg_len * 0.5
+					var edge := seg.lanes * lw * 0.5
+					_add(zl, edge - 0.6, 9.0, 0.55 * lights, 0)
+					_add(zl + lamp_every * 0.5, -edge + 0.6, 9.0, 0.55 * lights, 0)
+			if (seg.fuel_zone & TrackSegment.FUEL_CANOPY) != 0 and k % 6 == 0 and ls_z.size() < 24:
+				_add(z, seg.lanes * lw * 0.5 + seg.fuel_lane * lw + 0.5, 11.0, 0.8 * lights, 0)
+			if seg.cover != "" and k % 4 == 0 and ls_z.size() < 24:
+				_add(z, 0.0, 16.0, 0.7 * lights, 0)
+
+	## Extra light at road position (z, x) – RoadRenderer._light (player's cone, cones of the traffic ahead, pools of
+	## static lamps).
 	func light(z: float, x: float) -> float:
 		var l := 0.0
 		var d := z - hl_z
@@ -299,11 +345,19 @@ class ArcadeShade:
 			l += hl_i * along / (1.0 + q * q * q * q)
 		for i in ls_z.size():
 			var dz := z - ls_z[i]
-			if dz > -1.0 and dz < ls_r[i]:
-				var along2 := smoothstep(-1.0, 3.0, dz) * (1.0 - smoothstep(ls_r[i] * 0.3, ls_r[i], dz))
-				var wd2 := 0.9 + maxf(dz, 0.0) * 0.18
-				var q2 := (x - ls_x[i]) / wd2
-				l += ls_i[i] * along2 / (1.0 + q2 * q2 * q2 * q2)
+			if ls_kind[i] == 1:
+				if dz > -1.0 and dz < ls_r[i]:
+					var along2 := smoothstep(-1.0, 3.0, dz) * (1.0 - smoothstep(ls_r[i] * 0.3, ls_r[i], dz))
+					var wd2 := 0.9 + maxf(dz, 0.0) * 0.18
+					var q2 := (x - ls_x[i]) / wd2
+					l += ls_i[i] * along2 / (1.0 + q2 * q2 * q2 * q2)
+			else:
+				var rr := ls_r[i]
+				if absf(dz) < rr:
+					var dx := x - ls_x[i]
+					var e := 1.0 - (dz * dz + dx * dx) / (rr * rr)
+					if e > 0.0:
+						l += ls_i[i] * e * e
 		return l
 
 	## Light at a car whose rear is at road position (z, x), dz m ahead of the camera (0 beyond the headlight reach,
@@ -372,8 +426,34 @@ static func sprite_mesh() -> ArrayMesh:
 	return mesh
 
 
-## Material of a sheet (kind 0 or 1) with its fixed uniforms.
+static var _soft: Dictionary = {}      ## base shader instance id -> its CE_SOFT variant
+
+
+## The second pass of vehicle_sprite.gdshader: the same source compiled with CE_SOFT (blends the soft parts the
+## opaque pass leaves out). One per base shader.
+static func soft_shader(base: Shader) -> Shader:
+	if base == null:
+		return null
+	var key := base.get_instance_id()
+	var sh: Shader = _soft.get(key)
+	if sh == null:
+		sh = Shader.new()
+		sh.code = base.code.replace("shader_type spatial;", "shader_type spatial;\n#define CE_SOFT")
+		_soft[key] = sh
+	return sh
+
+
+## Material of a sheet (kind 0: sprite cells, kind 1: box faces): the opaque pass (alpha scissor, writes depth) with
+## the soft pass as its next_pass, both with the sheet's fixed uniforms.
 static func sheet_material(shader: Shader, info: Dictionary, tex: Texture2D) -> ShaderMaterial:
+	var mat := _material(shader, info, tex)
+	var soft := soft_shader(shader)
+	if soft != null:
+		mat.next_pass = _material(soft, info, tex)
+	return mat
+
+
+static func _material(shader: Shader, info: Dictionary, tex: Texture2D) -> ShaderMaterial:
 	var mat := ShaderMaterial.new()
 	mat.shader = shader
 	mat.set_shader_parameter(&"sheet", tex)

@@ -187,7 +187,8 @@ func setup(renderer: Node) -> void:
 		"lateral_gain": float(rd.get("player_lateral_gain", 1.0)), "understeer_deg": float(rd.get("player_understeer_deg", 6.0)),
 		"view_gain": float(rd.get("player_view_gain", 1.0)), "max_deg": float(rd.get("player_yaw_max_deg", 20.0))}
 	var trk: Variant = renderer.get("track")
-	_shade.setup(rd, (trk as Track).seg_len if trk is Track else 3.0)
+	_shade.setup(rd, (trk as Track).seg_len if trk is Track else 3.0, float(rd.get("camera_distance_m", 9.0)),
+		float(ConfigLoader.lookup(_cfg, "road.streetlight_every_m", 33.0)))
 	for l: Array in LOOK:
 		_mats.material(str(l[0]))                     # the shared class material exists before it is tuned
 		_mats.set_class_parameter(str(l[0]), str(l[1]), l[2])
@@ -411,7 +412,7 @@ func update(view: Dictionary, dt: float) -> void:
 		_cam_tr = (cam as Camera3D).global_transform if (cam as Camera3D).is_inside_tree() else (cam as Camera3D).transform
 		_cam_inv = _cam_tr.affine_inverse()
 		_cam_heading = VehicleStandIn.camera_heading(_cam_tr)
-	_shade.prepare(view, bool(view.get("camera_in_tunnel", track.is_tunnel_at(cam_z))))
+	_shade.prepare(view, bool(view.get("camera_in_tunnel", track.is_tunnel_at(cam_z))), track)
 	for b: VehicleStandIn.SheetBatch in _batches.values():
 		b.begin()
 		b.casting = _casters
@@ -843,14 +844,16 @@ func _add_flares(car: Car, info: Dictionary, la: Vector4, lb: Vector4, lights: f
 		var k := fp.y
 		var lamp_r := float(p["size"]) * 0.5
 		if car.flare_ref > 0.0:
-			# a sprite stand-in is a picture at the depth flare_ref: Arcade draws its lamp glows over it. A lamp that
-			# looks towards the eye (rear lamps, beacons) and lies behind the picture goes in front of it along the
-			# ray to the eye, its radius factors scaled so it keeps its size on the screen; lamps that look away
-			# (head lamps) stay behind it, hidden as behind a model's body.
+			# a sprite stand-in is a picture at the depth flare_ref: Arcade draws the glows of its rear lamps and
+			# beacons over it and none of lamps that look away (head lamps, front indicators – the picture has no
+			# body to hide them, its glass may be clear). A glow that lies behind the picture goes in front of it
+			# along the ray to the eye, its radius factors scaled so it keeps its size on the screen.
+			var to_eye := _cam_tr.origin - pos
+			if not role.begins_with("beacon") and dir.dot(to_eye) <= 0.0:
+				continue
 			var v := _cam_inv * pos
 			var lim := car.flare_ref - FLARE_PICTURE_GAP_M
-			var to_eye := _cam_tr.origin - pos
-			if -v.z > lim and lim > 0.05 and (role.begins_with("beacon") or dir.dot(to_eye) > 0.0):
+			if -v.z > lim and lim > 0.05:
 				var kk := lim / -v.z
 				pos = _cam_tr * (v * kk)
 				k *= kk
@@ -1110,15 +1113,21 @@ func snapshot() -> Dictionary:
 	for id: Variant in _cars:
 		var car: Car = _cars[id]
 		var p := car.pose.origin
-		list.append({"id": int(id), "set": car.set_id, "model": str((car.info as Dictionary).get("model_id", "")),
-			"lod": car.lod, "z": car.z, "x": car.x, "yaw_deg": rad_to_deg(car.yaw), "dist": car.dist,
+		var ci: Dictionary = car.info
+		var sk := str(ci.get("standin", ""))
+		# every stand-in reports the manifest's fallback level "box"; which picture it shows is "standin": "sprite"
+		# (Arcade's sprite), "boxtex" (Arcade's box faces) or "painted" (the painted box, no sheet)
+		if bool(ci.get("box", false)) and sk == "":
+			sk = "painted"
+		list.append({"id": int(id), "set": car.set_id, "model": str(ci.get("model_id", "")),
+			"lod": "box" if bool(ci.get("box", false)) else car.lod, "z": car.z, "x": car.x, "yaw_deg": rad_to_deg(car.yaw), "dist": car.dist,
 			"lamps": {"tail": car.la.x, "brake": car.la.y, "ind_l": car.la.z, "ind_r": car.la.w, "head": car.lb.x,
 				"beacon_a": car.lb.z, "beacon_b": car.lb.w},
 			"fade": car.fade, "sun": car.sun, "pos": [p.x, p.y, p.z], "shown": car.shown,
 			"box": bool((car.info as Dictionary).get("box", false)), "player": int(id) == PLAYER_ID,
 			"cast": car.cast, "caster": -1 if car.caster == null else int(car.caster.visible),
 			"basis": [car.pose.basis.x, car.pose.basis.y, car.pose.basis.z],
-			"standin": str((car.info as Dictionary).get("standin", "")), "cell": car.cell, "fold": car.fold})
+			"standin": sk, "cell": car.cell, "fold": car.fold, "pull": car.pull})
 	return {"vehicles": list, "vehicle_flares": _flare_n}
 
 
