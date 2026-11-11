@@ -206,8 +206,10 @@ MODELS.update({
                             gutters=dict(per_roof=2)),
     # rural: the village church - nave with arched windows, tower with a belfry (louvres) and clocks on three faces,
     # slate spire with a gilded cross; walls 30 cm deep in the openings, two steps at the door
+    # AS4R: the plaster 12 % darker than the sprite's (#e8e1d0 came out 13 % brighter than the sprite in the race)
     "props/church": dict(builder="house", source="props/church", kind="building", atlas=(1024, 1024), ppm_max=80.0,
-                         roughness=0.85, view="roadside", params={"allround": True}, ao=AO_TOWN, lod1=True,
+                         roughness=0.85, view="roadside", params={"allround": True, "plaster": "#ccc6b7"}, ao=AO_TOWN,
+                         lod1=True,
                          vpbr=("church_gold",), weights=dict(roof=0.5, away=0.25),
                          openings=dict(reveal_m=0.3, door_m=0.3, steps=2, reveal_color="#d8d0bd", sill_color="#cfc6b2",
                                        louvre=(17.0, 19.6), bars={"win": (1, [0.36, 0.66])}),
@@ -223,7 +225,11 @@ MODELS.update({
                           openings=dict(reveal_m=0.2, reveal_color="#9d988e", sill_color="#8f8b84",
                                         bars={"large": (3, 3)}, pane_lit=(0.75, 1.0)),
                           sign=dict(logo="gear", face="front", u=(-14.6, -3.4), z=(7.1, 8.4), wall=0.0,
-                                    panel="#2f3a44", color="#e9e7df")),
+                                    panel="#2f3a44", color="#e9e7df"),
+                          # AS4R (M4): the sawtooth glazing with mullions and a transom, its light at 45 % and fading
+                          # towards the top (it lit as five pure white fields)
+                          skylight=dict(objects=("fac_glass",), glass="#5d7486", frame="#4a4f55", light="#cfe0ff",
+                                        strength=0.9, k=0.45, pitch=1.4, bar=0.1, fade=0.5, z=(9.1, 11.9))),
     # town blocks (category city: 10,000 triangles, atlas 2048 x 1024)
     "props/building_block_a": dict(builder="house", source="props/building_block_a", kind="building",
                                    atlas=(2048, 1024), ppm_max=72.0, roughness=0.85, view="roadside",
@@ -243,12 +249,17 @@ MODELS.update({
                                    openings=dict(reveal_color="#ece5d8", sill_color="#e6dfd2",
                                                  bars={"large": (1, [0.62])}),
                                    gutters=dict(per_roof=2)),
-    # the office tower: glass curtain wall (spandrel bands in the atlas, panes and fins as geometry), lobby lit at night
+    # the office tower: glass curtain wall (spandrel bands in the atlas, panes and fins as geometry), lobby lit at night.
+    # AS4R (M3/M8): the panes are atlas patches - the sprite's glass gradient in six steps, the same by day for lit and
+    # unlit panes, the light (34 %, spread per face, floor and bay) in the emission atlas; the lobby at 20 % of its
+    # light with mullions in front of it
     "props/building_tall": dict(builder="house", source="props/building_tall", kind="building", atlas=(2048, 1024),
                                 ppm_max=48.0, roughness=0.6, view="roadside", ao=AO_TOWN, lod1=True,
                                 openings=False, gutters=False, caps=False, baked_lamps=("tower_lobby",),
+                                light_scale={"tower_lobby": 0.2},
                                 curtain=dict(object="tower", base=3.5, floor=3.5, band=0.9, mull=1.6, lit=0.34,
-                                             light="#ffe4b8", glass="#3a5468")),
+                                             light="#ffe4b8", glass="#2c4256", glass_top="#6f8ea8", bands=6,
+                                             strength=0.75, lobby=dict(object="tower_lobby", posts=1.6, w=0.12))),
     # --- bridge parts (generators in props_cities.py: read back, not changed) -----------------------------------
     # the candelabra of stone bridges: flat colours only (vpbr, one draw call); the upper halves of the lantern
     # glasses lie under their caps and are dropped; their sides are flood-lit glass (pale by day, lit at night), the
@@ -276,8 +287,10 @@ MODELS.update({
                                     bare=True, object={"width_m": 5.25, "height_m": 88.8, "length_m": 8.0},
                                     sets={"props/bridge_pylon_bare": {"modern_only": True}},
                                     code=["cesprites/props_cities.py"]),
+    # AS4R (M10): the web of the cut-out picture 1.2 x wider and 15 % darker (paler than the sprite at 400 m)
     "props/bridge_truss_arch": dict(builder="truss", source="props/bridge_truss_arch", kind="furniture",
-                                    atlas=(1024, 512), ppm=28.0, roughness=0.55, code=["cesprites/props_cities.py"]),
+                                    atlas=(1024, 512), ppm=28.0, roughness=0.55, web_k=1.2, web_dark=0.85,
+                                    code=["cesprites/props_cities.py"]),
     # --- ships -------------------------------------------------------------------------------------------------
     # the ro-pax ferry: the sprite shows its starboard side (view_yaw 90), so the model is turned by -90 degrees
     # (its side faces the approaching player, the bow points to +X); the many cabin windows stay painted (lit in
@@ -305,10 +318,12 @@ MODELS.update({
                             openings=dict(reveal_m=0.08, reveal_color="#2b3b31", sill_color="#ece8de", steps=0),
                             code=["cesprites/props_cities.py"]),
     # --- AS1b's windmill, reworked: real openings in the middle of the octagon's faces instead of the painted grid
-    # that straddled a corner (hook win3d); the rest as AS1b built it
+    # that straddled a corner (hook win3d); the rest as AS1b built it. AS4R (M7): sails with seven 13 cm bars instead
+    # of thirteen 7 cm ones (the same covered area; half a pixel wide at the mills' 80-150 m, they flickered); the
+    # panes are atlas patches (M3)
     "props/windmill": dict(builder="house", source="props/windmill", kind="building", atlas=(1024, 1024),
                            ppm_max=64.0, roughness=0.9, view="allround", gutters=False, ao=AO_RURAL,
-                           params={"win3d": True}, openings=False, caps=False,
+                           params={"win3d": True, "sail_bars": (7, 0.13, 0.14)}, openings=False, caps=False,
                            octagon=dict(objects=("mill_base",), faces=(67.5, 112.5, 247.5, 292.5),
                                         rows=(2.3, 4.9), win=(0.8, 1.1), lit=0.5, frame="#e9e6de", reveal_m=0.25),
                            rotor=dict(objects=("mill_sails",), hub_z=19.8), code=["cesprites/props_buildings.py"]),

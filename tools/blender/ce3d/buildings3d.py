@@ -5,10 +5,11 @@ section 15). Builder "house" (catalog3d, export_models.BUILDERS):
           "building" of AS1b (ce3d/props3d.py, unchanged) extended by:
             openings  rectangular and arched windows (round / segmental / pointed tops) cut into every wall that faces
                       along an axis, and into the faces of an octagonal tower ("octagon"); reveals (baked, with ambient
-                      occlusion), frames, glazing bars per window kind, sills, panes. Lit panes are lamp channel 12; their
-                      lit colour is the sprite's light colour of that grid, darkened (an unlit vpbr lamp shows half its
-                      lit colour: by day dark tinted glass, at night the light of the room); which pane is lit follows
-                      the grid's share "lit" (fixed per window, like the sprite's light layer)
+                      occlusion), frames, glazing bars per window kind, sills, panes. AS4R: a pane is the hole filler
+                      of its window moved back into the reveal - in the atlas, by day the sprite's painted glass, at
+                      night the sprite's light of that window (the same windows lit as in Arcade, x PANE_LIGHT_K) from
+                      the emission atlas (AS4's vpbr lamps showed half their light colour by day: brown panes beside
+                      blue ones); panes without a painted window behind them (curtain wall, octagon) are atlas patches
             shutters  the painted shutters of a facade as louvred panels in front of the wall (baked: slats in the atlas)
             louvres   belfry openings ("louvre": z range): slanted slats in front of a dark back panel
             clocks    decals marked "clock": a plate (lamp channel 14: its own colour by day, lit at night), frame, hour
@@ -55,6 +56,12 @@ BAR_W = 0.045
 SILL_M = 0.05
 PANE_K = 0.47            # lit colour of a pane = the sprite's light colour x PANE_K (sRGB): dark by day, bright at night
 LOD0_M = 60.0             # max_dist_m of lod0 when there is a lod1 (the props builder uses its own levels)
+# AS4R (art review AS4, M3/M6): window panes are no vpbr lamps any more - an unlit lamp shows half its light colour,
+# brown panes beside blue ones by day. A pane is the hole filler of its window moved back into the reveal: by day the
+# sprite's painted glass (one colour for every pane of a facade, ambient occlusion of the reveal), at night the
+# sprite's own light of that window (the same windows lit as in Arcade) from the emission atlas, times PANE_LIGHT_K -
+# measured against Arcade at night (Paris - Tours km 131.3, 23:00).
+PANE_LIGHT_K = 0.55
 
 
 # --- small helpers -----------------------------------------------------------------------------------------------
@@ -84,6 +91,18 @@ class Mats:
         key = ("b", name)
         if key not in self.m:
             self.m[key] = P._baked_flat(name, color)
+        return self.m[key]
+
+    def pane(self, name, glass, light=None, strength=1.0):
+        """AS4R: a flat pane baked into a solid patch of the atlas (Patches): the glass colour by day; with a light, lit
+        at night from the emission atlas (no vpbr lamp: unlit, a lamp shows half its light colour - brown glass)."""
+        key = ("p", name)
+        if key not in self.m:
+            from cesprites import materials as M
+            emit = {"lights": (light, float(strength))} if light else None
+            m = M.basic(name, glass, rough=0.1, emit=emit)
+            m["ce_atlas"] = 1
+            self.m[key] = m
         return self.m[key]
 
     def slats(self, name, color, pitch=0.11):
@@ -161,6 +180,49 @@ class Geo:
             ob["ce_lvl"] = level
             out.append(ob)
         return out
+
+
+class Patches:
+    """AS4R: flat-coloured parts without a chart of their own (the panes of the curtain wall and of the octagonal
+    tower: 840 panes of a tower would not fit the atlas). One small square per material, far below the model, is baked
+    with the rest; afterwards every triangle of such a part takes the atlas coordinate of its square: the glass colour
+    by day, the material's light at night. geo: the triangles (a Geo, levels as there)."""
+
+    def __init__(self):
+        self.geo = Geo()
+        self.objs = {}
+
+    def objects(self, rig):
+        import bmesh
+        from cesprites import meshutil as MU
+        names = sorted({name for (name, _lvl) in self.geo.tris})
+        for i, name in enumerate(names):
+            mat = [m for (n, _l), (m, _t) in self.geo.tris.items() if n == name][0]
+            bm = bmesh.new()
+            x, z, s = -20.0 + i * 1.0, -60.0, 0.2
+            vs = [bm.verts.new(p) for p in ((x - s, 0.0, z - s), (x + s, 0.0, z - s), (x + s, 0.0, z + s), (x - s, 0.0, z + s))]
+            bm.faces.new(vs)
+            ob = MU.make("ce_patch_%02d" % i, bm, mat, parent=rig.root)
+            MU.tag(ob, node_name="body")
+            ob["ce_lvl"] = "patch"
+            self.objs[name] = ob
+        return [self.objs[n] for n in names]
+
+    def add_to(self, mb, lvl):
+        """The triangles of level lvl into mb (class baked), each corner at the centre of its material's square."""
+        for (name, level) in sorted(self.geo.tris):
+            if level not in ("both", lvl):
+                continue
+            _mat, tris = self.geo.tris[(name, level)]
+            ob = self.objs[name]
+            lay = ob.data.uv_layers[BK.UV_NAME]
+            uv = np.empty(len(ob.data.loops) * 2, dtype=np.float32)
+            lay.data.foreach_get("uv", uv)
+            c = uv.reshape(-1, 2).astype(np.float64).mean(axis=0)
+            pos = np.array([[a, b, cc] for (a, b, cc) in tris], dtype=np.float64)
+            n = np.cross(pos[:, 1] - pos[:, 0], pos[:, 2] - pos[:, 0])
+            n /= np.maximum(1e-12, np.linalg.norm(n, axis=1))[:, None]
+            mb.add("baked", pos, np.repeat(n[:, None, :], 3, axis=1), uv=np.array([float(c[0]), float(1.0 - c[1])]))
 
 
 def _level(ob):
@@ -339,40 +401,84 @@ class Opening:
         self.top = top
 
 
-def _filler_mat(mat, cache):
-    """Copy of a facade material without its light: the hole fillers of the colour bake (see bake_house)."""
-    if mat.name in cache:
-        return cache[mat.name]
+def _filler_mat(mat, cache, light_k=None, sink=0.0):
+    """Copy of a facade material for the hole fillers of the colour bake (see bake_house). light_k None: without its
+    light - the filler of a door or a louvre, deleted after the colour bake. AS4R: light_k = k - with the sprite's
+    light of the window times k: the filler becomes the pane, moved `sink` m back into its reveal after the bakes."""
+    key = (mat.name, light_k)
+    if key in cache:
+        return cache[key]
     m = mat.copy()
-    m.name = "ce_fill_" + mat.name
-    for nd in m.node_tree.nodes:
-        if nd.bl_idname == "ShaderNodeEmission":
-            inp = nd.inputs["Color"]
+    m.name = ("ce_pane_" if light_k is not None else "ce_fill_") + mat.name
+    nt = m.node_tree
+    for nd in list(nt.nodes):
+        if nd.bl_idname != "ShaderNodeEmission":
+            continue
+        inp = nd.inputs["Color"]
+        if light_k is None:
             for lk in list(inp.links):
-                m.node_tree.links.remove(lk)
+                nt.links.remove(lk)
             inp.default_value = (0.0, 0.0, 0.0, 1.0)
+        elif inp.is_linked:
+            src = inp.links[0].from_socket
+            nt.links.remove(inp.links[0])
+            sc = nt.nodes.new("ShaderNodeVectorMath")
+            sc.operation = "SCALE"
+            nt.links.new(src, sc.inputs[0])
+            sc.inputs["Scale"].default_value = float(light_k)
+            nt.links.new(sc.outputs[0], inp)
+        else:
+            c = inp.default_value
+            inp.default_value = (c[0] * light_k, c[1] * light_k, c[2] * light_k, 1.0)
     m["ce_filler"] = 1
-    cache[mat.name] = m
+    if light_k is not None:
+        m["ce_pane"] = 1
+        m["ce_sink"] = float(sink)
+    cache[key] = m
     return m
 
 
-def _remove_fillers(objs):
-    """Deletes the hole fillers (faces of a ce_filler material) again; returns their number."""
+def _settle_fillers(objs):
+    """After the colour and light bakes: deletes the fillers of doors and louvres, and moves the panes (fillers of a
+    ce_pane material) back by their ce_sink along the inward wall normal - split off the wall first, so the opening's
+    edge stays where it is; their atlas coordinates (the painted window, its light) stay. Returns (deleted, moved)."""
     import bmesh
-    n = 0
+    n_del = n_pane = 0
     for ob in objs:
-        idx = {i for i, s in enumerate(ob.material_slots) if s.material is not None and s.material.get("ce_filler")}
-        if not idx:
+        slots = [s.material for s in ob.material_slots]
+        drop_idx = {i for i, m in enumerate(slots) if m is not None and m.get("ce_filler") and not m.get("ce_pane")}
+        pane_idx = {i: float(m.get("ce_sink", 0.0)) for i, m in enumerate(slots) if m is not None and m.get("ce_pane")}
+        if not drop_idx and not pane_idx:
             continue
+        mw = np.array(ob.matrix_world, dtype=np.float64)
+        m3 = mw[:3, :3]
+        inv3 = np.linalg.inv(m3)
+        nm = inv3.T
         bm = bmesh.new()
         bm.from_mesh(ob.data)
-        drop = [f for f in bm.faces if f.material_index in idx]
-        n += len(drop)
-        bmesh.ops.delete(bm, geom=drop, context="FACES_ONLY")
+        drop = [f for f in bm.faces if f.material_index in drop_idx]
+        n_del += len(drop)
+        if drop:
+            bmesh.ops.delete(bm, geom=drop, context="FACES_ONLY")
+        panes = [f for f in bm.faces if f.material_index in pane_idx]
+        if panes:
+            res = bmesh.ops.split(bm, geom=panes, use_only_faces=False)
+            bm.verts.index_update()
+            moved = set()
+            for f in [g for g in res["geom"] if isinstance(g, bmesh.types.BMFace)]:
+                n_w = nm @ np.array(f.normal, dtype=np.float64)
+                n_w /= max(1e-12, np.linalg.norm(n_w))
+                off = inv3 @ (-n_w * pane_idx[f.material_index])
+                for v in f.verts:
+                    if v.index in moved:
+                        continue
+                    v.co = tuple(float(a) for a in (np.array(v.co, dtype=np.float64) + off))
+                    moved.add(v.index)
+                n_pane += 1
         bm.to_mesh(ob.data)
         bm.free()
         ob.data.update()
-    return n
+    return n_del, n_pane
 
 
 def _hide_covered(charts, objs, weight=0.03, rays=14, samples=96):
@@ -425,11 +531,12 @@ def _hide_covered(charts, objs, weight=0.03, rays=14, samples=96):
 
 def bake_house(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, cutout=False, ao=None):
     """bake.bake_atlas with hole fillers. The openings are cut before the bake; every hole is closed by a filler face
-    (a copy of the facade material without light) while the colour is baked, so the texels inside a hole carry the
-    window the sprite paints there - not the frame colour that dilation would spread into it: mipmaps average the
-    wall with its windows, and at a distance no light halo surrounds the openings. The light layers bake the fillers
-    black (only the vpbr panes light up), the fillers are removed before the ambient occlusion (they would close the
-    reveals) and before the meshes are built."""
+    (a copy of the facade material) while the colour is baked, so the texels inside a hole carry the window the sprite
+    paints there - not the frame colour that dilation would spread into it: mipmaps average the wall with its
+    windows, and at a distance no light halo surrounds the openings. AS4R: the filler of a window keeps the sprite's
+    light of that window (x PANE_LIGHT_K) and becomes the pane - after the colour and light bakes it is moved back
+    into the reveal (_settle_fillers), before the ambient occlusion, which then darkens the pane towards its reveal;
+    the fillers of doors and louvres bake black and are deleted there."""
     names = {m.name for m in mats}
     t0 = time.time()
     charts = BK.box_unwrap(objs, lambda m: m is not None and m.name in names, weight_fn)
@@ -449,7 +556,7 @@ def bake_house(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, cutout=Fals
     em = BK.downsample(bk.layer("lights"), BK.SUPERSAMPLE)
     if float(em[..., :3].max()) > 0.004:
         out["emit"]["lights"] = BK.dilate(em)[..., :3]
-    stats["fillers"] = _remove_fillers(objs)
+    stats["fillers"], stats["panes"] = _settle_fillers(objs)
     if ao:
         t_ao = time.time()
         ao_bk = BK.Baker(rig, objs, mats, size, 1, BK.SAMPLES)
@@ -512,6 +619,7 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
     step_mat = mats.baked("ce_step", opt.get("step_color", "#b3ada3"))
     lit_w = opt.get("pane_lit", (0.55, 0.9))
     pane_k = float(opt.get("pane_k", PANE_K))
+    pane_light = opt.get("pane_light", PANE_LIGHT_K)      # None: AS4's vpbr panes
     far_ring = bool(opt.get("far_ring", True))
     louvre = opt.get("louvre")
     fac = [o for o in objs if any(s.material is not None and s.material.name in by_mat for s in o.material_slots)]
@@ -623,14 +731,18 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
             for (a2, b2, c2) in tris:
                 new_faces.append((p3(*a2), p3(*b2), p3(*c2), n, f.material_index))
             drop.append(f)
-            # hole fillers: the painted window inside every hole for the colour bake (removed again in bake_house)
+            # hole fillers: the painted window inside every hole for the colour bake; the fillers of doors and louvres
+            # are deleted again in bake_house, those of windows become the panes (AS4R: moved back into the reveal)
             fmat = _filler_mat(mat, fill_cache)
+            pmat = _filler_mat(mat, fill_cache, light_k=pane_light, sink=reveal_m) if pane_light is not None else None
             names_ob = [m.name if m is not None else "" for m in ob.data.materials]
-            if fmat.name not in names_ob:
-                ob.data.materials.append(fmat)
-                names_ob.append(fmat.name)
-            slot = names_ob.index(fmat.name)
+            for m_ in [x for x in (fmat, pmat) if x is not None]:
+                if m_.name not in names_ob:
+                    ob.data.materials.append(m_)
+                    names_ob.append(m_.name)
             for h in holes:
+                use = pmat if (pmat is not None and h.kind == "window") else fmat
+                slot = names_ob.index(use.name)
                 q = [p3(u, z) for (u, z) in h.outline]
                 for i in range(1, len(q) - 1):
                     new_faces.append((q[0], q[i], q[i + 1], n, slot))
@@ -651,19 +763,21 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
                 kind = _window_kind(g, b - a, d - c)
                 fcol = g.get("frame", e.get("frame", "#e9e6de"))
                 fm = mats.vpbr("ce_frame_%s" % fcol.lstrip("#"), fcol, rough=0.55)
-                gcol = g.get("glass", e.get("glass", "#26313b"))
-                hsh = zlib.crc32(("%s|%d|%.2f|%.2f|%.2f" % (ob.name, h.gi, a, c, w)).encode()) / 2.0 ** 32
-                if hsh < float(g.get("lit", e.get("lit", 0.45))):
-                    wgt = lit_w[0] + (lit_w[1] - lit_w[0]) * ((hsh * 7.31) % 1.0)
-                    light = g.get("color", e.get("warm", "#ffc46b"))
-                    if isinstance(light, (list, tuple)):
-                        light = light[0]
-                    lcol = _scale_hex(light, pane_k)
-                    pm = mats.vpbr("ce_pane_lit_%s_%02d" % (lcol.lstrip("#"), int(wgt * 100)), lcol, rough=0.12,
-                                   metal=0.1, lamp="-lights:%.2f:%s" % (wgt, lcol))
-                else:
-                    pm = mats.vpbr("ce_pane_%s" % gcol.lstrip("#"), gcol, rough=0.08, metal=0.25)
-                geo.poly(pm, [p3(u, z, depth) for (u, z) in h.outline], n)
+                if pane_light is None:
+                    # AS4's panes (vpbr; the lit ones lamps of channel 12) - only when a catalog entry asks for them
+                    gcol = g.get("glass", e.get("glass", "#26313b"))
+                    hsh = zlib.crc32(("%s|%d|%.2f|%.2f|%.2f" % (ob.name, h.gi, a, c, w)).encode()) / 2.0 ** 32
+                    if hsh < float(g.get("lit", e.get("lit", 0.45))):
+                        wgt = lit_w[0] + (lit_w[1] - lit_w[0]) * ((hsh * 7.31) % 1.0)
+                        light = g.get("color", e.get("warm", "#ffc46b"))
+                        if isinstance(light, (list, tuple)):
+                            light = light[0]
+                        lcol = _scale_hex(light, pane_k)
+                        pm = mats.vpbr("ce_pane_lit_%s_%02d" % (lcol.lstrip("#"), int(wgt * 100)), lcol, rough=0.12,
+                                       metal=0.1, lamp="-lights:%.2f:%s" % (wgt, lcol))
+                    else:
+                        pm = mats.vpbr("ce_pane_%s" % gcol.lstrip("#"), gcol, rough=0.08, metal=0.25)
+                    geo.poly(pm, [p3(u, z, depth) for (u, z) in h.outline], n)
                 # frame: the ring between the outline and its inset, just in front of the pane; glazing bars
                 fd = depth - 0.015
                 inner = _outline(a, b, c, d, top=h.top, inset=FRAME_W)
@@ -1082,10 +1196,25 @@ def _sign(rig, geo, mats, spec):
     return n_tri
 
 
-def _curtain(rig, objs, geo, mats, spec, stats):
+def _hash01(text):
+    """Stable, well spread number 0..1 of a text (crc32 of similar texts runs in stripes: lit panes stood in columns)."""
+    import hashlib
+    return int(hashlib.sha1(text.encode()).hexdigest()[:8], 16) / 2.0 ** 32
+
+
+def _mix_hex(a, b, t):
+    ca, cb = _hex(a), _hex(b)
+    return "#%02x%02x%02x" % tuple(int(round(x + (y - x) * t)) for x, y in zip(ca, cb))
+
+
+def _curtain(rig, objs, geo, mats, spec, stats, patches=None):
     """Glass curtain wall of a tower box (building_tall): the faces of the box between 'base' and 'top' are replaced by
-    spandrel bands (baked: the tower's own material in the atlas), recessed panes per bay and floor (vpbr; lit ones
-    lamp channel 12) and mullion fins (vpbr)."""
+    spandrel bands (baked: the tower's own material in the atlas), recessed panes per bay and floor and mullion fins
+    (vpbr). AS4R (art review AS4, M3/M8): the panes are atlas patches (Patches) - the sprite's glass gradient in
+    `bands` steps (glass .. glass_top), the same by day for lit and unlit panes; the lit ones (share `lit`, drawn per
+    face, floor and bay with a well spread hash - no columns) carry the light (x PANE_LIGHT_K) in the emission atlas
+    at three strengths. lobby = dict(object, k (factor on its light), posts (m), w): the lit lobby dimmed, with
+    mullions in front of it."""
     import bmesh
     name = spec["object"]
     ob = [o for o in objs if o.name == name][0]
@@ -1097,6 +1226,9 @@ def _curtain(rig, objs, geo, mats, spec, stats):
     light = spec.get("light", "#ffe4b8")
     lcol = _scale_hex(light, float(spec.get("pane_k", PANE_K)))
     glass = spec.get("glass", "#3a5468")
+    glass_top = spec.get("glass_top", glass)
+    n_bands = max(1, int(spec.get("bands", 1)))
+    strength = float(spec.get("strength", 0.75)) * float(spec.get("light_k", PANE_LIGHT_K))
     fin_mat = mats.vpbr("ce_fin", spec.get("fin_color", "#b9bec3"), rough=0.4, metal=0.6)
     pane_mats = {}
     mw = np.array(ob.matrix_world, dtype=np.float64)
@@ -1142,18 +1274,33 @@ def _curtain(rig, objs, geo, mats, spec, stats):
                 bw = (ub - ua) / nb_
                 for i in range(nb_):
                     u0, u1 = ua + i * bw, ua + (i + 1) * bw
-                    hsh = zlib.crc32(("%s|%d|%d" % (fname, k, i)).encode()) / 2.0 ** 32
-                    if hsh < lit:
-                        wgt = 0.5 + 0.45 * ((hsh * 7.31) % 1.0)
-                        key = round(wgt, 1)
-                        if key not in pane_mats:
-                            pane_mats[key] = mats.vpbr("ce_cw_lit_%02d" % int(key * 100), lcol, rough=0.1, metal=0.2,
-                                                       lamp="-lights:%.2f:%s" % (key, lcol))
-                        pm = pane_mats[key]
-                        n_lit += 1
+                    q4 = (p(u0, zb, -recess), p(u1, zb, -recess), p(u1, zg, -recess), p(u0, zg, -recess))
+                    if patches is None:
+                        # AS4's panes (vpbr; the lit ones lamps of channel 12)
+                        hsh = zlib.crc32(("%s|%d|%d" % (fname, k, i)).encode()) / 2.0 ** 32
+                        if hsh < lit:
+                            wgt = 0.5 + 0.45 * ((hsh * 7.31) % 1.0)
+                            key = round(wgt, 1)
+                            if key not in pane_mats:
+                                pane_mats[key] = mats.vpbr("ce_cw_lit_%02d" % int(key * 100), lcol, rough=0.1,
+                                                           metal=0.2, lamp="-lights:%.2f:%s" % (key, lcol))
+                            pm = pane_mats[key]
+                            n_lit += 1
+                        else:
+                            pm = mats.vpbr("ce_cw_glass", glass, rough=0.06, metal=0.6)
+                        geo.quad(pm, *q4, nrm)
                     else:
-                        pm = mats.vpbr("ce_cw_glass", glass, rough=0.06, metal=0.6)
-                    geo.quad(pm, p(u0, zb, -recess), p(u1, zb, -recess), p(u1, zg, -recess), p(u0, zg, -recess), nrm)
+                        bi = min(n_bands - 1, int(n_bands * ((zb + zg) * 0.5) / max(1e-6, H)))
+                        gc = _mix_hex(glass, glass_top, bi / max(1, n_bands - 1))
+                        hsh = _hash01("%s|%d|%d" % (fname, k, i))
+                        if hsh < lit:
+                            lv = int(3.0 * _hash01("lvl|%s|%d|%d" % (fname, k, i)))
+                            pm = mats.pane("ce_cw_lit_%d_%d" % (bi, lv), gc, light=light,
+                                           strength=strength * (0.75, 1.05, 1.4)[lv])
+                            n_lit += 1
+                        else:
+                            pm = mats.pane("ce_cw_glass_%d" % bi, gc)
+                        patches.geo.quad(pm, *q4, nrm)
                     n_pane += 1
             z = zg
             k += 1
@@ -1171,13 +1318,100 @@ def _curtain(rig, objs, geo, mats, spec, stats):
                      p(u - mull * 0.5, H, -recess), -uax)
             geo.quad(fin_mat, p(u + mull * 0.5, z_base, -recess), p(u + mull * 0.5, z_base, fin), p(u + mull * 0.5, H, fin),
                      p(u + mull * 0.5, H, -recess), uax)
-    stats.update(panes=n_pane, panes_lit=n_lit)
+    lob = spec.get("lobby")
+    n_post = 0
+    if lob:
+        # AS4R (M8): mullions in front of the lit lobby (its light is dimmed by the catalog's light_scale)
+        lo_ob = [o for o in objs if o.name.startswith(lob["object"])]
+        if lo_ob:
+            lp = np.array([tuple(lo_ob[0].matrix_world @ v.co) for v in lo_ob[0].data.vertices])
+            l0, l1 = lp.min(axis=0), lp.max(axis=0)
+            step, pw, dep = float(lob.get("posts", 1.6)), float(lob.get("w", 0.12)), float(lob.get("depth", 0.08))
+            nps = max(1, int(round((l1[0] - l0[0]) / step)))
+            y0 = float(l0[1])
+            for kp in range(nps + 1):
+                x = float(l0[0]) + (float(l1[0]) - float(l0[0])) * kp / nps
+                xa, xb = max(float(l0[0]), x - pw * 0.5), min(float(l1[0]), x + pw * 0.5)
+                za, zb_ = float(l0[2]), float(l1[2])
+                q = [np.array([xa, y0 - dep, za]), np.array([xb, y0 - dep, za]), np.array([xb, y0 - dep, zb_]),
+                     np.array([xa, y0 - dep, zb_])]
+                geo.quad(fin_mat, q[0], q[1], q[2], q[3], np.array([0.0, -1.0, 0.0]))
+                geo.quad(fin_mat, np.array([xa, y0, za]), q[0], q[3], np.array([xa, y0, zb_]), np.array([-1.0, 0.0, 0.0]),
+                         "lod0")
+                geo.quad(fin_mat, q[1], np.array([xb, y0, za]), np.array([xb, y0, zb_]), q[2], np.array([1.0, 0.0, 0.0]),
+                         "lod0")
+                n_post += 1
+            # a transom bar across the lobby at door height
+            zt = float(l0[2]) + 2.4
+            geo.quad(fin_mat, np.array([float(l0[0]), y0 - dep, zt - 0.06]), np.array([float(l1[0]), y0 - dep, zt - 0.06]),
+                     np.array([float(l1[0]), y0 - dep, zt + 0.06]), np.array([float(l0[0]), y0 - dep, zt + 0.06]),
+                     np.array([0.0, -1.0, 0.0]))
+    stats.update(panes=n_pane, panes_lit=n_lit, lobby_posts=n_post)
 
 
-def _octagon_windows(rig, objs, geo, mats, spec, opt, stats):
+def _skylight(objs, spec):
+    """AS4R (art review AS4, M4): the glazing of the factory's sawtooth roof lit at night as one pure white field (2.8
+    x 22 m per shed, seen over the slope of the next shed as a white triangle). The objects named in spec["objects"]
+    get a glazing material instead: the sprite's glass colour with mullions every `pitch` m along y and a transom,
+    the light (sprite colour x strength x k) only in the panes and fading towards the top (`fade`: share lost at the
+    top). spec = dict(objects, glass, frame, light, strength, k, pitch, bar, fade, z=(z0, z1))."""
+    from cesprites import materials as M
+    m, nb = M.new_material("ce_skylight")
+    _x, y, z = nb.coords()
+    pitch, bar = float(spec.get("pitch", 1.4)), float(spec.get("bar", 0.1))
+    z0, z1 = spec.get("z", (9.1, 11.9))
+    zm = (float(z0) + float(z1)) * 0.5
+    mull = nb.lt(nb.math("FLOORED_MODULO", y, pitch), bar)
+    tran = nb.lt(nb.absf(nb.sub(z, zm)), bar * 0.5)
+    edge = nb.OR(nb.lt(z, float(z0) + bar), nb.gt(z, float(z1) - bar))
+    frame = nb.OR(mull, tran, edge)
+    col = nb.mix(frame, M.srgb(spec.get("glass", "#5d7486")), M.srgb(spec.get("frame", "#4a4f55")))
+    out = M.principled(nb, col, rough=nb.mixf(frame, 0.1, 0.6), metal=nb.mixf(frame, 0.3, 0.5), spec=0.5)
+    t = nb.math("DIVIDE", nb.sub(z, float(z0)), float(z1) - float(z0))
+    fade = nb.sub(1.0, nb.mul(nb.math("MINIMUM", nb.math("MAXIMUM", t, 0.0), 1.0), float(spec.get("fade", 0.5))))
+    lit = nb.mul(nb.NOT(frame), fade)
+    s = float(spec.get("strength", 0.9)) * float(spec.get("k", 0.45))
+    em = nb.color_scale(M.emit_col(spec.get("light", "#cfe0ff"), s), lit)
+    mat = M.finish(m, nb, out, {"lights": em})      # role "proc": baked into the atlas
+    n = 0
+    for ob in objs:
+        if any(ob.name.startswith(p) for p in spec["objects"]):
+            for slot in ob.material_slots:
+                slot.material = mat
+            n += 1
+    return n
+
+
+def _scale_lights(objs, table):
+    """AS4R: the light of the materials of some objects times a factor (table: {object name prefix: k}) - a copy of
+    each material with its emission scaled (the tower's lobby: an over-exposed white field at night, art review M8)."""
+    copies = {}
+    n = 0
+    for ob in objs:
+        k = next((float(v) for pre, v in sorted(table.items()) if ob.name.startswith(pre)), None)
+        if k is None:
+            continue
+        for slot in ob.material_slots:
+            mat = slot.material
+            if mat is None or mat.get("ce_filler"):
+                continue
+            key = (mat.name, k)
+            if key not in copies:
+                copies[key] = _filler_mat(mat, {}, light_k=k)
+                copies[key].name = mat.name + "_lscale"       # keeps the name prefix (baked_lamps routes by it)
+                for prop in ("ce_filler", "ce_pane", "ce_sink"):
+                    if prop in copies[key]:
+                        del copies[key][prop]
+            slot.material = copies[key]
+            n += 1
+    return n
+
+
+def _octagon_windows(rig, objs, geo, mats, spec, opt, stats, patches=None):
     """Openings in the middle of the faces of a lathed polygonal tower (the windmill: its painted grid straddles a
     corner). spec: objects (names), faces (normal angles in degrees about the tower axis), rows (window centre heights),
-    win (w, h), lit, light, frame, glass."""
+    win (w, h), lit, light, frame, glass. AS4R: with patches the panes are atlas patches - glass by day for all,
+    the lit ones with the sprite's window light (strength x PANE_LIGHT_K) in the emission atlas."""
     import bmesh
     names = spec["objects"]
     w_win, h_win = spec["win"]
@@ -1235,12 +1469,20 @@ def _octagon_windows(rig, objs, geo, mats, spec, opt, stats):
                 depth = float(spec.get("reveal_m", 0.25))
                 _reveal(geo, reveal, outline, p3, n, u_ax, depth)
                 hsh = zlib.crc32(("%s|%.2f|%.2f" % (ob.name, ang, c)).encode()) / 2.0 ** 32
-                if hsh < float(spec.get("lit", 0.5)):
-                    pm = mats.vpbr("ce_pane_lit_oct", lcol, rough=0.12, metal=0.1, lamp="-lights:0.80:%s" % lcol)
+                gl = spec.get("glass", "#26313b")
+                if patches is not None:
+                    if hsh < float(spec.get("lit", 0.5)):
+                        pm = mats.pane("ce_oct_lit", gl, light=spec.get("light", "#ffc46b"),
+                                       strength=float(spec.get("strength", 1.5)) * PANE_LIGHT_K)
+                    else:
+                        pm = mats.pane("ce_oct_glass", gl)
+                    patches.geo.poly(pm, [p3(u, z, depth) for (u, z) in outline], n)
                 else:
-                    pm = mats.vpbr("ce_pane_%s" % spec.get("glass", "#26313b").lstrip("#"), spec.get("glass", "#26313b"),
-                                   rough=0.08, metal=0.25)
-                geo.poly(pm, [p3(u, z, depth) for (u, z) in outline], n)
+                    if hsh < float(spec.get("lit", 0.5)):
+                        pm = mats.vpbr("ce_pane_lit_oct", lcol, rough=0.12, metal=0.1, lamp="-lights:0.80:%s" % lcol)
+                    else:
+                        pm = mats.vpbr("ce_pane_%s" % gl.lstrip("#"), gl, rough=0.08, metal=0.25)
+                    geo.poly(pm, [p3(u, z, depth) for (u, z) in outline], n)
                 fd = depth - 0.015
                 inner = _outline(*rect, inset=FRAME_W)
                 for i in range(4):
@@ -1563,15 +1805,25 @@ def build_house(model_id, spec3d):
         stats["split_edges"] = _split_planes(objs, spec3d["split"])
     mats = Mats()
     geo = Geo()
+    patches = Patches()
     if spec3d.get("railings"):
         stats["railings"] = _railings(objs, spec3d["railings"], geo, mats)
     opt = dict(spec3d.get("openings") or {})
     if spec3d.get("curtain"):
-        _curtain(rig, objs, geo, mats, spec3d["curtain"], stats)
+        _curtain(rig, objs, geo, mats, spec3d["curtain"], stats, patches)
     if spec3d.get("openings", True) is not False:
         cut_openings(rig, objs, log, opt, geo, mats, stats)
     if spec3d.get("octagon"):
-        _octagon_windows(rig, objs, geo, mats, spec3d["octagon"], opt, stats)
+        _octagon_windows(rig, objs, geo, mats, spec3d["octagon"], opt, stats, patches)
+    if spec3d.get("skylight"):
+        stats["skylight"] = _skylight(objs, spec3d["skylight"])
+    if spec3d.get("light_scale"):
+        stats["light_scaled"] = _scale_lights(objs, spec3d["light_scale"])
+    if spec3d.get("levels"):
+        for ob in objs:
+            for pre, lvl in sorted(spec3d["levels"].items()):
+                if ob.name.startswith(pre):
+                    ob["ce_lvl"] = lvl
     if spec3d.get("flood"):
         stats["floodlit"] = _floodlight(objs, spec3d["flood"])
     if spec3d.get("sign"):
@@ -1583,7 +1835,8 @@ def build_house(model_id, spec3d):
         stats["caps"] = P._caps(rig, objs, cap_geo)
         objs = objs + cap_geo.objects(rig, model_id.split("/")[-1] + "_cap")
     objs = objs + geo.objects(rig, model_id.split("/")[-1])
-    return _finish_house(model_id, spec3d, rig, info, sspec, objs, stats, t0)
+    objs = objs + patches.objects(rig)
+    return _finish_house(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches)
 
 
 def _route(spec3d, objs):
@@ -1603,6 +1856,8 @@ def _route(spec3d, objs):
     vpbr = set()
     for name, m in mats.items():
         role, d = roles.tag(m)
+        if m.get("ce_atlas"):
+            continue                    # AS4R: panes of an atlas patch (their light in the emission atlas)
         if m.get("ce_vpbr"):
             vpbr.add(name)
         elif role == "flat" and any(name.startswith(k) for k in force):
@@ -1612,7 +1867,7 @@ def _route(spec3d, objs):
     return mats, vpbr
 
 
-def _finish_house(model_id, spec3d, rig, info, sspec, objs, stats, t0):
+def _finish_house(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches=None):
     mats, vpbr_names = _route(spec3d, objs)
     P._open_lamp_boxes(objs, [mats[n] for n in sorted(vpbr_names) if not mats[n].get("ce_vpbr")])
     rotor = spec3d.get("rotor") or {}
@@ -1674,6 +1929,8 @@ def _finish_house(model_id, spec3d, rig, info, sspec, objs, stats, t0):
                 uv = soup.uv[sel].copy()
                 uv[:, :, 1] = 1.0 - uv[:, :, 1]
                 mb.add("baked_cutout" if mat.name in cut_names else "baked", soup.pos[sel], soup.nor[sel], uv=uv)
+        if patches is not None:
+            patches.add_to(mb, lvl)
         if li == 0:
             pts0 = mb.points()
         max_d = LOD0_M if (li == 0 and len(levels) > 1) else 100000

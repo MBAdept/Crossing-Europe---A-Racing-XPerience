@@ -479,6 +479,11 @@ def build_truss(model_id, spec3d):
     col = tuple(int(c) for c in core.srgb8(core.hex_to_lin(steel)))
     dark = tuple(int(c * 0.7) for c in col)
     light = tuple(min(255, int(c * 1.1)) for c in col)
+    # AS4R (art review AS4, M10): web_k widens the members of the picture, web_dark darkens them - at 400 m the
+    # portal stood paler against the sky than the sprite (contrast 78 against 120)
+    web_k, web_dark = float(spec3d.get("web_k", 1.0)), float(spec3d.get("web_dark", 1.0))
+    wcol = tuple(int(c * web_dark) for c in col)
+    wdark = tuple(int(c * web_dark) for c in dark)
     ss = 4
     img = Image.new("RGBA", (W * ss, H * ss), (0, 0, 0, 0))
     dr = ImageDraw.Draw(img)
@@ -487,16 +492,16 @@ def build_truss(model_id, spec3d):
     def tx(x, z):
         return np.array([(ox + (x - x0) * ppm) * ss, (oy + (z1 - z) * ppm) * ss])
     for m in web0:
-        wpx = max(_visible_width(m) * ppm, P.LATTICE_MIN_PX) * ss
+        wpx = max(_visible_width(m) * ppm * web_k, P.LATTICE_MIN_PX) * ss
         pa, pb = tx(m["a"][0], m["a"][2]), tx(m["b"][0], m["b"][2])
         d = pb - pa
         ln = float(np.linalg.norm(d))
         if ln < 1e-6:
             continue
         nrm = np.array([-d[1], d[0]]) / ln * wpx * 0.5
-        dr.polygon([tuple(pa + nrm), tuple(pb + nrm), tuple(pb - nrm), tuple(pa - nrm)], fill=dark + (255,))
+        dr.polygon([tuple(pa + nrm), tuple(pb + nrm), tuple(pb - nrm), tuple(pa - nrm)], fill=wdark + (255,))
         dr.polygon([tuple(pa + nrm * 0.5), tuple(pb + nrm * 0.5), tuple(pb - nrm * 0.5), tuple(pa - nrm * 0.5)],
-                   fill=col + (255,))
+                   fill=wcol + (255,))
     for p in plates0:
         corners = [p["c"] + p["axis"] * p["length"] / 2 * s1 + p["ew"] * p["w"] / 2 * s2
                    for (s1, s2) in ((1, 1), (-1, 1), (-1, -1), (1, -1))]

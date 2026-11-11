@@ -332,7 +332,9 @@ def church(rig, p):
                                            (TW / 2 - 0.85, 15.9)], mat="#e9e3cf", clock=True),
                    dict(face="side", poly=[(TW / 2 - 0.6, 14.95), (TW / 2 + 0.6, 14.95), (TW / 2 + 0.6, 15.05),
                                            (TW / 2 - 0.6, 15.05)], mat="#222222")]
-    plaster = facade("church_wall", "#e8e1d0", grids, frame="#cfc6b2", decals=decals)
+    # 3D model (ce3d, AS4R): "plaster" - the model's wall colour (in the race light the sprite's #e8e1d0 came out 13 %
+    # brighter than the sprite, art review AS4); the sprite keeps its colour
+    plaster = facade("church_wall", p.get("plaster", "#e8e1d0"), grids, frame="#cfc6b2", decals=decals)
     walls(rig, "church_nave", W, D, H, plaster, y0=TW - 1.0)
     gable_wall(rig, "church_gable", W, H, 14.0, TW - 1.0, plaster, depth=0.3)
     gable_wall(rig, "church_gable_b", W, H, 14.0, TW - 1.0 + D - 0.3, plaster, depth=0.3)
@@ -387,12 +389,23 @@ def windmill(rig, p):
     hub = Vector((0.0, 1.0, 19.8))
     bm = bmesh.new()
     MU.bm_cyl(0.45, 0.35, 1.6, center=(0.0, 1.6, 19.8), axis="Y", segs=12, bm=bm)
+    # 3D model (ce3d, AS4R): sail_bars = (bars per sail, bar width, rail width) - half as many, twice as wide bars
+    # with the same covered area: the 7 cm bars are half a pixel wide at the mills' 80-150 m and flickered (art review
+    # AS4, M7). None = the sprite's lattice.
+    sail_bars = p.get("sail_bars")
     for k in range(4):
         a = math.radians(30 + 90 * k)
         d = Vector((math.cos(a), 0.0, math.sin(a)))
         n = Vector((-d.z, 0.0, d.x))
         tip = hub + d * 12.5
         MU.bm_beam(hub, tip, 0.3, 0.3, bm=bm, up=(0, 1, 0))
+        if sail_bars:
+            nb_, bw_, rw_ = int(sail_bars[0]), float(sail_bars[1]), float(sail_bars[2])
+            for i in range(nb_):
+                pa = hub + d * (2.5 + i * 9.6 / max(1, nb_ - 1))
+                MU.bm_beam(pa - n * 0.15, pa + n * 1.8, bw_, bw_, bm=bm, up=(0, 1, 0))
+            MU.bm_beam(hub + d * 2.5 + n * 1.8, tip + n * 1.8, rw_, rw_, bm=bm, up=(0, 1, 0))
+            continue
         for i in range(13):
             t = 2.5 + i * 0.8
             pa = hub + d * t
