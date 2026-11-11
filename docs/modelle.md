@@ -372,57 +372,74 @@ Gesamt: Netze ≤ 40 MB, Texturen ≤ 240 MB im Grafikspeicher.
 
 ## 11. Referenzmodelle (gemessen)
 
-Fahrzeuge: Stand nach der Nacharbeit AS1R (Abschnitt 13); die übrigen Zeilen aus Bauabschnitt 0.
+Fahrzeuge (Pkw): Stand Bauabschnitt 3 (AS2a, Abschnitt 14); Sattelzug und die übrigen Zeilen aus Bauabschnitt 0
+bzw. 1. Innenraum der Rennstufe (mit Verkleidung, Budget 6 000): Limousine 3 560, Kompakt 3 658, Kombi 3 860,
+Sportwagen 3 514, GT 3 412 Dreiecke (Showroom-Stufe 6 242–7 058).
 
 | Modell | Dreiecke je Stufe | Aufrufe | Netze | Texturquellen | Export | Bake |
 |---|---|---|---|---|---|---|
-| `player/limousine` | lod0 44 095 · show 94 629 · Schatten 2 320 | 6 / 6 | 1 527 819 B | – | 13,3 s | 0,07 s |
-| `player/kompakt` | lod0 47 524 · show 100 332 · Schatten 2 320 | 6 / 6 | 1 661 802 B | – | 13,2 s | 0,10 s |
-| `traffic/sedan` (4 Farbsets) | lod0 17 555 · lod1 5 809 · lod2 1 149 · Schatten 972 | 6 / 1 / 1 | 271 351 B | – | 2,3 s | 0,02 s |
-| `traffic/hatch` (5 Farbsets) | lod0 17 636 · lod1 5 661 · lod2 1 180 · Schatten 988 | 6 / 1 / 1 | 270 561 B | – | 2,2 s | 0,02 s |
-| `traffic/wagon` (4 Farbsets) | lod0 17 464 · lod1 5 941 · lod2 1 141 · Schatten 940 | 6 / 1 / 1 | 276 055 B | – | 2,5 s | 0,02 s |
+| `player/limousine` | lod0 47 904 · show 98 786 · Schatten 2 320 | 6 / 6 | 1 637 806 B | – | 16,5 s | 0,07 s |
+| `player/kompakt` | lod0 49 155 · show 106 649 · Schatten 2 320 | 6 / 6 | 1 770 933 B | – | 16,7 s | 0,08 s |
+| `player/kombi` | lod0 54 306 · show 117 206 · Schatten 2 320 | 6 / 6 | 1 964 901 B | – | 20,6 s | 0,11 s |
+| `player/sportwagen` | lod0 46 940 · show 95 375 · Schatten 2 320 | 6 / 6 | 1 690 967 B | – | 13,9 s | 0,09 s |
+| `player/gran_turismo` | lod0 48 095 · show 102 327 · Schatten 2 320 | 6 / 6 | 1 772 777 B | – | 15,0 s | 0,13 s |
+| `traffic/sedan` (4 Farbsets) | lod0 17 552 · lod1 5 808 · lod2 1 149 · Schatten 972 | 6 / 1 / 1 | 271 357 B | – | 2,5 s | 0,03 s |
+| `traffic/hatch` (5 Farbsets) | lod0 17 636 · lod1 5 661 · lod2 1 180 · Schatten 988 | 6 / 1 / 1 | 270 561 B | – | 2,6 s | 0,03 s |
+| `traffic/wagon` (4 Farbsets) | lod0 17 459 · lod1 5 941 · lod2 1 141 · Schatten 940 | 6 / 1 / 1 | 276 014 B | – | 2,6 s | 0,03 s |
+| `traffic/suv` (4 Farbsets) | lod0 17 824 · lod1 5 915 · lod2 1 169 · Schatten 1 004 | 6 / 1 / 1 | 280 642 B | – | 2,5 s | 0,03 s |
+| `traffic/van` (4 Farbsets) | lod0 17 655 · lod1 5 845 · lod2 1 189 · Schatten 1 064 | 6 / 1 / 1 | 270 960 B | – | 2,4 s | 0,03 s |
+| `traffic/sports` (5 Farbsets) | lod0 17 751 · lod1 5 741 · lod2 1 194 · Schatten 972 | 6 / 1 / 1 | 287 195 B | – | 2,5 s | 0,03 s |
 | `traffic/truck` (4 Lackierungen) | lod0 18 084 · lod1 4 672 · lod2 1 490 · Schatten 476 | 13 / 1 / 1 | 161 851 B | – | 1,0 s | 0,02 s |
 | `props/tree_oak` | lod0 1 220 (420 Karten) · lod1 459 (140) · Schatten 179 · Fernbild | 2 / 2 / 1 | 53 072 B | 373 558 B | 2,2 s | 0,01 s |
 | `props/farmhouse` | lod0 104 | 1 | 2 586 B | 752 795 B (1024², Nachtlicht 512²) | 58 s | 0,01 s |
 | `props/streetlight` | lod0 312 (keine automatische Stufe) | 1 | 4 395 B | – | 0,1 s | < 0,01 s |
 | `landmarks/michel` | lod0 3 024 | 1 | 63 648 B | 377 301 B (2048² WebP, Nachtlicht 1024²) | 329 s | 0,02 s |
 
-Zusammen: Netze 4,18 MB (davon die sechs Fahrzeuge 4,07 MB), Texturen 4,59 MB im Grafikspeicher, Quellen
-1,43 MB. Der Export des Michel besteht fast
-ganz aus dem Cycles-Bake des 2048er-Atlas (980 Karten). Die Sprite-Geometrieprüfung aller 187 Sets dauert etwa
-6 Minuten (2 Prozesse). Alle Zeiten sind auf dieser VM gemessen, während drei andere Läufe die vier Kerne
-mitbenutzten (2 Prozesse, `nice`): Sie schwanken von Lauf zu Lauf um etwa 10 %.
+Zusammen (Stand AS2a): Netze 10,28 MB von 40 MB (die zwölf Fahrzeuge 10,16 MB, davon die fünf Spielerautos
+8,43 MB; MB = 2²⁰ Bytes wie im Prüfer), Texturen 4,59 MB im Grafikspeicher, Quellen 1,43 MB. Der Export des
+Michel besteht fast ganz aus dem Cycles-Bake des 2048er-Atlas (980 Karten). Die Sprite-Geometrieprüfung aller
+187 Sets dauert etwa 6 Minuten (2 Prozesse) bzw. 697 s (1 Prozess, AS2a). Alle Zeiten sind auf dieser VM
+gemessen, während drei andere Läufe die vier Kerne mitbenutzten (2 Prozesse, `nice`): Sie schwanken von Lauf zu
+Lauf um etwa 10 %.
 
 Lampenflächen (gemessen mit `inspect_models.gd`: projizierte Fläche aus der Blickrichtung der Regel in
 Abschnitt 9, nach der Wicklung der Dreiecke, cm² je Fahrzeug bzw. je Seite bei den Blinkern):
 
 | Modell, Stufe | Rücklicht | Bremslicht | Blinker hinten l / r | Scheinwerfer | Blinker vorn l / r |
 |---|---|---|---|---|---|
-| `player/limousine` lod0 / show | 874 / 869 | 830 / 827 | 84 / 84 · 81 / 80 | 89 / 89 | 20 / 20 · 20 / 19 |
-| `player/kompakt` lod0 / show | 914 / 899 | 900 / 890 | 102 / 102 · 100 / 100 | 101 / 102 | 28 / 27 · 27 / 27 |
+| `player/limousine` lod0 / show | 887 / 882 | 841 / 839 | 84 / 84 · 81 / 80 | 90 / 89 | 20 / 20 · 20 / 19 |
+| `player/kompakt` lod0 / show | 929 / 922 | 901 / 898 | 102 / 102 · 100 / 100 | 101 / 103 | 28 / 27 · 27 / 27 |
+| `player/kombi` lod0 / show | 782 / 820 | 751 / 785 | 78 / 79 · 77 / 78 | 92 / 93 | 29 / 29 · 28 / 28 |
+| `player/sportwagen` lod0 / show | 804 / 803 | 767 / 764 | 66 / 66 · 66 / 66 | 85 / 84 | 30 / 30 · 31 / 31 |
+| `player/gran_turismo` lod0 / show | 390 / 385 | 327 / 342 | 72 / 73 · 72 / 73 | 102 / 101 | 31 / 31 · 32 / 32 |
 | `traffic/sedan` lod0 / lod1 / lod2 | 639 / 847 / 887 | 759 / 967 / 1 007 | 99 / 99 in jeder Stufe | 161 / 242 / 327 | 95 / 95 / 86 |
 | `traffic/hatch` lod0 / lod1 / lod2 | 727 / 902 / 965 | 846 / 1 021 / 1 084 | 95 / 95 in jeder Stufe | 195 / 273 / 360 | 112 / 100 / 95 |
 | `traffic/wagon` lod0 / lod1 / lod2 | 973 / 1 188 / 1 031 | 1 093 / 1 308 / 1 081 | 102 / 102 in jeder Stufe | 171 / 250 / 316 | 95 / 90 / 50 |
+| `traffic/suv` lod0 / lod1 / lod2 | 775 / 895 / 740 | 731 / 851 / 880 | 120 / 120 in jeder Stufe | 264 / 329 / 414 | 108 / 98 / 90 |
+| `traffic/van` lod0 / lod1 / lod2 | 489 / 624 / 763 | 596 / 736 / 875 | 86 / 85 / 82 | 476 / 505 / 583 | 109 / 109 / 100 |
+| `traffic/sports` lod0 / lod1 / lod2 | 830 / 940 / 933 | 830 / 940 / 933 | 74 / 73 / 71 | 142 / 212 / 241 | 85 / 85 / 85 |
 | `traffic/truck` lod0 / lod1 / lod2 | 860 in jeder Stufe | 860 | 450 / 450 | 1 000 | 320 / 320 |
 
 Die Blinker der Pkw haben in allen drei Stufen dieselbe Fläche, weil sie mit derselben Kontur eingeschnitten sind.
 Rück- und Bremslicht wachsen zu den groben Stufen hin, weil dort die schwarzen Lampenringe und die schmalen
-Chromleisten wegfallen (erlaubt: höchstens 2 × + 5 cm²). Lichtanker: Verkehrsautos höchstens 3,5 mm von ihrer
-Lampe, Spielerautos bis 33 mm (der Anker liegt in der Öffnung der Mulde, die Leuchtkörper bis 28 mm dahinter).
+Chromleisten wegfallen (erlaubt: höchstens 2 × + 5 cm²). Lichtanker: Verkehrsautos höchstens 6 mm von ihrer
+Lampe (Transporter, Anker des Bremslichts), Spielerautos bis 40 mm (der Anker liegt in der Öffnung der Mulde, die
+Leuchtkörper bis 28 mm dahinter; Kombi-Blinker); keiner liegt unter seiner Lampe (höchstens 0,9 mm, erlaubt 3).
+Der GT hat mit 390 cm² das kleinste Rücklicht (eine 5 cm hohe Leiste über die ganze Breite, Regel: 200).
 
 ### Ehrliche Einordnung gegen die Cycles-Sprites
 
-- **Spielerautos (Limousine, Kompakt):** Form, Fugen, Lampen und Räder stimmen mit den Sprites überein; das
+- **Spielerautos (alle fünf, seit AS2a):** Form, Fugen, Lampen und Räder stimmen mit den Sprites überein; das
   Echtzeit-Modell hat mehr Modelldetail als das Sprite (durchsichtiges Glas mit Innenraum, Lampen und Grill mit
   Tiefe, Wischer, Antenne, Kennzeichenrahmen). Im A/B-Bild aus der Showroom-Kamera bleibt es trotzdem hinter dem
   Sprite zurück – wegen Lack und Licht, nicht wegen des Netzes: Der Lack ist greller und gleichmäßiger (keine
   weichen Spiegelungen der Umgebung, kein Klarlack-Fresnel), es fehlen Kontaktschatten und Umgebungsverdeckung in
-  Radhäusern und Fugen, Felgen und Chrom spiegeln nur eine Farbe. `showroom` bleibt deshalb bei beiden `false`,
-  bis der Lackshader (R3) und das Showroom-Licht stehen; danach genügt die eine Zeile im Katalog.
-- **Verkehrsautos (Limousine, Schrägheck, Kombi):** dieselben Maße, Fenster und Lampen wie die Sprites, aber eine
+  Radhäusern und Fugen, Felgen und Chrom spiegeln nur eine Farbe. `showroom` bleibt deshalb bei allen fünf `false`
+  (A/B nach R3 wiederholt, Abschnitt 14), bis das Showroom-Licht steht; danach genügt eine Zeile im Katalog.
+- **Verkehrsautos (alle sechs Pkw-Typen):** dieselben Maße, Fenster und Lampen wie die Sprites, aber eine
   straffere Karosserie (Abschnitt 13). Die Lampen sind eingeschnittene, ebene Felder ohne Streuscheibe und Tiefe;
-  das Heck ist eine fast senkrechte Fläche; Glas dunkel und spiegelnd, kein Innenraum. Die Blinkerfelder (rund
-  95–100 cm² je Seite) gibt es nur im 3D-Entwurf – das Sprite zeigt dort den schmalen Streifen. `lod2` hat
+  das Heck ist eine fast senkrechte Fläche; Glas dunkel und spiegelnd, kein Innenraum. Die Blinkerfelder (71–120
+  cm² je Seite) gibt es nur im 3D-Entwurf – das Sprite zeigt dort den schmalen Streifen. `lod2` hat
   dreieckige Radausschnitte mit sechseckigen Rädern – gedacht für mehr als 120 m.
 - **Sattelzug:** Zugmaschine und Koffer mit lesbarem Heck. Alle vier Lackierungen sind derselbe Koffer – eine
   Plane (Rot, Grün im Sprite) gibt es nicht. Das Fahrerhaus ist ein Profilkörper mit eingeschnittenen Scheiben
@@ -443,6 +460,11 @@ Lampe, Spielerautos bis 33 mm (der Anker liegt in der Öffnung der Mulde, die Le
   behalten dunkles, spiegelndes Glas ohne Innenraum (Budget 18 000 Dreiecke, ein Zeichenaufruf für die Karosserie).
 - Die abgewandten Wände werden nicht per UV-Spiegelung wiederverwendet; stattdessen ergänzt der Generator
   (`allround`) Fenster auf der Rückseite, die eigene Atlasfläche bekommen.
+- Sportwagen und GT (Spieler): Der Vorderreifen steckt oben 84 bzw. 61 mm im Lack (gemessen, Lenkwinkel 0°) –
+  die Schulterkante der Entwürfe läuft unter dem Scheitel des Radlaufs. Von außen verdeckt; eine Lösung bräuchte
+  einen eigenen Querschnitt der Front im 3D-Bau.
+- Die Blinker der Spielerautos leuchten nie (die Ansicht des Spielers hat kein `blink`); der Prüfer verlangt sie
+  trotzdem (Regel 9), bei Tag sind sie als bernsteinfarbene Felder zu sehen.
 - Laub nimmt den Schatten der Sonne nur zu einem Viertel an (sonst verschattet die Schattenhülle die Krone).
 - Aufgesetzte Details der Verkehrsautos sind in die Karosserie geschnitten (eine Lage, kein Flimmern) – auch
   bei `lod1`/`lod2`, dort mit weniger Teilen.
@@ -641,6 +663,10 @@ Derselbe Bau wie Limousine, Schrägheck und Kombi (Abschnitt 13), mit den Lampen
 - **Budgets** über Detail-Overrides je Modell in `catalog3d` (längere Stationsabstände): SUV, Transporter und
   Sportwagen tragen mehr Decals (Verkleidung, Dachreling, Flügel, vier Endrohre).
 - Rückstrahler (SUV) ohne Lichtanker und in `lod2` ohne Schnitt (`decalgeo`: Lampen mit `-`).
+- Gemessen (Spielkamera, Tag, Anteil der Autopixel, die sich beim Wechsel um mehr als 24 Stufen ändern): 40 m
+  `lod0` → `lod1` SUV 5,6 %, Transporter 4,7 %, Sportwagen 9,3 %; 120 m `lod1` → `lod2` 32,3 / 33,9 / 37,2 %
+  (Sportwagen vor der Scheibenkorrektur 42,6 %). Bei 120 m sind die Autos 12 × 9 Pixel groß; was wechselt, sind
+  die Kanten der groben Kabine, die Spiegelung der Heckscheibe (in `lod1` heller) und die unterste Pixelreihe.
 - **Scheiben in `lod2`** (`far_glass`): Die Fließheckscheibe des Sportwagens liegt 17° flach, genau auf der
   Schwelle der Normalenregel (eine Fläche ist Front- oder Heckscheibe, wenn ihre Normale mit mehr als 0,3 längs
   zeigt): In jedem ihrer zwei Vierecke blieb ein Dreieck Lack, eine diagonale halbe Scheibe, die beim Wechsel bei
@@ -664,6 +690,16 @@ Lichtleiste (Sportwagen, GT: der Prüfer verlangt 15 cm² je Seite), je ein zus�
 Scheinwerfern von Sportwagen und GT (Scheinwerferfläche ≥ 80 cm²), beim Kombi das Rückfahrlicht im weißen Feld der
 Rückleuchte. Die Rückbank der 2+2-Sitzer (Sportwagen, GT) sitzt über der Hinterachse: Sie bleibt schmaler als die
 Kabine, bis sie aus den Radhäusern heraus ist (vorher 89 bzw. 60 mm im Hinterreifen, verdeckt).
+
+### Prüfungen (gemessen, Stand AS2a)
+
+- `check_sprite_geometry.py --jobs 1`: **187 von 187 Sets identisch** (eines mit anderer Flächenreihenfolge, der
+  Fernsehturm wie bisher), 697 s – alle Hooks dieses Abschnitts ändern kein Sprite.
+- Determinismus: erzwungener Export und Bake aller `player/*` und `traffic/*` ließen das Repository unverändert,
+  ein zweiter Bake war byte-gleich (80 Dateien), `--check-keys` grün.
+- Radfreiheit (Netz-Dump): Hinterräder aller Spielerautos und alle Räder von Kompakt, Kombi, Limousine, SUV und
+  Transporter frei; Vorderräder Sportwagen/GT siehe Abschnitt 12; Verkehrs-Sportwagen erst ab 15° Lenkeinschlag
+  (32 mm), Verkehr lenkt nur um atan(Radstand × Krümmung).
 
 ### Showroom-Entscheid
 
