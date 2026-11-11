@@ -759,3 +759,110 @@ im Rennen, die Stufe nach Entfernung wie im Requisiten-Builder: `--mode=dist` (A
   `ce_wet`); ein Ausblenden flach angeschnittener Karten nach der Kartennormale bräuchte eine zweite Normale.
 - Requisiten-Builder: Leitungen zwischen Strommasten. (Rotordrehung und Bodendecker in den Kurven-Korridoren sind
   mit der Zusammenführung von M1 erledigt.)
+
+## 15. Vegetation und Natur (Bauabschnitt 4, AS3)
+
+Alle Pflanzen- und Natur-Sets der Sprites haben jetzt ein Modell: neun Baumarten mit je zwei Samen-Varianten
+(Eiche, Birke, Buche, Pappel, Olive, Kiefer, Fichte, Zypresse, Palme), runder und niedriger Busch, Heide, die beiden
+Felsen und die Klippe. Eiche, Birke und Büsche sind mit dem überarbeiteten gemeinsamen Bauer neu gebaut. Das Aussehen
+jeder Art ist ihr Sprite (`cesprites/props_nature.py`): Das Modell nimmt dessen Kronenkugeln, Stämme und Farben und
+gibt ihnen Tiefe und Blattwerk – es ist kein neuer Entwurf.
+
+### Laubkuppeln statt flacher Karten (`ce3d/veg3d.py`)
+
+Die flachen Laubkarten von Bauabschnitt 2 wirkten von nahem unruhig und zeigten flach angeschnittene Karten als
+dunkle Schlieren; die Krone hatte weniger Form als die schattierten Kugeln des Sprites. Neu:
+
+- **Eine gewölbte Karte je Kronenkugel** (`_dome_cards`): Sie liegt auf dem Ellipsoid der Kugel (Mittelpunkt, Radius,
+  Höhenfaktor aus `CROWN_LOG`) und deckt den Teil, den keine andere Kugel verdeckt (48 Stichproben je Kugel), plus
+  14° Rand, der unter die Nachbarn läuft. Weil sie der Kugel folgt, steht sie von keiner Seite flach im Bild außer an
+  ihrem Rand – und dort macht der zerzauste Rand der Blattkugel-Textur den Umriss der Kugel laubig.
+- **Normalen je Ecke** sind die der Kugel an dieser Ecke (dazu 22 % Rundung der ganzen Krone und ein wenig nach
+  oben): Jede Kugel hat Licht- und Schattenseite wie im Sprite, und Nachbarn springen nicht in der Helligkeit.
+- **Helligkeit je Ecke** (`COLOR.a`) = Verdeckung durch die anderen Kugeln (16 Strahlen über der Halbkugel der
+  Normalen) mal **Himmelslicht** (eine nach unten zeigende Ecke bekommt `sky_lo` = 60 %, eine nach oben ganz): Die
+  Falten zwischen den Kugeln und die Unterseite der Krone sind dunkel – das Umgebungslicht des Renderers kommt von
+  allen Seiten gleich, das Sprite wurde unter einem Himmel gerendert.
+- **Unterteilung im Budget** (`_dome_plan`): jede Kuppel beginnt als Fächer mit zwei Ringen (1, 6, 12 Ecken);
+  die wichtigsten (freie Fläche × Offenheit nach außen) bekommen einen dritten Ring, solange die 2 500 Dreiecke
+  (lod0) bzw. 900 (lod1, Ringe 1, 6 → 1, 4, 8) reichen. Jede Ecke liegt ein wenig neben ihrem Ring (Winkel ±22 %
+  eines Schritts, Radius ±7 %): ein regelmäßiges Vieleck läse sich als geschliffener Stein.
+- **Blattkugel-Zellen** des Atlas (`leafatlas.ball`): innen eine deckende Laubmasse (Blätter auf tieferem Laub, nie
+  ein Loch), außen ein zerzauster Rand einzelner Blätter; Halo-Alpha 0,28 wie in Bauabschnitt 2 (mipmap-fest,
+  unter der Schwelle 0,42 auch nach der BC3-Quantisierung). Keine eigene Licht-und-Schatten-Malerei in der Textur:
+  die Kuppel schattiert.
+- **Zelle, Drehung und Windphase einer Kugel** sind in beiden Stufen gleich (eigener Zufallsstrom je Kugel): beim
+  Stufenwechsel bleiben die Blätter einer Kugel, wo sie waren.
+- **Kern:** eine geschlossene Hülle (Strahlen von der Kronenachse zur fernsten Kugel, 0,8 eingezogen; Normalen der
+  getroffenen Kugel) in einem tiefen, aber nicht schwarzen Laubton – was zwischen zwei Kuppeln offen bleibt, zeigt
+  tieferes Laub, nie den Himmel. Birke und Kiefer haben keinen (ihre Kronen sind licht).
+- **Holz:** Stamm und Äste des Generators (ein Stamm wird nie angeschnitten – ein halbes Rohr zeigte den Himmel), ein
+  Ast in jeden Kugelhaufen (k-Means), Äste und Astteile außerhalb der Krone fallen weg (keine dunklen Stöcke auf
+  einer flachen Olivenkrone), das Holz ist in der Krone durch dieselbe Verdeckung abgedunkelt (keine hellen
+  Aststummel). Der **Stammfuß reicht 0,55 m unter den Boden** mit 12 % Wurzelanlauf: am Hang schwebt kein Baum.
+  Olivenstämme sind knorrig (Verschiebung entlang der Normalen); Dreiecke, die das umklappt, werden nach ihrer
+  Normale gewickelt.
+- **Farbe:** Die Palette jeder Art sind die beiden Laubfarben ihres Generators, mit Sättigung `sat`, Wert `gain` und
+  Tönung `tint` so eingestellt, dass die Krone im Renn-Licht (Mittag, Voreinstellung „Mittel“) dieselbe mittlere
+  Helligkeit und denselben Farbton zeigt wie das Sprite am selben Ort (gemessen mit `prop_scene.sh --mode=lods
+  --look=race --sprite`, Tabelle im Bericht). `lift` hebt lod1 auf die mittlere Helligkeit von lod0 an der
+  Umschaltentfernung.
+- **Fernbild:** das Bild von lod0 (Albedo × Eckhelligkeit; das Himmelslicht steckt schon darin), Verstärkung und
+  Blauanteil je Art (`imp`: die Kuppeln spiegeln den Himmel, das Fernbild nicht) so gewählt, dass es bei Tag
+  innerhalb von 5 % von lod1 bleibt (gemessen an den inneren Pixeln; der Rand dünner Bäume ist durch die
+  Kantenglättung der Netze mit dem Himmel gemischt, beim Fernbild nicht). Im fernen Nebel ist es nicht blasser als
+  das Arcade-Sprite im selben Nebel (Bild im Bericht).
+
+### Sonderkronen (`ce3d/veg3d_shapes.py`)
+
+| Art | Krone |
+|---|---|
+| Fichte | jede Etage des Generators: ein geschlossener innerer Kegel (Nadelmasse; seine Unterseite zeigt nach unten und bleibt dunkel), auf seiner Oberseite Astkarten (Zweig vom Stamm zur hängenden Spitze, Nadeln), lod0 zwei Lagen um eine halbe Teilung gedreht |
+| Zypresse | der Drehkörper der Flamme des Generators (20 × 30 Teilungen), glatt wie im Sprite, ein wenig klumpig (der Generator verschiebt seine Fläche um 0,35 m), dichte Zweig-Textur |
+| Palme | Stamm neu mit einem Ring alle 0,24 m (Farbbänder, leichte Wülste); jeder Wedel des Generators als gebogener, flach V-förmig gefalteter Streifen entlang seiner Mittelrippe mit Fiedern; dunkler Kronenschaft und Nüsse; kein eigener Schattenwerfer (die Wedel werfen ihre Fiedern selbst) |
+| Kiefer | Waldkiefer wie ihr Sprite: hoher Stamm, unten dunkel, oben orangerot, flache Nadelpolster als Laubkuppeln |
+
+### Heide, Büsche, Felsen, Klippe
+
+- **Heide** (`build_bush`, Hook `SHAPE_LOG["heather"]`): die rosa und grünen Büschel des Generators als Laubkuppeln;
+  rosa Büschel aus Zellen mit Zweigen voller Blüten, grüne aus feinen Zweigen. 390 / 118 Dreiecke, ein Aufruf.
+- **Büsche und Bodendecker:** dieselben Laubkuppeln, nur Klasse `leaves`; die untersten Kugeln des Generators liegen
+  schon im Boden (am Hang schwebt nichts).
+- **Felsen und Klippe** (neuer Bauer `rock`, `ce3d/rock3d.py`): die Geometrie des Generators mit angewandten
+  Modifikatoren (verschobene Ikosphären: echte Facetten), bei Bedarf auf das Budget dezimiert, das Gesteinsmaterial
+  des Sprites (Rissnetz, Schichtbänder, Moos auf den Oberseiten; bei der Klippe die Sträucher) mit Cycles in einen
+  Atlas gebacken, mit Umgebungsverdeckung; der Fuß der Klippenwand 0,9 m in den Boden. Eine Fläche `baked` = ein
+  Aufruf, automatische Stufen (`auto_lod`, keine Lampen).
+
+### Wind, Schnee und Nässe – was die Modelle liefern
+
+`COLOR` der Klasse `leaves`: r = Ausschlag nach Höhe (Stamm steif: er ist `vpbr` und schwingt nicht; Krone sanft;
+Palmwedel: nach dem Abstand vom Wedelansatz, die Spitzen am weitesten), g = Phase je Kugel bzw. Wedel (alle Ecken
+einer Kuppel schwingen gemeinsam), b = Steifheit (Laub 0,55, Pappel 0,35, Fichte 0,7, Zypresse 0,75, Palme 0,15),
+a = Helligkeit. Das Fernbild schwingt nicht. `NORMAL` zeigt aus der Kugel (Kuppeln), aus dem Kegel (Fichte), aus
+dem Drehkörper (Zypresse) bzw. aus der Wedeloberseite (Palme) nach außen und oben: Ein Schnee-Term im
+`leaves.gdshader` kann mit `NORMAL.y` die nach oben schauenden Teile weißen, ein Nässe-Term sie abdunkeln. Nichts
+leuchtet selbst.
+
+### Hooks im Generator (Voreinstellung = Sprite)
+
+| Hook | Generator | im 3D-Bau |
+|---|---|---|
+| `SHAPE_LOG` | `tree_spruce`, `tree_cypress`, `tree_palm`, `heather` | Etagen (Höhe, Radius, Ringpunkte) und Spitze; Profil der Flamme; Stamm und Wedel; Büschel mit Farbe |
+| `CROWN_LOG` | `tree_pine` | die Nadelpolster als Kronenkugeln |
+| Knoten `crown` | Kiefer, Fichte, Zypresse, Palme, Heide | die Kronenobjekte ersetzt das Modell |
+| `tiers`, `taper` / `bulge`, `width` / `bend` | Fichte / Zypresse / Palme | Parameter der zweiten Variante (Etagen, Verjüngung; Bauch und Breite der Flamme; Krümmung des Stamms) |
+
+`check_sprite_geometry.py --only props` nach allen Hooks (gemessen): **86 von 86 Sets identisch**.
+
+### Werkzeug: `tools/models/prop_scene.sh` mit Renn-Licht
+
+- `--look=race [--hour=12] [--weather=normal] [--preset=medium]`: das Licht eines Rennens statt des kleinen
+  Prüf-Rigs – der `EnvironmentRig` des Renderers mit der Palette der Stunde, die Qualitätsstufen der Voreinstellung,
+  die Sichtweite des Rennens, der Look, den die Fahrzeug-Ebene auf `vpbr` legt (Stämme sind `vpbr`), der Himmel
+  der Palette. Bilder des alten Rigs waren heller und satter als im Rennen.
+- `--sprite`: das Arcade-Sprite des Sets als Platzhalter-Billboard im selben Licht und Nebel (Reihe bzw. Spalte).
+- `--mode=lods` meldet je Modell `UMSCHALT`: Anteil geänderter Pixel und 3×3-Blöcke, Helligkeits- und
+  Farbtonsprung an beiden Umschaltentfernungen (Helligkeit aus den inneren Pixeln).
+- `--mode=clip`: die Kamera fährt mit `--kmh` an Baumreihen entlang, jedes Bild wird geschrieben (Flimmern,
+  Stufenwechsel Bild für Bild).
