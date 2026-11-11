@@ -234,7 +234,7 @@ def _level(spec3d, level, paint_hex, metal, fine=None):
     from cesprites import rig as R
     from cesprites import vehicles
 
-    from .vehicles3d import GREY, SHADOW_MARGIN_M, _add_soup, shadow_drums
+    from .vehicles3d import GREY, SHADOW_MARGIN_M, _add_soup, shadow_drums, shadow_stats
     rig = R.Rig(quick=True)
     name = spec3d["design"]
     far = level in ("lod2", "shadow")
@@ -308,11 +308,7 @@ def _level(spec3d, level, paint_hex, metal, fine=None):
         inset = sd.get("wheel_inset", 0.02)
         shadow_drums(mb, [(sc.W2 - inset, tw, ya, sc.R, sc.R)
                           for ya, tw in ((sc.y_ra, sd.get("tw_r", sd["tw"])), (sc.y_fa, sd["tw"]))], n=8)
-        st = {}
-        if tuck:
-            st = dict(proud_before_mm=round(max(t[0] for t in tuck) * 1000.0, 1),
-                      proud_after_mm=round(max(t[1] for t in tuck) * 1000.0, 1), moved=sum(t[2] for t in tuck), turned=sum(t[3] for t in tuck))
-        return car, sc, nodes, {}, origin, tr, st, {}
+        return car, sc, nodes, {}, origin, tr, shadow_stats(name, tuck) if tuck else {}, {}
     # the decal code asks the car for its lofts
     car.body, car.cabin = sc.body, sc.green
     car.bumper_obs = {} if far else {"rear": sc.bumper_rear, "front": sc.bumper_front}

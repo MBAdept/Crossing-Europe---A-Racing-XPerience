@@ -352,7 +352,8 @@ Gesamt: Netze ≤ 40 MB, Texturen ≤ 240 MB im Grafikspeicher.
 | `props/streetlight` | lod0 312 (keine automatische Stufe) | 1 | 4 395 B | – | 0,1 s | < 0,01 s |
 | `landmarks/michel` | lod0 3 024 | 1 | 63 648 B | 377 301 B (2048² WebP, Nachtlicht 1024²) | 329 s | 0,02 s |
 
-Zusammen: Netze 4,39 MB, Texturen 4,59 MB im Grafikspeicher, Quellen 1,43 MB. Der Export des Michel besteht fast
+Zusammen: Netze 4,18 MB (davon die sechs Fahrzeuge 4,07 MB), Texturen 4,59 MB im Grafikspeicher, Quellen
+1,43 MB. Der Export des Michel besteht fast
 ganz aus dem Cycles-Bake des 2048er-Atlas (980 Karten). Die Sprite-Geometrieprüfung aller 187 Sets dauert etwa
 6 Minuten (2 Prozesse). Alle Zeiten sind auf dieser VM gemessen, während drei andere Läufe die vier Kerne
 mitbenutzten (2 Prozesse, `nice`): Sie schwanken von Lauf zu Lauf um etwa 10 %.
@@ -485,7 +486,10 @@ hinter dem ausgestellten Radlauf, gemessen 7,9 mm). `core.tuck_inside` zieht die
 Außenhaut von `lod0` (Stichproben an Ecken, Kantenmitten und im Inneren jedes Dreiecks; Radhäuser und nach unten
 blickende Flächen zählen nicht). Die Radtrommeln des Werfers sind nur die innere Hälfte des Reifens: Eine Kappe in
 der Ebene der Reifenflanke lag vor der Felge, die dann nie Sonne bekam. Der Lkw-Werfer ist ein Koffer, das
-Fahrerhaus nach seinem Profil und Trommeln, alles 3 cm nach innen gesetzt.
+Fahrerhaus nach seinem Profil und Trommeln, alles 3 cm nach innen gesetzt. Der Export bricht ab, wenn die Hülle
+eines Pkw danach nicht mindestens 6 mm unter der Haut liegt; gemessen (Exportbericht, `levels.shadow`): vorher
+7,1–7,9 mm außerhalb (Spielerautos) bzw. 35 mm (Verkehr: die Hülle reicht über die Stoßfänger), nachher 11,9–12,0 mm
+innerhalb. Der Prüfer (`validate_models.py`) misst das noch nicht.
 
 ### Sattelzug
 

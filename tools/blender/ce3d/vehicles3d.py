@@ -251,6 +251,18 @@ SHADOW_MARGIN_M = 0.012         # the shadow caster lies this far inside the ski
 SHADOW_WHEEL = dict(radius=0.97, width=0.5)     # its wheel drums: share of the radius; of the tyre width, inner part
 
 
+def shadow_stats(name, tuck):
+    """Statistics of core.tuck_inside over the lofts of a shadow caster (for the export report). The export
+    stops if the hull is not inside the skin afterwards - it would shade its own body."""
+    st = dict(proud_before_mm=round(max(t[0] for t in tuck) * 1000.0, 1),
+              proud_after_mm=round(max(t[1] for t in tuck) * 1000.0, 1), moved=sum(t[2] for t in tuck),
+              turned=sum(t[3] for t in tuck))
+    if st["proud_after_mm"] > -0.5 * SHADOW_MARGIN_M * 1000.0:
+        raise RuntimeError("%s: the shadow caster is %.1f mm from the skin of lod0 (wanted %.0f mm inside)" % (
+            name, st["proud_after_mm"], SHADOW_MARGIN_M * 1000.0))
+    return st
+
+
 def shadow_drums(mb, wheels, n=12):
     """Wheel drums of a shadow caster. wheels: [(x of the outer tyre face, tyre width, y, z, radius)] of the
     right side in root space; both sides are made. The drum is the inner part of the tyre: a cap in the plane of
@@ -314,8 +326,7 @@ def _player_shadow(spec3d, shell):
     inset = d.get("wheel_inset", 0.02)
     shadow_drums(mb, [(car.W2 - inset, d.get("tw_r", d["tw"]) if ya == car.y_ra else d["tw"], ya - car.L / 2.0, car.R, car.R)
                       for ya in (car.y_ra, car.y_fa)])
-    return mb, dict(proud_before_mm=round(max(t[0] for t in tuck) * 1000.0, 1),
-                    proud_after_mm=round(max(t[1] for t in tuck) * 1000.0, 1), moved=sum(t[2] for t in tuck), turned=sum(t[3] for t in tuck))
+    return mb, shadow_stats(p["design"], tuck)
 
 
 def build_player(model_id, spec3d):
