@@ -26,6 +26,8 @@ func build() -> void:
 	if GameFlow.sample_mode:
 		if CliArgs.has("recommend") and Gfx.MODES.has(CliArgs.get_string("recommend", "")):
 			recommended = CliArgs.get_string("recommend", recommended)
+			if recommended == Gfx.MODERN:
+				tier = "ok"   # the warning of this machine's tier would contradict the forced recommendation
 		if CliArgs.has("existing-player"):
 			existing = CliArgs.get_string("existing-player", "1") != "0"
 	add_header(tr("Grafik wählen"), tr("Neu in v0.8.0: der Modus „Modern“") if existing else tr("Wie soll Crossing Europe aussehen?"))

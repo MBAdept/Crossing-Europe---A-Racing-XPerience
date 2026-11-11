@@ -517,9 +517,9 @@ class _Controls extends Control:
 		]
 		var fb := UiTheme.font(UiTheme.F.BODY_BOLD)
 		var f := UiTheme.font(UiTheme.F.BODY_MEDIUM)
-		draw_string(fb, Vector2(0, 20), tr("AKTION"), HORIZONTAL_ALIGNMENT_LEFT, -1, 15, UiTheme.TEXT_MUTED)
-		draw_string(fb, Vector2(140, 20), tr("TASTATUR"), HORIZONTAL_ALIGNMENT_LEFT, -1, 15, UiTheme.TEXT_MUTED)
-		draw_string(fb, Vector2(300, 20), tr("GAMEPAD"), HORIZONTAL_ALIGNMENT_LEFT, -1, 15, UiTheme.TEXT_MUTED)
+		draw_string(fb, Vector2(0, 20), tr("AKTION"), HORIZONTAL_ALIGNMENT_LEFT, -1, 18, UiTheme.TEXT_MUTED)
+		draw_string(fb, Vector2(140, 20), tr("TASTATUR"), HORIZONTAL_ALIGNMENT_LEFT, -1, 18, UiTheme.TEXT_MUTED)
+		draw_string(fb, Vector2(300, 20), tr("GAMEPAD"), HORIZONTAL_ALIGNMENT_LEFT, -1, 18, UiTheme.TEXT_MUTED)
 		draw_line(Vector2(0, 28), Vector2(size.x, 28), Color(UiTheme.ACCENT_2, 0.35), 1.0)
 		var y := 60.0
 		for r in rows:
