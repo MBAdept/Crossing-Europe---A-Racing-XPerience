@@ -82,7 +82,7 @@ func _path(bus: String) -> Array[String]:
 
 func test_base_effects() -> void:
 	var b := _built()
-	assert_eq(_classes("MMaster"), ["AudioEffectCompressor"] as Array[String], "MMaster: Summenkompressor")
+	assert_eq(_classes("MMaster"), ["AudioEffectCompressor", "AudioEffectHardLimiter"] as Array[String], "MMaster: Summenkompressor, dahinter der Begrenzer (AU-R)")
 	assert_eq(_classes("MMusic"), ["AudioEffectLowShelfFilter", "AudioEffectLowShelfFilter", "AudioEffectLowPassFilter", "AudioEffectAmplify"] as Array[String], "MMusic: Renn-EQ (zwei Kuhschwanzfilter), Tiefpass, Fader")
 	assert_eq(_classes("MEnv"), ["AudioEffectDelay", "AudioEffectReverb", "AudioEffectLowPassFilter", "AudioEffectAmplify"] as Array[String], "MEnv: trocken + Reflexionen + Hall")
 	assert_eq(_classes("MCar"), ["AudioEffectAmplify"] as Array[String], "MCar: Fader")
@@ -226,6 +226,29 @@ func test_glue_compressor_from_config() -> void:
 	off.build({"glue": {"enabled": false}})
 	assert_false(AudioServer.is_bus_effect_enabled(AudioServer.get_bus_index("MMaster"), 0), "abschaltbar")
 	off.remove()
+
+
+## AU-R (KRITIK-FAHRBAHN B7, D29 <= -1 dBTP): the limiter of the Modern sound on MMaster behind the glue compressor –
+## in front of Master's volume, so it holds at every Gesamtlautstärke; the Arcade limiter on Master is not touched.
+func test_limiter_from_config() -> void:
+	var master_fx := AudioServer.get_bus_effect_count(0)
+	var b := _built()
+	var l: Dictionary = ConfigLoader.lookup(cfg(), "audio.modern.limiter", {})
+	assert_near(float(l["ceiling_db"]), -2.0, 1.0e-6, "Obergrenze −2 dB (Plan: True Peak ≤ −1 dBTP)")
+	var lim := b.limiter()
+	assert_true(lim != null and lim == _effect("MMaster", "AudioEffectHardLimiter"), "Begrenzer auf MMaster")
+	assert_near(lim.ceiling_db, float(l["ceiling_db"]), 1.0e-5, "Obergrenze aus der Konfiguration")
+	assert_near(lim.release, float(l["release_s"]), 1.0e-5, "Release")
+	assert_near(lim.pre_gain_db, float(l.get("pre_gain_db", 0.0)), 1.0e-5, "ohne Vorverstärkung")
+	assert_true(AudioServer.is_bus_effect_enabled(AudioServer.get_bus_index("MMaster"), 1), "an")
+	assert_eq(AudioServer.get_bus_effect_count(0), master_fx, "Master behält seine Effekte")
+	b.remove()
+	var off := ModernBuses.new()
+	off.build({"limiter": {"enabled": false}})
+	assert_false(AudioServer.is_bus_effect_enabled(AudioServer.get_bus_index("MMaster"), 1), "abschaltbar")
+	assert_near(off.limiter().ceiling_db, -2.0, 1.0e-6, "ohne Eintrag −2 dB")
+	off.remove()
+	assert_true(off.limiter() == null, "mit den Bussen entfernt")
 
 
 ## Godot's compressor reduces 2.0814 × overshoot × (ratio − 1) / ratio: the nominal ratio for a wanted one.

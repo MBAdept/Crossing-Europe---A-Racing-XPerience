@@ -22,6 +22,13 @@ Sounds (variants "files" are played in turn or picked by the runtime):
 Every file is stored at -3 dBFS sample peak. Entries carry "lufs_m" (the momentary maximum, 400 ms, of each
 variant): the runtime sets its levels as momentary loudness at the master from config audio.modern.road / impact.
 Deterministic (fixed seeds, no time stamps): audio_qc.py --determinism runs this twice and compares the bytes.
+
+AU-R (KRITIK-FAHRBAHN B12/B15 – one glass, one debris, one truck boom in every crash): glass, debris and truck_boom
+have four variants each – the file of AU-C1 (variant a) and three more from the same generator with other seeds,
+each matched to the third-octave balance of variant a (match_spectrum: a smooth zero-phase correction, at most 4 dB
+per band) so the timbre stays the one the user heard. The layers of a collision carry JITTER_LEAD_MS of extra
+silence in front (manifest jitter_lead_ms): the runtime starts each layer up to that much later by skipping less of
+it, so the layers of two crashes never line up the same way.
 """
 from __future__ import annotations
 
@@ -43,6 +50,42 @@ FOLDER = "sfx"
 SR = ml.SR
 PEAK = 0.708
 JOINT_GAPS = [0.160, 0.090, 0.050]   # axle gaps of the joint variants (s)
+JITTER_LEAD_MS = 20.0                # extra silence in front of the layers of a collision (the runtime's delay)
+TOB = [1000.0 * 10.0 ** (k / 10.0) for k in range(-17, 13)]   # third-octave centres 20 Hz .. 16 kHz
+# Seeds of the extra variants (chosen among 300 each for the smallest deviation from variant a – glass and debris
+# before matching, the truck boom after it, whose partials otherwise straddle band edges; scratch sfx_seeds.py and
+# truck_pick.py of AU-R)
+GLASS_SEEDS = (44092, 44284, 44052)
+DEBRIS_SEEDS = (45045, 45035, 45025)
+TRUCK_SEEDS = (46187, 46285, 46085)
+
+
+def third_octave_db(y: np.ndarray) -> np.ndarray:
+    """Energy per third-octave band (dB, relative to the whole signal)."""
+    f = np.fft.rfftfreq(len(y), 1.0 / SR)
+    p = np.abs(np.fft.rfft(y)) ** 2
+    tot = float(p.sum()) + 1e-30
+    return np.array([10.0 * np.log10(float(p[(f >= c * 10 ** -0.05) & (f < c * 10 ** 0.05)].sum()) / tot + 1e-30)
+                     for c in TOB])
+
+
+def match_spectrum(y: np.ndarray, ref: np.ndarray, max_db: float = 4.0, rounds: int = 3) -> np.ndarray:
+    """y with the third-octave balance of ref: a smooth zero-phase gain curve over log frequency (band corrections
+    interpolated between the band centres, at most max_db), repeated a few times. Bands more than 40 dB under the
+    loudest band of ref are left alone (nothing to match there)."""
+    t_ref = third_octave_db(ref)
+    keep = t_ref > t_ref.max() - 40.0
+    lc = np.log(np.array(TOB))
+    pad = int(0.05 * SR)                  # the filter rings a little to both sides: room for it, not wrapped around
+    n = len(y)
+    for _ in range(rounds):
+        d = np.clip(t_ref - third_octave_db(y), -max_db, max_db)
+        d = np.where(keep, d, 0.0)
+        z = np.concatenate([np.zeros(pad), y, np.zeros(pad)])
+        f = np.maximum(np.fft.rfftfreq(len(z), 1.0 / SR), 1.0)
+        g = np.interp(np.log(f), lc, d, left=d[0], right=d[-1])
+        y = np.fft.irfft(np.fft.rfft(z) * 10.0 ** (g / 20.0), len(z))[pad:pad + n]
+    return y
 
 
 def shaped(rng, m: int, shape) -> np.ndarray:
@@ -282,18 +325,25 @@ def sounds() -> list[tuple]:
                 [lambda: whoosh(3701, 0.6, 80.0, 2500.0, -0.3, thrum=0.6)], {"ref_kmh": 100.0}))
     out.append(("pass_rock", "MRoad", "Vorbeifahrt an Fels bei 100 km/h: harte Reflexion",
                 [lambda: whoosh(3801, 0.4, 200.0, 6000.0, 0.1, flutter=0.25)], {"ref_kmh": 100.0}))
+    jit = {"jitter_lead_ms": JITTER_LEAD_MS}
     out.append(("hit_light", "MImpact", "Kollision, leicht: Stoßstange an Stoßstange, Plastik knackt",
-                [lambda: hit_light(4101), lambda: hit_light(4102)], {}))
+                [lambda: hit_light(4101), lambda: hit_light(4102)], dict(jit)))
     out.append(("hit_heavy", "MImpact", "Kollision, schwer: tiefer Schlag in die Karosserie",
-                [lambda: hit_heavy(4201), lambda: hit_heavy(4202)], {}))
+                [lambda: hit_heavy(4201), lambda: hit_heavy(4202)], dict(jit)))
     # the layers of a collision start a few milliseconds apart (lead_ms of silence in the file): a collision is a
     # process, and peaks that do not coincide leave the master limiter alone (measured in the worst case)
     out.append(("crunch", "MImpact", "Blech faltet sich: Knarzen und Klicken, ein tiefes Stöhnen der Karosserie (4 ms Vorlauf)",
-                [lambda: crunch(4301), lambda: crunch(4302)], {"lead_ms": 4.0}))
-    out.append(("glass", "MImpact", "Glas zerspringt und rieselt (9 ms Vorlauf)", [lambda: glass(4401)], {"lead_ms": 9.0}))
-    out.append(("debris", "MImpact", "Kleinteile springen über die Fahrbahn (40 ms Vorlauf)", [lambda: debris(4501)], {"lead_ms": 40.0}))
-    out.append(("truck_boom", "MImpact", "Lkw oder Bus getroffen: tiefer Schlag eines großen Stahlaufbaus, Bleche klingen, Rasseln",
-                [lambda: truck_boom(4601)], {}))
+                [lambda: crunch(4301), lambda: crunch(4302)], {"lead_ms": 4.0, **jit}))
+    # four variants each (AU-R): variant a as before, three from other seeds matched to its third-octave balance
+    out.append(("glass", "MImpact", "Glas zerspringt und rieselt (9 ms Vorlauf; vier Varianten)",
+                [lambda: glass(4401)] + [lambda s=s: match_spectrum(glass(s), glass(4401)) for s in GLASS_SEEDS],
+                {"lead_ms": 9.0, **jit}))
+    out.append(("debris", "MImpact", "Kleinteile springen über die Fahrbahn (40 ms Vorlauf; vier Varianten)",
+                [lambda: debris(4501)] + [lambda s=s: match_spectrum(debris(s), debris(4501)) for s in DEBRIS_SEEDS],
+                {"lead_ms": 40.0, **jit}))
+    out.append(("truck_boom", "MImpact", "Lkw oder Bus getroffen: tiefer Schlag eines großen Stahlaufbaus, Bleche klingen, Rasseln (vier Varianten)",
+                [lambda: truck_boom(4601)] + [lambda s=s: match_spectrum(truck_boom(s), truck_boom(4601)) for s in TRUCK_SEEDS],
+                dict(jit)))
     out.append(("rail_hit", "MImpact", "In die Leitplanke: Schlag, harter Metallklick, die Planke schwingt nach",
                 [lambda: rail_hit(4701), lambda: rail_hit(4702)], {}))
     out.append(("rail_touch", "MImpact", "Leitplanke gestreift: kurzes Schleifen, leises Klingen",
@@ -305,9 +355,12 @@ def sounds() -> list[tuple]:
 
 def build(out: str | None, wav_dir: str | None, log=print) -> None:
     man = ml.Manifest(FOLDER, out)
+    before = {f for e in man.sounds.values() if e.get("generator") == GENERATOR
+              for f in (e.get("files") or ([e["file"]] if "file" in e else []))}
     man.drop_generator(GENERATOR)
     repo = out is None
     total = 0
+    written: set[str] = set()
     for sid, bus, note, fns, extra in sounds():
         names = []
         lufs_m = []
@@ -315,18 +368,19 @@ def build(out: str | None, wav_dir: str | None, log=print) -> None:
         for i, fn in enumerate(fns):
             # no mean subtraction: it would leave a DC step in the silent tail that the end fade turns into a thump
             y = np.asarray(fn(), np.float64)
-            lead = int(round(float(extra.get("lead_ms", 0.0)) * SR / 1000.0))
+            lead = int(round((float(extra.get("lead_ms", 0.0)) + float(extra.get("jitter_lead_ms", 0.0))) * SR / 1000.0))
             if lead > 0:
                 y = np.concatenate([np.zeros(lead), y])
             y = vl.fade_tail(y, 0.01)
             y = y * (PEAK / float(np.max(np.abs(y))))
             # bright one-shots (grinding, rustle) peak between the samples: bring the true peak to -3 dBTP as well
             y = ml.limit_true_peak(y[:, None], -3.0)[:, 0]
-            name = f"{sid}_{'abcdef'[i]}.wav" if len(fns) > 1 else f"{sid}.wav"
+            name = f"{sid}_{'abcdefgh'[i]}.wav" if len(fns) > 1 else f"{sid}.wav"
             ml.write_wav16(man.file(name), y)
             if repo:
                 vl.write_wav_import_keep(man.file(name), None)
             names.append(name)
+            written.add(name)
             lufs_m.append(round(float(qc_lib.momentary_max(y, SR)), 2))
             previews.append(y)
             total += os.path.getsize(man.file(name))
@@ -340,6 +394,13 @@ def build(out: str | None, wav_dir: str | None, log=print) -> None:
             ml.write_wav16(os.path.join(wav_dir, sid + ".wav"), np.concatenate([np.concatenate([p, gap]) for p in previews]))
         log(f"  {sid:15s} {len(names)} × {np.mean([len(p) for p in previews]) / SR:4.2f} s  momentan {np.mean(lufs_m):6.1f} LUFS  {bus}")
     man.save()
+    if repo:
+        # files of this generator's earlier entries that it no longer writes (glass.wav before its variants)
+        for name in sorted(before - written):
+            for p in (man.file(name), man.file(name) + ".import"):
+                if os.path.exists(p):
+                    os.remove(p)
+                    log(f"  entfernt: {os.path.basename(p)}")
     log(f"sfx_modern: {len(sounds())} Klänge, {total / 1e6:.2f} MB -> {man.dir}")
 
 

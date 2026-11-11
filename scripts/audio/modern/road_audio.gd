@@ -1,16 +1,17 @@
 class_name RoadAudio
 extends ModernAudioModule
-## Slot "road" of the Modern sound (package AU-C1, contract D27–D29, §4.7.2; docs/audio-modern.md "Fahrbahn, Wind,
-## Aufprall"): what the player's car does on the road, on the bus MRoad, and the wind, on MWind (both → MCar).
-## Godot mixes every sound natively; this script only moves levels, pitches and pans once per frame.
+## Slot "road" of the Modern sound (package AU-C1, reworked by AU-R; contract D27–D29, §4.7.2; docs/audio-modern.md
+## "Fahrbahn, Wind, Aufprall"): what the player's car does on the road, on the bus MRoad, and the wind, on MWind (both
+## → MCar). Godot mixes every sound natively; this script only moves levels, pitches and pans once per frame.
 ##
-##   rolling     one loop per surface (asphalt, concrete, cobbles, steel deck, rumble strip, gravel shoulder, grass)
-##               on two panned players – the left and the right wheels, reading the loop at different offsets – so
-##               each side has its own surface (one wheel on the rumble strip, the other on the road) and the pair
-##               is wide; level and pitch follow the road speed
-##   wet         spray hiss on a wet road; snow muffles the rolling noise (low-pass on MRoad) and adds a crunch
+##   rolling     one layer per surface (asphalt, concrete, cobbles, steel deck, rumble strip, gravel shoulder, grass)
+##               on two panned players – the left and the right wheels –, so each side has its own surface (one
+##               wheel on the rumble strip, the other on the road) and the pair is wide; level and pitch follow the
+##               road speed
+##   wet         spray hiss on a wet road; snow muffles the rolling noise (low-pass on MRoad) and crunches (own loop)
 ##   slabs       the 'ta-tock' of the joints of a concrete motorway: a loop played at pitch v / design speed, so the
-##               rhythm of front and rear axle is exact at every speed (two designs, crossfaded by speed)
+##               rhythm of front and rear axle is exact at every speed (two designs, crossfaded by speed, always in
+##               step with each other)
 ##   joints      expansion joints of bridges (feed event "joint"): front and rear axle in one sound, the variant
 ##               whose axle gap is nearest to wheelbase / speed, its pitch shifted to match it exactly
 ##   passes      the car's noise thrown back by posts, signs, trees, buildings, gantries, rocks it passes (feed
@@ -18,7 +19,13 @@ extends ModernAudioModule
 ##   squeal      tyres at the limit of grip (understeer) – a tone; scrub without the tone for little slip, a wet road
 ##               and the slide of a crash; the lateral speed of a sharp lane change adds a little scrub
 ##   wind        three bands and the buffeting near top speed (the 'open window'), on panned pairs, with gusts;
-##               quieter in tunnels and cuttings, stronger and gustier on bridges
+##               quieter in cuttings, stronger and gustier on bridges
+##
+## No exact repetition (AU-R, KRITIK-FAHRBAHN B1 – AU-C1 read ONE 2-s loop on both players at L/2, so the sum repeated
+## exactly every second): every paired layer plays an own loop per side (manifest "pair": the same generator with
+## another seed and another length, 4–7.6 s), each player starts at a random point of its loop, each side drifts
+## slowly in level (Ornstein-Uhlenbeck, road.sides.drift_db / drift_s – for the wind its gusts, now per side) and the
+## right side plays road.sides.pitch higher (not the rumble strip: its rate is v / groove spacing).
 ##
 ## Levels are data (audio.modern.road): every target is the loudness at the master (LUFS, Gesamtlautstärke at its
 ## default – ref_path_db) of what the player hears; the loops carry their loudness per pitch (manifest lufs_pitch),
@@ -44,43 +51,71 @@ const PAIR_DB := -3.0103          ## two decorrelated players carry one layer: e
 const PASS_VOICES := 4
 const JOINT_VOICES := 3
 const MIN_SPEED := 1.0            ## km/h in the speed laws (log10)
+const SLAB_CHECK_S := 0.5         ## how often the two slab loops are compared while both play
 
 
-## One looping sound on one plain player (centred) or on two panned players (left / right, read at different
-## offsets of the loop). gains are linear, as for a plain player; drive() smooths them towards their targets.
+## One looping sound on one plain player (centred) or on two panned players (left / right; with "pair" in the
+## manifest each side plays its own loop). gains are linear, as for a plain player; drive() smooths them towards their
+## targets.
 class Layer:
 	extends RefCounted
 	var id := ""
 	var players: Array = []                  ## AudioStreamPlayer / AudioStreamPlayer2D, or null while not live
 	var pans := PackedFloat32Array()
-	var offsets := PackedFloat32Array()      ## start position of each player in the loop (share of its length)
 	var gains := PackedFloat32Array()        ## smoothed gain per player
 	var level := 0.0                         ## largest gain of the layer (tests, debug)
-	var pitch := 1.0
+	var pitch := 1.0                         ## pitch of the speed law; player i plays pitch × ratios[i]
+	var ratios := PackedFloat32Array()       ## per player (AU-R: the right side a little higher)
 	var ref_kmh := 0.0                       ## manifest: design speed (pitch 1)
 	var pitch_exp := 0.0                     ## manifest: pitch = (v / ref_kmh) ** pitch_exp
-	var curve: Array = []                    ## manifest lufs_pitch: [[pitch, LUFS], …]
-	var lufs := -20.0                        ## manifest: loudness at pitch 1
-	var length_s := 1.0
+	var curves: Array = []                   ## per player: manifest lufs_pitch of its loop [[pitch, LUFS], …]
+	var lufs_1 := PackedFloat32Array()       ## per player: loudness at pitch 1
+	var lengths := PackedFloat32Array()      ## per player: loop length (s)
+	var own_loops := false                   ## the right player plays its own loop (manifest "pair")
 	var has_sound := false
+	var rng: RandomNumberGenerator = null    ## start points (null: from the start of the loop)
+	var start_at := -1.0                     ## >= 0: a player that starts now starts at this share of its loop
+	var curve: Array = []                    ## = curves[0] (tools)
+	var lufs := -20.0                        ## = lufs_1[0]
+	var length_s := 1.0                      ## = lengths[0]
 
-	func lufs_at(p: float) -> float:
-		if curve.size() < 2:
-			return lufs
+	## Loudness of player i's loop played at pitch p (manifest lufs_pitch, interpolated on a log scale).
+	func lufs_at(p: float, i: int = 0) -> float:
+		var c: Array = curves[i] if i < curves.size() else []
+		var base := lufs_1[i] if i < lufs_1.size() else lufs
+		if c.size() < 2:
+			return base
 		var lp := log(maxf(p, 0.01))
-		if lp <= log(float(curve[0][0])):
-			return float(curve[0][1])
-		for i in range(1, curve.size()):
-			var a := log(float(curve[i][0]))
+		if lp <= log(float(c[0][0])):
+			return float(c[0][1])
+		for k in range(1, c.size()):
+			var a := log(float(c[k][0]))
 			if lp <= a:
-				var a0 := log(float(curve[i - 1][0]))
-				return lerpf(float(curve[i - 1][1]), float(curve[i][1]), (lp - a0) / maxf(a - a0, 1.0e-6))
-		return float(curve[curve.size() - 1][1])
+				var a0 := log(float(c[k - 1][0]))
+				return lerpf(float(c[k - 1][1]), float(c[k][1]), (lp - a0) / maxf(a - a0, 1.0e-6))
+		return float(c[c.size() - 1][1])
 
 	func pitch_for(kmh: float) -> float:
 		if ref_kmh <= 0.0:
 			return 1.0
 		return clampf(pow(maxf(kmh, 1.0) / ref_kmh, pitch_exp), 0.15, 3.5)
+
+	func playing(i: int = 0) -> bool:
+		var pl: Node = players[i] if i < players.size() else null
+		return pl != null and bool(pl.get("playing"))
+
+	## Where player i is in its loop (0..1).
+	func share(i: int = 0) -> float:
+		var pl: Node = players[i] if i < players.size() else null
+		if pl == null or lengths[i] <= 0.0:
+			return 0.0
+		return fposmod(float(pl.call("get_playback_position")) / lengths[i], 1.0)
+
+	## Restarts player i at a share of its loop (it keeps its gain, pan and pitch).
+	func restart(i: int, at_share: float) -> void:
+		var pl: Node = players[i] if i < players.size() else null
+		if pl != null and bool(pl.get("playing")):
+			pl.call("play", fposmod(at_share, 1.0) * lengths[i])
 
 	func drive(targets: PackedFloat32Array, p: float, k: float) -> void:
 		pitch = clampf(p, 0.05, 4.0)
@@ -104,10 +139,13 @@ class Layer:
 				var db := linear_to_db(g)
 				if absf(float(pl.get("volume_db")) - db) > 0.02:
 					pl.set("volume_db", db)
-			if absf(float(pl.get("pitch_scale")) - pitch) > 0.0005:
-				pl.set("pitch_scale", pitch)
+			var pi := pitch * ratios[i]
+			if absf(float(pl.get("pitch_scale")) - pi) > 0.0005:
+				pl.set("pitch_scale", pi)
 			if not pl.get("playing"):
-				pl.call("play", offsets[i] * length_s)
+				var at := start_at if start_at >= 0.0 else (rng.randf() if rng != null else float(i) / float(gains.size()))
+				pl.call("play", at * lengths[i])
+		start_at = -1.0
 
 	func silence() -> void:
 		level = 0.0
@@ -144,13 +182,19 @@ var _snow_db := -3.0
 var _snow_lp := 3000.0
 var _snow_crunch := 0.35
 var _loose_boost := 0.8
+var _side_pitch := 1.02
+var _drift_db := 1.5
+var _drift_s := 0.8
+var _exact_pitch: Array = ["rumble"]
 var _slab_db := -2.0
 var _slab_slope := 20.0
 var _slab_xfade := Vector2(110.0, 150.0)
+var _slab_align_ms := 1.5
 var _squeal_lufs := -19.0
 var _squeal_min := 15.0
 var _squeal_wet := 0.3
 var _squeal_loose := 0.15
+var _squeal_spread := 0.05
 var _scrub_lufs := -22.0
 var _lat_from := 1.5
 var _lat_full := 5.0
@@ -167,6 +211,7 @@ var _pass_overhead_m := 6.0
 var _pass_min := 40.0
 var _pass_floor := -58.0
 var _pass_pan := 0.75
+var _pass_jitter_db := 2.0
 var _pass_kind_db: Dictionary = {}
 var _wind_top := -19.0
 var _wind_slope := 55.0
@@ -192,6 +237,7 @@ var vmax_kmh := 250.0                     ## nominal top speed of the car (vehic
 var wheelbase_m := 2.7
 var surfaces: Dictionary = {}             ## surface -> Layer (left and right wheels)
 var wet: Layer = null
+var snow: Layer = null                    ## the crunch of snow (AU-R: own loop; before, the gravel loop)
 var squeal: Layer = null
 var skid: Layer = null                    ## = squeal (the name of the wave-0 stand-in, kept for tests and tools)
 var scrub: Layer = null
@@ -207,16 +253,23 @@ var last_pass: Dictionary = {}
 var zone_db := 0.0                        ## smoothed zone offset of the wind (dB)
 var zone_gust := 1.0
 var snow_amount := 0.0
+var squeal_factor := 1.0                  ## pitch factor of the current squeal (drawn when a squeal starts)
+var slab_realigned := 0                   ## times the quieter slab loop was put back in step (tests, debug)
 
 var _vp: SubViewport = null
 var _joint_voices := ModernAudioVoices.new()
 var _pass_players: Array[AudioStreamPlayer2D] = []
 var _pass_next := 0
+var _pass_last: Dictionary = {}           ## sound id -> last variant
 var _driven := false
 var _on := false
 var _speed := 0.0
-var _gust := PackedFloat32Array([0.0, 0.0, 0.0, 0.0, 0.0])   # per wind band + a common one
-var _rng := RandomNumberGenerator.new()
+var _gust_common := 0.0
+var _gust: Array[PackedFloat32Array] = []  ## per wind band: [left, right] (AU-R: the gusts per side)
+var _drift: Dictionary = {}               ## layer id -> [left, right] Ornstein-Uhlenbeck states (unit spread)
+var _rng := RandomNumberGenerator.new()   ## gusts and drift: the same sequence every run
+var _rng_start := RandomNumberGenerator.new()   ## start points, variants, squeal pitch
+var _slab_check := 0.0
 var _lowpass: AudioEffectLowPassFilter = null
 var _lowpass_on := false
 var _t2 := PackedFloat32Array([0.0, 0.0])
@@ -226,11 +279,13 @@ var _t1 := PackedFloat32Array([0.0])
 func _setup() -> void:
 	_read_config()
 	_rng.seed = 51017
+	_rng_start.seed = 51018
 	if ctx.live:
 		_vp = ModernAudioPan.make_viewport(ctx.host, "RoadVoices")
 	for s: String in SURFACE_LOOPS:
-		surfaces[s] = _layer(str(SURFACE_LOOPS[s]), "MRoad", [-_tyre_pan, _tyre_pan])
+		surfaces[s] = _layer(str(SURFACE_LOOPS[s]), "MRoad", [-_tyre_pan, _tyre_pan], not _exact_pitch.has(s))
 	wet = _layer("tyre_wet", "MRoad", [-_tyre_pan, _tyre_pan])
+	snow = _layer("tyre_snow", "MRoad", [-_tyre_pan, _tyre_pan])
 	squeal = _layer("squeal", "MRoad", [])
 	skid = squeal
 	scrub = _layer("scrub", "MRoad", [])
@@ -239,6 +294,9 @@ func _setup() -> void:
 	for w: String in WIND_LOOPS:
 		winds[w] = _layer(w, "MWind", [-_wind_pan, _wind_pan])
 	wind = winds["wind_low"]
+	_gust.clear()
+	for w in WIND_LOOPS:
+		_gust.append(PackedFloat32Array([0.0, 0.0]))
 	_joint_voices.attach(ctx, "MRoad", JOINT_VOICES, "RoadJoint")
 	if _vp != null:
 		for i in PASS_VOICES:
@@ -272,13 +330,21 @@ func _read_config() -> void:
 	_snow_lp = clampf(ctx.number("road.tyres.snow_lowpass_hz", _snow_lp), 200.0, 20000.0)
 	_snow_crunch = clampf(ctx.number("road.tyres.snow_crunch", _snow_crunch), 0.0, 1.0)
 	_loose_boost = maxf(ctx.number("road.tyres.loose_boost", _loose_boost), 0.0)
+	_side_pitch = clampf(ctx.number("road.sides.pitch", _side_pitch), 0.9, 1.1)
+	_drift_db = maxf(ctx.number("road.sides.drift_db", _drift_db), 0.0)
+	_drift_s = maxf(ctx.number("road.sides.drift_s", _drift_s), 0.05)
+	var ex: Variant = ctx.value("road.sides.exact_pitch", null)
+	if ex is Array:
+		_exact_pitch = ex
 	_slab_db = ctx.number("road.slabs.db", _slab_db)
 	_slab_slope = ctx.number("road.slabs.slope_db", _slab_slope)
 	_slab_xfade = _vec2(ctx.value("road.slabs.crossfade_kmh", null), _slab_xfade)
+	_slab_align_ms = maxf(ctx.number("road.slabs.align_ms", _slab_align_ms), 0.1)
 	_squeal_lufs = ctx.number("road.squeal.lufs", _squeal_lufs)
 	_squeal_min = ctx.number("road.squeal.min_kmh", _squeal_min)
 	_squeal_wet = clampf(ctx.number("road.squeal.wet", _squeal_wet), 0.0, 1.0)
 	_squeal_loose = clampf(ctx.number("road.squeal.loose", _squeal_loose), 0.0, 1.0)
+	_squeal_spread = clampf(ctx.number("road.squeal.pitch_spread", _squeal_spread), 0.0, 0.3)
 	_scrub_lufs = ctx.number("road.squeal.scrub_lufs", _scrub_lufs)
 	_lat_from = ctx.number("road.squeal.lat_from_mps", _lat_from)
 	_lat_full = maxf(ctx.number("road.squeal.lat_full_mps", _lat_full), _lat_from + 0.1)
@@ -295,6 +361,7 @@ func _read_config() -> void:
 	_pass_min = ctx.number("road.passes.min_kmh", _pass_min)
 	_pass_floor = ctx.number("road.passes.floor_lufs", _pass_floor)
 	_pass_pan = clampf(ctx.number("road.passes.pan", _pass_pan), 0.0, 1.0)
+	_pass_jitter_db = maxf(ctx.number("road.passes.jitter_db", _pass_jitter_db), 0.0)
 	_pass_kind_db = _dict(ctx.value("road.passes.kind_db", {}))
 	_wind_slope = ctx.number("road.wind.slope_db", _wind_slope)
 	_wind_fade = _vec2(ctx.value("road.wind.fade_kmh", null), _wind_fade)
@@ -338,25 +405,35 @@ static func _log10(x: float) -> float:
 
 
 ## A layer for a loop of the vehicle folder: two panned players (pans = their pans) or one plain player (pans = []).
-func _layer(id: String, bus: String, pans: Array) -> Layer:
+## With a pair in the manifest the right player plays the right side's own loop; `side_pitch`: the right side plays a
+## little higher (not where the rate is physics, the rumble strip).
+func _layer(id: String, bus: String, pans: Array, side_pitch: bool = true) -> Layer:
 	var l := Layer.new()
 	l.id = id
+	l.rng = _rng_start
 	var e := ctx.assets.entry(FOLDER, id) if ctx.assets != null else null
-	var stream: AudioStream = ctx.stream(FOLDER, id) if e != null else null
-	l.has_sound = stream != null or e != null
+	l.has_sound = e != null
+	var n := maxi(pans.size(), 1)
+	var e_b: ModernAudioAssets.Entry = null
+	if e != null and n > 1 and str(e.meta.get("pair", "")) != "":
+		e_b = ctx.assets.entry(FOLDER, str(e.meta["pair"]))
+	l.own_loops = e_b != null
 	if e != null:
 		l.ref_kmh = float(e.meta.get("ref_kmh", 0.0))
 		l.pitch_exp = float(e.meta.get("pitch_exp", 0.0))
-		l.lufs = e.lufs
-		var c: Variant = e.meta.get("lufs_pitch", [])
-		l.curve = c if c is Array else []
-		if e.loops():
-			l.length_s = float(e.loop_end - e.loop_begin) / float(maxi(e.sample_rate, 1))
-	var n := maxi(pans.size(), 1)
 	for i in n:
+		var ei: ModernAudioAssets.Entry = e_b if (i == 1 and e_b != null) else e
 		l.pans.append(float(pans[i]) if i < pans.size() else 0.0)
-		l.offsets.append(float(i) / float(n))
 		l.gains.append(0.0)
+		l.ratios.append(_side_pitch if (i == 1 and side_pitch) else 1.0)
+		var c: Variant = ei.meta.get("lufs_pitch", []) if ei != null else []
+		l.curves.append(c if c is Array else [])
+		l.lufs_1.append(ei.lufs if ei != null else -20.0)
+		var length := 1.0
+		if ei != null and ei.loops():
+			length = float(ei.loop_end - ei.loop_begin) / float(maxi(ei.sample_rate, 1))
+		l.lengths.append(length)
+		var stream: AudioStream = ctx.stream(FOLDER, ei.id) if ei != null else null
 		var pl: Node = null
 		if stream != null and ctx.live:
 			if pans.is_empty():
@@ -367,6 +444,10 @@ func _layer(id: String, bus: String, pans: Array) -> Layer:
 				pl.set("stream", stream)
 				pl.set("volume_db", -80.0)
 		l.players.append(pl)
+	l.curve = l.curves[0]
+	l.lufs = l.lufs_1[0]
+	l.length_s = l.lengths[0]
+	_drift[id] = PackedFloat32Array([0.0, 0.0])
 	return l
 
 
@@ -378,16 +459,25 @@ func set_vehicle(id: String) -> void:
 
 
 func track_changed(_feed: AudioFeed) -> void:
-	for i in _gust.size():
-		_gust[i] = 0.0
+	_gust_common = 0.0
+	for gi in _gust.size():
+		_gust[gi] = PackedFloat32Array([0.0, 0.0])
 
 
-## Gain (as for a plain player) that brings a loop to `target` LUFS at the master, played at pitch p; a pair of
-## players shares it (each 3 dB lower).
-func _gain(l: Layer, target: float, p: float, pair: bool) -> float:
+## Gain (as for a plain player) that brings player i of a layer to `target` LUFS at the master, played at the
+## layer's pitch p (× its ratio); a pair of players shares the target (each 3 dB lower).
+func _gain(l: Layer, target: float, p: float, pair: bool, i: int = 0) -> float:
 	if not l.has_sound:
 		return 0.0
-	return db_to_linear(target - l.lufs_at(p) - _ref_path_db + (PAIR_DB if pair else 0.0))
+	var pi := p * (l.ratios[i] if i < l.ratios.size() else 1.0)
+	return db_to_linear(target - l.lufs_at(pi, i) - _ref_path_db + (PAIR_DB if pair else 0.0))
+
+
+## Level drift of one side of a layer as a linear factor: an Ornstein-Uhlenbeck process with drift_db spread, its
+## mean power kept (a log-normal spread of s dB raises the mean power by 0.1151·s² dB).
+func _drift_gain(l: Layer, i: int) -> float:
+	var d: PackedFloat32Array = _drift[l.id]
+	return db_to_linear(_drift_db * d[i] - 0.1151 * _drift_db * _drift_db)
 
 
 func _speed_db(slope: float, kmh: float) -> float:
@@ -418,50 +508,94 @@ func update(frame: ModernAudioFrame) -> void:
 	var us := clampf(float(st.get("understeer", frame.skid)) if frame.has_state else frame.skid, 0.0, 1.0)
 	var tyre_fade := _ramp(v, _tyre_fade) if _on else 0.0
 	var loose := (0.5 if LOOSE.has(sl) else 0.0) + (0.5 if LOOSE.has(sr) else 0.0)
+	_step_drift(dt)
 	# rolling noise per surface and side
 	var snow_db := _snow_db * snow_amount
 	for s: String in surfaces:
 		var l: Layer = surfaces[s]
 		var wl := 1.0 if sl == s else 0.0
 		var wr := 1.0 if sr == s else 0.0
-		if s == "shoulder" and snow_amount > 0.0:
-			wl = maxf(wl, _snow_crunch * snow_amount)
-			wr = maxf(wr, _snow_crunch * snow_amount)
 		if (wl == 0.0 and wr == 0.0 and l.level < ModernAudioPan.SILENT) or not l.has_sound:
 			continue
 		var p := l.pitch_for(v)
 		var target := _tyre_top + float(_surface_db.get(s, 0.0)) + _speed_db(float(_surface_slope.get(s, _tyre_slope)), v) + snow_db
 		if LOOSE.has(s):
 			target += 20.0 * _log10(1.0 + _loose_boost * us)    # a sliding car ploughs the gravel
-		var g := _gain(l, target, p, true) * tyre_fade
-		_t2[0] = g * wl
-		_t2[1] = g * wr
+		_t2[0] = _gain(l, target, p, true, 0) * _drift_gain(l, 0) * tyre_fade * wl
+		_t2[1] = _gain(l, target, p, true, 1) * _drift_gain(l, 1) * tyre_fade * wr
 		l.drive(_t2, p, ks)
+	# snow crunches under both sides (its level as the gravel shoulder's, weighted by snow_crunch)
+	if snow != null and snow.has_sound and (snow_amount > 0.0 or snow.level >= ModernAudioPan.SILENT):
+		var pn := snow.pitch_for(v)
+		var tn := _tyre_top + float(_surface_db.get("snow", _surface_db.get("shoulder", 14.0))) \
+			+ _speed_db(float(_surface_slope.get("snow", _surface_slope.get("shoulder", _tyre_slope))), v) + snow_db
+		for i in 2:
+			_t2[i] = _gain(snow, tn, pn, true, i) * _drift_gain(snow, i) * tyre_fade * _snow_crunch * snow_amount
+		snow.drive(_t2, pn, k)
 	# wet road: on what is paved
 	var paved := 1.0 - loose
 	if wet != null and wet.has_sound and (wet_amt > 0.0 or wet.level >= ModernAudioPan.SILENT):
 		var pw := wet.pitch_for(v)
-		var gw := _gain(wet, _tyre_top + _wet_db + _speed_db(_wet_slope, v), pw, true) * tyre_fade * wet_amt * paved
-		_t2[0] = gw
-		_t2[1] = gw
+		var tw := _tyre_top + _wet_db + _speed_db(_wet_slope, v)
+		for i in 2:
+			_t2[i] = _gain(wet, tw, pw, true, i) * _drift_gain(wet, i) * tyre_fade * wet_amt * paved
 		wet.drive(_t2, pw, k)
-	_update_slabs(v, sl, sr, tyre_fade, k)
+	_update_slabs(dt, v, sl, sr, tyre_fade, k)
 	_update_squeal(v, us, st, wet_amt, loose, k)
 	_update_wind(frame, dt, zone, k)
 	_update_lowpass()
 
 
-func _update_slabs(v: float, sl: String, sr: String, fade: float, k: float) -> void:
+## One step of the side drifts of every paired layer (always all of them: the sequence stays the same whatever the
+## car drives on).
+func _step_drift(dt: float) -> void:
+	var a := minf(dt, 0.1) / _drift_s
+	var sd := sqrt(2.0 * a)
+	for id: String in _drift:
+		var d: PackedFloat32Array = _drift[id]
+		d[0] += -d[0] * a + sd * _rng.randfn(0.0, 1.0)
+		d[1] += -d[1] * a + sd * _rng.randfn(0.0, 1.0)
+		_drift[id] = d
+
+
+## The slab loops: the two designs are never out of step (KRITIK-FAHRBAHN B4 – a loop that started after a change of
+## speed ran without a common beat with the other one: doubled hits). A loop that starts takes the share of the one
+## that runs (both have the same number of slabs; the AudioServer is locked meanwhile, so no mix block falls between
+## reading one position and starting the other); while both play, the quieter one is put back in step when the
+## mixer's rounding of their pitches has drifted them more than slabs.align_ms apart.
+func _update_slabs(dt: float, v: float, sl: String, sr: String, fade: float, k: float) -> void:
 	var conc := (0.5 if sl == "concrete" else 0.0) + (0.5 if sr == "concrete" else 0.0)
 	var xf := _ramp(v, _slab_xfade)
 	var target := _tyre_top + _slab_db + _speed_db(_slab_slope, v)
+	if slab_slow == null or slab_fast == null:
+		return
+	if conc == 0.0 and slab_slow.level < ModernAudioPan.SILENT and slab_fast.level < ModernAudioPan.SILENT:
+		return
+	var live := not slab_slow.players.is_empty() and slab_slow.players[0] != null
+	if live:
+		AudioServer.lock()
+	var run: Layer = slab_slow if slab_slow.playing() else (slab_fast if slab_fast.playing() else null)
+	var at := run.share() if run != null else _rng_start.randf()
 	for pair: Array in [[slab_slow, 1.0 - xf], [slab_fast, xf]]:
 		var l: Layer = pair[0]
-		if l == null or not l.has_sound or (conc == 0.0 and l.level < ModernAudioPan.SILENT):
+		if not l.has_sound:
 			continue
 		var p := clampf(maxf(v, MIN_SPEED) / maxf(l.ref_kmh, 1.0), 0.15, 3.0)
 		_t1[0] = _gain(l, target, p, false) * conc * float(pair[1]) * fade
+		l.start_at = at
 		l.drive(_t1, p, k)
+	if live:
+		_slab_check += dt
+		if _slab_check >= SLAB_CHECK_S and slab_slow.playing() and slab_fast.playing():
+			_slab_check = 0.0
+			var d := fposmod(slab_fast.share() - slab_slow.share() + 0.5, 1.0) - 0.5
+			var period_s := slab_slow.length_s / maxf(slab_slow.pitch, 0.01)
+			if absf(d) * period_s * 1000.0 > _slab_align_ms:
+				var loud := slab_slow.level >= slab_fast.level
+				var quiet: Layer = slab_fast if loud else slab_slow
+				quiet.restart(0, (slab_slow if loud else slab_fast).share())
+				slab_realigned += 1
+		AudioServer.unlock()
 
 
 func _update_squeal(v: float, us: float, st: Dictionary, wet_amt: float, loose: float, k: float) -> void:
@@ -472,7 +606,9 @@ func _update_squeal(v: float, us: float, st: Dictionary, wet_amt: float, loose: 
 	var sq := us * v_ok * lerpf(1.0, _squeal_loose, loose) * lerpf(1.0, _squeal_wet, wet_amt)
 	var sc := maxf(maxf(us * (0.45 + 0.55 * wet_amt) * (1.0 - loose), _crash_scrub if crash else 0.0), lat_amt) * v_ok
 	if squeal != null and squeal.has_sound:
-		var p := 0.9 + 0.22 * us + 0.08 * clampf(v / 250.0, 0.0, 1.0)
+		if sq > 0.002 and squeal.level < ModernAudioPan.SILENT:
+			squeal_factor = 1.0 + _rng_start.randf_range(-_squeal_spread, _squeal_spread)   # each squeal its own pitch
+		var p := (0.9 + 0.22 * us + 0.08 * clampf(v / 250.0, 0.0, 1.0)) * squeal_factor
 		_t1[0] = _gain(squeal, _squeal_lufs + 26.0 * _log10(maxf(sq, 1.0e-4)), p, false) if sq > 0.002 else 0.0
 		squeal.drive(_t1, p, k)
 	if scrub != null and scrub.has_sound:
@@ -486,11 +622,16 @@ func _update_wind(frame: ModernAudioFrame, dt: float, zone: String, k: float) ->
 	var kz := 1.0 - exp(-minf(dt, 0.1) / _zone_s)
 	zone_db = lerpf(zone_db, float(_zone_db_cfg.get(zone, 0.0)), kz)
 	zone_gust = lerpf(zone_gust, float(_zone_gust_cfg.get(zone, 1.0)), kz)
-	# gusts: Ornstein-Uhlenbeck processes with unit spread (one shared, one per band), the same sequence every run
+	# gusts: Ornstein-Uhlenbeck processes with unit spread (one shared, one per band and side), the same sequence
+	# every run
 	var a := minf(dt, 0.1) / _gust_s
 	var sd := sqrt(2.0 * a)
-	for i in _gust.size():
-		_gust[i] += -_gust[i] * a + sd * _rng.randfn(0.0, 1.0)
+	_gust_common += -_gust_common * a + sd * _rng.randfn(0.0, 1.0)
+	for gi in _gust.size():
+		var g: PackedFloat32Array = _gust[gi]
+		g[0] += -g[0] * a + sd * _rng.randfn(0.0, 1.0)
+		g[1] += -g[1] * a + sd * _rng.randfn(0.0, 1.0)
+		_gust[gi] = g
 	var fade := _ramp(vw, _wind_fade)
 	for bi in WIND_LOOPS.size():
 		var id: String = WIND_LOOPS[bi]
@@ -502,12 +643,11 @@ func _update_wind(frame: ModernAudioFrame, dt: float, zone: String, k: float) ->
 			weight = _ramp(vw, Vector2(_buffet_from * vmax_kmh, vmax_kmh))
 		# a gust of s dB spread raises the mean power by 0.1151·s² dB (log-normal): taken off, so the plan holds on average
 		var s := _gust_db * zone_gust
-		var gust := (0.6 * _gust[4] + 0.8 * _gust[bi]) * s - 0.1151 * s * s
 		var p := l.pitch_for(vw)
-		var target := float(_wind_band_top[id]) + _speed_db(_wind_slope, vw) + zone_db + gust
-		var g := _gain(l, target, p, true) * fade * weight
-		_t2[0] = g
-		_t2[1] = g
+		var target := float(_wind_band_top[id]) + _speed_db(_wind_slope, vw) + zone_db
+		for i in 2:
+			var gust := (0.6 * _gust_common + 0.8 * _gust[bi][i]) * s - 0.1151 * s * s
+			_t2[i] = _gain(l, target + gust, p, true, i) * fade * weight
 		l.drive(_t2, p, k)
 
 
@@ -571,7 +711,19 @@ func _joint(args: Dictionary) -> void:
 	_joint_voices.play(ctx.assets.stream(SFX, id, best), db, pitch)
 
 
-## A roadside object passed: its whoosh at its side, by kind, size, distance and speed.
+## A variant of a one-shot at random (AU-R, KRITIK-FAHRBAHN B15 – before: strictly in turn); with three or more the
+## last one is not repeated.
+static func pick_variant(rng: RandomNumberGenerator, n: int, last: int) -> int:
+	if n <= 1:
+		return 0
+	if n == 2 or last < 0:
+		return rng.randi_range(0, n - 1)
+	var v := rng.randi_range(0, n - 2)
+	return v + 1 if v >= last else v
+
+
+## A roadside object passed: its whoosh at its side, by kind, size, distance and speed; a variant at random and
+## passes.jitter_db up or down.
 func _pass(args: Dictionary) -> void:
 	if not _on or _speed < _pass_min:
 		return
@@ -588,12 +740,15 @@ func _pass(args: Dictionary) -> void:
 	if target < _pass_floor:
 		return
 	var n := e.files.size()
-	var variant := (passes % n) if n > 0 else 0
+	var variant := pick_variant(_rng_start, n, int(_pass_last.get(id, -1)))
+	_pass_last[id] = variant
+	var jitter := _rng_start.randf_range(-_pass_jitter_db, _pass_jitter_db)
 	var ref := float(e.meta.get("ref_kmh", 100.0))
 	var pitch := clampf(sqrt(_speed / maxf(ref, 1.0)), 0.6, 1.8)
 	var pan := float(int(args.get("side", 0))) * _pass_pan
-	var gain := db_to_linear(target - _lufs_m(e, variant) - _ref_path_db)
-	last_pass = {"id": id, "variant": variant, "pitch": pitch, "pan": pan, "db": linear_to_db(gain), "target": target}
+	var gain := db_to_linear(target + jitter - _lufs_m(e, variant) - _ref_path_db)
+	last_pass = {"id": id, "variant": variant, "pitch": pitch, "pan": pan, "db": linear_to_db(gain), "target": target,
+		"jitter_db": jitter}
 	played["pass"] = int(played["pass"]) + 1
 	if _pass_players.is_empty():
 		return
@@ -643,7 +798,7 @@ func teardown() -> void:
 
 func _all_layers() -> Array:
 	var out: Array = surfaces.values()
-	out.append_array([wet, squeal, scrub, slab_slow, slab_fast])
+	out.append_array([wet, snow, squeal, scrub, slab_slow, slab_fast])
 	out.append_array(winds.values())
 	return out.filter(func(l: Variant) -> bool: return l != null)
 
@@ -674,6 +829,8 @@ func debug_state() -> Dictionary:
 		if l.level >= ModernAudioPan.SILENT:
 			surf[s] = [snappedf(l.gains[0], 0.0001), snappedf(l.gains[1], 0.0001)]
 	return {"vehicle": vehicle_id, "wind": wind_level, "skid": squeal.level if squeal != null else 0.0,
-		"scrub": scrub.level if scrub != null else 0.0, "wet": wet.level if wet != null else 0.0, "surfaces": surf,
+		"scrub": scrub.level if scrub != null else 0.0, "wet": wet.level if wet != null else 0.0,
+		"snow_crunch": snow.level if snow != null else 0.0, "surfaces": surf,
 		"slab": maxf(slab_slow.level, slab_fast.level) if slab_slow != null else 0.0, "zone_db": zone_db,
-		"snow": snow_amount, "joints": joints, "passes": passes, "played": played.duplicate(), "players": playing}
+		"snow": snow_amount, "joints": joints, "passes": passes, "played": played.duplicate(), "players": playing,
+		"slab_realigned": slab_realigned}

@@ -5,7 +5,8 @@ extends RefCounted
 ## TrafficV<n>, Siren) and their effects are never touched – only the limiter on Master is shared.
 ##
 ##   Master
-##   └─ MMaster                 glue compressor (audio.modern.glue)
+##   └─ MMaster                 glue compressor (audio.modern.glue), then the limiter of the Modern sound
+##                              (audio.modern.limiter – AU-R; the Arcade limiter on Master stays as it is)
 ##      ├─ MMusic               music: EQ of the race context (shelves), pause low-pass, fader (ducking, dips)
 ##      └─ MSfx                 effects group: volume setting "Effekte", level of the plan
 ##         ├─ MUI               menu and countdown sounds, stingers
@@ -63,6 +64,7 @@ var _music_eq: Array[AudioEffectFilter] = []   ## shelving filters of the race E
 var _music_eq_db: Array[float] = []            ## the gain of each shelf in dB when fully on
 var _music_eq_amount := 0.0                    ## 0 = off (filters disabled) … 1 = the full shelves
 var _glue: AudioEffectCompressor = null
+var _limiter: AudioEffectHardLimiter = null
 var _reflections: AudioEffectDelay = null
 var _reverb: AudioEffectReverb = null
 
@@ -144,6 +146,16 @@ func build(modern: Dictionary = {}) -> void:
 	_glue.mix = 1.0
 	AudioServer.add_bus_effect(index("MMaster"), _glue)
 	AudioServer.set_bus_effect_enabled(index("MMaster"), 0, bool(glue.get("enabled", true)))
+	# MMaster: the limiter of the Modern sound behind the glue compressor (AU-R; KRITIK-FAHRBAHN B7: a heavy crash
+	# and the top speed reached -0.7 / -0.9 dBTP at Gesamtlautstärke 1.0, D29 wants <= -1 dBTP). It sits in front of
+	# Master's volume, so it holds at every Gesamtlautstärke; the shared Arcade limiter on Master is never touched.
+	var lim: Dictionary = _dict(modern.get("limiter", {}))
+	_limiter = AudioEffectHardLimiter.new()
+	_limiter.ceiling_db = float(lim.get("ceiling_db", -2.0))
+	_limiter.release = maxf(float(lim.get("release_s", 0.12)), 0.01)
+	_limiter.pre_gain_db = float(lim.get("pre_gain_db", 0.0))
+	AudioServer.add_bus_effect(index("MMaster"), _limiter)
+	AudioServer.set_bus_effect_enabled(index("MMaster"), 1, bool(lim.get("enabled", true)))
 	# MMusic: EQ of the race context (off outside races) – shelving filters in series
 	var eq: Variant = _dict(modern.get("music", {})).get("race_eq", [])
 	var mi := index("MMusic")
@@ -208,6 +220,7 @@ func remove() -> void:
 	_music_eq_db.clear()
 	_music_eq_amount = 0.0
 	_glue = null
+	_limiter = null
 	_reflections = null
 	_reverb = null
 
@@ -316,6 +329,11 @@ func reverb() -> AudioEffectReverb:
 
 func glue() -> AudioEffectCompressor:
 	return _glue
+
+
+## The limiter of the Modern sound on MMaster (behind the glue compressor).
+func limiter() -> AudioEffectHardLimiter:
+	return _limiter
 
 
 ## The first effect of that class on a bus; created in front of the snapshot low-pass / fader when missing

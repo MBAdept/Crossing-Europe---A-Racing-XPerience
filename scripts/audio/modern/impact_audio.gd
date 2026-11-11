@@ -18,6 +18,11 @@ extends ModernAudioModule
 ## Levels are data (audio.modern.impact): one-shots as sample peak at the master (the files peak at file_peak_db),
 ## the scrape loop as loudness at the master. Without a Modern file the Arcade stream of AudioManager plays with the
 ## Arcade level (LEVEL_DB, the wave-0 stand-in).
+## Variety without a new timbre (AU-R, KRITIK-FAHRBAHN B12/B15): every one-shot takes a variant at random (three or
+## more: never the last one again), every layer of a collision varies by impact.variation.db up or down and starts
+## up to 2 × variation.ms later (it skips into the silence the file carries in front – manifest jitter_lead_ms), and
+## the glass of a heavy collision breaks from collision.glass.from_kmh closing speed on, below it with
+## collision.glass.chance.
 
 const FOLDER := "sfx"
 const LOOPS := "vehicle"
@@ -29,7 +34,8 @@ const SCRAPE_SMOOTH_S := 0.05
 var voices := ModernAudioVoices.new()    ## centred players: the Arcade fallback streams
 var counts: Dictionary = {}              ## sound or event -> times sounded (tests)
 var events: Dictionary = {}              ## event name -> count (tests)
-var last_layers: Array = []              ## [[sound id, variant, gain dB, pan], …] of the last impact (tests)
+## [[sound id, variant, gain dB (nominal), pan, variation dB, delay ms], …] of the last impact (tests)
+var last_layers: Array = []
 var scrape_level := 0.0                  ## smoothed gain of the scrape loop
 var scrape_pan := 0.0
 
@@ -54,12 +60,16 @@ var _scrape_min := 5.0
 var _post_db := -15.0
 var _post_ref := 80.0
 var _post_slope := 20.0
+var _vary_db := 2.0
+var _vary_ms := 10.0
+var _glass_from := 80.0
+var _glass_chance := 0.4
+var _last_variant: Dictionary = {}       ## sound id -> last variant
 
 var _vp: SubViewport = null
 var _panned: Array[AudioStreamPlayer2D] = []
 var _next := 0
 var _rng := RandomNumberGenerator.new()
-var _variant: Dictionary = {}            ## sound id -> next variant
 var _speed := 0.0
 var _on := false
 var _driven := false
@@ -94,6 +104,10 @@ func _setup() -> void:
 	_post_db = ctx.number("impact.post.peak_db", _post_db)
 	_post_ref = maxf(ctx.number("impact.post.ref_kmh", _post_ref), 1.0)
 	_post_slope = ctx.number("impact.post.slope_db", _post_slope)
+	_vary_db = maxf(ctx.number("impact.variation.db", _vary_db), 0.0)
+	_vary_ms = maxf(ctx.number("impact.variation.ms", _vary_ms), 0.0)
+	_glass_from = ctx.number("impact.collision.glass.from_kmh", _glass_from)
+	_glass_chance = clampf(ctx.number("impact.collision.glass.chance", _glass_chance), 0.0, 1.0)
 	_rng.seed = 60917
 	voices.attach(ctx, "MImpact", 2, "Impact")
 	if ctx.live:
@@ -227,6 +241,11 @@ func play(sound: String, gain_db: float) -> bool:
 	return true
 
 
+## The glass of a collision breaks: always from glass.from_kmh closing speed on, below it with glass.chance.
+func glass_breaks(closing_kmh: float) -> bool:
+	return closing_kmh >= _glass_from or _rng.randf() < _glass_chance
+
+
 ## The layers of a collision; false when no Modern sound exists (the caller takes the Arcade stream).
 func _collision(closing: float, heavy: bool, side: int, extra_db: float) -> bool:
 	var layers := collision_layers(closing, heavy)
@@ -234,7 +253,9 @@ func _collision(closing: float, heavy: bool, side: int, extra_db: float) -> bool
 	var any := false
 	var pan := float(side) * _pan
 	for row: Array in layers:
-		any = _layer(str(row[0]), float(row[1]) + extra_db, pan, _rng.randf_range(0.96, 1.04)) or any
+		if str(row[0]) == "glass" and not glass_breaks(closing):
+			continue
+		any = _layer(str(row[0]), float(row[1]) + extra_db, pan, _rng.randf_range(0.96, 1.04), true) or any
 	if any:
 		counts["collision_" + tier_of(closing)] = int(counts.get("collision_" + tier_of(closing), 0)) + 1
 	return any
@@ -249,16 +270,21 @@ func _rail(impact_mps: float, side: int, extra_db: float) -> bool:
 	return _layer(id, base + adj + extra_db, float(side) * _pan, _rng.randf_range(0.97, 1.03))
 
 
-## One layer: the next variant of a Modern one-shot at a sample peak of `peak_db` at the master, panned.
-func _layer(id: String, peak_db: float, pan: float, pitch: float) -> bool:
+## One layer: a variant of a Modern one-shot at random (never the last one again when there are three or more) at a
+## sample peak of `peak_db` at the master, panned; `vary`: a layer of a collision – variation.db up or down, and up
+## to 2 × variation.ms later (skipping into the silence the file carries in front, manifest jitter_lead_ms).
+func _layer(id: String, peak_db: float, pan: float, pitch: float, vary: bool = false) -> bool:
 	var e := ctx.assets.entry(FOLDER, id) if ctx.assets != null else null
 	if e == null:
 		return false
 	var n := e.files.size()
-	var v := int(_variant.get(id, 0)) % maxi(n, 1)
-	_variant[id] = v + 1
+	var v := RoadAudio.pick_variant(_rng, n, int(_last_variant.get(id, -1)))
+	_last_variant[id] = v
 	var db := peak_db - _file_peak_db - _ref_path_db
-	last_layers.append([id, v, snappedf(db, 0.01), pan])
+	var jitter := _rng.randf_range(-_vary_db, _vary_db) if vary else 0.0
+	var lead_s := float(e.meta.get("jitter_lead_ms", 0.0)) / 1000.0
+	var delay_s := minf(_rng.randf_range(0.0, 2.0 * _vary_ms / 1000.0), lead_s) if (vary and lead_s > 0.0) else 0.0
+	last_layers.append([id, v, snappedf(db, 0.01), pan, snappedf(jitter, 0.01), snappedf(delay_s * 1000.0, 0.1)])
 	counts[id] = int(counts.get(id, 0)) + 1
 	if _panned.is_empty():
 		return true
@@ -266,8 +292,8 @@ func _layer(id: String, peak_db: float, pan: float, pitch: float) -> bool:
 	_next = (_next + 1) % _panned.size()
 	pl.stream = ctx.assets.stream(FOLDER, id, v)
 	pl.pitch_scale = pitch
-	ModernAudioPan.apply(pl, db_to_linear(db), pan)
-	pl.play()
+	ModernAudioPan.apply(pl, db_to_linear(db + jitter), pan)
+	pl.play(maxf(lead_s - delay_s, 0.0))     # the file's extra silence, less the delay drawn
 	return true
 
 

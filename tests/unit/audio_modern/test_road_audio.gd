@@ -59,14 +59,27 @@ func _run(m: ModernAudio, f: ModernAudioFrame, n: int) -> void:
 		m.impact.update(f)
 
 
-## Loudness at the master of a layer from its gains (each player adds its power).
+## Loudness at the master of a layer from its gains (each player adds its power, with the loudness curve of its
+## own loop at its own pitch).
 func _lufs(l: RoadAudio.Layer) -> float:
 	var e := 0.0
-	for g in l.gains:
-		e += g * g
+	for i in l.gains.size():
+		e += l.gains[i] * l.gains[i] * pow(10.0, l.lufs_at(l.pitch * l.ratios[i], i) / 10.0)
 	if e <= 0.0:
 		return -200.0
-	return l.lufs_at(l.pitch) + 10.0 * log(e) / log(10.0) + _num("road.ref_path_db")
+	return 10.0 * log(e) / log(10.0) + _num("road.ref_path_db")
+
+
+## Loudness of one side (player i) of a layer.
+func _lufs_side(l: RoadAudio.Layer, i: int) -> float:
+	var g := l.gains[i]
+	if g <= 0.0:
+		return -200.0
+	return l.lufs_at(l.pitch * l.ratios[i], i) + 20.0 * log(g) / log(10.0) + _num("road.ref_path_db")
+
+
+## The plan without the random parts (gusts, side drift): levels exact to the hundredth.
+const STILL := {"road": {"wind": {"gust_db": 0.0}, "sides": {"drift_db": 0.0}}}
 
 
 func _sum(values: Array) -> float:
@@ -84,7 +97,7 @@ func _wind_total(r: RoadAudio) -> float:
 
 
 func test_the_loudness_plan_at_top_speed() -> void:
-	var m := _modern({"road": {"wind": {"gust_db": 0.0}}})
+	var m := _modern(STILL.duplicate(true))
 	var r := m.road
 	r.set_vehicle("kompakt")
 	assert_near(r.vmax_kmh, 230.0, 0.01, "Höchsttempo des Kompakten aus der Konfiguration")
@@ -110,7 +123,7 @@ func test_the_loudness_plan_at_top_speed() -> void:
 
 
 func test_the_speed_laws() -> void:
-	var m := _modern({"road": {"wind": {"gust_db": 0.0}}})
+	var m := _modern(STILL.duplicate(true))
 	var r := m.road
 	r.set_vehicle("kompakt")
 	_run(m, _frame(115.0), 120)
@@ -128,7 +141,7 @@ func test_the_speed_laws() -> void:
 
 
 func test_surfaces_per_side_wet_and_snow() -> void:
-	var m := _modern()
+	var m := _modern(STILL.duplicate(true))
 	var r := m.road
 	r.set_vehicle("limousine")
 	_run(m, _frame(120.0, {"surface_l": "asphalt", "surface_r": "rumble"}), 60)
@@ -154,13 +167,17 @@ func test_surfaces_per_side_wet_and_snow() -> void:
 	f.rain = 1.0
 	_run(m, f, 120)
 	assert_true(r.surfaces["asphalt"].level > 0.01 and r.wet.level > 0.01, "ohne Strecke: Asphalt und Regen aus set_rain()")
-	# snow: quieter rolling and a crunch
+	# snow: quieter rolling and a crunch of its own (AU-R: no longer the gravel loop with its stones)
 	_run(m, _frame(80.0, {"surface_l": "asphalt", "surface_r": "asphalt"}), 120)
 	var dry := _lufs(r.surfaces["asphalt"])
 	_run(m, _frame(80.0, {"surface_l": "asphalt", "surface_r": "asphalt", "snow": 1.0}), 200)
 	assert_near(r.snow_amount, 1.0, 1.0e-6, "Schnee eingeblendet")
 	assert_near(_lufs(r.surfaces["asphalt"]) - dry, _num("road.tyres.snow_db"), 0.05, "Schnee dämpft das Rollen")
-	assert_true(r.surfaces["shoulder"].level > 0.0, "und knirscht")
+	assert_true(r.snow.level > 0.0 and r.snow.own_loops, "und knirscht – eigene Schleife je Seite")
+	assert_true(r.surfaces["shoulder"].level < 1.0e-4, "kein Schotter im Schnee")
+	var crunch := r.engine_ref_lufs - 4.0 + _num("road.tyres.surface_db.snow") + _num("road.tyres.slope_by_surface.snow") \
+		* log(80.0 / 245.0) / log(10.0) + _num("road.tyres.snow_db") + 20.0 * log(_num("road.tyres.snow_crunch")) / log(10.0)
+	assert_near(_lufs(r.snow), crunch, 0.05, "Knirschen so laut wie bisher das Schotter-Knirschen")
 	_done(m)
 
 
@@ -312,17 +329,20 @@ func test_collisions_by_closing_speed_and_partner() -> void:
 	assert_eq(im.tier_of(5.0), "light", "leicht")
 	assert_eq(im.tier_of(30.0), "medium", "mittel")
 	assert_eq(im.tier_of(90.0), "heavy", "schwer")
-	m.event("collision", {"speed_kmh": 130.0, "rel_kmh": 70.0, "heavy": false, "side": 1})
+	m.event("collision", {"speed_kmh": 130.0, "rel_kmh": 90.0, "heavy": false, "side": 1})
 	var ids: Array = []
 	for row: Array in im.last_layers:
 		ids.append(str(row[0]))
 	ids.sort()
 	assert_eq(ids, ["crunch", "debris", "glass", "hit_heavy"], "schwerer Aufprall: Schlag, Blech, Glas, Teile")
 	var ref := _num("impact.ref_path_db")
+	var adj := _num("impact.collision.slope_db") * log(90.0 / _num("impact.collision.heavy.ref_kmh")) / log(10.0)
 	for row: Array in im.last_layers:
 		if str(row[0]) == "hit_heavy":
-			assert_near(float(row[2]), _num("impact.collision.heavy.layers.hit_heavy") - _num("impact.file_peak_db") - ref, 0.01, "Pegel bei der Bezugsgeschwindigkeit")
+			assert_near(float(row[2]), _num("impact.collision.heavy.layers.hit_heavy") + adj - _num("impact.file_peak_db") - ref, 0.01, "Pegel nach Schließgeschwindigkeit")
 		assert_near(float(row[3]), _num("impact.pan"), 1.0e-6, "rechts")
+		assert_true(absf(float(row[4])) <= _num("impact.variation.db") + 1.0e-6, "Pegel der Schicht zufällig, höchstens ±%.0f dB" % _num("impact.variation.db"))
+		assert_between(float(row[5]), 0.0, 2.0 * _num("impact.variation.ms") + 0.01, "Einsatz der Schicht bis %.0f ms später" % (2.0 * _num("impact.variation.ms")))
 	m.event("collision", {"speed_kmh": 100.0, "rel_kmh": -25.0, "heavy": true, "side": -1})
 	ids = []
 	for row: Array in im.last_layers:
@@ -343,6 +363,115 @@ func test_collisions_by_closing_speed_and_partner() -> void:
 	assert_near(float(b[0][1]) - float(a[0][1]), _num("impact.collision.slope_db") * log(2.0) / log(10.0), 0.01, "doppelte Schließgeschwindigkeit")
 	assert_near(float(c[0][1]) - float(a[0][1]), _num("impact.collision.max_db"), 0.01, "begrenzt")
 	assert_eq(int(im.events.get("collision", 0)), 3, "drei Kollisionen")
+	_done(m)
+
+
+## AU-R (KRITIK-FAHRBAHN B12/B15): the glass breaks in every hard crash, below glass.from_kmh only sometimes; the
+## variants come at random (never the same one twice in a row when there are three or more).
+func test_collision_variety() -> void:
+	var m := _modern()
+	var im := m.impact
+	var glass := 0
+	var n := 300
+	for i in n:
+		m.event("collision", {"speed_kmh": 100.0, "rel_kmh": 60.0, "heavy": false, "side": 1})
+		for row: Array in im.last_layers:
+			glass += 1 if str(row[0]) == "glass" else 0
+	var chance := _num("impact.collision.glass.chance")
+	assert_between(float(glass) / n, chance - 0.08, chance + 0.08, "Glas bei 60 km/h in %.0f %% der Unfälle (Ziel %.0f %%)" % [100.0 * glass / n, 100.0 * chance])
+	var hard := 0
+	for i in 50:
+		m.event("collision", {"speed_kmh": 150.0, "rel_kmh": _num("impact.collision.glass.from_kmh") + 1.0, "heavy": false, "side": -1})
+		for row: Array in im.last_layers:
+			hard += 1 if str(row[0]) == "glass" else 0
+	assert_eq(hard, 50, "ab %.0f km/h Schließgeschwindigkeit immer Glas" % _num("impact.collision.glass.from_kmh"))
+	# variants of glass, debris and the truck boom: four each, all used, never twice in a row
+	for id: String in ["glass", "debris", "truck_boom"]:
+		assert_true(m.assets.variant_count("sfx", id) >= 4, "%s: mindestens vier Varianten" % id)
+	var seen := {}
+	var last := -1
+	var repeats := 0
+	for i in 200:
+		m.event("collision", {"speed_kmh": 150.0, "rel_kmh": 120.0, "heavy": true, "side": 1})
+		for row: Array in im.last_layers:
+			if str(row[0]) == "truck_boom":
+				seen[int(row[1])] = true
+				repeats += 1 if int(row[1]) == last else 0
+				last = int(row[1])
+	assert_eq(seen.size(), m.assets.variant_count("sfx", "truck_boom"), "jede Variante des Lkw-Schlags kommt vor")
+	assert_eq(repeats, 0, "nie zweimal dieselbe hintereinander")
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	var two := {}
+	for i in 100:
+		two[RoadAudio.pick_variant(rng, 2, 0)] = true
+	assert_eq(two.size(), 2, "zwei Varianten: zufällig, beide kommen vor")
+	assert_eq(RoadAudio.pick_variant(rng, 1, 0), 0, "eine Variante")
+	_done(m)
+
+
+## AU-R (KRITIK-FAHRBAHN B1): every paired layer plays an own loop per side (another seed, another length), the right
+## side a little higher (not the rumble strip), each side drifts slowly in level – the mean power of the plan kept.
+func test_each_side_has_its_own_loop_and_drift() -> void:
+	var m := _modern()
+	var r := m.road
+	r.set_vehicle("limousine")
+	var paired: Array = []
+	for s: String in r.surfaces:
+		paired.append(r.surfaces[s])
+	paired.append_array([r.wet, r.snow])
+	for w: String in r.winds:
+		paired.append(r.winds[w])
+	for l: RoadAudio.Layer in paired:
+		assert_true(l.own_loops, "%s: eigene Schleife rechts" % l.id)
+		assert_true(l.lengths[0] >= 4.0 and l.lengths[1] >= 4.0, "%s: Schleifen ab 4 s (%.1f / %.1f s)" % [l.id, l.lengths[0], l.lengths[1]])
+		var ratio := l.lengths[1] / l.lengths[0]
+		assert_true(absf(ratio - roundf(ratio)) > 0.1 and absf(ratio - 1.0) > 0.1, "%s: Längen ohne kleines gemeinsames Vielfaches" % l.id)
+	assert_near(r.surfaces["asphalt"].ratios[1], _num("road.sides.pitch"), 1.0e-6, "rechts etwas höher")
+	assert_near(r.surfaces["rumble"].ratios[1], 1.0, 1.0e-6, "Rüttelstreifen: Schlagfolge exakt v / Rillenabstand")
+	# the drift moves the sides apart and keeps the plan on average
+	var still := _modern(STILL.duplicate(true))
+	still.road.set_vehicle("limousine")
+	_run(still, _frame(130.0, {"surface_l": "asphalt", "surface_r": "asphalt"}), 60)
+	var plan := _lufs(still.road.surfaces["asphalt"])
+	_done(still)
+	var diffs: Array = []
+	var power := 0.0
+	var frames := 3000
+	for i in frames:
+		_run(m, _frame(130.0, {"surface_l": "asphalt", "surface_r": "asphalt"}), 1)
+		if i >= 60:
+			var a: RoadAudio.Layer = r.surfaces["asphalt"]
+			diffs.append(_lufs_side(a, 0) - _lufs_side(a, 1))
+			power += pow(10.0, _lufs(a) / 10.0)
+	var mean := 0.0
+	for d: float in diffs:
+		mean += d
+	mean /= diffs.size()
+	var sd := 0.0
+	for d: float in diffs:
+		sd += (d - mean) * (d - mean)
+	sd = sqrt(sd / diffs.size())
+	assert_between(sd, 0.8, 3.5, "die Seiten schwanken gegeneinander (%.2f dB)" % sd)
+	var avg := 10.0 * log(power / (frames - 60)) / log(10.0)
+	assert_near(avg, plan, 0.5, "im Mittel der Pegel des Plans (%.2f gegen %.2f LUFS)" % [avg, plan])
+	_done(m)
+
+
+## AU-R (KRITIK-FAHRBAHN B12): each squeal its own pitch, within ±pitch_spread.
+func test_squeal_pitch_per_event() -> void:
+	var m := _modern()
+	var r := m.road
+	r.set_vehicle("kombi")
+	var factors := {}
+	for i in 12:
+		_run(m, _frame(110.0, {}, {"understeer": 0.8}), 30)
+		assert_true(r.squeal.level > 0.0, "quietscht")
+		factors[snappedf(r.squeal_factor, 0.0001)] = true
+		assert_between(r.squeal_factor, 1.0 - _num("road.squeal.pitch_spread") - 1.0e-6, 1.0 + _num("road.squeal.pitch_spread") + 1.0e-6, "Tonhöhe in ±%.0f %%" % (100.0 * _num("road.squeal.pitch_spread")))
+		_run(m, _frame(110.0, {}, {"understeer": 0.0}), 90)
+		assert_true(r.squeal.level < ModernAudioPan.SILENT, "verklungen")
+	assert_true(factors.size() >= 10, "jedes Quietschen eine eigene Tonhöhe (%d verschiedene von 12)" % factors.size())
 	_done(m)
 
 
