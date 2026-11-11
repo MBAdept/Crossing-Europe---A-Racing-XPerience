@@ -327,7 +327,8 @@ func test_collisions_by_closing_speed_and_partner() -> void:
 	ids = []
 	for row: Array in im.last_layers:
 		ids.append(str(row[0]))
-	assert_true(ids.has("truck_boom") and ids.has("hit_heavy") and ids.has("crunch"), "Lkw: dazu der tiefe Schlag des Aufbaus")
+	assert_true(ids.has("truck_boom") and ids.has("crunch"), "Lkw: der tiefe Schlag des Aufbaus")
+	assert_false(ids.has("hit_heavy"), "statt des eigenen tiefen Schlags (zwei Schläge addierten sich nur zur Spitze)")
 	assert_true(float(im.last_layers[0][3]) < 0.0, "links")
 	m.event("collision", {"speed_kmh": 90.0, "rel_kmh": 4.0, "heavy": false, "side": 0})
 	ids = []

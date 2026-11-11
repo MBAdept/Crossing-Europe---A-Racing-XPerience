@@ -400,7 +400,11 @@ def rail_scrape(n: int) -> np.ndarray:
         place(sparks, noise_burst(rng, 0.004, 4000.0, 11000.0, 0.0004, 0.00005), int(at), rng.uniform(0.3, 1.0))
     sparks /= rms(sparks) + 1e-12
     body = pnoise(n, 2504, lambda f: bp(f, 35.0, 130.0, 2))
-    return grind / rms(grind) + 0.6 * ring + 0.3 * sparks + 0.45 * body
+    y = grind / rms(grind) + 0.6 * ring + 0.3 * sparks + 0.45 * body
+    # soft-limit the sparks' peaks (crest 15.6 → about 11 dB): at speed the loop is loud, and single clicks far above
+    # the grinding would drive the master limiter (measured in the worst case)
+    r = rms(y)
+    return 3.2 * r * np.tanh(y / (3.2 * r))
 
 
 # id, seconds, function, bus, ref_kmh, pitch_exp, note
@@ -454,7 +458,8 @@ def build(out: str | None, wav_dir: str | None, log=print) -> None:
         n = len(y)
         y = y - float(np.mean(y))
         y = y * (PEAK / float(np.max(np.abs(y))))
-        # the true peak of the file must stay below -1 dBTP (QC); the peak-normalised loops are far below it
+        # and the true peak at -3 dBTP at most (QC: <= -1): a soft-limited loop peaks between its samples
+        y = ml.limit_true_peak(y[:, None], -3.0)[:, 0]
         curve = [[p, lufs_at_pitch(y, p)] for p in PITCHES]
         data = np.concatenate([y, y[:LOOP_GUARD]])
         name = sid + ".wav"

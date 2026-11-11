@@ -48,7 +48,8 @@ var _rail_ref := 3.0
 var _rail_slope := 10.0
 var _rail_max := 4.0
 var _scrape_lufs := -21.0
-var _scrape_slope := 20.0
+var _scrape_slope := 12.0
+var _scrape_max := -17.0
 var _scrape_min := 5.0
 var _post_db := -15.0
 var _post_ref := 80.0
@@ -88,6 +89,7 @@ func _setup() -> void:
 	_rail_max = maxf(ctx.number("impact.rail.max_db", _rail_max), 0.0)
 	_scrape_lufs = ctx.number("impact.rail.scrape_lufs", _scrape_lufs)
 	_scrape_slope = ctx.number("impact.rail.scrape_slope_db", _scrape_slope)
+	_scrape_max = ctx.number("impact.rail.scrape_max_lufs", _scrape_max)
 	_scrape_min = ctx.number("impact.rail.scrape_min_kmh", _scrape_min)
 	_post_db = ctx.number("impact.post.peak_db", _post_db)
 	_post_ref = maxf(ctx.number("impact.post.ref_kmh", _post_ref), 1.0)
@@ -129,13 +131,18 @@ func collision_layers(closing_kmh: float, heavy: bool) -> Array:
 	var ref := maxf(float(cfg.get("ref_kmh", 30.0)), 1.0)
 	var adj := clampf(_coll_slope * _log10(maxf(closing_kmh, 1.0) / ref), -_coll_max, _coll_max)
 	var out: Array = []
+	var truck := heavy and _truck_db.has(tier)
 	var layers: Variant = cfg.get("layers", {})
 	if layers is Dictionary:
 		var ids: Array = (layers as Dictionary).keys()
 		ids.sort()
 		for id: String in ids:
+			# against a truck or bus its body's boom is the low punch (two punches at once would only add up to a
+			# peak – measured in the worst case: the master limiter took 4.8 dB)
+			if truck and id == "hit_heavy":
+				continue
 			out.append([id, float(layers[id]) + adj])
-	if heavy and _truck_db.has(tier):
+	if truck:
 		out.append(["truck_boom", float(_truck_db[tier]) + adj])
 	return out
 
@@ -156,7 +163,8 @@ func update(frame: ModernAudioFrame) -> void:
 			var centre := (float(st.get("road_left", -5.625)) + float(st.get("road_right", 5.625))) * 0.5
 			scrape_pan = (-1.0 if float(st.get("x", 0.0)) < centre else 1.0) * _pan
 			var lufs := _curve_lufs(_scrape_entry, pitch)
-			target = db_to_linear(_scrape_lufs + _scrape_slope * _log10(_speed / ref) - lufs - _ref_path_db)
+			var level := minf(_scrape_lufs + _scrape_slope * _log10(_speed / ref), _scrape_max)
+			target = db_to_linear(level - lufs - _ref_path_db)
 	var k := 1.0 - exp(-minf(maxf(frame.dt, 0.0001), 0.1) / SCRAPE_SMOOTH_S)
 	scrape_level = lerpf(scrape_level, target, k)
 	if _scrape != null:

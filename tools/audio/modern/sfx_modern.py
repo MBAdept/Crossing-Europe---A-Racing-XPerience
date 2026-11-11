@@ -286,10 +286,12 @@ def sounds() -> list[tuple]:
                 [lambda: hit_light(4101), lambda: hit_light(4102)], {}))
     out.append(("hit_heavy", "MImpact", "Kollision, schwer: tiefer Schlag in die Karosserie",
                 [lambda: hit_heavy(4201), lambda: hit_heavy(4202)], {}))
-    out.append(("crunch", "MImpact", "Blech faltet sich: Knarzen und Klicken, ein tiefes Stöhnen der Karosserie",
-                [lambda: crunch(4301), lambda: crunch(4302)], {}))
-    out.append(("glass", "MImpact", "Glas zerspringt und rieselt", [lambda: glass(4401)], {}))
-    out.append(("debris", "MImpact", "Kleinteile springen über die Fahrbahn", [lambda: debris(4501)], {}))
+    # the layers of a collision start a few milliseconds apart (lead_ms of silence in the file): a collision is a
+    # process, and peaks that do not coincide leave the master limiter alone (measured in the worst case)
+    out.append(("crunch", "MImpact", "Blech faltet sich: Knarzen und Klicken, ein tiefes Stöhnen der Karosserie (4 ms Vorlauf)",
+                [lambda: crunch(4301), lambda: crunch(4302)], {"lead_ms": 4.0}))
+    out.append(("glass", "MImpact", "Glas zerspringt und rieselt (9 ms Vorlauf)", [lambda: glass(4401)], {"lead_ms": 9.0}))
+    out.append(("debris", "MImpact", "Kleinteile springen über die Fahrbahn (40 ms Vorlauf)", [lambda: debris(4501)], {"lead_ms": 40.0}))
     out.append(("truck_boom", "MImpact", "Lkw oder Bus getroffen: tiefer Schlag eines großen Stahlaufbaus, Bleche klingen, Rasseln",
                 [lambda: truck_boom(4601)], {}))
     out.append(("rail_hit", "MImpact", "In die Leitplanke: Schlag, harter Metallklick, die Planke schwingt nach",
@@ -313,6 +315,9 @@ def build(out: str | None, wav_dir: str | None, log=print) -> None:
         for i, fn in enumerate(fns):
             # no mean subtraction: it would leave a DC step in the silent tail that the end fade turns into a thump
             y = np.asarray(fn(), np.float64)
+            lead = int(round(float(extra.get("lead_ms", 0.0)) * SR / 1000.0))
+            if lead > 0:
+                y = np.concatenate([np.zeros(lead), y])
             y = vl.fade_tail(y, 0.01)
             y = y * (PEAK / float(np.max(np.abs(y))))
             # bright one-shots (grinding, rustle) peak between the samples: bring the true peak to -3 dBTP as well
