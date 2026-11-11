@@ -89,8 +89,8 @@ void fragment() {
 	vec3 water_col = COLOR.rgb * (0.92 + 0.16 * ripple);
 	tone = mix(tone, water_col, water);
 	ALBEDO = clamp(tone, vec3(0.0), vec3(1.0));
-	ROUGHNESS = mix(mix(0.95, 0.6, max(ce_wet, snow * 0.5)), 0.12, water);
-	SPECULAR = mix(0.2, 0.6, water);
+	ROUGHNESS = mix(mix(0.95, 0.6, max(ce_wet, snow * 0.5)), 0.5, water);
+	SPECULAR = mix(0.2, 0.3, water);
 	METALLIC = 0.0;
 	NORMAL = normalize(mix(NORMAL, (VIEW_MATRIX * vec4(0.0, 1.0, 0.0, 0.0)).xyz, fade_far * 0.85));
 	EMISSION = ce_pools_emission(ALBEDO, v_world);

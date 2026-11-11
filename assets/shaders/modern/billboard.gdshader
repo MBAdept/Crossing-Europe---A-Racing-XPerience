@@ -21,7 +21,8 @@
 //                into the Arcade sprites (the props builder lays a contact shadow on the real ground instead)
 //   baked_light  1: the picture carries light and shade of its own (Cycles): it is shown as picture x the light a
 //                mid-grey surface gets - Arcade's law (sprite x ambient colour), which keeps its hues
-//   sun_min / sun_max  ... and gets more of the sun than an impostor of a card tree (PropLibrary.STANDIN_SUN)
+//   sun_min / sun_max  ... and are then factors on the sun that level ground gets (PropLibrary.STANDIN_SUN), not
+//                parts of the full sun as for an impostor
 // and every billboard takes the player's headlights from the globals ce_headlight_pos / _dir / ce_headlight
 // (range, intensity; intensity 0 = off): an unshaded material gets nothing from the real spot lights.
 // Load only through ModernMaterials - never with preload().
@@ -63,6 +64,11 @@ void vertex() {
 	// how much of the sun falls on the side the camera sees (a lit model would show the same)
 	float facing = dot(normalize(CAMERA_POSITION_WORLD - origin), normalize(ce_sun_dir)) * 0.5 + 0.5;
 	v_sun = mix(sun_min, sun_max, facing * facing);
+	if (baked_light > 0.5) {
+		// a picture with baked light gets the sun as level ground does (Arcade lights sprite and ground alike),
+		// a little less against the sun and a little more with it
+		v_sun *= max(normalize(ce_sun_dir).y, 0.0);
+	}
 	// the player's headlights: a cone along ce_headlight_dir that falls off to nothing at its range
 	vec3 to = origin + vec3(0.0, 1.5, 0.0) - ce_headlight_pos;
 	float d = max(length(to), 0.001);
@@ -108,7 +114,13 @@ void fragment() {
 	x += a * headlight_color * v_head;
 	if (lights_rect.z > 0.0) {
 		vec4 l = texture(tex, lights_rect.xy + UV * lights_rect.zw);
-		x += to_lin(l.rgb * l.a) * (ce_night * night_energy);
+		if (baked_light > 0.5) {
+			// Arcade lays the light layer over the sprite: picture -> light layer by its alpha x the night amount
+			vec3 lit = mix(min(d, vec3(1.0)), l.rgb, clamp(l.a * ce_night, 0.0, 1.0));
+			x = pow((lit + 0.055) / 1.055, vec3(2.4));
+		} else {
+			x += to_lin(l.rgb * l.a) * (ce_night * night_energy);
+		}
 	}
 	ALBEDO = albedo_for(x);
 }

@@ -44,8 +44,9 @@ vec3 ce_ground_open(vec3 base, vec3 accent, float amount, float nature, vec2 p, 
 	float big = texture(ground_noise, p / (CE_GROUND_BLOT_M * 5.0) + vec2(0.37, 0.11)).g;
 	// far away a field is smaller than a pixel: the texture filter blurs the cell values, so the pattern is faded
 	// into its mean as the footprint of a pixel grows beyond a few texels (3 m each)
-	vec2 fw = fwidth(p) / 3.0;
-	float far = max(smoothstep(2.5, 14.0, max(fw.x, fw.y)), smoothstep(700.0, 1300.0, dist));
+	vec2 fwm = fwidth(p);
+	float foot = max(fwm.x, fwm.y);            // metres of ground under one pixel (the longer side)
+	float far = max(smoothstep(7.5, 42.0, foot), smoothstep(700.0, 1300.0, dist));
 	// every field has its own shade of the ground tone
 	float shade = fract(cell.b * 5.3);
 	vec3 tone = base * (1.0 + (shade - 0.5) * 0.15 * field * (1.0 - far));
@@ -58,13 +59,15 @@ vec3 ce_ground_open(vec3 base, vec3 accent, float amount, float nature, vec2 p, 
 	float inside = smoothstep(0.03, 0.12, cell.a);
 	float ang = cell.b * 19.0;
 	float line = sin(dot(p, vec2(cos(ang), sin(ang))) * 1.4);
-	float near_k = (1.0 - smoothstep(50.0, 170.0, dist)) * field * nature;
+	float near_k = (1.0 - smoothstep(0.7, 2.2, foot)) * field * nature;
 	tone *= 1.0 + line * 0.035 * inside * near_k * (0.5 + m);
 	// field borders: a darker line (hedge, track); on paved ground the joints between the slabs
 	float border = (1.0 - smoothstep(0.015, 0.05, cell.a)) * field * (1.0 - smoothstep(180.0, 420.0, dist));
 	tone *= 1.0 - 0.14 * border * mix(0.45, 1.0, nature);
-	// soft blotches at two scales
-	tone *= 1.0 + ((blot - 0.5) * 0.16 + (big - 0.5) * 0.10) * mix(1.0, 0.35, far);
+	// soft blotches at two scales; seen at a grazing angle the smaller ones would smear into streaks: they go as
+	// the footprint of a pixel outgrows them
+	float blot_k = 1.0 - smoothstep(1.2, 5.0, foot);
+	tone *= 1.0 + (blot - 0.5) * 0.16 * blot_k + (big - 0.5) * 0.10 * (1.0 - smoothstep(6.0, 25.0, foot));
 	return tone;
 }
 

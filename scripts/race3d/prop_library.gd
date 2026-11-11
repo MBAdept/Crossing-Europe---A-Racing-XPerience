@@ -34,9 +34,10 @@ const SPRITE_ROOT := "res://assets/sprites/"
 const CONTACT_SHADER := "res://assets/shaders/modern/contact_shadow.gdshader"
 const BILLBOARD_SHADER := "res://assets/shaders/modern/billboard.gdshader"
 const IMPOSTOR := "impostor"
-## Part of the sun a stand-in shows when the sun is behind it / behind the camera (billboard.gdshader sun_min,
-## sun_max): the Arcade sprites carry baked light and shade, so they get more than an impostor (0.166 / 0.662).
-const STANDIN_SUN := Vector2(0.42, 0.92)
+## Sun on a stand-in when the sun is behind it / behind the camera, as factors on the sun that level ground gets
+## (billboard.gdshader sun_min, sun_max with baked_light): the Arcade sprites carry baked light and shade and Arcade
+## lights them like the ground – here they are a little darker against the sun and a little brighter with it.
+const STANDIN_SUN := Vector2(0.72, 1.18)
 const STANDIN_SHADOW_CUT := 0.97
 ## Light pool of a street light on the ground: Arcade's lamp pools (RoadRenderer._collect_static_lights).
 const LAMP_RANGE_M := 9.0
