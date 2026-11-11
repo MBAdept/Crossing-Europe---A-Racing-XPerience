@@ -28,7 +28,10 @@ extends SceneTree
 ##              length 711 px at 720 px, horizon at 45 %) with the vehicle's centre that many metres ahead,
 ##              rendered at 1280x720 and cut out around the vehicle with whole-number magnification (what the
 ##              player sees, pixel for pixel), by day and with tail / brake lights at night;
-##              --lane=<m> puts the vehicle that far to the side (the next lane: -3.5).
+##              --lane=<m> puts the vehicle that far to the side (the next lane: -3.5). --day: only the day tiles.
+##              --arcade: player cars - after each day tile the Arcade sprite (straight-ahead cell) drawn into the same
+##              frame without the model, anchored where the race draws it (the cell is made for 9 m; at another
+##              distance it is scaled by the ratio of the distances).
 ## --look=race (default): the race look of the vehicle materials - the class parameters the vehicle layer sets on
 ##              the shared materials (scripts/race3d/layers/vehicles.gd LOOK: clear coat mirroring the sky, base coat,
 ##              flakes, glass reflection; the mirrored sky = the sky of this rig) and, in --chase tiles, the fill light
@@ -346,16 +349,64 @@ func _chase_tiles(mid: String) -> Array:
 	var dists: Array = str(_args.get("chase", "9,30")).split(",", false)
 	if dists.is_empty() or str(dists[0]) == "1":
 		dists = ["9", "30"]
+	var states: Array = [["Tag", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)], ["Nacht, Rücklicht", true, Vector4(1, 0, 0, 0), Vector4(1, 0, 0, 0)],
+		["Nacht, Bremslicht + Blinker links", true, Vector4(1, 1, 1, 0), Vector4(1, 0, 0, 0)]]
+	if _args.has("day"):
+		states = [states[0]]
+	var sprite := _player_sprite(set_id) if (_args.has("arcade") and mid.begins_with("player/")) else {}
 	for d: Variant in dists:
 		var dist := float(str(d))
 		var lod := ModelDB.lod_for_distance(m, dist) if not _args.has("lods") else str(_args["lods"]).split(",")[0]
 		if lod == ModelDB.IMPOSTOR:
 			lod = "lod0"
-		for st: Array in [["Tag", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)], ["Nacht, Rücklicht", true, Vector4(1, 0, 0, 0), Vector4(1, 0, 0, 0)],
-				["Nacht, Bremslicht + Blinker links", true, Vector4(1, 1, 1, 0), Vector4(1, 0, 0, 0)]]:
+		for st: Array in states:
 			out.append({"set": set_id, "model": mid, "lod": lod, "chase": dist, "lane": lane, "is_night": st[1], "lamp_a": st[2], "lamp_b": st[3],
 				"text": "%s · %s · Spielkamera %.0f m%s · %s" % [mid, lod, dist, "" if lane == 0.0 else " (%.1f m seitlich)" % lane, st[0]]})
+			if not sprite.is_empty() and not bool(st[1]):
+				# --arcade: the Arcade sprite of the player car next to it, from the same camera (see _arcade_sprite)
+				out.append({"arcade": sprite, "set": set_id, "model": mid, "lod": lod, "chase": dist, "lane": lane, "is_night": false,
+					"text": "%s · Arcade-Sprite · Spielkamera %.0f m%s" % [set_id, dist, "" if absf(dist - float(sprite["dist"])) < 0.01 else " (Zelle für %.0f m, skaliert)" % float(sprite["dist"])]})
 	return out
+
+
+## The Arcade sprite of a player set (assets/sprites/manifest.json): its sheet, the cell of the straight-ahead angle
+## (base layer), cell size, anchor and the camera it was rendered for.
+func _player_sprite(set_id: String) -> Dictionary:
+	var man: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://assets/sprites/manifest.json"))
+	if not man is Dictionary or not ((man as Dictionary).get("sets", {}) as Dictionary).has(set_id):
+		return {}
+	var s: Dictionary = (man as Dictionary)["sets"][set_id]
+	var angles: Array = s.get("angles", [])
+	var ia := angles.find("c")
+	if ia < 0:
+		return {}
+	var cam: Dictionary = s.get("camera", {})
+	return {"file": "res://assets/sprites/" + str(s["file"]), "cell": s["cell"], "cols": int(s.get("grid_cols", angles.size())),
+		"index": ia, "anchor": s["anchor"], "supersample": float(s.get("supersample", 1.0)),
+		"dist": float(cam.get("distance_m", 9.0)), "height": float(cam.get("height_m", GAME_CAM_HEIGHT))}
+
+
+## The Arcade picture of the player car on a game-camera frame without the model: the cell drawn the way the race
+## draws it - its anchor (the car's centre on the ground) where the game camera sees that point, the cell divided by
+## its supersampling. At another distance than the one the cell was rendered for, the cell is scaled by the ratio of
+## the distances (the perspective of the cell stays that of its own distance).
+func _arcade_sprite(img: Image, sp: Dictionary, dist: float) -> void:
+	var sheet := Image.load_from_file(ProjectSettings.globalize_path(str(sp["file"])))
+	if sheet == null:
+		return
+	sheet.convert(Image.FORMAT_RGBA8)
+	var cw := int((sp["cell"] as Array)[0])
+	var ch := int((sp["cell"] as Array)[1])
+	var ia := int(sp["index"])
+	var cell := sheet.get_region(Rect2i((ia % int(sp["cols"])) * cw, (ia / int(sp["cols"])) * ch, cw, ch))
+	var s := float(sp["dist"]) / dist / float(sp["supersample"])
+	var w := maxi(1, int(round(cw * s)))
+	var h := maxi(1, int(round(ch * s)))
+	cell.resize(w, h, Image.INTERPOLATE_LANCZOS)
+	var ax := 0.5 * float(GAME_SIZE.x) - float((sp["anchor"] as Array)[0]) * w
+	var ay := 0.45 * float(GAME_SIZE.y) + GAME_FOCAL_PX * float(sp["height"]) / dist - float((sp["anchor"] as Array)[1]) * h
+	img.convert(Image.FORMAT_RGBA8)
+	img.blend_rect(cell, Rect2i(0, 0, w, h), Vector2i(int(round(ax)), int(round(ay))))
 
 
 func _sets_of(mid: String) -> Array:
@@ -602,14 +653,17 @@ func _render(t: Dictionary) -> Image:
 	gm.roughness = 0.85 if vehicle else 0.95
 	var node: Node3D = null
 	var text := str(t["text"])
-	if t.has("strip"):
+	if t.has("arcade"):
+		node = null                  # the frame without the model; the sprite is drawn into it below
+	elif t.has("strip"):
 		node = _channel_strip()
 	elif str(t["lod"]) == "impostor":
 		node = ModelFactory.build_impostor(str(t["set"]), _mats)
 	else:
 		node = ModelFactory.build(str(t["set"]), str(t["lod"]), _mats)
 	if node == null:
-		text += "  (fehlt)"
+		if not t.has("arcade"):
+			text += "  (fehlt)"
 	else:
 		_holder.add_child(node)
 		if t.has("lamp_a"):
@@ -715,6 +769,8 @@ func _render(t: Dictionary) -> Image:
 	_first = false
 	await RenderingServer.frame_post_draw
 	var img := _sv.get_texture().get_image()
+	if t.has("arcade"):
+		_arcade_sprite(img, t["arcade"], float(t["chase"]))
 	if chase:
 		# cut the vehicle out of the 1280 x 720 picture: the largest whole-number magnification that shows it all
 		var r := Rect2()

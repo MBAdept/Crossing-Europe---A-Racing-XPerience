@@ -427,11 +427,11 @@ _DEPTH3D = {"head": 0.028, "bar": 0.01, "refl": 0.006, "fog": 0.008, "reverse": 
 # the corner. The rear-projected unit ends where the corner turns away from behind (its parts at the graze limit of
 # the patches, its recess at the n_min of the exporter): seen from the side or from ahead the lamp was not there at
 # all, while the Cycles sprite shows it wrapping round the corner (art review of AS1, A9). The wrap is a
-# side-projected recess starting where the body faces sideways (normal . y below start_cos - beyond the reach of the
-# rear recess), `len` long, as high as the outer end of the rear outline, its lower edge rising by `rise` of that
+# side-projected recess starting where the rear unit ends on the body, `len` long along the flank, as high as the
+# outer end of the rear outline, its lower edge rising by `rise` of that
 # height towards the front, with a tail fill (tail light + brake, like the lamp body) and a light guide along the top.
 # A lamp may override the values with spec["wrap3d"] (False = no wrap).
-WRAP3D = dict(len=0.16, rise=0.35, depth=0.009, start_cos=0.15)
+WRAP3D = dict(len=0.16, rise=0.35, depth=0.009)
 
 
 def lamp(car, spec, tag="tail"):
@@ -465,6 +465,10 @@ def lamp(car, spec, tag="tail"):
         kind = part["kind"]
         mat = part_mat(car, kind, part)
         off = part.get("offset", _OFF[kind])
+        if extras and tag == "head" and kind == "dark" and "offset" not in part:
+            # 3D hook: the projector lenses of a headlight lie over its chrome reflector (in the sprite they lie a
+            # hair below it and are never seen; in the real-time model the low beam was hidden under the chrome)
+            off = _OFF["chrome"] + 0.0008
         nm = "%s_%s%d" % (tag, kind, i)
         lamp3d = part.get("lamp", _LAMP3D.get((tag, kind), _LAMP3D.get(kind)))
         if is_tail and "lamp" not in part and kind in _LAMP3D_TAIL:
@@ -491,10 +495,10 @@ def lamp(car, spec, tag="tail"):
         car.patch(ln["outline"], proj, lm, offset=ln.get("depth", depth), res=res, sym=sym, walls=ln.get("depth", depth),
                   wall_mat=lm, name="%s_lens%d" % (tag, i), target=tgt)
     if is_tail and sink > 0.0 and proj == "rear" and sym and spec.get("wrap3d", True) is not False:
-        _lamp_wrap(car, spec, tag, tgt, hm)
+        _lamp_wrap(car, spec, tag, tgt, hm, sink)
 
 
-def _lamp_wrap(car, spec, tag, tgt, hm):
+def _lamp_wrap(car, spec, tag, tgt, hm, rear_sink):
     """The part of a recessed tail lamp round the rear corner (3D builds only, see WRAP3D). Returns the side outline
     (y, z) of the right flank, or None when the rear outline does not reach the flank."""
     w = dict(WRAP3D)
@@ -507,22 +511,30 @@ def _lamp_wrap(car, spec, tag, tgt, hm):
     if z_hi - z_lo < 0.03:
         return None
     z_mid = 0.5 * (z_lo + z_hi)
-    hit = car.cast("rear", x_max - 0.004, z_mid, 1, target=tgt)
+    # the outer end of the lamp ON the body: the outermost ray from behind inside the outline that hits a face the
+    # rear recess takes (normal . -y >= 0.2; the exporter's n_min is 0.176). The sprite outlines reach past the
+    # rear corner at that height (the sprite stretches them over the edge): a ray there passes the corner and hits the
+    # flank half a metre further forward
+    hit = None
+    x = x_max - 0.002
+    while x > x_max - 0.2:
+        h = car.cast("rear", x, z_mid, 1, target=tgt)
+        if h is not None and -h[1].y >= 0.2:
+            hit = h
+            break
+        x -= 0.002
     if hit is None or abs(hit[1].y) > 0.75:
         return None                     # the outline ends on the rear face, short of the corner
-    # where the flank faces sideways: beyond the rear recess (its faces have normal . -y >= 0.176)
-    y0 = None
-    y = max(0.0, hit[0].y)
-    while y < hit[0].y + 0.6:
-        h = car.cast("side", y, z_mid, 1, target=tgt)
-        if h is not None and abs(h[1].y) <= w["start_cos"]:
-            y0 = y + 0.004
-            break
-        y += 0.005
-    if y0 is None:
-        return None
+    # the wrap starts where the rear unit ends: every face beyond lies outside the rear outline (the corner is
+    # monotonic - y grows with x), so the two recesses never cut the same face - beyond the wall of the rear recess,
+    # which reaches rear_sink into the body there
+    y0 = hit[0].y + rear_sink + 0.003
     ln_, hgt = float(w["len"]), z_hi - z_lo
     side = [(y0, z_lo + 0.004), (y0 + ln_, z_lo + hgt * float(w["rise"])), (y0 + ln_, z_hi - 0.006), (y0, z_hi)]
+    import os
+    if os.environ.get("CE_STATS"):
+        print("      wrap %-8s outer end x %.3f at y %.3f (normal %s), wrap y %.3f..%.3f z %.3f..%.3f" % (
+            tag, hit[0].x, hit[0].y, tuple(round(v, 2) for v in hit[1]), y0, y0 + ln_, z_lo, z_hi))
     sink = float(car.detail.get("lamp_depth", 0.0)) * float(w["depth"])
     car.lamp_pockets.append(dict(tag=tag + "_wrap", proj="side", sym=True, outline=list(side), target=tgt, depth=sink,
                                  housing=hm, wall=car.mat("lampwall", spec.get("wall3d", "#0d0d0f"), rough=0.4)))

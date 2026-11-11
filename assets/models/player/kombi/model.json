@@ -1,0 +1,207 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "player/kombi",
+ "model": {
+  "kind": "vehicle",
+  "object": {"width_m": 1.85, "length_m": 4.8, "height_m": 1.537},
+  "aabb": [-1.145, 0.001, -2.407, 1.145, 1.525, 2.412],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 54086,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "player/kombi/lod0_body.res",
+      "classes": ["vpbr", "glass"]
+     },
+     {
+      "node": "wheel_0l",
+      "mesh": "player/kombi/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [-0.7875, 0.333, -1.41],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.333, "steer": true}
+     },
+     {
+      "node": "wheel_0r",
+      "mesh": "player/kombi/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [0.7875, 0.333, -1.41],
+      "wheel": {"radius": 0.333, "steer": true}
+     },
+     {
+      "node": "wheel_1l",
+      "mesh": "player/kombi/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [-0.7875, 0.333, 1.42],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.333, "steer": false}
+     },
+     {
+      "node": "wheel_1r",
+      "mesh": "player/kombi/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [0.7875, 0.333, 1.42],
+      "wheel": {"radius": 0.333, "steer": false}
+     }
+    ]
+   },
+   {
+    "name": "show",
+    "max_dist_m": 0,
+    "tris": 116888,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "player/kombi/show_body.res",
+      "classes": ["vpbr", "glass"]
+     },
+     {
+      "node": "wheel_0l",
+      "mesh": "player/kombi/show_wheel.res",
+      "classes": ["vpbr"],
+      "pos": [-0.7875, 0.333, -1.41],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.333, "steer": true}
+     },
+     {
+      "node": "wheel_0r",
+      "mesh": "player/kombi/show_wheel.res",
+      "classes": ["vpbr"],
+      "pos": [0.7875, 0.333, -1.41],
+      "wheel": {"radius": 0.333, "steer": true}
+     },
+     {
+      "node": "wheel_1l",
+      "mesh": "player/kombi/show_wheel.res",
+      "classes": ["vpbr"],
+      "pos": [-0.7875, 0.333, 1.42],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.333, "steer": false}
+     },
+     {
+      "node": "wheel_1r",
+      "mesh": "player/kombi/show_wheel.res",
+      "classes": ["vpbr"],
+      "pos": [0.7875, 0.333, 1.42],
+      "wheel": {"radius": 0.333, "steer": false}
+     }
+    ]
+   }
+  ],
+  "shadow": {"mesh": "player/kombi/shadow.res", "tris": 2320},
+  "lights": [
+   {
+    "role": "brake",
+    "pos": [-0.9062, 0.8199, 2.2436],
+    "dir": [-0.88, 0.218, 0.421],
+    "size": 0.357,
+    "color": "#ff2414"
+   },
+   {
+    "role": "brake",
+    "pos": [0, 1.4151, 2.2422],
+    "dir": [0, 0, 1],
+    "size": 0.055,
+    "color": "#ff2414"
+   },
+   {
+    "role": "brake",
+    "pos": [0.9102, 0.821, 2.2425],
+    "dir": [0.881, 0.221, 0.418],
+    "size": 0.357,
+    "color": "#ff2414"
+   },
+   {
+    "role": "head",
+    "pos": [-0.6551, 0.7285, -2.2288],
+    "dir": [-0.255, 0.794, -0.552],
+    "size": 0.106,
+    "color": "#fff3d6"
+   },
+   {
+    "role": "head",
+    "pos": [0.6552, 0.7284, -2.2287],
+    "dir": [0.256, 0.792, -0.554],
+    "size": 0.106,
+    "color": "#fff3d6"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-1.1317, 1.0162, -1.1934],
+    "dir": [-1, 0, 0],
+    "size": 0.079,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-0.8008, 0.7035, -2.132],
+    "dir": [-0.706, 0.456, -0.542],
+    "size": 0.062,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-0.7516, 0.8959, 2.3607],
+    "dir": [-0.343, 0.431, 0.834],
+    "size": 0.114,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [0.7518, 0.8951, 2.3596],
+    "dir": [0.348, 0.427, 0.835],
+    "size": 0.114,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [0.8014, 0.7038, -2.1325],
+    "dir": [0.706, 0.456, -0.542],
+    "size": 0.062,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [1.1317, 1.0162, -1.1934],
+    "dir": [1, 0, 0],
+    "size": 0.079,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "tail",
+    "pos": [-0.9017, 0.829, 2.2518],
+    "dir": [-0.868, 0.246, 0.431],
+    "size": 0.37,
+    "color": "#ff2a10"
+   },
+   {
+    "role": "tail",
+    "pos": [0.9035, 0.8282, 2.2496],
+    "dir": [0.87, 0.248, 0.427],
+    "size": 0.368,
+    "color": "#ff2a10"
+   }
+  ],
+  "paint": {"paint": "#1d6b45", "metal": 0.55},
+  "auto_lod": false,
+  "tags": ["player"],
+  "bytes": 1958081,
+  "hash": "26c61303a87a4b4f9c08a622ccc6ca838f699743"
+ },
+ "sets": {
+  "player/kombi": {
+   "model": "player/kombi",
+   "paint": {"paint": "#1d6b45", "metal": 0.55}
+  },
+  "showroom/kombi": {
+   "model": "player/kombi",
+   "lod": "show",
+   "showroom": false,
+   "paint": {"paint": "#1d6b45", "metal": 0.55}
+  }
+ }
+}

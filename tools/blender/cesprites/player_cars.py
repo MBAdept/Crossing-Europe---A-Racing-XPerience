@@ -15,6 +15,7 @@ from . import carbody as CB
 from . import cardetail as CD
 from . import curves as C
 from . import materials as M
+from . import meshutil as MU
 
 # ---------------------------------------------------------------------------------------------- designs
 
@@ -304,6 +305,32 @@ def brake3_mat(car):
     return M.basic(car.name + "_brake3", "#4a0806", rough=0.2, coat=0.6, emit={"brake": (CD.BRAKE_RED, 1.0)})
 
 
+def brake3(car, center, size, bevel=0.003, name="brake3"):
+    """Third brake light: a lit box in the sprite. A 3D build makes it a dark housing with a lit face looking
+    backwards - a closed box has no direction (its normals cancel out) and the light anchor of a vehicle needs one
+    (contract A-4; the kombi's anchor had no "dir" and lay 6 mm inside the box)."""
+    mat = brake3_mat(car)
+    if not car.detail["extras"]:
+        return CD.light_box(car, center, size, mat, bevel=bevel, name=name)
+    import bmesh
+    house = CD.light_box(car, center, size, car.mat("brake3_house", "#140505", rough=0.3), bevel=bevel,
+                         name=name + "_house")
+    cx, cy, cz = center
+    sx, sy, sz = size
+    yl = cy - 0.5 * sy - 0.0012
+    bm = bmesh.new()
+    vs = [bm.verts.new(p) for p in ((cx - 0.5 * sx + 0.004, yl, cz - 0.5 * sz + 0.002),
+                                    (cx + 0.5 * sx - 0.004, yl, cz - 0.5 * sz + 0.002),
+                                    (cx + 0.5 * sx - 0.004, yl, cz + 0.5 * sz - 0.002),
+                                    (cx - 0.5 * sx + 0.004, yl, cz + 0.5 * sz - 0.002))]
+    fc = bm.faces.new(vs)
+    bm.normal_update()
+    if fc.normal.y > 0.0:
+        fc.normal_flip()
+    MU.tag(MU.make(car.name + "_" + name + "_lamp", bm, mat, parent=car.center), lamp="brake")
+    return house
+
+
 def spoiler_x(car, hw, y_le, y_te, z_le, z_te, thick, mat, name="spoiler", n=13, droop=0.03, tip=0.55):
     secs = []
     for i in range(n):
@@ -320,8 +347,7 @@ def features_kompakt(car, d, mats):
     black, plastic, chrome = mats["black"], mats["plastic"], mats["chrome"]
     roof_patch(car, 0.40, 2.22, black)
     spoiler_x(car, 0.66, 0.66, 0.27, car.roof(0.66) - 0.012, car.roof(0.66) - 0.05, 0.05, black)
-    CD.light_box(car, (0.0, 0.285, car.roof(0.66) - 0.07), (0.34, 0.012, 0.012), brake3_mat(car), bevel=0.003,
-                 name="brake3")
+    brake3(car, (0.0, 0.285, car.roof(0.66) - 0.07), (0.34, 0.012, 0.012))
     outline = [(0.40, 0.842), (0.80, 0.792), (0.872, 0.80), (0.872, 0.935), (0.40, 0.918)]
     CD.lamp(car, dict(
         outline=outline, tint="#c41a0f", depth=0.011,
@@ -400,8 +426,7 @@ def features_kombi(car, d, mats):
     black, plastic, chrome, satin = mats["black"], mats["plastic"], mats["chrome"], mats["satin"]
     CD.roof_rails(car, 0.36, 2.70, 0.10, satin)
     spoiler_x(car, 0.62, 0.40, 0.17, car.roof(0.40) - 0.008, car.roof(0.40) - 0.03, 0.04, car.paint, droop=0.02)
-    CD.light_box(car, (0.0, 0.165, car.roof(0.40) - 0.045), (0.30, 0.012, 0.012), brake3_mat(car), bevel=0.003,
-                 name="brake3")
+    brake3(car, (0.0, 0.165, car.roof(0.40) - 0.045), (0.30, 0.012, 0.012))
     # L-shaped D-pillar lamps: vertical on the corner, arm along the top into the tailgate
     outline = [(0.52, 0.885), (0.74, 0.885), (0.775, 0.62), (0.905, 0.62), (0.905, 0.985), (0.52, 0.975)]
     CD.lamp(car, dict(
@@ -555,13 +580,12 @@ def features_sportwagen(car, d, mats):
         z0 = h[0].z if h else 0.88
         CD.light_box(car, (x, 0.22, (z0 + zw) / 2 - 0.005), (0.022, 0.08, zw - z0 - 0.01), carbon, bevel=0.006,
                      name="pylon")
-    CD.light_box(car, (0.0, 0.40 - 0.02, car.roof(0.40) - 0.02), (0.22, 0.012, 0.012), brake3_mat(car), bevel=0.003,
-                 name="brake3")
+    brake3(car, (0.0, 0.40 - 0.02, car.roof(0.40) - 0.02), (0.22, 0.012, 0.012))
     # twin round lamps per side (rings) on a dark panel
     for i, (cx, r) in enumerate(((0.79, 0.082), (0.575, 0.076))):
         o = C.ellipse(cx, 0.775, r, r * 0.92, 40)
         CD.lamp(car, dict(
-            outline=o, tint="#c41a0f", depth=0.012,
+            outline=o, tint="#c41a0f", depth=0.012, wrap3d=False,      # (3D: round lamps stay round)
             parts=[
                 dict(kind="tail", outline=C.ellipse(cx, 0.775, r * 0.92, r * 0.85, 40), tail=0.18),
                 dict(kind="chrome", outline=C.ellipse(cx, 0.775, r * 0.62, r * 0.57, 32)),
@@ -600,8 +624,10 @@ def features_sportwagen(car, d, mats):
         dict(kind="dark", outline=C.ellipse(0.62, 0.62, 0.03, 0.02, 24)),
         dict(kind="white", path=[(0.47, 0.641), (0.80, 0.63), (0.845, 0.605)], width=0.01),
     ] + ([
-        # real-time model only: indicator along the lower edge of the outer end of the headlight
+        # real-time model only: indicator along the lower edge of the outer end of the headlight, and a second
+        # projector inside (the low beam: at least 80 cm2 seen from ahead)
         dict(kind="indicator", path=[(0.70, 0.5985), (0.80, 0.5945)], width=0.018, smooth=False, offset=0.0052),
+        dict(kind="dark", outline=C.ellipse(0.535, 0.620, 0.042, 0.017, 28)),
     ] if car.detail["extras"] else []))
     grille(car, [(-0.62, 0.17), (0.62, 0.17), (0.70, 0.40), (0.40, 0.42), (-0.40, 0.42), (-0.70, 0.40)],
            grille_mat(car), "intake", target="bumper_front", res=0.012, bars=5, bar_color="#1a1b1d", depth=0.03)
@@ -617,8 +643,7 @@ def features_sportwagen(car, d, mats):
 
 def features_gran_turismo(car, d, mats):
     black, plastic, chrome, satin = mats["black"], mats["plastic"], mats["chrome"], mats["satin"]
-    CD.light_box(car, (0.0, 0.47 - 0.01, car.roof(0.47) - 0.012), (0.26, 0.012, 0.01), brake3_mat(car), bevel=0.003,
-                 name="brake3")
+    brake3(car, (0.0, 0.47 - 0.01, car.roof(0.47) - 0.012), (0.26, 0.012, 0.01))
     # slim lamps joined by a thin full-width strip
     outline = [(0.56, 0.855), (0.90, 0.835), (0.955, 0.85), (0.955, 0.905), (0.56, 0.898)]
     CD.lamp(car, dict(
@@ -635,8 +660,8 @@ def features_gran_turismo(car, d, mats):
     if car.detail["extras"]:
         # real-time model only: a slim indicator strip under the outer end of the light strip (about 70 cm2 per side
         # seen from straight behind; the 5 cm high lamp itself has no room for one)
-        CD.lamp(car, dict(outline=C.rounded_rect(0.772, 0.8125, 0.296, 0.026, 0.009, 3), depth=0.006, tint="#d8d8d8", housing="#202022",
-                          parts=[dict(kind="indicator", outline=C.rounded_rect(0.772, 0.8125, 0.284, 0.018, 0.007, 3))]),
+        CD.lamp(car, dict(outline=C.rounded_rect(0.772, 0.811, 0.304, 0.032, 0.01, 3), depth=0.006, tint="#d8d8d8", housing="#202022",
+                          parts=[dict(kind="indicator", outline=C.rounded_rect(0.772, 0.811, 0.292, 0.025, 0.008, 3))]),
                 tag="ind")
     car.stripe([(-0.60, 0.835), (0.60, 0.835)], 0.006, "rear", chrome, offset=0.0025, res=0.004, sym=False,
                name="chromeline")
@@ -668,8 +693,10 @@ def features_gran_turismo(car, d, mats):
         dict(kind="dark", outline=C.ellipse(0.76, 0.615, 0.03, 0.02, 24)),
         dict(kind="white", path=[(0.53, 0.640), (0.86, 0.628), (0.91, 0.605)], width=0.009),
     ] + ([
-        # real-time model only: indicator along the lower edge of the outer end of the headlight
+        # real-time model only: indicator along the lower edge of the outer end of the headlight, and a third
+        # projector at the inner end (the low beam: at least 80 cm2 seen from ahead)
         dict(kind="indicator", path=[(0.80, 0.5935), (0.88, 0.5945)], width=0.02, smooth=False, offset=0.0052),
+        dict(kind="dark", outline=C.ellipse(0.575, 0.6175, 0.026, 0.0155, 24)),
     ] if car.detail["extras"] else []))
     # (grille(): the sprite's flat slat patch; a recess with chrome slats in a 3D build)
     grille(car, [(-0.44, 0.30), (0.44, 0.30), (0.50, 0.50), (-0.50, 0.50)], grille_mat(car, "slats", "#0a0a0b",

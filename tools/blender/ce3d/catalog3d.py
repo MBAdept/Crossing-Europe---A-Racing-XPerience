@@ -55,6 +55,7 @@ MODELS = {
         sets={"player/kompakt": {}, "showroom/kompakt": {"lod": "show", "showroom": False}}),
     "player/kombi": dict(
         builder="player", source="player/kombi", kind="vehicle", design="kombi",
+        detail={"lod0": {"step": 3.7}},             # 4.8 m long: the body loft alone had 20,000 triangles at 3.2
         sets={"player/kombi": {}, "showroom/kombi": {"lod": "show", "showroom": False}}),
     "player/sportwagen": dict(
         builder="player", source="player/sportwagen", kind="vehicle", design="sportwagen",

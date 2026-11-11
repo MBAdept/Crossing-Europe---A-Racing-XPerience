@@ -1,0 +1,200 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "player/sportwagen",
+ "model": {
+  "kind": "vehicle",
+  "object": {"width_m": 1.9, "length_m": 4.45, "height_m": 1.232},
+  "aabb": [-1.17, 0.002, -2.232, 1.17, 1.242, 2.243],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 46470,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "player/sportwagen/lod0_body.res",
+      "classes": ["vpbr", "glass"]
+     },
+     {
+      "node": "wheel_0l",
+      "mesh": "player/sportwagen/wheel_f.res",
+      "classes": ["vpbr"],
+      "pos": [-0.8095, 0.342, -1.255],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.342, "steer": true}
+     },
+     {
+      "node": "wheel_0r",
+      "mesh": "player/sportwagen/wheel_f.res",
+      "classes": ["vpbr"],
+      "pos": [0.8095, 0.342, -1.255],
+      "wheel": {"radius": 0.342, "steer": true}
+     },
+     {
+      "node": "wheel_1l",
+      "mesh": "player/sportwagen/wheel_r.res",
+      "classes": ["vpbr"],
+      "pos": [-0.787, 0.342, 1.295],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.342, "steer": false}
+     },
+     {
+      "node": "wheel_1r",
+      "mesh": "player/sportwagen/wheel_r.res",
+      "classes": ["vpbr"],
+      "pos": [0.787, 0.342, 1.295],
+      "wheel": {"radius": 0.342, "steer": false}
+     }
+    ]
+   },
+   {
+    "name": "show",
+    "max_dist_m": 0,
+    "tris": 94589,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "player/sportwagen/show_body.res",
+      "classes": ["vpbr", "glass"]
+     },
+     {
+      "node": "wheel_0l",
+      "mesh": "player/sportwagen/show_wheel_f.res",
+      "classes": ["vpbr"],
+      "pos": [-0.8095, 0.342, -1.255],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.342, "steer": true}
+     },
+     {
+      "node": "wheel_0r",
+      "mesh": "player/sportwagen/show_wheel_f.res",
+      "classes": ["vpbr"],
+      "pos": [0.8095, 0.342, -1.255],
+      "wheel": {"radius": 0.342, "steer": true}
+     },
+     {
+      "node": "wheel_1l",
+      "mesh": "player/sportwagen/show_wheel_r.res",
+      "classes": ["vpbr"],
+      "pos": [-0.787, 0.342, 1.295],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.342, "steer": false}
+     },
+     {
+      "node": "wheel_1r",
+      "mesh": "player/sportwagen/show_wheel_r.res",
+      "classes": ["vpbr"],
+      "pos": [0.787, 0.342, 1.295],
+      "wheel": {"radius": 0.342, "steer": false}
+     }
+    ]
+   }
+  ],
+  "shadow": {"mesh": "player/sportwagen/shadow.res", "tris": 2320},
+  "lights": [
+   {
+    "role": "brake",
+    "pos": [-0.732, 0.7875, 2.1661],
+    "dir": [-0.407, 0.37, 0.835],
+    "size": 0.254,
+    "color": "#ff2414"
+   },
+   {
+    "role": "brake",
+    "pos": [0.7319, 0.7875, 2.166],
+    "dir": [0.407, 0.37, 0.835],
+    "size": 0.254,
+    "color": "#ff2414"
+   },
+   {
+    "role": "head",
+    "pos": [-0.5765, 0.6266, -2.0367],
+    "dir": [-0.11, 0.885, -0.452],
+    "size": 0.11,
+    "color": "#fff3d6"
+   },
+   {
+    "role": "head",
+    "pos": [0.5766, 0.6266, -2.0367],
+    "dir": [0.111, 0.884, -0.454],
+    "size": 0.11,
+    "color": "#fff3d6"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-1.1567, 0.8812, -0.9084],
+    "dir": [-1, 0, 0],
+    "size": 0.079,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-0.7565, 0.5987, -1.9471],
+    "dir": [-0.723, 0.357, -0.592],
+    "size": 0.062,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-0.701, 0.6689, 2.1959],
+    "dir": [-0.247, -0.009, 0.969],
+    "size": 0.095,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [0.701, 0.6689, 2.1959],
+    "dir": [0.247, -0.009, 0.969],
+    "size": 0.095,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [0.7564, 0.5987, -1.9472],
+    "dir": [0.721, 0.361, -0.591],
+    "size": 0.062,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [1.1567, 0.8812, -0.9084],
+    "dir": [1, 0, 0],
+    "size": 0.079,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "tail",
+    "pos": [-0.7383, 0.7809, 2.1666],
+    "dir": [-0.436, 0.329, 0.838],
+    "size": 0.263,
+    "color": "#ff2a10"
+   },
+   {
+    "role": "tail",
+    "pos": [0.738, 0.7807, 2.1666],
+    "dir": [0.435, 0.328, 0.838],
+    "size": 0.263,
+    "color": "#ff2a10"
+   }
+  ],
+  "paint": {"paint": "#cc1419", "metal": 0.15},
+  "auto_lod": false,
+  "tags": ["player"],
+  "bytes": 1670159,
+  "hash": "70806be7cfe1f0e6d94dfdf68e19fe5bb12f22bc"
+ },
+ "sets": {
+  "player/sportwagen": {
+   "model": "player/sportwagen",
+   "paint": {"paint": "#cc1419", "metal": 0.15}
+  },
+  "showroom/sportwagen": {
+   "model": "player/sportwagen",
+   "lod": "show",
+   "showroom": false,
+   "paint": {"paint": "#cc1419", "metal": 0.15}
+  }
+ }
+}

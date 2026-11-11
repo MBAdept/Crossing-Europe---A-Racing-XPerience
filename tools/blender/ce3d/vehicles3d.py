@@ -99,6 +99,10 @@ PLAYER_OVERRIDES = {
 # out bright silver. The colour of the 3D rim is what the sprite shows.
 PLAYER_DESIGN_OVERRIDES = {
     "limousine": {"*_rim": dict(color="#6a6e74", metal=0.65, rough=0.32)},
+    # (wave 3) the silver rims of the kombi and the GT: in the sprites mid silver with dark gaps, in real time a
+    # white disc under the wheel arch - the colour the sprite shows, a little brighter than the limousine's
+    "kombi": {"*_rim": dict(color="#8e9297", metal=0.65, rough=0.3)},
+    "gran_turismo": {"*_rim": dict(color="#9a9ea3", metal=0.65, rough=0.28)},
 }
 SHARP_DEG = {"_brake": 30.0}     # meshes (name suffix) with hard edges in the 3D build: the flat faces of the brake disc
 
@@ -220,6 +224,34 @@ def _open_cabin(car, lay, soups, lining=None):
     return src.pos[:, ::-1, :].copy(), -src.nor[:, ::-1, :], stats
 
 
+FLIP_SLIVER_M = 0.003      # flipped slivers of the lofts lower than this are dropped (_drop_flipped)
+# conform patches drawn along a path or over a curved lamp: where a stroke turns tighter than its half width or a
+# lens patch folds over a crease, the folded part comes out wound against its normals (the kombi's L-shaped light
+# guide: 13 triangles). The patch covers that area anyway; the folded triangles are culled from the front.
+FOLD_PARTS = ("_guide", "_white", "_indicator", "_bar", "_lens", "_seam", "_reverse")
+
+
+def _drop_flipped(s, max_h=None):
+    """Drops the triangles of a soup that face against their own shading normals (all of them, or only slivers
+    lower than max_h). They are culled from the side they should show - holes already - and the validator counts
+    them (winding rule). Returns the number dropped."""
+    if s.n == 0:
+        return 0
+    g = np.cross(s.pos[:, 1] - s.pos[:, 0], s.pos[:, 2] - s.pos[:, 0])
+    drop = np.einsum("ij,ij->i", g, s.nor.sum(axis=1)) < 0.0
+    if max_h is not None:
+        longest = np.max(np.stack([np.linalg.norm(s.pos[:, k] - s.pos[:, (k + 1) % 3], axis=1) for k in range(3)],
+                                  axis=1), axis=1)
+        drop &= np.linalg.norm(g, axis=1) / np.maximum(longest, 1e-12) < max_h
+    if drop.any():
+        keep = ~drop
+        s.pos, s.nor, s.mi = s.pos[keep], s.nor[keep], s.mi[keep]
+        if getattr(s, "uv", None) is not None:
+            s.uv = s.uv[keep]
+        s.n = s.pos.shape[0]
+    return int(drop.sum())
+
+
 def _lamp_pockets(car, soups):
     """Recessed lamp units (cesprites.cardetail.lamp with detail "lamp_depth"): sinks the body faces under the
     outline of every unit and closes the step with walls (decalgeo.pocket). Of several objects under one outline
@@ -271,6 +303,8 @@ def _player_level(spec3d, level):
     sspec = _sprite_spec(spec3d["source"])
     params = dict(sspec["params"])
     params["detail"] = dict(LOD.PLAYER_DETAIL[level], extras=True)
+    # per model (catalog3d "detail": {level: {...}}): the kombi is 4.8 m long with a long greenhouse
+    params["detail"].update(spec3d.get("detail", {}).get(level, {}))
     rig = R.Rig(quick=True)
     MU.tagging(True)
     try:
@@ -303,6 +337,13 @@ def _player_level(spec3d, level):
             shell["body" if s_.name == car.body.name else "green"] = s_.pos.copy()
     extras3d.uncover_pockets(car, {s.name: s for s in soups}, lambda o, pr: _shift(o, pr, -car.L / 2.0), decalgeo.cut_holes)
     lin_pos, lin_nor, cut_stats = _open_cabin(car, lay, soups, lining)
+    flipped = 0
+    lofts = (car.body.name, car.green.name, car.bumper_rear.name, car.bumper_front.name)
+    for s_ in soups:
+        if s_.name in lofts:
+            flipped += _drop_flipped(s_, FLIP_SLIVER_M)      # twisted slivers at the edges of the wheel arches
+        elif any(k in s_.name for k in FOLD_PARTS):
+            flipped += _drop_flipped(s_)
     if os.environ.get("CE_STATS"):
         import re
         groups = {}
@@ -345,7 +386,7 @@ def _player_level(spec3d, level):
         raise RuntimeError("%s %s: interior %d triangles (at most %d)" % (spec3d["design"], level, interior,
                                                                           INTERIOR_MAX_TRIS))
     info["cabin"] = dict(lining_tris=int(lin_pos.shape[0]), removed=cut_stats["removed"], pocket_tris=pocket_tris,
-                         interior_tris=interior)
+                         interior_tris=interior, flipped_dropped=flipped)
     info["shell"] = shell
     return car, info, params, nodes, pivots, tr
 
