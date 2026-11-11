@@ -28,6 +28,12 @@ const LAMP_GLOW_A := 1.0             ## flare strength: flare.gdshader adds colo
 const LAMP_GLOW_COLOR := Color(1.0, 0.75, 0.4)
 const LAMP_GLOW_REF_ENERGY := 0.55   ## PropLibrary.LAMP_ENERGY: a street lamp gets the full glow
 const ROLES_NIGHT: Array[String] = ["lights", "street", "lamp", "tunnel", "canopy", "marker", "tail"]
+## FIX1: Arcade's halo round a tunnel lamp (RoadRenderer._tunnel_segment: radius max(3 px, 1.6 m), colour LAMP_COL,
+## alpha 0.45 x the lamp's visibility) as a second flare of every lamp with the role "tunnel" (builders/tunnel.gd)
+const TUNNEL_GLOW_M := 1.6
+const TUNNEL_GLOW_MIN_PX := 3.0
+const TUNNEL_GLOW_A := 0.9           ## flare.gdshader adds colour × 0.5 × strength: Arcade's alpha 0.45
+const TUNNEL_GLOW_COLOR := Color(1.0, 0.82, 0.55)
 
 var _renderer: Node
 var _mats: ModernMaterials
@@ -208,6 +214,8 @@ func _add_statics(view: Dictionary) -> void:
 				# Arcade's warm glow round the head of a street or canopy lamp
 				var g := on * alpha * LAMP_GLOW_A * clampf(energy / LAMP_GLOW_REF_ENERGY, 0.0, 1.0)
 				_put(p, dirs[j], LAMP_GLOW_COLOR, g, LAMP_GLOW_M, LAMP_GLOW_MIN_PX, 0.0, size * 0.5)
+			elif role == "tunnel":
+				_put(p, dirs[j], TUNNEL_GLOW_COLOR, on * alpha * TUNNEL_GLOW_A, TUNNEL_GLOW_M, TUNNEL_GLOW_MIN_PX, 0.0, size * 0.5)
 		i += 1
 
 

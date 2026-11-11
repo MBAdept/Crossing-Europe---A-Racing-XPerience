@@ -144,7 +144,13 @@ func update(view: Dictionary, _dt: float) -> void:
 		var fwd := -cam.global_transform.basis.z if cam.is_inside_tree() else -cam.transform.basis.z
 		heading += wrapf(atan2(fwd.x, -fwd.z) - road_heading, -PI, PI)
 	_heading = heading
-	_flat = tunnel01 if (_renderer == null or _renderer.call(&"builder", "tunnel") == null) else 0.0
+	# FIX1: with a tube (builders/tunnel.gd) the canvas stays dark too while the exit lies beyond the sight – the
+	# tube ends where the loaded chunks end, and Arcade draws its backdrop in a tunnel only once the exit is in view
+	# (RoadRenderer._tunnel_exit_visible)
+	if _renderer == null or _renderer.call(&"builder", "tunnel") == null or not _exit_in_sight(view):
+		_flat = tunnel01
+	else:
+		_flat = 0.0
 	canvas.position = Vector2(-MARGIN, 0.0) + (view.get("shake", Vector2.ZERO) as Vector2)
 	var lift := crest_lift(view)
 	if absf(lift - _drawn_lift) >= LIFT_STEP or (lift == 0.0 and _drawn_lift != 0.0):
@@ -202,6 +208,18 @@ func snapshot() -> Dictionary:
 		"horizon_frac": _horizon_frac, "horizon_row": snappedf(sky_proj.horizon_y, 0.01), "size": [_size.x, _size.y],
 		"heading": snappedf(_heading, 0.00001), "scenery": _scen_id, "redraws": _redraws, "frames": _frames,
 		"lift_rows": snappedf(lift_rows, 0.01), "base_row": snappedf(sky_proj.horizon_y - lift_rows, 0.01)}}
+
+
+## True when the camera is in a tunnel whose exit lies within the sight (view.visibility_m), or not in a tunnel.
+func _exit_in_sight(view: Dictionary) -> bool:
+	var track: Track = _renderer.get("track") if _renderer != null else null
+	if track == null or track.plan == null:
+		return true
+	var cam_z := float(view.get("camera_z", 0.0))
+	var t: Dictionary = track.plan.tunnel_at(track.z_to_km(cam_z))
+	if t.is_empty():
+		return true
+	return track.km_to_z(float(t["end_km"])) - cam_z <= float(view.get("visibility_m", _draw_distance))
 
 
 ## Arcade's crest rule (RoadRenderer._draw / _project: base_y = max(clip[n], hy - 120) when the clip row of the
