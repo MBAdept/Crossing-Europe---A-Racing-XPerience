@@ -440,16 +440,9 @@ func _pose_groups(car: Car, path: RoadPath3D, z: float, x: float, length: float)
 		var pivot: Vector3 = g[1]
 		var t: Transform3D
 		if i == 0:
-			var gp := path.world(z + half - pivot.z, x, 0.0)
-			var fp := path.world(z + length, x, 0.0)
-			var b := VehiclePose3D.chord_basis(gp, fp, car.yaw)
-			t = Transform3D(b, gp + b.y * pivot.y)
+			t = VehiclePose3D.lead_unit(path.world(z + half - pivot.z, x, 0.0), path.world(z + length, x, 0.0), pivot, car.yaw)
 		else:
-			var coupling := prev_t * (pivot - prev_pivot)                 # the pivot on the unit before
-			var ground := coupling - prev_t.basis.y * pivot.y
-			var rp := path.world(z, x, 0.0)
-			var b := VehiclePose3D.chord_basis(rp, ground, car.yaw)
-			t = Transform3D(b, coupling)
+			t = VehiclePose3D.follow_unit(prev_t, prev_pivot, pivot, path.world(z, x, 0.0), car.yaw)
 		(g[0] as Node3D).transform = inv * t
 		prev_t = t
 		prev_pivot = pivot

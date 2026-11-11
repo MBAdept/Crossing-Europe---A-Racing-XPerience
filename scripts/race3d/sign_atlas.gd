@@ -110,6 +110,8 @@ static func stage_signs(track: Track, plan: StagePlan) -> Array:
 	for d: Dictionary in DYNAMIC_SIGNS:
 		var it := d.duplicate()
 		it["kind"] = "sign"
+		it["country"] = ""          # warning signs and chevron boards look the same in every country and on every road
+		it["road"] = "autobahn"
 		var k := key_of(it)
 		if not seen.has(k):
 			seen[k] = true

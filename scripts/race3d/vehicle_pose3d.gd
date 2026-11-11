@@ -82,6 +82,23 @@ static func chord_pose(rear: Vector3, front: Vector3, yaw: float = 0.0, roll_deg
 	return Transform3D(chord_basis(rear, front, yaw, roll_deg), (rear + front) * 0.5)
 
 
+## Leading unit of an articulated vehicle (manifest "groups", e.g. the tractor): posed from the road point under its
+## pivot (`gp`) to the vehicle's front (`fp`); origin = the pivot (gp + up x pivot.y). Its parts hang under it
+## relative to the pivot (ModelFactory.build(…, articulated = true)).
+static func lead_unit(gp: Vector3, fp: Vector3, pivot: Vector3, yaw: float = 0.0) -> Transform3D:
+	var b := chord_basis(gp, fp, yaw)
+	return Transform3D(b, gp + b.y * pivot.y)
+
+
+## A following unit (e.g. the trailer): coupled at its pivot to the unit before it (`prev` = that unit's world
+## transform, `prev_pivot` = its pivot in model space), its axis from the vehicle's rear ground point `rear` to the
+## ground under the coupling.
+static func follow_unit(prev: Transform3D, prev_pivot: Vector3, pivot: Vector3, rear: Vector3, yaw: float = 0.0) -> Transform3D:
+	var coupling := prev * (pivot - prev_pivot)
+	var ground := coupling - prev.basis.y * pivot.y
+	return Transform3D(chord_basis(rear, ground, yaw), coupling)
+
+
 ## The four ground corners of a vehicle of width w and length l placed with `pose` (rear left, rear right, front
 ## right, front left) – the footprint the acceptance test compares with the collision box.
 static func footprint(pose: Transform3D, w: float, l: float) -> PackedVector3Array:

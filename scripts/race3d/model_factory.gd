@@ -351,6 +351,16 @@ static func box_mesh(obj: Dictionary, kind: String, police: bool) -> ArrayMesh:
 		b.side_band(hw + 0.004, -hl + 0.5, hl - 0.9, wy0, wy1, BOX_WINDOW, 1.0)
 		b.end_rect(-hl - 0.004, -hw + 0.12, hw - 0.12, 0.42 * h, 0.9 * h, BOX_WINDOW, -1.0, -1.0, 0.0)
 		b.end_rect(hl + 0.004, -hw + 0.1, hw - 0.1, 0.25, 0.55, BOX_TRIM, 1.0, -1.0, 0.0)
+		# lamps at the anchors of box_lights(): rear lamps, indicators, headlights
+		for side: float in [-1.0, 1.0]:
+			var xr := side * (hw - 0.27)
+			b.end_rect(hl + 0.006, xr - 0.17, xr + 0.17, 0.95 - 0.07, 0.95 + 0.07, BOX_LAMP_TAIL, 1.0, 2.0, 1.0)
+			var xi := side * (hw - 0.1)
+			b.end_rect(hl + 0.006, xi - 0.06, xi + 0.06, 0.95 - 0.14 - 0.05, 0.95 - 0.14 + 0.05, BOX_LAMP_IND, 1.0, 3.0 if side < 0.0 else 4.0, 1.0)
+			var xh := side * (hw - 0.3)
+			b.end_rect(-hl - 0.006, xh - 0.15, xh + 0.15, 0.85 - 0.07, 0.85 + 0.07, BOX_LAMP_HEAD, -1.0, 5.0, 1.0)
+			var xf := side * (hw - 0.06)
+			b.end_rect(-hl - 0.006, xf - 0.05, xf + 0.05, 0.85 - 0.06, 0.85 + 0.06, BOX_LAMP_IND, -1.0, 3.0 if side < 0.0 else 4.0, 1.0)
 		for axle_z: float in [-hl + 2.6, hl - 3.2]:
 			for side: float in [-1.0, 1.0]:
 				b.wheel(Vector3(side * (hw - 0.3), r_wheel, axle_z), r_wheel, 0.32, side)
