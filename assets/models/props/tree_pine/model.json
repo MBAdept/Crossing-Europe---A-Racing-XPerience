@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 200,
-    "tris": 472,
+    "tris": 832,
     "parts": [
      {
       "node": "body",
@@ -43,8 +43,8 @@
   "cards": {"lod0": 30, "lod1": 30},
   "auto_lod": false,
   "tags": ["prop", "tree"],
-  "bytes": 2192574,
-  "hash": "58c6cfb908aef18c325d79612604ace7707a25ab"
+  "bytes": 2199658,
+  "hash": "12c66e98fe67b47bc63b5d02c379b08aa2d37b9e"
  },
  "sets": {
   "props/tree_pine": {

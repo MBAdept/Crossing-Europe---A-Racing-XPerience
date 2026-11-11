@@ -218,8 +218,9 @@ MODELS.update(_as3_tree("olive", "olive", 53))
 MODELS.update(_as3_tree("pine", "pine", 71))
 MODELS.update(_as3_tree("spruce", "spruce", 19, AS3_SHAPES, {"tiers": 12, "taper": 1.25}))
 MODELS.update(_as3_tree("cypress", "cypress", 41, AS3_SHAPES, {"bulge": 1.45, "width": 1.12}))
-# AS3R (art review M8): palm_b bends like the sprite, a little more (0.4 was a straight pole, 57 % outside the sprite)
-MODELS.update(_as3_tree("palm", "palm", 43, AS3_SHAPES, {"bend": 1.2}))
+# AS3R (art review M8): palm_b bends like the sprite (0.4 was a straight pole, 57 % outside the sprite) - another seed
+# only: its own frond directions, lengths and lifts
+MODELS.update(_as3_tree("palm", "palm", 43, AS3_SHAPES, {"bend": 0.9}))
 MODELS.update({
     # heather: the generator's tufts (props_nature.SHAPE_LOG "heather") as leaf domes, flowers and foliage
     "props/heather": dict(builder="bush", source="props/heather", kind="plant", bush="heather"),

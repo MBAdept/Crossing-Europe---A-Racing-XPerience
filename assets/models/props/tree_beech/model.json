@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 2459,
+    "tris": 2475,
     "parts": [
      {
       "node": "body",
@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 200,
-    "tris": 870,
+    "tris": 882,
     "parts": [
      {
       "node": "body",
@@ -43,8 +43,8 @@
   "cards": {"lod0": 62, "lod1": 62},
   "auto_lod": false,
   "tags": ["prop", "tree"],
-  "bytes": 2054830,
-  "hash": "30e712e7f4b1d68bb5866de3a2b085d13a0f3faa"
+  "bytes": 2055240,
+  "hash": "cb44419ab72727306ae0345309e06abe1f1a6487"
  },
  "sets": {
   "props/tree_beech": {

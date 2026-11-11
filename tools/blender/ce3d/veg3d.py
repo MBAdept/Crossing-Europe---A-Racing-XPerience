@@ -108,6 +108,8 @@ SPECIES = {
                  # AS3R (art review M11): the orange upper trunk and branches 15 % darker, as in the sprite
                  bark=[("pine_trunk2", ("#834829", "#8f5631")), ("pine_br", ("#7e4727", "#885231")),
                        ("pine_trunk", ("#4a382a", "#3c2d22")), ("", ("#7e4727", "#885231"))],
+                 # AS3R: the thin pads sparkle in lod1 at 80-150 m - a calmer rim than the broadleaf domes
+                 fray=(0.2, 0.06, (0.0, 0.03)),
                  clumps=6, limb_r=(0.08, 0.03), atlas_seed=31, core=dict(subdiv=(-1, -1)), sky_lo=0.5,
                  imp=dict(gain=0.98, tint=(1.04, 1.0, 1.05), sat=0.95)),
     # special crowns (ce3d/veg3d_shapes.py)
@@ -173,7 +175,8 @@ IMPOSTOR_PX = 256
 IMPOSTOR_MAX_PX = 512
 CARDS_MAX = 450          # contract 4.6.9
 WOOD_HULL = 0.9          # branches and limbs inside the crown only where they lie within this share of a blob (AS3R:
-                         # twigs between the domes stuck out of the crown, art review M3)
+                         # twigs between the domes stuck out of the crown, art review M3) ...
+WOOD_MASS = 0.92         # ... and within this share of the crown's outer surface seen from its axis (_inside_mass)
 
 
 # --- source ------------------------------------------------------------------------------------------------
@@ -620,6 +623,13 @@ def _rim_plan(frames, br, budget0, budget1, sp):
             if i in plan1 and used1 + extra <= budget1:
                 plan1[i] = {"rings": (1, mid, half), "src": n0}
                 used1 += extra
+        # budget left (crowns of few domes: pine, olive): the whole rim of lod0, (1, 6, 12) - lod1 is then lod0
+        # without its extra ring (the pine's thin pads sparkled with six-cornered rims at 80-150 m)
+        up = c_base - (mid + _pattern_tris((mid, half)))
+        for i in order:
+            if i in plan1 and plan1[i]["rings"] == (1, mid, half) and used1 + up <= budget1:
+                plan1[i] = {"rings": (1, half, n0), "src": n0}
+                used1 += up
     return plan0, plan1
 
 
@@ -959,6 +969,22 @@ def _inside_crown(pts, bc, br, bz, shrink=0.97):
     return (_ell_q(pts, bc, br, bz, shrink) < 1.0).any(axis=1)
 
 
+def _inside_mass(pts, bc, br, bz, centre, axis_half=0.0, k=WOOD_MASS):
+    """True for points deep inside the crown as a whole (AS3R): nearer to the crown's axis than k x the farthest blob
+    surface along the ray from the axis (the rays of the core, _star_hull). A twig inside one blob can still lie just
+    under the crown's outer surface, where the domes leave gaps - it showed as a dark stick on the crown top."""
+    if bc.shape[0] == 0 or pts.shape[0] == 0:
+        return np.ones(pts.shape[0], dtype=bool)
+    d = pts - centre
+    dn = d / np.maximum(np.linalg.norm(d, axis=1, keepdims=True), 1e-9)
+    org = centre[None, :] + np.outer(dn[:, 2], [0.0, 0.0, axis_half])
+    rel = pts - org
+    dist = np.linalg.norm(rel, axis=1)
+    dirs = rel / np.maximum(dist[:, None], 1e-9)
+    t = _ray_far(org, dirs, bc, br, bz).max(axis=1)
+    return (t > 0.0) & (dist <= k * t)
+
+
 def _sink(pos, nor, depth, flare=1.12):
     """The foot of a trunk reaches `depth` below the ground: vertices at the ground go down, a little wider."""
     if depth <= 0.0:
@@ -971,9 +997,10 @@ def _sink(pos, nor, depth, flare=1.12):
     return pos
 
 
-def _tree_wood(soups, bc, br, bz, crown_bottom, sp, z_cut=None, seed=0):
+def _tree_wood(soups, bc, br, bz, crown_bottom, sp, z_cut=None, seed=0, centre=None):
     """[(name, pos, nor)] of the wood of a tree: the generator's trunk and branches; branch parts that are not well
-    inside the crown (WOOD_HULL of the blobs: twigs sticking out of the leaf domes, AS3R) are dropped; birch
+    inside the crown (WOOD_HULL of the blobs and, with `centre`, WOOD_MASS of the whole crown: twigs sticking out of
+    the leaf domes, AS3R) are dropped; birch
     trunks are rebuilt with the bands of their bark (_birch_trunk: [(name, pos, nor, colours)]); the trunk foot
     sinks into the ground."""
     out = []
@@ -985,7 +1012,10 @@ def _tree_wood(soups, bc, br, bz, crown_bottom, sp, z_cut=None, seed=0):
             # a trunk is never cut (a half tube shows the sky through it); branches end at the level's cut
             if z_cut is not None:
                 keep &= cen[:, 2] < z_cut
-            keep &= (cen[:, 2] < crown_bottom + 0.5) | _inside_crown(cen, bc, br, bz, WOOD_HULL)
+            deep = _inside_crown(cen, bc, br, bz, WOOD_HULL)
+            if centre is not None:
+                deep &= _inside_mass(cen, bc, br, bz, centre, sp["core"]["axis"])
+            keep &= (cen[:, 2] < crown_bottom + 0.5) | deep
         if trunk and sp.get("birch"):
             p, n, c = _birch_trunk(s, sp, crown_bottom, z_cut, seed)
             out.append((s.name, _sink(p, n, sp["sink"]), n, c))
@@ -1217,11 +1247,11 @@ def _blob_tree(model_id, spec3d, sp, sspec, info, wood_soups, crown_pts, blobs, 
     woods, cores = [], []
     for li in range(2):
         if li == 0:
-            wood = _tree_wood(wood_soups, bc, br, bz, crown_bottom, sp, seed=seed)
+            wood = _tree_wood(wood_soups, bc, br, bz, crown_bottom, sp, seed=seed, centre=centre)
             lp, ln = _limbs(ccen, wood_pts, sp["limb_r"][0], sp["limb_r"][1], 6)
         else:
             # the trunk up to the crown (and coarse limbs where the crown lets them show)
-            wood = _tree_wood(wood_soups, bc, br, bz, crown_bottom, sp, crown_bottom + 1.0, seed=seed)
+            wood = _tree_wood(wood_soups, bc, br, bz, crown_bottom, sp, crown_bottom + 1.0, seed=seed, centre=centre)
             if sp["limbs1"]:
                 lp, ln = _limbs(ccen, wood_pts, sp["limb_r"][0], sp["limb_r"][1], 4)
             else:
@@ -1229,7 +1259,8 @@ def _blob_tree(model_id, spec3d, sp, sspec, info, wood_soups, crown_pts, blobs, 
         if lp.shape[0]:
             # limb parts outside the crown are dropped like the generator's branches (dark sticks on a flat crown)
             cen = lp.mean(axis=1)
-            keep = (cen[:, 2] < crown_bottom + 0.5) | _inside_crown(cen, bc, br, bz, WOOD_HULL)
+            keep = (cen[:, 2] < crown_bottom + 0.5) | (_inside_crown(cen, bc, br, bz, WOOD_HULL)
+                                                       & _inside_mass(cen, bc, br, bz, centre, sp["core"]["axis"]))
             if keep.any():
                 wood.append(("limb", lp[keep], ln[keep]))
         woods.append(wood)
@@ -1267,7 +1298,8 @@ def _blob_tree(model_id, spec3d, sp, sspec, info, wood_soups, crown_pts, blobs, 
     # front of this hull are not darkened by it)
     sh = core.MeshBuilder()
     core_c = np.append(core.srgb8(core.hex_to_lin("#24401a")), 255).astype(np.uint8)
-    for item in _tree_wood(wood_soups, bc, br, bz, crown_bottom, sp, crown_bottom + 1.0, seed=seed):
+    for item in _tree_wood(wood_soups, bc, br, bz, crown_bottom, dict(sp, birch=False), crown_bottom + 1.0, seed=seed,
+                           centre=centre):
         p, n = _wind(item[1], item[2])
         sh.add("vpbr", p, n, core_c, (0.92, 0.0), roles.NO_LAMP)
     hp, hn = _star_hull(bc, br, bz, centre, sp["shadow"]["shrink"], sp["shadow"]["subdiv"], sp["core"]["axis"],

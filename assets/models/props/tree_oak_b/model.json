@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 2475,
+    "tris": 2461,
     "parts": [
      {
       "node": "body",
@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 200,
-    "tris": 886,
+    "tris": 888,
     "parts": [
      {
       "node": "body",
@@ -33,7 +33,7 @@
     ]
    }
   ],
-  "shadow": {"mesh": "props/tree_oak_b/shadow.res", "tris": 196},
+  "shadow": {"mesh": "props/tree_oak_b/shadow.res", "tris": 192},
   "textures": {"leaves": "props/tree_oak/leaves.png"},
   "impostor": {
    "texture": "props/tree_oak_b/impostor.png",
@@ -44,8 +44,8 @@
   "cards": {"lod0": 67, "lod1": 67},
   "auto_lod": false,
   "tags": ["prop", "tree"],
-  "bytes": 139798,
-  "hash": "075daf1800473dccfbd2d62e26bda524a2bb3866"
+  "bytes": 139808,
+  "hash": "38255ee6d36468e0c274e96a025faa6fdf60407f"
  },
  "sets": {}
 }

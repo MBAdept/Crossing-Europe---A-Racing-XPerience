@@ -33,7 +33,7 @@
     ]
    }
   ],
-  "shadow": {"mesh": "props/tree_birch_b/shadow.res", "tris": 658},
+  "shadow": {"mesh": "props/tree_birch_b/shadow.res", "tris": 220},
   "textures": {"leaves": "props/tree_birch/leaves.png"},
   "impostor": {
    "texture": "props/tree_birch_b/impostor.png",
@@ -44,8 +44,8 @@
   "cards": {"lod0": 34, "lod1": 34},
   "auto_lod": false,
   "tags": ["prop", "tree"],
-  "bytes": 174748,
-  "hash": "2aeb35656b427cbeaf5c72b819f3a7e0e35ecf04"
+  "bytes": 171632,
+  "hash": "53f06a1cde935aea203deb29652e7900a36289b2"
  },
  "sets": {}
 }
