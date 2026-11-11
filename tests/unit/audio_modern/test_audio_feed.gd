@@ -621,3 +621,22 @@ func test_cobbled_blocks_hit_the_share_per_centre() -> void:
 	var again := AudioFeed.cobbled_blocks("stadt3", 800.0, 90.0, 0.6)
 	assert_eq(again, AudioFeed.cobbled_blocks("stadt3", 800.0, 90.0, 0.6), "dieselbe Stadt, dasselbe Muster")
 	assert_true(AudioFeed.cobbled_blocks("x", 0.0, 90.0, 0.6).is_empty(), "ohne Altstadt nichts")
+
+
+## The calibrated concrete threshold of a country holds only for the share it was calibrated for (AU-R R2: with the
+## share itself as threshold Austria got no concrete at 0.15, Germany 0.27 at 0.35 over all stages).
+func test_concrete_threshold_per_country() -> void:
+	var f := AudioFeed.new()
+	f.setup({"feed": {"concrete_share": {"AT": 0.15, "_": 0.1}, "concrete_threshold": {"AT": [0.15, 0.27], "SI": [0.1, 0.21]}}})
+	assert_near(f.concrete_threshold_for("AT", 0.15), 0.27, 1.0e-9, "kalibrierte Schwelle")
+	assert_near(f.concrete_threshold_for("AT", 1.0), 1.0, 1.0e-9, "anderer Anteil (Aufnahme, Test): der Anteil selbst")
+	assert_near(f.concrete_threshold_for("SI", 0.1), 0.21, 1.0e-9, "Land mit dem Anteil der übrigen")
+	assert_near(f.concrete_threshold_for("FR", 0.1), 0.1, 1.0e-9, "ohne Kalibrierung der Anteil")
+	var cfg_feed: Dictionary = ConfigLoader.lookup(ConfigLoader.load_merged(), "audio.modern.feed", {})
+	var cal: Dictionary = cfg_feed.get("concrete_threshold", {})
+	var shares: Dictionary = cfg_feed.get("concrete_share", {})
+	for c: String in cal:
+		var share := float(shares.get(c, shares.get("_", 0.0)))
+		assert_near(float(cal[c][0]), share, 1.0e-6, "Schwelle von %s gilt für den eingestellten Anteil (sonst neu kalibrieren)" % c)
+	assert_eq(AudioFeed.section_key("kiel_hamburg", {"name": "A7 Holstein", "length_km": 20.0, "country": "DE", "scenery": "north_plain"}),
+		"kiel_hamburg|A7 Holstein|20.000|DE|north_plain", "Schlüssel eines Abschnitts wie bisher")

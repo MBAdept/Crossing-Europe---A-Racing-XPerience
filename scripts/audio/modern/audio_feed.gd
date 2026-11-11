@@ -73,6 +73,7 @@ var max_events := 12             ## per update
 var rumble_roads: Array[String] = ["autobahn"]       ## road types with profiled edge lines
 var concrete_roads: Array[String] = ["autobahn"]     ## road types that can be concrete
 var concrete_share: Dictionary = {"DE": 0.35, "_": 0.12}   ## country -> share of concrete sections ("_" = others)
+var concrete_threshold: Dictionary = {}   ## country -> [share, hash threshold] (calibrate_concrete.gd; AU-R)
 var cobble_styles: Array[String] = []                ## city styles with cobbled blocks in the centre
 var cobble_share := 0.6          ## share of the centre's blocks that are cobbled
 var cobble_block_m := 90.0       ## length of such a block (visible metres)
@@ -141,6 +142,8 @@ func setup(modern: Dictionary) -> void:
 	concrete_roads = _strings(d.get("concrete_roads", concrete_roads))
 	if d.get("concrete_share", null) is Dictionary:
 		concrete_share = (d["concrete_share"] as Dictionary).duplicate()
+	if d.get("concrete_threshold", null) is Dictionary:
+		concrete_threshold = (d["concrete_threshold"] as Dictionary).duplicate(true)
 	cobble_styles = _strings(d.get("cobble_styles", cobble_styles))
 	cobble_share = clampf(float(d.get("cobble_share", cobble_share)), 0.0, 1.0)
 	cobble_block_m = maxf(float(d.get("cobble_block_m", cobble_block_m)), 10.0)
@@ -385,11 +388,25 @@ func _concrete_section(km: float) -> bool:
 		var d: Dictionary = sec
 		var country := str(d.get("country", ""))
 		var share := float(concrete_share.get(country, concrete_share.get("_", 0.0)))
-		var key := "%s|%s|%.3f|%s|%s" % [str(plan.get("stage_id")), str(d.get("name", "")), float(d.get("length_km", 0.0)),
-			country, str(d.get("scenery", ""))]
-		yes = unit_hash(key) < share
+		yes = unit_hash(section_key(str(plan.get("stage_id")), d)) < concrete_threshold_for(country, share)
 	_concrete[i] = yes
 	return yes
+
+
+## The hash threshold of a country's concrete sections: its calibrated value (concrete_threshold: country ->
+## [share, threshold], tools/audio/modern/calibrate_concrete.gd – the country gets its share over all its sections,
+## not only on average over many), as long as the share in effect is the one it was calibrated for; else the share.
+func concrete_threshold_for(country: String, share: float) -> float:
+	var cal: Variant = concrete_threshold.get(country, null)
+	if cal is Array and (cal as Array).size() >= 2 and absf(float(cal[0]) - share) < 1.0e-6:
+		return float(cal[1])
+	return share
+
+
+## What identifies an autobahn section in both driving directions: stage, name, length, country, scenery.
+static func section_key(stage_id: String, section: Dictionary) -> String:
+	return "%s|%s|%.3f|%s|%s" % [stage_id, str(section.get("name", "")), float(section.get("length_km", 0.0)),
+		str(section.get("country", "")), str(section.get("scenery", ""))]
 
 
 ## The block of the city centre at km is cobbled (centre of a city whose style has cobbles; blocks counted from the
