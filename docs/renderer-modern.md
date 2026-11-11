@@ -1585,3 +1585,196 @@ still (`ce_time` ist Spielzeit). Render-Prüfung `rotor` in `check_props_render.
   vor der Kamera, wie `commit()` sie zeichnet (MultiMesh mit einer Instanz, Schattenteile als Werfer): **0 Varianten
   während der Fahrt**, 48 statt 17 Aufwärm-Knoten, das Aufwärmen dauerte unter llvmpipe bei Last 7 rund 10 s länger
   (Übersetzungen, die sonst unterwegs gekommen wären).
+
+
+## 13. Zweite Hälfte der Zusammenführung (Bauabschnitt RINT-B)
+
+R3E (Ersatzbilder, Abschnitt 11.8), AS1R (Nacharbeit der Fahrzeugmodelle) und AU-D1 (Musik) sind zusammengeführt;
+danach kamen die Entscheidungen der Leitung für den ersten Testbuild dazu. Zahlen „gemessen“ stammen von der Build-VM
+(Software-OpenGL, llvmpipe, unter Xvfb), alles über echte Grafikkarten und das Steam Deck ist abgeleitet.
+
+### 13.1 Der Nachbearbeitungspfad zeigt, was die Durchgänge schreiben
+
+Die fest eingeschaltete Nachbearbeitung (D6) schickt das 3D-Bild – und die Leinwand des Hintergrunds, die als
+`BG_CANVAS` darin liegt – ein zweites Mal durch die beiden Näherungen der Engine (sRGB → linear als Polynom, linear →
+Anzeige ohne linearen Fuß). Das drückte jeden dunklen Wert: gemessen mit Flächen, die genau einen Anzeigewert schreiben
+(Probe `m1/RINT-B/probe/post_probe.gd`):
+
+| geschrieben (von 255) | 2 | 4 | 6 | 8 | 10 | 12 | 16 | 22 | 30 | 44 | ≥ 56 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| ohne Nachbearbeitung | 2 | 4 | 6 | 8 | 10 | 12 | 16 | 22 | 30 | 44 | gleich |
+| mit Nachbearbeitung (bisher) | 0 | 0 | 0 | 1 | 4 | 6 | 11 | 18 | 27 | 43 | ±1 |
+| mit Nachbearbeitung und LUT (jetzt) | 0 | 0 | 0 | 8 | 10 | 12 | 16 | 22 | 30 | 44 | gleich |
+
+Das war die Ursache der „zu dunklen dunklen Werte“ (R3E: 11 → 7, 19 → 16; Debug-Straße nachts 6/13/27 statt 16/21/32) –
+weder das Format noch die Genauigkeit des 3D-Puffers. Abhilfe in `environment_rig.gd`: das Environment trägt eine
+**1D-Farbkorrektur-LUT** (`post_lut()`: 256 Texel Halbfloat, Texel j = `post_inverse((j + 0,5) / 256)`, Texel 0 = 0),
+die die zweite Runde rückgängig macht. Ab 8/255 kommt jeder Wert genau so heraus, wie er geschrieben wurde; was die
+Näherungen auf 0 gedrückt haben (unter etwa 7/255), bleibt schwarz. Eine 8-Bit-LUT lag eine Stufe daneben, eine 3D-LUT
+(17³) verfälschte das Bild (gemessen). Das Lichtgesetz des Rigs rechnet seitdem ohne die Nachbearbeitung
+(`POST_EXACT`, `post_in` / `post_out` sind die Identität; `post_shown` / `post_inverse` bleiben das Modell des rohen
+Engine-Pfads und sind weiter getestet). Gemessen an N1: Nachthimmel jetzt gleich Arcade (51/53/57), vorher −2 %.
+
+### 13.2 Bodengesetz: ebener Boden in Arcades Farbe, auch nachts
+
+Arcade zeigt Boden als Albedo × `palette.ambient` (Anzeigewerte). Die Engine wandelt Umgebungs- und Sonnendurchgang
+einzeln in Anzeigewerte und addiert sie; das ist am dunklen Ende nicht linear in der Albedo. Das Lichtgesetz des Rigs
+trifft deshalb nur eine Bezugs-Albedo (nachts 0,29); gerechnet für N1 (Schnee, 22 Uhr) zeigte eine Albedo 0,93 (Schnee)
++28 … +66 % gegenüber Arcade, eine Albedo 0,2 −28 … −60 % – gemessen am Bild: Schneeboden +37 … +50 %, Fahrbahn nachts
+bei S1 +47 … +59 %. Keine Bezugs-Albedo passt für beide Enden (`m1/RINT-B/tools/nightmodel.py`).
+
+`assets/shaders/modern/inc/ground_law.gdshaderinc`: Fahrbahn (`road.gdshader`), Geländeband (`terrain.gdshader`) und
+Fernboden schalten den Umgebungsdurchgang der Engine ab (`render_mode ambient_light_disabled`) und schreiben ihn selbst
+als `EMISSION`: `ce_ground_base_lin(albedo)` ist der lineare Wert, mit dem **ebener Boden im Licht genau Albedo ×
+`ce_ambient_display`** zeigt – den Anteil, den der Sonnendurchgang der Engine ebenem Boden gibt, zieht sie ab. Im
+Schatten fehlt dieser Anteil, ein Hang zur Sonne bekommt mehr: die Tiefe bleibt, der ebene Boden hat Arcades Farbe
+bei jeder Albedo und jeder Stunde. Neuer Global `ce_ambient_display` (Arcades Umgebungsfaktor als Anzeigewert, im
+Tunnel gemischt; gesetzt vom Rig). Lichtkegel und Abblendlicht kommen wie bisher linear dazu.
+
+| Messung (Bildflächen gegen Arcade, gleiche Simulation, „Hoch“; gemessen) | vorher | nachher |
+|---|---|---|
+| N1 Schneeboden links / rechts (Leuchtdichte) | +50,0 % / +36,7 % | +1,7 % / −8,5 % |
+| S4 22 Uhr Gras rechts | +34,1 % | −16,3 % |
+| S1 12 Uhr Asphalt / Gras / Himmel | −6,7 % / −7,6 % / −0,2 % | −6,5 % / −7,6 % / −0,2 % |
+
+### 13.3 Horizont: Land bis an die Silhouetten
+
+Lead-Entscheidung: unter der Horizontzeile muss das Bild wie in Arcade als fernes Land lesbar sein. Vorher lag zwischen
+Gelände und Silhouetten ein heller Nebelstreifen (S1: 2–7 Zeilen in reiner Nebelfarbe 197/219/237; an T4 wie eine
+Wasserfläche), und die Silhouetten standen 2–3 px tiefer als in Arcade.
+- **Silhouetten auf Arcades Zeile** (`layers/backdrop.gd`, `crest_lift`): Arcade stellt die Silhouetten auf die
+  höchste Zeile, die die Straße bis zur Sichtweite erreicht, wenn sie über der Horizontzeile liegt (höchstens
+  120 Zeilen: `RoadRenderer._draw`, `base_y = max(clip, hy − 120)`). Der Hintergrund rechnet dieselbe Regel aus den
+  Segmenthöhen (Höhen je Segment zwischengespeichert); `lift_rows` ist die Anhebung, um die die Leinwand gezeichnet
+  wird. Gemessen an S1: Unterkante der Silhouetten in Zeile 320 wie in Arcade (vorher 323).
+- **Fernboden in Landfarbe** (`far_ground.gdshader`, unbeleuchtet): ebener Boden nach dem Bodengesetz (Albedo ×
+  `ce_ambient_display`), dann **Arcades Nebel für Dinge am Boden** (`RoadRenderer._modulate`: zur aufgehellten
+  Nebelfarbe × 1,25, höchstens 0,7 × Nebelanteil) statt des Tiefennebels der Engine – nie mehr Nebel als Arcade (F4).
+  Der Rand des Fernbodens steht bis zur Zeile der Silhouetten (`rim_rows` = `lift_rows`; der Shader hebt die
+  Oberkante mit der Tiefe entlang der Blickachse, so ist sie auf dem Bild eine gerade Linie): unter den Silhouetten
+  zeigt sich die Leinwand nie. Der Rand zeigt das Mittel des fernen Bodens (`ce_ground_field_mean`) – das Muster der
+  Felder lief auf der 2,4 km fernen Wand in senkrechte Streifen.
+- **Gelände mit demselben Nebel** (`terrain.gdshader` schreibt `FOG`: im Compatibility-Renderer ersetzt `FOG` den
+  Tiefennebel der Engine und wird in linearem Licht gemischt, gemessen mit `probe/fog_probe.gd`): Talboden jenseits der
+  Sicht zeigt sich als dunstiges Land, nicht mehr als „See“ (T4); Band und Fernboden passen ohne Naht zusammen.
+Gemessen an S1: Zeilen 321–330 Land 108–114/148–155/66–69 statt Nebel 197/219/237. Fahrbahn, Fahrzeuge, Schilder und
+Requisiten behalten den Tiefennebel bzw. die Ausblendung F5 – nur Boden neben und hinter der Straße nimmt Arcades
+Bodennebel.
+
+### 13.4 Fahrzeuge im echten Rig
+
+- **Unbeleuchtete Lampen** der Fahrzeuge (Kanäle 0–11) bei 0,28 ihrer Leuchtfarbe (`lamp_off`; 0,5 wirkte bei Tag
+  eingeschaltet, Kunstkritik B1); Lampen der Requisiten (12, 13) bleiben bei 0,5 (`lamp_off_props`).
+- **Rücklicht in Kanal 2** (eine Leuchte für Rück- und Bremslicht) bei 0,5 der Leuchte (`tail_level`, vorher 0,35).
+  Gemessen (`m1/RINT-B/probe/brake_probe.gd`: schwarze Limousine 18 m voraus, Zunahme der Leuchtdichte der Lampenpixel
+  gegen das Bild ohne Auto): um 22 Uhr Bremse 3,9 × Rücklicht (4,73 gegen 1,20), mittags ist das Rücklicht kaum zu
+  sehen (0,04), die Bremse deutlich (5,15).
+- **Lack**: weiches Knie auf dem hellsten Kanal einer Lackfarbe (über 0,7 mit Steigung 0,45 – der Farbton bleibt, die
+  Farbe wird skaliert), 8 % Entsättigung, `paint_base` 1,0 statt pauschal 0,9. Nachts spiegelt der Lack den
+  Palettenhimmel nur zu 35 % (`env_night`), das Fülllicht des Spielerautos sinkt auf 30 % (`fill_night`; beide nach
+  `ce_night` gemischt). Gemessen gegen die Cycles-Sprites in der Spielkamera (`m1/RINT-B/tools/paintcmp.py`, Lackpixel
+  der Heckpartie, Farbton / Helligkeit):
+
+| Spielerauto | 12 Uhr | 19:30 | 22 Uhr |
+|---|---|---|---|
+| Limousine (S1) | −3,4° / +6,7 % | −9,6° / +3,3 % | −2,7° / +31,8 % (vorher +53,1 %) |
+| Kompakt (S1, N1 im Schnee) | −1,3° / −7,8 % (am Anschlag 2 % statt Arcade 29 %) | +5,9° / −16,2 % | +5,0° / −10,5 % |
+
+  Mittags und in der Dämmerung innerhalb von 10 % – außer dem Kompakt um 19:30: die Sonne steht dort voraus, sein Heck
+  liegt im eigenen Schatten, Arcades Sprite kennt keinen. Nachts bleibt die Limousine heller als ihr Sprite (der Mond
+  legt einen Glanz auf den Kofferraum).
+- **Rückstrahler**: neuer Lampenkanal 15 `retro` (Vertrag: „reserviert“): Konturband und Dreiecksrückstrahler des Lkw
+  leuchten im Kegel des eigenen Abblendlichts (dasselbe Gesetz wie `inc/headlight.gdshaderinc`, `retro_energy` 2,0),
+  nicht mehr mit der Nacht überall; der Lkw ist neu exportiert und gebacken. Die Schilder strahlen schon die echten
+  Scheinwerfer zurück (11.4, `sign.gdshader`).
+- **Überblendung der fernen Stufen**: lod1 und lod2 eines Modells (je ein zusammengeführtes Netz) wechseln nicht mehr in
+  einem Bild, sondern blenden über `XFADE_S` = 0,5 s Sichtzeit mit gegenläufigem Dither ineinander (vpbr-Instanzwert
+  `xfade`, Index 9: > 0 die neue Stufe behält die Pixel unter dem Ditherwert, < 0 die alte die übrigen – zusammen genau
+  die Fläche einer Stufe); die alte Stufe folgt Ausblendung, Sonnenmaske und Lampen der neuen, ihre Schattenhülle ist
+  aus. Kosten: ein Zeichenaufruf mehr je Auto, solange es blendet. Gemessen (`m1/RINT-B/probe/pop_probe.gd`: ruhige
+  Szene ohne Verkehr, Auto fährt mit 3 cm je Bild durch die Grenze, Anteil der Autopixel, die sich gegen das Bild davor
+  ändern): vorher 5,4 % in einem Bild beim Wechsel, jetzt 0 % im Wechselbild und höchstens 3,5 % je Bild verteilt.
+- Diese Werte setzt `layers/vehicles.gd` (`LOOK`) auf die geteilten Materialien; die Vorgaben der Shader bleiben
+  neutral (Kontaktbogen, `check_models`). Der Showroom setzt seinen eigenen Look (`Showroom3D.studio_look()`), sonst
+  übernahm er die Parameter des letzten Rennens (den analytischen Himmel der Rennpalette, nachts einen dunklen); der
+  Kontaktbogen mit `--showroom` nimmt denselben Look.
+
+### 13.5 Laternen und Ersatzbilder
+
+- **Laternenschein**: jede Lampe, die auf einen Lichtkegel nach unten schaut (Laternen, Tankstellendach), bekommt in der
+  Ebene `flares` zusätzlich Arcades warmen Schein (`RoadRenderer._streetlight`: Radius 2,4 m, mindestens 3 px, Farbe
+  (1; 0,75; 0,4), Stärke 0,5 × Lichter – im Lichtpunkt-Shader Stärke 1,0, weil er Farbe × 0,5 × Stärke addiert),
+  nach ihrer Energie gegen die einer Laterne skaliert. Vorher trug nur ein kleiner Halo (35 % in der Nähe) die Lampe.
+- **Ersatzbilder ohne eigenen Schatten** (Entscheidung der Leitung): ein Sprite-Ersatzbild trägt Arcades eingebackenen
+  Schatten; der verborgene Kastenwerfer und der Kontaktschatten kommen weg (sie legten einen zweiten dunklen Fleck
+  neben bzw. unter den eingebackenen). Kasten-Ersatzbilder (Busse, Lkw) werfen wie Modelle. Geprüft in
+  `check_vehicles` → `schatten`.
+
+### 13.6 Zeitbudgets auf einer geteilten Maschine
+
+Wanduhr-Zeiten dieser VM sind unter Last zweigeteilt (dieselbe Fahrzeug-Ebene 36 oder 49 µs je Auto). Die
+CPU-Zeit des Threads hilft nicht (`/proc/thread-self/schedstat` bewegt sich nur zu Scheduler-Ticks: 0 µs für 2 ms
+Arbeit, gemessen). `tests/race3d/fixtures/perf_clock.gd` misst deshalb **gegen eine Referenz im selben Prozess**: ein
+festes Stück GDScript (Vektorrechnung, Arrays, Wörterbücher – was die Ebenen tun), neben jeder Probe gemessen; das
+Ergebnis wird auf das Tempo umgerechnet, mit dem diese VM die Referenz normal läuft (`REF_NOMINAL_US` = 600 µs; Mediane
+592 und 610 µs normal, 921 µs im langsamen Zustand – die Referenz zeigt dieselbe Zweiteilung). Ein Budget bedeutet
+damit, was Bauplan §4.10 sagt: „µs auf dieser VM bei normalem Tempo“.
+
+| Budget (GDScript je Bild, headless, normales Tempo der VM) | Grenze | gemessen | Prüfung |
+|---|---|---|---|
+| Fahrzeug-Ebene je Auto (34 Autos) | 40 µs | 32,6–34,6 µs (p90 42–47) | `check_vehicles` → `leistung` |
+| Renderer-Kern (Straße, Randausstattung, Hintergrund, Lichter, Overlay) | 0,6 ms | 0,23 ms | `check_modern_stage` → `kern_zeit` |
+| **ganzer Renderer** (alle Builder und Ebenen, Verkehr der Sitzung) | **1,5 ms** | 0,80 ms (13 Autos) | `check_modern_stage` → `renderer_zeit` (neu) |
+| Einhängen eines Stücks | 3 ms | 0,42–0,78 ms | `kern_zeit`, `renderer_zeit` |
+
+### 13.7 Beenden ohne Lecks
+
+`GameFlow.quit_game()` stellt zuerst den Klang ab (Musikkontext „off“, Musik aus, `stop_all()` – beide Profile), wartet
+0,3 s (Zeitgeber, der auch pausiert und unabhängig vom Zeitraffer läuft) und ruft dann `quit()`: der Audio-Server gibt
+gestoppte Wiedergaben erst in einem späteren Mischschritt frei, ein sofortiges `quit()` meldete sie als „ObjectDB
+instances leaked at exit“ (AU-D1). Render-Prüfung `check_quit_sound.gd`: je Klangprofil drei Spielstarts in eigenen
+Prozessen, Beenden über `quit_game()`, keine Zeile mit „leaked“, „still in use“ oder einem Fehler.
+
+### 13.8 Instanzbudget: Godots globaler Shader-Puffer
+
+Der Compatibility-Renderer legt die Instanz-Uniforms (`instance uniform` in `vpbr`, `glass`, `vehicle_sprite`) im
+globalen Shader-Puffer ab, **16 Plätze je Instanz**, ob sie sichtbar ist oder nicht. Der Puffer ist so groß wie der
+Uniform-Block der GPU: 64 KB = 4096 Plätze mit llvmpipe und den meisten Desktop-Treibern (die Projekteinstellung
+`rendering/limits/global_shader_variables/buffer_size` kann ihn nicht darüber heben) – nach den globalen Uniforms etwa
+**250 Instanzen in der ganzen Szene**. Darüber lehnt Godot ab („Too many instances using shader instance variables“)
+und zeichnet die Instanz mit den Werten einer anderen (Lack, Lampen, Ausblendung).
+
+Die Pools der Fahrzeug-Ebene (6 freie Autos je Set) behielten ihre gebauten Stufen – lod0 allein sind 6 Instanzen
+(Karosserie, vier Räder, Schattenhülle). Gemessen (Kiel–Hamburg km 2, Spieler steht, Verkehr zieht vorbei): die
+Instanzen der gebauten Stufen wuchsen ohne Ende (30 → 159 in 720 Bildern bei doppelter Zeit, ganze Szene 227); in
+900 Bildern ohne Budget 15 bzw. 17 Ablehnungen (Stand b473e90 bzw. vor der Abhilfe). Der Rest der Szene (Requisiten in
+`vpbr`, Bögen der Ersatzbilder) belegte dabei 34–72 Instanzen, das Aufwärmen hinter dem Ladebild bis 135.
+
+Abhilfe in `layers/vehicles.gd`: **`INSTANCE_BUDGET` = 128** für die Instanzen aller gebauten Stufen (aktive und
+gepoolte Autos, `perf()`: `vehicle_instances`, `vehicle_instances_peak`, `vehicle_trims`). Darüber gibt die Ebene am
+Ende von `update()` zuerst gepoolte Autos frei (aus dem vollsten Pool), dann Stufen aktiver Autos, die weder gezeigt
+werden noch ausblenden; eine freigegebene Stufe wird beim nächsten Bedarf neu gebaut. Gemessen mit Budget: ganze
+Szene höchstens 196–229 Instanzen, keine Ablehnung.
+Prüfungen: `check_vehicles` → `instanzen` (headless, 180 s Verkehr bei vierfacher Zeit: höchstens 128, Zähler =
+Knoten, das Budget gibt frei), Render-Prüfung `check_instance_budget.gd` (100 s Verkehr bei sechsfacher Zeit, ein
+`Logger` fängt jede Ablehnung der Engine; ganze Szene unter 230), und `tools/run_render_checks.sh` lässt jede
+Render-Prüfung scheitern, deren Ausgabe eine Ablehnung enthält.
+
+### 13.9 Speicher, Ladezeit, Showroom
+
+- **Texturspeicher** (A-6: Modern höchstens Arcade + 60 MB), Kiel–Hamburg km 2, 15 s Fahrt mit Verkehr, Monitor der
+  Engine (`m1/RINT-B/probe/texmem_probe.gd`, gemessen): Arcade 221,1 MB, Modern 166,8 MB – davon 51,5 MB für 17 Bögen
+  der Ersatzbilder. Die Bögen werden nur in `prepare()` geladen und nur für Sets ohne Modell; Modern liegt 54 MB unter
+  Arcade, eine weitere Einschränkung der Bögen ist nicht nötig.
+- **Ladezeit** Kiel–Hamburg ab km 0 (Szene eingehängt bis `RaceSession.is_live()`, wie `prepare_s` des
+  Leistungstests; `m1/RINT-B/probe/loadtime_probe.gd`, gemessen auf der Build-VM): Modern 5,2–5,6 s, Arcade 0,85 s.
+  Die ganze Zeit steht das Ladebild; sein Balken (`prepare_progress()`) läuft 0,05 → 0,1 (Selbsttest) → 0,65 (Stücke)
+  → 0,83 … 1,0 (Aufwärmen, 8 Schritte). Er lief vorher einmal rückwärts (0,1 → 0,05 nach dem Selbsttest) und stand
+  während des Ladens der Startansicht bei 0,05; jetzt bleibt ein fertiger Selbsttest bei seinem Schritt, und vor dem
+  Laden der Startansicht wird einmal mit dem Balken bei 0,65 gezeichnet. Das Laden der Startansicht selbst ist ein
+  Bild von 1,6–1,9 s (alle Stücke auf einmal, `ChunkStreamer.update` beim ersten Aufruf) – offen: über mehrere Bilder
+  verteilen.
+- **Showroom** (`tools/models_contact_sheet.sh <png> --only="player/*" --showroom`, dieselbe Kamera wie die
+  Cycles-Sprites, mit dem Look des Showrooms): Kompakt und Limousine in Echtzeit sind heller und gesättigter, aber
+  flacher als ihre Sprites (weniger Form im Schatten, Kunststoffglanz, helle Scheiben). Das Echtzeitbild ist nicht
+  mindestens so gut wie das Sprite – `showroom` bleibt für beide `false` (das Manifest bleibt unverändert).
