@@ -27,12 +27,32 @@ extends SceneTree
 ##               Modern stage is prepared and --shot-fast keeps the picture rendered meanwhile; it runs again from
 ##               the start of the stage, after a fallback and when the stage leaves while it was still preparing
 ##               (Screenshotter.preparing is back at 0); an Arcade stage never stops it
+##   vertrag     the SHIPPED Modern renderer (scripts/race3d/modern_renderer.gd, not the probe) offers what the
+##               session and the renderer packages build on: every method of contract §4.4.1 with its number of
+##               arguments, the signal quality_lowered, and the facade of amendment A-7 – its members, the signal
+##               rebased and layer / builder / road_to_world / add_lamps / add_pool_material / pool_materials;
+##               RaceRenderers.create("modern") gives it; before prepare() every query answers harmlessly
+##               (perf_stats and debug_snapshot with all keys of §4.4.5); the Arcade renderer has the three
+##               methods both modes share
 ## Prints "CHECK <name> OK|FEHLER …" per check; exit code 0 when all pass.
 ## (The scene and the autoloads are accessed untyped: -s scripts compile before the autoloads exist.)
 
 const PROBE := "res://tests/race3d/fixtures/seam_probe_renderer.gd"
 const RACE := "res://scenes/race/race.tscn"
-const CHECKS := ["ablauf", "marker", "abgang", "rueckfall", "ohne_renderer", "klang", "startmarker", "aufnahmeuhr"]
+const CHECKS := ["ablauf", "marker", "abgang", "rueckfall", "ohne_renderer", "klang", "startmarker", "aufnahmeuhr", "vertrag"]
+## Contract §4.4.1: method -> number of arguments. The first three are shared by both renderers.
+const SEAM_METHODS := {"setup": 4, "render": 1, "perf_stats": 0, "apply_quality": 1, "prepare": 1, "is_prepared": 0,
+	"prepare_progress": 0, "healthy": 0, "fail_reason": 0, "debug_snapshot": 0, "world_to_screen": 3}
+## Amendment A-7: the facade for layers, builders and tests.
+const FACADE_METHODS := {"layer": 1, "builder": 1, "road_to_world": 3, "add_lamps": 2, "add_pool_material": 1, "pool_materials": 0}
+const FACADE_MEMBERS := ["track", "proj", "cfg", "scenery_db", "levels", "sync", "prep", "path", "terrain", "streamer", "chase",
+	"camera", "materials", "env", "world", "view", "visibility_m"]
+const RENDERER_SIGNALS := {"quality_lowered": 1, "rebased": 1}
+## Contract §4.4.5.
+const PERF_KEYS := ["mode", "preset", "render_ms_avg", "render_ms_max", "chunks", "chunk_build_ms_avg", "chunk_build_ms_max",
+	"chunk_commit_ms_max", "draw_calls", "draw_calls_shadow", "primitives", "primitives_shadow", "lights_omni", "lights_spot",
+	"vehicles", "instances", "frame_ms_median", "frame_ms_p95", "prewarm_ms", "fallback_sets", "tex_mem_mb"]
+const SNAPSHOT_KEYS := ["camera", "chunks", "vehicles", "lights", "props", "signs", "quality"]
 const FALLBACK_TEXT := "Der Modus „Modern“ lässt sich mit dieser Grafik nicht starten. Das Spiel läuft im Modus „Arcade“ weiter."
 const STATE_KEYS := ["brake", "crash", "finished", "hour", "in_tunnel", "lat_speed", "off_road", "rail_contact", "road_left",
 	"road_right", "shoulder_m", "speed", "steer", "throttle", "understeer", "weather", "x", "z"]
@@ -230,7 +250,8 @@ func _check_ablauf() -> void:
 	var frames := 0
 	var worst_steps := 0
 	var hud_moved := false
-	var hud_state := false
+	var hud_updated := false   # update_state() was called (it sets _last_countdown from -1 and beeps the countdown)
+	var hud_face := false      # the HUD holds the start state and draws it behind the cover (its shaders warm up)
 	var clock_moved := false
 	var hooks_early := 0
 	var overlay_gone_early := false
@@ -242,7 +263,8 @@ func _check_ablauf() -> void:
 		worst_steps = maxi(worst_steps, int(sc.get("_sim_steps")))
 		msgs = hud.get("_messages")
 		hud_moved = hud_moved or msgs.is_empty() or not is_equal_approx(float((msgs[0] as Dictionary)["t"]), hint_t0)
-		hud_state = hud_state or not (hud.get("state") as Dictionary).is_empty()
+		hud_updated = hud_updated or int(hud.get("_last_countdown")) != -1
+		hud_face = hud_face or not (hud.get("state") as Dictionary).is_empty()
 		clock_moved = clock_moved or not is_equal_approx(float(sc.get("countdown")), countdown0) or float(sc.get("_real_time")) != 0.0 \
 			or float(sc.get("stage_time")) != 0.0 or float(sc.get("_beacon_t")) != 0.0
 		hooks_early = maxi(hooks_early, rec.states.size() + rec.events.size() + int(live[0]) + (1 if bool(sc.call("is_live")) else 0))
@@ -251,7 +273,8 @@ func _check_ablauf() -> void:
 	_need(p, worst_steps == 0, "kein Simulationsschritt vor is_prepared() (%d)" % worst_steps)
 	_need(p, not clock_moved, "Countdown, Etappenzeit und Uhren stehen")
 	_need(p, not hud_moved, "HUD-Meldungen altern nicht")
-	_need(p, not hud_state, "HUD bekommt keinen Zustand (kein Countdown-Piep)")
+	_need(p, not hud_updated, "HUD bekommt vor dem Start kein update_state() (kein Countdown-Piep)")
+	_need(p, hud_face, "HUD zeichnet den Startzustand hinter dem Ladebild (seine Shader werden mit aufgewärmt)")
 	_need(p, hooks_early == 0, "keine Klang-Hooks, kein stage_live vor dem Start (%d)" % hooks_early)
 	_need(p, not overlay_gone_early, "Ladebild bleibt bis zum Start")
 	var before := int(_probe.get("views_before_prepared"))
@@ -631,3 +654,83 @@ func _check_aufnahmeuhr() -> void:
 	await _frames(2)
 	_need(p, RenderingServer.render_loop_enabled, "der Screenshotter schaltet das Rechnen der Bilder beim Abgang wieder ein")
 	_report("aufnahmeuhr", p, "fremder Screenshotter mit --shot-fast: Uhr steht in der Vorbereitung von Modern (Bild wird gerechnet), läuft ab dem Start, nach Rückfall und frühem Abgang; Arcade hält sie nie an")
+
+
+# --- vertrag: the shipped renderer offers the interface of the seam and the facade -----------------------------------
+
+## Number of arguments of every method a script declares itself (name -> count).
+func _methods_of(script: Script) -> Dictionary:
+	var out := {}
+	for m: Dictionary in script.get_script_method_list():
+		out[str(m["name"])] = (m["args"] as Array).size()
+	return out
+
+
+func _check_vertrag() -> void:
+	var p: Array[String] = []
+	var path := str(_renderers.get("MODERN_SCRIPT"))
+	_renderers.set("modern_script", path)
+	var script: GDScript = load(path)
+	_need(p, script != null and script.can_instantiate(), "das Skript des Modern-Renderers lädt")
+	if script == null:
+		_report("vertrag", p, "")
+		return
+	var methods := _methods_of(script)
+	var missing: Array[String] = []
+	for group: Dictionary in [SEAM_METHODS, FACADE_METHODS]:
+		for m: String in group:
+			if not methods.has(m):
+				missing.append(m + "()")
+			elif int(methods[m]) != int(group[m]):
+				missing.append("%s(): %d statt %d Argumente" % [m, int(methods[m]), int(group[m])])
+	var signals := {}
+	for s: Dictionary in script.get_script_signal_list():
+		signals[str(s["name"])] = (s["args"] as Array).size()
+	for s: String in RENDERER_SIGNALS:
+		if int(signals.get(s, -1)) != int(RENDERER_SIGNALS[s]):
+			missing.append("signal " + s)
+	var members := {}
+	for v: Dictionary in script.get_script_property_list():
+		members[str(v["name"])] = true
+	for v: String in FACADE_MEMBERS:
+		if not members.has(v):
+			missing.append("var " + v)
+	_need(p, missing.is_empty(), "Naht (§4.4.1) und Fassade (A-7) vollständig – es fehlt: %s" % ", ".join(missing))
+	# the factory gives exactly this renderer; before prepare() every query answers harmlessly
+	var r: Node = _renderers.call("create", "modern")
+	_need(p, r != null and r is Node3D and r.get_script() == script, "RaceRenderers.create(\"modern\") liefert ihn als Node3D")
+	if r != null:
+		_need(p, r.call("layer", "lights") == null and r.call("builder", "road") == null and r.call("road_to_world", 10.0, 0.0, 0.0) == Vector3.ZERO
+			and (r.call("pool_materials") as Array).is_empty(), "vor prepare(): layer() und builder() null, road_to_world() null, keine Pool-Materialien")
+		_need(p, bool(r.call("healthy")) and str(r.call("fail_reason")) == "" and not bool(r.call("is_prepared")) and float(r.call("prepare_progress")) == 0.0,
+			"vor prepare(): gesund, nicht vorbereitet")
+		r.call("add_lamps", null, [{"pos": Vector3.ZERO}])
+		r.call("add_pool_material", null)
+		var px: Vector3 = r.call("world_to_screen", 10.0, 0.0, 0.0)
+		_need(p, px.z <= 0.0, "world_to_screen() vor dem ersten Bild: Tiefe <= 0 (%s)" % str(px))
+		var perf: Dictionary = r.call("perf_stats")
+		var snap: Dictionary = r.call("debug_snapshot")
+		var absent: Array[String] = []
+		for k: String in PERF_KEYS:
+			if not perf.has(k):
+				absent.append("perf_stats." + k)
+		for k: String in SNAPSHOT_KEYS:
+			if not snap.has(k):
+				absent.append("debug_snapshot." + k)
+		for k: String in ["z", "x", "y", "yaw_deg", "frustum"]:
+			if not (snap.get("camera", {}) as Dictionary).has(k):
+				absent.append("debug_snapshot.camera." + k)
+		for k: String in ["omni", "spot", "pools"]:
+			if not (snap.get("lights", {}) as Dictionary).has(k):
+				absent.append("debug_snapshot.lights." + k)
+		_need(p, absent.is_empty() and str(perf.get("mode", "")) == "modern", "alle Schlüssel aus §4.4.5 schon vor prepare() – es fehlt: %s" % ", ".join(absent))
+		_need(p, r.get("selftest") is Dictionary, "Ergebnis des Selbsttests als statisches Wörterbuch (einmal je Prozess)")
+		r.free()
+	var arcade: Node = _renderers.call("create", "arcade")
+	var both := 0
+	for m: String in ["setup", "render", "perf_stats"]:
+		both += 1 if arcade.has_method(m) else 0
+	_need(p, both == 3 and not arcade.has_method("prepare"), "der Arcade-Renderer hat setup, render, perf_stats – und kein prepare()")
+	arcade.free()
+	_report("vertrag", p, "ausgelieferter Renderer: %d Methoden der Naht, %d der Fassade, %d Mitglieder, %d Signale; vor prepare() harmlos" % [
+		SEAM_METHODS.size(), FACADE_METHODS.size(), FACADE_MEMBERS.size(), RENDERER_SIGNALS.size()])

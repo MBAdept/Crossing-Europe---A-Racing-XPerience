@@ -3,6 +3,11 @@ extends ChunkBuilder
 ## terrain rings of the TerrainProfile, unshaded, one mesh per chunk. It stands in for builders/road.gd until that
 ## exists (BuilderRegistry.create_all) and is the example of the three builder rules: every vertex comes from
 ## ChunkContext.local(), nothing depends on the chunk node's transform, nothing is cached in world space.
+## With road_strips = false it draws the ribbon alone: ModernRenderer uses it that way as the stand-in for a
+## missing builders/terrain.gd, with terrain_rings = false it draws the road alone.
+## Unshaded means: it shows neither the light of the environment nor shadows; inside the renderer its update() hook
+## tints it with the ambient colour of the palette, as Arcade tints its road and ground. The ribbon has the scenery's
+## two grass bands in Arcade's four-segment rhythm, so a stand-in picture compares fairly with Arcade's ground.
 ## Owner: race3d kernel.
 
 const ASPHALT := Color(0.30, 0.31, 0.34)
@@ -18,6 +23,7 @@ const EDGE_LINE_OUT_M := 0.45
 const LINE_LIFT_M := 0.02
 
 var terrain_rings := true          ## also draw the terrain ribbon
+var road_strips := true            ## draw the road itself (false: only the ribbon – the stand-in for a missing terrain builder)
 var _material: StandardMaterial3D
 
 
@@ -39,18 +45,20 @@ func build(ctx: ChunkContext, _input: Variant) -> Dictionary:
 		var eb := ctx.rows_edge[i + 1]
 		var tunnel := bool(sa["tunnel"])
 		var road := TUNNEL_ROAD if tunnel else (ASPHALT if (int(sa["index"]) / 2) % 2 == 0 else ASPHALT_ALT)
-		# shoulders and asphalt
-		_strip(ctx, verts, cols, idx, z0, z1, ea.x - sh, ea.x, eb.x - sh, eb.x, 0.0, SHOULDER)
-		_strip(ctx, verts, cols, idx, z0, z1, ea.x, ea.y, eb.x, eb.y, 0.0, road)
-		_strip(ctx, verts, cols, idx, z0, z1, ea.y, ea.y + sh, eb.y, eb.y + sh, 0.0, SHOULDER)
-		# edge lines (a little above the asphalt)
-		_strip(ctx, verts, cols, idx, z0, z1, ea.x + EDGE_LINE_IN_M, ea.x + EDGE_LINE_OUT_M, eb.x + EDGE_LINE_IN_M,
-			eb.x + EDGE_LINE_OUT_M, LINE_LIFT_M, LINE)
-		_strip(ctx, verts, cols, idx, z0, z1, ea.y - EDGE_LINE_OUT_M, ea.y - EDGE_LINE_IN_M, eb.y - EDGE_LINE_OUT_M,
-			eb.y - EDGE_LINE_IN_M, LINE_LIFT_M, LINE)
+		if road_strips:
+			# shoulders and asphalt
+			_strip(ctx, verts, cols, idx, z0, z1, ea.x - sh, ea.x, eb.x - sh, eb.x, 0.0, SHOULDER)
+			_strip(ctx, verts, cols, idx, z0, z1, ea.x, ea.y, eb.x, eb.y, 0.0, road)
+			_strip(ctx, verts, cols, idx, z0, z1, ea.y, ea.y + sh, eb.y, eb.y + sh, 0.0, SHOULDER)
+			# edge lines (a little above the asphalt)
+			_strip(ctx, verts, cols, idx, z0, z1, ea.x + EDGE_LINE_IN_M, ea.x + EDGE_LINE_OUT_M, eb.x + EDGE_LINE_IN_M,
+				eb.x + EDGE_LINE_OUT_M, LINE_LIFT_M, LINE)
+			_strip(ctx, verts, cols, idx, z0, z1, ea.y - EDGE_LINE_OUT_M, ea.y - EDGE_LINE_IN_M, eb.y - EDGE_LINE_OUT_M,
+				eb.y - EDGE_LINE_IN_M, LINE_LIFT_M, LINE)
 		if not terrain_rings or tunnel or ctx.rings < 2:
 			continue
-		var ground := WATER if bool(sa["water"]) else (GRASS if (int(sa["index"]) / 4) % 2 == 0 else GRASS_ALT)
+		# the scenery's two grass bands, four segments each – Arcade's ground (RoadRenderer: stripes.grass)
+		var ground := WATER if bool(sa["water"]) else _grass(ctx, str(sa.get("scenery", "")), (int(sa["index"]) / 4) % 2)
 		for side: int in [-1, 1]:
 			var base_a := ctx.shoulder_edge(i, side)
 			var base_b := ctx.shoulder_edge(i + 1, side)
@@ -64,9 +72,8 @@ func build(ctx: ChunkContext, _input: Variant) -> Dictionary:
 				verts.append(ctx.local(z0, xa1, ctx.ring_height(i, side, r + 1)))
 				verts.append(ctx.local(z1, xb1, ctx.ring_height(i + 1, side, r + 1)))
 				verts.append(ctx.local(z1, xb0, ctx.ring_height(i + 1, side, r)))
-				var c := ground.darkened(0.035 * float(r))
 				for q in 4:
-					cols.append(c)
+					cols.append(ground)
 				for q: int in [0, 1, 2, 0, 2, 3]:
 					idx.append(o + q)
 	var box := AABB()
@@ -75,6 +82,17 @@ func build(ctx: ChunkContext, _input: Variant) -> Dictionary:
 		for v in verts:
 			box = box.expand(v)
 	return {"verts": verts, "colors": cols, "indices": idx, "aabb": box}
+
+
+## Grass band `band` (0 or 1) of a scenery: its "grass" colours in the scenery data (worker thread: a plain read of
+## the snapshot dictionary), else the fixed stand-in colours.
+static func _grass(ctx: ChunkContext, scen_id: String, band: int) -> Color:
+	var scen: Variant = ctx.scenery_db.get(scen_id, {})
+	var gcols: Variant = (scen as Dictionary).get("grass", []) if scen is Dictionary else []
+	if gcols is Array and not (gcols as Array).is_empty():
+		var a: Array = gcols
+		return Color(str(a[mini(band, a.size() - 1)]))
+	return GRASS if band == 0 else GRASS_ALT
 
 
 ## One quad between two rows: lateral x0..x1 on the near row (a) and on the far row (b), h above the road.
@@ -114,6 +132,17 @@ func commit(_ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 	mi.material_override = _material
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	parent.add_child(mi)
+
+
+## Hook of the renderer (every frame): Arcade's colour law for this unshaded stand-in – every colour times
+## palette.ambient, the tunnel's light while the camera is inside a tunnel –, so that night, rain and tunnels look
+## like night, rain and tunnels. Without a renderer (tests of the kernel) the colours stay as they are.
+func update(view: Dictionary, _dt: float) -> void:
+	if _material == null:
+		return
+	var pal: Dictionary = view.get("palette", {})
+	var amb: Color = Palette.TUNNEL_AMBIENT if bool(view.get("camera_in_tunnel", false)) else pal.get("ambient", Color.WHITE)
+	_material.albedo_color = Color(amb.r, amb.g, amb.b)
 
 
 func debug(part: Dictionary) -> Dictionary:

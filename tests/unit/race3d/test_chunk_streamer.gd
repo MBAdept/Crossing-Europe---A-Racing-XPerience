@@ -265,7 +265,7 @@ func test_debug_road_builder() -> void:
 
 
 ## Acceptance: sync mode gives the same snapshot twice; at most max_chunks chunks (config graphics.modern.max_chunks,
-## 16); freed behind the camera.
+## 18 since contract amendment A-3); freed behind the camera.
 func test_sync_mode_is_deterministic() -> void:
 	var snaps: Array = []
 	for run in 2:
@@ -295,7 +295,7 @@ func test_sync_mode_is_deterministic() -> void:
 			out.append(JSON.stringify(snap))
 			cam_z += 53.0
 		var cap := int(ConfigLoader.lookup(cfg(), "graphics.modern.max_chunks", -1))
-		assert_eq(cap, 16, "die Grenze steht in der Konfiguration (graphics.modern.max_chunks; Vertrag §4.5.5: 16)")
+		assert_eq(cap, 18, "die Grenze steht in der Konfiguration (graphics.modern.max_chunks; Vertrag §4.5.5 mit Nachtrag A-3: 18)")
 		assert_eq(st.max_chunks, cap, "der Streamer nimmt die Grenze aus der Konfiguration")
 		assert_true(max_chunks <= cap, "höchstens %d Stücke (größte Zahl %d)" % [cap, max_chunks])
 		assert_true(max_chunks >= 11, "bei 900 m Sicht etwa 11 und mehr (%d)" % max_chunks)
@@ -336,7 +336,7 @@ func test_threaded_mode_matches_sync() -> void:
 					late = maxi(late, st.pending_count())
 			committed_before = committed
 			first = false
-			assert_true(st.chunk_count() <= 16, "höchstens 16 Stücke")
+			assert_true(st.chunk_count() <= st.max_chunks, "höchstens %d Stücke" % st.max_chunks)
 			cam_z += 9.0
 		st.flush()
 		assert_true(st.is_idle(), "flush(): nichts mehr offen")

@@ -14,7 +14,7 @@ extends RefCounted
 ##  2. never assume the transform of a chunk node is static, never cache world positions,
 ##  3. rigid instances (props, signs, structures) are placed with frame().
 ## local(), frame(), ground() and the other helpers below interpolate the snapshot arrays only – they are safe on a
-## worker thread. path, terrain and track are MAIN THREAD ONLY (collect / commit).
+## worker thread. path, terrain, track and services are MAIN THREAD ONLY (collect / commit).
 ## Owner: race3d kernel. Docs: docs/renderer-modern.md.
 
 ## Every TrackSegment field that is copied into segs (tests/unit/race3d/test_chunk_streamer.gd checks the list
@@ -46,6 +46,10 @@ var length_z := 0.0                     ## road position of the finish line (Tra
 var path: RoadPath3D                    ## MAIN THREAD ONLY
 var terrain: TerrainProfile             ## MAIN THREAD ONLY
 var track: Track                        ## MAIN THREAD ONLY
+## What the renderer hands to the builders (ChunkStreamer.services): {"renderer": ModernRenderer, "materials":
+## ModernMaterials}. MAIN THREAD ONLY (collect / commit). {} in tests without a renderer – a builder must work
+## without it (materials through ModernMaterials.shared(), no lamp registration).
+var services: Dictionary = {}
 var cfg: Dictionary = {}
 var scenery_db: Dictionary = {}
 var levels: Dictionary = {}

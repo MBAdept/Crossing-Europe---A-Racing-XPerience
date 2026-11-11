@@ -323,7 +323,7 @@ static func scan_ribbon(cfg: Dictionary, geo: Dictionary, opts: Dictionary = {})
 	var chunk_m := float(chunk_n) * seg
 	var load_m := float(gm.get("load_path_m", 1500.0))
 	var keep_m := float(gm.get("keep_behind_m", 150.0))
-	var max_chunks := int(gm.get("max_chunks", 16))
+	var max_chunks := int(gm.get("max_chunks", 18))
 	var vis := float(opts.get("visibility_m", ConfigLoader.lookup(cfg, "render.draw_distance_m", 900.0)))
 	path.set_clear_reach(load_m + keep_m + 2.0 * chunk_m)
 	var widths: Array = opts.get("widths_m", [40.0, 80.0, 120.0, 160.0, 240.0, 320.0, 480.0])
