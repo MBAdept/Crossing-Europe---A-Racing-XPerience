@@ -73,7 +73,7 @@ def specs() -> dict:
     sp["lead_syn"]["lufs"] = -19.0
     sp["lead_wide"] = {"bus": "inst", "lufs": -24.5, "eq": [("hp", 220.0, 0.7), ("hs", 6000.0, 2.0)], "duck": 0.15,
                        "sends": {"hall": -10.0, "delay": -13.0}}
-    return sp
+    return mlib.apply_prefs(sp)          # the shared sub and bass levels (tools/audio/music/mischung.json)
 
 
 def automation(name: str, rd: ms.Render) -> np.ndarray | None:
@@ -223,7 +223,7 @@ def register(man: ml.Manifest, write_import: bool) -> dict:
         mlib.write_ogg_import_keep(path, ms.LOOP_OFFSET_S, ms.BPM, 0, 4)
     man.drop_generator(GENERATOR)
     e = man.add(SOUND_ID, FILE_NAME, "music", GENERATOR, loop=(ms.N_LOOP_START, ms.N_FILE), role="title",
-                bus="MMusic", gain_db=0.0, bpm=ms.BPM, bar_beats=4,
+                bus="MMusic", gain_db=mlib.prefs()["menu_music_db"], bpm=ms.BPM, bar_beats=4,
                 note="Titelmelodie v0.5.0, Remaster: gleiche Noten, neue Produktion; Intro 15 s einmal, dann Schleife")
     e["piece"] = "titel"
     e["intro_bars"] = ms.INTRO_BARS
