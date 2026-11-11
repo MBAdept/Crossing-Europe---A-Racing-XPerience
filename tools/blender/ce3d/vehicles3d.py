@@ -23,6 +23,7 @@ from . import lod as LOD
 from .export import Lod, ModelData, Part, sprite_extent
 
 GREY = np.array([120, 120, 120, 255], dtype=np.uint8)
+SLIVER_M = 1.5e-4          # triangles lower than this are dropped (core.MeshBuilder.finish)
 
 # Lamp parts of the 3D builds, applied to a copy of the design (same decal conventions as cesprites.designs):
 #   add      parts the sprites never needed (they show the cars from behind, lights as layers)
@@ -129,7 +130,7 @@ def _wheel_parts(nodes, pivots, origin, radius, mesh_name, same_axles, auto_lod=
         key = mesh_name if same_axles else "%s_%s" % (mesh_name, "f" if axle == 0 else "r")
         src = "wheel_%dr" % (0 if same_axles else axle)
         if key not in meshes:
-            meshes[key] = nodes[src].finish(origin=pivots[src])
+            meshes[key] = nodes[src].finish(origin=pivots[src], min_height=SLIVER_M)
         for side in ("l", "r"):
             node = "wheel_%d%s" % (axle, side)
             pos = core.model_point(np.asarray(pivots[node]) - origin)
@@ -224,14 +225,14 @@ def build_car(model_id, spec3d):
             model.lights = tr.lights(origin=origin)
             d = car.d
             same = d.get("tire_w_rear", d["tire_w"]) == d["tire_w"]
-            parts = [Part("body", "lod0_body", nodes["body"].finish(origin=origin))]
+            parts = [Part("body", "lod0_body", nodes["body"].finish(origin=origin, min_height=SLIVER_M))]
             parts += _wheel_parts(nodes, pivots, origin, car.R, "wheel", same)
             lods.append(Lod("lod0", LOD.VEHICLE_LOD_DIST["lod0"], parts))
         else:
             lods.append(Lod(level, LOD.VEHICLE_LOD_DIST[level], [Part("body", level + "_body",
-                                                                       nodes["body"].finish(origin=origin))]))
+                                                                       nodes["body"].finish(origin=origin, min_height=SLIVER_M))]))
     car, nodes, _p, origin, _tr, _st = _car_level(spec3d, "shadow", paint_hex, metal)
-    model.shadow = Part("body", "shadow", nodes["body"].finish(origin=origin))
+    model.shadow = Part("body", "shadow", nodes["body"].finish(origin=origin, min_height=SLIVER_M))
     model.lods = lods
     model.paint = {"paint": paint_hex, "metal": metal}
     model.tags = list(sspec.get("tags", []))
@@ -327,10 +328,15 @@ def _player_level(spec3d, level):
         groups = {}
         for s_ in soups:
             key = re.sub(r"\.\d+$", "", s_.name)
-            groups[key] = groups.get(key, 0) + s_.n
-        print("--- %s %s: %d triangles in %d objects" % (spec3d["design"], level, sum(groups.values()), len(soups)))
-        for k, v in sorted(groups.items(), key=lambda kv: -kv[1])[:45]:
-            print("   %6d  %s" % (v, k))
+            e = groups.setdefault(key, [0, 0])
+            e[0] += s_.n
+            if s_.n:
+                g = np.cross(s_.pos[:, 1] - s_.pos[:, 0], s_.pos[:, 2] - s_.pos[:, 0])
+                e[1] += int((np.einsum("ij,ij->i", g, s_.nor.sum(axis=1)) < 0).sum())
+        print("--- %s %s: %d triangles in %d objects (+ lining %d)" % (
+            spec3d["design"], level, sum(v[0] for v in groups.values()), len(soups), lin_pos.shape[0]))
+        for k, v in sorted(groups.items(), key=lambda kv: -kv[1][0])[:int(os.environ.get("CE_STATS") or 45)]:
+            print("   %6d  %s%s" % (v[0], k, "   (%d wound against their normals)" % v[1] if v[1] else ""))
     over = dict(PLAYER_OVERRIDES)
     over.update(spec3d.get("overrides", {}))
     tr = roles.Translator(overrides=over, default_paint={"paint": params["paint"]},
@@ -427,7 +433,7 @@ def build_player(model_id, spec3d):
         car, info, params, nodes, pivots, tr = _player_level(spec3d, level)
         d = car.d
         same = d.get("tw_r", d["tw"]) == d["tw"]
-        parts = [Part("body", level + "_body", nodes["body"].finish())]
+        parts = [Part("body", level + "_body", nodes["body"].finish(min_height=SLIVER_M))]
         parts += _wheel_parts(nodes, pivots, origin, car.R, wheel_mesh, same)
         lods.append(Lod(level, 100000 if level == "lod0" else 0, parts))
         if level == "lod0":

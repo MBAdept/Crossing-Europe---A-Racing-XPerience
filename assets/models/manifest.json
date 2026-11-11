@@ -36,7 +36,7 @@
     {
      "name": "lod0",
      "max_dist_m": 100000,
-     "tris": 46438,
+     "tris": 46696,
      "parts": [
       {
        "node": "body",
@@ -78,7 +78,7 @@
     {
      "name": "show",
      "max_dist_m": 0,
-     "tris": 102311,
+     "tris": 102796,
      "parts": [
       {
        "node": "body",
@@ -156,6 +156,34 @@
      "color": "#ffa01a"
     },
     {
+     "role": "ind_l",
+     "pos": [-0.793, 0.6888, -1.8142],
+     "dir": [-0.533, 0.653, -0.537],
+     "size": 0.06,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-0.7229, 0.8743, 1.9977],
+     "dir": [-0.465, 0.218, 0.858],
+     "size": 0.129,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [0.7232, 0.8745, 1.9982],
+     "dir": [0.465, 0.219, 0.858],
+     "size": 0.129,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [0.7937, 0.6898, -1.8148],
+     "dir": [0.532, 0.656, -0.534],
+     "size": 0.06,
+     "color": "#ffa01a"
+    },
+    {
      "role": "ind_r",
      "pos": [1.0967, 1.0112, -0.8434],
      "dir": [1, 0, 0],
@@ -180,8 +208,8 @@
    "paint": {"paint": "#f0b30a", "metal": 0},
    "auto_lod": false,
    "tags": ["player"],
-   "bytes": 1604270,
-   "hash": "f08cc815ae8da578fd36c788f7c9fb2e5884f9cd"
+   "bytes": 1616880,
+   "hash": "e7f5a6be78fd6064420c6e7d09bec10355ce4a92"
   },
   "player/limousine": {
    "kind": "vehicle",
@@ -787,6 +815,230 @@
    "tags": ["traffic", "car"],
    "bytes": 248318,
    "hash": "b63b3b4c57a199f09b2e5de7a9a7e6b3c9d99df3"
+  },
+  "traffic/truck": {
+   "kind": "heavy",
+   "object": {"width_m": 2.55, "length_m": 16.5, "height_m": 4},
+   "aabb": [-1.535, 0, -8.25, 1.535, 4, 8.291],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 18068,
+     "parts": [
+      {
+       "node": "tractor/body",
+       "mesh": "traffic/truck/lod0_tractor.res",
+       "classes": ["vpbr", "glass"]
+      },
+      {
+       "node": "tractor/wheel_0l",
+       "mesh": "traffic/truck/wheel_front.res",
+       "classes": ["vpbr"],
+       "pos": [-1.085, 0.53, -7],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.53, "steer": true}
+      },
+      {
+       "node": "tractor/wheel_0r",
+       "mesh": "traffic/truck/wheel_front.res",
+       "classes": ["vpbr"],
+       "pos": [1.085, 0.53, -7],
+       "wheel": {"radius": 0.53, "steer": true}
+      },
+      {
+       "node": "tractor/wheel_1l",
+       "mesh": "traffic/truck/wheel_drive.res",
+       "classes": ["vpbr"],
+       "pos": [-0.9175, 0.53, -3.1],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.53, "steer": false}
+      },
+      {
+       "node": "tractor/wheel_1r",
+       "mesh": "traffic/truck/wheel_drive.res",
+       "classes": ["vpbr"],
+       "pos": [0.9175, 0.53, -3.1],
+       "wheel": {"radius": 0.53, "steer": false}
+      },
+      {
+       "node": "trailer/body",
+       "mesh": "traffic/truck/lod0_trailer.res",
+       "classes": ["vpbr"],
+       "pos": [0, 1.19, -3.7]
+      },
+      {
+       "node": "trailer/wheel_0l",
+       "mesh": "traffic/truck/wheel_trailer.res",
+       "classes": ["vpbr"],
+       "pos": [-1.0525, 0.53, 2.63],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.53, "steer": false}
+      },
+      {
+       "node": "trailer/wheel_0r",
+       "mesh": "traffic/truck/wheel_trailer.res",
+       "classes": ["vpbr"],
+       "pos": [1.0525, 0.53, 2.63],
+       "wheel": {"radius": 0.53, "steer": false}
+      },
+      {
+       "node": "trailer/wheel_1l",
+       "mesh": "traffic/truck/wheel_trailer.res",
+       "classes": ["vpbr"],
+       "pos": [-1.0525, 0.53, 3.94],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.53, "steer": false}
+      },
+      {
+       "node": "trailer/wheel_1r",
+       "mesh": "traffic/truck/wheel_trailer.res",
+       "classes": ["vpbr"],
+       "pos": [1.0525, 0.53, 3.94],
+       "wheel": {"radius": 0.53, "steer": false}
+      },
+      {
+       "node": "trailer/wheel_2l",
+       "mesh": "traffic/truck/wheel_trailer.res",
+       "classes": ["vpbr"],
+       "pos": [-1.0525, 0.53, 5.25],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.53, "steer": false}
+      },
+      {
+       "node": "trailer/wheel_2r",
+       "mesh": "traffic/truck/wheel_trailer.res",
+       "classes": ["vpbr"],
+       "pos": [1.0525, 0.53, 5.25],
+       "wheel": {"radius": 0.53, "steer": false}
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 180,
+     "tris": 4660,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/truck/lod1_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    },
+    {
+     "name": "lod2",
+     "max_dist_m": 100000,
+     "tris": 1490,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/truck/lod2_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    }
+   ],
+   "shadow": {"mesh": "traffic/truck/shadow.res", "tris": 156},
+   "lights": [
+    {
+     "role": "brake",
+     "pos": [-0.8525, 0.82, 8.25],
+     "dir": [0, 0, 1],
+     "size": 0.234,
+     "color": "#ff2010"
+    },
+    {
+     "role": "brake",
+     "pos": [0.8525, 0.82, 8.25],
+     "dir": [0, 0, 1],
+     "size": 0.234,
+     "color": "#ff2010"
+    },
+    {
+     "role": "head",
+     "pos": [-0.875, 0.96, -8.25],
+     "dir": [0, 0, -1],
+     "size": 0.252,
+     "color": "#fff3d6"
+    },
+    {
+     "role": "head",
+     "pos": [0.875, 0.96, -8.25],
+     "dir": [0, 0, -1],
+     "size": 0.252,
+     "color": "#fff3d6"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-1.1, 0.96, -8.25],
+     "dir": [0, 0, -1],
+     "size": 0.202,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-1.0875, 0.82, 8.25],
+     "dir": [0, 0, 1],
+     "size": 0.239,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [1.0875, 0.82, 8.25],
+     "dir": [0, 0, 1],
+     "size": 0.239,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [1.1, 0.96, -8.25],
+     "dir": [0, 0, -1],
+     "size": 0.202,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "marker",
+     "pos": [-1.14, 3.945, 8.25],
+     "dir": [0, 0, 1],
+     "size": 0.124,
+     "color": "#ff1a0e"
+    },
+    {
+     "role": "marker",
+     "pos": [1.14, 3.945, 8.25],
+     "dir": [0, 0, 1],
+     "size": 0.124,
+     "color": "#ff1a0e"
+    },
+    {
+     "role": "tail",
+     "pos": [-0.8525, 0.82, 8.25],
+     "dir": [0, 0, 1],
+     "size": 0.234,
+     "color": "#ff2010"
+    },
+    {
+     "role": "tail",
+     "pos": [0.8525, 0.82, 8.25],
+     "dir": [0, 0, 1],
+     "size": 0.234,
+     "color": "#ff2010"
+    }
+   ],
+   "paint": {"paint": "#ececea", "paint2": "#ecece8", "paint3": "#1f4f9a", "metal": 0.1},
+   "groups": {
+    "tractor": {
+     "pivot": [0, 0, -3.1]
+    },
+    "trailer": {
+     "pivot": [0, 1.19, -3.7]
+    }
+   },
+   "auto_lod": false,
+   "tags": ["traffic", "heavy"],
+   "bytes": 157508,
+   "hash": "cc70b9dfbcb2ad2ee7488097a1691ac05adde01d"
   },
   "traffic/wagon": {
    "kind": "vehicle",
@@ -1626,24 +1878,20 @@
    "paint": {"paint": "#ececea", "metal": 0.1}
   },
   "traffic/truck_blue": {
-   "fallback": "box",
-   "object": {"width_m": 2.55, "length_m": 16.5, "height_m": 4.0},
-   "paint": {"paint": "#21468f", "metal": 0.45}
+   "model": "traffic/truck",
+   "paint": {"paint": "#21468f", "paint2": "#21468f", "paint3": "#e9e9e5", "metal": 0.1}
   },
   "traffic/truck_green": {
-   "fallback": "box",
-   "object": {"width_m": 2.55, "length_m": 16.5, "height_m": 4.0},
-   "paint": {"paint": "#2e6b3a", "metal": 0.4}
+   "model": "traffic/truck",
+   "paint": {"paint": "#2e6b3a", "paint2": "#e8e8e4", "paint3": "#2e6b3a", "metal": 0.1}
   },
   "traffic/truck_red": {
-   "fallback": "box",
-   "object": {"width_m": 2.55, "length_m": 16.5, "height_m": 4.0},
-   "paint": {"paint": "#b02a24", "metal": 0.3}
+   "model": "traffic/truck",
+   "paint": {"paint": "#b02a24", "paint2": "#b02a24", "paint3": "#b02a24", "metal": 0.1}
   },
   "traffic/truck_white": {
-   "fallback": "box",
-   "object": {"width_m": 2.55, "length_m": 16.5, "height_m": 4.0},
-   "paint": {"paint": "#ececea", "metal": 0.1}
+   "model": "traffic/truck",
+   "paint": {"paint": "#ececea", "paint2": "#ecece8", "paint3": "#1f4f9a", "metal": 0.1}
   },
   "traffic/van_darkblue": {
    "fallback": "box",

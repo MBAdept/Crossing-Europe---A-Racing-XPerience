@@ -291,7 +291,12 @@ def features_kompakt(car, d, mats):
             dict(kind="guide", path=[(0.44, 0.902), (0.62, 0.908), (0.80, 0.914), (0.85, 0.905), (0.855, 0.83)],
                  width=0.012),
             dict(kind="guide", path=[(0.47, 0.862), (0.53, 0.858)], width=0.01, smooth=False),
-        ]), tag="tail")
+        ] + ([
+            # real-time model only: indicator bars between the brake segment and the light guide and in the outer
+            # lower corner (together about 90 cm2 seen from straight behind)
+            dict(kind="indicator", path=[(0.45, 0.886), (0.842, 0.886)], width=0.018, smooth=False, offset=0.0058),
+            dict(kind="indicator", path=[(0.70, 0.827), (0.852, 0.823)], width=0.018, smooth=False, offset=0.0058),
+        ] if car.detail["extras"] else [])), tag="tail")
     car.patch([(-0.405, 0.848), (0.405, 0.848), (0.405, 0.905), (-0.405, 0.905)], "rear", black, offset=0.0012,
               res=0.01, sym=False, name="tailband")
     emblem(car, (0.0, 0.877), "rear", chrome)
@@ -310,7 +315,8 @@ def features_kompakt(car, d, mats):
                       parts=[dict(kind="dark", outline=C.rounded_rect(-0.47, 0.335, 0.08, 0.022, 0.008, 3))],
                       target="bumper_rear"), tag="fog")
     CD.lamp(car, dict(outline=C.rounded_rect(0.47, 0.335, 0.09, 0.03, 0.01, 3), depth=0.006, tint="#e8eaee", sym=False,
-                      parts=[dict(kind="white", outline=C.rounded_rect(0.47, 0.335, 0.08, 0.022, 0.008, 3))],
+                      parts=[dict(kind="white", outline=C.rounded_rect(0.47, 0.335, 0.08, 0.022, 0.008, 3),
+                                  lamp="reverse")],
                       target="bumper_rear"), tag="reverse")
     standard_side(car, d, mats,
                   seams=[[(2.875, 0.975), (2.875, 0.27)], [(1.99, 0.975), (1.99, 0.27)],
@@ -326,7 +332,10 @@ def features_kompakt(car, d, mats):
         dict(kind="dark", outline=C.ellipse(0.55, 0.678, 0.034, 0.024, 24)),
         dict(kind="dark", outline=C.ellipse(0.66, 0.672, 0.034, 0.024, 24)),
         dict(kind="white", path=[(0.43, 0.664), (0.72, 0.645), (0.82, 0.66), (0.835, 0.69)], width=0.011),
-    ])
+    ] + ([
+        # real-time model only: indicator at the outer end of the headlight
+        dict(kind="indicator", path=[(0.752, 0.682), (0.822, 0.686)], width=0.018, smooth=False, offset=0.0052),
+    ] if car.detail["extras"] else []))
     car.patch([(-0.40, 0.615), (0.40, 0.615), (0.415, 0.668), (-0.415, 0.668)], "front", grille_mat(car), offset=0.0015,
               res=0.01, sym=False, name="grille")
     car.stripe([(-0.41, 0.652), (0.41, 0.652)], 0.007, "front", car.mat("red_pin", "#d01418", rough=0.3, coat=0.6),

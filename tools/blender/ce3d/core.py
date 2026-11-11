@@ -192,14 +192,33 @@ class MeshBuilder:
                 self.chunks.setdefault(cls, []).append((pos + (0.0 if offset is None else np.asarray(offset)),
                                                         nor, col, uv, uv2))
 
-    def finish(self, origin=None):
+    def finish(self, origin=None, min_height=0.0):
         """[(class, dict(pos, nor, idx, col, uv, uv2))] in CLASS_ORDER; positions relative to origin
-        (Blender space) and converted to model space. Degenerate triangles are dropped."""
+        (Blender space) and converted to model space. Degenerate triangles are dropped.
+        min_height (m): also drops slivers - triangles whose smallest height is below it. The cuts of decals and
+        openings leave triangles a few hundredths of a millimetre high; the baked meshes store positions in
+        16 bits (0.07 mm for a car), so such a triangle can come out wound the other way (the validator counted
+        them as inside-out faces). What they leave open is narrower than they were."""
         out = []
         for cls in CLASS_ORDER:
             cs = self.chunks.get(cls)
             if not cs:
                 continue
+            if min_height > 0.0:
+                kept = []
+                for c in cs:
+                    p = c[0]
+                    e = np.stack([np.linalg.norm(p[:, 1] - p[:, 0], axis=1), np.linalg.norm(p[:, 2] - p[:, 1], axis=1),
+                                  np.linalg.norm(p[:, 0] - p[:, 2], axis=1)], axis=1)
+                    area2 = np.linalg.norm(np.cross(p[:, 1] - p[:, 0], p[:, 2] - p[:, 0]), axis=1)
+                    ok = area2 >= min_height * e.max(axis=1)
+                    if ok.all():
+                        kept.append(c)
+                    elif ok.any():
+                        kept.append(tuple(None if a is None else a[ok] for a in c))
+                cs = kept
+                if not cs:
+                    continue
             pos = np.concatenate([c[0] for c in cs])
             nor = np.concatenate([c[1] for c in cs])
 

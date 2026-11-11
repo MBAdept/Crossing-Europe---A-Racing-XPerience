@@ -235,7 +235,8 @@ def build_interior(car, fine=False):
     # inside mirror at the windshield header
     zr = headroom(car, lay["ws_t"] + 0.06, 0.0)
     parts.box("mirror", (0.22, 0.02, 0.06), (0.0, lay["ws_t"] + 0.10, zr - 0.02), rot_x=8.0)
-    bev = dict(seat=0.028, seat_mid=0.0, dash=0.03, dash_top=0.012, shelf=0.0, tub=0.0, trim=0.0, wheel=0.0,
+    # bevel widths stay well under half the thinnest box of their group (wider ones fold faces over)
+    bev = dict(seat=0.028, seat_mid=0.0, dash=0.02, dash_top=0.007, shelf=0.0, tub=0.0, trim=0.0, wheel=0.0,
                screen=0.0, mirror=0.008)
     obs = parts.finish(bev, 3 if fine else 2)
     for ob in obs:

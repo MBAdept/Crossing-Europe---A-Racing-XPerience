@@ -7,7 +7,8 @@ the sprite renders):
                        tint, frost, slot (paint slot of a 'paint' role: paint | paint2 | paint3)
   object["ce_node"]    node of the model the object belongs to (body, wheel_0l, ...; "none" = sprite only)
   object["ce_lamp"]    lamp channel of every face of the object ("ind", "head", "drl:0.8", ...), overrides
-                       what the emission of the material says
+                       what the emission of the material says; a leading "-" ("-marker:1:#ffa21a") = a lamp
+                       without a light anchor in the manifest (side markers, the plate lamp)
   material["ce_node"]  faces with this material go to that node instead (brake calipers -> body)
 An untagged object or material is an error: nothing is guessed from names.
 
@@ -174,6 +175,9 @@ class Translator:
             mb.add("glass", pos, nor, col, (0.05, 0.0))
             return
         lamp = None
+        anchor = True
+        if isinstance(lamp_tag, str) and lamp_tag.startswith("-"):
+            lamp_tag, anchor = lamp_tag[1:], False
         if lamp_tag == "none":
             d = dict(d)
             d.pop("emit", None)             # explicitly not a lamp (front number plate)
@@ -183,7 +187,10 @@ class Translator:
                 lit = core.hex_to_lin(d["lit"]) if d.get("lit") else None
             lamp = (name, w, lit)
         elif d.get("lamp"):
-            lamp = parse_lamp(d["lamp"])
+            spec = str(d["lamp"])
+            if spec.startswith("-"):
+                spec, anchor = spec[1:], False
+            lamp = parse_lamp(spec)
         else:
             lamp = lamp_from_emit(d.get("emit"))
         base = _color(d, (0.5, 0.5, 0.5))
@@ -205,11 +212,11 @@ class Translator:
             cx = pos[:, :, 0].mean(axis=1)
             for side, sel in (("ind_r", cx >= 0.0), ("ind_l", cx < 0.0)):
                 if sel.any():
-                    self._lamp(mb, side, w, lit, base, rough, metal, pos[sel], nor[sel])
+                    self._lamp(mb, side, w, lit, base, rough, metal, pos[sel], nor[sel], anchor)
             return
-        self._lamp(mb, name, w, lit, base, rough, metal, pos, nor)
+        self._lamp(mb, name, w, lit, base, rough, metal, pos, nor, anchor)
 
-    def _lamp(self, mb, name, w, lit, base, rough, metal, pos, nor):
+    def _lamp(self, mb, name, w, lit, base, rough, metal, pos, nor, anchor=True):
         ch = CHANNELS[name]
         if lit is None:
             lit = core.hex_to_lin(LIT.get(name, "#ffffff"))
@@ -218,7 +225,7 @@ class Translator:
         col[3] = PAINT_CODES["fixed"]
         w = float(min(1.0, max(0.0, w)))
         mb.add("vpbr", pos, nor, col, (rough, metal), (ch + 0.5, w))
-        if name in ANCHOR_ROLES and w >= 0.25:
+        if anchor and name in ANCHOR_ROLES and w >= 0.25:
             self.anchors.append((name, np.asarray(pos, dtype=np.float64), core.tri_areas(pos),
                                  np.asarray(lit, dtype=np.float64)))
 

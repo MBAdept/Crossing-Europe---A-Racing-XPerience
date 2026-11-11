@@ -10,7 +10,7 @@
    {
     "name": "lod0",
     "max_dist_m": 100000,
-    "tris": 46438,
+    "tris": 46696,
     "parts": [
      {
       "node": "body",
@@ -52,7 +52,7 @@
    {
     "name": "show",
     "max_dist_m": 0,
-    "tris": 102311,
+    "tris": 102796,
     "parts": [
      {
       "node": "body",
@@ -130,6 +130,34 @@
     "color": "#ffa01a"
    },
    {
+    "role": "ind_l",
+    "pos": [-0.793, 0.6888, -1.8142],
+    "dir": [-0.533, 0.653, -0.537],
+    "size": 0.06,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-0.7229, 0.8743, 1.9977],
+    "dir": [-0.465, 0.218, 0.858],
+    "size": 0.129,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [0.7232, 0.8745, 1.9982],
+    "dir": [0.465, 0.219, 0.858],
+    "size": 0.129,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [0.7937, 0.6898, -1.8148],
+    "dir": [0.532, 0.656, -0.534],
+    "size": 0.06,
+    "color": "#ffa01a"
+   },
+   {
     "role": "ind_r",
     "pos": [1.0967, 1.0112, -0.8434],
     "dir": [1, 0, 0],
@@ -154,8 +182,8 @@
   "paint": {"paint": "#f0b30a", "metal": 0},
   "auto_lod": false,
   "tags": ["player"],
-  "bytes": 1604270,
-  "hash": "f08cc815ae8da578fd36c788f7c9fb2e5884f9cd"
+  "bytes": 1616880,
+  "hash": "e7f5a6be78fd6064420c6e7d09bec10355ce4a92"
  },
  "sets": {
   "player/kompakt": {

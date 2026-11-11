@@ -40,12 +40,12 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 CACHE = os.path.join(HERE, "_cache3d")
 # rough export cost per builder (s) - only used to balance two workers
-COST = {"player": 150.0, "car": 40.0, "tree": 30.0, "prop_vpbr": 3.0, "prop_baked": 120.0}
+COST = {"player": 150.0, "car": 40.0, "heavy": 30.0, "tree": 30.0, "prop_vpbr": 3.0, "prop_baked": 120.0}
 
 
 BUILDERS = {"prop_vpbr": ("ce3d.props3d", "build_vpbr"), "prop_baked": ("ce3d.props3d", "build_baked"),
             "tree": ("ce3d.veg3d", "build_tree"), "car": ("ce3d.vehicles3d", "build_car"),
-            "player": ("ce3d.vehicles3d", "build_player")}
+            "player": ("ce3d.vehicles3d", "build_player"), "heavy": ("ce3d.truck3d", "build_truck")}
 
 
 def builder(name):
