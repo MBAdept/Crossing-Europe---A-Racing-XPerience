@@ -13,12 +13,15 @@ extends SceneTree
 ##              all cars exist); no node is created while the same cars drive on
 ##   schilder   the signs of the stage are drawn from the atlas made in prepare(): no SubViewport and no texture
 ##              is created while driving (SignAtlas counters), every sign the chunks hold has an atlas cell
+##   lampen_fest  renderer.add_lamps(parent, lamps) (A-7) reaches the flare layer: static lamps glow at night (not
+##              by day), follow their parent when it moves, are stronger far away (far-field glow) and are forgotten
+##              when the parent leaves the tree
 ## Prints "CHECK <name> OK|FEHLER …"; exit code 0 when all pass. (Autoloads are reached untyped: -s scripts compile
 ## before the autoloads exist.)
 
 const RACE := "res://scenes/race/race.tscn"
 const PROBE := "res://tests/race3d/fixtures/vehicle_probe_renderer.gd"
-const CHECKS := ["lampen", "kasten", "leistung", "schilder"]
+const CHECKS := ["lampen", "kasten", "leistung", "schilder", "lampen_fest"]
 const PLAYER_ID := -999999
 
 var _failed: Array[String] = []
@@ -239,6 +242,69 @@ func _check_leistung() -> void:
 	await _free(sc)
 	_report("leistung", p, "%d Autos (Pkw, Lkw, Kästen, Polizei): Fahrzeug-Ebene im Median %.1f µs je Auto und Bild (p90 %.1f µs), %d Knotenbauten beim Erscheinen" % [
 		drawn, median, samples[int(samples.size() * 0.9)], int(after["vehicle_builds"])])
+
+
+# --- lampen_fest -----------------------------------------------------------------------------------------------------
+
+func _statics(fl: Node) -> Array:
+	var out: Array = []
+	for f: Dictionary in fl.call("flares"):
+		if not bool(f["vehicle"]):
+			out.append(f)
+	return out
+
+
+func _check_lampen_fest() -> void:
+	var p: Array[String] = []
+	var msgs: Array[String] = []
+	for hour: float in [12.0, 22.0]:
+		var sc := _launch({"autopilot": false, "start_speed_kmh": 0.0, "start_world_minutes": hour * 60.0})
+		var r := await _ready_stage(sc)
+		var fl: Node = r.layer("flares")
+		if fl == null:
+			_need(p, false, "Ebene flares")
+			await _free(sc)
+			break
+		var cam_z := float(r.view.get("camera_z", 0.0))
+		var near := Node3D.new()
+		var far := Node3D.new()
+		r.world.add_child(near)
+		r.world.add_child(far)
+		near.transform = r.path.frame_at(cam_z + 40.0, 9.0, 0.0)
+		far.transform = r.path.frame_at(cam_z + 0.6 * float(r.visibility_m), 9.0, 0.0)
+		var lamp := {"pos": Vector3(-2.1, 9.3, 0.0), "dir": Vector3.DOWN, "role": "lights", "color": Color(1.0, 0.94, 0.8), "size": 0.6,
+			"range": 12.0, "energy": 1.0}
+		r.add_lamps(near, [lamp])
+		r.add_lamps(far, [lamp])
+		await _frames(3)
+		var st := _statics(fl)
+		if hour < 18.0:
+			_need(p, st.is_empty(), "bei Tag leuchten die Lampen nicht (%d Lichtpunkte)" % st.size())
+		else:
+			_need(p, st.size() == 2, "nachts beide Lampen als Lichtpunkt (%d)" % st.size())
+			if st.size() == 2:
+				var a: Dictionary = st[0]
+				var b: Dictionary = st[1]
+				var near_f: Dictionary = a if (a["pos"] as Vector3).distance_to(near.global_position) < (b["pos"] as Vector3).distance_to(near.global_position) else b
+				var far_f: Dictionary = b if near_f == a else a
+				var want := near.global_transform * (Vector3(-2.1, 9.3, 0.0) + Vector3.DOWN * 0.12)
+				_need(p, (near_f["pos"] as Vector3).distance_to(want) < 0.01, "Lichtpunkt am Ort der Lampe (%s gegen %s)" % [str(near_f["pos"]), str(want)])
+				_need(p, float(far_f["strength"]) > float(near_f["strength"]), "fern stärker als nah – Fernschein, wo die Leuchte unter einem Pixel ist (%.2f / %.2f)" % [float(far_f["strength"]), float(near_f["strength"])])
+				msgs.append("Nacht: nah %.2f, fern %.2f" % [float(near_f["strength"]), float(far_f["strength"])])
+				# the parent moves: the flare follows
+				near.position += Vector3(0.0, 0.0, -5.0)
+				await _frames(2)
+				var moved := false
+				for f: Dictionary in _statics(fl):
+					moved = moved or (f["pos"] as Vector3).distance_to(near.global_transform * (Vector3(-2.1, 9.3, 0.0) + Vector3.DOWN * 0.12)) < 0.01
+				_need(p, moved, "Lichtpunkt folgt seinem Knoten")
+		near.queue_free()
+		far.queue_free()
+		await _frames(3)
+		_need(p, _statics(fl).is_empty(), "%.0f Uhr: Lampen vergessen, wenn der Knoten den Baum verlässt" % hour)
+		_need(p, int((fl.call("snapshot") as Dictionary)["lights"]["static_lamps"]) == 0, "%.0f Uhr: keine Lampe mehr angemeldet" % hour)
+		await _free(sc)
+	_report("lampen_fest", p, "add_lamps() → Ebene flares: bei Tag aus; %s; folgt dem Knoten; vergessen beim Freigeben" % ", ".join(msgs))
 
 
 # --- schilder ----------------------------------------------------------------------------------------------------

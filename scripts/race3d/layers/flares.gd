@@ -150,11 +150,12 @@ func _add_statics(view: Dictionary) -> void:
 	var i := 0
 	while i < _static.size():
 		var e: Array = _static[i]
-		var parent: Node3D = e[0]
-		if not is_instance_valid(parent) or not parent.is_inside_tree():
+		var pv: Variant = e[0]
+		if not is_instance_valid(pv) or not (pv as Node3D).is_inside_tree():
 			_static_count -= (e[1] as Array).size()
 			_static.remove_at(i)
 			continue
+		var parent: Node3D = pv
 		var gt := parent.global_transform
 		var lamps: Array = e[1]
 		if not bool(e[5]) or not gt.is_equal_approx(e[2]):
@@ -194,6 +195,7 @@ func _add_statics(view: Dictionary) -> void:
 			var s := on * float(l.get("energy", 1.0)) * alpha * lerpf(STATIC_HALO, 1.0, far)
 			var col: Color = l.get("color", Color(1.0, 0.9, 0.7))
 			_put(p, dirs[j], col, s, size * STATIC_K, STATIC_MIN_PX, 0.0, size * 0.5)
+		i += 1
 
 
 func _put(pos: Vector3, dir: Vector3, col: Color, s: float, k: float, min_px: float, kind: float, lamp_r: float) -> void:
