@@ -738,8 +738,9 @@ func test_old_town_share_on_its_streets_around_a_bridge() -> void:
 
 
 ## The allocation with stretches that are no street: a block counts with its street metres only, a block wholly on
-## a bridge is never cobbled, the streets get their share within half a block, and a stretch outside the centre (the
-## bridges of Hamburg lie 11 and 17 km before the finish, its centre is the last 8 km) changes nothing at all.
+## a bridge is never cobbled, the streets get their share within 0.6 ± 0.05 (the greedy alone missed it by up to half
+## a block of the shorter base), and a stretch outside the centre (the bridges of Hamburg lie 11 and 17 km before the
+## finish, its centre is the last 8 km) changes nothing at all.
 func test_cobbled_blocks_count_only_the_streets() -> void:
 	var cases: Array = [[800.0, [[300.0, 600.0]]], [660.0, [[280.0, 660.0]]], [1000.0, [[350.0, 480.0]]],
 		[800.0, [[0.0, 40.0], [200.0, 242.0], [505.0, 545.0]]], [900.0, [[600.0, 700.0], [650.0, 800.0]]]]
@@ -767,6 +768,8 @@ func test_cobbled_blocks_count_only_the_streets() -> void:
 					assert_true((a1 - a0) - on_bridge > 0.5, "%s: Block %d ganz auf der Brücke nie gepflastert" % [name, b])
 			assert_true(absf(cobbled - 0.6 * street) <= 45.0 + 1.0e-6,
 				"%s, %.0f m: Straßenanteil %.3f (höchstens ein halber Block neben 0,6)" % [name, centre_m, cobbled / street])
+			assert_true(absf(cobbled / street - 0.6) <= AudioFeed.COBBLE_BAND + 1.0e-9,
+				"%s, %.0f m: Straßenanteil %.3f im Band 0,6 ± 0,05" % [name, centre_m, cobbled / street])
 			sum_share += cobbled / street
 			n_share += 1
 	assert_near(sum_share / n_share, 0.6, 0.03, "im Mittel der Städte 0,6 (%.3f)" % (sum_share / n_share))

@@ -54,6 +54,9 @@ const PROP_KINDS: Array = [
 ## Scenery background style (data/scenery.json) -> zone.
 const STYLE_ZONES := {"forest": "forest", "mountains": "valley", "alps": "valley", "city": "city", "suburb": "city",
 	"industrial": "city"}
+## An old town cut by bridges without a stone deck gets its cobble share on its streets within ± this (AU-R3: the
+## acceptance band of docs/audio-modern.md; see cobbled_blocks).
+const COBBLE_BAND := 0.05
 const DELINEATOR_SIZE := 0.15
 const DELINEATOR_INSET_M := 0.3   ## the posts stand this far inside the outer edge of the shoulder (as drawn)
 const POST_RADIUS_M := 0.06       ## half the width of a delineator post (contact)
@@ -446,7 +449,10 @@ func _cobbled(km: float) -> bool:
 ## `skip`: stretches of the centre that are no street ([from, to] in visible metres before the finish – the bridges
 ## without a stone deck, bridge_stretches; AU-R3). A block counts only with its street metres and the share is that of
 ## the streets, so no cobbled block is spent on a bridge where the car hears none; a block wholly on such a bridge is
-## never cobbled. Without such a stretch inside the centre the result is the one without `skip`, bit for bit.
+## never cobbled. The shorter base makes half a block a larger share (Amsterdam, Regensburg, Timişoara, Kaunas and Linz
+## got 0.65–0.66 from the greedy alone): while a centre cut by such a stretch misses the share by more than COBBLE_BAND,
+## single moves bring it nearer (_closer). Without such a stretch inside the centre the result is the one without
+## `skip`, bit for bit.
 static func cobbled_blocks(city: String, centre_m: float, block_m: float, share: float, skip: Array = []) -> Dictionary:
 	var out := {}
 	if centre_m <= 0.0 or block_m <= 0.0:
@@ -477,7 +483,51 @@ static func cobbled_blocks(city: String, centre_m: float, block_m: float, share:
 		if absf(got + w - target) < absf(got - target):
 			got += w
 			out[b] = true
+	if cut_all > 0.0:
+		_closer(out, street, order, got, target, COBBLE_BAND * (centre_m - cut_all))
 	return out
+
+
+## While the cobbled street metres `got` miss `target` by more than `band`: the best single move – drop a cobbled
+## block, swap it for one that is not, or add one (blocks in hash order, the first best move wins) – as long as one
+## brings them nearer. `out` is changed in place; returns the cobbled street metres. Deterministic: the same blocks,
+## the same hashes, the same result.
+static func _closer(out: Dictionary, street: Array[float], order: Array, got: float, target: float, band: float) -> float:
+	for _guard in street.size() * 2:
+		var err := absf(got - target)
+		if err <= band:
+			break
+		var best := err
+		var take := -1
+		var drop := -1
+		for ri: Array in order:
+			var i := int(ri[1])
+			if bool(out[i]):
+				if absf(got - street[i] - target) < best - 1.0e-6:
+					best = absf(got - street[i] - target)
+					take = -1
+					drop = i
+				for rj: Array in order:
+					var j := int(rj[1])
+					if bool(out[j]):
+						continue
+					if absf(got - street[i] + street[j] - target) < best - 1.0e-6:
+						best = absf(got - street[i] + street[j] - target)
+						take = j
+						drop = i
+			elif absf(got + street[i] - target) < best - 1.0e-6:
+				best = absf(got + street[i] - target)
+				take = i
+				drop = -1
+		if take < 0 and drop < 0:
+			break
+		if drop >= 0:
+			out[drop] = false
+			got -= street[drop]
+		if take >= 0:
+			out[take] = true
+			got += street[take]
+	return got
 
 
 ## The bridges of a plan without a stone deck as stretches [from, to] in visible metres before the finish: the car
