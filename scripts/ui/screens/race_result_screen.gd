@@ -81,7 +81,9 @@ func build() -> void:
 		_entry = {"time_s": race.total_time_s, "avg_kmh": race.average_kmh(ts), "vehicle": race.vehicle,
 			"weather": str(race.stage_legs()[0].get("weather", "normal")) if race.stage_count() > 0 else "normal",
 			"start_hour": race.start_hour, "daytime": WorldClock.daytime_category(race.start_hour, c),
-			"date": Time.get_date_string_from_system(), "route": race.route.duplicate()}
+			"date": Time.get_date_string_from_system(), "route": race.route.duplicate(),
+			# v0.8.0: hidden field for later analysis – never shown, never a filter (contract D15)
+			"gfx": race.gfx_summary()}
 		var headline := UiFormat.placement_headline(true, rank, rank_v, UiFormat.vehicle_name(race.vehicle, c))
 		var hl := UiKit.label(headline, UiTheme.F.TITLE, 30, UiTheme.GOLD, HORIZONTAL_ALIGNMENT_CENTER)
 		hl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

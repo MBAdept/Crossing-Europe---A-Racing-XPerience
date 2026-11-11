@@ -16,6 +16,12 @@ extends Node
 ## and the screen may dim / sleep (DisplayServer.screen_set_keep_on(false)) – a Steam Deck left on the title does not
 ## run demos on battery for hours; any input brings both back. Gamepad input does not count as activity for the
 ## system's screen saver, so the screen is kept on while somebody plays.
+## Graphics modes (v0.8.0): the demo runs in the effective mode – the setup names no mode, the race session takes
+## Settings.effective_graphics(). A Modern stage is prepared behind a loading picture first (models, shader warm-up:
+## frames to seconds): the demo stays black until the stage is live (RaceSession.is_live()), and its demo_s and the
+## progress line count from there, not from the start of the scene. An Arcade stage is live with its first step –
+## nothing changes for it. Modern fills the window (stretch aspect "expand", set by the session); GameFlow sets the
+## menus' aspect again when the demo returns to the title.
 ## Debug CLI: --attract-after=<s> (idle time), --attract-scene=<index|id> (first scene), --attract-demo-s=<s>,
 ## --attract-press=<s> (recordings: a key press – Enter, through the viewport like a player's – s seconds into the
 ## first demo), --no-attract.
@@ -36,6 +42,9 @@ const TRAFFIC_BUS_PREFIX := "TrafficV"
 ## Stick/trigger deflection that ends the demo (as InputMode.AXIS_THRESHOLD: resting noise does not count).
 const WAKE_AXIS := 0.5
 const OVERLAY_LAYER := 60
+## A demo whose stage is not live after this long (a Modern renderer that never finishes preparing and never falls
+## back) ends with "error" – the title comes back.
+const PREPARE_MAX_S := 90.0
 
 var enabled := true
 var idle_s := 60.0
@@ -62,6 +71,8 @@ var _last_activity := 0.0
 var _last_input := 0.0               ## last real input (a demo ending by itself does not count)
 var _screen_kept_on := true
 var _demo_t0 := 0.0
+var _demo_live := true               ## the demo's stage runs (false while a Modern renderer still prepares it)
+var _launch_t := 0.0                 ## when the demo's scene was started (PREPARE_MAX_S)
 var _guard_until := -1.0
 var _swallow: Dictionary = {}        ## keys/buttons pressed during the demo: swallowed until released
 var _saved_mutes: Dictionary = {}    ## bus name -> mute state before the demo
@@ -272,7 +283,15 @@ func _process(delta: float) -> void:
 				begin()
 		State.DEMO:
 			_keep_muted()
-			if _press_at >= 0.0 and t - _demo_t0 >= _press_at and is_inside_tree():
+			if not _demo_live:
+				# a Modern stage behind its loading picture: the demo begins when the stage does
+				if not stage_preparing():
+					_demo_live = true
+					_demo_t0 = t
+					_fade_to(0.0, fade_s)
+				elif t - _launch_t >= PREPARE_MAX_S:
+					finish("error")
+			elif _press_at >= 0.0 and t - _demo_t0 >= _press_at and is_inside_tree():
 				_press_at = -1.0
 				_press_key()
 			elif t - _demo_t0 >= demo_s:
@@ -368,6 +387,7 @@ func _launch() -> void:
 	race_scene = gf.call("start_attract_stage", setup) if gf != null and gf.has_method("start_attract_stage") else null
 	state = State.DEMO
 	_demo_t0 = now()
+	_launch_t = _demo_t0
 	demos_shown += 1
 	if race_scene == null or race_scene.get("plan") == null:
 		push_warning("Attract-Modus: Szene %s nicht ladbar" % str(current_scene.get("id", scene_index)))
@@ -376,7 +396,20 @@ func _launch() -> void:
 	_prepare_scene(race_scene, current_scene)
 	_show_overlay()
 	demo_started.emit(current_scene)
-	_fade_to(0.0, fade_s)
+	# an Arcade stage runs from its first step: fade in at once, as always. A Modern stage is prepared first – the
+	# demo stays black and its time stands until the stage is live (_process)
+	_demo_live = not stage_preparing()
+	if _demo_live:
+		_fade_to(0.0, fade_s)
+
+
+## True while the demo's race scene is still being prepared by a Modern renderer (loading picture, no simulation
+## step yet): the session is not live (RaceSession.is_live()) and holds the Screenshotters' clocks for it
+## (Screenshotter.preparing, raised by the session for exactly this time). An Arcade stage never is.
+func stage_preparing() -> bool:
+	if race_scene == null or not is_instance_valid(race_scene) or not race_scene.has_method("is_live"):
+		return false
+	return Screenshotter.preparing > 0 and not bool(race_scene.call("is_live"))
 
 
 ## Reduced HUD; the demo's own signals end it (the race flow never sees them). Start speed and lane come with the

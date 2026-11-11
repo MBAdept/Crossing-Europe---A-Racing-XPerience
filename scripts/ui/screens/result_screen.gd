@@ -92,9 +92,7 @@ func build() -> void:
 	var rank := UiData.would_rank(_board, time_s, "")
 	var rank_v := UiData.would_rank(_board, time_s, vehicle) if vehicle != "" else 0
 	if _board != "" and not bool(result.get("aborted", false)) and (rank > 0 or rank_v > 0):
-		_entry = {"time_s": time_s, "avg_kmh": float(result.get("avg_speed_kmh", 0.0)), "vehicle": vehicle,
-			"weather": str(result.get("weather", "normal")), "start_hour": float(result.get("start_hour", 8.0)),
-			"daytime": cond.daytime, "date": Time.get_date_string_from_system()}
+		_entry = leaderboard_entry(result, cond.daytime)
 		var head := UiFormat.placement_headline(false, rank, rank_v, UiFormat.vehicle_name(vehicle, c))
 		_right.add_child(UiKit.label(head, UiTheme.F.TITLE, 34, UiTheme.GOLD, HORIZONTAL_ALIGNMENT_CENTER))
 		_right.add_child(UiKit.label(tr("Trag dich in die Bestenliste ein:"), UiTheme.F.BODY_MEDIUM, 21, UiTheme.TEXT_DIM, HORIZONTAL_ALIGNMENT_CENTER))
@@ -110,6 +108,32 @@ func build() -> void:
 	else:
 		_show_board("", 0)
 		default_focus = _next
+	# v0.8.0: the stage was meant for the mode "Modern" but ran in Arcade – say so (nothing changes otherwise)
+	var fb_text := fallback_note(result)
+	if fb_text != "":
+		var fb := UiKit.label(fb_text, UiTheme.F.BODY_MEDIUM, 18, UiTheme.WARN)
+		fb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		UiKit.place(self, fb, Rect2(40, 618, 584, 50))
+
+
+## Leaderboard entry of a stage result. v0.8.0: "gfx" (the mode the stage was drawn in) and, after a fallback from
+## Modern, "gfx_fallback" – hidden fields for later analysis, never shown and never a filter (contract D15); the
+## leaderboards are shared by both modes.
+static func leaderboard_entry(res: Dictionary, daytime: String) -> Dictionary:
+	var e := {"time_s": float(res.get("time_s", 0.0)), "avg_kmh": float(res.get("avg_speed_kmh", 0.0)),
+		"vehicle": str(res.get("vehicle", "")), "weather": str(res.get("weather", "normal")),
+		"start_hour": float(res.get("start_hour", 8.0)), "daytime": daytime, "date": Time.get_date_string_from_system(),
+		"gfx": str(res.get("gfx", Gfx.ARCADE))}
+	if str(res.get("gfx_fallback", "")) != "":
+		e["gfx_fallback"] = str(res["gfx_fallback"])
+	return e
+
+
+## Note under the stage result when the stage was meant for the mode "Modern" but ran in Arcade ("" = none).
+static func fallback_note(res: Dictionary) -> String:
+	if str(res.get("gfx_fallback", "")) == "":
+		return ""
+	return UiFormat.t("Diese Etappe lief im Modus „Arcade“: „Modern“ ließ sich auf diesem Rechner nicht starten.")
 
 
 ## "Nächster Start (8 h Pause)" – the pause is time.stage_pause_hours (what RaceState adds). With the race: the pause

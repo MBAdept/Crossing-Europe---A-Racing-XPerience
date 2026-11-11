@@ -74,6 +74,12 @@ const DEFAULT_LEVELS := {
 const DEFAULT_WATCHDOG := {"countdown_min_fps": 30.0, "slow_factor": 1.3, "too_slow_factor": 2.0}
 ## Frame time watchdog_verdict() judges against when the caller has no usable target (60 Hz).
 const WATCHDOG_FALLBACK_TARGET_MS := 1000.0 / 60.0
+## Shortest frame time watchdog_verdict() judges against: 60 pictures per second are never "slow", whatever the
+## display could show – on a 120 or 144 Hz screen a steady 60 fps would otherwise step the quality down (A-2).
+const WATCHDOG_MIN_TARGET_MS := 1000.0 / 60.0
+## Leistungstest: the next higher preset is suggested when the slowest scene needs at most 1 / BENCH_HEADROOM of
+## the target frame time (and its 99th percentile stays inside the target).
+const BENCH_HEADROOM := 1.5
 
 ## Adapter tiers (classify_adapter): "software" = CPU rasteriser (llvmpipe, SwiftShader, WARP …); "weak" = old or
 ## small integrated graphics; "deck" = Steam Deck APU (or an AMD handheld under gamescope); "ok" = everything else.
@@ -295,15 +301,141 @@ static func _level_entry(table: Dictionary, key: String, index: int) -> Dictiona
 ## lowest preset is already in use. A target of 0 or less (or NaN) means "unknown" – DisplayServer.
 ## screen_get_refresh_rate() returns -1 when it cannot tell – and is judged against 60 Hz
 ## (WATCHDOG_FALLBACK_TARGET_MS), never as "everything is too slow".
+## The verdict is taken against max(target_ms, 1/60 s) (WATCHDOG_MIN_TARGET_MS, A-2): a display faster than 60 Hz
+## does not make 60 pictures per second "slow" – at 144 Hz (6.9 ms) a steady 16.7 ms would be 2.4 × the target.
 static func watchdog_verdict(median_ms: float, p95_ms: float, target_ms: float, wd_cfg: Dictionary, lowest: bool) -> String:
 	var slow_f := maxf(1.0, _num(wd_cfg.get("slow_factor", null), float(DEFAULT_WATCHDOG["slow_factor"])))
 	var bad_f := maxf(slow_f, _num(wd_cfg.get("too_slow_factor", null), float(DEFAULT_WATCHDOG["too_slow_factor"])))
-	var t := target_ms if target_ms > 0.0 and is_finite(target_ms) else WATCHDOG_FALLBACK_TARGET_MS
+	var t := watchdog_target_ms(target_ms)
 	if median_ms > t * bad_f or p95_ms > t * bad_f * 2.0:
 		return "too_slow" if lowest else "slow"
 	if median_ms > t * slow_f:
 		return "slow"
 	return "ok"
+
+
+## The frame time watchdog_verdict() really judges against: `target_ms` (frame time of the display refresh or of the
+## frame cap), 60 Hz when it is unknown (0 or less, NaN, infinite), and never less than 1/60 s.
+static func watchdog_target_ms(target_ms: float) -> float:
+	var t := target_ms if target_ms > 0.0 and is_finite(target_ms) else WATCHDOG_FALLBACK_TARGET_MS
+	return maxf(t, WATCHDOG_MIN_TARGET_MS)
+
+
+## Target frame time in ms for a display refresh rate in Hz (DisplayServer.screen_get_refresh_rate(); -1 or 0 =
+## unknown -> 60 Hz), never shorter than 1/60 s.
+static func target_ms_for_refresh(refresh_hz: float) -> float:
+	return watchdog_target_ms(1000.0 / refresh_hz if refresh_hz > 0.0 and is_finite(refresh_hz) else -1.0)
+
+
+## The one-time chooser "GRAFIK WÄHLEN" is due at this start (contract D32): no graphics mode is stored yet – new
+## and existing players alike, so nobody is switched silently –, the game was started without any user argument
+## (every tool, test and command line start passes at least one: they keep behaving as before v0.8.0), with a
+## display, and the configuration forces no mode (the choice would do nothing). `user_args` = number of arguments
+## after "--" (OS.get_cmdline_user_args().size()).
+static func chooser_due(chosen: String, user_args: int, headless: bool, force: String = "") -> bool:
+	return not MODES.has(chosen) and user_args <= 0 and not headless and not MODES.has(force)
+
+
+# --- Leistungstest (built-in benchmark of the mode "Modern") ---------------------------------------------------
+
+## Statistics of a measured window: `frame_ms` = duration of every frame in milliseconds (wall clock).
+## {"frames", "avg_fps" (frames / total time), "low1_fps" (1000 / mean of the slowest 1 % of the frames, at least
+## one frame – the usual "1 % low"), "frame_ms_median", "frame_ms_p95", "frame_ms_p99", "frame_ms_max"}; all 0
+## for an empty window. Percentiles by nearest rank. Frame times that are not positive and finite are left out.
+static func frame_stats(frame_ms: PackedFloat32Array) -> Dictionary:
+	var sorted := PackedFloat32Array()
+	var total := 0.0
+	for v in frame_ms:
+		if v > 0.0 and is_finite(v):
+			sorted.append(v)
+			total += v
+	var n := sorted.size()
+	if n == 0 or total <= 0.0:
+		return {"frames": 0, "avg_fps": 0.0, "low1_fps": 0.0, "frame_ms_median": 0.0, "frame_ms_p95": 0.0,
+			"frame_ms_p99": 0.0, "frame_ms_max": 0.0}
+	sorted.sort()
+	var worst := maxi(1, int(ceil(float(n) * 0.01)))
+	var worst_sum := 0.0
+	for i in worst:
+		worst_sum += sorted[n - 1 - i]
+	return {"frames": n, "avg_fps": float(n) * 1000.0 / total, "low1_fps": 1000.0 * float(worst) / worst_sum,
+		"frame_ms_median": _percentile(sorted, 0.5), "frame_ms_p95": _percentile(sorted, 0.95),
+		"frame_ms_p99": _percentile(sorted, 0.99), "frame_ms_max": sorted[n - 1]}
+
+
+## Nearest-rank percentile of an ascending list (p in 0..1).
+static func _percentile(sorted: PackedFloat32Array, p: float) -> float:
+	if sorted.is_empty():
+		return 0.0
+	return sorted[clampi(int(ceil(p * float(sorted.size()))) - 1, 0, sorted.size() - 1)]
+
+
+## Rough cost of a quality set, only to order sets: the sum of the four steps plus the 3D resolution (25 % = one
+## step). low −1, deck 4, medium 5, high 9 with the start values.
+static func quality_cost(q: Dictionary) -> float:
+	var s := sanitized(q)
+	return float(int(s["shadows"]) + int(s["details"]) + int(s["aa"]) + int(s["effects"])) + (float(s["scale"]) - 100.0) / 25.0
+
+
+## The fixed presets a machine of `tier` is offered, cheapest first ("deck" only on the Steam Deck tier).
+static func preset_ladder(tier: String, presets: Dictionary) -> Array[String]:
+	var out: Array[String] = []
+	for id in PRESET_ORDER:
+		if id == "custom" or (id == "deck" and tier != "deck"):
+			continue
+		out.append(id)
+	out.sort_custom(func(a: String, b: String) -> bool:
+		return quality_cost(preset_values(a, presets)) < quality_cost(preset_values(b, presets)))
+	return out
+
+
+## What the Leistungstest suggests after measuring `scenes` (entries with "id", "frame_ms_median", "frame_ms_p95",
+## "frame_ms_p99", "frames") with the quality set `q` ({"preset", five values}): the slowest scene decides.
+## {"verdict": "ok" | "slow" | "too_slow" | "" (nothing measured), "suggested_preset", "suggested_mode": "modern" |
+## "arcade", "worst": scene id, "headroom": target frame time / median of that scene}.
+## too_slow (already at the cheapest preset and still far too slow) -> Arcade; slow -> the next cheaper preset;
+## ok with BENCH_HEADROOM to spare -> the next more expensive one; else the preset stays. target_ms = frame time
+## judged against (target_ms_for_refresh), gfx_cfg = config "graphics" (presets, watchdog).
+static func bench_suggestion(q: Dictionary, scenes: Array, target_ms: float, tier: String, gfx_cfg: Dictionary) -> Dictionary:
+	var p: Variant = gfx_cfg.get("presets", {})
+	var presets: Dictionary = p if p is Dictionary else {}
+	var w: Variant = gfx_cfg.get("watchdog", {})
+	var wd: Dictionary = w if w is Dictionary else {}
+	var current := str(q.get("preset", preset_of(q, presets)))
+	var out := {"verdict": "", "suggested_preset": current, "suggested_mode": MODERN, "worst": "", "headroom": 0.0}
+	var worst: Dictionary = {}
+	for s: Variant in scenes:
+		if s is Dictionary and int((s as Dictionary).get("frames", 0)) > 0 and _num((s as Dictionary).get("frame_ms_median", null), 0.0) > 0.0:
+			if worst.is_empty() or float((s as Dictionary)["frame_ms_median"]) > float(worst["frame_ms_median"]):
+				worst = s
+	if worst.is_empty():
+		return out
+	var t := watchdog_target_ms(target_ms)
+	var ladder := preset_ladder(tier, presets)
+	var cost := quality_cost(q)
+	var cheaper := ""
+	var dearer := ""
+	for id in ladder:
+		var c := quality_cost(preset_values(id, presets))
+		if c < cost - 0.001:
+			cheaper = id            # the ladder rises: the last one below is the nearest
+		elif c > cost + 0.001 and dearer == "":
+			dearer = id
+	var median := float(worst["frame_ms_median"])
+	var verdict := watchdog_verdict(median, _num(worst.get("frame_ms_p95", null), median), t, wd, cheaper == "")
+	out["verdict"] = verdict
+	out["worst"] = str(worst.get("id", ""))
+	out["headroom"] = t / median
+	if verdict == "too_slow":
+		out["suggested_mode"] = ARCADE
+		if not ladder.is_empty():
+			out["suggested_preset"] = ladder[0]
+	elif verdict == "slow":
+		if cheaper != "":
+			out["suggested_preset"] = cheaper
+	elif dearer != "" and median * BENCH_HEADROOM <= t and _num(worst.get("frame_ms_p99", null), median) <= t:
+		out["suggested_preset"] = dearer
+	return out
 
 
 static func _is_number(v: Variant) -> bool:

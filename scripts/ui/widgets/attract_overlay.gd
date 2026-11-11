@@ -7,11 +7,15 @@ extends Control
 ##                keyboard: Enter and Ⓐ – any key works); the player's car keeps the bottom centre,
 ##   bottom edge  a thin line that fills up over the demo (`progress`, set by AttractMode).
 ## The HUD keeps the clock panel (top left) and the speedometer (bottom right).
+## The layout follows the size of the picture: in the mode "Modern" the race fills a 16:10 or wider window (stretch
+## aspect "expand"), so logo and badge stay centred and the prompt keeps its distance from the bottom edge. At
+## 1280×720 (Arcade always) every position is the one of v0.7.0.
 
 const LOGO_SIZE := 36
 const LOGO_Y := 10.0
 const BADGE_Y := 64.0
-const PROMPT := Vector2(24, 668)      ## left end and centre line of the prompt pill
+const PROMPT := Vector2(24, 668)      ## left end and centre line of the prompt pill in the 1280×720 frame
+const DESIGN := Vector2(1280, 720)
 
 var scene_name := ""
 var progress := 0.0
@@ -19,6 +23,8 @@ var _t := 0.0
 var _f_title: Font
 var _f_bold: Font
 var _f_body: Font
+var _halo: TextureRect
+var _logo: Control
 
 
 func _init() -> void:
@@ -40,11 +46,29 @@ func _ready() -> void:
 	# the halo dimmed them by ~23 %, QA v0.5.1)
 	halo.show_behind_parent = true
 	UiKit.place(self, halo, Rect2(640 - 380, -70, 760, 230))
+	_halo = halo
 	var logo := GradientText.new("CROSSING EUROPE", UiTheme.font(UiTheme.F.LOGO), LOGO_SIZE)
 	logo.align = HORIZONTAL_ALIGNMENT_CENTER
 	logo.outline = 8
 	logo.shadow_offset = Vector2(3, 3)
 	UiKit.place(self, logo, Rect2(640 - 300, LOGO_Y, 600, 52))
+	_logo = logo
+	resized.connect(_layout)
+	_layout()
+
+
+## Logo and halo centred in the picture (640 in the 1280 px frame).
+func _layout() -> void:
+	var cx := (size.x if size.x > 2.0 else DESIGN.x) * 0.5
+	if _halo != null:
+		_halo.position.x = cx - 380.0
+	if _logo != null:
+		_logo.position.x = cx - 300.0
+
+
+## Centre line of the prompt pill: 52 px above the bottom edge (668 in the 720 px frame).
+func _prompt_y() -> float:
+	return (size.y if size.y > 2.0 else DESIGN.y) - (DESIGN.y - PROMPT.y)
 
 
 func _process(delta: float) -> void:
@@ -94,17 +118,18 @@ func _draw_prompt() -> void:
 	for k in keys:
 		keys_w += _key_w(k) + 6.0
 	var text_w := _f_title.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-	var pill := Rect2(PROMPT.x, PROMPT.y - 23.0, keys_w + 8.0 + text_w + 40.0, 46.0)
+	var py := _prompt_y()
+	var pill := Rect2(PROMPT.x, py - 23.0, keys_w + 8.0 + text_w + 40.0, 46.0)
 	UiIcons.panel(self, pill, Color(0.02, 0.03, 0.09, 0.66), Color(UiTheme.ACCENT_2, 0.38), 10.0, 1.5)
 	# smooth blink: never fully gone, so the hint stays findable
 	var a := 0.38 + 0.62 * (0.5 + 0.5 * cos(_t * TAU * 0.9))
 	var x := pill.position.x + 20.0
 	for k in keys:
 		var kw := _key_w(k)
-		_draw_key(Rect2(x, PROMPT.y - 13.0, kw, 26.0), k, a)
+		_draw_key(Rect2(x, py - 13.0, kw, 26.0), k, a)
 		x += kw + 6.0
 	x += 8.0
-	var base := Vector2(x, PROMPT.y + 9.0)
+	var base := Vector2(x, py + 9.0)
 	draw_string(_f_title, base + Vector2(1, 2), text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0, 0, 0, 0.6 * a))
 	draw_string(_f_title, base, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(1, 1, 1, a))
 
