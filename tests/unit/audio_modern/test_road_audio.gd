@@ -88,18 +88,24 @@ func test_the_loudness_plan_at_top_speed() -> void:
 	var r := m.road
 	r.set_vehicle("kompakt")
 	assert_near(r.vmax_kmh, 230.0, 0.01, "Höchsttempo des Kompakten aus der Konfiguration")
-	var full := _num("loudness.full_throttle_lufs")
+	var table: Variant = ConfigLoader.lookup(cfg(), "audio.modern.road.engine_top_lufs", {})
+	var ref := float((table as Dictionary).get("kompakt", _num("loudness.full_throttle_lufs"))) if table is Dictionary else _num("loudness.full_throttle_lufs")
+	assert_near(r.engine_ref_lufs, ref, 1.0e-6, "Bezug: der Motor des Kompakten bei Höchsttempo (gemessen, Konfiguration)")
 	_run(m, _frame(230.0, {"surface_l": "asphalt", "surface_r": "asphalt", "zone": "open"}), 120)
 	var tyres := _lufs(r.surfaces["asphalt"])
 	var wind := _wind_total(r)
-	assert_near(tyres, full - _num("road.tyres.under_engine_db"), 0.05, "Reifen bei Höchsttempo %.2f LUFS: 4 dB unter Vollgas" % tyres)
-	assert_near(wind, full - _num("road.wind.under_engine_db"), 0.05, "Wind bei Höchsttempo %.2f LUFS: 3 dB unter Vollgas" % wind)
+	assert_near(tyres, ref - _num("road.tyres.under_engine_db"), 0.05, "Reifen bei Höchsttempo %.2f LUFS: 4 dB unter dem Motor" % tyres)
+	assert_near(wind, ref - _num("road.wind.under_engine_db"), 0.05, "Wind bei Höchsttempo %.2f LUFS: 3 dB unter dem Motor" % wind)
 	assert_true(r.winds["wind_buffet"].level > 0.0, "Wummern bei Höchsttempo")
 	# the same plan for a faster car at its own top speed
 	r.set_vehicle("gran_turismo")
+	var ref_gt := r.engine_ref_lufs
 	_run(m, _frame(270.0, {"surface_l": "asphalt", "surface_r": "asphalt"}), 120)
-	assert_near(_lufs(r.surfaces["asphalt"]), full - 4.0, 0.05, "Gran Turismo: Reifen bei seinem Höchsttempo")
-	assert_near(_wind_total(r), full - 3.0, 0.05, "Gran Turismo: Wind bei seinem Höchsttempo")
+	assert_near(_lufs(r.surfaces["asphalt"]), ref_gt - 4.0, 0.05, "Gran Turismo: Reifen bei seinem Höchsttempo")
+	assert_near(_wind_total(r), ref_gt - 3.0, 0.05, "Gran Turismo: Wind bei seinem Höchsttempo")
+	# a car without an entry: the plan's full-throttle loudness
+	r.set_vehicle("gibtsnicht")
+	assert_near(r.engine_ref_lufs, float((table as Dictionary).get("_", _num("loudness.full_throttle_lufs"))), 1.0e-6, "ohne Eintrag: der Plan")
 	_done(m)
 
 
@@ -107,9 +113,8 @@ func test_the_speed_laws() -> void:
 	var m := _modern({"road": {"wind": {"gust_db": 0.0}}})
 	var r := m.road
 	r.set_vehicle("kompakt")
-	var full := _num("loudness.full_throttle_lufs")
 	_run(m, _frame(115.0), 120)
-	assert_near(_lufs(r.surfaces["asphalt"]), full - 4.0 + 30.0 * log(0.5) / log(10.0), 0.05, "Reifen: 30 dB je Dekade")
+	assert_near(_lufs(r.surfaces["asphalt"]), r.engine_ref_lufs - 4.0 + 30.0 * log(0.5) / log(10.0), 0.05, "Reifen: 30 dB je Dekade")
 	assert_near(_lufs(r.winds["wind_low"]), float(r._wind_band_top["wind_low"]) + 55.0 * log(0.5) / log(10.0), 0.05, "Wind: 55 dB je Dekade")
 	assert_near(r.winds["wind_buffet"].level, 0.0, 1.0e-6, "kein Wummern bei halbem Höchsttempo")
 	assert_true(r.surfaces["asphalt"].pitch < r.surfaces["asphalt"].pitch_for(230.0), "langsamer: tiefer")
@@ -134,7 +139,7 @@ func test_surfaces_per_side_wet_and_snow() -> void:
 	assert_true(rb.pans[1] > 0.0 and rb.pans[0] < 0.0, "rechter Spieler rechts")
 	assert_near(rb.pitch, 120.0 / 108.0, 1.0e-4, "Schlagfolge proportional zum Tempo")
 	var l_rumble := _lufs(rb)
-	var expect := _num("loudness.full_throttle_lufs") - 4.0 + _num("road.tyres.surface_db.rumble") \
+	var expect := r.engine_ref_lufs - 4.0 + _num("road.tyres.surface_db.rumble") \
 		+ _num("road.tyres.slope_by_surface.rumble") * log(120.0 / 245.0) / log(10.0) - 3.0103
 	assert_near(l_rumble, expect, 0.05, "eine Seite auf dem Rüttelstreifen: 3 dB unter beiden")
 	# the wet road hisses on what is paved, not on grass
@@ -192,7 +197,7 @@ func test_concrete_slabs_keep_their_rhythm() -> void:
 	_run(m, _frame(90.0, {"surface_l": "concrete", "surface_r": "concrete", "paving": "concrete"}), 120)
 	assert_near(r.slab_slow.pitch, 1.0, 1.0e-4, "bei 90 km/h die Fugenfolge wie entworfen")
 	assert_true(r.slab_slow.level > 0.0 and r.slab_fast.level < 1.0e-4, "langsames Muster")
-	var expect := _num("loudness.full_throttle_lufs") - 4.0 + _num("road.slabs.db") + _num("road.slabs.slope_db") * log(90.0 / 245.0) / log(10.0)
+	var expect := r.engine_ref_lufs - 4.0 + _num("road.slabs.db") + _num("road.slabs.slope_db") * log(90.0 / 245.0) / log(10.0)
 	assert_near(_lufs(r.slab_slow), expect, 0.05, "Pegel der Fugen")
 	_run(m, _frame(200.0, {"surface_l": "concrete", "surface_r": "concrete"}), 120)
 	assert_near(r.slab_fast.pitch, 200.0 / 180.0, 1.0e-4, "bei 200 km/h das schnelle Muster, Tonhöhe v / 180")

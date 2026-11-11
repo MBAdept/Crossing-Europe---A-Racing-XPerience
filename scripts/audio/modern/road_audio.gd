@@ -23,8 +23,9 @@ extends ModernAudioModule
 ## Levels are data (audio.modern.road): every target is the loudness at the master (LUFS, Gesamtlautstärke at its
 ## default – ref_path_db) of what the player hears; the loops carry their loudness per pitch (manifest lufs_pitch),
 ## the one-shots their momentary loudness (lufs_m). The plan of the contract: at the car's top speed the wind is
-## wind.under_engine_db and the tyres on dry asphalt tyres.under_engine_db under the full-throttle loudness of the
-## plan (audio.modern.loudness.full_throttle_lufs); below it they follow slope_db per decade of speed.
+## wind.under_engine_db and the tyres on dry asphalt tyres.under_engine_db under the engine – the loudness of this
+## car's engine at its top speed, measured (road.engine_top_lufs.<car>; without an entry the plan's full-throttle
+## loudness, audio.modern.loudness.full_throttle_lufs); below top speed they follow slope_db per decade of speed.
 ##
 ## Inputs: frame.speed, frame.wind_speed, frame.rain / frame.skid (without a vehicle state), frame.state
 ## (understeer, lat_speed, crash), frame.feed (surface_l / surface_r, paving, wet, snow, zone) and the feed's events.
@@ -179,7 +180,14 @@ var _zone_db_cfg: Dictionary = {}
 var _zone_gust_cfg: Dictionary = {}
 var _zone_s := 0.8
 
+var _full_lufs := -16.0
+var _engine_top: Dictionary = {}
+var _tyre_under := 4.0
+var _wind_under := 3.0
+var _bands: Dictionary = {}
+
 var vehicle_id := ""
+var engine_ref_lufs := -16.0              ## loudness of this car's engine at its top speed: the reference of the plan
 var vmax_kmh := 250.0                     ## nominal top speed of the car (vehicles.types.<id>.vmax_kmh)
 var wheelbase_m := 2.7
 var surfaces: Dictionary = {}             ## surface -> Layer (left and right wheels)
@@ -248,8 +256,11 @@ func _read_config() -> void:
 	_smooth_s = maxf(ctx.number("road.smooth_s", _smooth_s), 0.005)
 	_surface_s = maxf(ctx.number("road.surface_s", _surface_s), 0.005)
 	_fade_s = maxf(ctx.number("road.fade_s", _fade_s), 0.005)
-	var full := ctx.number("loudness.full_throttle_lufs", -16.0)
-	_tyre_top = full - ctx.number("road.tyres.under_engine_db", 4.0)
+	_full_lufs = ctx.number("loudness.full_throttle_lufs", -16.0)
+	_engine_top = _dict(ctx.value("road.engine_top_lufs", {}))
+	_tyre_under = ctx.number("road.tyres.under_engine_db", 4.0)
+	_wind_under = ctx.number("road.wind.under_engine_db", 3.0)
+	_bands = _dict(ctx.value("road.wind.bands_db", {}))
 	_tyre_slope = ctx.number("road.tyres.slope_db", _tyre_slope)
 	_tyre_fade = _vec2(ctx.value("road.tyres.fade_kmh", null), _tyre_fade)
 	_tyre_pan = clampf(ctx.number("road.tyres.pan", _tyre_pan), 0.0, 1.0)
@@ -285,7 +296,6 @@ func _read_config() -> void:
 	_pass_floor = ctx.number("road.passes.floor_lufs", _pass_floor)
 	_pass_pan = clampf(ctx.number("road.passes.pan", _pass_pan), 0.0, 1.0)
 	_pass_kind_db = _dict(ctx.value("road.passes.kind_db", {}))
-	_wind_top = full - ctx.number("road.wind.under_engine_db", 3.0)
 	_wind_slope = ctx.number("road.wind.slope_db", _wind_slope)
 	_wind_fade = _vec2(ctx.value("road.wind.fade_kmh", null), _wind_fade)
 	_wind_pan = clampf(ctx.number("road.wind.pan", _wind_pan), 0.0, 1.0)
@@ -295,14 +305,22 @@ func _read_config() -> void:
 	_zone_db_cfg = _dict(ctx.value("road.wind.zone_db", {}))
 	_zone_gust_cfg = _dict(ctx.value("road.wind.zone_gust", {}))
 	_zone_s = maxf(ctx.number("road.wind.zone_s", _zone_s), 0.01)
-	# the bands share the wind's loudness at top speed: their offsets keep their relation, their sum is _wind_top
-	var bands := _dict(ctx.value("road.wind.bands_db", {}))
+	_calibrate("")
+
+
+## The plan's reference for a car: its engine at top speed (road.engine_top_lufs.<id>, else "_", else the plan's
+## full-throttle loudness); tyres and wind are set under it. The wind bands share the wind's loudness at top speed:
+## their offsets keep their relation, their sum is _wind_top.
+func _calibrate(id: String) -> void:
+	engine_ref_lufs = float(_engine_top.get(id, _engine_top.get("_", _full_lufs)))
+	_tyre_top = engine_ref_lufs - _tyre_under
+	_wind_top = engine_ref_lufs - _wind_under
 	var sum := 0.0
 	for w: String in WIND_LOOPS:
-		sum += db_to_linear(float(bands.get(w, 0.0))) ** 2
+		sum += db_to_linear(float(_bands.get(w, 0.0))) ** 2
 	_wind_band_top.clear()
 	for w: String in WIND_LOOPS:
-		_wind_band_top[w] = _wind_top + float(bands.get(w, 0.0)) - 10.0 * log(maxf(sum, 1.0e-9)) / log(10.0)
+		_wind_band_top[w] = _wind_top + float(_bands.get(w, 0.0)) - 10.0 * log(maxf(sum, 1.0e-9)) / log(10.0)
 
 
 static func _dict(v: Variant) -> Dictionary:
@@ -356,6 +374,7 @@ func set_vehicle(id: String) -> void:
 	vehicle_id = id
 	vmax_kmh = maxf(float(ConfigLoader.lookup(ctx.cfg, "vehicles.types.%s.vmax_kmh" % id, 250.0)), 60.0)
 	wheelbase_m = clampf(0.6 * float(ConfigLoader.lookup(ctx.cfg, "vehicles.types.%s.length_m" % id, 4.5)), 1.8, 4.0)
+	_calibrate(id)
 
 
 func track_changed(_feed: AudioFeed) -> void:
@@ -481,7 +500,9 @@ func _update_wind(frame: ModernAudioFrame, dt: float, zone: String, k: float) ->
 		var weight := 1.0
 		if id == "wind_buffet":
 			weight = _ramp(vw, Vector2(_buffet_from * vmax_kmh, vmax_kmh))
-		var gust := (0.6 * _gust[4] + 0.8 * _gust[bi]) * _gust_db * zone_gust
+		# a gust of s dB spread raises the mean power by 0.1151·s² dB (log-normal): taken off, so the plan holds on average
+		var s := _gust_db * zone_gust
+		var gust := (0.6 * _gust[4] + 0.8 * _gust[bi]) * s - 0.1151 * s * s
 		var p := l.pitch_for(vw)
 		var target := float(_wind_band_top[id]) + _speed_db(_wind_slope, vw) + zone_db + gust
 		var g := _gain(l, target, p, true) * fade * weight

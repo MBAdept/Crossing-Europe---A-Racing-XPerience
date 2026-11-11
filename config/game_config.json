@@ -460,6 +460,7 @@
 					"vienna", "austrian", "swiss", "central", "eastern", "baltic", "balkan", "spanish", "spanish_north"],
 				"cobble_share": 0.6, "cobble_block_m": 90.0, "cutting_dist_m": 14.0, "cutting_window_m": 60.0, "delineators": true},
 			"road": {"ref_path_db": -1.94, "smooth_s": 0.06, "surface_s": 0.05, "fade_s": 0.12,
+				"engine_top_lufs": {"kompakt": -18.5, "kombi": -17.2, "limousine": -17.7, "sportwagen": -17.8, "gran_turismo": -17.5, "_": -17.7},
 				"tyres": {"under_engine_db": 4.0, "slope_db": 30.0, "fade_kmh": [3.0, 25.0], "pan": 0.55,
 					"surface_db": {"asphalt": 0.0, "concrete": 2.5, "deck": 3.0, "cobbles": 14.0, "rumble": 9.0, "shoulder": 10.0, "grass": 14.0},
 					"slope_by_surface": {"rumble": 20.0, "cobbles": 30.0, "shoulder": 30.0, "grass": 25.0},
