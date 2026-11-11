@@ -1,11 +1,13 @@
 extends TestCase
 ## MusicDirector (contract D30, §4.7; docs/audio-modern.md "Musik"): the state machine of the music slot without a
 ## scene tree and without players – which piece each context plays, the race piece armed by the context, started by
-## "stage_start" so that the count-in lands on "LOS!", the ending at the finish, restarts, the option "Musik im
-## Rennen", the count-in pausing with the countdown, and the interactive stream it builds. Runs on the shipped
-## manifest of assets/audio/modern/music (the remastered title theme and race piece 1).
+## "stage_start" so that the count-in lands on "LOS!", the ending at the finish (and its variants), restarts, the option
+## "Musik im Rennen", the count-in pausing with the countdown, the rotation of the race pieces, the interlude between
+## the stages, the stingers and the interactive stream it builds. Runs on the shipped manifest of
+## assets/audio/modern/music (title remaster, three race pieces with their endings and stingers, interlude).
 
 const DT := 1.0 / 60.0
+const PIECES: Array[String] = ["linke_spur", "nachtfahrt", "rueckenwind"]
 
 
 func _modern(over: Dictionary = {}) -> ModernAudio:
@@ -39,6 +41,15 @@ func _st(m: ModernAudio) -> Dictionary:
 	return m.music.debug_state()
 
 
+## A stage with its piece playing right away (countdown 0); returns the piece id.
+func _race(m: ModernAudio) -> String:
+	m.set_music(false)
+	m.set_music_context("race")
+	m.event("stage_start", {"countdown_s": 0.0})
+	_steps(m, 2)
+	return str(_st(m)["race_piece"])
+
+
 func test_menu_contexts_play_the_title_remaster() -> void:
 	var m := _modern()
 	var title := m.assets.entry("music", "titel_remaster")
@@ -52,13 +63,42 @@ func test_menu_contexts_play_the_title_remaster() -> void:
 	assert_eq(m.music.context, "menu", "set_music(true) = Menü")
 	assert_eq(m.music.current_key(), "music/titel_remaster", "Menü: das Remaster, nicht die Titelmelodie von v0.7.0")
 	assert_near(float(_st(m)["db"]), m.mix.music_context_db("menu") + title.gain_db, 1.0e-5, "Pegel: Kontext + gain_db")
-	for c in ["title", "race_menu", "result", "menu"]:
-		m.set_music_context(c)
-		_steps(m, 3)
-		assert_eq(m.music.current_key(), "music/titel_remaster", "%s: dasselbe Stück läuft weiter (kein Neustart)" % c)
+	m.set_music_context("title")
+	_steps(m, 3)
+	assert_eq(m.music.current_key(), "music/titel_remaster", "title: dasselbe Stück läuft weiter (kein Neustart)")
 	m.set_music_context("off")
 	_steps(m, 3)
 	assert_eq(m.music.current_key(), "", "off: still")
+	_done(m)
+
+
+func test_interlude_between_the_stages() -> void:
+	var m := _modern()
+	var z := m.assets.entry("music", "zwischenspiel")
+	assert_true(z != null and z.role == "interlude", "das Zwischenspiel steht im Manifest (Rolle interlude)")
+	if z == null:
+		_done(m)
+		return
+	assert_true(z.loops() and z.loop_end == z.frames, "Schleife bis zum Dateiende")
+	assert_between(float(z.loop_end - z.loop_begin) / 44100.0, 60.0, 90.0, "Schleife 60–90 s (%.1f s)" % (float(z.loop_end - z.loop_begin) / 44100.0))
+	m.set_music(true)
+	_steps(m, 10)
+	assert_eq(m.music.current_key(), "music/titel_remaster", "Menü: Titel")
+	# the stage screen: the interlude fades in, the title out
+	m.set_music_context("race_menu")
+	_steps(m, 3)
+	assert_eq(m.music.current_key(), "music/zwischenspiel", "race_menu: das Zwischenspiel")
+	assert_near(float(_st(m)["db"]), m.mix.music_context_db("race_menu") + z.gain_db, 1.0e-5, "Pegel des Zwischenspiels")
+	# the result screen has no piece of its own: the interlude, and on to the stage screen without a restart
+	m.set_music_context("result")
+	_steps(m, 3)
+	assert_eq(m.music.current_key(), "music/zwischenspiel", "result: das Zwischenspiel läuft weiter")
+	m.set_music_context("race_menu")
+	_steps(m, 3)
+	assert_eq(m.music.current_key(), "music/zwischenspiel", "zurück zum Etappenbildschirm: kein Neustart")
+	m.set_music_context("title")
+	_steps(m, 3)
+	assert_eq(m.music.current_key(), "music/titel_remaster", "Titel: wieder das Remaster")
 	_done(m)
 
 
@@ -72,7 +112,7 @@ func test_race_piece_waits_for_the_stage_and_lands_on_go() -> void:
 	var st := _st(m)
 	assert_eq(str(st["race_phase"]), MusicDirector.RACE_ARMED, "Kontext race: das Rennstück ist bereit, spielt aber nicht")
 	assert_eq(m.music.current_key(), "", "bis zum Start der Etappe still (die Menümusik blendet aus)")
-	assert_eq(str(st["race_piece"]), "linke_spur", "Rennstück 1")
+	assert_eq(str(st["race_piece"]), "linke_spur", "die erste Etappe: Rennstück 1")
 	var countin: float = st["countin_s"]
 	assert_near(countin, 4.0 * 60.0 / 132.0, 1.0e-6, "Einzähler: ein Takt bei 132 bpm")
 	# the countdown starts: play() is scheduled so that the downbeat after the count-in lands on "LOS!"
@@ -94,6 +134,25 @@ func test_race_piece_waits_for_the_stage_and_lands_on_go() -> void:
 	st = _st(m)
 	assert_true(absf(float(st["go_offset_s"])) <= DT, "der Schlag nach dem Einzähler fällt auf „LOS!“ (Abstand %.4f s)" % float(st["go_offset_s"]))
 	assert_near(float(st["db"]), m.mix.music_context_db("race") + m.assets.entry("music", "linke_spur").gain_db, 1.0e-5, "Pegel des Rennens")
+	_done(m)
+
+
+func test_rotation_of_the_race_pieces() -> void:
+	var m := _modern()
+	assert_eq(m.music.race_ids(), PIECES, "drei Rennstücke in der Reihenfolge ihrer Rotation")
+	var keys: Array[String] = []
+	var bpm := {"linke_spur": 132.0, "nachtfahrt": 108.0, "rueckenwind": 147.0}
+	for i in 4:
+		var id := _race(m)
+		assert_eq(id, PIECES[i % 3], "Etappe %d: %s" % [i + 1, PIECES[i % 3]])
+		var p := m.music.race_piece(i)
+		assert_near(float(p["countin_s"]), 4.0 * 60.0 / float(bpm[id]), 1.0e-6, "%s: Einzähler ein Takt" % id)
+		assert_true(p["main"] is AudioStreamOggVorbis and p["ending"] is AudioStreamOggVorbis, "%s: Hauptdatei und Schluss" % id)
+		assert_eq((p["variants"] as Dictionary).keys().size(), 2, "%s: Schluss „rekord“ und „finale“" % id)
+		assert_true(str(p["ziel"]) != "", "%s: Schlag an der Ziellinie" % id)
+		assert_eq((p["stingers"] as Dictionary).keys().size(), 2, "%s: Stinger busted und out_of_fuel" % id)
+		keys.append(m.music.current_key())
+	assert_true(keys[0] != keys[3] and keys[0].get_slice("#", 0) == keys[3].get_slice("#", 0), "die vierte Etappe: wieder Stück 1, neuer Schlüssel")
 	_done(m)
 
 
@@ -147,13 +206,19 @@ func test_finish_restart_and_leaving_the_race() -> void:
 	assert_true(key.begins_with("race/"), "spielt (%s)" % key)
 	m.event("stage_finish", {"record": false, "last_stage": false})
 	_steps(m, 3)
-	assert_eq(str(_st(m)["race_phase"]), MusicDirector.RACE_ENDING, "Ziel: der Schluss ist angefordert")
+	var st := _st(m)
+	assert_eq(str(st["race_phase"]), MusicDirector.RACE_ENDING, "Ziel: der Schluss ist angefordert")
+	assert_eq(str(st["ending_variant"]), "normal", "der normale Schluss")
 	assert_eq(m.music.current_key(), key, "dasselbe Stück spielt seinen Schluss (kein Ausblenden, kein neues Stück)")
-	# the result screen: the race piece fades out, the menu piece follows
+	var hold := float(st["hold_left"])
+	assert_between(hold, 2.0, MusicDirector.HOLD_MAX_S, "der Schluss klingt aus, bevor die Menümusik kommt (%.2f s)" % hold)
+	# the result screen: the ending rings out first, then the interlude
 	m.set_music_context("result")
 	_steps(m, 3)
 	assert_eq(str(_st(m)["race_phase"]), MusicDirector.RACE_IDLE, "nach dem Rennen")
-	assert_eq(m.music.current_key(), "music/titel_remaster", "Ergebnis: Titel-Remaster (es gibt noch kein eigenes Stück)")
+	assert_eq(m.music.current_key(), key, "Ergebnis: der Schluss klingt noch")
+	_steps(m, int(hold / DT) + 4)
+	assert_eq(m.music.current_key(), "music/zwischenspiel", "danach das Zwischenspiel")
 	# a restart of the same stage is a new piece (from its count-in), even without a context in between
 	m.set_music_context("race")
 	m.event("stage_start", {"countdown_s": 0.0})
@@ -166,13 +231,110 @@ func test_finish_restart_and_leaving_the_race() -> void:
 	var k2 := m.music.current_key()
 	assert_true(k1 != "" and k2 != "" and k1 != k2, "Neustart: neuer Schlüssel (%s -> %s)" % [k1, k2])
 	assert_eq(int(_st(m)["race_index"]), 2, "drei Etappen mit Rennkontext gezählt")
-	# the finish before the piece started: it stays silent
+	# the finish before the piece started: no race piece, the ending sounds as the finish sound of the stage
 	m.set_music_context("race")
 	m.event("stage_start", {"countdown_s": 3.0})
+	var piece := str(_st(m)["race_piece"])
 	m.event("stage_finish", {"record": false, "last_stage": false})
 	_steps(m, 200)
 	assert_eq(str(_st(m)["race_phase"]), MusicDirector.RACE_OVER, "Ziel vor dem Start")
-	assert_eq(m.music.current_key(), "", "bleibt still")
+	assert_eq(m.music.current_key(), "", "das Rennstück bleibt still")
+	assert_eq(str(_st(m)["last_sting"]), piece + "_schluss", "der Schluss als Zielklang")
+	_done(m)
+
+
+func test_ending_variants_and_the_stab_at_the_finish_line() -> void:
+	var m := _modern()
+	assert_eq(Array(m.music.claims()), ["stage_finish"], "das Ziel gehört der Musik (kein Arcade-Zieljingle dazu)")
+	# the AudioManager's "finish" one-shot of the same moment is dropped (ModernAudio.PLAY_EVENTS)
+	_race(m)
+	m.play("finish")
+	m.event("stage_finish", {"record": true, "last_stage": false})
+	assert_eq(int(m.dropped.get("finish", 0)), 1, "der Zieljingle fällt weg")
+	assert_eq(str(_st(m)["ending_variant"]), "rekord", "neuer Rekord: Schluss „rekord“")
+	_race(m)
+	m.event("stage_finish", {"record": true, "last_stage": true})
+	assert_eq(str(_st(m)["ending_variant"]), "finale", "letzte Etappe: Schluss „finale“ (auch bei Rekord)")
+	# the stab: only when the bar line of the ending is further than ZIEL_MIN_S away
+	var id := _race(m)
+	var bar := float(m.music.race_piece(int(_st(m)["race_index"]))["bar_s"])
+	var far := int((0.25 * bar) / DT)
+	_steps(m, far)
+	var to_bar := m.music.time_to_bar()
+	assert_true(to_bar > MusicDirector.ZIEL_MIN_S, "Taktstrich in %.2f s" % to_bar)
+	m.event("stage_finish", {"record": false, "last_stage": false})
+	assert_eq(str(_st(m)["sting_waiting"]), id + "_ziel", "der Schlag kommt sofort")
+	_steps(m, 1)
+	assert_eq(str(_st(m)["last_sting"]), id + "_ziel", "gespielt")
+	_steps(m, 4)
+	assert_near(float(_st(m)["duck_db"]), m.music.sting_duck_db, 0.05, "die Schleife darunter abgesenkt")
+	_steps(m, int(to_bar / DT) + 2)
+	assert_near(float(_st(m)["duck_db"]), 0.0, 0.05, "am Taktstrich des Schlusses wieder voll")
+	# close to the bar line: no stab (the ending's downbeat is the reaction)
+	id = _race(m)
+	bar = float(m.music.race_piece(int(_st(m)["race_index"]))["bar_s"])
+	_steps(m, int((bar - 0.15) / DT) - 2)
+	assert_true(m.music.time_to_bar() < MusicDirector.ZIEL_MIN_S, "Taktstrich in %.2f s" % m.music.time_to_bar())
+	m.event("stage_finish", {"record": false, "last_stage": false})
+	assert_eq(str(_st(m)["sting_waiting"]), "", "kein Schlag so kurz vor dem Schluss")
+	_done(m)
+
+
+func test_stingers_on_the_beat_over_the_ducked_piece() -> void:
+	var m := _modern()
+	var id := _race(m)
+	var p := m.music.race_piece(int(_st(m)["race_index"]))
+	var beat := float(p["bar_s"]) / 4.0
+	_steps(m, 20)
+	var to_beat := m.music.time_to_beat()
+	m.event("busted", {})
+	assert_eq(str(_st(m)["sting_waiting"]), id + "_polizei", "Erwischt: der Stinger des Stücks wartet auf den Schlag")
+	var waited := 0
+	while str(_st(m)["last_sting"]) != id + "_polizei" and waited < 120:
+		_steps(m, 1)
+		waited += 1
+	assert_near(waited * DT, to_beat, DT * 1.5, "auf dem nächsten Schlag (nach %.3f s, Schlag in %.3f s)" % [waited * DT, to_beat])
+	_steps(m, 5)
+	assert_near(float(_st(m)["duck_db"]), m.music.sting_duck_db, 0.05, "das Rennstück ist abgesenkt (%.1f dB)" % float(_st(m)["duck_db"]))
+	var e := m.assets.entry("music", id + "_polizei")
+	var hold := float(e.meta.get("bars", 1)) * float(p["bar_s"])
+	_steps(m, int((hold + m.music.sting_release_s) / DT) + 4)
+	assert_near(float(_st(m)["duck_db"]), 0.0, 0.05, "und kommt zurück")
+	m.event("out_of_fuel", {})
+	_steps(m, int(beat / DT) + 2)
+	assert_eq(str(_st(m)["last_sting"]), id + "_tank", "Tank leer: sein Stinger")
+	assert_eq(int((_st(m)["stingers_played"] as Dictionary).get(id + "_tank", 0)), 1, "einmal")
+	# "Musik im Rennen: Aus": no stingers (they are music)
+	m.set_race_music(false)
+	_steps(m, 2)
+	m.event("busted", {})
+	_steps(m, 60)
+	assert_eq(int((_st(m)["stingers_played"] as Dictionary).get(id + "_polizei", 0)), 1, "ohne Rennmusik kein Stinger")
+	# after the finish: no stingers either
+	m.set_race_music(true)
+	_steps(m, 2)
+	m.event("stage_finish", {"record": false, "last_stage": false})
+	m.event("out_of_fuel", {})
+	_steps(m, 60)
+	assert_eq(int((_st(m)["stingers_played"] as Dictionary).get(id + "_tank", 0)), 1, "nach dem Ziel kein Stinger")
+	_done(m)
+
+
+func test_finish_without_race_music() -> void:
+	var m := _modern()
+	m.set_race_music(false)
+	var id := _race(m)
+	assert_eq(m.music.current_key(), "", "„Musik im Rennen: Aus“: still")
+	m.event("stage_finish", {"record": true, "last_stage": false})
+	_steps(m, 2)
+	assert_eq(str(_st(m)["last_sting"]), id + "_schluss_rekord", "der Schluss „rekord“ ist der Zielklang")
+	var hold := float(_st(m)["hold_left"])
+	assert_true(hold > 1.0, "er klingt aus (%.2f s)" % hold)
+	m.set_music_context("result")
+	_steps(m, 3)
+	assert_eq(m.music.current_key(), "", "die Menümusik wartet")
+	_steps(m, int(hold / DT) + 2)
+	assert_eq(m.music.current_key(), "music/zwischenspiel", "dann das Zwischenspiel")
 	_done(m)
 
 
@@ -198,10 +360,12 @@ func test_option_race_music_and_countin_pause() -> void:
 	assert_near(float(_st(m)["race_t"]), t0, 1.0e-9, "die Uhr des Stücks steht")
 	_steps(m, 1)
 	assert_false(bool(_st(m)["countdown_paused"]), "weiter")
-	# after "LOS!" a pause only filters the music (ModernMix), the stream runs on
+	# after "LOS!" a pause only filters the music (ModernMix), the stream runs on – and so does its bar clock
 	_steps(m, int(float(_st(m)["countin_s"]) / DT) + 5)
+	var mt: float = _st(m)["music_t"]
 	_steps(m, 10, true)
 	assert_false(bool(_st(m)["countdown_paused"]), "nach dem Einzähler hält die Pause den Stream nicht an")
+	assert_near(float(_st(m)["music_t"]), mt + 10 * DT, 1.0e-6, "die Taktuhr des Stücks läuft in der Pause weiter")
 	_done(m)
 
 
@@ -232,12 +396,32 @@ func test_race_stream_of_the_piece() -> void:
 		assert_eq(s.get_transition_to_time(0, 1), AudioStreamInteractive.TRANSITION_TO_TIME_START, "vom Anfang des Schlusses")
 		assert_eq(s.get_transition_fade_mode(0, 1), AudioStreamInteractive.FADE_DISABLED,
 			"die Schleife endet am Taktstrich (1 ms), der Schluss setzt voll ein – kein doppelter Schlag")
+		# the variants: two more clips, the same transition
+		var full := m.music.race_stream(piece) as AudioStreamInteractive
+		assert_eq(full.clip_count, 4, "vier Clips: Lauf, Schluss, Rekord, Finale")
+		for i in [2, 3]:
+			assert_true(full.has_transition(0, i), "Übergang zu Clip %d" % i)
+			assert_eq(full.get_transition_from_time(0, i), AudioStreamInteractive.TRANSITION_FROM_TIME_NEXT_BAR, "Clip %d am Taktstrich" % i)
+			assert_eq(full.get_transition_fade_mode(0, i), AudioStreamInteractive.FADE_DISABLED, "Clip %d ohne Überblenden" % i)
+			assert_false((full.get_clip_stream(i) as AudioStreamOggVorbis).loop, "Clip %d spielt einmal" % i)
+		assert_eq(full.get_clip_name(2), MusicDirector.VARIANT_CLIPS["rekord"], "Clip 2: Rekord")
+		assert_eq(full.get_clip_name(3), MusicDirector.VARIANT_CLIPS["finale"], "Clip 3: Finale")
 		assert_true(m.music.race_stream(piece) == m.music.race_stream(piece), "ein Stream je Stück (zwischengespeichert)")
+	# every race piece: its main file loops from the first frame of its body, the clips have the piece's tempo
+	for id in PIECES:
+		var e := m.assets.entry("music", id)
+		var s := m.assets.stream("music", id) as AudioStreamOggVorbis
+		assert_true(s != null and s.loop and int(s.loop_offset * 44100.0) == e.loop_begin, "%s: Schleife ab Frame %d" % [id, e.loop_begin])
+		assert_near(float(e.loop_end - e.loop_begin) / 44100.0, float(e.meta["loop_bars"]) * 240.0 / e.bpm, 1.0e-6,
+			"%s: die Schleife ist %d ganze Takte" % [id, int(e.meta["loop_bars"])])
+		for k in ["ziel", "polizei", "tank", "schluss", "schluss_rekord", "schluss_finale"]:
+			var c := m.assets.entry("music", "%s_%s" % [id, k])
+			assert_true(c != null and is_equal_approx(c.bpm, e.bpm) and c.gain_db == e.gain_db, "%s_%s: Tempo und Pegel des Stücks" % [id, k])
 	_done(m)
 
 
 func test_placeholders_never_replace_a_real_piece() -> void:
 	var m := _modern({"placeholders": true})
-	for i in 4:
-		assert_eq(str(m.music.race_piece(i).get("id", "")), "linke_spur", "Etappe %d: das echte Rennstück, nie der Platzhalter" % i)
+	for i in 6:
+		assert_eq(str(m.music.race_piece(i).get("id", "")), PIECES[i % 3], "Etappe %d: ein echtes Rennstück, nie der Platzhalter" % i)
 	_done(m)

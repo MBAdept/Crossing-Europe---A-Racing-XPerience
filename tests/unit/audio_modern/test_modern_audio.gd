@@ -562,7 +562,9 @@ func test_music_contexts() -> void:
 	assert_eq(str(r.music.debug_state()["race_phase"]), MusicDirector.RACE_ENDING, "nach der Ziellinie: der Schluss des Stücks")
 	r.set_music(true)
 	_steps(r, 2)
-	assert_eq(r.music.current_key(), "music/titel_remaster", "zurück im Menü")
+	assert_eq(r.music.current_key(), race_key, "zurück im Menü: der Schluss klingt erst aus (AU-D2)")
+	_steps(r, int(MusicDirector.HOLD_MAX_S * 60.0) + 2)
+	assert_eq(r.music.current_key(), "music/titel_remaster", "dann das Menü")
 	_done(r)
 
 

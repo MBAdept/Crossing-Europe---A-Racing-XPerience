@@ -256,8 +256,9 @@ def render(comp, tl: Timeline, n: int, sp: dict, seed: str, ref: dict | None = N
             add(nm, cv[nm])
         del cv
     log(f"  {'drums':12s} {time.time() - t1:6.1f} s")
-    # bass: picked + synth + sub
+    # bass: picked + synth + sub (folded from comp.SUB_FOLD Hz up: music_lib.sub_bass)
     t1 = time.time()
+    sub_fold = float(getattr(comp, "SUB_FOLD", 36.0))
     pick, syn, sub = mlib.Canvas(n), mlib.Canvas(n), mlib.Canvas(n)
     for b in bars:
         for s, ln, m, vel, layers in comp.bass_bar(b):
@@ -271,7 +272,7 @@ def render(comp, tl: Timeline, n: int, sp: dict, seed: str, ref: dict | None = N
             elif "s" in layers:
                 syn.place(ms.bass_syn(int(m), ln, var, comp.bass_cut(b)), t, vel)
             if "x" not in layers:
-                sub.place(mlib.sub_bass(int(m), round(ln * STEP, 4)), t, vel * (0.7 if "d" in layers else 1.0))
+                sub.place(mlib.sub_bass(int(m), round(ln * STEP, 4), sub_fold), t, vel * (0.7 if "d" in layers else 1.0))
     add("bass_pick", pick)
     add("bass_syn", syn)
     add("sub", sub)
@@ -362,6 +363,16 @@ def render(comp, tl: Timeline, n: int, sp: dict, seed: str, ref: dict | None = N
         lg = ms.amp_sim(di.x, ms.AMP_LEAD)
         add("lead_gtr", np.stack([lg, lg], axis=1))
     del di
+    # clean guitar (optional, comp.clean_bar): single plucked strings of the guitar model without the amp
+    if hasattr(comp, "clean_bar"):
+        cl = mlib.Canvas(n)
+        for b in bars:
+            for s, ln, m, vel, pan in comp.clean_bar(b):
+                r = ms.rng_of(seed + "_clean", b.key, s, m)
+                cl.place(ms.gtr_hit((int(m),), ln, "open", 1, 1, int(r.integers(0, 4))),
+                         b.t + s * STEP + 0.003 * r.uniform(-1.0, 1.0), vel * (1.0 + 0.04 * r.uniform(-1, 1)), pan)
+        add("gtr_clean", cl)
+        del cl
     log(f"  {'leads':12s} {time.time() - t1:6.1f} s")
     # fx: risers and reverse crashes into big downbeats, impacts on them
     t1 = time.time()
@@ -412,6 +423,7 @@ class Extras:
         k = host.KEY
         self.host = host
         self.CH = host.CH
+        self.SUB_FOLD = float(getattr(host, "SUB_FOLD", 36.0))      # the sub of the extras as in the piece
         self.T = k["tonic"]
         self.Tm = k.get("minor_tonic", k["tonic"])
         self.TM = k.get("major_tonic", k["tonic"])
@@ -498,8 +510,10 @@ class Extras:
         gtr.append(("P", 1, [f"0:4:{N(dm['5'])} 4:4:{N(dm['5'] - 1)} 8:4:{N(dm['4'])} 12:4:{N(dm['4'] - 1)}",
                              f"0:8:{N(dm['r'])}:v"], -12, 0.7))
         # T – out of fuel: the line runs dry – a slow chromatic sigh, then the root sinks by an octave
-        lead.append(("T", 0, [f"0:4:{N(dm['5'])}:l 4:4:{N(dm['5'] - 1)}:l 8:4:{N(dm['4'])}:l 12:4:{N(dm['3'])}:l",
-                              f"0:16:{N(dm['r'])}:B-12"], 0, "soft", 0.9, "lead_syn"))
+        sigh = [f"0:4:{N(dm['5'])}:l 4:4:{N(dm['5'] - 1)}:l 8:4:{N(dm['4'])}:l 12:4:{N(dm['3'])}:l",
+                f"0:16:{N(dm['r'])}:B-12"]
+        lead.append(("T", 0, sigh, 0, "soft", 1.0, "lead_syn"))
+        harm.append(("T", 0, sigh, -12, "soft", 0.75, "harm_syn"))
         return lead + harm, gtr, bells
 
     # --- patterns ----------------------------------------------------------------------------------------------------
@@ -560,8 +574,8 @@ class Extras:
             return [(0, 6, CH[self.Tm]["root"], 1.0, "ps")]
         if k == "T":
             if j == 0:
-                return [(0, 16, CH[self.iv]["root"], 0.55, "d")]
-            return [(0, 14, CH[self.Tm]["root"], 0.6, "d")]
+                return [(0, 16, CH[self.iv]["root"], 0.85, "d")]
+            return [(0, 14, CH[self.Tm]["root"], 0.85, "d")]
         return []
 
     def gtr_bar(self, b: Bar, take: int) -> list:
@@ -585,8 +599,8 @@ class Extras:
                     if take < 2 else []
             return [(0, 6, "open", 1.0, 1, self.Tm)]
         if k == "T":
-            if j == 0 and take < 2:
-                return [(0, 20, "open", 0.75, 1, self.iv)]
+            if j == 0:
+                return [(0, 20, "open", 0.95 if take < 2 else 0.8, 1, self.iv)]
             return []
         return []
 
@@ -608,7 +622,7 @@ class Extras:
                 return [(0, bar * 0.98, self.iv, 0.8)]
             return []
         if k == "T":
-            return [(0, bar * 0.98, b.chord, 0.75)]
+            return [(0, bar * 0.98, b.chord, 1.0)]
         return []
 
     def arp_bar(self, b: Bar) -> list:
@@ -623,7 +637,7 @@ class Extras:
         out = []
         order = (3, 2, 1, 0, 2, 1, 0, 0)
         for i, s in enumerate(steps):
-            vel = 0.8 * (1.0 - 0.09 * (i + 6 * b.j))
+            vel = 0.95 * (1.0 - 0.09 * (i + 6 * b.j))
             bright = max(0, 4 - i // 2 - 3 * b.j)
             out.append((s, notes[order[i % len(order)]], max(vel, 0.25), bright))
         return out
@@ -744,6 +758,7 @@ class RacePiece:
     SEED = ""
     BPM = 120.0
     ROTATION = 9
+    SUB_FOLD = 45.0               # the sub layer folds into 45..94 Hz (linke_spur.py and the title: 36..75 Hz)
     KEY: dict = {}
     COUNTIN_BARS = 1
     COUNTIN_CHORD = ""

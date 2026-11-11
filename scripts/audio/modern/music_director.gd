@@ -520,6 +520,7 @@ func update(frame: ModernAudioFrame) -> void:
 				_start(other, key, want.get("stream"))
 				if bool(want.get("race", false)):
 					_level[other] = 1.0      # the count-in starts as composed (no fade-in over its first beats)
+					music_t = 0.0            # the stream starts at its frame 0 (also when "Musik im Rennen" comes back on)
 			_target[_cur] = 0.0
 			_cur = other
 			_target[_cur] = 1.0

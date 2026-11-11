@@ -659,7 +659,12 @@ func _scenario_race(_g: String) -> void:
 		var fin: Dictionary = await _drive(0.0, true)
 		var st_fin: Dictionary = _modern().call("debug_state")
 		await _end_stage()
-		var finish_ok := bool(fin["finished"]) and int((st_fin["plays"] as Dictionary).get("finish", 0)) == 1 \
+		# the finish sound: since AU-D2 the music slot claims "stage_finish" (the race piece's ending, or the ending as
+		# a one-shot) – the AudioManager's "finish" jingle of the same moment is dropped; without the claim it plays
+		var fin_music: Dictionary = (st_fin["slots"] as Dictionary)["music"]
+		var finish_sound := int((st_fin["plays"] as Dictionary).get("finish", 0)) == 1 \
+			or (int((st_fin["dropped"] as Dictionary).get("finish", 0)) == 1 and str(fin_music.get("ending_variant", "")) != "")
+		var finish_ok := bool(fin["finished"]) and finish_sound \
 			and (_inject or int((st_fin["events"] as Dictionary).get("stage_finish", 0)) == 1)
 		# the same 16 s with the Arcade profile: the simulation does not depend on the sound profile (Rule 3)
 		_am.call("set_profile", "arcade")

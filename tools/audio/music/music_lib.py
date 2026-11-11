@@ -165,12 +165,14 @@ def shaker(var: int) -> np.ndarray:
 
 
 @functools.lru_cache(maxsize=None)
-def sub_bass(midi: int, dur: float) -> np.ndarray:
-    """Sine sub an octave or two below the bass note, folded into 36..75 Hz."""
+def sub_bass(midi: int, dur: float, fold_lo: float = 36.0) -> np.ndarray:
+    """Sine sub an octave or two below the bass note, folded into fold_lo .. fold_lo x 75/36 Hz (36..75 Hz: the title
+    remaster and race piece 1; the later pieces fold from 45 Hz, so that no key puts its sub near 40 Hz)."""
+    hi = 75.0 * fold_lo / 36.0
     f = float(ms.mtof(midi))
-    while f < 36.0:
+    while f < fold_lo:
         f *= 2.0
-    while f > 75.0:
+    while f > hi:
         f *= 0.5
     n = int((dur + 0.06) * SR)
     t = np.arange(n) / SR

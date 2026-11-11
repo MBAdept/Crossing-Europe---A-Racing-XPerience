@@ -139,42 +139,90 @@ func _rms_db(x: PackedVector2Array, a: int, n: int) -> float:
 	return 10.0 * log(maxf(s / maxf(n, 1), 1.0e-20)) / log(10.0)
 
 
+## The race pieces of the manifest (role "race", not placeholders) in the order of their rotation.
+func _race_ids() -> Array[String]:
+	var a := ModernAudioAssets.new()
+	a.load_all()
+	var rows: Array = []
+	for id in a.ids("music", "music", "race"):
+		var e := a.entry("music", id)
+		rows.append([int(e.meta.get("rotation", 99)), id])
+	rows.sort()
+	var out: Array[String] = []
+	for r: Array in rows:
+		out.append(str(r[1]))
+	return out
+
+
 func _scenario_interactive() -> void:
-	var main: AudioStreamOggVorbis = load(MUSIC_DIR + "linke_spur.ogg")
-	var ending: AudioStreamOggVorbis = load(MUSIC_DIR + "linke_spur_schluss.ogg")
-	if main == null or ending == null:
-		_check("interactive", false, "Klangdateien fehlen")
+	var t0 := Time.get_ticks_msec()
+	var ok := true
+	var parts: Array[String] = []
+	var ids := _race_ids()
+	if ids.size() < 3:
+		_check("interactive", false, "Rennstücke fehlen (%s)" % str(ids))
 		return
+	for i in ids.size():
+		# the whole main file of every piece, the normal ending after the loop point; the ending variants and the stab
+		# of the first piece in its first pass (the same transition, other clips)
+		var r := _interactive_piece(ids[i], "schluss", true)
+		ok = ok and bool(r["ok"])
+		parts.append(str(r["text"]))
+	for v: String in ["schluss_rekord", "schluss_finale"]:
+		var r := _interactive_piece(ids[1], v, false)
+		ok = ok and bool(r["ok"])
+		parts.append(str(r["text"]))
+	var z := _loop_seam("zwischenspiel")
+	ok = ok and bool(z["ok"])
+	parts.append(str(z["text"]))
+	_check("interactive", ok, "; ".join(parts) + "; %d ms" % (Time.get_ticks_msec() - t0))
+
+
+## A race piece as the MusicDirector builds it (AudioStreamInteractive), mixed offline in the AudioServer's 512-frame
+## steps: the main file frame for frame until the switch, after its end the first pass over the loop start again; the
+## switch to the ending clip `clip_name` at the next bar line (asked for 1.234 s into the second pass, or – second_pass
+## false – 31.3 s into the first): within 3 ms, no gap, no doubled downbeat.
+func _interactive_piece(id: String, clip_name: String, second_pass: bool) -> Dictionary:
+	var main: AudioStreamOggVorbis = load(MUSIC_DIR + id + ".ogg")
+	var ending: AudioStreamOggVorbis = load(MUSIC_DIR + id + "_schluss.ogg")
+	var variant: AudioStreamOggVorbis = load(MUSIC_DIR + id + "_" + clip_name + ".ogg")
+	if main == null or ending == null or variant == null:
+		return {"ok": false, "text": "%s: Klangdateien fehlen" % id}
+	var variants := {}
+	for v: String in MusicDirector.VARIANT_CLIPS:
+		var vs: AudioStreamOggVorbis = load(MUSIC_DIR + id + "_" + str(MusicDirector.VARIANT_CLIPS[v]) + ".ogg")
+		if vs != null:
+			variants[v] = vs
 	var length := int(round(main.get_length() * MIX_RATE))
 	var off := int(main.loop_offset * MIX_RATE)
 	var bar := 4.0 * 60.0 / main.bpm
-	var t0 := Time.get_ticks_msec()
+	var switch_at := (length + int(1.234 * MIX_RATE)) if second_pass else int(31.3 * MIX_RATE)
+	switch_at -= switch_at % STEP
 	# 1. the main file alone (its own playback): reference of the first pass and of the loop
-	var ref := _mix(main.instantiate_playback(), length + int(3.0 * MIX_RATE))
+	var ref := _mix(main.instantiate_playback(), (length if second_pass else switch_at) + int(3.0 * MIX_RATE))
 	var after_loop := 0.0
-	for k in range(2, int(2.0 * MIX_RATE)):
-		after_loop = maxf(after_loop, (ref[length + k] - ref[off + k]).length())
-	# 2. the interactive stream of the director: the same until the switch, which is asked for in the loop
-	var s := MusicDirector.build_race_stream(main, ending)
+	if second_pass:
+		for k in range(2, int(2.0 * MIX_RATE)):
+			after_loop = maxf(after_loop, (ref[length + k] - ref[off + k]).length())
+	# 2. the interactive stream of the director: the same until the switch
+	var s := MusicDirector.build_race_stream(main, ending, variants)
 	var pb := s.instantiate_playback() as AudioStreamPlaybackInteractive
 	pb.start(0.0)
-	var switch_at := length + int(1.234 * MIX_RATE)          # in the second pass, mid-bar
-	switch_at -= switch_at % STEP
 	var out := _mix(pb, switch_at, true)
 	var same := 0.0
-	for i in range(0, out.size(), 7):
+	for i in range(0, out.size(), 7 if second_pass else 3):
 		same = maxf(same, (out[i] - ref[i]).length())
-	pb.switch_to_clip_by_name(MusicDirector.ENDING_CLIP)
+	pb.switch_to_clip_by_name(StringName(clip_name))
 	out.append_array(_mix(pb, int(4.0 * MIX_RATE), true))
 	# where the ending starts: its own output once the loop has faded out, matched against the mix. Every clip
 	# reaches the output 2 frames late (the engine's cubic resampler), so output frame k shows file frame k − 2 –
 	# in the second pass k − 2 − length + off. Ideal start: the ending's frame 0 where the main shows its bar line.
-	var end_ref := _mix(ending.instantiate_playback(), int(2.0 * MIX_RATE))
+	var end_ref := _mix(variant.instantiate_playback(), int(2.0 * MIX_RATE))
 	var bar_frames := bar * MIX_RATE
-	var f_out := float(switch_at - 2 - length + off)
+	var f_out := float(switch_at - 2 - (length - off if second_pass else 0))
 	var f_bar := ceilf(f_out / bar_frames) * bar_frames
 	var to_bar := (f_bar - f_out) / MIX_RATE
-	var bar_frame := int(round(f_bar)) + length - off
+	var bar_frame := int(round(f_bar)) + (length - off if second_pass else 0)
 	var best := 0
 	var best_err := INF
 	var w0 := int(0.35 * MIX_RATE)
@@ -191,17 +239,43 @@ func _scenario_interactive() -> void:
 	for k in range(-int(0.05 * MIX_RATE), int(0.3 * MIX_RATE), 220):
 		lowest = minf(lowest, _rms_db(out, bar_frame + best + k, 220) - before)
 	var clip := pb.get_current_clip_index()
+	var want_clip := -1
+	for c in s.clip_count:
+		if s.get_clip_name(c) == StringName(clip_name):
+			want_clip = c
 	var ms_off := best / MIX_RATE * 1000.0
 	# no doubled downbeat: the first 100 ms of the ending in the mix are as loud as the ending alone (the loop stops
 	# at the bar line instead of fading out under the ending's first hit)
 	var bump := _rms_db(out, bar_frame + best, 4410) - _rms_db(end_ref, 0, 4410)
-	var ok := after_loop < 1.0e-6 and same < 1.0e-6 and ms_off <= 0.5 and ms_off >= -3.0 and lowest > -12.0 and clip == 1 \
-		and best_err < 1.0e-6 and bump < 1.0
-	_check("interactive", ok, ("Hauptdatei %d Frames, Schleife ab Frame %d: nach dem Dateiende gleicht die Ausgabe dem ersten Durchgang (größte Abweichung %s); " +
-		"der interaktive Stream spielt bis zum Wechsel die Datei Frame für Frame (Abweichung %s); Wechsel zum Schluss %.3f s vor dem Taktstrich angefordert – " +
-		"der Schluss beginnt %.2f ms %s dem Taktstrich (Restfehler %s), Clip %d; leisestes 5-ms-Fenster %.1f dB unter der Musik davor (keine Lücke); " +
-		"erste 100 ms des Schlusses %+.2f dB gegenüber dem Schluss allein (kein doppelter Schlag); %d ms") % [
-		length, off, String.num_scientific(after_loop), String.num_scientific(same), to_bar, absf(ms_off), "vor" if ms_off < 0.0 else "nach", String.num_scientific(best_err), clip, -lowest, bump, Time.get_ticks_msec() - t0])
+	var ok := after_loop < 1.0e-6 and same < 1.0e-6 and ms_off <= 0.5 and ms_off >= -3.0 and lowest > -12.0 \
+		and clip == want_clip and best_err < 1.0e-6 and bump < 1.0
+	var text := "%s %s (%s): " % [id, clip_name, "nach der Schleife" if second_pass else "im ersten Durchgang"]
+	if second_pass:
+		text += "Hauptdatei %d Frames, Schleife ab Frame %d, nach dem Dateiende Abweichung %s zum ersten Durchgang; " % [
+			length, off, String.num_scientific(after_loop)]
+	text += ("bis zum Wechsel Frame für Frame (Abweichung %s); %.3f s vor dem Taktstrich angefordert – Beginn %.2f ms %s " +
+		"dem Taktstrich (Restfehler %s), Clip %d; leisestes 5-ms-Fenster %.1f dB unter der Musik davor; erste 100 ms " +
+		"%+.2f dB gegenüber dem Clip allein") % [String.num_scientific(same), to_bar, absf(ms_off),
+		"vor" if ms_off < 0.0 else "nach", String.num_scientific(best_err), clip, -lowest, bump]
+	return {"ok": ok, "text": text + (" OK" if ok else " FEHLER")}
+
+
+## A plain looping piece (the interlude): after the end of the file the output equals the first pass over the loop
+## start (its intro is the loop's own end, so the seam lies inside the music).
+func _loop_seam(id: String) -> Dictionary:
+	var main: AudioStreamOggVorbis = load(MUSIC_DIR + id + ".ogg")
+	if main == null:
+		return {"ok": false, "text": "%s fehlt" % id}
+	var length := int(round(main.get_length() * MIX_RATE))
+	var off := int(main.loop_offset * MIX_RATE)
+	var ref := _mix(main.instantiate_playback(), length + int(3.0 * MIX_RATE))
+	var after_loop := 0.0
+	for k in range(2, int(2.0 * MIX_RATE)):
+		after_loop = maxf(after_loop, (ref[length + k] - ref[off + k]).length())
+	var level := _rms_db(ref, off, int(2.0 * MIX_RATE))
+	var ok := main.loop and after_loop < 1.0e-6 and level > -40.0
+	return {"ok": ok, "text": "%s: %d Frames, Schleife ab Frame %d, nach dem Dateiende Abweichung %s zum ersten Durchgang (Pegel dort %.1f dBFS)%s" % [
+		id, length, off, String.num_scientific(after_loop), level, " OK" if ok else " FEHLER"]}
 
 
 # --- the race ---------------------------------------------------------------------------------------

@@ -27,6 +27,11 @@ anderes dasteht) oder als **abgeleitet** gekennzeichnet.
 - **Seit AU-D1** ist der Baustein `music` kein Platzhalter mehr: das Titel-Remaster in den Menüs, Rennstück 1
   „Linke Spur“ mit Einzähler auf „LOS!“, Schleife und Schluss am Taktstrich, die Musik-Kette unter
   `tools/audio/music/` – Abschnitt 14.
+- **Seit AU-D2** spielen drei Rennstücke reihum („Linke Spur“, „Nachtfahrt“, „Rückenwind“), zwischen den Etappen das
+  Zwischenspiel; das Ziel ist Musik (Ziel-Schlag, Schluss, „Rekord“, „Finale“), „Erwischt“ und „Tank leer“ haben
+  Stinger in der Tonart des laufenden Stücks; die Menüklänge `ui_move`, `ui_ok`, `ui_back` sind Modern-Dateien
+  (`assets/audio/modern/ui/`); Bass, Höhen und Musikpegel aller Stücke stehen in `tools/audio/music/mischung.json`
+  – Abschnitt 14.
 - Niemand schaltet das Profil bisher im Spiel um: Die Einstellung „Klang“ und der Aufruf
   `AudioManager.set_profile(Settings.sound())` kommen mit Welle 2 (UI1). Bis dahin wählt man Modern mit
   `--sound=modern` oder `audio.profile` (Abschnitt 2).
@@ -121,8 +126,8 @@ Inhalt der Datei und behält beides.
 | `impact` | `impact_audio.gd` · `ImpactAudio` | `MImpact` | `crash` und `rail` als Einmalklänge mit den Arcade-Pegeln | AU-C1 |
 | `ambience` | `ambience_audio.gd` · `AmbienceAudio` | `MAmb` | Regenschleife | AU-C2 |
 | `traffic` | `traffic_extras.gd` · `TrafficExtras` | `MTrafficV0`–`7`, `MSiren` | das Arcade-Modell `TrafficAudio` unverändert (Unterklasse, die nur auf die Modern-Busse ausgibt), acht Stimmen, Arcade-Klänge | AU-C2 |
-| `music` | `music_director.gd` · `MusicDirector` | `MMusic` | je Kontext ein Stück in Schleife, Überblenden mit zwei Playern | AU-D1 – **erledigt**: Titel-Remaster, Rennstück mit Einzähler, Schleife und Schluss über `AudioStreamInteractive` (Abschnitt 14) |
-| `sfx` | `sfx_bank.gd` · `SfxBank` | `MUI`, `MSfx` | alle übrigen Einmalklänge; nimmt eine Modern-Datei, sobald ein Manifest sie nennt, sonst den `SfxSynth`-Klang | bleibt (Klänge: AU-C1, AU-D2) |
+| `music` | `music_director.gd` · `MusicDirector` | `MMusic` | je Kontext ein Stück in Schleife, Überblenden mit zwei Playern | AU-D1 – **erledigt**: Titel-Remaster, Rennstück mit Einzähler, Schleife und Schluss über `AudioStreamInteractive`; AU-D2 – **erledigt**: drei Rennstücke reihum, Zwischenspiel, Schluss-Varianten, Ziel-Schlag, Stinger (Abschnitt 14) |
+| `sfx` | `sfx_bank.gd` · `SfxBank` | `MUI`, `MSfx` | alle übrigen Einmalklänge; nimmt eine Modern-Datei, sobald ein Manifest sie nennt, sonst den `SfxSynth`-Klang | bleibt (Klänge: AU-C1; die Menüklänge in `ui/`: AU-D2, Abschnitt 14.9) |
 
 Reihenfolge je Bild (`ModernAudio.SLOTS`): `env`, `engine`, `layers`, `road`, `impact`, `ambience`, `traffic`,
 `music`, `sfx`. Nach dem Motor steht dessen Zustand als `frame.engine` (`rpm`, `gear`, `load`, `boost`) für die
@@ -333,13 +338,16 @@ Nennt ein Baustein ein Ereignis in `claims()`, vertont er es selbst – der `pla
 (`crash` ↔ `collision`, `rail` ↔ `rail_hit`, `flash` ↔ `radar_flash`, `go` ↔ `go`, `beep` ↔ `countdown`,
 `finish` ↔ `stage_finish`, `fuel_start` ↔ `refuel_start`, `fuel_done` ↔ `refuel_done`) fällt weg, wenn das
 Ereignis innerhalb von 50 ms davor oder danach kommt. Kommt keins, wird der Klang 50 ms später doch gespielt.
-Beansprucht niemand das Ereignis, klingt der `play()`-Aufruf sofort. In Welle 0 beansprucht kein Baustein etwas.
+Beansprucht niemand das Ereignis, klingt der `play()`-Aufruf sofort. In Welle 0 beansprucht kein Baustein etwas;
+seit AU-D2 beansprucht der Baustein `music` das Ereignis `stage_finish` (der Zielklang ist der Schluss des
+Rennstücks, Abschnitt 14.11) – der Jingle `finish` entfällt dann.
 
 **Musik.** `set_music_context(ctx)` kennt `title`, `menu`, `race_menu` (Bildschirme zwischen den Etappen), `race`,
 `result`, `off`. Das Spiel ruft weiterhin `set_music(true/false)` und ab Welle 2 daneben `set_music_context`; der
 letzte Aufruf gewinnt: `set_music(false)` = `off`; `set_music(true)` = `menu`, sofern nicht schon ein Menü-Kontext
 gilt. Der `MusicDirector` spielt in den Menü-Kontexten das Titel-Remaster (ohne Modern-Datei die heutige
-Titelmelodie) und im Rennen ein Rennstück, das mit der Etappe beginnt und mit ihr endet; Überblenden zwischen
+Titelmelodie), zwischen den Etappen (`race_menu`, `result`) das Zwischenspiel und im Rennen ein Rennstück (reihum),
+das mit der Etappe beginnt und mit ihr endet; Überblenden zwischen
 Stücken 0,6 s aus, 0,4 s ein, gleiche Leistung. Ein Stück gilt erst als begonnen, wenn sein Stream da ist
 (`resolve()` antwortet bis dahin mit Stille): Die Titelmelodie wird ohne `audio.music_file` in einem Thread
 synthetisiert und trifft mit dem Profil Modern beim Start erst nach dem Menü-Kontext ein. Der Schalter
@@ -415,8 +423,10 @@ ein kaputtes ist ein Fehler im Log) und die Streams beim ersten Gebrauch.
 | `tools/audio/modern/capture_mix.gd` + `measure_mix.py` | nimmt den Master-Bus bei einer festen Fahrt, im Menü oder im Rennen mit Musik auf und misst die Lautheit je Abschnitt gegen den Plan |
 | `tools/audio/modern/make_arcade_golden.sh` | schreibt die Fingerabdrücke des Arcade-Klangs aus dem Tag v0.7.0 neu (nur nach einem Engine-Update) |
 | `tools/audio/music/music_lib.py` | Musik-Kette (AU-D1): moderne Produktionsschicht über `music_synth.py`, Mixer, Master, Vorbis mit Messung nach der Kodierung (Abschnitt 14.2) |
-| `tools/audio/music/title_remaster.py`, `linke_spur.py` | die Generatoren des Titel-Remasters und von Rennstück 1 (`--out`, `--wav`, Skizzen) |
-| `tools/audio/music/check_music.py` | Noten: Tonklassen und Akkord-Grundton je Takt, Tonart – Remaster gegen das Original, Rennstück gegen seine Partitur |
+| `tools/audio/music/title_remaster.py`, `linke_spur.py`, `nachtfahrt.py`, `rueckenwind.py`, `zwischenspiel.py` | die Generatoren des Titel-Remasters, der drei Rennstücke (mit Schlüssen und Stingern, über `race_lib.py`) und des Zwischenspiels (`--out`, `--wav`, Skizzen) |
+| `tools/audio/music/ui_klaenge.py` | die UI-Klänge des Profils Modern (`assets/audio/modern/ui/`) |
+| `tools/audio/music/mischung.json`, `render_all.py` | die gemeinsamen Mischentscheidungen aller Stücke und der Lauf, der danach alles neu rendert (Abschnitt 14.10) |
+| `tools/audio/music/check_music.py` | Noten: Tonklassen und Akkord-Grundton je Takt, Tonart – Remaster gegen das Original, jedes Rennstück gegen seine Partitur, die Zusatzclips |
 
 `audio_qc.py` prüft je Datei: Format passend zum Ordner; Manifest gleich Datei (sha256, Bytes, Frames, Kanäle,
 Rate, Lautheit und True Peak nachgemessen); True Peak ≤ −1 dBTP; Musik −14 ± 1 LUFS; keine drei Abtastwerte in
@@ -526,7 +536,7 @@ Fahrt; mit `--placeholders` das Platzhalter-Stück); `--mute-bus=MEnv` lässt nu
 | `test_modern_audio.gd` | `ModernAudio` ohne Szenenbaum: Lebenszyklus, Frame-Semantik, Einmalklänge und Ereignisse (50 ms), Mischung, Musik-Kontexte, Stummschaltung |
 | `test_modern_checks.gd` | startet `check_modern_audio.gd` zweimal (ohne und mit Wiedergabe) und `check_arcade_lean.gd` als eigene Prozesse |
 | `test_engine3_bank.gd`, `test_engine3_mix.gd`, `test_engine3_slot.gd`, `test_engine3_checks.gd` | Motor v3 (AU-B): Bank-Lader, Mischer (Knackser an den Zyklusgrenzen, Leistung beim Überblenden, Kanalabgleich, Monosumme), Baustein und Fahrzeugebenen, `check_engine3.gd` als eigene Prozesse (Thread-Bank mit sechs Hängern von 400 ms, Profilwechsel, Beenden) – [motorsound.md](motorsound.md) 6.7 |
-| `test_music_director.gd`, `test_music_checks.gd` | Musik (AU-D1): Zustandsmaschine des `MusicDirector` ohne Szenenbaum; `check_music.gd` als eigene Prozesse (Schleife und Schluss offline gemischt, Rennen mit Countdown und Ducking, Arcade ohne Neues, Beenden mit Musik) – Abschnitt 14.5 |
+| `test_music_director.gd`, `test_music_checks.gd` | Musik (AU-D1, AU-D2): Zustandsmaschine des `MusicDirector` ohne Szenenbaum (Rotation, Zwischenspiel, Schluss-Varianten, Ziel-Schlag, Stinger); `check_music.gd` als eigene Prozesse (Schleife und Schlüsse aller Rennstücke offline gemischt, Naht des Zwischenspiels, Rennen mit Countdown und Ducking, Arcade ohne Neues, Beenden mit Musik) – Abschnitt 14.12 |
 
 `check_modern_audio.gd` prüft im laufenden Spiel: Start mit Arcade und Busliste wie in v0.7.0 · die neue API tut
 mit Arcade nichts · 22 Modern-Busse hinter den vorhandenen · **20 × Profilwechsel** ohne zusätzlichen Knoten oder

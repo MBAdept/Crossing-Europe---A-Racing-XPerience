@@ -128,10 +128,114 @@ def check_race() -> dict:
             "ok": frac >= 0.8 and _minor(key) == "D-Moll" and end_ok}
 
 
+def _clip_roots(path: str, bar_s: float, layout: list) -> list:
+    """Best triads of a clip: layout = [(start in bars, length in bars)]."""
+    x = _read(path)
+    out = []
+    for a, n in layout:
+        c, _ = _chords(x, [a * bar_s], n * bar_s)
+        out.append(c[0])
+    return out
+
+
+def check_extras(piece: str, bpm: float, key: dict, ending: tuple) -> dict:
+    """The extra clips of a race piece (race_lib.Extras): the stab on the tonic, the record ending on the cadence and
+    the tonic, the finale ending in the major tonic (minor pieces: the Picardy third), the stingers on the (minor)
+    tonic."""
+    bar = 4.0 * 60.0 / bpm
+    half = bar / 2.0
+    f = lambda s: os.path.join(MUSIC, f"{piece}_{s}.ogg")  # noqa: E731
+    T, Tm, TM = key["tonic"], key.get("minor_tonic", key["tonic"]), key.get("major_tonic", key["tonic"])
+    got = {
+        "ziel": _clip_roots(f("ziel"), bar, [(0, 0.5)]),
+        "schluss_rekord": _clip_roots(f("schluss_rekord"), bar, [(0, 0.5), (0.5, 0.5), (1, 1)]),
+        "schluss_finale": _clip_roots(f("schluss_finale"), bar, [(0, 0.5), (0.5, 0.5), (2, 1)]),
+        "polizei": _clip_roots(f("polizei"), bar, [(0, 6 / 16)]),
+        "tank": _clip_roots(f("tank"), bar, [(1, 0.5)]),
+    }
+    # the cadence halves (first two windows of the endings) are reported, not judged: half a bar of brass and guitar
+    # chords is too short for the chroma (third harmonics of the fifths pull it to the neighbouring triad)
+    want = {"ziel": [T], "schluss_rekord": [None, None, T], "schluss_finale": [None, None, TM]}
+    res = {"clips": got, "ok": True, "misses": []}
+    for k, w in want.items():
+        for i, (g, ww) in enumerate(zip(got[k], w)):
+            if ww is not None and _root(g) != mlib.chord_root_pc(ww):
+                res["ok"] = False
+                res["misses"].append(f"{k}[{i}]: Partitur {ww}, gehört {g}")
+    # the stingers sound over the running piece: their key (all bars of the clip) is the minor tonic of the piece
+    minor = mlib.NOTE_NAMES[mlib.chord_root_pc(Tm)] + "-Moll"
+    for k, nb in (("polizei", 3), ("tank", 2)):
+        x = _read(f(k))
+        _c, chs = _chords(x, [i * bar for i in range(nb)], bar)
+        kk = _minor(mlib.key_of(chs.sum(axis=0)))
+        res["clips"][k] = res["clips"][k] + [f"Tonart {kk}"]
+        if kk != minor:
+            res["ok"] = False
+            res["misses"].append(f"{k}: Tonart {kk} statt {minor}")
+    # the finale ends in major: its last chord is a major triad (no "m")
+    fin = got["schluss_finale"][-1]
+    res["finale_major"] = bool(fin) and not fin.endswith("m")
+    res["ok"] = res["ok"] and res["finale_major"]
+    _ = half
+    return res
+
+
+def check_piece(name: str) -> dict:
+    """A race piece of race_lib (nachtfahrt, rueckenwind) against its own score: the root of the best triad per bar of
+    the main file (count-in, first phrase, loop), the key, the ending (cadence – tonic) and its extra clips."""
+    import importlib
+    mod = importlib.import_module(name)
+    cls = next(v for v in vars(mod).values() if isinstance(v, type) and getattr(v, "PIECE", "") == name)
+    pc = cls()                          # sets the tempo of the frozen synthesiser for this piece
+    bar_s = 4.0 * 60.0 / pc.BPM
+    x = _read(os.path.join(MUSIC, pc.files["main"]))
+    bars = [b for b in pc.tl.bars if b.i < pc.I_BODY + pc.LOOP_BARS]
+    cr, ch = _chords(x, [b.i * bar_s for b in bars], bar_s)
+    hit = counted = 0
+    misses = []
+    colour = getattr(mod, "COLOUR", {})
+    import race_lib
+    for b, r in zip(bars, cr):
+        if not r:
+            continue
+        counted += 1
+        # a hit: the root of the score's chord, or a triad made of the notes the pad really holds (Abmaj7 contains
+        # C minor, Cm9 E-flat major – the colour tones of the pieces make these the best triad of the bar)
+        cpc, civ = race_lib.parse_chord(colour.get(b.chord, b.chord))
+        held = {(cpc + i) % 12 for i in civ}
+        rp, riv = race_lib.parse_chord(r.replace("A#", "Bb").replace("D#", "Eb").replace("G#", "Ab"))
+        inside = all((rp + i) % 12 in held for i in riv)
+        ok = _root(r) == _root(b.chord) or inside
+        hit += ok
+        if not ok:
+            misses.append({"bar": b.i, "phrase": b.pid, "j": b.j, "score": b.chord, "heard": r})
+    key = mlib.key_of(ch[1:].sum(axis=0))
+    want_key = {"Cm": "C-Moll", "A": "F#-Moll"}.get(pc.KEY["tonic"], "")
+    e = _read(os.path.join(MUSIC, pc.files["ending"]))
+    half = bar_s / 2.0
+    ce, _ = _chords(e, [0.0, half, bar_s], half)
+    # judged: the first chord and the arrival on the tonic; the second half bar is reported (see check_extras)
+    end_ok = _root(ce[0]) == mlib.chord_root_pc(pc.ENDING[0]) and _root(ce[2]) == mlib.chord_root_pc(pc.ENDING[2])
+    frac = hit / max(counted, 1)
+    ex = check_extras(name, pc.BPM, pc.KEY, pc.ENDING)
+    return {"bars": counted, "root_hits": hit, "root_frac": round(frac, 3), "key": key, "misses": misses,
+            "ending": ce, "ending_ok": end_ok, "extras": ex,
+            "ok": frac >= 0.8 and _minor(key) == want_key and end_ok and ex["ok"]}
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="Musikalische Prüfung der Modern-Musik (Akkorde, Tonart)")
     ap.add_argument("--json", default="", help="vollständigen Bericht als JSON schreiben")
+    ap.add_argument("--only", default="", help="nur diese Prüfungen (Komma-Liste: titel, linke_spur, nachtfahrt, "
+                                               "rueckenwind)")
+    ap.add_argument("--music", default="", help="Musikordner statt assets/audio/modern/music (z. B. ein --out-Lauf)")
     args = ap.parse_args(argv)
+    if args.music:
+        global MUSIC
+        MUSIC = args.music
+    only = [s for s in args.only.split(",") if s]
+    if only:
+        return _main_only(only, args.json)
     title = check_title()
     print("Titel-Remaster gegen die Titelmelodie von v0.5.0: Tonklassen je Takt gleich verteilt (Kosinus im Median %.3f, "
           "kleinster %.3f, %.0f %% der Takte >= 0,85); Akkord-Grundton in %d von %d Takten gleich (%.1f %%), Original gegen "
@@ -141,17 +245,55 @@ def main(argv=None) -> int:
               title["key_original"], title["key_remaster"], "OK" if title["ok"] else "FEHLER"))
     for d in title["differences"][:12]:
         print("  Takt %3d %-8s Partitur %-4s Original %-4s Remaster %-4s" % (d["bar"], d["section"], d["score"], d["original"], d["remaster"]))
-    race = check_race()
-    print("Linke Spur gegen ihre Partitur: Grundton in %d von %d Takten (%.1f %%), Tonart %s; Schluss %s -> %s" % (
-        race["root_hits"], race["bars"], 100 * race["root_frac"], race["key"], " – ".join(race["ending"]),
-        "OK" if race["ok"] else "FEHLER"))
-    for d in race["misses"][:12]:
-        print("  Takt %3d %-3s %d  Partitur %-3s gehört %-4s" % (d["bar"], d["phrase"], d["j"], d["score"], d["heard"]))
+    rep = {"title": title}
+    ok = title["ok"]
+    for name in ("linke_spur", "nachtfahrt", "rueckenwind"):
+        rep[name] = _report_race(name)
+        ok = ok and rep[name]["ok"]
     if args.json:
         with open(args.json, "w", encoding="utf-8") as fh:
-            json.dump({"title": title, "race": race}, fh, ensure_ascii=False, indent=1)
+            json.dump(rep, fh, ensure_ascii=False, indent=1)
             fh.write("\n")
-    return 0 if title["ok"] and race["ok"] else 1
+    return 0 if ok else 1
+
+
+def _report_race(name: str) -> dict:
+    if name == "linke_spur":
+        race = check_race()
+        import linke_spur as ls
+        race["extras"] = check_extras("linke_spur", ls.BPM, ls.KEY, ("Bb", "C", "Dm"))
+        race["ok"] = race["ok"] and race["extras"]["ok"]
+        label = "Linke Spur"
+    else:
+        race = check_piece(name)
+        label = {"nachtfahrt": "Nachtfahrt", "rueckenwind": "Rückenwind"}[name]
+    ex = race["extras"]
+    print("%s gegen ihre Partitur: Grundton in %d von %d Takten (%.1f %%), Tonart %s; Schluss %s; Zusatzclips %s%s -> %s" % (
+        label, race["root_hits"], race["bars"], 100 * race["root_frac"], race["key"], " – ".join(race["ending"]),
+        "; ".join(f"{k} {' – '.join(v)}" for k, v in ex["clips"].items()),
+        "" if ex["finale_major"] else " (FINALE NICHT IN DUR)", "OK" if race["ok"] else "FEHLER"))
+    for d in race["misses"][:12]:
+        print("  Takt %3d %-3s %d  Partitur %-3s gehört %-4s" % (d["bar"], d["phrase"], d["j"], d["score"], d["heard"]))
+    for m in ex["misses"]:
+        print("  " + m)
+    return race
+
+
+def _main_only(only: list, json_path: str) -> int:
+    rep = {}
+    ok = True
+    for name in only:
+        if name == "titel":
+            rep[name] = check_title()
+            print("Titel-Remaster: %s" % ("OK" if rep[name]["ok"] else "FEHLER"))
+        else:
+            rep[name] = _report_race(name)
+        ok = ok and rep[name]["ok"]
+    if json_path:
+        with open(json_path, "w", encoding="utf-8") as fh:
+            json.dump(rep, fh, ensure_ascii=False, indent=1)
+            fh.write("\n")
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":
