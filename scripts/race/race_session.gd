@@ -478,6 +478,12 @@ func _begin_prepare() -> void:
 	_loading.add_child(cover)
 	_loading_overlay = LoadingOverlay.new(tr("Etappe wird geladen …"))
 	_loading.add_child(_loading_overlay)
+	# the HUD draws its real face behind the opaque cover from the first frame on: its canvas shaders are compiled
+	# while the stage is prepared, not in the first frames of the countdown (cold-cache warm-up check,
+	# tests/race3d/render/warmup_cold.gd). Set directly – update_state() would play the countdown beep and send the
+	# audio hints before the start; the first simulation step sends the state as always.
+	hud.state = _hud_state(clock.hour())
+	hud.queue_redraw()
 	if renderer.has_method(&"apply_quality"):
 		renderer.apply_quality(Settings.quality_levels())
 	renderer.prepare({"sets": _stage_sets.duplicate(), "plan": plan, "vehicle": vehicle.type_id, "weather": weather,

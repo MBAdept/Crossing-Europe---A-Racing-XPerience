@@ -6,8 +6,9 @@ chase_camera, terrain_profile, chunk_context, chunk_builder, chunk_streamer, bui
 `tests/sim/modern_*.gd`. Der Bauplan steht in [dev/v080_contract.md](dev/v080_contract.md) (§3.2, §3.3, §4.5); hier steht,
 wie der Kern funktioniert, was gemessen wurde und woran man dreht. Den Aufbau des Renderers selbst – die Fassade,
 über die Ebenen und Builder eingehängt werden, ihre Haken, die eingebaute Umgebung und das Bildwerkzeug – beschreibt
-[Abschnitt 9](#9-aufbau-fassade-ebenen-haken); Straße, Umgebung, Gelände und Fahrzeuge ergänzen die
-Renderer-Bauabschnitte dort.
+[Abschnitt 9](#9-aufbau-fassade-ebenen-haken); den Renderer-Kern mit Straße, Umgebung, Licht, Qualität und Aufwärmen
+[Abschnitt 10](#10-renderer-kern-straße-umgebung-licht-qualität); Gelände und Fahrzeuge ergänzen die
+Renderer-Bauabschnitte.
 
 Zahlen mit „gemessen“ stammen von dieser Entwicklungsmaschine (headless bzw. Mesa llvmpipe unter Xvfb, 4 geteilte
 Kerne); „abgeleitet“ heißt gerechnet, nicht gemessen. Zeiten auf einer echten Grafikkarte sind hier nicht messbar.
@@ -34,6 +35,11 @@ Kerne); „abgeleitet“ heißt gerechnet, nicht gemessen. Zeiten auf einer echt
 | `assets/shaders/modern/inc/pools.gdshaderinc` | – | Lichtkegel der Fahrbahn- und Geländematerialien (9.7) |
 | `tools/ab_shot.sh` | – | derselbe Simulationszustand in Arcade und Modern nebeneinander (9.8) |
 | `tests/race3d/check_facade.gd`, `tests/race3d/render/check_facade_render.gd`, `tests/race3d/fixtures/facade_*.gd` | – | Prüfungen der Fassade mit Prüf-Ebene, Prüf-Builder und Prüf-Renderer (9.9) |
+| `scripts/race3d/builders/road.gd`, `assets/shaders/modern/road.gdshader` | – | die Fahrbahn mit aller Markierung im Shader (10.2) |
+| `scripts/race3d/builders/roadside.gd` | – | Leitplanken mit Pfosten und Rückstrahlern, Leitpfosten (10.3) |
+| `scripts/race3d/environment_rig.gd` | – | Sonne bzw. Mond mit Schatten, Umgebungslicht, Nebel, Himmel als Spiegelquelle, `ce_*`-Globals (10.4) |
+| `scripts/race3d/layers/backdrop.gd`, `lights.gd`, `overlay.gd` | – | Hintergrund auf Canvas-Ebene −10, Abblendlicht und Lichtkegel, Verfolgungslichter (10.5–10.7) |
+| `scripts/race3d/quality.gd`, `perf_probe.gd`, `prewarm.gd` | – | Qualitätszustände des Viewports, Bildzeit-Sonde und Wächter, Aufwärmen der Shader (10.8) |
 
 Nichts davon wirkt auf die Simulation zurück: der Kern liest `Track`, `RoadProjection` und die Konfiguration, mehr nicht.
 
@@ -586,6 +592,11 @@ Bauplans; hier steht, wie es gebaut ist.
 Keine Fahrzeuge, keine Requisiten, keine Markierungen – das Bild des Gerüsts ist ein Arbeitsstand, kein Vergleich
 mit Arcade (A/B-Bild im Abgabeordner des Bauabschnitts).
 
+Seit dem Renderer-Kern (Abschnitt 10) gibt es `builders/road.gd`, `environment_rig.gd` und `layers/backdrop.gd`: der
+ausgelieferte Renderer nimmt diese; die eingebauten Teile bleiben Rückfall und Prüfgrundlage (der Prüf-Renderer
+`bare` lädt nur sie). Die Debug-Straße zeichnet dann nur noch ihr Geländeband – so lange, bis `builders/terrain.gd`
+da ist; das Band trägt die beiden Grasfarben der Landschaft in Arcades Rhythmus von vier Segmenten.
+
 Die Debug-Straße ist **unbeleuchtet**: sie zeigt weder das Licht der Umgebung noch Schatten – ein Kasten über der
 bloßen Fahrbahn ändert darunter keinen einzigen Bildpunkt, derselbe Kasten wirft auf eine beleuchtete Platte einen
 Schatten (gemessen: Render-Prüfungen `strasse` und `licht`). Ein Fahrzeug wirft auf ihr also keinen Schatten. Damit
@@ -983,3 +994,198 @@ zuzuschreiben. Zeiten auf einer echten Grafikkarte und auf dem Steam Deck sind h
   Aufwärmen über die Knoten der Haken hinaus (`prewarm.gd`), das Freigeben der Materialien beim Verlassen des Modus
   (`ModelDB.release_all()` + `ModernMaterials.drop_shared()` – Sache des Moduswechsels).
 - `graphics.modern.prepare_timeout_s` steht nicht in `config/game_config.json` (Vorgabe im Code 120 s).
+
+Alle diese Punkte hat der Renderer-Kern erledigt (Abschnitt 10: `quality.gd`, `perf_probe.gd`, `prewarm.gd`,
+`RaceRenderers.leave_modern()`, `prepare_timeout_s` = 120 s in der Konfiguration).
+
+## 10. Renderer-Kern: Straße, Umgebung, Licht, Qualität
+
+Der Bauabschnitt R1 füllt das Gerüst mit dem, was jedes Bild braucht: die Fahrbahn mit aller Markierung, die
+Leitplanken, das Umgebungs-Rig (Licht, Schatten, Nebel, Spiegelhimmel, Globals), den Hintergrund, die Lichter, die
+Verfolgungslichter, die Qualitätszustände, den Wächter und das Aufwärmen. Alles hängt sich über die festen
+Dateinamen und die Haken aus Abschnitt 9 ein; keine Datei eines anderen Bauabschnitts wird benannt.
+
+### 10.1 Was wo liegt
+
+| Datei | Inhalt |
+|---|---|
+| `builders/road.gd` + `assets/shaders/modern/road.gdshader` | Fahrbahn: ein Mesh je Stück, eine Fläche, ein geteiltes Material, Render-Ebene 2 (Boden) |
+| `builders/roadside.gd` | Leitplanken (W-Profil), Pfosten, Rückstrahler, Leitpfosten – ein Mesh je Stück in der Materialklasse `vpbr` |
+| `environment_rig.gd` | `Environment`, das eine `DirectionalLight3D` (Sonne / Mond), Spiegelhimmel, `ce_*`-Globals |
+| `layers/backdrop.gd` | `RaceBackdrop` auf Canvas-Ebene −10 bei jedem Seitenverhältnis |
+| `layers/lights.gd` + `assets/shaders/modern/reflector.gdshader` | zwei Scheinwerfer-Spots, Punktlicht-Pool, Lichtkegel am Boden, Reflexe der Rückstrahler |
+| `assets/shaders/modern/inc/headlight.gdshaderinc` | Arcades Abblendlicht-Kegel auf dem Boden (für Fahrbahn und Gelände) |
+| `assets/shaders/modern/inc/pools.gdshaderinc` | Lichtkegel von Lampen und Verkehr, jetzt mit Richtung (`pool_dir`) und `pool_ambient` |
+| `layers/overlay.gd` + `assets/shaders/modern/overlay.gdshader` | Lichter einer Polizeiverfolgung an den unteren Bildecken (Canvas-Ebene 2) |
+| `quality.gd`, `perf_probe.gd`, `prewarm.gd` | Viewport-Zustände je Stufe, Bildzeiten und Wächter, Aufwärmen in vier Lichtsituationen |
+
+### 10.2 Fahrbahn (`builders/road.gd`, `road.gdshader`)
+
+**Querschnitt** wie bei Arcade (`RoadRenderer._draw_ground`): Asphalt von −Spuren × 3,75 m / 2 bis zum rechten Rand
+der Fahrstreifen plus Tankspur, daneben auf Fahrbahnhöhe 2,5 m (Standstreifen rechts, befestigter Streifen und
+Gras des Mittelstreifens links, Schotterbankett der Landstraße, Notgehweg im Tunnel, auf Brücken 0,4 m mehr bis zum
+Geländer). In den City Limits endet das Band am Asphalt; Bordsteine (0,25 m) und Gehwege liegen 0,14 m höher. Die
+Außenkante ist genau `ChunkContext.shoulder_edge()`, dort beginnt das Gelände. Zwei Dreiecke je Segment, in den
+City Limits vierzehn. Bruchteile von Spuren (Spurwechsel-Übergänge) kommen aus `Track` wie in Arcade.
+
+**Markierung ganz im Shader**, Maße und Rhythmus von `RoadRenderer._draw_markings` auf den Zentimeter: Randlinien
+(links 0,15–0,45 m innen, rechts bis zur Kante, 0,3 m), Leitlinien 0,15 m mit Strichen 6/12 m (Autobahn,
+Landstraße) bzw. 3/6 m (Stadt) in Arcades Phase, die breite Trennlinie (1,6 × 0,3 m) und die Randlinie der Tankspur,
+die Schraffur des sich öffnenden Keils, das Schachbrett an Start und Ziel, Zebrastreifen alle 330 m in den City
+Limits. Jedes Fragment weiß aus UV (Meter von der Mitte, Meter entlang der Straße modulo 1.440 m) und den
+Kantenwerten der Reihe (CUSTOM0), was es ist; nichts liegt als Streifen über dem Asphalt.
+
+**Kantenglättung analytisch**: der Fußabdruck eines Bildpunkts in Straßenmetern kommt aus `dFdx`/`dFdy`; eine Linie
+deckt den Teil des Fußabdrucks, der auf ihr liegt (Kastenfilter). Eine Linie, die dünner als ein Bildpunkt ist,
+verblasst mit ihrer Deckung statt zu flimmern; ferne Striche verschmelzen zu ihrem Tastverhältnis.
+
+**Feindetail** (jede Stufe verschwindet, bevor sie kleiner als ein Bildpunkt wird): Körnung, Längsstreifen und
+Chargen des Asphalts, polierte und etwas dunklere Fahrspuren, Öl in der Spurmitte, vergossene Fugen neben den
+Spurgrenzen, Flicken jüngeren Asphalts mit Teerrand, Reifenspuren in den Fahrspuren (häufiger in Kurven, in der
+Stadt und an der Tankspur), abgenutzte Farbe, Schmutz zum Bankett hin, Gehwegplatten, Bordsteine von einem Meter.
+Alles ist eine Funktion der Straßenkoordinaten (kein `TIME`): derselbe Ort sieht immer gleich aus (Regel 10).
+„Details: Niedrig“ dämpft nur dieses Feindetail (0,7); Markierung und Kanten hängen von keiner Stufe ab (Regel 9).
+
+**Wetter**: nasser Asphalt wird um ein Drittel dunkler, glatter und spiegelt zum Horizont hin den hellen Himmel
+(Nebelfarbe, wie Arcades 28 % am Ende der Sicht); Schnee liegt an den Rändern der Fahrstreifen mit ausgefranster
+Kante; im Tunnel weder Nässe noch Schnee.
+
+**Licht**: das Mesh liegt auf Render-Ebene 2 (`GROUND_LAYERS`). Es nimmt das Umgebungslicht und die eine Sonne mit
+ihrem Schatten; die echten Spots und Punktlichter der Lichter-Ebene lassen es aus. Abblendlicht und Lichtkegel
+kommen analytisch dazu (`inc/headlight.gdshaderinc`, `inc/pools.gdshaderinc`): Arcade addiert Licht in
+Anzeigewerten (Albedo × (Umgebung + Licht)), der Shader rechnet denselben Zuwachs über `pool_ambient` in lineares
+Licht um. Rückstrahlung mit Arcades Faktoren: Asphalt 0,9, Farbe 1,6, Schachbrett 1,2, Gras 0,45–0,8. Ein späterer
+Gelände-Shader hängt sich mit denselben zwei Includes an und legt sein Mesh ebenfalls auf Ebene 2.
+
+### 10.3 Leitplanken und Leitpfosten (`builders/roadside.gd`)
+
+Wo etwas steht, ist Arcades Regel (`_draw_structures`): Leitplanke links an jedem Segment mit `guardrail` außerhalb
+von Tunneln, rechts ebenso, außer neben einer Tankspur oder einem Grenzübergang. Der Holm ist ein echtes W-Profil
+(0,48–0,80 m hoch) aus gefaltetem Blech mit Rückseite, die Vorderkante auf der Außenkante des Banketts; wo eine
+Planke im Stück beginnt oder endet, taucht sie über ein Segment in den Boden. Pfosten alle 6 m hinter dem Holm, am
+ersten Pfosten nach jedem Vielfachen von 50 m ein Rückstrahler im Tal des Profils (rechts gelb, links weiß). Ohne
+Leitplanke stehen Leitpfosten alle 50 m (weiß, 1,05 m, schwarzes Band mit Rückstrahler). Die Fahrbahn zeigt unter
+dem Holm und an jedem Pfosten einen weichen Kontaktschatten. Nur der Schattenwurf hängt von der Qualität ab
+(`shadow_casters` ≥ 1); was den Fahrbahnrand zeigt, wird nie ausgedünnt (Regel 9). Die Rückstrahler meldet der
+Builder der Lichter-Ebene (`add_reflectors`), die sie im Abblendlicht aufleuchten lässt.
+
+### 10.4 Umgebung (`environment_rig.gd`)
+
+Das Rig ersetzt die eingebaute Umgebung (9.6) und wird als `renderer.env` angeboten (`env.get("state")`,
+`env.get("sun")`, `env.call("sky_palette", pal)`).
+
+- **Ein Schattenlicht** (D5): genau eine `DirectionalLight3D`, immer mit `shadow_enabled`; Sonne bei Tag, Mond in
+  der Nacht; im Tunnel Energie 0, nie versteckt. Schattenmodus, Kaskaden, Reichweite und Filter aus den Stufen
+  (orthogonal / 2 / 4 Kaskaden, 80 / 120 / 200 m).
+- **Hintergrund** `BG_CANVAS` hinter Canvas-Ebene −10, linearer Tonemapper, Nachbearbeitung fest an (D6, D7).
+- **Lichtgesetz** (`light_state()`, rein, unit-getestet): eine **ebene** Fläche der Bezugs-Albedo zeigt Arcades
+  Farbe (Albedo × `palette.ambient`). Davon ist ein Anteil gerichtet – die Hälfte unter klarem Tageshimmel, ein
+  Achtel bei Regen und Schnee, ein Fünftel als Mondlicht – der Rest ist Umgebungslicht. Schatten zeigen den
+  Umgebungsanteil allein, Flächen zur Sonne sind heller als der Boden: das Bild bekommt Tiefe. Die Sonne ist warm
+  getönt, das Umgebungslicht deshalb kühler: blaue Schatten. Weil der Renderer Umgebungs- und Lichtdurchgang einzeln
+  in Anzeigewerte wandelt und die feste Nachbearbeitung beide Näherungen noch einmal anwendet, wird in Anzeigewerten
+  geteilt und mit den Kurven des Renderers zurückgerechnet (`post_inverse`).
+- **Nachtboden** (A-4): zur Nacht hin sinkt die Bezugs-Albedo von 0,38 auf 0,29, das hebt das Umgebungslicht über
+  die Schwelle, an der die Kurven dunkle Werte verschlucken; das Mondlicht kommt größtenteils zusätzlich.
+- **Sonnenstand**: Arcades Panorama hält die Sonne den ganzen Tag vor dem Wagen – im echten 3D lägen Heck, Schilder
+  und alles, worauf die Kamera blickt, mittags im Gegenlicht-Schatten. Die tiefe Sonne (Morgen, Abend) steht, wo
+  Arcade sie zeichnet; mit der Höhe schwenkt sie bis 2 rad nach links hinter den Wagen. Höhe 13–46°, bei Regen und
+  Schnee 68°. Die Richtung hält sich gegen die Straßenrichtung am Wagen (sie schwenkt nicht mit jeder Kurve). Der
+  Hintergrund zeichnet die Sonnenscheibe an derselben Stelle (`sky_palette()`): Licht, Schatten und Scheibe passen
+  immer zusammen.
+- **Tunnel**: das Tunnellicht blendet 12 m vor dem Portal bis 14 m hinein über (`tunnel_blend()` – eine Funktion
+  des Orts); Tunnelnebel ab 12 m nach Arcades Gesetz (Exponent 0,8 über die Dunkelstrecke).
+- **Nebel** (F4): linear von 0,45 × bis 1,0 × Sichtweite in der Nebelfarbe der Palette – nie mehr als Arcade.
+- **Spiegelhimmel** (D7): ein kleiner `ProceduralSkyMaterial`-Himmel im Palettenverlauf, ohne Sonnenscheibe, nie
+  `TIME`, nur Quelle von Spiegelungen (Lack, Glas, nasse Fahrbahn); neu höchstens alle `sky_update_s` (2 s) und nur,
+  wenn sich eine Farbe um mehr als 1,5/255 bewegt hat. Glow ab „Effekte: Einfach“, SSAO bei „Voll“.
+- **Globals**: `ce_time`, `ce_night`, `ce_wet`, `ce_snow`, `ce_wind`, `ce_fog_color`, `ce_fog_range`, `ce_sun_dir`,
+  `ce_sun_color`, `ce_ambient` (lineare Lichtwerte im Sinne von `ModernMaterials.light_value()`), `ce_tunnel` – jedes
+  nur, wenn es sich ändert. `ce_headlight*` setzt die Lichter-Ebene, `ce_far_y` der Fernboden.
+- `--gfx-debug=cover` schaltet den Nebel ab, `nolight` legt alles Licht in den Umgebungsanteil.
+
+### 10.5 Hintergrund (`layers/backdrop.gd`)
+
+`RaceBackdrop` (Himmelsverlauf, Sonne, Mond, Sterne, Wolken, alle Silhouetten mit den Stadt-Überschreibungen) auf
+Canvas-Ebene −10. Er bekommt eine eigene `RoadProjection` in der **logischen** Bildgröße (1280 × 720, 1280 × 800,
+1680 × 720 …) plus 48 px Rand links und rechts für das Wackeln, mit der Brennweite der Kamera: Himmel und
+Silhouetten drehen genau so weit wie die Welt. Die Silhouetten stehen auf der wahren Horizontzeile
+(`render.horizon_y_frac`), darunter ist die Leinwand nebelfarben. Gedreht wird nach `bg_offset` plus dem echten
+Blickwinkel der Kamera gegen die Straßenrichtung am Wagen. Im Tunnel blendet die Leinwand ins Dunkel, solange kein
+Tunnel-Builder eine Röhre zeichnet. Neu gezeichnet wird nur, wenn sich das Bild um etwa einen Viertel-Bildpunkt
+ändern würde (Richtung, Wolkenzug, Sterne, Palette, Größe).
+
+### 10.6 Lichter (`layers/lights.gd`)
+
+Echte Lichter, alle ohne Schatten, höchstens 2 Spots + 8 Punktlichter (D8):
+- **Abblendlicht**: zwei `SpotLight3D` an der Wagenfront (30°, Reichweite `render.headlight_range_m`), Stärke
+  `render.headlight_intensity` × min(1, 1,4 × `palette.lights`), im Tunnel mindestens 0,35 – Arcades Gesetz. Sie
+  beleuchten, was auf dem Boden steht (Fahrzeuge, Leitplanken, Schilder, Requisiten); den Boden selbst lassen sie
+  aus (Ebene 2), dort zeichnet der Shader Arcades langen Kegel.
+- **Punktlicht-Pool** (2 / 4 / 8 nach „Effekte“): wandert zu den nächsten festen Lampen, die Builder über
+  `renderer.add_lamps()` melden; die fernste blendet aus, bevor die nächste übernimmt.
+- **Lichtkegel am Boden** (analytisch, 22 Einträge): die nächsten Lampen (höchstens 16, 0,55 × `lights` in der
+  Mitte) und die Scheinwerferkegel des Verkehrs (Arcades Regel: die ersten sechs Wagen bis 140 m vor der Kamera,
+  Kegel von 34 m, 0,5 × `lights`), einmal je Bild an jedes Material aus `renderer.pool_materials()`.
+- **Reflexe**: Rückstrahler im Abblendlicht leuchten als kleine additive Scheiben auf (höchstens 24, Stärke aus dem
+  Kegel am Ort, nur wenn sie zum Wagen blicken).
+Tagsüber kostet die Ebene ein paar Vergleiche je Bild. Nichts liest die Wanduhr.
+
+### 10.7 Verfolgungslichter (`layers/overlay.gd`)
+
+Canvas-Ebene 2 (über dem 3D-Bild und dem späteren Bild-Nachlauf, unter dem HUD): ein bildfüllendes `ColorRect` mit
+`overlay.gdshader` zeichnet Arcades blaues und rotes Leuchten an den unteren Ecken (Radien 330 und 260 Zeilen von 720,
+Stärke 0,32 bzw. 0,22 × `chase01`, Seitenwechsel 2,5-mal je Sekunde nach `view.time`), bei jedem Seitenverhältnis an
+den Ecken des logischen Bildes. Ohne Verfolgung ist es versteckt. Den Radarblitz zeichnet in beiden Modi das HUD.
+
+### 10.8 Qualität, Wächter, Aufwärmen
+
+**`quality.gd`** setzt beim Vorbereiten, was Viewport und RenderingServer betrifft – MSAA (aus / 2× / 4×),
+3D-Auflösung (bilinear, das HUD bleibt scharf), Größe des Schattenatlas (1024 / 2048 / 4096), Filter (hart / weich
+niedrig / weich mittel) – und stellt beim Verlassen der Etappe wieder her, was vorher galt (Render-Prüfung
+`arcade_gleich`: Arcade danach pixelgleich). Alles andere an einer Stufe gehört dem, der es zeichnet (Haken
+`apply_quality`). Nichts, worauf der Spieler reagieren muss, hängt an einer Stufe (Regel 9).
+
+**Wächter** (`perf_probe.gd`, D34 c): während des Countdowns werden die Bildzeiten gesammelt (die ersten 0,4 s
+nicht), nach mindestens 20 Bildern und 1 s einmal beurteilt – `Gfx.watchdog_verdict` gegen die Bildzeit der
+Anzeige, mindestens 1/60 s (ein 144-Hz-Bildschirm macht 60 Bilder je Sekunde nicht „langsam“), oder eine
+Bildrate unter `countdown_min_fps`. „Langsam“ senkt die Voreinstellung für diese Etappe einmal um eine Stufe
+(Hoch → Mittel → Niedrig, Steam Deck und Eigene → Niedrig): Viewport-Zustände, Schattenwerfer und -reichweite,
+Glow, SSAO, Dichten und LOD-Abstände folgen sofort; Schattenmodus, Kaskaden-Überblendung und Filter bleiben, weil sie
+Shader-Varianten wählen (D10). Die Sitzung bekommt `quality_lowered(preset)`: Meldung im HUD („Das Bild läuft zu
+langsam – die Grafikqualität ist für diese Etappe auf „…“ gesenkt.“) und das Ergebnisfeld `gfx_lowered`.
+Gespeichert wird nichts. Aus mit `--gfx-sync`, `--no-watchdog`, headless und ohne Countdown.
+Die Sonde liefert außerdem `frame_ms_median` / `frame_ms_p95` (letzte 240 Bilder) und `start_frame_ms_max` /
+`start_frame_ms_median` (die ersten 30 s nach dem Ladebild – für die Aufwärm-Prüfung).
+
+**Aufwärmen** (`prewarm.gd`, D10): Hinter dem Ladebild steht die Startansicht mit allen Stücken und den
+Aufwärm-Knoten der Haken; sie wird in vier Lichtsituationen gezeichnet – ohne positionelles Licht, mit Spot, mit
+Punktlicht, mit beiden –, je zwei gezeichnete Bilder (`WARMUP_FRAMES` = 8), mit eigenen Lichtern an der Kamera, die
+wie alle echten Lichter den Boden auslassen. Die Engine übersetzt für jede dieser Situationen eigene Programme;
+Abblendlicht und Lampen kommen sonst erst in der Dämmerung oder unter der ersten Laterne – mitten in der Fahrt.
+
+### 10.9 Moduswechsel
+
+`RaceRenderers.leave_modern()`: wird nach einem Modern-Renderer ein Arcade-Renderer erzeugt (Moduswechsel oder
+Rückfall), gibt `ModelDB.release_all()` alles frei und `ModernMaterials.drop_shared()` die geteilten Materialien
+mit ihren Texturen (A-4, §4.11). Zwischen zwei Modern-Etappen bleibt beides (die nächste Etappe würde dasselbe
+wieder laden und übersetzen). Aufgerufen über die Skriptpfade: die Datei lädt jeder Arcade-Start, sie darf keine
+Klasse des Modern-Renderers benennen.
+
+### 10.10 Prüfungen
+
+| Prüfung | Inhalt |
+|---|---|
+| `tests/unit/race3d/test_road_builder.gd` | Querschnitt der Autobahn, Periode und Schachbrett, Leitlinien bei Bruchteil-Spuren, Bordsteine und Zebrastreifen, Tunnel, Brücke und Bodenfarbe, Tankspur der Schnitt-Etappe, Einhängen und Leitplanken |
+| `tests/unit/race3d/test_environment_rig.gd` | Kurven und ihre Umkehrungen, ebene Fläche = Arcades Farbe, Anteil und Schattenfarbe, Sonnenstand, Nacht, Mond und Boden, Tunnel-Rampe, Wind |
+| `tests/unit/race3d/test_quality.gd` | Viewport-Zustände gesetzt und zurückgegeben, Wächter-Stufe ohne neue Shader-Variante, Zielbildzeit, Wächter des Countdowns, Bildzeit-Statistik, Aufwärm-Phasen |
+| `tests/race3d/check_modern_stage.gd` (headless) | `inhalt`, `nacht`, `tunnel`, `waechter`, `wechsel`, `kern_zeit`, `ergebnis` (Kiel – Hamburg mit dem Autopiloten: `ERGEBNIS` in Arcade und Modern gleich) |
+| `tests/race3d/render/check_road_parity.gd` | `gerade` (S1: Linienmitte ≤ 1 px neben Arcade), `kurve_400` (≤ 8 px bis 150 m), `kurve_136` (≤ 27 px bis 100 m, beide mit `look_gain` 0, A-3), `fenster` (1280 × 800 und 1680 × 720 gefüllt) |
+| `tests/race3d/render/check_light_base.gd` | `tageslicht` (S1: Asphalt, Gras, Himmel ≤ 10 % neben Arcade), `schatten` („Aus“ gegen „Mittel“ ± 2 %) |
+| `tests/race3d/render/warmup_cold.gd` | Aufwärm-Prüfung mit kaltem Shader-Cache (einmal je Meilenstein, nicht im Lauf der Render-Prüfungen – Aufruf im Kopf der Datei) |
+
+`check_road_parity` misst jede Linie quer zu ihrer Richtung im Bild (bilinear entlang der Normalen der projizierten
+Tangente) und vergleicht mit Arcades eigenem Reihenmodell (`RoadRenderer._project`, eingefroren und unverändert
+benutzt). Randlinien zählen, solange sie mindestens 1,5 px breit sind – daneben liegen helle Seitenstreifen –,
+Leitlinien ab 0,6 px. `check_light_base` vergleicht Mediane über Probenpunkte, die in **beiden** Bildern das
+Material zeigen (Sprites, Wolken, Linien bleiben außen vor). Beide laufen ohne Verkehr und ohne HUD.
