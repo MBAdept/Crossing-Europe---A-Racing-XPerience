@@ -320,7 +320,8 @@ func _scenario_delegation(_g: String) -> void:
 	var reached := bool(st["alive"]) and modern_rpm > 1000.0 and str(slots["engine"]["vehicle"]) == "gran_turismo" \
 		and float(slots["road"]["wind"]) > 0.05 and float(slots["road"]["skid"]) > 0.05 and float(slots["ambience"]["rain"]) > 0.05 \
 		and float(st["siren"]) > 0.5 and bool(st["tunnel"]) and float(slots["env"]["blend"]) > 0.0 \
-		and int((st["plays"] as Dictionary).get("crash", 0)) == 1 and int((st["plays"] as Dictionary).get("ui_ok", 0)) == 1 \
+		and int((st["plays"] as Dictionary).get("crash", 0)) + int((st["dropped"] as Dictionary).get("crash", 0)) == 1 \
+		and int((slots["impact"]["events"] as Dictionary).get("collision", 0)) == 1 and int((st["plays"] as Dictionary).get("ui_ok", 0)) == 1 \
 		and int((st["events"] as Dictionary).get("collision", 0)) == 1 and traffic.has("tunnel_blend") \
 		and (_am.call("engine_perf") as Dictionary).has("skips") and (_am.call("traffic_perf") as Dictionary).has("avg_ms")
 	var live_ok := true

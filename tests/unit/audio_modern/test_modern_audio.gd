@@ -124,7 +124,8 @@ func test_engine_follows_the_session() -> void:
 	assert_true(float(m.engine_state()["rpm"]) > rpm_idle + 300.0, "Drehzahl steigt (%.0f → %.0f)" % [rpm_idle, float(m.engine_state()["rpm"])])
 	assert_true(int(m.engine_state()["gear"]) >= 1, "Gang eingelegt")
 	assert_near(float(m.frame.engine.get("rpm", 0.0)), float(m.engine_state()["rpm"]), 1.0e-6, "die Bausteine sehen denselben Motorzustand")
-	assert_near(m.road.wind.level, pow((140.0 - 35.0) / 220.0, 1.4) * 0.55, 0.02, "Wind wie in Arcade")
+	# AU-C1: the wind follows the plan of the contract (its law is checked in test_road_audio.gd)
+	assert_true(m.road.wind.level > 0.01, "Wind bei 140 km/h (%.3f)" % m.road.wind.level)
 	# the session stops calling: gone after ALIVE_S
 	_steps(m, 10)
 	assert_true(m.frame.alive, "0,17 s ohne Aufruf: noch da")
@@ -237,15 +238,20 @@ func test_one_shots_reach_their_slot() -> void:
 	var m := _modern({}, {"streams": streams})
 	m.play("crash")
 	m.play("rail", -4.0)
+	# AU-C1: the impact slot claims "collision" and "rail_hit" – a play() of theirs waits 50 ms for its event
+	assert_eq(int(m.impact.counts.get("crash", 0)), 0, "crash wartet auf sein Ereignis")
 	m.clock_ms += 100
 	m.play("ui_move")
 	m.play("flash")
 	m.play("gibt_es_nicht")
 	m.play("ui/platzhalter_blip")   # a placeholder: not there in a normal run
+	assert_near(m.mix.weight("impact"), 0.0, 1.0e-6, "Zustand impact ist noch nicht ausgelöst")
+	m.step(DT, false)               # no event came: the waiting one-shots play now
 	assert_eq(int(m.impact.counts.get("crash", 0)), 1, "crash beim Aufprall-Baustein")
 	assert_eq(int(m.impact.counts.get("rail", 0)), 1, "rail beim Aufprall-Baustein")
-	assert_near(m.impact.voices.last_db, -5.0 - 4.0, 1.0e-6, "Pegel: Arcade-Wert + gain_db")
-	assert_true(m.impact.voices.last_stream == streams["rail"], "der Arcade-Klang, solange es keinen Modern-Klang gibt")
+	assert_true(int(m.impact.counts.get("collision_medium", 0)) == 1, "crash ohne Ereignis: die mittlere Kollision aus Modern-Klängen")
+	assert_eq(str(m.impact.last_layers[0][0]), "rail_hit", "rail −4 dB (3 m/s nach der Rechnung der Sitzung): der harte Leitplankenschlag")
+	assert_true(m.impact.voices.last_stream == null, "kein Arcade-Klang, solange es Modern-Klänge gibt")
 	assert_eq(int(m.sfx.counts.get("ui_move", 0)), 1, "ui_move bei der SfxBank")
 	assert_eq(int(m.sfx.counts.get("flash", 0)), 1, "flash bei der SfxBank")
 	assert_eq(int(m.sfx.counts.get("crash", 0)), 0, "crash nicht doppelt")
@@ -255,7 +261,6 @@ func test_one_shots_reach_their_slot() -> void:
 	assert_eq(str(m.sfx.sources.get("flash", "")), flash_src, "flash: ohne Modern-Datei der Arcade-Klang")
 	assert_false(m.plays.has("gibt_es_nicht"), "Unbekanntes spielt nicht")
 	assert_false(m.plays.has("ui/platzhalter_blip"), "Platzhalter spielen im Spiel nicht")
-	assert_near(m.mix.weight("impact"), 0.0, 1.0e-6, "Zustand impact ist ausgelöst, aber noch nicht gerechnet")
 	_steps(m, 3)
 	assert_true(m.mix.weight("impact") > 0.9, "ein Aufprall löst den Zustand impact aus")
 	# the same one-shot twice within 45 ms plays once (as Arcade)
