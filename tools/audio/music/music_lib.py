@@ -416,8 +416,10 @@ def write_ogg_import_keep(path: str, loop_offset_s: float | None, bpm: float = 0
     if not head:
         res = "res://" + os.path.relpath(path, ROOT).replace(os.sep, "/")
         head = f'[remap]\n\nimporter="oggvorbisstr"\ntype="AudioStreamOggVorbis"\n\n[deps]\n\nsource_file="{res}"'
+    # the loop offset with every digit that matters: Godot truncates loop_offset x rate to a frame
+    off = format(loop_offset_s, ".9f").rstrip("0").rstrip(".") if loop_offset_s is not None else "0"
     params = ["loop=%s" % ("true" if loop_offset_s is not None else "false"),
-              "loop_offset=%s" % (f"{loop_offset_s:g}" if loop_offset_s is not None else "0"),
+              "loop_offset=%s" % off,
               "bpm=%s" % f"{bpm:g}", "beat_count=%d" % beats, "bar_beats=%d" % bar_beats]
     with open(imp, "w", encoding="utf-8") as fh:
         fh.write(head + "\n\n[params]\n\n" + "\n".join(params) + "\n")
