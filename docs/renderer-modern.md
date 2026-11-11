@@ -1029,8 +1029,9 @@ die Materialien der Fahrzeuge. Sie reden mit dem Rest nur über die Fassade (A-7
 - **Schatten:** mit Fahrzeug-Schattenwerfern (`shadow_casters ≥ 1`) wirft die grobe Hülle des Modells; in jeder
   Stufe liegt zusätzlich ein weicher Kontaktschatten unter jedem Auto (ein MultiMesh für alle,
   `contact_shadow.gdshader`) – ohne Werfer ist er der einzige Schatten und kräftiger.
-- `snapshot()` → `vehicles [{id, set, model, lod, z, x, yaw_deg, lamps, fade, sun, shown, box, player}]`;
-  `perf()` → `vehicles`, `fallback_sets`, `vehicle_us_avg`, `vehicle_builds`.
+- `snapshot()` → `vehicles [{id, set, model, lod, z, x, yaw_deg, lamps, fade, sun, shown, box, player, cast, caster}]`
+  (`cast`: die gezeigte Stufe wirft Schatten; `caster`: ihre Schattenhülle ist sichtbar, −1 ohne Hülle);
+  `perf()` → `vehicles`, `fallback_sets`, `vehicle_us_avg`, `vehicle_builds`, `contact_shadows`.
 
 ### 10.2 Lichtpunkte
 
@@ -1087,7 +1088,7 @@ geteilten Materialien, die Umgebungsfarben aus der Palette (nur bei Änderung).
 | `tests/unit/race3d/test_vehicles.gd` | Grundfläche = Kollisionsquader ± 0,3 m (20 Posen, auch R = 120/136 m, Kuppe), Sattelzug, Konventionen, Spielerterme, Detailstufen, Lampen = Ansicht, Leuchtgrößen = Arcade, Räder, Kasten |
 | `tests/unit/race3d/test_fade_law.gd` | Ausblendung = `RoadRenderer._item_alpha` an 80 Stellen (offen, Tunnel) |
 | `tests/unit/race3d/test_sign_atlas.gd` | jede Art aus `SignPainter.HALF_WIDTH_M`: Tafel, Höhe, Pfosten; Schlüssel; Katalog einer Etappe; Netz des Builders |
-| `tests/race3d/check_vehicles.gd` | `lampen` (Schnappschuss = Ansicht), `kasten`, `leistung` (µs je Auto), `schilder` (Zähler), `lampen_fest` (`add_lamps`) |
+| `tests/race3d/check_vehicles.gd` | `lampen` (Schnappschuss = Ansicht), `kasten`, `leistung` (µs je Auto), `schilder` (Zähler), `lampen_fest` (`add_lamps`), `schatten` (je Voreinstellung eine Etappe: Kontaktschatten unter jedem Auto, Werfer genau mit `shadow_casters ≥ 1`) |
 | `tests/race3d/render/check_vehicle_lights.gd` | Blinker bei 300 m ≥ `INDICATOR_MIN_PX`, Rücklicht bei 0,839 × Sichtweite an N1, Bremslicht 50/150/300 m |
 | `tests/race3d/render/check_occlusion.gd` | Auto hinter der Kuppe (T2) und hinter dem Sattelzug: 0 Pixel |
 
@@ -1098,7 +1099,8 @@ Die beiden Render-Prüfungen setzen Autos in eine stehende Szene ohne Verkehr
 
 | Messung | Wert |
 |---|---|
-| Fahrzeug-Ebene, GDScript je Auto und Bild, 34 Autos (headless) | Median 31,3 µs, p90 35,2 µs |
+| Fahrzeug-Ebene, GDScript je Auto und Bild, 34 Autos (headless, 6 Läufe auf geteilter VM) | Median 31,3 … 36,4 µs, p90 35,2 … 47,9 µs |
+| Kontaktschatten (Voreinstellungen deck, low, medium, high) | unter 15 von 15 Autos in Sicht; Werfer an, aus, an, an |
 | Blinker bei 300 m, Tag / Nacht | Kern 3 × 2 / 2 × 2 px, Schein bis 4,2 / 5,4 px |
 | Rücklicht bei 0,839 × Sichtweite (N1, 338 m Sicht, Auto bei 283 m) | +0,304 Leuchtdichte, +0,494 Rot |
 | Auto hinter der Kuppe (346 m), Tag und Nacht; hinter dem Sattelzug, Nacht | 0 von 921.600 Pixeln |

@@ -759,7 +759,8 @@ static func _shadow_quad() -> ArrayMesh:
 
 # --- data for tests and statistics ----------------------------------------------------------------------------------
 
-## Contract §4.4.5: vehicles [{id, set, model, lod, z, x, yaw_deg, lamps}] (+ fade, sun, pos, shown, box, player).
+## Contract §4.4.5: vehicles [{id, set, model, lod, z, x, yaw_deg, lamps}] (+ fade, sun, pos, shown, box, player; cast =
+## the level shown casts shadows, caster = its shadow hull is shown: 1 / 0, -1 without a hull).
 func snapshot() -> Dictionary:
 	var list: Array = []
 	for id: Variant in _cars:
@@ -771,6 +772,7 @@ func snapshot() -> Dictionary:
 				"beacon_a": car.lb.z, "beacon_b": car.lb.w},
 			"fade": car.fade, "sun": car.sun, "pos": [p.x, p.y, p.z], "shown": car.shown,
 			"box": bool((car.info as Dictionary).get("box", false)), "player": int(id) == PLAYER_ID,
+			"cast": car.cast, "caster": -1 if car.caster == null else int(car.caster.visible),
 			"basis": [car.pose.basis.x, car.pose.basis.y, car.pose.basis.z]})
 	return {"vehicles": list, "vehicle_flares": _flare_n}
 
@@ -801,7 +803,7 @@ func perf() -> Dictionary:
 	for k: Variant in _free:
 		pooled += (_free[k] as Array).size()
 	return {"vehicles": _drawn, "fallback_sets": _fallback_sets.size(), "vehicle_us_avg": float(_us_sum) / maxf(1.0, float(_updates)),
-		"vehicle_us_max": _us_max, "vehicle_builds": _builds, "vehicle_pool": pooled}
+		"vehicle_us_max": _us_max, "vehicle_builds": _builds, "vehicle_pool": pooled, "contact_shadows": _shadow_n}
 
 
 func _exit_tree() -> void:

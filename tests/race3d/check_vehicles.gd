@@ -16,12 +16,15 @@ extends SceneTree
 ##   lampen_fest  renderer.add_lamps(parent, lamps) (A-7) reaches the flare layer: static lamps glow at night (not
 ##              by day), follow their parent when it moves, are stronger far away (far-field glow) and are forgotten
 ##              when the parent leaves the tree
+##   schatten   every preset (deck, low, medium, high – one stage each, the renderer takes its quality once): a
+##              contact shadow lies under every car in sight (models, stand-ins, the player), the model's shadow hull
+##              or the stand-in itself casts exactly when the quality levels have vehicle casters
 ## Prints "CHECK <name> OK|FEHLER …"; exit code 0 when all pass. (Autoloads are reached untyped: -s scripts compile
 ## before the autoloads exist.)
 
 const RACE := "res://scenes/race/race.tscn"
 const PROBE := "res://tests/race3d/fixtures/vehicle_probe_renderer.gd"
-const CHECKS := ["lampen", "kasten", "leistung", "schilder", "lampen_fest"]
+const CHECKS := ["lampen", "kasten", "leistung", "schilder", "lampen_fest", "schatten"]
 const PLAYER_ID := -999999
 
 var _failed: Array[String] = []
@@ -242,6 +245,78 @@ func _check_leistung() -> void:
 	await _free(sc)
 	_report("leistung", p, "%d Autos (Pkw, Lkw, Kästen, Polizei): Fahrzeug-Ebene im Median %.1f µs je Auto und Bild (p90 %.1f µs), %d Knotenbauten beim Erscheinen" % [
 		drawn, median, samples[int(samples.size() * 0.9)], int(after["vehicle_builds"])])
+
+
+# --- schatten --------------------------------------------------------------------------------------------------------
+
+func _check_schatten() -> void:
+	var p: Array[String] = []
+	var msgs: Array[String] = []
+	var settings: Node = root.get_node("Settings")
+	var cli := CliArgs.all()
+	var saved_cli := {}
+	for k: String in ["gfx-preset", "gfx"]:
+		if cli.has(k):
+			saved_cli[k] = cli[k]
+			cli.erase(k)
+	var saved_preset := str(settings.get("gfx_preset"))
+	var sets := ["traffic/sedan_red", "traffic/truck_red", "traffic/sports_blue", "police/de"]
+	for preset: String in ["deck", "low", "medium", "high"]:
+		settings.set("gfx_preset", preset)
+		var sc := _launch({"autopilot": false, "start_speed_kmh": 0.0})
+		var r := await _ready_stage(sc)
+		var cam_z := float(r.view.get("camera_z", 0.0))
+		var x0 := float((r.view.get("player", {}) as Dictionary).get("x", 0.0))
+		var cars: Array = []
+		for i in sets.size():
+			var sid: String = sets[i]
+			cars.append({"kind": "car", "id": 9400 + i, "set": sid, "z": cam_z + 18.0 + float(i) * 24.0,
+				"x": x0 + (3.75 if i % 2 == 1 else 0.0), "length": float(ModelDB.object_size(sid).get("length_m", 4.5)),
+				"tail": 0.0, "brake": 0.0, "speed": 0.0})
+		_probe.set("inject", cars)
+		await _frames(20)
+		var want := int(r.levels.get("shadow_casters", 0)) >= 1
+		var vl: Node = r.layer("vehicles")
+		var buf: PackedFloat32Array = vl.get("_shadow_buf")
+		var n := int((vl.call("perf") as Dictionary).get("contact_shadows", 0))
+		var near := 0
+		var under := 0
+		var placed := 0
+		var hulls := 0
+		for v: Dictionary in (vl.call("snapshot") as Dictionary)["vehicles"]:
+			if not bool(v["shown"]) or float(v["fade"]) < 0.05:
+				continue
+			near += 1
+			var id := int(v["id"])
+			if bool(v["player"]) or (id >= 9400 and id < 9400 + sets.size()):
+				placed += 1
+			var pa: Array = v["pos"]
+			var pos := Vector3(float(pa[0]), float(pa[1]), float(pa[2]))
+			var found := false
+			for j in n:
+				var o := j * 16
+				if Vector3(buf[o + 3], buf[o + 7], buf[o + 11]).distance_to(pos) < 0.1:
+					found = true
+					break
+			if found:
+				under += 1
+			else:
+				p.append("%s: kein Kontaktschatten unter %s" % [preset, str(v["set"])])
+			if bool(v["cast"]) != want:
+				p.append("%s: %s wirft %s Schatten" % [preset, str(v["set"]), "keinen" if want else "einen"])
+			if int(v["caster"]) >= 0:
+				hulls += 1
+				if (int(v["caster"]) == 1) != want:
+					p.append("%s: Schattenhülle von %s %s" % [preset, str(v["set"]), "verborgen" if want else "sichtbar"])
+		_need(p, placed == sets.size() + 1, "%s: die 4 gestellten Autos und das Spielerauto in Sicht (%d)" % [preset, placed])
+		_need(p, hulls >= 1, "%s: mindestens ein Modell mit Schattenhülle (%d)" % [preset, hulls])
+		msgs.append("%s: Werfer %s, Kontaktschatten unter %d von %d Autos" % [preset, "an" if want else "aus", under, near])
+		_probe.call("reset")
+		await _free(sc)
+	settings.set("gfx_preset", saved_preset)
+	for k: Variant in saved_cli:
+		cli[k] = saved_cli[k]
+	_report("schatten", p, "; ".join(msgs))
 
 
 # --- lampen_fest -----------------------------------------------------------------------------------------------------
