@@ -166,6 +166,13 @@ func test_reference_sets() -> void:
 	assert_true(ModelDB.files_of("player/limousine", ["lod0"]).has("player/limousine/lod0_body.res"), "files_of lod0")
 	assert_false(ModelDB.files_of("player/limousine", ["lod0"]).has("player/limousine/show_body.res"), "files_of ohne show")
 	assert_true(ModelDB.files_of("props/tree_oak").has("props/tree_oak/impostor.png"), "Impostor gehört zu den Dateien")
+	# beyond the last mesh level a model with an impostor shows the impostor – a caller can tell it is due
+	var oak := ModelDB.model("props/tree_oak")
+	assert_eq(ModelDB.lod_for_distance(oak, 30.0), "lod0", "Eiche 30 m")
+	assert_eq(ModelDB.lod_for_distance(oak, 150.0), "lod1", "Eiche 150 m")
+	assert_eq(ModelDB.lod_for_distance(oak, 5000.0), ModelDB.IMPOSTOR, "Eiche jenseits von lod1: Impostor")
+	assert_eq(ModelDB.lod_for_distance(oak, 150.0, 0.5), ModelDB.IMPOSTOR, "Eiche 150 m bei halber Reichweite: Impostor")
+	assert_eq(ModelDB.lod_for_distance({}, 10.0), "", "Modell ohne Stufen")
 
 
 func test_resolving_loads_nothing() -> void:
@@ -200,3 +207,162 @@ func test_missing_manifest_resolves_nothing() -> void:
 	assert_true(ModelDB.model_ids().is_empty(), "model_ids() ohne Manifest")
 	assert_true(ModelDB.load_manifest(), "das ausgelieferte Manifest lädt wieder")
 	assert_true(ModelDB.has_model("traffic/sedan_red"), "nach load_manifest()")
+
+
+# --- fixtures written by the tests: a manifest next to copies of real meshes -----------------------------------------
+
+const FIX_DIR := "user://test_model_db"
+
+
+## Writes a manifest (and the files it should find) below FIX_DIR and returns its path. `copies`: {manifest path:
+## res:// source}; files named by the manifest but missing from `copies` simply do not exist.
+func _fixture(manifest: Dictionary, copies: Dictionary = {}) -> String:
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(FIX_DIR))
+	for rel: String in copies:
+		var dst := FIX_DIR.path_join(rel)
+		DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(dst.get_base_dir()))
+		DirAccess.copy_absolute(ProjectSettings.globalize_path(str(copies[rel])), ProjectSettings.globalize_path(dst))
+	var path := FIX_DIR.path_join("manifest.json")
+	var fh := FileAccess.open(path, FileAccess.WRITE)
+	fh.store_string(JSON.stringify(manifest))
+	fh.close()
+	return path
+
+
+func _car(parts: Array, shadow: String = "") -> Dictionary:
+	var m := {"kind": "vehicle", "object": {"width_m": 1.8, "length_m": 4.7, "height_m": 1.5},
+		"lods": [{"name": "lod0", "max_dist_m": 100000, "tris": 1, "parts": parts}], "tags": []}
+	if shadow != "":
+		m["shadow"] = {"mesh": shadow, "tris": 1}
+	return m
+
+
+func test_malformed_entries_make_the_manifest_invalid() -> void:
+	# entries of the wrong type raised script errors in resolve(), lod() and files_of(); now the manifest as a whole
+	# counts as invalid, like a missing one: nothing resolves, Modern falls back
+	var good_model := _car([{"node": "body", "mesh": "m/body.res", "classes": ["vpbr"]}])
+	var cases := {
+		"Set ist ein Text": {"version": 1, "models": {"m": good_model}, "sets": {"a": "m"}},
+		"Modell ist ein Text": {"version": 1, "models": {"m": "kaputt"}, "sets": {"a": {"model": "m"}}},
+		"lods ist ein Text": {"version": 1, "models": {"m": {"kind": "vehicle", "lods": "lod0"}}, "sets": {"a": {"model": "m"}}},
+		"Stufe ist ein Text": {"version": 1, "models": {"m": {"kind": "vehicle", "lods": ["lod0"]}}, "sets": {"a": {"model": "m"}}},
+		"Teil ist ein Text": {"version": 1, "models": {"m": {"kind": "vehicle", "lods": [{"name": "lod0", "parts": ["body"]}]}}, "sets": {"a": {"model": "m"}}},
+		"parts ist ein Wörterbuch": {"version": 1, "models": {"m": {"kind": "vehicle", "lods": [{"name": "lod0", "parts": {}}]}}, "sets": {"a": {"model": "m"}}},
+		"shadow ist ein Text": {"version": 1, "models": {"m": {"kind": "vehicle", "lods": [], "shadow": "s.res"}}, "sets": {"a": {"model": "m"}}},
+		"textures ist eine Liste": {"version": 1, "models": {"m": {"kind": "building", "lods": [], "textures": ["a.png"]}}, "sets": {"a": {"model": "m"}}},
+		"lights enthält einen Text": {"version": 1, "models": {"m": {"kind": "vehicle", "lods": [], "lights": ["head"]}}, "sets": {"a": {"model": "m"}}},
+		"paint des Sets ist ein Text": {"version": 1, "models": {"m": good_model}, "sets": {"a": {"model": "m", "paint": "#ff0000"}}},
+		"variants ist ein Text": {"version": 1, "models": {"m": good_model}, "sets": {"a": {"model": "m", "variants": "m"}}},
+		"Version ist eine Liste": {"version": [1], "models": {}, "sets": {}},
+		"Version 2": {"version": 2, "models": {}, "sets": {}},
+	}
+	for name: String in cases:
+		assert_false(ModelDB.load_manifest(_fixture(cases[name])), name + ": ungültig")
+		assert_false(ModelDB.available(), name + ": available()")
+		assert_true(ModelDB.resolve("a").is_empty(), name + ": resolve()")
+		assert_false(ModelDB.has_model("a"), name + ": has_model()")
+		assert_true(ModelDB.files_of("m").is_empty(), name + ": files_of()")
+		assert_true(ModelDB.missing(["a"]).is_empty(), name + ": missing() ohne gültiges Manifest")
+		assert_true(ModelFactory.build("a", "", null) == null, name + ": build()")
+	# what may be absent or odd without harm stays valid
+	assert_true(ModelDB.load_manifest(_fixture({"version": 1.0, "models": {"m": good_model}, "sets": {"a": {"model": "m"}, "b": {"fallback": "kiste"}, "c": {"model": "gibt_es_nicht"}}})), "gültig mit Besonderheiten")
+	assert_eq(str(ModelDB.resolve("b")["fallback"]), "sprite", "unbekannter Platzhalter = sprite")
+	assert_eq(str(ModelDB.resolve("c")["fallback"]), "sprite", "Set mit unbekanntem Modell = Platzhalter")
+	assert_true(ModelDB.load_manifest(), "das ausgelieferte Manifest lädt wieder")
+
+
+func test_a_model_with_a_missing_file_is_not_built() -> void:
+	# half a model is no model: a car whose body file is gone was built as four wheels and a shadow caster
+	var body := "res://assets/models/props/streetlight/lod0_body.res"
+	var wheel := "res://assets/models/traffic/sedan/wheel.res"
+	var parts := [{"node": "body", "mesh": "car/body.res", "classes": ["vpbr"]},
+		{"node": "wheel_0r", "mesh": "car/wheel.res", "classes": ["vpbr"], "pos": [0.8, 0.3, -1.4], "wheel": {"radius": 0.3, "steer": true}}]
+	var manifest := {"version": 1, "models": {
+			"t/whole": _car(parts, "car/caster.res"),
+			"t/no_body": _car([{"node": "body", "mesh": "car/gone.res", "classes": ["vpbr"]}, parts[1]]),
+			"t/no_wheel": _car([parts[0], {"node": "wheel_0r", "mesh": "car/gone_wheel.res", "classes": ["vpbr"], "wheel": {"radius": 0.3, "steer": true}}]),
+			"t/no_caster": _car(parts, "car/gone_caster.res"),
+			"t/empty": _car([])},
+		"sets": {"whole": {"model": "t/whole"}, "no_body": {"model": "t/no_body"}, "no_wheel": {"model": "t/no_wheel"},
+			"no_caster": {"model": "t/no_caster"}, "empty": {"model": "t/empty"}}}
+	assert_true(ModelDB.load_manifest(_fixture(manifest, {"car/body.res": body, "car/wheel.res": wheel, "car/caster.res": body})), "Fixture lädt")
+	ModelDB.warn_missing = false      # the missing files are the point of this test
+	assert_true(ModelDB.missing(["whole"]).is_empty(), "vollständiges Modell: nichts fehlt")
+	var whole := ModelFactory.build("whole", "", null)
+	assert_true(whole != null and whole.get_child_count() == 3, "vollständiges Modell: body, Rad, Schattenwerfer")
+	if whole != null:
+		whole.free()
+	assert_eq(ModelFactory.multimesh_parts("whole", "").size(), 3, "multimesh_parts: body, Rad, Schattenwerfer")
+	for sid: String in ["no_body", "no_wheel", "no_caster", "empty"]:
+		assert_true(ModelDB.has_model(sid), sid + ": das Manifest nennt ein Modell")
+		var node := ModelFactory.build(sid, "", null)
+		assert_true(node == null, sid + ": build() liefert kein halbes Modell")
+		if node != null:
+			node.free()
+		assert_true(ModelFactory.multimesh_parts(sid, "").is_empty(), sid + ": multimesh_parts() liefert nichts")
+	assert_eq(ModelDB.missing(["no_body"]), ["car/gone.res"] as Array[String], "missing() nennt die fehlende Karosserie")
+	assert_eq(ModelDB.missing(["no_wheel", "no_caster", "whole"]), ["car/gone_caster.res", "car/gone_wheel.res"] as Array[String], "missing() über mehrere Sets, sortiert")
+	assert_true(ModelDB.missing(["empty", "gibt_es_nicht"]).is_empty(), "missing(): nichts genannt, nichts fehlt")
+	ModelDB.warn_missing = true
+	assert_true(ModelDB.load_manifest(), "das ausgelieferte Manifest lädt wieder")
+	assert_true(ModelDB.missing(ModelDB.set_ids()).is_empty(), "im ausgelieferten Manifest fehlt keine Datei")
+
+
+func test_empty_level_means_the_sets_own_level() -> void:
+	ModelDB.load_manifest()
+	# build() and multimesh_parts() resolve "" the same way: the set's own level (show), else lod0
+	var show := ModelFactory.multimesh_parts("showroom/limousine", "")
+	assert_true(show.size() >= 5, "showroom/limousine: Teile der Stufe show")
+	if not show.is_empty():
+		assert_true(is_same(show[0]["mesh"], ModelDB.mesh("player/limousine/show_body.res")), "multimesh_parts('') nimmt die Stufe show des Sets")
+	var node := ModelFactory.build("showroom/limousine", "", null)
+	assert_true(node != null and str(node.get_meta("lod")) == "show", "build('') nimmt die Stufe show des Sets")
+	if node != null:
+		node.free()
+	var race := ModelFactory.multimesh_parts("player/limousine", "")
+	assert_true(not race.is_empty() and is_same(race[0]["mesh"], ModelDB.mesh("player/limousine/lod0_body.res")), "ohne eigene Stufe: lod0")
+	assert_eq(ModelFactory.level_of(ModelDB.resolve("showroom/limousine"), "lod0"), "lod0", "eine genannte Stufe gilt")
+	ModelDB.release_all()
+
+
+func test_owners_keep_the_caches_of_each_other() -> void:
+	ModelDB.load_manifest()
+	var old_stage := RefCounted.new()
+	var new_stage := RefCounted.new()
+	ModelDB.request(["props/streetlight"], ["lod0"], old_stage)
+	while ModelDB.pending() > 0:
+		OS.delay_msec(2)
+	# the next stage requests before the last one has left (GameFlow), then the old one signs off
+	ModelDB.request(["traffic/sedan_red"], ["lod0"], new_stage)
+	ModelDB.release_all(old_stage)
+	while ModelDB.pending() > 0:
+		OS.delay_msec(2)
+	var loaded := ModelDB.loads
+	assert_true(loaded >= 3, "die Anforderungen der neuen Etappe überleben den Abgang der alten (%d Dateien)" % loaded)
+	assert_true(ModelDB.mesh("traffic/sedan/lod0_body.res") != null, "Netz der neuen Etappe im Cache")
+	assert_eq(ModelDB.loads, loaded, "… ohne neu zu laden")
+	ModelDB.release_all(new_stage)
+	assert_eq(ModelDB.loads, 0, "die letzte Besitzerin gibt die Caches frei")
+	# an owner that was freed without signing off does not hold the caches for ever
+	var gone := Node.new()
+	ModelDB.request(["props/streetlight"], ["lod0"], gone)
+	gone.free()
+	var last := RefCounted.new()
+	ModelDB.request(["props/streetlight"], ["lod0"], last)
+	while ModelDB.pending() > 0:
+		OS.delay_msec(2)
+	ModelDB.release_all(last)
+	assert_eq(ModelDB.loads, 0, "eine freigegebene Besitzerin zählt nicht mehr")
+	# without an owner: unconditionally (mode switch)
+	ModelDB.request(["props/streetlight"], ["lod0"], RefCounted.new())
+	ModelDB.release_all()
+	assert_eq(ModelDB.loads, 0, "release_all() ohne Besitzerin leert immer")
+
+
+func test_materials_share_one_instance() -> void:
+	var a := ModernMaterials.shared()
+	assert_true(a != null and is_same(a, ModernMaterials.shared()), "shared() liefert immer dieselbe Instanz")
+	ModernMaterials.set_global("ce_night", 0.0)     # registers the globals itself: no engine error without an instance
+	ModernMaterials.drop_shared()
+	assert_false(is_same(a, ModernMaterials.shared()), "nach drop_shared() eine neue")
+	ModernMaterials.drop_shared()

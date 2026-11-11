@@ -15,29 +15,50 @@ extends RefCounted
 const PAINT_KEYS: Array[String] = ["paint", "paint2", "paint3"]
 
 
+## Level a set is shown at when the caller names none: the set's own level ("show" of the showroom sets), else
+## lod0. build() and multimesh_parts() resolve "" the same way.
+static func level_of(resolved: Dictionary, lod: String) -> String:
+	if lod != "":
+		return lod
+	var own := str(resolved.get("lod", ""))
+	return own if own != "" else "lod0"
+
+
 ## Node tree of a sprite set at a level ("" = the set's own level or lod0). null if the set has no model
-## (stand-ins are the renderer's business) or the level does not exist.
+## (stand-ins are the renderer's business), the level does not exist, or ANY mesh of the level – a part or the
+## shadow caster – cannot be loaded: never half a model (a car of four wheels without its body). The caller then
+## shows the stand-in; ModelDB.missing() names the files.
 static func build(set_id: String, lod: String, mats: ModernMaterials) -> Node3D:
 	var r := ModelDB.resolve(set_id)
 	var model: Dictionary = r.get("model", {})
 	if model.is_empty():
 		return null
-	var lod_name := lod if lod != "" else (str(r.get("lod", "")) if str(r.get("lod", "")) != "" else "lod0")
+	var lod_name := level_of(r, lod)
 	var entry := ModelDB.lod(model, lod_name)
-	if entry.is_empty():
+	if entry.is_empty() or (entry.get("parts", []) as Array).is_empty():
 		return null
-	var root := Node3D.new()
-	root.name = str(r["model_id"]).replace("/", "_")
-	var wheels: Array[NodePath] = []
 	var has_caster := model.has("shadow") and lod_name != "shadow"
+	var meshes: Array[ArrayMesh] = []
 	for p: Variant in entry.get("parts", []):
 		var part: Dictionary = p
 		var mesh := surfaced_mesh(str(part.get("mesh", "")), part.get("classes", []), model, mats)
 		if mesh == null:
-			continue
+			return null
+		meshes.append(mesh)
+	var smesh: ArrayMesh = null
+	if has_caster:
+		smesh = surfaced_mesh(str((model["shadow"] as Dictionary).get("mesh", "")), ["vpbr"], model, mats)
+		if smesh == null:
+			return null
+	var root := Node3D.new()
+	root.name = str(r["model_id"]).replace("/", "_")
+	var wheels: Array[NodePath] = []
+	var parts: Array = entry.get("parts", [])
+	for i in parts.size():
+		var part: Dictionary = parts[i]
 		var mi := MeshInstance3D.new()
 		mi.name = str(part.get("node", "body"))
-		mi.mesh = mesh
+		mi.mesh = meshes[i]
 		mi.transform = part_transform(part)
 		if has_caster:
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -45,14 +66,11 @@ static func build(set_id: String, lod: String, mats: ModernMaterials) -> Node3D:
 		if part.has("wheel"):
 			wheels.append(NodePath(mi.name))
 	if has_caster:
-		var sh: Dictionary = model["shadow"]
-		var smesh := surfaced_mesh(str(sh.get("mesh", "")), ["vpbr"], model, mats)
-		if smesh != null:
-			var si := MeshInstance3D.new()
-			si.name = "shadow"
-			si.mesh = smesh
-			si.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
-			root.add_child(si)
+		var si := MeshInstance3D.new()
+		si.name = "shadow"
+		si.mesh = smesh
+		si.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
+		root.add_child(si)
 	root.set_meta("set", set_id)
 	root.set_meta("model_id", str(r["model_id"]))
 	root.set_meta("lod", lod_name)
@@ -66,23 +84,27 @@ static func build(set_id: String, lod: String, mats: ModernMaterials) -> Node3D:
 ## [{"node", "mesh": ArrayMesh (class materials on its surfaces when mats is given), "classes": Array,
 ##   "transform": Transform3D (pose of the part in the model), "shadow": bool}].
 ## The entry with "shadow" = true is the model's low-poly caster (if it has one).
+## lod "" = the set's own level or lod0, as in build(). [] if the set has no model, the level does not exist or
+## any mesh of it cannot be loaded (as build(): never half a model).
 static func multimesh_parts(set_id: String, lod: String, mats: ModernMaterials = null) -> Array:
 	var out: Array = []
 	var r := ModelDB.resolve(set_id)
 	var model: Dictionary = r.get("model", {})
 	if model.is_empty():
 		return out
-	var entry := ModelDB.lod(model, lod if lod != "" else "lod0")
+	var entry := ModelDB.lod(model, level_of(r, lod))
 	for p: Variant in entry.get("parts", []):
 		var part: Dictionary = p
 		var mesh := surfaced_mesh(str(part.get("mesh", "")), part.get("classes", []), model, mats)
-		if mesh != null:
-			out.append({"node": str(part.get("node", "body")), "mesh": mesh, "classes": part.get("classes", []),
-				"transform": part_transform(part), "shadow": false})
-	if model.has("shadow"):
+		if mesh == null:
+			return []
+		out.append({"node": str(part.get("node", "body")), "mesh": mesh, "classes": part.get("classes", []),
+			"transform": part_transform(part), "shadow": false})
+	if model.has("shadow") and not out.is_empty():
 		var smesh := surfaced_mesh(str((model["shadow"] as Dictionary).get("mesh", "")), ["vpbr"], model, mats)
-		if smesh != null:
-			out.append({"node": "shadow", "mesh": smesh, "classes": ["vpbr"], "transform": Transform3D.IDENTITY, "shadow": true})
+		if smesh == null:
+			return []
+		out.append({"node": "shadow", "mesh": smesh, "classes": ["vpbr"], "transform": Transform3D.IDENTITY, "shadow": true})
 	return out
 
 
@@ -165,12 +187,15 @@ static func billboard_mesh(width_m: float, height_m: float, anchor_x: float = 0.
 	return mesh
 
 
-## Impostor of a model as a billboard node (null if the model has none): the far level of card trees.
+## Impostor of a model as a billboard node (null if the model has none or its texture cannot be loaded): the
+## far level of card trees.
 static func build_impostor(set_id: String, mats: ModernMaterials) -> MeshInstance3D:
 	var model: Dictionary = ModelDB.resolve(set_id).get("model", {})
 	if not model.has("impostor"):
 		return null
 	var imp: Dictionary = model["impostor"]
+	if ModelDB.texture(str(imp.get("texture", ""))) == null:
+		return null
 	var size: Array = imp.get("size_m", [1.0, 1.0])
 	var mi := MeshInstance3D.new()
 	mi.name = "impostor"

@@ -8,6 +8,13 @@ extends RefCounted
 ## declared in project.godot, so the Arcade mode stays untouched - and only then loads the shaders with
 ## load(). Never preload() a Modern shader. The values of the globals are set by the owner of the scene
 ## (EnvironmentRig in a race; the showroom and the contact sheet bring their own small rig).
+##
+## ONE instance per process: ModelFactory sets the class materials on the shared mesh resources of ModelDB, so
+## two instances would overwrite each other (a car built with the first draws with the materials of the second –
+## its class parameters, e.g. lamp energies, then come from the wrong one). The game uses shared(); tools and
+## tests that run alone may create their own.
+## The materials hold the textures of the baked and leaf classes: leaving the mode "Modern" means
+## ModelDB.release_all() AND clear() here (or drop_shared()) – release_all() alone frees no texture memory.
 
 const SHADER_DIR := "res://assets/shaders/modern/"
 const CLASSES: Array[String] = ["vpbr", "glass", "baked", "baked_cutout", "leaves"]
@@ -31,6 +38,7 @@ const GLOBALS: Array = [
 ]
 
 static var _globals_added := false
+static var _shared: ModernMaterials = null
 
 var _shaders: Dictionary = {}        ## shader key -> Shader
 var _materials: Dictionary = {}      ## material key -> ShaderMaterial
@@ -38,6 +46,20 @@ var _materials: Dictionary = {}      ## material key -> ShaderMaterial
 
 func _init() -> void:
 	ensure_globals()
+
+
+## The instance of the running game (renderer, showroom, Leistungstest): created on first use.
+static func shared() -> ModernMaterials:
+	if _shared == null:
+		_shared = ModernMaterials.new()
+	return _shared
+
+
+## Clears and forgets the shared instance (leaving the mode "Modern", after ModelDB.release_all()).
+static func drop_shared() -> void:
+	if _shared != null:
+		_shared.clear()
+		_shared = null
 
 
 ## Registers the ce_* globals once per process (idempotent; headless the dummy renderer ignores it).
@@ -52,7 +74,9 @@ static func ensure_globals() -> void:
 
 
 ## Sets a ce_* global (convenience for small rigs; EnvironmentRig may call the RenderingServer directly).
+## Registers the globals first if nobody has yet (setting an unknown global is an engine error).
 static func set_global(name: String, value: Variant) -> void:
+	ensure_globals()
 	RenderingServer.global_shader_parameter_set(StringName(name), value)
 
 
