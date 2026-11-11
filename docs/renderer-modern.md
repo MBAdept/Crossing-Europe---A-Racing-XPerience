@@ -983,3 +983,131 @@ zuzuschreiben. Zeiten auf einer echten Grafikkarte und auf dem Steam Deck sind h
   Aufwärmen über die Knoten der Haken hinaus (`prewarm.gd`), das Freigeben der Materialien beim Verlassen des Modus
   (`ModelDB.release_all()` + `ModernMaterials.drop_shared()` – Sache des Moduswechsels).
 - `graphics.modern.prepare_timeout_s` steht nicht in `config/game_config.json` (Vorgabe im Code 120 s).
+
+## 10. Fahrzeuge, Lichtpunkte und Schilder (Bauabschnitt R3)
+
+Alles hier sind Dateien, die das Gerüst über ihren festen Namen findet (Abschnitt 9): zwei Ebenen, ein Builder und
+die Materialien der Fahrzeuge. Sie reden mit dem Rest nur über die Fassade (A-7) und `has_method`.
+
+| Datei | Aufgabe |
+|---|---|
+| `scripts/race3d/layers/vehicles.gd` | jedes Auto der Ansicht (Verkehr, Polizei, Spieler) als 3D-Modell: Pose, Detailstufen, Lampen, Schatten |
+| `scripts/race3d/layers/flares.gd` | Lichtpunkte aller Lampen (Fahrzeuge und feste Lampen der Builder), Verdeckung über den Tiefenpuffer |
+| `scripts/race3d/vehicle_pose3d.gd` (`VehiclePose3D`) | reine Mathematik: Ausblendgesetz, Pose, Detailstufe, Lampenstufen, Leuchtgrößen |
+| `scripts/race3d/model_factory.gd` | Modelle aus dem Manifest (mit Gelenk: `build(…, articulated)`), Kasten für Sets ohne Modell |
+| `scripts/race3d/sign_atlas.gd` (`SignAtlas`), `sign_canvas.gd` | alle Schilder der Etappe einmal vorgezeichnet, ein Atlas |
+| `scripts/race3d/builders/signs.gd` | Schilder als Tafeln mit Pfosten im Querschnitt der Straße |
+| `assets/shaders/modern/{vpbr,glass,flare,contact_shadow,sign}.gdshader` | Lack, Glas, Lichtpunkte, Kontaktschatten, Schilder |
+
+### 10.1 Fahrzeug-Ebene
+
+- **Daten statt Code.** Ein Set löst sich über `ModelDB` in ein Modell auf (beliebig viele Stufen, Gelenke aus
+  `groups`) oder in seinen Platzhalter `{"fallback": "box"}` – dann zeichnet `ModelFactory.build_box()` einen Kasten
+  in Größe und Lack des Sets mit dunklen Scheiben, Rädern und Lampen auf den Lampenkanälen (Rück-/Bremslicht,
+  Blinker, Scheinwerfer, Kennzeichen, bei Polizei Blaulicht A/B). Ein neues Modell im Manifest erscheint ohne
+  Codeänderung; ein fehlendes Modell ist nie ein fehlendes Auto. `prepare()` lädt die Modelle aller Fahrzeug-Sets der
+  Etappe (`ModelDB.request(…, self)`); fehlt danach eine Datei, meldet die Ebene `fail_reason() = "manifest"`.
+- **Pose aus zwei Punkten der Straße** – Heck und Front des Kollisionsquaders (`path.world(z, x, 0)` und
+  `path.world(z + Länge, x, 0)`): Gier- und Nickwinkel folgen der Straße, der Ursprung liegt in der Mitte am Boden.
+  Eigene Richtung beim Spurwechsel aus der Quergeschwindigkeit (`VehiclePose.own_heading`), kritisch gedämpft wie
+  Arcades Sprites (`render.vehicle_yaw_smooth_s`). Spielerauto zusätzlich: Lenken × 3°, Untersteuern × 6° (Nase in
+  die Kurve), Wanken ≤ 2,5° um 0,38 m Höhe (nur die Karosserie, die Räder bleiben am Boden) – die Werte von
+  `render.player_*`; Blinken über `view.player.visible`. Die Grundfläche liegt höchstens 0,3 m neben dem
+  Kollisionsquader (20 Posen bis R = 120 m, Unit-Test).
+- **Sattelzug:** die Einheiten der Gruppen (`tractor`, `trailer`) werden einzeln gestellt: die Zugmaschine vom
+  Straßenpunkt unter ihrem Drehpunkt bis zur Front, der Auflieger vom Heck bis zum Boden unter dem Königszapfen, den
+  er mit der Zugmaschine teilt. Die fernen Stufen (ein Netz) sind starr.
+- **Räder** drehen sich mit der gefahrenen Strecke (`z / Radius`; linke Räder sind das gedrehte rechte Rad: anderes
+  Vorzeichen), Vorderräder lenken mit der Kurve (und beim Spieler mit dem Lenkeinschlag).
+- **Detailstufen** nach Wegstrecke: die Grenzen des Manifests skaliert mit `vehicle_lod0_m / 40` bzw.
+  `vehicle_lod1_m / 120` der Qualitätsstufe, 5 % Hysterese gegen Flackern; die Knoten jeder Stufe werden beim ersten
+  Gebrauch gebaut und je Set wiederverwendet (Pool).
+- **Lampen** über `lamp_a` / `lamp_b`: Rücklicht und Scheinwerfer mit `tail` der Ansicht (Lichter der Palette) und
+  immer im Tunnel, Bremse, Blinker im Takt von Arcade (`blink_t`, 0,72 s), Blaulicht A/B. **Sonnenmaske** `sun` = 0
+  für Autos im Tunnel. **Ausblendung** nach Wegstrecke mit Arcades Gesetz (F5, Dither). Uniforms werden nur bei
+  Änderung gesetzt.
+- **Schatten:** mit Fahrzeug-Schattenwerfern (`shadow_casters ≥ 1`) wirft die grobe Hülle des Modells; in jeder
+  Stufe liegt zusätzlich ein weicher Kontaktschatten unter jedem Auto (ein MultiMesh für alle,
+  `contact_shadow.gdshader`) – ohne Werfer ist er der einzige Schatten und kräftiger.
+- `snapshot()` → `vehicles [{id, set, model, lod, z, x, yaw_deg, lamps, fade, sun, shown, box, player}]`;
+  `perf()` → `vehicles`, `fallback_sets`, `vehicle_us_avg`, `vehicle_builds`.
+
+### 10.2 Lichtpunkte
+
+Ein additiver Schein je Lampe (`flare.gdshader`, Arcades Leuchttextur: voll in der Mitte, 55 % bei einem Viertel
+des Radius): Radius = Faktor × Pixel je Meter, nie kleiner als in Arcade – Rück-/Bremslicht ≥ 2 px, Blinker ≥
+`INDICATOR_MIN_GLOW_PX` (+1 px nachts) mit einem Lampenkern von mindestens `INDICATOR_MIN_PX` (2,4 × 2,0 px);
+Stärken wie Arcade (Rücklicht nachts 0,9, Bremse 0,35 + 0,4 × Nacht). Größen in logischen Pixeln (720 Zeilen): bei
+jeder Fenstergröße so groß wie in Arcade. Ein Rück- und ein Bremslicht an derselben Stelle sind ein Schein.
+**Verdeckung:** der Lichtpunkt sitzt 6 cm vor seiner Lampe; fünf Abtastungen der Tiefentextur um ihren Bildpunkt
+entscheiden, wie viel davon sichtbar ist – hinter einer Kuppe, einem Lkw oder einer Wand 0 Pixel. (Die
+Tiefentextur gibt es im Compatibility-Renderer nur in `fragment()`, umgekehrtes Z, NDC-z = 2d − 1.)
+**Feste Lampen:** `renderer.add_lamps(parent, lamps)` (A-7) landet in `add_static()`: nachts (Rollen `lights`,
+`street`, … mit den Lichtern der Palette, `on` immer) ein Schein, der dem Elternknoten folgt und verschwindet, wenn
+der Knoten den Baum verlässt. Fernschein: nah ist er ein Halo (35 %), wo die Leuchte kleiner als ein Pixel wird,
+trägt er die Lampe allein (100 %).
+
+### 10.3 Lack und Glas
+
+`vpbr.gdshader`: Lack ist Grundlack unter Klarlack – der Klarlack spiegelt die Umgebung mit Fresnel (bei
+streifendem Blick auf 25 % begrenzt) und hat eine eigene scharfe Sonnenspitze; metallischer Lack funkelt nah an der
+Kamera (Flakes, ab 14 m ausgeblendet); Metalle (Felgen, Chrom) und glatte Teile spiegeln ebenfalls. Die Umgebung ist
+**analytisch** (Zenit, Horizont mit Landschaftsband, Boden aus den Uniforms `env_*`, im Tunnel die Röhre): sie
+braucht keine `Sky` am Environment und gilt in jeder Voreinstellung. Spiegelungen gehen über `EMISSION`
+(unbeschattet, vom Nebel erfasst). `glass.gdshader` bekommt dieselbe Spiegelung zum Aussehen von AS1 dazu
+(markierter R3-Teil, Fresnel des Glases, `mirror`). Neu je Instanz: `fill` (zusätzliches Umgebungslicht – das
+Spielerauto bekommt 0,7 × `ce_ambient`, so wie Arcade sein Spieler-Sprite aufhellt) und `gloss` (Kasten: 0,35).
+**Die Vorgaben der Shader sind neutral** (`env_energy` 0, `paint_base` 1, `flake_strength` 0): Kontaktbogen und
+`check_models.gd` messen das Vertexformat allein. Den Renn-Look setzt `layers/vehicles.gd` (`LOOK`) auf die
+geteilten Materialien, die Umgebungsfarben aus der Palette (nur bei Änderung).
+
+### 10.4 Schilder
+
+- **Katalog** (`SignAtlas.stage_signs`): die Ereignisse der `Track` über die ganze Etappe
+  (`events_for_segment`) mit Land und Straßenart ihres Segments – genau, was `Track._place_props` dem Schild gibt –
+  plus die Schilder, die `Track` beim Erzeugen setzt (Kurve, Kuppe, Richtungstafel). Schlüssel = was das Aussehen
+  der Art bestimmt (`key_of`).
+- **Geometrie:** ein Trockenlauf von Arcades `SignPainter` bei 4 px/m sammelt die Eckpunkte seiner `GeoBatch`, ohne
+  zu zeichnen: Grenzen der Tafeln (über dem Bodenpunkt) und die Pfosten (die Rechtecke bis zum Boden).
+- **Atlas:** in `prepare()` zeichnet `SignPainter` alle Schilder einmal in **eine** SubViewport (64 px/m, ohne
+  Pfosten); sie wird zurückgelesen, mit Mipmaps eine `ImageTexture`, die SubViewport freigegeben. Headless: ein
+  Platzhalter. Während der Fahrt entsteht nichts (`SignAtlas.subviewports_created`, `textures_created`,
+  `created_while_driving`).
+- **Builder** `signs`: je Stück ein Netz für alle Schilder (Tafel-Quads mit Atlas-UVs, Pfosten als Kästen 5 cm
+  hinter der Tafel bis in den Boden), eine Zeichnung. Tafeln in Arcades Höhe über der Straße, mit `scale`;
+  Wandschilder ohne Pfosten. `sign.gdshader`: Umriss aus dem Alpha (vormultipliziert, `t.rgb / t.a`), Rückseite
+  blankes Blech, Ausblendung F5 (Kamera-z als Uniform, gesetzt in `update()`), Fülllicht im Eigenschatten,
+  Rückstrahlung im Scheinwerferkegel (`ce_headlight_*`; solange die niemand setzt, steht nachts die Kamera für die
+  Scheinwerfer ein). Start- und Zielbrücke (`side` 0) baut der Builder `gantry`.
+
+### 10.5 Prüfungen
+
+| Prüfung | Inhalt |
+|---|---|
+| `tests/unit/race3d/test_vehicles.gd` | Grundfläche = Kollisionsquader ± 0,3 m (20 Posen, auch R = 120/136 m, Kuppe), Sattelzug, Konventionen, Spielerterme, Detailstufen, Lampen = Ansicht, Leuchtgrößen = Arcade, Räder, Kasten |
+| `tests/unit/race3d/test_fade_law.gd` | Ausblendung = `RoadRenderer._item_alpha` an 80 Stellen (offen, Tunnel) |
+| `tests/unit/race3d/test_sign_atlas.gd` | jede Art aus `SignPainter.HALF_WIDTH_M`: Tafel, Höhe, Pfosten; Schlüssel; Katalog einer Etappe; Netz des Builders |
+| `tests/race3d/check_vehicles.gd` | `lampen` (Schnappschuss = Ansicht), `kasten`, `leistung` (µs je Auto), `schilder` (Zähler), `lampen_fest` (`add_lamps`) |
+| `tests/race3d/render/check_vehicle_lights.gd` | Blinker bei 300 m ≥ `INDICATOR_MIN_PX`, Rücklicht bei 0,839 × Sichtweite an N1, Bremslicht 50/150/300 m |
+| `tests/race3d/render/check_occlusion.gd` | Auto hinter der Kuppe (T2) und hinter dem Sattelzug: 0 Pixel |
+
+Die beiden Render-Prüfungen setzen Autos in eine stehende Szene ohne Verkehr
+(`tests/race3d/fixtures/vehicle_probe_renderer.gd`) und halten die Weltuhr an (sonst wandert die Sonne um 1/255).
+
+### 10.6 Messwerte (gemessen auf dieser Maschine: Software-OpenGL bzw. headless)
+
+| Messung | Wert |
+|---|---|
+| Fahrzeug-Ebene, GDScript je Auto und Bild, 34 Autos (headless) | Median 31,3 µs, p90 35,2 µs |
+| Blinker bei 300 m, Tag / Nacht | Kern 3 × 2 / 2 × 2 px, Schein bis 4,2 / 5,4 px |
+| Rücklicht bei 0,839 × Sichtweite (N1, 338 m Sicht, Auto bei 283 m) | +0,304 Leuchtdichte, +0,494 Rot |
+| Auto hinter der Kuppe (346 m), Tag und Nacht; hinter dem Sattelzug, Nacht | 0 von 921.600 Pixeln |
+| Schilderatlas Kiel – Hamburg | 17 Zellen, kein Schild ohne Zelle |
+
+### 10.7 Offen
+
+- Busse, Lieferwagen, SUV, Polizei, Sportwagen und drei der fünf Spielerautos haben noch kein Modell: sie fahren als
+  Kasten (AS2a/AS2b liefern die Modelle; sie erscheinen dann ohne Codeänderung). Gelenkbusse brauchen nur `groups`.
+- Die Sonne steht mittags in Fahrtrichtung: das Heck jedes Autos liegt im eigenen Schatten. Das Fülllicht hält das
+  Spielerauto lesbar; die Lichtrichtung ist Sache der Umgebung (R1).
+- Scheinwerferkegel des Verkehrs auf der Straße und das Licht der eigenen Scheinwerfer: Ebene `lights` (R1/R4).
