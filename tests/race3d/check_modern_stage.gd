@@ -24,13 +24,19 @@ extends SceneTree
 ##              machine is shared). Since the assembly of M1 the shipped renderer also updates terrain, props,
 ##              signs, far ground, vehicles and flares every frame, so this check runs the core alone
 ##              (tests/race3d/fixtures/core_renderer.gd: road, roadside, backdrop, lights, overlay)
+##   renderer_zeit  the same drive with the WHOLE shipped renderer and the session's traffic moving along: at most
+##              1.5 ms GDScript per frame on average (contract §4.10 / QA1). Both times are taken next to a reference
+##              workload of this process and scaled to the VM's normal speed (fixtures/perf_clock.gd, RINT-B): the
+##              shared machine's load no longer decides the result
 ## Prints "CHECK <name> OK|FEHLER …" per check; exit code 0 when all pass.
 ## (The scene and the autoloads are accessed untyped: -s scripts compile before the autoloads exist.)
 
 const RACE := "res://scenes/race/race.tscn"
-const CHECKS := ["inhalt", "nacht", "tunnel", "waechter", "wechsel", "kern_zeit", "ergebnis"]
+const CHECKS := ["inhalt", "nacht", "tunnel", "waechter", "wechsel", "kern_zeit", "renderer_zeit", "ergebnis"]
 const CORE_MS := 0.6
+const RENDERER_MS := 1.5           ## the whole renderer, contract §4.10 (render() avg, this VM) and QA1 (12 cars, headless)
 const COMMIT_MS := 3.0
+const PERF_CLOCK := preload("res://tests/race3d/fixtures/perf_clock.gd")
 const CORE_FIXTURE := "res://tests/race3d/fixtures/core_renderer.gd"
 
 var _failed: Array[String] = []
@@ -441,68 +447,110 @@ func _check_wechsel() -> void:
 
 func _check_kern_zeit() -> void:
 	var p: Array[String] = []
-	_speed(1.0)
-	var best := INF
-	var best_commit := INF
-	var best_parts := ""
-	var frames := 1500
+	var best := {}
 	_renderers.set("modern_script", CORE_FIXTURE)
 	for round_i in 3:
-		var st: Array = await _stage({"start_speed_kmh": 150.0})
-		var sc: Node = st[0]
-		var r: ModernRenderer = st[1]
-		# the session stands still; the renderer is driven with the views of a drive at 150 km/h and 60 frames per second
-		sc.set_process(false)
-		sc.set_physics_process(false)
-		var view: Dictionary = (r.view as Dictionary).duplicate()
-		var player: Dictionary = (view["player"] as Dictionary).duplicate()
-		view["player"] = player
-		var step := 150.0 / 3.6 / 60.0
-		r.streamer.reset_stats()
-		var back: Node = r.layer("backdrop")
-		var redraws0 := int((back.call("snapshot") as Dictionary)["backdrop"]["redraws"]) if back != null else 0
-		var total := 0
-		var worst := 0
-		for i in frames:
-			view["camera_z"] = float(view["camera_z"]) + step
-			player["z"] = float(player["z"]) + step
-			view["time"] = float(view["time"]) + 1.0 / 60.0
-			view["dt"] = 1.0 / 60.0
-			var t0 := Time.get_ticks_usec()
-			r.render(view)
-			var us := Time.get_ticks_usec() - t0
-			total += us
-			worst = maxi(worst, us)
-			if i % 50 == 49:
-				await process_frame   # the worker threads of the chunk builds and the canvas get their turn
-		var render_ms := float(total) / float(frames) / 1000.0
-		# the backdrop draws on its canvas item outside render(): its share per frame
-		var paint_ms := 0.0
-		var redraw_share := 0.0
-		if back != null:
-			var canvas: CanvasItem = back.get("canvas")
-			var t1 := Time.get_ticks_usec()
-			for i in 40:
-				back.call("paint", canvas)
-			paint_ms = float(Time.get_ticks_usec() - t1) / 40.0 / 1000.0
-			var asked := int((back.call("snapshot") as Dictionary)["backdrop"]["frames"])
-			# headless nothing is drawn: the share is what update() asked for – every 0.09 s of view time by day
-			redraw_share = minf(1.0, (1.0 / 60.0) / 0.09) if asked > 0 else 0.0
-			redraws0 += 0
-		var core_ms := render_ms + paint_ms * redraw_share
-		var commit_ms := float(r.streamer.stats().get("commit_ms_max", 0.0))
-		if core_ms < best:
-			best = core_ms
-			best_parts = "render() %.3f ms (höchstens %.2f ms) + Hintergrund %.3f ms × %.2f" % [render_ms, float(worst) / 1000.0, paint_ms, redraw_share]
-		best_commit = minf(best_commit, commit_ms)
-		_need(p, int(r.streamer.stats().get("commits", 0)) >= 4, "die Fahrt hat Stücke geladen (%d)" % int(r.streamer.stats().get("commits", 0)))
-		await _free(sc)
-		if best <= CORE_MS * 0.7 and best_commit <= COMMIT_MS * 0.7:
+		var m := await _drive_time({"start_speed_kmh": 150.0}, 1500, false)
+		_need(p, int(m["commits"]) >= 4, "die Fahrt hat Stücke geladen (%d)" % int(m["commits"]))
+		if best.is_empty() or float(m["total_ms"]) < float(best["total_ms"]):
+			best = m
+		best["commit_ms"] = minf(float(best.get("commit_ms", INF)), float(m["commit_ms"]))
+		if float(best["total_ms"]) <= CORE_MS * 0.7 and float(best["commit_ms"]) <= COMMIT_MS * 0.7:
 			break
 	_renderers.set("modern_script", str(_renderers.get("MODERN_SCRIPT")))
-	_need(p, best <= CORE_MS, "Renderer-Kern höchstens %.1f ms GDScript je Bild (%.3f ms)" % [CORE_MS, best])
-	_need(p, best_commit <= COMMIT_MS, "ein Stück hängt in höchstens %.0f ms ein (%.2f ms)" % [COMMIT_MS, best_commit])
-	_report("kern_zeit", p, "Renderer-Kern %.3f ms GDScript je Bild über %d Bilder bei 150 km/h (%s); Einhängen eines Stücks höchstens %.2f ms" % [best, frames, best_parts, best_commit])
+	_need(p, float(best["total_ms"]) <= CORE_MS, "Renderer-Kern höchstens %.1f ms GDScript je Bild bei normalem Tempo der Maschine (%.3f ms)" % [CORE_MS, float(best["total_ms"])])
+	_need(p, float(best["commit_ms"]) <= COMMIT_MS, "ein Stück hängt in höchstens %.0f ms ein (%.2f ms)" % [COMMIT_MS, float(best["commit_ms"])])
+	_report("kern_zeit", p, "Renderer-Kern %.3f ms GDScript je Bild bei normalem Tempo über %d Bilder bei 150 km/h (%s); Einhängen eines Stücks höchstens %.2f ms" % [
+		float(best["total_ms"]), int(best["frames"]), str(best["parts"]), float(best["commit_ms"])])
+
+
+## RINT-B: the WHOLE shipped renderer (every builder and layer of the push) on a drive at 150 km/h with the session's
+## traffic moving along with the camera: render() GDScript per frame at most RENDERER_MS on average at the VM's normal
+## speed (contract §4.10 / QA1: 1.5 ms at 12 cars, headless). Next to the core budget of kern_zeit.
+func _check_renderer_zeit() -> void:
+	var p: Array[String] = []
+	var best := {}
+	for round_i in 2:
+		var m := await _drive_time({"start_speed_kmh": 150.0}, 900, true)
+		if best.is_empty() or float(m["total_ms"]) < float(best["total_ms"]):
+			best = m
+		if float(best["total_ms"]) <= RENDERER_MS * 0.7:
+			break
+	_need(p, int(best["cars"]) >= 8, "Verkehr in Sicht während der Messung (im Mittel %d Autos)" % int(best["cars"]))
+	_need(p, float(best["total_ms"]) <= RENDERER_MS, "ganzer Renderer höchstens %.1f ms GDScript je Bild bei normalem Tempo der Maschine (%.3f ms)" % [
+		RENDERER_MS, float(best["total_ms"])])
+	_report("renderer_zeit", p, "ganzer Renderer (alle Builder und Ebenen) %.3f ms GDScript je Bild bei normalem Tempo, %d Bilder bei 150 km/h mit im Mittel %d Autos (%s); Einhängen höchstens %.2f ms" % [
+		float(best["total_ms"]), int(best["frames"]), int(best["cars"]), str(best["parts"]), float(best["commit_ms"])])
+
+
+## Drives the renderer of a stopped session with the views of a drive at 150 km/h and 60 frames per second and times
+## render() (wall clock, next to a reference workload of this process: fixtures/perf_clock.gd scales the times to the
+## VM's normal speed). with_cars: the cars of the session's view move along with the camera (they keep their distance).
+## Returns {"total_ms": render() + the backdrop's share of canvas drawing, normal speed; "render_ms", "raw_ms",
+## "worst_ms", "factor", "commit_ms", "commits", "frames", "cars" (mean in the view), "parts" (text)}.
+func _drive_time(extra: Dictionary, frames: int, with_cars: bool) -> Dictionary:
+	_speed(1.0)
+	var st: Array = await _stage(extra)
+	var sc: Node = st[0]
+	var r: Node = st[1]
+	sc.set_process(false)
+	sc.set_physics_process(false)
+	var view: Dictionary = (r.get("view") as Dictionary).duplicate()
+	var player: Dictionary = (view["player"] as Dictionary).duplicate()
+	view["player"] = player
+	var cars: Array = []
+	if with_cars:
+		for c: Variant in view.get("cars", []):
+			if c is Dictionary:
+				cars.append((c as Dictionary).duplicate())
+	view["cars"] = cars
+	var step := 150.0 / 3.6 / 60.0
+	var streamer: Variant = r.get("streamer")
+	streamer.call("reset_stats")
+	var back: Node = r.call("layer", "backdrop")
+	var clock: RefCounted = PERF_CLOCK.new()
+	var total := 0
+	var worst := 0
+	var car_sum := 0
+	for i in frames:
+		view["camera_z"] = float(view["camera_z"]) + step
+		player["z"] = float(player["z"]) + step
+		for c: Dictionary in cars:
+			c["z"] = float(c.get("z", 0.0)) + step
+		view["time"] = float(view["time"]) + 1.0 / 60.0
+		view["dt"] = 1.0 / 60.0
+		if i % 5 == 0:
+			clock.call("sample_reference")
+		var t0 := Time.get_ticks_usec()
+		r.call("render", view)
+		var us := Time.get_ticks_usec() - t0
+		total += us
+		worst = maxi(worst, us)
+		car_sum += cars.size()
+		if i % 50 == 49:
+			await process_frame   # the worker threads of the chunk builds and the canvas get their turn
+	var k: float = clock.call("factor")
+	var raw_ms := float(total) / float(frames) / 1000.0
+	# the backdrop draws on its canvas item outside render(): its share per frame
+	var paint_ms := 0.0
+	var redraw_share := 0.0
+	if back != null:
+		var canvas: CanvasItem = back.get("canvas")
+		var t1 := Time.get_ticks_usec()
+		for i in 40:
+			back.call("paint", canvas)
+		paint_ms = float(Time.get_ticks_usec() - t1) / 40.0 / 1000.0
+		var asked := int((back.call("snapshot") as Dictionary)["backdrop"]["frames"])
+		# headless nothing is drawn: the share is what update() asked for – every 0.09 s of view time by day
+		redraw_share = minf(1.0, (1.0 / 60.0) / 0.09) if asked > 0 else 0.0
+	var stats: Dictionary = streamer.call("stats")
+	var out := {"render_ms": raw_ms * k, "raw_ms": raw_ms, "worst_ms": float(worst) / 1000.0, "factor": k,
+		"total_ms": (raw_ms + paint_ms * redraw_share) * k, "commit_ms": float(stats.get("commit_ms_max", 0.0)),
+		"commits": int(stats.get("commits", 0)), "frames": frames, "cars": car_sum / maxi(frames, 1)}
+	out["parts"] = "render() %.3f ms (Wanduhr %.3f ms, Referenz × %.2f, längstes Bild %.2f ms) + Hintergrund %.3f ms × %.2f" % [
+		float(out["render_ms"]), raw_ms, k, float(out["worst_ms"]), paint_ms * k, redraw_share]
+	await _free(sc)
+	return out
 
 
 # --- ergebnis --------------------------------------------------------------------------------------------------

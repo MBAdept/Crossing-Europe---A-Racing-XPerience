@@ -15,6 +15,10 @@ extends Node3D
 ## snap.
 ## The disc is cut into SECTORS nodes: their centres lie far from the camera, so the renderer draws them after the
 ## terrain in front of them (one big node around the camera would be drawn first and cost its fill everywhere).
+## Below the silhouettes the picture reads as distant land, as in Arcade (RINT-B): the plane shows Arcade's colour of
+## level ground with Arcade's fog of things on the ground (at most 70 % towards the fog), and the rim's top edge
+## stands on the row of the backdrop's silhouettes (layer "backdrop" lift_rows: Arcade's crest rule) – the shader
+## raises it with the depth along the axis of view, so the edge is straight on the screen.
 ## Sets the global ce_far_y. Duck-typed layer: setup(renderer), update(view, dt), rebased(shift), snapshot().
 ## --gfx-debug=far draws flat signal colours (cyan plane, yellow rim) for the terrain cover check.
 ## Owner: package terrain / props / far ground.
@@ -45,6 +49,7 @@ var _valid := false
 var _key := Vector3i(-1, -1, -1)   ## camera row, visibility and first path row of the last _target
 var _city: Dictionary = {}
 var _styles: Dictionary = {}
+var _rim_rows := -1.0              ## rows of the rim's top edge above the horizon row, as last given to the shader
 
 
 func setup(renderer: Node) -> void:
@@ -67,6 +72,9 @@ func setup(renderer: Node) -> void:
 	material = ShaderMaterial.new()
 	material.shader = load(SHADER) as Shader
 	material.set_shader_parameter("ground_noise", GroundLook.noise_texture())
+	var proj: RoadProjection = renderer.get("proj")
+	if proj != null:
+		material.set_shader_parameter("focal_px", proj.focal)
 	var flags: Variant = renderer.get("debug_flags")
 	if flags is Array and (flags as Array).has("far"):
 		material.set_shader_parameter("debug_flat", 1.0)
@@ -128,8 +136,9 @@ static func sector_mesh() -> ArrayMesh:
 	arrays[Mesh.ARRAY_INDEX] = idx
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	# the node is scaled in y by the rim's height: bounds for any height the roads of a stage can give
-	mesh.custom_aabb = AABB(Vector3(-RADIUS_M, -1.0, -RADIUS_M), Vector3(2.0 * RADIUS_M, 2.0, 2.0 * RADIUS_M))
+	# the node is scaled in y by the rim's height: bounds for any height the roads of a stage can give, and for the
+	# rim raised to the silhouettes' row by the shader (at most 120 rows: about 400 m at the rim)
+	mesh.custom_aabb = AABB(Vector3(-RADIUS_M, -1.0, -RADIUS_M), Vector3(2.0 * RADIUS_M, 400.0, 2.0 * RADIUS_M))
 	return mesh
 
 
@@ -160,6 +169,15 @@ func update(view: Dictionary, _dt: float) -> void:
 	_root.scale = Vector3(1.0, maxf(eye.y - far_y, 0.5), 1.0)
 	_root.visible = true
 	ModernMaterials.set_global("ce_far_y", far_y)
+	# the rim reaches up to the row the backdrop's silhouettes stand on (the backdrop layer is updated first)
+	var rows := 0.0
+	var bd: Variant = _renderer.call(&"layer", "backdrop") if _renderer.has_method(&"layer") else null
+	if bd is Object and is_instance_valid(bd):
+		var lift: Variant = (bd as Object).get("lift_rows")
+		rows = maxf(float(lift), 0.0) if lift != null else 0.0
+	if absf(rows - _rim_rows) > 0.01:
+		_rim_rows = rows
+		material.set_shader_parameter("rim_rows", rows)
 	var look := GroundLook.far_look(track, _renderer.get("scenery_db"), cam_z, _city, _styles)
 	if look != _look:
 		_look = look
@@ -197,7 +215,7 @@ func rebased(shift: Vector3) -> void:
 
 func snapshot() -> Dictionary:
 	return {"far_ground": {"y": snappedf(far_y, 0.001), "target": snappedf(_target, 0.001), "drop": _drop, "radius": RADIUS_M,
-		"sectors": SECTORS, "visible": _root != null and _root.visible}}
+		"sectors": SECTORS, "visible": _root != null and _root.visible, "rim_rows": snappedf(maxf(_rim_rows, 0.0), 0.01)}}
 
 
 func _exit_tree() -> void:

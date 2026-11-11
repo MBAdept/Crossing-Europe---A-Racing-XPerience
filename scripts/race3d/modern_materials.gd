@@ -30,6 +30,9 @@ const GLOBALS: Array = [
 	["ce_sun_dir", RenderingServer.GLOBAL_VAR_TYPE_VEC3, Vector3(0.4, 0.8, 0.45)],
 	["ce_sun_color", RenderingServer.GLOBAL_VAR_TYPE_COLOR, Color(1.0, 0.93, 0.79)],     # light_value(): linear
 	["ce_ambient", RenderingServer.GLOBAL_VAR_TYPE_COLOR, Color(0.15, 0.18, 0.23)],
+	# RINT-B: Arcade's ambient factor as DISPLAY values (palette.ambient, blended with the tunnel's) – ground shaders
+	# show albedo × this on level ground exactly (EnvironmentRig "Bodengesetz", docs/renderer-modern.md §13)
+	["ce_ambient_display", RenderingServer.GLOBAL_VAR_TYPE_COLOR, Color(1.0, 1.0, 1.0)],
 	["ce_tunnel", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, 0.0],
 	["ce_headlight_pos", RenderingServer.GLOBAL_VAR_TYPE_VEC3, Vector3.ZERO],
 	["ce_headlight_dir", RenderingServer.GLOBAL_VAR_TYPE_VEC3, Vector3(0.0, 0.0, -1.0)],

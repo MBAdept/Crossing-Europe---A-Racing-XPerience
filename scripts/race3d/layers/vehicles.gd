@@ -42,8 +42,14 @@ const PLAYER_FILL := 0.7
 const BOX_GLOSS := 0.35             ## clear coat of the box stand-in (flat panels mirror the horizon like glass)
 ## The race look of the shared vehicle materials (the shaders' defaults are neutral – the look of the vertex format
 ## alone, what the contact sheet shows): [class, uniform, value].
-const LOOK: Array = [["vpbr", "env_energy", 1.6], ["vpbr", "paint_base", 0.9], ["vpbr", "flake_strength", 0.6],
-	["glass", "env_energy", 2.2]]
+## RINT-B: unlit vehicle lamps at 0.28 of their lit colour (0.5 read as switched on by day – art review B1), the tail
+## light of a combined tail/brake lamp (channel 2) at half the lamp (brake stays more than twice as bright); paint
+## exposure (art review A1/B8/C2): a soft knee above 0.7 of the brightest channel (slope 0.35) and 8 % desaturation
+## instead of a flat 0.9 on every paint – bright paints no longer clip, mid ones keep their value (measured against the
+## sprites, docs/renderer-modern.md §13.4).
+const LOOK: Array = [["vpbr", "env_energy", 1.6], ["vpbr", "paint_base", 1.0], ["vpbr", "paint_knee", 0.7],
+	["vpbr", "paint_knee_slope", 0.35], ["vpbr", "paint_desat", 0.08], ["vpbr", "flake_strength", 0.6],
+	["vpbr", "lamp_off", 0.28], ["vpbr", "tail_level", 0.5], ["glass", "env_energy", 2.2]]
 const STANDIN_SHADER := "vehicle_sprite"   ## assets/shaders/modern/vehicle_sprite.gdshader (through ModernMaterials)
 const STANDIN_NEAR_M := 0.3          ## a flat stand-in whose anchor is closer than this is not drawn (Arcade's near plane)
 const FLARE_PICTURE_GAP_M := 0.08    ## a lamp glow of a sprite stand-in sits this far in front of its picture
@@ -312,17 +318,16 @@ func warmup_nodes() -> Array:
 	return out
 
 
-## Warm-up node of the sprite stand-ins: one instance of a sheet in a MultiMesh (the instanced variant) and a
-## hidden caster MultiMesh (the shadow variant), on their own node – handed over to the renderer, which frees it.
+## Warm-up node of the sprite stand-ins: one instance of a sheet in a MultiMesh (the instanced variant), on its own
+## node – handed over to the renderer, which frees it. (Sprite stand-ins cast no shadow since RINT-B: no caster.)
 func _warm_sheet(sid: String, info: Dictionary) -> Node3D:
 	var root := Node3D.new()
 	root.name = "warm_standin"
 	var b := VehicleStandIn.SheetBatch.new(sid, info["sheet"], _sheet_mat(sid, info), root, _caster_mesh(), _mats.material("vpbr"))
-	b.casting = true
+	b.casting = false
 	b.begin()
 	var t := Transform3D(Basis.IDENTITY, Vector3(0.0, 0.0, 0.0))
 	b.add(t, Color(1, 1, 1, 1), Vector4(0.0, 1.0, 1.0, 0.0))
-	b.add_caster(Transform3D(Basis.from_scale(Vector3(1.8, 1.4, 4.5)), Vector3.ZERO))
 	b.commit()
 	return root
 
@@ -432,7 +437,7 @@ func update(view: Dictionary, dt: float) -> void:
 	_shade.prepare(view, bool(view.get("camera_in_tunnel", track.is_tunnel_at(cam_z))), track)
 	for b: VehicleStandIn.SheetBatch in _batches.values():
 		b.begin()
-		b.casting = _casters
+		b.casting = false                  # sprite stand-ins carry their shadow in the picture (RINT-B)
 	for c: Variant in view.get("cars", []):
 		_update_car(c, false, path, track, cam_z, vis, lights, time, sim_dt, z_lo, z_hi)
 	var player: Variant = view.get("player", null)
@@ -601,7 +606,6 @@ func _player_pose_only(c: Dictionary, path: RoadPath3D, track: Track, z: float, 
 func _update_sprite(car: Car, c: Dictionary, info: Dictionary, is_player: bool, path: RoadPath3D, track: Track, cam_z: float,
 		vis: float, lights: float, time: float, sim_dt: float, length: float) -> void:
 	var sheet: Dictionary = info["sheet"]
-	var obj: Dictionary = info["obj"]
 	var z := car.z
 	var x := car.x
 	var rear := path.world(z, x, 0.0)
@@ -687,12 +691,10 @@ func _update_sprite(car: Car, c: Dictionary, info: Dictionary, is_player: bool, 
 	car.flare_ref = depth * car.pull
 	mod.a = snappedf(alpha, 1.0 / 255.0)
 	car.batch.add(anchor_t, mod, cu, car.fold)
-	if _casters:
-		var hgt := float(obj.get("height_m", 1.5))
-		car.batch.add_caster(car.pose * Transform3D(Basis.from_scale(Vector3(float(obj.get("width_m", 1.8)) * 0.92, hgt * 0.92,
-			length * 0.96)), Vector3.ZERO))
-	car.cast = _casters
-	_add_shadow(car, obj, length, alpha, lights, in_tunnel)
+	# no sun shadow and no contact shadow (lead decision, RINT-B): Arcade's picture carries its shadow baked in – the
+	# rows below its ground line lie on the road – and a hidden caster or a contact shadow laid a second dark patch
+	# beside or under it. Textured boxes (trucks, buses) cast like models (_update_box).
+	car.cast = false
 	var l_eff := 1.0 if in_tunnel else lights
 	_add_flares(car, info, la, lb, l_eff, alpha, VehiclePose3D.light_alpha(alpha, l_eff))
 
@@ -716,7 +718,7 @@ func _batch(set_id: String, info: Dictionary) -> VehicleStandIn.SheetBatch:
 		return b
 	var world: Node3D = _renderer.get("world")
 	b = VehicleStandIn.SheetBatch.new(set_id, info["sheet"], _sheet_mat(set_id, info), world, _caster_mesh(), _mats.material("vpbr"))
-	b.casting = _casters
+	b.casting = false
 	_batches[set_id] = b
 	return b
 

@@ -19,6 +19,14 @@ const STATIC_MIN_PX := 1.6           ## … at least this many px
 const STATIC_NEAR_PX := 6.0          ## lamp geometry this large on screen: only the halo share of the glow …
 const STATIC_FAR_PX := 1.0           ## … this small: the whole glow
 const STATIC_HALO := 0.35            ## halo share near the camera
+## Arcade's glow of a street lamp (RoadRenderer._streetlight: radius max(3 px, 2.4 m), colour (1, 0.75, 0.4), alpha
+## 0.5 x lights): every lamp that looks down onto a light pool (street and canopy lamps) gets it as a second flare at
+## its head, scaled by its energy against a street lamp's (RINT-B: the heads lacked Arcade's warm halo at night)
+const LAMP_GLOW_M := 2.4
+const LAMP_GLOW_MIN_PX := 3.0
+const LAMP_GLOW_A := 1.0             ## flare strength: flare.gdshader adds colour × 0.5 × strength, Arcade colour × alpha 0.5
+const LAMP_GLOW_COLOR := Color(1.0, 0.75, 0.4)
+const LAMP_GLOW_REF_ENERGY := 0.55   ## PropLibrary.LAMP_ENERGY: a street lamp gets the full glow
 const ROLES_NIGHT: Array[String] = ["lights", "street", "lamp", "tunnel", "canopy", "marker", "tail"]
 
 var _renderer: Node
@@ -118,7 +126,7 @@ func add_static(parent: Node3D, lamps: Array) -> void:
 func update(view: Dictionary, _dt: float) -> void:
 	var t0 := Time.get_ticks_usec()
 	_n = 0
-	var need := _static_count * FLOATS
+	var need := _static_count * FLOATS * 2       # a core and, for lamps over a pool, Arcade's glow
 	if _buf.size() < need:
 		_buf.resize(maxi(need, maxi(128 * FLOATS, _buf.size() * 2)))
 	_add_statics(view)
@@ -192,9 +200,14 @@ func _add_statics(view: Dictionary) -> void:
 			var px := size * _focal / depth
 			# far-field: the glow takes over where the lamp itself shrinks below a pixel
 			var far := clampf((STATIC_NEAR_PX - px) / (STATIC_NEAR_PX - STATIC_FAR_PX), 0.0, 1.0)
-			var s := on * float(l.get("energy", 1.0)) * alpha * lerpf(STATIC_HALO, 1.0, far)
+			var energy := float(l.get("energy", 1.0))
+			var s := on * energy * alpha * lerpf(STATIC_HALO, 1.0, far)
 			var col: Color = l.get("color", Color(1.0, 0.9, 0.7))
 			_put(p, dirs[j], col, s, size * STATIC_K, STATIC_MIN_PX, 0.0, size * 0.5)
+			if dirs[j].y < -0.5 and float(l.get("range", 0.0)) > 0.0:
+				# Arcade's warm glow round the head of a street or canopy lamp
+				var g := on * alpha * LAMP_GLOW_A * clampf(energy / LAMP_GLOW_REF_ENERGY, 0.0, 1.0)
+				_put(p, dirs[j], LAMP_GLOW_COLOR, g, LAMP_GLOW_M, LAMP_GLOW_MIN_PX, 0.0, size * 0.5)
 		i += 1
 
 

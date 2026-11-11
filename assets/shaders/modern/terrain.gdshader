@@ -19,6 +19,11 @@
 //                     layer leave it out. Arcade's reflection factors: grass 0.45, the gravel strip 0.6, paved
 //                     ground 0.8 (RoadRenderer._draw_ground / _shade)
 // Every pattern is anti-aliased by the footprint of the pixel (inc/ground.gdshaderinc).
+// Light (RINT-B): the ground law of inc/ground_law.gdshaderinc – the engine's ambient pass is off, the base pass is
+// written as EMISSION so that level ground in the light shows Arcade's colour (albedo × palette ambient) at every
+// albedo and hour; shadows take the sun's part away, slopes towards the sun get more. Fog: Arcade's law for things
+// beside the road (at most 70 % towards the brightened fog colour), like layers/far_ground.gd – see the end of
+// fragment().
 // Vertex data (builders/terrain.gd):
 //   COLOR.rgb   mean ground tone, sRGB (the mean of the scenery's two grass tones, the outskirts -> centre blend of
 //               the City Limits; the water colour on a bridge)          COLOR.a   nature: 1 vegetation … 0 paved
@@ -29,7 +34,7 @@
 //   CUSTOM0     rgb = accent colour of the patches, a = share of the patches (0..1); a = -1 marks water
 // Load only after ModernMaterials.ensure_globals() – never with preload().
 shader_type spatial;
-render_mode cull_back, depth_draw_opaque;
+render_mode cull_back, depth_draw_opaque, ambient_light_disabled;
 
 #include "res://assets/shaders/modern/inc/pools.gdshaderinc"
 #include "res://assets/shaders/modern/inc/headlight.gdshaderinc"
@@ -42,6 +47,8 @@ uniform float band_contrast = 1.0;            // strength of Arcade's two grass 
 
 global uniform float ce_snow;
 global uniform float ce_wet;
+global uniform vec4 ce_fog_color;
+global uniform vec2 ce_fog_range;
 
 varying vec3 v_world;                         // origin-relative world position
 varying vec4 v_style;
@@ -110,8 +117,14 @@ void fragment() {
 	SPECULAR = mix(0.2, 0.3, water);
 	METALLIC = 0.0;
 	NORMAL = normalize(mix(NORMAL, (VIEW_MATRIX * vec4(0.0, 1.0, 0.0, 0.0)).xyz, fade_far * 0.85));
-	// light pools and the low beam on top of the other light (Arcade adds them in display values)
+	// the base pass of the ground law, the light pools and the low beam on top (Arcade adds them in display values)
 	float reflect = mix(mix(0.8, 0.45, nature) + 0.15 * gravel, 0.45, water);
 	vec3 extra = ce_pools(v_world) * reflect + ce_headlight_light(v_world, reflect);
-	EMISSION = ce_pools_encode(ce_pools_to_lin(ALBEDO) * extra);
+	EMISSION = ce_pools_encode(ce_ground_base_lin(ALBEDO) + ce_pools_to_lin(ALBEDO) * extra);
+	// fog (RINT-B, lead decision): Arcade's law for what lies beside the road at the end of the sight, as on the far
+	// ground – towards the brightened fog colour by 0.7 × the fog amount of the distance (RoadRenderer._modulate), never
+	// more fog than Arcade (F4). The engine's depth fog turned valley ground beyond the sight into pure fog colour – a
+	// pale band that read as a lake (T4). FOG replaces the engine fog for this material and is mixed in linear light.
+	float fog_t = clamp((dist - ce_fog_range.x) / max(ce_fog_range.y - ce_fog_range.x, 1.0), 0.0, 1.0);
+	FOG = vec4(ce_ground_unshow(min(ALBEDO * ce_fog_color.rgb * 1.25, vec3(1.0))), 0.7 * fog_t);
 }

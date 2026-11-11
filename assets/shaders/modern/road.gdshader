@@ -24,17 +24,20 @@
 // in the lane centre, sealed joints, repair patches, tyre marks, worn paint, dirt at the edges, paving slabs –
 // each faded out before it gets smaller than a pixel. All of it is a function of road coordinates (no TIME, no
 // world position: the picture of a place never changes, Rule 10).
-// Light: the engine's own (ambient + the one shadowed sun), the analytical pools of lamps and traffic
-// (inc/pools.gdshaderinc) and the player's low beam (inc/headlight.gdshaderinc) – paint and the checker throw
-// more of it back than asphalt (retro-reflection), grass less. The mesh is on render layer 2: the real spot and
-// omni lights leave it out.
+// Light: the one shadowed sun of the engine, the ground law for the rest (inc/ground_law.gdshaderinc, RINT-B: the
+// engine's ambient pass is off, the base pass is written as EMISSION so that level road in the light shows Arcade's
+// colour – albedo × palette ambient – at every hour; at night the road had been up to 59 % brighter than Arcade), the
+// analytical pools of lamps and traffic (inc/pools.gdshaderinc) and the player's low beam (inc/headlight.gdshaderinc)
+// – paint and the checker throw more of it back than asphalt (retro-reflection), grass less. The mesh is on render
+// layer 2: the real spot and omni lights leave it out.
 // Colour space: ALBEDO and EMISSION are sRGB-encoded here; the engine linearises them (docs/modelle.md §4).
 // Load only through ModernMaterials.shader("road") – never with preload().
 shader_type spatial;
-render_mode cull_back;
+render_mode cull_back, ambient_light_disabled;
 
 #include "res://assets/shaders/modern/inc/pools.gdshaderinc"
 #include "res://assets/shaders/modern/inc/headlight.gdshaderinc"
+#include "res://assets/shaders/modern/inc/ground_law.gdshaderinc"
 
 // display colours (Palette), set by the builder
 uniform vec3 col_road_a = vec3(0.337, 0.345, 0.369);
@@ -363,5 +366,5 @@ void fragment() {
 	SPECULAR = spec;
 	METALLIC = 0.0;
 	vec3 extra = ce_pools(v_world) * reflect + ce_headlight_light(v_world, reflect);
-	EMISSION = ce_pools_encode(ce_pools_to_lin(base) * extra);
+	EMISSION = ce_pools_encode(ce_ground_base_lin(base) + ce_pools_to_lin(base) * extra);
 }

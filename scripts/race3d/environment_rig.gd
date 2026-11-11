@@ -23,8 +23,11 @@ extends Node3D
 ##    the sun are brighter than level ground. The sun is warm, so the ambient part comes out cooler: blue shadows.
 ##  - The GL Compatibility renderer turns the ambient pass and the pass of the one shadow-casting light into
 ##    display values separately and adds them, and the pinned post path runs the sum through both of its
-##    approximations once more (docs/modelle.md §4). The split is therefore made in display values BEFORE the post
-##    path (post_inverse) and turned into linear light with the renderer's own curves for the reference albedo.
+##    approximations once more (docs/modelle.md §4) – that second pass crushed every dark value of the 3D picture
+##    and of the backdrop canvas (10 -> 4, 16 -> 11, 22 -> 18 of 255, below 7 black; measured, RINT-B). The
+##    Environment therefore carries a colour-correction LUT (post_lut()) that undoes it: with it the post path is
+##    exact from 8/255 up (measured) and the split is made in plain display values (post_out / post_in are the
+##    identity while POST_EXACT is on; post_shown / post_inverse stay the model of the raw engine path).
 ##  - Night floor (A-4): those curves crush dark values (a surface of albedo 0.2 would show a tenth of Arcade's
 ##    night value). Towards the night the reference albedo goes down from REF_DAY to REF_NIGHT, which lifts the
 ##    night ambient; the moon is added on top of most of it (MOON_TAKE) instead of being taken out of it.
@@ -75,6 +78,8 @@ const GLOW_INTENSITY := 0.55
 const GLOW_THRESHOLD := 1.0
 const SSAO_RADIUS := 1.2
 const SSAO_INTENSITY := 1.4
+const POST_EXACT := true           ## the post path carries post_lut(): it shows what the passes wrote (RINT-B)
+const POST_LUT_SIZE := 256         ## texels of the 1D LUT (half floats; texel j belongs to the input (j + 0.5) / size)
 
 var environment: Environment
 var sun: DirectionalLight3D
@@ -109,6 +114,8 @@ func _init() -> void:
 	environment.ambient_light_color = Color.WHITE
 	environment.tonemap_mode = Environment.TONE_MAPPER_LINEAR
 	environment.adjustment_enabled = true          # the post path is pinned on in every preset (D6)
+	if POST_EXACT:
+		environment.adjustment_color_correction = post_lut()
 	environment.fog_enabled = true
 	environment.fog_mode = Environment.FOG_MODE_DEPTH
 	environment.fog_density = 1.0
@@ -272,6 +279,7 @@ func update(view: Dictionary, _dt: float) -> void:
 	_send("ce_sun_dir", to_sun)
 	_send("ce_sun_color", st["sun"])
 	_send("ce_ambient", st["ambient"])
+	_send("ce_ambient_display", st["display"])
 	_send("ce_tunnel", tunnel01)
 
 
@@ -413,7 +421,7 @@ static func light_state(pal: Dictionary, tunnel01: float, road_heading: float, b
 	var amb_d := Color.BLACK
 	var level := Color.BLACK
 	for ch in 3:
-		var d := post_inverse(ref * p[ch])                    # what the two passes have to add up to
+		var d := post_in(ref * p[ch])                         # what the two passes have to add up to
 		var facing := engine_unshow(d * share * tint[ch])    # linear value of the sun pass on a face towards the sun …
 		var ground_d := engine_show(facing * on_ground)       # … and its display value on level ground
 		var rest_d := maxf(d - take * ground_d, 0.0)
@@ -421,7 +429,7 @@ static func light_state(pal: Dictionary, tunnel01: float, road_heading: float, b
 		amb_lin[ch] = engine_unshow(rest_d) / a_ref
 		sun_d[ch] = ground_d
 		amb_d[ch] = rest_d
-		level[ch] = post_shown(rest_d + ground_d)
+		level[ch] = post_out(rest_d + ground_d)
 	return {"to_sun": to_sun, "sun": sun_lin, "ambient": amb_lin, "share": share, "moon": moon, "ref": ref, "display": Color(p.r, p.g, p.b),
 		"sun_display": sun_d, "ambient_display": amb_d, "level": level, "azimuth": azimuth, "elevation": elev,
 		"sun_pos": Vector2(azimuth / AZIMUTH_GAIN, height)}
@@ -442,8 +450,32 @@ static func shown_level(albedo: float, st: Dictionary) -> Color:
 	var ndl := maxf((st["to_sun"] as Vector3).y, 0.0)
 	var out := Color.BLACK
 	for ch in 3:
-		out[ch] = post_shown(engine_show(a * amb[ch]) + engine_show(a * s[ch] * ndl))
+		out[ch] = post_out(engine_show(a * amb[ch]) + engine_show(a * s[ch] * ndl))
 	return out
+
+
+## What the post path of the race makes of the display value d of the 3D picture: d itself while the Environment
+## carries post_lut() (POST_EXACT), else the raw engine path (post_shown).
+static func post_out(d: float) -> float:
+	return d if POST_EXACT else post_shown(d)
+
+
+## The display value the passes have to write so that the post path of the race shows `shown`.
+static func post_in(shown: float) -> float:
+	return shown if POST_EXACT else post_inverse(shown)
+
+
+## The colour-correction LUT of the race's Environment (RINT-B): 1D, POST_LUT_SIZE texels of half floats, texel j
+## holds post_inverse() of the input at its centre, (j + 0.5) / size, and texel 0 holds 0 (black stays black). The
+## post path runs the 3D picture through the engine's two approximations (post_shown) and then through this LUT:
+## measured on llvmpipe, every value from 8/255 up comes out as it went in (before: 10 -> 4, 16 -> 11, 22 -> 18);
+## what the approximations crushed to 0 (below about 7/255) stays black. A 3D LUT does not work (measured).
+static func post_lut() -> Texture2D:
+	var img := Image.create(POST_LUT_SIZE, 1, false, Image.FORMAT_RGBH)
+	for j in POST_LUT_SIZE:
+		var v := 0.0 if j == 0 else minf(post_inverse((float(j) + 0.5) / float(POST_LUT_SIZE)), 1.0)
+		img.set_pixel(j, 0, Color(v, v, v))
+	return ImageTexture.create_from_image(img)
 
 
 ## [light colour (as a light node takes it: sRGB), energy] for a linear light value – the inverse of

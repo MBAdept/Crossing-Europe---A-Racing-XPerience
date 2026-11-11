@@ -10,20 +10,23 @@ extends SceneTree
 ##              the semitrailer is drawn in two units at lod0
 ##   leistung   23 cars in sight (traffic of every kind incl. trucks and stand-ins, indicators and brakes): GDScript
 ##              time of the vehicle layer per car and frame <= 40 µs (median over the frames, after the nodes of
-##              all cars exist); no node is created while the same cars drive on
+##              all cars exist) at the VM's normal speed – scaled by a reference workload timed next to every sample
+##              (fixtures/perf_clock.gd, RINT-B); no node is created while the same cars drive on
 ##   schilder   the signs of the stage are drawn from the atlas made in prepare(): no SubViewport and no texture
 ##              is created while driving (SignAtlas counters), every sign the chunks hold has an atlas cell
 ##   lampen_fest  renderer.add_lamps(parent, lamps) (A-7) reaches the flare layer: static lamps glow at night (not
 ##              by day), follow their parent when it moves, are stronger far away (far-field glow) and are forgotten
 ##              when the parent leaves the tree
 ##   schatten   every preset (deck, low, medium, high – one stage each, the renderer takes its quality once): a
-##              contact shadow lies under every car in sight (models, stand-ins, the player), the model's shadow hull
-##              or the stand-in itself casts exactly when the quality levels have vehicle casters
+##              contact shadow lies under every car in sight (models, box stand-ins, the player), the model's shadow
+##              hull or the box stand-in itself casts exactly when the quality levels have vehicle casters; a sprite
+##              stand-in (Arcade's picture with its shadow baked in) has neither (RINT-B, lead decision)
 ## Prints "CHECK <name> OK|FEHLER …"; exit code 0 when all pass. (Autoloads are reached untyped: -s scripts compile
 ## before the autoloads exist.)
 
 const RACE := "res://scenes/race/race.tscn"
 const PROBE := "res://tests/race3d/fixtures/vehicle_probe_renderer.gd"
+const PERF_CLOCK := preload("res://tests/race3d/fixtures/perf_clock.gd")
 const CHECKS := ["lampen", "kasten", "leistung", "schilder", "lampen_fest", "schatten"]
 const PLAYER_ID := -999999
 
@@ -226,25 +229,29 @@ func _check_leistung() -> void:
 	await _frames(30)
 	var vl: Node = r.layer("vehicles")
 	var before: Dictionary = vl.call("perf")
-	var samples: Array[float] = []
+	# RINT-B: measured against a reference workload of this process, timed next to every sample (PerfClock): the
+	# budget means "µs per car on this VM at its normal speed", whatever else the shared machine does
+	var clock: RefCounted = PERF_CLOCK.new()
 	var drawn := 0
 	for f in 120:
+		clock.call("sample_reference")
 		var t0 := Time.get_ticks_usec()
 		vl.call("update", r.view, 1.0 / 60.0)
 		var us := float(Time.get_ticks_usec() - t0)
 		drawn = int((vl.call("perf") as Dictionary)["vehicles"])
-		samples.append(us / maxf(1.0, float(drawn)))
+		clock.call("add", us / maxf(1.0, float(drawn)))
 		await process_frame
-	samples.sort()
-	var median := samples[samples.size() / 2]
+	var median: float = clock.call("normal_median")
+	var raw: float = PERF_CLOCK.median(clock.get("samples"))
 	var after: Dictionary = vl.call("perf")
 	_need(p, drawn >= 23, "23 Autos gezeichnet (%d)" % drawn)
-	_need(p, median <= 40.0, "≤ 40 µs je Auto und Bild (Median %.1f µs)" % median)
+	_need(p, median <= 40.0, "≤ 40 µs je Auto und Bild bei normalem Tempo der Maschine (Median %.1f µs; gemessen %.1f µs, Tempo × %.2f)" % [
+		median, raw, float(clock.call("factor"))])
 	_need(p, int(after["vehicle_builds"]) == int(before["vehicle_builds"]), "keine Knoten gebaut, solange dieselben Autos fahren (%d → %d)" % [int(before["vehicle_builds"]), int(after["vehicle_builds"])])
 	_probe.call("reset")
 	await _free(sc)
-	_report("leistung", p, "%d Autos (Pkw, Lkw, Kästen, Polizei): Fahrzeug-Ebene im Median %.1f µs je Auto und Bild (p90 %.1f µs), %d Knotenbauten beim Erscheinen" % [
-		drawn, median, samples[int(samples.size() * 0.9)], int(after["vehicle_builds"])])
+	_report("leistung", p, "%d Autos (Pkw, Lkw, Kästen, Polizei): Fahrzeug-Ebene im Median %.1f µs je Auto und Bild bei normalem Tempo (p90 %.1f µs; Wanduhr %.1f µs, Referenz × %.2f), %d Knotenbauten beim Erscheinen" % [
+		drawn, median, float(clock.call("normal_quantile", 0.9)), raw, float(clock.call("factor")), int(after["vehicle_builds"])])
 
 
 # --- schatten --------------------------------------------------------------------------------------------------------
@@ -283,6 +290,7 @@ func _check_schatten() -> void:
 		var under := 0
 		var placed := 0
 		var hulls := 0
+		var sprites := 0
 		for v: Dictionary in (vl.call("snapshot") as Dictionary)["vehicles"]:
 			if not bool(v["shown"]) or float(v["fade"]) < 0.05:
 				continue
@@ -298,6 +306,14 @@ func _check_schatten() -> void:
 				if Vector3(buf[o + 3], buf[o + 7], buf[o + 11]).distance_to(pos) < 0.1:
 					found = true
 					break
+			if str(v.get("standin", "")) == "sprite":
+				# RINT-B (lead decision): Arcade's picture carries its shadow – no contact shadow, no sun shadow
+				sprites += 1
+				if found:
+					p.append("%s: Ersatzbild %s mit Kontaktschatten (sein Bild trägt den Schatten)" % [preset, str(v["set"])])
+				if bool(v["cast"]):
+					p.append("%s: Ersatzbild %s wirft einen Sonnenschatten" % [preset, str(v["set"])])
+				continue
 			if found:
 				under += 1
 			else:
@@ -310,7 +326,8 @@ func _check_schatten() -> void:
 					p.append("%s: Schattenhülle von %s %s" % [preset, str(v["set"]), "verborgen" if want else "sichtbar"])
 		_need(p, placed == sets.size() + 1, "%s: die 4 gestellten Autos und das Spielerauto in Sicht (%d)" % [preset, placed])
 		_need(p, hulls >= 1, "%s: mindestens ein Modell mit Schattenhülle (%d)" % [preset, hulls])
-		msgs.append("%s: Werfer %s, Kontaktschatten unter %d von %d Autos" % [preset, "an" if want else "aus", under, near])
+		msgs.append("%s: Werfer %s, Kontaktschatten unter %d von %d Autos (%d Ersatzbilder ohne)" % [preset, "an" if want else "aus", under,
+			near - sprites, sprites])
 		_probe.call("reset")
 		await _free(sc)
 	settings.set("gfx_preset", saved_preset)
@@ -367,11 +384,15 @@ func _check_lampen_fest() -> void:
 		r.add_lamps(near, [lamp])
 		r.add_lamps(far, [lamp])
 		await _frames(3)
-		var st := _own(_statics(fl), [near, far])
+		var own := _own(_statics(fl), [near, far])
+		# RINT-B: a lamp that looks down onto a light pool gets Arcade's warm glow (radius factor 2.4 m) next to its core
+		var st: Array = own.filter(func(f: Dictionary) -> bool: return float(f["k"]) < 2.0)
+		var glows: Array = own.filter(func(f: Dictionary) -> bool: return float(f["k"]) >= 2.0)
 		if hour < 18.0:
-			_need(p, st.is_empty() and _statics(fl).size() == base_flares, "bei Tag leuchten die Lampen nicht (%d Lichtpunkte)" % st.size())
+			_need(p, own.is_empty() and _statics(fl).size() == base_flares, "bei Tag leuchten die Lampen nicht (%d Lichtpunkte)" % own.size())
 		else:
 			_need(p, st.size() == 2, "nachts beide Lampen als Lichtpunkt (%d, dazu %d der Etappe)" % [st.size(), base_flares])
+			_need(p, glows.size() == 2, "nachts um beide Lampenköpfe Arcades Schein (%d)" % glows.size())
 			if st.size() == 2:
 				var a: Dictionary = st[0]
 				var b: Dictionary = st[1]

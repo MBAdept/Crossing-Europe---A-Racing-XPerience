@@ -74,6 +74,8 @@ var _bench_layer: CanvasLayer       ## its overlay (BenchOverlay) above the race
 var _sound_pending := false         ## the sound profile changed while a stage ran: applied with the menus / next stage
 var _release_pending := false       ## the mode "Modern" was left while a stage ran: its caches go with the menus
 var _music_context := ""            ## music context set last ("" = none since the last set_music())
+var _quitting := false              ## quit_game() runs: the sound settles, then the tree quits
+const QUIT_SETTLE_S := 0.3          ## time the audio server gets to drop the stopped playbacks before quit()
 
 
 func _ready() -> void:
@@ -370,7 +372,22 @@ func _on_focus_changed(_c: Control) -> void:
 		AudioManager.play("ui_move")
 
 
+## Ends the game: every sound stops first and the audio server gets QUIT_SETTLE_S to drop the stopped playbacks (an
+## immediate quit() left them – streams, the engine's generator – as "ObjectDB instances leaked at exit" with either
+## sound profile, AU-D1; RINT-B). The timer runs while the tree is paused and ignores the time scale.
 func quit_game() -> void:
+	if _quitting:
+		return
+	_quitting = true
+	var am := get_node_or_null(^"/root/AudioManager")
+	if am != null:
+		if am.has_method(&"set_music_context"):
+			am.call(&"set_music_context", "off")
+		if am.has_method(&"set_music"):
+			am.call(&"set_music", false)
+		if am.has_method(&"stop_all"):
+			am.call(&"stop_all")
+	await get_tree().create_timer(QUIT_SETTLE_S, true, false, true).timeout
 	get_tree().quit()
 
 

@@ -8,6 +8,9 @@
 //   UV2        (lamp channel + 0.5, weight 0..1) or (-1, 0) for "no lamp"
 // Lamp channels: 0 tail, 1 brake, 2 tail + brake, 3 indicator left, 4 indicator right, 5 head, 6 daytime
 // running, 7 reverse, 9 marker, 10 beacon A, 11 beacon B, 12 lights of props (ce_night), 13 always on.
+// Unlit lamps: vehicle channels 0–11 at lamp_off, props at lamp_off_props (RINT-B: the race sets 0.28 for vehicles –
+// at 0.5 an unlit tail lamp read as switched on by day, art review B1); channel 2 shows the tail at tail_level of the
+// lamp (race 0.5, brake stays ≥ 2× tail).
 // Lit surfaces - they keep their albedo and roughness and get light added: 8 number plate (albedo * weight *
 // tail level * plate_energy; drawn as an unlit lamp it was grey by day), 14 flood-lit surface (albedo * weight *
 // ce_night * flood_energy).
@@ -58,7 +61,9 @@ uniform float lamp_whiten = 0.04;             // wash of an over-driven lamp tow
 uniform float lights_energy = 4.0;            // lamps of props at night (channel 12)
 uniform float flood_energy = 1.0;             // flood-lit surfaces (channel 14)
 uniform float plate_energy = 0.45;            // number plate under its lamp (channel 8)
-uniform float lamp_off = 0.5;                 // unlit lamp: sRGB factor on its lit colour (0.5 = 22 % linear)
+uniform float lamp_off = 0.5;                 // unlit VEHICLE lamp (channels 0–11): sRGB factor on its lit colour (0.5 = 22 % linear)
+uniform float lamp_off_props = 0.5;           // unlit lamp of a prop (channels 12, 13: lanterns, windows by day)
+uniform float tail_level = 0.35;              // channel 2 (one lamp for tail and brake): the tail light's share of the brake
 uniform float coat_roughness = 0.06;
 // environment mirrored by the clear coat, metals and glossy parts (sRGB colours, set by the vehicle layer)
 uniform vec4 env_zenith = vec4(0.11, 0.36, 0.79, 1.0);
@@ -74,6 +79,14 @@ uniform float env_energy = 0.0;
 uniform float coat_fresnel_max = 0.25;        // the coat's Fresnel term is capped here (grazing angles)
 uniform float coat_strength = 1.0;            // clear coat on paint (environment and sun lobe)
 uniform float paint_base = 1.0;               // sRGB factor of the base coat under the clear coat
+// RINT-B: exposure of paint (art review A1/B8/C2). The ambient and the sun pass are shown separately and added, so a
+// bright paint ran past 1.0 – 62 % of the yellow kompakt's paint pixels at 255, lemon instead of amber, white trucks
+// without form. A soft knee on the brightest channel of a paint colour (hue-preserving: the colour is scaled) and a
+// little desaturation bring hue and value within 10 % of the Cycles sprites (measured in the game camera, noon, dusk,
+// night). Neutral by default (knee 1.0, slope 1.0, desaturation 0); the vehicle layer sets the race look.
+uniform float paint_knee = 1.0;               // brightest channel of a paint colour above which it is compressed …
+uniform float paint_knee_slope = 1.0;         // … with this slope (1 = no compression)
+uniform float paint_desat = 0.0;              // share of the paint colour taken towards its luminance
 uniform float flake_strength = 0.0;           // sparkle of metallic paint (0 = off)
 uniform float flake_scale = 260.0;            // flake cells per metre
 uniform float flake_near_m = 14.0;            // flakes fade out towards this distance (they would only shimmer)
@@ -122,7 +135,7 @@ float lamp_factor(float ch) {
 	vec4 b = clamp(lamp_b, 0.0, 1.0);
 	if (ch < 0.5) { return a.x * lamp_energy; }
 	if (ch < 1.5) { return a.y * lamp_energy * lamp_gain.x; }
-	if (ch < 2.5) { return max(a.x * 0.35, a.y * lamp_gain.x) * lamp_energy; }   // tail at 35 %, brake at full gain
+	if (ch < 2.5) { return max(a.x * tail_level, a.y * lamp_gain.x) * lamp_energy; }   // tail at tail_level, brake at full gain
 	if (ch < 3.5) { return a.z * lamp_energy * lamp_gain.y; }
 	if (ch < 4.5) { return a.w * lamp_energy * lamp_gain.y; }
 	if (ch < 5.5) { return b.x * lamp_energy * lamp_gain.z; }
@@ -225,7 +238,7 @@ void fragment() {
 			emit = alb * enc(v_lamp.y * clamp(lamp_a.x, 0.0, 1.0) * plate_energy);
 		} else {
 			emit = lamp_light(alb, lamp_factor(ch) * v_lamp.y);
-			alb *= lamp_off;        // unlit: dark lamp behind a glossy lens
+			alb *= ch < 11.5 ? lamp_off : lamp_off_props;   // unlit: dark lamp behind a glossy lens
 			rough = 0.12;
 			metal = 0.0;
 			lamp = true;
@@ -233,6 +246,12 @@ void fragment() {
 	}
 	coat *= coat_strength * gloss;
 	if (coat > 0.0) {
+		// exposure of the paint: soft knee on its brightest channel, a little desaturation, the base coat factor
+		float pm = max(alb.r, max(alb.g, alb.b));
+		if (pm > paint_knee) {
+			alb *= (paint_knee + (pm - paint_knee) * paint_knee_slope) / pm;
+		}
+		alb = mix(alb, vec3(dot(alb, vec3(0.2126, 0.7152, 0.0722))), paint_desat);
 		alb *= paint_base;          // the base coat under the clear coat
 	}
 	vec3 fill_light = fill > 0.0 ? to_lin(alb) * ce_ambient.rgb * fill : vec3(0.0);

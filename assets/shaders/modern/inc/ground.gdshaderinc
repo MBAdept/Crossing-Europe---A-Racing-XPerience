@@ -19,7 +19,11 @@
 // (shade, colour, direction) turned into stripes. Everything finer than a few pixels fades into its mean by the
 // footprint of the pixel on the ground (fwidth), never by distance alone: the far rows of a slope seen at a grazing
 // angle stay calm.
-// Names: everything declared here starts with ce_ground, ground_, pattern_ or far_.
+// Names: everything declared here starts with ce_ground, ground_, pattern_ or far_. It includes the ground law
+// (inc/ground_law.gdshaderinc, RINT-B) with its three ce_* globals – a shader that includes this file must not
+// declare them again.
+
+#include "res://assets/shaders/modern/inc/ground_law.gdshaderinc"
 
 uniform sampler2D ground_noise : filter_linear_mipmap_anisotropic, repeat_enable;
 uniform vec3 pattern_origin = vec3(0.0);

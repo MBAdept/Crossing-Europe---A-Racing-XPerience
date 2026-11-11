@@ -7,9 +7,12 @@ extends CanvasLayer
 ##    (1280 × 720, 1280 × 800 on a Steam Deck, 1680 × 720 ultrawide – the race uses stretch aspect "expand") plus a
 ##    margin to the left and right; the focal length stays the camera's (711 px), so sky and silhouettes turn
 ##    exactly as far as the 3D world does.
-##  * True horizon row: the silhouettes stand on render.horizon_y_frac of the picture height – the row on which the
-##    pitch-free camera sees infinitely distant ground. Below it the canvas is the fog colour (what remains
-##    visible there is the far end of the world, D16); hills in front are real geometry and cover it.
+##  * Horizon row: the silhouettes stand on render.horizon_y_frac of the picture height – the row on which the
+##    pitch-free camera sees infinitely distant ground – or, where the road ahead rises above that row, on the
+##    highest row the road reaches up to the sight (Arcade's crest rule, at most 120 rows higher: RoadRenderer._draw,
+##    base_y = max(clip, hy - 120)). The lift is lift_rows; the far ground's rim stands up to the same row
+##    (layers/far_ground.gd), so below the silhouettes the picture is land, never the canvas (RINT-B). Below the
+##    base row the canvas is the fog colour, as Arcade fills it.
 ##  * Heading: view.bg_offset is the panorama angle of the ROAD at the car. The camera also looks into the bend
 ##    (ChaseCamera3D) and stands behind the car, so the backdrop is turned by the camera's real yaw against the
 ##    road heading at the car on top of it.
@@ -30,6 +33,8 @@ const MARGIN := 48.0               ## drawn beyond the left and right edge (came
 const REDRAW_ANGLE := 0.00035      ## rad of heading (a quarter of a pixel at 711 px focal length)
 const REDRAW_S_DAY := 0.09         ## seconds of view time between redraws for the cloud drift (0.004 rad/s)
 const REDRAW_S_NIGHT := 0.05       ## … and for the twinkling stars
+const LIFT_MAX := 120.0            ## Arcade's crest rule: the silhouettes rise at most this many rows above the horizon
+const LIFT_STEP := 0.25            ## the canvas is redrawn when the base row moved by this many rows
 
 
 ## The canvas item the backdrop is drawn on.
@@ -45,6 +50,11 @@ var canvas: Canvas
 var backdrop := RaceBackdrop.new()
 var batch := GeoBatch.new()
 var sky_proj := RoadProjection.new()   ## projection of the backdrop: logical picture size + margins, the camera's focal
+var lift_rows := 0.0                   ## rows the silhouettes stand above the horizon row (Arcade's crest rule)
+
+var _h_first := 0                      ## segment index of _h[0]
+var _h := PackedFloat32Array()         ## heights of the segments from _h_first on (Track.get_segment(i).y)
+var _drawn_lift := -1.0
 
 var _renderer: Node
 var _cover := false
@@ -136,9 +146,13 @@ func update(view: Dictionary, _dt: float) -> void:
 	_heading = heading
 	_flat = tunnel01 if (_renderer == null or _renderer.call(&"builder", "tunnel") == null) else 0.0
 	canvas.position = Vector2(-MARGIN, 0.0) + (view.get("shake", Vector2.ZERO) as Vector2)
+	var lift := crest_lift(view)
+	if absf(lift - _drawn_lift) >= LIFT_STEP or (lift == 0.0 and _drawn_lift != 0.0):
+		_drawn_lift = lift
+	lift_rows = maxf(_drawn_lift, 0.0)          # the row the canvas draws on – the far ground's rim takes the same
 	# redraw only when the picture changes
 	var sig := [_size, _cover, _scen_id, _flat, _haze, pal.get("sky_top"), pal.get("sky_bottom"), pal.get("ambient"), fog,
-		pal.get("sun_pos"), pal.get("moon_pos"), pal.get("stars"), backdrop._blend < 1.0]
+		pal.get("sun_pos"), pal.get("moon_pos"), pal.get("stars"), backdrop._blend < 1.0, _drawn_lift]
 	var every := REDRAW_S_NIGHT if float(pal.get("stars", 0.0)) > 0.02 else REDRAW_S_DAY
 	if sig != _drawn_sig or absf(wrapf(_heading - _drawn_heading, -PI, PI)) > REDRAW_ANGLE or absf(_time - _drawn_time) >= every \
 			or backdrop._blend < 1.0:
@@ -159,7 +173,7 @@ func paint(item: CanvasItem) -> void:
 		batch.flush()
 		return
 	if _flat < 0.999:
-		var base_y := sky_proj.horizon_y
+		var base_y := sky_proj.horizon_y - lift_rows
 		backdrop.draw_sky(_pal, _heading, _time)
 		backdrop.draw_background(_pal, _scen_id, _bg, _heading, _time, _haze, base_y)
 		batch.rect(Rect2(0.0, base_y, w, h - base_y + MARGIN), _fog)
@@ -186,7 +200,51 @@ func gradient_at(row: float) -> Color:
 func snapshot() -> Dictionary:
 	return {"backdrop": {"plain": false, "cover": _cover, "flat": _flat >= 0.999, "tunnel": snappedf(_flat, 0.001),
 		"horizon_frac": _horizon_frac, "horizon_row": snappedf(sky_proj.horizon_y, 0.01), "size": [_size.x, _size.y],
-		"heading": snappedf(_heading, 0.00001), "scenery": _scen_id, "redraws": _redraws, "frames": _frames}}
+		"heading": snappedf(_heading, 0.00001), "scenery": _scen_id, "redraws": _redraws, "frames": _frames,
+		"lift_rows": snappedf(lift_rows, 0.01), "base_row": snappedf(sky_proj.horizon_y - lift_rows, 0.01)}}
+
+
+## Arcade's crest rule (RoadRenderer._draw / _project: base_y = max(clip[n], hy - 120) when the clip row of the
+## farthest row lies above the horizon row): how many rows above the horizon row the highest road row up to the
+## sight stands – rows k = 0 … vis / seg_len + 2 from the camera's segment, (y_k - camera_y) * focal / dz_k for every
+## row in front of the near plane – at most LIFT_MAX, 0 when the road ahead stays below the horizon.
+## The heights are cached by segment index (a few new segments per frame).
+func crest_lift(view: Dictionary) -> float:
+	var track: Track = _renderer.get("track") if _renderer != null else null
+	var proj: RoadProjection = _renderer.get("proj") if _renderer != null else null
+	if track == null or proj == null or track.segment_count < 3:
+		return 0.0
+	var seg_len := track.seg_len
+	var cam_z := float(view.get("camera_z", 0.0))
+	var cam_y := float(view.get("camera_y", 0.0))
+	var vis := float(view.get("visibility_m", _draw_distance))
+	var base := mini(int(floor(cam_z / seg_len)), track.segment_count - 2)
+	var count := maxi(1, mini(int(vis / seg_len) + 2, track.segment_count - 1 - base))
+	var first := maxi(base, 0)
+	_cache_heights(track, first, base + count)
+	var best := 0.0
+	var focal := proj.focal
+	var near := proj.near
+	for k in count + 1:
+		var i := base + k
+		var dz := float(i) * seg_len - cam_z
+		if dz <= near:
+			continue
+		var up := (_h[maxi(i, 0) - _h_first] - cam_y) * focal / dz
+		if up > best:
+			best = up
+	return minf(best, LIFT_MAX)
+
+
+func _cache_heights(track: Track, first: int, last: int) -> void:
+	if _h.is_empty() or first < _h_first or first > _h_first + _h.size():
+		_h_first = first
+		_h = PackedFloat32Array()
+	elif first > _h_first:
+		_h = _h.slice(first - _h_first)
+		_h_first = first
+	for i in range(_h_first + _h.size(), last + 1):
+		_h.append(track.get_segment(i).y)
 
 
 ## The backdrop's projection for a picture of `size` logical pixels: wider by the margins, horizon on its fraction.
