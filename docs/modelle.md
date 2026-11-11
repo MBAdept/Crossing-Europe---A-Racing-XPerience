@@ -802,8 +802,10 @@ Requisiten und Wahrzeichen.
   300 cm² sind (`lod0` / `lod1` / `lod2`); kleinere nehmen die Farbe ihres Mittelpunkts (Sägezahn unter einem
   Pixel bei 10 / 40 / 120 m). Streifen unter 10 cm fallen in `lod2` weg.
 - **Karos:** `lod0` überall. `lod1` nur auf den Stoßfängern (Heck und Front – was die Spielkamera sieht), die Flanken
-  in der Mischfarbe (linear gemittelt); die Enden der Karosserie liegen im Band hinter den Stoßfängern und werden
-  nicht geschnitten (sie kosteten 770 Dreiecke). `lod2` überall Mischfarbe.
+  in der Mischfarbe; die Enden der Karosserie liegen im Band hinter den Stoßfängern und werden nicht geschnitten (sie
+  kosteten 770 Dreiecke). `lod2` überall Mischfarbe. Die Mischfarbe ist die Farbe, die der Renn-Look für die Karos
+  zeigt (Potenzmittel in linearem Licht, Exponent `CHECK_MEAN_EXP` 0,6; AS2R, Abschnitt 16) – das lineare Mittel kam
+  27–33 Stufen heller heraus.
 - **Wörter:** das Landeswort auf beiden Flanken (auf den Türen, zwischen den Achsen) und am Heck, aus den Glyphen der
   Inter-Schrift, die Blender mitbringt (Kurve, fett um 3,5 % der Höhe); Löcher (O, A, P, R …) bestimmt die
   Umlaufrichtung der Randkanten (bei sich überlappenden fetten Glyphen verlor ein Test „liegt in einer anderen

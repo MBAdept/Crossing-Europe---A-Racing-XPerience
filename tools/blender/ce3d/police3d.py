@@ -53,6 +53,12 @@ SPLIT_MIN_M = (0.01, 0.04, 0.15)
 # at 170 m - the long thin fan triangles of the wheel arches are not cut
 SPLIT_MIN_M2 = (2.0e-4, 4.0e-3, 3.0e-2)
 THIN_FAR_M = 0.10            # stripes thinner than this (m) are left out at the far level (Police.bands_at)
+# The mean of a check band (_hex_mix) is the colour the race look shows for the cells, not the mean of their albedos:
+# the bright cell (yellow) lies in the shoulder of the tone curve, so the plain linear mean came out 27 - 33 levels
+# brighter than the cells around it (Belgium, game camera 120 m: band (201, 201, 136) at lod2 against (174, 178, 125)
+# at lod1, measured AS2R). A power mean in linear light with this exponent matches the measured response within a few
+# levels. Tuned to LOOK of layers/vehicles.gd: if the exposure or the tone curve changes, measure again.
+CHECK_MEAN_EXP = 0.6
 
 
 # --- the patched steps of traffic3d ------------------------------------------------------------------------
@@ -272,8 +278,10 @@ def _split_coord(t, k, value, where=None):
 
 
 def _hex_mix(a, b):
-    """Mean of two sRGB colours in linear light, as sRGB hex."""
-    return core.lin_to_hex((core.hex_to_lin(a) + core.hex_to_lin(b)) * 0.5)
+    """Mean of two sRGB colours as the race look shows a check pattern of them: the power mean (CHECK_MEAN_EXP) in
+    linear light, as sRGB hex."""
+    e = CHECK_MEAN_EXP
+    return core.lin_to_hex(((core.hex_to_lin(a) ** e + core.hex_to_lin(b) ** e) * 0.5) ** (1.0 / e))
 
 
 class _Police:
@@ -743,7 +751,8 @@ def build_police(model_id, spec3d):
     t0 = time.time()
     cc = spec3d["cc"]
     # (AS2R) near-white livery colours are brought down as those of the trucks and the traffic cars (truck3d._tone):
-    # fifteen of the eighteen police cars are white (#f2f2ef), which came out as pure white without any form
+    # sixteen of the eighteen police cars are white or nearly white (#f2f2ef ... #e9ecef), which came out as pure white
+    # without any form
     # (art review KRITIK-2, B1 - the same for the police)
     p = dict(catalog.POLICE[cc])
     for k in ("body", "c1", "c2"):
