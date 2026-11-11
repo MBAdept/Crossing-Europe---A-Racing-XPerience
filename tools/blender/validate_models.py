@@ -27,7 +27,8 @@ Checks assets/models/ against the rules of the model pipeline and fails (exit 1)
              a light anchor more than ANCHOR_BELOW_MM under the lamp it belongs to, or with a "dir" that is
              no unit vector or looks into the lamp
   sizes      "object" / "extent_m" more than 2 % (at least half a sprite pixel) off the sprite manifest;
-             a wheel that does not touch the ground (+-1 cm); a merged far level that floats or sinks
+             a wheel that does not touch the ground (+-1 cm); a merged far level that floats or sinks;
+             vehicles: a level whose bounding box differs from that of lod0 (BOUNDS_TOL_M per side)
 --report     one line per model: triangles, draw calls, bytes; export and bake times from the local cache
 --no-godot   skip everything that needs the decoded files (the result then says so and is not "OK")
 --inspect    use an existing report of inspect_models.gd instead of running Godot
@@ -89,6 +90,9 @@ LAMP_GROW_SLACK_CM2 = 5.0       # ... plus this
 LAMP_KEEP = 0.8                 # an automatic (decimated) level keeps at least this share of every lamp's area
 ANCHOR_BELOW_MM = 3.0           # a light anchor lies at most this far under its lamp
 WINDING_MAX = 8                 # triangles of a surface that may be wound against their normals ("a handful")
+# every level of a vehicle fills the bounding box of lod0 (m per side of the box): a coarser level simplifies,
+# it does not shrink or lose what sticks out (mirrors, roof rails)
+BOUNDS_TOL_M = {"car": 0.03, "police": 0.03, "player": 0.02, "heavy": 0.05}
 WINDING_CLASSES = ("vpbr", "baked", "baked_cutout")
 
 
@@ -430,9 +434,47 @@ def check_decoded(res, man, report):
                         res.err(mid, "Schattenwerfer: %d von %d Dreiecken zeigen gegen ihre Normalen (sie werfen "
                                      "keinen Schatten)" % (w["against"], w.get("total", 0)))
         check_textures(res, mid, model, cat, textures, st)
+        check_bounds(res, mid, model, cat, meshes)
         check_lamps(res, mid, model, cat, meshes)
         check_anchors(res, mid, model, report.get("anchors", {}).get(mid, []))
     return stats, mesh_total, vram, src
+
+
+def level_aabb(meshes, lod):
+    """[min x, min y, min z, max x, max y, max z] of a level in model space (parts posed), or None."""
+    lo, hi = [1e30] * 3, [-1e30] * 3
+    for part in lod.get("parts", []):
+        m = meshes.get(part.get("mesh", ""))
+        if m is None or m.get("missing"):
+            return None
+        a = m["aabb"]
+        x0, x1, z0, z1 = a[0], a[3], a[2], a[5]
+        if abs(part.get("yaw_deg", 0)) == 180:
+            x0, x1, z0, z1 = -x1, -x0, -z1, -z0
+        pos = part.get("pos", [0.0, 0.0, 0.0])
+        for i, (v0, v1) in enumerate(((x0, x1), (a[1], a[4]), (z0, z1))):
+            lo[i] = min(lo[i], v0 + pos[i])
+            hi[i] = max(hi[i], v1 + pos[i])
+    return lo + hi
+
+
+def check_bounds(res, mid, model, cat, meshes):
+    """Vehicles: every level fills the bounding box of lod0."""
+    tol = BOUNDS_TOL_M.get(cat)
+    if tol is None or model.get("kind") not in ("vehicle", "heavy"):
+        return
+    boxes = {lod.get("name"): level_aabb(meshes, lod) for lod in model.get("lods", [])}
+    base = boxes.get("lod0")
+    if base is None:
+        return
+    names = ("links", "unten", "vorn", "rechts", "oben", "hinten")
+    for ln, box in boxes.items():
+        if ln == "lod0" or box is None:
+            continue
+        off = [(names[i], box[i] - base[i]) for i in range(6) if abs(box[i] - base[i]) > tol]
+        if off:
+            res.err(mid, "%s: Hüllquader weicht von lod0 ab (%s; erlaubt %.0f mm je Seite)"
+                    % (ln, ", ".join("%s %+.0f mm" % (n, d * 1000.0) for n, d in off), tol * 1000.0))
 
 
 def lamp_view(meshes, lod, channels, end, direction):

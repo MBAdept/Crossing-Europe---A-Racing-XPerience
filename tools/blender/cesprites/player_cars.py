@@ -163,7 +163,46 @@ DESIGNS = {"kompakt": KOMPAKT, "kombi": KOMBI, "limousine": LIMOUSINE, "sportwag
 
 def seam(car, pts, proj="side", sym=True, width=0.0045, target="all"):
     m = car.mat("seam", "#070708", rough=0.6, spec=0.2)
-    return car.stripe(pts, width, proj, m, offset=0.0007, res=0.004, sym=sym, name="seam", target=target)
+    # detail "seam" (3D hook): wider gaps for the real-time models, 1.0 for the sprites
+    return car.stripe(pts, width * car.detail.get("seam", 1.0), proj, m, offset=0.0007, res=0.004, sym=sym, name="seam",
+                      target=target)
+
+
+def grille(car, outline, mat, name, target="all", res=0.01, bars=5, bar_color="#2c2e31", depth=0.03):
+    """Grille or air intake: the sprite model is a flat patch with a procedural mesh / slat shader. A 3D build
+    with recessed lamp units (detail "lamp_depth") makes it a recess as well - a dark floor sunk into the body
+    (cut by the exporter, car.lamp_pockets) with horizontal bars standing in it."""
+    k = float(car.detail.get("lamp_depth", 0.0))
+    if k <= 0.0:
+        return car.patch(outline, "front", mat, offset=0.0015, res=res, sym=False, name=name, target=target)
+    sink = depth * k
+    floor = car.mat("grille_floor", "#060607", rough=0.6)
+    car.lamp_pockets.append(dict(tag=name, proj="front", sym=False, outline=list(outline), target=target, depth=sink,
+                                 housing=floor, wall=floor))
+    zs = [p[1] for p in outline]
+    z0, z1 = min(zs), max(zs)
+    bm_ = car.mat("grille_bar_" + bar_color.lstrip("#"), bar_color, rough=0.35, metal=0.5)
+
+    def half_width(z):
+        """Half width of the outline at height z (the outlines are symmetric trapezoids / hexagons)."""
+        best = 0.0
+        n = len(outline)
+        for i in range(n):
+            a, b = outline[i], outline[(i + 1) % n]
+            if (a[1] - z) * (b[1] - z) <= 0.0 and a[1] != b[1]:
+                t = (z - a[1]) / (b[1] - a[1])
+                best = max(best, abs(a[0] + (b[0] - a[0]) * t))
+        return best
+    out = []
+    for i in range(bars):
+        z = z0 + (z1 - z0) * (i + 0.5) / bars
+        hw = half_width(z) - 0.012
+        if hw <= 0.03:
+            continue
+        out.append(car.stripe([(-hw, z), (hw, z)], min(0.022, 0.42 * (z1 - z0) / bars), "front", bm_, offset=0.002,
+                              res=0.01, sym=False, name=name + "_bar", target=target, sink=sink - 0.012, walls=0.012,
+                              wall_mat=bm_))
+    return out
 
 
 def ring(car, outline, width, proj, mat, offset, sym=True, target="all", name="ring"):
@@ -291,7 +330,12 @@ def features_kompakt(car, d, mats):
             dict(kind="guide", path=[(0.44, 0.902), (0.62, 0.908), (0.80, 0.914), (0.85, 0.905), (0.855, 0.83)],
                  width=0.012),
             dict(kind="guide", path=[(0.47, 0.862), (0.53, 0.858)], width=0.01, smooth=False),
-        ]), tag="tail")
+        ] + ([
+            # real-time model only: indicator bars between the brake segment and the light guide and in the outer
+            # lower corner (together about 90 cm2 seen from straight behind)
+            dict(kind="indicator", path=[(0.45, 0.886), (0.842, 0.886)], width=0.018, smooth=False, offset=0.0058),
+            dict(kind="indicator", path=[(0.70, 0.827), (0.852, 0.823)], width=0.018, smooth=False, offset=0.0058),
+        ] if car.detail["extras"] else [])), tag="tail")
     car.patch([(-0.405, 0.848), (0.405, 0.848), (0.405, 0.905), (-0.405, 0.905)], "rear", black, offset=0.0012,
               res=0.01, sym=False, name="tailband")
     emblem(car, (0.0, 0.877), "rear", chrome)
@@ -310,7 +354,8 @@ def features_kompakt(car, d, mats):
                       parts=[dict(kind="dark", outline=C.rounded_rect(-0.47, 0.335, 0.08, 0.022, 0.008, 3))],
                       target="bumper_rear"), tag="fog")
     CD.lamp(car, dict(outline=C.rounded_rect(0.47, 0.335, 0.09, 0.03, 0.01, 3), depth=0.006, tint="#e8eaee", sym=False,
-                      parts=[dict(kind="white", outline=C.rounded_rect(0.47, 0.335, 0.08, 0.022, 0.008, 3))],
+                      parts=[dict(kind="white", outline=C.rounded_rect(0.47, 0.335, 0.08, 0.022, 0.008, 3),
+                                  lamp="reverse")],
                       target="bumper_rear"), tag="reverse")
     standard_side(car, d, mats,
                   seams=[[(2.875, 0.975), (2.875, 0.27)], [(1.99, 0.975), (1.99, 0.27)],
@@ -326,13 +371,16 @@ def features_kompakt(car, d, mats):
         dict(kind="dark", outline=C.ellipse(0.55, 0.678, 0.034, 0.024, 24)),
         dict(kind="dark", outline=C.ellipse(0.66, 0.672, 0.034, 0.024, 24)),
         dict(kind="white", path=[(0.43, 0.664), (0.72, 0.645), (0.82, 0.66), (0.835, 0.69)], width=0.011),
-    ])
-    car.patch([(-0.40, 0.615), (0.40, 0.615), (0.415, 0.668), (-0.415, 0.668)], "front", grille_mat(car), offset=0.0015,
-              res=0.01, sym=False, name="grille")
+    ] + ([
+        # real-time model only: indicator at the outer end of the headlight
+        dict(kind="indicator", path=[(0.752, 0.682), (0.822, 0.686)], width=0.018, smooth=False, offset=0.0052),
+    ] if car.detail["extras"] else []))
+    grille(car, [(-0.40, 0.615), (0.40, 0.615), (0.415, 0.668), (-0.415, 0.668)], grille_mat(car), "grille", bars=2,
+           bar_color="#1a1b1d", depth=0.022)
     car.stripe([(-0.41, 0.652), (0.41, 0.652)], 0.007, "front", car.mat("red_pin", "#d01418", rough=0.3, coat=0.6),
                offset=0.003, res=0.004, sym=False, name="pinstripe")
-    car.patch([(-0.60, 0.275), (0.60, 0.275), (0.67, 0.468), (-0.67, 0.468)], "front", grille_mat(car), offset=0.0015,
-              res=0.012, sym=False, name="intake", target="bumper_front")
+    grille(car, [(-0.60, 0.275), (0.60, 0.275), (0.67, 0.468), (-0.67, 0.468)], grille_mat(car), "intake",
+           target="bumper_front", res=0.012, bars=4, bar_color="#1a1b1d")
     ring(car, [(-0.60, 0.275), (0.60, 0.275), (0.67, 0.468), (-0.67, 0.468)], 0.012, "front", black, 0.003, sym=False,
          name="intake_frame", target="bumper_front")
     for x in (0.755, -0.755):
@@ -469,12 +517,12 @@ def features_limousine(car, d, mats):
         # real-time model only: indicator at the outer end of the headlight
         dict(kind="indicator", path=[(0.835, 0.703), (0.878, 0.694)], width=0.013, smooth=False, offset=0.0052),
     ] if car.detail["extras"] else []))
-    car.patch([(-0.38, 0.52), (0.38, 0.52), (0.40, 0.71), (-0.40, 0.71)], "front", grille_mat(car, "slats", "#0a0a0b",
-              "#3a3d41", 40.0), offset=0.0015, res=0.01, sym=False, name="grille")
+    grille(car, [(-0.38, 0.52), (0.38, 0.52), (0.40, 0.71), (-0.40, 0.71)], grille_mat(car, "slats", "#0a0a0b",
+           "#3a3d41", 40.0), "grille", bars=6, bar_color="#4a4d52")
     ring(car, [(-0.38, 0.52), (0.38, 0.52), (0.40, 0.71), (-0.40, 0.71)], 0.014, "front", chrome, 0.003, sym=False,
          name="grille_frame")
-    car.patch([(-0.52, 0.22), (0.52, 0.22), (0.56, 0.34), (-0.56, 0.34)], "front", grille_mat(car), offset=0.0015,
-              res=0.012, sym=False, name="intake", target="bumper_front")
+    grille(car, [(-0.52, 0.22), (0.52, 0.22), (0.56, 0.34), (-0.56, 0.34)], grille_mat(car), "intake",
+           target="bumper_front", res=0.012, bars=3, bar_color="#1a1b1d")
     emblem(car, (0.0, 0.64), "front", chrome, rx=0.05, rz=0.024, th=0.024)
     CD.plate(car, (0.0, 0.42), proj="front", text="L·CE 485", target="bumper_front", recess=0.0)
     for x in (0.74, -0.74):

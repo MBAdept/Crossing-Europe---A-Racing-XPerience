@@ -16,6 +16,17 @@ extends SceneTree
 ##              (for A/B pictures; 768x480 per tile).
 ## --channels:  no model - a strip of 15 panels, one per lamp channel of the vpbr format (0 on the left),
 ##              once per lamp state: shows that every channel answers to its instance uniform or global.
+## --showroom:  ... followed by the Cycles sprite of the same car on the ground colour of the real-time tile
+##              (same camera: the A/B picture that decides the manifest flag `showroom`).
+## --review:    vehicles only - large tiles for judging a model: rear and front three-quarter views, straight
+##              from behind, side, close-ups of the rear end, a wheel and the cabin, the tail and brake lamps at
+##              night, close-ups of a tail lamp and a headlight, from above, straight from ahead. Tile 960x600 unless --tile says otherwise. --views=0,4,7 picks tiles of REVIEW_VIEWS,
+##              --set=<sprite set> the colour set, --lods=lod0,lod1 the levels.
+## --chase=8,30[,..]  vehicles only - the picture of the GAME camera (contract D12: 3.4 m high, no pitch, focal
+##              length 711 px at 720 px, horizon at 45 %) with the vehicle's centre that many metres ahead,
+##              rendered at 1280x720 and cut out around the vehicle with whole-number magnification (what the
+##              player sees, pixel for pixel), by day and with tail / brake lights at night;
+##              --lane=<m> puts the vehicle that far to the side (the next lane: -3.5).
 
 const VEHICLE_KINDS: Array[String] = ["vehicle", "heavy"]
 const LAMP_STATES: Array = [
@@ -61,6 +72,13 @@ var _holder: Node3D
 var _tile := Vector2i(480, 320)
 var _night := false
 var _first := true          ## the sky radiance needs some frames before the first picture
+var _label_sv: SubViewport  ## the caption is drawn in its own viewport and blended onto the tile (chase tiles are cut out)
+var _sky_mat: ProceduralSkyMaterial
+var _rig_night := false
+var _last_image: Image = null
+const GAME_SIZE := Vector2i(1280, 720)
+const GAME_FOCAL_PX := 711.0
+const GAME_CAM_HEIGHT := 3.4
 
 
 func _initialize() -> void:
@@ -85,12 +103,16 @@ func _run() -> void:
 		return
 	_night = _args.has("night") or _args.has("channels")
 	var showroom := _args.has("showroom")
+	var review := _args.has("review")
+	var chase := _args.has("chase")
 	if showroom:
 		_tile = Vector2i(768, 480)
+	elif review or chase:
+		_tile = Vector2i(960, 600)
 	if _args.has("tile"):
 		var p := str(_args["tile"]).split("x")
 		_tile = Vector2i(int(p[0]), int(p[1]))
-	var cols := int(str(_args.get("cols", "4")))
+	var cols := int(str(_args.get("cols", "2" if (showroom or review or chase) else "4")))
 	_mats = ModernMaterials.new()
 	_build_rig()
 	var tiles: Array = []
@@ -101,8 +123,17 @@ func _run() -> void:
 				"aabb": [0.0, 0.0, -0.1, 15.0 * 0.62 - 0.12, 0.95, 0.1], "text": str(st[0])})
 	else:
 		for mid: String in ModelDB.model_ids():
-			if mid.match(only):
-				tiles.append_array(_showroom_tiles(mid) if showroom else _tiles_for(mid))
+			if not mid.match(only):
+				continue
+			if showroom:
+				tiles.append_array(_showroom_tiles(mid))
+			elif review or chase:
+				if review:
+					tiles.append_array(_review_tiles(mid))
+				if chase:
+					tiles.append_array(_chase_tiles(mid))
+			else:
+				tiles.append_array(_tiles_for(mid))
 	if tiles.is_empty():
 		print("contact_sheet: kein Modell passt auf ", only)
 		quit(1)
@@ -114,6 +145,7 @@ func _run() -> void:
 	for i in tiles.size():
 		var img: Image = await _render(tiles[i])
 		img.convert(Image.FORMAT_RGB8)
+		_last_image = img
 		sheet.blit_rect(img, Rect2i(Vector2i.ZERO, _tile), Vector2i((i % cols) * _tile.x, (i / cols) * _tile.y))
 	var err := sheet.save_png(out)
 	print("contact_sheet: %d Kacheln (%d x %d) -> %s%s" % [tiles.size(), sheet.get_width(), sheet.get_height(), out, "" if err == OK else "  FEHLER %d" % err])
@@ -182,8 +214,124 @@ func _showroom_tiles(mid: String) -> Array:
 		return []
 	for sid: String in _sets_of(mid):
 		if str(ModelDB.resolve(sid).get("lod", "")) == "show":
-			return [{"set": sid, "model": mid, "lod": "show", "showroom": true, "text": "%s · show · Echtzeit" % mid}]
+			var out: Array = [{"set": sid, "model": mid, "lod": "show", "showroom": true, "text": "%s · show · Echtzeit" % mid}]
+			var sprite := "res://assets/sprites/" + sid + ".png"
+			if FileAccess.file_exists(sprite):
+				out.append({"sprite": sprite, "model": mid, "text": "%s · Sprite (Cycles), dieselbe Kamera" % sid})
+			return out
 	return []
+
+
+## Large tiles for judging a vehicle (--review): [caption, yaw, elevation, part of the bounding box, night,
+## lamp_a, lamp_b, level]. Parts: "" whole car, "rear" / "front" the last / first 1.3 m, "wheel" the rear
+## right wheel, "cabin" the greenhouse seen from behind and above (what the chase camera looks into).
+const REVIEW_VIEWS: Array = [
+	["Heck schräg", 32.0, 13.0, "", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)],
+	["von hinten", 0.0, 9.0, "", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)],
+	["Seite", 90.0, 4.0, "", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)],
+	["Front schräg", 148.0, 11.0, "", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)],
+	["Heck nah", 18.0, 10.0, "rear", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)],
+	["Front nah", 162.0, 8.0, "front", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)],
+	["Rad", 68.0, 6.0, "wheel", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)],
+	["Innenraum durch das Heckfenster", 10.0, 20.0, "cabin", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)],
+	["Nacht: Rücklicht", 18.0, 10.0, "rear", true, Vector4(1, 0, 0, 0), Vector4(1, 0, 0, 0)],
+	["Nacht: Rück- + Bremslicht", 18.0, 10.0, "rear", true, Vector4(1, 1, 0, 0), Vector4(1, 0, 0, 0)],
+	["Nacht: Blinker links + Rückfahrlicht", 18.0, 10.0, "rear", true, Vector4(1, 0, 1, 0), Vector4(1, 1, 0, 0)],
+	["Nacht: Scheinwerfer + Blinker rechts", 162.0, 8.0, "front", true, Vector4(1, 0, 0, 1), Vector4(1, 0, 0, 0)],
+	["Rückleuchte nah", 28.0, 12.0, "taillamp", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)],
+	["Scheinwerfer nah", 152.0, 10.0, "headlamp", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)],
+	["Rückleuchte nah, Nacht: Rücklicht", 28.0, 12.0, "taillamp", true, Vector4(1, 0, 0, 0), Vector4(1, 0, 0, 0)],
+	["von oben hinten", 0.0, 38.0, "", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)],
+	["Front", 180.0, 6.0, "", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)],
+]
+
+
+func _part_aabb(m: Dictionary, part: String) -> Array:
+	var bb: Array = m.get("aabb", [-1, 0, -2, 1, 1.5, 2])
+	var x0 := float(bb[0])
+	var x1 := float(bb[3])
+	var z0 := float(bb[2])
+	var z1 := float(bb[5])
+	var h := float(bb[4])
+	match part:
+		"rear":
+			return [x0, 0.15, z1 - 1.3, x1, h * 0.86, z1]
+		"front":
+			return [x0, 0.1, z0, x1, h * 0.8, z0 + 1.3]
+		"wheel":
+			for l: Variant in m.get("lods", []):
+				for p: Variant in (l as Dictionary).get("parts", []):
+					var pd: Dictionary = p
+					if pd.has("wheel") and float((pd.get("pos", [0, 0, 0]) as Array)[0]) > 0.0 and float((pd.get("pos", [0, 0, 0]) as Array)[2]) > 0.0:
+						var pos: Array = pd["pos"]
+						var r := float((pd["wheel"] as Dictionary).get("radius", 0.33)) + 0.12
+						return [float(pos[0]) - 0.3, 0.0, float(pos[2]) - r, float(pos[0]) + 0.15, 2.0 * r, float(pos[2]) + r]
+			return bb
+		"cabin":
+			return [x0 * 0.82, h * 0.62, z0 * 0.2, x1 * 0.82, h, z1 * 0.8]
+		"taillamp", "headlamp":
+			# around the light anchor of the right tail lamp / the right headlight
+			var role := "tail" if part == "taillamp" else "head"
+			for l: Variant in m.get("lights", []):
+				var ld: Dictionary = l
+				var lp: Array = ld.get("pos", [0, 0, 0])
+				if str(ld.get("role", "")) == role and float(lp[0]) > 0.2:
+					var c := Vector3(float(lp[0]), float(lp[1]), float(lp[2]))
+					return [c.x - 0.34, c.y - 0.2, c.z - 0.3, c.x + 0.26, c.y + 0.2, c.z + 0.3]
+			return bb
+	return bb
+
+
+func _review_tiles(mid: String) -> Array:
+	var m := ModelDB.model(mid)
+	if not VEHICLE_KINDS.has(str(m.get("kind", ""))):
+		return []
+	var sets := _sets_of(mid)
+	if sets.is_empty():
+		return []
+	var set_id := str(_args.get("set", str(sets[0])))
+	var out: Array = []
+	var levels: Array = str(_args.get("lods", "lod0")).split(",", false)
+	var pick: Array = str(_args.get("views", "")).split(",", false)
+	for ln: Variant in levels:
+		for vi in REVIEW_VIEWS.size():
+			var v: Array = REVIEW_VIEWS[vi]
+			if not pick.is_empty() and not pick.has(str(vi)):
+				continue
+			if str(ln) != "lod0" and str(ln) != "show" and (str(v[3]) == "wheel" or str(v[3]) == "cabin"):
+				continue
+			var tile := {"set": set_id, "model": mid, "lod": str(ln), "yaw": v[1], "el": v[2], "is_night": v[4],
+				"lamp_a": v[5], "lamp_b": v[6], "text": "%s · %s · %s" % [mid, ln, v[0]]}
+			if str(v[3]) != "":
+				tile["aabb"] = _part_aabb(m, str(v[3]))
+			out.append(tile)
+	return out
+
+
+## Pictures of the game camera (--chase=<m>,<m>...): by day, with tail lights and with brake lights at night.
+func _chase_tiles(mid: String) -> Array:
+	var m := ModelDB.model(mid)
+	if not VEHICLE_KINDS.has(str(m.get("kind", ""))):
+		return []
+	var sets := _sets_of(mid)
+	if sets.is_empty():
+		return []
+	var set_id := str(_args.get("set", str(sets[0])))
+	var lane := float(str(_args.get("lane", "0")))
+	var out: Array = []
+	var dists: Array = str(_args.get("chase", "9,30")).split(",", false)
+	if dists.is_empty() or str(dists[0]) == "1":
+		dists = ["9", "30"]
+	for d: Variant in dists:
+		var dist := float(str(d))
+		var lod := ModelDB.lod_for_distance(m, dist) if not _args.has("lods") else str(_args["lods"]).split(",")[0]
+		if lod == ModelDB.IMPOSTOR:
+			lod = "lod0"
+		for st: Array in [["Tag", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)], ["Nacht, Rücklicht", true, Vector4(1, 0, 0, 0), Vector4(1, 0, 0, 0)],
+				["Nacht, Bremslicht + Blinker links", true, Vector4(1, 1, 1, 0), Vector4(1, 0, 0, 0)]]:
+			out.append({"set": set_id, "model": mid, "lod": lod, "chase": dist, "lane": lane, "is_night": st[1], "lamp_a": st[2], "lamp_b": st[3],
+				"text": "%s · %s · Spielkamera %.0f m%s · %s" % [mid, lod, dist, "" if lane == 0.0 else " (%.1f m seitlich)" % lane, st[0]]})
+	return out
 
 
 func _sets_of(mid: String) -> Array:
@@ -267,26 +415,13 @@ func _build_rig() -> void:
 	root.add_child(_sv)
 	_env = Environment.new()
 	var sky := Sky.new()
-	var sm := ProceduralSkyMaterial.new()
-	if _night:
-		sm.sky_top_color = Color(0.01, 0.014, 0.035)
-		sm.sky_horizon_color = Color(0.03, 0.04, 0.075)
-		sm.ground_bottom_color = Color(0.008, 0.008, 0.012)
-		sm.ground_horizon_color = Color(0.03, 0.035, 0.06)
-	else:
-		sm.sky_top_color = Color(0.24, 0.44, 0.78)
-		sm.sky_horizon_color = Color(0.7, 0.79, 0.9)
-		sm.ground_bottom_color = Color(0.2, 0.19, 0.17)
-		sm.ground_horizon_color = Color(0.62, 0.68, 0.74)
-	sky.sky_material = sm
+	_sky_mat = ProceduralSkyMaterial.new()
+	sky.sky_material = _sky_mat
 	_env.background_mode = Environment.BG_SKY
 	_env.sky = sky
 	# as the race will do it (contract D6 / D7): ambient colour from the palette, sky only for reflections,
 	# linear tonemapper, post path pinned on
 	_env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	# daylight close to the Cycles rig of the sprites (sun 2.4 W/m2 = energy 0.76 here, sky about 0.35)
-	_env.ambient_light_color = Color(0.1, 0.12, 0.2) if _night else Color(0.6, 0.64, 0.7)
-	_env.ambient_light_energy = float(str(_args.get("ambient-energy", "0.55" if _night else "1.0")))
 	_env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	_env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
 	_env.adjustment_enabled = true
@@ -294,7 +429,6 @@ func _build_rig() -> void:
 	# change the contrast of the whole picture and crush the dark tones of the night sheet
 	_env.glow_enabled = true
 	_env.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
-	_env.glow_intensity = 0.7 if _night else 0.25
 	_env.glow_bloom = 0.0
 	_env.glow_hdr_threshold = 1.0
 	var we := WorldEnvironment.new()
@@ -302,8 +436,6 @@ func _build_rig() -> void:
 	_sv.add_child(we)
 	_sun = DirectionalLight3D.new()
 	_sun.rotation_degrees = Vector3(-38.0, 205.0, 0.0)
-	_sun.light_energy = float(str(_args.get("sun-energy", "0.1" if _night else "0.8")))
-	_sun.light_color = Color(0.62, 0.72, 1.0) if _night else Color(1.0, 0.97, 0.92)
 	_sun.shadow_enabled = true
 	_sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
 	_sun.shadow_bias = 0.03
@@ -320,30 +452,95 @@ func _build_rig() -> void:
 	_sv.add_child(_cam)
 	_holder = Node3D.new()
 	_sv.add_child(_holder)
+	# the caption has its own transparent viewport: it is blended onto the finished tile
+	_label_sv = SubViewport.new()
+	_label_sv.size = _tile
+	_label_sv.transparent_bg = true
+	_label_sv.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	root.add_child(_label_sv)
 	_label = Label.new()
 	_label.position = Vector2(8.0, float(_tile.y) - 26.0)
 	_label.add_theme_font_size_override("font_size", 15)
 	_label.add_theme_color_override("font_color", Color(1, 1, 1))
 	_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
 	_label.add_theme_constant_override("outline_size", 5)
-	_sv.add_child(_label)
-	ModernMaterials.set_global("ce_night", 1.0 if _night else 0.0)
-	ModernMaterials.set_global("ce_sun_color", ModernMaterials.light_value(_sun.light_color, _sun.light_energy))
-	ModernMaterials.set_global("ce_ambient", ModernMaterials.light_value(_env.ambient_light_color, _env.ambient_light_energy))
+	_label_sv.add_child(_label)
+	_set_night(_night)
 	ModernMaterials.set_global("ce_time", 1.7)
 	ModernMaterials.set_global("ce_wind", Vector4(1.0, 0.0, 0.3, 0.0))
 
 
+## Day or night rig: sky, ambient light, sun / moon, glow, ce_night. True if something changed (the sky radiance
+## then needs some frames).
+func _set_night(night: bool) -> bool:
+	var changed := night != _rig_night or _first
+	_rig_night = night
+	if night:
+		_sky_mat.sky_top_color = Color(0.01, 0.014, 0.035)
+		_sky_mat.sky_horizon_color = Color(0.03, 0.04, 0.075)
+		_sky_mat.ground_bottom_color = Color(0.008, 0.008, 0.012)
+		_sky_mat.ground_horizon_color = Color(0.03, 0.035, 0.06)
+	else:
+		_sky_mat.sky_top_color = Color(0.24, 0.44, 0.78)
+		_sky_mat.sky_horizon_color = Color(0.7, 0.79, 0.9)
+		_sky_mat.ground_bottom_color = Color(0.2, 0.19, 0.17)
+		_sky_mat.ground_horizon_color = Color(0.62, 0.68, 0.74)
+	# daylight close to the Cycles rig of the sprites (sun 2.4 W/m2 = energy 0.76 here, sky about 0.35)
+	_env.ambient_light_color = Color(0.1, 0.12, 0.2) if night else Color(0.6, 0.64, 0.7)
+	_env.ambient_light_energy = float(str(_args.get("ambient-energy", "0.55" if night else "1.0")))
+	_env.glow_intensity = 0.7 if night else 0.25
+	_sun.light_energy = float(str(_args.get("sun-energy", "0.1" if night else "0.8")))
+	_sun.light_color = Color(0.62, 0.72, 1.0) if night else Color(1.0, 0.97, 0.92)
+	ModernMaterials.set_global("ce_night", 1.0 if night else 0.0)
+	ModernMaterials.set_global("ce_sun_color", ModernMaterials.light_value(_sun.light_color, _sun.light_energy))
+	ModernMaterials.set_global("ce_ambient", ModernMaterials.light_value(_env.ambient_light_color, _env.ambient_light_energy))
+	return changed
+
+
+## The Cycles sprite of a showroom set on the ground colour of the tile rendered before it (the real-time picture
+## of the same car from the same camera).
+func _sprite_tile(t: Dictionary) -> Image:
+	var img := Image.create(_tile.x, _tile.y, false, Image.FORMAT_RGBA8)
+	var bg := Color(0.3, 0.3, 0.32)
+	if _last_image != null:
+		bg = _last_image.get_pixel(12, _last_image.get_height() - 60)
+	bg.a = 1.0
+	img.fill(bg)
+	var sprite := Image.load_from_file(ProjectSettings.globalize_path(str(t["sprite"])))
+	if sprite != null:
+		sprite.convert(Image.FORMAT_RGBA8)
+		if sprite.get_size() != _tile:
+			sprite.resize(_tile.x, _tile.y, Image.INTERPOLATE_LANCZOS)
+		img.blend_rect(sprite, Rect2i(Vector2i.ZERO, _tile), Vector2i.ZERO)
+	return img
+
+
+func _caption(img: Image, text: String) -> Image:
+	_label.text = text
+	await process_frame
+	await RenderingServer.frame_post_draw
+	var lab := _label_sv.get_texture().get_image()
+	lab.convert(Image.FORMAT_RGBA8)
+	img.convert(Image.FORMAT_RGBA8)
+	img.blend_rect(lab, Rect2i(Vector2i.ZERO, _tile), Vector2i.ZERO)
+	return img
+
+
 func _render(t: Dictionary) -> Image:
+	if t.has("sprite"):
+		return await _caption(_sprite_tile(t), str(t["text"]))
 	for c: Node in _holder.get_children():
 		c.free()
 	var m := ModelDB.model(str(t.get("model", "")))
 	var vehicle := VEHICLE_KINDS.has(str(m.get("kind", ""))) or t.has("strip")
-	ModernMaterials.set_global("ce_night", float(t.get("night", 1.0 if _night else 0.0)))
+	var night := bool(t.get("is_night", _night))
+	var rig_changed := _set_night(night)
+	ModernMaterials.set_global("ce_night", float(t.get("night", 1.0 if night else 0.0)))
 	var gm: StandardMaterial3D = _ground.material_override
 	gm.albedo_color = Color(0.2, 0.2, 0.21) if vehicle else Color(0.22, 0.33, 0.14)
 	gm.roughness = 0.85 if vehicle else 0.95
 	var node: Node3D = null
+	var text := str(t["text"])
 	if t.has("strip"):
 		node = _channel_strip()
 	elif str(t["lod"]) == "impostor":
@@ -351,10 +548,9 @@ func _render(t: Dictionary) -> Image:
 	else:
 		node = ModelFactory.build(str(t["set"]), str(t["lod"]), _mats)
 	if node == null:
-		_label.text = str(t["text"]) + "  (fehlt)"
+		text += "  (fehlt)"
 	else:
 		_holder.add_child(node)
-		_label.text = str(t["text"])
 		if t.has("lamp_a"):
 			ModelFactory.set_lamps(node, t["lamp_a"], t["lamp_b"])
 		if t.get("show_caster", false):
@@ -369,9 +565,23 @@ func _render(t: Dictionary) -> Image:
 	var hi := Vector3(float(bb[3]), float(bb[4]), float(bb[5]))
 	var centre := (lo + hi) * 0.5
 	var radius := (hi - lo).length() * 0.5
-	if t.get("showroom", false):
+	var chase := t.has("chase")
+	_sv.size = GAME_SIZE if chase else _tile
+	_cam.h_offset = 0.0
+	_cam.v_offset = 0.0
+	if chase:
+		# the game camera (contract D12): frustum with a constant focal length, no pitch, horizon at 45 %
+		var near := 1.0
+		var size := near * float(GAME_SIZE.y) / GAME_FOCAL_PX
+		_cam.keep_aspect = Camera3D.KEEP_HEIGHT
+		_cam.set_frustum(size, Vector2(0.0, -0.05 * size), near, 2600.0)
+		_cam.basis = Basis.IDENTITY
+		_cam.position = Vector3(-float(t.get("lane", 0.0)), GAME_CAM_HEIGHT, float(t["chase"]))
+	elif t.get("showroom", false):
+		_cam.projection = Camera3D.PROJECTION_PERSPECTIVE
 		_showroom_camera(m)
 	else:
+		_cam.projection = Camera3D.PROJECTION_PERSPECTIVE
 		_cam.fov = 30.0
 		_cam.keep_aspect = Camera3D.KEEP_HEIGHT
 		var yaw := deg_to_rad(float(t.get("yaw", 30.0)))
@@ -386,13 +596,13 @@ func _render(t: Dictionary) -> Image:
 			var corner := Vector3(lo.x if i & 1 == 0 else hi.x, lo.y if i & 2 == 0 else hi.y, lo.z if i & 4 == 0 else hi.z) - centre
 			var c := basis.inverse() * corner          # camera space: x right, y up, z towards the camera
 			dist = maxf(dist, maxf(absf(c.x) / tan_h, absf(c.y) / (tan_v * 0.84)) + c.z)
-		dist *= 1.06
+		dist *= float(t.get("fit", 1.06))
 		_cam.position = centre + dir * dist
 		_cam.basis = basis
 		_cam.near = maxf(0.05, dist * 0.01)
 		_cam.far = dist * 4.0 + 2000.0
 	# night: the lamps of props light their surroundings as the renderer's omni pool will
-	if _night and not vehicle:
+	if night and not vehicle:
 		for l: Variant in m.get("lights", []):
 			var ld: Dictionary = l
 			if str(ld.get("role", "")) != "lights" or _holder.get_child_count() > 8:
@@ -412,12 +622,29 @@ func _render(t: Dictionary) -> Image:
 	var to_sun := (_cam.basis * sv).normalized()
 	_sun.basis = Basis.looking_at(-to_sun, Vector3.UP)
 	ModernMaterials.set_global("ce_sun_dir", to_sun)
-	_sun.directional_shadow_max_distance = maxf(30.0, radius * 6.0)
-	for i in (16 if _first else 4):
+	_sun.directional_shadow_max_distance = 120.0 if chase else maxf(30.0, radius * 6.0)
+	for i in (16 if (_first or rig_changed) else 4):
 		await process_frame
 	_first = false
 	await RenderingServer.frame_post_draw
-	return _sv.get_texture().get_image()
+	var img := _sv.get_texture().get_image()
+	if chase:
+		# cut the vehicle out of the 1280 x 720 picture: the largest whole-number magnification that shows it all
+		var r := Rect2()
+		for i in 8:
+			var corner := Vector3(lo.x if i & 1 == 0 else hi.x, lo.y if i & 2 == 0 else hi.y, lo.z if i & 4 == 0 else hi.z)
+			var sp := _cam.unproject_position(corner)
+			r = Rect2(sp, Vector2.ZERO) if i == 0 else r.expand(sp)
+		var k := clampi(int(floor(minf(float(_tile.x) / (r.size.x * 1.1), float(_tile.y) / (r.size.y * 1.1)))), 1, 12)
+		var cw := _tile.x / k
+		var ch := _tile.y / k
+		var c2 := r.get_center()
+		var x0 := clampi(int(round(c2.x - cw * 0.5)), 0, GAME_SIZE.x - cw)
+		var y0 := clampi(int(round(c2.y - ch * 0.5)), 0, GAME_SIZE.y - ch)
+		img = img.get_region(Rect2i(x0, y0, cw, ch))
+		img.resize(_tile.x, _tile.y, Image.INTERPOLATE_NEAREST)
+		text += " · %d-fach vergrößert" % k
+	return await _caption(img, text)
 
 
 ## Camera of the Cycles showroom sprites (tools/blender/cesprites/catalog.py, player_sets): the car turned

@@ -7,7 +7,8 @@ the sprite renders):
                        tint, frost, slot (paint slot of a 'paint' role: paint | paint2 | paint3)
   object["ce_node"]    node of the model the object belongs to (body, wheel_0l, ...; "none" = sprite only)
   object["ce_lamp"]    lamp channel of every face of the object ("ind", "head", "drl:0.8", ...), overrides
-                       what the emission of the material says
+                       what the emission of the material says; a leading "-" ("-marker:1:#ffa21a") = a lamp
+                       without a light anchor in the manifest (side markers, the plate lamp)
   material["ce_node"]  faces with this material go to that node instead (brake calipers -> body)
 An untagged object or material is an error: nothing is guessed from names.
 
@@ -126,6 +127,12 @@ class Translator:
     def describe(self, mat):
         role, d = tag(mat)
         ov = self.overrides.get(mat.name) or self.overrides.get(role + ":*")
+        if not ov:
+            # "*<suffix>": materials whose name ends with it ("*_rim" for "<car>_rim")
+            for key in sorted(self.overrides):
+                if key.startswith("*") and mat.name.endswith(key[1:]):
+                    ov = self.overrides[key]
+                    break
         if ov:
             d = dict(d)
             d.update(ov)
@@ -149,7 +156,9 @@ class Translator:
             self.add_role(mb, role, d, pos, nor, lamp_tag or soup.ob.get("ce_lamp"))
         return left
 
-    def add_role(self, mb, role, d, pos, nor, lamp_tag=None):
+    def add_role(self, mb, role, d, pos, nor, lamp_tag=None, anchor_shift=None):
+        """anchor_shift: (3,) - the light anchor of this lamp is written that far from its faces (parts of a
+        recessed lamp unit: the anchor belongs into the opening, not onto the floor of the recess)."""
         rough = float(d.get("rough", 0.5))
         metal = float(d.get("metal", 0.0))
         if role == "glass" and lamp_tag is None:
@@ -174,6 +183,9 @@ class Translator:
             mb.add("glass", pos, nor, col, (0.05, 0.0))
             return
         lamp = None
+        anchor = True
+        if isinstance(lamp_tag, str) and lamp_tag.startswith("-"):
+            lamp_tag, anchor = lamp_tag[1:], False
         if lamp_tag == "none":
             d = dict(d)
             d.pop("emit", None)             # explicitly not a lamp (front number plate)
@@ -183,7 +195,10 @@ class Translator:
                 lit = core.hex_to_lin(d["lit"]) if d.get("lit") else None
             lamp = (name, w, lit)
         elif d.get("lamp"):
-            lamp = parse_lamp(d["lamp"])
+            spec = str(d["lamp"])
+            if spec.startswith("-"):
+                spec, anchor = spec[1:], False
+            lamp = parse_lamp(spec)
         else:
             lamp = lamp_from_emit(d.get("emit"))
         base = _color(d, (0.5, 0.5, 0.5))
@@ -205,11 +220,11 @@ class Translator:
             cx = pos[:, :, 0].mean(axis=1)
             for side, sel in (("ind_r", cx >= 0.0), ("ind_l", cx < 0.0)):
                 if sel.any():
-                    self._lamp(mb, side, w, lit, base, rough, metal, pos[sel], nor[sel])
+                    self._lamp(mb, side, w, lit, base, rough, metal, pos[sel], nor[sel], anchor, anchor_shift)
             return
-        self._lamp(mb, name, w, lit, base, rough, metal, pos, nor)
+        self._lamp(mb, name, w, lit, base, rough, metal, pos, nor, anchor, anchor_shift)
 
-    def _lamp(self, mb, name, w, lit, base, rough, metal, pos, nor):
+    def _lamp(self, mb, name, w, lit, base, rough, metal, pos, nor, anchor=True, anchor_shift=None):
         ch = CHANNELS[name]
         if lit is None:
             lit = core.hex_to_lin(LIT.get(name, "#ffffff"))
@@ -218,9 +233,11 @@ class Translator:
         col[3] = PAINT_CODES["fixed"]
         w = float(min(1.0, max(0.0, w)))
         mb.add("vpbr", pos, nor, col, (rough, metal), (ch + 0.5, w))
-        if name in ANCHOR_ROLES and w >= 0.25:
-            self.anchors.append((name, np.asarray(pos, dtype=np.float64), core.tri_areas(pos),
-                                 np.asarray(lit, dtype=np.float64)))
+        if anchor and name in ANCHOR_ROLES and w >= 0.25:
+            ap = np.asarray(pos, dtype=np.float64)
+            if anchor_shift is not None:
+                ap = ap + np.asarray(anchor_shift, dtype=np.float64)
+            self.anchors.append((name, ap, core.tri_areas(pos), np.asarray(lit, dtype=np.float64)))
 
     # --- lamp anchors ---------------------------------------------------------------------------------
 
