@@ -48,9 +48,20 @@ MODELS = {
     "player/limousine": dict(
         builder="player", source="player/limousine", kind="vehicle", design="limousine",
         sets={"player/limousine": {}, "showroom/limousine": {"lod": "show", "showroom": False}}),
+    "player/kompakt": dict(
+        builder="player", source="player/kompakt", kind="vehicle", design="kompakt",
+        sets={"player/kompakt": {}, "showroom/kompakt": {"lod": "show", "showroom": False}}),
     "traffic/sedan": dict(
         builder="car", source="traffic/sedan_red", kind="vehicle", design="sedan",
         sets={"traffic/sedan_red": {}, "traffic/sedan_blue": {}, "traffic/sedan_silver": {}, "traffic/sedan_black": {}}),
+    "traffic/hatch": dict(
+        builder="car", source="traffic/hatch_green", kind="vehicle", design="hatch",
+        sets={"traffic/hatch_green": {}, "traffic/hatch_yellow": {}, "traffic/hatch_white": {}, "traffic/hatch_blue": {},
+              "traffic/hatch_red": {}}),
+    "traffic/wagon": dict(
+        builder="car", source="traffic/wagon_silver", kind="vehicle", design="wagon",
+        sets={"traffic/wagon_silver": {}, "traffic/wagon_darkblue": {}, "traffic/wagon_green": {},
+              "traffic/wagon_white": {}}),
     # --- vegetation ----------------------------------------------------------------------------------
     "props/tree_oak": dict(builder="tree", source="props/tree_oak", kind="tree", species="oak"),
     # --- props ---------------------------------------------------------------------------------------

@@ -56,6 +56,39 @@ CAR_3D = {
             },
         ),
     ),
+    "hatch": dict(
+        add=dict(
+            tail_lamps=[
+                dict(part="indicator", poly=[(0.635, 0.752), (0.84, 0.74), (0.84, 0.79), (0.635, 0.795)], outline=False),
+            ],
+            head_lamps=[
+                dict(face="front", part="indicator", poly=[(0.68, 0.627), (0.848, 0.613), (0.848, 0.688), (0.688, 0.688)],
+                     outline=False),
+                dict(face="front", part="drl", poly=[(0.505, 0.613), (0.76, 0.605), (0.76, 0.623), (0.505, 0.631)],
+                     outline=False),
+            ],
+        ),
+        replace=dict(
+            tail_lamps={
+                "reverse": dict(part="reverse", poly=[(0.517, 0.757), (0.62, 0.752), (0.62, 0.80), (0.524, 0.80)],
+                                outline=False),
+            },
+        ),
+    ),
+    "wagon": dict(
+        add=dict(
+            tail_lamps=[
+                dict(part="indicator", poly=[(0.60, 0.772), (0.84, 0.76), (0.84, 0.805), (0.60, 0.812)], outline=False),
+                dict(part="reverse", poly=[(0.54, 0.777), (0.588, 0.774), (0.588, 0.812), (0.548, 0.812)], outline=False),
+            ],
+            head_lamps=[
+                dict(face="front", part="indicator", poly=[(0.71, 0.647), (0.878, 0.633), (0.878, 0.698), (0.718, 0.698)],
+                     outline=False),
+                dict(face="front", part="drl", poly=[(0.525, 0.633), (0.78, 0.625), (0.78, 0.643), (0.525, 0.651)],
+                     outline=False),
+            ],
+        ),
+    ),
 }
 
 

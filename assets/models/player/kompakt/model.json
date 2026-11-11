@@ -1,0 +1,172 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "player/kompakt",
+ "model": {
+  "kind": "vehicle",
+  "object": {"width_m": 1.78, "length_m": 4.1, "height_m": 1.435},
+  "aabb": [-1.11, 0.001, -2.057, 1.11, 1.436, 2.064],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 46438,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "player/kompakt/lod0_body.res",
+      "classes": ["vpbr", "glass"]
+     },
+     {
+      "node": "wheel_0l",
+      "mesh": "player/kompakt/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [-0.7555, 0.322, -1.23],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.322, "steer": true}
+     },
+     {
+      "node": "wheel_0r",
+      "mesh": "player/kompakt/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [0.7555, 0.322, -1.23],
+      "wheel": {"radius": 0.322, "steer": true}
+     },
+     {
+      "node": "wheel_1l",
+      "mesh": "player/kompakt/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [-0.7555, 0.322, 1.39],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.322, "steer": false}
+     },
+     {
+      "node": "wheel_1r",
+      "mesh": "player/kompakt/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [0.7555, 0.322, 1.39],
+      "wheel": {"radius": 0.322, "steer": false}
+     }
+    ]
+   },
+   {
+    "name": "show",
+    "max_dist_m": 0,
+    "tris": 102311,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "player/kompakt/show_body.res",
+      "classes": ["vpbr", "glass"]
+     },
+     {
+      "node": "wheel_0l",
+      "mesh": "player/kompakt/show_wheel.res",
+      "classes": ["vpbr"],
+      "pos": [-0.7555, 0.322, -1.23],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.322, "steer": true}
+     },
+     {
+      "node": "wheel_0r",
+      "mesh": "player/kompakt/show_wheel.res",
+      "classes": ["vpbr"],
+      "pos": [0.7555, 0.322, -1.23],
+      "wheel": {"radius": 0.322, "steer": true}
+     },
+     {
+      "node": "wheel_1l",
+      "mesh": "player/kompakt/show_wheel.res",
+      "classes": ["vpbr"],
+      "pos": [-0.7555, 0.322, 1.39],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.322, "steer": false}
+     },
+     {
+      "node": "wheel_1r",
+      "mesh": "player/kompakt/show_wheel.res",
+      "classes": ["vpbr"],
+      "pos": [0.7555, 0.322, 1.39],
+      "wheel": {"radius": 0.322, "steer": false}
+     }
+    ]
+   }
+  ],
+  "shadow": {"mesh": "player/kompakt/shadow.res", "tris": 1872},
+  "lights": [
+   {
+    "role": "brake",
+    "pos": [-0.7096, 0.8752, 2.0013],
+    "dir": [-0.425, 0.219, 0.878],
+    "size": 0.263,
+    "color": "#ff2414"
+   },
+   {
+    "role": "brake",
+    "pos": [0.7103, 0.8754, 2.0015],
+    "dir": [0.427, 0.221, 0.877],
+    "size": 0.264,
+    "color": "#ff2414"
+   },
+   {
+    "role": "head",
+    "pos": [-0.6115, 0.678, -1.9429],
+    "dir": [-0.354, 0.354, -0.866],
+    "size": 0.087,
+    "color": "#fff3d6"
+   },
+   {
+    "role": "head",
+    "pos": [0.6115, 0.678, -1.9429],
+    "dir": [0.354, 0.354, -0.866],
+    "size": 0.087,
+    "color": "#fff3d6"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-1.0967, 1.0112, -0.8434],
+    "dir": [-1, 0, 0],
+    "size": 0.079,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [1.0967, 1.0112, -0.8434],
+    "dir": [1, 0, 0],
+    "size": 0.079,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "tail",
+    "pos": [-0.7187, 0.8658, 1.9995],
+    "dir": [-0.462, 0.239, 0.854],
+    "size": 0.277,
+    "color": "#ff2a10"
+   },
+   {
+    "role": "tail",
+    "pos": [0.7193, 0.866, 1.9994],
+    "dir": [0.463, 0.24, 0.853],
+    "size": 0.277,
+    "color": "#ff2a10"
+   }
+  ],
+  "paint": {"paint": "#f0b30a", "metal": 0},
+  "auto_lod": false,
+  "tags": ["player"],
+  "bytes": 1604270,
+  "hash": "f08cc815ae8da578fd36c788f7c9fb2e5884f9cd"
+ },
+ "sets": {
+  "player/kompakt": {
+   "model": "player/kompakt",
+   "paint": {"paint": "#f0b30a", "metal": 0}
+  },
+  "showroom/kompakt": {
+   "model": "player/kompakt",
+   "lod": "show",
+   "showroom": false,
+   "paint": {"paint": "#f0b30a", "metal": 0}
+  }
+ }
+}
