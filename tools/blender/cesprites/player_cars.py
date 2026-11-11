@@ -375,7 +375,12 @@ def features_kompakt(car, d, mats):
     for x in (0.47, -0.47):
         seam(car, [(x, 0.54), (x, 0.79)], proj="rear", sym=False)
     diff = [(-0.64, 0.268), (0.64, 0.268), (0.66, 0.37), (0.22, 0.385), (-0.22, 0.385), (-0.66, 0.37)]
-    car.patch(diff, "rear", plastic, offset=0.0015, res=0.01, sym=False, name="diffuser", target="bumper_rear")
+    # 3D hook (AS2R): the diffuser panel lies under the housings of the fog and reverse lamps, which sit on it (as in
+    # the sprite) instead of in recesses - the panel covered their recesses, and the reverse light was never seen
+    # (0 pixels changed with it at night; art review KRITIK-2, A6)
+    x3d = bool(car.detail["extras"])
+    car.patch(diff, "rear", plastic, offset=0.0008 if x3d else 0.0015, res=0.01, sym=False, name="diffuser",
+              target="bumper_rear")
     CD.fins(car, [0.19, 0.30, 0.41], 0.24, 0.335, -0.004, 0.22, sym=True)
     CD.exhaust(car, 0.078, 0.30, "round", r=0.043, y_tip=-0.016)
     CD.lamp(car, dict(outline=C.rounded_rect(0.67, 0.425, 0.13, 0.024, 0.008, 3), depth=0.006, tint="#8c120a",
@@ -383,11 +388,11 @@ def features_kompakt(car, d, mats):
                       target="bumper_rear"), tag="refl")
     CD.lamp(car, dict(outline=C.rounded_rect(-0.47, 0.335, 0.09, 0.03, 0.01, 3), depth=0.006, tint="#a01208", sym=False,
                       parts=[dict(kind="dark", outline=C.rounded_rect(-0.47, 0.335, 0.08, 0.022, 0.008, 3))],
-                      target="bumper_rear"), tag="fog")
+                      target="bumper_rear", **({"depth3d": 0.0} if x3d else {})), tag="fog")
     CD.lamp(car, dict(outline=C.rounded_rect(0.47, 0.335, 0.09, 0.03, 0.01, 3), depth=0.006, tint="#e8eaee", sym=False,
                       parts=[dict(kind="white", outline=C.rounded_rect(0.47, 0.335, 0.08, 0.022, 0.008, 3),
                                   lamp="reverse")],
-                      target="bumper_rear"), tag="reverse")
+                      target="bumper_rear", **({"depth3d": 0.0} if x3d else {})), tag="reverse")
     standard_side(car, d, mats,
                   seams=[[(2.875, 0.975), (2.875, 0.27)], [(1.99, 0.975), (1.99, 0.27)],
                          [(1.13, 0.975), (1.13, 0.66), (1.05, 0.585), (1.03, 0.45)]],
@@ -441,8 +446,11 @@ def features_kombi(car, d, mats):
             dict(kind="guide", path=[(0.54, 0.952), (0.70, 0.955), (0.86, 0.958), (0.875, 0.93), (0.88, 0.66)],
                  width=0.012),
             dict(kind="guide", path=[(0.56, 0.912), (0.74, 0.915), (0.80, 0.90)], width=0.009),
-            # (lamp: channel of the real-time model - the white segment is the reverse light, not a daytime light)
-            dict(kind="white", outline=C.rounded_rect(0.84, 0.655, 0.07, 0.03, 0.01, 3), offset=0.0042, lamp="reverse"),
+            # (lamp: channel of the real-time model - the white segment is the reverse light, not a daytime light;
+            # 3D hook, AS2R: 1.7 mm in front of the lamp body - at 0.0042 it lay 0.3 mm under the red fill and was
+            # never seen, art review KRITIK-2, A6)
+            dict(kind="white", outline=C.rounded_rect(0.84, 0.655, 0.07, 0.03, 0.01, 3),
+                 offset=0.0062 if car.detail["extras"] else 0.0042, lamp="reverse"),
         ] + ([
             # real-time model only: indicator block above the brake segment (inside the vertical light guide) and a
             # bar in the arm between the two light guides - together about 75 cm2 seen from straight behind
@@ -649,16 +657,22 @@ def features_gran_turismo(car, d, mats):
     brake3(car, (0.0, 0.47 - 0.01, car.roof(0.47) - 0.012), (0.26, 0.012, 0.01))
     # slim lamps joined by a thin full-width strip
     outline = [(0.56, 0.855), (0.90, 0.835), (0.955, 0.85), (0.955, 0.905), (0.56, 0.898)]
+    # 3D hook (AS2R): the lamp body fills the whole lens (3 mm inside its outline) - with the inset of the sprite
+    # only thin lines glowed at night, a third of the lit area of the other player cars (art review KRITIK-2, A2)
+    tail_ol = ([(0.563, 0.858), (0.90, 0.838), (0.952, 0.853), (0.952, 0.902), (0.563, 0.895)] if car.detail["extras"]
+               else [(0.58, 0.861), (0.90, 0.843), (0.94, 0.855), (0.94, 0.895), (0.58, 0.89)])
     CD.lamp(car, dict(
         outline=outline, tint="#c41a0f", depth=0.01,
         parts=[
-            dict(kind="tail", outline=[(0.58, 0.861), (0.90, 0.843), (0.94, 0.855), (0.94, 0.895), (0.58, 0.89)], tail=0.2),
+            dict(kind="tail", outline=tail_ol, tail=0.2),
             dict(kind="brake", outline=C.rounded_rect(0.78, 0.872, 0.22, 0.022, 0.01, 4), brake=1.0),
             dict(kind="guide", path=[(0.57, 0.887), (0.76, 0.889), (0.93, 0.891), (0.948, 0.86)], width=0.009),
         ]), tag="tail")
     bar = [(-0.56, 0.872), (0.56, 0.872), (0.56, 0.886), (-0.56, 0.886)]
+    # (3D hook, AS2R: the light guide of the strip over the full height of the strip, 12 instead of 6 mm)
     CD.lamp(car, dict(outline=bar, sym=False, tint="#c41a0f", depth=0.008, parts=[
-        dict(kind="guide", path=[(-0.555, 0.879), (0.555, 0.879)], width=0.006, smooth=False, tail=0.9, brake=0.5)]),
+        dict(kind="guide", path=[(-0.555, 0.879), (0.555, 0.879)], width=0.012 if car.detail["extras"] else 0.006,
+             smooth=False, tail=0.9, brake=0.5)]),
         tag="bar")
     if car.detail["extras"]:
         # real-time model only: a slim indicator strip under the outer end of the light strip (about 70 cm2 per side

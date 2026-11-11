@@ -101,8 +101,10 @@ PLAYER_DESIGN_OVERRIDES = {
     "limousine": {"*_rim": dict(color="#6a6e74", metal=0.65, rough=0.32)},
     # (wave 3) the silver rims of the kombi and the GT: in the sprites mid silver with dark gaps, in real time a
     # white disc under the wheel arch - the colour the sprite shows, a little brighter than the limousine's
-    "kombi": {"*_rim": dict(color="#8e9297", metal=0.65, rough=0.3)},
-    "gran_turismo": {"*_rim": dict(color="#9a9ea3", metal=0.65, rough=0.28)},
+    # (AS2R) with the race look of the vehicle layer (env_energy 1.6) those two still came out nearly white in the sun
+    # (art review KRITIK-2, A7): darker, nearer the limousine's anthracite - the sprite shows mid silver
+    "kombi": {"*_rim": dict(color="#7a7e84", metal=0.65, rough=0.3)},
+    "gran_turismo": {"*_rim": dict(color="#83878d", metal=0.65, rough=0.28)},
 }
 SHARP_DEG = {"_brake": 30.0}     # meshes (name suffix) with hard edges in the 3D build: the flat faces of the brake disc
 

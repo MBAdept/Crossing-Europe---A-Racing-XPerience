@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 40,
-    "tris": 21619,
+    "tris": 21599,
     "parts": [
      {
       "node": "body",
@@ -53,7 +53,7 @@
    {
     "name": "lod1",
     "max_dist_m": 120,
-    "tris": 5784,
+    "tris": 5772,
     "parts": [
      {
       "node": "body",
@@ -65,7 +65,7 @@
    {
     "name": "lod2",
     "max_dist_m": 100000,
-    "tris": 1089,
+    "tris": 1087,
     "parts": [
      {
       "node": "body",
@@ -165,8 +165,8 @@
   "paint": {"paint": "#d3d5d8", "paint2": "#1b3c8a", "paint3": "#d8e01c", "metal": 0.12},
   "auto_lod": false,
   "tags": ["police", "lt"],
-  "bytes": 333685,
-  "hash": "24797f3a4db7f858500bb56521795d0c05ba9483"
+  "bytes": 333262,
+  "hash": "86c277987dfdccae57768b7fd30d0b85f5f100f4"
  },
  "sets": {
   "police/lt": {

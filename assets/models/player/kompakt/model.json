@@ -10,7 +10,7 @@
    {
     "name": "lod0",
     "max_dist_m": 100000,
-    "tris": 49155,
+    "tris": 49111,
     "parts": [
      {
       "node": "body",
@@ -52,7 +52,7 @@
    {
     "name": "show",
     "max_dist_m": 0,
-    "tris": 106649,
+    "tris": 106609,
     "parts": [
      {
       "node": "body",
@@ -182,8 +182,8 @@
   "paint": {"paint": "#f0b30a", "metal": 0},
   "auto_lod": false,
   "tags": ["player"],
-  "bytes": 1770933,
-  "hash": "424506bd56baff07d5c2baca481525b1543ed09a"
+  "bytes": 1770564,
+  "hash": "65752ed77750a4483f7028cf985c7039d0fd9aed"
  },
  "sets": {
   "player/kompakt": {

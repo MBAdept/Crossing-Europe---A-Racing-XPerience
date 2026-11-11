@@ -179,12 +179,17 @@ REAR_LID = {
 #   plate  levels 1 and 2 drop the characters: the plate of those levels has the mean colour of the lod0 plate
 #          with its characters and blue band (a white plate jumped brighter at 40 m and vanished at 120 m)
 #   glass  lighter, glossier and a little metallic: the dark navy panes had no visible reflection and looked
-#          painted (lod1/lod2 draw them as vpbr with the same values)
+#          painted. lod1/lod2 draw them as vpbr (contract 4.6.4), which mirrors the sky about half as strongly as
+#          the glass class with the race look of the vehicle layer: their panes were 20 - 27 levels darker, and
+#          the rear window changed at the 40 m swap (van 17.7 % of the car's pixels; art review KRITIK-2, B4).
+#          TRAFFIC_GLASS_FAR has the albedo that gives the far panes the mean colour of the lod0 pane (measured
+#          at 40 m, contact-sheet rig, race look: van 4.6 %, sports car 9.3 %)
 #   chmsl  the third brake light with a darker lit colour: unlit, a lamp shows half its lit colour, and the
 #          bright red bar on the rear window looked switched on by day (lit, brake gain 2.2 still saturates it)
 TRAFFIC_RIM = dict(color="#5a5d62", metal=0.6, rough=0.35)
 FAR_PLATE = "#c4c4c1"
 TRAFFIC_GLASS = dict(color="#2a343e", rough=0.02, metal=0.25)
+TRAFFIC_GLASS_FAR = dict(color="#3a4652", rough=0.02, metal=0.25)
 CHMSL_LAMP = "brake:1:#9a1208"
 FAR_CAP_STRIPS = ("lod2",)     # levels whose loft end caps are bands (carbody detail cap_strips)
 EXHAUST = dict(color="#3c3d40", rough=0.4, metal=0.6, length=0.3)
@@ -214,6 +219,20 @@ def traffic_design(name):
     for k, extra in spec.get("add", {}).items():
         d[k] = list(d.get(k, [])) + copy.deepcopy(extra)
     d.update(copy.deepcopy(spec.get("design", {})))      # design values only the 3D builds read
+    if d.get("cladding") is not None and d["cladding"] > d["bumper"].get("plastic", 0.25):
+        # (AS2R) the dark lower part of the bumpers up to the sill line of the body (SUV: plastic 0.42, cladding
+        # 0.47): where the rounded bumper end runs into the body, the white bumper and the black body crossed
+        # between the two heights - white saw teeth at the corners (art review KRITIK-2, B3)
+        d["bumper"] = dict(d["bumper"], plastic=d["cladding"])
+    refl = [e for e in d.get("tail_lamps", []) if e.get("part") == "reflector"]
+    if refl:
+        # (AS2R) the bumper reflectors on the bumper: as part of the tail lamp list they were cut into the body loft
+        # 3 cm behind the bumper skin - invisible, yet counted by the lamp rules (KRITIK-2, B6)
+        from cesprites import vehicles as VEH
+        d["tail_lamps"] = [e for e in d["tail_lamps"] if e.get("part") != "reflector"]
+        d["bumper_decals_3d"] = list(d.get("bumper_decals_3d", [])) + [
+            dict(face="rear", poly=e["poly"], n=e.get("n", 0.3), mat="reflector", emit={"tail": ("#ff2a10", 0.5)},
+                 lamp=VEH.LAMP_TAGS["reflector"]) for e in refl]
     lid = REAR_LID.get(name)
     if lid:
         # the shut lines of the trunk lid / tailgate and a badge (art review B6: the rear was a plain block up close);
@@ -560,7 +579,8 @@ def _level(spec3d, level, paint_hex, metal, fine=None):
         lofts[role] = (s.pos.copy(), s.nor.copy())
     pal, tris, stats = decalgeo.car_surfaces(car, {s.name: s for s in soups}, cut=True,
                                              level={"lod0": 0, "lod1": 1, "lod2": 2}[level], paint_rough=0.24,
-                                             seals=False, far_glass=True, far_plate=FAR_PLATE, glass_look=TRAFFIC_GLASS,
+                                             seals=False, far_glass=True, far_plate=FAR_PLATE,
+                                             glass_look=TRAFFIC_GLASS if level == "lod0" else TRAFFIC_GLASS_FAR,
                                              far_sill=spec3d.get("far_sill", True),
                                              far_windows=spec3d.get("far_windows", True))
     stats["flipped_slivers"] = sum(_drop_flipped_slivers(t) for t in tris.values())
