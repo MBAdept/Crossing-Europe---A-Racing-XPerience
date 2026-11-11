@@ -5,12 +5,12 @@
  "model": {
   "kind": "vehicle",
   "object": {"width_m": 1.86, "length_m": 4.85, "height_m": 1.448},
-  "aabb": [-1.15, 0.001, -2.432, 1.15, 1.448, 2.437],
+  "aabb": [-1.15, 0.001, -2.432, 1.15, 1.488, 2.437],
   "lods": [
    {
     "name": "lod0",
     "max_dist_m": 100000,
-    "tris": 44014,
+    "tris": 45810,
     "parts": [
      {
       "node": "body",
@@ -52,7 +52,7 @@
    {
     "name": "show",
     "max_dist_m": 0,
-    "tris": 97656,
+    "tris": 99722,
     "parts": [
      {
       "node": "body",
@@ -99,6 +99,12 @@
     "pos": [-0.7784, 0.9241, 2.3688],
     "dir": [-0.507, 0.187, 0.842],
     "size": 0.255,
+    "color": "#ff2414"
+   },
+   {
+    "role": "brake",
+    "pos": [0, 1.3884, 0.65],
+    "size": 0.135,
     "color": "#ff2414"
    },
    {
@@ -182,8 +188,8 @@
   "paint": {"paint": "#1d4ea8", "metal": 0.55},
   "auto_lod": false,
   "tags": ["player"],
-  "bytes": 1510023,
-  "hash": "8d39d8e8a867ee7e9bbfb5536aace8bcc37bbf62"
+  "bytes": 1576913,
+  "hash": "ddd135674ea16e4b1876d9720b2741b8867ec210"
  },
  "sets": {
   "player/limousine": {

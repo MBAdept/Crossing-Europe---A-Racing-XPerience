@@ -5,12 +5,12 @@
  "model": {
   "kind": "vehicle",
   "object": {"width_m": 1.78, "length_m": 4.1, "height_m": 1.435},
-  "aabb": [-1.11, 0.001, -2.057, 1.11, 1.436, 2.064],
+  "aabb": [-1.11, 0.001, -2.057, 1.11, 1.483, 2.064],
   "lods": [
    {
     "name": "lod0",
     "max_dist_m": 100000,
-    "tris": 46194,
+    "tris": 50150,
     "parts": [
      {
       "node": "body",
@@ -52,7 +52,7 @@
    {
     "name": "show",
     "max_dist_m": 0,
-    "tris": 101469,
+    "tris": 107140,
     "parts": [
      {
       "node": "body",
@@ -182,8 +182,8 @@
   "paint": {"paint": "#f0b30a", "metal": 0},
   "auto_lod": false,
   "tags": ["player"],
-  "bytes": 1603782,
-  "hash": "f2113219b93d5d3c9dd934e64ca8cb1a6ea153e3"
+  "bytes": 1748226,
+  "hash": "0c632921ce4de950913bd479f5dfbff9f39417f3"
  },
  "sets": {
   "player/kompakt": {

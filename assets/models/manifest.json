@@ -31,12 +31,12 @@
   "player/kompakt": {
    "kind": "vehicle",
    "object": {"width_m": 1.78, "length_m": 4.1, "height_m": 1.435},
-   "aabb": [-1.11, 0.001, -2.057, 1.11, 1.436, 2.064],
+   "aabb": [-1.11, 0.001, -2.057, 1.11, 1.483, 2.064],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 100000,
-     "tris": 46194,
+     "tris": 50150,
      "parts": [
       {
        "node": "body",
@@ -78,7 +78,7 @@
     {
      "name": "show",
      "max_dist_m": 0,
-     "tris": 101469,
+     "tris": 107140,
      "parts": [
       {
        "node": "body",
@@ -208,18 +208,18 @@
    "paint": {"paint": "#f0b30a", "metal": 0},
    "auto_lod": false,
    "tags": ["player"],
-   "bytes": 1603782,
-   "hash": "f2113219b93d5d3c9dd934e64ca8cb1a6ea153e3"
+   "bytes": 1748226,
+   "hash": "0c632921ce4de950913bd479f5dfbff9f39417f3"
   },
   "player/limousine": {
    "kind": "vehicle",
    "object": {"width_m": 1.86, "length_m": 4.85, "height_m": 1.448},
-   "aabb": [-1.15, 0.001, -2.432, 1.15, 1.448, 2.437],
+   "aabb": [-1.15, 0.001, -2.432, 1.15, 1.488, 2.437],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 100000,
-     "tris": 44014,
+     "tris": 45810,
      "parts": [
       {
        "node": "body",
@@ -261,7 +261,7 @@
     {
      "name": "show",
      "max_dist_m": 0,
-     "tris": 97656,
+     "tris": 99722,
      "parts": [
       {
        "node": "body",
@@ -308,6 +308,12 @@
      "pos": [-0.7784, 0.9241, 2.3688],
      "dir": [-0.507, 0.187, 0.842],
      "size": 0.255,
+     "color": "#ff2414"
+    },
+    {
+     "role": "brake",
+     "pos": [0, 1.3884, 0.65],
+     "size": 0.135,
      "color": "#ff2414"
     },
     {
@@ -391,8 +397,8 @@
    "paint": {"paint": "#1d4ea8", "metal": 0.55},
    "auto_lod": false,
    "tags": ["player"],
-   "bytes": 1510023,
-   "hash": "8d39d8e8a867ee7e9bbfb5536aace8bcc37bbf62"
+   "bytes": 1576913,
+   "hash": "ddd135674ea16e4b1876d9720b2741b8867ec210"
   },
   "props/farmhouse": {
    "kind": "building",

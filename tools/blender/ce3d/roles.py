@@ -127,6 +127,12 @@ class Translator:
     def describe(self, mat):
         role, d = tag(mat)
         ov = self.overrides.get(mat.name) or self.overrides.get(role + ":*")
+        if not ov:
+            # "*<suffix>": materials whose name ends with it ("*_rim" for "<car>_rim")
+            for key in sorted(self.overrides):
+                if key.startswith("*") and mat.name.endswith(key[1:]):
+                    ov = self.overrides[key]
+                    break
         if ov:
             d = dict(d)
             d.update(ov)
@@ -150,7 +156,9 @@ class Translator:
             self.add_role(mb, role, d, pos, nor, lamp_tag or soup.ob.get("ce_lamp"))
         return left
 
-    def add_role(self, mb, role, d, pos, nor, lamp_tag=None):
+    def add_role(self, mb, role, d, pos, nor, lamp_tag=None, anchor_shift=None):
+        """anchor_shift: (3,) - the light anchor of this lamp is written that far from its faces (parts of a
+        recessed lamp unit: the anchor belongs into the opening, not onto the floor of the recess)."""
         rough = float(d.get("rough", 0.5))
         metal = float(d.get("metal", 0.0))
         if role == "glass" and lamp_tag is None:
@@ -212,11 +220,11 @@ class Translator:
             cx = pos[:, :, 0].mean(axis=1)
             for side, sel in (("ind_r", cx >= 0.0), ("ind_l", cx < 0.0)):
                 if sel.any():
-                    self._lamp(mb, side, w, lit, base, rough, metal, pos[sel], nor[sel], anchor)
+                    self._lamp(mb, side, w, lit, base, rough, metal, pos[sel], nor[sel], anchor, anchor_shift)
             return
-        self._lamp(mb, name, w, lit, base, rough, metal, pos, nor, anchor)
+        self._lamp(mb, name, w, lit, base, rough, metal, pos, nor, anchor, anchor_shift)
 
-    def _lamp(self, mb, name, w, lit, base, rough, metal, pos, nor, anchor=True):
+    def _lamp(self, mb, name, w, lit, base, rough, metal, pos, nor, anchor=True, anchor_shift=None):
         ch = CHANNELS[name]
         if lit is None:
             lit = core.hex_to_lin(LIT.get(name, "#ffffff"))
@@ -226,8 +234,10 @@ class Translator:
         w = float(min(1.0, max(0.0, w)))
         mb.add("vpbr", pos, nor, col, (rough, metal), (ch + 0.5, w))
         if anchor and name in ANCHOR_ROLES and w >= 0.25:
-            self.anchors.append((name, np.asarray(pos, dtype=np.float64), core.tri_areas(pos),
-                                 np.asarray(lit, dtype=np.float64)))
+            ap = np.asarray(pos, dtype=np.float64)
+            if anchor_shift is not None:
+                ap = ap + np.asarray(anchor_shift, dtype=np.float64)
+            self.anchors.append((name, ap, core.tri_areas(pos), np.asarray(lit, dtype=np.float64)))
 
     # --- lamp anchors ---------------------------------------------------------------------------------
 

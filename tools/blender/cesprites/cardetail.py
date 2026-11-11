@@ -405,6 +405,8 @@ _LAMP3D = {"reverse": "reverse", "indicator": "ind", "white": "drl", ("head", "d
 # only brake. Parts of other lamps (reflectors, fog lamps) keep the channel their emission gives them.
 _LAMP3D_TAIL = {"tail": "tail_brake:0.5", "guide": "tail", "brake": "brake"}
 _TAIL_TAGS = ("tail", "bar", "ring")
+# depth (m) of the recess of a lamp unit in a 3D build by tag (default: 1.5 x the lens height of the sprite lamp)
+_DEPTH3D = {"head": 0.028, "bar": 0.01, "refl": 0.006, "fog": 0.008, "reverse": 0.008}
 
 
 def lamp(car, spec, tag="tail"):
@@ -425,7 +427,15 @@ def lamp(car, spec, tag="tail"):
         # one that only showed through the red lens of the sprite
         housing = spec.get("housing3d", "#2a0808")
     hm = M.basic(car.name + "_housing_" + tag, housing, rough=0.45, metal=0.0, coat=0.2)
-    car.patch(spec["outline"], proj, hm, offset=0.0015, res=res, sym=sym, name=tag + "_housing", target=tgt)
+    # 3D hook: the unit as a recess. The housing patch is left out - the exporter sinks the body faces under the
+    # outline by `sink` and gives them this material (car.lamp_pockets); parts are sunk with them, the lens is
+    # flush with the body
+    sink = float(car.detail.get("lamp_depth", 0.0)) * spec.get("depth3d", _DEPTH3D.get(tag, max(0.008, 1.5 * depth)))
+    if sink > 0.0:
+        car.lamp_pockets.append(dict(tag=tag, proj=proj, sym=sym, outline=list(spec["outline"]), target=tgt, depth=sink,
+                                     housing=hm, wall=car.mat("lampwall", spec.get("wall3d", "#0d0d0f"), rough=0.4)))
+    else:
+        car.patch(spec["outline"], proj, hm, offset=0.0015, res=res, sym=sym, name=tag + "_housing", target=tgt)
     for i, part in enumerate(spec.get("parts", [])):
         kind = part["kind"]
         mat = part_mat(car, kind, part)
@@ -438,15 +448,21 @@ def lamp(car, spec, tag="tail"):
             pts = C.smooth_open(part["path"], 6) if part.get("smooth", True) and len(part["path"]) > 2 else part["path"]
             pob = car.stripe(pts, part["width"], proj, mat, offset=off, res=min(res, part["width"] * 0.6), sym=sym,
                              name=nm, target=tgt, walls=part.get("walls", 0.0),
-                             wall_mat=mat if part.get("walls") else None)
+                             wall_mat=mat if part.get("walls") else None, **({"sink": sink} if sink > 0.0 else {}))
         else:
             pob = car.patch(part["outline"], proj, mat, offset=off, res=part.get("res", res), sym=sym, name=nm,
-                            target=tgt, walls=part.get("walls", 0.0), wall_mat=mat if part.get("walls") else None)
+                            target=tgt, walls=part.get("walls", 0.0), wall_mat=mat if part.get("walls") else None,
+                            **({"sink": sink} if sink > 0.0 else {}))
         MU.tag(pob, lamp=lamp3d)
+        if sink > 0.0 and pob is not None:
+            pob["ce_sink"] = "%s:%.5f" % (proj, sink)    # the exporter puts the light anchor back to the opening
     lenses = spec.get("lenses") or [dict(outline=spec["outline"], tint=spec.get("tint", "#c41a0f"))]
     for i, ln in enumerate(lenses):
         lm = M.lens(car.name + "_lens_%s%d" % (tag, i), tint=ln.get("tint", "#c41a0f"), refl=ln.get("refl", 0.06),
                     frost=ln.get("frost", spec.get("frost", 0.3)))
+        if sink > 0.0:
+            car.patch(ln["outline"], proj, lm, offset=0.0012, res=res, sym=sym, name="%s_lens%d" % (tag, i), target=tgt)
+            continue
         car.patch(ln["outline"], proj, lm, offset=ln.get("depth", depth), res=res, sym=sym, walls=ln.get("depth", depth),
                   wall_mat=lm, name="%s_lens%d" % (tag, i), target=tgt)
 

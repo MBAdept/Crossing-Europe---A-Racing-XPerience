@@ -18,7 +18,7 @@ import time
 
 import numpy as np
 
-from . import core, decalgeo, interior3d, roles
+from . import core, decalgeo, extras3d, interior3d, roles
 from . import lod as LOD
 from .export import Lod, ModelData, Part, sprite_extent
 
@@ -118,7 +118,12 @@ def _add_soup(nodes, tr, soup, default_node):
             left.add(role)
             continue
         mb = nodes.setdefault(node, core.MeshBuilder())
-        tr.add_role(mb, role, d, soup.pos[sel], soup.nor[sel], soup.ob.get("ce_lamp"))
+        sink = soup.ob.get("ce_sink")
+        shift = None
+        if sink is not None and str(sink).split(":")[0] in decalgeo.AXES:
+            # a sunk lamp part ("<projection>:<depth>"): its anchor lies in the opening
+            shift = decalgeo.AXES[str(sink).split(":")[0]] * float(str(sink).split(":")[1])
+        tr.add_role(mb, role, d, soup.pos[sel], soup.nor[sel], soup.ob.get("ce_lamp"), anchor_shift=shift)
     if left:
         raise roles.RoleError("object '%s' has untranslated %s materials" % (soup.name, "/".join(sorted(left))))
 
@@ -274,11 +279,14 @@ PLAYER_OVERRIDES = {
     "proc:*": dict(role="flat", color="#0a0a0b", rough=0.55, metal=0.2),
     # paint: glossier than the sprite material - the real-time paint has no clear-coat reflection of the sky
     "paint:*": dict(rough=0.2),
+    # alloy rims: a mirror-like metal shows the dark road and wheel arch in real time - less metallic, a bit rougher
+    "*_rim": dict(metal=0.55, rough=0.3),
 }
 # look of the glazing and of the lamp lenses (class glass): opacity of the tinted panes over the cabin, of the
 # coloured lenses (the lamp parts under them carry the colour and the light) and of clear headlight lenses
 PLAYER_GLASS = dict(glass_opacity=0.36, lens_opacity=0.10, clear_lens_opacity=0.08)
 GLASS_OVERLAP_M = 0.008        # the panes overlap the edge of their opening by this much (the black band)
+POCKET_SPAN_M = 0.09           # objects whose faces under a lamp outline lie this close behind the front one share the recess
 LINER = dict(color="#232427", rough=0.85)
 
 
@@ -329,6 +337,43 @@ def _open_cabin(car, lay, soups):
     return green.pos[:, ::-1, :].copy(), -green.nor[:, ::-1, :], stats
 
 
+def _lamp_pockets(car, soups):
+    """Recessed lamp units (cesprites.cardetail.lamp with detail "lamp_depth"): sinks the body faces under the
+    outline of every unit and closes the step with walls (decalgeo.pocket). Of several objects under one outline
+    (target "all") the one in front takes the recess. Returns the number of triangles of floors and walls."""
+    by_name = {s.name: s for s in soups}
+    dy = -car.L / 2.0
+    n_min = max(0.05, 0.8 * float(car.detail.get("graze", 0.22)))
+    total = 0
+    for pk in car.lamp_pockets:
+        proj = pk["proj"]
+        targets = [by_name[o.name] for o in car.targets[pk["target"]] if o.name in by_name]
+        outline = _shift(pk["outline"], proj, dy)
+        variants = [(outline, 1)]
+        if pk["sym"]:
+            variants.append(([(-p[0], p[1]) for p in outline], 1) if proj != "side" else (outline, -1))
+        for (ol, sgn) in variants:
+            found = []
+            for s in targets:
+                mats = list(s.mats)
+                i_floor, i_wall = len(mats), len(mats) + 1
+                pos, nor, mat, st = decalgeo.pocket(s.pos, s.nor, s.mi, proj, sgn, ol, pk["depth"], i_floor, i_wall, n_min)
+                if st["floor"] > 0:
+                    found.append((s, pos, nor, mat, st))
+            if not found:
+                raise roles.RoleError("lamp unit '%s' of %s finds no body under its outline" % (pk["tag"], car.name))
+            # a unit may lie on two objects (tail lamps of a hatchback: body and greenhouse); what is clearly
+            # behind the front one (a bumper under the body's end) stays as it is
+            front = max(f[4]["front"] for f in found)
+            for (s, pos, nor, mat, st) in found:
+                if st["front"] < front - POCKET_SPAN_M:
+                    continue
+                s.mats = list(s.mats) + [pk["housing"], pk["wall"]]
+                s.pos, s.nor, s.mi, s.n = pos, nor, mat, pos.shape[0]
+                total += st["floor"] + st["walls"]
+    return total
+
+
 def _player_level(spec3d, level):
     from cesprites import meshutil as MU
     from cesprites import player_cars
@@ -341,11 +386,20 @@ def _player_level(spec3d, level):
     try:
         info = player_cars.build(rig, params)
         car = info["car"]
+        # the parts of the 3D build are made in build space (ray casts onto the body): the car back to where
+        # it was built, then to its place again
+        import bpy
+        car.center.location = (0.0, 0.0, 0.0)
+        bpy.context.view_layer.update()
+        info["extras"] = extras3d.build_extras(car, fine=(level == "show"))
         lay = interior3d.build_interior(car, fine=(level == "show"))
+        car.finish()
     finally:
         MU.tagging(False)
     objs = core.model_objects(rig)
     soups = core.soups_of(objs)
+    pocket_tris = _lamp_pockets(car, soups)
+    extras3d.uncover_pockets(car, {s.name: s for s in soups}, lambda o, pr: _shift(o, pr, -car.L / 2.0), decalgeo.cut_holes)
     lin_pos, lin_nor, cut_stats = _open_cabin(car, lay, soups)
     if os.environ.get("CE_STATS"):
         import re
@@ -381,7 +435,7 @@ def _player_level(spec3d, level):
     col[:3] = core.srgb8(core.hex_to_lin(LINER["color"]))
     col[3] = 255
     nodes["body"].add("vpbr", lin_pos, lin_nor, col, (LINER["rough"], 0.0), roles.NO_LAMP)
-    info["cabin"] = dict(lining_tris=int(lin_pos.shape[0]), removed=cut_stats["removed"])
+    info["cabin"] = dict(lining_tris=int(lin_pos.shape[0]), removed=cut_stats["removed"], pocket_tris=pocket_tris)
     return car, info, params, nodes, pivots, tr
 
 

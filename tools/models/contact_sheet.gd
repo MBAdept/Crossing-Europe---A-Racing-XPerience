@@ -20,7 +20,7 @@ extends SceneTree
 ##              (same camera: the A/B picture that decides the manifest flag `showroom`).
 ## --review:    vehicles only - large tiles for judging a model: rear and front three-quarter views, straight
 ##              from behind, side, close-ups of the rear end, a wheel and the cabin, the tail and brake lamps at
-##              night. Tile 960x600 unless --tile says otherwise. --views=0,4,7 picks tiles of REVIEW_VIEWS,
+##              night, close-ups of a tail lamp and a headlight, from above, straight from ahead. Tile 960x600 unless --tile says otherwise. --views=0,4,7 picks tiles of REVIEW_VIEWS,
 ##              --set=<sprite set> the colour set, --lods=lod0,lod1 the levels.
 ## --chase=8,30[,..]  vehicles only - the picture of the GAME camera (contract D12: 3.4 m high, no pitch, focal
 ##              length 711 px at 720 px, horizon at 45 %) with the vehicle's centre that many metres ahead,
@@ -238,6 +238,11 @@ const REVIEW_VIEWS: Array = [
 	["Nacht: Rück- + Bremslicht", 18.0, 10.0, "rear", true, Vector4(1, 1, 0, 0), Vector4(1, 0, 0, 0)],
 	["Nacht: Blinker links + Rückfahrlicht", 18.0, 10.0, "rear", true, Vector4(1, 0, 1, 0), Vector4(1, 1, 0, 0)],
 	["Nacht: Scheinwerfer + Blinker rechts", 162.0, 8.0, "front", true, Vector4(1, 0, 0, 1), Vector4(1, 0, 0, 0)],
+	["Rückleuchte nah", 28.0, 12.0, "taillamp", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)],
+	["Scheinwerfer nah", 152.0, 10.0, "headlamp", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)],
+	["Rückleuchte nah, Nacht: Rücklicht", 28.0, 12.0, "taillamp", true, Vector4(1, 0, 0, 0), Vector4(1, 0, 0, 0)],
+	["von oben hinten", 0.0, 38.0, "", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)],
+	["Front", 180.0, 6.0, "", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)],
 ]
 
 
@@ -264,6 +269,16 @@ func _part_aabb(m: Dictionary, part: String) -> Array:
 			return bb
 		"cabin":
 			return [x0 * 0.82, h * 0.62, z0 * 0.2, x1 * 0.82, h, z1 * 0.8]
+		"taillamp", "headlamp":
+			# around the light anchor of the right tail lamp / the right headlight
+			var role := "tail" if part == "taillamp" else "head"
+			for l: Variant in m.get("lights", []):
+				var ld: Dictionary = l
+				var lp: Array = ld.get("pos", [0, 0, 0])
+				if str(ld.get("role", "")) == role and float(lp[0]) > 0.2:
+					var c := Vector3(float(lp[0]), float(lp[1]), float(lp[2]))
+					return [c.x - 0.34, c.y - 0.2, c.z - 0.3, c.x + 0.26, c.y + 0.2, c.z + 0.3]
+			return bb
 	return bb
 
 

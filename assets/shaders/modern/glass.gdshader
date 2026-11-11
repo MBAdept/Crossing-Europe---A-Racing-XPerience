@@ -1,15 +1,19 @@
 // Modern, material class "glass": vehicle glazing at lod0 / show and clear lamp lenses (docs/modelle.md).
 //   COLOR.rgb  tint as sRGB bytes        COLOR.a  opacity        UV  (roughness, metallic)
-// Alpha blended, no depth write; the opacity rises towards grazing angles (Fresnel), so glass mirrors the
-// sky at the edges. Load only through ModernMaterials - never with preload().
+// Look (asset side): a pane is its tint weighted with its opacity PLUS the full mirror reflection of sky and
+// sun - premultiplied blending, so a clear pane (opacity 0.3) still mirrors as brightly as a dark one; towards
+// grazing angles it becomes opaque and mirror-like (Fresnel). No depth write.
+// Load only through ModernMaterials - never with preload().
 shader_type spatial;
-render_mode blend_mix, depth_draw_never, cull_back;
+render_mode blend_premul_alpha, depth_draw_never, cull_back;
 
 // same indices as in vpbr.gdshader: both surfaces of a body share the instance
 instance uniform float fade : instance_index(5) = 1.0;          // path-distance fade (dither discard)
 instance uniform float sun : instance_index(6) = 1.0;           // 0 inside tunnels: masks the directional light
 
-uniform float fresnel_boost = 0.85;
+uniform float fresnel_boost = 0.85;           // how far the opacity rises towards grazing angles
+uniform float mirror = 0.75;                  // strength of the mirror reflection (SPECULAR of the engine)
+uniform float tint_gain = 1.0;                // brightness of the tint seen through the pane's own colour
 
 void fragment() {
 	if (fade < 0.999) {
@@ -19,11 +23,16 @@ void fragment() {
 		}
 	}
 	float f = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 5.0);
-	ALBEDO = COLOR.rgb;         // sRGB as stored: the Compatibility renderer linearises ALBEDO itself
+	float a = mix(COLOR.a, 1.0, f * fresnel_boost);
+	// premultiplied: the tint counts with the opacity of the pane, the reflection in full
+	ALBEDO = COLOR.rgb * tint_gain * a;         // sRGB as stored: the Compatibility renderer linearises ALBEDO itself
 	ROUGHNESS = max(UV.x, 0.02);
 	METALLIC = UV.y;
-	SPECULAR = 0.9;
-	ALPHA = mix(COLOR.a, 1.0, f * fresnel_boost);
+	// thin clear lamp lenses (low opacity) mirror less than panes: a full sky reflection over a lamp is a milky veil
+	SPECULAR = mirror * mix(0.25, 1.0, smoothstep(0.08, 0.3, COLOR.a));
+	ALPHA = a;
+	// (PREMUL_ALPHA_FACTOR is not written: the Compatibility scene shader of Godot 4.7 does not declare it, and
+	// without it the lit colour goes out unscaled - which is what is wanted here)
 }
 
 float d_ggx(float ndh, float a) {

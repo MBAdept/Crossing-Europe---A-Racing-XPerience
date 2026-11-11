@@ -58,8 +58,12 @@ BRAKE_RED = "#ff2414"
 #   arch_n   stations per wheel arch at equal angles of the arch circle instead of the dense equal spacing
 #            (None = as designed): the outline of the opening gets segments of equal length
 #   gstep    scale of the station spacing of the greenhouse (None = step)
+#   lamp_depth  scale of the depth of the lamp units (cardetail.lamp): > 0 = the lamp is a recess in the body -
+#            its parts are sunk by the depth of the unit, the lens lies flush in the opening, and the exporter
+#            cuts the recess into the body (ce3d: car.lamp_pockets). 0 = lamp parts stacked on the body
 DETAIL = dict(ring=1.0, step=1.0, res=1.0, off=1.0, min_off=0.0, wheel=1.0, extras=False, graze=0.0,
-              conform=False, crease=0.0, arch_r=None, seam=1.0, wheel_plain=False, arch_n=None, gstep=None)
+              conform=False, crease=0.0, arch_r=None, seam=1.0, wheel_plain=False, arch_n=None, gstep=None,
+              lamp_depth=0.0)
 
 
 def _prof(v):
@@ -92,6 +96,7 @@ class SmoothCar:
             ("gb", N_GB), ("gs", N_GS), ("gr", N_GR), ("roof", N_ROOF))}
         self.glass_outlines = []        # (projection, symmetric, outline) of every pane (ce3d/vehicles3d.py)
         self.glass_pillars = []         # (projection, symmetric, outline) of the dividers standing in a pane
+        self.lamp_pockets = []          # recessed lamp units of a 3D build (cardetail.lamp, detail "lamp_depth")
         self._tri_cache = {}            # conform patches: triangles of the ray-cast targets
         self.name = name
         self.paint_hex = paint
@@ -545,10 +550,12 @@ class SmoothCar:
         return loc, nor
 
     def patch(self, outline, proj, mat, offset=0.0015, res=0.012, sym=True, walls=0.0, name="patch",
-              wall_mat=None, smooth=True, side=1, normal_offset=True, target="all"):
+              wall_mat=None, smooth=True, side=1, normal_offset=True, target="all", sink=0.0):
         """Conformal patch from a counter-clockwise 2-D outline in the projection plane:
         rear/front: (x, z) - mirrored to -x when sym; side: (y, z) on the right flank (+ left when sym);
-        top: (x, y). walls > 0: side walls down to the surface (raised element of that height = offset)."""
+        top: (x, y). walls > 0: side walls down to the surface (raised element of that height = offset).
+        sink (3D hook, conform patches only): the patch is moved by this much along the projection into the
+        body - the parts of a recessed lamp unit."""
         dt = self.detail
         if dt["res"] != 1.0 or dt["off"] != 1.0 or dt["min_off"] > 0.0:
             # 3D levels of detail: coarser grids, and patches high enough over the coarser body
@@ -567,7 +574,7 @@ class SmoothCar:
         normals = {} if dt["conform"] else None        # conform patches: body normal per patch vertex
         for (ol, sgn) in variants:
             if normals is not None:
-                self._patch_conform(bm, ol, proj, offset, walls, sgn, target, normals)
+                self._patch_conform(bm, ol, proj, offset, walls, sgn, target, normals, sink)
             else:
                 self._patch_into(bm, ol, proj, offset, res, walls, sgn, normal_offset, target)
         if len(bm.faces) == 0:
@@ -619,7 +626,7 @@ class SmoothCar:
         self._tri_cache[target] = (bvh, verts, tris, cnor, fnor, pos, np.array([tuple(n) for n in fnor]).reshape(-1, 3))
         return self._tri_cache[target]
 
-    def _patch_conform(self, bm, outline, proj, offset, walls, sgn, target, normals):
+    def _patch_conform(self, bm, outline, proj, offset, walls, sgn, target, normals, sink=0.0):
         """Patch triangulated together with the body triangles under the outline: no grid, every triangle of
         the patch lies inside one triangle of the body. Vertices are ray-cast like those of the grid patches."""
         import numpy as np
@@ -724,7 +731,7 @@ class SmoothCar:
             vl = []
             for i, x in zip(fi, hs):
                 if i not in vmap:
-                    v = bm.verts.new(x[0] + x[1] * offset)
+                    v = bm.verts.new(x[0] + x[1] * offset + dvec * sink)
                     vmap[i] = v
                 vl.append(vmap[i])
             try:
@@ -750,7 +757,7 @@ class SmoothCar:
                 for v in e.verts:
                     if v not in low:
                         loc, nor, _sn = hits[inv[v]]
-                        low[v] = bm.verts.new(loc - nor * 0.002)
+                        low[v] = bm.verts.new(loc - nor * 0.002 + dvec * sink)
             for e in bedges:
                 a, b = e.verts
                 f0 = e.link_faces[0]

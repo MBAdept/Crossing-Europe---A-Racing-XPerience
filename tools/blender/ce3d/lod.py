@@ -19,10 +19,10 @@ from . import core
 PLAYER_DETAIL = {
     # showroom: close-up, turning slowly
     "show": dict(ring=0.7, step=2.0, off=1.0, min_off=0.0, wheel=0.75, graze=0.22, conform=True, crease=0.007,
-                 arch_r=0.012, seam=1.3, arch_n=36, gstep=2.2),
+                 arch_r=0.012, seam=1.3, arch_n=36, gstep=2.2, lamp_depth=1.0),
     # race: 9 m in front of the camera, about 200 px wide (1 px = 1 cm)
     "lod0": dict(ring=0.45, step=3.2, off=1.0, min_off=0.0, wheel=0.4, graze=0.22, conform=True, crease=0.007,
-                 arch_r=0.012, seam=1.6, wheel_plain=True, arch_n=20, gstep=4.0),
+                 arch_r=0.012, seam=1.6, wheel_plain=True, arch_n=20, gstep=4.0, lamp_depth=1.0),
     # shadow caster: bare body shells
     "shadow": dict(ring=0.2, step=9.0, res=12.0, off=4.0, wheel=0.2, min_off=0.0),
 }
@@ -30,6 +30,7 @@ PLAYER_DETAIL = {
 #   crease   undercut under the shoulder line (m)        arch_r  edge radius of the wheel-arch openings (m)
 #   seam     scale of the width of panel gaps            wheel_plain  tyres without grooves, short spokes
 #   arch_n   stations per wheel arch at equal angles     gstep   station spacing of the greenhouse
+#   lamp_depth  lamp units as recesses in the body (scale of their depth; 0 = parts stacked on the body)
 
 # --- traffic cars (cesprites.vehicles.Car, hook parameter "detail") ----------------------------------------
 #   subsurf  subdivision level of the body lofts (sprite: 1)         ring  refinement of the cross-section
