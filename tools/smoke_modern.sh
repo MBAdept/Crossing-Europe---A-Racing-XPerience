@@ -14,7 +14,9 @@
 # Leistungstest file without a measured scene. Exit code 1 when a step failed.
 #
 # Environment: SMOKE_ARGS (more arguments of every run, e.g. --gfx-preset=high), BENCH_S (8), SMOKE_TIMEOUT (seconds
-# per run, 1200), WINEPREFIX (default <out_dir>/wineprefix; created on first use, takes a minute), RES (1280x720).
+# per run, 1200), WINEPREFIX (default <out_dir>/wineprefix; created on first use, takes a minute), RES (1280x720),
+# DRIVER (Linux only: opengl3 or opengl3_es – the OpenGL ES path that ANGLE takes on Windows; the files then carry
+# the driver in their names).
 # Every run uses the empty, absolute XDG_DATA_HOME <out_dir>/xdg (Linux) – never the player's own folder; under Wine
 # the user folder lies inside the prefix (drive_c/users/<name>/AppData/Roaming).
 set -uo pipefail
@@ -79,9 +81,11 @@ run() {
 		return $code
 	fi
 	# shellcheck disable=SC2086
-	nice -n 10 timeout "$TIMEOUT" xvfb-run -a -s "-screen 0 ${RES}x24" "$EXE" --rendering-driver opengl3 \
+	nice -n 10 timeout "$TIMEOUT" xvfb-run -a -s "-screen 0 ${RES}x24" "$EXE" --rendering-driver "$DRIVER" \
 		--audio-driver Dummy --resolution "$RES" -- "$@" ${SMOKE_ARGS:-} >"$log" 2>&1
 }
+DRIVER=${DRIVER:-opengl3}
+[ "$PLATFORM" = linux ] && [ "$DRIVER" != opengl3 ] && PLATFORM="linux_${DRIVER}"
 
 STAGE=(--stage=kiel_hamburg --from=kiel --hour=12 --weather=normal --vehicle=limousine --seed=11 --autopilot --gfx-preset=medium)
 for mode in arcade modern; do

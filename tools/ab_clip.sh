@@ -17,8 +17,8 @@
 #   CLIP_S     seconds of the clip (default 30)          FPS     frame rate of the runs and of the clip (default 60)
 #   GFX_ARGS   extra arguments of the Modern run (--gfx-preset=high …)
 #   SIDE       size of each half in the clip (default 1280x720 = full size; e.g. 960x540)
-#   CRF        H.264 quality to start with (default 21); MAX_MB (default 25): the clip is encoded again with a higher
-#              CRF, at last with smaller halves, until it is not larger than that
+#   CRF        H.264 quality (default 21), capped to the bit rate that keeps the clip under MAX_MB (default 25); should
+#              it still be larger, it is encoded again with a higher CRF, at last with smaller halves
 #   KEEP_AVI=1 keeps the two Movie Maker files next to the clip (<out>_arcade.avi, <out>_modern.avi)
 #   GODOT, CLIP_TIMEOUT (seconds per run, default 3600), MESA_SHADER_CACHE_DIR
 # Every run has its own empty, absolute XDG_DATA_HOME. Both runs use --sound=arcade (the clip has no sound) and
@@ -42,6 +42,9 @@ FPS=${FPS:-60}
 SIDE=${SIDE:-1280x720}
 CRF=${CRF:-21}
 MAX_MB=${MAX_MB:-25}
+# bit-rate cap: MAX_MB over CLIP_S seconds with 10 % kept for the container (25 MB in 30 s -> 6.0 Mbit/s)
+MAXRATE=$(awk -v mb="$MAX_MB" -v s="$CLIP_S" 'BEGIN { printf "%dk", mb * 8000 * 0.9 / s }')
+BUFSIZE=$(awk -v mb="$MAX_MB" -v s="$CLIP_S" 'BEGIN { printf "%dk", mb * 16000 * 0.9 / s }')
 TIMEOUT=${CLIP_TIMEOUT:-3600}
 for a in "$@"; do
 	case "$a" in
@@ -97,8 +100,8 @@ import numpy as np
 from PIL import Image
 avi, tmp = sys.argv[1], sys.argv[2]
 os.makedirs(tmp, exist_ok=True)
-# the first 40 s of the file at a small size are enough to find the end of the loading picture
-subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", avi, "-t", "40", "-vf", "scale=160:90", os.path.join(tmp, "%05d.png")],
+# the first 120 s of the file at a small size are enough to find the end of the loading picture
+subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", avi, "-t", "120", "-vf", "scale=160:90", os.path.join(tmp, "%05d.png")],
                check=True)
 files = sorted(os.listdir(tmp))
 cover = np.array([0.015 * 255, 0.02 * 255, 0.07 * 255])
@@ -125,7 +128,8 @@ encode() {
 	# shellcheck disable=SC2059
 	local filt="[0:v]trim=start_frame=$FA:end_frame=$((FA + FRAMES)),setpts=PTS-STARTPTS,scale=$w:$h,$(printf "$lab" Arcade)[a];[1:v]trim=start_frame=$FM:end_frame=$((FM + FRAMES)),setpts=PTS-STARTPTS,scale=$w:$h,$(printf "$lab" Modern)[m];[a][m]hstack=inputs=2[v]"
 	nice -n 10 ffmpeg -v error -y -threads 2 -i "$TMP/arcade.avi" -i "$TMP/modern.avi" -filter_complex "$filt" -map "[v]" \
-		-r "$FPS" -c:v libx264 -preset slow -crf "$crf" -pix_fmt yuv420p -movflags +faststart -threads 2 "$OUT"
+		-r "$FPS" -c:v libx264 -preset medium -crf "$crf" -maxrate "$MAXRATE" -bufsize "$BUFSIZE" -pix_fmt yuv420p \
+		-movflags +faststart -threads 2 "$OUT"
 }
 side=$SIDE
 crf=$CRF
