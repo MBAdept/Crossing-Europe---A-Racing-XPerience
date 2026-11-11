@@ -144,7 +144,9 @@ BUSHES = {
                     atlas_seed=47, levels=(((1, 6), (1, 5, 10)), ((1, 3), (1, 5))), tris=(396, 118), sway=0.25,
                     core_subdiv=(-1, -1), lift=(1.0, 1.1)),
 }
-GRASS = dict(colors=("#4a6a27", "#5d7d2f", "#6d8a36", "#425f24"), shade="#20301a", tip="#97a656", n_blades=70)
+# AS3: darker blades with more contrast and more of them - at 15 m the tufts of wave 2 read as one light-green spot
+GRASS = dict(colors=("#3f5c22", "#4f6d28", "#5e7a2f", "#38521f", "#6b8236"), shade="#1a2614", tip="#86964a",
+             n_blades=110)
 
 OPAQUE = 0.82            # part of a card (from its centre) that counts as silhouette
 IMPOSTOR_PX = 256

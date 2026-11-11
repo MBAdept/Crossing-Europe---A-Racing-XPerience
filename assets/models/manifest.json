@@ -618,12 +618,12 @@
    "kind": "plant",
    "object": {"width_m": 1, "height_m": 0.42, "length_m": 0.9},
    "extent_m": {"left": 0.45, "right": 0.6},
-   "aabb": [-0.453, 0, -0.526, 0.599, 0.42, 0.412],
+   "aabb": [-0.453, 0, -0.526, 0.599, 0.42, 0.471],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 42,
+     "tris": 84,
      "parts": [
       {
        "node": "body",
@@ -635,7 +635,7 @@
     {
      "name": "lod1",
      "max_dist_m": 200,
-     "tris": 12,
+     "tris": 28,
      "parts": [
       {
        "node": "body",
@@ -646,11 +646,11 @@
     }
    ],
    "textures": {"leaves": "props/cover_grass/leaves.png"},
-   "cards": {"lod0": 21, "lod1": 6},
+   "cards": {"lod0": 42, "lod1": 14},
    "auto_lod": false,
    "tags": ["prop", "plant", "ground_cover"],
-   "bytes": 257266,
-   "hash": "cc77617300f18c4f4336da524d8b241c071ec528"
+   "bytes": 303934,
+   "hash": "96816f0393b6715d38bf1bcd3d9450e05972d146"
   },
   "props/customs_booth": {
    "kind": "building",

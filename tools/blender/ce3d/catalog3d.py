@@ -231,6 +231,8 @@ MODELS.update({
     "props/cliff": dict(builder="rock", source="props/cliff", kind="rock", atlas=(1024, 1024), ppm_max=40.0,
                         roughness=0.92, tris=5900, ao=dict(distance=2.5, floor=0.4, gamma=1.0, samples=24)),
 })
+# ground cover grass (AS1b): twice the tufts, so that it reads as grass and not as one spot at 15 m
+MODELS["props/cover_grass"] = dict(MODELS["props/cover_grass"], grass=dict(seed=23, tufts=14))
 # --- end AS3 -----------------------------------------------------------------------------------------------------------
 
 
