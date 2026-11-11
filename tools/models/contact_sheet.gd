@@ -574,6 +574,9 @@ func _apply_look() -> void:
 				_player_fill = float(cm["PLAYER_FILL"])
 	for l: Variant in look:
 		var e: Array = l
+		# set_class_parameter reaches only materials that exist: create the shared class material first (as the
+		# vehicle layer does) - before this, --look=race drew exactly the neutral look (art review KRITIK-2, C2)
+		_mats.material(str(e[0]))
 		_mats.set_class_parameter(str(e[0]), str(e[1]), e[2])
 
 
