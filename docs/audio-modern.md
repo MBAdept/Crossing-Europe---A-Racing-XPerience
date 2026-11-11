@@ -174,7 +174,7 @@ angefasst; geteilt wird nur `Master` mit seinem Limiter.
 
 ```
 Master
-└─ MMaster                 Summenkompressor (audio.modern.glue)
+└─ MMaster                 Summenkompressor (audio.modern.glue), dahinter der Begrenzer (audio.modern.limiter, AU-R)
    ├─ MMusic               Musik: Renn-EQ, Pause-Tiefpass, Fader (Ducking, Mischzustände)
    └─ MSfx                 Effektgruppe: Regler „Effekte“, Pegel des Plans
       ├─ MUI               Menü- und Countdown-Klänge, Stinger
@@ -213,6 +213,7 @@ Ziele bei Standardreglern (Gesamt 0,8, Effekte 1,0, Musik 0,7), in `audio.modern
 | Ziel | Wert |
 |---|---|
 | Vollgas (Kurzzeit-Lautheit) | −16 LUFS |
+| Höchsttempo (Motor + Fahrbahn + Wind; AU-R) | −15 ± 1 LUFS (`top_speed_lufs`, `top_speed_tol_db`) |
 | Reisetempo | ≈ −21 LUFS |
 | Leerlauf | ≈ −24 LUFS |
 | Musik im Rennen | 8 dB unter dem Auto bei Vollgas (≈ −24 LUFS), ≈ −19 LUFS im Leerlauf |
@@ -316,11 +317,17 @@ sich gewichtet, beim Tiefpass gewinnt die tiefste Eckfrequenz:
 Gemessen: Im Zustand `pause` fällt ein 5-kHz-Ton auf dem Musikbus von −23,0 auf −59,8 dB und kommt danach auf
 −23,0 dB zurück. Die Werte der Zustände sind Startwerte (abgeleitet) – AU-E stimmt sie am fertigen Klang ab.
 
-### 6.5 Summenkompressor
+### 6.5 Summenkompressor und Begrenzer
 
 Auf `MMaster` sitzt ein langsamer Kompressor (`audio.modern.glue`: Schwelle −9 dB, wirksames Verhältnis 2:1,
 Attack 30 ms, Release 300 ms). `ratio` in der Konfiguration ist das **wirksame** Verhältnis;
 `ModernBuses.compressor_ratio()` rechnet es in den Wert um, den Godots Kompressor dafür braucht (Abschnitt 11).
+
+Dahinter (AU-R) der **Begrenzer des Modern-Klangs** (`audio.modern.limiter`: `AudioEffectHardLimiter`, Obergrenze
+−2,0 dB, Release 0,12 s): Er sitzt vor der Lautstärke von `Master`, hält also bei jeder Gesamtlautstärke; der
+geteilte Arcade-Begrenzer auf `Master` (−0,8 dB) bleibt, wie er ist, und bekommt vom Modern-Klang nie mehr als
+−2 dBFS. Grund: Ein schwerer Aufprall und das Höchsttempo erreichten bei Gesamtlautstärke 1,0 −0,7 bzw. −0,9 dBTP
+(KRITIK-FAHRBAHN B7), der Plan will ≤ −1 dBTP. Gemessen mit dem Begrenzer: Abschnitt 15.9.
 
 ### 6.6 Effekte aus
 
@@ -368,15 +375,16 @@ nie davor.
 
 | Feld | Inhalt |
 |---|---|
-| `surface_l`, `surface_r` | worauf die linken / rechten Räder laufen: der Belag (`asphalt`, `concrete`, `cobbles`, `deck`), `rumble` (profilierte Randlinie und Rüttelstreifen – nur auf `rumble_roads`), `shoulder` (Schotter), `grass`; in Tunnel, auf Brücken und in den City Limits ist der Rand befestigt (Gehweg, Deck) |
-| `paving` | der Belag am Auto: `concrete` je Abschnitt der `concrete_roads` nach dem Anteil seines Landes (`concrete_share`, aus Etappe, Name, Länge, Land und Landschaft des Abschnitts gehasht – in beiden Richtungen gleich), `cobbles` in Blöcken der Altstadt (`cobble_styles`, `cobble_share`, `cobble_block_m`, vom Ziel aus gezählt) und auf Steinbrücken, `deck` auf Stahlbrücken, sonst `asphalt` |
+| `surface_l`, `surface_r` | worauf die linken / rechten Räder laufen: der Belag (`asphalt`, `concrete`, `cobbles`, `deck`), `rumble` (profilierte Randlinie und Rüttelstreifen – nur auf `rumble_roads`; rechts nicht, solange das Segment eine Tankspur hat: deren Rand ist eine gestrichelte Linie ohne Profil, AU-R), `shoulder` (Schotter), `grass`; in Tunnel, auf Brücken und in den City Limits ist der Rand befestigt (Gehweg, Deck) |
+| `paving` | der Belag am Auto: `concrete` je Abschnitt der `concrete_roads` nach dem Anteil seines Landes (`concrete_share`, aus Etappe, Name, Länge, Land und Landschaft des Abschnitts gehasht – in beiden Richtungen gleich), `cobbles` in Blöcken der Altstadt (`cobble_styles`, `cobble_share`, `cobble_block_m`, vom Ziel aus gezählt) und auf Steinbrücken, `deck` auf Stahlbrücken, sonst `asphalt`. Der Hash (`unit_hash`) mischt seit AU-R mit dem Finalisierer von MurmurHash3 (fmix32): djb2 allein änderte bei „Stadt\|Block“ nur die letzten Bits, jede Stadt war ganz oder gar nicht gepflastert (Abschnitt 15.9) |
+| `fuel_lane` | Anteil der Tankspur rechts am Segment des Autos (0 = keine) |
 | `deck` | Material der Brücke: `steel` (Schrägseil-, Bogenbrücke), `stone` (Steinbogen), `concrete` (die übrigen); `""` ohne Brücke |
 | `rumble_road` | die Straße hat profilierte Randlinien |
 | `wet`, `snow` | 0…1 aus dem Wetter (im Tunnel trocken) |
 | `zone` | `tunnel`, `bridge`, `city`, `cutting` (Fels oder Klippe höchstens `cutting_dist_m` neben dem Fahrbahnrand auf beiden Seiten innerhalb der letzten `cutting_window_m`), `forest`, `valley` oder `open` |
 | `tunnel`, `bridge`, `cover`, `depth_m` | im Tunnel / auf einer Brücke dieses Typs / unter einem Dach (`border`, `fuel`); Abstand zum näheren Ende |
 | `road`, `scenery`, `city`, `guardrail`, `lanes` | Straßentyp, Landschaft, Stadt, Leitplanke, Spuren am Auto |
-| `events` | seit dem letzten Bild überfahren: `tunnel_in/out`, `bridge_in/out`, `cover_in/out`, `joint {z, kind, deck}` (Dehnfuge), `pass_object {z, side, dist_m, size, kind, set, contact}` (Baum, Gebäude, Pfosten, Schild, Schilderbrücke, Fels – und die Leitpfosten der Straßen ohne Leitplanke, alle `road.delineator_every_m` wie die Straße sie zeichnet; `contact` = die Karosserie streift den Pfosten) |
+| `events` | seit dem letzten Bild überfahren: `tunnel_in/out`, `bridge_in/out`, `cover_in/out`, `joint {z, kind, deck}` (Dehnfuge; Abstand je Deck aus `joint_every_m`: Stahl an den Enden und etwa alle 100 m zwischen den Feldern, Beton alle 32 m, Steinbogen keine – AU-R), `pass_object {z, side, dist_m, size, kind, set, contact}` (Baum, Gebäude, Pfosten, Schild, Schilderbrücke, Fels – und die Leitpfosten der Straßen ohne Leitplanke, alle `road.delineator_every_m` wie die Straße sie zeichnet; `contact` = die Karosserie streift den Pfosten) |
 
 Die Ereignisse des Feeds erreichen die Bausteine über `event()`. Breiten für Randlinie und Rüttelstreifen und alle
 übrigen Regeln stehen in `audio.modern.feed` (eigene Schlüssel – der Klang liest keine `render.*`-Werte; den Abstand
@@ -410,7 +418,9 @@ Mit `concrete_share` DE 0,35 sind auf Kiel – Hamburg „A215 Kiel – Bordesho
 
 Formate (D-Formate des Vertrags §4.7.3): Musik Ogg Vorbis q5, Ambiente Ogg Vorbis q3–q4, tonale Schleifen und
 Einmalklänge 16-Bit-WAV, alles 44,1 kHz; Motorbänke `<auto>.json` + `<auto>.i16` (rohes verschachteltes int16,
-32 kHz Stereo). `*.i16` kommt mit KERN in den Export-Filter und in `.gitattributes`; bis zu dessen Merge erkennt
+32 kHz Stereo). Seit AU-R sind die Rausch-Schleifen des Autos in `vehicle/` (Rollen, Nässe, Schnee, Wind – je
+Seite eine eigene Schleife von 4–7,6 s) Ogg Vorbis q5 (q8, wo die Naht es braucht): als WAV hätten 13 Paare
+langer Schleifen das Budget überschritten. `audio_qc.py` lässt Ogg für Schleifen in `vehicle/` zu. `*.i16` kommt mit KERN in den Export-Filter und in `.gitattributes`; bis zu dessen Merge erkennt
 Git die Datei von selbst als binär.
 
 **Platzhalter** (`"placeholder": true`): Stellvertreter, bis der echte Klang da ist. Im Spiel klingt nie einer –
@@ -439,7 +449,7 @@ ein kaputtes ist ein Fehler im Log) und die Streams beim ersten Gebrauch.
 | `tools/audio/music/mischung.json`, `render_all.py` | die gemeinsamen Mischentscheidungen aller Stücke und der Lauf, der danach alles neu rendert (Abschnitt 14.10) |
 | `tools/audio/music/check_music.py` | Noten: Tonklassen und Akkord-Grundton je Takt, Tonart – Remaster gegen das Original, jedes Rennstück gegen seine Partitur, die Zusatzclips |
 
-`audio_qc.py` prüft je Datei: Format passend zum Ordner; Manifest gleich Datei (sha256, Bytes, Frames, Kanäle,
+`audio_qc.py` prüft je Datei: Format passend zum Ordner (Schleifen in `vehicle/` auch Ogg Vorbis, AU-R); Manifest gleich Datei (sha256, Bytes, Frames, Kanäle,
 Rate, Lautheit und True Peak nachgemessen); True Peak ≤ −1 dBTP; Musik −14 ± 1 LUFS; keine drei Abtastwerte in
 Folge am Anschlag; Gleichanteil unter −40 dBFS; Schleifenpunkte in der Datei und die Naht kein Knacken (ihr Sprung
 und Knick höchstens das 2-fache – nach Vorbis das 4-fache – der größten im Umkreis von 100 ms, oder nicht größer
@@ -1041,14 +1051,14 @@ Urteil über den Klang liegt beim Nutzer (Hörproben unter `<scratch>/v080/deliv
 
 | Ebene | wann | Klang | Bus |
 |---|---|---|---|
-| Rollen | immer beim Fahren, je Seite der Belag unter den Rädern | Asphalt, Beton (rauer, leises Singen der Rillen), Stahldeck (hohles Dröhnen), Kopfsteinpflaster, Bankett (Schotter, Steine gegen die Radhäuser), Gras (dumpfe Schläge), Rüttelstreifen; zwei geschwenkte Spieler je Belag (linke und rechte Räder, versetzt gelesen) | `MRoad` |
-| Nässe, Schnee | Regen auf befestigtem Belag; Schnee | Sprühzischen; Schnee dämpft das Rollen (Tiefpass auf `MRoad`, −3 dB) und knirscht | `MRoad` |
-| Betonplatten | Belag Beton | „ta-tock“ von Vorder- und Hinterachse über die Fugen (5 m, Radstand 2,7 m): eine Schleife mit Tonhöhe v / Entwurfstempo, darum stimmt der Takt bei jedem Tempo; zwei Entwürfe (90 und 180 km/h) überblendet zwischen 110 und 150 km/h | `MRoad` |
-| Brückenfugen | Feed-Ereignis `joint` | Doppelschlag beider Achsen in einem Klang (Stahl: Fingerfuge klappert; Beton: dumpf); die Variante mit dem nächsten Achsabstand, die Tonhöhe so verschoben, dass der Abstand Radstand / Tempo genau trifft (Radstand = 0,6 × Länge des Autos) | `MRoad` |
-| Vorbeifahrten | Feed-Ereignis `pass_object` | der eigene Klang, von Pfosten, Schild, Baum, Gebäude, Schilderbrücke, Fels zurückgeworfen; seitenrichtig, lauter und kürzer mit dem Tempo, leiser mit dem Abstand; unter 40 km/h nicht | `MRoad` |
-| Quietschen, Radieren | Untersteuern (`understeer`), Querbewegung (`lat_speed`), Rutschen beim Unfall (`crash`) | Ton an der Haftgrenze; nass und auf Schotter kaum Ton, dafür Radieren | `MRoad` |
-| Wind | ab etwa 20 km/h | drei Bänder (Brausen, Rauschen, Zischen mit leisem Dichtungspfeifen) und nahe dem Höchsttempo das Wummern wie bei offenem Fenster; Böen; Tunnel −3 dB ohne Böen, Einschnitt −2,5, Wald und Stadt −1, Brücke +2 dB und böiger | `MWind` |
-| Kollision | Ereignis `collision` | Schichten nach Schließgeschwindigkeit (leicht < 15 km/h, mittel < 45, schwer): Stoßstangen-Plopp, tiefer Schlag, Blech faltet sich, Glas, Kleinteile; gegen Lkw/Bus ersetzt der Schlag des großen Aufbaus den eigenen; seitenrichtig | `MImpact` |
+| Rollen | immer beim Fahren, je Seite der Belag unter den Rädern | Asphalt, Beton (rauer, leises Singen der Rillen), Stahldeck (hohles Dröhnen), Kopfsteinpflaster, Bankett (Schotter, Steine gegen die Radhäuser), Gras (dumpfe Schläge), Rüttelstreifen; zwei geschwenkte Spieler je Belag (linke und rechte Räder), seit AU-R **jede Seite mit ihrer eigenen Schleife** (gleicher Generator, anderer Seed, andere Länge), Start an zufälliger Stelle, langsame Pegeldrift je Seite, rechts Tonhöhe × 1,02 (nicht beim Rüttelstreifen) – nichts wiederholt sich mehr im Sekundentakt | `MRoad` |
+| Nässe, Schnee | Regen auf befestigtem Belag; Schnee | Sprühzischen; Schnee dämpft das Rollen (Tiefpass auf `MRoad`, −3 dB) und knirscht – seit AU-R mit einer eigenen Schnee-Schleife (weiches Knirschen gepressten Schnees, ohne die Steinschläge des Schotters) | `MRoad` |
+| Betonplatten | Belag Beton | „ta-tock“ von Vorder- und Hinterachse über die Fugen (5 m, Radstand 2,7 m): eine Schleife mit Tonhöhe v / Entwurfstempo, darum stimmt der Takt bei jedem Tempo; zwei Entwürfe (90 und 180 km/h) überblendet zwischen 110 und 150 km/h; seit AU-R 32 Platten je Muster (vorher 8: das Akzentmuster kam alle 40 m wieder) und beide Entwürfe immer im selben Takt (Abschnitt 15.9) | `MRoad` |
+| Brückenfugen | Feed-Ereignis `joint` | Doppelschlag beider Achsen in einem Klang (Stahl: Fingerfuge klappert; Beton: dumpf); die Variante mit dem nächsten Achsabstand, die Tonhöhe so verschoben, dass der Abstand Radstand / Tempo genau trifft (Radstand = 0,6 × Länge des Autos); Abstand je Deck (AU-R): Stahl an den Enden und etwa alle 100 m, Beton alle 32 m, Steinbogen keine | `MRoad` |
+| Vorbeifahrten | Feed-Ereignis `pass_object` | der eigene Klang, von Pfosten, Schild, Baum, Gebäude, Schilderbrücke, Fels zurückgeworfen; seitenrichtig, lauter und kürzer mit dem Tempo, leiser mit dem Abstand; unter 40 km/h nicht; Variante zufällig, ±2 dB (AU-R) | `MRoad` |
+| Quietschen, Radieren | Untersteuern (`understeer`), Querbewegung (`lat_speed`), Rutschen beim Unfall (`crash`) | Ton an der Haftgrenze, je Quietschen ±5 % in der Tonhöhe (AU-R); nass und auf Schotter kaum Ton, dafür Radieren | `MRoad` |
+| Wind | ab etwa 20 km/h | drei Bänder (Brausen, Rauschen, Zischen mit leisem Dichtungspfeifen) und nahe dem Höchsttempo das Wummern wie bei offenem Fenster; Böen, seit AU-R je Seite (eigene Schleifen); Tunnel 0 dB ohne Böen (der Fahrtwind bleibt im Tunnel, AU-R), Einschnitt −2,5, Wald und Stadt −1, Brücke +2 dB und böiger | `MWind` |
+| Kollision | Ereignis `collision` | Schichten nach Schließgeschwindigkeit (leicht < 15 km/h, mittel < 45, schwer): Stoßstangen-Plopp, tiefer Schlag, Blech faltet sich, Glas, Kleinteile; gegen Lkw/Bus ersetzt der Schlag des großen Aufbaus den eigenen; seitenrichtig. Seit AU-R: Varianten zufällig (Glas, Kleinteile, Lkw-Schlag je vier), jede Schicht ±2 dB und bis 20 ms später, Glas ab 80 km/h Schließgeschwindigkeit, darunter in 40 % der Unfälle | `MImpact` |
 | Leitplanke | Ereignis `rail_hit`, Zustand `rail_contact` | ab 1,2 m/s Schlag mit schwingender Planke, darunter Streifen; Schleifen in Körnern mit Funken, solange das Auto an der Planke ist, an ihrer Seite | `MImpact` |
 | Leitpfosten | `pass_object` mit `contact` | hohles Plopp, der Pfosten schnellt zurück | `MImpact` |
 
@@ -1058,22 +1068,37 @@ Leitplanke nach seinem Pegel (`−10 + 2 × m/s` der Sitzung). Das Profil Arcade
 
 ### 15.2 Die Klänge
 
-`assets/audio/modern/vehicle/` (`vehicle_loops.py`, Mono, nahtlos, 16 Fortsetzungsframes hinter `loop_end`, True
-Peak −3 dBTP): `tyre_asphalt`, `tyre_concrete`, `tyre_deck` (je 2,0 s, Entwurf 120 km/h, Tonhöhe (v/120)^0,35),
-`tyre_cobbles` (2,5 s, 50 km/h, ^0,9), `tyre_gravel` (2,5 s, 80 km/h, ^0,55), `tyre_grass` (2,5 s, 60 km/h, ^0,4),
-`tyre_wet` (2,0 s, 120 km/h, ^0,3), `tyre_rumble` (1,0 s, 100 Schläge je Sekunde bei Tonhöhe 1 = 108 km/h, ^1),
-`slab_slow` / `slab_fast` (1,6 / 0,8 s, 90 / 180 km/h, ^1), `squeal` (2,0 s, 820 Hz), `scrub` (1,5 s),
-`wind_low`, `wind_mid`, `wind_high` (je 2,0 s, 160 km/h, ^0,3 / ^0,5 / ^0,5), `wind_buffet` (3,0 s, 230 km/h,
-^0,25), `rail_scrape` (2,0 s, 100 km/h, ^0,35) – zusammen 2,95 MB. Jeder Eintrag trägt `ref_kmh`, `pitch_exp` und
-`lufs_pitch` (die Lautheit der Schleife bei 14 Tonhöhen von 0,2 bis 3,36): Die Laufzeit rechnet ihre Pegel als
-Lautheit dessen, was bei der gespielten Tonhöhe zu hören ist.
+`assets/audio/modern/vehicle/` (`vehicle_loops.py`, Mono, nahtlos, True Peak ≤ −2,7 dBTP), Stand AU-R:
+
+- **je Seite eine eigene Schleife, Ogg Vorbis q5** (`<id>` links, `<id>_b` rechts; der linke Eintrag nennt den
+  rechten in `pair`; gleicher Generator, Seed + 50, andere Länge): `tyre_asphalt` (5,3 / 6,7 s), `tyre_concrete`
+  (5,1 / 6,3), `tyre_deck` (4,9 / 6,1; alle drei Entwurf 120 km/h, Tonhöhe (v/120)^0,35), `tyre_cobbles` (5,7 / 7,1;
+  50 km/h, ^0,9), `tyre_gravel` (4,7 / 5,9; 80 km/h, ^0,55), `tyre_grass` (4,3 / 5,5; 60 km/h, ^0,4), `tyre_wet`
+  (5,5 / 6,9; 120 km/h, ^0,3), `tyre_snow` (5,0 / 6,4; 80 km/h, ^0,5; neu), `tyre_rumble` (4,1 / 5,3; 100 Schläge je
+  Sekunde bei Tonhöhe 1 = 108 km/h, ^1), `wind_low` (5,9 / 7,3), `wind_mid` (5,6 / 6,8), `wind_high` (5,2 / 6,6; alle
+  drei 160 km/h, ^0,3 / ^0,5 / ^0,5), `wind_buffet` (6,2 / 7,6; 230 km/h, ^0,25; die linke in q8 – Vorbis kodiert
+  das Ende eines Datenstroms ungenauer als die Mitte, bei der tiefen, glatten Schleife wurde die Naht sonst zur
+  rauesten Stelle; der Generator nimmt die erste Qualität ab q5, deren Naht höchstens doppelt so rau ist wie ihr
+  Umfeld);
+- **16-Bit-WAV** mit 16 Fortsetzungsframes hinter `loop_end`: `slab_slow` / `slab_fast` (32 Platten: 6,4 / 3,2 s,
+  90 / 180 km/h, ^1; Seeds und ein weiches Knie über 0,6 × Spitze so gewählt, dass die Spitzen bei gleicher
+  Lautheit nicht höher liegen als bei den 8-Platten-Mustern von AU-C1), `squeal` (2,0 s, 820 Hz), `scrub` (1,5 s),
+  `rail_scrape` (2,0 s, 100 km/h, ^0,35)
+
+– zusammen 3,00 MB (vorher 2,95 MB). Jeder Eintrag trägt `ref_kmh`, `pitch_exp` und `lufs_pitch` (die Lautheit der
+Schleife, wie sie geschrieben ist, bei 14 Tonhöhen von 0,2 bis 3,36): Die Laufzeit rechnet ihre Pegel als Lautheit
+dessen, was bei der gespielten Tonhöhe zu hören ist – je Seite mit der Kurve der eigenen Schleife.
 
 `assets/audio/modern/sfx/` (`sfx_modern.py`, Mono, True Peak −3 dBTP): `joint_steel`, `joint_concrete` (je drei
 Varianten mit Achsabständen 160 / 90 / 50 ms in `gaps_s`), `pass_post` (2), `pass_sign`, `pass_tree` (2),
 `pass_building`, `pass_gantry`, `pass_rock` (alle bei 100 km/h), `hit_light` (2), `hit_heavy` (2), `crunch` (2,
-4 ms Vorlauf), `glass` (9 ms), `debris` (40 ms), `truck_boom`, `rail_hit` (2), `rail_touch` (2), `post_hit` (2) –
-zusammen 1,57 MB; `lufs_m` = Momentanlautheit je Variante. Beide Generatoren sind deterministisch
-(`audio_qc.py --determinism`).
+4 ms Vorlauf), `glass` (4, 9 ms), `debris` (4, 40 ms), `truck_boom` (4), `rail_hit` (2), `rail_touch` (2),
+`post_hit` (2) – zusammen 2,57 MB; `lufs_m` = Momentanlautheit je Variante. Seit AU-R: Glas, Kleinteile und
+Lkw-Schlag haben je vier Varianten – die Datei von AU-C1 (a) und drei aus anderen Seeds desselben Generators, an die
+Terzbalance von a angeglichen (`match_spectrum`, glatte nullphasige Korrektur, höchstens 4 dB je Band: Abweichung
+danach höchstens 0,9 dB in den Bändern bis 30 dB unter dem lautesten); die Schichten eines Aufpralls tragen 20 ms
+Stille vor (`jitter_lead_ms`), aus der die Laufzeit den zufälligen späteren Einsatz nimmt. Beide Generatoren sind
+deterministisch (`audio_qc.py --determinism`).
 
 Größe: AU-C1 zusammen 4,52 MB; alle Modern-Klänge außer Musik 17,9 MB von 23 MB (gemessen, `audio_qc.py`).
 

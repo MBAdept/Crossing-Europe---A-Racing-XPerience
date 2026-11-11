@@ -5,6 +5,8 @@
 		"bass_db": "Bassinstrumente: gezupfter Bass und Synth-Bass (dB)",
 		"high_shelf_db": "Höhen der Summe: Kuhschwanzfilter oberhalb high_shelf_hz im Master (dB; 0 = kein Filter)",
 		"high_shelf_hz": "Eckfrequenz dieses Kuhschwanzfilters (Hz)",
+		"low_shelf_db": "Tiefen der Summe: Kuhschwanzfilter unterhalb low_shelf_hz im Master (dB; 0 = kein Filter) – der wirksame Knopf für „zu viel / zu wenig Bass“ (KRITIK-MISCHUNG: −3 dB bei 120 Hz senkt 25–80 Hz um etwa 2 dB)",
+		"low_shelf_hz": "Eckfrequenz dieses Kuhschwanzfilters (Hz)",
 		"race_music_db": "Musik im Rennen gegen das Auto: gain_db aller Rennstücke, ihrer Schlüsse und Stinger im Manifest (dB; ändert nur den Eintrag im Manifest, nicht den Klang der Dateien)",
 		"menu_music_db": "Menümusik: gain_db von Titel-Remaster und Zwischenspiel im Manifest (dB; ändert nur den Eintrag im Manifest)",
 		"ui_db": "UI-Klänge: gain_db der Menüklänge im Manifest (dB; ändert nur den Eintrag im Manifest)"
@@ -13,6 +15,8 @@
 	"bass_db": 0.0,
 	"high_shelf_db": 0.0,
 	"high_shelf_hz": 6000.0,
+	"low_shelf_db": 0.0,
+	"low_shelf_hz": 120.0,
 	"race_music_db": 0.0,
 	"menu_music_db": 0.0,
 	"ui_db": 0.0

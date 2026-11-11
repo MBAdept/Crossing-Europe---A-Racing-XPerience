@@ -54,8 +54,8 @@ TARGET_LUFS = -14.0
 TP_MAX_DBTP = -1.0              # after the Vorbis encode (QC limit)
 TP_MARGIN_DB = 0.08             # aim this far below the limit after the encode
 PREFS_FILE = os.path.join(HERE, "mischung.json")
-PREFS_DEFAULT = {"sub_db": 0.0, "bass_db": 0.0, "high_shelf_db": 0.0, "high_shelf_hz": 6000.0, "race_music_db": 0.0,
-                 "menu_music_db": 0.0, "ui_db": 0.0}
+PREFS_DEFAULT = {"sub_db": 0.0, "bass_db": 0.0, "high_shelf_db": 0.0, "high_shelf_hz": 6000.0, "low_shelf_db": 0.0,
+                 "low_shelf_hz": 120.0, "race_music_db": 0.0, "menu_music_db": 0.0, "ui_db": 0.0}
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -379,11 +379,15 @@ class Master:
         self.target = target_lufs
         self.ceiling = ceiling_dbtp       # limiter ceiling (true peak before the encode)
         self.log = log
-        # EQ of the sum: the brand curve plus the shared high shelf of mischung.json (not added at 0 dB)
+        # EQ of the sum: the brand curve plus the shared shelves of mischung.json (not added at 0 dB). The low shelf
+        # (AU-R, KRITIK-MISCHUNG 2: sub_db / bass_db hardly move the bass, the kick has no knob) is the knob for "too
+        # much / too little bass"; at its default 0 every piece renders bit-identical to before.
         p = prefs()
         self.eq = list(self.EQ)
         if float(p["high_shelf_db"]) != 0.0:
             self.eq.append(("hs", float(p["high_shelf_hz"]), float(p["high_shelf_db"])))
+        if float(p["low_shelf_db"]) != 0.0:
+            self.eq.append(("ls", float(p["low_shelf_hz"]), float(p["low_shelf_db"])))
         self.band_thr: list[float] = []
         self.band_makeup: list[float] = []
         self.glue_thr = 0.0

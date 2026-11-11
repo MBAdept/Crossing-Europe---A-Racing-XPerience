@@ -189,7 +189,7 @@ var _exact_pitch: Array = ["rumble"]
 var _slab_db := -2.0
 var _slab_slope := 20.0
 var _slab_xfade := Vector2(110.0, 150.0)
-var _slab_align_ms := 1.5
+var _slab_align_ms := 6.0
 var _squeal_lufs := -19.0
 var _squeal_min := 15.0
 var _squeal_wet := 0.3
@@ -562,7 +562,10 @@ func _step_drift(dt: float) -> void:
 ## speed ran without a common beat with the other one: doubled hits). A loop that starts takes the share of the one
 ## that runs (both have the same number of slabs; the AudioServer is locked meanwhile, so no mix block falls between
 ## reading one position and starting the other); while both play, the quieter one is put back in step when the
-## mixer's rounding of their pitches has drifted them more than slabs.align_ms apart.
+## mixer's rounding of their pitches (13-bit fixed point: up to 2e-4 apart, about 12 ms a minute) has drifted them
+## more than slabs.align_ms apart. Godot reports a playback position in steps of 64 frames (measured: the distance
+## of two loops in step reads 0, 2 or 4 ms at 130 km/h), so the threshold stays above that (6 ms) and a start lands
+## within about 1 ms of the running loop.
 func _update_slabs(dt: float, v: float, sl: String, sr: String, fade: float, k: float) -> void:
 	var conc := (0.5 if sl == "concrete" else 0.0) + (0.5 if sr == "concrete" else 0.0)
 	var xf := _ramp(v, _slab_xfade)
