@@ -20,11 +20,16 @@ case "$OUT" in
 	*) OUT="$PWD/$OUT" ;;
 esac
 mkdir -p "$(dirname "$OUT")"
-# every run of the game or a tool gets its own user data folder (never the player's)
-if [ -z "${XDG_DATA_HOME:-}" ]; then
-	XDG_DATA_HOME="$(mktemp -d)"
+# every run of the game or a tool gets its own user data folder (never the player's). Only an absolute
+# XDG_DATA_HOME of the caller counts: Godot ignores a relative one and falls back to ~/.local/share
+case "${XDG_DATA_HOME:-}" in
+/*) ;;
+*)
+	XDG_DATA_HOME="$(mktemp -d "${TMPDIR:-/tmp}/ce_contact_sheet.XXXXXX")"
+	XDG_DATA_HOME="$(cd "$XDG_DATA_HOME" && pwd)"   # absolute also with a relative TMPDIR
 	export XDG_DATA_HOME
-fi
+	;;
+esac
 "$GODOT" --headless --path . --import >/dev/null 2>&1 || true
 timeout 900 xvfb-run -a -s "-screen 0 1280x720x24" "$GODOT" --path . --rendering-driver opengl3 --audio-driver Dummy \
 	-s res://tools/models/contact_sheet.gd -- "--out=$OUT" "$@" 2>&1 \

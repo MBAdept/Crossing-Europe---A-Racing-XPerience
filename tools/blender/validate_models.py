@@ -31,7 +31,8 @@ Checks assets/models/ against the rules of the model pipeline and fails (exit 1)
 --report     one line per model: triangles, draw calls, bytes; export and bake times from the local cache
 --no-godot   skip everything that needs the decoded files (the result then says so and is not "OK")
 --inspect    use an existing report of inspect_models.gd instead of running Godot
-Godot is taken from $GODOT (default "godot"); XDG_DATA_HOME is set to a temporary folder unless given.
+Godot is taken from $GODOT (default "godot"); XDG_DATA_HOME is set to a temporary folder unless the caller gives
+an absolute one (Godot ignores a relative value and would use the real user folder).
 """
 import argparse
 import os
@@ -320,10 +321,10 @@ def check_sizes(res, man, sprite):
 
 def run_inspect(res):
     env = dict(os.environ)
-    tmp = None
-    if not env.get("XDG_DATA_HOME"):
-        tmp = tempfile.mkdtemp(prefix="ce_validate_")
-        env["XDG_DATA_HOME"] = tmp
+    # only an absolute XDG_DATA_HOME of the caller counts: Godot ignores a relative one and falls back to
+    # ~/.local/share - the real user folder
+    if not os.path.isabs(env.get("XDG_DATA_HOME", "")):
+        env["XDG_DATA_HOME"] = os.path.abspath(tempfile.mkdtemp(prefix="ce_validate_"))
     godot = env.get("GODOT", "godot")
     out = os.path.join(tempfile.mkdtemp(prefix="ce_inspect_"), "inspect.json")
     cmd = [godot, "--headless", "--path", ROOT, "-s", "res://tools/models/inspect_models.gd", "--", "--out=" + out]
