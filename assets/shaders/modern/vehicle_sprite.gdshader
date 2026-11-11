@@ -9,12 +9,13 @@
 //   Flat: an upright quad parallel to the picture, anchored like Arcade's sprite (width image_width_m: the vehicle's
 //   real width). Folded (Arcade's flank warp near the camera, VehiclePose.warp_columns): the columns of the cell are
 //   put onto the car itself – the rear face across the rear, the visible flank along the flank – so every strip
-//   stands at its own depth, exactly what Arcade imitates in screen space.
+//   stands at its own depth, exactly what Arcade imitates in screen space. What a traffic picture shows below the
+//   ground line lies on the road (onto_road); the player's perspective picture is pulled towards the eye instead.
 // kind 1 – face of a box vehicle (trucks, buses: "render": "box"): real geometry of the part's box, UV = the face's
 //   picture in the sheet, UV2 = its tail-light picture (x < 0: none), CUSTOM0.xy = its brake-light picture (x < 0:
 //   none). Instance uniforms modulate (rgb, a = fade) and ovl (tail, brake).
-// The sheets carry baked light: unshaded, modulated like Arcade (the Compatibility renderer turns an unshaded ALBEDO
-// back into the same display value, see billboard.gdshader). Light layers are composited "over" like Arcade's draw
+// The sheets carry baked light: unshaded, modulated like Arcade in display values; albedo_for() hands the renderer the
+// ALBEDO that shows as that value (see billboard.gdshader). Light layers are composited "over" like Arcade's draw
 // order (base, tail, brake, beacon). Two passes of the same source: this one is opaque with an alpha scissor – the
 // body writes depth in the opaque pass, so crests and vehicles hide it and the flares see it in the depth texture
 // (they test against it); compiled with CE_SOFT (VehicleStandIn.soft_shader(), the material's next_pass) it blends
@@ -48,7 +49,7 @@ instance uniform vec4 modulate = vec4(1.0);
 instance uniform vec4 ovl = vec4(0.0);        // tail, brake (0..1)
 
 uniform float pull_margin = 0.15;             // m below the lowest row the pulled player picture keeps clear (roll)
-uniform float pull_margin_ortho = 0.02;       // … the pulled flat traffic picture
+uniform float skirt_lift = 0.02;              // m above the road the rows of a traffic picture laid onto it lie
 uniform float scissor = 0.8;                  // alpha from which a pixel belongs to the opaque body (the baked ground
                                               // shadows of the sheets lie at 0.5 – 0.75: they blend, as in Arcade)
 
@@ -65,6 +66,19 @@ float persp_pull(float ay, float vb, float margin) {
 		return 1.0;
 	}
 	return clamp(ay / (ay + vb - margin), 0.3, 1.0);
+}
+
+// A point p (view space) of a traffic picture that lies below the plane m above the road at the anchor a (n = the
+// road's up) moves along its eye ray onto that plane: the same pixel at the depth of the road there. The rows that
+// show the road under and in front of the car (Arcade's baked shadow) lie on the road instead of reaching under it;
+// the body keeps the depth of the car, so crests and vehicles in front hide it exactly as a model.
+vec3 onto_road(vec3 p, vec3 a, vec3 n, float m) {
+	float h = dot(n, a) + m;            // < 0: the eye is above the plane
+	float q = dot(n, p);
+	if (h >= 0.0 || q >= h) {
+		return p;
+	}
+	return p * max(h / q, 0.3);
 }
 
 void vertex() {
@@ -90,6 +104,8 @@ void vertex() {
 			brow = row_beacon_b;
 		}
 		v_cell = vec4(cu.x, cu.y, cu.z, brow);
+		vec3 a = (MODELVIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+		vec3 n = normalize((MODELVIEW_MATRIX * vec4(0.0, 1.0, 0.0, 0.0)).xyz);
 		float x;
 		if (!fold) {
 			// upright quad parallel to the picture through the anchor (camera without pitch and roll: view y = up)
@@ -100,12 +116,15 @@ void vertex() {
 				float r = cu.w;     // body roll: Arcade turns its player sprite about the anchor on the screen
 				off = vec2(off.x * cos(r) + off.y * sin(r), -off.x * sin(r) + off.y * cos(r));
 			}
-			vec3 a = (MODELVIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
 			VERTEX = a + vec3(off, 0.0);
-			// the rows below the anchor would reach under the road (a perspective cell far below: the rear of the car
-			// is nearer than its centre): pulled towards the eye until the lowest row stands on the road – the same
-			// picture, nearer
-			VERTEX *= persp_pull(a.y, v_bot, persp ? pull_margin : pull_margin_ortho);
+			if (persp) {
+				// a perspective cell reaches far below its anchor (the rear of the car is nearer than its centre): the
+				// whole picture is pulled towards the eye until its lowest row stands on the road – the same picture,
+				// nearer (the player's car: nothing stands between it and the camera)
+				VERTEX *= persp_pull(a.y, v_bot, pull_margin);
+			} else {
+				VERTEX = onto_road(VERTEX, a, n, skirt_lift);
+			}
 		} else {
 			// Arcade's warp columns (VehiclePose.warp_columns) with one strip per face: the GPU interpolates each
 			// planar strip perspective-correctly, so four columns are exact
@@ -159,6 +178,8 @@ void vertex() {
 				float f = v / max(se, 0.01);
 				VERTEX = (MODELVIEW_MATRIX * vec4(x * cs - f * sn, 0.0, -(x * sn + f * cs), 1.0)).xyz;
 			}
+			// what lies on the road: skirt_lift above it along the eye ray (no fighting with the road's depth)
+			VERTEX = onto_road(VERTEX, a, n, skirt_lift);
 		}
 		v_uv = vec2((x - xl) / W, (v_top - v) / H);
 		NORMAL = vec3(0.0, 0.0, 1.0);
@@ -181,6 +202,23 @@ vec2 cell_uv(float ai, float row, vec2 p) {
 	float cy = floor(i / g + 0.0001);
 	vec2 q = clamp(p * cell_px, vec2(0.5), cell_px - vec2(0.5));
 	return (vec2(cx, cy) * cell_px + q) / tex_px;
+}
+
+// The Compatibility renderer takes an unshaded ALBEDO through its sRGB -> linear polynomial and shows the result with
+// the exact sRGB curve (measured, billboard.gdshader): dark values would come out darker than in Arcade (0.10 shows as
+// 0.088, 0.05 as 0.030 – at night the whole picture is dark). albedo_for(d) is the ALBEDO that shows as the display
+// value d: Arcade's product of sheet and modulate, made in display values like its canvas.
+vec3 to_lin(vec3 c) {
+	return c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
+}
+
+vec3 albedo_for(vec3 d) {
+	vec3 x = pow((max(d, vec3(0.0)) + 0.055) / 1.055, vec3(2.4));
+	vec3 c = pow(x, vec3(0.4545));
+	for (int i = 0; i < 2; i++) {
+		c -= (to_lin(c) - x) / (c * (c * 0.915918033 + 1.364342222) + 0.012522878);
+	}
+	return max(c, vec3(0.0));
 }
 
 // Arcade's draw order: a layer drawn with alpha k over what is there ("over", straight alpha)
@@ -228,10 +266,10 @@ void fragment() {
 	if (acc.a >= scissor || acc.a < 0.004) {
 		discard;
 	}
-	ALBEDO = acc.rgb;
+	ALBEDO = albedo_for(acc.rgb);
 	ALPHA = acc.a;
 #else
-	ALBEDO = acc.rgb;
+	ALBEDO = albedo_for(acc.rgb);
 	ALPHA = acc.a;
 	ALPHA_SCISSOR_THRESHOLD = scissor;
 #endif

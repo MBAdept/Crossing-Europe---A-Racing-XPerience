@@ -169,20 +169,23 @@ static func player_cell(st: PackedFloat32Array, yaws: PackedFloat32Array, curve_
 	return cell
 
 
-## Margin below the lowest row of a pulled picture (vehicle_sprite.gdshader: pull_margin – the player's, room for
-## the body roll – and pull_margin_ortho).
+## Margin below the lowest row of the pulled player picture (vehicle_sprite.gdshader: pull_margin – room for the body
+## roll).
 const PULL_MARGIN_M := 0.15
-const PULL_MARGIN_ORTHO_M := 0.02
+## Height above the road of the rows of a traffic picture laid onto it along their eye rays (vehicle_sprite.gdshader:
+## skirt_lift, onto_road) – the picture itself keeps the depth of the car.
+const SKIRT_LIFT_M := 0.02
 ## Alpha from which a pixel of a sheet is the opaque body (vehicle_sprite.gdshader: scissor): the baked ground
 ## shadows of the sheets lie at 0.5 – 0.75 and blend in the soft pass, as in Arcade.
 const SCISSOR := 0.8
 
 
-## Factor (<= 1) by which an upright picture is pulled towards the eye (scaled about it: the same pixels, a nearer
-## depth) so that its lowest row does not reach under the road: ay = height of its anchor relative to the eye
+## Factor (<= 1) by which the player's upright picture is pulled towards the eye (scaled about it: the same pixels, a
+## nearer depth) so that its lowest row does not reach under the road: ay = height of its anchor relative to the eye
 ## (negative below it), vb = its lowest row relative to the anchor (negative). The same as persp_pull() of
 ## vehicle_sprite.gdshader. The player's picture reaches far below its anchor – the rear of the car is nearer than the
-## ground point under its centre – and would otherwise be cut off by the road; a flat traffic picture only a little.
+## ground point under its centre – and would otherwise be cut off by the road. (A traffic picture is not pulled: it
+## would stand nearer than its car; its rows below the ground line are laid onto the road instead.)
 static func persp_pull(ay: float, vb: float, margin: float = PULL_MARGIN_M) -> float:
 	if ay > -0.1:
 		return 1.0

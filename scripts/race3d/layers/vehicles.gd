@@ -580,9 +580,15 @@ func _update_car(c: Dictionary, is_player: bool, path: RoadPath3D, track: Track,
 	_add_flares(car, info, la, lb, l_eff, alpha, VehiclePose3D.light_alpha(alpha, l_eff))
 
 
-## The player car while it is not drawn (blinking): its pose terms keep running, so it does not jump back.
-func _player_pose_only(c: Dictionary, _path: RoadPath3D, track: Track, z: float, _x: float, length: float, sim_dt: float) -> void:
+## The player car while it is not drawn (blinking): its pose terms keep running, so it does not jump back – and the
+## visible yaw of its picture, as Arcade's _draw_player keeps updating it while the car blinks.
+func _player_pose_only(c: Dictionary, path: RoadPath3D, track: Track, z: float, x: float, length: float, sim_dt: float) -> void:
 	_player_terms(c, track, z + length * 0.5, float(c.get("speed", 0.0)) / 3.6, sim_dt)
+	var info := _set_info(str(c.get("set", "")))
+	if str(info.get("standin", "")) == VehicleStandIn.KIND_SPRITE:
+		var sheet: Dictionary = info["sheet"]
+		var zc := z + length * 0.5
+		_player_sprite_cell(c, sheet, sheet["yaws"], path, track, zc, _cam_inv * path.world(zc, x, 0.0), float(c.get("speed", 0.0)) / 3.6, sim_dt)
 
 
 ## A car of a sprite set without a model (R3E): Arcade's picture at its pose – one instance in its sheet's MultiMesh.
@@ -643,16 +649,7 @@ func _update_sprite(car: Car, c: Dictionary, info: Dictionary, is_player: bool, 
 		var centre := path.world(zc, x, 0.0)
 		var vc := _cam_inv * centre
 		depth = -vc.z
-		var forced := -1
-		if c.has("angle") and not c.has("steer"):
-			forced = int((sheet["cols"] as Dictionary).get(str(c["angle"]), 0))
-		if forced >= 0:
-			car.cell = forced
-		else:
-			var heading := wrapf(path.heading_at(zc + _pl_lookahead) - _cam_heading, -PI, PI)
-			car.cell = VehicleStandIn.player_cell(_pl_sprite, yaws, heading, float(c.get("steer", 0.0)), float(c.get("lat_speed", 0.0)),
-				speed_mps, float(c.get("understeer", 0.0)), track.curve_at(zc), atan2(vc.x, maxf(depth, 0.3)), _pl_k_arcade, sim_dt,
-				_pl_tau, _veh_hyst)
+		car.cell = _player_sprite_cell(c, sheet, yaws, path, track, zc, vc, speed_mps, sim_dt)
 		car.fold = false
 		car.pull = VehicleStandIn.persp_pull(vc.y, car.v_bot)
 		anchor_t = Transform3D(car.pose.basis, centre)
@@ -673,9 +670,8 @@ func _update_sprite(car: Car, c: Dictionary, info: Dictionary, is_player: bool, 
 		if not car.fold and depth <= STANDIN_NEAR_M:
 			_show(car, false)
 			return
-		# a flat picture is pulled a little towards the eye (its lowest rows stay above the road, as the shader does);
-		# a folded one lays those rows onto the road
-		car.pull = 1.0 if car.fold else VehicleStandIn.persp_pull((_cam_inv * rear).y, car.v_bot, VehicleStandIn.PULL_MARGIN_ORTHO_M)
+		# not pulled: the picture keeps the depth of the car; the shader lays the rows below its ground line onto the road
+		car.pull = 1.0
 		var bcode := 0.0
 		if car.has_beacon:
 			var beacon := str(c.get("beacon", ""))
@@ -696,6 +692,18 @@ func _update_sprite(car: Car, c: Dictionary, info: Dictionary, is_player: bool, 
 	_add_shadow(car, obj, length, alpha, lights, in_tunnel)
 	var l_eff := 1.0 if in_tunnel else lights
 	_add_flares(car, info, la, lb, l_eff, alpha, VehiclePose3D.light_alpha(alpha, l_eff))
+
+
+## Cell of the player's picture (RoadRenderer._draw_player: an explicit "angle" without steering wins, else Arcade's
+## visible yaw). vc = the ground under the car centre in camera space.
+func _player_sprite_cell(c: Dictionary, sheet: Dictionary, yaws: PackedFloat32Array, path: RoadPath3D, track: Track, zc: float,
+		vc: Vector3, speed_mps: float, sim_dt: float) -> int:
+	if c.has("angle") and not c.has("steer"):
+		return int((sheet["cols"] as Dictionary).get(str(c["angle"]), 0))
+	var heading := wrapf(path.heading_at(zc + _pl_lookahead) - _cam_heading, -PI, PI)
+	return VehicleStandIn.player_cell(_pl_sprite, yaws, heading, float(c.get("steer", 0.0)), float(c.get("lat_speed", 0.0)),
+		speed_mps, float(c.get("understeer", 0.0)), track.curve_at(zc), atan2(vc.x, maxf(-vc.z, 0.3)), _pl_k_arcade, sim_dt,
+		_pl_tau, _veh_hyst)
 
 
 ## The batch of a sprite sheet (created on first use: its material, MultiMesh and caster MultiMesh).

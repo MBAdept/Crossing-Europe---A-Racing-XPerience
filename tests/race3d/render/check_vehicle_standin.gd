@@ -13,6 +13,11 @@ extends SceneTree
 ##   verkehr   a traffic set without a model at 20, 60 and 150 m in the next lane: drawn pixels within 3 px of Arcade's,
 ##             brightness within 10 %; at 20 m Arcade warps the cell – Modern folds it
 ##   kasten    a box set without a model (a bus) at 30 m: drawn pixels within 3 px, brightness within 10 %
+##   nacht     22:00: the body of the player's picture and of a light-coloured traffic car at 20 and 60 m (top middle
+##             of the box the car covers by day: no lamp, glow, shadow or headlight pool) – brightness within 10 %;
+##             with the tail lights on the lit area is only reported (the glows are R3's flares, not Arcade's)
+##   verdeckt  a traffic picture just behind a crest (Kassel – Würzburg km 61.6, T2), lamps on, by day and at night:
+##             0 pixels change (the picture stands at the depth of the car, as a model)
 ##   laden     no sprite sheet is loaded while driving (SpriteDB.loads), 10 s with traffic and autopilot
 ## A set that has a model by now is skipped (the stand-in leaves it alone) – the check names it.
 ## "-- --save=<absolute folder>" keeps the pictures (standin_<name>_<mode>.png).
@@ -21,7 +26,7 @@ extends SceneTree
 
 const RACE := "res://scenes/race/race.tscn"
 const PROBE := "res://tests/race3d/fixtures/vehicle_probe_renderer.gd"
-const CHECKS := ["spieler", "verkehr", "kasten", "laden"]
+const CHECKS := ["spieler", "verkehr", "kasten", "nacht", "verdeckt", "laden"]
 const PLAYERS: Array[String] = ["kombi", "sportwagen", "gran_turismo"]
 const TRAFFIC: Array[String] = ["traffic/sports_red", "traffic/sports_blue", "traffic/van_white", "traffic/suv_grey",
 	"traffic/sports_yellow", "traffic/van_red", "traffic/suv_white", "police/de"]
@@ -109,8 +114,8 @@ func _db() -> Node:
 
 ## A still stage (no autopilot, no countdown, HUD hidden) in `mode` – Kiel – Hamburg km 2 at noon unless `extra` says
 ## otherwise. Arcade: the renderer of the session is replaced by the injecting one before it draws; Modern: the probe
-## renderer, the camera without the look into the bend, no contact shadows.
-func _launch(mode: String, extra: Dictionary = {}) -> Node:
+## renderer, the camera without the look into the bend, no contact shadows (`shipped`: both as shipped).
+func _launch(mode: String, extra: Dictionary = {}, shipped: bool = false) -> Node:
 	var setup := {"mode": "single", "race_id": "", "stage_id": "kiel_hamburg", "from_city": "kiel", "vehicle": "limousine",
 		"start_world_minutes": 12.0 * 60.0, "weather": "normal", "start_km": 2.0, "autopilot": false, "seed": 11,
 		"gfx": mode, "no_countdown": true}
@@ -131,7 +136,7 @@ func _launch(mode: String, extra: Dictionary = {}) -> Node:
 	await _until(func() -> bool: return int(sc.get("_sim_steps")) >= 5, 3000)
 	if not bool(setup.get("autopilot", false)):
 		Engine.time_scale = 0.0
-	if mode == "modern":
+	if mode == "modern" and not shipped:
 		var r: Node = sc.get("renderer")
 		var chase: Variant = r.get("chase")
 		if chase is Object:
@@ -370,6 +375,186 @@ func _check_kasten() -> void:
 		return
 	var msgs := await _compare_cars(p, sid, [30.5], -3.75, "kasten")
 	_report("kasten", p, "; ".join(msgs))
+
+
+# --- nacht --------------------------------------------------------------------------------------------------------
+
+## Mean luminance of the body of a car in a picture: the top middle of the box its pixels cover by day (roof and rear
+## window – no lamp, no glow, no baked shadow, no headlight pool on the road; at night the dark parts of a body hardly
+## differ from the dark road, so a mask of the night frame would keep only its bright parts). The boxes of the two
+## modes agree within 3 px by day (spieler, verkehr).
+static func _body_lum(img: Image, day_box: Rect2i) -> float:
+	var r := Rect2i(day_box.position.x + day_box.size.x * 3 / 10, day_box.position.y + day_box.size.y / 10,
+		maxi(1, day_box.size.x * 2 / 5), maxi(1, day_box.size.y / 4))
+	var d := img.get_data()
+	var w := img.get_width()
+	var sum := 0.0
+	var n := 0
+	for y in range(r.position.y, r.end.y):
+		for x in range(r.position.x, r.end.x):
+			var o := (y * w + x) * 4
+			sum += (0.2126 * float(d[o]) + 0.7152 * float(d[o + 1]) + 0.0722 * float(d[o + 2])) / 255.0
+			n += 1
+	return sum / maxf(1.0, float(n))
+
+
+func _check_nacht() -> void:
+	var p: Array[String] = []
+	var msgs: Array[String] = []
+	var veh := ""
+	for v: String in PLAYERS:
+		if not ModelDB.has_model("player/" + v):
+			veh = v
+			break
+	# a light-coloured car first: its body stays above the dark end, where the 3D path of the Compatibility renderer
+	# shows values below ~0.2 a few steps darker than the canvas (measured with the player's picture, by day as at
+	# night: 11 -> 7, 19 -> 16, 28 -> 26.5 of 255, exact from about 56 on) – that is the renderer, not the light
+	var light_first: Array[String] = ["traffic/van_white", "traffic/suv_white", "traffic/van_silver", "traffic/sports_yellow"]
+	light_first.append_array(TRAFFIC)
+	var sid := _standin_set(light_first, VehicleStandIn.KIND_SPRITE)
+	var res := {}
+	for mode: String in ["arcade", "modern"]:
+		for hour: float in [12.0, 22.0]:
+			var tag := "%s_%d" % [mode, int(hour)]
+			var sc: Node = await _launch(mode, {"vehicle": veh if veh != "" else "limousine", "start_world_minutes": hour * 60.0})
+			var r: Node = sc.get("renderer")
+			var view: Dictionary = r.get("view")
+			var cam_z := float(view.get("camera_z", 0.0))
+			var x := float((view.get("player", {}) as Dictionary).get("x", 0.0)) - 3.75
+			var without := await _shot(mode, [], true)
+			var with_car := await _shot(mode, [], false)
+			res[tag + "_spieler"] = {"img": with_car, "px": _car_pixels(with_car, without)}
+			_keep(with_car, "nacht_%d_spieler_%s" % [int(hour), mode])
+			_keep(without, "nacht_%d_leer_%s" % [int(hour), mode])
+			if sid != "":
+				for d: float in [20.0, 60.0]:
+					var img := await _shot(mode, [_car(9901, sid, cam_z + d, x)], true)
+					res["%s_%d" % [tag, int(d)]] = {"img": img, "px": _car_pixels(img, without)}
+					_keep(img, "nacht_%d_%dm_%s" % [int(hour), int(d), mode])
+					if hour > 12.0:
+						# the same car with its tail lights on: the lit area is reported (glows: R3's flares, not Arcade's)
+						var lit := _car(9901, sid, cam_z + d, x)
+						lit["tail"] = 1.0
+						var img_l := await _shot(mode, [lit], true)
+						res["%s_%d_lit" % [tag, int(d)]] = _car_pixels(img_l, without)
+						_keep(img_l, "nacht_%d_%dm_licht_%s" % [int(hour), int(d), mode])
+			await _free(sc)
+	var keys: Array[String] = []
+	if veh != "":
+		keys.append("spieler")
+	if sid != "":
+		keys.append_array(["20", "60"])
+	for k: String in keys:
+		var what := ("Spieler %s" % veh) if k == "spieler" else ("%s %s m" % [sid, k])
+		var day: Dictionary = (res["arcade_12_" + k] as Dictionary)["px"]
+		var day_m: Dictionary = (res["modern_12_" + k] as Dictionary)["px"]
+		if int(day["n"]) == 0 or int(day_m["n"]) == 0:
+			_need(p, false, "%s: gezeichnet (Arcade %d, Modern %d Pixel)" % [what, int(day["n"]), int(day_m["n"])])
+			continue
+		var box: Rect2i = day["box"]
+		var la := _body_lum((res["arcade_22_" + k] as Dictionary)["img"], box)
+		var lm := _body_lum((res["modern_22_" + k] as Dictionary)["img"], box)
+		_need(p, absf(lm - la) / maxf(la, 0.01) <= BRIGHT, "%s: Helligkeit ± %.0f %% (Arcade %.3f, Modern %.3f)" % [what, BRIGHT * 100.0, la, lm])
+		var line := "%s: Helligkeit %+.1f %% (%.3f / %.3f)" % [what, (lm - la) / maxf(la, 0.01) * 100.0, la, lm]
+		if res.has("arcade_22_%s_lit" % k):
+			line += ", mit Rücklicht %d px gegen %d px" % [int((res["modern_22_%s_lit" % k] as Dictionary)["n"]), int((res["arcade_22_%s_lit" % k] as Dictionary)["n"])]
+		msgs.append(line)
+	_report("nacht", p, "; ".join(msgs))
+
+
+# --- verdeckt -----------------------------------------------------------------------------------------------------
+
+## Height (m) by which the line of sight from the camera to the point (z, x, h) passes below the road between them
+## (positive: hidden by the road by this much; negative: the view is free by this much). Sampled every 1.5 m – as in
+## tests/race3d/render/check_occlusion.gd.
+func _below_road(r: Node, z: float, x: float, h: float) -> float:
+	var path: RoadPath3D = r.get("path")
+	var cam: Camera3D = r.get("camera")
+	var view: Dictionary = r.get("view")
+	var cam_z := float(view["camera_z"])
+	var cam_x := float(view["camera_x"])
+	var c := cam.global_transform.origin
+	var target := path.world(z, x, h)
+	var worst := -INF
+	var zi := cam_z + 10.0
+	while zi < z - 1.0:
+		var t := (zi - cam_z) / (z - cam_z)
+		var line := c.lerp(target, t)
+		var road := path.world(zi, lerpf(cam_x, x, t), 0.0)
+		worst = maxf(worst, road.y - line.y)
+		zi += 1.5
+	return worst
+
+
+## Number of pixels whose colour differs between two pictures (RGBA8).
+static func _diff_count(a: Image, b: Image) -> int:
+	var da := a.get_data()
+	var db := b.get_data()
+	var n := 0
+	for o in range(0, da.size(), 4):
+		if da[o] != db[o] or da[o + 1] != db[o + 1] or da[o + 2] != db[o + 2]:
+			n += 1
+	return n
+
+
+## Occlusion as for models (contract §4.9.2): the picture of a car without a model stands at the depth of the car –
+## behind a crest (Kassel – Würzburg km 61.6, T2), by day and at night, with its lamps on, two frames of the same
+## moment with and without the hidden car are identical to the last pixel (body, glows, contact shadow); the same car
+## where it can be seen draws pixels (the test is not empty). The shipped renderer: the look into the bend, contact
+## shadows.
+func _check_verdeckt() -> void:
+	var p: Array[String] = []
+	var msgs: Array[String] = []
+	var sid := _standin_set(TRAFFIC, VehicleStandIn.KIND_SPRITE)
+	if sid == "":
+		_report("verdeckt", p, "kein Verkehrs-Set mehr ohne Modell – nichts zu prüfen")
+		return
+	for hour: float in [12.0, 22.0]:
+		var sc: Node = await _launch("modern", {"stage_id": "kassel_wuerzburg", "from_city": "kassel", "start_km": 61.6,
+			"vehicle": "kombi", "seed": 12, "start_world_minutes": hour * 60.0}, true)
+		var r: Node = sc.get("renderer")
+		var view: Dictionary = r.get("view")
+		var cam_z := float(view["camera_z"])
+		var x := float((view["player"] as Dictionary).get("x", 0.0))
+		var lights := float((view["palette"] as Dictionary).get("lights", 0.0))
+		var hidden_z := -1.0
+		var seen_z := -1.0
+		var z := cam_z + 20.0
+		while z < cam_z + 700.0:
+			var h0 := _below_road(r, z, x, 2.0)
+			var h1 := _below_road(r, z + 4.8, x, 2.0)
+			if seen_z < 0.0 and h0 < -0.5 and h1 < -0.5:
+				seen_z = z
+			if seen_z > 0.0 and h0 > 0.4 and h1 > 0.4:
+				hidden_z = z
+				break
+			z += 2.0
+		_need(p, hidden_z > 0.0, "%.0f Uhr: eine Kuppe voraus mit einer Stelle dahinter, die verdeckt ist" % hour)
+		if hidden_z < 0.0:
+			await _free(sc)
+			continue
+		var lit := {"tail": lights, "brake": 1.0, "blink": 1, "blink_t": 0.1}
+		# a braking car of the same set beside the player in every picture: lamps are on screen in all of them
+		var ref := _car(9600, sid, cam_z + 16.0, x - 3.75)
+		ref.merge({"tail": lights, "brake": 1.0}, true)
+		var empty := await _shot("modern", [ref], false)
+		var hid := _car(9601, sid, hidden_z, x)
+		hid.merge(lit, true)
+		var hidden := await _shot("modern", [ref, hid], false)
+		var n_hidden := _diff_count(empty, hidden)
+		var noise := _diff_count(empty, await _shot("modern", [ref], false))
+		var seen := _car(9601, sid, seen_z, x)
+		seen.merge(lit, true)
+		var shown := await _shot("modern", [ref, seen], false)
+		var n_shown := _diff_count(empty, shown)
+		_keep(hidden, "verdeckt_kuppe_%02d" % int(hour))
+		_need(p, noise == 0, "%.0f Uhr: zwei Bilder derselben Szene gleich (%d Pixel verschieden)" % [hour, noise])
+		_need(p, n_hidden == 0, "%.0f Uhr: Ersatzbild hinter der Kuppe (%.0f m) ändert 0 Pixel (geändert: %d)" % [hour, hidden_z - cam_z, n_hidden])
+		_need(p, n_shown > 30, "%.0f Uhr: dasselbe Bild vor der Kuppe (%.0f m) ist zu sehen (%d Pixel)" % [hour, seen_z - cam_z, n_shown])
+		msgs.append("%.0f Uhr hinter der Kuppe bei %.0f m: %d von %d Pixeln geändert (sichtbar bei %.0f m: %d Pixel)" % [hour,
+			hidden_z - cam_z, n_hidden, empty.get_width() * empty.get_height(), seen_z - cam_z, n_shown])
+		await _free(sc)
+	_report("verdeckt", p, "Kassel – Würzburg km 61,6 (T2), %s: " % sid + "; ".join(msgs))
 
 
 # --- laden --------------------------------------------------------------------------------------------------------
