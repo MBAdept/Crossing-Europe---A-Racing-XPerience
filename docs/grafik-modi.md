@@ -76,9 +76,17 @@ umgestellt –, das Spiel **ohne jedes Argument nach `--`** gestartet wurde (jed
 Wurde „Modern“ beim letzten Start nicht richtig beendet (der Marker `user://modern_start.lock` war beim Start noch da,
 `Settings.crash_guard`), läuft dieser Start in Arcade (`effective_graphics().reason == "crash_guard"`). Der Titel
 fragt dann einmal: **„Der Modus „Modern“ wurde beim letzten Start nicht richtig beendet.“** mit „Bei Arcade bleiben“
-(Fokus, auch B / Esc) und „Modern noch einmal versuchen“. „Bei Arcade bleiben“ speichert Grafik Arcade; beide
-Antworten entfernen den Marker (`Settings.disarm_crash_guard()`), danach hat der Titel wieder seinen Fokus. Ist
-gar kein Modus gewählt, übernimmt die Auswahl beim ersten Start diese Rolle (Warnung, Arcade empfohlen).
+(Fokus, auch B / Esc) und „Modern noch einmal versuchen“. Beide Antworten entfernen den Marker, danach hat der
+Titel wieder seinen Fokus. Ist gar kein Modus gewählt, übernimmt die Auswahl beim ersten Start diese Rolle (Warnung,
+Arcade empfohlen).
+
+**Erst der zweite Fehlstart in Folge speichert Arcade** (FIX1, Prüfung QS-04): Beendet Steam („Spiel beenden“) oder das
+Abmelden das Spiel mit SIGTERM, während eine Modern-Etappe lädt, bleibt der Marker liegen wie nach einem Absturz.
+`Settings.crash_strikes()` zählt die Starts in Folge, die einen Marker fanden (Datei `user://modern_start.strikes` neben
+dem Marker). Beim ersten Mal lässt „Bei Arcade bleiben“ nur diesen Start in Arcade (die Wahl bleibt Modern, der Text
+sagt „der nächste versucht „Modern“ wieder“); geht auch der nächste Modern-Start schief, sagt die Frage „Das ist schon
+zum zweiten Mal passiert“, und „Bei Arcade bleiben“ speichert Grafik Arcade. Eine Etappe, die in Modern 2 s lief, und
+„Modern noch einmal versuchen“ vergessen die Fehlstarts.
 
 ## Ergebnisse und Bestenlisten
 
