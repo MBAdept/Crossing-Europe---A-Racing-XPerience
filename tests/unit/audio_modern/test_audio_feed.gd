@@ -640,3 +640,148 @@ func test_concrete_threshold_per_country() -> void:
 		assert_near(float(cal[c][0]), share, 1.0e-6, "Schwelle von %s gilt für den eingestellten Anteil (sonst neu kalibrieren)" % c)
 	assert_eq(AudioFeed.section_key("kiel_hamburg", {"name": "A7 Holstein", "length_km": 20.0, "country": "DE", "scenery": "north_plain"}),
 		"kiel_hamburg|A7 Holstein|20.000|DE|north_plain", "Schlüssel eines Abschnitts wie bisher")
+
+
+# --- AU-R3: no old-town cobbles on a bridge without a stone deck ---------------------------------------------------
+
+## A real stage plan (StagePlan + CityData) and its Track: 30 km to the destination `city_id`, whose old town (an
+## "italian" style with cobbles) is the last centre_km, with one bridge of `bridge_type` km_to_finish before the
+## finish (KRITIK-R L2: the causeway to Venice, a concrete deck inside the old-town zone, was cobbled on 16 of 28 rows).
+func _city_with_bridge(city_id: String, bridge_type: String, centre_km: float, km_to_finish: float, length_m: float) -> Track:
+	var real: Variant = ConfigLoader.load_json("res://data/cities.json")
+	var db := {"styles": (real as Dictionary).get("styles", {}), "country_style": {}, "center_km": 8.0,
+		"cities": {city_id: {"style": "italian", "center_km": centre_km,
+			"bridges": [{"type": bridge_type, "km_to_finish": km_to_finish, "length_m": length_m, "name": "Damm"}]}}}
+	var cities := {"a": {"name": "Astadt", "country": "DE"}, city_id: {"name": "Dammstadt", "country": "DE"}}
+	var stage := {"id": "t_damm", "from": "a", "to": city_id, "length_km": 30, "seed": 77,
+		"sections": [{"length_km": 30, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "north_plain", "country": "DE",
+			"speed_limit": null}], "fuel_stations_km": [5], "radars": [], "tunnels": [], "borders": []}
+	var plan := StagePlan.build(stage, "a", cities, COUNTRIES, cfg(), db)
+	var sc: Variant = ConfigLoader.load_json("res://data/scenery.json")
+	var track := Track.new()
+	track.setup(plan, cfg(), (sc as Dictionary).get("scenery", {}))
+	return track
+
+
+## Drives the old town of `track` in steps of 1 m: {"bridge_m", "bridge_cobbles_m", "street_m", "street_cobbles_m",
+## "pavings_on_bridge" (paving -> m), "decks" (deck -> m), "wrong_surface" (steps whose wheels did not run on the paving)}.
+func _drive_old_town(f: AudioFeed, track: Track) -> Dictionary:
+	var plan: StagePlan = track.plan
+	var out := {"bridge_m": 0.0, "bridge_cobbles_m": 0.0, "street_m": 0.0, "street_cobbles_m": 0.0, "pavings_on_bridge": {},
+		"decks": {}, "wrong_surface": 0}
+	var z := track.km_to_z(plan.city_center_km) + 0.5
+	f.update(_state(z - 1.0))
+	while z < track.km_to_z(plan.length_km):
+		f.update(_state(z))
+		if plan.in_city_center(track.z_to_km(z)):
+			var on_bridge := not track.bridge_at(z).is_empty()
+			if on_bridge:
+				out["bridge_m"] = float(out["bridge_m"]) + 1.0
+				out["bridge_cobbles_m"] = float(out["bridge_cobbles_m"]) + (1.0 if f.paving == "cobbles" else 0.0)
+				var pv: Dictionary = out["pavings_on_bridge"]
+				pv[f.paving] = float(pv.get(f.paving, 0.0)) + 1.0
+				var dk: Dictionary = out["decks"]
+				dk[f.deck] = float(dk.get(f.deck, 0.0)) + 1.0
+			else:
+				out["street_m"] = float(out["street_m"]) + 1.0
+				out["street_cobbles_m"] = float(out["street_cobbles_m"]) + (1.0 if f.paving == "cobbles" else 0.0)
+			if f.surface_l != f.paving or f.surface_r != f.paving:
+				out["wrong_surface"] = int(out["wrong_surface"]) + 1
+		z += 1.0
+	return out
+
+
+## The causeway case: a concrete deck where the old town begins, the streets behind it. Every block of the centre
+## cobbled (share 1): the deck stays asphalt with its joints, the streets are cobbled; a steel deck stays "deck", a
+## stone bridge stays cobbled.
+func test_no_old_town_cobbles_on_a_concrete_deck() -> void:
+	var t := _city_with_bridge("damm4", "causeway", 6.6, 6.6, 380.0)
+	assert_eq(t.bridges.size(), 1, "der Damm liegt auf der Etappe")
+	var f := _feed_with(t, {"cobble_styles": ["italian"], "cobble_share": 1.0})
+	var r := _drive_old_town(f, t)
+	assert_near(float(r["bridge_m"]), 380.0, 4.0, "380 m Damm in der Altstadt")
+	assert_near(float(r["street_m"]), 280.0, 4.0, "280 m Straßen dahinter")
+	assert_eq(r["decks"], {"concrete": r["bridge_m"]}, "Betondeck auf dem ganzen Damm")
+	assert_eq(r["pavings_on_bridge"], {"asphalt": r["bridge_m"]}, "auf dem Betondeck Asphalt, kein Altstadtpflaster")
+	assert_near(float(r["street_cobbles_m"]), float(r["street_m"]), 0.0, "die Straßen der Altstadt gepflastert (Anteil 1)")
+	assert_eq(int(r["wrong_surface"]), 0, "alle Räder auf dem Belag der Stelle")
+	# the joints of the concrete deck stay as they are (every 32 m and at both ends)
+	var g := _feed_with(t, {"cobble_styles": ["italian"], "cobble_share": 1.0})
+	var b: Dictionary = t.bridges[0]
+	g.update(_state(float(b["z0"]) - 2.0))
+	var joints := 0
+	for e in _drive(g, float(b["z0"]) - 1.0, float(b["z1"]) + 2.0, 1.0):
+		if str(e["name"]) == "joint":
+			joints += 1
+			assert_eq(str(e["deck"]), "concrete", "Fuge eines Betondecks")
+	assert_eq(joints, 13, "Fugen wie bisher: 380 m Beton, alle 32 m und an beiden Enden")
+	# steel deck and stone bridge as before
+	for row: Array in [["truss_arch", "steel", "deck"], ["stone_arch", "stone", "cobbles"]]:
+		var ts := _city_with_bridge("damm4", str(row[0]), 6.6, 6.6, 380.0)
+		var rs := _drive_old_town(_feed_with(ts, {"cobble_styles": ["italian"], "cobble_share": 1.0}), ts)
+		assert_eq(rs["decks"], {str(row[1]): rs["bridge_m"]}, "Deck %s" % str(row[1]))
+		assert_eq(rs["pavings_on_bridge"], {str(row[2]): rs["bridge_m"]}, "%s: %s wie bisher" % [str(row[0]), str(row[2])])
+
+
+## With the share of the configuration a concrete deck in the middle of the old town gets no cobbles, and the
+## streets around it get the share of the old town (the deck is no street: it is taken out of the allocation, so
+## the cobbled blocks do not end up on the bridge). Before AU-R3 this town had 0.42 on its streets.
+func test_old_town_share_on_its_streets_around_a_bridge() -> void:
+	var t := _city_with_bridge("damm4", "river", 8.0, 6.0, 300.0)
+	var f := _feed_with(t, {"cobble_styles": ["italian"], "cobble_share": 0.6})
+	var r := _drive_old_town(f, t)
+	assert_near(float(r["bridge_m"]), 300.0, 4.0, "300 m Brücke mitten in der Altstadt")
+	assert_near(float(r["street_m"]), 500.0, 4.0, "500 m Straßen")
+	assert_near(float(r["bridge_cobbles_m"]), 0.0, 0.0, "kein Pflaster auf dem Betondeck")
+	var share := float(r["street_cobbles_m"]) / float(r["street_m"])
+	assert_near(share, 0.6, 0.05, "Pflasteranteil der Straßen %.3f (Ziel 0,6 ± 0,05)" % share)
+
+
+## The allocation with stretches that are no street: a block counts with its street metres only, a block wholly on
+## a bridge is never cobbled, the streets get their share within half a block, and a stretch outside the centre (the
+## bridges of Hamburg lie 11 and 17 km before the finish, its centre is the last 8 km) changes nothing at all.
+func test_cobbled_blocks_count_only_the_streets() -> void:
+	var cases: Array = [[800.0, [[300.0, 600.0]]], [660.0, [[280.0, 660.0]]], [1000.0, [[350.0, 480.0]]],
+		[800.0, [[0.0, 40.0], [200.0, 242.0], [505.0, 545.0]]], [900.0, [[600.0, 700.0], [650.0, 800.0]]]]
+	var sum_share := 0.0
+	var n_share := 0
+	for city in 30:
+		var name := "stadt%d" % city
+		for c: Array in cases:
+			var centre_m := float(c[0])
+			var skip: Array = c[1]
+			var alloc := AudioFeed.cobbled_blocks(name, centre_m, 90.0, 0.6, skip)
+			var n := int(ceil(centre_m / 90.0 - 1.0e-6))
+			assert_eq(alloc.size(), n, "jeder Block entschieden")
+			var street := 0.0
+			var cobbled := 0.0
+			for b in n:
+				var a0 := b * 90.0
+				var a1 := minf(a0 + 90.0, centre_m)
+				var on_bridge := 0.0
+				for s: Array in AudioFeed._merged_stretches(skip):
+					on_bridge += maxf(minf(a1, float(s[1])) - maxf(a0, float(s[0])), 0.0)
+				street += (a1 - a0) - on_bridge
+				if bool(alloc[b]):
+					cobbled += (a1 - a0) - on_bridge
+					assert_true((a1 - a0) - on_bridge > 0.5, "%s: Block %d ganz auf der Brücke nie gepflastert" % [name, b])
+			assert_true(absf(cobbled - 0.6 * street) <= 45.0 + 1.0e-6,
+				"%s, %.0f m: Straßenanteil %.3f (höchstens ein halber Block neben 0,6)" % [name, centre_m, cobbled / street])
+			sum_share += cobbled / street
+			n_share += 1
+	assert_near(sum_share / n_share, 0.6, 0.03, "im Mittel der Städte 0,6 (%.3f)" % (sum_share / n_share))
+	# no street stretch inside the centre: the allocation is the one without stretches, block for block
+	for city in 30:
+		var name := "stadt%d" % city
+		var plain := AudioFeed.cobbled_blocks(name, 800.0, 90.0, 0.6)
+		assert_eq(AudioFeed.cobbled_blocks(name, 800.0, 90.0, 0.6, [[900.0, 1100.0], [1440.0, 1700.0]]), plain, "Brücken vor der Altstadt ändern nichts")
+		assert_eq(AudioFeed.cobbled_blocks(name, 800.0, 90.0, 0.6, [[800.0, 860.0]]), plain, "eine Brücke, die am Altstadtrand endet, auch nicht")
+	# overlapping stretches in any order are merged; a stone bridge is a street (its setts are the old town's)
+	assert_eq(AudioFeed.cobbled_blocks("stadt7", 900.0, 90.0, 0.6, [[650.0, 800.0], [600.0, 700.0]]),
+		AudioFeed.cobbled_blocks("stadt7", 900.0, 90.0, 0.6, [[600.0, 800.0]]), "überlappende Brücken wie eine")
+	var p := StagePlan.new()
+	p.bridges.append({"start_km": 22.0, "end_km": 25.0, "type": "causeway"})
+	p.bridges.append({"start_km": 26.0, "end_km": 27.0, "type": "stone_arch"})
+	p.bridges.append({"start_km": 28.0, "end_km": 28.5, "type": "cable_stayed"})
+	assert_eq(AudioFeed.bridge_stretches(p, 30.0, 10.0), [[500.0, 800.0], [150.0, 200.0]], "Beton und Stahl, nicht Stein (m vor dem Ziel)")
+	assert_eq(AudioFeed.bridge_stretches(null, 30.0, 10.0), [], "ohne Plan keine")

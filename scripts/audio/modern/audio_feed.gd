@@ -14,7 +14,8 @@ extends RefCounted
 ##                           no guardrail). In tunnels, on bridges and in the City Limits the shoulder is paved.
 ##   paving                  the paving at the car: "asphalt", "concrete" (sections of concrete_roads, chosen per
 ##                           section from concrete_share – the same section has the same paving in both directions),
-##                           "cobbles" (blocks of the city centre of cobble_styles, and stone bridges), "deck"
+##                           "cobbles" (blocks of the city centre of cobble_styles – never on a bridge without a stone
+##                           deck: a concrete deck in the city is asphalt, AU-R3 –, and stone bridges), "deck"
 ##   deck                    material of the bridge the car is on: "steel", "concrete", "stone" ("" = no bridge)
 ##   rumble_road             the road has profiled edge lines (rumble_roads)
 ##   wet, snow               0..1 from the weather (dry inside a tunnel)
@@ -351,8 +352,9 @@ func _update_segment(state: Dictionary) -> void:
 	paving = _paving()
 
 
-## Paving at the car: a steel deck, a stone bridge (setts), a cobbled block of the city centre, a concrete section,
-## else asphalt.
+## Paving at the car: a steel deck, a stone bridge (setts), a cobbled block of the city centre (off the bridges only:
+## a concrete deck in the old town stays asphalt, as the causeway to Venice is – AU-R3, KRITIK-R L2), a concrete
+## section, else asphalt.
 func _paving() -> String:
 	if deck == "steel":
 		return "deck"
@@ -361,7 +363,7 @@ func _paving() -> String:
 	if tunnel:
 		return "asphalt"
 	var km := _km(z)
-	if city and _cobbled(km):
+	if city and deck == "" and _cobbled(km):
 		return "cobbles"
 	if not city and concrete_roads.has(road) and _concrete_section(km):
 		return "concrete"
@@ -411,7 +413,8 @@ static func section_key(stage_id: String, section: Dictionary) -> String:
 
 ## The block of the city centre at km is cobbled (centre of a city whose style has cobbles; blocks counted from the
 ## finish line, so they do not move when the stage is longer or shorter in front of the city). Which blocks: see
-## cobbled_blocks (AU-R: every centre gets cobble_share of its length, not only on average over all cities).
+## cobbled_blocks (AU-R: every centre gets cobble_share of its length, not only on average over all cities; AU-R3:
+## of the length of its streets – the bridges without a stone deck, bridge_stretches, do not count).
 func _cobbled(km: float) -> bool:
 	if plan == null or cobble_styles.is_empty():
 		return false
@@ -427,7 +430,7 @@ func _cobbled(km: float) -> bool:
 		var centre: Variant = plan.get("city_center_km")
 		if (length is float or length is int) and (centre is float or centre is int):
 			_cobbles = cobbled_blocks(str(plan.get("to_id")), maxf(float(length) - float(centre), 0.0) * 1000.0 / _time_scale,
-				cobble_block_m, cobble_share)
+				cobble_block_m, cobble_share, bridge_stretches(plan, float(length), _time_scale))
 	if _cobbles.has(block):
 		return bool(_cobbles[block])
 	var yes := unit_hash("%s|%d" % [str(plan.get("to_id")), block]) < cobble_share     # a plan without a centre length
@@ -440,24 +443,78 @@ func _cobbled(km: float) -> bool:
 ## the cobbled length nearer to share × centre_m, so each centre gets its share within half a block (an 800-m centre
 ## 0.55 or 0.56 at 0.6) and the hash only decides which blocks (KRITIK-FAHRBAHN B2; with a decision per block from the
 ## hash alone a centre got 0.34–0.90, measured over all stages).
-static func cobbled_blocks(city: String, centre_m: float, block_m: float, share: float) -> Dictionary:
+## `skip`: stretches of the centre that are no street ([from, to] in visible metres before the finish – the bridges
+## without a stone deck, bridge_stretches; AU-R3). A block counts only with its street metres and the share is that of
+## the streets, so no cobbled block is spent on a bridge where the car hears none; a block wholly on such a bridge is
+## never cobbled. Without such a stretch inside the centre the result is the one without `skip`, bit for bit.
+static func cobbled_blocks(city: String, centre_m: float, block_m: float, share: float, skip: Array = []) -> Dictionary:
 	var out := {}
 	if centre_m <= 0.0 or block_m <= 0.0:
 		return out
 	var n := maxi(int(ceil(centre_m / block_m - 1.0e-6)), 1)
+	var gaps := _merged_stretches(skip)
 	var order: Array = []
+	var street: Array[float] = []
+	var cut_all := 0.0
 	for b in n:
 		order.append([unit_hash("%s|%d" % [city, b]), b])
 		out[b] = false
+		var w := minf(block_m, centre_m - b * block_m)
+		var cut := 0.0
+		for g: Array in gaps:
+			cut += maxf(minf(b * block_m + w, float(g[1])) - maxf(b * block_m, float(g[0])), 0.0)
+		if cut > 0.0:
+			cut = minf(cut, w)
+			cut_all += cut
+			w = w - cut if w - cut > 1.0e-6 else 0.0
+		street.append(w)
 	order.sort_custom(func(p: Array, q: Array) -> bool: return float(p[0]) < float(q[0]))
-	var target := clampf(share, 0.0, 1.0) * centre_m
+	var target := clampf(share, 0.0, 1.0) * (centre_m - cut_all)
 	var got := 0.0
 	for row: Array in order:
 		var b := int(row[1])
-		var w := minf(block_m, centre_m - b * block_m)
+		var w := street[b]
 		if absf(got + w - target) < absf(got - target):
 			got += w
 			out[b] = true
+	return out
+
+
+## The bridges of a plan without a stone deck as stretches [from, to] in visible metres before the finish: the car
+## hears no old-town cobbles there (a steel deck is "deck", a concrete deck asphalt – _paving), so they are no street
+## of the old town and get no part of its cobble share (AU-R3). Taken from the plan, not from the track: the bridges of
+## a city count from the finish (CityData), so every stage that ends there cuts the same stretches.
+static func bridge_stretches(p: Object, length_km: float, time_scale: float) -> Array:
+	var out: Array = []
+	var bridges: Variant = p.get("bridges") if p != null else null
+	if not (bridges is Array) or time_scale <= 0.0:
+		return out
+	for b: Variant in bridges:
+		if not (b is Dictionary) or not (b as Dictionary).has("start_km") or not (b as Dictionary).has("end_km"):
+			continue
+		if deck_of(str((b as Dictionary).get("type", ""))) == "stone":
+			continue
+		out.append([(length_km - float(b["end_km"])) * 1000.0 / time_scale, (length_km - float(b["start_km"])) * 1000.0 / time_scale])
+	return out
+
+
+## Stretches [a, b] (either order) sorted and merged where they overlap; anything else in the list is ignored.
+static func _merged_stretches(stretches: Array) -> Array:
+	var spans: Array = []
+	for s: Variant in stretches:
+		if s is Array and (s as Array).size() >= 2:
+			var a := float(s[0])
+			var b := float(s[1])
+			spans.append([minf(a, b), maxf(a, b)])
+	spans.sort_custom(func(p: Array, q: Array) -> bool: return float(p[0]) < float(q[0]))
+	var out: Array = []
+	for s: Array in spans:
+		if not out.is_empty():
+			var last: Array = out[-1]
+			if float(s[0]) <= float(last[1]):
+				last[1] = maxf(float(last[1]), float(s[1]))
+				continue
+		out.append(s)
 	return out
 
 
