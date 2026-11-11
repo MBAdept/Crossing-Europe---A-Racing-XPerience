@@ -1174,7 +1174,9 @@ gesucht): Rempler 6 km/h −11,2 dBFS, Auffahren 30 km/h −7,8, schwerer Aufpra
 Seit AU-R (Werte oben von AU-C1): Jede Schicht kommt zufällig ±2 dB und 0–20 ms später, eine Variante zufällig.
 Damit der Begrenzer einen schweren Aufprall um höchstens 3 dB drückt, liegt nur die lauteste Schicht der schweren
 Stufe tiefer: der tiefe Schlag `hit_heavy` −11,5 statt −9,0 dB, gegen Lkw/Bus der Schlag des Aufbaus `truck` −11
-statt −10 dB (gemessen in Abschnitt 15.9; Blech, Glas und Kleinteile unverändert).
+statt −10 dB (gemessen in Abschnitt 15.9; Blech, Glas und Kleinteile unverändert). AU-R2 hat beides über je 60
+Unfälle nachgemessen (Abschnitt 15.10): 95-%-Wert der Begrenzung gegen Pkw 2,14 dB, gegen Lkw 2,42 dB; der Lkw-Schlag
+mit −10 dB käme auf 3,02 dB (4 von 60 Unfällen über 3 dB) – die Senkung bleibt.
 
 ### 15.5 Der schlimmste Fall
 
@@ -1196,6 +1198,10 @@ AU-R, bei Gesamtlautstärke 1,0 gemessen: auf dem Stand von AU-C1 **−0,47 dBTP
 
 GDScript je Bild (Wiedergabe an, echte Strecke, Mittel / Maximum): Feed 0,06 / 3,0 ms, `road` 0,14 / 1,2 ms,
 `impact` 0,01 / 0,7 ms (gemessen auf der belasteten Entwicklungsmaschine; die Maxima sind einzelne Bilder).
+Auf Beton (km 42, AU-R2, je drei Läufe im Wechsel mit AU-C1 unter derselben Last): `road` im Mittel 0,27–0,34 ms,
+95 % 0,29–0,38 ms (AU-C1 0,17–0,20 / 0,19–0,23 ms; AU-R mit der Sperre in jedem Bild 0,37–0,40 / 0,59–0,62 ms). Der
+Rest gegenüber AU-C1 sind die eigenen Schleifen und die Pegeldrift je Seite (abgeleitet), nicht die Sperre: Die
+Plattenschleifen sperren den Audioserver nur noch beim Start und alle 0,5 s (Abschnitt 15.10).
 
 ### 15.7 Fallen (gemessen, Godot 4.7.2)
 
@@ -1213,6 +1219,14 @@ GDScript je Bild (Wiedergabe an, echte Strecke, Mittel / Maximum): Feed 0,06 / 3
 6. **Zeitmarken einer Aufnahme mit dem Dummy-Treiber** liegen hinter dem Klang: anfangs etwa einen Block (93 ms),
    nach 30 s bis 0,4 s (die Uhr des Skripts und die aufgenommenen Frames laufen auseinander). Pegel je Ereignis darum
    an den Einsätzen im Ton messen, nicht an den Marken.
+7. **Zwei Schleifen im Gleichschritt addieren sich nicht wie Rauschen** (AU-R2): Schläge, die auf denselben
+   Zeitpunkt fallen und ihre Schwingungen bei Phase 0 beginnen, addieren sich teilweise kohärent – die Klangfarbe des
+   Paares hängt dann davon ab, welcher Schlag auf welchen trifft (Betonplatten bei 130 km/h: bis ±2,5 dB in
+   200–1000 Hz). Wer ein Paar im Gleichschritt angleicht, muss das Paar angleichen, nicht jede Schleife allein.
+8. **`AudioEffectHardLimiter` gibt nicht ganz frei** (AU-R2, gemessen): Nachdem er einmal begrenzt hat, bleiben
+   0,05–0,14 dB Absenkung stehen, auch wenn das Signal danach 8 dB unter der Obergrenze liegt – bis zum Ende der
+   Aufnahme. Unhörbar; wer die Begrenzung als Verhältnis vor/nach dem Begrenzer misst, sieht danach dauerhaft
+   „Begrenzung > 0,1 dB“ und darf das nicht als Eingriffe zählen.
 
 ### 15.8 Offene Punkte
 
@@ -1221,17 +1235,21 @@ GDScript je Bild (Wiedergabe an, echte Strecke, Mittel / Maximum): Feed 0,06 / 3
 - **Bezug neu messen**, wenn sich die Motoren ändern (AU-E): `road.engine_top_lufs` ist gemessen, nicht gerechnet.
 - **Verkehr und Martinshorn** (Platzhalter, AU-C2) treiben im schlimmsten Fall den Begrenzer um 4 dB.
 - **Höchsttempo-Zeile des Plans** (siehe 15.3; seit AU-R im Plan: −15 ± 1 LUFS).
-- **Betonplatten bei 200 km/h** (AU-R gemessen): ihre Schläge liegen bei −2,7 dBFS (Median der Sekundenspitzen vor
-  dem Begrenzer) – knapp unter seiner Obergrenze von −2 dB: auf Beton mit 200 km/h greift er etwa 12-mal je Minute um
-  höchstens 1,0 dB (2,4 % der Zeit; mit dem Pegel von AU-C1 wären es 16-mal und 1,5 dB). Der Vertrag will beim
-  Reisen höchstens 0,5 dB. Abhilfe ist der Pegel der Platten (`slabs.db` 3 → −3 steht für die nächste Runde an).
+- **Betonplatten bei 200 km/h**: Seit AU-R2 steigt der Plattenpegel über 150 km/h nur noch um 4 dB je Dekade
+  (`slabs.high_kmh`, `slabs.high_slope_db`; bei 200 km/h 2,0 dB unter AU-R). Der Begrenzer nimmt beim Reisen mit
+  200 km/h auf Beton in vier Läufen höchstens 0,44 / 0,43 / 0,08 / 0,08 dB (Grenze 0,5; Abschnitt 15.10) – zwei Läufe
+  knapp darunter: Die Spitzen sind die Summe aller Schichten (Motor, Reifen, Wind, Platten) und schwanken von Lauf zu
+  Lauf um etwa ±0,5 dB. Ein Kriterium „höchstens 0,5 dB“ ohne Messdauer und Perzentil ist eine Zufallsgröße
+  (Vertragsfrage, Bericht AU-R2). `slabs.db` 3 → −3 (nächste Runde) senkt die Platten weiter.
 - **Beton je Land** (AU-R gemessen): mit der Schwelle je Land (`concrete_threshold`) liegen 14 von 18 Ländern im
   Anteil ±0,05. Slowenien (5 Abschnitte), Litauen (3), Bulgarien und Lettland (je 1) können es nicht: ihr nächster
   möglicher Anteil ist 0 oder mindestens 0,19. Kommen Etappen dazu oder ändert sich ein Anteil, die Schwellen mit
   `calibrate_concrete.gd` neu rechnen (ein Test meldet einen geänderten Anteil).
-- **Wiederholung auf Beton**: der Takt der Platten ist gewollt (eine Fuge alle 5 m), seine Hüllkurve wiederholt sich
-  darum in jedem Abstand von n × 5 m – der Grenzwert 0,40 der Hüllkurven-Autokorrelation gilt für Rauschen, nicht
-  für einen festen Takt (mit den Platten 0,65, ohne sie 0,11; Abschnitt 15.9).
+- **Wiederholung auf Beton** (Vertragsfrage, offen): der Takt der Platten ist gewollt (eine Fuge alle 5 m), seine
+  Hüllkurve wiederholt sich darum in jedem Abstand von n × 5 m – der Grenzwert 0,40 der Hüllkurven-Autokorrelation
+  gilt für Rauschen, nicht für einen festen Takt. AU-R2 gemessen (130 km/h, 2,5–8 kHz): mit den Platten bei
+  `slabs.db` 3 0,687, bei 0 dB 0,518, bei −3 dB 0,369, ohne Platten 0,196 (Abschnitt 15.10). Entweder gilt der
+  Grenzwert auf Beton ohne die Plattenschicht, oder die Platten werden in der nächsten Runde leiser (−3 dB hält ihn).
 - **Radstand** aus der Länge des Autos (0,6 ×, keine Daten); die Betonplatten-Schleifen sind für 2,7 m entworfen
   (Kompakt 2,46 m: Abstand der Achsschläge 9 % zu lang, abgeleitet).
 - **Einschnitt** ist eine Regel aus Felsen am Rand (die Daten kennen keine Einschnitte); AU-C2 kann sie verfeinern.
@@ -1330,3 +1348,78 @@ Terzen 25 Hz–12,5 kHz bis 30 dB unter der lautesten:
 
 Vor der Angleichung an den gehörten Klang lag Pflaster bei 1,00 dB (126 Hz) und der Spielmix Pflaster bei 1,05 dB:
 Der Kamm der zwei versetzten Spieler von AU-C1 fehlte (Abschnitt 15.2).
+
+### 15.10 AU-R2: Nachbesserung nach der Nachmessung (vorher → nachher)
+
+Eine unabhängige Nachmessung (KRITIK-R) fand am Stand von AU-R zwei hohe und fünf mittlere Befunde. AU-R2 behebt
+sie, hält den Klang von AU-C1 und misst jeden Befund mit den Skripten der Nachmessung nach: „AU-C1“ = vorher, mit
+denselben Skripten aufgenommen; „AU-R“ = die Zahl der Nachmessung; alles gemessen (Godot 4.7.2, ohne Bildschirm,
+Dummy-Treiber, Limousine, Kiel – Hamburg, Gesamtlautstärke 1,0, belastete Maschine), sofern nicht „abgeleitet“
+dasteht. Gehört hat es niemand.
+
+**Plattenschicht in der Klangfarbe (H1).** Ursache war nicht die Angleichung der einzelnen Entwürfe – jeder lag
+allein innerhalb 0,8 dB von AU-C1 –, sondern das Spielen im Gleichschritt (Abschnitt 15.7, Falle 7): Zwischen 110
+und 150 km/h klingen beide Entwürfe zugleich, ihre Schläge fallen auf dieselben Zeitpunkte, und welche Fuge des
+einen auf welche des anderen trifft, formte 200–1000 Hz um. Ein Modell der Schicht aus den Dateien (Tonhöhen,
+Überblendung und Pegel wie `road_audio.gd`) trifft die Messung der Nachmessung auf 0,05 dB. Seit AU-R2 bestehen die
+32 Platten jedes Entwurfs aus den 8 Fugen des Entwurfs von AU-C1 (Abschnitt 15.2), für beide Entwürfe in derselben
+Folge – Fuge j des langsamen trifft wie bei AU-C1 auf Fuge j des schnellen. Modell: 90–230 km/h, das Paar bei
+120–140 km/h eingeschlossen, höchstens 0,43 dB je Terz und 0,14 LU neben AU-C1.
+
+| Aufnahme (130 km/h, ohne Zufall) | AU-R | AU-R2 |
+|---|---|---|
+| nur Platten | +1,75 dB bei 398 Hz (+0,06 LU) | +0,55 dB bei 631 Hz (+0,13 LU) |
+| Beton, nur Fahrbahn (Reifen + Platten) | +1,09 dB bei 398 Hz (+0,04 LU) | +0,32 dB bei 398 Hz (+0,07 LU) |
+| Spielmix Beton | +0,78 dB (−0,04 LU) | +0,52 dB bei 25 Hz (+0,03 LU) |
+
+**Wiederholung auf Beton (H2, offen – Vertragsfrage).** 130 km/h, Spielmix, 2,5–8 kHz, größte Spitze 0,3–3 s:
+AU-C1 0,889 (0,97 s), AU-R 0,642 (1,80 s), AU-R2 0,687 (1,80 s; 3–8 s: 0,704 bei 7,20 s, 0,696 bei 3,60 s). Alle
+Spitzen liegen auf Vielfachen der Plattenzeit – der Takt, keine Schleife. Ohne Plattenschicht 0,196 (0,48 s); mit
+`slabs.db` 0 statt 3: 0,518, mit −3: 0,369 – mit dem Pegel, den die Nachmessungen für die nächste Runde vorschlagen,
+hält Beton den Grenzwert. Der Pegel bleibt in dieser Runde (Vorgabe).
+
+**Sperre des Audioservers (M1).** `_update_slabs()` sperrt nur noch, wenn eine Plattenschleife startet, und für den
+Abgleich alle 0,5 s (Test `test_slab_loops_lock_the_mixer_only_to_start`). Rechenzeit `road` auf Beton: Abschnitt
+15.6.
+
+**Begrenzer beim Reisen auf Beton (M3).** Über 150 km/h steigt der Plattenpegel nur noch um 4 dB je Dekade (bis
+150 km/h unverändert; 170 km/h −0,9 dB, 200 km/h −2,0 dB gegen AU-R). Begrenzung bei 200 km/h, je Lauf 57 s:
+
+| Stand | Läufe (höchste Begrenzung) | Spitze vor dem Begrenzer |
+|---|---|---|
+| AU-R (Nachmessung / AU-R selbst) | 0,44 / 0,96 dB | −1,56 / −1,04 dBFS |
+| neue Muster mit dem Pegel von AU-R | 1,50 / 1,32 dB | −0,50 / −0,68 dBFS |
+| 8 dB je Dekade (−1,5 dB) | 0,65 / 0,30 / 0,10 / 0,00 dB | −1,35 … −2,15 dBFS |
+| **4 dB je Dekade (−2,0 dB, Stand)** | **0,44 / 0,43 / 0,08 / 0,08 dB** | −1,56 / −1,57 / −2,11 / −2,58 dBFS |
+
+Die 0,08 dB der Läufe 3 und 4 sind der Rest des vorigen Laufs (Falle 8), die Spitzen dort liegen unter der
+Obergrenze. Bei 170 km/h 0 dB (True Peak −2,4 dBTP). Die Spitzen sind die Summe aller Schichten und schwanken von
+Lauf zu Lauf um etwa ±0,5 dB (Abschnitt 15.8).
+
+**Aufprall (M2, M4).** Je 60 schwere Unfälle mit 130 km/h Schließgeschwindigkeit (eigene Zufallsfolgen):
+
+| Partner, Pegel | Begrenzung Median / 95 % / höchstens | Unfälle über 3 dB | True Peak höchstens |
+|---|---|---|---|
+| Pkw, `hit_heavy` −11,5 (Stand) | 0,27 / 2,14 / 4,05 dB | 1 von 60 | −1,32 dBTP |
+| Lkw, `truck.heavy` −11 (Stand) | 0,69 / 2,42 / 3,25 dB | 1 von 60 | −1,63 dBTP |
+| Lkw, `truck.heavy` −10 (AU-C1) | 1,24 / 3,02 / 3,41 dB | 4 von 60 | −1,58 dBTP |
+
+Als 95-%-Wert über 60 Unfälle gelesen (Vorschlag der Nachmessung) hält der Stand die 3 dB; mit dem Lkw-Pegel von AU-C1
+läge er knapp darüber – die Senkung um 1 dB bleibt. Das Maximum einzelner Unfälle wächst mit ihrer Zahl
+(Vertragsfrage: Kriterium als Perzentil über eine feste Zahl).
+
+**Pflaster (M5).** Die rechte Schleife (Seed + 50) hatte zwei Schläge, bei denen alle vier Räder binnen 1–3 ms
+zusammentrafen – ihre lautesten Spitzen lagen 2 dB über allem in AU-C1 und kamen alle 7 s wieder. Seit AU-R2 Seed + 64
+(von 40 geprüften Seeds der mit den niedrigsten Spitzen), angeglichen für die Tonhöhe, mit der die rechte Seite spielt
+(`match_loop(…, pitch)`: der steile Anstieg des Karosserie-Grollens unter 48 Hz nahm sonst 0,5 dB aus der 40-Hz-Terz).
+Ohne Zufall, 50 km/h, nur Fahrbahn, je Kanal:
+
+| | AU-C1 | AU-R | AU-R2 |
+|---|---|---|---|
+| True Peak der Schicht | −9,02 dBTP | −6,34 dBTP | −8,59 dBTP |
+| lautester Stein gegen AU-C1, links / rechts | – | +1,6 / +3,0 dB | +0,12 / +0,21 dB |
+| Scheitelfaktor links / rechts | 13,56 / 13,58 dB | 15,2 / 16,6 dB | 13,87 / 13,94 dB |
+| Klangfarbe nur Fahrbahn / Spielmix | – | −0,77 / −1,02 dB bei 40 Hz | −0,56 dB bei 25 Hz / −0,44 dB bei 40 Hz |
+
+Wie gespielt (mit Pegeldrift) wiederholt sich jede Seite weiter mit ihrer Länge: nur Fahrbahn 0,485 bei 5,70 s und
+0,247 bei 6,96 s (AU-R 0,478 / 0,339) – außerhalb des Fensters 0,3–3 s, dort höchstens 0,121.
