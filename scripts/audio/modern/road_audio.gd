@@ -202,6 +202,8 @@ var _drift_s := 0.8
 var _exact_pitch: Array = ["rumble"]
 var _slab_db := -2.0
 var _slab_slope := 20.0
+var _slab_high_kmh := 150.0
+var _slab_high_slope := 20.0
 var _slab_xfade := Vector2(110.0, 150.0)
 var _slab_align_ms := 6.0
 var _squeal_lufs := -19.0
@@ -353,6 +355,8 @@ func _read_config() -> void:
 		_exact_pitch = ex
 	_slab_db = ctx.number("road.slabs.db", _slab_db)
 	_slab_slope = ctx.number("road.slabs.slope_db", _slab_slope)
+	_slab_high_kmh = maxf(ctx.number("road.slabs.high_kmh", _slab_high_kmh), MIN_SPEED)
+	_slab_high_slope = ctx.number("road.slabs.high_slope_db", _slab_slope)
 	_slab_xfade = _vec2(ctx.value("road.slabs.crossfade_kmh", null), _slab_xfade)
 	_slab_align_ms = maxf(ctx.number("road.slabs.align_ms", _slab_align_ms), 0.1)
 	_squeal_lufs = ctx.number("road.squeal.lufs", _squeal_lufs)
@@ -573,6 +577,17 @@ func _step_drift(dt: float) -> void:
 		_drift[id] = d
 
 
+## Loudness target of the slab layer at a road speed (LUFS at the master): slabs.db over the tyres at top speed,
+## slope_db per decade of speed – above slabs.high_kmh only high_slope_db per decade (AU-R2, KRITIK-R M3: at
+## 200 km/h on concrete the strikes reached the Modern limiter; below high_kmh nothing changes).
+func slab_lufs(kmh: float) -> float:
+	var v := maxf(kmh, MIN_SPEED)
+	var db := _tyre_top + _slab_db + _speed_db(_slab_slope, v)
+	if v > _slab_high_kmh:
+		db -= (_slab_slope - _slab_high_slope) * _log10(v / _slab_high_kmh)
+	return db
+
+
 ## The slab loops: the two designs are never out of step (KRITIK-FAHRBAHN B4 – a loop that started after a change of
 ## speed ran without a common beat with the other one: doubled hits). A loop that starts takes the share of the one
 ## that runs (both have the same number of slabs; the AudioServer is locked meanwhile, so no mix block falls between
@@ -588,7 +603,7 @@ func _step_drift(dt: float) -> void:
 func _update_slabs(dt: float, v: float, sl: String, sr: String, fade: float, k: float) -> void:
 	var conc := (0.5 if sl == "concrete" else 0.0) + (0.5 if sr == "concrete" else 0.0)
 	var xf := _ramp(v, _slab_xfade)
-	var target := _tyre_top + _slab_db + _speed_db(_slab_slope, v)
+	var target := slab_lufs(v)
 	if slab_slow == null or slab_fast == null:
 		return
 	if conc == 0.0 and slab_slow.level < ModernAudioPan.SILENT and slab_fast.level < ModernAudioPan.SILENT:

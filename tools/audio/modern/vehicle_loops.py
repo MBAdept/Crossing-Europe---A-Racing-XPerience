@@ -20,7 +20,8 @@ Two kinds of file (AU-R, KRITIK-FAHRBAHN B1 – the 2-s loops read twice at L/2 
     end of its file (loop_offset 0).
   * tonal and transient loops (squeal, scrub, the concrete slabs, the guardrail scrape) stay 16-bit WAV with
     LOOP_GUARD frames of the loop's start behind loop_end (Godot reads the frame at the loop end before it wraps –
-    docs "Fallen" 13). The slab patterns are 32 slabs long (KRITIK-FAHRBAHN B4: 8 slabs repeated every 40 m).
+    docs "Fallen" 13). The slab patterns are 32 slabs long (KRITIK-FAHRBAHN B4: 8 slabs repeated every 40 m), made
+    of the joints of AU-C1's 8-slab designs in a shuffled order (AU-R2, see SLAB_SOURCE).
 
 Manifest entries carry, besides the measured values of modern_lib:
     ref_kmh     the road speed the loop is designed for (played at pitch 1)
@@ -56,6 +57,11 @@ PITCHES = [0.2, 0.28, 0.4, 0.56, 0.71, 0.84, 1.0, 1.19, 1.41, 1.68, 2.0, 2.38, 2
 MEASURE_S = 4.0                  # length of the resampled signal measured per pitch
 OGG_Q = 5.0                      # Vorbis quality of the noise loops (the music's quality)
 SIDE_B = 50                      # seed offset of the right side's own loop
+# The right side's cobbles with seed offset 50 had two strikes where all four wheels met within 1–3 ms: the loop's
+# loudest peaks 2 dB above anything in AU-C1's cobbles, back every 7 s (KRITIK-R M5). Offset 64 (AU-R2: of the 40
+# offsets 50–89 the one whose loop peaks lowest at the same loudness – scratch cobble_search.py): crest of the loop
+# 14.5 dB, per channel in the game model 14.4 / 14.2 dB against AU-C1's 14.3 dB.
+COBBLES_SIDE_B = 64
 SLABS = 32                       # slabs per concrete pattern (5 m each: the pattern repeats every 160 m)
 # The 32-slab patterns are built from AU-C1's 8-slab designs (what the user heard): their 8 joints × 2 axles per
 # design, struck in a shuffled order (rounds of all 8, never the same joint twice in a row) and each time a little
@@ -65,11 +71,15 @@ SLABS = 32                       # slabs per concrete pattern (5 m each: the pat
 # the slow design meets which of the fast one – AU-R's new random strikes shifted it by +1.7 dB at 400 Hz (130 km/h,
 # measured in the game by KRITIK-R, and in the model of scratch slab_search.py to 0.05 dB). With AU-C1's strikes
 # paired as in AU-C1 (slow joint j meets fast joint j, the same order for both designs) the pair keeps AU-C1's
-# balance at every speed.
+# balance at every speed: third octaves within 0.43 dB of AU-C1 at 90–230 km/h, the in-step pair at 120–140 km/h
+# included (model, scratch slab_eval.py; order 3311 of the 12 orders tried). SLAB_TOP_DB: the hardest strike 1 dB
+# under AU-C1's hardest – the peaks at the same loudness 0.4 dB lower than AU-C1's from 180 km/h on (the Modern
+# limiter at 200 km/h on concrete, KRITIK-R M3), equal at 130 km/h.
 SLAB_SOURCE = {90.0: 2601, 180.0: 2701}    # ref_kmh -> seed of AU-C1's 8-slab design
 SLAB_SOURCE_N = 8
-SLAB_ORDER_SEED = 3301
+SLAB_ORDER_SEED = 3311
 SLAB_ACCENT_DB = 1.2
+SLAB_TOP_DB = -1.0
 
 
 # ------------------------------------------------------------------------------------------------------------------
@@ -279,13 +289,10 @@ def tyre_deck(n: int, s: int = 0) -> np.ndarray:
     return y * (1.0 + 0.16 * slow(n, 1302 + s, 0.5, 2.5))
 
 
-def tyre_cobbles(n: int, ref_kmh: float, s: int = 0, cap: float | None = None, draws: list | None = None) -> np.ndarray:
+def tyre_cobbles(n: int, ref_kmh: float, s: int = 0) -> np.ndarray:
     """Setts (about 11.5 cm long) at ref_kmh: four wheels strike the sett edges ~120 times a second each, a little
     out of step; every strike a short thud (tyre and sett, 180-260 Hz) with a click, the suspension and body answer
-    below 90 Hz, now and then a rattle inside the car. cap (AU-R2, KRITIK-R M5): no stone is struck harder than
-    this (the log-normal draw of its strength is limited to cap; the draws stay the same): a longer loop draws more
-    stones, and its hardest ones stood out 1.6–3 dB above the hardest of AU-C1's 2.5-s loop, every loop length.
-    draws: if a list, the strength draws are appended to it."""
+    below 90 Hz, now and then a rattle inside the car."""
     rng = np.random.default_rng(1401 + s)
     v = ref_kmh / 3.6
     rate = v / 0.115
@@ -298,10 +305,7 @@ def tyre_cobbles(n: int, ref_kmh: float, s: int = 0, cap: float | None = None, d
         for k in range(count):
             t = base + k * n / count + rng.uniform(-0.2, 0.2) * n / count
             at = int(t) % n
-            d = float(rng.normal(0.0, 0.38))
-            if draws is not None:
-                draws.append(d)
-            a = gain * float(np.exp(d if cap is None else min(d, cap)))
+            a = gain * float(np.exp(rng.normal(0.0, 0.38)))
             f0 = rng.uniform(180.0, 260.0)
             clip = mixc((1.0, decay_sine(f0, 0.0035, 0.02, rng.uniform(0, 6.28))), (0.3, noise_burst(rng, 0.006, 900.0, 3200.0, 0.0008)))
             place(out, clip, at, a)
@@ -591,8 +595,9 @@ def heard(ref: np.ndarray, pan: float) -> np.ndarray:
     return ref + a * np.roll(ref, len(ref) // 2)
 
 
-def _pair(sid: str, sec_a: float, sec_b: float, fn, bus: str, ref_kmh: float, pexp: float, note: str) -> list[tuple]:
-    """A layer of the two panned players: the left side's loop and the right side's own loop (seed + SIDE_B), both
+def _pair(sid: str, sec_a: float, sec_b: float, fn, bus: str, ref_kmh: float, pexp: float, note: str,
+          side_b: int = SIDE_B) -> list[tuple]:
+    """A layer of the two panned players: the left side's loop and the right side's own loop (seed + side_b), both
     matched to the spectral balance of AU-C1's loop of this layer as its two players sounded (heard; where there was
     one). The new sides are independent, their energies add."""
     old = OLD_SECONDS.get(sid)
@@ -604,7 +609,7 @@ def _pair(sid: str, sec_a: float, sec_b: float, fn, bus: str, ref_kmh: float, pe
         ref = f(int(round(old * SR)), 0)
         return match_loop(y, ref if sid in ONE_SIDED else heard(ref, OLD_PAN.get(bus, 0.55)))
     return [(sid, sec_a, lambda n: make(n, 0), bus, ref_kmh, pexp, note + "; linke Seite", "ogg", sid + "_b"),
-            (sid + "_b", sec_b, lambda n: make(n, SIDE_B), bus, ref_kmh, pexp,
+            (sid + "_b", sec_b, lambda n: make(n, side_b), bus, ref_kmh, pexp,
              note + "; rechte Seite: eigene Schleife (anderer Seed, andere Länge)", "ogg", "")]
 
 
@@ -620,7 +625,8 @@ def loops() -> list[tuple]:
     out += _pair("tyre_deck", 4.9, 6.1, tyre_deck, "MRoad", 120.0, 0.35,
                  "Rollgeräusch auf dem Stahldeck einer Brücke: hohles Dröhnen der Deckbleche (68/104 Hz), Metallpartiale")
     out += _pair("tyre_cobbles", 5.7, 7.1, lambda n, s: tyre_cobbles(n, 50.0, s), "MRoad", 50.0, 0.9,
-                 "Kopfsteinpflaster bei 50 km/h: vier Räder schlagen etwa 120-mal je Sekunde auf Steinkanten, Karosserie darunter")
+                 "Kopfsteinpflaster bei 50 km/h: vier Räder schlagen etwa 120-mal je Sekunde auf Steinkanten, Karosserie darunter",
+                 COBBLES_SIDE_B)
     out += _pair("tyre_gravel", 4.7, 5.9, tyre_gravel, "MRoad", 80.0, 0.55,
                  "Bankett (Schotter): Knirschen, unebenes Grollen, Steine gegen die Radhäuser")
     out += _pair("tyre_grass", 4.3, 5.5, tyre_grass, "MRoad", 60.0, 0.4,
@@ -636,7 +642,7 @@ def loops() -> list[tuple]:
 
     def slabs(ref_kmh: float) -> np.ndarray:
         src = SLAB_SOURCE[ref_kmh]
-        return match_loop(slab_pattern(ref_kmh, src, order, accents), slab_loop(ref_kmh, src))
+        return match_loop(slab_pattern(ref_kmh, src, order, accents, SLAB_TOP_DB), slab_loop(ref_kmh, src))
     out += [
         ("slab_slow", None, lambda n: slabs(90.0), "MRoad", 90.0, 1.0,
          f"Betonplatten 5 m, Achsabstand 2,7 m: Vorder- und Hinterachse über die Fuge, entworfen bei 90 km/h ({SLABS} Platten "

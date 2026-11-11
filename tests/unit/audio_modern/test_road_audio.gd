@@ -219,8 +219,71 @@ func test_concrete_slabs_keep_their_rhythm() -> void:
 	_run(m, _frame(200.0, {"surface_l": "concrete", "surface_r": "concrete"}), 120)
 	assert_near(r.slab_fast.pitch, 200.0 / 180.0, 1.0e-4, "bei 200 km/h das schnelle Muster, Tonhöhe v / 180")
 	assert_true(r.slab_slow.level < 1.0e-4, "langsames Muster aus")
+	# AU-R2 (KRITIK-R M3): above slabs.high_kmh the level rises by high_slope_db per decade only
+	var hi := _num("road.slabs.high_kmh")
+	var hs := _num("road.slabs.high_slope_db")
+	assert_true(hi >= 150.0 and hs < _num("road.slabs.slope_db"), "flacheres Gesetz oberhalb von %.0f km/h" % hi)
+	var at200 := r.engine_ref_lufs - 4.0 + _num("road.slabs.db") + _num("road.slabs.slope_db") * log(200.0 / 245.0) / log(10.0) \
+		- (_num("road.slabs.slope_db") - hs) * log(200.0 / hi) / log(10.0)
+	assert_near(_lufs(r.slab_fast), at200, 0.05, "Pegel der Fugen bei 200 km/h")
+	assert_near(r.slab_lufs(hi), r.engine_ref_lufs - 4.0 + _num("road.slabs.db") + _num("road.slabs.slope_db") * log(hi / 245.0) / log(10.0),
+		1.0e-4, "bis %.0f km/h unverändert" % hi)
 	_run(m, _frame(200.0, {"surface_l": "asphalt", "surface_r": "asphalt"}), 120)
 	assert_true(r.slab_fast.level < 1.0e-4, "auf Asphalt keine Plattenfugen")
+	_done(m)
+
+
+## A stand-in for a playing AudioStreamPlayer (unit tests have no scene tree): the position stays where it started.
+class FakePlayer:
+	extends Node
+	var playing := false
+	var volume_db := 0.0
+	var pitch_scale := 1.0
+	var pos := 0.0
+	var starts := 0
+
+	func play(from_position: float = 0.0) -> void:
+		playing = true
+		pos = from_position
+		starts += 1
+
+	func stop() -> void:
+		playing = false
+
+	func get_playback_position() -> float:
+		return pos
+
+
+## AU-R2 (KRITIK-R M1): the slab loops take the AudioServer lock only when one of them starts and for the
+## comparison every 0.5 s – AU-R locked in every frame on concrete. A loop that starts takes the running one's share.
+func test_slab_loops_lock_the_mixer_only_to_start() -> void:
+	var m := _modern(STILL.duplicate(true))
+	var r := m.road
+	r.set_vehicle("limousine")
+	var fakes: Array[FakePlayer] = []
+	for l: RoadAudio.Layer in [r.slab_slow, r.slab_fast]:
+		var p := FakePlayer.new()
+		l.players[0] = p
+		fakes.append(p)
+	var conc := {"surface_l": "concrete", "surface_r": "concrete", "paving": "concrete"}
+	_run(m, _frame(130.0, conc), 60)
+	assert_true(fakes[0].playing and fakes[1].playing, "bei 130 km/h beide Muster")
+	assert_eq(fakes[0].starts + fakes[1].starts, 2, "jedes Muster einmal gestartet")
+	assert_near(r.slab_slow.share(), r.slab_fast.share(), 1.0e-6, "im selben Takt gestartet")
+	assert_true(r.slab_locks >= 1 and r.slab_locks <= 3, "Sperre beim Start und alle 0,5 s: %d in 60 Bildern" % r.slab_locks)
+	_run(m, _frame(170.0, conc), 60)
+	assert_false(fakes[0].playing, "über 150 km/h nur das schnelle Muster")
+	fakes[1].pos = 0.37 * r.slab_fast.lengths[0]
+	var before := r.slab_locks
+	_run(m, _frame(130.0, conc), 60)
+	assert_true(fakes[0].playing, "zurück im Übergang: das langsame Muster wieder an")
+	assert_near(r.slab_slow.share(), 0.37, 1.0e-4, "es beginnt an der Stelle des laufenden")
+	assert_true(r.slab_locks - before <= 3, "wieder nur beim Start und alle 0,5 s: %d" % (r.slab_locks - before))
+	assert_eq(r.slab_realigned, 0, "kein Nachstellen nötig")
+	for l: RoadAudio.Layer in [r.slab_slow, r.slab_fast]:
+		l.players[0] = null
+	for p in fakes:
+		p.free()
 	_done(m)
 
 
