@@ -1,0 +1,585 @@
+extends ChunkBuilder
+## Mode "Modern" (v0.8.0): the scenery props of a road chunk – trees, bushes, rocks, bales, houses, pylons, the
+## structures of fuel stations and borders – as MultiMesh nodes (contract §4.5.5, D21–D24, amendments A-3, A-4, A-7;
+## German docs: docs/renderer-modern-gelaende.md).
+##
+## Source: the props of the chunk's TrackSegment.sprites (kind "prop", and the objects of OBJECT_SETS – the street
+## lights of the City Limits – while no builder "city" exists), exactly the list Arcade draws, minus the documented
+## drops (drop_reason()):
+##   "ribbon"    the prop stands beyond the clamped terrain ribbon (inside of a bend, medial axis): no ground there
+##   "corridor"  decorative scenery inside the sight corridor of a bend (fairness rule F7): scenery-rule props and all
+##               vegetation; sets listed in graphics.modern.props.bend_cover stay, scaled down to at most
+##               bend_cover_max_h_m (0.5 m) – the list is empty until such ground-cover models exist
+##   "missing"   the set (and its fallback set) has neither a model nor a sprite sheet (Arcade skips it as well)
+##   "density"   "Details" below 1.0 thins decorative trees, bushes, rocks and bales (thinnable(); never buildings,
+##               landmarks or tall structures)
+## What a set is comes from the PropLibrary: a MODEL is placed like a vehicle (local -Z along the road, origin = the
+## sprite anchor) on ChunkContext.ground(), trees, plants and rocks with a stable random yaw and variant; a SPRITE
+## stand-in is a billboard of the Arcade sprite cell (assets/shaders/modern/billboard.gdshader), lit from the scene.
+## Per chunk and (model | set, mirrored) there is ONE MultiMesh per representation:
+##   models     level 0 / 1 / 2 of the chunk (lod0, lod1, impostor or the coarsest level) – one is visible at a time,
+##              chosen in update() from the path distance of the chunk to the camera and levels.prop_lod0_m /
+##              prop_lod1_m (hard swaps, D9); + the low-poly shadow caster of card trees (shadows only)
+##   stand-ins  one billboard MultiMesh
+## Props of the left roadside whose set is built for the right one (tag mirror_left; for sprites also the "mirror"
+## of a scenery rule) go into a second MultiMesh under a node mirrored in x (D24); landmarks are never mirrored.
+## One more MultiMesh per chunk lays the contact shadows (contact_shadow.gdshader). Lamps of prop models (anchors
+## with a direction: street lights) are registered through ctx.services.renderer.add_lamps() (A-7).
+## build() runs on worker threads: ctx snapshot arrays and the plain tables of collect() only.
+## Owner: package terrain / props / far ground.
+
+const OBJECT_SETS := {"streetlight": "props/streetlight"}   ## Track "object" items drawn here while builders/city.gd is missing
+const RIBBON_MARGIN_M := 1.0       ## a prop needs this much ribbon beyond its foot
+const SLOPE_PROBE_M := 1.5         ## the ground plane under a prop is taken from points this far apart
+const BLOB_LIFT_M := 0.03
+const SHADOW_KEEP_M := 40.0        ## shadow casters stay on this far beyond the reach of the shadow map
+const LOD_HYSTERESIS_M := 6.0      ## a chunk leaves a level this much later than it enters it
+const LOD_STEP_M := 2.0            ## update() looks at the chunk levels again after this much driving
+
+var library: PropLibrary
+
+var _renderer: Node                ## untyped: packages talk to each other through the facade only
+var _lod0_m := 60.0
+var _lod1_m := 200.0
+var _density := 1.0
+var _casters := 2
+var _shadow_m := 120.0
+var _cover_sets: Array = []
+var _cover_max_h := 0.5
+var _skip_objects := false
+var _skip_landmarks := false
+var _skip_bridge := false
+var _holders: Array = []           ## committed "Props" nodes (main thread: commit / update)
+var _lod_z := -1.0e12              ## camera position of the last look at the chunk levels
+var _prepared := false
+
+
+func id() -> String:
+	return "props"
+
+
+func _lib() -> PropLibrary:
+	if library == null:
+		library = PropLibrary.new()
+	return library
+
+
+# --- hooks of the renderer (all optional; the builder also works without a renderer) ----------------------------
+
+func setup(renderer: Node) -> void:
+	_renderer = renderer
+	if renderer != null and renderer.has_method(&"builder"):
+		_skip_objects = renderer.call(&"builder", "city") != null
+		_skip_landmarks = renderer.call(&"builder", "landmarks") != null
+		_skip_bridge = renderer.call(&"builder", "bridge") != null
+	var cfg: Variant = renderer.get("cfg") if renderer != null else null
+	if cfg is Dictionary:
+		_read_config(cfg)
+
+
+func _read_config(cfg: Dictionary) -> void:
+	var p: Variant = ConfigLoader.lookup(cfg, "graphics.modern.props", {})
+	if p is Dictionary:
+		var list: Variant = (p as Dictionary).get("bend_cover", [])
+		_cover_sets = list if list is Array else []
+		_cover_max_h = maxf(0.05, float((p as Dictionary).get("bend_cover_max_h_m", 0.5)))
+
+
+func apply_quality(levels: Dictionary) -> void:
+	_lod0_m = float(levels.get("prop_lod0_m", _lod0_m))
+	_lod1_m = maxf(_lod0_m, float(levels.get("prop_lod1_m", _lod1_m)))
+	_density = float(levels.get("deco_density", _density))
+	_casters = int(levels.get("shadow_casters", _casters))
+	_shadow_m = float(levels.get("shadow_distance_m", _shadow_m))
+
+
+## ctx.sets = every sprite set id the stage can show: the prop and landmark sets are resolved and loaded here.
+func prepare(ctx: Dictionary) -> void:
+	var wanted: Array = []
+	for id_v: Variant in ctx.get("sets", []):
+		var set_id := str(id_v)
+		if set_id.begins_with("props/") or set_id.begins_with("landmarks/"):
+			wanted.append(set_id)
+	for obj: String in OBJECT_SETS:
+		wanted.append(str(OBJECT_SETS[obj]))
+	# a set that is missing is drawn by its fallback set (Track.sprite_fallbacks): the stage list does not name those
+	var track: Variant = _renderer.get("track") if _renderer != null else null
+	if track is Track:
+		var fallbacks: Dictionary = (track as Track).sprite_fallbacks()
+		for set_id: String in wanted.duplicate():
+			if fallbacks.has(set_id) and not wanted.has(str(fallbacks[set_id])):
+				wanted.append(str(fallbacks[set_id]))
+	_lib().request(wanted, self)
+	_prepared = true
+
+
+func prepare_pending() -> int:
+	return _lib().pending() if _prepared else 0
+
+
+func fail_reason() -> String:
+	return _lib().fail_reason() if _prepared else ""
+
+
+func update(view: Dictionary, _dt: float) -> void:
+	var cam_z := float(view.get("camera_z", 0.0))
+	if absf(cam_z - _lod_z) < LOD_STEP_M:
+		return      # the levels are a matter of tens of metres: looked at every few metres of driving
+	_lod_z = cam_z
+	var i := _holders.size() - 1
+	while i >= 0:
+		var h: Variant = _holders[i]
+		if not is_instance_valid(h):
+			_holders.remove_at(i)
+		else:
+			_apply_lod(h, cam_z)
+		i -= 1
+
+
+func perf() -> Dictionary:
+	var n := 0
+	for h: Variant in _holders:
+		if is_instance_valid(h):
+			n += int((h as Node).get_meta(&"instances", 0))
+	return {"instances": n, "fallback_sets": _lib().fallback_sets}
+
+
+func snapshot() -> Dictionary:
+	var counts := {}
+	for h: Variant in _holders:
+		if not is_instance_valid(h):
+			continue
+		var c: Dictionary = (h as Node).get_meta(&"counts", {})
+		for k: String in c:
+			counts[k] = int(counts.get(k, 0)) + int(c[k])
+	return {"props": counts}
+
+
+## Hook of the renderer: one node per shader the props use (card tree, baked house, lamp post, stand-in billboard,
+## contact shadow), compiled behind the loading cover.
+func warmup_nodes() -> Array:
+	var out: Array = []
+	var lib := _lib()
+	if not lib.ready():
+		return out
+	var seen := {}
+	for set_id: String in lib.sets:
+		var e: Dictionary = lib.sets[set_id]
+		var parts: Array = []
+		var key := ""
+		if int(e["kind"]) == PropLibrary.MODEL and not (e["variants"] as Array).is_empty():
+			var mid := str((e["variants"] as Array)[0])
+			var reps: Array = (lib.models[mid] as Dictionary).get("reps", [])
+			if reps.is_empty():
+				continue
+			parts = lib.mesh_parts(mid, str(reps[0]))
+			key = "m" + str(e["cls"])
+		elif int(e["kind"]) == PropLibrary.SPRITE:
+			var s := lib.standin(set_id)
+			if not s.is_empty():
+				parts = [s]
+			key = "s"
+		if key == "" or seen.has(key) or parts.is_empty():
+			continue
+		seen[key] = true
+		for p: Variant in parts:
+			var part: Dictionary = p
+			var mi := MeshInstance3D.new()
+			mi.mesh = part["mesh"]
+			if part.get("material") != null:
+				mi.material_override = part["material"]
+			mi.scale = Vector3.ONE * (2.0 / maxf(1.0, float(e["height"])))
+			out.append(mi)
+	var c := lib.contact()
+	var blob := MultiMeshInstance3D.new()
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_custom_data = true
+	mm.mesh = c["mesh"]
+	mm.instance_count = 1
+	mm.set_instance_transform(0, Transform3D(Basis.IDENTITY, Vector3(0.0, 0.05, 0.0)))
+	mm.set_instance_custom_data(0, Color(1.0, 1.0, 0.0, 0.0))
+	blob.multimesh = mm
+	blob.material_override = c["material"]
+	blob.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	out.append(blob)
+	return out
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE and library != null:
+		library.clear(self)
+
+
+# --- chunk building ---------------------------------------------------------------------------------------------
+
+## Main thread: the plain tables build() reads. Without a prepare() (tests of the kernel without a renderer) the sets
+## of this chunk are resolved and loaded here, synchronously.
+func collect(ctx: ChunkContext) -> Variant:
+	var lib := _lib()
+	if not _prepared:
+		_read_config(ctx.cfg)
+		if not ctx.levels.is_empty():
+			apply_quality(ctx.levels)
+	# sets the library does not know yet: a stage without prepare() (tests of the kernel), or a set the stage list
+	# did not name – resolved and loaded now, synchronously (PropLibrary.request copies its tables before it adds
+	# to them, so builds that are running keep reading the old ones)
+	var wanted: Array = []
+	for seg: Dictionary in ctx.segs:
+		for it: Dictionary in seg["sprites"]:
+			for key: String in ["set", "fallback"]:
+				if it.has(key) and not lib.sets.has(str(it[key])) and not wanted.has(str(it[key])):
+					wanted.append(str(it[key]))
+	for obj: String in OBJECT_SETS:
+		if not lib.sets.has(str(OBJECT_SETS[obj])):
+			wanted.append(str(OBJECT_SETS[obj]))
+	if not wanted.is_empty() or not lib.ready():
+		lib.request(wanted, self)
+		var guard := 0
+		while lib.pending() > 0 and guard < 20000:
+			OS.delay_msec(1)
+			guard += 1
+	return {"sets": lib.sets, "models": lib.models, "density": _density, "casters": _casters, "cover": _cover_sets,
+		"cover_max_h": _cover_max_h, "skip_objects": _skip_objects, "skip_landmarks": _skip_landmarks,
+		"skip_bridge": _skip_bridge}
+
+
+func build(ctx: ChunkContext, input: Variant) -> Dictionary:
+	var inp: Dictionary = input if input is Dictionary else {}
+	var sets: Dictionary = inp.get("sets", {})
+	var models: Dictionary = inp.get("models", {})
+	var density := float(inp.get("density", 1.0))
+	var casters := int(inp.get("casters", 2))
+	var cover: Array = inp.get("cover", [])
+	var cover_max_h := float(inp.get("cover_max_h", 0.5))
+	var groups := {}                 # key -> {"model" | "set", "mirror", "buf": PackedFloat32Array, "n"}
+	var blobs := PackedFloat32Array()
+	var blob_n := 0
+	var lamps: Array = []
+	var list: Array = []
+	var counts := {}
+	var dropped := {"ribbon": 0, "corridor": 0, "missing": 0, "density": 0}
+	var rows := ctx.row_count()
+	for i in rows - 1:
+		var seg: Dictionary = ctx.segs[i]
+		var sprites: Array = seg["sprites"]
+		var seg_index := int(seg["index"])
+		for j in sprites.size():
+			var it: Dictionary = sprites[j]
+			var set_id := item_set(it, inp)
+			if set_id == "":
+				continue
+			var sc := float(it.get("scale", 1.0))
+			var tint := Color(str(it["tint"])) if it.has("tint") else Color.WHITE
+			var e: Dictionary = sets.get(set_id, {})
+			if e.is_empty() or int(e["kind"]) == PropLibrary.NONE:
+				var fb := str(it.get("fallback", ""))
+				e = sets.get(fb, {}) if fb != "" else {}
+				if e.is_empty() or int(e["kind"]) == PropLibrary.NONE:
+					dropped["missing"] += 1
+					continue
+				sc *= float(it.get("fallback_scale", 1.0))
+				if it.has("fallback_tint"):
+					tint *= Color(str(it["fallback_tint"]))
+			if it.has("fit_w"):
+				sc = float(it["fit_w"]) / maxf(0.5, float(e["width"]))      # overhead structures span the whole deck
+			var side := int(it.get("side", 1))
+			var z := float(it.get("z", seg["z"]))
+			var x := float(it.get("x", 0.0))
+			var landmark := bool(it.get("landmark", false))
+			var is_model := int(e["kind"]) == PropLibrary.MODEL
+			var flipped := side < 0 and not landmark and (bool(e["mirror_left"]) or (not is_model and bool(it.get("mirror", false))))
+			if it.has("align") and side != 0:
+				x = edge_anchor_x(x, side, flipped, float(e["extent_l"]), float(e["extent_r"]), sc)
+			var reason := drop_reason(ctx, it, e, z, x, side, seg_index, j, density, cover)
+			if reason != "":
+				dropped[reason] += 1
+				continue
+			if side != 0 and not it.has("offset") and cover.has(str(e["set"])) and ctx.in_bend_corridor(z, x):
+				sc = minf(sc, cover_max_h / maxf(0.01, float(e["height"])))   # ground cover inside the corridor
+			var h := 0.0
+			if it.has("h"):
+				h = float(it["h"])              # given relative to the road (ships on the water)
+			elif not it.has("bridge"):
+				h = ctx.ground(z, x)
+			var key := ""
+			var model_id := ""
+			var tr: Transform3D
+			if is_model:
+				var variants: Array = e["variants"]
+				model_id = str(variants[int(hash01(seg_index, j, 3) * float(variants.size())) % variants.size()])
+				var yaw := hash01(seg_index, j, 5) * TAU if bool(e["veg"]) or str(e["cls"]) == "rock" else 0.0
+				tr = ctx.frame(z, x, h, yaw).scaled_local(Vector3(sc, sc, sc))
+				key = "m|%s|%d" % [model_id, 1 if flipped else 0]
+				for lamp: Dictionary in (models.get(model_id, {}) as Dictionary).get("lamps", []):
+					var lp: Vector3 = lamp["pos"]
+					var ld: Vector3 = lamp["dir"]
+					if flipped:
+						lp.x = -lp.x
+						ld.x = -ld.x
+					var entry := lamp.duplicate()
+					entry["pos"] = tr * lp
+					entry["dir"] = (tr.basis * ld).normalized()
+					entry["size"] = float(lamp["size"]) * sc
+					lamps.append(entry)
+			else:
+				tr = Transform3D(Basis.from_scale(Vector3(sc, sc, sc)), ctx.local(z, x, h))
+				key = "s|%s|%d" % [str(e["set"]), 1 if flipped else 0]
+			var g: Dictionary = groups.get(key, {})
+			if g.is_empty():
+				g = {"model": model_id, "set": str(e["set"]), "mirror": flipped, "buf": PackedFloat32Array(), "n": 0}
+				groups[key] = g
+			var buf: PackedFloat32Array = g["buf"]
+			_put(buf, mirror_x(tr) if flipped else tr)
+			if not is_model:
+				buf.append_array(PackedFloat32Array([tint.r, tint.g, tint.b, 1.0]))
+			g["buf"] = buf
+			g["n"] = int(g["n"]) + 1
+			# contact shadow on the ground plane under the prop
+			if float(e["blob"]) > 0.0 and not it.has("h") and not it.has("bridge") and not landmark:
+				var w := float(e["width"]) * sc
+				var r := maxf(0.3, w * (0.45 if str(e["cls"]) == "tree" else 0.55))
+				var p0 := ctx.local(z, x, h)
+				var px := ctx.local(z, x + SLOPE_PROBE_M, ctx.ground(z, x + SLOPE_PROBE_M))
+				var pz := ctx.local(z + SLOPE_PROBE_M, x, ctx.ground(z + SLOPE_PROBE_M, x))
+				var tx := (px - p0).normalized()
+				var n := tx.cross(pz - p0).normalized()
+				if n.y < 0.2:
+					n = Vector3.UP
+					tx = ctx.rows_r[i]
+				var tz := tx.cross(n).normalized()
+				_put(blobs, Transform3D(Basis(tx * r, n, tz * r), p0 + n * BLOB_LIFT_M))
+				var real := 1.0 if is_model and casters >= int(e["cast"]) else 0.0
+				blobs.append_array(PackedFloat32Array([float(e["height"]) / maxf(0.1, float(e["width"])), float(e["blob"]), real, 0.0]))
+				blob_n += 1
+			counts[set_id] = int(counts.get(set_id, 0)) + 1
+			list.append([seg_index, j, str(e["set"]), snappedf(x, 0.001), snappedf(z, 0.001), snappedf(sc, 0.0001), 1 if flipped else 0,
+				int(e["kind"])])
+	return {"groups": groups, "blobs": blobs, "blob_n": blob_n, "lamps": lamps, "list": list, "counts": counts, "dropped": dropped,
+		"z0": float(ctx.seg_a) * ctx.seg_len, "z1": float(ctx.seg_b) * ctx.seg_len}
+
+
+## Set id an item of TrackSegment.sprites is drawn with here ("" = not a prop of this builder).
+static func item_set(it: Dictionary, inp: Dictionary) -> String:
+	var kind := str(it.get("kind", "prop"))
+	if kind == "prop":
+		if bool(it.get("landmark", false)) and bool(inp.get("skip_landmarks", false)):
+			return ""
+		if it.has("bridge") and bool(inp.get("skip_bridge", false)):
+			return ""
+		return str(it.get("set", ""))
+	if kind == "object" and not bool(inp.get("skip_objects", false)):
+		return str(OBJECT_SETS.get(str(it.get("obj", "")), ""))
+	return ""
+
+
+## Why a prop is left out ("" = it is drawn): see the header. e = its PropLibrary entry, (z, x) its foot.
+static func drop_reason(ctx: ChunkContext, it: Dictionary, e: Dictionary, z: float, x: float, side: int, seg_index: int, item: int,
+		density: float, cover: Array) -> String:
+	if side == 0:
+		return ""
+	var decorative := not it.has("offset")           # placed by a scenery rule, not by an event of the stage
+	var row := clampi(int(floor(ctx.row_of(z))), 0, ctx.row_count() - 1)
+	var beyond := absf(x) - ctx.shoulder_edge(row, side)
+	if beyond > ctx.ribbon_width(z, side) - RIBBON_MARGIN_M:
+		return "ribbon"
+	if (decorative or bool(e["veg"])) and not bool(it.get("landmark", false)) and ctx.in_bend_corridor(z, x) \
+			and not cover.has(str(e["set"])):
+		return "corridor"
+	if density < 1.0 and decorative and thinnable(e) and hash01(seg_index, item, 7) >= density:
+		return "density"
+	return ""
+
+
+## True for the small decoration "Details" may thin out: trees, bushes, rocks and other low things (bales). Never
+## buildings, landmarks or tall structures (wind turbines, pylons, windmills) – they make the landscape.
+static func thinnable(e: Dictionary) -> bool:
+	var cls := str(e["cls"])
+	return cls == "tree" or cls == "plant" or cls == "rock" or (cls == "other" and float(e["height"]) <= 6.0)
+
+
+## Anchor x of an edge-aligned prop whose near edge shall be at x – Arcade's RoadRenderer.edge_anchor_x (pinned by
+## tests/unit/race3d/test_props.gd).
+static func edge_anchor_x(x: float, side: int, flipped: bool, extent_l: float, extent_r: float, scale: float) -> float:
+	return x + float(side) * (extent_l if (side > 0 or flipped) else extent_r) * scale
+
+
+## The mirror image of a transform in the plane x = 0 as a proper transform: what an instance needs inside a
+## MultiMesh node that is itself mirrored in x (D24), so that node x instance = the transform with the model mirrored.
+static func mirror_x(t: Transform3D) -> Transform3D:
+	var b := t.basis
+	return Transform3D(Basis(Vector3(b.x.x, -b.x.y, -b.x.z), Vector3(-b.y.x, b.y.y, b.y.z), Vector3(-b.z.x, b.z.y, b.z.z)),
+		Vector3(-t.origin.x, t.origin.y, t.origin.z))
+
+
+## Stable pseudo-random number 0..1 for (segment index, item index, salt).
+static func hash01(seg_index: int, item: int, salt: int) -> float:
+	var h := (seg_index * 73856093) ^ ((item + 1) * 19349663) ^ (salt * 83492791)
+	h = (h ^ (h >> 13)) * 1274126177
+	h = h ^ (h >> 16)
+	return float(h & 0xffff) / 65536.0
+
+
+## Appends a transform in the layout of MultiMesh.buffer (three rows of basis and origin).
+static func _put(buf: PackedFloat32Array, t: Transform3D) -> void:
+	var b := t.basis
+	var o := t.origin
+	buf.append_array(PackedFloat32Array([b.x.x, b.y.x, b.z.x, o.x, b.x.y, b.y.y, b.z.y, o.y, b.x.z, b.y.z, b.z.z, o.z]))
+
+
+func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
+	var groups: Dictionary = part.get("groups", {})
+	if groups.is_empty():
+		return
+	var lib := _lib()
+	var holder := Node3D.new()
+	holder.name = "Props"
+	var instances := 0
+	for key: String in groups:
+		var g: Dictionary = groups[key]
+		var n := int(g["n"])
+		var buf: PackedFloat32Array = g["buf"]
+		instances += n
+		if str(g["model"]) != "":
+			var model_id := str(g["model"])
+			var md: Dictionary = lib.models.get(model_id, {})
+			var reps: Array = md.get("reps", [])
+			var e: Dictionary = lib.sets.get(str(g["set"]), {})
+			var cast_ok := _casters >= int(e.get("cast", 3))
+			var has_caster := bool(md.get("caster", false))
+			var rep_levels := {}          # representation -> bit mask of the chunk LOD levels that show it
+			for level in reps.size():
+				rep_levels[str(reps[level])] = int(rep_levels.get(str(reps[level]), 0)) | (1 << level)
+			for rep: String in rep_levels:
+				for p: Variant in lib.mesh_parts(model_id, rep):
+					var mp: Dictionary = p
+					if bool(mp["shadow"]):
+						continue
+					var node := _mmi(mp, buf, n, false, bool(g["mirror"]))
+					node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if cast_ok and not has_caster and not bool(mp["billboard"]) \
+						else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+					node.set_meta(&"levels", int(rep_levels[rep]))
+					node.set_meta(&"rep", rep)
+					holder.add_child(node)
+			if has_caster and cast_ok and not reps.is_empty():
+				for p: Variant in lib.mesh_parts(model_id, str(reps[mini(1, reps.size() - 1)])):
+					var mp: Dictionary = p
+					if not bool(mp["shadow"]):
+						continue
+					var node := _mmi(mp, buf, n, false, bool(g["mirror"]))
+					node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
+					node.set_meta(&"caster", true)
+					holder.add_child(node)
+		else:
+			var s := lib.standin(str(g["set"]))
+			if s.is_empty():
+				continue
+			var node := _mmi(s, buf, n, true, bool(g["mirror"]))
+			node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			node.set_meta(&"levels", 7)
+			holder.add_child(node)
+	var blob_n := int(part.get("blob_n", 0))
+	if blob_n > 0:
+		var c := lib.contact()
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.use_custom_data = true
+		mm.mesh = c["mesh"]
+		mm.instance_count = blob_n
+		mm.buffer = part["blobs"]
+		var node := MultiMeshInstance3D.new()
+		node.name = "Contact"
+		node.multimesh = mm
+		node.material_override = c["material"]
+		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		node.set_meta(&"levels", 7)
+		holder.add_child(node)
+		if _casters >= 2 and _shadow_m > 0.0:
+			(c["material"] as ShaderMaterial).set_shader_parameter("real_from_m", _shadow_m * 0.6)
+			(c["material"] as ShaderMaterial).set_shader_parameter("real_to_m", _shadow_m)
+	holder.set_meta(&"z0", float(part.get("z0", 0.0)))
+	holder.set_meta(&"z1", float(part.get("z1", 0.0)))
+	holder.set_meta(&"counts", part.get("counts", {}))
+	holder.set_meta(&"instances", instances)
+	holder.set_meta(&"lod", -1)
+	parent.add_child(holder)
+	_holders.append(holder)
+	var cam_z := float(part.get("z0", 0.0))
+	var renderer: Variant = ctx.services.get("renderer")
+	if renderer != null:
+		var view: Variant = (renderer as Object).get("view")
+		if view is Dictionary and (view as Dictionary).has("camera_z"):
+			cam_z = float((view as Dictionary)["camera_z"])
+		var lamps: Array = part.get("lamps", [])
+		if not lamps.is_empty() and (renderer as Object).has_method(&"add_lamps"):
+			(renderer as Object).call(&"add_lamps", holder, lamps)
+	_apply_lod(holder, cam_z)
+
+
+## A MultiMeshInstance3D for one mesh: with_color = the buffer carries an instance colour (stand-ins).
+static func _mmi(part: Dictionary, buf: PackedFloat32Array, n: int, with_color: bool, mirrored: bool) -> MultiMeshInstance3D:
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_colors = with_color
+	mm.mesh = part["mesh"]
+	mm.instance_count = n
+	var own: Transform3D = part.get("transform", Transform3D.IDENTITY)
+	if own == Transform3D.IDENTITY:
+		mm.buffer = buf
+	else:
+		# a part with a pose of its own inside the model (none of the prop models has one today)
+		var stride := 16 if with_color else 12
+		for i in n:
+			var o := i * stride
+			var t := Transform3D(Basis(Vector3(buf[o], buf[o + 4], buf[o + 8]), Vector3(buf[o + 1], buf[o + 5], buf[o + 9]),
+				Vector3(buf[o + 2], buf[o + 6], buf[o + 10])), Vector3(buf[o + 3], buf[o + 7], buf[o + 11]))
+			mm.set_instance_transform(i, t * own)
+	var node := MultiMeshInstance3D.new()
+	node.multimesh = mm
+	if part.get("material") != null:
+		node.material_override = part["material"]
+	if mirrored:
+		node.basis = Basis.from_scale(Vector3(-1.0, 1.0, 1.0))
+	return node
+
+
+## Shows the representation of every model group that belongs to the chunk's distance from the camera (path
+## distance of its nearest row) and switches the shadow casters off beyond the reach of the shadow map.
+func _apply_lod(holder: Node, cam_z: float) -> void:
+	var d := maxf(0.0, maxf(float(holder.get_meta(&"z0", 0.0)) - cam_z, cam_z - float(holder.get_meta(&"z1", 0.0))))
+	var old := int(holder.get_meta(&"lod", -1))
+	var level := lod_level(d, old, _lod0_m, _lod1_m)
+	var cast := _casters >= 2 and d < _shadow_m + SHADOW_KEEP_M
+	if level == old and cast == bool(holder.get_meta(&"cast", false)):
+		return
+	holder.set_meta(&"lod", level)
+	holder.set_meta(&"cast", cast)
+	for c: Node in holder.get_children():
+		var n3 := c as Node3D
+		if n3 == null:
+			continue
+		if c.has_meta(&"caster"):
+			n3.visible = cast
+		else:
+			n3.visible = (int(c.get_meta(&"levels", 7)) & (1 << level)) != 0
+
+
+## Chunk LOD level 0 / 1 / 2 for a path distance, with a little hysteresis against the level it has (old; -1 = none).
+static func lod_level(dist: float, old: int, lod0_m: float, lod1_m: float) -> int:
+	var a := lod0_m + (LOD_HYSTERESIS_M if old == 0 else 0.0)
+	var b := lod1_m + (LOD_HYSTERESIS_M if old >= 0 and old <= 1 else 0.0)
+	if dist < a:
+		return 0
+	if dist < b:
+		return 1
+	return 2
+
+
+func debug(part: Dictionary) -> Dictionary:
+	var groups: Dictionary = part.get("groups", {})
+	var per_group := {}
+	for key: String in groups:
+		per_group[key] = int((groups[key] as Dictionary)["n"])
+	return {"props": (part.get("list", []) as Array).size(), "groups": per_group, "counts": part.get("counts", {}),
+		"dropped": part.get("dropped", {}), "lamps": (part.get("lamps", []) as Array).size(), "contact": int(part.get("blob_n", 0)),
+		"list": part.get("list", [])}
