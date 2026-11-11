@@ -10,7 +10,8 @@ extends Node2D
 ##         race – its tank goes nowhere), gfx (v0.8.0, optional: "arcade" | "modern" – graphics mode of this stage
 ##         for attract demos, the Leistungstest and tests; missing = Settings.effective_graphics())}
 ## result (signal stage_finished): see ARCHITECTURE.md §Ergebnis (v0.7.0 adds fuel_start_l, fuel_end_l, tank_l,
-## start_towed; v0.8.0 gfx and, after a fallback from Modern to Arcade, gfx_fallback).
+## start_towed; v0.8.0 gfx, after a fallback from Modern to Arcade gfx_fallback, after a step-down of the quality
+## preset by the slowness watchdog gfx_lowered).
 ## Fuel carried over (v0.7.0): FuelSystem.start_check() decides at the build – a tank that does not reach the first
 ## fuel lane even at the lane trigger speed gets the tow service before the start (_tow_before_start); the countdown
 ## names the carried litres and what they are good for (SessionRules.carry_messages).
@@ -49,7 +50,9 @@ extends Node2D
 ##   Screenshotter's clock stands – equal shot times show equal simulation states in both modes (_gfx_state);
 ## - a renderer that is not healthy() is replaced by the Arcade renderer before the start (_fall_back): message in
 ##   the HUD, result fields gfx = "arcade" and gfx_fallback = <reason>;
-## - only the HUD icons are loaded as sprite sheets – the vehicle, prop and landmark sheets stay unloaded.
+## - only the HUD icons are loaded as sprite sheets – the vehicle, prop and landmark sheets stay unloaded;
+## - the renderer's slowness watchdog may step the quality preset down one step during the countdown (signal
+##   quality_lowered): the HUD says so, gfx_lowered and the result field of that name carry the preset.
 ## Both modes send the hooks of the Modern sound (set_track, set_vehicle_state, event – contract §4.7.2) to the
 ## AudioManager where it has them; the sound profile is independent of the graphics mode.
 
@@ -154,6 +157,9 @@ var gfx := Gfx.ARCADE
 ## Why Modern could not draw this stage and Arcade took over ("" = no fallback): the renderer's fail_reason() –
 ## "selftest:<reason>", "manifest", "shader", "timeout" – or "renderer" (it could not be created). Result field.
 var gfx_fallback := ""
+## Quality preset the Modern renderer's slowness watchdog stepped down to during the countdown ("" = it did not):
+## "medium" | "low". For this stage only – nothing is stored; result field (the result screens may offer to keep it).
+var gfx_lowered := ""
 ## Receiver of the sound hooks set_track / set_vehicle_state / event (contract §4.7.2); null = the AudioManager.
 ## Tests set a recorder before the scene enters the tree.
 var audio_hooks: Object = null
@@ -445,6 +451,8 @@ func _create_renderer(mode: String) -> bool:
 	add_child(r)
 	move_child(r, 0)
 	renderer.setup(track, proj, cfg, GameData.scenery)
+	if mode == Gfx.MODERN and r.has_signal(&"quality_lowered"):
+		r.connect(&"quality_lowered", _on_quality_lowered)
 	if mode == Gfx.ARCADE and CliArgs.has("no-glow-occlusion"):
 		renderer.set_glow_occlusion(false)   # debug: lights as in v0.5.0 (A/B screenshots, docs/renn-modul.md §11)
 	return true
@@ -544,6 +552,15 @@ func _abandon_modern(reason: String) -> void:
 	gfx_fallback = reason if reason != "" else "unknown"
 	_release_crash_guard(false)
 	push_warning("Modus Modern nicht möglich (%s) – die Etappe läuft im Modus Arcade" % gfx_fallback)
+
+
+## Modern: the slowness watchdog of the renderer stepped the quality preset down (once, during the countdown).
+func _on_quality_lowered(preset: String) -> void:
+	gfx_lowered = preset
+	var names := {"low": tr("Niedrig"), "medium": tr("Mittel"), "high": tr("Hoch"), "deck": tr("Steam Deck")}
+	if hud != null:
+		hud.show_message(tr("Das Bild läuft zu langsam – die Grafikqualität ist für diese Etappe auf „%s“ gesenkt.") % str(names.get(preset, preset)),
+			"warn", 6.0)
 
 
 func _show_fallback_message() -> void:
@@ -1321,6 +1338,8 @@ func build_result() -> Dictionary:
 	}
 	if gfx_fallback != "":
 		r["gfx_fallback"] = gfx_fallback   # Modern was wanted, Arcade drew the stage: why
+	if gfx_lowered != "":
+		r["gfx_lowered"] = gfx_lowered     # the slowness watchdog stepped the quality preset down to this one
 	return r
 
 

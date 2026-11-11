@@ -108,6 +108,15 @@ func apply_quality(levels: Dictionary) -> void:
 	_build_lights()
 
 
+## The slowness watchdog stepped the preset down: fewer lamps of the omni pool are used (the nodes stay).
+func quality_lowered(levels: Dictionary) -> void:
+	var want := clampi(int(levels.get("omni_pool", 4)), 0, 8)
+	while omnis.size() > want:
+		var o: OmniLight3D = omnis.pop_back()
+		o.queue_free()
+	_rank_seg = -1
+
+
 func _build_lights() -> void:
 	for l: Node in spots:
 		l.queue_free()

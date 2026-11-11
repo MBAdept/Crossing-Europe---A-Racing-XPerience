@@ -95,6 +95,8 @@ var _sky_sig: Array = []
 var _sky_updates := 0
 var _sky_reflections := true
 var _heading := 0.0                ## road heading at the car, of the last update() inside the integrated path
+var _light_sig: Array = []         ## what the light of the last frame was computed from (the split is only redone on a change)
+var _sent: Dictionary = {}         ## ce_* globals as they were set last (only changes are sent)
 var _cover := false
 var _nolight := false
 
@@ -194,6 +196,17 @@ func apply_quality(levels: Dictionary) -> void:
 	environment.reflected_light_source = Environment.REFLECTION_SOURCE_SKY if _sky_reflections else Environment.REFLECTION_SOURCE_DISABLED
 
 
+## The slowness watchdog stepped the preset down while the stage runs: what selects no shader variant follows –
+## shadow reach, glow, SSAO, sky reflections. Shadow mode and split blending stay as they are (D10).
+func quality_lowered(levels: Dictionary) -> void:
+	var reach := float(levels.get("shadow_distance_m", 0.0))
+	sun.directional_shadow_max_distance = reach if reach > 0.0 else SHADOW_DISTANCE_M
+	environment.glow_enabled = bool(levels.get("glow", false))
+	environment.ssao_enabled = bool(levels.get("ssao", false))
+	_sky_reflections = bool(levels.get("sky_reflections", true))
+	environment.reflected_light_source = Environment.REFLECTION_SOURCE_SKY if _sky_reflections else Environment.REFLECTION_SOURCE_DISABLED
+
+
 func update(view: Dictionary, _dt: float) -> void:
 	var pal: Dictionary = view.get("palette", {})
 	var cam_z := float(view.get("camera_z", 0.0))
@@ -209,15 +222,25 @@ func update(view: Dictionary, _dt: float) -> void:
 			var z := cam_z + proj.cam_distance
 			if z >= float(path.first) * path.seg_len and z <= float(path.last()) * path.seg_len:
 				_heading = path.heading_at(z)
-	var st := light_state(pal, tunnel01, _heading, float(view.get("bg_offset", 0.0)), _nolight)
-	var direct: Array = light_for(st["sun"])
-	var ambient: Array = light_for(st["ambient"])
+	# the split of the light only changes with the palette and the tunnel; the direction also with the road
+	var bg_offset := float(view.get("bg_offset", 0.0))
+	var sig := [pal.get("ambient"), pal.get("night"), pal.get("overcast"), pal.get("moon_visible"), pal.get("sun"), pal.get("sun_pos"),
+		pal.get("moon_pos"), tunnel01]
+	var st: Dictionary
+	if sig == _light_sig and not state.is_empty():
+		st = state
+		st["to_sun"] = light_direction(float(st["azimuth"]), float(st["elevation"]), _heading, bg_offset)
+	else:
+		_light_sig = sig
+		st = light_state(pal, tunnel01, _heading, bg_offset, _nolight)
+		var direct: Array = light_for(st["sun"])
+		var ambient: Array = light_for(st["ambient"])
+		sun.light_color = direct[0]
+		sun.light_energy = direct[1]
+		environment.ambient_light_color = ambient[0]
+		environment.ambient_light_energy = ambient[1]
 	var to_sun: Vector3 = st["to_sun"]
-	sun.light_color = direct[0]
-	sun.light_energy = direct[1]
 	sun.basis = Basis.looking_at(-to_sun, Vector3.UP)
-	environment.ambient_light_color = ambient[0]
-	environment.ambient_light_energy = ambient[1]
 	# fog: the palette's colour between begin and end of the sight (F4); inside a tunnel Arcade's tunnel law
 	var vis := maxf(1.0, float(view.get("visibility_m", 900.0)))
 	var fog_out: Color = pal.get("fog", Color(0.75, 0.8, 0.85))
@@ -239,17 +262,25 @@ func update(view: Dictionary, _dt: float) -> void:
 	state = st
 	var night := float(pal.get("lights", 0.0))
 	var overcast := float(pal.get("overcast", 0.0))
-	ModernMaterials.set_global("ce_time", t)
-	ModernMaterials.set_global("ce_night", maxf(night, tunnel01))
-	ModernMaterials.set_global("ce_wet", float(pal.get("wet", 0.0)) * (1.0 - tunnel01))
-	ModernMaterials.set_global("ce_snow", float(pal.get("snow", 0.0)) * (1.0 - tunnel01))
-	ModernMaterials.set_global("ce_wind", wind(t, overcast, tunnel01))
-	ModernMaterials.set_global("ce_fog_color", fog_color)
-	ModernMaterials.set_global("ce_fog_range", Vector2(begin, end))
-	ModernMaterials.set_global("ce_sun_dir", to_sun)
-	ModernMaterials.set_global("ce_sun_color", ModernMaterials.light_value(sun.light_color, sun.light_energy))
-	ModernMaterials.set_global("ce_ambient", ModernMaterials.light_value(environment.ambient_light_color, environment.ambient_light_energy))
-	ModernMaterials.set_global("ce_tunnel", tunnel01)
+	_send("ce_time", t)
+	_send("ce_night", maxf(night, tunnel01))
+	_send("ce_wet", float(pal.get("wet", 0.0)) * (1.0 - tunnel01))
+	_send("ce_snow", float(pal.get("snow", 0.0)) * (1.0 - tunnel01))
+	_send("ce_wind", wind(t, overcast, tunnel01))
+	_send("ce_fog_color", fog_color)
+	_send("ce_fog_range", Vector2(begin, end))
+	_send("ce_sun_dir", to_sun)
+	_send("ce_sun_color", st["sun"])
+	_send("ce_ambient", st["ambient"])
+	_send("ce_tunnel", tunnel01)
+
+
+## Sets a ce_* global when its value changed (most of them stand still for minutes).
+func _send(global_name: String, value: Variant) -> void:
+	if _sent.get(global_name) == value:
+		return
+	_sent[global_name] = value
+	ModernMaterials.set_global(global_name, value)
 
 
 ## The palette the backdrop draws: the palette of the view with the sun where the light comes from.
@@ -356,8 +387,7 @@ static func light_state(pal: Dictionary, tunnel01: float, road_heading: float, b
 		azimuth = sun_azimuth(sp)
 		height = sp.y
 	var elev := deg_to_rad(lerpf(lerpf(ELEV_MIN_DEG, ELEV_MAX_DEG, clampf(height, 0.0, 1.0)), OVERCAST_ELEV_DEG, overcast))
-	var a := road_heading + wrapf(azimuth - bg_offset, -PI, PI)
-	var to_sun := (RoadPath3D.fwd_of(a) * cos(elev) + Vector3.UP * sin(elev)).normalized()
+	var to_sun := light_direction(azimuth, elev, road_heading, bg_offset)
 	# directed part of the display value: the sun by day, the moon in a clear night, little under clouds, none inside
 	var share_sun := SHARE_DAY * (1.0 - smoothstep(NIGHT_FROM, NIGHT_TO, night))
 	var share_moon := SHARE_MOON * smoothstep(MOON_FROM, MOON_TO, night) if bool(pal.get("moon_visible", false)) else 0.0
@@ -394,6 +424,12 @@ static func light_state(pal: Dictionary, tunnel01: float, road_heading: float, b
 	return {"to_sun": to_sun, "sun": sun_lin, "ambient": amb_lin, "share": share, "moon": moon, "ref": ref,
 		"sun_display": sun_d, "ambient_display": amb_d, "level": level, "azimuth": azimuth, "elevation": elev,
 		"sun_pos": Vector2(azimuth / AZIMUTH_GAIN, height)}
+
+
+## Unit vector towards the light (world): its panorama angle is held against the road heading at the car.
+static func light_direction(azimuth: float, elevation: float, road_heading: float, bg_offset: float) -> Vector3:
+	var a := road_heading + wrapf(azimuth - bg_offset, -PI, PI)
+	return (RoadPath3D.fwd_of(a) * cos(elevation) + Vector3.UP * sin(elevation)).normalized()
 
 
 ## What a level surface of display albedo `albedo` shows under a light_state() (display value per channel): the

@@ -1,10 +1,12 @@
 class_name ModernRenderer
 extends Node3D
-## Renderer of the graphics mode "Modern" (v0.8.0) – the SKELETON of wave 1 (docs/dev/v080_contract.md §4.4, §4.5
-## and amendment A-7): the facade every renderer package builds on, on top of the race3d kernel. It owns no
+## Renderer of the graphics mode "Modern" (v0.8.0, docs/dev/v080_contract.md §4.4, §4.5 and amendment A-7): the seam
+## to the race session and the facade every renderer package builds on, on top of the race3d kernel. It owns no
 ## content of its own: the road is a chunk builder, vehicles, lights, weather … are dynamic layers, each found by
-## its fixed file name and driven through duck-typed hooks. German docs: docs/renderer-modern.md, section
-## "Aufbau: Fassade, Ebenen, Haken".
+## its fixed file name and driven through duck-typed hooks. What it does own: the quality states of the viewport
+## (scripts/race3d/quality.gd – set while a stage is prepared, put back when it leaves the tree), the shader
+## warm-up (prewarm.gd), the frame-time probe and the slowness watchdog of the countdown (perf_probe.gd).
+## German docs: docs/renderer-modern.md, section "Aufbau: Fassade, Ebenen, Haken".
 ##
 ## Seam to the race session (RaceRenderers):
 ##   setup(track, projection, cfg, scenery_db) · apply_quality(levels) once · prepare(ctx) – spans frames ·
@@ -23,12 +25,12 @@ extends Node3D
 ## setup(renderer) on all, apply_quality(levels) on all, prepare(ctx) on all.
 ## Optional hooks of the environment, of builders and of layers (duck-typed, any may be missing):
 ##   setup(renderer) · apply_quality(levels) · prepare(ctx) · prepare_pending() -> int · fail_reason() -> String ·
-##   warmup_nodes() -> Array · update(view, dt) · rebased(shift) · perf() -> Dictionary · snapshot() -> Dictionary;
-##   layers "lights" / "flares": add_static(parent, lamps)
+##   warmup_nodes() -> Array · update(view, dt) · rebased(shift) · perf() -> Dictionary · snapshot() -> Dictionary ·
+##   quality_lowered(levels) (the watchdog stepped the preset down); layers "lights" / "flares": add_static(parent, lamps)
 ## The preparation then runs over frames (_advance): the render self-test once per process (not headless) → every
 ## prepare_pending() is 0 → the world starts: the streamer loads the chunks the start view shows, update() runs
-## from now on → warmup_nodes() of every hook stand in front of the camera for WARMUP_FRAMES drawn frames (the
-## session's loading cover hides them) and are freed → is_prepared(). Nothing is updated before the world
+## from now on → warmup_nodes() of every hook stand in front of the camera for WARMUP_FRAMES drawn frames, in the
+## light situations of prewarm.gd (the session's loading cover hides them), and are freed → is_prepared(). Nothing is updated before the world
 ## starts: an update() can rely on its own preparation and on a path that is integrated around the camera.
 ## Every render(view) after that: environment update → streamer.update() → camera → update(view, dt) of the builders
 ## that have one (registration order) → update(view, dt) of the layers in list order. While the stage is prepared
@@ -39,6 +41,10 @@ extends Node3D
 ## fail_reason() says while the stage is prepared ("manifest", "shader", …), "script:<file>" for a layer, builder
 ## or rig file that exists but does not load, or "timeout" (graphics.modern.prepare_timeout_s of drawn frames, not
 ## in sync mode).
+## Slowness watchdog (D34 c): during the countdown the frame times are judged once (perf_probe.gd); a slow stage
+## steps its preset down one step – the viewport states and every level that selects no shader variant change at
+## once (quality.gd, hook quality_lowered(levels)), signal quality_lowered(preset) tells the session. Off with
+## --gfx-sync, --no-watchdog and headless.
 ## The simulation never reads anything from here (Rule 3); nothing here reads the sound profile (Rule 4).
 
 signal quality_lowered(preset: String)
@@ -48,15 +54,18 @@ signal rebased(shift: Vector3)
 
 const PlainEnvironment := preload("res://scripts/race3d/plain_environment.gd")
 const PlainSky := preload("res://scripts/race3d/plain_sky.gd")
+const Quality := preload("res://scripts/race3d/quality.gd")
+const PerfProbe := preload("res://scripts/race3d/perf_probe.gd")
+const Prewarm := preload("res://scripts/race3d/prewarm.gd")
 
 const SKY_LAYER := -10              ## canvas layer of the backdrop (= Environment.background_canvas_max_layer)
 const RIG_SCRIPT := "res://scripts/race3d/environment_rig.gd"
 const LAMP_LAYERS: Array[String] = ["lights", "flares"]   ## add_lamps() forwards to these
-const WARMUP_FRAMES := 2            ## drawn frames the warm-up nodes (and the start view) are shown before the start
+const WARMUP_FRAMES := 8            ## drawn frames the warm-up nodes (and the start view) are shown before the start (prewarm.gd: four light situations, two frames each)
 const WARMUP_AHEAD_M := 14.0        ## … this far in front of the camera, on the road
 const PREPARE_TIMEOUT_S := 120.0    ## default of graphics.modern.prepare_timeout_s
 const TIMEOUT_FRAME_MS := 250.0     ## a single frame counts at most this much towards the time limit
-const FRAME_WINDOW := 240           ## frames behind frame_ms_median / frame_ms_p95
+const GROUND_LAYERS := 2            ## render layer of ground meshes (road, terrain): the positional lights of the lights layer leave it out
 
 enum Stage { IDLE, SELFTEST, HOOKS, CHUNKS, WARMUP, DONE }
 const STAGE_NAMES: Array[String] = ["idle", "selftest", "hooks", "chunks", "warmup", "done"]
@@ -116,9 +125,11 @@ var _load_stats: Dictionary = {}
 var _frames := 0
 var _render_us := 0
 var _render_us_max := 0
-var _frame_us := PackedInt32Array()
-var _frame_i := 0
-var _last_tick := 0
+var _quality := Quality.new()       ## viewport and RenderingServer states of the quality levels
+var _probe := PerfProbe.new()       ## frame times and the watchdog of the countdown
+var _warmup: RefCounted             ## Prewarm while the warm-up runs
+var _lowered := ""                  ## preset the watchdog stepped down to ("" = it did not)
+var _wire := false
 var _vp_size := Vector2(1280.0, 720.0)
 var _cam_tr := Transform3D.IDENTITY
 var _cam_fr: Dictionary = {}
@@ -177,7 +188,7 @@ func prepare_progress() -> float:
 		Stage.CHUNKS:
 			return 0.65
 		Stage.WARMUP:
-			return 0.8 + 0.2 * clampf(float(Engine.get_frames_drawn() - _warm_from) / float(WARMUP_FRAMES), 0.0, 1.0)
+			return 0.8 + 0.2 * ((_warmup as Prewarm).progress(Engine.get_frames_drawn()) if _warmup != null else 1.0)
 	return 1.0
 
 
@@ -280,6 +291,16 @@ func _build() -> void:
 	var modern := _as_dict(ConfigLoader.lookup(cfg, "graphics.modern", {}))
 	_prewarm = bool(modern.get("prewarm", true)) and not CliArgs.has("no-prewarm")
 	_timeout_s = float(modern.get("prepare_timeout_s", PREPARE_TIMEOUT_S))
+	# quality states of the viewport and of the RenderingServer: set now, put back in _exit_tree()
+	var headless := DisplayServer.get_name() == "headless"
+	if is_inside_tree():
+		_quality.apply(get_viewport(), levels)
+		if debug_flags.has("wire") and not headless:
+			_wire = true
+			RenderingServer.set_debug_generate_wireframes(true)
+			get_viewport().debug_draw = Viewport.DEBUG_DRAW_WIREFRAME
+	_probe.configure(_as_dict(ConfigLoader.lookup(cfg, "graphics.watchdog", {})), DisplayServer.screen_get_refresh_rate() if not headless else 0.0,
+		Engine.max_fps, not sync and not headless and not CliArgs.has("no-watchdog"))
 	# kernel: the path is set up by the streamer's first update(), behind the camera of the start view
 	path = RoadPath3D.new()
 	terrain = TerrainProfile.new()
@@ -444,11 +465,14 @@ func _advance() -> void:
 			return
 		_begin_warmup()
 	if _stage == Stage.WARMUP:
-		var need := WARMUP_FRAMES
-		if not _prewarm or DisplayServer.get_name() == "headless" or not RenderingServer.render_loop_enabled:
-			need = 0   # nothing is drawn (or wanted): no warm-up frames
-		if _pending > 0 or Engine.get_frames_drawn() - _warm_from < need:
+		if _pending > 0:
 			return
+		# (no plan: nothing is drawn or wanted – no warm-up frames)
+		if _warmup != null and not (_warmup as Prewarm).step(Engine.get_frames_drawn(), _cam_tr):
+			return
+		if _warmup != null:
+			(_warmup as Prewarm).finish()
+			_warmup = null
 		for n: Node in _warm.get_children():
 			_warm.remove_child(n)
 			n.free()
@@ -496,16 +520,23 @@ func _begin_warmup() -> void:
 			elif n is Node and (n as Node).get_parent() == null:
 				(n as Node).free()   # only fresh Node3D are shown; nothing handed over may leak
 	_place_warmup()
+	if DisplayServer.get_name() != "headless" and RenderingServer.render_loop_enabled:
+		# every light situation the stage can bring, a few drawn frames each (prewarm.gd)
+		var plan := Prewarm.new()
+		plan.begin(world, _warm_from)
+		_warmup = plan
 
 
 func _finish() -> void:
 	_stage = Stage.DONE
 	_prepared = true
 	_prepare_ms = float(Time.get_ticks_msec() - _prep_t0)
+	if _warmup != null:
+		(_warmup as Prewarm).finish()   # a preparation that was cut short (failure, time limit)
+		_warmup = null
 	if streamer != null:
 		_load_stats = streamer.stats()
 		streamer.reset_stats()   # perf_stats() shows the drive; the load is kept as "load"
-	_last_tick = 0
 
 
 ## Runs the render self-test and keeps its verdict for the rest of the run. Static: the test outlives a renderer
@@ -517,6 +548,48 @@ static func _run_selftest(parent: Node) -> void:
 	_selftest_running = false
 	if not bool(res.get("aborted", false)):
 		selftest = res
+
+
+# --- quality while a stage runs ---------------------------------------------------------------------------------
+
+## The watchdog found the countdown slow: the preset goes down one step for the rest of the stage. Everything that
+## selects no shader variant changes at once – viewport states, shadow casters and reach, glow, SSAO, densities and
+## LOD distances of what is built from now on; hooks with quality_lowered(levels) follow, and without casters the
+## geometry under `world` stops casting shadows. Signal quality_lowered(preset) tells the session.
+func _lower_quality() -> void:
+	var lower := Quality.lower_preset(str(levels.get("preset", "")))
+	if lower == "" or _lowered != "":
+		return
+	var gfx_cfg := _as_dict(ConfigLoader.lookup(cfg, "graphics", {}))
+	var target := Gfx.levels(Gfx.quality(lower, {}, _as_dict(gfx_cfg.get("presets", {}))), gfx_cfg)
+	var next: Dictionary = Quality.lowered(levels, target)
+	# in place: the streamer and every chunk context hold this dictionary
+	levels.clear()
+	levels.merge(next)
+	_lowered = lower
+	if is_inside_tree():
+		_quality.apply(get_viewport(), levels)
+	for h: Object in _hooks:
+		if h.has_method(&"quality_lowered"):
+			h.call(&"quality_lowered", levels)
+	if int(levels.get("shadow_casters", 0)) <= 0 and world != null:
+		_stop_casting(world)
+	quality_lowered.emit(lower)
+
+
+static func _stop_casting(node: Node) -> void:
+	if node is GeometryInstance3D:
+		(node as GeometryInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	for c: Node in node.get_children():
+		_stop_casting(c)
+
+
+## Leaving the tree: the viewport and RenderingServer states of the quality levels go back to what they were.
+func _exit_tree() -> void:
+	_quality.restore()
+	if _wire:
+		_wire = false
+		get_viewport().debug_draw = Viewport.DEBUG_DRAW_DISABLED
 
 
 # --- every frame ------------------------------------------------------------------------------------------------
@@ -532,13 +605,9 @@ func render(p_view: Dictionary) -> void:
 	if _world_started:
 		_draw_world(float(p_view.get("dt", 0.0)) if _prepared else 0.0)
 	if _prepared:
-		if _last_tick > 0:
-			if _frame_us.size() < FRAME_WINDOW:
-				_frame_us.append(t0 - _last_tick)
-			else:
-				_frame_us[_frame_i] = t0 - _last_tick
-				_frame_i = (_frame_i + 1) % FRAME_WINDOW
-		_last_tick = t0
+		var frame_us := _probe.frame(t0)
+		if _probe.enabled and _probe.watch(frame_us, float(p_view.get("countdown", -1.0)), Quality.lower_preset(str(levels.get("preset", ""))) == "") == "slow":
+			_lower_quality()
 		_frames += 1
 		var us := Time.get_ticks_usec() - t0
 		_render_us += us
@@ -603,27 +672,22 @@ func _viewport_size() -> Vector2:
 
 ## Contract §4.4.5. render_ms_* = GDScript time of render() since the stage is prepared; chunk_* = the streamer's
 ## times of the drive ("load" holds those of the preparation); draw calls and primitives of the last drawn frame
-## (0 headless); frame_ms_* = wall clock between the last FRAME_WINDOW render() calls. perf() of the hooks is merged
-## in: numbers add up (lights_omni, lights_spot, vehicles, instances, fallback_sets … start at 0 here).
+## (0 headless); frame_ms_* = wall clock between the last render() calls, start_frame_ms_* the first 30 s of the
+## stage, watchdog* the verdict of the countdown (perf_probe.gd). perf() of the hooks is merged in: numbers add up
+## (lights_omni, lights_spot, vehicles, instances, fallback_sets … start at 0 here).
 func perf_stats() -> Dictionary:
 	var n := maxf(1.0, float(_frames))
 	var st: Dictionary = streamer.stats() if streamer != null else {}
-	var sorted := _frame_us.duplicate()
-	sorted.sort()
-	var median := 0.0
-	var p95 := 0.0
-	if not sorted.is_empty():
-		median = float(sorted[sorted.size() / 2]) / 1000.0
-		p95 = float(sorted[mini(sorted.size() - 1, int(float(sorted.size()) * 0.95))]) / 1000.0
 	var out := {"mode": Gfx.MODERN, "preset": str(levels.get("preset", "")), "frames": _frames,
 		"render_ms_avg": float(_render_us) / n / 1000.0, "render_ms_max": float(_render_us_max) / 1000.0,
 		"chunks": int(st.get("chunks", 0)), "chunk_build_ms_avg": float(st.get("build_ms_avg", 0.0)),
 		"chunk_build_ms_max": float(st.get("build_ms_max", 0.0)), "chunk_commit_ms_max": float(st.get("commit_ms_max", 0.0)),
 		"draw_calls": 0, "draw_calls_shadow": 0, "primitives": 0, "primitives_shadow": 0, "lights_omni": 0,
-		"lights_spot": 0, "vehicles": 0, "instances": 0, "frame_ms_median": median, "frame_ms_p95": p95,
+		"lights_spot": 0, "vehicles": 0, "instances": 0, "frame_ms_median": 0.0, "frame_ms_p95": 0.0,
 		"prewarm_ms": _prewarm_ms, "fallback_sets": 0, "tex_mem_mb": 0.0,
 		"prepare_ms": _prepare_ms, "selftest_ms": float(selftest.get("ms", 0.0)), "warmup_nodes": _warm_count,
-		"streamer": st, "load": _load_stats}
+		"quality_lowered": _lowered, "streamer": st, "load": _load_stats}
+	out.merge(_probe.stats(), true)
 	if is_inside_tree() and DisplayServer.get_name() != "headless":
 		var vp := get_viewport().get_viewport_rid()
 		out["draw_calls"] = RenderingServer.viewport_get_render_info(vp, RenderingServer.VIEWPORT_RENDER_INFO_TYPE_VISIBLE,
@@ -658,7 +722,8 @@ func debug_snapshot() -> Dictionary:
 			"pos": [_cam_tr.origin.x, _cam_tr.origin.y, _cam_tr.origin.z], "viewport": [_vp_size.x, _vp_size.y]},
 		"chunks": [], "vehicles": [], "lights": {"omni": 0, "spot": 0, "pools": 0}, "props": {}, "signs": [],
 		"quality": levels.duplicate(true), "stage": STAGE_NAMES[_stage], "prepared": _prepared, "layers": _layers.keys(),
-		"builders": builders, "pool_materials": _pool_materials.size(), "lamps": _lamps, "visibility_m": visibility_m}
+		"builders": builders, "pool_materials": _pool_materials.size(), "lamps": _lamps, "visibility_m": visibility_m,
+		"render_state": _quality.applied.duplicate(), "quality_lowered": _lowered}
 	if streamer != null:
 		var s := streamer.snapshot()
 		out["chunks"] = s["chunks"]

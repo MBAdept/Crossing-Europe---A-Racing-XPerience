@@ -63,7 +63,7 @@ var load_path_m := 1500.0
 var landmark_path_m := 1900.0
 var keep_behind_m := 150.0
 var commits_per_frame := 1
-var max_chunks := 16
+var max_chunks := 18
 var rebase_m := 2000.0
 ## Handed to every ChunkContext as ctx.services – MAIN THREAD ONLY (ChunkBuilder.collect / commit). The renderer sets
 ## {"renderer": ModernRenderer, "materials": ModernMaterials} before the first update(); without a renderer (tests)
@@ -108,7 +108,7 @@ func setup(p: RoadPath3D, t: TerrainProfile, tr: Track, game_cfg: Dictionary, lv
 	landmark_path_m = maxf(load_path_m, float(m.get("landmark_path_m", 1900.0)))
 	keep_behind_m = maxf(0.0, float(m.get("keep_behind_m", 150.0)))
 	commits_per_frame = maxi(1, int(m.get("commits_per_frame", 1)))
-	max_chunks = maxi(2, int(m.get("max_chunks", 16)))
+	max_chunks = maxi(2, int(m.get("max_chunks", 18)))
 	rebase_m = maxf(200.0, float(m.get("rebase_m", 2000.0)))
 	threaded = bool(m.get("threaded_build", true)) and not sync
 	_curve_r1 = float(ConfigLoader.lookup(cfg, "road.curve_radius_at_1_m", 1.0 / path.inv_r1))
