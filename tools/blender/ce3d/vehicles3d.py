@@ -14,7 +14,9 @@ import time
 
 import numpy as np
 
-from . import core, decalgeo, extras3d, interior3d, roles
+from cesprites import carinterior as interior3d
+
+from . import core, decalgeo, extras3d, roles
 from . import lod as LOD
 from .export import Lod, ModelData, Part, sprite_extent
 
@@ -49,6 +51,11 @@ def _add_soup(nodes, tr, soup, default_node):
         if sink is not None and str(sink).split(":")[0] in decalgeo.AXES:
             # a sunk lamp part ("<projection>:<depth>"): its anchor lies in the opening
             shift = decalgeo.AXES[str(sink).split(":")[0]] * float(str(sink).split(":")[1])
+        elif sink is not None and str(sink).split(":")[0] == "side":
+            # a sunk part on both flanks (the wrap of a tail lamp): the opening lies outwards of each triangle
+            cx = soup.pos[sel][:, :, 0].mean(axis=1)
+            shift = np.zeros((cx.shape[0], 1, 3))
+            shift[:, 0, 0] = np.sign(cx) * float(str(sink).split(":")[1])
         tr.add_role(mb, role, d, soup.pos[sel], soup.nor[sel], soup.ob.get("ce_lamp"), anchor_shift=shift)
     if left:
         raise roles.RoleError("object '%s' has untranslated %s materials" % (soup.name, "/".join(sorted(left))))

@@ -1,0 +1,182 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "traffic/van",
+ "model": {
+  "kind": "vehicle",
+  "object": {"width_m": 2.02, "length_m": 5.4, "height_m": 2.49},
+  "extent_m": {"left": 1.16, "right": 1.16},
+  "aabb": [-1.165, 0, -2.7, 1.165, 2.49, 2.702],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 40,
+    "tris": 17655,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "traffic/van/lod0_body.res",
+      "classes": ["vpbr", "glass"]
+     },
+     {
+      "node": "wheel_0l",
+      "mesh": "traffic/van/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [-0.8665, 0.34, -1.685],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.34, "steer": true}
+     },
+     {
+      "node": "wheel_0r",
+      "mesh": "traffic/van/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [0.8665, 0.34, -1.685],
+      "wheel": {"radius": 0.34, "steer": true}
+     },
+     {
+      "node": "wheel_1l",
+      "mesh": "traffic/van/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [-0.8665, 0.34, 1.615],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.34, "steer": false}
+     },
+     {
+      "node": "wheel_1r",
+      "mesh": "traffic/van/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [0.8665, 0.34, 1.615],
+      "wheel": {"radius": 0.34, "steer": false}
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 120,
+    "tris": 5845,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "traffic/van/lod1_body.res",
+      "classes": ["vpbr"]
+     }
+    ]
+   },
+   {
+    "name": "lod2",
+    "max_dist_m": 100000,
+    "tris": 1189,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "traffic/van/lod2_body.res",
+      "classes": ["vpbr"]
+     }
+    ]
+   }
+  ],
+  "shadow": {"mesh": "traffic/van/shadow.res", "tris": 1064},
+  "lights": [
+   {
+    "role": "brake",
+    "pos": [-0.932, 0.7759, 2.643],
+    "dir": [-0.601, -0.022, 0.799],
+    "size": 0.205,
+    "color": "#ff2010"
+   },
+   {
+    "role": "brake",
+    "pos": [0, 2.3501, 2.6017],
+    "dir": [0, 0.38, 0.925],
+    "size": 0.121,
+    "color": "#ff2010"
+   },
+   {
+    "role": "brake",
+    "pos": [0.9321, 0.7753, 2.6429],
+    "dir": [0.602, -0.022, 0.798],
+    "size": 0.205,
+    "color": "#ff2010"
+   },
+   {
+    "role": "head",
+    "pos": [-0.7656, 0.9164, -2.4708],
+    "dir": [-0.153, 0.893, -0.424],
+    "size": 0.276,
+    "color": "#fff3d6"
+   },
+   {
+    "role": "head",
+    "pos": [0.7662, 0.9152, -2.474],
+    "dir": [0.155, 0.889, -0.43],
+    "size": 0.271,
+    "color": "#fff3d6"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-0.9275, 1.0035, 2.6319],
+    "dir": [-0.63, 0.28, 0.725],
+    "size": 0.127,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-0.8906, 0.8664, -2.4681],
+    "dir": [-0.632, 0.538, -0.558],
+    "size": 0.161,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [0.8908, 0.8664, -2.4678],
+    "dir": [0.634, 0.536, -0.557],
+    "size": 0.161,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [0.9276, 1.0037, 2.6323],
+    "dir": [0.628, 0.28, 0.726],
+    "size": 0.126,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "tail",
+    "pos": [-0.932, 0.7759, 2.643],
+    "dir": [-0.601, -0.022, 0.799],
+    "size": 0.205,
+    "color": "#ff2010"
+   },
+   {
+    "role": "tail",
+    "pos": [0.9321, 0.7753, 2.6429],
+    "dir": [0.602, -0.022, 0.798],
+    "size": 0.205,
+    "color": "#ff2010"
+   }
+  ],
+  "paint": {"paint": "#ececea", "metal": 0.1},
+  "auto_lod": false,
+  "tags": ["traffic", "car"],
+  "bytes": 270960,
+  "hash": "8d48a0fdeadcf3e4d7fa91d2fcd3075ef9019f49"
+ },
+ "sets": {
+  "traffic/van_white": {
+   "model": "traffic/van",
+   "paint": {"paint": "#ececea", "metal": 0.1}
+  },
+  "traffic/van_silver": {
+   "model": "traffic/van",
+   "paint": {"paint": "#b3b7bc", "metal": 0.75}
+  },
+  "traffic/van_red": {
+   "model": "traffic/van",
+   "paint": {"paint": "#a82a25", "metal": 0.3}
+  },
+  "traffic/van_darkblue": {
+   "model": "traffic/van",
+   "paint": {"paint": "#203a6b", "metal": 0.5}
+  }
+ }
+}

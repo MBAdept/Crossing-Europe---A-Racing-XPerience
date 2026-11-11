@@ -423,6 +423,15 @@ _LAMP3D_TAIL = {"tail": "tail_brake:1.0", "guide": "tail", "brake": "brake"}
 _TAIL_TAGS = ("tail", "bar", "ring")
 # depth (m) of the recess of a lamp unit in a 3D build by tag (default: 1.5 x the lens height of the sprite lamp)
 _DEPTH3D = {"head": 0.028, "bar": 0.01, "refl": 0.006, "fog": 0.008, "reverse": 0.008}
+# 3D hook (detail "extras" with recessed lamps): a tail lamp whose rear outline reaches the flank continues round
+# the corner. The rear-projected unit ends where the corner turns away from behind (its parts at the graze limit of
+# the patches, its recess at the n_min of the exporter): seen from the side or from ahead the lamp was not there at
+# all, while the Cycles sprite shows it wrapping round the corner (art review of AS1, A9). The wrap is a
+# side-projected recess starting where the body faces sideways (normal . y below start_cos - beyond the reach of the
+# rear recess), `len` long, as high as the outer end of the rear outline, its lower edge rising by `rise` of that
+# height towards the front, with a tail fill (tail light + brake, like the lamp body) and a light guide along the top.
+# A lamp may override the values with spec["wrap3d"] (False = no wrap).
+WRAP3D = dict(len=0.16, rise=0.35, depth=0.009, start_cos=0.15)
 
 
 def lamp(car, spec, tag="tail"):
@@ -481,6 +490,64 @@ def lamp(car, spec, tag="tail"):
             continue
         car.patch(ln["outline"], proj, lm, offset=ln.get("depth", depth), res=res, sym=sym, walls=ln.get("depth", depth),
                   wall_mat=lm, name="%s_lens%d" % (tag, i), target=tgt)
+    if is_tail and sink > 0.0 and proj == "rear" and sym and spec.get("wrap3d", True) is not False:
+        _lamp_wrap(car, spec, tag, tgt, hm)
+
+
+def _lamp_wrap(car, spec, tag, tgt, hm):
+    """The part of a recessed tail lamp round the rear corner (3D builds only, see WRAP3D). Returns the side outline
+    (y, z) of the right flank, or None when the rear outline does not reach the flank."""
+    w = dict(WRAP3D)
+    if isinstance(spec.get("wrap3d"), dict):
+        w.update(spec["wrap3d"])
+    outline = spec["outline"]
+    x_max = max(p[0] for p in outline)
+    edge = [p for p in outline if p[0] >= x_max - 0.025]
+    z_lo, z_hi = min(p[1] for p in edge), max(p[1] for p in edge)
+    if z_hi - z_lo < 0.03:
+        return None
+    z_mid = 0.5 * (z_lo + z_hi)
+    hit = car.cast("rear", x_max - 0.004, z_mid, 1, target=tgt)
+    if hit is None or abs(hit[1].y) > 0.75:
+        return None                     # the outline ends on the rear face, short of the corner
+    # where the flank faces sideways: beyond the rear recess (its faces have normal . -y >= 0.176)
+    y0 = None
+    y = max(0.0, hit[0].y)
+    while y < hit[0].y + 0.6:
+        h = car.cast("side", y, z_mid, 1, target=tgt)
+        if h is not None and abs(h[1].y) <= w["start_cos"]:
+            y0 = y + 0.004
+            break
+        y += 0.005
+    if y0 is None:
+        return None
+    ln_, hgt = float(w["len"]), z_hi - z_lo
+    side = [(y0, z_lo + 0.004), (y0 + ln_, z_lo + hgt * float(w["rise"])), (y0 + ln_, z_hi - 0.006), (y0, z_hi)]
+    sink = float(car.detail.get("lamp_depth", 0.0)) * float(w["depth"])
+    car.lamp_pockets.append(dict(tag=tag + "_wrap", proj="side", sym=True, outline=list(side), target=tgt, depth=sink,
+                                 housing=hm, wall=car.mat("lampwall", spec.get("wall3d", "#0d0d0f"), rough=0.4)))
+    fill =[(y0 - 0.002, z_lo + 0.009), (y0 + ln_ - 0.006, z_lo + hgt * float(w["rise"]) + 0.004),
+            (y0 + ln_ - 0.006, z_hi - 0.011), (y0 - 0.002, z_hi - 0.005)]
+    parts = [dict(kind="tail", outline=fill, tail=0.2),
+             dict(kind="guide", path=[(y0 - 0.002, z_hi - 0.016), (y0 + ln_ - 0.012, z_hi - 0.02)], width=0.008,
+                  smooth=False)]
+    for i, part in enumerate(parts):
+        kind = part["kind"]
+        mat = part_mat(car, kind, part)
+        nm = "%s_wrap_%s%d" % (tag, kind, i)
+        if "path" in part:
+            pob = car.stripe(part["path"], part["width"], "side", mat, offset=_OFF[kind], res=0.005, sym=True, name=nm,
+                             target=tgt, sink=sink)
+        else:
+            pob = car.patch(part["outline"], "side", mat, offset=_OFF[kind], res=0.007, sym=True, name=nm, target=tgt,
+                            sink=sink)
+        MU.tag(pob, lamp=_LAMP3D_TAIL[kind])
+        if pob is not None:
+            pob["ce_sink"] = "side:%.5f" % sink   # the exporter puts the light anchor back to the opening
+    lm = M.lens(car.name + "_lens_%s_wrap" % tag, tint=spec.get("tint", "#c41a0f"), refl=0.06,
+                frost=spec.get("frost", 0.3))
+    car.patch(side, "side", lm, offset=0.0012, res=0.007, sym=True, name="%s_wrap_lens" % tag, target=tgt)
+    return side
 
 
 def light_box(car, center, size, mat, bevel=0.004, name="lightbox"):
@@ -748,7 +815,15 @@ def mirrors(car, y, z, mat, glass_mat=None, size=(0.19, 0.088, 0.108), indicator
         bmm = MU.loft(secs)
         ob = MU.make(car.name + "_mirror", bmm, mat, parent=car.center, smooth=True, sharp_deg=70)
         out.append(ob)
-        bm = MU.bm_beam((side * xb, y + 0.025, z - 0.055), (xc - side * sx * 0.3, y + 0.01, z - 0.03), 0.05, 0.03)
+        x_in = side * xb
+        if car.detail["extras"]:
+            # 3D hook: the arm starts IN the body. Its sprite start (W2 - 3 cm) lies in the air beside the door when
+            # the flank or the foot of the greenhouse is narrower there (sports car, GT: up to 9 cm) - in the real-time
+            # model the mirror floated. The arm reaches 1.5 cm into the surface found by a ray from the side.
+            hit = car.cast("side", y + 0.025, z - 0.055, side, target="all")
+            if hit is not None:
+                x_in = hit[0].x - side * 0.015
+        bm = MU.bm_beam((x_in, y + 0.025, z - 0.055), (xc - side * sx * 0.3, y + 0.01, z - 0.03), 0.05, 0.03)
         ob = MU.make(car.name + "_mirrorarm", bm, mat, parent=car.center)
         MU.bevel(ob, 0.008, 2)
         gl = MU.bm_box(sx * 0.82, 0.004, sz * 0.72, (xc + side * 0.006, y - sy / 2 + 0.006, z + 0.006))

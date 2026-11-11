@@ -29,6 +29,11 @@ extends SceneTree
 ##              rendered at 1280x720 and cut out around the vehicle with whole-number magnification (what the
 ##              player sees, pixel for pixel), by day and with tail / brake lights at night;
 ##              --lane=<m> puts the vehicle that far to the side (the next lane: -3.5).
+## --look=race (default): the race look of the vehicle materials - the class parameters the vehicle layer sets on
+##              the shared materials (scripts/race3d/layers/vehicles.gd LOOK: clear coat mirroring the sky, base coat,
+##              flakes, glass reflection; the mirrored sky = the sky of this rig) and, in --chase tiles, the fill light
+##              of the player car (PLAYER_FILL). --look=neutral: the neutral defaults of the shaders (the look of the
+##              vertex format alone, as tests/race3d/render/check_models.gd measures it).
 
 const VEHICLE_KINDS: Array[String] = ["vehicle", "heavy"]
 const LAMP_STATES: Array = [
@@ -78,6 +83,8 @@ var _label_sv: SubViewport  ## the caption is drawn in its own viewport and blen
 var _sky_mat: ProceduralSkyMaterial
 var _rig_night := false
 var _last_image: Image = null
+var _race_look := true      ## --look=race: the class parameters of the vehicle layer (see the header)
+var _player_fill := 0.0     ## fill light of the player car in --chase tiles (vehicle layer PLAYER_FILL)
 const GAME_SIZE := Vector2i(1280, 720)
 const GAME_FOCAL_PX := 711.0
 const GAME_CAM_HEIGHT := 3.4
@@ -116,6 +123,7 @@ func _run() -> void:
 		_tile = Vector2i(int(p[0]), int(p[1]))
 	var cols := int(str(_args.get("cols", "2" if (showroom or review or chase) else "4")))
 	_mats = ModernMaterials.new()
+	_apply_look()
 	_build_rig()
 	var tiles: Array = []
 	var only := str(_args.get("only", "*"))
@@ -125,7 +133,7 @@ func _run() -> void:
 				"aabb": [0.0, 0.0, -0.1, 15.0 * 0.62 - 0.12, 0.95, 0.1], "text": str(st[0])})
 	else:
 		for mid: String in ModelDB.model_ids():
-			if not mid.match(only):
+			if not _matches(mid, only):
 				continue
 			if showroom:
 				tiles.append_array(_showroom_tiles(mid))
@@ -155,6 +163,14 @@ func _run() -> void:
 
 
 # --- tiles ---------------------------------------------------------------------------------------------
+
+## --only: one glob or several separated by commas ("traffic/suv,traffic/van")
+func _matches(mid: String, only: String) -> bool:
+	for g: String in only.split(",", false):
+		if mid.match(g.strip_edges()):
+			return true
+	return false
+
 
 func _tiles_for(mid: String) -> Array:
 	var m := ModelDB.model(mid)
@@ -414,6 +430,42 @@ func _channel_strip() -> Node3D:
 
 # --- rig -------------------------------------------------------------------------------------------------
 
+## The race look of the shared vehicle materials (--look=race, the default): the class parameters the vehicle layer
+## sets (its constant LOOK) and the fill light of the player car (PLAYER_FILL) - read from the layer's script, so the
+## sheet follows the renderer. The values below stand in if the script cannot be loaded.
+func _apply_look() -> void:
+	_race_look = str(_args.get("look", "race")) == "race"
+	if not _race_look:
+		return
+	var look: Array = [["vpbr", "env_energy", 1.6], ["vpbr", "paint_base", 0.9], ["vpbr", "flake_strength", 0.6],
+		["glass", "env_energy", 2.2]]
+	_player_fill = 0.7
+	var path := "res://scripts/race3d/layers/vehicles.gd"
+	if ResourceLoader.exists(path):
+		var scr := load(path) as Script
+		if scr != null:
+			var cm := scr.get_script_constant_map()
+			if cm.get("LOOK") is Array:
+				look = cm["LOOK"]
+			if cm.has("PLAYER_FILL"):
+				_player_fill = float(cm["PLAYER_FILL"])
+	for l: Variant in look:
+		var e: Array = l
+		_mats.set_class_parameter(str(e[0]), str(e[1]), e[2])
+
+
+## The environment the clear coat, metals and glass mirror (race look): the sky of this rig, the ground below - set
+## the way the vehicle layer derives it from the palette (layers/vehicles.gd _set_environment).
+func _set_env_reflection(top: Color, horizon: Color, ambient: Color) -> void:
+	if not _race_look:
+		return
+	var ground := Color(0.30 * ambient.r, 0.31 * ambient.g, 0.32 * ambient.b)
+	for cls: String in ["vpbr", "glass"]:
+		_mats.set_class_parameter(cls, "env_zenith", top)
+		_mats.set_class_parameter(cls, "env_horizon", horizon)
+		_mats.set_class_parameter(cls, "env_ground", ground)
+
+
 func _build_rig() -> void:
 	_sv = SubViewport.new()
 	_sv.size = _tile
@@ -496,6 +548,7 @@ func _set_night(night: bool) -> bool:
 	# daylight close to the Cycles rig of the sprites (sun 2.4 W/m2 = energy 0.76 here, sky about 0.35)
 	_env.ambient_light_color = Color(0.1, 0.12, 0.2) if night else Color(0.6, 0.64, 0.7)
 	_env.ambient_light_energy = float(str(_args.get("ambient-energy", "0.55" if night else "1.0")))
+	_set_env_reflection(_sky_mat.sky_top_color, _sky_mat.sky_horizon_color, _env.ambient_light_color)
 	_env.glow_intensity = 0.7 if night else 0.25
 	_sun.light_energy = float(str(_args.get("sun-energy", "0.1" if night else "0.8")))
 	_sun.light_color = Color(0.62, 0.72, 1.0) if night else Color(1.0, 0.97, 0.92)
@@ -561,6 +614,10 @@ func _render(t: Dictionary) -> Image:
 		_holder.add_child(node)
 		if t.has("lamp_a"):
 			ModelFactory.set_lamps(node, t["lamp_a"], t["lamp_b"])
+		if t.has("chase") and _player_fill > 0.0 and str(t.get("model", "")).begins_with("player/"):
+			# the player car in the race: the vehicle layer adds a fill light (Arcade brightens its player sprite)
+			for c: Node in node.find_children("*", "GeometryInstance3D", true, false):
+				(c as GeometryInstance3D).set_instance_shader_parameter(&"fill", _player_fill)
 		if t.get("show_caster", false):
 			# show the caster itself instead of the body
 			for c: Node in node.get_children():

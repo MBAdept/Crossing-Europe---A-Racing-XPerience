@@ -34,7 +34,7 @@ COMMON_CODE = ["ce3d/__init__.py", "ce3d/glb.py", "ce3d/core.py", "ce3d/roles.py
 # render_all.py: its build() turns a sprite set into the generator model (props, trees); cesprites/props.py: the
 # table of the props and their dispatcher
 BUILDER_CODE = {
-    "player": ["ce3d/vehicles3d.py", "ce3d/decalgeo.py", "ce3d/interior3d.py", "ce3d/extras3d.py", "cesprites/curves.py",
+    "player": ["ce3d/vehicles3d.py", "ce3d/decalgeo.py", "cesprites/carinterior.py", "ce3d/extras3d.py", "cesprites/curves.py",
                "cesprites/carbody.py", "cesprites/cardetail.py", "cesprites/player_cars.py", "cesprites/textgeo.py"],
     "car": ["ce3d/traffic3d.py", "ce3d/vehicles3d.py", "ce3d/truck3d.py", "ce3d/decalgeo.py", "cesprites/vehicles.py",
             "cesprites/designs.py", "cesprites/carbody.py", "cesprites/cardetail.py", "cesprites/curves.py"],
@@ -53,6 +53,15 @@ MODELS = {
     "player/kompakt": dict(
         builder="player", source="player/kompakt", kind="vehicle", design="kompakt",
         sets={"player/kompakt": {}, "showroom/kompakt": {"lod": "show", "showroom": False}}),
+    "player/kombi": dict(
+        builder="player", source="player/kombi", kind="vehicle", design="kombi",
+        sets={"player/kombi": {}, "showroom/kombi": {"lod": "show", "showroom": False}}),
+    "player/sportwagen": dict(
+        builder="player", source="player/sportwagen", kind="vehicle", design="sportwagen",
+        sets={"player/sportwagen": {}, "showroom/sportwagen": {"lod": "show", "showroom": False}}),
+    "player/gran_turismo": dict(
+        builder="player", source="player/gran_turismo", kind="vehicle", design="gran_turismo",
+        sets={"player/gran_turismo": {}, "showroom/gran_turismo": {"lod": "show", "showroom": False}}),
     "traffic/sedan": dict(
         builder="car", source="traffic/sedan_red", kind="vehicle", design="sedan",
         sets={"traffic/sedan_red": {}, "traffic/sedan_blue": {}, "traffic/sedan_silver": {}, "traffic/sedan_black": {}}),
@@ -67,6 +76,20 @@ MODELS = {
                 "lod2": {"gstep": 120.0, "ends_n": 1}, "shadow": {"gstep": 120.0}},              # the long greenhouse
         sets={"traffic/wagon_silver": {}, "traffic/wagon_darkblue": {}, "traffic/wagon_green": {},
               "traffic/wagon_white": {}}),
+    "traffic/suv": dict(
+        builder="car", source="traffic/suv_black", kind="vehicle", design="suv",
+        detail={"lod0": {"step": 7.3, "gstep": 7.6}, "lod1": {"step": 17.0, "gstep": 26.0},
+                "lod2": {"step": 80.0, "gstep": 60.0}},             # tall body, roof rails, cladding cut
+        sets={"traffic/suv_black": {}, "traffic/suv_white": {}, "traffic/suv_grey": {}, "traffic/suv_brown": {}}),
+    "traffic/van": dict(
+        builder="car", source="traffic/van_white", kind="vehicle", design="van",
+        detail={"lod0": {"step": 9.0, "gstep": 10.0}, "lod1": {"step": 17.0, "gstep": 24.0}},     # 5.4 m long, 2.5 m high
+        sets={"traffic/van_white": {}, "traffic/van_silver": {}, "traffic/van_red": {}, "traffic/van_darkblue": {}}),
+    "traffic/sports": dict(
+        builder="car", source="traffic/sports_red", kind="vehicle", design="sports",
+        detail={"lod0": {"step": 8.2}, "lod2": {"step": 100.0}},      # the wing and four tail pipes
+        sets={"traffic/sports_red": {}, "traffic/sports_yellow": {}, "traffic/sports_orange": {}, "traffic/sports_black": {},
+              "traffic/sports_blue": {}}),
     "traffic/truck": dict(
         builder="heavy", source="traffic/truck_white", kind="heavy", design="truck",
         sets={"traffic/truck_white": {}, "traffic/truck_red": {}, "traffic/truck_blue": {}, "traffic/truck_green": {}}),

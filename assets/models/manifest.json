@@ -673,7 +673,7 @@
     {
      "name": "lod0",
      "max_dist_m": 40,
-     "tris": 17555,
+     "tris": 17552,
      "parts": [
       {
        "node": "body",
@@ -715,7 +715,7 @@
     {
      "name": "lod1",
      "max_dist_m": 120,
-     "tris": 5809,
+     "tris": 5808,
      "parts": [
       {
        "node": "body",
@@ -820,8 +820,312 @@
    "paint": {"paint": "#b52424", "metal": 0.3},
    "auto_lod": false,
    "tags": ["traffic", "car"],
-   "bytes": 271351,
-   "hash": "513ef8cc43d5b0b945c16041a244880e9353aac4"
+   "bytes": 271357,
+   "hash": "64ce0ba46fb495e1e12308b5f83e84ca2a578f4a"
+  },
+  "traffic/sports": {
+   "kind": "vehicle",
+   "object": {"width_m": 1.95, "length_m": 4.45, "height_m": 1.26},
+   "extent_m": {"left": 1.13, "right": 1.13},
+   "aabb": [-1.13, 0, -2.225, 1.13, 1.26, 2.227],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 40,
+     "tris": 17751,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/sports/lod0_body.res",
+       "classes": ["vpbr", "glass"]
+      },
+      {
+       "node": "wheel_0l",
+       "mesh": "traffic/sports/wheel_f.res",
+       "classes": ["vpbr"],
+       "pos": [-0.8165, 0.34, -1.26],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.34, "steer": true}
+      },
+      {
+       "node": "wheel_0r",
+       "mesh": "traffic/sports/wheel_f.res",
+       "classes": ["vpbr"],
+       "pos": [0.8165, 0.34, -1.26],
+       "wheel": {"radius": 0.34, "steer": true}
+      },
+      {
+       "node": "wheel_1l",
+       "mesh": "traffic/sports/wheel_r.res",
+       "classes": ["vpbr"],
+       "pos": [-0.794, 0.34, 1.24],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.34, "steer": false}
+      },
+      {
+       "node": "wheel_1r",
+       "mesh": "traffic/sports/wheel_r.res",
+       "classes": ["vpbr"],
+       "pos": [0.794, 0.34, 1.24],
+       "wheel": {"radius": 0.34, "steer": false}
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 120,
+     "tris": 5741,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/sports/lod1_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    },
+    {
+     "name": "lod2",
+     "max_dist_m": 100000,
+     "tris": 1194,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/sports/lod2_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    }
+   ],
+   "shadow": {"mesh": "traffic/sports/shadow.res", "tris": 972},
+   "lights": [
+    {
+     "role": "brake",
+     "pos": [-0.7681, 0.7305, 2.1707],
+     "dir": [-0.459, 0.096, 0.883],
+     "size": 0.231,
+     "color": "#ff2010"
+    },
+    {
+     "role": "brake",
+     "pos": [0.7584, 0.7304, 2.1731],
+     "dir": [0.448, 0.093, 0.889],
+     "size": 0.233,
+     "color": "#ff2010"
+    },
+    {
+     "role": "head",
+     "pos": [-0.7006, 0.5493, -2.1218],
+     "dir": [-0.38, 0.356, -0.854],
+     "size": 0.105,
+     "color": "#fff3d6"
+    },
+    {
+     "role": "head",
+     "pos": [0.6994, 0.5489, -2.1226],
+     "dir": [0.377, 0.353, -0.856],
+     "size": 0.106,
+     "color": "#fff3d6"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-0.8707, 0.673, 2.1315],
+     "dir": [-0.663, -0.014, 0.749],
+     "size": 0.116,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-0.8508, 0.5391, -2.0375],
+     "dir": [-0.717, 0.159, -0.679],
+     "size": 0.131,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [0.8506, 0.5392, -2.0377],
+     "dir": [0.715, 0.161, -0.68],
+     "size": 0.131,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [0.8705, 0.673, 2.1315],
+     "dir": [0.663, -0.015, 0.749],
+     "size": 0.116,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "tail",
+     "pos": [-0.7681, 0.7305, 2.1707],
+     "dir": [-0.459, 0.096, 0.883],
+     "size": 0.231,
+     "color": "#ff2010"
+    },
+    {
+     "role": "tail",
+     "pos": [0.7584, 0.7304, 2.1731],
+     "dir": [0.448, 0.093, 0.889],
+     "size": 0.233,
+     "color": "#ff2010"
+    }
+   ],
+   "paint": {"paint": "#d01f1f", "metal": 0.3},
+   "auto_lod": false,
+   "tags": ["traffic", "car"],
+   "bytes": 287209,
+   "hash": "b3a26655a691d4743fc1c49bd7349ad60f763179"
+  },
+  "traffic/suv": {
+   "kind": "vehicle",
+   "object": {"width_m": 1.9, "length_m": 4.62, "height_m": 1.75},
+   "extent_m": {"left": 1.11, "right": 1.11},
+   "aabb": [-1.105, 0, -2.31, 1.105, 1.787, 2.312],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 40,
+     "tris": 17824,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/suv/lod0_body.res",
+       "classes": ["vpbr", "glass"]
+      },
+      {
+       "node": "wheel_0l",
+       "mesh": "traffic/suv/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [-0.7965, 0.37, -1.395],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.37, "steer": true}
+      },
+      {
+       "node": "wheel_0r",
+       "mesh": "traffic/suv/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [0.7965, 0.37, -1.395],
+       "wheel": {"radius": 0.37, "steer": true}
+      },
+      {
+       "node": "wheel_1l",
+       "mesh": "traffic/suv/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [-0.7965, 0.37, 1.325],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.37, "steer": false}
+      },
+      {
+       "node": "wheel_1r",
+       "mesh": "traffic/suv/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [0.7965, 0.37, 1.325],
+       "wheel": {"radius": 0.37, "steer": false}
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 120,
+     "tris": 5915,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/suv/lod1_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    },
+    {
+     "name": "lod2",
+     "max_dist_m": 100000,
+     "tris": 1169,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/suv/lod2_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    }
+   ],
+   "shadow": {"mesh": "traffic/suv/shadow.res", "tris": 1004},
+   "lights": [
+    {
+     "role": "brake",
+     "pos": [-0.7884, 1.0097, 2.2437],
+     "dir": [-0.461, 0.316, 0.83],
+     "size": 0.226,
+     "color": "#ff2010"
+    },
+    {
+     "role": "brake",
+     "pos": [0.7885, 1.0097, 2.2437],
+     "dir": [0.461, 0.317, 0.829],
+     "size": 0.226,
+     "color": "#ff2010"
+    },
+    {
+     "role": "head",
+     "pos": [-0.7001, 0.8247, -2.2261],
+     "dir": [-0.387, 0.284, -0.877],
+     "size": 0.142,
+     "color": "#fff3d6"
+    },
+    {
+     "role": "head",
+     "pos": [0.7001, 0.8247, -2.2261],
+     "dir": [0.386, 0.284, -0.877],
+     "size": 0.142,
+     "color": "#fff3d6"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-0.8599, 0.8059, -2.1075],
+     "dir": [-0.821, -0.006, -0.57],
+     "size": 0.157,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-0.8035, 0.9378, 2.2555],
+     "dir": [-0.43, 0.069, 0.9],
+     "size": 0.135,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [0.8034, 0.9377, 2.2555],
+     "dir": [0.429, 0.064, 0.901],
+     "size": 0.135,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [0.8599, 0.8059, -2.1075],
+     "dir": [0.821, -0.002, -0.571],
+     "size": 0.157,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "tail",
+     "pos": [-0.7884, 1.0097, 2.2437],
+     "dir": [-0.461, 0.316, 0.83],
+     "size": 0.226,
+     "color": "#ff2010"
+    },
+    {
+     "role": "tail",
+     "pos": [0.7885, 1.0097, 2.2437],
+     "dir": [0.461, 0.317, 0.829],
+     "size": 0.226,
+     "color": "#ff2010"
+    }
+   ],
+   "paint": {"paint": "#1b1c1f", "metal": 0.35},
+   "auto_lod": false,
+   "tags": ["traffic", "car"],
+   "bytes": 280642,
+   "hash": "d98f3fd8c18045434719911f3a59f0fdb0db3e1e"
   },
   "traffic/truck": {
    "kind": "heavy",
@@ -1047,6 +1351,165 @@
    "bytes": 161851,
    "hash": "ee125caa0f956a400bfb6efa990714b610d572bc"
   },
+  "traffic/van": {
+   "kind": "vehicle",
+   "object": {"width_m": 2.02, "length_m": 5.4, "height_m": 2.49},
+   "extent_m": {"left": 1.16, "right": 1.16},
+   "aabb": [-1.165, 0, -2.7, 1.165, 2.49, 2.702],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 40,
+     "tris": 17655,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/van/lod0_body.res",
+       "classes": ["vpbr", "glass"]
+      },
+      {
+       "node": "wheel_0l",
+       "mesh": "traffic/van/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [-0.8665, 0.34, -1.685],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.34, "steer": true}
+      },
+      {
+       "node": "wheel_0r",
+       "mesh": "traffic/van/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [0.8665, 0.34, -1.685],
+       "wheel": {"radius": 0.34, "steer": true}
+      },
+      {
+       "node": "wheel_1l",
+       "mesh": "traffic/van/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [-0.8665, 0.34, 1.615],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.34, "steer": false}
+      },
+      {
+       "node": "wheel_1r",
+       "mesh": "traffic/van/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [0.8665, 0.34, 1.615],
+       "wheel": {"radius": 0.34, "steer": false}
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 120,
+     "tris": 5845,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/van/lod1_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    },
+    {
+     "name": "lod2",
+     "max_dist_m": 100000,
+     "tris": 1189,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/van/lod2_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    }
+   ],
+   "shadow": {"mesh": "traffic/van/shadow.res", "tris": 1064},
+   "lights": [
+    {
+     "role": "brake",
+     "pos": [-0.932, 0.7759, 2.643],
+     "dir": [-0.601, -0.022, 0.799],
+     "size": 0.205,
+     "color": "#ff2010"
+    },
+    {
+     "role": "brake",
+     "pos": [0, 2.3501, 2.6017],
+     "dir": [0, 0.38, 0.925],
+     "size": 0.121,
+     "color": "#ff2010"
+    },
+    {
+     "role": "brake",
+     "pos": [0.9321, 0.7753, 2.6429],
+     "dir": [0.602, -0.022, 0.798],
+     "size": 0.205,
+     "color": "#ff2010"
+    },
+    {
+     "role": "head",
+     "pos": [-0.7656, 0.9164, -2.4708],
+     "dir": [-0.153, 0.893, -0.424],
+     "size": 0.276,
+     "color": "#fff3d6"
+    },
+    {
+     "role": "head",
+     "pos": [0.7662, 0.9152, -2.474],
+     "dir": [0.155, 0.889, -0.43],
+     "size": 0.271,
+     "color": "#fff3d6"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-0.9275, 1.0035, 2.6319],
+     "dir": [-0.63, 0.28, 0.725],
+     "size": 0.127,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-0.8906, 0.8664, -2.4681],
+     "dir": [-0.632, 0.538, -0.558],
+     "size": 0.161,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [0.8908, 0.8664, -2.4678],
+     "dir": [0.634, 0.536, -0.557],
+     "size": 0.161,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [0.9276, 1.0037, 2.6323],
+     "dir": [0.628, 0.28, 0.726],
+     "size": 0.126,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "tail",
+     "pos": [-0.932, 0.7759, 2.643],
+     "dir": [-0.601, -0.022, 0.799],
+     "size": 0.205,
+     "color": "#ff2010"
+    },
+    {
+     "role": "tail",
+     "pos": [0.9321, 0.7753, 2.6429],
+     "dir": [0.602, -0.022, 0.798],
+     "size": 0.205,
+     "color": "#ff2010"
+    }
+   ],
+   "paint": {"paint": "#ececea", "metal": 0.1},
+   "auto_lod": false,
+   "tags": ["traffic", "car"],
+   "bytes": 270960,
+   "hash": "8d48a0fdeadcf3e4d7fa91d2fcd3075ef9019f49"
+  },
   "traffic/wagon": {
    "kind": "vehicle",
    "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.52},
@@ -1056,7 +1519,7 @@
     {
      "name": "lod0",
      "max_dist_m": 40,
-     "tris": 17464,
+     "tris": 17459,
      "parts": [
       {
        "node": "body",
@@ -1203,8 +1666,8 @@
    "paint": {"paint": "#aeb2b8", "metal": 0.75},
    "auto_lod": false,
    "tags": ["traffic", "car"],
-   "bytes": 276055,
-   "hash": "db5c2ce5598cf7f01b547b25ecd6d0f867c1faad"
+   "bytes": 276014,
+   "hash": "e5f771bef610196ab94b9371463b1b84e2d33f2d"
   }
  },
  "sets": {
@@ -1861,48 +2324,39 @@
    "paint": {"paint": "#a9adb4", "metal": 0.75}
   },
   "traffic/sports_black": {
-   "fallback": "box",
-   "object": {"width_m": 1.95, "length_m": 4.45, "height_m": 1.26},
+   "model": "traffic/sports",
    "paint": {"paint": "#18191b", "metal": 0.35}
   },
   "traffic/sports_blue": {
-   "fallback": "box",
-   "object": {"width_m": 1.95, "length_m": 4.45, "height_m": 1.26},
+   "model": "traffic/sports",
    "paint": {"paint": "#2350c8", "metal": 0.45}
   },
   "traffic/sports_orange": {
-   "fallback": "box",
-   "object": {"width_m": 1.95, "length_m": 4.45, "height_m": 1.26},
+   "model": "traffic/sports",
    "paint": {"paint": "#ec6a12", "metal": 0.2}
   },
   "traffic/sports_red": {
-   "fallback": "box",
-   "object": {"width_m": 1.95, "length_m": 4.45, "height_m": 1.26},
+   "model": "traffic/sports",
    "paint": {"paint": "#d01f1f", "metal": 0.3}
   },
   "traffic/sports_yellow": {
-   "fallback": "box",
-   "object": {"width_m": 1.95, "length_m": 4.45, "height_m": 1.26},
+   "model": "traffic/sports",
    "paint": {"paint": "#f2c30f", "metal": 0.15}
   },
   "traffic/suv_black": {
-   "fallback": "box",
-   "object": {"width_m": 1.9, "length_m": 4.62, "height_m": 1.75},
+   "model": "traffic/suv",
    "paint": {"paint": "#1b1c1f", "metal": 0.35}
   },
   "traffic/suv_brown": {
-   "fallback": "box",
-   "object": {"width_m": 1.9, "length_m": 4.62, "height_m": 1.75},
+   "model": "traffic/suv",
    "paint": {"paint": "#6e4f37", "metal": 0.5}
   },
   "traffic/suv_grey": {
-   "fallback": "box",
-   "object": {"width_m": 1.9, "length_m": 4.62, "height_m": 1.75},
+   "model": "traffic/suv",
    "paint": {"paint": "#5f646a", "metal": 0.55}
   },
   "traffic/suv_white": {
-   "fallback": "box",
-   "object": {"width_m": 1.9, "length_m": 4.62, "height_m": 1.75},
+   "model": "traffic/suv",
    "paint": {"paint": "#ececea", "metal": 0.1}
   },
   "traffic/truck_blue": {
@@ -1922,23 +2376,19 @@
    "paint": {"paint": "#d8d8d6", "paint2": "#d8d8d4", "paint3": "#1f4f9a", "metal": 0.1}
   },
   "traffic/van_darkblue": {
-   "fallback": "box",
-   "object": {"width_m": 2.02, "length_m": 5.4, "height_m": 2.49},
+   "model": "traffic/van",
    "paint": {"paint": "#203a6b", "metal": 0.5}
   },
   "traffic/van_red": {
-   "fallback": "box",
-   "object": {"width_m": 2.02, "length_m": 5.4, "height_m": 2.49},
+   "model": "traffic/van",
    "paint": {"paint": "#a82a25", "metal": 0.3}
   },
   "traffic/van_silver": {
-   "fallback": "box",
-   "object": {"width_m": 2.02, "length_m": 5.4, "height_m": 2.49},
+   "model": "traffic/van",
    "paint": {"paint": "#b3b7bc", "metal": 0.75}
   },
   "traffic/van_white": {
-   "fallback": "box",
-   "object": {"width_m": 2.02, "length_m": 5.4, "height_m": 2.49},
+   "model": "traffic/van",
    "paint": {"paint": "#ececea", "metal": 0.1}
   },
   "traffic/wagon_darkblue": {

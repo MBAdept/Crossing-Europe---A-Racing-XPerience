@@ -12,7 +12,7 @@ Blender objects into the intermediates of the bake (tools/models/bake_models.gd)
   catalog3d  every model: builder, source set, LODs, colour sets
   export     one model -> _cache3d/<group>/<name>/{model.glb, model_meta.json, textures}
   vehicles3d player cars (detail levels, cabin, lamp recesses); traffic3d traffic cars; truck3d the truck;
-             interior3d / extras3d parts only the 3D player cars have
+             extras3d parts only the 3D player cars have (their cabin: cesprites.carinterior)
   decalgeo   shader decals of traffic cars -> one layer of real geometry on the body of the LOD
   veg3d      card trees (trunk + core + leaf cards) and their impostors
   leafatlas  leaf card textures

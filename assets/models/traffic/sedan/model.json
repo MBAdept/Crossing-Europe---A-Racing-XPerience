@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 40,
-    "tris": 17555,
+    "tris": 17552,
     "parts": [
      {
       "node": "body",
@@ -53,7 +53,7 @@
    {
     "name": "lod1",
     "max_dist_m": 120,
-    "tris": 5809,
+    "tris": 5808,
     "parts": [
      {
       "node": "body",
@@ -158,8 +158,8 @@
   "paint": {"paint": "#b52424", "metal": 0.3},
   "auto_lod": false,
   "tags": ["traffic", "car"],
-  "bytes": 271351,
-  "hash": "513ef8cc43d5b0b945c16041a244880e9353aac4"
+  "bytes": 271357,
+  "hash": "64ce0ba46fb495e1e12308b5f83e84ca2a578f4a"
  },
  "sets": {
   "traffic/sedan_red": {
