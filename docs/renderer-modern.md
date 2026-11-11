@@ -4,8 +4,10 @@ Technische Dokumentation des Geometrie-Kerns des echten 3D-Renderers (v0.8.0). E
 chase_camera, terrain_profile, chunk_context, chunk_builder, chunk_streamer, builder_registry}.gd`,
 `scripts/race3d/builders/debug_road.gd`, `tests/unit/race3d/*`, `tests/race3d/{fairness, synthetic_track}.gd`,
 `tests/sim/modern_*.gd`. Der Bauplan steht in [dev/v080_contract.md](dev/v080_contract.md) (§3.2, §3.3, §4.5); hier steht,
-wie der Kern funktioniert, was gemessen wurde und woran man dreht. Den Aufbau des Renderers selbst (Umgebung, Licht,
-Ebenen) ergänzt der Renderer-Bauabschnitt in diesem Dokument.
+wie der Kern funktioniert, was gemessen wurde und woran man dreht. Den Aufbau des Renderers selbst – die Fassade,
+über die Ebenen und Builder eingehängt werden, ihre Haken, die eingebaute Umgebung und das Bildwerkzeug – beschreibt
+[Abschnitt 9](#9-aufbau-fassade-ebenen-haken); Straße, Umgebung, Gelände und Fahrzeuge ergänzen die
+Renderer-Bauabschnitte dort.
 
 Zahlen mit „gemessen“ stammen von dieser Entwicklungsmaschine (headless bzw. Mesa llvmpipe unter Xvfb, 4 geteilte
 Kerne); „abgeleitet“ heißt gerechnet, nicht gemessen. Zeiten auf einer echten Grafikkarte sind hier nicht messbar.
@@ -27,6 +29,11 @@ Kerne); „abgeleitet“ heißt gerechnet, nicht gemessen. Zeiten auf einer echt
 | `tests/sim/modern_sight.gd` | – | Fairness-Prüfung F1–F3, F7 (läuft in `tools/run_tests.sh` über den Haken für `tests/sim/modern_*.gd`) |
 | `tests/sim/modern_path_check.gd` | – | Weltprüfung: Abstand des Pfads zu sich selbst (läuft ebenso in `tools/run_tests.sh`) |
 | `tests/unit/race3d/test_*.gd` | – | Unit-Tests: Pfad, Kamera, Geländeprofil, Stücke, die Prüfungen selbst |
+| `scripts/race3d/modern_renderer.gd` | `ModernRenderer` | das Gerüst des Renderers: Naht zur Sitzung, Fassade für Ebenen und Builder, Vorbereitung über mehrere Bilder (Abschnitt 9) |
+| `scripts/race3d/plain_environment.gd`, `plain_sky.gd` | – | eingebaute Umgebung und eingebauter Himmel, solange `environment_rig.gd` bzw. `layers/backdrop.gd` fehlen (9.6) |
+| `assets/shaders/modern/inc/pools.gdshaderinc` | – | Lichtkegel der Fahrbahn- und Geländematerialien (9.7) |
+| `tools/ab_shot.sh` | – | derselbe Simulationszustand in Arcade und Modern nebeneinander (9.8) |
+| `tests/race3d/check_facade.gd`, `tests/race3d/render/check_facade_render.gd`, `tests/race3d/fixtures/facade_*.gd` | – | Prüfungen der Fassade mit Prüf-Ebene, Prüf-Builder und Prüf-Renderer (9.9) |
 
 Nichts davon wirkt auf die Simulation zurück: der Kern liest `Track`, `RoadProjection` und die Konfiguration, mehr nicht.
 
@@ -258,6 +265,9 @@ Stelle. `create(name)`, `create_layer(name)`, `existing_builders()`, `existing_l
 
 ### 4.6 Einbau in den Renderer
 
+Genau das tut `ModernRenderer.prepare()` (Abschnitt 9.2) – wer einen Builder oder eine Ebene schreibt, baut den Kern
+nicht selbst auf, sondern bekommt ihn über die Fassade. Das Muster, etwa für Tests ohne Renderer:
+
 ```gdscript
 var path := RoadPath3D.new()
 path.setup(track, 0, float(ConfigLoader.lookup(cfg, "road.curve_radius_at_1_m", 120.0)))
@@ -417,7 +427,9 @@ camera.set_frustum(fr.size, fr.offset, fr.near, fr.far)                         
 ```
 
 `ChaseCamera3D.project(transform, frustum, viewport_size, punkt)` liefert (Pixel x, Pixel y, Tiefe) und ist die
-Rechnung hinter `world_to_screen()`; `on_screen()` prüft Bildrand und Tiefe.
+Rechnung hinter `world_to_screen()`; `on_screen()` prüft Bildrand und Tiefe. Der Renderer setzt seine `Camera3D`
+jedes Bild so (Abschnitt 9.2); gemessen im laufenden Spiel weicht `Camera3D.unproject_position()` von
+`ModernRenderer.world_to_screen()` um höchstens 0,0005 px ab (1280 × 720 und 1280 × 800, Render-Prüfung `modern_bild`).
 
 ## 7. Fairness
 
@@ -552,3 +564,372 @@ Die Auswahl enthält die ungünstigsten Fälle des ganzen Netzes: ihr Lauf liefe
   3D-Auflösung (gefolgert, nicht gemessen). Für den Renderer (R1) heißt das: den Betrag in das Texturbudget beider
   Modi einrechnen und in der Leckprüfung als Grundlast führen – er ist kein Leck, zählt aber gegen „jeder Modus
   lädt nur seine eigenen Assets“ (Bauplan §4.11).
+
+## 9. Aufbau: Fassade, Ebenen, Haken
+
+`scripts/race3d/modern_renderer.gd` (`ModernRenderer`, ein `Node3D`) ist das **Gerüst** des Renderers. Es zeichnet
+selbst nichts: die Straße ist ein Builder, Fahrzeuge, Lichter, Wetter … sind Ebenen. Das Gerüst findet beide über
+ihren festen Dateinamen (Abschnitt 4.5), baut den Kern auf, ruft ihre **Haken** in fester Reihenfolge und bietet
+ihnen eine **Fassade** – die einzige Stelle, über die Bauabschnitte miteinander reden (immer mit `has_method` /
+`renderer.layer(id)`, nie über einen Klassennamen eines anderen Bauabschnitts). Verbindlich ist Nachtrag A-7 des
+Bauplans; hier steht, wie es gebaut ist.
+
+### 9.1 Was es heute gibt
+
+| Teil | Datei | solange … |
+|---|---|---|
+| Straße mit Geländeringen in Eckpunktfarben | `builders/debug_road.gd` | `builders/road.gd` fehlt (mit einem Builder `terrain` zeichnet sie nur noch die Straße) |
+| Umgebung: ein Schattenlicht, Umgebungslicht, Tiefennebel, `ce_*`-Globals | `plain_environment.gd` | `environment_rig.gd` fehlt |
+| Himmelsverlauf der Palette auf Canvas-Ebene −10 | `plain_sky.gd` | `layers/backdrop.gd` fehlt |
+
+Keine Fahrzeuge, keine Requisiten, keine Markierungen – das Bild des Gerüsts ist ein Arbeitsstand, kein Vergleich
+mit Arcade (A/B-Bild im Abgabeordner des Bauabschnitts).
+
+### 9.2 Ablauf
+
+Die Sitzung ruft `setup(track, proj, cfg, scenery_db)` → `apply_quality(levels)` → `prepare(ctx)` und danach jedes
+Bild `render(view)` – auch während der Vorbereitung, dann mit der eingefrorenen Startansicht hinter dem Ladebild.
+
+`prepare(ctx)` baut in dieser Reihenfolge: `RoadPath3D` (noch nicht integriert), `TerrainProfile`, `ChaseCamera3D`,
+die `Camera3D` (Frustum aus `ChaseCamera3D` für die **logische** Bildgröße, `KEEP_HEIGHT`), den Knoten `world`,
+`materials = ModernMaterials.shared()`, die Umgebung (`environment_rig.gd` oder die eingebaute), den `ChunkStreamer`
+unter `world` mit `services = {"renderer", "materials"}` und den Buildern aus `BuilderRegistry.create_all()`, dann
+jede Ebene, deren Datei es gibt, in der Reihenfolge `backdrop, far_ground, lights, vehicles, flares, weather,
+overlay, post` – jede als Kind des Renderers mit dem Namen ihrer Datei. Erst wenn alles besteht, laufen drei
+Durchgänge, jeder in der Reihenfolge Umgebung → Builder → Ebenen: `setup(renderer)`, `apply_quality(levels)`,
+`prepare(ctx)`.
+
+Danach läuft die Vorbereitung über Bilder (`debug_snapshot().stage`):
+
+| Stufe | was geschieht | endet, wenn |
+|---|---|---|
+| `selftest` | Render-Selbsttest (`GfxSelfTest`), **einmal je Prozess** | das Urteil da ist (headless: sofort) |
+| `hooks` | nichts wird aktualisiert, kein Stück gebaut | jedes `prepare_pending()` 0 ist |
+| `chunks` | mit der ersten Ansicht integriert der Streamer den Pfad und lädt die Stücke der Startansicht sofort (Sync-Modus: `flush()`); ab jetzt läuft `update()` | kein Stück und keine Vorbereitung mehr offen ist |
+| `warmup` | die Knoten aus `warmup_nodes()` stehen 14 m vor der Kamera auf der Fahrbahn, `WARMUP_FRAMES` = 2 gezeichnete Bilder lang, hinter dem Ladebild; dann gibt der Renderer sie frei | die Bilder gezeichnet sind (headless, `--no-prewarm`, `graphics.modern.prewarm = false`: sofort, ohne Knoten bzw. ohne Bilder) |
+| `done` | `is_prepared()` ist wahr | – |
+
+Jedes `render(view)` ab der Stufe `chunks`: Umgebung `update(view, dt)` → `streamer.update(camera_z, visibility_m)`
+→ Kamera (Transformation und Frustum aus `ChaseCamera3D`) → `update(view, dt)` der Builder, die eines haben, in
+Registrierfolge → `update(view, dt)` der Ebenen in Listenfolge. **Bis `is_prepared()` ist `dt` = 0**: die Startansicht
+steht, der Zustand beim Start hängt nicht davon ab, wie viele Bilder die Vorbereitung brauchte (Selbsttest nur in der
+ersten Etappe, Aufwärmbilder nur mit echtem Renderer).
+
+`healthy()` wird falsch – die Sitzung fährt die Etappe dann in Arcade – mit `fail_reason()` =
+
+- `selftest:<grund>` (Selbsttest; `--gfx-debug=fail` ergibt `selftest:debug`),
+- dem, was ein Haken während der Vorbereitung in `fail_reason()` meldet (`manifest`, `shader`, …),
+- `script:<datei>`, wenn eine Ebenen-, Builder- oder Rig-Datei da ist, aber keinen Knoten bzw. Builder ergibt,
+- `timeout` nach `graphics.modern.prepare_timeout_s` (Vorgabe im Code: 120 s; nie im Sync-Modus – Regel 10).
+
+### 9.3 Fassade
+
+Alles Hauptthread, für Ebenen, Builder (in `setup`, `collect`, `commit`, `update`) und Tests; nur lesen.
+
+| Mitglied | Inhalt |
+|---|---|
+| `track`, `proj`, `cfg`, `scenery_db` | was die Sitzung in `setup()` übergab (`cfg` = ganze Spielkonfiguration) |
+| `levels`, `sync`, `prep` | Qualitätsstufen (`Gfx.levels`), Sync-Modus (`--gfx-sync`), der Kontext von `prepare()` (`sets`, `plan`, `vehicle`, `weather`, `hour`, `sync`) |
+| `path`, `terrain`, `streamer`, `chase`, `camera` | der Kern; `path` ist erst ab dem ersten `update()` integriert |
+| `materials` | `ModernMaterials.shared()` |
+| `env` | der Knoten von `environment_rig.gd`; `null`, solange die Datei fehlt |
+| `world` | Elternknoten für 3D-Knoten der Ebenen: Einheitstransformation, Koordinaten relativ zum schwimmenden Ursprung |
+| `view`, `visibility_m` | Ansicht und Sichtweite des laufenden `render()` |
+| `debug_flags` | `--gfx-debug=<liste>` |
+| `signal rebased(shift)` | der Ursprung wurde verlegt: `shift` auf jede gemerkte Weltposition addieren |
+| `layer(id)` | die Ebene oder `null` |
+| `builder(id)` | der registrierte Builder mit dieser `id()` oder `null` |
+| `road_to_world(z, x, h)` | Straßenkoordinaten → Weltposition (`path.world()`); `Vector3.ZERO`, bevor der Pfad integriert ist |
+| `world_to_screen(z, x, h)` | (Pixel x, Pixel y, Tiefe in m) in logischen Pixeln des letzten Bildes – `ChaseCamera3D.project()` |
+| `add_lamps(parent, lamps)` | feste Lampen eines Stückteils: geht an `layer("lights")` und `layer("flares")`, wenn es sie gibt und sie `add_static(parent, lamps)` haben; Einträge `{pos, dir, role, color, size, range, energy}` wie in A-7 |
+| `add_pool_material(mat)`, `pool_materials()` | Materialien, deren Shader die Lichtkegel einbindet (9.7) |
+
+`ChunkContext.services` (= `ChunkStreamer.services`) reicht `{"renderer", "materials"}` an `collect()` und `commit()`
+jedes Builders – **nie** in `build()` (Arbeiter-Thread). In Tests ohne Renderer ist es `{}`; ein Builder muss ohne
+auskommen (Materialien über `ModernMaterials.shared()`, keine Lampen).
+
+### 9.4 Haken
+
+Alle sind freiwillig und werden per `has_method` gefunden – bei der Umgebung, bei Buildern und bei Ebenen.
+
+| Haken | wann | Hinweis |
+|---|---|---|
+| `setup(renderer)` | in `prepare()`, nachdem alles besteht | der Pfad ist noch nicht integriert: keine Positionen |
+| `apply_quality(levels)` | danach, einmal je Etappe | Qualitätsstufen ändern sich während der Etappe nie |
+| `prepare(ctx)` | danach | Laden anstoßen (`ModelDB.request`, Schilder vorzeichnen …); darf Bilder dauern |
+| `prepare_pending() -> int` | jedes Bild der Vorbereitung | > 0: die Etappe wartet |
+| `fail_reason() -> String` | jedes Bild der Vorbereitung | nicht leer: Rückfall auf Arcade mit diesem Grund |
+| `warmup_nodes() -> Array` | einmal, wenn die Startansicht steht | je Shader-Variante ein frischer `Node3D` ohne Elternknoten; der Renderer zeigt und löscht ihn |
+| `update(view, dt)` | jedes Bild ab dem Start der Welt | Umgebung vor Streamer und Kamera, Builder und Ebenen danach; `dt` = 0 während der Vorbereitung |
+| `rebased(shift)` | wenn der Ursprung verlegt wird | erst die Haken (Umgebung, Builder, Ebenen), dann das Signal |
+| `perf() -> Dictionary` | bei `perf_stats()` | flache Schlüssel aus Bauplan §4.4.5; Zahlen werden addiert |
+| `snapshot() -> Dictionary` | bei `debug_snapshot()` | Listen werden angehängt, Wörterbücher zusammengeführt, Zahlen addiert |
+| `add_static(parent, lamps)` | nur `lights` und `flares` | Ziel von `add_lamps()` |
+
+Bauplan A-7 nennt `update` und `rebased` nur für Ebenen; das Gerüst ruft beide auch an Buildern, die sie haben
+(nützlich für Dinge, die ein Builder für die ganze Etappe hält, etwa ein Material mit dem Countdown der Startbrücke).
+Ein Builder hält weiterhin keinen Zustand je Stück.
+
+### 9.5 Beispiel
+
+Eine Ebene – Datei `scripts/race3d/layers/overlay.gd`, ein `Node`; der Dateiname ist ihre Kennung:
+
+```gdscript
+extends Node3D
+
+var _renderer: Node               # untyped: packages talk to each other through the facade only
+var _marker: MeshInstance3D
+var _material: StandardMaterial3D
+var _pending := 0
+
+
+func setup(renderer: Node) -> void:
+	# every layer and builder exists by now; the path is not integrated yet (no positions before update())
+	_renderer = renderer
+	_material = StandardMaterial3D.new()
+	_material.albedo_color = Color(0.9, 0.2, 0.1)
+	_marker = MeshInstance3D.new()
+	_marker.mesh = BoxMesh.new()
+	_marker.material_override = _material
+	(renderer.get("world") as Node3D).add_child(_marker)   # origin-relative world, identity transform
+
+
+func apply_quality(levels: Dictionary) -> void:
+	var casts := int(levels.get("shadow_casters", 0)) > 0
+	_marker.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if casts else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
+func prepare(_ctx: Dictionary) -> void:
+	_pending = 1      # e.g. ModelDB.request(...) – the stage does not start while prepare_pending() > 0
+
+
+func prepare_pending() -> int:
+	_pending = 0      # here: ready at the first poll
+	return _pending
+
+
+func warmup_nodes() -> Array:
+	# a fresh node per shader variant: the renderer shows it for two frames behind the loading cover and frees it
+	var probe := MeshInstance3D.new()
+	probe.mesh = BoxMesh.new()
+	probe.material_override = _material
+	return [probe]
+
+
+func update(view: Dictionary, _dt: float) -> void:
+	# every frame, after the streamer and the camera; _dt is 0 while the stage is prepared
+	var player: Dictionary = view["player"]
+	_marker.position = _renderer.call("road_to_world", float(player["z"]) + 30.0, float(player["x"]), 0.5)
+
+
+func perf() -> Dictionary:
+	return {"instances": 1}
+
+
+func snapshot() -> Dictionary:
+	return {"props": {"overlay_marker": 1}}
+
+
+func _exit_tree() -> void:
+	if is_instance_valid(_marker):
+		_marker.queue_free()      # it hangs under renderer.world, not under this layer
+```
+
+Der Kasten wird jedes Bild über `road_to_world()` gesetzt und braucht deshalb kein `rebased()`. Wer eine
+Weltposition über Bilder hinweg behält, addiert in `rebased(shift)` die Verschiebung.
+
+Ein Builder – Datei `scripts/race3d/builders/roadside.gd`, `id()` = Dateiname:
+
+```gdscript
+extends ChunkBuilder
+
+const POST_EVERY := 8             # rows (segments of 3 m)
+
+var _mesh: BoxMesh
+var _material: StandardMaterial3D
+
+
+func id() -> String:
+	return "roadside"
+
+
+func setup(_renderer: Node) -> void:
+	# main thread, once per stage: resources that every chunk shares
+	_mesh = BoxMesh.new()
+	_mesh.size = Vector3(0.12, 1.0, 0.12)
+	_material = StandardMaterial3D.new()
+	_material.albedo_color = Color(0.85, 0.85, 0.82)
+
+
+func build(ctx: ChunkContext, _input: Variant) -> Dictionary:
+	# WORKER THREAD: only the snapshot arrays of ctx – no nodes, no resources, no ctx.services / path / terrain
+	var frames: Array[Transform3D] = []
+	for i in range(0, ctx.row_count() - 1, POST_EVERY):
+		var z := float(ctx.seg_a + i) * ctx.seg_len
+		var x := ctx.rows_edge[i].y + ctx.shoulder_w - 0.3
+		frames.append(ctx.frame(z, x, ctx.ground(z, x) + 0.5))      # rigid frame, chunk-local
+	return {"frames": frames}
+
+
+func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
+	# main thread: nodes under the chunk node; the streamer owns and moves that node
+	var frames: Array = part["frames"]
+	if frames.is_empty():
+		return
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.mesh = _mesh
+	mm.instance_count = frames.size()
+	var lamps: Array = []
+	for i in frames.size():
+		var tr: Transform3D = frames[i]
+		mm.set_instance_transform(i, tr)
+		if i % 4 == 0:
+			lamps.append({"pos": tr.origin + Vector3(0.0, 0.6, 0.0), "dir": Vector3.DOWN, "role": "street",
+				"color": Color(1.0, 0.9, 0.7), "size": 0.3, "range": 8.0, "energy": 1.0})
+	var node := MultiMeshInstance3D.new()
+	node.multimesh = mm
+	node.material_override = _material
+	parent.add_child(node)
+	var renderer: Variant = ctx.services.get("renderer")           # {} in a test without a renderer
+	if renderer != null:
+		(renderer as Object).call("add_lamps", node, lamps)        # positions are local to `node`
+
+
+func debug(part: Dictionary) -> Dictionary:
+	return {"posts": (part["frames"] as Array).size()}
+```
+
+Beide Beispiele sind im echten Renderer gelaufen (Kiel – Hamburg km 2, headless: Ebene `overlay`, Builder
+`debug_road` und `roadside`, 4 Pfosten je Stück, 14 angemeldete Lampen, ein Aufwärm-Knoten).
+
+### 9.6 Eingebaute Umgebung und eingebauter Himmel
+
+`plain_environment.gd` hat dieselben Haken wie das spätere Rig (`setup`, `apply_quality`, `update`, `snapshot`) und
+hält, was die Engine-Befunde des Bauplans verlangen: Hintergrund `BG_CANVAS` hinter Canvas-Ebene −10 (D7), linearer
+Tonemapper und fest eingeschaltete Nachbearbeitung (D6), genau **ein** `DirectionalLight3D`, immer mit
+`shadow_enabled` (D5) – nachts und im Tunnel geht seine Energie auf 0, versteckt wird es nie. Tiefennebel von
+`graphics.modern.fog.begin_frac` bis `end_frac` der Sichtweite in der Nebelfarbe der Palette. Gesetzt werden die
+Globals `ce_time`, `ce_night`, `ce_wet`, `ce_snow`, `ce_fog_color`, `ce_fog_range`, `ce_sun_dir`, `ce_sun_color`,
+`ce_ambient` (beide über `ModernMaterials.light_value()`) und `ce_tunnel`; `ce_wind`, `ce_headlight*` und `ce_far_y`
+behalten ihre Vorgaben, bis Rig und Lichter-Ebene sie setzen.
+
+**Lichtgesetz** (`light_state()`, rein und unit-getestet): Arcade zeigt jede Fläche als Albedo × `palette.ambient`.
+Hier zeigt eine **ebene** Fläche dasselbe: der Wert der Palette wird in einen gerichteten Anteil (bei Tag die
+Hälfte, bei Regen und Schnee 35 %, nachts nichts) und den Rest als Umgebungslicht geteilt. Weil der Renderer den
+Umgebungs- und den Lichtdurchgang einzeln in Anzeigewerte wandelt und addiert (docs/modelle.md §4), wird in
+Anzeigewerten geteilt und für eine Bezugs-Albedo (0,38) in lineares Licht umgerechnet. Richtung: wo `RaceBackdrop`
+die Sonne zeichnet, gegen die Straßenrichtung am Wagen gehalten (sie schwenkt nicht mit den Kurven); Höhe 12 … 62°,
+bei bedecktem Himmel weiches Licht von oben (75°).
+
+| Messung (Render-Prüfung `licht`, Kiel – Hamburg km 2, 12 Uhr, klar; gemessen) | Bild | erwartet |
+|---|---|---|
+| ebene Platte, Albedo 0,38, im Licht | 99 / 99 / 99 | 97 / 97 / 97 (Arcade: Albedo × `palette.ambient`) |
+| dieselbe Platte im Schatten eines Kastens | 47 / 48 / 51 | 48 / 49 / 52 (nur der Umgebungsanteil) |
+| gerechnet für Albedo 0,3 … 0,9 bei Tag (Unit-Test) | höchstens 7,5 % neben Arcade, bei Regen und Schnee 11 % | – |
+
+Dunklere Albedos fallen dunkler aus, nachts helle bis zu einem Viertel heller – die Anzeigekurve des Renderers ist
+bei dunklen Werten kein reiner Faktor. Nachts gibt die eingebaute Umgebung kein Mondlicht (zwei dunkle Durchgänge
+fielen beide unter die Anzeigeschwelle); das entscheidet das Rig.
+
+`plain_sky.gd` zeichnet Arcades Himmelsverlauf (dieselben Zeilen wie `RaceBackdrop.draw_sky`) über der
+Horizontzeile und die Nebelfarbe darunter, bei jeder Fenstergröße auf `render.horizon_y_frac` der Höhe; im Tunnel
+die Tunnelfarbe, mit `--gfx-debug=cover` Magenta (dann ist auch der Nebel aus). Sonne, Wolken und Silhouetten
+bringt erst `layers/backdrop.gd`.
+
+### 9.7 Lichtkegel (`assets/shaders/modern/inc/pools.gdshaderinc`)
+
+Lampen und Scheinwerfer des Verkehrs beleuchten den Boden nicht als echte Lichter, sondern als Summe im Shader des
+Bodens (D8): `uniform vec4 pool_pos_r[22]` (Mitte relativ zum schwimmenden Ursprung, Radius in m; Radius ≤ 0 wird
+übersprungen), `uniform vec4 pool_col[22]` (**linearer** Lichtwert der Mitte – `ModernMaterials.light_value()` –,
+`a` = Art: 0 Lampe, 1 Scheinwerfer) und `uniform int pool_count`. `vec3 ce_pools(vec3 world_pos)` liefert das
+summierte lineare Licht; Gesetz eines Kegels wie Arcades Lampenkegel: `e = 1 − d²/r²`, Licht = Farbe × `e²` – voll in
+der Mitte, Wert und Steigung 0 am Radius.
+
+Im Compatibility-Renderer schreibt `fragment()` `ALBEDO` und `EMISSION` sRGB-kodiert; lineares Licht lässt sich
+deshalb nicht einfach aufmultiplizieren. `ce_pools_emission(albedo, world_pos)` ist der `EMISSION`-Wert, mit dem
+eine Fläche dieser Albedo die Kegel **zusätzlich** zu ihrem übrigen Licht zeigt (der Grunddurchgang zeigt dann
+Albedo × (Umgebungslicht + Kegel)); ein Shader mit eigener Emission addiert linear und kodiert die Summe mit
+`ce_pools_encode()`:
+
+```glsl
+#include "res://assets/shaders/modern/inc/pools.gdshaderinc"
+varying vec3 v_world;
+void vertex()   { v_world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
+void fragment() { ALBEDO = base; EMISSION = ce_pools_emission(ALBEDO, v_world); }
+```
+
+Das Material meldet sein Builder mit `renderer.add_pool_material(mat)` an; die Ebene `lights` setzt die drei
+Uniforms einmal je Bild auf jedem Material aus `renderer.pool_materials()` (die Positionen wandern mit dem
+Ursprung). Ohne diese Ebene bleibt `pool_count` 0.
+
+| Messung (Render-Prüfung `pools`, weiße unbeleuchtete Platte bzw. beleuchtete Platte mit Albedo 0,38; gemessen) | Bild | erwartet |
+|---|---|---|
+| Mitte eines Kegels mit Lichtwert 0,8 / 0,5 / 0,2 | 230 / 187 / 123 | 231 / 188 / 124 |
+| halber Radius (56 % des Lichts) | 178 / 145 / 94 | 179 / 145 / 94 |
+| außerhalb des Radius; Eintrag mit Radius −1; Eintrag hinter `pool_count` | 0 / 0 / 0 | 0 |
+| zwei Kegel an einer Stelle | 169 / 169 / 210 | 170 / 170 / 211 (Summe) |
+| beleuchtete Platte: im Kegel gegenüber außerhalb | + 36 / 30 / 23 | + 36 / 30 / 23 |
+
+### 9.8 A/B-Bilder (`tools/ab_shot.sh`)
+
+```
+tools/ab_shot.sh <präfix> [S1|S2|S3|S4|S5] [Argumente der Rennszene …]
+tools/ab_shot.sh out/s1 S1
+tools/ab_shot.sh out/s3_nacht S3 --hour=22 --weather=rain --shot-times=2,5
+GFX_ARGS="--gfx-preset=high" SCREEN=1280x800 tools/ab_shot.sh out/s4_hoch S4
+```
+
+Zwei Läufe der Rennszene unter Xvfb mit denselben Argumenten und demselben Seed – `--graphics=arcade` (mit
+`--shot-fast`) und `--graphics=modern` (ohne: was der `RenderingServer` beim Zeichnen weiterzählt, stünde sonst
+still) –, beide mit `--gfx-sync` bei festen 60 Bildern je Sekunde, jeder mit eigenem leerem `XDG_DATA_HOME`, mit
+einem gemeinsamen Mesa-Shader-Cache. Die Sitzung hält die Aufnahmeuhr an, solange Modern die Etappe vorbereitet:
+gleiche Aufnahmezeit = gleicher Simulationszustand (Render-Prüfung `gleiche_zeit`). Je Aufnahmezeit entstehen
+`<präfix>_arcade_NN.png`, `<präfix>_modern_NN.png` und das beschriftete `<präfix>_ab_NN.jpg`. `S1`–`S5` sind die
+Referenzpositionen des Schnitts auf Kiel – Hamburg (km 2, Tankspur ab km 13,6, km 60, km 80 in den City Limits,
+km 94 vor dem Ziel; fliegender Start, Vorgabe 2 s nach dem Start). `GFX_ARGS` gilt nur für den Modern-Lauf,
+`SCREEN` setzt Bildschirm und Fenster, ein eigener `MESA_SHADER_CACHE_DIR` hält den Cache über viele Aufrufe warm.
+Fehlercode 1, wenn ein Lauf scheitert, ein Bild fehlt oder Modern auf Arcade zurückfällt. Gemessen: 21–23 s je
+Bildpaar mit dem Gerüst (Arcade 5–6 s, Modern 6–13 s).
+
+### 9.9 Prüfungen
+
+| Prüfung | Inhalt |
+|---|---|
+| `tests/race3d/check_facade.gd` (headless, in `tools/run_tests.sh`) | `haken` (Reihenfolge aller Haken, nichts vor dem Ende jedes `prepare_pending()`, `dt` = 0 bis zum Start), `fassade`, `lampen`, `rebased`, `statistik`, `ausfall`, `umgebung`, `geruest` |
+| `tests/race3d/check_seam.gd` → `vertrag` | der ausgelieferte Renderer hat jede Methode, jedes Signal und jedes Mitglied aus Bauplan §4.4.1 und A-7; vor `prepare()` antwortet alles harmlos |
+| `tests/race3d/render/check_seam_render.gd` → `modern_bild`, `fenster_16_10` | Bild des Gerüsts (Himmelsverlauf, Debug-Straße an den Bildpunkten des Kameramodells, Kamera = `ChaseCamera3D`), danach der ausgelieferte Renderer mit allem, was es gibt |
+| `tests/race3d/render/check_facade_render.gd` | `licht` (9.6), `pools` (9.7), `aufwaermen` (Aufwärm-Knoten zwei gezeichnete Bilder vor der Kamera, vom Ladebild verdeckt, danach frei; Selbsttest einmal je Prozess); mit `-- --save=<Ordner>` bleiben die beurteilten Bilder |
+| `tests/unit/race3d/test_chunk_services.gd`, `test_renderer_skeleton.gd` | `services`; Zusammenführen der Haken-Daten, Lichtgesetz |
+
+Die Prüfungen der Fassade laufen mit dem **Gerüst allein**: der Prüf-Renderer
+(`tests/race3d/fixtures/facade_probe_renderer.gd`, `bare = true`) ist der echte Renderer, lädt aber keine Ebenen-,
+Builder- oder Rig-Datei aus `scripts/race3d/` – nur die Debug-Straße, die eingebaute Umgebung und Prüf-Ebenen
+(`facade_layer.gd`) bzw. den Prüf-Builder (`facade_builder.gd`). So bleiben sie grün und bedeuten dasselbe, wenn die
+Bauabschnitte ihre Dateien ablegen. Nur `geruest`, `vertrag` und der zweite Teil von `modern_bild` /
+`fenster_16_10` nehmen den ausgelieferten Renderer mit allem, was es gibt, und prüfen, was für jeden Inhalt gilt.
+
+### 9.10 Messwerte des Gerüsts
+
+| Messung (gemessen; Debug-Straße, eingebaute Umgebung, keine Ebene) | Wert |
+|---|---|
+| `render()` in GDScript, headless, 30 s Fahrt in Echtzeit-Schritten (Kiel – Hamburg ab km 2 und ab km 60) | im Mittel 0,15–0,16 ms, höchstens 2,1–2,8 ms; Sync-Modus im Mittel 0,19 ms, höchstens 5,8 ms |
+| Einhängen eines Stücks / Einsammeln / Bauen (Arbeiter-Thread) | höchstens 0,18 ms / 2,0 ms / im Mittel 3,4–4,0 ms |
+| Vorbereitung headless (13 Stücke) | 74–77 ms |
+| Vorbereitung unter Xvfb (llvmpipe), erste Etappe des Prozesses | 421–808 ms, davon Selbsttest 253–591 ms; jede weitere Etappe 3 Bilder |
+| Zeichenaufrufe / Dreiecke des Bildes bei km 2 | 12 / 13.056 |
+| `ERGEBNIS` von `run_stage.gd`, Arcade gegen Modern, Kiel – Hamburg und dev_testetappe (Nacht, Regen) | je 28 Schlüssel, nur `gfx` verschieden |
+
+Zeiten auf einer echten Grafikkarte und auf dem Steam Deck sind hier nicht messbar.
+
+### 9.11 Übergabe an die Renderer-Bauabschnitte
+
+- Ein Bauabschnitt legt **seine Datei** ab (`builders/<name>.gd`, `layers/<name>.gd`, `environment_rig.gd`) – das
+  Gerüst findet sie; `modern_renderer.gd` ändert danach nur noch sein Eigentümer (R1).
+- Mit `environment_rig.gd` entfällt die eingebaute Umgebung, mit `layers/backdrop.gd` der eingebaute Himmel, mit
+  `builders/road.gd` die Debug-Straße; das Rig muss dann die `ce_*`-Globals setzen und das eine Schattenlicht halten.
+- Noch nicht im Gerüst: projektweite Renderzustände je Qualitätsstufe (MSAA, 3D-Auflösung, Schattenatlas –
+  `quality.gd`), der Countdown-Wächter und das Signal `quality_lowered` (es ist deklariert, wird aber nie gesendet),
+  Aufwärmen über die Knoten der Haken hinaus (`prewarm.gd`), das Freigeben der Materialien beim Verlassen des Modus
+  (`ModelDB.release_all()` + `ModernMaterials.drop_shared()` – Sache des Moduswechsels).
+- `graphics.modern.prepare_timeout_s` steht nicht in `config/game_config.json` (Vorgabe im Code 120 s).

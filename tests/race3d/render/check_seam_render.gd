@@ -516,4 +516,4 @@ func _check_fenster_16_10() -> void:
 	await _free(arcade)
 	root.size = size0
 	await _frames(3)
-	_report("fenster_16_10", p, "16:10-Fenster: Modern %s ohne Balken, Arcade %s mit Balken" % [str(logical), str(logical_a)])
+	_report("fenster_16_10", p, "16:10-Fenster: Modern %s ohne Balken (Kamera gegen ChaseCamera3D %.4f px), Arcade %s mit Balken" % [str(logical), cam_px, str(logical_a)])
