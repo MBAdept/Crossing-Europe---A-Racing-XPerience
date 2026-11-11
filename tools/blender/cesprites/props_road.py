@@ -425,8 +425,13 @@ def ferry_ship(rig, p):
     hull_em = nb.color_scale(M.emit_col(WARM_SHIP, 1.8), nb.mul(ph, nb.lt(nb.math("FLOORED_MODULO", nb.mul(y, 0.37), 1.0), 0.7)))
     hull = M.finish(m, nb, out, {"lights": hull_em})
     stations = []
-    for i in range(61):
-        t = i / 60.0
+    # 3D model (ce3d, "lowpoly3d"): the hull needs stations only where its section changes (stern, bow); lifeboats
+    # and deck lights with fewer faces - the real-time model of the ship has a rural budget of 2,000 triangles
+    low = bool(p.get("lowpoly3d"))
+    ts = [i / 60.0 for i in range(61)]
+    if low:
+        ts = [0.0, 0.025, 0.05, 0.3, 0.55, 0.75, 0.79, 0.83, 0.87, 0.9, 0.93, 0.955, 0.975, 0.99, 1.0]
+    for t in ts:
         yy = y0 + t * L
         stations.append(yy)
     rings = []
@@ -475,7 +480,8 @@ def ferry_ship(rig, p):
     for i in range(7):
         yy = -50.0 + i * 13.0
         for side in (-1, 1):
-            MU.bm_sphere(1.0, center=(side * (B / 2 - 2.6), yy, hull_top + 9.6), scale=(1.3, 4.2, 1.0), subdiv=2, bm=bm)
+            MU.bm_sphere(1.0, center=(side * (B / 2 - 2.6), yy, hull_top + 9.6), scale=(1.3, 4.2, 1.0),
+                         subdiv=1 if low else 2, bm=bm)
     MU.make("ferry_boats", bm, boat, parent=rig.root, smooth=True)
     # mast + nav lights
     mast = M.basic("ferry_mast", "#d7d9db", rough=0.4, metal=0.5)
@@ -493,7 +499,10 @@ def ferry_ship(rig, p):
     bm = bmesh.new()
     for i in range(16):
         yy = -80.0 + i * 10.5
-        MU.bm_sphere(0.25, center=(B / 2 - 0.4, yy, hull_top + (0.4 if yy < 40 else 1.4)), subdiv=1, bm=bm)
+        if low:
+            MU.bm_box(0.4, 0.4, 0.4, (B / 2 - 0.4, yy, hull_top + (0.4 if yy < 40 else 1.4)), bm=bm)
+        else:
+            MU.bm_sphere(0.25, center=(B / 2 - 0.4, yy, hull_top + (0.4 if yy < 40 else 1.4)), subdiv=1, bm=bm)
     MU.make("ferry_deckl", bm, dl, parent=rig.root)
     return dict(object=obj_size(L, hull_top + 27.0, B))
 

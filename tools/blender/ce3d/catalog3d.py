@@ -188,8 +188,13 @@ MODELS.update({
 # --- AS4 --- (wave 5): rural and town buildings, bridge parts, ships (docs/modelle.md section 15). Own block; builder
 # "house" lives in ce3d/buildings3d.py (props3d.py stays as it is, so the keys of the models above do not change).
 BUILDER_CODE.update({
-    "house": ["ce3d/buildings3d.py", "ce3d/props3d.py", "ce3d/bake.py", "cesprites/props.py",
+    "house": ["ce3d/buildings3d.py", "ce3d/props3d.py", "ce3d/bake.py", "ce3d/leafatlas.py", "cesprites/props.py",
               "cesprites/props_buildings.py", "render_all.py"],
+    "pylon": ["ce3d/bridges3d.py", "ce3d/buildings3d.py", "ce3d/props3d.py", "ce3d/bake.py", "cesprites/props.py",
+              "cesprites/props_cities.py", "render_all.py"],
+    "truss": ["ce3d/bridges3d.py", "ce3d/buildings3d.py", "ce3d/props3d.py", "ce3d/leafatlas.py", "cesprites/props.py",
+              "cesprites/props_cities.py", "render_all.py"],
+    "lantern": ["ce3d/bridges3d.py", "ce3d/buildings3d.py", "ce3d/props3d.py", "cesprites/props.py", "render_all.py"],
 })
 AO_TOWN = dict(distance=2.0, floor=0.4, gamma=0.9, samples=24)
 MODELS.update({
@@ -242,6 +247,47 @@ MODELS.update({
                                 openings=False, gutters=False, caps=False, baked_lamps=("tower_lobby",),
                                 curtain=dict(object="tower", base=3.5, floor=3.5, band=0.9, mull=1.6, lit=0.34,
                                              light="#ffe4b8", glass="#3a5468")),
+    # --- bridge parts (generators in props_cities.py: read back, not changed) -----------------------------------
+    # the candelabra of stone bridges: flat colours only (vpbr, one draw call); the upper halves of the lantern
+    # glasses lie under their caps and are dropped; their sides are flood-lit glass (pale by day, lit at night), the
+    # faces looking down are the lamps with the three light anchors (pools on the pavement)
+    "props/bridge_lamp": dict(builder="lantern", source="props/bridge_lamp", kind="furniture", auto_lod=False,
+                              hidden_tops=("bl_lg",), glass=("bl_lg",), side_flood=0.85,
+                              code=["cesprites/props_cities.py"]),
+    "props/bridge_pylon": dict(builder="pylon", source="props/bridge_pylon", kind="furniture", atlas=(1024, 1024),
+                               ppm_max=40.0, roughness=0.85, view="allround", cable_w=(0.24, 0.4), beacon="bpy_red",
+                               split=("bpy_leg", (30.75, 61.5)), code=["cesprites/props_cities.py"]),
+    "props/bridge_truss_arch": dict(builder="truss", source="props/bridge_truss_arch", kind="furniture",
+                                    atlas=(1024, 512), ppm=28.0, roughness=0.55, code=["cesprites/props_cities.py"]),
+    # --- ships -------------------------------------------------------------------------------------------------
+    # the ro-pax ferry: the sprite shows its starboard side (view_yaw 90), so the model is turned by -90 degrees
+    # (its side faces the approaching player, the bow points to +X); the many cabin windows stay painted (lit in
+    # the emission atlas), the deck lights are lamps without anchors, the navigation lights keep theirs
+    "props/ferry_ship": dict(builder="house", source="props/ferry_ship", kind="building", atlas=(1024, 1024),
+                             ppm_max=24.0, roughness=0.55, view="roadside", params={"lowpoly3d": True}, rotate_deg=-90.0,
+                             extent_view=0.0, openings=False, gutters=False, caps=False, baked_lamps=("ferry_bridge",),
+                             split=dict(objects=("ferry_hull", "ferry_deck"), axis=0, at=(-36.4, 9.1)),
+                             weights=dict(roof=0.3, away=0.3),
+                             overrides={"ferry_deckl": dict(lamp="-lights:0.9")},
+                             ao=dict(distance=3.0, floor=0.5, gamma=1.0, samples=24),
+                             code=["cesprites/props_road.py", "cesprites/props_buildings.py"]),
+    # the Amsterdam houseboat: its cabin walls come from props_cities.wallmat (window log taken from outside); the
+    # cut-out railing of the roof garden is rebuilt as posts and rails (vpbr), the potted plants decimated
+    "props/houseboat": dict(builder="house", source="props/houseboat", kind="building", atlas=(512, 512),
+                            ppm_max=110.0, roughness=0.7, view="roadside", city_walls=True,
+                            railings=dict(objects=("hb_rail",), post=1.0, color="#1f2321", w=0.05),
+                            decimate={"hb_plant": 0.15, "hb_fl": 0.5},
+                            ao=dict(distance=1.2, floor=0.45, gamma=0.9, samples=24), gutters=False,
+                            openings=dict(reveal_m=0.08, reveal_color="#2b3b31", sill_color="#ece8de", steps=0),
+                            code=["cesprites/props_cities.py"]),
+    # --- AS1b's windmill, reworked: real openings in the middle of the octagon's faces instead of the painted grid
+    # that straddled a corner (hook win3d); the rest as AS1b built it
+    "props/windmill": dict(builder="house", source="props/windmill", kind="building", atlas=(1024, 1024),
+                           ppm_max=64.0, roughness=0.9, view="allround", gutters=False, ao=AO_RURAL,
+                           params={"win3d": True}, openings=False, caps=False,
+                           octagon=dict(objects=("mill_base",), faces=(67.5, 112.5, 247.5, 292.5),
+                                        rows=(2.3, 4.9), win=(0.8, 1.1), lit=0.5, frame="#e9e6de", reveal_m=0.25),
+                           rotor=dict(objects=("mill_sails",), hub_z=19.8), code=["cesprites/props_buildings.py"]),
     # town: the shop with flat, awning, sign (its light stays in the emission atlas: teal by day, cyan at night)
     "props/building_shop": dict(builder="house", source="props/building_shop", kind="building", atlas=(1024, 1024),
                                 ppm_max=110.0, roughness=0.85, view="roadside", params={"allround": True}, ao=AO_TOWN,

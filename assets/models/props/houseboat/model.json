@@ -1,0 +1,43 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/houseboat",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 16, "height_m": 4.5, "length_m": 4.6},
+  "extent_m": {"left": 9.01, "right": 7.44},
+  "aabb": [-8, 0, -4.64, 8, 4.693, 0.04],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 870,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/houseboat/lod0_body.res",
+      "classes": ["vpbr", "baked_cutout"]
+     }
+    ]
+   }
+  ],
+  "lights": [
+   {
+    "role": "lights",
+    "pos": [6.5, 2.7, -0.45],
+    "dir": [1, 0, 0],
+    "size": 0.708,
+    "color": "#ffd890"
+   }
+  ],
+  "textures": {"albedo": "props/houseboat/albedo.png"},
+  "roughness": 0.7,
+  "auto_lod": false,
+  "tags": ["prop", "boat", "water", "mirror_left"],
+  "bytes": 72275,
+  "hash": "65595ecc8756dfd2d35ffee7421afcfb74107ad2"
+ },
+ "sets": {
+  "props/houseboat": {"model": "props/houseboat"}
+ }
+}

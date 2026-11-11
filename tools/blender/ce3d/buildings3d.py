@@ -555,11 +555,20 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
                         continue
                     doors.append(Opening(pts, "door", d, -1, rect))
             holes = list(doors)
+            # door grids of props_cities walls (kind "door"): door openings, before the windows
             for gi, g in enumerate(e["grids"]):
-                if cls not in P.GRID_FACES.get(g.get("face", "front"), ("front", "back")):
+                if g.get("kind") != "door" or cls not in P.GRID_FACES.get(g.get("face", "front"), ("front", "back")):
+                    continue
+                for rect in g.get("rects") or []:
+                    if not P._inside_poly(((rect[0] + rect[1]) * 0.5, (rect[2] + rect[3]) * 0.5), poly) or hidden(rect):
+                        continue
+                    src = dict(mat=g.get("glass", "#5a3a22") if str(g.get("glass", "")).startswith("#") else "#5a3a22")
+                    holes.append(Opening(_outline(*rect, top=g.get("top")), "door", src, gi, rect, g.get("top")))
+            for gi, g in enumerate(e["grids"]):
+                if g.get("kind") == "door" or cls not in P.GRID_FACES.get(g.get("face", "front"), ("front", "back")):
                     continue
                 top = "round" if g.get("arch") else g.get("top")
-                for rect in P._grid_windows(g):
+                for rect in (g["rects"] if "rects" in g else P._grid_windows(g)):
                     if not inside(rect):
                         continue
                     if any(_overlaps(rect, h.rect) for h in holes):
@@ -1210,6 +1219,108 @@ def weight_fn(view, w):
 
 # --- the builder --------------------------------------------------------------------------------------------------------
 
+def _split_planes(objs, spec):
+    """Cuts objects (name prefixes) by planes across a world axis and splits the cut edges: the box unwrap then makes
+    one chart per piece. A 182 m hull side in one chart limits the atlas to 1024 px / 182 m = 5.6 px/m.
+    spec = dict(objects=(prefixes), axis=0|1|2 (world), at=(positions))."""
+    import bmesh
+    from mathutils import Vector
+    axis = int(spec.get("axis", 0))
+    n = 0
+    for ob in objs:
+        if not any(ob.name.startswith(p) for p in spec["objects"]):
+            continue
+        mw = np.array(ob.matrix_world, dtype=np.float64)
+        inv = np.linalg.inv(mw)
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        for c in spec["at"]:
+            wp = np.zeros(3)
+            wp[axis] = float(c)
+            wn = np.zeros(3)
+            wn[axis] = 1.0
+            co = inv[:3, :3] @ wp + inv[:3, 3]
+            no = mw[:3, :3].T @ wn
+            no /= np.linalg.norm(no)
+            res = bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=1e-4,
+                                         plane_co=Vector(tuple(co)), plane_no=Vector(tuple(no)))
+            cut = [e for e in res["geom_cut"] if isinstance(e, bmesh.types.BMEdge)]
+            if cut:
+                bmesh.ops.split_edges(bm, edges=cut)
+                n += len(cut)
+        bm.to_mesh(ob.data)
+        bm.free()
+        ob.data.update()
+    return n
+
+
+def _decimate(objs, ratios):
+    """Collapse decimation of organic parts that the budget cannot afford (the potted plants of the houseboat):
+    {name prefix: ratio}. Never on lamps or parts with decals."""
+    import bpy
+    n = 0
+    for ob in objs:
+        r = next((float(v) for k, v in sorted(ratios.items()) if ob.name.startswith(k)), None)
+        if r is None:
+            continue
+        m = ob.modifiers.new("ce_decimate", "DECIMATE")
+        m.decimate_type = "COLLAPSE"
+        m.ratio = r
+        n += 1
+    bpy.context.view_layer.update()
+    core.realize(objs)
+    return n
+
+
+def _railings(objs, spec, geo, mats):
+    """Railings of cut-out panels (props_cities.Rails: bars of 3 cm drawn by a mask) rebuilt as geometry: the panels'
+    boxes give the run of each railing; posts every `post` m, a top rail, a middle and a bottom rail (vpbr). Bars of 3 cm
+    are a sixth of a texel in the atlas and break up in the bake, and at a distance they would only shimmer.
+    spec = dict(objects=(prefixes), post (m), color, w (post / rail width)). The panel objects leave the model."""
+    from .bridges3d import boxes
+    col = spec.get("color", "#1f2321")
+    mat = mats.vpbr("ce_rail_%s" % col.lstrip("#"), col, rough=0.5, metal=0.4)
+    w = float(spec.get("w", 0.05))
+    step = float(spec.get("post", 1.0))
+    keep, n = [], 0
+    for ob in objs:
+        if not any(ob.name.startswith(p) for p in spec["objects"]):
+            keep.append(ob)
+            continue
+        for bx in boxes(ob):
+            ax = bx["axis"]
+            # the panel: long axis horizontal, height along z
+            hdir = bx["ew"] if abs(bx["ew"][2]) > abs(bx["eh"][2]) else bx["eh"]
+            hgt = bx["w"] if hdir is bx["ew"] else bx["h"]
+            base = bx["c"] - np.array([0.0, 0.0, 1.0]) * hgt * 0.5
+            a = base - ax * bx["length"] * 0.5
+            b = base + ax * bx["length"] * 0.5
+            side = np.cross(ax, np.array([0.0, 0.0, 1.0]))
+            side /= max(1e-9, np.linalg.norm(side))
+            up = np.array([0.0, 0.0, 1.0])
+            k = max(1, int(round(bx["length"] / step)))
+            for i in range(k + 1):
+                p = a + (b - a) * (i / k)
+                _box_beam(geo, mat, p, p + up * hgt, w, w, side, np.cross(up, side), "both" if i in (0, k) else "lod0")
+            for (zf, ww, lvl) in ((hgt, w * 1.2, "both"), (hgt * 0.5, w * 0.6, "lod0"), (0.08, w * 0.6, "lod0")):
+                _box_beam(geo, mat, a + up * zf, b + up * zf, ww, ww, side, up, lvl)
+            n += 1
+        ob.hide_render = True
+    objs[:] = keep
+    return n
+
+
+def _box_beam(geo, mat, a, b, w, h, ew, eh, level):
+    """Four sides of a beam from a to b (cross-section w along ew, h along eh) into geo."""
+    a, b = np.asarray(a, dtype=np.float64), np.asarray(b, dtype=np.float64)
+    hw, hh = np.asarray(ew) * w * 0.5, np.asarray(eh) * h * 0.5
+    corners = [hw + hh, -hw + hh, -hw - hh, hw - hh]
+    for i in range(4):
+        p, q = corners[i], corners[(i + 1) % 4]
+        nn = p + q
+        geo.quad(mat, a + p, b + p, b + q, a + q, nn / max(1e-9, np.linalg.norm(nn)), level)
+
+
 def _rotate(objs, deg):
     """Turns every object of the model about the vertical axis through the origin (the ferry)."""
     import bpy
@@ -1222,16 +1333,53 @@ def _rotate(objs, deg):
     bpy.context.view_layer.update()
 
 
+def _log_city_walls(log):
+    """props_cities.wallmat (the walls of the city sets, the houseboat) writes no window log - and the file is not
+    ours to change. While a model builds, the function is wrapped: its grids go to the log as explicit rectangles
+    (props_cities.centres), in the cutter's format. Returns the function that restores the original."""
+    import inspect
+    from cesprites import props_cities as C
+    orig = C.wallmat
+    sig = inspect.signature(orig)
+
+    def logged(*args, **kw):
+        ba = sig.bind(*args, **kw)
+        ba.apply_defaults()
+        a = ba.arguments
+        grids = []
+        for g in a["grids"]:
+            wu, wz = g["win"]
+            kind = g.get("kind", "win")
+            rects = [(u - wu / 2, u + wu / 2, zc - wz / 2, zc + wz / 2) for (u, zc, _i, _j) in C.centres(g)]
+            lit = g.get("lit", a["lit"] if kind == "win" else (0.95 if kind == "shop" else 0.0))
+            cols = g.get("color")
+            light = (cols if isinstance(cols, str) else cols[0]) if cols else ("#ffcf8a" if kind != "win" else "#ffc46b")
+            grids.append(dict(g, rects=rects, lit=lit, color=light, arch=g.get("top") == "round",
+                              top=None if g.get("top") == "round" else g.get("top")))
+        log.append(dict(material=a["name"], grids=grids, decals=[dict(d) for d in (a["decals"] or [])],
+                        frame=a["frame"], glass=a["glass"], lit=a["lit"], warm="#ffc46b", frame_w=a["frame_w"],
+                        shutters=None))
+        return orig(*args, **kw)
+    C.wallmat = logged
+
+    def restore():
+        C.wallmat = orig
+    return restore
+
+
 def build_house(model_id, spec3d):
     """Buildings with depth (see the module text)."""
     from cesprites import props_buildings as B
     t0 = time.time()
     B.WINDOW_LOG = []
+    restore = _log_city_walls(B.WINDOW_LOG) if spec3d.get("city_walls") else None
     try:
         rig, info, sspec = P._build_source(spec3d)
         log = list(B.WINDOW_LOG)
     finally:
         B.WINDOW_LOG = None
+        if restore is not None:
+            restore()
     for e in log:
         for d in e["decals"]:
             pts = d.get("poly") or []
@@ -1243,12 +1391,18 @@ def build_house(model_id, spec3d):
                     d["door"] = True
     objs = P._objects(rig)
     core.realize(objs)
+    stats = {}
+    if spec3d.get("decimate"):
+        stats["decimated"] = _decimate(objs, spec3d["decimate"])
     if spec3d.get("rotate_deg"):
         _rotate(objs, float(spec3d["rotate_deg"]))
         core.realize(objs)
+    if spec3d.get("split"):
+        stats["split_edges"] = _split_planes(objs, spec3d["split"])
     mats = Mats()
     geo = Geo()
-    stats = {}
+    if spec3d.get("railings"):
+        stats["railings"] = _railings(objs, spec3d["railings"], geo, mats)
     opt = dict(spec3d.get("openings") or {})
     if spec3d.get("curtain"):
         _curtain(rig, objs, geo, mats, spec3d["curtain"], stats)
@@ -1274,6 +1428,10 @@ def _route(spec3d, objs):
     for ob in objs:
         for s in ob.material_slots:
             if s.material is not None:
+                if s.material.get("ce_role") is None and BK.has_cutout(s.material):
+                    # props_cities.lace_mat (railings) builds its node tree without cesprites.materials.finish and so
+                    # without a role: a cut-out mask is procedural by construction - it is baked (not a name guess)
+                    s.material["ce_role"] = "proc"
                 roles.tag(s.material)
                 mats[s.material.name] = s.material
     force = tuple(spec3d.get("vpbr", ()))
@@ -1307,10 +1465,23 @@ def _finish_house(model_id, spec3d, rig, info, sspec, objs, stats, t0):
                         if s.material is not None and s.material.name not in vpbr_names})
     bake_mats = [mats[k] for k in bake_mats]
     cut_names = {m.name for m in bake_mats if BK.has_cutout(m)}
+    if cut_names and spec3d.get("single_cutout"):
+        # railings (cut-out) + walls + vpbr would be three draw calls: everything baked goes to the cut-out class (its
+        # opaque texels have alpha 1) - two surfaces, at the price of a BC3 atlas
+        cut_names = {m.name for m in bake_mats}
     size = tuple(spec3d.get("atlas", (1024, 1024)))
     wf = weight_fn(spec3d.get("view", "roadside"), dict(spec3d.get("weights") or {}))
     baked = bake_house(rig, bake_objs, bake_mats, size, weight_fn=wf, ppm_max=spec3d.get("ppm_max", 128.0),
                        cutout=bool(cut_names), ao=spec3d.get("ao"))
+    if baked["alpha"] is not None:
+        # mipmap-safe alpha (railings): transparent texels next to a bar get the halo alpha 0.33
+        from PIL import Image
+        from . import leafatlas
+        a8 = np.clip(np.round(baked["alpha"] * 255.0), 0, 255).astype(np.uint8)
+        rgb8 = np.zeros(a8.shape + (3,), dtype=np.uint8)
+        img = leafatlas.halo(Image.fromarray(np.concatenate([rgb8, a8[..., None]], axis=2), "RGBA"), alpha=0.33, px=2,
+                             scissor=0.5)
+        baked["alpha"] = np.array(img).astype(np.float64)[:, :, 3] / 255.0
     over = spec3d.get("overrides")
     tr = roles.Translator(glass_class=False, overrides=over)
     levels = ["lod0", "lod1"] if spec3d.get("lod1") else ["lod0"]

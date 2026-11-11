@@ -1,0 +1,57 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/ferry_ship",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 182, "height_m": 38, "length_m": 28},
+  "extent_m": {"left": 91, "right": 91},
+  "aabb": [-91, -1, -14, 91, 37.85, 14],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 1449,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/ferry_ship/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "lights": [
+   {
+    "role": "lights",
+    "pos": [-80.3388, 14.0606, -0.098],
+    "dir": [-0.934, 0.188, -0.303],
+    "size": 1.491,
+    "color": "#18ff50"
+   },
+   {
+    "role": "lights",
+    "pos": [38.3388, 37.3394, 0.098],
+    "dir": [0.934, -0.188, 0.303],
+    "size": 1.491,
+    "color": "#18ff50"
+   },
+   {
+    "role": "lights",
+    "pos": [50.3366, 27.3467, 13.1093],
+    "dir": [0.934, -0.188, 0.303],
+    "size": 1.449,
+    "color": "#18ff50"
+   }
+  ],
+  "textures": {"albedo": "props/ferry_ship/albedo.png", "emit": "props/ferry_ship/emit.png"},
+  "roughness": 0.55,
+  "auto_lod": false,
+  "tags": ["prop", "ship"],
+  "bytes": 214104,
+  "hash": "a369f268093f9664443e5a6bf3b7565c634f0c3d"
+ },
+ "sets": {
+  "props/ferry_ship": {"model": "props/ferry_ship"}
+ }
+}

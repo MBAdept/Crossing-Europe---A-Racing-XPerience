@@ -1,0 +1,55 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/bridge_lamp",
+ "model": {
+  "kind": "furniture",
+  "object": {"width_m": 2.2, "height_m": 4.85, "length_m": 0.72},
+  "extent_m": {"left": 1.18, "right": 1.18},
+  "aabb": [-1.18, 0, -0.36, 1.18, 4.83, 0.36],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 882,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/bridge_lamp/lod0_body.res",
+      "classes": ["vpbr"]
+     }
+    ]
+   }
+  ],
+  "lights": [
+   {
+    "role": "lights",
+    "pos": [-1.0959, 4.2711, 0],
+    "dir": [-0.995, -0.105, 0],
+    "size": 0.781,
+    "color": "#ffd890"
+   },
+   {
+    "role": "lights",
+    "pos": [0, 3.958, 0],
+    "dir": [0, -1, 0],
+    "size": 0.898,
+    "color": "#ffd890"
+   },
+   {
+    "role": "lights",
+    "pos": [1.0959, 4.2711, 0],
+    "dir": [0.995, -0.105, 0],
+    "size": 0.781,
+    "color": "#ffd890"
+   }
+  ],
+  "auto_lod": false,
+  "tags": ["prop", "bridge", "road", "mirror_left"],
+  "bytes": 12038,
+  "hash": "3b690f890328e8d3d7f2f8fe449c280542752812"
+ },
+ "sets": {
+  "props/bridge_lamp": {"model": "props/bridge_lamp"}
+ }
+}

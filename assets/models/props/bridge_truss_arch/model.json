@@ -1,0 +1,50 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/bridge_truss_arch",
+ "model": {
+  "kind": "furniture",
+  "object": {"width_m": 32.4, "height_m": 15.6, "length_m": 1.8},
+  "extent_m": {"left": 16.5, "right": 16.5},
+  "aabb": [-16.5, -0.1, -2.25, 16.5, 15.9, 0.45],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 1100,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/bridge_truss_arch/lod0_body.res",
+      "classes": ["baked_cutout"]
+     }
+    ]
+   }
+  ],
+  "lights": [
+   {
+    "role": "lights",
+    "pos": [-5, 10.7941, -0.9],
+    "dir": [0, -1, 0],
+    "size": 0.76,
+    "color": "#ffd890"
+   },
+   {
+    "role": "lights",
+    "pos": [5, 10.7941, -0.9],
+    "dir": [0, -1, 0],
+    "size": 0.76,
+    "color": "#ffd890"
+   }
+  ],
+  "textures": {"albedo": "props/bridge_truss_arch/albedo.png", "emit": "props/bridge_truss_arch/emit.png"},
+  "roughness": 0.55,
+  "auto_lod": false,
+  "tags": ["prop", "bridge", "overhead"],
+  "bytes": 91194,
+  "hash": "70994d23113d30a84573c40491ed62edf7adf1ec"
+ },
+ "sets": {
+  "props/bridge_truss_arch": {"model": "props/bridge_truss_arch"}
+ }
+}

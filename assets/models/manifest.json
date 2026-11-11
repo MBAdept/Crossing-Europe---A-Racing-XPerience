@@ -436,6 +436,142 @@
    "bytes": 437126,
    "hash": "d1ac0b984e4c8730aa1cbbb60ad41177e6e7a3c4"
   },
+  "props/bridge_lamp": {
+   "kind": "furniture",
+   "object": {"width_m": 2.2, "height_m": 4.85, "length_m": 0.72},
+   "extent_m": {"left": 1.18, "right": 1.18},
+   "aabb": [-1.18, 0, -0.36, 1.18, 4.83, 0.36],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 882,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/bridge_lamp/lod0_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [-1.0959, 4.2711, 0],
+     "dir": [-0.995, -0.105, 0],
+     "size": 0.781,
+     "color": "#ffd890"
+    },
+    {
+     "role": "lights",
+     "pos": [0, 3.958, 0],
+     "dir": [0, -1, 0],
+     "size": 0.898,
+     "color": "#ffd890"
+    },
+    {
+     "role": "lights",
+     "pos": [1.0959, 4.2711, 0],
+     "dir": [0.995, -0.105, 0],
+     "size": 0.781,
+     "color": "#ffd890"
+    }
+   ],
+   "auto_lod": false,
+   "tags": ["prop", "bridge", "road", "mirror_left"],
+   "bytes": 12038,
+   "hash": "3b690f890328e8d3d7f2f8fe449c280542752812"
+  },
+  "props/bridge_pylon": {
+   "kind": "furniture",
+   "object": {"width_m": 9, "height_m": 88.8, "length_m": 165.2},
+   "extent_m": {"left": 32.33, "right": 24.46},
+   "aabb": [-6.615, 0, -82.686, 3, 88.75, 82.686],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 520,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/bridge_pylon/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 520,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/bridge_pylon/lod1_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [-5.4653, 88.3, 0],
+     "dir": [-1, 0, 0],
+     "size": 0.9,
+     "color": "#ff2a1a"
+    }
+   ],
+   "textures": {"albedo": "props/bridge_pylon/albedo.png", "emit": "props/bridge_pylon/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": false,
+   "tags": ["prop", "bridge", "mirror_left"],
+   "bytes": 129177,
+   "hash": "4525ec5dab0f980c784757b9c99b8feac0c3ee93"
+  },
+  "props/bridge_truss_arch": {
+   "kind": "furniture",
+   "object": {"width_m": 32.4, "height_m": 15.6, "length_m": 1.8},
+   "extent_m": {"left": 16.5, "right": 16.5},
+   "aabb": [-16.5, -0.1, -2.25, 16.5, 15.9, 0.45],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 1100,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/bridge_truss_arch/lod0_body.res",
+       "classes": ["baked_cutout"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [-5, 10.7941, -0.9],
+     "dir": [0, -1, 0],
+     "size": 0.76,
+     "color": "#ffd890"
+    },
+    {
+     "role": "lights",
+     "pos": [5, 10.7941, -0.9],
+     "dir": [0, -1, 0],
+     "size": 0.76,
+     "color": "#ffd890"
+    }
+   ],
+   "textures": {"albedo": "props/bridge_truss_arch/albedo.png", "emit": "props/bridge_truss_arch/emit.png"},
+   "roughness": 0.55,
+   "auto_lod": false,
+   "tags": ["prop", "bridge", "overhead"],
+   "bytes": 91194,
+   "hash": "70994d23113d30a84573c40491ed62edf7adf1ec"
+  },
   "props/building_block_a": {
    "kind": "building",
    "object": {"width_m": 18.3, "height_m": 19.5, "length_m": 12},
@@ -1006,6 +1142,55 @@
    "bytes": 871498,
    "hash": "a51fd523b16ef2bcc3d3a8fed5577be09545755b"
   },
+  "props/ferry_ship": {
+   "kind": "building",
+   "object": {"width_m": 182, "height_m": 38, "length_m": 28},
+   "extent_m": {"left": 91, "right": 91},
+   "aabb": [-91, -1, -14, 91, 37.85, 14],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 1449,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/ferry_ship/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [-80.3388, 14.0606, -0.098],
+     "dir": [-0.934, 0.188, -0.303],
+     "size": 1.491,
+     "color": "#18ff50"
+    },
+    {
+     "role": "lights",
+     "pos": [38.3388, 37.3394, 0.098],
+     "dir": [0.934, -0.188, 0.303],
+     "size": 1.491,
+     "color": "#18ff50"
+    },
+    {
+     "role": "lights",
+     "pos": [50.3366, 27.3467, 13.1093],
+     "dir": [0.934, -0.188, 0.303],
+     "size": 1.449,
+     "color": "#18ff50"
+    }
+   ],
+   "textures": {"albedo": "props/ferry_ship/albedo.png", "emit": "props/ferry_ship/emit.png"},
+   "roughness": 0.55,
+   "auto_lod": false,
+   "tags": ["prop", "ship"],
+   "bytes": 214104,
+   "hash": "a369f268093f9664443e5a6bf3b7565c634f0c3d"
+  },
   "props/fuel_pump": {
    "kind": "furniture",
    "object": {"width_m": 1.3, "height_m": 4.35, "length_m": 3.8},
@@ -1179,6 +1364,41 @@
    "tags": ["prop", "building", "mirror_left"],
    "bytes": 241205,
    "hash": "04eb703162f780530be4f2ad556d5d09c8c519da"
+  },
+  "props/houseboat": {
+   "kind": "building",
+   "object": {"width_m": 16, "height_m": 4.5, "length_m": 4.6},
+   "extent_m": {"left": 9.01, "right": 7.44},
+   "aabb": [-8, 0, -4.64, 8, 4.693, 0.04],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 870,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/houseboat/lod0_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [6.5, 2.7, -0.45],
+     "dir": [1, 0, 0],
+     "size": 0.708,
+     "color": "#ffd890"
+    }
+   ],
+   "textures": {"albedo": "props/houseboat/albedo.png"},
+   "roughness": 0.7,
+   "auto_lod": false,
+   "tags": ["prop", "boat", "water", "mirror_left"],
+   "bytes": 72275,
+   "hash": "65595ecc8756dfd2d35ffee7421afcfb74107ad2"
   },
   "props/power_pylon": {
    "kind": "furniture",
@@ -1485,12 +1705,12 @@
    "kind": "building",
    "object": {"width_m": 25, "height_m": 32.3, "length_m": 9},
    "extent_m": {"left": 10.9, "right": 10.9},
-   "aabb": [-10.9, 0, -10.6, 10.9, 30.7, 1.4],
+   "aabb": [-10.9, -0.007, -10.6, 10.9, 30.7, 1.4],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 100000,
-     "tris": 1640,
+     "tris": 1928,
      "parts": [
       {
        "node": "body",
@@ -1500,12 +1720,12 @@
      ]
     }
    ],
-   "textures": {"albedo": "props/windmill/albedo.png", "emit": "props/windmill/emit.png"},
+   "textures": {"albedo": "props/windmill/albedo.png"},
    "roughness": 0.9,
    "auto_lod": false,
    "tags": ["prop", "building"],
-   "bytes": 853363,
-   "hash": "f92413d35ae3c315f23d4bcbd466c567c75d83a3"
+   "bytes": 311385,
+   "hash": "cc7e703cc9919409367e0248daa89abc33d8688a"
   },
   "traffic/hatch": {
    "kind": "vehicle",
@@ -2446,18 +2666,9 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1c4f96", "paint3": "#2f9a4a", "metal": 0.3}
   },
   "props/barn": {"model": "props/barn"},
-  "props/bridge_lamp": {
-   "fallback": "sprite",
-   "object": {"width_m": 2.2, "height_m": 4.85, "length_m": 0.72}
-  },
-  "props/bridge_pylon": {
-   "fallback": "sprite",
-   "object": {"width_m": 9.0, "height_m": 88.8, "length_m": 165.2}
-  },
-  "props/bridge_truss_arch": {
-   "fallback": "sprite",
-   "object": {"width_m": 32.4, "height_m": 15.6, "length_m": 1.8}
-  },
+  "props/bridge_lamp": {"model": "props/bridge_lamp"},
+  "props/bridge_pylon": {"model": "props/bridge_pylon"},
+  "props/bridge_truss_arch": {"model": "props/bridge_truss_arch"},
   "props/building_block_a": {"model": "props/building_block_a"},
   "props/building_block_b": {"model": "props/building_block_b"},
   "props/building_oldtown": {"model": "props/building_oldtown"},
@@ -2663,10 +2874,7 @@
   "props/delineator": {"model": "props/delineator"},
   "props/factory": {"model": "props/factory"},
   "props/farmhouse": {"model": "props/farmhouse"},
-  "props/ferry_ship": {
-   "fallback": "sprite",
-   "object": {"width_m": 182.0, "height_m": 38.0, "length_m": 28.0}
-  },
+  "props/ferry_ship": {"model": "props/ferry_ship"},
   "props/fuel_pump": {"model": "props/fuel_pump"},
   "props/fuel_station": {"model": "props/fuel_station"},
   "props/haybale": {"model": "props/haybale"},
@@ -2675,10 +2883,7 @@
    "object": {"width_m": 5.6, "height_m": 0.75, "length_m": 2.6}
   },
   "props/house_med": {"model": "props/house_med"},
-  "props/houseboat": {
-   "fallback": "sprite",
-   "object": {"width_m": 16.0, "height_m": 4.5, "length_m": 4.6}
-  },
+  "props/houseboat": {"model": "props/houseboat"},
   "props/power_pylon": {"model": "props/power_pylon"},
   "props/radar_camera": {"model": "props/radar_camera"},
   "props/rock_a": {
