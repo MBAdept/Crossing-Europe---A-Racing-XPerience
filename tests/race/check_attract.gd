@@ -1,12 +1,13 @@
 extends SceneTree
 ## Attract mode end to end in the real game (GameFlow, title screen, AttractMode, race scene):
-##   godot --headless --path . -s res://tests/race/check_attract.gd
+##   godot --headless --path . -s res://tests/race/check_attract.gd -- --graphics=arcade|modern
 ##   (under Xvfb without --headless the title music plays on the Dummy driver and its continuity is measured)
 ## Shortened times (idle 1 s, demo 4 s, fades 0.2 s); events go through the root viewport (push_input), the same
 ## path as keys, gamepad buttons and clicks. Checks:
 ##   idle        the demo starts idle_s after the last input on the title (an input restarts the timer)
-##   demo        real race scene with the autopilot, reduced HUD, overlay, race aspect "keep"; effect buses muted,
-##               Music bus untouched, the title music stays on
+##   demo        real race scene with the autopilot, reduced HUD, overlay, in the effective graphics mode (v0.8.0:
+##               -- --graphics=arcade|modern) with its race aspect – Arcade "keep", Modern "expand"; effect buses
+##               muted, Music bus untouched, the title music stays on
 ##   dauer       after demo_s it returns to the title by itself; buses back to their states, menus "expand"
 ##   naechste    the next demo shows the next scene
 ##   taste       Enter ends the demo at once; its echo and release, and the guard time, trigger no menu action
@@ -234,9 +235,14 @@ func _run() -> void:
 	var first := str((_am.get("current_scene") as Dictionary).get("id", ""))
 	await _wait(1.0)
 	var speed := float(race.get("vehicle").get("speed")) if has_race else 0.0
+	# v0.8.0: the demo runs in the effective graphics mode (-- --graphics=arcade|modern); Arcade keeps 16:9 with bars
+	# ("keep"), Modern fills the window ("expand")
+	var mode := str((root.get_node("Settings").call("effective_graphics") as Dictionary)["mode"])
+	var aspect := Window.CONTENT_SCALE_ASPECT_EXPAND if mode == "modern" else Window.CONTENT_SCALE_ASPECT_KEEP
 	_check("demo", has_race and race.get("autopilot") != null and hud != null and bool(hud.get("reduced"))
-		and root.content_scale_aspect == Window.CONTENT_SCALE_ASPECT_KEEP and speed > 20.0,
-		"Szene %s, Autopilot %.0f km/h, HUD reduziert, Seitenverhältnis keep" % [first, speed])
+		and root.content_scale_aspect == aspect and speed > 20.0 and str(race.get("gfx")) == mode,
+		"Szene %s, Autopilot %.0f km/h, HUD reduziert, Modus %s, Seitenverhältnis %s" % [first, speed, str(race.get("gfx")) if has_race else "-",
+			"expand" if root.content_scale_aspect == Window.CONTENT_SCALE_ASPECT_EXPAND else "keep"])
 	_check("busse", muted_ok and music_bus_ok and (_am.call("effect_bus_names") as Array).size() >= 2,
 		"Effekt-Busse stumm %s, Music unverändert" % str((_am.call("effect_bus_names") as Array)))
 
