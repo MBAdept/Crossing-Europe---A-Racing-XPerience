@@ -9,6 +9,8 @@
 #      A new check only needs its file – nobody edits this script for it. (With a filter: the files whose name
 #      contains it.) A file fails on an exit code other than 0, on a script error, on a "CHECK <name> FEHLER" line
 #      and when it prints no "CHECK <name> OK" line at all – the exit code alone is not trusted.
+# Steps 2 to 4 always run, also after a failure in an earlier step (a single red check must not hide the others);
+# the end of the output lists every step and file that failed.
 # Everything that needs OpenGL is in tools/run_render_checks.sh, the Arcade pictures in tools/golden.sh.
 # The tests never see the player's own data: user:// lies in a temporary folder (no stored settings – in particular
 # no stored graphics mode –, no override of the configuration) unless the caller sets XDG_DATA_HOME to an ABSOLUTE
@@ -31,6 +33,8 @@ esac
 LOG=$(mktemp)
 SLOG=$(mktemp)
 trap 'rm -f "$LOG" "$SLOG"; [ -n "$OWN_HOME" ] && rm -rf "$OWN_HOME"' EXIT
+CODE=0
+FAILED=()
 "$GODOT" --headless --path . --import >/dev/null 2>&1 || true
 timeout 300 "$GODOT" --headless --path . -s res://tests/check_scripts.gd >"$LOG" 2>&1
 grep -E "KAPUTT|geprüft|SCRIPT ERROR|Parse Error|at: GDScript" "$LOG" | head -60
@@ -43,99 +47,82 @@ if [ $# -gt 0 ]; then
 else
 	timeout 600 "$GODOT" --headless --path . -s res://tests/run_tests.gd >"$LOG" 2>&1
 fi
-CODE=$?
+UCODE=$?
 grep -vE "^\s*$|^Godot Engine" "$LOG"
 if grep -qE "SCRIPT ERROR|Parse Error|^ERROR:" "$LOG"; then
 	echo "==> Godot meldet Skriptfehler (siehe oben)"
-	CODE=1
+	UCODE=1
 fi
+if [ $UCODE -ne 0 ]; then
+	CODE=1
+	FAILED+=("Einheitstests (tests/run_tests.gd)")
+fi
+
+# One check of step 3: <label> <timeout s> <message> <godot arguments …>. Prints its CHECK lines (and the indented
+# detail lines of the escape check); fails on an exit code other than 0 or a script error. Uses the globals
+# GODOT, SLOG, CODE and FAILED.
+step() {
+	local label=$1 limit=$2 msg=$3
+	shift 3
+	timeout "$limit" "$GODOT" --headless --path . "$@" >"$SLOG" 2>&1
+	local scode=$?
+	if [ "$label" = "check_escapes.gd" ]; then
+		grep -E "^CHECK|^    " "$SLOG"
+	else
+		grep -E "^CHECK" "$SLOG"
+	fi
+	if [ $scode -ne 0 ] || grep -qE "SCRIPT ERROR" "$SLOG"; then
+		echo "==> $msg (Exit $scode)"
+		[ $scode -eq 124 ] && echo "    Zeitlimit überschritten"
+		CODE=1
+		FAILED+=("$label")
+	fi
+}
+
 # Integration scenarios of the race session (headless, ~45 s) and the network-wide police escape check
 # (~60 s) – skipped with a filter argument.
-if [ $# -eq 0 ] && [ $CODE -eq 0 ]; then
-	timeout 300 "$GODOT" --headless --path . -s res://tests/race/check_session.gd -- --graphics=arcade >"$SLOG" 2>&1
-	SCODE=$?
-	grep -E "^CHECK" "$SLOG"
-	if [ $SCODE -ne 0 ] || grep -qE "SCRIPT ERROR" "$SLOG"; then
-		echo "==> Integrationsszenarien fehlgeschlagen"
-		CODE=1
-	fi
+if [ $# -eq 0 ]; then
+	step "check_session.gd" 300 "Integrationsszenarien fehlgeschlagen" -s res://tests/race/check_session.gd -- --graphics=arcade
 	# Attract mode end to end (~25 s): idle timer, demo in the race scene, ended by key/gamepad/click without a
 	# menu action, effect buses muted and restored, nothing saved
-	timeout 300 "$GODOT" --headless --path . -s res://tests/race/check_attract.gd -- --graphics=arcade >"$SLOG" 2>&1
-	SCODE=$?
-	grep -E "^CHECK" "$SLOG"
-	if [ $SCODE -ne 0 ] || grep -qE "SCRIPT ERROR" "$SLOG"; then
-		echo "==> Attract-Modus fehlgeschlagen"
-		CODE=1
-	fi
+	step "check_attract.gd (Arcade)" 300 "Attract-Modus fehlgeschlagen" -s res://tests/race/check_attract.gd -- --graphics=arcade
 	# … and the same in the mode "Modern" (~30 s): the demo timer starts when the scene is prepared (A-2)
-	timeout 300 "$GODOT" --headless --path . -s res://tests/race/check_attract.gd -- --graphics=modern >"$SLOG" 2>&1
-	SCODE=$?
-	grep -E "^CHECK" "$SLOG"
-	if [ $SCODE -ne 0 ] || grep -qE "SCRIPT ERROR" "$SLOG"; then
-		echo "==> Attract-Modus (Modern) fehlgeschlagen"
-		CODE=1
-	fi
+	step "check_attract.gd (Modern)" 300 "Attract-Modus (Modern) fehlgeschlagen" -s res://tests/race/check_attract.gd -- --graphics=modern
 	# Gamepad end to end (~10 s): one step per stick push, held D-pad repeats, LB/RB, a second pad, typing into the
 	# name field, the on-screen keyboard, the quit question, driving / pausing with pad 2, vibration, interpolated view
-	timeout 300 "$GODOT" --headless --path . -s res://tests/race/check_menu_pad.gd -- --graphics=arcade >"$SLOG" 2>&1
-	SCODE=$?
-	grep -E "^CHECK" "$SLOG"
-	if [ $SCODE -ne 0 ] || grep -qE "SCRIPT ERROR" "$SLOG"; then
-		echo "==> Gamepad-Prüfung fehlgeschlagen"
-		CODE=1
-	fi
+	step "check_menu_pad.gd" 300 "Gamepad-Prüfung fehlgeschlagen" -s res://tests/race/check_menu_pad.gd -- --graphics=arcade
 	# The options in two pages with real pad events (~2 s, v0.8.0 UI1): LB/RB, the quality rows dimmed in Arcade
-	timeout 300 "$GODOT" --headless --path . -s res://tests/race/check_options_tabs.gd -- --graphics=arcade >"$SLOG" 2>&1
-	SCODE=$?
-	grep -E "^CHECK" "$SLOG"
-	if [ $SCODE -ne 0 ] || grep -qE "SCRIPT ERROR" "$SLOG"; then
-		echo "==> Optionen-Prüfung fehlgeschlagen"
-		CODE=1
-	fi
+	step "check_options_tabs.gd" 300 "Optionen-Prüfung fehlgeschlagen" -s res://tests/race/check_options_tabs.gd -- --graphics=arcade
 	# Every attract demo scene for its full 30 s (~2 min): ends by time (not at the finish), no collision, no
 	# guardrail, nothing close in front, no crawl – pins the tuned scene values of attract.scenes
-	timeout 600 "$GODOT" --headless --path . --fixed-fps 60 -s res://tests/race/check_attract_scenes.gd -- --graphics=arcade >"$SLOG" 2>&1
-	SCODE=$?
-	grep -E "^CHECK" "$SLOG"
-	if [ $SCODE -ne 0 ] || grep -qE "SCRIPT ERROR" "$SLOG"; then
-		echo "==> Attract-Szenen fehlgeschlagen"
-		CODE=1
-	fi
+	step "check_attract_scenes.gd (Arcade)" 600 "Attract-Szenen fehlgeschlagen" --fixed-fps 60 -s res://tests/race/check_attract_scenes.gd -- --graphics=arcade
 	# … and every demo scene in the mode "Modern" (same simulation: same verdicts)
-	timeout 600 "$GODOT" --headless --path . --fixed-fps 60 -s res://tests/race/check_attract_scenes.gd -- --graphics=modern >"$SLOG" 2>&1
-	SCODE=$?
-	grep -E "^CHECK" "$SLOG"
-	if [ $SCODE -ne 0 ] || grep -qE "SCRIPT ERROR" "$SLOG"; then
-		echo "==> Attract-Szenen (Modern) fehlgeschlagen"
-		CODE=1
-	fi
+	step "check_attract_scenes.gd (Modern)" 600 "Attract-Szenen (Modern) fehlgeschlagen" --fixed-fps 60 -s res://tests/race/check_attract_scenes.gd -- --graphics=modern
 	# Police escapes on the whole network with the curve physics (~60 s): every radar × car × dry day / rain night
-	timeout 600 "$GODOT" --headless --path . -s res://tests/sim/check_escapes.gd >"$SLOG" 2>&1
-	SCODE=$?
-	grep -E "^CHECK|^    " "$SLOG"
-	if [ $SCODE -ne 0 ] || grep -qE "SCRIPT ERROR" "$SLOG"; then
-		echo "==> Polizeiflucht im Streckennetz fehlgeschlagen"
-		CODE=1
-	fi
+	step "check_escapes.gd" 600 "Polizeiflucht im Streckennetz fehlgeschlagen" -s res://tests/sim/check_escapes.gd
 fi
 # v0.8.0 – generic hook for the headless checks of the graphics mode "Modern" (seam, world model, fairness, …)
-if [ $CODE -eq 0 ]; then
-	for f in $(ls tests/race3d/check_*.gd tests/sim/modern_*.gd 2>/dev/null | sort); do
-		if [ $# -gt 0 ] && [[ "$(basename "$f")" != *"$1"* ]]; then
-			continue
-		fi
-		timeout 600 "$GODOT" --headless --path . -s "res://$f" >"$SLOG" 2>&1
-		SCODE=$?
-		grep -E "^CHECK" "$SLOG"
-		if [ $SCODE -ne 0 ] || grep -qE "SCRIPT ERROR|Parse Error" "$SLOG" || grep -qE "^CHECK +[^ ]+ +FEHLER" "$SLOG" \
-			|| ! grep -qE "^CHECK +[^ ]+ +OK" "$SLOG"; then
-			echo "==> $f fehlgeschlagen (Exit $SCODE)"
-			grep -E -A4 "SCRIPT ERROR|Parse Error" "$SLOG" | head -20
-			[ $SCODE -eq 124 ] && echo "    Zeitlimit überschritten"
-			grep -qE "^CHECK +[^ ]+ +(OK|FEHLER)" "$SLOG" || echo "    keine Zeile \"CHECK <name> OK|FEHLER\" ausgegeben"
-			CODE=1
-		fi
+for f in $(ls tests/race3d/check_*.gd tests/sim/modern_*.gd 2>/dev/null | sort); do
+	if [ $# -gt 0 ] && [[ "$(basename "$f")" != *"$1"* ]]; then
+		continue
+	fi
+	timeout 600 "$GODOT" --headless --path . -s "res://$f" >"$SLOG" 2>&1
+	SCODE=$?
+	grep -E "^CHECK" "$SLOG"
+	if [ $SCODE -ne 0 ] || grep -qE "SCRIPT ERROR|Parse Error" "$SLOG" || grep -qE "^CHECK +[^ ]+ +FEHLER" "$SLOG" \
+		|| ! grep -qE "^CHECK +[^ ]+ +OK" "$SLOG"; then
+		echo "==> $f fehlgeschlagen (Exit $SCODE)"
+		grep -E -A4 "SCRIPT ERROR|Parse Error" "$SLOG" | head -20
+		[ $SCODE -eq 124 ] && echo "    Zeitlimit überschritten"
+		grep -qE "^CHECK +[^ ]+ +(OK|FEHLER)" "$SLOG" || echo "    keine Zeile \"CHECK <name> OK|FEHLER\" ausgegeben"
+		CODE=1
+		FAILED+=("$f")
+	fi
+done
+if [ ${#FAILED[@]} -gt 0 ]; then
+	echo "==> fehlgeschlagen (${#FAILED[@]}):"
+	for f in "${FAILED[@]}"; do
+		echo "    $f"
 	done
 fi
 echo "==> Tests $([ $CODE -eq 0 ] && echo bestanden || echo FEHLGESCHLAGEN) ($SECONDS s)"

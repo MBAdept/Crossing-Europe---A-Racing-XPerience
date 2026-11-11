@@ -34,6 +34,7 @@ var _clock := 0.0
 var _music: Array = []           ## [time, playing, position, wanted] per frame since the title is up
 var _sample_music := false
 var _wall0 := 0
+var _max_dt := 0.0               ## longest frame since the last reset (the time bounds grow with it under load)
 
 
 func _initialize() -> void:
@@ -43,6 +44,7 @@ func _initialize() -> void:
 
 func _process(delta: float) -> bool:
 	_clock += delta
+	_max_dt = maxf(_max_dt, delta)
 	if _audio != null and _sample_music:
 		var p := _music_player()
 		var playing := false
@@ -92,6 +94,17 @@ func _wait(s: float) -> void:
 func _wait_state(st: int, timeout_s: float) -> bool:
 	var t0 := _clock
 	while _state() != st:
+		if _clock - t0 > timeout_s:
+			return false
+		await process_frame
+	return true
+
+
+## Waits until the demo runs: AttractMode counts demo_s from the moment its stage is live (a Modern stage is
+## prepared behind the loading picture first, A-2). True when it got there within timeout_s.
+func _wait_live(timeout_s: float) -> bool:
+	var t0 := _clock
+	while not (_state() == STATE_DEMO and bool(_am.get("_demo_live"))):
 		if _clock - t0 > timeout_s:
 			return false
 		await process_frame
@@ -221,9 +234,12 @@ func _run() -> void:
 	var waited := _clock - t_input
 	_check("idle", ok and not early and waited >= 0.95 and waited <= 1.35, "Demo %.2f s nach der letzten Eingabe (idle_s 1)" % waited)
 
-	# the demo
-	ok = await _wait_state(STATE_DEMO, 8.0)
+	# the demo (a Modern stage is prepared first: the demo and its time begin when the stage is live, A-2; the
+	# waits are generous because a loaded machine prepares slowly – QS-03)
+	ok = await _wait_state(STATE_DEMO, 20.0)
+	ok = ok and await _wait_live(30.0)
 	var t_demo := _clock
+	_max_dt = 0.0
 	var race: Variant = _gf.get("current")
 	var has_race: bool = ok and race != null and is_instance_valid(race) and race.get("plan") != null
 	var hud: Variant = race.get("hud") if has_race else null
@@ -254,12 +270,15 @@ func _run() -> void:
 	_am.set("idle_s", 2.5)
 	# the effect buses come back once their reverb/delay tails have died away (at most AttractMode.UNMUTE_MAX_S)
 	await _wait(1.3)
-	_check("dauer", ok and dur >= 3.95 and dur <= 4.6 and str(_am.get("last_end_reason")) == "time" and _title_ok()
+	# from the moment the stage is live: demo_s + the fade, plus two of the longest frames (a loaded machine)
+	var dur_max := 4.6 + 2.0 * _max_dt
+	_check("dauer", ok and dur >= 3.95 and dur <= dur_max and str(_am.get("last_end_reason")) == "time" and _title_ok()
 		and _bus_mutes() == mutes0 and root.content_scale_aspect == Window.CONTENT_SCALE_ASPECT_EXPAND,
-		"%.2f s (demo_s 4 + Überblendung), zurück im Titel, Busse wie vorher" % dur)
+		"%.2f s ab dem Start der Etappe (demo_s 4 + Überblendung, Grenze %.2f s), zurück im Titel, Busse wie vorher" % [dur, dur_max])
 
 	# next demo: next scene; Enter ends it without a menu action
-	ok = await _wait_state(STATE_DEMO, 8.0)
+	ok = await _wait_state(STATE_DEMO, 20.0)
+	ok = ok and await _wait_live(30.0)
 	var second := str((_am.get("current_scene") as Dictionary).get("id", ""))
 	_check("naechste", ok and scenes.size() > 1 and second == str((scenes[1] as Dictionary).get("id", "")) and second != first,
 		"%s nach %s" % [second, first])
@@ -287,7 +306,8 @@ func _run() -> void:
 	_key(KEY_UP, false)
 
 	# gamepad A ends the next demo
-	ok = await _wait_state(STATE_DEMO, 8.0)
+	ok = await _wait_state(STATE_DEMO, 20.0)
+	ok = ok and await _wait_live(30.0)
 	await _wait(0.5)
 	_pad(JOY_BUTTON_A, true)
 	await process_frame
@@ -298,7 +318,8 @@ func _run() -> void:
 	_check("gamepad", ok and ended and _title_ok() and _flow_state() == flow_before, "Gamepad A beendet die Demo, kein Menüpunkt")
 
 	# a mouse click ends the next one (pressed where "Rennen starten" sits on the title)
-	ok = await _wait_state(STATE_DEMO, 8.0)
+	ok = await _wait_state(STATE_DEMO, 20.0)
+	ok = ok and await _wait_live(30.0)
 	await _wait(0.5)
 	var at := Vector2(1040, 300)
 	_click(at, true)
@@ -309,8 +330,9 @@ func _run() -> void:
 	await _wait(0.6)
 	_check("klick", ok and ended and _title_ok() and _flow_state() == flow_before, "Klick beendet die Demo, kein Menüpunkt")
 
-	# a stage that finishes inside the demo: its result reaches no one
-	var finish_scene := {"id": "test_ziel", "name": "Test", "stage": "kiel_hamburg", "from": "kiel", "km": 94.5,
+	# a stage that finishes inside the demo: its result reaches no one (0.3 km before the finish and a long demo
+	# time, so that a slow simulation on a loaded machine still gets there – QS-03)
+	var finish_scene := {"id": "test_ziel", "name": "Test", "stage": "kiel_hamburg", "from": "kiel", "km": 94.7,
 		"hour": 12.0, "weather": "normal", "vehicle": "kompakt", "speed_kmh": 110, "cruise_kmh": 110, "seed": 1}
 	var with_finish: Array[Dictionary] = []
 	for s in scenes:
@@ -318,9 +340,10 @@ func _run() -> void:
 	with_finish.append(finish_scene)
 	_am.set("scenes", with_finish)
 	_am.set("scene_index", with_finish.size() - 1)
-	_am.set("demo_s", 14.0)
-	ok = await _wait_state(STATE_DEMO, 8.0)
-	ok = ok and await _wait_state(STATE_IDLE, 16.0)
+	_am.set("demo_s", 40.0)
+	ok = await _wait_state(STATE_DEMO, 20.0)
+	ok = ok and await _wait_live(30.0)
+	ok = ok and await _wait_state(STATE_IDLE, 45.0)
 	await _wait(1.3)   # effect buses back after their tails (AttractMode.UNMUTE_MAX_S)
 	_check("ziel", ok and str(_am.get("last_end_reason")) == "finished" and _title_ok() and _flow_state() == flow0,
 		"Ziel in der Demo: Ende %s, kein Ergebnis" % str(_am.get("last_end_reason")))

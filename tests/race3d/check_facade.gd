@@ -340,8 +340,22 @@ func _check_fassade() -> void:
 	_need(p, worst_world == 0.0, "road_to_world() = RoadPath3D.world()")
 	_need(p, worst_px < 0.001, "world_to_screen() = ChaseCamera3D.project() (%.5f px)" % worst_px)
 	_need(p, worst_engine < 0.02, "world_to_screen() = Camera3D.unproject_position() (%.4f px)" % worst_engine)
+	# a point on the road 100 m ahead: Arcade's projection law (D12) – it lies (eye height − road height) × focal /
+	# depth below the horizon row, whatever the road does there (a rise of more than the eye height puts it above
+	# the horizon: the old fixed bound 0.45 × height depended on how far the stage had driven, QS-02), and at most
+	# the curve look (yaw_max_deg) away from the picture centre
 	var ahead := r.world_to_screen(cam_z + 100.0, 0.0, 0.0)
-	_need(p, ahead.z > 99.0 and ahead.z < 101.0 and ahead.y > size.y * 0.45 and absf(ahead.x - size.x * 0.5) < 80.0, "ein Punkt 100 m voraus liegt unter dem Horizont in Bildmitte (%s)" % str(ahead))
+	var ahead_w := r.road_to_world(cam_z + 100.0, 0.0, 0.0)
+	var eye := r.camera.global_position
+	var fwd_h := -r.camera.global_transform.basis.z
+	fwd_h.y = 0.0
+	var horizon_row := r.camera.unproject_position(eye + fwd_h.normalized() * 5000.0).y
+	var want_y := horizon_row + (eye.y - ahead_w.y) * r.chase.focal / maxf(ahead.z, 0.001)
+	var x_room := r.chase.focal * tan(r.chase.yaw_max) + 1.0
+	_need(p, absf(horizon_row - (size.y * r.chase.horizon_frac + float((view.get("shake", Vector2.ZERO) as Vector2).y))) < 0.5,
+		"Horizontzeile = horizon_frac × Höhe (+ Wackeln) (%.2f bei %s)" % [horizon_row, str(size)])
+	_need(p, ahead.z > 99.0 and ahead.z < 101.0 and absf(ahead.y - want_y) < 0.5 and absf(ahead.x - size.x * 0.5) < x_room,
+		"ein Punkt 100 m voraus liegt (Augenhöhe − Straßenhöhe) × Brennweite / Tiefe unter dem Horizont, nahe der Bildmitte (%s, erwartet y %.2f)" % [str(ahead), want_y])
 	# the camera is the ChaseCamera3D
 	var tr := r.chase.transform(view, r.path)
 	_need(p, r.camera.global_transform.is_equal_approx(tr), "Kamera = ChaseCamera3D.transform(view, path)")
@@ -683,7 +697,9 @@ func _check_geruest() -> void:
 	var listed: Array = snap.get("layers", [])
 	for id: String in LAYER_IDS:
 		_need(p, (r.layer(id) != null) == listed.has(id) and listed.has(id) == ResourceLoader.exists("res://scripts/race3d/layers/%s.gd" % id), "Ebene %s genau dann, wenn ihre Datei da ist" % id)
-	await _until(func() -> bool: return float(sc.get("stage_time")) > 3.0, 600)
+	# 3 s of the stage and at least six rendered frames: under load the time lapse reaches 3 s in a handful of
+	# frames (QS-02)
+	await _until(func() -> bool: return float(sc.get("stage_time")) > 3.0 and int(r.perf_stats().get("frames", 0)) > 5, 600)
 	var perf := r.perf_stats()
 	_need(p, int(perf.get("frames", 0)) > 5 and float(perf.get("render_ms_avg", 99.0)) < 20.0, "render() läuft (Ø %.3f ms)" % float(perf.get("render_ms_avg", 0.0)))
 	var core_ms := float(perf.get("render_ms_avg", 0.0))
