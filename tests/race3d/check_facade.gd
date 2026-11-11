@@ -26,7 +26,9 @@ extends SceneTree
 ##   umgebung   an environment rig: exposed as `env`, first in every hook phase, updated before the camera is
 ##              placed; no built-in environment beside it. Without a rig: the built-in plain environment
 ##              (BG_CANVAS behind layer -10, exactly one DirectionalLight3D with shadow_enabled) and plain sky;
-##              the unshaded debug road carries the ambient colour of the palette (white at noon, dark at night)
+##              the unshaded debug road carries the ambient colour of the palette (white at noon, dark at night);
+##              inside a tunnel (Bern – Mailand km 186): light energy 0, tunnel fog, tunnel light on the debug road,
+##              one flat colour on the canvas
 ##   geruest    the shipped renderer without any fixture, with whatever builders and layers exist: prepared (in two
 ##              frames while nothing has to load), the road or the debug road that stands in for it; a layer
 ##              exactly when its file exists; a stage that leaves frees every node. Bare: with a terrain builder
@@ -611,7 +613,7 @@ func _check_umgebung() -> void:
 	var road_mat: Variant = r.builder("debug_road").get("_material")
 	_need(p, road_mat is StandardMaterial3D and (road_mat as StandardMaterial3D).albedo_color.is_equal_approx(Color(noon.r, noon.g, noon.b)) and noon.get_luminance() > 0.9,
 		"die Debug-Straße trägt das Umgebungslicht der Palette (Mittag: %s)" % noon.to_html(false))
-	# night: the light stays, its energy is 0; a tunnel as well
+	# night: the light stays, its energy is 0
 	await _free(sc)
 	sc = _launch({"start_world_minutes": 23.0 * 60.0})
 	r = sc.get("renderer")
@@ -625,7 +627,31 @@ func _check_umgebung() -> void:
 	_need(p, road_mat is StandardMaterial3D and (road_mat as StandardMaterial3D).albedo_color.is_equal_approx(Color(night.r, night.g, night.b)) and night.get_luminance() < 0.4,
 		"Nacht: die Debug-Straße ist so dunkel wie das Umgebungslicht der Palette (%s)" % night.to_html(false))
 	await _free(sc)
-	_report("umgebung", p, "Rig: env gesetzt, zuerst in jeder Phase, vor der Kamera aktualisiert; ohne Rig: eingebaute Umgebung mit einem Schattenlicht und Himmel auf Ebene −10")
+	# inside a tunnel by day (Bern – Mailand km 186, the Gotthard tunnel): the light stays with energy 0, tunnel fog,
+	# tunnel light on the debug road, one flat colour on the canvas
+	sc = _launch({"stage_id": "bern_mailand", "from_city": "bern", "start_km": 186.0, "seed": 16})
+	r = sc.get("renderer")
+	await _until(func() -> bool: return int(sc.get("_sim_steps")) > 0, 400)
+	var in_tunnel := bool(r.view.get("camera_in_tunnel", false))
+	_need(p, in_tunnel, "Tunnel: die Kamera steht im Tunnel (sonst prüft dieser Teil nichts)")
+	suns.clear()
+	envs.clear()
+	_nodes_of(r, "DirectionalLight3D", suns)
+	_nodes_of(r, "WorldEnvironment", envs)
+	_need(p, suns.size() == 1 and (suns[0] as DirectionalLight3D).shadow_enabled and (suns[0] as DirectionalLight3D).visible
+		and (suns[0] as DirectionalLight3D).light_energy == 0.0, "Tunnel: das Licht bleibt (shadow_enabled), Energie 0")
+	if envs.size() == 1:
+		var tunnel_env: Environment = (envs[0] as WorldEnvironment).environment
+		_need(p, tunnel_env.fog_light_color.is_equal_approx(Palette.TUNNEL_FOG) and tunnel_env.ambient_light_energy > 0.0,
+			"Tunnel: Nebelfarbe des Tunnels, Umgebungslicht an (%s, %.3f)" % [tunnel_env.fog_light_color.to_html(false), tunnel_env.ambient_light_energy])
+	road_mat = r.builder("debug_road").get("_material")
+	_need(p, road_mat is StandardMaterial3D and (road_mat as StandardMaterial3D).albedo_color.is_equal_approx(Color(Palette.TUNNEL_AMBIENT.r, Palette.TUNNEL_AMBIENT.g, Palette.TUNNEL_AMBIENT.b)),
+		"Tunnel: die Debug-Straße trägt das Tunnellicht")
+	snap = r.debug_snapshot()
+	_need(p, bool((snap.get("backdrop", {}) as Dictionary).get("flat", false)) and float((snap.get("environment", {}) as Dictionary).get("share", 1.0)) == 0.0,
+		"Tunnel: eine Farbe auf der Canvas-Ebene, kein gerichteter Anteil (%s)" % str(snap.get("backdrop", {})))
+	await _free(sc)
+	_report("umgebung", p, "Rig: env gesetzt, zuerst in jeder Phase, vor der Kamera aktualisiert; ohne Rig: eingebaute Umgebung mit einem Schattenlicht und Himmel auf Ebene −10; Nacht und Tunnel (Kamera im Tunnel: %s) mit Energie 0" % str(in_tunnel))
 
 
 # --- geruest: the shipped renderer on its own ----------------------------------------------------------------------

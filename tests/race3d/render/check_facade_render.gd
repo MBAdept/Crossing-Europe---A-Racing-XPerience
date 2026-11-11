@@ -9,6 +9,7 @@ extends SceneTree
 ##   licht       the built-in plain environment lights geometry that is put under renderer.world: a level plate
 ##               of the reference albedo shows Arcade's colour (albedo × palette.ambient) in the light and only
 ##               the ambient part in the shadow of a box – exactly ONE DirectionalLight3D, with shadows (D5)
+##   strasse     the debug road itself is unshaded: the same box above the bare road leaves no shadow on it
 ##   nacht       at 23:00 the debug road (unshaded, tinted with the ambient colour of the palette by its update()
 ##               hook) and a lit plate are as dark as Arcade's road and ground, the one light stays with energy 0
 ##   pools       assets/shaders/modern/inc/pools.gdshaderinc: a test shader that includes it compiles and lights a
@@ -25,7 +26,7 @@ const RACE := "res://scenes/race/race.tscn"
 const PROBE := "res://tests/race3d/fixtures/facade_probe_renderer.gd"
 const LAYER := "res://tests/race3d/fixtures/facade_layer.gd"
 const POOLS_INC := "res://assets/shaders/modern/inc/pools.gdshaderinc"
-const CHECKS := ["licht", "nacht", "pools", "aufwaermen"]
+const CHECKS := ["licht", "strasse", "nacht", "pools", "aufwaermen"]
 const PlainEnvironment := preload("res://scripts/race3d/plain_environment.gd")
 const PLATE_H := 0.3            ## test plates float this far above the road (m)
 const LOADING_LAYER := 6        ## canvas layer of the session's loading cover (contract §4.4.4)
@@ -248,6 +249,59 @@ func _check_licht() -> void:
 	_need(p, _steps(no_shade, want_lit) <= 5.0, "ohne den Kasten kein Schatten (%s)" % _rgb(no_shade))
 	_report("licht", p, "eingebaute Umgebung: Platte (Albedo %.2f) im Licht %s (Arcade: %s), im Schatten des Kastens %s (Umgebungsanteil: %s), ein DirectionalLight3D mit Schatten" % [
 		a, _rgb(lit), _rgb(want_lit), _rgb(shade), _rgb(want_shade)])
+	await _free(sc)
+
+
+# --- strasse: the unshaded debug road takes no shadow --------------------------------------------------------------
+
+## Documents a property of the stand-in that surprises: builders/debug_road.gd is unshaded, so a caster above it
+## leaves no shadow on it (the same box does darken the lit plate of "licht"). A vehicle layer that sees no shadow on
+## the debug road is not broken. The check fails the day the stand-in starts to take shadows – then the docs change.
+func _check_strasse() -> void:
+	var p: Array[String] = []
+	_use_skeleton(true)
+	var sc: Node = await _launch()
+	var r: ModernRenderer = sc.get("renderer")
+	await _until(func() -> bool: return int(sc.get("_sim_steps")) >= 5, 2000)
+	var env_node: Node = r.get("_environment")
+	var to_sun: Vector3 = (env_node.get("state") as Dictionary)["to_sun"]
+	# where the shadow of the box would fall: on the bare road, 22 m ahead on the camera's axis
+	var ground := r.path.frame_at(float(r.view["camera_z"]) + 22.0, float(r.view["camera_x"]), 0.0)
+	var grey := StandardMaterial3D.new()
+	grey.albedo_color = Color(0.38, 0.38, 0.38)
+	var box := MeshInstance3D.new()
+	var cube := BoxMesh.new()
+	cube.size = Vector3(1.8, 1.8, 1.8)
+	box.mesh = cube
+	box.material_override = grey
+	box.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	r.world.add_child(box)
+	box.global_transform = Transform3D(ground.basis, ground.origin + to_sun * (2.6 / to_sun.y))
+	await _frames(3)
+	var with_box: Image = await _capture()
+	_keep(with_box, "strasse")
+	var box_px := r.camera.unproject_position(box.global_transform.origin)
+	var box_seen := with_box.get_pixel(int(box_px.x), int(box_px.y))
+	box.queue_free()
+	await _frames(3)
+	var without: Image = await _capture()
+	var px := r.camera.unproject_position(ground.origin)
+	var x := int(px.x)
+	var y := int(px.y)
+	# rows from the shadow point towards the camera: clear of the box, which stands beyond that point
+	var different := 0
+	var total := 0
+	for dy in range(0, 16):
+		for dx in range(-40, 41):
+			total += 1
+			different += 1 if with_box.get_pixel(x + dx, y + dy) != without.get_pixel(x + dx, y + dy) else 0
+	var road_with := with_box.get_pixel(x, y)
+	var road_without := without.get_pixel(x, y)
+	_need(p, box_seen != without.get_pixel(int(box_px.x), int(box_px.y)), "der Kasten ist im Bild (%s)" % box_seen.to_html(false))
+	_need(p, different == 0 and road_with == road_without, "kein Schatten auf der unbeleuchteten Debug-Straße (%d von %d Pixeln verschieden, %s / %s)" % [
+		different, total, road_with.to_html(false), road_without.to_html(false)])
+	_report("strasse", p, "Kasten über der bloßen Debug-Straße: am Schattenpunkt %s mit und %s ohne Kasten, %d von %d Pixeln darunter verschieden – die unbeleuchtete Vertretung nimmt keinen Schatten an" % [
+		road_with.to_html(false), road_without.to_html(false), different, total])
 	await _free(sc)
 
 

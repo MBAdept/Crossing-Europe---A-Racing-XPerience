@@ -586,8 +586,10 @@ Bauplans; hier steht, wie es gebaut ist.
 Keine Fahrzeuge, keine Requisiten, keine Markierungen – das Bild des Gerüsts ist ein Arbeitsstand, kein Vergleich
 mit Arcade (A/B-Bild im Abgabeordner des Bauabschnitts).
 
-Die Debug-Straße ist **unbeleuchtet**: sie zeigt weder das Licht der Umgebung noch Schatten (ein Fahrzeug wirft auf
-ihr keinen). Damit Nacht, Regen und Tunnel trotzdem danach aussehen, färbt ihr Haken `update()` sie jedes Bild mit
+Die Debug-Straße ist **unbeleuchtet**: sie zeigt weder das Licht der Umgebung noch Schatten – ein Kasten über der
+bloßen Fahrbahn ändert darunter keinen einzigen Bildpunkt, derselbe Kasten wirft auf eine beleuchtete Platte einen
+Schatten (gemessen: Render-Prüfungen `strasse` und `licht`). Ein Fahrzeug wirft auf ihr also keinen Schatten. Damit
+Nacht, Regen und Tunnel trotzdem danach aussehen, färbt ihr Haken `update()` sie jedes Bild mit
 `palette.ambient` (im Tunnel mit `Palette.TUNNEL_AMBIENT`) – Arcades Farbgesetz für Fahrbahn und Boden. Licht und
 Schatten der eingebauten Umgebung sieht man auf beleuchteten Flächen: auf den Prüfplatten der Render-Prüfungen
 `licht` und `nacht`, später auf Straße, Gelände und Modellen der Bauabschnitte.
@@ -822,7 +824,9 @@ Tonemapper und fest eingeschaltete Nachbearbeitung (D6), genau **ein** `Directio
 `graphics.modern.fog.begin_frac` bis `end_frac` der Sichtweite in der Nebelfarbe der Palette. Gesetzt werden die
 Globals `ce_time`, `ce_night`, `ce_wet`, `ce_snow`, `ce_fog_color`, `ce_fog_range`, `ce_sun_dir`, `ce_sun_color`,
 `ce_ambient` (beide über `ModernMaterials.light_value()`) und `ce_tunnel`; `ce_wind`, `ce_headlight*` und `ce_far_y`
-behalten ihre Vorgaben, bis Rig und Lichter-Ebene sie setzen.
+behalten ihre Vorgaben, bis Rig und Lichter-Ebene sie setzen. Das ist der Stand des Codes: kein Bild und keine
+Prüfung dieses Bauabschnitts liest die Globals (das Gerüst zeichnet nichts, das sie benutzt) – ob ihre Werte zu
+den Modell-Shadern passen, zeigt sich erst mit Fahrzeugen und Requisiten.
 
 **Lichtgesetz** (`light_state()`, rein und unit-getestet): Arcade zeigt jede Fläche als Albedo × `palette.ambient`.
 Hier zeigt eine **ebene** Fläche dasselbe: der Wert der Palette wird in einen gerichteten Anteil (bei Tag die
@@ -836,20 +840,43 @@ bei bedecktem Himmel weiches Licht von oben (75°).
 |---|---|---|
 | ebene Platte, Albedo 0,38, im Licht | 99 / 99 / 99 | 97 / 97 / 97 (Arcade: Albedo × `palette.ambient`) |
 | dieselbe Platte im Schatten eines Kastens | 47 / 48 / 51 | 48 / 49 / 52 (nur der Umgebungsanteil) |
-| gerechnet für Albedo 0,3 … 0,9 bei Tag (Unit-Test) | höchstens 7,5 % neben Arcade, bei Regen und Schnee 11 % | – |
 | 23 Uhr (Render-Prüfung `nacht`): ebene Platte, Albedo 0,38 | 17 / 22 / 34 | 21 / 25 / 36 (Arcade) |
 | 23 Uhr: Debug-Straße (unbeleuchtet, mit `palette.ambient` gefärbt) | 6 / 13 / 27 | 16 / 21 / 32 (Arcade) |
 
-Dunklere Albedos fallen dunkler aus, nachts helle bis zu einem Viertel heller – die Anzeigekurve des Renderers ist
-bei dunklen Werten kein reiner Faktor: unter etwa 12/255 drückt die fest eingeschaltete Nachbearbeitung um bis zu
-zehn Stufen (gemessen an Platte und Debug-Straße oben; docs/modelle.md §4). Die Nacht des Gerüsts ist deshalb
-dunkler als die von Arcade. Nachts gibt die eingebaute Umgebung auch kein Mondlicht (zwei dunkle Durchgänge fielen
-beide unter die Anzeigeschwelle); beides entscheidet das Rig.
+Gemessen sind genau diese Punkte: eine Albedo (0,38), mittags und um 23 Uhr, klares Wetter. Alles Weitere ist
+**gerechnet** (`light_state()` mit den Näherungen des Renderers für einen Durchgang, ungünstigster Farbkanal einer
+ebenen Fläche gegen Arcades Farbe):
+
+| gerechnet für die Stunden … | Albedo 0,2 | 0,3 | 0,45 | 0,6 | 0,9 |
+|---|---|---|---|---|---|
+| 8:30, 12, 13, 15, 17:30 Uhr, klar | −13 % | −3,6 % | +1,9 % | +4,4 % | +6,9 % |
+| dieselben Stunden, Regen | −19 % | −5,3 % | +2,9 % | +6,7 % | +10,6 % |
+| 7, 19 und 19:30 Uhr, klar | −26 … −31 % | −10 … −17 % | −2 … +1 % | +5 … +6 % | +10 … +12 % |
+| 19:30 Uhr, Regen | −36 % | −12,5 % | +7,1 % | +16,5 % | +26 % |
+| 21 und 23 Uhr, klar | −45 % | −12,8 % | +7,3 % | +16,9 % | +26,7 % |
+| 21 und 23 Uhr, Regen | −59 % | −16,9 % | +9,6 % | +22,4 % | +35,3 % |
+
+(Zwischen diesen Stunden ist nichts gerechnet. Schnee ist mitgerechnet, hier aber nicht aufgeführt: am Tag und
+nachts liegt er zwischen klar und Regen, in der Dämmerung nicht durchweg.)
+
+Das Gesetz trifft Arcades Farbe also nur für mittlere Albedos am hellen Tag (der Unit-Test hält 8:30, 12, 15 und
+17:30 Uhr fest: höchstens 7,5 %, bei Regen und Schnee 11 %, für Albedo 0,3 … 0,9). In der Dämmerung und nachts
+liegen dunkle Flächen weit darunter und helle bis zu einem Drittel darüber. Das gemessene Nachtbild ist noch
+dunkler als diese Rechnung (Platte 17 / 22 / 34 statt 21 / 25 / 36, Debug-Straße bis zu zehn Stufen unter Arcade):
+die Rechnung kennt nur einen Durchgang; was der Renderer danach mit dunklen Werten tut, ist in docs/modelle.md §4
+gemessen und hier nicht getrennt untersucht. Die Nacht des Gerüsts ist dunkler als die von Arcade. Nachts gibt
+die eingebaute Umgebung auch kein Mondlicht (Energie 0); beides entscheidet das Rig.
 
 `plain_sky.gd` zeichnet Arcades Himmelsverlauf (dieselben Zeilen wie `RaceBackdrop.draw_sky`) über der
-Horizontzeile und die Nebelfarbe darunter, bei jeder Fenstergröße auf `render.horizon_y_frac` der Höhe; im Tunnel
-die Tunnelfarbe, mit `--gfx-debug=cover` Magenta (dann ist auch der Nebel aus). Sonne, Wolken und Silhouetten
-bringt erst `layers/backdrop.gd`.
+Horizontzeile und die Nebelfarbe darunter, bei jeder Fenstergröße auf `render.horizon_y_frac` der Höhe (geprüft bei
+1280 × 720 und 1280 × 800). Sonne, Wolken und Silhouetten bringt erst `layers/backdrop.gd`.
+
+Im **Tunnel** (Kamera im Tunnel) zeigt die Canvas-Ebene eine Farbe, die Tunnelfarbe; das Licht bleibt mit Energie 0,
+der Nebel nimmt die Tunnelfarbe, die Debug-Straße das Tunnellicht. Geprüft headless an den Zustandswerten
+(`check_facade.gd` → `umgebung`, Bern – Mailand km 186) und in einem Bild angesehen: dunkle Fläche, warm gefärbte
+Fahrbahn mit Banketten, sonst nichts – Röhre, Wände und Lampen gibt es erst mit dem Tunnel-Builder. Mit
+`--gfx-debug=cover` soll die Canvas-Ebene magenta und der Nebel aus sein; das steht im Code und ist in diesem
+Bauabschnitt **nicht** gelaufen.
 
 ### 9.7 Lichtkegel (`assets/shaders/modern/inc/pools.gdshaderinc`)
 
@@ -913,7 +940,7 @@ Bildpaar mit dem Gerüst (Arcade 5–6 s, Modern 6–13 s).
 | `tests/race3d/check_facade.gd` (headless, in `tools/run_tests.sh`) | `haken` (Reihenfolge aller Haken, nichts vor dem Ende jedes `prepare_pending()`, `dt` = 0 bis zum Start), `fassade`, `lampen`, `rebased`, `statistik`, `ausfall`, `umgebung`, `geruest` |
 | `tests/race3d/check_seam.gd` → `vertrag` | der ausgelieferte Renderer hat jede Methode, jedes Signal und jedes Mitglied aus Bauplan §4.4.1 und A-7; vor `prepare()` antwortet alles harmlos |
 | `tests/race3d/render/check_seam_render.gd` → `modern_bild`, `fenster_16_10` | Bild des Gerüsts (Himmelsverlauf, Debug-Straße an den Bildpunkten des Kameramodells, Kamera = `ChaseCamera3D`), danach der ausgelieferte Renderer mit allem, was es gibt |
-| `tests/race3d/render/check_facade_render.gd` | `licht` und `nacht` (9.6), `pools` (9.7), `aufwaermen` (Aufwärm-Knoten zwei gezeichnete Bilder vor der Kamera, vom Ladebild verdeckt, danach frei; Selbsttest einmal je Prozess); mit `-- --save=<Ordner>` bleiben die beurteilten Bilder |
+| `tests/race3d/render/check_facade_render.gd` | `licht` und `nacht` (9.6), `strasse` (die Debug-Straße nimmt keinen Schatten an, 9.1), `pools` (9.7), `aufwaermen` (Aufwärm-Knoten zwei gezeichnete Bilder vor der Kamera, vom Ladebild verdeckt, danach frei; Selbsttest einmal je Prozess); mit `-- --save=<Ordner>` bleiben die beurteilten Bilder |
 | `tests/unit/race3d/test_chunk_services.gd`, `test_renderer_skeleton.gd` | `services`; Zusammenführen der Haken-Daten, Lichtgesetz |
 
 Die Prüfungen der Fassade laufen mit dem **Gerüst allein**: der Prüf-Renderer
@@ -927,14 +954,18 @@ Bauabschnitte ihre Dateien ablegen. Nur `geruest`, `vertrag` und der zweite Teil
 
 | Messung (gemessen; Debug-Straße, eingebaute Umgebung, keine Ebene) | Wert |
 |---|---|
-| `render()` in GDScript, headless, 30 s Fahrt in Echtzeit-Schritten (Kiel – Hamburg ab km 2 und ab km 60) | im Mittel 0,15–0,16 ms, höchstens 2,1–2,8 ms; Sync-Modus im Mittel 0,19 ms, höchstens 5,8 ms |
-| Einhängen eines Stücks / Einsammeln / Bauen (Arbeiter-Thread) | höchstens 0,18 ms / 2,0 ms / im Mittel 3,4–4,0 ms |
-| Vorbereitung headless (13 Stücke) | 74–77 ms |
+| `render()` in GDScript, headless, 30 s Fahrt in Echtzeit-Schritten (Kiel – Hamburg ab km 2 und ab km 60; je ein Lauf, zwei Messrunden) | im Mittel 0,15–0,17 ms, höchstens 2,1–2,8 ms; Sync-Modus im Mittel 0,19 ms, höchstens 5,8 ms |
+| Einhängen eines Stücks / Einsammeln / Bauen (Arbeiter-Thread) | höchstens 0,18 ms / 2,0 ms während der Fahrt (beim Laden bis 3,5 ms) / im Mittel 3,3–4,0 ms |
+| Vorbereitung headless (12–13 Stücke) | 74–89 ms |
 | Vorbereitung unter Xvfb (llvmpipe), erste Etappe des Prozesses | 405–808 ms, davon Selbsttest 202–591 ms; jede weitere Etappe 3 Bilder |
 | Zeichenaufrufe / Dreiecke des Bildes bei km 2 | 12 / 13.056 |
-| `ERGEBNIS` von `run_stage.gd`, Arcade gegen Modern, Kiel – Hamburg und dev_testetappe (Nacht, Regen) | je 28 Schlüssel, nur `gfx` verschieden |
+| `ERGEBNIS` von `tests/race/run_stage.gd`, Arcade gegen Modern, Kiel – Hamburg (12 Uhr) und dev_testetappe (21 Uhr, Regen) | je 28 Schlüssel, nur `gfx` verschieden |
 
-Zeiten auf einer echten Grafikkarte und auf dem Steam Deck sind hier nicht messbar.
+Die Zeiten stammen aus zwei Messrunden mit je einem Lauf, auf zwei aufeinanderfolgenden Ständen (vor und nach dem
+Haken `update()` der Debug-Straße): `render()` im Mittel 0,156 → 0,173 ms ab km 2 und 0,149 → 0,150 ms ab km 60,
+Vorbereitung 74–77 → 79–89 ms. Wie stark die Zeiten auf dieser Maschine (vier Kerne, geteilt mit anderen Aufträgen)
+von Lauf zu Lauf streuen, ist nicht gemessen; der Unterschied zwischen den Runden ist deshalb nicht dem Haken
+zuzuschreiben. Zeiten auf einer echten Grafikkarte und auf dem Steam Deck sind hier nicht messbar.
 
 ### 9.11 Übergabe an die Renderer-Bauabschnitte
 
