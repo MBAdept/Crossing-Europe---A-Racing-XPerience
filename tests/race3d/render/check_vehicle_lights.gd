@@ -13,12 +13,17 @@ extends SceneTree
 ##                  (peak + 0.02 luminance and + 0.10 red against the same picture without the car)
 ##   bremslicht     brake light by day at 50, 150 and 300 m: braking lights the rear (more red than the tail lamp
 ##                  alone, Arcade's glow strength 0.35) at every distance
+##   sichtgrenze    F4/F5 and Arcade's fog of sprites (FIX1, QA QB-07/QB-11): a dark car at the end of the sight
+##                  (0.995 × visibility) changes its footprint by less than 3 % contrast; at 0.839 × visibility (where
+##                  the simulation counts it as seen) the pixels it still covers keep at least half the contrast they
+##                  have at the fog begin (0.45 × visibility) – Arcade tints a sprite by 0.7 × the fog amount towards
+##                  its own colour × the fog colour, the engine's depth fog had left about 30 %
 ## "-- --save=<absolute folder>" keeps the pictures (vehicle_lights_<name>.png).
 ## (The scene and the autoloads are accessed untyped: -s scripts compile before the autoloads exist.)
 
 const RACE := "res://scenes/race/race.tscn"
 const PROBE := "res://tests/race3d/fixtures/vehicle_probe_renderer.gd"
-const CHECKS := ["blinker", "ruecklicht_n1", "bremslicht"]
+const CHECKS := ["blinker", "ruecklicht_n1", "bremslicht", "sichtgrenze"]
 const INDICATOR_MIN_PX := Vector2(2.4, 2.0)     ## RoadRenderer.INDICATOR_MIN_PX (copied: -s script)
 const INDICATOR_MIN_GLOW_PX := 4.5              ## RoadRenderer.INDICATOR_MIN_GLOW_PX
 const N1_LUM := 0.02                            ## threshold of the tail light at 0.839 x visibility …
@@ -326,3 +331,76 @@ func _check_bremslicht() -> void:
 		msgs.append("%.0f m: Rot +%.2f an %d Pixeln" % [dist, red, lifted])
 	await _free(sc)
 	_report("bremslicht", p, "Bremslicht bei Tag – " + "; ".join(msgs))
+
+
+# --- sichtgrenze (FIX1) -------------------------------------------------------------------------------------------
+
+## Contrast of a car's picture against the same picture without it, over its screen footprint: [mean Weber contrast
+## of the footprint, mean Weber contrast of the pixels it changes, number of changed pixels].
+func _contrast(on: Image, off: Image, rect: Rect2i) -> Array:
+	var sum_all := 0.0
+	var sum_changed := 0.0
+	var n_all := 0
+	var n_changed := 0
+	for y in range(maxi(rect.position.y, 0), mini(rect.end.y, on.get_height())):
+		for x in range(maxi(rect.position.x, 0), mini(rect.end.x, on.get_width())):
+			var la := _lum(on.get_pixel(x, y))
+			var lb := _lum(off.get_pixel(x, y))
+			var c := absf(la - lb) / maxf(lb, 0.02)
+			sum_all += c
+			n_all += 1
+			if absf(la - lb) > 2.5 / 255.0:
+				sum_changed += c
+				n_changed += 1
+	return [sum_all / maxf(1.0, float(n_all)), sum_changed / maxf(1.0, float(n_changed)), n_changed]
+
+
+## Screen rectangle of a car of length l, width w, height h at road position (z, x).
+func _footprint(r: Node, z: float, x: float, l: float, w: float, h: float) -> Rect2i:
+	var lo := Vector2(1.0e9, 1.0e9)
+	var hi := Vector2(-1.0e9, -1.0e9)
+	for dz: float in [-l * 0.5, l * 0.5]:
+		for dx: float in [-w * 0.5, w * 0.5]:
+			for dh: float in [0.0, h]:
+				var p: Vector3 = r.call("world_to_screen", z + dz, x + dx, dh)
+				lo = Vector2(minf(lo.x, p.x), minf(lo.y, p.y))
+				hi = Vector2(maxf(hi.x, p.x), maxf(hi.y, p.y))
+	var scale := Vector2(root.get_texture().get_size()) / root.get_visible_rect().size   # logical -> picture pixels
+	return Rect2i(Vector2i(int(floor(lo.x * scale.x)) - 1, int(floor(lo.y * scale.y)) - 1), Vector2i(int(ceil((hi.x - lo.x) * scale.x)) + 3,
+		int(ceil((hi.y - lo.y) * scale.y)) + 3))
+
+
+func _check_sichtgrenze() -> void:
+	var p: Array[String] = []
+	var first: Node = await _launch()
+	var vis := float((first.get("renderer") as Node).get("visibility_m"))
+	await _free(first)
+	var fracs: Array[float] = [0.45, 0.839, 0.995]
+	var dists: Array = []
+	for f: float in fracs:
+		dists.append(f * vis)
+	var sc: Node = await _launch_clear({}, CLEAR_KMS, dists, 0.0)
+	var r: Node = sc.get("renderer")
+	var view: Dictionary = r.get("view")
+	var cam_z := float(view["camera_z"])
+	var x := float((view["player"] as Dictionary).get("x", 0.0))
+	var res := {}
+	for f: float in fracs:
+		var z := cam_z + f * vis
+		var on := await _shot([_car(9601, "traffic/sedan_black", z, x)])
+		var off := await _shot([])
+		_keep(on, "sichtgrenze_%03d" % int(f * 1000.0))
+		var size: Dictionary = ModelDB.object_size("traffic/sedan_black")
+		var rect := _footprint(r, z, x, float(size.get("length_m", 4.7)), float(size.get("width_m", 1.8)), float(size.get("height_m", 1.45)))
+		res[f] = _contrast(on, off, rect)
+	var near: Array = res[0.45]
+	var mid: Array = res[0.839]
+	var far: Array = res[0.995]
+	_need(p, int(near[2]) >= 4, "das Auto ist bei 0,45 × Sichtweite zu sehen (%d Pixel)" % int(near[2]))
+	_need(p, float(far[0]) < 0.03, "an der Sichtgrenze (0,995 × Sichtweite) unter 3 %% Kontrast (%.1f %%)" % (float(far[0]) * 100.0))
+	_need(p, int(mid[2]) >= 1 and float(mid[1]) >= 0.5 * float(near[1]),
+		"bei 0,839 × Sichtweite behalten die Pixel des Autos mindestens die Hälfte des Kontrasts am Nebelbeginn (%.0f %% gegen %.0f %%)" % [
+			float(mid[1]) * 100.0, float(near[1]) * 100.0])
+	await _free(sc)
+	_report("sichtgrenze", p, "Sichtweite %.0f m, schwarze Limousine: Kontrast seiner Pixel bei 0,45 / 0,839 × Sicht %.0f / %.0f %%, Fläche an der Sichtgrenze %.2f %%" % [
+		vis, float(near[1]) * 100.0, float(mid[1]) * 100.0, float(far[0]) * 100.0])

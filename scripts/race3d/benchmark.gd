@@ -396,6 +396,9 @@ func _scene_result(sc: Dictionary, measured_s: float) -> Dictionary:
 		"sim_ms": snappedf(window_average(_perf0, p1, "sim_avg_ms", "sim_steps"), 0.001),
 		"prepare_s": snappedf(_prepare_s, 0.01),
 		"video_mem_mb": snappedf(_avg("video_mem") / 1048576.0, 0.1),
+		# FIX1 (QA QB-10): the longest render() of the scene and which part of the renderer carried each longest time
+		"script_ms_max": snappedf(float(p1.get("render_ms_max", 0.0)), 0.01),
+		"hooks_ms_max": p1.get("hooks_ms_max", {}),
 	}
 
 

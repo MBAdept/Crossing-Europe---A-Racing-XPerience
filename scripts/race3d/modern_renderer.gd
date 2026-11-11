@@ -125,6 +125,13 @@ var _load_stats: Dictionary = {}
 var _frames := 0
 var _render_us := 0
 var _render_us_max := 0
+## FIX1 (QA QB-10): GDScript time of every part of render() – environment, streamer, camera and each hook with
+## update() – so that a spike of the Leistungstest can be put down to a layer or builder (perf_stats() "hooks_ms_avg",
+## "hooks_ms_max"). Index 0..2 = env, streamer, camera; then _updaters in order.
+var _part_ids: Array[String] = []
+var _part_us_sum := PackedInt64Array()
+var _part_us_max := PackedInt64Array()
+var _part_frames := 0
 var _quality := Quality.new()       ## viewport and RenderingServer states of the quality levels
 var _probe := PerfProbe.new()       ## frame times and the watchdog of the countdown
 var _warmup: RefCounted             ## Prewarm while the warm-up runs
@@ -392,6 +399,15 @@ func _build() -> void:
 			_updaters.append(h)
 		if h.has_method(&"rebased"):
 			_rebase_listeners.append(h)
+	_part_ids = ["environment", "streamer", "camera"]
+	for h: Object in _updaters:
+		var sc: Variant = h.get_script()
+		_part_ids.append(str((sc as Script).resource_path).get_file().get_basename() if sc is Script else str(h))
+	_part_us_sum.resize(_part_ids.size())
+	_part_us_sum.fill(0)
+	_part_us_max.resize(_part_ids.size())
+	_part_us_max.fill(0)
+	_part_frames = 0
 
 
 ## A new instance of the script at `script_path`, or null when it does not load.
@@ -621,9 +637,12 @@ func render(p_view: Dictionary) -> void:
 
 ## environment → streamer → camera → builders with update() → layers.
 func _draw_world(dt: float) -> void:
+	var t := Time.get_ticks_usec()
 	if _env_updates:
 		_environment.call(&"update", view, dt)
+	t = _part_time(0, t)
 	streamer.update(float(view.get("camera_z", 0.0)), visibility_m)
+	t = _part_time(1, t)
 	# Arcade's projection exactly, plus the look into the bend (D12): transform and frustum from ChaseCamera3D, for
 	# the LOGICAL size of the picture (1280 x 720, or more rows / columns with stretch aspect "expand", D13)
 	_vp_size = _viewport_size()
@@ -635,10 +654,26 @@ func _draw_world(dt: float) -> void:
 	else:
 		camera.transform = _cam_tr
 	camera.set_frustum(float(_cam_fr["size"]), _cam_fr["offset"], float(_cam_fr["near"]), float(_cam_fr["far"]))
-	for l: Object in _updaters:
-		l.call(&"update", view, dt)
+	t = _part_time(2, t)
+	for i in _updaters.size():
+		(_updaters[i] as Object).call(&"update", view, dt)
+		t = _part_time(3 + i, t)
+	if _prepared:
+		_part_frames += 1
 	if _stage == Stage.WARMUP:
 		_place_warmup()
+
+
+## Adds the time since t0 to part i (only once the stage is prepared: the preparation's frames are counted in "load");
+## returns the time now.
+func _part_time(i: int, t0: int) -> int:
+	var now := Time.get_ticks_usec()
+	if _prepared and i < _part_us_sum.size():
+		var us := now - t0
+		_part_us_sum[i] += us
+		if us > _part_us_max[i]:
+			_part_us_max[i] = us
+	return now
 
 
 ## The warm-up nodes stand on the road in front of the camera, turned like a vehicle ahead.
@@ -692,6 +727,13 @@ func perf_stats() -> Dictionary:
 		"prewarm_ms": _prewarm_ms, "fallback_sets": 0, "tex_mem_mb": 0.0,
 		"prepare_ms": _prepare_ms, "selftest_ms": float(selftest.get("ms", 0.0)), "warmup_nodes": _warm_count,
 		"quality_lowered": _lowered, "streamer": st, "load": _load_stats}
+	var hooks_avg := {}
+	var hooks_max := {}
+	for i in _part_ids.size():
+		hooks_avg[_part_ids[i]] = snappedf(float(_part_us_sum[i]) / maxf(1.0, float(_part_frames)) / 1000.0, 0.0001)
+		hooks_max[_part_ids[i]] = snappedf(float(_part_us_max[i]) / 1000.0, 0.001)
+	out["hooks_ms_avg"] = hooks_avg
+	out["hooks_ms_max"] = hooks_max
 	out.merge(_probe.stats(), true)
 	if is_inside_tree() and DisplayServer.get_name() != "headless":
 		var vp := get_viewport().get_viewport_rid()
