@@ -102,8 +102,10 @@ show_vehicle()`, `VehicleScreen` ist unverändert).
 - Eigene, durchsichtige 3D-Welt (`SubViewport`, `own_world_3d`, `transparent_bg`): der Menühintergrund scheint durch.
   Studio-Licht: Führungslicht von vorn links oben mit weichem Schatten auf den Drehteller, Aufhelllicht von der anderen
   Seite, zwei Kantenlichter hinter dem Auto in Magenta und Cyan, ein Studio-Himmel nur für die Spiegelungen,
-  Scheinwerfer an. Der Drehteller ist dunkel glänzend mit leuchtendem Cyan-Rand (wie die 2D-Plattform), 11 °/s.
-  Kamera wie die der Showroom-Sprites (11 ° über dem Horizont, Front rechts vorn beim Einblenden).
+  Scheinwerfer an. Der Drehteller ist dunkel glänzend mit leuchtendem Cyan-Rand (wie die 2D-Plattform), 11 °/s, und
+  füllt 88 % der Breite (Größe und Lage wie die 2D-Plattform). Kamera wie die der Showroom-Sprites (11 ° über dem
+  Horizont, Front rechts vorn beim Einblenden). Tonemapper AgX: Filmic und Linear ließen kräftige Lacke im Farbton
+  kippen (das Goldgelb des Kompakt wurde zitronengelb).
 - **Physische Pixel**: Das `SubViewport` ist so groß wie das Steuerelement mal dem Streckfaktor des Fensters (660 × 400
   bei 1280 × 720 und auf dem Steam Deck, 990 × 600 bei 1920 × 1080) – sonst würde es in großen Fenstern weich
   hochskaliert. MSAA 4× (ein einzelnes Auto).
@@ -209,6 +211,7 @@ tools/gfx_previews.sh --only=modern --gfx-preset=high --km=2.0  # nur Modern
 | `--screen=benchmark` (`--bench-sample=ok\|slow\|arcade\|fallback\|stub\|abort`) | Leistungstest-Seiten |
 | `--screen=title --sample-crash-guard` | Titel mit der Absturz-Frage |
 | `--screen=vehicle --sample-vehicle=<id>` (`--showroom-force[=ids]`, `--showroom-still`) | Fahrzeugwahl, Showroom |
+| `--screen=result --sample-gfx-fallback[=<grund>]` | Etappenergebnis mit dem Hinweis nach einem Rückfall |
 
 ## Prüfungen
 
@@ -220,4 +223,5 @@ tools/gfx_previews.sh --only=modern --gfx-preset=high --km=2.0  # nur Modern
 | `tests/race3d/check_benchmark.gd` | Leistungstest mit dem Renderer des Builds: Format, Datei, `--bench-out`, Ergebnisseite, Bildbegrenzung, Rückfall, Abbruch, Szenenauswahl | Haken von `run_tests.sh` |
 | `tests/race3d/check_showroom.gd` | Showroom im laufenden Spiel: Stufe show, eigene durchsichtige Welt, Sprite ohne Modell, Zwischenspeicher, Arcade gibt frei, zurück nach Modern, Abmelden | Haken |
 | `tests/race3d/check_attract_modern.gd` | Demo mit langsam vorbereitendem Renderer: schwarz, Uhr steht, demo_s ab `stage_live` | Haken |
+| `tests/race3d/render/check_showroom_render.gd` | Showroom auf echtem Renderer: physische Pixel bei Streckfaktor 1,0 und 1,5 (660 × 400, 990 × 600), durchsichtig, nicht angeschnitten, dreht | `tools/run_render_checks.sh modern showroom` (Xvfb) |
 | `tests/race/check_attract.gd`, `check_attract_scenes.gd` | wie bisher, jetzt in beiden Modi (`-- --graphics=arcade\|modern`) | `run_tests.sh` mit Arcade; Modern **von Hand** |
