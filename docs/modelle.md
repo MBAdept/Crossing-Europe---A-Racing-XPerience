@@ -810,8 +810,10 @@ dunkle Schlieren; die Krone hatte weniger Form als die schattierten Kugeln des S
 - **Fernbild:** das Bild von lod0 (Albedo × Eckhelligkeit; das Himmelslicht steckt schon darin), Verstärkung und
   Blauanteil je Art (`imp`: die Kuppeln spiegeln den Himmel, das Fernbild nicht) so gewählt, dass es bei Tag
   innerhalb von 5 % von lod1 bleibt (gemessen an den inneren Pixeln; der Rand dünner Bäume ist durch die
-  Kantenglättung der Netze mit dem Himmel gemischt, beim Fernbild nicht). Im fernen Nebel ist es nicht blasser als
-  das Arcade-Sprite im selben Nebel (Bild im Bericht).
+  Kantenglättung der Netze mit dem Himmel gemischt, beim Fernbild nicht). Ausnahme Fichte: ihre Astkarten zeigen
+  nach oben und bekommen mittags mehr Sonne als das Fernbild, abends weniger – eine feste Verstärkung kann nur
+  mitteln (Mittag −8 bis −11 %, Dämmerung +2 bis +6 %). Im fernen Nebel ist es nicht blasser als das
+  Arcade-Sprite im selben Nebel (Bild im Bericht).
 
 ### Sonderkronen (`ce3d/veg3d_shapes.py`)
 
@@ -863,6 +865,8 @@ leuchtet selbst.
   der Palette. Bilder des alten Rigs waren heller und satter als im Rennen.
 - `--sprite`: das Arcade-Sprite des Sets als Platzhalter-Billboard im selben Licht und Nebel (Reihe bzw. Spalte).
 - `--mode=lods` meldet je Modell `UMSCHALT`: Anteil geänderter Pixel und 3×3-Blöcke, Helligkeits- und
-  Farbtonsprung an beiden Umschaltentfernungen (Helligkeit aus den inneren Pixeln).
+  Farbtonsprung an beiden Umschaltentfernungen (Helligkeit aus den inneren Pixeln). Jede Spalte zeigt die
+  Darstellung, die der Props-Bauer für Stufe 0/1/2 nimmt (`PropLibrary`-„reps“): ein Busch ohne Fernbild bleibt
+  jenseits der zweiten Entfernung lod1, ein Felsen mit einer Stufe (automatische Netz-Stufen) bleibt lod0.
 - `--mode=clip`: die Kamera fährt mit `--kmh` an Baumreihen entlang, jedes Bild wird geschrieben (Flimmern,
   Stufenwechsel Bild für Bild).
