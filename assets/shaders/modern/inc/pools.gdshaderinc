@@ -19,6 +19,8 @@
 //   pool_dir[i]    kind 1: xyz = unit vector the car points along (level). A zero vector draws the entry as a
 //                  round pool whatever its kind.
 //   pool_count     number of entries in use (0 .. 22)
+//   pool_ambient   DISPLAY value of the ambient light as Arcade knows it (palette.ambient, inside a tunnel the
+//                  tunnel's) – what ce_pools_display_light() adds light to
 // Law of a lamp pool (Arcade's lamp pools, RoadRenderer._light): e = 1 - d² / r², light = colour * e² inside the
 // radius – full at the centre, value and slope 0 at the radius, nothing beyond. d is the distance in space, so
 // ground far below the pool gets less.
@@ -38,6 +40,7 @@ uniform vec4 pool_pos_r[22];
 uniform vec4 pool_col[22];
 uniform vec4 pool_dir[22];
 uniform int pool_count = 0;
+uniform vec3 pool_ambient = vec3(1.0);
 
 // Summed linear light of the pools at an origin-relative world position.
 vec3 ce_pools(vec3 world_pos) {
@@ -68,6 +71,13 @@ vec3 ce_pools(vec3 world_pos) {
 		}
 	}
 	return sum;
+}
+
+// Arcade adds light in display values: a surface shows albedo * (ambient + l). The linear light that brightens a
+// surface lit by the ambient light of the frame by the display value l (tinted): (ambient + l)^2.2 - ambient^2.2.
+// Exact at the bright end; in a dark night a few percent above Arcade (measured, docs/renderer-modern.md).
+vec3 ce_pools_display_light(float l, vec3 tint) {
+	return pow(pool_ambient + l * tint, vec3(2.2)) - pow(pool_ambient, vec3(2.2));
 }
 
 // The renderer's sRGB -> linear for ALBEDO and EMISSION values …

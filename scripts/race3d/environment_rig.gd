@@ -367,7 +367,8 @@ static func tunnel_blend(track: Track, z: float) -> float:
 ## The light of a palette (Palette.compute), pure. tunnel01: 0 in the open .. 1 inside a tunnel; road_heading =
 ## heading of the road at the car (RoadPath3D.heading_at), bg_offset = view.bg_offset. Returns {"to_sun": unit
 ## vector towards the sun / moon (world), "sun": linear light value on a surface that faces it (Color),
-## "ambient": linear ambient light value (Color), "share": directed part of the display value on level ground,
+## "ambient": linear ambient light value (Color), "display": the palette's ambient as Arcade uses it (display
+## factors, blended with the tunnel's), "share": directed part of the display value on level ground,
 ## "moon": the direction is the moon's, "ref": the reference albedo, "sun_display" / "ambient_display" / "level":
 ## what a level surface of the reference albedo shows in the sun pass, in the ambient pass and after the post
 ## path (display values), "azimuth" / "elevation" (rad): panorama angle and height of the light}.
@@ -421,7 +422,7 @@ static func light_state(pal: Dictionary, tunnel01: float, road_heading: float, b
 		sun_d[ch] = ground_d
 		amb_d[ch] = rest_d
 		level[ch] = post_shown(rest_d + ground_d)
-	return {"to_sun": to_sun, "sun": sun_lin, "ambient": amb_lin, "share": share, "moon": moon, "ref": ref,
+	return {"to_sun": to_sun, "sun": sun_lin, "ambient": amb_lin, "share": share, "moon": moon, "ref": ref, "display": Color(p.r, p.g, p.b),
 		"sun_display": sun_d, "ambient_display": amb_d, "level": level, "azimuth": azimuth, "elevation": elev,
 		"sun_pos": Vector2(azimuth / AZIMUTH_GAIN, height)}
 

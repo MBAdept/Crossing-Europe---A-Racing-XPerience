@@ -59,6 +59,8 @@ var _max_traffic := 6
 var _want_spots := 2
 var _want_omnis := 4
 var _beam := 0.0                    ## intensity of the player's cone this frame (display value)
+var _ambient := Vector3.ONE         ## display value of the ambient light of this frame (uniform pool_ambient)
+var _ambient_sent := Vector3(-1.0, -1.0, -1.0)
 var _beam_pos := Vector3.ZERO
 var _beam_dir := Vector3.FORWARD
 var _sent_beam := Vector2(-1.0, -1.0)
@@ -73,6 +75,7 @@ var _pool_col := PackedVector4Array()
 var _pool_dir := PackedVector4Array()
 var _pool_count := 0
 var _pools_sent := 0
+var _mats_sent := 0
 var _pool_lamps := 0
 var _pool_traffic := 0
 var _glints: MultiMeshInstance3D
@@ -221,12 +224,14 @@ func update(view: Dictionary, _dt: float) -> void:
 	var lights := clampf(float(pal.get("lights", 0.0)), 0.0, 1.0)
 	var env: Node = _renderer.get("env")
 	var tunnel01 := 1.0 if bool(view.get("camera_in_tunnel", false)) else 0.0
-	var ambient := Color(1.0, 1.0, 1.0)
+	# the ambient light as Arcade knows it (display factors): what pools and cones add their light to
+	var ambient: Color = Palette.TUNNEL_AMBIENT if tunnel01 > 0.5 else pal.get("ambient", Color.WHITE)
 	if env != null:
 		var st: Variant = env.get("state")
 		if st is Dictionary and not (st as Dictionary).is_empty():
 			tunnel01 = float((st as Dictionary).get("tunnel01", tunnel01))
-			ambient = (st as Dictionary).get("ambient", ambient)
+			ambient = (st as Dictionary).get("display", ambient)
+	_ambient = Vector3(ambient.r, ambient.g, ambient.b)
 	var path: RoadPath3D = _renderer.get("path")
 	_update_beam(view, lights, tunnel01, path)
 	var lit := (lights > 0.04 or tunnel01 > 0.04) and path != null and path.is_ready()
@@ -415,9 +420,16 @@ func _lamp_drop(parent: Node3D, wp: Vector3, path: RoadPath3D) -> float:
 
 ## Sends the pool arrays to every registered ground material (only the count while nothing is lit).
 func _send_pools() -> void:
+	var lit := _pool_count > 0 or _beam > 0.001
+	var mats: Array = _renderer.call(&"pool_materials")
+	if lit and (not _ambient.is_equal_approx(_ambient_sent) or mats.size() != _mats_sent):
+		_ambient_sent = _ambient
+		for m: Variant in mats:
+			if m is ShaderMaterial:
+				(m as ShaderMaterial).set_shader_parameter("pool_ambient", _ambient)
+	_mats_sent = mats.size()
 	if _pool_count == 0 and _pools_sent == 0:
 		return
-	var mats: Array = _renderer.call(&"pool_materials")
 	for m: Variant in mats:
 		var mat := m as ShaderMaterial
 		if mat == null:
@@ -484,13 +496,14 @@ static func headlight_shape(world_pos: Vector3, lamp_pos: Vector3, lamp_dir: Vec
 	return smoothstep(-2.0, 5.0, d) * (1.0 - smoothstep(reach * 0.3, reach, d)) / (1.0 + q2 * q2)
 
 
-## Linear light that adds the display value `level` (tinted with `colour`) to a surface lit by the linear ambient
-## light `ambient` – Arcade adds light in display values (albedo × (ambient + level)).
+## Linear light that brightens a surface by the display value `level` (tinted with `colour`) on top of the ambient
+## light `ambient` (display factors, as Arcade knows it) – Arcade adds light in display values
+## (albedo × (ambient + level)). The law of ce_pools_display_light() in inc/pools.gdshaderinc.
 static func display_to_light(level: float, colour: Color, ambient: Color) -> Color:
 	var out := Color.BLACK
 	for ch in 3:
-		var a := pow(maxf(ambient[ch], 0.0), 0.4545)
-		out[ch] = maxf(pow(a + level * colour[ch], 2.2) - ambient[ch], 0.0)
+		var a := maxf(ambient[ch], 0.0)
+		out[ch] = maxf(pow(a + level * colour[ch], 2.2) - pow(a, 2.2), 0.0)
 	return out
 
 

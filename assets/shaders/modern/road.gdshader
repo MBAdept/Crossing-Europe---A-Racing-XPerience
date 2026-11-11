@@ -58,7 +58,8 @@ uniform vec3 dash_cycle = vec3(18.0, 18.0, 9.0);   // metres per cycle
 uniform float seg_len = 3.0;
 uniform float post_every = 6.0;                    // guardrail posts (contact shadow)
 uniform float detail = 1.0;                        // strength of the fine detail (0 = plain colours)
-uniform float paint_reflect = 1.8;                 // low beam on paint against asphalt (Arcade: 1.6 / 0.9)
+uniform float asphalt_reflect = 0.9;               // how much of the low beam and the light pools a surface throws back
+uniform float paint_reflect = 1.6;                 // (Arcade's factors: asphalt 0.9, lines 1.6, hatch and crosswalk 1.4, checker 1.2)
 
 global uniform float ce_wet;
 global uniform float ce_snow;
@@ -270,7 +271,7 @@ void fragment() {
 		}
 		vec3 surf = mix(asph, line, paint * worn);
 		float gloss = paint * worn;
-		reflect = mix(1.0, paint_reflect, gloss);
+		reflect = mix(asphalt_reflect, paint_reflect, gloss);
 		if ((flags & 16) != 0) {
 			// start / finish: two rows of squares across the whole asphalt
 			float cells = max(4.0, floor(ra - la));
@@ -280,7 +281,7 @@ void fragment() {
 			float chk = 0.5 + 0.5 * square(cx, wx / cw) * square(cz, wz / (0.5 * seg_len));
 			float on = along_seg;
 			surf = mix(surf, mix(vec3(0.08), vec3(1.0), chk) * (1.0 + grain * 0.05), on);
-			reflect = mix(reflect, mix(0.3, 1.55, chk), on);
+			reflect = mix(reflect, 1.2, on);
 			gloss = max(gloss, on);
 		}
 		rough = mix(0.93 - polish * 0.14, 0.62, gloss);
@@ -290,7 +291,7 @@ void fragment() {
 		float d_out = max(la - x, x - ra);          // metres beyond the asphalt edge
 		bool left = x < 0.5 * (la + ra);
 		vec3 side = col_paved;
-		float side_reflect = 0.85;
+		float side_reflect = 1.0;
 		float side_rough = 0.95;
 		float f_coarse = detail * (1.0 - smoothstep(0.03, 0.14, foot));
 		float coarse = f_coarse > 0.0 ? (vnoise(p * 17.0) - 0.5) * f_coarse : 0.0;
@@ -305,7 +306,7 @@ void fragment() {
 			float mixv = clamp(0.65 + (vnoise(vec2(x * 1.7, z * 0.45)) - 0.5) * 0.5 * detail - smoothstep(1.2, 2.4, d_out) * 0.3, 0.0, 1.0);
 			side = mix(grass, col_gravel * (1.0 + coarse * 0.3), mixv);
 			side = mix(side, col_snow, 0.9 * snow);
-			side_reflect = 0.6;
+			side_reflect = left ? 0.6 : 0.8;
 			side_rough = 1.0;
 		} else {
 			// Autobahn: paved shoulder on the right; on the left a paved strip, then the grass of the median
@@ -316,7 +317,7 @@ void fragment() {
 			pv = mix(pv, col_snow, 0.75 * snow);
 			vec3 gr = mix(grass * 0.92, col_snow, 0.94 * snow);
 			side = mix(gr, pv, paved);
-			side_reflect = mix(0.5, 0.85, paved);
+			side_reflect = left ? mix(0.45, 1.0, paved) : 0.8;
 			side_rough = mix(1.0, 0.95, paved);
 		}
 		// contact shadow of a guardrail and its posts on the strip below it
@@ -343,7 +344,7 @@ void fragment() {
 		base = col_sidewalk * (1.0 + (slab - 0.5) * 0.07 * f_slab + grain * 0.08 + batch * 0.05 - joint * 0.2);
 		base = mix(base, col_snow, 0.7 * snow);
 		base *= 1.0 - 0.15 * wet;
-		reflect = 0.8;
+		reflect = 1.0;
 	} else {
 		// ---------------------------------------------------------------- curb: stones of one metre
 		float f_stone = detail * (1.0 - smoothstep(0.03, 0.25, wz));
@@ -354,13 +355,13 @@ void fragment() {
 			base *= 0.85 - 0.12 * (1.0 - smoothstep(0.0, 0.1, x)) * detail;   // the face: darker, dirty at the foot
 		}
 		base = mix(base, col_snow, (kind == 2 ? 0.6 : 0.2) * snow);
-		reflect = 0.9;
+		reflect = 1.0;
 	}
 	base = clamp(base, vec3(0.0), vec3(1.0));
 	ALBEDO = base;
 	ROUGHNESS = rough;
 	SPECULAR = spec;
 	METALLIC = 0.0;
-	vec3 extra = ce_pools(v_world) + ce_headlight_light(v_world, reflect);
+	vec3 extra = ce_pools(v_world) * reflect + ce_headlight_light(v_world, reflect);
 	EMISSION = ce_pools_encode(ce_pools_to_lin(base) * extra);
 }
