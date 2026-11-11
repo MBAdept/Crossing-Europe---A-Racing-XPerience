@@ -52,7 +52,7 @@
    {
     "name": "lod1",
     "max_dist_m": 180,
-    "tris": 6312,
+    "tris": 6398,
     "parts": [
      {
       "node": "body",
@@ -171,8 +171,8 @@
   "paint": {"paint": "#d8d8d4", "paint2": "#1f4f9a", "paint3": "#d6262b", "metal": 0.25},
   "auto_lod": false,
   "tags": ["traffic", "heavy"],
-  "bytes": 226429,
-  "hash": "ad6eb046090793ba244d76ed5433a0fc74e537c1"
+  "bytes": 227359,
+  "hash": "e7cf62513336dfcf75f05f61b8ed7cca2d19e3b3"
  },
  "sets": {
   "traffic/bus_white": {

@@ -144,11 +144,14 @@ POLICE_DETAIL = {
 }
 # ... and per livery: the checks cost about 4,000 triangles at lod0 (rows and cells), the Hungarian word twice the
 # others - a longer station spacing of the lod0 lofts makes the room (the ends and the wheel arches keep their own
-# stations)
+# stations); at lod1 the checks on the bumpers (about 360 triangles) take one station per wheel arch and one in
+# each rounded end of the body
 POLICE_DETAIL_CC = {
-    "check": {"lod0": {"step": 12.0, "gstep": 12.0}},
+    "check": {"lod0": {"step": 12.0, "gstep": 12.0}, "lod1": {"arch_n": 4, "ends_n": 2}},
+    "be": {"lod1": {"step": 36.0}},
+    "ch": {"lod1": {"step": 36.0}},
     "hu": {"lod0": {"step": 8.8}, "lod1": {"step": 30.0}},
-    "ro": {"lod0": {"step": 13.0}},
+    "ro": {"lod0": {"step": 13.0}, "lod1": {"step": 28.0}},
     "at": {"lod1": {"step": 48.0, "gstep": 64.0}},
 }
 

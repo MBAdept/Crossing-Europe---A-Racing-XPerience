@@ -53,7 +53,7 @@
    {
     "name": "lod1",
     "max_dist_m": 120,
-    "tris": 5955,
+    "tris": 5975,
     "parts": [
      {
       "node": "body",
@@ -172,8 +172,8 @@
   "paint": {"paint": "#f2f2ef", "paint2": "#1b3c8f", "paint3": "#c6e01e", "metal": 0.12},
   "auto_lod": false,
   "tags": ["police", "ro"],
-  "bytes": 343626,
-  "hash": "7977d2d1157240325b080215a0ea8e59eed9b5ae"
+  "bytes": 344341,
+  "hash": "321f8353e700968c278575548bd4e8bc8d8ed38e"
  },
  "sets": {
   "police/ro": {

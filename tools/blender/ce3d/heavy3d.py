@@ -214,7 +214,8 @@ def _rear_items(b, lv, m):
         it.append((_rect(0.0, 0.62, 1.12, 0.66), b.i_dark, 5, True))
     else:
         it.append((_rect(0.0, 2.62, 1.0, 3.32), m["glass"], 11, True))
-    if lv == 0:
+    if lv <= 1:
+        # engine louvres (lod1 too: at 60 - 180 m they blend into the grey panel the sprite shows there)
         for i in range(6):
             z = 1.35 + i * 0.12
             it.append((_rect(0.0, z, 0.8, z + 0.035), b.i_dark, 7, True))

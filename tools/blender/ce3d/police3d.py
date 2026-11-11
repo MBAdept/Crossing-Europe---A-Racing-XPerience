@@ -4,8 +4,9 @@ A police set of the sprite catalog (cesprites.catalog.POLICE: base model, word, 
 car of ce3d.traffic3d with
   livery  the bands and checks of cesprites.police.livery cut INTO the body (one layer, like every decal of the
           traffic cars): paint = body colour, paint2 = c1, paint3 = c2 - the colours are the paint of the set
-          (instance uniforms), the outlines are geometry. The far level shows a check pattern in its mean colour
-          (cells of 24 cm are one pixel at 120 m and would only shimmer)
+          (instance uniforms), the outlines are geometry. A check pattern keeps its cells at lod0; at lod1 only on
+          the ends (rear and front, what the chase camera sees), the flanks show the mean of the two colours; at
+          lod2 everything shows the mean (cells of 24 cm are one pixel at 120 m and would only shimmer)
   words   the local word for police on both flanks and on the rear, cut into the body from the glyph triangles of
           the font Blender ships (cesprites.textgeo, as the sprite) - at lod0 only (at 40 m a letter is 3 px high)
   bar     the roof light bar: feet, a dark base, two clear blue domes (glass) over three LED modules each - beacon
@@ -41,8 +42,9 @@ DOME = dict(color="#4a6ee0", rough=0.04, opacity=0.22)     # clear blue dome ove
 WORD_RANK = 5000             # the words lie over everything else on their faces (a sticker over the door seams)
 WORD_RES = 2                 # curve resolution of the glyphs (cesprites.textgeo: 3) - an O of 16 cm is a 16-gon
 NOT_TOP = 0.75               # bands leave faces that look up more than this (cesprites.materials.surface)
-CHECK_FAR_LEVEL = 1          # from this level on a check band shows the mean of its two colours (cells of 24 cm: 4 px
-#                              at 40 m - at lod1 they cost 2,700 triangles of a budget of 6,000)
+CHECK_FAR_LEVEL = 1          # from this level on the flanks show a check band in the mean of its two colours (cells of
+#                              24 cm: 4 px at 40 m - on the flanks of lod1 they cost 2,700 triangles of a budget of 6,000)
+CHECK_END_LEVEL = 2          # ... the ends (rear, front: what the chase camera sees) keep the cells up to this level
 # livery lines cut only faces larger than this (m, per level 0 / 1 / 2) across the line; smaller faces take the colour
 # of their centre: a saw tooth of at most this size - 1 cm is 0.7 px at 10 m, 4 cm is 0.7 px at 40 m, 10 cm 0.6 px at
 # 120 m (focal length 711 px)
@@ -232,10 +234,12 @@ def _hooks(pol):
         level = int(kw.get("level", args[1] if len(args) > 1 else 0))
         # the flat end caps of the lower body and the bumpers are fans of long triangles over the whole width: every
         # livery line crossed all of them. Triangulated anew with the livery lines as edges, they cost nothing
-        names = [car.body.name] + [ob.name for ob in getattr(car, "bumper_obs", {}).values()]
-        for name in names:
+        bumpers = [ob.name for ob in getattr(car, "bumper_obs", {}).values()]
+        for name in [car.body.name] + bumpers:
             if name in soups:
-                _recap(soups[name], pol.row_levels(level), pol.check_x(level))
+                ends = pol.ends_here(level, name in bumpers)
+                _recap(soups[name], sorted(set(pol.row_levels(level)) | set(pol.end_rows(level) if ends else [])),
+                       pol.check_x(level) if ends else [])
         pal, tris, stats = orig_surfaces(car, soups, *args, **kw)
         stats["police"] = pol.apply(car, pal, tris, level)
         return pal, tris, stats
@@ -310,10 +314,31 @@ class _Police:
                     z += ch
         return sorted(v for v in out if v > 0.0)
 
+    @staticmethod
+    def ends_here(level, bumper):
+        """Whether a soup shows the cells of a check band on its ends at a level: everywhere up to CHECK_FAR_LEVEL,
+        then only the bumpers - the ends of the lower body lie behind them in the band (at lod1 their cells cost 770
+        hidden triangles), above the bumpers remains a strip of a few cm in the mean colour (below a pixel at 40 m)."""
+        return level < CHECK_FAR_LEVEL or (bumper and level < CHECK_END_LEVEL)
+
+    def end_rows(self, level):
+        """The row lines of the checks on the ends of a level where its flanks show the mean (no loft rows there)."""
+        out = []
+        if not CHECK_FAR_LEVEL <= level < CHECK_END_LEVEL:
+            return out
+        for b in self.bands_at(level):
+            if "check" in b:
+                ch = b["check"][1]
+                z = b["z"][0] + ch
+                while z < b["z"][1] - 1e-4:
+                    out.append(round(z, 5))
+                    z += ch
+        return out
+
     def check_x(self, level):
         """The cell lines of the checks on the ends of the car: [(x, z0, z1)] (none where the level shows the mean)."""
         out = []
-        if level >= CHECK_FAR_LEVEL:
+        if level >= CHECK_END_LEVEL:
             return out
         for b in self.bands_at(level):
             if "check" in b:
@@ -349,9 +374,10 @@ class _Police:
         i_paint = pal._index["paint"]
         base_data = pal.items[i_paint][1]
         st = dict(before=int(sum(t.pos.shape[0] for t in tris.values())))
+        bumpers = {ob.name for ob in getattr(car, "bumper_obs", {}).values()}
         for name in sorted(tris):
             n0 = tris[name].pos.shape[0]
-            self._bands(tris[name], pal, base_data, i_paint, level)
+            self._bands(tris[name], pal, base_data, i_paint, level, self.ends_here(level, name in bumpers))
             st["bands_" + name.split("_")[-1]] = int(tris[name].pos.shape[0] - n0)
         st["bands"] = int(sum(t.pos.shape[0] for t in tris.values())) - st["before"]
         if level == 0:
@@ -361,7 +387,8 @@ class _Police:
         self.stats["lod%d" % level] = st
         return st
 
-    def _bands(self, t, pal, base_data, i_paint, level):
+    def _bands(self, t, pal, base_data, i_paint, level, ends=True):
+        """ends: the soup shows the cells of a check band on its ends (_Police.ends_here)."""
         bands = self.bands_at(level)
         if not bands:
             return
@@ -385,25 +412,38 @@ class _Police:
         zc = t.pos[:, :, 2].mean(axis=1)
         t.split_level((0.0, 0.0, 1.0), NOT_TOP, where=(t.mat == i_paint) & (zc > zlo) & (zc < zhi) & big(2))
         checks = [b for b in bands if "check" in b]
-        if checks and level < CHECK_FAR_LEVEL:
+        ends_only = CHECK_FAR_LEVEL <= level
+        if checks and ends:
             for b in checks:
                 z0, z1 = b["z"]
-                cw = b["check"][0]
+                cw, ch = b["check"][0], b["check"][1]
 
                 def inside():
                     zc = t.pos[:, :, 2].mean(axis=1)
                     return (t.mat == i_paint) & (zc > z0) & (zc < z1)
-                # side faces count the cells along y, the ends along x (materials.surface: |nx| > |ny|): split
-                # where the smooth normal turns from one to the other, then along the cell lines
-                for axis in ((1.0, -1.0, 0.0), (1.0, 1.0, 0.0)):
-                    t.split_level(axis, 0.0, where=inside() & big(2))
+
+                def flank():
+                    n = t.nor.mean(axis=1)
+                    return np.abs(n[:, 0]) > np.abs(n[:, 1])
+                if ends_only:
+                    # the rows of the cells are no loft rows here (the flanks show the mean): split the ends along
+                    # them; a face where the normal turns takes the side of its mean normal
+                    z = z0 + ch
+                    while z < z1 - 1e-4:
+                        t.split_z(z, where=inside() & ~flank() & big(2))
+                        z += ch
+                else:
+                    # side faces count the cells along y, the ends along x (materials.surface: |nx| > |ny|): split
+                    # where the smooth normal turns from one to the other, then along the cell lines
+                    for axis in ((1.0, -1.0, 0.0), (1.0, 1.0, 0.0)):
+                        t.split_level(axis, 0.0, where=inside() & big(2))
                 for k, lo, hi in ((1, 0.0, _car_len(t)), (0, -1.2, 1.2)):
+                    if ends_only and k == 1:
+                        continue
                     v = math.floor(lo / cw) * cw
                     while v <= hi:
-                        sel = inside()
-                        n = t.nor.mean(axis=1)
-                        side = np.abs(n[:, 0]) > np.abs(n[:, 1])
-                        _split_coord(t, k, v, where=sel & (side if k == 1 else ~side) & big(k))
+                        side = flank()
+                        _split_coord(t, k, v, where=inside() & (side if k == 1 else ~side) & big(k))
                         v += cw
         zc = t.pos[:, :, 2].mean(axis=1)
         nz = t.nor.mean(axis=1)[:, 2]
@@ -420,16 +460,20 @@ class _Police:
                 continue
             if "check" in b:
                 cw, ch, c2 = b["check"]
+                cells = m
                 if level >= CHECK_FAR_LEVEL:
-                    new[m] = self._colour_index(pal, base_data, i_paint, _hex_mix(b["color"], c2))
-                    continue
+                    # flanks (and where the soup shows no cells on its ends, everything): the mean of the two colours
+                    cells = m & ~side if ends else np.zeros_like(m)
+                    new[m & ~cells] = self._colour_index(pal, base_data, i_paint, _hex_mix(b["color"], c2))
+                    if not cells.any():
+                        continue
                 c = t.pos.mean(axis=1)
                 u = np.where(side, c[:, 1], c[:, 0])
                 par = (np.floor(u / cw) + np.floor((c[:, 2] - z0) / ch)).astype(np.int64) % 2
                 i1 = self._colour_index(pal, base_data, i_paint, b["color"])
                 i2 = self._colour_index(pal, base_data, i_paint, c2)
-                new[m & (par == 0)] = i1
-                new[m & (par == 1)] = i2
+                new[cells & (par == 0)] = i1
+                new[cells & (par == 1)] = i2
             else:
                 new[m] = self._colour_index(pal, base_data, i_paint, b["color"])
         t.mat = new
