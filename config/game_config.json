@@ -453,7 +453,12 @@
 				"result": {"attack_s": 0.8, "release_s": 0.4, "gain_db": {"MCar": -9.0, "MWorld": -9.0, "MAmb": -6.0}}
 			},
 			"music": {"context_db": {"title": -1.0, "menu": -1.0, "race_menu": -1.0, "race": 1.0, "result": -1.0}, "race_eq": [{"shelf": "low", "hz": 1100.0, "db": -3.2}, {"shelf": "low", "hz": 180.0, "db": 2.2}], "race_eq_fade_s": 0.4, "fade_in_s": 0.4, "fade_out_s": 0.6},
-			"feed": {"rumble_in_m": 0.3, "rumble_out_m": 0.5, "pass_max_m": 18.0, "max_scan_m": 90.0, "joint_every_m": 24.0},
+			"feed": {"rumble_in_m": 0.3, "rumble_out_m": 0.5, "pass_max_m": 18.0, "max_scan_m": 90.0, "joint_every_m": 24.0,
+				"rumble_roads": ["autobahn"], "concrete_roads": ["autobahn"],
+				"concrete_share": {"DE": 0.35, "BE": 0.3, "CZ": 0.4, "PL": 0.25, "AT": 0.15, "_": 0.1},
+				"cobble_styles": ["hanse", "german_old", "bavarian", "dutch", "belgian", "paris", "french", "french_south", "italian",
+					"vienna", "austrian", "swiss", "central", "eastern", "baltic", "balkan", "spanish", "spanish_north"],
+				"cobble_share": 0.6, "cobble_block_m": 90.0, "cutting_dist_m": 14.0, "cutting_window_m": 60.0, "delineators": true},
 			"env": {},
 			"traffic": {"traffic_voices": 8}
 		}

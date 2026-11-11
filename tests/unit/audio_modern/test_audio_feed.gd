@@ -24,6 +24,7 @@ class FakeTrack:
 	var scenery := "flach"
 	var city := false
 	var guardrail := true
+	var road := "autobahn"
 
 	func get_segment(index: int) -> TrackSegment:
 		max_asked = maxi(max_asked, index)
@@ -35,7 +36,7 @@ class FakeTrack:
 			s.scenery = scenery
 			s.city = city
 			s.guardrail = guardrail
-			s.road = "autobahn"
+			s.road = road
 			segs[index] = s
 		return segs[index]
 
@@ -51,6 +52,25 @@ class FakeTrack:
 class FakePlan:
 	extends RefCounted
 	var tunnels: Array[Dictionary] = []
+	# v1 (AU-C1): what the paving reads – sections, the destination city and its centre
+	var stage_id := "t_feed"
+	var to_id := "b"
+	var length_km := 100.0
+	var city_style := ""
+	var center_km := 1.0e9
+	var sections: Array[Dictionary] = []
+
+	func section_index_at(km: float) -> int:
+		for i in sections.size():
+			if km < float(sections[i]["end_km"]):
+				return i
+		return sections.size() - 1
+
+	func section_at(km: float) -> Dictionary:
+		return {} if sections.is_empty() else sections[section_index_at(km)]
+
+	func in_city_center(km: float) -> bool:
+		return km >= center_km
 
 
 func _feed(track: Object) -> AudioFeed:
@@ -313,3 +333,188 @@ func test_on_a_real_track() -> void:
 	g.update(_state(600.0))
 	g.update(_state(601.0))
 	assert_true(int(fresh.get("_gen_next")) <= fresh.segment_index_at(601.0) + 1, "nie weiter als bis zum Auto")
+
+
+# --- v1 (AU-C1): paving, rumble roads, delineators, cutting -------------------------------------------------------
+
+func _feed_with(track: Object, feed_cfg: Dictionary) -> AudioFeed:
+	var f := AudioFeed.new()
+	var m: Variant = ConfigLoader.lookup(cfg(), "audio.modern", {})
+	var modern: Dictionary = (m as Dictionary).duplicate(true) if m is Dictionary else {}
+	var fc: Dictionary = modern.get("feed", {})
+	fc.merge(feed_cfg, true)
+	modern["feed"] = fc
+	f.setup(modern)
+	f.set_track(track)
+	return f
+
+
+func test_paving_of_sections_cities_and_bridges() -> void:
+	var t := FakeTrack.new()
+	t.plan.sections = [{"name": "A1 Nord", "length_km": 5.0, "country": "DE", "scenery": "flach", "start_km": 0.0, "end_km": 5.0},
+		{"name": "A1 Süd", "length_km": 5.0, "country": "FR", "scenery": "flach", "start_km": 5.0, "end_km": 10.0}]
+	var f := _feed_with(t, {"concrete_share": {"DE": 1.0, "_": 0.0}})
+	f.update(_state(100.0))
+	assert_eq(f.paving, "concrete", "deutscher Abschnitt mit Anteil 1: Beton")
+	assert_eq([f.surface_l, f.surface_r], ["concrete", "concrete"], "beide Seiten auf Beton")
+	f.update(_state(700.0))            # km 7 (time_scale 10): the French section
+	assert_eq(f.paving, "asphalt", "anderes Land mit Anteil 0: Asphalt")
+	var g := _feed_with(t, {"concrete_share": {"_": 0.0}})
+	g.update(_state(100.0))
+	assert_eq(g.paving, "asphalt", "Anteil 0: Asphalt")
+	# only roads of concrete_roads
+	var h := _feed_with(t, {"concrete_share": {"DE": 1.0}, "concrete_roads": ["landstrasse"]})
+	h.update(_state(100.0))
+	assert_eq(h.paving, "asphalt", "Autobahn nicht in concrete_roads")
+	# city centre of a cobbled style
+	var c := FakeTrack.new()
+	c.city = true
+	c.plan.city_style = "hanse"
+	c.plan.center_km = 0.0
+	var cf := _feed_with(c, {"cobble_styles": ["hanse"], "cobble_share": 1.0})
+	cf.update(_state(50.0))
+	assert_eq(cf.paving, "cobbles", "Altstadt: Kopfsteinpflaster")
+	assert_eq(cf.zone, "city", "Zone Stadt")
+	cf.update(_state(51.0, 6.0))
+	assert_eq(cf.surface_r, "cobbles", "in der Stadt ist der Rand gepflastert, kein Bankett")
+	var cn := _feed_with(c, {"cobble_styles": ["paris"], "cobble_share": 1.0})
+	cn.update(_state(50.0))
+	assert_eq(cn.paving, "asphalt", "anderer Baustil: Asphalt")
+	c.plan.center_km = 1.0e9
+	var co := _feed_with(c, {"cobble_styles": ["hanse"], "cobble_share": 1.0})
+	co.update(_state(50.0))
+	assert_eq(co.paving, "asphalt", "Stadtrand: Asphalt")
+	# bridges: steel deck, stone bridge, concrete deck
+	for row: Array in [["cable_stayed", "steel", "deck"], ["truss_arch", "steel", "deck"], ["stone_arch", "stone", "cobbles"],
+			["river", "concrete", "asphalt"], ["canal", "concrete", "asphalt"]]:
+		var b := FakeTrack.new()
+		b.bridges = [{"z0": 300.0, "z1": 500.0, "type": str(row[0])}]
+		var bf := _feed_with(b, {})
+		bf.update(_state(350.0))
+		assert_eq([bf.deck, bf.paving], [str(row[1]), str(row[2])], "Brücke %s" % str(row[0]))
+		bf.update(_state(351.0, 6.4))
+		assert_eq(bf.surface_r, str(row[2]), "auf der Brücke kein Bankett (%s)" % str(row[0]))
+		bf.update(_state(352.0))
+		var ev := _drive(bf, 353.0, 520.0, 2.0)
+		for e in ev:
+			if str(e["name"]) == "joint":
+				assert_eq(str(e["deck"]), str(row[1]), "Fuge kennt ihr Deck")
+	assert_eq(AudioFeed.deck_of("gibtsnicht"), "concrete", "unbekannter Typ: Betondeck")
+	# tunnel: asphalt, the shoulder is the walkway
+	var tn := FakeTrack.new()
+	tn.plan.tunnels = [{"start_km": 3.0, "end_km": 4.0, "name": "T"}]
+	var tf := _feed_with(tn, {"concrete_share": {"_": 1.0}})
+	tf.update(_state(350.0, 6.4))
+	assert_eq([tf.paving, tf.surface_r], ["asphalt", "asphalt"], "im Tunnel Asphalt, Rand befestigt")
+	for s in [f.paving, cf.paving, tf.paving]:
+		assert_true(AudioFeed.PAVINGS.has(s) and AudioFeed.SURFACES.has(s), "bekannte Fahrbahn")
+
+
+## The same section has the same paving in both driving directions; the share is roughly met.
+func test_concrete_is_the_same_in_both_directions() -> void:
+	var secs: Array = []
+	for i in 12:
+		secs.append({"length_km": 5 + i, "road": "autobahn", "curviness": 1, "hills": 1, "scenery": "north_plain", "country": "DE",
+			"speed_limit": null, "name": "A7 Abschnitt %d" % i})
+	var stage := {"id": "t_beton", "from": "a", "to": "b", "length_km": 126, "seed": 5, "sections": secs, "fuel_stations_km": [20],
+		"radars": [], "tunnels": [], "borders": []}
+	var fwd := StagePlan.build(stage, "a", CITIES, COUNTRIES, cfg())
+	var rev := StagePlan.build(stage, "b", CITIES, COUNTRIES, cfg())
+	assert_true(rev.reversed and not fwd.reversed, "zwei Richtungen")
+	var t := FakeTrack.new()
+	var ff := _feed_with(t, {"concrete_share": {"DE": 0.5}})
+	ff.plan = fwd
+	var fr := _feed_with(t, {"concrete_share": {"DE": 0.5}})
+	fr.plan = rev
+	var n := fwd.sections.size()
+	var yes := 0
+	for i in n:
+		var sf: Dictionary = fwd.sections[i]
+		var sr: Dictionary = rev.sections[n - 1 - i]
+		assert_eq(str(sr.get("name", "")), str(sf.get("name", "")), "derselbe Abschnitt")
+		var a := ff._concrete_section((float(sf["start_km"]) + float(sf["end_km"])) * 0.5)
+		var b := fr._concrete_section((float(sr["start_km"]) + float(sr["end_km"])) * 0.5)
+		assert_eq(a, b, "Abschnitt %d: in beiden Richtungen gleich" % i)
+		yes += 1 if a else 0
+	assert_between(float(yes), 2.0, 10.0, "Anteil 0,5 grob getroffen (%d von %d)" % [yes, n])
+	assert_true(AudioFeed.unit_hash("x") >= 0.0 and AudioFeed.unit_hash("x") < 1.0, "Hash in [0, 1)")
+	assert_near(AudioFeed.unit_hash("A7|Holstein"), AudioFeed.unit_hash("A7|Holstein"), 0.0, "Hash stabil")
+
+
+func test_rumble_only_on_rumble_roads() -> void:
+	var t := FakeTrack.new()
+	var f := _feed_with(t, {})
+	f.update(_state(50.0, 5.0))        # right wheels at 5.78
+	assert_eq(f.surface_r, "rumble", "Autobahn: profilierte Randlinie")
+	assert_true(f.rumble_road, "Rüttelstraße")
+	t.road = "landstrasse"
+	t.segs.clear()
+	f.update(_state(51.0, 4.65))       # right wheels at 5.43: on the edge line, inside the paved edge
+	assert_false(f.rumble_road, "Landstraße: keine Rüttellinie")
+	assert_eq(f.surface_r, "asphalt", "Randlinie innen: Fahrbahn")
+	f.update(_state(52.0, 5.0))        # 5.78: just outside the paved edge
+	assert_eq(f.surface_r, "shoulder", "außen: Bankett statt Rüttelstreifen")
+	var g := _feed_with(t, {"rumble_roads": ["landstrasse"]})
+	g.update(_state(53.0, 5.0))
+	assert_eq(g.surface_r, "rumble", "per Konfiguration auch auf der Landstraße")
+
+
+func test_delineators_on_roads_without_guardrail() -> void:
+	var t := FakeTrack.new()
+	t.guardrail = false
+	var f := _feed_with(t, {})
+	f.set_vehicle_width(1.86)
+	assert_near(f.body_half_m, 0.93, 1.0e-6, "halbe Karosseriebreite")
+	var ev := _drive(f, 10.0, 260.0, 1.3, 1.875)
+	var posts: Array[Dictionary] = []
+	for e in ev:
+		if str(e["name"]) == "pass_object" and str(e["set"]) == "delineator":
+			posts.append(e)
+	assert_eq(posts.size(), 10, "alle 50 m links und rechts ein Leitpfosten")
+	assert_near(float(posts[0]["z"]), 50.0, 1.0e-6, "am Raster der Straße")
+	assert_eq(str(posts[0]["kind"]), "post", "Art Pfosten")
+	var right: Dictionary = posts[1] if int(posts[1]["side"]) == 1 else posts[0]
+	assert_near(float(right["dist_m"]), 5.625 + 2.5 - AudioFeed.DELINEATOR_INSET_M - 1.875, 1.0e-4, "Abstand des rechten Pfostens")
+	assert_false(bool(right["contact"]), "in der Spur: keine Berührung")
+	# at the open limit the body overlaps the posts: contact on that side only
+	var lim := 5.625 + 2.5 - 0.93
+	var g := _feed_with(t, {})
+	g.set_vehicle_width(1.86)
+	ev = _drive(g, 10.0, 110.0, 1.3, lim, {"off_road": 2})
+	var contacts := 0
+	for e in ev:
+		if str(e["name"]) == "pass_object" and bool(e.get("contact", false)):
+			contacts += 1
+			assert_eq(int(e["side"]), 1, "Berührung rechts")
+	assert_eq(contacts, 2, "zwei Pfosten umgefahren (z 50 und 100)")
+	# guardrail or City Limits: no delineators
+	t.guardrail = true
+	for s: TrackSegment in t.segs.values():
+		s.guardrail = true
+	var h := _feed_with(t, {})
+	assert_true(_drive(h, 300.0, 420.0, 1.3, 1.875).is_empty(), "mit Leitplanke keine Leitpfosten")
+	var c := FakeTrack.new()
+	c.guardrail = false
+	c.city = true
+	var cf := _feed_with(c, {})
+	assert_true(_drive(cf, 10.0, 130.0, 1.3, 1.875).is_empty(), "in der Stadt keine Leitpfosten")
+	var nt := FakeTrack.new()
+	nt.guardrail = false
+	var off := _feed_with(nt, {"delineators": false})
+	assert_true(_drive(off, 10.0, 130.0, 1.3, 1.875).is_empty(), "abschaltbar")
+
+
+func test_cutting_between_rocks() -> void:
+	var t := FakeTrack.new()
+	t.put(40.0, {"kind": "prop", "set": "props/rock_a", "x": -(5.625 + 2.5 + 3.0), "side": -1, "scale": 1.0, "z": 40.0})
+	t.put(46.0, {"kind": "prop", "set": "props/cliff", "x": 5.625 + 2.5 + 9.0, "side": 1, "scale": 1.0, "z": 46.0})
+	t.put(400.0, {"kind": "prop", "set": "props/rock_a", "x": -(5.625 + 2.5 + 3.0), "side": -1, "scale": 1.0, "z": 400.0})
+	t.put(404.0, {"kind": "prop", "set": "props/rock_a", "x": 5.625 + 2.5 + 30.0, "side": 1, "scale": 1.0, "z": 404.0})
+	var f := _feed_with(t, {"cutting_dist_m": 14.0, "cutting_window_m": 60.0})
+	_drive(f, 20.0, 60.0, 1.0)
+	assert_eq(f.zone, "cutting", "Fels links und rechts nah am Rand: Einschnitt")
+	assert_true(AudioFeed.ZONES.has(f.zone), "bekannte Zone")
+	_drive(f, 61.0, 120.0, 1.0)
+	assert_eq(f.zone, "open", "60 m danach wieder offen")
+	_drive(f, 390.0, 420.0, 1.0)
+	assert_eq(f.zone, "open", "ein ferner Fels auf einer Seite macht keinen Einschnitt")
