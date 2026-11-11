@@ -844,5 +844,10 @@ Requisiten und Wahrzeichen.
   in Bildpunkten bei 1280 × 720 gezählt ändern beide Wechsel zusammen weniger als vorher (Belgien 270 statt 374,
   Bus 151 statt 302; abgeleitet: Anteil × Fahrzeugpixel der Kachel ÷ Vergrößerung²).
 - `lod2` des Busses liegt mit 1 500 Dreiecken genau auf dem Budget (zwei breite Gitterstäbe statt sechs).
+- `check_sprite_geometry.py --only traffic/truck,traffic/bus,police --jobs 1`: **25 von 25 Sets identisch** (67 s);
+  `cesprites` ist in diesem Abschnitt unverändert, die Hooks der Polizei wirken nur während eines 3D-Baus.
+- Determinismus: Erzwungener Export und Bake aller 22 Modelle dieses Abschnitts ergaben byte-genau die eingecheckten
+  Dateien (die aus einem früheren Bake stammen); ein weiterer Bake in denselben Ordner war byte-gleich (142 Dateien);
+  `--check-keys` grün.
 
 
