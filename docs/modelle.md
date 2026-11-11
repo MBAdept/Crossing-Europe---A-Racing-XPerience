@@ -768,7 +768,25 @@ Brückenlaterne, Pylon der Schrägseilbrücke, Fachwerkportal, Hausboot und Fäh
 echte Fensteröffnungen bekommen. Damit hat jedes Requisiten-Set außerhalb von `city_*`, den Wahrzeichen und der
 Vegetation ein Modell.
 
-TABELLE
+| Modell | Bauer | Kategorie | Dreiecke lod0 / lod1 | Aufrufe | Atlas | px/m zur Straße | Licht nachts |
+|---|---|---|---|---|---|---|---|
+| `house_med` | `house` | Land | 1 343 / 761 | 2 | 1024² | 59,9 | Fenster |
+| `church` | `house` | Land | 1 731 / 1 275 | 2 | 1024² + Licht | 30,0 | Fenster, Uhren, Turm-Flutlicht |
+| `factory` | `house` | Land | 1 624 / 1 108 | 2 | 1024² + Licht | 29,5 | Hallenfenster, Oberlichter, Werkszeichen, Schlotlicht |
+| `windmill` | `house` | Land | 1 928 / – | 2 | 1024² | 31,2 | Fenster |
+| `houseboat` | `house` | Land | 1 054 / – | 2 | 1024 × 512 | 37,3 | Fenster, Türlampe |
+| `ferry_ship` | `house` | Land | 1 449 / – | 2 | 1024² + Licht | 12,2 (Modell; im Spiel ×1/0,33–0,45) | Kabinen, Bullaugen, Decklampen, Positionslichter |
+| `building_shop` | `house` | Stadt | 1 085 / 757 | 2 | 1024² + Licht | 44,2 | Fenster, Schaufenster, Schild |
+| `building_oldtown` | `house` | Stadt | 2 326 / 1 574 | 2 | 1024² + Licht | 40,7 | Fenster, Arkaden |
+| `building_block_a` | `house` | Stadt | 4 596 / 3 156 | 2 | 2048 × 1024 | 49,0 | Fenster |
+| `building_block_b` | `house` | Stadt | 5 180 / 3 476 | 2 | 2048 × 1024 | 44,0 | Fenster, Läden |
+| `building_tall` | `house` | Stadt | 2 485 / 2 485 | 2 | 2048 × 1024 + Licht | 29,8 | 300 von 840 Scheiben, Foyer |
+| `bridge_lamp` | `lantern` | Möbel | 882 / – | 1 | – (vpbr) | – | 3 Laternen mit Ankern |
+| `bridge_pylon` | `pylon` | Mast | 520 / 520 | 1 | 1024² + Licht | 29,9 (Fuß) / 13,4 (Kopf) | Flugbefeuerung (Anker) |
+| `bridge_truss_arch` | `truss` | Möbel | 1 100 / – | 1 | 1024 × 512 + Licht | 28 (Bild) | 2 Hängelampen mit Ankern |
+
+Gemessen mit `validate_models.py --report` und dem Export-Bericht; alle Budgets eingehalten (Land 2 000 Dreiecke,
+Stadt 10 000, Möbel 1 500, Mast 5 000; zwei bzw. ein Zeichenaufruf je Stufe).
 
 ### Bauer `house` (`ce3d/buildings3d.py`)
 
@@ -792,17 +810,22 @@ gleich) hat einen Nachfolger in einem eigenen Modul:
   waagerechten Rippen (Fabrik).
 - **Dachrinnen und Fallrohre** an die eigenen Wände (`gutters.walls`), **Flutlicht** des Kirchturms (`flood`:
   Materialkopie, deren Lichtebene die Wandfarbe mit der Höhe abklingend hinzufügt – im Nachtlicht-Atlas).
-- **Schriftzug** (`sign`): Buchstaben aus `cesprites.textgeo` auf einer Tafel, nachts beleuchtet (Kanal 14).
+- **Werkszeichen** (`sign`): auf einer Tafel ein Zahnrad zwischen zwei Balkenpaaren (`logo: "gear"`), nachts
+  beleuchtet (Kanal 14). Bewusst spiegelsymmetrisch: Die Fabrik trägt `mirror_left`, der Requisiten-Builder spiegelt
+  sie am linken Fahrbahnrand (D24) – ein Schriftzug („WERK 2“ in der ersten Fassung) stand dort in Spiegelschrift.
+  Für Schilder, die nie gespiegelt werden, kann `sign` weiter Text setzen (`text`, Buchstaben aus
+  `cesprites.textgeo`).
 - **Vorhangfassade** (Büroturm, `curtain`): die Wände werden ersetzt durch Brüstungsbänder (gebacken, aus dem
   Material des Turms), zurückgesetzte Scheiben je Achse und Geschoss (vpbr: spiegeln den Himmel, ein Drittel leuchtet
   nachts) und Lisenen; Eckpfosten schließen die Ecken.
 - **lod1** ohne Feinteile (Sprossen, Sohlbänke, Rinnen, Lamellen, Marken, Geländerstäbe): ab der ersten
   Umschaltentfernung des Requisiten-Builders (40 / 60 / 120 m je Detailstufe). Sprossen von 4,5 cm sind dort unter
-  einem Pixel und würden nur flimmern. Damit das Fenster beim Umschalten nicht dunkler wird (ohne Ersatz änderten sich
-  bei den Wohnblöcken 6 % der Pixel um mehr als 24 Stufen), bekommt lod1 statt Rahmen und Sprossen **einen breiteren
-  Rahmenring mit derselben Fläche** (`_far_inset`): gleiche mittlere Farbe bei Tag, nachts derselbe Anteil leuchtender
-  Scheibe. Die Seiten der Lisenen des Büroturms bleiben in lod1 (streifend gesehen verdecken sie das Glas einer
-  Seite).
+  einem Pixel und würden nur flimmern. Damit das Fenster beim Umschalten nicht dunkler wird (ohne Ersatz wurden die
+  Wohnblöcke bei 60 m um 8/255 dunkler), bekommt lod1 statt Rahmen und Sprossen **einen breiteren Rahmenring mit
+  derselben Fläche** (`_far_inset`): gleiche mittlere Farbe bei Tag (gemessen: höchstens 2/255 Unterschied), nachts
+  derselbe Anteil leuchtender Scheibe. Was bleibt, sind die Sprossenkreuze, die beim Umschalten verschwinden (bei 60 m
+  ändern sich bei den Wohnblöcken 4,5–5,2 % der Pixel um mehr als 24/255). Die Seiten der Lisenen des Büroturms
+  bleiben in lod1 (streifend gesehen verdecken sie das Glas einer Seite; ohne sie änderten sich 18 % der Pixel).
 
 **Bake mit Lochfüllern.** Die Öffnungen werden vor dem Bake geschnitten. Würde man die Löcher im Atlas einfach
 auffüllen (Dilatation), stünde dort die Farbe des gemalten Rahmens – in den kleineren Mipmap-Stufen umgab dann ein
@@ -861,4 +884,14 @@ Balken des Generatornetzes zurück (`boxes()`: Achse, Enden, Querschnitt jedes K
 
 ### Ehrliche Einordnung
 
-EINORDNUNG
+- **Gut:** Haus, Kirche, Fabrik, Altstadthaus und die Wohnblöcke haben echte Tiefe (Laibungen, Rahmen, Sprossen,
+  Sohlbänke, Türen mit Stufen, Rinnen und Fallrohre, Läden) und halten Farbe und Proportion des Sprites; nachts
+  leuchten die Fenster unregelmäßig, Kirchturm und Fabrik haben ihr eigenes Licht. Der Stufenwechsel ändert die
+  mittlere Farbe um höchstens 2/255. Fachwerkportal und Laterne sind je ein Zeichenaufruf mit Lichtankern.
+- **Noch nicht gut:** Die **Fähre** ist das schwächste Modell – Kabinenfenster und Bullaugen sind gemalt (12 px/m im
+  Modellmaß), Aufbauten flach; das Budget „Landgebäude“ (2 000 Dreiecke) lässt für ein 182-m-Schiff nicht mehr zu.
+  Der **Pylon** hat die feste Höhe des Sprites (Arcade passt ihn der Brücke an) und am Kopf nur 13 px/m. Bei den
+  Wohnblöcken verschwinden beim Umschalten die Sprossenkreuze (4,5 % bzw. 5,2 % der Pixel bei 60 m). Das gemalte
+  Fenster im Rückgiebel der Kirche ist unscharf (abgewandte Seiten haben ein Viertel der Dichte).
+- **Fehlt:** Wasser unter Hausboot und Fähre (R5); Vordächer und Schornsteine, wo die Sprites keine haben; Messungen
+  auf echter Grafikkarte und Steam Deck.

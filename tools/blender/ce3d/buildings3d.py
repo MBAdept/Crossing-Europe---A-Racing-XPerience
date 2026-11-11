@@ -994,6 +994,43 @@ def _gutters(objs, opt, geo, mats):
                 n_pipes += 1
     return n_pipes
 
+def _gear_logo(geo, ink, pt, nrm, us, zs, off, spec):
+    """A works sign that reads the same in a mirror: a gear wheel between two bars, symmetric about the vertical axis.
+    The props builder mirrors sets tagged mirror_left on the left roadside (D24) - lettering would read backwards
+    there. Returns the triangle count."""
+    u0, u1 = us
+    z0, z1 = zs
+    cu, cz = (u0 + u1) * 0.5, (z0 + z1) * 0.5
+    r_tip = (z1 - z0) * 0.38
+    r_root, r_hole = r_tip * 0.78, r_tip * 0.36
+    teeth = int(spec.get("teeth", 10))
+    outline = []
+    for k in range(teeth):
+        tc = math.pi * 0.5 + 2.0 * math.pi * k / teeth      # a tooth at the top: the wheel is mirror-symmetric
+        hw = math.pi / teeth
+        for (da, r) in ((-hw, r_root), (-hw * 0.45, r_tip), (hw * 0.45, r_tip), (hw * 0.55, r_root)):
+            outline.append((tc + da, r))
+    n_tri = 0
+    for i in range(len(outline)):
+        (a0, r0), (a1, r1) = outline[i], outline[(i + 1) % len(outline)]
+        p0 = pt(cu + r0 * math.cos(a0), cz + r0 * math.sin(a0), off)
+        p1 = pt(cu + r1 * math.cos(a1), cz + r1 * math.sin(a1), off)
+        h0 = pt(cu + r_hole * math.cos(a0), cz + r_hole * math.sin(a0), off)
+        h1 = pt(cu + r_hole * math.cos(a1), cz + r_hole * math.sin(a1), off)
+        geo.quad(ink, h0, p0, p1, h1, nrm)
+        n_tri += 2
+    bar_h = (z1 - z0) * 0.16
+    gap = r_tip * 1.35
+    for sgn_u in (-1.0, 1.0):
+        a, b = cu + sgn_u * gap, cu + sgn_u * ((u1 - u0) * 0.42)
+        lo, hi = min(a, b), max(a, b)
+        for dz in (-bar_h * 1.2, bar_h * 1.2):
+            geo.quad(ink, pt(lo, cz + dz - bar_h * 0.5, off), pt(hi, cz + dz - bar_h * 0.5, off),
+                     pt(hi, cz + dz + bar_h * 0.5, off), pt(lo, cz + dz + bar_h * 0.5, off), nrm)
+            n_tri += 2
+    return n_tri
+
+
 def _sign(rig, geo, mats, spec):
     """Lettering as geometry on a panel in front of a wall (factory): letters of textgeo flattened onto the panel,
     lamp channel 14 (their colour by day, lit at night)."""
@@ -1020,6 +1057,8 @@ def _sign(rig, geo, mats, spec):
              "lod0")
     geo.quad(panel, pt(u0, z0, out0), pt(u0, z1, out0), pt(u0, z1, out1), pt(u0, z0, out1), -side, "lod0")
     geo.quad(panel, pt(u1, z0, out0), pt(u1, z1, out0), pt(u1, z1, out1), pt(u1, z0, out1), side, "lod0")
+    if spec.get("logo") == "gear":
+        return _gear_logo(geo, ink, pt, nrm, (u0, u1), (z0, z1), out1 + 0.012, spec)
     # the text: a mesh in the XY plane (reading +X, up +Y), centred; scaled to the letter height
     txt = T.text_mesh(rig, spec["text"], float(spec.get("h", 0.8)), ink, bold=0.04, extrude=0.0, name="ce_sign_txt")
     T.fit(txt, (u1 - u0) * 0.9)

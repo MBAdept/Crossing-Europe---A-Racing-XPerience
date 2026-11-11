@@ -214,14 +214,15 @@ MODELS.update({
                          flood=dict(objects=("church_tower",), strength=0.12, z=(0.0, 21.0), tint="#ffe2b0", top=0.3),
                          gutters=dict(per_roof=2, walls=("church_nave",))),
     # rural / outskirts: the factory - hall with sawtooth roofs and skylights, steel sash windows, a roller gate with a
-    # transom window, the name board "WERK 2" as letters (lit at night), brick chimney with aviation light, silo
+    # transom window, the works sign (a gear between bars, lit at night - mirror-symmetric: the set is tagged
+    # mirror_left, lettering would read backwards on the left roadside), brick chimney with aviation light, silo
     "props/factory": dict(builder="house", source="props/factory", kind="building", atlas=(1024, 1024), ppm_max=80.0,
                           roughness=0.8, view="roadside", params={"allround": True}, ao=AO_TOWN, lod1=True,
                           vpbr=("fac_tank",), baked_lamps=("fac_skylight",), weights=dict(roof=0.4, away=0.25),
                           overrides={"fac_tank": dict(rough=0.5, metal=0.45)}, gutters=False, caps=False,
                           openings=dict(reveal_m=0.2, reveal_color="#9d988e", sill_color="#8f8b84",
                                         bars={"large": (3, 3)}, pane_lit=(0.75, 1.0)),
-                          sign=dict(text="WERK 2", face="front", u=(-14.6, -3.4), z=(7.1, 8.4), h=0.95, wall=0.0,
+                          sign=dict(logo="gear", face="front", u=(-14.6, -3.4), z=(7.1, 8.4), wall=0.0,
                                     panel="#2f3a44", color="#e9e7df")),
     # town blocks (category city: 10,000 triangles, atlas 2048 x 1024)
     "props/building_block_a": dict(builder="house", source="props/building_block_a", kind="building",

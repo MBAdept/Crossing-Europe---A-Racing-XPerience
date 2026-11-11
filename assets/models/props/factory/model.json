@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 1840,
+    "tris": 1624,
     "parts": [
      {
       "node": "body",
@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 100000,
-    "tris": 1324,
+    "tris": 1108,
     "parts": [
      {
       "node": "body",
@@ -46,8 +46,8 @@
   "roughness": 0.8,
   "auto_lod": false,
   "tags": ["prop", "building", "mirror_left"],
-  "bytes": 695754,
-  "hash": "946a376dd47cc0f21c1c7216a7b5da50fafe6036"
+  "bytes": 692849,
+  "hash": "9c2d1e615987e586ea5494ad453753f5fbc5e1a2"
  },
  "sets": {
   "props/factory": {"model": "props/factory"}
