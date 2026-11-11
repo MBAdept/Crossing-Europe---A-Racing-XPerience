@@ -48,8 +48,7 @@ var fallback_sets := 0             ## sets drawn as a sprite stand-in
 var missing_files: Array[String] = []
 
 var _mats: ModernMaterials
-var _owner_id := 0
-var _owner: Object
+var _owner: WeakRef                ## a weak reference: the builder owns the library, not the other way round
 var _sprite_sets: Dictionary = {}
 var _have_sprites := false
 var _model_sets: Array[String] = []
@@ -64,7 +63,7 @@ var _contact: Dictionary = {}
 
 ## Resolves the sets and starts loading their files. owner = whoever asks (ModelDB.request's owner).
 func request(set_ids: Array, owner: Object) -> void:
-	_owner = owner
+	_owner = weakref(owner) if owner != null else null
 	if not ModelDB.available():
 		_fail = "manifest"
 		return
@@ -151,7 +150,11 @@ func clear(owner: Object = null) -> void:
 	for path: String in _loading.keys():
 		ResourceLoader.load_threaded_get(path)
 	_loading.clear()
-	ModelDB.release_all(owner if owner != null else _owner)
+	var who: Variant = owner
+	if who == null and _owner != null:
+		who = _owner.get_ref()
+	if who is Object:
+		ModelDB.release_all(who)
 	sets = {}
 	models = {}
 	_textures.clear()
