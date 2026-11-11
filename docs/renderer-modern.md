@@ -1359,6 +1359,100 @@ Die beiden Render-Prüfungen setzen Autos in eine stehende Szene ohne Verkehr
   Heck liegt im Licht; Abblendlicht und Verkehrskegel setzt die Ebene `lights` (`ce_headlight*`), die Schilder
   strahlen damit die echten Scheinwerfer zurück; Lack und Glas haben genau eine Spiegelquelle (12.2).
 
+### 11.8 Ersatzbilder für Fahrzeuge ohne Modell (Bauabschnitt R3E)
+
+Entscheidung der Leitung für Zwischenstand 1: Ein Fahrzeug-Set ohne 3D-Modell zeigt in Modern **Arcades eigenes Bild**
+dieses Fahrzeugs – kein Auto ist je schlechter als in Arcade. Das gilt dauerhaft als Sicherheitsnetz: Bekommt ein Set
+ein Modell (`ModelDB.has_model`), verschwindet sein Ersatzbild von selbst; im Code steht kein Set-Name. Damit ersetzt
+dieser Abschnitt für alle Sets mit einem Arcade-Blatt den „Kasten in Größe und Lack“ aus 11.1 und 11.7; der gemalte
+Kasten (`ModelFactory.build_box`) bleibt nur der letzte Ausweg, wenn auch das Blatt fehlt.
+
+| Datei | Aufgabe |
+|---|---|
+| `scripts/race3d/vehicle_standin.gd` (`VehicleStandIn`) | Zellwahl, Faltung, Licht wie Arcade (rein, getestet); Blatt-Stapel (`SheetBatch`), Kasten aus Arcades Flächen |
+| `assets/shaders/modern/vehicle_sprite.gdshader` | Bild auf Viereck, Faltung und Kastenflächen; zwei Durchgänge (deckend / weich) |
+| `scripts/race3d/layers/vehicles.gd` | Weichen je Set: Modell, Ersatzbild (`sprite`, `boxtex`) oder gemalter Kasten |
+
+**Was ein Set bekommt.** `prepare()` lädt für jedes Fahrzeug-Set der Etappe ohne Modell sein Blatt über `SpriteDB`
+(`SpriteDB.texture`, einmal, hinter dem Ladebild). Sprite-Sets (Verkehr und Polizei: orthografische Zellen mit 17
+Gierwinkeln; Spielerautos: perspektivische Zellen mit 21 Winkeln) werden ein Bild, Kasten-Sets (`"render": "box"`:
+Busse, Lkw) ein Kasten mit Arcades Flächenbildern. Ein Set, dessen Blatt nicht vorbereitet wurde, wird während der Fahrt
+nicht nachgeladen (`SpriteDB.loads` bleibt, Render-Prüfung `laden`), sondern als gemalter Kasten gezeigt – mit einer
+Warnung. Kiel – Hamburg: 18 Blätter, geschätzt 69 MB Grafikspeicher (BPTC mit Mipmaps; Arcade lädt dieselben Blätter
+und dazu die der Sets mit Modell).
+
+**Zellwahl wie Arcade.** Verkehr und Polizei genau nach `RoadRenderer._vehicle_cell`: Anzeigewinkel aus der
+Vertragsformel `VehiclePose.ortho_yaw` (Heck-Tiefe, Seitenversatz, Straßenrichtung als Sehne von Heck zu Front,
+eigene Richtung aus der Quergeschwindigkeit), je Auto kritisch gedämpft (`render.vehicle_yaw_smooth_s`), Zellwechsel
+mit Hysterese (`render.vehicle_cell_hysteresis`). Die Eingaben stammen aus der 3D-Kamera des Bildes
+(`VehicleStandIn.view_inputs`): auf gerader Straße mit der Kamera auf der Achse genau Arcades Werte, und weil Straße
+und Sehstrahl sich mit der Kamera gemeinsam drehen, bleibt die Gier gegen den Sehstrahl auch mit dem Blick in die
+Kurve. Das Spielerauto nach `_update_player_pose` / `_draw_player` (Kurvenvorschau relativ zur Kamera, Lenken,
+Spurwechsel, Untersteuern, Blickwinkel; 21 Winkel), Wanken als Drehung um den Anker wie Arcade. Unit-Test: Bild für
+Bild gleich Arcades eigenem Code (über 20.000 Fälle, Spieler 900 Bilder).
+
+**Bild im Raum.** Ein aufrechtes Viereck parallel zum Bild am Anker der Zelle (Verkehr: Heckmitte am Boden; Spieler:
+Boden unter der Wagenmitte), Breite `image_width_m` – das Fahrzeug hat seine echte Breite, der Anker steht auf der
+Straße. Wo Arcade die Zelle nahe der Kamera in Streifen zerlegt (`_car_warp`: ausdrückliches Heck-Pivot, gedreht ≥ 1°,
+Länge / Hecktiefe ≥ `render.vehicle_warp_min_ratio`), wird sie **gefaltet**: die Spalten liegen auf dem Auto selbst –
+Heckfläche quer, sichtbare Flanke längs, jeder Streifen in seiner eigenen Tiefe (vier Spalten genügen, die Grafikkarte
+interpoliert jede ebene Fläche perspektivisch richtig). Unter der Bodenlinie jeder Spalte zeigt das Bild die Straße
+näher zur Kamera (Arcades eingebackenen Schlagschatten): diese Zeilen liegen auf der Straße, genau dort, wo die
+Ortho-Kamera sie sah (Umkehrung ihrer Abbildung), statt unter ihr zu verschwinden. Beim flachen Bild rücken die Zeilen
+unter der Bodenlinie entlang ihres Sehstrahls auf die Straße (dieselben Pixel); in beiden Fällen liegt, was auf der
+Straße liegt, 2 cm über ihr. Das Bild selbst steht in der Tiefe des Autos: Kuppen und Fahrzeuge davor verdecken es wie
+ein Modell. Nur das Bild des Spielers wird zum Auge hin gezogen (um den Augpunkt skaliert: dieselben Pixel, geringere
+Tiefe), bis seine unterste Zeile über der Straße steht – es reicht weit unter seinen Anker, das Heck ist näher als die
+Wagenmitte, und zwischen ihm und der Kamera steht nichts.
+
+**Licht wie Arcade.** Die Blätter tragen eingebackenes Licht: unbeleuchtet (`unshaded`), moduliert wie
+`RoadRenderer._modulate` (`VehicleStandIn.ArcadeShade`): Umgebung der Palette bzw. des Tunnels (mit der Anpassung des
+Auges, wenn die Kamera im Tunnel ist), Licht der eigenen Scheinwerfer, der Kegel des Verkehrs voraus und der festen
+Lampen (Straßenlaternen in Städten, Tankdächer, Überdachungen), Arcades Nebeltönung der Zeile. Das Spielerbild heller
+wie in Arcade. Die Lichtebenen des Blatts (Rücklicht, Bremse, Blaulicht A/B) liegen „über“ dem Wagen wie in Arcades
+Zeichenfolge. Gerechnet wird in Anzeigewerten wie auf Arcades Leinwand; der Shader gibt das ALBEDO aus, das der
+Compatibility-Renderer als genau diesen Wert zeigt (`albedo_for`, wie `billboard.gdshader` – sonst führt er ein
+unbeleuchtetes ALBEDO durch sein Polynom sRGB → linear, und dunkle Werte, nachts das ganze Bild, erscheinen bis zu
+25 % dunkler). Zwei Durchgänge aus derselben Quelle: deckend mit Alpha-Schnitt 0,8 (der Wagen schreibt Tiefe – Kuppen
+und andere Fahrzeuge verdecken ihn, die Lichtpunkte sehen ihn in der Tiefentextur), dazu weich (`CE_SOFT`, als
+`next_pass`) die Teile, die der deckende Durchgang auslässt: Schlagschatten (Alpha 0,5–0,75) und Ränder.
+(`depth_prepass_alpha` taugt dafür nicht: was so gezeichnet wird, fehlt in der Tiefentextur.)
+
+**Lichtpunkte, Schatten, Ausblendung.** Die Lichtpunkte von R3 (Mindestgrößen F6) an den Ankern, die der Kasten schon
+ableitet (`ModelFactory.box_lights`) – bei einem Bild nur, was Arcade über sein Bild zeichnet: Heckleuchten, hintere
+Blinker, Blaulicht. Liegt ein Lichtpunkt hinter dem Bild, rückt er entlang des Sehstrahls davor, mit angepasstem
+Radiusfaktor (gleiche Größe auf dem Bildschirm). Scheinwerfer und vordere Blinker eines Bildes leuchten nicht (sein
+Glas kann durchsichtig sein, es gibt keinen Körper, der sie verdeckt). Kontaktschatten wie bei Modellen; mit
+Fahrzeug-Schattenwerfern (`shadow_casters ≥ 1`) wirft ein verborgener Kasten (ein MultiMesh je Blatt; beim Kasten-Set
+einer je Einheit). Ausblendung nach Wegstrecke mit Arcades Gesetz als Dither (F5), Verdeckung über den Tiefenpuffer.
+
+**Kasten-Sets.** Je Teil ein echter Kasten in Modellkoordinaten mit Arcades Flächen (`BoxVehicle`: Heck, links, rechts,
+Dach; die Front zeigt das Heckbild), Lampenbilder als zweite und dritte UV (Rücklicht, Bremse). Mehrere Teile sind
+Einheiten wie die Gruppen eines Modells: der vordere Teil (Zugmaschine) dreht um die Achse 0,6 m hinter dem
+Königszapfen des Teils dahinter, jeder folgende hängt an seinem Zapfen 1,65 m hinter seiner Front, 1,19 m hoch – die
+Kupplung von AS1s Sattelzug, denn das Sprite-Manifest kennt keine Drehpunkte. Die Ebene stellt die Einheiten wie bei
+Modellen (`_pose_groups`).
+
+**Schnappschuss und Leistung.** `snapshot().vehicles[]`: jedes Ersatzbild meldet `lod` = „box“ (die Ersatzstufe des
+Manifests), dazu `standin` („sprite“, „boxtex“ oder „painted“), `cell`, `fold`, `pull`. `perf()`: `standin_cars`,
+`standin_sheets`, `standin_sheets_mb`; `standin_state()` für Prüfungen. Ein Bild ist eine Instanz im MultiMesh seines
+Blatts (zwei Zeichenaufrufe je Blatt mit Autos, ein Blatt ohne Autos kostet nichts). Gemessen (headless, geteilte VM,
+dieselbe Szene abwechselnd in einem Prozess, 34 Autos, davon 14 Ersatzbilder): 38,8–41,0 µs je Auto und Bild mit
+Ersatzbildern gegen 32,4–36,5 µs mit gemalten Kästen, je nach Last der Maschine – ein Ersatzbild kostet 4–9 µs mehr
+als ein gemalter Kasten. `check_vehicles leistung` (≤ 40 µs) hält damit knapp (38,7–39,7 µs unter Last 10).
+
+| Prüfung | Inhalt |
+|---|---|
+| `tests/unit/race3d/test_vehicle_standin.gd` | Zelle = `RoadRenderer._vehicle_cell` und Spielerzelle = `_update_player_pose` (Bild für Bild), Eingaben aus der 3D-Kamera, Faltung = `VehiclePose.warp_columns`, Faltregel = `_car_warp`, Modulation = `_modulate` nach `_prepare`/`_project` (Tag, Dämmerung, Nacht, Stadt, Tunnel), welches Set welches Bild bekommt (Fixture-Blätter), Kasten und Einheiten, gezogenes Bild |
+| `tests/race3d/render/check_vehicle_standin.gd` | gegen Arcades Bild desselben Augenblicks: Spielerautos (Rechteck und Pixel ≤ 3 px, Helligkeit ± 10 %), Verkehr bei 20/60/150 m, Bus, Nacht (22 Uhr: Karosserie von Spieler und hellem Auto bei 20/60 m, Helligkeit ± 10 %); Verdeckung hinter einer Kuppe (0 Pixel, Tag und Nacht, Lampen an); kein Blatt-Laden während der Fahrt |
+
+Grenzen: Das Bild ist Arcades Bild – sein Licht ist eingebacken und folgt nicht der Sonne von Modern, und es kennt nur
+die Ansichten der Zellen (± 24° bzw. ± 20°). Sehr dunkle Werte zeigt der 3D-Pfad trotz `albedo_for` einige Stufen
+dunkler als Arcades Leinwand (gemessen am pixelgleichen Spielerbild: 11 → 7, 19 → 16, 28 → 26,5 von 255, ab etwa 56
+gleich) – das betrifft jeden 3D-Inhalt, nicht nur Ersatzbilder; die Nachtprüfung misst deshalb an einem hellen Auto.
+Arcade (eingefroren) lässt bei Bussen und Lkw selten die Heckfläche weg (Rundung in `BoxVehicle.emit`); das Ersatzbild
+in Modern zeigt sie.
+
 ## 12. Zusammenführung des Schubs M1 (Bauabschnitt RINT-A)
 
 Die Pakete R1 (Kern), R2 (Gelände, Requisiten, Fernboden), R3 (Fahrzeuge, Schilder), AS1b (Umgebungsmodelle) und
