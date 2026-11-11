@@ -26,8 +26,11 @@ extends ModernAudioModule
 ##   event "stage_start"        {countdown_s}: play() is scheduled countdown_s − count-in later, so that the first
 ##                              downbeat after the count-in lands on the countdown's "LOS!" (the count-in is a whole
 ##                              bar: the interactive stream starts its first clip at 0 and counts bars from there);
-##                              while the tree is paused during the count-in the stream pauses too (the countdown
-##                              stands still); after "LOS!" the pause only filters the music (ModernMix "pause");
+##                              every "countdown" {n} re-anchors the schedule (n seconds before "LOS!"), and the wait
+##                              is counted in physics steps – the clock of the countdown; the start comes in the frame
+##                              nearest to its moment; while the tree is paused during the count-in the stream pauses
+##                              too (the countdown stands still); after "LOS!" the pause only filters the music
+##                              (ModernMix "pause");
 ##   event "go"                 the piece starts now if it has not (a countdown shorter than the count-in);
 ##   event "stage_finish"       the ending at the next bar line; a piece that never started stays silent;
 ##   no "stage_start" at all    (tools that drive without a session) the piece starts once the car has been driven
