@@ -26,6 +26,8 @@
 #   PRESETS     presets of the Modern runs, space separated (default "high auto"; auto = no --gfx-preset)
 #   SHOT_TIMES  shot times in seconds after the start (default 3: "LOS!" has faded)
 #   GFX_EXTRA   further arguments of every Modern run only (e.g. --gfx-debug=cover)
+#   ONLY_MONTAGE=1  renders nothing, only builds the overview sheets again from the pictures in <out_dir> (e.g. after
+#               one position was taken again with other shot times); index.txt is appended to, never cleared
 #   SCREEN, GODOT, AB_TIMEOUT   as in tools/ab_shot.sh
 #   MESA_SHADER_CACHE_DIR       shared by all runs of the call (default: a folder of the call)
 # Runs one picture at a time (heavy job: Xvfb, software OpenGL), with nice -n 10 (inside tools/ab_shot.sh).
@@ -95,13 +97,27 @@ case "$FONTS" in
 *"Font: DejaVu-Sans-Bold"*) FONT=(-font DejaVu-Sans-Bold) ;;
 esac
 INDEX="$OUT/index.txt"
-{
-	echo "# tools/ab_sheet.sh – $(date -u '+%Y-%m-%d %H:%M UTC'), commit $(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null)$( [ -n "$(git -C "$ROOT" status --porcelain 2>/dev/null)" ] && echo " (geändert)")"
-	echo "# Bildschirm ${SCREEN:-1280x720}, Aufnahmezeit(en) $SHOT_TIMES s, Voreinstellungen: $PRESETS"
-} > "$INDEX"
+if [ "${ONLY_MONTAGE:-0}" != 1 ]; then
+	{
+		echo "# tools/ab_sheet.sh – $(date -u '+%Y-%m-%d %H:%M UTC'), commit $(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null)$( [ -n "$(git -C "$ROOT" status --porcelain 2>/dev/null)" ] && echo " (geändert)")"
+		echo "# Bildschirm ${SCREEN:-1280x720}, Aufnahmezeit(en) $SHOT_TIMES s, Voreinstellungen: $PRESETS"
+	} >> "$INDEX"
+fi
+# German preset names for the labels
+preset_name() {
+	case "$1" in
+	deck) echo "Steam Deck" ;;
+	low) echo "Niedrig" ;;
+	medium) echo "Mittel" ;;
+	high) echo "Hoch" ;;
+	auto) echo "dieses Rechners (selbst gewählt)" ;;
+	*) echo "$1" ;;
+	esac
+}
 FAILED=0
 for q in $PRESETS; do
 	for p in "${POSITIONS[@]}"; do
+		[ "${ONLY_MONTAGE:-0}" = 1 ] && break
 		args=$(position_args "$p")
 		if [ -z "$args" ]; then
 			echo "==> unbekannte Position $p" >&2
@@ -132,8 +148,7 @@ for q in $PRESETS; do
 		done
 	done
 	if [ ${#tiles[@]} -gt 0 ]; then
-		label="Arcade | Modern, Voreinstellung $q"
-		[ "$q" = auto ] && label="Arcade | Modern, Voreinstellung dieses Rechners"
+		label="Arcade | Modern, Voreinstellung $(preset_name "$q")"
 		montage "${tiles[@]}" -tile 2x -geometry +6+6 -background '#10182c' miff:- \
 			| convert - -background '#10182c' -fill white ${FONT[@]+"${FONT[@]}"} -pointsize 40 -gravity North \
 				-splice 0x64 -annotate +0+10 "$label" -quality 85 "$OUT/uebersicht_${q}.jpg" \
