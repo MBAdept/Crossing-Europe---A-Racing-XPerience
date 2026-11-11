@@ -26,6 +26,14 @@ uniform vec4 env_horizon = vec4(0.73, 0.87, 0.96, 1.0);
 uniform vec4 env_ground = vec4(0.27, 0.28, 0.29, 1.0);
 uniform vec4 env_tunnel = vec4(0.30, 0.24, 0.16, 1.0);
 uniform float env_energy = 0.0;               // neutral by default; the vehicle layer sets 2.2 for the race
+// FIX1 (QA QB-05): share of the sharp lobe of the directional light – at night the moon (layers/vehicles.gd sets it
+// with the paint's coat_sun); neutral by default
+uniform float sun_spec = 1.0;
+
+global uniform vec4 ce_fog_color;
+global uniform vec2 ce_fog_range;
+
+#include "res://assets/shaders/modern/inc/fog_law.gdshaderinc"
 
 vec3 to_lin(vec3 c) {
 	return c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
@@ -78,6 +86,9 @@ void fragment() {
 		float fr = min(mix(0.04, 1.0, f), 0.45) * mirror * mix(0.25, 1.0, smoothstep(0.08, 0.3, COLOR.a));
 		EMISSION = encode(env_light(reflect(-v_w, n_w)) * fr * env_energy);
 	}
+	// FIX1 (QA QB-07): Arcade's fog of sprites like the body (inc/fog_law.gdshaderinc); premultiplied like the pane
+	vec4 fog = ce_arcade_fog(COLOR.rgb * tint_gain, length(VERTEX), ce_fog_color, ce_fog_range);
+	FOG = vec4(fog.rgb * a, fog.a);
 }
 
 float d_ggx(float ndh, float a) {
@@ -101,5 +112,6 @@ void light() {
 	float ldh = clamp(dot(LIGHT, h), 0.0, 1.0);
 	float a = max(ROUGHNESS * ROUGHNESS, 0.002);
 	float fr = mix(0.08, 1.0, pow(1.0 - ldh, 5.0));
-	SPECULAR_LIGHT += lc * SPECULAR_AMOUNT * ndl * d_ggx(ndh, a) * v_ggx(ndl, ndv, a) * fr;
+	float ss = LIGHT_IS_DIRECTIONAL ? sun_spec : 1.0;
+	SPECULAR_LIGHT += lc * SPECULAR_AMOUNT * ndl * d_ggx(ndh, a) * v_ggx(ndl, ndv, a) * fr * ss;
 }

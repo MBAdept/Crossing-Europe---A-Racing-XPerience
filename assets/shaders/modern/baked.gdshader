@@ -2,6 +2,7 @@
 // atlas (docs/modelle.md). UV = atlas coordinates inside 0..1. Night: emission atlas x ce_night.
 // ModernMaterials builds the cut-out variant from this file by defining CE_CUTOUT (alpha scissor, both
 // faces drawn: railings, fences, lattice parts). Load only through ModernMaterials - never with preload().
+// Fog: Arcade's law for things in the landscape (inc/fog_law.gdshaderinc, FIX1) instead of the engine's depth fog.
 shader_type spatial;
 #ifdef CE_CUTOUT
 render_mode cull_disabled;
@@ -15,6 +16,10 @@ uniform float roughness = 0.9;                // one number per model (manifest 
 uniform float emit_energy = 1.6;              // linear energy of lit windows / floodlight at ce_night = 1
 
 global uniform float ce_night;
+global uniform vec4 ce_fog_color;
+global uniform vec2 ce_fog_range;
+
+#include "res://assets/shaders/modern/inc/fog_law.gdshaderinc"
 
 void fragment() {
 	vec4 a = texture(albedo_tex, UV);
@@ -29,4 +34,5 @@ void fragment() {
 	SPECULAR = 0.35;
 	// colours are sRGB-encoded here (the engine linearises ALBEDO and EMISSION): energy as pow(e, 1 / 2.2)
 	EMISSION = texture(emit_tex, UV).rgb * pow(ce_night * emit_energy, 0.4545);
+	FOG = ce_arcade_fog(a.rgb, length(VERTEX), ce_fog_color, ce_fog_range);
 }

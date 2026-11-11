@@ -10,11 +10,12 @@
 // The patch is stretched away from the sun: length = height x cot(elevation), at most max_reach widths. Its
 // darkness is the part of the light on level ground that comes from the sun (from ce_sun_color and ce_ambient,
 // with the renderer's own arithmetic for one pass each, docs/modelle.md §4) plus a small contact term that stays
-// under an overcast sky and at night. The engine's depth fog applies on top, so a shadow far away fades with the
-// ground it lies on.
+// under an overcast sky and at night. FIX1: a shadow far away fades with the ground it lies on by the ground's fog law
+// (Arcade's 0.7 × fog amount, terrain.gdshader) – the engine's depth fog made the patch a pale fog-coloured stain on
+// ground that is fogged less.
 // Load only after ModernMaterials.ensure_globals() – never with preload().
 shader_type spatial;
-render_mode unshaded, blend_mix, depth_draw_never, cull_disabled, shadows_disabled;
+render_mode unshaded, blend_mix, depth_draw_never, cull_disabled, shadows_disabled, fog_disabled;
 
 uniform float strength = 0.78;                // part of the sun's light the patch takes away at its core
 uniform float contact = 0.14;                 // darkness that stays without any sun
@@ -26,6 +27,7 @@ uniform float ref_albedo = 0.38;
 global uniform vec3 ce_sun_dir;
 global uniform vec4 ce_sun_color;
 global uniform vec4 ce_ambient;
+global uniform vec2 ce_fog_range;
 
 varying vec2 v_local;
 varying float v_dark;
@@ -74,6 +76,8 @@ void vertex() {
 		real_k = mix(1.0, smoothstep(real_from_m, real_to_m, dist), INSTANCE_CUSTOM.z);
 	}
 	v_dark = (share * strength * real_k + contact * mix(1.0, 0.5, INSTANCE_CUSTOM.z * (1.0 - real_k))) * INSTANCE_CUSTOM.y;
+	float fog_t = clamp((dist - ce_fog_range.x) / max(ce_fog_range.y - ce_fog_range.x, 1.0), 0.0, 1.0);
+	v_dark *= 1.0 - 0.7 * fog_t;
 }
 
 void fragment() {

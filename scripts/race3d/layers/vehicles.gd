@@ -64,6 +64,10 @@ const LOOK: Array = [["vpbr", "env_energy", 1.6], ["vpbr", "paint_base", 1.0], [
 ## time with complementary dither masks (vpbr instance uniform xfade) instead of swapping in one frame – the art review
 ## measured 22–34 % of a car's pixels changing at the 120 m swap. Costs one draw call more per car while it fades.
 const XFADE_S := 0.5
+## FIX1 (QA QB-05): at night the directional light is the moon (EnvironmentRig: palette.night > 0.5). The clear coat's
+## sharp lobe treats it as a point light and drew two white flecks on the player car (p95 luminance 193 against
+## Arcade's 51 at DEV 21:00); the lobe keeps this share of its strength then (vpbr uniform coat_sun).
+const MOON_COAT := 0.08
 const XFADE_LODS: Array[String] = ["lod1", "lod2"]
 const STANDIN_SHADER := "vehicle_sprite"   ## assets/shaders/modern/vehicle_sprite.gdshader (through ModernMaterials)
 const STANDIN_NEAR_M := 0.3          ## a flat stand-in whose anchor is closer than this is not drawn (Arcade's near plane)
@@ -1027,10 +1031,14 @@ func _set_environment(pal: Dictionary) -> void:
 	var top: Color = pal.get("sky_top", Color(0.11, 0.36, 0.79))
 	var bottom: Color = pal.get("sky_bottom", Color(0.73, 0.87, 0.96))
 	var amb: Color = pal.get("ambient", Color.WHITE)
-	var key := Vector4(top.r + top.g * 3.0 + top.b * 7.0, bottom.r + bottom.g * 3.0 + bottom.b * 7.0, amb.r + amb.g * 3.0 + amb.b * 7.0, 0.0)
+	var moon := float(pal.get("night", 0.0)) > 0.5     # the rig's rule: the directional light is the moon
+	var key := Vector4(top.r + top.g * 3.0 + top.b * 7.0, bottom.r + bottom.g * 3.0 + bottom.b * 7.0, amb.r + amb.g * 3.0 + amb.b * 7.0,
+		1.0 if moon else 0.0)
 	if key.is_equal_approx(_env_key):
 		return
 	_env_key = key
+	_mats.set_class_parameter("vpbr", "coat_sun", MOON_COAT if moon else 1.0)
+	_mats.set_class_parameter("glass", "sun_spec", MOON_COAT if moon else 1.0)
 	var fog: Color = pal.get("fog", bottom)
 	var horizon := bottom.lerp(fog, 0.35)
 	var ground := Color(0.30 * amb.r, 0.31 * amb.g, 0.32 * amb.b)

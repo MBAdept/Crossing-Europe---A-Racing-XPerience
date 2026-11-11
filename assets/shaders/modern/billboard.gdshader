@@ -29,6 +29,8 @@
 // pure fog colour – a pale silhouette standing in front of the backdrop's own hazy silhouettes (the "bright
 // diamonds" at the horizon of S1: impostors of far trees). It fades out with an ordered dither from 0.85 to 1.0 of
 // the fog end instead, as Arcade's scenery sprites fade at the end of the sight.
+// Fog: Arcade's law for things in the landscape (inc/fog_law.gdshaderinc, FIX1) instead of the engine's depth fog:
+// the picture's own colour times the brightened fog colour, by 0.7 of the fog amount.
 // Load only through ModernMaterials - never with preload().
 shader_type spatial;
 render_mode unshaded, cull_disabled, depth_draw_opaque;
@@ -52,6 +54,9 @@ global uniform vec3 ce_headlight_pos;
 global uniform vec3 ce_headlight_dir;
 global uniform vec2 ce_headlight;
 global uniform vec2 ce_fog_range;
+global uniform vec4 ce_fog_color;
+
+#include "res://assets/shaders/modern/inc/fog_law.gdshaderinc"
 
 varying float v_sun;
 varying float v_head;
@@ -132,4 +137,5 @@ void fragment() {
 		}
 	}
 	ALBEDO = albedo_for(x);
+	FOG = ce_arcade_fog(t.rgb * COLOR.rgb, length(VERTEX), ce_fog_color, ce_fog_range);
 }

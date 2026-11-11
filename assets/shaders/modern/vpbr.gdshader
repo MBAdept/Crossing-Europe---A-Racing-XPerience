@@ -90,6 +90,11 @@ uniform float env_night = 1.0;
 uniform float fill_night = 1.0;
 uniform float coat_fresnel_max = 0.25;        // the coat's Fresnel term is capped here (grazing angles)
 uniform float coat_strength = 1.0;            // clear coat on paint (environment and sun lobe)
+// FIX1 (QA QB-05): share of the specular lobes of the directional light (base lobe, the coat's sharp lobe, the flakes).
+// They treat the light as a point: by day the sun's glint may saturate, but at night the light is the moon – a dim
+// disc in the sky picture – and the lobes put two white flecks on the player car (p95 luminance 193 against Arcade's
+// 51). The vehicle layer sets it per palette (1 by day, its moon share at night); neutral by default.
+uniform float coat_sun = 1.0;
 uniform float paint_base = 1.0;               // sRGB factor of the base coat under the clear coat
 // RINT-B: exposure of paint (art review A1/B8/C2). The ambient and the sun pass are shown separately and added, so a
 // bright paint ran past 1.0 – 62 % of the yellow kompakt's paint pixels at 255, lemon instead of amber, white trucks
@@ -113,6 +118,12 @@ global uniform float ce_time;
 global uniform vec3 ce_headlight_pos;         // the player's low beam (layer "lights"): channel 15
 global uniform vec3 ce_headlight_dir;
 global uniform vec2 ce_headlight;
+// FIX1 (QA QB-07): Arcade's fog of sprites (inc/fog_law.gdshaderinc) instead of the engine's depth fog – a car keeps
+// Arcade's contrast up to its F5 fade (the dither above), a guardrail or a turbine fogs like the ground it stands on
+global uniform vec4 ce_fog_color;
+global uniform vec2 ce_fog_range;
+
+#include "res://assets/shaders/modern/inc/fog_law.gdshaderinc"
 
 varying flat float v_code;
 varying flat vec2 v_lamp;
@@ -329,6 +340,7 @@ void fragment() {
 	}
 	refl += fill_light;
 	EMISSION = (refl.r + refl.g + refl.b > 0.0) ? encode(to_lin(emit) + refl) : emit;
+	FOG = ce_arcade_fog(alb, length(VERTEX), ce_fog_color, ce_fog_range);
 	v_coat = coat;
 	v_metal_paint = coat > 0.0 ? metal : 0.0;
 }
@@ -358,16 +370,19 @@ void light() {
 	vec3 f0 = v_f0;
 	float f90 = clamp(dot(f0, vec3(50.0 * 0.33)), v_metal, 1.0);
 	vec3 fr = f0 + (f90 - f0) * f5;
-	SPECULAR_LIGHT += lc * SPECULAR_AMOUNT * ndl * d_ggx(ndh, a) * v_ggx(ndl, ndv, a) * fr;
+	// the lobes of the directional light keep the share coat_sun (the moon at night); lamps unchanged. SPECULAR_AMOUNT
+	// is the light's specular, not the material's SPECULAR (0 in the race): this lobe is always there
+	float cs = LIGHT_IS_DIRECTIONAL ? coat_sun : 1.0;
+	SPECULAR_LIGHT += lc * SPECULAR_AMOUNT * ndl * d_ggx(ndh, a) * v_ggx(ndl, ndv, a) * fr * cs;
 	if (v_coat > 0.0) {
 		float dr = d_ggx(ndh, mix(0.001, 0.1, coat_roughness));
 		float gr = 0.25 / max(ldh * ldh, 1e-4);
-		SPECULAR_LIGHT += lc * SPECULAR_AMOUNT * v_coat * gr * mix(0.04, 1.0, f5) * dr * ndl;
+		SPECULAR_LIGHT += lc * SPECULAR_AMOUNT * v_coat * gr * mix(0.04, 1.0, f5) * dr * ndl * cs;
 		// metallic flakes: single cells catch the sun in a broad lobe around the highlight
 		if (v_metal_paint > 0.3 && v_flake_k > 0.0 && flake_strength > 0.0) {
 			float n = hash13(floor(v_obj * flake_scale));
 			float glint = step(0.93, n) * pow(ndh, 24.0);
-			SPECULAR_LIGHT += lc * ndl * glint * flake_strength * v_flake_k * (v_metal_paint - 0.3) * v_alb_lin;
+			SPECULAR_LIGHT += lc * ndl * glint * flake_strength * v_flake_k * (v_metal_paint - 0.3) * v_alb_lin * cs;
 		}
 	}
 }

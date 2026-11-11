@@ -12,6 +12,8 @@
 // (layer "lights"); while nobody sets them (ce_headlight.y = 0) the camera stands in for the headlights at night,
 // with Arcade's headlight reach (render.headlight_range_m) – Arcade brightens signs in its headlights the same way.
 // Colour space as in vpbr.gdshader: ALBEDO / EMISSION are sRGB-encoded in fragment(); light is summed linear.
+// Fog: Arcade's law for sprites (inc/fog_law.gdshaderinc, FIX1, QA QB-07) on top of the F5 fade, instead of the
+// engine's depth fog.
 // Load only through ModernMaterials - never with preload().
 shader_type spatial;
 render_mode cull_disabled, depth_draw_opaque;
@@ -35,6 +37,10 @@ global uniform vec3 ce_sun_dir;
 global uniform vec3 ce_headlight_pos;
 global uniform vec3 ce_headlight_dir;
 global uniform vec2 ce_headlight;
+global uniform vec4 ce_fog_color;
+global uniform vec2 ce_fog_range;
+
+#include "res://assets/shaders/modern/inc/fog_law.gdshaderinc"
 
 varying float v_fade;
 varying vec3 v_world;
@@ -87,6 +93,7 @@ void fragment() {
 	float in_sun = clamp(dot(n_w, normalize(ce_sun_dir)) * 2.0, 0.0, 1.0);
 	vec3 extra = to_lin(alb) * ce_ambient.rgb * (fill * (1.0 - in_sun));
 	EMISSION = encode(extra);
+	FOG = ce_arcade_fog(alb, length(VERTEX), ce_fog_color, ce_fog_range);
 	if (board && FRONT_FACING) {
 		bool own = ce_headlight.y > 0.0;
 		float inten = own ? ce_headlight.y : clamp(ce_night, 0.0, 1.0) * 0.95;
