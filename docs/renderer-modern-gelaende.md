@@ -88,8 +88,11 @@ Farbe Schicht für Schicht gemalt wird:
 7. **Äußerer Ring**: Farbe und Normale gehen in den Fernboden über – die Scheibe darunter setzt das Band ohne Naht
    fort; die Schürze zeigt denselben Ton.
 8. **Wasser** unter Brücken: glatte Fläche in der Wasserfarbe der Landschaft.
-9. **Lichtkegel** von Laternen und Scheinwerfern (`inc/pools.gdshaderinc`); das Material meldet sich mit
-   `renderer.add_pool_material()` an.
+9. **Lichtkegel** von Laternen und Scheinwerfern (`inc/pools.gdshaderinc`) und das **Abblendlicht** des Spielers
+   (`inc/headlight.gdshaderinc`) mit Arcades Rückstrahlfaktoren (Gras 0,45, Kiesstreifen 0,6, Pflaster 0,8, Wasser
+   0,45); das Material meldet sich mit `renderer.add_pool_material()` an. Das Netz liegt wie die Fahrbahn auf
+   Render-Ebene 2: die echten Spots und Punktlichter der Ebene `lights` lassen den Boden aus (renderer-modern.md
+   §10.6, §12.3).
 
 **Kein Flimmern, keine Streifen**: Alles, was feiner ist als ein paar Bildpunkte, geht nach dem *Fußabdruck* des
 Bildpunkts auf dem Boden (`fwidth` der Bodenposition, die längere Seite) in sein Mittel über, nicht nach der
@@ -141,6 +144,9 @@ ankommt.
   Gelände davor (ein großer Knoten um die Kamera würde zuerst gezeichnet und überall Füllrate kosten).
 - Setzt das Global `ce_far_y`. `--gfx-debug=far` zeichnet Signalfarben (Scheibe cyan, Kragen gelb) für die
   Render-Prüfung.
+- Wie das Gelände: Render-Ebene 2, Lichtkegel und Abblendlicht (Gras 0,45), Material über `add_pool_material()`
+  angemeldet – wo die Scheibe nahe dem Wagen durch eine Lücke der Bänder zu sehen ist, ist sie beleuchtet wie der
+  Boden daneben.
 
 ## 4. Requisiten (`builders/props.gd`, `prop_library.gd`)
 
@@ -154,7 +160,7 @@ Auslassungen (`debug()["dropped"]`):
 | Grund | wann |
 |---|---|
 | `ribbon` | die Requisite steht jenseits des gekürzten Geländebands (Kurveninnenseite, Mittelachse): dort ist kein Boden |
-| `corridor` | im Sichtkorridor einer Kurveninnenseite (F7): schmückende Requisiten einer Landschaftsregel und jede Vegetation; Sets aus `graphics.modern.props.bend_cover` bleiben, auf höchstens `bend_cover_max_h_m` (0,5 m) verkleinert – die Liste ist leer, bis es solche Bodenbewuchs-Modelle gibt (A-3) |
+| `corridor` | im Sichtkorridor einer Kurveninnenseite (F7): schmückende Requisiten einer Landschaftsregel und jede Vegetation. Eine weggelassene Pflanze wird durch **Bodendecker** ersetzt (Nachtrag A-3): Stücke der Sets aus `graphics.modern.props.bend_cover` (`props/cover_bush`, `props/cover_grass`), höchstens `bend_cover_max_h_m` (0,5 m) hoch – eins für einen Busch, drei für einen Baum, über seinen Fuß verteilt (höchstens 2,5 m), nie näher als 0,8 m an der Fahrbahnkante (`cover_pieces()`; Liste `cover_list`, `debug().cover`). Ein Set der Liste, das die Strecke selbst setzt, bleibt und wird auf diese Höhe verkleinert |
 | `missing` | weder das Set noch sein Ersatz-Set hat ein Modell oder ein Sprite-Blatt (Arcade lässt es ebenso aus) |
 | `density` | „Details“ unter 1,0 dünnt Bäume, Büsche, Felsen und niedrige Dinge (Strohballen) aus – nie Gebäude, Wahrzeichen oder hohe Bauwerke (Windräder, Masten, Mühlen); über 1,0 kommt nichts hinzu |
 
@@ -183,7 +189,9 @@ eigenen Schattenwerfer hat, seine Lampen (Lichtanker mit Richtung).
 - Ein **Modell** steht wie ein Fahrzeug (A-4): lokales −Z entlang der Straße, die Seite, die das Sprite zeigt, nach
   +Z, Ursprung = Anker des Sprites – über `ctx.frame(z, x, ctx.ground(z, x))`. Bäume, Büsche und Felsen bekommen
   eine stabile zufällige Drehung um die Hochachse; hat ein Set mehrere `variants`, wählt ein stabiler Hash aus
-  Segment- und Requisitennummer (§4.6.6).
+  Stücknummer und Set **eine Variante je Stück** (`chunk_variant()`; §4.6.6 nennt Segment- und Requisitennummer –
+  so kostete jede Variante eigene Knoten und Zeichenaufrufe). Nachbarstücke wechseln, im Stück verdeckt die
+  zufällige Drehung jedes Baums die Wiederholung.
 - Eine **Vertretung** steht auf dem Boden an ihrem Anker; ihre Farbe trägt die Tönung der Landschaftsregel.
 - Kantenbündige Requisiten (`align`) setzen ihre Vorderkante wie Arcades `RoadRenderer.edge_anchor_x`.
 - Requisiten mit eigener Höhe (`h`: Schiffe auf dem Wasser) und Brückenteile stehen nicht auf dem Gelände.
@@ -197,10 +205,12 @@ Instanz *in* einem MultiMesh würde von innen nach außen gezeichnet); ihre Inst
 Knoten × Instanz = Rahmen × Spiegelung. Wahrzeichen werden nie gespiegelt. Die Render-Prüfung `props_spiegel`
 zeichnet das wirklich (Abschnitt 6).
 
-Zeichenaufrufe je Set und Stück (Unit-Test): eine Fläche je Klasse des sichtbaren Netzes; von den Darstellungen
-eines Modells ist immer nur eine sichtbar. Heute: Eiche 2 (Stamm `vpbr` + Laub `leaves`), Fernbild 1, Bauernhaus 1
-je Seite, Laterne 1 je Seite, Vertretung 1 je Seite. Dazu ein Knoten der Kontaktschatten je Stück (alle Sets) und
-im Schattendurchgang der Schattenwerfer der Kartenbäume.
+Zeichenaufrufe je Set, Stück **und Seite** (Unit-Test): eine Fläche je Klasse des sichtbaren Netzes; von den
+Darstellungen eines Modells ist immer nur eine sichtbar. Heute: Eiche und Birke 2 (Stamm `vpbr` + Laub `leaves`),
+Fernbild 1, Bauernhaus 2 je Seite (`baked` + Scheiben in `vpbr`, AS1b), Laterne 1 je Seite, Vertretung 1 je Seite.
+Steht ein Set mit zwei Flächen auf beiden Straßenseiten, braucht es 2 × 2 Aufrufe (gespiegelter Knoten, D24) – die
+Grenze „2 je Set und Stück“ des Bauplans hält dann nur je Seite. Dazu ein Knoten der Kontaktschatten je Stück (alle
+Sets) und im Schattendurchgang der Schattenwerfer der Kartenbäume.
 
 ### 4.5 Detailstufen und Schatten
 
@@ -239,11 +249,20 @@ der Fleck zur Kamera hin aus (zwischen 60 % und 100 % von `shadow_distance_m`), 
 
 ### 4.8 Lampen
 
-Lichtanker mit Richtung (die Leuchte der Straßenlaterne) werden je Stück über `ctx.services.renderer.add_lamps(
-holder, lamps)` angemeldet (A-7): Position und Richtung im Knoten `Props` des Stücks, Rolle `lights`, Farbe und
-Größe aus dem Manifest, Kegel 9 m, Energie 0,55 (Arcades Laternenkegel). Die Ebenen `lights` und `flares` machen
-daraus Lichtkegel am Boden und den Schein in der Ferne; ohne sie geschieht nichts. Fensterlicht gebackener Modelle
-steckt im Nachtlicht-Atlas, nicht in Ankern.
+Lichtanker mit Richtung werden je Stück über `ctx.services.renderer.add_lamps(holder, lamps)` angemeldet (A-7):
+Position und Richtung im Knoten `Props` des Stücks, Rolle `lights`, Farbe und Größe aus dem Manifest. Kegel und
+Stärke gibt `PropLibrary.lamp_pools()`: nach unten (Laterne, Tankstellendach) 9 m und Arcades Laternenstärke 0,55,
+eine Gruppe teilt sich 1,6 (Tankstellendach: acht Lampen je 0,2); Wandlampen (Bauernhaus, Scheune, Zollhäuschen)
+5 m und 0,4, der Kegel liegt vor der Wand unter der Lampe; Lampen ab 25 m Höhe (Flugbefeuerung des Windrads) ohne
+Kegel. Die Ebenen `lights` und `flares` machen daraus Lichtkegel am Boden und den Schein in der Ferne; ohne sie
+geschieht nichts. Fensterlicht gebackener Modelle steckt im Nachtlicht-Atlas bzw. in Lampenkanal 12, nicht in
+Ankern.
+
+### 4.10 Ende der Sicht
+
+Fernbilder und Laub blenden zwischen 0,85 und 1,0 des Nebelendes (`ce_fog_range.y`) mit geordnetem Dither aus:
+jenseits davon wären sie reine Nebelfarbe – helle Flecken („Rauten“) vor den dunstigen Silhouetten des
+Hintergrunds, gesehen an S1 (renderer-modern.md §12.6).
 
 ### 4.9 Laden und Freigeben
 
@@ -262,7 +281,7 @@ diesem Bauabschnitt dem Renderer-Kern):
 |---|---|---|
 | `graphics.modern.terrain.far_ground_drop_m` | 4,0 | Fernboden so weit unter der tiefsten geladenen Straße |
 | `graphics.modern.terrain.styles` | – | Stile einzelner Landschaften überschreiben (2.4) |
-| `graphics.modern.props.bend_cover` | `[]` | Sets, die im Kurvenkorridor als Bodenbewuchs bleiben dürfen |
+| `graphics.modern.props.bend_cover` | `["props/cover_bush", "props/cover_grass"]` (Vorgabe im Code `[]`) | Bodendecker-Sets für den Kurvenkorridor (4.1) |
 | `graphics.modern.props.bend_cover_max_h_m` | 0,5 | ihre größte Höhe dort |
 | Qualitätsstufen (`Gfx.levels`) | – | `prop_lod0_m`, `prop_lod1_m`, `deco_density`, `shadow_casters`, `shadow_distance_m`; `terrain_shadows` (nicht in `Gfx`, Vorgabe aus) |
 
@@ -296,19 +315,15 @@ abgeleitet).
 
 ## 8. Grenzen und offene Punkte
 
-- **Bandspitzen in Kurven**: Der Kern kürzt jede Reihe nach ihrer *eigenen* Krümmung; wo sich die Krümmung entlang
-  einer Kurve ändert, berühren sich die Spitzen des Bands auf ihrer Innenseite (bis 1,83 m, gezählt in
-  `terrain_plan_tips`, dort ein Dreieck auf dem anderen – weit weg und meist im Nebel). Mit drei Zeilen im Kern
-  (`TerrainProfile`: auch nach der stärksten Krümmung der Seite innerhalb des Korridorfensters kürzen) gibt es
-  keine mehr, und `modern_sight.gd` bleibt grün (gemessen, nicht eingebaut: der Kern gehört dem Renderer-Kern).
-  Danach `STRICT` in `check_terrain_plan.gd` einschalten.
-- **Kahle Kurveninnenseiten**: F7 nimmt dort Bäume und schmückende Requisiten weg (an T2 38 von 135, an T4 der große
-  Felsen, den Arcade zeigt). Bodenbewuchs ≤ 0,5 m kommt mit den Modellen dafür (`bend_cover`).
+- **Bandspitzen in Kurven**: erledigt mit der Zusammenführung – `TerrainProfile` kürzt jede Reihe auch nach der
+  stärksten Krümmung ihrer Seite im Korridorfenster; `check_terrain_plan` ist streng (`STRICT`, 0 Paare an 40
+  Kamerapositionen), `modern_sight.gd --full` grün.
+- **Kurveninnenseiten**: F7 nimmt dort Bäume und schmückende Requisiten weg (an T2 38 von 135, an T4 der große
+  Felsen, den Arcade zeigt); weggelassene Pflanzen werden seit der Zusammenführung Bodendecker (4.1). Felsen und
+  Häuser bleiben weg, bis die Projektleitung mit den Bergbildern von Zwischenstand 2 entscheidet.
 - **Vertretungen**: Bis die Umgebungsmodelle kommen, sind 83 der 86 Requisiten-Sets und 32 der 33 Wahrzeichen
   Billboards der Arcade-Sprites – sie bestimmen, wie Kiel – Hamburg aussieht. Aus der Nähe sind sie flach, und sie
   drehen sich mit der Kamera.
-- **Zeichenaufrufe bei Varianten und Spiegelung**: ein Set mit zwei Varianten oder mit Instanzen auf beiden Seiten
-  braucht je Variante bzw. Seite eigene Knoten; mit zwei Flächen je Modell (Kartenbaum, Haus mit `baked_cutout`)
-  wären das mehr als zwei Zeichenaufrufe je Set und Stück (heute hat kein solches Modell Varianten oder
-  `mirror_left`).
+- **Zeichenaufrufe bei Varianten und Spiegelung**: Varianten kosten nichts mehr (eine je Stück, 4.3); ein Set mit
+  zwei Flächen auf beiden Seiten braucht 2 × 2 Aufrufe je Stück (4.4).
 - Das Gelände wirft keinen eigenen Schatten (2.1); Berge, die die Sonne verdecken, gibt es nicht.

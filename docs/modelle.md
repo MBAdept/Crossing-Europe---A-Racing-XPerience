@@ -624,10 +624,10 @@ Sprite-Set (nur mit Modell). Der Requisiten-Builder setzt sie anstelle weggelass
 ### Rotoren (Windrad, Windmühle)
 
 Die Teile, die sich drehen, tragen im `vpbr`-Format den **Lackcode 0,875** und in `UV2.y` die Nabenhöhe / 128 m
-(`props3d.ROTOR_CODE`, `ROTOR_HUB_M`; Windrad 89,6 m, Windmühle 19,8 m). Der heutige `vpbr.gdshader` zeichnet sie
-als feste Farbe – ein stehender Rotor. Gedreht werden sie mit einer Erweiterung im `vertex()` des Shaders um die
-Z-Achse des Modells durch (0, Nabenhöhe) mit `ce_time` (auf einem Wegwerfzweig erprobt: zehn Zeilen, Bilder bei
-0 / 0,4 / 0,8 s drehen sich richtig). Der Prüfer kennt den Code.
+(`props3d.ROTOR_CODE`, `ROTOR_HUB_M`; Windrad 89,6 m, Windmühle 19,8 m). Seit der Zusammenführung von M1 dreht
+`vpbr.gdshader` sie in `vertex()` um die Z-Achse des Modells durch (0, Nabenhöhe) mit `ce_time` (1,35 rad/s, von der
+Straße aus im Uhrzeigersinn, Phase je Instanz; docs/renderer-modern.md §12.5, Render-Prüfung `rotor`). Der Prüfer
+kennt den Code.
 
 ### Laterne: der Lichtanker schaut nach unten
 
@@ -685,5 +685,5 @@ im Rennen, die Stufe nach Entfernung wie im Requisiten-Builder: `--mode=dist` (A
 
 - `leaves.gdshader`: Schnee (aufwärts gerichtete Karten weißen mit `ce_snow`) und Nässe (dunkler, glänzender mit
   `ce_wet`); ein Ausblenden flach angeschnittener Karten nach der Kartennormale bräuchte eine zweite Normale.
-- `vpbr.gdshader`: die Rotordrehung (siehe oben).
-- Requisiten-Builder: Bodendecker-Sets in Kurven-Korridoren einsetzen; Leitungen zwischen Strommasten.
+- Requisiten-Builder: Leitungen zwischen Strommasten. (Rotordrehung und Bodendecker in den Kurven-Korridoren sind
+  mit der Zusammenführung von M1 erledigt.)

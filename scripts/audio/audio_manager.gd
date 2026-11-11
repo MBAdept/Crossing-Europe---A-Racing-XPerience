@@ -64,6 +64,7 @@ const MUSIC_FILE := "res://assets/audio/music/title_theme.ogg"
 const FALLBACK_MUSIC_DB := 5.0
 const PROFILE_ARCADE := "arcade"
 const PROFILE_MODERN := "modern"
+const EXIT_SETTLE_MS := 60       ## at exit: time for the audio server to drop the stopped playbacks (several mix blocks)
 
 var sounds_ready := false
 var _streams: Dictionary = {}
@@ -189,6 +190,8 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
+	if _modern == null:
+		stop_all()           # leaving the game: the engine, loops and one-shots stop now (see EXIT_SETTLE_MS below)
 	if _modern != null:
 		_modern.shutdown()   # its players, threads and buses; the node goes with this one (--perf: its own AUDIO_PERF)
 	elif CliArgs.has("perf") and _traffic != null and _traffic.perf_calls > 0:
@@ -204,6 +207,12 @@ func _exit_tree() -> void:
 		_music.stop()
 		_music.stream = null
 	_streams.clear()
+	# Every player has stopped by now (a player stops its playbacks when it leaves the tree; the scene and this node's
+	# children leave before this node), but the audio server drops a stopped playback only at its next mix step.
+	# Ending the process before that step reports the playbacks, their streams and the engine's generator as "ObjectDB
+	# instances leaked at exit" (AU-B; measured: 3–9 instances in 2 of 3 Arcade runs of the race scene). A few mix
+	# blocks of waiting let the step happen.
+	OS.delay_msec(EXIT_SETTLE_MS)
 
 
 func _ensure_buses() -> void:

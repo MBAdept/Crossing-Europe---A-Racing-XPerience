@@ -40,13 +40,15 @@ static func create(mode: String) -> Node:
 	return null
 
 
-## Leaving the mode "Modern" (contract §4.11, A-4): each mode holds only its own assets. When an Arcade renderer is
-## created after a Modern one – the mode was switched, or a Modern stage fell back – the model database lets go
-## of everything it still holds and the shared Modern materials (with their textures) are dropped. A run that
-## never drew a Modern stage loads nothing for this; between two Modern stages nothing is released (the next
-## stage would load and compile the same again).
-static func leave_modern() -> void:
-	if not modern_used:
+## Leaving the mode "Modern" (contract §4.11, A-4) – the ONE place that releases what Modern loaded: each mode holds
+## only its own assets. When an Arcade renderer is created after a Modern one – the mode was switched, or a Modern
+## stage fell back – the model database lets go of everything it still holds and the shared Modern materials (with
+## their textures) are dropped. A run that never drew a Modern stage loads nothing for this; between two Modern
+## stages nothing is released (the next stage would load and compile the same again).
+## always = true: also when no Modern renderer ran in this process – the menus call it when "Grafik" leaves
+## Modern (the showroom loads models and materials as well) and when the game quits (GameFlow).
+static func leave_modern(always: bool = false) -> void:
+	if not modern_used and not always:
 		return
 	modern_used = false
 	for entry: Array in MODERN_RELEASE:

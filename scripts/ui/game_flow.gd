@@ -27,9 +27,6 @@ extends Node
 
 const RACE_SCENE := "res://scenes/race/race.tscn"
 const BENCH_SCRIPT := "res://scripts/race3d/benchmark.gd"
-## Scripts of the mode "Modern" whose caches go when the mode is left (_release_modern) – reached by path.
-const MODEL_DB_SCRIPT := "res://scripts/core/model_db.gd"
-const MATERIALS_SCRIPT := "res://scripts/race3d/modern_materials.gd"
 ## Music context of the Modern sound per screen (AudioManager.set_music_context); every other screen: "menu".
 const MUSIC_CONTEXTS := {"title": "title", "graphics_choice": "title", "result": "result", "race_result": "result",
 	"stage_screen": "race_menu", "route_choice": "race_menu", "ferry": "race_menu"}
@@ -283,15 +280,13 @@ func _apply_pending_modes(between_stages: bool = false) -> void:
 		_release_modern()
 
 
-## Leaving the mode "Modern": the model caches and the shared materials (they hold the textures) go. The scripts
-## are reached by path and only when something has loaded them – a game that never showed Modern loads nothing here.
+## Leaving the mode "Modern": the model caches and the shared materials (they hold the textures) go – through
+## RaceRenderers.leave_modern(), the one owner of that release (A-4). It reaches the scripts by path and only when
+## something has loaded them – a game that never showed Modern loads nothing here.
 func _release_modern(always: bool = false) -> void:
 	if not always and Settings.is_modern():
 		return
-	if ResourceLoader.has_cached(MODEL_DB_SCRIPT):
-		(load(MODEL_DB_SCRIPT) as GDScript).call("release_all")
-	if ResourceLoader.has_cached(MATERIALS_SCRIPT):
-		(load(MATERIALS_SCRIPT) as GDScript).call("drop_shared")
+	RaceRenderers.leave_modern(true)
 
 
 # --- Leistungstest ---------------------------------------------------------------------------------------
