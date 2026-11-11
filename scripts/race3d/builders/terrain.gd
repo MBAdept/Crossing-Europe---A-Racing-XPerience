@@ -33,6 +33,8 @@ var far_look: Dictionary = {}      ## GroundLook.far_look() of the last update()
 var _renderer: Node                ## untyped: packages talk to each other through the facade only
 var _pattern_origin := Vector3.ZERO
 var _cast := false
+var _city: Dictionary = {}         ## GroundLook.city_info of the stage (first update())
+var _styles: Dictionary = {}       ## graphics.modern.terrain.styles
 
 
 func id() -> String:
@@ -253,10 +255,12 @@ func update(view: Dictionary, _dt: float) -> void:
 	var track: Track = _renderer.get("track")
 	if track == null:
 		return
-	var cfg: Variant = _renderer.get("cfg")
-	var styles: Variant = ConfigLoader.lookup(cfg, "graphics.modern.terrain.styles", {}) if cfg is Dictionary else {}
-	var look := GroundLook.far_look(track, _renderer.get("scenery_db"), float(view.get("camera_z", 0.0)),
-		GroundLook.city_info(track), styles if styles is Dictionary else {})
+	if _city.is_empty():
+		_city = GroundLook.city_info(track)
+		var cfg: Variant = _renderer.get("cfg")
+		var styles: Variant = ConfigLoader.lookup(cfg, "graphics.modern.terrain.styles", {}) if cfg is Dictionary else {}
+		_styles = styles if styles is Dictionary else {}
+	var look := GroundLook.far_look(track, _renderer.get("scenery_db"), float(view.get("camera_z", 0.0)), _city, _styles)
 	if look != far_look:
 		far_look = look
 		if material != null:

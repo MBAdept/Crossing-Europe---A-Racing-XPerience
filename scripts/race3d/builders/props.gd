@@ -34,6 +34,7 @@ const SLOPE_PROBE_M := 1.5         ## the ground plane under a prop is taken fro
 const BLOB_LIFT_M := 0.03
 const SHADOW_KEEP_M := 40.0        ## shadow casters stay on this far beyond the reach of the shadow map
 const LOD_HYSTERESIS_M := 6.0      ## a chunk leaves a level this much later than it enters it
+const LOD_STEP_M := 2.0            ## update() looks at the chunk levels again after this much driving
 
 var library: PropLibrary
 
@@ -49,6 +50,7 @@ var _skip_objects := false
 var _skip_landmarks := false
 var _skip_bridge := false
 var _holders: Array = []           ## committed "Props" nodes (main thread: commit / update)
+var _lod_z := -1.0e12              ## camera position of the last look at the chunk levels
 var _prepared := false
 
 
@@ -121,6 +123,9 @@ func fail_reason() -> String:
 
 func update(view: Dictionary, _dt: float) -> void:
 	var cam_z := float(view.get("camera_z", 0.0))
+	if absf(cam_z - _lod_z) < LOD_STEP_M:
+		return      # the levels are a matter of tens of metres: looked at every few metres of driving
+	_lod_z = cam_z
 	var i := _holders.size() - 1
 	while i >= 0:
 		var h: Variant = _holders[i]

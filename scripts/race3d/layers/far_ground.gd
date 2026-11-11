@@ -41,6 +41,7 @@ var _look: Dictionary = {}
 var _last_z := -1.0e12
 var _target := 0.0
 var _valid := false
+var _key := Vector3i(-1, -1, -1)   ## camera row, visibility and first path row of the last _target
 var _city: Dictionary = {}
 var _styles: Dictionary = {}
 
@@ -137,7 +138,12 @@ func update(view: Dictionary, _dt: float) -> void:
 	if path == null or not path.is_ready() or cam == null or track == null:
 		return
 	var cam_z := float(view.get("camera_z", 0.0))
-	_target = lowest_road(path, cam_z, float(view.get("visibility_m", 900.0))) - _drop
+	var vis := float(view.get("visibility_m", 900.0))
+	var key := Vector3i(int(floor(cam_z / path.seg_len)), int(vis), path.first)
+	if key != _key:
+		# the samples sit on fixed rows: nothing changes until the camera reaches the next row
+		_key = key
+		_target = lowest_road(path, cam_z, vis) - _drop
 	var moved := absf(cam_z - _last_z)
 	if not _valid or moved > SNAP_M:
 		far_y = _target
