@@ -27,6 +27,14 @@ const FLARE_OFFSET_M := 0.06        ## a flare sits this far in front of its lam
 const BEHIND_M := 14.0              ## cars whose front is further behind the camera than this are not drawn
 const AHEAD_MARGIN_M := 30.0        ## … and those beyond the visibility plus this
 const POOL_PER_SET := 6             ## free cars kept per set for reuse
+## RINT-B: Godot's Compatibility renderer gives every geometry instance whose material has instance uniforms (vpbr,
+## glass, the stand-in shaders) 16 slots of its global shader buffer, and that buffer is only as large as the GPU's
+## uniform block (64 KB = 4096 slots on the build VM and on most desktop drivers): about 250 such instances in the whole
+## scene. Beyond that Godot refuses an instance ("Too many instances using shader instance variables") and draws it with
+## the values of another one. Pooled cars keep their built levels (lod0 alone is 6 instances), so a race with traffic
+## ran past it within seconds (measured). The layer keeps the instances of all built levels – active and pooled cars –
+## at most at INSTANCE_BUDGET: pooled cars are freed first, then the levels of active cars that are not shown.
+const INSTANCE_BUDGET := 128
 const LOD_REF_0 := 40.0             ## the manifest's first level is made for this distance (Details "Mittel") …
 const LOD_REF_1 := 120.0            ## … and the second for this one
 const SHADOW_MARGIN_M := 0.45       ## contact shadow beyond the footprint
@@ -156,6 +164,9 @@ var _us_max := 0
 var _updates := 0
 var _drawn := 0
 var _builds := 0
+var _inst_n := 0                     ## geometry instances of all built levels (active and pooled cars), INSTANCE_BUDGET
+var _inst_peak := 0
+var _trims := 0                      ## pooled cars and hidden levels freed for the budget
 var _fallback_sets: Dictionary = {}
 # stand-ins (R3E): Arcade's pictures of the sets without a model
 var sprite_db: Object = null         ## the sprite database (null: the autoload SpriteDB); tests may set a fixture
@@ -461,6 +472,9 @@ func update(view: Dictionary, dt: float) -> void:
 		if car.seen != _frame:
 			_release(car)
 			_cars.erase(id)
+	if _inst_n > INSTANCE_BUDGET:
+		_trim_instances()
+	_inst_peak = maxi(_inst_peak, _inst_n)
 	for b: VehicleStandIn.SheetBatch in _batches.values():
 		b.commit()
 	_commit_shadows()
@@ -1082,8 +1096,66 @@ func _release(car: Car) -> void:
 		_free[car.set_id] = list
 	if (list as Array).size() < POOL_PER_SET:
 		(list as Array).append(car)
-	elif car.root != null:
+	else:
+		_drop(car)
+
+
+## Frees a car that is in no list any more (its root with every built level) and takes its instances off the count.
+func _drop(car: Car) -> void:
+	for lod: Variant in car.levels:
+		var n: Variant = car.levels[lod]
+		if n is Node3D and is_instance_valid(n):
+			_inst_n -= ModelFactory.geometry_of(n as Node3D).size()
+	car.levels.clear()
+	car.node = null
+	car.geo = []
+	if car.root != null and is_instance_valid(car.root):
 		car.root.queue_free()
+	car.root = null
+
+
+## Geometry instances of every built level of the active and pooled cars, counted from the nodes (tests: equals
+## perf().vehicle_instances, the count the budget keeps).
+func debug_level_instances() -> int:
+	var n := 0
+	var all: Array = _cars.values()
+	for k: Variant in _free:
+		all.append_array(_free[k] as Array)
+	for car: Car in all:
+		for lod: Variant in car.levels:
+			var node: Variant = car.levels[lod]
+			if node is Node3D and is_instance_valid(node) and not (node as Node3D).is_queued_for_deletion():
+				n += ModelFactory.geometry_of(node as Node3D).size()
+	return n
+
+
+## Keeps the instances of the built levels within INSTANCE_BUDGET: pooled cars first (from the fullest pool), then the
+## levels of active cars that are neither shown nor fading out. A freed level is built again when it is needed.
+func _trim_instances() -> void:
+	while _inst_n > INSTANCE_BUDGET:
+		var fullest: Array = []
+		for k: Variant in _free:
+			var l: Array = _free[k]
+			if l.size() > fullest.size():
+				fullest = l
+		if fullest.is_empty():
+			break
+		_drop(fullest.pop_back() as Car)
+		_trims += 1
+	if _inst_n <= INSTANCE_BUDGET:
+		return
+	for id: Variant in _cars:
+		var car: Car = _cars[id]
+		for lod: Variant in car.levels.keys():
+			var n: Variant = car.levels[lod]
+			if not (n is Node3D) or not is_instance_valid(n) or n == car.node or n == car.xf_node:
+				continue
+			_inst_n -= ModelFactory.geometry_of(n as Node3D).size()
+			car.levels.erase(lod)
+			(n as Node3D).queue_free()
+			_trims += 1
+			if _inst_n <= INSTANCE_BUDGET:
+				return
 
 
 func _show(car: Car, on: bool) -> void:
@@ -1174,6 +1246,7 @@ func _set_level(car: Car, lod: String) -> void:
 		_builds += 1
 		car.root.add_child(n)
 		car.levels[lod] = n
+		_inst_n += ModelFactory.geometry_of(n).size()
 	n.visible = true
 	car.node = n
 	car.lod = lod
@@ -1329,6 +1402,7 @@ func perf() -> Dictionary:
 		pooled += (_free[k] as Array).size()
 	return {"vehicles": _drawn, "fallback_sets": _fallback_sets.size(), "vehicle_us_avg": float(_us_sum) / maxf(1.0, float(_updates)),
 		"vehicle_us_max": _us_max, "vehicle_builds": _builds, "vehicle_pool": pooled, "contact_shadows": _shadow_n,
+		"vehicle_instances": _inst_n, "vehicle_instances_peak": _inst_peak, "vehicle_trims": _trims,
 		"standin_cars": _standin_drawn, "standin_sheets": _standin_tex.size(), "standin_sheets_mb": _standin_loaded_mb}
 
 
@@ -1348,6 +1422,7 @@ func _exit_tree() -> void:
 	_standin_tex.clear()
 	_cars.clear()
 	_free.clear()
+	_inst_n = 0
 	if is_instance_valid(_shadow_node):
 		_shadow_node.queue_free()
 	if _requested:
