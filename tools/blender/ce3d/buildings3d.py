@@ -1145,6 +1145,42 @@ def _gear_logo(geo, ink, pt, nrm, us, zs, off, spec):
     return n_tri
 
 
+def _bag_logo(geo, ink, pt, nrm, us, zs, off, spec):
+    """AS4R (art review AS4, M9): the shop's sign emblem - a shopping bag with an arched handle between two bars, read
+    the same in a mirror (the shop is tagged mirror_left). Returns the triangle count."""
+    u0, u1 = us
+    z0, z1 = zs
+    cu = (u0 + u1) * 0.5
+    h = z1 - z0
+    bw_top, bw_bot, bh = h * 0.62, h * 0.7, h * 0.55
+    zb0 = z0 + h * 0.12
+    zb1 = zb0 + bh
+    n_tri = 0
+    geo.quad(ink, pt(cu - bw_bot * 0.5, zb0, off), pt(cu + bw_bot * 0.5, zb0, off), pt(cu + bw_top * 0.5, zb1, off),
+             pt(cu - bw_top * 0.5, zb1, off), nrm)
+    n_tri += 2
+    # the handle: a half ring over the bag
+    r_out, r_in = bw_top * 0.32, bw_top * 0.32 - h * 0.07
+    zc = zb1
+    segs = 8
+    for k in range(segs):
+        a0, a1 = math.pi * k / segs, math.pi * (k + 1) / segs
+        q = [pt(cu + r * math.cos(a), zc + r * math.sin(a), off) for (r, a) in ((r_in, a0), (r_out, a0), (r_out, a1),
+                                                                                  (r_in, a1))]
+        geo.quad(ink, q[0], q[1], q[2], q[3], nrm)
+        n_tri += 2
+    # two bars to both sides
+    bar_h = h * 0.12
+    zm = (z0 + z1) * 0.5
+    for sgn in (-1.0, 1.0):
+        a, b = cu + sgn * bw_bot * 0.9, cu + sgn * (u1 - u0) * 0.42
+        lo, hi = min(a, b), max(a, b)
+        geo.quad(ink, pt(lo, zm - bar_h * 0.5, off), pt(hi, zm - bar_h * 0.5, off), pt(hi, zm + bar_h * 0.5, off),
+                 pt(lo, zm + bar_h * 0.5, off), nrm)
+        n_tri += 2
+    return n_tri
+
+
 def _sign(rig, geo, mats, spec):
     """Lettering as geometry on a panel in front of a wall (factory): letters of textgeo flattened onto the panel,
     lamp channel 14 (their colour by day, lit at night)."""
@@ -1154,7 +1190,7 @@ def _sign(rig, geo, mats, spec):
     z0, z1 = spec["z"]
     wall = float(spec.get("wall", 0.0))           # the wall plane: y (front/back) or x (sides)
     sgn = -1.0 if face in ("front", "left") else 1.0
-    panel = mats.vpbr("ce_sign_panel", spec.get("panel", "#2b3640"), rough=0.5, metal=0.3)
+    panel = mats.vpbr("ce_sign_panel", spec.get("panel") or "#2b3640", rough=0.5, metal=0.3)
     ink = mats.vpbr("ce_sign_ink", spec.get("color", "#eceae2"), rough=0.4,
                     lamp="-flood:%.2f" % float(spec.get("flood", 1.0)))
     out0, out1 = 0.06, 0.12
@@ -1165,14 +1201,19 @@ def _sign(rig, geo, mats, spec):
         return np.array([wall + sgn * off, u, z])
     nrm = np.array([0.0, sgn, 0.0]) if face in ("front", "back") else np.array([sgn, 0.0, 0.0])
     side = np.array([1.0, 0.0, 0.0]) if face in ("front", "back") else np.array([0.0, 1.0, 0.0])
-    geo.quad(panel, pt(u0, z0, out1), pt(u1, z0, out1), pt(u1, z1, out1), pt(u0, z1, out1), nrm)
-    geo.quad(panel, pt(u0, z1, out0), pt(u1, z1, out0), pt(u1, z1, out1), pt(u0, z1, out1), np.array([0.0, 0.0, 1.0]))
-    geo.quad(panel, pt(u0, z0, out0), pt(u1, z0, out0), pt(u1, z0, out1), pt(u0, z0, out1), np.array([0.0, 0.0, -1.0]),
-             "lod0")
-    geo.quad(panel, pt(u0, z0, out0), pt(u0, z1, out0), pt(u0, z1, out1), pt(u0, z0, out1), -side, "lod0")
-    geo.quad(panel, pt(u1, z0, out0), pt(u1, z1, out0), pt(u1, z1, out1), pt(u1, z0, out1), side, "lod0")
+    if spec.get("panel", "") is None:
+        out1 = 0.0                  # AS4R: on a sign board of the generator (the shop) - no panel of its own
+    else:
+        geo.quad(panel, pt(u0, z0, out1), pt(u1, z0, out1), pt(u1, z1, out1), pt(u0, z1, out1), nrm)
+        geo.quad(panel, pt(u0, z1, out0), pt(u1, z1, out0), pt(u1, z1, out1), pt(u0, z1, out1), np.array([0.0, 0.0, 1.0]))
+        geo.quad(panel, pt(u0, z0, out0), pt(u1, z0, out0), pt(u1, z0, out1), pt(u0, z0, out1),
+                 np.array([0.0, 0.0, -1.0]), "lod0")
+        geo.quad(panel, pt(u0, z0, out0), pt(u0, z1, out0), pt(u0, z1, out1), pt(u0, z0, out1), -side, "lod0")
+        geo.quad(panel, pt(u1, z0, out0), pt(u1, z1, out0), pt(u1, z1, out1), pt(u1, z0, out1), side, "lod0")
     if spec.get("logo") == "gear":
         return _gear_logo(geo, ink, pt, nrm, (u0, u1), (z0, z1), out1 + 0.012, spec)
+    if spec.get("logo") == "bag":
+        return _bag_logo(geo, ink, pt, nrm, (u0, u1), (z0, z1), out1 + 0.012, spec)
     # the text: a mesh in the XY plane (reading +X, up +Y), centred; scaled to the letter height
     txt = T.text_mesh(rig, spec["text"], float(spec.get("h", 0.8)), ink, bold=0.04, extrude=0.0, name="ce_sign_txt")
     T.fit(txt, (u1 - u0) * 0.9)

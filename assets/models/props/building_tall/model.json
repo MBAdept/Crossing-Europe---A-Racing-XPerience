@@ -6,12 +6,12 @@
   "kind": "building",
   "object": {"width_m": 22.3, "height_m": 65.9, "length_m": 22},
   "extent_m": {"left": 18.05, "right": 10.53},
-  "aabb": [-11.22, 0, -22.22, 11.22, 65.9, 0.22],
+  "aabb": [-11.22, 0, -22.22, 11.22, 65.9, 0.23],
   "lods": [
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 2485,
+    "tris": 2565,
     "parts": [
      {
       "node": "body",
@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 100000,
-    "tris": 2485,
+    "tris": 2513,
     "parts": [
      {
       "node": "body",
@@ -46,8 +46,8 @@
   "roughness": 0.6,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left"],
-  "bytes": 144253,
-  "hash": "921bf2593c27682e6052ffee2fe6753f55691646"
+  "bytes": 144117,
+  "hash": "4713bed9c2c18b7136cb5a9c3f3c7660643355ca"
  },
  "sets": {
   "props/building_tall": {"model": "props/building_tall"}

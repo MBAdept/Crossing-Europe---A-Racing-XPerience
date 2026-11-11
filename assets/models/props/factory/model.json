@@ -46,8 +46,8 @@
   "roughness": 0.8,
   "auto_lod": false,
   "tags": ["prop", "building", "mirror_left"],
-  "bytes": 692849,
-  "hash": "9c2d1e615987e586ea5494ad453753f5fbc5e1a2"
+  "bytes": 749653,
+  "hash": "24d970bd51249ff1ec52e8a55a16ff47c02628a8"
  },
  "sets": {
   "props/factory": {"model": "props/factory"}

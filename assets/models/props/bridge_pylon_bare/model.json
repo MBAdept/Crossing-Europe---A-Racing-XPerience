@@ -4,7 +4,7 @@
  "id": "props/bridge_pylon_bare",
  "model": {
   "kind": "furniture",
-  "object": {"width_m": 6, "height_m": 88.8, "length_m": 8},
+  "object": {"width_m": 5.25, "height_m": 88.8, "length_m": 8},
   "extent_m": {"left": 2.59, "right": 5.08},
   "aabb": [-1.3, 0, -4, 3.949, 88.75, 4],
   "lods": [

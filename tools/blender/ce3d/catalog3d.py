@@ -226,10 +226,10 @@ MODELS.update({
                                         bars={"large": (3, 3)}, pane_lit=(0.75, 1.0)),
                           sign=dict(logo="gear", face="front", u=(-14.6, -3.4), z=(7.1, 8.4), wall=0.0,
                                     panel="#2f3a44", color="#e9e7df"),
-                          # AS4R (M4): the sawtooth glazing with mullions and a transom, its light at 45 % and fading
+                          # AS4R (M4): the sawtooth glazing with mullions and a transom, its light at 30 % and fading
                           # towards the top (it lit as five pure white fields)
                           skylight=dict(objects=("fac_glass",), glass="#5d7486", frame="#4a4f55", light="#cfe0ff",
-                                        strength=0.9, k=0.45, pitch=1.4, bar=0.1, fade=0.5, z=(9.1, 11.9))),
+                                        strength=0.9, k=0.3, pitch=1.4, bar=0.1, fade=0.5, z=(9.1, 11.9))),
     # town blocks (category city: 10,000 triangles, atlas 2048 x 1024)
     "props/building_block_a": dict(builder="house", source="props/building_block_a", kind="building",
                                    atlas=(2048, 1024), ppm_max=72.0, roughness=0.85, view="roadside",
@@ -268,14 +268,15 @@ MODELS.update({
                               hidden_tops=("bl_lg",), glass=("bl_lg",), side_flood=0.85,
                               code=["cesprites/props_cities.py"]),
     # AS4R (art review AS4, M1/M5): the leg upright and 0.9 m farther out (its foot and plinth end at the deck edge,
-    # model x -1.3 m), seven cables a side from the head to the deck edge (x -1.4 m, 1.1 m high, as Arcade draws
-    # them) within 36 m of the pylon - every cable-stayed bridge of the network has at least 40.5 m (Elisabeth- and
-    # Vansu-Bruecke); one level with 0.32 m cables; extent_m stays the sprite's (the pylon is not placed by it)
+    # model x -1.3 m), seven cables a side from the head down to the deck edge (axis at x -1.15 m, 1.1 m high - Arcade
+    # draws them to x -1.4 m; with their 0.32 m the cables then end outside the railing line) within 36 m of the pylon
+    # - every cable-stayed bridge of the network has at least 40.5 m (Elisabeth- and Vansu-Bruecke); one level;
+    # extent_m stays the sprite's (the pylon is not placed by it)
     "props/bridge_pylon": dict(builder="pylon", source="props/bridge_pylon", kind="furniture", atlas=(1024, 1024),
                                ppm_max=40.0, roughness=0.85, view="allround", cable_w=(0.32,), beacon="bpy_red",
                                split=("bpy_leg", (30.75, 61.5)), band_w=(1.0, 0.6, 0.45), drop=("bpy_anch",),
                                upright=dict(lean_deg=3.5, top=82.0, shift_x=0.9, clip_x=-2.2, clip_z=1.0),
-                               fan=dict(n=7, span=36.0, near=8.0, heads=(55.0, 79.0), deck=(-1.4, 1.1), head_y=0.6,
+                               fan=dict(n=7, span=36.0, near=8.0, heads=(55.0, 79.0), deck=(-1.15, 1.1), head_y=0.6,
                                         shift_x=0.9, leg_hw=(2.2, 1.35, 82.0)),
                                extent_source=True, code=["cesprites/props_cities.py"]),
     # the same pylon without cables, for a renderer that draws the cables of each bridge from its data (height_m,
@@ -327,10 +328,14 @@ MODELS.update({
                            octagon=dict(objects=("mill_base",), faces=(67.5, 112.5, 247.5, 292.5),
                                         rows=(2.3, 4.9), win=(0.8, 1.1), lit=0.5, frame="#e9e6de", reveal_m=0.25),
                            rotor=dict(objects=("mill_sails",), hub_z=19.8), code=["cesprites/props_buildings.py"]),
-    # town: the shop with flat, awning, sign (its light stays in the emission atlas: teal by day, cyan at night)
+    # town: the shop with flat, awning, sign (its light stays in the emission atlas: teal by day, cyan at night).
+    # AS4R (M9): an emblem on the sign board - a shopping bag between two bars, mirror-symmetric (mirror_left), lit at
+    # night (channel 14); the board's own light at 25 % (it was a white box at night)
     "props/building_shop": dict(builder="house", source="props/building_shop", kind="building", atlas=(1024, 1024),
                                 ppm_max=110.0, roughness=0.85, view="roadside", params={"allround": True}, ao=AO_TOWN,
-                                lod1=True, baked_lamps=("shop_sign",),
+                                lod1=True, baked_lamps=("shop_sign",), light_scale={"shop_sign": 0.25},
+                                sign=dict(logo="bag", face="front", u=(-4.4, 4.4), z=(3.75, 4.55), wall=-0.245,
+                                          panel=None, color="#f4f1ea", flood=1.0),
                                 openings=dict(reveal_color="#d9d4c8", sill_color="#c9c4b8",
                                               bars={"large": (0, [0.8])}),
                                 gutters=False),

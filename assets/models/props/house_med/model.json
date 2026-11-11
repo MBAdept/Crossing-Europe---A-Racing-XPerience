@@ -33,12 +33,12 @@
     ]
    }
   ],
-  "textures": {"albedo": "props/house_med/albedo.png"},
+  "textures": {"albedo": "props/house_med/albedo.png", "emit": "props/house_med/emit.png"},
   "roughness": 0.9,
   "auto_lod": false,
   "tags": ["prop", "building", "mirror_left"],
-  "bytes": 511848,
-  "hash": "75fd2750d6619e70f171676cb7a9b9f094cd07d3"
+  "bytes": 532267,
+  "hash": "ebfbe26a3516404f981c19045ddef763b0c3aa1b"
  },
  "sets": {
   "props/house_med": {"model": "props/house_med"}

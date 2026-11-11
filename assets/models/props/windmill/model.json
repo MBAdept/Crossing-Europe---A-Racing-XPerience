@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 100000,
-    "tris": 1928,
+    "tris": 1640,
     "parts": [
      {
       "node": "body",
@@ -21,12 +21,12 @@
     ]
    }
   ],
-  "textures": {"albedo": "props/windmill/albedo.png"},
+  "textures": {"albedo": "props/windmill/albedo.png", "emit": "props/windmill/emit.png"},
   "roughness": 0.9,
   "auto_lod": false,
   "tags": ["prop", "building"],
-  "bytes": 843835,
-  "hash": "a176ae3c2c323d06b3e826731b2c5f1519a54098"
+  "bytes": 842329,
+  "hash": "95ca7bfb4e009ed0d530ad36cfbe4d646ba03124"
  },
  "sets": {
   "props/windmill": {"model": "props/windmill"}
