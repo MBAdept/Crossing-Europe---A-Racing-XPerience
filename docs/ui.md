@@ -45,7 +45,8 @@ schräge Schaltflächen (StyleBoxFlat mit `skew`), Panels mit abgeschrägten Eck
 | `scripts/ui/ui_data.gd`, `sample_data.gd` | Datenzugriff mit Fallbacks, Beispieldaten für Debug-Bildschirme |
 | `scripts/ui/route_info.gd` | `RouteInfo`: Routenoption als ganze Route bis zum nächsten Ziel (Fortsetzung, Summen; rein, getestet) |
 | `scripts/ui/screens/*.gd` | ein Skript je Bildschirm (Basisklasse `UiScreen`) |
-| `scripts/ui/widgets/*.gd` | Hintergrund, Logo-Text, Tastenhinweise, Optionszeile, Laufschrift, Bestenliste, Namenseingabe, Bildschirmtastatur als Abfrage (`NameEntryBox`), Tageszeit-Vorschau, Fahrzeug-Showroom, Routenkarte, Ja/Nein-Abfrage (`ConfirmBox`), Titelbild mit Ken-Burns-Shader (`TitleBackdrop`), Milchglas-Karte (`GlassPanel`), Demo-Overlay (`AttractOverlay`), „Etappe wird geladen …“ (`LoadingOverlay`) |
+| `scripts/ui/widgets/*.gd` | Hintergrund, Logo-Text, Tastenhinweise, Optionszeile, Laufschrift, Bestenliste, Namenseingabe, Bildschirmtastatur als Abfrage (`NameEntryBox`), Tageszeit-Vorschau, Fahrzeug-Showroom (`CarShowcase`, in Modern mit `Showroom3D`), Routenkarte, Ja/Nein-Abfrage (`ConfirmBox`), Titelbild mit Ken-Burns-Shader (`TitleBackdrop`), Milchglas-Karte (`GlassPanel`), Demo-Overlay (`AttractOverlay`), „Etappe wird geladen …“ mit Fortschritt (`LoadingOverlay`), Leiste des Leistungstests (`BenchOverlay`) |
+| `scripts/ui/screens/graphics_choice_screen.gd`, `benchmark_screen.gd`, `widgets/showroom_3d.gd`, `scripts/race3d/benchmark.gd` | v0.8.0: Auswahl „Grafik wählen“, Leistungstest (Seiten und Läufer `ModernBenchmark`), 3D-Showroom – [grafik-modi.md](grafik-modi.md) |
 | `scripts/core/input_mode.gd` | `InputMode`: aktives Eingabegerät (Gamepad/Tastatur) für Tastenhinweise und Tutorial |
 | `scripts/audio/audio_manager.gd` | Autoload `AudioManager` (API §11) |
 | `scripts/audio/sfx_synth.gd` | `SfxSynth`: Klangsynthese (rein, getestet) |
@@ -59,6 +60,7 @@ schräge Schaltflächen (StyleBoxFlat mit `skew`), Panels mit abgeschrägten Eck
 ## Bildschirmablauf
 
 ```
+(erster Start von v0.8.0 ohne gespeicherten Grafikmodus, ohne Argumente: „Grafik wählen“, dann der Titel)
 Titel ─┬─ Rennen starten [Abfrage, falls gespeichert] → Rennen wählen → Fahrzeug → Startzeit ─┐
        ├─ Rennen fortsetzen (SaveGame.has_race(); offenes Etappenergebnis → Ergebnis) ───────┤
        │                                                          ▼
@@ -71,7 +73,8 @@ Titel ─┬─ Rennen starten [Abfrage, falls gespeichert] → Rennen wählen �
        │        └──────────────────────────────────────────────────────────┘
        ├─ Einzelne Etappe → Etappe/Richtung/Uhrzeit/Wetter → Fahrzeug → Etappenbildschirm → Rennen → Ergebnis
        ├─ Bestenlisten (Rennen + Etappen je Richtung, Filter je Fahrzeug)
-       ├─ Optionen (Lautstärken, Vollbild, Vibration, Spielername, Steuerung)
+       ├─ Optionen: ALLGEMEIN (Lautstärken, Klang, Musik im Rennen, Vibration, Spielername, Steuerung)
+       │            GRAFIK (Grafik, Vollbild, Qualität von Modern, Leistungstest) – LB/RB wechseln die Seite
        ├─ Beenden
        └─ 60 s ohne Eingabe: Demo (Attract-Modus, 30 s) ── Taste oder Ende ──► Titel
 ```
@@ -709,13 +712,20 @@ detektor, Abweichung von der echten Fortsetzung); Bilder `spectrogram.png`, `lou
 Spielstand), `apply_default_leaderboard_filter()`, `start_attract_stage(setup)` (Rennszene einer Demo: die
 Musik läuft weiter, die Signale gehen an `AttractMode`, nichts wird gespeichert); Felder `race`, `mode`, `draft`,
 `single`, `pending_leg`, `pending_weather`, `attract` (`AttractMode`); Konstante `PENDING_RESULT_KEY`.
+v0.8.0 ([grafik-modi.md](grafik-modi.md)): `start_benchmark(scene_ids = [], opts = {})` (Leistungstest; `opts`:
+`quit`, `seconds`, `out`), `bench_scene_ids(arg)`, `stage_running()`, Feld `benchmark` (laufender Test); beim Start
+`AudioManager.set_profile(Settings.sound())` und `set_race_music()`, bei `Settings.sound_profile_changed` erneut
+(nie während einer Etappe), `set_music_context()` neben jedem `set_music()`; verlässt das Spiel den Modus Modern
+(Optionen, Auswahl, Absturz-Frage, Ende eines Leistungstests in Arcade), gehen die Modell-Zwischenspeicher und die
+gemeinsamen Materialien – nur wenn etwas sie geladen hat, über die Pfade der Skripte.
 
 ## Debug und Screenshots
 
 ```bash
 tools/screenshot.sh /tmp/s --scene=res://scenes/main.tscn --screen=stage_screen --shot-times=1.5
 # --screen = title | race_select | vehicle | start_time | stage_select | route_choice | stage_screen |
-#            result | race_result | leaderboards | options | ferry
+#            result | race_result | leaderboards | options | ferry | graphics_choice | benchmark
+#   (v0.8.0, Schalter der neuen Bildschirme: grafik-modi.md, Abschnitt „Kommandozeile“)
 tools/screenshot.sh /tmp/h --stage=dev_testetappe --start-km=8 --autopilot --shot-times=3
 tools/screenshot.sh /tmp/p --stage=dev_testetappe --start-km=40 --no-countdown --pause-demo --shot-times=1.5
 ```

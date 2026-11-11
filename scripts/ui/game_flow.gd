@@ -344,6 +344,8 @@ func _on_benchmark_finished(result: Dictionary, quit_after: bool) -> void:
 		_bench_layer.queue_free()
 	_bench_layer = null
 	AudioManager.stop_all()
+	# the test drew Modern whatever the player's mode: in Arcade what it loaded goes again with the menus
+	_release_pending = true
 	if quit_after:
 		print("LEISTUNGSTEST ", JSON.stringify(result))
 		var ok := not (result.get("scenes", []) as Array).is_empty() and str(result.get("error", "")) == ""
