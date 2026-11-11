@@ -44,6 +44,7 @@ const POOL_AHEAD_M := 40.0          ## lamps are ranked by their distance from t
 const OMNI_ENERGY := 1.4
 const OMNI_REACH := 1.7             ## omni range as a multiple of the lamp's pool radius
 const LAMP_DROP_M := 8.0            ## height of a lamp above the road when it cannot be measured
+const WALL_POOL_M := 1.5            ## a wall lamp's pool lies at most this far in front of the wall
 const GLINT_MAX := 24
 const GLINT_RADIUS_M := 0.32        ## Arcade: _glow_fixture radius 0.35 .. 0.4 m
 const GLINT_GAIN := 1.5
@@ -343,7 +344,7 @@ func _update_pools(view: Dictionary, lamps_on: float, lights: float, ambient: Co
 		if is_inf(dist[i]):
 			continue
 		var e: Dictionary = _ranked[i][1]
-		var centre := pos[i] + dirs[i] * (float(e["drop"]) / maxf(-dirs[i].y, 0.3))
+		var centre := pool_centre(pos[i], dirs[i], float(e["drop"]))
 		# the farthest lamp fades before the next one takes its place: no light pops on or off
 		var fade := 1.0 if is_inf(next_d) else clampf((next_d - dist[i]) / maxf(next_d * 0.15, 1.0), 0.0, 1.0)
 		var light := display_to_light(POOL_LEVEL * float(e["energy"]) * lamps_on * fade, e["color"], ambient)
@@ -389,6 +390,17 @@ func _update_pools(view: Dictionary, lamps_on: float, lights: float, ambient: Co
 				break
 	_pool_traffic = traffic
 	_pool_count = n
+
+
+## Centre of a lamp's pool on the ground: where its axis meets the ground for a lamp that looks down; for a wall lamp
+## (it looks sideways) the ground just in front of the wall below it – its axis would meet the ground far away.
+static func pool_centre(lamp_pos: Vector3, lamp_dir: Vector3, drop: float) -> Vector3:
+	if -lamp_dir.y >= 0.5:
+		return lamp_pos + lamp_dir * (drop / -lamp_dir.y)
+	var flat := Vector3(lamp_dir.x, 0.0, lamp_dir.z)
+	if flat.length_squared() > 1.0e-6:
+		flat = flat.normalized()
+	return lamp_pos + flat * minf(drop, WALL_POOL_M) - Vector3(0.0, drop, 0.0)
 
 
 ## Height of a lamp above the road beside it: the nearest row of its chunk (the chunk node above `parent` is named

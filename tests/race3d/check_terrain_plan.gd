@@ -13,11 +13,10 @@ extends SceneTree
 ##                         folded over itself
 ##   terrain_plan_tips     strips of the same bend (same side, at most SAME_BEND_ROWS rows apart; neighbours share
 ##                         an edge and are not tested): where the curvature changes along a bend, the tips of the
-##                         ribbon on its inside can touch – the kernel cuts every row by its OWN curvature
-##                         (TerrainProfile: inside_bend_factor x radius), not by the sharpest one nearby. Counted
-##                         and bounded here (TIP_LIMIT_M); with STRICT every such overlap fails. Measured with the
-##                         kernel of wave 0: 71 pairs at 8 of 40 positions, at most 1.83 m; with the cut taken from
-##                         TerrainProfile._kappa() (three lines, tried, not part of this package): none.
+##                         ribbon on its inside could touch when the kernel cut every row by its OWN curvature
+##                         only (kernel of wave 0: 71 pairs at 8 of 40 positions, at most 1.83 m). Since the
+##                         assembly of M1 TerrainProfile also cuts by the sharpest curvature of the side nearby
+##                         (_kappa()): none; with STRICT every such overlap fails.
 ##   terrain_plan_budget   every chunk stays within 1,100 terrain triangles
 ## --dump writes <folder>/plan_<id>.json for T1–T4 (rings, road, props with their drops, far ground) – the data of
 ## the top views (drawn by a script outside the repository). Exit code 1 when a check fails.
@@ -32,7 +31,7 @@ const VISIBILITY_M := 900.0
 const OVERLAP_TOLERANCE_M := 0.05
 const SAME_BEND_ROWS := 120        ## 360 m of road: closer rows of one side belong to the same bend
 const TIP_LIMIT_M := 3.0           ## deepest overlap of two ribbon tips of one bend that is still tolerated
-const STRICT := false              ## true once the kernel cuts the inside ribbon by the curvature nearby
+const STRICT := true               ## the kernel cuts the inside ribbon also by the sharpest curvature nearby (RINT-A)
 const BUDGET_TRIANGLES := 1100
 const CELL_M := 160.0
 ## Terrain reference positions (contract §4.9.2): direction name, km.
@@ -119,7 +118,7 @@ func _initialize() -> void:
 		"terrain_plan_overlap", "OK    " if ok_overlap else "FEHLER", windows, names.size(), chunks, strips, pairs, overlaps, overlaps_same_chunk,
 		folds, "" if worst <= 0.0 else " (tiefste %.2f m bei %s)" % [worst, worst_at], narrowest])
 	var ok_tips := tip_worst <= TIP_LIMIT_M and (tips == 0 or not STRICT)
-	print("CHECK %-22s %s  %d Paare von Bandspitzen derselben Kurveninnenseite berühren sich an %d von %d Kamerapositionen, tiefste Überlappung %.2f m (Grenze %.1f m%s) – der Kern kürzt jede Reihe nach ihrer eigenen Krümmung" % [
+	print("CHECK %-22s %s  %d Paare von Bandspitzen derselben Kurveninnenseite berühren sich an %d von %d Kamerapositionen, tiefste Überlappung %.2f m (Grenze %.1f m%s) – der Kern kürzt jede Reihe auch nach der stärksten Krümmung ihrer Seite in der Nähe" % [
 		"terrain_plan_tips", "OK    " if ok_tips else "FEHLER", tips, tip_windows, windows, tip_worst, TIP_LIMIT_M, ", streng: keine erlaubt" if STRICT else ""])
 	var ok_budget := max_tris <= BUDGET_TRIANGLES and chunks > 0
 	print("CHECK %-22s %s  höchstens %d Geländedreiecke je Stück (Budget %d)" % ["terrain_plan_budget", "OK    " if ok_budget else "FEHLER",

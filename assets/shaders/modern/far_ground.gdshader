@@ -8,10 +8,16 @@
 //   UV.x   0 = plane, 1 = rim
 //   debug_flat   1: flat signal colours instead of the ground (--gfx-debug=far: cyan plane, yellow rim – the terrain
 //                cover check counts them)
+// Light pools and the player's low beam as on the terrain (inc/pools.gdshaderinc, inc/headlight.gdshaderinc, grass
+// reflection 0.45): where the plane shows through a gap of the ribbons near the car it is lit like the ground
+// around it. The sectors are on render layer 2 like road and terrain; the material is registered with
+// ModernRenderer.add_pool_material().
 // Load only after ModernMaterials.ensure_globals() – never with preload().
 shader_type spatial;
 render_mode cull_disabled, depth_draw_opaque;
 
+#include "res://assets/shaders/modern/inc/pools.gdshaderinc"
+#include "res://assets/shaders/modern/inc/headlight.gdshaderinc"
 #include "res://assets/shaders/modern/inc/ground.gdshaderinc"
 
 uniform float debug_flat = 0.0;
@@ -38,6 +44,7 @@ void fragment() {
 	METALLIC = 0.0;
 	// plane and rim are level ground as far as the light is concerned
 	NORMAL = normalize((VIEW_MATRIX * vec4(0.0, 1.0, 0.0, 0.0)).xyz);
+	EMISSION = ce_pools_encode(ce_pools_to_lin(ALBEDO) * (ce_pools(v_world) * 0.45 + ce_headlight_light(v_world, 0.45)));
 	if (debug_flat > 0.5) {
 		ALBEDO = vec3(0.0);
 		EMISSION = mix(vec3(0.0, 1.0, 1.0), vec3(1.0, 1.0, 0.0), step(0.5, UV.x));

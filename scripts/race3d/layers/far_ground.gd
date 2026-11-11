@@ -26,6 +26,7 @@ const STEPS := 4                   ## edges of a sector along the rim
 const SAMPLE_STEP := 4             ## rows between two samples of the road height
 const FOLLOW_SLOPE := 0.35         ## the plane's height changes by at most this much per metre driven
 const SNAP_M := 150.0              ## a camera jump beyond this snaps the height
+const GROUND_LAYERS := 2           ## render layer of ground meshes (builders/road.gd): no positional light reaches it
 
 var far_y := 0.0                   ## origin-relative height of the plane
 var material: ShaderMaterial
@@ -69,6 +70,8 @@ func setup(renderer: Node) -> void:
 	var flags: Variant = renderer.get("debug_flags")
 	if flags is Array and (flags as Array).has("far"):
 		material.set_shader_parameter("debug_flat", 1.0)
+	if renderer.has_method(&"add_pool_material"):
+		renderer.call(&"add_pool_material", material)      # light pools and the low beam like the terrain
 	_root = Node3D.new()
 	_root.name = "FarGround"
 	_root.visible = false
@@ -79,6 +82,7 @@ func setup(renderer: Node) -> void:
 		mi.mesh = mesh
 		mi.material_override = material
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.layers = GROUND_LAYERS
 		mi.rotation.y = TAU * float(i) / float(SECTORS)
 		_root.add_child(mi)
 	var world: Variant = renderer.get("world")

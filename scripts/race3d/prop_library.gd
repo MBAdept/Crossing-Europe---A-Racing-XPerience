@@ -46,6 +46,14 @@ const STANDIN_SHADOW_CUT := 0.97
 ## Light pool of a street light on the ground: Arcade's lamp pools (RoadRenderer._collect_static_lights).
 const LAMP_RANGE_M := 9.0
 const LAMP_ENERGY := 0.55
+## Lamps of a model that look down (street lights, the canopy of a fuel station) light a pool of LAMP_RANGE_M; a
+## group of them shares about the light of Arcade's station pool (0.8 at its centre: RoadRenderer._add_light):
+## each gets min(LAMP_ENERGY, GROUP_ENERGY / count). Wall lamps (looking sideways, low) light a small pool in front of
+## the wall; lamps high up (aviation lights of a wind turbine) light nothing on the ground – they only glow.
+const GROUP_ENERGY := 1.6
+const WALL_RANGE_M := 5.0
+const WALL_ENERGY := 0.4
+const BEACON_MIN_H_M := 25.0
 
 var sets: Dictionary = {}
 var models: Dictionary = {}
@@ -276,9 +284,31 @@ func _add_model(model_id: String) -> void:
 			"dir": Vector3(float(dir[0]), float(dir[1]), float(dir[2])).normalized(), "role": str(d.get("role", "lights")),
 			"color": Color(str(d.get("color", "#fff0cf"))), "size": float(d.get("size", 0.3)), "range": LAMP_RANGE_M,
 			"energy": LAMP_ENERGY})
+	lamp_pools(lamps)
 	var size: Array = imp.get("size_m", [1.0, 1.0])
 	models[model_id] = {"reps": reps, "caster": m.has("shadow"), "lamps": lamps, "imp_w": float(size[0]) if size.size() >= 2 else 1.0,
 		"imp_h": float(size[1]) if size.size() >= 2 else 1.0, "imp_ax": float(imp.get("anchor_x", 0.5))}
+
+
+## Range and energy of the light pool of every lamp of one model (see GROUP_ENERGY): lamps that look down share
+## the light of a group, wall lamps get a small pool, lamps high up none (they still glow in the flare layer).
+static func lamp_pools(lamps: Array) -> void:
+	var down := 0
+	for l: Dictionary in lamps:
+		if (l["dir"] as Vector3).y < -0.5:
+			down += 1
+	for l: Dictionary in lamps:
+		var dir: Vector3 = l["dir"]
+		var pos: Vector3 = l["pos"]
+		if pos.y >= BEACON_MIN_H_M:
+			l["range"] = 0.0
+			l["energy"] = LAMP_ENERGY
+		elif dir.y < -0.5:
+			l["range"] = LAMP_RANGE_M
+			l["energy"] = minf(LAMP_ENERGY, GROUP_ENERGY / float(maxi(down, 1)))
+		else:
+			l["range"] = WALL_RANGE_M
+			l["energy"] = WALL_ENERGY
 
 
 # --- sprite sheets --------------------------------------------------------------------------------------------------

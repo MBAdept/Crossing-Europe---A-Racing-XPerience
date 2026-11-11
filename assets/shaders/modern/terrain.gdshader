@@ -14,6 +14,10 @@
 //                     the ribbon without a seam; the skirt below the outer edge shows the same tone
 //   water             (bridges) a smooth surface in the water colour of the scenery
 //   light pools       lamps and the traffic's headlights on the ground: inc/pools.gdshaderinc
+//   low beam          the player's headlight cone on the ground (inc/headlight.gdshaderinc), like the road: the
+//                     mesh is on render layer 2 (builders/road.gd GROUND_LAYERS), the real spots of the lights
+//                     layer leave it out. Arcade's reflection factors: grass 0.45, the gravel strip 0.6, paved
+//                     ground 0.8 (RoadRenderer._draw_ground / _shade)
 // Every pattern is anti-aliased by the footprint of the pixel (inc/ground.gdshaderinc).
 // Vertex data (builders/terrain.gd):
 //   COLOR.rgb   mean ground tone, sRGB (the mean of the scenery's two grass tones, the outskirts -> centre blend of
@@ -28,6 +32,7 @@ shader_type spatial;
 render_mode cull_back, depth_draw_opaque;
 
 #include "res://assets/shaders/modern/inc/pools.gdshaderinc"
+#include "res://assets/shaders/modern/inc/headlight.gdshaderinc"
 #include "res://assets/shaders/modern/inc/ground.gdshaderinc"
 
 uniform float detail = 1.0;                   // strength of everything painted here (0 = the flat vertex tones)
@@ -105,5 +110,8 @@ void fragment() {
 	SPECULAR = mix(0.2, 0.3, water);
 	METALLIC = 0.0;
 	NORMAL = normalize(mix(NORMAL, (VIEW_MATRIX * vec4(0.0, 1.0, 0.0, 0.0)).xyz, fade_far * 0.85));
-	EMISSION = ce_pools_emission(ALBEDO, v_world);
+	// light pools and the low beam on top of the other light (Arcade adds them in display values)
+	float reflect = mix(mix(0.8, 0.45, nature) + 0.15 * gravel, 0.45, water);
+	vec3 extra = ce_pools(v_world) * reflect + ce_headlight_light(v_world, reflect);
+	EMISSION = ce_pools_encode(ce_pools_to_lin(ALBEDO) * extra);
 }

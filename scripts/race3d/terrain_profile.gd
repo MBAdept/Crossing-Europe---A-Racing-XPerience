@@ -275,6 +275,11 @@ func _compute(k: int, floor_abs: float) -> void:
 		var k_in := maxf(maxf(side * k_ahead, side * k_behind), 0.0)
 		if k_in > 1.0e-6:
 			lim = minf(lim, inside_bend_factor / k_in - e)
+		# also by the sharpest curvature of this side within the corridor window: where the curvature changes along
+		# a bend, rows clamped by their own curvature alone let the inside tips of neighbouring rows overlap
+		var k_near := kap.x if si == 0 else kap.y
+		if k_near > 1.0e-6:
+			lim = minf(lim, inside_bend_factor / k_near - e)
 		lim = maxf(lim, min_width_m)
 		# sight corridor beyond the shoulder
 		var k_c := kap.x if si == 0 else kap.y

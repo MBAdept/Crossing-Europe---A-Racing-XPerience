@@ -18,7 +18,9 @@ extends ChunkBuilder
 ## scenery (patch colour and share, vegetation or paved ground: GroundLook.style) and the fade of the outer ring into
 ## the far ground.
 ## One shared ShaderMaterial for every chunk; it is registered for the light pools (ModernRenderer.add_pool_material)
-## and follows the far ground and the floating origin in update() / rebased().
+## and follows the far ground and the floating origin in update() / rebased(). Like the road the mesh is on render
+## layer 2 (GROUND_LAYERS): the real spot and omni lights of the lights layer leave the ground out, the shader draws
+## the player's low beam and the lamp and traffic pools analytically (inc/headlight.gdshaderinc, inc/pools.gdshaderinc).
 ## build() runs on worker threads: it reads the ctx snapshot arrays and the plain input of collect() only.
 ## Owner: package terrain / props / far ground.
 
@@ -28,6 +30,7 @@ const BAND_FADE_FROM_M := 6.0      ## the two grass tones alternate up to here b
 const BAND_FADE_TO_M := 40.0       ## … and have become their mean here
 const CITY_BAND_SHARE := 0.35      ## inside the City Limits the bands keep this much of their contrast
 const WATER_STYLE := -1.0          ## CUSTOM0.a of a vertex on the water
+const GROUND_LAYERS := 2           ## render layer of ground meshes (builders/road.gd): no positional light reaches it
 
 var material: ShaderMaterial       ## the one terrain material (null until the first commit)
 var far_look: Dictionary = {}      ## GroundLook.far_look() of the last update()
@@ -228,6 +231,7 @@ func commit(_ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 	mi.mesh = mesh_of(part)
 	mi.material_override = ground_material()
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if _cast else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.layers = GROUND_LAYERS
 	parent.add_child(mi)
 
 
@@ -320,6 +324,7 @@ func warmup_nodes() -> Array:
 	mi.mesh = plane
 	mi.material_override = ground_material()
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.layers = GROUND_LAYERS
 	return [mi]
 
 

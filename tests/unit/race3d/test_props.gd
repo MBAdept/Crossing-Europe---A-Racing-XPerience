@@ -148,12 +148,23 @@ func test_library_resolves_every_prop_set() -> void:
 	assert_true(bool((lib.sets["props/farmhouse"] as Dictionary)["mirror_left"]), "Bauernhaus wird links gespiegelt")
 	var lamp_list: Array = (lib.models["props/streetlight"] as Dictionary)["lamps"]
 	assert_eq(lamp_list.size(), 1, "Laterne: ein Lichtanker mit Richtung")
-	assert_true((lib.models["props/farmhouse"] as Dictionary)["lamps"].is_empty(), "Fensterlicht des Bauernhauses steckt im Atlas: kein Anker")
+	var farm_lamps: Array = (lib.models["props/farmhouse"] as Dictionary)["lamps"]
+	assert_eq(farm_lamps.size(), 1, "Bauernhaus: eine Wandlampe mit Anker (die Fenster leuchten über Kanal 12, ohne Anker)")
+	assert_near(float(farm_lamps[0]["range"]), PropLibrary.WALL_RANGE_M, 0.001, "Wandlampe: kleiner Lichtkegel vor der Wand")
+	assert_near(float(lamp_list[0]["range"]), PropLibrary.LAMP_RANGE_M, 0.001, "Laterne: Kegel wie Arcades Laternen")
+	assert_near(float(lamp_list[0]["energy"]), PropLibrary.LAMP_ENERGY, 0.001, "… und deren Stärke")
+	var station: Array = (lib.models["props/fuel_station"] as Dictionary)["lamps"]
+	assert_eq(station.size(), 8, "Tankstelle: acht Lampen unter dem Dach")
+	assert_near(float(station[0]["energy"]), PropLibrary.GROUP_ENERGY / 8.0, 0.001, "… die sich das Licht von Arcades Tankstellenkegel teilen")
+	for b: Dictionary in (lib.models["props/wind_turbine"] as Dictionary)["lamps"]:
+		assert_near(float(b["range"]), 0.0, 0.001, "Flugbefeuerung des Windrads: kein Lichtkegel am Boden, nur Schein")
 	assert_eq(lib.mesh_parts("props/tree_oak", "lod0").size(), 2, "Eiche lod0: Netz und Schattenwerfer")
 	assert_eq(lib.mesh_parts("props/tree_oak", PropLibrary.IMPOSTOR).size(), 1, "Eiche: Fernbild als Billboard")
 	var birch: Dictionary = lib.sets["props/tree_birch"]
-	assert_near(float(birch["w"]), 7.4396, 0.001, "Vertretung: Zellbreite in Metern aus dem Sprite-Manifest")
+	assert_near(float(birch["w"]), 7.4396, 0.001, "Zellbreite in Metern aus dem Sprite-Manifest")
 	assert_near(float(birch["h"]), 7.4396 * 320.0 / 176.0, 0.001, "… und Zellhöhe")
+	assert_eq((birch["variants"] as Array).size(), 2, "Birke: zwei Samen-Varianten (AS1b)")
+	assert_eq(int((lib.sets["props/tree_beech"] as Dictionary)["kind"]), PropLibrary.SPRITE, "Buche: noch eine Vertretung")
 	assert_eq(str((lib.sets["props/wind_turbine"] as Dictionary)["cls"]), "other", "Windrad: kein Baum, kein Haus")
 	assert_near(float((lib.sets["props/wind_turbine"] as Dictionary)["blob"]), 0.0, 0.001, "hohe Bauwerke ohne Kontaktschatten")
 	assert_eq(int((lib.sets["unknown/thing"] if lib.sets.has("unknown/thing") else {"kind": PropLibrary.NONE})["kind"]), PropLibrary.NONE, "unbekannt")
@@ -167,13 +178,13 @@ func test_placement_drops_and_lamps() -> void:
 	_put(t, 195, {"kind": "prop", "set": "props/farmhouse", "side": 1, "x": _x(t, 1, 40.0), "scale": 1.0, "align": "edge"})
 	_put(t, 196, {"kind": "prop", "set": "props/farmhouse", "side": -1, "x": _x(t, -1, 40.0), "scale": 0.9, "align": "edge"})
 	_put(t, 198, {"kind": "prop", "set": "props/tree_oak", "side": 1, "x": _x(t, 1, 12.0), "scale": 1.1})
-	_put(t, 199, {"kind": "prop", "set": "props/tree_birch", "side": -1, "x": _x(t, -1, 9.0), "scale": 1.0, "mirror": true, "tint": "#ff8080"})
-	_put(t, 200, {"kind": "prop", "set": "props/tree_birch", "side": 1, "x": _x(t, 1, 9.0), "scale": 1.2})
+	_put(t, 199, {"kind": "prop", "set": "props/tree_beech", "side": -1, "x": _x(t, -1, 9.0), "scale": 1.0, "mirror": true, "tint": "#ff8080"})
+	_put(t, 200, {"kind": "prop", "set": "props/tree_beech", "side": 1, "x": _x(t, 1, 9.0), "scale": 1.2})
 	_put(t, 201, {"kind": "object", "obj": "streetlight", "side": 1, "x": _x(t, 1, -0.6), "scale": 1.0})
 	_put(t, 202, {"kind": "object", "obj": "streetlight", "side": -1, "x": _x(t, -1, -0.6), "scale": 1.0})
 	_put(t, 203, {"kind": "prop", "set": "props/tree_oak", "side": 1, "x": _x(t, 1, 700.0), "scale": 1.0})        # beyond the ribbon
 	_put(t, 204, {"kind": "prop", "set": "props/does_not_exist", "side": 1, "x": _x(t, 1, 5.0), "scale": 1.0})    # no such set
-	_put(t, 205, {"kind": "prop", "set": "props/does_not_exist", "fallback": "props/tree_birch", "fallback_scale": 0.5, "side": 1,
+	_put(t, 205, {"kind": "prop", "set": "props/does_not_exist", "fallback": "props/tree_beech", "fallback_scale": 0.5, "side": 1,
 		"x": _x(t, 1, 6.0), "scale": 1.0})
 	_put(t, 206, {"kind": "sign", "sign": "limit", "side": 1, "x": _x(t, 1, 1.0), "scale": 1.0})                 # not a prop
 	var fake := FakeRenderer.new()
@@ -184,8 +195,10 @@ func test_placement_drops_and_lamps() -> void:
 	assert_eq(part["dropped"], {"ribbon": 1, "corridor": 0, "missing": 1, "density": 0}, "ausgelassen: jenseits des Bands, Set fehlt")
 	var groups: Dictionary = part["groups"]
 	assert_true(groups.has("m|props/farmhouse|0") and groups.has("m|props/farmhouse|1"), "Bauernhaus: rechts normal, links gespiegelt")
-	assert_true(groups.has("s|props/tree_birch|0") and groups.has("s|props/tree_birch|1"), "Birke: Vertretung, links mit Regel-Spiegelung")
-	assert_true(groups.has("m|props/tree_oak|0") and not groups.has("m|props/tree_oak|1"), "Eiche: nie gespiegelt")
+	assert_true(groups.has("s|props/tree_beech|0") and groups.has("s|props/tree_beech|1"), "Buche: Vertretung, links mit Regel-Spiegelung")
+	var oak_id := Props.chunk_variant(6, "props/tree_oak", (b.library.sets["props/tree_oak"] as Dictionary)["variants"])
+	assert_true(oak_id.begins_with("props/tree_oak"), "Eiche: eine ihrer Varianten (%s)" % oak_id)
+	assert_true(groups.has("m|%s|0" % oak_id) and not groups.has("m|%s|1" % oak_id), "Eiche: nie gespiegelt")
 	assert_true(groups.has("m|props/streetlight|0") and groups.has("m|props/streetlight|1"), "Laternen beider Seiten")
 	# the farmhouse on the right: like a vehicle on the ground, its near edge at x
 	var e_farm: Dictionary = b.library.sets["props/farmhouse"]
@@ -202,41 +215,43 @@ func test_placement_drops_and_lamps() -> void:
 	var want := ctx.frame(zl, xl, ctx.ground(zl, xl)).scaled_local(Vector3(0.9, 0.9, 0.9)) * node
 	assert_true(_same(node * trl, want), "Bauernhaus links: gespiegelt, 0,9-fach, auf dem Boden")
 	# the oak: upright, scaled, turned by its stable yaw
-	var tro := _transforms((groups["m|props/tree_oak|0"] as Dictionary)["buf"], 12)[0]
+	var tro := _transforms((groups["m|%s|0" % oak_id] as Dictionary)["buf"], 12)[0]
 	assert_near(tro.basis.y.y, 1.1, 1.0e-4, "Eiche steht aufrecht und ist 1,1-fach")
 	assert_near(tro.basis.x.length(), 1.1, 1.0e-4, "gleichmäßig skaliert")
 	var zo := 198.0 * 3.0 + 1.0
 	assert_near(tro.origin.distance_to(ctx.local(zo, _x(t, 1, 12.0), ctx.ground(zo, _x(t, 1, 12.0)))), 0.0, 1.0e-3, "Eiche auf dem Boden")
 	# stand-ins: origin on the ground, uniform scale, instance colour = tint; the left one mirrored in the node
-	var bl: PackedFloat32Array = (groups["s|props/tree_birch|1"] as Dictionary)["buf"]
+	var bl: PackedFloat32Array = (groups["s|props/tree_beech|1"] as Dictionary)["buf"]
 	assert_eq(bl.size(), 16, "Vertretung: Transformation und Farbe")
 	assert_near(bl[12], 1.0, 0.01, "Tönung rot")
 	assert_near(bl[13], 0.5, 0.01, "Tönung grün")
 	var zb := 199.0 * 3.0 + 1.0
 	var pb := ctx.local(zb, _x(t, -1, 9.0), ctx.ground(zb, _x(t, -1, 9.0)))
 	assert_near((node * _transforms(bl, 16)[0]).origin.distance_to(pb), 0.0, 1.0e-3, "gespiegelte Vertretung steht an ihrem Ort")
-	var br: PackedFloat32Array = (groups["s|props/tree_birch|0"] as Dictionary)["buf"]
-	assert_eq(br.size(), 32, "rechts zwei Birken (eine als Ersatz-Set)")
+	var br: PackedFloat32Array = (groups["s|props/tree_beech|0"] as Dictionary)["buf"]
+	assert_eq(br.size(), 32, "rechts zwei Buchen (eine als Ersatz-Set)")
 	assert_near(_transforms(br, 16)[1].basis.x.x, 0.5, 1.0e-4, "Ersatz-Set mit fallback_scale")
-	# lamps of the two street lights, in the chunk's coordinates
+	# lamps: the wall lamps of the two farmhouses (segments 195, 196), then the two street lights, in chunk coordinates
 	var lamps: Array = part["lamps"]
-	assert_eq(lamps.size(), 2, "zwei Lampen")
+	assert_eq(lamps.size(), 4, "vier Lampen: zwei Wandlampen der Bauernhäuser, zwei Laternen")
+	assert_near(float(lamps[0]["range"]), PropLibrary.WALL_RANGE_M, 0.001, "Wandlampe des Bauernhauses")
 	var anchor: Vector3 = (b.library.models["props/streetlight"] as Dictionary)["lamps"][0]["pos"]
 	var zs := 201.0 * 3.0 + 1.0
 	var fr := ctx.frame(zs, _x(t, 1, -0.6), ctx.ground(zs, _x(t, 1, -0.6)))
-	assert_near((lamps[0]["pos"] as Vector3).distance_to(fr * anchor), 0.0, 1.0e-3, "Lampe rechts am Lichtanker des Modells")
-	assert_true(absf((lamps[0]["pos"] as Vector3).x) < absf(fr.origin.x), "der Ausleger zeigt zur Straße")
-	assert_true(absf((lamps[1]["pos"] as Vector3).x) < absf(_x(t, -1, -0.6)), "links ebenfalls (gespiegelt)")
-	assert_near((lamps[1]["dir"] as Vector3).length(), 1.0, 1.0e-4, "Richtung normiert")
-	assert_near(float(lamps[0]["range"]), PropLibrary.LAMP_RANGE_M, 0.001, "Lichtkegel wie Arcades Laternen")
-	assert_true(lamps[0].has("color") and lamps[0].has("size") and lamps[0].has("energy") and str(lamps[0]["role"]) == "lights", "Felder aus A-7")
-	# contact shadows: farmhouses, oak, birches – not the street lights
+	assert_near((lamps[2]["pos"] as Vector3).distance_to(fr * anchor), 0.0, 1.0e-3, "Lampe rechts am Lichtanker des Modells")
+	assert_true(absf((lamps[2]["pos"] as Vector3).x) < absf(fr.origin.x), "der Ausleger zeigt zur Straße")
+	assert_true(absf((lamps[3]["pos"] as Vector3).x) < absf(_x(t, -1, -0.6)), "links ebenfalls (gespiegelt)")
+	assert_near((lamps[3]["dir"] as Vector3).length(), 1.0, 1.0e-4, "Richtung normiert")
+	assert_true((lamps[2]["dir"] as Vector3).y < -0.9, "die Laterne leuchtet nach unten")
+	assert_near(float(lamps[2]["range"]), PropLibrary.LAMP_RANGE_M, 0.001, "Lichtkegel wie Arcades Laternen")
+	assert_true(lamps[2].has("color") and lamps[2].has("size") and lamps[2].has("energy") and str(lamps[2]["role"]) == "lights", "Felder aus A-7")
+	# contact shadows: farmhouses, oak, beeches – not the street lights
 	assert_eq(int(part["blob_n"]), 6, "Kontaktschatten")
 	# commit: nodes, mirrored nodes, lamps at the renderer, draw calls per set
 	var parent := Node3D.new()
 	b.commit(ctx, part, parent)
 	var holder := parent.get_child(0) as Node3D
-	assert_eq(fake.lamps.size(), 2, "add_lamps() über ctx.services")
+	assert_eq(fake.lamps.size(), 4, "add_lamps() über ctx.services")
 	assert_true(fake.parents[0] == holder, "… mit dem Requisiten-Knoten des Stücks als parent")
 	for cam: float in [600.0, 480.0, 250.0]:
 		fake.view["camera_z"] = cam
@@ -249,12 +264,15 @@ func test_placement_drops_and_lamps() -> void:
 				continue
 			var key := mmi.multimesh.mesh.resource_path if mmi.multimesh.mesh.resource_path != "" else str(mmi.multimesh.mesh.get_instance_id())
 			key = key.get_base_dir() if key.begins_with("res://") else key
+			# per side: a set placed on both roadsides needs a second, mirrored node (D24), and a model with two
+			# surfaces (a house: baked walls + vpbr panes, AS1b) then costs 2 x 2 – the budget holds per set, chunk and side
+			key += " (gespiegelt)" if mmi.basis.determinant() < 0.0 else ""
 			calls[key] = int(calls.get(key, 0)) + mmi.multimesh.mesh.get_surface_count()
 			if mmi.basis.determinant() < 0.0:
 				mirrored_nodes += 1
 		for key: String in calls:
-			assert_true(int(calls[key]) <= DRAW_CALLS_PER_SET, "höchstens %d Zeichenaufrufe je Set und Stück (%s: %d, Kamera %.0f)" % [DRAW_CALLS_PER_SET, key, calls[key], cam])
-		assert_eq(mirrored_nodes, 3, "drei gespiegelte Knoten (Bauernhaus, Birke, Laterne links)")
+			assert_true(int(calls[key]) <= DRAW_CALLS_PER_SET, "höchstens %d Zeichenaufrufe je Set, Stück und Seite (%s: %d, Kamera %.0f)" % [DRAW_CALLS_PER_SET, key, calls[key], cam])
+		assert_eq(mirrored_nodes, 3, "drei gespiegelte Knoten (Bauernhaus, Buche, Laterne links)")
 	parent.free()
 	_cleanup()
 
@@ -333,6 +351,21 @@ func test_bend_corridor_and_density() -> void:
 			assert_true(float(e[5]) * float((b.library.sets["props/tree_birch"] as Dictionary)["height"]) <= 0.5 + 1.0e-3, "Bodenbewuchs höchstens 0,5 m")
 	assert_eq(small, 8, "mit Liste bleiben die acht Sets innen als Bodenbewuchs")
 	assert_eq(int((covered["dropped"] as Dictionary)["corridor"]), 2, "… Haus und Parkbaum nicht")
+	# A-3 with the shipped list (props/cover_bush, props/cover_grass): each dropped plant becomes ground cover
+	var shipped: Dictionary = b.collect(ctx)
+	assert_eq(shipped["cover"], ["props/cover_bush", "props/cover_grass"], "Bodendecker aus graphics.modern.props.bend_cover")
+	var part_c := b.build(ctx, shipped)
+	var pieces: Array = part_c["cover_list"]
+	assert_eq(int((part_c["dropped"] as Dictionary)["corridor"]), 10, "die Auslassungen bleiben gezählt")
+	assert_true(pieces.size() >= 9 * 2 and pieces.size() <= 9 * Props.COVER_PER_TREE, "drei Stücke je weggelassenem Baum (%d)" % pieces.size())
+	for e: Array in pieces:
+		var cid := str(e[2])
+		assert_true(cid == "props/cover_bush" or cid == "props/cover_grass", "Bodendecker-Set (%s)" % cid)
+		assert_true(float(e[5]) * float((b.library.sets[cid] as Dictionary)["height"]) <= 0.5 + 1.0e-3, "höchstens 0,5 m hoch")
+		var row := clampi(int(floor(ctx.row_of(float(e[4])))), 0, ctx.row_count() - 1)
+		assert_true(absf(float(e[3])) - ctx.shoulder_edge(row, 1) >= Props.COVER_MIN_BEYOND_M - 1.0e-3, "nicht auf dem Bankett")
+		assert_true(ctx.in_bend_corridor(float(e[4]), float(e[3])), "im Sichtkorridor, wo die Pflanze stand")
+	assert_eq((part_c["list"] as Array).size(), (part["list"] as Array).size(), "die Streckenliste bleibt dieselbe")
 	# "Details: Niedrig" thins small decoration only
 	var t2 := _track()
 	for i in 30:
