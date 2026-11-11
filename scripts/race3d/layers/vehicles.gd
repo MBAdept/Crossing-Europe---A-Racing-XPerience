@@ -31,6 +31,10 @@ const ROLL_PIVOT_Y := 0.38          ## the body rolls about this height
 const STEER_DEG := 7.0              ## player's front wheels: steering input share (deg at full lock)
 const FLOATS_PER_FLARE := 20        ## MultiMesh layout: 12 transform + 4 colour + 4 custom
 const FLOATS_PER_SHADOW := 16       ## 12 transform + 4 custom
+## The race look of the shared vehicle materials (the shaders' defaults are neutral – the look of the vertex format
+## alone, what the contact sheet shows): [class, uniform, value].
+const LOOK: Array = [["vpbr", "env_energy", 1.6], ["vpbr", "paint_base", 0.9], ["vpbr", "flake_strength", 0.6],
+	["glass", "env_energy", 2.2]]
 
 ## A car of the view and its nodes (pooled per set).
 class Car:
@@ -131,6 +135,9 @@ func setup(renderer: Node) -> void:
 	_roll_tau = float(rd.get("player_roll_smooth_s", 0.2))
 	_pl_k = {"steer_deg": float(rd.get("player_steer_deg", 3.0)), "lateral_gain": float(rd.get("player_lateral_gain", 1.0)),
 		"understeer_deg": float(rd.get("player_understeer_deg", 6.0)), "max_deg": float(rd.get("player_yaw_max_deg", 20.0))}
+	for l: Array in LOOK:
+		_mats.material(str(l[0]))                     # the shared class material exists before it is tuned
+		_mats.set_class_parameter(str(l[0]), str(l[1]), l[2])
 	_shadow_mm = MultiMesh.new()
 	_shadow_mm.transform_format = MultiMesh.TRANSFORM_3D
 	_shadow_mm.use_custom_data = true

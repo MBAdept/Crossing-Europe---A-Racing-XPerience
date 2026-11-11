@@ -56,11 +56,14 @@ uniform vec4 env_ground = vec4(0.27, 0.28, 0.29, 1.0);
 uniform vec4 env_tunnel = vec4(0.30, 0.24, 0.16, 1.0);
 // strength of every environment reflection (0 = off). Above 1: the palette's sky colours are display values,
 // clipped – the real sky is several times brighter than a lit paint, so its mirror image is scaled up.
-uniform float env_energy = 1.6;
+// The defaults of env_energy, paint_base and flake_strength are NEUTRAL (the look of the vertex format alone, as the
+// contact sheet and tests/race3d/render/check_models.gd measure it); the vehicle layer sets the race look on the
+// shared material (layers/vehicles.gd LOOK: env_energy 1.6, paint_base 0.9, flake_strength 0.6).
+uniform float env_energy = 0.0;
 uniform float coat_fresnel_max = 0.25;        // the coat's Fresnel term is capped here (grazing angles)
 uniform float coat_strength = 1.0;            // clear coat on paint (environment and sun lobe)
-uniform float paint_base = 0.9;               // sRGB factor of the base coat under the clear coat
-uniform float flake_strength = 0.6;           // sparkle of metallic paint (0 = off)
+uniform float paint_base = 1.0;               // sRGB factor of the base coat under the clear coat
+uniform float flake_strength = 0.0;           // sparkle of metallic paint (0 = off)
 uniform float flake_scale = 260.0;            // flake cells per metre
 uniform float flake_near_m = 14.0;            // flakes fade out towards this distance (they would only shimmer)
 
