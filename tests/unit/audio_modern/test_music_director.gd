@@ -230,8 +230,8 @@ func test_race_stream_of_the_piece() -> void:
 		assert_true(s.has_transition(0, 1), "Übergang zum Schluss")
 		assert_eq(s.get_transition_from_time(0, 1), AudioStreamInteractive.TRANSITION_FROM_TIME_NEXT_BAR, "am nächsten Taktstrich")
 		assert_eq(s.get_transition_to_time(0, 1), AudioStreamInteractive.TRANSITION_TO_TIME_START, "vom Anfang des Schlusses")
-		assert_eq(s.get_transition_fade_mode(0, 1), AudioStreamInteractive.FADE_OUT, "die Schleife blendet aus, der Schluss setzt voll ein")
-		assert_near(s.get_transition_fade_beats(0, 1), MusicDirector.ENDING_FADE_BEATS, 1.0e-6, "Ausblenden in einem halben Schlag")
+		assert_eq(s.get_transition_fade_mode(0, 1), AudioStreamInteractive.FADE_DISABLED,
+			"die Schleife endet am Taktstrich (1 ms), der Schluss setzt voll ein – kein doppelter Schlag")
 		assert_true(m.music.race_stream(piece) == m.music.race_stream(piece), "ein Stream je Stück (zwischengespeichert)")
 	_done(m)
 

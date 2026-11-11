@@ -16,7 +16,7 @@ extends ModernAudioModule
 ##   "race"       a race piece: one Ogg file = count-in + first phrase, then the loop body (loop_offset), plus the
 ##                ending named by its entry ("ending": id, role "race_ending"). Played as an AudioStreamInteractive
 ##                (build_race_stream): clip "lauf" loops by itself, the switch to clip "schluss" happens at the next
-##                bar line of "lauf" (the ending starts at full level, the loop fades out over ending_fade_beats).
+##                bar line of "lauf" (the ending starts at full level, the loop stops within 1 ms – FADE_DISABLED).
 ##                Several race pieces are played in turn, one per stage.
 ##   Without a Modern title the menu contexts play today's title theme (the AudioManager's stream); without a race
 ##   piece a race is silent.
@@ -55,13 +55,11 @@ const RACE_PLAYING := "playing"
 const RACE_ENDING := "ending"
 const RACE_OVER := "over"
 const START_FALLBACK_S := 0.5      ## no "stage_start": start once the car has been driven this long
-const ENDING_FADE_BEATS := 0.5     ## the loop fades out over this many beats under the ending's first hit
 
 var context := "off"
 var race_music := true
 var fade_in_s := 0.4
 var fade_out_s := 0.6
-var ending_fade_beats := ENDING_FADE_BEATS
 
 var race_phase := RACE_IDLE
 var race_index := -1               ## stages with music context "race" so far − 1 (rotation of the race pieces)
@@ -95,7 +93,6 @@ const WAIT_NO_PHYSICS_S := 0.25
 func _setup() -> void:
 	fade_in_s = maxf(ctx.number("music.fade_in_s", fade_in_s), 0.01)
 	fade_out_s = maxf(ctx.number("music.fade_out_s", fade_out_s), 0.01)
-	ending_fade_beats = clampf(ctx.number("music.ending_fade_beats", ENDING_FADE_BEATS), 0.05, 4.0)
 	for i in 2:
 		var p := ctx.player(BUS, "Music%d" % i)
 		if p != null:
@@ -391,18 +388,21 @@ func race_stream(piece: Dictionary) -> AudioStream:
 	var main: Variant = piece.get("main")
 	if not (main is AudioStream):
 		return null
-	var s := build_race_stream(main, piece.get("ending") as AudioStream if piece.get("ending") is AudioStream else null,
-		ending_fade_beats)
+	var s := build_race_stream(main, piece.get("ending") as AudioStream if piece.get("ending") is AudioStream else null)
 	_streams[id] = s
 	return s
 
 
 ## Clip "lauf" (count-in, first phrase and the loop body: an Ogg file that loops from its loop_offset by itself) and
 ## clip "schluss" (the ending). lauf -> schluss at the next bar line of "lauf" (bpm and bar_beats of its import), the
-## ending from its start at full level, the loop fading out over fade_beats (FADE_OUT). No auto-advance: measured on
+## ending from its start at full level, the loop cut within 1 ms (FADE_DISABLED: the engine's quickest fade). Any
+## longer fade-out lets the loop's next downbeat sound under the ending's first hit – measured over all 88 bar lines
+## of race piece 1: the first 100 ms of the ending +1.7 to +4.3 dB louder and true peaks up to +2.2 dBTP (file level)
+## for fades of 1/16 to 1/2 beat, against +0.02 dB and the ending's own −2.95 dBTP with the cut, which the ending's
+## downbeat masks (it starts with kick, crash and impact). No auto-advance: measured on
 ## Godot 4.7.2, a clip that auto-advances starts its successor up to one mix step plus the decoder's lead (128 frames)
 ## too early – a doubled join (docs/audio-modern.md "Musik"); the intro is therefore part of the looping file.
-static func build_race_stream(main: AudioStream, ending: AudioStream, fade_beats: float = ENDING_FADE_BEATS) -> AudioStreamInteractive:
+static func build_race_stream(main: AudioStream, ending: AudioStream) -> AudioStreamInteractive:
 	var s := AudioStreamInteractive.new()
 	s.clip_count = 2 if ending != null else 1
 	s.set_clip_name(0, MAIN_CLIP)
@@ -413,7 +413,7 @@ static func build_race_stream(main: AudioStream, ending: AudioStream, fade_beats
 		s.set_clip_stream(1, ending)
 		s.set_clip_auto_advance(1, AudioStreamInteractive.AUTO_ADVANCE_DISABLED)
 		s.add_transition(0, 1, AudioStreamInteractive.TRANSITION_FROM_TIME_NEXT_BAR,
-			AudioStreamInteractive.TRANSITION_TO_TIME_START, AudioStreamInteractive.FADE_OUT, fade_beats)
+			AudioStreamInteractive.TRANSITION_TO_TIME_START, AudioStreamInteractive.FADE_DISABLED, 1.0)
 	s.initial_clip = 0
 	return s
 

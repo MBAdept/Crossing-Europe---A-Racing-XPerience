@@ -9,7 +9,8 @@ extends SceneTree
 ##                frame 0, the loop point: after the file's end the output equals the first, continuously decoded
 ##                pass over the loop start (gapless, nothing doubled); the switch to the ending during the loop comes
 ##                at the next bar line (within 3 ms: the engine reckons from its decoder, which runs up to 128 frames
-##                ahead) and leaves no gap (5-ms RMS never below the music around it − 12 dB)
+##                ahead), leaves no gap (5-ms RMS never below the music around it − 12 dB) and no doubled downbeat (the
+##                ending's first 100 ms less than 1 dB louder than the ending alone)
 ##   race         Kiel – Hamburg from a standing start with its countdown, autopilot, Modern profile: the music
 ##                starts with "stage_start" and the downbeat after the count-in lands on the "LOS!" beep (onsets in
 ##                the captured buses, real time), then at time scale 8 the car accelerates at full throttle – the
@@ -191,12 +192,16 @@ func _scenario_interactive() -> void:
 		lowest = minf(lowest, _rms_db(out, bar_frame + best + k, 220) - before)
 	var clip := pb.get_current_clip_index()
 	var ms_off := best / MIX_RATE * 1000.0
+	# no doubled downbeat: the first 100 ms of the ending in the mix are as loud as the ending alone (the loop stops
+	# at the bar line instead of fading out under the ending's first hit)
+	var bump := _rms_db(out, bar_frame + best, 4410) - _rms_db(end_ref, 0, 4410)
 	var ok := after_loop < 1.0e-6 and same < 1.0e-6 and ms_off <= 0.5 and ms_off >= -3.0 and lowest > -12.0 and clip == 1 \
-		and best_err < 1.0e-6
+		and best_err < 1.0e-6 and bump < 1.0
 	_check("interactive", ok, ("Hauptdatei %d Frames, Schleife ab Frame %d: nach dem Dateiende gleicht die Ausgabe dem ersten Durchgang (größte Abweichung %s); " +
 		"der interaktive Stream spielt bis zum Wechsel die Datei Frame für Frame (Abweichung %s); Wechsel zum Schluss %.3f s vor dem Taktstrich angefordert – " +
-		"der Schluss beginnt %.2f ms %s dem Taktstrich (Restfehler %s), Clip %d; leisestes 5-ms-Fenster %.1f dB unter der Musik davor (keine Lücke); %d ms") % [
-		length, off, String.num_scientific(after_loop), String.num_scientific(same), to_bar, absf(ms_off), "vor" if ms_off < 0.0 else "nach", String.num_scientific(best_err), clip, -lowest, Time.get_ticks_msec() - t0])
+		"der Schluss beginnt %.2f ms %s dem Taktstrich (Restfehler %s), Clip %d; leisestes 5-ms-Fenster %.1f dB unter der Musik davor (keine Lücke); " +
+		"erste 100 ms des Schlusses %+.2f dB gegenüber dem Schluss allein (kein doppelter Schlag); %d ms") % [
+		length, off, String.num_scientific(after_loop), String.num_scientific(same), to_bar, absf(ms_off), "vor" if ms_off < 0.0 else "nach", String.num_scientific(best_err), clip, -lowest, bump, Time.get_ticks_msec() - t0])
 
 
 # --- the race ---------------------------------------------------------------------------------------
