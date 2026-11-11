@@ -11,6 +11,8 @@ How to use it
   area is the guideline (paths in §10). Where the contract is wrong or blocks you: stop, report to the lead with
   evidence, do not work around it silently. Existing public APIs in `ARCHITECTURE.md` stay contracts: extend, never
   change or remove.
+- **§11 (amendments after each wave) is part of this contract and wins over §§1–10 where they differ.** Lines
+  that wave 0 proved wrong are corrected in place and marked „(A-n)“.
 - "measured" = measured on this VM (Mesa llvmpipe under Xvfb, 4 shared cores). "inferred" = not measurable here
   (anything about a real GPU, the Steam Deck, ANGLE/Direct3D). Never present an inferred number as measured.
 
@@ -71,7 +73,8 @@ primitive / script-time budgets per preset, asset budgets per category.
 **Rule 7 – File ownership** (§5): you edit only files your package owns. Shared files have exactly one owner per wave. New
 files go where §5 says. Generated shared files (`assets/models/manifest.json`) are regenerated, never hand-merged.
 
-**Rule 8 – Runs.** Every game run of an agent sets `XDG_DATA_HOME` to a scratch folder. Every run of the full game or the
+**Rule 8 – Runs.** Every game run of an agent sets `XDG_DATA_HOME` to an **absolute** path of a scratch folder (Godot
+ignores a relative value and silently uses the real user folder – A-1). Every run of the full game or the
 race scene from a tool or test passes `--graphics=arcade|modern` explicitly. Heavy jobs (Blender bakes, Xvfb render
 checks, audio renders) run sequentially inside a package, with at most 2 worker processes, `nice -n 10`.
 Render checks of one run share one `XDG_DATA_HOME` and one `MESA_SHADER_CACHE_DIR` (cold shader caches cost
@@ -106,7 +109,8 @@ path distance, every piece of world is owned by its chunk and freed with it, **n
 Insurance for the fallback (sheared mapping, §8): builders take every position from `RoadPath3D` / `ChunkContext`,
 never assume chunk node transforms are static, and place rigid instances through `ChunkContext.frame()`.
 
-D3 **Forcing the track generation ahead is harmless.** Modern integrates the path up to 1,900 m ahead of the camera;
+D3 **Forcing the track generation ahead is harmless.** Modern integrates the path up to 3,438 m ahead of the camera
+(A-3; the study said 1,900 m);
 that generates `Track` segments earlier than Arcade does. Verified [X]: with generation forced 1,900 m ahead every
 frame, and with the real 3D spike renderer, `run_stage.gd` gives the identical `ERGEBNIS` (27 of 27 keys;
 dev_testetappe night rain, Saragossa–Pau snow). The generator is sequential and its window is only cut behind the
@@ -320,7 +324,8 @@ result, leaderboard and ferry screens stay 2D and unchanged.
 
 ### 3.7 Tests and release
 
-D37 **`tools/run_tests.sh` stays one headless pass** (today 434 s [P]); Modern adds headless checks (≤ 60 s) because
+D37 **`tools/run_tests.sh` stays one headless pass** (434 s before v0.8.0 [P], 517 s after wave 0; target ≤ 12 min,
+A-6); Modern adds headless checks because
 the simulation suites are renderer-independent (proved by a mode-independence scenario). Everything that needs
 OpenGL goes into `tools/run_render_checks.sh` (Xvfb, fast-forward screenshots: 4× faster, same hashes [P]).
 
@@ -409,7 +414,7 @@ static func watchdog_verdict(median_ms: float, p95_ms: float, target_ms: float, 
 
 | flag | meaning |
 |---|---|
-| `--graphics=arcade\|modern` | forces the mode; wins over everything (tests, screenshots, rescue switch) |
+| `--graphics=arcade\|modern` | forces the mode; wins over every stored or configured choice. Only an explicit `setup.gfx` given by code (tests, Leistungstest) is stronger; the UI passes `setup.gfx` only from `Settings.effective_graphics()` (A-2) |
 | `--gfx-preset=deck\|low\|medium\|high` | quality preset for this run |
 | `--gfx=shadows=0,scale=75,…` | single quality values for this run (keys of `QUALITY_KEYS`) |
 | `--gfx-sync` | deterministic test mode of Modern (Rule 10) |
@@ -417,7 +422,8 @@ static func watchdog_verdict(median_ms: float, p95_ms: float, target_ms: float, 
 | `--no-prewarm`, `--no-watchdog` | skip the shader warm-up / the slowness watchdog |
 | `--sound=arcade\|modern` | forces the sound profile for this run |
 | `--audio-sync` | synchronous engine mixer (tests, Movie Maker) |
-| `--shot-fast` | `Screenshotter`: render loop off until 0.1 s before each shot (same hashes, 4× faster) |
+| `--shot-fast` | `Screenshotter`: render loop off until shortly before each shot (4× faster). Identical pictures are guaranteed for **Arcade only** (A-2) |
+| `--shot-fast-lead=<s>` | how long before a shot the render loop runs again (default 0.1 s) |
 | `--bench=<scene id\|all>` `--bench-out=<file.json>` | runs the Leistungstest scenes and quits |
 | `--no-chooser` | never show the first-start chooser |
 
@@ -590,7 +596,8 @@ func corridor_width(k: int, side: int) -> float              # sight corridor in
 
 #### 4.5.5 Chunks
 
-Chunk = `chunk_segments` (32) segments = 96 m; about 11 live at 900 m visibility, at most 16 + landmark stubs.
+Chunk = `chunk_segments` (32) segments = 96 m; 13–14 live on an open road at 900 m visibility, at most
+`graphics.modern.max_chunks` = **18** (A-3) + landmark stubs.
 Load when path distance ≤ `load_path_m` **and** distance by air ≤ visibility + 96 m; free behind `keep_behind_m`.
 
 ```gdscript
@@ -666,8 +673,8 @@ the showroom and the contact sheet by their own small rig).
 | `ce_fog_color` | color | `palette.fog` |
 | `ce_fog_range` | vec2 | fog begin, visibility (m) |
 | `ce_sun_dir` | vec3 | direction to the sun/moon (world) |
-| `ce_sun_color` | color | colour × energy |
-| `ce_ambient` | color | ambient colour × energy |
+| `ce_sun_color` | color | **linear** light value: `ModernMaterials.light_value(colour, energy)` (A-4) |
+| `ce_ambient` | color | linear light value of the ambient light, same helper |
 | `ce_tunnel` | float | camera inside a tunnel, 0..1 |
 | `ce_headlight_pos`, `ce_headlight_dir` | vec3 | player headlights (world) |
 | `ce_headlight` | vec2 | range (m), intensity |
@@ -730,7 +737,7 @@ A mesh has at most one surface per class. No other surface names exist. No tange
 
 | attribute | content |
 |---|---|
-| `COLOR.rgb` | albedo as sRGB bytes (the shader converts to linear) |
+| `COLOR.rgb` | albedo as sRGB bytes. The shader does **not** convert: in GL Compatibility the engine linearises `ALBEDO`/`EMISSION` after `fragment()`, vertex colours and colour uniforms arrive raw (A-4) |
 | `COLOR.a` | paint code: `1.0` fixed colour · `0.0` paint · `0.25` paint2 · `0.5` paint3 (shader thresholds 0.125 / 0.375 / 0.75) |
 | `UV` | (roughness, metallic) |
 | `UV2.x` | lamp channel + 0.5, or `−1` for "no lamp" |
@@ -741,7 +748,8 @@ Lamp channels: 0 tail · 1 brake · 2 tail+brake (tail at 0.35, brake at 1.0) ·
 5 head · 6 daytime running · 7 reverse · 8 plate · 9 marker/contour · 10 beacon A · 11 beacon B · 12 `lights`
 (lamps and window panes of props at night, driven by `ce_night`) · 13 always on · 14 `flood` (flood-lit surface: keeps
 its albedo and adds albedo × weight × `ce_night`) · 15 reserved.
-For the lamp channels 0–13 `COLOR.rgb` is the **lit** colour; unlit the lamp is drawn at 25 % with a glossy lens.
+For the lamp channels 0–7 and 9–13 `COLOR.rgb` is the **lit** colour; unlit the lamp is drawn at half its display
+value (22 % of the light, `lamp_off` 0.5) with a glossy lens. Channel 8 (plate) is a lit surface like 14 (A-4).
 Per-instance uniforms of `vpbr` (`set_instance_shader_parameter`, also on a `MultiMeshInstance3D` node [X]):
 `paint`, `paint2`, `paint3` (colour), `lamp_a` = (tail, brake, indicator left, indicator right),
 `lamp_b` = (head, reverse, beacon A, beacon B), `fade` (0..1 path-distance fade, dither discard in the opaque pass),
@@ -814,15 +822,17 @@ only after an A/B picture shows the real-time model at least equal to the Cycles
 ```gdscript
 const ROOT := "res://assets/models/"
 static func available() -> bool                       # manifest present and valid
-static func reload(manifest_path: String = "") -> bool  # tests load fixtures
+static func load_manifest(manifest_path: String = "") -> bool  # tests load fixtures (never `reload`: A-4)
 static func resolve(set_id: String) -> Dictionary     # {"model_id", "model": Dictionary, "paint": Dictionary, "lod": String, "fallback": String, …}; {} = unknown
 static func has_model(set_id: String) -> bool         # resolves to a model (not a fallback)
 static func object_size(set_id: String) -> Dictionary
 static func mesh(rel_path: String) -> ArrayMesh       # cached
 static func texture(rel_path: String) -> Texture2D    # cached
-static func request(set_ids: Array, lods: Array = []) -> void   # ResourceLoader.load_threaded_request for all files
+static func request(set_ids: Array, lods: Array = [], owner: Object = null) -> void   # threaded load of all files
+static func missing(set_ids: Array, lods: Array = []) -> Array   # files that failed to load → fallback reason "manifest"
+static func lod_for_distance(set_id: String, dist_m: float) -> String   # may answer ModelDB.IMPOSTOR
 static func pending() -> int                          # 0 = everything requested is loaded
-static func release_all() -> void                     # drop caches (leaving Modern)
+static func release_all(owner: Object = null) -> void # sign off one owner; without an argument: drop all caches
 ```
 `ModernMaterials` (`scripts/race3d/modern_materials.gd`): `material(class_id: String, model: Dictionary) -> Material`
 (shared `ShaderMaterial` per class; `baked*` and `leaves` one per texture set).
@@ -945,7 +955,7 @@ zones, pass-by of roadside objects) is derived by `AudioFeed` (`scripts/audio/mo
 
 ### 4.9 Tests and tools
 
-#### 4.9.1 Headless (`tools/run_tests.sh`, one pass, must stay green; target ≤ 9 min in total)
+#### 4.9.1 Headless (`tools/run_tests.sh`, one pass, must stay green; target ≤ 12 min in total – A-6)
 
 - Unit tests are discovered as today: `tests/unit/**/test_*.gd`. New folders: `tests/unit/core/`,
   `tests/unit/race3d/`, `tests/unit/audio_modern/`.
@@ -954,7 +964,7 @@ zones, pass-by of roadside objects) is derived by `AudioFeed` (`scripts/audio/mo
   Later packages add files, nobody edits `run_tests.sh` again.
 - `tests/sim/modern_sight.gd` (F1–F3, F7; sampled set of the 12 hardest stage directions in the normal run,
   `-- --full` for the whole network at the milestones), `tests/sim/modern_path_check.gd` (clearance ≥ 250 m within
-  1,900 m of path, loops only beyond 2,000 m – a future stage that fails gets another seed).
+  the loaded path, loops only beyond 2,000 m – a future stage that fails gets another seed).
 - `tests/race/check_session.gd` scenario `gfx_independent`: the same stage with each renderer class headless →
   identical result and identical per-second traffic hash.
 - What headless can test [P]: `ArrayMesh` surfaces and read-back, Camera3D math, `debug_snapshot()` data. Not:
@@ -1066,8 +1076,10 @@ every preset (D8).
 | Modern sounds / music | – | ≤ 23 / ≤ 25 |
 | **total** | 126.9 MB | **≤ 277 MB** (warn > 300, fail > 330, hard limit 350) |
 
-`tools/pck_report.py` prints this table for every build. Texture memory in a Modern race ≤ 260 MB (Arcade today
-247–259 MB): each mode loads only its own assets; leaving Modern calls `ModelDB.release_all()`.
+`tools/pck_report.py` prints this table for every build. Texture memory in a Modern race at 1280×720 ≤ the Arcade
+race of the same stage **+ 60 MB** (A-6; measured: Arcade 314 MB, of which 135.5 MiB are HUD font atlases that exist
+since v0.7.0). Each mode loads only its own assets; leaving Modern calls `ModelDB.release_all()` **and**
+`ModernMaterials.drop_shared()`.
 
 ---------------------------------------------------------------------------------------------------------------------
 
@@ -1209,7 +1221,7 @@ points. Screenshots and previews for review go to `<scratch>/v080/deliver/<packa
   over 3D; warm-up v1; countdown watchdog; `perf_stats`, `debug_snapshot`; optional loading of all planned builders
   and layers by their fixed file names.
 - Acceptance: `check_road_parity` (lane-line pixels ≤ 1 px on a straight at S1; within the study's bounds in
-  curves: R 400 m ≤ 6 px to 150 m, R 136 m ≤ 22 px to 100 m, with `look_gain` 0); daylight probes within 10 % of
+  curves: R ≈ 400 m ≤ 8 px to 150 m, R ≈ 136 m ≤ 27 px to 100 m, with `look_gain` 0 – A-3); daylight probes within 10 % of
   Arcade (grass, asphalt, sky) at S1; „Schatten: Aus“ vs „Mittel“ mean brightness ± 2 %; renderer core ≤ 0.6 ms
   GDScript per frame without the vehicle and prop layers (the whole `render()` budget of 1.5 ms is checked by QA1),
   chunk commit ≤ 3 ms; 1280×800 and 1680×720 filled without gaps; cold-cache warm-up check on the slice stage;
@@ -1537,3 +1549,226 @@ Root: `/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d6
 
 Not verified by anyone and therefore inferred everywhere in this contract: real-GPU frame times, the Steam Deck,
 ANGLE/Direct3D 11, how anything sounds.
+
+---------------------------------------------------------------------------------------------------------------------
+
+## 11. Amendments
+
+Binding. Where §§1–10 differ, this section wins. "Lead decision" = decided by the lead with the evidence named.
+
+### 11.1 After wave 0 (2026-11-11; evidence: the package, integration, QA and fix reports of wave 0)
+
+**A-1 Working rules**
+- The isolation worktrees of the harness start from `main`, not from `v0.8.0`. Every agent first runs
+  `git merge --ff-only <base commit>` on its own worktree branch (the lead names the commit) and reports when that is
+  not possible. Nobody merges into `v0.8.0` or `main`; the lead does.
+- Every package pushes its branch after every commit as `origin wip/v080-<package>` (plain push, never force), so
+  that nothing is lost when the container is reclaimed.
+- `XDG_DATA_HOME` must be an absolute path; own helper scripts refuse a relative one. Under Wine 9.0 keep `TMPDIR`
+  unset or short. A fresh worktree gets its import cache with `cp -a <main checkout>/.godot .` and then
+  `godot --headless --path . --import`.
+- A script started with `-s` compiles before the autoloads exist: it must not name `RaceRenderers` (or any class
+  that needs an autoload) statically; load such scripts at run time (pattern: `tests/race3d/check_seam.gd`).
+- Unit tests run inside `SceneTree._initialize()`: no `Camera3D` and nothing else that needs the scene tree. Checks
+  that need the tree are `tests/race3d/check_*.gd` (headless hook) or `tests/race3d/render/check_*.gd` (Xvfb).
+- Never give a static function the name of a member of `Script`, `Resource`, `RefCounted` or `Object` (`reload`,
+  `new`, `duplicate`, `get_path` …): called on the class it resolves to the engine's method.
+- No file that an Arcade start loads may name a class of `scripts/audio/modern`, `scripts/race3d` or `ModelDB` as a
+  type, a `preload` or a constant (`tests/unit/audio_modern/check_arcade_lean.gd` guards it).
+- Packages of the same wave talk to each other only through the facade of A-7 with duck typing (`has_method`,
+  `renderer.layer(id)`); never through a `class_name` that another package of the same wave introduces.
+
+**A-2 Seam (§4.2, §4.4)**
+- Mode: `setup.gfx` given by code is stronger than `--graphics=` (tests and the Leistungstest need it); the UI
+  passes `setup.gfx` only from `Settings.effective_graphics()`.
+- `prepare()`: the render self-test runs once per process inside `prepare()` (4–5 frames at the first Modern stage
+  with a real display; headless: next frame). The session keeps calling `render(view)` with the frozen start view
+  while the renderer prepares, behind an opaque cover and the loading overlay – the renderer builds and warms up
+  what the first frame shows. The kernel is created in `prepare()`, not in `setup()` (quality levels arrive with
+  `apply_quality()`, `sync` with the prepare context).
+- Crash-guard marker: removed after 2 s of rendered frames, on a fallback and when the stage leaves the tree in an
+  orderly way.
+- Equal shot times in both modes also hold for a start through GameFlow (the session credits the lead to the clocks
+  when a Modern stage goes live; `Screenshotter.preparing`).
+- `--shot-fast` gives identical pictures in Arcade only: what the `RenderingServer` advances while drawing (GPU
+  particles, anything temporal) stands still while the render loop is off. `--shot-fast-lead=<s>` sets the lead
+  (default 0.1 s). The Modern change detectors `tests/golden/modern_*.md5` are rendered **without** `--shot-fast`
+  (lead decision; QA1 may use a lead ≥ the longest GPU-side effect for lists without particles). Nothing the
+  player must react to may depend on per-frame GPU state: use `view.time` / `ce_time`.
+- Exported builds cannot start a scene path (release templates refuse it). Smoke runs of exports start through
+  `-- --stage=…` and compare export frames with export frames; the golden list is for the project run only.
+- Watchdog: `Gfx.watchdog_verdict` judges against the display's frame time, so a steady 60 fps would count as slow
+  on a 120/144 Hz display (inferred from the code). It must judge against `max(display frame time, 1/60 s)`.
+  One-off ownership exception: **R1** fixes it in `scripts/core/gfx.gd` with a unit test.
+- Attract demos count their 30 s from `RaceSession.stage_live` (UI1), not from the scene start.
+
+**A-3 Kernel (§3 D3, D12, D14, §4.5)**
+- The streamer keeps the path 3,438 m ahead of the camera (load_path + one chunk + clear_reach), growing by at most
+  one segment per frame; the first `update()` of a stage costs 77–114 ms, behind the loading overlay. D3 still holds
+  (identical `ERGEBNIS`, measured).
+- `graphics.modern.max_chunks` = **18** (lead decision; R1 sets the config value). With 16 a piece of road inside
+  the visibility was missing at 209 of 31,488 camera positions (nearest 456 m); with 18 never.
+- F1 reads: nothing Arcade shows up to **270 m from a camera on the centreline, 260 m from a camera in any lane**
+  is outside Modern's frustum (`modern_sight_f1`, `modern_sight_f1_lanes`). The curve camera has no margin beyond
+  that: `look_gain`/`look_m`/`yaw_max_deg` may only be changed with a new `modern_sight.gd -- --full` run, and the
+  look can be made stronger, not weaker.
+- Curve parity of the road picture with `look_gain` 0 (exact Arcade row model, measured): ≤ 8 px for R ≈ 400 m up to
+  150 m, ≤ 27 px for R ≈ 136 m up to 100 m. Comparisons of curve pictures with Arcade always use `look_gain` 0.
+- F7 stays as implemented (`ChunkContext.in_bend_corridor()`; 28 % of the scenery props of the mountain stages stand
+  inside a bend corridor). Lead decision: inside the corridor the props builder replaces dropped vegetation by
+  **ground cover of at most 0.5 m** (low bushes, grass tufts, stones – it cannot hide a vehicle from the 3.4 m eye);
+  until such models exist nothing is placed there. Whether the corridor is computed from the real chord is decided
+  with the pictures of gate 2 (mountain stages).
+- The terrain leaves a gap of about 12 m at medial axes and a hole of 0.2 R at the centre of tight bends: the
+  far-ground plane (R2) covers both. Tunnel portals and mounds are closed by the tunnel builder (R5).
+- Builders: `build()` runs for several chunks at once on worker threads – no per-chunk state in the builder object,
+  only `ctx` snapshot arrays there (never `ctx.path`, `ctx.terrain`, `ctx.track`, `ctx.services`).
+
+**A-4 Models and materials (§4.5.6, §4.6)**
+- `ModelDB.load_manifest(path)` (there is no `reload`). Renderer packages: `ModelDB.request(sets, lods, self)`, when
+  loading has finished `ModelDB.missing(sets, lods)` (not empty → `fail_reason` "manifest" or the stand-in),
+  `ModelDB.release_all(self)` when done. `ModelFactory.build()` returns null and `multimesh_parts()` `[]` when a
+  mesh of the level is missing – show the stand-in. `lod_for_distance()` can answer `ModelDB.IMPOSTOR`.
+  One materials instance per process: `ModernMaterials.shared()`; leaving Modern = `ModelDB.release_all()` +
+  `ModernMaterials.drop_shared()`.
+- Colours: in GL Compatibility the engine linearises `ALBEDO` and `EMISSION` after `fragment()`; vertex colours and
+  colour uniforms arrive raw, so shaders do not convert. Light values handed to shaders are linear:
+  `ModernMaterials.light_value(colour, energy)`. Every pass ends with an sRGB conversion that cuts off below linear
+  0.0008, and the pinned post path costs up to 6 more levels below 12/255: night ambient and moon energies must stay
+  above that floor. The sun is added in sRGB space (D5).
+- `ce_*` globals are added once per process by `ModernMaterials` (static flag; the engine offers no way to ask which
+  exist). Nothing else adds `ce_*` globals.
+- Lamps: channel 8 (plate) is a lit surface. `lamp_energy` 1.0 with group gains (brake 2.2, indicators 1.6,
+  head/DRL/reverse 2.0, beacons 2.0) and an overdrive that keeps the hue; the uniforms are tuned for a picture
+  without a glow pass and may be tuned per class by R3/R4.
+- `lights[]` entries of a model: `role`, `pos` (on the lamp surface), `dir` (unit vector, where the lamp looks),
+  `size`, `colour`. Flares sit a little along `dir`.
+- Validator rules added in wave 0: minimum projected lamp area per role, car end and level (cars ≥ 60 cm² from
+  behind and ≥ 40 cm² from ahead per side; player car ≥ 60 / 15); a coarser level not larger than 2 × + 5 cm²;
+  automatic levels keep ≥ 80 % of each lamp; anchors at most 3 mm below the surface; at most 8 triangles wound
+  against their normals; no `auto_lod` on meshes with lamp channels; extent tolerance max(2 %, half a sprite pixel +
+  5 mm). Tangents are not judged.
+- Cache key of an export = builder code + parameters + exporter version + the resolved sprite-catalog entries of the
+  source set and of every served set + the colour tables. `export_models.py --check-keys` tests it; timings live in
+  `_cache3d/export_report.json`. Byte identity of a `.res` holds per output path (the file stores a UID derived from
+  it). `tools/blender/_cache3d/` ignores itself (`.gitignore` + `.gdignore`).
+- Stand-ins: vehicles `{"fallback": "box", "object", "paint"}` (the vehicle layer draws the box); props, landmarks
+  and showroom sets `"sprite"`.
+- Decals of traffic cars are cut into the body mesh as one layer at LOD0–2 (no patches floating above the body);
+  the player car keeps patches. Open for AS1: cut along the contour (saw teeth of 5–10 cm at bumper corners today),
+  the same lamp outlines at all levels, a bounds check between levels, transparent glass with an interior for the
+  player cars, rims, lenses, grille. `showroom: true` only after a same-camera A/B.
+- A prop model is placed like a vehicle: local −Z along the road, the side the sprite shows faces +Z, origin = the
+  sprite anchor. The atlas of baked props holds colour only (no ambient occlusion) – AS3/AS4 may bake AO in.
+- Far lamps: the 0.61 m luminaire of a street light is smaller than a pixel from about 430 m (inferred from the
+  focal length), while Arcade shows its light layer up to the visibility limit. Static lamps therefore get a
+  far-field glow from the flare layer through `add_lamps()` (A-7).
+
+**A-5 Audio (§3 D27–D29, §4.7)**
+- Buses are created in dependency order (`ModernBuses.GRAPH`): a bus can only send to a bus with a lower index. The
+  list of §4.7.3 is not an order.
+- Scripted gains (ducking, snapshot dips) run through an `AudioEffectAmplify` fader on the bus (a bus volume change
+  steps at the mix block and clicks, measured); the bus volume carries only the static level.
+- Ducking key = the loudness the plan gives the car in its driving state (`ModernMix.car_lufs`), not a metered
+  level. Race EQ of the music = two shelving filters (Godot's band equalisers are not neutral, measured). A slow
+  glue compressor sits on `MMaster`.
+- `AudioManager.event(event_name, args)`. Until UI1 wires `AudioManager.set_profile(Settings.sound())` the Modern
+  sound is reachable with `--sound=modern` or `audio.profile` only.
+- Every `AudioStreamGenerator` stream is handed to `ModernAudioContext.keep_alive()` before its player is stopped
+  or freed. The frozen `EngineAudio.detach()` stays as it is (lead decision: Rule 1; the defect could not be
+  triggered in Arcade in 1,500 simulated stage changes and is unchanged against v0.7.0). QA3 repeats the hang test
+  with the final build.
+- The idle and cruise targets of the loudness plan can only be met by AU-B's engine; nobody tunes
+  `audio.modern.levels` against the stand-in bank. Sound checks need frame time × time scale < 0.35 s.
+- Sound files: generators use `tools/audio/modern/modern_lib.py` and accept `--out <dir>`; stand-ins carry
+  `placeholder: true`; `audio_qc.py` fails on a sound file without a manifest entry.
+
+**A-6 Tests and budgets (§3 D37, §4.9, §4.11)**
+- `tools/run_tests.sh`: target ≤ 12 min (517 s after wave 0). QA1 may run independent headless checks two at a
+  time. The script needs `python3` (the model validator runs in the hook).
+- Runner rules: a headless check fails on a non-zero exit code, on any `FEHLER` line, on a `SCRIPT ERROR` or
+  `Parse Error`, and when it prints no `CHECK … OK` line at all. A render check file fails on a shader that does not
+  compile.
+- Texture memory of a Modern race at 1280×720: at most the Arcade race of the same stage + 60 MB (Arcade measured:
+  314 MB, of which 135.5 MiB are HUD font atlases – the HUD draws Orbitron at animated sizes, since v0.7.0). The
+  engine keeps the 3D render buffers after the first Modern stage (+7.4 MB at 1280×720); they belong to the
+  baseline. UI2/PERF may bound the font cache only if the Arcade goldens stay identical.
+- The export filter also packs the build-only `model.json` files (37 kB today); REL may exclude them.
+- Identity gate: the golden list covers race-scene frames. QA1 adds a second list (menus, start through GameFlow,
+  pause, 1280×800).
+
+**A-7 Renderer facade (new §4.5.7; skeleton commit of wave 1, then owned by R1)**
+
+Public members of `ModernRenderer` for layers, builders (in `commit()`) and tests – main thread, read-only:
+
+```gdscript
+var track: Track ; var proj: RoadProjection ; var cfg: Dictionary ; var scenery_db: Dictionary
+var levels: Dictionary            # Gfx levels of apply_quality()
+var sync: bool                    # --gfx-sync (prepare ctx)
+var prep: Dictionary              # ctx of prepare(): sets, plan, vehicle, weather, hour, sync
+var path: RoadPath3D ; var terrain: TerrainProfile ; var streamer: ChunkStreamer
+var chase: ChaseCamera3D ; var camera: Camera3D
+var materials: ModernMaterials    # = ModernMaterials.shared()
+var env: Node                     # scripts/race3d/environment_rig.gd, null while that file is missing
+var world: Node3D                 # parent of the 3D nodes of dynamic layers: identity transform, origin-relative
+var view: Dictionary              # the view of the current render() call
+var visibility_m: float           # sight of this frame in metres
+signal rebased(shift: Vector3)    # the floating origin moved: add shift to stored origin-relative positions
+func layer(id: String) -> Node              # "backdrop", "far_ground", "lights", "vehicles", "flares", "weather", "overlay", "post"; null when absent
+func builder(id: String) -> ChunkBuilder    # registered builder by id(), or null
+func road_to_world(z: float, x: float, h: float) -> Vector3   # path.world(): origin-relative, valid inside the integrated path
+func add_lamps(parent: Node3D, lamps: Array) -> void          # static lamps of a chunk part (below)
+func add_pool_material(mat: ShaderMaterial) -> void           # this material gets the light-pool uniforms every frame
+```
+
+Order the renderer guarantees: `setup()` → `apply_quality()` → `prepare(ctx)` creates path, terrain, camera,
+`world`, materials and (if present) the environment rig, then the streamer with `BuilderRegistry.create_all()`,
+then every layer whose file `res://scripts/race3d/layers/<id>.gd` exists, in the order of the list above;
+`setup(renderer)` and then `prepare(ctx)` are called on layers and on builders that have them. `is_prepared()`
+becomes true when the self-test is done, every `prepare_pending()` is 0, the chunks visible from the start are
+committed and the warm-up has been drawn. Every `render(view)`: environment → `streamer.update()` → camera → layers
+`update(view, dt)` in list order.
+
+Optional hooks of layers **and builders** (duck-typed; any may be missing):
+
+```gdscript
+func setup(renderer: Node) -> void               # layers: required
+func apply_quality(levels: Dictionary) -> void   # before prepare()
+func prepare(ctx: Dictionary) -> void            # start loading / pre-rendering for the stage; may span frames
+func prepare_pending() -> int                    # > 0 while not ready
+func fail_reason() -> String                     # "" | "manifest" | "shader" | … → healthy() false
+func warmup_nodes() -> Array                     # fresh Node3D per shader variant; shown once behind the loading overlay, then freed by the renderer
+func update(view: Dictionary, dt: float) -> void # layers, every render()
+func rebased(shift: Vector3) -> void             # layers
+func perf() -> Dictionary                        # flat keys of §4.4.5, merged into perf_stats()
+func snapshot() -> Dictionary                    # keys of §4.4.5 ("vehicles", "lights", "props", "signs" …), merged into debug_snapshot()
+```
+
+`ChunkStreamer.services: Dictionary` (set by the renderer: `{"renderer": ModernRenderer, "materials":
+ModernMaterials}`) is handed to every `ChunkContext` as `ctx.services` – **main thread only** (`collect`/`commit`).
+In tests without a renderer it is `{}`: builders must work without it (materials through
+`ModernMaterials.shared()`, no lamp registration).
+
+Static lamps: `add_lamps(parent, lamps)` – `lamps` is an Array of Dictionary `{"pos": Vector3 (local to parent),
+"dir": Vector3 (unit, local; where the lamp looks), "role": String (a `lights[].role`), "color": Color, "size":
+float (m), "range": float (m, radius of the light pool on the ground; 0 = none), "energy": float (default 1)}`. The
+renderer forwards the array to `layer("lights").add_static(parent, lamps)` and `layer("flares").add_static(parent,
+lamps)` when those layers exist; both follow `parent.global_transform` and forget the entries when `parent` leaves
+the tree. Users: `builders/props.gd` (street lights, wave 1), later tunnel, station, city and gantry builders.
+Vehicles do not use it: the vehicle layer feeds the flare layer directly (both R3), and the lights layer takes the
+headlight cones of the traffic from `view`.
+
+Light pools: `assets/shaders/modern/inc/pools.gdshaderinc` declares `uniform vec4 pool_pos_r[22]`,
+`uniform vec4 pool_col[22]`, `uniform int pool_count` and `vec3 ce_pools(vec3 world_pos)` (summed linear light of
+the pools at an origin-relative world position). A material whose shader includes it is registered with
+`add_pool_material()`; `layers/lights.gd` sets the three uniforms on every registered material once per frame
+(road and terrain in wave 1).
+
+**A-8 Plan changes (lead decisions)**
+- Wave 1 starts with a short skeleton step (package id **R1a**): `modern_renderer.gd` with the facade of A-7 on top
+  of the kernel (debug road, camera, layers and hooks by file name, services, `add_lamps`, `add_pool_material`,
+  the include `inc/pools.gdshaderinc` in a first version) and the adapted seam checks. R1, R2 and R3 start from that
+  commit; AS1 and AU-B start from the wave base at once.
+- **AU-B moves from wave 2 to wave 1** (it shares no file with the wave-1 packages; `config/game_config.json` →
+  `audio.modern` belongs to AU-B in wave 1).
+- File ownership of wave 1 otherwise as in §5; `scripts/core/gfx.gd` → R1 for the watchdog fix only (A-2).
