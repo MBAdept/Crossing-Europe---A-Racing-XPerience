@@ -13,7 +13,7 @@ extends SceneTree
 ## Night sheet: ce_night = 1 (lit windows, lamps of props); vehicles once per lamp channel:
 ##              tail, brake, both indicators, head, reverse, beacons.
 ## --showroom:  the `show` level of the player cars from the camera of the Cycles showroom sprites
-##              (for A/B pictures; 768x480 per tile).
+##              (for A/B pictures; 768x480 per tile), with the look of the real showroom (Showroom3D.STUDIO_LOOK).
 ## --channels:  no model - a strip of 15 panels, one per lamp channel of the vpbr format (0 on the left),
 ##              once per lamp state: shows that every channel answers to its instance uniform or global.
 ## --showroom:  ... followed by the Cycles sprite of the same car on the ground colour of the real-time tile
@@ -116,6 +116,14 @@ func _run() -> void:
 		_tile = Vector2i(int(p[0]), int(p[1]))
 	var cols := int(str(_args.get("cols", "2" if (showroom or review or chase) else "4")))
 	_mats = ModernMaterials.new()
+	if showroom:
+		# the look the real showroom puts on the shared materials (Showroom3D.STUDIO_LOOK: paint exposure, lamp
+		# levels, the engine's studio reflection), so the A/B tile is what the vehicle screen shows (RINT-B)
+		var sr: GDScript = load("res://scripts/ui/widgets/showroom_3d.gd")
+		for l: Variant in (sr.get_script_constant_map().get("STUDIO_LOOK", []) as Array):
+			var e: Array = l
+			_mats.material(str(e[0]))
+			_mats.set_class_parameter(str(e[0]), str(e[1]), e[2])
 	_build_rig()
 	var tiles: Array = []
 	var only := str(_args.get("only", "*"))

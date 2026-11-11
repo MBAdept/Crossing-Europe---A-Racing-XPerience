@@ -182,7 +182,8 @@ func prepare_progress() -> float:
 		Stage.IDLE:
 			return 0.0
 		Stage.SELFTEST:
-			return 0.1 if _selftest_running else 0.05
+			# (a finished test stays at its step: the bar of the loading picture never runs backwards – RINT-B)
+			return 0.1 if _selftest_running or not selftest.is_empty() else 0.05
 		Stage.HOOKS:
 			return 0.15 + 0.45 * (1.0 - float(_pending) / float(maxi(_pending_max, 1)))
 		Stage.CHUNKS:
@@ -454,6 +455,10 @@ func _advance() -> void:
 		if _pending > 0:
 			return
 		_stage = Stage.CHUNKS
+		if not sync:
+			# one drawn frame with the bar at the chunk step: the start view is then loaded at once, in one long
+			# frame (Kiel–Hamburg on the build VM about 2 s – RINT-B measured the bar standing at 0.05 meanwhile)
+			return
 	if _stage == Stage.CHUNKS:
 		if view.is_empty():
 			return   # the first render() brings the start view
