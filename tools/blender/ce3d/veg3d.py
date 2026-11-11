@@ -65,20 +65,49 @@ from .export import Lod, ModelData, Part, sprite_extent
 # sink      the trunk foot reaches this far below the ground (m);  imp: impostor gain / blue tint / sky shading
 DEFAULTS = dict(
     levels=(((1, 6, 12), (1, 6, 12, 12)), ((1, 6), (1, 4, 8))), tris=(2480, 890),
-    caps=((48.0, 118.0), (40.0, 95.0)), cap_margin=14.0, fringe=0.8, rim_out=0.05, jitter=0.07,
+    caps=((48.0, 118.0), (48.0, 118.0)), cap_margin=14.0, fringe=0.8, rim_out=0.05, jitter=0.07, lift=(1.0, 1.06),
     sky_lo=0.6, limbs1=False,
     cards=(420, 165), half=(0.6, 0.92), roll=0.35, el=(-34.0, 40.0), crown_w=0.22, up_w=0.08,
-    ao=(0.42, 1.0, 0.9), stiff=0.55, core=dict(shrink=0.8, subdiv=(1, 0), bright=0.6, axis=0.0),
+    ao=(0.42, 1.0, 0.9), stiff=0.55, core=dict(shrink=0.8, subdiv=(1, 0), bright=0.78, axis=0.0),
     shadow=dict(shrink=0.93, subdiv=2), clumps=7, limb_r=(0.1, 0.04), sink=0.55, atlas_seed=7,
-    imp=dict(gain=1.0, tint=(1.0, 1.0, 1.0), sky=1.0), samples=48, out=0.03, sway0=0.3,
+    imp=dict(gain=1.22, tint=(1.04, 1.0, 1.25), sky=1.0), samples=48, out=0.03, sway0=0.3,
 )
 
 SPECIES = {
-    "oak": dict(atlas=dict(leaf="lobed", base=("#3d6b25", "#5c8a30"), n_leaves=380, leaf_len=(0.055, 0.08)),
+    "oak": dict(atlas=dict(leaf="lobed", base=("#3d6b25", "#5c8a30"), sat=0.72, gain=1.12, tint=(1.0, 1.0, 1.12)),
                 bark=[("", ("#3b3025", "#544536"))], clumps=9, limb_r=(0.13, 0.05), atlas_seed=7),
-    "birch": dict(atlas=dict(leaf="birch", base=("#6f9a32", "#93b84a"), leaf_w=0.62, twig="#4a3a2a"),
+    "birch": dict(atlas=dict(leaf="birch", base=("#6f9a32", "#93b84a"), leaf_w=0.62, twig="#4a3a2a", sat=0.82,
+                             gain=0.97, tint=(1.0, 1.0, 1.1)),
                   bark=[("", ("#e4e1d8", "#2b2722"))], birch=True, clumps=7, limb_r=(0.06, 0.025), atlas_seed=11,
-                  core=dict(subdiv=(-1, -1)), ao=(0.55, 1.0, 0.9)),
+                  core=dict(subdiv=(-1, -1)), ao=(0.55, 1.0, 0.9), imp=dict(gain=1.27, tint=(1.04, 1.0, 1.4))),
+    # AS3: broad, dense, bright green crown on a smooth grey trunk
+    "beech": dict(atlas=dict(leaf="ovate", base=("#4a7a2a", "#6a9a35"), sat=0.78, gain=1.06, tint=(1.0, 1.0, 1.1)),
+                  bark=[("", ("#66645e", "#85837c"))], clumps=9, limb_r=(0.11, 0.045), atlas_seed=23),
+    # tall narrow column (avenues): rays of the core from the crown's axis
+    "poplar": dict(atlas=dict(leaf="birch", base=("#43712a", "#5f8f35"), leaf_w=0.72, sat=0.8, gain=1.06,
+                              tint=(1.0, 1.0, 1.1)),
+                   bark=[("", ("#55514a", "#6e695f"))], clumps=8, limb_r=(0.07, 0.03), atlas_seed=29,
+                   core=dict(axis=6.0), stiff=0.35),
+    # small silver-grey crown on a gnarled twin trunk; narrow leaves with pale undersides
+    "olive": dict(atlas=dict(leaf="lanceolate", base=("#6f7d4f", "#9aa77a"), leaf_w=0.3, underside="#c9d0bc",
+                             underside_share=0.3, sat=0.85, gain=1.0, tint=(1.0, 1.0, 1.06)),
+                  bark=[("", ("#463e35", "#5c5246"))], clumps=6, limb_r=(0.09, 0.04), atlas_seed=53, gnarl=0.05),
+    # Scots pine (as its sprite): a tall trunk, dark below, orange-red above, flat pads of needles on top
+    "pine": dict(atlas=dict(leaf="needles", base=("#2c4f2a", "#3f6634"), sat=0.85, gain=1.04, tint=(1.0, 1.0, 1.08),
+                            ball_leaf=(0.05, 0.075), ball_leaves=1300),
+                 bark=[("pine_trunk2", ("#9a5530", "#a8653a")), ("pine_br", ("#94532e", "#a0603a")),
+                       ("pine_trunk", ("#4a382a", "#3c2d22")), ("", ("#94532e", "#a0603a"))],
+                 clumps=6, limb_r=(0.08, 0.03), atlas_seed=31, core=dict(subdiv=(-1, -1)), sky_lo=0.5),
+    # special crowns (ce3d/veg3d_shapes.py)
+    "spruce": dict(shape="spruce", atlas=dict(leaf="needles", base=("#1e3d22", "#2d5530"), sat=0.9, gain=1.06,
+                                              tint=(1.0, 1.0, 1.08)),
+                   bark=[("", ("#3e2e21", "#4a3626"))], atlas_seed=7, stiff=0.7),
+    "cypress": dict(shape="cypress", atlas=dict(leaf="sprig", base=("#1f3a1f", "#2f4e28"), sat=0.9, gain=1.06,
+                                                tint=(1.0, 1.0, 1.08), ball_leaf=(0.05, 0.08), ball_leaves=1500),
+                    bark=[("", ("#3e2e21", "#4a3626"))], atlas_seed=3, stiff=0.75, core=dict(axis=5.5, shrink=0.85)),
+    "palm": dict(shape="palm", atlas=dict(leaf="frond", base=("#3f7a2a", "#6f9a38"), sat=0.85, gain=1.0,
+                                          tint=(1.0, 1.0, 1.06)),
+                 bark=[("", ("#6e5c45", "#8a7458"))], atlas_seed=29, stiff=0.15),
 }
 
 
@@ -97,6 +126,14 @@ BUSHES = {
     "bush_round": dict(atlas=dict(leaf="ovate", base=("#3f6b28", "#5f8a33"), leaf_len=(0.05, 0.07)), atlas_seed=13),
     "bush_low": dict(atlas=dict(leaf="ovate", base=("#466f2c", "#6a9037"), leaf_len=(0.05, 0.07)), atlas_seed=17),
     "cover_bush": dict(atlas=dict(leaf="ovate", base=("#466f2c", "#6a9037"), leaf_len=(0.06, 0.08)), atlas_seed=19),
+    # AS3: heather - the generator's pink and green tufts (props_nature.SHAPE_LOG "heather"), fine sprigs; the pink
+    # ones densely set with blossoms
+    "heather": dict(atlas=dict(leaf="sprig", base=("#4d5a2c", "#6b7034"), sat=0.9, gain=1.0, ball_leaf=(0.06, 0.09),
+                               ball_leaves=1100),
+                    flowers=dict(leaf="sprig", base=("#6e4466", "#8e5482"), flower=("#a85e9c", "#b46aa8", "#c27cb8"),
+                                 flower_share=0.9, sat=0.9, gain=1.0, ball_leaf=(0.06, 0.09), ball_leaves=1100),
+                    atlas_seed=47, levels=(((1, 6), (1, 5, 10)), ((1, 3), (1, 5))), tris=(396, 118), sway=0.25,
+                    core_subdiv=(-1, -1)),
 }
 GRASS = dict(colors=("#4a6a27", "#5d7d2f", "#6d8a36", "#425f24"), shade="#20301a", tip="#97a656", n_blades=70)
 
@@ -423,19 +460,20 @@ def _dome_plan(exp, bc, br, bz, levels, budget, min_exposed):
     cost = [_pattern_tris(r) for r in levels]
     level = {i: 0 for i in order}
     used = cost[0] * len(order)
-    # over the budget at the base level: the least important domes become fans of 5, then go
-    small = (1, 5)
+    # over the budget at the base level: the least important domes become fans of 5 (if that is smaller), then go
+    small = (1, 5) if _pattern_tris((1, 5)) < cost[0] else None
+    if small is not None:
+        for i in reversed(order):
+            if used <= budget:
+                break
+            level[i] = -1
+            used -= cost[0] - _pattern_tris(small)
     for i in reversed(order):
         if used <= budget:
             break
-        level[i] = -1
-        used -= cost[0] - _pattern_tris(small)
-    for i in reversed(order):
-        if used <= budget:
-            break
-        if level[i] == -1:
+        if level[i] is not None:
+            used -= _pattern_tris(small) if level[i] == -1 else cost[0]
             level[i] = None
-            used -= _pattern_tris(small)
     for li in range(1, len(levels)):
         for i in order:
             if level[i] != li - 1:
@@ -485,12 +523,15 @@ def _dome_cards(bc, br, bz, centre, ext, levels, budget, rects, seed, sp, blob_r
         e1 = np.cross(axis, tmp)
         e1 /= np.linalg.norm(e1)
         e2 = np.cross(axis, e1)
-        rot = rng.uniform(0.0, 2.0 * math.pi)
+        # cell, turn and wind phase of a blob are the same in every level (its own random stream): at a level swap
+        # the leaves of a blob stay where they were
+        brng = random.Random(seed * 7919 + b)
+        rot = brng.uniform(0.0, 2.0 * math.pi)
         cells = rects if blob_rects is None else blob_rects[b]
-        (ua, va, ub, vb) = cells[rng.randrange(len(cells))]
+        (ua, va, ub, vb) = cells[brng.randrange(len(cells))]
         cu, cv = (ua + ub) * 0.5, (va + vb) * 0.5
         ru, rv = (ub - ua) * 0.5 * 0.98, (vb - va) * 0.5 * 0.98
-        ph = rng.random()
+        ph = brng.random()
         o0 = len(pos)
         offs = []
         for ri, n in enumerate(rings):
@@ -775,10 +816,11 @@ def _tree_wood(soups, bc, br, bz, crown_bottom, sp, z_cut=None):
     for s in soups:
         cen = s.pos.mean(axis=1)
         keep = np.ones(s.n, dtype=bool)
-        if z_cut is not None:
-            keep &= cen[:, 2] < z_cut
         trunk = "trunk" in s.name or "_t1" in s.name or "_t2" in s.name
         if not trunk:
+            # a trunk is never cut (a half tube shows the sky through it); branches end at the level's cut
+            if z_cut is not None:
+                keep &= cen[:, 2] < z_cut
             keep &= (cen[:, 2] < crown_bottom + 0.5) | _inside_crown(cen, bc, br, bz)
         if trunk and sp.get("birch"):
             p, n = _birch_trunk(s, z_cut, ring_m=0.25 if z_cut is None else 0.5, segs=6 if z_cut is None else 5)
@@ -786,8 +828,17 @@ def _tree_wood(soups, bc, br, bz, crown_bottom, sp, z_cut=None):
             continue
         if keep.any():
             p = s.pos[keep]
+            if sp.get("gnarl"):
+                p = _gnarl(p, s.nor[keep], sp["gnarl"])
             out.append((s.name, _sink(p, s.nor[keep], sp["sink"]) if trunk else p, s.nor[keep]))
     return out
+
+
+def _gnarl(pos, nor, amount):
+    """Gnarled wood (olive): every corner pushed along its normal by a smooth pseudo-noise of its position."""
+    x, y, z = pos[..., 0], pos[..., 1], pos[..., 2]
+    k = (np.sin(x * 7.1 + y * 3.7 + z * 5.3) * np.cos(z * 4.2 + x * 2.1) + 0.5 * np.sin(z * 11.0 + y * 6.0)) / 1.5
+    return pos + nor * (k * amount)[..., None]
 
 
 def _birch_trunk(soup, z_cut=None, ring_m=0.16, segs=8):
@@ -935,7 +986,11 @@ def _blob_tree(model_id, spec3d, sp, sspec, info, wood_soups, crown_pts, blobs, 
             else:
                 lp, ln = np.zeros((0, 3, 3)), np.zeros((0, 3, 3))
         if lp.shape[0]:
-            wood.append(("limb", lp, ln))
+            # limb parts outside the crown are dropped like the generator's branches (dark sticks on a flat crown)
+            cen = lp.mean(axis=1)
+            keep = (cen[:, 2] < crown_bottom + 0.5) | _inside_crown(cen, bc, br, bz, 1.0)
+            if keep.any():
+                wood.append(("limb", lp[keep], ln[keep]))
         woods.append(wood)
         cs = sp["core"]
         cores.append(_star_hull(bc, br, bz, centre, cs["shrink"], cs["subdiv"][li], cs["axis"], z_min=crown_bottom + 0.3)
@@ -944,7 +999,10 @@ def _blob_tree(model_id, spec3d, sp, sspec, info, wood_soups, crown_pts, blobs, 
     for li, name in enumerate(("lod0", "lod1")):
         used = sum(p.shape[0] for _n, p, _m in woods[li]) + (cores[li][0].shape[0] if cores[li] is not None else 0)
         card_sets[name] = _dome_cards(bc, br, bz, centre, ext, sp["levels"][li], sp["tris"][li] - used, rects["leaf"],
-                                      seed + li, sp, cap=sp["caps"][li])
+                                      seed, sp, cap=sp["caps"][li])
+        # the coarser level shows more of its darker corners: lifted to the mean of lod0 at the switch distance
+        # (measured with tools/models/prop_scene.sh --mode=lods --look=race)
+        card_sets[name]["col"][:, 3] = np.clip(card_sets[name]["col"][:, 3] * sp["lift"][li], 0.0, 1.0)
     fit = _Fit(card_sets["lod0"]["eff"], wood_pts, ref_lo, ref_hi, centre)
     meshes = {}
     n_cards = {}
@@ -1005,7 +1063,7 @@ def _finish_tree(model_id, spec3d, sp, sspec, info, meshes, sh, card_sets, n_car
 def _bush_mesh(bc, br, bz, centre, ext, top_z, bottom, rects, sp, li, seed, ref, z_sway0, fit=None,
                blob_rects=None):
     core_t = 20 * 4 ** sp["core_subdiv"][li] if sp["core_subdiv"][li] >= 0 else 0
-    cards = _dome_cards(bc, br, bz, centre, ext, sp["levels"][li], sp["tris"][li] - core_t, rects["leaf"], seed + li,
+    cards = _dome_cards(bc, br, bz, centre, ext, sp["levels"][li], sp["tris"][li] - core_t, rects["leaf"], seed,
                         sp, blob_rects, cap=sp["caps"][li])
     if fit is None:
         fit = _Fit(cards["eff"], np.zeros((0, 3)), ref[0], ref[1], centre)
@@ -1049,6 +1107,10 @@ def build_bush(model_id, spec3d):
         blobs, ref = _crown_blobs(N.crown, (c["centre"], c["a"], c["b"], c["c"], c["n"], c["r0"], c["r1"]), seed)
         sspec = None
         info = {"object": dict(spec3d["object"])}
+    elif name == "heather":
+        sspec, info, _wood, ref, _blobs, shape = _source(spec3d, shapes=True)
+        blobs = [(c, r, zs) for (c, r, zs, _k) in shape["heather"]]
+        kinds = [k for (_c, _r, _zs, k) in shape["heather"]]
     else:
         sspec, info, _wood, ref, blobs = _source(spec3d)
     bc, br, bz = _blob_arrays(blobs)
@@ -1062,13 +1124,20 @@ def build_bush(model_id, spec3d):
         ref_lo = np.array([-o["width_m"] * 0.5, -o.get("length_m", o["width_m"]) * 0.5, 0.0])
         ref_hi = np.array([o["width_m"] * 0.5, o.get("length_m", o["width_m"]) * 0.5, o["height_m"]])
     top_z = float(ref_hi[2])
-    atlas_img, rects = _leaf_atlas(sp, size=512, grid=(2, 2))
+    blob_rects = None
+    if name == "heather":
+        fl = leafatlas.species_atlas(dict(sp["flowers"], fringe=sp["fringe"]))
+        gr = leafatlas.species_atlas(dict(sp["atlas"], fringe=sp["fringe"]))
+        atlas_img, rects = leafatlas.mixed_atlas([(fl, 2), (gr, 1)], size=512, grid=(2, 2), seed=sp["atlas_seed"])
+        blob_rects = [rects["groups"][0] if k == "pink" else rects["groups"][1] for k in kinds]
+    else:
+        atlas_img, rects = _leaf_atlas(sp, size=512, grid=(2, 2))
     meshes, n_cards = {}, {}
     eff0 = None
     fit = None
     for li, ln in enumerate(("lod0", "lod1")):
         mb, nc, eff, fit = _bush_mesh(bc, br, bz, centre, ext, top_z, 0.0, rects, sp, li, seed,
-                                      (ref_lo, ref_hi), 0.0, fit)
+                                      (ref_lo, ref_hi), 0.0, fit, blob_rects)
         meshes[ln] = mb
         n_cards[ln] = nc
         if eff0 is None:

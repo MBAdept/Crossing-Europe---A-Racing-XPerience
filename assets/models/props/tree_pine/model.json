@@ -1,0 +1,55 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/tree_pine",
+ "model": {
+  "kind": "tree",
+  "object": {"width_m": 7, "height_m": 18},
+  "extent_m": {"left": 3.16, "right": 3.76},
+  "aabb": [-3.159, -0.55, -3.558, 3.758, 16.93, 3.846],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 1693,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/tree_pine/lod0_body.res",
+      "classes": ["vpbr", "leaves"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 200,
+    "tris": 592,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/tree_pine/lod1_body.res",
+      "classes": ["vpbr", "leaves"]
+     }
+    ]
+   }
+  ],
+  "shadow": {"mesh": "props/tree_pine/shadow.res", "tris": 192},
+  "textures": {"leaves": "props/tree_pine/leaves.png"},
+  "impostor": {
+   "texture": "props/tree_pine/impostor.png",
+   "size_m": [7.417, 17.262],
+   "anchor_x": 0.4597
+  },
+  "cards": {"lod0": 30, "lod1": 30},
+  "auto_lod": false,
+  "tags": ["prop", "tree"],
+  "bytes": 2196300,
+  "hash": "1eca622024bb9611c3ff2c2c9c985114a72905b6"
+ },
+ "sets": {
+  "props/tree_pine": {
+   "model": "props/tree_pine",
+   "variants": ["props/tree_pine", "props/tree_pine_b"]
+  }
+ }
+}

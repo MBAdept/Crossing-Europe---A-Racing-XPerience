@@ -1,0 +1,50 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/tree_olive_b",
+ "model": {
+  "kind": "tree",
+  "object": {"width_m": 7.4, "height_m": 5.4},
+  "extent_m": {"left": 3.53, "right": 4.14},
+  "aabb": [-3.528, -0.7, -3.633, 4.138, 5.437, 3.79],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 2190,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/tree_olive_b/lod0_body.res",
+      "classes": ["vpbr", "leaves"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 200,
+    "tris": 791,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/tree_olive_b/lod1_body.res",
+      "classes": ["vpbr", "leaves"]
+     }
+    ]
+   }
+  ],
+  "shadow": {"mesh": "props/tree_olive_b/shadow.res", "tris": 227},
+  "textures": {"leaves": "props/tree_olive_b/leaves.png"},
+  "impostor": {
+   "texture": "props/tree_olive_b/impostor.png",
+   "size_m": [8.166, 5.742],
+   "anchor_x": 0.4626
+  },
+  "cards": {"lod0": 39, "lod1": 39},
+  "auto_lod": false,
+  "tags": ["prop", "tree"],
+  "bytes": 2181990,
+  "hash": "626c71696cbcac39267bb254c24c3cfe7ca19033"
+ },
+ "sets": {}
+}

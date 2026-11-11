@@ -96,9 +96,12 @@ def species_atlas(a):
     gain = float(a.get("gain", 1.0))
     sat = float(a.get("sat", 1.0))
 
+    tint = tuple(a.get("tint", (1.0, 1.0, 1.0)))
+
     def adj(rgb, k=1.0):
         y = 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]
-        return "#%02x%02x%02x" % tuple(max(0, min(255, int(round((y + (x - y) * sat) * gain * k)))) for x in rgb)
+        return "#%02x%02x%02x" % tuple(max(0, min(255, int(round((y + (x - y) * sat) * gain * k * t))))
+                                       for x, t in zip(rgb, tint))
     a1, a2 = _hex(c1), _hex(c2)
     cols = [adj(_mix(a1, a2, t)) for t in (0.0, 0.3, 0.55, 0.8, 1.0)]
     cols.append(adj(_mix(a1, a2, 1.0), 1.1))
@@ -407,6 +410,159 @@ def atlas(sp, size=1024, grid=(4, 4), seed=3, cells="cluster"):
             rects.append(((c * cw + 0.5) / size, (r * ch + 0.5) / size, ((c + 1) * cw - 0.5) / size,
                           ((r + 1) * ch - 0.5) / size))
     return sheet, {"leaf": rects[:-1], "core": rects[-1]}
+
+
+def branch(size, rng, sp):
+    """A spruce branch seen from above (AS3, ce3d/veg3d_shapes.py tier cards): the twig runs from the top of the cell
+    (the inner end at the trunk) to the bottom (the tip), side twigs leave it forwards and outwards, every twig set
+    with short needles; widest in the middle, a ragged tip. RGBA (size x size)."""
+    ss = 4
+    S = size * ss
+    cols = [_hex(c) for c in sp["colors"]]
+    dark = _hex(sp.get("shade", "#10200f"))
+    contrast = float(sp.get("contrast", 0.28))
+    sheen = float(sp.get("sheen", 0.14))
+    img = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+    dr = ImageDraw.Draw(img)
+    cx = S * 0.5
+    twig = _hex(sp.get("twig", "#3a2a1c"))
+    w = max(1, S // 220)
+    twigs = [[(cx + rng.gauss(0.0, S * 0.01), S * 0.02), (cx + rng.gauss(0.0, S * 0.02), S * 0.5),
+              (cx + rng.gauss(0.0, S * 0.02), S * 0.97)]]
+    n_side = 9
+    for k in range(n_side):
+        t = 0.12 + 0.8 * k / (n_side - 1)
+        y0 = S * t
+        x0 = cx + (twigs[0][1][0] - cx) * min(1.0, t * 2.0)
+        reach = S * 0.46 * math.sin(math.pi * min(1.0, 0.15 + t * 0.95)) * rng.uniform(0.8, 1.05)
+        for side in (-1, 1):
+            ang = math.radians(rng.uniform(32.0, 48.0))
+            x1 = x0 + side * reach * math.sin(ang)
+            y1 = y0 + reach * math.cos(ang)
+            twigs.append([(x0, y0), ((x0 + x1) * 0.5, (y0 + y1) * 0.5 + S * 0.01), (x1, y1)])
+    for tw in twigs:
+        dr.line(tw, fill=twig + (255,), width=w + 1)
+    # needles along every twig, both sides, pointing forwards; deeper ones darker
+    for tw in twigs:
+        for i in range(len(tw) - 1):
+            (xa, ya), (xb, yb) = tw[i], tw[i + 1]
+            seg = math.hypot(xb - xa, yb - ya)
+            n = max(2, int(seg / (S * 0.008)))
+            ang = math.atan2(yb - ya, xb - xa)
+            for j in range(n):
+                f = j / n
+                px, py = xa + (xb - xa) * f, ya + (yb - ya) * f
+                for side in (-1, 1):
+                    a = ang + side * math.radians(rng.uniform(40.0, 70.0))
+                    ln = S * rng.uniform(0.03, 0.05)
+                    depth = rng.random()
+                    col = _mix(dark, rng.choice(cols), min(1.0, (1.0 - contrast + contrast * depth)))
+                    col = _mix(col, (255, 255, 230), sheen * depth * 0.6)
+                    dr.line([(px, py), (px + math.cos(a) * ln, py + math.sin(a) * ln)], fill=col + (255,), width=w + 1)
+    return img.resize((size, size), Image.LANCZOS)
+
+
+def frond(w, h, rng, sp):
+    """A palm frond (AS3, ce3d/veg3d_shapes.py frond strips): the rachis runs up the middle of a w x h cell from the
+    base (bottom) to the tip (top); leaflets leave it on both sides, angled towards the tip, long in the middle of
+    the frond, short at its ends, drooping a little; darker at the rachis, lighter at their tips. RGBA (w x h)."""
+    ss = 3
+    W, H = w * ss, h * ss
+    cols = [_hex(c) for c in sp["colors"]]
+    dark = _hex(sp.get("shade", "#1d3311"))
+    img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    dr = ImageDraw.Draw(img)
+    cx = W * 0.5
+    rachis = _hex(sp.get("twig", "#8a7a3a"))
+    n = 52
+    for k in range(n):
+        t = (k + rng.uniform(0.2, 0.8)) / n
+        y0 = H * (1.0 - t * 0.98)
+        span = math.sin(math.pi * min(1.0, 0.08 + t * 1.02)) ** 0.6
+        for side in (-1, 1):
+            ln = W * 0.5 * span * rng.uniform(0.88, 1.04)
+            if ln < W * 0.04:
+                continue
+            ang = math.radians(rng.uniform(24.0, 36.0))       # towards the tip
+            droop = rng.uniform(0.0, 0.06)
+            x1 = cx + side * ln * math.cos(ang)
+            y1 = y0 - ln * math.sin(ang) + ln * droop
+            lw = W * rng.uniform(0.034, 0.048)
+            col = rng.choice(cols)
+            base = _mix(dark, col, 0.78)
+            tip = _mix(col, (255, 255, 220), 0.12)
+            # a narrow leaflet: polygon along the line, widest a third out
+            dx, dy = x1 - cx, y1 - y0
+            L = math.hypot(dx, dy)
+            ux, uy = dx / L, dy / L
+            px, py = -uy, ux
+            pts_l, pts_r = [], []
+            for j in range(9):
+                f = j / 8
+                ww = lw * math.sin(math.pi * min(1.0, f * 1.25 + 0.05)) ** 0.8
+                xx, yy = cx + dx * f, y0 + dy * f + ln * droop * f * f
+                pts_l.append((xx + px * ww, yy + py * ww))
+                pts_r.append((xx - px * ww, yy - py * ww))
+            dr.polygon(pts_l + list(reversed(pts_r)), fill=base + (255,))
+            dr.line([(cx, y0), (cx + dx * 0.9, y0 + dy * 0.9)], fill=_mix(base, tip, 0.5) + (255,), width=max(1, ss))
+    dr.line([(cx, H), (cx, H * 0.02)], fill=rachis + (255,), width=max(2, W // 60))
+    return img.resize((w, h), Image.LANCZOS)
+
+
+def special_atlas(kind, sp, size=1024, seed=3):
+    """Atlas of the special crowns (AS3): kind "branch" - 4 x 4 cells of spruce branches, the last one the opaque core
+    (needle mass of the inner cones); kind "frond" - four palm fronds side by side (cells of size/4 x size).
+    Returns (PIL image, {"leaf": [uv rects], "core": rect or None})."""
+    rng = random.Random(seed)
+    sheet = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    rects = []
+    core = None
+    if kind == "frond":
+        cw = size // 4
+        for c in range(4):
+            sheet.paste(bleed(halo(frond(cw, size, rng, sp))), (c * cw, 0))
+            rects.append(((c * cw + 0.5) / size, 0.5 / size, ((c + 1) * cw - 0.5) / size, (size - 0.5) / size))
+        return sheet, {"leaf": rects, "core": None}
+    cw = size // 4
+    for r in range(4):
+        for c in range(4):
+            last = r == 3 and c == 3
+            cl = cluster(cw, rng, sp, core=True) if last else bleed(halo(branch(cw, rng, sp)))
+            sheet.paste(cl, (c * cw, r * cw))
+            rect = ((c * cw + 0.5) / size, (r * cw + 0.5) / size, ((c + 1) * cw - 0.5) / size, ((r + 1) * cw - 0.5) / size)
+            if last:
+                core = rect
+            else:
+                rects.append(rect)
+    return sheet, {"leaf": rects, "core": core}
+
+
+def mixed_atlas(groups, size=512, grid=(2, 2), seed=3):
+    """Atlas of leaf-ball cells of several palettes (AS3, heather: flowers and foliage): groups = [(sp, cells)], filled
+    in order; the LAST cell is the opaque core in the last palette. Returns (PIL image, {"leaf": all ball rects,
+    "groups": [rects of each group], "core": rect})."""
+    rng = random.Random(seed)
+    cols, rows = grid
+    cw, ch = size // cols, size // rows
+    sheet = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    plan = [g for g, (sp, n) in enumerate(groups) for _k in range(n)]
+    out = {"leaf": [], "groups": [[] for _g in groups]}
+    i = 0
+    for r in range(rows):
+        for c in range(cols):
+            core = (r == rows - 1 and c == cols - 1)
+            g = plan[min(i, len(plan) - 1)] if not core else len(groups) - 1
+            cl = cluster(min(cw, ch), rng, groups[g][0], core=True) if core else bleed(halo(ball(min(cw, ch), rng,
+                                                                                                    groups[g][0])))
+            sheet.paste(cl, (c * cw, r * ch))
+            rect = ((c * cw + 0.5) / size, (r * ch + 0.5) / size, ((c + 1) * cw - 0.5) / size, ((r + 1) * ch - 0.5) / size)
+            if core:
+                out["core"] = rect
+            else:
+                out["leaf"].append(rect)
+                out["groups"][g].append(rect)
+                i += 1
+    return sheet, out
 
 
 def grass_atlas(sp, size=512, grid=(2, 2), seed=5):

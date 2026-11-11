@@ -1,0 +1,50 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/tree_beech_b",
+ "model": {
+  "kind": "tree",
+  "object": {"width_m": 9.5, "height_m": 15.5},
+  "extent_m": {"left": 4.99, "right": 4.96},
+  "aabb": [-4.99, -0.55, -5.312, 4.958, 15.472, 5.165],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 2462,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/tree_beech_b/lod0_body.res",
+      "classes": ["vpbr", "leaves"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 200,
+    "tris": 889,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/tree_beech_b/lod1_body.res",
+      "classes": ["vpbr", "leaves"]
+     }
+    ]
+   }
+  ],
+  "shadow": {"mesh": "props/tree_beech_b/shadow.res", "tris": 177},
+  "textures": {"leaves": "props/tree_beech_b/leaves.png"},
+  "impostor": {
+   "texture": "props/tree_beech_b/impostor.png",
+   "size_m": [10.448, 15.508],
+   "anchor_x": 0.5015
+  },
+  "cards": {"lod0": 62, "lod1": 62},
+  "auto_lod": false,
+  "tags": ["prop", "tree"],
+  "bytes": 2070148,
+  "hash": "fe57d0517fc81091761e6ecabfaab06f1eb9c71d"
+ },
+ "sets": {}
+}

@@ -1,0 +1,55 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/tree_cypress",
+ "model": {
+  "kind": "tree",
+  "object": {"width_m": 2.8, "height_m": 14},
+  "extent_m": {"left": 1.17, "right": 1.14},
+  "aabb": [-1.167, -0.55, -1.14, 1.139, 14, 1.143],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 1236,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/tree_cypress/lod0_body.res",
+      "classes": ["vpbr", "leaves"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 200,
+    "tris": 316,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/tree_cypress/lod1_body.res",
+      "classes": ["vpbr", "leaves"]
+     }
+    ]
+   }
+  ],
+  "shadow": {"mesh": "props/tree_cypress/shadow.res", "tris": 128},
+  "textures": {"leaves": "props/tree_cypress/leaves.png"},
+  "impostor": {
+   "texture": "props/tree_cypress/impostor.png",
+   "size_m": [2.806, 14.365],
+   "anchor_x": 0.5049
+  },
+  "cards": {"lod0": 0, "lod1": 0},
+  "auto_lod": false,
+  "tags": ["prop", "tree"],
+  "bytes": 1772535,
+  "hash": "a3d5c3d125c44244a40d2595989765f647890860"
+ },
+ "sets": {
+  "props/tree_cypress": {
+   "model": "props/tree_cypress",
+   "variants": ["props/tree_cypress", "props/tree_cypress_b"]
+  }
+ }
+}

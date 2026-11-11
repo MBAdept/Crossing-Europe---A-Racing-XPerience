@@ -1,0 +1,50 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/tree_spruce_b",
+ "model": {
+  "kind": "tree",
+  "object": {"width_m": 7, "height_m": 19.3},
+  "extent_m": {"left": 3.69, "right": 3.79},
+  "aabb": [-3.686, -0.55, -3.312, 3.789, 20.755, 3.807],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 858,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/tree_spruce_b/lod0_body.res",
+      "classes": ["vpbr", "leaves"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 200,
+    "tris": 378,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/tree_spruce_b/lod1_body.res",
+      "classes": ["vpbr", "leaves"]
+     }
+    ]
+   }
+  ],
+  "shadow": {"mesh": "props/tree_spruce_b/shadow.res", "tris": 234},
+  "textures": {"leaves": "props/tree_spruce_b/leaves.png"},
+  "impostor": {
+   "texture": "props/tree_spruce_b/impostor.png",
+   "size_m": [7.975, 19.631],
+   "anchor_x": 0.4935
+  },
+  "cards": {"lod0": 216, "lod1": 72},
+  "auto_lod": false,
+  "tags": ["prop", "tree"],
+  "bytes": 1336219,
+  "hash": "12fc255305a99793b5b7066148dc2d521169cbd5"
+ },
+ "sets": {}
+}

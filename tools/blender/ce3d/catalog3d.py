@@ -185,6 +185,55 @@ MODELS.update({
 })
 
 
+# --- AS3 ---------------------------------------------------------------------------------------------------------------
+# AS3 (wave 4): vegetation and nature (docs/modelle.md section 15). Own block: the species tables of the card-tree
+# builder are in ce3d/veg3d.py (oak, birch and the bushes above get the reworked builder through them); the entries
+# here add the other species with a second seed each, heather, the two rocks and the cliff.
+#   params   generator parameters of the 3D build: "seed" - and for species whose generator draws no random shape, a
+#            3D-only shape parameter of the generator (spruce: tiers, taper; cypress: bulge, width; palm: bend) so
+#            that the two variants differ in silhouette. The sprite catalog never passes them: the sprites stay.
+#   code     spruce, cypress and palm build their crowns in ce3d/veg3d_shapes.py (part of their cache key)
+BUILDER_CODE.update({
+    "rock": ["ce3d/rock3d.py", "ce3d/bake.py", "ce3d/props3d.py", "cesprites/props_nature.py", "cesprites/props.py",
+             "render_all.py"],
+})
+AS3_SHAPES = ["ce3d/veg3d_shapes.py"]
+
+
+def _as3_tree(name, species, seed_b, code=None, params_b=None):
+    """A species and its second seed variant (props/tree_<name>, props/tree_<name>_b)."""
+    a = dict(builder="tree", source="props/tree_" + name, kind="tree", species=species,
+             sets={"props/tree_" + name: {"variants": ["props/tree_" + name, "props/tree_%s_b" % name]}})
+    b = dict(builder="tree", source="props/tree_" + name, kind="tree", species=species,
+             variant_of="props/tree_" + name, params=dict({"seed": seed_b}, **(params_b or {})))
+    if code:
+        a["code"] = list(code)
+        b["code"] = list(code)
+    return {"props/tree_" + name: a, "props/tree_%s_b" % name: b}
+
+
+MODELS.update(_as3_tree("beech", "beech", 61))
+MODELS.update(_as3_tree("poplar", "poplar", 29))
+MODELS.update(_as3_tree("olive", "olive", 53))
+MODELS.update(_as3_tree("pine", "pine", 71))
+MODELS.update(_as3_tree("spruce", "spruce", 19, AS3_SHAPES, {"tiers": 12, "taper": 1.25}))
+MODELS.update(_as3_tree("cypress", "cypress", 41, AS3_SHAPES, {"bulge": 1.45, "width": 1.12}))
+MODELS.update(_as3_tree("palm", "palm", 43, AS3_SHAPES, {"bend": 0.4}))
+MODELS.update({
+    # heather: the generator's tufts (props_nature.SHAPE_LOG "heather") as leaf domes, flowers and foliage
+    "props/heather": dict(builder="bush", source="props/heather", kind="plant", bush="heather"),
+    # rocks and the cliff: the generator's boulders (and wall) decimated to their budget, the rock material
+    # (cracks, strata, moss) baked into an atlas with ambient occlusion; the cliff's shrubs baked in (one draw call)
+    "props/rock_a": dict(builder="rock", source="props/rock_a", kind="rock", atlas=(512, 512), ppm_max=160.0,
+                         roughness=0.9, tris=1450, ao=dict(distance=0.9, floor=0.45, gamma=1.0, samples=24)),
+    "props/rock_b": dict(builder="rock", source="props/rock_b", kind="rock", atlas=(512, 512), ppm_max=160.0,
+                         roughness=0.9, tris=1450, ao=dict(distance=0.9, floor=0.45, gamma=1.0, samples=24)),
+    "props/cliff": dict(builder="rock", source="props/cliff", kind="rock", atlas=(1024, 1024), ppm_max=40.0,
+                        roughness=0.92, tris=5900, ao=dict(distance=2.5, floor=0.4, gamma=1.0, samples=24)),
+})
+# --- end AS3 -----------------------------------------------------------------------------------------------------------
+
+
 def model_ids():
     return sorted(MODELS)
 

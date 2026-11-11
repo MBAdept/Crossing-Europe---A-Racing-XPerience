@@ -613,6 +613,34 @@ func _swap(a: Array, b: Array, bg: Image) -> String:
 				nb += 1
 	if union == 0 or na == 0 or nb == 0:
 		return "(keine Pixel)"
+	# the same in 3x3 blocks (block means): what a swap changes in shape and colour, without the leaf-scale detail
+	# that differs between any two levels pixel by pixel
+	var bu := 0
+	var bch := 0
+	var by := r.position.y
+	while by + 3 <= r.end.y:
+		var bx := r.position.x
+		while bx + 3 <= r.end.x:
+			var ma := Vector3.ZERO
+			var mb := Vector3.ZERO
+			var model := false
+			for y in range(by, by + 3):
+				for x in range(bx, bx + 3):
+					var ca := ia.get_pixel(x, y)
+					var cb := ib.get_pixel(x, y)
+					var cg := bg.get_pixel(x, y)
+					ma += Vector3(ca.r, ca.g, ca.b)
+					mb += Vector3(cb.r, cb.g, cb.b)
+					if absf(ca.r - cg.r) + absf(ca.g - cg.g) + absf(ca.b - cg.b) > 0.03 \
+							or absf(cb.r - cg.r) + absf(cb.g - cg.g) + absf(cb.b - cg.b) > 0.03:
+						model = true
+			if model:
+				bu += 1
+				var dd := (ma - mb).abs() / 9.0
+				if dd.x + dd.y + dd.z > SWAP_DIFF:
+					bch += 1
+			bx += 3
+		by += 3
 	sa /= float(na)
 	sb /= float(nb)
 	var la := 0.2126 * sa.x + 0.7152 * sa.y + 0.0722 * sa.z
@@ -620,8 +648,9 @@ func _swap(a: Array, b: Array, bg: Image) -> String:
 	var ha := Color(sa.x, sa.y, sa.z).h * 360.0
 	var hb := Color(sb.x, sb.y, sb.z).h * 360.0
 	var dh := fposmod(hb - ha + 180.0, 360.0) - 180.0
-	return "%.1f %% der Pixel geändert, Helligkeit %+.1f %%, Farbton %+.1f°, Pixel %d -> %d" % [
-		100.0 * float(changed) / float(union), 100.0 * (lb - la) / maxf(0.001, la), dh, na, nb]
+	return "%.1f %% der Pixel / %.1f %% der 3x3-Blöcke geändert, Helligkeit %+.1f %%, Farbton %+.1f°, Pixel %d -> %d" % [
+		100.0 * float(changed) / float(union), 100.0 * float(bch) / float(maxi(1, bu)), 100.0 * (lb - la) / maxf(0.001, la),
+		dh, na, nb]
 
 
 func _road(models: Array) -> Image:

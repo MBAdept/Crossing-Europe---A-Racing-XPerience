@@ -1,0 +1,55 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/tree_poplar",
+ "model": {
+  "kind": "tree",
+  "object": {"width_m": 4, "height_m": 21.8},
+  "extent_m": {"left": 2.18, "right": 2.64},
+  "aabb": [-2.256, -0.55, -2.565, 2.841, 20.97, 2.544],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 2470,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/tree_poplar/lod0_body.res",
+      "classes": ["vpbr", "leaves"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 200,
+    "tris": 888,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/tree_poplar/lod1_body.res",
+      "classes": ["vpbr", "leaves"]
+     }
+    ]
+   }
+  ],
+  "shadow": {"mesh": "props/tree_poplar/shadow.res", "tris": 136},
+  "textures": {"leaves": "props/tree_poplar/leaves.png"},
+  "impostor": {
+   "texture": "props/tree_poplar/impostor.png",
+   "size_m": [5.326, 21.305],
+   "anchor_x": 0.4565
+  },
+  "cards": {"lod0": 82, "lod1": 82},
+  "auto_lod": false,
+  "tags": ["prop", "tree"],
+  "bytes": 2032938,
+  "hash": "b7ec09963e8e63ff8c80c8c5203987e1c4f8c45d"
+ },
+ "sets": {
+  "props/tree_poplar": {
+   "model": "props/tree_poplar",
+   "variants": ["props/tree_poplar", "props/tree_poplar_b"]
+  }
+ }
+}
