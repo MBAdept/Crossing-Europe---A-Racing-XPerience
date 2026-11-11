@@ -180,21 +180,36 @@ func test_view_inputs_match_arcade_on_a_straight() -> void:
 	var cam_x := 1.875
 	var cam := Transform3D(Basis.IDENTITY, path.world(cam_z, cam_x, 3.4))
 	var worst := 0.0
+	var inv := cam.affine_inverse()
 	for dist: float in [5.0, 20.0, 60.0, 150.0]:
 		for x: float in [-3.75, 0.0, 3.75]:
 			var z := cam_z + dist
-			var v := VehicleStandIn.view_inputs(cam, path.world(z, x, 0.0), path.world(z, 0.0, 0.0), path.world(z + 4.7, 0.0, 0.0))
+			var v := VehicleStandIn.view_inputs(inv, path.world(z, x, 0.0), path.world(z, x, 0.0), path.world(z + 4.7, x, 0.0))
 			worst = maxf(worst, absf(v.x - dist) + absf(v.y - (x - cam_x)) + absf(v.z))
 	assert_true(worst < 1.0e-3, "Tiefe, Seitenversatz, Straßenrichtung wie Arcade (größte Abweichung %.6f)" % worst)
 	# a turned camera: the road heading and the view ray turn alike, the car's yaw against the ray stays
 	var yaw := deg_to_rad(8.0)
 	var cam2 := Transform3D(Basis(Vector3.UP, -yaw), cam.origin)
 	var z2 := cam_z + 40.0
-	var a := VehicleStandIn.view_inputs(cam, path.world(z2, 3.75, 0.0), path.world(z2, 0.0, 0.0), path.world(z2 + 4.7, 0.0, 0.0))
-	var b := VehicleStandIn.view_inputs(cam2, path.world(z2, 3.75, 0.0), path.world(z2, 0.0, 0.0), path.world(z2 + 4.7, 0.0, 0.0))
+	var a := VehicleStandIn.view_inputs(inv, path.world(z2, 3.75, 0.0), path.world(z2, 0.0, 0.0), path.world(z2 + 4.7, 0.0, 0.0))
+	var b := VehicleStandIn.view_inputs(cam2.affine_inverse(), path.world(z2, 3.75, 0.0), path.world(z2, 0.0, 0.0), path.world(z2 + 4.7, 0.0, 0.0))
 	assert_near(b.z, a.z - yaw, 1.0e-4, "Straßenrichtung relativ zur gedrehten Kamera")
 	assert_near(b.z - atan2(b.y, b.x), a.z - atan2(a.y, a.x), 1.0e-3, "Gier gegen den Sehstrahl bleibt")
 	assert_near(VehicleStandIn.camera_heading(cam2), yaw, 1.0e-6, "Kamerarichtung (+ = rechts)")
+	# in a bend of constant radius the chord of the car's own lane runs parallel to the chord of the road centre
+	var tb: Track = SynTrack.new()
+	tb.fill(cfg(), SynTrack.arc(400, 136.0))
+	var pb := RoadPath3D.new()
+	pb.setup(tb, 0, 120.0)
+	pb.ensure(398)
+	var cb := Transform3D(Basis.IDENTITY, pb.world(300.0, 0.0, 3.4)).affine_inverse()
+	var worst_h := 0.0
+	for x: float in [-3.75, 3.75, 7.5]:
+		var zc := 330.0
+		var own := VehicleStandIn.view_inputs(cb, pb.world(zc, x, 0.0), pb.world(zc, x, 0.0), pb.world(zc + 4.7, x, 0.0))
+		var centre := VehicleStandIn.view_inputs(cb, pb.world(zc, x, 0.0), pb.world(zc, 0.0, 0.0), pb.world(zc + 4.7, 0.0, 0.0))
+		worst_h = maxf(worst_h, absf(own.z - centre.z))
+	assert_true(worst_h < 1.0e-3, "Sehne der eigenen Spur = Sehne der Mitte (R 136 m, Abweichung %.6f rad)" % worst_h)
 
 
 ## The fold puts the cell's columns where Arcade's flank warp puts them: every column of VehiclePose.warp_columns

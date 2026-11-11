@@ -97,16 +97,26 @@ static func sheet_texture(set_id: String, db: Object) -> Texture2D:
 
 ## Camera-space inputs of Arcade's ortho yaw formula for a car: Vector3(d_r = depth of its rear centre, x_r = lateral
 ## offset of the rear centre from the camera axis, h = heading of the road chord from the rear to the front relative
-## to the camera axis). rear = the car's rear centre on the road, road_rear / road_front = the road centre at its rear
-## and front (all world, origin-relative). On a straight road with the camera on the road axis these are exactly
-## the d_r, xr_road + x and chord_heading() of RoadRenderer._vehicle_cell.
-static func view_inputs(cam: Transform3D, rear: Vector3, road_rear: Vector3, road_front: Vector3) -> Vector3:
-	var inv := cam.affine_inverse()
+## to the camera axis). inv = the inverse of the camera transform, rear = the car's rear centre on the road,
+## chord_rear / chord_front = two points of the road one vehicle length apart – the road centre at its rear and
+## front, or the car's own rear and front centre (the same direction on a bend of constant radius) – all world,
+## origin-relative. On a straight road with the camera on the road axis these are exactly the d_r, xr_road + x and
+## chord_heading() of RoadRenderer._vehicle_cell.
+static func view_inputs(inv: Transform3D, rear: Vector3, chord_rear: Vector3, chord_front: Vector3) -> Vector3:
 	var r := inv * rear
-	var a := inv * road_rear
-	var b := inv * road_front
+	var a := inv * chord_rear
+	var b := inv * chord_front
 	var along := -(b.z - a.z)
 	var h := atan2(b.x - a.x, along) if absf(along) > 1.0e-6 or absf(b.x - a.x) > 1.0e-6 else 0.0
+	return Vector3(-r.z, r.x, h)
+
+
+## view_inputs() of a car whose own rear and front centre give the chord (two transforms instead of three).
+static func view_inputs_car(inv: Transform3D, rear: Vector3, front: Vector3) -> Vector3:
+	var r := inv * rear
+	var b := inv * front
+	var along := -(b.z - r.z)
+	var h := atan2(b.x - r.x, along) if absf(along) > 1.0e-6 or absf(b.x - r.x) > 1.0e-6 else 0.0
 	return Vector3(-r.z, r.x, h)
 
 
@@ -485,8 +495,10 @@ static func _material(shader: Shader, info: Dictionary, tex: Texture2D) -> Shade
 	return mat
 
 
-## All cars of one sprite sheet in one MultiMesh (one draw call, plus the depth pre-pass), drawn far to near so the
-## soft parts blend in order; the hidden box casters of its cars in a second MultiMesh (shadow pass only).
+## All cars of one sprite sheet in one MultiMesh (the opaque pass and the soft pass: two draw calls), the hidden box
+## casters of its cars in a second MultiMesh (shadow pass only). The instances go straight into the buffer in the
+## order the cars come (the opaque pass writes depth, so only soft parts of two cars of the same sheet could
+## overlap out of order – the bodies never do).
 class SheetBatch:
 	var set_id := ""
 	var info: Dictionary = {}
@@ -497,9 +509,8 @@ class SheetBatch:
 	var caster_node: MultiMeshInstance3D
 	var n := 0
 	var cn := 0
-	var stage := PackedFloat32Array()     ## instances in the order they came
-	var keys := PackedFloat32Array()      ## their depth
-	var order := PackedInt32Array()
+	var last_n := 0
+	var last_cn := 0
 	var out := PackedFloat32Array()
 	var cbuf := PackedFloat32Array()
 	var casting := false
@@ -538,25 +549,39 @@ class SheetBatch:
 		n = 0
 		cn = 0
 
-	## One car: t = its frame at the anchor (origin-relative world), col = modulate (a = fade), cu = custom data,
-	## depth = its depth in front of the camera (sort key).
-	func add(t: Transform3D, col: Color, cu: Vector4, depth: float) -> void:
-		var need := (n + 1) * FLOATS
-		if stage.size() < need:
-			stage.resize(maxi(need, maxi(8 * FLOATS, stage.size() * 2)))
-		if keys.size() < n + 1:
-			keys.resize(maxi(n + 1, maxi(8, keys.size() * 2)))
+	## One car: t = its frame at the anchor (origin-relative world), col = modulate (a = fade), cu = custom data.
+	## with_basis false: only the anchor is written – an upright picture parallel to the screen needs no more (the
+	## shader reads the basis only for a folded cell).
+	func add(t: Transform3D, col: Color, cu: Vector4, with_basis: bool = true) -> void:
 		var o := n * FLOATS
-		VehicleStandIn.put_transform(stage, o, t)
-		stage[o + 12] = col.r
-		stage[o + 13] = col.g
-		stage[o + 14] = col.b
-		stage[o + 15] = col.a
-		stage[o + 16] = cu.x
-		stage[o + 17] = cu.y
-		stage[o + 18] = cu.z
-		stage[o + 19] = cu.w
-		keys[n] = depth
+		if out.size() < o + FLOATS:
+			out.resize(maxi(o + FLOATS, maxi(8 * FLOATS, out.size() * 2)))
+		if with_basis:
+			var b := t.basis
+			out[o] = b.x.x
+			out[o + 1] = b.y.x
+			out[o + 2] = b.z.x
+			out[o + 4] = b.x.y
+			out[o + 5] = b.y.y
+			out[o + 6] = b.z.y
+			out[o + 8] = b.x.z
+			out[o + 9] = b.y.z
+			out[o + 10] = b.z.z
+		elif out[o + 5] == 0.0:
+			out[o] = 1.0          # a slot never written: identity, so the instance is never degenerate
+			out[o + 5] = 1.0
+			out[o + 10] = 1.0
+		out[o + 3] = t.origin.x
+		out[o + 7] = t.origin.y
+		out[o + 11] = t.origin.z
+		out[o + 12] = col.r
+		out[o + 13] = col.g
+		out[o + 14] = col.b
+		out[o + 15] = col.a
+		out[o + 16] = cu.x
+		out[o + 17] = cu.y
+		out[o + 18] = cu.z
+		out[o + 19] = cu.w
 		n += 1
 
 	## The hidden box caster of a car (its pose, scaled to the caster mesh's unit size when that is a unit box).
@@ -569,31 +594,23 @@ class SheetBatch:
 		VehicleStandIn.put_transform(cbuf, cn * CASTER_FLOATS, t)
 		cn += 1
 
-	## Writes the instances far to near into the MultiMesh (insertion sort: a handful of cars per sheet).
+	## Hands the instances of this frame to the MultiMesh (a sheet without cars in this and the last frame costs
+	## nothing).
 	func commit() -> void:
-		if order.size() < n:
-			order.resize(maxi(n, maxi(8, order.size() * 2)))
-		for i in n:
-			var j := i
-			while j > 0 and keys[order[j - 1]] < keys[i]:
-				order[j] = order[j - 1]
-				j -= 1
-			order[j] = i
+		if n == 0 and last_n == 0 and cn == 0 and last_cn == 0:
+			return
 		if mm.instance_count < n:
 			mm.instance_count = maxi(n, maxi(8, mm.instance_count * 2))
 		var size := mm.instance_count * FLOATS
 		if out.size() != size:
 			out.resize(size)
-		for i in n:
-			var src := order[i] * FLOATS
-			var dst := i * FLOATS
-			for f in FLOATS:
-				out[dst + f] = stage[src + f]
 		if n > 0:
 			mm.buffer = out
-		mm.visible_instance_count = n
-		node.visible = n > 0
-		if caster_mm != null:
+		if n != last_n:
+			mm.visible_instance_count = n
+			node.visible = n > 0
+			last_n = n
+		if caster_mm != null and (cn > 0 or last_cn > 0):
 			if caster_mm.instance_count < cn:
 				caster_mm.instance_count = maxi(cn, maxi(8, caster_mm.instance_count * 2))
 				cbuf.resize(caster_mm.instance_count * CASTER_FLOATS)
@@ -601,8 +618,10 @@ class SheetBatch:
 				cbuf.resize(caster_mm.instance_count * CASTER_FLOATS)
 			if cn > 0:
 				caster_mm.buffer = cbuf
-			caster_mm.visible_instance_count = cn
-			caster_node.visible = cn > 0 and casting
+			if cn != last_cn:
+				caster_mm.visible_instance_count = cn
+				caster_node.visible = cn > 0 and casting
+				last_cn = cn
 
 	func free_nodes() -> void:
 		if is_instance_valid(node):

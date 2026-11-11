@@ -70,6 +70,11 @@ class Car:
 	var fold := false               ## sprite stand-in: cell folded onto rear and flank
 	var pull := 1.0                 ## sprite stand-in: its picture pulled towards the eye by this
 	var flare_ref := -1.0           ## sprite stand-in: depth of its picture (its lamp glows go in front of it)
+	var batch: VehicleStandIn.SheetBatch   ## sprite stand-in: its sheet's batch
+	var yaws := PackedFloat32Array()       ## sprite stand-in: yaw of every cell (degrees)
+	var rear_pivot := false                ## sprite stand-in: Arcade warps it (explicit rear pivot)
+	var persp := false                     ## sprite stand-in: perspective cells (player)
+	var has_beacon := false                ## sprite stand-in: its sheet has beacon layers (police)
 	var mod := Color(-1, -1, -1, -1)   ## box stand-in: modulate set last
 	var ovl := Vector4(-1, -1, -1, -1) ## box stand-in: lamp layers set last
 	var la := Vector4(-1, -1, -1, -1)
@@ -315,7 +320,7 @@ func _warm_sheet(sid: String, info: Dictionary) -> Node3D:
 	b.casting = true
 	b.begin()
 	var t := Transform3D(Basis.IDENTITY, Vector3(0.0, 0.0, 0.0))
-	b.add(t, Color(1, 1, 1, 1), Vector4(0.0, 1.0, 1.0, 0.0), 10.0)
+	b.add(t, Color(1, 1, 1, 1), Vector4(0.0, 1.0, 1.0, 0.0))
 	b.add_caster(Transform3D(Basis.from_scale(Vector3(1.8, 1.4, 4.5)), Vector3.ZERO))
 	b.commit()
 	return root
@@ -357,7 +362,15 @@ func _set_info(set_id: String) -> Dictionary:
 		elif db != null and VehicleStandIn.kind_of(set_id, db) != "" and not _standin_warned.has(set_id):
 			_standin_warned[set_id] = true
 			push_warning("Fahrzeuge: Bild von %s nicht vorbereitet – Ersatzkasten statt Ladens während der Fahrt" % set_id)
-	info["points"] = VehiclePose3D.flare_points(lights)
+	var pts := VehiclePose3D.flare_points(lights)
+	var rear_pts: Array = []
+	for p: Dictionary in pts:
+		p["code"] = _role_code(str(p["role"]))
+		# the glows Arcade draws over its picture: rear lamps (they look backwards, model +Z) and beacons
+		if str(p["role"]).begins_with("beacon") or (p["dir"] as Vector3).z > 0.0:
+			rear_pts.append(p)
+	info["points"] = pts
+	info["points_rear"] = rear_pts
 	var lv := VehiclePose3D.lod_levels(model)
 	info["lod_names"] = lv[0]
 	info["lod_limits"] = lv[1]
@@ -613,15 +626,17 @@ func _update_sprite(car: Car, c: Dictionary, info: Dictionary, is_player: bool, 
 	# beacon; drawn with light_alpha over the body
 	var l_seg := 1.0 if seg_tunnel else lights
 	var light_alpha := alpha if lights < 0.3 else minf(1.0, alpha * 1.6)
-	var tail_k := VehicleStandIn.layer_strength(maxf(float(c.get("tail", 0.0)), l_seg), alpha, light_alpha)
-	var brake_k := VehicleStandIn.layer_strength(float(c.get("brake", 0.0)), alpha, light_alpha)
-	var mod := _shade.modulate(z, seg_tunnel, _shade.light_at(z, x, dz), alpha)
-	var yaws: PackedFloat32Array = sheet["yaws"]
-	var cols: Dictionary = sheet["cols"]
+	var tail := maxf(float(c.get("tail", 0.0)), l_seg)
+	var brake := float(c.get("brake", 0.0))
+	var tail_k := 0.0 if tail <= 0.05 else minf(1.0, tail * light_alpha / maxf(alpha, 0.001))
+	var brake_k := 0.0 if brake <= 0.05 else minf(1.0, brake * light_alpha / maxf(alpha, 0.001))
+	var light_v := _shade.light_at(z, x, dz) if _shade.lit else 0.0
+	var mod := _shade.modulate(z, seg_tunnel, light_v, alpha)
+	var yaws := car.yaws
 	var anchor_t: Transform3D
 	var cu: Vector4
 	var depth: float
-	if bool(sheet["persp"]):
+	if car.persp:
 		# the player car: anchor = the ground under the centre of the car, cell from Arcade's visible yaw
 		var zc := z + length * 0.5
 		var centre := path.world(zc, x, 0.0)
@@ -629,7 +644,7 @@ func _update_sprite(car: Car, c: Dictionary, info: Dictionary, is_player: bool, 
 		depth = -vc.z
 		var forced := -1
 		if c.has("angle") and not c.has("steer"):
-			forced = int(cols.get(str(c["angle"]), 0))
+			forced = int((sheet["cols"] as Dictionary).get(str(c["angle"]), 0))
 		if forced >= 0:
 			car.cell = forced
 		else:
@@ -646,30 +661,34 @@ func _update_sprite(car: Car, c: Dictionary, info: Dictionary, is_player: bool, 
 	else:
 		# traffic and police: anchor = the rear centre, cell from Arcade's display yaw (contract formula), folded near
 		# the camera like Arcade's flank warp
-		var vin := VehicleStandIn.view_inputs(_cam_tr, rear, path.world(z, 0.0, 0.0), path.world(z + length, 0.0, 0.0))
+		var vin := VehicleStandIn.view_inputs_car(_cam_inv, rear, front)
 		depth = vin.x
-		var forced := int(cols.get(str(c["angle"]), 0)) if c.has("angle") else -1
+		var forced := int((sheet["cols"] as Dictionary).get(str(c["angle"]), 0)) if c.has("angle") else -1
 		car.cell = VehicleStandIn.traffic_cell(car.disp, yaws, vin, VehiclePose.own_heading(car.lat, speed_mps), length, _veh_max_deg,
 			sim_dt, _veh_tau, _veh_hyst, forced)
 		var psi_deg := yaws[car.cell] if car.cell >= 0 and car.cell < yaws.size() else 0.0
-		car.fold = VehicleStandIn.folds(_warp_on, bool(sheet["rear"]), psi_deg, length, depth, _warp_ratio)
+		# VehicleStandIn.folds(), inline (RoadRenderer._car_warp)
+		car.fold = _warp_on and car.rear_pivot and absf(psi_deg) >= VehicleStandIn.FOLD_MIN_DEG \
+			and (depth <= 0.05 or length / depth >= _warp_ratio)
 		if not car.fold and depth <= STANDIN_NEAR_M:
 			_show(car, false)
 			return
 		car.pull = 1.0
-		var beacon := str(c.get("beacon", ""))
-		var bcode := 1.0 if beacon == "a" else (2.0 if beacon == "b" else 0.0)
+		var bcode := 0.0
+		if car.has_beacon:
+			var beacon := str(c.get("beacon", ""))
+			bcode = 1.0 if beacon == "a" else (2.0 if beacon == "b" else 0.0)
 		anchor_t = Transform3D(car.pose.basis, rear)
 		cu = Vector4(float(car.cell), tail_k, brake_k, bcode + (4.0 if car.fold else 0.0))
-	_show(car, true)
+	car.shown = true                 # no node: an instance of the sheet's MultiMesh
 	_drawn += 1
 	_standin_drawn += 1
 	car.flare_ref = depth * car.pull
-	var batch := _batch(car.set_id, info)
-	batch.add(anchor_t, Color(mod.r, mod.g, mod.b, snappedf(alpha, 1.0 / 255.0)), cu, depth)
+	mod.a = snappedf(alpha, 1.0 / 255.0)
+	car.batch.add(anchor_t, mod, cu, car.fold)
 	if _casters:
 		var hgt := float(obj.get("height_m", 1.5))
-		batch.add_caster(car.pose * Transform3D(Basis.from_scale(Vector3(float(obj.get("width_m", 1.8)) * 0.92, hgt * 0.92,
+		car.batch.add_caster(car.pose * Transform3D(Basis.from_scale(Vector3(float(obj.get("width_m", 1.8)) * 0.92, hgt * 0.92,
 			length * 0.96)), Vector3.ZERO))
 	car.cast = _casters
 	_add_shadow(car, obj, length, alpha, lights, in_tunnel)
@@ -821,11 +840,41 @@ func _commit_shadows() -> void:
 	_shadow_mm.visible_instance_count = _shadow_n
 
 
+## Lamp level that decides whether a flare point glows at all (before the full VehiclePose3D.flare_params): the
+## point's role code of _role_code() against the lamp uniforms; 0 = dark.
+static func _lamp_level(code: int, la: Vector4, lb: Vector4, lights: float) -> float:
+	match code:
+		0:
+			return la.x * lights + la.y
+		1, 8:
+			return la.x * lights
+		2:
+			return la.y
+		3:
+			return la.z
+		4:
+			return la.w
+		5:
+			return lb.z
+		6:
+			return lb.w
+		7:
+			return lb.x * lights
+	return 1.0
+
+
+static func _role_code(role: String) -> int:
+	return ["rear", "tail", "brake", "ind_l", "ind_r", "beacon_a", "beacon_b", "head", "marker"].find(role)
+
+
 ## Flares of a car: every flare point whose glow has strength; position along the lamp's direction, in the pose of
-## its unit (articulated: the unit it belongs to).
+## its unit (articulated: the unit it belongs to). A sprite stand-in only has the points Arcade draws a glow for (its
+## rear lamps and beacons: info "points_rear").
 func _add_flares(car: Car, info: Dictionary, la: Vector4, lb: Vector4, lights: float, alpha: float, light_alpha: float) -> void:
-	var pts: Array = info["points"]
+	var pts: Array = info["points_rear"] if car.flare_ref > 0.0 else info["points"]
 	for p: Dictionary in pts:
+		if _lamp_level(int(p["code"]), la, lb, lights) <= 0.0:
+			continue          # dark: no need for the full glow law
 		var role: String = p["role"]
 		var fp := VehiclePose3D.flare_params(role, la, lb, lights)
 		if fp.x <= 0.004:
@@ -951,12 +1000,19 @@ func _acquire(set_id: String, id: int) -> Car:
 		car.set_id = set_id
 		car.info = _set_info(set_id)
 		if str((car.info as Dictionary).get("standin", "")) != VehicleStandIn.KIND_SPRITE:
-			# a sprite stand-in has no node of its own: it is an instance of its sheet's MultiMesh
 			car.root = Node3D.new()
 			car.root.name = "car_%s" % set_id.replace("/", "_")
 			var world: Variant = _renderer.get("world")
 			if world is Node3D:
 				(world as Node3D).add_child(car.root)
+		else:
+			# a sprite stand-in has no node of its own: it is an instance of its sheet's MultiMesh
+			var sheet: Dictionary = (car.info as Dictionary)["sheet"]
+			car.batch = _batch(set_id, car.info)
+			car.yaws = sheet["yaws"]
+			car.rear_pivot = bool(sheet["rear"])
+			car.persp = bool(sheet["persp"])
+			car.has_beacon = (sheet["rows"] as Dictionary).has("beacon_a") or (sheet["rows"] as Dictionary).has("beacon_b")
 	car.id = id
 	car.la = Vector4(-1, -1, -1, -1)
 	car.lb = Vector4(-1, -1, -1, -1)
