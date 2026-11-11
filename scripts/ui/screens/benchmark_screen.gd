@@ -302,8 +302,8 @@ func _link_row(buttons: Array) -> void:
 ## One row per scene: name, average and 1 %-low pictures per second, frame time 95 % / 99 %, script time, draw calls,
 ## triangles. Fixed columns for 1116 px.
 class _Table extends Control:
-	const COLS: Array[float] = [0.0, 392.0, 518.0, 644.0, 800.0, 906.0, 1006.0]
-	const WIDTHS: Array[float] = [380.0, 116.0, 116.0, 146.0, 96.0, 90.0, 110.0]
+	const COLS: Array[float] = [0.0, 340.0, 460.0, 580.0, 790.0, 900.0, 1000.0]
+	const WIDTHS: Array[float] = [330.0, 110.0, 110.0, 200.0, 100.0, 90.0, 116.0]
 
 	var scenes: Array = []
 

@@ -168,6 +168,8 @@ func header() -> Dictionary:
 	if DisplayServer.get_name() != "headless":
 		size = DisplayServer.window_get_size()
 		refresh = DisplayServer.screen_get_refresh_rate()
+		if not is_finite(refresh) or refresh <= 0.0:
+			refresh = -1.0   # unknown (Xvfb answers NaN – JSON has no NaN): judged against 60 Hz
 		vsync = DisplayServer.window_get_vsync_mode() != DisplayServer.VSYNC_DISABLED
 	elif is_inside_tree():
 		size = Vector2i(get_tree().root.size)
@@ -456,11 +458,13 @@ func _end(extra: Dictionary) -> void:
 	# written: a complete run, and a run that ended because Modern does not start here (that is the finding)
 	var fell_back := str(result.get("fallback", "")) != ""
 	var failed := bool(result.get("aborted", false)) or (str(result.get("error", "")) != "" and not fell_back)
-	result["written"] = false
+	result.erase("written")   # a status of this run, not part of the file
+	var written := false
 	if not failed and (fell_back or not _results.is_empty()):
-		result["written"] = write_result(result, result_file)
+		written = write_result(result, result_file)
 		if out_path != "":
-			write_result(result, out_path)
+			written = write_result(result, out_path) and written
+	result["written"] = written
 	_free_own_scene()
 	finished.emit(result)
 
