@@ -90,7 +90,7 @@ CHAR: dict = {
     "kompakt": {
         "retune": {"rasp": 4.0, "jet": 5.0, "intake": 4.0, "whoosh": 5.0, "mech": 2.0, "hiss": 3.0},
         "nl": 1.5, "pan": "centre", "width": 0.0, "noise": 0.85, "clip_pan": 0.25, "voice": [[520.0, 0.9, 5.0]],
-        "on": ON_CURVE, "off": OFF_CURVE, "loudness": 0.6, "idle_db": 1.3, "low_db": 0.0,
+        "on": ON_CURVE, "off": OFF_CURVE, "loudness": 0.2, "idle_db": 1.6, "low_db": 0.0,
         "mix": {"in_gain": 1.0, "idle_load": 0.2, "load_curve": 0.55},
         "saturation": 1.0, "turbo_depth": 0.25,
         "turbo": {"tone": "turbo_single", "tone_level": 0.060, "hiss_level": 0.030},
@@ -121,7 +121,7 @@ CHAR: dict = {
         "tipin": {"level": 0.6}, "thump": {"level": 0.6}, "limiter_pop": 0.0,
     },
     "sportwagen": {
-        "retune": {"rasp": 1.5, "jet": 2.5, "intake": 6.0, "whoosh": 2.0, "mech": 3.0, "hiss": 2.0},
+        "retune": {"rasp": -1.0, "jet": 0.0, "intake": 6.0, "whoosh": 2.0, "mech": 3.0, "hiss": 2.0},
         "nl": 1.5, "pan": "group", "width": 0.55, "pan_from_hz": 300.0, "noise": 0.9, "clip_pan": 0.45,
         "on": ON_CURVE, "off": OFF_CURVE, "loudness": 0.45, "idle_db": -0.7, "low_db": 0.7,
         "mix": {"in_gain": 1.15, "idle_load": 0.2, "load_curve": 0.65},
