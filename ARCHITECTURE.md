@@ -406,31 +406,37 @@ Grafikmodi (v0.8.0, §15), alle optional:
 | `--no-prewarm`, `--no-watchdog` | Shader-Aufwärmen bzw. Langsamkeits-Wächter von „Modern“ auslassen |
 | `--sound=arcade\|modern` | erzwingt das Klangprofil für diesen Lauf |
 | `--audio-sync` | synchroner Motor-Mixer des Klangprofils „Modern“ (Tests, Movie Maker) |
-| `--shot-fast` | `Screenshotter`: das Bild wird erst 0,1 s vor jeder Aufnahme wieder berechnet (mit `--fixed-fps`; dieselben Bilder, etwa 4–5× schneller unter Software-OpenGL) |
+| `--shot-fast` | `Screenshotter`: das Bild wird erst kurz vor jeder Aufnahme wieder berechnet (mit `--fixed-fps`; in „Arcade“ dieselben Bilder, etwa 4–5× schneller unter Software-OpenGL). Während eine Modern-Etappe vorbereitet wird, rechnet er weiter – Selbsttest und Aufwärmen warten auf gezeichnete Bilder. |
+| `--shot-fast-lead=<s>` | Vorlauf von `--shot-fast` (Vorgabe 0,1 s). Was der `RenderingServer` beim Zeichnen selbst fortschreibt – GPU-Partikel vor allem – steht ohne Bild still (gemessen: 1.307 statt 20.191 helle Pixel nach 114 ausgelassenen Bildern): Modern-Bilder mit solchen Effekten brauchen mindestens deren längste Lebensdauer als Vorlauf oder kein `--shot-fast`. |
 | `--bench=<szene\|all>`, `--bench-out=<datei.json>` | Leistungstest-Szenen fahren und beenden (ab Welle 2) |
 | `--no-chooser` | die Auswahl „GRAFIK WÄHLEN“ beim ersten Start nie zeigen (ab Welle 2) |
 
 In Welle 0 wertet der Kern `--graphics`, `--gfx-preset`, `--gfx`, `--gfx-sync` (an den Renderer gereicht),
-`--gfx-debug=fail`, `--sound` und `--shot-fast` aus; die übrigen Argumente gehören den Paketen, die sie umsetzen.
+`--gfx-debug=fail`, `--sound`, `--shot-fast` und `--shot-fast-lead` aus; die übrigen Argumente gehören den Paketen,
+die sie umsetzen.
 
 ## 14. Tests, Screenshots, Build
 
 - `tools/run_tests.sh [filter]` – ein Durchlauf, alles headless: kompiliert alle Skripte
   (`tests/check_scripts.gd`) und startet alle `tests/unit/**/test_*.gd` (Basisklasse `TestCase`). Bricht bei
-  Skriptfehlern ab. Ohne Filter folgen die Integrationsläufe unten. Seit v0.8.0: Ohne `XDG_DATA_HOME` des Aufrufers
-  liegt `user://` in einem temporären Ordner (die Tests sehen weder gespeicherte Einstellungen noch eine
-  Konfiguration des Spielers); die Läufe des ganzen Spiels und der Rennszene nennen ihren Grafikmodus
-  (`-- --graphics=arcade`). **Allgemeiner Haken** für die Prüfungen des Modus „Modern“: jede
-  `tests/race3d/check_*.gd` und jede `tests/sim/modern_*.gd` läuft einzeln mit
-  `godot --headless --path . -s <datei>`, gibt Zeilen `CHECK <name> OK|FEHLER` aus und endet mit einem Exit-Code –
-  eine neue Prüfung braucht nur ihre Datei, niemand ändert dafür das Skript (mit Filter: die Dateien, deren Name
-  ihn enthält).
+  Skriptfehlern ab. Ohne Filter folgen die Integrationsläufe unten. Seit v0.8.0: `user://` liegt in einem
+  temporären Ordner (die Tests sehen weder gespeicherte Einstellungen noch eine Konfiguration des Spielers), es sei
+  denn, der Aufrufer setzt `XDG_DATA_HOME` auf einen **absoluten** Pfad – einen relativen ignoriert Godot und fällt
+  auf `~/.local/share` zurück, den echten Benutzerordner; ein relativer Wert wird deshalb nicht benutzt. Die Läufe
+  des ganzen Spiels und der Rennszene nennen ihren Grafikmodus (`-- --graphics=arcade`). **Allgemeiner Haken** für
+  die Prüfungen des Modus „Modern“: jede `tests/race3d/check_*.gd` und jede `tests/sim/modern_*.gd` läuft einzeln
+  mit `godot --headless --path . -s <datei>`, gibt Zeilen `CHECK <name> OK|FEHLER` aus und endet mit einem
+  Exit-Code – eine neue Prüfung braucht nur ihre Datei, niemand ändert dafür das Skript (mit Filter: die Dateien,
+  deren Name ihn enthält). Eine Datei fällt durch bei einem Exit-Code ungleich 0, bei einem Skriptfehler, bei einer
+  Zeile `CHECK <name> FEHLER` und wenn sie gar keine Zeile `CHECK <name> OK` ausgibt – dem Exit-Code allein wird
+  nicht getraut.
 - `tools/run_render_checks.sh [arcade|modern|all] [filter]` – alles, was einen echten Renderer braucht (Xvfb,
   Software-OpenGL, feste 60 Bilder/s; nicht Teil von `run_tests.sh`): `arcade` = `tests/race/check_glow_occlusion.gd`
   und `check_sprite_flip.gd` mit `--graphics=arcade`; `modern` = jede `tests/race3d/render/check_*.gd` mit
   `--graphics=modern --gfx-sync --audio-sync`. Ausgabe der Prüfungen `RENDER-CHECK <name> OK|FEHLER`, dazu je Datei
-  `RENDER-CHECK-DATEI <datei> OK|FEHLER`; alle Läufe eines Aufrufs teilen sich ein `XDG_DATA_HOME` und einen
-  Mesa-Shader-Cache.
+  `RENDER-CHECK-DATEI <datei> OK|FEHLER`; alle Läufe eines Aufrufs teilen sich ein `XDG_DATA_HOME` (nur ein
+  absoluter Pfad des Aufrufers gilt) und einen Mesa-Shader-Cache. Eine Datei fällt auch durch, wenn ein Shader
+  nicht übersetzt (`SHADER ERROR`, `Shader compilation failed` – so ein Material zeichnet einfach nichts).
 - `tools/golden.sh make|check [filter]|list|compare <a> <b>` – **Bildgleichheit von „Arcade“ mit v0.7.0** (§15.6).
 - `tools/screenshot.sh <präfix> [args]` – rendert unter Xvfb (Software-OpenGL) und speichert PNGs;
   `SCREEN=1280x800` rendert auf einem 1280×800-Bildschirm (Steam Deck, Screenshots samt Balken; im Modus „Modern“
@@ -502,7 +508,11 @@ kennt, bleiben beim Speichern erhalten:
 
 Falle beim Versionssprung: `Settings.fullscreen_stored_as_choice()` vergleicht mit der festen Konstante
 `FULLSCREEN_CHOICE_SINCE := 2`, nicht mit `SETTINGS_VERSION` – sonst verlöre jeder Spieler von v0.6/v0.7 sein
-gespeichertes „Vollbild: Aus“.
+gespeichertes „Vollbild: Aus“. `load_settings()` liest jeden Wert hinter einer Typprüfung: Ein Wert vom falschen
+Typ (von Hand geänderte Datei, eine spätere Version mit anderem Typ) zählt als nicht gespeichert und hält den Rest
+der Datei nicht vom Lesen ab; die unbekannten Schlüssel werden zuerst gesichert. (Ein ungeprüftes `bool("x")` oder
+`float(null)` ist ein Skriptfehler, der die Funktion beendete: Grafikmodus, Klangprofil, Name und die unbekannten
+Schlüssel gingen verloren und wurden beim nächsten Speichern aus der Datei gelöscht.)
 
 `Settings` (Autoload) – Felder `graphics_mode` (`""` = nicht gewählt), `sound_profile`, `gfx_preset`, `gfx_custom`,
 `race_music` (dazu `sound_profile_chosen`, `race_music_chosen`), `crash_guard`, `marker_path`; Signale
@@ -537,7 +547,10 @@ weak/software → low, ok → medium), `resolve_mode(…)`, `resolve_sound(profi
 in seinen Bereich, die Skalierung auf die nächste Stufe), `with_cli(q, preset_arg, set_arg, presets)`,
 `levels(q, gfx_cfg)`, `watchdog_verdict(median_ms, p95_ms, target_ms, wd_cfg, lowest)` → `"ok"|"slow"|"too_slow"`
 (`target_ms` = Bildzeit der Bildwiederholrate oder der Bildbegrenzung – ein Steam Deck mit 40 Hz ist bei 25 ms nicht
-langsam).
+langsam; ein Ziel ≤ 0 heißt „unbekannt“ – `DisplayServer.screen_get_refresh_rate()` liefert dann −1 – und wird
+gegen 60 Hz beurteilt). `sanitized()` begrenzt vor der Umwandlung in eine Ganzzahl (`--gfx=aa=1e30` ist das obere
+Ende, nicht 0), NaN zählt als fehlend. `graphics.watchdog.countdown_min_fps` liest nicht `Gfx`, sondern der Wächter
+des Renderers (ab Welle 1): Darunter senkt er im Countdown einmal die Voreinstellung.
 
 `GfxSelfTest` (`scripts/core/gfx_self_test.gd`): `await GfxSelfTest.run(parent, frames = 3)` rendert eine beleuchtete
 Kugel und eine Fläche mit eigenem Shader in ein 96×96-`SubViewport` und liefert
@@ -615,11 +628,18 @@ von „Modern“, 5 HUD und Pausemenü, 6 Ladebild der Sitzung. Arcade zeichnet 
    Requisiten- und Wahrzeichen-Blätter (allein die Fahrzeuge 281 MB BPTC) bleiben ungeladen.
 3. `apply_quality(Settings.quality_levels())`, `prepare(ctx)`, Ladebild „Etappe wird geladen …“ (deckend, Ebene 6;
    `LoadingOverlay.set_progress(p)`, sobald das Widget es hat). **Bis `is_prepared()` läuft nichts von der Etappe:**
-   kein Simulationsschritt, kein Countdown, keine HUD-Uhr, kein Klang-Hook, und die Uhr des `Screenshotter` steht
-   (`hold`) – gleiche Aufnahmezeiten zeigen in beiden Modi denselben Simulationszustand. Die Startansicht wird in
-   dieser Zeit weiter an `render(view)` gegeben (der Renderer baut und wärmt auf, was das erste Bild zeigt). Der
-   erste Simulationsschritt danach startet die Etappe wie das erste Bild einer Arcade-Etappe. Ein Fokusverlust
-   während der Vorbereitung pausiert beim Start.
+   kein Simulationsschritt, kein Countdown, keine HUD-Uhr, kein Klang-Hook, und die Uhr jedes `Screenshotter` steht
+   (der eigene der Sitzung über `hold`, jeder andere – der von `GameFlow` in einer Attract-Demo – über den
+   statischen Zähler `Screenshotter.preparing`, den die Sitzung für die Dauer der Vorbereitung erhöht; mit
+   `--shot-fast` wird das Bild so lange gerechnet) – gleiche Aufnahmezeiten zeigen in beiden Modi denselben
+   Simulationszustand. Die Startansicht wird in dieser Zeit weiter an `render(view)` gegeben (der Renderer baut und
+   wärmt auf, was das erste Bild zeigt). Der erste Simulationsschritt danach startet die Etappe wie das erste Bild
+   einer Arcade-Etappe. Ein Fokusverlust während der Vorbereitung pausiert beim Start.
+   Startet `GameFlow` die Etappe beim Spielstart (`-- --stage=…`, der einzige Start eines exportierten Builds),
+   hängt die Szene erst nach den Physik-Rückrufen des Bildes im Baum: Sie wird einmal gezeichnet, bevor ihr erster
+   Simulationsschritt läuft, und eine Arcade-Etappe ist an jeder Aufnahmezeit einen Schritt zurück. Die Sitzung
+   misst diese Zeit (`_lead_s`: `_process`-Sekunden vor dem ersten `_physics_process`) und schreibt sie beim Start
+   einer Modern-Etappe den Uhren gut, die standen (`Screenshotter.skip()`, HUD-Zeitgeber, Phase des Blaulichts).
 4. `not healthy()` (auch mitten in der Vorbereitung) oder kein Renderer → **Rückfall**: Modern-Renderer frei,
    Arcade-Renderer und seine Sprites, `KEEP`, HUD-Meldung „Der Modus „Modern“ lässt sich mit dieser Grafik nicht
    starten. Das Spiel läuft im Modus „Arcade“ weiter.“, Ergebnis `gfx = "arcade"`, `gfx_fallback = <Grund>`
@@ -649,16 +669,30 @@ von „Modern“, 5 HUD und Pausemenü, 6 Ladebild der Sitzung. Arcade zeichnet 
   (`check` weist darauf hin). `KEEP=<ordner>` behält die Bilder, `tools/golden.sh compare <a> <b>` zählt die
   verschiedenen Pixel je Bild.
 - `tests/unit/core/test_gfx_settings.gd`: Migration der Einstellungsdatei (ohne Version, 2 → 3), die
-  Vollbild-Falle, unbekannte Schlüssel, die Matrizen von `resolve_mode` (128 Kombinationen) und `resolve_sound`
-  (144), Voreinstellungen, Grenzen, Kommandozeile, Renderer-Parameter, Wächter, Absturz-Marker, Urteil des
+  Vollbild-Falle, unbekannte Schlüssel, Werte vom falschen Typ in alten Schlüsseln, die Matrizen von `resolve_mode`
+  (128 Kombinationen) und `resolve_sound` (144), Voreinstellungen, Grenzen (auch jenseits des Ganzzahlbereichs und
+  NaN), Kommandozeile, Renderer-Parameter, Wächter (auch ohne bekanntes Ziel), Absturz-Marker, Urteil des
   Selbsttests.
 - `tests/race3d/check_seam.gd` (headless, über den Haken von `run_tests.sh`): die Naht mit einem Prüf-Renderer
   (`tests/race3d/fixtures/seam_probe_renderer.gd`, über `RaceRenderers.modern_script`), der eine einstellbare Zahl
   von Bildern zum Vorbereiten braucht und ausfallen kann – Reihenfolge der Aufrufe, Marker vor dem Renderer,
   Stillstand bis `is_prepared()`, nur `ui/*` als Sprite-Blätter, Marker nach 2 s weg, früher Abgang und
-  Etappenwechsel, Rückfall, fehlender Renderer, alle Klang-Hooks, Marker des letzten Laufs.
+  Etappenwechsel, Rückfall, fehlender Renderer, alle Klang-Hooks, Marker des letzten Laufs, die Uhr eines fremden
+  `Screenshotter` (steht in der Vorbereitung, `--shot-fast` rechnet dann weiter; Zähler nach Start, Rückfall,
+  frühem Abgang und zwei überlappenden Etappen wieder 0).
+- `tests/race3d/check_models.gd` (headless, über den Haken): `tools/blender/validate_models.py` besteht auf den
+  eingecheckten Modellen; eine abgeschnittene, fremde oder fehlende Netzdatei ergibt kein halbes Modell
+  (docs/modelle.md).
 - `tests/race3d/render/check_seam_render.gd` (Xvfb): Selbsttest auf dem echten Renderer, Bild des Gerüsts, gleiche
-  Simulationsschritte bei gleicher Aufnahmezeit in beiden Modi, Rückfall bildgleich mit Arcade, Arcade vor und
-  nach einer Modern-Etappe im selben Prozess bildgleich, 16:10-Fenster (Modern füllt, Arcade mit Balken).
+  Simulationsschritte bei gleicher Aufnahmezeit in beiden Modi – für eine Szene, die zwischen zwei Bildern in den
+  Baum kommt, und für eine, die wie beim Start über `GameFlow` nach den Physik-Rückrufen kommt –, Rückfall
+  bildgleich mit Arcade, Arcade vor und nach einer Modern-Etappe im selben Prozess bildgleich, 16:10-Fenster
+  (Modern füllt, Arcade mit Balken).
+- `tests/race3d/render/check_models.gd` (Xvfb): jede Materialklasse zeichnet (ein Shader, der nicht übersetzt,
+  zeichnet nichts), die 15 Lampenkanäle und die Lackcodes des Vertexformats, Blinker und Bremslicht der
+  Referenzfahrzeuge auf dem Bildschirm, die MultiMesh-Wege samt gespiegeltem Knoten (docs/modelle.md).
+- `tests/unit/audio_modern/check_arcade_lean.gd` (Kindprozess von `test_modern_checks.gd`): Start und eine Etappe
+  mit Bild und Klang „Arcade“ laden kein Skript des Modern-Klangs, des Modern-Renderers oder der Modell-Datenbank
+  (eine typisierte Variable im `AudioManager` ließ sonst bei jedem Start 19 Skripte übersetzen).
 - `tests/race/run_stage.gd -- --stage=<id> --graphics=arcade|modern`: `ERGEBNIS` ist in beiden Modi dasselbe bis auf
   `gfx`.

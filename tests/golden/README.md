@@ -21,6 +21,11 @@ tools/golden.sh compare <a> <b>  # verschiedene Pixel je Bild zweier behaltener 
 - Gerendert wird unter Xvfb mit Software-OpenGL (Mesa llvmpipe), 1280×720, feste 60 Bilder/s, feste Startwerte,
   mit eigenem leerem `XDG_DATA_HOME`. `check` nutzt `--shot-fast` (das Bild wird erst 0,1 s vor der Aufnahme wieder
   berechnet) – dieselben Bilder, auf der Test-VM gemessen 153 s statt 725 s.
+- **`--shot-fast` gilt so nur für „Arcade“.** Dort entsteht jedes Bild allein aus dem Spielzustand. In „Modern“
+  steht ohne Bild still, was der `RenderingServer` beim Zeichnen selbst fortschreibt, vor allem GPU-Partikel
+  (gemessen mit einem Prüfaufbau: 1.307 statt 20.191 helle Pixel nach 114 ausgelassenen Bildern). Die
+  Änderungsmelder für „Modern“ (ab Welle 2) rendern deshalb ohne `--shot-fast` oder mit
+  `--shot-fast-lead=<s>` von mindestens der längsten Lebensdauer solcher Effekte (ARCHITECTURE.md §13).
 - Die Summen hängen vom Godot-Build und vom OpenGL-Treiber ab. Nach einem Wechsel von Godot oder Mesa: `make` –
   die Liste entsteht immer aus dem Tag, nie aus der Arbeitskopie. `check` weist darauf hin, wenn die Umgebung eine
   andere ist als in `arcade_v070.env`.

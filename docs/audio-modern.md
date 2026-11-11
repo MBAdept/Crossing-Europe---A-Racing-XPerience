@@ -65,6 +65,15 @@ Arcade-Teil läuft dann nicht (auch `_process` nicht):
 Signaturen und Arcade-Verhalten aller bestehenden Methoden sind unverändert; `gear_for()` und `bank_for()` sind
 statisch bzw. profilunabhängig. Mit `--perf` gibt beim Beenden das Profil in Kraft seine Zeile `AUDIO_PERF` aus.
 
+**Spätes Laden.** `AudioManager` nennt `ModernAudio` nicht als Typ: `_modern` ist untypisiert, das Skript wird erst
+in `set_profile("modern")` über seinen Pfad geladen (`MODERN_SCRIPT`). Eine typisierte Variable ließ die Engine bei
+**jedem** Spielstart alle 19 Skripte aus `scripts/audio/modern` übersetzen, auch mit dem Profil Arcade (gemessen
+vor der Korrektur nach der Abnahme von Bauabschnitt 0: 19 geladene Skripte; statischer Speicher nach dem Start
+44,26 MiB, danach 40,69 MiB – je eine Messung mit einer Sonde auf dieser VM). Den Stand hält
+`check_arcade_lean.gd` fest (Abschnitt 12). Die Regel dahinter gilt für jede Datei, die ein Arcade-Start lädt
+(Autoloads, `race_session.gd`, HUD): Wer dort eine Klasse aus `scripts/audio/modern`, `scripts/race3d` oder
+`ModelDB` als Typ, in einem `preload` oder als Konstante nennt, lädt wieder den ganzen Ordner.
+
 ## 4. Aufbau
 
 ```
@@ -305,7 +314,10 @@ letzte Aufruf gewinnt: `set_music(false)` = `off`; `set_music(true)` = `menu`, s
 gilt. Der Platzhalter-`MusicDirector` spielt je Kontext ein Stück in Schleife und blendet zwischen Stücken über
 (0,6 s aus, 0,4 s ein): die Modern-Datei mit der passenden Rolle aus `assets/audio/modern/music/manifest.json`
 (`title`, `interlude`, `result`, `race`; mehrere Rennstücke reihum, eins je Etappe), sonst in den Menü-Kontexten
-die heutige Titelmelodie und im Rennen nichts. Das Rennstück blendet bei `stage_finish` aus. Der Schalter
+die heutige Titelmelodie und im Rennen nichts. Ein Stück gilt erst als begonnen, wenn sein Stream da ist
+(`resolve()` antwortet bis dahin mit Stille): Die Titelmelodie wird ohne `audio.music_file` in einem Thread
+synthetisiert und trifft mit dem Profil Modern beim Start erst nach dem Menü-Kontext ein – vor der Korrektur
+blieb sie dann für immer stumm. Das Rennstück blendet bei `stage_finish` aus. Der Schalter
 `set_race_music(false)` („Musik im Rennen: Aus“) lässt den Kontext `race` still. `stop_all()` hält die Musik nicht
 an. Der Pegel je Kontext steht in `audio.modern.music.context_db` (bezogen auf eine Datei mit −14 LUFS).
 
@@ -382,7 +394,9 @@ Rate, Lautheit und True Peak nachgemessen); True Peak ≤ −1 dBTP; Musik −14
 Folge am Anschlag; Gleichanteil unter −40 dBFS; Schleifenpunkte in der Datei und die Naht kein Knacken (ihr Sprung
 und Knick höchstens das 2-fache – nach Vorbis das 4-fache – der größten im Umkreis von 100 ms, oder nicht größer
 als irgendwo sonst in der Schleife, wenn ein Schlag auf dem Schleifenpunkt sitzt); `.import` gleich Manifest. Je
-Ordner: Dateien, die kein Manifest nennt. Insgesamt: Größe gegen die Budgets des Vertrags §4.11 (Klänge 23 MB,
+Ordner: Eine Datei, die kein Manifest nennt, ist ein **Fehler** (Rückgabewert 1) – der Export nimmt jede Datei des
+Ordners mit, sie würde ohne Pegel-, Spitzen- und Nahtprüfung ausgeliefert; `--allow-unknown` macht daraus für
+einen Arbeitsstand einen Hinweis. Insgesamt: Größe gegen die Budgets des Vertrags §4.11 (Klänge 23 MB,
 Musik 25 MB). Ausgabe `QC <ordner>/<id> OK|FEHLER …`, Rückgabewert 0, wenn alles besteht.
 
 Grenze des Werkzeugs: Die Nahtprüfung vergleicht die Naht mit ihrer Umgebung. Ein Knacken **mitten in der Datei**
@@ -422,7 +436,11 @@ Fahrt; mit `--placeholders` das Platzhalter-Stück); `--mute-bus=MEnv` lässt nu
    Speicher. Bei 20 Profilwechseln mit laufendem Motor und Vorschau blieb der Audio-Thread in 4 von 29 Läufen
    hängen (im Debugger: Abtastrate −2,1e37, Endlosschleife im Resampler, Hauptthread wartet auf die Audio-Sperre).
    `ModernAudioContext.keep_alive(stream)` hält solche Streams zwei Sekunden über ihren Player hinaus: 0 von
-   66 Läufen. Dasselbe Muster steht in der eingefrorenen Arcade-Klasse `EngineAudio.detach()`; dort ließ es sich in
+   66 Läufen. Freigegeben werden sie von einem Zeitgeber des Szenenbaums (`_schedule_release()`), nicht vom
+   nächsten Bild von `ModernAudio`: Nach dem Wechsel zurück zu Arcade läuft kein `ModernAudio` mehr, und die
+   Streams blieben vorher bis zum nächsten Modern-Start liegen (gemessen nach 20 Wechseln: 40 Streams; jetzt
+   1,8 s nach dem letzten Wechsel keiner mehr – die Prüfung `switch_20` verlangt `kept_count() == 0`).
+   Dasselbe Muster steht in der eingefrorenen Arcade-Klasse `EngineAudio.detach()`; dort ließ es sich in
    1500 nachgestellten Etappenwechseln nicht auslösen (Abschnitt 13).
 9. **Unit-Tests laufen in `_initialize()`**: Der Baum existiert noch nicht, die Autoloads haben kein `_ready()`
    hinter sich, es gibt nur den Bus `Master`. Was den laufenden `AudioManager` braucht, prüft
@@ -436,11 +454,18 @@ Fahrt; mit `--placeholders` das Platzhalter-Stück); `--mute-bus=MEnv` lässt nu
     Sekunde läuft der Motor-Generator dabei gelegentlich leer – in beiden Profilen (je fünf Läufe der letzten
     3,5 km der Testetappe: Arcade 18 / 18 / 60 / 0 / 0, Modern 0 / 0 / 18 / 18 / 21 Aussetzer). Das ist die
     Messumgebung, kein Befund am Klang; der Thread-Mischer von AU-B (D27) nimmt das Thema ohnehin auf.
+    `check_modern_audio.gd` richtet sich deshalb nach dem Display und nicht nach `--live`: Was es an Wiedergabe
+    erwartet, hängt daran, ob ein Display da ist; das Rennszenario misst auf einem Display seine Bildzeit
+    (Bilder 5 bis 10 bei Zeitraffer 1) und fährt dann mit Zeitraffer `clamp(floor(0,15 s / Bildzeit), 1, 8)` –
+    frei laufend unter Xvfb 1 bis 2, mit `--fixed-fps 60` 8, ohne Bildschirm wie bisher 8. Mit festem Zeitraffer 8
+    übersprang jedes Bild dort mehr als 0,35 s Spielzeit (Falle 10), und das Szenario scheiterte in jedem frei
+    laufenden Lauf. Gemessen nach der Korrektur: 7 von 7 Läufen unter Xvfb bestehen (frei laufend mit `--live` 3,
+    ohne 2, mit `--fixed-fps 60` je 1).
 
 ## 12. Prüfungen
 
 `tests/unit/audio_modern/` (laufen mit `tools/run_tests.sh`, allein mit `tools/run_tests.sh audio_modern`,
-56 Tests, etwa 45 s):
+57 Tests, etwa 50 s):
 
 | Datei | prüft |
 |---|---|
@@ -450,7 +475,7 @@ Fahrt; mit `--placeholders` das Platzhalter-Stück); `--mute-bus=MEnv` lässt nu
 | `test_modern_assets.gd` | Manifest-Lader, Platzhalter nur auf Wunsch, kaputte Manifeste (`fixtures/broken/`) |
 | `test_audio_feed.gd` | Oberflächen je Seite, Zonen, Bauwerke, Fugen, Vorbeifahrten, Sprünge, „nur lesen“ |
 | `test_modern_audio.gd` | `ModernAudio` ohne Szenenbaum: Lebenszyklus, Frame-Semantik, Einmalklänge und Ereignisse (50 ms), Mischung, Musik-Kontexte, Stummschaltung |
-| `test_modern_checks.gd` | startet `check_modern_audio.gd` zweimal als eigenen Prozess (ohne und mit Wiedergabe) |
+| `test_modern_checks.gd` | startet `check_modern_audio.gd` zweimal (ohne und mit Wiedergabe) und `check_arcade_lean.gd` als eigene Prozesse |
 
 `check_modern_audio.gd` prüft im laufenden Spiel: Start mit Arcade und Busliste wie in v0.7.0 · die neue API tut
 mit Arcade nichts · 22 Modern-Busse hinter den vorhandenen · **20 × Profilwechsel** ohne zusätzlichen Knoten oder
@@ -459,8 +484,13 @@ Stück der Testetappe mit Modern und Platzhaltern, ohne Wiedergabe zusätzlich d
 mit Arcade bei gleicher Simulation in jeder Sekunde (Regel 3) · danach wieder Arcade wie in v0.7.0 – die
 Busliste und der Motor-Mischer mit der Bank, aus der beide Profile gespielt haben, Abtastwert für Abtastwert.
 
+`check_arcade_lean.gd` prüft: Ein Spielstart mit dem Profil Arcade und eine Arcade-Etappe laden **kein** Skript aus
+`scripts/audio/modern` oder `scripts/race3d` und nicht `scripts/core/model_db.gd`; erst `set_profile("modern")` lädt
+den Modern-Klang. Mit der typisierten Variable von vor der Korrektur schlägt es fehl (19 Skripte geladen).
+
 ```
 godot --headless --path . -s res://tests/unit/audio_modern/check_modern_audio.gd -- --graphics=arcade [--live] [--only=mix,race]
+godot --headless --path . -s res://tests/unit/audio_modern/check_arcade_lean.gd -- --graphics=arcade
 ```
 
 Die Fingerabdrücke sind für eine Maschine und einen Engine-Stand exakt. Nach einem Godot-Update schreibt

@@ -159,7 +159,8 @@ bestätigt die Schranke (53–56 s gemessen).
 Ein Stück = `chunk_segments` (32) Segmente = 96 m. Es ist **gewünscht**, wenn seine nahe Kante höchstens
 `load_path_m` (1.500 m) Weg voraus liegt **und** höchstens Sichtweite + 96 m Luftlinie entfernt ist; das Stück unter
 der Kamera und die dahinter immer. **Frei** wird es, sobald seine ferne Kante mehr als `keep_behind_m` (150 m) hinter
-der Kamera liegt. Gehalten werden höchstens `max_chunks` (16).
+der Kamera liegt. Gehalten werden höchstens `max_chunks` (16, `graphics.modern.max_chunks` in
+`config/game_config.json`).
 
 Die Laderegel allein will in engen Bergstrecken mehr (gemessen bei 900 m Sicht, Kamera alle 96 m, 31.488 Positionen):
 an 38 Positionen 17 und an 171 Positionen 18 Stücke – zusammen 209 Positionen (0,66 %) in zwölf Etappenrichtungen.
@@ -352,7 +353,10 @@ Alle Schlüssel sind optional; die Standardwerte stehen im Code.
 | `relief_m`, `relief_wavelength_m`, `relief_from_m`, `relief_full_m`, `relief_ramp_m`, `hill_factors` | 3; 260; 30; 100; 120; 0,4 / 0,7 / 1,0 / 1,5 | Relief |
 | `corridor_chord_m`, `corridor_min_m` | 300, 8 | Sichtkorridor – nicht ohne die Projektleitung ändern |
 
-Weitere Schlüssel in `graphics.modern`: `max_chunks` (16), `rebase_m` (2.000).
+Weitere Schlüssel in `graphics.modern`: `max_chunks` (16; steht seit der Korrektur nach der Abnahme von
+Bauabschnitt 0 ausdrücklich in `config/game_config.json` – vorher galt nur die Vorgabe im Code, und die offene
+Entscheidung „16 oder 18“ aus 4.1 hatte keinen Ort, an dem man sie treffen konnte), `rebase_m` (2.000, Vorgabe im
+Code).
 
 ## 6. Kamera (`ChaseCamera3D`)
 
@@ -432,6 +436,7 @@ F4–F6 (Nebel, Ausblenden, Lichtgrößen) sind Render-Prüfungen des Renderers.
 | F3 Kuppen: kein Fahrzeug (0,75 m) und kein Schild (2,8 m) wird später gesehen als in Arcade **und** dann innerhalb des Anhaltewegs | `modern_sight_f3`: Ziele alle 300 m, wo die Straße davor nicht flach ist | 0 Fälle |
 | F7 Gelände im Sichtkorridor nie über der Fahrbahn | `modern_sight_f7`: jede Reihe, beide Seiten | 0 Verstöße |
 | – | `modern_sight_model`: die schnelle Rechenschleife gegen `ChaseCamera3D.transform()` / `project()` und `RoadProjection.project()` | 0 Abweichungen |
+| – | `modern_sight_model`, Augpunkt: F3 rechnet mit einem eigenen Auge (Kamerahöhe aus `RoadProjection` über der Fahrbahn am Wagen). Für jede nachgerechnete Stichprobe wird die Bildhöhe des Ziels aus `ChaseCamera3D.transform()` / `project()` mit der dieses Auges verglichen (`horizon_y − focal · (Zielhöhe − Augenhöhe) / Tiefe`) | 0 Stichproben über 0,5 px |
 
 ### 7.2 Die Modelle
 
@@ -457,7 +462,7 @@ Ganzes Netz (`--full`, gemessen: 128 Etappenrichtungen, 1.005.766 Segmente, 132 
 | F2 | Anhalteweg / Entfernung höchstens **0,593 trocken, 0,596 Regen, 0,555 Schnee** |
 | F3 | **0 von 5.923** Zielen, Fahrzeug wie Schild |
 | F7 | 0 von 2.011.532 Querschnittsseiten |
-| Modell | 394.011 Stichproben nachgerechnet, 0 abweichend, keine senkrecht außerhalb des Bilds |
+| Modell | 394.011 Stichproben nachgerechnet, 0 abweichend, keine senkrecht außerhalb des Bilds; Augpunkt: keine über 0,5 px, größte Abweichung 0,0002 px |
 
 Ungünstigste F2-Fälle: trocken Saragossa – Pau km 170,6 (Anhalteweg 219 m bei 270 km/h, Ziel 370 m voraus), Regen
 Bukarest – Sibiu ab Bukarest km 187,3 (244 m bei 260 km/h, 410 m), Schnee Saragossa – Pau km 170,5 (211 m bei
@@ -534,3 +539,15 @@ Die Auswahl enthält die ungünstigsten Fälle des ganzen Netzes: ihr Lauf liefe
   Strecke vorauserzeugt wird (3.6).
 - **Bilder**: Draufsichten und Kamerabilder der Debug-Straße an den Referenzpositionen liegen im Abgabeordner des
   Bauabschnitts (nicht im Repository).
+- **Kurvenkamera ohne Reserve**: Die ausgelieferte Kamera (Blick 0,60 × Peilung 100 m voraus) besteht F1 genau –
+  der erste Fall liegt bei 280 m, die Grenze bei 270 m; weniger Blick in die Kurve fällt durch (6.2). Wer die
+  Kamera ändert, lässt `modern_sight.gd --full` laufen; die Entscheidung über mehr Reserve liegt bei der
+  Projektleitung (Frage 9 des Bauplans, Abnahme von Bauabschnitt 1).
+- **3D-Puffer bleiben nach der ersten Modern-Etappe**: Die Engine behält die Renderpuffer des 3D-Bilds für den
+  Rest des Prozesses, auch in späteren Arcade-Etappen (gemessen in der Abnahme von Bauabschnitt 0 unter Xvfb bei
+  1280 × 720: + 7.722.314 Bytes Texturspeicher nach der ersten Modern-Etappe, über drei weitere Wechsel
+  unverändert; eine nackte `Camera3D` mit `Environment` belegt 7.372.800 Bytes = 1280 × 720 × 8 und gibt sie nach
+  dem Freigeben der Knoten nicht zurück, auch `disable_3d` nicht). Der Betrag wächst mit Fenstergröße und
+  3D-Auflösung (gefolgert, nicht gemessen). Für den Renderer (R1) heißt das: den Betrag in das Texturbudget beider
+  Modi einrechnen und in der Leckprüfung als Grundlast führen – er ist kein Leck, zählt aber gegen „jeder Modus
+  lädt nur seine eigenen Assets“ (Bauplan §4.11).
