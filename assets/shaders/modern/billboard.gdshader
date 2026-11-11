@@ -15,6 +15,15 @@
 //     is turned back first (albedo_for)
 // ce_ambient and ce_sun_color are linear light values (ModernMaterials.light_value: linear colour x energy).
 // The light layer of a sprite cell is added in linear light with ce_night.
+// Stand-ins (scripts/race3d/prop_library.gd) additionally use:
+//   COLOR        per-instance tint of a MultiMesh (the "tint" of a scenery rule); white elsewhere
+//   shadow_cut   > 0: dark, half-transparent pixels below this alpha are dropped - the ground shadow that is baked
+//                into the Arcade sprites (the props builder lays a contact shadow on the real ground instead)
+//   baked_light  1: the picture carries light and shade of its own (Cycles): it is shown as picture x the light a
+//                mid-grey surface gets - Arcade's law (sprite x ambient colour), which keeps its hues
+//   sun_min / sun_max  ... and gets more of the sun than an impostor of a card tree (PropLibrary.STANDIN_SUN)
+// and every billboard takes the player's headlights from the globals ce_headlight_pos / _dir / ce_headlight
+// (range, intensity; intensity 0 = off): an unshaded material gets nothing from the real spot lights.
 // Load only through ModernMaterials - never with preload().
 shader_type spatial;
 render_mode unshaded, cull_disabled, depth_draw_opaque;
@@ -26,13 +35,22 @@ uniform float scissor = 0.5;
 uniform float sun_min = 0.166;                // part of the sun on the picture when the sun is behind it ...
 uniform float sun_max = 0.662;                // ... and when it shines from behind the camera (linear)
 uniform float night_energy = 1.5;
+uniform float shadow_cut = 0.0;
+uniform float baked_light = 0.0;              // 1: the picture carries its own light and shade (Arcade sprites)
+uniform vec3 headlight_color = vec3(1.0, 0.95, 0.84);   // linear, at intensity 1 right in front of the lamps
 
 global uniform float ce_night;
 global uniform vec4 ce_sun_color;
 global uniform vec4 ce_ambient;
 global uniform vec3 ce_sun_dir;
+global uniform vec3 ce_headlight_pos;
+global uniform vec3 ce_headlight_dir;
+global uniform vec2 ce_headlight;
 
 varying float v_sun;
+varying float v_head;
+
+const float REF_GREY = 0.38;                  // the albedo the environment's light split is exact for
 
 void vertex() {
 	// right vector of the camera, flattened: the billboard only turns about the vertical axis
@@ -45,6 +63,11 @@ void vertex() {
 	// how much of the sun falls on the side the camera sees (a lit model would show the same)
 	float facing = dot(normalize(CAMERA_POSITION_WORLD - origin), normalize(ce_sun_dir)) * 0.5 + 0.5;
 	v_sun = mix(sun_min, sun_max, facing * facing);
+	// the player's headlights: a cone along ce_headlight_dir that falls off to nothing at its range
+	vec3 to = origin + vec3(0.0, 1.5, 0.0) - ce_headlight_pos;
+	float d = max(length(to), 0.001);
+	float reach = max(1.0 - d / max(ce_headlight.x, 1.0), 0.0);
+	v_head = smoothstep(0.80, 0.97, dot(to / d, normalize(ce_headlight_dir))) * reach * reach * ce_headlight.y;
 }
 
 // the renderer's sRGB -> linear for albedo values
@@ -68,14 +91,21 @@ vec3 albedo_for(vec3 x) {
 
 void fragment() {
 	vec4 t = texture(tex, uv_rect.xy + UV * uv_rect.zw);
-	if (t.a < scissor) {
+	if (t.a < scissor || (t.a < shadow_cut && max(t.r, max(t.g, t.b)) < 0.1)) {
 		discard;
 	}
-	vec3 a = to_lin(t.rgb);
+	vec3 a = to_lin(t.rgb * COLOR.rgb);
 	// what a lit surface shows: two passes, each turned into display values, then added
 	vec3 d = show(a * ce_ambient.rgb) + show(a * ce_sun_color.rgb * v_sun);
+	if (baked_light > 0.5) {
+		// a picture with baked light: its colours times the light a mid-grey surface shows (Arcade's law: sprite
+		// x ambient colour) - the hues of the sprite stay as they were painted
+		vec3 g = vec3(to_lin(vec3(REF_GREY)).r);
+		d = t.rgb * COLOR.rgb * (show(g * ce_ambient.rgb) + show(g * ce_sun_color.rgb * v_sun)) / REF_GREY;
+	}
 	// back to the linear value with that display value (0.00083 is the linear value that still shows as 0)
 	vec3 x = pow((min(d, vec3(1.0)) + 0.055) / 1.055, vec3(2.4));
+	x += a * headlight_color * v_head;
 	if (lights_rect.z > 0.0) {
 		vec4 l = texture(tex, lights_rect.xy + UV * lights_rect.zw);
 		x += to_lin(l.rgb * l.a) * (ce_night * night_energy);
