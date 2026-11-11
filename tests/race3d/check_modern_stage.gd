@@ -262,25 +262,41 @@ func _check_nacht() -> void:
 	var player: Dictionary = (r.view as Dictionary).get("player", {})
 	var nose := r.road_to_world(float(player.get("z", 0.0)) + float(player.get("length", 4.6)), float(player.get("x", 0.0)), 0.66)
 	_need(p, (spots[0] as SpotLight3D).position.distance_to(nose) < 1.0, "die Spots sitzen an der Wagenfront")
-	# traffic ahead within 140 m: its cones are on the road material
-	var seen_cones := 0
+	# reflectors inside the low beam glint while the stage runs
 	var seen_glints := 0
 	var mat: ShaderMaterial = r.builder("road").get("material")
 	for i in 600:
 		await process_frame
-		var l2: Dictionary = r.debug_snapshot().get("lights", {})
-		seen_cones = maxi(seen_cones, int(l2.get("pools_traffic", 0)))
-		seen_glints = maxi(seen_glints, int(l2.get("glints", 0)))
-		if seen_cones > 0 and seen_glints > 0:
+		seen_glints = maxi(seen_glints, int((r.debug_snapshot().get("lights", {}) as Dictionary).get("glints", 0)))
+		if seen_glints > 0:
 			break
-	_need(p, seen_cones >= 1 and int(mat.get_shader_parameter("pool_count")) >= 1, "Lichtkegel des Verkehrs auf dem Straßenmaterial (%d)" % seen_cones)
-	if seen_cones >= 1:
+	_need(p, seen_glints >= 1, "Reflektoren im Lichtkegel glänzen (%d)" % seen_glints)
+	# traffic ahead within 140 m: its cones go onto the road material. Fed with one car 60 m ahead of the camera
+	# (whether the seeded traffic comes that close in a given number of frames is not the question here); the
+	# next frame of the session sends its own view again.
+	var tview: Dictionary = (r.view as Dictionary).duplicate()
+	var tcar := {"kind": "car", "id": 9001, "set": "traffic/sedan", "z": float(tview["camera_z"]) + 60.0, "x": 0.0, "length": 4.5,
+		"tail": 1.0, "brake": 0.0, "speed": 100.0}
+	tview["cars"] = [tcar]
+	var lights_layer: Node = r.layer("lights")
+	lights_layer.call("update", tview, 0.0)
+	var cones := int((r.debug_snapshot().get("lights", {}) as Dictionary).get("pools_traffic", 0))
+	var n := int(mat.get_shader_parameter("pool_count"))
+	_need(p, cones == 1 and n >= 1, "Lichtkegel des Verkehrs auf dem Straßenmaterial (%d Kegel, pool_count %d)" % [cones, n])
+	if cones == 1 and n >= 1:
 		var col: PackedVector4Array = mat.get_shader_parameter("pool_col")
 		var dir: PackedVector4Array = mat.get_shader_parameter("pool_dir")
-		var n := int(mat.get_shader_parameter("pool_count"))
+		var pos: PackedVector4Array = mat.get_shader_parameter("pool_pos_r")
+		var at := r.road_to_world(float(tcar["z"]) + 4.5, 0.0, 0.0)
 		_need(p, col.size() == 22 and col[n - 1].w > 0.5 and Vector3(dir[n - 1].x, dir[n - 1].y, dir[n - 1].z).length() > 0.9 and col[n - 1].x > 0.05,
 			"Verkehrskegel: Art 1 mit Richtung und Lichtwert")
-	_need(p, seen_glints >= 1, "Reflektoren im Lichtkegel glänzen (%d)" % seen_glints)
+		_need(p, Vector3(pos[n - 1].x, pos[n - 1].y, pos[n - 1].z).distance_to(at) < 0.01 and is_equal_approx(pos[n - 1].w, 34.0),
+			"der Kegel beginnt an der Wagenfront, Reichweite 34 m (Arcade)")
+	# a car behind the camera or beyond 140 m gives no cone (Arcade's rule)
+	tcar["z"] = float(tview["camera_z"]) + 150.0
+	lights_layer.call("update", tview, 0.0)
+	_need(p, int((r.debug_snapshot().get("lights", {}) as Dictionary).get("pools_traffic", -1)) == 0, "kein Kegel jenseits von 140 m")
+	var seen_cones := cones
 	var amb: Vector3 = mat.get_shader_parameter("pool_ambient")
 	var pal: Dictionary = (r.view as Dictionary).get("palette", {})
 	_need(p, amb != null and absf(amb.x - (pal["ambient"] as Color).r) < 1.0e-4, "pool_ambient = Umgebungslicht der Palette")
