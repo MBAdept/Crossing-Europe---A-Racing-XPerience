@@ -167,6 +167,34 @@ def fade_tail(y: np.ndarray, seconds: float = 0.03) -> np.ndarray:
     return y
 
 
+TWELFTH = [1000.0 * 2.0 ** (k / 12.0) for k in range(-68, 51)]   # 1/12-octave centres 19.7 Hz .. 18.4 kHz
+
+
+def band_db(y: np.ndarray, centres: list[float], half: float) -> np.ndarray:
+    """Energy per band (centre × 2^±half octaves; dB, relative to the whole signal)."""
+    f = np.fft.rfftfreq(len(y), 1.0 / SR)
+    p = np.abs(np.fft.rfft(y)) ** 2
+    tot = float(p.sum()) + 1e-30
+    return np.array([10.0 * np.log10(float(p[(f >= c * 2.0 ** -half) & (f < c * 2.0 ** half)].sum()) / tot + 1e-30)
+                     for c in centres])
+
+
+def match_loop(y: np.ndarray, ref: np.ndarray, max_db: float = 4.0, rounds: int = 4) -> np.ndarray:
+    """Loop y with the spectral balance of ref (AU-R: a new seed and length of an event texture moves its low
+    third-octave bands by 1–3 dB – few events per band; the user heard ref). Matched in 1/12-octave bands, so the
+    third octaves still agree when the runtime plays both a little higher or lower (a pitch shift moves energy across
+    band edges): a smooth gain curve over log frequency (corrections at the band centres, interpolated, at most
+    max_db; bands more than 40 dB under ref's loudest left alone), applied circularly over the whole loop, so the loop
+    stays seamless."""
+    t_ref = band_db(ref, TWELFTH, 1.0 / 24.0)
+    keep = t_ref > t_ref.max() - 40.0
+    lc = np.log(np.array(TWELFTH))
+    for _ in range(rounds):
+        d = np.where(keep, np.clip(t_ref - band_db(y, TWELFTH, 1.0 / 24.0), -max_db, max_db), 0.0)
+        y = cfilter(y, lambda f, d=d: 10.0 ** (np.interp(np.log(np.maximum(f, 1.0)), lc, d, left=d[0], right=d[-1]) / 20.0))
+    return y
+
+
 def lufs_at_pitch(y: np.ndarray, pitch: float) -> float:
     """Integrated loudness of loop y played at pitch (linear interpolation, as a resampler reads it)."""
     n = len(y)
@@ -478,10 +506,23 @@ def rail_scrape(n: int) -> np.ndarray:
     return 3.2 * r * np.tanh(y / (3.2 * r))
 
 
+# AU-C1's loop lengths (s): the generator renders that loop once more as the reference of the third-octave balance
+# of the new pair (match_loop) – what the user heard.
+OLD_SECONDS = {"tyre_asphalt": 2.0, "tyre_concrete": 2.0, "tyre_deck": 2.0, "tyre_cobbles": 2.5, "tyre_gravel": 2.5,
+               "tyre_grass": 2.5, "tyre_wet": 2.0, "tyre_rumble": 1.0, "wind_low": 2.0, "wind_mid": 2.0, "wind_high": 2.0,
+               "wind_buffet": 3.0}
+
+
 def _pair(sid: str, sec_a: float, sec_b: float, fn, bus: str, ref_kmh: float, pexp: float, note: str) -> list[tuple]:
-    """A layer of the two panned players: the left side's loop and the right side's own loop (seed + SIDE_B)."""
-    return [(sid, sec_a, lambda n, f=fn: f(n, 0), bus, ref_kmh, pexp, note + "; linke Seite", "ogg", sid + "_b"),
-            (sid + "_b", sec_b, lambda n, f=fn: f(n, SIDE_B), bus, ref_kmh, pexp,
+    """A layer of the two panned players: the left side's loop and the right side's own loop (seed + SIDE_B), both
+    matched to the third-octave balance of AU-C1's loop of this layer (where there was one)."""
+    old = OLD_SECONDS.get(sid)
+
+    def make(n: int, s: int, f=fn) -> np.ndarray:
+        y = f(n, s)
+        return match_loop(y, f(int(round(old * SR)), 0)) if old else y
+    return [(sid, sec_a, lambda n: make(n, 0), bus, ref_kmh, pexp, note + "; linke Seite", "ogg", sid + "_b"),
+            (sid + "_b", sec_b, lambda n: make(n, SIDE_B), bus, ref_kmh, pexp,
              note + "; rechte Seite: eigene Schleife (anderer Seed, andere Länge)", "ogg", "")]
 
 
@@ -509,10 +550,12 @@ def loops() -> list[tuple]:
     out += _pair("tyre_rumble", 4.1, 5.3, lambda n, s: tyre_rumble(n, 100.0, s), "MRoad", 108.0, 1.0,
                  "Profilierte Randlinie / Rüttelstreifen: 100 Schläge je Sekunde bei Tonhöhe 1 (Abstand 30 cm bei 108 km/h)")
     out += [
-        ("slab_slow", None, lambda n: slab_loop(90.0, SLAB_SEEDS[0], SLABS, knee=SLAB_KNEE), "MRoad", 90.0, 1.0,
+        ("slab_slow", None, lambda n: match_loop(slab_loop(90.0, SLAB_SEEDS[0], SLABS, knee=SLAB_KNEE), slab_loop(90.0, 2601)),
+         "MRoad", 90.0, 1.0,
          f"Betonplatten 5 m, Achsabstand 2,7 m: Vorder- und Hinterachse über die Fuge, entworfen bei 90 km/h ({SLABS} Platten)",
          "wav", ""),
-        ("slab_fast", None, lambda n: slab_loop(180.0, SLAB_SEEDS[1], SLABS, knee=SLAB_KNEE), "MRoad", 180.0, 1.0,
+        ("slab_fast", None, lambda n: match_loop(slab_loop(180.0, SLAB_SEEDS[1], SLABS, knee=SLAB_KNEE), slab_loop(180.0, 2701)),
+         "MRoad", 180.0, 1.0,
          f"Betonplatten 5 m, Achsabstand 2,7 m, entworfen bei 180 km/h (härterer, kürzerer Schlag; {SLABS} Platten)",
          "wav", ""),
         ("squeal", 2.0, lambda n: squeal(n, 820.0), "MRoad", 0.0, 0.0,

@@ -393,7 +393,8 @@ func _concrete_section(km: float) -> bool:
 
 
 ## The block of the city centre at km is cobbled (centre of a city whose style has cobbles; blocks counted from the
-## finish line, so they do not move when the stage is longer or shorter in front of the city).
+## finish line, so they do not move when the stage is longer or shorter in front of the city). Which blocks: see
+## cobbled_blocks (AU-R: every centre gets cobble_share of its length, not only on average over all cities).
 func _cobbled(km: float) -> bool:
 	if plan == null or cobble_styles.is_empty():
 		return false
@@ -405,11 +406,42 @@ func _cobbled(km: float) -> bool:
 	var length: Variant = plan.get("length_km")
 	var to_finish_m := maxf((float(length) - km) * 1000.0 / _time_scale, 0.0) if (length is float or length is int) else z
 	var block := int(floor(to_finish_m / cobble_block_m))
+	if _cobbles.is_empty():
+		var centre: Variant = plan.get("city_center_km")
+		if (length is float or length is int) and (centre is float or centre is int):
+			_cobbles = cobbled_blocks(str(plan.get("to_id")), maxf(float(length) - float(centre), 0.0) * 1000.0 / _time_scale,
+				cobble_block_m, cobble_share)
 	if _cobbles.has(block):
 		return bool(_cobbles[block])
-	var yes := unit_hash("%s|%d" % [str(plan.get("to_id")), block]) < cobble_share
+	var yes := unit_hash("%s|%d" % [str(plan.get("to_id")), block]) < cobble_share     # a plan without a centre length
 	_cobbles[block] = yes
 	return yes
+
+
+## The cobbled blocks of a city centre of centre_m visible metres (blocks of block_m counted from the finish line, the
+## last one shorter): block -> bool for every block. In the order of their hashes a block is taken while that brings
+## the cobbled length nearer to share × centre_m, so each centre gets its share within half a block (an 800-m centre
+## 0.55 or 0.56 at 0.6) and the hash only decides which blocks (KRITIK-FAHRBAHN B2; with a decision per block from the
+## hash alone a centre got 0.34–0.90, measured over all stages).
+static func cobbled_blocks(city: String, centre_m: float, block_m: float, share: float) -> Dictionary:
+	var out := {}
+	if centre_m <= 0.0 or block_m <= 0.0:
+		return out
+	var n := maxi(int(ceil(centre_m / block_m - 1.0e-6)), 1)
+	var order: Array = []
+	for b in n:
+		order.append([unit_hash("%s|%d" % [city, b]), b])
+		out[b] = false
+	order.sort_custom(func(p: Array, q: Array) -> bool: return float(p[0]) < float(q[0]))
+	var target := clampf(share, 0.0, 1.0) * centre_m
+	var got := 0.0
+	for row: Array in order:
+		var b := int(row[1])
+		var w := minf(block_m, centre_m - b * block_m)
+		if absf(got + w - target) < absf(got - target):
+			got += w
+			out[b] = true
+	return out
 
 
 ## A number in [0, 1) from a text – the same on every machine and in every run. String.hash() is djb2: keys that

@@ -595,3 +595,29 @@ func test_unit_hash_mixes_neighbouring_keys() -> void:
 			all_same = all_same and ((AudioFeed.unit_hash("stadt%d|%d" % [city, block]) < 0.6) == first)
 		same += 1 if all_same else 0
 	assert_true(same <= 2, "kaum eine Stadt ganz oder gar nicht gepflastert (%d von 40; erwartet 0,4)" % same)
+
+
+## Every city centre gets its cobble share (within half a block), the hash only picks the blocks (AU-R R2: a decision
+## per block from the hash alone gave a centre 0.34–0.90).
+func test_cobbled_blocks_hit_the_share_per_centre() -> void:
+	var patterns := {}
+	for city in 30:
+		for centre_m: float in [800.0, 660.0, 900.0, 1000.0, 245.0]:
+			var alloc := AudioFeed.cobbled_blocks("stadt%d" % city, centre_m, 90.0, 0.6)
+			var n := int(ceil(centre_m / 90.0 - 1.0e-6))
+			assert_eq(alloc.size(), n, "jeder Block entschieden")
+			var w := 0.0
+			var pattern := ""
+			for b in n:
+				if bool(alloc[b]):
+					w += minf(90.0, centre_m - b * 90.0)
+				pattern += "P" if bool(alloc[b]) else "-"
+			assert_true(absf(w / centre_m - 0.6) <= 45.0 / centre_m + 1.0e-6,
+				"Anteil %.3f bei %.0f m (höchstens ein halber Block daneben)" % [w / centre_m, centre_m])
+			if centre_m == 800.0:
+				assert_true(absf(w / centre_m - 0.6) <= 0.05, "800 m: Anteil %.3f innerhalb ±0,05" % (w / centre_m))
+				patterns[pattern] = true
+	assert_true(patterns.size() >= 20, "die Blöcke wechseln von Stadt zu Stadt (%d Muster bei 30 Städten)" % patterns.size())
+	var again := AudioFeed.cobbled_blocks("stadt3", 800.0, 90.0, 0.6)
+	assert_eq(again, AudioFeed.cobbled_blocks("stadt3", 800.0, 90.0, 0.6), "dieselbe Stadt, dasselbe Muster")
+	assert_true(AudioFeed.cobbled_blocks("x", 0.0, 90.0, 0.6).is_empty(), "ohne Altstadt nichts")
