@@ -678,17 +678,18 @@ Dieselbe Fahrt im Spiel, nur der Motor mit seinen Ebenen über die Busse des jew
 
 | Auto | ganze Fahrt LUFS | Lautheitsbereich LU | Vollgas durch die Gänge | 200 km/h | Gas weg | 130 km/h | Leerlauf |
 |---|---|---|---|---|---|---|---|
-| Kompakt | −20,6 \| −19,7 | 5,4 \| 8,5 | −18,6 \| −16,6 | −22,1 \| −20,8 | −21,0 \| −24,5 | −23,0 \| −22,1 | −24,1 \| −24,2 |
-| Kombi | −23,2 \| −19,4 | 5,3 \| 9,2 | −21,2 \| −16,9 | −24,8 \| −21,3 | −26,0 \| −25,6 | −25,3 \| −21,9 | −28,7 \| −25,0 |
-| Limousine | −21,4 \| −19,8 | 9,2 \| 6,1 | −19,6 \| −17,4 | −24,3 \| −20,6 | −28,0 \| −25,4 | −25,9 \| −21,0 | −23,2 \| −24,3 |
-| Sportwagen | −18,3 \| −19,2 | 10,3 \| 6,2 | −16,0 \| −16,9 | −16,3 \| −17,3 | −27,4 \| −24,1 | −21,9 \| −20,7 | −24,1 \| −24,0 |
-| Gran Turismo | −16,2 \| −20,1 | 7,2 \| 8,1 | −13,4 \| −17,1 | −17,2 \| −20,4 | −22,4 \| −27,5 | −19,0 \| −21,7 | −17,8 \| −25,0 |
+| Kompakt | −20,6 \| −19,4 | 5,4 \| 8,1 | −18,6 \| −16,4 | −22,1 \| −20,1 | −21,0 \| −24,2 | −23,0 \| −22,2 | −24,1 \| −23,7 |
+| Kombi | −23,2 \| −19,4 | 5,3 \| 9,6 | −21,2 \| −16,7 | −24,8 \| −20,8 | −26,0 \| −25,1 | −25,3 \| −22,0 | −28,7 \| −24,6 |
+| Limousine | −21,4 \| −20,0 | 9,2 \| 5,7 | −19,6 \| −17,7 | −24,3 \| −20,9 | −28,0 \| −26,3 | −25,9 \| −21,2 | −23,2 \| −24,0 |
+| Sportwagen | −18,3 \| −19,3 | 10,3 \| 7,2 | −16,0 \| −16,7 | −16,3 \| −17,3 | −27,4 \| −24,2 | −21,9 \| −21,1 | −24,1 \| −24,3 |
+| Gran Turismo | −16,2 \| −20,0 | 7,2 \| 8,0 | −13,4 \| −17,1 | −17,2 \| −21,0 | −22,4 \| −26,6 | −19,0 \| −21,5 | −17,8 \| −24,6 |
 
-Über die ganze Fahrt liegen die fünf Autos in Arcade 7,0 dB auseinander, in Modern 0,9 dB. Der Lautheitsbereich
+Über die ganze Fahrt liegen die fünf Autos in Arcade 7,0 dB auseinander, in Modern 0,6 dB (von Lauf zu Lauf
+schwanken diese Werte um 0,3–0,6 dB). Der Lautheitsbereich
 wächst bei Kompakt und Kombi um 3–4 LU (Volllast hebt sich jetzt vom Rollen ab) und sinkt bei Limousine und
-Sportwagen um 3–4 LU (ihr Reisetempo war in Arcade 4–5 dB leiser). Im Spiel ist der Arcade-Motor der drei
-Turbo-Reihenmotoren bei Vollgas **heller** als der von Modern (Schwerpunkt Kompakt 904 gegen 457 Hz, Anteil ab
-5 kHz −9,4 gegen −17,1 dB): Das ist das Turbopfeifen von Arcade, ein Sinus bei 5–6 kHz, der dort ein Zehntel der
+Sportwagen um 3–3,5 LU (ihr Reisetempo war in Arcade 4–5 dB leiser). Im Spiel ist der Arcade-Motor der drei
+Turbo-Reihenmotoren bei Vollgas **heller** als der von Modern (Schwerpunkt Kompakt 904 gegen 448 Hz, Anteil ab
+5 kHz −9,4 gegen −17 dB): Das ist das Turbopfeifen von Arcade, ein Sinus bei 5–6 kHz, der dort ein Zehntel der
 Leistung trägt. In Modern liegt der Anteil ab 5 kHz 8 dB tiefer, der Laderton ist dort ein Schmalbandton mit
 Rauschen statt eines Sinus; die Bank selbst ist heller als die von Arcade (Tabelle oben).
 
@@ -730,3 +731,9 @@ Rauschen statt eines Sinus; die Bank selbst ist heller als die von Arcade (Tabel
   Blöcke; dass der Vorlauf dort bei 50 ms bleibt und auch auf dem Steam Deck kein Aussetzer entsteht, ist
   abgeleitet.
 - **Pegelplan mit Platzhaltern**: Leerlauf und Reisetempo sind gegen den Wind des Platzhalters abgestimmt (6.6).
+- **Schleifen**: Godot 4.7.2 spielt an der Naht einer WAV-Schleife, die mit ihren Daten endet, einen falschen
+  Abtastwert (gemessen, [audio-modern.md](audio-modern.md) Abschnitt 11, Falle 13). Die vier Schleifen der
+  Fahrzeugebenen tragen deshalb 16 Frames Fortsetzung hinter dem Schleifenende; `test_engine3_bank.gd` prüft das.
+- **Schläge beim Schalten**: Ihr Pegel folgt einem Gesetz für den Drehmomentsprung (6.3), nicht einer Messung am
+  Fahrzeug. In den Aufnahmen stand der Schlag beim Zurückschalten im Schub zunächst 10–15 dB über dem Mittenband
+  des Motors und trug ein Ticken bis 16 kHz; beides ist zurückgenommen, gehört hat es niemand.

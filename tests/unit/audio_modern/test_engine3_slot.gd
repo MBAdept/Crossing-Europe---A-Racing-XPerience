@@ -96,10 +96,16 @@ func test_engine_slot_drives_the_v3_bank() -> void:
 	assert_eq(int(s["blowoffs"]), blow + 1, "Gas weg mit Ladedruck: Schubumluft")
 	assert_true(float(s["blowoff_level"]) > 0.1, "ihr Pegel")
 	assert_true(float(s["load"]) < 0.05, "keine Last")
+	# Crackles are Poisson-timed. Outside the synchronous mode the mixer's seed is random: with half a second
+	# rendered this assertion failed in about one run out of ten (no crackle fell into the window). A fixed seed and
+	# the whole crackle time make the count a fixed number.
+	u.mix.rng.seed = 4711
 	var buf := PackedVector2Array()
-	buf.resize(16000)
+	buf.resize(48000)
 	u.mix.render(buf, 0, buf.size())
-	assert_true(int(u.mix.clips_started.get("crackle", 0)) >= 1, "Schubknallen nach dem Gaswegnehmen (%s)" % str(u.mix.clips_started))
+	var crackles := int(u.mix.clips_started.get("crackle", 0))
+	print("      Schubknallen in 1,5 s nach dem Gaswegnehmen (fester Seed): %d Clips" % crackles)
+	assert_true(crackles >= 2, "Schubknallen nach dem Gaswegnehmen (%s)" % str(u.mix.clips_started))
 	# braking down: downshifts
 	var down := int(s["downshifts"])
 	while v > 60.0:
