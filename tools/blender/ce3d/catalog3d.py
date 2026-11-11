@@ -2,7 +2,7 @@
 the sprite sets it serves. No bpy at import time (export_models.py --list / --manifest-only).
 
 Entry: model id "<group>/<name>" (group = player | traffic | police | props | landmarks) ->
-  builder   player | car | tree | prop_vpbr | prop_baked            (ce3d.export_models.BUILDERS)
+  builder   player | car | heavy | tree | prop_vpbr | prop_baked    (ce3d.export_models.BUILDERS)
   source    sprite set whose generator build is the source (colour variants: any one of them)
   kind      vehicle | heavy | tree | plant | rock | building | landmark | furniture
   sets      sprite set ids served by the model; default = [model id]. Vehicles: {set id: paint dict}
@@ -34,9 +34,11 @@ COMMON_CODE = ["ce3d/__init__.py", "ce3d/glb.py", "ce3d/core.py", "ce3d/roles.py
 # render_all.py: its build() turns a sprite set into the generator model (props, trees); cesprites/props.py: the
 # table of the props and their dispatcher
 BUILDER_CODE = {
-    "player": ["ce3d/vehicles3d.py", "cesprites/curves.py", "cesprites/carbody.py", "cesprites/cardetail.py",
-               "cesprites/player_cars.py", "cesprites/textgeo.py"],
-    "car": ["ce3d/vehicles3d.py", "ce3d/decalgeo.py", "cesprites/vehicles.py", "cesprites/designs.py"],
+    "player": ["ce3d/vehicles3d.py", "ce3d/decalgeo.py", "ce3d/interior3d.py", "ce3d/extras3d.py", "cesprites/curves.py",
+               "cesprites/carbody.py", "cesprites/cardetail.py", "cesprites/player_cars.py", "cesprites/textgeo.py"],
+    "car": ["ce3d/traffic3d.py", "ce3d/vehicles3d.py", "ce3d/truck3d.py", "ce3d/decalgeo.py", "cesprites/vehicles.py",
+            "cesprites/designs.py", "cesprites/carbody.py", "cesprites/cardetail.py", "cesprites/curves.py"],
+    "heavy": ["ce3d/truck3d.py", "ce3d/vehicles3d.py", "ce3d/decalgeo.py", "cesprites/heavy.py"],
     "tree": ["ce3d/veg3d.py", "ce3d/leafatlas.py", "ce3d/bake.py", "ce3d/props3d.py", "cesprites/props_nature.py",
              "cesprites/props.py", "render_all.py"],
     "prop_vpbr": ["ce3d/props3d.py", "cesprites/props.py", "render_all.py"],
@@ -48,9 +50,25 @@ MODELS = {
     "player/limousine": dict(
         builder="player", source="player/limousine", kind="vehicle", design="limousine",
         sets={"player/limousine": {}, "showroom/limousine": {"lod": "show", "showroom": False}}),
+    "player/kompakt": dict(
+        builder="player", source="player/kompakt", kind="vehicle", design="kompakt",
+        sets={"player/kompakt": {}, "showroom/kompakt": {"lod": "show", "showroom": False}}),
     "traffic/sedan": dict(
         builder="car", source="traffic/sedan_red", kind="vehicle", design="sedan",
         sets={"traffic/sedan_red": {}, "traffic/sedan_blue": {}, "traffic/sedan_silver": {}, "traffic/sedan_black": {}}),
+    "traffic/hatch": dict(
+        builder="car", source="traffic/hatch_green", kind="vehicle", design="hatch",
+        sets={"traffic/hatch_green": {}, "traffic/hatch_yellow": {}, "traffic/hatch_white": {}, "traffic/hatch_blue": {},
+              "traffic/hatch_red": {}}),
+    "traffic/wagon": dict(
+        builder="car", source="traffic/wagon_silver", kind="vehicle", design="wagon",
+        detail={"lod0": {"step": 7.7, "gstep": 8.5}, "lod1": {"step": 16.0, "gstep": 24.0},
+                "lod2": {"gstep": 120.0, "ends_n": 1}, "shadow": {"gstep": 120.0}},              # the long greenhouse
+        sets={"traffic/wagon_silver": {}, "traffic/wagon_darkblue": {}, "traffic/wagon_green": {},
+              "traffic/wagon_white": {}}),
+    "traffic/truck": dict(
+        builder="heavy", source="traffic/truck_white", kind="heavy", design="truck",
+        sets={"traffic/truck_white": {}, "traffic/truck_red": {}, "traffic/truck_blue": {}, "traffic/truck_green": {}}),
     # --- vegetation ----------------------------------------------------------------------------------
     "props/tree_oak": dict(builder="tree", source="props/tree_oak", kind="tree", species="oak"),
     # --- props ---------------------------------------------------------------------------------------
@@ -117,6 +135,10 @@ def key_data(model_id):
         data["colours"] = {name: [colours[name], repr(float(catalog.METALLIC.get(name, 0.35)))] for name in sorted(colours)}
     elif spec["builder"] == "player":
         data["colour"] = _plain(catalog.PLAYER_COLORS[spec["design"]])
+    elif spec["builder"] == "heavy":
+        from cesprites import heavy
+        data["colours"] = _plain(catalog.TRAFFIC_COLORS[spec["design"]])
+        data["variants"] = _plain(heavy.TRUCK_VARIANTS)
     return data
 
 

@@ -1,0 +1,182 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "traffic/wagon",
+ "model": {
+  "kind": "vehicle",
+  "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.52},
+  "extent_m": {"left": 1.08, "right": 1.08},
+  "aabb": [-1.075, 0, -2.4, 1.075, 1.557, 2.402],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 40,
+    "tris": 17888,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "traffic/wagon/lod0_body.res",
+      "classes": ["vpbr", "glass"]
+     },
+     {
+      "node": "wheel_0l",
+      "mesh": "traffic/wagon/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [-0.7765, 0.32, -1.435],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.32, "steer": true}
+     },
+     {
+      "node": "wheel_0r",
+      "mesh": "traffic/wagon/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [0.7765, 0.32, -1.435],
+      "wheel": {"radius": 0.32, "steer": true}
+     },
+     {
+      "node": "wheel_1l",
+      "mesh": "traffic/wagon/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [-0.7765, 0.32, 1.365],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.32, "steer": false}
+     },
+     {
+      "node": "wheel_1r",
+      "mesh": "traffic/wagon/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [0.7765, 0.32, 1.365],
+      "wheel": {"radius": 0.32, "steer": false}
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 120,
+    "tris": 5937,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "traffic/wagon/lod1_body.res",
+      "classes": ["vpbr"]
+     }
+    ]
+   },
+   {
+    "name": "lod2",
+    "max_dist_m": 100000,
+    "tris": 1103,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "traffic/wagon/lod2_body.res",
+      "classes": ["vpbr"]
+     }
+    ]
+   }
+  ],
+  "shadow": {"mesh": "traffic/wagon/shadow.res", "tris": 604},
+  "lights": [
+   {
+    "role": "brake",
+    "pos": [-0.7714, 0.916, 2.3268],
+    "dir": [-0.558, 0.217, 0.801],
+    "size": 0.295,
+    "color": "#ff2010"
+   },
+   {
+    "role": "brake",
+    "pos": [0, 1.4155, 2.2311],
+    "dir": [0, 0.606, 0.796],
+    "size": 0.139,
+    "color": "#ff2010"
+   },
+   {
+    "role": "brake",
+    "pos": [0.7712, 0.9152, 2.3272],
+    "dir": [0.555, 0.216, 0.803],
+    "size": 0.294,
+    "color": "#ff2010"
+   },
+   {
+    "role": "head",
+    "pos": [-0.6351, 0.674, -2.336],
+    "dir": [-0.287, 0.293, -0.912],
+    "size": 0.11,
+    "color": "#fff3d6"
+   },
+   {
+    "role": "head",
+    "pos": [0.635, 0.674, -2.336],
+    "dir": [0.287, 0.294, -0.912],
+    "size": 0.11,
+    "color": "#fff3d6"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-0.8202, 0.6684, -2.2248],
+    "dir": [-0.785, 0.042, -0.619],
+    "size": 0.144,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-0.7281, 0.7871, 2.3626],
+    "dir": [-0.194, 0.013, 0.981],
+    "size": 0.117,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [0.7281, 0.7871, 2.3626],
+    "dir": [0.194, 0.012, 0.981],
+    "size": 0.117,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [0.8201, 0.6685, -2.2249],
+    "dir": [0.784, 0.045, -0.619],
+    "size": 0.144,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "tail",
+    "pos": [-0.7714, 0.916, 2.3268],
+    "dir": [-0.558, 0.217, 0.801],
+    "size": 0.295,
+    "color": "#ff2010"
+   },
+   {
+    "role": "tail",
+    "pos": [0.7712, 0.9152, 2.3272],
+    "dir": [0.555, 0.216, 0.803],
+    "size": 0.294,
+    "color": "#ff2010"
+   }
+  ],
+  "paint": {"paint": "#aeb2b8", "metal": 0.75},
+  "auto_lod": false,
+  "tags": ["traffic", "car"],
+  "bytes": 269062,
+  "hash": "3b007e89cf084b94c9ef766be2f5678aa1d92751"
+ },
+ "sets": {
+  "traffic/wagon_silver": {
+   "model": "traffic/wagon",
+   "paint": {"paint": "#aeb2b8", "metal": 0.75}
+  },
+  "traffic/wagon_darkblue": {
+   "model": "traffic/wagon",
+   "paint": {"paint": "#1f3157", "metal": 0.5}
+  },
+  "traffic/wagon_green": {
+   "model": "traffic/wagon",
+   "paint": {"paint": "#2f5d3a", "metal": 0.4}
+  },
+  "traffic/wagon_white": {
+   "model": "traffic/wagon",
+   "paint": {"paint": "#e6e6e3", "metal": 0.1}
+  }
+ }
+}

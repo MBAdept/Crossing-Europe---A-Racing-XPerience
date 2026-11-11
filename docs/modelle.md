@@ -273,6 +273,20 @@ Regel: **Kein Sprite-Vertex bewegt sich.** Jeder Hook hat eine Voreinstellung, d
   Spiegel, Kleinteile), `carbody.SmoothCar(detail=…)` (Ringe, Stationen, Raster und Höhe der aufgesetzten
   Flächen, Räder, Zusatzlampen, `graze`). Die Tabellen je Stufe stehen in `ce3d/lod.py`.
 - **Rundum-Ansicht:** `allround` ergänzt bei Bauernhaus und Michel die Fenster der abgewandten Seiten.
+- **Karosserie der Spielerautos** (`carbody.SmoothCar(detail=…)`, alle mit Voreinstellung „wie im Sprite“):
+  `conform` (aufgesetzte Flächen werden mit den Flächen der Karosserie darunter trianguliert und übernehmen deren
+  Normalen), `graze`, `crease` (Unterschnitt unter der Schulterlinie), `arch_r` (Kantenradius der Radläufe),
+  `arch_n` (Stationen je Radlauf in gleichen Winkeln), `gstep` (Stationsabstand der Kabine), `seam` (Breite der
+  Fugen), `wheel_plain` (Reifen ohne Rillen), `ring_min`/`ends_n` (kleinste Punktzahl eines Querschnitts-Segments,
+  Stationen der runden Enden – für die fernen Stufen der Verkehrsautos), `cap_sharp`, und
+  **`lamp_depth`**: Mit einem Wert über 0 ist eine Lampe keine aufgesetzte Schicht mehr, sondern eine Mulde.
+  `cardetail.lamp()` legt dann kein Gehäuse auf, versenkt Reflektor, Leisten und Leuchtkörper um die Tiefe der
+  Einheit (`patch(…, sink=…)`, das Objekt trägt `ce_sink = "<Projektion>:<Tiefe>"`), legt die Streuscheibe bündig
+  in die Öffnung und merkt sich die Kontur in `car.lamp_pockets`; der Exporter schneidet die Mulde in die
+  Karosserie (`decalgeo.pocket`: Boden, Wände, Öffnung) und verschiebt den Lichtanker an die Oberfläche.
+- **Kühlergrill** (`player_cars.grille`): im Sprite derselbe Aufruf wie zuvor, im 3D-Bau eine Vertiefung mit
+  versenkten Lamellen. **Nur im 3D-Bau** (`detail["extras"]`): eigene Blinkerfelder und Rückfahrlicht des
+  Kompakten; die 3D-Lampenteile der Verkehrsautos stehen in `ce3d/traffic3d.py` (`CAR_3D`), nicht im Generator.
 
 `check_sprite_geometry.py` baut jedes Sprite-Set (ohne zu rendern) und vergleicht Zählwerte, Hüllquader,
 Positions-Hash, Topologie, Materialien und Builder-Angaben mit `fixtures/geometry_v070.json`. Die Fixture stammt
@@ -280,7 +294,8 @@ aus den unveränderten Generatoren von v0.7.0. Eine Besonderheit: Blenders UV-Ku
 Prozess in anderer Reihenfolge (auch in v0.7.0; betrifft die Kugel des Berliner Fernsehturms). Darum gibt es
 neben `topo` die Felder `ctopo` (Polygone als Eckenzyklen, sortiert) und `nstat` (Summen der Normalen, mit
 Toleranz); weicht nur `topo` ab, zählt das Set als identisch.
-Gemessen nach allen Hooks: **187 von 187 Sets identisch** (eines davon mit anderer Flächenreihenfolge), 338 s.
+Gemessen nach allen Hooks (Stand Bauabschnitt 1): **187 von 187 Sets identisch** (eines davon mit anderer
+Flächenreihenfolge), 346 s.
 
 ## 9. Ein Modell hinzufügen
 
@@ -326,44 +341,57 @@ Gesamt: Netze ≤ 40 MB, Texturen ≤ 240 MB im Grafikspeicher.
 
 | Modell | Dreiecke je Stufe | Aufrufe | Netze | Texturquellen | Export | Bake |
 |---|---|---|---|---|---|---|
-| `player/limousine` | lod0 49 716 · show 102 586 · Schatten 1 872 | 6 / 6 | 1 451 415 B | – | 5,0 s | 0,10 s |
-| `traffic/sedan` (4 Farbsets) | lod0 17 300 · lod1 4 151 · lod2 1 168 · Schatten 632 | 6 / 1 / 1 | 248 318 B | – | 9,3 s | 0,02 s |
+| `player/limousine` | lod0 45 764 · show 99 670 · Schatten 1 872 | 6 / 6 | 1 573 290 B | – | 11,6 s | 0,08 s |
+| `player/kompakt` | lod0 50 080 · show 107 042 · Schatten 1 872 | 6 / 6 | 1 742 534 B | – | 12,3 s | 0,10 s |
+| `traffic/sedan` (4 Farbsets) | lod0 17 695 · lod1 5 805 · lod2 1 123 · Schatten 636 | 6 / 1 / 1 | 260 279 B | – | 2,0 s | 0,02 s |
+| `traffic/hatch` (5 Farbsets) | lod0 17 317 · lod1 5 753 · lod2 1 136 · Schatten 652 | 6 / 1 / 1 | 256 895 B | – | 2,1 s | 0,02 s |
+| `traffic/wagon` (4 Farbsets) | lod0 17 888 · lod1 5 937 · lod2 1 103 · Schatten 604 | 6 / 1 / 1 | 269 062 B | – | 2,2 s | 0,02 s |
+| `traffic/truck` (4 Lackierungen) | lod0 18 084 · lod1 4 672 · lod2 1 490 · Schatten 356 | 13 / 1 / 1 | 160 568 B | – | 0,8 s | 0,02 s |
 | `props/tree_oak` | lod0 1 220 (420 Karten) · lod1 459 (140) · Schatten 179 · Fernbild | 2 / 2 / 1 | 53 072 B | 373 558 B | 2,2 s | 0,01 s |
 | `props/farmhouse` | lod0 104 | 1 | 2 586 B | 752 795 B (1024², Nachtlicht 512²) | 58 s | 0,01 s |
 | `props/streetlight` | lod0 312 (keine automatische Stufe) | 1 | 4 395 B | – | 0,1 s | < 0,01 s |
 | `landmarks/michel` | lod0 3 024 | 1 | 63 648 B | 377 301 B (2048² WebP, Nachtlicht 1024²) | 329 s | 0,02 s |
 
-Zusammen: Netze 1,74 MB, Texturen 4,59 MB im Grafikspeicher, Quellen 1,43 MB. Der Export des Michel besteht fast
+Zusammen: Netze 4,18 MB (davon die sechs Fahrzeuge 4,07 MB), Texturen 4,59 MB im Grafikspeicher, Quellen
+1,43 MB. Der Export des Michel besteht fast
 ganz aus dem Cycles-Bake des 2048er-Atlas (980 Karten). Die Sprite-Geometrieprüfung aller 187 Sets dauert etwa
 6 Minuten (2 Prozesse). Alle Zeiten sind auf dieser VM gemessen, während drei andere Läufe die vier Kerne
 mitbenutzten (2 Prozesse, `nice`): Sie schwanken von Lauf zu Lauf um etwa 10 %.
 
-Lampenflächen der beiden Fahrzeuge (gemessen mit `inspect_models.gd`, projizierte Fläche aus der Blickrichtung
-der Regel in Abschnitt 9, cm²):
+Lampenflächen (gemessen mit `inspect_models.gd`: projizierte Fläche aus der Blickrichtung der Regel in
+Abschnitt 9, nach der Wicklung der Dreiecke, cm² je Fahrzeug bzw. je Seite bei den Blinkern):
 
-| Lampe | `traffic/sedan` lod0 / lod1 / lod2 | `player/limousine` lod0 |
-|---|---|---|
-| Blinker von hinten | 98,7 / 98,8 / 95,3 (vor der Korrektur 3,3 / 9,6 / 43,8) | 81,5 (vorher 3,4) |
-| Blinker von vorn | 95,4 / 83,9 / 66,9 (vorher 19,1 / 9,2 / 4,9) | 21,3 (unverändert) |
+| Modell, Stufe | Rücklicht | Bremslicht | Blinker hinten l / r | Scheinwerfer | Blinker vorn l / r |
+|---|---|---|---|---|---|
+| `player/limousine` lod0 / show | 874 / 869 | 830 / 827 | 84 / 84 · 81 / 80 | 89 / 89 | 20 / 20 · 20 / 19 |
+| `player/kompakt` lod0 / show | 914 / 899 | 900 / 890 | 102 / 102 · 100 / 100 | 101 / 102 | 28 / 27 · 27 / 27 |
+| `traffic/sedan` lod0 / lod1 / lod2 | 639 / 847 / 887 | 759 / 967 / 1 007 | 99 / 99 in jeder Stufe | 161 / 242 / 327 | 95 / 95 / 86 |
+| `traffic/hatch` lod0 / lod1 / lod2 | 727 / 902 / 965 | 846 / 1 021 / 1 084 | 95 / 95 in jeder Stufe | 195 / 273 / 360 | 112 / 100 / 95 |
+| `traffic/wagon` lod0 / lod1 / lod2 | 973 / 1 188 / 1 031 | 1 093 / 1 308 / 1 081 | 102 / 102 in jeder Stufe | 171 / 250 / 316 | 95 / 90 / 50 |
+| `traffic/truck` lod0 / lod1 / lod2 | 860 in jeder Stufe | 860 | 450 / 450 | 1 000 | 320 / 320 |
 
-Die übrigen Lampenflächen und die Abstände der Lichtanker schreibt `validate_models.py --report` nicht in die
-Tabelle; sie stehen im Bericht von `inspect_models.gd` (`lamps`, `anchors`).
+Die Blinker der Pkw haben in allen drei Stufen dieselbe Fläche, weil sie mit derselben Kontur eingeschnitten sind.
+Rück- und Bremslicht wachsen zu den groben Stufen hin, weil dort die schwarzen Lampenringe und die schmalen
+Chromleisten wegfallen (erlaubt: höchstens 2 × + 5 cm²). Lichtanker: Verkehrsautos höchstens 3,5 mm von ihrer
+Lampe, Spielerautos bis 33 mm (der Anker liegt in der Öffnung der Mulde, die Leuchtkörper bis 28 mm dahinter).
 
 ### Ehrliche Einordnung gegen die Cycles-Sprites
 
-- **Limousine (Spielerauto):** Form, Fugen, Lampen und Räder stimmen mit dem Sprite überein. Im A/B-Bild aus der
-  Showroom-Kamera bleibt das Echtzeit-Modell hinter dem Sprite zurück: Der Lack wirkt greller und flacher (keine
-  weichen Spiegelungen), die Felgen zu dunkel, es fehlen Kontaktschatten und Innenraum, das Glas ist
-  undurchsichtig; die um die Ecke laufenden Rückleuchten enden leicht gezackt. `showroom` bleibt deshalb `false`.
-  Die Lampen hinter den Streuscheiben (Scheinwerfer, Tagfahrlicht) verlieren im Echtzeit-Bild etwa die Hälfte
-  ihres Lichts an das Glas davor (gemessen im Bild der Render-Prüfung); die hinteren Blinker sind zwei Leisten
-  von 1,6 cm Höhe (von hinten gesehen zusammen 81,5 cm² je Seite) und liegen außen auf der Rückleuchte.
-- **Limousine (Verkehr):** dieselbe schlichte Grundform wie das Sprite, Fenster, Lampen und Kennzeichen sind in
-  die Karosserie geschnitten. Glas undurchsichtig, kein Innenraum. Die Blinker hinten und vorn haben seit der
-  Korrektur nach der Abnahme von Bauabschnitt 0 ein eigenes Feld im 3D-Entwurf (`CAR_3D` in `vehicles3d.py`,
-  rund 95 cm² je Seite) – das Sprite zeigt dort weiterhin den schmalen Streifen von 2,7 cm, die beiden Bilder
-  weichen an dieser Stelle also bewusst voneinander ab. Die Konturen der eingeschnittenen Teile folgen bei
-  `lod1`/`lod2` dem groben Netz und sind aus der Nähe stufig. `lod2` ist kantig – gedacht für mehr als 120 m.
+- **Spielerautos (Limousine, Kompakt):** Form, Fugen, Lampen und Räder stimmen mit den Sprites überein; das
+  Echtzeit-Modell hat mehr Modelldetail als das Sprite (durchsichtiges Glas mit Innenraum, Lampen und Grill mit
+  Tiefe, Wischer, Antenne, Kennzeichenrahmen). Im A/B-Bild aus der Showroom-Kamera bleibt es trotzdem hinter dem
+  Sprite zurück – wegen Lack und Licht, nicht wegen des Netzes: Der Lack ist greller und gleichmäßiger (keine
+  weichen Spiegelungen der Umgebung, kein Klarlack-Fresnel), es fehlen Kontaktschatten und Umgebungsverdeckung in
+  Radhäusern und Fugen, Felgen und Chrom spiegeln nur eine Farbe. `showroom` bleibt deshalb bei beiden `false`,
+  bis der Lackshader (R3) und das Showroom-Licht stehen; danach genügt die eine Zeile im Katalog.
+- **Verkehrsautos (Limousine, Schrägheck, Kombi):** dieselben Maße, Fenster und Lampen wie die Sprites, aber eine
+  straffere Karosserie (Abschnitt 13). Die Lampen sind eingeschnittene, ebene Felder ohne Streuscheibe und Tiefe;
+  das Heck ist eine fast senkrechte Fläche; Glas dunkel und spiegelnd, kein Innenraum. Die Blinkerfelder (rund
+  95–100 cm² je Seite) gibt es nur im 3D-Entwurf – das Sprite zeigt dort den schmalen Streifen. `lod2` hat
+  dreieckige Radausschnitte mit sechseckigen Rädern – gedacht für mehr als 120 m.
+- **Sattelzug:** Zugmaschine und Koffer mit lesbarem Heck. Alle vier Lackierungen sind derselbe Koffer – eine
+  Plane (Rot, Grün im Sprite) gibt es nicht. Das Fahrerhaus ist ein Profilkörper mit eingeschnittenen Scheiben
+  (keine gewölbte Front), kein Innenraum.
 - **Eiche:** Laubkarten statt Kugelhaufen – klar feiner als das Sprite, aber aus der Nähe als Karten erkennbar,
   ohne sichtbare Äste. Fernbild und `lod1` stimmen bei Tag in Rot und Grün auf 3 % überein, Blau liegt rund 20 %
   darunter (dem Fernbild fehlt der Himmelsglanz der Karten); bei Mondlicht sind beide gleich dunkel.
@@ -376,24 +404,109 @@ Tabelle; sie stehen im Bericht von `inspect_models.gd` (`lamps`, `anchors`).
 
 ## 12. Bekannte Grenzen
 
-- Glas von Fahrzeugen ist undurchsichtig, Innenräume fehlen (Budget: ≤ 6 000 Dreiecke in `body`).
+- Spielerautos haben durchsichtiges, getöntes Glas und einen dunklen Innenraum (Abschnitt 13); die Verkehrsautos
+  behalten dunkles, spiegelndes Glas ohne Innenraum (Budget 18 000 Dreiecke, ein Zeichenaufruf für die Karosserie).
 - Die abgewandten Wände werden nicht per UV-Spiegelung wiederverwendet; stattdessen ergänzt der Generator
   (`allround`) Fenster auf der Rückseite, die eigene Atlasfläche bekommen.
 - Laub nimmt den Schatten der Sonne nur zu einem Viertel an (sonst verschattet die Schattenhülle die Krone).
 - Aufgesetzte Details der Verkehrsautos sind in die Karosserie geschnitten (eine Lage, kein Flimmern) – auch
   bei `lod1`/`lod2`, dort mit weniger Teilen.
 - Komprimierte Netze melden immer ein Tangenten-Array (mit den Normalen gepackt, kostet keine Bytes).
-- Die Lampenkanäle 9, 10, 11, 13 und 14 sowie die Lackcodes `paint2`/`paint3` benutzt noch kein Referenzmodell
-  (die Anstrahlung des Michel steckt in seinem Nachtlicht-Atlas); der Prüfstreifen (`--channels`) zeigt alle
-  15 Kanäle, die Render-Prüfung `check_models.gd` schaltet die Lackcodes an einem Prüfnetz durch.
+- Die Lampenkanäle 10, 11, 13 und 14 benutzt noch kein Modell (die Anstrahlung des Michel steckt in seinem
+  Nachtlicht-Atlas); Kanal 9 (Umrissleuchten) und die Lackcodes `paint2`/`paint3` trägt der Sattelzug. Der
+  Prüfstreifen (`--channels`) zeigt alle 15 Kanäle, die Render-Prüfung `check_models.gd` schaltet die Lackcodes
+  an einem Prüfnetz durch.
 - Die Klasse `baked_cutout` benutzt noch kein Referenzmodell (sie kommt erst mit den Stadthäusern und
   Wahrzeichen aus `props_cities`/`props_landmarks`): Material und Prüfer kennen sie, der Weg vom Generator bis
   ins Bild ist dafür noch nicht einmal ganz durchlaufen worden.
-- Eingeschnittene Teile (Abschnitt 8) folgen bei den groben Stufen den Kanten des Netzes, nicht ihrer eigenen
-  Kontur; der Prüfer misst die Fläche jeder Lampe, nicht ihre Form.
+- Eingeschnittene Teile folgen seit Bauabschnitt 1 in jeder Stufe ihrer eigenen Kontur (Abschnitt 13); der Prüfer
+  misst weiterhin die Fläche jeder Lampe, nicht ihre Form – die Form zeigt nur der Stufenbogen (`--review`).
 - Eine Lampe leuchtet nur auf ihrer eigenen Fläche. Gerechnet (nicht gemessen) mit der Brennweite von 711 px
   bei 1280 × 720: Die 0,61 m lange Leuchte der Laterne ist ab etwa 430 m kürzer als ein Bildpunkt, eine 25 cm
   breite Rückleuchte ab etwa 180 m. Jenseits davon trägt nur der Schein (Glow) oder ein Lichtpunkt des Renderers
   an den Ankern aus `lights` – für Fahrzeuge verlangt das die Fairness-Regel F6, für Laternen sieht der Bauplan
   bisher nur leuchtende Geometrie vor (offen für die Renderer-Abschnitte). Die Laterne hat keine automatische
   Stufe mehr: Sie hätte die Leuchte auf wenige Dreiecke verkleinert.
+
+## 13. Fahrzeuge des Bauabschnitts 1
+
+| Modell | Builder | woraus |
+|---|---|---|
+| `player/limousine`, `player/kompakt` | `player` (`ce3d/vehicles3d.py`) | `cesprites.player_cars` in den Stufen `PLAYER_DETAIL` (`lod0`, `show`), dazu `ce3d/extras3d.py` (dritte Bremsleuchte, Kennzeichenrahmen mit zwei Leuchten, Dachantenne, Scheibenwischer) und `ce3d/interior3d.py` (Sitze, Kopfstützen, Armaturenbrett, Lenkrad links, Hutablage, Verkleidung) |
+| `traffic/sedan`, `traffic/hatch`, `traffic/wagon` | `car` (`ce3d/traffic3d.py`) | Karosserie aus den Lofts von `carbody.SmoothCar`, gespeist aus den Entwurfstabellen `cesprites.designs` (`smooth_design`); Fenster, Lampen, Kennzeichen, Griffe und Fugen aus den Decal-Listen von `vehicles.Car`, als Geometrie eingeschnitten |
+| `traffic/truck` | `heavy` (`ce3d/truck3d.py`) | eigener Aufbau mit den Maßen von `cesprites.heavy`: Zugmaschine und Kofferauflieger |
+
+Die Sprite-Generatoren `vehicles.Car` und `heavy` werden dafür **nicht** gebaut, nur gelesen: Ihre groben Lofts
+knitterten in `lod1`/`lod2`, die Stoßfänger stachen durch die Karosserie. Die Verkehrsautos haben deshalb dieselben
+Maße, Fenster und Lampen wie ihre Sprites, aber eine straffere Form (Schulterlinie, ausgestellte Radläufe mit
+Innenkotflügel, abgesetzte Stoßfänger, Schweller) und Felgen mit fünf Speichen und Bremsscheibe.
+
+### Eingeschnittene Flächen (`ce3d/decalgeo.py`)
+
+Ein Decal ist eine Kontur in einer Projektionsebene (hinten/vorn: x–z, Seite: y–z, oben: x–y). `Tris.apply`
+schneidet jede Kontur mit einer Delaunay-Triangulierung mit Zwangskanten (`mathutils.geometry.delaunay_2d_cdt`) in
+die Dreiecke der Karosserie – eine Lage, nichts kann flimmern, und die Kontur ist in **jeder** Stufe dieselbe
+Linie. Dazu gehört:
+
+- **Ende an der Rundung:** Ob eine Fläche zu einer Projektion gehört, entscheidet die geglättete Normale. Vor dem
+  Schnitt teilt `split_level` jedes betroffene Dreieck entlang der Linie, auf der diese Normale die Schwelle
+  kreuzt – die Fenster enden an einer glatten Linie statt an den Zacken des Netzes.
+- **Nichts geht verloren:** Splitter-Dreiecke in der Projektion werden nicht geschnitten (die Bibliothek meldet
+  einen Splitter als Quelle jeder Ausgabefläche), jedes Teilstück muss in seinem Dreieck liegen, ein Dreieck wird
+  nur ersetzt, wenn seine Teile es zu 98,5 % decken, und `car_surfaces` bricht ab, wenn sich die Oberfläche einer
+  Projektion um mehr als ein paar cm² ändert.
+- **Reihenfolge:** Der Rang eines Decals kommt aus der vollständigen Liste, nicht aus der gefilterten der Stufe;
+  Blinker liegen immer oben (sonst deckte in `lod1` das Rücklicht den Blinker zu).
+- **Stufen:** `lod1` lässt dünne Decals und die schwarzen Lampenringe weg, `lod2` zusätzlich Seitenteile der
+  Leuchten, Rückfahrlicht, Tagfahrlicht, Kennzeichen und Schwellerteilung; die Scheiben von `lod2` sind nach der
+  Flächennormale gefärbt. Rücklicht, Bremslicht, Blinker und Scheinwerfer behalten ihre Kontur.
+
+### Stufen, die nicht knittern
+
+`lod1`, `lod2` und der Schattenwerfer sind dieselben analytischen Lofts mit weniger Stationen und Ringpunkten
+(`TRAFFIC_DETAIL` in `ce3d/lod.py`), kein dezimiertes Netz. `core.transfer_normals` gibt den groben Lofts die
+Normalen von `lod0` (die feine Fläche, die der groben am ähnlichsten sieht), `core.flatten_ends` lässt die flachen
+Endkappen in die runden Enden übergehen. Der Prüfer hat eine neue Regel: Der Hüllquader jeder Stufe darf von dem
+der feinsten Stufe höchstens um `BOUNDS_TOL_M` abweichen (Pkw 3 cm, Spielerauto 2 cm, Lkw 5 cm).
+
+### Glas und Innenraum
+
+`glass.gdshader` (Aussehen; `fade`, `sun` und `light()` unverändert): vormultipliziertes Alpha
+(`blend_premul_alpha`), die Spiegelung wächst mit dem Fresnel-Term (`fresnel_boost` 0,85, `mirror` 0,75), die
+Tönung kommt aus der Vertexfarbe. Spielerautos: Scheiben mit Deckkraft 0,36, Streuscheiben 0,10, klare 0,08;
+dahinter Sitze, Kopfstützen, Armaturenbrett, Lenkrad und Hutablage. Die Kabine wird dafür geöffnet
+(`_open_cabin`): die Scheiben aus dem Loft geschnitten, die Innenseite verkleidet.
+
+### Schattenwerfer
+
+Die Karosserie wirft keinen Schatten, eine grobe Hülle tut es für sie (`ModelFactory`: nur Schatten). Steht die
+Hülle irgendwo aus der Karosserie heraus, liegt die Karosserie dort im Schatten ihres eigenen Werfers – beim
+Kompakten als dunkle Schraffur hinter dem vorderen Radlauf sichtbar (die Sehne der groben Hülle über der Kehle
+hinter dem ausgestellten Radlauf, gemessen 7,9 mm). `core.tuck_inside` zieht die Hülle deshalb 12 mm unter die
+Außenhaut von `lod0` (Stichproben an Ecken, Kantenmitten und im Inneren jedes Dreiecks; Radhäuser und nach unten
+blickende Flächen zählen nicht). Die Radtrommeln des Werfers sind nur die innere Hälfte des Reifens: Eine Kappe in
+der Ebene der Reifenflanke lag vor der Felge, die dann nie Sonne bekam. Der Lkw-Werfer ist ein Koffer, das
+Fahrerhaus nach seinem Profil und Trommeln, alles 3 cm nach innen gesetzt. Der Export bricht ab, wenn die Hülle
+eines Pkw danach nicht mindestens 6 mm unter der Haut liegt; gemessen (Exportbericht, `levels.shadow`): vorher
+7,1–7,9 mm außerhalb (Spielerautos) bzw. 35 mm (Verkehr: die Hülle reicht über die Stoßfänger), nachher 11,9–12,0 mm
+innerhalb. Der Prüfer (`validate_models.py`) misst das noch nicht.
+
+### Sattelzug
+
+- Knoten in `lod0`: `tractor/body`, `tractor/wheel_0l|r` (gelenkt), `tractor/wheel_1l|r` (Zwillingsräder),
+  `trailer/body` (Ursprung des Netzes = Königszapfen, `pos` = Königszapfen im Modell), `trailer/wheel_0…2 l|r`.
+  `lod1`/`lod2`: ein Netz `body`. Das Fragment trägt zusätzlich
+  `"groups": {"tractor": {"pivot": [0, 0, -3.1]}, "trailer": {"pivot": [0, 1.19, -3.7]}}` – die Drehpunkte, um die
+  ein Renderer Zugmaschine und Auflieger knicken kann. `ModelFactory` wertet `groups` noch nicht aus.
+- Lack: `paint` = Koffer, `paint2` = Fahrerhaus, `paint3` = Streifen und Schriftzug. Die vier Farbsets sind
+  dasselbe Netz mit anderen Lackwerten (bei Rot und Grün ist `paint3` = `paint`: kein Streifen).
+- Heck: Türen mit Rahmen und Gestängen, rot-weiße Konturmarkierung als beleuchtete Fläche (Kanal 8), zwei rote
+  Umrissleuchten oben (Kanal 9, mit Lichtanker `marker`), Leuchtenträger mit Blinker, Rück-/Bremslicht und
+  Rückfahrlicht je Seite, Dreieckrückstrahler, Kennzeichen, Unterfahrschutz, Schmutzfänger.
+
+### Diagnose
+
+`CE_STATS=1` vor dem Export druckt je Stufe die Dreiecke je Objekt (Spielerautos) und je Projektion die Zahl der
+Konturen und Dreiecke vor und nach dem Schnitt. Auf die Dateien hat die Variable keinen Einfluss.
+
+

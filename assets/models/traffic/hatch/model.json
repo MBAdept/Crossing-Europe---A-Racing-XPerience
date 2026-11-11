@@ -1,0 +1,179 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "traffic/hatch",
+ "model": {
+  "kind": "vehicle",
+  "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.51},
+  "extent_m": {"left": 1.04, "right": 1.04},
+  "aabb": [-1.035, 0, -2.025, 1.035, 1.51, 2.027],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 40,
+    "tris": 17317,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "traffic/hatch/lod0_body.res",
+      "classes": ["vpbr", "glass"]
+     },
+     {
+      "node": "wheel_0l",
+      "mesh": "traffic/hatch/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [-0.7415, 0.31, -1.21],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.31, "steer": true}
+     },
+     {
+      "node": "wheel_0r",
+      "mesh": "traffic/hatch/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [0.7415, 0.31, -1.21],
+      "wheel": {"radius": 0.31, "steer": true}
+     },
+     {
+      "node": "wheel_1l",
+      "mesh": "traffic/hatch/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [-0.7415, 0.31, 1.37],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.31, "steer": false}
+     },
+     {
+      "node": "wheel_1r",
+      "mesh": "traffic/hatch/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [0.7415, 0.31, 1.37],
+      "wheel": {"radius": 0.31, "steer": false}
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 120,
+    "tris": 5753,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "traffic/hatch/lod1_body.res",
+      "classes": ["vpbr"]
+     }
+    ]
+   },
+   {
+    "name": "lod2",
+    "max_dist_m": 100000,
+    "tris": 1136,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "traffic/hatch/lod2_body.res",
+      "classes": ["vpbr"]
+     }
+    ]
+   }
+  ],
+  "shadow": {"mesh": "traffic/hatch/shadow.res", "tris": 652},
+  "lights": [
+   {
+    "role": "brake",
+    "pos": [-0.7274, 0.8495, 1.9674],
+    "dir": [-0.433, 0.203, 0.878],
+    "size": 0.242,
+    "color": "#ff2010"
+   },
+   {
+    "role": "brake",
+    "pos": [0.7275, 0.8495, 1.9676],
+    "dir": [0.433, 0.202, 0.879],
+    "size": 0.242,
+    "color": "#ff2010"
+   },
+   {
+    "role": "head",
+    "pos": [-0.6078, 0.6596, -1.9616],
+    "dir": [-0.273, 0.299, -0.915],
+    "size": 0.118,
+    "color": "#fff3d6"
+   },
+   {
+    "role": "head",
+    "pos": [0.6078, 0.6596, -1.9616],
+    "dir": [0.271, 0.3, -0.914],
+    "size": 0.118,
+    "color": "#fff3d6"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-0.7914, 0.6537, -1.8493],
+    "dir": [-0.79, 0.065, -0.609],
+    "size": 0.158,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-0.7595, 0.7684, 1.9658],
+    "dir": [-0.492, -0.008, 0.871],
+    "size": 0.122,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [0.7596, 0.7684, 1.9658],
+    "dir": [0.492, -0.009, 0.871],
+    "size": 0.122,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [0.7913, 0.6537, -1.8493],
+    "dir": [0.79, 0.069, -0.609],
+    "size": 0.158,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "tail",
+    "pos": [-0.7274, 0.8495, 1.9674],
+    "dir": [-0.433, 0.203, 0.878],
+    "size": 0.242,
+    "color": "#ff2010"
+   },
+   {
+    "role": "tail",
+    "pos": [0.7275, 0.8495, 1.9676],
+    "dir": [0.433, 0.202, 0.879],
+    "size": 0.242,
+    "color": "#ff2010"
+   }
+  ],
+  "paint": {"paint": "#3d8a45", "metal": 0.4},
+  "auto_lod": false,
+  "tags": ["traffic", "car"],
+  "bytes": 256895,
+  "hash": "5abc1ef36174cb33874a6809105335bca5bd0c38"
+ },
+ "sets": {
+  "traffic/hatch_green": {
+   "model": "traffic/hatch",
+   "paint": {"paint": "#3d8a45", "metal": 0.4}
+  },
+  "traffic/hatch_yellow": {
+   "model": "traffic/hatch",
+   "paint": {"paint": "#e5bd1c", "metal": 0.15}
+  },
+  "traffic/hatch_white": {
+   "model": "traffic/hatch",
+   "paint": {"paint": "#e8e8e5", "metal": 0.1}
+  },
+  "traffic/hatch_blue": {
+   "model": "traffic/hatch",
+   "paint": {"paint": "#2c5fa8", "metal": 0.45}
+  },
+  "traffic/hatch_red": {
+   "model": "traffic/hatch",
+   "paint": {"paint": "#b5282a", "metal": 0.3}
+  }
+ }
+}
