@@ -23,19 +23,37 @@ from .export import Lod, ModelData, Part, sprite_extent
 
 GREY = np.array([120, 120, 120, 255], dtype=np.uint8)
 
-# Lamp parts the sprites never needed (they show the cars from behind, lights as layers): added to a copy
-# of the design for the 3D builds. Same decal conventions as cesprites.designs.
+# Lamp parts of the 3D builds, applied to a copy of the design (same decal conventions as cesprites.designs):
+#   add      parts the sprites never needed (they show the cars from behind, lights as layers)
+#   replace  {list: {part: entry}} - a part of the design that gets another outline in 3D
+# Indicators are what the following driver reacts to (Rule 9): they lie INSIDE the face that looks at him - the
+# flat part of the rear / front end, not the corner the lamp wraps around - and they are the last material group
+# of the list, i.e. on top of the tail lamp in the stacking order. Seen from straight behind / ahead each one
+# shows at least validate_models.LAMP_MIN_CM2 at every level of detail.
 CAR_3D = {
     "sedan": dict(
-        tail_lamps=[
-            dict(part="indicator", poly=[(0.80, 0.793), (0.95, 0.788), (0.95, 0.842), (0.80, 0.846)], outline=False),
-        ],
-        head_lamps=[
-            dict(face="front", part="indicator", poly=[(0.79, 0.642), (0.88, 0.64), (0.88, 0.73), (0.80, 0.73)],
-                 outline=False),
-            dict(face="front", part="drl", poly=[(0.525, 0.653), (0.78, 0.645), (0.78, 0.663), (0.525, 0.671)],
-                 outline=False),
-        ],
+        add=dict(
+            tail_lamps=[
+                # lower band of the lamp, outside the reverse light
+                dict(part="indicator", poly=[(0.612, 0.808), (0.85, 0.801), (0.85, 0.846), (0.612, 0.846)],
+                     outline=False),
+            ],
+            head_lamps=[
+                # outer end of the headlight, inside its black outline
+                dict(face="front", part="indicator", poly=[(0.70, 0.667), (0.868, 0.653), (0.868, 0.718), (0.708, 0.718)],
+                     outline=False),
+                dict(face="front", part="drl", poly=[(0.525, 0.653), (0.78, 0.645), (0.78, 0.663), (0.525, 0.671)],
+                     outline=False),
+            ],
+        ),
+        replace=dict(
+            tail_lamps={
+                # the design's reverse light starts in the corner of the lamp, on its black outline: 3D moves
+                # it inside the lens
+                "reverse": dict(part="reverse", poly=[(0.487, 0.812), (0.60, 0.809), (0.60, 0.846), (0.494, 0.846)],
+                                outline=False),
+            },
+        ),
     ),
 }
 
@@ -89,9 +107,19 @@ def _wheel_parts(nodes, pivots, origin, radius, mesh_name, same_axles, auto_lod=
 # --- traffic cars -----------------------------------------------------------------------------------------
 
 def traffic_design(name):
+    """The design of cesprites.designs with the lamp parts of the 3D builds (CAR_3D)."""
     from cesprites import designs
     d = copy.deepcopy(designs.TRAFFIC_MODELS[name])
-    for k, extra in CAR_3D.get(name, {}).items():
+    spec = CAR_3D.get(name, {})
+    for k, parts in spec.get("replace", {}).items():
+        lst = list(d.get(k, []))
+        for part, entry in parts.items():
+            hits = [i for i, e in enumerate(lst) if e.get("part", "tail") == part]
+            if len(hits) != 1:
+                raise KeyError("CAR_3D[%s].replace: %d parts '%s' in %s" % (name, len(hits), part, k))
+            lst[hits[0]] = copy.deepcopy(entry)
+        d[k] = lst
+    for k, extra in spec.get("add", {}).items():
         d[k] = list(d.get(k, [])) + copy.deepcopy(extra)
     return d
 
@@ -261,9 +289,16 @@ def _player_shadow(spec3d):
                 for x, sx in ((x0, -side), (x1, side)):
                     pos.append([(x, cy, cz), (x, a[0], a[1]), (x, b[0], b[1])])
                     nor.append(((sx, 0.0, 0.0),) * 3)
+            pp = np.array(pos, dtype=np.float64)
             nn = np.array(nor, dtype=np.float64)
             nn /= np.maximum(np.linalg.norm(nn, axis=2, keepdims=True), 1e-9)
-            mb.add("vpbr", np.array(pos), nn, GREY, (0.8, 0.0), roles.NO_LAMP)
+            # every triangle wound to its normal (counter-clockwise seen from outside, as the generator meshes):
+            # the same vertex order for both caps and both sides turned one cap of every drum and the mantles of
+            # one side inside out - with back-face culling those faces cast no shadow
+            flip = np.einsum("ij,ij->i", np.cross(pp[:, 1] - pp[:, 0], pp[:, 2] - pp[:, 0]), nn.sum(axis=1)) < 0.0
+            pp[flip] = pp[flip][:, ::-1]
+            nn[flip] = nn[flip][:, ::-1]
+            mb.add("vpbr", pp, nn, GREY, (0.8, 0.0), roles.NO_LAMP)
     return mb
 
 

@@ -1,12 +1,19 @@
 // Modern, material class "vpbr": everything untextured - vehicles incl. wheels and lamps, road furniture,
 // trunks, lattice landmarks. One vertex format ("VPBR-L", docs/modelle.md):
-//   COLOR.rgb  albedo as sRGB bytes; for the lamp channels 0-13 the LIT colour of the lamp
+//   COLOR.rgb  albedo as sRGB bytes; for the lamp channels the LIT colour of the lamp (not 8 and 14: their own
+//              albedo)
 //   COLOR.a    paint code: 1.0 fixed colour, 0.0 paint, 0.25 paint2, 0.5 paint3
 //   UV         (roughness, metallic)
 //   UV2        (lamp channel + 0.5, weight 0..1) or (-1, 0) for "no lamp"
 // Lamp channels: 0 tail, 1 brake, 2 tail + brake, 3 indicator left, 4 indicator right, 5 head, 6 daytime
-// running, 7 reverse, 8 plate, 9 marker, 10 beacon A, 11 beacon B, 12 lights of props (ce_night),
-// 13 always on, 14 flood-lit surface (keeps its albedo, adds albedo * weight * ce_night).
+// running, 7 reverse, 9 marker, 10 beacon A, 11 beacon B, 12 lights of props (ce_night), 13 always on.
+// Lit surfaces - they keep their albedo and roughness and get light added: 8 number plate (albedo * weight *
+// tail level * plate_energy; drawn as an unlit lamp it was grey by day), 14 flood-lit surface (albedo * weight *
+// ce_night * flood_energy).
+// Lamp light: the lit colour times the linear factor of its channel (lamp_factor: level * weight * energy). The
+// energies keep a tail light clearly below white (0.35 * lamp_energy), so braking is a big step (lamp_gain.x);
+// a lamp driven above 1 keeps its hue - it is washed towards white instead of clipping channel by channel
+// (an amber indicator at three times white came out lemon yellow, a blue beacon pale blue).
 // Colour space (measured, GL Compatibility of Godot 4.7): fragment() works with sRGB-encoded colours - the
 // engine linearises ALBEDO and EMISSION after this code, and neither vertex colours nor source_color
 // uniforms are converted before. So COLOR.rgb and the paint uniforms go to ALBEDO as they are, and energies
@@ -26,9 +33,13 @@ instance uniform vec4 lamp_b : instance_index(4) = vec4(0.0);   // head, reverse
 instance uniform float fade : instance_index(5) = 1.0;          // path-distance fade: dither discard, opaque
 instance uniform float sun : instance_index(6) = 1.0;           // 0 inside tunnels: masks the directional light
 
-uniform float lamp_energy = 3.0;              // linear emission of a lamp at level 1, weight 1
+uniform float lamp_energy = 1.0;              // linear emission of a lamp at level 1, weight 1 (tail, marker, on)
+// factors on lamp_energy: x brake, y indicators, z head / daytime running / reverse, w beacons
+uniform vec4 lamp_gain = vec4(2.2, 1.6, 2.0, 2.0);
+uniform float lamp_whiten = 0.04;             // wash of an over-driven lamp towards white per unit above 1
 uniform float lights_energy = 4.0;            // lamps of props at night (channel 12)
 uniform float flood_energy = 1.0;             // flood-lit surfaces (channel 14)
+uniform float plate_energy = 0.45;            // number plate under its lamp (channel 8)
 uniform float lamp_off = 0.5;                 // unlit lamp: sRGB factor on its lit colour (0.5 = 22 % linear)
 uniform float coat_roughness = 0.06;
 
@@ -43,20 +54,38 @@ float enc(float linear_factor) {
 	return pow(max(linear_factor, 0.0), 0.4545);
 }
 
-float lamp_level(float ch) {
-	if (ch < 0.5) { return lamp_a.x; }
-	if (ch < 1.5) { return lamp_a.y; }
-	if (ch < 2.5) { return max(lamp_a.x * 0.35, lamp_a.y); }
-	if (ch < 3.5) { return lamp_a.z; }
-	if (ch < 4.5) { return lamp_a.w; }
-	if (ch < 5.5) { return lamp_b.x; }
-	if (ch < 6.5) { return max(1.0 - lamp_b.x, 0.35); }   // daytime running light: dimmed with the low beam
-	if (ch < 7.5) { return lamp_b.y; }
-	if (ch < 9.5) { return lamp_a.x; }                    // plate light and markers follow the tail lights
-	if (ch < 10.5) { return lamp_b.z; }
-	if (ch < 11.5) { return lamp_b.w; }
-	if (ch < 12.5) { return ce_night; }
-	return 1.0;
+// Linear emission factor of a lamp channel at weight 1: its level (instance uniforms, ce_night) times its energy.
+float lamp_factor(float ch) {
+	vec4 a = clamp(lamp_a, 0.0, 1.0);
+	vec4 b = clamp(lamp_b, 0.0, 1.0);
+	if (ch < 0.5) { return a.x * lamp_energy; }
+	if (ch < 1.5) { return a.y * lamp_energy * lamp_gain.x; }
+	if (ch < 2.5) { return max(a.x * 0.35, a.y * lamp_gain.x) * lamp_energy; }   // tail at 35 %, brake at full gain
+	if (ch < 3.5) { return a.z * lamp_energy * lamp_gain.y; }
+	if (ch < 4.5) { return a.w * lamp_energy * lamp_gain.y; }
+	if (ch < 5.5) { return b.x * lamp_energy * lamp_gain.z; }
+	if (ch < 6.5) { return max(1.0 - b.x, 0.35) * lamp_energy * lamp_gain.z * 0.6; }   // dimmed with the low beam
+	if (ch < 7.5) { return b.y * lamp_energy * lamp_gain.z * 0.6; }
+	if (ch < 9.5) { return a.x * lamp_energy; }                    // markers follow the tail lights
+	if (ch < 10.5) { return b.z * lamp_energy * lamp_gain.w; }
+	if (ch < 11.5) { return b.w * lamp_energy * lamp_gain.w; }
+	if (ch < 12.5) { return clamp(ce_night, 0.0, 1.0) * lights_energy; }
+	return lamp_energy;
+}
+
+// Emission of a lamp: lit colour (sRGB-encoded) times the linear factor e, sRGB-encoded again. Above white the
+// hue stays: the colour is normalised to its largest channel and washed towards white by lamp_whiten per unit of
+// overdrive (at most 35 %) - that is what the screen shows. The overdrive itself stays in the channels that
+// carry the lamp's colour (exponent t^4: all of it in the largest channel, next to none in a small one), so a
+// glow pass still finds the lamp brighter than white without the small channels being lifted with it.
+vec3 lamp_light(vec3 lit, float e) {
+	vec3 c = pow(lit, vec3(2.2)) * e;
+	float m = max(c.r, max(c.g, c.b));
+	if (m > 1.0) {
+		vec3 t = mix(c / m, vec3(1.0), clamp((m - 1.0) * lamp_whiten, 0.0, 0.35));
+		c = t * pow(vec3(m), t * t * t * t);
+	}
+	return pow(c, vec3(0.4545));
 }
 
 void vertex() {
@@ -88,9 +117,11 @@ void fragment() {
 		float ch = floor(v_lamp.x);
 		if (ch > 13.5) {
 			emit = alb * enc(v_lamp.y * ce_night * flood_energy);
+		} else if (ch > 7.5 && ch < 8.5) {
+			// number plate: a lit surface - its own white by day, the plate lamp's light with the tail lights
+			emit = alb * enc(v_lamp.y * clamp(lamp_a.x, 0.0, 1.0) * plate_energy);
 		} else {
-			float on = clamp(lamp_level(ch), 0.0, 1.0) * v_lamp.y;
-			emit = alb * enc(on * (ch > 11.5 && ch < 12.5 ? lights_energy : lamp_energy));
+			emit = lamp_light(alb, lamp_factor(ch) * v_lamp.y);
 			alb *= lamp_off;        // unlit: dark lamp behind a glossy lens
 			rough = 0.12;
 			metal = 0.0;

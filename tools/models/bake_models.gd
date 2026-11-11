@@ -5,13 +5,18 @@ extends SceneTree
 ## Reads the intermediates of tools/blender/export_models.py (tools/blender/_cache3d/<group>/<name>/
 ## {model.glb, model_meta.json, textures}) and writes the committed resources:
 ##   assets/models/<group>/<name>/<mesh>.res   node-free ArrayMesh, attributes compressed, surface names =
-##                                             material class, NO materials inside, no resource ids
+##                                             material class, NO materials inside, no UID (the id of
+##                                             the inner resource derives from the target path, see below)
 ##   assets/models/<group>/<name>/<texture>    copies of the texture sources (+ .import, written by
 ##                                             tools/models/set_model_import.py)
 ##   assets/models/<group>/<name>/model.json   manifest fragment (model entry with measured triangles,
 ##                                             bytes and hash, and the sets of the model)
 ## The .glb goes through GLTFDocument; nothing of Godot's scene import is used, so the result does not
-## depend on import settings or random node ids: two bakes of the same intermediates are byte-identical.
+## depend on import settings or random node ids: two bakes of the same intermediates INTO THE SAME FOLDER are
+## byte-identical (measured). Baked into another folder (--out) the content differs in the five characters
+## of the path-derived id "local://ArrayMesh_<id>" - and, the files being saved compressed, the files differ
+## in many bytes and sometimes in length; bytes and hash in model.json therefore hold for assets/models.
+## Times go to _cache3d/bake_report.json, never into the model folders.
 ## Automatic mesh LODs (ImporterMesh.generate_lods) are only made for meshes the exporter flags "auto_lod"
 ## (never for cars with decal patches). After a bake run `godot --headless --path . --import` once (textures).
 

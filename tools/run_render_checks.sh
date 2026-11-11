@@ -9,7 +9,8 @@
 #     filter  only files whose name contains it
 # Each check prints its own lines ("RENDER-CHECK <name> OK|FEHLER …", the Arcade checks "GLOW-CHECK …" /
 # "FLIP-CHECK …"); this script adds one "RENDER-CHECK-DATEI <file> OK|FEHLER" line per file. Exit code 1 if a file
-# failed, reported a script error or printed no check line at all.
+# failed, reported a script error or a shader that did not compile ("SHADER ERROR", "Shader compilation failed" –
+# such a material simply draws nothing), or printed no check line at all.
 # All runs of one call share one XDG_DATA_HOME and one MESA_SHADER_CACHE_DIR (a cold shader cache costs 0.5–1.9 s
 # per shader variant with llvmpipe). Environment: GODOT, RENDER_CHECK_TIMEOUT (seconds per file, default 900).
 # XDG_DATA_HOME of the caller is used only if it is an absolute path (Godot ignores a relative one and falls back to
@@ -24,7 +25,7 @@ TIMEOUT=${RENDER_CHECK_TIMEOUT:-900}
 case "$WHAT" in
 arcade | modern | all) ;;
 *)
-	sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'
+	sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//'
 	exit 2
 	;;
 esac
@@ -58,9 +59,10 @@ run_file() {
 	nice -n 10 timeout "$TIMEOUT" xvfb-run -a -s "-screen 0 1280x720x24" "$GODOT" --path . --rendering-driver opengl3 \
 		--audio-driver Dummy --resolution 1280x720 --fixed-fps 60 -s "res://$file" -- "$@" >"$LOG" 2>&1
 	local code=$?
-	grep -E "^(RENDER-CHECK|GLOW-CHECK|FLIP-CHECK)|SCRIPT ERROR|Parse Error" "$LOG"
+	grep -E "^(RENDER-CHECK|GLOW-CHECK|FLIP-CHECK)|SCRIPT ERROR|Parse Error|SHADER ERROR|Shader compilation failed" "$LOG"
 	local verdict="OK"
-	if [ $code -ne 0 ] || grep -qE "SCRIPT ERROR|Parse Error" "$LOG" || ! grep -qE "^(RENDER-CHECK|GLOW-CHECK|FLIP-CHECK)" "$LOG"; then
+	if [ $code -ne 0 ] || grep -qE "SCRIPT ERROR|Parse Error|SHADER ERROR|Shader compilation failed" "$LOG" \
+		|| ! grep -qE "^(RENDER-CHECK|GLOW-CHECK|FLIP-CHECK)" "$LOG"; then
 		verdict="FEHLER"
 		FAILED=$((FAILED + 1))
 		[ $code -eq 124 ] && echo "    Zeitlimit von $TIMEOUT s überschritten"

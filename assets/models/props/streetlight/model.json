@@ -24,15 +24,16 @@
   "lights": [
    {
     "role": "lights",
-    "pos": [-1.97, 9.24, 0],
+    "pos": [-2.1534, 9.2896, 0],
+    "dir": [-0.965, 0.261, 0],
     "size": 0.609,
     "color": "#fff0cf"
    }
   ],
-  "auto_lod": true,
+  "auto_lod": false,
   "tags": ["prop", "road", "mirror_left"],
-  "bytes": 5023,
-  "hash": "01142e68d1a27ee225bbcbd0f38667b187106495"
+  "bytes": 4395,
+  "hash": "09df148a53b11fa3a77e41fd95ee27952fa4a5cc"
  },
  "sets": {
   "props/streetlight": {"model": "props/streetlight"}

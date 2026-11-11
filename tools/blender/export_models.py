@@ -21,7 +21,13 @@ Step 4 - check and look:
   --list           print the model ids and exit
   --manifest-only  only step 3 (works with plain python3, no Blender needed)
   --defaults       rewrite assets/models/sets_default.json from the sprite manifest and the sprite catalog
-A model is exported again when its cache key changes: hash of builder code + parameters + exporter version.
+  --check-keys     self-test of the cache key: a changed paint, tag or view angle in the sprite catalog gives
+                   the models that read it a new key (prints "CHECK cache_keys OK|FEHLER"; needs Blender)
+A model is exported again when its cache key changes: hash of builder code + parameters + exporter version
+(ce3d.catalog3d.cache_key: code files, the catalog entry, the resolved sprite sets and colour tables it reads).
+The model folders of the cache hold only what depends on the model - two exports give byte-equal folders.
+Timings and counts of the last export of every model are in _cache3d/export_report.json (next to
+bake_report.json of the bake): compare two caches with  diff -r -x '*_report.json' <a> <b>.
 """
 import argparse
 import json
@@ -61,12 +67,13 @@ def ensure_cache():
             fh.write("")
 
 
-def worker(ids, force):
+def worker(ids, force, report_path=""):
     import bpy  # noqa: F401  (registers bmesh / mathutils for the generator modules)
 
     from ce3d import catalog3d
     from ce3d import manifest as MF
     failed = 0
+    report = {}
     for mid in ids:
         spec = catalog3d.MODELS[mid]
         out_dir = os.path.join(CACHE, mid)
@@ -82,8 +89,9 @@ def worker(ids, force):
         t0 = time.time()
         try:
             model = builder(spec["builder"])(mid, spec)
-            model.stats["export_s"] = round(time.time() - t0, 2)
             meta = model.write(out_dir, key)
+            model.stats["export_s"] = round(time.time() - t0, 2)
+            report[mid] = dict(model.stats, key=key)
         except Exception:
             import traceback
             traceback.print_exc()
@@ -93,7 +101,22 @@ def worker(ids, force):
         lods = ", ".join("%s %d" % (l["name"], l["tris"]) for l in meta["model"]["lods"])
         print("EXPORT %-28s %6.1f s  %s  glb %.0f kB" % (mid, time.time() - t0, lods, meta["glb_bytes"] / 1024.0),
               flush=True)
+    if report_path:
+        MF.write_json(report_path, report)
     sys.exit(1 if failed else 0)
+
+
+def check_keys():
+    import bpy  # noqa: F401
+
+    from ce3d import catalog3d
+    problems = catalog3d.check_keys()
+    for p in problems:
+        print("  " + p)
+    print("CHECK cache_keys %s  %d Modelle: ein geänderter Lack, Metallwert, Blickwinkel oder eine Markierung im "
+          "Sprite-Katalog ergibt für genau die betroffenen Modelle einen neuen Schlüssel" % (
+              "OK    " if not problems else "FEHLER", len(catalog3d.MODELS)))
+    sys.exit(1 if problems else 0)
 
 
 def main():
@@ -104,10 +127,15 @@ def main():
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--manifest-only", action="store_true")
     ap.add_argument("--defaults", action="store_true")
+    ap.add_argument("--check-keys", action="store_true")
     ap.add_argument("--worker", default="")
+    ap.add_argument("--report", default="")
     args = ap.parse_args()
     if args.worker:
-        worker([i for i in args.worker.split(",") if i], args.force)
+        worker([i for i in args.worker.split(",") if i], args.force, args.report)
+        return
+    if args.check_keys:
+        check_keys()
         return
     from ce3d import catalog3d
     from ce3d import manifest as MF
@@ -144,14 +172,27 @@ def main():
     env.setdefault("CE_THREADS", "2" if jobs > 1 else "3")
     t0 = time.time()
     procs = []
-    for ch in chunks:
-        cmd = ["nice", "-n", "10", sys.executable, os.path.abspath(__file__), "--worker", ",".join(ch)]
+    parts = []
+    for i, ch in enumerate(chunks):
+        part = os.path.join(CACHE, ".export_report_%d.json" % i)
+        if os.path.exists(part):
+            os.remove(part)
+        parts.append(part)
+        cmd = ["nice", "-n", "10", sys.executable, os.path.abspath(__file__), "--worker", ",".join(ch), "--report", part]
         if args.force:
             cmd.append("--force")
         procs.append(subprocess.Popen(cmd, env=env))
     code = 0
     for p in procs:
         code |= p.wait()
+    # timings and counts of this run (never part of the model folders): the exported models replace their entries
+    report_path = os.path.join(CACHE, "export_report.json")
+    report = MF.read_json(report_path) if os.path.exists(report_path) else {}
+    for part in parts:
+        if os.path.exists(part):
+            report.update(MF.read_json(part))
+            os.remove(part)
+    MF.write_json(report_path, {k: report[k] for k in sorted(report)})
     print("Export: %d Modelle in %.0f s%s" % (len(ids), time.time() - t0, " - mit FEHLERN" if code else ""))
     if not code:
         print("weiter mit: godot --headless --path . -s res://tools/models/bake_models.gd -- --only=%s" % args.only)

@@ -17,7 +17,15 @@ Checks assets/models/ against the rules of the model pipeline and fails (exit 1)
   vertices   (decoded from the baked files by tools/models/inspect_models.gd) paint codes or lamp channels
              off their values (+-0.02), lamp weights or material values outside 0..1, atlas coordinates of
              baked surfaces outside 0..1, uncompressed surfaces, materials inside a mesh, an automatic
-             (decimated) level in a patch-built body
+             (decimated) level in a patch-built body; more than a handful of triangles of a vpbr or baked
+             surface wound against their normals (inside out: they are culled and cast no shadow)
+  lamps      vehicles, every level of detail: a lamp the following driver reacts to shows too little area in
+             the direction he looks from (LAMP_MIN_CM2: tail, brake and each indicator from straight behind;
+             head and each indicator from straight ahead - projected area by the winding of the triangles);
+             a coarser level shows more than LAMP_GROW times the lamp of the finer one (the nearest level
+             must not have the smallest lamp); an automatic level that loses lamp area (LAMP_KEEP);
+             a light anchor more than ANCHOR_BELOW_MM under the lamp it belongs to, or with a "dir" that is
+             no unit vector or looks into the lamp
   sizes      "object" / "extent_m" more than 2 % (at least half a sprite pixel) off the sprite manifest;
              a wheel that does not touch the ground (+-1 cm); a merged far level that floats or sinks
 --report     one line per model: triangles, draw calls, bytes; export and bake times from the local cache
@@ -53,6 +61,34 @@ LEAVES_MAX = 1024
 TEX_VRAM_TOTAL = 240 * 1024 * 1024
 TEX_SOURCE_TOTAL = 60 * 1024 * 1024
 FALLBACKS = ("sprite", "box")
+# --- lamps (Rule 9: lights and indicators are what the player reacts to) ---
+# lamp channels of the vpbr format (ce3d/roles.py)
+CH_TAIL, CH_BRAKE, CH_TAIL_BRAKE, CH_IND_L, CH_IND_R, CH_HEAD = 0, 1, 2, 3, 4, 5
+# what a vehicle shows per level: (label, channels, end of the car, direction it is seen from)
+LAMP_VIEWS = (
+    ("Rücklicht von hinten", (CH_TAIL, CH_TAIL_BRAKE), "rear", "back"),
+    ("Bremslicht von hinten", (CH_BRAKE, CH_TAIL_BRAKE), "rear", "back"),
+    ("Blinker links von hinten", (CH_IND_L,), "rear", "back"),
+    ("Blinker rechts von hinten", (CH_IND_R,), "rear", "back"),
+    ("Scheinwerfer von vorn", (CH_HEAD,), "front", "front"),
+    ("Blinker links von vorn", (CH_IND_L,), "front", "front"),
+    ("Blinker rechts von vorn", (CH_IND_R,), "front", "front"),
+)
+# smallest projected area (cm2) per view, in the order of LAMP_VIEWS. Rear indicators: 60 cm2 is a lamp of
+# 12 x 5 cm - at 100 m about 1 x 0.4 px of the 1280-px picture, the flare layer takes over from there (F6).
+# The player's own car is never seen from ahead in a race (chase camera): its front indicators only have to exist.
+LAMP_MIN_CM2 = {
+    "car": (200.0, 100.0, 60.0, 60.0, 80.0, 40.0, 40.0),
+    "police": (200.0, 100.0, 60.0, 60.0, 80.0, 40.0, 40.0),
+    "heavy": (200.0, 100.0, 60.0, 60.0, 80.0, 40.0, 40.0),
+    "player": (200.0, 100.0, 60.0, 60.0, 80.0, 15.0, 15.0),
+}
+LAMP_GROW = 2.0                 # a coarser level may show at most this many times the lamp of the finer one ...
+LAMP_GROW_SLACK_CM2 = 5.0       # ... plus this
+LAMP_KEEP = 0.8                 # an automatic (decimated) level keeps at least this share of every lamp's area
+ANCHOR_BELOW_MM = 3.0           # a light anchor lies at most this far under its lamp
+WINDING_MAX = 8                 # triangles of a surface that may be wound against their normals ("a handful")
+WINDING_CLASSES = ("vpbr", "baked", "baked_cutout")
 
 
 class Result:
@@ -387,8 +423,92 @@ def check_decoded(res, man, report):
                 st["mesh_bytes"] += m.get("bytes", 0)
                 if any(not s.get("compressed") for s in m["surfaces"]) or m.get("has_materials"):
                     res.err(mid, "Schattenwerfer: unkomprimiert oder mit Material")
+                for s in m["surfaces"]:
+                    w = s.get("winding") or {}
+                    if w.get("against", 0) > WINDING_MAX:
+                        res.err(mid, "Schattenwerfer: %d von %d Dreiecken zeigen gegen ihre Normalen (sie werfen "
+                                     "keinen Schatten)" % (w["against"], w.get("total", 0)))
         check_textures(res, mid, model, cat, textures, st)
+        check_lamps(res, mid, model, cat, meshes)
+        check_anchors(res, mid, model, report.get("anchors", {}).get(mid, []))
     return stats, mesh_total, vram, src
+
+
+def lamp_view(meshes, lod, channels, end, direction):
+    """Projected area (cm2) of the given lamp channels at one end of the model, seen from `direction`
+    ("back" | "front"), summed over the meshes of a level."""
+    total = 0.0
+    for part in lod.get("parts", []):
+        m = meshes.get(part.get("mesh", ""))
+        if m is None or m.get("missing"):
+            continue
+        for s in m["surfaces"]:
+            for ch in channels:
+                e = s.get("lamps", {}).get("%d|%s" % (ch, end))
+                if e:
+                    total += e[direction] * 1.0e4
+    return total
+
+
+def check_lamps(res, mid, model, cat, meshes):
+    """Lamps of vehicles per level of detail, automatic levels of every model."""
+    for lod in model.get("lods", []):
+        for part in lod.get("parts", []):
+            m = meshes.get(part.get("mesh", ""))
+            if m is None or m.get("missing"):
+                continue
+            for s in m["surfaces"]:
+                base = {}
+                for key, e in s.get("lamps", {}).items():
+                    ch = key.split("|")[0]
+                    base[ch] = base.get(ch, 0.0) + e["area"]
+                for i, level in enumerate(s.get("lamp_lods", [])):
+                    for ch, area in sorted(base.items()):
+                        if area > 1.0e-4 and level.get(ch, 0.0) < LAMP_KEEP * area:
+                            res.err(mid, "%s: automatische Stufe %d behält von Lampenkanal %s nur %.0f von %.0f cm2 "
+                                         "(auto_lod abschalten)" % (part.get("mesh", "").split("/")[-1], i + 1, ch,
+                                                                    level.get(ch, 0.0) * 1.0e4, area * 1.0e4))
+    if model.get("kind") not in ("vehicle", "heavy"):
+        return
+    mins = LAMP_MIN_CM2.get(cat)
+    if mins is None:
+        res.err(mid, "keine Lampen-Mindestflächen für die Kategorie %r" % cat)
+        return
+    by_level = {}
+    for lod in model.get("lods", []):
+        by_level[lod.get("name")] = [lamp_view(meshes, lod, ch, end, d) for (_l, ch, end, d) in LAMP_VIEWS]
+    for ln, areas in by_level.items():
+        for (label, _ch, _end, _d), area, need in zip(LAMP_VIEWS, areas, mins):
+            if area < need:
+                res.err(mid, "%s: %s zeigt %.1f cm2, verlangt mindestens %.0f" % (ln, label, area, need))
+    order = [n for n in ("lod0", "lod1", "lod2") if n in by_level]
+    for fine, coarse in zip(order[:-1], order[1:]):
+        for (label, _ch, _end, _d), a, b in zip(LAMP_VIEWS, by_level[fine], by_level[coarse]):
+            if b > a * LAMP_GROW + LAMP_GROW_SLACK_CM2:
+                res.err(mid, "%s: %s zeigt %.1f cm2, die feinere Stufe %s nur %.1f (die nahe Stufe darf nicht die "
+                             "kleinste Lampe haben)" % (coarse, label, b, fine, a))
+
+
+def check_anchors(res, mid, model, anchors):
+    """Light anchors against the lamps of lod0 (inspect_models.gd: "anchors")."""
+    lights = model.get("lights", [])
+    for light in lights:
+        d = light.get("dir")
+        if d is None:
+            continue
+        if len(d) != 3 or abs(sum(float(v) ** 2 for v in d) ** 0.5 - 1.0) > 0.01:
+            res.err(mid, "Lichtanker %s: dir %r ist kein Einheitsvektor" % (light.get("role"), d))
+    if len(anchors) != len(lights):
+        res.err(mid, "%d Lichtanker im Manifest, %d im Bericht der dekodierten Netze" % (len(lights), len(anchors)))
+        return
+    for a in anchors:
+        if a.get("dist_mm", -1.0) < 0.0:
+            continue                    # no lamp triangles of this role in lod0 (baked models: lamps in the atlas)
+        if a.get("below_mm", 0.0) > ANCHOR_BELOW_MM:
+            res.err(mid, "Lichtanker %s bei %s liegt %.1f mm unter seiner Lampe (höchstens %.0f)"
+                    % (a.get("role"), a.get("pos"), a["below_mm"], ANCHOR_BELOW_MM))
+        if a.get("dir_dot", 2.0) < 0.0:
+            res.err(mid, "Lichtanker %s bei %s: dir zeigt in die Lampe hinein" % (a.get("role"), a.get("pos")))
 
 
 def check_mesh(res, mid, rel, m, model, part):
@@ -402,6 +522,10 @@ def check_mesh(res, mid, rel, m, model, part):
             res.err(mid, "%s: Fläche ist nicht komprimiert" % where)
         if not model.get("auto_lod") and part.get("node") == "body" and s.get("lods", 0) > 0:
             res.err(mid, "%s: automatische (dezimierte) Stufe in einem Modell ohne auto_lod" % where)
+        w = s.get("winding")
+        if w and cls in WINDING_CLASSES and w.get("against", 0) > WINDING_MAX:
+            res.err(mid, "%s: %d von %d Dreiecken zeigen gegen ihre Normalen (verkehrt herum gewickelt)"
+                    % (where, w["against"], w.get("total", 0)))
         if cls == "vpbr":
             if "alpha_values" not in s or "lamp_values" not in s or "uv_range" not in s:
                 res.err(mid, "%s: COLOR, UV oder UV2 fehlt" % where)
@@ -491,11 +615,12 @@ def cache_times():
     out = {}
     rep = os.path.join(cache, "bake_report.json")
     bake = M.read_json(rep) if os.path.exists(rep) else {}
+    rep = os.path.join(cache, "export_report.json")
+    export = M.read_json(rep) if os.path.exists(rep) else {}
     for mid in M.fragment_ids():
-        meta = os.path.join(cache, mid, "model_meta.json")
         e = {}
-        if os.path.exists(meta):
-            e["export_s"] = M.read_json(meta).get("stats", {}).get("export_s")
+        if mid in export:
+            e["export_s"] = export[mid].get("export_s")
         if mid in bake:
             e["bake_s"] = bake[mid].get("bake_s")
         out[mid] = e

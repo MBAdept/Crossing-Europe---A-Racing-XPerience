@@ -65,7 +65,7 @@ class ModelData:
         self.tags = []
         self.sets = {}
         self.extra = {}                     # further manifest keys (cards, variants ...)
-        self.stats = {}                     # report only (not in the manifest)
+        self.stats = {}                     # report only: timings and counts, written to export_report.json
 
     # --- measurements -------------------------------------------------------------------------------
 
@@ -130,7 +130,10 @@ class ModelData:
     # --- intermediates ---------------------------------------------------------------------------------
 
     def write(self, out_dir, key=""):
-        """Writes model.glb, the textures and model_meta.json; returns the meta dict."""
+        """Writes model.glb, the textures and model_meta.json; returns the meta dict.
+        Everything written here depends on the model alone: two exports of the same model give byte-equal
+        folders (a plain diff compares two caches). What changes from run to run - the timings in
+        self.stats - goes to <cache>/export_report.json (export_models.py), not into these files."""
         os.makedirs(out_dir, exist_ok=True)
         for f in os.listdir(out_dir):
             os.remove(os.path.join(out_dir, f))
@@ -161,7 +164,7 @@ class ModelData:
                 fh.write(self.texture_files[name])
         meta = {"version": MANIFEST_VERSION, "exporter": EXPORTER, "id": self.id, "key": key,
                 "model": self.entry(), "sets": self.sets, "meshes": {k: meshes[k] for k in sorted(meshes)},
-                "textures": sorted(self.texture_files), "glb_bytes": glb_bytes, "stats": self.stats}
+                "textures": sorted(self.texture_files), "glb_bytes": glb_bytes}
         MF.write_json(os.path.join(out_dir, "model_meta.json"), meta)
         return meta
 

@@ -426,7 +426,11 @@ def features_limousine(car, d, mats):
                  width=0.011),
             dict(kind="guide", path=[(0.56, 0.902), (0.82, 0.866)], width=0.008),
         ] + ([
-            # real-time model only: indicator strip at the outer end, reverse light at the inner end
+            # real-time model only: the indicator is a bar above and one below the brake segment (2 mm clear of
+            # it - two patches over each other fight for the depth buffer), together about 80 cm2 seen from
+            # straight behind; a strip at the outer end shows it to the side; reverse light at the inner end
+            dict(kind="indicator", path=[(0.625, 0.938), (0.855, 0.938)], width=0.016, smooth=False, offset=0.0058),
+            dict(kind="indicator", path=[(0.625, 0.886), (0.855, 0.886)], width=0.016, smooth=False, offset=0.0058),
             dict(kind="indicator", path=[(0.884, 0.952), (0.888, 0.884)], width=0.013, smooth=False, offset=0.0062),
             dict(kind="reverse", outline=C.rounded_rect(0.585, 0.935, 0.07, 0.026, 0.009, 3), offset=0.0062),
         ] if car.detail["extras"] else [])), tag="tail")

@@ -12,7 +12,10 @@ floating above the paint, nothing to z-fight:
   * coarse levels (cut=False) only paint whole triangles by their centre
 
 Stacking order of materials.surface: paint, cladding below a height, window seals, glass, then the decals
-grouped per material in the order of first appearance.
+grouped per material in the order of first appearance. The order holds ACROSS the projections: every item
+carries the rank of its material group, every triangle the rank of what it shows, and an item only replaces
+what ranks at most as high. (The projections are applied one after the other - without the ranks the side
+part of a tail lamp, applied last, painted over an indicator the rear projection had put on the corner.)
 """
 import math
 
@@ -23,6 +26,8 @@ from mathutils import geometry as mgeo
 from cesprites import materials as M
 
 AXES = {"rear": np.array([0.0, -1.0, 0.0]), "front": np.array([0.0, 1.0, 0.0]), "top": np.array([0.0, 0.0, 1.0])}
+# ranks of the stacking order: paint / cladding, window seals, glass, then the decal groups 0, 1, 2 ...
+BASE_RANK, SEAL_RANK, GLASS_RANK = -3, -2, -1
 END_DEPTH_M = 0.9          # rear / front decals reach this far into the body from its end
 UV_AXES = {"rear": (0, 2), "front": (0, 2), "side": (1, 2), "top": (0, 1)}
 
@@ -86,6 +91,8 @@ class Tris:
         self.pos = np.asarray(pos, dtype=np.float64).reshape(-1, 3, 3)
         self.nor = np.asarray(nor, dtype=np.float64).reshape(-1, 3, 3)
         self.mat = np.zeros(self.pos.shape[0], dtype=np.int32) if mat is None else np.asarray(mat, dtype=np.int32)
+        # rank of what each triangle shows in the stacking order (BASE_RANK = paint, cladding)
+        self.rank = np.full(self.pos.shape[0], BASE_RANK, dtype=np.int32)
 
     def face_normals(self):
         n = np.cross(self.pos[:, 1] - self.pos[:, 0], self.pos[:, 2] - self.pos[:, 0])
@@ -98,7 +105,7 @@ class Tris:
         if not cross.any():
             return
         keep = ~cross
-        new_p, new_n, new_m = [self.pos[keep]], [self.nor[keep]], [self.mat[keep]]
+        new_p, new_n, new_m, new_r = [self.pos[keep]], [self.nor[keep]], [self.mat[keep]], [self.rank[keep]]
         for t in np.nonzero(cross)[0]:
             p, nn, dd = self.pos[t], self.nor[t], d[t]
             lo, hi = [], []
@@ -115,17 +122,20 @@ class Tris:
                     new_p.append(np.array([[poly[0][0], poly[i][0], poly[i + 1][0]]]))
                     new_n.append(np.array([[poly[0][1], poly[i][1], poly[i + 1][1]]]))
                     new_m.append(np.array([self.mat[t]], dtype=np.int32))
+                    new_r.append(np.array([self.rank[t]], dtype=np.int32))
         self.pos = np.concatenate(new_p)
         self.nor = np.concatenate(new_n)
         self.mat = np.concatenate(new_m)
+        self.rank = np.concatenate(new_r)
 
     def paint_below(self, z, mat):
         self.split_z(z)
         self.mat[self.pos[:, :, 2].mean(axis=1) < z] = mat
 
     def apply(self, proj, sign, items, cut=True):
-        """Applies the decals of one projection: items = [dict(poly, mat, n_min, y_range, nx_max)] bottom
-        to top. cut=True cuts the body along the outlines; cut=False paints whole triangles."""
+        """Applies the decals of one projection: items = [dict(poly, mat, rank, n_min, y_range, nx_max)]
+        bottom to top (ranks ascending). cut=True cuts the body along the outlines; cut=False paints whole
+        triangles. An item never replaces what ranks higher (applied by an earlier projection)."""
         if not items:
             return 0
         axis = np.array([float(sign), 0.0, 0.0]) if proj == "side" else AXES[proj]
@@ -168,8 +178,9 @@ class Tris:
             for t in ids:
                 c = self.pos[t].mean(axis=0)
                 k = top_item(t, c[ua], c[va], c[1])
-                if k >= 0:
+                if k >= 0 and items[k]["rank"] >= self.rank[t]:
                     self.mat[t] = items[k]["mat"]
+                    self.rank[t] = items[k]["rank"]
                     n += 1
             return n
         # --- constrained triangulation of the candidate triangles together with the outlines
@@ -202,7 +213,7 @@ class Tris:
             faces.append([vid(p[0], p[1]) for p in poly])
         out = mgeo.delaunay_2d_cdt(verts, [], faces, 1, 1e-7, True)
         vco, ofaces, orig = out[0], out[2], out[5]
-        new_p, new_n, new_m = [], [], []
+        new_p, new_n, new_m, new_r = [], [], [], []
         replaced = set()
         # barycentric frames of the body triangles in the projection plane
         for fi, src in zip(ofaces, orig):
@@ -238,9 +249,12 @@ class Tris:
                     p3, n3 = p3[::-1], n3[::-1]
                 # only the surface nearest to the viewer takes the decal; what lies behind keeps its own
                 k = top_item(t, c2[0], c2[1], float(p3[:, 1].mean())) if t == best_t else -1
+                if k >= 0 and items[k]["rank"] < self.rank[t]:
+                    k = -1                  # what is there ranks higher in the stacking order
                 new_p.append(p3)
                 new_n.append(n3)
                 new_m.append(items[k]["mat"] if k >= 0 else self.mat[t])
+                new_r.append(items[k]["rank"] if k >= 0 else self.rank[t])
                 replaced.add(t)
         if not replaced:
             return 0
@@ -249,6 +263,7 @@ class Tris:
         self.pos = np.concatenate([self.pos[keep], np.array(new_p)])
         self.nor = np.concatenate([self.nor[keep], np.array(new_n)])
         self.mat = np.concatenate([self.mat[keep], np.array(new_m, dtype=np.int32)])
+        self.rank = np.concatenate([self.rank[keep], np.array(new_r, dtype=np.int32)])
         return len(new_p)
 
 
@@ -278,7 +293,7 @@ class Palette:
 
 def _decal_items(decals, pal, proj_filter=None):
     """{(proj, sign): [item]} of a decal list in the stacking order of materials.surface (grouped per
-    material preset, groups in the order of first appearance)."""
+    material preset, groups in the order of first appearance; item["rank"] = index of the group)."""
     order = {}
     rows = []
     for d in decals:
@@ -288,7 +303,7 @@ def _decal_items(decals, pal, proj_filter=None):
         rows.append((order[key], len(rows), d))
     rows.sort(key=lambda r: (r[0], r[1]))
     groups = {}
-    for (_g, _i, d) in rows:
+    for (rank, _i, d) in rows:
         face = d.get("face", "rear")
         proj = face if face in ("rear", "front", "side", "top") else "rear"
         if proj_filter is not None and not proj_filter(proj):
@@ -303,14 +318,14 @@ def _decal_items(decals, pal, proj_filter=None):
             if proj == "side":
                 only = d.get("only")
                 if only != "left":
-                    groups.setdefault(("side", 1), []).append(dict(poly=poly, mat=mat, n_min=thr))
+                    groups.setdefault(("side", 1), []).append(dict(poly=poly, mat=mat, n_min=thr, rank=rank))
                 if only != "right":
-                    groups.setdefault(("side", -1), []).append(dict(poly=poly, mat=mat, n_min=thr))
+                    groups.setdefault(("side", -1), []).append(dict(poly=poly, mat=mat, n_min=thr, rank=rank))
             else:
-                groups.setdefault((proj, 1), []).append(dict(poly=poly, mat=mat, n_min=thr))
+                groups.setdefault((proj, 1), []).append(dict(poly=poly, mat=mat, n_min=thr, rank=rank))
                 if d.get("sym", True):
                     groups.setdefault((proj, 1), []).append(dict(poly=[(-p[0], p[1]) for p in poly], mat=mat,
-                                                                 n_min=thr))
+                                                                 n_min=thr, rank=rank))
     return groups
 
 
@@ -324,12 +339,12 @@ def _window_items(w, pal, seal, glass, seals=True):
         for poly in w.get("side_frames", w.get("side", [])):
             for sgn in (1, -1):
                 groups.setdefault(("side", sgn), []).append(dict(poly=[tuple(p) for p in poly], mat=seal,
-                                                                 n_min=nx_side))
+                                                                 n_min=nx_side, rank=SEAL_RANK))
     for poly in w.get("side", []):
         for sgn in (1, -1):
             groups.setdefault(("side", sgn), []).append(dict(
                 poly=inset([tuple(p) for p in poly], fr) if seals else [tuple(p) for p in poly], mat=glass,
-                n_min=nx_side))
+                n_min=nx_side, rank=GLASS_RANK))
     for key in ("front", "rear"):
         sp = w.get(key)
         if not sp:
@@ -345,11 +360,13 @@ def _window_items(w, pal, seal, glass, seals=True):
         inner = [(hw(z, fr), z) for z in zs2] + [(-hw(z, fr), z) for z in reversed(zs2)]
         g = groups.setdefault((key, 1), [])
         if seals:
-            g.append(dict(poly=outer, mat=seal, n_min=0.05, y_range=(sp["y"][0], sp["y"][1]), nx_max=nx_side))
+            g.append(dict(poly=outer, mat=seal, n_min=0.05, y_range=(sp["y"][0], sp["y"][1]), nx_max=nx_side,
+                          rank=SEAL_RANK))
             g.append(dict(poly=inner, mat=glass, n_min=0.05, y_range=(sp["y"][0] + fr, sp["y"][1] - fr),
-                          nx_max=nx_side))
+                          nx_max=nx_side, rank=GLASS_RANK))
         else:
-            g.append(dict(poly=outer, mat=glass, n_min=0.05, y_range=(sp["y"][0], sp["y"][1]), nx_max=nx_side))
+            g.append(dict(poly=outer, mat=glass, n_min=0.05, y_range=(sp["y"][0], sp["y"][1]), nx_max=nx_side,
+                          rank=GLASS_RANK))
     return groups
 
 

@@ -12,7 +12,8 @@ the sprite renders):
 An untagged object or material is an error: nothing is guessed from names.
 
 Vertex format "VPBR-L" of the class vpbr (contract 4.6.4):
-  COLOR.rgb  albedo as sRGB bytes; for lamp channels 0-13 the LIT colour
+  COLOR.rgb  albedo as sRGB bytes; for the lamp channels the LIT colour - except the lit SURFACES plate (8)
+             and flood (14), which keep their own albedo and roughness and get their light added
   COLOR.a    paint code: 255 fixed colour, 0 paint, 64 paint2, 128 paint3
   UV         (roughness, metallic)
   UV2        (lamp channel + 0.5, weight 0..1) or (-1, 0)
@@ -27,6 +28,8 @@ from . import core
 CHANNELS = {"tail": 0, "brake": 1, "tail_brake": 2, "ind_l": 3, "ind_r": 4, "head": 5, "drl": 6, "reverse": 7,
             "plate": 8, "marker": 9, "beacon_a": 10, "beacon_b": 11, "lights": 12, "on": 13, "flood": 14}
 CHANNEL_NAMES = {v: k for k, v in CHANNELS.items()}
+# lit surfaces, not lamps: the vertex colour is their own albedo (a number plate drawn as an unlit lamp was grey)
+SURFACE_CHANNELS = ("plate", "flood")
 PAINT_CODES = {"fixed": 255, "paint": 0, "paint2": 64, "paint3": 128}
 NO_LAMP = (-1.0, 0.0)
 # lit colours of lamps whose sprite material has no emission (indicators, headlights ... are not part of
@@ -117,7 +120,7 @@ class Translator:
         self.glass_class = glass_class
         self.default_paint = default_paint or {}
         self.bake_names = set(bake_names or [])
-        self.anchors = []          # (role, positions (N, 3) Blender space, areas (N), lit colour)
+        self.anchors = []          # (role, corners (N, 3, 3) | centres (N, 3) Blender space, areas (N), lit colour)
         self.stats = {}
 
     def describe(self, mat):
@@ -211,30 +214,48 @@ class Translator:
         if lit is None:
             lit = core.hex_to_lin(LIT.get(name, "#ffffff"))
         col = np.empty(4, dtype=np.uint8)
-        col[:3] = core.srgb8(base if name == "flood" else lit)
+        col[:3] = core.srgb8(base if name in SURFACE_CHANNELS else lit)
         col[3] = PAINT_CODES["fixed"]
         w = float(min(1.0, max(0.0, w)))
         mb.add("vpbr", pos, nor, col, (rough, metal), (ch + 0.5, w))
         if name in ANCHOR_ROLES and w >= 0.25:
-            self.anchors.append((name, pos.mean(axis=1), core.tri_areas(pos), np.asarray(lit, dtype=np.float64)))
+            self.anchors.append((name, np.asarray(pos, dtype=np.float64), core.tri_areas(pos),
+                                 np.asarray(lit, dtype=np.float64)))
 
     # --- lamp anchors ---------------------------------------------------------------------------------
 
     def lights(self, min_area=2e-4, merge_m=0.35, origin=None, split_x=0.3):
-        """Manifest "lights": one anchor per lamp cluster [{role, pos (model space), size, color}].
-        Triangles of one role are clustered by distance (merge_m); pos = area-weighted centre,
-        size = diameter of the circle with the cluster's area. A cluster that reaches over both sides of
-        the vehicle (|x| > split_x) is split into a left and a right anchor; split_x = 0 keeps it whole."""
+        """Manifest "lights": one anchor per lamp cluster [{role, pos (model space), dir, size, color}].
+        Triangles of one role are clustered by distance (merge_m); size = diameter of the circle with the
+        cluster's area. A cluster that reaches over both sides of the vehicle (|x| > split_x) is split into
+        a left and a right anchor; split_x = 0 keeps it whole.
+        pos lies ON the lamp: the area-weighted centre of a curved cluster lies under its surface (28 mm for
+        the tail lamp that wraps around a corner) - a depth-tested flare put there would sit inside the body.
+        So the centre is moved along the cluster's mean normal onto the plane of the lamp triangle that this
+        line passes closest to. dir = that mean outward normal (unit vector, model space): where the lamp
+        looks - a flare is pushed that way (or towards the camera), a lamp facing away needs none.
+        Anchors given as bare centres (lamps of baked models: tr.anchors.append((role, centres, areas, lit)))
+        keep the centre and get no dir."""
         out = []
         by_role = {}
-        for (name, cen, area, lit) in self.anchors:
+        for (name, geo, area, lit) in self.anchors:
+            geo = np.asarray(geo, dtype=np.float64)
+            tri = geo if geo.ndim == 3 else None
+            cen = geo.mean(axis=1) if tri is not None else geo
+            if tri is not None:
+                nrm = np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0])
+                nrm = nrm / np.maximum(np.linalg.norm(nrm, axis=1, keepdims=True), 1e-12)
+            else:
+                nrm = np.zeros_like(cen)
             for role in ANCHOR_ROLES[name]:
-                e = by_role.setdefault(role, [[], [], lit])
+                e = by_role.setdefault(role, [[], [], lit, []])
                 e[0].append(cen)
                 e[1].append(area)
+                e[3].append(nrm)
         for role in sorted(by_role):
             cen = np.concatenate(by_role[role][0])
             area = np.concatenate(by_role[role][1])
+            nrm = np.concatenate(by_role[role][3])
             lit = by_role[role][2]
             groups = []
             for idx in _clusters(cen, merge_m):
@@ -252,10 +273,38 @@ class Translator:
                 if a < min_area:
                     continue
                 p = (cen[idx] * area[idx][:, None]).sum(axis=0) / a
+                direction = None
+                n = (nrm[idx] * area[idx][:, None]).sum(axis=0)
+                ln = float(np.linalg.norm(n))
+                if ln < 0.25 * a and abs(float(p[0])) > 1e-6:
+                    # a closed lamp body (the indicator strip of a mirror): its normals cancel out - take the
+                    # half that looks away from the middle of the vehicle
+                    out_side = nrm[idx][:, 0] * np.sign(p[0]) > 0.0
+                    if out_side.any():
+                        n = (nrm[idx][out_side] * area[idx][out_side][:, None]).sum(axis=0)
+                        ln = float(np.linalg.norm(n))
+                if ln > 1e-9:
+                    n = n / ln
+                    # the lamp triangle whose centre lies closest to the line p + t n, among those that face along n
+                    rel = cen[idx] - p
+                    along = rel @ n
+                    off = np.linalg.norm(rel - along[:, None] * n, axis=1)
+                    facing = (nrm[idx] @ n) > 0.3
+                    if facing.any():
+                        off = np.where(facing, off, np.inf)
+                    j = int(np.argmin(off))
+                    denom = float(nrm[idx][j] @ n)
+                    if abs(denom) > 0.3:
+                        p = p + n * (float(rel[j] @ nrm[idx][j]) / denom)
+                    direction = [round(v, 3) + 0.0 for v in core.model_point(n)]
                 if origin is not None:
                     p = p - np.asarray(origin)
-                out.append({"role": role, "pos": core.model_point(p), "size": round(2.0 * (a / np.pi) ** 0.5, 3),
-                            "color": core.lin_to_hex(lit)})
+                entry = {"role": role, "pos": core.model_point(p)}
+                if direction is not None:
+                    entry["dir"] = direction
+                entry["size"] = round(2.0 * (a / np.pi) ** 0.5, 3)
+                entry["color"] = core.lin_to_hex(lit)
+                out.append(entry)
         out.sort(key=lambda e: (e["role"], e["pos"][0], e["pos"][1], e["pos"][2]))
         return out
 
