@@ -1,26 +1,51 @@
 extends SceneTree
-## Review scene of the prop models (docs/modelle.md section 14): the models of the manifest beside a road, seen
-## through the GAME camera (contract D12: 3.4 m high, no pitch, focal length 711 px at 720 px, horizon at 45 %),
+## Review scene of the prop models (docs/modelle.md sections 14 and 15): the models of the manifest beside a road,
+## seen through the GAME camera (contract D12: 3.4 m high, no pitch, focal length 711 px at 720 px, horizon at 45 %),
 ## with the level of detail the props builder picks by distance (lod0 to 60 m, lod1 to 200 m, then the impostor
 ## or the last level). Needs OpenGL - run it through tools/models/prop_scene.sh (Xvfb):
 ##   godot --path . --rendering-driver opengl3 --audio-driver Dummy -s res://tools/models/prop_scene.gd --
 ##       --out=<abs.png> --models=<id>,<id>... [--dist=15,40,100,250] [--x=9] [--night] [--zoom=2]
-##       [--mode=dist|road|lods] [--tile=360x300] [--sun=x,y,z]
+##       [--mode=dist|road|lods|clip] [--tile=360x300] [--sun=x,y,z]
+##       [--look=race [--hour=12] [--weather=normal] [--preset=medium] [--vis=<m>]] [--sprite] [--d0=60 --d1=200]
 ## --mode=dist  one row per model, one tile per distance: a crop of the 1280x720 game picture around the model,
 ##              magnified by --zoom with whole pixels (what the player sees, pixel for pixel)
 ## --mode=lods  one row per model: lod0 / lod1 / impostor side by side at the switch distances (60 m and 200 m)
 ##              in the same crop - colour or size jumps between the levels show here; the mean colour of each
-##              tile is printed ("STUFEN <model> …")
+##              tile is printed ("STUFEN <model> …") and the swaps are measured ("UMSCHALT <model> …": share of
+##              the model's pixels that change at the swap, change of brightness (luma of the mean colour, %) and
+##              of hue (degrees))
 ## --mode=road  the whole game picture: the models in rows along both roadsides every --every m (yaw and scale
 ##              varied like the props builder does for vegetation)
+## --mode=clip  the camera drives along such a row at --kmh (120) for --secs (2) seconds, 60 frames per second:
+##              every frame is written as <out without .png>_NNN.png (wind and levels of detail move with the
+##              clock; the level of every model is chosen by its distance with the hysteresis of the props
+##              builder) - for judging shimmer of the alpha-tested leaves and pops at the swaps frame by frame
 ## Variants (model ids without a set of their own) are reachable: the scene loads the manifest with a set for
 ## every model id.
+## --look=race  (AS3) the light of a race instead of the small review rig: the EnvironmentRig of the renderer
+##              (scripts/race3d/environment_rig.gd) driven by the palette of --hour / --weather (Palette.compute),
+##              the quality levels of --preset (shadows, glow, MSAA, prop LOD distances), the sight of the race
+##              (render.draw_distance_m x the visibility factor of the hour and the weather; --vis overrides it),
+##              the look the vehicle layer puts on the vpbr material (trunks are vpbr) and the palette's sky
+##              behind the picture. Default: the review rig of wave 2 (unchanged).
+## --sprite     (AS3) the Arcade sprite of the model's set as a stand-in billboard (as the props builder draws
+##              sets without a model) in the same light and fog: one more row per model in --mode=dist, one more
+##              column (at the second switch distance) in --mode=lods
+## --d0 / --d1  switch distances lod0 -> lod1 -> impostor (default 60 / 200 m, with --look=race those of --preset)
 
 const FOCAL_PX := 711.0
 const GAME := Vector2i(1280, 720)
 const CAM_H := 3.4
 const LOD0_M := 60.0
 const LOD1_M := 200.0
+const RIG_SCRIPT := "res://scripts/race3d/environment_rig.gd"
+const QUALITY_SCRIPT := "res://scripts/race3d/quality.gd"
+const VEHICLES_LAYER := "res://scripts/race3d/layers/vehicles.gd"
+const SPRITE_MANIFEST := "res://assets/sprites/manifest.json"
+const SPRITE_ROOT := "res://assets/sprites/"
+const BACKDROP_LAYER := -10
+const LOD_HYSTERESIS_M := 6.0          ## props builder: a level is left this much later than it is entered
+const SWAP_DIFF := 0.06                ## a pixel counts as changed at a swap when r + g + b differ by more than this
 
 var _args: Dictionary = {}
 var _mats: ModernMaterials
@@ -32,6 +57,13 @@ var _holder: Node3D
 var _label_sv: SubViewport
 var _label: Label
 var _sky_mat: ProceduralSkyMaterial
+var _rig: Node3D                       ## --look=race: the renderer's EnvironmentRig (null: the review rig)
+var _quality: RefCounted
+var _pal: Dictionary = {}
+var _vis := 900.0
+var _lod0_m := LOD0_M
+var _lod1_m := LOD1_M
+var _sprites: Dictionary = {}
 
 
 func _initialize() -> void:
@@ -56,6 +88,11 @@ func _run() -> void:
 	_build_rig()
 	var models: Array = str(_args["models"]).split(",", false)
 	var mode := str(_args.get("mode", "dist"))
+	if mode == "clip":
+		var n: int = await _clip(models, out)
+		print("prop_scene: clip -> %s_NNN.png (%d Bilder)" % [out.get_basename(), n])
+		quit(0 if n > 0 else 1)
+		return
 	var img: Image
 	if mode == "road":
 		img = await _road(models)
@@ -89,6 +126,60 @@ func _build_rig() -> void:
 	_sv.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	_sv.msaa_3d = Viewport.MSAA_2X
 	root.add_child(_sv)
+	if str(_args.get("look", "")) == "race":
+		_build_race_light()
+	else:
+		_build_review_light(night)
+	if _args.has("d0"):
+		_lod0_m = float(str(_args["d0"]))
+	if _args.has("d1"):
+		_lod1_m = maxf(_lod0_m, float(str(_args["d1"])))
+	# ground: grass, a two-lane road along -Z under the camera
+	var ground := MeshInstance3D.new()
+	var pm := PlaneMesh.new()
+	pm.size = Vector2(4000.0, 4000.0)
+	ground.mesh = pm
+	var gm := StandardMaterial3D.new()
+	gm.albedo_color = Color(0.2, 0.31, 0.12)
+	gm.roughness = 0.95
+	ground.material_override = gm
+	_sv.add_child(ground)
+	var road := MeshInstance3D.new()
+	var rm := PlaneMesh.new()
+	rm.size = Vector2(9.0, 4000.0)
+	road.mesh = rm
+	road.position = Vector3(0.0, 0.01, -1990.0)
+	var am := StandardMaterial3D.new()
+	am.albedo_color = Color(0.17, 0.17, 0.18)
+	am.roughness = 0.9
+	road.material_override = am
+	_sv.add_child(road)
+	_cam = Camera3D.new()
+	_cam.projection = Camera3D.PROJECTION_FRUSTUM
+	_cam.keep_aspect = Camera3D.KEEP_HEIGHT
+	_cam.near = 1.0
+	_cam.far = 2600.0
+	_cam.size = 1.0 * float(GAME.y) / FOCAL_PX
+	_cam.frustum_offset = Vector2(0.0, -0.05 * _cam.size)
+	_cam.position = Vector3(0.0, CAM_H, 0.0)
+	_sv.add_child(_cam)
+	_holder = Node3D.new()
+	_sv.add_child(_holder)
+	_label_sv = SubViewport.new()
+	_label_sv.size = GAME
+	_label_sv.transparent_bg = true
+	_label_sv.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	root.add_child(_label_sv)
+	_label = Label.new()
+	_label.add_theme_font_size_override("font_size", 14)
+	_label.add_theme_color_override("font_color", Color(1, 1, 1))
+	_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+	_label.add_theme_constant_override("outline_size", 4)
+	_label_sv.add_child(_label)
+
+
+## The small review rig of wave 2: procedural sky, a fixed sun and ambient light, depth fog 405 .. 900 m.
+func _build_review_light(night: bool) -> void:
 	_env = Environment.new()
 	var sky := Sky.new()
 	_sky_mat = ProceduralSkyMaterial.new()
@@ -150,48 +241,79 @@ func _build_rig() -> void:
 	ModernMaterials.set_global("ce_sun_dir", to_sun)
 	ModernMaterials.set_global("ce_time", float(str(_args.get("time", "1.7"))))
 	ModernMaterials.set_global("ce_wind", Vector4(1.0, 0.0, 0.3, 0.0))
-	# ground: grass, a two-lane road along -Z under the camera
-	var ground := MeshInstance3D.new()
-	var pm := PlaneMesh.new()
-	pm.size = Vector2(4000.0, 4000.0)
-	ground.mesh = pm
-	var gm := StandardMaterial3D.new()
-	gm.albedo_color = Color(0.2, 0.31, 0.12)
-	gm.roughness = 0.95
-	ground.material_override = gm
-	_sv.add_child(ground)
-	var road := MeshInstance3D.new()
-	var rm := PlaneMesh.new()
-	rm.size = Vector2(9.0, 4000.0)
-	road.mesh = rm
-	road.position = Vector3(0.0, 0.01, -1990.0)
-	var am := StandardMaterial3D.new()
-	am.albedo_color = Color(0.17, 0.17, 0.18)
-	am.roughness = 0.9
-	road.material_override = am
-	_sv.add_child(road)
-	_cam = Camera3D.new()
-	_cam.projection = Camera3D.PROJECTION_FRUSTUM
-	_cam.keep_aspect = Camera3D.KEEP_HEIGHT
-	_cam.near = 1.0
-	_cam.far = 2600.0
-	_cam.size = 1.0 * float(GAME.y) / FOCAL_PX
-	_cam.frustum_offset = Vector2(0.0, -0.05 * _cam.size)
-	_cam.position = Vector3(0.0, CAM_H, 0.0)
-	_sv.add_child(_cam)
-	_holder = Node3D.new()
-	_sv.add_child(_holder)
-	_label_sv = SubViewport.new()
-	_label_sv.size = GAME
-	_label_sv.transparent_bg = true
-	_label_sv.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	root.add_child(_label_sv)
-	_label = Label.new()
-	_label.add_theme_font_size_override("font_size", 14)
-	_label.add_theme_color_override("font_color", Color(1, 1, 1))
-	_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-	_label.add_theme_constant_override("outline_size", 4)
-	_label_sv.add_child(_label)
+
+
+## --look=race: the light, fog, shadows and globals of a race at --hour / --weather with the levels of --preset.
+func _build_race_light() -> void:
+	var cfg: Dictionary = ConfigLoader.load_merged()
+	var hour := float(str(_args.get("hour", "12")))
+	var weather := str(_args.get("weather", "normal"))
+	_pal = Palette.compute(hour, weather, ConfigLoader.lookup(cfg, "daytime", {}), false)
+	var em := EnvironmentModel.new()
+	em.setup(cfg)
+	_vis = float(ConfigLoader.lookup(cfg, "render.draw_distance_m", 900.0)) * em.visibility_factor(hour, weather, false)
+	if _args.has("vis"):
+		_vis = float(str(_args["vis"]))
+	var gfx_cfg: Dictionary = ConfigLoader.lookup(cfg, "graphics", {})
+	var presets: Dictionary = gfx_cfg.get("presets", {})
+	var levels := Gfx.levels(Gfx.preset_values(str(_args.get("preset", "medium")), presets), gfx_cfg)
+	_lod0_m = float(levels.get("prop_lod0_m", LOD0_M))
+	_lod1_m = maxf(_lod0_m, float(levels.get("prop_lod1_m", LOD1_M)))
+	_quality = (load(QUALITY_SCRIPT) as GDScript).new()
+	_quality.call("apply", _sv, levels)
+	_rig = (load(RIG_SCRIPT) as GDScript).new()
+	_sv.add_child(_rig)
+	_rig.call("setup", null)
+	_rig.call("apply_quality", levels)
+	# the look the vehicle layer puts on the shared class materials (tree trunks are vpbr): the class material
+	# must exist before it is tuned - a material created afterwards would miss the look
+	var look: Variant = (load(VEHICLES_LAYER) as GDScript).get_script_constant_map().get("LOOK", [])
+	if look is Array:
+		for l: Variant in look:
+			var e: Array = l
+			_mats.material(str(e[0]))
+			_mats.set_class_parameter(str(e[0]), str(e[1]), e[2])
+	# ... and the environment it mirrors (layers/vehicles.gd _set_environment)
+	var top: Color = _pal.get("sky_top", Color(0.11, 0.36, 0.79))
+	var bottom: Color = _pal.get("sky_bottom", Color(0.73, 0.87, 0.96))
+	var amb: Color = _pal.get("ambient", Color.WHITE)
+	var horizon := bottom.lerp(_pal.get("fog", bottom), 0.35)
+	for cls: String in ["vpbr", "glass"]:
+		_mats.material(cls)
+		_mats.set_class_parameter(cls, "env_zenith", top)
+		_mats.set_class_parameter(cls, "env_horizon", horizon)
+		_mats.set_class_parameter(cls, "env_ground", Color(0.30 * amb.r, 0.31 * amb.g, 0.32 * amb.b))
+		_mats.set_class_parameter(cls, "env_tunnel", Palette.TUNNEL_AMBIENT * 0.45)
+	_race_update(float(str(_args.get("time", "1.7"))))
+	# the palette's sky behind the 3D picture (BG_CANVAS: canvas layers up to -10 are the background)
+	var layer := CanvasLayer.new()
+	layer.layer = BACKDROP_LAYER
+	_sv.add_child(layer)
+	var sky := ColorRect.new()
+	sky.size = Vector2(GAME)
+	var sh := Shader.new()
+	sh.code = "shader_type canvas_item;\nuniform vec4 top : source_color;\nuniform vec4 mid : source_color;\n" \
+		+ "uniform vec4 bottom : source_color;\nuniform vec4 fog : source_color;\nuniform float horizon = 0.45;\n" \
+		+ "void fragment() {\n\tfloat y = UV.y / horizon;\n\tvec3 c = y < 0.6 ? mix(top.rgb, mid.rgb, y / 0.6) : " \
+		+ "mix(mid.rgb, bottom.rgb, clamp((y - 0.6) / 0.4, 0.0, 1.0));\n\tCOLOR = vec4(y > 1.0 ? fog.rgb : c, 1.0);\n}\n"
+	var smat := ShaderMaterial.new()
+	smat.shader = sh
+	smat.set_shader_parameter("top", top)
+	smat.set_shader_parameter("mid", _pal.get("sky_mid", top.lerp(bottom, 0.5)))
+	smat.set_shader_parameter("bottom", bottom)
+	smat.set_shader_parameter("fog", _pal.get("fog", bottom))
+	sky.material = smat
+	layer.add_child(sky)
+	print("prop_scene: Renn-Licht %s Uhr, %s, Voreinstellung %s, Sicht %.0f m, Stufen %.0f / %.0f m" % [
+		str(_args.get("hour", "12")), weather, str(_args.get("preset", "medium")), _vis, _lod0_m, _lod1_m])
+
+
+## The rig of the race follows the clock (wind, ce_time); the camera stands at road z 0 on a straight road.
+func _race_update(t: float) -> void:
+	if _rig == null:
+		ModernMaterials.set_global("ce_time", t)
+		return
+	_rig.call("update", {"palette": _pal, "camera_z": 0.0, "visibility_m": _vis, "time": t, "bg_offset": 0.0}, 0.0)
 
 
 # --- placing ------------------------------------------------------------------------------------------------------
@@ -203,9 +325,9 @@ func _level_for(mid: String, dist: float) -> String:
 		var n := str((l as Dictionary).get("name", ""))
 		if n != "show":
 			names.append(n)
-	if dist <= LOD0_M:
+	if dist <= _lod0_m:
 		return names[0]
-	if dist <= LOD1_M:
+	if dist <= _lod1_m:
 		return names[mini(1, names.size() - 1)]
 	return "impostor" if m.has("impostor") else names[mini(2, names.size() - 1)]
 
@@ -214,6 +336,8 @@ func _place(mid: String, lod: String, pos: Vector3, yaw: float = 0.0, scale: flo
 	var node: Node3D
 	if lod == "impostor":
 		node = ModelFactory.build_impostor(mid, _mats)
+	elif lod == "sprite":
+		node = _sprite_node(_set_of_model(mid))
 	else:
 		node = ModelFactory.build(mid, lod, _mats)
 	if node == null:
@@ -226,6 +350,61 @@ func _place(mid: String, lod: String, pos: Vector3, yaw: float = 0.0, scale: flo
 	holder.add_child(node)
 	_holder.add_child(holder)
 	return holder
+
+
+## The sprite set a model serves: its own id, or the set whose "variants" name it (seed variants).
+func _set_of_model(mid: String) -> String:
+	_load_sprites()
+	if _sprites.has(mid):
+		return mid
+	for sid: String in ModelDB._sets:
+		var e: Variant = ModelDB._sets[sid]
+		if e is Dictionary and ((e as Dictionary).get("variants", []) as Array).has(mid) and _sprites.has(sid):
+			return sid
+	return mid
+
+
+func _load_sprites() -> void:
+	if not _sprites.is_empty():
+		return
+	var m: Variant = ConfigLoader.load_json(SPRITE_MANIFEST)
+	if m is Dictionary and (m as Dictionary).get("sets") is Dictionary:
+		_sprites = (m as Dictionary)["sets"]
+
+
+## The Arcade sprite of a set as the props builder draws a set without a model (PropLibrary.standin): a billboard
+## of the cell "c", lit like the ground (baked light), the baked ground shadow cut away.
+func _sprite_node(set_id: String) -> Node3D:
+	_load_sprites()
+	var sp: Dictionary = _sprites.get(set_id, {})
+	if sp.is_empty():
+		return null
+	var tex := load(str(sp.get("root", SPRITE_ROOT)) + str(sp.get("file", ""))) as Texture2D
+	if tex == null:
+		return null
+	var layers: Array = sp.get("layers", ["base"])
+	var angles: Array = sp.get("angles", ["c"])
+	var cols := maxi(1, int(sp.get("grid_cols", angles.size())))
+	var rows := int(ceil(float(maxi(1, layers.size() * angles.size())) / float(cols)))
+	var cell := Vector2(1.0 / float(cols), 1.0 / float(rows))
+	var ci := maxi(0, angles.find("c"))
+	var bi := maxi(0, layers.find("base")) * angles.size() + ci
+	var base_rect := Rect2(float(bi % cols) * cell.x, float(bi / cols) * cell.y, cell.x, cell.y)
+	var mat := _mats.billboard(tex, base_rect, Rect2())
+	mat.set_shader_parameter("sun_min", PropLibrary.STANDIN_SUN.x)
+	mat.set_shader_parameter("sun_max", PropLibrary.STANDIN_SUN.y)
+	mat.set_shader_parameter("shadow_cut", PropLibrary.STANDIN_SHADOW_CUT)
+	mat.set_shader_parameter("baked_light", 1.0)
+	var cellpx: Array = sp.get("cell", [64, 64])
+	var w := float(sp.get("image_width_m", 1.0))
+	var h := w * float(cellpx[1]) / maxf(1.0, float(cellpx[0]))
+	var anchor: Array = sp.get("anchor", [0.5, 1.0])
+	var mi := MeshInstance3D.new()
+	mi.name = "sprite"
+	mi.mesh = PropLibrary.standin_mesh(w, h, float(anchor[0]), float(anchor[1]))
+	mi.material_override = mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return mi
 
 
 func _clear() -> void:
@@ -298,13 +477,18 @@ func _dist(models: Array) -> Image:
 	var dists: Array = str(_args.get("dist", "15,40,100,250")).split(",", false)
 	var x := float(str(_args.get("x", "9")))
 	var tile := _tile_size()
-	var sheet := Image.create(tile.x * dists.size(), tile.y * models.size(), false, Image.FORMAT_RGB8)
-	for r in models.size():
-		var mid := str(models[r])
+	var rows: Array = []
+	for m: Variant in models:
+		rows.append([str(m), ""])
+		if _args.has("sprite"):
+			rows.append([str(m), "sprite"])
+	var sheet := Image.create(tile.x * dists.size(), tile.y * rows.size(), false, Image.FORMAT_RGB8)
+	for r in rows.size():
+		var mid := str(rows[r][0])
 		for c in dists.size():
 			var d := float(str(dists[c]))
 			_clear()
-			var lod := _level_for(mid, d)
+			var lod := str(rows[r][1]) if str(rows[r][1]) != "" else _level_for(mid, d)
 			var pos := Vector3(x, 0.0, -d)
 			_place(mid, lod, pos)
 			var img := await _frame()
@@ -313,7 +497,8 @@ func _dist(models: Array) -> Image:
 			var zmax := int(str(_args.get("zoom", "4")))
 			var zoom := clampi(int(floor(minf(float(tile.x) / maxf(8.0, rect.size.x * 1.15), float(tile.y) / maxf(8.0, rect.size.y * 1.15)))), 1, zmax)
 			var t := _crop(img, rect, tile, zoom)
-			t = await _caption_tile(t, "%s · %d m · %s · %d×" % [mid, int(d), lod, zoom])
+			var what := mid if lod != "sprite" else "Arcade-Sprite " + _set_of_model(mid)
+			t = await _caption_tile(t, "%s · %d m · %s · %d×" % [what, int(d), lod, zoom])
 			sheet.blit_rect(t, Rect2i(Vector2i.ZERO, tile), Vector2i(c * tile.x, r * tile.y))
 			print("SZENE %s %d m %s %.0fx%.0f px" % [mid, int(d), lod, rect.size.x, rect.size.y])
 	return sheet
@@ -332,11 +517,16 @@ func _caption_tile(t: Image, text: String) -> Image:
 func _lods(models: Array) -> Image:
 	var x := float(str(_args.get("x", "9")))
 	var tile := _tile_size()
-	var cols := [["lod0", LOD0_M], ["lod1", LOD0_M], ["lod1", LOD1_M], ["impostor", LOD1_M]]
+	var cols := [["lod0", _lod0_m], ["lod1", _lod0_m], ["lod1", _lod1_m], ["impostor", _lod1_m]]
+	if _args.has("sprite"):
+		cols.append(["sprite", _lod1_m])
 	var sheet := Image.create(tile.x * cols.size(), tile.y * models.size(), false, Image.FORMAT_RGB8)
+	_clear()
+	var bg := await _frame()              # the scene without a model (the same for every tile)
 	for r in models.size():
 		var mid := str(models[r])
 		var means: Array[String] = []
+		var shots: Array = []
 		for c in cols.size():
 			var lod := str(cols[c][0])
 			var d := float(cols[c][1])
@@ -345,6 +535,7 @@ func _lods(models: Array) -> Image:
 			var n := _place(mid, lod, pos)
 			var img := await _frame()
 			var rect := _screen_rect(mid, pos)
+			shots.append([img, rect])
 			var zoom := clampi(int(floor(minf(float(tile.x) / maxf(8.0, rect.size.x * 1.15), float(tile.y) / maxf(8.0, rect.size.y * 1.15)))), 1, 8)
 			if n == null:
 				means.append("%s fehlt" % lod)
@@ -355,6 +546,12 @@ func _lods(models: Array) -> Image:
 			t = await _caption_tile(t, "%s · %s · %d m · %d×" % [mid, lod, int(d), zoom])
 			sheet.blit_rect(t, Rect2i(Vector2i.ZERO, tile), Vector2i(c * tile.x, r * tile.y))
 		print("STUFEN %s  %s" % [mid, "  ".join(means)])
+		var swaps: Array[String] = []
+		swaps.append("lod0>lod1 @%d m: %s" % [int(_lod0_m), _swap(shots[0], shots[1], bg)])
+		swaps.append("lod1>Fernbild @%d m: %s" % [int(_lod1_m), _swap(shots[2], shots[3], bg)])
+		if shots.size() > 4:
+			swaps.append("Fernbild>Sprite @%d m: %s" % [int(_lod1_m), _swap(shots[3], shots[4], bg)])
+		print("UMSCHALT %s  %s" % [mid, "  ".join(swaps)])
 	return sheet
 
 
@@ -383,13 +580,71 @@ func _mean_in(img: Image, rect: Rect2) -> String:
 	return "rgb(%d,%d,%d) %d px" % [int(sum.x * 255.0), int(sum.y * 255.0), int(sum.z * 255.0), n]
 
 
+## A swap between two levels at the same place: [image, rect] before and after, bg = the scene without the model.
+## Share of the model's pixels (union of both) whose colour changes, and the change of the mean colour's luma (%)
+## and hue (degrees).
+func _swap(a: Array, b: Array, bg: Image) -> String:
+	var ia: Image = a[0]
+	var ib: Image = b[0]
+	var r := Rect2i((a[1] as Rect2).merge(b[1] as Rect2).grow(2.0)).intersection(Rect2i(Vector2i.ZERO, GAME))
+	var union := 0
+	var changed := 0
+	var sa := Vector3.ZERO
+	var sb := Vector3.ZERO
+	var na := 0
+	var nb := 0
+	for y in range(r.position.y, r.end.y):
+		for x in range(r.position.x, r.end.x):
+			var ca := ia.get_pixel(x, y)
+			var cb := ib.get_pixel(x, y)
+			var cg := bg.get_pixel(x, y)
+			var in_a := absf(ca.r - cg.r) + absf(ca.g - cg.g) + absf(ca.b - cg.b) > 0.03
+			var in_b := absf(cb.r - cg.r) + absf(cb.g - cg.g) + absf(cb.b - cg.b) > 0.03
+			if not (in_a or in_b):
+				continue
+			union += 1
+			if absf(ca.r - cb.r) + absf(ca.g - cb.g) + absf(ca.b - cb.b) > SWAP_DIFF:
+				changed += 1
+			if in_a:
+				sa += Vector3(ca.r, ca.g, ca.b)
+				na += 1
+			if in_b:
+				sb += Vector3(cb.r, cb.g, cb.b)
+				nb += 1
+	if union == 0 or na == 0 or nb == 0:
+		return "(keine Pixel)"
+	sa /= float(na)
+	sb /= float(nb)
+	var la := 0.2126 * sa.x + 0.7152 * sa.y + 0.0722 * sa.z
+	var lb := 0.2126 * sb.x + 0.7152 * sb.y + 0.0722 * sb.z
+	var ha := Color(sa.x, sa.y, sa.z).h * 360.0
+	var hb := Color(sb.x, sb.y, sb.z).h * 360.0
+	var dh := fposmod(hb - ha + 180.0, 360.0) - 180.0
+	return "%.1f %% der Pixel geändert, Helligkeit %+.1f %%, Farbton %+.1f°, Pixel %d -> %d" % [
+		100.0 * float(changed) / float(union), 100.0 * (lb - la) / maxf(0.001, la), dh, na, nb]
+
+
 func _road(models: Array) -> Image:
+	_place_row(models)
+	for c: Node in _holder.get_children():
+		var h := c as Node3D
+		var mid := str(h.get_meta(&"model", ""))
+		for rep: Node in h.get_children():
+			(rep as Node3D).visible = str(rep.get_meta(&"rep", "")) == _level_for(mid, h.position.length())
+	var img := await _frame()
+	return img
+
+
+## Rows of models along both roadsides every --every m from 12 to 700 m (yaw and scale varied like the props builder
+## does for vegetation). Every holder carries all levels of its model (meta "rep"); callers pick the visible one.
+func _place_row(models: Array) -> void:
 	var every := float(str(_args.get("every", "30")))
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
 	var z := 12.0
 	var i := 0
-	while z < 700.0:
+	var reach := float(str(_args.get("reach", "700")))
+	while z < reach:
 		for side: int in [-1, 1]:
 			var mid := str(models[i % models.size()])
 			i += 1
@@ -397,11 +652,65 @@ func _road(models: Array) -> Image:
 			var veg := ["tree", "plant"].has(str(m.get("kind", "")))
 			var x := float(side) * rng.randf_range(7.0, 22.0)
 			var pos := Vector3(x, 0.0, -z - rng.randf_range(0.0, every * 0.5))
-			var d := pos.length()
-			var yaw := rng.randf() * TAU if veg else 0.0
+			var yaw := rng.randf() * TAU if veg or str(m.get("kind", "")) == "rock" else 0.0
 			var sc := rng.randf_range(0.85, 1.15) if veg else 1.0
 			var mirror := side < 0 and (m.get("tags", []) as Array).has("mirror_left")
-			_place(mid, _level_for(mid, d), pos, yaw, sc, mirror)
+			var holder := Node3D.new()
+			holder.position = pos
+			holder.rotation.y = yaw
+			holder.scale = Vector3(-sc if mirror else sc, sc, sc)
+			holder.set_meta(&"model", mid)
+			holder.set_meta(&"level", "")
+			var reps: Array[String] = []
+			for l: Variant in m.get("lods", []):
+				var n := str((l as Dictionary).get("name", ""))
+				if n != "show":
+					reps.append(n)
+			if m.has("impostor"):
+				reps.append("impostor")
+			for rep: String in reps:
+				var node: Node3D
+				if rep == "impostor":
+					node = ModelFactory.build_impostor(mid, _mats)
+				else:
+					node = ModelFactory.build(mid, rep, _mats)
+				if node == null:
+					continue
+				node.set_meta(&"rep", rep)
+				node.visible = false
+				holder.add_child(node)
+			_holder.add_child(holder)
 		z += every
-	var img := await _frame()
-	return img
+
+
+## --mode=clip: the camera drives along the rows; every frame is written. Returns the number of frames.
+func _clip(models: Array, out: String) -> int:
+	_place_row(models)
+	var kmh := float(str(_args.get("kmh", "120")))
+	var secs := float(str(_args.get("secs", "2")))
+	var fps := 60.0
+	var t0 := float(str(_args.get("time", "1.7")))
+	var frames := int(round(secs * fps))
+	var prefix := out.get_basename()
+	for f in frames:
+		var cz := -kmh / 3.6 * float(f) / fps
+		_cam.position = Vector3(0.0, CAM_H, cz)
+		_race_update(t0 + float(f) / fps)
+		for c: Node in _holder.get_children():
+			var h := c as Node3D
+			var d := maxf(0.0, cz - h.position.z)
+			if h.position.z > cz:
+				d = 0.0                     # behind the camera: keep the near level
+			var mid := str(h.get_meta(&"model", ""))
+			var old := str(h.get_meta(&"level", ""))
+			var lv := _level_for(mid, d)
+			# hysteresis of the props builder: a nearer level is kept LOD_HYSTERESIS_M longer
+			if old != "" and old != lv and _level_for(mid, maxf(0.0, d - LOD_HYSTERESIS_M)) == old:
+				lv = old
+			if lv != old:
+				h.set_meta(&"level", lv)
+				for rep: Node in h.get_children():
+					(rep as Node3D).visible = str(rep.get_meta(&"rep", "")) == lv
+		var img := await _frame()
+		img.save_png("%s_%03d.png" % [prefix, f])
+	return frames

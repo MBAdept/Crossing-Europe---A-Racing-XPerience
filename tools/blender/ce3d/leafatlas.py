@@ -49,10 +49,36 @@ def _leaf_outline(kind, ln, wd, n=24, rng=None):
             w = wd * 0.12 * math.sin(math.pi * t) ** 0.5
         elif kind == "birch":          # triangular-ovate, finely toothed, pointed tip
             w = wd * 0.5 * math.sin(math.pi * t ** 0.62) ** 1.1 * (1.0 + 0.06 * (k % 2))
+        elif kind == "lanceolate":     # olive: long and narrow, pointed at both ends
+            w = wd * 0.5 * math.sin(math.pi * t) ** 0.8
         else:                          # ovate: beech, hornbeam, bushes
             w = wd * 0.5 * math.sin(math.pi * t ** 0.8) ** 0.9 * (1.0 + 0.04 * (k % 2))
         pts.append((u, max(0.0, w)))
     return pts
+
+
+def _tuft(dr, kind, cx, cy, ang, ln, base, lit, rng, S):
+    """A tuft of needles (pine: a fan of long thin needles from one point) or a sprig (heather, cypress: a short
+    shoot densely set with tiny scale leaves)."""
+    w = max(1, S // 300)
+    if kind == "needles":
+        n = rng.randint(7, 11)
+        for j in range(n):
+            a = ang + (j / max(1, n - 1) - 0.5) * 1.5 + rng.uniform(-0.12, 0.12)
+            l2 = ln * rng.uniform(0.7, 1.0)
+            ex, ey = cx + math.cos(a) * l2, cy + math.sin(a) * l2
+            dr.line([(cx, cy), (ex, ey)], fill=(_mix(base, lit, 0.6 * j / n)) + (255,), width=w + 1)
+        return
+    # sprig: a short stem and a dense column of small scale leaves along it
+    ca, sa = math.cos(ang), math.sin(ang)
+    dr.line([(cx, cy), (cx + ca * ln, cy + sa * ln)], fill=base + (255,), width=w + 1)
+    steps = max(4, int(ln / max(2.0, S * 0.006)))
+    for j in range(steps):
+        t = j / steps
+        px, py = cx + ca * ln * t, cy + sa * ln * t
+        rr = ln * 0.12 * (1.0 - 0.6 * t) * rng.uniform(0.8, 1.2)
+        col = _mix(base, lit, 0.7 * t)
+        dr.ellipse([px - rr, py - rr * 0.8, px + rr, py + rr * 0.8], fill=col + (255,))
 
 
 def _poly(cx, cy, rot, half):
@@ -62,10 +88,40 @@ def _poly(cx, cy, rot, half):
     return poly
 
 
+def species_atlas(a):
+    """cluster() parameters from a species' atlas entry (ce3d/veg3d.py SPECIES): the generator's two leaf colours
+    `base` (the sprite's leaves material) as the leaf palette, brought to the sprite's mean under the race light by
+    `sat` (saturation about the luma) and `gain` (value); `shade` = the colour deep inside a cluster."""
+    c1, c2 = a["base"]
+    gain = float(a.get("gain", 1.0))
+    sat = float(a.get("sat", 1.0))
+
+    def adj(rgb, k=1.0):
+        y = 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]
+        return "#%02x%02x%02x" % tuple(max(0, min(255, int(round((y + (x - y) * sat) * gain * k)))) for x in rgb)
+    a1, a2 = _hex(c1), _hex(c2)
+    cols = [adj(_mix(a1, a2, t)) for t in (0.0, 0.3, 0.55, 0.8, 1.0)]
+    cols.append(adj(_mix(a1, a2, 1.0), 1.1))
+    out = dict(leaf=a["leaf"], colors=tuple(a.get("colors_extra", ())) + tuple(cols),
+               shade=adj(a1, float(a.get("shade_k", 0.5))),
+               n_leaves=int(a.get("n_leaves", 340)), leaf_len=tuple(a.get("leaf_len", (0.06, 0.085))),
+               fill=float(a.get("fill", 0.93)), twig=a.get("twig", "#3a2c1e"), twig_share=float(a.get("twig_share", 0.2)),
+               leaf_w=float(a.get("leaf_w", 0.55)), contrast=float(a.get("contrast", 0.28)),
+               sheen=float(a.get("sheen", 0.14)), density_pow=float(a.get("density_pow", 0.62)),
+               twigs=int(a.get("twigs", 5)))
+    for k in ("flower", "flower_share", "underside", "underside_share", "ball_leaf", "ball_leaves", "fringe"):
+        if k in a:
+            out[k] = a[k]
+    return out
+
+
 def cluster(size, rng, sp, core=False):
     """One leaf cluster as RGBA image (size x size), drawn at 4x and reduced. sp: species dict (leaf, colors,
-    n_leaves, leaf_len (fraction of the cell), fill (radius of the cluster), twig, light). core=True: an opaque
-    leaf mass filling the whole cell (the inner hull of a crown)."""
+    n_leaves, leaf_len (fraction of the cell), fill (radius of the cluster), twig, light, contrast: how much darker
+    the deep leaves are, sheen: how much lighter the top ones; optional underside / underside_share: the pale
+    underside of some leaves (olive), flower / flower_share: blossoms (heather)). core=True: an opaque leaf mass
+    filling the whole cell (the inner hull of a crown). Leaf kinds: lobed (oak), birch, ovate, lanceolate (olive),
+    needles (tufts of needles: pine), sprig (tiny scale leaves on short shoots: heather, cypress)."""
     ss = 4
     S = size * ss
     kind = sp["leaf"]
@@ -75,6 +131,8 @@ def cluster(size, rng, sp, core=False):
     dr = ImageDraw.Draw(img)
     c = S / 2.0
     fill = 1.15 if core else sp.get("fill", 0.92)
+    contrast = float(sp.get("contrast", 0.45))
+    sheen = float(sp.get("sheen", 0.12))
     if core:
         # dark ground: the core never shows holes
         dr.rectangle([0, 0, S, S], fill=_mix(dark, cols[0], 0.5) + (255,))
@@ -127,15 +185,32 @@ def cluster(size, rng, sp, core=False):
     # back to front: deep leaves first and darker (inside the cluster), the top layer lighter
     leaves.sort(key=lambda l: l[0])
     light = sp.get("light", (-0.6, -0.8))         # direction the highlight comes from (image space)
+    under = _hex(sp["underside"]) if sp.get("underside") else None
+    under_share = float(sp.get("underside_share", 0.0))
+    flower = [_hex(f) for f in sp.get("flower", ())]
+    flower_share = float(sp.get("flower_share", 0.0))
     for (depth, cx, cy, ang, ln, col, k) in leaves:
         wd = ln * sp.get("leaf_w", 0.55)
-        half = _leaf_outline(kind, ln, wd, rng=rng)
-        tone = (0.55 + 0.45 * depth) * k
+        tone = (1.0 - contrast + contrast * depth) * k
         base = _mix(dark, col, min(1.0, tone))
+        if under is not None and rng.random() < under_share:
+            base = _mix(base, under, 0.55 + 0.3 * depth)       # the pale underside turned up (olive)
+        if kind in ("needles", "sprig"):
+            _tuft(dr, kind, cx, cy, ang, ln, base, _mix(base, (255, 255, 230), sheen * (0.5 + depth)), rng, S)
+            if flower and rng.random() < flower_share:
+                fc = rng.choice(flower)
+                fl = _mix(fc, (255, 240, 255), sheen * depth)
+                for _j in range(rng.randint(3, 6)):
+                    fx = cx + math.cos(ang) * ln * rng.uniform(0.1, 0.5) + rng.gauss(0.0, ln * 0.08)
+                    fy = cy + math.sin(ang) * ln * rng.uniform(0.1, 0.5) + rng.gauss(0.0, ln * 0.08)
+                    rr = ln * rng.uniform(0.05, 0.09)
+                    dr.ellipse([fx - rr, fy - rr, fx + rr, fy + rr], fill=_mix(fc, fl, depth) + (255,))
+            continue
+        half = _leaf_outline(kind, ln, wd, rng=rng)
         dr.polygon(_poly(cx, cy, ang, half), fill=base + (255,))
         # lit half of the leaf: a smaller copy shifted towards the light, lighter
         lift = 0.25 + 0.35 * depth
-        lit = _mix(base, (255, 255, 230), 0.10 + 0.12 * depth)
+        lit = _mix(base, (255, 255, 230), sheen + 0.12 * depth)
         sx, sy = light[0] * ln * 0.06, light[1] * ln * 0.06
         dr.polygon(_poly(cx + sx, cy + sy, ang, [(u * 0.78, v * 0.62) for (u, v) in half]),
                    fill=_mix(base, lit, lift) + (255,))
@@ -149,6 +224,73 @@ def cluster(size, rng, sp, core=False):
         a[:, :, 3] = 255
         out = Image.fromarray(a, "RGBA")
     return out
+
+
+def ball(size, rng, sp):
+    """A leaf ball (AS3): the cap of one crown blob, the texture of a leaf dome (ce3d/veg3d.py _dome_cards). The cell
+    centre is the dome's pole, the cell's inscribed circle its rim. Inside `fringe` of the radius an opaque leaf mass
+    (leaves on a ground of deeper leaves: no hole, never the sky), beyond it a ragged rim of single leaves pointing
+    outwards - the leafy outline of the blob. No light and shade of its own: the dome's normals shade the blob, the
+    texture is albedo (deeper leaves only a little darker: `contrast`)."""
+    ss = 4
+    S = size * ss
+    kind = sp["leaf"]
+    cols = [_hex(c) for c in sp["colors"]]
+    dark = _hex(sp.get("shade", "#1d3311"))
+    contrast = float(sp.get("contrast", 0.28))
+    sheen = float(sp.get("sheen", 0.14))
+    img = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+    dr = ImageDraw.Draw(img)
+    c = S / 2.0
+    R = S * 0.5 * 0.985
+    fringe = float(sp.get("fringe", 0.86))
+    ground = _mix(dark, cols[0], 0.62)
+    rr = R * fringe * 0.98
+    dr.ellipse([c - rr, c - rr, c + rr, c + rr], fill=ground + (255,))
+    lmin, lmax = sp.get("ball_leaf", (0.028, 0.04))
+    n = int(sp.get("ball_leaves", 2200))
+    under = _hex(sp["underside"]) if sp.get("underside") else None
+    under_share = float(sp.get("underside_share", 0.0))
+    flower = [_hex(f) for f in sp.get("flower", ())]
+    flower_share = float(sp.get("flower_share", 0.0))
+    leaves = []
+    for i in range(n):
+        a = rng.uniform(0.0, 2.0 * math.pi)
+        u = math.sqrt(rng.random())
+        # a few leaves beyond the opaque part: the rim gets thinner outwards
+        if u * R > rr and rng.random() > 0.45:
+            u = rng.uniform(0.0, fringe)
+        r = u * R
+        cx, cy = c + math.cos(a) * r, c + math.sin(a) * r
+        rim = r > rr * 0.92
+        ang = rng.uniform(-math.pi, math.pi)
+        ln = S * rng.uniform(lmin, lmax) * (0.85 if rim else 1.0)
+        depth = rng.random()
+        leaves.append((depth, cx, cy, ang, ln, rng.choice(cols), rng.uniform(0.9, 1.08), rim))
+    leaves.sort(key=lambda l: l[0])
+    light = sp.get("light", (-0.6, -0.8))
+    for (depth, cx, cy, ang, ln, col, k, rim) in leaves:
+        wd = ln * sp.get("leaf_w", 0.55)
+        tone = (1.0 - contrast + contrast * depth) * k
+        base = _mix(dark, col, min(1.0, tone))
+        if under is not None and rng.random() < under_share:
+            base = _mix(base, under, 0.5 + 0.3 * depth)
+        if kind in ("needles", "sprig"):
+            _tuft(dr, kind, cx, cy, ang, ln * 1.6, base, _mix(base, (255, 255, 230), sheen * (0.5 + depth)), rng, S)
+        else:
+            half = _leaf_outline(kind, ln, wd, rng=rng)
+            dr.polygon(_poly(cx, cy, ang, half), fill=base + (255,))
+            lit = _mix(base, (255, 255, 230), sheen + 0.1 * depth)
+            sx, sy = light[0] * ln * 0.06, light[1] * ln * 0.06
+            dr.polygon(_poly(cx + sx, cy + sy, ang, [(u2 * 0.78, v2 * 0.62) for (u2, v2) in half]),
+                       fill=_mix(base, lit, 0.3 + 0.3 * depth) + (255,))
+        if flower and rng.random() < flower_share:
+            fc = rng.choice(flower)
+            for _j in range(rng.randint(2, 5)):
+                fx, fy = cx + rng.gauss(0.0, ln * 0.35), cy + rng.gauss(0.0, ln * 0.35)
+                fr = ln * rng.uniform(0.12, 0.2)
+                dr.ellipse([fx - fr, fy - fr, fx + fr, fy + fr], fill=_mix(fc, (255, 235, 255), sheen * depth) + (255,))
+    return img.resize((size, size), Image.LANCZOS)
 
 
 def grass_tuft(size, rng, sp):
@@ -242,9 +384,10 @@ def coverage(img, levels=5, scissor=SCISSOR):
     return out
 
 
-def atlas(sp, size=1024, grid=(4, 4), seed=3):
-    """RGBA leaf atlas of grid[0] x grid[1] cells for species sp; the LAST cell is the opaque core.
-    Returns (PIL image, {"leaf": [uv rects (u0, v0, u1, v1)], "core": rect})."""
+def atlas(sp, size=1024, grid=(4, 4), seed=3, cells="cluster"):
+    """RGBA leaf atlas of grid[0] x grid[1] cells for species sp; the LAST cell is the opaque core. cells: "cluster"
+    (flat leaf cards) or "ball" (leaf domes, AS3). Returns (PIL image, {"leaf": [uv rects (u0, v0, u1, v1)],
+    "core": rect})."""
     rng = random.Random(seed)
     cols, rows = grid
     cw, ch = size // cols, size // rows
@@ -253,7 +396,10 @@ def atlas(sp, size=1024, grid=(4, 4), seed=3):
     for r in range(rows):
         for c in range(cols):
             core = (r == rows - 1 and c == cols - 1)
-            cl = cluster(min(cw, ch), rng, sp, core=core)
+            if cells == "ball" and not core:
+                cl = ball(min(cw, ch), rng, sp)
+            else:
+                cl = cluster(min(cw, ch), rng, sp, core=core)
             if not core:
                 cl = bleed(halo(cl))
             sheet.paste(cl, (c * cw, r * ch))
