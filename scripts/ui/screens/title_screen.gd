@@ -8,6 +8,9 @@ extends UiScreen
 ## matters least. After a minute without input the attract mode shows a demo (AttractMode, GameFlow).
 ## "Beenden" asks first (ConfirmBox, "Abbrechen" focused – one A too many on the Steam Deck ended the game). Coming
 ## back from Einzelne Etappe, Bestenlisten or Optionen, that entry has the focus again (GameFlow.title_choice).
+## v0.8.0, crash guard of the mode "Modern" (docs/grafik-modi.md): when the last start in Modern did not end properly
+## (Settings.crash_guard – this start runs in Arcade, reason "crash_guard"), the title asks once: „Bei Arcade
+## bleiben“ (focused, also B) or „Modern noch einmal versuchen“. Debug (sample screens): --sample-crash-guard.
 
 const LOGO_RIGHT := 1236.0
 const CARD := Rect2(846, 244, 390, 414)
@@ -38,7 +41,7 @@ func build() -> void:
 		[tr("Rennen fortsetzen"), _save_text(), GameFlow.continue_race, has_save],
 		[tr("Einzelne Etappe"), tr("Eine Etappe frei wählen: Richtung, Uhrzeit und Wetter."), GameFlow.single_stage, true],
 		[tr("Bestenlisten"), tr("Top 10 aller Etappen und Rennen."), func() -> void: GameFlow.go("leaderboards"), true],
-		[tr("Optionen"), tr("Lautstärke, Vollbild, Vibration, Spielername und Steuerung."), func() -> void: GameFlow.go("options"), true],
+		[tr("Optionen"), tr("Lautstärke, Klang, Grafik, Vollbild, Vibration, Spielername und Steuerung."), func() -> void: GameFlow.go("options"), true],
 		[tr("Beenden"), tr("Zurück auf den Boden der Tatsachen."), _quit, true],
 	]
 	for it in items:
@@ -76,6 +79,38 @@ func build() -> void:
 		default_focus = _buttons[last]
 	var ver := UiKit.label("v" + str(ProjectSettings.get_setting("application/config/version", "0.1")), UiTheme.F.MONO, 18, UiTheme.TEXT_MUTED, HORIZONTAL_ALIGNMENT_RIGHT)
 	UiKit.place(self, ver, Rect2(1036, 684, 200, 24))
+	if crash_guard_due() or (GameFlow.sample_mode and CliArgs.has("sample-crash-guard")):
+		# deferred: the box's own (deferred) focus grab then comes after the screen's default focus
+		_ask_crash_guard.call_deferred()
+
+
+## The crash-guard question is due: Modern did not end properly at the last start, and that is why this start
+## runs in Arcade (a stored "Arcade", a forced mode or a first start without a choice ask nothing here).
+static func crash_guard_due() -> bool:
+	return bool(Settings.crash_guard) and str(Settings.effective_graphics().get("reason", "")) == "crash_guard"
+
+
+## „Der Modus „Modern“ wurde beim letzten Start nicht richtig beendet.“ – „Bei Arcade bleiben“ is the safe answer
+## (focused, B); either answer settles the marker of the last run (Settings.disarm_crash_guard()).
+func _ask_crash_guard() -> void:
+	if not is_inside_tree() or has_modal():
+		return
+	confirm_box = ConfirmBox.new(tr("Der Modus „Modern“ wurde beim letzten Start nicht richtig beendet."),
+		tr("Vielleicht ist das Spiel dabei abgestürzt oder hängen geblieben. Dieser Start läuft deshalb im Modus „Arcade“."),
+		tr("Modern noch einmal versuchen"), tr("Bei Arcade bleiben"))
+	confirm_box.confirmed.connect(_on_crash_guard_answer.bind(true))
+	confirm_box.cancelled.connect(_on_crash_guard_answer.bind(false))
+	add_child(confirm_box)
+
+
+func _on_crash_guard_answer(try_modern: bool) -> void:
+	if not GameFlow.sample_mode:
+		if not try_modern:
+			Settings.graphics_mode = Gfx.ARCADE   # stored from now on; "Klang: Wie Grafik" follows
+		Settings.disarm_crash_guard()             # the marker goes; with "Modern" the next stage runs in Modern
+		Settings.save_if_changed()
+	if default_focus != null and is_instance_valid(default_focus):
+		_focus_later(default_focus)
 
 
 ## What GameFlow.title_choice keeps when the entry `index` is chosen: Einzelne Etappe, Bestenlisten and Optionen are

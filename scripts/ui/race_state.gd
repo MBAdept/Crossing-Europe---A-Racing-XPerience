@@ -221,6 +221,18 @@ func stage_count() -> int:
 	return stage_legs().size()
 
 
+## Graphics mode of the race for its leaderboard entry (v0.8.0, hidden field "gfx", contract D15): "arcade" or
+## "modern" when every stage was drawn in that mode, "mixed" when both occur. Stages saved before v0.8.0 have no
+## mode and count as Arcade (the only mode there was).
+func gfx_summary() -> String:
+	var seen: Dictionary = {}
+	for l in stage_legs():
+		seen[str(l.get("gfx", Gfx.ARCADE))] = true
+	if seen.size() > 1:
+		return "mixed"
+	return str(seen.keys()[0]) if seen.size() == 1 else Gfx.ARCADE
+
+
 ## 1-based number of the stage that will be driven next.
 func next_stage_number() -> int:
 	return stage_count() + 1
@@ -292,6 +304,8 @@ func apply_stage_result(leg: Dictionary, result: Dictionary, config: Dictionary)
 		"end_world_minutes": end_min,
 		"fuel_start_l": float(result.get("fuel_start_l", -1.0)),
 		"fuel_end_l": float(result.get("fuel_end_l", -1.0)),
+		# v0.8.0: graphics mode the stage was drawn in (hidden, for the race's leaderboard entry – gfx_summary())
+		"gfx": str(result.get("gfx", Gfx.ARCADE)),
 	}
 	legs.append(rec)
 	total_time_s += time_s
