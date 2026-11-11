@@ -92,6 +92,12 @@ func _ready() -> void:
 	AudioManager.set_profile(Settings.sound())
 
 
+## Quitting: what Modern holds in static caches (models, shared materials) goes with the tree – otherwise the engine
+## reports the shaders and meshes as "resources still in use at exit".
+func _exit_tree() -> void:
+	_release_modern(true)
+
+
 ## A window without focus (Alt+Tab, the Steam overlay where it takes the focus) draws at FrameCap.IDLE_FPS.
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
@@ -279,8 +285,8 @@ func _apply_pending_modes(between_stages: bool = false) -> void:
 
 ## Leaving the mode "Modern": the model caches and the shared materials (they hold the textures) go. The scripts
 ## are reached by path and only when something has loaded them – a game that never showed Modern loads nothing here.
-func _release_modern() -> void:
-	if Settings.is_modern():
+func _release_modern(always: bool = false) -> void:
+	if not always and Settings.is_modern():
 		return
 	if ResourceLoader.has_cached(MODEL_DB_SCRIPT):
 		(load(MODEL_DB_SCRIPT) as GDScript).call("release_all")
@@ -658,6 +664,10 @@ func _debug_screen(screen_name: String) -> void:
 			var last := race.last_leg()
 			pending_leg = last
 			var res := SampleData.stage_result(str(last.get("id", "")), str(last.get("from", "")), c)
+			if CliArgs.has("sample-gfx-fallback"):
+				# v0.8.0: the stage was meant for Modern and ran in Arcade (the note under the result)
+				res["gfx"] = Gfx.ARCADE
+				res["gfx_fallback"] = CliArgs.get_string("sample-gfx-fallback", "selftest:shader")
 			go("result", {"result": res}, true)
 		"race_result":
 			mode = "race"

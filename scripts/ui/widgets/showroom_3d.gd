@@ -29,7 +29,7 @@ const TURN_DEG_S := 11.0              ## turntable speed
 const START_YAW_DEG := -142.0
 const CAM_ELEVATION_DEG := 11.0       ## as the sprite camera
 const CAM_FOV_DEG := 26.0
-const FILL := 0.8                     ## share of the picture width the turntable may use
+const FILL := 0.88                    ## share of the picture width the turntable may use (the 2D platform: 0.84)
 const SLIDE_PX := 120.0
 const TURNTABLE_R := 2.8              ## m (a 4.85 m car fits with 0.15 m to spare)
 
@@ -162,17 +162,17 @@ func _build_world() -> void:
 	_env.sky = sky
 	_env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	_env.ambient_light_color = Color(0.46, 0.48, 0.6)
-	_env.ambient_light_energy = 0.55
+	_env.ambient_light_energy = 0.42
 	_env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
-	_env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	_env.tonemap_exposure = 1.05
+	_env.tonemap_mode = Environment.TONE_MAPPER_AGX
+	_env.tonemap_exposure = 1.0
 	var we := WorldEnvironment.new()
 	we.environment = _env
 	viewport.add_child(we)
 	# key: upper left in front of the car, soft shadow onto the turntable
 	_key = DirectionalLight3D.new()
 	_key.rotation_degrees = Vector3(-52.0, -28.0, 0.0)
-	_key.light_energy = 1.35
+	_key.light_energy = 1.05
 	_key.light_color = Color(1.0, 0.97, 0.92)
 	_key.shadow_enabled = true
 	_key.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
@@ -184,7 +184,7 @@ func _build_world() -> void:
 	# fill from the other side, no shadow
 	var fill := DirectionalLight3D.new()
 	fill.rotation_degrees = Vector3(-18.0, 125.0, 0.0)
-	fill.light_energy = 0.32
+	fill.light_energy = 0.26
 	fill.light_color = Color(0.82, 0.88, 1.0)
 	viewport.add_child(fill)
 	# two rim lights behind the car in the menu accents (magenta left, cyan right)
@@ -222,7 +222,7 @@ func _build_world() -> void:
 	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var rm := StandardMaterial3D.new()
 	rm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	rm.albedo_color = UiTheme.ACCENT_2
+	rm.albedo_color = Color(0.0, 0.6, 0.78)   # below white: the AgX tonemapper (true car colours) pales bright cyan
 	ring.material_override = rm
 	viewport.add_child(ring)
 	_pivot = Node3D.new()
@@ -249,8 +249,8 @@ func _frame() -> void:
 	_cam.position = target + Vector3(0.0, sin(el), cos(el)) * dist
 	_cam.look_at(target, Vector3.UP)
 	_cam.keep_aspect = Camera3D.KEEP_HEIGHT
-	# the car a little above the centre, as the sprite sits on the 2D platform
-	_cam.v_offset = -0.06 * dist * tan(deg_to_rad(CAM_FOV_DEG) * 0.5)
+	# the turntable a little below the centre, where the 2D platform of the sprites lies (0.78 of the height)
+	_cam.v_offset = 0.07 * dist * tan(deg_to_rad(CAM_FOV_DEG) * 0.5)
 
 
 ## Middle of a model's footprint (x, z of its manifest "aabb" [min x, y, z, max x, y, z]; y stays on the ground).
@@ -268,8 +268,8 @@ static func studio_globals() -> void:
 	ModernMaterials.set_global("ce_snow", 0.0)
 	ModernMaterials.set_global("ce_tunnel", 0.0)
 	ModernMaterials.set_global("ce_sun_dir", Vector3(-0.45, 0.8, 0.4).normalized())
-	ModernMaterials.set_global("ce_sun_color", ModernMaterials.light_value(Color(1.0, 0.97, 0.92), 1.35))
-	ModernMaterials.set_global("ce_ambient", ModernMaterials.light_value(Color(0.46, 0.48, 0.6), 0.55))
+	ModernMaterials.set_global("ce_sun_color", ModernMaterials.light_value(Color(1.0, 0.97, 0.92), 1.05))
+	ModernMaterials.set_global("ce_ambient", ModernMaterials.light_value(Color(0.46, 0.48, 0.6), 0.42))
 
 
 ## Shows the car of set `id` (a "showroom/<car>" set). True when it will be shown in 3D (now, or once its files are
