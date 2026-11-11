@@ -21,11 +21,17 @@ uniform float cam_z = 0.0;               // road position of the camera (view.ca
 uniform float visibility = 900.0;        // view.visibility_m
 uniform float fog_frac = 0.45;           // render.fog_start_frac
 uniform float tunnel_fog_m = 260.0;      // render.tunnel.darkness_m
-uniform float retro = 1.4;               // retro-reflection gain at the centre of the cone
+uniform float retro = 0.9;               // retro-reflection gain at the centre of the cone
 uniform float hl_range = 80.0;           // headlight reach when the camera stands in (render.headlight_range_m)
 uniform vec4 back_colour : source_color = vec4(0.55, 0.57, 0.60, 1.0);
+// Fill light of the boards and posts: the reflective sheeting of a sign stays bright in its own shade (Arcade shows a
+// board as colour x the whole ambient of the palette, the built-in light law gives a face turned away from the sun
+// only half of it). Extra light = fill x ce_ambient, less where the sun falls on the face.
+uniform float fill = 1.0;
 
 global uniform float ce_night;
+global uniform vec4 ce_ambient;
+global uniform vec3 ce_sun_dir;
 global uniform vec3 ce_headlight_pos;
 global uniform vec3 ce_headlight_dir;
 global uniform vec2 ce_headlight;
@@ -74,9 +80,13 @@ void fragment() {
 		alb = FRONT_FACING ? clamp(t.rgb / t.a, vec3(0.0), vec3(1.0)) : back_colour.rgb;
 	}
 	ALBEDO = alb;
-	ROUGHNESS = board ? 0.55 : 0.45;
-	METALLIC = board ? 0.0 : 0.55;
+	ROUGHNESS = board ? 0.55 : 0.6;
+	METALLIC = board ? 0.0 : 0.2;
 	SPECULAR = 0.4;
+	vec3 n_w = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
+	float in_sun = clamp(dot(n_w, normalize(ce_sun_dir)) * 2.0, 0.0, 1.0);
+	vec3 extra = to_lin(alb) * ce_ambient.rgb * (fill * (1.0 - in_sun));
+	EMISSION = encode(extra);
 	if (board && FRONT_FACING) {
 		bool own = ce_headlight.y > 0.0;
 		float inten = own ? ce_headlight.y : clamp(ce_night, 0.0, 1.0) * 0.95;
@@ -89,9 +99,8 @@ void fragment() {
 			vec3 l = to_sign / dist;
 			float cone = smoothstep(0.82, 0.985, dot(l, dir));
 			float reach = 1.0 - smoothstep(range * 0.3, range * 1.5, dist);
-			vec3 n = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
-			float facing = clamp(dot(n, -l), 0.0, 1.0);
-			EMISSION = encode(to_lin(alb) * (inten * cone * reach * facing * retro));
+			float facing = clamp(dot(n_w, -l), 0.0, 1.0);
+			EMISSION = encode(extra + to_lin(alb) * (inten * cone * reach * facing * retro));
 		}
 	}
 }
