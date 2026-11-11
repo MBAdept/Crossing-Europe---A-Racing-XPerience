@@ -177,6 +177,10 @@ MODELS.update({
     "props/wind_turbine": dict(builder="prop_vpbr", source="props/wind_turbine", kind="furniture", auto_lod=False,
                                params={"hub_subdiv": 2}, rotor=dict(objects=("wt_hub", "wt_blades"), hub_z=89.6),
                                code=["cesprites/props_road.py", "cesprites/props_buildings.py"]),
+    # the street lamp of wave 0 (no automatic levels, see above); the upper half of its lens lies inside the head
+    # and is dropped, so the light anchor looks down (props3d.HIDDEN_TOP_Z)
+    "props/streetlight": dict(builder="prop_vpbr", source="props/streetlight", kind="furniture", auto_lod=False,
+                              hidden_tops=("sl_lens",), code=["cesprites/props_road.py", "cesprites/props_buildings.py"]),
 })
 
 

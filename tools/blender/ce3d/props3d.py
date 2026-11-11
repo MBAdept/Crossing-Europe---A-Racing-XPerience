@@ -90,6 +90,7 @@ def build_vpbr(model_id, spec3d):
     t0 = time.time()
     rig, info, sspec = _build_source(spec3d)
     objs = _objects(rig)
+    dropped = _drop_hidden_tops(objs, spec3d.get("hidden_tops", ()))
     tr = roles.Translator(overrides=spec3d.get("overrides"), glass_class=False)
     mb = core.MeshBuilder()
     rotor = spec3d.get("rotor") or {}
@@ -109,7 +110,46 @@ def build_vpbr(model_id, spec3d):
     model.lods = [Lod("lod0", 100000, [Part("body", "lod0_body", mb.finish(), auto_lod=model.auto_lod)])]
     model.lights = tr.lights()
     model.stats = dict(build_s=round(time.time() - t0, 2), objects=len(objs))
+    if dropped:
+        model.stats["hidden_tops"] = dropped
     return model
+
+
+# hidden_tops (AS1b): objects whose upper half lies inside another part - the lens of a street lamp hangs half
+# inside the lamp head. Their faces looking up (normal z > HIDDEN_TOP_Z) are never seen and are dropped: the
+# light anchor then looks down and lies on the underside of the lens. With the whole closed lens its normals
+# cancelled, and the rule for closed vehicle lamps (the half that looks away from the middle of the car) gave the
+# street lamp a direction to the side and slightly up (-0.965, 0.261, 0): flares and the pool beside the lamp.
+HIDDEN_TOP_Z = 0.3
+
+
+def _drop_hidden_tops(objs, names):
+    """Removes the faces looking up from the objects named in `names` (prefixes). Returns the number removed."""
+    import bmesh
+    if not names:
+        return 0
+    n_drop = 0
+    for ob in objs:
+        if not any(ob.name.startswith(n) for n in names):
+            continue
+        nmat = np.linalg.inv(np.array(ob.matrix_world, dtype=np.float64)[:3, :3]).T
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        drop = []
+        for f in bm.faces:
+            n = nmat @ np.array(f.normal)
+            n /= max(1e-9, np.linalg.norm(n))
+            if n[2] > HIDDEN_TOP_Z:
+                drop.append(f)
+        if drop:
+            bmesh.ops.delete(bm, geom=drop, context="FACES")
+            bm.to_mesh(ob.data)
+            ob.data.update()
+            n_drop += len(drop)
+        bm.free()
+    if not n_drop:
+        raise ValueError("hidden_tops %s: no face removed (object names?)" % (list(names),))
+    return n_drop
 
 
 def _mark_rotor(mb, rotor):

@@ -513,12 +513,12 @@ Konturen und Dreiecke vor und nach dem Schnitt. Auf die Dateien hat die Variable
 ## 14. Umgebung des Schnitts (Bauabschnitt 2)
 
 Was ein Spieler auf den ersten 75 km von Kiel nach Hamburg sieht, gezählt mit dem `Track`-Generator der Etappe
-(alle Segmente bis km 75, Richtung ab Kiel; die Gegenrichtung zeigt dieselben Sets): Eiche 147, Birke 88, runder
+(alle Segmente bis km 75, Richtung ab Kiel): Eiche 147, Birke 88, runder
 Busch 76, Heuballen 48, Windrad 28, Zapfsäule 9, Bauernhaus 7, Blitzer 2, Tankstelle 1 und die Preissäule der
 Tankstelle (ein `object`, das kein Sprite-Set hat: Sache des Tankstellen-Builders). Jedes dieser Sets hat jetzt
 ein Modell – auf diesem Abschnitt steht kein Sprite-Platzhalter mehr. Dazu kommen die Modelle, die die Strecke erst
-später oder anderswo zeigt: niedriger Busch, Scheune, Windmühle, Strommast, Laterne (wie Bauabschnitt 0),
-Leitpfosten, Zollhäuschen, und die Bodendecker für die Innenseite von Kurven.
+später oder anderswo zeigt: niedriger Busch, Scheune, Windmühle, Strommast, Laterne, Leitpfosten, Zollhäuschen,
+und die Bodendecker für die Innenseite von Kurven.
 
 | Modell | Bauer | Dreiecke je Stufe | Aufrufe | Texturen |
 |---|---|---|---|---|
@@ -530,11 +530,14 @@ Leitpfosten, Zollhäuschen, und die Bodendecker für die Innenseite von Kurven.
 | `props/barn`, `windmill`, `customs_booth`, `fuel_station` | `building` | 290 · 1 640 · 206 · 1 480 | 2 | 1024² · 1024² · 512² · 1024² |
 | `props/haybale`, `fuel_pump`, `radar_camera`, `delineator` | `building` (ein Atlas) | 672 · 384 · 328 · 12 | 1 | 512² · 512² · 256² · 128² |
 | `props/wind_turbine` | `prop_vpbr` | 744 | 1 | – |
+| `props/streetlight` | `prop_vpbr` | 274 (Bauabschnitt 0: 312) | 1 | – |
 | `props/power_pylon` | `lattice` | 220 | 1 | Ausschneide-Atlas 1024² |
 
 Alle Zahlen gemessen (`validate_models.py --report`); Exportzeiten auf dieser VM: Bäume 5–7 s, Büsche unter 1 s,
-Gebäude 24–133 s (Cycles: Farbe in doppelter Auflösung plus Umgebungsverdeckung), Straßenmöbel mit Atlas
-3–38 s, Strommast 2 s. Die Gebäude und Straßenmöbel haben nur `lod0`: Ihre Netze tragen Lampenkanäle, und eine
+Gebäude 20–175 s (Cycles: Farbe in doppelter Auflösung plus Umgebungsverdeckung; je nach Last der VM – das
+Bauernhaus brauchte allein 92 s, neben einem zweiten Export-Prozess 173 s), Straßenmöbel mit Atlas 3–53 s,
+Strommast 2 s. Alle 21 Requisiten neu exportiert (`--force`, zwei Prozesse), gebacken und importiert: 369 s,
+danach keine Datei verändert (byte-identisch, gemessen). Die Gebäude und Straßenmöbel haben nur `lod0`: Ihre Netze tragen Lampenkanäle, und eine
 automatische Stufe darf es dann nicht geben (die Dreieckszahlen sind ohnehin klein).
 
 ### Kartenbäume (`ce3d/veg3d.py`, `ce3d/leafatlas.py`)
@@ -625,6 +628,15 @@ Die Teile, die sich drehen, tragen im `vpbr`-Format den **Lackcode 0,875** und i
 als feste Farbe – ein stehender Rotor. Gedreht werden sie mit einer Erweiterung im `vertex()` des Shaders um die
 Z-Achse des Modells durch (0, Nabenhöhe) mit `ce_time` (auf einem Wegwerfzweig erprobt: zehn Zeilen, Bilder bei
 0 / 0,4 / 0,8 s drehen sich richtig). Der Prüfer kennt den Code.
+
+### Laterne: der Lichtanker schaut nach unten
+
+Die Linse der Laterne (ein flaches Ellipsoid) hängt zur Hälfte im Leuchtenkopf. Geschlossen hoben sich ihre
+Normalen auf, und die Regel für geschlossene Fahrzeuglampen (die Hälfte, die von der Fahrzeugmitte wegschaut)
+gab dem Anker die Richtung (−0,965; 0,261; 0): zur Seite und leicht nach oben – Lichtschein und Pfütze neben
+der Lampe. Die Option `hidden_tops` des Bauers `prop_vpbr` entfernt die nach oben schauenden Flächen der
+genannten Objekte (Normale z > 0,3; man sieht sie nie, der Kopf deckt sie): Der Anker liegt jetzt auf der
+Unterseite der Linse (9,17 m) und schaut nach unten, `dir` (0,007; −1; 0) (gemessen). 274 statt 312 Dreiecke.
 
 ### Strommast: das Fachwerk im Ausschneide-Atlas (Bauer `lattice`)
 

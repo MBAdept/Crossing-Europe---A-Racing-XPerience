@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 100000,
-    "tris": 312,
+    "tris": 274,
     "parts": [
      {
       "node": "body",
@@ -24,16 +24,16 @@
   "lights": [
    {
     "role": "lights",
-    "pos": [-2.1534, 9.2896, 0],
-    "dir": [-0.965, 0.261, 0],
-    "size": 0.609,
+    "pos": [-1.9665, 9.1701, 0],
+    "dir": [0.007, -1, 0],
+    "size": 0.439,
     "color": "#fff0cf"
    }
   ],
   "auto_lod": false,
   "tags": ["prop", "road", "mirror_left"],
-  "bytes": 4395,
-  "hash": "09df148a53b11fa3a77e41fd95ee27952fa4a5cc"
+  "bytes": 4104,
+  "hash": "97ae0e7d3bbf871716dc3d10f835aad61faab229"
  },
  "sets": {
   "props/streetlight": {"model": "props/streetlight"}
