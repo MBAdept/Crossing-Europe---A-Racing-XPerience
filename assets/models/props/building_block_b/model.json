@@ -33,12 +33,12 @@
     ]
    }
   ],
-  "textures": {"albedo": "props/building_block_b/albedo.png"},
+  "textures": {"albedo": "props/building_block_b/albedo.webp"},
   "roughness": 0.85,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left"],
-  "bytes": 798065,
-  "hash": "ca0de686c667d8d6b63337c1bf616fba8b22c193"
+  "bytes": 901409,
+  "hash": "435fd4b7b619827f34ef41b9b5565f5d1f068aab"
  },
  "sets": {
   "props/building_block_b": {"model": "props/building_block_b"}

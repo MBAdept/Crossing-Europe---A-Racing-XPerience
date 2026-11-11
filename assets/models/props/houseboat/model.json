@@ -11,12 +11,12 @@
    {
     "name": "lod0",
     "max_dist_m": 100000,
-    "tris": 870,
+    "tris": 1054,
     "parts": [
      {
       "node": "body",
       "mesh": "props/houseboat/lod0_body.res",
-      "classes": ["vpbr", "baked_cutout"]
+      "classes": ["vpbr", "baked"]
      }
     ]
    }
@@ -34,8 +34,8 @@
   "roughness": 0.7,
   "auto_lod": false,
   "tags": ["prop", "boat", "water", "mirror_left"],
-  "bytes": 72275,
-  "hash": "65595ecc8756dfd2d35ffee7421afcfb74107ad2"
+  "bytes": 230909,
+  "hash": "d50b28d958dc43a367ad9b183d3de7b14470394a"
  },
  "sets": {
   "props/houseboat": {"model": "props/houseboat"}

@@ -24,30 +24,30 @@
   "lights": [
    {
     "role": "lights",
-    "pos": [-1.0959, 4.2711, 0],
-    "dir": [-0.995, -0.105, 0],
-    "size": 0.781,
+    "pos": [-0.92, 4.12, 0],
+    "dir": [0, -1, 0],
+    "size": 0.291,
     "color": "#ffd890"
    },
    {
     "role": "lights",
     "pos": [0, 3.958, 0],
     "dir": [0, -1, 0],
-    "size": 0.898,
+    "size": 0.335,
     "color": "#ffd890"
    },
    {
     "role": "lights",
-    "pos": [1.0959, 4.2711, 0],
-    "dir": [0.995, -0.105, 0],
-    "size": 0.781,
+    "pos": [0.92, 4.12, 0],
+    "dir": [0, -1, 0],
+    "size": 0.291,
     "color": "#ffd890"
    }
   ],
   "auto_lod": false,
   "tags": ["prop", "bridge", "road", "mirror_left"],
-  "bytes": 12038,
-  "hash": "3b690f890328e8d3d7f2f8fe449c280542752812"
+  "bytes": 12092,
+  "hash": "12c2e3b3f887d522b1cf066e44ce8b776e8e9891"
  },
  "sets": {
   "props/bridge_lamp": {"model": "props/bridge_lamp"}

@@ -33,12 +33,12 @@
     ]
    }
   ],
-  "textures": {"albedo": "props/church/albedo.png"},
+  "textures": {"albedo": "props/church/albedo.png", "emit": "props/church/emit.png"},
   "roughness": 0.85,
   "auto_lod": false,
   "tags": ["prop", "building", "mirror_left"],
-  "bytes": 247378,
-  "hash": "18d6a5af5e5942d503d1fa956c47a1db10aee44b"
+  "bytes": 589384,
+  "hash": "68479a12fbe345b945fa7f4cb1095cae0da5d41a"
  },
  "sets": {
   "props/church": {"model": "props/church"}

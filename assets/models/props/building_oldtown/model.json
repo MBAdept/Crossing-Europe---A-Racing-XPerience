@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 2316,
+    "tris": 2326,
     "parts": [
      {
       "node": "body",
@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 100000,
-    "tris": 1112,
+    "tris": 1118,
     "parts": [
      {
       "node": "body",
@@ -37,8 +37,8 @@
   "roughness": 0.85,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left"],
-  "bytes": 267533,
-  "hash": "0869dd2227860b57d76378620ce951bd0c8dcc7f"
+  "bytes": 548153,
+  "hash": "70b5e3abf6248c68541ec7b55505467eec25b84c"
  },
  "sets": {
   "props/building_oldtown": {"model": "props/building_oldtown"}

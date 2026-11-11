@@ -48,8 +48,8 @@
   "roughness": 0.55,
   "auto_lod": false,
   "tags": ["prop", "ship"],
-  "bytes": 214104,
-  "hash": "a369f268093f9664443e5a6bf3b7565c634f0c3d"
+  "bytes": 482439,
+  "hash": "4667cb7e618d6a4183164a09d0990f922f19ea3e"
  },
  "sets": {
   "props/ferry_ship": {"model": "props/ferry_ship"}

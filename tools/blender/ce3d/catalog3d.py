@@ -208,16 +208,17 @@ MODELS.update({
     # slate spire with a gilded cross; walls 30 cm deep in the openings, two steps at the door
     "props/church": dict(builder="house", source="props/church", kind="building", atlas=(1024, 1024), ppm_max=80.0,
                          roughness=0.85, view="roadside", params={"allround": True}, ao=AO_TOWN, lod1=True,
-                         vpbr=("church_gold",), weights=dict(roof=0.75),
+                         vpbr=("church_gold",), weights=dict(roof=0.5, away=0.25),
                          openings=dict(reveal_m=0.3, door_m=0.3, steps=2, reveal_color="#d8d0bd", sill_color="#cfc6b2",
                                        louvre=(17.0, 19.6), bars={"win": (1, [0.36, 0.66])}),
+                         flood=dict(objects=("church_tower",), strength=0.12, z=(0.0, 21.0), tint="#ffe2b0", top=0.3),
                          gutters=dict(per_roof=2, walls=("church_nave",))),
     # rural / outskirts: the factory - hall with sawtooth roofs and skylights, steel sash windows, a roller gate with a
     # transom window, the name board "WERK 2" as letters (lit at night), brick chimney with aviation light, silo
     "props/factory": dict(builder="house", source="props/factory", kind="building", atlas=(1024, 1024), ppm_max=80.0,
                           roughness=0.8, view="roadside", params={"allround": True}, ao=AO_TOWN, lod1=True,
-                          vpbr=("fac_tank",), baked_lamps=("fac_skylight",), weights=dict(roof=0.55, away=0.25),
-                          gutters=False, caps=False,
+                          vpbr=("fac_tank",), baked_lamps=("fac_skylight",), weights=dict(roof=0.4, away=0.25),
+                          overrides={"fac_tank": dict(rough=0.5, metal=0.45)}, gutters=False, caps=False,
                           openings=dict(reveal_m=0.2, reveal_color="#9d988e", sill_color="#8f8b84",
                                         bars={"large": (3, 3)}, pane_lit=(0.75, 1.0)),
                           sign=dict(text="WERK 2", face="front", u=(-14.6, -3.4), z=(7.1, 8.4), h=0.95, wall=0.0,
@@ -226,11 +227,11 @@ MODELS.update({
     "props/building_block_a": dict(builder="house", source="props/building_block_a", kind="building",
                                    atlas=(2048, 1024), ppm_max=72.0, roughness=0.85, view="roadside",
                                    params={"allround": True}, ao=AO_TOWN, lod1=True, vpbr=("blka_rail",),
-                                   overrides={"blka_rail": dict(rough=0.6, metal=0.3)}, weights=dict(roof=0.4),
+                                   overrides={"blka_rail": dict(rough=0.6, metal=0.3)}, weights=dict(roof=0.4, away=0.5),
                                    openings=dict(reveal_color="#cbb98f", sill_color="#d6d1c6"), gutters=False),
     "props/building_block_b": dict(builder="house", source="props/building_block_b", kind="building",
                                    atlas=(2048, 1024), ppm_max=72.0, roughness=0.85, view="roadside",
-                                   params={"allround": True}, ao=AO_TOWN, lod1=True, weights=dict(roof=0.4),
+                                   params={"allround": True}, ao=AO_TOWN, lod1=True, weights=dict(roof=0.4, away=0.5),
                                    openings=dict(reveal_color="#cfc4b2", sill_color="#d3cabb",
                                                  bars={"large": (1, [0.78])}), gutters=False),
     # old town: the stepped-gable house (the gable one prism so that its windows can be cut; a back gable closes the roof)
@@ -273,7 +274,7 @@ MODELS.update({
                              code=["cesprites/props_road.py", "cesprites/props_buildings.py"]),
     # the Amsterdam houseboat: its cabin walls come from props_cities.wallmat (window log taken from outside); the
     # cut-out railing of the roof garden is rebuilt as posts and rails (vpbr), the potted plants decimated
-    "props/houseboat": dict(builder="house", source="props/houseboat", kind="building", atlas=(512, 512),
+    "props/houseboat": dict(builder="house", source="props/houseboat", kind="building", atlas=(1024, 512),
                             ppm_max=110.0, roughness=0.7, view="roadside", city_walls=True,
                             railings=dict(objects=("hb_rail",), post=1.0, color="#1f2321", w=0.05),
                             decimate={"hb_plant": 0.15, "hb_fl": 0.5},

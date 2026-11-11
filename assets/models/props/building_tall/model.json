@@ -46,8 +46,8 @@
   "roughness": 0.6,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left"],
-  "bytes": 110303,
-  "hash": "3c29a3a051a57bc09e2cc991108ff96af929933d"
+  "bytes": 141743,
+  "hash": "6f00e3518ad35fd3ead269b15bca1c7b658a7859"
  },
  "sets": {
   "props/building_tall": {"model": "props/building_tall"}

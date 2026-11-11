@@ -46,8 +46,8 @@
   "roughness": 0.85,
   "auto_lod": false,
   "tags": ["prop", "bridge", "mirror_left"],
-  "bytes": 129177,
-  "hash": "4525ec5dab0f980c784757b9c99b8feac0c3ee93"
+  "bytes": 265023,
+  "hash": "5b985e71d47b030f6862a671f1877cf0f64e1fb4"
  },
  "sets": {
   "props/bridge_pylon": {"model": "props/bridge_pylon"}

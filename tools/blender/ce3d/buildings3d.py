@@ -1321,6 +1321,89 @@ def _box_beam(geo, mat, a, b, w, h, ew, eh, level):
         geo.quad(mat, a + p, b + p, b + q, a + q, nn / max(1e-9, np.linalg.norm(nn)), level)
 
 
+def _floodlight(objs, spec):
+    """A floodlit tower (the village church): the walls of the named objects get a copy of their material whose light
+    layer adds the wall's own colour x tint x strength, fading with height (floodlights at its foot, (1 - t)^1.5 with t
+    = (z - z0) / (z1 - z0), at least `top` of it at the top). It lands in the emission atlas: nothing by day, the
+    soft light of the tower at night. Applied after the openings are cut (the window log knows the original names).
+    spec = dict(objects=(prefixes), strength, z=(z0, z1), tint, top)."""
+    from cesprites import materials as M
+    copies = {}
+    n = 0
+    for ob in objs:
+        if not any(ob.name.startswith(p) for p in spec["objects"]):
+            continue
+        for slot in ob.material_slots:
+            mat = slot.material
+            if mat is None or mat.get("ce_filler"):
+                continue
+            if mat.name not in copies:
+                m = mat.copy()
+                m.name = "ce_flood_" + mat.name
+                nt = m.node_tree
+                em = [nd for nd in nt.nodes if nd.bl_idname == "ShaderNodeEmission"]
+                bsdf = [nd for nd in nt.nodes if nd.bl_idname == "ShaderNodeBsdfPrincipled"]
+                grp = [nd for nd in nt.nodes if nd.bl_idname == "ShaderNodeGroup" and "lights" in nd.outputs]
+                if not em or not bsdf or not grp:
+                    copies[mat.name] = None
+                    continue
+                em, bsdf, grp = em[0], bsdf[0], grp[0]
+                tc = nt.nodes.new("ShaderNodeTexCoord")
+                sep = nt.nodes.new("ShaderNodeSeparateXYZ")
+                nt.links.new(tc.outputs["Object"], sep.inputs[0])
+                z0, z1 = spec.get("z", (0.0, 30.0))
+                t = nt.nodes.new("ShaderNodeMapRange")
+                t.clamp = True
+                nt.links.new(sep.outputs[2], t.inputs["Value"])
+                t.inputs["From Min"].default_value = float(z0)
+                t.inputs["From Max"].default_value = float(z1)
+                t.inputs["To Min"].default_value = 1.0
+                t.inputs["To Max"].default_value = 0.0
+                pw = nt.nodes.new("ShaderNodeMath")
+                pw.operation = "POWER"
+                nt.links.new(t.outputs[0], pw.inputs[0])
+                pw.inputs[1].default_value = 1.5
+                top = nt.nodes.new("ShaderNodeMapRange")
+                nt.links.new(pw.outputs[0], top.inputs["Value"])
+                top.inputs["To Min"].default_value = float(spec.get("top", 0.25))
+                top.inputs["To Max"].default_value = 1.0
+                k = nt.nodes.new("ShaderNodeMath")
+                k.operation = "MULTIPLY"
+                nt.links.new(top.outputs[0], k.inputs[0])
+                nt.links.new(grp.outputs["lights"], k.inputs[1])
+                tint = M.srgb(spec.get("tint", "#ffe2b0"))
+                s = float(spec.get("strength", 0.1))
+                base = nt.nodes.new("ShaderNodeMix")
+                base.data_type = "RGBA"
+                base.blend_type = "MULTIPLY"
+                base.inputs["Factor"].default_value = 1.0
+                a_col, b_col = M._sock(base.inputs, "A_Color"), M._sock(base.inputs, "B_Color")
+                src = bsdf.inputs["Base Color"]
+                if src.is_linked:
+                    nt.links.new(src.links[0].from_socket, a_col)
+                else:
+                    a_col.default_value = tuple(src.default_value)
+                b_col.default_value = (tint[0] * s, tint[1] * s, tint[2] * s, 1.0)
+                scaled = nt.nodes.new("ShaderNodeVectorMath")
+                scaled.operation = "SCALE"
+                nt.links.new(M._sock(base.outputs, "Result_Color"), scaled.inputs[0])
+                nt.links.new(k.outputs[0], scaled.inputs["Scale"])
+                add = nt.nodes.new("ShaderNodeVectorMath")
+                add.operation = "ADD"
+                ein = em.inputs["Color"]
+                if ein.is_linked:
+                    nt.links.new(ein.links[0].from_socket, add.inputs[0])
+                else:
+                    add.inputs[0].default_value = tuple(ein.default_value)[:3]
+                nt.links.new(scaled.outputs[0], add.inputs[1])
+                nt.links.new(add.outputs[0], ein)
+                copies[mat.name] = m
+            if copies[mat.name] is not None:
+                slot.material = copies[mat.name]
+                n += 1
+    return n
+
+
 def _rotate(objs, deg):
     """Turns every object of the model about the vertical axis through the origin (the ferry)."""
     import bpy
@@ -1410,6 +1493,8 @@ def build_house(model_id, spec3d):
         cut_openings(rig, objs, log, opt, geo, mats, stats)
     if spec3d.get("octagon"):
         _octagon_windows(rig, objs, geo, mats, spec3d["octagon"], opt, stats)
+    if spec3d.get("flood"):
+        stats["floodlit"] = _floodlight(objs, spec3d["flood"])
     if spec3d.get("sign"):
         stats["sign_tris"] = _sign(rig, geo, mats, spec3d["sign"])
     if spec3d.get("gutters", True) is not False:

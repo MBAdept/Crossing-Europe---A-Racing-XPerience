@@ -25,8 +25,8 @@
   "roughness": 0.9,
   "auto_lod": false,
   "tags": ["prop", "building"],
-  "bytes": 311385,
-  "hash": "cc7e703cc9919409367e0248daa89abc33d8688a"
+  "bytes": 843835,
+  "hash": "a176ae3c2c323d06b3e826731b2c5f1519a54098"
  },
  "sets": {
   "props/windmill": {"model": "props/windmill"}

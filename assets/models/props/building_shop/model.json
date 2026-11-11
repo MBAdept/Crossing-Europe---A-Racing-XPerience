@@ -37,8 +37,8 @@
   "roughness": 0.85,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left"],
-  "bytes": 148601,
-  "hash": "ba22ca363599665de93a602f6e4cd9054004d001"
+  "bytes": 321925,
+  "hash": "ded9d680a16df910ffdbf401ae3ad0b7b8b853a4"
  },
  "sets": {
   "props/building_shop": {"model": "props/building_shop"}
