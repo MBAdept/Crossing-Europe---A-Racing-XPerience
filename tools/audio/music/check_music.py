@@ -14,6 +14,13 @@ where the four-on-the-floor kick layers put a comb of lines), the best-matching 
            (music_synth.SECTIONS), and the key before the final chorus (it modulates a whole tone up).
   race     linke_spur.ogg against its own score (linke_spur.PHRASES, count-in, the loop), key D minor; and the ending
            against B♭ – C – d.
+  pieces   (AU-D2) nachtfahrt.ogg and rueckenwind.ogg against their scores (race_lib pieces): a bar counts when the root
+           of its best triad is the score's, or when that triad is made of the notes the pad really holds (the colour
+           chords: A♭maj7 contains C minor); the key; the ending's first chord and its tonic.
+  extras   (AU-D2) the extra clips of every race piece: the stab on the tonic, the record ending arriving on the tonic,
+           the finale ending in major (the Picardy third of the minor pieces), the stingers in the minor key of the
+           piece (key over all their bars).
+  python3 tools/audio/music/check_music.py --only nachtfahrt,rueckenwind [--music <folder of an --out run>]
 Exit code 0 when every check passes. Measured, deterministic.
 """
 from __future__ import annotations

@@ -141,7 +141,7 @@ func test_rotation_of_the_race_pieces() -> void:
 	var m := _modern()
 	assert_eq(m.music.race_ids(), PIECES, "drei Rennstücke in der Reihenfolge ihrer Rotation")
 	var keys: Array[String] = []
-	var bpm := {"linke_spur": 132.0, "nachtfahrt": 108.0, "rueckenwind": 147.0}
+	var bpm := {"linke_spur": 132.0, "nachtfahrt": 105.0, "rueckenwind": 150.0}
 	for i in 4:
 		var id := _race(m)
 		assert_eq(id, PIECES[i % 3], "Etappe %d: %s" % [i + 1, PIECES[i % 3]])

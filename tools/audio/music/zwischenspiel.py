@@ -2,7 +2,7 @@
 """Zwischenspiel für das Klangprofil „Modern“ (contract D30; docs/audio-modern.md, section "Musik").
 
 The calm loop of the screens between the stages (music context "race_menu", and "result" while there is no piece of
-its own): E minor like the title theme, 98 bpm (1 bar = 120/49 s, a sixteenth 6750 frames), in the brand sound but quiet – pads, bells, a soft
+its own): E minor like the title theme, 100 bpm (1 bar = 2.4 s, a sixteenth 6615 frames = 105 x 63), in the brand sound but quiet – pads, bells, a soft
 arpeggio, a clean guitar picking chords, a round synth bass and a soft half-time beat. The title theme's hook comes
 back on the soft lead (recognition), the bells play a melody of their own. Form:
 
@@ -11,7 +11,7 @@ back on the soft lead (recognition), the bells play a melody of their own. Form:
      B  Em C G D Em C G D   the title hook on the soft lead, arpeggio, shaker
      A' as A                the bells' melody on the soft lead an octave down, clean guitar picking
      B' as B (6 bars)       the hook with a harmony, clean guitar
-  loop 32 bars = 78.37 s (3,456,000 frames); the intro is the loop's own last two bars, so the seam lies inside the music
+  loop 32 bars = 76.8 s (3,386,880 frames); the intro is the loop's own last two bars, so the seam lies inside the music
 
   python3 tools/audio/music/zwischenspiel.py              render, write the file, its import and the manifest entry
   python3 tools/audio/music/zwischenspiel.py --out DIR    the same below DIR (no import file; QC --determinism)
@@ -39,7 +39,7 @@ GENERATOR = "tools/audio/music/zwischenspiel.py"
 PIECE = "zwischenspiel"
 TITLE = "Crossing Europe - Zwischenspiel"
 SEED = "zw"
-BPM = 98.0               # a sixteenth is a whole number of frames: the loop seam is exact
+BPM = 100.0              # a sixteenth is a whole multiple of 63 frames (race_lib.check_tempo): exact seam
 FILE = "zwischenspiel.ogg"
 TAIL_S = 4.6
 EXTRA_BARS = 3
@@ -90,6 +90,7 @@ class Zwischenspiel:
         self.tl = Timeline(rows, "C")
         self.I_BODY = 2
         self.LOOP_BARS = sum(len(p[2].split()) for p in PHRASES)
+        race_lib.check_tempo(BPM, self.LOOP_BARS)
         self.LOOP_FRAMES = int(round(self.LOOP_BARS * ms.BAR * mlib.SR))
         self.F_BODY = int(math.floor(self.I_BODY * ms.BAR * mlib.SR))
         self.N_RENDER = int(round(len(self.tl) * ms.BAR * mlib.SR + TAIL_S * mlib.SR))
@@ -231,7 +232,7 @@ def main(argv=None) -> int:
         mlib.write_ogg_import_keep(man.file(FILE), (z.F_BODY + 0.25) / mlib.SR, BPM, 0, 4)
     e = man.add(PIECE, FILE, "music", GENERATOR, loop=(z.F_BODY, n_file), role="interlude", bus="MMusic",
                 gain_db=mlib.prefs()["menu_music_db"], bpm=BPM, bar_beats=4,
-                note="Zwischenspiel: Kehre (2 Takte) einmal, dann Schleife A B A' B' T (32 Takte = 78,4 s); Bildschirme "
+                note="Zwischenspiel: Kehre (2 Takte) einmal, dann Schleife A B A' B' T (32 Takte = 76,8 s); Bildschirme "
                      "zwischen den Etappen")
     e.update({"piece": PIECE, "intro_bars": z.I_BODY, "loop_bars": z.LOOP_BARS, "key": "Em"})
     man.save()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Rennmusik 2 „Nachtfahrt“ für das Klangprofil „Modern“ (contract D30, §4.7; docs/audio-modern.md, section "Musik").
 
-The dark one of the three race pieces: C minor, 108 bpm (1 bar = 20/9 s; a sixteenth = 6125 frames exactly), a night drive in the brand sound (synthwave
+The dark one of the three race pieces: C minor, 105 bpm (1 bar = 16/7 s; a sixteenth = 6300 frames = 100 x 63 exactly), a night drive in the brand sound (synthwave
 rock on the instruments of tools/audio/music_synth.py and the modern layers of music_lib). Where „Linke Spur“
 (D minor, 132 bpm) rolls on four-on-the-floor and eighth-note basses, this one pulses: half-time drums in the verses,
 a sequenced sixteenth-note synth bass with octave jumps, a hypnotic arpeggio over lush pads (minor ninths, major
@@ -11,7 +11,7 @@ Form (8-bar phrases):
   count-in (1 bar, G)  A1 | B1 A2 C1 B2 D S C2 B3 T A1 | …
                        groove + motif, hook, motif on the lead guitar, lift (iv – bVI – bVII – V), hook with harmony,
                        breakdown (bells over the arpeggio), guitar solo, lift, hook with everything, turnaround
-                       (half-time) – loop 80 bars = 177.78 s (7,840,000 frames)
+                       (half-time) – loop 80 bars = 182.86 s (8,064,000 frames)
 
 Files (race_lib.RacePiece): nachtfahrt.ogg (count-in + A1 once, then the loop body; loop_offset), nachtfahrt_schluss.ogg
 (Ab – Bb – Cm), and the extra clips nachtfahrt_{ziel,schluss_rekord,schluss_finale,polizei,tank}.ogg – one render, one
@@ -114,8 +114,8 @@ class Nachtfahrt(race_lib.RacePiece):
     PIECE = "nachtfahrt"
     TITLE = "Crossing Europe - Nachtfahrt"
     SEED = "nf"
-    BPM = 108.0          # a sixteenth is a whole number of frames: the two passes over the loop start are
-    # identical (at 112 bpm a sixteenth was 5906.25 frames, onsets on half frames rounded differently)
+    BPM = 105.0          # a sixteenth is a whole multiple of 63 frames (race_lib.check_tempo): the two passes
+    # over the loop start are identical
     ROTATION = 2
     KEY = {"tonic": "Cm", "minor_tonic": "Cm", "major_tonic": "C", "cadence": ("Ab", "Bb"), "bII": "Db", "iv": "Fm",
            "root_hi": 72}

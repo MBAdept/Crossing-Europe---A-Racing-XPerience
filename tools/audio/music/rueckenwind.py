@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """Rennmusik 3 „Rückenwind“ für das Klangprofil „Modern“ (contract D30, §4.7; docs/audio-modern.md, section "Musik").
 
-The bright one of the three race pieces: A major, 147 bpm (1 bar = 80/49 s; a sixteenth = 4500 frames exactly), uplifting synthwave rock in the brand
+The bright one of the three race pieces: A major, 150 bpm (1 bar = 1.6 s; a sixteenth = 4410 frames = 70 x 63 exactly), uplifting synthwave rock in the brand
 sound (the instruments of tools/audio/music_synth.py and the modern layers of music_lib). Against „Linke Spur“
-(D minor, 132 bpm) and „Nachtfahrt“ (C minor, 108 bpm): a major key, the fastest tempo, a disco-rock beat (open
+(D minor, 132 bpm) and „Nachtfahrt“ (C minor, 105 bpm): a major key, the fastest tempo, a disco-rock beat (open
 hats on the off-beats), octave-jumping eighth basses, guitar strums in the brand's 3-3-2 rhythm, a sparkling
 arpeggio, the heroic lift bVI – bVII – I (F – G – A) and a soaring hook up to the high A. Form (8-bar phrases):
 
   count-in (1 bar, E)  A1 | B1 A2 P1 B2 D S P2 B3 A3 T A1 | …
                        groove + motif, hook, motif and answer on the lead guitar, lift, hook with harmony, breakdown
                        (bells), guitar solo, lift, hook with everything, motif in octaves, turnaround – loop 88 bars
-                       = 143.67 s (6,336,000 frames)
+                       = 140.8 s (6,209,280 frames)
 
 Files (race_lib.RacePiece): rueckenwind.ogg (count-in + A1 once, then the loop body; loop_offset),
 rueckenwind_schluss.ogg (F – G – A), and the extra clips rueckenwind_{ziel,schluss_rekord,schluss_finale,polizei,
@@ -119,7 +119,7 @@ class Rueckenwind(race_lib.RacePiece):
     PIECE = "rueckenwind"
     TITLE = "Crossing Europe - Rueckenwind"
     SEED = "rw"
-    BPM = 147.0          # a sixteenth is a whole number of frames (see nachtfahrt.py)
+    BPM = 150.0          # a sixteenth is a whole multiple of 63 frames (race_lib.check_tempo)
     ROTATION = 3
     KEY = {"tonic": "A", "minor_tonic": "Am", "major_tonic": "A", "cadence": ("F", "G"), "bII": "Bb", "iv": "Dm",
            "root_hi": 69}

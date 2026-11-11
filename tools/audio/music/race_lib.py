@@ -100,6 +100,20 @@ class Voicings(dict):
         return v
 
 
+def check_tempo(bpm: float, loop_bars: int) -> None:
+    """A looping piece must loop exactly – two conditions on its tempo (measured, docs/audio-modern.md "Fallen"):
+    a sixteenth is a whole number of frames (else onsets on half frames round differently in the two passes over the
+    loop start: -30 dBFS at 112 bpm), and the loop is a whole number of the 63-frame blocks of the frozen
+    compressor's level detector (music_synth.compressor_gain: its grid starts at frame 0; else the compressor gains of
+    the two passes differ by about 0.1 dB: -34 dBFS at 108 bpm). Tempi that meet both for any bar count: 100, 105, 125,
+    140, 150 bpm (a sixteenth is a multiple of 63 frames)."""
+    step = SR * 15.0 / bpm
+    loop = loop_bars * 16 * step
+    if abs(step - round(step)) > 1e-9 or int(round(loop)) % 63 != 0:
+        raise SystemExit(f"{bpm:g} bpm, {loop_bars} Takte: eine Sechzehntel ist {step:g} Frames, die Schleife "
+                         f"{loop:g} Frames – sie muss eine ganze Zahl von Frames und ein Vielfaches von 63 sein")
+
+
 def note_name(midi: int) -> str:
     """MIDI -> the note names of music_synth.parse_line ("Eb5", "F#4")."""
     return f"{NAMES[midi % 12]}{midi // 12 - 1}"
@@ -504,11 +518,11 @@ class Extras:
         bells.append(("F", 2, [f"0:2:{N(dM['r'] - 12)} 2:2:{N(dM['3'] - 12)} 4:2:{N(dM['5'] - 12)} 6:2:{N(dM['r'])} "
                                f"8:2:{N(dM['3'])} 10:2:{N(dM['5'])} 12:4:{N(dM['8'])}",
                                f"0:16:{N(dM['5'])}"], 0.65))
-        # P – busted: silence over the hits, then a chromatic fall from the fifth to the root (bar 1)
-        lead.append(("P", 1, [f"0:4:{N(dm['5'])} 4:4:{N(dm['5'] - 1)} 8:4:{N(dm['4'])} 12:4:{N(dm['4'] - 1)}",
-                              f"0:8:{N(dm['r'])}"], 0, "lead", 0.85, "lead_syn"))
-        gtr.append(("P", 1, [f"0:4:{N(dm['5'])} 4:4:{N(dm['5'] - 1)} 8:4:{N(dm['4'])} 12:4:{N(dm['4'] - 1)}",
-                             f"0:8:{N(dm['r'])}:v"], -12, 0.7))
+        # P – busted: silence over the hits, then the blues fall 5 – b5 – 4 – b3 to the root (bar 1; in the minor key –
+        # a major third here would be out of key)
+        fall = f"0:4:{N(dm['5'])} 4:4:{N(dm['5'] - 1)} 8:4:{N(dm['4'])} 12:4:{N(dm['3'])}"
+        lead.append(("P", 1, [fall, f"0:8:{N(dm['r'])}"], 0, "lead", 0.85, "lead_syn"))
+        gtr.append(("P", 1, [fall, f"0:8:{N(dm['r'])}:v"], -12, 0.7))
         # T – out of fuel: the line runs dry – a slow chromatic sigh, then the root sinks by an octave
         sigh = [f"0:4:{N(dm['5'])}:l 4:4:{N(dm['5'] - 1)}:l 8:4:{N(dm['4'])}:l 12:4:{N(dm['3'])}:l",
                 f"0:16:{N(dm['r'])}:B-12"]
@@ -784,6 +798,7 @@ class RacePiece:
         self.tl = self.timeline()
         self.I_BODY = self.COUNTIN_BARS + 8
         self.LOOP_BARS = 8 * (len(self.PHRASES) - 1) + 8
+        check_tempo(self.BPM, self.LOOP_BARS)
         self.LOOP_FRAMES = int(round(self.LOOP_BARS * ms.BAR * SR))
         self.I_END = len(self.tl) - self.ENDING_BARS
         self.N_RENDER = int(round(len(self.tl) * ms.BAR * SR + self.TAIL_S * SR))
