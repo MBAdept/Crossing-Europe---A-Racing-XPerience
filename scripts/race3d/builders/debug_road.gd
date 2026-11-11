@@ -6,7 +6,8 @@ extends ChunkBuilder
 ## With road_strips = false it draws the ribbon alone: ModernRenderer uses it that way as the stand-in for a
 ## missing builders/terrain.gd, with terrain_rings = false it draws the road alone.
 ## Unshaded means: it shows neither the light of the environment nor shadows; inside the renderer its update() hook
-## tints it with the ambient colour of the palette, as Arcade tints its road and ground.
+## tints it with the ambient colour of the palette, as Arcade tints its road and ground. The ribbon has the scenery's
+## two grass bands in Arcade's four-segment rhythm, so a stand-in picture compares fairly with Arcade's ground.
 ## Owner: race3d kernel.
 
 const ASPHALT := Color(0.30, 0.31, 0.34)
@@ -56,7 +57,8 @@ func build(ctx: ChunkContext, _input: Variant) -> Dictionary:
 				eb.y - EDGE_LINE_IN_M, LINE_LIFT_M, LINE)
 		if not terrain_rings or tunnel or ctx.rings < 2:
 			continue
-		var ground := WATER if bool(sa["water"]) else (GRASS if (int(sa["index"]) / 4) % 2 == 0 else GRASS_ALT)
+		# the scenery's two grass bands, four segments each – Arcade's ground (RoadRenderer: stripes.grass)
+		var ground := WATER if bool(sa["water"]) else _grass(ctx, str(sa.get("scenery", "")), (int(sa["index"]) / 4) % 2)
 		for side: int in [-1, 1]:
 			var base_a := ctx.shoulder_edge(i, side)
 			var base_b := ctx.shoulder_edge(i + 1, side)
@@ -70,9 +72,8 @@ func build(ctx: ChunkContext, _input: Variant) -> Dictionary:
 				verts.append(ctx.local(z0, xa1, ctx.ring_height(i, side, r + 1)))
 				verts.append(ctx.local(z1, xb1, ctx.ring_height(i + 1, side, r + 1)))
 				verts.append(ctx.local(z1, xb0, ctx.ring_height(i + 1, side, r)))
-				var c := ground.darkened(0.035 * float(r))
 				for q in 4:
-					cols.append(c)
+					cols.append(ground)
 				for q: int in [0, 1, 2, 0, 2, 3]:
 					idx.append(o + q)
 	var box := AABB()
@@ -81,6 +82,17 @@ func build(ctx: ChunkContext, _input: Variant) -> Dictionary:
 		for v in verts:
 			box = box.expand(v)
 	return {"verts": verts, "colors": cols, "indices": idx, "aabb": box}
+
+
+## Grass band `band` (0 or 1) of a scenery: its "grass" colours in the scenery data (worker thread: a plain read of
+## the snapshot dictionary), else the fixed stand-in colours.
+static func _grass(ctx: ChunkContext, scen_id: String, band: int) -> Color:
+	var scen: Variant = ctx.scenery_db.get(scen_id, {})
+	var gcols: Variant = (scen as Dictionary).get("grass", []) if scen is Dictionary else []
+	if gcols is Array and not (gcols as Array).is_empty():
+		var a: Array = gcols
+		return Color(str(a[mini(band, a.size() - 1)]))
+	return GRASS if band == 0 else GRASS_ALT
 
 
 ## One quad between two rows: lateral x0..x1 on the near row (a) and on the far row (b), h above the road.
