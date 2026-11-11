@@ -37,7 +37,11 @@ const IMPOSTOR := "impostor"
 ## Sun on a stand-in when the sun is behind it / behind the camera, as factors on the sun that level ground gets
 ## (billboard.gdshader sun_min, sun_max with baked_light): the Arcade sprites carry baked light and shade and Arcade
 ## lights them like the ground – here they are a little darker against the sun and a little brighter with it.
-const STANDIN_SUN := Vector2(0.72, 1.18)
+## Measured against Arcade (Kassel – Würzburg km 46.5, Kiel – Hamburg km 2): with 1.0 / 1.0 a stand-in is 7–16 %
+## darker than Arcade's sprite – Arcade fogs sprites from close by towards a brightened fog colour, Modern's depth fog
+## starts at 0.45 x the visibility (rule F4) –; 0.72 / 1.18 made it 13–21 % darker. 0.8 / 1.15 keeps a mild hint of
+## the sun's direction.
+const STANDIN_SUN := Vector2(0.8, 1.15)
 const STANDIN_SHADOW_CUT := 0.97
 ## Light pool of a street light on the ground: Arcade's lamp pools (RoadRenderer._collect_static_lights).
 const LAMP_RANGE_M := 9.0
