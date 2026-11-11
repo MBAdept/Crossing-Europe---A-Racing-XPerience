@@ -189,8 +189,8 @@ Modern-Renderer, den der Build enthält. V-Sync und Bildbegrenzung sind während
 `tools/gfx_previews.sh` rendert dieselbe Straße aus demselben Simulationszustand – Kiel – Hamburg bei km 2 am Mittag,
 trocken, fester Verkehr, Autopilot, ohne HUD – einmal in Arcade und einmal in Modern nach
 `assets/ui/gfx_preview_{arcade,modern}.webp` (960 × 540, im Paket verlustbehaftet mit Mipmaps). **Nach jeder
-Änderung am Aussehen von Modern neu erzeugen** – das Bild zeigt den Renderer, den der Baum gerade enthält (Stand
-UI1: das Gerüst des Renderers, Himmel und graue Ebene).
+Änderung am Aussehen von Modern neu erzeugen** – das Bild zeigt den Renderer, den der Baum gerade enthält (zuletzt
+erzeugt mit dem Look nach der Zusammenführung von M1, RINT-B).
 
 ```bash
 XDG_DATA_HOME=/abs/ordner tools/gfx_previews.sh                 # beide Bilder nach assets/ui/
@@ -219,9 +219,9 @@ tools/gfx_previews.sh --only=modern --gfx-preset=high --km=2.0  # nur Modern
 |---|---|---|
 | `tests/unit/core/test_gfx_ui.gd` | Bedingungsmatrix der Auswahl (120 Fälle), Empfehlung, Wächter gegen max(Bildzeit, 1/60 s), Statistik und Vorschlag des Leistungstests, Angebote der Ergebnisseite, Voreinstellung/Einzelwerte, Hin und Zurück jeder neuen Option (96 Kombinationen), `gfx` der Einträge | `tools/run_tests.sh` (Unit-Tests) |
 | `tests/unit/ui/test_showroom.gd` | welche Sets 3D bekommen (Fixture-Manifest, erzwungene Limousine), physische Pixel, Bildausschnitt, `CarShowcase` nennt keine 3D-Klasse | Unit-Tests |
-| `tests/race/check_options_tabs.gd` | 10 Prüfungen mit echten Pad-Ereignissen: Seiten mit LB/RB, Grafik, Klang folgt, übersprungene Zeilen, „Eigene“, „Musik im Rennen“, Speichern | **von Hand** (noch nicht in `run_tests.sh`): `godot --headless --path . -s res://tests/race/check_options_tabs.gd -- --graphics=arcade` |
+| `tests/race/check_options_tabs.gd` | 10 Prüfungen mit echten Pad-Ereignissen: Seiten mit LB/RB, Grafik, Klang folgt, übersprungene Zeilen, „Eigene“, „Musik im Rennen“, Speichern | `tools/run_tests.sh` (Schritt 3, mit `-- --graphics=arcade`) |
 | `tests/race3d/check_benchmark.gd` | Leistungstest mit dem Renderer des Builds: Format, Datei, `--bench-out`, Ergebnisseite, Bildbegrenzung, Rückfall, Abbruch, Szenenauswahl | Haken von `run_tests.sh` |
 | `tests/race3d/check_showroom.gd` | Showroom im laufenden Spiel: Stufe show, eigene durchsichtige Welt, Sprite ohne Modell, Zwischenspeicher, Arcade gibt frei, zurück nach Modern, Abmelden | Haken |
 | `tests/race3d/check_attract_modern.gd` | Demo mit langsam vorbereitendem Renderer: schwarz, Uhr steht, demo_s ab `stage_live` | Haken |
 | `tests/race3d/render/check_showroom_render.gd` | Showroom auf echtem Renderer: physische Pixel bei Streckfaktor 1,0 und 1,5 (660 × 400, 990 × 600), durchsichtig, nicht angeschnitten, dreht | `tools/run_render_checks.sh modern showroom` (Xvfb) |
-| `tests/race/check_attract.gd`, `check_attract_scenes.gd` | wie bisher, jetzt in beiden Modi (`-- --graphics=arcade\|modern`) | `run_tests.sh` mit Arcade; Modern **von Hand** |
+| `tests/race/check_attract.gd`, `check_attract_scenes.gd` | wie bisher, jetzt in beiden Modi (`-- --graphics=arcade\|modern`); die Dauer der Demo zählt ab dem Start der Etappe, die Zeitgrenzen wachsen mit der längsten Bildzeit (lastfest, FIX1) | `run_tests.sh` in beiden Modi |

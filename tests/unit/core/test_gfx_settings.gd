@@ -600,6 +600,35 @@ func test_crash_guard_marker() -> void:
 	JsonFile.remove_all(FILE)
 
 
+## FIX1 (QA QS-04): a SIGTERM while a Modern stage loads leaves the marker like a crash. The first strike keeps the
+## stored choice (the title's „Bei Arcade bleiben“ settles only this start), the second in a row stores Arcade; a
+## Modern stage that ran properly forgets the strikes.
+func test_crash_guard_strikes() -> void:
+	var s := _settings({"settings_version": 3, "graphics_mode": "modern"})
+	s.call("disarm_crash_guard")
+	assert_eq(int(s.call("crash_strikes")), 0, "keine Fehlstarts")
+	s.call("arm_crash_guard")                       # the run is killed while Modern loads …
+	s.set("crash_guard", FileAccess.file_exists(MARKER))   # … the next start finds the marker
+	assert_eq(int(s.call("crash_strikes")), 1, "erster Fehlstart")
+	s.call("note_crash_strike")                     # „Bei Arcade bleiben“ the first time
+	s.call("disarm_crash_guard", false)
+	assert_false(FileAccess.file_exists(MARKER), "Marker entfernt")
+	assert_eq(str(s.get("graphics_mode")), "modern", "die Wahl bleibt beim ersten Mal")
+	assert_eq(str(s.call("effective_graphics")["reason"]), "crash_guard", "dieser Start bleibt Arcade")
+	s.set("crash_guard", false)                     # the next start: Modern again, killed again
+	assert_eq(int(s.call("crash_strikes")), 1, "der Fehlstart ist gemerkt")
+	s.call("arm_crash_guard")
+	s.set("crash_guard", FileAccess.file_exists(MARKER))
+	assert_eq(int(s.call("crash_strikes")), 2, "zweiter Fehlstart in Folge")
+	# a Modern stage that ran properly settles everything
+	s.call("arm_crash_guard")
+	s.call("disarm_crash_guard")
+	assert_eq(int(s.call("crash_strikes")), 0, "Modern lief: keine Fehlstarts mehr")
+	assert_false(FileAccess.file_exists(str(s.call("strikes_path"))), "Datei der Fehlstarts entfernt")
+	s.free()
+	JsonFile.remove_all(FILE)
+
+
 # --- render self-test ------------------------------------------------------------------------------------------
 
 func _picture(lit: Color, quad: Color, background: Color) -> Image:

@@ -388,12 +388,41 @@ func arm_crash_guard() -> void:
 
 ## Crash guard: removes the marker – Modern has drawn for a while (race session), the stage fell back to Arcade or
 ## left in an orderly way, or the player answered the question on the title. lift = also forget the marker of the
-## last run (Modern may be used again in this run); false leaves effective_graphics() as it is.
+## last run (Modern may be used again in this run) and the strikes before it (crash_strikes()); false leaves
+## effective_graphics() and the strikes as they are.
 func disarm_crash_guard(lift: bool = true) -> void:
 	if FileAccess.file_exists(marker_path):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(marker_path))
 	if lift:
 		crash_guard = false
+		var sp := strikes_path()
+		if FileAccess.file_exists(sp):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(sp))
+
+
+## FIX1 (QA QS-04): how many starts in a row found the marker of an unfinished Modern run, this one included – without
+## a Modern stage that ran properly in between. A SIGTERM (Steam's "Exit game", a log-out) while a Modern stage loads
+## ends the game without any cleanup and leaves the marker like a crash does; the title therefore stores "Arcade" only
+## at the second strike in a row and lets the first one keep the choice (this start runs in Arcade all the same).
+func crash_strikes() -> int:
+	var n := 0
+	var sp := strikes_path()
+	if FileAccess.file_exists(sp):
+		n = maxi(0, FileAccess.get_file_as_string(sp).strip_edges().to_int())
+	return n + (1 if crash_guard else 0)
+
+
+## The player stays in Arcade for this start after a strike (crash_strikes()): remember it for the next marker.
+func note_crash_strike() -> void:
+	var f := FileAccess.open(strikes_path(), FileAccess.WRITE)
+	if f != null:
+		f.store_line(str(crash_strikes()))
+		f.close()
+
+
+## File of the strike count, next to the marker.
+func strikes_path() -> String:
+	return marker_path.get_basename() + ".strikes"
 
 
 func _sample_mode() -> bool:

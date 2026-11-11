@@ -10,7 +10,10 @@ extends UiScreen
 ## back from Einzelne Etappe, Bestenlisten or Optionen, that entry has the focus again (GameFlow.title_choice).
 ## v0.8.0, crash guard of the mode "Modern" (docs/grafik-modi.md): when the last start in Modern did not end properly
 ## (Settings.crash_guard – this start runs in Arcade, reason "crash_guard"), the title asks once: „Bei Arcade
-## bleiben“ (focused, also B) or „Modern noch einmal versuchen“. Debug (sample screens): --sample-crash-guard.
+## bleiben“ (focused, also B) or „Modern noch einmal versuchen“. „Bei Arcade bleiben“ stores Arcade only when it
+## happened twice in a row (Settings.crash_strikes(); FIX1, QA QS-04: quitting through Steam while a Modern stage loads
+## leaves the same marker); the first time this start stays Arcade and the next one tries Modern again.
+## Debug (sample screens): --sample-crash-guard.
 
 const LOGO_RIGHT := 1236.0
 const CARD := Rect2(846, 244, 390, 414)
@@ -95,8 +98,10 @@ static func crash_guard_due() -> bool:
 func _ask_crash_guard() -> void:
 	if not is_inside_tree() or has_modal():
 		return
-	confirm_box = ConfirmBox.new(tr("Der Modus „Modern“ wurde beim letzten Start nicht richtig beendet."),
-		tr("Vielleicht ist das Spiel dabei abgestürzt oder hängen geblieben. Dieser Start läuft deshalb im Modus „Arcade“."),
+	var body := tr("Vielleicht ist das Spiel dabei abgestürzt oder hängen geblieben. Dieser Start läuft deshalb im Modus „Arcade“, der nächste versucht „Modern“ wieder.")
+	if int(Settings.crash_strikes()) >= 2:
+		body = tr("Das ist schon zum zweiten Mal passiert. „Bei Arcade bleiben“ stellt die Grafik auf „Arcade“ um – „Modern“ lässt sich in den Optionen wieder wählen.")
+	confirm_box = ConfirmBox.new(tr("Der Modus „Modern“ wurde beim letzten Start nicht richtig beendet."), body,
 		tr("Modern noch einmal versuchen"), tr("Bei Arcade bleiben"))
 	confirm_box.confirmed.connect(_on_crash_guard_answer.bind(true))
 	confirm_box.cancelled.connect(_on_crash_guard_answer.bind(false))
@@ -105,9 +110,14 @@ func _ask_crash_guard() -> void:
 
 func _on_crash_guard_answer(try_modern: bool) -> void:
 	if not GameFlow.sample_mode:
-		if not try_modern:
-			Settings.graphics_mode = Gfx.ARCADE   # stored from now on; "Klang: Wie Grafik" follows
-		Settings.disarm_crash_guard()             # the marker goes; with "Modern" the next stage runs in Modern
+		if try_modern:
+			Settings.disarm_crash_guard()          # the marker goes; the next stage runs in Modern
+		elif int(Settings.crash_strikes()) >= 2:
+			Settings.graphics_mode = Gfx.ARCADE    # the second time in a row: stored from now on ("Klang: Wie Grafik" follows)
+			Settings.disarm_crash_guard()
+		else:
+			Settings.note_crash_strike()           # the first time: this start stays Arcade, the next one tries Modern
+			Settings.disarm_crash_guard(false)
 		Settings.save_if_changed()
 	if default_focus != null and is_instance_valid(default_focus):
 		_focus_later(default_focus)

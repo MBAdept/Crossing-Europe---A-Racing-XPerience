@@ -113,7 +113,7 @@ func build() -> void:
 	if fb_text != "":
 		var fb := UiKit.label(fb_text, UiTheme.F.BODY_MEDIUM, 18, UiTheme.WARN)
 		fb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		UiKit.place(self, fb, Rect2(40, 618, 584, 50))
+		UiKit.place(self, fb, Rect2(40, 628, 584, 46))   # FIX1 (QA QS-07): clear of the panel frame (it ends at 612)
 
 
 ## Leaderboard entry of a stage result. v0.8.0: "gfx" (the mode the stage was drawn in) and, after a fallback from

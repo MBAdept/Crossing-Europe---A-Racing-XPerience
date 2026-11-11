@@ -27,9 +27,9 @@ anderes dasteht) oder als **abgeleitet** gekennzeichnet.
 - **Seit AU-D1** ist der Baustein `music` kein Platzhalter mehr: das Titel-Remaster in den Menüs, Rennstück 1
   „Linke Spur“ mit Einzähler auf „LOS!“, Schleife und Schluss am Taktstrich, die Musik-Kette unter
   `tools/audio/music/` – Abschnitt 14.
-- Niemand schaltet das Profil bisher im Spiel um: Die Einstellung „Klang“ und der Aufruf
-  `AudioManager.set_profile(Settings.sound())` kommen mit Welle 2 (UI1). Bis dahin wählt man Modern mit
-  `--sound=modern` oder `audio.profile` (Abschnitt 2).
+- Seit UI1 schaltet das Spiel das Profil selbst um: die Einstellung „Klang“ [Wie Grafik | Arcade | Modern], und
+  `GameFlow` ruft `AudioManager.set_profile(Settings.sound())` beim Start und bei jeder Änderung. Für Tests bleiben
+  `--sound=modern` und `audio.profile` (Abschnitt 2).
 
 ## 2. Profil wählen
 
@@ -39,7 +39,7 @@ anderes dasteht) oder als **abgeleitet** gekennzeichnet.
 | `AudioManager.profile()` | das Profil in Kraft |
 | Kommandozeile `--sound=arcade\|modern` | Profil beim Start; gewinnt gegen die Konfiguration |
 | `audio.profile` in `config/game_config.json` oder `user://game_config.json` | Profil beim Start (`""` = keins erzwingen) |
-| Einstellung „Klang“ [Wie Grafik \| Arcade \| Modern] | ab Welle 2: `GameFlow` ruft `set_profile(Settings.sound())` beim Start und bei jeder Änderung |
+| Einstellung „Klang“ [Wie Grafik \| Arcade \| Modern] | seit UI1: `GameFlow` ruft `set_profile(Settings.sound())` beim Start und bei jeder Änderung |
 
 Ohne Vorgabe startet das Spiel mit Arcade. `set_profile("modern")` hält den Arcade-Klang an (`stop_all()`, Menümusik
 aus), baut einen Knoten `ModernAudio` als Kind des `AudioManager`, startet ihn und übergibt, was die Menüs schon
