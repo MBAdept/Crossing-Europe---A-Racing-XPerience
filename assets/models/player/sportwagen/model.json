@@ -182,8 +182,8 @@
   "paint": {"paint": "#cc1419", "metal": 0.15},
   "auto_lod": false,
   "tags": ["player"],
-  "bytes": 1670159,
-  "hash": "70806be7cfe1f0e6d94dfdf68e19fe5bb12f22bc"
+  "bytes": 1670158,
+  "hash": "52a120e186090802597d8f9859366a465bb008b4"
  },
  "sets": {
   "player/sportwagen": {

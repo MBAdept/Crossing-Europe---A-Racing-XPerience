@@ -182,8 +182,8 @@
   "paint": {"paint": "#f0b30a", "metal": 0},
   "auto_lod": false,
   "tags": ["player"],
-  "bytes": 1762058,
-  "hash": "bbbbf6887097c7db793830a97f40db0a4a3331c9"
+  "bytes": 1762059,
+  "hash": "cfeffd39f3a0f2c308794ab3ccca97c74ca369cf"
  },
  "sets": {
   "player/kompakt": {

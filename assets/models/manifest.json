@@ -209,7 +209,7 @@
    "auto_lod": false,
    "tags": ["player"],
    "bytes": 1773849,
-   "hash": "385038758327e808f753cd64f42147953480de11"
+   "hash": "0223618ae112ddedad55fd352783c69d71ba0fd6"
   },
   "player/kombi": {
    "kind": "vehicle",
@@ -399,7 +399,7 @@
    "auto_lod": false,
    "tags": ["player"],
    "bytes": 1958081,
-   "hash": "26c61303a87a4b4f9c08a622ccc6ca838f699743"
+   "hash": "0d379250e3925efa007b94307571cfbd80dbb791"
   },
   "player/kompakt": {
    "kind": "vehicle",
@@ -581,8 +581,8 @@
    "paint": {"paint": "#f0b30a", "metal": 0},
    "auto_lod": false,
    "tags": ["player"],
-   "bytes": 1762058,
-   "hash": "bbbbf6887097c7db793830a97f40db0a4a3331c9"
+   "bytes": 1762059,
+   "hash": "cfeffd39f3a0f2c308794ab3ccca97c74ca369cf"
   },
   "player/limousine": {
    "kind": "vehicle",
@@ -771,8 +771,8 @@
    "paint": {"paint": "#1d4ea8", "metal": 0.55},
    "auto_lod": false,
    "tags": ["player"],
-   "bytes": 1630527,
-   "hash": "29da5b63121483c53931d7e86bb2949fbf6af7ee"
+   "bytes": 1630526,
+   "hash": "937f5d883c4e07943885f06c9604c8a4add3e031"
   },
   "player/sportwagen": {
    "kind": "vehicle",
@@ -954,8 +954,8 @@
    "paint": {"paint": "#cc1419", "metal": 0.15},
    "auto_lod": false,
    "tags": ["player"],
-   "bytes": 1670159,
-   "hash": "70806be7cfe1f0e6d94dfdf68e19fe5bb12f22bc"
+   "bytes": 1670158,
+   "hash": "52a120e186090802597d8f9859366a465bb008b4"
   },
   "props/farmhouse": {
    "kind": "building",

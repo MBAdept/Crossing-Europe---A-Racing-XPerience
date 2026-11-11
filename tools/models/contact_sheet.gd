@@ -535,6 +535,10 @@ func _build_rig() -> void:
 	_env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	_env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	_env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
+	if str(_args.get("tonemap", "")) == "agx":
+		# --tonemap=agx: the tonemapper of the showroom of the vehicle selection (scripts/ui/widgets/showroom_3d.gd,
+		# its own world) - for the A/B pictures that decide the flag `showroom`
+		_env.tonemap_mode = Environment.TONE_MAPPER_AGX
 	_env.adjustment_enabled = true
 	# glow only adds light around what is brighter than white; the default blend mode (soft light) would
 	# change the contrast of the whole picture and crush the dark tones of the night sheet

@@ -120,7 +120,7 @@ def _harden(objs):
                 done.add(me.name)
 # look of the glazing and of the lamp lenses (class glass): opacity of the tinted panes over the cabin, of the
 # coloured lenses (the lamp parts under them carry the colour and the light) and of clear headlight lenses
-PLAYER_GLASS = dict(glass_opacity=0.36, lens_opacity=0.10, clear_lens_opacity=0.08)
+PLAYER_GLASS = dict(glass_opacity=0.48, lens_opacity=0.10, clear_lens_opacity=0.08)
 GLASS_OVERLAP_M = 0.008        # the panes overlap the edge of their opening by this much (the black band)
 POCKET_SPAN_M = 0.09           # objects whose faces under a lamp outline lie this close behind the front one share the recess
 POCKET_MIN_SHARE = 0.12        # ... if their part of the outline has at least this share of the largest part's area
