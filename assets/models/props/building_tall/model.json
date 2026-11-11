@@ -1,0 +1,55 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/building_tall",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 22.3, "height_m": 65.9, "length_m": 22},
+  "extent_m": {"left": 18.05, "right": 10.53},
+  "aabb": [-11.22, 0, -22.22, 11.22, 65.9, 0.22],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 2485,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/building_tall/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 2277,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/building_tall/lod1_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "lights": [
+   {
+    "role": "lights",
+    "pos": [3.2359, 65.5645, -11],
+    "dir": [0.982, -0.188, 0],
+    "size": 0.966,
+    "color": "#ff2010"
+   }
+  ],
+  "textures": {"albedo": "props/building_tall/albedo.webp", "emit": "props/building_tall/emit.png"},
+  "roughness": 0.6,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left"],
+  "bytes": 110303,
+  "hash": "3c29a3a051a57bc09e2cc991108ff96af929933d"
+ },
+ "sets": {
+  "props/building_tall": {"model": "props/building_tall"}
+ }
+}

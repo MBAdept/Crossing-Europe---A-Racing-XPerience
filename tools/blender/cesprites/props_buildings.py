@@ -304,17 +304,35 @@ def barn(rig, p):
 def church(rig, p):
     W, D, H = 10.0, 22.0, 8.0
     TW = 6.0
-    plaster = facade("church_wall", "#e8e1d0", [
+    grids = [
         dict(face="side", u=(8.0, 21.0), z=(2.0, 6.8), pitch=(3.0, 4.8), win=(1.3, 3.8), lit=0.8, arch=True,
              color="#ffd27a", strength=1.6, frame="#cfc6b2"),
         dict(face="front", u=(-1.0, 1.0), z=(9.0, 12.5), pitch=(2.0, 3.5), win=(1.0, 2.2), lit=0.0, arch=True),
         dict(face="front", u=(-1.0, 1.0), z=(17.0, 19.5), pitch=(2.0, 2.5), win=(1.1, 1.8), lit=0.0, arch=True,
              glass="#1a1a1a"),
-    ], frame="#cfc6b2",
-        decals=[dict(face="front", sym=True, poly=[(0.0, 0.0), (0.95, 0.0), (0.95, 2.6), (0.0, 3.25)], mat="#4a2e1c"),
-                dict(face="front", sym=True, poly=[(0.0, 14.2), (0.85, 14.2), (0.85, 15.9), (0.0, 15.9)],
-                     mat="#e9e3cf", emit={"lights": ("#fff0c0", 1.4)}),
-                dict(face="front", sym=True, poly=[(0.0, 14.95), (0.6, 14.95), (0.6, 15.05), (0.0, 15.05)], mat="#222222")])
+    ]
+    decals = [dict(face="front", sym=True, poly=[(0.0, 0.0), (0.95, 0.0), (0.95, 2.6), (0.0, 3.25)], mat="#4a2e1c"),
+              dict(face="front", sym=True, poly=[(0.0, 14.2), (0.85, 14.2), (0.85, 15.9), (0.0, 15.9)],
+                   mat="#e9e3cf", emit={"lights": ("#fff0c0", 1.4)}),
+              dict(face="front", sym=True, poly=[(0.0, 14.95), (0.6, 14.95), (0.6, 15.05), (0.0, 15.05)], mat="#222222")]
+    if p.get("allround"):
+        # 3D model (ce3d): the tower window, the belfry openings and the clock on the other faces of the tower as well
+        # (the sprite shows the front only); the tower's sides span y 0 .. TW, its back stands clear above the nave.
+        # The nave grid ends before the 15 cm sliver of a fifth window the sprite paints; the clocks get their face
+        # and light as geometry (no painted light under them)
+        grids[0] = dict(grids[0], u=(8.0, 20.8))
+        decals[1] = dict(decals[1], emit=None, clock=True)
+        grids += [dict(face="side", u=(TW / 2 - 1.0, TW / 2 + 1.0), z=(9.0, 12.5), pitch=(2.0, 3.5), win=(1.0, 2.2),
+                       lit=0.0, arch=True),
+                  dict(face="side", u=(TW / 2 - 1.0, TW / 2 + 1.0), z=(17.0, 19.5), pitch=(2.0, 2.5), win=(1.1, 1.8),
+                       lit=0.0, arch=True, glass="#1a1a1a"),
+                  dict(face="back", u=(-1.0, 1.0), z=(17.0, 19.5), pitch=(2.0, 2.5), win=(1.1, 1.8), lit=0.0,
+                       arch=True, glass="#1a1a1a")]
+        decals += [dict(face="side", poly=[(TW / 2 - 0.85, 14.2), (TW / 2 + 0.85, 14.2), (TW / 2 + 0.85, 15.9),
+                                           (TW / 2 - 0.85, 15.9)], mat="#e9e3cf", clock=True),
+                   dict(face="side", poly=[(TW / 2 - 0.6, 14.95), (TW / 2 + 0.6, 14.95), (TW / 2 + 0.6, 15.05),
+                                           (TW / 2 - 0.6, 15.05)], mat="#222222")]
+    plaster = facade("church_wall", "#e8e1d0", grids, frame="#cfc6b2", decals=decals)
     walls(rig, "church_nave", W, D, H, plaster, y0=TW - 1.0)
     gable_wall(rig, "church_gable", W, H, 14.0, TW - 1.0, plaster, depth=0.3)
     gable_wall(rig, "church_gable_b", W, H, 14.0, TW - 1.0 + D - 0.3, plaster, depth=0.3)
@@ -339,9 +357,12 @@ def church(rig, p):
 
 
 def windmill(rig, p):
-    brick = facade("mill_brick", "#7a3b2b", [
-        dict(face="any", u=(-1.2, 1.2), z=(1.0, 6.0), pitch=(2.4, 2.6), win=(0.8, 1.1), lit=0.5),
-    ], brick=("#7d3b2a", "#6a3222", "#cbbfae", 3.0))
+    grids = [dict(face="any", u=(-1.2, 1.2), z=(1.0, 6.0), pitch=(2.4, 2.6), win=(0.8, 1.1), lit=0.5)]
+    if p.get("win3d"):
+        # 3D model (ce3d): no painted windows - the grid straddles a corner of the octagonal tower; the builder cuts
+        # real openings into the middle of its faces instead (ce3d/buildings3d.py, option "octagon")
+        grids = []
+    brick = facade("mill_brick", "#7a3b2b", grids, brick=("#7d3b2a", "#6a3222", "#cbbfae", 3.0))
     thatch = M.basic("mill_thatch", "#5b4a33", rough=0.95, color2="#3e3223", var_scale=3.0, bump=(14.0, 0.5))
     wood = M.basic("mill_wood", "#e6e1d3", rough=0.7)
     dark = M.basic("mill_dark", "#2a2622", rough=0.8)
@@ -385,12 +406,21 @@ def windmill(rig, p):
 
 def factory(rig, p):
     W, D, H = 34.0, 22.0, 9.0
-    wall = facade("fac_wall", "#a9a49a", [
-        dict(face="front", u=(-16.0, 16.0), z=(2.0, 7.4), pitch=(4.0, 5.4), win=(3.0, 3.8), lit=0.6,
-             color="#d8e6ff", strength=1.8, frame="#5a5e63"),
-        dict(face="side", u=(1.0, 21.0), z=(2.0, 7.4), pitch=(4.0, 5.4), win=(3.0, 3.8), lit=0.5,
-             color="#d8e6ff", strength=1.8, frame="#5a5e63"),
-    ], frame="#5a5e63", decals=[dict(face="front", sym=False, poly=[(6.0, 0.0), (11.0, 0.0), (11.0, 5.0), (6.0, 5.0)], mat="#5d6a74")])
+    hall = dict(color="#d8e6ff", strength=1.8, frame="#5a5e63")
+    grids = [
+        dict(face="front", u=(-16.0, 16.0), z=(2.0, 7.4), pitch=(4.0, 5.4), win=(3.0, 3.8), lit=0.6, **hall),
+        dict(face="side", u=(1.0, 21.0), z=(2.0, 7.4), pitch=(4.0, 5.4), win=(3.0, 3.8), lit=0.5, **hall),
+    ]
+    if p.get("allround"):
+        # 3D model (ce3d): the sprite paints the gate over two windows of the front - the cut model leaves the gate
+        # free and puts a transom window above it; the back gets the windows of the front
+        grids = [dict(face="front", u=(-16.0, 4.0), z=(2.0, 7.4), pitch=(4.0, 5.4), win=(3.0, 3.8), lit=0.6, **hall),
+                 dict(face="front", u=(12.0, 16.0), z=(2.0, 7.4), pitch=(4.0, 5.4), win=(3.0, 3.8), lit=0.6, **hall),
+                 dict(face="front", u=(6.2, 10.8), z=(5.35, 6.6), pitch=(4.6, 1.25), win=(4.2, 1.0), lit=0.6, **hall),
+                 grids[1],
+                 dict(face="back", u=(-16.0, 16.0), z=(2.0, 7.4), pitch=(4.0, 5.4), win=(3.0, 3.8), lit=0.5, **hall)]
+    wall = facade("fac_wall", "#a9a49a", grids, frame="#5a5e63",
+                  decals=[dict(face="front", sym=False, poly=[(6.0, 0.0), (11.0, 0.0), (11.0, 5.0), (6.0, 5.0)], mat="#5d6a74")])
     walls(rig, "fac_walls", W, D, H, wall)
     roof = roof_mat("fac_roof", "#6c7076", "metal")
     glass = M.basic("fac_skylight", "#5d7486", rough=0.1, metal=0.3, emit={"lights": ("#cfe0ff", 0.9)})
@@ -422,10 +452,19 @@ def factory(rig, p):
 
 def house_med(rig, p):
     W, D, H = 10.0, 8.0, 6.6
-    wall = facade("med_wall", "#e2c896", [
+    grids = [
         dict(face="front", u=(-4.5, 4.5), z=(0.7, 6.2), pitch=(3.0, 3.1), win=(1.0, 1.55), lit=0.45),
         dict(face="side", u=(0.5, 7.5), z=(0.7, 6.2), pitch=(3.5, 3.1), win=(0.9, 1.4), lit=0.35),
-    ], frame="#f3efe6", shutters="#3f6f4a", noise=0.1)
+    ]
+    decals = None
+    if p.get("allround"):
+        # 3D model (ce3d): the back, never seen in the sprite, gets the windows of the front and the house door (the
+        # middle window of its ground floor gives way to it)
+        grids += [dict(face="back", u=(-4.5, 4.5), z=(3.8, 6.2), pitch=(3.0, 3.1), win=(1.0, 1.55), lit=0.4),
+                  dict(face="back", u=(-4.5, -1.5), z=(0.7, 3.8), pitch=(3.0, 3.1), win=(1.0, 1.55), lit=0.4),
+                  dict(face="back", u=(1.5, 4.5), z=(0.7, 3.8), pitch=(3.0, 3.1), win=(1.0, 1.55), lit=0.4)]
+        decals = [dict(face="back", sym=True, poly=[(0.0, 0.0), (0.55, 0.0), (0.55, 2.2), (0.0, 2.2)], mat="#5b3f2a")]
+    wall = facade("med_wall", "#e2c896", grids, frame="#f3efe6", shutters="#3f6f4a", noise=0.1, decals=decals)
     walls(rig, "med_walls", W, D, H, wall)
     roof = roof_mat("med_roof", "#b45a32", "tiles", rows=0.28)
     bm = bmesh.new()
@@ -453,10 +492,14 @@ def house_med(rig, p):
 
 def building_block_a(rig, p):
     W, D, H = 18.0, 12.0, 19.0
-    wall = facade("blka_wall", "#d9c59a", [
+    grids = [
         dict(face="front", u=(-8.4, 8.4), z=(0.6, 18.4), pitch=(2.8, 3.0), win=(1.4, 1.6), lit=0.5),
         dict(face="side", u=(0.6, 11.4), z=(0.6, 18.4), pitch=(2.7, 3.0), win=(1.3, 1.6), lit=0.4),
-    ], frame="#f1ece2", noise=0.07)
+    ]
+    if p.get("allround"):
+        # 3D model (ce3d): windows on the back as well
+        grids.append(dict(face="back", u=(-8.4, 8.4), z=(0.6, 18.4), pitch=(2.8, 3.0), win=(1.4, 1.6), lit=0.4))
+    wall = facade("blka_wall", "#d9c59a", grids, frame="#f1ece2", noise=0.07)
     walls(rig, "blka_walls", W, D, H, wall)
     slab = M.basic("blka_slab", "#cfccc4", rough=0.7)
     rail = M.basic("blka_rail", "#3a3d40", rough=0.5, metal=0.5)
@@ -476,12 +519,20 @@ def building_block_a(rig, p):
 
 def building_block_b(rig, p):
     W, D, H = 20.0, 13.0, 21.5
-    wall = facade("blkb_wall", "#8c4a36", [
+    grids = [
         dict(face="front", u=(-9.6, 9.6), z=(4.2, 21.0), pitch=(2.4, 3.2), win=(1.2, 1.9), lit=0.5),
         dict(face="side", u=(0.6, 12.4), z=(4.2, 21.0), pitch=(2.4, 3.2), win=(1.2, 1.9), lit=0.4),
         dict(face="front", u=(-9.6, 9.6), z=(0.2, 3.6), pitch=(4.8, 3.4), win=(3.8, 2.8), lit=0.85,
              color="#ffe6bf", strength=1.5, frame="#2a2c2e", glass="#3a4a55"),
-    ], brick=("#8c4a36", "#7a3e2d", "#c4b8a6", 3.0), frame="#ece6da")
+    ]
+    if p.get("allround"):
+        # 3D model (ce3d): the back gets the upper windows of the front and plain windows on the ground floor; the
+        # upper grids end below the 15 cm slivers of a seventh row the sprite paints under the cornice
+        grids[0] = dict(grids[0], z=(4.2, 20.5))
+        grids[1] = dict(grids[1], z=(4.2, 20.5))
+        grids += [dict(face="back", u=(-9.6, 9.6), z=(4.2, 20.5), pitch=(2.4, 3.2), win=(1.2, 1.9), lit=0.4),
+                  dict(face="back", u=(-9.6, 9.6), z=(0.4, 3.6), pitch=(2.4, 3.2), win=(1.2, 1.6), lit=0.3)]
+    wall = facade("blkb_wall", "#8c4a36", grids, brick=("#8c4a36", "#7a3e2d", "#c4b8a6", 3.0), frame="#ece6da")
     walls(rig, "blkb_walls", W, D, H, wall)
     trim = M.basic("blkb_trim", "#d8d2c4", rough=0.7)
     bm = MU.bm_box(W + 0.4, D + 0.4, 0.6, (0.0, D / 2, H + 0.3))
@@ -534,21 +585,40 @@ def building_tall(rig, p):
 
 def building_oldtown(rig, p):
     W, D, H = 8.0, 12.0, 13.0
-    wall = facade("old_wall", "#d79a7a", [
+    grids = [
         dict(face="front", u=(-3.6, 3.6), z=(4.0, 12.6), pitch=(2.4, 2.9), win=(1.0, 1.6), lit=0.5),
         dict(face="front", u=(-3.6, 3.6), z=(13.5, 16.0), pitch=(2.4, 2.5), win=(0.9, 1.3), lit=0.4),
         dict(face="side", u=(0.6, 11.4), z=(4.0, 12.6), pitch=(2.6, 2.9), win=(1.0, 1.5), lit=0.4),
         dict(face="front", u=(-3.6, 3.6), z=(0.3, 3.4), pitch=(3.6, 3.4), win=(2.4, 2.6), lit=0.9, arch=True,
              color="#ffe2b8", strength=1.5, frame="#5a3a2a", glass="#30383e"),
-    ], frame="#f6f2ea", noise=0.08)
+    ]
+    if p.get("allround"):
+        # 3D model (ce3d): windows on the back and in the gable wall that closes the roof there (the sprite never
+        # shows the back: its roof is open at that end)
+        grids += [dict(face="back", u=(-3.6, 3.6), z=(4.0, 12.6), pitch=(2.4, 2.9), win=(1.0, 1.6), lit=0.4),
+                  dict(face="back", u=(-3.6, 3.6), z=(0.4, 3.4), pitch=(2.4, 3.0), win=(1.0, 1.7), lit=0.3),
+                  dict(face="back", u=(-1.2, 1.2), z=(13.6, 16.2), pitch=(2.4, 2.6), win=(0.9, 1.3), lit=0.3)]
+    wall = facade("old_wall", "#d79a7a", grids, frame="#f6f2ea", noise=0.08)
     walls(rig, "old_walls", W, D, H, wall)
     # stepped gable (front)
-    bm = bmesh.new()
     steps = 5
-    for i in range(steps):
-        w = W * (1 - i / steps)
-        MU.bm_box(w, 0.5, 1.4, (0.0, 0.25, H + 0.7 + i * 1.4), bm=bm)
+    if p.get("gable3d"):
+        # 3D model (ce3d): the stepped gable as ONE prism of the same outline - its front is one face, so the gable
+        # windows can be cut into it (the five stacked boxes of the sprite split each window between two faces)
+        right = []
+        for i in range(steps):
+            hw = W * (1 - i / steps) * 0.5
+            right += [(hw, H + i * 1.4), (hw, H + (i + 1) * 1.4)]
+        outline = right + [(-x, z) for (x, z) in reversed(right)]
+        bm = MU.prism(outline, 0.5, plane="XZ", offset=0.0)
+    else:
+        bm = bmesh.new()
+        for i in range(steps):
+            w = W * (1 - i / steps)
+            MU.bm_box(w, 0.5, 1.4, (0.0, 0.25, H + 0.7 + i * 1.4), bm=bm)
     MU.make("old_gable", bm, wall, parent=rig.root)
+    if p.get("allround"):
+        gable_wall(rig, "old_gable_b", W, H, H + 6.6, D - 0.3, wall, depth=0.3)
     roof = roof_mat("old_roof", "#7d3226", "tiles", rows=0.25)
     gable_roof(rig, "old_roof", W, D - 0.6, H, H + 6.6, roof, y0=0.5, over=0.2)
     cap = M.basic("old_cap", "#efe9df", rough=0.7)
@@ -562,12 +632,20 @@ def building_oldtown(rig, p):
 
 def building_shop(rig, p):
     W, D, H = 14.0, 10.0, 8.2
-    wall = facade("shop_wall", "#ece7dc", [
+    grids = [
         dict(face="front", u=(-6.4, 6.4), z=(0.3, 3.5), pitch=(4.25, 3.2), win=(3.6, 2.8), lit=1.0,
              color="#ffe9c8", strength=1.6, frame="#2c2e30", glass="#3b4b56"),
         dict(face="front", u=(-6.4, 6.4), z=(4.7, 7.6), pitch=(2.13, 2.9), win=(1.1, 1.5), lit=0.45),
         dict(face="side", u=(0.6, 9.4), z=(4.7, 7.6), pitch=(2.3, 2.9), win=(1.1, 1.5), lit=0.35),
-    ], frame="#f6f4ee", noise=0.05)
+    ]
+    decals = None
+    if p.get("allround"):
+        # 3D model (ce3d): the back gets the upper windows of the front, two windows and the back door below
+        grids += [dict(face="back", u=(-6.4, 6.4), z=(4.7, 7.6), pitch=(2.13, 2.9), win=(1.1, 1.5), lit=0.35),
+                  dict(face="back", u=(-6.4, -2.1), z=(0.5, 3.5), pitch=(2.15, 3.0), win=(1.1, 1.5), lit=0.3),
+                  dict(face="back", u=(2.1, 6.4), z=(0.5, 3.5), pitch=(2.15, 3.0), win=(1.1, 1.5), lit=0.3)]
+        decals = [dict(face="back", sym=True, poly=[(0.0, 0.0), (0.5, 0.0), (0.5, 2.15), (0.0, 2.15)], mat="#46494d")]
+    wall = facade("shop_wall", "#ece7dc", grids, frame="#f6f4ee", noise=0.05, decals=decals)
     walls(rig, "shop_walls", W, D, H, wall)
     sign = M.basic("shop_sign", "#1f6e8c", rough=0.4, emit={"lights": ("#9fe0ff", 1.6)})
     bm = MU.bm_box(9.0, 0.25, 0.9, (0.0, -0.12, 4.15))

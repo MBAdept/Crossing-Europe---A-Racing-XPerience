@@ -436,6 +436,205 @@
    "bytes": 437126,
    "hash": "d1ac0b984e4c8730aa1cbbb60ad41177e6e7a3c4"
   },
+  "props/building_block_a": {
+   "kind": "building",
+   "object": {"width_m": 18.3, "height_m": 19.5, "length_m": 12},
+   "extent_m": {"left": 12.75, "right": 8.65},
+   "aabb": [-9.15, 0, -12.15, 9.15, 19.5, 1.205],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 4596,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/building_block_a/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 2196,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/building_block_a/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/building_block_a/albedo.webp"},
+   "roughness": 0.85,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left"],
+   "bytes": 148152,
+   "hash": "e25d319b429964454218d22c19b832a50c6b5b0a"
+  },
+  "props/building_block_b": {
+   "kind": "building",
+   "object": {"width_m": 20.4, "height_m": 22.1, "length_m": 13},
+   "extent_m": {"left": 14.1, "right": 9.65},
+   "aabb": [-10.2, 0, -13.2, 10.2, 22.1, 0.3],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 5180,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/building_block_b/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 2340,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/building_block_b/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/building_block_b/albedo.png"},
+   "roughness": 0.85,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left"],
+   "bytes": 798065,
+   "hash": "ca0de686c667d8d6b63337c1bf616fba8b22c193"
+  },
+  "props/building_oldtown": {
+   "kind": "building",
+   "object": {"width_m": 8.4, "height_m": 20, "length_m": 12},
+   "extent_m": {"left": 8.09, "right": 3.85},
+   "aabb": [-4.2, 0, -12.1, 4.2, 20.06, 0.05],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 2316,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/building_oldtown/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 1112,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/building_oldtown/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/building_oldtown/albedo.png", "emit": "props/building_oldtown/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left"],
+   "bytes": 267533,
+   "hash": "0869dd2227860b57d76378620ce951bd0c8dcc7f"
+  },
+  "props/building_shop": {
+   "kind": "building",
+   "object": {"width_m": 14.3, "height_m": 8.65, "length_m": 10},
+   "extent_m": {"left": 10.19, "right": 6.77},
+   "aabb": [-7.15, -0.02, -10.3, 7.15, 8.645, 1.6],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 1085,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/building_shop/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 541,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/building_shop/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/building_shop/albedo.png", "emit": "props/building_shop/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left"],
+   "bytes": 148601,
+   "hash": "ba22ca363599665de93a602f6e4cd9054004d001"
+  },
+  "props/building_tall": {
+   "kind": "building",
+   "object": {"width_m": 22.3, "height_m": 65.9, "length_m": 22},
+   "extent_m": {"left": 18.05, "right": 10.53},
+   "aabb": [-11.22, 0, -22.22, 11.22, 65.9, 0.22],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 2485,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/building_tall/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 2277,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/building_tall/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [3.2359, 65.5645, -11],
+     "dir": [0.982, -0.188, 0],
+     "size": 0.966,
+     "color": "#ff2010"
+    }
+   ],
+   "textures": {"albedo": "props/building_tall/albedo.webp", "emit": "props/building_tall/emit.png"},
+   "roughness": 0.6,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left"],
+   "bytes": 110303,
+   "hash": "3c29a3a051a57bc09e2cc991108ff96af929933d"
+  },
   "props/bush_low": {
    "kind": "plant",
    "object": {"width_m": 5, "height_m": 1.3},
@@ -549,6 +748,44 @@
    "tags": ["prop", "plant"],
    "bytes": 352751,
    "hash": "c32570844c69b9cc1579a8b7fcbc0451b86122d3"
+  },
+  "props/church": {
+   "kind": "building",
+   "object": {"width_m": 10.8, "height_m": 35.4, "length_m": 28},
+   "extent_m": {"left": 16.08, "right": 3.06},
+   "aabb": [-5.4, -0.02, -27.4, 5.4, 35.4, 0.6],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 1731,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/church/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 987,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/church/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/church/albedo.png"},
+   "roughness": 0.85,
+   "auto_lod": false,
+   "tags": ["prop", "building", "mirror_left"],
+   "bytes": 247378,
+   "hash": "18d6a5af5e5942d503d1fa956c47a1db10aee44b"
   },
   "props/cover_bush": {
    "kind": "plant",
@@ -686,6 +923,53 @@
    "tags": ["prop", "road"],
    "bytes": 3437,
    "hash": "921873a59cd4e85f566bc8730127a21ec8c31a47"
+  },
+  "props/factory": {
+   "kind": "building",
+   "object": {"width_m": 34, "height_m": 34.5, "length_m": 29},
+   "extent_m": {"left": 24.97, "right": 15.84},
+   "aabb": [-17.05, -0.02, -29.2, 17.05, 34.35, 0.2],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 1840,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/factory/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 1124,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/factory/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [13.2853, 34.2, -25.0266],
+     "dir": [1, 0, 0],
+     "size": 1.081,
+     "color": "#ff2010"
+    }
+   ],
+   "textures": {"albedo": "props/factory/albedo.png", "emit": "props/factory/emit.png"},
+   "roughness": 0.8,
+   "auto_lod": false,
+   "tags": ["prop", "building", "mirror_left"],
+   "bytes": 273583,
+   "hash": "d21ba69cadc464d156eeac433d8887a03a3003dc"
   },
   "props/farmhouse": {
    "kind": "building",
@@ -857,6 +1141,44 @@
    "tags": ["prop", "farm"],
    "bytes": 202932,
    "hash": "e159117f0ca19a5e7498dadaeebf41696333bc58"
+  },
+  "props/house_med": {
+   "kind": "building",
+   "object": {"width_m": 11, "height_m": 9, "length_m": 8},
+   "extent_m": {"left": 8.53, "right": 5.28},
+   "aabb": [-5.5, -0.02, -8.623, 5.5, 9, 1.005],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 1343,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/house_med/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 609,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/house_med/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/house_med/albedo.png"},
+   "roughness": 0.9,
+   "auto_lod": false,
+   "tags": ["prop", "building", "mirror_left"],
+   "bytes": 241205,
+   "hash": "04eb703162f780530be4f2ad556d5d09c8c519da"
   },
   "props/power_pylon": {
    "kind": "furniture",
@@ -2136,35 +2458,17 @@
    "fallback": "sprite",
    "object": {"width_m": 32.4, "height_m": 15.6, "length_m": 1.8}
   },
-  "props/building_block_a": {
-   "fallback": "sprite",
-   "object": {"width_m": 18.3, "height_m": 19.5, "length_m": 12.0}
-  },
-  "props/building_block_b": {
-   "fallback": "sprite",
-   "object": {"width_m": 20.4, "height_m": 22.1, "length_m": 13.0}
-  },
-  "props/building_oldtown": {
-   "fallback": "sprite",
-   "object": {"width_m": 8.4, "height_m": 20.0, "length_m": 12.0}
-  },
-  "props/building_shop": {
-   "fallback": "sprite",
-   "object": {"width_m": 14.3, "height_m": 8.65, "length_m": 10.0}
-  },
-  "props/building_tall": {
-   "fallback": "sprite",
-   "object": {"width_m": 22.3, "height_m": 65.9, "length_m": 22.0}
-  },
+  "props/building_block_a": {"model": "props/building_block_a"},
+  "props/building_block_b": {"model": "props/building_block_b"},
+  "props/building_oldtown": {"model": "props/building_oldtown"},
+  "props/building_shop": {"model": "props/building_shop"},
+  "props/building_tall": {"model": "props/building_tall"},
   "props/bush_low": {"model": "props/bush_low"},
   "props/bush_round": {
    "model": "props/bush_round",
    "variants": ["props/bush_round", "props/bush_round_b"]
   },
-  "props/church": {
-   "fallback": "sprite",
-   "object": {"width_m": 10.8, "height_m": 35.4, "length_m": 28.0}
-  },
+  "props/church": {"model": "props/church"},
   "props/city_balkan_church": {
    "fallback": "sprite",
    "object": {"width_m": 17.6, "height_m": 24.2, "length_m": 23.0}
@@ -2357,10 +2661,7 @@
   "props/cover_grass": {"model": "props/cover_grass", "modern_only": true},
   "props/customs_booth": {"model": "props/customs_booth"},
   "props/delineator": {"model": "props/delineator"},
-  "props/factory": {
-   "fallback": "sprite",
-   "object": {"width_m": 34.0, "height_m": 34.5, "length_m": 29.0}
-  },
+  "props/factory": {"model": "props/factory"},
   "props/farmhouse": {"model": "props/farmhouse"},
   "props/ferry_ship": {
    "fallback": "sprite",
@@ -2373,10 +2674,7 @@
    "fallback": "sprite",
    "object": {"width_m": 5.6, "height_m": 0.75, "length_m": 2.6}
   },
-  "props/house_med": {
-   "fallback": "sprite",
-   "object": {"width_m": 11.0, "height_m": 9.0, "length_m": 8.0}
-  },
+  "props/house_med": {"model": "props/house_med"},
   "props/houseboat": {
    "fallback": "sprite",
    "object": {"width_m": 16.0, "height_m": 4.5, "length_m": 4.6}

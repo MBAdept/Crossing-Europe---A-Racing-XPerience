@@ -185,6 +185,73 @@ MODELS.update({
 })
 
 
+# --- AS4 --- (wave 5): rural and town buildings, bridge parts, ships (docs/modelle.md section 15). Own block; builder
+# "house" lives in ce3d/buildings3d.py (props3d.py stays as it is, so the keys of the models above do not change).
+BUILDER_CODE.update({
+    "house": ["ce3d/buildings3d.py", "ce3d/props3d.py", "ce3d/bake.py", "cesprites/props.py",
+              "cesprites/props_buildings.py", "render_all.py"],
+})
+AO_TOWN = dict(distance=2.0, floor=0.4, gamma=0.9, samples=24)
+MODELS.update({
+    # rural: the medium house (village of the plains), ochre plaster, hip roof, green shutters, balcony
+    "props/house_med": dict(builder="house", source="props/house_med", kind="building", atlas=(1024, 1024),
+                            ppm_max=96.0, roughness=0.9, view="roadside", params={"allround": True}, ao=AO_RURAL,
+                            lod1=True, vpbr=("med_rail",), overrides={"med_rail": dict(rough=0.75, metal=0.2)},
+                            openings=dict(reveal_color="#d6bd8c", sill_color="#d9d3c6"),
+                            gutters=dict(per_roof=2)),
+    # rural: the village church - nave with arched windows, tower with a belfry (louvres) and clocks on three faces,
+    # slate spire with a gilded cross; walls 30 cm deep in the openings, two steps at the door
+    "props/church": dict(builder="house", source="props/church", kind="building", atlas=(1024, 1024), ppm_max=80.0,
+                         roughness=0.85, view="roadside", params={"allround": True}, ao=AO_TOWN, lod1=True,
+                         vpbr=("church_gold",), weights=dict(roof=0.75),
+                         openings=dict(reveal_m=0.3, door_m=0.3, steps=2, reveal_color="#d8d0bd", sill_color="#cfc6b2",
+                                       louvre=(17.0, 19.6), bars={"win": (1, [0.36, 0.66])}),
+                         gutters=dict(per_roof=2, walls=("church_nave",))),
+    # rural / outskirts: the factory - hall with sawtooth roofs and skylights, steel sash windows, a roller gate with a
+    # transom window, the name board "WERK 2" as letters (lit at night), brick chimney with aviation light, silo
+    "props/factory": dict(builder="house", source="props/factory", kind="building", atlas=(1024, 1024), ppm_max=80.0,
+                          roughness=0.8, view="roadside", params={"allround": True}, ao=AO_TOWN, lod1=True,
+                          vpbr=("fac_tank",), baked_lamps=("fac_skylight",), weights=dict(roof=0.55, away=0.25),
+                          gutters=False, caps=False,
+                          openings=dict(reveal_m=0.2, reveal_color="#9d988e", sill_color="#8f8b84",
+                                        bars={"large": (3, 3)}, pane_lit=(0.75, 1.0)),
+                          sign=dict(text="WERK 2", face="front", u=(-14.6, -3.4), z=(7.1, 8.4), h=0.95, wall=0.0,
+                                    panel="#2f3a44", color="#e9e7df")),
+    # town blocks (category city: 10,000 triangles, atlas 2048 x 1024)
+    "props/building_block_a": dict(builder="house", source="props/building_block_a", kind="building",
+                                   atlas=(2048, 1024), ppm_max=72.0, roughness=0.85, view="roadside",
+                                   params={"allround": True}, ao=AO_TOWN, lod1=True, vpbr=("blka_rail",),
+                                   overrides={"blka_rail": dict(rough=0.6, metal=0.3)}, weights=dict(roof=0.4),
+                                   openings=dict(reveal_color="#cbb98f", sill_color="#d6d1c6"), gutters=False),
+    "props/building_block_b": dict(builder="house", source="props/building_block_b", kind="building",
+                                   atlas=(2048, 1024), ppm_max=72.0, roughness=0.85, view="roadside",
+                                   params={"allround": True}, ao=AO_TOWN, lod1=True, weights=dict(roof=0.4),
+                                   openings=dict(reveal_color="#cfc4b2", sill_color="#d3cabb",
+                                                 bars={"large": (1, [0.78])}), gutters=False),
+    # old town: the stepped-gable house (the gable one prism so that its windows can be cut; a back gable closes the roof)
+    "props/building_oldtown": dict(builder="house", source="props/building_oldtown", kind="building",
+                                   atlas=(1024, 1024), ppm_max=96.0, roughness=0.85, view="roadside",
+                                   params={"allround": True, "gable3d": True}, ao=AO_TOWN, lod1=True,
+                                   weights=dict(roof=0.6),
+                                   openings=dict(reveal_color="#ece5d8", sill_color="#e6dfd2",
+                                                 bars={"large": (1, [0.62])}),
+                                   gutters=dict(per_roof=2)),
+    # the office tower: glass curtain wall (spandrel bands in the atlas, panes and fins as geometry), lobby lit at night
+    "props/building_tall": dict(builder="house", source="props/building_tall", kind="building", atlas=(2048, 1024),
+                                ppm_max=48.0, roughness=0.6, view="roadside", ao=AO_TOWN, lod1=True,
+                                openings=False, gutters=False, caps=False, baked_lamps=("tower_lobby",),
+                                curtain=dict(object="tower", base=3.5, floor=3.5, band=0.9, mull=1.6, lit=0.34,
+                                             light="#ffe4b8", glass="#3a5468")),
+    # town: the shop with flat, awning, sign (its light stays in the emission atlas: teal by day, cyan at night)
+    "props/building_shop": dict(builder="house", source="props/building_shop", kind="building", atlas=(1024, 1024),
+                                ppm_max=110.0, roughness=0.85, view="roadside", params={"allround": True}, ao=AO_TOWN,
+                                lod1=True, baked_lamps=("shop_sign",),
+                                openings=dict(reveal_color="#d9d4c8", sill_color="#c9c4b8",
+                                              bars={"large": (0, [0.8])}),
+                                gutters=False),
+})
+
+
 def model_ids():
     return sorted(MODELS)
 

@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/building_oldtown",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 8.4, "height_m": 20, "length_m": 12},
+  "extent_m": {"left": 8.09, "right": 3.85},
+  "aabb": [-4.2, 0, -12.1, 4.2, 20.06, 0.05],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 2316,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/building_oldtown/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 1112,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/building_oldtown/lod1_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/building_oldtown/albedo.png", "emit": "props/building_oldtown/emit.png"},
+  "roughness": 0.85,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left"],
+  "bytes": 267533,
+  "hash": "0869dd2227860b57d76378620ce951bd0c8dcc7f"
+ },
+ "sets": {
+  "props/building_oldtown": {"model": "props/building_oldtown"}
+ }
+}

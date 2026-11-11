@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/building_block_b",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 20.4, "height_m": 22.1, "length_m": 13},
+  "extent_m": {"left": 14.1, "right": 9.65},
+  "aabb": [-10.2, 0, -13.2, 10.2, 22.1, 0.3],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 5180,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/building_block_b/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 2340,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/building_block_b/lod1_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/building_block_b/albedo.png"},
+  "roughness": 0.85,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left"],
+  "bytes": 798065,
+  "hash": "ca0de686c667d8d6b63337c1bf616fba8b22c193"
+ },
+ "sets": {
+  "props/building_block_b": {"model": "props/building_block_b"}
+ }
+}

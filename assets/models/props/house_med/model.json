@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/house_med",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 11, "height_m": 9, "length_m": 8},
+  "extent_m": {"left": 8.53, "right": 5.28},
+  "aabb": [-5.5, -0.02, -8.623, 5.5, 9, 1.005],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 1343,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/house_med/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 609,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/house_med/lod1_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/house_med/albedo.png"},
+  "roughness": 0.9,
+  "auto_lod": false,
+  "tags": ["prop", "building", "mirror_left"],
+  "bytes": 241205,
+  "hash": "04eb703162f780530be4f2ad556d5d09c8c519da"
+ },
+ "sets": {
+  "props/house_med": {"model": "props/house_med"}
+ }
+}

@@ -50,6 +50,9 @@ BUILDERS = {"prop_vpbr": ("ce3d.props3d", "build_vpbr"), "prop_baked": ("ce3d.pr
 BUILDERS.update({"bush": ("ce3d.veg3d", "build_bush"), "grass": ("ce3d.veg3d", "build_grass"),
                  "building": ("ce3d.props3d", "build_building"), "lattice": ("ce3d.props3d", "build_lattice")})
 COST.update({"bush": 8.0, "grass": 2.0, "building": 150.0, "lattice": 5.0})
+# --- AS4 --- (wave 5): buildings with depth, bridge parts, ships (docs/modelle.md section 15)
+BUILDERS.update({"house": ("ce3d.buildings3d", "build_house")})
+COST.update({"house": 180.0})
 
 
 def builder(name):
