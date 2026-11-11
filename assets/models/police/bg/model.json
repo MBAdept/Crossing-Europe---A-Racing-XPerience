@@ -165,8 +165,8 @@
   "paint": {"paint": "#d8d8d5", "paint2": "#1b3f8f", "paint3": "#d22a2a", "metal": 0.12},
   "auto_lod": false,
   "tags": ["police", "bg"],
-  "bytes": 330700,
-  "hash": "55f1c093185e11d13fa4e38dcdb04127d153e1e1"
+  "bytes": 330698,
+  "hash": "9dbd0e02ab2f9c172ee433276c49d92b1bea9096"
  },
  "sets": {
   "police/bg": {

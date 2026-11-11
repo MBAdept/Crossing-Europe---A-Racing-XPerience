@@ -165,8 +165,8 @@
   "paint": {"paint": "#d8d8d5", "paint2": "#1b3f93", "paint3": "#e5531b", "metal": 0.12},
   "auto_lod": false,
   "tags": ["police", "nl"],
-  "bytes": 330173,
-  "hash": "b0068400c03af488ddf20e3004ba46d0b2966203"
+  "bytes": 330175,
+  "hash": "33a515c78fbc9845f072d00b72d35667f1aed10b"
  },
  "sets": {
   "police/nl": {

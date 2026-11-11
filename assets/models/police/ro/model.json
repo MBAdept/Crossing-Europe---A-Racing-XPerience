@@ -172,8 +172,8 @@
   "paint": {"paint": "#d8d8d5", "paint2": "#1b3c8f", "paint3": "#c6e01e", "metal": 0.12},
   "auto_lod": false,
   "tags": ["police", "ro"],
-  "bytes": 345182,
-  "hash": "fd4d4c558699fdc5f37f2d390a537d2a06fccdc6"
+  "bytes": 345194,
+  "hash": "88772604efc07f3f5e7137793c1c31f922ecefd5"
  },
  "sets": {
   "police/ro": {

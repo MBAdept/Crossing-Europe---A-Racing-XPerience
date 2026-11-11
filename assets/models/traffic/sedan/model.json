@@ -159,7 +159,7 @@
   "auto_lod": false,
   "tags": ["traffic", "car"],
   "bytes": 271845,
-  "hash": "7b1f2ab86d50b723e873e5bd82f9e327b4db181f"
+  "hash": "20c44bac062dc40b81aba777f83606c32f14ebc8"
  },
  "sets": {
   "traffic/sedan_red": {

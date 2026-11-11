@@ -158,8 +158,8 @@
   "paint": {"paint": "#aeb2b8", "metal": 0.75},
   "auto_lod": false,
   "tags": ["traffic", "car"],
-  "bytes": 276615,
-  "hash": "19bbc076b28f15f2e660a7a35ffebcf9c0fe7ea9"
+  "bytes": 276617,
+  "hash": "3e2f4539892f2b24dd0a4eb22e6a7a08deb218cc"
  },
  "sets": {
   "traffic/wagon_silver": {

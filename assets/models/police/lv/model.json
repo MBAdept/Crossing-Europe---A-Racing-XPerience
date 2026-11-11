@@ -165,8 +165,8 @@
   "paint": {"paint": "#d8d8d5", "paint2": "#1c2f6e", "paint3": "#e3dc1c", "metal": 0.12},
   "auto_lod": false,
   "tags": ["police", "lv"],
-  "bytes": 340708,
-  "hash": "97d6e45747b7947b9076db9efdbd1e627b46ba0e"
+  "bytes": 340689,
+  "hash": "911e5f3ea5908af36d6a84e69f47652b18c91003"
  },
  "sets": {
   "police/lv": {

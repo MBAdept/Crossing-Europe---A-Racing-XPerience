@@ -5,8 +5,8 @@ prozeduralen Generatoren** wie die Sprites (`tools/blender/cesprites`, siehe [sp
 Generatoren haben dafür Schalter („Hooks“) bekommen, deren Voreinstellung exakt das Sprite-Modell von v0.7.0
 ergibt. Kein Modell wird von Hand gebaut oder importiert. Der Modus „Arcade“ benutzt nichts von alledem.
 
-Stand: Bauabschnitt 4 (jedes Fahrzeug-Set hat ein Modell: Spielerautos und Verkehrsautos aus Abschnitt 14,
-Sattelzüge, Busse und Polizei aus Abschnitt 15).
+Stand: Bauabschnitt 4 mit der Nacharbeit nach der Kunstkritik (jedes Fahrzeug-Set hat ein Modell: Spielerautos und
+Verkehrsautos aus Abschnitt 14, Sattelzüge, Busse und Polizei aus Abschnitt 15, die Nacharbeit in Abschnitt 16).
 Zahlen mit „gemessen“ stammen von der
 Build-VM (4 Kerne, mit anderen Aufträgen geteilt, Software-OpenGL), „abgeleitet“ ist gerechnet, nicht gemessen.
 
@@ -380,21 +380,21 @@ Sportwagen 3 514, GT 3 412 Dreiecke (Showroom-Stufe 6 242–7 058).
 | Modell | Dreiecke je Stufe | Aufrufe | Netze | Texturquellen | Export | Bake |
 |---|---|---|---|---|---|---|
 | `player/limousine` | lod0 47 904 · show 98 786 · Schatten 2 320 | 6 / 6 | 1 637 806 B | – | 16,5 s | 0,07 s |
-| `player/kompakt` | lod0 49 155 · show 106 649 · Schatten 2 320 | 6 / 6 | 1 770 933 B | – | 16,7 s | 0,08 s |
-| `player/kombi` | lod0 54 306 · show 117 206 · Schatten 2 320 | 6 / 6 | 1 964 901 B | – | 20,6 s | 0,11 s |
-| `player/sportwagen` | lod0 46 940 · show 95 375 · Schatten 2 320 | 6 / 6 | 1 690 967 B | – | 13,9 s | 0,09 s |
-| `player/gran_turismo` | lod0 48 095 · show 102 327 · Schatten 2 320 | 6 / 6 | 1 772 777 B | – | 15,0 s | 0,13 s |
-| `traffic/sedan` (4 Farbsets) | lod0 17 552 · lod1 5 808 · lod2 1 149 · Schatten 972 | 6 / 1 / 1 | 271 357 B | – | 2,5 s | 0,03 s |
-| `traffic/hatch` (5 Farbsets) | lod0 17 636 · lod1 5 661 · lod2 1 180 · Schatten 988 | 6 / 1 / 1 | 270 561 B | – | 2,6 s | 0,03 s |
-| `traffic/wagon` (4 Farbsets) | lod0 17 459 · lod1 5 941 · lod2 1 141 · Schatten 940 | 6 / 1 / 1 | 276 014 B | – | 2,6 s | 0,03 s |
-| `traffic/suv` (4 Farbsets) | lod0 17 824 · lod1 5 915 · lod2 1 169 · Schatten 1 004 | 6 / 1 / 1 | 280 642 B | – | 2,5 s | 0,03 s |
-| `traffic/van` (4 Farbsets) | lod0 17 655 · lod1 5 845 · lod2 1 189 · Schatten 1 064 | 6 / 1 / 1 | 270 960 B | – | 2,4 s | 0,03 s |
-| `traffic/sports` (5 Farbsets) | lod0 17 751 · lod1 5 741 · lod2 1 194 · Schatten 972 | 6 / 1 / 1 | 287 195 B | – | 2,5 s | 0,03 s |
+| `player/kompakt` | lod0 49 111 · show 106 609 · Schatten 2 320 | 6 / 6 | 1 770 564 B | – | 15,4 s | 0,08 s |
+| `player/kombi` | lod0 54 306 · show 117 206 · Schatten 2 320 | 6 / 6 | 1 965 013 B | – | 17,8 s | 0,11 s |
+| `player/sportwagen` | lod0 46 805 · show 94 983 · Schatten 2 320 | 6 / 6 | 1 688 705 B | – | 13,6 s | 0,09 s |
+| `player/gran_turismo` | lod0 48 106 · show 102 289 · Schatten 2 320 | 6 / 6 | 1 776 118 B | – | 13,1 s | 0,13 s |
+| `traffic/sedan` (4 Farbsets) | lod0 17 552 · lod1 5 808 · lod2 1 171 · Schatten 972 | 6 / 1 / 1 | 271 845 B | – | 2,5 s | 0,03 s |
+| `traffic/hatch` (5 Farbsets) | lod0 17 636 · lod1 5 661 · lod2 1 197 · Schatten 988 | 6 / 1 / 1 | 271 024 B | – | 2,6 s | 0,03 s |
+| `traffic/wagon` (4 Farbsets) | lod0 17 459 · lod1 5 941 · lod2 1 176 · Schatten 940 | 6 / 1 / 1 | 276 615 B | – | 2,6 s | 0,03 s |
+| `traffic/suv` (4 Farbsets) | lod0 17 748 · lod1 5 889 · lod2 1 195 · Schatten 1 004 | 6 / 1 / 1 | 280 568 B | – | 2,5 s | 0,03 s |
+| `traffic/van` (4 Farbsets) | lod0 17 655 · lod1 5 845 · lod2 1 195 · Schatten 1 064 | 6 / 1 / 1 | 271 200 B | – | 2,4 s | 0,03 s |
+| `traffic/sports` (5 Farbsets) | lod0 17 751 · lod1 5 741 · lod2 1 164 · Schatten 972 | 6 / 1 / 1 | 287 170 B | – | 2,5 s | 0,03 s |
 | `traffic/truck` (Koffer weiß, AS2b) | lod0 19 010 · lod1 5 174 · lod2 1 346 · Schatten 476 | 13 / 1 / 1 | 170 944 B | – | 1,6 s | 0,04 s |
 | `traffic/truck_transport` (Koffer blau) | lod0 19 134 · lod1 5 260 · lod2 1 346 · Schatten 476 | 13 / 1 / 1 | 172 239 B | – | 1,7 s | 0,03 s |
 | `traffic/truck_tarp` (Plane rot, grün) | lod0 23 412 · lod1 5 168 · lod2 1 270 · Schatten 476 | 13 / 1 / 1 | 210 702 B | – | 2,0 s | 0,02 s |
 | `traffic/bus` (3 Farbsets) | lod0 19 238 · lod1 6 398 · lod2 1 500 · Schatten 516 | 6 / 1 / 1 | 227 704 B | – | 3,5 s | 0,02 s |
-| `police/*` (18, je ein Modell) | lod0 19 778–21 970 · lod1 5 331–5 991 · lod2 1 044–1 185 · Schatten 1 020–1 084 | 6 / 1 / 1 | 294–345 kB | – | 2,4–3,5 s | 0,04–0,67 s |
+| `police/*` (18, je ein Modell) | lod0 19 778–21 970 · lod1 5 331–5 975 · lod2 1 061–1 196 · Schatten 1 020–1 084 | 6 / 1 / 1 | 295–345 kB | – | 2,4–3,5 s | 0,04–0,67 s |
 | `props/tree_oak` | lod0 1 220 (420 Karten) · lod1 459 (140) · Schatten 179 · Fernbild | 2 / 2 / 1 | 53 072 B | 373 558 B | 2,2 s | 0,01 s |
 | `props/farmhouse` | lod0 104 | 1 | 2 586 B | 752 795 B (1024², Nachtlicht 512²) | 58 s | 0,01 s |
 | `props/streetlight` | lod0 312 (keine automatische Stufe) | 1 | 4 395 B | – | 0,1 s | < 0,01 s |
@@ -471,9 +471,9 @@ Der GT hat mit 390 cm² das kleinste Rücklicht (eine 5 cm hohe Leiste über die
   behalten dunkles, spiegelndes Glas ohne Innenraum (Budget 18 000 Dreiecke, ein Zeichenaufruf für die Karosserie).
 - Die abgewandten Wände werden nicht per UV-Spiegelung wiederverwendet; stattdessen ergänzt der Generator
   (`allround`) Fenster auf der Rückseite, die eigene Atlasfläche bekommen.
-- Sportwagen und GT (Spieler): Der Vorderreifen steckt oben 84 bzw. 61 mm im Lack (gemessen, Lenkwinkel 0°) –
-  die Schulterkante der Entwürfe läuft unter dem Scheitel des Radlaufs. Von außen verdeckt; eine Lösung bräuchte
-  einen eigenen Querschnitt der Front im 3D-Bau.
+- Sportwagen und GT (Spieler): Die Schulterkante der Entwürfe läuft unter dem Scheitel des vorderen Radlaufs. Seit
+  der Nacharbeit (Abschnitt 16) folgt der Kotflügel im 3D-Bau dem Kreis Reifenradius + 25 mm; die Kante über dem
+  Rad ist dadurch eine gestauchte Lippe, keine runde Schulter (aus der Nähe als Knick zu sehen).
 - Die Blinker der Spielerautos leuchten nie (die Ansicht des Spielers hat kein `blink`); der Prüfer verlangt sie
   trotzdem (Regel 9), bei Tag sind sie als bernsteinfarbene Felder zu sehen.
 - Laub nimmt den Schatten der Sonne nur zu einem Viertel an (sonst verschattet die Schattenhülle die Krone).
@@ -527,8 +527,9 @@ Linie. Dazu gehört:
 - **Reihenfolge:** Der Rang eines Decals kommt aus der vollständigen Liste, nicht aus der gefilterten der Stufe;
   Blinker liegen immer oben (sonst deckte in `lod1` das Rücklicht den Blinker zu).
 - **Stufen:** `lod1` lässt dünne Decals und die schwarzen Lampenringe weg, `lod2` zusätzlich Seitenteile der
-  Leuchten, Rückfahrlicht, Tagfahrlicht und Schwellerteilung; die Scheiben von `lod2` sind nach der
-  Flächennormale gefärbt. Rücklicht, Bremslicht, Blinker und Scheinwerfer behalten ihre Kontur.
+  Leuchten, Rückfahrlicht, Tagfahrlicht und Schwellerteilung; die Scheiben von `lod2` waren nach der
+  Flächennormale gefärbt (seit der Nacharbeit: Heckscheibe nach der Kontur des Entwurfs, Abschnitt 16). Rücklicht,
+  Bremslicht, Blinker und Scheinwerfer behalten ihre Kontur.
 - **Kennzeichen in allen Stufen** (`far_plate`): `lod1` und `lod2` zeigen es im Mittelwert des `lod0`-Kennzeichens
   samt Zeichen und Euroband (`#c4c4c1`), `lod2` behält es. (Weiß ohne Zeichen sprang es bei 40 m heller und
   verschwand bei 120 m – der hellste Punkt des Autos.) Der dunkle untere Teil des Heckstoßfängers wird in `lod2`

@@ -180,7 +180,10 @@ REAR_LID = {
 #          real time they had nothing to mirror and came out bright white-silver ("toy-like") - the 3D rim takes
 #          the colour the sprite shows, at every level (lod1/lod2 used the bright colour as well)
 #   plate  levels 1 and 2 drop the characters: the plate of those levels has the mean colour of the lod0 plate
-#          with its characters and blue band (a white plate jumped brighter at 40 m and vanished at 120 m)
+#          with its characters and blue band (a white plate jumped brighter at 40 m and vanished at 120 m). (AS2R)
+#          As DISPLAYED: the white of the lod0 plate clips in the sun while its characters stay dark, so the mean
+#          colour #c4c4c1 still came out 50 levels brighter than the lod0 plate at 40 m (sedan, game camera, race
+#          look: 242 against 192); #a2a2a0 gives 199 (measured)
 #   glass  lighter, glossier and a little metallic: the dark navy panes had no visible reflection and looked
 #          painted. lod1/lod2 draw them as vpbr (contract 4.6.4), which mirrors the sky about half as strongly as
 #          the glass class with the race look of the vehicle layer: their panes were 20 - 27 levels darker, and
@@ -190,7 +193,7 @@ REAR_LID = {
 #   chmsl  the third brake light with a darker lit colour: unlit, a lamp shows half its lit colour, and the
 #          bright red bar on the rear window looked switched on by day (lit, brake gain 2.2 still saturates it)
 TRAFFIC_RIM = dict(color="#5a5d62", metal=0.6, rough=0.35)
-FAR_PLATE = "#c4c4c1"
+FAR_PLATE = "#a2a2a0"
 TRAFFIC_GLASS = dict(color="#2a343e", rough=0.02, metal=0.25)
 TRAFFIC_GLASS_FAR = dict(color="#3a4652", rough=0.02, metal=0.25)
 CHMSL_LAMP = "brake:1:#9a1208"

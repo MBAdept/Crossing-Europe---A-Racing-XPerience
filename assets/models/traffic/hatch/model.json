@@ -152,7 +152,7 @@
   "auto_lod": false,
   "tags": ["traffic", "car"],
   "bytes": 271024,
-  "hash": "827776d781f7ffb319c6e0c461f4095ccfb21b93"
+  "hash": "f7c25cba53ae30140ad2af326a597803b07f0020"
  },
  "sets": {
   "traffic/hatch_green": {
