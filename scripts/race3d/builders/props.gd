@@ -60,6 +60,14 @@ var _skip_bridge := false
 var _holders: Array = []           ## committed "Props" nodes (main thread: commit / update)
 var _lod_z := -1.0e12              ## camera position of the last look at the chunk levels
 var _prepared := false
+## FIX1 (QA QB-03): landmarks keep Arcade's landmark law (RoadRenderer.landmark_fade: visible up to visibility ×
+## render.landmark_range_factor, at most render.landmark_far_m, with its haze) – in their chunk through a material of
+## their own (billboard.gdshader landmark_law), beyond the committed chunks as single stand-ins on the path (update()),
+## so Elbphilharmonie and Michel stand on the horizon as early as in Arcade (they appeared only at ~765 m).
+var _lm_law := Vector2(2.0, 1900.0)
+var _lm_mats: Dictionary = {}      ## set id -> landmark material (main thread)
+var _far: Dictionary = {}          ## index into Track.landmarks -> MeshInstance3D beyond the committed chunks
+var _far_z := -1.0e12              ## camera position of the last look at the far landmarks
 
 
 func id() -> String:
@@ -86,6 +94,8 @@ func setup(renderer: Node) -> void:
 
 
 func _read_config(cfg: Dictionary) -> void:
+	_lm_law = Vector2(float(ConfigLoader.lookup(cfg, "render.landmark_range_factor", 2.0)),
+		float(ConfigLoader.lookup(cfg, "render.landmark_far_m", 1900.0)))
 	var p: Variant = ConfigLoader.lookup(cfg, "graphics.modern.props", {})
 	if p is Dictionary:
 		var list: Variant = (p as Dictionary).get("bend_cover", [])
@@ -134,6 +144,9 @@ func fail_reason() -> String:
 
 func update(view: Dictionary, _dt: float) -> void:
 	var cam_z := float(view.get("camera_z", 0.0))
+	if absf(cam_z - _far_z) >= LOD_STEP_M or _far_z < -1.0e11:
+		_far_z = cam_z
+		_update_far_landmarks(view, cam_z)
 	if absf(cam_z - _lod_z) < LOD_STEP_M:
 		return      # the levels are a matter of tens of metres: looked at every few metres of driving
 	_lod_z = cam_z
@@ -164,6 +177,144 @@ func snapshot() -> Dictionary:
 		for k: String in c:
 			counts[k] = int(counts.get(k, 0)) + int(c[k])
 	return {"props": counts}
+
+
+## The stand-in material of a landmark set: the set's billboard material with Arcade's landmark law (main thread).
+func landmark_material(set_id: String) -> ShaderMaterial:
+	var m: Variant = _lm_mats.get(set_id)
+	if m != null:
+		return m
+	var s := _lib().standin(set_id)
+	if s.is_empty():
+		return null
+	var mat := (s["material"] as ShaderMaterial).duplicate() as ShaderMaterial
+	mat.set_shader_parameter("landmark_law", _lm_law)
+	_lm_mats[set_id] = mat
+	return mat
+
+
+## A landmark model drawn with Arcade's landmark law: its one surface's material (baked.gdshader) duplicated with
+## landmark_law set, as the override of the node. Models with several surfaces keep their materials (none in M1).
+func _landmark_override(node: GeometryInstance3D, part: Dictionary) -> void:
+	var mesh: Variant = part.get("mesh")
+	if not (mesh is Mesh) or (mesh as Mesh).get_surface_count() != 1:
+		return
+	var src := (mesh as Mesh).surface_get_material(0)
+	if not (src is ShaderMaterial):
+		return
+	var key := "m%d" % src.get_instance_id()
+	var m: Variant = _lm_mats.get(key)
+	if m == null:
+		var dup := (src as ShaderMaterial).duplicate() as ShaderMaterial
+		dup.set_shader_parameter("landmark_law", _lm_law)
+		_lm_mats[key] = dup
+		m = dup
+	node.material_override = m
+
+
+## Arcade's landmark range for a visibility (RoadRenderer._landmark_range).
+func landmark_range(vis: float) -> float:
+	return clampf(vis * _lm_law.x, minf(vis, 600.0), maxf(_lm_law.y, vis))
+
+
+## Landmarks ahead whose chunk is not committed yet, up to Arcade's landmark range: one stand-in each on the path
+## (the path is integrated up to graphics.modern.landmark_path_m ahead). Placed like _place() places them, so the
+## stand-in of the chunk takes over at the same spot; sets with a model are left to their chunk (none in M1).
+func _update_far_landmarks(view: Dictionary, cam_z: float) -> void:
+	if _renderer == null or not _prepared or _skip_landmarks:
+		return
+	var track: Variant = _renderer.get("track")
+	var streamer: Variant = _renderer.get("streamer")
+	var world: Variant = _renderer.get("world")
+	if not (track is Track) or streamer == null or not (world is Node3D):
+		return
+	var trk := track as Track
+	var lib := _lib()
+	var reach := landmark_range(float(view.get("visibility_m", 900.0)))
+	var chunk_m := float(int(streamer.get("chunk_segments"))) * trk.seg_len
+	var terrain: Variant = _renderer.get("terrain")
+	var keep := {}
+	for li in trk.landmarks.size():
+		var it: Dictionary = trk.landmarks[li]
+		var z := float(it.get("z", 0.0))
+		var dz := z - cam_z
+		if dz <= 0.0 or dz > reach or streamer.call(&"chunk_node", int(floor(z / chunk_m))) != null:
+			continue
+		var set_id := str(it.get("set", ""))
+		var e: Dictionary = lib.sets.get(set_id, {})
+		var sc := float(it.get("scale", 1.0))
+		if e.is_empty() or int(e["kind"]) == PropLibrary.NONE:
+			set_id = str(it.get("fallback", ""))
+			e = lib.sets.get(set_id, {}) if set_id != "" else {}
+			sc *= float(it.get("fallback_scale", 1.0))
+		if e.is_empty() or int(e["kind"]) == PropLibrary.NONE:
+			continue
+		var is_model := int(e["kind"]) == PropLibrary.MODEL
+		var parts: Array = []
+		if is_model:
+			var variants: Array = e.get("variants", [])
+			var md: Dictionary = lib.models.get(str(variants[0]) if not variants.is_empty() else "", {})
+			var reps: Array = md.get("reps", [])
+			if reps.is_empty():
+				continue
+			for pv: Variant in lib.mesh_parts(str(variants[0]), str(reps[reps.size() - 1])):
+				if not bool((pv as Dictionary)["shadow"]):
+					parts.append(pv)
+		else:
+			var mat := landmark_material(str(e["set"]))
+			var st := lib.standin(str(e["set"]))
+			if mat != null and not st.is_empty():
+				parts.append({"mesh": st["mesh"], "material": mat, "transform": Transform3D.IDENTITY})
+		if parts.is_empty():
+			continue
+		var side := int(it.get("side", 1))
+		var x := float(it.get("x", 0.0))
+		if it.has("align") and side != 0:
+			x = edge_anchor_x(x, side, false, float(e["extent_l"]), float(e["extent_r"]), sc)
+		var h := 0.0
+		if terrain is TerrainProfile and side != 0:
+			var edges := trk.road_edges_at(z)
+			var beyond := (x - edges.y if x > 0.0 else -x + edges.x) - trk.shoulder_w
+			h = (terrain as TerrainProfile).height(int(floor(z / trk.seg_len)), -1 if x < 0.0 else 1, maxf(0.0, beyond))
+		var node: Node3D = _far.get(li)
+		if node == null or not is_instance_valid(node):
+			node = Node3D.new()
+			node.name = "FarLandmark%d" % li
+			for pv: Variant in parts:
+				var pd: Dictionary = pv
+				var mi := MeshInstance3D.new()
+				mi.mesh = pd["mesh"]
+				mi.transform = pd.get("transform", Transform3D.IDENTITY)
+				mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				if pd.get("material") != null:
+					mi.material_override = pd["material"]
+				elif is_model:
+					_landmark_override(mi, pd)
+				node.add_child(mi)
+			(world as Node3D).add_child(node)
+			_far[li] = node
+		var basis := Basis.from_scale(Vector3(sc, sc, sc))
+		if is_model:
+			# a model stands like in its chunk: ChunkContext.frame() – turned with the road at z, never mirrored
+			var path: Variant = _renderer.get("path")
+			if path is RoadPath3D:
+				var a := (path as RoadPath3D).heading_at(z)
+				basis = Basis(RoadPath3D.right_of(a), Vector3.UP, -RoadPath3D.fwd_of(a)).scaled_local(Vector3(sc, sc, sc))
+		node.transform = Transform3D(basis, _renderer.call(&"road_to_world", z, x, h))
+		keep[li] = true
+	for li: Variant in _far.keys():
+		if not keep.has(li):
+			var n: Variant = _far[li]
+			if is_instance_valid(n):
+				(n as Node).queue_free()
+			_far.erase(li)
+
+
+## The floating origin moved: the far landmarks hang under renderer.world (origin-relative).
+func rebased(shift: Vector3) -> void:
+	for n: Variant in _far.values():
+		if is_instance_valid(n):
+			(n as Node3D).position += shift
 
 
 ## Hook of the renderer: what the props draw, compiled behind the loading cover – every representation of every
@@ -357,11 +508,12 @@ static func _place(ctx: ChunkContext, inp: Dictionary, out: Dictionary, i: int, 
 			lamps.append(entry)
 	else:
 		tr = Transform3D(Basis.from_scale(Vector3(sc, sc, sc)), ctx.local(z, x, h))
-		key = "s|%s|%d" % [str(e["set"]), 1 if flipped else 0]
+		key = "%s|%s|%d" % ["l" if landmark else "s", str(e["set"]), 1 if flipped else 0]
 	var groups: Dictionary = out["groups"]
 	var g: Dictionary = groups.get(key, {})
 	if g.is_empty():
-		g = {"model": model_id, "set": str(e["set"]), "mirror": flipped, "buf": PackedFloat32Array(), "n": 0}
+		g = {"model": model_id, "set": str(e["set"]), "mirror": flipped, "buf": PackedFloat32Array(), "n": 0,
+			"landmark": landmark}
 		groups[key] = g
 	var buf: PackedFloat32Array = g["buf"]
 	_put(buf, mirror_x(tr) if flipped else tr)
@@ -533,6 +685,8 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 					if bool(mp["shadow"]):
 						continue
 					var node := _mmi(mp, buf, n, false, bool(g["mirror"]))
+					if bool(g.get("landmark", false)):
+						_landmark_override(node, mp)
 					node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if cast_ok and not has_caster and not bool(mp["billboard"]) \
 						else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 					node.set_meta(&"levels", int(rep_levels[rep]))
@@ -551,6 +705,8 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 			var s := lib.standin(str(g["set"]))
 			if s.is_empty():
 				continue
+			if bool(g.get("landmark", false)):
+				s = {"mesh": s["mesh"], "material": landmark_material(str(g["set"]))}
 			var node := _mmi(s, buf, n, true, bool(g["mirror"]))
 			node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			node.set_meta(&"levels", 7)

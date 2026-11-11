@@ -45,6 +45,11 @@ uniform float night_energy = 1.5;
 uniform float shadow_cut = 0.0;
 uniform float baked_light = 0.0;              // 1: the picture carries its own light and shade (Arcade sprites)
 uniform vec3 headlight_color = vec3(1.0, 0.95, 0.84);   // linear, at intensity 1 right in front of the lamps
+// FIX1 (QA QB-03): a landmark keeps Arcade's landmark law (RoadRenderer.landmark_fade, frozen) instead of the prop
+// fade at the end of the sight: visible up to L = clamp(visibility × x, min(visibility, 600), max(y, visibility)),
+// fading out over the last 28 % of L, its colour going towards the fog colour × 1.15 by 0.85 × the haze from the fog
+// begin to L. x = render.landmark_range_factor (2), y = render.landmark_far_m (1900); x <= 0: an ordinary prop.
+uniform vec2 landmark_law = vec2(0.0, 1900.0);
 
 global uniform float ce_night;
 global uniform vec4 ce_sun_color;
@@ -110,7 +115,14 @@ void fragment() {
 	if (t.a < scissor || (t.a < shadow_cut && max(t.r, max(t.g, t.b)) < 0.1)) {
 		discard;
 	}
-	float far_keep = 1.0 - smoothstep(ce_fog_range.y * 0.85, ce_fog_range.y, length(VERTEX));
+	float dist = length(VERTEX);
+	float far_keep = 1.0 - smoothstep(ce_fog_range.y * 0.85, ce_fog_range.y, dist);
+	float lm_l = 0.0;
+	if (landmark_law.x > 0.0) {
+		float vis = ce_fog_range.y;
+		lm_l = clamp(vis * landmark_law.x, min(vis, 600.0), max(landmark_law.y, vis));
+		far_keep = 1.0 - smoothstep(lm_l * 0.72, lm_l, dist);
+	}
 	if (far_keep < 0.999 && fract(dot(floor(FRAGCOORD.xy), vec2(0.7548776662, 0.5698402910))) >= far_keep) {
 		discard;
 	}
@@ -137,5 +149,10 @@ void fragment() {
 		}
 	}
 	ALBEDO = albedo_for(x);
-	FOG = ce_arcade_fog(t.rgb * COLOR.rgb, length(VERTEX), ce_fog_color, ce_fog_range);
+	if (lm_l > 0.0) {
+		float haze = clamp((dist - ce_fog_range.x) / max(lm_l - ce_fog_range.x, 1.0), 0.0, 1.0) * 0.85;
+		FOG = vec4(ce_fog_unshow(min(t.rgb * COLOR.rgb * ce_fog_color.rgb * 1.15, vec3(1.0))), haze);
+	} else {
+		FOG = ce_arcade_fog(t.rgb * COLOR.rgb, dist, ce_fog_color, ce_fog_range);
+	}
 }

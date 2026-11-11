@@ -12,7 +12,8 @@
 //   ce_wet            darker and smoother (it glints towards the sun)
 //   outer ring        fades into the far ground (colour and normal), so the plane of layers/far_ground.gd continues
 //                     the ribbon without a seam; the skirt below the outer edge shows the same tone
-//   water             (bridges) a smooth surface in the water colour of the scenery
+//   water             (bridges) a smooth surface in the water colour of the bridge (or the scenery) that mirrors
+//                     the sky towards the horizon: Arcade's water_tint, 16 % near, up to 70 % at 324 m (FIX1)
 //   light pools       lamps and the traffic's headlights on the ground: inc/pools.gdshaderinc
 //   low beam          the player's headlight cone on the ground (inc/headlight.gdshaderinc), like the road: the
 //                     mesh is on render layer 2 (builders/road.gd GROUND_LAYERS), the real spots of the lights
@@ -120,7 +121,12 @@ void fragment() {
 	// the base pass of the ground law, the light pools and the low beam on top (Arcade adds them in display values)
 	float reflect = mix(mix(0.8, 0.45, nature) + 0.15 * gravel, 0.45, water);
 	vec3 extra = ce_pools(v_world) * reflect + ce_headlight_light(v_world, reflect);
-	EMISSION = ce_pools_encode(ce_ground_base_lin(ALBEDO) + ce_pools_to_lin(ALBEDO) * extra);
+	// the water mirrors the sky (RoadRenderer.water_tint: the lit water towards sky_bottom by 0.16 + d / 600, at most
+	// 0.7; the fog colour stands in for the palette's sky_bottom): its own light falls by that share
+	float mirror = clamp(0.16 + dist / 600.0, 0.16, 0.7) * water;
+	ALBEDO *= 1.0 - mirror;
+	EMISSION = ce_pools_encode(ce_ground_base_lin(ALBEDO) + ce_pools_to_lin(ALBEDO) * extra
+		+ ce_ground_unshow(ce_fog_color.rgb) * mirror);
 	// fog (RINT-B, lead decision): Arcade's law for what lies beside the road at the end of the sight, as on the far
 	// ground – towards the brightened fog colour by 0.7 × the fog amount of the distance (RoadRenderer._modulate), never
 	// more fog than Arcade (F4). The engine's depth fog turned valley ground beyond the sight into pure fog colour – a

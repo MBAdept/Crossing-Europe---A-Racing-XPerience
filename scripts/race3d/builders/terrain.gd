@@ -54,9 +54,27 @@ func setup(renderer: Node) -> void:
 ## bands and the style overrides of the configuration. Plain data.
 func collect(ctx: ChunkContext) -> Variant:
 	var styles: Variant = ConfigLoader.lookup(ctx.cfg, "graphics.modern.terrain.styles", {})
+	# FIX1 (QA QB-03: dark water under the Köhlbrand bridge): Arcade's water colour of a bridge (RoadRenderer.
+	# _water_base, frozen) – the bridge's own "water", else the scenery's, else the default of its type
+	var waters := {}
+	for seg: Dictionary in ctx.segs:
+		if not bool(seg["water"]):
+			continue
+		var bi := int(seg["bridge_i"])
+		var key := "%d|%s" % [bi, str(seg["scenery"])]
+		if waters.has(key):
+			continue
+		var c := ""
+		if ctx.track != null and bi >= 0 and bi < ctx.track.bridges.size():
+			c = str(ctx.track.bridges[bi].get("water", ""))
+		if c == "":
+			c = str(_dict(ctx.scenery_db.get(str(seg["scenery"]))).get("water", ""))
+		if c == "":
+			c = str(CityData.WATER_COLOR.get(str(seg["bridge"]), "#4b6878"))
+		waters[key] = Color(c)
 	return {"city": GroundLook.city_info(ctx.track),
 		"band": maxi(1, int(ConfigLoader.lookup(ctx.cfg, "render.stripes.grass", 4))),
-		"styles": styles if styles is Dictionary else {}}
+		"styles": styles if styles is Dictionary else {}, "waters": waters}
 
 
 func build(ctx: ChunkContext, input: Variant) -> Dictionary:
@@ -68,6 +86,7 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 	var city: Dictionary = inp.get("city", {})
 	var band_w := int(inp.get("band", 4))
 	var overrides: Dictionary = inp.get("styles", {})
+	var waters: Dictionary = inp.get("waters", {})
 	var per_side := rows * n
 	var grid := per_side * 2
 	var count := grid + rows * 4            # + skirt: top and bottom vertex per row and side
@@ -119,7 +138,7 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 		var nature := float(st["nature"])
 		if water:
 			water_rows += 1
-			mean = cached[2]
+			mean = waters.get("%d|%s" % [int(seg["bridge_i"]), scen_id], cached[2])
 			half = Color(0.0, 0.0, 0.0)
 			amount = WATER_STYLE
 			nature = 0.0

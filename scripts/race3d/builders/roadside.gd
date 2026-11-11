@@ -13,6 +13,11 @@ extends ChunkBuilder
 ##    road.delineator_every_m (50 m) a reflector in the valley of the beam – amber on the right, white on the left.
 ##  * delineator posts where there is no guardrail, outside the City Limits and tunnels, every 50 m, 0.3 m inside
 ##    the outer edge: white, 1.05 m high, a black band with the reflector.
+##  * FIX1 (QA QB-03: the Köhlbrand bridge read as a dam): on bridge segments (water, outside tunnels) Arcade's railing
+##    at the outer deck edge (RoadRenderer._bridge_structures: the shoulder edge + Track.BRIDGE_DECK_EXTRA_M outside
+##    the City Limits) in the bridge's colour – a steel railing with a concrete kerb, posts every second segment; a
+##    stone parapet for "stone_arch", a low wall for "causeway", an iron railing for "canal". Until the bridge
+##    builder of M2 (R5) builds decks, girders and pylons.
 ## Nothing here depends on a quality level except the shadow (levels.shadow_casters >= 1: "structures") – what
 ## marks the edge of the road is never thinned out or shortened (Rule 9).
 ## Reflectors are small lit surfaces; what they throw back of the player's low beam at night is drawn by the lights
@@ -49,6 +54,10 @@ const ROUGH_STEEL := Vector2(0.48, 0.25)      ## roughness, metallic
 const ROUGH_POST := Vector2(0.6, 0.2)
 const ROUGH_PLASTIC := Vector2(0.55, 0.0)
 const ROUGH_REFLECTOR := Vector2(0.2, 0.0)
+const ROUGH_RAILING := Vector2(0.5, 0.3)
+const ROUGH_STONE := Vector2(0.9, 0.0)
+const CONCRETE := Color("b9b5aa")             ## RoadRenderer.CONCRETE
+const BRIDGE_EXTRA_M := 0.4                   ## Track.BRIDGE_DECK_EXTRA_M
 
 var _post_every := 2               ## segments between guardrail posts (Arcade)
 var _delin_every := 50.0
@@ -124,7 +133,20 @@ func configure(cfg: Dictionary) -> void:
 func collect(ctx: ChunkContext) -> Variant:
 	if not _configured:
 		configure(ctx.cfg)
-	return null
+	# the colour of every bridge in the chunk (Track.bridges is main-thread data; Arcade: RoadRenderer._bridge_color)
+	var colours := {}
+	if ctx.track != null:
+		for seg: Dictionary in ctx.segs:
+			if not bool(seg["water"]):
+				continue
+			var bi := int(seg["bridge_i"])
+			if colours.has(bi):
+				continue
+			var c := ""
+			if bi >= 0 and bi < ctx.track.bridges.size():
+				c = str(ctx.track.bridges[bi].get("color", ""))
+			colours[bi] = Color(c) if c != "" else RoadRenderer.RAIL.get(str(seg["bridge"]), RoadRenderer.RAIL["river"])
+	return {"bridge_colours": colours}
 
 
 ## True when a guardrail stands on `side` (-1 left, +1 right) of the segment between the rows of sa and sb.
@@ -137,8 +159,10 @@ static func has_rail(sa: Dictionary, sb: Dictionary, side: int) -> bool:
 
 
 ## WORKER THREAD.
-func build(ctx: ChunkContext, _input: Variant) -> Dictionary:
+func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 	var buf := Buf.new()
+	var bridge_colours: Dictionary = (input as Dictionary).get("bridge_colours", {}) if input is Dictionary else {}
+	var railing_segments := 0
 	var rows := ctx.row_count()
 	var seg_len := ctx.seg_len
 	var steel := STEEL.lerp(Color.WHITE, 0.3) if _snow else STEEL
@@ -152,6 +176,11 @@ func build(ctx: ChunkContext, _input: Variant) -> Dictionary:
 		var z0 := float(ctx.seg_a + i) * seg_len
 		var z1 := z0 + seg_len
 		var seg_index := int(sa["index"])
+		if bool(sa["water"]) and not bool(sa["tunnel"]):
+			railing_segments += 1
+			var rc: Color = bridge_colours.get(int(sa["bridge_i"]), RoadRenderer.RAIL["river"])
+			for side: int in [-1, 1]:
+				_railing(buf, ctx, i, z0, z1, side, str(sa["bridge"]), rc, bool(sa["city"]), seg_index)
 		for side: int in [-1, 1]:
 			if not has_rail(sa, sb, side):
 				continue
@@ -225,7 +254,63 @@ func build(ctx: ChunkContext, _input: Variant) -> Dictionary:
 	arrays[Mesh.ARRAY_TEX_UV2] = buf.uv2
 	arrays[Mesh.ARRAY_INDEX] = buf.idx
 	return {"arrays": arrays, "vertices": buf.v.size(), "triangles": buf.idx.size() / 3, "rail_left": rail_segments[0],
-		"rail_right": rail_segments[1], "posts": posts, "delineators": delineators, "reflectors": reflectors}
+		"rail_right": rail_segments[1], "posts": posts, "delineators": delineators, "reflectors": reflectors,
+		"railing_segments": railing_segments}
+
+
+## Arcade's bridge railing on one side of the segment between rows i and i + 1 (RoadRenderer._bridge_structures):
+## bands facing the road and their backs, posts every second segment. Heights as in Arcade.
+func _railing(buf: Buf, ctx: ChunkContext, i: int, z0: float, z1: float, side: int, kind: String, col: Color, city: bool,
+		seg_index: int) -> void:
+	var s := float(side)
+	var extra := 0.0 if city else BRIDGE_EXTRA_M
+	var xa := s * (ctx.shoulder_edge(i, side) + extra)
+	var xb := s * (ctx.shoulder_edge(i + 1, side) + extra)
+	var inward_a := ctx.rows_r[i] * -s
+	var inward_b := ctx.rows_r[i + 1] * -s
+	var inward := inward_a + inward_b
+	var bands: Array = []            # [h0, h1, colour, thickness (m), roughness/metallic]
+	match kind:
+		"stone_arch":
+			bands = [[0.0, 0.24, col.darkened(0.22), 0.3, ROUGH_STONE], [0.24, 0.92, col.darkened(0.08), 0.18, ROUGH_STONE],
+				[0.92, 1.14, col.lightened(0.08), 0.32, ROUGH_STONE]]
+		"causeway":
+			bands = [[0.0, 0.82, col, 0.3, ROUGH_STONE], [0.82, 0.92, col.lightened(0.12), 0.34, ROUGH_STONE]]
+		"canal":
+			bands = [[0.0, 0.1, col.darkened(0.2), 0.06, ROUGH_RAILING], [0.43, 0.48, col, 0.05, ROUGH_RAILING],
+				[0.95, 1.02, col, 0.06, ROUGH_RAILING]]
+		_:
+			bands = [[0.0, 0.28, CONCRETE, 0.3, ROUGH_STONE], [0.5, 0.56, col.darkened(0.15), 0.06, ROUGH_RAILING],
+				[0.98, 1.1, col, 0.08, ROUGH_RAILING]]
+	for b: Array in bands:
+		var h0 := float(b[0])
+		var h1 := float(b[1])
+		var c: Color = b[2]
+		var t := float(b[3])
+		var rm: Vector2 = b[4]
+		# face towards the road, the back, the top
+		buf.quad(ctx.local(z0, xa, h0), ctx.local(z1, xb, h0), ctx.local(z1, xb, h1), ctx.local(z0, xa, h1), inward, c, rm)
+		buf.quad(ctx.local(z0, xa + s * t, h0), ctx.local(z1, xb + s * t, h0), ctx.local(z1, xb + s * t, h1), ctx.local(z0, xa + s * t, h1),
+			-inward, c.darkened(0.1), rm)
+		buf.quad(ctx.local(z0, xa, h1), ctx.local(z1, xb, h1), ctx.local(z1, xb + s * t, h1), ctx.local(z0, xa + s * t, h1), Vector3.UP,
+			c.lightened(0.05), rm)
+	if kind == "causeway":
+		return
+	# posts (balusters of a parapet, bars of an iron railing): every second segment, at the near row
+	if seg_index % 2 != 0:
+		return
+	var top := 1.1 if kind != "stone_arch" else 1.14
+	var w := 0.1 if kind != "stone_arch" else 0.2
+	var fwd := ctx.rows_f[i]
+	var c0 := ctx.local(z0, xa + s * 0.05, 0.0)
+	var along := fwd * (w * 0.5)
+	var across := inward_a * (w * 0.5)
+	var up := Vector3(0.0, top, 0.0)
+	var pc := col.darkened(0.2)
+	buf.quad(c0 - along + across, c0 + along + across, c0 + along + across + up, c0 - along + across + up, inward_a, pc, ROUGH_RAILING)
+	buf.quad(c0 - along - across, c0 + along - across, c0 + along - across + up, c0 - along - across + up, -inward_a, pc, ROUGH_RAILING)
+	buf.quad(c0 - along - across, c0 - along + across, c0 - along + across + up, c0 - along - across + up, -fwd, pc, ROUGH_RAILING)
+	buf.quad(c0 + along - across, c0 + along + across, c0 + along + across + up, c0 + along - across + up, fwd, pc, ROUGH_RAILING)
 
 
 ## One delineator post at road position (z, x): white, a black band near the top, the reflector on the face that
@@ -283,4 +368,4 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 func debug(part: Dictionary) -> Dictionary:
 	return {"vertices": int(part.get("vertices", 0)), "triangles": int(part.get("triangles", 0)), "rail_left": int(part.get("rail_left", 0)),
 		"rail_right": int(part.get("rail_right", 0)), "posts": int(part.get("posts", 0)), "delineators": int(part.get("delineators", 0)),
-		"reflectors": (part.get("reflectors", []) as Array).size()}
+		"reflectors": (part.get("reflectors", []) as Array).size(), "railing_segments": int(part.get("railing_segments", 0))}
