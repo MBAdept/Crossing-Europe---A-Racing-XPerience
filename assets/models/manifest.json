@@ -36,7 +36,7 @@
     {
      "name": "lod0",
      "max_dist_m": 100000,
-     "tris": 50150,
+     "tris": 50080,
      "parts": [
       {
        "node": "body",
@@ -78,7 +78,7 @@
     {
      "name": "show",
      "max_dist_m": 0,
-     "tris": 107140,
+     "tris": 107042,
      "parts": [
       {
        "node": "body",
@@ -208,8 +208,8 @@
    "paint": {"paint": "#f0b30a", "metal": 0},
    "auto_lod": false,
    "tags": ["player"],
-   "bytes": 1748226,
-   "hash": "0c632921ce4de950913bd479f5dfbff9f39417f3"
+   "bytes": 1742146,
+   "hash": "60fe03411f75453706329db4fdc82b2f8827d3d9"
   },
   "player/limousine": {
    "kind": "vehicle",
@@ -219,7 +219,7 @@
     {
      "name": "lod0",
      "max_dist_m": 100000,
-     "tris": 45810,
+     "tris": 45764,
      "parts": [
       {
        "node": "body",
@@ -261,7 +261,7 @@
     {
      "name": "show",
      "max_dist_m": 0,
-     "tris": 99722,
+     "tris": 99670,
      "parts": [
       {
        "node": "body",
@@ -397,8 +397,8 @@
    "paint": {"paint": "#1d4ea8", "metal": 0.55},
    "auto_lod": false,
    "tags": ["player"],
-   "bytes": 1576913,
-   "hash": "ddd135674ea16e4b1876d9720b2741b8867ec210"
+   "bytes": 1572896,
+   "hash": "27fa7ecc9710f5843010bb620925184349d7cfbb"
   },
   "props/farmhouse": {
    "kind": "building",
@@ -520,7 +520,7 @@
     {
      "name": "lod0",
      "max_dist_m": 40,
-     "tris": 17377,
+     "tris": 17317,
      "parts": [
       {
        "node": "body",
@@ -562,7 +562,7 @@
     {
      "name": "lod1",
      "max_dist_m": 120,
-     "tris": 5796,
+     "tris": 5753,
      "parts": [
       {
        "node": "body",
@@ -574,7 +574,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1138,
+     "tris": 1136,
      "parts": [
       {
        "node": "body",
@@ -660,8 +660,8 @@
    "paint": {"paint": "#3d8a45", "metal": 0.4},
    "auto_lod": false,
    "tags": ["traffic", "car"],
-   "bytes": 258993,
-   "hash": "282f9d4782b3ef0996ff6d5173d9d68d26c2231a"
+   "bytes": 255288,
+   "hash": "6c4f877a347fe9a886a3f45a6e027090116e1494"
   },
   "traffic/sedan": {
    "kind": "vehicle",
@@ -672,7 +672,7 @@
     {
      "name": "lod0",
      "max_dist_m": 40,
-     "tris": 17799,
+     "tris": 17695,
      "parts": [
       {
        "node": "body",
@@ -714,7 +714,7 @@
     {
      "name": "lod1",
      "max_dist_m": 120,
-     "tris": 5841,
+     "tris": 5805,
      "parts": [
       {
        "node": "body",
@@ -819,8 +819,8 @@
    "paint": {"paint": "#b52424", "metal": 0.3},
    "auto_lod": false,
    "tags": ["traffic", "car"],
-   "bytes": 263144,
-   "hash": "244f8f3e6501d8a574ed5ad8078bd75319df3ebc"
+   "bytes": 258727,
+   "hash": "15a96d478ef9c2b5ae4a1b14bbfccae1fe0591ae"
   },
   "traffic/truck": {
    "kind": "heavy",
@@ -830,7 +830,7 @@
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 18098,
+     "tris": 18086,
      "parts": [
       {
        "node": "tractor/body",
@@ -923,7 +923,7 @@
     {
      "name": "lod1",
      "max_dist_m": 180,
-     "tris": 4676,
+     "tris": 4674,
      "parts": [
       {
        "node": "body",
@@ -1043,8 +1043,8 @@
    },
    "auto_lod": false,
    "tags": ["traffic", "heavy"],
-   "bytes": 158601,
-   "hash": "28371c960fefae7be370076787eec293dbc2e405"
+   "bytes": 158348,
+   "hash": "79cd34dcb80888041a9a4a98b16d0e73599c9e87"
   },
   "traffic/wagon": {
    "kind": "vehicle",
@@ -1055,7 +1055,7 @@
     {
      "name": "lod0",
      "max_dist_m": 40,
-     "tris": 17934,
+     "tris": 17888,
      "parts": [
       {
        "node": "body",
@@ -1097,7 +1097,7 @@
     {
      "name": "lod1",
      "max_dist_m": 120,
-     "tris": 5954,
+     "tris": 5937,
      "parts": [
       {
        "node": "body",
@@ -1109,7 +1109,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1094,
+     "tris": 1079,
      "parts": [
       {
        "node": "body",
@@ -1202,8 +1202,8 @@
    "paint": {"paint": "#aeb2b8", "metal": 0.75},
    "auto_lod": false,
    "tags": ["traffic", "car"],
-   "bytes": 270244,
-   "hash": "22ab1791ed03244a033d2eebbaad2c60148b3727"
+   "bytes": 267069,
+   "hash": "82be9578bf4489fa3333d7f54c748ee4e3ca5ec6"
   }
  },
  "sets": {

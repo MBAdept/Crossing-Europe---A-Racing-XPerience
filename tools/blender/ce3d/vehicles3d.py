@@ -198,6 +198,9 @@ def _player_level(spec3d, level):
         MU.tagging(False)
     objs = core.model_objects(rig)
     soups = core.soups_of(objs)
+    for s_ in soups:
+        if s_.name in (car.body.name, car.bumper_rear.name, car.bumper_front.name):
+            core.flatten_ends(s_.pos, s_.nor)        # the flat end caps shade into the rounded ends
     pocket_tris = _lamp_pockets(car, soups)
     extras3d.uncover_pockets(car, {s.name: s for s in soups}, lambda o, pr: _shift(o, pr, -car.L / 2.0), decalgeo.cut_holes)
     lin_pos, lin_nor, cut_stats = _open_cabin(car, lay, soups)

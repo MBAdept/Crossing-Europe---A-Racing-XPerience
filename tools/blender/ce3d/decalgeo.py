@@ -34,12 +34,17 @@ AXES = {"rear": np.array([0.0, -1.0, 0.0]), "front": np.array([0.0, 1.0, 0.0]), 
 # ranks of the stacking order: paint / cladding, window seals, glass, then the decal groups 0, 1, 2 ...
 BASE_RANK, SEAL_RANK, GLASS_RANK = -3, -2, -1
 END_DEPTH_M = 0.9          # rear / front decals reach this far into the body from its end
-FACING_MIN = 0.03          # a face takes decals of a projection only if its own normal looks that way (cosine)
+FACING_MIN = 0.08          # a face takes decals of a projection only if its own normal looks that way (cosine)
 SLIVER_2D = 1.0e-4         # candidate triangles lower than this (m, in the projection plane) are left alone
 UV_AXES = {"rear": (0, 2), "front": (0, 2), "side": (1, 2), "top": (0, 1)}
 
 
 # --- 2-D helpers ---------------------------------------------------------------------------------------
+
+def _area3(pos):
+    """Total area of (T, 3, 3) triangles."""
+    return float(0.5 * np.linalg.norm(np.cross(pos[:, 1] - pos[:, 0], pos[:, 2] - pos[:, 0]), axis=1).sum())
+
 
 def _area2(poly):
     a = 0.0
@@ -293,8 +298,8 @@ class Tris:
             faces.append([vid(p[0], p[1]) for p in poly])
         out = mgeo.delaunay_2d_cdt(verts, [], faces, 1, 1e-7, True)
         vco, ofaces, orig = out[0], out[2], out[5]
-        new_p, new_n, new_m, new_r = [], [], [], []
-        replaced = set()
+        new_p, new_n, new_m, new_r, new_t = [], [], [], [], []
+        covered = {}
         # barycentric frames of the body triangles in the projection plane
         for fi, src in zip(ofaces, orig):
             bodies = [s for s in src if s < nb]
@@ -342,16 +347,29 @@ class Tris:
                 # an item without a material (mat None) only takes the place: what is there stays as it is
                 new_m.append(items[k]["mat"] if k >= 0 and items[k]["mat"] is not None else self.mat[t])
                 new_r.append(items[k]["rank"] if k >= 0 else self.rank[t])
-                replaced.add(t)
+                new_t.append(t)
+                covered[t] = covered.get(t, 0.0) + abs(float((q[1, 0] - q[0, 0]) * (q[2, 1] - q[0, 1]) -
+                                                              (q[2, 0] - q[0, 0]) * (q[1, 1] - q[0, 1])))
+        if not new_t:
+            return 0
+        # a body triangle is only replaced by pieces that cover it: one that is nearly a line in this plane can
+        # lose pieces to the tolerances (a hole in the body under a lamp) - it stays as it was
+        whole = {}
+        for t in covered:
+            a0, a1, a2 = uv[t, 0], uv[t, 1], uv[t, 2]
+            full = abs(float((a1[0] - a0[0]) * (a2[1] - a0[1]) - (a2[0] - a0[0]) * (a1[1] - a0[1])))
+            whole[t] = covered[t] >= 0.985 * full
+        ok = np.array([whole[t] for t in new_t], dtype=bool)
+        replaced = [t for t in whole if whole[t]]
         if not replaced:
             return 0
         keep = np.ones(self.pos.shape[0], dtype=bool)
-        keep[list(replaced)] = False
-        self.pos = np.concatenate([self.pos[keep], np.array(new_p)])
-        self.nor = np.concatenate([self.nor[keep], np.array(new_n)])
-        self.mat = np.concatenate([self.mat[keep], np.array(new_m, dtype=np.int32)])
-        self.rank = np.concatenate([self.rank[keep], np.array(new_r, dtype=np.int32)])
-        return len(new_p)
+        keep[replaced] = False
+        self.pos = np.concatenate([self.pos[keep], np.array(new_p)[ok]])
+        self.nor = np.concatenate([self.nor[keep], np.array(new_n)[ok]])
+        self.mat = np.concatenate([self.mat[keep], np.array(new_m, dtype=np.int32)[ok]])
+        self.rank = np.concatenate([self.rank[keep], np.array(new_r, dtype=np.int32)[ok]])
+        return int(ok.sum())
 
 
 HOLE = -1                  # material index of what cut_holes removes
@@ -586,8 +604,13 @@ def car_surfaces(car, soups, cut=True, level=0, paint_rough=0.28, seals=True, fa
     def run(tris, groups):
         for (proj, sgn) in sorted(groups, key=lambda g: (g[0], -g[1])):
             before = tris.pos.shape[0]
+            area0 = _area3(tris.pos)
             n = tris.apply(proj, sgn, groups[(proj, sgn)], cut=cut)
             stats["cut_tris" if cut else "painted"] += n
+            lost = area0 - _area3(tris.pos)
+            if abs(lost) > 1.0e-4:
+                # the cut must only re-divide the surface: a lost piece is a hole in the body
+                raise RuntimeError("decal cut %s %+d changed the surface by %.1f cm2" % (proj, sgn, lost * 1e4))
             if os.environ.get("CE_STATS"):
                 print("      decals %-5s %+d: %2d outlines, %5d -> %5d triangles" % (proj, sgn, len(groups[(proj, sgn)]),
                                                                                  before, tris.pos.shape[0]))

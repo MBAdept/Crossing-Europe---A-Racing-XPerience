@@ -338,6 +338,22 @@ def transfer_normals(pos, nor, fpos, fnor, pull=0.15, max_dist=0.12, agree=0.2, 
     return out
 
 
+def flatten_ends(pos, nor, axis=1, tol=1e-5):
+    """Lofts closed by a flat cap (cesprites.carbody): every corner that lies in the plane of an end cap gets
+    the cap's normal. The rounded end of the loft runs into the cap tangentially, but its last ring of faces
+    stands at an angle - smooth-shaded, the flat cap stood out as a panel of its own; with the cap's normal on
+    the shared ring the shading runs through. pos, nor (T, 3, 3); nor is changed in place."""
+    v = pos[:, :, axis]
+    for end, sign in ((float(v.min()), -1.0), (float(v.max()), 1.0)):
+        on = np.abs(v - end) < tol
+        if not on.all(axis=1).any():
+            continue                    # no cap triangles at this end
+        n = np.zeros(3)
+        n[axis] = sign
+        nor[on] = n
+    return nor
+
+
 def tri_count(surfaces):
     return int(sum(len(s["idx"]) // 3 for _c, s in surfaces))
 

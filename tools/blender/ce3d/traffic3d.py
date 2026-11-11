@@ -316,6 +316,8 @@ def _level(spec3d, level, paint_hex, metal, fine=None):
             src = fine.get(role) or (fine.get("body") if role.startswith("bumper") else None)
             if src is not None:
                 s.nor = core.transfer_normals(s.pos, s.nor, src[0], src[1])
+        if role != "cabin":
+            core.flatten_ends(s.pos, s.nor)          # the flat end caps shade into the rounded ends
         lofts[role] = (s.pos.copy(), s.nor.copy())
     pal, tris, stats = decalgeo.car_surfaces(car, {s.name: s for s in soups}, cut=True,
                                              level={"lod0": 0, "lod1": 1, "lod2": 2}[level], paint_rough=0.24,

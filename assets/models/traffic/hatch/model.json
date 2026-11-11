@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 40,
-    "tris": 17377,
+    "tris": 17317,
     "parts": [
      {
       "node": "body",
@@ -53,7 +53,7 @@
    {
     "name": "lod1",
     "max_dist_m": 120,
-    "tris": 5796,
+    "tris": 5753,
     "parts": [
      {
       "node": "body",
@@ -65,7 +65,7 @@
    {
     "name": "lod2",
     "max_dist_m": 100000,
-    "tris": 1138,
+    "tris": 1136,
     "parts": [
      {
       "node": "body",
@@ -151,8 +151,8 @@
   "paint": {"paint": "#3d8a45", "metal": 0.4},
   "auto_lod": false,
   "tags": ["traffic", "car"],
-  "bytes": 258993,
-  "hash": "282f9d4782b3ef0996ff6d5173d9d68d26c2231a"
+  "bytes": 255288,
+  "hash": "6c4f877a347fe9a886a3f45a6e027090116e1494"
  },
  "sets": {
   "traffic/hatch_green": {
