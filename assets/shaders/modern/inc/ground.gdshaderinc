@@ -42,7 +42,10 @@ vec3 ce_ground_open(vec3 base, vec3 accent, float amount, float nature, vec2 p, 
 	vec4 cell = texture(ground_noise, p / CE_GROUND_FIELD_M);
 	float blot = texture(ground_noise, p / CE_GROUND_BLOT_M).g;
 	float big = texture(ground_noise, p / (CE_GROUND_BLOT_M * 5.0) + vec2(0.37, 0.11)).g;
-	float far = smoothstep(260.0, 640.0, dist);
+	// far away a field is smaller than a pixel: the texture filter blurs the cell values, so the pattern is faded
+	// into its mean as the footprint of a pixel grows beyond a few texels (3 m each)
+	vec2 fw = fwidth(p) / 3.0;
+	float far = max(smoothstep(2.5, 14.0, max(fw.x, fw.y)), smoothstep(700.0, 1300.0, dist));
 	// every field has its own shade of the ground tone
 	float shade = fract(cell.b * 5.3);
 	vec3 tone = base * (1.0 + (shade - 0.5) * 0.15 * field * (1.0 - far));

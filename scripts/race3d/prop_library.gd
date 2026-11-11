@@ -32,6 +32,7 @@ enum { NONE, MODEL, SPRITE }
 const SPRITE_MANIFEST := "res://assets/sprites/manifest.json"
 const SPRITE_ROOT := "res://assets/sprites/"
 const CONTACT_SHADER := "res://assets/shaders/modern/contact_shadow.gdshader"
+const BILLBOARD_SHADER := "res://assets/shaders/modern/billboard.gdshader"
 const IMPOSTOR := "impostor"
 ## Part of the sun a stand-in shows when the sun is behind it / behind the camera (billboard.gdshader sun_min,
 ## sun_max): the Arcade sprites carry baked light and shade, so they get more than an impostor (0.166 / 0.662).
@@ -347,7 +348,8 @@ func mesh_parts(model_id: String, rep: String) -> Array:
 		var tex := ModelDB.texture(str(imp.get("texture", ""))) if not imp.is_empty() else null
 		if tex != null:
 			out.append({"mesh": ModelFactory.billboard_mesh(float(md.get("imp_w", 1.0)), float(md.get("imp_h", 1.0)), float(md.get("imp_ax", 0.5))),
-				"material": _materials().billboard(tex), "transform": Transform3D.IDENTITY, "shadow": false, "billboard": true})
+				"material": _billboard(tex, Rect2(0.0, 0.0, 1.0, 1.0), Rect2()), "transform": Transform3D.IDENTITY, "shadow": false,
+				"billboard": true})
 	else:
 		# ModelFactory resolves a SET; every model is reachable through a set of its own name or through this model id
 		for p: Variant in _factory_parts(model_id, rep):
@@ -398,7 +400,7 @@ func standin(set_id: String) -> Dictionary:
 		var ci := maxi(0, angles.find("c"))
 		var base_rect := _cell_rect(layers.find("base"), ci, angles.size(), cols, cell)
 		var lights_rect := _cell_rect(layers.find("lights"), ci, angles.size(), cols, cell)
-		var mat := _materials().billboard(tex, base_rect, lights_rect)
+		var mat := _billboard(tex, base_rect, lights_rect)
 		mat.set_shader_parameter("sun_min", STANDIN_SUN.x)
 		mat.set_shader_parameter("sun_max", STANDIN_SUN.y)
 		mat.set_shader_parameter("shadow_cut", STANDIN_SHADOW_CUT)
@@ -406,6 +408,18 @@ func standin(set_id: String) -> Dictionary:
 		out = {"mesh": standin_mesh(float(e["w"]), float(e["h"]), float(e["ax"]), float(e["ay"])), "material": mat}
 	_standins[set_id] = out
 	return out
+
+
+## A billboard material of this library's own (ModernMaterials.billboard() keeps its materials – and their sprite
+## sheets – for the whole process; these go with the library).
+func _billboard(tex: Texture2D, uv_rect: Rect2, lights_rect: Rect2) -> ShaderMaterial:
+	ModernMaterials.ensure_globals()
+	var mat := ShaderMaterial.new()
+	mat.shader = load(BILLBOARD_SHADER) as Shader
+	mat.set_shader_parameter("tex", tex)
+	mat.set_shader_parameter("uv_rect", Vector4(uv_rect.position.x, uv_rect.position.y, uv_rect.size.x, uv_rect.size.y))
+	mat.set_shader_parameter("lights_rect", Vector4(lights_rect.position.x, lights_rect.position.y, lights_rect.size.x, lights_rect.size.y))
+	return mat
 
 
 static func _cell_rect(layer_row: int, angle_index: int, angle_count: int, cols: int, cell: Vector2) -> Rect2:

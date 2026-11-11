@@ -11,7 +11,8 @@ extends RefCounted
 ##    graphics.modern.terrain.styles (optional, {"<scenery id>": {"accent": "#rrggbb", "amount": 0.4, "nature": 1}})
 ##    overrides it.
 ##  * grass(scenery, band): the two grass tones of data/scenery.json (Arcade's alternating bands).
-##  * noise_texture(): the tiling detail texture of the ground shaders, generated once per process (no file):
+##  * noise_texture(): the tiling detail texture of the ground shaders, generated when first asked for and kept while
+##    a material uses it (no file):
 ##    r = fine grain, g = soft blotches, b = cell value of a Voronoi pattern (the "fields"), a = distance to the
 ##    border of that cell.
 ##  * far_look(track, scenery_db, z, …): the ground far away around road position z – the mean tone and style of the
@@ -35,7 +36,7 @@ const STYLES := {
 	"east_plain": ["#b6aa58", 0.45], "baltic_forest": ["#466a36", 0.3], "coast": ["#cbc49a", 0.45],
 }
 
-static var _noise: ImageTexture = null
+static var _noise: WeakRef = null            ## the texture lives as long as a material uses it
 static var _far_key: Array = []
 static var _far_hit: Dictionary = {}
 
@@ -171,10 +172,12 @@ static func style_at(scenery_id: String, is_city: bool, z: float, scenery_db: Di
 	return st
 
 
-## The detail texture of the ground shaders (see the header). Deterministic; about 20 ms once per process.
+## The detail texture of the ground shaders (see the header). Deterministic; generated in about 20 ms and shared for
+## as long as somebody holds it (a weak reference here: nothing is left behind when the last material goes).
 static func noise_texture() -> ImageTexture:
-	if _noise != null:
-		return _noise
+	var alive: Variant = _noise.get_ref() if _noise != null else null
+	if alive is ImageTexture:
+		return alive
 	var n := NOISE_SIZE
 	var grain := FastNoiseLite.new()
 	grain.seed = 1107
@@ -216,11 +219,12 @@ static func noise_texture() -> ImageTexture:
 		bytes[i * 4 + 3] = d3[i]
 	var out := Image.create_from_data(n, n, false, Image.FORMAT_RGBA8, bytes)
 	out.generate_mipmaps()
-	_noise = ImageTexture.create_from_image(out)
-	return _noise
+	var tex := ImageTexture.create_from_image(out)
+	_noise = weakref(tex)
+	return tex
 
 
-## Forgets the texture (leaving the mode "Modern").
+## Forgets what is kept between calls (tests).
 static func drop() -> void:
 	_noise = null
 	_far_key = []
