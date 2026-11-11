@@ -43,8 +43,8 @@
   "cards": {"lod0": 62, "lod1": 62},
   "auto_lod": false,
   "tags": ["prop", "tree"],
-  "bytes": 2058792,
-  "hash": "bbfb3811cd32cab28a331382bf3640783e1972eb"
+  "bytes": 2051469,
+  "hash": "f29d47598c58bcc8a0e637b9a7612b9e397500da"
  },
  "sets": {
   "props/tree_beech": {

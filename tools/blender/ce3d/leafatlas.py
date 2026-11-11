@@ -111,7 +111,7 @@ def species_atlas(a):
                fill=float(a.get("fill", 0.93)), twig=a.get("twig", "#3a2c1e"), twig_share=float(a.get("twig_share", 0.2)),
                leaf_w=float(a.get("leaf_w", 0.55)), contrast=float(a.get("contrast", 0.28)),
                sheen=float(a.get("sheen", 0.14)), density_pow=float(a.get("density_pow", 0.62)),
-               twigs=int(a.get("twigs", 5)))
+               twigs=int(a.get("twigs", 5)), core_ground=float(a.get("core_ground", 0.75)))
     for k in ("flower", "flower_share", "underside", "underside_share", "ball_leaf", "ball_leaves", "fringe"):
         if k in a:
             out[k] = a[k]
@@ -137,8 +137,8 @@ def cluster(size, rng, sp, core=False):
     contrast = float(sp.get("contrast", 0.45))
     sheen = float(sp.get("sheen", 0.12))
     if core:
-        # dark ground: the core never shows holes
-        dr.rectangle([0, 0, S, S], fill=_mix(dark, cols[0], 0.5) + (255,))
+        # dark ground: the core never shows holes (AS3: a deeper leaf colour, not a black pane between the domes)
+        dr.rectangle([0, 0, S, S], fill=_mix(dark, cols[0], float(sp.get("core_ground", 0.5))) + (255,))
     # twigs from the centre outwards (leaves sit along them)
     twigs = []
     n_twigs = sp.get("twigs", 5)

@@ -43,8 +43,8 @@
   "cards": {"lod0": 82, "lod1": 82},
   "auto_lod": false,
   "tags": ["prop", "tree"],
-  "bytes": 2032938,
-  "hash": "b7ec09963e8e63ff8c80c8c5203987e1c4f8c45d"
+  "bytes": 2026393,
+  "hash": "7184e098d85ef24b112eb8022545207913352239"
  },
  "sets": {
   "props/tree_poplar": {

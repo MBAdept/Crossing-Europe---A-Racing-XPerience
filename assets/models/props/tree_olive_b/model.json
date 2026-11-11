@@ -43,8 +43,8 @@
   "cards": {"lod0": 39, "lod1": 39},
   "auto_lod": false,
   "tags": ["prop", "tree"],
-  "bytes": 2181990,
-  "hash": "626c71696cbcac39267bb254c24c3cfe7ca19033"
+  "bytes": 2171121,
+  "hash": "5941d96421ab498e9846d385a74875c3924c96d5"
  },
  "sets": {}
 }

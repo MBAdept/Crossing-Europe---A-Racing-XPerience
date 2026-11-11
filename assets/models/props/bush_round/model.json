@@ -6,12 +6,12 @@
   "kind": "plant",
   "object": {"width_m": 3, "height_m": 2.2},
   "extent_m": {"left": 1.65, "right": 1.6},
-  "aabb": [-1.723, -0.614, -1.885, 1.658, 2.517, 1.822],
+  "aabb": [-1.765, -0.315, -2.129, 1.598, 2.527, 1.729],
   "lods": [
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 372,
+    "tris": 396,
     "parts": [
      {
       "node": "body",
@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 200,
-    "tris": 88,
+    "tris": 111,
     "parts": [
      {
       "node": "body",
@@ -34,11 +34,11 @@
    }
   ],
   "textures": {"leaves": "props/bush_round/leaves.png"},
-  "cards": {"lod0": 176, "lod1": 44},
+  "cards": {"lod0": 20, "lod1": 20},
   "auto_lod": false,
   "tags": ["prop", "plant"],
-  "bytes": 352817,
-  "hash": "f09d193d26e8bd068a2dc5db68cf6394d56cc7dc"
+  "bytes": 457340,
+  "hash": "d4cc9227bb6569b5d62c5851009e5d3c858b44d3"
  },
  "sets": {
   "props/bush_round": {

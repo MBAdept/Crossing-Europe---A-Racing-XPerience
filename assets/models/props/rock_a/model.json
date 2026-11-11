@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/rock_a",
+ "model": {
+  "kind": "rock",
+  "object": {"width_m": 3.6, "height_m": 1.6, "length_m": 2.4},
+  "extent_m": {"left": 1.4, "right": 1.93},
+  "aabb": [-1.397, -0.507, -2.296, 1.929, 1.638, 0.229],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 640,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/rock_a/lod0_body.res",
+      "classes": ["baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/rock_a/albedo.png"},
+  "roughness": 0.9,
+  "auto_lod": true,
+  "tags": ["prop", "rock"],
+  "bytes": 155312,
+  "hash": "3b81c69eaa3b2e4df3f7ea222bfe01b8c7ea9b76"
+ },
+ "sets": {
+  "props/rock_a": {"model": "props/rock_a"}
+ }
+}

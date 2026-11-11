@@ -75,39 +75,45 @@ DEFAULTS = dict(
 
 SPECIES = {
     "oak": dict(atlas=dict(leaf="lobed", base=("#3d6b25", "#5c8a30"), sat=0.72, gain=1.12, tint=(1.0, 1.0, 1.12)),
-                bark=[("", ("#3b3025", "#544536"))], clumps=9, limb_r=(0.13, 0.05), atlas_seed=7),
+                bark=[("", ("#3b3025", "#544536"))], clumps=9, limb_r=(0.13, 0.05), atlas_seed=7, lift=(1.0, 1.14),
+                imp=dict(gain=1.1)),
     "birch": dict(atlas=dict(leaf="birch", base=("#6f9a32", "#93b84a"), leaf_w=0.62, twig="#4a3a2a", sat=0.82,
                              gain=0.97, tint=(1.0, 1.0, 1.1)),
                   bark=[("", ("#e4e1d8", "#2b2722"))], birch=True, clumps=7, limb_r=(0.06, 0.025), atlas_seed=11,
                   core=dict(subdiv=(-1, -1)), ao=(0.55, 1.0, 0.9), imp=dict(gain=1.27, tint=(1.04, 1.0, 1.4))),
     # AS3: broad, dense, bright green crown on a smooth grey trunk
     "beech": dict(atlas=dict(leaf="ovate", base=("#4a7a2a", "#6a9a35"), sat=0.78, gain=1.06, tint=(1.0, 1.0, 1.1)),
-                  bark=[("", ("#66645e", "#85837c"))], clumps=9, limb_r=(0.11, 0.045), atlas_seed=23),
+                  bark=[("", ("#66645e", "#85837c"))], clumps=9, limb_r=(0.11, 0.045), atlas_seed=23,
+                  imp=dict(gain=1.13)),
     # tall narrow column (avenues): rays of the core from the crown's axis
     "poplar": dict(atlas=dict(leaf="birch", base=("#43712a", "#5f8f35"), leaf_w=0.72, sat=0.8, gain=1.06,
                               tint=(1.0, 1.0, 1.1)),
                    bark=[("", ("#55514a", "#6e695f"))], clumps=8, limb_r=(0.07, 0.03), atlas_seed=29,
-                   core=dict(axis=6.0), stiff=0.35),
+                   core=dict(axis=6.0), stiff=0.35, lift=(1.0, 1.13), imp=dict(gain=1.09)),
     # small silver-grey crown on a gnarled twin trunk; narrow leaves with pale undersides
     "olive": dict(atlas=dict(leaf="lanceolate", base=("#6f7d4f", "#9aa77a"), leaf_w=0.3, underside="#c9d0bc",
-                             underside_share=0.3, sat=0.85, gain=1.0, tint=(1.0, 1.0, 1.06)),
-                  bark=[("", ("#463e35", "#5c5246"))], clumps=6, limb_r=(0.09, 0.04), atlas_seed=53, gnarl=0.05),
+                             underside_share=0.3, sat=0.85, gain=1.04, tint=(1.0, 1.0, 1.06)),
+                  bark=[("", ("#463e35", "#5c5246"))], clumps=6, limb_r=(0.09, 0.04), atlas_seed=53, gnarl=0.05,
+                  imp=dict(gain=1.12, tint=(1.0, 1.0, 1.08))),
     # Scots pine (as its sprite): a tall trunk, dark below, orange-red above, flat pads of needles on top
-    "pine": dict(atlas=dict(leaf="needles", base=("#2c4f2a", "#3f6634"), sat=0.85, gain=1.04, tint=(1.0, 1.0, 1.08),
+    "pine": dict(atlas=dict(leaf="needles", base=("#2c4f2a", "#3f6634"), sat=0.68, gain=1.16, tint=(1.0, 1.0, 1.08),
                             ball_leaf=(0.05, 0.075), ball_leaves=1300),
                  bark=[("pine_trunk2", ("#9a5530", "#a8653a")), ("pine_br", ("#94532e", "#a0603a")),
                        ("pine_trunk", ("#4a382a", "#3c2d22")), ("", ("#94532e", "#a0603a"))],
-                 clumps=6, limb_r=(0.08, 0.03), atlas_seed=31, core=dict(subdiv=(-1, -1)), sky_lo=0.5),
+                 clumps=6, limb_r=(0.08, 0.03), atlas_seed=31, core=dict(subdiv=(-1, -1)), sky_lo=0.5,
+                 imp=dict(gain=1.18, tint=(1.04, 1.0, 1.05))),
     # special crowns (ce3d/veg3d_shapes.py)
-    "spruce": dict(shape="spruce", atlas=dict(leaf="needles", base=("#1e3d22", "#2d5530"), sat=0.9, gain=1.06,
-                                              tint=(1.0, 1.0, 1.08)),
-                   bark=[("", ("#3e2e21", "#4a3626"))], atlas_seed=7, stiff=0.7),
-    "cypress": dict(shape="cypress", atlas=dict(leaf="sprig", base=("#1f3a1f", "#2f4e28"), sat=0.9, gain=1.06,
-                                                tint=(1.0, 1.0, 1.08), ball_leaf=(0.05, 0.08), ball_leaves=1500),
-                    bark=[("", ("#3e2e21", "#4a3626"))], atlas_seed=3, stiff=0.75, core=dict(axis=5.5, shrink=0.85)),
-    "palm": dict(shape="palm", atlas=dict(leaf="frond", base=("#3f7a2a", "#6f9a38"), sat=0.85, gain=1.0,
+    "spruce": dict(shape="spruce", atlas=dict(leaf="needles", base=("#1e3d22", "#2d5530"), sat=0.55, gain=1.16,
+                                              tint=(1.06, 1.0, 1.0)),
+                   bark=[("", ("#3e2e21", "#4a3626"))], atlas_seed=7, stiff=0.7, lift=(1.0, 1.25),
+                   imp=dict(gain=1.18)),
+    "cypress": dict(shape="cypress", atlas=dict(leaf="sprig", base=("#1f3a1f", "#2f4e28"), sat=0.45, gain=1.48,
+                                                tint=(1.04, 1.0, 1.04), ball_leaf=(0.05, 0.08), ball_leaves=1500),
+                    bark=[("", ("#3e2e21", "#4a3626"))], atlas_seed=3, stiff=0.75,
+                    core=dict(axis=5.5, shrink=0.85, bright=1.0), imp=dict(gain=1.06, tint=(0.98, 1.0, 1.12))),
+    "palm": dict(shape="palm", atlas=dict(leaf="frond", base=("#3f7a2a", "#6f9a38"), sat=0.85, gain=0.83,
                                           tint=(1.0, 1.0, 1.06)),
-                 bark=[("", ("#6e5c45", "#8a7458"))], atlas_seed=29, stiff=0.15),
+                 bark=[("", ("#6e5c45", "#8a7458"))], atlas_seed=29, stiff=0.15, imp=dict(gain=1.72, tint=(1.04, 1.0, 1.6))),
 }
 
 
@@ -123,17 +129,20 @@ def _spec(name):
 
 # bushes: crowns of the generator (props_nature.bush_*) or the parameters of a ground-cover clump
 BUSHES = {
-    "bush_round": dict(atlas=dict(leaf="ovate", base=("#3f6b28", "#5f8a33"), leaf_len=(0.05, 0.07)), atlas_seed=13),
-    "bush_low": dict(atlas=dict(leaf="ovate", base=("#466f2c", "#6a9037"), leaf_len=(0.05, 0.07)), atlas_seed=17),
-    "cover_bush": dict(atlas=dict(leaf="ovate", base=("#466f2c", "#6a9037"), leaf_len=(0.06, 0.08)), atlas_seed=19),
+    "bush_round": dict(atlas=dict(leaf="ovate", base=("#3f6b28", "#5f8a33"), sat=0.58, gain=1.13, tint=(1.0, 1.0, 1.12)),
+                       atlas_seed=13),
+    "bush_low": dict(atlas=dict(leaf="ovate", base=("#466f2c", "#6a9037"), sat=0.6, gain=1.07, tint=(1.0, 1.0, 1.12)),
+                     atlas_seed=17),
+    "cover_bush": dict(atlas=dict(leaf="ovate", base=("#466f2c", "#6a9037"), sat=0.6, gain=1.07, tint=(1.0, 1.0, 1.12)),
+                       atlas_seed=19),
     # AS3: heather - the generator's pink and green tufts (props_nature.SHAPE_LOG "heather"), fine sprigs; the pink
     # ones densely set with blossoms
-    "heather": dict(atlas=dict(leaf="sprig", base=("#4d5a2c", "#6b7034"), sat=0.9, gain=1.0, ball_leaf=(0.06, 0.09),
+    "heather": dict(atlas=dict(leaf="sprig", base=("#4d5a2c", "#6b7034"), sat=0.9, gain=0.92, ball_leaf=(0.06, 0.09),
                                ball_leaves=1100),
-                    flowers=dict(leaf="sprig", base=("#6e4466", "#8e5482"), flower=("#a85e9c", "#b46aa8", "#c27cb8"),
-                                 flower_share=0.9, sat=0.9, gain=1.0, ball_leaf=(0.06, 0.09), ball_leaves=1100),
+                    flowers=dict(leaf="sprig", base=("#634470", "#80548e"), flower=("#9658a8", "#a466b6", "#b47ac6"),
+                                 flower_share=0.9, sat=0.9, gain=0.92, ball_leaf=(0.06, 0.09), ball_leaves=1100),
                     atlas_seed=47, levels=(((1, 6), (1, 5, 10)), ((1, 3), (1, 5))), tris=(396, 118), sway=0.25,
-                    core_subdiv=(-1, -1)),
+                    core_subdiv=(-1, -1), lift=(1.0, 1.1)),
 }
 GRASS = dict(colors=("#4a6a27", "#5d7d2f", "#6d8a36", "#425f24"), shade="#20301a", tip="#97a656", n_blades=70)
 
@@ -786,7 +795,24 @@ def _add_wood(mb, sp, parts, z_top, bc, br, bz, rough=0.9):
     out = np.empty(pos.shape[:2] + (4,), dtype=np.uint8)
     out[..., :3] = np.clip(np.round(np.concatenate(cols)), 0, 255).astype(np.uint8)
     out[..., 3] = 255
+    pos, nor, out = _wind(pos, nor, out)
     mb.add("vpbr", pos, nor, out, (rough, 0.0), roles.NO_LAMP)
+
+
+def _wind(pos, nor, *extra):
+    """Every triangle wound along its shading normal (a gnarled or displaced surface folds a few of them over)."""
+    if pos.shape[0] == 0:
+        return (pos, nor) + extra
+    fn = np.cross(pos[:, 1] - pos[:, 0], pos[:, 2] - pos[:, 0])
+    flip = (fn * nor.mean(axis=1)).sum(axis=1) < 0.0
+    if not flip.any():
+        return (pos, nor) + extra
+    out = []
+    for a in (pos, nor) + extra:
+        a = np.array(a, copy=True)
+        a[flip] = a[flip][:, ::-1]
+        out.append(a)
+    return tuple(out)
 
 
 def _inside_crown(pts, bc, br, bz, shrink=0.97):
@@ -924,7 +950,7 @@ def _core_mesh(mb, hp, hn, bc, br, bz, rect, z0, top_z, bright, metres=2.4, amp_
     col[..., 0] = np.clip((hp[..., 2] - z0) / max(0.5, top_z - z0), 0.0, 1.0) * amp_k
     col[..., 1] = 0.0
     col[..., 2] = 1.0
-    col[..., 3] = (bright * (0.45 + 0.55 * ao)).reshape(hp.shape[:2])
+    col[..., 3] = (bright * (0.62 + 0.38 * ao)).reshape(hp.shape[:2])
     mb.add("leaves", hp, hn, np.clip(np.round(col * 255.0), 0, 255).astype(np.uint8), _core_uv(hp, rect, metres))
 
 
@@ -1024,6 +1050,7 @@ def _blob_tree(model_id, spec3d, sp, sspec, info, wood_soups, crown_pts, blobs, 
     sh = core.MeshBuilder()
     core_c = np.append(core.srgb8(core.hex_to_lin("#24401a")), 255).astype(np.uint8)
     for name, p, n in _tree_wood(wood_soups, bc, br, bz, crown_bottom, sp, crown_bottom + 1.0):
+        p, n = _wind(p, n)
         sh.add("vpbr", p, n, core_c, (0.92, 0.0), roles.NO_LAMP)
     hp, hn = _star_hull(bc, br, bz, centre, sp["shadow"]["shrink"], sp["shadow"]["subdiv"], sp["core"]["axis"],
                         z_min=crown_bottom)
@@ -1065,6 +1092,7 @@ def _bush_mesh(bc, br, bz, centre, ext, top_z, bottom, rects, sp, li, seed, ref,
     core_t = 20 * 4 ** sp["core_subdiv"][li] if sp["core_subdiv"][li] >= 0 else 0
     cards = _dome_cards(bc, br, bz, centre, ext, sp["levels"][li], sp["tris"][li] - core_t, rects["leaf"], seed,
                         sp, blob_rects, cap=sp["caps"][li])
+    cards["col"][:, 3] = np.clip(cards["col"][:, 3] * sp["lift"][li], 0.0, 1.0)
     if fit is None:
         fit = _Fit(cards["eff"], np.zeros((0, 3)), ref[0], ref[1], centre)
     cards["pos"] = fit(cards["pos"])
@@ -1081,7 +1109,8 @@ def _bush_mesh(bc, br, bz, centre, ext, top_z, bottom, rects, sp, li, seed, ref,
     return mb, int(cards["domes"]), cards["eff"], fit
 
 
-BUSH_DEFAULTS = dict(sway=0.45, core_shrink=0.8, core_bright=0.6, core_subdiv=(0, -1), tris=(396, 118),
+BUSH_DEFAULTS = dict(sway=0.45, core_shrink=0.8, core_bright=0.78, core_subdiv=(0, -1), tris=(396, 118),
+                     caps=((48.0, 118.0), (40.0, 80.0)), lift=(1.0, 1.05),
                      levels=(((1, 4, 8), (1, 6, 12)), ((1, 5), (1, 4, 8))),
                      crown_w=0.3, up_w=0.1, ao=(0.45, 1.0, 0.9), stiff=0.6, samples=40, out=0.03, z_floor=0.02)
 

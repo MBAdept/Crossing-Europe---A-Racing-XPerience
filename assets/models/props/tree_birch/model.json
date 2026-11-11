@@ -43,8 +43,8 @@
   "cards": {"lod0": 33, "lod1": 33},
   "auto_lod": false,
   "tags": ["prop", "tree"],
-  "bytes": 2067531,
-  "hash": "76ed7fe1b67317c289e4fd8654c516050f4a68df"
+  "bytes": 2061830,
+  "hash": "7240636caf5c41b9000db4c5f9a2fc401ec2d68e"
  },
  "sets": {
   "props/tree_birch": {

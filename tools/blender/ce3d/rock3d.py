@@ -15,6 +15,7 @@ import numpy as np
 
 from . import bake as BK
 from . import core, roles
+from . import veg3d as V
 from .export import Lod, Part
 from .props3d import _build_source, _finish_model, _objects, weight_allround
 
@@ -82,7 +83,9 @@ def build_rock(model_id, spec3d):
     for soup in core.soups_of(objs, uv_layer=BK.UV_NAME):
         uv = soup.uv.copy()
         uv[:, :, 1] = 1.0 - uv[:, :, 1]             # glTF / Godot: v down
-        mb.add("baked", soup.pos, soup.nor, uv=uv)
+        # the strong displacement of the cliff folds a few triangles over: wound along their shading normals
+        pos, nor, uv = V._wind(soup.pos, soup.nor, uv)
+        mb.add("baked", pos, nor, uv=uv)
     pts = mb.points()
     model = _finish_model(model_id, spec3d, sspec, info, pts)
     model.auto_lod = True

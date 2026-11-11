@@ -267,7 +267,7 @@ def _spruce_level(tiers, spike, sp, rects, core_rect, li, seed):
     # core: one atlas cell, every triangle laid flat into it (veg3d._core_uv works per triangle)
     cards = dict(pos=np.array(pos), nor=np.array(nor), uv=np.array(uv), col=np.array(col), tri=np.array(tri))
     cards["col"][:, 0] = np.clip(cards["col"][:, 0] * np.clip(cards["pos"][:, 2] / max(1.0, z_top), 0.0, 1.0), 0.0, 1.0)
-    cards["col"][:, 3] = np.clip(cards["col"][:, 3] * V._sky(cards["nor"], sp), 0.08, 1.0)
+    cards["col"][:, 3] = np.clip(cards["col"][:, 3] * V._sky(cards["nor"], sp) * sp["lift"][li], 0.08, 1.0)
     core_d = dict(pos=cpos, nor=cnor, tri=np.array(ctri))
     return cards, core_d, np.array(eff)
 
@@ -302,7 +302,7 @@ def _spruce(model_id, spec3d, sp, sspec, info, wood_soups, crown_pts, shape, t0)
         cc[..., 0] = np.clip(hp[..., 2] / max(1.0, top_z), 0.0, 1.0) * 0.8
         cc[..., 1] = 0.0
         cc[..., 2] = 1.0
-        cc[..., 3] = np.clip(sp["core"]["bright"] * V._sky(hn, sp), 0.05, 1.0)
+        cc[..., 3] = np.clip(sp["core"]["bright"] * V._sky(hn, sp) * sp["lift"][li], 0.05, 1.0)
         mb.add("leaves", hp, hn, np.clip(np.round(cc * 255.0), 0, 255).astype(np.uint8), V._core_uv(hp, rects["core"], 1.6))
         meshes[name] = mb
         n_cards[name] = int(cards["tri"].shape[0] // 2)

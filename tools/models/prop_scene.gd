@@ -641,6 +641,14 @@ func _swap(a: Array, b: Array, bg: Image) -> String:
 					bch += 1
 			bx += 3
 		by += 3
+	# brightness and hue from the INSIDE of each picture (pixels whose four neighbours are the model's as well):
+	# the edge pixels of a thin model are mixed with the sky by the multisampling of the meshes, never by the
+	# alpha-tested impostor - a bias of up to 25 % for a pine or a palm at 200 m (measured)
+	var ia_in := _interior_mean(ia, bg, r)
+	var ib_in := _interior_mean(ib, bg, r)
+	if ia_in.w > 8.0 and ib_in.w > 8.0:
+		sa = Vector3(ia_in.x, ia_in.y, ia_in.z) * float(na)
+		sb = Vector3(ib_in.x, ib_in.y, ib_in.z) * float(nb)
 	sa /= float(na)
 	sb /= float(nb)
 	var la := 0.2126 * sa.x + 0.7152 * sa.y + 0.0722 * sa.z
@@ -651,6 +659,30 @@ func _swap(a: Array, b: Array, bg: Image) -> String:
 	return "%.1f %% der Pixel / %.1f %% der 3x3-Blöcke geändert, Helligkeit %+.1f %%, Farbton %+.1f°, Pixel %d -> %d" % [
 		100.0 * float(changed) / float(union), 100.0 * float(bch) / float(maxi(1, bu)), 100.0 * (lb - la) / maxf(0.001, la),
 		dh, na, nb]
+
+
+## Mean colour (xyz) and count (w) of the model's interior pixels inside rect: the pixel and its four neighbours
+## differ from the background.
+func _interior_mean(img: Image, bg: Image, r: Rect2i) -> Vector4:
+	var sum := Vector3.ZERO
+	var n := 0
+	for y in range(maxi(1, r.position.y), mini(GAME.y - 1, r.end.y)):
+		for x in range(maxi(1, r.position.x), mini(GAME.x - 1, r.end.x)):
+			var inside := true
+			for o: Vector2i in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				var c := img.get_pixel(x + o.x, y + o.y)
+				var g := bg.get_pixel(x + o.x, y + o.y)
+				if absf(c.r - g.r) + absf(c.g - g.g) + absf(c.b - g.b) <= 0.03:
+					inside = false
+					break
+			if inside:
+				var c := img.get_pixel(x, y)
+				sum += Vector3(c.r, c.g, c.b)
+				n += 1
+	if n == 0:
+		return Vector4(0.0, 0.0, 0.0, 0.0)
+	sum /= float(n)
+	return Vector4(sum.x, sum.y, sum.z, float(n))
 
 
 func _road(models: Array) -> Image:

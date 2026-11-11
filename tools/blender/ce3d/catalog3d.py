@@ -194,8 +194,8 @@ MODELS.update({
 #            that the two variants differ in silhouette. The sprite catalog never passes them: the sprites stay.
 #   code     spruce, cypress and palm build their crowns in ce3d/veg3d_shapes.py (part of their cache key)
 BUILDER_CODE.update({
-    "rock": ["ce3d/rock3d.py", "ce3d/bake.py", "ce3d/props3d.py", "cesprites/props_nature.py", "cesprites/props.py",
-             "render_all.py"],
+    "rock": ["ce3d/rock3d.py", "ce3d/veg3d.py", "ce3d/bake.py", "ce3d/props3d.py", "cesprites/props_nature.py",
+             "cesprites/props.py", "render_all.py"],
 })
 AS3_SHAPES = ["ce3d/veg3d_shapes.py"]
 

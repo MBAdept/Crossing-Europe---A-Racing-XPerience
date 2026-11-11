@@ -43,8 +43,8 @@
   "cards": {"lod0": 0, "lod1": 0},
   "auto_lod": false,
   "tags": ["prop", "tree"],
-  "bytes": 1772535,
-  "hash": "a3d5c3d125c44244a40d2595989765f647890860"
+  "bytes": 1785811,
+  "hash": "2bf985222053aa45fbfc124d66db195431a9e0ef"
  },
  "sets": {
   "props/tree_cypress": {

@@ -43,8 +43,8 @@
   "cards": {"lod0": 30, "lod1": 30},
   "auto_lod": false,
   "tags": ["prop", "tree"],
-  "bytes": 2196300,
-  "hash": "1eca622024bb9611c3ff2c2c9c985114a72905b6"
+  "bytes": 2194710,
+  "hash": "9420ef699fdd8dd7b0d31a3c31cd24de2a027ce3"
  },
  "sets": {
   "props/tree_pine": {
