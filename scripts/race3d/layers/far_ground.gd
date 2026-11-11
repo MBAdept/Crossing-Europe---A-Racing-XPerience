@@ -1,0 +1,195 @@
+extends Node3D
+## Mode "Modern" (v0.8.0), dynamic layer "far_ground" (contract D16, amendment A-3; German docs:
+## docs/renderer-modern-gelaende.md): the ground beyond the terrain ribbons.
+##
+## A disc of RADIUS_M around the camera at
+##     far_y = lowest road of the loaded window - graphics.modern.terrain.far_ground_drop_m (4.0 m)
+## – below every road that is loaded, so it can hide nothing (rule F7) – and a rim at its edge that stands up to the
+## camera's eye level, i.e. exactly up to the horizon row of the picture. Disc and rim show the ground the outer
+## rings of the ribbons fade into (GroundLook.far_look, assets/shaders/modern/far_ground.gdshader), lit like level
+## ground and fogged by depth. They close what the ribbons leave open: the ground beyond the outer rings, the 12 m
+## gap at a medial axis and the hole at the centre of a tight bend.
+## The loaded window = the rows from keep_behind_m behind the camera to min(load_path_m, visibility + two chunks)
+## ahead, every 4th row (rows whose index is a multiple of 4, so the samples do not move with the camera). The height
+## follows its target by at most FOLLOW_SLOPE x the distance driven per frame; the first frame and a camera jump
+## snap.
+## The disc is cut into SECTORS nodes: their centres lie far from the camera, so the renderer draws them after the
+## terrain in front of them (one big node around the camera would be drawn first and cost its fill everywhere).
+## Sets the global ce_far_y. Duck-typed layer: setup(renderer), update(view, dt), rebased(shift), snapshot().
+## --gfx-debug=far draws flat signal colours (cyan plane, yellow rim) for the terrain cover check.
+## Owner: package terrain / props / far ground.
+
+const SHADER := "res://assets/shaders/modern/far_ground.gdshader"
+const RADIUS_M := 2400.0           ## inside the far plane of the camera (2,600 m), beyond every visibility
+const SECTORS := 8
+const STEPS := 4                   ## edges of a sector along the rim
+const SAMPLE_STEP := 4             ## rows between two samples of the road height
+const FOLLOW_SLOPE := 0.35         ## the plane's height changes by at most this much per metre driven
+const SNAP_M := 150.0              ## a camera jump beyond this snaps the height
+
+var far_y := 0.0                   ## origin-relative height of the plane
+var material: ShaderMaterial
+
+var _renderer: Node                ## untyped: packages talk to each other through the facade only
+var _root: Node3D                  ## under renderer.world (origin-relative), moved every frame
+var _drop := 4.0
+var _load_m := 1500.0
+var _behind_m := 150.0
+var _chunk_m := 96.0
+var _pattern_origin := Vector3.ZERO
+var _look: Dictionary = {}
+var _last_z := -1.0e12
+var _target := 0.0
+var _valid := false
+var _city: Dictionary = {}
+var _styles: Dictionary = {}
+
+
+func setup(renderer: Node) -> void:
+	_renderer = renderer
+	var cfg: Variant = renderer.get("cfg")
+	var modern: Variant = ConfigLoader.lookup(cfg, "graphics.modern", {}) if cfg is Dictionary else {}
+	var m: Dictionary = modern if modern is Dictionary else {}
+	var terrain: Variant = m.get("terrain", {})
+	if terrain is Dictionary:
+		_drop = maxf(0.5, float((terrain as Dictionary).get("far_ground_drop_m", _drop)))
+		var styles: Variant = (terrain as Dictionary).get("styles", {})
+		_styles = styles if styles is Dictionary else {}
+	_load_m = maxf(100.0, float(m.get("load_path_m", _load_m)))
+	_behind_m = maxf(0.0, float(m.get("keep_behind_m", _behind_m)))
+	var track: Track = renderer.get("track")
+	if track != null:
+		_chunk_m = float(maxi(4, int(m.get("chunk_segments", 32)))) * track.seg_len
+		_city = GroundLook.city_info(track)
+	ModernMaterials.ensure_globals()
+	material = ShaderMaterial.new()
+	material.shader = load(SHADER) as Shader
+	material.set_shader_parameter("ground_noise", GroundLook.noise_texture())
+	var flags: Variant = renderer.get("debug_flags")
+	if flags is Array and (flags as Array).has("far"):
+		material.set_shader_parameter("debug_flat", 1.0)
+	_root = Node3D.new()
+	_root.name = "FarGround"
+	_root.visible = false
+	var mesh := sector_mesh()
+	for i in SECTORS:
+		var mi := MeshInstance3D.new()
+		mi.name = "Sector%d" % i
+		mi.mesh = mesh
+		mi.material_override = material
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.rotation.y = TAU * float(i) / float(SECTORS)
+		_root.add_child(mi)
+	var world: Variant = renderer.get("world")
+	if world is Node3D:
+		(world as Node3D).add_child(_root)
+	else:
+		add_child(_root)
+
+
+## One sector of the disc (in the XZ plane, y = 0) with its part of the rim (y = 0 .. 1; the node is scaled in y to
+## the rim's height). UV.x = 0 on the disc, 1 on the rim.
+static func sector_mesh() -> ArrayMesh:
+	var verts := PackedVector3Array()
+	var uvs := PackedVector2Array()
+	var norms := PackedVector3Array()
+	var idx := PackedInt32Array()
+	var span := TAU / float(SECTORS)
+	verts.append(Vector3.ZERO)
+	uvs.append(Vector2.ZERO)
+	norms.append(Vector3.UP)
+	for s in STEPS + 1:
+		var a := span * float(s) / float(STEPS)
+		verts.append(Vector3(cos(a) * RADIUS_M, 0.0, sin(a) * RADIUS_M))
+		uvs.append(Vector2.ZERO)
+		norms.append(Vector3.UP)
+	for s in STEPS:
+		idx.append_array(PackedInt32Array([0, s + 2, s + 1]))
+	var rim0 := verts.size()
+	for s in STEPS + 1:
+		var a := span * float(s) / float(STEPS)
+		for q in 2:
+			verts.append(Vector3(cos(a) * RADIUS_M, float(q), sin(a) * RADIUS_M))
+			uvs.append(Vector2(1.0, float(q)))
+			norms.append(Vector3.UP)
+	for s in STEPS:
+		var a := rim0 + s * 2
+		idx.append_array(PackedInt32Array([a, a + 1, a + 3, a, a + 3, a + 2]))
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = verts
+	arrays[Mesh.ARRAY_NORMAL] = norms
+	arrays[Mesh.ARRAY_TEX_UV] = uvs
+	arrays[Mesh.ARRAY_INDEX] = idx
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	# the node is scaled in y by the rim's height: bounds for any height the roads of a stage can give
+	mesh.custom_aabb = AABB(Vector3(-RADIUS_M, -1.0, -RADIUS_M), Vector3(2.0 * RADIUS_M, 2.0, 2.0 * RADIUS_M))
+	return mesh
+
+
+func update(view: Dictionary, _dt: float) -> void:
+	if _renderer == null or _root == null:
+		return
+	var path: RoadPath3D = _renderer.get("path")
+	var cam: Camera3D = _renderer.get("camera")
+	var track: Track = _renderer.get("track")
+	if path == null or not path.is_ready() or cam == null or track == null:
+		return
+	var cam_z := float(view.get("camera_z", 0.0))
+	_target = lowest_road(path, cam_z, float(view.get("visibility_m", 900.0))) - _drop
+	var moved := absf(cam_z - _last_z)
+	if not _valid or moved > SNAP_M:
+		far_y = _target
+		_valid = true
+	else:
+		far_y = move_toward(far_y, _target, maxf(moved * FOLLOW_SLOPE, 0.0))
+	_last_z = cam_z
+	var eye := cam.global_position if cam.is_inside_tree() else cam.position
+	_root.position = Vector3(eye.x, far_y, eye.z)
+	_root.scale = Vector3(1.0, maxf(eye.y - far_y, 0.5), 1.0)
+	_root.visible = true
+	ModernMaterials.set_global("ce_far_y", far_y)
+	var look := GroundLook.far_look(track, _renderer.get("scenery_db"), cam_z, _city, _styles)
+	if look != _look:
+		_look = look
+		var c: Color = look["color"]
+		var a: Color = look["accent"]
+		material.set_shader_parameter("far_color", Vector3(c.r, c.g, c.b))
+		material.set_shader_parameter("far_accent", Vector3(a.r, a.g, a.b))
+		material.set_shader_parameter("far_amount", float(look["amount"]))
+		material.set_shader_parameter("far_nature", float(look["nature"]))
+
+
+## Lowest road height (origin-relative) of the loaded window around road position cam_z: every SAMPLE_STEP-th row
+## from keep_behind_m behind the camera to min(load_path_m, visibility + two chunks) ahead, inside the integrated path.
+func lowest_road(path: RoadPath3D, cam_z: float, visibility_m: float) -> float:
+	var seg := path.seg_len
+	var ahead := minf(_load_m, visibility_m + 2.0 * _chunk_m)
+	var k0 := maxi(path.first, int(floor((cam_z - _behind_m - _chunk_m) / seg)))
+	var k1 := mini(path.last(), int(ceil((cam_z + ahead) / seg)))
+	k0 = maxi(path.first, (k0 / SAMPLE_STEP) * SAMPLE_STEP)
+	var lo := INF
+	var k := k0
+	while k <= k1:
+		lo = minf(lo, path.height(k))
+		k += SAMPLE_STEP
+	if lo == INF:
+		lo = path.height(clampi(int(cam_z / seg), path.first, path.last()))
+	return lo
+
+
+func rebased(shift: Vector3) -> void:
+	_pattern_origin -= shift
+	if material != null:
+		material.set_shader_parameter("pattern_origin", _pattern_origin)
+
+
+func snapshot() -> Dictionary:
+	return {"far_ground": {"y": snappedf(far_y, 0.001), "target": snappedf(_target, 0.001), "drop": _drop, "radius": RADIUS_M,
+		"sectors": SECTORS, "visible": _root != null and _root.visible}}
+
+
+func _exit_tree() -> void:
+	if is_instance_valid(_root) and _root.get_parent() != self:
+		_root.queue_free()      # it hangs under renderer.world, not under this layer
