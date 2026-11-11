@@ -65,6 +65,10 @@ var keep_behind_m := 150.0
 var commits_per_frame := 1
 var max_chunks := 16
 var rebase_m := 2000.0
+## Handed to every ChunkContext as ctx.services – MAIN THREAD ONLY (ChunkBuilder.collect / commit). The renderer sets
+## {"renderer": ModernRenderer, "materials": ModernMaterials} before the first update(); without a renderer (tests)
+## it stays {} and the builders work without it.
+var services: Dictionary = {}
 
 var _builders: Array = []              ## ChunkBuilder, in registration order
 var _chunks: Dictionary = {}           ## chunk index -> Chunk
@@ -425,6 +429,7 @@ func _collect(ci: int, start_task: bool) -> bool:
 	ctx.scenery_db = terrain.scenery_db
 	ctx.levels = levels
 	ctx.sync = sync
+	ctx.services = services
 	ctx.capture(ci, a, b, path, terrain, track)
 	c.ctx = ctx
 	for bld: ChunkBuilder in _builders:

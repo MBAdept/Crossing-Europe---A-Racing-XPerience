@@ -1,48 +1,119 @@
 class_name ModernRenderer
 extends Node3D
-## Renderer of the graphics mode "Modern" – STUB of wave 0 (v0.8.0, docs/dev/v080_contract.md §4.4): it only proves
-## the seam between the race session and a second, real-3D renderer. It draws a camera with Arcade's projection,
-## the sky colour of the palette on a canvas layer behind the 3D picture (Environment BG_CANVAS, layer −10) and one
-## grey plane as the ground; road, terrain, vehicles, light and effects follow in the renderer packages, which
-## replace this file and keep its interface:
-##   setup(track, projection, cfg, scenery_db) · render(view) every frame · perf_stats()
-##   apply_quality(levels) once before prepare() · prepare(ctx) – spans frames · is_prepared() · prepare_progress()
-##   healthy() · fail_reason() · debug_snapshot() · world_to_screen(z, x, h) · signal quality_lowered(preset)
-## prepare(): with a real renderer the render self-test (GfxSelfTest) runs once per run; headless the stage is
-## prepared on the next frame. --gfx-debug=fail makes healthy() false (tests of the fallback to Arcade).
+## Renderer of the graphics mode "Modern" (v0.8.0) – the SKELETON of wave 1 (docs/dev/v080_contract.md §4.4, §4.5
+## and amendment A-7): the facade every renderer package builds on, on top of the race3d kernel. It owns no
+## content of its own: the road is a chunk builder, vehicles, lights, weather … are dynamic layers, each found by
+## its fixed file name and driven through duck-typed hooks. German docs: docs/renderer-modern.md, section
+## "Aufbau: Fassade, Ebenen, Haken".
+##
+## Seam to the race session (RaceRenderers):
+##   setup(track, projection, cfg, scenery_db) · apply_quality(levels) once · prepare(ctx) – spans frames ·
+##   render(view) every frame, also while the stage is prepared (the frozen start view) · is_prepared() ·
+##   prepare_progress() · healthy() · fail_reason() · perf_stats() · debug_snapshot() · world_to_screen(z, x, h) ·
+##   signal quality_lowered(preset)
+## Facade for layers, builders (in commit()) and tests – main thread, read-only: the members below up to
+## `visibility_m`, signal rebased(shift), layer(id), builder(id), road_to_world(), add_lamps(), add_pool_material(),
+## pool_materials().
+##
+## prepare(ctx) builds, in this order: RoadPath3D, TerrainProfile, ChaseCamera3D, the Camera3D, the node `world`,
+## materials (ModernMaterials.shared()), the environment (scripts/race3d/environment_rig.gd if that file exists,
+## else the built-in PlainEnvironment), the ChunkStreamer with BuilderRegistry.create_all() and its services, then
+## every layer whose file scripts/race3d/layers/<id>.gd exists, in the order of BuilderRegistry.LAYERS. All of them
+## exist before the first hook is called. Then, each time in the order environment, builders, layers:
+## setup(renderer) on all, apply_quality(levels) on all, prepare(ctx) on all.
+## Optional hooks of the environment, of builders and of layers (any may be missing):
+##   setup(renderer) · apply_quality(levels) · prepare(ctx) · prepare_pending() -> int · fail_reason() -> String ·
+##   warmup_nodes() -> Array · update(view, dt) (environment and layers) · rebased(shift) (environment and layers)
+##   · perf() -> Dictionary · snapshot() -> Dictionary; layers "lights" / "flares": add_static(parent, lamps)
+## The preparation then runs over frames (_advance): the render self-test once per process (not headless) → every
+## prepare_pending() is 0 → the world starts: the streamer loads the chunks the start view shows, update() runs
+## from now on → warmup_nodes() of every hook stand in front of the camera for WARMUP_FRAMES drawn frames (the
+## session's loading cover hides them) and are freed → is_prepared(). Nothing is updated before the world
+## starts: a layer's update() can rely on its own preparation and on a path that is integrated around the camera.
+## Every render(view) after that: environment → streamer.update() → camera → layers' update(view, dt) in list order.
+## healthy() is false with fail_reason() "selftest:<reason>" (--gfx-debug=fail: "selftest:debug"), whatever a hook's
+## fail_reason() says while the stage is prepared ("manifest", "shader", …), "script:<file>" for a layer, builder
+## or rig file that exists but does not load, or "timeout" (graphics.modern.prepare_timeout_s, not in sync mode).
 ## The simulation never reads anything from here (Rule 3); nothing here reads the sound profile (Rule 4).
 
 signal quality_lowered(preset: String)
+## The floating origin moved: add `shift` to every origin-relative position that is kept (chunk nodes are moved
+## by the streamer, the camera and whatever is placed per frame through `path` need nothing).
+signal rebased(shift: Vector3)
 
-const SKY_LAYER := -10          ## canvas layer of the backdrop (= Environment.background_canvas_max_layer)
-const PLANE_SIZE_M := 6000.0
+const PlainEnvironment := preload("res://scripts/race3d/plain_environment.gd")
+const PlainSky := preload("res://scripts/race3d/plain_sky.gd")
+
+const SKY_LAYER := -10              ## canvas layer of the backdrop (= Environment.background_canvas_max_layer)
+const RIG_SCRIPT := "res://scripts/race3d/environment_rig.gd"
+const LAMP_LAYERS: Array[String] = ["lights", "flares"]   ## add_lamps() forwards to these
+const WARMUP_FRAMES := 2            ## drawn frames the warm-up nodes (and the start view) are shown before the start
+const WARMUP_AHEAD_M := 14.0        ## … this far in front of the camera, on the road
+const PREPARE_TIMEOUT_S := 120.0    ## default of graphics.modern.prepare_timeout_s
+const FRAME_WINDOW := 240           ## frames behind frame_ms_median / frame_ms_p95
+
+enum Stage { IDLE, SELFTEST, HOOKS, CHUNKS, WARMUP, DONE }
+const STAGE_NAMES: Array[String] = ["idle", "selftest", "hooks", "chunks", "warmup", "done"]
 
 ## Result of the render self-test of this run ({} = not run yet): one test per start of the game.
 static var selftest: Dictionary = {}
 static var _selftest_running := false
 
+# --- facade (A-7): main thread, read-only for layers, builders and tests ------------------------------------------
 var track: Track
 var proj: RoadProjection
 var cfg: Dictionary = {}
 var scenery_db: Dictionary = {}
-var levels: Dictionary = {}       ## quality parameters of apply_quality() (Gfx.levels)
+var levels: Dictionary = {}         ## Gfx levels of apply_quality()
+var sync := false                   ## --gfx-sync (prepare ctx): deterministic test mode
+var prep: Dictionary = {}           ## ctx of prepare(): sets, plan, vehicle, weather, hour, sync
+var path: RoadPath3D                ## integrated around the camera from the first update() on
+var terrain: TerrainProfile
+var streamer: ChunkStreamer
+var chase: ChaseCamera3D
+var camera: Camera3D
+var materials: ModernMaterials      ## = ModernMaterials.shared()
+var env: Node                       ## scripts/race3d/environment_rig.gd, null while that file is missing
+var world: Node3D                   ## parent of the 3D nodes of dynamic layers: identity transform, origin-relative
+var view: Dictionary = {}           ## the view of the current render() call
+var visibility_m := 900.0           ## sight of this frame in metres
 var debug_flags: Array[String] = []   ## --gfx-debug=<list>
 
-var _camera: Camera3D
-var _plane: MeshInstance3D
-var _plane_mat: StandardMaterial3D
-var _sky: ColorRect
-var _near := 1.0
-var _far := 2600.0
-var _ctx: Dictionary = {}
-var _preparing := false
+var _environment: Node              ## the rig or the built-in PlainEnvironment
+var _plain_sky: Node                ## built-in backdrop while layers/backdrop.gd is missing
+var _layers: Dictionary = {}        ## layer id -> Node
+var _hooks: Array = []              ## environment, builders, (plain sky,) layers – the order of every hook phase
+var _updaters: Array = []           ## objects with update(view, dt) after the camera: (plain sky,) layers
+var _env_updates := false
+var _rebase_listeners: Array = []
+var _pool_materials: Array = []     ## ShaderMaterial
+var _lamps := 0
+var _warm: Node3D
+var _stage := Stage.IDLE
 var _prepared := false
 var _fail := ""
+var _world_started := false
+var _prewarm := true
+var _timeout_s := PREPARE_TIMEOUT_S
+var _pending := 0
+var _pending_max := 0
+var _prep_t0 := 0
+var _prepare_ms := 0.0
+var _warm_from := 0
+var _warm_t0 := 0
+var _warm_count := 0
+var _prewarm_ms := 0.0
+var _load_stats: Dictionary = {}
 var _frames := 0
 var _render_us := 0
 var _render_us_max := 0
-var _last_view: Dictionary = {}
-var _cam_snapshot: Dictionary = {}
+var _frame_us := PackedInt32Array()
+var _frame_i := 0
+var _last_tick := 0
+var _vp_size := Vector2(1280.0, 720.0)
+var _cam_tr := Transform3D.IDENTITY
+var _cam_fr: Dictionary = {}
+var _cam_yaw := 0.0
 
 
 func setup(p_track: Track, projection: RoadProjection, p_cfg: Dictionary, p_scenery_db: Dictionary) -> void:
@@ -50,63 +121,36 @@ func setup(p_track: Track, projection: RoadProjection, p_cfg: Dictionary, p_scen
 	proj = projection
 	cfg = p_cfg
 	scenery_db = p_scenery_db
-	var cam_cfg: Variant = ConfigLoader.lookup(cfg, "graphics.modern.camera", {})
-	if cam_cfg is Dictionary:
-		_near = maxf(0.05, float((cam_cfg as Dictionary).get("near_m", _near)))
-		_far = maxf(_near + 10.0, float((cam_cfg as Dictionary).get("far_m", _far)))
-	# background: the canvas layers up to SKY_LAYER are the backdrop of the 3D picture (never BG_COLOR, D7);
-	# the post path is pinned on with neutral adjustments so quality options never change the base look (D6)
-	var env := Environment.new()
-	env.background_mode = Environment.BG_CANVAS
-	env.background_canvas_max_layer = SKY_LAYER
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color.WHITE
-	env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
-	env.adjustment_enabled = true
-	var world := WorldEnvironment.new()
-	world.environment = env
-	add_child(world)
-	var layer := CanvasLayer.new()
-	layer.layer = SKY_LAYER
-	add_child(layer)
-	_sky = ColorRect.new()
-	_sky.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_sky.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_sky.color = Color.BLACK
-	layer.add_child(_sky)
-	_camera = Camera3D.new()
-	_camera.keep_aspect = Camera3D.KEEP_HEIGHT
-	add_child(_camera)
-	_camera.make_current()
-	var mesh := PlaneMesh.new()
-	mesh.size = Vector2(PLANE_SIZE_M, PLANE_SIZE_M)
-	_plane_mat = StandardMaterial3D.new()
-	_plane_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_plane_mat.albedo_color = Palette.ROAD
-	_plane = MeshInstance3D.new()
-	_plane.mesh = mesh
-	_plane.material_override = _plane_mat
-	_plane.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(_plane)
+	_vp_size = projection.screen
 
 
 ## Quality parameters of this stage (Gfx.levels): once, before prepare(); never during a stage.
 func apply_quality(p_levels: Dictionary) -> void:
+	if _stage != Stage.IDLE:
+		push_warning("ModernRenderer: apply_quality() nach prepare() wird ignoriert")
+		return
 	levels = p_levels.duplicate(true)
 
 
-## Starts the preparation of the stage (self-test here; assets and shader warm-up in the real renderer). ctx:
-## {"sets": Array[String] – every sprite set id the stage can show, "plan": StagePlan, "vehicle": String (type id),
-## "weather": String, "hour": float, "sync": bool (deterministic test mode, --gfx-sync)}.
+## Starts the preparation of the stage: builds the kernel, the environment, the builders and the layers, calls
+## their hooks and then runs over frames until is_prepared() (see the header). ctx: {"sets": Array[String] – every
+## sprite set id the stage can show, "plan": StagePlan, "vehicle": String (type id), "weather": String,
+## "hour": float, "sync": bool (deterministic test mode, --gfx-sync)}.
 func prepare(ctx: Dictionary) -> void:
-	_ctx = ctx
+	if _stage != Stage.IDLE:
+		push_warning("ModernRenderer: prepare() gibt es einmal je Renderer")
+		return
+	prep = ctx
+	sync = bool(ctx.get("sync", false))
 	debug_flags.clear()
 	for f in CliArgs.get_string("gfx-debug", "").split(",", false):
 		debug_flags.append(f.strip_edges())
+	_prep_t0 = Time.get_ticks_msec()
+	_stage = Stage.SELFTEST
 	if debug_flags.has("fail"):
 		_fail = "selftest:debug"
-	_prepared = false
-	_preparing = true
+		return
+	_build()
 
 
 func is_prepared() -> bool:
@@ -114,11 +158,22 @@ func is_prepared() -> bool:
 
 
 func prepare_progress() -> float:
-	return 1.0 if _prepared else (0.5 if _selftest_running else 0.0)
+	match _stage:
+		Stage.IDLE:
+			return 0.0
+		Stage.SELFTEST:
+			return 0.1 if _selftest_running else 0.05
+		Stage.HOOKS:
+			return 0.15 + 0.45 * (1.0 - float(_pending) / float(maxi(_pending_max, 1)))
+		Stage.CHUNKS:
+			return 0.65
+		Stage.WARMUP:
+			return 0.8 + 0.2 * clampf(float(Engine.get_frames_drawn() - _warm_from) / float(WARMUP_FRAMES), 0.0, 1.0)
+	return 1.0
 
 
-## False when Modern cannot draw this stage; fail_reason() says why: "selftest:<reason>", "manifest", "shader",
-## "timeout". The session then draws the stage in Arcade.
+## False when Modern cannot draw this stage; fail_reason() says why (see the header). The session then draws the
+## stage in Arcade.
 func healthy() -> bool:
 	return _fail == ""
 
@@ -127,18 +182,302 @@ func fail_reason() -> String:
 	return _fail
 
 
+## Layer `id` ("backdrop", "far_ground", "lights", "vehicles", "flares", "weather", "overlay", "post"), null when
+## its file does not exist (or before prepare()).
+func layer(id: String) -> Node:
+	return _layers.get(id)
+
+
+## The registered chunk builder with that id(), or null.
+func builder(id: String) -> ChunkBuilder:
+	if streamer == null:
+		return null
+	for b: ChunkBuilder in streamer.builders():
+		if b.id() == id:
+			return b
+	return null
+
+
+## Road coordinates (z along the road, x lateral, h above the road) -> origin-relative world position
+## (RoadPath3D.world()). Valid inside the integrated path, i.e. from the first update() on; Vector3.ZERO before.
+func road_to_world(z: float, x: float, h: float) -> Vector3:
+	if path == null or not path.is_ready():
+		return Vector3.ZERO
+	return path.world(z, x, h)
+
+
+## Static lamps of a chunk part: `lamps` = Array of {"pos": Vector3 (local to parent), "dir": Vector3 (unit, local;
+## where the lamp looks), "role": String, "color": Color, "size": float (m), "range": float (m, radius of the light
+## pool on the ground; 0 = none), "energy": float (default 1)}. Forwarded to the layers "lights" and "flares" when
+## they exist and have add_static(parent, lamps); both follow parent.global_transform and forget the entries when
+## `parent` leaves the tree. Without those layers nothing happens.
+func add_lamps(parent: Node3D, lamps: Array) -> void:
+	if parent == null or lamps.is_empty():
+		return
+	_lamps += lamps.size()
+	for id: String in LAMP_LAYERS:
+		var l: Node = _layers.get(id)
+		if l != null and l.has_method(&"add_static"):
+			l.call(&"add_static", parent, lamps)
+
+
+## Registers a material whose shader includes assets/shaders/modern/inc/pools.gdshaderinc: the layer "lights" sets
+## pool_pos_r, pool_col and pool_count on every registered material once per frame.
+func add_pool_material(mat: ShaderMaterial) -> void:
+	if mat != null and not _pool_materials.has(mat):
+		_pool_materials.append(mat)
+
+
+## The registered pool materials (for the lights layer; do not change the array).
+func pool_materials() -> Array:
+	return _pool_materials
+
+
+# --- what a test double may replace -------------------------------------------------------------------------------
+
+## Script file of layer `id` (tests stand fixtures in by overriding it in a subclass).
+func _layer_script(id: String) -> String:
+	return BuilderRegistry.layer_path(id)
+
+
+## The chunk builders of this renderer, in build order.
+func _create_builders() -> Array[ChunkBuilder]:
+	return BuilderRegistry.create_all()
+
+
+## Script file of the environment rig.
+func _rig_script() -> String:
+	return RIG_SCRIPT
+
+
+# --- building ---------------------------------------------------------------------------------------------------
+
+func _build() -> void:
+	var modern := _as_dict(ConfigLoader.lookup(cfg, "graphics.modern", {}))
+	_prewarm = bool(modern.get("prewarm", true)) and not CliArgs.has("no-prewarm")
+	_timeout_s = float(modern.get("prepare_timeout_s", PREPARE_TIMEOUT_S))
+	# kernel: the path is set up by the streamer's first update(), behind the camera of the start view
+	path = RoadPath3D.new()
+	terrain = TerrainProfile.new()
+	terrain.setup(path, track, _as_dict(modern.get("terrain", {})), scenery_db)
+	chase = ChaseCamera3D.new()
+	chase.setup(proj, _as_dict(modern.get("camera", {})))
+	camera = Camera3D.new()
+	camera.name = "Camera"
+	camera.keep_aspect = Camera3D.KEEP_HEIGHT
+	add_child(camera)
+	camera.make_current()
+	_vp_size = _viewport_size()
+	_cam_fr = chase.frustum(_vp_size)
+	camera.set_frustum(float(_cam_fr["size"]), _cam_fr["offset"], float(_cam_fr["near"]), float(_cam_fr["far"]))
+	world = Node3D.new()
+	world.name = "World"
+	add_child(world)
+	materials = ModernMaterials.shared()
+	# environment: the rig of the renderer package, or the built-in plain one
+	var rig_path := _rig_script()
+	if rig_path != "" and ResourceLoader.exists(rig_path):
+		var rig: Variant = _instance(rig_path)
+		if rig is Node:
+			env = rig
+			_environment = rig
+		else:
+			_fail = "script:" + rig_path.get_file()
+	else:
+		_environment = PlainEnvironment.new()
+	if _environment != null:
+		_environment.name = "Environment"
+		add_child(_environment)
+		_hooks.append(_environment)
+	# streamer and builders
+	streamer = ChunkStreamer.new()
+	streamer.name = "Chunks"
+	world.add_child(streamer)
+	streamer.setup(path, terrain, track, cfg, levels, sync)
+	streamer.services = {"renderer": self, "materials": materials}
+	for b: ChunkBuilder in _create_builders():
+		streamer.register(b)
+		_hooks.append(b)
+	for n: String in BuilderRegistry.existing_builders():
+		if builder(n) == null and _fail == "":
+			_fail = "script:builders/%s.gd" % n   # the file is there but gives no builder with that id()
+	var debug_road := builder(BuilderRegistry.DEBUG_ROAD)
+	if debug_road != null and builder("terrain") != null:
+		debug_road.set("terrain_rings", false)   # the real terrain is there: the stand-in only draws the road
+	streamer.rebased.connect(_on_rebased)
+	_warm = Node3D.new()
+	_warm.name = "Warmup"
+	world.add_child(_warm)
+	# layers, in the fixed order; the built-in sky stands in for a missing backdrop layer
+	for id: String in BuilderRegistry.LAYERS:
+		var script_path := _layer_script(id)
+		if script_path == "" or not ResourceLoader.exists(script_path):
+			if id == "backdrop":
+				_plain_sky = PlainSky.new()
+				_plain_sky.name = "PlainSky"
+				add_child(_plain_sky)
+				_hooks.append(_plain_sky)
+			continue
+		var obj: Variant = _instance(script_path)
+		if not (obj is Node):
+			if _fail == "":
+				_fail = "script:layers/%s.gd" % id
+			continue
+		var node: Node = obj
+		node.name = id
+		add_child(node)
+		_layers[id] = node
+		_hooks.append(node)
+	if _fail != "":
+		push_warning("ModernRenderer: %s lässt sich nicht laden" % _fail)
+		return
+	# hook phases: every object exists before the first call
+	for h: Object in _hooks:
+		if h.has_method(&"setup"):
+			h.call(&"setup", self)
+	for h: Object in _hooks:
+		if h.has_method(&"apply_quality"):
+			h.call(&"apply_quality", levels)
+	for h: Object in _hooks:
+		if h.has_method(&"prepare"):
+			h.call(&"prepare", prep)
+	_env_updates = _environment != null and _environment.has_method(&"update")
+	for h: Object in _hooks:
+		if h == _environment or h is ChunkBuilder:
+			continue
+		if h.has_method(&"update"):
+			_updaters.append(h)
+	for h: Object in _hooks:
+		if not (h is ChunkBuilder) and h.has_method(&"rebased"):
+			_rebase_listeners.append(h)
+
+
+## A new instance of the script at `script_path`, or null when it does not load.
+static func _instance(script_path: String) -> Variant:
+	var script: Variant = load(script_path)
+	if not (script is GDScript) or not (script as GDScript).can_instantiate():
+		return null
+	var obj: Variant = (script as GDScript).new()
+	if obj is Node:
+		return obj
+	if obj is Object and not (obj is RefCounted):
+		(obj as Object).free()
+	return null
+
+
+static func _as_dict(v: Variant) -> Dictionary:
+	return v if v is Dictionary else {}
+
+
+# --- preparation over frames ------------------------------------------------------------------------------------
+
 func _process(_delta: float) -> void:
-	if not _preparing:
+	if _stage == Stage.IDLE or _stage == Stage.DONE:
 		return
-	if _fail == "" and DisplayServer.get_name() != "headless" and selftest.is_empty():
-		# the first Modern stage of this run with a real renderer: wait for the render self-test
-		if not _selftest_running:
-			_run_selftest(self)
+	_advance()
+
+
+## One step of the preparation (every frame until is_prepared()).
+func _advance() -> void:
+	if _fail != "":
+		_finish()
 		return
-	if _fail == "" and not bool(selftest.get("ok", true)):
-		_fail = "selftest:" + str(selftest.get("reason", ""))
-	_preparing = false
+	if _stage == Stage.SELFTEST:
+		if DisplayServer.get_name() != "headless" and selftest.is_empty():
+			# the first Modern stage of this run with a real renderer: wait for the render self-test
+			if not _selftest_running:
+				_run_selftest(self)
+			return
+		if not bool(selftest.get("ok", true)):
+			_fail = "selftest:" + str(selftest.get("reason", ""))
+			_finish()
+			return
+		_stage = Stage.HOOKS
+	_pending = _poll_hooks()
+	_pending_max = maxi(_pending_max, _pending)
+	if _fail == "" and not sync and _timeout_s > 0.0 and float(Time.get_ticks_msec() - _prep_t0) > _timeout_s * 1000.0:
+		_fail = "timeout"
+	if _fail != "":
+		push_warning("ModernRenderer: Vorbereitung abgebrochen (%s)" % _fail)
+		_finish()
+		return
+	if _stage == Stage.HOOKS:
+		if _pending > 0:
+			return
+		_stage = Stage.CHUNKS
+	if _stage == Stage.CHUNKS:
+		if view.is_empty():
+			return   # the first render() brings the start view
+		if not _world_started:
+			_start_world()
+		if sync:
+			streamer.flush()
+		if _pending > 0 or streamer.pending_count() > 0:
+			return
+		_begin_warmup()
+	if _stage == Stage.WARMUP:
+		var need := WARMUP_FRAMES
+		if not _prewarm or DisplayServer.get_name() == "headless" or not RenderingServer.render_loop_enabled:
+			need = 0   # nothing is drawn (or wanted): no warm-up frames
+		if _pending > 0 or Engine.get_frames_drawn() - _warm_from < need:
+			return
+		for n: Node in _warm.get_children():
+			_warm.remove_child(n)
+			n.free()
+		_prewarm_ms = float(Time.get_ticks_usec() - _warm_t0) / 1000.0
+		_finish()
+
+
+## Sum of prepare_pending() of all hooks; the first fail_reason() that is not empty ends the preparation.
+func _poll_hooks() -> int:
+	var n := 0
+	for h: Object in _hooks:
+		if _fail == "" and h.has_method(&"fail_reason"):
+			var reason := str(h.call(&"fail_reason"))
+			if reason != "":
+				_fail = reason
+		if h.has_method(&"prepare_pending"):
+			n += maxi(0, int(h.call(&"prepare_pending")))
+	return n
+
+
+## Every hook is ready: the streamer sets the path up behind the camera of the start view and loads everything
+## that view shows at once; from here on render() updates the world.
+func _start_world() -> void:
+	streamer.update(float(view.get("camera_z", 0.0)), visibility_m)
+	_world_started = true
+	_draw_world(0.0)
+
+
+func _begin_warmup() -> void:
+	_stage = Stage.WARMUP
+	_warm_t0 = Time.get_ticks_usec()
+	_warm_from = Engine.get_frames_drawn()
+	if not _prewarm:
+		return
+	for h: Object in _hooks:
+		if not h.has_method(&"warmup_nodes"):
+			continue
+		var nodes: Variant = h.call(&"warmup_nodes")
+		if not (nodes is Array):
+			continue
+		for n: Variant in nodes:
+			if n is Node3D and (n as Node3D).get_parent() == null:
+				_warm.add_child(n)
+				_warm_count += 1
+			elif n is Node and (n as Node).get_parent() == null:
+				(n as Node).free()   # only fresh Node3D are shown; nothing handed over may leak
+	_place_warmup()
+
+
+func _finish() -> void:
+	_stage = Stage.DONE
 	_prepared = true
+	_prepare_ms = float(Time.get_ticks_msec() - _prep_t0)
+	if streamer != null:
+		_load_stats = streamer.stats()
+		streamer.reset_stats()   # perf_stats() shows the drive; the load is kept as "load"
+	_last_tick = 0
 
 
 ## Runs the render self-test and keeps its verdict for the rest of the run. Static: the test outlives a renderer
@@ -152,42 +491,71 @@ static func _run_selftest(parent: Node) -> void:
 		selftest = res
 
 
-## Draws the frame of `view` (ARCHITECTURE.md §6; Modern also reads hour, dt and player.type).
-func render(view: Dictionary) -> void:
+# --- every frame ------------------------------------------------------------------------------------------------
+
+## Draws the frame of `view` (ARCHITECTURE.md §6; Modern also reads hour, dt and player.type). While the stage is
+## prepared the session passes the frozen start view; the world is updated from the moment every hook is ready.
+func render(p_view: Dictionary) -> void:
 	var t0 := Time.get_ticks_usec()
-	_last_view = view
-	var pal: Dictionary = view.get("palette", {})
-	var ambient: Color = pal.get("ambient", Color.WHITE)
-	_sky.color = pal.get("sky_mid", Color.BLACK)
-	_plane_mat.albedo_color = Color(Palette.ROAD.r * ambient.r, Palette.ROAD.g * ambient.g, Palette.ROAD.b * ambient.b)
-	# Arcade's projection exactly (D12): frustum with a constant focal length in logical pixels at every aspect
-	# ratio, the horizon at render.horizon_y_frac of the height, no pitch, no roll. The stub's world is flat: the
-	# plane lies proj.cam_height below the camera and moves with it.
-	var size := _viewport_size()
-	var frustum_h := _near * size.y / proj.focal
-	var horizon_frac := proj.horizon_y / proj.screen.y
-	var shake: Vector2 = view.get("shake", Vector2.ZERO)
-	var offset := Vector2(-shake.x, shake.y) * (_near / proj.focal) + Vector2(0.0, -(0.5 - horizon_frac) * frustum_h)
-	_camera.set_frustum(frustum_h, offset, _near, _far)
-	_camera.position = Vector3(float(view.get("camera_x", 0.0)), proj.cam_height, 0.0)
-	_plane.position = Vector3(_camera.position.x, 0.0, 0.0)
-	_cam_snapshot = {"z": float(view.get("camera_z", 0.0)), "x": float(view.get("camera_x", 0.0)),
-		"y": float(view.get("camera_y", 0.0)), "yaw_deg": 0.0,
-		"frustum": {"size": frustum_h, "offset": offset, "near": _near, "far": _far}}
-	_frames += 1
-	var us := Time.get_ticks_usec() - t0
-	_render_us += us
-	_render_us_max = maxi(_render_us_max, us)
+	view = p_view
+	visibility_m = float(p_view.get("visibility_m", visibility_m))
+	if _world_started:
+		_draw_world(float(p_view.get("dt", 0.0)))
+	if _prepared:
+		if _last_tick > 0:
+			if _frame_us.size() < FRAME_WINDOW:
+				_frame_us.append(t0 - _last_tick)
+			else:
+				_frame_us[_frame_i] = t0 - _last_tick
+				_frame_i = (_frame_i + 1) % FRAME_WINDOW
+		_last_tick = t0
+		_frames += 1
+		var us := Time.get_ticks_usec() - t0
+		_render_us += us
+		_render_us_max = maxi(_render_us_max, us)
+
+
+## environment → streamer → camera → layers.
+func _draw_world(dt: float) -> void:
+	if _env_updates:
+		_environment.call(&"update", view, dt)
+	streamer.update(float(view.get("camera_z", 0.0)), visibility_m)
+	# Arcade's projection exactly, plus the look into the bend (D12): transform and frustum from ChaseCamera3D, for
+	# the LOGICAL size of the picture (1280 x 720, or more rows / columns with stretch aspect "expand", D13)
+	_vp_size = _viewport_size()
+	_cam_tr = chase.transform(view, path)
+	_cam_fr = chase.frustum(_vp_size, view.get("shake", Vector2.ZERO))
+	_cam_yaw = chase.look_yaw(path, float(view.get("camera_z", 0.0)))
+	if camera.is_inside_tree():
+		camera.global_transform = _cam_tr
+	else:
+		camera.transform = _cam_tr
+	camera.set_frustum(float(_cam_fr["size"]), _cam_fr["offset"], float(_cam_fr["near"]), float(_cam_fr["far"]))
+	for l: Object in _updaters:
+		l.call(&"update", view, dt)
+	if _stage == Stage.WARMUP:
+		_place_warmup()
+
+
+## The warm-up nodes stand on the road in front of the camera, turned like a vehicle ahead.
+func _place_warmup() -> void:
+	_warm.transform = Transform3D(_cam_tr.basis, _cam_tr.origin + _cam_tr.basis * Vector3(0.0, -proj.cam_height, -WARMUP_AHEAD_M))
+
+
+func _on_rebased(shift: Vector3) -> void:
+	for l: Object in _rebase_listeners:
+		l.call(&"rebased", shift)
+	rebased.emit(shift)
 
 
 ## Screen position of a point in road coordinates (z along the road, x lateral, h above the road): (pixel x,
-## pixel y, depth in m) in logical pixels of the current picture. Stub: flat, straight world.
+## pixel y, depth in m along the view axis) in logical pixels of the picture of the last render()
+## (ChaseCamera3D.project – the mapping of Camera3D.unproject_position()). Depth <= 0: behind the camera or
+## nothing drawn yet (the pixel values are then meaningless).
 func world_to_screen(z: float, x: float, h: float) -> Vector3:
-	var size := _viewport_size()
-	var depth := z - float(_cam_snapshot.get("z", 0.0))
-	var s := proj.focal / maxf(depth, 0.001)
-	var horizon := size.y * proj.horizon_y / proj.screen.y
-	return Vector3(size.x * 0.5 + (x - float(_cam_snapshot.get("x", 0.0))) * s, horizon - (h - proj.cam_height) * s, depth)
+	if not _world_started:
+		return Vector3(0.0, 0.0, -1.0)
+	return ChaseCamera3D.project(_cam_tr, _cam_fr, _vp_size, path.world(z, x, h))
 
 
 ## Logical size of the picture: 1280×720, or more rows/columns where the window has another aspect ratio (the race
@@ -201,29 +569,93 @@ func _viewport_size() -> Vector2:
 	return size
 
 
+# --- statistics and test data -----------------------------------------------------------------------------------
+
+## Contract §4.4.5. render_ms_* = GDScript time of render() since the stage is prepared; chunk_* = the streamer's
+## times of the drive ("load" holds those of the preparation); draw calls and primitives of the last drawn frame
+## (0 headless); frame_ms_* = wall clock between the last FRAME_WINDOW render() calls. perf() of the hooks is merged
+## in: numbers add up (lights_omni, lights_spot, vehicles, instances, fallback_sets … start at 0 here).
 func perf_stats() -> Dictionary:
 	var n := maxf(1.0, float(_frames))
-	return {"mode": Gfx.MODERN, "preset": str(levels.get("preset", "")), "frames": _frames,
+	var st: Dictionary = streamer.stats() if streamer != null else {}
+	var sorted := _frame_us.duplicate()
+	sorted.sort()
+	var median := 0.0
+	var p95 := 0.0
+	if not sorted.is_empty():
+		median = float(sorted[sorted.size() / 2]) / 1000.0
+		p95 = float(sorted[mini(sorted.size() - 1, int(float(sorted.size()) * 0.95))]) / 1000.0
+	var out := {"mode": Gfx.MODERN, "preset": str(levels.get("preset", "")), "frames": _frames,
 		"render_ms_avg": float(_render_us) / n / 1000.0, "render_ms_max": float(_render_us_max) / 1000.0,
-		"chunks": 0, "chunk_build_ms_avg": 0.0, "chunk_build_ms_max": 0.0, "chunk_commit_ms_max": 0.0,
+		"chunks": int(st.get("chunks", 0)), "chunk_build_ms_avg": float(st.get("build_ms_avg", 0.0)),
+		"chunk_build_ms_max": float(st.get("build_ms_max", 0.0)), "chunk_commit_ms_max": float(st.get("commit_ms_max", 0.0)),
 		"draw_calls": 0, "draw_calls_shadow": 0, "primitives": 0, "primitives_shadow": 0, "lights_omni": 0,
-		"lights_spot": 0, "vehicles": (_last_view.get("cars", []) as Array).size(), "instances": 0,
-		"frame_ms_median": 0.0, "frame_ms_p95": 0.0, "prewarm_ms": float(selftest.get("ms", 0.0)),
-		"fallback_sets": 0, "tex_mem_mb": 0.0}
+		"lights_spot": 0, "vehicles": 0, "instances": 0, "frame_ms_median": median, "frame_ms_p95": p95,
+		"prewarm_ms": _prewarm_ms, "fallback_sets": 0, "tex_mem_mb": 0.0,
+		"prepare_ms": _prepare_ms, "selftest_ms": float(selftest.get("ms", 0.0)), "warmup_nodes": _warm_count,
+		"streamer": st, "load": _load_stats}
+	if is_inside_tree() and DisplayServer.get_name() != "headless":
+		var vp := get_viewport().get_viewport_rid()
+		out["draw_calls"] = RenderingServer.viewport_get_render_info(vp, RenderingServer.VIEWPORT_RENDER_INFO_TYPE_VISIBLE,
+			RenderingServer.VIEWPORT_RENDER_INFO_DRAW_CALLS_IN_FRAME)
+		out["draw_calls_shadow"] = RenderingServer.viewport_get_render_info(vp, RenderingServer.VIEWPORT_RENDER_INFO_TYPE_SHADOW,
+			RenderingServer.VIEWPORT_RENDER_INFO_DRAW_CALLS_IN_FRAME)
+		out["primitives"] = RenderingServer.viewport_get_render_info(vp, RenderingServer.VIEWPORT_RENDER_INFO_TYPE_VISIBLE,
+			RenderingServer.VIEWPORT_RENDER_INFO_PRIMITIVES_IN_FRAME)
+		out["primitives_shadow"] = RenderingServer.viewport_get_render_info(vp, RenderingServer.VIEWPORT_RENDER_INFO_TYPE_SHADOW,
+			RenderingServer.VIEWPORT_RENDER_INFO_PRIMITIVES_IN_FRAME)
+		out["tex_mem_mb"] = float(RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TEXTURE_MEM_USED)) / 1048576.0
+	for h: Object in _hooks:
+		if h.has_method(&"perf"):
+			var extra: Variant = h.call(&"perf")
+			if extra is Dictionary:
+				merge_data(out, extra)
+	return out
 
 
-## Plain data for headless tests (no render counters): what the renderer shows right now.
+## Plain data for headless tests (no render counters): what the renderer shows right now. Contract §4.4.5:
+## camera {z, x, y, yaw_deg, frustum}, chunks [{index, seg_a, seg_b, state, pos, parts: {<builder id>: …}}],
+## vehicles, lights {omni, spot, pools}, props, signs, quality – plus stage, prepared, layers, builders, path,
+## pending_chunks, pool_materials, lamps, visibility_m. snapshot() of the hooks is merged in (arrays are appended,
+## dictionaries merged, numbers add up).
 func debug_snapshot() -> Dictionary:
-	var vehicles: Array = []
-	var cars: Array = _last_view.get("cars", [])
-	var list: Array = cars.duplicate()
-	if _last_view.has("player"):
-		list.append(_last_view["player"])
-	for c: Variant in list:
-		if c is Dictionary:
-			var d: Dictionary = c
-			vehicles.append({"id": int(d.get("id", 0)) if not bool(d.get("player", false)) else -1, "set": str(d.get("set", "")),
-				"model": "", "lod": -1, "z": float(d.get("z", 0.0)), "x": float(d.get("x", 0.0)), "yaw_deg": 0.0, "lamps": {}})
-	return {"camera": _cam_snapshot.duplicate(true), "chunks": [], "vehicles": vehicles,
-		"lights": {"omni": 0, "spot": 0, "pools": 0}, "props": {}, "signs": [], "quality": levels.duplicate(true),
-		"stub": true}
+	var builders: Array[String] = []
+	if streamer != null:
+		for b: ChunkBuilder in streamer.builders():
+			builders.append(b.id())
+	var out := {"camera": {"z": float(view.get("camera_z", 0.0)), "x": float(view.get("camera_x", 0.0)),
+			"y": float(view.get("camera_y", 0.0)), "yaw_deg": rad_to_deg(_cam_yaw), "frustum": _cam_fr.duplicate(),
+			"pos": [_cam_tr.origin.x, _cam_tr.origin.y, _cam_tr.origin.z], "viewport": [_vp_size.x, _vp_size.y]},
+		"chunks": [], "vehicles": [], "lights": {"omni": 0, "spot": 0, "pools": 0}, "props": {}, "signs": [],
+		"quality": levels.duplicate(true), "stage": STAGE_NAMES[_stage], "prepared": _prepared, "layers": _layers.keys(),
+		"builders": builders, "pool_materials": _pool_materials.size(), "lamps": _lamps, "visibility_m": visibility_m}
+	if streamer != null:
+		var s := streamer.snapshot()
+		out["chunks"] = s["chunks"]
+		out["pending_chunks"] = s["pending"]
+		out["path"] = s["path"]
+	for h: Object in _hooks:
+		if h.has_method(&"snapshot"):
+			var extra: Variant = h.call(&"snapshot")
+			if extra is Dictionary:
+				merge_data(out, extra)
+	return out
+
+
+## Merges `extra` into `into`: arrays are appended, dictionaries merged key by key, numbers add up, anything else
+## (and a key that is new) is taken as it is.
+static func merge_data(into: Dictionary, extra: Dictionary) -> void:
+	for k: Variant in extra:
+		var v: Variant = extra[k]
+		if not into.has(k):
+			into[k] = v
+			continue
+		var old: Variant = into[k]
+		if old is Dictionary and v is Dictionary:
+			merge_data(old, v)
+		elif old is Array and v is Array:
+			(old as Array).append_array(v)
+		elif (old is int or old is float) and (v is int or v is float):
+			into[k] = old + v
+		else:
+			into[k] = v
