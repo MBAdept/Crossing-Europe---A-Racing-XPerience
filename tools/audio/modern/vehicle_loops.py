@@ -62,6 +62,7 @@ SIDE_B = 50                      # seed offset of the right side's own loop
 # offsets 50–89 the one whose loop peaks lowest at the same loudness – scratch cobble_search.py): crest of the loop
 # 14.5 dB, per channel in the game model 14.4 / 14.2 dB against AU-C1's 14.3 dB.
 COBBLES_SIDE_B = 64
+SIDE_PITCH = 1.02                # the right side's pitch in the game (config audio.modern.road.sides.pitch)
 SLABS = 32                       # slabs per concrete pattern (5 m each: the pattern repeats every 160 m)
 # The 32-slab patterns are built from AU-C1's 8-slab designs (what the user heard): their 8 joints × 2 axles per
 # design, struck in a shuffled order (rounds of all 8, never the same joint twice in a row) and each time a little
@@ -195,14 +196,15 @@ def band_db(y: np.ndarray, centres: list[float], half: float) -> np.ndarray:
                      for c in centres])
 
 
-def match_loop(y: np.ndarray, ref: np.ndarray, max_db: float = 4.0, rounds: int = 4) -> np.ndarray:
+def match_loop(y: np.ndarray, ref: np.ndarray, max_db: float = 4.0, rounds: int = 4, pitch: float = 1.0) -> np.ndarray:
     """Loop y with the spectral balance of ref (AU-R: a new seed and length of an event texture moves its low
     third-octave bands by 1–3 dB – few events per band; the user heard ref). Matched in 1/12-octave bands, so the
     third octaves still agree when the runtime plays both a little higher or lower (a pitch shift moves energy across
     band edges): a smooth gain curve over log frequency (corrections at the band centres, interpolated, at most
     max_db; bands more than 40 dB under ref's loudest left alone), applied circularly over the whole loop, so the loop
-    stays seamless."""
-    t_ref = band_db(ref, TWELFTH, 1.0 / 24.0)
+    stays seamless. pitch (AU-R2): y will be played at this pitch against ref at 1 – each band of y is matched to the
+    band of ref it will sound in (the right side of a pair plays road.sides.pitch higher)."""
+    t_ref = band_db(ref, [c * pitch for c in TWELFTH], 1.0 / 24.0)
     keep = t_ref > t_ref.max() - 40.0
     lc = np.log(np.array(TWELFTH))
     for _ in range(rounds):
@@ -596,20 +598,23 @@ def heard(ref: np.ndarray, pan: float) -> np.ndarray:
 
 
 def _pair(sid: str, sec_a: float, sec_b: float, fn, bus: str, ref_kmh: float, pexp: float, note: str,
-          side_b: int = SIDE_B) -> list[tuple]:
+          side_b: int = SIDE_B, match_side_pitch: bool = False) -> list[tuple]:
     """A layer of the two panned players: the left side's loop and the right side's own loop (seed + side_b), both
     matched to the spectral balance of AU-C1's loop of this layer as its two players sounded (heard; where there was
-    one). The new sides are independent, their energies add."""
+    one). The new sides are independent, their energies add. match_side_pitch (AU-R2): the right side is matched for
+    the pitch it plays at (SIDE_PITCH) – for a texture with a steep low end (the cobbles' body rumble rises by about
+    15 dB per octave below 48 Hz) the 2 % shift otherwise takes 0.5 dB out of the 40-Hz third octave."""
     old = OLD_SECONDS.get(sid)
 
-    def make(n: int, s: int, f=fn) -> np.ndarray:
+    def make(n: int, s: int, pitch: float = 1.0, f=fn) -> np.ndarray:
         y = f(n, s)
         if not old:
             return y
         ref = f(int(round(old * SR)), 0)
-        return match_loop(y, ref if sid in ONE_SIDED else heard(ref, OLD_PAN.get(bus, 0.55)))
+        return match_loop(y, ref if sid in ONE_SIDED else heard(ref, OLD_PAN.get(bus, 0.55)), pitch=pitch)
+    pb = SIDE_PITCH if match_side_pitch else 1.0
     return [(sid, sec_a, lambda n: make(n, 0), bus, ref_kmh, pexp, note + "; linke Seite", "ogg", sid + "_b"),
-            (sid + "_b", sec_b, lambda n: make(n, side_b), bus, ref_kmh, pexp,
+            (sid + "_b", sec_b, lambda n: make(n, side_b, pb), bus, ref_kmh, pexp,
              note + "; rechte Seite: eigene Schleife (anderer Seed, andere Länge)", "ogg", "")]
 
 
@@ -626,7 +631,7 @@ def loops() -> list[tuple]:
                  "Rollgeräusch auf dem Stahldeck einer Brücke: hohles Dröhnen der Deckbleche (68/104 Hz), Metallpartiale")
     out += _pair("tyre_cobbles", 5.7, 7.1, lambda n, s: tyre_cobbles(n, 50.0, s), "MRoad", 50.0, 0.9,
                  "Kopfsteinpflaster bei 50 km/h: vier Räder schlagen etwa 120-mal je Sekunde auf Steinkanten, Karosserie darunter",
-                 COBBLES_SIDE_B)
+                 COBBLES_SIDE_B, True)
     out += _pair("tyre_gravel", 4.7, 5.9, tyre_gravel, "MRoad", 80.0, 0.55,
                  "Bankett (Schotter): Knirschen, unebenes Grollen, Steine gegen die Radhäuser")
     out += _pair("tyre_grass", 4.3, 5.5, tyre_grass, "MRoad", 60.0, 0.4,

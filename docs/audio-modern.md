@@ -1056,7 +1056,7 @@ Urteil über den Klang liegt beim Nutzer (Hörproben unter `<scratch>/v080/deliv
 |---|---|---|---|
 | Rollen | immer beim Fahren, je Seite der Belag unter den Rädern | Asphalt, Beton (rauer, leises Singen der Rillen), Stahldeck (hohles Dröhnen), Kopfsteinpflaster, Bankett (Schotter, Steine gegen die Radhäuser), Gras (dumpfe Schläge), Rüttelstreifen; zwei geschwenkte Spieler je Belag (linke und rechte Räder), seit AU-R **jede Seite mit ihrer eigenen Schleife** (gleicher Generator, anderer Seed, andere Länge), Start an zufälliger Stelle, langsame Pegeldrift je Seite, rechts Tonhöhe × 1,02 (nicht beim Rüttelstreifen) – nichts wiederholt sich mehr im Sekundentakt | `MRoad` |
 | Nässe, Schnee | Regen auf befestigtem Belag; Schnee | Sprühzischen; Schnee dämpft das Rollen (Tiefpass auf `MRoad`, −3 dB) und knirscht – seit AU-R mit einer eigenen Schnee-Schleife (weiches Knirschen gepressten Schnees, ohne die Steinschläge des Schotters) | `MRoad` |
-| Betonplatten | Belag Beton | „ta-tock“ von Vorder- und Hinterachse über die Fugen (5 m, Radstand 2,7 m): eine Schleife mit Tonhöhe v / Entwurfstempo, darum stimmt der Takt bei jedem Tempo; zwei Entwürfe (90 und 180 km/h) überblendet zwischen 110 und 150 km/h; seit AU-R 32 Platten je Muster (vorher 8: das Akzentmuster kam alle 40 m wieder) und beide Entwürfe immer im selben Takt (Abschnitt 15.9) | `MRoad` |
+| Betonplatten | Belag Beton | „ta-tock“ von Vorder- und Hinterachse über die Fugen (5 m, Radstand 2,7 m): eine Schleife mit Tonhöhe v / Entwurfstempo, darum stimmt der Takt bei jedem Tempo; zwei Entwürfe (90 und 180 km/h) überblendet zwischen 110 und 150 km/h; seit AU-R 32 Platten je Muster (vorher 8: das Akzentmuster kam alle 40 m wieder) und beide Entwürfe immer im selben Takt (Abschnitt 15.9); seit AU-R2 sind die 32 Platten die 8 Fugen von AU-C1 in gemischter Folge, und über 150 km/h wird der Pegel nur noch um 8 statt 20 dB je Dekade lauter (Abschnitt 15.10) | `MRoad` |
 | Brückenfugen | Feed-Ereignis `joint` | Doppelschlag beider Achsen in einem Klang (Stahl: Fingerfuge klappert; Beton: dumpf); die Variante mit dem nächsten Achsabstand, die Tonhöhe so verschoben, dass der Abstand Radstand / Tempo genau trifft (Radstand = 0,6 × Länge des Autos); Abstand je Deck (AU-R): Stahl an den Enden und etwa alle 100 m, Beton alle 32 m, Steinbogen keine | `MRoad` |
 | Vorbeifahrten | Feed-Ereignis `pass_object` | der eigene Klang, von Pfosten, Schild, Baum, Gebäude, Schilderbrücke, Fels zurückgeworfen; seitenrichtig, lauter und kürzer mit dem Tempo, leiser mit dem Abstand; unter 40 km/h nicht; Variante zufällig, ±2 dB (AU-R) | `MRoad` |
 | Quietschen, Radieren | Untersteuern (`understeer`), Querbewegung (`lat_speed`), Rutschen beim Unfall (`crash`) | Ton an der Haftgrenze, je Quietschen ±5 % in der Tonhöhe (AU-R); nass und auf Schotter kaum Ton, dafür Radieren | `MRoad` |
@@ -1076,7 +1076,7 @@ Leitplanke nach seinem Pegel (`−10 + 2 × m/s` der Sitzung). Das Profil Arcade
 - **je Seite eine eigene Schleife, Ogg Vorbis q5** (`<id>` links, `<id>_b` rechts; der linke Eintrag nennt den
   rechten in `pair`; gleicher Generator, Seed + 50, andere Länge): `tyre_asphalt` (5,3 / 6,7 s), `tyre_concrete`
   (5,1 / 6,3), `tyre_deck` (4,9 / 6,1; alle drei Entwurf 120 km/h, Tonhöhe (v/120)^0,35), `tyre_cobbles` (5,7 / 7,1;
-  50 km/h, ^0,9), `tyre_gravel` (4,7 / 5,9; 80 km/h, ^0,55), `tyre_grass` (4,3 / 5,5; 60 km/h, ^0,4), `tyre_wet`
+  50 km/h, ^0,9; rechts seit AU-R2 Seed + 64 statt + 50, Abschnitt 15.10), `tyre_gravel` (4,7 / 5,9; 80 km/h, ^0,55), `tyre_grass` (4,3 / 5,5; 60 km/h, ^0,4), `tyre_wet`
   (5,5 / 6,9; 120 km/h, ^0,3), `tyre_snow` (5,0 / 6,4; 80 km/h, ^0,5; neu), `tyre_rumble` (4,1 / 5,3; 100 Schläge je
   Sekunde bei Tonhöhe 1 = 108 km/h, ^1), `wind_low` (5,9 / 7,3), `wind_mid` (5,6 / 6,8), `wind_high` (5,2 / 6,6; alle
   drei 160 km/h, ^0,3 / ^0,5 / ^0,5), `wind_buffet` (6,2 / 7,6; 230 km/h, ^0,25; die linke in q8 – Vorbis kodiert
@@ -1084,8 +1084,9 @@ Leitplanke nach seinem Pegel (`−10 + 2 × m/s` der Sitzung). Das Profil Arcade
   rauesten Stelle; der Generator nimmt die erste Qualität ab q5, deren Naht höchstens doppelt so rau ist wie ihr
   Umfeld);
 - **16-Bit-WAV** mit 16 Fortsetzungsframes hinter `loop_end`: `slab_slow` / `slab_fast` (32 Platten: 6,4 / 3,2 s,
-  90 / 180 km/h, ^1; Seeds und ein weiches Knie über 0,6 × Spitze so gewählt, dass die Spitzen bei gleicher
-  Lautheit nicht höher liegen als bei den 8-Platten-Mustern von AU-C1), `squeal` (2,0 s, 820 Hz), `scrub` (1,5 s),
+  90 / 180 km/h, ^1; seit AU-R2 aus den 8 Fugen – je Vorder- und Hinterachse ein Schlag – der 8-Platten-Entwürfe
+  von AU-C1: gemischte Folge, für beide Entwürfe dieselbe, jede Fuge je Platte ±1,2 dB härter oder weicher, nie
+  härter als 1 dB unter der härtesten von AU-C1; Abschnitt 15.10), `squeal` (2,0 s, 820 Hz), `scrub` (1,5 s),
   `rail_scrape` (2,0 s, 100 km/h, ^0,35)
 
 – zusammen 3,00 MB (vorher 2,95 MB). Jeder Eintrag trägt `ref_kmh`, `pitch_exp` und `lufs_pitch` (die Lautheit der
