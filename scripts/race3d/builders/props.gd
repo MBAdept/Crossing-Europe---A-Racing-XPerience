@@ -10,7 +10,8 @@ extends ChunkBuilder
 ##   "corridor"  decorative scenery inside the sight corridor of a bend (fairness rule F7): scenery-rule props and all
 ##               vegetation. A dropped plant is replaced by ground cover (amendment A-3): pieces of the sets of
 ##               graphics.modern.props.bend_cover (props/cover_bush, props/cover_grass), at most bend_cover_max_h_m
-##               (0.5 m) high – one for a bush, three for a tree (cover_pieces(); debug "cover", list "cover_list");
+##               (0.5 m) high – one for a bush, three for a tree, not in the City Limits (cover_pieces(); debug
+##               "cover", list "cover_list");
 ##               a set of that list that the track itself places stays, scaled down to that height
 ##   "missing"   the set (and its fallback set) has neither a model nor a sprite sheet (Arcade skips it as well)
 ##   "density"   "Details" below 1.0 thins decorative trees, bushes, rocks and bales (thinnable(); never buildings,
@@ -316,7 +317,7 @@ static func _place(ctx: ChunkContext, inp: Dictionary, out: Dictionary, i: int, 
 		if is_cover:
 			return
 		dropped[reason] += 1
-		if reason == "corridor" and bool(e["veg"]) and not cover.is_empty():
+		if reason == "corridor" and bool(e["veg"]) and not cover.is_empty() and not bool(seg.get("city", false)):
 			# A-3 (lead decision): ground cover of at most 0.5 m stands in for the plant the sight corridor drops
 			for c: Dictionary in cover_pieces(ctx, it, e, z, x, side, seg_index, j, cover, sets):
 				_place(ctx, inp, out, i, seg, int(c["j"]), c, true)
@@ -402,6 +403,7 @@ static func chunk_variant(chunk_index: int, set_id: String, variants: Array) -> 
 ## graphics.modern.props.bend_cover (props/cover_bush, props/cover_grass: at most 0.5 m – they cannot hide a vehicle
 ## from the 3.4 m eye) – one for a bush, COVER_PER_TREE scattered over the crown's footprint for a tree. Pieces that
 ## would lie on the shoulder are left out; the ribbon test of drop_reason() applies to each. Plain items for _place().
+## Not inside the City Limits: the ground there is paved (grass tufts on the pavement of a city centre, seen at C1).
 static func cover_pieces(ctx: ChunkContext, it: Dictionary, e: Dictionary, z: float, x: float, side: int, seg_index: int, item: int,
 		cover: Array, sets: Dictionary) -> Array:
 	var usable: Array = []

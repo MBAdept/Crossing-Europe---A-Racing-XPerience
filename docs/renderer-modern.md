@@ -1422,7 +1422,8 @@ still (`ce_time` ist Spielzeit). Render-Prüfung `rotor` in `check_props_render.
   Requisite – so kostet ein Set je Stück und Seite höchstens seine Flächen an Zeichenaufrufen (Kartenbaum 2).
 - **Bodendecker** (Nachtrag A-3): im Sichtkorridor einer Kurveninnenseite weggelassene Pflanzen werden durch
   `props/cover_bush` und `props/cover_grass` ersetzt (`graphics.modern.props.bend_cover`), höchstens 0,5 m hoch –
-  ein Stück je Busch, drei je Baum über seinen Fuß verteilt, nie näher als 0,8 m an der Fahrbahnkante. Felsen und
+  ein Stück je Busch, drei je Baum über seinen Fuß verteilt, nie näher als 0,8 m an der Fahrbahnkante, nicht in den
+  City Limits (Grasbüschel auf dem Pflaster eines Stadtzentrums, gesehen an C1). Felsen und
   Häuser einer Landschaftsregel bleiben im Korridor weggelassen (strengere Lesart von R2, bis die Projektleitung mit
   den Bergbildern von Zwischenstand 2 entscheidet). Bilder T2/T4 vorher/nachher im Abgabeordner.
 - **Ende der Sicht**: die „hellen Rauten“ am Horizont von S1 waren Fernbilder ferner Bäume jenseits des Nebelendes –
