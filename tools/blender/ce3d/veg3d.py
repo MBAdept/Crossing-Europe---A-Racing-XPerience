@@ -105,8 +105,8 @@ SPECIES = {
     # special crowns (ce3d/veg3d_shapes.py)
     "spruce": dict(shape="spruce", atlas=dict(leaf="needles", base=("#1e3d22", "#2d5530"), sat=0.55, gain=1.16,
                                               tint=(1.06, 1.0, 1.0)),
-                   bark=[("", ("#3e2e21", "#4a3626"))], atlas_seed=7, stiff=0.7, lift=(1.0, 1.25),
-                   imp=dict(gain=1.18)),
+                   bark=[("", ("#3e2e21", "#4a3626"))], atlas_seed=7, stiff=0.7, lift=(1.0, 1.16),
+                   imp=dict(gain=1.38)),
     "cypress": dict(shape="cypress", atlas=dict(leaf="sprig", base=("#1f3a1f", "#2f4e28"), sat=0.45, gain=1.48,
                                                 tint=(1.04, 1.0, 1.04), ball_leaf=(0.05, 0.08), ball_leaves=1500),
                     bark=[("", ("#3e2e21", "#4a3626"))], atlas_seed=3, stiff=0.75,

@@ -1802,8 +1802,8 @@
    "cards": {"lod0": 270, "lod1": 90},
    "auto_lod": false,
    "tags": ["prop", "tree"],
-   "bytes": 1359206,
-   "hash": "539e4ed3ffba10ea25ebff41195dc8d726cc05b3"
+   "bytes": 1360755,
+   "hash": "df216a814be0001c06da57626f939f99e1c0ba19"
   },
   "props/tree_spruce_b": {
    "kind": "tree",
@@ -1846,8 +1846,8 @@
    "cards": {"lod0": 216, "lod1": 72},
    "auto_lod": false,
    "tags": ["prop", "tree"],
-   "bytes": 1342631,
-   "hash": "1fda521178a14c0955e103f8ae87f6b1606c2a37"
+   "bytes": 1344231,
+   "hash": "eccd344162f6c173f076c825646634572ce3ca4c"
   },
   "props/wind_turbine": {
    "kind": "furniture",

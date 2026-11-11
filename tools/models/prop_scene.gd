@@ -10,6 +10,8 @@ extends SceneTree
 ## --mode=dist  one row per model, one tile per distance: a crop of the 1280x720 game picture around the model,
 ##              magnified by --zoom with whole pixels (what the player sees, pixel for pixel)
 ## --mode=lods  one row per model: lod0 / lod1 / impostor side by side at the switch distances (60 m and 200 m)
+##              - the representations of chunk level 0 / 1 / 2 the props builder takes (_reps(): a model without an
+##              impostor keeps its last level, a rock with one level keeps lod0) -
 ##              in the same crop - colour or size jumps between the levels show here; the mean colour of each
 ##              tile is printed ("STUFEN <model> …") and the swaps are measured ("UMSCHALT <model> …": share of
 ##              the model's pixels that change at the swap, change of brightness (luma of the mean colour, %) and
@@ -514,21 +516,40 @@ func _caption_tile(t: Image, text: String) -> Image:
 	return out
 
 
+## The representations of chunk LOD level 0, 1, 2 as the props builder takes them (PropLibrary "reps"): the
+## levels with a range in order, the impostor - or the coarsest level - far away. A bush without an impostor stays
+## lod1 beyond the second switch, a rock with one level (automatic mesh LODs) stays lod0.
+func _reps(mid: String) -> Array[String]:
+	var m := ModelDB.model(mid)
+	var levels: Array[String] = []
+	for l: Variant in m.get("lods", []):
+		var d: Dictionary = l
+		if float(d.get("max_dist_m", 0.0)) > 0.0:
+			levels.append(str(d.get("name", "")))
+	if levels.is_empty():
+		return ["lod0", "lod1", "impostor"]
+	var far := "impostor" if m.has("impostor") else levels[mini(2, levels.size() - 1)]
+	return [levels[0], levels[mini(1, levels.size() - 1)], far]
+
+
 func _lods(models: Array) -> Image:
 	var x := float(str(_args.get("x", "9")))
 	var tile := _tile_size()
-	var cols := [["lod0", _lod0_m], ["lod1", _lod0_m], ["lod1", _lod1_m], ["impostor", _lod1_m]]
+	# [chunk level, distance]: level 0 and 1 at the first switch, level 1 and 2 at the second
+	var cols := [[0, _lod0_m], [1, _lod0_m], [1, _lod1_m], [2, _lod1_m]]
 	if _args.has("sprite"):
-		cols.append(["sprite", _lod1_m])
+		cols.append([-1, _lod1_m])
 	var sheet := Image.create(tile.x * cols.size(), tile.y * models.size(), false, Image.FORMAT_RGB8)
 	_clear()
 	var bg := await _frame()              # the scene without a model (the same for every tile)
 	for r in models.size():
 		var mid := str(models[r])
+		var reps := _reps(mid)
 		var means: Array[String] = []
 		var shots: Array = []
 		for c in cols.size():
-			var lod := str(cols[c][0])
+			var lvl := int(cols[c][0])
+			var lod := "sprite" if lvl < 0 else reps[lvl]
 			var d := float(cols[c][1])
 			_clear()
 			var pos := Vector3(x, 0.0, -d)
