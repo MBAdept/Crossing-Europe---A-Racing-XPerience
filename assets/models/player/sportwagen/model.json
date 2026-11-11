@@ -10,7 +10,7 @@
    {
     "name": "lod0",
     "max_dist_m": 100000,
-    "tris": 46940,
+    "tris": 46805,
     "parts": [
      {
       "node": "body",
@@ -52,7 +52,7 @@
    {
     "name": "show",
     "max_dist_m": 0,
-    "tris": 95375,
+    "tris": 94983,
     "parts": [
      {
       "node": "body",
@@ -182,8 +182,8 @@
   "paint": {"paint": "#cc1419", "metal": 0.15},
   "auto_lod": false,
   "tags": ["player"],
-  "bytes": 1690967,
-  "hash": "eb1b0c49361d7a86d35da8fa15072c7f80cc1eb5"
+  "bytes": 1688705,
+  "hash": "19b470feee34e3a424fe9cc953aeee7e5a09e5c4"
  },
  "sets": {
   "player/sportwagen": {

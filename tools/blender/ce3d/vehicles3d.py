@@ -128,6 +128,11 @@ POCKET_SPAN_M = 0.09           # objects whose faces under a lamp outline lie th
 POCKET_MIN_SHARE = 0.12        # ... if their part of the outline has at least this share of the largest part's area
 LINER = dict(color="#232427", rough=0.85)
 INTERIOR_MAX_TRIS = 6000       # contract 4.6.9: interior inside "body" of the race level (lining included)
+# (AS2R) front wheel arches that must clear the tyre by this much (m, over the tyre radius): the sports car and the
+# GT have their shoulder line under the top of the front tyre (hood edge 0.77 / 0.81 m, tyre top 0.684 / 0.70 m), so
+# SmoothCar.frame() starts the section below the arch circle - the fender ran 84 / 61 mm into the tyre and folded
+# over it (art review KRITIK-2, A5). _clear_front_arches pulls that part of the fender up onto the circle.
+ARCH_CLEAR = {"sportwagen": 0.025, "gran_turismo": 0.025}
 
 
 def _shift(outline, proj, dy):
@@ -254,6 +259,31 @@ def _drop_flipped(s, max_h=None):
     return int(drop.sum())
 
 
+def _clear_front_arches(car, soups, clear):
+    """The fender over a front wheel follows the arch circle (radius R + clear about the axle, side projection): every
+    vertex of the lower body above the axle, in the outer part of the car (over the tyre and outside it) and inside
+    that circle is moved out onto it along its radius. The surface stays closed - the lip of the opening is lifted
+    with it - and nothing else moves. Returns the number of vertices moved."""
+    body = next((s for s in soups if s.name == car.body.name), None)
+    if body is None or body.n == 0:
+        return 0
+    d = car.d
+    tw = float(d.get("tw", 0.22))
+    x_in = car.W2 - float(d.get("wheel_inset", 0.02)) - tw - 0.03
+    yc, zc, rc = car.y_fa - car.L / 2.0, float(car.R), float(car.R) + clear
+    p = body.pos
+    dy, dz = p[:, :, 1] - yc, p[:, :, 2] - zc
+    r = np.hypot(dy, dz)
+    sel = (np.abs(p[:, :, 0]) > x_in) & (dz > 0.0) & (r < rc)
+    if not sel.any():
+        return 0
+    k = np.where(sel, rc / np.maximum(r, 1e-9), 1.0)
+    p[:, :, 1] = yc + dy * k
+    p[:, :, 2] = zc + dz * k
+    body.pos = p
+    return int(sel.sum())
+
+
 def _lamp_pockets(car, soups):
     """Recessed lamp units (cesprites.cardetail.lamp with detail "lamp_depth"): sinks the body faces under the
     outline of every unit and closes the step with walls (decalgeo.pocket). Of several objects under one outline
@@ -339,6 +369,7 @@ def _player_level(spec3d, level):
             shell["body" if s_.name == car.body.name else "green"] = s_.pos.copy()
     extras3d.uncover_pockets(car, {s.name: s for s in soups}, lambda o, pr: _shift(o, pr, -car.L / 2.0), decalgeo.cut_holes)
     lin_pos, lin_nor, cut_stats = _open_cabin(car, lay, soups, lining)
+    arch_moved = _clear_front_arches(car, soups, ARCH_CLEAR[spec3d["design"]]) if spec3d["design"] in ARCH_CLEAR else 0
     flipped = 0
     lofts = (car.body.name, car.green.name, car.bumper_rear.name, car.bumper_front.name)
     for s_ in soups:
@@ -388,7 +419,10 @@ def _player_level(spec3d, level):
         raise RuntimeError("%s %s: interior %d triangles (at most %d)" % (spec3d["design"], level, interior,
                                                                           INTERIOR_MAX_TRIS))
     info["cabin"] = dict(lining_tris=int(lin_pos.shape[0]), removed=cut_stats["removed"], pocket_tris=pocket_tris,
-                         interior_tris=interior, flipped_dropped=flipped)
+                         interior_tris=interior, flipped_dropped=flipped, arch_moved=arch_moved)
+    if os.environ.get("CE_STATS") and arch_moved:
+        print("      front arches: %d vertices of the fender moved onto the circle R + %.3f m" % (
+            arch_moved, ARCH_CLEAR[spec3d["design"]]))
     info["shell"] = shell
     return car, info, params, nodes, pivots, tr
 

@@ -614,9 +614,10 @@ def car_surfaces(car, soups, cut=True, level=0, paint_rough=0.28, seals=True, fa
                 if far_plate and lamp == "plate":
                     dec = dict(dec, mat=dict(color=far_plate, rough=0.45, spec=0.4))
                 elif level == 2 and far_glass and (dec.get("face", "rear") == "side" or lamp in ("reverse", "drl", "plate")
-                                                   or lamp.startswith("-")):
+                                                   or (lamp.startswith("-") and not d.get("far_reflectors"))):
                     continue                # (a plate is 3 x 0.6 px at 120 m and costs 100 triangles on the end cap;
-                    #                          "-": a lamp without a light anchor - the bumper reflectors of the SUV)
+                    #                          "-": a lamp without a light anchor - the bumper reflectors of the SUV,
+                    #                          unless the design keeps them: d["far_reflectors"])
                 if (level == 2 or (level == 1 and far_glass and not front1)) and dec.get("inset"):
                     dec = dict(dec)
                     dec.pop("inset")            # the lamp fills its (dropped) black outline

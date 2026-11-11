@@ -10,7 +10,7 @@
    {
     "name": "lod0",
     "max_dist_m": 100000,
-    "tris": 48206,
+    "tris": 48106,
     "parts": [
      {
       "node": "body",
@@ -52,7 +52,7 @@
    {
     "name": "show",
     "max_dist_m": 0,
-    "tris": 102630,
+    "tris": 102289,
     "parts": [
      {
       "node": "body",
@@ -182,8 +182,8 @@
   "paint": {"paint": "#b2b7bd", "metal": 0.9},
   "auto_lod": false,
   "tags": ["player"],
-  "bytes": 1778270,
-  "hash": "faa31bcbf39742363965b44d9b8bc48e090e7c0f"
+  "bytes": 1776118,
+  "hash": "3b50b0a3ee70a6102a75bf758a1f2ca8ac336413"
  },
  "sets": {
   "player/gran_turismo": {

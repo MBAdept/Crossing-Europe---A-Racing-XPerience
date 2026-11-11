@@ -115,6 +115,9 @@ CAR_3D = {
                      outline=False),
             ],
         ),
+        # (AS2R) the bumper reflectors at lod2 too: on the bumper they are seen at lod0 / lod1 now, and the two red dots
+        # vanished at the 120 m swap
+        design=dict(far_reflectors=True),
     ),
     "van": dict(
         replace=dict(
