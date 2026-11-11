@@ -63,7 +63,7 @@ N_VAR_IN = 4                     # mono variants of "in", two per stereo block
 FILE_PEAK = 0.84                 # every bank is stored with this sample peak (its "gain" restores the level)
 REF_PEAK = 0.708                 # designed peak of the full-load bank at the reference rpm (before mix.gain)
 PAN_REF_X = 0.9                  # a source this far off the centre line (m) gets the full pan
-INTERNAL_LUFS = -18.0            # designed full-load loudness of the Gran Turismo inside the mixer (before the bus)
+INTERNAL_LUFS = -16.0            # designed full-load loudness of a car inside the mixer (before the buses), plus its "loudness"
 CARS = list(es.CARS)
 MODE_ST, MODE_L, MODE_R = 0, 1, 2
 
@@ -72,20 +72,26 @@ MODE_ST, MODE_L, MODE_R = 0, 1, 2
 #   retune   dB on top of the calibrated component levels of the Arcade profile (flow noise, induction, mechanics)
 #   nl       factor on the steepening of strong exhaust pulses (brightness under load)
 #   pan      "centre" (one exhaust image), "tailpipe" (each pipe at its place), "group" (each cylinder bank a side)
-#   width    pan width of the exhaust image; noise = independent share of the flow noise per channel (0..1)
-#   on / off target loudness of the banks in dB re the car's full load over x = (rpm - idle) / (redline - idle)
-#   loudness full-throttle loudness of the car relative to the plan's target (all five stay within +-1.5 dB)
+#   width    pan width of the exhaust image; noise = independent share of the flow noise per channel (0..1);
+#            pan_from_hz ("group"): the cylinder banks are panned only above it; mono_below_hz: both channels carry
+#            their mean below it (the low end stays in the centre)
+#   voice    formants of the exhaust path [[Hz, Q, dB], ...] (give_voice)
+#   on / off target loudness of the banks in dB re the car's full load over x = (rpm - idle) / (redline - idle);
+#            idle_db / low_db shape them per car (level_target) - set with the game recordings of the loudness plan
+#            (tools/audio/modern/capture_mix.gd): idle about 8 dB under full throttle, 130 km/h at the plan's level
+#   loudness full-throttle loudness of the car relative to INTERNAL_LUFS, set the same way (full throttle of every
+#            car at the plan's -16 LUFS with all bus levels at 0 dB)
 #   runtime  parameters the mixer and the vehicle layers read from the bank ("layers" / "mix")
 # ------------------------------------------------------------------------------------------------------------------
-ON_CURVE = [(0.0, -7.5), (0.12, -5.5), (0.28, -3.2), (0.5, -1.2), (0.7, -0.3), (0.85, 0.0), (1.0, 0.3), (1.2, 0.3)]
-OFF_CURVE = [(0.0, -8.6), (0.12, -9.6), (0.28, -9.0), (0.5, -8.4), (0.75, -7.4), (1.0, -6.4), (1.2, -6.4)]
+ON_CURVE = [(0.0, -6.0), (0.12, -4.0), (0.28, -2.0), (0.5, -0.8), (0.7, -0.2), (0.85, 0.0), (1.0, 0.3), (1.2, 0.3)]
+OFF_CURVE = [(0.0, -9.0), (0.12, -9.4), (0.28, -8.8), (0.5, -8.4), (0.75, -7.4), (1.0, -6.4), (1.2, -6.4)]
 
 CHAR: dict = {
     "kompakt": {
         "retune": {"rasp": 4.0, "jet": 5.0, "intake": 4.0, "whoosh": 5.0, "mech": 2.0, "hiss": 3.0},
         "nl": 1.5, "pan": "centre", "width": 0.0, "noise": 0.85, "clip_pan": 0.25, "voice": [[520.0, 0.9, 5.0]],
-        "on": ON_CURVE, "off": OFF_CURVE, "loudness": -0.2,
-        "mix": {"in_gain": 1.0, "idle_load": 0.2, "load_curve": 0.65},
+        "on": ON_CURVE, "off": OFF_CURVE, "loudness": 0.5, "idle_db": 2.0, "low_db": 1.5,
+        "mix": {"in_gain": 1.0, "idle_load": 0.2, "load_curve": 0.5},
         "saturation": 1.0, "turbo_depth": 0.25,
         "turbo": {"tone": "turbo_single", "tone_level": 0.060, "hiss_level": 0.030},
         "blowoff": {"sound": "blowoff_hatch"},
@@ -95,8 +101,8 @@ CHAR: dict = {
     "kombi": {
         "retune": {"rasp": 2.0, "jet": 3.0, "intake": 3.0, "whoosh": 6.0, "mech": 2.0, "knock": 1.0},
         "nl": 1.3, "pan": "centre", "width": 0.0, "noise": 0.75, "clip_pan": 0.0,
-        "on": ON_CURVE, "off": OFF_CURVE, "loudness": -1.0,
-        "mix": {"in_gain": 1.0, "idle_load": 0.25, "load_curve": 0.65},
+        "on": ON_CURVE, "off": OFF_CURVE, "loudness": -0.5, "idle_db": 3.9, "low_db": 2.0,
+        "mix": {"in_gain": 1.0, "idle_load": 0.25, "load_curve": 0.45},
         "saturation": 0.5, "turbo_depth": 0.3,
         "turbo": {"tone": "turbo_single", "tone_level": 0.050, "hiss_level": 0.045},
         "blowoff": None,
@@ -106,8 +112,8 @@ CHAR: dict = {
     "limousine": {
         "retune": {"rasp": 2.5, "jet": 4.0, "intake": 3.0, "whoosh": 3.0, "mech": 1.0, "hiss": 2.0},
         "nl": 1.25, "pan": "centre", "width": 0.0, "noise": 0.8, "clip_pan": 0.5, "voice": [[420.0, 0.7, 4.0]],
-        "on": ON_CURVE, "off": OFF_CURVE, "loudness": -0.5,
-        "mix": {"in_gain": 0.9, "idle_load": 0.2, "load_curve": 0.65},
+        "on": ON_CURVE, "off": OFF_CURVE, "loudness": -0.3, "idle_db": 3.4, "low_db": 2.5,
+        "mix": {"in_gain": 0.9, "idle_load": 0.2, "load_curve": 0.4},
         "saturation": 0.6, "turbo_depth": 0.2,
         "turbo": {"tone": "turbo_single", "tone_level": 0.022, "hiss_level": 0.020},
         "blowoff": {"sound": "blowoff_soft"},
@@ -115,9 +121,9 @@ CHAR: dict = {
         "tipin": {"level": 0.6}, "thump": {"level": 0.6}, "limiter_pop": 0.0,
     },
     "sportwagen": {
-        "retune": {"rasp": 4.0, "jet": 5.0, "intake": 6.0, "whoosh": 3.0, "mech": 3.0, "hiss": 3.0},
+        "retune": {"rasp": 1.5, "jet": 2.5, "intake": 6.0, "whoosh": 2.0, "mech": 3.0, "hiss": 2.0},
         "nl": 1.5, "pan": "group", "width": 0.55, "pan_from_hz": 300.0, "noise": 0.9, "clip_pan": 0.45,
-        "on": ON_CURVE, "off": OFF_CURVE, "loudness": 0.5,
+        "on": ON_CURVE, "off": OFF_CURVE, "loudness": 1.0, "idle_db": 0.0, "low_db": 0.0,
         "mix": {"in_gain": 1.15, "idle_load": 0.2, "load_curve": 0.65},
         "saturation": 1.35, "turbo_depth": 0.0,
         "turbo": None, "blowoff": None,
@@ -125,10 +131,10 @@ CHAR: dict = {
         "tipin": {"level": 1.0}, "thump": {"level": 0.9}, "limiter_pop": 0.5,
     },
     "gran_turismo": {
-        "retune": {"rasp": 4.0, "jet": 6.0, "intake": 5.0, "whoosh": 5.0, "mech": 2.0, "hiss": 3.0},
-        "nl": 1.5, "pan": "tailpipe", "width": 0.62, "noise": 0.9, "clip_pan": 0.0, "voice": [[330.0, 0.8, 5.0]],
-        "on": ON_CURVE, "off": OFF_CURVE, "loudness": 0.8,
-        "mix": {"in_gain": 1.0, "idle_load": 0.2, "load_curve": 0.65},
+        "retune": {"rasp": 3.0, "jet": 4.0, "intake": 5.0, "whoosh": 5.0, "mech": 2.0, "hiss": 3.0},
+        "nl": 1.5, "pan": "tailpipe", "width": 0.62, "mono_below_hz": 150.0, "noise": 0.9, "clip_pan": 0.0, "voice": [[330.0, 0.8, 5.0]],
+        "on": ON_CURVE, "off": OFF_CURVE, "loudness": 0.2, "idle_db": 2.6, "low_db": 1.0,
+        "mix": {"in_gain": 1.0, "idle_load": 0.2, "load_curve": 0.55},
         "saturation": 1.25, "turbo_depth": 0.25,
         "turbo": {"tone": "turbo_twin", "tone_level": 0.036, "hiss_level": 0.030},
         "blowoff": {"sound": "blowoff_gt"},
@@ -369,7 +375,17 @@ class StereoCar:
         for c in names:
             if c in parts and self.k.get(c, 0.0) != 0.0:
                 y += self.k[c] * parts[c]
-        return np.stack([_hp(y[:, 0]), _hp(y[:, 1])], axis=1)
+        y = np.stack([_hp(y[:, 0]), _hp(y[:, 1])], axis=1)
+        fc = float(self.ch.get("mono_below_hz", 0.0))
+        if fc > 0.0:
+            # the low end in the centre: both channels carry the mean of the two below fc (zero phase). Two exhaust
+            # systems of unequal length resonate at different rpm - on overrun one side of the V8 came out up to
+            # 6 dB louder, and its fundamental pulled the image to that side.
+            def low(x):
+                return es.spectral_filter(x, lambda f: 1.0 / (1.0 + (np.asarray(f, float) / fc) ** 4))
+            mid = low(0.5 * (y[:, 0] + y[:, 1]))
+            y = np.stack([mid + y[:, 0] - low(y[:, 0]), mid + y[:, 1] - low(y[:, 1])], axis=1)
+        return y
 
     # --- steady banks --------------------------------------------------------------------------------------
     def render_point(self, period: int) -> dict:
@@ -447,13 +463,16 @@ def steady(cycles: list, period: int) -> np.ndarray:
 
 
 def balance_channels(cycles: list, period: int) -> float:
-    """Levels the two channels of a bank against each other (K-weighted power over all variants); returns the
-    correction applied to the right channel in dB."""
+    """Levels the two channels of a bank against each other (power over all variants, K-weighted and plain);
+    returns the correction applied to the right channel in dB."""
     y = steady(cycles, period)
     pl, pr = kpow(y[:, 0]), kpow(y[:, 1])
-    if pl <= 0.0 or pr <= 0.0:
+    ql, qr = float(np.mean(y[:, 0] ** 2)), float(np.mean(y[:, 1] ** 2))
+    if min(pl, pr, ql, qr) <= 0.0:
         return 0.0
-    g = (pl / pr) ** 0.25          # half of the difference to each side
+    # the mean of the K-weighted and the plain difference: where the two channels differ in spectrum (two exhaust
+    # systems of unequal length) neither the loudness nor the level ends up more than half of their gap apart
+    g = (math.sqrt((pl / pr) * (ql / qr))) ** 0.25          # half of the difference to each side
     for c in cycles:
         c[:, 0] /= g
         c[:, 1] *= g
@@ -462,6 +481,17 @@ def balance_channels(cycles: list, period: int) -> float:
 
 def curve(table, x: float) -> float:
     return float(np.interp(x, [a for a, _ in table], [b for _, b in table]))
+
+
+def level_target(ch: dict, layer: str, x: float) -> float:
+    """Target loudness of a bank in dB re the car's full load: the common curve of its layer plus the car's own
+    shape - "idle_db" lifts both layers at idle (gone at x = 0.12), "low_db" the load layer in the lower third of
+    the rev range (full between x = 0.12 and 0.28, gone at idle and at x = 0.5)."""
+    t = curve(ch[layer], x)
+    t += float(ch.get("idle_db", 0.0)) * float(np.interp(x, [0.0, 0.12], [1.0, 0.0]))
+    if layer == "on":
+        t += float(ch.get("low_db", 0.0)) * float(np.interp(x, [0.0, 0.12, 0.28, 0.5], [0.0, 1.0, 1.0, 0.0]))
+    return t
 
 
 def mean_cycle(cycles: list, period: int, n: int = 2048) -> np.ndarray:
@@ -638,7 +668,7 @@ def build_car(car: str, out_dir: str, log=print) -> dict:
         xs = np.log([b["rpm"] for b in bs])
         fit = np.polyval(np.polyfit(xs, [b["lev"] for b in bs], 2), xs)
         for b, fv in zip(bs, fit):
-            target = curve(ch[name], b["x"]) + keep * (b["lev"] - float(fv))
+            target = level_target(ch, name, b["x"]) + keep * (b["lev"] - float(fv))
             b["g"] = 10.0 ** ((target - b["lev"]) / 20.0)
     for b in banks:
         if b["layer"] == "in":
@@ -709,8 +739,23 @@ def build_car(car: str, out_dir: str, log=print) -> dict:
     jclips = {}
     for name, lst in clips.items():
         jclips[name] = []
-        for c in lst:
-            jclips[name].append([put(c), len(c), MODE_ST])
+        # clips of an engine with one exhaust image are the same on both channels: stored as mono, two per stereo
+        # block, and panned by the mixer (layers.<clip>.pan) - half the size, and every pop gets its own place
+        mono = name != "start" and all(np.array_equal(c[:, 0], c[:, 1]) for c in lst)
+        if not mono:
+            for c in lst:
+                jclips[name].append([put(c), len(c), MODE_ST])
+            continue
+        for i in range(0, len(lst), 2):
+            a = lst[i][:, 0]
+            b = lst[i + 1][:, 0] if i + 1 < len(lst) else np.zeros(0)
+            blk = np.zeros((max(len(a), len(b)), 2))
+            blk[:len(a), 0] = a
+            blk[:len(b), 1] = b
+            at = put(blk)
+            jclips[name].append([at, len(a), MODE_L])
+            if len(b):
+                jclips[name].append([at, len(b), MODE_R])
     data = np.concatenate(blocks, axis=0)
     # the file is a container of cycles, yet the QC measures it like a sound: keep its true peak below -1 dBTP
     tp = qc_lib.true_peak_db(data)
@@ -739,7 +784,8 @@ def build_car(car: str, out_dir: str, log=print) -> dict:
             "engine": prof["engine"], "gearbox": prof["gearbox"], "banks": jbanks, "clips": jclips, "layers": layers,
             "mix": dict({"gain": 1.0, "off_gain": 1.0, "clip_gain": {k: round(1.0 / file_scale, 6) for k in jclips}}, **ch["mix"]),
             "synth": {"generator": GENERATOR, "model": 3, "pan": ch["pan"], "width": ch["width"], "noise": ch["noise"],
-                      "retune_db": ch["retune"], "nl_scale": ch["nl"], "voice": ch.get("voice", []), "ref_rpm": round(ref_rpm),
+                      "retune_db": ch["retune"], "nl_scale": ch["nl"], "voice": ch.get("voice", []),
+                      "pan_from_hz": ch.get("pan_from_hz", 0.0), "mono_below_hz": ch.get("mono_below_hz", 0.0), "ref_rpm": round(ref_rpm),
                       "loudness_full": round(loud_full, 2), "loudness_offset_db": ch["loudness"],
                       "balance_db_max": round(max(abs(b["bal_db"]) for b in banks), 2),
                       "cycles": "[offset, length, mode] in frames; mode 0 = stereo, 1 = mono in the left samples, 2 = mono in the right samples",
@@ -789,6 +835,7 @@ def register_banks(out: str | None, cars: list) -> None:
 # Vehicle sounds (natively mixed: assets/audio/modern/vehicle)
 # ------------------------------------------------------------------------------------------------------------------
 VSR = ml.SR
+LOOP_S = 2.0                     # length of the loops (whole numbers of periods of their reference tones)
 
 
 def _vnoise(n: int, seed: int, shape) -> np.ndarray:
@@ -859,6 +906,23 @@ def blowoff(rng, f0: float, f1: float, tau: float, flutter: float, flutter_hz: f
     return y
 
 
+def write_wav_import_keep(path: str, loop) -> None:
+    """ml.write_wav_import() that keeps the [remap]/[deps] head of an existing .import file (uid and import path).
+    modern_lib opens the file for writing before it reads the old head, which empties it: after every new run the
+    sound could not be loaded until Godot had imported it again, under a new uid."""
+    imp = path + ".import"
+    head = ""
+    if os.path.exists(imp):
+        with open(imp, encoding="utf-8") as fh:
+            head = fh.read().split("[params]")[0].strip("\n")
+    ml.write_wav_import(path, loop)
+    if head:
+        with open(imp, encoding="utf-8") as fh:
+            params = fh.read().split("[params]", 1)[1]
+        with open(imp, "w", encoding="utf-8") as fh:
+            fh.write(head + "\n\n[params]" + params)
+
+
 def build_vehicle(out: str | None, log=print) -> None:
     """Writes the natively mixed sounds of the car and their manifest entries. Every file is stored at a peak of
     0.5; "gain_db" in the manifest is what brings a level of 1.0 of the runtime laws back to the designed scale
@@ -880,21 +944,21 @@ def build_vehicle(out: str | None, log=print) -> None:
             ml.write_wav16(man.file(name), v * (peak / unit))
             loop = (0, len(v)) if kind == "loop" else None
             if repo:
-                ml.write_wav_import(man.file(name), loop)
+                write_wav_import_keep(man.file(name), loop)
             names.append(name)
         man.add(sid, names if many else names[0], kind, GENERATOR, loop=loop, bus="MEngineFx",
                 gain_db=round(20.0 * math.log10(unit / peak), 2), note=note)
 
     # turbo: one charger (mono) and two chargers left / right, slightly detuned (stereo); reference 3 kHz
-    one = turbo_tone(3000.0, 1.0, 9101)
+    one = turbo_tone(3000.0, LOOP_S, 9101)
     put("turbo_single", one, "loop", "Laderton, ein Lader; Bezug 3000 Hz")
-    tl, tr = turbo_tone(2946.0, 1.0, 9111), turbo_tone(3063.0, 1.0, 9121)
+    tl, tr = turbo_tone(2946.0, LOOP_S, 9111), turbo_tone(3063.0, LOOP_S, 9121)
     twin = np.stack([0.8 * tl + 0.2 * tr, 0.2 * tl + 0.8 * tr], axis=1)
     put("turbo_twin", twin, "loop", "Ladertöne, zwei Lader links/rechts (0,982 / 1,021); Bezug 3000 Hz")
-    hiss = _vnoise(VSR, 9131, lambda f: _bp(f, 2600.0, 9500.0, 2))
+    hiss = _vnoise(int(LOOP_S * VSR), 9131, lambda f: _bp(f, 2600.0, 9500.0, 2))
     put("turbo_hiss", hiss, "loop", "Strömungsrauschen des Verdichters (Effektivwert 1 im Entwurf)")
     # driveline whine: one tone with a weak octave; the runtime plays it twice (final drive, gear mesh); reference 1 kHz
-    n = VSR // 2
+    n = int(LOOP_S * VSR)
     t = np.arange(n) / VSR
     ph = 2.0 * np.pi * 1000.0 * t + 0.3 * _vnoise(n, 9141, lambda f: _bp(f, 4.0, 30.0, 1))
     wh = np.sin(ph) + 0.3 * np.sin(2.0 * ph + 1.0)
