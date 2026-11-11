@@ -8,10 +8,31 @@ extends Node
 ## The attract mode (child AttractMode, `attract`) shows a demo after a minute without input on the title; its
 ## race scene comes from start_attract_stage() and never reaches the race flow (nothing is saved).
 ## Debug: --screen=<title|race_select|vehicle|start_time|stage_select|route_choice|stage_screen|
-## result|race_result|leaderboards|options|ferry> shows a screen with sample data (screenshots); with
-## --sample-fuel=<litres> the stage screen shows that tank carried over from the last stage.
+## result|race_result|leaderboards|options|ferry|graphics_choice|benchmark> shows a screen with sample data
+## (screenshots); with --sample-fuel=<litres> the stage screen shows that tank carried over from the last stage.
+##
+## v0.8.0, graphics modes (docs/grafik-modi.md, docs/dev/v080_contract.md §4.1, §4.7.1, §4.8):
+## - first start without a stored graphics mode and without any command line argument: the chooser "GRAFIK WÄHLEN"
+##   before the title (Settings.needs_graphics_choice(), contract D32);
+## - the sound profile: AudioManager.set_profile(Settings.sound()) at boot and whenever the resolved profile changes
+##   (Settings.sound_profile_changed) – never while a stage runs: such a change waits for the menus or the next
+##   stage. Next to every set_music() the music context of the Modern sound is set (set_music_context: "title",
+##   "menu", "race_menu" for the screens between stages, "race", "result");
+## - leaving the mode "Modern" (options, chooser, the crash-guard question) frees what Modern loaded (model caches,
+##   shared materials) – through the scripts' paths and only if something loaded them: no file an Arcade start
+##   loads may name a class of scripts/race3d or ModelDB (tests/unit/audio_modern/check_arcade_lean.gd);
+## - the Leistungstest: start_benchmark() runs ModernBenchmark (scripts/race3d/benchmark.gd, loaded at run time),
+##   which drives the race scene through start_attract_stage(); its result goes to the screen "benchmark".
+##   Command line: --bench=<scene id,…|all> [--bench-out=<file.json>] [--bench-seconds=<s>] runs it and quits.
 
 const RACE_SCENE := "res://scenes/race/race.tscn"
+const BENCH_SCRIPT := "res://scripts/race3d/benchmark.gd"
+## Scripts of the mode "Modern" whose caches go when the mode is left (_release_modern) – reached by path.
+const MODEL_DB_SCRIPT := "res://scripts/core/model_db.gd"
+const MATERIALS_SCRIPT := "res://scripts/race3d/modern_materials.gd"
+## Music context of the Modern sound per screen (AudioManager.set_music_context); every other screen: "menu".
+const MUSIC_CONTEXTS := {"title": "title", "graphics_choice": "title", "result": "result", "race_result": "result",
+	"stage_screen": "race_menu", "route_choice": "race_menu", "ferry": "race_menu"}
 ## Save-game key (addition to the race state): result of the last stage while its result screen /
 ## name entry is not done yet – "Rennen fortsetzen" shows that screen again (docs/ui.md).
 const PENDING_RESULT_KEY := "pending_result"
@@ -28,6 +49,8 @@ const SCREENS := {
 	"leaderboards": "res://scripts/ui/screens/leaderboards_screen.gd",
 	"options": "res://scripts/ui/screens/options_screen.gd",
 	"ferry": "res://scripts/ui/screens/ferry_screen.gd",
+	"graphics_choice": "res://scripts/ui/screens/graphics_choice_screen.gd",
+	"benchmark": "res://scripts/ui/screens/benchmark_screen.gd",
 }
 
 var current: Node = null
@@ -49,6 +72,10 @@ var _screen_params: Dictionary = {}
 var _focus_sound_after := 0
 var _result_pending := false        ## the save holds PENDING_RESULT_KEY
 var _loading := false               ## start_pending_stage(): "Etappe wird geladen …" is showing
+var benchmark: Node = null          ## running Leistungstest (ModernBenchmark), null otherwise
+var _sound_pending := false         ## the sound profile changed while a stage ran: applied with the menus / next stage
+var _release_pending := false       ## the mode "Modern" was left while a stage ran: its caches go with the menus
+var _music_context := ""            ## music context set last ("" = none since the last set_music())
 
 
 func _ready() -> void:
@@ -56,6 +83,12 @@ func _ready() -> void:
 	attract = AttractMode.new()
 	attract.name = "AttractMode"
 	add_child(attract)
+	# v0.8.0: the stored sound profile ("Klang", or as the chosen graphics) from the first frame on; later changes
+	# of the options and the chooser arrive through the signals
+	Settings.sound_profile_changed.connect(_on_sound_profile_changed)
+	Settings.graphics_changed.connect(_on_graphics_changed)
+	AudioManager.set_race_music(bool(Settings.race_music))
+	AudioManager.set_profile(Settings.sound())
 
 
 ## A window without focus (Alt+Tab, the Steam overlay where it takes the focus) draws at FrameCap.IDLE_FPS.
@@ -84,6 +117,10 @@ func boot() -> void:
 	var vp := get_viewport()
 	if not vp.gui_focus_changed.is_connected(_on_focus_changed):
 		vp.gui_focus_changed.connect(_on_focus_changed)
+	if CliArgs.has("bench"):
+		# the Leistungstest from the command line: runs its scenes, writes the result file(s) and quits
+		start_benchmark(bench_scene_ids(CliArgs.get_string("bench", "all")), {"quit": true})
+		return
 	if CliArgs.has("stage"):
 		var race_script: GDScript = load("res://scripts/race/race_session.gd")
 		start_stage(race_script.setup_from_cli())
@@ -98,14 +135,23 @@ func boot() -> void:
 	if CliArgs.has("screen"):
 		_debug_screen(CliArgs.get_string("screen", "title"))
 		return
+	if Settings.needs_graphics_choice() and not CliArgs.has("no-chooser"):
+		# first start of v0.8.0 (new and existing players): "GRAFIK WÄHLEN" once, then the title
+		go("graphics_choice", {}, true)
+		return
 	show_title()
 
 
 ## Loads the race scene with the given setup (see race_session.gd) and switches to it.
 func start_stage(setup: Dictionary) -> void:
 	last_setup = setup
+	_apply_pending_modes(true)   # a sound profile changed during the last stage: now, between two stages
 	AudioManager.set_music(false)
 	AudioManager.stop_all()
+	_music_context = ""
+	_set_music_context("race", {"stage_id": str(setup.get("stage_id", "")), "race_id": str(setup.get("race_id", "")),
+		"mode": str(setup.get("mode", "")), "weather": str(setup.get("weather", "normal")),
+		"last_stage": bool(setup.get("last_stage", false))})
 	var scene: Node = (load(RACE_SCENE) as PackedScene).instantiate()
 	scene.set("setup", setup)
 	scene.connect("stage_finished", _on_stage_finished)
@@ -117,8 +163,10 @@ func start_stage(setup: Dictionary) -> void:
 	_switch_to(scene)
 
 
-## Attract mode (AttractMode): the race scene of a demo. Unlike start_stage() the title music keeps playing
-## and the scene's signals do not reach the race flow – the AttractMode handles them; nothing is saved.
+## Attract mode (AttractMode) and Leistungstest (ModernBenchmark): the race scene of a demo. Unlike start_stage()
+## the music is left alone (the title music keeps playing in a demo) and the scene's signals do not reach the race
+## flow – the caller handles them; nothing is saved. The graphics mode is the session's own choice: the effective
+## mode (Settings.effective_graphics()) unless the caller's setup names one (the Leistungstest: "modern").
 func start_attract_stage(setup: Dictionary) -> Node:
 	var scene: Node = (load(RACE_SCENE) as PackedScene).instantiate()
 	scene.set("setup", setup)
@@ -164,6 +212,7 @@ func current_screen_name() -> String:
 
 func _show(screen_name: String, p: Dictionary) -> void:
 	_ensure_shell()
+	_set_music_context(str(MUSIC_CONTEXTS.get(screen_name, "menu")))
 	var script: GDScript = load(SCREENS.get(screen_name, SCREENS["title"]))
 	var s: Control = script.new(p)
 	_screen_name = screen_name
@@ -179,7 +228,116 @@ func _ensure_shell() -> void:
 	_set_menu_stretch(true)
 	shell = MenuShell.new()
 	_switch_to(shell)
+	_apply_pending_modes()   # back from a stage: a sound profile or graphics mode changed meanwhile applies now
 	AudioManager.set_music(true)
+	_music_context = ""      # set_music() chose the context: the screen's own follows (_show)
+
+
+# --- graphics mode and sound profile (v0.8.0) ------------------------------------------------------------
+
+## True while a race scene is the current scene (a stage, an attract demo, a scene of the Leistungstest).
+func stage_running() -> bool:
+	return current != null and is_instance_valid(current) and current != shell
+
+
+## Music context of the Modern sound (AudioManager.set_music_context – the Arcade profile only remembers it). A
+## context already in force is not sent again, except "race": every start of a stage is a new piece.
+func _set_music_context(ctx: String, args: Dictionary = {}) -> void:
+	if ctx == _music_context and ctx != "race":
+		return
+	_music_context = ctx
+	AudioManager.set_music_context(ctx, args)
+
+
+## The resolved sound profile changed (options "Klang", or "Grafik" while "Klang" is "Wie Grafik", the chooser).
+func _on_sound_profile_changed(_profile: String) -> void:
+	_sound_pending = true
+	_apply_pending_modes()
+
+
+## The chosen graphics mode changed: when the game is no longer Modern, what Modern loaded goes – after the
+## widgets that show Modern content (the showroom) have reacted to the same signal.
+func _on_graphics_changed(_mode: String) -> void:
+	_release_pending = true
+	_apply_pending_modes.call_deferred()
+
+
+## Applies a changed sound profile and frees the caches of a left mode "Modern" – never while a stage runs
+## (AudioManager.set_profile ends every running sound; the renderer of the stage uses the caches): then they wait
+## for the menus or for the start of the next stage (between_stages: start_stage() replaces the scene right now).
+func _apply_pending_modes(between_stages: bool = false) -> void:
+	if stage_running() and not between_stages:
+		return
+	if _sound_pending:
+		_sound_pending = false
+		AudioManager.set_profile(Settings.sound())
+	if _release_pending:
+		_release_pending = false
+		_release_modern()
+
+
+## Leaving the mode "Modern": the model caches and the shared materials (they hold the textures) go. The scripts
+## are reached by path and only when something has loaded them – a game that never showed Modern loads nothing here.
+func _release_modern() -> void:
+	if Settings.is_modern():
+		return
+	if ResourceLoader.has_cached(MODEL_DB_SCRIPT):
+		(load(MODEL_DB_SCRIPT) as GDScript).call("release_all")
+	if ResourceLoader.has_cached(MATERIALS_SCRIPT):
+		(load(MATERIALS_SCRIPT) as GDScript).call("drop_shared")
+
+
+# --- Leistungstest ---------------------------------------------------------------------------------------
+
+## Scene ids for --bench=<id,id,…|all>: [] = every scene of graphics.benchmark.scenes.
+static func bench_scene_ids(arg: String) -> Array:
+	var out: Array = []
+	if arg == "" or arg == "all":
+		return out
+	for id in arg.split(",", false):
+		out.append(id.strip_edges())
+	return out
+
+
+## Starts the Leistungstest: ModernBenchmark (scripts/race3d/benchmark.gd, loaded here at run time) drives the
+## scenes of graphics.benchmark.scenes – [] = all – in the mode "Modern" through start_attract_stage(); nothing is
+## saved but the result file. opts: "quit" (command line: print the result and quit instead of showing the result
+## screen), "seconds" (per scene, tests), "out" (a second result file). Returns false if a test is already running.
+func start_benchmark(scene_ids: Array = [], opts: Dictionary = {}) -> bool:
+	if benchmark != null and is_instance_valid(benchmark):
+		return false
+	var script: GDScript = load(BENCH_SCRIPT) as GDScript if ResourceLoader.exists(BENCH_SCRIPT) else null
+	if script == null:
+		_on_benchmark_finished({"version": 1, "scenes": [], "error": "missing"}, bool(opts.get("quit", false)))
+		return true
+	get_viewport().gui_release_focus()
+	benchmark = script.new()
+	benchmark.name = "Leistungstest"
+	benchmark.set("host", self)
+	if opts.has("seconds"):
+		benchmark.set("seconds_override", float(opts["seconds"]))
+	if opts.has("out"):
+		benchmark.set("out_path", str(opts["out"]))
+	add_child(benchmark)
+	benchmark.connect("finished", _on_benchmark_finished.bind(bool(opts.get("quit", false))))
+	benchmark.call("start", scene_ids)
+	return true
+
+
+func _on_benchmark_finished(result: Dictionary, quit_after: bool) -> void:
+	if benchmark != null and is_instance_valid(benchmark):
+		benchmark.queue_free()
+	benchmark = null
+	AudioManager.stop_all()
+	if quit_after:
+		print("LEISTUNGSTEST ", JSON.stringify(result))
+		var ok := not (result.get("scenes", []) as Array).is_empty() and str(result.get("error", "")) == ""
+		get_tree().quit(0 if ok else 1)
+		return
+	if _screen_name == "benchmark":
+		_show("benchmark", {"result": result})   # it failed before a scene started: the result replaces the start page
+	else:
+		go("benchmark", {"result": result})
 
 
 ## Stretch aspect of the window: the menus use "expand" (the screens stay 1280×720 in the middle, the
@@ -460,6 +618,8 @@ func _debug_screen(screen_name: String) -> void:
 		"vehicle":
 			mode = "race"
 			draft = {"race_id": rid}
+			if CliArgs.has("sample-vehicle"):
+				draft["vehicle"] = CliArgs.get_string("sample-vehicle", "limousine")   # the car in focus (showroom pictures)
 			go("vehicle", {"mode": "race"}, true)
 		"start_time":
 			mode = "race"

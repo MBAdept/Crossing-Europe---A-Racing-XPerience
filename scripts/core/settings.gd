@@ -69,7 +69,8 @@ var gfx_preset := "":
 		if v == gfx_preset:
 			return
 		gfx_preset = v
-		quality_changed.emit(quality())
+		if not _quality_batch:
+			quality_changed.emit(quality())
 ## The player's own quality values (preset "custom"): {shadows, details, scale, aa, effects}; {} = none yet.
 var gfx_custom: Dictionary = {}:
 	set(value):
@@ -77,7 +78,9 @@ var gfx_custom: Dictionary = {}:
 		if v == gfx_custom:
 			return
 		gfx_custom = v
-		quality_changed.emit(quality())
+		if not _quality_batch:
+			quality_changed.emit(quality())
+var _quality_batch := false        ## choose_preset() / set_quality_value(): one quality_changed for both fields
 ## "Musik im Rennen" (sound profile "modern" only). Setting it counts as the player's choice (race_music_chosen).
 var race_music := true:
 	set(value):
@@ -294,11 +297,61 @@ func is_modern() -> bool:
 ## (or the one recommended for the graphics adapter), "custom" with the player's own values, overridden by the
 ## command line (--gfx-preset=, --gfx=key=value,…).
 func quality() -> Dictionary:
-	var p: Variant = ConfigLoader.lookup(ConfigLoader.load_merged(), "graphics.presets", {})
-	var presets: Dictionary = p if p is Dictionary else {}
+	var presets := _presets()
+	return Gfx.with_cli(stored_quality(), CliArgs.get_string("gfx-preset", ""), CliArgs.get_string("gfx", ""), presets)
+
+
+## Quality of Modern as the player has it (the stored preset or the one recommended for the graphics adapter, with
+## his own values for "custom") WITHOUT the overrides of the command line: what the options show and change.
+func stored_quality() -> Dictionary:
 	var preset := gfx_preset if gfx_preset != "" else Gfx.recommended_preset(adapter_tier())
-	return Gfx.with_cli(Gfx.quality(preset, gfx_custom, presets), CliArgs.get_string("gfx-preset", ""),
-		CliArgs.get_string("gfx", ""), presets)
+	return Gfx.quality(preset, gfx_custom, _presets())
+
+
+## Options "Voreinstellung": the player picks a preset (Gfx.PRESET_ORDER). "custom" ("Eigene") without own values
+## yet starts from the values shown so far; own values survive a visit to the fixed presets. One quality_changed.
+func choose_preset(id: String) -> void:
+	if not Gfx.PRESET_ORDER.has(id):
+		return
+	var before := stored_quality()
+	_quality_batch = true
+	if id == "custom" and gfx_custom.is_empty():
+		gfx_custom = before
+	gfx_preset = id
+	_quality_batch = false
+	if stored_quality() != before:
+		quality_changed.emit(quality())
+
+
+## Options: one quality value (a key of Gfx.QUALITY_KEYS) set by hand. The five values become the player's own
+## ("custom") – unless they equal a fixed preset again, which is then the preset. One quality_changed.
+func set_quality_value(key: String, value: int) -> void:
+	if not Gfx.QUALITY_KEYS.has(key):
+		return
+	var before := stored_quality()
+	var q := before.duplicate()
+	q[key] = value
+	q = Gfx.sanitized(q)
+	var id := Gfx.preset_of(q, _presets())
+	_quality_batch = true
+	if id == "custom":
+		gfx_custom = q
+	gfx_preset = id
+	_quality_batch = false
+	if stored_quality() != before:
+		quality_changed.emit(quality())
+
+
+## The first-start chooser "GRAFIK WÄHLEN" is due (Gfx.chooser_due, contract D32): no graphics mode stored, the
+## game started without any user argument and with a display, no mode forced by the configuration.
+func needs_graphics_choice() -> bool:
+	return Gfx.chooser_due(graphics_mode, OS.get_cmdline_user_args().size(), DisplayServer.get_name() == "headless",
+		str(ConfigLoader.lookup(ConfigLoader.load_merged(), "graphics.force_mode", "")))
+
+
+func _presets() -> Dictionary:
+	var p: Variant = ConfigLoader.lookup(ConfigLoader.load_merged(), "graphics.presets", {})
+	return p if p is Dictionary else {}
 
 
 ## Numeric renderer parameters of quality() (Gfx.levels with config "graphics"): what ModernRenderer.apply_quality()
