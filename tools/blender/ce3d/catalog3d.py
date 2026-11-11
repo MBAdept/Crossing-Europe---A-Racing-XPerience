@@ -99,7 +99,10 @@ BUILDER_CODE.update({
     "bush": ["ce3d/veg3d.py", "ce3d/leafatlas.py", "ce3d/props3d.py", "cesprites/props_nature.py",
              "cesprites/props.py", "render_all.py"],
     "grass": ["ce3d/veg3d.py", "ce3d/leafatlas.py"],
+    "building": ["ce3d/props3d.py", "ce3d/bake.py", "cesprites/props.py", "cesprites/props_buildings.py",
+                 "render_all.py"],
 })
+AO_RURAL = dict(distance=1.6, floor=0.42, gamma=0.9, samples=24)
 MODELS.update({
     # --- vegetation: two seeds per species (the generator's default seed and one more) ----------------------
     "props/tree_oak": dict(builder="tree", source="props/tree_oak", kind="tree", species="oak",
@@ -123,6 +126,19 @@ MODELS.update({
     "props/cover_grass": dict(builder="grass", source=None, kind="plant", grass=dict(seed=23, tufts=7),
                               object={"width_m": 1.0, "height_m": 0.42, "length_m": 0.9},
                               sets={"props/cover_grass": {"modern_only": True}}),
+    # --- buildings with depth: openings, gutters, ambient occlusion; vpbr panes light up at night (channel 12)
+    "props/farmhouse": dict(builder="building", source="props/farmhouse", kind="building", atlas=(1024, 1024),
+                            ppm_max=96.0, roughness=0.9, view="roadside", params={"allround": True}, ao=AO_RURAL,
+                            openings=dict(reveal_color="#d4c8b8", door_color="#5a3a22"),
+                            code=["cesprites/props_buildings.py"]),
+    # --- field and road furniture -----------------------------------------------------------------------------
+    "props/haybale": dict(builder="building", source="props/haybale", kind="furniture", atlas=(512, 512),
+                          ppm_max=160.0, roughness=0.95, view="allround", openings=False, gutters=False,
+                          ao=dict(distance=0.8, floor=0.5, gamma=1.0, samples=24)),
+    # the rotor turns (vpbr rotor code; hub at 89.6 m), the aviation light is lamp channel 12
+    "props/wind_turbine": dict(builder="prop_vpbr", source="props/wind_turbine", kind="furniture", auto_lod=False,
+                               params={"hub_subdiv": 2}, rotor=dict(objects=("wt_hub", "wt_blades"), hub_z=89.6),
+                               code=["cesprites/props_road.py", "cesprites/props_buildings.py"]),
 })
 
 

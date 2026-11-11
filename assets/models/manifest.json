@@ -594,17 +594,17 @@
    "kind": "building",
    "object": {"width_m": 11.9, "height_m": 8.6, "length_m": 17},
    "extent_m": {"left": 12.53, "right": 5.62},
-   "aabb": [-5.95, 0, -17.45, 5.95, 8.9, 0.45],
+   "aabb": [-5.976, -0.02, -17.45, 5.976, 8.98, 0.45],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 100000,
-     "tris": 104,
+     "tris": 1109,
      "parts": [
       {
        "node": "body",
        "mesh": "props/farmhouse/lod0_body.res",
-       "classes": ["baked"]
+       "classes": ["vpbr", "baked"]
       }
      ]
     }
@@ -612,17 +612,44 @@
    "lights": [
     {
      "role": "lights",
-     "pos": [3, 3.2, 0.12],
+     "pos": [3.125, 3.2, 0.12],
+     "dir": [1, 0, 0],
      "size": 0.686,
      "color": "#ffd890"
     }
    ],
    "textures": {"albedo": "props/farmhouse/albedo.png", "emit": "props/farmhouse/emit.png"},
    "roughness": 0.9,
-   "auto_lod": true,
+   "auto_lod": false,
    "tags": ["prop", "building", "mirror_left"],
-   "bytes": 755381,
-   "hash": "f7530a479e1e585507c66fdf0b0a70e48e94a104"
+   "bytes": 871532,
+   "hash": "486488b782809016fdbfa4ca1a65f0ed66faaa71"
+  },
+  "props/haybale": {
+   "kind": "furniture",
+   "object": {"width_m": 3.4, "height_m": 1.5, "length_m": 1.4},
+   "extent_m": {"left": 1.87, "right": 1.45},
+   "aabb": [-1.61, -0.01, -1.5, 1.61, 1.51, -0.15],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 672,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/haybale/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/haybale/albedo.png"},
+   "roughness": 0.95,
+   "auto_lod": false,
+   "tags": ["prop", "farm"],
+   "bytes": 202932,
+   "hash": "e159117f0ca19a5e7498dadaeebf41696333bc58"
   },
   "props/streetlight": {
    "kind": "furniture",
@@ -832,6 +859,46 @@
    "tags": ["prop", "tree"],
    "bytes": 1638496,
    "hash": "3ca1973b2d8c91ea2d1f5196d956b9ab646fc224"
+  },
+  "props/wind_turbine": {
+   "kind": "furniture",
+   "object": {"width_m": 88, "height_m": 133.6, "length_m": 12},
+   "extent_m": {"left": 38.58, "right": 38.52},
+   "aabb": [-38.582, 0, -8.85, 38.522, 134, 4.76],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 744,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/wind_turbine/lod0_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [-1.5734, 93.0892, -7.2],
+     "dir": [-1, 0, 0],
+     "size": 1.565,
+     "color": "#ff1a10"
+    },
+    {
+     "role": "lights",
+     "pos": [-1.302, 91.9166, -7.2],
+     "dir": [-1, 0, 0],
+     "size": 0.615,
+     "color": "#ff1a10"
+    }
+   ],
+   "auto_lod": false,
+   "tags": ["prop", "energy"],
+   "bytes": 9716,
+   "hash": "9af1d31968aa6478dcfe886153893f9b25a1afc5"
   },
   "traffic/hatch": {
    "kind": "vehicle",
@@ -2031,10 +2098,7 @@
    "fallback": "sprite",
    "object": {"width_m": 31.0, "height_m": 7.0, "length_m": 12.0}
   },
-  "props/haybale": {
-   "fallback": "sprite",
-   "object": {"width_m": 3.4, "height_m": 1.5, "length_m": 1.4}
-  },
+  "props/haybale": {"model": "props/haybale"},
   "props/heather": {
    "fallback": "sprite",
    "object": {"width_m": 5.6, "height_m": 0.75, "length_m": 2.6}
@@ -2100,10 +2164,7 @@
    "fallback": "sprite",
    "object": {"width_m": 7.0, "height_m": 19.3}
   },
-  "props/wind_turbine": {
-   "fallback": "sprite",
-   "object": {"width_m": 88.0, "height_m": 133.6, "length_m": 12.0}
-  },
+  "props/wind_turbine": {"model": "props/wind_turbine"},
   "props/windmill": {
    "fallback": "sprite",
    "object": {"width_m": 25.0, "height_m": 32.3, "length_m": 9.0}

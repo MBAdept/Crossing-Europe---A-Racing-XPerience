@@ -47,8 +47,9 @@ BUILDERS = {"prop_vpbr": ("ce3d.props3d", "build_vpbr"), "prop_baked": ("ce3d.pr
             "tree": ("ce3d.veg3d", "build_tree"), "car": ("ce3d.traffic3d", "build_car"),
             "player": ("ce3d.vehicles3d", "build_player"), "heavy": ("ce3d.truck3d", "build_truck")}
 # AS1b (wave 2): bushes and ground cover (docs/modelle.md section 14)
-BUILDERS.update({"bush": ("ce3d.veg3d", "build_bush"), "grass": ("ce3d.veg3d", "build_grass")})
-COST.update({"bush": 8.0, "grass": 2.0})
+BUILDERS.update({"bush": ("ce3d.veg3d", "build_bush"), "grass": ("ce3d.veg3d", "build_grass"),
+                 "building": ("ce3d.props3d", "build_building")})
+COST.update({"bush": 8.0, "grass": 2.0, "building": 150.0})
 
 
 def builder(name):

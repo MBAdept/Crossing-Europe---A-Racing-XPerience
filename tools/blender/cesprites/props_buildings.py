@@ -12,6 +12,11 @@ from . import meshutil as MU
 
 WARM = "#ffc46b"
 
+# 3D pipeline hook (ce3d/props3d.py, buildings with depth): a list here receives the window grids and decals of
+# every facade material (name, grids, decals, frame, glass, lit) - the real-time models cut real openings with
+# reveals, frames and panes where the sprite paints them. None for sprite builds.
+WINDOW_LOG = None
+
 
 # --- materials ----------------------------------------------------------------------------------
 
@@ -20,6 +25,9 @@ def facade(name, wall, grids, glass="#26313b", frame="#e9e6de", lit=0.45, warm=W
     """Wall with window grids. grids: [dict(face=front|back|side|any_side, u=(u0,u1), z=(z0,z1),
     pitch=(pu,pz), win=(wu,wz), lit=frac, color=hex, strength=s, arch=bool, glass=hex)]
     u = x on front/back faces, y on side faces."""
+    if WINDOW_LOG is not None:
+        WINDOW_LOG.append(dict(material=name, grids=[dict(g) for g in grids], decals=[dict(d) for d in decals or []],
+                               frame=frame, glass=glass, lit=lit, warm=warm, frame_w=frame_w, shutters=shutters))
     m, nb = M.new_material(name)
     x, y, z = nb.coords()
     nx, ny, nz = nb.normal()
