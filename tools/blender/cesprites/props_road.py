@@ -116,7 +116,8 @@ def wind_turbine(rig, p):
     bm = MU.bm_box(3.6, 10.5, 3.8, (0.0, 3.6, H + 1.6))
     ob = MU.make("wt_nacelle", bm, white, parent=rig.root)
     MU.bevel(ob, 0.8, 3)
-    bm = MU.bm_sphere(1.6, center=(0.0, -2.2, H + 1.6), scale=(1.0, 1.6, 1.0), subdiv=3)
+    # 3D hook: hub_subdiv (the real-time model's spinner needs fewer faces than the sprite's 1,280)
+    bm = MU.bm_sphere(1.6, center=(0.0, -2.2, H + 1.6), scale=(1.0, 1.6, 1.0), subdiv=p.get("hub_subdiv", 3))
     MU.make("wt_hub", bm, white, parent=rig.root, smooth=True)
     bm = bmesh.new()
     hub = Vector((0.0, -2.6, H + 1.6))
@@ -148,6 +149,12 @@ def wind_turbine(rig, p):
     return dict(object=obj_size(88.0, H + 45.6, 12.0))
 
 
+# 3D pipeline hook (ce3d/props3d.py, lattice models): a list here receives the frame of the power pylon (levels,
+# half widths, arms, insulators, peak) - the real-time model draws its bracing into a cut-out atlas instead of
+# thousands of thin beams. None for sprite builds.
+PYLON_LOG = None
+
+
 def power_pylon(rig, p):
     steel = M.basic("pyl_steel", "#8e959b", rough=0.5, metal=0.6)
     bm = bmesh.new()
@@ -160,6 +167,14 @@ def power_pylon(rig, p):
         return 1.1 - 0.35 * (z - 24.0) / (H - 24.0)
 
     levels = [0.0, 4.5, 9.0, 13.0, 17.0, 20.5, 24.0, 27.0, 30.0, 33.0, 36.5, 40.0, H]
+    if PYLON_LOG is not None:
+        PYLON_LOG.append(dict(
+            H=H, levels=list(levels), half=[half(z) for z in levels], arms=[(24.0, 8.5), (33.0, 6.0)],
+            arm_rise=2.6, arm_root_y=0.9, arm_tip_y=0.18, leg_w=0.22, brace_w=0.09, chord_w=0.11, arm_w=0.14,
+            insulators=[(side * span + xo, z) for (z, span) in ((24.0, 8.5), (33.0, 6.0)) for side in (-1, 1)
+                        for xo in (0.0, -side * (span * 0.45))],
+            ins_len=3.3, peak=[(-1.0, 0.0, H), (1.0, 0.0, H), (0.0, 0.0, H + 3.0)], peak_w=0.12,
+            half_at=[(z, half(z)) for z in (24.0, 26.6, 33.0, 35.6)]))
     for i in range(len(levels) - 1):
         z0, z1 = levels[i], levels[i + 1]
         h0, h1 = half(z0), half(z1)
@@ -303,12 +318,32 @@ def fuel_station(rig, p):
     bm.faces.new(v)
     hob = MU.make("fs_haze", bm, haze, parent=rig.root)
     hob.visible_shadow = False
+    # 3D models: the haze is a sprite effect (node "none"); real lamp panels under the canopy light the lane
+    MU.tag(hob, node_name="none")
+    if p.get("lights3d"):
+        panel = M.basic("fs_light", "#fffaf0", rough=0.3, emit={"lights": (LAMP, 12.0)})
+        bm = bmesh.new()
+        for xx in (-4.2, 4.2):
+            for yy in (3.2, 8.2):
+                MU.flat_polygon([(xx - 1.2, yy - 0.5, ch - 0.01), (xx - 1.2, yy + 0.5, ch - 0.01),
+                                 (xx + 1.2, yy + 0.5, ch - 0.01), (xx + 1.2, yy - 0.5, ch - 0.01)], bm=bm)
+        MU.make("fs_light", bm, panel, parent=rig.root)
     # shop
-    shop = facade("fs_shop", "#eeeeea", [
+    shop_grids = [
         dict(face="front", u=(-5.3, 5.3), z=(0.2, 3.0), pitch=(3.5, 3.0), win=(3.2, 2.6), lit=1.0,
              color="#ffe9c4", strength=1.25, frame="#3a3d40", glass="#34434e"),
-    ], frame="#3a3d40", decals=[dict(face="front", sym=True, poly=[(0.0, 3.25), (5.6, 3.25), (5.6, 3.85), (0.0, 3.85)],
-                                     mat=accent, emit={"lights": (accent, 1.5)})])
+    ]
+    if p.get("allround"):
+        # 3D model (ce3d): the sides and the back of the shop, never seen in the sprite, get windows
+        shop_grids += [
+            dict(face="side", u=(4.2, 11.2), z=(0.9, 2.5), pitch=(3.5, 2.0), win=(1.6, 1.2), lit=0.5,
+                 frame="#3a3d40", glass="#34434e"),
+            dict(face="back", u=(-5.0, 5.0), z=(1.0, 2.4), pitch=(5.0, 2.0), win=(1.2, 0.9), lit=0.3,
+                 frame="#3a3d40", glass="#34434e"),
+        ]
+    shop = facade("fs_shop", "#eeeeea", shop_grids, frame="#3a3d40",
+                  decals=[dict(face="front", sym=True, poly=[(0.0, 3.25), (5.6, 3.25), (5.6, 3.85), (0.0, 3.85)],
+                               mat=accent, emit={"lights": (accent, 1.5)})])
     bm = MU.bm_box(11.0, 9.0, 4.1, (14.0, 7.5, 2.05))
     ob = MU.make("fs_shop", bm, shop, parent=rig.root)
     ob.location = (0, 0, 0)

@@ -337,6 +337,38 @@ class Baker:
         mid grey)."""
         return self._rewired(lambda nt, em: _feed_base(nt, em))
 
+    def ambient_occlusion(self, distance=1.5, samples=32, ground=True, occluders=()):
+        """Cycles AO bake (1 = open sky, 0 = closed in), with a temporary ground plane at z = 0 so that walls
+        darken a little towards their foot. occluders: further objects that shadow but are not baked (the
+        vpbr parts of a model: window panes, gutters). Returns (H, W, 4) at bake resolution."""
+        sc = self.rig.scene
+        old_samples = sc.cycles.samples
+        old_dist = sc.world.light_settings.distance
+        sc.cycles.samples = samples
+        sc.world.light_settings.distance = distance
+        plane = None
+        if ground:
+            me = bpy.data.meshes.new("ce_ao_ground")
+            s = 400.0
+            me.from_pydata([(-s, -s, 0.0), (s, -s, 0.0), (s, s, 0.0), (-s, s, 0.0)], [], [(0, 1, 2, 3)])
+            plane = bpy.data.objects.new("ce_ao_ground", me)
+            self.rig.scene.collection.objects.link(plane)
+        try:
+            for o in bpy.context.view_layer.objects:
+                o.select_set(False)
+            for o in self.objs:
+                o.select_set(True)
+            bpy.context.view_layer.objects.active = self.objs[0]
+            bpy.ops.object.bake(type="AO", margin=2 * self.ss, use_clear=True)
+            px = np.empty(self.big[0] * self.big[1] * 4, dtype=np.float32)
+            self.img.pixels.foreach_get(px)
+            return px.reshape(self.big[1], self.big[0], 4)[::-1].copy()
+        finally:
+            sc.cycles.samples = old_samples
+            sc.world.light_settings.distance = old_dist
+            if plane is not None:
+                bpy.data.objects.remove(plane, do_unlink=True)
+
     def opacity(self):
         """1 where a cut-out material is solid (a mask mixes a Transparent BSDF with the surface)."""
         return self._rewired(lambda nt, em: _feed_opacity(nt, em))
@@ -484,10 +516,33 @@ def encode(rgb_lin, alpha=None, fmt="png", srgb=True):
     return buf.getvalue()
 
 
+def _blur_covered(img, steps=1):
+    """3x3 box blur of the rgb of covered texels (alpha = coverage) that only mixes covered texels: takes the
+    sampling noise out of an AO bake without bleeding across chart borders."""
+    rgb = img[..., :3].astype(np.float64)
+    cov = (img[..., 3] > 0.5).astype(np.float64)
+    for _ in range(steps):
+        acc = rgb * cov[..., None]
+        cnt = cov.copy()
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                if dy == 0 and dx == 0:
+                    continue
+                acc += np.roll(rgb * cov[..., None], (dy, dx), axis=(0, 1))
+                cnt += np.roll(cov, (dy, dx), axis=(0, 1))
+        rgb = np.where(cov[..., None] > 0, acc / np.maximum(cnt, 1.0)[..., None], rgb)
+    out = img.copy()
+    out[..., :3] = rgb
+    return out
+
+
 def bake_atlas(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, layers=("lights",), cutout=False,
-               supersample=SUPERSAMPLE, samples=SAMPLES):
+               supersample=SUPERSAMPLE, samples=SAMPLES, ao=None):
     """Unwraps, packs and bakes. Returns dict(albedo (H, W, 3) linear, alpha (H, W) | None,
-    emit {layer: (H, W, 3) linear at FULL size} (only layers with light), stats)."""
+    emit {layer: (H, W, 3) linear at FULL size} (only layers with light), stats).
+    ao: None (the colour only - wave 0) or dict(distance (m), floor (albedo factor in a closed corner),
+    gamma, samples, occluders (objects that shadow but are not baked)): ambient occlusion is baked in - the
+    albedo is multiplied by floor + (1 - floor) * ao^gamma. The real-time light has no occlusion of its own."""
     import time
     names = {m.name for m in mats}
     t0 = time.time()
@@ -501,7 +556,7 @@ def bake_atlas(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, layers=("li
     t0 = time.time()
     base = downsample(bk.base_color(), supersample)
     stats["coverage"] = round(float(base[..., 3].mean()), 3)
-    out = dict(albedo=dilate(base)[..., :3], alpha=None, emit={})
+    out = dict(albedo=None, alpha=None, emit={})
     if cutout:
         op = downsample(bk.opacity(), supersample)
         out["alpha"] = dilate(op)[..., 0]
@@ -509,6 +564,21 @@ def bake_atlas(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, layers=("li
         em = downsample(bk.layer(layer), supersample)
         if float(em[..., :3].max()) > 0.004:
             out["emit"][layer] = dilate(em)[..., :3]
+    if ao:
+        # ambient occlusion is smooth: baked at the atlas size itself (a quarter of the texels of the colour bake).
+        # Its own image node becomes the active one of every material - so it comes last.
+        t_ao = time.time()
+        occ = list(ao.get("occluders", ()))
+        ao_bk = Baker(rig, objs, mats, size, 1, samples)
+        a = ao_bk.ambient_occlusion(ao.get("distance", 1.5), ao.get("samples", 16), ao.get("ground", True), occ)
+        a = downsample(_blur_covered(a, 1), 1)
+        k = float(ao.get("floor", 0.45)) + (1.0 - float(ao.get("floor", 0.45))) * np.power(
+            np.clip(a[..., 0], 0.0, 1.0), float(ao.get("gamma", 1.0)))
+        base = base.copy()
+        base[..., :3] *= k[..., None]
+        stats["ao_s"] = round(time.time() - t_ao, 2)
+        stats["ao_mean"] = round(float((k * base[..., 3]).sum() / max(1.0, base[..., 3].sum())), 3)
+    out["albedo"] = dilate(base)[..., :3]
     stats["bake_s"] = round(time.time() - t0, 2)
     out["stats"] = stats
     return out

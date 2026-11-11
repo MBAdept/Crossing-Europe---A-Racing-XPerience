@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/cover_bush",
+ "model": {
+  "kind": "plant",
+  "object": {"width_m": 1.5, "height_m": 0.45, "length_m": 1.2},
+  "extent_m": {"left": 0.75, "right": 0.75},
+  "aabb": [-0.779, -0.287, -0.628, 0.79, 0.481, 0.629],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 182,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/cover_bush/lod0_body.res",
+      "classes": ["leaves"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 200,
+    "tris": 54,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/cover_bush/lod1_body.res",
+      "classes": ["leaves"]
+     }
+    ]
+   }
+  ],
+  "textures": {"leaves": "props/cover_bush/leaves.png"},
+  "cards": {"lod0": 81, "lod1": 27},
+  "auto_lod": false,
+  "tags": ["prop", "plant", "ground_cover"],
+  "bytes": 348533,
+  "hash": "4e6f999de2d356d29e85d1b1e1b446753ab7b2fc"
+ },
+ "sets": {
+  "props/cover_bush": {"model": "props/cover_bush", "modern_only": true}
+ }
+}

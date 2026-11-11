@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/windmill",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 25, "height_m": 32.3, "length_m": 9},
+  "extent_m": {"left": 10.9, "right": 10.9},
+  "aabb": [-10.9, 0, -10.6, 10.9, 30.7, 1.4],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 1640,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/windmill/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/windmill/albedo.png", "emit": "props/windmill/emit.png"},
+  "roughness": 0.9,
+  "auto_lod": false,
+  "tags": ["prop", "building"],
+  "bytes": 853363,
+  "hash": "f92413d35ae3c315f23d4bcbd466c567c75d83a3"
+ },
+ "sets": {
+  "props/windmill": {"model": "props/windmill"}
+ }
+}

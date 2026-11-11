@@ -6,17 +6,17 @@
   "kind": "building",
   "object": {"width_m": 11.9, "height_m": 8.6, "length_m": 17},
   "extent_m": {"left": 12.53, "right": 5.62},
-  "aabb": [-5.95, 0, -17.45, 5.95, 8.9, 0.45],
+  "aabb": [-5.976, -0.02, -17.45, 5.976, 8.98, 0.45],
   "lods": [
    {
     "name": "lod0",
     "max_dist_m": 100000,
-    "tris": 104,
+    "tris": 1107,
     "parts": [
      {
       "node": "body",
       "mesh": "props/farmhouse/lod0_body.res",
-      "classes": ["baked"]
+      "classes": ["vpbr", "baked"]
      }
     ]
    }
@@ -24,17 +24,18 @@
   "lights": [
    {
     "role": "lights",
-    "pos": [3, 3.2, 0.12],
-    "size": 0.686,
+    "pos": [3, 3.2, 0.22],
+    "dir": [0, 0, 1],
+    "size": 0.613,
     "color": "#ffd890"
    }
   ],
   "textures": {"albedo": "props/farmhouse/albedo.png", "emit": "props/farmhouse/emit.png"},
   "roughness": 0.9,
-  "auto_lod": true,
+  "auto_lod": false,
   "tags": ["prop", "building", "mirror_left"],
-  "bytes": 755381,
-  "hash": "f7530a479e1e585507c66fdf0b0a70e48e94a104"
+  "bytes": 871498,
+  "hash": "a51fd523b16ef2bcc3d3a8fed5577be09545755b"
  },
  "sets": {
   "props/farmhouse": {"model": "props/farmhouse"}

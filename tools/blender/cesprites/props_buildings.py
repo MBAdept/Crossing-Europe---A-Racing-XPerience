@@ -12,6 +12,11 @@ from . import meshutil as MU
 
 WARM = "#ffc46b"
 
+# 3D pipeline hook (ce3d/props3d.py, buildings with depth): a list here receives the window grids and decals of
+# every facade material (name, grids, decals, frame, glass, lit) - the real-time models cut real openings with
+# reveals, frames and panes where the sprite paints them. None for sprite builds.
+WINDOW_LOG = None
+
 
 # --- materials ----------------------------------------------------------------------------------
 
@@ -20,6 +25,9 @@ def facade(name, wall, grids, glass="#26313b", frame="#e9e6de", lit=0.45, warm=W
     """Wall with window grids. grids: [dict(face=front|back|side|any_side, u=(u0,u1), z=(z0,z1),
     pitch=(pu,pz), win=(wu,wz), lit=frac, color=hex, strength=s, arch=bool, glass=hex)]
     u = x on front/back faces, y on side faces."""
+    if WINDOW_LOG is not None:
+        WINDOW_LOG.append(dict(material=name, grids=[dict(g) for g in grids], decals=[dict(d) for d in decals or []],
+                               frame=frame, glass=glass, lit=lit, warm=warm, frame_w=frame_w, shutters=shutters))
     m, nb = M.new_material(name)
     x, y, z = nb.coords()
     nx, ny, nz = nb.normal()
@@ -275,6 +283,18 @@ def barn(rig, p):
     gable_wall(rig, "barn_gable_b", W, H, 8.0, D - 0.3, wood, depth=0.3)
     roof = roof_mat("barn_roof", "#4d4f52", "metal")
     gable_roof(rig, "barn_roof", W, D, H, 8.1, roof, over=0.5)
+    if p.get("boards3d"):
+        # 3D model (ce3d): the white door frame and its brace as boards standing 5 cm out of the wall (the sprite
+        # paints them); the doors themselves set back between the frame boards
+        board = M.basic("barn_board", "#efece4", rough=0.8)
+        bm = MU.bm_box(0.2, 0.05, 3.6, (-2.1, -0.025, 1.8))
+        MU.bm_box(0.2, 0.05, 3.6, (2.1, -0.025, 1.8), bm=bm)
+        MU.bm_box(4.4, 0.05, 0.2, (0.0, -0.025, 3.5), bm=bm)
+        MU.bm_box(4.0, 0.04, 0.18, (0.0, -0.02, 1.7), bm=bm)
+        MU.bm_box(0.12, 0.04, 3.4, (0.0, -0.02, 1.7), bm=bm)
+        for side in (-1.0, 1.0):
+            MU.bm_beam((side * 0.08, -0.02, 0.12), (side * 1.95, -0.02, 3.3), 0.16, 0.04, bm=bm, up=(0, 1, 0))
+        MU.make("barn_boards", bm, board, parent=rig.root)
     lamp = M.basic("barn_lamp", "#fff1c9", rough=0.3, emit={"lights": ("#ffd890", 7.0)})
     bm = MU.bm_box(0.25, 0.25, 0.25, (0.0, -0.13, 4.4))
     MU.make("barn_lamp", bm, lamp, parent=rig.root)

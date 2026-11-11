@@ -1,0 +1,49 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/bush_round",
+ "model": {
+  "kind": "plant",
+  "object": {"width_m": 3, "height_m": 2.2},
+  "extent_m": {"left": 1.65, "right": 1.6},
+  "aabb": [-1.723, -0.614, -1.885, 1.658, 2.517, 1.822],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 372,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/bush_round/lod0_body.res",
+      "classes": ["leaves"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 200,
+    "tris": 88,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/bush_round/lod1_body.res",
+      "classes": ["leaves"]
+     }
+    ]
+   }
+  ],
+  "textures": {"leaves": "props/bush_round/leaves.png"},
+  "cards": {"lod0": 176, "lod1": 44},
+  "auto_lod": false,
+  "tags": ["prop", "plant"],
+  "bytes": 352817,
+  "hash": "f09d193d26e8bd068a2dc5db68cf6394d56cc7dc"
+ },
+ "sets": {
+  "props/bush_round": {
+   "model": "props/bush_round",
+   "variants": ["props/bush_round", "props/bush_round_b"]
+  }
+ }
+}

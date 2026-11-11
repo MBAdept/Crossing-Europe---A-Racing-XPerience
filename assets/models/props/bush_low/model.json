@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/bush_low",
+ "model": {
+  "kind": "plant",
+  "object": {"width_m": 5, "height_m": 1.3},
+  "extent_m": {"left": 2.8, "right": 2.45},
+  "aabb": [-2.878, -0.511, -1.679, 2.492, 1.474, 1.668],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 384,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/bush_low/lod0_body.res",
+      "classes": ["leaves"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 200,
+    "tris": 104,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/bush_low/lod1_body.res",
+      "classes": ["leaves"]
+     }
+    ]
+   }
+  ],
+  "textures": {"leaves": "props/bush_low/leaves.png"},
+  "cards": {"lod0": 182, "lod1": 52},
+  "auto_lod": false,
+  "tags": ["prop", "plant"],
+  "bytes": 358492,
+  "hash": "feb455bb137429bdb643033c2b5a1c8e014d11ae"
+ },
+ "sets": {
+  "props/bush_low": {"model": "props/bush_low"}
+ }
+}

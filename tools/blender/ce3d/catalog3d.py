@@ -89,6 +89,101 @@ MODELS = {
 }
 
 
+# --- AS1b (wave 2): the environment of the slice Kiel - Hamburg (docs/modelle.md section 14). Own block: it
+# replaces the wave-0 entries of tree_oak, farmhouse and streetlight above (kept there for the merge with the
+# vehicle packages) and adds the other props of the slice.
+#   variant_of   a second seed of a species: no sets of its own, the species' set lists it in "variants"
+#   source None  no sprite set behind the model (ground cover, contract A-3): its set is Modern-only
+#                ("modern_only": true in the manifest), the props builder places it inside bend corridors
+BUILDER_CODE.update({
+    "bush": ["ce3d/veg3d.py", "ce3d/leafatlas.py", "ce3d/props3d.py", "cesprites/props_nature.py",
+             "cesprites/props.py", "render_all.py"],
+    "grass": ["ce3d/veg3d.py", "ce3d/leafatlas.py"],
+    "building": ["ce3d/props3d.py", "ce3d/bake.py", "cesprites/props.py", "cesprites/props_buildings.py",
+                 "render_all.py"],
+    "lattice": ["ce3d/props3d.py", "ce3d/leafatlas.py", "cesprites/props.py", "render_all.py"],
+})
+AO_RURAL = dict(distance=1.6, floor=0.42, gamma=0.9, samples=24)
+MODELS.update({
+    # --- vegetation: two seeds per species (the generator's default seed and one more) ----------------------
+    "props/tree_oak": dict(builder="tree", source="props/tree_oak", kind="tree", species="oak",
+                           sets={"props/tree_oak": {"variants": ["props/tree_oak", "props/tree_oak_b"]}}),
+    "props/tree_oak_b": dict(builder="tree", source="props/tree_oak", kind="tree", species="oak",
+                             variant_of="props/tree_oak", params={"seed": 47}),
+    "props/tree_birch": dict(builder="tree", source="props/tree_birch", kind="tree", species="birch",
+                             sets={"props/tree_birch": {"variants": ["props/tree_birch", "props/tree_birch_b"]}}),
+    "props/tree_birch_b": dict(builder="tree", source="props/tree_birch", kind="tree", species="birch",
+                               variant_of="props/tree_birch", params={"seed": 37}),
+    "props/bush_round": dict(builder="bush", source="props/bush_round", kind="plant", bush="bush_round",
+                             sets={"props/bush_round": {"variants": ["props/bush_round", "props/bush_round_b"]}}),
+    "props/bush_round_b": dict(builder="bush", source="props/bush_round", kind="plant", bush="bush_round",
+                               variant_of="props/bush_round", params={"seed": 83}),
+    "props/bush_low": dict(builder="bush", source="props/bush_low", kind="plant", bush="bush_low"),
+    # ground cover of at most 0.5 m for the inside of bends (A-3): a low shrub clump and grass tufts
+    "props/cover_bush": dict(builder="bush", source=None, kind="plant", bush="cover_bush",
+                             cover=dict(centre=(0.0, 0.0, 0.22), a=0.6, b=0.5, c=0.2, n=9, r0=0.2, r1=0.3),
+                             object={"width_m": 1.5, "height_m": 0.45, "length_m": 1.2},
+                             sets={"props/cover_bush": {"modern_only": True}}),
+    "props/cover_grass": dict(builder="grass", source=None, kind="plant", grass=dict(seed=23, tufts=7),
+                              object={"width_m": 1.0, "height_m": 0.42, "length_m": 0.9},
+                              sets={"props/cover_grass": {"modern_only": True}}),
+    # --- buildings with depth: openings, gutters, ambient occlusion; vpbr panes light up at night (channel 12)
+    "props/farmhouse": dict(builder="building", source="props/farmhouse", kind="building", atlas=(1024, 1024),
+                            ppm_max=96.0, roughness=0.9, view="roadside", params={"allround": True}, ao=AO_RURAL,
+                            openings=dict(reveal_color="#d4c8b8", door_color="#5a3a22"),
+                            code=["cesprites/props_buildings.py"]),
+    # --- field and road furniture -----------------------------------------------------------------------------
+    "props/haybale": dict(builder="building", source="props/haybale", kind="furniture", atlas=(512, 512),
+                          ppm_max=160.0, roughness=0.95, view="allround", openings=False, gutters=False,
+                          ao=dict(distance=0.8, floor=0.5, gamma=1.0, samples=24)),
+    # fuel station: shop windows cut in, lamp panels under the canopy (anchors: light pools at night), the haze
+    # of the sprite is left out; pump and radar camera: one atlas (furniture: one draw call), lamps in its light
+    "props/fuel_station": dict(builder="building", source="props/fuel_station", kind="building", atlas=(1024, 1024),
+                               ppm_max=80.0, roughness=0.6, view="roadside", ao=AO_RURAL,
+                               params={"lights3d": True, "allround": True},
+                               gutters=False, openings=dict(pane_lit_color="#8a8070", pane_lit=(0.85, 1.0),
+                                                            reveal_color="#c9cbcc"),
+                               code=["cesprites/props_road.py", "cesprites/props_buildings.py"]),
+    "props/fuel_pump": dict(builder="building", source="props/fuel_pump", kind="furniture", atlas=(512, 512),
+                            ppm_max=220.0, roughness=0.5, view="allround", openings=False, gutters=False,
+                            vpbr_lamps=False, ao=dict(distance=0.6, floor=0.5, gamma=1.0, samples=24),
+                            code=["cesprites/props_road.py", "cesprites/props_buildings.py"]),
+    "props/radar_camera": dict(builder="building", source="props/radar_camera", kind="furniture", atlas=(256, 256),
+                               ppm_max=260.0, roughness=0.45, view="allround", openings=False, gutters=False,
+                               vpbr_lamps=False, ao=dict(distance=0.5, floor=0.55, gamma=1.0, samples=24),
+                               code=["cesprites/props_road.py", "cesprites/props_buildings.py"]),
+    "props/barn": dict(builder="building", source="props/barn", kind="building", atlas=(1024, 1024), ppm_max=96.0,
+                       roughness=0.85, view="roadside", params={"boards3d": True}, ao=AO_RURAL,
+                       code=["cesprites/props_buildings.py"]),
+    "props/customs_booth": dict(builder="building", source="props/customs_booth", kind="building", atlas=(512, 512),
+                                ppm_max=140.0, roughness=0.6, view="allround", gutters=False,
+                                ao=dict(distance=1.0, floor=0.45, gamma=0.9, samples=24),
+                                openings=dict(pane_lit_color="#8a8070", pane_lit=(0.85, 1.0), reveal_color="#c9cbcc"),
+                                code=["cesprites/props_road.py", "cesprites/props_buildings.py"]),
+    # the sails turn (rotor code, hub at 19.8 m); the octagonal tower keeps its painted windows (its walls do not
+    # face along an axis: the cutter leaves them)
+    "props/windmill": dict(builder="building", source="props/windmill", kind="building", atlas=(1024, 1024),
+                           ppm_max=64.0, roughness=0.9, view="allround", gutters=False, ao=AO_RURAL,
+                           rotor=dict(objects=("mill_sails",), hub_z=19.8), code=["cesprites/props_buildings.py"]),
+    "props/delineator": dict(builder="building", source="props/delineator", kind="furniture", atlas=(128, 128),
+                             ppm_max=480.0, roughness=0.45, view="allround", openings=False, gutters=False,
+                             vpbr_lamps=False, ao=dict(distance=0.3, floor=0.6, gamma=1.0, samples=24),
+                             code=["cesprites/props_road.py", "cesprites/props_buildings.py"]),
+    # the power pylon: bracing drawn into a cut-out atlas (first model of the class baked_cutout, one draw call)
+    "props/power_pylon": dict(builder="lattice", source="props/power_pylon", kind="furniture", atlas=(1024, 1024),
+                              ppm=40.0, bold=1.3, colour="#6e757b", roughness=0.55,
+                              code=["cesprites/props_road.py", "cesprites/props_buildings.py"]),
+    # the rotor turns (vpbr rotor code; hub at 89.6 m), the aviation light is lamp channel 12
+    "props/wind_turbine": dict(builder="prop_vpbr", source="props/wind_turbine", kind="furniture", auto_lod=False,
+                               params={"hub_subdiv": 2}, rotor=dict(objects=("wt_hub", "wt_blades"), hub_z=89.6),
+                               code=["cesprites/props_road.py", "cesprites/props_buildings.py"]),
+    # the street lamp of wave 0 (no automatic levels, see above); the upper half of its lens lies inside the head
+    # and is dropped, so the light anchor looks down (props3d.HIDDEN_TOP_Z)
+    "props/streetlight": dict(builder="prop_vpbr", source="props/streetlight", kind="furniture", auto_lod=False,
+                              hidden_tops=("sl_lens",), code=["cesprites/props_road.py", "cesprites/props_buildings.py"]),
+})
+
+
 def model_ids():
     return sorted(MODELS)
 
@@ -128,7 +223,7 @@ def key_data(model_id):
     from cesprites import catalog
     spec = MODELS[model_id]
     sets = {s["id"]: s for s in catalog.all_sets()}
-    data = {"source": _plain(sets[spec["source"]]),
+    data = {"source": _plain(sets[spec["source"]]) if spec.get("source") else None,
             "sets": {sid: _plain(sets.get(sid)) for sid in served_sets(spec, model_id)}}
     if spec["builder"] == "car":
         colours = dict(catalog.TRAFFIC_COLORS[spec["design"]])
@@ -199,7 +294,7 @@ def check_keys():
         catalog.PLAYER_COLORS[design] = saved
     for mid in sorted(MODELS):
         src = MODELS[mid]["source"]
-        if not src.startswith("props/") or src.split("/", 1)[1] not in props.PROPS:
+        if not src or not src.startswith("props/") or src.split("/", 1)[1] not in props.PROPS:
             continue
         name = src.split("/", 1)[1]
         row = props.PROPS[name]

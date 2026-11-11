@@ -52,7 +52,9 @@ ROOT = M.ROOT
 LOD_NAMES = ("lod0", "lod1", "lod2", "show")
 NODE_RE = re.compile(r"^((tractor|trailer)/)?(body|wheel_\d+[lr])$")
 HEX_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
-PAINT_CODES = (0.0, 0.25, 0.5, 1.0)
+# paint codes of the vpbr format; 0.875 = a ROTOR part (props: the turning rotor of a wind turbine, the sails of a
+# windmill - UV2.y = hub height / 128 m, ce3d/props3d.py ROTOR_CODE; a fixed colour for today's vpbr.gdshader)
+PAINT_CODES = (0.0, 0.25, 0.5, 0.875, 1.0)
 CODE_TOL = 0.02
 LAMP_CHANNELS = 15              # 0..14 are in use
 UV_TOL = 0.002
@@ -135,6 +137,15 @@ def check_manifest(res):
         if sid not in sets:
             res.err(sid, "Sprite-Set ohne Eintrag in \"sets\"")
     for sid in sorted(sets):
+        # Modern-only sets (ground cover of the bend corridors, contract A-3) have no sprite: they carry
+        # "modern_only": true, must name a model and must not shadow a sprite set
+        modern_only = bool(sets[sid].get("modern_only")) if isinstance(sets[sid], dict) else False
+        if modern_only:
+            if sid in sprite["sets"]:
+                res.err(sid, "\"modern_only\" an einem Sprite-Set")
+            if "model" not in sets[sid]:
+                res.err(sid, "Set nur für Modern ohne Modell")
+            continue
         if sid not in sprite["sets"] or sid.startswith("ui/"):
             res.err(sid, "Eintrag in \"sets\" ohne Sprite-Set")
     models = man.get("models", {})
