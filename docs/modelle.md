@@ -880,7 +880,8 @@ Balken des Generatornetzes zurück (`boxes()`: Achse, Enden, Querschnitt jedes K
 | `win3d` | `windmill` | keine gemalten Fenster (das Raster liegt über einer Ecke des Achtecks); der Bauer schneidet Öffnungen in die Mitte der Flächen |
 | `lowpoly3d` | `props_road.ferry_ship` | weniger Rumpfstationen, einfachere Rettungsboote und Decklampen |
 
-`check_sprite_geometry.py --only props/`: GEOMETRIE
+`check_sprite_geometry.py --only props --jobs 1` auf dem Endstand: 86 von 86 Sprite-Sets identisch (0 verändert,
+0 Fließkomma-Rauschen), `CHECK sprite_geometry OK` – alle Hooks lassen die Sprites unverändert.
 
 ### Ehrliche Einordnung
 
