@@ -119,13 +119,17 @@ ein Material:
 | `UV` | (Rauheit, Metall) |
 | `UV2` | (Lampenkanal + 0.5, Gewicht 0..1) oder (−1, 0) |
 
-Lampenkanäle: 0 Rücklicht · 1 Bremslicht · 2 Rück- + Bremslicht (Rücklicht 35 %) · 3/4 Blinker links/rechts ·
-5 Scheinwerfer · 6 Tagfahrlicht (mit Abblendlicht gedimmt) · 7 Rückfahrlicht · 9 Umriss (folgt dem Rücklicht) ·
-10/11 Blaulicht A/B · 12 Lichter von Requisiten (`ce_night`) · 13 immer an. Eine Lampe, die nicht leuchtet, wird
-mit halbem Anzeigewert ihrer Leuchtfarbe (22 % des Lichts) hinter einer glänzenden Linse gezeichnet.
+Lampenkanäle: 0 Rücklicht · 1 Bremslicht · 2 Rück- + Bremslicht (Rücklicht beim Anteil `tail_level`: Vorgabe 35 %, im
+Rennen 50 %) · 3/4 Blinker links/rechts · 5 Scheinwerfer · 6 Tagfahrlicht (mit Abblendlicht gedimmt) · 7 Rückfahrlicht
+· 9 Umriss (folgt dem Rücklicht) · 10/11 Blaulicht A/B · 12 Lichter von Requisiten (`ce_night`) · 13 immer an. Eine
+Lampe, die nicht leuchtet, wird mit einem Bruchteil des Anzeigewerts ihrer Leuchtfarbe hinter einer glänzenden Linse
+gezeichnet: `lamp_off` für Fahrzeuglampen (Kanäle 0–11; Vorgabe 0,5 = 22 % des Lichts, im Rennen 0,28 – bei 0,5 wirkte
+ein Rücklicht bei Tag eingeschaltet, Kunstkritik B1), `lamp_off_props` (0,5) für die Lampen der Requisiten (12, 13).
 **Beleuchtete Flächen** behalten Farbe und Rauheit und bekommen ihr Licht dazu: 8 Kennzeichen (Farbe × Gewicht ×
-Rücklicht × `plate_energy`) · 14 angestrahlte Fläche (Farbe × Gewicht × `ce_night` × `flood_energy`). (Als
-unbeleuchtete Lampe gezeichnet war das hintere Kennzeichen bei Tag beigegrau, das vordere weiß.)
+Rücklicht × `plate_energy`) · 14 angestrahlte Fläche (Farbe × Gewicht × `ce_night` × `flood_energy`) · 15 rückstrahlende
+Fläche (RINT-B: Konturband und Rückstrahler des Lkw – Farbe × Gewicht × `retro_energy` × der Kegel des eigenen
+Abblendlichts an der Fläche, dasselbe Gesetz wie `inc/headlight.gdshaderinc`; außerhalb des Kegels nur die eigene
+Farbe). (Als unbeleuchtete Lampe gezeichnet war das hintere Kennzeichen bei Tag beigegrau, das vordere weiß.)
 Je Instanz (`set_instance_shader_parameter`, feste Indizes 0–6): `paint`, `paint2`, `paint3` (Farbe, Alpha =
 Metallwert), `lamp_a` = (Rück, Brems, Blinker links, rechts), `lamp_b` = (Scheinwerfer, Rückfahr, Blaulicht A,
 B), `fade` (Dither-Ausblendung, bleibt undurchsichtig), `sun` (0 im Tunnel).

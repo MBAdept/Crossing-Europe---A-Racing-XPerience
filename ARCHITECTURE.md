@@ -618,6 +618,18 @@ bool` (`--gfx-sync`)`}`. `view.palette` ist in beiden Modi die Außenpalette (`P
 Canvas-Ebenen im Rennen: −10 Hintergrund von „Modern“ (`Environment.BG_CANVAS`), 1–2 Bildeffekte und 2D-Überlagerungen
 von „Modern“, 5 HUD und Pausemenü, 6 Ladebild der Sitzung. Arcade zeichnet alles selbst wie bisher.
 
+`RaceRenderers.leave_modern(always: bool = false)` ist die **eine** Stelle, die freigibt, was „Modern“ geladen hat
+(`ModelDB.release_all()` und `ModernMaterials.drop_shared()` – die Materialien halten die Texturen): ohne `always`, wenn
+nach einem Modern-Renderer ein Arcade-Renderer entsteht (Moduswechsel oder Rückfall); mit `always` aus den Menüs, wenn
+„Grafik“ Modern verlässt (`GameFlow`), und beim Beenden. Zwischen zwei Modern-Etappen bleibt beides geladen. Die Datei
+lädt jeder Arcade-Start: sie ruft den Modern-Code nur über Skriptpfade auf (keine Klasse des Modern-Renderers als Typ).
+
+Signal `quality_lowered(preset)`: Der Wächter des Modern-Renderers (`perf_probe.gd`, D34 c) hat die Voreinstellung
+während des Countdowns einmal gesenkt (Hoch → Mittel → Niedrig, Steam Deck und Eigene → Niedrig). Die Sitzung zeigt im
+HUD „Das Bild läuft zu langsam – die Grafikqualität ist für diese Etappe auf „…“ gesenkt.“ und schreibt das
+Ergebnisfeld `gfx_lowered` (die gesenkte Voreinstellung); gespeichert wird nichts, die nächste Etappe beginnt wieder
+mit der gewählten Qualität.
+
 ### 15.5 Ablauf einer Etappe (`race_session.gd`)
 
 1. Modus = `setup.gfx`, sonst `Settings.effective_graphics().mode`. „Modern“: **zuerst** der Absturz-Marker
@@ -647,7 +659,8 @@ von „Modern“, 5 HUD und Pausemenü, 6 Ladebild der Sitzung. Arcade zeichnet 
 4. `not healthy()` (auch mitten in der Vorbereitung) oder kein Renderer → **Rückfall**: Modern-Renderer frei,
    Arcade-Renderer und seine Sprites, `KEEP`, HUD-Meldung „Der Modus „Modern“ lässt sich mit dieser Grafik nicht
    starten. Das Spiel läuft im Modus „Arcade“ weiter.“, Ergebnis `gfx = "arcade"`, `gfx_fallback = <Grund>`
-   (`"renderer"`, wenn er sich nicht erzeugen ließ). Der Klang ändert sich dadurch nicht.
+   (`"renderer"`, wenn er sich nicht erzeugen ließ). Der Klang ändert sich dadurch nicht. Senkt der Wächter die
+   Qualität (`quality_lowered`), steht im Ergebnis zusätzlich `gfx_lowered = <Voreinstellung>`.
 5. Absturz-Marker `user://modern_start.lock`: entfernt nach 2 s gezeichneter Bilder der gestarteten Etappe (dann
    ist auch ein Marker des letzten Laufs erledigt), bei einem Rückfall und wenn die Etappe vorher ordentlich endet
    (nächste Etappe, zurück ins Menü, Spiel beendet – auch während der Vorbereitung). Er bleibt nur, wenn das Spiel

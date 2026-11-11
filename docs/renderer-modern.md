@@ -1246,11 +1246,14 @@ die Materialien der Fahrzeuge. Sie reden mit dem Rest nur über die Fassade (A-7
 ### 11.1 Fahrzeug-Ebene
 
 - **Daten statt Code.** Ein Set löst sich über `ModelDB` in ein Modell auf (beliebig viele Stufen, Gelenke aus
-  `groups`) oder in seinen Platzhalter `{"fallback": "box"}` – dann zeichnet `ModelFactory.build_box()` einen Kasten
-  in Größe und Lack des Sets mit dunklen Scheiben, Rädern und Lampen auf den Lampenkanälen (Rück-/Bremslicht,
-  Blinker, Scheinwerfer, Kennzeichen, bei Polizei Blaulicht A/B). Ein neues Modell im Manifest erscheint ohne
-  Codeänderung; ein fehlendes Modell ist nie ein fehlendes Auto. `prepare()` lädt die Modelle aller Fahrzeug-Sets der
-  Etappe (`ModelDB.request(…, self)`); fehlt danach eine Datei, meldet die Ebene `fail_reason() = "manifest"`.
+  `groups`) oder in seinen Platzhalter `{"fallback": "box"}`. Für einen Platzhalter zeichnet die Ebene **Arcades
+  eigenes Bild** dieses Fahrzeugs (Ersatzbild, Abschnitt 11.8: Sprite-Sets als Bild, Kasten-Sets wie Busse und Lkw als
+  Kasten mit Arcades Flächen); nur wenn auch das Blatt fehlt, zeichnet `ModelFactory.build_box()` als letzten Ausweg
+  einen gemalten Kasten in Größe und Lack des Sets mit dunklen Scheiben, Rädern und Lampen auf den Lampenkanälen
+  (Rück-/Bremslicht, Blinker, Scheinwerfer, Kennzeichen, bei Polizei Blaulicht A/B). Ein neues Modell im Manifest
+  erscheint ohne Codeänderung; ein fehlendes Modell ist nie ein fehlendes Auto. `prepare()` lädt die Modelle aller
+  Fahrzeug-Sets der Etappe (`ModelDB.request(…, self)`) und die Blätter der Sets ohne Modell; fehlt danach eine Datei
+  eines Modells, meldet die Ebene `fail_reason() = "manifest"`.
 - **Pose aus zwei Punkten der Straße** – Heck und Front des Kollisionsquaders (`path.world(z, x, 0)` und
   `path.world(z + Länge, x, 0)`): Gier- und Nickwinkel folgen der Straße, der Ursprung liegt in der Mitte am Boden.
   Eigene Richtung beim Spurwechsel aus der Quergeschwindigkeit (`VehiclePose.own_heading`), kritisch gedämpft wie
@@ -1273,7 +1276,9 @@ die Materialien der Fahrzeuge. Sie reden mit dem Rest nur über die Fassade (A-7
 - **Schatten:** mit Fahrzeug-Schattenwerfern (`shadow_casters ≥ 1`) wirft die grobe Hülle des Modells; in jeder
   Stufe liegt zusätzlich ein weicher Kontaktschatten unter jedem Auto (ein MultiMesh für alle,
   `vehicle_shadow.gdshader`; Klasse `vehicle_shadow` – `contact_shadow.gdshader` ist der Schattenfleck der Requisiten,
-  docs/renderer-modern-gelaende.md §4.7) – ohne Werfer ist er der einzige Schatten und kräftiger.
+  docs/renderer-modern-gelaende.md §4.7) – ohne Werfer ist er der einzige Schatten und kräftiger. Ein Ersatzbild
+  (Arcades Sprite) wirft weder Sonnen- noch Kontaktschatten: sein Schatten ist ins Bild eingebacken (Abschnitt 13.5);
+  Kasten-Ersatzbilder (Busse, Lkw) werfen wie Modelle.
 - `snapshot()` → `vehicles [{id, set, model, lod, z, x, yaw_deg, lamps, fade, sun, shown, box, player, cast, caster}]`
   (`cast`: die gezeigte Stufe wirft Schatten; `caster`: ihre Schattenhülle ist sichtbar, −1 ohne Hülle);
   `perf()` → `vehicles`, `fallback_sets`, `vehicle_us_avg`, `vehicle_builds`, `contact_shadows`.
@@ -1354,7 +1359,9 @@ Die beiden Render-Prüfungen setzen Autos in eine stehende Szene ohne Verkehr
 ### 11.7 Offen
 
 - Busse, Lieferwagen, SUV, Polizei, Sportwagen und drei der fünf Spielerautos haben noch kein Modell: sie fahren als
-  Kasten (AS2a/AS2b liefern die Modelle; sie erscheinen dann ohne Codeänderung). Gelenkbusse brauchen nur `groups`.
+  Arcades Bild bzw. als Kasten mit Arcades Flächen (Abschnitt 11.8; AS2a/AS2b liefern die Modelle, sie erscheinen
+  dann ohne Codeänderung). Der gemalte Kasten bleibt der letzte Ausweg, wenn auch das Blatt fehlt. Gelenkbusse brauchen
+  nur `groups`.
 - (Erledigt mit der Zusammenführung, Abschnitt 12:) Die Mittagssonne des Renderer-Kerns steht hinter dem Wagen, das
   Heck liegt im Licht; Abblendlicht und Verkehrskegel setzt die Ebene `lights` (`ce_headlight*`), die Schilder
   strahlen damit die echten Scheinwerfer zurück; Lack und Glas haben genau eine Spiegelquelle (12.2).
@@ -1422,9 +1429,11 @@ und andere Fahrzeuge verdecken ihn, die Lichtpunkte sehen ihn in der Tiefentextu
 ableitet (`ModelFactory.box_lights`) – bei einem Bild nur, was Arcade über sein Bild zeichnet: Heckleuchten, hintere
 Blinker, Blaulicht. Liegt ein Lichtpunkt hinter dem Bild, rückt er entlang des Sehstrahls davor, mit angepasstem
 Radiusfaktor (gleiche Größe auf dem Bildschirm). Scheinwerfer und vordere Blinker eines Bildes leuchten nicht (sein
-Glas kann durchsichtig sein, es gibt keinen Körper, der sie verdeckt). Kontaktschatten wie bei Modellen; mit
-Fahrzeug-Schattenwerfern (`shadow_casters ≥ 1`) wirft ein verborgener Kasten (ein MultiMesh je Blatt; beim Kasten-Set
-einer je Einheit). Ausblendung nach Wegstrecke mit Arcades Gesetz als Dither (F5), Verdeckung über den Tiefenpuffer.
+Glas kann durchsichtig sein, es gibt keinen Körper, der sie verdeckt). Schatten (Entscheidung der Leitung, umgesetzt
+in RINT-B, Abschnitt 13.5): ein Bild trägt Arcades eingebackenen Schatten und bekommt weder einen Kontaktschatten noch
+einen Sonnenschatten – der verborgene Kastenwerfer und der Kontaktschatten legten einen zweiten dunklen Fleck neben
+bzw. unter den eingebackenen. Kasten-Sets werfen wie Modelle (ein verborgener Werfer je Einheit, Kontaktschatten).
+Ausblendung nach Wegstrecke mit Arcades Gesetz als Dither (F5), Verdeckung über den Tiefenpuffer.
 
 **Kasten-Sets.** Je Teil ein echter Kasten in Modellkoordinaten mit Arcades Flächen (`BoxVehicle`: Heck, links, rechts,
 Dach; die Front zeigt das Heckbild), Lampenbilder als zweite und dritte UV (Rücklicht, Bremse). Mehrere Teile sind

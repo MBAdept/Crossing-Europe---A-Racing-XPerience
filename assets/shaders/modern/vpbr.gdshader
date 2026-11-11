@@ -53,6 +53,10 @@ instance uniform float sun : instance_index(6) = 1.0;           // 0 inside tunn
 // gloss = factor on the clear coat (the flat panels of the box stand-in would mirror the horizon like glass)
 instance uniform float fill : instance_index(7) = 0.0;
 instance uniform float gloss : instance_index(8) = 1.0;
+// RINT-B: cross-fade of two levels of detail (layers/vehicles.gd: lod1 <-> lod2) with complementary dither masks:
+// 0 off; t > 0 the level fading IN keeps the pixels whose dither value is below t; -t the level fading OUT keeps the
+// others. Both together cover exactly what one level covers.
+instance uniform float xfade : instance_index(9) = 0.0;
 
 uniform float lamp_energy = 1.0;              // linear emission of a lamp at level 1, weight 1 (tail, marker, on)
 // factors on lamp_energy: x brake, y indicators, z head / daytime running / reverse, w beacons
@@ -64,6 +68,9 @@ uniform float plate_energy = 0.45;            // number plate under its lamp (ch
 uniform float lamp_off = 0.5;                 // unlit VEHICLE lamp (channels 0–11): sRGB factor on its lit colour (0.5 = 22 % linear)
 uniform float lamp_off_props = 0.5;           // unlit lamp of a prop (channels 12, 13: lanterns, windows by day)
 uniform float tail_level = 0.35;              // channel 2 (one lamp for tail and brake): the tail light's share of the brake
+// channel 15 (RINT-B): retro-reflective tape and reflectors light up in the player's low beam – albedo × weight ×
+// retro_energy × the cone of inc/headlight.gdshaderinc at the surface (globals of the layer "lights"; 0 without them)
+uniform float retro_energy = 2.0;
 uniform float coat_roughness = 0.06;
 // environment mirrored by the clear coat, metals and glossy parts (sRGB colours, set by the vehicle layer)
 uniform vec4 env_zenith = vec4(0.11, 0.36, 0.79, 1.0);
@@ -76,6 +83,11 @@ uniform vec4 env_tunnel = vec4(0.30, 0.24, 0.16, 1.0);
 // contact sheet and tests/race3d/render/check_models.gd measure it); the vehicle layer sets the race look on the
 // shared material (layers/vehicles.gd LOOK: env_energy 1.6, paint_base 0.9, flake_strength 0.6).
 uniform float env_energy = 0.0;
+// RINT-B: at night (ce_night) the mirrored palette sky and the player's fill light fall to these shares – the palette's
+// night sky is a painted, brightened one, and Arcade's brightening of its player sprite is additive (+0.08), not a
+// factor: the metallic player car showed +44 % against its sprite at 22:00 (measured). Neutral by default (1.0).
+uniform float env_night = 1.0;
+uniform float fill_night = 1.0;
 uniform float coat_fresnel_max = 0.25;        // the coat's Fresnel term is capped here (grazing angles)
 uniform float coat_strength = 1.0;            // clear coat on paint (environment and sun lobe)
 uniform float paint_base = 1.0;               // sRGB factor of the base coat under the clear coat
@@ -98,6 +110,9 @@ uniform float rotor_speed = 1.35;             // rad/s
 global uniform float ce_night;
 global uniform vec4 ce_ambient;               // linear ambient light (ModernMaterials.light_value), for `fill`
 global uniform float ce_time;
+global uniform vec3 ce_headlight_pos;         // the player's low beam (layer "lights"): channel 15
+global uniform vec3 ce_headlight_dir;
+global uniform vec2 ce_headlight;
 
 varying flat float v_code;
 varying flat vec2 v_lamp;
@@ -108,6 +123,22 @@ varying float v_flake_k;
 varying vec3 v_f0;                    // f0 of the engine's lighting model for light() (linear), whatever ALBEDO says
 varying float v_metal;
 varying vec3 v_alb_lin;               // linear albedo for the flakes
+varying vec3 v_world;                 // origin-relative world position (channel 15: the low beam at the surface)
+
+// The cone of the player's low beam, 0..1 – the law of inc/headlight.gdshaderinc (ce_headlight_shape), here without
+// that file's light conversion (it needs the pool uniforms of the ground materials).
+float retro_cone(vec3 world_pos) {
+	vec3 rel = world_pos - ce_headlight_pos;
+	float d = dot(rel.xz, ce_headlight_dir.xz);
+	float range = ce_headlight.x;
+	if (ce_headlight.y <= 0.0 || d <= -2.0 || d >= range) {
+		return 0.0;
+	}
+	vec2 side = rel.xz - ce_headlight_dir.xz * d;
+	float q = length(side) / (0.9 + max(d, 0.0) * 0.13);
+	float q2 = q * q;
+	return smoothstep(-2.0, 5.0, d) * (1.0 - smoothstep(range * 0.3, range, d)) / (1.0 + q2 * q2);
+}
 
 // linear factor -> factor on an sRGB-encoded colour
 float enc(float linear_factor) {
@@ -203,16 +234,18 @@ void vertex() {
 	v_code = COLOR.a;
 	v_lamp = UV2;
 	v_obj = VERTEX;
+	v_world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	// flakes only near the camera: farther away a cell is smaller than a pixel and would only shimmer
 	float dist = length((MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).xyz);
 	v_flake_k = 1.0 - smoothstep(flake_near_m * 0.45, flake_near_m, dist);
 }
 
 void fragment() {
-	// path-distance fade (same law as the simulation's visibility): ordered dither, stays opaque
-	if (fade < 0.999) {
+	// path-distance fade (same law as the simulation's visibility): ordered dither, stays opaque; the same dither
+	// value splits the pixels between two levels while they cross-fade (xfade)
+	if (fade < 0.999 || xfade != 0.0) {
 		float d = fract(dot(floor(FRAGCOORD.xy), vec2(0.7548776662, 0.5698402910)));
-		if (d >= fade) {
+		if (d >= fade || (xfade > 0.0 && d >= xfade) || (xfade < 0.0 && d < -xfade)) {
 			discard;
 		}
 	}
@@ -231,7 +264,10 @@ void fragment() {
 	bool lamp = false;
 	if (v_lamp.x >= 0.0) {
 		float ch = floor(v_lamp.x);
-		if (ch > 13.5) {
+		if (ch > 14.5) {
+			// retro-reflective surface: lit by the player's low beam, not by the night (RINT-B)
+			emit = alb * enc(v_lamp.y * retro_energy * ce_headlight.y * retro_cone(v_world));
+		} else if (ch > 13.5) {
 			emit = alb * enc(v_lamp.y * ce_night * flood_energy);
 		} else if (ch > 7.5 && ch < 8.5) {
 			// number plate: a lit surface - its own white by day, the plate lamp's light with the tail lights
@@ -254,7 +290,8 @@ void fragment() {
 		alb = mix(alb, vec3(dot(alb, vec3(0.2126, 0.7152, 0.0722))), paint_desat);
 		alb *= paint_base;          // the base coat under the clear coat
 	}
-	vec3 fill_light = fill > 0.0 ? to_lin(alb) * ce_ambient.rgb * fill : vec3(0.0);
+	float night = clamp(ce_night, 0.0, 1.0);
+	vec3 fill_light = fill > 0.0 ? to_lin(alb) * ce_ambient.rgb * fill * mix(1.0, fill_night, night) : vec3(0.0);
 	// mirrored environment: clear coat (Fresnel of a 1.5 coat), metals (tinted by their colour), glossy parts
 	vec3 refl = vec3(0.0);
 	if (env_energy > 0.0) {
@@ -273,7 +310,7 @@ void fragment() {
 		} else if (coat <= 0.0 && rough < 0.3) {
 			refl += env_light(r, rough) * (0.04 + 0.96 * f5) * (1.0 - rough / 0.3) * 0.6;
 		}
-		refl *= env_energy;
+		refl *= env_energy * mix(1.0, env_night, night);
 	}
 	v_alb_lin = to_lin(alb);
 	v_f0 = mix(vec3(0.04), v_alb_lin, metal);

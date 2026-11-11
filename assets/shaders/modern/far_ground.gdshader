@@ -57,6 +57,9 @@ void fragment() {
 	vec2 p = ce_ground_pos(v_world);
 	float dist = length(v_world - CAMERA_POSITION_WORLD);
 	vec3 tone = ce_ground_far(p, dist);
+	// the rim is a wall 2.4 km away: the ground pattern (blotches, fields) would run into vertical stripes on it – it
+	// shows the mean of the far ground
+	tone = mix(tone, ce_ground_field_mean(far_color, far_accent, far_amount), step(0.5, UV.x));
 	float snow = ce_ground_snow(ce_snow, p);
 	tone = mix(tone, CE_GROUND_SNOW, snow);
 	tone *= 1.0 - 0.16 * ce_wet * (1.0 - snow);

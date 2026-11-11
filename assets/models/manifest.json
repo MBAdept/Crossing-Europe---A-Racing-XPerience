@@ -1717,8 +1717,8 @@
    },
    "auto_lod": false,
    "tags": ["traffic", "heavy"],
-   "bytes": 161851,
-   "hash": "ee125caa0f956a400bfb6efa990714b610d572bc"
+   "bytes": 161852,
+   "hash": "6fa8aebce82e2181766768d30f0f93ffdd98f02f"
   },
   "traffic/wagon": {
    "kind": "vehicle",

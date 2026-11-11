@@ -21,13 +21,15 @@ extends SceneTree
 ##              contact shadow lies under every car in sight (models, box stand-ins, the player), the model's shadow
 ##              hull or the box stand-in itself casts exactly when the quality levels have vehicle casters; a sprite
 ##              stand-in (Arcade's picture with its shadow baked in) has neither (RINT-B, lead decision)
+##   ueberblendung  the far levels of a model (lod1 <-> lod2) cross-fade with complementary dither masks for XFADE_S
+##              of view time, then only the new level is drawn (RINT-B)
 ## Prints "CHECK <name> OK|FEHLER …"; exit code 0 when all pass. (Autoloads are reached untyped: -s scripts compile
 ## before the autoloads exist.)
 
 const RACE := "res://scenes/race/race.tscn"
 const PROBE := "res://tests/race3d/fixtures/vehicle_probe_renderer.gd"
 const PERF_CLOCK := preload("res://tests/race3d/fixtures/perf_clock.gd")
-const CHECKS := ["lampen", "kasten", "leistung", "schilder", "lampen_fest", "schatten"]
+const CHECKS := ["lampen", "kasten", "leistung", "schilder", "lampen_fest", "schatten", "ueberblendung"]
 const PLAYER_ID := -999999
 
 var _failed: Array[String] = []
@@ -334,6 +336,50 @@ func _check_schatten() -> void:
 	for k: Variant in saved_cli:
 		cli[k] = saved_cli[k]
 	_report("schatten", p, "; ".join(msgs))
+
+
+# --- ueberblendung ---------------------------------------------------------------------------------------------------
+
+## RINT-B: the far levels of a model (lod1 <-> lod2, one merged mesh each) cross-fade with complementary dither masks
+## over the layer's XFADE_S of view time instead of swapping in one frame (art review: 22–34 % of a car's pixels changed
+## at the 120 m swap). A car moved from inside lod1 to beyond its limit shows both levels for a moment – the new one
+## fading in (xfade > 0), the old one fading out – and only the new level once the time is up.
+func _check_ueberblendung() -> void:
+	var p: Array[String] = []
+	var sc := _launch({"autopilot": false, "start_speed_kmh": 0.0})
+	var r := await _ready_stage(sc)
+	var vl: Node = r.layer("vehicles")
+	var cam_z := float(r.view.get("camera_z", 0.0))
+	var x0 := float((r.view.get("player", {}) as Dictionary).get("x", 0.0))
+	var sid := "traffic/sedan_red"
+	var length := float(ModelDB.object_size(sid).get("length_m", 4.5))
+	var lod1_m := float(r.levels.get("vehicle_lod1_m", 120.0))
+	var xf_s := float((vl.get_script() as GDScript).get_script_constant_map().get("XFADE_S", 0.5))
+	var car := {"kind": "car", "id": 9600, "set": sid, "z": cam_z + 0.7 * lod1_m, "x": x0 + 3.75, "length": length,
+		"tail": 0.0, "brake": 0.0, "speed": 0.0}
+	_probe.set("inject", [car])
+	await _frames(10)
+	var v: Dictionary = _snap_by_id(r).get(9600, {})
+	_need(p, str(v.get("lod", "")) == "lod1", "vorher lod1 (%s)" % str(v.get("lod", "")))
+	var t0 := float(r.view.get("time", 0.0))
+	car = car.duplicate()
+	car["z"] = cam_z + 1.3 * lod1_m
+	_probe.set("inject", [car])
+	await _frames(2)
+	v = _snap_by_id(r).get(9600, {})
+	var during := float(v.get("xfade", 0.0))
+	_need(p, str(v.get("lod", "")) == "lod2", "danach lod2 (%s)" % str(v.get("lod", "")))
+	_need(p, during > 0.0 and during < 1.0 and str(v.get("xf_lod", "")) == "lod1",
+		"Überblendung läuft: neue Stufe blendet ein (xfade %.3f), alte Stufe %s blendet aus" % [during, str(v.get("xf_lod", "–"))])
+	await _until(func() -> bool: return float(r.view.get("time", 0.0)) - t0 > xf_s + 0.15, 600)
+	await _frames(2)
+	v = _snap_by_id(r).get(9600, {})
+	_need(p, float(v.get("xfade", -1.0)) == 0.0 and str(v.get("xf_lod", "")) == "", "nach %.1f s nur noch lod2 (xfade %.3f, alte Stufe %s)" % [
+		xf_s, float(v.get("xfade", -1.0)), str(v.get("xf_lod", ""))])
+	_probe.call("reset")
+	await _free(sc)
+	_report("ueberblendung", p, "lod1 → lod2 bei %.0f m: beide Stufen mit gegenläufigem Dither (xfade %.3f im 2. Bild), nach %.1f s Sichtzeit nur lod2" % [
+		lod1_m, during, xf_s])
 
 
 # --- lampen_fest -----------------------------------------------------------------------------------------------------

@@ -56,7 +56,7 @@ HEX_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
 # windmill - UV2.y = hub height / 128 m, ce3d/props3d.py ROTOR_CODE; a fixed colour for today's vpbr.gdshader)
 PAINT_CODES = (0.0, 0.25, 0.5, 0.875, 1.0)
 CODE_TOL = 0.02
-LAMP_CHANNELS = 15              # 0..14 are in use
+LAMP_CHANNELS = 16              # 0..15 are in use (15 = retro-reflective surface, RINT-B)
 UV_TOL = 0.002
 GROUND_TOL = 0.01
 SIZE_TOL = 0.02

@@ -310,11 +310,12 @@ def _trailer(b):
     e = 0.001                           # markings stay this far off the panel edges (no T-junctions)
     node = "trailer/body"
     lamp_marker = "-marker:1:" + AMBER
-    # retroreflective contour tape: a lit surface that shines at night (channel 14: its own colour by day, albedo x
-    # weight x ce_night at night - the player's headlights light it). As a number-plate surface (channel 8: tail
-    # light x plate_energy 0.45) the contour stayed nearly dark at night, and it is the truck's main night cue
-    i_tape_r = b.flat(RED_TAPE, 0.35, 0.0, "flood:%.2f" % TAPE_NIGHT)
-    i_tape_y = b.flat(YELLOW_TAPE, 0.35, 0.0, "flood:%.2f" % TAPE_NIGHT)
+    # retroreflective contour tape: a lit surface (channel 15 "retro", RINT-B: its own colour by day; it lights up in
+    # the player's low beam – vpbr.gdshader, the cone law of inc/headlight.gdshaderinc – instead of with the night as
+    # a flood-lit surface, channel 14, did). As a number-plate surface (channel 8: tail light x plate_energy 0.45) the
+    # contour stayed nearly dark at night, and it is the truck's main night cue
+    i_tape_r = b.flat(RED_TAPE, 0.35, 0.0, "retro:%.2f" % TAPE_NIGHT)
+    i_tape_y = b.flat(YELLOW_TAPE, 0.35, 0.0, "retro:%.2f" % TAPE_NIGHT)
     i_marker = b.flat("#c86a12", 0.2, 0.0, lamp_marker)
     i_marker_red = b.flat("#8a0c0a", 0.2, 0.0, "marker:1:" + LAMP_RED)
     f = _box_faces(-W2, W2, 0.0, TR_LEN, BOX_Z0, BOX_Z1)
@@ -445,7 +446,7 @@ def _trailer(b):
     yb = 0.03
     bar = _box_faces(-W2 + 0.02, W2 - 0.02, yb, yb + 0.12, 0.6, 1.0)
     i_bar = b.flat("#202124", 0.5, 0.2)
-    i_tri = b.flat("#c01712", 0.25, 0.0, "flood:%.2f" % TAPE_NIGHT)     # triangle reflectors: retroreflective as well
+    i_tri = b.flat("#c01712", 0.25, 0.0, "retro:%.2f" % TAPE_NIGHT)     # triangle reflectors: retroreflective as well
     i_plate = b.flat("#eeeeea", 0.45, 0.0, "plate:0.6")
     i_blue = b.flat("#1d3c9c", 0.45)
     i_text = b.flat("#151515", 0.5)

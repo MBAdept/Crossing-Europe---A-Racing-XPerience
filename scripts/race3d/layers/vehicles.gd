@@ -44,12 +44,19 @@ const BOX_GLOSS := 0.35             ## clear coat of the box stand-in (flat pane
 ## alone, what the contact sheet shows): [class, uniform, value].
 ## RINT-B: unlit vehicle lamps at 0.28 of their lit colour (0.5 read as switched on by day – art review B1), the tail
 ## light of a combined tail/brake lamp (channel 2) at half the lamp (brake stays more than twice as bright); paint
-## exposure (art review A1/B8/C2): a soft knee above 0.7 of the brightest channel (slope 0.35) and 8 % desaturation
+## exposure (art review A1/B8/C2): a soft knee above 0.7 of the brightest channel (slope 0.45) and 8 % desaturation
 ## instead of a flat 0.9 on every paint – bright paints no longer clip, mid ones keep their value (measured against the
-## sprites, docs/renderer-modern.md §13.4).
+## sprites, docs/renderer-modern.md §13.4); at night the mirrored palette sky at 0.35 and the player's fill at 0.3 of
+## their day values (the metallic player car was +44 % against its sprite at 22:00).
 const LOOK: Array = [["vpbr", "env_energy", 1.6], ["vpbr", "paint_base", 1.0], ["vpbr", "paint_knee", 0.7],
-	["vpbr", "paint_knee_slope", 0.35], ["vpbr", "paint_desat", 0.08], ["vpbr", "flake_strength", 0.6],
-	["vpbr", "lamp_off", 0.28], ["vpbr", "tail_level", 0.5], ["glass", "env_energy", 2.2]]
+	["vpbr", "paint_knee_slope", 0.45], ["vpbr", "paint_desat", 0.08], ["vpbr", "flake_strength", 0.6],
+	["vpbr", "lamp_off", 0.28], ["vpbr", "tail_level", 0.5], ["vpbr", "env_night", 0.35], ["vpbr", "fill_night", 0.3],
+	["glass", "env_energy", 2.2]]
+## RINT-B: the far levels of a model (one merged mesh each, no wheel or group nodes) cross-fade over XFADE_S of view
+## time with complementary dither masks (vpbr instance uniform xfade) instead of swapping in one frame – the art review
+## measured 22–34 % of a car's pixels changing at the 120 m swap. Costs one draw call more per car while it fades.
+const XFADE_S := 0.5
+const XFADE_LODS: Array[String] = ["lod1", "lod2"]
 const STANDIN_SHADER := "vehicle_sprite"   ## assets/shaders/modern/vehicle_sprite.gdshader (through ModernMaterials)
 const STANDIN_NEAR_M := 0.3          ## a flat stand-in whose anchor is closer than this is not drawn (Arcade's near plane)
 const FLARE_PICTURE_GAP_M := 0.08    ## a lamp glow of a sprite stand-in sits this far in front of its picture
@@ -101,6 +108,11 @@ class Car:
 	var x := 0.0
 	var dist := 0.0
 	var cast := false
+	var xf_node: Node3D                    ## the level fading out during a cross-fade (null otherwise)
+	var xf_lod := ""
+	var xf_geo: Array[GeometryInstance3D] = []
+	var xf_t0 := 0.0                       ## view time the cross-fade began
+	var xf_t := 0.0                        ## its progress, 0..1 (0 without one)
 
 var _renderer: Node
 var _mats: ModernMaterials
@@ -512,8 +524,16 @@ func _update_car(c: Dictionary, is_player: bool, path: RoadPath3D, track: Track,
 		if i < 0:
 			i = names.size() - 1
 		if i >= 0 and i != car.lod_i:
+			var old_node := car.node
+			var old_geo := car.geo
+			var old_lod := car.lod
+			var was_shown := car.shown
+			_xfade_end(car)
 			car.lod_i = i
 			_set_level(car, names[i])
+			if XFADE_S > 0.0 and was_shown and old_node != null and car.node != null and old_node != car.node \
+					and XFADE_LODS.has(old_lod) and XFADE_LODS.has(names[i]):
+				_xfade_begin(car, old_node, old_geo, old_lod, time)
 	elif car.lod == "":
 		_set_level(car, "box")
 	if car.node == null:
@@ -582,6 +602,8 @@ func _update_car(c: Dictionary, is_player: bool, path: RoadPath3D, track: Track,
 		car.lb = lb
 	else:
 		_set_uniforms(car, alpha, 0.0 if in_tunnel else 1.0, la, lb)
+		if car.xf_node != null:
+			_xfade_step(car, time, alpha, 0.0 if in_tunnel else 1.0, la, lb)
 	# contact shadow and flares
 	_add_shadow(car, obj, length, alpha, lights, in_tunnel)
 	var l_eff := 1.0 if in_tunnel else lights
@@ -1052,6 +1074,7 @@ func _acquire(set_id: String, id: int) -> Car:
 
 
 func _release(car: Car) -> void:
+	_xfade_end(car)
 	_show(car, false)
 	var list: Variant = _free.get(car.set_id)
 	if not (list is Array):
@@ -1068,6 +1091,61 @@ func _show(car: Car, on: bool) -> void:
 		car.shown = on
 		if car.root != null:
 			car.root.visible = on
+
+
+## Starts the cross-fade from the level just left (old_node) to the one _set_level() just showed: the old level stays
+## visible and dithers out while the new one dithers in (vpbr xfade); its shadow hull is hidden (one caster).
+func _xfade_begin(car: Car, old_node: Node3D, old_geo: Array[GeometryInstance3D], old_lod: String, time: float) -> void:
+	old_node.visible = true
+	car.xf_node = old_node
+	car.xf_lod = old_lod
+	car.xf_geo = old_geo
+	car.xf_t0 = time
+	car.xf_t = 0.0
+	for gi: GeometryInstance3D in old_geo:
+		if gi.name == "shadow":
+			gi.visible = false
+		gi.set_instance_shader_parameter(&"xfade", -0.002)
+	for gi: GeometryInstance3D in car.geo:
+		gi.set_instance_shader_parameter(&"xfade", 0.002)
+
+
+## One frame of a cross-fade: progress by view time (paused game: it holds), the old level follows the new one's fade,
+## sun mask and lamps; done after XFADE_S.
+func _xfade_step(car: Car, time: float, alpha: float, sun: float, la: Vector4, lb: Vector4) -> void:
+	var t := (time - car.xf_t0) / XFADE_S
+	if t >= 1.0 or t < 0.0:
+		_xfade_end(car)
+		return
+	t = maxf(t, 0.002)
+	car.xf_t = t
+	var a := snappedf(alpha, 1.0 / 255.0)
+	for gi: GeometryInstance3D in car.geo:
+		gi.set_instance_shader_parameter(&"xfade", t)
+	for gi: GeometryInstance3D in car.xf_geo:
+		gi.set_instance_shader_parameter(&"xfade", -t)
+		gi.set_instance_shader_parameter(&"fade", a)
+		gi.set_instance_shader_parameter(&"sun", sun)
+		gi.set_instance_shader_parameter(&"lamp_a", la)
+		gi.set_instance_shader_parameter(&"lamp_b", lb)
+
+
+## Ends a cross-fade (finished, interrupted by another switch, or the car released): the old level hides, both drop
+## their dither mask.
+func _xfade_end(car: Car) -> void:
+	if car.xf_node == null:
+		return
+	if is_instance_valid(car.xf_node) and car.xf_node != car.node:
+		car.xf_node.visible = false
+	for gi: GeometryInstance3D in car.xf_geo:
+		if is_instance_valid(gi):
+			gi.set_instance_shader_parameter(&"xfade", 0.0)
+	for gi: GeometryInstance3D in car.geo:
+		gi.set_instance_shader_parameter(&"xfade", 0.0)
+	car.xf_node = null
+	car.xf_lod = ""
+	car.xf_geo = []
+	car.xf_t = 0.0
 
 
 ## Shows level `lod` of a car (built on first use, kept for reuse).
@@ -1202,7 +1280,8 @@ func snapshot() -> Dictionary:
 			"box": bool((car.info as Dictionary).get("box", false)), "player": int(id) == PLAYER_ID,
 			"cast": car.cast, "caster": -1 if car.caster == null else int(car.caster.visible),
 			"basis": [car.pose.basis.x, car.pose.basis.y, car.pose.basis.z],
-			"standin": sk, "cell": car.cell, "fold": car.fold, "pull": car.pull})
+			"standin": sk, "cell": car.cell, "fold": car.fold, "pull": car.pull, "xfade": snappedf(car.xf_t, 0.001),
+			"xf_lod": car.xf_lod})
 	return {"vehicles": list, "vehicle_flares": _flare_n}
 
 

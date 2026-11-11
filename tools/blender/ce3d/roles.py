@@ -27,10 +27,13 @@ import numpy as np
 from . import core
 
 CHANNELS = {"tail": 0, "brake": 1, "tail_brake": 2, "ind_l": 3, "ind_r": 4, "head": 5, "drl": 6, "reverse": 7,
-            "plate": 8, "marker": 9, "beacon_a": 10, "beacon_b": 11, "lights": 12, "on": 13, "flood": 14}
+            "plate": 8, "marker": 9, "beacon_a": 10, "beacon_b": 11, "lights": 12, "on": 13, "flood": 14,
+            "retro": 15}
 CHANNEL_NAMES = {v: k for k, v in CHANNELS.items()}
-# lit surfaces, not lamps: the vertex colour is their own albedo (a number plate drawn as an unlit lamp was grey)
-SURFACE_CHANNELS = ("plate", "flood")
+# lit surfaces, not lamps: the vertex colour is their own albedo (a number plate drawn as an unlit lamp was grey).
+# retro (15, RINT-B): retro-reflective tape and reflectors – they light up in the player's low beam (vpbr.gdshader),
+# not with the night as a flood-lit surface (14) does
+SURFACE_CHANNELS = ("plate", "flood", "retro")
 PAINT_CODES = {"fixed": 255, "paint": 0, "paint2": 64, "paint3": 128}
 NO_LAMP = (-1.0, 0.0)
 # lit colours of lamps whose sprite material has no emission (indicators, headlights ... are not part of
