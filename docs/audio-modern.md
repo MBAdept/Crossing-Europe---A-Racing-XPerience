@@ -1088,11 +1088,12 @@ ist der **gemessene Motor allein bei Höchsttempo** je Auto (`road.engine_top_lu
 | Motor allein bei Höchsttempo (LUFS) | −18,5 | −17,2 | −17,7 | −17,8 | −17,5 |
 | Wind / Reifen bei Höchsttempo (Ziel) | −21,5 / −22,5 | −20,2 / −21,2 | −20,7 / −21,7 | −20,8 / −21,8 | −20,5 / −21,5 |
 
-Unter dem Höchsttempo folgen sie `slope_db` je Dekade (Reifen 30 dB, Wind 55 dB, nach der Studie: bei 130 km/h liegt
-der Wind etwa 15 dB, die Reifen etwa 9 dB unter dem Motor). Beläge und Ereignisse sind auf die Reifen bei Höchsttempo
-bezogen (`tyres.surface_db`, `slope_by_surface`, `wet_db`, `slabs.db`, `joints.lufs`, `passes.lufs` …). Alle Ziele
-gelten am Master mit der Gesamtlautstärke 0,8 (`ref_path_db` −1,94 dB). Böen (Ornstein-Uhlenbeck, ±1,5 dB, in jedem
-Lauf gleich) sind so verschoben, dass sie die mittlere Leistung nicht anheben.
+Unter dem Höchsttempo folgen sie `slope_db` je Dekade (Reifen 30 dB, Wind 55 dB): bei 130 km/h liegen die Reifen
+etwa 7–9 dB, der Wind etwa 12–16 dB unter dem Motor (abgeleitet aus den Gesetzen und dem gemessenen Motor allein bei
+130 km/h, Kompakt −23,0 / Gran Turismo −22,0 LUFS; wie in der Studie). Beläge und Ereignisse sind auf die Reifen
+bei Höchsttempo bezogen (`tyres.surface_db`, `slope_by_surface`, `wet_db`, `slabs.db`, `joints.lufs`, `passes.lufs`
+…). Alle Ziele gelten am Master mit der Gesamtlautstärke 0,8 (`ref_path_db` −1,94 dB). Böen (Ornstein-Uhlenbeck,
+±1,5 dB, in jedem Lauf gleich) sind so verschoben, dass sie die mittlere Leistung nicht anheben.
 
 Gemessen mit dem Plan-Bezug (vor der Umstellung auf den gemessenen Motor), Gran Turismo: Reifen allein bei Höchsttempo
 −19,98 LUFS (Ziel −20,0), Wind allein −18,99 (Ziel −19,0) – die Rechnung über `lufs_pitch` trifft im Spiel auf 0,1 dB.
@@ -1121,15 +1122,22 @@ Scheitelfaktor sonst den Begrenzer trifft, bevor er laut wirkt. Das Schleifen is
 (`rail.scrape_lufs` bei 100 km/h, 12 dB je Dekade, höchstens `scrape_max_lufs` −17). Der Mischzustand `impact` senkt
 Musik −5, Ambiente −3, Auto −3 und Welt −4 dB (0,25 s gehalten).
 
+Gemessen (nur `MImpact` hörbar, Limousine mit 110 km/h, Abtastspitze des lauteren Kanals am Master, Einsätze im Ton
+gesucht): Rempler 6 km/h −11,2 dBFS, Auffahren 30 km/h −7,8, schwerer Aufprall 70 / 130 km/h −3,8 / −2,8, Lkw
+40 / 110 km/h −5,3 / −3,8; Leitplanke 0,5 / 2 / 5 m/s −15,5 / −8,2 / −4,5; Leitpfosten 90 km/h −11,2; Schleifen
+−11,7 dBFS (−10,8 dBTP). Seitenrichtig: der leisere Kanal liegt 12,4 dB darunter (`pan` 0,7). Die Werte treffen
+`peak_db` + Gesetz + Schwenk auf etwa 1 dB; wo mehrere Schichten zugleich einsetzen, liegt die Summe höher.
+
 ### 15.5 Der schlimmste Fall
 
 Tunnel (Hall), zwei Lkw und ein Pkw dicht, Polizei mit Martinshorn, Rennmusik, Gran Turismo mit 230 km/h und
 Untersteuern, schwerer Aufprall auf einen Lkw (140 km/h Schließgeschwindigkeit), harter Leitplankenschlag mit
-Schleifen, zweiter Aufprall – am Master nach dem Begrenzer **−2,26 dBTP** (Plan ≤ −0,5; Standardregler). Vor dem
-Begrenzer liegt die Summe bis +4,1 dBFS über 0 dBFS: Das treiben die Platzhalter von Verkehr und Martinshorn (Arcade-
-Pegel, AU-C2) – ohne `MWorld` sind es 96 statt 3 919 Frames über der Begrenzerschwelle. Die Klänge von AU-C1 allein
-erreichen vor dem Begrenzer 0,0 dBFS. Bei Gesamtlautstärke 1,0 läge der schlimmste Fall bei etwa −0,3 dBTP
-(abgeleitet: Begrenzer bei −0,8 dBFS vor der Lautstärke des Masters, gemessenes Überschwingen 0,5 dB).
+Schleifen, zweiter Aufprall – am Master nach dem Begrenzer **−2,26 dBTP**, auf dem Endstand wiederholt **−2,44 dBTP**
+(Plan ≤ −0,5; Standardregler; die Wiedergabe ohne Bildschirm ist nicht bildgenau gleich). Vor dem Begrenzer liegt die
+Summe bis +4,1 dBFS über 0 dBFS: Das treiben die Platzhalter von Verkehr und Martinshorn (Arcade-Pegel, AU-C2) – auf
+dem Endstand ohne `MWorld` 22 statt 4 087 Frames über der Begrenzerschwelle. Die Klänge von AU-C1 allein erreichen
+vor dem Begrenzer 0,0 dBFS. Bei Gesamtlautstärke 1,0 läge der schlimmste Fall bei etwa −0,5 bis −0,1 dBTP
+(abgeleitet: Begrenzer bei −0,8 dBFS vor der Lautstärke des Masters, gemessenes Überschwingen 0,3–0,7 dB).
 
 ### 15.6 Rechenzeit
 
@@ -1145,11 +1153,13 @@ GDScript je Bild (Wiedergabe an, echte Strecke, Mittel / Maximum): Feed 0,06 / 3
    Abtastspitze hatte −0,1 dBTP. Die Generatoren normieren darum auch auf den True Peak.
 3. **Gleichanteil von Einmalklängen nicht abziehen**: der Abzug lässt im stillen Ende eine Stufe, die die
    Endblende zu einem tiefen Schlag macht (im Spektrogramm gesehen).
-4. **Ein harter Begrenzer überschwingt**, wenn er stark arbeitet: bis 1,2 dB über seiner Schwelle (True Peak nach
-   dem Begrenzer bei Aufprall-Spitzen, gemessen).
+4. **Ein harter Begrenzer überschwingt** zwischen den Abtastwerten: 0,3–1,5 dB True Peak über seiner Schwelle
+   (nach dem Begrenzer bei Aufprall-Spitzen, gemessen; er begrenzt Abtastwerte).
 5. **Die `Track` erzeugt nur vorwärts**: Werkzeuge, die zurückspringen, bauen sie neu und geben sie mit
    `set_track` wieder an den Klang (wie eine neue Etappe).
-6. **Zeitmarken einer Aufnahme mit dem Dummy-Treiber** liegen um etwa einen Block (93 ms) hinter dem Klang.
+6. **Zeitmarken einer Aufnahme mit dem Dummy-Treiber** liegen hinter dem Klang: anfangs etwa einen Block (93 ms),
+   nach 30 s bis 0,4 s (die Uhr des Skripts und die aufgenommenen Frames laufen auseinander). Pegel je Ereignis darum
+   an den Einsätzen im Ton messen, nicht an den Marken.
 
 ### 15.8 Offene Punkte
 
