@@ -205,19 +205,30 @@ def main(argv=None) -> int:
     man = ml.Manifest("music", args.out or None)
     path = man.file(FILE_NAME)
     enc = mlib.encode_checked(y[:n_file], path, TITLE, reencode)
-    if not args.out:
-        mlib.write_ogg_import_keep(path, ms.LOOP_OFFSET_S)
-    man.drop_generator(GENERATOR)
-    e = man.add(SOUND_ID, FILE_NAME, "music", GENERATOR, loop=(n_loop, n_file), role="title", bus="MMusic",
-                gain_db=0.0, note="Titelmelodie v0.5.0, Remaster: gleiche Noten, neue Produktion; Intro 15 s einmal, "
-                                  "dann Schleife")
-    e["piece"] = "titel"
+    register(man, not args.out)
     man.save()
     rep = {"file": path, "lufs": enc["lufs"], "true_peak_dbtp": enc["true_peak_db"], "bytes": enc["bytes"],
            "frames": enc["frames"], "loop": [n_loop, n_file], "seam_diff_dbfs": seam, "levels": levels,
            "master": m.info, "encode_rounds": enc["rounds"], "seconds": round(time.time() - t_start, 1)}
     print(json.dumps(rep, ensure_ascii=False, indent=1))
     return 0
+
+
+def register(man: ml.Manifest, write_import: bool) -> dict:
+    """Import settings (only in the repository) and manifest entry of the written file: tempo and bars of the original
+    (128 bpm, 8 intro bars once, then the 100 bars of the loop; without beat_count – Godot counts beats from the start
+    of the file, the loop ends at the end of the file)."""
+    path = man.file(FILE_NAME)
+    if write_import:
+        mlib.write_ogg_import_keep(path, ms.LOOP_OFFSET_S, ms.BPM, 0, 4)
+    man.drop_generator(GENERATOR)
+    e = man.add(SOUND_ID, FILE_NAME, "music", GENERATOR, loop=(ms.N_LOOP_START, ms.N_FILE), role="title",
+                bus="MMusic", gain_db=0.0, bpm=ms.BPM, bar_beats=4,
+                note="Titelmelodie v0.5.0, Remaster: gleiche Noten, neue Produktion; Intro 15 s einmal, dann Schleife")
+    e["piece"] = "titel"
+    e["intro_bars"] = ms.INTRO_BARS
+    e["loop_bars"] = ms.BODY_BARS
+    return e
 
 
 if __name__ == "__main__":

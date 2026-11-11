@@ -592,8 +592,10 @@ beurteilt der Nutzer (Hörproben unter `<scratch>/v080/deliver/AU-D1/`).
 | `linke_spur_schluss.ogg` | `race_ending` | 7,8 s | – | −15,7 LUFS / −2,4 dBTP | 0,15 MB |
 
 Mit dem Platzhalter von AU-A zusammen 7,48 MB von 25 MB Budget (§4.11). `audio_qc.py` besteht für alle
-Dateien (Naht ×0,11 / ×0,08). Die Einträge tragen über das Format hinaus `piece`, beim Rennstück `ending` (die id des
-Schlusses), `countin_beats`, `intro_bars`, `loop_bars`; der Schluss eigene QC-Grenzen der Lautheit
+Dateien (Naht ×0,11 / ×0,08). Alle drei Einträge tragen `bpm` und `bar_beats` (Titel 128, Rennstück 132; in den
+Import-Einstellungen ebenso, `beat_count` 0), über das Format hinaus `piece`, Titel und Rennstück `intro_bars` und
+`loop_bars` (8 + 100 bzw. 9 + 88 Takte), das Rennstück `ending` (die id des Schlusses) und `countin_beats`; der
+Schluss eigene QC-Grenzen der Lautheit
 (`"qc": {"lufs": [-20, -10]}`): Er wird mit dem Master der Schleife bearbeitet und nicht für sich auf −14 LUFS
 gebracht, sonst spränge der Pegel am Übergang.
 

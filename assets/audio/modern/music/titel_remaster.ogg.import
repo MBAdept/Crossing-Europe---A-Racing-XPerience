@@ -14,6 +14,6 @@ dest_files=["res://.godot/imported/titel_remaster.ogg-0214772f23faf63cfc9db72a18
 
 loop=true
 loop_offset=15
-bpm=0
+bpm=128
 beat_count=0
 bar_beats=4
