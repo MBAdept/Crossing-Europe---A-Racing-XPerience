@@ -29,9 +29,10 @@ extends SceneTree
 ##              rendered at 1280x720 and cut out around the vehicle with whole-number magnification (what the
 ##              player sees, pixel for pixel), by day and with tail / brake lights at night;
 ##              --lane=<m> puts the vehicle that far to the side (the next lane: -3.5). --day: only the day tiles.
-##              --arcade: player cars - after each day tile the Arcade sprite (straight-ahead cell) drawn into the same
-##              frame without the model, anchored where the race draws it (the cell is made for 9 m; at another
-##              distance it is scaled by the ratio of the distances).
+##              --arcade: after each day tile the Arcade picture drawn into the same frame without the model: player
+##              cars the straight-ahead cell anchored where the race draws it (the cell is made for 9 m; at another
+##              distance it is scaled by the ratio of the distances); traffic and police cars the cell "c" with its
+##              anchor on the rear end; trucks and buses the rear face of the Arcade box (AS2b).
 ## --look=race (default): the race look of the vehicle materials - the class parameters the vehicle layer sets on
 ##              the shared materials (scripts/race3d/layers/vehicles.gd LOOK: clear coat mirroring the sky, base coat,
 ##              flakes, glass reflection; the mirrored sky = the sky of this rig) and, in --chase tiles, the fill light
@@ -351,9 +352,13 @@ func _chase_tiles(mid: String) -> Array:
 		dists = ["9", "30"]
 	var states: Array = [["Tag", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)], ["Nacht, Rücklicht", true, Vector4(1, 0, 0, 0), Vector4(1, 0, 0, 0)],
 		["Nacht, Bremslicht + Blinker links", true, Vector4(1, 1, 1, 0), Vector4(1, 0, 0, 0)]]
+	if _has_light(m, "beacon_a"):
+		states.append(["Nacht, Rücklicht + Blaulicht A", true, Vector4(1, 0, 0, 0), Vector4(1, 0, 1, 0)])
 	if _args.has("day"):
 		states = [states[0]]
-	var sprite := _player_sprite(set_id) if (_args.has("arcade") and mid.begins_with("player/")) else {}
+	var sprite := {}
+	if _args.has("arcade"):
+		sprite = _player_sprite(set_id) if mid.begins_with("player/") else _arcade_other(set_id)
 	for d: Variant in dists:
 		var dist := float(str(d))
 		var lod := ModelDB.lod_for_distance(m, dist) if not _args.has("lods") else str(_args["lods"]).split(",")[0]
@@ -364,9 +369,76 @@ func _chase_tiles(mid: String) -> Array:
 				"text": "%s · %s · Spielkamera %.0f m%s · %s" % [mid, lod, dist, "" if lane == 0.0 else " (%.1f m seitlich)" % lane, st[0]]})
 			if not sprite.is_empty() and not bool(st[1]):
 				# --arcade: the Arcade sprite of the player car next to it, from the same camera (see _arcade_sprite)
+				var note := ""
+				if sprite.has("dist") and absf(dist - float(sprite["dist"])) >= 0.01:
+					note = " (Zelle für %.0f m, skaliert)" % float(sprite["dist"])
+				elif sprite.has("half_len"):
+					note = " (Heck in %.0f m)" % (dist - float(sprite["half_len"]))
 				out.append({"arcade": sprite, "set": set_id, "model": mid, "lod": lod, "chase": dist, "lane": lane, "is_night": false,
-					"text": "%s · Arcade-Sprite · Spielkamera %.0f m%s" % [set_id, dist, "" if absf(dist - float(sprite["dist"])) < 0.01 else " (Zelle für %.0f m, skaliert)" % float(sprite["dist"])]})
+					"text": "%s · Arcade-%s · Spielkamera %.0f m%s" % [set_id, "Quader" if str(sprite.get("kind", "")) == "box" else "Sprite", dist, note]})
 	return out
+
+
+## The Arcade picture of a traffic, police or heavy set straight ahead (--arcade for the vehicles without perspective
+## cells): an ortho sprite ("pivot": "rear") is its cell "c" with the anchor on the rear end on the ground, scaled from its
+## pixels per metre; a box vehicle ("render": "box") is the rear face of its rearmost part, a flat rectangle at the rear
+## end - as Arcade draws them (road renderer: rear anchor, focal length / (distance x px per metre); box_vehicle.gd).
+func _arcade_other(set_id: String) -> Dictionary:
+	var man: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://assets/sprites/manifest.json"))
+	if not man is Dictionary or not ((man as Dictionary).get("sets", {}) as Dictionary).has(set_id):
+		return {}
+	var s: Dictionary = (man as Dictionary)["sets"][set_id]
+	var half := 0.5 * float((s.get("object", {}) as Dictionary).get("length_m", 4.5))
+	var file := "res://assets/sprites/" + str(s["file"])
+	if str(s.get("render", "")) == "box":
+		var best: Dictionary = {}
+		for p: Variant in s.get("parts", []):
+			var pd: Dictionary = p
+			if best.is_empty() or float((pd["z"] as Array)[0]) < float((best["z"] as Array)[0]):
+				best = pd
+		if best.is_empty() or not (best.get("faces", {}) as Dictionary).has("rear"):
+			return {}
+		return {"kind": "box", "file": file, "rect": best["faces"]["rear"], "x": best["x"], "y": best["y"], "half_len": half}
+	var angles: Array = s.get("angles", [])
+	var ia := angles.find("c")
+	if ia < 0 or not s.has("image_width_m"):
+		return {}
+	return {"kind": "ortho", "file": file, "cell": s["cell"], "cols": int(s.get("grid_cols", angles.size())), "index": ia,
+		"anchor": s["anchor"], "ppm": float((s["cell"] as Array)[0]) / float(s["image_width_m"]), "half_len": half}
+
+
+func _arcade_other_draw(img: Image, sp: Dictionary, dist: float, lane: float) -> void:
+	var sheet := Image.load_from_file(ProjectSettings.globalize_path(str(sp["file"])))
+	if sheet == null:
+		return
+	sheet.convert(Image.FORMAT_RGBA8)
+	var d_rear := maxf(1.0, dist - float(sp["half_len"]))
+	var s := GAME_FOCAL_PX / d_rear
+	var gx := 0.5 * float(GAME_SIZE.x) + lane * s
+	var gy := 0.45 * float(GAME_SIZE.y) + GAME_CAM_HEIGHT * s
+	var piece: Image
+	var pos: Vector2
+	if str(sp["kind"]) == "box":
+		var r: Array = sp["rect"]
+		piece = sheet.get_region(Rect2i(int(r[0]), int(r[1]), int(r[2]), int(r[3])))
+		var xr: Array = sp["x"]
+		var yr: Array = sp["y"]
+		var w := maxi(1, int(round((float(xr[1]) - float(xr[0])) * s)))
+		var h := maxi(1, int(round((float(yr[1]) - float(yr[0])) * s)))
+		piece.resize(w, h, Image.INTERPOLATE_LANCZOS)
+		pos = Vector2(gx + float(xr[0]) * s, gy - float(yr[1]) * s)
+	else:
+		var cw := int((sp["cell"] as Array)[0])
+		var ch := int((sp["cell"] as Array)[1])
+		var ia := int(sp["index"])
+		piece = sheet.get_region(Rect2i((ia % int(sp["cols"])) * cw, (ia / int(sp["cols"])) * ch, cw, ch))
+		var k := s / float(sp["ppm"])
+		var w := maxi(1, int(round(cw * k)))
+		var h := maxi(1, int(round(ch * k)))
+		piece.resize(w, h, Image.INTERPOLATE_LANCZOS)
+		pos = Vector2(gx - float((sp["anchor"] as Array)[0]) * w, gy - float((sp["anchor"] as Array)[1]) * h)
+	img.convert(Image.FORMAT_RGBA8)
+	img.blend_rect(piece, Rect2i(Vector2i.ZERO, piece.get_size()), Vector2i(int(round(pos.x)), int(round(pos.y))))
 
 
 ## The Arcade sprite of a player set (assets/sprites/manifest.json): its sheet, the cell of the straight-ahead angle
@@ -774,7 +846,10 @@ func _render(t: Dictionary) -> Image:
 	await RenderingServer.frame_post_draw
 	var img := _sv.get_texture().get_image()
 	if t.has("arcade"):
-		_arcade_sprite(img, t["arcade"], float(t["chase"]))
+		if (t["arcade"] as Dictionary).has("kind"):
+			_arcade_other_draw(img, t["arcade"], float(t["chase"]), float(t.get("lane", 0.0)))
+		else:
+			_arcade_sprite(img, t["arcade"], float(t["chase"]))
 	if chase:
 		# cut the vehicle out of the 1280 x 720 picture: the largest whole-number magnification that shows it all
 		var r := Rect2()

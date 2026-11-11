@@ -37,7 +37,7 @@ FOOT_H = 0.025               # feet: roof -> underside of the base
 BASE_H = 0.03                # dark base under the domes
 MID_W = 0.15                 # white middle module
 BEACON = "#2f5bff"           # lit colour of the beacons (cesprites.police.BEACON)
-DOME = dict(color="#4a6ee0", rough=0.04, opacity=0.34)     # clear blue dome over the modules (lod0, class glass)
+DOME = dict(color="#4a6ee0", rough=0.04, opacity=0.22)     # clear blue dome over the modules (lod0, class glass)
 WORD_RANK = 5000             # the words lie over everything else on their faces (a sticker over the door seams)
 WORD_RES = 2                 # curve resolution of the glyphs (cesprites.textgeo: 3) - an O of 16 cm is a 16-gon
 NOT_TOP = 0.75               # bands leave faces that look up more than this (cesprites.materials.surface)
@@ -633,8 +633,8 @@ def _bar_objects(sc, car, level):
             obs.append(MU.make("pol_reflector", bm, chrome, parent=root))
             bm = bmesh.new()
             for i in range(3):
-                cx = sgn * (MID_W / 2 + 0.105 + i * 0.165)
-                _rbox(MU, cx - 0.07, cx + 0.07, y - 0.1, y + 0.1, z_base + 0.012, z_base + 0.066, bm=bm,
+                cx = sgn * (MID_W / 2 + 0.02 + 0.079 + i * 0.168)      # three modules of 0.158 m from 0.095 to 0.59
+                _rbox(MU, cx - 0.079, cx + 0.079, y - 0.11, y + 0.11, z_base + 0.012, z_base + 0.066, bm=bm,
                       drop_bottom=True)
             ob = MU.make("pol_led", bm, M.basic("pol_led", "#18265e", rough=0.15), parent=root)
             MU.tag(ob, lamp=lamp_tags[sgn])
@@ -649,8 +649,9 @@ def _bar_objects(sc, car, level):
         # lod1 / lod2: the outline as blocks - base, two lit lens blocks, the white middle
         obs.append(MU.make("pol_base", _rbox(MU, -hw, hw, y - hd, y + hd, zb, z_base), base, parent=root))
         for sgn in (-1, 1):
-            xa, xb = sorted((sgn * (MID_W / 2 + 0.005), sgn * (hw - 0.005)))
-            ob = MU.make("pol_lens", _rbox(MU, xa, xb, y - hd + 0.012, y + hd - 0.012, z_base, z_top, drop_bottom=True),
+            # (the lit block of the far levels has the size of the modules of lod0, up to the top of the bar)
+            xa, xb = sorted((sgn * (MID_W / 2 + 0.02), sgn * (MID_W / 2 + 0.515)))
+            ob = MU.make("pol_lens", _rbox(MU, xa, xb, y - 0.11, y + 0.11, z_base, z_top, drop_bottom=True),
                          M.basic("pol_lens_far", "#18265e", rough=0.15), parent=root)
             ob["ce_lamp"] = lamp_tags[sgn]
             obs.append(ob)
