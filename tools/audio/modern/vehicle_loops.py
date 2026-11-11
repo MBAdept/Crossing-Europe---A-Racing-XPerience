@@ -57,13 +57,19 @@ MEASURE_S = 4.0                  # length of the resampled signal measured per p
 OGG_Q = 5.0                      # Vorbis quality of the noise loops (the music's quality)
 SIDE_B = 50                      # seed offset of the right side's own loop
 SLABS = 32                       # slabs per concrete pattern (5 m each: the pattern repeats every 160 m)
-# Seeds of the slow / fast slab pattern and the knee of their loudest joints, chosen among 400 seeds each (AU-R,
-# scratch slab_seeds2.py): a 32-slab pattern has a few more strong accents than AU-C1's 8 slabs, and at a given
-# loudness its peaks would reach the Modern limiter on concrete at 200 km/h. With these the loudness at the file's
-# -3 dBFS peak is 0.3 / 0.7 dB above the 8-slab loops (the peaks in the game stay as low as before) and the
-# third-octave balance stays within 1.0 / 1.3 dB of them.
-SLAB_SEEDS = (2872, 2977)
-SLAB_KNEE = 0.6
+# The 32-slab patterns are built from AU-C1's 8-slab designs (what the user heard): their 8 joints × 2 axles per
+# design, struck in a shuffled order (rounds of all 8, never the same joint twice in a row) and each time a little
+# harder or softer (SLAB_ACCENT_DB), never harder than the hardest joint of AU-C1 (AU-R2, KRITIK-R H1). Between 110
+# and 150 km/h both designs sound at once and in step (R3): their strikes meet on the same instants and add partly
+# coherently (every strike's decaying sines start at phase 0), so the balance of the pair depends on WHICH strike of
+# the slow design meets which of the fast one – AU-R's new random strikes shifted it by +1.7 dB at 400 Hz (130 km/h,
+# measured in the game by KRITIK-R, and in the model of scratch slab_search.py to 0.05 dB). With AU-C1's strikes
+# paired as in AU-C1 (slow joint j meets fast joint j, the same order for both designs) the pair keeps AU-C1's
+# balance at every speed.
+SLAB_SOURCE = {90.0: 2601, 180.0: 2701}    # ref_kmh -> seed of AU-C1's 8-slab design
+SLAB_SOURCE_N = 8
+SLAB_ORDER_SEED = 3301
+SLAB_ACCENT_DB = 1.2
 
 
 # ------------------------------------------------------------------------------------------------------------------
@@ -273,10 +279,13 @@ def tyre_deck(n: int, s: int = 0) -> np.ndarray:
     return y * (1.0 + 0.16 * slow(n, 1302 + s, 0.5, 2.5))
 
 
-def tyre_cobbles(n: int, ref_kmh: float, s: int = 0) -> np.ndarray:
+def tyre_cobbles(n: int, ref_kmh: float, s: int = 0, cap: float | None = None, draws: list | None = None) -> np.ndarray:
     """Setts (about 11.5 cm long) at ref_kmh: four wheels strike the sett edges ~120 times a second each, a little
     out of step; every strike a short thud (tyre and sett, 180-260 Hz) with a click, the suspension and body answer
-    below 90 Hz, now and then a rattle inside the car."""
+    below 90 Hz, now and then a rattle inside the car. cap (AU-R2, KRITIK-R M5): no stone is struck harder than
+    this (the log-normal draw of its strength is limited to cap; the draws stay the same): a longer loop draws more
+    stones, and its hardest ones stood out 1.6–3 dB above the hardest of AU-C1's 2.5-s loop, every loop length.
+    draws: if a list, the strength draws are appended to it."""
     rng = np.random.default_rng(1401 + s)
     v = ref_kmh / 3.6
     rate = v / 0.115
@@ -289,7 +298,10 @@ def tyre_cobbles(n: int, ref_kmh: float, s: int = 0) -> np.ndarray:
         for k in range(count):
             t = base + k * n / count + rng.uniform(-0.2, 0.2) * n / count
             at = int(t) % n
-            a = gain * float(np.exp(rng.normal(0.0, 0.38)))
+            d = float(rng.normal(0.0, 0.38))
+            if draws is not None:
+                draws.append(d)
+            a = gain * float(np.exp(d if cap is None else min(d, cap)))
             f0 = rng.uniform(180.0, 260.0)
             clip = mixc((1.0, decay_sine(f0, 0.0035, 0.02, rng.uniform(0, 6.28))), (0.3, noise_burst(rng, 0.006, 900.0, 3200.0, 0.0008)))
             place(out, clip, at, a)
@@ -391,37 +403,86 @@ def tyre_rumble(n: int, rate_hz: float, s: int = 0) -> np.ndarray:
     return 2.8 * r * np.tanh(y / (2.8 * r))
 
 
-def soft_knee(y: np.ndarray, knee: float) -> np.ndarray:
-    """Leaves every sample below knee × peak as it is and bends the few above it softly (tanh) towards the peak."""
-    p = float(np.max(np.abs(y)))
-    t = knee * p
-    a = np.abs(y)
-    return np.sign(y) * np.where(a <= t, a, t + (p - t) * np.tanh((a - t) / max(p - t, 1e-12)))
+AXLES = ((0.0, 1.0), (1.0, 0.85))   # (share of wheelbase / v after the front axle, gain) of the two strikes
 
 
-def slab_loop(ref_kmh: float, seed: int, slabs: int = 8, slab_m: float = 5.0, wheelbase_m: float = 2.7,
-              knee: float = 1.0) -> np.ndarray:
-    """Concrete slabs: at ref_kmh the front and then the rear axle strike the sealed joint every slab_m – the
-    classic 'ta-tock' of an old concrete motorway. The ratio of the gaps (wheelbase / slab) does not depend on the
-    speed, so the runtime plays the loop at pitch v / ref and the rhythm is exact at every speed. knee < 1: the
-    loudest joints softly bent above knee × peak (soft_knee): a long pattern has a few more strong accents than a
-    short one, and their peaks would reach the limiter at 200 km/h (AU-R)."""
+def slab_strikes(ref_kmh: float, seed: int, slabs: int = 8) -> list[tuple[float, np.ndarray, np.ndarray]]:
+    """The joints of slab_loop(ref_kmh, seed, slabs) one by one: [(accent dB, front strike, rear strike), …] – the
+    same random draws in the same order, so they are bit-identical to that loop's. Every strike: the thump of the
+    tyre over the joint (74-84 Hz falling to 52-60 Hz), the tack of the edge (noise 0.5-2.6 kHz) and a slap
+    (280-330 Hz); a faster car strikes the edge harder and shorter."""
     rng = np.random.default_rng(seed)
-    v = ref_kmh / 3.6
-    per = slab_m / v
-    n = int(round(slabs * per * SR))
-    out = np.zeros(n)
-    sharp = 90.0 / ref_kmh            # a faster car strikes the edge harder and shorter
-    for k in range(slabs):
-        a = 10.0 ** (rng.normal(0.0, 2.2) / 20.0)
-        for axle, (dt, g) in enumerate(((0.0, 1.0), (wheelbase_m / v, 0.85))):
+    sharp = 90.0 / ref_kmh
+    out = []
+    for _k in range(slabs):
+        acc = float(rng.normal(0.0, 2.2))
+        clips = []
+        for _axle in AXLES:
             thump = decay_sine(rng.uniform(74.0, 84.0), 0.035 * sharp ** 0.5, 0.18, 0.0, rng.uniform(52.0, 60.0), 0.0015)
             tack = noise_burst(rng, 0.02, 500.0, 2600.0, 0.0025 * sharp ** 0.5)
             slap = decay_sine(rng.uniform(280.0, 330.0), 0.010, 0.05)
-            clip = mixc((1.0, thump), (1.0, tack), (0.5, slap))
-            place(out, clip, int(round((k * per + dt) * SR)) % n, a * g)
-    if knee < 1.0:
-        out = soft_knee(out - float(np.mean(out)), knee)
+            clips.append(mixc((1.0, thump), (1.0, tack), (0.5, slap)))
+        out.append((acc, clips[0], clips[1]))
+    return out
+
+
+def _slab_place(out: np.ndarray, k: int, per: float, gap: float, strike: tuple, a: float) -> None:
+    n = len(out)
+    for clip, (share, g) in zip(strike[1:], AXLES):
+        place(out, clip, int(round((k * per + share * gap) * SR)) % n, a * g)
+
+
+def slab_loop(ref_kmh: float, seed: int, slabs: int = 8, slab_m: float = 5.0, wheelbase_m: float = 2.7) -> np.ndarray:
+    """Concrete slabs (AU-C1's design, the reference of the patterns below): at ref_kmh the front and then the rear
+    axle strike the sealed joint every slab_m – the classic 'ta-tock' of an old concrete motorway. The ratio of the
+    gaps (wheelbase / slab) does not depend on the speed, so the runtime plays the loop at pitch v / ref and the
+    rhythm is exact at every speed."""
+    v = ref_kmh / 3.6
+    per = slab_m / v
+    out = np.zeros(int(round(slabs * per * SR)))
+    for k, strike in enumerate(slab_strikes(ref_kmh, seed, slabs)):
+        _slab_place(out, k, per, wheelbase_m / v, strike, 10.0 ** (strike[0] / 20.0))
+    return out
+
+
+def slab_order(slabs: int, source_n: int, seed: int) -> list[int]:
+    """Which joint of the source each slab of a pattern strikes: rounds of a shuffled order of all source joints,
+    never the same joint twice in a row."""
+    rng = np.random.default_rng(seed)
+    order: list[int] = []
+    while len(order) < slabs:
+        p = [int(j) for j in rng.permutation(source_n)]
+        if order and p[0] == order[-1]:
+            p[0], p[-1] = p[-1], p[0]
+        order += p
+    return order[:slabs]
+
+
+def slab_accents(slabs: int, seed: int, spread_db: float) -> np.ndarray:
+    """Per slab of a pattern: how much harder (dB) its joint is struck than in the source (normal, spread_db)."""
+    return np.random.default_rng(seed + 1).normal(0.0, spread_db, slabs)
+
+
+def slab_pattern(ref_kmh: float, source_seed: int, order: list[int], accents_db: np.ndarray, top_db: float = 0.0,
+                 slab_m: float = 5.0, wheelbase_m: float = 2.7) -> np.ndarray:
+    """A concrete pattern of len(order) slabs made of the joints of AU-C1's design slab_loop(ref_kmh, source_seed)
+    (AU-R2): slab k strikes the source's joint order[k] with that joint's accent + accents_db[k], but never harder
+    than top_db relative to the source's hardest strike (peak of accent × strike). The same order and accents for
+    both designs keep AU-C1's pairing of their strikes (see SLAB_SOURCE)."""
+    strikes = slab_strikes(ref_kmh, source_seed, SLAB_SOURCE_N)
+    v = ref_kmh / 3.6
+    per = slab_m / v
+    out = np.zeros(int(round(len(order) * per * SR)))
+
+    def strike_peak(s, a):
+        return a * max(float(np.max(np.abs(s[1]))) * AXLES[0][1], float(np.max(np.abs(s[2]))) * AXLES[1][1])
+
+    top = max(strike_peak(s, 10.0 ** (s[0] / 20.0)) for s in strikes) * 10.0 ** (top_db / 20.0)
+    for k, j in enumerate(order):
+        s = strikes[j]
+        a = 10.0 ** ((s[0] + float(accents_db[k])) / 20.0)
+        a = min(a, a * top / max(strike_peak(s, a), 1e-12))
+        _slab_place(out, k, per, wheelbase_m / v, s, a)
     return out
 
 
@@ -570,15 +631,19 @@ def loops() -> list[tuple]:
                  "Schnee: weiches, dichtes Knirschen gepressten Schnees, ohne Steinschläge, leises dumpfes Grollen")
     out += _pair("tyre_rumble", 4.1, 5.3, lambda n, s: tyre_rumble(n, 100.0, s), "MRoad", 108.0, 1.0,
                  "Profilierte Randlinie / Rüttelstreifen: 100 Schläge je Sekunde bei Tonhöhe 1 (Abstand 30 cm bei 108 km/h)")
+    order = slab_order(SLABS, SLAB_SOURCE_N, SLAB_ORDER_SEED)
+    accents = slab_accents(SLABS, SLAB_ORDER_SEED, SLAB_ACCENT_DB)
+
+    def slabs(ref_kmh: float) -> np.ndarray:
+        src = SLAB_SOURCE[ref_kmh]
+        return match_loop(slab_pattern(ref_kmh, src, order, accents), slab_loop(ref_kmh, src))
     out += [
-        ("slab_slow", None, lambda n: match_loop(slab_loop(90.0, SLAB_SEEDS[0], SLABS, knee=SLAB_KNEE), slab_loop(90.0, 2601)),
-         "MRoad", 90.0, 1.0,
-         f"Betonplatten 5 m, Achsabstand 2,7 m: Vorder- und Hinterachse über die Fuge, entworfen bei 90 km/h ({SLABS} Platten)",
-         "wav", ""),
-        ("slab_fast", None, lambda n: match_loop(slab_loop(180.0, SLAB_SEEDS[1], SLABS, knee=SLAB_KNEE), slab_loop(180.0, 2701)),
-         "MRoad", 180.0, 1.0,
-         f"Betonplatten 5 m, Achsabstand 2,7 m, entworfen bei 180 km/h (härterer, kürzerer Schlag; {SLABS} Platten)",
-         "wav", ""),
+        ("slab_slow", None, lambda n: slabs(90.0), "MRoad", 90.0, 1.0,
+         f"Betonplatten 5 m, Achsabstand 2,7 m: Vorder- und Hinterachse über die Fuge, entworfen bei 90 km/h ({SLABS} Platten "
+         "aus den 8 Fugen von AU-C1, gemischte Folge)", "wav", ""),
+        ("slab_fast", None, lambda n: slabs(180.0), "MRoad", 180.0, 1.0,
+         f"Betonplatten 5 m, Achsabstand 2,7 m, entworfen bei 180 km/h (härterer, kürzerer Schlag; {SLABS} Platten aus den "
+         "8 Fugen von AU-C1, dieselbe Folge wie das langsame Muster)", "wav", ""),
         ("squeal", 2.0, lambda n: squeal(n, 820.0), "MRoad", 0.0, 0.0,
          "Reifenquietschen an der Haftgrenze: Ton 820 Hz mit Obertönen, schwankend und flatternd, Reibrauschen", "wav", ""),
         ("scrub", 1.5, lambda n: scrub(n), "MRoad", 0.0, 0.0,

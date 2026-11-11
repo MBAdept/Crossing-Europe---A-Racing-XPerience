@@ -75,6 +75,8 @@ class Layer:
 	var has_sound := false
 	var rng: RandomNumberGenerator = null    ## start points (null: from the start of the loop)
 	var start_at := -1.0                     ## >= 0: a player that starts now starts at this share of its loop
+	var hold_start := false                  ## drive() does not start a player itself: it lists it in pending
+	var pending: Array[int] = []             ## players drive() would have started this frame (hold_start)
 	var curve: Array = []                    ## = curves[0] (tools)
 	var lufs := -20.0                        ## = lufs_1[0]
 	var length_s := 1.0                      ## = lengths[0]
@@ -117,9 +119,18 @@ class Layer:
 		if pl != null and bool(pl.get("playing")):
 			pl.call("play", fposmod(at_share, 1.0) * lengths[i])
 
+	## Starts the players drive() held back (hold_start) at a share of their loops.
+	func start_pending(at_share: float) -> void:
+		for i in pending:
+			var pl: Node = players[i] if i < players.size() else null
+			if pl != null and not bool(pl.get("playing")):
+				pl.call("play", fposmod(at_share, 1.0) * lengths[i])
+		pending.clear()
+
 	func drive(targets: PackedFloat32Array, p: float, k: float) -> void:
 		pitch = clampf(p, 0.05, 4.0)
 		level = 0.0
+		pending.clear()
 		for i in gains.size():
 			gains[i] = lerpf(gains[i], maxf(targets[i], 0.0), clampf(k, 0.0, 1.0))
 			if gains[i] < ModernAudioPan.SILENT and targets[i] <= 0.0:
@@ -143,6 +154,9 @@ class Layer:
 			if absf(float(pl.get("pitch_scale")) - pi) > 0.0005:
 				pl.set("pitch_scale", pi)
 			if not pl.get("playing"):
+				if hold_start:
+					pending.append(i)
+					continue
 				var at := start_at if start_at >= 0.0 else (rng.randf() if rng != null else float(i) / float(gains.size()))
 				pl.call("play", at * lengths[i])
 		start_at = -1.0
@@ -255,6 +269,7 @@ var zone_gust := 1.0
 var snow_amount := 0.0
 var squeal_factor := 1.0                  ## pitch factor of the current squeal (drawn when a squeal starts)
 var slab_realigned := 0                   ## times the quieter slab loop was put back in step (tests, debug)
+var slab_locks := 0                       ## times the slab loops took the AudioServer lock (tests, debug)
 
 var _vp: SubViewport = null
 var _joint_voices := ModernAudioVoices.new()
@@ -566,6 +581,10 @@ func _step_drift(dt: float) -> void:
 ## more than slabs.align_ms apart. Godot reports a playback position in steps of 64 frames (measured: the distance
 ## of two loops in step reads 0, 2 or 4 ms at 130 km/h), so the threshold stays above that (6 ms) and a start lands
 ## within about 1 ms of the running loop.
+## The lock is taken only in the frames that need it (AU-R2, KRITIK-R M1 – AU-R locked in every frame on concrete
+## and the main thread waited for the mixer: road 0.17 → 0.38 ms per frame, single frames up to 17 ms): when a loop
+## starts (drive() holds the start back, hold_start, and the start happens here under the lock) and for the
+## comparison every SLAB_CHECK_S while both play – never while the loops simply run.
 func _update_slabs(dt: float, v: float, sl: String, sr: String, fade: float, k: float) -> void:
 	var conc := (0.5 if sl == "concrete" else 0.0) + (0.5 if sr == "concrete" else 0.0)
 	var xf := _ramp(v, _slab_xfade)
@@ -575,30 +594,40 @@ func _update_slabs(dt: float, v: float, sl: String, sr: String, fade: float, k: 
 	if conc == 0.0 and slab_slow.level < ModernAudioPan.SILENT and slab_fast.level < ModernAudioPan.SILENT:
 		return
 	var live := not slab_slow.players.is_empty() and slab_slow.players[0] != null
-	if live:
-		AudioServer.lock()
-	var run: Layer = slab_slow if slab_slow.playing() else (slab_fast if slab_fast.playing() else null)
-	var at := run.share() if run != null else _rng_start.randf()
 	for pair: Array in [[slab_slow, 1.0 - xf], [slab_fast, xf]]:
 		var l: Layer = pair[0]
 		if not l.has_sound:
 			continue
 		var p := clampf(maxf(v, MIN_SPEED) / maxf(l.ref_kmh, 1.0), 0.15, 3.0)
 		_t1[0] = _gain(l, target, p, false) * conc * float(pair[1]) * fade
-		l.start_at = at
+		l.hold_start = live
 		l.drive(_t1, p, k)
-	if live:
-		_slab_check += dt
-		if _slab_check >= SLAB_CHECK_S and slab_slow.playing() and slab_fast.playing():
-			_slab_check = 0.0
-			var d := fposmod(slab_fast.share() - slab_slow.share() + 0.5, 1.0) - 0.5
-			var period_s := slab_slow.length_s / maxf(slab_slow.pitch, 0.01)
-			if absf(d) * period_s * 1000.0 > _slab_align_ms:
-				var loud := slab_slow.level >= slab_fast.level
-				var quiet: Layer = slab_fast if loud else slab_slow
-				quiet.restart(0, (slab_slow if loud else slab_fast).share())
-				slab_realigned += 1
-		AudioServer.unlock()
+	if not live:
+		return
+	var starting := not slab_slow.pending.is_empty() or not slab_fast.pending.is_empty()
+	_slab_check += dt
+	var check := false
+	if _slab_check >= SLAB_CHECK_S:
+		_slab_check = 0.0
+		check = slab_slow.playing() and slab_fast.playing()
+	if not starting and not check:
+		return
+	AudioServer.lock()
+	slab_locks += 1
+	if starting:
+		var run: Layer = slab_slow if slab_slow.playing() else (slab_fast if slab_fast.playing() else null)
+		var at := run.share() if run != null else _rng_start.randf()
+		slab_slow.start_pending(at)
+		slab_fast.start_pending(at)
+	elif check:
+		var d := fposmod(slab_fast.share() - slab_slow.share() + 0.5, 1.0) - 0.5
+		var period_s := slab_slow.length_s / maxf(slab_slow.pitch, 0.01)
+		if absf(d) * period_s * 1000.0 > _slab_align_ms:
+			var loud := slab_slow.level >= slab_fast.level
+			var quiet: Layer = slab_fast if loud else slab_slow
+			quiet.restart(0, (slab_slow if loud else slab_fast).share())
+			slab_realigned += 1
+	AudioServer.unlock()
 
 
 func _update_squeal(v: float, us: float, st: Dictionary, wet_amt: float, loose: float, k: float) -> void:
@@ -836,4 +865,4 @@ func debug_state() -> Dictionary:
 		"snow_crunch": snow.level if snow != null else 0.0, "surfaces": surf,
 		"slab": maxf(slab_slow.level, slab_fast.level) if slab_slow != null else 0.0, "zone_db": zone_db,
 		"snow": snow_amount, "joints": joints, "passes": passes, "played": played.duplicate(), "players": playing,
-		"slab_realigned": slab_realigned}
+		"slab_realigned": slab_realigned, "slab_locks": slab_locks}
