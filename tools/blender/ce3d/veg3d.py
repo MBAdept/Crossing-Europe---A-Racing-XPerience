@@ -9,7 +9,8 @@ seed -> same silhouette), a low-poly shadow caster and an impostor rendered from
   shadow   hull of the crown + trunk (vpbr)                     the cheap caster for "Schatten: Mittel"
   impostor picture of lod0 (albedo with soft shading, lit by billboard.gdshader), the level beyond lod1
 Bushes and ground cover (builder "bush", kind plant): core + cards in the class leaves only (ONE draw call),
-lod0 <= 400 and lod1 <= 120 triangles, no impostor. Grass tufts (builder "grass"): crossed blade cards (the blades stand upright, a tuft is never seen edge-on: three planes).
+lod0 <= 400 and lod1 <= 120 triangles, no impostor. Grass tufts (builder "grass"): three crossed upright blade
+cards per tuft (never all seen edge-on).
 
 Leaf card vertex data (class "leaves"): UV = cluster of the leaf atlas, COLOR = (sway amplitude by height,
 phase per card, stiffness, brightness), NORMAL = outwards from the crown (blend of the directions from the crown

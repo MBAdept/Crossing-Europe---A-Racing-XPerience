@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/power_pylon",
+ "model": {
+  "kind": "furniture",
+  "object": {"width_m": 17.5, "height_m": 47, "length_m": 7.2},
+  "extent_m": {"left": 8.68, "right": 8.68},
+  "aabb": [-8.682, 0, -3.743, 8.682, 47.156, 3.743],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 220,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/power_pylon/lod0_body.res",
+      "classes": ["baked_cutout"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/power_pylon/albedo.png"},
+  "roughness": 0.55,
+  "auto_lod": false,
+  "tags": ["prop", "energy"],
+  "bytes": 168697,
+  "hash": "5782fb543acf3f465dbae46bb462981687cf0208"
+ },
+ "sets": {
+  "props/power_pylon": {"model": "props/power_pylon"}
+ }
+}

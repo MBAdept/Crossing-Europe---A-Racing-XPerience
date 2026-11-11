@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/delineator",
+ "model": {
+  "kind": "furniture",
+  "object": {"width_m": 0.12, "height_m": 1, "length_m": 0.1},
+  "extent_m": {"left": 0.06, "right": 0.06},
+  "aabb": [-0.06, 0, -0.08, 0.06, 1, 0.02],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 12,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/delineator/lod0_body.res",
+      "classes": ["baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/delineator/albedo.png", "emit": "props/delineator/emit.png"},
+  "roughness": 0.45,
+  "auto_lod": false,
+  "tags": ["prop", "road"],
+  "bytes": 3437,
+  "hash": "921873a59cd4e85f566bc8730127a21ec8c31a47"
+ },
+ "sets": {
+  "props/delineator": {"model": "props/delineator"}
+ }
+}

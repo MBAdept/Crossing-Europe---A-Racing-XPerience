@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 100000,
-    "tris": 1109,
+    "tris": 1107,
     "parts": [
      {
       "node": "body",
@@ -24,9 +24,9 @@
   "lights": [
    {
     "role": "lights",
-    "pos": [3.125, 3.2, 0.12],
-    "dir": [1, 0, 0],
-    "size": 0.686,
+    "pos": [3, 3.2, 0.22],
+    "dir": [0, 0, 1],
+    "size": 0.613,
     "color": "#ffd890"
    }
   ],
@@ -34,8 +34,8 @@
   "roughness": 0.9,
   "auto_lod": false,
   "tags": ["prop", "building", "mirror_left"],
-  "bytes": 871532,
-  "hash": "486488b782809016fdbfa4ca1a65f0ed66faaa71"
+  "bytes": 871498,
+  "hash": "a51fd523b16ef2bcc3d3a8fed5577be09545755b"
  },
  "sets": {
   "props/farmhouse": {"model": "props/farmhouse"}

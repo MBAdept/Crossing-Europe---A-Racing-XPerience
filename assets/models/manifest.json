@@ -400,6 +400,41 @@
    "bytes": 1573290,
    "hash": "c0eeb5f1e9cd7330e81d2e86f6312ca92d5c75b1"
   },
+  "props/barn": {
+   "kind": "building",
+   "object": {"width_m": 11, "height_m": 8.1, "length_m": 14},
+   "extent_m": {"left": 10.93, "right": 5.24},
+   "aabb": [-5.513, 0, -14.5, 5.513, 8.1, 0.5],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 290,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/barn/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [0, 4.4, 0.255],
+     "dir": [0, 0, 1],
+     "size": 0.631,
+     "color": "#ffd890"
+    }
+   ],
+   "textures": {"albedo": "props/barn/albedo.png"},
+   "roughness": 0.85,
+   "auto_lod": false,
+   "tags": ["prop", "building", "mirror_left"],
+   "bytes": 437126,
+   "hash": "d1ac0b984e4c8730aa1cbbb60ad41177e6e7a3c4"
+  },
   "props/bush_low": {
    "kind": "plant",
    "object": {"width_m": 5, "height_m": 1.3},
@@ -590,6 +625,67 @@
    "bytes": 257266,
    "hash": "cc77617300f18c4f4336da524d8b241c071ec528"
   },
+  "props/customs_booth": {
+   "kind": "building",
+   "object": {"width_m": 4.4, "height_m": 3.05, "length_m": 3.8},
+   "extent_m": {"left": 2.2, "right": 2.2},
+   "aabb": [-2.2, 0, -3.2, 2.2, 3.055, 0.7],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 206,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/customs_booth/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [0, 2.72, 0.7],
+     "dir": [0, 0, 1],
+     "size": 0.653,
+     "color": "#ffe2a0"
+    }
+   ],
+   "textures": {"albedo": "props/customs_booth/albedo.png"},
+   "roughness": 0.6,
+   "auto_lod": false,
+   "tags": ["prop", "border"],
+   "bytes": 70348,
+   "hash": "31c59ad9fbb27fe60b7111a5eaf38ec4e0cc8288"
+  },
+  "props/delineator": {
+   "kind": "furniture",
+   "object": {"width_m": 0.12, "height_m": 1, "length_m": 0.1},
+   "extent_m": {"left": 0.06, "right": 0.06},
+   "aabb": [-0.06, 0, -0.08, 0.06, 1, 0.02],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 12,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/delineator/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/delineator/albedo.png", "emit": "props/delineator/emit.png"},
+   "roughness": 0.45,
+   "auto_lod": false,
+   "tags": ["prop", "road"],
+   "bytes": 3437,
+   "hash": "921873a59cd4e85f566bc8730127a21ec8c31a47"
+  },
   "props/farmhouse": {
    "kind": "building",
    "object": {"width_m": 11.9, "height_m": 8.6, "length_m": 17},
@@ -599,7 +695,7 @@
     {
      "name": "lod0",
      "max_dist_m": 100000,
-     "tris": 1109,
+     "tris": 1107,
      "parts": [
       {
        "node": "body",
@@ -612,9 +708,9 @@
    "lights": [
     {
      "role": "lights",
-     "pos": [3.125, 3.2, 0.12],
-     "dir": [1, 0, 0],
-     "size": 0.686,
+     "pos": [3, 3.2, 0.22],
+     "dir": [0, 0, 1],
+     "size": 0.613,
      "color": "#ffd890"
     }
    ],
@@ -622,8 +718,118 @@
    "roughness": 0.9,
    "auto_lod": false,
    "tags": ["prop", "building", "mirror_left"],
-   "bytes": 871532,
-   "hash": "486488b782809016fdbfa4ca1a65f0ed66faaa71"
+   "bytes": 871498,
+   "hash": "a51fd523b16ef2bcc3d3a8fed5577be09545755b"
+  },
+  "props/fuel_pump": {
+   "kind": "furniture",
+   "object": {"width_m": 1.3, "height_m": 4.35, "length_m": 3.8},
+   "extent_m": {"left": 2.36, "right": 0.46},
+   "aabb": [-0.626, 0, -3.8, 0.626, 4.34, 0],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 384,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/fuel_pump/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/fuel_pump/albedo.png", "emit": "props/fuel_pump/emit.png"},
+   "roughness": 0.5,
+   "auto_lod": false,
+   "tags": ["prop", "fuel"],
+   "bytes": 113030,
+   "hash": "929da33e67d2f5bdb4da389114705d706f093c35"
+  },
+  "props/fuel_station": {
+   "kind": "building",
+   "object": {"width_m": 31, "height_m": 7, "length_m": 12},
+   "extent_m": {"left": 9.94, "right": 18.69},
+   "aabb": [-9.8, 0, -12.2, 19.7, 7, -1.2],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 1480,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/fuel_station/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [-4.6, 4.89, -8.3667],
+     "dir": [0, -1, 0],
+     "size": 1.236,
+     "color": "#fff0cf"
+    },
+    {
+     "role": "lights",
+     "pos": [-4.6, 4.89, -3.3667],
+     "dir": [0, -1, 0],
+     "size": 1.236,
+     "color": "#fff0cf"
+    },
+    {
+     "role": "lights",
+     "pos": [-3.8, 4.89, -8.0333],
+     "dir": [0, -1, 0],
+     "size": 1.236,
+     "color": "#fff0cf"
+    },
+    {
+     "role": "lights",
+     "pos": [-3.8, 4.89, -3.0333],
+     "dir": [0, -1, 0],
+     "size": 1.236,
+     "color": "#fff0cf"
+    },
+    {
+     "role": "lights",
+     "pos": [3.8, 4.89, -8.3667],
+     "dir": [0, -1, 0],
+     "size": 1.236,
+     "color": "#fff0cf"
+    },
+    {
+     "role": "lights",
+     "pos": [3.8, 4.89, -3.3667],
+     "dir": [0, -1, 0],
+     "size": 1.236,
+     "color": "#fff0cf"
+    },
+    {
+     "role": "lights",
+     "pos": [4.6, 4.89, -8.0333],
+     "dir": [0, -1, 0],
+     "size": 1.236,
+     "color": "#fff0cf"
+    },
+    {
+     "role": "lights",
+     "pos": [4.6, 4.89, -3.0333],
+     "dir": [0, -1, 0],
+     "size": 1.236,
+     "color": "#fff0cf"
+    }
+   ],
+   "textures": {"albedo": "props/fuel_station/albedo.png", "emit": "props/fuel_station/emit.png"},
+   "roughness": 0.6,
+   "auto_lod": false,
+   "tags": ["prop", "fuel", "wide"],
+   "bytes": 267630,
+   "hash": "d1b16558edcb169abb5e6292c5b22e6eba09b1ef"
   },
   "props/haybale": {
    "kind": "furniture",
@@ -650,6 +856,58 @@
    "tags": ["prop", "farm"],
    "bytes": 202932,
    "hash": "e159117f0ca19a5e7498dadaeebf41696333bc58"
+  },
+  "props/power_pylon": {
+   "kind": "furniture",
+   "object": {"width_m": 17.5, "height_m": 47, "length_m": 7.2},
+   "extent_m": {"left": 8.68, "right": 8.68},
+   "aabb": [-8.682, 0, -3.743, 8.682, 47.156, 3.743],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 220,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/power_pylon/lod0_body.res",
+       "classes": ["baked_cutout"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/power_pylon/albedo.png"},
+   "roughness": 0.55,
+   "auto_lod": false,
+   "tags": ["prop", "energy"],
+   "bytes": 168697,
+   "hash": "5782fb543acf3f465dbae46bb462981687cf0208"
+  },
+  "props/radar_camera": {
+   "kind": "furniture",
+   "object": {"width_m": 0.9, "height_m": 3.05, "length_m": 0.8},
+   "extent_m": {"left": 0.45, "right": 0.45},
+   "aabb": [-0.45, 0, -0.4, 0.45, 3.05, 0.4],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 328,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/radar_camera/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/radar_camera/albedo.png"},
+   "roughness": 0.45,
+   "auto_lod": false,
+   "tags": ["prop", "road"],
+   "bytes": 24864,
+   "hash": "3fec62f09f48e58582feb3f225698a959dd4e4f1"
   },
   "props/streetlight": {
    "kind": "furniture",
@@ -899,6 +1157,32 @@
    "tags": ["prop", "energy"],
    "bytes": 9716,
    "hash": "9af1d31968aa6478dcfe886153893f9b25a1afc5"
+  },
+  "props/windmill": {
+   "kind": "building",
+   "object": {"width_m": 25, "height_m": 32.3, "length_m": 9},
+   "extent_m": {"left": 10.9, "right": 10.9},
+   "aabb": [-10.9, 0, -10.6, 10.9, 30.7, 1.4],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 1640,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/windmill/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/windmill/albedo.png", "emit": "props/windmill/emit.png"},
+   "roughness": 0.9,
+   "auto_lod": false,
+   "tags": ["prop", "building"],
+   "bytes": 853363,
+   "hash": "f92413d35ae3c315f23d4bcbd466c567c75d83a3"
   },
   "traffic/hatch": {
    "kind": "vehicle",
@@ -1838,10 +2122,7 @@
    "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.65},
    "paint": {"paint": "#f2f2ef", "paint2": "#1c4f96", "paint3": "#2f9a4a", "metal": 0.3}
   },
-  "props/barn": {
-   "fallback": "sprite",
-   "object": {"width_m": 11.0, "height_m": 8.1, "length_m": 14.0}
-  },
+  "props/barn": {"model": "props/barn"},
   "props/bridge_lamp": {
    "fallback": "sprite",
    "object": {"width_m": 2.2, "height_m": 4.85, "length_m": 0.72}
@@ -2073,14 +2354,8 @@
   },
   "props/cover_bush": {"model": "props/cover_bush", "modern_only": true},
   "props/cover_grass": {"model": "props/cover_grass", "modern_only": true},
-  "props/customs_booth": {
-   "fallback": "sprite",
-   "object": {"width_m": 4.4, "height_m": 3.05, "length_m": 3.8}
-  },
-  "props/delineator": {
-   "fallback": "sprite",
-   "object": {"width_m": 0.12, "height_m": 1.0, "length_m": 0.1}
-  },
+  "props/customs_booth": {"model": "props/customs_booth"},
+  "props/delineator": {"model": "props/delineator"},
   "props/factory": {
    "fallback": "sprite",
    "object": {"width_m": 34.0, "height_m": 34.5, "length_m": 29.0}
@@ -2090,14 +2365,8 @@
    "fallback": "sprite",
    "object": {"width_m": 182.0, "height_m": 38.0, "length_m": 28.0}
   },
-  "props/fuel_pump": {
-   "fallback": "sprite",
-   "object": {"width_m": 1.3, "height_m": 4.35, "length_m": 3.8}
-  },
-  "props/fuel_station": {
-   "fallback": "sprite",
-   "object": {"width_m": 31.0, "height_m": 7.0, "length_m": 12.0}
-  },
+  "props/fuel_pump": {"model": "props/fuel_pump"},
+  "props/fuel_station": {"model": "props/fuel_station"},
   "props/haybale": {"model": "props/haybale"},
   "props/heather": {
    "fallback": "sprite",
@@ -2111,14 +2380,8 @@
    "fallback": "sprite",
    "object": {"width_m": 16.0, "height_m": 4.5, "length_m": 4.6}
   },
-  "props/power_pylon": {
-   "fallback": "sprite",
-   "object": {"width_m": 17.5, "height_m": 47.0, "length_m": 7.2}
-  },
-  "props/radar_camera": {
-   "fallback": "sprite",
-   "object": {"width_m": 0.9, "height_m": 3.05, "length_m": 0.8}
-  },
+  "props/power_pylon": {"model": "props/power_pylon"},
+  "props/radar_camera": {"model": "props/radar_camera"},
   "props/rock_a": {
    "fallback": "sprite",
    "object": {"width_m": 3.6, "height_m": 1.6, "length_m": 2.4}
@@ -2165,10 +2428,7 @@
    "object": {"width_m": 7.0, "height_m": 19.3}
   },
   "props/wind_turbine": {"model": "props/wind_turbine"},
-  "props/windmill": {
-   "fallback": "sprite",
-   "object": {"width_m": 25.0, "height_m": 32.3, "length_m": 9.0}
-  },
+  "props/windmill": {"model": "props/windmill"},
   "showroom/gran_turismo": {
    "fallback": "sprite",
    "object": {"width_m": 1.95, "length_m": 4.95, "height_m": 1.285}

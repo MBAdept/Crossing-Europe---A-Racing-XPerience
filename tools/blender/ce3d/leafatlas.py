@@ -205,11 +205,11 @@ def halo(img, alpha=HALO_ALPHA, px=HALO_PX, scissor=SCISSOR):
     return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), "RGBA")
 
 
-def bleed(img, steps=24):
-    """Spreads the colour of opaque texels into the transparent ones (alpha unchanged)."""
+def bleed(img, steps=24, scissor=SCISSOR):
+    """Spreads the colour of opaque texels (alpha >= scissor) into the transparent ones (alpha unchanged)."""
     a = np.array(img).astype(np.float64)
     rgb, al = a[:, :, :3], a[:, :, 3:4] / 255.0
-    w0 = (al >= SCISSOR).astype(np.float64)
+    w0 = (al >= scissor).astype(np.float64)
     acc = rgb * w0
     wsum = w0.copy()
     for _ in range(steps):

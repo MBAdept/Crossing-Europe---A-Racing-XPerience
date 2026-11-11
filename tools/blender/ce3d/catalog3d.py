@@ -101,6 +101,7 @@ BUILDER_CODE.update({
     "grass": ["ce3d/veg3d.py", "ce3d/leafatlas.py"],
     "building": ["ce3d/props3d.py", "ce3d/bake.py", "cesprites/props.py", "cesprites/props_buildings.py",
                  "render_all.py"],
+    "lattice": ["ce3d/props3d.py", "ce3d/leafatlas.py", "cesprites/props.py", "render_all.py"],
 })
 AO_RURAL = dict(distance=1.6, floor=0.42, gamma=0.9, samples=24)
 MODELS.update({
@@ -135,6 +136,43 @@ MODELS.update({
     "props/haybale": dict(builder="building", source="props/haybale", kind="furniture", atlas=(512, 512),
                           ppm_max=160.0, roughness=0.95, view="allround", openings=False, gutters=False,
                           ao=dict(distance=0.8, floor=0.5, gamma=1.0, samples=24)),
+    # fuel station: shop windows cut in, lamp panels under the canopy (anchors: light pools at night), the haze
+    # of the sprite is left out; pump and radar camera: one atlas (furniture: one draw call), lamps in its light
+    "props/fuel_station": dict(builder="building", source="props/fuel_station", kind="building", atlas=(1024, 1024),
+                               ppm_max=80.0, roughness=0.6, view="roadside", ao=AO_RURAL,
+                               params={"lights3d": True, "allround": True},
+                               gutters=False, openings=dict(pane_lit_color="#8a8070", pane_lit=(0.85, 1.0),
+                                                            reveal_color="#c9cbcc"),
+                               code=["cesprites/props_road.py", "cesprites/props_buildings.py"]),
+    "props/fuel_pump": dict(builder="building", source="props/fuel_pump", kind="furniture", atlas=(512, 512),
+                            ppm_max=220.0, roughness=0.5, view="allround", openings=False, gutters=False,
+                            vpbr_lamps=False, ao=dict(distance=0.6, floor=0.5, gamma=1.0, samples=24),
+                            code=["cesprites/props_road.py", "cesprites/props_buildings.py"]),
+    "props/radar_camera": dict(builder="building", source="props/radar_camera", kind="furniture", atlas=(256, 256),
+                               ppm_max=260.0, roughness=0.45, view="allround", openings=False, gutters=False,
+                               vpbr_lamps=False, ao=dict(distance=0.5, floor=0.55, gamma=1.0, samples=24),
+                               code=["cesprites/props_road.py", "cesprites/props_buildings.py"]),
+    "props/barn": dict(builder="building", source="props/barn", kind="building", atlas=(1024, 1024), ppm_max=96.0,
+                       roughness=0.85, view="roadside", params={"boards3d": True}, ao=AO_RURAL,
+                       code=["cesprites/props_buildings.py"]),
+    "props/customs_booth": dict(builder="building", source="props/customs_booth", kind="building", atlas=(512, 512),
+                                ppm_max=140.0, roughness=0.6, view="allround", gutters=False,
+                                ao=dict(distance=1.0, floor=0.45, gamma=0.9, samples=24),
+                                openings=dict(pane_lit_color="#8a8070", pane_lit=(0.85, 1.0), reveal_color="#c9cbcc"),
+                                code=["cesprites/props_road.py", "cesprites/props_buildings.py"]),
+    # the sails turn (rotor code, hub at 19.8 m); the octagonal tower keeps its painted windows (its walls do not
+    # face along an axis: the cutter leaves them)
+    "props/windmill": dict(builder="building", source="props/windmill", kind="building", atlas=(1024, 1024),
+                           ppm_max=64.0, roughness=0.9, view="allround", gutters=False, ao=AO_RURAL,
+                           rotor=dict(objects=("mill_sails",), hub_z=19.8), code=["cesprites/props_buildings.py"]),
+    "props/delineator": dict(builder="building", source="props/delineator", kind="furniture", atlas=(128, 128),
+                             ppm_max=480.0, roughness=0.45, view="allround", openings=False, gutters=False,
+                             vpbr_lamps=False, ao=dict(distance=0.3, floor=0.6, gamma=1.0, samples=24),
+                             code=["cesprites/props_road.py", "cesprites/props_buildings.py"]),
+    # the power pylon: bracing drawn into a cut-out atlas (first model of the class baked_cutout, one draw call)
+    "props/power_pylon": dict(builder="lattice", source="props/power_pylon", kind="furniture", atlas=(1024, 1024),
+                              ppm=40.0, bold=1.3, colour="#6e757b", roughness=0.55,
+                              code=["cesprites/props_road.py", "cesprites/props_buildings.py"]),
     # the rotor turns (vpbr rotor code; hub at 89.6 m), the aviation light is lamp channel 12
     "props/wind_turbine": dict(builder="prop_vpbr", source="props/wind_turbine", kind="furniture", auto_lod=False,
                                params={"hub_subdiv": 2}, rotor=dict(objects=("wt_hub", "wt_blades"), hub_z=89.6),
