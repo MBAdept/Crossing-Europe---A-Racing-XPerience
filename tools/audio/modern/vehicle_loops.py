@@ -70,7 +70,8 @@ SLABS = 32                       # slabs per concrete pattern (5 m each: the pat
 # and 150 km/h both designs sound at once and in step (R3): their strikes meet on the same instants and add partly
 # coherently (every strike's decaying sines start at phase 0), so the balance of the pair depends on WHICH strike of
 # the slow design meets which of the fast one – AU-R's new random strikes shifted it by +1.7 dB at 400 Hz (130 km/h,
-# measured in the game by KRITIK-R, and in the model of scratch slab_search.py to 0.05 dB). With AU-C1's strikes
+# measured in the game by KRITIK-R; the model of scratch slab_search.py gives +1.72 dB; none of 64 pairs of new random
+# designs came within 1 dB at 120–140 km/h). With AU-C1's strikes
 # paired as in AU-C1 (slow joint j meets fast joint j, the same order for both designs) the pair keeps AU-C1's
 # balance at every speed: third octaves within 0.43 dB of AU-C1 at 90–230 km/h, the in-step pair at 120–140 km/h
 # included (model, scratch slab_eval.py; order 3311 of the 12 orders tried). SLAB_TOP_DB: the hardest strike 1 dB

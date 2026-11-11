@@ -1361,7 +1361,8 @@ dasteht. Gehört hat es niemand.
 allein innerhalb 0,8 dB von AU-C1 –, sondern das Spielen im Gleichschritt (Abschnitt 15.7, Falle 7): Zwischen 110
 und 150 km/h klingen beide Entwürfe zugleich, ihre Schläge fallen auf dieselben Zeitpunkte, und welche Fuge des
 einen auf welche des anderen trifft, formte 200–1000 Hz um. Ein Modell der Schicht aus den Dateien (Tonhöhen,
-Überblendung und Pegel wie `road_audio.gd`) trifft die Messung der Nachmessung auf 0,05 dB. Seit AU-R2 bestehen die
+Überblendung und Pegel wie `road_audio.gd`) trifft die Messung der Nachmessung (+1,72 statt +1,75 dB bei 398 Hz).
+Von 64 Paaren neuer Zufallsmuster lag keines bei 120–140 km/h innerhalb 1 dB. Seit AU-R2 bestehen die
 32 Platten jedes Entwurfs aus den 8 Fugen des Entwurfs von AU-C1 (Abschnitt 15.2), für beide Entwürfe in derselben
 Folge – Fuge j des langsamen trifft wie bei AU-C1 auf Fuge j des schnellen. Modell: 90–230 km/h, das Paar bei
 120–140 km/h eingeschlossen, höchstens 0,43 dB je Terz und 0,14 LU neben AU-C1.
