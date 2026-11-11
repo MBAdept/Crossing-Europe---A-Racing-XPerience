@@ -5,12 +5,12 @@
  "model": {
   "kind": "heavy",
   "object": {"width_m": 2.55, "length_m": 16.5, "height_m": 4},
-  "aabb": [-1.535, 0, -8.25, 1.535, 4, 8.291],
+  "aabb": [-1.535, 0, -8.26, 1.535, 4, 8.291],
   "lods": [
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 18084,
+    "tris": 19010,
     "parts": [
      {
       "node": "tractor/body",
@@ -103,7 +103,7 @@
    {
     "name": "lod1",
     "max_dist_m": 180,
-    "tris": 4672,
+    "tris": 5174,
     "parts": [
      {
       "node": "body",
@@ -157,6 +157,13 @@
    },
    {
     "role": "ind_l",
+    "pos": [-1.25, 1.47, -6.12],
+    "dir": [-1, 0, 0],
+    "size": 0.12,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_l",
     "pos": [-1.1, 0.96, -8.25],
     "dir": [0, 0, -1],
     "size": 0.202,
@@ -181,6 +188,13 @@
     "pos": [1.1, 0.96, -8.25],
     "dir": [0, 0, -1],
     "size": 0.202,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [1.25, 1.47, -6.12],
+    "dir": [1, 0, 0],
+    "size": 0.12,
     "color": "#ffa01a"
    },
    {
@@ -223,25 +237,13 @@
   },
   "auto_lod": false,
   "tags": ["traffic", "heavy"],
-  "bytes": 160084,
-  "hash": "a589822ae915866ede7d1b6a605969be96451f7c"
+  "bytes": 170266,
+  "hash": "25b7ffe0c64ae325fca21bdccf3b1e688ea97e84"
  },
  "sets": {
   "traffic/truck_white": {
    "model": "traffic/truck",
    "paint": {"paint": "#d8d8d6", "paint2": "#d8d8d4", "paint3": "#1f4f9a", "metal": 0.1}
-  },
-  "traffic/truck_red": {
-   "model": "traffic/truck",
-   "paint": {"paint": "#b02a24", "paint2": "#b02a24", "paint3": "#b02a24", "metal": 0.1}
-  },
-  "traffic/truck_blue": {
-   "model": "traffic/truck",
-   "paint": {"paint": "#21468f", "paint2": "#21468f", "paint3": "#d8d8d4", "metal": 0.1}
-  },
-  "traffic/truck_green": {
-   "model": "traffic/truck",
-   "paint": {"paint": "#2e6b3a", "paint2": "#d8d8d4", "paint3": "#2e6b3a", "metal": 0.1}
   }
  }
 }

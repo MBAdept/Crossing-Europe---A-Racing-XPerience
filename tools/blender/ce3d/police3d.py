@@ -435,72 +435,7 @@ class _Police:
         t.mat = new
 
     def _glyphs(self, rig, word, size):
-        """Outlines of the word in its own plane (x reading, y up), centred: [(points (N, 2), is_hole)], outer
-        contours first. The text is set as the sprite sets it (cesprites.textgeo.text_mesh: the font Blender ships,
-        bold offset 0.035 x size), at curve resolution WORD_RES; the outlines are the boundary loops of its fill,
-        a loop inside an odd number of others is a hole (the counter of an O, P, A ...)."""
-        import bpy
-
-        from cesprites import textgeo
-        cu = bpy.data.curves.new("pol_word_tmp", "FONT")
-        cu.body = word
-        cu.font = textgeo.font()
-        cu.size = size
-        cu.align_x = "CENTER"
-        cu.align_y = "CENTER"
-        cu.offset = 0.035 * size
-        cu.extrude = 0.0
-        cu.resolution_u = WORD_RES
-        ob = bpy.data.objects.new("pol_word_tmp", cu)
-        rig.col.objects.link(ob)
-        deps = bpy.context.evaluated_depsgraph_get()
-        deps.update()
-        me = bpy.data.meshes.new_from_object(ob.evaluated_get(deps))
-        bpy.data.objects.remove(ob)
-        me.calc_loop_triangles()
-        co = np.array([v.co[:2] for v in me.vertices], dtype=np.float64)
-        tris = [lt.vertices[:] for lt in me.loop_triangles]
-        bpy.data.meshes.remove(me)
-        # boundary edges in the winding of their triangle: the filled glyph lies on the same side of every one
-        # of them, so an outline turns the way the triangles turn and a hole the other way. (Containment does not
-        # work: with the bold offset of the sprite text neighbouring letters overlap - the L of POLIZEI lay in
-        # the O and came out as a hole.)
-        count = {}
-        for vs in tris:
-            for i in range(3):
-                a, b = vs[i], vs[(i + 1) % 3]
-                count[(min(a, b), max(a, b))] = count.get((min(a, b), max(a, b)), 0) + 1
-        nxt = {}
-        turn = 0.0
-        for vs in tris:
-            p = co[list(vs)]
-            turn += (p[1, 0] - p[0, 0]) * (p[2, 1] - p[0, 1]) - (p[2, 0] - p[0, 0]) * (p[1, 1] - p[0, 1])
-            for i in range(3):
-                a, b = vs[i], vs[(i + 1) % 3]
-                if count[(min(a, b), max(a, b))] == 1:
-                    nxt.setdefault(a, []).append(b)
-        loops, used = [], set()
-        for start in sorted(nxt):
-            for first in nxt[start]:
-                if (start, first) in used:
-                    continue
-                loop, cur, v = [start], start, first
-                used.add((start, first))
-                while v != start:
-                    loop.append(v)
-                    cand = [w for w in nxt.get(v, []) if (v, w) not in used]
-                    if not cand:
-                        break
-                    used.add((v, cand[0]))
-                    cur, v = v, cand[0]
-                if v == start and len(loop) >= 3:
-                    loops.append(co[loop])
-        out = []
-        for lp in loops:
-            area = decalgeo._area2([tuple(p) for p in lp])
-            out.append((lp, area * turn < 0.0))
-        out.sort(key=lambda e: e[1])
-        return out
+        return glyph_outlines(rig, word, size)
 
     def _words(self, car, t, pal):
         from cesprites.vehicles import interp
@@ -541,6 +476,75 @@ class _Police:
         lost = area0 - decalgeo._area3(t.pos)
         if abs(lost) > 1.0e-4:
             raise RuntimeError("police %s: the words changed the surface by %.1f cm2" % (self.cc, lost * 1e4))
+
+
+def glyph_outlines(rig, word, size, res=None):
+    """Outlines of the word in its own plane (x reading, y up), centred: [(points (N, 2), is_hole)], outer
+    contours first. The text is set as the sprite sets it (cesprites.textgeo.text_mesh: the font Blender ships,
+    bold offset 0.035 x size), at curve resolution WORD_RES; the outlines are the boundary loops of its fill,
+    a loop inside an odd number of others is a hole (the counter of an O, P, A ...)."""
+    import bpy
+
+    from cesprites import textgeo
+    cu = bpy.data.curves.new("pol_word_tmp", "FONT")
+    cu.body = word
+    cu.font = textgeo.font()
+    cu.size = size
+    cu.align_x = "CENTER"
+    cu.align_y = "CENTER"
+    cu.offset = 0.035 * size
+    cu.extrude = 0.0
+    cu.resolution_u = WORD_RES if res is None else res
+    ob = bpy.data.objects.new("pol_word_tmp", cu)
+    rig.col.objects.link(ob)
+    deps = bpy.context.evaluated_depsgraph_get()
+    deps.update()
+    me = bpy.data.meshes.new_from_object(ob.evaluated_get(deps))
+    bpy.data.objects.remove(ob)
+    me.calc_loop_triangles()
+    co = np.array([v.co[:2] for v in me.vertices], dtype=np.float64)
+    tris = [lt.vertices[:] for lt in me.loop_triangles]
+    bpy.data.meshes.remove(me)
+    # boundary edges in the winding of their triangle: the filled glyph lies on the same side of every one
+    # of them, so an outline turns the way the triangles turn and a hole the other way. (Containment does not
+    # work: with the bold offset of the sprite text neighbouring letters overlap - the L of POLIZEI lay in
+    # the O and came out as a hole.)
+    count = {}
+    for vs in tris:
+        for i in range(3):
+            a, b = vs[i], vs[(i + 1) % 3]
+            count[(min(a, b), max(a, b))] = count.get((min(a, b), max(a, b)), 0) + 1
+    nxt = {}
+    turn = 0.0
+    for vs in tris:
+        p = co[list(vs)]
+        turn += (p[1, 0] - p[0, 0]) * (p[2, 1] - p[0, 1]) - (p[2, 0] - p[0, 0]) * (p[1, 1] - p[0, 1])
+        for i in range(3):
+            a, b = vs[i], vs[(i + 1) % 3]
+            if count[(min(a, b), max(a, b))] == 1:
+                nxt.setdefault(a, []).append(b)
+    loops, used = [], set()
+    for start in sorted(nxt):
+        for first in nxt[start]:
+            if (start, first) in used:
+                continue
+            loop, cur, v = [start], start, first
+            used.add((start, first))
+            while v != start:
+                loop.append(v)
+                cand = [w for w in nxt.get(v, []) if (v, w) not in used]
+                if not cand:
+                    break
+                used.add((v, cand[0]))
+                cur, v = v, cand[0]
+            if v == start and len(loop) >= 3:
+                loops.append(co[loop])
+    out = []
+    for lp in loops:
+        area = decalgeo._area2([tuple(p) for p in lp])
+        out.append((lp, area * turn < 0.0))
+    out.sort(key=lambda e: e[1])
+    return out
 
 
 def _car_len(t):

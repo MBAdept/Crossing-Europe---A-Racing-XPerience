@@ -38,7 +38,8 @@ BUILDER_CODE = {
                "cesprites/carbody.py", "cesprites/cardetail.py", "cesprites/player_cars.py", "cesprites/textgeo.py"],
     "car": ["ce3d/traffic3d.py", "ce3d/vehicles3d.py", "ce3d/truck3d.py", "ce3d/decalgeo.py", "cesprites/vehicles.py",
             "cesprites/designs.py", "cesprites/carbody.py", "cesprites/cardetail.py", "cesprites/curves.py"],
-    "heavy": ["ce3d/truck3d.py", "ce3d/vehicles3d.py", "ce3d/decalgeo.py", "cesprites/heavy.py"],
+    "heavy": ["ce3d/truck3d.py", "ce3d/vehicles3d.py", "ce3d/decalgeo.py", "cesprites/heavy.py", "ce3d/police3d.py",
+              "cesprites/textgeo.py"],
     # police: the traffic car of traffic3d (all of its code) with livery, words and light bar
     "police": ["ce3d/police3d.py", "ce3d/traffic3d.py", "ce3d/vehicles3d.py", "ce3d/truck3d.py", "ce3d/decalgeo.py",
                "cesprites/vehicles.py", "cesprites/designs.py", "cesprites/carbody.py", "cesprites/cardetail.py",
@@ -97,9 +98,17 @@ MODELS = {
         detail={"lod0": {"step": 8.2}, "lod2": {"step": 100.0}},      # the wing and four tail pipes
         sets={"traffic/sports_red": {}, "traffic/sports_yellow": {}, "traffic/sports_orange": {}, "traffic/sports_black": {},
               "traffic/sports_blue": {}}),
+    # the semitrailer: one model per kind of trailer of cesprites.heavy.TRUCK_VARIANTS (the word on the box and the
+    # curtain are geometry): box with "LOGISTIK", box with "TRANSPORT", curtain sider
     "traffic/truck": dict(
         builder="heavy", source="traffic/truck_white", kind="heavy", design="truck",
-        sets={"traffic/truck_white": {}, "traffic/truck_red": {}, "traffic/truck_blue": {}, "traffic/truck_green": {}}),
+        sets={"traffic/truck_white": {}}),
+    "traffic/truck_transport": dict(
+        builder="heavy", source="traffic/truck_blue", kind="heavy", design="truck",
+        sets={"traffic/truck_blue": {}}),
+    "traffic/truck_tarp": dict(
+        builder="heavy", source="traffic/truck_red", kind="heavy", design="truck",
+        sets={"traffic/truck_red": {}, "traffic/truck_green": {}}),
     # the coach: one rigid body as the sprite's box (one part "body"); its three colour sets are paint values
     "traffic/bus": dict(
         builder="bus", source="traffic/bus_white", kind="heavy", design="bus",
