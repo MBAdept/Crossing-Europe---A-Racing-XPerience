@@ -3,6 +3,8 @@ extends ChunkBuilder
 ## terrain rings of the TerrainProfile, unshaded, one mesh per chunk. It stands in for builders/road.gd until that
 ## exists (BuilderRegistry.create_all) and is the example of the three builder rules: every vertex comes from
 ## ChunkContext.local(), nothing depends on the chunk node's transform, nothing is cached in world space.
+## Unshaded means: it shows neither the light of the environment nor shadows; inside the renderer its update() hook
+## tints it with the ambient colour of the palette, as Arcade tints its road and ground.
 ## Owner: race3d kernel.
 
 const ASPHALT := Color(0.30, 0.31, 0.34)
@@ -114,6 +116,17 @@ func commit(_ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 	mi.material_override = _material
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	parent.add_child(mi)
+
+
+## Hook of the renderer (every frame): Arcade's colour law for this unshaded stand-in – every colour times
+## palette.ambient, the tunnel's light while the camera is inside a tunnel –, so that night, rain and tunnels look
+## like night, rain and tunnels. Without a renderer (tests of the kernel) the colours stay as they are.
+func update(view: Dictionary, _dt: float) -> void:
+	if _material == null:
+		return
+	var pal: Dictionary = view.get("palette", {})
+	var amb: Color = Palette.TUNNEL_AMBIENT if bool(view.get("camera_in_tunnel", false)) else pal.get("ambient", Color.WHITE)
+	_material.albedo_color = Color(amb.r, amb.g, amb.b)
 
 
 func debug(part: Dictionary) -> Dictionary:

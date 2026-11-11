@@ -25,7 +25,8 @@ extends SceneTree
 ##              that never ends (timeout): healthy() is false with that reason, the session falls back to Arcade
 ##   umgebung   an environment rig: exposed as `env`, first in every hook phase, updated before the camera is
 ##              placed; no built-in environment beside it. Without a rig: the built-in plain environment
-##              (BG_CANVAS behind layer -10, exactly one DirectionalLight3D with shadow_enabled) and plain sky
+##              (BG_CANVAS behind layer -10, exactly one DirectionalLight3D with shadow_enabled) and plain sky;
+##              the unshaded debug road carries the ambient colour of the palette (white at noon, dark at night)
 ##   geruest    the shipped renderer without any fixture, with whatever builders and layers exist: prepared (in two
 ##              frames while nothing has to load), the road or the debug road that stands in for it; a layer
 ##              exactly when its file exists; a stage that leaves frees every node. Bare: with a terrain builder
@@ -605,6 +606,11 @@ func _check_umgebung() -> void:
 	_need(p, skies.size() == 1 and (skies[0] as CanvasLayer).layer == -10, "Himmel auf Canvas-Ebene −10")
 	snap = r.debug_snapshot()
 	_need(p, bool((snap.get("environment", {}) as Dictionary).get("plain", false)) and bool((snap.get("backdrop", {}) as Dictionary).get("plain", false)), "beides im Schnappschuss")
+	# the debug road is unshaded: its update() hook tints it with the ambient colour of the palette (Arcade's law)
+	var noon: Color = (r.view["palette"] as Dictionary)["ambient"]
+	var road_mat: Variant = r.builder("debug_road").get("_material")
+	_need(p, road_mat is StandardMaterial3D and (road_mat as StandardMaterial3D).albedo_color.is_equal_approx(Color(noon.r, noon.g, noon.b)) and noon.get_luminance() > 0.9,
+		"die Debug-Straße trägt das Umgebungslicht der Palette (Mittag: %s)" % noon.to_html(false))
 	# night: the light stays, its energy is 0; a tunnel as well
 	await _free(sc)
 	sc = _launch({"start_world_minutes": 23.0 * 60.0})
@@ -614,6 +620,10 @@ func _check_umgebung() -> void:
 	_nodes_of(r, "DirectionalLight3D", suns)
 	_need(p, suns.size() == 1 and (suns[0] as DirectionalLight3D).shadow_enabled and (suns[0] as DirectionalLight3D).visible
 		and (suns[0] as DirectionalLight3D).light_energy == 0.0, "Nacht: das Licht bleibt (shadow_enabled), Energie 0")
+	var night: Color = (r.view["palette"] as Dictionary)["ambient"]
+	road_mat = r.builder("debug_road").get("_material")
+	_need(p, road_mat is StandardMaterial3D and (road_mat as StandardMaterial3D).albedo_color.is_equal_approx(Color(night.r, night.g, night.b)) and night.get_luminance() < 0.4,
+		"Nacht: die Debug-Straße ist so dunkel wie das Umgebungslicht der Palette (%s)" % night.to_html(false))
 	await _free(sc)
 	_report("umgebung", p, "Rig: env gesetzt, zuerst in jeder Phase, vor der Kamera aktualisiert; ohne Rig: eingebaute Umgebung mit einem Schattenlicht und Himmel auf Ebene −10")
 

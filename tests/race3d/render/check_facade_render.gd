@@ -9,6 +9,8 @@ extends SceneTree
 ##   licht       the built-in plain environment lights geometry that is put under renderer.world: a level plate
 ##               of the reference albedo shows Arcade's colour (albedo × palette.ambient) in the light and only
 ##               the ambient part in the shadow of a box – exactly ONE DirectionalLight3D, with shadows (D5)
+##   nacht       at 23:00 the debug road (unshaded, tinted with the ambient colour of the palette by its update()
+##               hook) and a lit plate are as dark as Arcade's road and ground, the one light stays with energy 0
 ##   pools       assets/shaders/modern/inc/pools.gdshaderinc: a test shader that includes it compiles and lights a
 ##               plate where a pool is set – full light at the centre, the law (1 − d²/r²)² at half the radius,
 ##               nothing beyond the radius, pools add up, entries with radius <= 0 or beyond pool_count are
@@ -23,7 +25,7 @@ const RACE := "res://scenes/race/race.tscn"
 const PROBE := "res://tests/race3d/fixtures/facade_probe_renderer.gd"
 const LAYER := "res://tests/race3d/fixtures/facade_layer.gd"
 const POOLS_INC := "res://assets/shaders/modern/inc/pools.gdshaderinc"
-const CHECKS := ["licht", "pools", "aufwaermen"]
+const CHECKS := ["licht", "nacht", "pools", "aufwaermen"]
 const PlainEnvironment := preload("res://scripts/race3d/plain_environment.gd")
 const PLATE_H := 0.3            ## test plates float this far above the road (m)
 const LOADING_LAYER := 6        ## canvas layer of the session's loading cover (contract §4.4.4)
@@ -246,6 +248,50 @@ func _check_licht() -> void:
 	_need(p, _steps(no_shade, want_lit) <= 5.0, "ohne den Kasten kein Schatten (%s)" % _rgb(no_shade))
 	_report("licht", p, "eingebaute Umgebung: Platte (Albedo %.2f) im Licht %s (Arcade: %s), im Schatten des Kastens %s (Umgebungsanteil: %s), ein DirectionalLight3D mit Schatten" % [
 		a, _rgb(lit), _rgb(want_lit), _rgb(shade), _rgb(want_shade)])
+	await _free(sc)
+
+
+# --- nacht: the stand-in road and lit geometry at night -----------------------------------------------------------
+
+func _check_nacht() -> void:
+	var p: Array[String] = []
+	_use_skeleton(true)
+	var sc: Node = await _launch({"start_world_minutes": 23.0 * 60.0})
+	var r: ModernRenderer = sc.get("renderer")
+	await _until(func() -> bool: return int(sc.get("_sim_steps")) >= 5, 2000)
+	var pal: Dictionary = r.view["palette"]
+	var amb: Color = pal["ambient"]
+	_need(p, float(pal.get("night", 0.0)) > 0.9 and amb.get_luminance() < 0.4, "Nacht (Umgebungslicht der Palette %s)" % _rgb(amb))
+	var a := PlainEnvironment.REF_ALBEDO
+	var grey := StandardMaterial3D.new()
+	grey.albedo_color = Color(a, a, a)
+	grey.roughness = 1.0
+	grey.metallic_specular = 0.0
+	var plate := _plate(r, 20.0, 11.0, Vector2(6.0, 6.0), grey)   # beside the road
+	await _frames(3)
+	var img: Image = await _capture()
+	_keep(img, "nacht")
+	# the debug road is unshaded and tinted by its update() hook: Arcade's colour of the asphalt (one of its two
+	# greys) – a little darker in the picture, the renderer cuts dark values off (docs/modelle.md §4)
+	var cam_z := float(r.view["camera_z"])
+	var road := _pixel(img, r, r.road_to_world(cam_z + 14.0, 0.0, 0.02))
+	var want_a := Color(0.30 * amb.r, 0.31 * amb.g, 0.34 * amb.b)
+	var want_b := Color(0.33 * amb.r, 0.34 * amb.g, 0.37 * amb.b)
+	var want_road := want_a if _steps(road, want_a) <= _steps(road, want_b) else want_b
+	_need(p, _steps(road, want_road) <= 14.0 and road.get_luminance() < 0.15 and road.b > 0.03,
+		"die Debug-Straße ist nachts so dunkel wie in Arcade (%s, Arcade %s)" % [_rgb(road), _rgb(want_road)])
+	var grass := _pixel(img, r, r.road_to_world(cam_z + 30.0, -30.0, 0.0) + Vector3(0.0, -0.3, 0.0))
+	_need(p, grass.get_luminance() < 0.2 and grass.g >= grass.r, "das Gelände der Debug-Straße auch (%s)" % _rgb(grass))
+	# lit geometry: no directed light at night, the plate shows the ambient light alone
+	var lit := _pixel(img, r, plate.global_transform.origin)
+	var want_lit := Color(a * amb.r, a * amb.g, a * amb.b)
+	_need(p, _steps(lit, want_lit) <= 12.0 and lit.get_luminance() > 0.03, "ebene Fläche nachts = Albedo × palette.ambient (%s, Arcade %s)" % [_rgb(lit), _rgb(want_lit)])
+	var suns: Array = []
+	_nodes_of(r, "DirectionalLight3D", suns)
+	_need(p, suns.size() == 1 and (suns[0] as DirectionalLight3D).shadow_enabled and (suns[0] as DirectionalLight3D).light_energy == 0.0,
+		"das eine Schattenlicht bleibt, Energie 0")
+	_report("nacht", p, "23 Uhr: Debug-Straße %s (Arcade %s), Gelände %s, beleuchtete Platte %s (Arcade %s)" % [
+		_rgb(road), _rgb(want_road), _rgb(grass), _rgb(lit), _rgb(want_lit)])
 	await _free(sc)
 
 

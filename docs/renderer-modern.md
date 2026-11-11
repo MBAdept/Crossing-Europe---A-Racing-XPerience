@@ -429,7 +429,8 @@ camera.set_frustum(fr.size, fr.offset, fr.near, fr.far)                         
 `ChaseCamera3D.project(transform, frustum, viewport_size, punkt)` liefert (Pixel x, Pixel y, Tiefe) und ist die
 Rechnung hinter `world_to_screen()`; `on_screen()` prüft Bildrand und Tiefe. Der Renderer setzt seine `Camera3D`
 jedes Bild so (Abschnitt 9.2); gemessen im laufenden Spiel weicht `Camera3D.unproject_position()` von
-`ModernRenderer.world_to_screen()` um höchstens 0,0005 px ab (1280 × 720 und 1280 × 800, Render-Prüfung `modern_bild`).
+`ModernRenderer.world_to_screen()` um höchstens 0,0005 px ab (1280 × 720, Render-Prüfung `modern_bild`; 0,0001 px bei
+1280 × 800, `fenster_16_10`).
 
 ## 7. Fairness
 
@@ -578,12 +579,18 @@ Bauplans; hier steht, wie es gebaut ist.
 
 | Teil | Datei | solange … |
 |---|---|---|
-| Straße mit Geländeringen in Eckpunktfarben | `builders/debug_road.gd` | `builders/road.gd` fehlt (mit einem Builder `terrain` zeichnet sie nur noch die Straße) |
+| Straße mit Geländeringen in Eckpunktfarben, unbeleuchtet | `builders/debug_road.gd` | `builders/road.gd` fehlt (mit einem Builder `terrain` zeichnet sie nur noch die Straße) |
 | Umgebung: ein Schattenlicht, Umgebungslicht, Tiefennebel, `ce_*`-Globals | `plain_environment.gd` | `environment_rig.gd` fehlt |
 | Himmelsverlauf der Palette auf Canvas-Ebene −10 | `plain_sky.gd` | `layers/backdrop.gd` fehlt |
 
 Keine Fahrzeuge, keine Requisiten, keine Markierungen – das Bild des Gerüsts ist ein Arbeitsstand, kein Vergleich
 mit Arcade (A/B-Bild im Abgabeordner des Bauabschnitts).
+
+Die Debug-Straße ist **unbeleuchtet**: sie zeigt weder das Licht der Umgebung noch Schatten (ein Fahrzeug wirft auf
+ihr keinen). Damit Nacht, Regen und Tunnel trotzdem danach aussehen, färbt ihr Haken `update()` sie jedes Bild mit
+`palette.ambient` (im Tunnel mit `Palette.TUNNEL_AMBIENT`) – Arcades Farbgesetz für Fahrbahn und Boden. Licht und
+Schatten der eingebauten Umgebung sieht man auf beleuchteten Flächen: auf den Prüfplatten der Render-Prüfungen
+`licht` und `nacht`, später auf Straße, Gelände und Modellen der Bauabschnitte.
 
 ### 9.2 Ablauf
 
@@ -830,10 +837,14 @@ bei bedecktem Himmel weiches Licht von oben (75°).
 | ebene Platte, Albedo 0,38, im Licht | 99 / 99 / 99 | 97 / 97 / 97 (Arcade: Albedo × `palette.ambient`) |
 | dieselbe Platte im Schatten eines Kastens | 47 / 48 / 51 | 48 / 49 / 52 (nur der Umgebungsanteil) |
 | gerechnet für Albedo 0,3 … 0,9 bei Tag (Unit-Test) | höchstens 7,5 % neben Arcade, bei Regen und Schnee 11 % | – |
+| 23 Uhr (Render-Prüfung `nacht`): ebene Platte, Albedo 0,38 | 17 / 22 / 34 | 21 / 25 / 36 (Arcade) |
+| 23 Uhr: Debug-Straße (unbeleuchtet, mit `palette.ambient` gefärbt) | 6 / 13 / 27 | 16 / 21 / 32 (Arcade) |
 
 Dunklere Albedos fallen dunkler aus, nachts helle bis zu einem Viertel heller – die Anzeigekurve des Renderers ist
-bei dunklen Werten kein reiner Faktor. Nachts gibt die eingebaute Umgebung kein Mondlicht (zwei dunkle Durchgänge
-fielen beide unter die Anzeigeschwelle); das entscheidet das Rig.
+bei dunklen Werten kein reiner Faktor: unter etwa 12/255 drückt die fest eingeschaltete Nachbearbeitung um bis zu
+zehn Stufen (gemessen an Platte und Debug-Straße oben; docs/modelle.md §4). Die Nacht des Gerüsts ist deshalb
+dunkler als die von Arcade. Nachts gibt die eingebaute Umgebung auch kein Mondlicht (zwei dunkle Durchgänge fielen
+beide unter die Anzeigeschwelle); beides entscheidet das Rig.
 
 `plain_sky.gd` zeichnet Arcades Himmelsverlauf (dieselben Zeilen wie `RaceBackdrop.draw_sky`) über der
 Horizontzeile und die Nebelfarbe darunter, bei jeder Fenstergröße auf `render.horizon_y_frac` der Höhe; im Tunnel
@@ -902,7 +913,7 @@ Bildpaar mit dem Gerüst (Arcade 5–6 s, Modern 6–13 s).
 | `tests/race3d/check_facade.gd` (headless, in `tools/run_tests.sh`) | `haken` (Reihenfolge aller Haken, nichts vor dem Ende jedes `prepare_pending()`, `dt` = 0 bis zum Start), `fassade`, `lampen`, `rebased`, `statistik`, `ausfall`, `umgebung`, `geruest` |
 | `tests/race3d/check_seam.gd` → `vertrag` | der ausgelieferte Renderer hat jede Methode, jedes Signal und jedes Mitglied aus Bauplan §4.4.1 und A-7; vor `prepare()` antwortet alles harmlos |
 | `tests/race3d/render/check_seam_render.gd` → `modern_bild`, `fenster_16_10` | Bild des Gerüsts (Himmelsverlauf, Debug-Straße an den Bildpunkten des Kameramodells, Kamera = `ChaseCamera3D`), danach der ausgelieferte Renderer mit allem, was es gibt |
-| `tests/race3d/render/check_facade_render.gd` | `licht` (9.6), `pools` (9.7), `aufwaermen` (Aufwärm-Knoten zwei gezeichnete Bilder vor der Kamera, vom Ladebild verdeckt, danach frei; Selbsttest einmal je Prozess); mit `-- --save=<Ordner>` bleiben die beurteilten Bilder |
+| `tests/race3d/render/check_facade_render.gd` | `licht` und `nacht` (9.6), `pools` (9.7), `aufwaermen` (Aufwärm-Knoten zwei gezeichnete Bilder vor der Kamera, vom Ladebild verdeckt, danach frei; Selbsttest einmal je Prozess); mit `-- --save=<Ordner>` bleiben die beurteilten Bilder |
 | `tests/unit/race3d/test_chunk_services.gd`, `test_renderer_skeleton.gd` | `services`; Zusammenführen der Haken-Daten, Lichtgesetz |
 
 Die Prüfungen der Fassade laufen mit dem **Gerüst allein**: der Prüf-Renderer
@@ -919,7 +930,7 @@ Bauabschnitte ihre Dateien ablegen. Nur `geruest`, `vertrag` und der zweite Teil
 | `render()` in GDScript, headless, 30 s Fahrt in Echtzeit-Schritten (Kiel – Hamburg ab km 2 und ab km 60) | im Mittel 0,15–0,16 ms, höchstens 2,1–2,8 ms; Sync-Modus im Mittel 0,19 ms, höchstens 5,8 ms |
 | Einhängen eines Stücks / Einsammeln / Bauen (Arbeiter-Thread) | höchstens 0,18 ms / 2,0 ms / im Mittel 3,4–4,0 ms |
 | Vorbereitung headless (13 Stücke) | 74–77 ms |
-| Vorbereitung unter Xvfb (llvmpipe), erste Etappe des Prozesses | 421–808 ms, davon Selbsttest 253–591 ms; jede weitere Etappe 3 Bilder |
+| Vorbereitung unter Xvfb (llvmpipe), erste Etappe des Prozesses | 405–808 ms, davon Selbsttest 202–591 ms; jede weitere Etappe 3 Bilder |
 | Zeichenaufrufe / Dreiecke des Bildes bei km 2 | 12 / 13.056 |
 | `ERGEBNIS` von `run_stage.gd`, Arcade gegen Modern, Kiel – Hamburg und dev_testetappe (Nacht, Regen) | je 28 Schlüssel, nur `gfx` verschieden |
 

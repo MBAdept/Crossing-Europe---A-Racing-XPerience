@@ -257,10 +257,12 @@ func _check_modern_bild() -> void:
 	var view: Dictionary = r.view
 	var cam_z := float(view["camera_z"])
 	var track: Track = sc.get("track")
-	var asphalt_a := Color(0.30, 0.31, 0.34)
-	var asphalt_b := Color(0.33, 0.34, 0.37)
-	var line := Color(0.92, 0.92, 0.88)
-	var shoulder := Color(0.47, 0.46, 0.42)
+	# (the colours of builders/debug_road.gd times the ambient colour of the palette – white at noon)
+	var amb: Color = pal["ambient"]
+	var asphalt_a := Color(0.30 * amb.r, 0.31 * amb.g, 0.34 * amb.b)
+	var asphalt_b := Color(0.33 * amb.r, 0.34 * amb.g, 0.37 * amb.b)
+	var line := Color(0.92 * amb.r, 0.92 * amb.g, 0.88 * amb.b)
+	var shoulder := Color(0.47 * amb.r, 0.46 * amb.g, 0.42 * amb.b)
 	var paint_bad: Array[String] = []
 	var probes := 0
 	for d: float in [14.0, 20.0, 45.0]:
