@@ -98,6 +98,13 @@ CAR_3D = {
     ),
 }
 PLATE_CHARS = [1, 1, 0, 1, 1, 0, 1, 1, 1]
+# shut lines of the trunk lid / tailgate (rear face: two lines along the inner edges of the tail lamps from z0 to
+# z1 and one along the bottom at z0; "top": lines along the deck of a sedan) and the height of the badge
+REAR_LID = {
+    "sedan": dict(x=0.455, z=(0.60, 0.94), top=(0.70, 0.06, 0.92), badge=0.86),
+    "hatch": dict(x=0.485, z=(0.57, 0.93), badge=0.83),
+    "wagon": dict(x=0.505, z=(0.57, 0.93), badge=0.84),
+}
 
 # Look of the real-time traffic cars where the sprite's look comes from Cycles, not from the design values
 # (art review of AS1, findings B3 - B5):
@@ -113,7 +120,7 @@ PLATE_CHARS = [1, 1, 0, 1, 1, 0, 1, 1, 1]
 TRAFFIC_RIM = dict(color="#5a5d62", metal=0.6, rough=0.35)
 FAR_PLATE = "#c4c4c1"
 TRAFFIC_GLASS = dict(color="#2a343e", rough=0.02, metal=0.25)
-CHMSL_LAMP = "brake:1:#b8160c"
+CHMSL_LAMP = "brake:1:#9a1208"
 EXHAUST = dict(color="#3c3d40", rough=0.4, metal=0.6, length=0.3)
 MIRROR_GLASS = dict(color="#2c3238", rough=0.03, metal=0.9)
 
@@ -135,6 +142,22 @@ def traffic_design(name):
         d[k] = lst
     for k, extra in spec.get("add", {}).items():
         d[k] = list(d.get(k, [])) + copy.deepcopy(extra)
+    lid = REAR_LID.get(name)
+    if lid:
+        # the shut lines of the trunk lid / tailgate and a badge (art review B6: the rear was a plain block up close);
+        # thin decals - lod1 and lod2 drop them
+        sw = 0.003
+        x, z0, z1 = lid["x"], lid["z"][0], lid["z"][1]
+        dec = [dict(face="rear", sym=True, mat="seal", poly=[(x - sw, z0), (x + sw, z0), (x + sw, z1), (x - sw, z1)]),
+               dict(face="rear", sym=False, mat="seal", poly=[(-x, z0 - sw), (x, z0 - sw), (x, z0 + sw), (-x, z0 + sw)])]
+        if lid.get("top"):
+            xt, y0, y1 = lid["top"]
+            dec.append(dict(face="top", sym=True, mat="seal", poly=[(xt - sw, y0), (xt + sw, y0), (xt + sw, y1), (xt - sw, y1)]))
+        bx, bz = 0.0, lid["badge"]
+        badge = [(bx + 0.045 * math.cos(2 * math.pi * i / 14), bz + 0.022 * math.sin(2 * math.pi * i / 14)) for i in range(14)]
+        # (satin metal: a chrome badge mirrored the dark road and read as a black dot)
+        dec.append(dict(face="rear", sym=False, mat=dict(color="#c4c8ce", rough=0.3, metal=0.5), poly=badge))
+        d["body_decals_3d"] = list(d.get("body_decals_3d", [])) + dec
     pz = d.get("plate_z")
     if pz is not None:
         key = "bumper_decals" if d.get("plate_on_bumper", False) else "body_decals"
@@ -147,7 +170,7 @@ def traffic_design(name):
                 x += 0.047
             else:
                 x += 0.03
-        d[key + "_3d"] = chars
+        d[key + "_3d"] = list(d.get(key + "_3d", [])) + chars
     return d
 
 

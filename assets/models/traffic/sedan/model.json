@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 40,
-    "tris": 17095,
+    "tris": 17555,
     "parts": [
      {
       "node": "body",
@@ -158,8 +158,8 @@
   "paint": {"paint": "#b52424", "metal": 0.3},
   "auto_lod": false,
   "tags": ["traffic", "car"],
-  "bytes": 265385,
-  "hash": "5f652833bcd4f33058a4e7343cffa4dd0e386b64"
+  "bytes": 271351,
+  "hash": "513ef8cc43d5b0b945c16041a244880e9353aac4"
  },
  "sets": {
   "traffic/sedan_red": {

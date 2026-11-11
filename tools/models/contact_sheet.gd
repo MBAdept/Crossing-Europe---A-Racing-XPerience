@@ -22,6 +22,8 @@ extends SceneTree
 ##              from behind, side, close-ups of the rear end, a wheel and the cabin, the tail and brake lamps at
 ##              night, close-ups of a tail lamp and a headlight, from above, straight from ahead. Tile 960x600 unless --tile says otherwise. --views=0,4,7 picks tiles of REVIEW_VIEWS,
 ##              --set=<sprite set> the colour set, --lods=lod0,lod1 the levels.
+## --clay:      every surface plain grey, glass hidden - the form alone (steps, blades, dents)
+## --caster:    the shadow caster in red over the visible model: red is where it stands out of the hull
 ## --chase=8,30[,..]  vehicles only - the picture of the GAME camera (contract D12: 3.4 m high, no pitch, focal
 ##              length 711 px at 720 px, horizon at 45 %) with the vehicle's centre that many metres ahead,
 ##              rendered at 1280x720 and cut out around the vehicle with whole-number magnification (what the

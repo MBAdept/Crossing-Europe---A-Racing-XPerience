@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 40,
-    "tris": 16615,
+    "tris": 17636,
     "parts": [
      {
       "node": "body",
@@ -79,7 +79,7 @@
   "lights": [
    {
     "role": "brake",
-    "pos": [-0.7274, 0.8495, 1.9674],
+    "pos": [-0.7275, 0.8495, 1.9674],
     "dir": [-0.433, 0.203, 0.878],
     "size": 0.242,
     "color": "#ff2010"
@@ -135,7 +135,7 @@
    },
    {
     "role": "tail",
-    "pos": [-0.7274, 0.8495, 1.9674],
+    "pos": [-0.7275, 0.8495, 1.9674],
     "dir": [-0.433, 0.203, 0.878],
     "size": 0.242,
     "color": "#ff2010"
@@ -151,8 +151,8 @@
   "paint": {"paint": "#3d8a45", "metal": 0.4},
   "auto_lod": false,
   "tags": ["traffic", "car"],
-  "bytes": 259871,
-  "hash": "be92b5bcf276c459b8febb9adf01605ad0918142"
+  "bytes": 270561,
+  "hash": "0e5147c7e4ecdaded308d5bb4366e15c54d2e5d4"
  },
  "sets": {
   "traffic/hatch_green": {

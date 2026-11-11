@@ -521,7 +521,7 @@
     {
      "name": "lod0",
      "max_dist_m": 40,
-     "tris": 16615,
+     "tris": 17636,
      "parts": [
       {
        "node": "body",
@@ -589,7 +589,7 @@
    "lights": [
     {
      "role": "brake",
-     "pos": [-0.7274, 0.8495, 1.9674],
+     "pos": [-0.7275, 0.8495, 1.9674],
      "dir": [-0.433, 0.203, 0.878],
      "size": 0.242,
      "color": "#ff2010"
@@ -645,7 +645,7 @@
     },
     {
      "role": "tail",
-     "pos": [-0.7274, 0.8495, 1.9674],
+     "pos": [-0.7275, 0.8495, 1.9674],
      "dir": [-0.433, 0.203, 0.878],
      "size": 0.242,
      "color": "#ff2010"
@@ -661,8 +661,8 @@
    "paint": {"paint": "#3d8a45", "metal": 0.4},
    "auto_lod": false,
    "tags": ["traffic", "car"],
-   "bytes": 259871,
-   "hash": "be92b5bcf276c459b8febb9adf01605ad0918142"
+   "bytes": 270561,
+   "hash": "0e5147c7e4ecdaded308d5bb4366e15c54d2e5d4"
   },
   "traffic/sedan": {
    "kind": "vehicle",
@@ -673,7 +673,7 @@
     {
      "name": "lod0",
      "max_dist_m": 40,
-     "tris": 17095,
+     "tris": 17555,
      "parts": [
       {
        "node": "body",
@@ -820,8 +820,8 @@
    "paint": {"paint": "#b52424", "metal": 0.3},
    "auto_lod": false,
    "tags": ["traffic", "car"],
-   "bytes": 265385,
-   "hash": "5f652833bcd4f33058a4e7343cffa4dd0e386b64"
+   "bytes": 271351,
+   "hash": "513ef8cc43d5b0b945c16041a244880e9353aac4"
   },
   "traffic/truck": {
    "kind": "heavy",
@@ -1056,7 +1056,7 @@
     {
      "name": "lod0",
      "max_dist_m": 40,
-     "tris": 17288,
+     "tris": 17464,
      "parts": [
       {
        "node": "body",
@@ -1203,8 +1203,8 @@
    "paint": {"paint": "#aeb2b8", "metal": 0.75},
    "auto_lod": false,
    "tags": ["traffic", "car"],
-   "bytes": 274036,
-   "hash": "5bb5b7d921e356323e2de7d790db8332470ca734"
+   "bytes": 276055,
+   "hash": "db5c2ce5598cf7f01b547b25ecd6d0f867c1faad"
   }
  },
  "sets": {
