@@ -101,7 +101,7 @@ CHAR: dict = {
     "kombi": {
         "retune": {"rasp": 2.0, "jet": 3.0, "intake": 3.0, "whoosh": 6.0, "mech": 2.0, "knock": 1.0},
         "nl": 1.3, "pan": "centre", "width": 0.0, "noise": 0.75, "clip_pan": 0.0,
-        "on": ON_CURVE, "off": OFF_CURVE, "loudness": 0.1, "idle_db": 1.8, "low_db": 1.3,
+        "on": ON_CURVE, "off": OFF_CURVE, "loudness": -0.3, "idle_db": 2.2, "low_db": 1.3,
         "mix": {"in_gain": 1.0, "idle_load": 0.25, "load_curve": 0.45},
         "saturation": 0.5, "turbo_depth": 0.3,
         "turbo": {"tone": "turbo_single", "tone_level": 0.050, "hiss_level": 0.045},
@@ -123,7 +123,7 @@ CHAR: dict = {
     "sportwagen": {
         "retune": {"rasp": -1.0, "jet": 0.0, "intake": 6.0, "whoosh": 2.0, "mech": 3.0, "hiss": 2.0},
         "nl": 1.5, "pan": "group", "width": 0.55, "pan_from_hz": 300.0, "noise": 0.9, "clip_pan": 0.45,
-        "on": ON_CURVE, "off": OFF_CURVE, "loudness": 0.45, "idle_db": -0.7, "low_db": 0.7,
+        "on": ON_CURVE, "off": OFF_CURVE, "loudness": 0.15, "idle_db": -0.4, "low_db": 0.7,
         "mix": {"in_gain": 1.15, "idle_load": 0.2, "load_curve": 0.65},
         "saturation": 1.35, "turbo_depth": 0.0,
         "turbo": None, "blowoff": None,
@@ -867,7 +867,10 @@ def turbo_tone(f_hz: float, seconds: float, seed: int) -> np.ndarray:
 
 
 def thump(rng, f0: float, f1: float, dur: float, click: float) -> np.ndarray:
-    """A driveline thump: a falling low tone with a short band-limited click."""
+    """A driveline thump: a falling low tone with a short band-limited clonk (the lash of the driveline taken up,
+    heard through the body: dull, 300 Hz - 2 kHz). The clonk rises within a millisecond instead of starting at full
+    level and its band has steep skirts: with a first-order band and an instant start every gear change carried a
+    tick up to 16 kHz (seen in the spectrogram of the in-game capture, 30 dB above the quiet overrun around it)."""
     m = int(dur * 5 * VSR)
     t = np.arange(m) / VSR
     f = f1 + (f0 - f1) * np.exp(-t / (dur * 0.5))
@@ -876,8 +879,8 @@ def thump(rng, f0: float, f1: float, dur: float, click: float) -> np.ndarray:
         nz = rng.standard_normal(m)
         spec = np.fft.rfft(nz)
         ff = np.maximum(np.fft.rfftfreq(m, 1.0 / VSR), 1.0)
-        nz = np.fft.irfft(spec * _bp(ff, 300.0, 2200.0, 1), m)
-        y += click * nz / (math.sqrt(float(np.mean(nz * nz))) + 1e-12) * np.exp(-t / 0.012)
+        nz = np.fft.irfft(spec * _bp(ff, 300.0, 2000.0, 2), m)
+        y += click * nz / (math.sqrt(float(np.mean(nz * nz))) + 1e-12) * np.exp(-t / 0.012) * (1.0 - np.exp(-t / 0.0008))
     y[-64:] *= np.linspace(1.0, 0.0, 64)
     return y
 
