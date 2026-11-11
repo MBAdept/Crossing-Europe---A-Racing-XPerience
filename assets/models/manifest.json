@@ -1020,7 +1020,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1140,
+     "tris": 1116,
      "parts": [
       {
        "node": "body",
@@ -1117,11 +1117,11 @@
      "color": "#ff2010"
     }
    ],
-   "paint": {"paint": "#eef0f2", "paint2": "#1e4597", "paint3": "#d3262c", "metal": 0.12},
+   "paint": {"paint": "#d4d6d8", "paint2": "#1e4597", "paint3": "#d3262c", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "at"],
-   "bytes": 331143,
-   "hash": "ae40c3b88730890b1f2c1d05d38b52a68ddb9a15"
+   "bytes": 330917,
+   "hash": "9ea717c4915db58b419d499d3415bb3a819f0fdb"
   },
   "police/be": {
    "kind": "vehicle",
@@ -1186,7 +1186,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1179,
+     "tris": 1191,
      "parts": [
       {
        "node": "body",
@@ -1290,11 +1290,11 @@
      "color": "#ff2010"
     }
    ],
-   "paint": {"paint": "#f2f2ef", "paint2": "#1b3a8f", "paint3": "#e6dc1f", "metal": 0.12},
+   "paint": {"paint": "#d8d8d5", "paint2": "#1b3a8f", "paint3": "#e6dc1f", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "be"],
-   "bytes": 342775,
-   "hash": "c50d5819f868ead273576b3cd8705cb11e0076a8"
+   "bytes": 343197,
+   "hash": "176ed03ddc417f9446ddbc880a9436021a27aee5"
   },
   "police/bg": {
    "kind": "vehicle",
@@ -1359,7 +1359,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1097,
+     "tris": 1143,
      "parts": [
       {
        "node": "body",
@@ -1456,11 +1456,11 @@
      "color": "#ff2010"
     }
    ],
-   "paint": {"paint": "#f2f2ef", "paint2": "#1b3f8f", "paint3": "#d22a2a", "metal": 0.12},
+   "paint": {"paint": "#d8d8d5", "paint2": "#1b3f8f", "paint3": "#d22a2a", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "bg"],
-   "bytes": 329770,
-   "hash": "ca3f906fbdb39be8684fab56d40f8a4dfb7b29f9"
+   "bytes": 330700,
+   "hash": "0491dee1c136e845956e0ee43f10a3b6194b6fa0"
   },
   "police/ch": {
    "kind": "vehicle",
@@ -1525,7 +1525,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1179,
+     "tris": 1191,
      "parts": [
       {
        "node": "body",
@@ -1629,11 +1629,11 @@
      "color": "#ff2010"
     }
    ],
-   "paint": {"paint": "#f2f2ef", "paint2": "#e04a16", "paint3": "#f2d21c", "metal": 0.12},
+   "paint": {"paint": "#d8d8d5", "paint2": "#e04a16", "paint3": "#f2d21c", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "ch"],
-   "bytes": 341293,
-   "hash": "a8a509368ed128b1c3ec0b3292efbb93ffbd4bfa"
+   "bytes": 341720,
+   "hash": "775b653c0b39a642a45b50650a84ec24f37ef096"
   },
   "police/cz": {
    "kind": "vehicle",
@@ -1698,7 +1698,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1185,
+     "tris": 1160,
      "parts": [
       {
        "node": "body",
@@ -1802,11 +1802,11 @@
      "color": "#ff2010"
     }
    ],
-   "paint": {"paint": "#e9ecef", "paint2": "#1c3f8f", "paint3": "#e9d81f", "metal": 0.12},
+   "paint": {"paint": "#d3d5d8", "paint2": "#1c3f8f", "paint3": "#e9d81f", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "cz"],
-   "bytes": 331714,
-   "hash": "f38896b5b51f455c5b52f87c125e6513ae2c2641"
+   "bytes": 331647,
+   "hash": "66af3e8aff1b4bf46f284cd8c00489679dfe698b"
   },
   "police/de": {
    "kind": "vehicle",
@@ -1871,7 +1871,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1177,
+     "tris": 1196,
      "parts": [
       {
        "node": "body",
@@ -1978,8 +1978,8 @@
    "paint": {"paint": "#c9cdd3", "paint2": "#1f4c9c", "paint3": "#1f4c9c", "metal": 0.6},
    "auto_lod": false,
    "tags": ["police", "de"],
-   "bytes": 307366,
-   "hash": "30fe38ebf4a8b66be049a5d455e51a0d18c7685b"
+   "bytes": 307784,
+   "hash": "d1cbed25abaf21d7738413a308329c1f611fb166"
   },
   "police/es": {
    "kind": "vehicle",
@@ -2044,7 +2044,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1135,
+     "tris": 1152,
      "parts": [
       {
        "node": "body",
@@ -2148,11 +2148,11 @@
      "color": "#ff2010"
     }
    ],
-   "paint": {"paint": "#f2f2ef", "paint2": "#1b3d8c", "paint3": "#1b3d8c", "metal": 0.12},
+   "paint": {"paint": "#d8d8d5", "paint2": "#1b3d8c", "paint3": "#1b3d8c", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "es"],
-   "bytes": 311066,
-   "hash": "ac1135c9d990d730004fa1310d9cb35bd17428cd"
+   "bytes": 311532,
+   "hash": "b50e81d77bac0390cff6ecedeb0cfc242af06c32"
   },
   "police/fr": {
    "kind": "vehicle",
@@ -2217,7 +2217,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1044,
+     "tris": 1090,
      "parts": [
       {
        "node": "body",
@@ -2314,11 +2314,11 @@
      "color": "#ff2010"
     }
    ],
-   "paint": {"paint": "#f2f2ef", "paint2": "#1c2f7a", "paint3": "#d6262b", "metal": 0.12},
+   "paint": {"paint": "#d8d8d5", "paint2": "#1c2f7a", "paint3": "#d6262b", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "fr"],
-   "bytes": 293856,
-   "hash": "006c39c98a46d8b575938c9c337d6e708e39c7b8"
+   "bytes": 294689,
+   "hash": "9212ba6a8714e661f5c4daeabdfccc7aa75156b6"
   },
   "police/hr": {
    "kind": "vehicle",
@@ -2383,7 +2383,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1046,
+     "tris": 1061,
      "parts": [
       {
        "node": "body",
@@ -2487,11 +2487,11 @@
      "color": "#ff2010"
     }
    ],
-   "paint": {"paint": "#f2f2ef", "paint2": "#1b3a8c", "paint3": "#1b3a8c", "metal": 0.12},
+   "paint": {"paint": "#d8d8d5", "paint2": "#1b3a8c", "paint3": "#1b3a8c", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "hr"],
-   "bytes": 300115,
-   "hash": "a2e98bbd01ff0d03b111bfc3a63cd6d955ee5201"
+   "bytes": 300573,
+   "hash": "d42682bad0740ef2b8d44c4b2904ae79245841ab"
   },
   "police/hu": {
    "kind": "vehicle",
@@ -2556,7 +2556,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1137,
+     "tris": 1154,
      "parts": [
       {
        "node": "body",
@@ -2660,11 +2660,11 @@
      "color": "#ff2010"
     }
    ],
-   "paint": {"paint": "#f2f2ef", "paint2": "#1b3a8a", "paint3": "#e3d61c", "metal": 0.12},
+   "paint": {"paint": "#d8d8d5", "paint2": "#1b3a8a", "paint3": "#e3d61c", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "hu"],
-   "bytes": 328693,
-   "hash": "c0e0f4811c84d51ce8f12053ad9e0a215a2af81b"
+   "bytes": 329196,
+   "hash": "b120c724d235fb6498ad15a53811e524267b40c6"
   },
   "police/it": {
    "kind": "vehicle",
@@ -2729,7 +2729,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1083,
+     "tris": 1098,
      "parts": [
       {
        "node": "body",
@@ -2833,11 +2833,11 @@
      "color": "#ff2010"
     }
    ],
-   "paint": {"paint": "#1f5fa8", "paint2": "#f2f2ef", "paint3": "#c9242b", "metal": 0.45},
+   "paint": {"paint": "#1f5fa8", "paint2": "#d8d8d5", "paint3": "#c9242b", "metal": 0.45},
    "auto_lod": false,
    "tags": ["police", "it"],
-   "bytes": 335803,
-   "hash": "167c02ba320f8aa852cb0a4a13a622fee98ede7a"
+   "bytes": 336280,
+   "hash": "7f60f60d5486c874f056999aa3737e05f28760d9"
   },
   "police/lt": {
    "kind": "vehicle",
@@ -2902,7 +2902,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1111,
+     "tris": 1089,
      "parts": [
       {
        "node": "body",
@@ -2999,11 +2999,11 @@
      "color": "#ff2010"
     }
    ],
-   "paint": {"paint": "#e9ecef", "paint2": "#1b3c8a", "paint3": "#d8e01c", "metal": 0.12},
+   "paint": {"paint": "#d3d5d8", "paint2": "#1b3c8a", "paint3": "#d8e01c", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "lt"],
-   "bytes": 333844,
-   "hash": "5ab3e1ca1d529da3f79af9f94ef22caca4c28c30"
+   "bytes": 333685,
+   "hash": "24797f3a4db7f858500bb56521795d0c05ba9483"
   },
   "police/lv": {
    "kind": "vehicle",
@@ -3068,7 +3068,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1115,
+     "tris": 1155,
      "parts": [
       {
        "node": "body",
@@ -3165,11 +3165,11 @@
      "color": "#ff2010"
     }
    ],
-   "paint": {"paint": "#f2f2ef", "paint2": "#1c2f6e", "paint3": "#e3dc1c", "metal": 0.12},
+   "paint": {"paint": "#d8d8d5", "paint2": "#1c2f6e", "paint3": "#e3dc1c", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "lv"],
-   "bytes": 339837,
-   "hash": "bb3b610d43b769107fc61568e1cc86b5546f43cd"
+   "bytes": 340708,
+   "hash": "8d44c7c7a03549c5fdcb9986ed024fa45689d7c2"
   },
   "police/nl": {
    "kind": "vehicle",
@@ -3234,7 +3234,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1130,
+     "tris": 1176,
      "parts": [
       {
        "node": "body",
@@ -3331,11 +3331,11 @@
      "color": "#ff2010"
     }
    ],
-   "paint": {"paint": "#f2f2ef", "paint2": "#1b3f93", "paint3": "#e5531b", "metal": 0.12},
+   "paint": {"paint": "#d8d8d5", "paint2": "#1b3f93", "paint3": "#e5531b", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "nl"],
-   "bytes": 329151,
-   "hash": "d3c172f2fec68153b87d360cdcb67a186c4b3759"
+   "bytes": 330173,
+   "hash": "a7b03d89eec62bac68c8c0dee18efe6f822037f1"
   },
   "police/pl": {
    "kind": "vehicle",
@@ -3400,7 +3400,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1046,
+     "tris": 1061,
      "parts": [
       {
        "node": "body",
@@ -3504,11 +3504,11 @@
      "color": "#ff2010"
     }
    ],
-   "paint": {"paint": "#eceff2", "paint2": "#16336e", "paint3": "#16336e", "metal": 0.5},
+   "paint": {"paint": "#d3d5d8", "paint2": "#16336e", "paint3": "#16336e", "metal": 0.5},
    "auto_lod": false,
    "tags": ["police", "pl"],
-   "bytes": 298794,
-   "hash": "5009ddac64c861657add391c49aabfa59c198128"
+   "bytes": 299256,
+   "hash": "61ae081e35797f91878c2e6badcd7c7917d11fdd"
   },
   "police/ro": {
    "kind": "vehicle",
@@ -3573,7 +3573,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1119,
+     "tris": 1112,
      "parts": [
       {
        "node": "body",
@@ -3677,11 +3677,11 @@
      "color": "#ff2010"
     }
    ],
-   "paint": {"paint": "#f2f2ef", "paint2": "#1b3c8f", "paint3": "#c6e01e", "metal": 0.12},
+   "paint": {"paint": "#d8d8d5", "paint2": "#1b3c8f", "paint3": "#c6e01e", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "ro"],
-   "bytes": 344991,
-   "hash": "9cb4eccede6afaab109722c30dcd32fe7c842dc9"
+   "bytes": 345182,
+   "hash": "5c6c93002284522e438cba8cc13fa37a686e4070"
   },
   "police/rs": {
    "kind": "vehicle",
@@ -3746,7 +3746,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1135,
+     "tris": 1152,
      "parts": [
       {
        "node": "body",
@@ -3850,11 +3850,11 @@
      "color": "#ff2010"
     }
    ],
-   "paint": {"paint": "#f2f2ef", "paint2": "#1b4a9a", "paint3": "#1b4a9a", "metal": 0.12},
+   "paint": {"paint": "#d8d8d5", "paint2": "#1b4a9a", "paint3": "#1b4a9a", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "rs"],
-   "bytes": 310035,
-   "hash": "2b4ce491f2bbf1059ed5db55af67ebafc4533adf"
+   "bytes": 310504,
+   "hash": "88d4931cf9f337a9de843086d81903e792153e20"
   },
   "police/si": {
    "kind": "vehicle",
@@ -3919,7 +3919,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1168,
+     "tris": 1187,
      "parts": [
       {
        "node": "body",
@@ -4023,11 +4023,11 @@
      "color": "#ff2010"
     }
    ],
-   "paint": {"paint": "#f2f2ef", "paint2": "#1c4f96", "paint3": "#2f9a4a", "metal": 0.12},
+   "paint": {"paint": "#d8d8d5", "paint2": "#1c4f96", "paint3": "#2f9a4a", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "si"],
-   "bytes": 332436,
-   "hash": "7eb05d8c7cd71c9e5c6bb5696c4b7846c74eee46"
+   "bytes": 332908,
+   "hash": "970b6c2025410632ca0a46ebb9bda406726b0ba5"
   },
   "props/farmhouse": {
    "kind": "building",
@@ -4375,7 +4375,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1180,
+     "tris": 1197,
      "parts": [
       {
        "node": "body",
@@ -4461,8 +4461,8 @@
    "paint": {"paint": "#3d8a45", "metal": 0.4},
    "auto_lod": false,
    "tags": ["traffic", "car"],
-   "bytes": 270561,
-   "hash": "0e5147c7e4ecdaded308d5bb4366e15c54d2e5d4"
+   "bytes": 271024,
+   "hash": "4c1f71a4b21ecde53ac8805fc67cb3a319d20472"
   },
   "traffic/sedan": {
    "kind": "vehicle",
@@ -4527,7 +4527,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1149,
+     "tris": 1171,
      "parts": [
       {
        "node": "body",
@@ -4620,8 +4620,8 @@
    "paint": {"paint": "#b52424", "metal": 0.3},
    "auto_lod": false,
    "tags": ["traffic", "car"],
-   "bytes": 271357,
-   "hash": "64ce0ba46fb495e1e12308b5f83e84ca2a578f4a"
+   "bytes": 271845,
+   "hash": "4b72f7ecb736f8a9991da5d8c16b91f303ee4c4e"
   },
   "traffic/sports": {
    "kind": "vehicle",
@@ -4686,7 +4686,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1194,
+     "tris": 1164,
      "parts": [
       {
        "node": "body",
@@ -4772,8 +4772,8 @@
    "paint": {"paint": "#d01f1f", "metal": 0.3},
    "auto_lod": false,
    "tags": ["traffic", "car"],
-   "bytes": 287195,
-   "hash": "9fad217110cdd2dbd8d27cd3b76fc5f7cfade611"
+   "bytes": 287170,
+   "hash": "7c552c2abb4a8748d2089591ba70c9a9771d921c"
   },
   "traffic/suv": {
    "kind": "vehicle",
@@ -4838,7 +4838,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1169,
+     "tris": 1141,
      "parts": [
       {
        "node": "body",
@@ -4924,8 +4924,8 @@
    "paint": {"paint": "#1b1c1f", "metal": 0.35},
    "auto_lod": false,
    "tags": ["traffic", "car"],
-   "bytes": 280642,
-   "hash": "d98f3fd8c18045434719911f3a59f0fdb0db3e1e"
+   "bytes": 280595,
+   "hash": "b3260f0bafa9d6125fb942e637316e55001ea3dc"
   },
   "traffic/truck": {
    "kind": "heavy",
@@ -5704,7 +5704,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1189,
+     "tris": 1195,
      "parts": [
       {
        "node": "body",
@@ -5794,11 +5794,11 @@
      "color": "#ff2010"
     }
    ],
-   "paint": {"paint": "#ececea", "metal": 0.1},
+   "paint": {"paint": "#d8d8d6", "metal": 0.1},
    "auto_lod": false,
    "tags": ["traffic", "car"],
-   "bytes": 270960,
-   "hash": "8d48a0fdeadcf3e4d7fa91d2fcd3075ef9019f49"
+   "bytes": 271200,
+   "hash": "15c387fd338f93afdc6005fb6120fa2cf9ff368d"
   },
   "traffic/wagon": {
    "kind": "vehicle",
@@ -5863,7 +5863,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1141,
+     "tris": 1176,
      "parts": [
       {
        "node": "body",
@@ -5956,8 +5956,8 @@
    "paint": {"paint": "#aeb2b8", "metal": 0.75},
    "auto_lod": false,
    "tags": ["traffic", "car"],
-   "bytes": 276014,
-   "hash": "e5f771bef610196ab94b9371463b1b84e2d33f2d"
+   "bytes": 276615,
+   "hash": "0a022464d1bdc527e4e37d1f5cc82649f8aa39aa"
   }
  },
  "sets": {
@@ -6112,23 +6112,23 @@
   },
   "police/at": {
    "model": "police/at",
-   "paint": {"paint": "#eef0f2", "paint2": "#1e4597", "paint3": "#d3262c", "metal": 0.12}
+   "paint": {"paint": "#d4d6d8", "paint2": "#1e4597", "paint3": "#d3262c", "metal": 0.12}
   },
   "police/be": {
    "model": "police/be",
-   "paint": {"paint": "#f2f2ef", "paint2": "#1b3a8f", "paint3": "#e6dc1f", "metal": 0.12}
+   "paint": {"paint": "#d8d8d5", "paint2": "#1b3a8f", "paint3": "#e6dc1f", "metal": 0.12}
   },
   "police/bg": {
    "model": "police/bg",
-   "paint": {"paint": "#f2f2ef", "paint2": "#1b3f8f", "paint3": "#d22a2a", "metal": 0.12}
+   "paint": {"paint": "#d8d8d5", "paint2": "#1b3f8f", "paint3": "#d22a2a", "metal": 0.12}
   },
   "police/ch": {
    "model": "police/ch",
-   "paint": {"paint": "#f2f2ef", "paint2": "#e04a16", "paint3": "#f2d21c", "metal": 0.12}
+   "paint": {"paint": "#d8d8d5", "paint2": "#e04a16", "paint3": "#f2d21c", "metal": 0.12}
   },
   "police/cz": {
    "model": "police/cz",
-   "paint": {"paint": "#e9ecef", "paint2": "#1c3f8f", "paint3": "#e9d81f", "metal": 0.12}
+   "paint": {"paint": "#d3d5d8", "paint2": "#1c3f8f", "paint3": "#e9d81f", "metal": 0.12}
   },
   "police/de": {
    "model": "police/de",
@@ -6136,51 +6136,51 @@
   },
   "police/es": {
    "model": "police/es",
-   "paint": {"paint": "#f2f2ef", "paint2": "#1b3d8c", "paint3": "#1b3d8c", "metal": 0.12}
+   "paint": {"paint": "#d8d8d5", "paint2": "#1b3d8c", "paint3": "#1b3d8c", "metal": 0.12}
   },
   "police/fr": {
    "model": "police/fr",
-   "paint": {"paint": "#f2f2ef", "paint2": "#1c2f7a", "paint3": "#d6262b", "metal": 0.12}
+   "paint": {"paint": "#d8d8d5", "paint2": "#1c2f7a", "paint3": "#d6262b", "metal": 0.12}
   },
   "police/hr": {
    "model": "police/hr",
-   "paint": {"paint": "#f2f2ef", "paint2": "#1b3a8c", "paint3": "#1b3a8c", "metal": 0.12}
+   "paint": {"paint": "#d8d8d5", "paint2": "#1b3a8c", "paint3": "#1b3a8c", "metal": 0.12}
   },
   "police/hu": {
    "model": "police/hu",
-   "paint": {"paint": "#f2f2ef", "paint2": "#1b3a8a", "paint3": "#e3d61c", "metal": 0.12}
+   "paint": {"paint": "#d8d8d5", "paint2": "#1b3a8a", "paint3": "#e3d61c", "metal": 0.12}
   },
   "police/it": {
    "model": "police/it",
-   "paint": {"paint": "#1f5fa8", "paint2": "#f2f2ef", "paint3": "#c9242b", "metal": 0.45}
+   "paint": {"paint": "#1f5fa8", "paint2": "#d8d8d5", "paint3": "#c9242b", "metal": 0.45}
   },
   "police/lt": {
    "model": "police/lt",
-   "paint": {"paint": "#e9ecef", "paint2": "#1b3c8a", "paint3": "#d8e01c", "metal": 0.12}
+   "paint": {"paint": "#d3d5d8", "paint2": "#1b3c8a", "paint3": "#d8e01c", "metal": 0.12}
   },
   "police/lv": {
    "model": "police/lv",
-   "paint": {"paint": "#f2f2ef", "paint2": "#1c2f6e", "paint3": "#e3dc1c", "metal": 0.12}
+   "paint": {"paint": "#d8d8d5", "paint2": "#1c2f6e", "paint3": "#e3dc1c", "metal": 0.12}
   },
   "police/nl": {
    "model": "police/nl",
-   "paint": {"paint": "#f2f2ef", "paint2": "#1b3f93", "paint3": "#e5531b", "metal": 0.12}
+   "paint": {"paint": "#d8d8d5", "paint2": "#1b3f93", "paint3": "#e5531b", "metal": 0.12}
   },
   "police/pl": {
    "model": "police/pl",
-   "paint": {"paint": "#eceff2", "paint2": "#16336e", "paint3": "#16336e", "metal": 0.5}
+   "paint": {"paint": "#d3d5d8", "paint2": "#16336e", "paint3": "#16336e", "metal": 0.5}
   },
   "police/ro": {
    "model": "police/ro",
-   "paint": {"paint": "#f2f2ef", "paint2": "#1b3c8f", "paint3": "#c6e01e", "metal": 0.12}
+   "paint": {"paint": "#d8d8d5", "paint2": "#1b3c8f", "paint3": "#c6e01e", "metal": 0.12}
   },
   "police/rs": {
    "model": "police/rs",
-   "paint": {"paint": "#f2f2ef", "paint2": "#1b4a9a", "paint3": "#1b4a9a", "metal": 0.12}
+   "paint": {"paint": "#d8d8d5", "paint2": "#1b4a9a", "paint3": "#1b4a9a", "metal": 0.12}
   },
   "police/si": {
    "model": "police/si",
-   "paint": {"paint": "#f2f2ef", "paint2": "#1c4f96", "paint3": "#2f9a4a", "metal": 0.12}
+   "paint": {"paint": "#d8d8d5", "paint2": "#1c4f96", "paint3": "#2f9a4a", "metal": 0.12}
   },
   "props/barn": {
    "fallback": "sprite",
@@ -6573,7 +6573,7 @@
   },
   "traffic/hatch_white": {
    "model": "traffic/hatch",
-   "paint": {"paint": "#e8e8e5", "metal": 0.1}
+   "paint": {"paint": "#d8d8d5", "metal": 0.1}
   },
   "traffic/hatch_yellow": {
    "model": "traffic/hatch",
@@ -6629,7 +6629,7 @@
   },
   "traffic/suv_white": {
    "model": "traffic/suv",
-   "paint": {"paint": "#ececea", "metal": 0.1}
+   "paint": {"paint": "#d8d8d6", "metal": 0.1}
   },
   "traffic/truck_blue": {
    "model": "traffic/truck_transport",
@@ -6661,7 +6661,7 @@
   },
   "traffic/van_white": {
    "model": "traffic/van",
-   "paint": {"paint": "#ececea", "metal": 0.1}
+   "paint": {"paint": "#d8d8d6", "metal": 0.1}
   },
   "traffic/wagon_darkblue": {
    "model": "traffic/wagon",
@@ -6677,7 +6677,7 @@
   },
   "traffic/wagon_white": {
    "model": "traffic/wagon",
-   "paint": {"paint": "#e6e6e3", "metal": 0.1}
+   "paint": {"paint": "#d8d8d5", "metal": 0.1}
   }
  }
 }

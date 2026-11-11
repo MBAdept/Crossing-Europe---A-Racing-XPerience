@@ -65,7 +65,7 @@
    {
     "name": "lod2",
     "max_dist_m": 100000,
-    "tris": 1189,
+    "tris": 1195,
     "parts": [
      {
       "node": "body",
@@ -155,16 +155,16 @@
     "color": "#ff2010"
    }
   ],
-  "paint": {"paint": "#ececea", "metal": 0.1},
+  "paint": {"paint": "#d8d8d6", "metal": 0.1},
   "auto_lod": false,
   "tags": ["traffic", "car"],
-  "bytes": 270960,
-  "hash": "8d48a0fdeadcf3e4d7fa91d2fcd3075ef9019f49"
+  "bytes": 271200,
+  "hash": "15c387fd338f93afdc6005fb6120fa2cf9ff368d"
  },
  "sets": {
   "traffic/van_white": {
    "model": "traffic/van",
-   "paint": {"paint": "#ececea", "metal": 0.1}
+   "paint": {"paint": "#d8d8d6", "metal": 0.1}
   },
   "traffic/van_silver": {
    "model": "traffic/van",

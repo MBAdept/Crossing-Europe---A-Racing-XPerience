@@ -75,13 +75,16 @@ MODELS = {
         sets={"traffic/sedan_red": {}, "traffic/sedan_blue": {}, "traffic/sedan_silver": {}, "traffic/sedan_black": {}}),
     "traffic/hatch": dict(
         builder="car", source="traffic/hatch_green", kind="vehicle", design="hatch",
-        far_sill=False,           # lod2: no dark sill on the rear end - the cut costs 68 triangles, lod2 had 20 left
+        # lod2 (AS2R): a finer greenhouse takes the rear pane cut along the design's outline for fewer triangles
+        # (stations near the pane's edges), the coarser lower body pays for the dark sill on the rear end
+        detail={"lod2": {"gstep": 60.0, "step": 80.0}},
         sets={"traffic/hatch_green": {}, "traffic/hatch_yellow": {}, "traffic/hatch_white": {}, "traffic/hatch_blue": {},
               "traffic/hatch_red": {}}),
     "traffic/wagon": dict(
         builder="car", source="traffic/wagon_silver", kind="vehicle", design="wagon",
         detail={"lod0": {"step": 7.7, "gstep": 8.5}, "lod1": {"step": 16.0, "gstep": 24.0},
-                "lod2": {"gstep": 120.0, "ends_n": 1}, "shadow": {"gstep": 120.0}},              # the long greenhouse
+                "lod2": {"gstep": 60.0, "ends_n": 1, "step": 90.0}, "shadow": {"gstep": 120.0}},  # the long greenhouse
+        # (lod2, AS2R: gstep 120 -> 60 - stations along the rear pane make its cut cheaper; step 90 for the body)
         sets={"traffic/wagon_silver": {}, "traffic/wagon_darkblue": {}, "traffic/wagon_green": {},
               "traffic/wagon_white": {}}),
     "traffic/suv": dict(
@@ -95,7 +98,8 @@ MODELS = {
         sets={"traffic/van_white": {}, "traffic/van_silver": {}, "traffic/van_red": {}, "traffic/van_darkblue": {}}),
     "traffic/sports": dict(
         builder="car", source="traffic/sports_red", kind="vehicle", design="sports",
-        detail={"lod0": {"step": 8.2}, "lod2": {"step": 100.0}},      # the wing and four tail pipes
+        detail={"lod0": {"step": 8.2}, "lod2": {"step": 100.0, "gstep": 60.0}},      # the wing and four tail pipes
+        # (lod2 gstep 60, AS2R: the rear pane cut along the design's outline is cheaper on a finer greenhouse)
         sets={"traffic/sports_red": {}, "traffic/sports_yellow": {}, "traffic/sports_orange": {}, "traffic/sports_black": {},
               "traffic/sports_blue": {}}),
     # the semitrailer: one model per kind of trailer of cesprites.heavy.TRUCK_VARIANTS (the word on the box and the
@@ -154,6 +158,11 @@ POLICE_DETAIL_CC = {
     "ro": {"lod0": {"step": 13.0}, "lod1": {"step": 28.0}},
     "at": {"lod1": {"step": 48.0, "gstep": 64.0}},
 }
+# ... and options of the build per country (AS2R): Czechia's stripes leave no room in lod2 for the rear pane cut along
+# the design's outline (1,204 of 1,200 triangles) - its far greenhouse keeps the normal rule (police3d: far_windows)
+POLICE_SPEC_CC = {
+    "cz": {"far_windows": False},
+}
 
 
 def _police_models():
@@ -168,6 +177,7 @@ def _police_models():
                 detail.setdefault(lv, {}).update(vals)
         if detail:
             e["detail"] = detail
+        e.update(POLICE_SPEC_CC.get(cc, {}))
         out["police/" + cc] = e
     return out
 

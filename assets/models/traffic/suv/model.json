@@ -65,7 +65,7 @@
    {
     "name": "lod2",
     "max_dist_m": 100000,
-    "tris": 1169,
+    "tris": 1141,
     "parts": [
      {
       "node": "body",
@@ -151,8 +151,8 @@
   "paint": {"paint": "#1b1c1f", "metal": 0.35},
   "auto_lod": false,
   "tags": ["traffic", "car"],
-  "bytes": 280642,
-  "hash": "d98f3fd8c18045434719911f3a59f0fdb0db3e1e"
+  "bytes": 280595,
+  "hash": "b3260f0bafa9d6125fb942e637316e55001ea3dc"
  },
  "sets": {
   "traffic/suv_black": {
@@ -161,7 +161,7 @@
   },
   "traffic/suv_white": {
    "model": "traffic/suv",
-   "paint": {"paint": "#ececea", "metal": 0.1}
+   "paint": {"paint": "#d8d8d6", "metal": 0.1}
   },
   "traffic/suv_grey": {
    "model": "traffic/suv",

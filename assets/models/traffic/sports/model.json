@@ -65,7 +65,7 @@
    {
     "name": "lod2",
     "max_dist_m": 100000,
-    "tris": 1194,
+    "tris": 1164,
     "parts": [
      {
       "node": "body",
@@ -151,8 +151,8 @@
   "paint": {"paint": "#d01f1f", "metal": 0.3},
   "auto_lod": false,
   "tags": ["traffic", "car"],
-  "bytes": 287195,
-  "hash": "9fad217110cdd2dbd8d27cd3b76fc5f7cfade611"
+  "bytes": 287170,
+  "hash": "7c552c2abb4a8748d2089591ba70c9a9771d921c"
  },
  "sets": {
   "traffic/sports_red": {

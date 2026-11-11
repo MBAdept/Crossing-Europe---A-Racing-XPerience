@@ -65,7 +65,7 @@
    {
     "name": "lod2",
     "max_dist_m": 100000,
-    "tris": 1177,
+    "tris": 1196,
     "parts": [
      {
       "node": "body",
@@ -172,8 +172,8 @@
   "paint": {"paint": "#c9cdd3", "paint2": "#1f4c9c", "paint3": "#1f4c9c", "metal": 0.6},
   "auto_lod": false,
   "tags": ["police", "de"],
-  "bytes": 307366,
-  "hash": "30fe38ebf4a8b66be049a5d455e51a0d18c7685b"
+  "bytes": 307784,
+  "hash": "d1cbed25abaf21d7738413a308329c1f611fb166"
  },
  "sets": {
   "police/de": {

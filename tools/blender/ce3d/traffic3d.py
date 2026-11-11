@@ -186,6 +186,7 @@ TRAFFIC_RIM = dict(color="#5a5d62", metal=0.6, rough=0.35)
 FAR_PLATE = "#c4c4c1"
 TRAFFIC_GLASS = dict(color="#2a343e", rough=0.02, metal=0.25)
 CHMSL_LAMP = "brake:1:#9a1208"
+FAR_CAP_STRIPS = ("lod2",)     # levels whose loft end caps are bands (carbody detail cap_strips)
 EXHAUST = dict(color="#3c3d40", rough=0.4, metal=0.6, length=0.3)
 MIRROR_GLASS = dict(color="#2c3238", rough=0.03, metal=0.9)
 
@@ -323,6 +324,12 @@ def _drum_wheels(sc, d, segs, rim_color):
     tyre = sc.mat("tyre", "#141415", rough=0.82, spec=0.35)
     rim = M.basic(sc.name + "_rimdisc", rim_color, rough=TRAFFIC_RIM["rough"], metal=TRAFFIC_RIM["metal"])
     inset = d.get("wheel_inset", 0.02)
+    if segs < 10:
+        # (AS2R) beyond 120 m the wheel face is a 4 px hexagon: one disc in the mean colour of tyre and rim (linear
+        # light; the rim covers half the face) instead of a sidewall ring around a rim disc - 12 triangles less per
+        # wheel, room for the panes cut along the design's outlines in lod2
+        rim = M.basic(sc.name + "_rimdisc_far", core.lin_to_hex((core.hex_to_lin("#141415") + core.hex_to_lin(rim_color)) * 0.5),
+                      rough=TRAFFIC_RIM["rough"], metal=TRAFFIC_RIM["metal"])
     for ya, tw in ((sc.y_ra, d.get("tw_r", d["tw"])), (sc.y_fa, d["tw"])):
         for side in (1, -1):
             xc = sc.W2 - inset - tw / 2
@@ -333,8 +340,8 @@ def _drum_wheels(sc, d, segs, rim_color):
                 disc = [(0.0, xo - 0.005), (r_rim * 0.3, xo - 0.005), (r_rim * 0.55, xo - 0.03), (r_rim * 1.02, xo)]
             else:
                 # (no inner sidewall: beyond 120 m nobody looks under the car - room for the number plate in lod2)
-                prof = [(r_rim * 0.95, tw / 2), (R, tw / 2), (R, -tw / 2)]
-                disc = [(0.0, xo), (r_rim, xo)]
+                prof = [(R, tw / 2), (R, -tw / 2)]
+                disc = [(0.0, tw / 2), (R, tw / 2)]
             bm = bmesh.new()
             _lathe_x(bm, prof, segs)
             ob_t = MU.make(sc.name + "_tyre_far", bm, tyre, parent=sc.center, smooth=True, sharp_deg=45)
@@ -443,6 +450,10 @@ def _level(spec3d, level, paint_hex, metal, fine=None):
     car = vehicles.Car(rig, traffic_design(name), paint=paint_hex, metal=metal, name=name)      # not built: decals
     sd = smooth_design(car, full_length=far)
     detail = dict(LOD.TRAFFIC_DETAIL[level])
+    if level in FAR_CAP_STRIPS:
+        # (AS2R) the end caps of the far level as bands: the lamps and the rear pane cut into them cost a third of
+        # the triangles they took in the triangulated n-gon (room for the panes along the design's outlines)
+        detail["cap_strips"] = True
     detail.update(spec3d.get("detail", {}).get(level, {}))
     MU.tagging(True)
     try:
@@ -550,7 +561,8 @@ def _level(spec3d, level, paint_hex, metal, fine=None):
     pal, tris, stats = decalgeo.car_surfaces(car, {s.name: s for s in soups}, cut=True,
                                              level={"lod0": 0, "lod1": 1, "lod2": 2}[level], paint_rough=0.24,
                                              seals=False, far_glass=True, far_plate=FAR_PLATE, glass_look=TRAFFIC_GLASS,
-                                             far_sill=spec3d.get("far_sill", True))
+                                             far_sill=spec3d.get("far_sill", True),
+                                             far_windows=spec3d.get("far_windows", True))
     stats["flipped_slivers"] = sum(_drop_flipped_slivers(t) for t in tris.values())
     pivots = {}
     for s in soups:
@@ -607,10 +619,14 @@ def build_car(model_id, spec3d):
     car, sc, nodes, _p, origin, _tr, stats["shadow"], _l = _level(spec3d, "shadow", paint_hex, metal, fine)
     model.shadow = Part("body", "shadow", nodes["body"].finish(origin=origin, min_height=SLIVER_M))
     model.lods = lods
-    model.paint = {"paint": paint_hex, "metal": metal}
+    # near-white paints are brought down as the truck's (truck3d._tone): #ececea / #e8e8e5 / #e6e6e3 came out as pure
+    # white without any form on the van's doors and the SUV (art review KRITIK-2, B1)
+    from .truck3d import _tone
+    model.paint = {"paint": _tone(paint_hex), "metal": metal}
     model.tags = list(sspec.get("tags", []))
     for sid in set_ids:
         cname = sid.split("_", 1)[1]
-        model.sets[sid] = {"model": model_id, "paint": {"paint": colours[cname], "metal": catalog.METALLIC.get(cname, 0.35)}}
+        model.sets[sid] = {"model": model_id, "paint": {"paint": _tone(colours[cname]),
+                                                        "metal": catalog.METALLIC.get(cname, 0.35)}}
     model.stats = dict(build_s=round(time.time() - t0, 2), decals=stats)
     return model

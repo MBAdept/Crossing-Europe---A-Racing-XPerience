@@ -738,17 +738,26 @@ def build_police(model_id, spec3d):
 
     from . import catalog3d
     from . import traffic3d as T
+    from .truck3d import _tone as T_TONE
     from .vehicles3d import SLIVER_M, _add_soup, _sprite_spec, _wheel_parts
     t0 = time.time()
     cc = spec3d["cc"]
-    p = catalog.POLICE[cc]
+    # (AS2R) near-white livery colours are brought down as those of the trucks and the traffic cars (truck3d._tone):
+    # fifteen of the eighteen police cars are white (#f2f2ef), which came out as pure white without any form
+    # (art review KRITIK-2, B1 - the same for the police)
+    p = dict(catalog.POLICE[cc])
+    for k in ("body", "c1", "c2"):
+        p[k] = T_TONE(p[k])
     base = p["model"]
     traffic = catalog3d.MODELS["traffic/" + base]
     # the traffic car's own options (detail per level, far sill), police overrides on top
     detail = copy.deepcopy(traffic.get("detail", {}))
     for lv, over in spec3d.get("detail", {}).items():
         detail.setdefault(lv, {}).update(over)
-    tspec = dict(design=base, detail=detail, far_sill=spec3d.get("far_sill", traffic.get("far_sill", True)))
+    # far_windows "rear" (AS2R): the rear pane of lod2 cut along the design's outline as for the traffic cars, the side
+    # panes by the normal rule - the livery and the bar leave no room for the side split in 1,200 triangles
+    tspec = dict(design=base, detail=detail, far_sill=spec3d.get("far_sill", traffic.get("far_sill", True)),
+                 far_windows=spec3d.get("far_windows", "rear"))
     pol = _Police(cc, p, designs.TRAFFIC_MODELS[base])
     metal = float(p.get("metal", 0.12))
     sspec = _sprite_spec(spec3d["source"])
