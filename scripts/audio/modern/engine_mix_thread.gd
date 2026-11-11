@@ -29,7 +29,8 @@ extends RefCounted
 ## play_clip(), lift()); everything else belongs to the render side – the worker thread started by pump(), or the
 ## caller of render() / pump() in synchronous mode. reset() and detach() stop the worker first.
 ## The worker keeps `latency` seconds queued (more when the audio driver takes larger blocks) in chunks of CHUNK
-## frames and fades the engine out when the game thread sent nothing for WATCHDOG_S (a frozen window, a long load).
+## frames – at least one driver block plus BURST_MARGIN_S – and fades the engine out when the game thread sent nothing
+## for WATCHDOG_S (a frozen window, a long load).
 ## A playback never starts empty: pump() renders the first `latency` seconds before the player starts and pushes
 ## them right after; the size of the driver's blocks is remembered for the whole process (known_burst_s), so a later
 ## engine (next stage, preview, resume after the pause) starts with the right queue length.
@@ -58,6 +59,7 @@ const SLOW_TAU := 2.5            ## s, correlation time of the slow movement
 const MAX_CLIPS := 10
 const MAX_EVENTS := 32           ## pending control events (they are taken with every rendered chunk)
 const MAX_RAMP_S := 0.05         ## the rpm reaches a new value within the frame time, at most within this (after a hitch)
+const BURST_MARGIN_S := 0.04     ## queue beyond one block of the audio driver (the worker measured up to 30 ms per fill on a loaded machine)
 
 ## Largest block the audio driver took from a generator between two fills, in seconds (decaying maximum of the
 ## mixer that played last) – the Dummy driver of headless runs takes about 93 ms at once, sound servers 10–25 ms.
@@ -953,7 +955,7 @@ func pump(latency_s: float, frame_dt: float = 0.0, threaded: bool = false) -> in
 		# the first block is rendered before the player starts and pushed right after: the driver never finds an
 		# empty generator, however its blocks fall
 		_burst = known_burst_s * _sr
-		var pre := clampi(maxi(int(latency_s * _sr), int(_burst * 1.25)), CHUNK, maxi(int(_buffer_frames * 0.85), CHUNK))
+		var pre := clampi(_queue_target(latency_s), CHUNK, maxi(int(_buffer_frames * 0.85), CHUNK))
 		if _pre.size() != pre:
 			_pre.resize(pre)
 		var t0 := Time.get_ticks_usec()
@@ -988,6 +990,12 @@ func pump(latency_s: float, frame_dt: float = 0.0, threaded: bool = false) -> in
 	return _fill(maxf(latency_s, 1.6 * _frame_dt), false)
 
 
+## Frames to keep queued: latency_s, and at least one block of the audio driver plus a margin for the moments in
+## which this thread does not get the processor (a quarter of the block, at least BURST_MARGIN_S).
+func _queue_target(latency_s: float) -> int:
+	return maxi(int(latency_s * _sr), int(_burst + maxf(_burst * 0.25, BURST_MARGIN_S * _sr)) if _burst > 0.0 else 0)
+
+
 ## Keeps `latency_s` queued. Worker: whole chunks only. Returns the frames rendered.
 func _fill(latency_s: float, chunks_only: bool) -> int:
 	var pb := _playback
@@ -999,7 +1007,7 @@ func _fill(latency_s: float, chunks_only: bool) -> int:
 	_burst = maxf(float(_queued - queued), _burst * exp(-float(now - _pump_usec) / 3.3e6))
 	known_burst_s = _burst / _sr
 	_pump_usec = now
-	var target := mini(maxi(int(latency_s * _sr), int(_burst * 1.25)), int(_capacity * 0.9))
+	var target := mini(_queue_target(latency_s), int(_capacity * 0.9))
 	var need := mini(target - queued, free)
 	_queued = queued
 	if need <= 0 or (chunks_only and need < CHUNK):

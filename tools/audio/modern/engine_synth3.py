@@ -90,7 +90,7 @@ CHAR: dict = {
     "kompakt": {
         "retune": {"rasp": 4.0, "jet": 5.0, "intake": 4.0, "whoosh": 5.0, "mech": 2.0, "hiss": 3.0},
         "nl": 1.5, "pan": "centre", "width": 0.0, "noise": 0.85, "clip_pan": 0.25, "voice": [[520.0, 0.9, 5.0]],
-        "on": ON_CURVE, "off": OFF_CURVE, "loudness": 0.2, "idle_db": 1.6, "low_db": 0.0,
+        "on": ON_CURVE, "off": OFF_CURVE, "loudness": -0.3, "idle_db": 1.9, "low_db": 0.0,
         "mix": {"in_gain": 1.0, "idle_load": 0.2, "load_curve": 0.55},
         "saturation": 1.0, "turbo_depth": 0.25,
         "turbo": {"tone": "turbo_single", "tone_level": 0.060, "hiss_level": 0.030},
@@ -836,6 +836,7 @@ def register_banks(out: str | None, cars: list) -> None:
 # ------------------------------------------------------------------------------------------------------------------
 VSR = ml.SR
 LOOP_S = 2.0                     # length of the loops (whole numbers of periods of their reference tones)
+LOOP_GUARD = 16                  # frames of continuation behind the loop end (the loop's first frames once more)
 
 
 def _vnoise(n: int, seed: int, shape) -> np.ndarray:
@@ -941,8 +942,13 @@ def build_vehicle(out: str | None, log=print) -> None:
         loop = None
         for i, v in enumerate(vs):
             name = f"{sid}_{'abcdef'[i]}.wav" if many else f"{sid}.wav"
-            ml.write_wav16(man.file(name), v * (peak / unit))
             loop = (0, len(v)) if kind == "loop" else None
+            if loop:
+                # Godot reads the frame at the loop end before it wraps (measured in 4.7.2: a loop of a constant 0.5
+                # that ends with its data plays one frame of 0 at every seam, at any pitch). The loop's first frames
+                # follow its end once more, so the seam is the plain continuation.
+                v = np.concatenate([v, v[:LOOP_GUARD]], axis=0)
+            ml.write_wav16(man.file(name), v * (peak / unit))
             if repo:
                 write_wav_import_keep(man.file(name), loop)
             names.append(name)

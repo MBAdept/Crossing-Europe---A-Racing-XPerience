@@ -173,5 +173,9 @@ func test_shipped_banks_and_their_vehicle_sounds() -> void:
 		own += 1
 		assert_eq(ve.bus, "MEngineFx", "vehicle/%s auf MEngineFx" % id)
 		if ve.kind == "loop":
-			assert_true(ve.loops() and ve.loop_begin == 0 and ve.loop_end == ve.frames, "vehicle/%s: Schleife über die ganze Datei" % id)
+			# Godot reads the frame at the loop end before it wraps: the loop's first frames follow its end once more
+			# (a loop that ends with its data plays one wrong frame at every seam – measured, docs/motorsound.md 6.9)
+			assert_true(ve.loops() and ve.loop_begin == 0 and ve.frames - ve.loop_end >= 4, "vehicle/%s: Schleife mit Fortsetzung hinter ihrem Ende (%d Frames)" % [id, ve.frames - ve.loop_end])
+			var st := assets.stream("vehicle", id) as AudioStreamWAV
+			assert_true(st != null and st.loop_mode == AudioStreamWAV.LOOP_FORWARD and st.loop_end == ve.loop_end, "vehicle/%s: Import mit denselben Schleifenpunkten" % id)
 	assert_eq(own, 9, "neun Fahrzeugklänge dieses Pakets")
