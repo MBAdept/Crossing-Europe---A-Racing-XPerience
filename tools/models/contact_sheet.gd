@@ -566,6 +566,17 @@ func _render(t: Dictionary) -> Image:
 				mi.visible = mi.name == "shadow"
 				if mi.name == "shadow":
 					mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		if _args.has("caster"):
+			# --caster: the shadow caster in red over the visible model - red shows only where the caster stands
+			# out of the hull (there it would shade its own body)
+			var red := StandardMaterial3D.new()
+			red.albedo_color = Color(1.0, 0.05, 0.05)
+			red.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			for c: Node in node.find_children("shadow", "MeshInstance3D", true, false):
+				var mi := c as MeshInstance3D
+				mi.visible = true
+				mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON    # (shadows-only nodes are not drawn)
+				mi.material_override = red
 		if _args.has("clay"):
 			# --clay: the form alone - every surface plain grey, glass hidden (steps, blades and dents show)
 			var clay := StandardMaterial3D.new()

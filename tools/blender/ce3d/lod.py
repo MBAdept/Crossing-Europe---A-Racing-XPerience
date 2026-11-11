@@ -49,7 +49,8 @@ TRAFFIC_DETAIL = {
                  bumper_clamp=True),
     # beyond: 14-point sections, the body runs to the full length, only lamps, plates and dark panes
     "lod2": dict(ring=0.1, ring_min=1, step=60.0, wheel=0.22, arch_n=2, gstep=40.0, ends_n=2),
-    "shadow": dict(ring=0.1, ring_min=1, step=60.0, wheel=0.22, arch_n=2, gstep=40.0, ends_n=2),
+    # the caster gets real arch openings (arch_n 6): with arch_n 2 it closed the arches over the wheels and shaded them
+    "shadow": dict(ring=0.1, ring_min=1, step=60.0, wheel=0.22, arch_n=6, gstep=40.0, ends_n=2),
 }
 
 # --- traffic cars (cesprites.vehicles.Car, hook parameter "detail"; not used by the models any more: the lofts

@@ -114,6 +114,7 @@ GLASS_OVERLAP_M = 0.008        # the panes overlap the edge of their opening by 
 POCKET_SPAN_M = 0.09           # objects whose faces under a lamp outline lie this close behind the front one share the recess
 POCKET_MIN_SHARE = 0.12        # ... if their part of the outline has at least this share of the largest part's area
 LINER = dict(color="#232427", rough=0.85)
+INTERIOR_MAX_TRIS = 6000       # contract 4.6.9: interior inside "body" of the race level (lining included)
 
 
 def _shift(outline, proj, dy):
@@ -330,7 +331,14 @@ def _player_level(spec3d, level):
     col[:3] = core.srgb8(core.hex_to_lin(LINER["color"]))
     col[3] = 255
     nodes["body"].add("vpbr", lin_pos, lin_nor, col, (LINER["rough"], 0.0), roles.NO_LAMP)
-    info["cabin"] = dict(lining_tris=int(lin_pos.shape[0]), removed=cut_stats["removed"], pocket_tris=pocket_tris)
+    # contract 4.6.9: at most 6,000 triangles of interior inside "body" (the lining counts: it is seen only from
+    # inside). The export stops above it - the kompakt was at 6,268 with the full-resolution lining
+    interior = int(sum(s.n for s in soups if "_int_" in s.name)) + int(lin_pos.shape[0])
+    if level == "lod0" and interior > INTERIOR_MAX_TRIS:
+        raise RuntimeError("%s %s: interior %d triangles (at most %d)" % (spec3d["design"], level, interior,
+                                                                          INTERIOR_MAX_TRIS))
+    info["cabin"] = dict(lining_tris=int(lin_pos.shape[0]), removed=cut_stats["removed"], pocket_tris=pocket_tris,
+                         interior_tris=interior)
     info["shell"] = shell
     return car, info, params, nodes, pivots, tr
 
@@ -399,7 +407,10 @@ def _player_shadow(spec3d, shell):
     for i in range(1, 12):
         ys.add(car.lb0 + (car.lb1 - car.lb0) * i / 12.0)
     for ya in (car.y_ra, car.y_fa):
-        ys.update((ya - car.Ra, ya - car.Ra * 0.5, ya, ya + car.Ra * 0.5, ya + car.Ra))
+        # the arch opening with its vertical edges (Ra - 1 cm; thinner bands turned over in the tuck): a coarser
+        # arch filled the corners of the opening over the wheels and threw its shadow on them
+        ys.update((ya - car.Ra, ya - car.Ra + 0.01, ya - car.Ra * 0.85, ya - car.Ra * 0.5, ya, ya + car.Ra * 0.5,
+                   ya + car.Ra * 0.85, ya + car.Ra - 0.01, ya + car.Ra))
     lower = car._loft_object("shadow_lower", sorted(ys), car.lower_half, car.paint)
     g0, g1 = d["g_range"]
     green = car._loft_object("shadow_green", [g0 + (g1 - g0) * i / 9.0 for i in range(10)], car.green_half, car.paint)
@@ -439,7 +450,8 @@ def build_player(model_id, spec3d):
             model = ModelData(model_id, spec3d["kind"], dict(info["object"]))
             model.lights = tr.lights()
             shell = info["shell"]
-        stats[level] = dict(build_s=round(time.time() - t1, 2))
+        stats[level] = dict(build_s=round(time.time() - t1, 2), interior_tris=info["cabin"]["interior_tris"],
+                            lining_tris=info["cabin"]["lining_tris"])
     smb, stats["shadow"] = _player_shadow(spec3d, shell)
     model.shadow = Part("body", "shadow", smb.finish())
     model.lods = lods

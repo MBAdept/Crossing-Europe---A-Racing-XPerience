@@ -310,8 +310,11 @@ def _trailer(b):
     e = 0.001                           # markings stay this far off the panel edges (no T-junctions)
     node = "trailer/body"
     lamp_marker = "-marker:1:" + AMBER
-    i_tape_r = b.flat(RED_TAPE, 0.35, 0.0, "plate:1.0")
-    i_tape_y = b.flat(YELLOW_TAPE, 0.35, 0.0, "plate:1.0")
+    # retroreflective contour tape: a lit surface that shines at night (channel 14: its own colour by day, albedo x
+    # weight x ce_night at night - the player's headlights light it). As a number-plate surface (channel 8: tail
+    # light x plate_energy 0.45) the contour stayed nearly dark at night, and it is the truck's main night cue
+    i_tape_r = b.flat(RED_TAPE, 0.35, 0.0, "flood:%.2f" % TAPE_NIGHT)
+    i_tape_y = b.flat(YELLOW_TAPE, 0.35, 0.0, "flood:%.2f" % TAPE_NIGHT)
     i_marker = b.flat("#c86a12", 0.2, 0.0, lamp_marker)
     i_marker_red = b.flat("#8a0c0a", 0.2, 0.0, "marker:1:" + LAMP_RED)
     f = _box_faces(-W2, W2, 0.0, TR_LEN, BOX_Z0, BOX_Z1)
@@ -442,7 +445,7 @@ def _trailer(b):
     yb = 0.03
     bar = _box_faces(-W2 + 0.02, W2 - 0.02, yb, yb + 0.12, 0.6, 1.0)
     i_bar = b.flat("#202124", 0.5, 0.2)
-    i_tri = b.flat("#c01712", 0.25, 0.0, "plate:0.8")
+    i_tri = b.flat("#c01712", 0.25, 0.0, "flood:%.2f" % TAPE_NIGHT)     # triangle reflectors: retroreflective as well
     i_plate = b.flat("#eeeeea", 0.45, 0.0, "plate:0.6")
     i_blue = b.flat("#1d3c9c", 0.45)
     i_text = b.flat("#151515", 0.5)
@@ -703,21 +706,56 @@ def _level(level, paints):
 
 
 SHADOW_IN = 0.03                    # the shadow caster lies this far inside the faces of the bodies
+TAPE_NIGHT = 0.8                    # night glow of the retroreflective tape and reflectors (weight of channel 14)
+WHITE_MAX = 216                     # near-white liveries: largest sRGB channel (see _tone)
+
+
+def _tone(hex_col):
+    """Real-time colour of a livery: a near-white paint (all channels above 85 %) is brought down to WHITE_MAX.
+    White paint reflects about 80 % of the light; the sprite colours (#ececea) came out as pure 255 white without any
+    form on the box and the cab in real time (art review of AS1, C2)."""
+    h = hex_col.lstrip("#")
+    rgb = [int(h[i:i + 2], 16) for i in (0, 2, 4)]
+    if min(rgb) < 217:
+        return hex_col
+    k = WHITE_MAX / float(max(rgb))
+    return "#%02x%02x%02x" % tuple(int(round(c * k)) for c in rgb)
 
 
 def _shadow(b):
-    """Shadow caster: the trailer as a box, the cab as its profile, the wheels as drums - everything a little
-    inside the visible faces (a caster in the plane of a face, or in front of a dished rim, throws its shadow on
-    the very part it stands for)."""
+    """Shadow caster: the trailer as a box, the cab as its profile, the wheels as drums, and under the cab and the
+    trailer only the parts that are really there (bumper, fenders, step and battery boxes, tanks, the frame
+    rails) - everything SHADOW_IN inside the visible faces (a caster in the plane of a face, or in front of a
+    dished rim, throws its shadow on the very part it stands for). (A box over the whole width under the cab
+    and a slab under the whole trailer stood out of the hull - 446 to 1,838 px per view in the art review - and
+    shaded fenders, wheels and the rear lamp bar.)"""
     MU = b.MU
     grey = b.mat("grey", GREY)
     e = SHADOW_IN
+
+    def inset_box(x0, x1, y0, y1, z0, z1, bm):
+        if x1 - x0 > 2 * e and y1 - y0 > 2 * e and z1 - z0 > 2 * e:
+            MU.bm_box(x1 - x0 - 2 * e, y1 - y0 - 2 * e, z1 - z0 - 2 * e, ((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2), bm=bm)
+
     with b.node("body"):
         bm = MU.bm_box(2 * (W2 - e), TR_LEN - 2 * e, BOX_Z1 - BOX_Z0 - 2 * e, (0.0, TR_LEN / 2, (BOX_Z0 + BOX_Z1) / 2))
-        MU.bm_box(2 * (CAB_W2 - e), CAB_Y1 - CAB_Y0 - 2 * e, CAB_Z0 + 0.1 - 0.6, (0.0, (CAB_Y0 + CAB_Y1) / 2, (CAB_Z0 + 0.7) / 2),
-                  bm=bm)
-        MU.bm_box(2 * (1.262 - e), L - e - (CAB_Y1 - 0.2), 1.2 - 0.55, (0.0, (L - e + CAB_Y1 - 0.2) / 2, (1.2 + 0.55) / 2), bm=bm)
-        MU.bm_box(1.0, 15.5, 0.3, (0.0, 8.0, 1.05), bm=bm)
+        # bumper, under the cab
+        inset_box(-1.262, 1.262, CAB_Y1 - 0.22, L, 0.5, 1.23, bm)
+        for sx in (-1, 1):
+            # front fender blocks (above the wheel), step boxes, battery / air boxes, tanks (as boxes inside the
+            # cylinders), frame rails of tractor and trailer
+            xa, xb = sorted((sx * 0.93, sx * 1.262))
+            inset_box(xa, xb, Y_FRONT - 0.66, Y_FRONT + 0.6, R + R + 0.06, CAB_Z0, bm)
+            xa, xb = sorted((sx * 0.94, sx * 1.24))
+            inset_box(xa, xb, 15.86, 16.2, 0.52, 1.22, bm)
+            xa, xb = sorted((sx * 0.74, sx * 1.24))
+            inset_box(xa, xb, 13.89, 14.51, 0.53, 1.15, bm)
+            xa, xb = sorted((sx * (0.94 - 0.23), sx * (0.94 + 0.23)))
+            inset_box(xa, xb, 12.43, 13.67, 0.57, 1.03, bm)
+            xa, xb = sorted((sx * 0.37, sx * 0.47))
+            inset_box(xa, xb, 10.33, 15.97, 0.85, 1.09, bm)
+            xa, xb = sorted((sx * 0.42, sx * 0.52))
+            inset_box(xa, xb, 0.25, 12.45, 0.92, 1.22, bm)
         b.obj("shadow", bm, grey)
         prof = decalgeo.inset([tuple(p) for p in CAB_PROFILE], e)
         b.obj("shadow_cab", MU.prism(prof, 2 * (CAB_W2 - e), plane="YZ", offset=-(CAB_W2 - e)), grey)
@@ -747,7 +785,8 @@ def build_truck(model_id, spec3d):
 
     def livery(cname):
         v = heavy.TRUCK_VARIANTS[cname]
-        return {"paint": colours[cname], "paint2": v["cab"], "paint3": v["stripe"] or colours[cname], "metal": 0.1}
+        return {"paint": _tone(colours[cname]), "paint2": _tone(v["cab"]), "paint3": _tone(v["stripe"] or colours[cname]),
+                "metal": 0.1}
     paints = {k: v for k, v in livery(first).items() if k != "metal"}
     sspec = _sprite_spec(spec3d["source"])
     origin = np.array([0.0, L / 2.0, 0.0])

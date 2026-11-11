@@ -75,7 +75,7 @@
     ]
    }
   ],
-  "shadow": {"mesh": "traffic/sedan/shadow.res", "tris": 636},
+  "shadow": {"mesh": "traffic/sedan/shadow.res", "tris": 972},
   "lights": [
    {
     "role": "brake",
@@ -158,8 +158,8 @@
   "paint": {"paint": "#b52424", "metal": 0.3},
   "auto_lod": false,
   "tags": ["traffic", "car"],
-  "bytes": 261909,
-  "hash": "5ddbdd7c2f42ed3b10775e2608ac31f229df324b"
+  "bytes": 265385,
+  "hash": "5f652833bcd4f33058a4e7343cffa4dd0e386b64"
  },
  "sets": {
   "traffic/sedan_red": {

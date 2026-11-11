@@ -92,7 +92,7 @@
     ]
    }
   ],
-  "shadow": {"mesh": "player/kompakt/shadow.res", "tris": 1872},
+  "shadow": {"mesh": "player/kompakt/shadow.res", "tris": 2320},
   "lights": [
    {
     "role": "brake",
@@ -182,8 +182,8 @@
   "paint": {"paint": "#f0b30a", "metal": 0},
   "auto_lod": false,
   "tags": ["player"],
-  "bytes": 1657889,
-  "hash": "a69b982283af5206f7cab3aa144fd560f18921a4"
+  "bytes": 1661802,
+  "hash": "6abe00a87365747cc49dc9cc49e2b299a798901f"
  },
  "sets": {
   "player/kompakt": {

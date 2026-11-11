@@ -92,7 +92,7 @@
     ]
    }
   ],
-  "shadow": {"mesh": "player/limousine/shadow.res", "tris": 1872},
+  "shadow": {"mesh": "player/limousine/shadow.res", "tris": 2320},
   "lights": [
    {
     "role": "brake",
@@ -189,8 +189,8 @@
   "paint": {"paint": "#1d4ea8", "metal": 0.55},
   "auto_lod": false,
   "tags": ["player"],
-  "bytes": 1523791,
-  "hash": "be932cf5de2f572f1cef48e2abc23d8e0b3c15e5"
+  "bytes": 1527819,
+  "hash": "f205c2f8fd2ab1676fe911677b44072d815ffc92"
  },
  "sets": {
   "player/limousine": {
