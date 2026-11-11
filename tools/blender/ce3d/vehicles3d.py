@@ -198,9 +198,13 @@ def _player_level(spec3d, level):
         MU.tagging(False)
     objs = core.model_objects(rig)
     soups = core.soups_of(objs)
+    shell = {}
     for s_ in soups:
         if s_.name in (car.body.name, car.bumper_rear.name, car.bumper_front.name):
             core.flatten_ends(s_.pos, s_.nor)        # the flat end caps shade into the rounded ends
+        if s_.name in (car.body.name, car.green.name):
+            # the closed lofts, before lamps and windows are cut out: the shadow caster is tucked inside them
+            shell["body" if s_.name == car.body.name else "green"] = s_.pos.copy()
     pocket_tris = _lamp_pockets(car, soups)
     extras3d.uncover_pockets(car, {s.name: s for s in soups}, lambda o, pr: _shift(o, pr, -car.L / 2.0), decalgeo.cut_holes)
     lin_pos, lin_nor, cut_stats = _open_cabin(car, lay, soups)
@@ -239,43 +243,24 @@ def _player_level(spec3d, level):
     col[3] = 255
     nodes["body"].add("vpbr", lin_pos, lin_nor, col, (LINER["rough"], 0.0), roles.NO_LAMP)
     info["cabin"] = dict(lining_tris=int(lin_pos.shape[0]), removed=cut_stats["removed"], pocket_tris=pocket_tris)
+    info["shell"] = shell
     return car, info, params, nodes, pivots, tr
 
 
-def _player_shadow(spec3d):
-    """Shadow caster: the lower body and the greenhouse lofted at a handful of stations, wheels as drums."""
-    from cesprites import carbody as CB
-    from cesprites import player_cars
-    from cesprites import rig as R
-    sspec = _sprite_spec(spec3d["source"])
-    p = sspec["params"]
-    d = player_cars.DESIGNS[p["design"]]
-    rig = R.Rig(quick=True)
-    car = CB.SmoothCar(rig, d, paint=p["paint"], metal=p.get("metal", 0.3), name=p["design"],
-                       detail=LOD.PLAYER_DETAIL["shadow"])
-    ys = {car.lb0, car.lb1}
-    for i in range(1, 12):
-        ys.add(car.lb0 + (car.lb1 - car.lb0) * i / 12.0)
-    for ya in (car.y_ra, car.y_fa):
-        ys.update((ya - car.Ra, ya - car.Ra * 0.5, ya, ya + car.Ra * 0.5, ya + car.Ra))
-    lower = car._loft_object("shadow_lower", sorted(ys), car.lower_half, car.paint)
-    g0, g1 = d["g_range"]
-    green = car._loft_object("shadow_green", [g0 + (g1 - g0) * i / 9.0 for i in range(10)], car.green_half, car.paint)
-    car.finish()
-    mb = core.MeshBuilder()
-    for s in core.soups_of([lower, green]):
-        mb.add("vpbr", s.pos, s.nor, GREY, (0.8, 0.0), roles.NO_LAMP)
-    # wheels: 12-sided drums
-    tw = d["tw"]
-    inset = d.get("wheel_inset", 0.02)
-    n = 12
-    for ya in (car.y_ra, car.y_fa):
+SHADOW_MARGIN_M = 0.012         # the shadow caster lies this far inside the skin of lod0 (core.tuck_inside)
+SHADOW_WHEEL = dict(radius=0.97, width=0.5)     # its wheel drums: share of the radius; of the tyre width, inner part
+
+
+def shadow_drums(mb, wheels, n=12):
+    """Wheel drums of a shadow caster. wheels: [(x of the outer tyre face, tyre width, y, z, radius)] of the
+    right side in root space; both sides are made. The drum is the inner part of the tyre: a cap in the plane of
+    the outer tyre face would lie in front of the dished rim, which then never saw the sun."""
+    for (x_face, tw, cy, cz, radius) in wheels:
+        r = radius * SHADOW_WHEEL["radius"]
         for side in (1, -1):
-            x1 = side * (car.W2 - inset)
-            x0 = x1 - side * tw
-            cy, cz = ya - car.L / 2.0, car.R
-            ring = [(cy + car.R * math.cos(2 * math.pi * k / n), cz + car.R * math.sin(2 * math.pi * k / n))
-                    for k in range(n)]
+            x1 = side * (x_face - tw * (1.0 - SHADOW_WHEEL["width"]))
+            x0 = side * (x_face - tw)
+            ring = [(cy + r * math.sin(2 * math.pi * k / n), cz - r * math.cos(2 * math.pi * k / n)) for k in range(n)]
             pos, nor = [], []
             for k in range(n):
                 a, b = ring[k], ring[(k + 1) % n]
@@ -296,7 +281,41 @@ def _player_shadow(spec3d):
             pp[flip] = pp[flip][:, ::-1]
             nn[flip] = nn[flip][:, ::-1]
             mb.add("vpbr", pp, nn, GREY, (0.8, 0.0), roles.NO_LAMP)
-    return mb
+
+
+def _player_shadow(spec3d, shell):
+    """Shadow caster: the lower body and the greenhouse lofted at a handful of stations, each tucked inside its
+    loft of lod0 (shell: {"body", "green"}), wheels as drums. Returns (MeshBuilder, statistics of the tuck)."""
+    from cesprites import carbody as CB
+    from cesprites import player_cars
+    from cesprites import rig as R
+    sspec = _sprite_spec(spec3d["source"])
+    p = sspec["params"]
+    d = player_cars.DESIGNS[p["design"]]
+    rig = R.Rig(quick=True)
+    car = CB.SmoothCar(rig, d, paint=p["paint"], metal=p.get("metal", 0.3), name=p["design"],
+                       detail=LOD.PLAYER_DETAIL["shadow"])
+    ys = {car.lb0, car.lb1}
+    for i in range(1, 12):
+        ys.add(car.lb0 + (car.lb1 - car.lb0) * i / 12.0)
+    for ya in (car.y_ra, car.y_fa):
+        ys.update((ya - car.Ra, ya - car.Ra * 0.5, ya, ya + car.Ra * 0.5, ya + car.Ra))
+    lower = car._loft_object("shadow_lower", sorted(ys), car.lower_half, car.paint)
+    g0, g1 = d["g_range"]
+    green = car._loft_object("shadow_green", [g0 + (g1 - g0) * i / 9.0 for i in range(10)], car.green_half, car.paint)
+    car.finish()
+    mb = core.MeshBuilder()
+    tuck = []
+    holes = [(ya - car.L / 2.0, car.R, car.Ra + 0.03) for ya in (car.y_ra, car.y_fa)]
+    for s in core.soups_of([lower, green]):
+        tuck.append(core.tuck_inside(s.pos, shell["body" if s.name == lower.name else "green"], SHADOW_MARGIN_M,
+                                     holes=holes, nor=s.nor))
+        mb.add("vpbr", s.pos, s.nor, GREY, (0.8, 0.0), roles.NO_LAMP)
+    inset = d.get("wheel_inset", 0.02)
+    shadow_drums(mb, [(car.W2 - inset, d.get("tw_r", d["tw"]) if ya == car.y_ra else d["tw"], ya - car.L / 2.0, car.R, car.R)
+                      for ya in (car.y_ra, car.y_fa)])
+    return mb, dict(proud_before_mm=round(max(t[0] for t in tuck) * 1000.0, 1),
+                    proud_after_mm=round(max(t[1] for t in tuck) * 1000.0, 1), moved=sum(t[2] for t in tuck), turned=sum(t[3] for t in tuck))
 
 
 def build_player(model_id, spec3d):
@@ -320,8 +339,10 @@ def build_player(model_id, spec3d):
         if level == "lod0":
             model = ModelData(model_id, spec3d["kind"], dict(info["object"]))
             model.lights = tr.lights()
+            shell = info["shell"]
         stats[level] = dict(build_s=round(time.time() - t1, 2))
-    model.shadow = Part("body", "shadow", _player_shadow(spec3d).finish())
+    smb, stats["shadow"] = _player_shadow(spec3d, shell)
+    model.shadow = Part("body", "shadow", smb.finish())
     model.lods = lods
     model.paint = {"paint": col, "metal": metal}
     model.tags = list(sspec.get("tags", []))

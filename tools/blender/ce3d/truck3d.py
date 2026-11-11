@@ -702,19 +702,37 @@ def _level(level, paints):
     return b, nodes, pivots, wspec, tr
 
 
+SHADOW_IN = 0.03                    # the shadow caster lies this far inside the faces of the bodies
+
+
 def _shadow(b):
-    """Shadow caster: the two bodies as boxes, the wheels as blocks."""
+    """Shadow caster: the trailer as a box, the cab as its profile, the wheels as drums - everything a little
+    inside the visible faces (a caster in the plane of a face, or in front of a dished rim, throws its shadow on
+    the very part it stands for)."""
     MU = b.MU
     grey = b.mat("grey", GREY)
+    e = SHADOW_IN
     with b.node("body"):
-        bm = MU.bm_box(2 * W2, TR_LEN, BOX_Z1 - BOX_Z0, (0.0, TR_LEN / 2, (BOX_Z0 + BOX_Z1) / 2))
-        MU.bm_box(2 * CAB_W2, CAB_Y1 - CAB_Y0, CAB_Z1 - 0.6, (0.0, (CAB_Y0 + CAB_Y1) / 2, (CAB_Z1 + 0.6) / 2), bm=bm)
+        bm = MU.bm_box(2 * (W2 - e), TR_LEN - 2 * e, BOX_Z1 - BOX_Z0 - 2 * e, (0.0, TR_LEN / 2, (BOX_Z0 + BOX_Z1) / 2))
+        MU.bm_box(2 * (CAB_W2 - e), CAB_Y1 - CAB_Y0 - 2 * e, CAB_Z0 + 0.1 - 0.6, (0.0, (CAB_Y0 + CAB_Y1) / 2, (CAB_Z0 + 0.7) / 2),
+                  bm=bm)
+        MU.bm_box(2 * (1.262 - e), L - e - (CAB_Y1 - 0.2), 1.2 - 0.55, (0.0, (L - e + CAB_Y1 - 0.2) / 2, (1.2 + 0.55) / 2), bm=bm)
         MU.bm_box(1.0, 15.5, 0.3, (0.0, 8.0, 1.05), bm=bm)
-        for y in TR_AXLES + (Y_DRIVE, Y_FRONT):
-            for sx in (-1, 1):
-                MU.bm_box(0.36 if y != Y_DRIVE else 0.62, 2 * R * 0.9, 2 * R * 0.95,
-                          (sx * (W2 - (0.2 if y != Y_DRIVE else 0.33)), y, R), bm=bm)
         b.obj("shadow", bm, grey)
+        prof = decalgeo.inset([tuple(p) for p in CAB_PROFILE], e)
+        b.obj("shadow_cab", MU.prism(prof, 2 * (CAB_W2 - e), plane="YZ", offset=-(CAB_W2 - e)), grey)
+        # wheels: the inner part of the tyres (the outer part would shade the dish of the rims)
+        bm = bmesh.new()
+        r = R * 0.97
+        for y in TR_AXLES + (Y_DRIVE, Y_FRONT):
+            x_out = W2 - (0.04 if y == Y_DRIVE else 0.03)
+            if y == Y_DRIVE:
+                x0, x1 = x_out - (2 * TW_DRIVE + 0.035), x_out - 0.2
+            else:
+                x0, x1 = x_out - (TW_FRONT if y == Y_FRONT else TW_TRAILER), x_out - 0.11
+            for sx in (-1, 1):
+                MU.bm_cyl(r, r, x1 - x0, center=(sx * (x0 + x1) / 2, y, R), axis="X", segs=8, bm=bm)
+        b.obj("shadow_wheels", bm, grey)
     return {}
 
 

@@ -75,7 +75,7 @@
     ]
    }
   ],
-  "shadow": {"mesh": "traffic/wagon/shadow.res", "tris": 476},
+  "shadow": {"mesh": "traffic/wagon/shadow.res", "tris": 604},
   "lights": [
    {
     "role": "brake",
@@ -158,8 +158,8 @@
   "paint": {"paint": "#aeb2b8", "metal": 0.75},
   "auto_lod": false,
   "tags": ["traffic", "car"],
-  "bytes": 267520,
-  "hash": "074a63fbdb9efee58b2d94fc7ab7b41c3c859313"
+  "bytes": 269062,
+  "hash": "3b007e89cf084b94c9ef766be2f5678aa1d92751"
  },
  "sets": {
   "traffic/wagon_silver": {

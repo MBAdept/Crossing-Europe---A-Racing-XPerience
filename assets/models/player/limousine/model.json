@@ -188,8 +188,8 @@
   "paint": {"paint": "#1d4ea8", "metal": 0.55},
   "auto_lod": false,
   "tags": ["player"],
-  "bytes": 1572896,
-  "hash": "27fa7ecc9710f5843010bb620925184349d7cfbb"
+  "bytes": 1573290,
+  "hash": "c0eeb5f1e9cd7330e81d2e86f6312ca92d5c75b1"
  },
  "sets": {
   "player/limousine": {

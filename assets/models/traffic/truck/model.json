@@ -125,7 +125,7 @@
     ]
    }
   ],
-  "shadow": {"mesh": "traffic/truck/shadow.res", "tris": 156},
+  "shadow": {"mesh": "traffic/truck/shadow.res", "tris": 356},
   "lights": [
    {
     "role": "brake",
@@ -223,8 +223,8 @@
   },
   "auto_lod": false,
   "tags": ["traffic", "heavy"],
-  "bytes": 158245,
-  "hash": "3a09fb890b447f9ba93d80c75695b18d9ae94258"
+  "bytes": 160568,
+  "hash": "7252cc1e2912eb3dba4d35edbbbe201c3a7bbb68"
  },
  "sets": {
   "traffic/truck_white": {

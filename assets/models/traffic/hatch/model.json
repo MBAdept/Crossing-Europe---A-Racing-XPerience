@@ -75,7 +75,7 @@
     ]
    }
   ],
-  "shadow": {"mesh": "traffic/hatch/shadow.res", "tris": 524},
+  "shadow": {"mesh": "traffic/hatch/shadow.res", "tris": 652},
   "lights": [
    {
     "role": "brake",
@@ -151,8 +151,8 @@
   "paint": {"paint": "#3d8a45", "metal": 0.4},
   "auto_lod": false,
   "tags": ["traffic", "car"],
-  "bytes": 255288,
-  "hash": "6c4f877a347fe9a886a3f45a6e027090116e1494"
+  "bytes": 256895,
+  "hash": "5abc1ef36174cb33874a6809105335bca5bd0c38"
  },
  "sets": {
   "traffic/hatch_green": {

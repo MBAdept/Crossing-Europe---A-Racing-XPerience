@@ -234,7 +234,7 @@ def _level(spec3d, level, paint_hex, metal, fine=None):
     from cesprites import rig as R
     from cesprites import vehicles
 
-    from .vehicles3d import GREY, _add_soup
+    from .vehicles3d import GREY, SHADOW_MARGIN_M, _add_soup, shadow_drums
     rig = R.Rig(quick=True)
     name = spec3d["design"]
     far = level in ("lod2", "shadow")
@@ -296,10 +296,23 @@ def _level(spec3d, level, paint_hex, metal, fine=None):
     tr = roles.Translator(overrides={"*_rim": dict(metal=0.55, rough=0.3)}, glass_class=(level == "lod0"),
                           default_paint={"paint": paint_hex})
     if level == "shadow":
+        # the hull is tucked inside the skin of lod0: where it stood out, the body lay in its own shadow
         mb = nodes.setdefault("body", core.MeshBuilder())
+        tuck = []
         for s in soups:
+            role = {sc.body.name: "body", sc.green.name: "cabin"}.get(s.name)
+            if fine and role in fine:
+                tuck.append(core.tuck_inside(s.pos, fine[role][0], SHADOW_MARGIN_M,      # each loft inside its own
+                                             holes=[(ya, sc.R, sc.Ra + 0.03) for ya in (sc.y_ra, sc.y_fa)], nor=s.nor))
             mb.add("vpbr", s.pos, s.nor, GREY, (0.8, 0.0), roles.NO_LAMP)
-        return car, sc, nodes, {}, origin, tr, {}, {}
+        inset = sd.get("wheel_inset", 0.02)
+        shadow_drums(mb, [(sc.W2 - inset, tw, ya, sc.R, sc.R)
+                          for ya, tw in ((sc.y_ra, sd.get("tw_r", sd["tw"])), (sc.y_fa, sd["tw"]))], n=8)
+        st = {}
+        if tuck:
+            st = dict(proud_before_mm=round(max(t[0] for t in tuck) * 1000.0, 1),
+                      proud_after_mm=round(max(t[1] for t in tuck) * 1000.0, 1), moved=sum(t[2] for t in tuck), turned=sum(t[3] for t in tuck))
+        return car, sc, nodes, {}, origin, tr, st, {}
     # the decal code asks the car for its lofts
     car.body, car.cabin = sc.body, sc.green
     car.bumper_obs = {} if far else {"rear": sc.bumper_rear, "front": sc.bumper_front}
@@ -374,7 +387,7 @@ def build_car(model_id, spec3d):
         else:
             lods.append(Lod(level, LOD.VEHICLE_LOD_DIST[level], [Part("body", level + "_body",
                                                                        nodes["body"].finish(origin=origin, min_height=SLIVER_M))]))
-    car, sc, nodes, _p, origin, _tr, _st, _l = _level(spec3d, "shadow", paint_hex, metal)
+    car, sc, nodes, _p, origin, _tr, stats["shadow"], _l = _level(spec3d, "shadow", paint_hex, metal, fine)
     model.shadow = Part("body", "shadow", nodes["body"].finish(origin=origin, min_height=SLIVER_M))
     model.lods = lods
     model.paint = {"paint": paint_hex, "metal": metal}

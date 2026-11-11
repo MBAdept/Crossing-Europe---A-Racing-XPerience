@@ -354,6 +354,112 @@ def flatten_ends(pos, nor, axis=1, tol=1e-5):
     return nor
 
 
+_TUCK_W = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [0.5, 0.5, 0.0], [0.0, 0.5, 0.5],
+                    [0.5, 0.0, 0.5], [1.0 / 3, 1.0 / 3, 1.0 / 3], [0.6, 0.2, 0.2], [0.2, 0.6, 0.2], [0.2, 0.2, 0.6]])
+
+
+def tuck_inside(pos, shell_pos, margin=0.012, reach=0.3, rounds=30, max_move=0.06, down=-0.25, agree=0.7,
+                holes=(), rigid=0.06, nor=None):
+    """Shadow casters: moves the corners of a coarse hull (pos (T, 3, 3), changed in place) until the hull lies
+    at least `margin` inside a shell (shell_pos (S, 3, 3): ONE closed solid wound counter-clockwise seen from
+    outside - with several solids in one shell the faces of one that lie inside another would count as skin).
+
+    The body of a vehicle does not cast shadows, a coarse hull does it for the body (ModelFactory: shadows only).
+    Where the hull stands out of the body - the chord of a coarse loft over a hollow of the fine one: behind a
+    flared wheel arch, in the scallop of a door - the body lies in the shadow of its own caster: dark hatching
+    along the line where the two surfaces cross. Sampled at the corners, edge centres and inside every triangle;
+    a triangle whose worst sample is not `margin` inside is moved in by the difference along the shell's normal
+    there (every corner takes the largest move of its triangles, at most max_move in total). Only the skin of
+    the shell counts: faces that look down (normal z below `down`: floor, wheel houses) or at another part of
+    the shell (the walls of a wheel house) are left out - the sun never sees them, and a coarse hull cannot
+    follow a wheel house; and a sample is only measured against a face that looks the way of its own triangle
+    (dot of the normals at least `agree`): the hull that bridges the corner of a wheel arch opening is not
+    proud of the rolled edge of the arch. holes: [(y, z, radius)] of the wheel houses - samples inside these
+    cylinders about the X axis do not count either. Corners closer together than `rigid` move alike (the
+    narrow faces along a wheel arch would turn over if their corners went different ways). Hull parts farther
+    than `reach` from the skin stay. A triangle that turned over all the same (the slivers on the rim of an end
+    cap) gets its corners - and those of nor (T, 3, 3), if given - in reverse order: it faces outwards again.
+    Returns (largest height above the shell before, after, number of moved corners, triangles turned over)."""
+    from mathutils.bvhtree import BVHTree
+
+    def bvh(tris):
+        v = np.ascontiguousarray(tris, dtype=np.float64).reshape(-1, 3)
+        return BVHTree.FromPolygons(v.tolist(), [(3 * i, 3 * i + 1, 3 * i + 2) for i in range(v.shape[0] // 3)])
+    sfn = np.cross(shell_pos[:, 1] - shell_pos[:, 0], shell_pos[:, 2] - shell_pos[:, 0])
+    sfn /= np.maximum(np.linalg.norm(sfn, axis=1, keepdims=True), 1e-12)
+    # the skin: faces that do not look down and do not look at another part of the shell
+    whole = bvh(shell_pos)
+    cen = shell_pos.mean(axis=1) + sfn * 0.002
+    skin = np.array([sfn[i, 2] >= down and whole.ray_cast(cen[i].tolist(), sfn[i].tolist(), 3.0)[0] is None
+                     for i in range(shell_pos.shape[0])], dtype=bool)
+    sfn = sfn[skin]
+    tree = bvh(shell_pos[skin])
+    flat = pos.reshape(-1, 3)
+    key = np.round(flat * 1e5).astype(np.int64)
+    _u, first, inv = np.unique(key, axis=0, return_index=True, return_inverse=True)
+    start = flat[first].copy()
+    verts = start.copy()
+    tri = inv.reshape(-1, 3)
+    nt, ns = tri.shape[0], _TUCK_W.shape[0]
+    rows = np.arange(nt)
+    hfn = np.cross(pos[:, 1] - pos[:, 0], pos[:, 2] - pos[:, 0])
+    hfn /= np.maximum(np.linalg.norm(hfn, axis=1, keepdims=True), 1e-12)
+    edges = np.concatenate([tri[:, [0, 1]], tri[:, [1, 2]], tri[:, [2, 0]]])
+    edges = edges[np.linalg.norm(start[edges[:, 0]] - start[edges[:, 1]], axis=1) < rigid]
+    before = after = -reach
+    for it in range(rounds + 1):
+        pts = np.einsum("sw,twk->tsk", _TUCK_W, verts[tri]).reshape(-1, 3)
+        h = np.full(pts.shape[0], -reach)
+        nn = np.zeros((pts.shape[0], 3))
+        count = np.ones(pts.shape[0], dtype=bool)
+        for (hy, hz, hr) in holes:
+            count &= (pts[:, 1] - hy) ** 2 + (pts[:, 2] - hz) ** 2 > hr * hr
+        for k in np.nonzero(count)[0]:
+            loc, _n, idx, _d = tree.find_nearest(pts[k].tolist(), reach)
+            if loc is None or sfn[idx] @ hfn[k // ns] < agree:
+                continue
+            nn[k] = sfn[idx]
+            h[k] = float((pts[k] - np.array(loc)) @ sfn[idx])
+        h = h.reshape(nt, ns)
+        nn = nn.reshape(nt, ns, 3)
+        after = float(h.max())
+        if it == 0:
+            before = after
+        worst = h.argmax(axis=1)
+        over = h[rows, worst] + margin
+        if it == rounds or over.max() <= 1e-4:
+            break
+        order = np.argsort(over)
+        order = order[over[order] > 1e-4]
+        amount = np.zeros(verts.shape[0])
+        direction = np.zeros((verts.shape[0], 3))
+        for c in range(3):
+            amount[tri[order, c]] = over[order]              # ascending: the largest move of a corner stays
+            direction[tri[order, c]] = nn[order, worst[order]]
+        for _pass in range(3):                               # short edges: both ends take the larger move
+            for a, b in ((0, 1), (1, 0)):
+                take = amount[edges[:, a]] > amount[edges[:, b]] + 1e-9
+                src = edges[take, a]
+                dst = edges[take, b]
+                o2 = np.argsort(amount[src])
+                amount[dst[o2]] = amount[src[o2]]
+                direction[dst[o2]] = direction[src[o2]]
+        verts -= direction * (amount * 1.1)[:, None]
+        off = verts - start
+        far = np.linalg.norm(off, axis=1)
+        clip = far > max_move
+        verts[clip] = start[clip] + off[clip] * (max_move / far[clip])[:, None]
+    g0 = np.cross(pos[:, 1] - pos[:, 0], pos[:, 2] - pos[:, 0])
+    pos[:] = verts[tri]
+    g1 = np.cross(pos[:, 1] - pos[:, 0], pos[:, 2] - pos[:, 0])
+    moved = int((np.linalg.norm(verts - start, axis=1) > 1e-6).sum())
+    turned = np.einsum("ij,ij->i", g0, g1) < 0.0
+    pos[turned] = pos[turned][:, ::-1]
+    if nor is not None:
+        nor[turned] = nor[turned][:, ::-1]
+    return before, after, moved, int(turned.sum())
+
+
 def tri_count(surfaces):
     return int(sum(len(s["idx"]) // 3 for _c, s in surfaces))
 

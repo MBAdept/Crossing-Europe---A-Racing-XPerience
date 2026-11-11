@@ -208,8 +208,8 @@
    "paint": {"paint": "#f0b30a", "metal": 0},
    "auto_lod": false,
    "tags": ["player"],
-   "bytes": 1742146,
-   "hash": "60fe03411f75453706329db4fdc82b2f8827d3d9"
+   "bytes": 1742534,
+   "hash": "797759ce74c93a81683b8a09f9a52d5eca7b5683"
   },
   "player/limousine": {
    "kind": "vehicle",
@@ -397,8 +397,8 @@
    "paint": {"paint": "#1d4ea8", "metal": 0.55},
    "auto_lod": false,
    "tags": ["player"],
-   "bytes": 1572896,
-   "hash": "27fa7ecc9710f5843010bb620925184349d7cfbb"
+   "bytes": 1573290,
+   "hash": "c0eeb5f1e9cd7330e81d2e86f6312ca92d5c75b1"
   },
   "props/farmhouse": {
    "kind": "building",
@@ -584,7 +584,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "traffic/hatch/shadow.res", "tris": 524},
+   "shadow": {"mesh": "traffic/hatch/shadow.res", "tris": 652},
    "lights": [
     {
      "role": "brake",
@@ -660,8 +660,8 @@
    "paint": {"paint": "#3d8a45", "metal": 0.4},
    "auto_lod": false,
    "tags": ["traffic", "car"],
-   "bytes": 255288,
-   "hash": "6c4f877a347fe9a886a3f45a6e027090116e1494"
+   "bytes": 256895,
+   "hash": "5abc1ef36174cb33874a6809105335bca5bd0c38"
   },
   "traffic/sedan": {
    "kind": "vehicle",
@@ -736,7 +736,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "traffic/sedan/shadow.res", "tris": 508},
+   "shadow": {"mesh": "traffic/sedan/shadow.res", "tris": 636},
    "lights": [
     {
      "role": "brake",
@@ -819,8 +819,8 @@
    "paint": {"paint": "#b52424", "metal": 0.3},
    "auto_lod": false,
    "tags": ["traffic", "car"],
-   "bytes": 258727,
-   "hash": "15a96d478ef9c2b5ae4a1b14bbfccae1fe0591ae"
+   "bytes": 260279,
+   "hash": "cc20ae33d99e6b64ce91a474ffe579aefceba0c1"
   },
   "traffic/truck": {
    "kind": "heavy",
@@ -945,7 +945,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "traffic/truck/shadow.res", "tris": 156},
+   "shadow": {"mesh": "traffic/truck/shadow.res", "tris": 356},
    "lights": [
     {
      "role": "brake",
@@ -1043,8 +1043,8 @@
    },
    "auto_lod": false,
    "tags": ["traffic", "heavy"],
-   "bytes": 158245,
-   "hash": "3a09fb890b447f9ba93d80c75695b18d9ae94258"
+   "bytes": 160568,
+   "hash": "7252cc1e2912eb3dba4d35edbbbe201c3a7bbb68"
   },
   "traffic/wagon": {
    "kind": "vehicle",
@@ -1119,7 +1119,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "traffic/wagon/shadow.res", "tris": 476},
+   "shadow": {"mesh": "traffic/wagon/shadow.res", "tris": 604},
    "lights": [
     {
      "role": "brake",
@@ -1202,8 +1202,8 @@
    "paint": {"paint": "#aeb2b8", "metal": 0.75},
    "auto_lod": false,
    "tags": ["traffic", "car"],
-   "bytes": 267520,
-   "hash": "074a63fbdb9efee58b2d94fc7ab7b41c3c859313"
+   "bytes": 269062,
+   "hash": "3b007e89cf084b94c9ef766be2f5678aa1d92751"
   }
  },
  "sets": {
