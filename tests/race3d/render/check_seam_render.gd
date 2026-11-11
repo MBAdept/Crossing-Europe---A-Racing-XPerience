@@ -1,12 +1,17 @@
 extends SceneTree
-## Render checks of the seam between the race session and the Modern renderer (v0.8.0, wave 0) – they need a real
+## Render checks of the seam between the race session and the Modern renderer (v0.8.0) – they need a real
 ## renderer and a fixed frame rate:
 ##   xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --audio-driver Dummy \
 ##       --fixed-fps 60 -s res://tests/race3d/render/check_seam_render.gd -- --graphics=modern --gfx-sync --audio-sync
 ## tools/run_render_checks.sh modern runs it. Prints "RENDER-CHECK <name> OK|FEHLER …"; exit code 0 when all pass.
 ##   selbsttest    GfxSelfTest on this renderer: lit sphere, shader quad and background are judged as good
-##   modern_bild   a Modern stage draws: sky colour of the palette above the horizon (through the canvas layer),
-##                 the ground plane below, the horizon at 45 % of the height, the HUD on top – no black frame
+##   modern_bild   a Modern stage draws. (1) The renderer skeleton alone (the probe renderer in its bare mode: no
+##                 layer, builder or rig file of the renderer packages): the sky gradient of the palette above the
+##                 horizon row (through the canvas layer), below it the debug road – asphalt, edge lines and shoulder
+##                 at the pixels the camera model predicts – and its terrain, the HUD on top; the Camera3D maps like
+##                 ChaseCamera3D; render counters; the self-test and the warm-up frames ran before the start.
+##                 (2) The shipped renderer with whatever content exists: sky above the horizon, ground below, no
+##                 empty frame, camera = ChaseCamera3D, HUD on top
 ##   gleiche_zeit  the same stage in Arcade and in Modern with a Screenshotter: at the shot the simulation has made
 ##                 the same number of steps and stands at the same place (equal shot times = equal states) – for a
 ##                 scene that enters the tree between two frames and for one that enters after the physics callbacks
@@ -15,10 +20,12 @@ extends SceneTree
 ##                 pixel below the message line
 ##   arcade_gleich Arcade frame, then a Modern stage, then the Arcade frame again in the same process: identical
 ##                 (Modern changes no project-wide render state)
-##   fenster_16_10 a 16:10 window: Modern fills it (1280×800 logical, no bars), Arcade keeps 16:9 with bars
+##   fenster_16_10 a 16:10 window: Modern fills it (1280×800 logical, no bars; the skeleton alone with the horizon
+##                 at 45 % of the window height, the shipped renderer without a black row), Arcade keeps 16:9 with bars
 ## (The scene and the autoloads are accessed untyped: -s scripts compile before the autoloads exist.)
 
 const RACE := "res://scenes/race/race.tscn"
+const PROBE := "res://tests/race3d/fixtures/facade_probe_renderer.gd"
 const CHECKS := ["selbsttest", "modern_bild", "gleiche_zeit", "rueckfall", "arcade_gleich", "fenster_16_10"]
 const SHOT_PREFIX := "user://test_seam_render/shot"
 
@@ -40,6 +47,8 @@ func _run() -> void:
 	for c: String in CHECKS:
 		if only == "" or only.split(",").has(c):
 			await call("_check_" + c)
+	_use_skeleton(false)
+	ModernMaterials.drop_shared()   # what leaving the mode "Modern" does: nothing of it is left at the exit
 	root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
 	print("RENDER-CHECKS %s  (%d fehlgeschlagen, %.0f s)" % ["OK" if _failed.is_empty() else "FEHLER", _failed.size(), (Time.get_ticks_msec() - _wall0) / 1000.0])
 	quit(0 if _failed.is_empty() else 1)
@@ -168,36 +177,155 @@ func _check_selbsttest() -> void:
 
 # --- modern_bild -----------------------------------------------------------------------------------------------
 
+## The skeleton alone: the probe renderer in its bare mode is the shipped renderer without any layer, builder or rig
+## file of the renderer packages (tests/race3d/fixtures/facade_probe_renderer.gd).
+func _use_skeleton(on: bool) -> void:
+	var renderers: GDScript = load("res://scripts/race/race_renderers.gd")
+	var probe: GDScript = load(PROBE)
+	probe.call("reset")
+	probe.set("bare", on)
+	renderers.set("modern_script", PROBE if on else str(renderers.get("MODERN_SCRIPT")))
+
+
+## Colour of the built-in sky (scripts/race3d/plain_sky.gd) at a row of a picture `height` rows high: Arcade's
+## gradient above the horizon row (45 % of the height), the fog colour below.
+func _sky_at(pal: Dictionary, row: float, height: float) -> Color:
+	var hy := 0.45 * height
+	var my := hy * 0.52
+	if row >= hy:
+		return pal["fog"]
+	if row < my:
+		return (pal["sky_top"] as Color).lerp(pal["sky_mid"], (row + 40.0) / (my + 40.0))
+	return (pal["sky_mid"] as Color).lerp(pal["sky_bottom"], (row - my) / (hy + 3.0 - my))
+
+
+func _greenish(c: Color) -> bool:
+	return c.g > c.r + 0.05 and c.g > c.b + 0.05
+
+
+## Mean colour of the picture inside `rect`, every 8th pixel.
+func _mean(img: Image, rect: Rect2i) -> Color:
+	var sum := Color(0.0, 0.0, 0.0)
+	var n := 0
+	for y in range(rect.position.y, rect.end.y, 8):
+		for x in range(rect.position.x, rect.end.x, 8):
+			var c := img.get_pixel(x, y)
+			sum.r += c.r
+			sum.g += c.g
+			sum.b += c.b
+			n += 1
+	return Color(sum.r / float(n), sum.g / float(n), sum.b / float(n))
+
+
+## Largest distance (px) between Camera3D.unproject_position() and the renderer's world_to_screen() for points on
+## and beside the road: the camera of the picture is the ChaseCamera3D model.
+func _camera_error(r: ModernRenderer) -> float:
+	var cam_z := float(r.view["camera_z"])
+	var worst := 0.0
+	for d: float in [10.0, 60.0, 300.0]:
+		for x: float in [-9.0, 0.0, 5.0]:
+			var a := r.camera.unproject_position(r.road_to_world(cam_z + d, x, 0.3))
+			var b := r.world_to_screen(cam_z + d, x, 0.3)
+			worst = maxf(worst, Vector2(a.x - b.x, a.y - b.y).length())
+	if not r.camera.global_transform.is_equal_approx(r.chase.transform(r.view, r.path)):
+		worst = 999.0
+	return worst
+
+
 func _check_modern_bild() -> void:
 	var p: Array[String] = []
+	# 1. the skeleton alone (no file of the renderer packages): its picture is known exactly
+	_use_skeleton(true)
 	var sc: Node = await _launch({"gfx": "modern", "no_countdown": true, "start_speed_kmh": 120.0})
-	_need(p, _renderer_file(sc) == "modern_renderer.gd", "Modern-Renderer")
+	_need(p, _renderer_file(sc) == "facade_probe_renderer.gd" and sc.get("renderer") is ModernRenderer, "der Renderer als Gerüst allein")
 	var waited: int = await _until(func() -> bool: return int(sc.get("_sim_steps")) >= 30, 2000)
 	var img: Image = await _capture()
+	var r: ModernRenderer = sc.get("renderer")
 	var pal: Dictionary = Palette.compute(12.0, "normal", ConfigLoader.lookup(ConfigLoader.load_merged(), "daytime", {}), false)
-	var sky: Color = pal["sky_mid"]
-	var amb: Color = pal["ambient"]
-	var ground := Color(Palette.ROAD.r * amb.r, Palette.ROAD.g * amb.g, Palette.ROAD.b * amb.b)
 	var w := img.get_width()
 	var h := img.get_height()
 	_need(p, w == 1280 and h == 720, "Bild 1280×720 (%d×%d)" % [w, h])
-	# free of the HUD: x = 400, above and below the horizon (45 % of the height = row 324)
-	var above := img.get_pixel(400, 300)
-	var below := img.get_pixel(400, 500)
-	_need(p, _near(above, sky, 2.5 / 255.0), "Himmelsfarbe der Palette über dem Horizont (%s statt %s)" % [above.to_html(false), sky.to_html(false)])
-	_need(p, _near(below, ground, 4.5 / 255.0), "graue Ebene unter dem Horizont (%s statt %s)" % [below.to_html(false), ground.to_html(false)])
-	_need(p, _near(img.get_pixel(400, 318), sky, 2.5 / 255.0) and _near(img.get_pixel(400, 330), ground, 4.5 / 255.0), "Horizont in Zeile 324")
+	# sky: the palette's gradient above the horizon row (45 % of the height = row 324), at places free of the HUD
+	var sky_bad: Array[String] = []
+	for at: Vector2i in [Vector2i(400, 40), Vector2i(400, 250), Vector2i(900, 250), Vector2i(400, 316), Vector2i(1000, 316)]:
+		var got := img.get_pixel(at.x, at.y)
+		var want := _sky_at(pal, float(at.y) + 0.5, 720.0)
+		if not _near(got, want, 3.0 / 255.0):
+			sky_bad.append("%s: %s statt %s" % [str(at), got.to_html(false), want.to_html(false)])
+	_need(p, sky_bad.is_empty(), "Himmelsverlauf der Palette über der Horizontzeile (%s)" % "; ".join(sky_bad))
+	# below it the debug road: asphalt, the two edge lines and the shoulder stand where the camera model says
+	var view: Dictionary = r.view
+	var cam_z := float(view["camera_z"])
+	var track: Track = sc.get("track")
+	var asphalt_a := Color(0.30, 0.31, 0.34)
+	var asphalt_b := Color(0.33, 0.34, 0.37)
+	var line := Color(0.92, 0.92, 0.88)
+	var shoulder := Color(0.47, 0.46, 0.42)
+	var paint_bad: Array[String] = []
+	var probes := 0
+	for d: float in [14.0, 20.0, 45.0]:
+		var edges := track.road_edges_at(cam_z + d)
+		for probe: Array in [[edges.x + 0.3, line, line, "linke Randlinie"], [edges.y - 0.3, line, line, "rechte Randlinie"],
+				[0.0, asphalt_a, asphalt_b, "Asphalt"], [edges.y - 1.5, asphalt_a, asphalt_b, "Asphalt neben der Linie"],
+				[edges.y + 1.25, shoulder, shoulder, "Bankett"]]:
+			var px := r.world_to_screen(cam_z + d, float(probe[0]), 0.02)
+			if px.x < 2.0 or px.x > 1277.0 or px.y > 580.0:
+				continue   # outside the picture or under the HUD
+			probes += 1
+			var got := img.get_pixel(int(px.x), int(px.y))
+			if px.z <= 0.0 or not (_near(got, probe[1], 4.0 / 255.0) or _near(got, probe[2], 4.0 / 255.0)):
+				paint_bad.append("%s %d m voraus bei %d,%d: %s" % [str(probe[3]), int(d), int(px.x), int(px.y), got.to_html(false)])
+	_need(p, paint_bad.is_empty() and probes >= 12, "Debug-Straße mit Markierung an den Bildpunkten der Kamera (%d Proben; %s)" % [probes, "; ".join(paint_bad)])
+	var grass := img.get_pixel(400, 345)
+	_need(p, _greenish(grass), "Gelände unter dem Horizont (%s)" % grass.to_html(false))
+	# camera = ChaseCamera3D: the Camera3D of the picture maps as the camera model does
+	var worst := _camera_error(r)
+	_need(p, worst < 0.02, "Kamera = ChaseCamera3D (%.4f px)" % worst)
 	# the HUD is drawn over the 3D picture: the speedometer's dark dial in the lower right corner
 	var dial := img.get_pixel(1140, 660)
-	_need(p, not _near(dial, ground, 6.0 / 255.0), "HUD über dem 3D-Bild (Tacho)")
+	_need(p, dial.get_luminance() < 0.2, "HUD über dem 3D-Bild (Tacho %s)" % dial.to_html(false))
 	_need(p, root.content_scale_aspect == Window.CONTENT_SCALE_ASPECT_EXPAND, "Seitenverhältnis expand")
-	var snap: Dictionary = sc.get("renderer").call("debug_snapshot")
+	var snap := r.debug_snapshot()
 	var cam: Dictionary = snap.get("camera", {})
-	_need(p, cam.has("z") and (snap.get("vehicles", []) as Array).size() >= 1 and (snap.get("quality", {}) as Dictionary).has("msaa"), "debug_snapshot mit Kamera, Fahrzeugen, Qualität")
+	_need(p, cam.has("z") and cam.has("frustum") and (snap.get("chunks", []) as Array).size() >= 8 and (snap.get("quality", {}) as Dictionary).has("msaa"),
+		"debug_snapshot mit Kamera, Stücken, Qualität")
+	var skeleton_builders: Array = snap.get("builders", [])
+	_need(p, (snap.get("layers", [0]) as Array).is_empty() and skeleton_builders.size() == 1 and str(skeleton_builders[0]) == "debug_road"
+		and bool((snap.get("environment", {}) as Dictionary).get("plain", false)) and bool((snap.get("backdrop", {}) as Dictionary).get("plain", false)),
+		"das Gerüst allein: Debug-Straße, eingebaute Umgebung, eingebauter Himmel (%s / %s)" % [str(snap.get("builders", [])), str(snap.get("layers", []))])
 	var perf: Dictionary = sc.call("perf_stats")
 	_need(p, str(perf.get("mode", "")) == "modern" and int(perf.get("sim_steps", 0)) >= 30, "perf_stats mode modern")
-	_report("modern_bild", p, "Modern (Gerüst): Himmel %s, Ebene %s, Horizont in Zeile 324, HUD darüber; Vorbereitung und 30 Schritte in %d Bildern" % [
-		above.to_html(false), below.to_html(false), waited])
+	_need(p, int(perf.get("draw_calls", 0)) >= 5 and int(perf.get("primitives", 0)) > 1000 and float(perf.get("tex_mem_mb", 0.0)) > 0.0,
+		"Zähler des Renderers (%d Zeichenaufrufe, %d Dreiecke)" % [int(perf.get("draw_calls", 0)), int(perf.get("primitives", 0))])
+	# the first Modern stage of this run: the self-test ran inside prepare(), the start view was drawn before the start
+	var st: Dictionary = ModernRenderer.selftest
+	_need(p, bool(st.get("ok", false)) and float(st.get("ms", 0.0)) > 0.0 and not st.has("skipped"), "Selbsttest in prepare() (%s)" % str(st))
+	_need(p, float(perf.get("prewarm_ms", 0.0)) > 0.0 and float(perf.get("prepare_ms", 0.0)) >= float(perf.get("prewarm_ms", 0.0)),
+		"Aufwärmbilder vor dem Start (%.0f ms von %.0f ms Vorbereitung)" % [float(perf.get("prewarm_ms", 0.0)), float(perf.get("prepare_ms", 0.0))])
+	var skeleton_calls := int(perf.get("draw_calls", 0))
+	var skeleton_tris := int(perf.get("primitives", 0))
+	await _free(sc)
+	_use_skeleton(false)
+	# 2. the shipped renderer with whatever the renderer packages have added: what holds for any content
+	sc = await _launch({"gfx": "modern", "no_countdown": true, "start_speed_kmh": 120.0})
+	_need(p, _renderer_file(sc) == "modern_renderer.gd", "Modern-Renderer")
+	await _until(func() -> bool: return int(sc.get("_sim_steps")) >= 30, 4000)
+	var full: Image = await _capture()
+	r = sc.get("renderer")
+	_need(p, r.is_prepared() and r.healthy() and int(sc.get("_sim_steps")) >= 30, "ausgelieferter Renderer: vorbereitet, gesund, die Etappe läuft")
+	var above := _mean(full, Rect2i(340, 224, 600, 80))    # sky between the HUD panels and the horizon row
+	var below := _mean(full, Rect2i(340, 350, 600, 200))   # ground and road
+	_need(p, full.get_size() == Vector2i(1280, 720) and above.get_luminance() > 0.25 and above.b > above.r + 0.05,
+		"ausgelieferter Renderer: Himmel über dem Horizont (%s)" % above.to_html(false))
+	_need(p, below.get_luminance() > 0.08 and below.get_luminance() < 0.8 and absf(above.b - below.b) > 0.1,
+		"ausgelieferter Renderer: Boden unter dem Horizont, kein leeres Bild (%s)" % below.to_html(false))
+	var worst_full := _camera_error(r)
+	_need(p, worst_full < 0.02, "ausgelieferter Renderer: Kamera = ChaseCamera3D (%.4f px)" % worst_full)
+	_need(p, full.get_pixel(1140, 660).get_luminance() < 0.2 and root.content_scale_aspect == Window.CONTENT_SCALE_ASPECT_EXPAND, "ausgelieferter Renderer: HUD darüber, Seitenverhältnis expand")
+	var full_snap := r.debug_snapshot()
+	_report("modern_bild", p, "Gerüst allein: Himmelsverlauf, Debug-Straße an %d vorhergesagten Bildpunkten, Kamera gegen ChaseCamera3D %.4f px, HUD darüber, %d Zeichenaufrufe / %d Dreiecke; Vorbereitung %.0f ms (Selbsttest %.0f ms), %d Bilder bis Schritt 30. Ausgeliefert (Builder %s, Ebenen %s): Himmel %s, Boden %s, Kamera %.4f px" % [
+		probes, worst, skeleton_calls, skeleton_tris, float(perf.get("prepare_ms", 0.0)), float(st.get("ms", 0.0)), waited,
+		str(full_snap.get("builders", [])), str(full_snap.get("layers", [])), above.to_html(false), below.to_html(false), worst_full])
 	await _free(sc)
 
 
@@ -348,6 +476,8 @@ func _check_fenster_16_10() -> void:
 	# DisplayServer alone does not reach the viewport.
 	root.size = Vector2i(1152, 720)
 	await _frames(5)
+	# the skeleton alone: its sky and terrain are known exactly
+	_use_skeleton(true)
 	var modern: Node = await _launch({"gfx": "modern", "no_countdown": true})
 	await _until(func() -> bool: return int(modern.get("_sim_steps")) >= 20, 2000)
 	var im: Image = await _capture()
@@ -355,11 +485,26 @@ func _check_fenster_16_10() -> void:
 	_need(p, im.get_size() == Vector2i(1152, 720), "Fensterbild 1152×720 (%s)" % str(im.get_size()))
 	_need(p, is_equal_approx(logical.x, 1280.0) and is_equal_approx(logical.y, 800.0), "Modern: logisch 1280×800 (%s)" % str(logical))
 	var pal: Dictionary = Palette.compute(12.0, "normal", ConfigLoader.lookup(ConfigLoader.load_merged(), "daytime", {}), false)
-	var sky: Color = pal["sky_mid"]
 	# no bars: the rows at the very top (between the HUD panels) show the sky, the very bottom the ground
-	_need(p, _near(im.get_pixel(380, 2), sky, 2.5 / 255.0) and im.get_pixel(480, 717).get_luminance() > 0.15, "Modern füllt das Fenster bis an den Rand")
-	# horizon at 45 % of the window height
-	_need(p, _near(im.get_pixel(380, 318), sky, 2.5 / 255.0) and not _near(im.get_pixel(380, 330), sky, 8.0 / 255.0), "Horizont bei 45 % der Fensterhöhe")
+	# (row y of the 720 rows of the window shows row y * 800 / 720 of the logical picture)
+	_need(p, _near(im.get_pixel(380, 2), _sky_at(pal, 2.5 * 800.0 / 720.0, 800.0), 3.0 / 255.0) and im.get_pixel(480, 717).get_luminance() > 0.15,
+		"Modern füllt das Fenster bis an den Rand (%s oben, %s unten)" % [im.get_pixel(380, 2).to_html(false), im.get_pixel(480, 717).to_html(false)])
+	# horizon at 45 % of the window height (row 324 of 720): the sky right above it, the terrain below
+	_need(p, _near(im.get_pixel(380, 316), _sky_at(pal, 316.5 * 800.0 / 720.0, 800.0), 3.0 / 255.0) and _greenish(im.get_pixel(380, 345)),
+		"Horizont bei 45 %% der Fensterhöhe (%s darüber, %s darunter)" % [im.get_pixel(380, 316).to_html(false), im.get_pixel(380, 345).to_html(false)])
+	var cam_px: float = _camera_error(modern.get("renderer"))
+	_need(p, cam_px < 0.02, "Kamera = ChaseCamera3D auch bei 1280×800 (%.4f px)" % cam_px)
+	await _free(modern)
+	_use_skeleton(false)
+	# the shipped renderer with whatever content exists: it fills the window, too
+	modern = await _launch({"gfx": "modern", "no_countdown": true})
+	await _until(func() -> bool: return int(modern.get("_sim_steps")) >= 20, 4000)
+	var im_full: Image = await _capture()
+	var logical_full := root.get_visible_rect().size
+	_need(p, is_equal_approx(logical_full.x, 1280.0) and is_equal_approx(logical_full.y, 800.0) and im_full.get_size() == Vector2i(1152, 720),
+		"ausgelieferter Renderer: logisch 1280×800 (%s)" % str(logical_full))
+	_need(p, im_full.get_pixel(380, 2).get_luminance() > 0.1 and im_full.get_pixel(480, 717).get_luminance() > 0.1,
+		"ausgelieferter Renderer: füllt das Fenster bis an den Rand (%s oben, %s unten)" % [im_full.get_pixel(380, 2).to_html(false), im_full.get_pixel(480, 717).to_html(false)])
 	await _free(modern)
 	var arcade: Node = await _launch({"gfx": "arcade", "no_countdown": true})
 	await _until(func() -> bool: return int(arcade.get("_sim_steps")) >= 20, 2000)
