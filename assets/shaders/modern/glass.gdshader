@@ -19,7 +19,8 @@ uniform float tint_gain = 1.0;                // brightness of the tint seen thr
 // no Sky in every preset (the reflection source of D7 is optional), so the sky the pane mirrors is the analytic
 // one of vpbr.gdshader (same uniforms, set by the vehicle layer from the palette), weighted with the look's own
 // Fresnel term and `mirror`, added in EMISSION (premultiplied: in full, whatever the opacity). env_energy 0 (the
-// default) = only the engine's reflection, as before; the vehicle layer sets the race value.
+// default) = only the engine's reflection, as before; the vehicle layer sets the race value. ONE source (assembly
+// of M1, as in vpbr.gdshader): with env_energy > 0 the engine's reflection of the Sky is kept out (SPECULAR 0).
 uniform vec4 env_zenith = vec4(0.11, 0.36, 0.79, 1.0);
 uniform vec4 env_horizon = vec4(0.73, 0.87, 0.96, 1.0);
 uniform vec4 env_ground = vec4(0.27, 0.28, 0.29, 1.0);
@@ -66,7 +67,7 @@ void fragment() {
 	ROUGHNESS = max(UV.x, 0.02);
 	METALLIC = UV.y;
 	// thin clear lamp lenses (low opacity) mirror less than panes: a full sky reflection over a lamp is a milky veil
-	SPECULAR = mirror * mix(0.25, 1.0, smoothstep(0.08, 0.3, COLOR.a));
+	SPECULAR = env_energy > 0.0 ? 0.0 : mirror * mix(0.25, 1.0, smoothstep(0.08, 0.3, COLOR.a));
 	ALPHA = a;
 	// (PREMUL_ALPHA_FACTOR is not written: the Compatibility scene shader of Godot 4.7 does not declare it, and
 	// without it the lit colour goes out unscaled - which is what is wanted here)

@@ -22,6 +22,11 @@
 // env_horizon / env_ground (sRGB colours, set once per frame by the vehicle layer from the palette; inside a tunnel
 // - instance uniform sun = 0 - env_tunnel) - so the paint reflects the sky in every preset and with or without a
 // Sky resource on the Environment. Reflections go into EMISSION (not shadowed, fogged like the rest).
+// ONE reflection source (assembly of M1, measured with the player car at noon and at dusk, docs/renderer-modern.md
+// §12): while the analytic sky is on (env_energy > 0 – the race), the engine's own reflection of the Environment's
+// Sky is kept out: SPECULAR 0 and METALLIC 0 for the engine, the diffuse share of a metal taken out of ALBEDO
+// (exact in linear light), and light() keeps the true f0 through varyings. Without it (env_energy 0: showroom,
+// contact sheet, the neutral checks) the engine reflects its Sky as before.
 // Colour space (measured, GL Compatibility of Godot 4.7): fragment() works with sRGB-encoded colours - the
 // engine linearises ALBEDO and EMISSION after this code, and neither vertex colours nor source_color
 // uniforms are converted before. So COLOR.rgb and the paint uniforms go to ALBEDO as they are; light values are
@@ -87,6 +92,9 @@ varying float v_coat;
 varying float v_metal_paint;
 varying vec3 v_obj;
 varying float v_flake_k;
+varying vec3 v_f0;                    // f0 of the engine's lighting model for light() (linear), whatever ALBEDO says
+varying float v_metal;
+varying vec3 v_alb_lin;               // linear albedo for the flakes
 
 // linear factor -> factor on an sRGB-encoded colour
 float enc(float linear_factor) {
@@ -248,10 +256,21 @@ void fragment() {
 		}
 		refl *= env_energy;
 	}
-	ALBEDO = alb;
+	v_alb_lin = to_lin(alb);
+	v_f0 = mix(vec3(0.04), v_alb_lin, metal);
+	v_metal = metal;
 	ROUGHNESS = rough;
-	METALLIC = metal;
-	SPECULAR = 0.5;
+	if (env_energy > 0.0) {
+		// the analytic sky is the only reflection: no engine reflection (F0 0), a metal's missing diffuse share
+		// taken out of ALBEDO in linear light (the engine multiplies the diffuse light by albedo x (1 - metallic))
+		ALBEDO = encode(v_alb_lin * (1.0 - metal));
+		METALLIC = 0.0;
+		SPECULAR = 0.0;
+	} else {
+		ALBEDO = alb;
+		METALLIC = metal;
+		SPECULAR = 0.5;
+	}
 	refl += fill_light;
 	EMISSION = (refl.r + refl.g + refl.b > 0.0) ? encode(to_lin(emit) + refl) : emit;
 	v_coat = coat;
@@ -280,8 +299,8 @@ void light() {
 	float ldh = clamp(dot(LIGHT, h), 0.0, 1.0);
 	float f5 = pow(1.0 - ldh, 5.0);
 	float a = max(ROUGHNESS * ROUGHNESS, 0.002);
-	vec3 f0 = mix(vec3(0.04), ALBEDO, METALLIC);
-	float f90 = clamp(dot(f0, vec3(50.0 * 0.33)), METALLIC, 1.0);
+	vec3 f0 = v_f0;
+	float f90 = clamp(dot(f0, vec3(50.0 * 0.33)), v_metal, 1.0);
 	vec3 fr = f0 + (f90 - f0) * f5;
 	SPECULAR_LIGHT += lc * SPECULAR_AMOUNT * ndl * d_ggx(ndh, a) * v_ggx(ndl, ndv, a) * fr;
 	if (v_coat > 0.0) {
@@ -292,7 +311,7 @@ void light() {
 		if (v_metal_paint > 0.3 && v_flake_k > 0.0 && flake_strength > 0.0) {
 			float n = hash13(floor(v_obj * flake_scale));
 			float glint = step(0.93, n) * pow(ndh, 24.0);
-			SPECULAR_LIGHT += lc * ndl * glint * flake_strength * v_flake_k * (v_metal_paint - 0.3) * ALBEDO;
+			SPECULAR_LIGHT += lc * ndl * glint * flake_strength * v_flake_k * (v_metal_paint - 0.3) * v_alb_lin;
 		}
 	}
 }
