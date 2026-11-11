@@ -629,8 +629,8 @@ def _bar_objects(sc, car, level):
             obs.append(MU.make("pol_reflector", bm, chrome, parent=root))
             bm = bmesh.new()
             for i in range(3):
-                cx = sgn * (MID_W / 2 + 0.09 + i * 0.165)
-                _rbox(MU, cx - 0.06, cx + 0.06, y - 0.085, y + 0.085, z_base + 0.012, z_base + 0.058, bm=bm,
+                cx = sgn * (MID_W / 2 + 0.105 + i * 0.165)
+                _rbox(MU, cx - 0.07, cx + 0.07, y - 0.1, y + 0.1, z_base + 0.012, z_base + 0.066, bm=bm,
                       drop_bottom=True)
             ob = MU.make("pol_led", bm, M.basic("pol_led", "#18265e", rough=0.15), parent=root)
             MU.tag(ob, lamp=lamp_tags[sgn])

@@ -100,6 +100,10 @@ MODELS = {
     "traffic/truck": dict(
         builder="heavy", source="traffic/truck_white", kind="heavy", design="truck",
         sets={"traffic/truck_white": {}, "traffic/truck_red": {}, "traffic/truck_blue": {}, "traffic/truck_green": {}}),
+    # the coach: one rigid body as the sprite's box (one part "body"); its three colour sets are paint values
+    "traffic/bus": dict(
+        builder="bus", source="traffic/bus_white", kind="heavy", design="bus",
+        sets={"traffic/bus_white": {}, "traffic/bus_red": {}, "traffic/bus_blue": {}}),
     # --- vegetation ----------------------------------------------------------------------------------
     "props/tree_oak": dict(builder="tree", source="props/tree_oak", kind="tree", species="oak"),
     # --- props ---------------------------------------------------------------------------------------

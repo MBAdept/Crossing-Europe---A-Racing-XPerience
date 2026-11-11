@@ -41,6 +41,7 @@ H = 4.0
 TR_LEN = 13.6                       # trailer body: y 0 .. 13.6
 BOX_Z0, BOX_Z1 = 1.22, 4.0
 R = 0.53                            # all wheels
+RADIUS = R
 TR_AXLES = (3.0, 4.31, 5.62)
 Y_DRIVE, Y_FRONT = 11.35, 15.25
 TW_TRAILER, TW_DRIVE, TW_FRONT = 0.385, 0.30, 0.32
@@ -192,17 +193,20 @@ def _lathe_x(bm, prof, segs, mat_index=0):
             f.smooth = True
 
 
-def _wheel(b, kind, loc, left=False):
+def _wheel(b, kind, loc, left=False, radius=None, tw=None):
     """One wheel (or twin wheel) of the right side at loc = (x of the outer tyre face, y, z); left = the same
     mesh turned by 180 degrees. Local space: axis X, outside +X, origin on the axle in the middle of the tyre
-    (twin: of the pair)."""
+    (twin: of the pair). radius / tw: other wheels than the truck's (the bus: 0.5 m) - the rim scales with the
+    radius."""
     lv = b.lv
     segs = SEGS[lv]
-    tw = {"front": TW_FRONT, "drive": TW_DRIVE, "trailer": TW_TRAILER}[kind]
+    R = RADIUS if radius is None else radius            # noqa: N806 (the module's R for the truck)
+    if tw is None:
+        tw = {"front": TW_FRONT, "drive": TW_DRIVE, "trailer": TW_TRAILER}[kind]
     twin = kind == "drive"
     gap = 0.035
     width = tw * 2 + gap if twin else tw
-    r_rim = 0.292
+    r_rim = 0.292 * R / RADIUS
     tyre = b.mat("tyre", "#161718", rough=0.85)
     rim = b.mat("rim", "#c8ccd1", rough=0.35, metal=0.5)
     rim_dark = b.mat("rimdark", "#2a2c2f", rough=0.55, metal=0.2)
@@ -218,7 +222,9 @@ def _wheel(b, kind, loc, left=False):
             prof = [(r_rim, -tw / 2 + 0.03), (R - 0.03, -tw / 2), (R, -tw / 2 + 0.045), (R, tw / 2 - 0.045),
                     (R - 0.03, tw / 2), (r_rim, tw / 2 - 0.03)]
         else:
-            prof = [(r_rim * 0.9, -tw / 2), (R, -tw / 2), (R, tw / 2), (r_rim * 0.9, tw / 2)]
+            # (far: no inner sidewall - nobody looks under the vehicle from 180 m; the coach had 432 of its 1,500 lod2
+            # triangles in the wheels)
+            prof = [(R, -tw / 2), (R, tw / 2), (r_rim * 0.9, tw / 2)]
         _lathe_x(bm, [(r, x + cx) for (r, x) in reversed(prof)], segs)
     obs = [b.obj("tyre_" + kind, bm, tyre, smooth=True, sharp=50.0 if lv == 0 else 35.0)]
     # rim: lip, dish and hub of the outer wheel; a plain disc inside

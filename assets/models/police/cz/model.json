@@ -79,16 +79,16 @@
   "lights": [
    {
     "role": "beacon_a",
-    "pos": [-0.33, 1.6301, 0.6],
+    "pos": [-0.345, 1.6381, 0.6],
     "dir": [0, 1, 0],
-    "size": 0.424,
+    "size": 0.497,
     "color": "#2f5bff"
    },
    {
     "role": "beacon_b",
-    "pos": [0.33, 1.6301, 0.6],
+    "pos": [0.345, 1.6381, 0.6],
     "dir": [0, 1, 0],
-    "size": 0.424,
+    "size": 0.497,
     "color": "#2f5bff"
    },
    {
@@ -172,8 +172,8 @@
   "paint": {"paint": "#e9ecef", "paint2": "#1c3f8f", "paint3": "#e9d81f", "metal": 0.12},
   "auto_lod": false,
   "tags": ["police", "cz"],
-  "bytes": 330973,
-  "hash": "e2716910a60051ae83bc251f6dd2c6dfd6713e95"
+  "bytes": 330952,
+  "hash": "cf3597520040aaf5be18d320ebb54ce6c2d13395"
  },
  "sets": {
   "police/cz": {

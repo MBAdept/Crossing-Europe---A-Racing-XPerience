@@ -1034,16 +1034,16 @@
    "lights": [
     {
      "role": "beacon_a",
-     "pos": [-0.33, 1.861, 0.72],
+     "pos": [-0.345, 1.869, 0.72],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
      "role": "beacon_b",
-     "pos": [0.33, 1.861, 0.72],
+     "pos": [0.345, 1.869, 0.72],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
@@ -1120,8 +1120,8 @@
    "paint": {"paint": "#eef0f2", "paint2": "#1e4597", "paint3": "#d3262c", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "at"],
-   "bytes": 330629,
-   "hash": "a9b9767ef93688e49a4ef0686d21c5b0ecbb984f"
+   "bytes": 330575,
+   "hash": "b1093702a90145a81987d0b671b373e6e868d6e6"
   },
   "police/be": {
    "kind": "vehicle",
@@ -1200,16 +1200,16 @@
    "lights": [
     {
      "role": "beacon_a",
-     "pos": [-0.33, 1.6301, 0.6],
+     "pos": [-0.345, 1.6381, 0.6],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
      "role": "beacon_b",
-     "pos": [0.33, 1.6301, 0.6],
+     "pos": [0.345, 1.6381, 0.6],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
@@ -1293,8 +1293,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1b3a8f", "paint3": "#e6dc1f", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "be"],
-   "bytes": 342016,
-   "hash": "05f20c8329d47887f4179c8246d09749415e5be0"
+   "bytes": 341869,
+   "hash": "ae3eb96138b0d5d7df569d35fe80e0bc52aa9398"
   },
   "police/bg": {
    "kind": "vehicle",
@@ -1373,16 +1373,16 @@
    "lights": [
     {
      "role": "beacon_a",
-     "pos": [-0.33, 1.6214, 0.57],
+     "pos": [-0.345, 1.6294, 0.57],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
      "role": "beacon_b",
-     "pos": [0.33, 1.6214, 0.57],
+     "pos": [0.345, 1.6294, 0.57],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
@@ -1459,8 +1459,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1b3f8f", "paint3": "#d22a2a", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "bg"],
-   "bytes": 329262,
-   "hash": "43af953f228b5b6cca05e0a7d7d10b42ca98b477"
+   "bytes": 329119,
+   "hash": "41a87c32168e346f7583e169c8fc79009a4585aa"
   },
   "police/ch": {
    "kind": "vehicle",
@@ -1539,16 +1539,16 @@
    "lights": [
     {
      "role": "beacon_a",
-     "pos": [-0.33, 1.6301, 0.6],
+     "pos": [-0.345, 1.6381, 0.6],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
      "role": "beacon_b",
-     "pos": [0.33, 1.6301, 0.6],
+     "pos": [0.345, 1.6381, 0.6],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
@@ -1632,8 +1632,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#e04a16", "paint3": "#f2d21c", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "ch"],
-   "bytes": 340547,
-   "hash": "d9c39e40030725ce7b3ce749ff88e139bcbd9987"
+   "bytes": 340422,
+   "hash": "a137388cb690a1de7ec776e6e1989d2e98da6298"
   },
   "police/cz": {
    "kind": "vehicle",
@@ -1712,16 +1712,16 @@
    "lights": [
     {
      "role": "beacon_a",
-     "pos": [-0.33, 1.6301, 0.6],
+     "pos": [-0.345, 1.6381, 0.6],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
      "role": "beacon_b",
-     "pos": [0.33, 1.6301, 0.6],
+     "pos": [0.345, 1.6381, 0.6],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
@@ -1805,8 +1805,8 @@
    "paint": {"paint": "#e9ecef", "paint2": "#1c3f8f", "paint3": "#e9d81f", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "cz"],
-   "bytes": 330973,
-   "hash": "e2716910a60051ae83bc251f6dd2c6dfd6713e95"
+   "bytes": 330952,
+   "hash": "cf3597520040aaf5be18d320ebb54ce6c2d13395"
   },
   "police/de": {
    "kind": "vehicle",
@@ -1885,16 +1885,16 @@
    "lights": [
     {
      "role": "beacon_a",
-     "pos": [-0.33, 1.6301, 0.6],
+     "pos": [-0.345, 1.6381, 0.6],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
      "role": "beacon_b",
-     "pos": [0.33, 1.6301, 0.6],
+     "pos": [0.345, 1.6381, 0.6],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
@@ -1978,8 +1978,8 @@
    "paint": {"paint": "#c9cdd3", "paint2": "#1f4c9c", "paint3": "#1f4c9c", "metal": 0.6},
    "auto_lod": false,
    "tags": ["police", "de"],
-   "bytes": 306629,
-   "hash": "a432f81910ae6117ada33ba3e37cb5723cbd584b"
+   "bytes": 306576,
+   "hash": "668246ed582f32508f4a70d1454417e8be47e5f2"
   },
   "police/es": {
    "kind": "vehicle",
@@ -2058,16 +2058,16 @@
    "lights": [
     {
      "role": "beacon_a",
-     "pos": [-0.33, 1.593, -0.125],
+     "pos": [-0.345, 1.601, -0.125],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
      "role": "beacon_b",
-     "pos": [0.33, 1.593, -0.125],
+     "pos": [0.345, 1.601, -0.125],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
@@ -2151,8 +2151,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1b3d8c", "paint3": "#1b3d8c", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "es"],
-   "bytes": 310428,
-   "hash": "ea61190cf7da33632458746fe0a5b37112f3f7e1"
+   "bytes": 310481,
+   "hash": "7b9778a19026d7c30fcb530c3f34a3bc36a75dea"
   },
   "police/fr": {
    "kind": "vehicle",
@@ -2231,16 +2231,16 @@
    "lights": [
     {
      "role": "beacon_a",
-     "pos": [-0.33, 1.6214, 0.57],
+     "pos": [-0.345, 1.6294, 0.57],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
      "role": "beacon_b",
-     "pos": [0.33, 1.6214, 0.57],
+     "pos": [0.345, 1.6294, 0.57],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
@@ -2317,8 +2317,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1c2f7a", "paint3": "#d6262b", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "fr"],
-   "bytes": 293164,
-   "hash": "6c33da14fff299d18729f7df81801afc06b08817"
+   "bytes": 293219,
+   "hash": "5a8983d996a6ecdbff572a28372eac94a659587f"
   },
   "police/hr": {
    "kind": "vehicle",
@@ -2397,16 +2397,16 @@
    "lights": [
     {
      "role": "beacon_a",
-     "pos": [-0.33, 1.593, -0.125],
+     "pos": [-0.345, 1.601, -0.125],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
      "role": "beacon_b",
-     "pos": [0.33, 1.593, -0.125],
+     "pos": [0.345, 1.601, -0.125],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
@@ -2490,8 +2490,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1b3a8c", "paint3": "#1b3a8c", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "hr"],
-   "bytes": 299446,
-   "hash": "b067d6a5c7bd1cb52ab40850957fefce22695e02"
+   "bytes": 299470,
+   "hash": "ad77acfe6b8815664e3886322091f47ee151ca85"
   },
   "police/hu": {
    "kind": "vehicle",
@@ -2570,16 +2570,16 @@
    "lights": [
     {
      "role": "beacon_a",
-     "pos": [-0.33, 1.593, -0.125],
+     "pos": [-0.345, 1.601, -0.125],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
      "role": "beacon_b",
-     "pos": [0.33, 1.593, -0.125],
+     "pos": [0.345, 1.601, -0.125],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
@@ -2663,8 +2663,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1b3a8a", "paint3": "#e3d61c", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "hu"],
-   "bytes": 327977,
-   "hash": "894af5c307adb3ad4662bd88c47819534ec5ff89"
+   "bytes": 328037,
+   "hash": "beb3b4e6cfe14b2b9505b89cecffb3ec29b1f20e"
   },
   "police/it": {
    "kind": "vehicle",
@@ -2743,16 +2743,16 @@
    "lights": [
     {
      "role": "beacon_a",
-     "pos": [-0.33, 1.593, -0.125],
+     "pos": [-0.345, 1.601, -0.125],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
      "role": "beacon_b",
-     "pos": [0.33, 1.593, -0.125],
+     "pos": [0.345, 1.601, -0.125],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
@@ -2836,8 +2836,8 @@
    "paint": {"paint": "#1f5fa8", "paint2": "#f2f2ef", "paint3": "#c9242b", "metal": 0.45},
    "auto_lod": false,
    "tags": ["police", "it"],
-   "bytes": 335129,
-   "hash": "2bdff3dfc6e648accb2c6b4c8b2333f6f8469df0"
+   "bytes": 335176,
+   "hash": "1b115d912763c4d454cb68ccf13f1522af02735d"
   },
   "police/lt": {
    "kind": "vehicle",
@@ -2916,16 +2916,16 @@
    "lights": [
     {
      "role": "beacon_a",
-     "pos": [-0.33, 1.861, 0.72],
+     "pos": [-0.345, 1.869, 0.72],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
      "role": "beacon_b",
-     "pos": [0.33, 1.861, 0.72],
+     "pos": [0.345, 1.869, 0.72],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
@@ -3002,8 +3002,8 @@
    "paint": {"paint": "#e9ecef", "paint2": "#1b3c8a", "paint3": "#d8e01c", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "lt"],
-   "bytes": 332300,
-   "hash": "187b75b10fad753f05065162074f13893fcb2112"
+   "bytes": 332221,
+   "hash": "7c3e595cfb59ba342153436f023ab692290d874b"
   },
   "police/lv": {
    "kind": "vehicle",
@@ -3082,16 +3082,16 @@
    "lights": [
     {
      "role": "beacon_a",
-     "pos": [-0.33, 1.6214, 0.57],
+     "pos": [-0.345, 1.6294, 0.57],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
      "role": "beacon_b",
-     "pos": [0.33, 1.6214, 0.57],
+     "pos": [0.345, 1.6294, 0.57],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
@@ -3168,8 +3168,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1c2f6e", "paint3": "#e3dc1c", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "lv"],
-   "bytes": 336998,
-   "hash": "ca589db9a6e009e64936c0e9bb1aa98bdaeec192"
+   "bytes": 337027,
+   "hash": "1c816a06dc13746be866f7fb977782612f64cf9d"
   },
   "police/nl": {
    "kind": "vehicle",
@@ -3248,16 +3248,16 @@
    "lights": [
     {
      "role": "beacon_a",
-     "pos": [-0.33, 1.6214, 0.57],
+     "pos": [-0.345, 1.6294, 0.57],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
      "role": "beacon_b",
-     "pos": [0.33, 1.6214, 0.57],
+     "pos": [0.345, 1.6294, 0.57],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
@@ -3334,8 +3334,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1b3f93", "paint3": "#e5531b", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "nl"],
-   "bytes": 328456,
-   "hash": "d47d7e99531a89f3d497b6cb93375fd471074ffb"
+   "bytes": 328537,
+   "hash": "ccae6eb691f6e145d0b65e269f188f00c93c5dff"
   },
   "police/pl": {
    "kind": "vehicle",
@@ -3414,16 +3414,16 @@
    "lights": [
     {
      "role": "beacon_a",
-     "pos": [-0.33, 1.593, -0.125],
+     "pos": [-0.345, 1.601, -0.125],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
      "role": "beacon_b",
-     "pos": [0.33, 1.593, -0.125],
+     "pos": [0.345, 1.601, -0.125],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
@@ -3507,8 +3507,8 @@
    "paint": {"paint": "#eceff2", "paint2": "#16336e", "paint3": "#16336e", "metal": 0.5},
    "auto_lod": false,
    "tags": ["police", "pl"],
-   "bytes": 298042,
-   "hash": "53114332fef63981fa60c967421e4efbff4f62a1"
+   "bytes": 298086,
+   "hash": "0e5f3757ebb9c0e97f19c2bb6fca72d7af9750b2"
   },
   "police/ro": {
    "kind": "vehicle",
@@ -3587,16 +3587,16 @@
    "lights": [
     {
      "role": "beacon_a",
-     "pos": [-0.33, 1.593, -0.125],
+     "pos": [-0.345, 1.601, -0.125],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
      "role": "beacon_b",
-     "pos": [0.33, 1.593, -0.125],
+     "pos": [0.345, 1.601, -0.125],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
@@ -3680,8 +3680,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1b3c8f", "paint3": "#c6e01e", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "ro"],
-   "bytes": 343510,
-   "hash": "f00a7e10b27ba45229c8f52b9e1397b695c8abdc"
+   "bytes": 343666,
+   "hash": "cde9912951ee75ad97538ecdb63e071d3012c4e8"
   },
   "police/rs": {
    "kind": "vehicle",
@@ -3760,16 +3760,16 @@
    "lights": [
     {
      "role": "beacon_a",
-     "pos": [-0.33, 1.593, -0.125],
+     "pos": [-0.345, 1.601, -0.125],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
      "role": "beacon_b",
-     "pos": [0.33, 1.593, -0.125],
+     "pos": [0.345, 1.601, -0.125],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
@@ -3853,8 +3853,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1b4a9a", "paint3": "#1b4a9a", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "rs"],
-   "bytes": 309391,
-   "hash": "bb7918bab81b29af45fbac32eea34cbc39c44d27"
+   "bytes": 309470,
+   "hash": "aece6b3b2837679ef5bd30e8926b7a4f3556d60a"
   },
   "police/si": {
    "kind": "vehicle",
@@ -3933,16 +3933,16 @@
    "lights": [
     {
      "role": "beacon_a",
-     "pos": [-0.33, 1.6301, 0.6],
+     "pos": [-0.345, 1.6381, 0.6],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
      "role": "beacon_b",
-     "pos": [0.33, 1.6301, 0.6],
+     "pos": [0.345, 1.6381, 0.6],
      "dir": [0, 1, 0],
-     "size": 0.424,
+     "size": 0.497,
      "color": "#2f5bff"
     },
     {
@@ -4026,8 +4026,8 @@
    "paint": {"paint": "#f2f2ef", "paint2": "#1c4f96", "paint3": "#2f9a4a", "metal": 0.12},
    "auto_lod": false,
    "tags": ["police", "si"],
-   "bytes": 331697,
-   "hash": "66bca20989914a8d8f628a2f1cab1f43f645945a"
+   "bytes": 331615,
+   "hash": "211b2a43edc87502135e7e4eea73182d4648fc43"
   },
   "props/farmhouse": {
    "kind": "building",
@@ -4139,6 +4139,178 @@
    "tags": ["prop", "tree"],
    "bytes": 426630,
    "hash": "017d646106c8d69475b7754105b2da3751e5be00"
+  },
+  "traffic/bus": {
+   "kind": "heavy",
+   "object": {"width_m": 2.55, "length_m": 12.8, "height_m": 3.65},
+   "aabb": [-1.505, 0, -6.835, 1.505, 3.65, 6.43],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 19238,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/bus/lod0_body.res",
+       "classes": ["vpbr", "glass"]
+      },
+      {
+       "node": "wheel_0l",
+       "mesh": "traffic/bus/wheel_front.res",
+       "classes": ["vpbr"],
+       "pos": [-1.075, 0.5, -3.6],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.5, "steer": true}
+      },
+      {
+       "node": "wheel_0r",
+       "mesh": "traffic/bus/wheel_front.res",
+       "classes": ["vpbr"],
+       "pos": [1.075, 0.5, -3.6],
+       "wheel": {"radius": 0.5, "steer": true}
+      },
+      {
+       "node": "wheel_1l",
+       "mesh": "traffic/bus/wheel_drive.res",
+       "classes": ["vpbr"],
+       "pos": [-0.9275, 0.5, 3.25],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.5, "steer": false}
+      },
+      {
+       "node": "wheel_1r",
+       "mesh": "traffic/bus/wheel_drive.res",
+       "classes": ["vpbr"],
+       "pos": [0.9275, 0.5, 3.25],
+       "wheel": {"radius": 0.5, "steer": false}
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 180,
+     "tris": 6312,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/bus/lod1_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    },
+    {
+     "name": "lod2",
+     "max_dist_m": 100000,
+     "tris": 1476,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/bus/lod2_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    }
+   ],
+   "shadow": {"mesh": "traffic/bus/shadow.res", "tris": 516},
+   "lights": [
+    {
+     "role": "brake",
+     "pos": [-1.1338, 1.335, 6.4],
+     "dir": [-0.147, 0, 0.989],
+     "size": 0.543,
+     "color": "#ff2010"
+    },
+    {
+     "role": "brake",
+     "pos": [0, 3.43, 6.4],
+     "dir": [0, 0, 1],
+     "size": 0.231,
+     "color": "#ff2010"
+    },
+    {
+     "role": "brake",
+     "pos": [1.1338, 1.335, 6.4],
+     "dir": [0.147, 0, 0.989],
+     "size": 0.543,
+     "color": "#ff2010"
+    },
+    {
+     "role": "head",
+     "pos": [-0.79, 0.68, -6.4],
+     "dir": [0, 0, -1],
+     "size": 0.311,
+     "color": "#fff3d6"
+    },
+    {
+     "role": "head",
+     "pos": [0.79, 0.68, -6.4],
+     "dir": [0, 0, -1],
+     "size": 0.311,
+     "color": "#fff3d6"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-1.1338, 2.05, 6.4],
+     "dir": [-0.147, 0, 0.989],
+     "size": 0.183,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-1.0635, 0.68, -6.3937],
+     "dir": [-0.251, 0, -0.968],
+     "size": 0.194,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [1.0635, 0.68, -6.3937],
+     "dir": [0.251, 0, -0.968],
+     "size": 0.194,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [1.1338, 2.05, 6.4],
+     "dir": [0.147, 0, 0.989],
+     "size": 0.183,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "marker",
+     "pos": [-0.93, 3.445, 6.4],
+     "dir": [0, 0, 1],
+     "size": 0.112,
+     "color": "#ff1a0e"
+    },
+    {
+     "role": "marker",
+     "pos": [0.93, 3.445, 6.4],
+     "dir": [0, 0, 1],
+     "size": 0.112,
+     "color": "#ff1a0e"
+    },
+    {
+     "role": "tail",
+     "pos": [-1.1338, 1.335, 6.4],
+     "dir": [-0.147, 0, 0.989],
+     "size": 0.543,
+     "color": "#ff2010"
+    },
+    {
+     "role": "tail",
+     "pos": [1.1338, 1.335, 6.4],
+     "dir": [0.147, 0, 0.989],
+     "size": 0.543,
+     "color": "#ff2010"
+    }
+   ],
+   "paint": {"paint": "#d8d8d4", "paint2": "#1f4f9a", "paint3": "#d6262b", "metal": 0.25},
+   "auto_lod": false,
+   "tags": ["traffic", "heavy"],
+   "bytes": 226429,
+   "hash": "ad6eb046090793ba244d76ed5433a0fc74e537c1"
   },
   "traffic/hatch": {
    "kind": "vehicle",
@@ -4868,7 +5040,7 @@
     {
      "name": "lod2",
      "max_dist_m": 100000,
-     "tris": 1490,
+     "tris": 1298,
      "parts": [
       {
        "node": "body",
@@ -4976,8 +5148,8 @@
    },
    "auto_lod": false,
    "tags": ["traffic", "heavy"],
-   "bytes": 161851,
-   "hash": "ee125caa0f956a400bfb6efa990714b610d572bc"
+   "bytes": 160084,
+   "hash": "a589822ae915866ede7d1b6a605969be96451f7c"
   },
   "traffic/van": {
    "kind": "vehicle",
@@ -5886,19 +6058,16 @@
    "paint": {"paint": "#cc1419", "metal": 0.15}
   },
   "traffic/bus_blue": {
-   "fallback": "box",
-   "object": {"width_m": 2.55, "length_m": 12.8, "height_m": 3.65},
-   "paint": {"paint": "#1f4f9a", "metal": 0.45}
+   "model": "traffic/bus",
+   "paint": {"paint": "#1f4f9a", "paint2": "#efe0a0", "paint3": "#d8d8d4", "metal": 0.25}
   },
   "traffic/bus_red": {
-   "fallback": "box",
-   "object": {"width_m": 2.55, "length_m": 12.8, "height_m": 3.65},
-   "paint": {"paint": "#b3242a", "metal": 0.3}
+   "model": "traffic/bus",
+   "paint": {"paint": "#b3242a", "paint2": "#d8d8d4", "paint3": "#1d1f22", "metal": 0.25}
   },
   "traffic/bus_white": {
-   "fallback": "box",
-   "object": {"width_m": 2.55, "length_m": 12.8, "height_m": 3.65},
-   "paint": {"paint": "#efefeb", "metal": 0.1}
+   "model": "traffic/bus",
+   "paint": {"paint": "#d8d8d4", "paint2": "#1f4f9a", "paint3": "#d6262b", "metal": 0.25}
   },
   "traffic/hatch_blue": {
    "model": "traffic/hatch",
