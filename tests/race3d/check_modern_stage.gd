@@ -21,7 +21,9 @@ extends SceneTree
 ##   kern_zeit  GDScript time of the renderer core per frame of a drive at 150 km/h (render() with what this
 ##              package ships – no vehicle, prop or terrain layer – plus the backdrop's canvas drawing):
 ##              at most 0.6 ms on average, a chunk is committed in at most 3 ms (the best of three rounds: the
-##              machine is shared)
+##              machine is shared). Since the assembly of M1 the shipped renderer also updates terrain, props,
+##              signs, far ground, vehicles and flares every frame, so this check runs the core alone
+##              (tests/race3d/fixtures/core_renderer.gd: road, roadside, backdrop, lights, overlay)
 ## Prints "CHECK <name> OK|FEHLER …" per check; exit code 0 when all pass.
 ## (The scene and the autoloads are accessed untyped: -s scripts compile before the autoloads exist.)
 
@@ -29,6 +31,7 @@ const RACE := "res://scenes/race/race.tscn"
 const CHECKS := ["inhalt", "nacht", "tunnel", "waechter", "wechsel", "kern_zeit", "ergebnis"]
 const CORE_MS := 0.6
 const COMMIT_MS := 3.0
+const CORE_FIXTURE := "res://tests/race3d/fixtures/core_renderer.gd"
 
 var _failed: Array[String] = []
 var _renderers: GDScript
@@ -443,6 +446,7 @@ func _check_kern_zeit() -> void:
 	var best_commit := INF
 	var best_parts := ""
 	var frames := 1500
+	_renderers.set("modern_script", CORE_FIXTURE)
 	for round_i in 3:
 		var st: Array = await _stage({"start_speed_kmh": 150.0})
 		var sc: Node = st[0]
@@ -495,6 +499,7 @@ func _check_kern_zeit() -> void:
 		await _free(sc)
 		if best <= CORE_MS * 0.7 and best_commit <= COMMIT_MS * 0.7:
 			break
+	_renderers.set("modern_script", str(_renderers.get("MODERN_SCRIPT")))
 	_need(p, best <= CORE_MS, "Renderer-Kern höchstens %.1f ms GDScript je Bild (%.3f ms)" % [CORE_MS, best])
 	_need(p, best_commit <= COMMIT_MS, "ein Stück hängt in höchstens %.0f ms ein (%.2f ms)" % [COMMIT_MS, best_commit])
 	_report("kern_zeit", p, "Renderer-Kern %.3f ms GDScript je Bild über %d Bilder bei 150 km/h (%s); Einhängen eines Stücks höchstens %.2f ms" % [best, frames, best_parts, best_commit])

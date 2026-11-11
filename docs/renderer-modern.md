@@ -1448,6 +1448,11 @@ still (`ce_time` ist Spielzeit). Render-Prüfung `rotor` in `check_props_render.
   grün.
 - `tools/run_tests.sh` startet zusätzlich `check_options_tabs` (Arcade) und `check_attract`, `check_attract_scenes`
   in Modern; die Render-Prüfungen der Pakete findet `tools/run_render_checks.sh` über ihren Dateinamen.
+- `check_modern_stage` → `kern_zeit` misst wieder nur den Renderer-Kern (Straße, Randausstattung, Hintergrund,
+  Lichter, Overlay – Testdouble `tests/race3d/fixtures/core_renderer.gd`): seit der Zusammenführung aktualisiert
+  `render()` auch Gelände, Requisiten, Schilder, Fernboden, Fahrzeuge und Lichtpunkte; mit allem maß die Prüfung
+  0,499 bzw. 0,618 ms je Bild (Grenze 0,6 ms für den Kern, zwei Läufe bei Last 6–9), der Kern allein 0,194 bzw. 0,251 ms
+  (gemessen, headless). Die Zeit des ganzen Renderers steht in `perf_stats` (`render_ms_avg`).
 
 ### 12.8 Moduswechsel und Programmende
 
