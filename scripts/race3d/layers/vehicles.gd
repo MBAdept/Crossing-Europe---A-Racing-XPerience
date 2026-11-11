@@ -31,6 +31,12 @@ const ROLL_PIVOT_Y := 0.38          ## the body rolls about this height
 const STEER_DEG := 7.0              ## player's front wheels: steering input share (deg at full lock)
 const FLOATS_PER_FLARE := 20        ## MultiMesh layout: 12 transform + 4 colour + 4 custom
 const FLOATS_PER_SHADOW := 16       ## 12 transform + 4 custom
+const PLAYER_ID := -999999          ## view id of the player car in this layer
+## Extra ambient light on the player car (vpbr instance uniform fill, a share of ce_ambient): Arcade draws its player
+## sprite brighter than the scene (ambient x 1.15 + 0.08) – the car stays readable in its own shade (the sun stands
+## ahead at noon) and at night.
+const PLAYER_FILL := 0.7
+const BOX_GLOSS := 0.35             ## clear coat of the box stand-in (flat panels mirror the horizon like glass)
 ## The race look of the shared vehicle materials (the shaders' defaults are neutral – the look of the vertex format
 ## alone, what the contact sheet shows): [class, uniform, value].
 const LOOK: Array = [["vpbr", "env_energy", 1.6], ["vpbr", "paint_base", 0.9], ["vpbr", "flake_strength", 0.6],
@@ -304,7 +310,7 @@ func _update_car(c: Dictionary, is_player: bool, path: RoadPath3D, track: Track,
 	var set_id := str(c.get("set", ""))
 	if set_id == "":
 		return
-	var id := -999999 if is_player else int(c.get("id", -1000000))
+	var id := PLAYER_ID if is_player else int(c.get("id", -1000000))
 	var info := _set_info(set_id)
 	var obj: Dictionary = info["obj"]
 	var length := float(c.get("length", obj.get("length_m", 4.5)))
@@ -711,9 +717,17 @@ func _set_level(car: Car, lod: String) -> void:
 			car.caster = gi
 		elif not wheel_nodes.has(gi):
 			car.body.append(gi)
-			if car.id == -999999 and gi.get_parent() == n:
+			if car.id == PLAYER_ID and gi.get_parent() == n:
 				car.roll_nodes.append([gi, gi.transform])
 	_apply_casting(car)
+	# readability of the player car (Arcade brightens its player sprite as well) and a matt coat on the stand-in
+	var fill := PLAYER_FILL if car.id == PLAYER_ID else 0.0
+	var gloss := BOX_GLOSS if lod == "box" else 1.0
+	for gi: GeometryInstance3D in car.geo:
+		if fill > 0.0:
+			gi.set_instance_shader_parameter(&"fill", fill)
+		if gloss < 1.0:
+			gi.set_instance_shader_parameter(&"gloss", gloss)
 	car.la = Vector4(-1, -1, -1, -1)
 	car.lb = Vector4(-1, -1, -1, -1)
 	car.fade = -1.0
@@ -756,7 +770,7 @@ func snapshot() -> Dictionary:
 			"lamps": {"tail": car.la.x, "brake": car.la.y, "ind_l": car.la.z, "ind_r": car.la.w, "head": car.lb.x,
 				"beacon_a": car.lb.z, "beacon_b": car.lb.w},
 			"fade": car.fade, "sun": car.sun, "pos": [p.x, p.y, p.z], "shown": car.shown,
-			"box": bool((car.info as Dictionary).get("box", false)), "player": int(id) == -999999,
+			"box": bool((car.info as Dictionary).get("box", false)), "player": int(id) == PLAYER_ID,
 			"basis": [car.pose.basis.x, car.pose.basis.y, car.pose.basis.z]})
 	return {"vehicles": list, "vehicle_flares": _flare_n}
 

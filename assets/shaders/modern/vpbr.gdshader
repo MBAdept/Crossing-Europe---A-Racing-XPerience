@@ -39,6 +39,11 @@ instance uniform vec4 lamp_a : instance_index(3) = vec4(0.0);   // tail, brake, 
 instance uniform vec4 lamp_b : instance_index(4) = vec4(0.0);   // head, reverse, beacon A, beacon B (0..1)
 instance uniform float fade : instance_index(5) = 1.0;          // path-distance fade: dither discard, opaque
 instance uniform float sun : instance_index(6) = 1.0;           // 0 inside tunnels: masks the directional light
+// R3 (wave 1), only in vpbr: fill = extra ambient light on this instance, as a share of ce_ambient (the player car
+// gets some, like the brightened player sprite of Arcade: it stays readable in its own shade and at night);
+// gloss = factor on the clear coat (the flat panels of the box stand-in would mirror the horizon like glass)
+instance uniform float fill : instance_index(7) = 0.0;
+instance uniform float gloss : instance_index(8) = 1.0;
 
 uniform float lamp_energy = 1.0;              // linear emission of a lamp at level 1, weight 1 (tail, marker, on)
 // factors on lamp_energy: x brake, y indicators, z head / daytime running / reverse, w beacons
@@ -68,6 +73,7 @@ uniform float flake_scale = 260.0;            // flake cells per metre
 uniform float flake_near_m = 14.0;            // flakes fade out towards this distance (they would only shimmer)
 
 global uniform float ce_night;
+global uniform vec4 ce_ambient;               // linear ambient light (ModernMaterials.light_value), for `fill`
 
 varying flat float v_code;
 varying flat vec2 v_lamp;
@@ -199,10 +205,11 @@ void fragment() {
 			lamp = true;
 		}
 	}
-	coat *= coat_strength;
+	coat *= coat_strength * gloss;
 	if (coat > 0.0) {
 		alb *= paint_base;          // the base coat under the clear coat
 	}
+	vec3 fill_light = fill > 0.0 ? to_lin(alb) * ce_ambient.rgb * fill : vec3(0.0);
 	// mirrored environment: clear coat (Fresnel of a 1.5 coat), metals (tinted by their colour), glossy parts
 	vec3 refl = vec3(0.0);
 	if (env_energy > 0.0) {
@@ -227,6 +234,7 @@ void fragment() {
 	ROUGHNESS = rough;
 	METALLIC = metal;
 	SPECULAR = 0.5;
+	refl += fill_light;
 	EMISSION = (refl.r + refl.g + refl.b > 0.0) ? encode(to_lin(emit) + refl) : emit;
 	v_coat = coat;
 	v_metal_paint = coat > 0.0 ? metal : 0.0;
