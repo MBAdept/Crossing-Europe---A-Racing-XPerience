@@ -474,7 +474,8 @@ def frond(w, h, rng, sp):
     dr = ImageDraw.Draw(img)
     cx = W * 0.5
     rachis = _hex(sp.get("twig", "#8a7a3a"))
-    n = 52
+    # AS3R (art review M8: thin fronds): more and wider leaflets - the frond covers about as much as the sprite's
+    n = 60
     for k in range(n):
         t = (k + rng.uniform(0.2, 0.8)) / n
         y0 = H * (1.0 - t * 0.98)
@@ -487,7 +488,7 @@ def frond(w, h, rng, sp):
             droop = rng.uniform(0.0, 0.06)
             x1 = cx + side * ln * math.cos(ang)
             y1 = y0 - ln * math.sin(ang) + ln * droop
-            lw = W * rng.uniform(0.034, 0.048)
+            lw = W * rng.uniform(0.046, 0.062)
             col = rng.choice(cols)
             base = _mix(dark, col, 0.78)
             tip = _mix(col, (255, 255, 220), 0.12)

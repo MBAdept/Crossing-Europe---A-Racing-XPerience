@@ -218,7 +218,8 @@ MODELS.update(_as3_tree("olive", "olive", 53))
 MODELS.update(_as3_tree("pine", "pine", 71))
 MODELS.update(_as3_tree("spruce", "spruce", 19, AS3_SHAPES, {"tiers": 12, "taper": 1.25}))
 MODELS.update(_as3_tree("cypress", "cypress", 41, AS3_SHAPES, {"bulge": 1.45, "width": 1.12}))
-MODELS.update(_as3_tree("palm", "palm", 43, AS3_SHAPES, {"bend": 0.4}))
+# AS3R (art review M8): palm_b bends like the sprite, a little more (0.4 was a straight pole, 57 % outside the sprite)
+MODELS.update(_as3_tree("palm", "palm", 43, AS3_SHAPES, {"bend": 1.2}))
 MODELS.update({
     # heather: the generator's tufts (props_nature.SHAPE_LOG "heather") as leaf domes, flowers and foliage
     "props/heather": dict(builder="bush", source="props/heather", kind="plant", bush="heather"),
@@ -228,8 +229,11 @@ MODELS.update({
                          roughness=0.9, tris=1450, ao=dict(distance=0.9, floor=0.45, gamma=1.0, samples=24)),
     "props/rock_b": dict(builder="rock", source="props/rock_b", kind="rock", atlas=(512, 512), ppm_max=160.0,
                          roughness=0.9, tris=1450, ao=dict(distance=0.9, floor=0.45, gamma=1.0, samples=24)),
+    # AS3R (art review M2): the cliff as a closed rock body (props_nature "solid3d": crest, back flank, closed ends,
+    # shrubs set onto the crest) - the props builder turns rocks; tag face_road asks it to keep the face to the road
     "props/cliff": dict(builder="rock", source="props/cliff", kind="rock", atlas=(1024, 1024), ppm_max=40.0,
-                        roughness=0.92, tris=5900, ao=dict(distance=2.5, floor=0.4, gamma=1.0, samples=24)),
+                        roughness=0.92, tris=5900, ao=dict(distance=2.5, floor=0.4, gamma=1.0, samples=24),
+                        params={"solid3d": True}, tags_add=["face_road"]),
 })
 # ground cover grass (AS1b): twice the tufts, so that it reads as grass and not as one spot at 15 m
 MODELS["props/cover_grass"] = dict(MODELS["props/cover_grass"], grass=dict(seed=23, tufts=14))

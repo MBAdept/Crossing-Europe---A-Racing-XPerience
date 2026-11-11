@@ -6,12 +6,12 @@
   "kind": "plant",
   "object": {"width_m": 5.6, "height_m": 0.75, "length_m": 2.6},
   "extent_m": {"left": 2.78, "right": 2.92},
-  "aabb": [-2.783, -0.174, -2.769, 2.894, 0.613, 0.474],
+  "aabb": [-2.772, -0.497, -2.769, 2.913, 0.613, 0.466],
   "lods": [
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 390,
+    "tris": 396,
     "parts": [
      {
       "node": "body",
@@ -36,9 +36,9 @@
   "textures": {"leaves": "props/heather/leaves.png"},
   "cards": {"lod0": 30, "lod1": 30},
   "auto_lod": false,
-  "tags": ["prop", "plant"],
-  "bytes": 468328,
-  "hash": "38dc60929c0ec6241c6fb678544b7aed7f9ebd80"
+  "tags": ["prop", "plant", "ground_align"],
+  "bytes": 468796,
+  "hash": "f44604ed1829169cf079171e292d75807ce05051"
  },
  "sets": {
   "props/heather": {"model": "props/heather"}

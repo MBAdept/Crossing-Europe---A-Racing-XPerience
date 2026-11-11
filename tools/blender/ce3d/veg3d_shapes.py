@@ -22,6 +22,15 @@ from . import core, leafatlas, roles
 from . import veg3d as V
 
 RING_M = 0.24            # palm trunk: one ring per 0.24 m (the generator's bark: rings = 26 per radian of z)
+RING_LIGHT = 0.08        # palm trunk: every other ring band this much lighter / darker (AS3R)
+# palm fronds (AS3R, art review M8: thin, upright fronds - the leaflet texture lets the sky through, so the strip must
+# be wider than the sprite's solid frond to cover as much): half width of the strip, its fold, how much its spine
+# droops (the generator's -1.6 t^2) and lifts
+FROND_W = 0.78
+FROND_FOLD = 0.28
+FROND_DROOP = 2.1
+FROND_LIFT = 0.85
+CYPRESS_UP = 0.9         # cypress: extra upward tilt of the normals at the tip of the flame (0 at mid height)
 
 
 def build(model_id, spec3d, sp, t0):
@@ -96,16 +105,20 @@ def _cypress_level(prof, segs, rings, seed, jitter=0.07):
     hs = np.array([h for (_r, h) in prof])
     rs = np.array([r for (r, _h) in prof])
     zs = np.linspace(float(hs.min()), float(hs.max()), rings + 1)
+    z_mid = float(hs.min()) + 0.5 * (float(hs.max()) - float(hs.min()))
     pos, nor = [], []
     for i, z in enumerate(zs):
         r0 = float(np.interp(z, hs, rs))
         dr = (float(np.interp(z + 0.2, hs, rs)) - float(np.interp(z - 0.2, hs, rs))) / 0.4
+        # the upper half of the flame faces more and more upwards (AS3R, art review M11: no up-facing normal at all -
+        # a snow or rain term of the leaves shader could never touch it)
+        up = 0.12 + CYPRESS_UP * min(1.0, max(0.0, (z - z_mid) / max(0.5, float(hs.max()) - z_mid)))
         for k in range(segs):
             a = 2.0 * math.pi * k / segs + (0.5 * 2.0 * math.pi / segs if i % 2 else 0.0)
             r = r0 * (1.0 + jitter * float(_hash_noise(a, z, seed))) if 0 < i < rings else r0
             pos.append((r * math.cos(a), r * math.sin(a), z))
             n = np.array([math.cos(a), math.sin(a), -dr])
-            n = n / np.linalg.norm(n) + np.array([0.0, 0.0, 0.12])
+            n = n / np.linalg.norm(n) + np.array([0.0, 0.0, up])
             nor.append(n / np.linalg.norm(n))
     tri = []
     for i in range(rings):
@@ -143,7 +156,9 @@ def _cypress(model_id, spec3d, sp, sspec, info, wood_soups, crown_pts, shape, t0
         hn = n[t]
         cc = np.empty(hp.shape[:2] + (4,))
         cc[..., 0] = np.clip(hp[..., 2] / max(1.0, top_z), 0.0, 1.0) * 0.7
-        cc[..., 1] = (seed % 97) / 97.0
+        # a wind phase per ring (AS3R, art review M11: one phase for the whole flame)
+        ring = t // (20, 10)[li]
+        cc[..., 1] = ((seed % 97) / 97.0 + ring * 0.6180339887) % 1.0
         cc[..., 2] = sp["stiff"]
         # the folds of the flame: a vertex inside the lumps (radius below the profile) is a little darker
         cc[..., 3] = np.clip(sp["core"]["bright"] * V._sky(hn, sp), 0.08, 1.0)
@@ -321,8 +336,9 @@ def _spruce(model_id, spec3d, sp, sspec, info, wood_soups, crown_pts, shape, t0)
 # --- palm --------------------------------------------------------------------------------------------------------
 
 def _palm_trunk(pts, rad, segs, sp, z_top):
-    """The trunk again with a ring every RING_M metres: alternating bark colours per ring band and a slight bulge
-    at every other ring (the leaf scars of a date palm); the foot sinks into the ground."""
+    """The trunk again with a ring every RING_M metres: the bark darkens from the crown to the foot, every other ring
+    band a little lighter (RING_LIGHT: leaf scars, not two colours - art review M8: a striped light pole) and a
+    slight bulge at every other ring (the leaf scars of a date palm); the foot sinks into the ground."""
     path = np.array(pts, dtype=np.float64)
     radii = np.array(rad, dtype=np.float64)
     s = np.concatenate([[0.0], np.cumsum(np.linalg.norm(np.diff(path, axis=0), axis=1))])
@@ -335,26 +351,29 @@ def _palm_trunk(pts, rad, segs, sp, z_top):
     c2 = np.array(core.srgb8(core.hex_to_lin(sp["bark"][0][1][1])), dtype=np.float64)
     zc = pos.mean(axis=1)[:, 2]
     band = (np.floor(zc / RING_M) % 2) == 0
-    col = np.where(band[:, None], c1[None, :], c2[None, :])
-    col = col * (0.82 + 0.18 * np.clip(zc / max(1.0, z_top), 0.0, 1.0))[:, None]
+    h = np.clip(zc / max(1.0, z_top), 0.0, 1.0)[:, None]
+    col = c1[None, :] * (1.0 - h) + c2[None, :] * h
+    col = col * np.where(band, 1.0 + RING_LIGHT, 1.0 - RING_LIGHT)[:, None]
     out = np.empty(pos.shape[:2] + (4,), dtype=np.uint8)
     out[..., :3] = np.clip(np.round(col), 0, 255).astype(np.uint8)[:, None, :]
     out[..., 3] = 255
     return V._sink(pos, nor, sp["sink"]), nor, out
 
 
-def _frond_strip(top, a, ln, lift, n_seg, rect, phase, sp, fold=0.42, widen=1.12):
-    """One frond as a folded strip along the generator's spine: vertices (left, middle, right) per station."""
+def _frond_strip(top, a, ln, lift, n_seg, rect, phase, sp, fold=FROND_FOLD, half_w=FROND_W):
+    """One frond as a folded strip along the generator's spine (its lift x FROND_LIFT, its droop x FROND_DROOP / 1.6):
+    vertices (left, middle, right) per station."""
     d = np.array([math.cos(a), math.sin(a), 0.0])
     side = np.array([-d[1], d[0], 0.0])
     (ua, va, ub, vb) = rect
     pos, nor, uv, col, tri = [], [], [], [], []
+    lift = lift * FROND_LIFT
     for i in range(n_seg + 1):
         t = i / n_seg
-        p = np.asarray(top) + d * (ln * t) + np.array([0.0, 0.0, lift * math.sin(t * math.pi * 0.8) - 1.6 * t * t])
-        w = (0.55 * math.sin(math.pi * min(1.0, t * 1.1)) + 0.03) * widen
+        p = np.asarray(top) + d * (ln * t) + np.array([0.0, 0.0, lift * math.sin(t * math.pi * 0.8) - FROND_DROOP * t * t])
+        w = half_w * math.sin(math.pi * min(1.0, t * 1.1)) + 0.03
         # direction of the spine at t (for the frond's surface normal)
-        dz = lift * math.cos(t * math.pi * 0.8) * math.pi * 0.8 - 3.2 * t
+        dz = lift * math.cos(t * math.pi * 0.8) * math.pi * 0.8 - 2.0 * FROND_DROOP * t
         along = d * ln + np.array([0.0, 0.0, dz])
         along /= np.linalg.norm(along)
         up = np.cross(side, along)

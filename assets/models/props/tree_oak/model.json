@@ -6,12 +6,12 @@
   "kind": "tree",
   "object": {"width_m": 12, "height_m": 13.5},
   "extent_m": {"left": 6.35, "right": 6.44},
-  "aabb": [-6.348, -0.566, -5.304, 6.439, 13.301, 5.394],
+  "aabb": [-6.348, -0.566, -5.3, 6.439, 13.301, 5.404],
   "lods": [
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 2465,
+    "tris": 2479,
     "parts": [
      {
       "node": "body",
@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 200,
-    "tris": 887,
+    "tris": 889,
     "parts": [
      {
       "node": "body",
@@ -43,8 +43,8 @@
   "cards": {"lod0": 67, "lod1": 67},
   "auto_lod": false,
   "tags": ["prop", "tree"],
-  "bytes": 2018870,
-  "hash": "0b877089a65c22b0c336647f98c014804ad01393"
+  "bytes": 2024741,
+  "hash": "ad1c9fe5a65f66f5ee532ee1e3e5f51f976737ef"
  },
  "sets": {
   "props/tree_oak": {

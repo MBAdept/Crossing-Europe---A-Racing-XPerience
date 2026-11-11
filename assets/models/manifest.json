@@ -440,12 +440,12 @@
    "kind": "plant",
    "object": {"width_m": 5, "height_m": 1.3},
    "extent_m": {"left": 2.8, "right": 2.45},
-   "aabb": [-3.074, -0.183, -1.471, 2.494, 1.471, 1.894],
+   "aabb": [-2.888, -0.468, -1.589, 2.454, 1.411, 1.627],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 395,
+     "tris": 380,
      "parts": [
       {
        "node": "body",
@@ -457,7 +457,7 @@
     {
      "name": "lod1",
      "max_dist_m": 200,
-     "tris": 115,
+     "tris": 114,
      "parts": [
       {
        "node": "body",
@@ -468,22 +468,22 @@
     }
    ],
    "textures": {"leaves": "props/bush_low/leaves.png"},
-   "cards": {"lod0": 25, "lod1": 23},
+   "cards": {"lod0": 14, "lod1": 14},
    "auto_lod": false,
-   "tags": ["prop", "plant"],
-   "bytes": 458197,
-   "hash": "e0f3a71dae6b460a66fcd056c716dc68df185437"
+   "tags": ["prop", "plant", "ground_align"],
+   "bytes": 447765,
+   "hash": "b1168d3fb7500e1a7b3d16c7dd91c05e4374f0e1"
   },
   "props/bush_round": {
    "kind": "plant",
    "object": {"width_m": 3, "height_m": 2.2},
    "extent_m": {"left": 1.65, "right": 1.6},
-   "aabb": [-1.765, -0.315, -2.129, 1.598, 2.527, 1.729],
+   "aabb": [-1.776, -0.663, -2.025, 1.598, 2.728, 1.729],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 396,
+     "tris": 380,
      "parts": [
       {
        "node": "body",
@@ -495,7 +495,7 @@
     {
      "name": "lod1",
      "max_dist_m": 200,
-     "tris": 111,
+     "tris": 114,
      "parts": [
       {
        "node": "body",
@@ -506,22 +506,22 @@
     }
    ],
    "textures": {"leaves": "props/bush_round/leaves.png"},
-   "cards": {"lod0": 20, "lod1": 20},
+   "cards": {"lod0": 14, "lod1": 14},
    "auto_lod": false,
-   "tags": ["prop", "plant"],
-   "bytes": 457340,
-   "hash": "d4cc9227bb6569b5d62c5851009e5d3c858b44d3"
+   "tags": ["prop", "plant", "ground_align"],
+   "bytes": 445873,
+   "hash": "9d476a990cc81c77d6da98aff0b0243a6e10f459"
   },
   "props/bush_round_b": {
    "kind": "plant",
    "object": {"width_m": 3, "height_m": 2.2},
    "extent_m": {"left": 1.61, "right": 1.84},
-   "aabb": [-1.613, -0.414, -1.736, 1.842, 2.587, 1.834],
+   "aabb": [-1.613, -0.686, -1.736, 1.842, 2.465, 1.75],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 396,
+     "tris": 380,
      "parts": [
       {
        "node": "body",
@@ -533,7 +533,7 @@
     {
      "name": "lod1",
      "max_dist_m": 200,
-     "tris": 117,
+     "tris": 114,
      "parts": [
       {
        "node": "body",
@@ -543,23 +543,24 @@
      ]
     }
    ],
-   "textures": {"leaves": "props/bush_round_b/leaves.png"},
-   "cards": {"lod0": 19, "lod1": 19},
+   "textures": {"leaves": "props/bush_round/leaves.png"},
+   "variant_of": "props/bush_round",
+   "cards": {"lod0": 14, "lod1": 14},
    "auto_lod": false,
-   "tags": ["prop", "plant"],
-   "bytes": 457358,
-   "hash": "06f1fac369c9beb73c9fb963b0429dbd87db693c"
+   "tags": ["prop", "plant", "ground_align"],
+   "bytes": 11516,
+   "hash": "5e1f4ac570fdcfc40380f2e8301ff8181b4ca2c7"
   },
   "props/cliff": {
    "kind": "rock",
    "object": {"width_m": 26, "height_m": 14, "length_m": 5},
-   "extent_m": {"left": 13.25, "right": 13.26},
-   "aabb": [-13.246, -1.193, -4.249, 13.258, 15.218, 0.853],
+   "extent_m": {"left": 13.42, "right": 13.45},
+   "aabb": [-13.425, -2.027, -9.757, 13.45, 14.855, 0.529],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 100000,
-     "tris": 4341,
+     "tris": 5799,
      "parts": [
       {
        "node": "body",
@@ -572,20 +573,20 @@
    "textures": {"albedo": "props/cliff/albedo.png"},
    "roughness": 0.92,
    "auto_lod": true,
-   "tags": ["prop", "rock"],
-   "bytes": 976623,
-   "hash": "1d378196a00f6d0493442a17af085e36c20374f3"
+   "tags": ["prop", "rock", "ground_sink", "face_road"],
+   "bytes": 1113291,
+   "hash": "3c03dbf3e297fd387c5407735aee34e321c8d49e"
   },
   "props/cover_bush": {
    "kind": "plant",
    "object": {"width_m": 1.5, "height_m": 0.45, "length_m": 1.2},
    "extent_m": {"left": 0.75, "right": 0.75},
-   "aabb": [-0.75, -0.093, -0.576, 0.814, 0.45, 0.6],
+   "aabb": [-0.75, -0.417, -0.6, 0.76, 0.45, 0.6],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 236,
+     "tris": 380,
      "parts": [
       {
        "node": "body",
@@ -597,7 +598,7 @@
     {
      "name": "lod1",
      "max_dist_m": 200,
-     "tris": 111,
+     "tris": 114,
      "parts": [
       {
        "node": "body",
@@ -610,15 +611,15 @@
    "textures": {"leaves": "props/cover_bush/leaves.png"},
    "cards": {"lod0": 9, "lod1": 9},
    "auto_lod": false,
-   "tags": ["prop", "plant", "ground_cover"],
-   "bytes": 452965,
-   "hash": "ba572966455e8dcc66a303cc07ef50db543b0708"
+   "tags": ["prop", "plant", "ground_cover", "ground_align"],
+   "bytes": 445986,
+   "hash": "698b575e4c6d94aa87d66009ea42290cd75036f3"
   },
   "props/cover_grass": {
    "kind": "plant",
    "object": {"width_m": 1, "height_m": 0.42, "length_m": 0.9},
    "extent_m": {"left": 0.45, "right": 0.6},
-   "aabb": [-0.453, 0, -0.526, 0.599, 0.42, 0.471],
+   "aabb": [-0.453, -0.1, -0.526, 0.599, 0.42, 0.471],
    "lods": [
     {
      "name": "lod0",
@@ -648,9 +649,9 @@
    "textures": {"leaves": "props/cover_grass/leaves.png"},
    "cards": {"lod0": 42, "lod1": 14},
    "auto_lod": false,
-   "tags": ["prop", "plant", "ground_cover"],
-   "bytes": 303934,
-   "hash": "96816f0393b6715d38bf1bcd3d9450e05972d146"
+   "tags": ["prop", "plant", "ground_cover", "ground_align"],
+   "bytes": 303936,
+   "hash": "46b797bfed8cf95615c8d6533d4e43030115f95a"
   },
   "props/customs_booth": {
    "kind": "building",
@@ -888,12 +889,12 @@
    "kind": "plant",
    "object": {"width_m": 5.6, "height_m": 0.75, "length_m": 2.6},
    "extent_m": {"left": 2.78, "right": 2.92},
-   "aabb": [-2.783, -0.174, -2.769, 2.894, 0.613, 0.474],
+   "aabb": [-2.772, -0.497, -2.769, 2.913, 0.613, 0.466],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 390,
+     "tris": 396,
      "parts": [
       {
        "node": "body",
@@ -918,9 +919,9 @@
    "textures": {"leaves": "props/heather/leaves.png"},
    "cards": {"lod0": 30, "lod1": 30},
    "auto_lod": false,
-   "tags": ["prop", "plant"],
-   "bytes": 468328,
-   "hash": "38dc60929c0ec6241c6fb678544b7aed7f9ebd80"
+   "tags": ["prop", "plant", "ground_align"],
+   "bytes": 468796,
+   "hash": "f44604ed1829169cf079171e292d75807ce05051"
   },
   "props/power_pylon": {
    "kind": "furniture",
@@ -978,7 +979,7 @@
    "kind": "rock",
    "object": {"width_m": 3.6, "height_m": 1.6, "length_m": 2.4},
    "extent_m": {"left": 1.4, "right": 1.93},
-   "aabb": [-1.397, -0.507, -2.296, 1.929, 1.638, 0.229],
+   "aabb": [-1.397, -0.957, -2.296, 1.929, 1.638, 0.229],
    "lods": [
     {
      "name": "lod0",
@@ -996,15 +997,15 @@
    "textures": {"albedo": "props/rock_a/albedo.png"},
    "roughness": 0.9,
    "auto_lod": true,
-   "tags": ["prop", "rock"],
-   "bytes": 155312,
-   "hash": "3b81c69eaa3b2e4df3f7ea222bfe01b8c7ea9b76"
+   "tags": ["prop", "rock", "ground_sink"],
+   "bytes": 168446,
+   "hash": "a6ec48f4d2a061f3f31ae9ba51360baeafdfb724"
   },
   "props/rock_b": {
    "kind": "rock",
    "object": {"width_m": 3.8, "height_m": 1.3, "length_m": 2.4},
    "extent_m": {"left": 1.77, "right": 1.69},
-   "aabb": [-1.771, -0.259, -2.052, 1.69, 1.265, 0.13],
+   "aabb": [-1.771, -0.709, -2.052, 1.69, 1.265, 0.13],
    "lods": [
     {
      "name": "lod0",
@@ -1022,9 +1023,9 @@
    "textures": {"albedo": "props/rock_b/albedo.png"},
    "roughness": 0.9,
    "auto_lod": true,
-   "tags": ["prop", "rock"],
-   "bytes": 185571,
-   "hash": "1913e386f22a8c3e774f50a29a5c6fa948a7605a"
+   "tags": ["prop", "rock", "ground_sink"],
+   "bytes": 192598,
+   "hash": "bbb5c0feaf35d2d84daee584e1b2511ec1d6d42d"
   },
   "props/streetlight": {
    "kind": "furniture",
@@ -1063,12 +1064,12 @@
    "kind": "tree",
    "object": {"width_m": 9.5, "height_m": 15.5},
    "extent_m": {"left": 5.06, "right": 5.51},
-   "aabb": [-5.088, -0.55, -5.244, 5.506, 15.554, 4.668],
+   "aabb": [-5.101, -0.55, -5.228, 5.506, 15.554, 4.668],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 2471,
+     "tris": 2467,
      "parts": [
       {
        "node": "body",
@@ -1080,7 +1081,7 @@
     {
      "name": "lod1",
      "max_dist_m": 200,
-     "tris": 888,
+     "tris": 890,
      "parts": [
       {
        "node": "body",
@@ -1100,19 +1101,19 @@
    "cards": {"lod0": 62, "lod1": 62},
    "auto_lod": false,
    "tags": ["prop", "tree"],
-   "bytes": 2051469,
-   "hash": "f29d47598c58bcc8a0e637b9a7612b9e397500da"
+   "bytes": 2060130,
+   "hash": "8d12d068576599ff30156c82dc13dc4e064961a9"
   },
   "props/tree_beech_b": {
    "kind": "tree",
    "object": {"width_m": 9.5, "height_m": 15.5},
    "extent_m": {"left": 4.99, "right": 4.96},
-   "aabb": [-4.99, -0.55, -5.312, 4.958, 15.472, 5.165],
+   "aabb": [-4.99, -0.55, -5.312, 4.958, 15.455, 5.165],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 2462,
+     "tris": 2472,
      "parts": [
       {
        "node": "body",
@@ -1124,7 +1125,7 @@
     {
      "name": "lod1",
      "max_dist_m": 200,
-     "tris": 889,
+     "tris": 890,
      "parts": [
       {
        "node": "body",
@@ -1134,29 +1135,30 @@
      ]
     }
    ],
-   "shadow": {"mesh": "props/tree_beech_b/shadow.res", "tris": 177},
-   "textures": {"leaves": "props/tree_beech_b/leaves.png"},
+   "shadow": {"mesh": "props/tree_beech_b/shadow.res", "tris": 176},
+   "textures": {"leaves": "props/tree_beech/leaves.png"},
    "impostor": {
     "texture": "props/tree_beech_b/impostor.png",
     "size_m": [10.448, 15.508],
     "anchor_x": 0.5015
    },
+   "variant_of": "props/tree_beech",
    "cards": {"lod0": 62, "lod1": 62},
    "auto_lod": false,
    "tags": ["prop", "tree"],
-   "bytes": 2063053,
-   "hash": "6dc4b5cdd9a04879289ab0c9d444318ac49b583b"
+   "bytes": 176572,
+   "hash": "542b226327968e26c38d67fa51d2d59357785ccb"
   },
   "props/tree_birch": {
    "kind": "tree",
    "object": {"width_m": 5.2, "height_m": 12.8},
    "extent_m": {"left": 2.81, "right": 3.29},
-   "aabb": [-2.81, -0.575, -2.859, 3.29, 12.993, 1.936],
+   "aabb": [-2.81, -0.575, -2.859, 3.29, 13, 1.936],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 2304,
+     "tris": 2474,
      "parts": [
       {
        "node": "body",
@@ -1168,7 +1170,7 @@
     {
      "name": "lod1",
      "max_dist_m": 200,
-     "tris": 673,
+     "tris": 802,
      "parts": [
       {
        "node": "body",
@@ -1178,7 +1180,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "props/tree_birch/shadow.res", "tris": 225},
+   "shadow": {"mesh": "props/tree_birch/shadow.res", "tris": 490},
    "textures": {"leaves": "props/tree_birch/leaves.png"},
    "impostor": {
     "texture": "props/tree_birch/impostor.png",
@@ -1188,19 +1190,19 @@
    "cards": {"lod0": 33, "lod1": 33},
    "auto_lod": false,
    "tags": ["prop", "tree"],
-   "bytes": 2061830,
-   "hash": "7240636caf5c41b9000db4c5f9a2fc401ec2d68e"
+   "bytes": 2071570,
+   "hash": "68569ea396ff301600af60639636ca4fbe5ac8fd"
   },
   "props/tree_birch_b": {
    "kind": "tree",
    "object": {"width_m": 5.2, "height_m": 12.8},
    "extent_m": {"left": 2.41, "right": 3.27},
-   "aabb": [-2.414, -0.575, -2.582, 3.266, 12.581, 3.014],
+   "aabb": [-2.414, -0.575, -2.582, 3.266, 12.586, 3.014],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 2400,
+     "tris": 2477,
      "parts": [
       {
        "node": "body",
@@ -1212,7 +1214,7 @@
     {
      "name": "lod1",
      "max_dist_m": 200,
-     "tris": 723,
+     "tris": 890,
      "parts": [
       {
        "node": "body",
@@ -1222,18 +1224,19 @@
      ]
     }
    ],
-   "shadow": {"mesh": "props/tree_birch_b/shadow.res", "tris": 259},
-   "textures": {"leaves": "props/tree_birch_b/leaves.png"},
+   "shadow": {"mesh": "props/tree_birch_b/shadow.res", "tris": 658},
+   "textures": {"leaves": "props/tree_birch/leaves.png"},
    "impostor": {
     "texture": "props/tree_birch_b/impostor.png",
     "size_m": [6.18, 12.968],
     "anchor_x": 0.431
    },
+   "variant_of": "props/tree_birch",
    "cards": {"lod0": 34, "lod1": 34},
    "auto_lod": false,
    "tags": ["prop", "tree"],
-   "bytes": 2065620,
-   "hash": "d22e8ba7842876c79803cabad26138ebd165c8c5"
+   "bytes": 174209,
+   "hash": "088ae77cf17ef53e11e001ef288ec40f5b4361ce"
   },
   "props/tree_cypress": {
    "kind": "tree",
@@ -1276,8 +1279,8 @@
    "cards": {"lod0": 0, "lod1": 0},
    "auto_lod": false,
    "tags": ["prop", "tree"],
-   "bytes": 1785811,
-   "hash": "2bf985222053aa45fbfc124d66db195431a9e0ef"
+   "bytes": 1785794,
+   "hash": "a85cd1f019654d195d99270ca6046d02bf4be252"
   },
   "props/tree_cypress_b": {
    "kind": "tree",
@@ -1311,28 +1314,29 @@
     }
    ],
    "shadow": {"mesh": "props/tree_cypress_b/shadow.res", "tris": 128},
-   "textures": {"leaves": "props/tree_cypress_b/leaves.png"},
+   "textures": {"leaves": "props/tree_cypress/leaves.png"},
    "impostor": {
     "texture": "props/tree_cypress_b/impostor.png",
     "size_m": [2.619, 14.574],
     "anchor_x": 0.5001
    },
+   "variant_of": "props/tree_cypress",
    "cards": {"lod0": 0, "lod1": 0},
    "auto_lod": false,
    "tags": ["prop", "tree"],
-   "bytes": 1775605,
-   "hash": "f3c96b558a845f36d7c7fdfdc4c92dcbb2eb7545"
+   "bytes": 75452,
+   "hash": "307e1b360aa78ebc62e58004943d89977242b006"
   },
   "props/tree_oak": {
    "kind": "tree",
    "object": {"width_m": 12, "height_m": 13.5},
    "extent_m": {"left": 6.35, "right": 6.44},
-   "aabb": [-6.348, -0.566, -5.304, 6.439, 13.301, 5.394],
+   "aabb": [-6.348, -0.566, -5.3, 6.439, 13.301, 5.404],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 2465,
+     "tris": 2479,
      "parts": [
       {
        "node": "body",
@@ -1344,7 +1348,7 @@
     {
      "name": "lod1",
      "max_dist_m": 200,
-     "tris": 887,
+     "tris": 889,
      "parts": [
       {
        "node": "body",
@@ -1364,19 +1368,19 @@
    "cards": {"lod0": 67, "lod1": 67},
    "auto_lod": false,
    "tags": ["prop", "tree"],
-   "bytes": 2018870,
-   "hash": "0b877089a65c22b0c336647f98c014804ad01393"
+   "bytes": 2024741,
+   "hash": "ad1c9fe5a65f66f5ee532ee1e3e5f51f976737ef"
   },
   "props/tree_oak_b": {
    "kind": "tree",
    "object": {"width_m": 12, "height_m": 13.5},
    "extent_m": {"left": 5.96, "right": 6.08},
-   "aabb": [-5.955, -0.566, -6.032, 6.096, 13.611, 6.449],
+   "aabb": [-5.955, -0.566, -5.993, 6.078, 13.611, 6.42],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 2475,
+     "tris": 2471,
      "parts": [
       {
        "node": "body",
@@ -1388,7 +1392,7 @@
     {
      "name": "lod1",
      "max_dist_m": 200,
-     "tris": 885,
+     "tris": 890,
      "parts": [
       {
        "node": "body",
@@ -1398,29 +1402,30 @@
      ]
     }
    ],
-   "shadow": {"mesh": "props/tree_oak_b/shadow.res", "tris": 203},
-   "textures": {"leaves": "props/tree_oak_b/leaves.png"},
+   "shadow": {"mesh": "props/tree_oak_b/shadow.res", "tris": 196},
+   "textures": {"leaves": "props/tree_oak/leaves.png"},
    "impostor": {
     "texture": "props/tree_oak_b/impostor.png",
     "size_m": [12.533, 13.904],
     "anchor_x": 0.4951
    },
+   "variant_of": "props/tree_oak",
    "cards": {"lod0": 67, "lod1": 67},
    "auto_lod": false,
    "tags": ["prop", "tree"],
-   "bytes": 2019153,
-   "hash": "3bea718544483e1ca946688079ddc1cfce5c4ba3"
+   "bytes": 143590,
+   "hash": "fd109154686208b1d789628f8b25769d95a09994"
   },
   "props/tree_olive": {
    "kind": "tree",
    "object": {"width_m": 7.4, "height_m": 5.4},
    "extent_m": {"left": 3.79, "right": 3.87},
-   "aabb": [-3.785, -0.7, -3.788, 3.875, 5.624, 3.265],
+   "aabb": [-3.785, -0.7, -3.77, 3.875, 5.624, 3.26],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 2295,
+     "tris": 2467,
      "parts": [
       {
        "node": "body",
@@ -1432,7 +1437,7 @@
     {
      "name": "lod1",
      "max_dist_m": 200,
-     "tris": 828,
+     "tris": 688,
      "parts": [
       {
        "node": "body",
@@ -1442,7 +1447,7 @@
      ]
     }
    ],
-   "shadow": {"mesh": "props/tree_olive/shadow.res", "tris": 248},
+   "shadow": {"mesh": "props/tree_olive/shadow.res", "tris": 242},
    "textures": {"leaves": "props/tree_olive/leaves.png"},
    "impostor": {
     "texture": "props/tree_olive/impostor.png",
@@ -1452,19 +1457,19 @@
    "cards": {"lod0": 40, "lod1": 40},
    "auto_lod": false,
    "tags": ["prop", "tree"],
-   "bytes": 2176527,
-   "hash": "e11bfd1ff2d0a9a025f2a1729ccf86c03381d44c"
+   "bytes": 2077615,
+   "hash": "384c0d66cbbee0d110ea9bae6c97a2db89d6ab1b"
   },
   "props/tree_olive_b": {
    "kind": "tree",
    "object": {"width_m": 7.4, "height_m": 5.4},
    "extent_m": {"left": 3.53, "right": 4.14},
-   "aabb": [-3.528, -0.7, -3.633, 4.138, 5.437, 3.79],
+   "aabb": [-3.528, -0.7, -3.633, 4.138, 5.437, 3.732],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 2190,
+     "tris": 2480,
      "parts": [
       {
        "node": "body",
@@ -1476,7 +1481,7 @@
     {
      "name": "lod1",
      "max_dist_m": 200,
-     "tris": 791,
+     "tris": 659,
      "parts": [
       {
        "node": "body",
@@ -1486,24 +1491,25 @@
      ]
     }
    ],
-   "shadow": {"mesh": "props/tree_olive_b/shadow.res", "tris": 227},
-   "textures": {"leaves": "props/tree_olive_b/leaves.png"},
+   "shadow": {"mesh": "props/tree_olive_b/shadow.res", "tris": 225},
+   "textures": {"leaves": "props/tree_olive/leaves.png"},
    "impostor": {
     "texture": "props/tree_olive_b/impostor.png",
     "size_m": [8.166, 5.742],
     "anchor_x": 0.4626
    },
+   "variant_of": "props/tree_olive",
    "cards": {"lod0": 39, "lod1": 39},
    "auto_lod": false,
    "tags": ["prop", "tree"],
-   "bytes": 2171121,
-   "hash": "5941d96421ab498e9846d385a74875c3924c96d5"
+   "bytes": 118264,
+   "hash": "abdc11409d5de35966b6cc1c52160d3dc596740b"
   },
   "props/tree_palm": {
    "kind": "tree",
    "object": {"width_m": 8.5, "height_m": 11},
    "extent_m": {"left": 3.28, "right": 4.67},
-   "aabb": [-3.283, -0.578, -3.816, 4.665, 10.77, 4.345],
+   "aabb": [-3.283, -0.578, -3.816, 4.665, 10.75, 4.345],
    "lods": [
     {
      "name": "lod0",
@@ -1533,20 +1539,20 @@
    "textures": {"leaves": "props/tree_palm/leaves.png"},
    "impostor": {
     "texture": "props/tree_palm/impostor.png",
-    "size_m": [8.449, 10.825],
+    "size_m": [8.449, 10.814],
     "anchor_x": 0.4182
    },
    "cards": {"lod0": 208, "lod1": 104},
    "auto_lod": false,
    "tags": ["prop", "tree"],
-   "bytes": 748524,
-   "hash": "528e3c11b7b3b32d99f63ab560acd6345f619e45"
+   "bytes": 714714,
+   "hash": "709d25363475fb0b2d5353a8728bbe4b9cafab38"
   },
   "props/tree_palm_b": {
    "kind": "tree",
    "object": {"width_m": 8.5, "height_m": 11},
-   "extent_m": {"left": 4.08, "right": 4.47},
-   "aabb": [-4.082, -0.559, -4.083, 4.475, 10.834, 3.831],
+   "extent_m": {"left": 3.29, "right": 5.26},
+   "aabb": [-3.294, -0.588, -4.083, 5.263, 10.817, 3.831],
    "lods": [
     {
      "name": "lod0",
@@ -1573,28 +1579,29 @@
      ]
     }
    ],
-   "textures": {"leaves": "props/tree_palm_b/leaves.png"},
+   "textures": {"leaves": "props/tree_palm/leaves.png"},
    "impostor": {
     "texture": "props/tree_palm_b/impostor.png",
-    "size_m": [9.057, 10.897],
-    "anchor_x": 0.4783
+    "size_m": [9.057, 10.835],
+    "anchor_x": 0.3913
    },
+   "variant_of": "props/tree_palm",
    "cards": {"lod0": 208, "lod1": 104},
    "auto_lod": false,
    "tags": ["prop", "tree"],
-   "bytes": 748040,
-   "hash": "61bf6ef21d0303a2720c55236aee45e5671fba1c"
+   "bytes": 87594,
+   "hash": "d5987be6f404f28f979de48fa8877b8e00fbd0d7"
   },
   "props/tree_pine": {
    "kind": "tree",
    "object": {"width_m": 7, "height_m": 18},
    "extent_m": {"left": 3.16, "right": 3.76},
-   "aabb": [-3.159, -0.55, -3.558, 3.758, 16.93, 3.846],
+   "aabb": [-3.159, -0.55, -3.558, 3.758, 16.93, 3.731],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 1693,
+     "tris": 2480,
      "parts": [
       {
        "node": "body",
@@ -1606,7 +1613,7 @@
     {
      "name": "lod1",
      "max_dist_m": 200,
-     "tris": 592,
+     "tris": 560,
      "parts": [
       {
        "node": "body",
@@ -1626,8 +1633,8 @@
    "cards": {"lod0": 30, "lod1": 30},
    "auto_lod": false,
    "tags": ["prop", "tree"],
-   "bytes": 2194710,
-   "hash": "9420ef699fdd8dd7b0d31a3c31cd24de2a027ce3"
+   "bytes": 2211373,
+   "hash": "45e3290cc383ef2070a045f5ca370d8dd32665f5"
   },
   "props/tree_pine_b": {
    "kind": "tree",
@@ -1638,7 +1645,7 @@
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 1970,
+     "tris": 2479,
      "parts": [
       {
        "node": "body",
@@ -1650,7 +1657,7 @@
     {
      "name": "lod1",
      "max_dist_m": 200,
-     "tris": 688,
+     "tris": 660,
      "parts": [
       {
        "node": "body",
@@ -1661,28 +1668,29 @@
     }
    ],
    "shadow": {"mesh": "props/tree_pine_b/shadow.res", "tris": 192},
-   "textures": {"leaves": "props/tree_pine_b/leaves.png"},
+   "textures": {"leaves": "props/tree_pine/leaves.png"},
    "impostor": {
     "texture": "props/tree_pine_b/impostor.png",
     "size_m": [7.883, 17.102],
     "anchor_x": 0.4964
    },
+   "variant_of": "props/tree_pine",
    "cards": {"lod0": 36, "lod1": 36},
    "auto_lod": false,
    "tags": ["prop", "tree"],
-   "bytes": 2204272,
-   "hash": "37342e897e4972c20fcd7080ad71caec18a8d343"
+   "bytes": 105904,
+   "hash": "af1291fb72e1b9a391dc777de98e517675f60c18"
   },
   "props/tree_poplar": {
    "kind": "tree",
    "object": {"width_m": 4, "height_m": 21.8},
    "extent_m": {"left": 2.18, "right": 2.64},
-   "aabb": [-2.256, -0.55, -2.565, 2.841, 20.97, 2.544],
+   "aabb": [-2.182, -0.55, -2.565, 2.825, 20.97, 2.544],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 2470,
+     "tris": 2478,
      "parts": [
       {
        "node": "body",
@@ -1694,7 +1702,7 @@
     {
      "name": "lod1",
      "max_dist_m": 200,
-     "tris": 888,
+     "tris": 890,
      "parts": [
       {
        "node": "body",
@@ -1714,19 +1722,19 @@
    "cards": {"lod0": 82, "lod1": 82},
    "auto_lod": false,
    "tags": ["prop", "tree"],
-   "bytes": 2026393,
-   "hash": "7184e098d85ef24b112eb8022545207913352239"
+   "bytes": 2030190,
+   "hash": "678be8e0df5c77397e3d16558ea6f7671532da7f"
   },
   "props/tree_poplar_b": {
    "kind": "tree",
    "object": {"width_m": 4, "height_m": 21.8},
    "extent_m": {"left": 2.48, "right": 2.37},
-   "aabb": [-2.535, -0.55, -2.247, 2.37, 19.935, 2.362],
+   "aabb": [-2.532, -0.55, -2.219, 2.37, 19.935, 2.24],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 2470,
+     "tris": 2462,
      "parts": [
       {
        "node": "body",
@@ -1738,7 +1746,7 @@
     {
      "name": "lod1",
      "max_dist_m": 200,
-     "tris": 886,
+     "tris": 890,
      "parts": [
       {
        "node": "body",
@@ -1749,17 +1757,18 @@
     }
    ],
    "shadow": {"mesh": "props/tree_poplar_b/shadow.res", "tris": 136},
-   "textures": {"leaves": "props/tree_poplar_b/leaves.png"},
+   "textures": {"leaves": "props/tree_poplar/leaves.png"},
    "impostor": {
     "texture": "props/tree_poplar_b/impostor.png",
     "size_m": [5.349, 20.749],
     "anchor_x": 0.5101
    },
+   "variant_of": "props/tree_poplar",
    "cards": {"lod0": 80, "lod1": 80},
    "auto_lod": false,
    "tags": ["prop", "tree"],
-   "bytes": 2026682,
-   "hash": "9735b07cbef5c280418cf9410de30264cef2e7cc"
+   "bytes": 159240,
+   "hash": "792ca0e22faa2075bdf35592b59812f5ab2b81fe"
   },
   "props/tree_spruce": {
    "kind": "tree",
@@ -1802,8 +1811,8 @@
    "cards": {"lod0": 270, "lod1": 90},
    "auto_lod": false,
    "tags": ["prop", "tree"],
-   "bytes": 1360755,
-   "hash": "df216a814be0001c06da57626f939f99e1c0ba19"
+   "bytes": 1362785,
+   "hash": "c647a1e72e53e386ec1bdd83ebff7d4017d55411"
   },
   "props/tree_spruce_b": {
    "kind": "tree",
@@ -1837,17 +1846,18 @@
     }
    ],
    "shadow": {"mesh": "props/tree_spruce_b/shadow.res", "tris": 234},
-   "textures": {"leaves": "props/tree_spruce_b/leaves.png"},
+   "textures": {"leaves": "props/tree_spruce/leaves.png"},
    "impostor": {
     "texture": "props/tree_spruce_b/impostor.png",
     "size_m": [7.975, 19.631],
     "anchor_x": 0.4935
    },
+   "variant_of": "props/tree_spruce",
    "cards": {"lod0": 216, "lod1": 72},
    "auto_lod": false,
    "tags": ["prop", "tree"],
-   "bytes": 1344231,
-   "hash": "eccd344162f6c173f076c825646634572ce3ca4c"
+   "bytes": 124974,
+   "hash": "436bf51ce59326b22ff5925d03a0b894f08bd274"
   },
   "props/wind_turbine": {
    "kind": "furniture",

@@ -6,7 +6,7 @@
   "kind": "plant",
   "object": {"width_m": 1, "height_m": 0.42, "length_m": 0.9},
   "extent_m": {"left": 0.45, "right": 0.6},
-  "aabb": [-0.453, 0, -0.526, 0.599, 0.42, 0.471],
+  "aabb": [-0.453, -0.1, -0.526, 0.599, 0.42, 0.471],
   "lods": [
    {
     "name": "lod0",
@@ -36,9 +36,9 @@
   "textures": {"leaves": "props/cover_grass/leaves.png"},
   "cards": {"lod0": 42, "lod1": 14},
   "auto_lod": false,
-  "tags": ["prop", "plant", "ground_cover"],
-  "bytes": 303934,
-  "hash": "96816f0393b6715d38bf1bcd3d9450e05972d146"
+  "tags": ["prop", "plant", "ground_cover", "ground_align"],
+  "bytes": 303936,
+  "hash": "46b797bfed8cf95615c8d6533d4e43030115f95a"
  },
  "sets": {
   "props/cover_grass": {"model": "props/cover_grass", "modern_only": true}

@@ -6,12 +6,12 @@
   "kind": "tree",
   "object": {"width_m": 7, "height_m": 18},
   "extent_m": {"left": 3.16, "right": 3.76},
-  "aabb": [-3.159, -0.55, -3.558, 3.758, 16.93, 3.846],
+  "aabb": [-3.159, -0.55, -3.558, 3.758, 16.93, 3.731],
   "lods": [
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 1693,
+    "tris": 2480,
     "parts": [
      {
       "node": "body",
@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 200,
-    "tris": 592,
+    "tris": 560,
     "parts": [
      {
       "node": "body",
@@ -43,8 +43,8 @@
   "cards": {"lod0": 30, "lod1": 30},
   "auto_lod": false,
   "tags": ["prop", "tree"],
-  "bytes": 2194710,
-  "hash": "9420ef699fdd8dd7b0d31a3c31cd24de2a027ce3"
+  "bytes": 2211373,
+  "hash": "45e3290cc383ef2070a045f5ca370d8dd32665f5"
  },
  "sets": {
   "props/tree_pine": {

@@ -21,6 +21,8 @@ from .props3d import _build_source, _finish_model, _objects, weight_allround
 
 SINK_M = 0.9          # the foot of a wall (vertices below FOOT_M) goes this far into the ground
 FOOT_M = 0.35
+ROCK_SINK_M = 0.45    # boulders (AS3R): their foot (vertices below ROCK_FOOT_M) goes this far into the ground
+ROCK_FOOT_M = 0.3
 
 
 def _tris(objs):
@@ -60,15 +62,58 @@ def _sink_feet(objs, foot=FOOT_M, depth=SINK_M):
     bpy.context.view_layer.update()
 
 
+def _seat_shrubs(objs, prefix="cliff_shrub_", embed=0.3):
+    """The cliff's shrubs (separate objects of the 3D build, props_nature "solid3d") sit on the displaced rock: each
+    one goes down (or up) until its foot lies `embed` of its height inside the rock surface straight below its
+    centre (AS3R, art review: the shrubs of the slab floated in front of its face)."""
+    import bpy
+    from mathutils import Vector
+    from mathutils.bvhtree import BVHTree
+    rock = [ob for ob in objs if not ob.name.startswith(prefix)]
+    if not rock:
+        return 0
+    verts, polys = [], []
+    for ob in rock:
+        mw = ob.matrix_world
+        base = len(verts)
+        verts += [mw @ v.co for v in ob.data.vertices]
+        polys += [[base + i for i in p.vertices] for p in ob.data.polygons]
+    tree = BVHTree.FromPolygons(verts, polys)
+    moved = 0
+    for ob in objs:
+        if not ob.name.startswith(prefix):
+            continue
+        mw = ob.matrix_world
+        pts = [mw @ v.co for v in ob.data.vertices]
+        lo = min(p.z for p in pts)
+        hi = max(p.z for p in pts)
+        cx = sum(p.x for p in pts) / len(pts)
+        cy = sum(p.y for p in pts) / len(pts)
+        hit, _n, _i, _d = tree.ray_cast(Vector((cx, cy, 60.0)), Vector((0.0, 0.0, -1.0)))
+        if hit is None:
+            continue
+        dz = hit.z - embed * (hi - lo) - lo
+        ob.location.z += dz
+        moved += 1
+    bpy.context.view_layer.update()
+    core.realize(objs)
+    return moved
+
+
 def build_rock(model_id, spec3d):
     t0 = time.time()
     rig, info, sspec = _build_source(spec3d)
     objs = _objects(rig)
     core.realize(objs)
+    seated = _seat_shrubs(objs) if spec3d.get("params", {}).get("solid3d") else 0
     tris_src = _tris(objs)
     tris = _decimate(objs, int(spec3d.get("tris", 1450)))
     if spec3d.get("sink", "cliff" in model_id):
         _sink_feet(objs)
+    else:
+        # boulders: the lower flanks go into the ground (AS3R, art review M7: on a slope the downhill side floated with
+        # a shadow gap under it) - the visible rock above ROCK_FOOT_M keeps its shape
+        _sink_feet(objs, foot=ROCK_FOOT_M, depth=ROCK_SINK_M)
     mats = {}
     for ob in objs:
         for s in ob.material_slots:
@@ -88,11 +133,15 @@ def build_rock(model_id, spec3d):
         mb.add("baked", pos, nor, uv=uv)
     pts = mb.points()
     model = _finish_model(model_id, spec3d, sspec, info, pts)
+    # for the props builder (R2/R7): rocks want the lowest ground point under their footprint; the cliff its face
+    # turned to the road (at most +-20 degrees) - see veg3d._ground_tags
+    model.tags = V._ground_tags(model.tags, "ground_sink") + [t for t in spec3d.get("tags_add", ())
+                                                               if t not in model.tags]
     model.auto_lod = True
     model.lods = [Lod("lod0", 100000, [Part("body", "lod0_body", mb.finish(min_height=0.0005), auto_lod=True)])]
     model.roughness = float(spec3d.get("roughness", 0.9))
     model.texture_files["albedo.png"] = BK.encode(baked["albedo"], None, "png")
     model.textures["albedo"] = "albedo.png"
     model.stats = dict(build_s=round(time.time() - t0, 2), objects=len(objs), tris_source=tris_src, tris=tris,
-                       bake=baked["stats"])
+                       shrubs_seated=seated, bake=baked["stats"])
     return model

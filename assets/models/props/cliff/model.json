@@ -5,13 +5,13 @@
  "model": {
   "kind": "rock",
   "object": {"width_m": 26, "height_m": 14, "length_m": 5},
-  "extent_m": {"left": 13.25, "right": 13.26},
-  "aabb": [-13.246, -1.193, -4.249, 13.258, 15.218, 0.853],
+  "extent_m": {"left": 13.42, "right": 13.45},
+  "aabb": [-13.425, -2.027, -9.757, 13.45, 14.855, 0.529],
   "lods": [
    {
     "name": "lod0",
     "max_dist_m": 100000,
-    "tris": 4341,
+    "tris": 5799,
     "parts": [
      {
       "node": "body",
@@ -24,9 +24,9 @@
   "textures": {"albedo": "props/cliff/albedo.png"},
   "roughness": 0.92,
   "auto_lod": true,
-  "tags": ["prop", "rock"],
-  "bytes": 976623,
-  "hash": "1d378196a00f6d0493442a17af085e36c20374f3"
+  "tags": ["prop", "rock", "ground_sink", "face_road"],
+  "bytes": 1113291,
+  "hash": "3c03dbf3e297fd387c5407735aee34e321c8d49e"
  },
  "sets": {
   "props/cliff": {"model": "props/cliff"}

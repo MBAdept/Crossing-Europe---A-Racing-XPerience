@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 1970,
+    "tris": 2479,
     "parts": [
      {
       "node": "body",
@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 200,
-    "tris": 688,
+    "tris": 660,
     "parts": [
      {
       "node": "body",
@@ -34,17 +34,18 @@
    }
   ],
   "shadow": {"mesh": "props/tree_pine_b/shadow.res", "tris": 192},
-  "textures": {"leaves": "props/tree_pine_b/leaves.png"},
+  "textures": {"leaves": "props/tree_pine/leaves.png"},
   "impostor": {
    "texture": "props/tree_pine_b/impostor.png",
    "size_m": [7.883, 17.102],
    "anchor_x": 0.4964
   },
+  "variant_of": "props/tree_pine",
   "cards": {"lod0": 36, "lod1": 36},
   "auto_lod": false,
   "tags": ["prop", "tree"],
-  "bytes": 2204272,
-  "hash": "37342e897e4972c20fcd7080ad71caec18a8d343"
+  "bytes": 105904,
+  "hash": "af1291fb72e1b9a391dc777de98e517675f60c18"
  },
  "sets": {}
 }

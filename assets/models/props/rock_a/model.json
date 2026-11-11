@@ -6,7 +6,7 @@
   "kind": "rock",
   "object": {"width_m": 3.6, "height_m": 1.6, "length_m": 2.4},
   "extent_m": {"left": 1.4, "right": 1.93},
-  "aabb": [-1.397, -0.507, -2.296, 1.929, 1.638, 0.229],
+  "aabb": [-1.397, -0.957, -2.296, 1.929, 1.638, 0.229],
   "lods": [
    {
     "name": "lod0",
@@ -24,9 +24,9 @@
   "textures": {"albedo": "props/rock_a/albedo.png"},
   "roughness": 0.9,
   "auto_lod": true,
-  "tags": ["prop", "rock"],
-  "bytes": 155312,
-  "hash": "3b81c69eaa3b2e4df3f7ea222bfe01b8c7ea9b76"
+  "tags": ["prop", "rock", "ground_sink"],
+  "bytes": 168446,
+  "hash": "a6ec48f4d2a061f3f31ae9ba51360baeafdfb724"
  },
  "sets": {
   "props/rock_a": {"model": "props/rock_a"}

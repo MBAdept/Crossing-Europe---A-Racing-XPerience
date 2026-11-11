@@ -433,8 +433,86 @@ def rock_b(rig, p):
     return dict(object=obj_size(3.8, 1.3, 2.4))
 
 
+def _cliff_top(x):
+    edge = max(0.0, 1.0 - (abs(x) / 13.0) ** 4)
+    return 14.0 * (0.75 + 0.25 * math.sin(x * 0.45) * math.cos(x * 0.17)) * (0.35 + 0.65 * edge)
+
+
+def _cliff_solid(rig, p, mat):
+    """3D only (ce3d catalog params "solid3d"; AS3R, art review M2 - the props builder turns rocks, and the sprite's
+    slab showed torn flaps from behind and a thin horn from the side): the cliff as a closed rock body - the
+    sprite's leaning front wall up to its crest line (same columns, same lean), a rounded crest `crest` metres
+    thick, a steep back flank down to below the ground (`back_run` metres back per metre down) and both ends
+    closed by rings towards their middle (the displacement roughens them too). The same displacement as the
+    sprite, its two boulders, and the shrubs as separate objects on the crest (ce3d/rock3d.py sets each one onto
+    the displaced rock)."""
+    import bpy
+    T = float(p.get("crest", 1.8))
+    run = float(p.get("back_run", 0.28))
+    nx, nf, nc, nb = 60, 36, 4, 18
+    bm = bmesh.new()
+    cols = []
+    for i in range(nx + 1):
+        x = -13.0 + 26.0 * i / nx
+        top = _cliff_top(x)
+        prof = [(1.5 + 2.5 * (top * k / nf) / 14.0, top * k / nf) for k in range(nf + 1)]
+        yt = 1.5 + 2.5 * top / 14.0
+        for k in range(1, nc):
+            a = math.pi * k / nc
+            prof.append((yt + T * 0.5 * (1.0 - math.cos(a)), top + 0.35 * T * math.sin(a)))
+        zb0 = top - 0.2 * T
+        for k in range(nb + 1):
+            z = zb0 + (-1.0 - zb0) * k / nb
+            prof.append((yt + T + run * (zb0 - z), z))
+        cols.append([bm.verts.new((x, y, z)) for (y, z) in prof])
+    n = len(cols[0])
+    for i in range(nx):
+        for k in range(n - 1):
+            bm.faces.new((cols[i][k], cols[i + 1][k], cols[i + 1][k + 1], cols[i][k + 1]))
+    for i in (0, nx):
+        # end cap: rings of the end profile towards its middle (quads; a fan in the middle)
+        ring = cols[i]
+        cy = sum(v.co.y for v in ring) / n
+        cz = sum(v.co.z for v in ring) / n
+        prev = ring
+        for s in (0.66, 0.33):
+            cur = [bm.verts.new((v.co.x, cy + (v.co.y - cy) * s, cz + (v.co.z - cz) * s)) for v in ring]
+            for k in range(n):
+                k2 = (k + 1) % n
+                bm.faces.new((prev[k], prev[k2], cur[k2], cur[k]))
+            prev = cur
+        mid = bm.verts.new((ring[0].co.x, cy, cz))
+        for k in range(n):
+            bm.faces.new((prev[k], prev[(k + 1) % n], mid))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    ob = MU.make("cliff", bm, mat, parent=rig.root, smooth=True, sharp_deg=60)
+    MU.displace(ob, 1.6, size=2.2, kind="CLOUDS", depth=3, seed=5)
+    m = ob.modifiers.new("vor", "DISPLACE")
+    tex = bpy.data.textures.new("cliff_v", "VORONOI")
+    tex.noise_scale = 1.8
+    m.texture = tex
+    m.strength = 1.1
+    _boulder(rig, "cliff_rb", (-5.0, 0.4, 0.4), (1.1, 0.9, 0.7), mat, 13, disp=0.3)
+    _boulder(rig, "cliff_rb2", (6.5, 0.6, 0.3), (0.8, 0.7, 0.5), mat, 15, disp=0.25)
+    lv = leaves("cliff_shrub", "#4a6a2c", "#6a8a36", scale=2.0)
+    rng = random.Random(17)
+    for i in range(12):
+        q = _rand_in_ellipsoid(rng, 8.0, 1.0, 1.5, 0.6)          # the sprite's draws (crown of 12 shrubs)
+        r = rng.uniform(0.5, 0.9) * (0.75 + 0.25 * (1 - abs(q.z) / 1.5))
+        zs = rng.uniform(0.75, 1.0)
+        x = max(-12.0, min(12.0, 2.0 + q.x))
+        top = _cliff_top(x)
+        sb = MU.bm_sphere(r, center=(x, 1.5 + 2.5 * top / 14.0 + T * 0.5 + q.y * 0.5, top + 0.35 * T + r),
+                          scale=(1.0, 1.0, zs), subdiv=2)
+        so = MU.make("cliff_shrub_%02d" % i, sb, lv, parent=rig.root, smooth=True, sharp_deg=80)
+        MU.displace(so, 0.2, size=0.49, kind="CLOUDS", depth=2, seed=17)
+    return dict(object=obj_size(26.0, 14.0, 5.0))
+
+
 def cliff(rig, p):
     mat = rock("cliff_rock", "#8c857a", "#6a645c", moss="#56633a")
+    if p.get("solid3d"):
+        return _cliff_solid(rig, p, mat)
     bm = bmesh.new()
     res = bmesh.ops.create_grid(bm, x_segments=60, y_segments=36, size=1.0)
     for v in res["verts"]:

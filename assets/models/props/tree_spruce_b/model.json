@@ -34,17 +34,18 @@
    }
   ],
   "shadow": {"mesh": "props/tree_spruce_b/shadow.res", "tris": 234},
-  "textures": {"leaves": "props/tree_spruce_b/leaves.png"},
+  "textures": {"leaves": "props/tree_spruce/leaves.png"},
   "impostor": {
    "texture": "props/tree_spruce_b/impostor.png",
    "size_m": [7.975, 19.631],
    "anchor_x": 0.4935
   },
+  "variant_of": "props/tree_spruce",
   "cards": {"lod0": 216, "lod1": 72},
   "auto_lod": false,
   "tags": ["prop", "tree"],
-  "bytes": 1344231,
-  "hash": "eccd344162f6c173f076c825646634572ce3ca4c"
+  "bytes": 124974,
+  "hash": "436bf51ce59326b22ff5925d03a0b894f08bd274"
  },
  "sets": {}
 }

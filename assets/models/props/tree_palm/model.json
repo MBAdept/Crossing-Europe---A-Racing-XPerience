@@ -6,7 +6,7 @@
   "kind": "tree",
   "object": {"width_m": 8.5, "height_m": 11},
   "extent_m": {"left": 3.28, "right": 4.67},
-  "aabb": [-3.283, -0.578, -3.816, 4.665, 10.77, 4.345],
+  "aabb": [-3.283, -0.578, -3.816, 4.665, 10.75, 4.345],
   "lods": [
    {
     "name": "lod0",
@@ -36,14 +36,14 @@
   "textures": {"leaves": "props/tree_palm/leaves.png"},
   "impostor": {
    "texture": "props/tree_palm/impostor.png",
-   "size_m": [8.449, 10.825],
+   "size_m": [8.449, 10.814],
    "anchor_x": 0.4182
   },
   "cards": {"lod0": 208, "lod1": 104},
   "auto_lod": false,
   "tags": ["prop", "tree"],
-  "bytes": 748524,
-  "hash": "528e3c11b7b3b32d99f63ab560acd6345f619e45"
+  "bytes": 714714,
+  "hash": "709d25363475fb0b2d5353a8728bbe4b9cafab38"
  },
  "sets": {
   "props/tree_palm": {

@@ -115,7 +115,9 @@ class ModelData:
         if self.paint:
             e["paint"] = self.paint
         if self.textures:
-            e["textures"] = {k: prefix + v for k, v in self.textures.items()}
+            # a plain file name lies in the model's folder; a path with a folder ("props/tree_oak/leaves.png") names
+            # a texture of another model that this one shares (AS3R: seed variants and their species' leaf atlas)
+            e["textures"] = {k: (v if "/" in v else prefix + v) for k, v in self.textures.items()}
         if self.roughness is not None:
             e["roughness"] = self.roughness
         if self.impostor is not None:
