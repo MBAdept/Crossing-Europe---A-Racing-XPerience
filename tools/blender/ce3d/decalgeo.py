@@ -253,7 +253,8 @@ class Tris:
                     k = -1                  # what is there ranks higher in the stacking order
                 new_p.append(p3)
                 new_n.append(n3)
-                new_m.append(items[k]["mat"] if k >= 0 else self.mat[t])
+                # an item without a material (mat None) only takes the place: what is there stays as it is
+                new_m.append(items[k]["mat"] if k >= 0 and items[k]["mat"] is not None else self.mat[t])
                 new_r.append(items[k]["rank"] if k >= 0 else self.rank[t])
                 replaced.add(t)
         if not replaced:
@@ -265,6 +266,24 @@ class Tris:
         self.mat = np.concatenate([self.mat[keep], np.array(new_m, dtype=np.int32)])
         self.rank = np.concatenate([self.rank[keep], np.array(new_r, dtype=np.int32)])
         return len(new_p)
+
+
+HOLE = -1                  # material index of what cut_holes removes
+
+
+def cut_holes(pos, nor, mat, proj, sign, holes, keeps=(), n_min=0.05):
+    """Openings in a triangle set (glazing of the player cars, the deck under the greenhouse): everything
+    inside a hole outline and not inside a keep outline is removed, triangles are split along the outlines.
+    pos, nor (T, 3, 3), mat (T) of the faces; outlines are 2-D polygons in the plane of the projection
+    ("rear" / "front": (x, z); "side": (y, z), sign = which flank; "top": (x, y)). Only faces that look against
+    the projection (normal . axis >= n_min) are cut - the far side of the object stays whole.
+    Returns (pos, nor, mat, number of removed triangles)."""
+    t = Tris(pos, nor, mat)
+    items = [dict(poly=[(float(p[0]), float(p[1])) for p in h], mat=HOLE, rank=0, n_min=n_min) for h in holes]
+    items += [dict(poly=[(float(p[0]), float(p[1])) for p in k], mat=None, rank=1, n_min=n_min) for k in keeps]
+    t.apply(proj, sign, items, cut=True)
+    keep = t.mat != HOLE
+    return t.pos[keep], t.nor[keep], t.mat[keep], int((~keep).sum())
 
 
 # --- the decals of a Car ---------------------------------------------------------------------------------

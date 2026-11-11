@@ -34,8 +34,8 @@ COMMON_CODE = ["ce3d/__init__.py", "ce3d/glb.py", "ce3d/core.py", "ce3d/roles.py
 # render_all.py: its build() turns a sprite set into the generator model (props, trees); cesprites/props.py: the
 # table of the props and their dispatcher
 BUILDER_CODE = {
-    "player": ["ce3d/vehicles3d.py", "cesprites/curves.py", "cesprites/carbody.py", "cesprites/cardetail.py",
-               "cesprites/player_cars.py", "cesprites/textgeo.py"],
+    "player": ["ce3d/vehicles3d.py", "ce3d/decalgeo.py", "ce3d/interior3d.py", "cesprites/curves.py",
+               "cesprites/carbody.py", "cesprites/cardetail.py", "cesprites/player_cars.py", "cesprites/textgeo.py"],
     "car": ["ce3d/vehicles3d.py", "ce3d/decalgeo.py", "cesprites/vehicles.py", "cesprites/designs.py"],
     "tree": ["ce3d/veg3d.py", "ce3d/leafatlas.py", "ce3d/bake.py", "ce3d/props3d.py", "cesprites/props_nature.py",
              "cesprites/props.py", "render_all.py"],

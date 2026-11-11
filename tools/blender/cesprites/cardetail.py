@@ -40,6 +40,16 @@ def _tyre_profile(R, r_rim, tw):
     return out
 
 
+def _tyre_profile_plain(R, r_rim, tw):
+    """3D hook: the tyre of _tyre_profile without the grooves - bead, bulging sidewall, rounded shoulder and a
+    slightly crowned tread (a third of the triangles)."""
+    h = R - r_rim
+    half = [(r_rim + 0.006, tw / 2 - 0.014), (r_rim + 0.02, tw / 2 + 0.002), (r_rim + h * 0.45, tw / 2 + 0.008),
+            (R - h * 0.22, tw / 2 + 0.004), (R - 0.012, tw / 2 - 0.006), (R - 0.003, tw / 2 - 0.022),
+            (R, tw / 2 - 0.045)]
+    return [(r, -x) for (r, x) in half] + [(R + 0.001, 0.0)] + list(reversed(half))
+
+
 def _lathe_x(bm, prof, segs, mat_index=0, a0=0.0, a1=360.0, closed=True):
     """Revolve (r, x) about the X axis into bm."""
     n = segs if closed else segs + 1
@@ -60,17 +70,18 @@ def _lathe_x(bm, prof, segs, mat_index=0, a0=0.0, a1=360.0, closed=True):
     return rings
 
 
-def wheel_mesh(name, R, r_rim, tw, st, mats, sg=None):
+def wheel_mesh(name, R, r_rim, tw, st, mats, sg=None, plain=False):
     """One wheel (tyre, rim, spokes, disc, caliper) in local space: axis X, outer face towards +X,
     centre at the origin. mats: dict tyre, rim, rim_dark, disc, caliper. Returns a list of objects.
-    sg: segment count at the detail level of a 3D build (None = as designed, the sprite model)."""
+    sg: segment count at the detail level of a 3D build (None = as designed, the sprite model).
+    plain (3D hook): tyre without grooves, spokes of three sections, no wheel nuts."""
     if sg is None:
         def sg(n):
             return n
     objs = []
     # tyre
     bm = bmesh.new()
-    _lathe_x(bm, _tyre_profile(R, r_rim, tw), sg(64))
+    _lathe_x(bm, _tyre_profile_plain(R, r_rim, tw) if plain else _tyre_profile(R, r_rim, tw), sg(64))
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     me = bpy.data.meshes.new(name + "_tyre")
     bm.to_mesh(me)
@@ -98,7 +109,7 @@ def wheel_mesh(name, R, r_rim, tw, st, mats, sg=None):
         return xo - 0.004 - dish * (1.0 - t) ** 1.4
 
     def spoke(angle_deg, wa, wb, ra=r0, rb=r1, bend=0.0, twist=0.0):
-        k = 7
+        k = 3 if plain else 7
         rings = []
         for i in range(k + 1):
             t = i / k
@@ -143,7 +154,7 @@ def wheel_mesh(name, R, r_rim, tw, st, mats, sg=None):
            (r0 * 1.05, face_x(r0) - depth)]
     _lathe_x(bm, hub, sg(32), mat_index=0)
     # wheel nuts
-    for i in range(5):
+    for i in range(0 if plain else 5):
         a = 2 * math.pi * i / 5 + 0.3
         MU.bm_cyl(0.011, 0.009, 0.012, center=(face_x(r0) - 0.002, math.cos(a) * r0 * 0.62, math.sin(a) * r0 * 0.62),
                   axis="X", segs=8, bm=bm, mat_index=1)
@@ -194,7 +205,8 @@ def wheels(car, st):
     meshes = {}
     for key, tw in (("f", d["tw"]), ("r", d.get("tw_r", d["tw"]))):
         meshes[key] = wheel_mesh(car.name + "_wheel_" + key, R, r_rim, tw, st, mats,
-                                 sg=None if car.detail["wheel"] == 1.0 else car.n_wheel)
+                                 sg=None if car.detail["wheel"] == 1.0 else car.n_wheel,
+                                 plain=bool(car.detail.get("wheel_plain")))
     inset = d.get("wheel_inset", 0.02)
     out = []
     for key, ya in (("r", car.y_ra), ("f", car.y_fa)):
@@ -257,14 +269,17 @@ def glass(car, g):
         a, b = s["front_cut"]
         poly = _clip(poly, a, b, keep_right=False)
     poly = [p for i, p in enumerate(poly) if i == 0 or math.hypot(p[0] - poly[i - 1][0], p[1] - poly[i - 1][1]) > 1e-4]
-    car.patch(poly, "side", seal, offset=0.0012, res=0.012, name="dlo_seal", target=target)
+    panes = []                       # 3D hook: (name, projection, symmetric, glass outline, seal object)
+    sob = car.patch(poly, "side", seal, offset=0.0012, res=0.012, name="dlo_seal", target=target)
     inner = C.ccw(_inset_poly(poly, seal_w))
     car.patch(inner, "side", gm, offset=0.0022, res=0.012, name="dlo_glass", target=target)
     car.glass_outlines.append(("side", True, inner))
+    panes.append(("dlo", "side", True, inner, sob))
     for (yb, yt, w) in s.get("pillars", []):
         zb = _belt(car, yb) - 0.01
         zt = car.green_half(yt)[1]["zs"] + 0.01
         pp = [(yb - w / 2, zb), (yb + w / 2, zb), (yt + w / 2, zt), (yt - w / 2, zt)]
+        car.glass_pillars.append(("side", True, pp))
         car.patch(pp, "side", seal if not trim else trim, offset=0.0032, res=0.01, name="bpillar", target=target)
     if trim and s.get("chrome_line"):
         # bright trim along the belt and the roof edge of the DLO
@@ -281,10 +296,11 @@ def glass(car, g):
         right.append((xw, y))
         left.append((-xw, y))
     poly = right + list(reversed(left))
-    car.patch(poly, "top", seal, offset=0.0012, res=0.014, sym=False, name="ws_seal", target=target)
+    sob = car.patch(poly, "top", seal, offset=0.0012, res=0.014, sym=False, name="ws_seal", target=target)
     car.patch(C.ccw(_inset_poly(C.ccw(poly), seal_w)), "top", gm, offset=0.0022, res=0.014, sym=False,
               name="ws_glass", target=target)
     car.glass_outlines.append(("top", False, C.ccw(_inset_poly(C.ccw(poly), seal_w))))
+    panes.append(("ws", "top", False, C.ccw(_inset_poly(C.ccw(poly), seal_w)), sob))
     # --- rear window
     r = g["rw"]
     proj = r.get("proj", "rear")
@@ -298,10 +314,12 @@ def glass(car, g):
         right.append((xw, zc if proj == "rear" else y))
     left = [(-p[0], p[1]) for p in right]
     poly = C.ccw(right + list(reversed(left)))
-    car.patch(poly, proj, seal, offset=0.0012, res=0.012, sym=False, name="rw_seal", target=target)
+    sob = car.patch(poly, proj, seal, offset=0.0012, res=0.012, sym=False, name="rw_seal", target=target)
     car.patch(C.ccw(_inset_poly(poly, seal_w)), proj, gm, offset=0.0022, res=0.012, sym=False, name="rw_glass",
               target=target)
     car.glass_outlines.append((proj, False, C.ccw(_inset_poly(poly, seal_w))))
+    panes.append(("rw", proj, False, C.ccw(_inset_poly(poly, seal_w)), sob))
+    car.panes = panes
     return gm
 
 
@@ -382,6 +400,11 @@ _OFF = {"chrome": 0.0035, "dark": 0.003, "tail": 0.0045, "brake": 0.005, "guide"
 # or (lamp tag, part kind) - the dark projector lenses of a headlight are its low beam. A part may name its
 # channel itself with the key "lamp".
 _LAMP3D = {"reverse": "reverse", "indicator": "ind", "white": "drl", ("head", "dark"): "head"}
+# ... and of the parts of a tail lamp when the build has the 3D lamp parts (detail "extras"): the lamp body glows
+# with the tail lights and lights up fully when braking, light guides are the tail-light signature, brake segments
+# only brake. Parts of other lamps (reflectors, fog lamps) keep the channel their emission gives them.
+_LAMP3D_TAIL = {"tail": "tail_brake:0.5", "guide": "tail", "brake": "brake"}
+_TAIL_TAGS = ("tail", "bar", "ring")
 
 
 def lamp(car, spec, tag="tail"):
@@ -394,13 +417,23 @@ def lamp(car, spec, tag="tail"):
     tgt = spec.get("target", "all")
     depth = spec.get("depth", 0.012)
     res = spec.get("res", 0.007)
-    hm = M.basic(car.name + "_housing_" + tag, spec.get("housing", "#b9b3b2"), rough=0.45, metal=0.0, coat=0.2)
+    extras = bool(car.detail["extras"])
+    is_tail = extras and any(tag.startswith(t) for t in _TAIL_TAGS)
+    housing = spec.get("housing", "#b9b3b2")
+    if is_tail:
+        # 3D: the lens is nearly clear (the lamp parts carry the red) - a dark housing instead of the pale
+        # one that only showed through the red lens of the sprite
+        housing = spec.get("housing3d", "#2a0808")
+    hm = M.basic(car.name + "_housing_" + tag, housing, rough=0.45, metal=0.0, coat=0.2)
     car.patch(spec["outline"], proj, hm, offset=0.0015, res=res, sym=sym, name=tag + "_housing", target=tgt)
     for i, part in enumerate(spec.get("parts", [])):
         kind = part["kind"]
         mat = part_mat(car, kind, part)
         off = part.get("offset", _OFF[kind])
         nm = "%s_%s%d" % (tag, kind, i)
+        lamp3d = part.get("lamp", _LAMP3D.get((tag, kind), _LAMP3D.get(kind)))
+        if is_tail and "lamp" not in part and kind in _LAMP3D_TAIL:
+            lamp3d = _LAMP3D_TAIL[kind]
         if "path" in part:
             pts = C.smooth_open(part["path"], 6) if part.get("smooth", True) and len(part["path"]) > 2 else part["path"]
             pob = car.stripe(pts, part["width"], proj, mat, offset=off, res=min(res, part["width"] * 0.6), sym=sym,
@@ -409,7 +442,7 @@ def lamp(car, spec, tag="tail"):
         else:
             pob = car.patch(part["outline"], proj, mat, offset=off, res=part.get("res", res), sym=sym, name=nm,
                             target=tgt, walls=part.get("walls", 0.0), wall_mat=mat if part.get("walls") else None)
-        MU.tag(pob, lamp=part.get("lamp", _LAMP3D.get((tag, kind), _LAMP3D.get(kind))))
+        MU.tag(pob, lamp=lamp3d)
     lenses = spec.get("lenses") or [dict(outline=spec["outline"], tint=spec.get("tint", "#c41a0f"))]
     for i, ln in enumerate(lenses):
         lm = M.lens(car.name + "_lens_%s%d" % (tag, i), tint=ln.get("tint", "#c41a0f"), refl=ln.get("refl", 0.06),
