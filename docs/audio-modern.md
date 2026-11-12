@@ -1529,7 +1529,8 @@ jedes Mal bei 6,2 ms (Schwelle 6 ms), danach 0,00 ms, das lautere läuft ungest�
 −2,00 … +2,00 dB, Streuung 1,13 dB (gleich verteilt 1,15), Einsatz in 100 % später, im Mittel 10,4 ms, höchstens
 20,0 ms; 60 Vorbeifahrten: −1,92 … +1,98 dB, beide Varianten des Pfostens, 35 Wiederholungen (zwei Varianten:
 zufällig, nicht im Wechsel); 12 Quietscher, 12 verschiedene Tonhöhen, 0 Wechsel während eines Quietschens.
-Alle 32 Mutationen der Prüfung und 11 neue für die Zuteilung des Pflasters: siehe Bericht von AU-R4.
+Endstand: 40 von 40 Mutationen rot – die 32 der Prüfung (M22–M24 an den neuen Zeilen der Zuteilung) und 8 neue für
+die Zuteilung des Pflasters (Steinbrücke, Tunnel, Nachrücken für jede Altstadt, Weitergabe aus dem Plan).
 
 **Altstadtpflaster (KRITIK-R2-CODE M1).** Die Zuteilung zählte Steinbrücken und Tunnel als freie Straße; der Feed
 spielt dort aber immer Pflaster bzw. Asphalt. Seit AU-R4 gilt der Anteil **wie gehört**: Straße = Altstadt ohne
