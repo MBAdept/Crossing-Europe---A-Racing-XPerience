@@ -29,7 +29,9 @@ plus what the city buildings need:
 
 Catalog options (besides those of "house"): decimate, lamps, shop_depth (in openings), gate_w (in openings), timber
 (dict: out, k - colour factor, vary), cut_ppm, single_cutout, far (bool, default True), floors (dict z, upper,
-objects), levels, close3d (generator parameter: back gables of the timber houses).
+objects), levels, close3d (generator parameter: back gables of the timber houses), lod1_flat (default True),
+albedo_mul / light_mul (dict material prefix: factor), light_k (default PANE_LIGHT_K), shop_light, n_arc and
+louvre (in openings), caps (default False), bake_samples (default BAKE_SAMPLES).
 Two surfaces per level (baked or baked_cutout + vpbr): city budget 10,000 triangles, 2 draw calls.
 """
 import math
@@ -51,6 +53,9 @@ TIMBER_OUT = 0.035        # timber members stand this far proud of the infill
 CUT_PPM = 150.0           # texel density of cut-out charts (railings): a 3 cm bar = 4.5 texels
 FAR_MIN_N = 0.9           # a far face looks along +x or +y at least this much
 NEAR_COVER_M = 0.3        # a near wall with another volume closer than this in front of it is covered
+BAKE_SAMPLES = 4          # Cycles samples of the colour and light bakes: they are EMIT bakes at twice the atlas size
+#                           (bake.SUPERSAMPLE), 4 x 4 = 16 jittered samples per atlas texel are enough for the edges
+#                           of the procedural facades; bake.SAMPLES (16) cost the 2048 x 1024 atlases 20 minutes each
 
 
 # --- the wall log ------------------------------------------------------------------------------------------------
@@ -1091,7 +1096,7 @@ def far_uvs(charts, far_objs, matches, size):
 # --- the bake (buildings3d.bake_house with far walls, floors and cut-out density) ----------------------------------
 
 def bake_city(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, cutout=False, ao=None, far=None, floors=None,
-              cut_ppm=CUT_PPM, cut_names=(), flat_lod1=False):
+              cut_ppm=CUT_PPM, cut_names=(), flat_lod1=False, samples=BAKE_SAMPLES):
     """H.bake_house plus: charts of cut-out materials get cut_ppm texels per metre (as a weight on the packing's
     density), wall charts above floors["z"] get floors["upper"] of the density, and the far faces (far = (objects,
     matches)) take the atlas coordinates of the opposite walls after the packing (they are not baked)."""
@@ -1134,7 +1139,7 @@ def bake_city(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, cutout=False
     if dens:
         stats["ppm_road_min"] = round(float(min(dens)), 2)
         stats["ppm_road_max"] = round(float(max(dens)), 2)
-    bk = BK.Baker(rig, objs, mats, size, BK.SUPERSAMPLE, BK.SAMPLES)
+    bk = BK.Baker(rig, objs, mats, size, BK.SUPERSAMPLE, int(samples))
     t0 = time.time()
     base = BK.downsample(bk.base_color(), BK.SUPERSAMPLE)
     stats["coverage"] = round(float(base[..., 3].mean()), 3)
@@ -1480,7 +1485,8 @@ def _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, s
     baked = bake_city(rig, bake_objs, bake_mats, size, weight_fn=wf, ppm_max=spec3d.get("ppm_max", 128.0),
                       cutout=bool(cut_names), ao=spec3d.get("ao"), far=far, floors=spec3d.get("floors"),
                       cut_ppm=float(spec3d.get("cut_ppm", CUT_PPM)), cut_names=rail_names,
-                      flat_lod1=bool(spec3d.get("lod1_flat", True)) and bool(spec3d.get("lod1")))
+                      flat_lod1=bool(spec3d.get("lod1_flat", True)) and bool(spec3d.get("lod1")),
+                      samples=int(spec3d.get("bake_samples", BAKE_SAMPLES)))
     if baked["alpha"] is not None:
         from PIL import Image
         from . import leafatlas
