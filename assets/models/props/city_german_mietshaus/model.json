@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/city_german_mietshaus",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 20.9, "height_m": 19.3, "length_m": 11},
+  "extent_m": {"left": 13.59, "right": 9.83},
+  "aabb": [-10.3, 0, -11.479, 10.3, 19.296, 1.3],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 2150,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_german_mietshaus/lod0_body.res",
+      "classes": ["vpbr", "baked_cutout"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 496,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_german_mietshaus/lod1_body.res",
+      "classes": ["vpbr", "baked_cutout"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/city_german_mietshaus/albedo.webp", "emit": "props/city_german_mietshaus/emit.png"},
+  "roughness": 0.88,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left", "german", "outskirts"],
+  "bytes": 233794,
+  "hash": "f16801ef546defdf9d6a3289a1660e06bb61e8c7"
+ },
+ "sets": {
+  "props/city_german_mietshaus": {"model": "props/city_german_mietshaus"}
+ }
+}

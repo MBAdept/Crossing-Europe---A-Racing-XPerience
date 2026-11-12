@@ -1,0 +1,69 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/city_german_office",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 31.6, "height_m": 129.5, "length_m": 31},
+  "extent_m": {"left": 23.65, "right": 14.08},
+  "aabb": [-15.8, 0, -29.8, 15.8, 129.357, 1.8],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 409,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_german_office/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 185,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_german_office/lod1_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "lights": [
+   {
+    "role": "lights",
+    "pos": [-13.5618, 105.2764, -0.4149],
+    "dir": [-0.25, -0.905, 0.344],
+    "size": 0.844,
+    "color": "#ff2010"
+   },
+   {
+    "role": "lights",
+    "pos": [0, 128.85, -14],
+    "dir": [0, -1, 0],
+    "size": 1.058,
+    "color": "#ff2010"
+   },
+   {
+    "role": "lights",
+    "pos": [13.5618, 105.2764, -0.4149],
+    "dir": [0.25, -0.905, 0.344],
+    "size": 0.844,
+    "color": "#ff2010"
+   }
+  ],
+  "textures": {"albedo": "props/city_german_office/albedo.webp", "emit": "props/city_german_office/emit.png"},
+  "roughness": 0.5,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left", "german", "center"],
+  "bytes": 324323,
+  "hash": "ccb46a913b609cbdf5cea98f2755fd42a9671e15"
+ },
+ "sets": {
+  "props/city_german_office": {"model": "props/city_german_office"}
+ }
+}

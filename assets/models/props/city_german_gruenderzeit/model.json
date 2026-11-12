@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/city_german_gruenderzeit",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 19.2, "height_m": 23.7, "length_m": 14},
+  "extent_m": {"left": 13.99, "right": 9.2},
+  "aabb": [-9.58, 0, -14.58, 9.58, 23.82, 1.12],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 4286,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_german_gruenderzeit/lod0_body.res",
+      "classes": ["vpbr", "baked_cutout"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 2270,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_german_gruenderzeit/lod1_body.res",
+      "classes": ["vpbr", "baked_cutout"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/city_german_gruenderzeit/albedo.webp", "emit": "props/city_german_gruenderzeit/emit.png"},
+  "roughness": 0.86,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left", "german", "center"],
+  "bytes": 346414,
+  "hash": "b7f06bc342f19fc352faa780c5a2be8ca2da40a0"
+ },
+ "sets": {
+  "props/city_german_gruenderzeit": {"model": "props/city_german_gruenderzeit"}
+ }
+}

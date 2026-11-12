@@ -1,0 +1,55 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/city_german_house",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 14.8, "height_m": 8.95, "length_m": 9},
+  "extent_m": {"left": 11.06, "right": 7.37},
+  "aabb": [-8.873, -0.174, -9.516, 6.633, 9.072, 4.722],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 2962,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_german_house/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 2526,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_german_house/lod1_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "lights": [
+   {
+    "role": "lights",
+    "pos": [1.52, 2.3, 0.15],
+    "dir": [1, 0, 0],
+    "size": 0.79,
+    "color": "#ffd890"
+   }
+  ],
+  "textures": {"albedo": "props/city_german_house/albedo.png", "emit": "props/city_german_house/emit.png"},
+  "roughness": 0.88,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left", "german", "outskirts"],
+  "bytes": 656178,
+  "hash": "3761ad140f834c30a3f2fc1440f1c89fa7615562"
+ },
+ "sets": {
+  "props/city_german_house": {"model": "props/city_german_house"}
+ }
+}

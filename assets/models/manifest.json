@@ -4575,6 +4575,190 @@
    "bytes": 574265,
    "hash": "b6eec099a2e2ef7f4286ad0d2b73d1350fe5e64c"
   },
+  "props/city_german_gruenderzeit": {
+   "kind": "building",
+   "object": {"width_m": 19.2, "height_m": 23.7, "length_m": 14},
+   "extent_m": {"left": 13.99, "right": 9.2},
+   "aabb": [-9.58, 0, -14.58, 9.58, 23.82, 1.12],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 4286,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_german_gruenderzeit/lod0_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 2270,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_german_gruenderzeit/lod1_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_german_gruenderzeit/albedo.webp", "emit": "props/city_german_gruenderzeit/emit.png"},
+   "roughness": 0.86,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "german", "center"],
+   "bytes": 346414,
+   "hash": "b7f06bc342f19fc352faa780c5a2be8ca2da40a0"
+  },
+  "props/city_german_house": {
+   "kind": "building",
+   "object": {"width_m": 14.8, "height_m": 8.95, "length_m": 9},
+   "extent_m": {"left": 11.06, "right": 7.37},
+   "aabb": [-8.873, -0.174, -9.516, 6.633, 9.072, 4.722],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 2962,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_german_house/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 2526,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_german_house/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [1.52, 2.3, 0.15],
+     "dir": [1, 0, 0],
+     "size": 0.79,
+     "color": "#ffd890"
+    }
+   ],
+   "textures": {"albedo": "props/city_german_house/albedo.png", "emit": "props/city_german_house/emit.png"},
+   "roughness": 0.88,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "german", "outskirts"],
+   "bytes": 656178,
+   "hash": "3761ad140f834c30a3f2fc1440f1c89fa7615562"
+  },
+  "props/city_german_mietshaus": {
+   "kind": "building",
+   "object": {"width_m": 20.9, "height_m": 19.3, "length_m": 11},
+   "extent_m": {"left": 13.59, "right": 9.83},
+   "aabb": [-10.3, 0, -11.479, 10.3, 19.296, 1.3],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 2150,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_german_mietshaus/lod0_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 496,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_german_mietshaus/lod1_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_german_mietshaus/albedo.webp", "emit": "props/city_german_mietshaus/emit.png"},
+   "roughness": 0.88,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "german", "outskirts"],
+   "bytes": 233794,
+   "hash": "f16801ef546defdf9d6a3289a1660e06bb61e8c7"
+  },
+  "props/city_german_office": {
+   "kind": "building",
+   "object": {"width_m": 31.6, "height_m": 129.5, "length_m": 31},
+   "extent_m": {"left": 23.65, "right": 14.08},
+   "aabb": [-15.8, 0, -29.8, 15.8, 129.357, 1.8],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 409,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_german_office/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 185,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_german_office/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [-13.5618, 105.2764, -0.4149],
+     "dir": [-0.25, -0.905, 0.344],
+     "size": 0.844,
+     "color": "#ff2010"
+    },
+    {
+     "role": "lights",
+     "pos": [0, 128.85, -14],
+     "dir": [0, -1, 0],
+     "size": 1.058,
+     "color": "#ff2010"
+    },
+    {
+     "role": "lights",
+     "pos": [13.5618, 105.2764, -0.4149],
+     "dir": [0.25, -0.905, 0.344],
+     "size": 0.844,
+     "color": "#ff2010"
+    }
+   ],
+   "textures": {"albedo": "props/city_german_office/albedo.webp", "emit": "props/city_german_office/emit.png"},
+   "roughness": 0.5,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "german", "center"],
+   "bytes": 324323,
+   "hash": "ccb46a913b609cbdf5cea98f2755fd42a9671e15"
+  },
   "props/cliff": {
    "kind": "rock",
    "object": {"width_m": 26, "height_m": 14, "length_m": 5},
@@ -8241,22 +8425,10 @@
    "fallback": "sprite",
    "object": {"width_m": 19.0, "height_m": 8.5, "length_m": 10.0}
   },
-  "props/city_german_gruenderzeit": {
-   "fallback": "sprite",
-   "object": {"width_m": 19.2, "height_m": 23.7, "length_m": 14.0}
-  },
-  "props/city_german_house": {
-   "fallback": "sprite",
-   "object": {"width_m": 14.8, "height_m": 8.95, "length_m": 9.0}
-  },
-  "props/city_german_mietshaus": {
-   "fallback": "sprite",
-   "object": {"width_m": 20.9, "height_m": 19.3, "length_m": 11.0}
-  },
-  "props/city_german_office": {
-   "fallback": "sprite",
-   "object": {"width_m": 31.6, "height_m": 129.5, "length_m": 31.0}
-  },
+  "props/city_german_gruenderzeit": {"model": "props/city_german_gruenderzeit"},
+  "props/city_german_house": {"model": "props/city_german_house"},
+  "props/city_german_mietshaus": {"model": "props/city_german_mietshaus"},
+  "props/city_german_office": {"model": "props/city_german_office"},
   "props/city_german_old_barock": {
    "fallback": "sprite",
    "object": {"width_m": 20.5, "height_m": 20.5, "length_m": 14.0}
