@@ -242,7 +242,7 @@ func test_short_tunnel_low_hill_no_cap() -> void:
 			far = maxf(far, rc.x)
 			top = maxf(top, rc.z)
 	assert_true(far <= z_exit + 0.05, "der Hügel endet spätestens an der Ausfahrt (%.1f m davor)" % (z_exit - far))
-	assert_true(top < Tunnel.HILL_PEAK * 0.6, "niedriger Hügel über einem kurzen Tunnel (%.1f m)" % top)
+	assert_true(top < Tunnel.HILL_PEAK * 0.7, "niedriger Hügel über einem kurzen Tunnel, Bäume eingeschlossen (%.1f m)" % top)
 
 
 func test_cap_only_for_a_camera_outside() -> void:

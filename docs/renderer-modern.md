@@ -2001,3 +2001,34 @@ lässt sich so einer Ebene zuordnen. Gemessen headless an Kiel – Hamburg km 2 
 - Kurveninnenseiten in Bergetappen kahler als Arcade (Sichtkorridor F7: Bäume werden durch Bodendecker ersetzt –
   Entscheidung der Leitung nach A-3).
 - Die Leistung auf echter Hardware ist nur über den Leistungstest messbar.
+
+## 15. Tunnel, Brücken, Wasser und Ufer (Bauabschnitt R5)
+
+R5 ersetzt die Mindestbauten von FIX1 (14.3, 14.7) durch die echten Bauten; Einzelheiten:
+[renderer-modern-tunnel-bruecken.md](renderer-modern-tunnel-bruecken.md). Neu: `builders/bridge.gd` (Wasser, Ufer,
+Tragwerk, Pylone mit Seilen und Flugbefeuerung, Fachwerkportale, Brückenlampen – `builders/props.gd` lässt diese Teile
+liegen, sobald der Builder existiert), `assets/shaders/modern/water.gdshader` (Materialklasse `water`), der Ausbau von
+`builders/tunnel.gd` und `tunnel.gdshader` (Gehwege, Nischen, Notausgänge, Lüfter, Portalrahmen, Ausfahrt) und in
+`layers/far_ground.gd` Fernwasser, Fernland und Fernufer je Brücke; die Scheibe bleibt bei der Regel von 14.7.
+
+### 15.1 Zone „Tunnel“ für die Umgebung (`set_zone`)
+
+Der Tunnel-Builder ist die Quelle der Tunnelzone; das Umgebungs-Rig (R4) entscheidet, was es daraus macht. Aufrufe:
+- **Jedes Bild** in `tunnel.gd` `update(view, dt)` (nach `environment.update`, in der Reihenfolge der Builder-Haken):
+  `amount = TunnelBuilder.zone_amount(track, camera_z + 1)` – dasselbe Gesetz wie `EnvironmentRig.tunnel_blend()`
+  (0 ab 12 m vor einem Portal, 1 ab 14 m drin, Glättung `smoothstep`, eine Funktion des Orts).
+- **`renderer.env.set_zone("tunnel", amount)`** nur, wenn `renderer.env` die Methode hat (`has_method("set_zone")`,
+  duck-typed) und nur, wenn sich `amount` um mehr als 0,0001 geändert hat (erster Aufruf immer). Ohne `set_zone` bleibt
+  das Rig bei seinem eigenen Weg (`tunnel01` aus `tunnel_blend`), es ändert sich nichts.
+- **`tunnel_state`** (Eigenschaft des Builders, über `renderer.builder("tunnel")`): `amount`, `inside` (Kamera in einem
+  Tunnel), `exit_m` (Weg bis zur Ausfahrt, INF draußen), `portal_m` (Weg bis zum nächsten Portal voraus),
+  `exit_in_sight` (Ausfahrt innerhalb der Sicht) – für eine Belichtungsrampe an der Ausfahrt, ohne eigene Rechnung.
+- `snapshot()` → `"tunnel": {"zone", "zone_calls", "inside"}` im `debug_snapshot()` des Renderers.
+
+### 15.2 Wasser im Licht
+
+Das Wasser ist Boden (Ebene 2, kein Schatten): Lichtkegel analytisch (`inc/pools.gdshaderinc`, das Material meldet
+sich über `renderer.add_pool_material()` an), Scheinwerfer (`inc/headlight.gdshaderinc`), Arcades Bodenfarbgesetz
+(`inc/ground_law.gdshaderinc`), Arcades Nebel für Boden. Der Himmel, den es spiegelt, kommt jedes Bild aus der
+Palette (`sky_top` für den Zenit, `sky_bottom` für den Horizont), das Glitzern aus Sonne (1, solange `lights` < 0,3)
+bzw. Mond (0,25), × (1 − Bewölkung).

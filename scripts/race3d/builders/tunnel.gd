@@ -15,9 +15,10 @@ extends ChunkBuilder
 ##    tube deeper inside could curve out of the hill) – the shader decides by the portal z of each vertex;
 ##  * at every PORTAL (the first segment of a tunnel): the opening in a protruding concrete FRAME with a dark reveal, a
 ##    headwall with a cornice, wing walls standing on the ground, and above it Arcade's overgrown HILL (85 m + half the
-##    road wide to each side, 30 m (± a seeded variation) high, its ridge up to 38 m behind the portal, in the
-##    scenery's darkened grass colour) as a lit mesh (vpbr, static) that closes the terrain at the portal; the frame of
-##    the EXIT seen from inside (the last segment);
+##    road wide to each side, 30 m (± a seeded variation) high, its ridge up to 38 m behind the portal, from the
+##    scenery's darkened grass colour at its foot to the lighter tone on the ridge, Arcade's conifers along the ridge –
+##    RoadRenderer._draw_portal's seeded sequence) as a lit mesh (vpbr, static, smooth normals) that closes the terrain
+##    at the portal; the frame of the EXIT seen from inside (the last segment);
 ##  * the ZONE for the environment: tunnel_state (amount, exit_m, portal_m, …) every frame and – when the environment
 ##    rig offers it (R4, duck-typed) – EnvironmentRig.set_zone("tunnel", amount) with the same law as the rig's own
 ##    tunnel_blend() (0 from 12 m before a portal to 1 at 14 m inside, a function of the camera's position); without
@@ -76,10 +77,9 @@ const HILL_PEAK := 30.0            ## … its height …
 const HILL_BACK := 38.0            ## … and how far behind the portal its ridge lies at the middle
 const HILL_FALL := 70.0            ## behind the ridge it falls this far (at the middle) …
 const HILL_SINK := 8.0             ## … to this depth below the road
-const HILL_COLS := 32
+const HILL_COLS := 30               ## Arcade's columns across the hill (and the two road edges)
 const ROUGH_CONCRETE := Vector2(0.9, 0.0)
 const ROUGH_GRASS := Vector2(0.97, 0.0)
-const ROUGH_ROCK := Vector2(0.95, 0.0)
 ## Kinds of tunnel.gdshader (UV2.x)
 const K_PLAIN := 0.0
 const K_CAP := 1.0
@@ -155,6 +155,32 @@ class Buf extends RefCounted:
 				var l: Vector2 = locs[q] if locs.size() == 4 else Vector2.ZERO
 				c0.append_array(PackedFloat32Array([l.x, l.y, 0.0, 0.0]))
 		# front faces are clockwise
+		if (c - a).cross(b - a).dot(nn) >= 0.0:
+			idx.append_array(PackedInt32Array([o, o + 1, o + 2, o, o + 2, o + 3]))
+		else:
+			idx.append_array(PackedInt32Array([o, o + 2, o + 1, o, o + 3, o + 2]))
+
+	## A quad with a normal and a colour per corner (smooth surfaces); the winding from the face normal (toward).
+	func quad_vc(a: Vector3, b: Vector3, c: Vector3, d: Vector3, toward: Vector3, nrm: Array, cols: Array, uv_v: Vector2, uv2_v: Vector2) -> void:
+		var nn := (b - a).cross(d - a)
+		if nn.length_squared() < 1.0e-12:
+			nn = (c - a).cross(d - a)
+		if nn.length_squared() < 1.0e-12:
+			return
+		nn = nn.normalized()
+		if nn.dot(toward) < 0.0:
+			nn = -nn
+		var o := v.size()
+		var pts: Array[Vector3] = [a, b, c, d]
+		for q in 4:
+			v.append(pts[q])
+			var vn: Vector3 = nrm[q]
+			n.append(vn.normalized() if vn.length_squared() > 1.0e-10 else nn)
+			col.append(cols[q])
+			uv.append(uv_v)
+			uv2.append(uv2_v)
+			if custom:
+				c0.append_array(PackedFloat32Array([0.0, 0.0, 0.0, 0.0]))
 		if (c - a).cross(b - a).dot(nn) >= 0.0:
 			idx.append_array(PackedInt32Array([o, o + 1, o + 2, o, o + 2, o + 3]))
 		else:
@@ -692,35 +718,45 @@ func _portal(buf: Buf, ctx: ChunkContext, i: int, z: float, xl: float, xr: float
 		# its coping
 		buf.quad(ctx.local(zf - 0.25, xw, head_h + 0.02), ctx.local(zf - 0.25, xo, g_o + 0.62), ctx.local(zf + 0.25, xo, g_o + 0.62),
 			ctx.local(zf + 0.25, xw, head_h + 0.02), Vector3.UP, conc_dark, rm, nolamp)
-	_hill(buf, ctx, i, z, left, right, scen, length)
+	_hill(buf, ctx, i, z, xl, xr, left, right, scen, length)
 
 
-## Arcade's hill above a portal (seeded per tunnel): rows = front edge on the portal, ridge, foot behind it. Its colour:
-## the scenery's first grass tone darkened, varied a little per vertex, rock grey near the headwall.
-func _hill(buf: Buf, ctx: ChunkContext, i: int, z: float, left: float, right: float, scen: Variant, length: float) -> void:
+## Arcade's hill above a portal (RoadRenderer._draw_portal, the same seeded sequence per tunnel): its front edge on the
+## headwall, the wing walls and the ground, its ridge `back` metres behind the portal (Arcade's silhouette), behind it
+## a slope down below the road; colours like Arcade's – from the scenery's darkened grass tone at the bottom of the face
+## to its lighter tone on the ridge – with smooth normals, and Arcade's conifers along the ridge. xl / xr = the walls
+## (Arcade's road edges), left / right = the headwall's ends.
+func _hill(buf: Buf, ctx: ChunkContext, i: int, z: float, xl: float, xr: float, left: float, right: float, scen: Variant,
+		length: float) -> void:
 	var nolamp := Vector2(-1.0, 0.0)
 	var face := -ctx.rows_f[i]
 	var head_h := _ceil_h + HEAD_EXTRA
 	var zf := z - 0.02
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int(ctx.segs[i]["index"]) * 31 + 7
-	var cx := (left + right) * 0.5
-	var span := HILL_SPAN + (right - left) * 0.5
-	var scale := clampf(length / 120.0, 0.35, 1.0)    # a short tunnel gets a lower hill that ends before its exit
+	var cx := (xl + xr) * 0.5
+	var span := HILL_SPAN + (xr - xl) * 0.5
+	var scale := clampf(length / 120.0, 0.35, 1.0)    # a short tunnel gets a lower hill that ends at its exit
 	var peak := (HILL_PEAK + rng.randf_range(-5.0, 9.0)) * scale
 	var max_back := maxf(4.0, length * 0.45)
 	var veg := _veg_colour(scen)
 	var veg_top := veg.lightened(0.08)
 	var veg_bot := veg.darkened(0.2)
-	var rock := Color("7d7466")                       # RoadRenderer.ROCK
-	var cols := HILL_COLS
+	# Arcade's columns: 31 across the span and the two road edges
+	var xs: Array[float] = []
+	for c in HILL_COLS + 1:
+		xs.append(cx + (float(c) / float(HILL_COLS) * 2.0 - 1.0) * span)
+	xs.append(xl)
+	xs.append(xr)
+	xs.sort()
 	var front: Array[Vector3] = []
 	var ridge: Array[Vector3] = []
 	var foot: Array[Vector3] = []
 	var front_h: Array[float] = []
-	for c in cols + 1:
-		var tt := float(c) / float(cols) * 2.0 - 1.0
-		var x := cx + tt * span
+	var ridge_h: Array[float] = []
+	for x: float in xs:
+		var tt := (x - cx) / span
+		var hgt := peak * pow(maxf(0.0, 1.0 - tt * tt), 1.15) + rng.randf_range(-0.7, 0.9) * (1.0 - absf(tt)) * 2.0 * scale
 		# the front edge sits on the portal: on the headwall, on the wing walls beside it, on the ground beyond them
 		var hb: float
 		if x >= left and x <= right:
@@ -731,7 +767,6 @@ func _hill(buf: Buf, ctx: ChunkContext, i: int, z: float, left: float, right: fl
 			hb = lerpf(head_h, 0.6 + ctx.ground(z, right + WING_M), (x - right) / WING_M)
 		else:
 			hb = ctx.ground(z, x) - 0.5
-		var hgt := peak * pow(maxf(0.0, 1.0 - tt * tt), 1.15) + rng.randf_range(-0.7, 0.9) * (1.0 - absf(tt)) * 2.0 * scale
 		hgt = maxf(hgt, hb + 0.5)
 		var back := minf(HILL_BACK * pow(maxf(0.0, 1.0 - absf(tt)), 0.8), max_back) + 1.0
 		var fall := minf(HILL_FALL * (0.4 + 0.6 * (1.0 - absf(tt))), maxf(2.0, length - back))
@@ -739,18 +774,64 @@ func _hill(buf: Buf, ctx: ChunkContext, i: int, z: float, left: float, right: fl
 		ridge.append(ctx.local(z + back, x, hgt))
 		foot.append(ctx.local(z + back + fall, x, -HILL_SINK * scale))
 		front_h.append(hb)
-	for c in cols:
-		var fa := clampf(front_h[c] / maxf(peak, 1.0), 0.0, 1.0)
-		var fb := clampf(front_h[c + 1] / maxf(peak, 1.0), 0.0, 1.0)
-		var col_front := veg_bot.lerp(veg_top, (fa + fb) * 0.5).lerp(veg_top, 0.5)
-		var shade := 0.92 + 0.12 * rng.randf()
-		col_front = Color(col_front.r * shade, col_front.g * shade, col_front.b * shade)
-		# rock shows above the portal where the face is steep
-		var xm := (float(c) + 0.5) / float(cols) * 2.0 - 1.0
-		var near_portal := 1.0 - smoothstep(0.0, 0.35, absf(xm * span) / maxf(span, 1.0) - (right - left) * 0.5 / maxf(span, 1.0))
-		col_front = col_front.lerp(rock, 0.55 * near_portal)
-		buf.quad(front[c], front[c + 1], ridge[c + 1], ridge[c], face + Vector3.UP, col_front, ROUGH_GRASS if near_portal < 0.5 else ROUGH_ROCK, nolamp)
-		buf.quad(ridge[c], ridge[c + 1], foot[c + 1], foot[c], Vector3.UP - face, veg_top.darkened(0.05 + 0.06 * rng.randf()), ROUGH_GRASS, nolamp)
+		ridge_h.append(hgt)
+	var n := xs.size()
+	# smooth normals: every corner the mean of the faces around it
+	var n_front: Array[Vector3] = []
+	var n_ridge: Array[Vector3] = []
+	var n_foot: Array[Vector3] = []
+	n_front.resize(n)
+	n_ridge.resize(n)
+	n_foot.resize(n)
+	for c in n:
+		n_front[c] = Vector3.ZERO
+		n_ridge[c] = Vector3.ZERO
+		n_foot[c] = Vector3.ZERO
+	for c in n - 1:
+		var nf := _face_normal(front[c], front[c + 1], ridge[c + 1], ridge[c], face + Vector3.UP)
+		var nb := _face_normal(ridge[c], ridge[c + 1], foot[c + 1], foot[c], Vector3.UP - face)
+		for q: int in [c, c + 1]:
+			n_front[q] += nf
+			n_ridge[q] += nf + nb
+			n_foot[q] += nb
+	for c in n - 1:
+		if xs[c + 1] - xs[c] < 0.01:
+			continue
+		var ca := veg_bot.lerp(veg_top, clampf(front_h[c] / maxf(peak, 1.0), 0.0, 1.0))
+		var cb := veg_bot.lerp(veg_top, clampf(front_h[c + 1] / maxf(peak, 1.0), 0.0, 1.0))
+		buf.quad_vc(front[c], front[c + 1], ridge[c + 1], ridge[c], face + Vector3.UP,
+			[n_front[c], n_front[c + 1], n_ridge[c + 1], n_ridge[c]], [ca, cb, veg_top, veg_top], ROUGH_GRASS, nolamp)
+		var back_c := veg_top.darkened(0.06)
+		buf.quad_vc(ridge[c], ridge[c + 1], foot[c + 1], foot[c], Vector3.UP - face,
+			[n_ridge[c], n_ridge[c + 1], n_foot[c + 1], n_foot[c]], [veg_top, veg_top, back_c, back_c], ROUGH_GRASS, nolamp)
+	# Arcade's conifers along the ridge (veg_top darkened by 0.25, 5–9 m, three of four columns)
+	var tree_c := veg_top.darkened(0.25)
+	for c in range(1, n - 1):
+		if ridge_h[c] < 2.0 or rng.randf() < 0.25:
+			continue
+		var th := rng.randf_range(5.0, 9.0) * maxf(scale, 0.6)
+		var base := ridge[c] - Vector3.UP * 0.4
+		var tip := base + Vector3.UP * (th + 0.4)
+		var r := th * 0.2
+		var right_v := ctx.rows_r[i] * r
+		var fwd_v := ctx.rows_f[i] * r
+		var ring: Array[Vector3] = [base - right_v, base - fwd_v, base + right_v, base + fwd_v]
+		for q in 4:
+			var a := ring[q]
+			var b := ring[(q + 1) % 4]
+			var out := ((a + b) * 0.5 - base).normalized() + Vector3.UP * 0.35
+			buf.quad(a, b, tip, tip, out, tree_c, ROUGH_GRASS, nolamp)
+
+
+## Unit normal of the quad a-b-c-d that faces `toward`.
+static func _face_normal(a: Vector3, b: Vector3, c: Vector3, d: Vector3, toward: Vector3) -> Vector3:
+	var nn := (b - a).cross(d - a)
+	if nn.length_squared() < 1.0e-12:
+		nn = (c - a).cross(d - a)
+	if nn.length_squared() < 1.0e-12:
+		return Vector3.UP
+	nn = nn.normalized()
+	return -nn if nn.dot(toward) < 0.0 else nn
 
 
 ## The hill's colour: the scenery's first grass tone darkened (Arcade), under snow mostly snow.
@@ -806,6 +887,8 @@ func tube_material(materials: ModernMaterials = null) -> ShaderMaterial:
 		_material.set_shader_parameter("darkness_m", _dark_m)
 		_material.set_shader_parameter("peek_m", _peek_m)
 		_material.set_shader_parameter("lamp_every", _lamp_every)
+		_material.set_shader_parameter("lamp_h", (_wall_h + _ceil_h) * 0.5)
+		_material.set_shader_parameter("halo_colour", Vector3(LAMP_COL.r, LAMP_COL.g, LAMP_COL.b))
 		var fog := Palette.TUNNEL_FOG
 		_material.set_shader_parameter("fog_colour", Vector3(fog.r, fog.g, fog.b))
 		var lamp := LAMP_COL.lerp(Color.WHITE, 0.4)
@@ -859,6 +942,7 @@ func update(view: Dictionary, _dt: float) -> void:
 	var k := 0.5 + 0.5 * lights            # Arcade: the tube seen from outside, eyes adapted to the daylight
 	m.set_shader_parameter("ambient_out", Vector3(amb.r * k, amb.g * k, amb.b * k))
 	m.set_shader_parameter("cam_tunnel_z", cam_tunnel)
+	m.set_shader_parameter("lights", clampf(lights, 0.0, 1.0))
 
 
 ## tunnel_state for this frame and the call EnvironmentRig.set_zone("tunnel", amount) when the rig has it.

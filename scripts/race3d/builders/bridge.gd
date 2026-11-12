@@ -73,6 +73,7 @@ const BEACON_ENERGY := 0.55                  ## PropLibrary.LAMP_ENERGY (lamps h
 const CABLES_PER_SIDE := 7
 const CABLE_W := 0.13
 const CABLE_COLOR := Color("ecebe6")         ## RoadRenderer._pylon cables
+const CABLE_RM := Vector2(0.6, 0.0)          ## painted steel: no metal share, the colour stays Arcade's
 const PORTAL_SET := "props/bridge_truss_arch"
 const LAMP_SET := "props/bridge_lamp"
 const LAMP_RANGE_M := 9.0                    ## PropLibrary.LAMP_RANGE_M / LAMP_ENERGY / GROUP_ENERGY
@@ -179,6 +180,15 @@ class Buf extends RefCounted:
 		if caps:
 			squad(c[0], c[1], c[2], c[3], -along, colour.darkened(0.1), rm)
 			squad(e[0], e[1], e[2], e[3], along, colour.darkened(0.1), rm)
+
+	## A stay cable: a thin member whose faces all carry the normal UP – lit like level ground on every side, so the
+	## cable reads as Arcade's light line (RoadRenderer._pylon: ecebe6 × the light) and not as a half-dark rod a
+	## pixel wide.
+	func cable(p0: Vector3, p1: Vector3, w: float, colour: Color, rm: Vector2) -> void:
+		var first := n.size()
+		member(p0, p1, w, w, Vector3.UP, colour, rm)
+		for k in range(first, n.size()):
+			n[k] = Vector3.UP
 
 	func arrays() -> Array:
 		var arr := []
@@ -472,7 +482,7 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 				"bridge_lamp":
 					_lamp(sb, ctx, it, models.get(LAMP_SET, {}), lamp_models, lamps, counts)
 	for c: Array in inp.get("cables", []):
-		sb.member(c[0], c[1], CABLE_W, CABLE_W, Vector3.UP, CABLE_COLOR, ROUGH_STEEL)
+		sb.cable(c[0], c[1], CABLE_W, CABLE_COLOR, CABLE_RM)
 		counts["cables"] += 1
 	return {"water": wb.arrays() if not wb.idx.is_empty() else [], "struct": sb.arrays() if not sb.idx.is_empty() else [],
 		"pylons": pylons, "portals": portals, "lamp_models": lamp_models, "lamps": lamps, "counts": counts,

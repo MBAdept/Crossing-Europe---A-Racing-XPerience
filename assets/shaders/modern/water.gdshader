@@ -5,7 +5,8 @@
 // base pass is written as EMISSION, so level ground in the light shows Arcade's colour, albedo × palette ambient); the
 // directional light (sun or moon) is added in light() – Lambert like the ground law assumes, with the shadows of the
 // deck, the pylons and the ships. Painted here per vertex kind (UV2.x):
-//   0 water   Arcade's water (RoadRenderer.water_tint: the lit water towards the sky by 0.16 + d / 600, at most 0.7)
+//   0 water   Arcade's water (RoadRenderer.water_tint: the lit water towards the sky by 0.16 + dz / 600, at most 0.7;
+//             dz = the depth along the view, as Arcade's per-row distance)
 //             and what Arcade cannot show: ripples that drift with the current (view time ce_time, never TIME), the
 //             sky mirrored along them (horizon colour towards the zenith), the sun glittering in them (shadowed),
 //             warm sparkles of the city lights at night, a darker band and a light seam where the water meets a wall
@@ -135,12 +136,14 @@ void fragment() {
 		NORMAL = normalize((VIEW_MATRIX * vec4(n_world, 0.0)).xyz);
 		vec3 view = normalize(CAMERA_POSITION_WORLD - v_world);
 		vec3 r = reflect(-view, n_world);
-		// Arcade's share of the mirrored sky (by distance), varied by the ripples: a ripple turned towards the eye shows
-		// more of the water, one turned away more of the sky
-		float flat_f = clamp(0.16 + dist / 600.0, 0.16, 0.7);
+		// Arcade's share of the mirrored sky – by the depth along the view (Arcade: per screen row, by the row's
+		// distance dz along the road; water far to the side keeps the share of its row) – varied by the ripples: a
+		// ripple turned towards the eye shows more of the water, one turned away more of the sky
+		float flat_f = clamp(0.16 + max(-VERTEX.z, 0.0) / 600.0, 0.16, 0.7);
 		float tilt = dot(n_world.xz, view.xz);
 		mirror = clamp(flat_f * (1.0 - clamp(tilt * 7.0, -0.55, 0.55)), 0.05, 0.85);
-		mirror_col = mix(sky_horizon, sky_zenith, smoothstep(0.03, 0.6, clamp(r.y, 0.0, 1.0)));
+		// mostly Arcade's horizon colour (water_tint mirrors sky_bottom), a little of the zenith where the ripples look up
+		mirror_col = mix(sky_horizon, sky_zenith, 0.4 * smoothstep(0.03, 0.6, clamp(r.y, 0.0, 1.0)));
 		// the water body: Arcade's colour, a little darker in places
 		tone = base * (0.93 + 0.14 * vnoise(p / 23.0 + vec2(0.17, 0.43)));
 		// at a wall: the water lies in the wall's shade, a thin light seam rides on it

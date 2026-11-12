@@ -11,6 +11,9 @@
 //   tile band  enamel panels 1.2 × 0.6 m with dark joints, every panel its own shade, grime of the spray towards the
 //              walkway; upper wall and vault: concrete with ring joints every 12 m, soot towards the crown;
 //   lamps      the walls are lighter beside every luminaire (lamp_every along the road: a rhythm when driving);
+//              Arcade's halo round every lamp (RoadRenderer._tunnel_segment: 1.6 m, LAMP_COL, 0.45) as light on the
+//              tube around it where the flare layer does not draw it – by day for a camera outside the tunnel (its
+//              tunnel lamps glow only at night or with the camera in a tunnel), so the lit tube shows from outside;
 //   signs      the orange SOS plate with its letters, green emergency signs with a white arrow (sign-local u, v);
 //   niches     lit from inside, independent of the tube's light; doors in green steel with a handle.
 // Vertex format:
@@ -36,6 +39,9 @@ uniform float lamp_every = 12.0;                    // render.tunnel.light_every
 uniform vec3 lamp_colour = vec3(1.0, 0.89, 0.73);   // Arcade's LAMP_COL lightened by 0.4
 uniform vec3 niche_colour = vec3(0.12, 0.62, 0.29); // Arcade's niche green
 uniform vec3 headlight_colour = vec3(1.0, 0.95, 0.84);
+uniform float lights = 0.0;                         // palette lights (0 day .. 1 night)
+uniform float lamp_h = 5.2;                         // height of the lamps' centres (the middle of the haunch)
+uniform vec3 halo_colour = vec3(1.0, 0.82, 0.55);   // Arcade's LAMP_COL
 
 global uniform vec3 ce_headlight_pos;
 global uniform vec3 ce_headlight_dir;
@@ -173,7 +179,9 @@ void fragment() {
 		if (v_kind > 3.5 && v_kind < 4.5) {
 			// tile band: enamel panels, every panel its own shade, joints, grime of the spray near the walkway
 			vec2 cell = floor(p / vec2(1.2, 0.6));
-			base *= 0.95 + 0.08 * hash12(cell + vec2(UV.y * 0.01, 3.0));
+			// every panel its own shade – faded into the mean once a panel is only a few pixels (no shimmer far down the tube)
+			float panel_fade = 1.0 - smoothstep(0.12, 0.4, max(fwidth(p.x) / 1.2, fwidth(p.y) / 0.6));
+			base *= 1.0 + 0.08 * (hash12(cell + vec2(UV.y * 0.01, 3.0)) - 0.5) * panel_fade - 0.01;
 			base *= 1.0 - 0.32 * grid(p, vec2(1.2, 0.6), 0.03);
 			float grime = (1.0 - smoothstep(0.2, 1.4, v_h)) * (0.55 + 0.45 * vnoise(vec2(zw * 0.35, 1.7)));
 			base *= 1.0 - 0.28 * grime;
@@ -213,6 +221,14 @@ void fragment() {
 			lit += base * headlight_colour * (cone * reach * reach * ce_headlight.y * 0.6);
 		}
 		d = mix(lit, fog_colour, f);
+	}
+	// Arcade's halo round the lamps (see above): by day, seen from outside – the flare layer draws it otherwise
+	float halo_k = own || cap ? 0.0 : 1.0 - clamp(lights, 0.0, 1.0);
+	if (halo_k > 0.0 && v_h > lamp_h - 1.8) {
+		float dh = v_h - lamp_h;
+		float r = sqrt(dl * dl + dh * dh * 1.6);
+		float g = 1.0 - smoothstep(0.0, 1.6, r);
+		d += halo_colour * (0.45 * g * g * halo_k * (1.0 - f * f));
 	}
 	ALBEDO = albedo_for(unshow(min(d, vec3(1.0))));
 }
