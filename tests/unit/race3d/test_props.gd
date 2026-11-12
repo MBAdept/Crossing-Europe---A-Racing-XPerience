@@ -476,8 +476,11 @@ func _pylon_track() -> Track:
 
 
 ## M2ZS1 (merge of the first test build into M2): since AS4R the pylon is a MODEL (props/bridge_pylon: concrete, head and
-## aviation light in one baked atlas, no light layer of a sprite) – both sides as the model (the left one mirrored,
-## mirror_left), no dark stand-in, and the red aviation light as a lamp anchor of each pylon, high up (no light pool).
+## aviation light in one baked atlas) – both sides as the model (the left one mirrored, mirror_left), no stand-in. Its
+## night atlas is the sprite's floodlit pylon, which Arcade never shows: the pylons of the bridge (prefer_proc) get a
+## copy of the material without it (emit_energy 0, "md|" groups; the 22:00 pictures of the Köhlbrandbrücke glowed light
+## grey), the same set without prefer_proc keeps it. The red aviation light is a lamp anchor of each pylon, high up (no
+## light pool), blinking like Arcade's.
 func test_bridge_pylon_is_a_model_with_its_aviation_light() -> void:
 	var t := _pylon_track()
 	var ctx := _ctx(t, 6)
@@ -485,20 +488,73 @@ func test_bridge_pylon_is_a_model_with_its_aviation_light() -> void:
 	var part := b.build(ctx, b.collect(ctx))
 	var groups: Dictionary = part["groups"]
 	assert_eq(int((b.library.sets["props/bridge_pylon"] as Dictionary)["kind"]), PropLibrary.MODEL, "Pylon: Modell (AS4R)")
-	assert_true(groups.has("m|props/bridge_pylon|0") and groups.has("m|props/bridge_pylon|1"),
-		"Brückenpylone beider Seiten als Modell (links gespiegelt) – %s" % str(groups.keys()))
+	assert_true(groups.has("md|props/bridge_pylon|0") and groups.has("md|props/bridge_pylon|1"),
+		"Brückenpylone beider Seiten als dunkles Modell (links gespiegelt) – %s" % str(groups.keys()))
+	assert_true(groups.has("m|props/bridge_pylon|0"), "derselbe Satz ohne prefer_proc: das Modell wie es ist")
 	for key: String in groups:
 		assert_false(key.begins_with("d|") or key.begins_with("s|props/bridge_pylon"), "keine Vertretung, wenn das Modell da ist (%s)" % key)
+	var parent := Node3D.new()
+	b.commit(ctx, part, parent)
+	var dark := 0
+	var lit := 0
+	for c: Node in (parent.get_child(0).get_children() if parent.get_child_count() > 0 else []):
+		var mmi := c as MultiMeshInstance3D
+		if mmi == null or mmi.name == &"Contact" or mmi.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY:
+			continue
+		if mmi.material_override is ShaderMaterial:
+			var mo := mmi.material_override as ShaderMaterial
+			assert_near(float(mo.get_shader_parameter("emit_energy")), 0.0, 1.0e-6, "dunkler Pylon: ohne Nachtatlas (Flutlicht)")
+			assert_near(float(mo.get_shader_parameter("night_albedo")), Props.PYLON_NIGHT_ALBEDO, 1.0e-6,
+				"dunkler Pylon: nachts Beton × Umgebungslicht wie Arcade (night_albedo)")
+			assert_true(Props.PYLON_NIGHT_ALBEDO < 1.0, "… also dunkler als das beleuchtete Modell")
+			dark += 1
+		else:
+			lit += 1
+	assert_eq(dark, 2, "zwei dunkle Pylon-Knoten (rechts und gespiegelt links)")
+	assert_eq(lit, 1, "das Set ohne prefer_proc behält sein Material")
+	parent.free()
 	var beacons: Array = []
 	for l: Dictionary in part["lamps"]:
 		if (l["pos"] as Vector3).y > PropLibrary.BEACON_MIN_H_M:
 			beacons.append(l)
 	assert_eq(beacons.size(), 3, "eine Flugbefeuerung je Pylon (zwei der Brücke, eins für sich)")
+	var phases: Array = []
 	for l: Dictionary in beacons:
 		var c: Color = l["color"]
 		assert_true(c.r > 0.9 and c.g < 0.3 and c.b < 0.3, "rot wie Arcades Warnlicht (%s)" % str(c))
 		assert_eq(float(l["range"]), 0.0, "hoch oben: kein Lichtkegel am Boden")
+		if l.has("blink"):
+			var bv: Vector3 = l["blink"]
+			assert_near(bv.x, 1.6, 1.0e-6, "Takt wie Arcade: 1,6 s")
+			assert_near(bv.y, 0.8, 1.0e-6, "davon 0,8 s an")
+			phases.append(snappedf(bv.z, 0.001))
+	phases.sort()
+	assert_eq(phases, [-0.4, 0.4], "die zwei Pylone der Brücke blinken, um ± 0,4 s versetzt (Seite); das Set ohne proc nicht")
 	_cleanup()
+
+
+## M2ZS1: the blinking aviation light (layers/flares.gd blink_lit, view.time): lit 0.8 s of every 1.6 s, the two sides
+## 0.4 s apart, only at night (Arcade: lights > 0.2) – a lamp without a rhythm is always lit.
+func test_pylon_beacon_blinks_like_arcade() -> void:
+	var flares: GDScript = load("res://scripts/race3d/layers/flares.gd")
+	var right := Vector3(Props.PYLON_BLINK.x, Props.PYLON_BLINK.y, Props.PYLON_BLINK.z)
+	var left := Vector3(Props.PYLON_BLINK.x, Props.PYLON_BLINK.y, -Props.PYLON_BLINK.z)
+	var lit := 0
+	var both := 0
+	var n := 160
+	for i in n:
+		var t := 10.005 + float(i) * 0.01                   # 1.6 s in steps of 10 ms, never on a switching instant
+		var r: bool = flares.blink_lit(right, t, 1.0)
+		var l: bool = flares.blink_lit(left, t, 1.0)
+		# Arcade: on while fmod(time + side × 0.4, 1.6) < 0.8
+		assert_eq(r, fmod(t + 0.4, 1.6) < 0.8, "rechts wie Arcade bei t = %.2f s" % t)
+		assert_eq(l, fmod(t - 0.4, 1.6) < 0.8, "links wie Arcade bei t = %.2f s" % t)
+		lit += 1 if r else 0
+		both += 1 if r and l else 0
+	assert_near(float(lit) / float(n), 0.5, 0.02, "die Hälfte der Zeit an")
+	assert_near(float(both) / float(n), 0.0, 0.02, "die zwei Seiten im Wechsel (um 0,8 s versetzt)")
+	assert_false(flares.blink_lit(right, 10.0, 0.2), "bei Tag und in der Dämmerung (lights ≤ 0,2) aus")
+	assert_true(flares.blink_lit(null, 10.0, 0.0), "eine Lampe ohne Takt bleibt an")
 
 
 ## QA-WASSER B2: the pylon of a cable-stayed bridge ("prefer_proc": Arcade draws it procedurally, concrete grey at

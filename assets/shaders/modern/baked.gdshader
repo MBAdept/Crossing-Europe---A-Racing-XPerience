@@ -14,6 +14,11 @@ uniform sampler2D albedo_tex : source_color, filter_linear_mipmap_anisotropic, r
 uniform sampler2D emit_tex : source_color, hint_default_black, filter_linear_mipmap, repeat_disable;
 uniform float roughness = 0.9;                // one number per model (manifest "roughness")
 uniform float emit_energy = 1.6;              // linear energy of lit windows / floodlight at ce_night = 1
+// M2ZS1: albedo factor at ce_night = 1 (1 = unchanged, every material but the one below). builders/props.gd sets it
+// on its copy for the pylons of the cable-stayed bridges ("prefer_proc"): Arcade draws them procedurally as concrete ×
+// the ambient light at night, while the moon lights the light-concrete faces of the model (the Köhlbrandbrücke's
+// pylons were far brighter than Arcade's at 22:00).
+uniform float night_albedo = 1.0;
 // FIX1 (QA QB-03): a landmark model keeps Arcade's landmark law (RoadRenderer.landmark_fade) – visible up to
 // L = clamp(visibility × x, min(visibility, 600), max(y, visibility)), fading out over its last 28 % (ordered dither),
 // its colour going towards the fog colour × 1.15 by 0.85 × the haze; x <= 0: an ordinary prop (builders/props.gd sets
@@ -55,7 +60,9 @@ void fragment() {
 		discard;
 	}
 #endif
-	ALBEDO = lights_only ? vec3(0.0) : a.rgb;
+	// night_albedo = 1: a factor of exactly 1.0 – the picture of every other material stays as it was
+	vec3 alb = a.rgb * (1.0 - (1.0 - night_albedo) * clamp(ce_night, 0.0, 1.0));
+	ALBEDO = lights_only ? vec3(0.0) : alb;
 	ROUGHNESS = roughness;
 	METALLIC = 0.0;
 	SPECULAR = lights_only ? 0.0 : 0.35;
@@ -69,6 +76,6 @@ void fragment() {
 		haze *= 1.0 - light_cover;
 		FOG = vec4(ce_fog_unshow(min(a.rgb * ce_fog_color.rgb * 1.15, vec3(1.0))), haze);
 	} else {
-		FOG = ce_arcade_fog(a.rgb, dist, ce_fog_color, ce_fog_range);
+		FOG = ce_arcade_fog(alb, dist, ce_fog_color, ce_fog_range);
 	}
 }

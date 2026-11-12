@@ -50,6 +50,17 @@ const COVER_PER_TREE := 3          ## pieces of ground cover for a tree dropped 
 const COVER_SPREAD_M := 2.5        ## … scattered at most this far around its foot
 const COVER_MIN_BEYOND_M := 0.8    ## … and never closer than this to the paved edge
 const COVER_ITEM_BASE := 100000    ## item numbers of the pieces (hashes, lists): beyond every real item
+## Arcade's procedural pylon of a cable-stayed bridge (item "proc": "pylon") blinks its red aviation light
+## (RoadRenderer._pylon: lit while fmod(time + side × 0.4, 1.6) < 0.8, at night): the beacon lamps of the pylon model
+## (anchors at least PropLibrary.BEACON_MIN_H_M high) get that rhythm as "blink" = (period s, lit s, phase s per side),
+## which the flare layer reads with view.time (M2ZS1)
+const PYLON_BLINK := Vector3(1.6, 0.8, 0.4)
+## Albedo of a "prefer_proc" pylon model at night (baked.gdshader night_albedo): Arcade's procedural pylon is concrete ×
+## the ambient light (RoadRenderer._oc), the moon lights the model's light-concrete faces. Measured in FIX-WASSER-R's
+## pylon region (x 500–780, y 150–350) at the Köhlbrandbrücke km 78.1, 22:00, "Hoch" (M2ZS1): mean luminance Arcade
+## 60.1, ZS1 (dark stand-in) 58.4, the model with its night atlas 84.4, without it 79.5, with 0.55 60.2 – 0.5 keeps
+## the pylon a little darker than Arcade, like ZS1's stand-in.
+const PYLON_NIGHT_ALBEDO := 0.5
 
 var library: PropLibrary
 
@@ -237,6 +248,29 @@ func dark_material(set_id: String) -> ShaderMaterial:
 	mat.set_shader_parameter("headlight_color", Vector3.ZERO)
 	_dark_mats[set_id] = mat
 	return mat
+
+
+## The model of an item Arcade draws procedurally ("prefer_proc": bridge pylons, M2ZS1): its one surface's material
+## (baked.gdshader) duplicated without the night atlas (emit_energy 0), as the override of the node – AS4R baked the
+## sprite's floodlit pylon into the model's emission, which Arcade never shows (its procedural pylon is concrete x
+## ambient light at night: the Köhlbrandbrücke's pylons glowed light grey at 22:00). Same shader, no new variant; the
+## red aviation light stays as a blinking lamp of the flare layer (PYLON_BLINK). One copy per source material.
+func _dark_model_override(node: GeometryInstance3D, part: Dictionary) -> void:
+	var mesh: Variant = part.get("mesh")
+	if not (mesh is Mesh) or (mesh as Mesh).get_surface_count() != 1:
+		return
+	var src := (mesh as Mesh).surface_get_material(0)
+	if not (src is ShaderMaterial):
+		return
+	var key := "model%d" % src.get_instance_id()
+	var m: Variant = _dark_mats.get(key)
+	if m == null:
+		var dup := (src as ShaderMaterial).duplicate() as ShaderMaterial
+		dup.set_shader_parameter("emit_energy", 0.0)
+		dup.set_shader_parameter("night_albedo", PYLON_NIGHT_ALBEDO)
+		_dark_mats[key] = dup
+		m = dup
+	node.material_override = m
 
 
 ## A landmark model drawn with Arcade's landmark law: its one surface's material (baked.gdshader) duplicated with
@@ -567,12 +601,18 @@ static func _place(ctx: ChunkContext, inp: Dictionary, out: Dictionary, i: int, 
 	var key := ""
 	var model_id := ""
 	var tr: Transform3D
+	# an item Arcade draws procedurally instead of its sprite ("prefer_proc": the pylons of the cable-stayed bridges)
+	# shows no floodlight: neither the light layer of the sprite (stand-in, FIX-WASSER-R B2) nor the night atlas of
+	# the model (AS4R's pylon model carries the sprite's floodlit pylon in it, M2ZS1) – Arcade's procedural pylon stays
+	# concrete grey at night; its red aviation light is a blinking lamp (PYLON_BLINK)
+	var dark := not landmark and bool(it.get("prefer_proc", false))
 	if is_model:
 		model_id = chunk_variant(ctx.index, str(e["set"]), e["variants"])
 		var yaw := hash01(seg_index, j, 5) * TAU if bool(e["veg"]) or str(e["cls"]) == "rock" else 0.0
 		tr = ctx.frame(z, x, h, yaw).scaled_local(Vector3(sc, sc, sc))
-		key = "m|%s|%d" % [model_id, 1 if flipped else 0]
+		key = "%s|%s|%d" % ["md" if dark else "m", model_id, 1 if flipped else 0]
 		var lamps: Array = out["lamps"]
+		var pylon := str(it.get("proc", "")) == "pylon"
 		for lamp: Dictionary in (models.get(model_id, {}) as Dictionary).get("lamps", []):
 			var lp: Vector3 = lamp["pos"]
 			var ld: Vector3 = lamp["dir"]
@@ -583,12 +623,12 @@ static func _place(ctx: ChunkContext, inp: Dictionary, out: Dictionary, i: int, 
 			entry["pos"] = tr * lp
 			entry["dir"] = (tr.basis * ld).normalized()
 			entry["size"] = float(lamp["size"]) * sc
+			if pylon and lp.y >= PropLibrary.BEACON_MIN_H_M:
+				entry["blink"] = Vector3(PYLON_BLINK.x, PYLON_BLINK.y, float(side) * PYLON_BLINK.z)   # Arcade blinks it
 			lamps.append(entry)
-	var dark := false
 	if not is_model:
 		tr = Transform3D(Basis.from_scale(Vector3(sc, sc, sc)), ctx.local(z, x, h))
 		# a stand-in of an item Arcade draws procedurally (bridge pylons): no light layer, no headlights (B2)
-		dark = not landmark and bool(it.get("prefer_proc", false))
 		key = "%s|%s|%d" % ["l" if landmark else ("d" if dark else "s"), str(e["set"]), 1 if flipped else 0]
 	var groups: Dictionary = out["groups"]
 	var g: Dictionary = groups.get(key, {})
@@ -768,6 +808,8 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 					var node := _mmi(mp, buf, n, false, bool(g["mirror"]))
 					if bool(g.get("landmark", false)):
 						_landmark_override(node, mp)
+					elif bool(g.get("dark", false)):
+						_dark_model_override(node, mp)
 					node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if cast_ok and not has_caster and not bool(mp["billboard"]) \
 						else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 					node.set_meta(&"levels", int(rep_levels[rep]))

@@ -1333,6 +1333,13 @@ Tiefentextur gibt es im Compatibility-Renderer nur in `fragment()`, umgekehrtes 
 `street`, … mit den Lichtern der Palette, `on` immer) ein Schein, der dem Elternknoten folgt und verschwindet, wenn
 der Knoten den Baum verlässt. Fernschein: nah ist er ein Halo (35 %), wo die Leuchte kleiner als ein Pixel wird,
 trägt er die Lampe allein (100 %).
+**Blinkende Lampen** (M2ZS1): Eine feste Lampe mit `"blink"` = (Takt s, an s, Phase s) leuchtet nur nachts (Lichter
+der Palette über 0,2) und nur, solange `fposmod(view.time + Phase, Takt) < an` (`blink_lit()`, reine Funktion, nach
+`view.time` – im Pausenbild steht sie still). So blinkt die rote Flugbefeuerung auf den Pylonen der
+Schrägseilbrücken wie Arcades prozeduraler Pylon (`RoadRenderer._pylon`: 1,6 s Takt, 0,8 s an, die zwei Seiten um
+0,4 s versetzt, also im Wechsel), mit Arcades rotem Schein um die Lampe als zweitem Lichtpunkt (Radius max(3 px,
+1,2 m), Stärke 0,8 × Lichter). Den Takt gibt `builders/props.gd` (`PYLON_BLINK`) den Lampenankern des Pylonmodells ab
+25 m Höhe, nur für Einträge mit `proc` = `pylon`.
 
 ### 11.3 Lack und Glas
 
@@ -1550,6 +1557,7 @@ das Gelände mit `add_pool_material()` an.
   Boden vor der Wand – die Ebene `lights` legt ihn höchstens 1,5 m vor die Wand unter die Lampe
   (`pool_centre()`), nicht dorthin, wo die waagrechte Achse den Boden träfe.
 - Lampen hoch oben (Flugbefeuerung des Windrads, ab 25 m) bekommen keinen Kegel, nur den Schein der Ebene `flares`.
+  Die Flugbefeuerung des Brückenpylons (Modell seit AS4R, Anker auf 88,3 m) blinkt wie in Arcade (M2ZS1, 11.2).
 Fenster leuchten über Lampenkanal 12 (Modelle) bzw. den Nachtlicht-Atlas, ohne Anker.
 
 ### 12.5 Rotoren
@@ -1948,10 +1956,20 @@ Köhlbrandbrücke um 22 Uhr ganz. Jetzt:
   Brücken: [renderer-modern-gelaende.md](renderer-modern-gelaende.md) Abschnitt 3. Die Render-Prüfung
   `terrain_cover` bewacht das an der Köhlbrandbrücke (Position K1, km 78,1: Fernboden-Anteil unter dem Horizont
   höchstens 2 %; gemessen 0,38 %, mit dem alten `far_ground.gd` 31,96 %).
-- Pylone der Schrägseilbrücken (noch Vertretungen des Arcade-Sprites): nachts ohne die Lichtebene des Sprites und ohne
-  Scheinwerferlicht, betongrau wie Arcades prozeduraler Pylon (FIX-WASSER-R; vorher fast weiß).
-Offen für R5: Deck, Träger, Pylone (als Modell; aus der Nähe ist die Vertretung verwaschen), Uferwände, das rote
-Warnlicht auf der Pylonspitze (Arcade blinkt).
+- Pylone der Schrägseilbrücken: im Testbuild ZS1 Vertretungen des Arcade-Sprites, nachts ohne die Lichtebene des
+  Sprites und ohne Scheinwerferlicht, betongrau wie Arcades prozeduraler Pylon (FIX-WASSER-R; vorher fast weiß). Seit
+  AS4R (in der M2-Linie seit M2INT) ist der Pylon ein **Modell** (`props/bridge_pylon`, Seile bis zur Deckkante, eine
+  Stufe); die dunkle Vertretung bleibt der Rückfall, wenn das Modell fehlt. Der Nachtatlas des Modells ist der
+  angestrahlte Pylon des Sprites, den Arcade nie zeigt, und der Mond beleuchtet die hellen Betonflächen des Modells,
+  während Arcades prozeduraler Pylon nachts Beton × Umgebungslicht ist (`RoadRenderer._oc`) – beim Zusammenführen mit
+  ZS1 (M2ZS1) leuchteten die Pylone der Köhlbrandbrücke um 22 Uhr wieder hellgrau (gemessen im Bereich von
+  FIX-WASSER-R, 500–780 × 150–350, km 78,1, mittlere Leuchtdichte: Arcade 60,1, ZS1 58,4, Modell 84,4, ohne Nachtatlas
+  79,5). Jetzt bekommen Pylone mit `prefer_proc` eine Kopie des Modellmaterials ohne Nachtatlas (`emit_energy` 0) und
+  mit `night_albedo` 0,5 (`PYLON_NIGHT_ALBEDO`; neuer Parameter von `baked.gdshader`, Vorgabe 1 = jedes andere
+  Material unverändert; `_dark_model_override()`, Gruppe `md|…`) – derselbe Shader, keine neue Variante; bei Tag
+  dasselbe Bild. Die rote Flugbefeuerung ist ein Lampenanker des Modells und blinkt wie in Arcade (11.2).
+Offen für R5: Deck, Träger, Pylonhöhe und Seilfächer je Brücke (`height_m`, `cables`; das Modell hat Arcades
+Sprite-Höhe 88,8 m), Uferwände.
 
 ### 14.8 Zeit je Teil von `render()`
 

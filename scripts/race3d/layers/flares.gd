@@ -8,7 +8,8 @@ extends Node3D
 ##    chunk builders. They follow parent.global_transform and are forgotten when the parent leaves the tree. They
 ##    glow at night (role "lights" / "street" … follow ce_night; "on" always) as a far-field glow: near the camera
 ##    the lit lamp geometry carries the light and the glow is a soft halo, from the distance where the lamp is
-##    smaller than a pixel the glow alone carries it (Arcade shows its lamps up to the visibility limit);
+##    smaller than a pixel the glow alone carries it (Arcade shows its lamps up to the visibility limit); a lamp with
+##    a "blink" rhythm (the aviation light of a bridge pylon) is lit only in its phase (blink_lit(), view.time);
 ##  * occlusion by the depth buffer (in the shader): a lamp behind a crest, a truck or a wall shows 0 pixels.
 ## Owner: R3. Docs: docs/renderer-modern.md §10.
 
@@ -34,6 +35,14 @@ const TUNNEL_GLOW_M := 1.6
 const TUNNEL_GLOW_MIN_PX := 3.0
 const TUNNEL_GLOW_A := 0.9           ## flare.gdshader adds colour × 0.5 × strength: Arcade's alpha 0.45
 const TUNNEL_GLOW_COLOR := Color(1.0, 0.82, 0.55)
+## M2ZS1: a static lamp with "blink" = Vector3(period s, lit s, phase s) is lit only while blink_lit() – at night
+## (lights above BLINK_MIN_NIGHT) and while fposmod(view.time + phase, period) < lit. The red aviation light of a bridge
+## pylon blinks so, like Arcade's procedural pylon (RoadRenderer._pylon: lights > 0.2, fmod(time + side × 0.4, 1.6) <
+## 0.8), and gets Arcade's glow round it as a second flare (radius max(3 px, 1.2 m), alpha 0.8 × lights).
+const BLINK_MIN_NIGHT := 0.2
+const BEACON_GLOW_M := 1.2
+const BEACON_GLOW_MIN_PX := 3.0
+const BEACON_GLOW_A := 1.6           ## flare.gdshader adds colour × 0.5 × strength: Arcade's alpha 0.8
 
 var _renderer: Node
 var _mats: ModernMaterials
@@ -156,6 +165,7 @@ func _add_statics(view: Dictionary) -> void:
 	var night := clampf(float(pal.get("lights", 0.0)), 0.0, 1.0)
 	var in_tunnel := bool(view.get("camera_in_tunnel", false))
 	var vis := float(view.get("visibility_m", 900.0))
+	var time := float(view.get("time", 0.0))
 	var cam: Camera3D = _renderer.get("camera")
 	if cam == null:
 		return
@@ -195,6 +205,9 @@ func _add_statics(view: Dictionary) -> void:
 			var on := 1.0 if role == "on" else (maxf(night, 1.0 if in_tunnel else 0.0) if ROLES_NIGHT.has(role) else night)
 			if on <= 0.01:
 				continue
+			var blink: Variant = l.get("blink")
+			if blink != null and not blink_lit(blink, time, night):
+				continue
 			var p := pos[j]
 			var depth := -(cam_inv * p).z
 			if depth <= 0.5:
@@ -216,7 +229,22 @@ func _add_statics(view: Dictionary) -> void:
 				_put(p, dirs[j], LAMP_GLOW_COLOR, g, LAMP_GLOW_M, LAMP_GLOW_MIN_PX, 0.0, size * 0.5)
 			elif role == "tunnel":
 				_put(p, dirs[j], TUNNEL_GLOW_COLOR, on * alpha * TUNNEL_GLOW_A, TUNNEL_GLOW_M, TUNNEL_GLOW_MIN_PX, 0.0, size * 0.5)
+			elif blink != null:
+				# Arcade's red glow round the blinking aviation light of a bridge pylon
+				_put(p, dirs[j], col, night * alpha * BEACON_GLOW_A, BEACON_GLOW_M, BEACON_GLOW_MIN_PX, 0.0, size * 0.5)
 		i += 1
+
+
+## True while a blinking static lamp ("blink" = Vector3(period s, lit s, phase s)) is lit at view time `time`: only at
+## night (lights above BLINK_MIN_NIGHT), and for `lit` seconds of every period – Arcade's aviation light of a bridge
+## pylon (RoadRenderer._pylon). A lamp without a valid rhythm is always lit. Pure (unit test).
+static func blink_lit(blink: Variant, time: float, night: float) -> bool:
+	if not (blink is Vector3):
+		return true
+	var b: Vector3 = blink
+	if b.x <= 0.0:
+		return true
+	return night > BLINK_MIN_NIGHT and fposmod(time + b.z, b.x) < b.y
 
 
 func _put(pos: Vector3, dir: Vector3, col: Color, s: float, k: float, min_px: float, kind: float, lamp_r: float) -> void:
