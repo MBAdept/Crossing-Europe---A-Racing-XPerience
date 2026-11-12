@@ -69,6 +69,12 @@ static func load_manifest(manifest_path: String = "") -> bool:
 		return false
 	if not d.get("models") is Dictionary or not d.get("sets") is Dictionary or not _well_formed(d["models"], d["sets"]):
 		return false
+	# a test manifest may name the folder its mesh and texture paths are relative to ("root": "res://assets/models/"):
+	# the shipped models with a changed set table (tests/race3d/check_vehicles.gd "kasten"); the generator never
+	# writes the key
+	var root_dir: Variant = d.get("root", "")
+	if root_dir is String and (root_dir as String).begins_with("res://"):
+		_root = (root_dir as String).trim_suffix("/") + "/"
 	_models = d["models"]
 	_sets = d["sets"]
 	_ok = true

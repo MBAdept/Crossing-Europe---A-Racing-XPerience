@@ -6,12 +6,15 @@ extends SceneTree
 ##   lampen     every car of the view within sight is in debug_snapshot().vehicles with its set, model (or the box
 ##              stand-in) and the lamp levels of its view flags (tail with the lights of the palette and inside
 ##              tunnels, brake, indicators with Arcade's period, beacons) – by day and at night, with traffic
-##   kasten     a set without a model (traffic/sports_red, police/at) is drawn as the box stand-in, never missing;
-##              the semitrailer is drawn in two units at lod0
+##   kasten     a set without a model is drawn as its stand-in, never missing: since every vehicle set has a model
+##              (AS2a/AS2b) a test manifest takes the models of traffic/sports_red and police/at away (A-13); the
+##              semitrailer is drawn in two units at lod0
 ##   leistung   23 cars in sight (traffic of every kind incl. trucks and stand-ins, indicators and brakes): GDScript
 ##              time of the vehicle layer per car and frame <= 40 µs (median over the frames, after the nodes of
 ##              all cars exist) at the VM's normal speed – scaled by a reference workload timed next to every sample
-##              (fixtures/perf_clock.gd, RINT-B); no node is created while the same cars drive on
+##              (fixtures/perf_clock.gd, RINT-B); while the same cars drive on, a node is only built for the first
+##              level a car reaches in the window (the stage's own traffic drives on into lod2) and no level is
+##              freed for the instance budget (A-13, M2INT)
 ##   schilder   the signs of the stage are drawn from the atlas made in prepare(): no SubViewport and no texture
 ##              is created while driving (SignAtlas counters), every sign the chunks hold has an atlas cell
 ##   lampen_fest  renderer.add_lamps(parent, lamps) (A-7) reaches the flare layer: static lamps glow at night (not
@@ -37,6 +40,7 @@ const PERF_CLOCK := preload("res://tests/race3d/fixtures/perf_clock.gd")
 const CHECKS := ["lampen", "kasten", "leistung", "schilder", "lampen_fest", "schatten", "ueberblendung", "instanzen"]
 const PLAYER_ID := -999999
 const SIM_S_INSTANCES := 180.0   ## instanzen: seconds of view time the traffic streams past
+const BOX_SETS: Array[String] = ["traffic/sports_red", "police/at"]   ## kasten: sets the test manifest leaves without a model
 
 var _failed: Array[String] = []
 var _probe: GDScript
@@ -189,6 +193,11 @@ func _check_lampen() -> void:
 
 func _check_kasten() -> void:
 	var p: Array[String] = []
+	# since AS2a/AS2b every vehicle set has a model: a test manifest takes the models of two sets away (A-13)
+	var test_manifest := _manifest_without_models(BOX_SETS)
+	_need(p, test_manifest != "" and ModelDB.load_manifest(test_manifest), "Test-Manifest ohne Modell für %s" % ", ".join(BOX_SETS))
+	for sid: String in BOX_SETS:
+		_need(p, not ModelDB.has_model(sid) and not ModelDB.object_size(sid).is_empty(), "%s ohne Modell, mit Maßen" % sid)
 	var sc := _launch({"autopilot": false, "start_speed_kmh": 0.0})
 	var r := await _ready_stage(sc)
 	var cam_z := float(r.view.get("camera_z", 0.0))
@@ -213,7 +222,30 @@ func _check_kasten() -> void:
 	_need(p, groups == 2, "Sattelzug in zwei Einheiten (Zugmaschine, Auflieger: %d)" % groups)
 	_probe.call("reset")
 	await _free(sc)
-	_report("kasten", p, "Sets ohne Modell als Kasten mit Lampen, Sattelzug in %d Einheiten" % groups)
+	_need(p, ModelDB.load_manifest() and ModelDB.has_model(BOX_SETS[0]), "ausgeliefertes Manifest wieder geladen")
+	_report("kasten", p, "Sets ohne Modell (Test-Manifest) als Ersatz mit Lampen, Sattelzug in %d Einheiten" % groups)
+
+
+## The shipped manifest with the models of `set_ids` taken away (each a stand-in {"fallback": "box", "object",
+## "paint"} as the generator writes it for a vehicle without a model), written to user://; its mesh paths stay those
+## of the shipped models ("root"). "" when it cannot be written.
+func _manifest_without_models(set_ids: Array) -> String:
+	var src: Variant = JSON.parse_string(FileAccess.get_file_as_string(ModelDB.ROOT + ModelDB.MANIFEST))
+	if not src is Dictionary:
+		return ""
+	var m: Dictionary = src
+	m["root"] = ModelDB.ROOT
+	var sets: Dictionary = m["sets"]
+	for sid: String in set_ids:
+		var r := ModelDB.resolve(sid)
+		sets[sid] = {"fallback": "box", "object": r.get("object", {}), "paint": r.get("paint", {})}
+	var path := "user://check_vehicles_kasten_manifest.json"
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	if f == null:
+		return ""
+	f.store_string(JSON.stringify(m))
+	f.close()
+	return path
 
 
 # --- leistung ----------------------------------------------------------------------------------------------------
@@ -237,6 +269,11 @@ func _check_leistung() -> void:
 	await _frames(30)
 	var vl: Node = r.layer("vehicles")
 	var before: Dictionary = vl.call("perf")
+	# the levels every car has shown so far: a level is built the first time a car needs it (a car of the stage's own
+	# traffic that drives on from lod1 into lod2 builds its lod2 once - M2INT: since every set has a model, A-13);
+	# any other build in the window is a rebuild of a level the car had (a trimmed level, a lost node)
+	var seen := _levels_seen(r, {})
+	var seen_before := seen.size()
 	# RINT-B: measured against a reference workload of this process, timed next to every sample (PerfClock): the
 	# budget means "µs per car on this VM at its normal speed", whatever else the shared machine does
 	var clock: RefCounted = PERF_CLOCK.new()
@@ -248,18 +285,31 @@ func _check_leistung() -> void:
 		var us := float(Time.get_ticks_usec() - t0)
 		drawn = int((vl.call("perf") as Dictionary)["vehicles"])
 		clock.call("add", us / maxf(1.0, float(drawn)))
+		_levels_seen(r, seen)
 		await process_frame
 	var median: float = clock.call("normal_median")
 	var raw: float = PERF_CLOCK.median(clock.get("samples"))
 	var after: Dictionary = vl.call("perf")
+	var built := int(after["vehicle_builds"]) - int(before["vehicle_builds"])
+	var first_levels := seen.size() - seen_before
 	_need(p, drawn >= 23, "23 Autos gezeichnet (%d)" % drawn)
 	_need(p, median <= 40.0, "≤ 40 µs je Auto und Bild bei normalem Tempo der Maschine (Median %.1f µs; gemessen %.1f µs, Tempo × %.2f)" % [
 		median, raw, float(clock.call("factor"))])
-	_need(p, int(after["vehicle_builds"]) == int(before["vehicle_builds"]), "keine Knoten gebaut, solange dieselben Autos fahren (%d → %d)" % [int(before["vehicle_builds"]), int(after["vehicle_builds"])])
+	_need(p, built <= first_levels, "keine Knoten gebaut, solange dieselben Autos fahren, außer der ersten Stufe, die ein Auto im Fenster erreicht (%d Bauten, %d erste Stufen)" % [built, first_levels])
+	_need(p, int(after.get("vehicle_trims", 0)) == int(before.get("vehicle_trims", 0)), "keine Stufe für das Instanzbudget freigegeben (%d → %d)" % [int(before.get("vehicle_trims", 0)), int(after.get("vehicle_trims", 0))])
 	_probe.call("reset")
 	await _free(sc)
-	_report("leistung", p, "%d Autos (Pkw, Lkw, Kästen, Polizei): Fahrzeug-Ebene im Median %.1f µs je Auto und Bild bei normalem Tempo (p90 %.1f µs; Wanduhr %.1f µs, Referenz × %.2f), %d Knotenbauten beim Erscheinen" % [
-		drawn, median, float(clock.call("normal_quantile", 0.9)), raw, float(clock.call("factor")), int(after["vehicle_builds"])])
+	_report("leistung", p, "%d Autos (Pkw, Lkw, Kästen, Polizei): Fahrzeug-Ebene im Median %.1f µs je Auto und Bild bei normalem Tempo (p90 %.1f µs; Wanduhr %.1f µs, Referenz × %.2f), %d Knotenbauten beim Erscheinen, %d erste Stufen im Fenster" % [
+		drawn, median, float(clock.call("normal_quantile", 0.9)), raw, float(clock.call("factor")), int(before["vehicle_builds"]), built])
+
+
+## Adds "<car id>|<level>" of every car of the snapshot (shown level and the level it fades out of) to `seen`.
+func _levels_seen(r: ModernRenderer, seen: Dictionary) -> Dictionary:
+	for v: Dictionary in r.debug_snapshot().get("vehicles", []):
+		seen["%d|%s" % [int(v["id"]), str(v["lod"])]] = true
+		if str(v.get("xf_lod", "")) != "":
+			seen["%d|%s" % [int(v["id"]), str(v["xf_lod"])]] = true
+	return seen
 
 
 # --- schatten --------------------------------------------------------------------------------------------------------
