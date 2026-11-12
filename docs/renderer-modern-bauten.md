@@ -136,7 +136,10 @@ Aus den Schild-Einträgen mit Seite 0 („start“ 14 m nach der Startlinie, „
 - das Banner 5,4–7 m, 0,3 m tief; seine Vorderseite ist eine Tafel des Schriftatlas, gezeichnet mit Arcades Aufteilung:
   Ziel rot mit den Schachbrettstreifen oben und unten und dem Text („ZIEL“), Start dunkel mit hellem Streifen und
   „START“ – je Tor eine Tafel in seiner Breite (Schlüssel aus Art, Text und den Bankettkanten, in `prepare()` aus dem
-  `Track` berechnet, im Stück aus `ChunkContext.shoulder_edge()` – derselbe Wert, Unit-Test);
+  `Track` berechnet, im Stück aus `ChunkContext.shoulder_edge()` – derselbe Wert, Unit-Test). Bei Nacht leuchtet das
+  Banner wie Arcades (das es so hell wie bei Tag zeichnet): Nachtbild mit 0,6 der Tagesfarben (× 1,6 im Tafel-Shader),
+  beim dunklen Startbanner nur Schrift und Streifen (Bild `v3_dev_finish_night`: ohne das war das Zielbanner fast
+  schwarz);
 - drei Countdown-Lampen in schwarzen Gehäusen mit Schirm an Arcades Stellen (1,4 + i × 1,15 m rechts der Straßenmitte,
   0,8 m unter der Oberkante): rot, eine mehr je Sekunde, alle grün ab „LOS!“ bis 2 s danach, sonst aus
   (`lamp_state()`, Arcades Regel, Unit-Test über die Countdown-Werte); Schein über die Ebene `flares` mit Arcades
