@@ -10,13 +10,14 @@ extends ChunkBuilder
 ##  * at the front (TrackSegment.cover_front): Arcade's fascia from 6.0 to 7.6 m – white with the blue band at its foot,
 ##    the European flag at its left end and the name of the country entered in Arcade's sign font (a panel of the
 ##    stage's lettering atlas, drawn once in prepare() – never a Label3D), backlit at night;
-##  * pillars 0.6 m outside the shoulder edges (pillar_plan()): Arcade's two at the front and two more at the end of the
-##    roof – but none that could hide a sign (F1) and none inside a bend's sight corridor (F7).
+##  * pillars (pillar_plan()): Arcade's two at the front 0.6 m outside the shoulder edges and two more at the end of the
+##    roof – moved out beyond the sign boards where they could cover a sign (F1), with a beam to the roof edge; none
+##    but Arcade's front ones inside a bend's sight corridor (F7).
 ## The booths are models of the props builder (props/customs_booth, AS1b) at Arcade's places on the shoulders. Arcade
 ## has neither a barrier nor a stop line at its border stations, so Modern has none either.
 ## Fairness: the soffit keeps Arcade's height (6.0 m) – the camera at 3.4 m sees every car under the roof as in Arcade.
 ## A sign standing under the roof is drawn by Arcade over its pillar (the same slice of its painter's order): in 3D that
-## pillar would cover the sign (QA picture v2_border_day: "Tankstelle 15 km" on DEV half hidden), so it is left out.
+## pillar would cover the sign (picture v2_border_day: "Tankstelle 15 km" on DEV half hidden), so it moves out.
 ## Materials: ModernMaterials.VPBR_STATIC for the structure, the class "baked" for the fascia panels. Shadows only with
 ## structure casters. Builder rules: build() on worker threads – ctx snapshot and the plain tables of collect() only.
 ## Owner: R6 (wave 3). Docs: docs/renderer-modern-bauten.md.
@@ -32,14 +33,18 @@ const PILLAR_OUT := 0.6            ## pillars this far beyond the shoulder edges
 const PILLAR_W := 0.55             ## … this wide (Arcade)
 const PILLAR_IN := 0.5             ## … this far inside the roof's front and end
 const PLINTH_HALF := 0.425         ## half the size of a pillar's plinth (its front face: z − PLINTH_HALF)
-## A pillar Arcade does not have stands only where no sign is behind it within this distance on its side: a sign d metres
-## behind it can only be covered while the camera is d / (1 − r) from the sign (r = lateral offset of the pillar's
-## inner face over that of the board's outer edge, both seen from the camera; ≥ 0.66 for a camera in a lane with the
-## 2.5 m shoulder), i.e. a sign farther behind only while it is more than ~350 m away.
+## A pillar at Arcade's place that Arcade does not have (at the end of the roof) stands there only where no sign is
+## behind it within this distance on its side: a sign d metres behind it can only be covered while the camera is
+## d / (1 − r) from the sign (r = lateral offset of the pillar's inner face over that of the board's outer edge, both
+## seen from the camera; ≥ 0.66 for a camera in a lane with the 2.5 m shoulder), i.e. a sign farther behind only while
+## it is more than ~350 m away. Otherwise the pillar moves out (OUT_GAP).
 const SIGN_SCAN_M := 120.0
-## Track puts the booths (props/customs_booth, 3.9 m long, model AABB z −3.2 .. 0.7) 5 m behind the border: a pillar
-## in place of a front pillar stands behind them
-const BOOTH_BACK_M := 9.0
+## An outer pillar stands with its inner face this far beyond the outer edge of every sign board of its side (from the
+## roof to SIGN_SCAN_M behind it): seen from the road it can cover none of them. A beam at the soffit carries the roof
+## edge over to it.
+const OUT_GAP := 0.25
+const BEAM_H := 0.45
+const BEAM_D := 0.4
 const BAR := Vector2(1.8, 0.3)     ## light bar: across, along
 const BAR_DROP := 0.1              ## the luminaire hangs this far below the soffit
 ## Arcade's glow round each light bar (RoadRenderer._border_cover: radius 2 m, alpha 0.3 × lights): flare radius = size ×
@@ -239,8 +244,7 @@ static func pillars_in_chunk(ctx: ChunkContext) -> Array:
 	for zn: Dictionary in tr.zones:
 		if str(zn.get("kind", "")) != "border":
 			continue
-		var bz := float(zn["z0"])
-		var r0 := floorf(bz / len_s) * len_s
+		var r0 := floorf(float(zn["z0"]) / len_s) * len_s
 		var r1 := ceilf(float(zn["z1"]) / len_s) * len_s
 		if r0 > zb:
 			break
@@ -253,41 +257,56 @@ static func pillars_in_chunk(ctx: ChunkContext) -> Array:
 			for sp: Variant in s.sprites:
 				var it: Dictionary = sp
 				if str(it.get("kind", "")) == "sign" and int(it.get("side", 1)) != 0:
-					signs.append([float(it.get("z", s.z)), int(it.get("side", 1))])
-		for p: Array in pillar_plan(r0, r1, bz, signs):
+					var zs := float(it.get("z", s.z))
+					var side := int(it.get("side", 1))
+					var ed := edges_at(tr, zs)
+					var edge := ed.y if side > 0 else -ed.x
+					var hw := SignPainter.board_half_width(str(it.get("sign", ""))) * float(it.get("scale", 1.0))
+					signs.append([zs, side, absf(float(it.get("x", 0.0))) + hw - edge])
+		for p: Array in pillar_plan(r0, r1, signs):
 			if float(p[0]) >= za and float(p[0]) < zb:
 				out.append(p)
 	return out
 
 
-## The pillars of a roof from r0 (start of its front segment) to r1 (end of its last segment) at the border bz:
-## [[z, side, kind]] per side –
-##  * "front": Arcade's, PILLAR_IN behind r0 – unless a sign of its side stands under the roof behind its front face
-##    (Arcade draws such a sign over the pillar; in 3D the pillar would cover it). Then "moved": one behind that sign
-##    and behind the booth (BOOTH_BACK_M behind bz), at least 2 m before the end pillar's place, where no sign of its
-##    side stands within SIGN_SCAN_M behind it;
-##  * "end": PILLAR_IN before r1 where no sign of its side stands within SIGN_SCAN_M behind it (Arcade has none there).
-## A side may end up without a pillar (the roof is then carried by the other side's). build() leaves out the pillars
-## other than Arcade's that stand in a bend's sight corridor (F7). signs: [[z, side]] of the signs from r0 to
-## r1 + SIGN_SCAN_M. Pure.
-static func pillar_plan(r0: float, r1: float, bz: float, signs: Array) -> Array:
+## The pillars of a roof from r0 (start of its front segment) to r1 (end of its last segment):
+## [[z, side, kind, out]] – `out`: the pillar's centre this far beyond the shoulder edge of its side. Per side:
+##  * at the front "front": Arcade's (PILLAR_OUT, PILLAR_IN behind r0) – unless a sign of its side stands under the roof
+##    behind its front face: Arcade draws such a sign over its pillar (the same slice of its painter's order), in 3D the
+##    pillar would cover it. Then "front_out": a pillar at the front further out, beyond the boards (outer_place());
+##  * at the end "end": at Arcade's distance from the edge where no sign of its side stands within SIGN_SCAN_M behind it,
+##    otherwise "end_out" beyond the boards. Arcade has no pillar there.
+## No pillar can so cover a sign. build() leaves out every pillar but Arcade's "front" that stands in a bend's sight
+## corridor (F7) – a roof in a bend may then stand on one side only. signs: [[z, side, outer edge of the board beyond the
+## shoulder edge]] from r0 to r1 + SIGN_SCAN_M. Pure.
+static func pillar_plan(r0: float, r1: float, signs: Array) -> Array:
 	var out: Array = []
 	for side: int in [-1, 1]:
+		var far := outer_place(signs, side, r0 - 1.0, r1 + SIGN_SCAN_M)
 		var zf := r0 + PILLAR_IN
-		var last := -INF
+		var under := false
 		for s: Array in signs:
-			if int(s[1]) == side and float(s[0]) >= zf - PLINTH_HALF and float(s[0]) <= r1:
-				last = maxf(last, float(s[0]))
-		if last == -INF:
-			out.append([zf, side, "front"])
-		else:
-			var zm := maxf(bz + BOOTH_BACK_M, last + PLINTH_HALF + 0.3)
-			if zm <= r1 - PILLAR_IN - 2.0 and not _sign_behind(signs, side, zm, zm + SIGN_SCAN_M):
-				out.append([zm, side, "moved"])
+			# under the roof: in one of its segments (a sign at r1 stands in the next segment – another slice of Arcade's
+			# painter's order, which Arcade's pillar covers as well)
+			if int(s[1]) == side and float(s[0]) >= zf - PLINTH_HALF and float(s[0]) < r1:
+				under = true
+		out.append([zf, side, "front_out", far] if under else [zf, side, "front", PILLAR_OUT])
 		var ze := r1 - PILLAR_IN
-		if not _sign_behind(signs, side, ze, ze + SIGN_SCAN_M):
-			out.append([ze, side, "end"])
+		if _sign_behind(signs, side, ze, ze + SIGN_SCAN_M):
+			out.append([ze, side, "end_out", far])
+		else:
+			out.append([ze, side, "end", PILLAR_OUT])
 	return out
+
+
+## The place of an outer pillar of `side` (m beyond the shoulder edge): its inner face OUT_GAP beyond the outer edge of
+## every board of that side from z0 to z1, never inside Arcade's place.
+static func outer_place(signs: Array, side: int, z0: float, z1: float) -> float:
+	var far := PILLAR_OUT
+	for s: Array in signs:
+		if int(s[1]) == side and float(s[0]) >= z0 and float(s[0]) <= z1:
+			far = maxf(far, float(s[2]) + OUT_GAP + PILLAR_W * 0.5)
+	return far
 
 
 ## True when a sign of `side` stands behind the front face of a pillar at z, up to z_to.
@@ -384,8 +403,8 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 			pools += 1
 	if covers == 0:
 		return {}
-	# pillars (pillar_plan(): none that could hide a sign, F1), those Arcade does not have never inside a bend's sight
-	# corridor (F7)
+	# pillars (pillar_plan(): none that could cover a sign, F1), all but Arcade's front ones never inside a bend's sight
+	# corridor (F7); an outer pillar beyond the roof's edge carries it on a beam under the soffit
 	var pillar_at: Array = []
 	var plan: Array = (input as Dictionary).get("pillars", []) if input is Dictionary else []
 	for p: Array in plan:
@@ -394,12 +413,24 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 		var sr: Dictionary = ctx.segs[row]
 		if str(sr["cover"]) == "" or bool(sr["tunnel"]):
 			continue
-		var px := ctx.shoulder_edge(row, 1) + PILLAR_OUT if int(p[1]) > 0 else -ctx.shoulder_edge(row, -1) - PILLAR_OUT
+		var sd := 1.0 if int(p[1]) > 0 else -1.0
+		var edge := ctx.shoulder_edge(row, int(sd))
+		var out := float(p[3])
+		var px := sd * (edge + out)
 		if str(p[2]) != "front" and ctx.in_bend_corridor(zp, px):
 			continue
 		var g := minf(ctx.ground(zp, px), 0.0) - 0.3
+		var top := ROOF_H
+		var beam := out + PILLAR_W * 0.5 > FASCIA_OUT
+		if beam:
+			top = ROOF_H + BEAM_H
+			var bx0 := edge + FASCIA_OUT - 0.3
+			var bx1 := edge + out + PILLAR_W * 0.5
+			var fb := ctx.frame(zp, sd * (bx0 + bx1) * 0.5, 0.0)
+			kit.box(fb, Vector3(0.0, ROOF_H + BEAM_H * 0.5, 0.0), Vector3((bx1 - bx0) * 0.5, BEAM_H * 0.5, BEAM_D * 0.5), PILLAR, ROUGH_METAL,
+				1 | 2 | 4 | 8 | 16 | 32)
 		var f := ctx.frame(zp, px, 0.0)
-		kit.box(f, Vector3(0.0, (g + ROOF_H) * 0.5, 0.0), Vector3(PILLAR_W, ROOF_H - g, PILLAR_W) * 0.5, PILLAR, ROUGH_METAL, 1 | 2 | 4 | 8)
+		kit.box(f, Vector3(0.0, (g + top) * 0.5, 0.0), Vector3(PILLAR_W, top - g, PILLAR_W) * 0.5, PILLAR, ROUGH_METAL, 1 | 2 | 4 | 8)
 		kit.box(f, Vector3(0.0, (g + 0.35) * 0.5, 0.0), Vector3(PLINTH_HALF, (0.35 - g) * 0.5, PLINTH_HALF), PILLAR.darkened(0.2),
 			ROUGH_CONCRETE, 1 | 2 | 4 | 8 | 16)
 		pillars += 1

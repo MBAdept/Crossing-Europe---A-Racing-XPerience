@@ -8,8 +8,9 @@ extends SceneTree
 ## ModernRenderer.world_to_screen() of the structures' own debug data:
 ##   countdown   Kiel – Hamburg km 0: 1 s into the countdown the first two lamps of the start gantry are red, the third
 ##               dark; just after "LOS!" all three green; 2 s later all dark (Arcade's rule)
-##   tankstelle  Kiel – Hamburg at the fuel stop, 12:00: the front of a canopy shows its panel (white fascia, blue
-##               lettering, red band) – no Label3D anywhere; 21:00: the fascia glows and the light pools light the lane
+##   tankstelle  Kiel – Hamburg ~40 m before the fuel stop, 12:00: the front of the first canopy 25 m or more ahead shows
+##               its panel (white fascia, blue lettering, red band) – no Label3D anywhere; 21:00: the fascia glows and
+##               the light pools light the lane under the canopy at least like Arcade's at the same spot
 ##   zieltor     Kiel – Hamburg before the finish: the banner shows red, black and white (the checker strips)
 ##   grenze      the test stage at its border, 12:00: the fascia shows white and the European blue; 21:00: the light
 ##               bars under the roof are lit
@@ -25,6 +26,7 @@ extends SceneTree
 const RACE := "res://scenes/race/race.tscn"
 const CHECKS := ["countdown", "tankstelle", "zieltor", "grenze", "blitz", "stadt", "schatten"]
 const BUILDERS := ["station", "border", "city", "gantry", "radar"]
+const STATION_KM := 13.62          ## Kiel – Hamburg: the camera ~40 m before the first canopy of the fuel stop
 
 var _failed: Array[String] = []
 var _wall0 := 0
@@ -255,7 +257,9 @@ func _check_tankstelle() -> void:
 	var p: Array[String] = []
 	var msgs: Array = []
 	for hour: float in [12.0, 21.0]:
-		var sc: Node = await _launch("modern", {"start_km": 13.95, "start_world_minutes": hour * 60.0})
+		# 40 m before the first canopy: its front fascia is seen whole (from closer in, the canopy above the camera
+		# covers the fascias of the canopies behind it)
+		var sc: Node = await _launch("modern", {"start_km": STATION_KM, "start_world_minutes": hour * 60.0})
 		var img: Image = await _picture_after(sc, 30)
 		var r: Object = sc.get("renderer")
 		if not (r is ModernRenderer):
@@ -292,7 +296,7 @@ func _check_tankstelle() -> void:
 				var lane_m: Vector3 = _screen(sc, front + 6.0, e - 1.9, 0.0)
 				var lr := region(img, box_at(lane_m, 0.8, 0.3))
 				await _free(sc)
-				var sa: Node = await _launch("arcade", {"start_km": 13.95, "start_world_minutes": hour * 60.0})
+				var sa: Node = await _launch("arcade", {"start_km": STATION_KM, "start_world_minutes": hour * 60.0})
 				var img_a: Image = await _picture_after(sa, 30)
 				_save(img_a, "tankstelle_%02d_arcade" % int(hour))
 				var lane_a: Vector3 = _screen(sa, front + 6.0, e - 1.9, 0.0)
@@ -482,7 +486,7 @@ func _check_schatten() -> void:
 			continue
 		if setting == "off":
 			CliArgs.all()["gfx"] = "shadows=0"
-		var sc: Node = await _launch("modern", {"start_km": 13.95})
+		var sc: Node = await _launch("modern", {"start_km": STATION_KM})
 		await _picture_after(sc, 5)
 		counts[setting] = _casting_nodes(sc.get("renderer"))
 		CliArgs.all().erase("gfx")

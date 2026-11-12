@@ -247,55 +247,59 @@ func test_border_station_of_the_test_stage() -> void:
 	assert_eq(BorderB.country_name(t, "NL"), "NEDERLAND", "Name wie Arcade: plan.borders name_local, groß")
 	# F1: no pillar covers a sign. On DEV the sign "Tankstelle 15 km" stands in the first segment of the roof (Arcade
 	# draws it over its right pillar – picture v2_border_day), the sign "Autobahn" under it on the right, a chevron under
-	# it on the left: both front pillars give way. The border lies in a right bend – its sight corridor (F7) takes
-	# the right side –, so the roof stands on two pillars on the left (behind the chevron and at its end).
+	# it on the left: both front pillars move out beyond the boards. The border lies in a right bend – its sight corridor
+	# (F7) takes the right side –, so the roof stands on the two pillars on the left.
 	var signs: Array = []
 	for i in range(t.segment_index_at(bz - 30.0), t.segment_index_at(roof_end + BorderB.SIGN_SCAN_M) + 1):
 		var sg := t.get_segment(i)
 		for sp: Variant in sg.sprites:
 			var it: Dictionary = sp
 			if str(it.get("kind", "")) == "sign" and int(it.get("side", 1)) != 0:
-				signs.append([float(it.get("z", sg.z)), int(it.get("side", 1)), str(it.get("sign", ""))])
+				var zs := float(it.get("z", sg.z))
+				var hw := SignPainter.board_half_width(str(it.get("sign", ""))) * float(it.get("scale", 1.0))
+				signs.append([zs, int(it.get("side", 1)), str(it.get("sign", "")), absf(float(it.get("x", 0.0))) + hw])
 	var covered: Array = []
 	var kinds: Array = []
 	for p: Array in pillar_at:
 		var zp := float(p[0])
 		var side := 1 if float(p[1]) > 0.0 else -1
+		var inner := absf(float(p[1])) - BorderB.PILLAR_W * 0.5      # the pillar's face towards the road (m from the centre)
 		kinds.append("%s%s" % ["R" if side > 0 else "L", str(p[2])])
-		var reach := roof_end if str(p[2]) == "front" else zp + BorderB.SIGN_SCAN_M
+		var reach := roof_end - 0.01 if str(p[2]) == "front" else zp + BorderB.SIGN_SCAN_M
 		for s: Array in signs:
-			if int(s[1]) == side and float(s[0]) >= zp - BorderB.PLINTH_HALF and float(s[0]) <= reach:
+			# a board behind the pillar that reaches beyond its inner face can be covered from some point of the road
+			if int(s[1]) == side and float(s[0]) >= zp - BorderB.PLINTH_HALF and float(s[0]) <= reach and float(s[3]) > inner:
 				covered.append("%s %s bei %+.1f m hinter Pfeiler %s" % ["rechts" if side > 0 else "links", str(s[2]), float(s[0]) - zp, str(p[2])])
 	assert_eq(covered, [], "kein Pfeiler vor einem Schild (F1)")
-	assert_false(kinds.has("Rfront") or kinds.has("Lfront"), "vorn kein Pfeiler vor 'Tankstelle 15 km' und dem Leitpfeil (%s)" % str(kinds))
-	assert_true(pillar_at.size() >= 2, "das Dach steht auf mindestens zwei Pfeilern (%s)" % str(kinds))
+	assert_false(kinds.has("Rfront") or kinds.has("Lfront"), "vorn nicht Arcades Pfeiler vor 'Tankstelle 15 km' und dem Leitpfeil (%s)" % str(kinds))
+	assert_true(kinds.has("Lfront_out") and kinds.has("Lend"), "links ein äußerer Pfeiler vorn und einer am Ende (%s)" % str(kinds))
 
 
 func test_border_pillar_plan() -> void:
 	var r0 := 6498.0
 	var r1 := 6519.0
-	var bz := 6500.0
-	var plain := BorderB.pillar_plan(r0, r1, bz, [])
-	assert_eq(plain, [[r0 + 0.5, -1, "front"], [r1 - 0.5, -1, "end"], [r0 + 0.5, 1, "front"], [r1 - 0.5, 1, "end"]],
+	var o := BorderB.PILLAR_OUT
+	var plain := BorderB.pillar_plan(r0, r1, [])
+	assert_eq(plain, [[r0 + 0.5, -1, "front", o], [r1 - 0.5, -1, "end", o], [r0 + 0.5, 1, "front", o], [r1 - 0.5, 1, "end", o]],
 		"ohne Schilder: Arcades Pfeiler vorn und zwei am Ende")
-	# a sign under the roof on the right: the right front pillar gives way to one behind the booth
-	var under := BorderB.pillar_plan(r0, r1, bz, [[bz, 1]])
-	assert_true(not under.has([r0 + 0.5, 1, "front"]) and under.has([bz + BorderB.BOOTH_BACK_M, 1, "moved"]),
-		"Schild unter dem Dach rechts: Pfeiler hinter dem Häuschen statt vorn (%s)" % str(under))
-	assert_true(under.has([r0 + 0.5, -1, "front"]), "links bleibt Arcades Pfeiler")
-	# … behind the last sign under the roof when that stands farther back; none when it stands too close to the end
-	var deep := BorderB.pillar_plan(r0, r1, bz, [[bz + 12.0, 1]])
-	assert_true(deep.has([bz + 12.0 + BorderB.PLINTH_HALF + 0.3, 1, "moved"]), "hinter dem letzten Schild (%s)" % str(deep))
-	var late := BorderB.pillar_plan(r0, r1, bz, [[r1 - 2.0, 1]])
-	assert_eq(late.filter(func(p: Array) -> bool: return int(p[1]) == 1), [[r1 - 0.5, 1, "end"]], "Schild am Dachende: nur der Pfeiler am Ende")
+	# a sign under the roof on the right (board 1.4 m beyond the shoulder edge): the right front pillar moves out beyond
+	# it – and beyond the limit sign 20 m behind the roof (board to 1.85 m), which also moves the end pillar out
+	var far := 1.85 + BorderB.OUT_GAP + BorderB.PILLAR_W * 0.5
+	var under := BorderB.pillar_plan(r0, r1, [[6500.0, 1, 1.4], [6520.0, 1, 1.85]])
+	assert_true(under.has([r0 + 0.5, 1, "front_out", far]) and under.has([r1 - 0.5, 1, "end_out", far]),
+		"Schild unter dem Dach rechts: äußere Pfeiler jenseits der Tafeln (%s)" % str(under))
+	assert_true(under.has([r0 + 0.5, -1, "front", o]) and under.has([r1 - 0.5, -1, "end", o]), "links bleiben Arcades Stellen")
+	# a sign at r1 stands in the next segment (another slice in Arcade): Arcade's front pillar stays, the end one moves out
+	var at_end := BorderB.pillar_plan(r0, r1, [[r1, 1, 1.85]])
+	assert_true(at_end.has([r0 + 0.5, 1, "front", o]) and at_end.has([r1 - 0.5, 1, "end_out", far]), "Schild am Dachende (%s)" % str(at_end))
 	# a sign in front of a pillar's front face hides nothing
-	assert_eq(BorderB.pillar_plan(r0, r1, bz, [[r0, 1], [r0 - 20.0, -1]]), plain, "Schilder vor den Pfeilern ändern nichts")
-	# a sign 50 m behind the roof on the left: no end pillar there (Arcade's front pillar stays: Arcade covers it alike)
-	var after := BorderB.pillar_plan(r0, r1, bz, [[r1 + 50.0, -1]])
-	assert_true(not after.has([r1 - 0.5, -1, "end"]) and after.has([r0 + 0.5, -1, "front"]),
-		"Schild 50 m hinter dem Dach links: kein Pfeiler am Ende links (%s)" % str(after))
-	# beyond SIGN_SCAN_M a sign keeps the end pillar
-	assert_eq(BorderB.pillar_plan(r0, r1, bz, [[r1 + BorderB.SIGN_SCAN_M + 1.0, -1]]), plain, "Schild weiter hinten: alle Pfeiler")
+	assert_eq(BorderB.pillar_plan(r0, r1, [[r0, 1, 1.4], [r0 - 20.0, -1, 2.75]]), plain, "Schilder vor den Pfeilern ändern nichts")
+	# a sign 50 m behind the roof on the left: the end pillar moves out (Arcade's front pillar stays: Arcade covers it alike)
+	var after := BorderB.pillar_plan(r0, r1, [[r1 + 50.0, -1, 1.85]])
+	assert_true(after.has([r1 - 0.5, -1, "end_out", far]) and after.has([r0 + 0.5, -1, "front", o]),
+		"Schild 50 m hinter dem Dach links: Pfeiler am Ende links nach außen (%s)" % str(after))
+	# beyond SIGN_SCAN_M a sign keeps the end pillar at Arcade's distance
+	assert_eq(BorderB.pillar_plan(r0, r1, [[r1 + BorderB.SIGN_SCAN_M + 1.0, -1, 1.85]]), plain, "Schild weiter hinten: alle Pfeiler an Arcades Stelle")
 
 
 # --- city ----------------------------------------------------------------------------------------------------------

@@ -85,17 +85,24 @@ Auf den Segmenten mit `cover == "border"` (18 m ab der Grenze), wie `RoadRendere
   Seiten mit blauem Band.
 - **Stirnblende** 6,0–7,6 m: weiß, blaues Band unten, Europaflagge 1,2 m vom linken Ende, der Name des Landes
   (`plan.borders` `name_local`, in Großbuchstaben) – eine Tafel des Schriftatlas je Grenze, nachts hinterleuchtet.
-- **Pfeiler** 0,55 m, 0,6 m außerhalb der Bankette (`pillar_plan`): Arcades zwei an der Front, zwei weitere am Ende
-  des Daches – aber keiner vor einem Schild (F1) und keiner außer Arcades in der Sichtschneise einer Kurve (F7):
-  - der vordere fällt weg, wenn auf seiner Seite ein Schild unter dem Dach hinter ihm steht (Arcade zeichnet es im
-    selben Streifen über seinen Pfeiler; auf DEV „Tankstelle 15 km“ im ersten Dachsegment, Bild `v2_border_day` zeigte
-    es halb verdeckt). Statt seiner steht einer hinter diesem Schild und hinter dem Zollhäuschen (9 m nach der Grenze),
-    wenn dort bis 120 m dahinter kein Schild seiner Seite steht;
-  - die am Ende nur ohne Schild bis 120 m dahinter (nach der Grenze steht rechts meist das neue Tempolimit 20 m
-    dahinter – dann fehlt der rechte).
-  Eine Seite kann so ohne Pfeiler bleiben; das Dach kragt dann von der anderen aus. Auf DEV (Grenze in einer
-  Rechtskurve, Schilder unter dem Dach auf beiden Seiten) steht es auf zwei Pfeilern links. Auswertung aller
-  48 Grenzen: unter dem Dach steht rechts 8-mal, links 3-mal ein Schild, bis 60 m hinter dem Dach rechts 32-mal.
+- **Pfeiler** 0,55 m (`pillar_plan`): Arcades zwei an der Front 0,6 m außerhalb der Bankette, zwei weitere am Ende des
+  Daches – aber keiner vor einem Schild (F1) und keiner außer Arcades vorderen in der Sichtschneise einer Kurve (F7):
+  - Steht auf einer Seite ein Schild unter dem Dach hinter dem vorderen Pfeiler, zeichnet Arcade es im selben Streifen
+    seiner Malreihenfolge **über** den Pfeiler; in 3D würde der Pfeiler es verdecken (auf DEV „Tankstelle 15 km“ im
+    ersten Dachsegment, Bild `v2_border_day` zeigte es halb verdeckt). Dann rückt der Pfeiler **nach außen**: seine
+    Innenseite 0,25 m jenseits der Außenkante jeder Schildtafel seiner Seite vom Dach bis 120 m dahinter. Von der Straße
+    aus kann ein so stehender Pfeiler keine Tafel verdecken (jede Sichtlinie zu einer Tafel kreuzt seine Ebene näher an
+    der Straße). Ein Träger unter der Dachkante (6,0–6,45 m) trägt das Dach zu ihm hinüber.
+  - Der Pfeiler am Ende (nicht in Arcade) steht an Arcades Abstand, wenn bis 120 m dahinter kein Schild seiner Seite
+    steht, sonst ebenso außen (nach der Grenze steht rechts meist das neue Tempolimit 20 m dahinter).
+  - Ein Schild bei 120 m oder weiter hinter einem Pfeiler könnte dieser nur verdecken, solange es mehr als ~350 m
+    entfernt ist; ein Schild hinter dem Dachende steht in Arcade in einem anderen Streifen, Arcades vorderer Pfeiler
+    verdeckt es dort ebenso.
+  Auswertung aller 48 Grenzen der Etappen (gemessen, headless mit dem Builder): 43 Dächer stehen auf beiden Seiten
+  (26 auf vier, 16 auf drei Pfeilern), 4 nur auf einer Seite (Grenze in einer Kurve: die Innenseite ist Sichtschneise,
+  und Arcades vorderer Pfeiler musste wegen eines Schildes weichen), eines hat kein Dach (Somport: die Grenze liegt im
+  Tunnel). Auf DEV (Grenze in einer Rechtskurve, Schilder unter dem Dach auf beiden Seiten) steht das Dach links auf
+  einem äußeren Pfeiler vorn und einem am Ende; rechts ist alles Sichtschneise.
 - **Lichtbänder** je zweitem Segment, drei quer (25 / 50 / 75 % der Straße), Kanal 12, weißer Schein; **Lichtkegel** wie
   Arcade alle vier Segmente in der Straßenmitte, Radius 16 m, Stärke 1,27 (= 0,7 × `lights` in der Mitte), die Lampe im
   Dach verdeckt.
