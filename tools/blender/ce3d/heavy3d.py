@@ -55,7 +55,10 @@ LINER = "#141516"
 BUMPER = "#2a2c2f"
 LED = "-on:0.55:#ffb030"               # destination display: amber LEDs, always on, no light anchor
 SEAL_W = 0.008
-FAR_PLATE = "#c4c4c1"                  # plates of the far levels: the mean of a plate with its characters (traffic3d)
+# plates of the far levels: the displayed mean of a plate with its characters - M2INT: the value AS2R measured for the
+# traffic cars (traffic3d.FAR_PLATE #a2a2a0; the white of the near plate overdrives, its characters stay dark), the same
+# plate material here; #c4c4c1 came out about 50 levels brighter than the near plate (AS2R report 2)
+FAR_PLATE = "#a2a2a0"
 
 
 def _corner(d, r):

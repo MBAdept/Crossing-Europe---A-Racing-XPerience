@@ -1223,6 +1223,11 @@ def _leaf_atlas(sp, size=1024, grid=(4, 4)):
 def build_tree(model_id, spec3d):
     t0 = time.time()
     sp = _spec(spec3d["species"])
+    # M2INT: a seed variant may lift its levels differently from its species (catalog params "lift"): tree_olive_b's
+    # fuller lod1 rim came out 5-8 % brighter than its lod0 at the swap with the species' lift (AS3R report, 11.)
+    lift = spec3d.get("params", {}).get("lift")
+    if lift is not None:
+        sp = dict(sp, lift=tuple(float(v) for v in lift))
     if sp.get("shape"):
         from . import veg3d_shapes as SH          # spruce, cypress, palm (AS3): crowns that are not blob sets
         return SH.build(model_id, spec3d, sp, t0)

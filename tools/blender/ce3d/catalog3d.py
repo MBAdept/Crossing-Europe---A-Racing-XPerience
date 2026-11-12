@@ -309,7 +309,9 @@ def _as3_tree(name, species, seed_b, code=None, params_b=None):
 
 MODELS.update(_as3_tree("beech", "beech", 61))
 MODELS.update(_as3_tree("poplar", "poplar", 29))
-MODELS.update(_as3_tree("olive", "olive", 53))
+# M2INT (AS3R report 11.): olive_b's fuller lod1 rim was +5.0 / +6.5 / +8.3 % brighter than its lod0 at the swap
+# (noon / dusk / night) with the species' lift 1.12 - its own lod1 lift (veg3d.build_tree, params "lift")
+MODELS.update(_as3_tree("olive", "olive", 53, params_b={"lift": [1.0, 1.057]}))
 MODELS.update(_as3_tree("pine", "pine", 71))
 MODELS.update(_as3_tree("spruce", "spruce", 19, AS3_SHAPES, {"tiers": 12, "taper": 1.25}))
 MODELS.update(_as3_tree("cypress", "cypress", 41, AS3_SHAPES, {"bulge": 1.45, "width": 1.12}))

@@ -5672,8 +5672,8 @@
    "cards": {"lod0": 39, "lod1": 39},
    "auto_lod": false,
    "tags": ["prop", "tree"],
-   "bytes": 114453,
-   "hash": "c99805f1c3e9279d62f7f96bb81b767367613f99"
+   "bytes": 114477,
+   "hash": "dadbc515a266efa87bb6a738179d9ac186be6780"
   },
   "props/tree_palm": {
    "kind": "tree",
@@ -6265,7 +6265,7 @@
    "auto_lod": false,
    "tags": ["traffic", "heavy"],
    "bytes": 227703,
-   "hash": "b3293de95db2296e8bf2c46556cf746c2e8a86fd"
+   "hash": "751a23df401a2f048fed609d3fb01d573cc6cb2a"
   },
   "traffic/hatch": {
    "kind": "vehicle",
