@@ -70,8 +70,15 @@ const ROUGH_CONCRETE := Vector2(0.85, 0.0)
 const ROUGH_METAL := Vector2(0.45, 0.4)
 const NO_LAMP := Vector2(-1.0, 0.0)
 const FASCIA_GLOW := Vector2(14.5, 0.22)   ## lamp channel 14 (flood): the fascia bands glow a little at night
-const LAMP_RANGE_M := 7.0          ## light pool of a canopy lamp …
-const LAMP_ENERGY := 0.3           ## … and its energy (Arcade's canopy glow over a lit forecourt)
+## Light pool of a row of canopy lamps (one every 6 m on the lane edge): about the mean of Arcade's pools (0.8 × lights
+## at the centre, radius 11 m, every 18 m; RoadRenderer._collect_static_lights) – 0.6 × 0.55 per pool, three of them
+## overlap at every point of the lane
+const LAMP_RANGE_M := 9.0
+const LAMP_ENERGY := 0.6
+## Arcade's glow round each canopy lamp (radius 1.8 m, colour (1, 0.97, 0.9), alpha 0.3): flare size × 0.9 = radius
+const LAMP_GLOW := Color(1.0, 0.97, 0.9)
+const LAMP_GLOW_SIZE := 2.0
+const LAMP_GLOW_ENERGY := 0.6
 const PYLON_GLOW := Color(0.5, 0.7, 1.0)   ## Arcade's glow round the lit price board (radius 2.6 m, alpha 0.25)
 const PANEL_PPM := 96.0            ## lettering atlas: pixels per metre of the canopy front and the price board
 
@@ -713,7 +720,9 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 				kit.box(fp, Vector3(0.0, (CANOPY_H - ISLAND_H) * 0.5, 0.0), Vector3(PILLAR_W, CANOPY_H - ISLAND_H, PILLAR_W) * 0.5, PILLAR,
 					ROUGH_METAL, 1 | 2 | 4 | 8)
 				pillars += 1
-			# light panels in the soffit every second segment (Arcade), lit at night (lamp channel 12)
+			# light panels in the soffit every second segment (Arcade), lit at night (lamp channel 12) with Arcade's white
+			# glow round each (flare layer); the light pool of the row on the lane edge (Arcade: x = edge + 0.5) comes from a
+			# lamp inside the canopy box – only its light shows, not a second glow
 			if int(sa["index"]) % 2 == 0:
 				var zl := z0 + seg_len * 0.5
 				for lx: float in LAMP_X:
@@ -723,8 +732,10 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 					var hx := LAMP_SIZE.y * 0.5
 					kit.quad(ctx.local(zl - hz, x - hx, hl), ctx.local(zl + hz, x - hx, hl), ctx.local(zl + hz, x + hx, hl),
 						ctx.local(zl - hz, x + hx, hl), Vector3.DOWN, LAMP, Vector2(0.3, 0.0), Vector2(12.5, 1.0))
-					lamps.append({"pos": ctx.local(zl, x, hl - 0.03), "dir": Vector3.DOWN, "role": "canopy", "color": Color(1.0, 0.97, 0.9),
-						"size": 1.0, "range": LAMP_RANGE_M, "energy": LAMP_ENERGY})
+					lamps.append({"pos": ctx.local(zl, x, hl - 0.03), "dir": Vector3.DOWN, "role": "canopy", "color": LAMP_GLOW,
+						"size": LAMP_GLOW_SIZE, "range": 0.0, "energy": LAMP_GLOW_ENERGY})
+				lamps.append({"pos": ctx.local(zl, e + 0.5, CANOPY_H + 0.4), "dir": Vector3.DOWN, "role": "canopy", "color": LAMP_GLOW,
+					"size": 0.2, "range": LAMP_RANGE_M, "energy": LAMP_ENERGY})
 	if kit.is_empty() and pan.is_empty():
 		return {}
 	return {"arrays": kit.arrays() if not kit.is_empty() else [], "panels": pan.arrays() if not pan.is_empty() else [],
