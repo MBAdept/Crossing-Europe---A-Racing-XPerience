@@ -45,6 +45,15 @@ const PILLAR_X := 1.3              ## columns on the island, this far beyond the
 const PILLAR_W := 0.3
 const PLINTH_W := 0.46
 const PLINTH_H := 0.32
+## Arcade's warm glow of the station building at night (RoadRenderer: _glow_fixture radius 7 m, colour (1, 0.8, 0.5),
+## alpha 0.25 × lights) in front of the shop model (props/fuel_station: its forecourt canopy 3–5 m in front, 4 m on the
+## road side of its anchor); flare strength = 2 × alpha / 0.35 (layers/flares.gd: a glow larger than 6 px on screen
+## gets 35 % of its strength)
+const SHOP_SET := "props/fuel_station"
+const SHOP_GLOW_AT := Vector3(-4.2, 3.0, -5.7)
+const SHOP_GLOW := Color(1.0, 0.8, 0.5)
+const SHOP_GLOW_R := 7.0
+const SHOP_GLOW_ENERGY := 2.0 * 0.25 / 0.35
 const COLUMN_IN := 0.45            ## columns this far inside the canopy's front and end
 ## A column on the island Arcade does not have (at the end of a canopy) stands there only where no sign on the right
 ## is within this distance behind it: one farther behind could only be covered while it is several hundred metres away
@@ -751,6 +760,13 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 			if str(it.get("kind", "")) == "object" and str(it.get("obj", "")) == "fuel_pylon" and not bool(sa["tunnel"]):
 				_pylon(ctx, kit, pan, glows, it, sa, price_uv)
 				pylons += 1
+			elif str(it.get("set", "")) == SHOP_SET and not bool(sa["tunnel"]):
+				# Arcade's warm glow at the shop's forecourt (RoadRenderer: radius 7 m, colour (1, 0.8, 0.5), alpha 0.25 ×
+				# lights); the shop itself is the AS1b model of the props builder
+				var zs := float(it.get("z", sa["z"]))
+				var fs := ctx.frame(zs, float(it.get("x", 0.0)), ctx.ground(zs, float(it.get("x", 0.0))))
+				glows.append({"pos": fs * SHOP_GLOW_AT, "dir": fs.basis.z, "role": "lights", "color": SHOP_GLOW, "size": SHOP_GLOW_R / 0.9,
+					"range": 0.0, "energy": SHOP_GLOW_ENERGY})
 		var fz := int(sa["fuel_zone"])
 		if fz == 0 or bool(sa["tunnel"]):
 			continue
