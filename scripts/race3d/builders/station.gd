@@ -80,6 +80,10 @@ const ROUGH_CONCRETE := Vector2(0.85, 0.0)
 const ROUGH_METAL := Vector2(0.45, 0.4)
 const NO_LAMP := Vector2(-1.0, 0.0)
 const FASCIA_GLOW := Vector2(14.5, 0.22)   ## lamp channel 14 (flood): the fascia bands glow a little at night
+## The soffit at night: lit by its own luminaires (the real lights of the lights layer reach it only from below the pool
+## lamps inside the canopy, and the ground never) – a flood-lit surface (lamp channel 14), as bright as Arcade's lit
+## underside
+const SOFFIT_GLOW := Vector2(14.5, 0.4)
 ## Light pool of a row of canopy lamps (one every 6 m on the lane edge): about the mean of Arcade's pools (0.8 × lights
 ## at the centre, radius 11 m, every 18 m; RoadRenderer._collect_static_lights) – 0.6 × 0.55 per pool, three of them
 ## overlap at every point of the lane
@@ -705,7 +709,7 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 			var ends := (next_fz & TrackSegment.FUEL_CANOPY) == 0
 			# soffit with Arcade's dark strip along the road side, the roof on top
 			kit.quad(ctx.local(z0, x0 + EDGE_STRIP, CANOPY_H), ctx.local(z1, x0 + EDGE_STRIP, CANOPY_H), ctx.local(z1, x1, CANOPY_H),
-				ctx.local(z0, x1, CANOPY_H), Vector3.DOWN, UNDERSIDE, ROUGH_PAINT)
+				ctx.local(z0, x1, CANOPY_H), Vector3.DOWN, UNDERSIDE, ROUGH_PAINT, SOFFIT_GLOW)
 			kit.quad(ctx.local(z0, x0, CANOPY_H), ctx.local(z1, x0, CANOPY_H), ctx.local(z1, x0 + EDGE_STRIP, CANOPY_H),
 				ctx.local(z0, x0 + EDGE_STRIP, CANOPY_H), Vector3.DOWN, EDGE, ROUGH_PAINT)
 			kit.quad(ctx.local(z0, x0, h1), ctx.local(z1, x0, h1), ctx.local(z1, x1, h1), ctx.local(z0, x1, h1), Vector3.UP, ROOF, ROUGH_PAINT)

@@ -40,6 +40,9 @@ const POOL_ENERGY := 1.27          ## 0.7 at the centre with the lights layer's 
 ## Arcade's underside colour 8e959c is drawn flat-lit; under the real sun the soffit only gets the sky light – a lighter
 ## grey keeps it as light as Arcade's
 const SOFFIT := Color("aab0b6")
+## The soffit at night: lit by its light bars (the real lights reach it only from the pool lamps inside the slab) – a
+## flood-lit surface (lamp channel 14), as bright as Arcade's lit underside
+const SOFFIT_GLOW := Vector2(14.5, 0.3)
 const SLAB := Color("f0f0ec")
 const PILLAR := Color("b8bcc2")
 const TOP_C := Color("9a9fa5")
@@ -239,7 +242,7 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 		var left_out := -ctx.rows_r[i]
 		# soffit, slab top, the long sides (white over the blue band)
 		kit.quad(ctx.local(z0, a, ROOF_H), ctx.local(z1, a, ROOF_H), ctx.local(z1, b, ROOF_H), ctx.local(z0, b, ROOF_H), Vector3.DOWN, SOFFIT,
-			ROUGH_PAINT)
+			ROUGH_PAINT, SOFFIT_GLOW)
 		kit.quad(ctx.local(z0, a, SLAB_TOP), ctx.local(z1, a, SLAB_TOP), ctx.local(z1, b, SLAB_TOP), ctx.local(z0, b, SLAB_TOP), Vector3.UP, TOP_C,
 			ROUGH_CONCRETE)
 		for side_x: float in [a, b]:
