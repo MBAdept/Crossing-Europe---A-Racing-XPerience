@@ -1134,6 +1134,13 @@ lassen sie unberührt. Das Karoband ist Lack: die 8 % Entsättigung ziehen die e
 `lod1` zum Grau hin, die Mischfarbe von `lod2` weniger – das Band wird in 120 m (7 × 2 Pixel) etwas gelber. Offen für
 den Besitzer der Polizeimodelle: die Mischfarbe aus den Karos nach Knie und Entsättigung bilden.
 
+**Stufenwechsel lod1 → lod2 mit der Überblendung von RINT-B** (Probe `pop_probe.gd` von RINT-B: das Auto fährt in
+0,03-m-Schritten durch die Grenze, je Bild der Anteil geänderter Pixel des Autos; Voreinstellung dieses Rechners mit
+`vehicle_lod1_m` 90 m, gemessen): größte Änderung je Bild rund um den Wechsel SUV 7,2 %, Sportwagen 8,1 %, Polizei
+Belgien 13,1 %, Bus (Grenze 180 m × 90/120 = 135 m) 4,7 %; Bewegung allein im Median 0,3 / 0,8 / 0,5 / 0,0 %. Ohne
+Überblendung sprangen in der Zählweise von AS2R 28–30 % (SUV, Sportwagen), 38 % (Polizei Belgien) und 22 % (Bus) in
+einem Bild. Der Wechsel lod0 → lod1 (40 m) blendet nicht (`XFADE_LODS` = lod1, lod2).
+
 **Olive (AS3R-Bericht 11.):** `tree_olive_b` trägt einen eigenen lod1-Abgleich (`params` „lift“ 1,057 statt der 1,12
 der Art, `veg3d.build_tree`). Helligkeit lod0 → lod1 beim Wechsel bei 60 m, mittags / 19:30 / 23 Uhr
 (`tools/models/prop_scene.sh --mode=lods --look=race`, gemessen): vorher +5,0 / +6,5 / +8,3 %, jetzt −0,2 / +0,5 /
