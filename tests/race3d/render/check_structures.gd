@@ -12,7 +12,7 @@ extends SceneTree
 ##   grenze      the test stage at its border, 12:00: the fascia shows white and the European blue; 21:00: the light
 ##               bars under the roof are lit
 ##   blitz       the test stage through its radar zone at 150 km/h (autopilot speeding): in the frame of the flash the
-##               camera head glows white – 20 % more white pixels round it and 0.08 more luminance than the frame before
+##               camera head glows white – round it 0.25 more luminance and 5 % more white pixels than the frame before
 ## check_structures_licht.gd (extends this file):
 ##   tankstelle  Kiel – Hamburg ~40 m before the fuel stop, 12:00: the front of the first canopy 25 m or more ahead shows
 ##               its panel (white fascia, blue lettering, red band) – no Label3D anywhere; 21:00: the fascia glows and
@@ -433,7 +433,9 @@ func _check_blitz() -> void:
 			var b := region(before, box_at(cam_pt, 1.0, 1.0), {"white": bright})
 			var wa := float(a["counts"]["white"]) / float(maxi(1, int(a["n"])))
 			var wb := float(b["counts"]["white"]) / float(maxi(1, int(b["n"])))
-			_need(p, wa > wb + 0.2 and float(a["lum"]) > float(b["lum"]) + 0.08,
+			# Arcade's flash is a soft white glow of 6 m radius: round the head (± 1 m, post and trees included) the
+			# picture gets much brighter and its core white (run 2: +0.44 luminance, 10 % white pixels)
+			_need(p, wa > wb + 0.05 and float(a["lum"]) > float(b["lum"]) + 0.25,
 				"der Blitz leuchtet am Kamerakopf (weiße Bildpunkte %.0f %% gegen %.0f %% davor, Leuchtdichte %.2f gegen %.2f)" % [wa * 100.0,
 				wb * 100.0, float(a["lum"]), float(b["lum"])])
 			msg = "Blitzer %.0f m voraus: am Kopf %.0f %% weiß im Blitz (davor %.0f %%), Leuchtdichte %.2f (davor %.2f)" % [best, wa * 100.0,
