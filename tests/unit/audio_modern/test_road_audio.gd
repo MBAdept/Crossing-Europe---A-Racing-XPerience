@@ -233,7 +233,9 @@ func test_concrete_slabs_keep_their_rhythm() -> void:
 	_done(m)
 
 
-## A stand-in for a playing AudioStreamPlayer (unit tests have no scene tree): the position stays where it started.
+## A stand-in for a playing AudioStreamPlayer (unit tests have no scene tree): the position stays where it started
+## unless the test moves it with advance() – at the player's pitch × skew (skew ≠ 1: the mixer's rounding of the
+## pitch, which lets two loops drift apart), wrapped at the loop length.
 class FakePlayer:
 	extends Node
 	var playing := false
@@ -241,6 +243,8 @@ class FakePlayer:
 	var pitch_scale := 1.0
 	var pos := 0.0
 	var starts := 0
+	var length := 1.0
+	var skew := 1.0
 
 	func play(from_position: float = 0.0) -> void:
 		playing = true
@@ -252,6 +256,10 @@ class FakePlayer:
 
 	func get_playback_position() -> float:
 		return pos
+
+	func advance(dt: float) -> void:
+		if playing:
+			pos = fposmod(pos + dt * pitch_scale * skew, length)
 
 
 ## AU-R2 (KRITIK-R M1): the slab loops take the AudioServer lock only when one of them starts and for the
@@ -280,6 +288,71 @@ func test_slab_loops_lock_the_mixer_only_to_start() -> void:
 	assert_near(r.slab_slow.share(), 0.37, 1.0e-4, "es beginnt an der Stelle des laufenden")
 	assert_true(r.slab_locks - before <= 3, "wieder nur beim Start und alle 0,5 s: %d" % (r.slab_locks - before))
 	assert_eq(r.slab_realigned, 0, "kein Nachstellen nötig")
+	for l: RoadAudio.Layer in [r.slab_slow, r.slab_fast]:
+		l.players[0] = null
+	for p in fakes:
+		p.free()
+	_done(m)
+
+
+## How far apart the two slab loops are (ms of the slow loop's period at its pitch).
+func _slab_offset_ms(r: RoadAudio) -> float:
+	var d := fposmod(r.slab_fast.share() - r.slab_slow.share() + 0.5, 1.0) - 0.5
+	return absf(d) * r.slab_slow.length_s / maxf(r.slab_slow.pitch, 0.01) * 1000.0
+
+
+## AU-R2 (KRITIK-R M1) / AU-R4 (KRITIK-R2-CODE H4): while both slab loops play, the quieter one is put back at the
+## louder one's share once the mixer's rounding of their pitches has drifted them more than slabs.align_ms apart –
+## the louder one runs on undisturbed, and nothing is put back while they stay in step. Stand-in players that move
+## at their pitch; the fast one 5e-4 too fast (more than the rounding of the mixer, about 2e-4).
+func test_slab_loops_are_put_back_in_step() -> void:
+	var m := _modern(STILL.duplicate(true))
+	var r := m.road
+	r.set_vehicle("limousine")
+	var fakes: Array[FakePlayer] = []
+	for l: RoadAudio.Layer in [r.slab_slow, r.slab_fast]:
+		var p := FakePlayer.new()
+		p.length = l.lengths[0]
+		l.players[0] = p
+		fakes.append(p)
+	var f := _frame(120.0, {"surface_l": "concrete", "surface_r": "concrete", "paving": "concrete"})
+	var align := _num("road.slabs.align_ms")
+	assert_true(align >= 2.0 and align <= 10.0, "Schwelle %.1f ms (über dem 64-Frame-Raster der Abspielposition)" % align)
+	# in step: 30 s without a realignment
+	for i in 60 * 30:
+		r.update(f)
+		for p in fakes:
+			p.advance(DT)
+	assert_true(fakes[0].playing and fakes[1].playing, "bei 120 km/h klingen beide Muster")
+	assert_true(r.slab_slow.level > 2.0 * r.slab_fast.level, "bei 120 km/h ist das langsame Muster das lautere")
+	assert_true(_slab_offset_ms(r) < 0.5, "im Takt (%.2f ms)" % _slab_offset_ms(r))
+	assert_eq(r.slab_realigned, 0, "im Gleichschritt wird nichts nachgestellt")
+	# drifting apart: 0.5 ms a second at 120 km/h
+	fakes[1].skew = 1.0005
+	var starts := [fakes[0].starts, fakes[1].starts]
+	var seen := r.slab_realigned
+	var max_ms := 0.0
+	var before_ms: Array = []
+	var after_ms: Array = []
+	var last_ms := 0.0
+	for i in 60 * 60:
+		r.update(f)
+		var off := _slab_offset_ms(r)
+		if r.slab_realigned != seen:
+			seen = r.slab_realigned
+			before_ms.append(last_ms)
+			after_ms.append(off)
+		max_ms = maxf(max_ms, off)
+		for p in fakes:
+			p.advance(DT)
+		last_ms = _slab_offset_ms(r)
+	assert_between(float(r.slab_realigned), 3.0, 8.0, "in 60 s mit 0,5 ms/s Drift %d-mal nachgestellt (etwa alle %.0f s)" % [r.slab_realigned, align / 0.5])
+	assert_eq(fakes[0].starts, starts[0], "das lautere Muster läuft ungestört weiter")
+	assert_eq(fakes[1].starts - starts[1], r.slab_realigned, "der leisere wird nachgestellt, jedes Mal")
+	for k in after_ms.size():
+		assert_true(float(after_ms[k]) < 0.5, "direkt danach im Takt (%.2f ms)" % float(after_ms[k]))
+		assert_true(float(before_ms[k]) > align, "erst ab %.0f ms nachgestellt (vorher %.2f ms)" % [align, float(before_ms[k])])
+	assert_true(max_ms <= align + 1.0, "größter Versatz %.2f ms – höchstens %.0f ms + eine Prüfspanne" % [max_ms, align])
 	for l: RoadAudio.Layer in [r.slab_slow, r.slab_fast]:
 		l.players[0] = null
 	for p in fakes:
@@ -340,6 +413,51 @@ func test_passed_objects() -> void:
 	_done(m)
 
 
+## AU-R (R6): every pass-by takes a variant at random and lies passes.jitter_db up or down – in the gain it plays
+## with (AU-R4, KRITIK-R2-CODE M2: neither had a test).
+func test_pass_by_variants_and_levels_at_random() -> void:
+	var m := _modern()
+	var r := m.road
+	r.set_vehicle("kompakt")
+	_run(m, _frame(120.0), 2)
+	var jd := _num("road.passes.jitter_db")
+	assert_true(jd >= 1.0, "Zufall der Vorbeifahrten eingestellt (±%.1f dB)" % jd)
+	var e := m.assets.entry("sfx", "pass_post")
+	var n := e.files.size()
+	assert_true(n >= 2, "Pfosten: mindestens zwei Varianten (%d)" % n)
+	var seen := {}
+	var lo := 99.0
+	var hi := -99.0
+	var sum := 0.0
+	var repeats := 0
+	var last := -1
+	var count := 60
+	for i in count:
+		r.event("pass_object", {"kind": "post", "side": 1, "dist_m": 3.0, "size": 0.3})
+		var lp := r.last_pass
+		assert_eq(str(lp["id"]), "pass_post", "Klang des Pfostens")
+		var j := float(lp["jitter_db"])
+		var v := int(lp["variant"])
+		assert_true(absf(j) <= jd + 1.0e-6, "Pegel höchstens ±%.0f dB daneben (%.2f dB)" % [jd, j])
+		assert_near(float(lp["db"]), float(lp["target"]) + j - RoadAudio._lufs_m(e, v) - _num("road.ref_path_db"), 0.01,
+			"der Zufall steckt im gespielten Pegel")
+		lo = minf(lo, j)
+		hi = maxf(hi, j)
+		sum += j
+		seen[v] = true
+		repeats += 1 if v == last else 0
+		last = v
+	assert_true(hi - lo > 0.75 * 2.0 * jd and hi > 0.5 * jd and lo < -0.5 * jd,
+		"Pegel zufällig nach oben und unten (%.2f … %.2f dB)" % [lo, hi])
+	assert_near(sum / count, 0.0, 0.35 * jd, "im Mittel der Pegel des Plans (%.2f dB)" % (sum / count))
+	assert_eq(seen.size(), n, "jede Variante kommt vor")
+	if n == 2:
+		assert_true(repeats > 0, "zwei Varianten: zufällig, nicht im Wechsel (%d Wiederholungen)" % repeats)
+	else:
+		assert_eq(repeats, 0, "nie zweimal dieselbe hintereinander")
+	_done(m)
+
+
 func test_wind_zones_gusts_and_fades() -> void:
 	var m := _modern({"road": {"wind": {"gust_db": 0.0}}})
 	var r := m.road
@@ -347,7 +465,9 @@ func test_wind_zones_gusts_and_fades() -> void:
 	_run(m, _frame(200.0, {"zone": "open"}), 120)
 	var open := _wind_total(r)
 	_run(m, _frame(200.0, {"zone": "tunnel"}), 600)
-	assert_near(_wind_total(r) - open, _num("road.wind.zone_db.tunnel"), 0.05, "im Tunnel leiser")
+	# AU-R: the airflow stays in the tunnel – not quieter (before: −3 dB; KRITIK-R2-CODE L3)
+	assert_near(_num("road.wind.zone_db.tunnel"), 0.0, 1.0e-6, "Fahrtwind im Tunnel 0 dB (AU-R)")
+	assert_near(_wind_total(r) - open, 0.0, 0.05, "im Tunnel nicht leiser")
 	assert_near(r.zone_gust, 0.0, 1.0e-3, "keine Böen im Tunnel")
 	_run(m, _frame(200.0, {"zone": "bridge"}), 600)
 	assert_near(_wind_total(r) - open, _num("road.wind.zone_db.bridge"), 0.05, "auf der Brücke stärker")
@@ -448,12 +568,20 @@ func test_collision_variety() -> void:
 		for row: Array in im.last_layers:
 			hard += 1 if str(row[0]) == "glass" else 0
 	assert_eq(hard, 50, "ab %.0f km/h Schließgeschwindigkeit immer Glas" % _num("impact.collision.glass.from_kmh"))
+	# exactly at the threshold (KRITIK-R2-CODE L3: from_kmh + 1 alone could not tell > from >=)
+	var at := 0
+	for i in 50:
+		m.event("collision", {"speed_kmh": 150.0, "rel_kmh": _num("impact.collision.glass.from_kmh"), "heavy": false, "side": 1})
+		for row: Array in im.last_layers:
+			at += 1 if str(row[0]) == "glass" else 0
+	assert_eq(at, 50, "genau bei %.0f km/h schon immer Glas" % _num("impact.collision.glass.from_kmh"))
 	# variants of glass, debris and the truck boom: four each, all used, never twice in a row
 	for id: String in ["glass", "debris", "truck_boom"]:
 		assert_true(m.assets.variant_count("sfx", id) >= 4, "%s: mindestens vier Varianten" % id)
 	var seen := {}
 	var last := -1
 	var repeats := 0
+	var seq: Array[int] = []
 	for i in 200:
 		m.event("collision", {"speed_kmh": 150.0, "rel_kmh": 120.0, "heavy": true, "side": 1})
 		for row: Array in im.last_layers:
@@ -461,15 +589,116 @@ func test_collision_variety() -> void:
 				seen[int(row[1])] = true
 				repeats += 1 if int(row[1]) == last else 0
 				last = int(row[1])
+				seq.append(int(row[1]))
 	assert_eq(seen.size(), m.assets.variant_count("sfx", "truck_boom"), "jede Variante des Lkw-Schlags kommt vor")
 	assert_eq(repeats, 0, "nie zweimal dieselbe hintereinander")
+	# at random, not in turn (AU-R4, KRITIK-R2-CODE H2: strictly in turn, as AU-C1 played them, also uses every
+	# variant and never repeats one): after each variant comes more than one other, in no fixed order
+	assert_true(_successors_vary(seq), "Lkw-Schlag: auf jede Variante folgen verschiedene, keine feste Reihenfolge %s" % str(seq.slice(0, 12)))
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
+	var draws: Array[int] = []
+	var v := -1
+	for i in 400:
+		v = RoadAudio.pick_variant(rng, 4, v)
+		draws.append(v)
+	assert_true(_successors_vary(draws), "pick_variant bei vier Varianten: zufällig, nicht reihum")
+	var pairs := {}
+	for i in draws.size() - 1:
+		assert_true(draws[i + 1] != draws[i], "nie zweimal dieselbe")
+		pairs[draws[i] * 4 + draws[i + 1]] = int(pairs.get(draws[i] * 4 + draws[i + 1], 0)) + 1
+	for a in 4:
+		var from_a := 0
+		for b in 4:
+			from_a += int(pairs.get(a * 4 + b, 0))
+		for b in 4:
+			if b != a:
+				var share := float(pairs.get(a * 4 + b, 0)) / maxf(from_a, 1)
+				assert_between(share, 0.2, 0.47, "nach %d folgt %d in %.0f %% (gleich verteilt: 33 %%)" % [a, b, 100.0 * share])
 	var two := {}
 	for i in 100:
 		two[RoadAudio.pick_variant(rng, 2, 0)] = true
 	assert_eq(two.size(), 2, "zwei Varianten: zufällig, beide kommen vor")
 	assert_eq(RoadAudio.pick_variant(rng, 1, 0), 0, "eine Variante")
+	_done(m)
+
+
+## A sequence of variants is random, not in turn: some variant is followed by different ones, and the sequence does
+## not repeat with the period of its variant count.
+func _successors_vary(seq: Array[int]) -> bool:
+	var next_of := {}
+	var n := 0
+	for s in seq:
+		n = maxi(n, s + 1)
+	for i in seq.size() - 1:
+		var d: Dictionary = next_of.get(seq[i], {})
+		d[seq[i + 1]] = true
+		next_of[seq[i]] = d
+	var varied := 0
+	for k: int in next_of:
+		varied += 1 if (next_of[k] as Dictionary).size() >= 2 else 0
+	var periodic := true
+	for i in seq.size() - n:
+		periodic = periodic and seq[i] == seq[i + n]
+	return seq.size() > 2 * n and varied == next_of.size() and not periodic
+
+
+## AU-R (R6): each layer of a collision is impact.variation.db louder or quieter at random and starts up to
+## 2 × variation.ms later, out of the silence the file carries in front (manifest jitter_lead_ms) – over many crashes,
+## not one (AU-R4, KRITIK-R2-CODE H3: with one crash and a fixed seed a missing or a doubled variation stayed green).
+func test_collision_layers_vary_in_level_and_onset() -> void:
+	var m := _modern()
+	var im := m.impact
+	var vdb := _num("impact.variation.db")
+	var vms := _num("impact.variation.ms")
+	assert_true(vdb > 0.0 and vms > 0.0, "Zufall eingestellt: ±%.1f dB, bis %.0f ms" % [vdb, 2.0 * vms])
+	var jit: Array = []
+	var delays: Array = []
+	var same_in_crash := 0
+	var crashes := 60
+	for i in crashes:
+		m.event("collision", {"speed_kmh": 130.0, "rel_kmh": 130.0, "heavy": i % 2 == 0, "side": 1})
+		var js := {}
+		for row: Array in im.last_layers:
+			var e := m.assets.entry("sfx", str(row[0]))
+			var lead := float(e.meta.get("jitter_lead_ms", 0.0))
+			assert_true(lead >= 2.0 * vms, "%s: %.0f ms Stille vorn für den späteren Einsatz" % [str(row[0]), lead])
+			var j := float(row[4])
+			var d := float(row[5])
+			jit.append(j)
+			delays.append(d)
+			js[snappedf(j, 0.01)] = true
+			assert_true(d >= 0.0 and d <= minf(2.0 * vms, lead) + 0.05, "%s: Einsatz %.1f ms später (höchstens %.0f ms)" % [str(row[0]), d, 2.0 * vms])
+		same_in_crash += 1 if js.size() < im.last_layers.size() else 0
+	var lo := 99.0
+	var hi := -99.0
+	var mean := 0.0
+	for j: float in jit:
+		lo = minf(lo, j)
+		hi = maxf(hi, j)
+		mean += j
+	mean /= jit.size()
+	var sd := 0.0
+	for j: float in jit:
+		sd += (j - mean) * (j - mean)
+	sd = sqrt(sd / jit.size())
+	assert_true(jit.size() >= 3 * crashes, "%d Schichten in %d Unfällen" % [jit.size(), crashes])
+	assert_true(maxf(-lo, hi) <= vdb + 0.006, "Pegel je Schicht höchstens ±%.0f dB (%.2f … %.2f)" % [vdb, lo, hi])
+	assert_true(hi > 0.75 * vdb and lo < -0.75 * vdb, "Pegel je Schicht nach oben und unten (%.2f … %.2f dB)" % [lo, hi])
+	assert_between(sd, 0.4 * vdb, 0.75 * vdb, "Streuung %.2f dB (gleich verteilt: %.2f)" % [sd, vdb / sqrt(3.0)])
+	assert_near(mean, 0.0, 0.2 * vdb, "im Mittel kein Pegelunterschied (%.2f dB)" % mean)
+	assert_true(same_in_crash <= crashes / 10, "jede Schicht ihr eigener Zufall (%d Unfälle mit gleichen Werten)" % same_in_crash)
+	var later := 0
+	var dmax := 0.0
+	var dmean := 0.0
+	for d: float in delays:
+		later += 1 if d > 0.0 else 0
+		dmax = maxf(dmax, d)
+		dmean += d
+	dmean /= delays.size()
+	assert_true(float(later) / delays.size() > 0.9, "Einsatz später in %.0f %% der Schichten" % (100.0 * later / delays.size()))
+	assert_true(dmax > 1.5 * vms, "bis fast %.0f ms später (%.1f ms)" % [2.0 * vms, dmax])
+	assert_near(dmean, vms, 0.3 * vms, "im Mittel %.0f ms später (%.1f ms)" % [vms, dmean])
 	_done(m)
 
 
@@ -521,19 +750,34 @@ func test_each_side_has_its_own_loop_and_drift() -> void:
 	_done(m)
 
 
-## AU-R (KRITIK-FAHRBAHN B12): each squeal its own pitch, within ±pitch_spread.
+## AU-R (KRITIK-FAHRBAHN B12): each squeal its own pitch, within ±pitch_spread – drawn when it starts and held while
+## it sounds, its fade-out included (AU-R4, KRITIK-R2-CODE H1: a new pitch in every frame – a trill – kept the old
+## test green, it only looked at the end of each squeal).
 func test_squeal_pitch_per_event() -> void:
 	var m := _modern()
 	var r := m.road
 	r.set_vehicle("kombi")
+	var spread := _num("road.squeal.pitch_spread")
 	var factors := {}
+	var changes := 0
+	var audible := 0
 	for i in 12:
-		_run(m, _frame(110.0, {}, {"understeer": 0.8}), 30)
-		assert_true(r.squeal.level > 0.0, "quietscht")
-		factors[snappedf(r.squeal_factor, 0.0001)] = true
-		assert_between(r.squeal_factor, 1.0 - _num("road.squeal.pitch_spread") - 1.0e-6, 1.0 + _num("road.squeal.pitch_spread") + 1.0e-6, "Tonhöhe in ±%.0f %%" % (100.0 * _num("road.squeal.pitch_spread")))
-		_run(m, _frame(110.0, {}, {"understeer": 0.0}), 90)
+		var held := -1.0
+		for k in 120:
+			# half a second of understeer (two strengths), then it fades out
+			var us := (0.8 if k < 15 else 0.5) if k < 30 else 0.0
+			_run(m, _frame(110.0, {}, {"understeer": us}), 1)
+			if r.squeal.level >= ModernAudioPan.SILENT:
+				audible += 1
+				if held >= 0.0 and r.squeal_factor != held:
+					changes += 1
+				held = r.squeal_factor
+		assert_true(held > 0.0, "quietscht")
+		factors[snappedf(held, 0.0001)] = true
+		assert_between(held, 1.0 - spread - 1.0e-6, 1.0 + spread + 1.0e-6, "Tonhöhe in ±%.0f %%" % (100.0 * spread))
 		assert_true(r.squeal.level < ModernAudioPan.SILENT, "verklungen")
+	assert_true(audible >= 12 * 30, "hörbar in %d Bildern" % audible)
+	assert_eq(changes, 0, "eine Tonhöhe je Quietschen, solange es klingt (%d Wechsel in %d hörbaren Bildern)" % [changes, audible])
 	assert_true(factors.size() >= 10, "jedes Quietschen eine eigene Tonhöhe (%d verschiedene von 12)" % factors.size())
 	_done(m)
 
