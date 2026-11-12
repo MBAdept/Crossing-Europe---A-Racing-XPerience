@@ -1803,11 +1803,13 @@ TIMBER_WIN = dict(frame="#efe9dc", mull=dict(v=1, h=[0.5], w=0.06), lit=0.5)
 
 def timber_house(rig, name, x0, x1, d, storeys, infill, timber, pitch=1.1, jetty=0.35, left_jetty=False,
                  gable=None, gh=0.0, eaves_roof=None, roof_c="#7d3a2a", base=None, wins=None, extra_grids=(),
-                 seed=0, shutters=None, door=None):
+                 seed=0, shutters=None, door=None, close3d=False):
     """Jettied half-timbered house. storeys: [(z0, z1)] (the first one is stone `base` if given, else
     timber); each upper storey projects `jetty` further to the front (and to the left if left_jetty).
     wins: per storey a list of bay indices with windows; gable: kind of the front gable (ridge along y)
-    or eaves_roof = (ridge height) for a roof with its eaves to the street."""
+    or eaves_roof = (ridge height) for a roof with its eaves to the street.
+    close3d (3D hook, AS5a; the sprite never sets it): a back gable closes the far end of a roof with its
+    gable to the street - the sprite never shows that end, the real-time model is seen from behind in bends."""
     u0 = x0 + 0.1
     floors = [(z0, z1) for k, (z0, z1) in enumerate(storeys) if not (k == 0 and base)]
     zt = storeys[-1][1]
@@ -1855,7 +1857,8 @@ def timber_house(rig, name, x0, x1, d, storeys, infill, timber, pitch=1.1, jetty
     xl = x0 - (nfront * jetty if left_jetty else 0.0)
     roof = roofmat(name + "_rm", roof_c, "tiles", rows=0.26)
     if gable:
-        front_gable(rig, name + "_gable", gable, (xl + x1) / 2, x1 - xl, zt, gh, wall, y0=yf, depth=0.4)
+        front_gable(rig, name + "_gable", gable, (xl + x1) / 2, x1 - xl, zt, gh, wall, y0=yf, depth=0.4,
+                    back=(d - 0.4, gh) if close3d else None)
         zr = zt + gh + 0.15
         saddle(rig, name + "_roof", xl, x1, yf, d, zt, zr, roof, axis="y", over_side=0.25, over_end=0.25,
                over_end0=0.35)
@@ -1873,8 +1876,9 @@ def german_old_fachwerk(rig, p):
     D = 13.0
     st3 = [(0.0, 3.2), (3.2, 6.0), (6.0, 8.8)]
     sand = dict(color="#c8a27c", kind="ashlar", h=0.5, w=1.0, strength=0.5)
+    c3d = bool(p.get("close3d", False))     # 3D hook (AS5a): back gables of the houses with a front gable
     timber_house(rig, "gfa", -11.25, -4.25, D, st3, "#efe8da", "#3e2a1d", left_jetty=True, gable="tri", gh=6.6,
-                 base=sand, seed=1, wins={1: [1, 3, 5], 2: [1, 3, 5]},
+                 base=sand, seed=1, wins={1: [1, 3, 5], 2: [1, 3, 5]}, close3d=c3d,
                  door=grid("front", -9.85, 1, 2.0, 0.0, 1, 3.0, (1.5, 2.6), sill=0.0, top="round", kind="door",
                            glass="#4a3222", frame="#b48d68"),
                  extra_grids=[grid("front", -7.4, 1, 1.8, 0.0, 1, 3.0, (1.1, 1.3), sill=1.0, **TIMBER_WIN),
@@ -1890,7 +1894,7 @@ def german_old_fachwerk(rig, p):
             z_up=0.8, glass_seed=7)
     green = dict(color="#b5c79c", noise=0.05)
     timber_house(rig, "gfc", 4.75, 11.25, D, [(0.0, 3.1), (3.1, 5.9), (5.9, 8.7)], "#ece2c6", "#3b2a1e", gable="tri",
-                 gh=6.2, base=green, seed=3, roof_c="#743628", wins={1: [1, 3], 2: [1, 3]},
+                 gh=6.2, base=green, seed=3, roof_c="#743628", wins={1: [1, 3], 2: [1, 3]}, close3d=c3d,
                  door=grid("front", 5.35, 1, 1.4, 0.0, 1, 2.7, (1.05, 2.3), sill=0.0, kind="door", glass="#3c4b35",
                            frame="#efe9dc"),
                  extra_grids=[grid("front", 7.6, 1, 2.0, 0.0, 1, 3.1, (1.4, 1.4), sill=0.9, **TIMBER_WIN),

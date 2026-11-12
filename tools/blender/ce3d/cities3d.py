@@ -426,8 +426,15 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
             fmat = H._filler_mat(mat, fill_cache)
             pmat = (H._filler_mat(mat, fill_cache, light_k=pane_light, sink=reveal_m, tint=opt.get("pane_tint", H.PANE_TINT))
                     if pane_light is not None else None)
+            # shop windows without a display (shop_depth 0: the lobby of the office tower) light at shop_light of a pane
+            smat = None
+            if pmat is not None and any(h.kind == "window" and str(h.src.get("kind", "")) == "shop" for h in holes) \
+                    and float(opt.get("shop_light", 1.0)) != 1.0:
+                smat = H._filler_mat(mat, fill_cache, light_k=pane_light * float(opt["shop_light"]), sink=reveal_m,
+                                     tint=opt.get("pane_tint", H.PANE_TINT))
+                smat.name = "ce_panes_" + mat.name
             names_ob = [m.name if m is not None else "" for m in ob.data.materials]
-            for m_ in [x for x in (fmat, pmat) if x is not None]:
+            for m_ in [x for x in (fmat, pmat, smat) if x is not None]:
                 if m_.name not in names_ob:
                     ob.data.materials.append(m_)
                     names_ob.append(m_.name)
@@ -437,6 +444,8 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
                     if use.name not in names_ob:
                         ob.data.materials.append(use)
                         names_ob.append(use.name)
+                elif smat is not None and h.kind == "window" and str(h.src.get("kind", "")) == "shop":
+                    use = smat
                 else:
                     use = pmat if (pmat is not None and h.kind == "window") else fmat
                 slot = names_ob.index(use.name)
@@ -775,7 +784,7 @@ def timber_members(record, log, opt, geo, mats, stats, objs=None):
 def _base_name(name):
     """The facade material of a filler, pane or display copy (ce_fill_<m>, ce_pane_<m>, ce_disp<k>_<m>)."""
     import re
-    for pre in ("ce_pane_", "ce_fill_"):
+    for pre in ("ce_panes_", "ce_pane_", "ce_fill_"):
         if name.startswith(pre):
             return name[len(pre):]
     mt = re.match(r"^ce_disp\d+_(.*)$", name)
@@ -1087,6 +1096,9 @@ def bake_city(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, cutout=False
         k = float(ao.get("floor", 0.45)) + (1.0 - float(ao.get("floor", 0.45))) * np.power(
             np.clip(a[..., 0], 0.0, 1.0), float(ao.get("gamma", 1.0)))
         k = np.where(cov_ao, k, 1.0)
+        # texels inside another volume (the wall behind an oriel: every ray hits within the AO distance) are never seen
+        # from outside - but a far wall reuses them: they keep their colour instead of turning dark grey
+        k = np.where(a[..., 0] < float(ao.get("enclosed", 0.08)), 1.0, k)
         pm = H._pane_mask(objs, size)
         k = np.where(pm, 1.0, k)
         stats["pane_texels"] = int(pm.sum())
@@ -1101,6 +1113,43 @@ def bake_city(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, cutout=False
 
 
 # --- the builder --------------------------------------------------------------------------------------------------
+
+def _caps(objs, geo, mats):
+    """A cover slab on every chimney: per mesh island of the objects named *chim* (props3d._caps lays one slab over the
+    bounding box of the whole object - over the three chimneys of the Mietshaus a bar from the first to the last)."""
+    import bmesh
+    cap = mats.vpbr("ce_cap", "#6d6862", rough=0.85)
+    n = 0
+    for ob in objs:
+        if "chim" not in ob.name or "pots" in ob.name:
+            continue
+        mw = np.array(ob.matrix_world, dtype=np.float64)
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        bm.verts.ensure_lookup_table()
+        seen = set()
+        for v0 in bm.verts:
+            if v0.index in seen:
+                continue
+            stack, isl = [v0], []
+            seen.add(v0.index)
+            while stack:
+                v = stack.pop()
+                isl.append(v)
+                for e in v.link_edges:
+                    w = e.other_vert(v)
+                    if w.index not in seen:
+                        seen.add(w.index)
+                        stack.append(w)
+            pts = np.array([tuple(v.co) for v in isl]) @ mw[:3, :3].T + mw[:3, 3]
+            lo, hi = pts.min(axis=0), pts.max(axis=0)
+            if hi[2] - lo[2] < 0.3:
+                continue                # a loose cap plate of the generator, not a chimney shaft
+            geo.box(cap, (lo[0] - 0.06, lo[1] - 0.06, hi[2]), (hi[0] + 0.06, hi[1] + 0.06, hi[2] + 0.08), skip=("-z",))
+            n += 1
+        bm.free()
+    return n
+
 
 def _route(spec3d, objs):
     """(materials by name, names of the vpbr materials). As buildings3d._route, but a flat lamp material becomes a
@@ -1184,10 +1233,9 @@ def build_city(model_id, spec3d):
                     ob["ce_lvl"] = lvl
     if spec3d.get("gutters", True) is not False:
         stats["pipes"] = H._gutters(objs, dict(spec3d.get("gutters") or {}), geo, mats)
-    if spec3d.get("caps", True):
-        cap_geo = P._Geo()
-        stats["caps"] = P._caps(rig, objs, cap_geo)
-        objs = objs + cap_geo.objects(rig, model_id.split("/")[-1] + "_cap")
+    if spec3d.get("caps", False):
+        # props_cities.chimneys() lays its own cap plate on every shaft: off by default
+        stats["caps"] = _caps(objs, geo, mats)
     floors = spec3d.get("floors")
     if floors:
         pre = tuple(floors.get("objects", ()))
@@ -1197,9 +1245,86 @@ def build_city(model_id, spec3d):
     return _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, src_pts, log)
 
 
+def _has_light(mat):
+    """True when an Emission node of the material is fed or not black."""
+    for nd in mat.node_tree.nodes:
+        if nd.bl_idname == "ShaderNodeEmission":
+            inp = nd.inputs["Color"]
+            if inp.is_linked or max(tuple(inp.default_value)[:3]) > 1e-6:
+                return True
+    return False
+
+
+def _scale_emission(mat, k):
+    """The light of a material x k, in place (an Emission colour fed by a socket gets a scale node)."""
+    nt = mat.node_tree
+    n = 0
+    for nd in list(nt.nodes):
+        if nd.bl_idname != "ShaderNodeEmission":
+            continue
+        inp = nd.inputs["Color"]
+        if inp.is_linked:
+            src = inp.links[0].from_socket
+            nt.links.remove(inp.links[0])
+            sc = nt.nodes.new("ShaderNodeVectorMath")
+            sc.operation = "SCALE"
+            nt.links.new(src, sc.inputs[0])
+            sc.inputs["Scale"].default_value = float(k)
+            nt.links.new(sc.outputs[0], inp)
+        else:
+            c = inp.default_value
+            inp.default_value = (c[0] * k, c[1] * k, c[2] * k, 1.0)
+        n += 1
+    return n
+
+
+def _mul_base(mat, rgb):
+    """The base colour of a material x rgb (linear factors), in place: a multiply node before the Principled BSDF."""
+    from cesprites import materials as M
+    nt = mat.node_tree
+    n = 0
+    for nd in list(nt.nodes):
+        if nd.bl_idname != "ShaderNodeBsdfPrincipled":
+            continue
+        inp = nd.inputs["Base Color"]
+        mix = nt.nodes.new("ShaderNodeMix")
+        mix.data_type = "RGBA"
+        mix.blend_type = "MULTIPLY"
+        mix.inputs["Factor"].default_value = 1.0
+        a_col, b_col = M._sock(mix.inputs, "A_Color"), M._sock(mix.inputs, "B_Color")
+        if inp.is_linked:
+            src = inp.links[0].from_socket
+            nt.links.remove(inp.links[0])
+            nt.links.new(src, a_col)
+        else:
+            a_col.default_value = tuple(inp.default_value)
+        b_col.default_value = (float(rgb[0]), float(rgb[1]), float(rgb[2]), 1.0)
+        nt.links.new(M._sock(mix.outputs, "Result_Color"), inp)
+        n += 1
+    return n
+
+
 def _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, src_pts, log):
     from .export import sprite_extent
     mats, vpbr_names = _route(spec3d, objs)
+    # albedo_mul {material name prefix: (r, g, b)}: a baked material darker or cooler than the generator's (the glass of
+    # the office tower: the sprite's metallic glass mirrors a grey sky, the baked base colour alone came out cyan)
+    for pre, rgb in sorted((spec3d.get("albedo_mul") or {}).items()):
+        for name in sorted(mats):
+            if name.startswith(pre) and name not in vpbr_names:
+                _mul_base(mats[name], rgb)
+    # every light that stays in the atlas x LIGHT_K: the windows the cutter could not open (a window over an eave, a
+    # stairwell running into the gable), dormer and turret windows - as the panes of the cut windows (light_k at their
+    # creation): AS4R balanced that factor against Arcade at night (PANE_LIGHT_K); at 1.0 a painted window glowed
+    # nearly twice as bright as the cut ones beside it
+    k_light = float(spec3d.get("light_k", H.PANE_LIGHT_K))
+    n_scaled = 0
+    for name in sorted(mats):
+        m = mats[name]
+        if name in vpbr_names or m.get("ce_filler") or m.get("ce_atlas"):
+            continue
+        n_scaled += _scale_emission(m, k_light) if _has_light(m) else 0
+    stats["lights_scaled"] = n_scaled
     P._open_lamp_boxes(objs, [mats[n] for n in sorted(vpbr_names) if not mats[n].get("ce_vpbr")])
     lod0_objs = [o for o in objs if H._level(o) != "lod1"]
     bake_objs = [o for o in lod0_objs if any(s.material is not None and s.material.name not in vpbr_names
