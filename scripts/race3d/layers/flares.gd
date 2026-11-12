@@ -43,6 +43,8 @@ const BLINK_MIN_NIGHT := 0.2
 const BEACON_GLOW_M := 1.2
 const BEACON_GLOW_MIN_PX := 3.0
 const BEACON_GLOW_A := 1.6           ## flare.gdshader adds colour × 0.5 × strength: Arcade's alpha 0.8
+## R4: a street or canopy lamp's reflection on the wet road, × its glow × wet (flare_streak)
+const STREAK_LAMP := 0.5
 
 var _renderer: Node
 var _mats: ModernMaterials
@@ -50,6 +52,16 @@ var _mm: MultiMesh                   ## static lamps
 var _node: MultiMeshInstance3D
 var _mm_veh: MultiMesh               ## vehicle lamps (the vehicle layer's buffer, handed over as it is)
 var _node_veh: MultiMeshInstance3D
+## R4: reflections of lamps on the wet road (ModernMaterials.FLARE_STREAK): the vehicle layer's rear lamps and the
+## static lamps that look down onto a pool (street and canopy lamps)
+var _mm_streak: MultiMesh
+var _node_streak: MultiMeshInstance3D
+var _mm_sstreak: MultiMesh
+var _node_sstreak: MultiMeshInstance3D
+var _sbuf := PackedFloat32Array()
+var _sn := 0
+var _veh_streak_n := 0
+var _wet := 0.0
 var _buf := PackedFloat32Array()
 var _veh := PackedFloat32Array()
 var _veh_n := 0
@@ -84,9 +96,18 @@ func setup(renderer: Node) -> void:
 	_node = _instance(_mm, "Flares", mat)
 	_mm_veh = _multimesh()
 	_node_veh = _instance(_mm_veh, "VehicleFlares", mat)
+	var smat := _mats.material(ModernMaterials.FLARE_STREAK) as ShaderMaterial
+	if smat != null:
+		smat.set_shader_parameter(&"focal_px", _focal)
+	_mm_streak = _multimesh()
+	_node_streak = _instance(_mm_streak, "WetStreaks", smat)
+	_mm_sstreak = _multimesh()
+	_node_sstreak = _instance(_mm_sstreak, "WetStreaksStatic", smat)
 	if world is Node3D:
 		(world as Node3D).add_child(_node)
 		(world as Node3D).add_child(_node_veh)
+		(world as Node3D).add_child(_node_streak)
+		(world as Node3D).add_child(_node_sstreak)
 
 
 static func _multimesh() -> MultiMesh:
@@ -123,6 +144,22 @@ func set_vehicle_flares(buf: PackedFloat32Array, count: int) -> void:
 	_mm_veh.visible_instance_count = count
 
 
+## R4: the vehicle layer's reflections of rear lamps on the wet road (same layout as set_vehicle_flares; drawn with
+## the depth-tested streak variant of flare.gdshader).
+func set_vehicle_streaks(buf: PackedFloat32Array, count: int) -> void:
+	_veh_streak_n = count
+	var cap := buf.size() / FLOATS
+	if count <= 0 or cap <= 0:
+		_mm_streak.visible_instance_count = 0
+		_node_streak.visible = false
+		return
+	if _mm_streak.instance_count != cap:
+		_mm_streak.instance_count = cap
+	_mm_streak.buffer = buf
+	_mm_streak.visible_instance_count = count
+	_node_streak.visible = true
+
+
 ## Static lamps of a chunk part (renderer.add_lamps(), contract A-7): Array of {"pos": Vector3 (local to parent),
 ## "dir": Vector3 (local, where the lamp looks), "role", "color": Color, "size": m, "range": m, "energy"}.
 func add_static(parent: Node3D, lamps: Array) -> void:
@@ -141,6 +178,10 @@ func add_static(parent: Node3D, lamps: Array) -> void:
 func update(view: Dictionary, _dt: float) -> void:
 	var t0 := Time.get_ticks_usec()
 	_n = 0
+	_sn = 0
+	_wet = clampf(float((view.get("palette", {}) as Dictionary).get("wet", 0.0)), 0.0, 1.0)
+	if bool(view.get("camera_in_tunnel", false)):
+		_wet = 0.0
 	var need := _static_count * FLOATS * 2       # a core and, for lamps over a pool, Arcade's glow
 	if _buf.size() < need:
 		_buf.resize(maxi(need, maxi(128 * FLOATS, _buf.size() * 2)))
@@ -152,6 +193,14 @@ func update(view: Dictionary, _dt: float) -> void:
 			_buf.resize(_mm.instance_count * FLOATS)
 		_mm.buffer = _buf
 	_mm.visible_instance_count = _n
+	if _sn > 0:
+		if _mm_sstreak.instance_count < _sn:
+			_mm_sstreak.instance_count = maxi(_sn, maxi(32, _mm_sstreak.instance_count * 2))
+		if _sbuf.size() != _mm_sstreak.instance_count * FLOATS:
+			_sbuf.resize(_mm_sstreak.instance_count * FLOATS)
+		_mm_sstreak.buffer = _sbuf
+	_mm_sstreak.visible_instance_count = _sn
+	_node_sstreak.visible = _sn > 0
 	var us := Time.get_ticks_usec() - t0
 	_us_sum += us
 	_us_max = maxi(_us_max, us)
@@ -227,6 +276,11 @@ func _add_statics(view: Dictionary) -> void:
 				# Arcade's warm glow round the head of a street or canopy lamp
 				var g := on * alpha * LAMP_GLOW_A * clampf(energy / LAMP_GLOW_REF_ENERGY, 0.0, 1.0)
 				_put(p, dirs[j], LAMP_GLOW_COLOR, g, LAMP_GLOW_M, LAMP_GLOW_MIN_PX, 0.0, size * 0.5)
+				if _wet > 0.0:
+					# R4: its reflection on the wet road, from the foot of its pool towards the camera
+					var drop := _drop_of(e, j, p, parent)
+					if drop > 0.5:
+						_put_streak(p, LAMP_GLOW_COLOR, g * _wet * STREAK_LAMP, maxf(size * 0.9, 0.35), drop, depth, size * 0.5)
 			elif role == "tunnel":
 				_put(p, dirs[j], TUNNEL_GLOW_COLOR, on * alpha * TUNNEL_GLOW_A, TUNNEL_GLOW_M, TUNNEL_GLOW_MIN_PX, 0.0, size * 0.5)
 			elif blink != null:
@@ -245,6 +299,83 @@ static func blink_lit(blink: Variant, time: float, night: float) -> bool:
 	if b.x <= 0.0:
 		return true
 	return night > BLINK_MIN_NIGHT and fposmod(time + b.z, b.x) < b.y
+
+
+## Height of static lamp j of entry e above the road beside it (cached per entry; recomputed when the parent moves):
+## the nearest boundary of the integrated path, like the lights layer's pools.
+func _drop_of(e: Array, j: int, p: Vector3, parent: Node3D) -> float:
+	if e.size() < 7 or not (e[6] is PackedFloat32Array) or (e[6] as PackedFloat32Array).size() != (e[1] as Array).size():
+		var d := PackedFloat32Array()
+		d.resize((e[1] as Array).size())
+		d.fill(-1.0)
+		if e.size() < 7:
+			e.append(d)
+		else:
+			e[6] = d
+	var drops: PackedFloat32Array = e[6]
+	if drops[j] < 0.0:
+		drops[j] = _ground_drop(p, parent)
+		e[6] = drops
+	return drops[j]
+
+
+## Height of a world point above the nearest boundary of the integrated path – searched inside the chunk above
+## `parent` (the streamer names chunk nodes "Chunk<index>"), else along the whole path (0 when there is no path).
+func _ground_drop(p: Vector3, parent: Node) -> float:
+	var path: RoadPath3D = _renderer.get("path") if _renderer != null else null
+	if path == null or not path.is_ready():
+		return 0.0
+	var from := path.first
+	var to := path.last()
+	var step := 4
+	var streamer: Variant = _renderer.get("streamer")
+	var node: Node = parent
+	while node != null and streamer is ChunkStreamer:
+		var nm := String(node.name)
+		if nm.begins_with("Chunk") and nm.substr(5).is_valid_int():
+			from = maxi(from, nm.substr(5).to_int() * (streamer as ChunkStreamer).chunk_segments)
+			to = mini(to, from + (streamer as ChunkStreamer).chunk_segments)
+			step = 1
+			break
+		node = node.get_parent()
+	var best := INF
+	var drop := 0.0
+	for k in range(from, to + 1, step):
+		var q := path.point(k)
+		var d := (q.x - p.x) * (q.x - p.x) + (q.z - p.z) * (q.z - p.z)
+		if d < best:
+			best = d
+			drop = p.y - q.y
+	return clampf(drop, 0.0, 40.0)
+
+
+func _put_streak(pos: Vector3, col: Color, a: float, half_w: float, h: float, depth: float, lamp_r: float) -> void:
+	if a <= 0.004:
+		return
+	var o := _sn * FLOATS
+	if _sbuf.size() < o + FLOATS:
+		_sbuf.resize(maxi(o + FLOATS, maxi(32 * FLOATS, _sbuf.size() * 2)))
+	_sbuf[o] = 1.0
+	_sbuf[o + 1] = 0.0
+	_sbuf[o + 2] = 0.0
+	_sbuf[o + 3] = pos.x
+	_sbuf[o + 4] = 0.0
+	_sbuf[o + 5] = 1.0
+	_sbuf[o + 6] = 0.0
+	_sbuf[o + 7] = pos.y
+	_sbuf[o + 8] = 0.0
+	_sbuf[o + 9] = 0.0
+	_sbuf[o + 10] = 1.0
+	_sbuf[o + 11] = pos.z
+	_sbuf[o + 12] = col.r
+	_sbuf[o + 13] = col.g
+	_sbuf[o + 14] = col.b
+	_sbuf[o + 15] = a
+	_sbuf[o + 16] = half_w
+	_sbuf[o + 17] = h
+	_sbuf[o + 18] = clampf(depth * 0.3 + h, 4.0, 26.0)
+	_sbuf[o + 19] = lamp_r
+	_sn += 1
 
 
 func _put(pos: Vector3, dir: Vector3, col: Color, s: float, k: float, min_px: float, kind: float, lamp_r: float) -> void:
@@ -294,11 +425,26 @@ func warmup_nodes() -> Array:
 	var n := MultiMeshInstance3D.new()
 	n.multimesh = mm
 	n.material_override = _node.material_override if _node != null else _mats.material("flare")
-	return [n]
+	var out: Array = [n]
+	if _node_streak != null and _node_streak.material_override != null:
+		var mm2 := MultiMesh.new()
+		mm2.transform_format = MultiMesh.TRANSFORM_3D
+		mm2.use_colors = true
+		mm2.use_custom_data = true
+		mm2.mesh = _quad()
+		mm2.instance_count = 1
+		mm2.set_instance_transform(0, Transform3D(Basis.IDENTITY, Vector3(0.0, 0.8, 0.0)))
+		mm2.set_instance_color(0, Color(1.0, 0.2, 0.1, 0.3))
+		mm2.set_instance_custom_data(0, Color(0.15, 0.8, 6.0, 0.1))
+		var n2 := MultiMeshInstance3D.new()
+		n2.multimesh = mm2
+		n2.material_override = _node_streak.material_override
+		out.append(n2)
+	return out
 
 
 func snapshot() -> Dictionary:
-	return {"lights": {"flares": _n + _veh_n, "static_lamps": _static_count}}
+	return {"lights": {"flares": _n + _veh_n, "static_lamps": _static_count, "wet_streaks": _sn + _veh_streak_n}}
 
 
 func perf() -> Dictionary:
@@ -333,5 +479,9 @@ func _exit_tree() -> void:
 		_node.queue_free()
 	if is_instance_valid(_node_veh):
 		_node_veh.queue_free()
+	if is_instance_valid(_node_streak):
+		_node_streak.queue_free()
+	if is_instance_valid(_node_sstreak):
+		_node_sstreak.queue_free()
 	_static.clear()
 	_static_count = 0

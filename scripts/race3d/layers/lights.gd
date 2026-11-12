@@ -46,6 +46,16 @@ const OMNI_REACH := 1.7             ## omni range as a multiple of the lamp's po
 const LAMP_DROP_M := 8.0            ## height of a lamp above the road when it cannot be measured
 const WALL_POOL_M := 1.5            ## a wall lamp's pool lies at most this far in front of the wall
 const GLINT_MAX := 24
+## R4: the police beacon lights its surroundings at night – one omni of the pool (it has priority over the farthest
+## lamp) and a blue light pool on the ground, pulsing with the beacon's phase (view car "beacon" "a" / "b", Arcade's
+## beacon glow alphas 0.7 / 0.45). Only within BEACON_REACH_M of the camera and when the lights are on.
+const BEACON_COLOR := Color(0.25, 0.45, 1.0)
+const BEACON_ENERGY := 2.2
+const BEACON_RANGE_M := 14.0
+const BEACON_POOL_M := 9.0
+const BEACON_LEVEL := 0.42          ## display value its pool adds at the centre (× lights × phase)
+const BEACON_REACH_M := 160.0
+const BEACON_H := 1.65              ## height of the light bar above the road
 const GLINT_RADIUS_M := 0.32        ## Arcade: _glow_fixture radius 0.35 .. 0.4 m
 const GLINT_GAIN := 1.5
 
@@ -84,6 +94,7 @@ var _glint_mm: MultiMesh
 var _glint_count := 0
 var _omni_active := 0
 var _spot_active := 0
+var _beacon_on := false             ## the beacon took an omni and a pool this frame
 
 
 func setup(renderer: Node) -> void:
@@ -243,6 +254,7 @@ func update(view: Dictionary, _dt: float) -> void:
 		_pool_lamps = 0
 		_pool_traffic = 0
 		_omni_active = 0
+		_beacon_on = false
 		for o: OmniLight3D in omnis:
 			o.visible = false
 	_send_pools()
@@ -353,12 +365,26 @@ func _update_pools(view: Dictionary, lamps_on: float, lights: float, ambient: Co
 		_pool_dir[n] = Vector4.ZERO
 		n += 1
 	_pool_lamps = n
-	# the omni pool on the nearest lamps
+	# the police beacon (R4): its omni and pool come first
+	var beacon := beacon_of(view, cam_z, lights, z_lo, z_hi)
+	_beacon_on = not beacon.is_empty() and omnis.size() > 0
+	# the omni pool on the nearest lamps (one fewer while the beacon has one)
 	_omni_active = 0
-	var omni_n := mini(_ranked.size(), omnis.size())
+	var lamp_omnis := omnis.size() - (1 if _beacon_on else 0)
+	var omni_n := mini(_ranked.size(), lamp_omnis)
 	var omni_next := dist[omni_n] if _ranked.size() > omni_n else INF
 	for i in omnis.size():
 		var o := omnis[i]
+		if _beacon_on and i == omnis.size() - 1:
+			var bp := path.world(float(beacon["z"]), float(beacon["x"]), BEACON_H)
+			o.position = bp
+			o.omni_range = BEACON_RANGE_M
+			o.light_color = BEACON_COLOR
+			o.light_energy = BEACON_ENERGY * float(beacon["phase"]) * maxf(lights, 0.0)
+			o.visible = o.light_energy > 0.001
+			if o.visible:
+				_omni_active += 1
+			continue
 		if i >= omni_n or is_inf(dist[i]):
 			o.visible = false
 			continue
@@ -389,7 +415,39 @@ func _update_pools(view: Dictionary, lamps_on: float, lights: float, ambient: Co
 			if traffic >= _max_traffic:
 				break
 	_pool_traffic = traffic
+	if _beacon_on and n < MAX_POOLS:
+		var c2 := path.world(float(beacon["z"]), float(beacon["x"]), 0.0)
+		var bl := display_to_light(BEACON_LEVEL * lights * float(beacon["phase"]), BEACON_COLOR, ambient)
+		_pool_pos[n] = Vector4(c2.x, c2.y, c2.z, BEACON_POOL_M)
+		_pool_col[n] = Vector4(bl.r, bl.g, bl.b, 0.0)
+		_pool_dir[n] = Vector4.ZERO
+		n += 1
 	_pool_count = n
+
+
+## R4: the police car whose beacon lights the scene this frame: {z (centre of the car), x, phase (1.0 for beacon "a",
+## 0.6 for "b")} – the nearest car of the view with a beacon within BEACON_REACH_M ahead of or 20 m behind the camera,
+## inside the integrated path; {} when there is none or the lights are off (pure: unit test).
+static func beacon_of(view: Dictionary, cam_z: float, lights: float, z_lo: float, z_hi: float) -> Dictionary:
+	if lights <= 0.04:
+		return {}
+	var best: Dictionary = {}
+	var best_d := INF
+	for c: Variant in view.get("cars", []):
+		if not (c is Dictionary):
+			continue
+		var cd: Dictionary = c
+		var b := str(cd.get("beacon", ""))
+		if b != "a" and b != "b":
+			continue
+		var z := float(cd.get("z", 0.0)) + float(cd.get("length", 4.8)) * 0.5
+		var d := z - cam_z
+		if d < -20.0 or d > BEACON_REACH_M or z < z_lo or z > z_hi:
+			continue
+		if absf(d) < best_d:
+			best_d = absf(d)
+			best = {"z": z, "x": float(cd.get("x", 0.0)), "phase": 1.0 if b == "a" else 0.6}
+	return best
 
 
 ## Centre of a lamp's pool on the ground: where its axis meets the ground for a lamp that looks down; for a wall lamp
@@ -495,6 +553,20 @@ func _update_glints() -> void:
 	_glints.visible = n > 0
 
 
+## R4: the player's low beam at a point in the air (spray, the weather layer), as the display value it adds there: the
+## cone of inc/headlight.gdshaderinc in 3D (above or below the axis counts like beside it) × the beam of this frame.
+func beam_at(world_pos: Vector3) -> float:
+	if _beam <= 0.001:
+		return 0.0
+	var rel := world_pos - _beam_pos
+	var d := rel.dot(_beam_dir)
+	if d <= 0.0 or d >= _range:
+		return 0.0
+	var q := (rel - _beam_dir * d).length() / (0.9 + d * 0.13)
+	var q2 := q * q
+	return _beam * smoothstep(0.0, 4.0, d) * (1.0 - smoothstep(_range * 0.3, _range, d)) / (1.0 + q2 * q2)
+
+
 ## Shape of the player's cone on the ground, 0..1 – the law of inc/headlight.gdshaderinc (RoadRenderer._light).
 static func headlight_shape(world_pos: Vector3, lamp_pos: Vector3, lamp_dir: Vector3, reach: float) -> float:
 	var rel := world_pos - lamp_pos
@@ -524,6 +596,6 @@ func perf() -> Dictionary:
 
 
 func snapshot() -> Dictionary:
-	return {"lights": {"omni": _omni_active, "spot": _spot_active, "pools": _pool_count, "pools_lamps": _pool_lamps,
+	return {"lights": {"omni": _omni_active, "spot": _spot_active, "pools": _pool_count, "pools_lamps": _pool_lamps, "beacon": _beacon_on,
 		"pools_traffic": _pool_traffic, "omni_pool": omnis.size(), "static_lamps": _static_count, "reflectors": _reflector_count,
 		"glints": _glint_count, "beam": snappedf(_beam, 0.0001), "beam_range_m": _range}}

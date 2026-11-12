@@ -19,9 +19,20 @@
 // smallest radius px, kind: 0 glow / 1 indicator with core, lamp radius in metres for the depth taps).
 // Mesh: a quad with corners (-1..1, -1..1) in x / y. Unshaded, additive, no fog (lamps shine through the haze;
 // their strength already carries the path-distance fade of their vehicle).
+// R4: the variant CE_STREAK (ModernMaterials class "flare_streak") draws the reflection of a lamp on the WET road –
+// Arcade's streaky reflections of rear lights (RoadRenderer._wet_reflections), here as a quad lying on the road from
+// the ground under the lamp towards the camera, depth TESTED (the player's car and everything else in front hides it)
+// and dimmed by the same five depth taps at the lamp itself (a lamp behind a crest or a truck has no reflection either).
+// Its instance: origin = the lamp, COLOR = lamp colour and strength, INSTANCE_CUSTOM = (half width m, height of the
+// lamp above the road m, length m, lamp radius m for the taps). Bright at the lamp's foot, fading towards the camera,
+// soft across, with a slow shimmer of the rain on the water film (ce_time: frozen in the pause).
 // Load only through ModernMaterials - never with preload().
 shader_type spatial;
+#ifdef CE_STREAK
+render_mode unshaded, blend_add, depth_draw_never, cull_disabled, fog_disabled, shadows_disabled;
+#else
 render_mode unshaded, blend_add, depth_draw_never, depth_test_disabled, cull_disabled, fog_disabled, shadows_disabled;
+#endif
 
 uniform sampler2D depth_tex : hint_depth_texture, filter_nearest, repeat_disable;
 uniform float focal_px = 711.0;     // logical px per metre at 1 m (RoadProjection.focal)
@@ -39,6 +50,46 @@ varying vec2 v_src;                 // screen uv of the lamp
 varying vec2 v_tap;                 // uv offset of the four outer depth taps
 varying float v_depth;              // view depth of the lamp (m)
 
+#ifdef CE_STREAK
+global uniform float ce_time;
+varying vec2 v_streak;              // (0 at the lamp's foot … 1 towards the camera, -1 … 1 across)
+varying vec2 v_ground;              // road position of the fragment (world xz) for the shimmer
+
+void vertex() {
+	vec3 lamp = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+	vec4 vp = VIEW_MATRIX * vec4(lamp, 1.0);
+	float d = max(-vp.z, 0.05);
+	float s = focal_px / d;
+	vec4 lclip = PROJECTION_MATRIX * vp;
+	float aspect = VIEWPORT_SIZE.x / max(VIEWPORT_SIZE.y, 1.0);
+	vec2 px_ndc = vec2(2.0 / (logical_h * aspect), 2.0 / logical_h);
+	v_src = (lclip.xy / lclip.w) * 0.5 + 0.5;
+	v_tap = max(INSTANCE_CUSTOM.w * s, 0.6) * px_ndc * 0.5;
+	v_depth = d;
+	// the quad on the road: from the ground under the lamp towards the camera, 3 cm above the road
+	vec3 ground = lamp - vec3(0.0, INSTANCE_CUSTOM.y - 0.03, 0.0);
+	vec3 to_cam = CAMERA_POSITION_WORLD - ground;
+	to_cam.y = 0.0;
+	float reach = length(to_cam);
+	vec3 dir = reach > 0.01 ? to_cam / reach : vec3(0.0, 0.0, 1.0);
+	vec3 side = normalize(cross(vec3(0.0, 1.0, 0.0), dir));
+	float t = VERTEX.y * 0.5 + 0.5;
+	float len = min(INSTANCE_CUSTOM.z, max(reach - 3.0, 0.4));
+	vec3 p = ground + dir * (t * len - 0.2);
+	// never thinner than 1.2 logical px at its own depth
+	vec4 pv = VIEW_MATRIX * vec4(p, 1.0);
+	float half_w = max(INSTANCE_CUSTOM.x * (1.0 + 0.5 * t), 0.6 * max(-pv.z, 0.05) / focal_px);
+	p += side * VERTEX.x * half_w;
+	POSITION = PROJECTION_MATRIX * (VIEW_MATRIX * vec4(p, 1.0));
+	v_streak = vec2(t, VERTEX.x);
+	v_ground = p.xz;
+	v_col = COLOR;
+	v_quad = VERTEX.xy;
+	v_px = vec2(1.0);
+	v_core = vec2(0.0);
+	v_r = 1.0;
+}
+#else
 void vertex() {
 	vec4 vp = MODELVIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0);
 	float d = max(-vp.z, 0.05);
@@ -63,6 +114,7 @@ void vertex() {
 	v_r = r;
 	v_col = COLOR;
 }
+#endif
 
 // linear view depth of the depth texture at uv (GL Compatibility: reverse Z, window depth 0..1 -> NDC -1..1)
 float scene_depth(vec2 uv, mat4 inv_proj) {
@@ -86,6 +138,13 @@ void fragment() {
 	if (vis <= 0.0) {
 		discard;
 	}
+#ifdef CE_STREAK
+	// the reflection: bright at the lamp's foot, fading towards the camera, soft across, a slow shimmer of the film
+	float along = pow(1.0 - v_streak.x, 1.6) * smoothstep(0.0, 0.06, v_streak.x + 0.03);
+	float across = exp(-v_streak.y * v_streak.y * 2.6);
+	float shimmer = 0.75 + 0.25 * sin(v_ground.x * 3.1 + v_ground.y * 2.3 + ce_time * 5.0) * sin(v_ground.y * 1.7 - ce_time * 3.3);
+	ALBEDO = v_col.rgb * (v_col.a * along * across * shimmer) * vis * strength;
+#else
 	// Arcade's glow: 1 -> 0.55 over the first quarter of the radius, then linearly to 0 at the radius - full strength
 	// up to half a pixel diagonal of the 3D picture (px = logical px per pixel of the 3D picture)
 	float px = logical_h / max(VIEWPORT_SIZE.y, 1.0);
@@ -98,4 +157,5 @@ void fragment() {
 		c += mix(v_col.rgb, vec3(1.0, 0.9, 0.6), 0.35) * min(v_col.a * 1.25, 1.0);
 	}
 	ALBEDO = c * vis * strength;
+#endif
 }

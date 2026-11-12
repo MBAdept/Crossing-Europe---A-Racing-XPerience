@@ -307,6 +307,10 @@ func update(view: Dictionary, _dt: float) -> void:
 	_send("ce_ambient", st["ambient"])
 	_send("ce_ambient_display", st["display"])
 	_send("ce_tunnel", tunnel01)
+	# R4: the sky wet ground mirrors (display values; inside a tunnel its darkness)
+	if not pal.is_empty():
+		_send("ce_sky_top", (pal.get("sky_top", Color.BLACK) as Color).lerp(Palette.TUNNEL_FOG, tunnel01))
+		_send("ce_sky_horizon", (pal.get("sky_bottom", Color.BLACK) as Color).lerp(Palette.TUNNEL_AMBIENT * 0.35, tunnel01))
 
 
 ## Sets a ce_* global when its value changed (most of them stand still for minutes).
@@ -317,12 +321,14 @@ func _send(global_name: String, value: Variant) -> void:
 	ModernMaterials.set_global(global_name, value)
 
 
-## The palette the backdrop draws: the palette of the view with the sun where the light comes from.
+## The palette the backdrop draws. R4 (lead decision of wave 3, "Keine Sonnenscheibe" of the first test build): the
+## sun disc stands where Arcade draws it – in front of the car, high at noon – also while the light of a high sun comes
+## from behind the left shoulder (sun_azimuth: the chase camera would otherwise look into the back-lit side of
+## everything). That is Arcade's own convention: its panorama shows the sun ahead while its sprites are lit from
+## behind-left. A low sun (dawn, dusk) is not swung, so there disc, horizon glow, light and shadows agree exactly;
+## between, the light turns away from the disc with the sun's height (SIDE_FROM … SIDE_TO).
 func sky_palette(pal: Dictionary) -> Dictionary:
-	var out := pal.duplicate()
-	if not pal.is_empty():
-		out["sun_pos"] = Vector2(sun_azimuth(pal.get("sun_pos", Vector2(0.0, 1.0))) / AZIMUTH_GAIN, (pal.get("sun_pos", Vector2(0.0, 1.0)) as Vector2).y)
-	return out
+	return pal
 
 
 ## Plain data for debug_snapshot(): {"environment": {…}}.

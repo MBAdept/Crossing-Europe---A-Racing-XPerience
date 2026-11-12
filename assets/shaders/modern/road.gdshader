@@ -64,10 +64,14 @@ uniform float detail = 1.0;                        // strength of the fine detai
 uniform float asphalt_reflect = 0.9;               // how much of the low beam and the light pools a surface throws back
 uniform float paint_reflect = 1.6;                 // (Arcade's factors: asphalt 0.9, lines 1.6, hatch and crosswalk 1.4, checker 1.2)
 
+uniform float wet_mirror = 0.42;                   // R4: share of the Fresnel reflection of the sky on wet asphalt
+
 global uniform float ce_wet;
 global uniform float ce_snow;
 global uniform vec4 ce_fog_color;
 global uniform vec2 ce_fog_range;
+global uniform vec4 ce_sky_top;
+global uniform vec4 ce_sky_horizon;
 
 varying vec2 v_xz;
 varying float v_seg;
@@ -260,10 +264,20 @@ void fragment() {
 		// ---------------------------------------------------------------- weather on the asphalt
 		asph *= 1.0 - 0.32 * wet;
 		if (wet > 0.0) {
-			// wet asphalt mirrors the bright sky towards the horizon (Arcade: 28 % at the end of the sight)
+			// R4: the water film mirrors the sky – Fresnel of water at the angle under which the camera sees the road
+			// (strong at grazing angles far ahead, weak below the car), the palette's sky between horizon and zenith
+			// along the mirrored ray (ce_sky_horizon / ce_sky_top, display values). The mirrored light is the sky's own:
+			// divided by the ambient factor the ground law multiplies with, as Arcade does. Never less than Arcade's
+			// sheen (28 % of the fog colour at the end of the sight); paint mirrors a little less (its beads scatter).
+			vec3 vdir = normalize(v_world - CAMERA_POSITION_WORLD);
+			float cos_i = clamp(-vdir.y, 0.0, 1.0);
+			float fres = 0.02 + 0.98 * pow(1.0 - cos_i, 5.0);
+			vec3 sky = mix(ce_sky_horizon.rgb, ce_sky_top.rgb, smoothstep(0.0, 0.45, cos_i));
+			vec3 sky_k = sky / max(ce_ambient_display.rgb, vec3(0.2));
 			float sheen = clamp(-VERTEX.z / max(80.0, ce_fog_range.y), 0.0, 1.0);
-			asph = mix(asph, ce_fog_color.rgb, 0.24 * sheen * wet);
-			line *= 1.0 - 0.07 * wet;
+			float mirror = max(fres * wet_mirror, 0.28 * sheen) * wet;
+			asph = mix(asph, sky_k, mirror);
+			line = mix(line * (1.0 - 0.07 * wet), sky_k, mirror * 0.35);
 		}
 		asph = mix(asph, col_road_snow, 0.3 * snow);
 		if (snow > 0.0) {

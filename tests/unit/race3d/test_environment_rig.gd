@@ -119,11 +119,14 @@ func test_where_the_sun_stands() -> void:
 	assert_true(turned.distance_to(to_noon) < 1.0e-5, "die Sonne schwenkt nicht mit den Kurven")
 	var only_road: Vector3 = Rig.light_state(noon, 0.0, 0.7, 0.0)["to_sun"]
 	assert_true(only_road.distance_to(to_noon) > 0.3, "… wohl aber mit der Straße gegen das Panorama")
-	# the backdrop draws the sun where the light comes from
+	# R4 (lead decision, "Keine Sonnenscheibe"): the backdrop draws the disc where Arcade draws it – at noon ahead,
+	# while the light comes from behind the left shoulder; at a low sun disc and light agree exactly
 	var rig: Node3D = Rig.new()
 	var sky: Dictionary = rig.call("sky_palette", noon)
-	assert_near((sky["sun_pos"] as Vector2).x * Rig.AZIMUTH_GAIN, float(st_noon["azimuth"]), 1.0e-6, "sky_palette(): die Sonnenscheibe steht im Azimut des Lichts")
-	assert_eq((sky["sun_pos"] as Vector2).y, (noon["sun_pos"] as Vector2).y, "… in der Höhe der Palette")
+	assert_eq(sky["sun_pos"], noon["sun_pos"], "sky_palette(): die Sonnenscheibe steht an Arcades Stelle")
+	assert_true(absf((sky["sun_pos"] as Vector2).x * Rig.AZIMUTH_GAIN) < 0.5, "… mittags vorn im Bild (Arcades Panorama)")
+	var sky_rise: Dictionary = rig.call("sky_palette", rise)
+	assert_near((sky_rise["sun_pos"] as Vector2).x * Rig.AZIMUTH_GAIN, float(st_rise["azimuth"]), 1.0e-6, "tiefe Sonne: Scheibe und Licht im selben Azimut")
 	assert_eq(noon["sun_pos"], Palette.compute(13.0, "normal", _daytime(), false)["sun_pos"], "die Palette der Ansicht bleibt unberührt")
 	assert_true(rig.get("sun") is DirectionalLight3D and (rig.get("sun") as DirectionalLight3D).shadow_enabled, "genau ein gerichtetes Licht, immer mit Schatten (D5)")
 	var lights := 0

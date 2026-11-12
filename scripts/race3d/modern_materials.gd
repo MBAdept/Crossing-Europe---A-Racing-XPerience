@@ -27,6 +27,8 @@ const CLASSES: Array[String] = ["vpbr", "glass", "baked", "baked_cutout", "leave
 ## T1, T4 and Dortmund – Frankfurt km 121, the refused instances drawn with another one's values. The material is
 ## kept under the key "vpbr|static", so set_class_parameter("vpbr", …) and apply_look() reach it as before.
 const VPBR_STATIC := "vpbr_static"
+## R4: the reflections of lamps on the wet road (layer "flares"): flare.gdshader compiled with CE_STREAK.
+const FLARE_STREAK := "flare_streak"
 ## Global uniforms (contract 4.5.6): name, RenderingServer type, default.
 const GLOBALS: Array = [
 	["ce_night", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, 0.0],
@@ -47,6 +49,10 @@ const GLOBALS: Array = [
 	["ce_headlight_dir", RenderingServer.GLOBAL_VAR_TYPE_VEC3, Vector3(0.0, 0.0, -1.0)],
 	["ce_headlight", RenderingServer.GLOBAL_VAR_TYPE_VEC2, Vector2(60.0, 0.0)],
 	["ce_far_y", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, -4.0],
+	# R4: the palette's sky as DISPLAY values (zenith and horizon, blended to the tunnel's darkness) – what wet ground
+	# mirrors (road.gdshader); set by the environment rig
+	["ce_sky_top", RenderingServer.GLOBAL_VAR_TYPE_COLOR, Color(0.11, 0.36, 0.79)],
+	["ce_sky_horizon", RenderingServer.GLOBAL_VAR_TYPE_COLOR, Color(0.73, 0.87, 0.96)],
 ]
 
 ## The vehicle LOOK in one place (A-13): the class parameters a scene puts on the shared vehicle materials – [class,
@@ -144,6 +150,12 @@ func shader(class_id: String) -> Shader:
 		if vb != null:
 			sh = Shader.new()
 			sh.code = static_code(vb.code)
+	elif class_id == FLARE_STREAK:
+		# R4: the reflection of a lamp on the wet road – same source as "flare", compiled with the streak branch
+		var fl := shader("flare")
+		if fl != null:
+			sh = Shader.new()
+			sh.code = fl.code.replace("shader_type spatial;", "shader_type spatial;\n#define CE_STREAK")
 	else:
 		sh = load(SHADER_DIR + class_id + ".gdshader") as Shader
 	if sh == null:

@@ -16,7 +16,8 @@ extends CanvasLayer
 ##  * Heading: view.bg_offset is the panorama angle of the ROAD at the car. The camera also looks into the bend
 ##    (ChaseCamera3D) and stands behind the car, so the backdrop is turned by the camera's real yaw against the
 ##    road heading at the car on top of it.
-##  * The sun is drawn where the light comes from: the environment rig's sky_palette() (env.state.sun_pos).
+##  * The sun disc: the environment rig's sky_palette() – since R4 Arcade's place (ahead, high at noon), where a low
+##    sun's light also comes from.
 ##  * Camera shake moves the canvas item like the frustum offset moves the 3D picture.
 ##  * Inside a tunnel the canvas fades to the tunnel's darkness as long as no tunnel builder draws a tube (the
 ##    portal ramp of the environment rig); with a tube the outside stays visible through the exit.
