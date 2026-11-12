@@ -81,6 +81,7 @@ func prepare_pending() -> int:
 	var n := _atlas.pending()
 	if n == 0 and _panel_mat != null:
 		_panel_mat.set_shader_parameter(&"albedo_tex", _atlas.albedo)
+		_panel_mat.set_shader_parameter(&"emit_tex", _atlas.emission)
 	return n
 
 
@@ -204,6 +205,7 @@ func collect(ctx: ChunkContext) -> Variant:
 			_atlas.prepare(_specs.values(), null)
 			if _panel_mat != null:
 				_panel_mat.set_shader_parameter(&"albedo_tex", _atlas.albedo)
+				_panel_mat.set_shader_parameter(&"emit_tex", _atlas.emission)
 	return {"uv": _atlas.entries.duplicate()}
 
 
