@@ -28,6 +28,7 @@ const BUILDERS := ["station", "border", "city", "gantry", "radar"]
 
 var _failed: Array[String] = []
 var _wall0 := 0
+var _station_casting: Array = [-1, -1]   ## [casting, total] structure nodes at the fuel stop with "Mittel" (check "tankstelle")
 
 
 func _initialize() -> void:
@@ -122,6 +123,21 @@ func _save(img: Image, name: String) -> void:
 		return
 	DirAccess.make_dir_recursive_absolute(dir)
 	img.save_png(dir.path_join(name + ".png"))
+
+
+## [casting, total]: the geometry nodes of the structure builders under the renderer's world, and how many of them cast
+## a shadow.
+func _casting_nodes(r: Variant) -> Array:
+	var casting := 0
+	var total := 0
+	if r is ModernRenderer:
+		for n: Node in (r as ModernRenderer).world.find_children("*", "GeometryInstance3D", true, false):
+			var nm := String(n.name)
+			if nm.begins_with("Station") or nm.begins_with("Gantry") or nm.begins_with("Border") or nm in ["Fences", "StreetLights"]:
+				total += 1
+				if (n as GeometryInstance3D).visible and (n as GeometryInstance3D).cast_shadow != GeometryInstance3D.SHADOW_CASTING_SETTING_OFF:
+					casting += 1
+	return [casting, total]
 
 
 ## The debug parts of one builder over the loaded chunks: [part Dictionary, …].
@@ -247,6 +263,8 @@ func _check_tankstelle() -> void:
 			await _free(sc)
 			break
 		_save(img, "tankstelle_%02d" % int(hour))
+		if hour < 18.0:
+			_station_casting = _casting_nodes(r)
 		var cam_z := float(((r as ModernRenderer).view as Dictionary).get("camera_z", 0.0))
 		var trk: Object = sc.get("track")
 		var front := INF
@@ -459,21 +477,14 @@ func _check_schatten() -> void:
 	var p: Array[String] = []
 	var counts := {}
 	for setting: String in ["medium", "off"]:
+		if setting == "medium" and int(_station_casting[1]) > 0:
+			counts[setting] = _station_casting      # the fuel stop at 12:00 of the check "tankstelle" ("Mittel")
+			continue
 		if setting == "off":
 			CliArgs.all()["gfx"] = "shadows=0"
 		var sc: Node = await _launch("modern", {"start_km": 13.95})
 		await _picture_after(sc, 5)
-		var r: Object = sc.get("renderer")
-		var casting := 0
-		var total := 0
-		if r is ModernRenderer:
-			for n: Node in (r as ModernRenderer).world.find_children("*", "GeometryInstance3D", true, false):
-				var nm := String(n.name)
-				if nm.begins_with("Station") or nm.begins_with("Gantry") or nm.begins_with("Border") or nm in ["Fences", "StreetLights"]:
-					total += 1
-					if (n as GeometryInstance3D).visible and (n as GeometryInstance3D).cast_shadow != GeometryInstance3D.SHADOW_CASTING_SETTING_OFF:
-						casting += 1
-		counts[setting] = [casting, total]
+		counts[setting] = _casting_nodes(sc.get("renderer"))
 		CliArgs.all().erase("gfx")
 		await _free(sc)
 	_need(p, int(counts["off"][1]) > 0 and int(counts["off"][0]) == 0, "mit „Aus“ wirft kein Bau-Knoten (%d von %d)" % [int(counts["off"][0]), int(counts["off"][1])])
