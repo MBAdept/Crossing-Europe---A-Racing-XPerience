@@ -770,23 +770,24 @@ Vegetation ein Modell.
 
 | Modell | Bauer | Kategorie | Dreiecke lod0 / lod1 | Aufrufe | Atlas | px/m zur Straße | Licht nachts |
 |---|---|---|---|---|---|---|---|
-| `house_med` | `house` | Land | 1 343 / 761 | 2 | 1024² | 59,9 | Fenster |
-| `church` | `house` | Land | 1 731 / 1 275 | 2 | 1024² + Licht | 30,0 | Fenster, Uhren, Turm-Flutlicht |
+| `house_med` | `house` | Land | 1 343 / 761 | 2 | 1024² + Licht | 59,9 | Fenster |
+| `church` | `house` | Land | 1 740 / 1 284 | 2 | 1024² + Licht | 30,0 | Fenster, Uhren, Turm-Flutlicht |
 | `factory` | `house` | Land | 1 624 / 1 108 | 2 | 1024² + Licht | 29,5 | Hallenfenster, Oberlichter, Werkszeichen, Schlotlicht |
-| `windmill` | `house` | Land | 1 928 / – | 2 | 1024² | 31,2 | Fenster |
+| `windmill` | `house` | Land | 1 928 / – | 2 | 1024² + Licht | 31,2 | Fenster |
 | `houseboat` | `house` | Land | 1 054 / – | 2 | 1024 × 512 | 37,3 | Fenster, Türlampe |
 | `ferry_ship` | `house` | Land | 1 449 / – | 2 | 1024² + Licht | 12,2 (Modell; im Spiel ×1/0,33–0,45) | Kabinen, Bullaugen, Decklampen, Positionslichter |
-| `building_shop` | `house` | Stadt | 1 085 / 757 | 2 | 1024² + Licht | 44,2 | Fenster, Schaufenster, Schild |
-| `building_oldtown` | `house` | Stadt | 2 326 / 1 574 | 2 | 1024² + Licht | 40,7 | Fenster, Arkaden |
-| `building_block_a` | `house` | Stadt | 4 596 / 3 156 | 2 | 2048 × 1024 | 49,0 | Fenster |
-| `building_block_b` | `house` | Stadt | 5 180 / 3 476 | 2 | 2048 × 1024 | 44,0 | Fenster, Läden |
-| `building_tall` | `house` | Stadt | 2 485 / 2 485 | 2 | 2048 × 1024 + Licht | 29,8 | 300 von 840 Scheiben, Foyer |
+| `building_shop` | `house` | Stadt | 1 107 / 779 | 2 | 1024² + Licht | 44,2 | Fenster, Schaufenster, Schild mit Zeichen |
+| `building_oldtown` | `house` | Stadt | 2 328 / 1 576 | 2 | 1024² + Licht | 40,7 | Fenster, Arkaden |
+| `building_block_a` | `house` | Stadt | 4 596 / 3 156 | 2 | 2048 × 1024 + Licht | 49,0 | Fenster |
+| `building_block_b` | `house` | Stadt | 5 180 / 3 476 | 2 | 2048 × 1024 + Licht | 44,0 | Fenster, Läden |
+| `building_tall` | `house` | Stadt | 2 565 / 2 513 | 2 | 2048 × 1024 + Licht | 29,8 | 293 von 840 Scheiben, Foyer mit Pfosten |
 | `bridge_lamp` | `lantern` | Möbel | 882 / – | 1 | – (vpbr) | – | 3 Laternen mit Ankern |
-| `bridge_pylon` | `pylon` | Mast | 520 / 520 | 1 | 1024² + Licht | 29,9 (Fuß) / 13,4 (Kopf) | Flugbefeuerung (Anker) |
+| `bridge_pylon` | `pylon` | Mast | 232 / – | 1 | 1024² + Licht | 31,7 (Fuß) | Flugbefeuerung (Anker) |
+| `bridge_pylon_bare` | `pylon` | Mast (nur Modern) | 120 / – | 1 | 1024² + Licht | 31,7 (Fuß) | Flugbefeuerung (Anker) |
 | `bridge_truss_arch` | `truss` | Möbel | 1 100 / – | 1 | 1024 × 512 + Licht | 28 (Bild) | 2 Hängelampen mit Ankern |
 
-Gemessen mit `validate_models.py --report` und dem Export-Bericht; alle Budgets eingehalten (Land 2 000 Dreiecke,
-Stadt 10 000, Möbel 1 500, Mast 5 000; zwei bzw. ein Zeichenaufruf je Stufe).
+Gemessen mit `validate_models.py --report` und dem Export-Bericht (Stand nach der Nacharbeit AS4R, unten); alle
+Budgets eingehalten (Land 2 000 Dreiecke, Stadt 10 000, Möbel 1 500, Mast 5 000; zwei bzw. ein Zeichenaufruf je Stufe).
 
 ### Bauer `house` (`ce3d/buildings3d.py`)
 
@@ -799,9 +800,10 @@ gleich) hat einen Nachfolger in einem eigenen Modul:
   Sprossen je Fensterart (`bars`: Sprossenfenster der Fabrik 4 × 4, Oberlicht der Läden), Sohlbank, Scheibe. Ob
   eine Öffnung in ein anderes Volumen führen würde (der Turm steht vor dem Kirchenschiff), entscheidet ein Strahl
   entlang der Wandnormale (`Cover`), nicht mehr ein Hüllquader.
-- **Licht der Scheiben:** Kanal 12, die Leuchtfarbe ist die Lichtfarbe des Sprite-Rasters × 0,47 (sRGB). Eine
-  unbeleuchtete Lampe zeigt die Hälfte davon: bei Tag dunkel getöntes Glas, nachts warmes (Wohnungen), kaltweißes
-  (Fabrikhalle) oder hellweißes Licht (Läden). Welche Scheibe leuchtet, folgt dem Anteil `lit` des Rasters.
+- **Licht der Scheiben:** seit AS4R aus dem Nachtlicht-Atlas – die Scheibe ist der zurückgesetzte Lochfüller, bei Tag
+  das gemalte Glas des Sprites, nachts das Licht des Sprites für genau dieses Fenster × 0,55: warmes (Wohnungen),
+  kaltweißes (Fabrikhalle) oder hellweißes Licht (Läden). (AS4 hatte Kanal-12-Lampen; unbeleuchtet zeigten sie die
+  halbe Leuchtfarbe – braune Scheiben neben blauen, siehe „Nacharbeit“ unten.)
 - **Fensterläden** (Haus): Tafeln 3 cm stark, 1 cm vor der Wand, mit Lamellen im Atlas (gebacken).
 - **Schallluken** (Kirchturm, `louvre`): schräge Lamellen vor einer dunklen Rückwand.
 - **Uhren** (Kirchturm, Dekore mit `clock`): Zifferblatt als angestrahlte Fläche (Kanal 14: bei Tag seine Farbe,
@@ -816,8 +818,8 @@ gleich) hat einen Nachfolger in einem eigenen Modul:
   Für Schilder, die nie gespiegelt werden, kann `sign` weiter Text setzen (`text`, Buchstaben aus
   `cesprites.textgeo`).
 - **Vorhangfassade** (Büroturm, `curtain`): die Wände werden ersetzt durch Brüstungsbänder (gebacken, aus dem
-  Material des Turms), zurückgesetzte Scheiben je Achse und Geschoss (vpbr: spiegeln den Himmel, ein Drittel leuchtet
-  nachts) und Lisenen; Eckpfosten schließen die Ecken.
+  Material des Turms), zurückgesetzte Scheiben je Achse und Geschoss (seit AS4R einfarbige Atlasfelder im Glasverlauf
+  des Sprites, ein Drittel leuchtet nachts) und Lisenen; Eckpfosten schließen die Ecken.
 - **lod1** ohne Feinteile (Sprossen, Sohlbänke, Rinnen, Lamellen, Marken, Geländerstäbe): ab der ersten
   Umschaltentfernung des Requisiten-Builders (40 / 60 / 120 m je Detailstufe). Sprossen von 4,5 cm sind dort unter
   einem Pixel und würden nur flimmern. Damit das Fenster beim Umschalten nicht dunkler wird (ohne Ersatz wurden die
@@ -830,10 +832,10 @@ gleich) hat einen Nachfolger in einem eigenen Modul:
 **Bake mit Lochfüllern.** Die Öffnungen werden vor dem Bake geschnitten. Würde man die Löcher im Atlas einfach
 auffüllen (Dilatation), stünde dort die Farbe des gemalten Rahmens – in den kleineren Mipmap-Stufen umgab dann ein
 heller Saum jedes Fenster (bei 60 m deutlich, auf der Rückseite mit geringerer Texeldichte schon näher). Darum wird
-jedes Loch für den Farb-Bake mit einer Füllfläche geschlossen (eine Kopie des Fassadenmaterials ohne Licht): Im Atlas
-steht in der Öffnung das gemalte Fenster des Sprites, die Mipmaps mitteln Wand und Fenster richtig. Die Lichtebene
-backt die Füller schwarz (nur die vpbr-Scheiben leuchten), vor der Umgebungsverdeckung werden sie wieder entfernt
-(sie würden die Laibungen verschließen), und das Netz enthält sie nicht.
+jedes Loch für den Farb-Bake mit einer Füllfläche geschlossen (eine Kopie des Fassadenmaterials): Im Atlas steht in
+der Öffnung das gemalte Fenster des Sprites, die Mipmaps mitteln Wand und Fenster richtig. Seit AS4R behält der
+Füller eines Fensters das Licht des Sprites und wird nach Farb- und Licht-Bake in die Laibung zurückgesetzt – er ist
+die Scheibe; die Füller von Türen und Schallluken werden vor der Umgebungsverdeckung gelöscht.
 
 ### Brückenteile (`ce3d/bridges3d.py`)
 
@@ -844,10 +846,9 @@ Balken des Generatornetzes zurück (`boxes()`: Achse, Enden, Querschnitt jedes K
   einem Atlas; der Pylon ist in drei Höhenbänder geteilt (eine 82 m lange Karte begrenzt den Atlas auf 12 px/m), und
   die Texeldichte folgt der Höhe (`band_w` 1 / 0,6 / 0,45: der Fuß neben der Fahrbahn bekommt 29,9 px/m, der Kopf,
   den man erst aus 100 m und mehr sieht, 13,4 px/m; vorher überall 21,8 px/m). Die
-  Seile sind vierseitige Prismen, deren Dreiecke alle ein einfarbiges Feld des Atlas lesen. `lod1` hat 0,34 m statt
-  0,28 m starke Seile (dicker hält sie bis 400 m bei 0,6 px – mit MSAA eine durchgehende Linie –, ein größerer Sprung
-  wäre beim Umschalten zu sehen: 0,24 → 0,4 m änderte 7 % der Pixel bei 60 m). Die Flugbefeuerung hat einen
-  Lichtanker mit Richtung (Fernglühen der Flare-Ebene).
+  Seile sind vierseitige Prismen, deren Dreiecke alle ein einfarbiges Feld des Atlas lesen. Seit AS4R: Bein
+  senkrecht, sieben Seile je Seite bis zur Deckkante innerhalb 36 m, eine Stufe (siehe „Nacharbeit“ unten). Die
+  Flugbefeuerung hat einen Lichtanker mit Richtung (Fernglühen der Flare-Ebene).
 - **Fachwerkportal** (Bauer `truss`, Straßenmöbel: ein Zeichenaufruf): Gurte, Pfosten, Sockel und Querriegel als
   Geometrie; Streben und Knotenbleche jeder Ebene als gezeichnetes Ausschneidebild (Streben ≥ 2,5 Texel, Halo 0,33 –
   mipmap-fest wie der Strommast) auf einem Streifen aus Vierecken um das Fachwerk. Die beiden Hängelampen leuchten
@@ -932,12 +933,16 @@ den Fahrspuren), und Schönheitsfehler, die man stundenlang sieht. Alle Zahlen g
   spiegelsymmetrisch (das Set wird links gespiegelt), nachts beleuchtet (Kanal 14); das Schild selbst leuchtet mit
   25 % (nachts war es ein weißer Kasten).
 - **Kirche:** Putz `#ccc6b7` statt `#e8e1d0` (Hook `plaster`; im Rennlicht war die Wand 13 % heller als das Sprite).
-  **Fachwerkportal:** Streben im Ausschneidebild 1,2× breiter und 15 % dunkler (bei 400 m war es blasser als das
-  Sprite).
+  **Fachwerkportal:** Streben im Ausschneidebild 1,2× breiter und 15 % dunkler, der Stahl 15 % dunkler als
+  `STEEL_GREEN` des Sprites (`steel` `#49585a`; Sonne und Himmelslicht machen das Modell heller und blauer als das
+  vorbeleuchtete Sprite). Bei 100 m hat es jetzt den Kontrast des Sprites; bei 400 m bleibt es blasser – die dünnen
+  Streben verlieren in den kleinen Mip-Stufen Deckung (Alpha-Test), das ist keine Frage der Farbe mehr.
 - **Windmühle:** unverändert. Das „Flimmern der Flügel“ der Kritik war vor allem Drehung: Die Messung verschob das
   Modell in Viertelpixel-Schritten, und der `vpbr`-Rotor nimmt seine Phase aus der Weltposition (0,37 rad je Meter) –
-  bei 120 m dreht sich der Flügel dabei um 1,1 Pixel je Schritt. Mit bewegter Kamera und stehendem Modell flimmern
-  Mühle und Sprite fast gleich (gemessen, Tabelle unten). Dünnere oder dickere Sprossen änderten daran nichts.
+  bei 120 m dreht sich der Flügel dabei um 1,1 Pixel je Schritt. Mit bewegter Kamera und stehendem Modell flimmert
+  die Mühle 1,3- bis 1,7-mal so stark wie das Sprite statt 2- bis 3-mal (Tabelle unten) – der Rest ist echte
+  Kantenunruhe der Gitterflügel. Weniger und dickere Sprossen (7 × 0,13 m statt 13) änderten daran nichts (gemessen)
+  und sind verworfen.
 
 MESSUNGEN_AS4R
 

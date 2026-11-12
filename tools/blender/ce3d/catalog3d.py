@@ -288,10 +288,12 @@ MODELS.update({
                                     bare=True, object={"width_m": 5.25, "height_m": 88.8, "length_m": 8.0},
                                     sets={"props/bridge_pylon_bare": {"modern_only": True}},
                                     code=["cesprites/props_cities.py"]),
-    # AS4R (M10): the web of the cut-out picture 1.2 x wider and 15 % darker (paler than the sprite at 400 m)
+    # AS4R (M10): the web of the cut-out picture 1.2 x wider and 15 % darker (paler than the sprite at 400 m); the
+    # steel 15 % darker than the sprite's STEEL_GREEN #56676a (sun and sky light make the model lighter and bluer
+    # than the pre-lit sprite: at 100 m contrast to the sky 98 against 109)
     "props/bridge_truss_arch": dict(builder="truss", source="props/bridge_truss_arch", kind="furniture",
                                     atlas=(1024, 512), ppm=28.0, roughness=0.55, web_k=1.2, web_dark=0.85,
-                                    code=["cesprites/props_cities.py"]),
+                                    steel="#49585a", code=["cesprites/props_cities.py"]),
     # --- ships -------------------------------------------------------------------------------------------------
     # the ro-pax ferry: the sprite shows its starboard side (view_yaw 90), so the model is turned by -90 degrees
     # (its side faces the approaching player, the bow points to +X); the many cabin windows stay painted (lit in

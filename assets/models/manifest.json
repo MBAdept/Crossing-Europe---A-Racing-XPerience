@@ -592,8 +592,8 @@
    "roughness": 0.55,
    "auto_lod": false,
    "tags": ["prop", "bridge", "overhead"],
-   "bytes": 92804,
-   "hash": "39361e82e66f1d77b19ab9b2297ba5cb73e8947a"
+   "bytes": 89574,
+   "hash": "a7c8f60ea48d082f5f8b4f8cf0905d0ef577a61f"
   },
   "props/building_block_a": {
    "kind": "building",
