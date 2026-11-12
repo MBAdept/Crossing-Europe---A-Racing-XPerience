@@ -1516,7 +1516,10 @@ Messungen vorher (AS4) / nachher (AS4R), Software-OpenGL, Renn-Look der Prüfsze
 | Stufenwechsel bei 60 m, mittel (Haus / Kirche / Fabrik / Laden / Altstadt / Block A / Block B) | 11,3 / 3,4 / 6,5 / 4,2 / 8,1 / 8,3 / 8,9 % | 11,2 / 3,0 / 7,0 / 5,4 / 8,4 / 8,2 / 9,4 % | – |
 
 **Nicht im Modell lösbar** (an die Renderer-Pakete): Fähren und Hausboote stehen ohne Wasser auf der Wiese (R2:
-Requisiten mit `h` < 0 auslassen, bis R5 Wasser hat); die Höhe des Pylons folgt nicht `height_m` der Brücke (50–120 m,
+Requisiten mit `h` < 0 auslassen, bis R5 Wasser hat – behoben im Fernboden durch FIX-WASSER, in der M2-Linie seit
+M2ZS1: die Scheibe liegt unter dem Wasser, die Schiffe schwimmen); der Nachtatlas des Pylons ist der angestrahlte Pylon
+des Sprites, den Arcade nie zeigt (der Renderer zeichnet die Pylone der Brücken nachts ohne ihn und dunkler, M2ZS1,
+renderer-modern.md 14.7); die Höhe des Pylons folgt nicht `height_m` der Brücke (50–120 m,
 das Modell hat 88,8 m), und gerade Seile folgen keiner Kurve (bei R 449 m liegt ein Seilende bis 1,4 m neben der
 Deckkante – auf dem Seitenstreifen, nicht in der Fahrbahn); die Phase der Rotoren hängt an der ursprungsrelativen
 Weltposition und springt bei jedem Versatz des Ursprungs (alle 2 km).

@@ -1965,9 +1965,14 @@ Köhlbrandbrücke um 22 Uhr ganz. Jetzt:
   ZS1 (M2ZS1) leuchteten die Pylone der Köhlbrandbrücke um 22 Uhr wieder hellgrau (gemessen im Bereich von
   FIX-WASSER-R, 500–780 × 150–350, km 78,1, mittlere Leuchtdichte: Arcade 60,1, ZS1 58,4, Modell 84,4, ohne Nachtatlas
   79,5). Jetzt bekommen Pylone mit `prefer_proc` eine Kopie des Modellmaterials ohne Nachtatlas (`emit_energy` 0) und
-  mit `night_albedo` 0,5 (`PYLON_NIGHT_ALBEDO`; neuer Parameter von `baked.gdshader`, Vorgabe 1 = jedes andere
+  mit `night_albedo` 0,45 (`PYLON_NIGHT_ALBEDO`; neuer Parameter von `baked.gdshader`, Vorgabe 1 = jedes andere
   Material unverändert; `_dark_model_override()`, Gruppe `md|…`) – derselbe Shader, keine neue Variante; bei Tag
-  dasselbe Bild. Die rote Flugbefeuerung ist ein Lampenanker des Modells und blinkt wie in Arcade (11.2).
+  dasselbe Bild. Gemessen über die ganze Brücke (22 Uhr, ab km 77,6 mit 80 km/h und Verkehr, derselbe Bereich,
+  Arcade / ZS1 / M2ZS1): km 77,7 76,5 / 79,7 / 70,7; km 78,1 60,1 / 58,4 / 55,9; km 78,8 48,1 / 49,8 / 43,0; km 78,9
+  47,7 / – / 42,6; km 79,7 51,6 / 52,1 / 51,7 (mit 0,5 dort 53,7: die Laternen beleuchten die Seile neben dem Deck).
+  Steam-Deck-Stufe (1280 × 800, Arcade mit Balken: Bereich 40 Zeilen tiefer) km 77,7 / 78,1 / 78,8: Arcade 76,5 /
+  60,1 / 48,1, ZS1 78,4 / 61,0 / 50,9, M2ZS1 69,2 / 57,7 / 43,5. Die rote Flugbefeuerung ist ein Lampenanker des
+  Modells und blinkt wie in Arcade (11.2).
 Offen für R5: Deck, Träger, Pylonhöhe und Seilfächer je Brücke (`height_m`, `cables`; das Modell hat Arcades
 Sprite-Höhe 88,8 m), Uferwände.
 

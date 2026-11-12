@@ -58,9 +58,10 @@ const PYLON_BLINK := Vector3(1.6, 0.8, 0.4)
 ## Albedo of a "prefer_proc" pylon model at night (baked.gdshader night_albedo): Arcade's procedural pylon is concrete ×
 ## the ambient light (RoadRenderer._oc), the moon lights the model's light-concrete faces. Measured in FIX-WASSER-R's
 ## pylon region (x 500–780, y 150–350) at the Köhlbrandbrücke km 78.1, 22:00, "Hoch" (M2ZS1): mean luminance Arcade
-## 60.1, ZS1 (dark stand-in) 58.4, the model with its night atlas 84.4, without it 79.5, with 0.55 60.2 – 0.5 keeps
-## the pylon a little darker than Arcade, like ZS1's stand-in.
-const PYLON_NIGHT_ALBEDO := 0.5
+## 60.1, ZS1 (dark stand-in) 58.4, the model with its night atlas 84.4, without it 79.5, with 0.55 60.2, with 0.5
+## 58.0 – but 2 levels above Arcade at km 79.7, where the street lamps light the cables beside the deck; 0.45 keeps the
+## pylon at or below Arcade along the whole bridge (docs/renderer-modern.md 14.7).
+const PYLON_NIGHT_ALBEDO := 0.45
 
 var library: PropLibrary
 

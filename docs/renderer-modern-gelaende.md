@@ -196,7 +196,7 @@ leuchteten die Pylone der Köhlbrandbrücke fast weiß). Seit AS4R hat `props/br
 Vertretung gilt nur noch, wenn es fehlt (Unit-Test mit einem Test-Manifest ohne das Modell). Den angestrahlten Pylon
 trägt auch der Nachtatlas des Modells, und der Mond hellt seine hellen Betonflächen auf, wo Arcades Pylon nachts
 Beton × Umgebungslicht ist: Für Einträge mit `prefer_proc` bekommt der Modellknoten eine Kopie des Materials ohne
-Nachtatlas und mit `night_albedo` 0,5 (`emit_energy` 0, `PYLON_NIGHT_ALBEDO`, `_dark_model_override()`, Gruppe
+Nachtatlas und mit `night_albedo` 0,45 (`emit_energy` 0, `PYLON_NIGHT_ALBEDO`, `_dark_model_override()`, Gruppe
 `md|<Modell>|<gespiegelt>`; M2ZS1 – nach dem Zusammenführen mit ZS1 leuchteten die Pylone um 22 Uhr wieder hellgrau;
 Messwerte: renderer-modern.md 14.7). Die rote Flugbefeuerung, ein Lampenanker des Modells, blinkt wie Arcades
 (`PYLON_BLINK`, 4.8).
