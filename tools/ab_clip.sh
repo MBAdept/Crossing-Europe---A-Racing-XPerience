@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # A/B clip of the two graphics modes (v0.8.0, docs/qa-v080.md): the same drive recorded once with the Arcade renderer
 # and once with the Modern renderer – Godot's Movie Maker at a fixed frame rate, identical arguments and seed – and
-# put side by side with the full HUD into one H.264 video (Arcade left, Modern right).
+# put side by side with the full HUD into one H.264 video (Arcade left, Modern right, each labelled in a strip above
+# the picture, so the HUD stays free).
 #
 #   tools/ab_clip.sh <out.mp4> [race scene arguments…]
 #   tools/ab_clip.sh out/start_tag.mp4 --stage=kiel_hamburg --from=kiel --hour=12 --weather=normal --vehicle=limousine \
@@ -124,7 +125,8 @@ encode() {
 	local side=$1 crf=$2
 	local w=${side%x*} h=${side#*x}
 	local fs=$((h / 24))
-	local lab="drawtext=fontfile=$FONT:text='%s':x=(w-tw)/2:y=10:fontsize=$fs:fontcolor=white:box=1:boxcolor=black@0.55:boxborderw=8"
+	local strip=$(((h / 18 + 1) / 2 * 2))   # a label strip above each half (even height for H.264): the HUD stays free
+	local lab="pad=$w:$((h + strip)):0:$strip:color=0x10182c,drawtext=fontfile=$FONT:text='%s':x=(w-tw)/2:y=($strip-th)/2:fontsize=$fs:fontcolor=white"
 	# shellcheck disable=SC2059
 	local filt="[0:v]trim=start_frame=$FA:end_frame=$((FA + FRAMES)),setpts=PTS-STARTPTS,scale=$w:$h,$(printf "$lab" Arcade)[a];[1:v]trim=start_frame=$FM:end_frame=$((FM + FRAMES)),setpts=PTS-STARTPTS,scale=$w:$h,$(printf "$lab" Modern)[m];[a][m]hstack=inputs=2[v]"
 	nice -n 10 ffmpeg -v error -y -threads 2 -i "$TMP/arcade.avi" -i "$TMP/modern.avi" -filter_complex "$filt" -map "[v]" \
