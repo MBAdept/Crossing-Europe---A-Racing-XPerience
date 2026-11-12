@@ -42,7 +42,6 @@ const LOD0_M := 60.0
 const LOD1_M := 200.0
 const RIG_SCRIPT := "res://scripts/race3d/environment_rig.gd"
 const QUALITY_SCRIPT := "res://scripts/race3d/quality.gd"
-const VEHICLES_LAYER := "res://scripts/race3d/layers/vehicles.gd"
 const SPRITE_MANIFEST := "res://assets/sprites/manifest.json"
 const SPRITE_ROOT := "res://assets/sprites/"
 const BACKDROP_LAYER := -10
@@ -267,14 +266,9 @@ func _build_race_light() -> void:
 	_sv.add_child(_rig)
 	_rig.call("setup", null)
 	_rig.call("apply_quality", levels)
-	# the look the vehicle layer puts on the shared class materials (tree trunks are vpbr): the class material
-	# must exist before it is tuned - a material created afterwards would miss the look
-	var look: Variant = (load(VEHICLES_LAYER) as GDScript).get_script_constant_map().get("LOOK", [])
-	if look is Array:
-		for l: Variant in look:
-			var e: Array = l
-			_mats.material(str(e[0]))
-			_mats.set_class_parameter(str(e[0]), str(e[1]), e[2])
+	# the look the vehicle layer puts on the shared class materials (tree trunks are vpbr), from its one place (A-13);
+	# apply_look() creates each class material before it is tuned
+	_mats.apply_look(ModernMaterials.VEHICLE_LOOK)
 	# ... and the environment it mirrors (layers/vehicles.gd _set_environment)
 	var top: Color = _pal.get("sky_top", Color(0.11, 0.36, 0.79))
 	var bottom: Color = _pal.get("sky_bottom", Color(0.73, 0.87, 0.96))

@@ -897,9 +897,12 @@ und `ONESHOT_DB`).
 
 **Verdrahtung**: `ui_move`, `ui_ok` und `ui_back` sind die Namen, die die Menüs heute spielen (`UiKit.sound()`,
 `AudioManager.play()`): Mit dem Profil Modern nimmt `SfxBank` dafür die Datei aus `ui/` (`ROUTES`), `ui_move` mit zwei
-Varianten reihum. `ui_tab`, `ui_toggle` und `ui_error` gibt es als Namen im Spiel noch nicht: Die UI spielt sie mit
-`AudioManager.play("ui/ui_tab")` usw. (`SfxBank` nimmt „<Ordner>/<id>“; das Profil Arcade kennt die Namen nicht und
-bleibt still) – offener Punkt für UI2 (14.14). Das Profil Arcade behält seine Klänge.
+Varianten reihum. `ui_tab`, `ui_toggle` und `ui_error` spielt die UI seit M2INT mit `UiKit.sound_modern(modern, arcade)`:
+im Profil Modern „ui/ui_tab“ (Seitenwechsel LB/RB der Optionen), „ui/ui_toggle“ (◀▶ in einer Optionszeile) und
+„ui/ui_error“ (◀▶ am Ende einer Liste ohne Umlauf); im Profil Arcade dieselben Stellen wie in v0.7.0 („ui_move“, am
+Listenende still). Die Menüs lesen dafür das Klangprofil, nie den Grafikmodus (Regel 4). Geprüft in
+`tests/race/check_options_tabs.gd` („klang_wert“, „klang_seite“: Zähler der `SfxBank`); die Arcade-Seite deckt
+`check_music.gd` „arcade“ ab.
 
 ### 14.10 Gemeinsame Mischung (`tools/audio/music/mischung.json`)
 
@@ -1026,11 +1029,8 @@ Das Rennstück und die Etappe:
 
 - **Hören**: „Nachtfahrt“, „Rückenwind“, Zwischenspiel, Schlüsse, Stinger und UI-Klänge muss der Nutzer beurteilen
   (Hörproben `<scratch>/v080/deliver/AU-D2/`). Bass und Pegel ändert `mischung.json` für alle Stücke zugleich (14.10).
-- **UI2**: `ui_tab` (Reiter LB/RB der Optionen), `ui_toggle` (Wert einer Optionszeile) und `ui_error` (nicht möglich)
-  aufrufen – Vorschlag: `UiKit.sound("ui/ui_tab")` usw. an den Stellen, die heute `ui_move` spielen, und für Arcade
-  dort weiter `ui_move` (das Profil Arcade kennt die neuen Namen nicht). Sauberer wäre ein Eintrag in
-  `SfxBank.ROUTES` und `AudioManager.ONESHOT_DB` (Ersatz: der Arcade-Klang `ui_move` bzw. `ui_back`) – das gehört
-  AU-E bzw. dem Eigentümer des `AudioManager`.
+- **UI2**: `ui_tab`, `ui_toggle` und `ui_error` sind seit M2INT an den Optionen verdrahtet (14.9); weitere Stellen
+  (Reiter anderer Bildschirme, gesperrte Eingaben) nach demselben Muster `UiKit.sound_modern()`.
 - **AU-E**: die Stinger im Rennen mit der ganzen Kette messen (`capture_mix.gd`), `sting_duck_db`/`sting_release_s`
   gegebenenfalls in `audio.modern.music` eintragen; ob der Ziel-Schlag mit echtem Treiber auf den Taktstrich passt
   (die Taktuhr zählt ab `play()`, die Ausgabe beginnt eine Treiberportion später – abgeleitet: Absenkung endet bis zu

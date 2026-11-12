@@ -1311,7 +1311,12 @@ braucht keine `Sky` am Environment und gilt in jeder Voreinstellung. Spiegelunge
 Spielerauto bekommt 0,7 × `ce_ambient`, so wie Arcade sein Spieler-Sprite aufhellt) und `gloss` (Kasten: 0,35).
 **Die Vorgaben der Shader sind neutral** (`env_energy` 0, `paint_base` 1, `flake_strength` 0): Kontaktbogen und
 `check_models.gd` messen das Vertexformat allein. Den Renn-Look setzt `layers/vehicles.gd` (`LOOK`) auf die
-geteilten Materialien, die Umgebungsfarben aus der Palette (nur bei Änderung).
+geteilten Materialien, die Umgebungsfarben aus der Palette (nur bei Änderung). Seit M2INT steht der Look an **einer**
+Stelle (A-13): `ModernMaterials.VEHICLE_LOOK` (Rennen), `VEHICLE_PLAYER_FILL` und `STUDIO_LOOK` (Showroom);
+Fahrzeug-Ebene, Showroom, Kontaktbogen und `prop_scene` lesen sie dort (`ModernMaterials.apply_look()` legt jede
+Klassen-Materialie vor dem Einstellen an). Im Renn-Look sind die Metallic-Flocken aus (`flake_strength` 0): eine
+Flockenzelle (1/260 m) ist beim Spielerauto in 9 m 0,3 px breit und flimmerte nur (Kunstkritik KRITIK-2 A4: 83
+glitzernde Pixel je Bild beim Gran Turismo); der Showroom behält sie.
 
 ### 11.4 Schilder
 
@@ -1695,8 +1700,9 @@ Bodennebel.
   aus. Kosten: ein Zeichenaufruf mehr je Auto, solange es blendet. Gemessen (`m1/RINT-B/probe/pop_probe.gd`: ruhige
   Szene ohne Verkehr, Auto fährt mit 3 cm je Bild durch die Grenze, Anteil der Autopixel, die sich gegen das Bild davor
   ändern): vorher 5,4 % in einem Bild beim Wechsel, jetzt 0 % im Wechselbild und höchstens 3,5 % je Bild verteilt.
-- Diese Werte setzt `layers/vehicles.gd` (`LOOK`) auf die geteilten Materialien; die Vorgaben der Shader bleiben
-  neutral (Kontaktbogen, `check_models`). Der Showroom setzt seinen eigenen Look (`Showroom3D.studio_look()`), sonst
+- Diese Werte setzt `layers/vehicles.gd` (`LOOK` = `ModernMaterials.VEHICLE_LOOK`, A-13) auf die geteilten
+  Materialien; die Vorgaben der Shader bleiben neutral (Kontaktbogen, `check_models`). Der Showroom setzt seinen
+  eigenen Look (`Showroom3D.studio_look()` mit `ModernMaterials.STUDIO_LOOK`), sonst
   übernahm er die Parameter des letzten Rennens (den analytischen Himmel der Rennpalette, nachts einen dunklen); der
   Kontaktbogen mit `--showroom` nimmt denselben Look.
 

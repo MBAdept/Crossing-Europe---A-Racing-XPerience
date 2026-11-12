@@ -40,6 +40,32 @@ const GLOBALS: Array = [
 	["ce_far_y", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, -4.0],
 ]
 
+## The vehicle LOOK in one place (A-13): the class parameters a scene puts on the shared vehicle materials – [class,
+## uniform, value]. The shaders' defaults are neutral (the look of the vertex format alone, what the contact sheet's
+## --look=neutral shows). Read by the vehicle layer (race), the showroom and the contact sheet / prop scene tools;
+## the far-level albedo constants of the models (traffic3d TRAFFIC_GLASS_FAR, FAR_PLATE, truck3d GLASS_FAR,
+## police3d CHECK_MEAN_EXP) are measured against VEHICLE_LOOK – re-measure them when it changes (docs/modelle.md 17).
+## RINT-B: unlit vehicle lamps at 0.28 of their lit colour (0.5 read as switched on by day – art review B1), the tail
+## light of a combined tail/brake lamp (channel 2) at half the lamp (brake stays more than twice as bright); paint
+## exposure (art review A1/B8/C2): a soft knee above 0.7 of the brightest channel (slope 0.45) and 8 % desaturation
+## instead of a flat 0.9 on every paint – bright paints no longer clip, mid ones keep their value (measured against the
+## sprites, docs/renderer-modern.md §13.4); at night the mirrored palette sky at 0.35 and the player's fill at 0.3 of
+## their day values (the metallic player car was +44 % against its sprite at 22:00).
+## M2INT (art review KRITIK-2 A4: 83 sparkling pixels per frame on the GT at race distance): no metallic flakes in the
+## race – a flake cell (1/260 m) is 0.3 px wide at the player car's 9 m and only shimmers; the showroom keeps them.
+const VEHICLE_LOOK: Array = [["vpbr", "env_energy", 1.6], ["vpbr", "paint_base", 1.0], ["vpbr", "paint_knee", 0.7],
+	["vpbr", "paint_knee_slope", 0.45], ["vpbr", "paint_desat", 0.08], ["vpbr", "flake_strength", 0.0],
+	["vpbr", "lamp_off", 0.28], ["vpbr", "tail_level", 0.5], ["vpbr", "env_night", 0.35], ["vpbr", "fill_night", 0.3],
+	["glass", "env_energy", 2.2]]
+## Extra ambient light on the player car in a race (vpbr instance uniform fill, a share of ce_ambient): Arcade draws its
+## player sprite brighter than the scene (ambient x 1.15 + 0.08) – the car stays readable in its own shade.
+const VEHICLE_PLAYER_FILL := 0.7
+## The studio look of the showroom (RINT-B): the engine's reflection of the studio sky (env_energy 0) and the same paint
+## exposure and lamp levels as the race; the flakes sparkle at the showroom's distance.
+const STUDIO_LOOK: Array = [["vpbr", "env_energy", 0.0], ["vpbr", "paint_base", 1.0], ["vpbr", "paint_knee", 0.7],
+	["vpbr", "paint_knee_slope", 0.45], ["vpbr", "paint_desat", 0.08], ["vpbr", "flake_strength", 0.6],
+	["vpbr", "lamp_off", 0.28], ["vpbr", "tail_level", 0.5], ["glass", "env_energy", 0.0]]
+
 static var _globals_added := false
 static var _shared: ModernMaterials = null
 
@@ -155,6 +181,15 @@ func billboard(tex: Texture2D, uv_rect: Rect2 = Rect2(0.0, 0.0, 1.0, 1.0), light
 
 
 ## Sets a uniform on the shared material of a class (lamp energies, sway ...), e.g. per quality level.
+## Puts a look (VEHICLE_LOOK, STUDIO_LOOK or a tool's own list of [class, uniform, value]) on the class materials,
+## creating each class material first (set_class_parameter reaches only materials that exist – art review C2).
+func apply_look(look: Array) -> void:
+	for l: Variant in look:
+		var e: Array = l
+		material(str(e[0]))
+		set_class_parameter(str(e[0]), str(e[1]), e[2])
+
+
 func set_class_parameter(class_id: String, param: String, value: Variant) -> void:
 	for key: String in _materials:
 		if key == class_id or key.begins_with(class_id + "|"):

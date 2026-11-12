@@ -13,7 +13,7 @@ extends SceneTree
 ## Night sheet: ce_night = 1 (lit windows, lamps of props); vehicles once per lamp channel:
 ##              tail, brake, both indicators, head, reverse, beacons.
 ## --showroom:  the `show` level of the player cars from the camera of the Cycles showroom sprites
-##              (for A/B pictures; 768x480 per tile), with the look of the real showroom (Showroom3D.STUDIO_LOOK).
+##              (for A/B pictures; 768x480 per tile), with the look of the real showroom (ModernMaterials.STUDIO_LOOK).
 ## --channels:  no model - a strip of 15 panels, one per lamp channel of the vpbr format (0 on the left),
 ##              once per lamp state: shows that every channel answers to its instance uniform or global.
 ## --showroom:  ... followed by the Cycles sprite of the same car on the ground colour of the real-time tile
@@ -34,9 +34,9 @@ extends SceneTree
 ##              distance it is scaled by the ratio of the distances); traffic and police cars the cell "c" with its
 ##              anchor on the rear end; trucks and buses the rear face of the Arcade box (AS2b).
 ## --look=race (default): the race look of the vehicle materials - the class parameters the vehicle layer sets on
-##              the shared materials (scripts/race3d/layers/vehicles.gd LOOK: clear coat mirroring the sky, base coat,
+##              the shared materials (ModernMaterials.VEHICLE_LOOK, A-13: clear coat mirroring the sky, base coat,
 ##              flakes, glass reflection; the mirrored sky = the sky of this rig) and, in --chase tiles, the fill light
-##              of the player car (PLAYER_FILL). --look=neutral: the neutral defaults of the shaders (the look of the
+##              of the player car (VEHICLE_PLAYER_FILL). --look=neutral: the neutral defaults of the shaders (the look of the
 ##              vertex format alone, as tests/race3d/render/check_models.gd measures it).
 
 const VEHICLE_KINDS: Array[String] = ["vehicle", "heavy"]
@@ -137,11 +137,7 @@ func _run() -> void:
 		# levels, the engine's studio reflection), so the A/B tile is what the vehicle screen shows (RINT-B); the
 		# race look and its mirrored rig sky stay off (the studio mirrors the engine's own studio sky)
 		_race_look = false
-		var sr: GDScript = load("res://scripts/ui/widgets/showroom_3d.gd")
-		for l: Variant in (sr.get_script_constant_map().get("STUDIO_LOOK", []) as Array):
-			var e: Array = l
-			_mats.material(str(e[0]))
-			_mats.set_class_parameter(str(e[0]), str(e[1]), e[2])
+		_mats.apply_look(ModernMaterials.STUDIO_LOOK)
 	else:
 		_apply_look()
 	_build_rig()
@@ -569,31 +565,15 @@ func _channel_strip() -> Node3D:
 
 # --- rig -------------------------------------------------------------------------------------------------
 
-## The race look of the shared vehicle materials (--look=race, the default): the class parameters the vehicle layer
-## sets (its constant LOOK) and the fill light of the player car (PLAYER_FILL) - read from the layer's script, so the
-## sheet follows the renderer. The values below stand in if the script cannot be loaded.
+## The race look of the shared vehicle materials (--look=race, the default): the vehicle LOOK of the race and the fill
+## light of the player car, both from their one place, ModernMaterials (VEHICLE_LOOK, VEHICLE_PLAYER_FILL; A-13), so the
+## sheet always shows what the vehicle layer puts on the cars.
 func _apply_look() -> void:
 	_race_look = str(_args.get("look", "race")) == "race"
 	if not _race_look:
 		return
-	var look: Array = [["vpbr", "env_energy", 1.6], ["vpbr", "paint_base", 0.9], ["vpbr", "flake_strength", 0.6],
-		["glass", "env_energy", 2.2]]
-	_player_fill = 0.7
-	var path := "res://scripts/race3d/layers/vehicles.gd"
-	if ResourceLoader.exists(path):
-		var scr := load(path) as Script
-		if scr != null:
-			var cm := scr.get_script_constant_map()
-			if cm.get("LOOK") is Array:
-				look = cm["LOOK"]
-			if cm.has("PLAYER_FILL"):
-				_player_fill = float(cm["PLAYER_FILL"])
-	for l: Variant in look:
-		var e: Array = l
-		# set_class_parameter reaches only materials that exist: create the shared class material first (as the
-		# vehicle layer does) - before this, --look=race drew exactly the neutral look (art review KRITIK-2, C2)
-		_mats.material(str(e[0]))
-		_mats.set_class_parameter(str(e[0]), str(e[1]), e[2])
+	_player_fill = ModernMaterials.VEHICLE_PLAYER_FILL
+	_mats.apply_look(ModernMaterials.VEHICLE_LOOK)
 
 
 ## The environment the clear coat, metals and glass mirror (race look): the sky of this rig, the ground below - set

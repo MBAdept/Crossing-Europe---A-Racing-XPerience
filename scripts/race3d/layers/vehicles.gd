@@ -45,21 +45,12 @@ const FLOATS_PER_SHADOW := 16       ## 12 transform + 4 custom
 const PLAYER_ID := -999999          ## view id of the player car in this layer
 ## Extra ambient light on the player car (vpbr instance uniform fill, a share of ce_ambient): Arcade draws its player
 ## sprite brighter than the scene (ambient x 1.15 + 0.08) – the car stays readable in its own shade (the sun stands
-## ahead at noon) and at night.
-const PLAYER_FILL := 0.7
+## ahead at noon) and at night. The value lives with the vehicle LOOK in ModernMaterials (A-13).
+const PLAYER_FILL := ModernMaterials.VEHICLE_PLAYER_FILL
 const BOX_GLOSS := 0.35             ## clear coat of the box stand-in (flat panels mirror the horizon like glass)
-## The race look of the shared vehicle materials (the shaders' defaults are neutral – the look of the vertex format
-## alone, what the contact sheet shows): [class, uniform, value].
-## RINT-B: unlit vehicle lamps at 0.28 of their lit colour (0.5 read as switched on by day – art review B1), the tail
-## light of a combined tail/brake lamp (channel 2) at half the lamp (brake stays more than twice as bright); paint
-## exposure (art review A1/B8/C2): a soft knee above 0.7 of the brightest channel (slope 0.45) and 8 % desaturation
-## instead of a flat 0.9 on every paint – bright paints no longer clip, mid ones keep their value (measured against the
-## sprites, docs/renderer-modern.md §13.4); at night the mirrored palette sky at 0.35 and the player's fill at 0.3 of
-## their day values (the metallic player car was +44 % against its sprite at 22:00).
-const LOOK: Array = [["vpbr", "env_energy", 1.6], ["vpbr", "paint_base", 1.0], ["vpbr", "paint_knee", 0.7],
-	["vpbr", "paint_knee_slope", 0.45], ["vpbr", "paint_desat", 0.08], ["vpbr", "flake_strength", 0.6],
-	["vpbr", "lamp_off", 0.28], ["vpbr", "tail_level", 0.5], ["vpbr", "env_night", 0.35], ["vpbr", "fill_night", 0.3],
-	["glass", "env_energy", 2.2]]
+## The race look of the shared vehicle materials: ModernMaterials.VEHICLE_LOOK, the one place of the vehicle LOOK that
+## the showroom and the tools read too (A-13; its history and values are documented there).
+const LOOK: Array = ModernMaterials.VEHICLE_LOOK
 ## RINT-B: the far levels of a model (one merged mesh each, no wheel or group nodes) cross-fade over XFADE_S of view
 ## time with complementary dither masks (vpbr instance uniform xfade) instead of swapping in one frame – the art review
 ## measured 22–34 % of a car's pixels changing at the 120 m swap. Costs one draw call more per car while it fades.
@@ -228,9 +219,7 @@ func setup(renderer: Node) -> void:
 	var trk: Variant = renderer.get("track")
 	_shade.setup(rd, (trk as Track).seg_len if trk is Track else 3.0, float(rd.get("camera_distance_m", 9.0)),
 		float(ConfigLoader.lookup(_cfg, "road.streetlight_every_m", 33.0)))
-	for l: Array in LOOK:
-		_mats.material(str(l[0]))                     # the shared class material exists before it is tuned
-		_mats.set_class_parameter(str(l[0]), str(l[1]), l[2])
+	_mats.apply_look(LOOK)                            # creates each shared class material before it is tuned
 	_shadow_mm = MultiMesh.new()
 	_shadow_mm.transform_format = MultiMesh.TRANSFORM_3D
 	_shadow_mm.use_custom_data = true

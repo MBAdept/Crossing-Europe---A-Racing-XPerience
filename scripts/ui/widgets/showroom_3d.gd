@@ -261,20 +261,12 @@ static func footprint_centre(model: Dictionary) -> Vector3:
 	return Vector3((float(a[0]) + float(a[3])) * 0.5, 0.0, (float(a[2]) + float(a[5])) * 0.5)
 
 
-## The studio look of the shared vehicle materials (RINT-B): a Modern race leaves its own on them (layers/vehicles.gd
-## LOOK – the analytic sky of the race palette, e.g. a night sky in the car's paint), so the showroom sets its own every
-## time it shows a car: the engine's reflection of the studio sky (env_energy 0, as UI1 built the studio) and the same
-## paint exposure and lamp levels as the race. The next stage sets the race look again.
-const STUDIO_LOOK: Array = [["vpbr", "env_energy", 0.0], ["vpbr", "paint_base", 1.0], ["vpbr", "paint_knee", 0.7],
-	["vpbr", "paint_knee_slope", 0.45], ["vpbr", "paint_desat", 0.08], ["vpbr", "flake_strength", 0.6],
-	["vpbr", "lamp_off", 0.28], ["vpbr", "tail_level", 0.5], ["glass", "env_energy", 0.0]]
-
-
+## The studio look of the shared vehicle materials (RINT-B): a Modern race leaves its own on them (the race LOOK – the
+## analytic sky of the race palette, e.g. a night sky in the car's paint), so the showroom sets its own every time it
+## shows a car: ModernMaterials.STUDIO_LOOK (the one place of the vehicle LOOK, A-13). The next stage sets the race
+## look again.
 static func studio_look() -> void:
-	var mats := ModernMaterials.shared()
-	for l: Array in STUDIO_LOOK:
-		mats.material(str(l[0]))
-		mats.set_class_parameter(str(l[0]), str(l[1]), l[2])
+	ModernMaterials.shared().apply_look(ModernMaterials.STUDIO_LOOK)
 
 
 ## Studio values of the ce_* globals (dry daylight, no tunnel) – a Modern race may have left others.
