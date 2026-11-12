@@ -9,8 +9,8 @@ extends RefCounted
 ## v1 (AU-C1). update(state) fills:
 ##   surface_l / surface_r   what the left / right wheels run on: the paving of the road ("asphalt", "concrete",
 ##                           "cobbles", "deck" – a steel bridge deck), "rumble" (profiled edge line and rumble strip,
-##                           only on rumble_roads; not on the right while the segment has a fuel lane – its edge is a
-##                           plain dashed line, AU-R), "shoulder" (gravel beside the road), "grass" (beyond the shoulder,
+##                           only on rumble_roads; not on the right while the segment has a fuel lane – its edge line
+##                           has no profile, AU-R), "shoulder" (gravel beside the road), "grass" (beyond the shoulder,
 ##                           no guardrail). In tunnels, on bridges and in the City Limits the shoulder is paved.
 ##   paving                  the paving at the car: "asphalt", "concrete" (sections of concrete_roads, chosen per
 ##                           section from concrete_share – the same section has the same paving in both directions),
@@ -684,7 +684,7 @@ func _update_surfaces(state: Dictionary) -> void:
 	var wl := x - track_half_m
 	var wr := x + track_half_m
 	surface_l = wheel_surface(surface_at(wl, left, right, shoulder, at_limit and x < (left + right) * 0.5), wl >= left and wl <= right)
-	# the right edge of a fuel lane is a plain dashed line without a profile, paved on both sides (KRITIK-FAHRBAHN B13)
+	# the edge line of a fuel lane (solid, as Arcade paints it) has no profile: no rumble strip there (KRITIK-FAHRBAHN B13)
 	surface_r = wheel_surface(surface_at(wr, left, right, shoulder, at_limit and x >= (left + right) * 0.5), wr >= left and wr <= right,
 		fuel_lane > 0.0)
 
@@ -704,8 +704,9 @@ func surface_at(wx: float, left: float, right: float, shoulder_m: float, on_gras
 
 
 ## What a wheel really runs on on this road: the paving instead of plain "asphalt"; the edge line is a rumble only
-## on rumble roads (elsewhere paving inside the edge, shoulder outside); `plain_edge`: this edge is the dashed line
-## of a fuel lane – paving on both sides of it; in tunnels, on bridges and in the City Limits the shoulder is paved
+## on rumble roads (elsewhere paving inside the edge, shoulder outside); `plain_edge`: this edge is the edge line of
+## a fuel lane, without a profile – the paving on both sides of it (also within rumble_out_m outside it, where the
+## shoulder begins: KRITIK-R2-CODE L1, open); in tunnels, on bridges and in the City Limits the shoulder is paved
 ## (walkway, deck, pavement).
 func wheel_surface(raw: String, inside: bool, plain_edge: bool = false) -> String:
 	var paved_shoulder := tunnel or bridge != "" or city

@@ -379,8 +379,8 @@ nie davor.
 
 | Feld | Inhalt |
 |---|---|
-| `surface_l`, `surface_r` | worauf die linken / rechten Räder laufen: der Belag (`asphalt`, `concrete`, `cobbles`, `deck`), `rumble` (profilierte Randlinie und Rüttelstreifen – nur auf `rumble_roads`; rechts nicht, solange das Segment eine Tankspur hat: deren Rand ist eine gestrichelte Linie ohne Profil, AU-R), `shoulder` (Schotter), `grass`; in Tunnel, auf Brücken und in den City Limits ist der Rand befestigt (Gehweg, Deck) |
-| `paving` | der Belag am Auto: `concrete` je Abschnitt der `concrete_roads` nach dem Anteil seines Landes (`concrete_share`, aus Etappe, Name, Länge, Land und Landschaft des Abschnitts gehasht – in beiden Richtungen gleich; seit AU-R gegen eine Schwelle je Land, `concrete_threshold`, die `tools/audio/modern/calibrate_concrete.gd` so setzt, dass das Land seinen Anteil über alle seine Abschnitte trifft – sie gilt nur für den Anteil, mit dem sie gerechnet wurde), `cobbles` in Blöcken der Altstadt (`cobble_styles`, `cobble_share`, `cobble_block_m`, vom Ziel aus gezählt) – **nie auf einer Brücke ohne Steindeck**: ein Betondeck in der Stadt ist Asphalt, ein Stahldeck `deck` (AU-R3, der Damm nach Venedig) – und auf Steinbrücken, `deck` auf Stahlbrücken, sonst `asphalt`. Der Hash (`unit_hash`) mischt seit AU-R mit dem Finalisierer von MurmurHash3 (fmix32): djb2 allein änderte bei „Stadt\|Block“ nur die letzten Bits, jede Stadt war ganz oder gar nicht gepflastert. Die Altstadt bekommt ihren Anteil seit AU-R genau, seit AU-R3 auf ihren Straßen (`AudioFeed.cobbled_blocks`: in der Reihenfolge ihrer Hashes wird ein Block gepflastert, solange das die gepflasterte Länge näher an `cobble_share` × Länge der Straßen bringt – auf einen halben Block genau; der Hash wählt nur, welche Blöcke. Die Brücken ohne Steindeck sind keine Straße: `bridge_stretches` nimmt sie aus dem Plan, vom Ziel aus gezählt, bei jeder Ankunft in der Stadt gleich; ein Block zählt nur mit seinen Straßenmetern. Liegt eine so geschnittene Altstadt danach außerhalb `cobble_share` ± `COBBLE_BAND` (0,6 ± 0,05), bringen einzelne Schritte – Block weg, tauschen, dazu – sie näher. Ohne solche Brücke in der Altstadt ist die Zuteilung bitgleich wie seit AU-R) (Abschnitte 15.9, 15.11) |
+| `surface_l`, `surface_r` | worauf die linken / rechten Räder laufen: der Belag (`asphalt`, `concrete`, `cobbles`, `deck`), `rumble` (profilierte Randlinie und Rüttelstreifen – nur auf `rumble_roads`; rechts nicht, solange das Segment eine Tankspur hat: deren Randlinie – durchgezogen wie in Arcade – hat kein Profil, AU-R), `shoulder` (Schotter), `grass`; in Tunnel, auf Brücken und in den City Limits ist der Rand befestigt (Gehweg, Deck) |
+| `paving` | der Belag am Auto: `concrete` je Abschnitt der `concrete_roads` nach dem Anteil seines Landes (`concrete_share`, aus Etappe, Name, Länge, Land und Landschaft des Abschnitts gehasht – in beiden Richtungen gleich; seit AU-R gegen eine Schwelle je Land, `concrete_threshold`, die `tools/audio/modern/calibrate_concrete.gd` so setzt, dass das Land seinen Anteil über alle seine Abschnitte trifft – sie gilt nur für den Anteil, mit dem sie gerechnet wurde), `cobbles` in Blöcken der Altstadt (`cobble_styles`, `cobble_share`, `cobble_block_m`, vom Ziel aus gezählt) – **nie auf einer Brücke ohne Steindeck**: ein Betondeck in der Stadt ist Asphalt, ein Stahldeck `deck` (AU-R3, der Damm nach Venedig) – und auf Steinbrücken, `deck` auf Stahlbrücken, sonst `asphalt`. Der Hash (`unit_hash`) mischt seit AU-R mit dem Finalisierer von MurmurHash3 (fmix32): djb2 allein änderte bei „Stadt\|Block“ nur die letzten Bits, jede Stadt war ganz oder gar nicht gepflastert. Die Altstadt bekommt ihren Anteil seit AU-R genau, seit AU-R3 auf ihren Straßen, seit AU-R4 **wie gehört** (`AudioFeed.cobbled_blocks`: in der Reihenfolge ihrer Hashes wird ein Block gepflastert, solange das die gepflasterte Länge näher an `cobble_share` × Länge der Straßen bringt – auf einen halben Block genau; der Hash wählt nur, welche Blöcke. Die Brücken ohne Steindeck sind keine Straße: `bridge_stretches` nimmt sie aus dem Plan, vom Ziel aus gezählt, bei jeder Ankunft in der Stadt gleich; ein Block zählt nur mit seinen Straßenmetern. Steinbrücken sind Straße, die immer gepflastert klingt: `stone_stretches` zählt sie in der Basis und als schon gepflastert, die Blöcke teilen den Rest (AU-R4). Tunnel der Etappe in der Altstadt (`tunnel_stretches`, Asphalt) sind keine Straße und Daten der Etappe, nicht der Stadt: Die Blöcke der Stadt bleiben, solange der Anteil dieser Ankunft im Band liegt (AU-R4). Liegt eine Altstadt außerhalb `cobble_share` ± `COBBLE_BAND` (0,6 ± 0,05), bringen einzelne Schritte – Block weg, tauschen, dazu – sie näher, seit AU-R4 bei jeder Altstadt. Ohne Brücke und Tunnel in der Altstadt ist die Zuteilung bitgleich wie seit AU-R) (Abschnitte 15.9, 15.11, 15.12) |
 | `fuel_lane` | Anteil der Tankspur rechts am Segment des Autos (0 = keine) |
 | `deck` | Material der Brücke: `steel` (Schrägseil-, Bogenbrücke), `stone` (Steinbogen), `concrete` (die übrigen); `""` ohne Brücke |
 | `rumble_road` | die Straße hat profilierte Randlinien |
@@ -558,8 +558,8 @@ Fahrt; mit `--placeholders` das Platzhalter-Stück); `--mute-bus=MEnv` lässt nu
 | `test_modern_buses.gd` | Namen, Sends, Indexfolge, Effekte, Fader, Tiefpass, Renn-EQ, Kompressor-Umrechnung; Arcade-Busse bleiben unberührt |
 | `test_modern_mix.gd` | Pegel aus Plan und Reglern, Ducking (Kurve, Attack, Release, Schlüssel aus dem Fahrzustand), Mischzustände, Effekte aus, die Zahlen des Plans in der Konfiguration |
 | `test_modern_assets.gd` | Manifest-Lader, Platzhalter nur auf Wunsch, kaputte Manifeste (`fixtures/broken/`) |
-| `test_audio_feed.gd` | Oberflächen je Seite, Zonen, Bauwerke, Fugen, Vorbeifahrten, Sprünge, „nur lesen“; seit AU-C1: Belag (Beton je Abschnitt, in beiden Richtungen gleich; Pflaster; Deck je Brückentyp; Tunnel), Rüttellinie nur auf Rüttelstraßen, Leitpfosten mit Berührung, Einschnitt; seit AU-R: gemischter Hash (Bezugswerte aus Python), Pflasteranteil je Altstadt, Fugenabstand je Deck, keine Rüttellinie neben der Tankspur; seit AU-R3 (echter Plan mit Stadt und Brücke, echte `Track`): kein Altstadtpflaster auf einem Betondeck (Damm wie nach Venedig; Fugen wie bisher, Stahl- und Steinbrücke unverändert), der Pflasteranteil der Straßen um eine Brücke mitten in der Altstadt (0,6 ± 0,05 – auf dem Stand vor AU-R3 0,42), die Zuteilung nur über Straßenmeter (150 Fälle im Band; eine Brücke außerhalb der Altstadt ändert nichts) – die beiden Damm-Tests sind auf dem Stand vor AU-R3 rot |
-| `test_road_audio.gd` | AU-C1, ohne Szenenbaum: Pegelplan bei Höchsttempo (Wind 3 dB, Reifen 4 dB unter dem gemessenen Motor je Auto), Tempogesetze, Beläge je Seite, Nässe, Schnee, Quietschen und Radieren, Betonplatten im exakten Takt, Brückenfugen mit dem Achsabstand des Autos, Vorbeifahrten, Wind in Zonen und Böen (gleich in jedem Lauf), Ausblenden; Kollisionen nach Schließgeschwindigkeit und Partner, Leitplanke, Schleifen, Leitpfosten; seit AU-R: je Seite eigene Schleife mit Drift (mittlere Leistung unverändert), Quietschen mit eigener Tonhöhe je Ereignis, Aufprall-Varianten zufällig ohne Wiederholung, ±2 dB, späterer Einsatz, Glas-Regel |
+| `test_audio_feed.gd` | Oberflächen je Seite, Zonen, Bauwerke, Fugen, Vorbeifahrten, Sprünge, „nur lesen“; seit AU-C1: Belag (Beton je Abschnitt, in beiden Richtungen gleich; Pflaster; Deck je Brückentyp; Tunnel), Rüttellinie nur auf Rüttelstraßen, Leitpfosten mit Berührung, Einschnitt; seit AU-R: gemischter Hash (Bezugswerte aus Python), Pflasteranteil je Altstadt, Fugenabstand je Deck, keine Rüttellinie neben der Tankspur; seit AU-R3 (echter Plan mit Stadt und Brücke, echte `Track`): kein Altstadtpflaster auf einem Betondeck (Damm wie nach Venedig; Fugen wie bisher, Stahl- und Steinbrücke unverändert), der Pflasteranteil der Straßen um eine Brücke mitten in der Altstadt (0,6 ± 0,05 – auf dem Stand vor AU-R3 0,42), die Zuteilung nur über Straßenmeter (150 Fälle im Band; eine Brücke außerhalb der Altstadt ändert nichts) – die beiden Damm-Tests sind auf dem Stand vor AU-R3 rot; seit AU-R4: Steinbrücke als schon gepflasterte Straße (30 Städte × 8 Fälle wie gehört im Band, kein Block ganz auf der Steinbrücke), Tunnel der Etappe (die Blöcke der Stadt bleiben, solange der Anteil im Band liegt, sonst rücken einzelne nach), echte Etappe mit Steinbrücke und Tunnel im 1-m-Raster (0,58 wie gehört; mit den Blöcken der Stadt wären es 0,42) |
+| `test_road_audio.gd` | AU-C1, ohne Szenenbaum: Pegelplan bei Höchsttempo (Wind 3 dB, Reifen 4 dB unter dem gemessenen Motor je Auto), Tempogesetze, Beläge je Seite, Nässe, Schnee, Quietschen und Radieren, Betonplatten im exakten Takt, Brückenfugen mit dem Achsabstand des Autos, Vorbeifahrten, Wind in Zonen und Böen (gleich in jedem Lauf), Ausblenden; Kollisionen nach Schließgeschwindigkeit und Partner, Leitplanke, Schleifen, Leitpfosten; seit AU-R: je Seite eigene Schleife mit Drift (mittlere Leistung unverändert), Quietschen mit eigener Tonhöhe je Ereignis, Aufprall-Varianten zufällig ohne Wiederholung, ±2 dB, späterer Einsatz, Glas-Regel; seit AU-R4 so, dass ein Bruch der Regel auffällt (KRITIK-R2-CODE, Mutationen): Tonhöhe je Bild gleich, solange ein Quietschen klingt; Varianten zufällig statt reihum (Folgen je Variante, 400 Ziehungen); Pegel- und Einsatzzufall über 60 Unfälle; Nachstellen der Plattenmuster mit laufenden Platzhalter-Spielern (nur der leisere, erst über `align_ms`, danach im Takt); Vorbeifahrten ±2 dB und Variante; Glas genau ab 80 km/h; Fahrtwind im Tunnel 0 dB |
 | `test_modern_buses.gd`, `test_modern_mix.gd` (AU-R) | der Begrenzer auf `MMaster` hinter dem Summenkompressor aus `audio.modern.limiter`; die Zeile „Höchsttempo“ des Plans |
 | `test_modern_audio.gd` | `ModernAudio` ohne Szenenbaum: Lebenszyklus, Frame-Semantik, Einmalklänge und Ereignisse (50 ms), Mischung, Musik-Kontexte, Stummschaltung |
 | `test_modern_checks.gd` | startet `check_modern_audio.gd` zweimal (ohne und mit Wiedergabe) und `check_arcade_lean.gd` als eigene Prozesse |
@@ -1060,7 +1060,7 @@ Urteil über den Klang liegt beim Nutzer (Hörproben unter `<scratch>/v080/deliv
 |---|---|---|---|
 | Rollen | immer beim Fahren, je Seite der Belag unter den Rädern | Asphalt, Beton (rauer, leises Singen der Rillen), Stahldeck (hohles Dröhnen), Kopfsteinpflaster, Bankett (Schotter, Steine gegen die Radhäuser), Gras (dumpfe Schläge), Rüttelstreifen; zwei geschwenkte Spieler je Belag (linke und rechte Räder), seit AU-R **jede Seite mit ihrer eigenen Schleife** (gleicher Generator, anderer Seed, andere Länge), Start an zufälliger Stelle, langsame Pegeldrift je Seite, rechts Tonhöhe × 1,02 (nicht beim Rüttelstreifen) – nichts wiederholt sich mehr im Sekundentakt | `MRoad` |
 | Nässe, Schnee | Regen auf befestigtem Belag; Schnee | Sprühzischen; Schnee dämpft das Rollen (Tiefpass auf `MRoad`, −3 dB) und knirscht – seit AU-R mit einer eigenen Schnee-Schleife (weiches Knirschen gepressten Schnees, ohne die Steinschläge des Schotters) | `MRoad` |
-| Betonplatten | Belag Beton | „ta-tock“ von Vorder- und Hinterachse über die Fugen (5 m, Radstand 2,7 m): eine Schleife mit Tonhöhe v / Entwurfstempo, darum stimmt der Takt bei jedem Tempo; zwei Entwürfe (90 und 180 km/h) überblendet zwischen 110 und 150 km/h; seit AU-R 32 Platten je Muster (vorher 8: das Akzentmuster kam alle 40 m wieder) und beide Entwürfe immer im selben Takt (Abschnitt 15.9); seit AU-R2 sind die 32 Platten die 8 Fugen von AU-C1 in gemischter Folge, und über 150 km/h wird der Pegel nur noch um 8 statt 20 dB je Dekade lauter (Abschnitt 15.10) | `MRoad` |
+| Betonplatten | Belag Beton | „ta-tock“ von Vorder- und Hinterachse über die Fugen (5 m, Radstand 2,7 m): eine Schleife mit Tonhöhe v / Entwurfstempo, darum stimmt der Takt bei jedem Tempo; zwei Entwürfe (90 und 180 km/h) überblendet zwischen 110 und 150 km/h; seit AU-R 32 Platten je Muster (vorher 8: das Akzentmuster kam alle 40 m wieder) und beide Entwürfe immer im selben Takt (Abschnitt 15.9); seit AU-R2 sind die 32 Platten die 8 Fugen von AU-C1 in gemischter Folge, und über 150 km/h wird der Pegel nur noch um 4 statt 20 dB je Dekade lauter (`slabs.high_slope_db`, Abschnitt 15.10) | `MRoad` |
 | Brückenfugen | Feed-Ereignis `joint` | Doppelschlag beider Achsen in einem Klang (Stahl: Fingerfuge klappert; Beton: dumpf); die Variante mit dem nächsten Achsabstand, die Tonhöhe so verschoben, dass der Abstand Radstand / Tempo genau trifft (Radstand = 0,6 × Länge des Autos); Abstand je Deck (AU-R): Stahl an den Enden und etwa alle 100 m, Beton alle 32 m, Steinbogen keine | `MRoad` |
 | Vorbeifahrten | Feed-Ereignis `pass_object` | der eigene Klang, von Pfosten, Schild, Baum, Gebäude, Schilderbrücke, Fels zurückgeworfen; seitenrichtig, lauter und kürzer mit dem Tempo, leiser mit dem Abstand; unter 40 km/h nicht; Variante zufällig, ±2 dB (AU-R) | `MRoad` |
 | Quietschen, Radieren | Untersteuern (`understeer`), Querbewegung (`lat_speed`), Rutschen beim Unfall (`crash`) | Ton an der Haftgrenze, je Quietschen ±5 % in der Tonhöhe (AU-R); nass und auf Schotter kaum Ton, dafür Radieren | `MRoad` |
@@ -1122,7 +1122,9 @@ danach höchstens 0,9 dB in den Bändern bis 30 dB unter dem lautesten); die Sch
 Stille vor (`jitter_lead_ms`), aus der die Laufzeit den zufälligen späteren Einsatz nimmt. Beide Generatoren sind
 deterministisch (`audio_qc.py --determinism`).
 
-Größe: AU-C1 zusammen 4,52 MB; alle Modern-Klänge außer Musik 17,9 MB von 23 MB (gemessen, `audio_qc.py`).
+Größe (Stand AU-R3, gemessen als Größe der Dateien im Repository ohne Manifeste und `.import`): die Schleifen von
+`vehicle_loops.py` 3,00 MB, die Einmalklänge von `sfx_modern.py` 2,57 MB; alle Modern-Klänge außer Musik 18,9 MB
+von 23 MB (bei AU-C1 17,9 MB).
 
 ### 15.3 Pegelplan
 
@@ -1180,7 +1182,10 @@ Damit der Begrenzer einen schweren Aufprall um höchstens 3 dB drückt, liegt nu
 Stufe tiefer: der tiefe Schlag `hit_heavy` −11,5 statt −9,0 dB, gegen Lkw/Bus der Schlag des Aufbaus `truck` −11
 statt −10 dB (gemessen in Abschnitt 15.9; Blech, Glas und Kleinteile unverändert). AU-R2 hat beides über je 60
 Unfälle nachgemessen (Abschnitt 15.10): 95-%-Wert der Begrenzung gegen Pkw 2,14 dB, gegen Lkw 2,42 dB; der Lkw-Schlag
-mit −10 dB käme auf 3,02 dB (4 von 60 Unfällen über 3 dB) – die Senkung bleibt.
+mit −10 dB käme auf 3,02 dB (4 von 60 Unfällen über 3 dB) – die Senkung bleibt. Seit AU-R4 liegt der Schlag des
+Aufbaus wie der eigene tiefe Schlag bei −11,5 dB: Mit −11 lag der 95-%-Wert über 120 Unfälle bei 2,78 dB, und eine
+Abnahme mit 60 neuen Unfällen wäre in etwa jedem siebten Fall allein durch den Zufall über 3 dB gekommen
+(Abschnitt 15.12).
 
 ### 15.5 Der schlimmste Fall
 
@@ -1255,17 +1260,14 @@ Plattenschleifen sperren den Audioserver nur noch beim Start und alle 0,5 s (Abs
   gemessen (130 km/h, 2,5–8 kHz): ohne Platten 0,196 – hält; mit den Platten bei `slabs.db` 3 0,687 (bei 0 dB 0,518,
   bei −3 dB 0,369; Abschnitt 15.10). `slabs.db` bleibt 3: ihn zu senken ist eine Mischentscheidung nach der
   Testversion, kein Fehler.
-- **Steinbrücken in Altstädten** (AU-R3 gemessen, nicht geändert): 16 Altstädte haben eine Steinbrücke. Die
-  Zuteilung zählt sie als Straße, die gepflastert sein kann oder nicht – sie klingt aber immer nach Pflaster. Auf den
-  Straßen ohne die Steinbrücke liegen darum 9 daneben: Warschau 0,46, Lüttich und Prag 0,49, Saragossa 0,50, Burgos
-  0,52, Ljubljana und San Sebastián 0,53 darunter, Lyon 0,68 und Paris 0,68 (aus Lüttich mit dem Tunnel 0,75) darüber;
-  zählt man die Steinbrücke als gepflasterte Straße mit, liegen Bordeaux, Dresden, Toulouse und Tours bei 0,70, Lyon
-  bei 0,71, Paris bei 0,72 (0,78) und Ljubljana bei 0,549. Vorschlag (eigene Runde, ändert die Muster dieser Städte):
-  die Meter einer Steinbrücke in `cobbled_blocks` als schon gepflastert zählen. Hamburg (Kiel – Hamburg) hat keine
-  Brücke in der Altstadt.
-- **Tunnel in Altstädten** (AU-R3 gemessen): Hannover – Hamburg führt 330 m, Lüttich – Paris 130 m durch einen Tunnel
-  in der Altstadt; dort spielt der Feed Asphalt, die Zuteilung zählt den Tunnel als Straße (Hamburg auf den Straßen
-  0,615, Paris s. o.).
+- **Steinbrücken und Tunnel in Altstädten**: erledigt mit AU-R4 (Abschnitt 15.12) – die Steinbrücke zählt als schon
+  gepflasterte Straße, der Anteil gilt wie gehört; ein Tunnel der Etappe ändert die Blöcke der Stadt nur, wenn er den
+  Anteil dieser Ankunft aus dem Band schiebt (auf keiner Etappe der Fall: Hamburg aus Hannover 0,617, Paris aus
+  Lüttich 0,644). Offen ist die Lesart des Kriteriums im Vertrag (§11.2): Auf den Straßen allein, ohne die
+  Steinbrücke, kann keine Wahl der Blöcke Dresden, Tours, Saragossa und Toulouse zugleich mit „wie gehört“ ins Band
+  bringen (alle Teilmengen der Blöcke durchgerechnet).
+- **Rand der Tankspur** (KRITIK-R2-CODE L1, offen): Ein rechtes Rad bis 0,5 m außerhalb der Randlinie der Tankspur
+  hört den Belag statt Schotter (`wheel_surface` mit `plain_edge`); selten befahren.
 - **Radstand** aus der Länge des Autos (0,6 ×, keine Daten); die Betonplatten-Schleifen sind für 2,7 m entworfen
   (Kompakt 2,46 m: Abstand der Achsschläge 9 % zu lang, abgeleitet).
 - **Einschnitt** ist eine Regel aus Felsen am Rand (die Daten kennen keine Einschnitte); AU-C2 kann sie verfeinern.
@@ -1494,8 +1496,81 @@ Klangschichten stammen aus AU-R2 und gelten weiter, weil AU-R3 keine Schicht än
 |---|---|---|
 | keine exakte Wiederholung (R1, V1) | keine Spitze der Hüllkurven-Autokorrelation ≥ 0,40 bei 0,3–3 s, 20 s bei festem Tempo: Asphalt 130 km/h 0,6–1,6 kHz, Pflaster 50 km/h 2,5–8 kHz, Beton 130 km/h 2,5–8 kHz **ohne die Plattenschicht** (der 5-m-Takt ist gewollt; `slabs.db` bleibt 3 – ihn zu senken ist eine Mischentscheidung nach der Testversion, kein Fehler) | Asphalt 0,151, Pflaster 0,128, Beton ohne Platten 0,196 |
 | Betonanteil je Land (V2) | ±0,05 des eingestellten Anteils, beurteilt nur für Länder mit mindestens 10 Autobahnabschnitten über alle Etappen; kleinere werden genannt | 13 von 13 im Band; genannt: HR 0,141 (8 Abschnitte), SI 0,19 (5), LT 0 (3), BG 0 (1), LV 0 (1) |
-| Begrenzer beim schweren Aufprall (V3) | 130 km/h Schließgeschwindigkeit, 60 Unfälle: 95-%-Wert der Begrenzung ≤ 3 dB (Pkw und Lkw), jeder Unfall ≤ −1,0 dBTP bei Gesamtlautstärke 1,0 | Pkw 2,14 dB, Lkw 2,42 dB; höchstens −1,32 / −1,63 dBTP |
+| Begrenzer beim schweren Aufprall (V3) | 130 km/h Schließgeschwindigkeit, 60 Unfälle: 95-%-Wert der Begrenzung ≤ 3 dB (Pkw und Lkw), jeder Unfall ≤ −1,0 dBTP bei Gesamtlautstärke 1,0 | Pkw 2,14 dB (AU-R2; KRITIK-R2-MESS 2,05 dB); Lkw seit AU-R4 mit `truck.heavy` −11,5: 2,13 / 2,51 dB in zwei Folgen, 2,34 dB über 120 Unfälle (mit −11: 2,78 / 2,72 dB, über 120 Unfälle 2,78 dB); höchstens −1,39 dBTP |
 | Begrenzer beim Reisen (V3) | 130–200 km/h: größte Begrenzung je 60-s-Lauf ≤ 0,5 dB in jedem von mindestens vier Läufen; die 0,05–0,14 dB, die `AudioEffectHardLimiter` nach einem Eingriff stehen lässt (Falle 8), sind kein Eingriff | 200 km/h auf Beton (der schärfste Fall), vier Läufe à 57 s: 0,44 / 0,43 / 0,08 / 0,08 dB; 130 und 170 km/h in kürzeren Läufen 0 dB |
 | Charakter halten | eine geänderte Schicht hält ihr Terzspektrum ±1 dB und ihre Lautheit ±0,5 LU von AU-C1 bei den Bezugstempi (130 km/h Asphalt und Beton, 50 km/h Pflaster) | höchstens 0,56 dB und 0,17 LU (AU-R2); AU-R3 ändert keine Schicht |
 | Musik | keine Änderung | AU-R3 ändert keine Musikdatei und keinen Musikpegel |
-| Altstadtpflaster (AU-R3) | kein Altstadtpflaster auf Brücken ohne Steindeck; jede Altstadt 0,6 ± 0,05 auf ihren Straßen | Brücken: erfüllt (alle Etappen, beide Richtungen). Anteil: erfüllt für die Altstädte mit einer Brücke ohne Steindeck außer Lyon (Steinbrücke); die Altstädte ohne Brücke liegen wie seit AU-R bei 0,55–0,56 (Barcelona 0,549 im 1-m-Raster, zugeteilt 0,550; Hamburg aus Hannover mit Tunnel 0,615); offen: Steinbrücken und Tunnel in Altstädten (Abschnitt 15.8) |
+| Altstadtpflaster (AU-R3, AU-R4) | kein Altstadtpflaster auf Brücken ohne Steindeck; jede Altstadt 0,6 ± 0,05 **wie gehört**: gepflasterte Straße und Steinbrücken über Straße und Steinbrücken (Straße = Altstadt ohne Brücken und Tunnel; Lesart von AU-R4, Vertragsfrage §11.2) | Brücken: erfüllt (alle Etappen, beide Richtungen). Anteil (AU-R4, Abschnitt 15.12): alle 100 Ankünfte in Altstädten mit Pflaster im Band, zugeteilt 0,550–0,645; im 1-m-Raster der Prüfung liegen Barcelona (ohne Brücke, seit AU-R) und Ljubljana bei 0,549 – zugeteilt genau 0,550 |
+
+### 15.12 AU-R4: Tests als Wächter, Altstadtpflaster wie gehört, Lkw-Aufprall (vorher → nachher)
+
+Zwei unabhängige Abnahmen des Stands AU-R3 (KRITIK-R2-CODE: Code, Auslösung, Regressionen; KRITIK-R2-MESS: Messung)
+fanden keinen Blocker – aber vier Regeln, die kein Test schützte (hoch), den Altstadtanteil in Altstädten mit
+Steinbrücke oder Tunnel, den Zufall der Vorbeifahrten ohne Test und die knappe Marge von V3 beim Lkw (mittel). AU-R4
+ändert `audio_feed.gd` (Zuteilung des Altstadtpflasters), die Tests, die Doku und einen Pegel (`truck.heavy`); keine
+Klangdatei, keine Musik. Jeder Befund ist mit dem Werkzeug seines Prüfers nachgestellt; alles gemessen (Godot 4.7.2,
+ohne Bildschirm, Dummy-Treiber), gehört hat es niemand.
+
+**Tests (KRITIK-R2-CODE H1–H4, M2, L3).** Verfahren der Prüfung: eine Zeile des Codes brechen, die zuständige
+Testdatei laufen lassen – sie muss rot werden.
+
+| Regel | Mutation | vorher | nachher | Test (`test_road_audio.gd`) |
+|---|---|---|---|---|
+| Quietschen: Tonhöhe je Ereignis, nicht je Bild | M01 | grün | rot – 348 Tonhöhenwechsel in 612 hörbaren Bildern (ohne Bruch 0) | `test_squeal_pitch_per_event` |
+| Aufprall-Varianten zufällig statt reihum | M03 | grün | rot – auf jede Variante folgt genau eine | `test_collision_variety` |
+| Plattenmuster: der leisere wird nachgestellt | M11 | grün | rot | `test_slab_loops_are_put_back_in_step` (neu) |
+| Plattenmuster: erst über `align_ms` | M12 | grün | rot – 0-mal nachgestellt, 30 ms Versatz | dito |
+| Pegel je Schicht ±2 dB / überhaupt zufällig / späterer Einsatz | M14 / M15 / M16 | grün | rot | `test_collision_layers_vary_in_level_and_onset` (neu) |
+| Vorbeifahrt ±2 dB / Variante zufällig | M17 / M18 | grün | rot | `test_pass_by_variants_and_levels_at_random` (neu) |
+| Fahrtwind im Tunnel 0 dB / Glas genau ab 80 km/h | M31 / M32 | grün | rot | `test_wind_zones_gusts_and_fades`, `test_collision_variety` |
+
+Ohne Bruch messen die neuen Tests (gemessen): Plattenmuster bei 120 km/h mit 5·10⁻⁴ Drift in 60 s 4-mal nachgestellt,
+jedes Mal bei 6,2 ms (Schwelle 6 ms), danach 0,00 ms, das lautere läuft ungestört; 240 Aufprallschichten: Pegel
+−2,00 … +2,00 dB, Streuung 1,13 dB (gleich verteilt 1,15), Einsatz in 100 % später, im Mittel 10,4 ms, höchstens
+20,0 ms; 60 Vorbeifahrten: −1,92 … +1,98 dB, beide Varianten des Pfostens, 35 Wiederholungen (zwei Varianten:
+zufällig, nicht im Wechsel); 12 Quietscher, 12 verschiedene Tonhöhen, 0 Wechsel während eines Quietschens.
+Alle 32 Mutationen der Prüfung und 11 neue für die Zuteilung des Pflasters: siehe Bericht von AU-R4.
+
+**Altstadtpflaster (KRITIK-R2-CODE M1).** Die Zuteilung zählte Steinbrücken und Tunnel als freie Straße; der Feed
+spielt dort aber immer Pflaster bzw. Asphalt. Seit AU-R4 gilt der Anteil **wie gehört**: Straße = Altstadt ohne
+Brücken und Tunnel; eine Steinbrücke ist Straße, die schon gepflastert ist (`stone_stretches`); ein Tunnel der Etappe
+(`tunnel_stretches`) ist keine Straße und ändert die Blöcke der Stadt nur, wenn er den Anteil dieser Ankunft aus dem
+Band schiebt; nachgerückt wird bei jeder Altstadt (Abschnitt 8). Werkzeug der Prüfung (`kc_trigger.gd`, alle 64
+sichtbaren Etappen in beiden Richtungen, echte `Track`, 1-m-Schritte):
+
+| | AU-R3 | AU-R4 |
+|---|---|---|
+| Ankünfte außerhalb 0,6 ± 0,05 wie gehört (1-m-Raster) | 14 (Bordeaux, Dresden, Lyon, Paris, Toulouse, Tours 0,70–0,78; Barcelona, Ljubljana 0,549) | 3 (Barcelona 2 ×, Ljubljana: 0,549 im Raster, zugeteilt genau 0,550) |
+| dasselbe in genauen Metern aus dem Plan (`cobble_alloc.gd`) | 11 von 100 | 0 von 100 (0,550–0,645) |
+| Straßen allein, ohne Steinbrücke (Lesart AU-R3) | 22 außerhalb | 26 außerhalb – Lesart verlassen |
+| Regeln der Auslösung (Pflaster, Deck, Beton, Fugen, Zonen, Tankspur) | 0 Verstöße | 0 Verstöße |
+| Städte mit verschiedenen Mustern je Ankunft | 0 | 0 |
+| Pläne mit gleicher Ausgabe des Prüfskripts | – | 114 von 128, darunter Kiel – Hamburg in beiden Richtungen (Hamburg `P--PP-P-P`) |
+
+Anders klingen nur Bordeaux (0,70 → 0,60), Dresden (0,70 → 0,59), Lyon (0,71 → 0,61), Paris (0,72 / 0,78 → 0,60 /
+0,64), Toulouse und Tours (0,70 → 0,60) – je ein Block weniger Pflaster, in Lyon ein Block an anderer Stelle, in Paris
+zwei weg und einer dazu; in Saragossa wechselt nur das Kennzeichen eines
+Blocks, der ganz auf der Steinbrücke liegt (dort klingt es ohnehin nach Pflaster; im 1-m-Raster 1 m am Brückenende).
+Die Tunnel von Hannover – Hamburg (330 m) und Lüttich – Paris (130 m) lassen den Anteil im Band (0,617 / 0,644):
+Beide Städte hören bei jeder Ankunft dieselben Blöcke. Beide Lesarten zugleich gehen nicht: Für Dresden, Tours,
+Saragossa und Toulouse bringt keine Wahl der Blöcke die Straßen allein und „wie gehört“ zugleich ins Band (alle
+Teilmengen durchgerechnet) – die Lesart gehört in §11.2.
+
+**Lkw-Aufprall (KRITIK-R2-MESS M1).** V3 hielt beim Lkw nur knapp: Der 95-%-Wert aus 60 Unfällen ist selbst eine
+Zufallsgröße, eine Abnahme mit neuen Zufallsfolgen konnte ohne jede Änderung am Klang scheitern. Werkzeug der Prüfung
+(`kr_crash.gd`, Limousine mit 110 km/h auf Kiel – Hamburg km 15, 130 km/h Schließgeschwindigkeit, je 60 schwere
+Unfälle gegen einen Lkw, Gesamtlautstärke 1,0; Bootstrap: 10 000 Ziehungen aus den gemessenen Unfällen – die Anteile
+sind abgeleitet):
+
+| `truck.heavy` | Folge | 95 % der Begrenzung | Unfälle > 3 dB | True Peak höchstens | Abnahmen mit 60 Unfällen > 3 dB (Bootstrap) |
+|---|---|---|---|---|---|
+| −11 (AU-R3), KRITIK-R2-MESS | 9312 | 2,66 dB | 3 von 60 | −1,21 dBTP | 35 % |
+| −11, nachgestellt | 9312 / 9313 / beide | 2,78 / 2,72 / 2,78 dB | 2 / 2 / 4 von 120 | −1,23 dBTP | 14 % (über 120: 11 %) |
+| **−11,5 (AU-R4)** | 9312 / 9313 / beide | **2,13 / 2,51 / 2,34 dB** | 1 / 1 / 2 von 120 | **−1,39 dBTP** | **2 %** (über 120: 0,5 %) |
+| Pkw, `hit_heavy` −11,5 (zum Vergleich), KRITIK-R2-MESS | 9311 | 2,05 dB | 1 von 60 | −1,38 dBTP | 1,5 % |
+
+Der Schlag des Lkw-Aufbaus liegt damit wie der eigene tiefe Schlag schwerer Unfälle bei −11,5 dB (vorher −11; AU-C1
+−10). Er ist eine von vier Schichten, deren Pegel ohnehin je Unfall um ±2 dB gewürfelt wird; dass 0,5 dB weniger den
+Charakter ändern, ist nicht zu erwarten (abgeleitet – gehört hat es niemand). Zusätzlich gehört in §11.2, V3 über
+mindestens 120 Unfälle aus zwei Folgen zu beurteilen (Vorschlag der Prüfung): Ein 95-%-Wert aus 60 Unfällen streut um
+0,3–0,4 dB (Bootstrap).
