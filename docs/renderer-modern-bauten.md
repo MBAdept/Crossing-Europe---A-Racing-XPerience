@@ -56,6 +56,7 @@ Nach den Bits von `TrackSegment.fuel_zone`, wie `RoadRenderer._fuel_structures`:
 | Stirnblende (`FUEL_CANOPY_FRONT`) | weiß über rotem Band, „TANKSTELLE“ blau, Versalhöhe 0,32 m | Tafel des Schriftatlas, nachts hinterleuchtet |
 | Stützen | eine an der Front, 0,3 m, auf der Insel bei 1,3 m | an Front und Ende jedes Daches, mit Sockel – keine vor einem Schild (`column_plan`, siehe Fairness) |
 | Leuchten | zwei je zweitem Segment (1,0 × 0,36 m), nachts mit Schein | Leuchtfelder (Kanal 12), Arcades weißer Schein (1,8 m) über die Ebene `flares` |
+| Gebäude (`props/fuel_station`, Modell von AS1b über die Props) | Sprite mit warmem Schein davor (Radius 7 m, Farbe (1; 0,8; 0,5), Alpha 0,25 × `lights`) | der Builder setzt Arcades Schein vor das Vordach des Modells (Ebene `flares`, Stärke 2 × 0,25 / 0,35) |
 | Preissäule (`object` `fuel_pylon`) | Mast 0,36 m bis 6 m, Tafel 2,2 × 3,8 m bei 5,8–9,6 m: blau, roter Kopf 0,7 m, Zapfsäulen-Piktogramm, „1,79“ / „1,85“ | Fundament, Stahlmast, Tafelkasten mit der Tafel auf beiden Seiten; nachts leuchten Ziffern und Piktogramm, Arcades blauer Schein |
 
 **Licht.** Arcade legt alle 18 m einen Lichtkegel von 11 m mit 0,8 × `lights` an den Rand der Tankspur
