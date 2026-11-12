@@ -52,8 +52,9 @@ varying float v_depth;              // view depth of the lamp (m)
 
 #ifdef CE_STREAK
 global uniform float ce_time;
-varying vec2 v_streak;              // (0 at the lamp's foot … 1 towards the camera, -1 … 1 across)
+varying vec2 v_streak;              // (metres from the lamp's foot towards the camera, -1 … 1 across)
 varying vec2 v_ground;              // road position of the fragment (world xz) for the shimmer
+varying vec3 v_spec;                // (mirror point m from the foot, width before it m, width after it m)
 
 void vertex() {
 	vec3 lamp = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
@@ -73,15 +74,22 @@ void vertex() {
 	float reach = length(to_cam);
 	vec3 dir = reach > 0.01 ? to_cam / reach : vec3(0.0, 0.0, 1.0);
 	vec3 side = normalize(cross(vec3(0.0, 1.0, 0.0), dir));
+	// the mirror point: where the camera sees the lamp's mirror image on the road – the eye at height hc and
+	// `reach` metres away, the lamp hl above the road: hl / (hc + hl) of the way from the foot to the camera. A rough
+	// water film smears the reflection along the view around it, more towards the camera.
+	float hc = max(CAMERA_POSITION_WORLD.y - ground.y, 0.5);
+	float hl = max(INSTANCE_CUSTOM.y, 0.05);
+	float sm = reach * hl / (hc + hl);
 	float t = VERTEX.y * 0.5 + 0.5;
-	float len = min(INSTANCE_CUSTOM.z, max(reach - 3.0, 0.4));
+	float len = clamp(max(3.2 * sm + 1.0, INSTANCE_CUSTOM.z * 0.5), 1.5, max(reach - 0.8, 0.4));
 	vec3 p = ground + dir * (t * len - 0.2);
+	v_spec = vec3(sm, 0.45 * sm + 0.3, 1.3 * sm + 0.6);
 	// never thinner than 1.2 logical px at its own depth
 	vec4 pv = VIEW_MATRIX * vec4(p, 1.0);
 	float half_w = max(INSTANCE_CUSTOM.x * (1.0 + 0.5 * t), 0.6 * max(-pv.z, 0.05) / focal_px);
 	p += side * VERTEX.x * half_w;
 	POSITION = PROJECTION_MATRIX * (VIEW_MATRIX * vec4(p, 1.0));
-	v_streak = vec2(t, VERTEX.x);
+	v_streak = vec2(t * len - 0.2, VERTEX.x);
 	v_ground = p.xz;
 	v_col = COLOR;
 	v_quad = VERTEX.xy;
@@ -139,8 +147,11 @@ void fragment() {
 		discard;
 	}
 #ifdef CE_STREAK
-	// the reflection: bright at the lamp's foot, fading towards the camera, soft across, a slow shimmer of the film
-	float along = pow(1.0 - v_streak.x, 1.6) * smoothstep(0.0, 0.06, v_streak.x + 0.03);
+	// the reflection: brightest at the mirror point, smeared along the view (longer towards the camera), soft across,
+	// a slow shimmer of the film
+	float u = v_streak.x - v_spec.x;
+	float wu = u < 0.0 ? v_spec.y : v_spec.z;
+	float along = exp(-u * u / (wu * wu));
 	float across = exp(-v_streak.y * v_streak.y * 2.6);
 	float shimmer = 0.75 + 0.25 * sin(v_ground.x * 3.1 + v_ground.y * 2.3 + ce_time * 5.0) * sin(v_ground.y * 1.7 - ce_time * 3.3);
 	ALBEDO = v_col.rgb * (v_col.a * along * across * shimmer) * vis * strength;

@@ -78,8 +78,33 @@ const GLOW_INTENSITY := 0.55
 const GLOW_THRESHOLD := 1.0
 const SSAO_RADIUS := 1.2
 const SSAO_INTENSITY := 1.4
+## R4: exposure ramp at a tunnel exit by day (Arcade: eyes adapted to the tunnel – the outside looks over-exposed,
+## RoadRenderer: ambient × 1.7 + 0.25, fog 55 % towards white). A quad across the exit portal, depth tested (the
+## tube hides it outside the opening), mixes everything seen through the opening towards EXIT_GLARE_COLOR: EXIT_GLARE_FAR
+## of it while the exit is far, EXIT_GLARE_NEAR right at the portal (the eyes adapt as it comes closer); after the
+## exit the whole picture is over-exposed for EXIT_AFTER_M of the camera's way (EXIT_AFTER at the portal). By day
+## only (the ambient's luminance from EXIT_DAY_FROM to EXIT_DAY_TO); a function of the camera position, no clock.
+const EXIT_GLARE_FAR := 0.55
+const EXIT_GLARE_NEAR := 0.12
+const EXIT_NEAR_M := 10.0
+const EXIT_FAR_M := 150.0
+const EXIT_AFTER := 0.22
+const EXIT_AFTER_M := 45.0
+const EXIT_DAY_FROM := 0.35
+const EXIT_DAY_TO := 0.75
+const EXIT_GLARE_COLOR := Color(1.0, 1.0, 0.97)
+const EXIT_QUAD_H := 9.0           ## the glare quad reaches this high above the road (tube ceiling 6.2 m)
 const POST_EXACT := true           ## the post path carries post_lut(): it shows what the passes wrote (RINT-B)
 const POST_LUT_SIZE := 256         ## texels of the 1D LUT (half floats; texel j belongs to the input (j + 0.5) / size)
+
+const GLARE_SHADER := """shader_type spatial;
+render_mode unshaded, blend_mix, depth_draw_never, cull_disabled, fog_disabled, shadows_disabled;
+uniform vec4 glare = vec4(1.0, 1.0, 0.97, 0.0);
+void fragment() {
+	ALBEDO = glare.rgb;
+	ALPHA = glare.a;
+}
+"""
 
 var environment: Environment
 var sun: DirectionalLight3D
@@ -106,6 +131,11 @@ var _cover := false
 var _nolight := false
 ## set_zone(): kind -> amount 0..1 as the owner of the zone set it last (a kind nobody set is absent)
 var _zones: Dictionary = {}
+var _glare: MeshInstance3D         ## R4: the exposure quad of a tunnel exit (null until the first tunnel)
+var _glare_mat: ShaderMaterial
+var _after: ColorRect              ## R4: over-exposure of the whole picture just after a tunnel exit
+var _after_layer: CanvasLayer
+var _exit_state := Vector2.ZERO    ## (glare alpha, after-glow alpha) of the last update()
 
 
 func _init() -> void:
@@ -292,6 +322,9 @@ func update(view: Dictionary, _dt: float) -> void:
 	var t := float(view.get("time", 0.0))
 	_update_sky(pal, fog_color, tunnel01, t)
 	st["sky_updates"] = _sky_updates
+	_update_exit(view, pal, tunnel01, fog_out)
+	st["exit_glare"] = _exit_state.x
+	st["exit_after"] = _exit_state.y
 	state = st
 	var night := float(pal.get("lights", 0.0))
 	var overcast := float(pal.get("overcast", 0.0))
@@ -311,6 +344,129 @@ func update(view: Dictionary, _dt: float) -> void:
 	if not pal.is_empty():
 		_send("ce_sky_top", (pal.get("sky_top", Color.BLACK) as Color).lerp(Palette.TUNNEL_FOG, tunnel01))
 		_send("ce_sky_horizon", (pal.get("sky_bottom", Color.BLACK) as Color).lerp(Palette.TUNNEL_AMBIENT * 0.35, tunnel01))
+
+
+## R4: the exposure ramp of a tunnel exit (EXIT_* above): the glare quad across the exit portal while the camera is
+## inside a tunnel whose exit is within the sight, the over-exposure of the whole picture just after the exit. Only
+## with a tunnel builder (its tube hides the quad outside the opening) and by day.
+func _update_exit(view: Dictionary, pal: Dictionary, tunnel01: float, fog_out: Color) -> void:
+	_exit_state = Vector2.ZERO
+	if _track == null or _track.plan == null or _track.plan.tunnels.is_empty() or _renderer == null or _cover:
+		_show_exit(Vector2.ZERO, null, 0.0, fog_out)
+		return
+	var day := smoothstep(EXIT_DAY_FROM, EXIT_DAY_TO, Palette.luminance(pal.get("ambient", Color.BLACK)))
+	var path: RoadPath3D = _renderer.get("path")
+	if day <= 0.0 or path == null or not path.is_ready() or _renderer.call(&"builder", "tunnel") == null:
+		_show_exit(Vector2.ZERO, null, 0.0, fog_out)
+		return
+	var cam_z := float(view.get("camera_z", 0.0))
+	var vis := float(view.get("visibility_m", 900.0))
+	var exit := exit_ahead(_track, cam_z, vis)
+	var glare := 0.0
+	var z_exit := 0.0
+	if not exit.is_empty() and tunnel01 > 0.5:
+		z_exit = float(exit["z"])
+		glare = day * exit_glare(z_exit - cam_z)
+	var after := day * exit_after(exit_behind(_track, cam_z))
+	_exit_state = Vector2(glare, after)
+	_show_exit(_exit_state, path if glare > 0.0 else null, z_exit, fog_out)
+
+
+## Alpha of the glare quad for an exit `d` metres ahead of the camera (pure): EXIT_GLARE_FAR far away, EXIT_GLARE_NEAR
+## at the portal.
+static func exit_glare(d: float) -> float:
+	if d <= 0.0:
+		return 0.0
+	return lerpf(EXIT_GLARE_NEAR, EXIT_GLARE_FAR, smoothstep(EXIT_NEAR_M, EXIT_FAR_M, d))
+
+
+## Alpha of the over-exposure of the whole picture `d` metres after a tunnel exit (pure; d < 0: none).
+static func exit_after(d: float) -> float:
+	if d < 0.0 or d >= EXIT_AFTER_M:
+		return 0.0
+	return EXIT_AFTER * (1.0 - smoothstep(0.0, EXIT_AFTER_M, d))
+
+
+## The exit of the tunnel the camera is in, when it lies within `vis` metres: {"z": road z of the exit}; else {}.
+static func exit_ahead(track: Track, cam_z: float, vis: float) -> Dictionary:
+	if track == null or track.plan == null:
+		return {}
+	for t: Dictionary in track.plan.tunnels:
+		var z0 := track.km_to_z(float(t["start_km"]))
+		var z1 := minf(track.km_to_z(float(t["end_km"])), track.length_z)
+		if cam_z >= z0 and cam_z < z1 and z1 - cam_z <= vis:
+			return {"z": z1}
+	return {}
+
+
+## Metres the camera is past the exit of a tunnel (-1 when it is not just behind one, EXIT_AFTER_M at most).
+static func exit_behind(track: Track, cam_z: float) -> float:
+	if track == null or track.plan == null:
+		return -1.0
+	for t: Dictionary in track.plan.tunnels:
+		var z1 := minf(track.km_to_z(float(t["end_km"])), track.length_z)
+		var d := cam_z - z1
+		if d >= 0.0 and d < EXIT_AFTER_M:
+			return d
+	return -1.0
+
+
+func _show_exit(a: Vector2, path: RoadPath3D, z_exit: float, fog_out: Color) -> void:
+	var col := fog_out.lerp(EXIT_GLARE_COLOR, 0.7)
+	if a.x > 0.0 and path != null:
+		if _glare == null:
+			_glare = _glare_node()
+			add_child(_glare)
+		var edges := _track.road_edges_at(z_exit) if _track.has_method(&"road_edges_at") else Vector2(-8.0, 8.0)
+		var w := (edges.y - edges.x) + 2.0 * 2.5 + 8.0
+		var centre := (edges.x + edges.y) * 0.5
+		# (the rig stands at the renderer's origin with no transform: local = origin-relative world)
+		var fr := path.frame_at(z_exit - 0.6, centre, EXIT_QUAD_H * 0.5 - 0.5)
+		_glare.transform = Transform3D(fr.basis * Basis.from_scale(Vector3(w, EXIT_QUAD_H, 1.0)), fr.origin)
+		_glare_mat.set_shader_parameter(&"glare", Vector4(col.r, col.g, col.b, a.x))
+		_glare.visible = true
+	elif _glare != null:
+		_glare.visible = false
+	if a.y > 0.0:
+		if _after == null:
+			_after_layer = CanvasLayer.new()
+			_after_layer.layer = 1
+			_after_layer.name = "ExitGlare"
+			_after = ColorRect.new()
+			_after.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			_after.set_anchors_preset(Control.PRESET_FULL_RECT)
+			_after_layer.add_child(_after)
+			add_child(_after_layer)
+		_after.color = Color(EXIT_GLARE_COLOR.r, EXIT_GLARE_COLOR.g, EXIT_GLARE_COLOR.b, a.y)
+		_after_layer.visible = true
+	elif _after_layer != null:
+		_after_layer.visible = false
+
+
+## The glare quad: unshaded, mixed over what lies behind it, depth tested, never written to depth, one draw call.
+func _glare_node() -> MeshInstance3D:
+	if _glare_mat == null:
+		var sh := Shader.new()
+		sh.code = GLARE_SHADER
+		_glare_mat = ShaderMaterial.new()
+		_glare_mat.shader = sh
+	var q := QuadMesh.new()
+	q.size = Vector2(1.0, 1.0)
+	var mi := MeshInstance3D.new()
+	mi.name = "ExitGlare"
+	mi.mesh = q
+	mi.material_override = _glare_mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.layers = 2       # no light of the lights layer touches it (it is unshaded anyway)
+	return mi
+
+
+## R4: a fresh glare quad for the shader warm-up (the first tunnel exit must not compile it while driving).
+func warmup_nodes() -> Array:
+	var mi := _glare_node()
+	_glare_mat.set_shader_parameter(&"glare", Vector4(1.0, 1.0, 0.97, 0.05))
+	mi.scale = Vector3(0.5, 0.5, 1.0)
+	return [mi]
 
 
 ## Sets a ce_* global when its value changed (most of them stand still for minutes).

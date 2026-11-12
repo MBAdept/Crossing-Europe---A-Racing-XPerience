@@ -109,13 +109,17 @@ void vertex() {
 	float a = smoothstep(near_fade_m, near_fade_m + 1.5, q.z) * (1.0 - smoothstep(box_hi.z - 8.0, box_hi.z, q.z));
 	a *= 1.0 - smoothstep(0.8, 1.0, abs(q.x - (box_lo.x + box_hi.x) * 0.5) / (size.x * 0.5));
 	a *= smoothstep(box_hi.y, box_hi.y - 1.5, q.y);
+	// a drop whose streak is shorter than two pixels is far away: dimmer (many of them melt into a haze)
+	a *= clamp(len * 0.5, 0.35, 1.0);
 	v_alpha = drop_color.a * a * fade * (c0.w > 0.2 ? 1.0 : 0.0);
-	v_light = beam_at(p);
+	// the low beam lights the drops it passes through – mostly the near ones (far in the cone they would pile up into
+	// a bright cloud at the vanishing point)
+	v_light = beam_at(p) * (1.0 - smoothstep(22.0, 55.0, q.z));
 }
 
 void fragment() {
 	vec3 amb = min(ce_ambient_display.rgb + vec3(0.35), vec3(1.0));
 	vec3 col = drop_color.rgb * amb + vec3(1.0, 0.93, 0.8) * v_light * 0.9;
 	ALBEDO = min(col, vec3(1.0));
-	ALPHA = clamp(v_alpha * (1.0 - abs(v_across) * 0.5) * (1.0 + v_light * 1.5), 0.0, 1.0);
+	ALPHA = clamp(v_alpha * (1.0 - abs(v_across) * 0.5) * (1.0 + v_light), 0.0, 1.0);
 }

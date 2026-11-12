@@ -62,6 +62,7 @@ var _sbuf := PackedFloat32Array()
 var _sn := 0
 var _veh_streak_n := 0
 var _wet := 0.0
+var debug_streaks := true            ## render checks switch the reflections on the wet road off (same frame without them)
 var _buf := PackedFloat32Array()
 var _veh := PackedFloat32Array()
 var _veh_n := 0
@@ -157,7 +158,7 @@ func set_vehicle_streaks(buf: PackedFloat32Array, count: int) -> void:
 		_mm_streak.instance_count = cap
 	_mm_streak.buffer = buf
 	_mm_streak.visible_instance_count = count
-	_node_streak.visible = true
+	_node_streak.visible = debug_streaks
 
 
 ## Static lamps of a chunk part (renderer.add_lamps(), contract A-7): Array of {"pos": Vector3 (local to parent),
@@ -200,7 +201,7 @@ func update(view: Dictionary, _dt: float) -> void:
 			_sbuf.resize(_mm_sstreak.instance_count * FLOATS)
 		_mm_sstreak.buffer = _sbuf
 	_mm_sstreak.visible_instance_count = _sn
-	_node_sstreak.visible = _sn > 0
+	_node_sstreak.visible = _sn > 0 and debug_streaks
 	var us := Time.get_ticks_usec() - t0
 	_us_sum += us
 	_us_max = maxi(_us_max, us)

@@ -52,6 +52,7 @@ uniform vec3 headlight_color = vec3(1.0, 0.95, 0.84);   // linear, at intensity 
 uniform vec2 landmark_law = vec2(0.0, 1900.0);
 
 global uniform float ce_night;
+global uniform float ce_snow;                  // R4: Arcade tints its scenery sprites in snow (RoadRenderer: 15 % towards #bfccd6)
 global uniform vec4 ce_sun_color;
 global uniform vec4 ce_ambient;
 global uniform vec3 ce_sun_dir;
@@ -140,14 +141,15 @@ void fragment() {
 		ALBEDO = albedo_for(pow((min(ll.rgb, vec3(1.0)) + 0.055) / 1.055, vec3(2.4)));
 		FOG = vec4(0.0);
 	} else {
-		vec3 a = to_lin(t.rgb * COLOR.rgb);
+		vec3 base = mix(t.rgb * COLOR.rgb, vec3(0.75, 0.8, 0.84), 0.15 * clamp(ce_snow, 0.0, 1.0));
+		vec3 a = to_lin(base);
 		// what a lit surface shows: two passes, each turned into display values, then added
 		vec3 d = show(a * ce_ambient.rgb) + show(a * ce_sun_color.rgb * v_sun);
 		if (baked_light > 0.5) {
 			// a picture with baked light: its colours times the light a mid-grey surface shows (Arcade's law:
 			// sprite x ambient colour) - the hues of the sprite stay as they were painted
 			vec3 g = vec3(to_lin(vec3(REF_GREY)).r);
-			d = t.rgb * COLOR.rgb * (show(g * ce_ambient.rgb) + show(g * ce_sun_color.rgb * v_sun)) / REF_GREY;
+			d = base * (show(g * ce_ambient.rgb) + show(g * ce_sun_color.rgb * v_sun)) / REF_GREY;
 		}
 		// back to the linear value with that display value (0.00083 is the linear value that still shows as 0)
 		vec3 x = pow((min(d, vec3(1.0)) + 0.055) / 1.055, vec3(2.4));

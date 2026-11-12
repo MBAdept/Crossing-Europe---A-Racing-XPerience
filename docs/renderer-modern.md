@@ -2033,3 +2033,49 @@ if env != null and env.has_method("set_zone"):
 - Das Rig liest den Wert in seinem nächsten `update()`, das in jedem Bild **vor** den `update()` der Builder läuft:
   eine Zone, die ein Builder in seinem `update()` setzt, wirkt ein Bild später (bei 60 Bildern je Sekunde 17 ms).
 - Kosten: ein Wörterbuch-Eintrag je Aufruf. Prüfung: `tests/unit/race3d/test_environment_rig.gd` → `test_set_zone`.
+
+### 15.2 Wetter in der Luft (`layers/weather.gd`)
+
+Regen und Schneefall sind **zustandslose GPU-Teilchen**: eine MultiMesh aus Vierecken, ein Zeichenaufruf; der Ort
+jedes Tropfens ist eine reine Funktion seiner Instanznummer, der Kamera und der Spielzeit `ce_time`
+(`assets/shaders/modern/particles_rain.gdshader`, `particles_snow.gdshader`). Nichts wird simuliert oder gespeichert:
+das Bild ist im Sync-Modus und mit `--shot-fast` bestimmt (Regel 10), steht im Pausenbild still und springt nicht, wenn
+der schwimmende Ursprung verlegt wird; es gibt keinen Prozess-Shader zu übersetzen. (Der Bauplan nennt
+`GPUParticles3D`; ein solcher Knoten hält Zustand je Bild auf der Grafikkarte – mit `--shot-fast` stünde er still, zwei
+Läufe gäben verschiedene Bilder, beim Ursprungsversatz spränge er. Als Vertragsfrage gemeldet.)
+
+- **Raum**: ein Kasten im Kameraraum wie Arcades (`RoadRenderer._draw_weather`: Tropfen 3 … 45 m voraus, ±14 m, bis
+  9 m hoch, 8,5 m/s Fall, 0,6 m/s Drift; Flocken 2 … 38 m, 1,2 m/s, ±0,7 m/s Schaukeln). Er dreht mit der
+  Straßenrichtung an der Kamera und wandert mit ihrem Weg (`odo` = `camera_z` modulo Tiefe): die Tropfen ziehen vorbei
+  wie in Arcade. An den Kastenflächen blenden die Teilchen weich aus statt aufzutauchen.
+- **Menge je „Effekte“**: die Teilchenzahl der Stufe (300 / 1.500 / 4.000) in einem Kasten je Stufe (`RAIN_BOX`,
+  `SNOW_BOX`) – schon „Aus“ hat mindestens Arcades Dichte (Unit-Test `test_weather`), auch die Steam-Deck-Stufe zeigt
+  Niederschlag.
+- **Aussehen**: Regen als Striche der Bewegung in 18 ms (der Fallanteil 2,5-fach wie in Arcade), Schnee als runde
+  Flocken von 4,5 cm (1,2 … 5,5 px), bei schneller Fahrt zu Strichen gezogen. Helligkeit nach Arcades Gesetz
+  (Farbe × min(1, Umgebungslicht + 0,35)) plus dem Abblendlicht dort, wo das Teilchen im Kegel hängt – nachts
+  glitzern Regen und Schnee vor dem Auto.
+- **Tunnel**: ausgeblendet über die Portalrampe (`1 − tunnel01`), drinnen unsichtbar. Kein Schatten.
+
+### 15.3 Gischt
+
+Hinter jedem Auto auf nasser Fahrbahn ab 40 km/h (voll bei 160 km/h, Arcades Gesetz) – auch hinter Lkw, Bussen und dem
+eigenen Auto (Arcade: nur hinter Pkw). Die Fahrzeug-Ebene gibt je Bild die Quellen weiter (`set_spray_sources`: Heck,
+Richtung, Breite, Ausblendung, Tempo, Rücklicht); die Wetter-Ebene setzt daraus weiche Wolken
+(`assets/shaders/modern/spray.gdshader`: Kamera-zugewandte Vierecke, treibendes Rauschen nach `ce_time`, weiche Kante,
+wo die Wolke Straße oder Auto trifft – Tiefentextur). Bei „Effekte: Einfach/Voll“ je eine Fahne hinter jedem
+Hinterrad und ein nachziehender Schleier, bei „Aus“ (Gischt laut Tabelle aus) eine Wolke je Auto an der Stelle von
+Arcades Ellipse – so zeigt keine Stufe weniger als Arcade. Licht auf dem Prozessor: Umgebung, das Abblendlicht am Ort
+der Wolke (`lights.beam_at()`), nachts das Rot der eigenen Rückleuchten.
+
+### 15.4 Nasse Fahrbahn
+
+- `road.gdshader`: um ein Drittel dunkler und glatter (wie bisher), dazu spiegelt der Wasserfilm den Himmel mit dem
+  Fresnel-Gesetz von Wasser unter dem Winkel, unter dem die Kamera die Straße sieht (`wet_mirror` 0,42; neue Globals
+  `ce_sky_top`, `ce_sky_horizon`, vom Rig) – nah am Auto wenig, zum Horizont viel; nie weniger als Arcades Glanz
+  (28 % der Nebelfarbe am Ende der Sicht). Markierung spiegelt etwas weniger.
+- **Spiegelungen der Lampen** (`flare.gdshader`, Variante `CE_STREAK`, Klasse `flare_streak`): je Rück- und
+  Bremsleuchte ein Viereck auf der Straße vom Boden unter der Lampe zur Kamera (3–18 m, mit der Entfernung länger),
+  hell an der Lampe, zur Kamera hin auslaufend, mit leichtem Flimmern des Films; **tiefengetestet** (das eigene Auto
+  und alles davor verdeckt es) und mit denselben fünf Tiefenproben an der Lampe wie ihr Lichtpunkt – eine Lampe hinter
+  einer Kuppe oder einem Lkw hat auch keine Spiegelung. Laternen und Tankstellenlampen spiegeln nachts ebenso.

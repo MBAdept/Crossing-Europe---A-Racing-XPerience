@@ -54,7 +54,7 @@ void fragment() {
 	float blob = 1.0 - smoothstep(0.25, 1.0, r);
 	vec2 flow = vec2(v_seed * 17.0, v_seed * 5.0 - ce_time * v_rise);
 	float n = vnoise(q * 2.2 + flow) * 0.65 + vnoise(q * 5.1 + flow * 1.9 + vec2(3.1, 7.7)) * 0.35;
-	float dens = blob * smoothstep(0.25, 0.75, n * (0.55 + 0.45 * blob));
+	float dens = blob * smoothstep(0.18, 0.62, n * (0.6 + 0.4 * blob));
 	// soft particles: fade where the puff meets the road, a car or a wall
 	float raw = texture(depth_tex, SCREEN_UV).r;
 	vec4 v = INV_PROJECTION_MATRIX * vec4(SCREEN_UV * 2.0 - 1.0, raw * 2.0 - 1.0, 1.0);

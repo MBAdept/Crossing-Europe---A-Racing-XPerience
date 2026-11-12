@@ -24,8 +24,15 @@ uniform float backlight = 0.35;                // light shining through the leav
 uniform float wrap = 0.35;                     // diffuse wrap (0 = Lambert)
 uniform float shadow_part = 0.25;              // how much of the directional shadow darkens the leaves
 
+// R4: snow on the top of the crown on a snow stage (the shading normal points out of the crown) – display albedo,
+// darker at night
+uniform vec3 snow_albedo = vec3(0.84, 0.87, 0.9);
+uniform float snow_night = 0.3;
+
 global uniform vec4 ce_wind;
 global uniform float ce_time;
+global uniform float ce_snow;
+global uniform float ce_night;
 global uniform vec2 ce_fog_range;
 global uniform vec4 ce_fog_color;
 
@@ -65,6 +72,11 @@ void fragment() {
 		NORMAL = -NORMAL;        // the engine flips the normal of back faces: keep the crown normal
 	}
 	ALBEDO = t.rgb * v_bright;        // sRGB-encoded, as the Compatibility renderer expects it
+	if (ce_snow > 0.0) {
+		float up = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz).y;
+		float k = clamp(ce_snow, 0.0, 1.0) * smoothstep(0.35, 0.85, up) * 0.85;
+		ALBEDO = mix(ALBEDO, snow_albedo * (1.0 - snow_night * clamp(ce_night, 0.0, 1.0)), k);
+	}
 	ROUGHNESS = 0.8;
 	SPECULAR = 0.2;
 	FOG = ce_arcade_fog(ALBEDO, length(VERTEX), ce_fog_color, ce_fog_range);

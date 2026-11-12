@@ -31,6 +31,18 @@ const BAND_FADE_TO_M := 40.0       ## … and have become their mean here
 const CITY_BAND_SHARE := 0.35      ## inside the City Limits the bands keep this much of their contrast
 const WATER_STYLE := -1.0          ## CUSTOM0.a of a vertex on the water
 const GROUND_LAYERS := 2           ## render layer of ground meshes (builders/road.gd): no positional light reaches it
+## R4: snow banks – on a snow stage the ploughed snow lies in a low ridge along the outer edge of the shoulders (part
+## of this mesh, same material: the ground law lights it like the snow ground). At most BANK_MAX_M high, so it can
+## never hide a car from the 3.4 m eye (the ground-cover rule of A-3, 0.5 m) and the terrain profile of the fairness
+## tests stays untouched. Not on bridges, in tunnels, in the City Limits or beside a fuel lane; tapered over
+## BANK_TAPER rows where it ends. Profile across (m from the shoulder edge, share of the height).
+const BANK_H_M := 0.3
+const BANK_MAX_M := 0.45
+const BANK_TAPER := 3
+const BANK_PROFILE: Array[Vector2] = [Vector2(-0.3, 0.0), Vector2(0.25, 0.6), Vector2(0.75, 1.0), Vector2(1.6, -0.12)]
+## UV.x of the bank's profile points: the foot on the shoulder lies on the "gravel strip" of the shader (thin, dirty
+## snow: the grey plough edge that draws the bank against the white ground), the crest and the back full snow
+const BANK_LAT: Array[float] = [0.15, 0.9, 2.6, 2.6]
 
 var material: ShaderMaterial       ## the one terrain material (null until the first commit)
 var far_look: Dictionary = {}      ## GroundLook.far_look() of the last update()
@@ -72,9 +84,14 @@ func collect(ctx: ChunkContext) -> Variant:
 		if c == "":
 			c = str(CityData.WATER_COLOR.get(str(seg["bridge"]), "#4b6878"))
 		waters[key] = Color(c)
+	var snow := false
+	var renderer: Variant = ctx.services.get("renderer")
+	if renderer is Object:
+		var prep: Variant = (renderer as Object).get("prep")
+		snow = prep is Dictionary and str((prep as Dictionary).get("weather", "")) == "snow"
 	return {"city": GroundLook.city_info(ctx.track),
 		"band": maxi(1, int(ConfigLoader.lookup(ctx.cfg, "render.stripes.grass", 4))),
-		"styles": styles if styles is Dictionary else {}, "waters": waters}
+		"styles": styles if styles is Dictionary else {}, "waters": waters, "snow": snow}
 
 
 func build(ctx: ChunkContext, input: Variant) -> Dictionary:
@@ -220,13 +237,117 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 				idx.append_array(PackedInt32Array([t0, t1, t1 + 1, t0, t1 + 1, t0 + 1]))
 			else:
 				idx.append_array(PackedInt32Array([t0, t1 + 1, t1, t0, t0 + 1, t1 + 1]))
+	var bank_tris := 0
+	if bool(inp.get("snow", false)):
+		bank_tris = _snow_banks(ctx, verts, norms, cols, uvs, uv2s, custom, bands, idx, n, per_side)
 	var box := AABB()
-	if count > 0:
+	if verts.size() > 0:
 		box = AABB(verts[0], Vector3.ZERO)
 		for v in verts:
 			box = box.expand(v)
 	return {"verts": verts, "normals": norms, "colors": cols, "uv": uvs, "uv2": uv2s, "custom": custom, "bands": bands,
-		"indices": idx, "aabb": box, "rings": n, "rows": rows, "quads": quads, "water_rows": water_rows}
+		"indices": idx, "aabb": box, "rings": n, "rows": rows, "quads": quads, "water_rows": water_rows, "bank_tris": bank_tris}
+
+
+## R4: whether row i of a chunk may carry a snow bank (open road beside open ground).
+static func bank_row(seg: Dictionary) -> bool:
+	return not (bool(seg["tunnel"]) or bool(seg["water"]) or bool(seg.get("bank", false)) or bool(seg["city"])
+		or int(seg.get("fuel_zone", 0)) != 0 or float(seg.get("fuel_lane", 0.0)) > 0.0 or str(seg.get("cover", "")) != "")
+
+
+## R4: height of the snow bank at segment index k (m): BANK_H_M with a slow variation along the road, never above
+## BANK_MAX_M. A function of the segment index alone – the bank continues across chunk borders.
+static func bank_height(k: int) -> float:
+	var t := float(k) * 0.11
+	var v := 0.75 + 0.3 * sin(t) * sin(t * 0.37 + 1.3) + 0.12 * sin(float(k) * 0.93 + 0.4)
+	return clampf(BANK_H_M * v, 0.0, BANK_MAX_M)
+
+
+## R4: appends the snow banks of both sides to the arrays of the ribbon (worker thread, snapshot only); returns the
+## number of triangles. The banks lie on the ground of the first two rings (linear between them) and copy the style
+## of the ring at the shoulder edge.
+static func _snow_banks(ctx: ChunkContext, verts: PackedVector3Array, norms: PackedVector3Array, cols: PackedColorArray,
+		uvs: PackedVector2Array, uv2s: PackedVector2Array, custom: PackedFloat32Array, bands: PackedFloat32Array,
+		idx: PackedInt32Array, n: int, per_side: int) -> int:
+	var rows := ctx.row_count()
+	var np := BANK_PROFILE.size()
+	# where a bank may stand, and how far each row is from the nearest row without one (taper)
+	var ok := PackedInt32Array()
+	ok.resize(rows)
+	for i in rows:
+		ok[i] = 1 if bank_row(ctx.segs[i]) else 0
+	var reach := PackedFloat32Array()
+	reach.resize(rows)
+	for i in rows:
+		var d := BANK_TAPER
+		for j in range(maxi(0, i - BANK_TAPER), mini(rows, i + BANK_TAPER + 1)):
+			if ok[j] == 0:
+				d = mini(d, absi(j - i))
+		reach[i] = float(d) / float(BANK_TAPER)
+	var first := verts.size()
+	verts.resize(first + rows * 2 * np)
+	norms.resize(verts.size())
+	cols.resize(verts.size())
+	uvs.resize(verts.size())
+	uv2s.resize(verts.size())
+	custom.resize(verts.size() * 4)
+	bands.resize(verts.size() * 4)
+	for si in 2:
+		var side := -1.0 if si == 0 else 1.0
+		for i in rows:
+			var o := ctx.rows_o[i]
+			var right := ctx.rows_r[i]
+			var edge := ctx.rows_edge[i]
+			var base := (-edge.x if si == 0 else edge.y) + ctx.shoulder_w
+			var ro := (i * 2 + si) * n
+			var src := si * per_side + i * n          # the ring vertex at the shoulder edge: style and colour
+			var h := bank_height(ctx.seg_a + i) * reach[i]
+			var x1 := maxf(ctx.ring_x[ro + 1] - ctx.ring_x[ro], 0.5)
+			for q in np:
+				var pr: Vector2 = BANK_PROFILE[q]
+				var m := pr.x
+				var g := ctx.ring_h[ro] + (ctx.ring_h[ro + 1] - ctx.ring_h[ro]) * clampf(m / x1, 0.0, 1.0)
+				var lift := h * pr.y if pr.y > 0.0 else pr.y * maxf(h, 0.05)
+				if q == 0:
+					lift = 0.025                     # on the shoulder: just above the road
+				var x := side * (base + ctx.ring_x[ro] + m)
+				var v := first + (si * rows + i) * np + q
+				verts[v] = o + right * x + Vector3(0.0, g + lift, 0.0)
+				cols[v] = cols[src]
+				uvs[v] = Vector2(BANK_LAT[q], uvs[src].y)
+				uv2s[v] = Vector2(x, 0.0)
+				for c4 in 4:
+					custom[v * 4 + c4] = custom[src * 4 + c4]
+					bands[v * 4 + c4] = bands[src * 4 + c4]
+	# normals from the profile and the rows
+	for si in 2:
+		for i in rows:
+			var i0 := maxi(i - 1, 0)
+			var i1 := mini(i + 1, rows - 1)
+			for q in np:
+				var q0 := maxi(q - 1, 0)
+				var q1 := mini(q + 1, np - 1)
+				var row := first + (si * rows + i) * np
+				var across := verts[row + q1] - verts[row + q0]
+				var along := verts[first + (si * rows + i1) * np + q] - verts[first + (si * rows + i0) * np + q]
+				var nrm := along.cross(across) if si == 0 else across.cross(along)
+				norms[row + q] = nrm.normalized() if nrm.length_squared() > 1.0e-12 else Vector3.UP
+	var tris := 0
+	for i in rows - 1:
+		if ok[i] == 0 or ok[i + 1] == 0:
+			continue
+		for si in 2:
+			for q in np - 1:
+				var a := first + (si * rows + i) * np + q
+				var b := a + 1
+				var d := first + (si * rows + i + 1) * np + q
+				var c := d + 1
+				if si == 1:
+					idx.append_array(PackedInt32Array([a, d, c, a, c, b]))
+				else:
+					idx.append_array(PackedInt32Array([a, b, c, a, c, d]))
+				tris += 2
+	return tris
 
 
 ## The ground tone the shader starts from at vertex v of a built part (before its patterns): Arcade's band tone near
@@ -358,7 +479,7 @@ func debug(part: Dictionary) -> Dictionary:
 		q[i * 3] = int(round(v.x * 1000.0))
 		q[i * 3 + 1] = int(round(v.y * 1000.0))
 		q[i * 3 + 2] = int(round(v.z * 1000.0))
-	return {"vertices": verts.size(), "triangles": idx.size() / 3, "quads": int(part.get("quads", 0)),
+	return {"vertices": verts.size(), "triangles": idx.size() / 3, "quads": int(part.get("quads", 0)), "bank_tris": int(part.get("bank_tris", 0)),
 		"rings": int(part.get("rings", 0)), "water_rows": int(part.get("water_rows", 0)), "checksum": hash(q),
 		"aabb": [snappedf(box.position.x, 0.001), snappedf(box.position.y, 0.001), snappedf(box.position.z, 0.001),
 			snappedf(box.size.x, 0.001), snappedf(box.size.y, 0.001), snappedf(box.size.z, 0.001)]}

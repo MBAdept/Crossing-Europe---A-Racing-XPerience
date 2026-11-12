@@ -112,7 +112,15 @@ uniform float flake_near_m = 14.0;            // flakes fade out towards this di
 // the rotors stand still with the paused game.
 uniform float rotor_speed = 1.35;             // rad/s
 
+// R4: snow lies on what faces up (a guardrail's top, a roof, a pylon's ledge) on a snow stage – static models only:
+// ModernMaterials.static_code() gives the variant VPBR_STATIC snow_cover 1, vehicles keep 0. Snow albedo (display),
+// darker at night by snow_night (the moon would otherwise light it far above Arcade's night, R4 night law).
+uniform float snow_cover = 0.0;
+uniform vec3 snow_albedo = vec3(0.86, 0.88, 0.91);
+uniform float snow_night = 0.3;
+
 global uniform float ce_night;
+global uniform float ce_snow;
 global uniform vec4 ce_ambient;               // linear ambient light (ModernMaterials.light_value), for `fill`
 global uniform float ce_time;
 global uniform vec3 ce_headlight_pos;         // the player's low beam (layer "lights"): channel 15
@@ -302,6 +310,14 @@ void fragment() {
 		alb *= paint_base;          // the base coat under the clear coat
 	}
 	float night = clamp(ce_night, 0.0, 1.0);
+	if (snow_cover > 0.0 && ce_snow > 0.0 && !lamp) {
+		// R4: snow on the faces that look up
+		float up = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz).y;
+		float k = clamp(ce_snow, 0.0, 1.0) * snow_cover * smoothstep(0.45, 0.8, up);
+		alb = mix(alb, snow_albedo * (1.0 - snow_night * night), k);
+		rough = mix(rough, 0.9, k);
+		metal = mix(metal, 0.0, k);
+	}
 	vec3 fill_light = fill > 0.0 ? to_lin(alb) * ce_ambient.rgb * fill * mix(1.0, fill_night, night) : vec3(0.0);
 	// mirrored environment: clear coat (Fresnel of a 1.5 coat), metals (tinted by their colour), glossy parts
 	vec3 refl = vec3(0.0);

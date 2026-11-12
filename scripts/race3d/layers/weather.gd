@@ -31,10 +31,10 @@ const BOX_BELOW := -3.6              ## the box reaches this far below the camer
 const BOX_ABOVE := 6.0               ## … and this far above it (Arcade: up to 9 m above the road)
 const SPRAY_MIN_KMH := 40.0          ## Arcade: spray from 40 km/h, full at 160 km/h
 const SPRAY_FULL_KMH := 160.0
-const SPRAY_STRENGTH := 0.34         ## Arcade's ellipse: 0.28
+const SPRAY_STRENGTH := 0.5          ## Arcade's ellipse: 0.28 (here spread over a torn, noisy puff)
 const SPRAY_HEAVY := 1.3             ## trucks and buses throw more
-const SPRAY_PLAYER := 0.55           ## the player's own spray (in front of the camera: it must not veil the car)
-const SPRAY_TAIL := 0.5              ## red of the car's own rear lights in its spray at night
+const SPRAY_PLAYER := 0.6            ## the player's own spray (in front of the camera: it must not veil the car)
+const SPRAY_TAIL := 0.75             ## red of the car's own rear lights in its spray at night
 const MAX_PUFFS := 240
 const SOURCE_FLOATS := 13            ## set_spray_sources(): rear (3), forward (3), width, length, fade, km/h, flags, tail, id
 const FLAG_PLAYER := 1
@@ -44,6 +44,8 @@ const PUFF_FLOATS := 20              ## MultiMesh: 12 transform + 4 colour + 4 c
 const SPRAY_COLOR := Color(0.9, 0.92, 0.95)   ## Arcade: the fog colour washed half towards this
 
 var kind := ""                       ## "rain", "snow" or "" (the stage's weather)
+var debug_particles := true          ## render checks switch the precipitation off to measure it against the same frame
+var debug_spray := true              ## … and the spray
 var _renderer: Node
 var _mats: ModernMaterials
 var _count := 300
@@ -201,7 +203,7 @@ func update(view: Dictionary, _dt: float) -> void:
 	var cam_t := cam.global_transform if cam.is_inside_tree() else cam.transform
 	var speed := float(view.get("speed", 0.0)) / 3.6
 	if _particles != null:
-		_particles.visible = _shown
+		_particles.visible = _shown and debug_particles
 		if _shown and _pmat != null:
 			_pmat.set_shader_parameter(&"cam_pos", cam_t.origin)
 			_pmat.set_shader_parameter(&"cam_fwd", fwd)
@@ -230,7 +232,7 @@ func _update_spray(_view: Dictionary, pal: Dictionary, wet: float) -> void:
 		if st is Dictionary and not (st as Dictionary).is_empty():
 			amb = (st as Dictionary).get("display", amb)
 	var base := fog.lerp(SPRAY_COLOR, 0.5)
-	var lit := Color(minf(1.0, amb.r + 0.2), minf(1.0, amb.g + 0.2), minf(1.0, amb.b + 0.2))
+	var lit := Color(minf(1.0, amb.r + 0.25), minf(1.0, amb.g + 0.25), minf(1.0, amb.b + 0.25))
 	var lights_layer: Node = _renderer.call(&"layer", "lights")
 	var has_beam := lights_layer != null and lights_layer.has_method(&"beam_at")
 	for i in _src_n:
@@ -273,7 +275,7 @@ func _update_spray(_view: Dictionary, pal: Dictionary, wet: float) -> void:
 	_spray_mm.visible_instance_count = _puffs
 	if _puffs > 0:
 		_spray_mm.buffer = _buf
-	_spray.visible = _puffs > 0
+	_spray.visible = _puffs > 0 and debug_spray
 
 
 ## The puffs of one car: [[centre (world), half size (m), share of the strength, share of the rear-light red], …].
@@ -288,7 +290,8 @@ static func spray_puffs(rear: Vector3, back: Vector3, right: Vector3, w: float, 
 	var out: Array = []
 	for side: float in [-1.0, 1.0]:
 		out.append([rear + back * (0.35 * g) + right * (side * w * 0.36) + up * (0.32 * g), Vector2(w * 0.26 + 0.18 * g, 0.42 * g), 0.9, 1.0])
-	out.append([rear + back * ((1.3 + 0.9 * k) * g) + up * (0.6 * g), Vector2(w * (0.7 + 0.15 * k), 0.75 * g) * (1.0 + 0.35 * k), 0.75, 0.35])
+	# the mist stays below the roof of a car (its top at most 1.35 m): spray never shows above a car hidden by a crest
+	out.append([rear + back * ((1.3 + 0.9 * k) * g) + up * (0.55 * g), Vector2(w * (0.7 + 0.15 * k) * (1.0 + 0.3 * k), 0.62 * g * (1.0 + 0.25 * k)), 0.75, 0.35])
 	return out
 
 

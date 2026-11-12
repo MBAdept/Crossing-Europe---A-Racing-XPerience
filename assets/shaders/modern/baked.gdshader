@@ -25,7 +25,12 @@ uniform float night_albedo = 1.0;
 // it on a duplicate of the model's material).
 uniform vec2 landmark_law = vec2(0.0, 1900.0);
 
+// R4: snow on the faces that look up (roofs, ledges, rocks) on a snow stage – display albedo, darker at night
+uniform vec3 snow_albedo = vec3(0.86, 0.88, 0.91);
+uniform float snow_night = 0.3;
+
 global uniform float ce_night;
+global uniform float ce_snow;
 global uniform vec4 ce_fog_color;
 global uniform vec2 ce_fog_range;
 
@@ -62,6 +67,11 @@ void fragment() {
 #endif
 	// night_albedo = 1: a factor of exactly 1.0 – the picture of every other material stays as it was
 	vec3 alb = a.rgb * (1.0 - (1.0 - night_albedo) * clamp(ce_night, 0.0, 1.0));
+	if (ce_snow > 0.0) {
+		float up = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz).y;
+		float k = clamp(ce_snow, 0.0, 1.0) * smoothstep(0.5, 0.82, up) * (1.0 - light_cover);
+		alb = mix(alb, snow_albedo * (1.0 - snow_night * clamp(ce_night, 0.0, 1.0)), k);
+	}
 	ALBEDO = lights_only ? vec3(0.0) : alb;
 	ROUGHNESS = roughness;
 	METALLIC = 0.0;

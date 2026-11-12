@@ -169,7 +169,8 @@ func shader(class_id: String) -> Shader:
 ## words "instance uniform", so a look at the code (check_instance_budget.gd) sees none.
 static func static_code(code: String) -> String:
 	var rx := RegEx.create_from_string("(,\\s*|\\s*:\\s*)instance_index\\(\\s*\\d+\\s*\\)")
-	return rx.sub(code, "", true).replace("instance uniform", "uniform")
+	# R4: static models carry snow on their upward faces on a snow stage (vehicles do not)
+	return rx.sub(code, "", true).replace("instance uniform", "uniform").replace("uniform float snow_cover = 0.0;", "uniform float snow_cover = 1.0;")
 
 
 ## Material class a model's surface of class `cls` draws with: VPBR_STATIC for "vpbr" on every model that is not a
