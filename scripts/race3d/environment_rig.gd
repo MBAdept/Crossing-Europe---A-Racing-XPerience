@@ -103,6 +103,10 @@ const EXIT_DAY_FROM := 0.35
 const EXIT_DAY_TO := 0.75
 const EXIT_GLARE_COLOR := Color(1.0, 1.0, 0.97)
 const EXIT_QUAD_H := 9.0           ## the glare quad reaches this high above the road (tube ceiling 6.2 m)
+## … and stands at least this far beyond the front of the player's car: when the car has already left the tube, the
+## outside behind it is over-exposed but the car is not veiled (Arcade's player sprite stays as it is; seen from inside
+## the tube, the portal still frames the quad)
+const EXIT_CAR_GAP_M := 1.5
 const POST_EXACT := true           ## the post path carries post_lut(): it shows what the passes wrote (RINT-B)
 const POST_LUT_SIZE := 256         ## texels of the 1D LUT (half floats; texel j belongs to the input (j + 0.5) / size)
 
@@ -378,7 +382,11 @@ func _update_exit(view: Dictionary, pal: Dictionary, tunnel01: float, fog_out: C
 		glare = day * exit_glare(z_exit - cam_z)
 	var after := day * exit_after(exit_behind(_track, cam_z))
 	_exit_state = Vector2(glare, after)
-	_show_exit(_exit_state, path if glare > 0.0 else null, z_exit, fog_out)
+	var pl: Dictionary = view.get("player", {})
+	var z_quad := z_exit - 0.6
+	if not pl.is_empty():
+		z_quad = maxf(z_quad, float(pl.get("z", 0.0)) + float(pl.get("length", 4.5)) + EXIT_CAR_GAP_M)
+	_show_exit(_exit_state, path if glare > 0.0 else null, z_quad, fog_out)
 
 
 ## Alpha of the glare quad for an exit `d` metres ahead of the camera (pure): EXIT_GLARE_FAR far away, EXIT_GLARE_NEAR
@@ -420,17 +428,18 @@ static func exit_behind(track: Track, cam_z: float) -> float:
 	return -1.0
 
 
-func _show_exit(a: Vector2, path: RoadPath3D, z_exit: float, fog_out: Color) -> void:
+## (z_quad: road z of the glare quad – just inside the exit portal, or beyond the player's car)
+func _show_exit(a: Vector2, path: RoadPath3D, z_quad: float, fog_out: Color) -> void:
 	var col := fog_out.lerp(EXIT_GLARE_COLOR, 0.7)
 	if a.x > 0.0 and path != null:
 		if _glare == null:
 			_glare = _glare_node()
 			add_child(_glare)
-		var edges := _track.road_edges_at(z_exit) if _track.has_method(&"road_edges_at") else Vector2(-8.0, 8.0)
+		var edges := _track.road_edges_at(z_quad) if _track.has_method(&"road_edges_at") else Vector2(-8.0, 8.0)
 		var w := (edges.y - edges.x) + 2.0 * 2.5 + 8.0
 		var centre := (edges.x + edges.y) * 0.5
 		# (the rig stands at the renderer's origin with no transform: local = origin-relative world)
-		var fr := path.frame_at(z_exit - 0.6, centre, EXIT_QUAD_H * 0.5 - 0.5)
+		var fr := path.frame_at(z_quad, centre, EXIT_QUAD_H * 0.5 - 0.5)
 		_glare.transform = Transform3D(fr.basis * Basis.from_scale(Vector3(w, EXIT_QUAD_H, 1.0)), fr.origin)
 		_glare_mat.set_shader_parameter(&"glare", Vector4(col.r, col.g, col.b, a.x))
 		_glare.visible = true

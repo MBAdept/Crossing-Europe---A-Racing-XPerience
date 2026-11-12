@@ -2105,9 +2105,12 @@ Röhre verdeckt es außerhalb der Öffnung –, mischt alles, was durch die Öff
 60 % solange die Ausfahrt fern ist, 45 % direkt am Portal (die Augen sind noch auf die Röhre eingestellt –
 wie bei Arcade bleibt das Draußen hell, solange die Kamera drinnen ist; `exit_glare()`); danach ist das ganze Bild
 60 m lang überstrahlt (40 % am Portal, in rund 1,5 s bei 140 km/h abklingend; `exit_after()`, Canvas-Ebene 1). Die
-ersten Bilder mit 12 % am Portal und 22 % danach zeigten eine fast normale Ausfahrt – schwächer als Arcade. Nur bei Tag (Leuchtdichte des
-Umgebungslichts 0,35 … 0,75), nur mit einem Tunnel-Builder (seine Röhre muss das Viereck verdecken), eine Funktion der
-Kameraposition – keine Uhr. Das Viereck steht in den Aufwärm-Knoten des Rigs.
+ersten Bilder mit 12 % am Portal und 22 % danach zeigten eine fast normale Ausfahrt – schwächer als Arcade. Ist das
+Spielerauto schon draußen, die Kamera aber noch drin, steht das Viereck 1,5 m vor seiner Front (`EXIT_CAR_GAP_M`):
+das Draußen dahinter ist überstrahlt, das Auto nicht verschleiert – wie Arcades Sprite (das Portal rahmt das Viereck
+von innen weiter ein). Nur bei Tag (Leuchtdichte des Umgebungslichts 0,35 … 0,75), nur mit einem Tunnel-Builder
+(seine Röhre muss das Viereck verdecken), eine Funktion der Kameraposition – keine Uhr. Das Viereck steht in den
+Aufwärm-Knoten des Rigs.
 
 ### 15.7 Nacht
 
