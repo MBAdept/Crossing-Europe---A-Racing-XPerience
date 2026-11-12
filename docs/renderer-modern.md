@@ -2125,3 +2125,14 @@ zeichnet – mittags vorn und hoch –, auch wenn das Licht der hohen Sonne von 
 die Verfolgerkamera sieht, im Gegenlicht). Das ist Arcades eigene Abmachung: sein Panorama zeigt die Sonne vorn, seine
 Sprites sind von hinten links beleuchtet. Bei tiefer Sonne (Morgen, Abend) wird nicht geschwenkt: dort stimmen Scheibe,
 Horizontglühen, Licht und Schatten genau überein.
+
+### 15.9 Prüfungen
+
+| Prüfung | Inhalt |
+|---|---|
+| `tests/unit/race3d/test_environment_rig.gd` → `test_set_zone`, `test_night_moon_and_floor`, `test_where_the_sun_stands` | Zonen (Tunnel, Brücke, fremde Art, Grenzen), Mond ≥ 55° zu jeder Nachtstunde, Sonnenscheibe an Arcades Stelle |
+| `tests/unit/race3d/test_light_pool.gd` | Lichtdeckel je „Effekte“ (2 / 4 / 8 Punktlichter, ≤ 2 Spots, keine Schatten, der Boden ausgelassen), Gesetz der Lichtkegel, Mitte eines Kegels, Abblendlicht am Boden und in der Luft (`beam_at`), Blaulicht (`beacon_of`) |
+| `tests/unit/race3d/test_weather.gd` | Wetterarten und Stufen, jede „Effekte“-Stufe mindestens mit Arcades Teilchendichte, Gischtwolken (eine bei „Aus“, drei sonst, Lkw größer, schneller weiter hinten), Länge der Lampenspiegelung |
+| `tests/race3d/check_light_cap.gd` (kopflos, im Haken von `tools/run_tests.sh`) | `deckel`: N1, Kiel – Hamburg ab km 76 um 22:30 und C1 um 21:30 im Regen, „Hoch“: in jeder Probe ≤ 8 sichtbare Punktlichter, ≤ 2 Spots, keines mit Schatten, genau ein gerichtetes Licht mit Schatten, der Schnappschuss stimmt; Lampen-Pool und Abblendlicht benutzt |
+| `tests/race3d/render/check_weather.gd` | `teilchen` (Regen und Schnee je Stufe „Niedrig“ / „Steam Deck“ / „Hoch“: Bildpunkte, mehr je Stufe, zweimal dasselbe Bild), `gischt`, `nass` (Spiegelung der Rückleuchten nachts, Fresnel bei Tag), `tunnel`, `schneewall`, `tabelle` (Wetter × Stunde gegen Arcade) |
+| `tests/race3d/render/check_night.gd` | `fahrbahn` (N1: mittlere Leuchtdichte der Fahrbahn 0 … +15 % gegen Arcade, „Mittel“ und „Steam Deck“), `spielerauto` (Karosserie nachts höchstens 10 % heller als Arcades Bild), `verdeckung` (nasse Nacht: Auto hinter Kuppe und hinter Sattelzug ändert 0 Pixel, auch keine Spiegelung), `blaulicht` |

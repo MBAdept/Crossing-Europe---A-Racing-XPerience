@@ -1057,7 +1057,7 @@ func _add_flares(car: Car, info: Dictionary, la: Vector4, lb: Vector4, lights: f
 				k *= kk
 				lamp_r *= kk
 		_put_flare(pos, dir, col, s, k, fp.z, fp.w, lamp_r)
-		if _wet > 0.0 and (role == "tail" or role == "brake") and (p["pos"] as Vector3).y > 0.1:
+		if _wet > 0.0 and (role == "rear" or role == "tail" or role == "brake") and (p["pos"] as Vector3).y > 0.1:
 			# the lamp's reflection on the wet road (its height above the car's ground: the model-space y)
 			_put_streak(pos, col, s, lamp_r, (p["pos"] as Vector3).y, (pos - _cam_origin).length())
 
