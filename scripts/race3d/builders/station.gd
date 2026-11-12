@@ -9,7 +9,8 @@ extends ChunkBuilder
 ##    edge to 4.6 m beyond it with the dark edge strip of Arcade, fascia bands red / white on both long sides (lit
 ##    from inside at night: lamp channel 14), roof on top, light panels in the soffit every second segment (channel 12,
 ##    glowing and lighting the forecourt through renderer.add_lamps(): role "canopy" with a light pool); steel columns
-##    with a plinth on the island at the front and at the end of every canopy;
+##    with a plinth on the island at the front and at the end of every canopy – none in front of a sign (column_plan(),
+##    F1: Arcade draws a sign under its canopy over the pillar);
 ##  * FUEL_CANOPY_FRONT: the front fascia – white over the red band with "TANKSTELLE" in Arcade's sign font and blue –
 ##    a panel of the stage's lettering atlas (PanelAtlas below, drawn once in prepare() by Arcade's SignPainter; never a
 ##    Label3D), backlit at night;
@@ -44,6 +45,10 @@ const PILLAR_X := 1.3              ## columns on the island, this far beyond the
 const PILLAR_W := 0.3
 const PLINTH_W := 0.46
 const PLINTH_H := 0.32
+const COLUMN_IN := 0.45            ## columns this far inside the canopy's front and end
+## A column Arcade does not have (at the end of a canopy) stands only where no sign on the right is within this distance
+## behind it: one farther behind could only be covered while it is several hundred metres away (see border.gd)
+const SIGN_SCAN_M := 120.0
 const LAMP_X: Array[float] = [0.8, 2.8]
 const LAMP_SIZE := Vector2(1.0, 0.36)   ## light panel in the soffit (along, across)
 const LAMP_DROP := 0.06            ## … hanging this far below the soffit
@@ -636,13 +641,72 @@ func collect(ctx: ChunkContext) -> Variant:
 	var prev_fz := -1
 	if ctx.track != null and ctx.seg_a > 0:
 		prev_fz = ctx.track.get_segment(ctx.seg_a - 1).fuel_zone
-	return {"uv": _atlas.entries.duplicate(), "prev_fz": prev_fz}
+	return {"uv": _atlas.entries.duplicate(), "prev_fz": prev_fz, "columns": columns_in_chunk(ctx)}
+
+
+## Main thread: the columns (column_plan()) of every canopy that reaches into the chunk, those standing in it. The
+## signs behind a canopy are read from the track up to SIGN_SCAN_M beyond it (generated far enough ahead that the curve
+## and crest warnings Track inserts later are in place).
+static func columns_in_chunk(ctx: ChunkContext) -> Array:
+	var out: Array = []
+	var tr := ctx.track
+	if tr == null:
+		return out
+	var len_s := ctx.seg_len
+	var za := float(ctx.seg_a) * len_s
+	var zb := float(ctx.seg_b) * len_s
+	for zn: Dictionary in tr.zones:
+		if str(zn.get("kind", "")) != "fuel_canopy":
+			continue
+		var r0 := floorf(float(zn["z0"]) / len_s) * len_s
+		var r1 := ceilf(float(zn["z1"]) / len_s) * len_s
+		if r0 > zb:
+			break
+		if r1 < za:
+			continue
+		tr.get_segment(tr.segment_index_at(r1 + SIGN_SCAN_M + tr.generation_lead_m()) + 2)
+		var signs: Array = []
+		for i in range(tr.segment_index_at(r0), tr.segment_index_at(r1 + SIGN_SCAN_M) + 1):
+			var s := tr.get_segment(i)
+			for sp: Variant in s.sprites:
+				var it: Dictionary = sp
+				if str(it.get("kind", "")) == "sign" and int(it.get("side", 1)) > 0:
+					signs.append(float(it.get("z", s.z)))
+		for c: Array in column_plan(r0, r1, signs):
+			if float(c[0]) >= za and float(c[0]) < zb:
+				out.append(c)
+	return out
+
+
+## The columns of a canopy from r0 (start of its front segment) to r1 (end of its last segment): [[z, kind]] –
+## "front" (Arcade's, COLUMN_IN behind r0) unless a sign on the right stands under the canopy behind its plinth (Arcade
+## draws such a sign over its pillar; in 3D the column would cover it), "end" (COLUMN_IN before r1, Arcade has none
+## there) where no sign on the right stands within SIGN_SCAN_M behind it. The columns stand on the island, inside the
+## shoulder band, so no bend's sight corridor reaches them (F7). signs: z of the signs on the right. Pure.
+static func column_plan(r0: float, r1: float, signs: Array) -> Array:
+	var out: Array = []
+	var zf := r0 + COLUMN_IN
+	var ze := r1 - COLUMN_IN
+	var front_ok := true
+	var end_ok := true
+	for z: float in signs:
+		if z >= zf - PLINTH_W * 0.5 and z <= r1:
+			front_ok = false
+		if z >= ze - PLINTH_W * 0.5 and z <= ze + SIGN_SCAN_M:
+			end_ok = false
+	if front_ok:
+		out.append([zf, "front"])
+	if end_ok:
+		out.append([ze, "end"])
+	return out
 
 
 ## WORKER THREAD.
 func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 	var uvs: Dictionary = (input as Dictionary).get("uv", {}) if input is Dictionary else {}
 	var first_prev := int((input as Dictionary).get("prev_fz", -1)) if input is Dictionary else -1
+	var columns: Array = (input as Dictionary).get("columns", []) if input is Dictionary else []
+	var column_at: Array = []
 	var kit := Kit.new()
 	var pan := PanelBuf.new()
 	var rows := ctx.row_count()
@@ -730,14 +794,18 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 				fronts.append(snappedf(z0, 0.001))
 			if ends:
 				_bands(kit, ctx.local(z1, x0, 0.0), ctx.local(z1, x1, 0.0), ctx.rows_f[i + 1])
-			# steel columns with a plinth on the island: at the front and at the end of the canopy
-			if starts or ends:
-				var zp := z0 + 0.45 if starts else z1 - 0.45
+			# steel columns with a plinth on the island: at the front and at the end of the canopy, none in front of a sign
+			# (column_plan(), F1)
+			for c: Array in columns:
+				var zp := float(c[0])
+				if zp < z0 or zp >= z1:
+					continue
 				var fp := ctx.frame(zp, e + PILLAR_X, ISLAND_H)
 				kit.box(fp, Vector3(0.0, PLINTH_H * 0.5, 0.0), Vector3(PLINTH_W, PLINTH_H, PLINTH_W) * 0.5, PLINTH, ROUGH_CONCRETE, 1 | 2 | 4 | 8 | 16)
 				kit.box(fp, Vector3(0.0, (CANOPY_H - ISLAND_H) * 0.5, 0.0), Vector3(PILLAR_W, CANOPY_H - ISLAND_H, PILLAR_W) * 0.5, PILLAR,
 					ROUGH_METAL, 1 | 2 | 4 | 8)
 				pillars += 1
+				column_at.append([zp, e + PILLAR_X, str(c[1])])
 			# light panels in the soffit every second segment (Arcade), lit at night (lamp channel 12) with Arcade's white
 			# glow round each (flare layer); the light pool of the row on the lane edge (Arcade: x = edge + 0.5) comes from a
 			# lamp inside the canopy box – only its light shows, not a second glow
@@ -758,7 +826,7 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 		return {}
 	return {"arrays": kit.arrays() if not kit.is_empty() else [], "panels": pan.arrays() if not pan.is_empty() else [],
 		"lamps": lamps, "glows": glows, "fronts": fronts, "islands": islands, "canopies": canopies, "pillars": pillars,
-		"pylons": pylons, "letterings": letterings, "edges": edges, "triangles": kit.triangles() + pan.count * 2}
+		"column_at": column_at, "pylons": pylons, "letterings": letterings, "edges": edges, "triangles": kit.triangles() + pan.count * 2}
 
 
 ## The fascia on a vertical face from pa to pb (points at road level): Arcade's red band and white band (both lit a
@@ -831,4 +899,4 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 func debug(part: Dictionary) -> Dictionary:
 	return {"islands": int(part.get("islands", 0)), "canopies": int(part.get("canopies", 0)), "fronts": (part.get("fronts", []) as Array).size(),
 		"front_z": part.get("fronts", []), "letterings": int(part.get("letterings", 0)), "pillars": int(part.get("pillars", 0)),
-		"pylons": int(part.get("pylons", 0)), "lamps": (part.get("lamps", []) as Array).size(), "triangles": int(part.get("triangles", 0))}
+		"column_at": part.get("column_at", []), "pylons": int(part.get("pylons", 0)), "lamps": (part.get("lamps", []) as Array).size(), "triangles": int(part.get("triangles", 0))}

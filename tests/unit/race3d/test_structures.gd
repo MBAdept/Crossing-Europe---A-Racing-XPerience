@@ -92,6 +92,7 @@ func test_station_on_the_fuel_lane_of_the_slice_stage() -> void:
 	var pumps := 0
 	var low_over_lane := 0
 	var checked := 0
+	var columns := 0
 	for c in range(_chunk_of(t, lz0 - 60.0), _chunk_of(t, lz1 + 60.0) + 1):
 		var ctx := _context(t, c)
 		for s in N:
@@ -105,6 +106,7 @@ func test_station_on_the_fuel_lane_of_the_slice_stage() -> void:
 		for k: String in ["islands", "canopies", "pylons", "letterings"]:
 			got[k] += int(part.get(k, 0))
 		got["fronts"] += (part.get("fronts", []) as Array).size()
+		columns += (part.get("column_at", []) as Array).size()
 		var verts: PackedVector3Array = (part["arrays"] as Array)[Mesh.ARRAY_VERTEX]
 		for rec: Array in part["edges"]:
 			var idx := int(rec[0])
@@ -149,6 +151,52 @@ func test_station_on_the_fuel_lane_of_the_slice_stage() -> void:
 	assert_true(pumps >= 4, "Zapfsäulen auf der Insel (%d)" % pumps)
 	assert_true(checked > 1000, "Ecken geprüft (%d)" % checked)
 	assert_eq(low_over_lane, 0, "über Fahrbahn und Tankspur nichts unter der Dachhöhe von Arcade (5,6 m)")
+	assert_true(got["canopies"] > 0 and columns > 0, "Stützen unter den Dächern (%d)" % columns)
+
+
+## F1 for the canopy columns: Arcade draws a sign under its canopy over the pillar; a column Modern adds at the end stands
+## nowhere with a sign within StationB.SIGN_SCAN_M behind it.
+func test_station_columns_never_in_front_of_a_sign() -> void:
+	var r0 := 1140.0
+	var r1 := 1155.0
+	assert_eq(StationB.column_plan(r0, r1, []), [[r0 + StationB.COLUMN_IN, "front"], [r1 - StationB.COLUMN_IN, "end"]], "ohne Schilder: vorn und am Ende")
+	assert_eq(StationB.column_plan(r0, r1, [r0 + 1.8]), [[r1 - StationB.COLUMN_IN, "end"]], "Schild unter dem Dach: keine Stütze vorn davor")
+	assert_eq(StationB.column_plan(r0, r1, [r1 + 30.0]), [[r0 + StationB.COLUMN_IN, "front"]], "Schild 30 m hinter dem Dach: keine Stütze am Ende")
+	assert_eq(StationB.column_plan(r0, r1, [r0 - 1.0, r1 + StationB.SIGN_SCAN_M + 1.0]).size(), 2, "Schilder davor oder weit dahinter: beide Stützen")
+	# the stage of the Hamburg – Hannover direction with its chevrons along the station (B6 analysis: a chevron 1.8 m
+	# into the first canopy at km 11.41): no column of the built chunks stands in front of a sign
+	var t := _real("hamburg_hannover")
+	if t == null or t.plan.fuel_lanes.is_empty():
+		return
+	var b: ChunkBuilder = StationB.new()
+	var covered: Array = []
+	var columns := 0
+	for lane: Dictionary in t.plan.fuel_lanes:
+		var lz0 := t.km_to_z(float(lane["start_km"]))
+		var lz1 := t.km_to_z(float(lane["end_km"]))
+		var signs: Array = []
+		for i in range(t.segment_index_at(lz0 - 10.0), t.segment_index_at(lz1 + StationB.SIGN_SCAN_M + 20.0) + 1):
+			var sg := t.get_segment(i)
+			for sp: Variant in sg.sprites:
+				var it: Dictionary = sp
+				if str(it.get("kind", "")) == "sign" and int(it.get("side", 1)) > 0:
+					signs.append(float(it.get("z", sg.z)))
+		for c in range(_chunk_of(t, lz0), _chunk_of(t, lz1) + 1):
+			var part := _build(b, _context(t, c))
+			for col: Array in part.get("column_at", []):
+				columns += 1
+				var zc := float(col[0])
+				var canopy_end := zc
+				for zn: Dictionary in t.zones:
+					if str(zn["kind"]) == "fuel_canopy" and zc >= floorf(float(zn["z0"]) / t.seg_len) * t.seg_len - 0.01 \
+							and zc <= ceilf(float(zn["z1"]) / t.seg_len) * t.seg_len:
+						canopy_end = ceilf(float(zn["z1"]) / t.seg_len) * t.seg_len
+				var reach := canopy_end if str(col[2]) == "front" else zc + StationB.SIGN_SCAN_M
+				for zs: float in signs:
+					if zs >= zc - StationB.PLINTH_W * 0.5 and zs <= reach:
+						covered.append("Stütze %s bei z %.1f vor Schild bei z %.1f" % [str(col[2]), zc, zs])
+	assert_true(columns > 0, "Stützen gebaut (%d)" % columns)
+	assert_eq(covered, [], "keine Stütze vor einem Schild (F1)")
 
 
 # --- border --------------------------------------------------------------------------------------------------------
@@ -164,16 +212,24 @@ func test_border_station_of_the_test_stage() -> void:
 	var want := 0
 	var letters: Array = []
 	var low := 0
+	var pillar_at: Array = []
+	var roof_end := 0.0
 	for c in range(_chunk_of(t, bz - 40.0), _chunk_of(t, bz + 60.0) + 1):
 		var ctx := _context(t, c)
 		for s in N:
 			want += 1 if str(ctx.segs[s]["cover"]) != "" else 0
+			if str(ctx.segs[s]["cover"]) != "":
+				roof_end = float(ctx.seg_a + s + 1) * t.seg_len
 		var part := _build(b, ctx)
 		if part.is_empty():
 			continue
 		for k: String in got:
 			got[k] += int(part.get(k, 0))
 		letters.append_array(part.get("letterings", []))
+		pillar_at.append_array(part.get("pillar_at", []))
+		for p: Array in part.get("pillar_at", []):
+			if str(p[2]) != "front":
+				assert_false(ctx.in_bend_corridor(float(p[0]), float(p[1])), "Pfeiler %s nicht in der Sichtschneise einer Kurve (F7)" % str(p))
 		# the roof keeps Arcade's height over the road and its shoulders: nothing lower than its soffit (6 m) there but
 		# the luminaires of the light bars (Arcade hangs them at 5.95 m, here 0.1 m below the soffit)
 		for v: Vector3 in (part["arrays"] as Array)[Mesh.ARRAY_VERTEX]:
@@ -185,10 +241,61 @@ func test_border_station_of_the_test_stage() -> void:
 	assert_true(want >= 5 and got["covers"] == want, "Dach auf jedem Segment der Grenzstation (%d von %d)" % [got["covers"], want])
 	assert_eq(got["fronts"], 1, "eine Stirnblende")
 	assert_eq(letters, ["NL"], "Stirnblende mit dem Namen des Landes (Tafel des Schriftatlas)")
-	assert_true(got["pillars"] >= 2 and got["pillars"] <= 4, "Pfeiler: zwei vorn wie Arcade, höchstens zwei am Ende (%d)" % got["pillars"])
+	assert_eq(got["pillars"], pillar_at.size(), "jeder Pfeiler mit Ort")
 	assert_true(got["pools"] >= 1, "Arcades Lichtkegel auf der Straße (%d)" % got["pools"])
 	assert_eq(low, 0, "über Fahrbahn und Banketten nichts unter 6 m (Arcades Dach)")
 	assert_eq(BorderB.country_name(t, "NL"), "NEDERLAND", "Name wie Arcade: plan.borders name_local, groß")
+	# F1: no pillar covers a sign. On DEV the sign "Tankstelle 15 km" stands in the first segment of the roof (Arcade
+	# draws it over its right pillar – picture v2_border_day), the sign "Autobahn" under it on the right, a chevron under
+	# it on the left: both front pillars give way. The border lies in a right bend – its sight corridor (F7) takes
+	# the right side –, so the roof stands on two pillars on the left (behind the chevron and at its end).
+	var signs: Array = []
+	for i in range(t.segment_index_at(bz - 30.0), t.segment_index_at(roof_end + BorderB.SIGN_SCAN_M) + 1):
+		var sg := t.get_segment(i)
+		for sp: Variant in sg.sprites:
+			var it: Dictionary = sp
+			if str(it.get("kind", "")) == "sign" and int(it.get("side", 1)) != 0:
+				signs.append([float(it.get("z", sg.z)), int(it.get("side", 1)), str(it.get("sign", ""))])
+	var covered: Array = []
+	var kinds: Array = []
+	for p: Array in pillar_at:
+		var zp := float(p[0])
+		var side := 1 if float(p[1]) > 0.0 else -1
+		kinds.append("%s%s" % ["R" if side > 0 else "L", str(p[2])])
+		var reach := roof_end if str(p[2]) == "front" else zp + BorderB.SIGN_SCAN_M
+		for s: Array in signs:
+			if int(s[1]) == side and float(s[0]) >= zp - BorderB.PLINTH_HALF and float(s[0]) <= reach:
+				covered.append("%s %s bei %+.1f m hinter Pfeiler %s" % ["rechts" if side > 0 else "links", str(s[2]), float(s[0]) - zp, str(p[2])])
+	assert_eq(covered, [], "kein Pfeiler vor einem Schild (F1)")
+	assert_false(kinds.has("Rfront") or kinds.has("Lfront"), "vorn kein Pfeiler vor 'Tankstelle 15 km' und dem Leitpfeil (%s)" % str(kinds))
+	assert_true(pillar_at.size() >= 2, "das Dach steht auf mindestens zwei Pfeilern (%s)" % str(kinds))
+
+
+func test_border_pillar_plan() -> void:
+	var r0 := 6498.0
+	var r1 := 6519.0
+	var bz := 6500.0
+	var plain := BorderB.pillar_plan(r0, r1, bz, [])
+	assert_eq(plain, [[r0 + 0.5, -1, "front"], [r1 - 0.5, -1, "end"], [r0 + 0.5, 1, "front"], [r1 - 0.5, 1, "end"]],
+		"ohne Schilder: Arcades Pfeiler vorn und zwei am Ende")
+	# a sign under the roof on the right: the right front pillar gives way to one behind the booth
+	var under := BorderB.pillar_plan(r0, r1, bz, [[bz, 1]])
+	assert_true(not under.has([r0 + 0.5, 1, "front"]) and under.has([bz + BorderB.BOOTH_BACK_M, 1, "moved"]),
+		"Schild unter dem Dach rechts: Pfeiler hinter dem Häuschen statt vorn (%s)" % str(under))
+	assert_true(under.has([r0 + 0.5, -1, "front"]), "links bleibt Arcades Pfeiler")
+	# … behind the last sign under the roof when that stands farther back; none when it stands too close to the end
+	var deep := BorderB.pillar_plan(r0, r1, bz, [[bz + 12.0, 1]])
+	assert_true(deep.has([bz + 12.0 + BorderB.PLINTH_HALF + 0.3, 1, "moved"]), "hinter dem letzten Schild (%s)" % str(deep))
+	var late := BorderB.pillar_plan(r0, r1, bz, [[r1 - 2.0, 1]])
+	assert_eq(late.filter(func(p: Array) -> bool: return int(p[1]) == 1), [[r1 - 0.5, 1, "end"]], "Schild am Dachende: nur der Pfeiler am Ende")
+	# a sign in front of a pillar's front face hides nothing
+	assert_eq(BorderB.pillar_plan(r0, r1, bz, [[r0, 1], [r0 - 20.0, -1]]), plain, "Schilder vor den Pfeilern ändern nichts")
+	# a sign 50 m behind the roof on the left: no end pillar there (Arcade's front pillar stays: Arcade covers it alike)
+	var after := BorderB.pillar_plan(r0, r1, bz, [[r1 + 50.0, -1]])
+	assert_true(not after.has([r1 - 0.5, -1, "end"]) and after.has([r0 + 0.5, -1, "front"]),
+		"Schild 50 m hinter dem Dach links: kein Pfeiler am Ende links (%s)" % str(after))
+	# beyond SIGN_SCAN_M a sign keeps the end pillar
+	assert_eq(BorderB.pillar_plan(r0, r1, bz, [[r1 + BorderB.SIGN_SCAN_M + 1.0, -1]]), plain, "Schild weiter hinten: alle Pfeiler")
 
 
 # --- city ----------------------------------------------------------------------------------------------------------

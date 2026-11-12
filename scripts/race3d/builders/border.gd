@@ -9,11 +9,14 @@ extends ChunkBuilder
 ##    segments at the road centre, radius 16 m – the pool lamp sits inside the slab, so only its light shows);
 ##  * at the front (TrackSegment.cover_front): Arcade's fascia from 6.0 to 7.6 m – white with the blue band at its foot,
 ##    the European flag at its left end and the name of the country entered in Arcade's sign font (a panel of the
-##    stage's lettering atlas, drawn once in prepare() – never a Label3D), backlit at night; Arcade's two pillars
-##    0.6 m outside the shoulder edges, and two more at the end of the roof (not inside a bend's sight corridor, F7);
+##    stage's lettering atlas, drawn once in prepare() – never a Label3D), backlit at night;
+##  * pillars 0.6 m outside the shoulder edges (pillar_plan()): Arcade's two at the front and two more at the end of the
+##    roof – but none that could hide a sign (F1) and none inside a bend's sight corridor (F7).
 ## The booths are models of the props builder (props/customs_booth, AS1b) at Arcade's places on the shoulders. Arcade
 ## has neither a barrier nor a stop line at its border stations, so Modern has none either.
 ## Fairness: the soffit keeps Arcade's height (6.0 m) – the camera at 3.4 m sees every car under the roof as in Arcade.
+## A sign standing under the roof is drawn by Arcade over its pillar (the same slice of its painter's order): in 3D that
+## pillar would cover the sign (QA picture v2_border_day: "Tankstelle 15 km" on DEV half hidden), so it is left out.
 ## Materials: ModernMaterials.VPBR_STATIC for the structure, the class "baked" for the fascia panels. Shadows only with
 ## structure casters. Builder rules: build() on worker threads – ctx snapshot and the plain tables of collect() only.
 ## Owner: R6 (wave 3). Docs: docs/renderer-modern-bauten.md.
@@ -27,6 +30,16 @@ const FASCIA_OUT := 1.6            ## fascia (and roof) this far beyond the shou
 const BAND := 0.3                  ## blue band at the foot of the fascia
 const PILLAR_OUT := 0.6            ## pillars this far beyond the shoulder edges …
 const PILLAR_W := 0.55             ## … this wide (Arcade)
+const PILLAR_IN := 0.5             ## … this far inside the roof's front and end
+const PLINTH_HALF := 0.425         ## half the size of a pillar's plinth (its front face: z − PLINTH_HALF)
+## A pillar Arcade does not have stands only where no sign is behind it within this distance on its side: a sign d metres
+## behind it can only be covered while the camera is d / (1 − r) from the sign (r = lateral offset of the pillar's
+## inner face over that of the board's outer edge, both seen from the camera; ≥ 0.66 for a camera in a lane with the
+## 2.5 m shoulder), i.e. a sign farther behind only while it is more than ~350 m away.
+const SIGN_SCAN_M := 120.0
+## Track puts the booths (props/customs_booth, 3.9 m long, model AABB z −3.2 .. 0.7) 5 m behind the border: a pillar
+## in place of a front pillar stands behind them
+const BOOTH_BACK_M := 9.0
 const BAR := Vector2(1.8, 0.3)     ## light bar: across, along
 const BAR_DROP := 0.1              ## the luminaire hangs this far below the soffit
 ## Arcade's glow round each light bar (RoadRenderer._border_cover: radius 2 m, alpha 0.3 × lights): flare radius = size ×
@@ -209,7 +222,80 @@ func collect(ctx: ChunkContext) -> Variant:
 			if _panel_mat != null:
 				_panel_mat.set_shader_parameter(&"albedo_tex", _atlas.albedo)
 				_panel_mat.set_shader_parameter(&"emit_tex", _atlas.emission)
-	return {"uv": _atlas.entries.duplicate()}
+	return {"uv": _atlas.entries.duplicate(), "pillars": pillars_in_chunk(ctx)}
+
+
+## Main thread: the pillars (pillar_plan()) of every roof that reaches into the chunk, those standing in it. The signs
+## behind a roof are read from the track up to SIGN_SCAN_M beyond it – generated far enough ahead that the curve and
+## crest warnings Track inserts later into segments already made are in place.
+static func pillars_in_chunk(ctx: ChunkContext) -> Array:
+	var out: Array = []
+	var tr := ctx.track
+	if tr == null:
+		return out
+	var len_s := ctx.seg_len
+	var za := float(ctx.seg_a) * len_s
+	var zb := float(ctx.seg_b) * len_s
+	for zn: Dictionary in tr.zones:
+		if str(zn.get("kind", "")) != "border":
+			continue
+		var bz := float(zn["z0"])
+		var r0 := floorf(bz / len_s) * len_s
+		var r1 := ceilf(float(zn["z1"]) / len_s) * len_s
+		if r0 > zb:
+			break
+		if r1 < za:
+			continue
+		tr.get_segment(tr.segment_index_at(r1 + SIGN_SCAN_M + tr.generation_lead_m()) + 2)
+		var signs: Array = []
+		for i in range(tr.segment_index_at(r0), tr.segment_index_at(r1 + SIGN_SCAN_M) + 1):
+			var s := tr.get_segment(i)
+			for sp: Variant in s.sprites:
+				var it: Dictionary = sp
+				if str(it.get("kind", "")) == "sign" and int(it.get("side", 1)) != 0:
+					signs.append([float(it.get("z", s.z)), int(it.get("side", 1))])
+		for p: Array in pillar_plan(r0, r1, bz, signs):
+			if float(p[0]) >= za and float(p[0]) < zb:
+				out.append(p)
+	return out
+
+
+## The pillars of a roof from r0 (start of its front segment) to r1 (end of its last segment) at the border bz:
+## [[z, side, kind]] per side –
+##  * "front": Arcade's, PILLAR_IN behind r0 – unless a sign of its side stands under the roof behind its front face
+##    (Arcade draws such a sign over the pillar; in 3D the pillar would cover it). Then "moved": one behind that sign
+##    and behind the booth (BOOTH_BACK_M behind bz), at least 2 m before the end pillar's place, where no sign of its
+##    side stands within SIGN_SCAN_M behind it;
+##  * "end": PILLAR_IN before r1 where no sign of its side stands within SIGN_SCAN_M behind it (Arcade has none there).
+## A side may end up without a pillar (the roof is then carried by the other side's). build() leaves out the pillars
+## other than Arcade's that stand in a bend's sight corridor (F7). signs: [[z, side]] of the signs from r0 to
+## r1 + SIGN_SCAN_M. Pure.
+static func pillar_plan(r0: float, r1: float, bz: float, signs: Array) -> Array:
+	var out: Array = []
+	for side: int in [-1, 1]:
+		var zf := r0 + PILLAR_IN
+		var last := -INF
+		for s: Array in signs:
+			if int(s[1]) == side and float(s[0]) >= zf - PLINTH_HALF and float(s[0]) <= r1:
+				last = maxf(last, float(s[0]))
+		if last == -INF:
+			out.append([zf, side, "front"])
+		else:
+			var zm := maxf(bz + BOOTH_BACK_M, last + PLINTH_HALF + 0.3)
+			if zm <= r1 - PILLAR_IN - 2.0 and not _sign_behind(signs, side, zm, zm + SIGN_SCAN_M):
+				out.append([zm, side, "moved"])
+		var ze := r1 - PILLAR_IN
+		if not _sign_behind(signs, side, ze, ze + SIGN_SCAN_M):
+			out.append([ze, side, "end"])
+	return out
+
+
+## True when a sign of `side` stands behind the front face of a pillar at z, up to z_to.
+static func _sign_behind(signs: Array, side: int, z: float, z_to: float) -> bool:
+	for s: Array in signs:
+		if int(s[1]) == side and float(s[0]) >= z - PLINTH_HALF and float(s[0]) <= z_to:
+			return true
+	return false
 
 
 ## WORKER THREAD.
@@ -279,18 +365,6 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 				SignPainter.EU_BLUE, ROUGH_PAINT)
 			kit.quad(ctx.local(z1, a, ROOF_H + BAND), ctx.local(z1, b, ROOF_H + BAND), ctx.local(z1, b, SLAB_TOP), ctx.local(z1, a, SLAB_TOP), fwd2,
 				SLAB, ROUGH_PAINT)
-		# pillars: Arcade's at the front, two more at the end of the roof (never inside a bend's sight corridor)
-		if starts or ends:
-			var zp := z0 + 0.5 if starts else z1 - 0.5
-			for px: float in [xl - PILLAR_OUT, xr + PILLAR_OUT]:
-				if ends and not starts and ctx.in_bend_corridor(zp, px):
-					continue
-				var g := minf(ctx.ground(zp, px), 0.0) - 0.3
-				var f := ctx.frame(zp, px, 0.0)
-				kit.box(f, Vector3(0.0, (g + ROOF_H) * 0.5, 0.0), Vector3(PILLAR_W, ROOF_H - g, PILLAR_W) * 0.5, PILLAR, ROUGH_METAL, 1 | 2 | 4 | 8)
-				kit.box(f, Vector3(0.0, (g + 0.35) * 0.5, 0.0), Vector3(PILLAR_W + 0.3, 0.35 - g, PILLAR_W + 0.3) * 0.5, PILLAR.darkened(0.2),
-					ROUGH_CONCRETE, 1 | 2 | 4 | 8 | 16)
-				pillars += 1
 		# light bars every second segment (Arcade), lit at night; the flare layer gives each its white glow
 		var zm := z0 + seg_len * 0.5
 		if int(sa["index"]) % 2 == 0:
@@ -310,8 +384,29 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 			pools += 1
 	if covers == 0:
 		return {}
+	# pillars (pillar_plan(): none that could hide a sign, F1), those Arcade does not have never inside a bend's sight
+	# corridor (F7)
+	var pillar_at: Array = []
+	var plan: Array = (input as Dictionary).get("pillars", []) if input is Dictionary else []
+	for p: Array in plan:
+		var zp := float(p[0])
+		var row := clampi(int(floor(zp / seg_len)) - ctx.seg_a, 0, rows - 2)
+		var sr: Dictionary = ctx.segs[row]
+		if str(sr["cover"]) == "" or bool(sr["tunnel"]):
+			continue
+		var px := ctx.shoulder_edge(row, 1) + PILLAR_OUT if int(p[1]) > 0 else -ctx.shoulder_edge(row, -1) - PILLAR_OUT
+		if str(p[2]) != "front" and ctx.in_bend_corridor(zp, px):
+			continue
+		var g := minf(ctx.ground(zp, px), 0.0) - 0.3
+		var f := ctx.frame(zp, px, 0.0)
+		kit.box(f, Vector3(0.0, (g + ROOF_H) * 0.5, 0.0), Vector3(PILLAR_W, ROOF_H - g, PILLAR_W) * 0.5, PILLAR, ROUGH_METAL, 1 | 2 | 4 | 8)
+		kit.box(f, Vector3(0.0, (g + 0.35) * 0.5, 0.0), Vector3(PLINTH_HALF, (0.35 - g) * 0.5, PLINTH_HALF), PILLAR.darkened(0.2),
+			ROUGH_CONCRETE, 1 | 2 | 4 | 8 | 16)
+		pillars += 1
+		pillar_at.append([zp, px, str(p[2])])
 	return {"arrays": kit.arrays(), "panels": pan.arrays() if not pan.is_empty() else [], "lamps": lamps, "covers": covers,
-		"fronts": fronts, "pillars": pillars, "pools": pools, "letterings": letterings, "triangles": kit.triangles() + pan.count * 2}
+		"fronts": fronts, "pillars": pillars, "pillar_at": pillar_at, "pools": pools, "letterings": letterings,
+		"triangles": kit.triangles() + pan.count * 2}
 
 
 ## Main thread: the structure in vpbr, the fascia panels, the lamps to the lights and flare layers.
@@ -338,5 +433,5 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 
 func debug(part: Dictionary) -> Dictionary:
 	return {"covers": int(part.get("covers", 0)), "fronts": int(part.get("fronts", 0)), "pillars": int(part.get("pillars", 0)),
-		"pools": int(part.get("pools", 0)), "lamps": (part.get("lamps", []) as Array).size(), "letterings": part.get("letterings", []),
+		"pillar_at": part.get("pillar_at", []), "pools": int(part.get("pools", 0)), "lamps": (part.get("lamps", []) as Array).size(), "letterings": part.get("letterings", []),
 		"triangles": int(part.get("triangles", 0))}
