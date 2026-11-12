@@ -28,6 +28,9 @@ const STEEL := Color("c9ccd1")
 const STEEL_DARK := Color("8d939b")
 const FOOTING := Color("a7a49c")
 const FINISH_RED := Color("c81e1e")
+## The banners' night picture at this share of their day colours: × 1.6 (panel shader) at full night ≈ Arcade's banner,
+## which stays as bright as by day
+const NIGHT_GLOW := 0.6
 const START_DARK := Color("1b1f2a")
 const START_STRIPE := Color("e8e8e8")
 const CHECKER_H := 0.22
@@ -122,33 +125,46 @@ func spec_for(kind: String, text: String, left: float, right: float) -> Dictiona
 	var w := right - left + POST_W * 2.0
 	# the start banner says tr("START") (SignPainter._gantry); its key keeps the plain word
 	var shown := tr("START") if kind == "start" else text
-	var draw := func(p: SignPainter, b: GeoBatch, r: Rect2, ppm: float, _night: bool) -> void:
-		_draw_banner(p, b, r, ppm, kind, shown, left)
-	return {"key": banner_key(kind, text, left, right), "w": w, "h": BANNER_H, "ppm": PANEL_PPM, "glow": false, "draw": draw}
+	var draw := func(p: SignPainter, b: GeoBatch, r: Rect2, ppm: float, night: bool) -> void:
+		_draw_banner(p, b, r, ppm, kind, shown, left, night)
+	return {"key": banner_key(kind, text, left, right), "w": w, "h": BANNER_H, "ppm": PANEL_PPM, "glow": true, "draw": draw}
 
 
 ## The banner face as SignPainter._gantry draws it (Arcade, frozen): r = the banner (left - post_w … right + post_w,
-## 7 m … 5.4 m), the road centre at -left + post_w metres from its left edge.
-static func _draw_banner(p: SignPainter, b: GeoBatch, r: Rect2, s: float, kind: String, text: String, left: float) -> void:
+## 7 m … 5.4 m), the road centre at -left + post_w metres from its left edge. night: the emission picture – Arcade
+## draws the banner at night as bright as by day (a lit sign; picture v3_dev_finish_night: Modern's red banner was
+## nearly black), so its colours glow at NIGHT_GLOW (× the panel shader's 1.6 at full night); the dark start banner
+## stays dark, only its writing and stripe glow.
+static func _draw_banner(p: SignPainter, b: GeoBatch, r: Rect2, s: float, kind: String, text: String, left: float, night := false) -> void:
+	var k := NIGHT_GLOW if night else 1.0
+	var white := _dim(SignPainter.WHITE, k)
+	var black := Color.BLACK if night else SignPainter.BLACK
 	var cx := r.position.x + (-left + POST_W) * s      # the road centre (x = 0): Arcade's p.x
 	if kind == "start":
-		b.rect(r, START_DARK)
-		b.rect(Rect2(r.position.x, r.end.y - 0.12 * s, r.size.x, 0.12 * s), START_STRIPE)
-		p.text(text, Vector2(cx - 2.4 * s, r.position.y + 1.18 * s), 0.85 * s, SignPainter.WHITE, r.size.x * 0.4)
+		b.rect(r, Color.BLACK if night else START_DARK)
+		b.rect(Rect2(r.position.x, r.end.y - 0.12 * s, r.size.x, 0.12 * s), _dim(START_STRIPE, k))
+		p.text(text, Vector2(cx - 2.4 * s, r.position.y + 1.18 * s), 0.85 * s, white, r.size.x * 0.4)
 		for i in 3:
 			var c := Vector2(cx + (1.4 + float(i) * 1.15) * s, r.position.y + 0.8 * s)
-			b.ellipse(c, Vector2(RIM_R, RIM_R) * s, Color(0.05, 0.05, 0.05), Color(0.05, 0.05, 0.05), 24)
-			b.ellipse(c, Vector2(LAMP_R, LAMP_R) * s, LIGHT_OFF, LIGHT_OFF, 24)
+			var rim := Color.BLACK if night else Color(0.05, 0.05, 0.05)
+			var lamp := Color.BLACK if night else LIGHT_OFF
+			b.ellipse(c, Vector2(RIM_R, RIM_R) * s, rim, rim, 24)
+			b.ellipse(c, Vector2(LAMP_R, LAMP_R) * s, lamp, lamp, 24)
 		return
-	b.rect(r, FINISH_RED)
+	b.rect(r, _dim(FINISH_RED, k))
 	var cells := int(clampf(r.size.x / maxf(0.5 * s, 1.0), 4.0, 64.0))
 	var cw := r.size.x / float(cells)
 	for i in cells:
-		var col := SignPainter.WHITE if i % 2 == 0 else SignPainter.BLACK
-		var col2 := SignPainter.BLACK if i % 2 == 0 else SignPainter.WHITE
+		var col := white if i % 2 == 0 else black
+		var col2 := black if i % 2 == 0 else white
 		b.rect(Rect2(r.position.x + cw * float(i), r.position.y, cw, CHECKER_H * s), col)
 		b.rect(Rect2(r.position.x + cw * float(i), r.end.y - CHECKER_H * s, cw, CHECKER_H * s), col2)
-	p.text(text, Vector2(cx, r.position.y + 1.22 * s), 0.85 * s, SignPainter.WHITE, r.size.x * 0.6)
+	p.text(text, Vector2(cx, r.position.y + 1.22 * s), 0.85 * s, white, r.size.x * 0.6)
+
+
+## A colour at k of its brightness, opaque.
+static func _dim(c: Color, k: float) -> Color:
+	return Color(c.r * k, c.g * k, c.b * k, 1.0)
 
 
 func warmup_nodes() -> Array:
