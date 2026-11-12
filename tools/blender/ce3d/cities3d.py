@@ -1534,9 +1534,12 @@ def _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, s
                               if name.startswith(pre)), 1.0)
         n_scaled += _scale_emission(m, k_m) if _has_light(m) else 0
     stats["lights_scaled"] = n_scaled
-    lamp_mats = [mats[n] for n in sorted(vpbr_names) if not mats[n].get("ce_vpbr")]
-    P._open_lamp_boxes(objs, lamp_mats)
-    stats["lamp_tops"] = _open_lamp_tops(objs, lamp_mats)
+    P._open_lamp_boxes(objs, [mats[n] for n in sorted(vpbr_names) if not mats[n].get("ce_vpbr")])
+    # only the lamps of the whitelist: the other forced vpbr materials (ornaments, dormer frames, balcony slabs) are no
+    # lamps - their sloped tops face the street and are seen from 12 m on
+    lamps = tuple(spec3d.get("lamps", ()))
+    stats["lamp_tops"] = _open_lamp_tops(objs, [mats[n] for n in sorted(vpbr_names)
+                                               if not mats[n].get("ce_vpbr") and n.startswith(lamps)])
     lod0_objs = [o for o in objs if H._level(o) != "lod1"]
     bake_objs = [o for o in lod0_objs if any(s.material is not None and s.material.name not in vpbr_names
                                              for s in o.material_slots)]
