@@ -88,7 +88,10 @@ void vertex() {
 	float t = VERTEX.y * 0.5 + 0.5;
 	float len = clamp(max(3.2 * sm + 1.0, INSTANCE_CUSTOM.z * 0.5), 1.5, max(reach - 0.8, 0.4));
 	vec3 p = ground + dir * (t * len - 0.2);
-	v_spec = vec3(sm, 0.45 * sm + 0.3, 1.3 * sm + 0.6);
+	// towards the camera the smear reaches at most half the way from the mirror point to the camera's foot: for a high
+	// street lamp the mirror point lies near the camera and 1.3 × sm (the law of the low rear lamps) ran the streak at
+	// full strength up to the camera – an orange blob round the player's car at C1 in the rain
+	v_spec = vec3(sm, 0.45 * sm + 0.3, min(1.3 * sm + 0.6, 0.5 * max(reach - sm, 0.0) + 0.5));
 	v_rh = vec3(reach, hc, INSTANCE_CUSTOM.x < 0.0 ? 1.0 : 0.0);
 	// never thinner than 1.2 logical px at its own depth
 	vec4 pv = VIEW_MATRIX * vec4(p, 1.0);

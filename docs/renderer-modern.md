@@ -2082,7 +2082,10 @@ der Wolke (`lights.beam_at()`), nachts das Rot der eigenen Rückleuchten.
   langer Streifen wird Punkt für Punkt mit dem Fresnel-Gesetz von Wasser unter dem Blickwinkel der Kamera gewichtet
   (`flare.gdshader`, negative halbe Breite der Instanz, 1 ab `fresnel_ref_m` 15 m vor der Kamera): das nahe Ende
   liegt steil unter der Kamera und spiegelt wenig – die ersten Bilder (C1 im Regen, 21:30) zeigten dort einen
-  gesättigten orangen Fleck um das Spielerauto. Die kurzen Streifen der Fahrzeuglampen bleiben ungewichtet.
+  gesättigten orangen Fleck um das Spielerauto. Zur Kamera hin reicht der Schleier höchstens halb so weit wie der
+  Weg vom Spiegelpunkt zur Kamera (bei einer hohen Laterne liegt der Spiegelpunkt nahe der Kamera; das Gesetz der
+  tiefen Rückleuchten, 1,3 × Weg vom Lampenfuß, zog den Streifen sonst in voller Stärke bis unter die Kamera). Die
+  kurzen Streifen der Fahrzeuglampen bleiben ohne Fresnel-Gewicht und ändern sich durch die Grenze nicht.
 
 ### 15.5 Schnee am Boden und auf den Dingen
 
