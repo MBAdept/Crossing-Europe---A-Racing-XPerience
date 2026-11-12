@@ -1906,6 +1906,10 @@ etwa 15 px versetzt, Blick in die Kurve).
 - `builders/terrain.gd`/`terrain.gdshader`: Wasser in Arcades Farbe der Brücke (`water` der Brücke, sonst der Landschaft,
   sonst `CityData.WATER_COLOR`) und zum Horizont hin den Himmel spiegelnd wie Arcades `water_tint` (16 % nah, bis 70 %
   in 324 m; die Nebelfarbe vertritt `sky_bottom`).
+- `layers/far_ground.gd` (FIX-WASSER): Der Fernboden liegt auch mindestens 0,3 m unter der tiefsten Wasserfläche des
+  geladenen Fensters – vorher lag er 4 m unter der tiefsten Straße und deckte Wasser zu, das tiefer liegt (Köhlbrandbrücke:
+  Elbe 9 m unter der Fahrbahn, Wiese statt Fluss, Fähren auf der Wiese). Einzelheiten und die Liste der betroffenen
+  Brücken: [renderer-modern-gelaende.md](renderer-modern-gelaende.md) Abschnitt 3.
 Offen für R5: Deck, Träger, Pylone, Uferwände.
 
 ### 14.8 Zeit je Teil von `render()`

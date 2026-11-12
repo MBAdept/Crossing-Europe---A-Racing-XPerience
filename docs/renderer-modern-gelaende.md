@@ -127,19 +127,33 @@ Stile: einfache Daten für den Arbeiter-Thread), `build` (nur Schnappschuss-Arra
 Eine Scheibe von 2.400 m Radius um die Kamera (innerhalb der fernen Schnittebene von 2.600 m, jenseits jeder
 Sichtweite) auf
 
-    far_y = tiefste Straße des geladenen Fensters − graphics.modern.terrain.far_ground_drop_m (4,0 m)
+    far_y = min(tiefste Straße des geladenen Fensters − graphics.modern.terrain.far_ground_drop_m (4,0 m),
+                tiefste Wasserfläche des geladenen Fensters − 0,3 m)
 
 und an ihrem Rand ein **Kragen**, der bis zur Augenhöhe der Kamera reicht – also genau bis zur Horizontzeile des
-Bildes. Weil die Scheibe unter jeder geladenen Straße liegt, kann sie nichts verdecken (F7). Sie schließt, was die
-Bänder offen lassen: den Boden jenseits der äußeren Ringe, den Spalt von etwa 12 m an einer Mittelachse und das
-Loch im Mittelpunkt enger Kurven (A-3). Der Kragen ist der „Boden im Unendlichen“: Auf 2,4 km ist er in jedem
-Wetter reine Nebelfarbe, das Bild ist unter dem Horizont geschlossen, ohne dass es auf die Füllung des Hintergrunds
-ankommt.
+Bildes. Weil die Scheibe unter jeder geladenen Straße und unter jedem geladenen Wasser liegt, kann sie nichts
+verdecken (F7). Sie schließt, was die Bänder offen lassen: den Boden jenseits der äußeren Ringe, den Spalt von etwa
+12 m an einer Mittelachse und das Loch im Mittelpunkt enger Kurven (A-3). Der Kragen ist der „Boden im
+Unendlichen“: Auf 2,4 km ist er in jedem Wetter reine Nebelfarbe, das Bild ist unter dem Horizont geschlossen, ohne
+dass es auf die Füllung des Hintergrunds ankommt.
 
-- Fenster: von `keep_behind_m` hinter der Kamera bis min(`load_path_m`, Sichtweite + zwei Stücke) voraus, jede
-  vierte Reihe (feste Reihen: nichts ändert sich, bis die Kamera die nächste Reihe erreicht).
-- Die Höhe folgt ihrem Ziel um höchstens 0,35 × die gefahrene Strecke je Bild; das erste Bild und ein Sprung über
-  150 m setzen sie sofort.
+- Fenster: von `keep_behind_m` hinter der Kamera bis min(`load_path_m`, Sichtweite + zwei Stücke) voraus – die
+  Straße jede vierte Reihe (feste Reihen: nichts ändert sich, bis die Kamera die nächste Reihe erreicht), das Wasser
+  jede Reihe jeder Brücke darin (`Track.bridges`; nur deren Reihen tragen `TrackSegment.water`), auf der Höhe, auf
+  die das Gelände die Ringe einer Wasserreihe legt: Fahrbahnhöhe + `water_level`.
+- **Wasser unter hohen Brücken** (FIX-WASSER): Liegt das Wasser tiefer als `far_ground_drop_m` unter der Fahrbahn,
+  läge die Scheibe sonst darüber und deckte den Fluss zu – an der Köhlbrandbrücke (Elbe 9 m unter der Fahrbahn) zeigte
+  Modern Wiese statt der Elbe, die Fähren standen auf der Wiese. Betroffen sind alle Brücken über Wasser tiefer als
+  4 m: Köhlbrandbrücke (Hamburg, 9 m), Holtenauer Hochbrücke (Kiel, 16 m), Kirchenfeldbrücke (Bern, 8 m) und die
+  Schrägseilbrücken mit der Vorgabetiefe 5 m – Severinsbrücke (Köln), Elisabethbrücke (Budapest), Ada-Brücke
+  (Belgrad), Vanšu-Brücke (Riga). Flacheres Wasser (Elbbrücken 3,6 m, Steinbrücken 3,2 m, Kanäle, der Damm nach
+  Venedig 1,4 m) lag schon über der Scheibe; dort und überall ohne Wasser im Fenster liegt sie wie bisher.
+- Die Höhe folgt ihrem Ziel um höchstens 0,35 × die gefahrene Strecke je Bild – auch wenn eine Brücke etwa 1,1 km
+  voraus ins Fenster kommt (Köhlbrandbrücke: 5 m tiefer in 14 m Fahrt, lange bevor das Wasser in Sicht ist) und wenn
+  sie 250 m hinter der Kamera wieder hinausgeht; das erste Bild und ein Sprung über 150 m setzen sie sofort.
+- Jenseits des äußeren Rings des Wassers (480 m, „Details: Hoch“ 1.000 m) zeigt die Scheibe Land in der Farbe der
+  Landschaft: am Horizont ein schmaler Streifen Wiese neben dem breiten Fluss, wo Arcade das graue Ufer zeigt (ein
+  Fernwasser gibt es nicht; offen, siehe 8).
 - Acht Sektoren statt eines Knotens: Ihre Mittelpunkte liegen fern der Kamera, der Renderer zeichnet sie nach dem
   Gelände davor (ein großer Knoten um die Kamera würde zuerst gezeichnet und überall Füllrate kosten).
 - Setzt das Global `ce_far_y`. `--gfx-debug=far` zeichnet Signalfarben (Scheibe cyan, Kragen gelb) für die
@@ -279,7 +293,7 @@ diesem Bauabschnitt dem Renderer-Kern):
 
 | Schlüssel | Vorgabe | Bedeutung |
 |---|---|---|
-| `graphics.modern.terrain.far_ground_drop_m` | 4,0 | Fernboden so weit unter der tiefsten geladenen Straße |
+| `graphics.modern.terrain.far_ground_drop_m` | 4,0 | Fernboden so weit unter der tiefsten geladenen Straße (und immer mindestens 0,3 m – `WATER_MARGIN_M` im Code – unter dem tiefsten geladenen Wasser) |
 | `graphics.modern.terrain.styles` | – | Stile einzelner Landschaften überschreiben (2.4) |
 | `graphics.modern.props.bend_cover` | `["props/cover_bush", "props/cover_grass"]` (Vorgabe im Code `[]`) | Bodendecker-Sets für den Kurvenkorridor (4.1) |
 | `graphics.modern.props.bend_cover_max_h_m` | 0,5 | ihre größte Höhe dort |
@@ -290,6 +304,7 @@ diesem Bauabschnitt dem Renderer-Kern):
 | Prüfung | Inhalt |
 |---|---|
 | `test_terrain_builder.gd` | das Netz ist das Band des Kerns (jeder Eckpunkt, `ground()` liegt darauf), innerhalb des Budgets, wasserdicht zwischen Stücken, Dreiecke nach oben, Schürze nach außen ohne Fläche, kein Gelände im Tunnel, Ringe auf dem Wasser; Bandton am Bankett = Arcades Band (beide Seiten), Bandphase = Arcades Band auch über Stückgrenzen, außen das Mittel; Überblendung wie `RoadRenderer.ground_blend`; Detailtextur deterministisch und geteilt; Fernboden unter jeder geladenen Straße |
+| `test_far_ground_water.gd` | Fernboden mit Wasser im Fenster (die Ebene mit ihrem eigenen `update()` an einem Stellvertreter der Renderer-Fassade): unter der Köhlbrandbrücke (km 73–80,3) liegt die Scheibe mindestens 0,25 m unter dem tiefsten Wasser des Fensters und unter jeder geladenen Straße, die zwei Fähren stehen auf der Wasserhöhe über ihr; ohne tiefes Wasser (km 2, 30, 60, 65, Elbbrücken, Ziel) genau wie bisher; kommt die Brücke ins Fenster, sinkt die Scheibe mit höchstens 0,35 m je Meter Fahrt und liegt unter dem Wasser, bevor es in Sichtweite ist; Holtenauer Hochbrücke, Severinsbrücke, Elisabethbrücke ebenso. Auf `3a23cb8` (vor der Behebung) rot |
 | `test_props.gd` | Helfer wie Arcade (`edge_anchor_x`), Spiegelung (Knoten × Instanz), Detailstufen; jedes Requisiten-Set ist Modell oder Vertretung; Stellen, Auslassungen, Lampen, Zeichenaufrufe je Set und Stück; Korridor und Dichte; auf fünf Landschaften echter Etappen ist die Liste eines Stücks die Liste seiner `TrackSegment.sprites` minus der Auslassungen |
 | `tests/race3d/check_terrain_plan.gd` (headless) | `terrain_plan_overlap`: in den zwölf härtesten Etappenrichtungen (je drei engste Kurven) und an T1–T4 überlappen sich die Geländestreifen verschiedener Straßenteile in der Draufsicht nicht; `terrain_plan_tips`: Bandspitzen derselben Kurveninnenseite (siehe 8); `terrain_plan_budget`: ≤ 1.100 Dreiecke je Stück. `-- --dump=<Ordner>` schreibt die Daten der Draufsichten |
 | `tests/race3d/render/check_terrain_cover.gd` | Geländesperre (§4.9.2): an T1–T4, S1, C1 mit `--gfx-debug=cover,far` höchstens 0,2 % magenta Bildpunkte unter der Horizontzeile; meldet die Anteile von Fernboden und Kragen |
@@ -327,3 +342,7 @@ abgeleitet).
 - **Zeichenaufrufe bei Varianten und Spiegelung**: Varianten kosten nichts mehr (eine je Stück, 4.3); ein Set mit
   zwei Flächen auf beiden Seiten braucht 2 × 2 Aufrufe je Stück (4.4).
 - Das Gelände wirft keinen eigenen Schatten (2.1); Berge, die die Sonne verdecken, gibt es nicht.
+- **Kein Fernwasser**: Das Wasser einer Brücke reicht so weit wie das Band (äußerer Ring 480 m, auf „Hoch“ 1.000 m);
+  dahinter zeigt der Fernboden Land. An breiten Flüssen (Elbe an der Köhlbrandbrücke) sieht man deshalb am Horizont
+  einen schmalen Streifen Wiese, wo Arcade das graue Ufer zeichnet. Eine Wasserfläche im Fernboden (Farbe des Flusses
+  quer zur Straße, so weit Arcade ihn zeigt) wäre der nächste Schritt; sie ist nicht gebaut.
