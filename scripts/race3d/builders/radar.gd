@@ -15,7 +15,12 @@ const CAMERA_SET := "props/radar_camera"
 const HEAD_H := 2.85               ## height of the flash above the ground (Arcade's box 2.55 – 3.4 m, its centre 2.97 m)
 const HEAD_FRONT := 0.45           ## the flash sits this far in front of the post (towards the approaching camera)
 const FLASH_R_M := 6.0             ## Arcade: glow radius 6 m × flash
-const FLASH_GAIN := 2.0            ## flare strength per unit of flash (the flare adds colour × 0.5 × strength; Arcade alpha = flash)
+## layers/flares.gd STATIC_HALO: a lamp larger than 6 px on screen gets only this share of its strength (its lit
+## geometry carries the light near the camera) – the flash has no lit geometry and is always that large (6 m)
+const HALO_SHARE := 0.35
+## flare strength per unit of flash: the flare adds colour × 0.5 × strength, Arcade's glow colour × alpha (= flash) –
+## render check v1 measured the flash without this compensation only +0.17 luminance at the head, no white pixels
+const FLASH_GAIN := 2.0 / HALO_SHARE
 const FLASH_COLOUR := Color(1.0, 1.0, 1.0)
 const FLARE_K := 0.9               ## layers/flares.gd STATIC_K: glow radius = size × this
 

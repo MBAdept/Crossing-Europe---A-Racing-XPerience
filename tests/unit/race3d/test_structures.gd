@@ -154,23 +154,30 @@ func test_station_on_the_fuel_lane_of_the_slice_stage() -> void:
 	assert_true(got["canopies"] > 0 and columns > 0, "Stützen unter den Dächern (%d)" % columns)
 
 
-## F1 for the canopy columns: Arcade draws a sign under its canopy over the pillar; a column Modern adds at the end stands
-## nowhere with a sign within StationB.SIGN_SCAN_M behind it.
+## F1 for the canopy columns: Arcade draws a sign under its canopy over the pillar – that column moves out beyond the
+## boards; a column Modern adds at the end stays on the island only without a sign within StationB.SIGN_SCAN_M behind it.
 func test_station_columns_never_in_front_of_a_sign() -> void:
 	var r0 := 1140.0
 	var r1 := 1155.0
-	assert_eq(StationB.column_plan(r0, r1, []), [[r0 + StationB.COLUMN_IN, "front"], [r1 - StationB.COLUMN_IN, "end"]], "ohne Schilder: vorn und am Ende")
-	assert_eq(StationB.column_plan(r0, r1, [r0 + 1.8]), [[r1 - StationB.COLUMN_IN, "end"]], "Schild unter dem Dach: keine Stütze vorn davor")
-	assert_eq(StationB.column_plan(r0, r1, [r1 + 30.0]), [[r0 + StationB.COLUMN_IN, "front"]], "Schild 30 m hinter dem Dach: keine Stütze am Ende")
-	assert_eq(StationB.column_plan(r0, r1, [r0 - 1.0, r1 + StationB.SIGN_SCAN_M + 1.0]).size(), 2, "Schilder davor oder weit dahinter: beide Stützen")
-	# the stage of the Hamburg – Hannover direction with its chevrons along the station (B6 analysis: a chevron 1.8 m
-	# into the first canopy at km 11.41): no column of the built chunks stands in front of a sign
+	var zf := r0 + StationB.COLUMN_IN
+	var ze := r1 - StationB.COLUMN_IN
+	var x := StationB.PILLAR_X
+	var gap := StationB.OUT_GAP + StationB.PILLAR_W * 0.5
+	assert_eq(StationB.column_plan(r0, r1, []), [[zf, "front", x], [ze, "end", x]], "ohne Schilder: vorn und am Ende auf der Insel")
+	assert_eq(StationB.column_plan(r0, r1, [[r0 + 1.8, 4.45]]), [[zf, "front_out", 4.45 + gap], [ze, "end", x]],
+		"Leitpfeil unter dem Dach: die vordere Stütze rückt hinter seine Tafel nach außen")
+	assert_eq(StationB.column_plan(r0, r1, [[r1 + 30.0, 4.35]]), [[zf, "front", x], [ze, "end_out", 4.35 + gap]],
+		"Schild 30 m hinter dem Dach: die hintere Stütze rückt nach außen")
+	assert_eq(StationB.column_plan(r0, r1, [[r0 - 1.0, 4.45], [r1 + StationB.SIGN_SCAN_M + 1.0, 4.35]]), [[zf, "front", x], [ze, "end", x]],
+		"Schilder davor oder weit dahinter: beide Stützen auf der Insel")
+	# the stage of the Hamburg – Hannover direction with its chevrons along the station (a chevron 1.8 m into the first
+	# canopy at km 11.41, others every 30 m): no column of the built chunks can cover a sign
 	var t := _real("hamburg_hannover")
 	if t == null or t.plan.fuel_lanes.is_empty():
 		return
 	var b: ChunkBuilder = StationB.new()
 	var covered: Array = []
-	var columns := 0
+	var kinds := {}
 	for lane: Dictionary in t.plan.fuel_lanes:
 		var lz0 := t.km_to_z(float(lane["start_km"]))
 		var lz1 := t.km_to_z(float(lane["end_km"]))
@@ -180,22 +187,25 @@ func test_station_columns_never_in_front_of_a_sign() -> void:
 			for sp: Variant in sg.sprites:
 				var it: Dictionary = sp
 				if str(it.get("kind", "")) == "sign" and int(it.get("side", 1)) > 0:
-					signs.append(float(it.get("z", sg.z)))
+					var hw := SignPainter.board_half_width(str(it.get("sign", ""))) * float(it.get("scale", 1.0))
+					signs.append([float(it.get("z", sg.z)), float(it.get("x", 0.0)) + hw])
 		for c in range(_chunk_of(t, lz0), _chunk_of(t, lz1) + 1):
 			var part := _build(b, _context(t, c))
 			for col: Array in part.get("column_at", []):
-				columns += 1
 				var zc := float(col[0])
+				var inner := float(col[1]) - StationB.PILLAR_W * 0.5      # the column's face towards the road (m from the centre)
+				kinds[str(col[2])] = int(kinds.get(str(col[2]), 0)) + 1
 				var canopy_end := zc
 				for zn: Dictionary in t.zones:
 					if str(zn["kind"]) == "fuel_canopy" and zc >= floorf(float(zn["z0"]) / t.seg_len) * t.seg_len - 0.01 \
 							and zc <= ceilf(float(zn["z1"]) / t.seg_len) * t.seg_len:
 						canopy_end = ceilf(float(zn["z1"]) / t.seg_len) * t.seg_len
-				var reach := canopy_end if str(col[2]) == "front" else zc + StationB.SIGN_SCAN_M
-				for zs: float in signs:
-					if zs >= zc - StationB.PLINTH_W * 0.5 and zs <= reach:
-						covered.append("Stütze %s bei z %.1f vor Schild bei z %.1f" % [str(col[2]), zc, zs])
-	assert_true(columns > 0, "Stützen gebaut (%d)" % columns)
+				var reach := canopy_end - 0.01 if str(col[2]) == "front" else zc + StationB.SIGN_SCAN_M
+				for s: Array in signs:
+					# a board behind the column that reaches beyond its inner face can be covered from some point of the road
+					if float(s[0]) >= zc - StationB.PLINTH_W * 0.5 and float(s[0]) <= reach and float(s[1]) > inner:
+						covered.append("Stütze %s bei z %.1f vor Schild bei z %.1f" % [str(col[2]), zc, float(s[0])])
+	assert_true(int(kinds.get("front", 0)) > 0 and int(kinds.get("front_out", 0)) > 0, "Stützen auf der Insel und außen (%s)" % str(kinds))
 	assert_eq(covered, [], "keine Stütze vor einem Schild (F1)")
 
 

@@ -46,9 +46,13 @@ const PILLAR_W := 0.3
 const PLINTH_W := 0.46
 const PLINTH_H := 0.32
 const COLUMN_IN := 0.45            ## columns this far inside the canopy's front and end
-## A column Arcade does not have (at the end of a canopy) stands only where no sign on the right is within this distance
-## behind it: one farther behind could only be covered while it is several hundred metres away (see border.gd)
+## A column on the island Arcade does not have (at the end of a canopy) stands there only where no sign on the right
+## is within this distance behind it: one farther behind could only be covered while it is several hundred metres away
+## (see border.gd). Otherwise it moves out beyond the boards (OUT_GAP).
 const SIGN_SCAN_M := 120.0
+const OUT_GAP := 0.25              ## an outer column's inner face this far beyond the outer edge of the boards
+const BEAM_H := 0.4                ## the beam under the canopy edge that carries it over to an outer column
+const BEAM_D := 0.3
 const LAMP_X: Array[float] = [0.8, 2.8]
 const LAMP_SIZE := Vector2(1.0, 0.36)   ## light panel in the soffit (along, across)
 const LAMP_DROP := 0.06            ## … hanging this far below the soffit
@@ -671,34 +675,52 @@ static func columns_in_chunk(ctx: ChunkContext) -> Array:
 			for sp: Variant in s.sprites:
 				var it: Dictionary = sp
 				if str(it.get("kind", "")) == "sign" and int(it.get("side", 1)) > 0:
-					signs.append(float(it.get("z", s.z)))
+					var zs := float(it.get("z", s.z))
+					var hw := SignPainter.board_half_width(str(it.get("sign", ""))) * float(it.get("scale", 1.0))
+					signs.append([zs, float(it.get("x", 0.0)) + hw - tr.road_edges_at(zs).y])
 		for c: Array in column_plan(r0, r1, signs):
 			if float(c[0]) >= za and float(c[0]) < zb:
 				out.append(c)
 	return out
 
 
-## The columns of a canopy from r0 (start of its front segment) to r1 (end of its last segment): [[z, kind]] –
-## "front" (Arcade's, COLUMN_IN behind r0) unless a sign on the right stands under the canopy behind its plinth (Arcade
-## draws such a sign over its pillar; in 3D the column would cover it), "end" (COLUMN_IN before r1, Arcade has none
-## there) where no sign on the right stands within SIGN_SCAN_M behind it. The columns stand on the island, inside the
-## shoulder band, so no bend's sight corridor reaches them (F7). signs: z of the signs on the right. Pure.
+## The columns of a canopy from r0 (start of its front segment) to r1 (end of its last segment): [[z, kind, x]], x =
+## the column's centre beyond the paved edge –
+##  * "front": Arcade's (on the island at PILLAR_X, COLUMN_IN behind r0) – unless a sign on the right stands under the
+##    canopy behind its plinth: Arcade draws such a sign over its pillar (the same slice of its painter's order), in 3D
+##    the column would cover it. Then "front_out": the column moves out beyond the boards (outer_place());
+##  * "end": on the island COLUMN_IN before r1 where no sign on the right stands within SIGN_SCAN_M behind it, otherwise
+##    "end_out" beyond the boards. Arcade has no column there.
+## signs: [[z, outer edge of the board beyond the paved edge]] of the signs on the right from r0 to r1 + SIGN_SCAN_M.
+## build() leaves out an outer column inside a bend's sight corridor (F7; the island lies in the shoulder band, where
+## no corridor reaches). Pure.
 static func column_plan(r0: float, r1: float, signs: Array) -> Array:
 	var out: Array = []
 	var zf := r0 + COLUMN_IN
 	var ze := r1 - COLUMN_IN
+	var far := outer_place(signs, r0 - 1.0, r1 + SIGN_SCAN_M)
 	var front_ok := true
 	var end_ok := true
-	for z: float in signs:
-		if z >= zf - PLINTH_W * 0.5 and z <= r1:
+	for s: Array in signs:
+		var z := float(s[0])
+		# under the canopy: in one of its segments (a sign at r1 stands in the next one – another slice in Arcade)
+		if z >= zf - PLINTH_W * 0.5 and z < r1:
 			front_ok = false
 		if z >= ze - PLINTH_W * 0.5 and z <= ze + SIGN_SCAN_M:
 			end_ok = false
-	if front_ok:
-		out.append([zf, "front"])
-	if end_ok:
-		out.append([ze, "end"])
+	out.append([zf, "front", PILLAR_X] if front_ok else [zf, "front_out", far])
+	out.append([ze, "end", PILLAR_X] if end_ok else [ze, "end_out", far])
 	return out
+
+
+## The place of an outer column (m beyond the paved edge): its inner face OUT_GAP beyond the outer edge of every board
+## on the right from z0 to z1 – seen from the road it covers none of them; never nearer the road than the island's.
+static func outer_place(signs: Array, z0: float, z1: float) -> float:
+	var far := PILLAR_X
+	for s: Array in signs:
+		if float(s[0]) >= z0 and float(s[0]) <= z1:
+			far = maxf(far, float(s[1]) + OUT_GAP + PILLAR_W * 0.5)
+	return far
 
 
 ## WORKER THREAD.
@@ -794,18 +816,32 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 				fronts.append(snappedf(z0, 0.001))
 			if ends:
 				_bands(kit, ctx.local(z1, x0, 0.0), ctx.local(z1, x1, 0.0), ctx.rows_f[i + 1])
-			# steel columns with a plinth on the island: at the front and at the end of the canopy, none in front of a sign
-			# (column_plan(), F1)
+			# steel columns with a plinth: on the island at the front and at the end of the canopy – moved out beyond the
+			# sign boards where they could cover a sign (column_plan(), F1; then a beam under the canopy edge carries it
+			# over and a column outside the shoulder band never stands in a bend's sight corridor, F7)
 			for c: Array in columns:
 				var zp := float(c[0])
 				if zp < z0 or zp >= z1:
 					continue
-				var fp := ctx.frame(zp, e + PILLAR_X, ISLAND_H)
+				var kind := str(c[1])
+				var off := float(c[2])
+				var cx := e + off
+				if kind != "front" and kind != "end" and ctx.in_bend_corridor(zp, cx):
+					continue
+				var base := ISLAND_H
+				if off > ISLAND_OUT:
+					base = APRON_H if off < APRON_OUT - PLINTH_W * 0.5 else minf(ctx.ground(zp, cx), APRON_H)
+				var fp := ctx.frame(zp, cx, base)
+				var top := CANOPY_H - base
+				if off + PILLAR_W * 0.5 > CANOPY_OUT:
+					var bx0 := e + CANOPY_OUT - 0.3
+					var bx1 := cx + PILLAR_W * 0.5
+					var fb := ctx.frame(zp, (bx0 + bx1) * 0.5, CANOPY_H - BEAM_H * 0.5)
+					kit.box(fb, Vector3.ZERO, Vector3((bx1 - bx0) * 0.5, BEAM_H * 0.5, BEAM_D * 0.5), PILLAR, ROUGH_METAL, 1 | 2 | 4 | 8 | 16 | 32)
 				kit.box(fp, Vector3(0.0, PLINTH_H * 0.5, 0.0), Vector3(PLINTH_W, PLINTH_H, PLINTH_W) * 0.5, PLINTH, ROUGH_CONCRETE, 1 | 2 | 4 | 8 | 16)
-				kit.box(fp, Vector3(0.0, (CANOPY_H - ISLAND_H) * 0.5, 0.0), Vector3(PILLAR_W, CANOPY_H - ISLAND_H, PILLAR_W) * 0.5, PILLAR,
-					ROUGH_METAL, 1 | 2 | 4 | 8)
+				kit.box(fp, Vector3(0.0, top * 0.5, 0.0), Vector3(PILLAR_W, top, PILLAR_W) * 0.5, PILLAR, ROUGH_METAL, 1 | 2 | 4 | 8)
 				pillars += 1
-				column_at.append([zp, e + PILLAR_X, str(c[1])])
+				column_at.append([zp, cx, kind])
 			# light panels in the soffit every second segment (Arcade), lit at night (lamp channel 12) with Arcade's white
 			# glow round each (flare layer); the light pool of the row on the lane edge (Arcade: x = edge + 0.5) comes from a
 			# lamp inside the canopy box – only its light shows, not a second glow
