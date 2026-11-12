@@ -19,7 +19,7 @@ alles über echte Grafikkarten und das Steam Deck ist abgeleitet.
 | `scripts/race3d/builders/gantry.gd` | Start- und Zieltor mit Banner und Countdown-Lampen | `SignPainter._gantry`, `RoadRenderer._start_light_glows` |
 | `scripts/race3d/builders/radar.gd` | Blitz der Blitzer | `RoadRenderer._radar_cam` (Blitz) |
 | `tests/unit/race3d/test_structures.gd` | Unit-Tests (headless, ohne Szenenbaum) | |
-| `tests/race3d/render/check_structures.gd` | Render-Prüfung (Xvfb) | |
+| `tests/race3d/render/check_structures.gd`, `check_structures_licht.gd` | Render-Prüfungen (Xvfb) | |
 
 Zapfsäulen, Tankstellen-Gebäude, Zollhäuschen und die Kamerasäule der Blitzer sind Modelle von AS1b
 (`props/fuel_pump`, `props/fuel_station`, `props/customs_booth`, `props/radar_camera`) und stehen über den
@@ -73,10 +73,13 @@ ganz geöffneten Tankspur (`Track.fuel_lane_factor` = 1, `Track.fuel_lane_at`): 
 **Keine Stütze vor einem Schild (F1).** Arcade zeichnet ein Schild, das unter einem Dach steht, im selben Streifen
 seiner Malreihenfolge **über** den Pfeiler; in 3D würde die Stütze davor es verdecken. `column_plan()` plant die Stützen
 aus den Schildern der Strecke (rechts, aus `Track` bis 120 m hinter dem Dach gelesen, in `collect()`): die vordere
-(Arcades) fällt weg, wenn ein Schild unter dem Dach hinter ihrem Sockel steht; die am Ende (nicht in Arcade) steht nur,
-wenn bis 120 m dahinter kein Schild steht (`SIGN_SCAN_M`; ein Schild weiter hinten könnte sie nur verdecken, solange
-es mehrere hundert Meter entfernt ist). Auswertung aller Etappen: unter 39 von 1909 Dächern steht ein Schild, hinter
-134 eines in 120 m (meist Leitpfeile einer Kurve).
+(Arcades) steht auf der Insel, wenn kein Schild unter dem Dach hinter ihrem Sockel steht; die am Ende (nicht in Arcade)
+auf der Insel, wenn bis 120 m dahinter kein Schild steht (`SIGN_SCAN_M`; ein Schild weiter hinten könnte sie nur
+verdecken, solange es mehrere hundert Meter entfernt ist). Sonst rückt die Stütze **nach außen**, ihre Innenseite
+0,25 m jenseits der Außenkante jeder Schildtafel (von der Straße aus kann sie dann keine verdecken), auf den Vorplatz
+oder dahinter, mit einem Träger unter der Dachkante; dort (außerhalb des Bankettstreifens) nie in einer Sichtschneise
+(F7). Auswertung aller Etappen: unter 39 von 1909 Dächern steht ein Schild, hinter 134 eines in 120 m (meist
+Leitpfeile einer Kurve); mit bloßem Weglassen standen 34 Dächer ohne Stütze.
 
 ## 4. Grenze (`border.gd`)
 
@@ -144,15 +147,19 @@ Das Auto im Countdown steht, wo Arcade es zeigt (FIX-ZS1, Render-Prüfung `check
 Die Kamerasäulen sind Modelle (AS1b). Der Builder setzt an jede (dieselben Einträge: Set `props/radar_camera` bzw.
 Arcades `radar_cam`) einen Blitz in 2,85 m Höhe vor den Kamerakopf, zur Anfahrt gerichtet. Er folgt
 `view.radar_flash01` wie in Arcade (die Sitzung setzt ihn beim Blitz auf 1 und lässt ihn in `radar.flash_s` fallen):
-jeder Blitzer im Bild blitzt, weiß, Radius 6 m × Blitz, ab 0,05 (`flash_entry()`, Unit-Test). Der weiße Blitz über den
-Bildschirm kommt in beiden Modi vom HUD.
+jeder Blitzer im Bild blitzt, weiß, Radius 6 m × Blitz, ab 0,05 (`flash_entry()`, Unit-Test). Stärke: Arcades Schein
+fügt Farbe × Blitz hinzu, ein Lichtpunkt der Ebene `flares` Farbe × 0,5 × Stärke – und einer Lampe, die auf dem Bild
+größer als 6 px ist, gibt die Ebene nur 35 % (`STATIC_HALO`, dort trägt sonst die leuchtende Lampe selbst). Der Blitz
+hat keine leuchtende Geometrie und ist immer so groß: Stärke = 2 / 0,35 × Blitz (die Render-Prüfung `blitz` maß ohne
+diesen Ausgleich am Kopf nur +0,17 Leuchtdichte). Der weiße Blitz über den Bildschirm kommt in beiden Modi vom HUD.
 
 ## 8. Prüfungen
 
 | Prüfung | Inhalt |
 |---|---|
-| `tests/unit/race3d/test_structures.gd` | Tankstelle auf der Tankspur von Kiel – Hamburg (Kante = `Track.road_edges_at`, Spurmitte = `fuel_lane_x`, Bordstein als Ecke des Netzes, Zapfsäulen auf der Insel, nichts unter 5,6 m über Fahrbahn und Spur); Grenze der Testetappe (Dach auf jedem Segment, eine Stirnblende „NL“, Pfeiler, Kegel, nichts unter dem Dach außer Arcades Lichtbändern); Laternen alle 33 m im Wechsel mit Lampen und Kegeln, Zebrastreifen-Daten, Zäune; Zäune nicht im Kurvenkorridor; Tore und Countdown-Regel; Blitz; Atlas-Layout; statisches `vpbr` und Schattenregel der Knoten |
-| `tests/race3d/render/check_structures.gd` | `countdown`, `tankstelle` (Tag: Stirnblende weiß mit blauer Schrift, kein `Label3D`; Nacht: Blende leuchtet, Tankspur heller als die Fahrbahn daneben), `zieltor`, `grenze`, `blitz`, `stadt` (Straße bei Nacht nicht dunkler als Arcade), `schatten` |
+| `tests/unit/race3d/test_structures.gd` | Tankstelle auf der Tankspur von Kiel – Hamburg (Kante = `Track.road_edges_at`, Spurmitte = `fuel_lane_x`, Bordstein als Ecke des Netzes, Zapfsäulen auf der Insel, nichts unter 5,6 m über Fahrbahn und Spur); Stützen nie vor einem Schild (`column_plan`, gebaute Stücke von Hamburg – Hannover); Grenze der Testetappe (Dach auf jedem Segment, eine Stirnblende „NL“, Pfeiler nie vor einem Schild und außer Arcades vorderen nie in der Sichtschneise, Kegel, nichts unter dem Dach außer Arcades Lichtbändern); `pillar_plan`; Laternen alle 33 m im Wechsel mit Lampen und Kegeln, Zebrastreifen-Daten, Zäune; Zäune nicht im Kurvenkorridor; Tore und Countdown-Regel; Blitz; Atlas-Layout; statisches `vpbr` und Schattenregel der Knoten |
+| `tests/race3d/render/check_structures.gd` | `countdown` (Lampen rot/rot/aus, grün, aus), `zieltor` (Banner rot mit Schachbrett), `grenze` (Tag: Blende weiß und europablau; Nacht: Lichtbänder leuchten), `blitz` (Kopf im Blitzbild heller und weiß) |
+| `tests/race3d/render/check_structures_licht.gd` (erbt die Hilfen der ersten Datei; zwei Dateien, damit jede unter `RENDER_CHECK_TIMEOUT` bleibt) | `tankstelle` (Tag: Stirnblende weiß mit blauer Schrift, kein `Label3D`; Nacht: Blende leuchtet, Tankspur unter dem Dach mindestens 0,85 × so hell wie Arcade an derselben Stelle), `stadt` (Kegel einer Laterne mindestens 0,85 × Arcade), `schatten` |
 | `tests/race3d/check_minimal_structures.gd` | `station`, `tore`: die Schriftzüge werden über die Debug-Daten (`letterings`) gezählt statt über `Label3D` |
 
 ## 9. Offen
