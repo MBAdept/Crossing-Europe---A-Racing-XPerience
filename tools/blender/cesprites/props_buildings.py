@@ -389,23 +389,12 @@ def windmill(rig, p):
     hub = Vector((0.0, 1.0, 19.8))
     bm = bmesh.new()
     MU.bm_cyl(0.45, 0.35, 1.6, center=(0.0, 1.6, 19.8), axis="Y", segs=12, bm=bm)
-    # 3D model (ce3d, AS4R): sail_bars = (bars per sail, bar width, rail width) - half as many, twice as wide bars
-    # with the same covered area: the 7 cm bars are half a pixel wide at the mills' 80-150 m and flickered (art review
-    # AS4, M7). None = the sprite's lattice.
-    sail_bars = p.get("sail_bars")
     for k in range(4):
         a = math.radians(30 + 90 * k)
         d = Vector((math.cos(a), 0.0, math.sin(a)))
         n = Vector((-d.z, 0.0, d.x))
         tip = hub + d * 12.5
         MU.bm_beam(hub, tip, 0.3, 0.3, bm=bm, up=(0, 1, 0))
-        if sail_bars:
-            nb_, bw_, rw_ = int(sail_bars[0]), float(sail_bars[1]), float(sail_bars[2])
-            for i in range(nb_):
-                pa = hub + d * (2.5 + i * 9.6 / max(1, nb_ - 1))
-                MU.bm_beam(pa - n * 0.15, pa + n * 1.8, bw_, bw_, bm=bm, up=(0, 1, 0))
-            MU.bm_beam(hub + d * 2.5 + n * 1.8, tip + n * 1.8, rw_, rw_, bm=bm, up=(0, 1, 0))
-            continue
         for i in range(13):
             t = 2.5 + i * 0.8
             pa = hub + d * t

@@ -37,8 +37,8 @@
   "roughness": 0.85,
   "auto_lod": false,
   "tags": ["prop", "building", "mirror_left"],
-  "bytes": 585133,
-  "hash": "42904faf09bf191eb5e2618d98a68dea01791f1c"
+  "bytes": 574265,
+  "hash": "b6eec099a2e2ef7f4286ad0d2b73d1350fe5e64c"
  },
  "sets": {
   "props/church": {"model": "props/church"}

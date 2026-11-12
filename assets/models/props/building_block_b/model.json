@@ -37,8 +37,8 @@
   "roughness": 0.85,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left"],
-  "bytes": 930542,
-  "hash": "831a7f7a476605bb6b8a45f79528ef491ec759cc"
+  "bytes": 910166,
+  "hash": "7466e78571012cf0e96e14f7dca71168f0190869"
  },
  "sets": {
   "props/building_block_b": {"model": "props/building_block_b"}

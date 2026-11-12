@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 100000,
-    "tris": 1640,
+    "tris": 1928,
     "parts": [
      {
       "node": "body",
@@ -25,8 +25,8 @@
   "roughness": 0.9,
   "auto_lod": false,
   "tags": ["prop", "building"],
-  "bytes": 842329,
-  "hash": "95ca7bfb4e009ed0d530ad36cfbe4d646ba03124"
+  "bytes": 845593,
+  "hash": "bc67525a7ca27cce999fc235fe37033427c37828"
  },
  "sets": {
   "props/windmill": {"model": "props/windmill"}

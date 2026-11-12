@@ -630,8 +630,8 @@
    "roughness": 0.85,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left"],
-   "bytes": 203590,
-   "hash": "6c214e3ff3e57286c8428b0cfb60844275102a77"
+   "bytes": 190768,
+   "hash": "ff9086e099890719bacf27264d436db1e9b54170"
   },
   "props/building_block_b": {
    "kind": "building",
@@ -668,8 +668,8 @@
    "roughness": 0.85,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left"],
-   "bytes": 930542,
-   "hash": "831a7f7a476605bb6b8a45f79528ef491ec759cc"
+   "bytes": 910166,
+   "hash": "7466e78571012cf0e96e14f7dca71168f0190869"
   },
   "props/building_oldtown": {
    "kind": "building",
@@ -706,8 +706,8 @@
    "roughness": 0.85,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left"],
-   "bytes": 587748,
-   "hash": "91b4261a7dc4c3b688ee90ccba68b73c95485e20"
+   "bytes": 546788,
+   "hash": "d89a084e84a90ad03c1876ccbcbaa18be621ec01"
   },
   "props/building_shop": {
    "kind": "building",
@@ -744,8 +744,8 @@
    "roughness": 0.85,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left"],
-   "bytes": 365315,
-   "hash": "5013fb7c64f58759b7cc7ca62ef5deebc763a535"
+   "bytes": 319668,
+   "hash": "16bfd36c2655ac7b1556b58f1c03c3f144efc31e"
   },
   "props/building_tall": {
    "kind": "building",
@@ -943,8 +943,8 @@
    "roughness": 0.85,
    "auto_lod": false,
    "tags": ["prop", "building", "mirror_left"],
-   "bytes": 585133,
-   "hash": "42904faf09bf191eb5e2618d98a68dea01791f1c"
+   "bytes": 574265,
+   "hash": "b6eec099a2e2ef7f4286ad0d2b73d1350fe5e64c"
   },
   "props/cover_bush": {
    "kind": "plant",
@@ -1127,8 +1127,8 @@
    "roughness": 0.8,
    "auto_lod": false,
    "tags": ["prop", "building", "mirror_left"],
-   "bytes": 749653,
-   "hash": "24d970bd51249ff1ec52e8a55a16ff47c02628a8"
+   "bytes": 698290,
+   "hash": "793075a20fc226d13b6887943df610396f36e401"
   },
   "props/farmhouse": {
    "kind": "building",
@@ -1362,8 +1362,8 @@
    "roughness": 0.9,
    "auto_lod": false,
    "tags": ["prop", "building", "mirror_left"],
-   "bytes": 532267,
-   "hash": "ebfbe26a3516404f981c19045ddef763b0c3aa1b"
+   "bytes": 507401,
+   "hash": "a6b9181e4c956cb0b9996e9c3baa074d7cc330fa"
   },
   "props/houseboat": {
    "kind": "building",
@@ -1397,8 +1397,8 @@
    "roughness": 0.7,
    "auto_lod": false,
    "tags": ["prop", "boat", "water", "mirror_left"],
-   "bytes": 238859,
-   "hash": "1594b7699728ddd26b8e82a74bedae4c20e76e27"
+   "bytes": 230411,
+   "hash": "d7e9fc36a54e8c49ebdb1f325d0b3a387a8e94a0"
   },
   "props/power_pylon": {
    "kind": "furniture",
@@ -1710,7 +1710,7 @@
     {
      "name": "lod0",
      "max_dist_m": 100000,
-     "tris": 1640,
+     "tris": 1928,
      "parts": [
       {
        "node": "body",
@@ -1724,8 +1724,8 @@
    "roughness": 0.9,
    "auto_lod": false,
    "tags": ["prop", "building"],
-   "bytes": 842329,
-   "hash": "95ca7bfb4e009ed0d530ad36cfbe4d646ba03124"
+   "bytes": 845593,
+   "hash": "bc67525a7ca27cce999fc235fe37033427c37828"
   },
   "traffic/hatch": {
    "kind": "vehicle",

@@ -62,6 +62,7 @@ LOD0_M = 60.0             # max_dist_m of lod0 when there is a lod1 (the props b
 # sprite's own light of that window (the same windows lit as in Arcade) from the emission atlas, times PANE_LIGHT_K -
 # measured against Arcade at night (Paris - Tours km 131.3, 23:00).
 PANE_LIGHT_K = 0.55
+PANE_TINT = ("#8fa3b5", 0.08)     # the pane's glass a little towards the sky (see _filler_mat)
 
 
 # --- small helpers -----------------------------------------------------------------------------------------------
@@ -401,16 +402,35 @@ class Opening:
         self.top = top
 
 
-def _filler_mat(mat, cache, light_k=None, sink=0.0):
+def _filler_mat(mat, cache, light_k=None, sink=0.0, tint=None):
     """Copy of a facade material for the hole fillers of the colour bake (see bake_house). light_k None: without its
     light - the filler of a door or a louvre, deleted after the colour bake. AS4R: light_k = k - with the sprite's
-    light of the window times k: the filler becomes the pane, moved `sink` m back into its reveal after the bakes."""
+    light of the window times k: the filler becomes the pane, moved `sink` m back into its reveal after the bakes;
+    tint = (hex, share): its base colour taken towards a sky colour (the reflection the vpbr glass of AS4 had - the
+    flat baked pane came out 10 levels darker, and the edges of the frames flickered more against it)."""
     key = (mat.name, light_k)
     if key in cache:
         return cache[key]
     m = mat.copy()
     m.name = ("ce_pane_" if light_k is not None else "ce_fill_") + mat.name
     nt = m.node_tree
+    if light_k is not None and tint:
+        from cesprites import materials as M
+        bsdf = [nd for nd in nt.nodes if nd.bl_idname == "ShaderNodeBsdfPrincipled"]
+        if bsdf:
+            inp = bsdf[0].inputs["Base Color"]
+            mix = nt.nodes.new("ShaderNodeMix")
+            mix.data_type = "RGBA"
+            mix.inputs["Factor"].default_value = float(tint[1])
+            a_col, b_col = M._sock(mix.inputs, "A_Color"), M._sock(mix.inputs, "B_Color")
+            if inp.is_linked:
+                src = inp.links[0].from_socket
+                nt.links.remove(inp.links[0])
+                nt.links.new(src, a_col)
+            else:
+                a_col.default_value = tuple(inp.default_value)
+            b_col.default_value = M.srgb(tint[0])
+            nt.links.new(M._sock(mix.outputs, "Result_Color"), inp)
     for nd in list(nt.nodes):
         if nd.bl_idname != "ShaderNodeEmission":
             continue
@@ -436,6 +456,53 @@ def _filler_mat(mat, cache, light_k=None, sink=0.0):
         m["ce_sink"] = float(sink)
     cache[key] = m
     return m
+
+
+def _pane_mask(objs, size, grow=1):
+    """AS4R: texels (atlas size, top row first) covered by the panes (faces of a ce_pane material) - rasterised from
+    their atlas coordinates and grown by `grow` texels. The ambient occlusion leaves them out: a pane darkened towards
+    its frame gave the frame's edge more contrast, and at 120 m and more the windows flickered (1.7 % of the pixels per
+    quarter-pixel step against 0.1 % with AS4's flat panes, measured)."""
+    W, H = size
+    mask = np.zeros((H, W), dtype=bool)
+    for ob in objs:
+        slots = [s.material for s in ob.material_slots]
+        idx = {i for i, m in enumerate(slots) if m is not None and m.get("ce_pane")}
+        if not idx or BK.UV_NAME not in ob.data.uv_layers:
+            continue
+        me = ob.data
+        me.calc_loop_triangles()
+        lay = me.uv_layers[BK.UV_NAME]
+        uv = np.empty(len(me.loops) * 2, dtype=np.float64)
+        lay.data.foreach_get("uv", uv)
+        uv = uv.reshape(-1, 2)
+        for lt in me.loop_triangles:
+            if lt.material_index not in idx:
+                continue
+            p = np.array([[uv[li][0] * W - 0.5, (1.0 - uv[li][1]) * H - 0.5] for li in lt.loops])
+            x0, y0 = np.floor(p.min(axis=0)).astype(int) - 1
+            x1, y1 = np.ceil(p.max(axis=0)).astype(int) + 1
+            x0, y0, x1, y1 = max(0, x0), max(0, y0), min(W - 1, x1), min(H - 1, y1)
+            if x1 < x0 or y1 < y0:
+                continue
+            gx, gy = np.meshgrid(np.arange(x0, x1 + 1), np.arange(y0, y1 + 1))
+            (ax, ay), (bx, by), (cx, cy) = p
+            den = (by - cy) * (ax - cx) + (cx - bx) * (ay - cy)
+            if abs(den) < 1e-12:
+                continue
+            l1 = ((by - cy) * (gx - cx) + (cx - bx) * (gy - cy)) / den
+            l2 = ((cy - ay) * (gx - cx) + (ax - cx) * (gy - cy)) / den
+            l3 = 1.0 - l1 - l2
+            inside = (l1 >= -1e-6) & (l2 >= -1e-6) & (l3 >= -1e-6)
+            mask[y0:y1 + 1, x0:x1 + 1] |= inside
+    for _ in range(grow):
+        g = mask.copy()
+        g[1:, :] |= mask[:-1, :]
+        g[:-1, :] |= mask[1:, :]
+        g[:, 1:] |= mask[:, :-1]
+        g[:, :-1] |= mask[:, 1:]
+        mask = g
+    return mask
 
 
 def _settle_fillers(objs):
@@ -568,6 +635,10 @@ def bake_house(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, cutout=Fals
         # texels of the removed fillers have no occlusion value of their own: they keep their colour (they are only
         # ever seen through the mipmaps, as the painted window of the sprite)
         k = np.where(cov_ao, k, 1.0)
+        # AS4R: neither do the panes (flat glass as AS4's panes were: see _pane_mask)
+        pm = _pane_mask(objs, size)
+        k = np.where(pm, 1.0, k)
+        stats["pane_texels"] = int(pm.sum())
         base = base.copy()
         base[..., :3] *= k[..., None]
         stats["ao_s"] = round(time.time() - t_ao, 2)
@@ -734,7 +805,8 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
             # hole fillers: the painted window inside every hole for the colour bake; the fillers of doors and louvres
             # are deleted again in bake_house, those of windows become the panes (AS4R: moved back into the reveal)
             fmat = _filler_mat(mat, fill_cache)
-            pmat = _filler_mat(mat, fill_cache, light_k=pane_light, sink=reveal_m) if pane_light is not None else None
+            pmat = (_filler_mat(mat, fill_cache, light_k=pane_light, sink=reveal_m, tint=opt.get("pane_tint", PANE_TINT))
+                    if pane_light is not None else None)
             names_ob = [m.name if m is not None else "" for m in ob.data.materials]
             for m_ in [x for x in (fmat, pmat) if x is not None]:
                 if m_.name not in names_ob:

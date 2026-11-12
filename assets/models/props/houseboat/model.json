@@ -34,8 +34,8 @@
   "roughness": 0.7,
   "auto_lod": false,
   "tags": ["prop", "boat", "water", "mirror_left"],
-  "bytes": 238859,
-  "hash": "1594b7699728ddd26b8e82a74bedae4c20e76e27"
+  "bytes": 230411,
+  "hash": "d7e9fc36a54e8c49ebdb1f325d0b3a387a8e94a0"
  },
  "sets": {
   "props/houseboat": {"model": "props/houseboat"}

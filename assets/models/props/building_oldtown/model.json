@@ -37,8 +37,8 @@
   "roughness": 0.85,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left"],
-  "bytes": 587748,
-  "hash": "91b4261a7dc4c3b688ee90ccba68b73c95485e20"
+  "bytes": 546788,
+  "hash": "d89a084e84a90ad03c1876ccbcbaa18be621ec01"
  },
  "sets": {
   "props/building_oldtown": {"model": "props/building_oldtown"}

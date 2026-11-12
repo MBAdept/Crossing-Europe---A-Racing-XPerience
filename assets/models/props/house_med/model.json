@@ -37,8 +37,8 @@
   "roughness": 0.9,
   "auto_lod": false,
   "tags": ["prop", "building", "mirror_left"],
-  "bytes": 532267,
-  "hash": "ebfbe26a3516404f981c19045ddef763b0c3aa1b"
+  "bytes": 507401,
+  "hash": "a6b9181e4c956cb0b9996e9c3baa074d7cc330fa"
  },
  "sets": {
   "props/house_med": {"model": "props/house_med"}

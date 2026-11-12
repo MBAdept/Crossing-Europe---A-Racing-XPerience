@@ -319,12 +319,13 @@ MODELS.update({
                             openings=dict(reveal_m=0.08, reveal_color="#2b3b31", sill_color="#ece8de", steps=0),
                             code=["cesprites/props_cities.py"]),
     # --- AS1b's windmill, reworked: real openings in the middle of the octagon's faces instead of the painted grid
-    # that straddled a corner (hook win3d); the rest as AS1b built it. AS4R (M7): sails with seven 13 cm bars instead
-    # of thirteen 7 cm ones (the same covered area; half a pixel wide at the mills' 80-150 m, they flickered); the
-    # panes are atlas patches (M3)
+    # that straddled a corner (hook win3d); the rest as AS1b built it. AS4R: the panes are atlas patches (M3); the
+    # sails stay the sprite's lattice - the art review's flicker of the mill (M7) was the rotor turning while its
+    # measurement moved the model (the rotor phase follows the world position); with the camera moving instead, mill
+    # and sprite flicker alike (measured, docs/modelle.md section 15)
     "props/windmill": dict(builder="house", source="props/windmill", kind="building", atlas=(1024, 1024),
                            ppm_max=64.0, roughness=0.9, view="allround", gutters=False, ao=AO_RURAL,
-                           params={"win3d": True, "sail_bars": (7, 0.13, 0.14)}, openings=False, caps=False,
+                           params={"win3d": True}, openings=False, caps=False,
                            octagon=dict(objects=("mill_base",), faces=(67.5, 112.5, 247.5, 292.5),
                                         rows=(2.3, 4.9), win=(0.8, 1.1), lit=0.5, frame="#e9e6de", reveal_m=0.25),
                            rotor=dict(objects=("mill_sails",), hub_z=19.8), code=["cesprites/props_buildings.py"]),
