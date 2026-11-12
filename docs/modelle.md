@@ -944,7 +944,21 @@ den Fahrspuren), und Schönheitsfehler, die man stundenlang sieht. Alle Zahlen g
   Kantenunruhe der Gitterflügel. Weniger und dickere Sprossen (7 × 0,13 m statt 13) änderten daran nichts (gemessen)
   und sind verworfen.
 
-MESSUNGEN_AS4R
+Messungen vorher (AS4) / nachher (AS4R), Software-OpenGL, Renn-Look der Prüfszene bzw. `tools/ab_shot.sh`:
+
+| Messung | AS4 | AS4R | Arcade / Sprite |
+|---|---|---|---|
+| Pylon: Seilende quer (Aufstellung 7,55 m; Fahrbahnkante 3,75 m, Geländer 6,25 m) | 3,35 m | 6,40 m | 6,15 m |
+| Pylon: Fächer längs | ±82,7 m | ±36 m | 33,8–62,6 m je Brücke |
+| Pylon: Stufenwechsel | 58 % der Pixel | eine Stufe | – |
+| Anteil Braun unter den dunklen, farbigen Pixeln, Nahansichten 12 Uhr (Laden / Altstadt / Block A / Block B / Haus) | 8,3 / 21,4 / 23,6 / 16,4 / 10,6 % | 0,0 / 3,3 / 4,1 / 2,8 / 5,2 % | – |
+| Fensterlicht Paris–Tours km 131,3, 23 Uhr, hoch: Spitze / Pixel > 150 / Pixel > 200 | 165 / 143 / 0 | 216 / 379 / 163 | 225 / 543 / 388 |
+| Fabrik nachts, acht Drehungen bei 70 m: weiße Pixel über den Wänden / hellster Wert | 12 690 / 255 | 0 / 163 | – |
+| Kirche im Rennbild Paris–Tours 12 Uhr: Wand Mittel / 95. Perzentil | 204 / 229 | 181 / 200 | 173 / 194 |
+| Fachwerkportal: Kontrast zum Himmel bei 100 / 250 / 400 m | 95 / 100 / 82 | 108 / 106 / 94 | 109 / 131 / 138 |
+| Mühle: Flimmern mit bewegter Kamera bei 60 / 120 / 250 / 400 m | 4,2 / 3,3 / 5,5 / 7,5 % | unverändert | 2,9 / 2,5 / 4,4 / 4,3 % |
+| Block B: Flimmern bei 60 / 120 / 250 / 400 m (Nebenwirkung der Scheiben) | 0,1 / 0,1 / 0,7 / 0,9 % | 0,2 / 1,0 / 0,8 / 0,6 % | 0,1 / 0,2 / 0,5 / 0,4 % |
+| Stufenwechsel bei 60 m, mittel (Haus / Kirche / Fabrik / Laden / Altstadt / Block A / Block B) | 11,3 / 3,4 / 6,5 / 4,2 / 8,1 / 8,3 / 8,9 % | 11,2 / 3,0 / 7,0 / 5,4 / 8,4 / 8,2 / 9,4 % | – |
 
 **Nicht im Modell lösbar** (an die Renderer-Pakete): Fähren und Hausboote stehen ohne Wasser auf der Wiese (R2:
 Requisiten mit `h` < 0 auslassen, bis R5 Wasser hat); die Höhe des Pylons folgt nicht `height_m` der Brücke (50–120 m,
