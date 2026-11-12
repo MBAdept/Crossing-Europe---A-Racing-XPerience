@@ -623,15 +623,20 @@ func _panel_material() -> ShaderMaterial:
 
 ## Main thread: the cells of the panels (plain data for build()). Without prepare() (tests of the kernel without a
 ## renderer) the placeholder atlas is made here, at once.
-func collect(_ctx: ChunkContext) -> Variant:
+func collect(ctx: ChunkContext) -> Variant:
 	if not _prepared and not _atlas.ready:
 		_atlas.prepare(panel_specs(), null)
-	return {"uv": _atlas.entries.duplicate()}
+	# the fuel-zone flags of the segment before the chunk: an island that goes on from there gets no end face
+	var prev_fz := -1
+	if ctx.track != null and ctx.seg_a > 0:
+		prev_fz = ctx.track.get_segment(ctx.seg_a - 1).fuel_zone
+	return {"uv": _atlas.entries.duplicate(), "prev_fz": prev_fz}
 
 
 ## WORKER THREAD.
 func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 	var uvs: Dictionary = (input as Dictionary).get("uv", {}) if input is Dictionary else {}
+	var first_prev := int((input as Dictionary).get("prev_fz", -1)) if input is Dictionary else -1
 	var kit := Kit.new()
 	var pan := PanelBuf.new()
 	var rows := ctx.row_count()
@@ -662,7 +667,7 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 		var z1 := z0 + seg_len
 		var e := (ctx.rows_edge[i].y + ctx.rows_edge[i + 1].y) * 0.5   # paved right edge incl. the fuel lane
 		var next_fz := int(sb["fuel_zone"])
-		var prev_fz := int(ctx.segs[i - 1]["fuel_zone"]) if i > 0 else -1
+		var prev_fz := int(ctx.segs[i - 1]["fuel_zone"]) if i > 0 else first_prev
 		var road_side := -ctx.rows_r[i]
 		if (fz & TrackSegment.FUEL_ISLAND) != 0:
 			islands += 1
