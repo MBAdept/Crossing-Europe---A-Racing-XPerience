@@ -53,6 +53,7 @@ TIMBER_OUT = 0.035        # timber members stand this far proud of the infill
 CUT_PPM = 150.0           # texel density of cut-out charts (railings): a 3 cm bar = 4.5 texels
 FAR_MIN_N = 0.9           # a far face looks along +x or +y at least this much
 NEAR_COVER_M = 0.3        # a near wall with another volume closer than this in front of it is covered
+LAMP_TOP_MIN_Z = 8.0      # closed lamp bodies higher than this lose their upward faces (_open_lamp_tops)
 BAKE_SAMPLES = 4          # Cycles samples of the colour and light bakes: they are EMIT bakes at twice the atlas size
 #                           (bake.SUPERSAMPLE), 4 x 4 = 16 jittered samples per atlas texel are enough for the edges
 #                           of the procedural facades; bake.SAMPLES (16) cost the 2048 x 1024 atlases 20 minutes each
@@ -1093,6 +1094,79 @@ def far_uvs(charts, far_objs, matches, size):
     return n
 
 
+# --- lamps and texel weights --------------------------------------------------------------------------------------
+
+def _open_lamp_tops(objs, lamp_mats):
+    """A closed lamp body that P._open_lamp_boxes leaves whole (no wall behind it: the red light on the mast of the
+    office tower, a sphere on the middle axis) has normals that cancel out - its light anchor stayed in the middle of
+    the sphere, 0.28 m under the lamp (validator). Its upward faces are removed: nobody sees them from the road (the
+    lamp hangs 50 m and more above the camera), the anchor then lies on the underside and looks down. Only lamps whose
+    lowest point is LAMP_TOP_MIN_Z above the ground (a wall lamp at 2.3 m is seen from above by the 3.4 m camera).
+    Returns the number of lamp bodies opened."""
+    import bmesh
+    names = {m.name for m in lamp_mats}
+    if not names:
+        return 0
+    n_open = 0
+    for ob in objs:
+        mats = [s.material for s in ob.material_slots]
+        if not any(m is not None and m.name in names for m in mats):
+            continue
+        mw = np.array(ob.matrix_world, dtype=np.float64)
+        m3 = mw[:3, :3]
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        bm.faces.ensure_lookup_table()
+        lamp = {f.index for f in bm.faces if f.material_index < len(mats) and mats[f.material_index] is not None
+                and mats[f.material_index].name in names}
+        seen = set()
+        drop = []
+        for f0 in bm.faces:
+            if f0.index not in lamp or f0.index in seen:
+                continue
+            isl, stack = [], [f0]
+            seen.add(f0.index)
+            while stack:
+                f = stack.pop()
+                isl.append(f)
+                for e in f.edges:
+                    for g in e.link_faces:
+                        if g.index in lamp and g.index not in seen:
+                            seen.add(g.index)
+                            stack.append(g)
+            area = sum(f.calc_area() for f in isl)
+            nsum = sum((m3 @ np.array(f.normal)) * f.calc_area() for f in isl)
+            if area <= 0.0 or float(np.linalg.norm(nsum)) >= 0.25 * area:
+                continue                       # open already (a lamp box on a wall)
+            if min(float((m3 @ np.array(v.co))[2] + mw[2, 3]) for f in isl for v in f.verts) < LAMP_TOP_MIN_Z:
+                continue
+            up = [f for f in isl if (m3 @ np.array(f.normal))[2] > 0.5]
+            if up and len(up) < len(isl):
+                drop += up
+                n_open += 1
+        if drop:
+            bmesh.ops.delete(bm, geom=drop, context="FACES")
+            bm.to_mesh(ob.data)
+            ob.data.update()
+        bm.free()
+    return n_open
+
+
+def _weights(spec3d):
+    """The house builder's texel weights (road 1, roof, away, under) and, per object name prefix, a factor
+    (weights["objects"]): the hedges and garden trees of the family house take a fraction of the wall density
+    ("gardens cheap") - at full density they filled a third of the atlas."""
+    base = H.weight_fn(spec3d.get("view", "roadside"), dict(spec3d.get("weights") or {}))
+    per = sorted(dict((spec3d.get("weights") or {}).get("objects") or {}).items())
+    if not per:
+        return base
+
+    def fn(n, ob):
+        k = next((float(v) for pre, v in per if ob is not None and ob.name.startswith(pre)), 1.0)
+        return float(base(n, ob)) * k
+    return fn
+
+
 # --- the bake (buildings3d.bake_house with far walls, floors and cut-out density) ----------------------------------
 
 def bake_city(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, cutout=False, ao=None, far=None, floors=None,
@@ -1460,7 +1534,9 @@ def _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, s
                               if name.startswith(pre)), 1.0)
         n_scaled += _scale_emission(m, k_m) if _has_light(m) else 0
     stats["lights_scaled"] = n_scaled
-    P._open_lamp_boxes(objs, [mats[n] for n in sorted(vpbr_names) if not mats[n].get("ce_vpbr")])
+    lamp_mats = [mats[n] for n in sorted(vpbr_names) if not mats[n].get("ce_vpbr")]
+    P._open_lamp_boxes(objs, lamp_mats)
+    stats["lamp_tops"] = _open_lamp_tops(objs, lamp_mats)
     lod0_objs = [o for o in objs if H._level(o) != "lod1"]
     bake_objs = [o for o in lod0_objs if any(s.material is not None and s.material.name not in vpbr_names
                                              for s in o.material_slots)]
@@ -1481,7 +1557,7 @@ def _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, s
         if far_objs:
             far = (far_objs, matches)
     size = tuple(spec3d.get("atlas", (1024, 1024)))
-    wf = H.weight_fn(spec3d.get("view", "roadside"), dict(spec3d.get("weights") or {}))
+    wf = _weights(spec3d)
     baked = bake_city(rig, bake_objs, bake_mats, size, weight_fn=wf, ppm_max=spec3d.get("ppm_max", 128.0),
                       cutout=bool(cut_names), ao=spec3d.get("ao"), far=far, floors=spec3d.get("floors"),
                       cut_ppm=float(spec3d.get("cut_ppm", CUT_PPM)), cut_names=rail_names,

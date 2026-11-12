@@ -515,7 +515,7 @@ MODELS.update({
         builder="city", source="props/city_german_house", kind="building", atlas=(1024, 1024), ppm_max=110.0,
         roughness=0.88, view="roadside", ao=AO_CITY, lod1=True,
         decimate={"gh_hedge": 0.35, "gh_tree_c": 0.4}, lamps=("gh_lamp",), vpbr=("gh_mb", "gh_dorm_fm"),
-        levels={"gh_mailbox": "lod0"}, weights=dict(roof=0.55, away=0.3),
+        levels={"gh_mailbox": "lod0"}, weights=dict(roof=0.55, away=0.3, objects={"gh_hedge": 0.3, "gh_tree": 0.3}),
         openings=dict(reveal_color="#ddd6c9", sill_color="#d0cec8", gate_w=2.2),
         gutters=dict(per_roof=2, walls=("gh_body", "gh_garage"))),
     # german (outskirts): the 1950s Mietshaus - balconies with coloured panels and a cut-out railing (single_cutout:
