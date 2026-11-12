@@ -216,7 +216,8 @@ tragen die Daten von Segment 0 mit eigenem Index und eigener Straßenposition, a
 nichts der Etappe steht doppelt (kein zweites Starttor). Das Gelände wiederholt den Querschnitt der Reihe 0. Die
 Kamera sieht davon nur die letzten Meter vor der Startlinie (der Boden am unteren Bildrand liegt bei 3,4 m Augenhöhe
 6,1 m vor ihr, abgeleitet); das volle Stück hält die Prüfungen „32 Segmente je Stück“ und die Zeichenregeln ohne
-Sonderfall. Ein Start bei km > 0,05 lädt kein Stück −1.
+Sonderfall. Gewünscht ist es, solange die Kamera höchstens 150 m hinter der Startlinie liegt (Auto bis z ≈ 159 m, km 1,6
+der Etappe bei Zeitmaßstab 10); ein Start weiter hinten in der Etappe lädt es nie.
 
 ### 4.2 Ablauf je Stück
 
