@@ -135,6 +135,22 @@ static func sound(n: String) -> void:
 			am.call("play", n)
 
 
+## A menu sound the Modern sound profile has a file of its own for (AU-D2: "ui/ui_tab", "ui/ui_toggle",
+## "ui/ui_error" in assets/audio/modern/ui/): `modern` while the profile is "modern", else `arcade` – the Arcade
+## profile keeps the sounds of v0.7.0 ("" = none). The menus read the sound profile, never the graphics mode.
+static func sound_modern(modern: String, arcade: String) -> void:
+	var ml := Engine.get_main_loop()
+	if not ml is SceneTree:
+		return
+	var am: Node = (ml as SceneTree).root.get_node_or_null("AudioManager")
+	if am == null:
+		return
+	if am.has_method("profile") and str(am.call("profile")) == "modern":
+		am.call("play", modern)
+	elif arcade != "":
+		am.call("play", arcade)
+
+
 ## Links a list of controls vertically for focus navigation (wraps around).
 static func chain_focus(ctrls: Array, wrap: bool = true) -> void:
 	var n := ctrls.size()

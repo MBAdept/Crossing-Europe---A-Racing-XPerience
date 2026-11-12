@@ -54,12 +54,12 @@ func step(d: int) -> void:
 	else:
 		n = clampi(n, 0, values.size() - 1)
 	if n == index:
+		# at the end of a list that does not wrap: the Modern sound says "nothing to change" (Arcade: silent, as before)
+		UiKit.sound_modern("ui/ui_error", "")
 		return
 	index = n
 	_flash = 1.0
-	var am: Node = get_node_or_null("/root/AudioManager")
-	if am != null:
-		am.call("play", "ui_move")
+	UiKit.sound_modern("ui/ui_toggle", "ui_move")
 	value_changed.emit(index)
 	queue_redraw()
 

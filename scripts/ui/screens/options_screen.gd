@@ -90,7 +90,7 @@ func show_tab(i: int, focus: bool = true) -> void:
 		for state in ["normal", "hover", "pressed", "hover_pressed"]:
 			_tab_buttons[k].add_theme_stylebox_override(state, box)
 	if focus and is_inside_tree():
-		UiKit.sound("ui_move")
+		UiKit.sound_modern("ui/ui_tab", "ui_move")
 		var first := first_row(tab)
 		if first != null:
 			first.grab_focus()

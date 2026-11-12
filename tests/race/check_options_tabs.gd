@@ -29,6 +29,23 @@ func _check(check_name: String, ok: bool, msg: String = "") -> void:
 		_failed.append(check_name)
 
 
+## How often the Modern sound's SfxBank played `sound_name` (0 while the Arcade profile is on: no ModernAudio).
+func _modern_count(sound_name: String) -> int:
+	var am: Node = root.get_node_or_null("AudioManager")
+	var m: Variant = am.get("_modern") if am != null else null
+	if not m is Object or not is_instance_valid(m):
+		return 0
+	var sfx: Variant = (m as Object).get("sfx")
+	if not sfx is Object:
+		return 0
+	return int(((sfx as Object).get("counts") as Dictionary).get(sound_name, 0))
+
+
+func _am_profile() -> String:
+	var am: Node = root.get_node_or_null("AudioManager")
+	return str(am.call("profile")) if am != null and am.has_method("profile") else "?"
+
+
 func _frames(n: int) -> void:
 	for i in n:
 		await process_frame
@@ -115,6 +132,9 @@ func _run() -> void:
 	var q: Dictionary = _settings.call("stored_quality")
 	_check("eigene", _focus_label() == "Schatten" and str(_settings.get("gfx_preset")) == "custom" and int(q["shadows"]) == 3,
 		"Fokus %s, Voreinstellung %s -> %s, %s" % [_focus_label(), before, _settings.get("gfx_preset"), JSON.stringify(q)])
+	# M2INT (lead note 8): with the Modern sound a changed value plays the Modern menu sound of its own (AU-D2)
+	_check("klang_wert", _modern_count("ui/ui_toggle") >= 1, "ui/ui_toggle %d-mal (Profil %s)" % [_modern_count("ui/ui_toggle"),
+		_am_profile()])
 	await _taps(JOY_BUTTON_DPAD_UP, 3)
 	_check("zurueck_oben", _focus_label() == "Grafik", "Fokus " + _focus_label())
 	# back to Arcade: the quality rows are skipped – ▼▼ from "Grafik" is "Vollbild", then "Leistungstest"
@@ -136,6 +156,12 @@ func _run() -> void:
 	_check("klang_musik", on_klang == "Klang" and str(_settings.get("sound_profile")) == "modern"
 		and str(_settings.call("sound")) == "modern" and on_music == "Musik im Rennen" and not bool(_settings.get("race_music")),
 		"Fokus %s -> %s, Klang %s, Musik im Rennen %s" % [on_klang, on_music, _settings.get("sound_profile"), _settings.get("race_music")])
+	# … and RB / LB the Modern page sound (Arcade keeps ui_move: tests/unit/audio_modern/check_music.gd "arcade")
+	var tabs_before := _modern_count("ui/ui_tab")
+	await _tap(JOY_BUTTON_RIGHT_SHOULDER)
+	await _tap(JOY_BUTTON_LEFT_SHOULDER)
+	_check("klang_seite", _modern_count("ui/ui_tab") >= tabs_before + 2 and int(screen.get("tab")) == 0,
+		"ui/ui_tab %d → %d (Profil %s), Seite %d" % [tabs_before, _modern_count("ui/ui_tab"), _am_profile(), int(screen.get("tab"))])
 	await _tap(JOY_BUTTON_B)
 	await _frames(4)
 	var d: Dictionary = JsonFile.load_dict(SETTINGS_TEST)
