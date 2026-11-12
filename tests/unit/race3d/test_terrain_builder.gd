@@ -305,10 +305,16 @@ func test_noise_texture_is_deterministic_and_shared() -> void:
 
 
 ## M2INT (finding FIX-ZS1-B1, ferries on meadow under the Köhlbrandbrücke): where the loaded window crosses water, the
-## plane lies below the water the terrain draws (TrackSegment.water_level), not only below the road.
+## plane lies below the water the terrain draws (TrackSegment.water_level), not only below the road. M2ZS1: since the
+## merge of the first test build there is one rule, FIX-WASSER's FarGround.target_height() (the water of the bridges
+## of Track.bridges, WATER_MARGIN_M below it; tests/unit/race3d/test_far_ground_water.gd on real stages) – this test
+## keeps guarding it on a synthetic track: a bridge zone as Track._mark_bridge marks it, a water row between two road
+## samples (every 4th row) included.
 func test_far_ground_lies_below_the_water_of_a_bridge() -> void:
 	var t := _syn_track(1600)
-	for k in range(300, 360):
+	var seg := t.seg_len
+	t.bridges.append({"z0": 301.0 * seg, "z1": 361.0 * seg, "depth": 9.0, "slope": 6.0, "type": "river"})
+	for k in range(301, 361):
 		var s := t.get_segment(k)
 		s.water = true
 		s.water_depth = 9.0
@@ -317,15 +323,20 @@ func test_far_ground_lies_below_the_water_of_a_bridge() -> void:
 	p.setup(t, 0, 120.0)
 	p.ensure(1500)
 	var fg := FarGround.new()
-	var with_water := fg.lowest_road(p, 600.0, 900.0, t)
-	var road_only := fg.lowest_road(p, 600.0, 900.0)
+	var drop := 4.0                                          # graphics.modern.terrain.far_ground_drop_m, the default
+	var with_water := fg.target_height(p, t, 600.0, 900.0)
+	var road_only := fg.lowest_road(p, 600.0, 900.0) - drop
 	var water_lo := INF
-	for k in range(300, 360):
+	for k in range(301, 361):
 		water_lo = minf(water_lo, p.height(k) - 9.0)
-	assert_true(with_water <= water_lo + 0.6, "unter dem Wasser der Brücke (%.2f, Wasser %.2f)" % [with_water, water_lo])
-	assert_true(with_water <= road_only, "nie über der tiefsten Fahrbahn (%.2f / %.2f)" % [with_water, road_only])
-	assert_near(fg.lowest_road(p, 3600.0, 900.0, t), fg.lowest_road(p, 3600.0, 900.0), 1.0e-4,
+	assert_near(fg.water_y, water_lo, 1.0e-3, "tiefstes Wasser des Fensters: jede Wasserreihe gelesen (%.3f, Wasser %.3f)"
+		% [fg.water_y, water_lo])
+	assert_true(with_water <= water_lo - FarGround.WATER_MARGIN_M + 1.0e-4,
+		"unter dem Wasser der Brücke (%.2f, Wasser %.2f)" % [with_water, water_lo])
+	assert_true(with_water <= road_only + 1.0e-4, "nie über der tiefsten Fahrbahn − Abstand (%.2f / %.2f)" % [with_water, road_only])
+	assert_near(fg.target_height(p, t, 3600.0, 900.0), fg.lowest_road(p, 3600.0, 900.0) - drop, 1.0e-4,
 		"ohne Wasser im Fenster: wie die Fahrbahn allein")
+	assert_eq(fg.water_y, INF, "ohne Wasser im Fenster: kein Wasserstand")
 	fg.free()
 
 

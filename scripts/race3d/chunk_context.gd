@@ -57,7 +57,9 @@ var sync := false
 
 
 ## Takes the snapshot of the rows a..b (main thread). The path must reach row b and the track must still hold the
-## segments (ChunkStreamer checks both).
+## segments (ChunkStreamer checks both). Rows k < 0 are the lead-in before the start line (chunk -1, FIX-ZS1): the
+## path places them on its straight lead-in, the terrain repeats the cross-section of row 0, and their segs entries
+## are segment 0's (lead_in_snapshot(): own index and z, no sprites – nothing of the stage stands there twice).
 func capture(chunk_index: int, a: int, b: int, p: RoadPath3D, t: TerrainProfile, tr: Track) -> void:
 	index = chunk_index
 	seg_a = a
@@ -80,7 +82,7 @@ func capture(chunk_index: int, a: int, b: int, p: RoadPath3D, t: TerrainProfile,
 	rows_edge.resize(count)
 	for q in count:
 		var s := tr.get_segment(a + q)
-		segs.append(seg_snapshot(s))
+		segs.append(seg_snapshot(s) if a + q >= 0 else lead_in_snapshot(s, a + q, tr.seg_len))
 		var half := s.lanes * lane_w * 0.5
 		rows_edge[q] = Vector2(-half, half + s.fuel_lane * lane_w)
 	var tp := t.rows(a, b)
@@ -103,6 +105,17 @@ static func seg_snapshot(s: TrackSegment) -> Dictionary:
 		"cover": s.cover, "cover_front": s.cover_front, "country_to": s.country_to, "bridge": s.bridge, "bridge_i": s.bridge_i,
 		"water": s.water, "water_depth": s.water_depth, "water_level": s.water_level, "bank": s.bank,
 		"sprites": s.sprites.duplicate(true)}
+
+
+## The segs entry of lead-in row k < 0: segment 0 (`s0`) with the index k, the road position k × seg_len and the
+## odometer 0, without sprites.
+static func lead_in_snapshot(s0: TrackSegment, k: int, seg_length: float) -> Dictionary:
+	var d := seg_snapshot(s0)
+	d["index"] = k
+	d["z"] = float(k) * seg_length
+	d["km"] = 0.0
+	d["sprites"] = []
+	return d
 
 
 ## Number of rows (segments + 1).

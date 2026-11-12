@@ -441,7 +441,9 @@ func update(view: Dictionary, dt: float) -> void:
 	if dt <= 0.0:
 		sim_dt = 0.0
 	_last_time = time
-	var z_lo := float(path.first) * path.seg_len
+	# below z_lo the path cannot place a car; at the start of a stage there is no such limit: the cars before the start
+	# line (the player's rear at -length / 2 during the countdown) stand on the lead-in (FIX-ZS1, QA1-B1)
+	var z_lo := path.z_min()
 	var z_hi := float(path.last()) * path.seg_len
 	# stand-ins: the camera of this frame (the renderer placed it before the layers), Arcade's light
 	_standin_drawn = 0
@@ -480,6 +482,14 @@ func update(view: Dictionary, dt: float) -> void:
 	_updates += 1
 
 
+## True when a car (rear at road position z, `length` long) is drawn at all: its front at most BEHIND_M behind the
+## camera, its rear at most the visibility plus AHEAD_MARGIN_M ahead, the whole car where the path places it
+## (z_lo .. z_hi). z_lo is RoadPath3D.z_min(): -INF at the start of a stage, where the cars before the start line – the
+## player's rear at -length / 2 in the countdown – stand on the path's lead-in (FIX-ZS1, QA1-B1).
+static func in_range(z: float, length: float, cam_z: float, vis: float, z_lo: float, z_hi: float) -> bool:
+	return not (z + length < cam_z - BEHIND_M or z - cam_z > vis + AHEAD_MARGIN_M or z < z_lo or z + length > z_hi)
+
+
 func _update_car(c: Dictionary, is_player: bool, path: RoadPath3D, track: Track, cam_z: float, vis: float, lights: float,
 		time: float, sim_dt: float, z_lo: float, z_hi: float) -> void:
 	var set_id := str(c.get("set", ""))
@@ -497,7 +507,7 @@ func _update_car(c: Dictionary, is_player: bool, path: RoadPath3D, track: Track,
 		_cars.erase(id)
 		car = null
 	var dz := z - cam_z
-	var out_of_range := z + length < cam_z - BEHIND_M or dz > vis + AHEAD_MARGIN_M or z < z_lo or z + length > z_hi
+	var out_of_range := not in_range(z, length, cam_z, vis, z_lo, z_hi)
 	if out_of_range or (is_player and not bool(c.get("visible", true))):
 		if car != null:
 			car.seen = _frame

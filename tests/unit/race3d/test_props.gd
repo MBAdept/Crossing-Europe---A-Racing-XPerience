@@ -442,6 +442,220 @@ func test_bend_corridor_and_density() -> void:
 	_cleanup()
 
 
+## The shipped manifest with the models of `set_ids` taken away (each a sprite stand-in, as a set without a model is
+## shown); the meshes of every other set stay those of the shipped models ("root", like tests/race3d/check_vehicles.gd
+## "kasten"). "" when it cannot be written. Load the shipped manifest again with ModelDB.load_manifest() afterwards.
+func _manifest_without_models(set_ids: Array) -> String:
+	var src: Variant = JSON.parse_string(FileAccess.get_file_as_string(ModelDB.ROOT + ModelDB.MANIFEST))
+	if not src is Dictionary:
+		return ""
+	var m: Dictionary = src
+	m["root"] = ModelDB.ROOT
+	var sets: Dictionary = m["sets"]
+	for sid: String in set_ids:
+		sets[sid] = {"fallback": "sprite"}
+	var path := "user://test_props_manifest_without_models.json"
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	if f == null:
+		return ""
+	f.store_string(JSON.stringify(m))
+	f.close()
+	return path
+
+
+## The pylons of a cable-stayed bridge as the track places them ("prefer_proc": Arcade draws them procedurally,
+## concrete grey at night, with a blinking red aviation light) and one plain item of the same set.
+func _pylon_track() -> Track:
+	var t := _track()
+	_put(t, 197, {"kind": "prop", "set": "props/bridge_pylon", "proc": "pylon", "prefer_proc": true, "side": 1,
+		"x": _x(t, 1, 1.3), "offset": 1.3, "height_m": 80.0, "cables": 40.0, "bridge": "cable_stayed", "color": ""})
+	_put(t, 197, {"kind": "prop", "set": "props/bridge_pylon", "proc": "pylon", "prefer_proc": true, "side": -1,
+		"x": _x(t, -1, 1.3), "offset": 1.3, "height_m": 80.0, "cables": 40.0, "bridge": "cable_stayed", "color": "", "dz": 1.5})
+	_put(t, 205, {"kind": "prop", "set": "props/bridge_pylon", "side": 1, "x": _x(t, 1, 30.0), "scale": 1.0})
+	return t
+
+
+## M2ZS1 (merge of the first test build into M2): since AS4R the pylon is a MODEL (props/bridge_pylon: concrete, head and
+## aviation light in one baked atlas, no light layer of a sprite) – both sides as the model (the left one mirrored,
+## mirror_left), no dark stand-in, and the red aviation light as a lamp anchor of each pylon, high up (no light pool).
+func test_bridge_pylon_is_a_model_with_its_aviation_light() -> void:
+	var t := _pylon_track()
+	var ctx := _ctx(t, 6)
+	var b := Props.new()
+	var part := b.build(ctx, b.collect(ctx))
+	var groups: Dictionary = part["groups"]
+	assert_eq(int((b.library.sets["props/bridge_pylon"] as Dictionary)["kind"]), PropLibrary.MODEL, "Pylon: Modell (AS4R)")
+	assert_true(groups.has("m|props/bridge_pylon|0") and groups.has("m|props/bridge_pylon|1"),
+		"Brückenpylone beider Seiten als Modell (links gespiegelt) – %s" % str(groups.keys()))
+	for key: String in groups:
+		assert_false(key.begins_with("d|") or key.begins_with("s|props/bridge_pylon"), "keine Vertretung, wenn das Modell da ist (%s)" % key)
+	var beacons: Array = []
+	for l: Dictionary in part["lamps"]:
+		if (l["pos"] as Vector3).y > PropLibrary.BEACON_MIN_H_M:
+			beacons.append(l)
+	assert_eq(beacons.size(), 3, "eine Flugbefeuerung je Pylon (zwei der Brücke, eins für sich)")
+	for l: Dictionary in beacons:
+		var c: Color = l["color"]
+		assert_true(c.r > 0.9 and c.g < 0.3 and c.b < 0.3, "rot wie Arcades Warnlicht (%s)" % str(c))
+		assert_eq(float(l["range"]), 0.0, "hoch oben: kein Lichtkegel am Boden")
+	_cleanup()
+
+
+## QA-WASSER B2: the pylon of a cable-stayed bridge ("prefer_proc": Arcade draws it procedurally, concrete grey at
+## night) is a stand-in without the sprite's light layer (a floodlit pylon) and without the player's headlights;
+## every other stand-in of the set keeps both. Since AS4R the pylon has a model (test above): the stand-in is the
+## fallback when the model is missing – a test manifest without it (M2ZS1).
+func test_procedural_bridge_pylon_stand_in_stays_dark_at_night() -> void:
+	var manifest := _manifest_without_models(["props/bridge_pylon"])
+	assert_true(manifest != "" and ModelDB.load_manifest(manifest), "Test-Manifest ohne das Pylon-Modell")
+	var t := _pylon_track()
+	var ctx := _ctx(t, 6)
+	var b := Props.new()
+	var part := b.build(ctx, b.collect(ctx))
+	var groups: Dictionary = part["groups"]
+	assert_eq(int((b.library.sets["props/bridge_pylon"] as Dictionary)["kind"]), PropLibrary.SPRITE, "Pylon ohne Modell: Sprite-Vertretung")
+	assert_true(groups.has("d|props/bridge_pylon|0") and groups.has("d|props/bridge_pylon|1"), "Brückenpylone beider Seiten: dunkle Vertretung")
+	assert_true(groups.has("s|props/bridge_pylon|0"), "derselbe Satz ohne prefer_proc: gewöhnliche Vertretung")
+	var parent := Node3D.new()
+	b.commit(ctx, part, parent)
+	var dark := 0
+	var plain := 0
+	var standin_mat: Variant = b.library.standin("props/bridge_pylon").get("material")
+	assert_true(standin_mat is ShaderMaterial, "die Vertretung des Pylons ist geladen")
+	for c: Node in (parent.get_child(0).get_children() if parent.get_child_count() > 0 else []):
+		var mmi := c as MultiMeshInstance3D
+		if mmi == null or mmi.name == &"Contact" or not (mmi.material_override is ShaderMaterial):
+			continue
+		var mat := mmi.material_override as ShaderMaterial
+		var lr: Vector4 = mat.get_shader_parameter("lights_rect")
+		if lr.z == 0.0:
+			dark += 1
+			var hc: Vector3 = mat.get_shader_parameter("headlight_color")
+			assert_eq(hc, Vector3.ZERO, "dunkler Pylon: kein Scheinwerferlicht auf dem 88-m-Billboard")
+			assert_true(mat != standin_mat, "eigenes Material, das der Vertretung bleibt")
+		else:
+			plain += 1
+	assert_eq(dark, 2, "zwei dunkle Pylon-Knoten (rechts und gespiegelt links)")
+	assert_eq(plain, 1, "die gewöhnliche Vertretung behält ihre Lichtebene")
+	if standin_mat is ShaderMaterial:
+		var std: Vector4 = (standin_mat as ShaderMaterial).get_shader_parameter("lights_rect")
+		assert_true(std.z > 0.0, "die Vertretung selbst hat die Lichtebene des Sprites weiter")
+	parent.free()
+	_cleanup()
+	assert_true(ModelDB.load_manifest() and ModelDB.has_model("props/bridge_pylon"), "ausgeliefertes Manifest wieder geladen")
+
+
+## QA-WASSER B1: a landmark that Arcade draws procedurally and that has neither a sprite nor a model (Belgrad,
+## Hannover, Leipzig, Dortmund, Calais, Madrid) was dropped by Modern ("missing"); now the fallback set of its stage
+## plan entry stands in, with fallback_scale and fallback_tint. Checked on every city of data/cities.json with such a
+## landmark, on a real track that ends there.
+func test_procedural_landmarks_without_sprite_or_model_get_their_fallback() -> void:
+	var net := Fair.load_network()
+	var db: Dictionary = net["city_db"]
+	var lib := PropLibrary.new()
+	var all_sets: Array = []
+	var lm_sets: Dictionary = db.get("landmark_sets", {})
+	for set_id: String in lm_sets:
+		all_sets.append(set_id)
+		var fb := str((lm_sets[set_id] as Dictionary).get("fallback", ""))
+		if fb != "" and not all_sets.has(fb):
+			all_sets.append(fb)
+	for cid: String in (db.get("cities", {}) as Dictionary):
+		for lm_v: Variant in ((db["cities"] as Dictionary)[cid] as Dictionary).get("landmarks", []):
+			var placed := str((lm_v as Dictionary).get("set", ""))     # a city may place a set of the catalogue of props
+			if placed != "" and not all_sets.has(placed):
+				all_sets.append(placed)
+	lib.request(all_sets, self)
+	var guard := 0
+	while lib.pending() > 0 and guard < 30000:
+		OS.delay_msec(1)
+		guard += 1
+	# every landmark a city places is drawable in Modern: model, sprite or the fallback set of its catalogue entry
+	var cities_of := {}            # procedural landmark without sprite or model -> city
+	for cid: String in (db.get("cities", {}) as Dictionary):
+		for lm_v: Variant in ((db["cities"] as Dictionary)[cid] as Dictionary).get("landmarks", []):
+			var set_id := str((lm_v as Dictionary).get("set", ""))
+			var kind := int((lib.sets.get(set_id, {"kind": PropLibrary.NONE}) as Dictionary)["kind"])
+			if kind != PropLibrary.NONE:
+				continue
+			var entry := CityData.landmark_entry(db, set_id, lm_v)
+			var fb := str(entry.get("fallback", ""))
+			assert_true(entry.has("proc"), "%s (%s): ohne Sprite und Modell zeichnet Arcade es prozedural" % [set_id, cid])
+			assert_true(fb != "" and int((lib.sets.get(fb, {"kind": PropLibrary.NONE}) as Dictionary)["kind"]) != PropLibrary.NONE,
+				"%s (%s): Ersatz-Set %s ist in Modern Modell oder Vertretung" % [set_id, cid, fb])
+			cities_of[set_id] = cid
+	assert_true(cities_of.size() >= 6, "die sechs prozeduralen Wahrzeichen ohne Sprite und Modell gefunden (%s)" % str(cities_of))
+	lib.clear(self)
+	# on EVERY real track into each of those cities (M2ZS1: every approach, 20 in all; FIX-WASSER-R checked one per
+	# city): the landmark's chunk draws the fallback set – as its sprite stand-in ("l|<set>|0", tinted with
+	# fallback_tint) or, since AS4R gave props/church and props/building_tall a model, as that model ("m|<model>|0":
+	# a model carries its own colours, no tint) – in both cases with fallback_scale, under the landmark law (the
+	# group's "landmark" flag) and never mirrored
+	var approaches := 0
+	for set_id: String in cities_of:
+		var cid := str(cities_of[set_id])
+		var into := 0
+		for dir: Dictionary in Fair.directions(net):
+			var st: Dictionary = dir["stage"]
+			var to_id := str(st["to"]) if str(dir["from"]) == str(st["from"]) else str(st["from"])
+			if to_id != cid:
+				continue
+			var t := _real_track(str(st["id"]), str(dir["from"]), net)
+			assert_true(t != null, "%s: Etappe %s" % [set_id, str(dir["name"])])
+			if t == null:
+				continue
+			into += 1
+			_check_landmark_fallback(t, set_id, "%s (%s, %s)" % [set_id, cid, str(dir["name"])])
+		assert_true(into >= 1, "%s: mindestens eine Etappe nach %s" % [set_id, cid])
+		approaches += into
+	assert_true(approaches >= 20, "alle Anfahrten in die sechs Städte geprüft (%d)" % approaches)
+	_cleanup()
+
+
+## The chunk of landmark `set_id` on track t draws the fallback set of its stage-plan entry (see the test above).
+func _check_landmark_fallback(t: Track, set_id: String, what: String) -> void:
+	var fbs := Props.landmark_fallbacks(t)
+	assert_true(fbs.has(set_id), "%s: der Etappenplan nennt das Ersatz-Set" % what)
+	var lm: Dictionary = {}
+	for l: Dictionary in t.landmarks:
+		if str(l["set"]) == set_id:
+			lm = l
+	assert_false(lm.is_empty(), "%s: Wahrzeichen auf der Strecke" % what)
+	if lm.is_empty() or not fbs.has(set_id):
+		return
+	assert_false(lm.has("fallback"), "%s: die Strecke streicht das Ersatz-Set (Arcade zeichnet prozedural)" % what)
+	var k := int(floor(float(lm["z"]) / t.seg_len))
+	var ctx := _ctx(t, k / 32)
+	var b := Props.new()
+	var part := b.build(ctx, b.collect(ctx))
+	var fb := str(fbs[set_id])
+	var found := false
+	for e: Array in part["list"]:
+		var it: Dictionary = t.get_segment(int(e[0])).sprites[int(e[1])]
+		if bool(it.get("landmark", false)) and str(it["set"]) == set_id:
+			found = true
+			assert_eq(str(e[2]), fb, "%s: gezeichnet als %s" % [what, fb])
+			assert_near(float(e[5]), float(it.get("scale", 1.0)) * float(it.get("fallback_scale", 1.0)), 1.0e-3,
+				"%s: mit fallback_scale" % what)
+	assert_true(found, "%s: das Wahrzeichen steht in seinem Stück" % what)
+	var g: Dictionary = {}
+	for key: String in part["groups"]:
+		var gg: Dictionary = (part["groups"] as Dictionary)[key]
+		if str(gg["set"]) == fb and bool(gg.get("landmark", false)):
+			g = gg
+	assert_false(g.is_empty(), "%s: als Wahrzeichen gezeichnet (Gesetz der Wahrzeichen)" % what)
+	if g.is_empty():
+		return
+	assert_false(bool(g["mirror"]), "%s: nie gespiegelt" % what)
+	var is_model := str(g["model"]) != ""
+	assert_eq(is_model, ModelDB.has_model(fb), "%s: %s als %s" % [what, fb, "Modell" if is_model else "Vertretung"])
+	if not is_model and lm.has("fallback_tint"):
+		var buf: PackedFloat32Array = g["buf"]
+		var want := Color(str(lm["fallback_tint"]))
+		assert_near(buf[12], want.r, 0.01, "%s: Tönung aus fallback_tint (rot)" % what)
+		assert_near(buf[14], want.b, 0.01, "%s: … (blau)" % what)
+
+
 # --- five sceneries of real stages -------------------------------------------------------------------------------
 
 func _real_track(stage_id: String, from_city: String, net: Dictionary) -> Track:
@@ -471,7 +685,10 @@ func _expected(t: Track, tp: TerrainProfile, lib: PropLibrary, k: int, dropped: 
 		var e: Dictionary = lib.sets.get(set_id, {})
 		var sc := float(it.get("scale", 1.0))
 		if e.is_empty() or int(e["kind"]) == PropLibrary.NONE:
-			e = lib.sets.get(str(it.get("fallback", "")), {})
+			var fb := str(it.get("fallback", ""))
+			if fb == "" and bool(it.get("landmark", false)):
+				fb = str(Props.landmark_fallbacks(t).get(set_id, ""))   # a procedural landmark: the plan's fallback
+			e = lib.sets.get(fb, {})
 			if e.is_empty() or int(e["kind"]) == PropLibrary.NONE:
 				dropped["missing"] += 1
 				continue

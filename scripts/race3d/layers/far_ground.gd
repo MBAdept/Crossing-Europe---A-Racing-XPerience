@@ -3,16 +3,21 @@ extends Node3D
 ## docs/renderer-modern-gelaende.md): the ground beyond the terrain ribbons.
 ##
 ## A disc of RADIUS_M around the camera at
-##     far_y = lowest road of the loaded window - graphics.modern.terrain.far_ground_drop_m (4.0 m)
-## – below every road that is loaded, so it can hide nothing (rule F7) – and a rim at its edge that stands up to the
-## camera's eye level, i.e. exactly up to the horizon row of the picture. Disc and rim show the ground the outer
-## rings of the ribbons fade into (GroundLook.far_look, assets/shaders/modern/far_ground.gdshader), lit like level
-## ground and fogged by depth. They close what the ribbons leave open: the ground beyond the outer rings, the 12 m
-## gap at a medial axis and the hole at the centre of a tight bend.
+##     far_y = min(lowest road of the loaded window - graphics.modern.terrain.far_ground_drop_m (4.0 m),
+##                 lowest water surface of the loaded window - WATER_MARGIN_M (0.3 m))
+## – below every road and every water surface that is loaded, so it can hide nothing (rule F7) and never covers the
+## river under a high bridge (FIX-WASSER: the Elbe lies 9 m under the Köhlbrandbrücke, the plane at road - 4 m hid
+## it) – and a rim at its edge that stands up to the camera's eye level, i.e. exactly up to the horizon row of the
+## picture. Disc and rim show the ground the outer rings of the ribbons fade into (GroundLook.far_look,
+## assets/shaders/modern/far_ground.gdshader), lit like level ground and fogged by depth. They close what the ribbons
+## leave open: the ground beyond the outer rings, the 12 m gap at a medial axis and the hole at the centre of a tight
+## bend.
 ## The loaded window = the rows from keep_behind_m behind the camera to min(load_path_m, visibility + two chunks)
-## ahead, every 4th row (rows whose index is a multiple of 4, so the samples do not move with the camera). The height
-## follows its target by at most FOLLOW_SLOPE x the distance driven per frame; the first frame and a camera jump
-## snap.
+## ahead: the road every 4th row (rows whose index is a multiple of 4, so the samples do not move with the camera),
+## the water every row of a bridge (Track.bridges: only their rows carry TrackSegment.water; the terrain lays the
+## rings of such a row on road height + water_level, TerrainProfile). Without deep water (deeper than the drop) the
+## plane lies where it always did. The height follows its target by at most FOLLOW_SLOPE x the distance driven per
+## frame – also when a bridge enters the window about a kilometre ahead; the first frame and a camera jump snap.
 ## The disc is cut into SECTORS nodes: their centres lie far from the camera, so the renderer draws them after the
 ## terrain in front of them (one big node around the camera would be drawn first and cost its fill everywhere).
 ## Below the silhouettes the picture reads as distant land, as in Arcade (RINT-B): the plane shows Arcade's colour of
@@ -31,8 +36,10 @@ const SAMPLE_STEP := 4             ## rows between two samples of the road heigh
 const FOLLOW_SLOPE := 0.35         ## the plane's height changes by at most this much per metre driven
 const SNAP_M := 150.0              ## a camera jump beyond this snaps the height
 const GROUND_LAYERS := 2           ## render layer of ground meshes (builders/road.gd): no positional light reaches it
+const WATER_MARGIN_M := 0.3        ## the plane stays at least this far below the lowest water surface of the window
 
 var far_y := 0.0                   ## origin-relative height of the plane
+var water_y := INF                 ## lowest water surface of the loaded window (origin-relative), INF without water
 var material: ShaderMaterial
 
 var _renderer: Node                ## untyped: packages talk to each other through the facade only
@@ -156,7 +163,7 @@ func update(view: Dictionary, _dt: float) -> void:
 	if key != _key:
 		# the samples sit on fixed rows: nothing changes until the camera reaches the next row
 		_key = key
-		_target = lowest_road(path, cam_z, vis, track) - _drop
+		_target = target_height(path, track, cam_z, vis)
 	var moved := absf(cam_z - _last_z)
 	if not _valid or moved > SNAP_M:
 		far_y = _target
@@ -189,28 +196,57 @@ func update(view: Dictionary, _dt: float) -> void:
 		material.set_shader_parameter("far_nature", float(look["nature"]))
 
 
-## Lowest road height (origin-relative) of the loaded window around road position cam_z: every SAMPLE_STEP-th row
-## from keep_behind_m behind the camera to min(load_path_m, visibility + two chunks) ahead, inside the integrated path.
-## Where a bridge crosses water (or its bank slopes), the water / ground under the deck counts instead of the road
-## (TrackSegment.water_level <= 0): the plane lies below the water the terrain draws there. M2INT (finding FIX-ZS1-B1):
-## under the Köhlbrandbrücke the water lies 9 m (16 m from Hamburg) below the road, the plane 4 m below it covered the
-## Elbe with meadow and the ferries stood on grass.
-func lowest_road(path: RoadPath3D, cam_z: float, visibility_m: float, track: Track = null) -> float:
+## Height the plane follows (origin-relative) with the camera at road position cam_z: far_ground_drop_m below the
+## lowest road of the loaded window and WATER_MARGIN_M below its lowest water surface, whichever is lower (sets
+## water_y).
+func target_height(path: RoadPath3D, track: Track, cam_z: float, visibility_m: float) -> float:
+	water_y = lowest_water(path, track, cam_z, visibility_m)
+	return minf(lowest_road(path, cam_z, visibility_m) - _drop, water_y - WATER_MARGIN_M)
+
+
+## Rows of the loaded window around road position cam_z, Vector2i(first, last): from keep_behind_m and one chunk
+## behind the camera to min(load_path_m, visibility + two chunks) ahead, inside the integrated path.
+func window_rows(path: RoadPath3D, cam_z: float, visibility_m: float) -> Vector2i:
 	var seg := path.seg_len
 	var ahead := minf(_load_m, visibility_m + 2.0 * _chunk_m)
 	var k0 := maxi(path.first, int(floor((cam_z - _behind_m - _chunk_m) / seg)))
 	var k1 := mini(path.last(), int(ceil((cam_z + ahead) / seg)))
+	return Vector2i(k0, k1)
+
+
+## Lowest water surface (origin-relative) of the loaded window: every row of every bridge of the track inside the
+## window that carries water, at the height the terrain lays its rings there (road height + water_level,
+## TerrainProfile). INF when no water row is in the window (most of a stage: then far_y is the old rule exactly).
+func lowest_water(path: RoadPath3D, track: Track, cam_z: float, visibility_m: float) -> float:
+	var lo := INF
+	if track == null:
+		return lo
+	var w := window_rows(path, cam_z, visibility_m)
+	var seg := path.seg_len
+	for br: Dictionary in track.bridges:
+		var a := maxi(w.x, int(floor(float(br.get("z0", 0.0)) / seg)))
+		var b := mini(w.y, int(ceil(float(br.get("z1", 0.0)) / seg)))
+		for k in range(a, b + 1):
+			var s := track.get_segment(k)
+			if s != null and s.index == k and s.water:
+				lo = minf(lo, path.height(k) + minf(s.water_level, 0.0))
+	return lo
+
+
+## Lowest road height (origin-relative) of the loaded window around road position cam_z: every SAMPLE_STEP-th row
+## from keep_behind_m behind the camera to min(load_path_m, visibility + two chunks) ahead, inside the integrated path.
+func lowest_road(path: RoadPath3D, cam_z: float, visibility_m: float) -> float:
+	var w := window_rows(path, cam_z, visibility_m)
+	var k0 := w.x
+	var k1 := w.y
 	k0 = maxi(path.first, (k0 / SAMPLE_STEP) * SAMPLE_STEP)
 	var lo := INF
 	var k := k0
 	while k <= k1:
-		var y := path.height(k)
-		if track != null and k >= 0 and k < track.segment_count:
-			y += minf(0.0, track.get_segment(k).water_level)
-		lo = minf(lo, y)
+		lo = minf(lo, path.height(k))
 		k += SAMPLE_STEP
 	if lo == INF:
-		lo = path.height(clampi(int(cam_z / seg), path.first, path.last()))
+		lo = path.height(clampi(int(cam_z / path.seg_len), path.first, path.last()))
 	return lo
 
 
@@ -222,7 +258,8 @@ func rebased(shift: Vector3) -> void:
 
 func snapshot() -> Dictionary:
 	return {"far_ground": {"y": snappedf(far_y, 0.001), "target": snappedf(_target, 0.001), "drop": _drop, "radius": RADIUS_M,
-		"sectors": SECTORS, "visible": _root != null and _root.visible, "rim_rows": snappedf(maxf(_rim_rows, 0.0), 0.01)}}
+		"sectors": SECTORS, "visible": _root != null and _root.visible, "rim_rows": snappedf(maxf(_rim_rows, 0.0), 0.01),
+		"water_y": snappedf(water_y, 0.001) if water_y < INF else null}}
 
 
 func _exit_tree() -> void:

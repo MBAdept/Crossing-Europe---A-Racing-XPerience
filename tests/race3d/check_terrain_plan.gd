@@ -25,6 +25,7 @@ extends SceneTree
 const Fair := preload("res://tests/race3d/fairness.gd")
 const TerrainBuilder := preload("res://scripts/race3d/builders/terrain.gd")
 const PropsBuilder := preload("res://scripts/race3d/builders/props.gd")
+const FarGround := preload("res://scripts/race3d/layers/far_ground.gd")
 const WINDOWS := 3
 const WINDOW_GAP_M := 1500.0
 const VISIBILITY_M := 900.0
@@ -36,6 +37,13 @@ const BUDGET_TRIANGLES := 1100
 const CELL_M := 160.0
 ## Terrain reference positions (contract §4.9.2): direction name, km.
 var _details := 0                 ## --verbose: overlapping pairs still to be printed
+
+
+## The members of the renderer facade (A-7) that layers/far_ground.gd reads in setup(): the dump asks the layer itself.
+class DumpFacade extends Node:
+	var cfg: Dictionary = {}
+	var track: Track
+	var world: Node3D
 
 const REFERENCE := {"T1": ["kassel_wuerzburg__kassel", 46.5], "T2": ["kassel_wuerzburg__kassel", 61.9],
 	"T3": ["saragossa_pau__saragossa", 172.8], "T4": ["saragossa_pau__saragossa", 198.8]}
@@ -342,13 +350,18 @@ func _write_dump(folder: String, id: String, dir_name: String, track: Track, p: 
 	var view := {"camera_z": cam_z, "camera_x": 0.0, "camera_y": p.height_at(cam_z + proj.cam_distance) + proj.cam_height}
 	var tr := cam.transform(view, p)
 	var fwd := -tr.basis.z
-	var lowest := INF
-	var seg := track.seg_len
-	for k in range(maxi(p.first, int((cam_z - 246.0) / seg)), mini(p.last(), int((cam_z + 1092.0) / seg)) + 1, 4):
-		lowest = minf(lowest, p.height(k))
+	# the far-ground plane where the layer puts it (FIX-WASSER-R, QA-WASSER B5): its own rule – below the lowest road
+	# AND below the lowest water of the loaded window – through a stand-in of the renderer facade
+	var facade := DumpFacade.new()
+	facade.cfg = cfg
+	facade.track = track
+	var far := FarGround.new()
+	far.setup(facade)
+	var far_y: float = far.target_height(p, track, cam_z, VISIBILITY_M)
+	far.free()
+	facade.free()
 	var data := {"id": id, "direction": dir_name, "km": track.z_to_km(cam_z), "camera": [tr.origin.x, tr.origin.z, tr.origin.y],
-		"forward": [fwd.x, fwd.z], "far_y": lowest - float(ConfigLoader.lookup(cfg, "graphics.modern.terrain.far_ground_drop_m", 4.0)),
-		"visibility_m": VISIBILITY_M, "chunks": chunks}
+		"forward": [fwd.x, fwd.z], "far_y": far_y, "visibility_m": VISIBILITY_M, "chunks": chunks}
 	var f := FileAccess.open(folder.path_join("plan_%s.json" % id), FileAccess.WRITE)
 	if f != null:
 		f.store_string(JSON.stringify(data))
