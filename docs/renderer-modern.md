@@ -2078,7 +2078,10 @@ der Wolke (`lights.beam_at()`), nachts das Rot der eigenen Rückleuchten.
   Bremsleuchte ein Viereck auf der Straße vom Boden unter der Lampe zur Kamera (3–18 m, mit der Entfernung länger),
   hell an der Lampe, zur Kamera hin auslaufend, mit leichtem Flimmern des Films; **tiefengetestet** (das eigene Auto
   und alles davor verdeckt es) und mit denselben fünf Tiefenproben an der Lampe wie ihr Lichtpunkt – eine Lampe hinter
-  einer Kuppe oder einem Lkw hat auch keine Spiegelung. Laternen und Tankstellenlampen spiegeln nachts ebenso.
+  einer Kuppe oder einem Lkw hat auch keine Spiegelung. Laternen und Tankstellenlampen spiegeln nachts ebenso,
+  gewichtet mit dem Fresnel-Gesetz von Wasser an ihrem Spiegelpunkt (`flares.gd` `streak_fresnel`, 1 ab 15 m vor
+  der Kamera): eine Laterne kurz voraus spiegelt sich steil unter der Kamera und damit schwach – die ersten Bilder
+  (C1 im Regen, 21:30) zeigten dort einen gesättigten orangen Fleck um das Spielerauto.
 
 ### 15.5 Schnee am Boden und auf den Dingen
 

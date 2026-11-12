@@ -43,8 +43,12 @@ const BLINK_MIN_NIGHT := 0.2
 const BEACON_GLOW_M := 1.2
 const BEACON_GLOW_MIN_PX := 3.0
 const BEACON_GLOW_A := 1.6           ## flare.gdshader adds colour × 0.5 × strength: Arcade's alpha 0.8
-## R4: a street or canopy lamp's reflection on the wet road, × its glow × wet (flare_streak)
+## R4: a street or canopy lamp's reflection on the wet road, × its glow × wet (flare_streak) …
 const STREAK_LAMP := 0.5
+## … × the Fresnel of water at its mirror point, relative to a mirror point this far from the camera's foot
+## (streak_fresnel): a lamp just ahead is mirrored right below the camera, seen steeply – first pictures (C1 in the
+## rain at 21:30) showed a saturated orange blob round the player's car there
+const STREAK_FRESNEL_REF_M := 15.0
 
 var _renderer: Node
 var _mats: ModernMaterials
@@ -221,6 +225,7 @@ func _add_statics(view: Dictionary) -> void:
 		return
 	var cam_t := cam.global_transform if cam.is_inside_tree() else cam.transform
 	var cam_inv := cam_t.affine_inverse()
+	var cam_pos := cam_t.origin
 	var i := 0
 	while i < _static.size():
 		var e: Array = _static[i]
@@ -281,13 +286,27 @@ func _add_statics(view: Dictionary) -> void:
 					# R4: its reflection on the wet road, from the foot of its pool towards the camera
 					var drop := _drop_of(e, j, p, parent)
 					if drop > 0.5:
-						_put_streak(p, LAMP_GLOW_COLOR, g * _wet * STREAK_LAMP, maxf(size * 0.9, 0.35), drop, depth, size * 0.5)
+						var reach := Vector2(p.x - cam_pos.x, p.z - cam_pos.z).length()
+						var k := g * _wet * STREAK_LAMP * streak_fresnel(reach, drop, cam_pos.y - (p.y - drop))
+						_put_streak(p, LAMP_GLOW_COLOR, k, maxf(size * 0.9, 0.35), drop, depth, size * 0.5)
 			elif role == "tunnel":
 				_put(p, dirs[j], TUNNEL_GLOW_COLOR, on * alpha * TUNNEL_GLOW_A, TUNNEL_GLOW_M, TUNNEL_GLOW_MIN_PX, 0.0, size * 0.5)
 			elif blink != null:
 				# Arcade's red glow round the blinking aviation light of a bridge pylon
 				_put(p, dirs[j], col, night * alpha * BEACON_GLOW_A, BEACON_GLOW_M, BEACON_GLOW_MIN_PX, 0.0, size * 0.5)
 		i += 1
+
+
+## R4: strength of a lamp's reflection on the wet road by where it lies (pure): the mirror point of a lamp `lamp_h`
+## above the road and `reach` metres (horizontal) from a camera `cam_h` above the road lies reach × cam_h / (cam_h +
+## lamp_h) from the camera's foot; the water film there reflects with the Fresnel term of water (F0 0.02) under the
+## angle the camera sees it at – 1 at STREAK_FRESNEL_REF_M and beyond, less below (steeper).
+static func streak_fresnel(reach: float, lamp_h: float, cam_h: float) -> float:
+	var h := maxf(cam_h, 0.3)
+	var d := reach * h / maxf(h + lamp_h, 0.1)
+	var f := 0.02 + 0.98 * pow(1.0 - h / sqrt(h * h + d * d), 5.0)
+	var f_ref := 0.02 + 0.98 * pow(1.0 - h / sqrt(h * h + STREAK_FRESNEL_REF_M * STREAK_FRESNEL_REF_M), 5.0)
+	return clampf(f / f_ref, 0.0, 1.0)
 
 
 ## True while a blinking static lamp ("blink" = Vector3(period s, lit s, phase s)) is lit at view time `time`: only at
