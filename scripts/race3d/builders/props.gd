@@ -13,7 +13,10 @@ extends ChunkBuilder
 ##               (0.5 m) high – one for a bush, three for a tree, not in the City Limits (cover_pieces(); debug
 ##               "cover", list "cover_list");
 ##               a set of that list that the track itself places stays, scaled down to that height
-##   "missing"   the set (and its fallback set) has neither a model nor a sprite sheet (Arcade skips it as well)
+##   "missing"   the set (and its fallback set) has neither a model nor a sprite sheet. A LANDMARK whose set has
+##               neither is one that Arcade draws procedurally ("proc": Track._build_landmark drops its "fallback" for
+##               that): here the fallback set of its stage-plan entry stands in (landmark_fallbacks(), FIX-WASSER-R,
+##               QA-WASSER B1 – Belgrad, Hannover, Leipzig, Dortmund, Calais and Madrid had no landmark at all)
 ##   "density"   "Details" below 1.0 thins decorative trees, bushes, rocks and bales (thinnable(); never buildings,
 ##               landmarks or tall structures)
 ## What a set is comes from the PropLibrary: a MODEL is placed like a vehicle (local -Z along the road, origin = the
@@ -29,6 +32,10 @@ extends ChunkBuilder
 ## of a scenery rule) go into a second MultiMesh under a node mirrored in x (D24); landmarks are never mirrored.
 ## One more MultiMesh per chunk lays the contact shadows (contact_shadow.gdshader). Lamps of prop models (anchors
 ## with a direction: street lights) are registered through ctx.services.renderer.add_lamps() (A-7).
+## A stand-in of an item that Arcade draws procedurally instead of its sprite ("prefer_proc": the pylons of the
+## cable-stayed bridges) never shows the sprite's light layer and takes no light of the player's headlights
+## (dark_material(), FIX-WASSER-R, QA-WASSER B2): Arcade's procedural pylon stays concrete grey at night, while the
+## light layer of the sprite – a floodlit pylon – made the Köhlbrandbrücke's pylons glow almost white.
 ## build() runs on worker threads: ctx snapshot arrays and the plain tables of collect() only.
 ## Owner: package terrain / props / far ground.
 
@@ -68,6 +75,8 @@ var _lm_law := Vector2(2.0, 1900.0)
 var _lm_mats: Dictionary = {}      ## set id -> landmark material (main thread)
 var _far: Dictionary = {}          ## index into Track.landmarks -> MeshInstance3D beyond the committed chunks
 var _far_z := -1.0e12              ## camera position of the last look at the far landmarks
+var _lm_fallback: Dictionary = {}  ## landmark set Arcade draws procedurally -> fallback set of the stage plan (B1)
+var _dark_mats: Dictionary = {}    ## set id -> stand-in material without light layer and headlights (B2)
 
 
 func id() -> String:
@@ -130,8 +139,27 @@ func prepare(ctx: Dictionary) -> void:
 		for set_id: String in wanted.duplicate():
 			if fallbacks.has(set_id) and not wanted.has(str(fallbacks[set_id])):
 				wanted.append(str(fallbacks[set_id]))
+		# landmarks Arcade draws procedurally: their stand-in sets (B1)
+		_lm_fallback = landmark_fallbacks(track as Track)
+		for set_id: String in _lm_fallback:
+			if not wanted.has(str(_lm_fallback[set_id])):
+				wanted.append(str(_lm_fallback[set_id]))
 	_lib().request(wanted, self)
 	_prepared = true
+
+
+## Landmark set -> fallback set, for the landmarks of the stage plan that Arcade draws procedurally ("proc"). The
+## frozen Track._build_landmark drops the "fallback" of such a landmark – Arcade draws its procedural picture
+## instead – so the items carry no fallback set; the plan's entries (CityData.landmark_entry) still name it. Used
+## only when the landmark's own set has neither a model nor a sprite (FIX-WASSER-R, QA-WASSER B1).
+static func landmark_fallbacks(track: Track) -> Dictionary:
+	var out := {}
+	if track == null or track.plan == null:
+		return out
+	for lm: Dictionary in track.plan.landmarks:
+		if lm.has("proc") and str(lm.get("fallback", "")) != "":
+			out[str(lm.get("set", ""))] = str(lm["fallback"])
+	return out
 
 
 func prepare_pending() -> int:
@@ -193,6 +221,24 @@ func landmark_material(set_id: String) -> ShaderMaterial:
 	return mat
 
 
+## The stand-in material of a set for items Arcade draws procedurally instead of the sprite ("prefer_proc": bridge
+## pylons): without the sprite's light layer and without the player's headlights – the light layer of the pylon
+## sprite is a floodlit pylon that Arcade never shows (its procedural pylon stays concrete grey at night: base colour
+## x ambient light), and the headlights would light the whole 88 m billboard from its foot (main thread).
+func dark_material(set_id: String) -> ShaderMaterial:
+	var m: Variant = _dark_mats.get(set_id)
+	if m != null:
+		return m
+	var s := _lib().standin(set_id)
+	if s.is_empty():
+		return null
+	var mat := (s["material"] as ShaderMaterial).duplicate() as ShaderMaterial
+	mat.set_shader_parameter("lights_rect", Vector4.ZERO)
+	mat.set_shader_parameter("headlight_color", Vector3.ZERO)
+	_dark_mats[set_id] = mat
+	return mat
+
+
 ## A landmark model drawn with Arcade's landmark law: its one surface's material (baked.gdshader) duplicated with
 ## landmark_law set, as the override of the node. Models with several surfaces keep their materials (none in M1).
 func _landmark_override(node: GeometryInstance3D, part: Dictionary) -> void:
@@ -243,10 +289,13 @@ func _update_far_landmarks(view: Dictionary, cam_z: float) -> void:
 		var set_id := str(it.get("set", ""))
 		var e: Dictionary = lib.sets.get(set_id, {})
 		var sc := float(it.get("scale", 1.0))
+		var tint := Color(str(it["tint"])) if it.has("tint") else Color.WHITE
 		if e.is_empty() or int(e["kind"]) == PropLibrary.NONE:
-			set_id = str(it.get("fallback", ""))
+			set_id = str(it.get("fallback", _lm_fallback.get(set_id, "")))
 			e = lib.sets.get(set_id, {}) if set_id != "" else {}
 			sc *= float(it.get("fallback_scale", 1.0))
+			if it.has("fallback_tint"):
+				tint *= Color(str(it["fallback_tint"]))
 		if e.is_empty() or int(e["kind"]) == PropLibrary.NONE:
 			continue
 		var is_model := int(e["kind"]) == PropLibrary.MODEL
@@ -282,6 +331,16 @@ func _update_far_landmarks(view: Dictionary, cam_z: float) -> void:
 			node.name = "FarLandmark%d" % li
 			for pv: Variant in parts:
 				var pd: Dictionary = pv
+				if not is_model and tint != Color.WHITE:
+					# a tinted stand-in (the fallback of a procedural landmark, B1): the tint is the instance colour,
+					# as in its chunk (_place()) – a plain MeshInstance3D would show it untinted until the chunk comes
+					var one := PackedFloat32Array()
+					_put(one, Transform3D.IDENTITY)
+					one.append_array(PackedFloat32Array([tint.r, tint.g, tint.b, 1.0]))
+					var mm := _mmi(pd, one, 1, true, false)
+					mm.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+					node.add_child(mm)
+					continue
 				var mi := MeshInstance3D.new()
 				mi.mesh = pd["mesh"]
 				mi.transform = pd.get("transform", Transform3D.IDENTITY)
@@ -393,6 +452,11 @@ func collect(ctx: ChunkContext) -> Variant:
 	# did not name – resolved and loaded now, synchronously (PropLibrary.request copies its tables before it adds
 	# to them, so builds that are running keep reading the old ones)
 	var wanted: Array = []
+	if not _prepared and ctx.track != null:
+		_lm_fallback = landmark_fallbacks(ctx.track)
+	for set_id: String in _lm_fallback:
+		if not lib.sets.has(str(_lm_fallback[set_id])) and not wanted.has(str(_lm_fallback[set_id])):
+			wanted.append(str(_lm_fallback[set_id]))
 	for seg: Dictionary in ctx.segs:
 		for it: Dictionary in seg["sprites"]:
 			for key: String in ["set", "fallback"]:
@@ -412,7 +476,7 @@ func collect(ctx: ChunkContext) -> Variant:
 			guard += 1
 	return {"sets": lib.sets, "models": lib.models, "density": _density, "casters": _casters, "cover": _cover_sets,
 		"cover_max_h": _cover_max_h, "skip_objects": _skip_objects, "skip_landmarks": _skip_landmarks,
-		"skip_bridge": _skip_bridge}
+		"skip_bridge": _skip_bridge, "lm_fallback": _lm_fallback}
 
 
 func build(ctx: ChunkContext, input: Variant) -> Dictionary:
@@ -451,6 +515,8 @@ static func _place(ctx: ChunkContext, inp: Dictionary, out: Dictionary, i: int, 
 	var e: Dictionary = sets.get(set_id, {})
 	if e.is_empty() or int(e["kind"]) == PropLibrary.NONE:
 		var fb := str(it.get("fallback", ""))
+		if fb == "" and bool(it.get("landmark", false)):
+			fb = str((inp.get("lm_fallback", {}) as Dictionary).get(set_id, ""))   # a procedural landmark (B1)
 		e = sets.get(fb, {}) if fb != "" else {}
 		if e.is_empty() or int(e["kind"]) == PropLibrary.NONE:
 			if not is_cover:
@@ -506,14 +572,17 @@ static func _place(ctx: ChunkContext, inp: Dictionary, out: Dictionary, i: int, 
 			entry["dir"] = (tr.basis * ld).normalized()
 			entry["size"] = float(lamp["size"]) * sc
 			lamps.append(entry)
-	else:
+	var dark := false
+	if not is_model:
 		tr = Transform3D(Basis.from_scale(Vector3(sc, sc, sc)), ctx.local(z, x, h))
-		key = "%s|%s|%d" % ["l" if landmark else "s", str(e["set"]), 1 if flipped else 0]
+		# a stand-in of an item Arcade draws procedurally (bridge pylons): no light layer, no headlights (B2)
+		dark = not landmark and bool(it.get("prefer_proc", false))
+		key = "%s|%s|%d" % ["l" if landmark else ("d" if dark else "s"), str(e["set"]), 1 if flipped else 0]
 	var groups: Dictionary = out["groups"]
 	var g: Dictionary = groups.get(key, {})
 	if g.is_empty():
 		g = {"model": model_id, "set": str(e["set"]), "mirror": flipped, "buf": PackedFloat32Array(), "n": 0,
-			"landmark": landmark}
+			"landmark": landmark, "dark": dark}
 		groups[key] = g
 	var buf: PackedFloat32Array = g["buf"]
 	_put(buf, mirror_x(tr) if flipped else tr)
@@ -707,6 +776,8 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 				continue
 			if bool(g.get("landmark", false)):
 				s = {"mesh": s["mesh"], "material": landmark_material(str(g["set"]))}
+			elif bool(g.get("dark", false)):
+				s = {"mesh": s["mesh"], "material": dark_material(str(g["set"]))}
 			var node := _mmi(s, buf, n, true, bool(g["mirror"]))
 			node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			node.set_meta(&"levels", 7)

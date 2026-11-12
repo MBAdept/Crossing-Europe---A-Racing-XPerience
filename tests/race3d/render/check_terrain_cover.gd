@@ -5,11 +5,12 @@ extends SceneTree
 ##       --fixed-fps 60 -s res://tests/race3d/render/check_terrain_cover.gd -- --graphics=modern --gfx-sync --audio-sync
 ## tools/run_render_checks.sh modern runs it. Prints "RENDER-CHECK <name> OK|FEHLER …"; exit code 0 when all pass.
 ##
-## At every reference position of the terrain (T1–T4, S1, C1) the stage is drawn with --gfx-debug=cover,far: the
+## At every reference position of the terrain (T1–T4, S1, C1, K1) the stage is drawn with --gfx-debug=cover,far: the
 ## canvas behind the 3D picture is magenta, the fog is off, the far-ground plane is cyan and its rim yellow. Then,
 ## below the horizon row of the picture:
 ##   magenta  = canvas shows through: nothing covers that pixel. Gate: at most 0.2 % of the pixels below the horizon.
-##   cyan     = far-ground plane: where the terrain ribbons end (or leave a gap) – reported
+##   cyan     = far-ground plane: where the terrain ribbons end (or leave a gap) – reported; gated at K1 (deep water
+##              under the Köhlbrandbrücke: at most 2 % – the plane must not cover the river, FIX-WASSER)
 ##   yellow   = the rim of the far ground (the picture's ground at infinity) – reported
 ## and above the horizon row the canvas must be magenta (else the debug view is not active and the gate would pass
 ## for nothing). The terrain itself is drawn with back-face culling: an underside or a hole in it shows as
@@ -29,6 +30,11 @@ const POSITIONS: Array = [
 	{"id": "T4", "stage": "saragossa_pau", "from": "saragossa", "km": 198.8, "hour": 11.0, "vehicle": "kompakt", "seed": 4},
 	{"id": "S1", "stage": "kiel_hamburg", "from": "kiel", "km": 2.0, "hour": 12.0, "vehicle": "limousine", "seed": 11},
 	{"id": "C1", "stage": "dortmund_frankfurt", "from": "dortmund", "km": 221.0, "hour": 19.5, "vehicle": "sportwagen", "seed": 15},
+	# FIX-WASSER-R (QA-WASSER B5): deep water – the Elbe 9 m below the deck of the Köhlbrandbrücke. The far-ground
+	# plane must lie below the water (FarGround.target_height): when it covered the river, the Elbe showed as cyan
+	# (far ground) instead of water – "cyan_max" gates the far ground's share below the horizon row here.
+	{"id": "K1", "stage": "kiel_hamburg", "from": "kiel", "km": 78.1, "hour": 12.0, "vehicle": "limousine", "seed": 11,
+		"cyan_max": 0.02},
 ]
 
 var _failed: Array[String] = []
@@ -146,6 +152,10 @@ func _check(pos: Dictionary) -> void:
 		p.append("über dem Horizont ist die Leinwand nicht magenta (%.0f %%): die Debug-Ansicht „cover“ ist nicht aktiv" % (100.0 * float(sky_magenta) / float(maxi(1, sky))))
 	if share > LIMIT:
 		p.append("%.3f %% Magenta unter der Horizontzeile (höchstens %.1f %%)" % [100.0 * share, 100.0 * LIMIT])
+	var cyan_share := float(cyan) / float(maxi(1, below))
+	if pos.has("cyan_max") and cyan_share > float(pos["cyan_max"]):
+		p.append("%.2f %% Fernboden unter der Horizontzeile (höchstens %.1f %%): die Scheibe verdeckt das Wasser" % [
+			100.0 * cyan_share, 100.0 * float(pos["cyan_max"])])
 	var snap: Dictionary = renderer.call(&"debug_snapshot")
 	var fg: Dictionary = snap.get("far_ground", {})
 	_report(name, p, "%s km %.1f: unter dem Horizont %.3f %% Magenta (%d von %d Bildpunkten), Fernboden %.2f %%, Kragen %.2f %%; Fernboden %.1f m unter der Kamera, %d Stücke" % [
