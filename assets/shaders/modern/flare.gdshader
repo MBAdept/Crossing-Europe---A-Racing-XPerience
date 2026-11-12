@@ -25,7 +25,10 @@
 // and dimmed by the same five depth taps at the lamp itself (a lamp behind a crest or a truck has no reflection either).
 // Its instance: origin = the lamp, COLOR = lamp colour and strength, INSTANCE_CUSTOM = (half width m, height of the
 // lamp above the road m, length m, lamp radius m for the taps). Bright at the lamp's foot, fading towards the camera,
-// soft across, with a slow shimmer of the rain on the water film (ce_time: frozen in the pause).
+// soft across, with a slow shimmer of the rain on the water film (ce_time: frozen in the pause). A NEGATIVE half width
+// (street and canopy lamps) also weighs every point of the streak with the Fresnel term of water under the angle the
+// camera sees it at, relative to a point fresnel_ref_m from the camera's foot: the near end of the long streak of a
+// high lamp lies steeply below the camera and mirrors little (C1 in the rain: an orange blob round the player's car).
 // Load only through ModernMaterials - never with preload().
 shader_type spatial;
 #ifdef CE_STREAK
@@ -40,6 +43,7 @@ uniform float logical_h = 720.0;    // logical rows of the picture (the focal le
 uniform float max_px = 70.0;        // Arcade's largest glow radius
 uniform float depth_eps = 0.12;     // m: the lamp counts as hidden only behind something this much nearer
 uniform float strength = 1.0;       // overall factor (tuning)
+uniform float fresnel_ref_m = 15.0; // CE_STREAK with a negative half width: Fresnel 1 at and beyond this distance
 
 varying vec4 v_col;
 varying vec2 v_quad;                // the quad's corner coordinates (-1..1) …
@@ -55,6 +59,7 @@ global uniform float ce_time;
 varying vec2 v_streak;              // (metres from the lamp's foot towards the camera, -1 … 1 across)
 varying vec2 v_ground;              // road position of the fragment (world xz) for the shimmer
 varying vec3 v_spec;                // (mirror point m from the foot, width before it m, width after it m)
+varying vec3 v_rh;                  // (reach m: foot to the camera's foot, camera height m, 1 = Fresnel along it)
 
 void vertex() {
 	vec3 lamp = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
@@ -84,9 +89,10 @@ void vertex() {
 	float len = clamp(max(3.2 * sm + 1.0, INSTANCE_CUSTOM.z * 0.5), 1.5, max(reach - 0.8, 0.4));
 	vec3 p = ground + dir * (t * len - 0.2);
 	v_spec = vec3(sm, 0.45 * sm + 0.3, 1.3 * sm + 0.6);
+	v_rh = vec3(reach, hc, INSTANCE_CUSTOM.x < 0.0 ? 1.0 : 0.0);
 	// never thinner than 1.2 logical px at its own depth
 	vec4 pv = VIEW_MATRIX * vec4(p, 1.0);
-	float half_w = max(INSTANCE_CUSTOM.x * (1.0 + 0.5 * t), 0.6 * max(-pv.z, 0.05) / focal_px);
+	float half_w = max(abs(INSTANCE_CUSTOM.x) * (1.0 + 0.5 * t), 0.6 * max(-pv.z, 0.05) / focal_px);
 	p += side * VERTEX.x * half_w;
 	POSITION = PROJECTION_MATRIX * (VIEW_MATRIX * vec4(p, 1.0));
 	v_streak = vec2(t * len - 0.2, VERTEX.x);
@@ -154,7 +160,15 @@ void fragment() {
 	float along = exp(-u * u / (wu * wu));
 	float across = exp(-v_streak.y * v_streak.y * 2.6);
 	float shimmer = 0.75 + 0.25 * sin(v_ground.x * 3.1 + v_ground.y * 2.3 + ce_time * 5.0) * sin(v_ground.y * 1.7 - ce_time * 3.3);
-	ALBEDO = v_col.rgb * (v_col.a * along * across * shimmer) * vis * strength;
+	float fres = 1.0;
+	if (v_rh.z > 0.5) {
+		float h = v_rh.y;
+		float dc = max(v_rh.x - v_streak.x, 0.0);
+		float f = 0.02 + 0.98 * pow(1.0 - h / sqrt(h * h + dc * dc), 5.0);
+		float fr = 0.02 + 0.98 * pow(1.0 - h / sqrt(h * h + fresnel_ref_m * fresnel_ref_m), 5.0);
+		fres = min(f / fr, 1.0);
+	}
+	ALBEDO = v_col.rgb * (v_col.a * along * across * shimmer * fres) * vis * strength;
 #else
 	// Arcade's glow: 1 -> 0.55 over the first quarter of the radius, then linearly to 0 at the radius - full strength
 	// up to half a pixel diagonal of the 3D picture (px = logical px per pixel of the 3D picture)

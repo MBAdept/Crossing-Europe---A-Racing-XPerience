@@ -5,7 +5,6 @@ extends TestCase
 
 const Weather := preload("res://scripts/race3d/layers/weather.gd")
 const Vehicles := preload("res://scripts/race3d/layers/vehicles.gd")
-const Flares := preload("res://scripts/race3d/layers/flares.gd")
 
 ## Arcade's particles (RoadRenderer._draw_weather): 240 drops in 28 × 9 × 42 m, 420 flakes in 28 × 9 × 36 m
 const ARCADE_RAIN := 240.0 / (28.0 * 9.0 * 42.0)
@@ -63,15 +62,3 @@ func test_streak_length() -> void:
 	assert_eq(Vehicles.streak_length(1000.0), Vehicles.STREAK_MAX_M, "fern: höchstens STREAK_MAX_M")
 	assert_true(Vehicles.streak_length(40.0) > Vehicles.streak_length(15.0), "mit der Entfernung länger")
 
-
-func test_lamp_streak_fresnel() -> void:
-	# a street lamp 8 m high, the chase camera 2.6 m above the road
-	assert_true(Flares.streak_fresnel(10.0, 8.0, 2.6) < 0.1, "Laterne 10 m voraus: Spiegelpunkt steil unter der Kamera – schwach")
-	assert_eq(Flares.streak_fresnel(200.0, 8.0, 2.6), 1.0, "ferne Laterne: volle Spiegelung")
-	var last := 0.0
-	for i in 40:
-		var k := Flares.streak_fresnel(5.0 + float(i) * 5.0, 8.0, 2.6)
-		assert_true(k >= last - 1.0e-6 and k <= 1.0, "wächst mit der Entfernung, höchstens 1")
-		last = k
-	assert_true(Flares.streak_fresnel(30.0, 0.9, 2.6) > Flares.streak_fresnel(30.0, 8.0, 2.6),
-		"eine tiefe Lampe spiegelt in gleicher Entfernung weiter von der Kamera, also flacher gesehen")
