@@ -2001,3 +2001,35 @@ lässt sich so einer Ebene zuordnen. Gemessen headless an Kiel – Hamburg km 2 
 - Kurveninnenseiten in Bergetappen kahler als Arcade (Sichtkorridor F7: Bäume werden durch Bodendecker ersetzt –
   Entscheidung der Leitung nach A-3).
 - Die Leistung auf echter Hardware ist nur über den Leistungstest messbar.
+
+## 15. Licht, Nacht, Wetter (Bauabschnitt R4)
+
+R4 übernimmt in Welle 3 den Renderer-Kern (Bauplan §5, Spalte W3) und baut Licht, Nacht und Wetter aus. Zahlen
+„gemessen“ stammen von der Build-VM (llvmpipe unter Xvfb bzw. headless); alles über echte Grafikkarten und das Steam
+Deck ist abgeleitet.
+
+### 15.1 Zonen: `EnvironmentRig.set_zone(kind, amount)`
+
+Die Schnittstelle, über die Bauwerke dem Umgebungs-Rig sagen, wie weit die Kamera in ihnen steckt (Bauplan §6 R5:
+„Environment changes are requested from R4 … through `EnvironmentRig.set_zone(kind, amount)`“). Aufruf immer über die
+Fassade und `has_method`, nie über einen Klassennamen:
+
+```gdscript
+var env: Node = renderer.get("env")          # null, solange environment_rig.gd fehlt
+if env != null and env.has_method("set_zone"):
+	env.call("set_zone", "tunnel", amount)   # amount 0 (draußen) … 1 (drinnen)
+```
+
+| Art | Wirkung |
+|---|---|
+| `"tunnel"` | Licht zum Tunnellicht (`Palette.TUNNEL_AMBIENT`, Sonnenenergie 0 – das eine Schattenlicht bleibt, D5), Nebel nach Arcades Tunnelgesetz (`Palette.TUNNEL_FOG` ab 12 m über `render.tunnel.darkness_m`), Globals `ce_tunnel` = amount, `ce_wet`, `ce_snow` und Wind gegen 0; der Hintergrund zeigt keinen Himmel, solange die Ausfahrt außer Sicht ist; zur Ausfahrt hin wirkt das Draußen überstrahlt (Belichtungsrampe, 15.6) |
+| `"bridge"` | 0 … 1 über offenem Wasser: der Wind (`ce_wind`) bläst um bis zu 50 % stärker |
+| jede andere | wird behalten und im Schnappschuss gezeigt (`environment.zones`), ändert nichts |
+
+- Der Wert gilt bis zum nächsten Aufruf derselben Art und wird auf 0 … 1 begrenzt; `zone(kind, fallback)` liest ihn.
+- **Solange in einer Etappe niemand `set_zone("tunnel", …)` ruft**, nimmt das Rig den Tunnel wie bisher selbst aus der
+  Tunnelliste des Etappenplans (`tunnel_blend()`, eine Funktion der Kameraposition) – das Licht der Mindestbau-Röhre
+  bleibt also unverändert, bis der Tunnel-Builder die Zone setzt. Ab dem ersten Aufruf gilt nur noch der gesetzte Wert.
+- Das Rig liest den Wert in seinem nächsten `update()`, das in jedem Bild **vor** den `update()` der Builder läuft:
+  eine Zone, die ein Builder in seinem `update()` setzt, wirkt ein Bild später (bei 60 Bildern je Sekunde 17 ms).
+- Kosten: ein Wörterbuch-Eintrag je Aufruf. Prüfung: `tests/unit/race3d/test_environment_rig.gd` → `test_set_zone`.

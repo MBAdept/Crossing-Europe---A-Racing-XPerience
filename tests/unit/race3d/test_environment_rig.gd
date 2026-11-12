@@ -210,10 +210,64 @@ func test_tunnel_ramp() -> void:
 	assert_eq(Rig.tunnel_blend(null, 400.0), 0.0, "ohne Strecke: 0")
 
 
+## R4: set_zone(kind, amount) – the interface the structure builders (R5) call duck-typed. Without a call the rig
+## takes the tunnel from the plan (tunnel_blend); a "tunnel" zone replaces that and blends light, fog and globals.
+func test_set_zone() -> void:
+	var t: Track = SynTrack.new()
+	t.fill(cfg(), SynTrack.straight(900), PackedFloat32Array(), {"tunnel": [300, 500]})
+	var rig: Node = Rig.new()
+	rig.set("_track", t)
+	var pal := Palette.compute(12.0, "normal", _daytime())
+	var outside := {"palette": pal, "camera_z": 100.0 * t.seg_len, "visibility_m": 900.0, "time": 1.0}
+	var inside := {"palette": pal, "camera_z": 400.0 * t.seg_len, "visibility_m": 900.0, "time": 1.0}
+	assert_true(rig.has_method("set_zone") and rig.has_method("zone"), "set_zone() und zone() gibt es")
+	rig.call("update", inside, 0.0)
+	var st: Dictionary = rig.get("state")
+	assert_eq(float(st["tunnel01"]), 1.0, "ohne set_zone: der Tunnel des Etappenplans gilt (tunnel_blend)")
+	rig.call("update", outside, 0.0)
+	st = rig.get("state")
+	assert_eq(float(st["tunnel01"]), 0.0, "ohne set_zone: draußen Tageslicht")
+	var sun: DirectionalLight3D = rig.get("sun")
+	var day_energy := sun.light_energy
+	assert_true(day_energy > 0.0, "draußen scheint die Sonne")
+	rig.call("set_zone", "tunnel", 1.0)
+	rig.call("update", outside, 0.0)
+	st = rig.get("state")
+	assert_eq(float(st["tunnel01"]), 1.0, "set_zone(\"tunnel\", 1): Tunnel, auch wo der Plan keinen kennt")
+	assert_eq(sun.light_energy, 0.0, "im Tunnel keine Sonne (Energie 0)")
+	assert_true(sun.shadow_enabled and sun.visible, "das eine Schattenlicht bleibt (D5)")
+	assert_true((st["fog_color"] as Color).is_equal_approx(Palette.TUNNEL_FOG), "Tunnelnebel")
+	assert_near(float(st["fog_begin"]), Rig.TUNNEL_FOG_BEGIN_M, 1.0e-4, "Tunnelnebel ab 12 m")
+	var env_d: Color = st["display"]
+	assert_true(env_d.is_equal_approx(Palette.TUNNEL_AMBIENT), "Tunnellicht (Palette.TUNNEL_AMBIENT)")
+	rig.call("set_zone", "tunnel", 0.0)
+	rig.call("update", inside, 0.0)
+	st = rig.get("state")
+	assert_eq(float(st["tunnel01"]), 0.0, "set_zone(\"tunnel\", 0): offen, auch wo der Plan einen Tunnel hat")
+	assert_near(sun.light_energy, day_energy, 1.0e-5, "… mit derselben Sonne wie draußen")
+	rig.call("set_zone", "tunnel", 0.5)
+	rig.call("update", outside, 0.0)
+	st = rig.get("state")
+	assert_near(float(st["tunnel01"]), 0.5, 1.0e-6, "Zwischenwerte gehen durch")
+	assert_true(sun.light_energy > 0.0 and sun.light_energy < day_energy, "… halbe Sonne")
+	rig.call("set_zone", "tunnel", 7.0)
+	assert_eq(float(rig.call("zone", "tunnel")), 1.0, "Werte werden auf 0..1 begrenzt")
+	rig.call("set_zone", "tunnel", -1.0)
+	assert_eq(float(rig.call("zone", "tunnel")), 0.0, "… auch nach unten")
+	assert_eq(float(rig.call("zone", "unbekannt", 0.25)), 0.25, "eine Art, die keiner gesetzt hat: der Rückfallwert")
+	rig.call("set_zone", "bruecke_x", 1.0)
+	rig.call("update", outside, 0.0)
+	var snap: Dictionary = (rig.call("snapshot") as Dictionary)["environment"]
+	assert_true((snap["zones"] as Dictionary).has("bruecke_x"), "fremde Arten stehen im Schnappschuss und ändern nichts")
+	rig.free()
+
+
 func test_wind_and_sun_azimuth() -> void:
 	var calm := Rig.wind(12.0, 0.0, 0.0)
 	var storm := Rig.wind(12.0, 1.0, 0.0)
 	assert_true(storm.z > calm.z and calm.z > 0.0, "Regen und Schnee: mehr Wind")
+	assert_true(Rig.wind(12.0, 0.0, 0.0, 1.0).z > calm.z, "über offenem Wasser (Zone \"bridge\"): mehr Wind")
+	assert_eq(Rig.wind(12.0, 0.0, 1.0, 1.0).z, 0.0, "… aber nie im Tunnel")
 	assert_near(Vector2(calm.x, calm.y).length(), 1.0, 1.0e-5, "Windrichtung ist ein Einheitsvektor")
 	assert_eq(Rig.wind(12.0, 1.0, 1.0).z, 0.0, "im Tunnel steht die Luft")
 	assert_eq(Rig.wind(5.0, 0.3, 0.0), Rig.wind(5.0, 0.3, 0.0), "gleiche Zeit, gleicher Wind (keine Uhr)")

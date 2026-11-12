@@ -104,6 +104,8 @@ var _light_sig: Array = []         ## what the light of the last frame was compu
 var _sent: Dictionary = {}         ## ce_* globals as they were set last (only changes are sent)
 var _cover := false
 var _nolight := false
+## set_zone(): kind -> amount 0..1 as the owner of the zone set it last (a kind nobody set is absent)
+var _zones: Dictionary = {}
 
 
 func _init() -> void:
@@ -214,11 +216,35 @@ func quality_lowered(levels: Dictionary) -> void:
 	environment.reflected_light_source = Environment.REFLECTION_SOURCE_SKY if _sky_reflections else Environment.REFLECTION_SOURCE_DISABLED
 
 
+## Zones of the structure builders (contract §6 R5, lead decision of wave 3): the builder that knows where its
+## structure begins and ends tells the rig how much the camera is inside it – duck-typed, every frame it matters:
+##   var env = renderer.get("env"); if env != null and env.has_method("set_zone"): env.call("set_zone", "tunnel", a)
+## kind "tunnel": amount 0 (open air) .. 1 (inside) blends the light to the tunnel's (Palette.TUNNEL_AMBIENT, sun
+## energy 0), the fog to Arcade's tunnel law (Palette.TUNNEL_FOG from 12 m over render.tunnel.darkness_m) and the
+## ce_* globals (ce_tunnel = amount; ce_wet, ce_snow and the wind go to 0); the backdrop shows no sky while the
+## exit is out of sight, and towards the exit the outside looks over-exposed (exposure ramp, exit_glare()).
+## kind "bridge": amount 0..1 over open water – the wind blows stronger (ce_wind).
+## Any other kind is kept and reported in snapshot() but changes nothing. The value holds until the next call of the
+## same kind; amounts are clamped to 0..1. As long as nobody calls set_zone("tunnel", …) in a stage the rig derives
+## the tunnel itself from the plan's tunnel list (tunnel_blend(), a function of the camera position) – exactly the
+## light of the minimal tube. The call is cheap (a dictionary write); the rig reads it in its next update(), which
+## runs before the builders' update() of the frame: a zone set by a builder's update() acts one frame later.
+func set_zone(kind: String, amount: float) -> void:
+	_zones[kind] = clampf(amount, 0.0, 1.0)
+
+
+## The amount of a zone as it was set last, or `fallback` when nobody set that kind in this stage.
+func zone(kind: String, fallback: float = 0.0) -> float:
+	return float(_zones.get(kind, fallback))
+
+
 func update(view: Dictionary, _dt: float) -> void:
 	var pal: Dictionary = view.get("palette", {})
 	var cam_z := float(view.get("camera_z", 0.0))
 	var tunnel01 := 1.0 if bool(view.get("camera_in_tunnel", false)) else 0.0
-	if _track != null:
+	if _zones.has("tunnel"):
+		tunnel01 = float(_zones["tunnel"])
+	elif _track != null:
 		tunnel01 = tunnel_blend(_track, cam_z + 1.0)
 	if _renderer != null:
 		var path: RoadPath3D = _renderer.get("path")
@@ -273,7 +299,7 @@ func update(view: Dictionary, _dt: float) -> void:
 	_send("ce_night", maxf(night, tunnel01))
 	_send("ce_wet", float(pal.get("wet", 0.0)) * (1.0 - tunnel01))
 	_send("ce_snow", float(pal.get("snow", 0.0)) * (1.0 - tunnel01))
-	_send("ce_wind", wind(t, overcast, tunnel01))
+	_send("ce_wind", wind(t, overcast, tunnel01, zone("bridge")))
 	_send("ce_fog_color", fog_color)
 	_send("ce_fog_range", Vector2(begin, end))
 	_send("ce_sun_dir", to_sun)
@@ -314,7 +340,8 @@ func snapshot() -> Dictionary:
 		"fog_color": [snappedf(fc.r, 0.0001), snappedf(fc.g, 0.0001), snappedf(fc.b, 0.0001)],
 		"shadow": sun.shadow_enabled, "shadow_mode": sun.directional_shadow_mode, "shadow_distance_m": sun.directional_shadow_max_distance,
 		"lights_directional": 1, "glow": environment.glow_enabled, "ssao": environment.ssao_enabled,
-		"sky_reflections": _sky_reflections, "sky_updates": _sky_updates, "post_pinned": environment.adjustment_enabled}}
+		"sky_reflections": _sky_reflections, "sky_updates": _sky_updates, "post_pinned": environment.adjustment_enabled,
+		"zones": _zones.duplicate()}}
 
 
 ## The reflection sky: the palette's gradient, refreshed at most every sky_update_s of view time and only when a
@@ -345,10 +372,10 @@ func _update_sky(pal: Dictionary, fog_color: Color, tunnel01: float, t: float) -
 	sky_material.ground_bottom_color = ground
 
 
-## ce_wind (direction x, direction z, strength, gust): a steady direction, stronger under rain and snow, with a slow
-## gust from view time (no wall clock, Rule 10); still inside a tunnel.
-static func wind(t: float, overcast: float, tunnel01: float) -> Vector4:
-	var strength := lerpf(0.3, 0.6, clampf(overcast, 0.0, 1.0)) * (1.0 - tunnel01)
+## ce_wind (direction x, direction z, strength, gust): a steady direction, stronger under rain and snow and over open
+## water (zone "bridge"), with a slow gust from view time (no wall clock, Rule 10); still inside a tunnel.
+static func wind(t: float, overcast: float, tunnel01: float, bridge: float = 0.0) -> Vector4:
+	var strength := lerpf(0.3, 0.6, clampf(overcast, 0.0, 1.0)) * (1.0 + 0.5 * clampf(bridge, 0.0, 1.0)) * (1.0 - tunnel01)
 	var gust := (0.5 + 0.5 * sin(t * 0.31) * sin(t * 0.17 + 1.3)) * (1.0 - tunnel01)
 	return Vector4(0.8, 0.6, strength, gust)
 
