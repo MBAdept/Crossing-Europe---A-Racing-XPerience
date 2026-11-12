@@ -1,13 +1,16 @@
-"""Cabin of the player cars for the real-time models (contract 4.6.9: at most 6,000 triangles inside "body").
+"""Cabin of the player cars - built only for the real-time models (contract 4.6.9: at most 6,000 triangles inside
+"body"); the sprites never call it (opaque glass), so no sprite vertex depends on this module.
 
-The sprites show opaque glass. The real-time models have transparent panes, so the car needs something behind
-them: a dark tub (floor, door panels), parcel shelf, rear bench and front seats with headrests, dashboard with
-an instrument hood, steering wheel on the left, centre console, mirror. Everything is derived from the design
-of the car (cesprites.player_cars): axles, window positions, belt line, roof line - no numbers per car except
-the optional overrides in INTERIOR.
+The real-time models have transparent panes, so the car needs something behind them: a dark tub (floor, door
+panels), parcel shelf, rear bench and front seats with headrests, dashboard with an instrument hood, steering wheel
+on the left, centre console, mirror. Everything is derived from the design of the car (cesprites.player_cars):
+axles, window positions, belt line, roof line - no numbers per car except the optional overrides in INTERIOR.
+(Until wave 3 this module was tools/blender/ce3d/interior3d.py; the contract puts the generator parts of the cars
+into cesprites.)
 
 Build space of cesprites.carbody: y = 0 at the rear bumper, +y forward, +x = right flank, z = 0 ground. The
-parts are objects on the CENTER empty of the car like every other detail, tagged for the node "body".
+parts are objects on the CENTER empty of the car like every other detail, tagged for the node "body" (the exporter
+ce3d.vehicles3d calls build_interior after player_cars.build, with tagging on).
 All parts keep clear of the glass: seat backs and headrests are lowered until they stay under the roof line.
 """
 import math
@@ -15,8 +18,8 @@ import math
 import bmesh
 from mathutils import Matrix, Vector
 
-from cesprites import cardetail as CD
-from cesprites import meshutil as MU
+from . import cardetail as CD
+from . import meshutil as MU
 
 # per design: overrides of the derived layout (m). hip_f / hip_r = y of the front / rear hip points,
 # rear = False for a two-seater, recline_f / recline_r in degrees
@@ -266,6 +269,11 @@ def build_interior(car, fine=False):
         # rear bench: one cushion, one backrest, two headrests
         hr = lay["hip_r"]
         bw = 2.0 * cabin_half_width(car, hr) - 0.10
+        # the bench (cushion and reclined backrest: hip -0.42..+0.42 m) stays out of the rear wheel houses - the 2+2
+        # of the sports car and the GT sit over the rear axle, their bench reached 89 / 60 mm into the rear tyres
+        y0, y1, x_max = wheel_houses(car)[0]
+        if hr - 0.42 < y1 and hr + 0.42 > y0:
+            bw = min(bw, 2.0 * x_max)
         a = math.radians(lay["recline_r"])
         parts.box("seat", (bw, 0.50, 0.14), (0.0, hr + 0.15, z_c - 0.09), rot_x=5.0, pivot=(0.0, hr - 0.1, z_c - 0.02))
         back_len = 0.56

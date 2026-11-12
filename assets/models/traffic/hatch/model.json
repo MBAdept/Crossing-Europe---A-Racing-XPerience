@@ -65,7 +65,7 @@
    {
     "name": "lod2",
     "max_dist_m": 100000,
-    "tris": 1180,
+    "tris": 1197,
     "parts": [
      {
       "node": "body",
@@ -151,8 +151,8 @@
   "paint": {"paint": "#3d8a45", "metal": 0.4},
   "auto_lod": false,
   "tags": ["traffic", "car"],
-  "bytes": 270561,
-  "hash": "0e5147c7e4ecdaded308d5bb4366e15c54d2e5d4"
+  "bytes": 271024,
+  "hash": "f7c25cba53ae30140ad2af326a597803b07f0020"
  },
  "sets": {
   "traffic/hatch_green": {
@@ -165,7 +165,7 @@
   },
   "traffic/hatch_white": {
    "model": "traffic/hatch",
-   "paint": {"paint": "#e8e8e5", "metal": 0.1}
+   "paint": {"paint": "#d8d8d5", "metal": 0.1}
   },
   "traffic/hatch_blue": {
    "model": "traffic/hatch",

@@ -13,6 +13,11 @@ model with real parts:
 Flat surfaces carry their markings as geometry cut into them (ce3d.decalgeo, one layer - nothing can flicker
 at any distance); parts with depth are real meshes.
 
+Liveries (cesprites.heavy.TRUCK_VARIANTS, AS2b): a box trailer carries the stripe and the word of its variant on both
+flanks (white "LOGISTIK", blue "TRANSPORT": glyph outlines of the sprite's font, in the stripe colour paint3); a
+curtain sider (red, green: "tarp") has corrugated curtains between the rails, pulled in at 22 straps with buckles.
+One model per kind: traffic/truck (white), traffic/truck_transport (blue), traffic/truck_tarp (red, green).
+
 Nodes      lod0: tractor/body, tractor/wheel_0l|r (front, steered), tractor/wheel_1l|r (drive, twin tyres),
                  trailer/body (mesh origin = the kingpin), trailer/wheel_0..2 l|r
            lod1, lod2: one merged mesh "body"; shadow: boxes
@@ -20,8 +25,9 @@ Nodes      lod0: tractor/body, tractor/wheel_0l|r (front, steered), tractor/whee
            that bends the truck turns every "trailer/..." part about the trailer pivot (model space).
 Paint      paint = trailer body, paint2 = cab, paint3 = stripe and emblem (a livery without them: paint3 = paint)
 Lamps      rear clusters: indicator (outside), tail + brake, reverse; contour tape and reflectors are lit
-           surfaces (channel 8: they keep their colour by day and shine with the tail lights); amber side
-           markers and the plate lamp follow the tail lights without a light anchor
+           surfaces (channel 14 "flood": their own colour by day, at night they shine with ce_night - the player's
+           headlights); amber side markers, the cab's roof markers (channel 9) and the plate lamp follow the tail
+           lights without a light anchor; side repeaters on the cab (indicator channels)
 Build space as in cesprites: y = 0 at the rear, +y forward, x = 0 centre (+x right), z = 0 ground.
 """
 import math
@@ -41,6 +47,7 @@ H = 4.0
 TR_LEN = 13.6                       # trailer body: y 0 .. 13.6
 BOX_Z0, BOX_Z1 = 1.22, 4.0
 R = 0.53                            # all wheels
+RADIUS = R
 TR_AXLES = (3.0, 4.31, 5.62)
 Y_DRIVE, Y_FRONT = 11.35, 15.25
 TW_TRAILER, TW_DRIVE, TW_FRONT = 0.385, 0.30, 0.32
@@ -59,6 +66,10 @@ RED_TAPE = "#d21c14"
 YELLOW_TAPE = "#f0cc18"
 LAMP_RED = "#ff1a0e"
 AMBER = "#ffa21a"
+# panes of the far levels (vpbr): the far colour of the traffic cars (traffic3d.TRAFFIC_GLASS_FAR, measured against
+# the glass class of lod0 with the race look). AS2R: the bus rear window at the 60 m swap was (59, 77, 100) in lod1
+# against (78, 97, 121) in lod0 - 43 % of its pixels changed by more than 24 levels
+GLASS_FAR = "#3a4652"
 
 
 def _rect(u0, v0, u1, v1):
@@ -89,7 +100,7 @@ def _box_faces(x0, x1, y0, y1, z0, z1, faces="rflRtb"):
 class _Build:
     """One level of the truck: Blender objects for the parts with depth, triangle panels for the flat ones."""
 
-    def __init__(self, level):
+    def __init__(self, level, tarp=False, word=None):
         from cesprites import materials as M
         from cesprites import meshutil as MU
         from cesprites import rig as RG
@@ -101,6 +112,8 @@ class _Build:
         self.panels = {}                      # node -> [decalgeo.Tris]
         self.mats = {}
         self.split = level == 0               # tractor / trailer / wheel nodes; else everything is "body"
+        self.tarp = tarp                      # curtain sider (red, green) instead of the box
+        self.word = word                      # word on the flanks of the box ("LOGISTIK", "TRANSPORT") or None
         p = self.pal
         self.i_paint = p.add("paint", "paint", dict(slot="paint", rough=0.42, metal=0.1))
         self.i_cab = p.add("paint2", "paint", dict(slot="paint2", rough=0.3, metal=0.1))
@@ -110,7 +123,10 @@ class _Build:
         self.i_alu = self.flat(ALU, 0.35, 0.55)
         self.i_grey = self.flat(GREY, 0.5, 0.2)
         self.i_seal = self.flat("#0c0d0e", 0.5)
-        self.i_glass = p.add("glass", "glass", dict(color="#10161c", rough=0.03, metal=0.0))
+        # the traffic cars' glass (traffic3d.TRAFFIC_GLASS): lighter, glossy, a little metallic - the black panes of the
+        # cab read as painted (art review of AS1, C4). (AS2R) The far levels draw the panes as vpbr, which mirrors the
+        # sky about half as strongly as the glass class: they take the far colour of the traffic cars (GLASS_FAR)
+        self.i_glass = p.add("glass", "glass", dict(color="#2a343e" if level == 0 else GLASS_FAR, rough=0.02, metal=0.25))
 
     # --- materials ---------------------------------------------------------------------------------------
 
@@ -192,17 +208,20 @@ def _lathe_x(bm, prof, segs, mat_index=0):
             f.smooth = True
 
 
-def _wheel(b, kind, loc, left=False):
+def _wheel(b, kind, loc, left=False, radius=None, tw=None):
     """One wheel (or twin wheel) of the right side at loc = (x of the outer tyre face, y, z); left = the same
     mesh turned by 180 degrees. Local space: axis X, outside +X, origin on the axle in the middle of the tyre
-    (twin: of the pair)."""
+    (twin: of the pair). radius / tw: other wheels than the truck's (the bus: 0.5 m) - the rim scales with the
+    radius."""
     lv = b.lv
     segs = SEGS[lv]
-    tw = {"front": TW_FRONT, "drive": TW_DRIVE, "trailer": TW_TRAILER}[kind]
+    R = RADIUS if radius is None else radius            # noqa: N806 (the module's R for the truck)
+    if tw is None:
+        tw = {"front": TW_FRONT, "drive": TW_DRIVE, "trailer": TW_TRAILER}[kind]
     twin = kind == "drive"
     gap = 0.035
     width = tw * 2 + gap if twin else tw
-    r_rim = 0.292
+    r_rim = 0.292 * R / RADIUS
     tyre = b.mat("tyre", "#161718", rough=0.85)
     rim = b.mat("rim", "#c8ccd1", rough=0.35, metal=0.5)
     rim_dark = b.mat("rimdark", "#2a2c2f", rough=0.55, metal=0.2)
@@ -218,7 +237,9 @@ def _wheel(b, kind, loc, left=False):
             prof = [(r_rim, -tw / 2 + 0.03), (R - 0.03, -tw / 2), (R, -tw / 2 + 0.045), (R, tw / 2 - 0.045),
                     (R - 0.03, tw / 2), (r_rim, tw / 2 - 0.03)]
         else:
-            prof = [(r_rim * 0.9, -tw / 2), (R, -tw / 2), (R, tw / 2), (r_rim * 0.9, tw / 2)]
+            # (far: no inner sidewall - nobody looks under the vehicle from 180 m; the coach had 432 of its 1,500 lod2
+            # triangles in the wheels)
+            prof = [(R, -tw / 2), (R, tw / 2), (r_rim * 0.9, tw / 2)]
         _lathe_x(bm, [(r, x + cx) for (r, x) in reversed(prof)], segs)
     obs = [b.obj("tyre_" + kind, bm, tyre, smooth=True, sharp=50.0 if lv == 0 else 35.0)]
     # rim: lip, dish and hub of the outer wheel; a plain disc inside
@@ -286,24 +307,6 @@ def _arch_block(b, name, x0, x1, y_axle, y0, y1, z0, z1, mat, gap=0.07, n=12):
 
 # --- trailer -----------------------------------------------------------------------------------------------
 
-def _logo(yc, z0, h, mirror):
-    """Block letters "CE" as rectangles (y, z) around yc; mirror = left flank (read front to rear)."""
-    s = h / 5.0                       # stroke
-    w = h * 0.62
-    rects = []
-    x = -(w + 0.5 * s + w) / 2.0
-    # C
-    rects += [(x, 0.0, x + s, h), (x, 0.0, x + w, s), (x, h - s, x + w, h)]
-    x += w + 0.5 * s + s * 0.4
-    # E
-    rects += [(x, 0.0, x + s, h), (x, 0.0, x + w, s), (x, h - s, x + w, h), (x, (h - s) / 2, x + w * 0.82, (h + s) / 2)]
-    out = []
-    for (a, c, b_, d) in rects:
-        if mirror:
-            a, b_ = -b_, -a
-        out.append(_rect(yc + a, z0 + c, yc + b_, z0 + d))
-    return out
-
 
 def _trailer(b):
     lv = b.lv
@@ -320,7 +323,7 @@ def _trailer(b):
     i_marker_red = b.flat("#8a0c0a", 0.2, 0.0, "marker:1:" + LAMP_RED)
     f = _box_faces(-W2, W2, 0.0, TR_LEN, BOX_Z0, BOX_Z1)
     # --- rear: door frame, door gap, stripe, contour tape, end-outline lamps
-    rear = [dict(poly=_rect(-1.10, 1.55, 1.10, 1.75), mat=b.i_acc)]
+    rear = [] if b.tarp else [dict(poly=_rect(-1.10, 1.55, 1.10, 1.75), mat=b.i_acc)]
     for sx in (-1, 1):
         x0, x1 = sorted((sx * 1.165, sx * (W2 - e)))
         rear.append(dict(poly=_rect(x0, BOX_Z0 + e, x1, BOX_Z1 - e), mat=b.i_alu))
@@ -335,21 +338,25 @@ def _trailer(b):
         rear.append(dict(poly=_rect(x0, 3.915, x1, 3.975), mat=i_marker_red))
     rear += [dict(poly=_rect(-1.15, 3.78, 1.15, 3.835), mat=i_tape_r), dict(poly=_rect(-1.15, 1.385, 1.15, 1.44), mat=i_tape_r)]
     b.panel(node, b.i_paint, [f["r"]], {("rear", 1): rear})
-    # --- sides: rails, posts, stripe, emblem, reflective line, marker lamps
+    # --- sides: rails, posts, stripe and word (box) or curtain with straps (tarp), reflective line, marker lamps
     for sgn, key in ((1, "R"), (-1, "l")):
-        side = [dict(poly=_rect(0.1, 1.55, TR_LEN - 0.1, 1.75), mat=b.i_acc)]
-        if lv <= 1:
-            for poly in _logo(7.6, 2.25, 1.05, sgn < 0):
-                side.append(dict(poly=poly, mat=b.i_acc))
-        side += [dict(poly=_rect(e, BOX_Z0 + e, TR_LEN - e, 1.32), mat=b.i_alu),
+        frame = [dict(poly=_rect(e, BOX_Z0 + e, TR_LEN - e, 1.32), mat=b.i_alu),
                  dict(poly=_rect(e, 3.90, TR_LEN - e, BOX_Z1 - e), mat=b.i_alu),
                  dict(poly=_rect(e, 1.32, 0.1, 3.90), mat=b.i_alu),
-                 dict(poly=_rect(TR_LEN - 0.1, 1.32, TR_LEN - e, 3.90), mat=b.i_alu),
-                 dict(poly=_rect(0.16, 1.34, TR_LEN - 0.16, 1.39), mat=i_tape_y)]
+                 dict(poly=_rect(TR_LEN - 0.1, 1.32, TR_LEN - e, 3.90), mat=b.i_alu)]
+        lamps = []
         if lv <= 1:
             for i in range(5):
                 y = 0.6 + i * 3.0
-                side.append(dict(poly=_rect(y, BOX_Z0 + 0.03, y + 0.10, BOX_Z0 + 0.085), mat=i_marker))
+                lamps.append(dict(poly=_rect(y, BOX_Z0 + 0.03, y + 0.10, BOX_Z0 + 0.085), mat=i_marker))
+        tape = dict(poly=_rect(0.16, 1.34, TR_LEN - 0.16, 1.39), mat=i_tape_y)
+        if b.tarp:
+            _curtain(b, node, sgn, key, frame + lamps, tape)
+            continue
+        side = [dict(poly=_rect(0.1, 1.55, TR_LEN - 0.1, 1.75), mat=b.i_acc)]
+        if lv <= 1 and b.word:
+            side += _word_items(b, sgn)
+        side += frame + [tape] + lamps
         b.panel(node, b.i_paint, [f[key]], {("side", sgn): side})
     b.panel(node, b.i_paint, [f["f"], f["t"]])
     b.panel(node, b.i_chassis, [f["b"]])
@@ -371,7 +378,9 @@ def _trailer(b):
                 for z in (1.5, 2.2, 2.9, 3.6):
                     MU.bm_box(0.11, 0.028, 0.13, (sx * 1.2, -0.012, z), bm=bm)
             b.obj("doorhw", bm, alu, smooth=True, sharp=40.0)
-        elif lv == 1:
+        elif lv in (1, 2):
+            # the four lock rods as bars (lod2 too: they are the light lines of the rear at 60 - 180 m; without them
+            # the rear turned into a plain face at the switch at 180 m)
             bm = bmesh.new()
             for x in (-0.95, -0.33, 0.33, 0.95):
                 MU.bm_box(0.03, 0.03, BOX_Z1 - BOX_Z0 - 0.16, (x, -0.02, (BOX_Z0 + BOX_Z1) / 2), bm=bm)
@@ -481,6 +490,89 @@ def _trailer(b):
         b.panel(node, b.i_seal, [blk[k] for k in "lRtb"])
 
 
+CURTAIN_AMP = 0.014                 # the curtain is pulled in this far at a strap (m)
+STRAP_Y0, STRAP_DY, STRAP_N = 0.3, 0.6, 22
+STRAP = "#26282b"
+WORD_Y, WORD_Z, WORD_SIZE = 6.825, 2.85, 0.62    # cesprites.heavy.build_truck: centre of the side text, its size
+
+
+def _word_items(b, sgn):
+    """The word of the livery on one flank as cut outlines (cesprites.heavy._side_text: the sprite's font and size,
+    centred on the trailer, reading from the rear to the front on the right flank). Holes keep what is under them."""
+    from .police3d import glyph_outlines
+    loops = glyph_outlines(b.rig, b.word, WORD_SIZE, res=2 if b.lv == 0 else 1)
+    out = []
+    for lp, hole in loops:
+        out.append(dict(poly=[(WORD_Y + sgn * x, WORD_Z + y) for (x, y) in lp], mat=None if hole else b.i_acc))
+    return sorted(out, key=lambda it: it["mat"] is None)
+
+
+def _curtain(b, node, sgn, key, frame, tape):
+    """Curtain side of one flank: the rails and posts flat (strips of the box face), between them the curtain -
+    corrugated at lod0 (pulled in at the straps, out to the rails between them), flat further away - with the
+    straps and the reflective line cut in; buckles at the foot of each strap (lod0)."""
+    lv = b.lv
+    x_face = sgn * W2
+    i_strap = b.flat(STRAP, 0.6, 0.0)
+    # frame: four strips of the box face
+    f = _box_faces(-W2, W2, 0.0, TR_LEN, BOX_Z0, 1.32)[key]
+    b.panel(node, b.i_paint, [f], {("side", sgn): [it for it in frame if max(p[1] for p in it["poly"]) <= 1.32 + 1e-6]})
+    b.panel(node, b.i_alu, [_box_faces(-W2, W2, 0.0, TR_LEN, 3.90, BOX_Z1)[key]])
+    b.panel(node, b.i_alu, [_box_faces(-W2, W2, 0.0, 0.1, 1.32, 3.90)[key],
+                            _box_faces(-W2, W2, TR_LEN - 0.1, TR_LEN, 1.32, 3.90)[key]])
+    # the curtain
+    y0, y1 = 0.1, TR_LEN - 0.1
+    if lv == 0:
+        ys = sorted(set([y0, y1] + [round(y0 + (y1 - y0) * i / 132, 5) for i in range(133)] +
+                        [round(STRAP_Y0 + STRAP_DY * i + d, 5) for i in range(STRAP_N) for d in (-0.0175, 0.0175)]))
+        zs = (1.32, 1.36, 1.39, 2.6, 3.86, 3.90)    # the first and last row meet the rails (no slit to look into)
+    else:
+        ys, zs = [y0, y1], (1.32, 3.90)
+
+    def x_at(y, z=2.0):
+        if lv > 0 or z <= 1.32 + 1e-6 or z >= 3.90 - 1e-6:
+            return x_face
+        u = math.pi * (y - STRAP_Y0) / STRAP_DY
+        return sgn * (W2 - 0.002 - CURTAIN_AMP * math.cos(u) ** 2)
+
+    def n_at(y):
+        if lv > 0:
+            return np.array([float(sgn), 0.0, 0.0])
+        u = math.pi * (y - STRAP_Y0) / STRAP_DY
+        d = CURTAIN_AMP * math.sin(2.0 * u) * math.pi / STRAP_DY      # d(W2 - amp cos^2)/dy
+        n = np.array([float(sgn), -sgn * d, 0.0])
+        return n / np.linalg.norm(n)
+    pos, nor = [], []
+    for ya, yb in zip(ys[:-1], ys[1:]):
+        for za, zb in zip(zs[:-1], zs[1:]):
+            q = [(x_at(ya, za), ya, za), (x_at(yb, za), yb, za), (x_at(yb, zb), yb, zb), (x_at(ya, zb), ya, zb)]
+            nq = [n_at(ya), n_at(yb), n_at(yb), n_at(ya)]
+            for tri in ((0, 1, 2), (0, 2, 3)):
+                pp = np.array([q[i] for i in tri], dtype=np.float64)
+                nn = np.array([nq[i] for i in tri], dtype=np.float64)
+                if np.cross(pp[1] - pp[0], pp[2] - pp[0]) @ nn.sum(axis=0) < 0.0:
+                    pp, nn = pp[::-1], nn[::-1]
+                pos.append(pp)
+                nor.append(nn)
+    t = decalgeo.Tris(np.array(pos), np.array(nor))
+    t.mat[:] = b.i_paint
+    items = [dict(poly=_rect(STRAP_Y0 + STRAP_DY * i - 0.0175, 1.32, STRAP_Y0 + STRAP_DY * i + 0.0175, 3.90), mat=i_strap)
+             for i in range(STRAP_N)] if lv <= 1 else []      # (far: 3.5 cm straps are a sixth of a pixel at 180 m)
+    items.append(tape)
+    t.apply("side", sgn, [dict(poly=it["poly"], mat=it["mat"], rank=r, n_min=0.5) for r, it in enumerate(items)],
+            cut=True)
+    t.normalize()
+    b.panels.setdefault(b.nname(node), []).append(t)
+    if lv == 0:
+        bm = bmesh.new()
+        for i in range(STRAP_N):
+            y = STRAP_Y0 + STRAP_DY * i
+            xo = sgn * (W2 - CURTAIN_AMP + 0.004)
+            b.MU.bm_box(0.022, 0.05, 0.085, (xo, y, 1.42), bm=bm)
+        with b.node(node):
+            b.obj("buckles", bm, b.mat("buckle", "#3a3c40", 0.4, 0.5))
+
+
 # --- tractor -----------------------------------------------------------------------------------------------
 
 CAB_PROFILE = [(CAB_Y0, CAB_Z0), (CAB_Y1, CAB_Z0), (CAB_Y1, 2.12), (CAB_Y1 - 0.15, 3.03), (CAB_Y1 - 0.32, 3.37),
@@ -545,6 +637,17 @@ def _tractor(b):
             y_v = CAB_Y1 - 0.13
             bm = MU.prism([(y_v, 3.045), (y_v + 0.2, 2.985), (y_v + 0.2, 3.03), (y_v, 3.1)], 2.3, plane="YZ", offset=-1.15)
             b.obj("visor", bm, dark)
+        if lv == 0:
+            # five amber marker lamps on the front edge of the visor (lit with the tail lights, no anchors)
+            bm = bmesh.new()
+            for x in (-0.8, -0.4, 0.0, 0.4, 0.8):
+                MU.bm_box(0.09, 0.03, 0.035, (x, CAB_Y1 + 0.075, 3.0), bm=bm)
+            b.obj("roofmarkers", bm, b.mat("roofmarker", "#c86a12", 0.2), lamp="-marker:1:" + AMBER)
+            # indicator repeaters on the cab sides, behind the doors
+            bm = bmesh.new()
+            for sx in (-1, 1):
+                MU.bm_box(0.012, 0.09, 0.045, (sx * (CAB_W2 + 0.004), CAB_Y0 + 0.32, 1.47), bm=bm)
+            b.obj("repeaters", bm, b.mat("repeater", "#c86a12", 0.15), lamp="ind")
         # deflector: wedge from the roof front up to the height of the trailer
         zt = 3.88
         bm = bmesh.new()
@@ -673,9 +776,9 @@ def _wheels(b):
     return pivots, spec
 
 
-def _level(level, paints):
+def _level(level, paints, tarp=False, word=None):
     from cesprites import meshutil as MU
-    b = _Build(level)
+    b = _Build(level, tarp=tarp, word=word)
     MU.tagging(True)
     try:
         if level <= 2:
@@ -789,12 +892,18 @@ def build_truck(model_id, spec3d):
         return {"paint": _tone(colours[cname]), "paint2": _tone(v["cab"]), "paint3": _tone(v["stripe"] or colours[cname]),
                 "metal": 0.1}
     paints = {k: v for k, v in livery(first).items() if k != "metal"}
+    # the kind of the trailer: all sets of one model must agree (a word or a curtain is geometry, not paint)
+    kinds = {(bool(heavy.TRUCK_VARIANTS[sid.split("_", 1)[1]]["tarp"]), heavy.TRUCK_VARIANTS[sid.split("_", 1)[1]]["text"])
+             for sid in set_ids}
+    if len(kinds) != 1:
+        raise ValueError("%s: the sets %s are different trailers %s" % (model_id, set_ids, sorted(kinds, key=str)))
+    tarp, word = kinds.pop()
     sspec = _sprite_spec(spec3d["source"])
     origin = np.array([0.0, L / 2.0, 0.0])
     model = ModelData(model_id, spec3d["kind"], {"width_m": 2 * W2, "length_m": L, "height_m": H})
     lods = []
     for level in (0, 1, 2):
-        b, nodes, pivots, wspec, tr = _level(level, paints)
+        b, nodes, pivots, wspec, tr = _level(level, paints, tarp, word)
         name = "lod%d" % level
         if level == 0:
             model.lights = tr.lights(origin=origin)
@@ -823,12 +932,12 @@ def build_truck(model_id, spec3d):
         else:
             lods.append(Lod(name, LOD_DIST[name], [Part("body", name + "_body",
                                                         nodes["body"].finish(origin=origin, min_height=SLIVER_M))]))
-    b, nodes, _p, _w, _tr = _level(3, paints)
+    b, nodes, _p, _w, _tr = _level(3, paints, tarp, word)
     model.shadow = Part("body", "shadow", nodes["body"].finish(origin=origin))
     model.lods = lods
     model.paint = livery(first)
     model.tags = list(sspec.get("tags", []))
     for sid in set_ids:
         model.sets[sid] = {"model": model_id, "paint": livery(sid.split("_", 1)[1])}
-    model.stats = dict(build_s=round(time.time() - t0, 2))
+    model.stats = dict(build_s=round(time.time() - t0, 2), tarp=tarp, word=word)
     return model

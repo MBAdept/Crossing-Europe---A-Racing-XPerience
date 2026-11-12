@@ -28,7 +28,16 @@ extends SceneTree
 ##              length 711 px at 720 px, horizon at 45 %) with the vehicle's centre that many metres ahead,
 ##              rendered at 1280x720 and cut out around the vehicle with whole-number magnification (what the
 ##              player sees, pixel for pixel), by day and with tail / brake lights at night;
-##              --lane=<m> puts the vehicle that far to the side (the next lane: -3.5).
+##              --lane=<m> puts the vehicle that far to the side (the next lane: -3.5). --day: only the day tiles.
+##              --arcade: after each day tile the Arcade picture drawn into the same frame without the model: player
+##              cars the straight-ahead cell anchored where the race draws it (the cell is made for 9 m; at another
+##              distance it is scaled by the ratio of the distances); traffic and police cars the cell "c" with its
+##              anchor on the rear end; trucks and buses the rear face of the Arcade box (AS2b).
+## --look=race (default): the race look of the vehicle materials - the class parameters the vehicle layer sets on
+##              the shared materials (scripts/race3d/layers/vehicles.gd LOOK: clear coat mirroring the sky, base coat,
+##              flakes, glass reflection; the mirrored sky = the sky of this rig) and, in --chase tiles, the fill light
+##              of the player car (PLAYER_FILL). --look=neutral: the neutral defaults of the shaders (the look of the
+##              vertex format alone, as tests/race3d/render/check_models.gd measures it).
 
 const VEHICLE_KINDS: Array[String] = ["vehicle", "heavy"]
 const LAMP_STATES: Array = [
@@ -78,6 +87,8 @@ var _label_sv: SubViewport  ## the caption is drawn in its own viewport and blen
 var _sky_mat: ProceduralSkyMaterial
 var _rig_night := false
 var _last_image: Image = null
+var _race_look := true      ## --look=race: the class parameters of the vehicle layer (see the header)
+var _player_fill := 0.0     ## fill light of the player car in --chase tiles (vehicle layer PLAYER_FILL)
 const GAME_SIZE := Vector2i(1280, 720)
 const GAME_FOCAL_PX := 711.0
 const GAME_CAM_HEIGHT := 3.4
@@ -118,12 +129,16 @@ func _run() -> void:
 	_mats = ModernMaterials.new()
 	if showroom:
 		# the look the real showroom puts on the shared materials (Showroom3D.STUDIO_LOOK: paint exposure, lamp
-		# levels, the engine's studio reflection), so the A/B tile is what the vehicle screen shows (RINT-B)
+		# levels, the engine's studio reflection), so the A/B tile is what the vehicle screen shows (RINT-B); the
+		# race look and its mirrored rig sky stay off (the studio mirrors the engine's own studio sky)
+		_race_look = false
 		var sr: GDScript = load("res://scripts/ui/widgets/showroom_3d.gd")
 		for l: Variant in (sr.get_script_constant_map().get("STUDIO_LOOK", []) as Array):
 			var e: Array = l
 			_mats.material(str(e[0]))
 			_mats.set_class_parameter(str(e[0]), str(e[1]), e[2])
+	else:
+		_apply_look()
 	_build_rig()
 	var tiles: Array = []
 	var only := str(_args.get("only", "*"))
@@ -133,7 +148,7 @@ func _run() -> void:
 				"aabb": [0.0, 0.0, -0.1, 15.0 * 0.62 - 0.12, 0.95, 0.1], "text": str(st[0])})
 	else:
 		for mid: String in ModelDB.model_ids():
-			if not mid.match(only):
+			if not _matches(mid, only):
 				continue
 			if showroom:
 				tiles.append_array(_showroom_tiles(mid))
@@ -163,6 +178,14 @@ func _run() -> void:
 
 
 # --- tiles ---------------------------------------------------------------------------------------------
+
+## --only: one glob or several separated by commas ("traffic/suv,traffic/van")
+func _matches(mid: String, only: String) -> bool:
+	for g: String in only.split(",", false):
+		if mid.match(g.strip_edges()):
+			return true
+	return false
+
 
 func _tiles_for(mid: String) -> Array:
 	var m := ModelDB.model(mid)
@@ -338,16 +361,135 @@ func _chase_tiles(mid: String) -> Array:
 	var dists: Array = str(_args.get("chase", "9,30")).split(",", false)
 	if dists.is_empty() or str(dists[0]) == "1":
 		dists = ["9", "30"]
+	var states: Array = [["Tag", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)], ["Nacht, Rücklicht", true, Vector4(1, 0, 0, 0), Vector4(1, 0, 0, 0)],
+		["Nacht, Bremslicht + Blinker links", true, Vector4(1, 1, 1, 0), Vector4(1, 0, 0, 0)]]
+	if _has_light(m, "beacon_a"):
+		states.append(["Nacht, Rücklicht + Blaulicht A", true, Vector4(1, 0, 0, 0), Vector4(1, 0, 1, 0)])
+	if _args.has("day"):
+		states = [states[0]]
+	var sprite := {}
+	if _args.has("arcade"):
+		sprite = _player_sprite(set_id) if mid.begins_with("player/") else _arcade_other(set_id)
 	for d: Variant in dists:
 		var dist := float(str(d))
 		var lod := ModelDB.lod_for_distance(m, dist) if not _args.has("lods") else str(_args["lods"]).split(",")[0]
 		if lod == ModelDB.IMPOSTOR:
 			lod = "lod0"
-		for st: Array in [["Tag", false, Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0)], ["Nacht, Rücklicht", true, Vector4(1, 0, 0, 0), Vector4(1, 0, 0, 0)],
-				["Nacht, Bremslicht + Blinker links", true, Vector4(1, 1, 1, 0), Vector4(1, 0, 0, 0)]]:
+		for st: Array in states:
 			out.append({"set": set_id, "model": mid, "lod": lod, "chase": dist, "lane": lane, "is_night": st[1], "lamp_a": st[2], "lamp_b": st[3],
 				"text": "%s · %s · Spielkamera %.0f m%s · %s" % [mid, lod, dist, "" if lane == 0.0 else " (%.1f m seitlich)" % lane, st[0]]})
+			if not sprite.is_empty() and not bool(st[1]):
+				# --arcade: the Arcade sprite of the player car next to it, from the same camera (see _arcade_sprite)
+				var note := ""
+				if sprite.has("dist") and absf(dist - float(sprite["dist"])) >= 0.01:
+					note = " (Zelle für %.0f m, skaliert)" % float(sprite["dist"])
+				elif sprite.has("half_len"):
+					note = " (Heck in %.0f m)" % (dist - float(sprite["half_len"]))
+				out.append({"arcade": sprite, "set": set_id, "model": mid, "lod": lod, "chase": dist, "lane": lane, "is_night": false,
+					"text": "%s · Arcade-%s · Spielkamera %.0f m%s" % [set_id, "Quader" if str(sprite.get("kind", "")) == "box" else "Sprite", dist, note]})
 	return out
+
+
+## The Arcade picture of a traffic, police or heavy set straight ahead (--arcade for the vehicles without perspective
+## cells): an ortho sprite ("pivot": "rear") is its cell "c" with the anchor on the rear end on the ground, scaled from its
+## pixels per metre; a box vehicle ("render": "box") is the rear face of its rearmost part, a flat rectangle at the rear
+## end - as Arcade draws them (road renderer: rear anchor, focal length / (distance x px per metre); box_vehicle.gd).
+func _arcade_other(set_id: String) -> Dictionary:
+	var man: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://assets/sprites/manifest.json"))
+	if not man is Dictionary or not ((man as Dictionary).get("sets", {}) as Dictionary).has(set_id):
+		return {}
+	var s: Dictionary = (man as Dictionary)["sets"][set_id]
+	var half := 0.5 * float((s.get("object", {}) as Dictionary).get("length_m", 4.5))
+	var file := "res://assets/sprites/" + str(s["file"])
+	if str(s.get("render", "")) == "box":
+		var best: Dictionary = {}
+		for p: Variant in s.get("parts", []):
+			var pd: Dictionary = p
+			if best.is_empty() or float((pd["z"] as Array)[0]) < float((best["z"] as Array)[0]):
+				best = pd
+		if best.is_empty() or not (best.get("faces", {}) as Dictionary).has("rear"):
+			return {}
+		return {"kind": "box", "file": file, "rect": best["faces"]["rear"], "x": best["x"], "y": best["y"], "half_len": half}
+	var angles: Array = s.get("angles", [])
+	var ia := angles.find("c")
+	if ia < 0 or not s.has("image_width_m"):
+		return {}
+	return {"kind": "ortho", "file": file, "cell": s["cell"], "cols": int(s.get("grid_cols", angles.size())), "index": ia,
+		"anchor": s["anchor"], "ppm": float((s["cell"] as Array)[0]) / float(s["image_width_m"]), "half_len": half}
+
+
+func _arcade_other_draw(img: Image, sp: Dictionary, dist: float, lane: float) -> void:
+	var sheet := Image.load_from_file(ProjectSettings.globalize_path(str(sp["file"])))
+	if sheet == null:
+		return
+	sheet.convert(Image.FORMAT_RGBA8)
+	var d_rear := maxf(1.0, dist - float(sp["half_len"]))
+	var s := GAME_FOCAL_PX / d_rear
+	var gx := 0.5 * float(GAME_SIZE.x) + lane * s
+	var gy := 0.45 * float(GAME_SIZE.y) + GAME_CAM_HEIGHT * s
+	var piece: Image
+	var pos: Vector2
+	if str(sp["kind"]) == "box":
+		var r: Array = sp["rect"]
+		piece = sheet.get_region(Rect2i(int(r[0]), int(r[1]), int(r[2]), int(r[3])))
+		var xr: Array = sp["x"]
+		var yr: Array = sp["y"]
+		var w := maxi(1, int(round((float(xr[1]) - float(xr[0])) * s)))
+		var h := maxi(1, int(round((float(yr[1]) - float(yr[0])) * s)))
+		piece.resize(w, h, Image.INTERPOLATE_LANCZOS)
+		pos = Vector2(gx + float(xr[0]) * s, gy - float(yr[1]) * s)
+	else:
+		var cw := int((sp["cell"] as Array)[0])
+		var ch := int((sp["cell"] as Array)[1])
+		var ia := int(sp["index"])
+		piece = sheet.get_region(Rect2i((ia % int(sp["cols"])) * cw, (ia / int(sp["cols"])) * ch, cw, ch))
+		var k := s / float(sp["ppm"])
+		var w := maxi(1, int(round(cw * k)))
+		var h := maxi(1, int(round(ch * k)))
+		piece.resize(w, h, Image.INTERPOLATE_LANCZOS)
+		pos = Vector2(gx - float((sp["anchor"] as Array)[0]) * w, gy - float((sp["anchor"] as Array)[1]) * h)
+	img.convert(Image.FORMAT_RGBA8)
+	img.blend_rect(piece, Rect2i(Vector2i.ZERO, piece.get_size()), Vector2i(int(round(pos.x)), int(round(pos.y))))
+
+
+## The Arcade sprite of a player set (assets/sprites/manifest.json): its sheet, the cell of the straight-ahead angle
+## (base layer), cell size, anchor and the camera it was rendered for.
+func _player_sprite(set_id: String) -> Dictionary:
+	var man: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://assets/sprites/manifest.json"))
+	if not man is Dictionary or not ((man as Dictionary).get("sets", {}) as Dictionary).has(set_id):
+		return {}
+	var s: Dictionary = (man as Dictionary)["sets"][set_id]
+	var angles: Array = s.get("angles", [])
+	var ia := angles.find("c")
+	if ia < 0:
+		return {}
+	var cam: Dictionary = s.get("camera", {})
+	return {"file": "res://assets/sprites/" + str(s["file"]), "cell": s["cell"], "cols": int(s.get("grid_cols", angles.size())),
+		"index": ia, "anchor": s["anchor"], "supersample": float(s.get("supersample", 1.0)),
+		"dist": float(cam.get("distance_m", 9.0)), "height": float(cam.get("height_m", GAME_CAM_HEIGHT))}
+
+
+## The Arcade picture of the player car on a game-camera frame without the model: the cell drawn the way the race
+## draws it - its anchor (the car's centre on the ground) where the game camera sees that point, the cell divided by
+## its supersampling. At another distance than the one the cell was rendered for, the cell is scaled by the ratio of
+## the distances (the perspective of the cell stays that of its own distance).
+func _arcade_sprite(img: Image, sp: Dictionary, dist: float) -> void:
+	var sheet := Image.load_from_file(ProjectSettings.globalize_path(str(sp["file"])))
+	if sheet == null:
+		return
+	sheet.convert(Image.FORMAT_RGBA8)
+	var cw := int((sp["cell"] as Array)[0])
+	var ch := int((sp["cell"] as Array)[1])
+	var ia := int(sp["index"])
+	var cell := sheet.get_region(Rect2i((ia % int(sp["cols"])) * cw, (ia / int(sp["cols"])) * ch, cw, ch))
+	var s := float(sp["dist"]) / dist / float(sp["supersample"])
+	var w := maxi(1, int(round(cw * s)))
+	var h := maxi(1, int(round(ch * s)))
+	cell.resize(w, h, Image.INTERPOLATE_LANCZOS)
+	var ax := 0.5 * float(GAME_SIZE.x) - float((sp["anchor"] as Array)[0]) * w
+	var ay := 0.45 * float(GAME_SIZE.y) + GAME_FOCAL_PX * float(sp["height"]) / dist - float((sp["anchor"] as Array)[1]) * h
+	img.convert(Image.FORMAT_RGBA8)
+	img.blend_rect(cell, Rect2i(0, 0, w, h), Vector2i(int(round(ax)), int(round(ay))))
 
 
 func _sets_of(mid: String) -> Array:
@@ -422,6 +564,45 @@ func _channel_strip() -> Node3D:
 
 # --- rig -------------------------------------------------------------------------------------------------
 
+## The race look of the shared vehicle materials (--look=race, the default): the class parameters the vehicle layer
+## sets (its constant LOOK) and the fill light of the player car (PLAYER_FILL) - read from the layer's script, so the
+## sheet follows the renderer. The values below stand in if the script cannot be loaded.
+func _apply_look() -> void:
+	_race_look = str(_args.get("look", "race")) == "race"
+	if not _race_look:
+		return
+	var look: Array = [["vpbr", "env_energy", 1.6], ["vpbr", "paint_base", 0.9], ["vpbr", "flake_strength", 0.6],
+		["glass", "env_energy", 2.2]]
+	_player_fill = 0.7
+	var path := "res://scripts/race3d/layers/vehicles.gd"
+	if ResourceLoader.exists(path):
+		var scr := load(path) as Script
+		if scr != null:
+			var cm := scr.get_script_constant_map()
+			if cm.get("LOOK") is Array:
+				look = cm["LOOK"]
+			if cm.has("PLAYER_FILL"):
+				_player_fill = float(cm["PLAYER_FILL"])
+	for l: Variant in look:
+		var e: Array = l
+		# set_class_parameter reaches only materials that exist: create the shared class material first (as the
+		# vehicle layer does) - before this, --look=race drew exactly the neutral look (art review KRITIK-2, C2)
+		_mats.material(str(e[0]))
+		_mats.set_class_parameter(str(e[0]), str(e[1]), e[2])
+
+
+## The environment the clear coat, metals and glass mirror (race look): the sky of this rig, the ground below - set
+## the way the vehicle layer derives it from the palette (layers/vehicles.gd _set_environment).
+func _set_env_reflection(top: Color, horizon: Color, ambient: Color) -> void:
+	if not _race_look:
+		return
+	var ground := Color(0.30 * ambient.r, 0.31 * ambient.g, 0.32 * ambient.b)
+	for cls: String in ["vpbr", "glass"]:
+		_mats.set_class_parameter(cls, "env_zenith", top)
+		_mats.set_class_parameter(cls, "env_horizon", horizon)
+		_mats.set_class_parameter(cls, "env_ground", ground)
+
+
 func _build_rig() -> void:
 	_sv = SubViewport.new()
 	_sv.size = _tile
@@ -440,6 +621,10 @@ func _build_rig() -> void:
 	_env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	_env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	_env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
+	if str(_args.get("tonemap", "")) == "agx":
+		# --tonemap=agx: the tonemapper of the showroom of the vehicle selection (scripts/ui/widgets/showroom_3d.gd,
+		# its own world) - for the A/B pictures that decide the flag `showroom`
+		_env.tonemap_mode = Environment.TONE_MAPPER_AGX
 	_env.adjustment_enabled = true
 	# glow only adds light around what is brighter than white; the default blend mode (soft light) would
 	# change the contrast of the whole picture and crush the dark tones of the night sheet
@@ -504,6 +689,7 @@ func _set_night(night: bool) -> bool:
 	# daylight close to the Cycles rig of the sprites (sun 2.4 W/m2 = energy 0.76 here, sky about 0.35)
 	_env.ambient_light_color = Color(0.1, 0.12, 0.2) if night else Color(0.6, 0.64, 0.7)
 	_env.ambient_light_energy = float(str(_args.get("ambient-energy", "0.55" if night else "1.0")))
+	_set_env_reflection(_sky_mat.sky_top_color, _sky_mat.sky_horizon_color, _env.ambient_light_color)
 	_env.glow_intensity = 0.7 if night else 0.25
 	_sun.light_energy = float(str(_args.get("sun-energy", "0.1" if night else "0.8")))
 	_sun.light_color = Color(0.62, 0.72, 1.0) if night else Color(1.0, 0.97, 0.92)
@@ -557,18 +743,25 @@ func _render(t: Dictionary) -> Image:
 	gm.roughness = 0.85 if vehicle else 0.95
 	var node: Node3D = null
 	var text := str(t["text"])
-	if t.has("strip"):
+	if t.has("arcade"):
+		node = null                  # the frame without the model; the sprite is drawn into it below
+	elif t.has("strip"):
 		node = _channel_strip()
 	elif str(t["lod"]) == "impostor":
 		node = ModelFactory.build_impostor(str(t["set"]), _mats)
 	else:
 		node = ModelFactory.build(str(t["set"]), str(t["lod"]), _mats)
 	if node == null:
-		text += "  (fehlt)"
+		if not t.has("arcade"):
+			text += "  (fehlt)"
 	else:
 		_holder.add_child(node)
 		if t.has("lamp_a"):
 			ModelFactory.set_lamps(node, t["lamp_a"], t["lamp_b"])
+		if t.has("chase") and _player_fill > 0.0 and str(t.get("model", "")).begins_with("player/"):
+			# the player car in the race: the vehicle layer adds a fill light (Arcade brightens its player sprite)
+			for c: Node in node.find_children("*", "GeometryInstance3D", true, false):
+				(c as GeometryInstance3D).set_instance_shader_parameter(&"fill", _player_fill)
 		if t.get("show_caster", false):
 			# show the caster itself instead of the body
 			for c: Node in node.get_children():
@@ -666,6 +859,11 @@ func _render(t: Dictionary) -> Image:
 	_first = false
 	await RenderingServer.frame_post_draw
 	var img := _sv.get_texture().get_image()
+	if t.has("arcade"):
+		if (t["arcade"] as Dictionary).has("kind"):
+			_arcade_other_draw(img, t["arcade"], float(t["chase"]), float(t.get("lane", 0.0)))
+		else:
+			_arcade_sprite(img, t["arcade"], float(t["chase"]))
 	if chase:
 		# cut the vehicle out of the 1280 x 720 picture: the largest whole-number magnification that shows it all
 		var r := Rect2()

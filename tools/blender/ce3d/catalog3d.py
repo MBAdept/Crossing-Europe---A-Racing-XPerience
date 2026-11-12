@@ -2,7 +2,7 @@
 the sprite sets it serves. No bpy at import time (export_models.py --list / --manifest-only).
 
 Entry: model id "<group>/<name>" (group = player | traffic | police | props | landmarks) ->
-  builder   player | car | heavy | tree | prop_vpbr | prop_baked    (ce3d.export_models.BUILDERS)
+  builder   player | car | police | heavy | bus | tree | prop_vpbr | prop_baked    (ce3d.export_models.BUILDERS)
   source    sprite set whose generator build is the source (colour variants: any one of them)
   kind      vehicle | heavy | tree | plant | rock | building | landmark | furniture
   sets      sprite set ids served by the model; default = [model id]. Vehicles: {set id: paint dict}
@@ -34,11 +34,18 @@ COMMON_CODE = ["ce3d/__init__.py", "ce3d/glb.py", "ce3d/core.py", "ce3d/roles.py
 # render_all.py: its build() turns a sprite set into the generator model (props, trees); cesprites/props.py: the
 # table of the props and their dispatcher
 BUILDER_CODE = {
-    "player": ["ce3d/vehicles3d.py", "ce3d/decalgeo.py", "ce3d/interior3d.py", "ce3d/extras3d.py", "cesprites/curves.py",
+    "player": ["ce3d/vehicles3d.py", "ce3d/decalgeo.py", "cesprites/carinterior.py", "ce3d/extras3d.py", "cesprites/curves.py",
                "cesprites/carbody.py", "cesprites/cardetail.py", "cesprites/player_cars.py", "cesprites/textgeo.py"],
     "car": ["ce3d/traffic3d.py", "ce3d/vehicles3d.py", "ce3d/truck3d.py", "ce3d/decalgeo.py", "cesprites/vehicles.py",
             "cesprites/designs.py", "cesprites/carbody.py", "cesprites/cardetail.py", "cesprites/curves.py"],
-    "heavy": ["ce3d/truck3d.py", "ce3d/vehicles3d.py", "ce3d/decalgeo.py", "cesprites/heavy.py"],
+    "heavy": ["ce3d/truck3d.py", "ce3d/vehicles3d.py", "ce3d/decalgeo.py", "cesprites/heavy.py", "ce3d/police3d.py",
+              "cesprites/textgeo.py"],
+    # police: the traffic car of traffic3d (all of its code) with livery, words and light bar
+    "police": ["ce3d/police3d.py", "ce3d/traffic3d.py", "ce3d/vehicles3d.py", "ce3d/truck3d.py", "ce3d/decalgeo.py",
+               "cesprites/vehicles.py", "cesprites/designs.py", "cesprites/carbody.py", "cesprites/cardetail.py",
+               "cesprites/curves.py", "cesprites/police.py", "cesprites/textgeo.py"],
+    "bus": ["ce3d/heavy3d.py", "ce3d/truck3d.py", "ce3d/vehicles3d.py", "ce3d/decalgeo.py", "cesprites/heavy.py",
+            "cesprites/textgeo.py"],
     "tree": ["ce3d/veg3d.py", "ce3d/leafatlas.py", "ce3d/bake.py", "ce3d/props3d.py", "cesprites/props_nature.py",
              "cesprites/props.py", "render_all.py"],
     "prop_vpbr": ["ce3d/props3d.py", "cesprites/props.py", "render_all.py"],
@@ -53,23 +60,63 @@ MODELS = {
     "player/kompakt": dict(
         builder="player", source="player/kompakt", kind="vehicle", design="kompakt",
         sets={"player/kompakt": {}, "showroom/kompakt": {"lod": "show", "showroom": False}}),
+    "player/kombi": dict(
+        builder="player", source="player/kombi", kind="vehicle", design="kombi",
+        detail={"lod0": {"step": 3.7}},             # 4.8 m long: the body loft alone had 20,000 triangles at 3.2
+        sets={"player/kombi": {}, "showroom/kombi": {"lod": "show", "showroom": False}}),
+    "player/sportwagen": dict(
+        builder="player", source="player/sportwagen", kind="vehicle", design="sportwagen",
+        sets={"player/sportwagen": {}, "showroom/sportwagen": {"lod": "show", "showroom": False}}),
+    "player/gran_turismo": dict(
+        builder="player", source="player/gran_turismo", kind="vehicle", design="gran_turismo",
+        sets={"player/gran_turismo": {}, "showroom/gran_turismo": {"lod": "show", "showroom": False}}),
     "traffic/sedan": dict(
         builder="car", source="traffic/sedan_red", kind="vehicle", design="sedan",
         sets={"traffic/sedan_red": {}, "traffic/sedan_blue": {}, "traffic/sedan_silver": {}, "traffic/sedan_black": {}}),
     "traffic/hatch": dict(
         builder="car", source="traffic/hatch_green", kind="vehicle", design="hatch",
-        far_sill=False,           # lod2: no dark sill on the rear end - the cut costs 68 triangles, lod2 had 20 left
+        # lod2 (AS2R): a finer greenhouse takes the rear pane cut along the design's outline for fewer triangles
+        # (stations near the pane's edges), the coarser lower body pays for the dark sill on the rear end
+        detail={"lod2": {"gstep": 60.0, "step": 80.0}},
         sets={"traffic/hatch_green": {}, "traffic/hatch_yellow": {}, "traffic/hatch_white": {}, "traffic/hatch_blue": {},
               "traffic/hatch_red": {}}),
     "traffic/wagon": dict(
         builder="car", source="traffic/wagon_silver", kind="vehicle", design="wagon",
         detail={"lod0": {"step": 7.7, "gstep": 8.5}, "lod1": {"step": 16.0, "gstep": 24.0},
-                "lod2": {"gstep": 120.0, "ends_n": 1}, "shadow": {"gstep": 120.0}},              # the long greenhouse
+                "lod2": {"gstep": 60.0, "ends_n": 1, "step": 90.0}, "shadow": {"gstep": 120.0}},  # the long greenhouse
+        # (lod2, AS2R: gstep 120 -> 60 - stations along the rear pane make its cut cheaper; step 90 for the body)
         sets={"traffic/wagon_silver": {}, "traffic/wagon_darkblue": {}, "traffic/wagon_green": {},
               "traffic/wagon_white": {}}),
+    "traffic/suv": dict(
+        builder="car", source="traffic/suv_black", kind="vehicle", design="suv",
+        detail={"lod0": {"step": 7.3, "gstep": 7.6}, "lod1": {"step": 17.0, "gstep": 26.0},
+                "lod2": {"step": 80.0, "gstep": 60.0}},             # tall body, roof rails, cladding cut
+        sets={"traffic/suv_black": {}, "traffic/suv_white": {}, "traffic/suv_grey": {}, "traffic/suv_brown": {}}),
+    "traffic/van": dict(
+        builder="car", source="traffic/van_white", kind="vehicle", design="van",
+        detail={"lod0": {"step": 9.0, "gstep": 10.0}, "lod1": {"step": 17.0, "gstep": 24.0}},     # 5.4 m long, 2.5 m high
+        sets={"traffic/van_white": {}, "traffic/van_silver": {}, "traffic/van_red": {}, "traffic/van_darkblue": {}}),
+    "traffic/sports": dict(
+        builder="car", source="traffic/sports_red", kind="vehicle", design="sports",
+        detail={"lod0": {"step": 8.2}, "lod2": {"step": 100.0, "gstep": 60.0}},      # the wing and four tail pipes
+        # (lod2 gstep 60, AS2R: the rear pane cut along the design's outline is cheaper on a finer greenhouse)
+        sets={"traffic/sports_red": {}, "traffic/sports_yellow": {}, "traffic/sports_orange": {}, "traffic/sports_black": {},
+              "traffic/sports_blue": {}}),
+    # the semitrailer: one model per kind of trailer of cesprites.heavy.TRUCK_VARIANTS (the word on the box and the
+    # curtain are geometry): box with "LOGISTIK", box with "TRANSPORT", curtain sider
     "traffic/truck": dict(
         builder="heavy", source="traffic/truck_white", kind="heavy", design="truck",
-        sets={"traffic/truck_white": {}, "traffic/truck_red": {}, "traffic/truck_blue": {}, "traffic/truck_green": {}}),
+        sets={"traffic/truck_white": {}}),
+    "traffic/truck_transport": dict(
+        builder="heavy", source="traffic/truck_blue", kind="heavy", design="truck",
+        sets={"traffic/truck_blue": {}}),
+    "traffic/truck_tarp": dict(
+        builder="heavy", source="traffic/truck_red", kind="heavy", design="truck",
+        sets={"traffic/truck_red": {}, "traffic/truck_green": {}}),
+    # the coach: one rigid body as the sprite's box (one part "body"); its three colour sets are paint values
+    "traffic/bus": dict(
+        builder="bus", source="traffic/bus_white", kind="heavy", design="bus",
+        sets={"traffic/bus_white": {}, "traffic/bus_red": {}, "traffic/bus_blue": {}}),
     # --- vegetation ----------------------------------------------------------------------------------
     "props/tree_oak": dict(builder="tree", source="props/tree_oak", kind="tree", species="oak"),
     # --- props ---------------------------------------------------------------------------------------
@@ -185,6 +232,54 @@ MODELS.update({
 })
 
 
+# --- police (AS2b): one model per country - base car, livery, word and colours of cesprites.catalog.POLICE -----------
+# POLICE_DETAIL: detail overrides per base car on top of the traffic car's own (catalog entry "traffic/<base>"), to
+# make room for the livery cuts and the light bar inside the police budgets (contract 4.6.9)
+POLICE_DETAIL = {
+    "sedan": {"lod1": {"step": 24.0, "gstep": 30.0}, "lod2": {"ring": 0.07, "step": 80.0, "gstep": 80.0, "ends_n": 1}},
+    "hatch": {"lod1": {"step": 24.0, "gstep": 30.0}, "lod2": {"ring": 0.07, "step": 80.0, "gstep": 80.0, "ends_n": 1}},
+    "wagon": {"lod1": {"step": 32.0, "gstep": 44.0}, "lod2": {"ring": 0.07, "step": 110.0}},
+    "suv": {"lod1": {"step": 38.0, "gstep": 50.0}, "lod2": {"ring": 0.07, "step": 100.0, "gstep": 90.0, "ends_n": 1}},
+}
+# ... and per livery: the checks cost about 4,000 triangles at lod0 (rows and cells), the Hungarian word twice the
+# others - a longer station spacing of the lod0 lofts makes the room (the ends and the wheel arches keep their own
+# stations); at lod1 the checks on the bumpers (about 360 triangles) take one station per wheel arch and one in
+# each rounded end of the body
+POLICE_DETAIL_CC = {
+    "check": {"lod0": {"step": 12.0, "gstep": 12.0}, "lod1": {"arch_n": 4, "ends_n": 2}},
+    "be": {"lod1": {"step": 36.0}},
+    "ch": {"lod1": {"step": 36.0}},
+    "hu": {"lod0": {"step": 8.8}, "lod1": {"step": 30.0}},
+    "ro": {"lod0": {"step": 13.0}, "lod1": {"step": 28.0}},
+    "at": {"lod1": {"step": 48.0, "gstep": 64.0}},
+}
+# ... and options of the build per country (AS2R): Czechia's stripes leave no room in lod2 for the rear pane cut along
+# the design's outline (1,204 of 1,200 triangles) - its far greenhouse keeps the normal rule (police3d: far_windows)
+POLICE_SPEC_CC = {
+    "cz": {"far_windows": False},
+}
+
+
+def _police_models():
+    from cesprites import catalog
+    out = {}
+    for cc in sorted(catalog.POLICE):
+        p = catalog.POLICE[cc]
+        e = dict(builder="police", source="police/" + cc, kind="vehicle", cc=cc, sets={"police/" + cc: {}})
+        detail = {}
+        for over in (POLICE_DETAIL.get(p["model"], {}), POLICE_DETAIL_CC.get(p["style"], {}), POLICE_DETAIL_CC.get(cc, {})):
+            for lv, vals in over.items():
+                detail.setdefault(lv, {}).update(vals)
+        if detail:
+            e["detail"] = detail
+        e.update(POLICE_SPEC_CC.get(cc, {}))
+        out["police/" + cc] = e
+    return out
+
+
+MODELS.update(_police_models())
+
+
 def model_ids():
     return sorted(MODELS)
 
@@ -235,6 +330,15 @@ def key_data(model_id):
         from cesprites import heavy
         data["colours"] = _plain(catalog.TRAFFIC_COLORS[spec["design"]])
         data["variants"] = _plain(heavy.TRUCK_VARIANTS)
+    elif spec["builder"] == "bus":
+        from cesprites import heavy
+        data["colours"] = _plain(catalog.TRAFFIC_COLORS["bus"])
+        data["variants"] = _plain(heavy.BUS_VARIANTS)
+    elif spec["builder"] == "police":
+        # the traffic car it is built on: that entry's options (detail per level ...) and the police table row
+        base = catalog.POLICE[spec["cc"]]["model"]
+        data["police"] = _plain(catalog.POLICE[spec["cc"]])
+        data["base"] = _plain(MODELS["traffic/" + base])
     return data
 
 

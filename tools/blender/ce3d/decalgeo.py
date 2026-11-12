@@ -112,7 +112,11 @@ class Tris:
 
     def split_z(self, z, where=None):
         """Splits every triangle that crosses the height z (cladding line). where: (T) bool - only these."""
-        d = self.pos[:, :, 2] - z
+        self.split_coord(2, z, where)
+
+    def split_coord(self, k, z, where=None):
+        """Splits every triangle that crosses the plane where coordinate k (0 x, 1 y, 2 z) equals z."""
+        d = self.pos[:, :, k] - z
         cross = (d.min(axis=1) < -1e-6) & (d.max(axis=1) > 1e-6)
         if where is not None:
             cross &= where
@@ -558,7 +562,7 @@ def _window_items(w, pal, seal, glass, seals=True):
 
 
 def car_surfaces(car, soups, cut=True, level=0, paint_rough=0.28, seals=True, far_glass=False, far_plate=None,
-                 glass_look=None, far_sill=False):
+                 glass_look=None, far_sill=False, far_windows=False):
     """Cuts (or paints) the decals of a vehicles.Car into body lofts.
     car: the Car whose decal lists are used; car.body / car.cabin / car.bumper_obs name the lofts (those of the
     Car itself, or the SmoothCar lofts of ce3d.traffic3d). Without bumper objects (far levels whose body runs
@@ -576,6 +580,9 @@ def car_surfaces(car, soups, cut=True, level=0, paint_rough=0.28, seals=True, fa
     glass_look: dict(color, rough, metal) of the panes instead of the default dark glass.
     far_sill: at level 2 (far_glass) the rear end below the plastic line of the bumper is dark plastic, as the
     bumper of the nearer levels.
+    far_windows: at level 2 (far_glass) the rear pane is cut along the window outline of the design and the side
+    panes are limited to the y span of the side windows, instead of the normal rule (the pillars and a windowless
+    rear half stay paint); "rear": only the rear pane (the sides by the normal rule - a budget of triangles).
     Returns (Palette, {object name: Tris}, stats)."""
     d = car.d
     pal = Palette()
@@ -606,8 +613,11 @@ def car_surfaces(car, soups, cut=True, level=0, paint_rough=0.28, seals=True, fa
                 lamp = str(dec.get("lamp", "")).split(":")[0]
                 if far_plate and lamp == "plate":
                     dec = dict(dec, mat=dict(color=far_plate, rough=0.45, spec=0.4))
-                elif level == 2 and far_glass and (dec.get("face", "rear") == "side" or lamp in ("reverse", "drl", "plate")):
-                    continue                # (a plate is 3 x 0.6 px at 120 m and costs 100 triangles on the end cap)
+                elif level == 2 and far_glass and (dec.get("face", "rear") == "side" or lamp in ("reverse", "drl", "plate")
+                                                   or (lamp.startswith("-") and not d.get("far_reflectors"))):
+                    continue                # (a plate is 3 x 0.6 px at 120 m and costs 100 triangles on the end cap;
+                    #                          "-": a lamp without a light anchor - the bumper reflectors of the SUV,
+                    #                          unless the design keeps them: d["far_reflectors"])
                 if (level == 2 or (level == 1 and far_glass and not front1)) and dec.get("inset"):
                     dec = dict(dec)
                     dec.pop("inset")            # the lamp fills its (dropped) black outline
@@ -639,9 +649,12 @@ def car_surfaces(car, soups, cut=True, level=0, paint_rough=0.28, seals=True, fa
         # following driver sees; along the flanks the cut would cost 180 triangles) - the bottom row of the car
         # turned from dark plastic to paint at the 120 m swap
         z_pl = d["bumper"].get("plastic", 0.25)
-        rear = t.face_normals()[:, 1] < -0.5
+        # (AS2R, with far_windows) also the rounded rear corners: the bumper of level 1 is dark around them, and
+        # the two light corners of the bottom row changed at the 120 m swap
+        sill_ny = -0.2 if far_windows is True else -0.5
+        rear = t.face_normals()[:, 1] < sill_ny
         t.split_z(z_pl, where=rear)
-        rear = t.face_normals()[:, 1] < -0.5
+        rear = t.face_normals()[:, 1] < sill_ny
         t.mat[rear & (t.pos[:, :, 2].mean(axis=1) < z_pl)] = plastic
     full = car.body_decals() + d.get("body_decals_3d", [])
     run(t, _decal_items(small_filter(full), pal, order_from=full))
@@ -654,15 +667,57 @@ def car_surfaces(car, soups, cut=True, level=0, paint_rough=0.28, seals=True, fa
     t = Tris(s.pos, s.nor)
     t.mat[:] = paint
     if level == 2 and far_glass:
+        win = car.windows()
+        belt = min(p[1] for poly in win.get("side", []) for p in poly) if win.get("side") else 0.0
+        # d["far_pane_ny"]: how far a face must look along the car to be a front or rear pane. The fastback glass
+        # of the traffic sports car lies at 17 degrees, on the default threshold: in each of its two quads one
+        # triangle stayed paint - a diagonal half pane (43 % of the car's pixels changed at the 120 m swap)
+        ny = float(d.get("far_pane_ny", 0.3))
+        rear_cut = far_windows and win.get("rear") is not None
+        side_y = None
+        if far_windows and far_windows != "rear" and win.get("side_frames"):
+            # (AS2R) the side panes only where the design has side windows (the van's sides have none behind the
+            # doors: by the normal rule below its whole upper half turned into glass - art review KRITIK-2, B2):
+            # the faces are split at the first and last y of the window band; a pillar between two windows is
+            # half a pixel at 120 m
+            ys = [p[0] for poly in win["side_frames"] for p in poly]
+            side_y = (min(ys), max(ys))
+            for yv in side_y:
+                fn = t.face_normals()
+                t.split_coord(1, yv, where=(np.abs(fn[:, 0]) > 0.6) & (t.pos[:, :, 2].max(axis=1) > belt))
+        if rear_cut:
+            # the rear pane - what the following driver sees - is cut along the design's outline as at level 1
+            # (no seals), in ONE triangulation with the decals of the greenhouse (a second cut over the first
+            # doubled their triangles): by the normal rule the whole rear end of the greenhouse became glass,
+            # pillars included - a dark cap at the 120 m swap (B2: SUV, the fleet)
+            groups = _decal_items(small_filter(car.cabin_decals()), pal, order_from=car.cabin_decals())
+            for key, items in _window_items(dict(rear=win["rear"]), pal, seal, glass, seals=False).items():
+                for it in items:
+                    # no y range: the coarse faces of the far greenhouse reach from the end ring to the next station
+                    # beyond the pane's y span (a pane of two diagonal halves); the depth rule of apply() keeps the
+                    # cut at the rear end. No side limit either: the pane lies inside the pillars anyway, and each
+                    # normal threshold splits every long face of the coarse greenhouse once more
+                    it.pop("y_range", None)
+                    it.pop("nx_max", None)
+                groups[key] = items + groups.get(key, [])
+            run(t, groups)
         fn = t.face_normals()
-        belt = min(p[1] for poly in car.windows().get("side", []) for p in poly) if car.windows().get("side") else 0.0
-        pane = ((np.abs(fn[:, 0]) > 0.6) | ((fn[:, 2] < 0.97) & (np.abs(fn[:, 1]) > 0.3))) & \
-            (t.pos[:, :, 2].mean(axis=1) > belt + 0.02) & (fn[:, 2] > -0.3)
+        cy = t.pos[:, :, 1].mean(axis=1)
+        side = np.abs(fn[:, 0]) > 0.6
+        if side_y is not None:
+            side &= (cy > side_y[0]) & (cy < side_y[1])
+        along = (fn[:, 2] < 0.97) & (np.abs(fn[:, 1]) > ny)
+        if rear_cut:
+            along &= fn[:, 1] > 0.0             # the front pane only: the rear one is cut
+        pane = (side | along) & (t.pos[:, :, 2].mean(axis=1) > belt + 0.02) & (fn[:, 2] > -0.3) & \
+            (t.rank <= GLASS_RANK)
         t.mat[pane] = glass
         t.rank[pane] = GLASS_RANK
+        if not rear_cut:
+            run(t, _decal_items(small_filter(car.cabin_decals()), pal, order_from=car.cabin_decals()))
     else:
         run(t, _window_items(car.windows(), pal, seal, glass, seals=seals and level < 2))
-    run(t, _decal_items(small_filter(car.cabin_decals()), pal, order_from=car.cabin_decals()))
+        run(t, _decal_items(small_filter(car.cabin_decals()), pal, order_from=car.cabin_decals()))
     out[car.cabin.name] = t
     # bumpers: the rear one takes the rear and side decals, the front one the front and side decals
     for which, ob in sorted(car.bumper_obs.items()):

@@ -646,9 +646,11 @@ class Car:
         return res
 
 
-# lamp channel of a lamp part in the 3D models (ce3d/roles.py); the sprite light layers know only tail / brake
+# lamp channel of a lamp part in the 3D models (ce3d/roles.py); the sprite light layers know only tail / brake.
+# A reflector glows a little with the tail lights but is no light source: no light anchor ("-"; the SUV's bumper
+# reflectors pulled the anchor of its tail lamp 4.5 mm under the lamp)
 LAMP_TAGS = {"tail": "tail_brake", "tail_only": "tail", "brake_only": "brake", "indicator": "ind",
-             "reverse": "reverse", "head": "head", "drl": "drl", "reflector": "tail:0.3"}
+             "reverse": "reverse", "head": "head", "drl": "drl", "reflector": "-tail:0.3"}
 
 
 def _smooth_body(ob, levels=1):

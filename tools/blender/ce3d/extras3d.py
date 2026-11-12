@@ -11,11 +11,10 @@ import math
 import bmesh
 import bpy
 
+from cesprites import carinterior as interior3d
 from cesprites import cardetail as CD
 from cesprites import materials as M
 from cesprites import meshutil as MU
-
-from . import interior3d
 
 # per design: chmsl = False if the design has its own third brake light; antenna_y = position on the roof
 EXTRAS = {

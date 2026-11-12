@@ -221,9 +221,11 @@ class Translator:
         if name == "ind":
             # one symmetric object carries both sides: split by the side of each triangle
             cx = pos[:, :, 0].mean(axis=1)
+            per_tri = anchor_shift is not None and np.ndim(anchor_shift) == 3     # (T, 1, 3): one shift per triangle
             for side, sel in (("ind_r", cx >= 0.0), ("ind_l", cx < 0.0)):
                 if sel.any():
-                    self._lamp(mb, side, w, lit, base, rough, metal, pos[sel], nor[sel], anchor, anchor_shift)
+                    self._lamp(mb, side, w, lit, base, rough, metal, pos[sel], nor[sel], anchor,
+                               np.asarray(anchor_shift)[sel] if per_tri else anchor_shift)
             return
         self._lamp(mb, name, w, lit, base, rough, metal, pos, nor, anchor, anchor_shift)
 

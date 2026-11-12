@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 40,
-    "tris": 17464,
+    "tris": 17459,
     "parts": [
      {
       "node": "body",
@@ -65,7 +65,7 @@
    {
     "name": "lod2",
     "max_dist_m": 100000,
-    "tris": 1141,
+    "tris": 1176,
     "parts": [
      {
       "node": "body",
@@ -158,8 +158,8 @@
   "paint": {"paint": "#aeb2b8", "metal": 0.75},
   "auto_lod": false,
   "tags": ["traffic", "car"],
-  "bytes": 276055,
-  "hash": "db5c2ce5598cf7f01b547b25ecd6d0f867c1faad"
+  "bytes": 276617,
+  "hash": "3e2f4539892f2b24dd0a4eb22e6a7a08deb218cc"
  },
  "sets": {
   "traffic/wagon_silver": {
@@ -176,7 +176,7 @@
   },
   "traffic/wagon_white": {
    "model": "traffic/wagon",
-   "paint": {"paint": "#e6e6e3", "metal": 0.1}
+   "paint": {"paint": "#d8d8d5", "metal": 0.1}
   }
  }
 }

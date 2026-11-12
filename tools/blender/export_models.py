@@ -40,12 +40,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 CACHE = os.path.join(HERE, "_cache3d")
 # rough export cost per builder (s) - only used to balance two workers
-COST = {"player": 150.0, "car": 40.0, "heavy": 30.0, "tree": 30.0, "prop_vpbr": 3.0, "prop_baked": 120.0}
+COST = {"player": 150.0, "car": 40.0, "police": 45.0, "heavy": 30.0, "bus": 30.0, "tree": 30.0, "prop_vpbr": 3.0,
+        "prop_baked": 120.0}
 
 
 BUILDERS = {"prop_vpbr": ("ce3d.props3d", "build_vpbr"), "prop_baked": ("ce3d.props3d", "build_baked"),
             "tree": ("ce3d.veg3d", "build_tree"), "car": ("ce3d.traffic3d", "build_car"),
-            "player": ("ce3d.vehicles3d", "build_player"), "heavy": ("ce3d.truck3d", "build_truck")}
+            "player": ("ce3d.vehicles3d", "build_player"), "heavy": ("ce3d.truck3d", "build_truck"),
+            "police": ("ce3d.police3d", "build_police"), "bus": ("ce3d.heavy3d", "build_bus")}
 # AS1b (wave 2): bushes and ground cover (docs/modelle.md section 14)
 BUILDERS.update({"bush": ("ce3d.veg3d", "build_bush"), "grass": ("ce3d.veg3d", "build_grass"),
                  "building": ("ce3d.props3d", "build_building"), "lattice": ("ce3d.props3d", "build_lattice")})

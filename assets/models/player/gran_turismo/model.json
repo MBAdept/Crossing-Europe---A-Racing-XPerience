@@ -1,0 +1,200 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "player/gran_turismo",
+ "model": {
+  "kind": "vehicle",
+  "object": {"width_m": 1.95, "length_m": 4.95, "height_m": 1.285},
+  "aabb": [-1.195, 0.002, -2.482, 1.195, 1.285, 2.489],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 48106,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "player/gran_turismo/lod0_body.res",
+      "classes": ["vpbr", "glass"]
+     },
+     {
+      "node": "wheel_0l",
+      "mesh": "player/gran_turismo/wheel_f.res",
+      "classes": ["vpbr"],
+      "pos": [-0.8295, 0.35, -1.375],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.35, "steer": true}
+     },
+     {
+      "node": "wheel_0r",
+      "mesh": "player/gran_turismo/wheel_f.res",
+      "classes": ["vpbr"],
+      "pos": [0.8295, 0.35, -1.375],
+      "wheel": {"radius": 0.35, "steer": true}
+     },
+     {
+      "node": "wheel_1l",
+      "mesh": "player/gran_turismo/wheel_r.res",
+      "classes": ["vpbr"],
+      "pos": [-0.8095, 0.35, 1.525],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.35, "steer": false}
+     },
+     {
+      "node": "wheel_1r",
+      "mesh": "player/gran_turismo/wheel_r.res",
+      "classes": ["vpbr"],
+      "pos": [0.8095, 0.35, 1.525],
+      "wheel": {"radius": 0.35, "steer": false}
+     }
+    ]
+   },
+   {
+    "name": "show",
+    "max_dist_m": 0,
+    "tris": 102289,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "player/gran_turismo/show_body.res",
+      "classes": ["vpbr", "glass"]
+     },
+     {
+      "node": "wheel_0l",
+      "mesh": "player/gran_turismo/show_wheel_f.res",
+      "classes": ["vpbr"],
+      "pos": [-0.8295, 0.35, -1.375],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.35, "steer": true}
+     },
+     {
+      "node": "wheel_0r",
+      "mesh": "player/gran_turismo/show_wheel_f.res",
+      "classes": ["vpbr"],
+      "pos": [0.8295, 0.35, -1.375],
+      "wheel": {"radius": 0.35, "steer": true}
+     },
+     {
+      "node": "wheel_1l",
+      "mesh": "player/gran_turismo/show_wheel_r.res",
+      "classes": ["vpbr"],
+      "pos": [-0.8095, 0.35, 1.525],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.35, "steer": false}
+     },
+     {
+      "node": "wheel_1r",
+      "mesh": "player/gran_turismo/show_wheel_r.res",
+      "classes": ["vpbr"],
+      "pos": [0.8095, 0.35, 1.525],
+      "wheel": {"radius": 0.35, "steer": false}
+     }
+    ]
+   }
+  ],
+  "shadow": {"mesh": "player/gran_turismo/shadow.res", "tris": 2320},
+  "lights": [
+   {
+    "role": "brake",
+    "pos": [-0.8029, 0.8916, 2.3543],
+    "dir": [-0.625, 0.441, 0.644],
+    "size": 0.208,
+    "color": "#ff2414"
+   },
+   {
+    "role": "brake",
+    "pos": [0.8032, 0.8926, 2.3548],
+    "dir": [0.629, 0.433, 0.645],
+    "size": 0.208,
+    "color": "#ff2414"
+   },
+   {
+    "role": "head",
+    "pos": [-0.6859, 0.6237, -2.2976],
+    "dir": [-0.487, 0.476, -0.732],
+    "size": 0.096,
+    "color": "#fff3d6"
+   },
+   {
+    "role": "head",
+    "pos": [0.6856, 0.6238, -2.2978],
+    "dir": [0.486, 0.478, -0.732],
+    "size": 0.096,
+    "color": "#fff3d6"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-1.1817, 0.9112, -0.5384],
+    "dir": [-1, 0, 0],
+    "size": 0.079,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-0.8451, 0.5989, -2.1929],
+    "dir": [-0.547, 0.654, -0.523],
+    "size": 0.07,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-0.804, 0.8208, 2.3996],
+    "dir": [-0.44, 0.501, 0.745],
+    "size": 0.115,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [0.804, 0.8207, 2.3998],
+    "dir": [0.441, 0.5, 0.746],
+    "size": 0.116,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [0.8447, 0.599, -2.193],
+    "dir": [0.542, 0.656, -0.525],
+    "size": 0.069,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [1.1817, 0.9112, -0.5384],
+    "dir": [1, 0, 0],
+    "size": 0.079,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "tail",
+    "pos": [-0.7891, 0.8929, 2.3723],
+    "dir": [-0.585, 0.458, 0.669],
+    "size": 0.221,
+    "color": "#ff1a0e"
+   },
+   {
+    "role": "tail",
+    "pos": [0.7778, 0.8931, 2.3783],
+    "dir": [0.569, 0.444, 0.692],
+    "size": 0.219,
+    "color": "#ff1a0e"
+   }
+  ],
+  "paint": {"paint": "#b2b7bd", "metal": 0.9},
+  "auto_lod": false,
+  "tags": ["player"],
+  "bytes": 1776118,
+  "hash": "3b50b0a3ee70a6102a75bf758a1f2ca8ac336413"
+ },
+ "sets": {
+  "player/gran_turismo": {
+   "model": "player/gran_turismo",
+   "paint": {"paint": "#b2b7bd", "metal": 0.9}
+  },
+  "showroom/gran_turismo": {
+   "model": "player/gran_turismo",
+   "lod": "show",
+   "showroom": false,
+   "paint": {"paint": "#b2b7bd", "metal": 0.9}
+  }
+ }
+}

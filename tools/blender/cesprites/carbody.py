@@ -72,10 +72,12 @@ BRAKE_RED = "#ff2414"
 #   bumper_end_r  radius (m) of a rounding at the wheel-arch end of the bumpers: the bumper turns into the body
 #            there instead of ending in a flat cap beside the wheel (a "glued-on box"; 0 = the sprite model)
 #   tyre_lite  tyres of 9 profile points (cardetail._tyre_profile_lite) - traffic cars, seen from 10 m and more
+#   cap_strips  the end caps of the lofts as horizontal bands between mirrored ring points instead of one n-gon
+#            (same surface and triangle count; outlines cut into a cap cross fewer triangles - far levels)
 DETAIL = dict(ring=1.0, step=1.0, res=1.0, off=1.0, min_off=0.0, wheel=1.0, extras=False, graze=0.0,
               conform=False, crease=0.0, arch_r=None, seam=1.0, wheel_plain=False, arch_n=None, gstep=None,
               lamp_depth=0.0, ring_min=2, cap_sharp=True, ends_n=None, bumper_clamp=False, plate_bold=1.0,
-              bumper_end_r=0.0, tyre_lite=False)
+              bumper_end_r=0.0, tyre_lite=False, cap_strips=False)
 
 
 def _prof(v):
@@ -339,10 +341,29 @@ class SmoothCar:
                     faces.append(bm.faces.new((a[i], a[j], b[j], b[i])))
                 except ValueError:
                     pass
-        if cap0:
-            faces.append(bm.faces.new(list(reversed(vr[0]))))
-        if cap1:
-            faces.append(bm.faces.new(vr[-1]))
+        if self.detail.get("cap_strips") and n >= 6 and n % 2 == 0:
+            # 3D hook: each end cap as horizontal bands between the mirrored points of its ring (mirror_ring: index
+            # i and n - i share their height) instead of one n-gon - the same surface and the same number of
+            # triangles, but a lamp or pane outline cut into the cap crosses a band or two instead of the long
+            # diagonals of the triangulated n-gon (the far levels of the traffic cars were over their budget)
+            h = n // 2 + 1
+            for ring_v, cap in ((vr[0], cap0), (vr[-1], cap1)):
+                if not cap:
+                    continue
+                band = [(ring_v[0], ring_v[1], ring_v[n - 1])]
+                for i in range(1, h - 2):
+                    band.append((ring_v[i], ring_v[i + 1], ring_v[n - i - 1], ring_v[n - i]))
+                band.append((ring_v[h - 2], ring_v[h - 1], ring_v[h]))
+                for q in band:
+                    try:
+                        faces.append(bm.faces.new(q if ring_v is vr[-1] else tuple(reversed(q))))
+                    except ValueError:
+                        pass
+        else:
+            if cap0:
+                faces.append(bm.faces.new(list(reversed(vr[0]))))
+            if cap1:
+                faces.append(bm.faces.new(vr[-1]))
         bmesh.ops.recalc_face_normals(bm, faces=faces)
         for fc in faces:
             fc.smooth = True

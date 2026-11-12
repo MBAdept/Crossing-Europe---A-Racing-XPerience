@@ -14,7 +14,9 @@ import time
 
 import numpy as np
 
-from . import core, decalgeo, extras3d, interior3d, roles
+from cesprites import carinterior as interior3d
+
+from . import core, decalgeo, extras3d, roles
 from . import lod as LOD
 from .export import Lod, ModelData, Part, sprite_extent
 
@@ -49,6 +51,11 @@ def _add_soup(nodes, tr, soup, default_node):
         if sink is not None and str(sink).split(":")[0] in decalgeo.AXES:
             # a sunk lamp part ("<projection>:<depth>"): its anchor lies in the opening
             shift = decalgeo.AXES[str(sink).split(":")[0]] * float(str(sink).split(":")[1])
+        elif sink is not None and str(sink).split(":")[0] == "side":
+            # a sunk part on both flanks (the wrap of a tail lamp): the opening lies outwards of each triangle
+            cx = soup.pos[sel][:, :, 0].mean(axis=1)
+            shift = np.zeros((cx.shape[0], 1, 3))
+            shift[:, 0, 0] = np.sign(cx) * float(str(sink).split(":")[1])
         tr.add_role(mb, role, d, soup.pos[sel], soup.nor[sel], soup.ob.get("ce_lamp"), anchor_shift=shift)
     if left:
         raise roles.RoleError("object '%s' has untranslated %s materials" % (soup.name, "/".join(sorted(left))))
@@ -92,6 +99,12 @@ PLAYER_OVERRIDES = {
 # out bright silver. The colour of the 3D rim is what the sprite shows.
 PLAYER_DESIGN_OVERRIDES = {
     "limousine": {"*_rim": dict(color="#6a6e74", metal=0.65, rough=0.32)},
+    # (wave 3) the silver rims of the kombi and the GT: in the sprites mid silver with dark gaps, in real time a
+    # white disc under the wheel arch - the colour the sprite shows, a little brighter than the limousine's
+    # (AS2R) with the race look of the vehicle layer (env_energy 1.6) those two still came out nearly white in the sun
+    # (art review KRITIK-2, A7): darker, nearer the limousine's anthracite - the sprite shows mid silver
+    "kombi": {"*_rim": dict(color="#7a7e84", metal=0.65, rough=0.3)},
+    "gran_turismo": {"*_rim": dict(color="#83878d", metal=0.65, rough=0.28)},
 }
 SHARP_DEG = {"_brake": 30.0}     # meshes (name suffix) with hard edges in the 3D build: the flat faces of the brake disc
 
@@ -109,12 +122,17 @@ def _harden(objs):
                 done.add(me.name)
 # look of the glazing and of the lamp lenses (class glass): opacity of the tinted panes over the cabin, of the
 # coloured lenses (the lamp parts under them carry the colour and the light) and of clear headlight lenses
-PLAYER_GLASS = dict(glass_opacity=0.36, lens_opacity=0.10, clear_lens_opacity=0.08)
+PLAYER_GLASS = dict(glass_opacity=0.48, lens_opacity=0.10, clear_lens_opacity=0.08)
 GLASS_OVERLAP_M = 0.008        # the panes overlap the edge of their opening by this much (the black band)
 POCKET_SPAN_M = 0.09           # objects whose faces under a lamp outline lie this close behind the front one share the recess
 POCKET_MIN_SHARE = 0.12        # ... if their part of the outline has at least this share of the largest part's area
 LINER = dict(color="#232427", rough=0.85)
 INTERIOR_MAX_TRIS = 6000       # contract 4.6.9: interior inside "body" of the race level (lining included)
+# (AS2R) front wheel arches that must clear the tyre by this much (m, over the tyre radius): the sports car and the
+# GT have their shoulder line under the top of the front tyre (hood edge 0.77 / 0.81 m, tyre top 0.684 / 0.70 m), so
+# SmoothCar.frame() starts the section below the arch circle - the fender ran 84 / 61 mm into the tyre and folded
+# over it (art review KRITIK-2, A5). _clear_front_arches pulls that part of the fender up onto the circle.
+ARCH_CLEAR = {"sportwagen": 0.025, "gran_turismo": 0.025}
 
 
 def _shift(outline, proj, dy):
@@ -213,6 +231,59 @@ def _open_cabin(car, lay, soups, lining=None):
     return src.pos[:, ::-1, :].copy(), -src.nor[:, ::-1, :], stats
 
 
+FLIP_SLIVER_M = 0.003      # flipped slivers of the lofts lower than this are dropped (_drop_flipped)
+# conform patches drawn along a path or over a curved lamp: where a stroke turns tighter than its half width or a
+# lens patch folds over a crease, the folded part comes out wound against its normals (the kombi's L-shaped light
+# guide: 13 triangles). The patch covers that area anyway; the folded triangles are culled from the front.
+FOLD_PARTS = ("_guide", "_white", "_indicator", "_bar", "_lens", "_seam", "_reverse")
+
+
+def _drop_flipped(s, max_h=None):
+    """Drops the triangles of a soup that face against their own shading normals (all of them, or only slivers
+    lower than max_h). They are culled from the side they should show - holes already - and the validator counts
+    them (winding rule). Returns the number dropped."""
+    if s.n == 0:
+        return 0
+    g = np.cross(s.pos[:, 1] - s.pos[:, 0], s.pos[:, 2] - s.pos[:, 0])
+    drop = np.einsum("ij,ij->i", g, s.nor.sum(axis=1)) < 0.0
+    if max_h is not None:
+        longest = np.max(np.stack([np.linalg.norm(s.pos[:, k] - s.pos[:, (k + 1) % 3], axis=1) for k in range(3)],
+                                  axis=1), axis=1)
+        drop &= np.linalg.norm(g, axis=1) / np.maximum(longest, 1e-12) < max_h
+    if drop.any():
+        keep = ~drop
+        s.pos, s.nor, s.mi = s.pos[keep], s.nor[keep], s.mi[keep]
+        if getattr(s, "uv", None) is not None:
+            s.uv = s.uv[keep]
+        s.n = s.pos.shape[0]
+    return int(drop.sum())
+
+
+def _clear_front_arches(car, soups, clear):
+    """The fender over a front wheel follows the arch circle (radius R + clear about the axle, side projection): every
+    vertex of the lower body above the axle, in the outer part of the car (over the tyre and outside it) and inside
+    that circle is moved out onto it along its radius. The surface stays closed - the lip of the opening is lifted
+    with it - and nothing else moves. Returns the number of vertices moved."""
+    body = next((s for s in soups if s.name == car.body.name), None)
+    if body is None or body.n == 0:
+        return 0
+    d = car.d
+    tw = float(d.get("tw", 0.22))
+    x_in = car.W2 - float(d.get("wheel_inset", 0.02)) - tw - 0.03
+    yc, zc, rc = car.y_fa - car.L / 2.0, float(car.R), float(car.R) + clear
+    p = body.pos
+    dy, dz = p[:, :, 1] - yc, p[:, :, 2] - zc
+    r = np.hypot(dy, dz)
+    sel = (np.abs(p[:, :, 0]) > x_in) & (dz > 0.0) & (r < rc)
+    if not sel.any():
+        return 0
+    k = np.where(sel, rc / np.maximum(r, 1e-9), 1.0)
+    p[:, :, 1] = yc + dy * k
+    p[:, :, 2] = zc + dz * k
+    body.pos = p
+    return int(sel.sum())
+
+
 def _lamp_pockets(car, soups):
     """Recessed lamp units (cesprites.cardetail.lamp with detail "lamp_depth"): sinks the body faces under the
     outline of every unit and closes the step with walls (decalgeo.pocket). Of several objects under one outline
@@ -264,6 +335,8 @@ def _player_level(spec3d, level):
     sspec = _sprite_spec(spec3d["source"])
     params = dict(sspec["params"])
     params["detail"] = dict(LOD.PLAYER_DETAIL[level], extras=True)
+    # per model (catalog3d "detail": {level: {...}}): the kombi is 4.8 m long with a long greenhouse
+    params["detail"].update(spec3d.get("detail", {}).get(level, {}))
     rig = R.Rig(quick=True)
     MU.tagging(True)
     try:
@@ -296,6 +369,14 @@ def _player_level(spec3d, level):
             shell["body" if s_.name == car.body.name else "green"] = s_.pos.copy()
     extras3d.uncover_pockets(car, {s.name: s for s in soups}, lambda o, pr: _shift(o, pr, -car.L / 2.0), decalgeo.cut_holes)
     lin_pos, lin_nor, cut_stats = _open_cabin(car, lay, soups, lining)
+    arch_moved = _clear_front_arches(car, soups, ARCH_CLEAR[spec3d["design"]]) if spec3d["design"] in ARCH_CLEAR else 0
+    flipped = 0
+    lofts = (car.body.name, car.green.name, car.bumper_rear.name, car.bumper_front.name)
+    for s_ in soups:
+        if s_.name in lofts:
+            flipped += _drop_flipped(s_, FLIP_SLIVER_M)      # twisted slivers at the edges of the wheel arches
+        elif any(k in s_.name for k in FOLD_PARTS):
+            flipped += _drop_flipped(s_)
     if os.environ.get("CE_STATS"):
         import re
         groups = {}
@@ -338,7 +419,10 @@ def _player_level(spec3d, level):
         raise RuntimeError("%s %s: interior %d triangles (at most %d)" % (spec3d["design"], level, interior,
                                                                           INTERIOR_MAX_TRIS))
     info["cabin"] = dict(lining_tris=int(lin_pos.shape[0]), removed=cut_stats["removed"], pocket_tris=pocket_tris,
-                         interior_tris=interior)
+                         interior_tris=interior, flipped_dropped=flipped, arch_moved=arch_moved)
+    if os.environ.get("CE_STATS") and arch_moved:
+        print("      front arches: %d vertices of the fender moved onto the circle R + %.3f m" % (
+            arch_moved, ARCH_CLEAR[spec3d["design"]]))
     info["shell"] = shell
     return car, info, params, nodes, pivots, tr
 

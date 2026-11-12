@@ -1,0 +1,177 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "police/lv",
+ "model": {
+  "kind": "vehicle",
+  "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.64},
+  "extent_m": {"left": 1.04, "right": 1.04},
+  "aabb": [-1.035, 0, -2.025, 1.035, 1.638, 2.027],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 40,
+    "tris": 21970,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "police/lv/lod0_body.res",
+      "classes": ["vpbr", "glass"]
+     },
+     {
+      "node": "wheel_0l",
+      "mesh": "police/lv/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [-0.7415, 0.31, -1.21],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.31, "steer": true}
+     },
+     {
+      "node": "wheel_0r",
+      "mesh": "police/lv/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [0.7415, 0.31, -1.21],
+      "wheel": {"radius": 0.31, "steer": true}
+     },
+     {
+      "node": "wheel_1l",
+      "mesh": "police/lv/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [-0.7415, 0.31, 1.37],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.31, "steer": false}
+     },
+     {
+      "node": "wheel_1r",
+      "mesh": "police/lv/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [0.7415, 0.31, 1.37],
+      "wheel": {"radius": 0.31, "steer": false}
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 120,
+    "tris": 5886,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "police/lv/lod1_body.res",
+      "classes": ["vpbr"]
+     }
+    ]
+   },
+   {
+    "name": "lod2",
+    "max_dist_m": 100000,
+    "tris": 1155,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "police/lv/lod2_body.res",
+      "classes": ["vpbr"]
+     }
+    ]
+   }
+  ],
+  "shadow": {"mesh": "police/lv/shadow.res", "tris": 1068},
+  "lights": [
+   {
+    "role": "beacon_a",
+    "pos": [-0.342, 1.6294, 0.57],
+    "dir": [0, 1, 0],
+    "size": 0.537,
+    "color": "#2f5bff"
+   },
+   {
+    "role": "beacon_b",
+    "pos": [0.342, 1.6294, 0.57],
+    "dir": [0, 1, 0],
+    "size": 0.537,
+    "color": "#2f5bff"
+   },
+   {
+    "role": "brake",
+    "pos": [-0.7273, 0.8497, 1.9674],
+    "dir": [-0.435, 0.204, 0.877],
+    "size": 0.242,
+    "color": "#ff2010"
+   },
+   {
+    "role": "brake",
+    "pos": [0.7272, 0.8496, 1.9676],
+    "dir": [0.435, 0.203, 0.877],
+    "size": 0.242,
+    "color": "#ff2010"
+   },
+   {
+    "role": "head",
+    "pos": [-0.6078, 0.6596, -1.9616],
+    "dir": [-0.272, 0.299, -0.915],
+    "size": 0.118,
+    "color": "#fff3d6"
+   },
+   {
+    "role": "head",
+    "pos": [0.6078, 0.6596, -1.9617],
+    "dir": [0.271, 0.3, -0.914],
+    "size": 0.118,
+    "color": "#fff3d6"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-0.7837, 0.654, -1.8559],
+    "dir": [-0.769, 0.076, -0.635],
+    "size": 0.152,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-0.7597, 0.7684, 1.9658],
+    "dir": [-0.493, -0.008, 0.87],
+    "size": 0.122,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [0.7597, 0.7684, 1.9658],
+    "dir": [0.493, -0.009, 0.87],
+    "size": 0.122,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [0.7836, 0.654, -1.8557],
+    "dir": [0.769, 0.078, -0.634],
+    "size": 0.152,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "tail",
+    "pos": [-0.7273, 0.8497, 1.9674],
+    "dir": [-0.435, 0.204, 0.877],
+    "size": 0.242,
+    "color": "#ff2010"
+   },
+   {
+    "role": "tail",
+    "pos": [0.7272, 0.8496, 1.9676],
+    "dir": [0.435, 0.203, 0.877],
+    "size": 0.242,
+    "color": "#ff2010"
+   }
+  ],
+  "paint": {"paint": "#d8d8d5", "paint2": "#1c2f6e", "paint3": "#e3dc1c", "metal": 0.12},
+  "auto_lod": false,
+  "tags": ["police", "lv"],
+  "bytes": 340691,
+  "hash": "64a2f704bd0f63c25939c7d82ac53c9ba8937dbc"
+ },
+ "sets": {
+  "police/lv": {
+   "model": "police/lv",
+   "paint": {"paint": "#d8d8d5", "paint2": "#1c2f6e", "paint3": "#e3dc1c", "metal": 0.12}
+  }
+ }
+}
