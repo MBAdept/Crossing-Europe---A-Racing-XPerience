@@ -1,4 +1,4 @@
-"""Police cars as real-time models (contract 6, wave 4 "AS2b"; docs/modelle.md section 15).
+"""Police cars as real-time models (contract 6, wave 4 "AS2b"; docs/modelle.md section 16).
 
 A police set of the sprite catalog (cesprites.catalog.POLICE: base model, word, livery style, colours) is the traffic
 car of ce3d.traffic3d with

@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/church",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 10.8, "height_m": 35.4, "length_m": 28},
+  "extent_m": {"left": 16.08, "right": 3.06},
+  "aabb": [-5.4, -0.02, -27.4, 5.4, 35.4, 0.6],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 1740,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/church/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 1284,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/church/lod1_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/church/albedo.png", "emit": "props/church/emit.png"},
+  "roughness": 0.85,
+  "auto_lod": false,
+  "tags": ["prop", "building", "mirror_left"],
+  "bytes": 574265,
+  "hash": "b6eec099a2e2ef7f4286ad0d2b73d1350fe5e64c"
+ },
+ "sets": {
+  "props/church": {"model": "props/church"}
+ }
+}

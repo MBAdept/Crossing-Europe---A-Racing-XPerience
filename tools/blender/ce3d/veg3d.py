@@ -31,7 +31,7 @@ card strips along the generator's frond spines, SHAPE_LOG "fronds"; a trunk rebu
 
 Leaf card vertex data (class "leaves", leaves.gdshader): UV = cell of the leaf atlas, COLOR = (sway amplitude by
 height 0..1, phase per blob / frond, stiffness, brightness), NORMAL = outwards from the blob (and a little from
-the crown): up-facing parts of a crown have up-facing normals (snow, rain: docs/modelle.md section 15).
+the crown): up-facing parts of a crown have up-facing normals (snow, rain: docs/modelle.md section 18).
 Variants (catalog "variant_of"): the generator with another seed (and for the species whose generator draws no
 random shape, a 3D-only shape parameter), no sets of their own - the set of the species lists them in "variants".
 """

@@ -1,4 +1,4 @@
-"""Rocks and the cliff of the mode "Modern" (AS3; docs/modelle.md section 15), builder "rock".
+"""Rocks and the cliff of the mode "Modern" (AS3; docs/modelle.md section 18), builder "rock".
 
 The generator's own geometry (cesprites/props_nature.py: boulders = icospheres displaced by clouds and Voronoi
 noise - real facets; the cliff = a leaning wall, solidified and displaced, with two boulders and a few shrubs on its

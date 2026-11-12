@@ -1,0 +1,55 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/factory",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 34, "height_m": 34.5, "length_m": 29},
+  "extent_m": {"left": 24.97, "right": 15.84},
+  "aabb": [-17.05, -0.02, -29.2, 17.05, 34.35, 0.2],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 1624,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/factory/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 1108,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/factory/lod1_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "lights": [
+   {
+    "role": "lights",
+    "pos": [13.2853, 34.2, -25.0266],
+    "dir": [1, 0, 0],
+    "size": 1.081,
+    "color": "#ff2010"
+   }
+  ],
+  "textures": {"albedo": "props/factory/albedo.png", "emit": "props/factory/emit.png"},
+  "roughness": 0.8,
+  "auto_lod": false,
+  "tags": ["prop", "building", "mirror_left"],
+  "bytes": 698290,
+  "hash": "793075a20fc226d13b6887943df610396f36e401"
+ },
+ "sets": {
+  "props/factory": {"model": "props/factory"}
+ }
+}

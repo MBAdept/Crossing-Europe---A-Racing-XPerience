@@ -1,4 +1,4 @@
-"""Special crowns of the card trees (AS3; docs/modelle.md section 15): the species whose sprite crown is not a set of
+"""Special crowns of the card trees (AS3; docs/modelle.md section 18): the species whose sprite crown is not a set of
 blobs - spruce (tiers of cones), cypress (a lathe flame) and palm (fronds on a curved, ringed trunk). The generator
 logs their shapes (cesprites/props_nature.SHAPE_LOG); wood, wind data, fitting to the sprite, impostor and model data
 are those of the card-tree builder (ce3d/veg3d.py).

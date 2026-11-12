@@ -1,4 +1,4 @@
-"""The coach (bus) as a real-time model (contract 6, wave 4 "AS2b"; docs/modelle.md section 15).
+"""The coach (bus) as a real-time model (contract 6, wave 4 "AS2b"; docs/modelle.md section 16).
 
 The sprite bus of cesprites.heavy.build_bus is one textured box (render "box", one part "body", 12.8 x 2.55 x
 3.65 m). This builder makes the same vehicle - footprint, axles, window band, livery stripes, lamp layout and the

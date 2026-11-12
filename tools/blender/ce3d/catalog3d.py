@@ -281,7 +281,7 @@ MODELS.update(_police_models())
 
 
 # --- AS3 ---------------------------------------------------------------------------------------------------------------
-# AS3 (wave 4): vegetation and nature (docs/modelle.md section 15). Own block: the species tables of the card-tree
+# AS3 (wave 4): vegetation and nature (docs/modelle.md section 18). Own block: the species tables of the card-tree
 # builder are in ce3d/veg3d.py (oak, birch and the bushes above get the reworked builder through them); the entries
 # here add the other species with a second seed each, heather, the two rocks and the cliff.
 #   params   generator parameters of the 3D build: "seed" - and for species whose generator draws no random shape, a
@@ -334,6 +334,166 @@ MODELS.update({
 # ground cover grass (AS1b): twice the tufts, so that it reads as grass and not as one spot at 15 m
 MODELS["props/cover_grass"] = dict(MODELS["props/cover_grass"], grass=dict(seed=23, tufts=14))
 # --- end AS3 -----------------------------------------------------------------------------------------------------------
+
+
+# --- AS4 --- (wave 5): rural and town buildings, bridge parts, ships (docs/modelle.md section 19). Own block; builder
+# "house" lives in ce3d/buildings3d.py (props3d.py stays as it is, so the keys of the models above do not change).
+BUILDER_CODE.update({
+    "house": ["ce3d/buildings3d.py", "ce3d/props3d.py", "ce3d/bake.py", "ce3d/leafatlas.py", "cesprites/props.py",
+              "cesprites/props_buildings.py", "render_all.py"],
+    "pylon": ["ce3d/bridges3d.py", "ce3d/buildings3d.py", "ce3d/props3d.py", "ce3d/bake.py", "cesprites/props.py",
+              "cesprites/props_cities.py", "render_all.py"],
+    "truss": ["ce3d/bridges3d.py", "ce3d/buildings3d.py", "ce3d/props3d.py", "ce3d/leafatlas.py", "cesprites/props.py",
+              "cesprites/props_cities.py", "render_all.py"],
+    "lantern": ["ce3d/bridges3d.py", "ce3d/buildings3d.py", "ce3d/props3d.py", "cesprites/props.py", "render_all.py"],
+})
+AO_TOWN = dict(distance=2.0, floor=0.4, gamma=0.9, samples=24)
+MODELS.update({
+    # rural: the medium house (village of the plains), ochre plaster, hip roof, green shutters, balcony
+    "props/house_med": dict(builder="house", source="props/house_med", kind="building", atlas=(1024, 1024),
+                            ppm_max=96.0, roughness=0.9, view="roadside", params={"allround": True}, ao=AO_RURAL,
+                            lod1=True, vpbr=("med_rail",), overrides={"med_rail": dict(rough=0.75, metal=0.2)},
+                            openings=dict(reveal_color="#d6bd8c", sill_color="#d9d3c6"),
+                            gutters=dict(per_roof=2)),
+    # rural: the village church - nave with arched windows, tower with a belfry (louvres) and clocks on three faces,
+    # slate spire with a gilded cross; walls 30 cm deep in the openings, two steps at the door
+    # AS4R: the plaster 12 % darker than the sprite's (#e8e1d0 came out 13 % brighter than the sprite in the race)
+    "props/church": dict(builder="house", source="props/church", kind="building", atlas=(1024, 1024), ppm_max=80.0,
+                         roughness=0.85, view="roadside", params={"allround": True, "plaster": "#ccc6b7"}, ao=AO_TOWN,
+                         lod1=True,
+                         vpbr=("church_gold",), weights=dict(roof=0.5, away=0.25),
+                         openings=dict(reveal_m=0.3, door_m=0.3, steps=2, reveal_color="#d8d0bd", sill_color="#cfc6b2",
+                                       louvre=(17.0, 19.6), bars={"win": (1, [0.36, 0.66])}),
+                         flood=dict(objects=("church_tower",), strength=0.12, z=(0.0, 21.0), tint="#ffe2b0", top=0.3),
+                         gutters=dict(per_roof=2, walls=("church_nave",))),
+    # rural / outskirts: the factory - hall with sawtooth roofs and skylights, steel sash windows, a roller gate with a
+    # transom window, the works sign (a gear between bars, lit at night - mirror-symmetric: the set is tagged
+    # mirror_left, lettering would read backwards on the left roadside), brick chimney with aviation light, silo
+    "props/factory": dict(builder="house", source="props/factory", kind="building", atlas=(1024, 1024), ppm_max=80.0,
+                          roughness=0.8, view="roadside", params={"allround": True}, ao=AO_TOWN, lod1=True,
+                          vpbr=("fac_tank",), baked_lamps=("fac_skylight",), weights=dict(roof=0.4, away=0.25),
+                          overrides={"fac_tank": dict(rough=0.5, metal=0.45)}, gutters=False, caps=False,
+                          openings=dict(reveal_m=0.2, reveal_color="#9d988e", sill_color="#8f8b84",
+                                        bars={"large": (3, 3)}, pane_lit=(0.75, 1.0)),
+                          sign=dict(logo="gear", face="front", u=(-14.6, -3.4), z=(7.1, 8.4), wall=0.0,
+                                    panel="#2f3a44", color="#e9e7df"),
+                          # AS4R (M4): the sawtooth glazing with mullions and a transom, its light at 30 % and fading
+                          # towards the top (it lit as five pure white fields)
+                          skylight=dict(objects=("fac_glass",), glass="#5d7486", frame="#4a4f55", light="#cfe0ff",
+                                        strength=0.9, k=0.3, pitch=1.4, bar=0.1, fade=0.5, z=(9.1, 11.9))),
+    # town blocks (category city: 10,000 triangles, atlas 2048 x 1024)
+    "props/building_block_a": dict(builder="house", source="props/building_block_a", kind="building",
+                                   atlas=(2048, 1024), ppm_max=72.0, roughness=0.85, view="roadside",
+                                   params={"allround": True}, ao=AO_TOWN, lod1=True, vpbr=("blka_rail",),
+                                   overrides={"blka_rail": dict(rough=0.6, metal=0.3)}, weights=dict(roof=0.4, away=0.5),
+                                   openings=dict(reveal_color="#cbb98f", sill_color="#d6d1c6"), gutters=False),
+    "props/building_block_b": dict(builder="house", source="props/building_block_b", kind="building",
+                                   atlas=(2048, 1024), ppm_max=72.0, roughness=0.85, view="roadside",
+                                   params={"allround": True}, ao=AO_TOWN, lod1=True, weights=dict(roof=0.4, away=0.5),
+                                   openings=dict(reveal_color="#cfc4b2", sill_color="#d3cabb",
+                                                 bars={"large": (1, [0.78])}), gutters=False),
+    # old town: the stepped-gable house (the gable one prism so that its windows can be cut; a back gable closes the roof)
+    "props/building_oldtown": dict(builder="house", source="props/building_oldtown", kind="building",
+                                   atlas=(1024, 1024), ppm_max=96.0, roughness=0.85, view="roadside",
+                                   params={"allround": True, "gable3d": True}, ao=AO_TOWN, lod1=True,
+                                   weights=dict(roof=0.6),
+                                   openings=dict(reveal_color="#ece5d8", sill_color="#e6dfd2",
+                                                 bars={"large": (1, [0.62])}),
+                                   gutters=dict(per_roof=2)),
+    # the office tower: glass curtain wall (spandrel bands in the atlas, panes and fins as geometry), lobby lit at night.
+    # AS4R (M3/M8): the panes are atlas patches - the sprite's glass gradient in six steps, the same by day for lit and
+    # unlit panes, the light (34 %, spread per face, floor and bay) in the emission atlas; the lobby at 20 % of its
+    # light with mullions in front of it
+    "props/building_tall": dict(builder="house", source="props/building_tall", kind="building", atlas=(2048, 1024),
+                                ppm_max=48.0, roughness=0.6, view="roadside", ao=AO_TOWN, lod1=True,
+                                openings=False, gutters=False, caps=False, baked_lamps=("tower_lobby",),
+                                light_scale={"tower_lobby": 0.2},
+                                curtain=dict(object="tower", base=3.5, floor=3.5, band=0.9, mull=1.6, lit=0.34,
+                                             light="#ffe4b8", glass="#2c4256", glass_top="#6f8ea8", bands=6,
+                                             strength=0.75, lobby=dict(object="tower_lobby", posts=1.6, w=0.12))),
+    # --- bridge parts (generators in props_cities.py: read back, not changed) -----------------------------------
+    # the candelabra of stone bridges: flat colours only (vpbr, one draw call); the upper halves of the lantern
+    # glasses lie under their caps and are dropped; their sides are flood-lit glass (pale by day, lit at night), the
+    # faces looking down are the lamps with the three light anchors (pools on the pavement)
+    "props/bridge_lamp": dict(builder="lantern", source="props/bridge_lamp", kind="furniture", auto_lod=False,
+                              hidden_tops=("bl_lg",), glass=("bl_lg",), side_flood=0.85,
+                              code=["cesprites/props_cities.py"]),
+    # AS4R (art review AS4, M1/M5): the leg upright and 0.9 m farther out (its foot and plinth end at the deck edge,
+    # model x -1.3 m), seven cables a side from the head down to the deck edge (axis at x -1.15 m, 1.1 m high - Arcade
+    # draws them to x -1.4 m; with their 0.32 m the cables then end outside the railing line) within 36 m of the pylon
+    # - every cable-stayed bridge of the network has at least 40.5 m (Elisabeth- and Vansu-Bruecke); one level;
+    # extent_m stays the sprite's (the pylon is not placed by it)
+    "props/bridge_pylon": dict(builder="pylon", source="props/bridge_pylon", kind="furniture", atlas=(1024, 1024),
+                               ppm_max=40.0, roughness=0.85, view="allround", cable_w=(0.32,), beacon="bpy_red",
+                               split=("bpy_leg", (30.75, 61.5)), band_w=(1.0, 0.6, 0.45), drop=("bpy_anch",),
+                               upright=dict(lean_deg=3.5, top=82.0, shift_x=0.9, clip_x=-2.2, clip_z=1.0),
+                               fan=dict(n=7, span=36.0, near=8.0, heads=(55.0, 79.0), deck=(-1.15, 1.1), head_y=0.6,
+                                        shift_x=0.9, leg_hw=(2.2, 1.35, 82.0)),
+                               extent_source=True, code=["cesprites/props_cities.py"]),
+    # the same pylon without cables, for a renderer that draws the cables of each bridge from its data (height_m,
+    # cables, deck edge - RoadRenderer._pylon): a set of the mode Modern only, placed by no stage
+    "props/bridge_pylon_bare": dict(builder="pylon", source="props/bridge_pylon", kind="furniture", atlas=(1024, 1024),
+                                    ppm_max=40.0, roughness=0.85, view="allround", cable_w=(0.32,), beacon="bpy_red",
+                                    split=("bpy_leg", (30.75, 61.5)), band_w=(1.0, 0.6, 0.45), drop=("bpy_anch",),
+                                    upright=dict(lean_deg=3.5, top=82.0, shift_x=0.9, clip_x=-2.2, clip_z=1.0),
+                                    bare=True, object={"width_m": 5.25, "height_m": 88.8, "length_m": 8.0},
+                                    sets={"props/bridge_pylon_bare": {"modern_only": True}},
+                                    code=["cesprites/props_cities.py"]),
+    # AS4R (M10): the web of the cut-out picture 1.2 x wider and 15 % darker (paler than the sprite at 400 m); the
+    # steel 15 % darker than the sprite's STEEL_GREEN #56676a (sun and sky light make the model lighter and bluer
+    # than the pre-lit sprite: at 100 m contrast to the sky 98 against 109)
+    "props/bridge_truss_arch": dict(builder="truss", source="props/bridge_truss_arch", kind="furniture",
+                                    atlas=(1024, 512), ppm=28.0, roughness=0.55, web_k=1.2, web_dark=0.85,
+                                    steel="#49585a", code=["cesprites/props_cities.py"]),
+    # --- ships -------------------------------------------------------------------------------------------------
+    # the ro-pax ferry: the sprite shows its starboard side (view_yaw 90), so the model is turned by -90 degrees
+    # (its side faces the approaching player, the bow points to +X); the many cabin windows stay painted (lit in
+    # the emission atlas), the deck lights are lamps without anchors, the navigation lights keep theirs
+    "props/ferry_ship": dict(builder="house", source="props/ferry_ship", kind="building", atlas=(1024, 1024),
+                             ppm_max=24.0, roughness=0.55, view="roadside", params={"lowpoly3d": True}, rotate_deg=-90.0,
+                             extent_view=0.0, openings=False, gutters=False, caps=False, baked_lamps=("ferry_bridge",),
+                             split=dict(objects=("ferry_hull", "ferry_deck"), axis=0, at=(-36.4, 9.1)),
+                             weights=dict(roof=0.3, away=0.3),
+                             # navigation lights glow without anchors: a signal light lights no deck (and the anchors
+                             # of one role share the colour of its first lamp - the white lights came out green)
+                             overrides={"ferry_deckl": dict(lamp="-lights:0.9"),
+                                        "ferry_nav_g": dict(lamp="-lights:1:#18ff50"),
+                                        "ferry_nav_w": dict(lamp="-lights:1:#ffffff"),
+                                        "ferry_nav_w2": dict(lamp="-lights:1:#ffffff")},
+                             ao=dict(distance=3.0, floor=0.5, gamma=1.0, samples=24),
+                             code=["cesprites/props_road.py", "cesprites/props_buildings.py"]),
+    # the Amsterdam houseboat: its cabin walls come from props_cities.wallmat (window log taken from outside); the
+    # cut-out railing of the roof garden is rebuilt as posts and rails (vpbr), the potted plants decimated
+    "props/houseboat": dict(builder="house", source="props/houseboat", kind="building", atlas=(1024, 512),
+                            ppm_max=110.0, roughness=0.7, view="roadside", city_walls=True,
+                            railings=dict(objects=("hb_rail",), post=1.0, color="#1f2321", w=0.05),
+                            decimate={"hb_plant": 0.15, "hb_fl": 0.5},
+                            ao=dict(distance=1.2, floor=0.45, gamma=0.9, samples=24), gutters=False,
+                            openings=dict(reveal_m=0.08, reveal_color="#2b3b31", sill_color="#ece8de", steps=0),
+                            code=["cesprites/props_cities.py"]),
+    # --- AS1b's windmill, reworked: real openings in the middle of the octagon's faces instead of the painted grid
+    # that straddled a corner (hook win3d); the rest as AS1b built it. AS4R: the panes are atlas patches (M3); the
+    # sails stay the sprite's lattice - the art review's flicker of the mill (M7) was the rotor turning while its
+    # measurement moved the model (the rotor phase follows the world position); with the camera moving instead, mill
+    # and sprite flicker alike (measured, docs/modelle.md section 19)
+    "props/windmill": dict(builder="house", source="props/windmill", kind="building", atlas=(1024, 1024),
+                           ppm_max=64.0, roughness=0.9, view="allround", gutters=False, ao=AO_RURAL,
+                           params={"win3d": True}, openings=False, caps=False,
+                           octagon=dict(objects=("mill_base",), faces=(67.5, 112.5, 247.5, 292.5),
+                                        rows=(2.3, 4.9), win=(0.8, 1.1), lit=0.5, frame="#e9e6de", reveal_m=0.25),
+                           rotor=dict(objects=("mill_sails",), hub_z=19.8), code=["cesprites/props_buildings.py"]),
+    # town: the shop with flat, awning, sign (its light stays in the emission atlas: teal by day, cyan at night).
+    # AS4R (M9): an emblem on the sign board - a shopping bag between two bars, mirror-symmetric (mirror_left), lit at
+    # night (channel 14); the board's own light at 25 % (it was a white box at night)
+    "props/building_shop": dict(builder="house", source="props/building_shop", kind="building", atlas=(1024, 1024),
+                                ppm_max=110.0, roughness=0.85, view="roadside", params={"allround": True}, ao=AO_TOWN,
+                                lod1=True, baked_lamps=("shop_sign",), light_scale={"shop_sign": 0.25},
+                                sign=dict(logo="bag", face="front", u=(-4.4, 4.4), z=(3.75, 4.55), wall=-0.245,
+                                          panel=None, color="#f4f1ea", flood=1.0),
+                                openings=dict(reveal_color="#d9d4c8", sill_color="#c9c4b8",
+                                              bars={"large": (0, [0.8])}),
+                                gutters=False),
+})
 
 
 def model_ids():

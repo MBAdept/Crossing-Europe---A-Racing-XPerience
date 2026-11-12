@@ -5,8 +5,10 @@ prozeduralen Generatoren** wie die Sprites (`tools/blender/cesprites`, siehe [sp
 Generatoren haben dafür Schalter („Hooks“) bekommen, deren Voreinstellung exakt das Sprite-Modell von v0.7.0
 ergibt. Kein Modell wird von Hand gebaut oder importiert. Der Modus „Arcade“ benutzt nichts von alledem.
 
-Stand: Bauabschnitt 4 mit der Nacharbeit nach der Kunstkritik (jedes Fahrzeug-Set hat ein Modell: Spielerautos und
-Verkehrsautos aus Abschnitt 15, Sattelzüge, Busse und Polizei aus Abschnitt 16, die Nacharbeit in Abschnitt 17).
+Stand: erste Zusammenführung von M2 (M2INT) – jedes Fahrzeug-Set hat ein Modell (Spielerautos und Verkehrsautos
+aus Abschnitt 15, Sattelzüge, Busse und Polizei aus Abschnitt 16, die Nacharbeit in Abschnitt 17), dazu Vegetation
+und Natur (Abschnitt 18) und ländliche Gebäude, Stadthäuser, Brückenteile und Schiffe (Abschnitt 19); die
+Stadthäuser der Stilfamilien (`props/city_*`) und die Wahrzeichen außer dem Michel sind noch Arcade-Bilder.
 Zahlen mit „gemessen“ stammen von der
 Build-VM (4 Kerne, mit anderen Aufträgen geteilt, Software-OpenGL), „abgeleitet“ ist gerechnet, nicht gemessen.
 
@@ -1270,3 +1272,209 @@ mehrere mittlere Mängel. Was geändert ist (Messungen im Bericht des Pakets):
   Polsterrand; Zypresse
   mit einer Windphase je Ring und nach oben gekippten Normalen in der oberen Hälfte der Flamme (für Schnee und
   Nässe).
+
+## 19. Gebäude, Brückenteile und Schiffe (Bauabschnitt 5, AS4)
+
+Die übrigen Land- und Stadtgebäude, die Brückenteile und die Schiffe der Sprite-Sets haben jetzt Echtzeit-Modelle:
+Kirche, Fabrik, Haus mit Läden, Wohnblock A und B, Altstadthaus mit Treppengiebel, Ladenhaus, Büroturm,
+Brückenlaterne, Pylon der Schrägseilbrücke, Fachwerkportal, Hausboot und Fähre; die Windmühle von Bauabschnitt 2 hat
+echte Fensteröffnungen bekommen. Damit hat jedes Requisiten-Set außerhalb von `city_*`, den Wahrzeichen und der
+Vegetation ein Modell.
+
+| Modell | Bauer | Kategorie | Dreiecke lod0 / lod1 | Aufrufe | Atlas | px/m zur Straße | Licht nachts |
+|---|---|---|---|---|---|---|---|
+| `house_med` | `house` | Land | 1 343 / 761 | 2 | 1024² + Licht | 59,9 | Fenster |
+| `church` | `house` | Land | 1 740 / 1 284 | 2 | 1024² + Licht | 30,0 | Fenster, Uhren, Turm-Flutlicht |
+| `factory` | `house` | Land | 1 624 / 1 108 | 2 | 1024² + Licht | 29,5 | Hallenfenster, Oberlichter, Werkszeichen, Schlotlicht |
+| `windmill` | `house` | Land | 1 928 / – | 2 | 1024² + Licht | 31,2 | Fenster |
+| `houseboat` | `house` | Land | 1 054 / – | 2 | 1024 × 512 | 37,3 | Fenster, Türlampe |
+| `ferry_ship` | `house` | Land | 1 449 / – | 2 | 1024² + Licht | 12,2 (Modell; im Spiel ×1/0,33–0,45) | Kabinen, Bullaugen, Decklampen, Positionslichter |
+| `building_shop` | `house` | Stadt | 1 107 / 779 | 2 | 1024² + Licht | 44,2 | Fenster, Schaufenster, Schild mit Zeichen |
+| `building_oldtown` | `house` | Stadt | 2 328 / 1 576 | 2 | 1024² + Licht | 40,7 | Fenster, Arkaden |
+| `building_block_a` | `house` | Stadt | 4 596 / 3 156 | 2 | 2048 × 1024 + Licht | 49,0 | Fenster |
+| `building_block_b` | `house` | Stadt | 5 180 / 3 476 | 2 | 2048 × 1024 + Licht | 44,0 | Fenster, Läden |
+| `building_tall` | `house` | Stadt | 2 565 / 2 513 | 2 | 2048 × 1024 + Licht | 29,8 | 293 von 840 Scheiben, Foyer mit Pfosten |
+| `bridge_lamp` | `lantern` | Möbel | 882 / – | 1 | – (vpbr) | – | 3 Laternen mit Ankern |
+| `bridge_pylon` | `pylon` | Mast | 232 / – | 1 | 1024² + Licht | 31,7 (Fuß) | Flugbefeuerung (Anker) |
+| `bridge_pylon_bare` | `pylon` | Mast (nur Modern) | 120 / – | 1 | 1024² + Licht | 31,7 (Fuß) | Flugbefeuerung (Anker) |
+| `bridge_truss_arch` | `truss` | Möbel | 1 100 / – | 1 | 1024 × 512 + Licht | 28 (Bild) | 2 Hängelampen mit Ankern |
+
+Gemessen mit `validate_models.py --report` und dem Export-Bericht (Stand nach der Nacharbeit AS4R, unten); alle
+Budgets eingehalten (Land 2 000 Dreiecke, Stadt 10 000, Möbel 1 500, Mast 5 000; zwei bzw. ein Zeichenaufruf je Stufe).
+
+### Bauer `house` (`ce3d/buildings3d.py`)
+
+Der Gebäudebauer von Bauabschnitt 2 (`props3d.py`, unverändert – die Schlüssel aller bisherigen Modelle bleiben
+gleich) hat einen Nachfolger in einem eigenen Modul:
+
+- **Öffnungen:** Fenster aus den Rastern des Generators (`WINDOW_LOG`), auch mit Rundbogen. Das Bogenpolygon
+  umschreibt den gemalten Kreis (sonst blieben zwischen den Sehnen Streifen des gemalten Fensters – und nachts seines
+  Lichts – auf der Wand). Laibung (gebacken, mit Verdeckung), Rahmen als Ring zwischen Umriss und Innenumriss,
+  Sprossen je Fensterart (`bars`: Sprossenfenster der Fabrik 4 × 4, Oberlicht der Läden), Sohlbank, Scheibe. Ob
+  eine Öffnung in ein anderes Volumen führen würde (der Turm steht vor dem Kirchenschiff), entscheidet ein Strahl
+  entlang der Wandnormale (`Cover`), nicht mehr ein Hüllquader.
+- **Licht der Scheiben:** seit AS4R aus dem Nachtlicht-Atlas – die Scheibe ist der zurückgesetzte Lochfüller, bei Tag
+  das gemalte Glas des Sprites, nachts das Licht des Sprites für genau dieses Fenster × 0,55: warmes (Wohnungen),
+  kaltweißes (Fabrikhalle) oder hellweißes Licht (Läden). (AS4 hatte Kanal-12-Lampen; unbeleuchtet zeigten sie die
+  halbe Leuchtfarbe – braune Scheiben neben blauen, siehe „Nacharbeit“ unten.)
+- **Fensterläden** (Haus): Tafeln 3 cm stark, 1 cm vor der Wand, mit Lamellen im Atlas (gebacken).
+- **Schallluken** (Kirchturm, `louvre`): schräge Lamellen vor einer dunklen Rückwand.
+- **Uhren** (Kirchturm, Dekore mit `clock`): Zifferblatt als angestrahlte Fläche (Kanal 14: bei Tag seine Farbe,
+  nachts beleuchtet), Rahmen, Stundenmarken, Zeiger.
+- **Türen:** Flügel in der Farbe des Dekors mit Füllungen und Fuge, Stufen davor; Tore über 2,6 m Breite mit
+  waagerechten Rippen (Fabrik).
+- **Dachrinnen und Fallrohre** an die eigenen Wände (`gutters.walls`), **Flutlicht** des Kirchturms (`flood`:
+  Materialkopie, deren Lichtebene die Wandfarbe mit der Höhe abklingend hinzufügt – im Nachtlicht-Atlas).
+- **Werkszeichen** (`sign`): auf einer Tafel ein Zahnrad zwischen zwei Balkenpaaren (`logo: "gear"`), nachts
+  beleuchtet (Kanal 14). Bewusst spiegelsymmetrisch: Die Fabrik trägt `mirror_left`, der Requisiten-Builder spiegelt
+  sie am linken Fahrbahnrand (D24) – ein Schriftzug („WERK 2“ in der ersten Fassung) stand dort in Spiegelschrift.
+  Für Schilder, die nie gespiegelt werden, kann `sign` weiter Text setzen (`text`, Buchstaben aus
+  `cesprites.textgeo`).
+- **Vorhangfassade** (Büroturm, `curtain`): die Wände werden ersetzt durch Brüstungsbänder (gebacken, aus dem
+  Material des Turms), zurückgesetzte Scheiben je Achse und Geschoss (seit AS4R einfarbige Atlasfelder im Glasverlauf
+  des Sprites, ein Drittel leuchtet nachts) und Lisenen; Eckpfosten schließen die Ecken.
+- **lod1** ohne Feinteile (Sprossen, Sohlbänke, Rinnen, Lamellen, Marken, Geländerstäbe): ab der ersten
+  Umschaltentfernung des Requisiten-Builders (40 / 60 / 120 m je Detailstufe). Sprossen von 4,5 cm sind dort unter
+  einem Pixel und würden nur flimmern. Damit das Fenster beim Umschalten nicht dunkler wird (ohne Ersatz wurden die
+  Wohnblöcke bei 60 m um 8/255 dunkler), bekommt lod1 statt Rahmen und Sprossen **einen breiteren Rahmenring mit
+  derselben Fläche** (`_far_inset`): gleiche mittlere Farbe bei Tag (gemessen: höchstens 2/255 Unterschied), nachts
+  derselbe Anteil leuchtender Scheibe. Was bleibt, sind die Sprossenkreuze, die beim Umschalten verschwinden (bei 60 m
+  ändern sich bei den Wohnblöcken 4,5–5,2 % der Pixel um mehr als 24/255). Die Seiten der Lisenen des Büroturms
+  bleiben in lod1 (streifend gesehen verdecken sie das Glas einer Seite; ohne sie änderten sich 18 % der Pixel).
+
+**Bake mit Lochfüllern.** Die Öffnungen werden vor dem Bake geschnitten. Würde man die Löcher im Atlas einfach
+auffüllen (Dilatation), stünde dort die Farbe des gemalten Rahmens – in den kleineren Mipmap-Stufen umgab dann ein
+heller Saum jedes Fenster (bei 60 m deutlich, auf der Rückseite mit geringerer Texeldichte schon näher). Darum wird
+jedes Loch für den Farb-Bake mit einer Füllfläche geschlossen (eine Kopie des Fassadenmaterials): Im Atlas steht in
+der Öffnung das gemalte Fenster des Sprites, die Mipmaps mitteln Wand und Fenster richtig. Seit AS4R behält der
+Füller eines Fensters das Licht des Sprites und wird nach Farb- und Licht-Bake in die Laibung zurückgesetzt – er ist
+die Scheibe; die Füller von Türen und Schallluken werden vor der Umgebungsverdeckung gelöscht.
+
+### Brückenteile (`ce3d/bridges3d.py`)
+
+Die Generatoren stehen in `cesprites/props_cities.py` (Stadtpakete) und bleiben unverändert: Die Bauer lesen die
+Balken des Generatornetzes zurück (`boxes()`: Achse, Enden, Querschnitt jedes Kastens).
+
+- **Pylon** (Bauer `pylon`, Kategorie Mast: ein Zeichenaufruf): Beton, Kopf, Ankerplatten und Flugbefeuerung in
+  einem Atlas; der Pylon ist in drei Höhenbänder geteilt (eine 82 m lange Karte begrenzt den Atlas auf 12 px/m), und
+  die Texeldichte folgt der Höhe (`band_w` 1 / 0,6 / 0,45: der Fuß neben der Fahrbahn bekommt 29,9 px/m, der Kopf,
+  den man erst aus 100 m und mehr sieht, 13,4 px/m; vorher überall 21,8 px/m). Die
+  Seile sind vierseitige Prismen, deren Dreiecke alle ein einfarbiges Feld des Atlas lesen. Seit AS4R: Bein
+  senkrecht, sieben Seile je Seite bis zur Deckkante innerhalb 36 m, eine Stufe (siehe „Nacharbeit“ unten). Die
+  Flugbefeuerung hat einen Lichtanker mit Richtung (Fernglühen der Flare-Ebene).
+- **Fachwerkportal** (Bauer `truss`, Straßenmöbel: ein Zeichenaufruf): Gurte, Pfosten, Sockel und Querriegel als
+  Geometrie; Streben und Knotenbleche jeder Ebene als gezeichnetes Ausschneidebild (Streben ≥ 2,5 Texel, Halo 0,33 –
+  mipmap-fest wie der Strommast) auf einem Streifen aus Vierecken um das Fachwerk. Die beiden Hängelampen leuchten
+  nachts und haben Lichtanker nach unten (Lichtpfützen auf der Fahrbahn).
+- **Brückenlaterne** (Bauer `lantern`, ein Zeichenaufruf): eine unbeleuchtete vpbr-Lampe zeigt die halbe
+  Leuchtfarbe – das Milchglas war bei Tag hellbraun. Die Seiten des Glases sind angestrahlte Fläche (Kanal 14: hell
+  bei Tag, leuchtend bei Nacht), nur die nach unten schauenden Flächen sind Lampen (Kanal 12) mit den drei
+  Lichtankern.
+
+### Schiffe
+
+- **Fähre:** Das Sprite zeigt ihre Steuerbordseite (`view_yaw` 90°). Das Modell ist um −90° gedreht: Die
+  Breitseite schaut zum anfahrenden Spieler, der Bug nach +X (wie im Sprite rechts). Hook `lowpoly3d` in
+  `props_road.ferry_ship` (Rumpfstationen nur, wo sich der Querschnitt ändert; Rettungsboote mit weniger Flächen;
+  Decklampen als Würfel). Die vielen Kabinenfenster bleiben gemalt (nachts im Nachtlicht-Atlas), Rumpf und Aufbauten
+  sind in Stücke von höchstens 82 m geschnitten (Atlas-Karten). Decklampen und die drei Positionslichter leuchten
+  ohne Anker: Ein Signallicht beleuchtet kein Deck, und die Anker einer Rolle bekommen in `roles.lights()` die Farbe
+  ihrer ersten Lampe (die weißen Toplichter warfen grüne Lichtflecken).
+- **Hausboot:** Seine Wände kommen aus `props_cities.wallmat`, das kein Fensterlog schreibt. Während das Modell
+  gebaut wird, wird die Funktion von außen umhüllt (`_log_city_walls`): Ihre Raster gehen als Rechtecke ins Log.
+  Das ausgeschnittene Geländer (Stäbe von 3 cm) ist als Pfosten und Holme neu gebaut, die Topfpflanzen sind dezimiert
+  (Budget Landgebäude).
+
+### Neue Hooks (Voreinstellung = Sprite)
+
+| Hook | Generator | im 3D-Bau |
+|---|---|---|
+| `allround` | `church`, `house_med`, `factory`, `building_block_a/b`, `building_oldtown`, `building_shop` | Rückseiten mit Fenstern (Haus, Laden: Tür), Kirchturm mit Schallluken und Uhren rundum, Rückgiebel des Altstadthauses; gemalte Splitter (Kirchenschiff, oberste Reihe von Block B) und das Tor über zwei Fenstern der Fabrik bereinigt |
+| `gable3d` | `building_oldtown` | Treppengiebel als ein Prisma (seine Fenster lassen sich schneiden) |
+| `win3d` | `windmill` | keine gemalten Fenster (das Raster liegt über einer Ecke des Achtecks); der Bauer schneidet Öffnungen in die Mitte der Flächen |
+| `lowpoly3d` | `props_road.ferry_ship` | weniger Rumpfstationen, einfachere Rettungsboote und Decklampen |
+
+`check_sprite_geometry.py --only props --jobs 1` auf dem Endstand: 86 von 86 Sprite-Sets identisch (0 verändert,
+0 Fließkomma-Rauschen), `CHECK sprite_geometry OK` – alle Hooks lassen die Sprites unverändert.
+
+### Ehrliche Einordnung
+
+- **Gut:** Haus, Kirche, Fabrik, Altstadthaus und die Wohnblöcke haben echte Tiefe (Laibungen, Rahmen, Sprossen,
+  Sohlbänke, Türen mit Stufen, Rinnen und Fallrohre, Läden) und halten Farbe und Proportion des Sprites; nachts
+  leuchten die Fenster unregelmäßig, Kirchturm und Fabrik haben ihr eigenes Licht. Der Stufenwechsel ändert die
+  mittlere Farbe um höchstens 2/255. Fachwerkportal und Laterne sind je ein Zeichenaufruf mit Lichtankern.
+- **Noch nicht gut:** Die **Fähre** ist das schwächste Modell – Kabinenfenster und Bullaugen sind gemalt (12 px/m im
+  Modellmaß), Aufbauten flach; das Budget „Landgebäude“ (2 000 Dreiecke) lässt für ein 182-m-Schiff nicht mehr zu.
+  Der **Pylon** hat die feste Höhe des Sprites (Arcade passt ihn der Brücke an) und am Kopf nur 13 px/m. Bei den
+  Wohnblöcken verschwinden beim Umschalten die Sprossenkreuze (4,5 % bzw. 5,2 % der Pixel bei 60 m). Das gemalte
+  Fenster im Rückgiebel der Kirche ist unscharf (abgewandte Seiten haben ein Viertel der Dichte).
+- **Fehlt:** Wasser unter Hausboot und Fähre (R5); Vordächer und Schornsteine, wo die Sprites keine haben; Messungen
+  auf echter Grafikkarte und Steam Deck.
+
+### Nacharbeit nach der Kunstkritik (AS4R)
+
+Die unabhängige Kunstkritik von AS4 fand einen Fehler, der nicht in den Testbuild durfte (die Seile des Pylons in
+den Fahrspuren), und Schönheitsfehler, die man stundenlang sieht. Alle Zahlen gemessen auf Software-OpenGL.
+
+- **Pylon.** Die Seile des Generators endeten bei Modell-x −4,2 m: bei der Aufstellung 7,55 m neben der Mitte
+  0,4 m **innerhalb** der Fahrbahn, 0,6 m über dem Belag, und ihr Fächer (±82,7 m) reichte bis zu 42 m vor die Brücke.
+  Jetzt steht das Bein senkrecht und 0,9 m weiter außen (Fuß und Sockel enden an der Deckkante, Modell-x −1,3 m), und
+  `fan_cables` (`ce3d/bridges3d.py`) baut sieben Seile je Seite neu: vom Kopf (55–79 m) zur Deckkante (Achse bei
+  x −1,15 m, 1,1 m hoch; Arcade zeichnet sie bis x −1,4 m), als Halbfächer ohne Kreuzung (der höchste Anker läuft am
+  weitesten), höchstens 36 m vor und hinter dem Pylon. 36 m passen auf jede Schrägseilbrücke des Netzes (fünf
+  Brücken; Platz vom Pylon bis zum nächsten Brückenende mindestens 40,5 m bei Elisabeth- und Vanšu-Brücke,
+  Köhlbrandbrücke 70,5 m). Eine Stufe mit 0,32 m starken Seilen (vorher 0,28 / 0,34 m: der Wechsel änderte 58 % der
+  Pixel). `extent_m` bleibt der Wert des Sprites (aus dem Generatornetz; der Pylon wird nicht kantenbündig gestellt).
+  Neu: **`props/bridge_pylon_bare`** (Set nur für Modern, von keiner Etappe gestellt) – derselbe Pylon ohne Seile für
+  einen Renderer, der die Seile je Brücke aus `height_m` und `cables` zeichnet wie `RoadRenderer._pylon()`.
+- **Fensterscheiben.** Die Scheiben waren `vpbr`-Lampen (Kanal 12); unbeleuchtet zeigt eine Lampe die halbe
+  Leuchtfarbe: bei Tag braune Scheiben neben blauen, am Büroturm ein Schachbrett. Jetzt ist die Scheibe der
+  **Lochfüller des Fensters**, nach dem Farb- und dem Licht-Bake um die Laibungstiefe zurückgesetzt
+  (`_settle_fillers`): Bei Tag zeigt sie das gemalte Glas des Sprites, ein wenig zum Himmel getönt (`PANE_TINT`, wie
+  die Spiegelung der früheren Glasscheiben) und ohne Umgebungsverdeckung (`_pane_mask`); nachts das Licht des Sprites
+  für **genau dieses Fenster** × `PANE_LIGHT_K` (0,55) aus dem Nachtlicht-Atlas – es leuchten dieselben Fenster wie in
+  Arcade. Der Atlas wird nicht größer (die Füller lagen schon darin). Scheiben ohne gemaltes Fenster dahinter
+  (Vorhangfassade, Mühlenfenster) sind einfarbige Atlasfelder (`Patches`).
+- **Fabrik.** Die „weißen Dreiecke“ über dem Sheddach waren die senkrechten Glasbänder der Sheds (2,8 × 22 m, Licht
+  #cfe0ff × 0,9 → reinweiß), gesehen über der Schräge des nächsten Sheds – keine verdrehten Flächen (geprüft: alle
+  Normalen zeigen nach außen). Die Verglasung hat jetzt Sprossen alle 1,4 m und einen Kämpfer (`_skylight`), ihr Licht
+  ist auf 30 % gesenkt und nimmt nach oben auf die Hälfte ab.
+- **Büroturm.** Die Scheiben der Vorhangfassade sind Atlasfelder im Glasverlauf des Sprites (sechs Stufen, bei Tag für
+  alle Scheiben gleich); welche leuchten, entscheidet ein gut streuender Hash je Seite, Geschoss und Achse (der alte
+  bildete Spalten); das Foyer leuchtet mit 20 % (`light_scale`) und hat Pfosten und einen Kämpfer davor.
+- **Ladenhaus.** Auf dem Schild steht ein Zeichen aus Geometrie: eine Einkaufstasche zwischen zwei Balken,
+  spiegelsymmetrisch (das Set wird links gespiegelt), nachts beleuchtet (Kanal 14); das Schild selbst leuchtet mit
+  25 % (nachts war es ein weißer Kasten).
+- **Kirche:** Putz `#ccc6b7` statt `#e8e1d0` (Hook `plaster`; im Rennlicht war die Wand 13 % heller als das Sprite).
+  **Fachwerkportal:** Streben im Ausschneidebild 1,2× breiter und 15 % dunkler, der Stahl 15 % dunkler als
+  `STEEL_GREEN` des Sprites (`steel` `#49585a`; Sonne und Himmelslicht machen das Modell heller und blauer als das
+  vorbeleuchtete Sprite). Bei 100 m hat es jetzt den Kontrast des Sprites; bei 400 m bleibt es blasser – die dünnen
+  Streben verlieren in den kleinen Mip-Stufen Deckung (Alpha-Test), das ist keine Frage der Farbe mehr.
+- **Windmühle:** unverändert. Das „Flimmern der Flügel“ der Kritik war vor allem Drehung: Die Messung verschob das
+  Modell in Viertelpixel-Schritten, und der `vpbr`-Rotor nimmt seine Phase aus der Weltposition (0,37 rad je Meter) –
+  bei 120 m dreht sich der Flügel dabei um 1,1 Pixel je Schritt. Mit bewegter Kamera und stehendem Modell flimmert
+  die Mühle 1,3- bis 1,7-mal so stark wie das Sprite statt 2- bis 3-mal (Tabelle unten) – der Rest ist echte
+  Kantenunruhe der Gitterflügel. Weniger und dickere Sprossen (7 × 0,13 m statt 13) änderten daran nichts (gemessen)
+  und sind verworfen.
+
+Messungen vorher (AS4) / nachher (AS4R), Software-OpenGL, Renn-Look der Prüfszene bzw. `tools/ab_shot.sh`:
+
+| Messung | AS4 | AS4R | Arcade / Sprite |
+|---|---|---|---|
+| Pylon: Seilende quer (Aufstellung 7,55 m; Fahrbahnkante 3,75 m, Geländer 6,25 m) | 3,35 m | 6,40 m | 6,15 m |
+| Pylon: Fächer längs | ±82,7 m | ±36 m | 33,8–62,6 m je Brücke |
+| Pylon: Stufenwechsel | 58 % der Pixel | eine Stufe | – |
+| Anteil Braun unter den dunklen, farbigen Pixeln, Nahansichten 12 Uhr (Laden / Altstadt / Block A / Block B / Haus) | 8,3 / 21,4 / 23,6 / 16,4 / 10,6 % | 0,0 / 3,3 / 4,1 / 2,8 / 5,2 % | – |
+| Fensterlicht Paris–Tours km 131,3, 23 Uhr, hoch: Spitze / Pixel > 150 / Pixel > 200 | 165 / 143 / 0 | 216 / 379 / 163 | 225 / 543 / 388 |
+| Fabrik nachts, acht Drehungen bei 70 m: weiße Pixel über den Wänden / hellster Wert | 12 690 / 255 | 0 / 163 | – |
+| Kirche im Rennbild Paris–Tours 12 Uhr: Wand Mittel / 95. Perzentil | 204 / 229 | 181 / 200 | 173 / 194 |
+| Fachwerkportal: Kontrast zum Himmel bei 100 / 250 / 400 m | 95 / 100 / 82 | 108 / 106 / 94 | 109 / 131 / 138 |
+| Mühle: Flimmern mit bewegter Kamera bei 60 / 120 / 250 / 400 m | 4,2 / 3,3 / 5,5 / 7,5 % | unverändert | 2,9 / 2,5 / 4,4 / 4,3 % |
+| Block B: Flimmern bei 60 / 120 / 250 / 400 m (Nebenwirkung der Scheiben) | 0,1 / 0,1 / 0,7 / 0,9 % | 0,2 / 1,0 / 0,8 / 0,6 % | 0,1 / 0,2 / 0,5 / 0,4 % |
+| Stufenwechsel bei 60 m, mittel (Haus / Kirche / Fabrik / Laden / Altstadt / Block A / Block B) | 11,3 / 3,4 / 6,5 / 4,2 / 8,1 / 8,3 / 8,9 % | 11,2 / 3,0 / 7,0 / 5,4 / 8,4 / 8,2 / 9,4 % | – |
+
+**Nicht im Modell lösbar** (an die Renderer-Pakete): Fähren und Hausboote stehen ohne Wasser auf der Wiese (R2:
+Requisiten mit `h` < 0 auslassen, bis R5 Wasser hat); die Höhe des Pylons folgt nicht `height_m` der Brücke (50–120 m,
+das Modell hat 88,8 m), und gerade Seile folgen keiner Kurve (bei R 449 m liegt ein Seilende bis 1,4 m neben der
+Deckkante – auf dem Seitenstreifen, nicht in der Fahrbahn); die Phase der Rotoren hängt an der ursprungsrelativen
+Weltposition und springt bei jedem Versatz des Ursprungs (alle 2 km).

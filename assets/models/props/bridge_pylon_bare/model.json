@@ -1,0 +1,43 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/bridge_pylon_bare",
+ "model": {
+  "kind": "furniture",
+  "object": {"width_m": 5.25, "height_m": 88.8, "length_m": 8},
+  "extent_m": {"left": 2.59, "right": 5.08},
+  "aabb": [-1.3, 0, -4, 3.949, 88.75, 4],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 120,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/bridge_pylon_bare/lod0_body.res",
+      "classes": ["baked"]
+     }
+    ]
+   }
+  ],
+  "lights": [
+   {
+    "role": "lights",
+    "pos": [0.45, 88.3, 0],
+    "dir": [-1, 0, 0],
+    "size": 0.9,
+    "color": "#ff2a1a"
+   }
+  ],
+  "textures": {"albedo": "props/bridge_pylon_bare/albedo.png", "emit": "props/bridge_pylon_bare/emit.png"},
+  "roughness": 0.85,
+  "auto_lod": false,
+  "tags": ["prop", "bridge", "mirror_left"],
+  "bytes": 221247,
+  "hash": "21019365802b33d5bc54c44f5cfb851e8c8dbddf"
+ },
+ "sets": {
+  "props/bridge_pylon_bare": {"model": "props/bridge_pylon_bare", "modern_only": true}
+ }
+}

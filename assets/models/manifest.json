@@ -4064,6 +4064,364 @@
    "bytes": 437126,
    "hash": "d1ac0b984e4c8730aa1cbbb60ad41177e6e7a3c4"
   },
+  "props/bridge_lamp": {
+   "kind": "furniture",
+   "object": {"width_m": 2.2, "height_m": 4.85, "length_m": 0.72},
+   "extent_m": {"left": 1.18, "right": 1.18},
+   "aabb": [-1.18, 0, -0.36, 1.18, 4.83, 0.36],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 882,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/bridge_lamp/lod0_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [-0.92, 4.12, 0],
+     "dir": [0, -1, 0],
+     "size": 0.291,
+     "color": "#ffd890"
+    },
+    {
+     "role": "lights",
+     "pos": [0, 3.958, 0],
+     "dir": [0, -1, 0],
+     "size": 0.335,
+     "color": "#ffd890"
+    },
+    {
+     "role": "lights",
+     "pos": [0.92, 4.12, 0],
+     "dir": [0, -1, 0],
+     "size": 0.291,
+     "color": "#ffd890"
+    }
+   ],
+   "auto_lod": false,
+   "tags": ["prop", "bridge", "road", "mirror_left"],
+   "bytes": 12092,
+   "hash": "12c2e3b3f887d522b1cf066e44ce8b776e8e9891"
+  },
+  "props/bridge_pylon": {
+   "kind": "furniture",
+   "object": {"width_m": 9, "height_m": 88.8, "length_m": 165.2},
+   "extent_m": {"left": 32.33, "right": 24.44},
+   "aabb": [-1.32, 0, -36.149, 3.949, 88.75, 36.149],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 232,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/bridge_pylon/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [0.45, 88.3, 0],
+     "dir": [-1, 0, 0],
+     "size": 0.9,
+     "color": "#ff2a1a"
+    }
+   ],
+   "textures": {"albedo": "props/bridge_pylon/albedo.png", "emit": "props/bridge_pylon/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": false,
+   "tags": ["prop", "bridge", "mirror_left"],
+   "bytes": 223410,
+   "hash": "ead4cfe403c11fabf89dc55e7973d36ce70042e9"
+  },
+  "props/bridge_pylon_bare": {
+   "kind": "furniture",
+   "object": {"width_m": 5.25, "height_m": 88.8, "length_m": 8},
+   "extent_m": {"left": 2.59, "right": 5.08},
+   "aabb": [-1.3, 0, -4, 3.949, 88.75, 4],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 120,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/bridge_pylon_bare/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [0.45, 88.3, 0],
+     "dir": [-1, 0, 0],
+     "size": 0.9,
+     "color": "#ff2a1a"
+    }
+   ],
+   "textures": {"albedo": "props/bridge_pylon_bare/albedo.png", "emit": "props/bridge_pylon_bare/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": false,
+   "tags": ["prop", "bridge", "mirror_left"],
+   "bytes": 221247,
+   "hash": "21019365802b33d5bc54c44f5cfb851e8c8dbddf"
+  },
+  "props/bridge_truss_arch": {
+   "kind": "furniture",
+   "object": {"width_m": 32.4, "height_m": 15.6, "length_m": 1.8},
+   "extent_m": {"left": 16.5, "right": 16.5},
+   "aabb": [-16.5, -0.1, -2.25, 16.5, 15.9, 0.45],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 1100,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/bridge_truss_arch/lod0_body.res",
+       "classes": ["baked_cutout"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [-5, 10.7941, -0.9],
+     "dir": [0, -1, 0],
+     "size": 0.76,
+     "color": "#ffd890"
+    },
+    {
+     "role": "lights",
+     "pos": [5, 10.7941, -0.9],
+     "dir": [0, -1, 0],
+     "size": 0.76,
+     "color": "#ffd890"
+    }
+   ],
+   "textures": {"albedo": "props/bridge_truss_arch/albedo.png", "emit": "props/bridge_truss_arch/emit.png"},
+   "roughness": 0.55,
+   "auto_lod": false,
+   "tags": ["prop", "bridge", "overhead"],
+   "bytes": 89574,
+   "hash": "a7c8f60ea48d082f5f8b4f8cf0905d0ef577a61f"
+  },
+  "props/building_block_a": {
+   "kind": "building",
+   "object": {"width_m": 18.3, "height_m": 19.5, "length_m": 12},
+   "extent_m": {"left": 12.75, "right": 8.65},
+   "aabb": [-9.15, 0, -12.15, 9.15, 19.5, 1.205],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 4596,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/building_block_a/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 3156,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/building_block_a/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/building_block_a/albedo.webp", "emit": "props/building_block_a/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left"],
+   "bytes": 190768,
+   "hash": "ff9086e099890719bacf27264d436db1e9b54170"
+  },
+  "props/building_block_b": {
+   "kind": "building",
+   "object": {"width_m": 20.4, "height_m": 22.1, "length_m": 13},
+   "extent_m": {"left": 14.1, "right": 9.65},
+   "aabb": [-10.2, 0, -13.2, 10.2, 22.1, 0.3],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 5180,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/building_block_b/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 3476,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/building_block_b/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/building_block_b/albedo.webp", "emit": "props/building_block_b/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left"],
+   "bytes": 910166,
+   "hash": "7466e78571012cf0e96e14f7dca71168f0190869"
+  },
+  "props/building_oldtown": {
+   "kind": "building",
+   "object": {"width_m": 8.4, "height_m": 20, "length_m": 12},
+   "extent_m": {"left": 8.09, "right": 3.85},
+   "aabb": [-4.2, 0, -12.1, 4.2, 20.06, 0.05],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 2328,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/building_oldtown/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 1576,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/building_oldtown/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/building_oldtown/albedo.png", "emit": "props/building_oldtown/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left"],
+   "bytes": 546788,
+   "hash": "d89a084e84a90ad03c1876ccbcbaa18be621ec01"
+  },
+  "props/building_shop": {
+   "kind": "building",
+   "object": {"width_m": 14.3, "height_m": 8.65, "length_m": 10},
+   "extent_m": {"left": 10.19, "right": 6.77},
+   "aabb": [-7.15, -0.02, -10.3, 7.15, 8.645, 1.6],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 1107,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/building_shop/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 779,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/building_shop/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/building_shop/albedo.png", "emit": "props/building_shop/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left"],
+   "bytes": 319668,
+   "hash": "16bfd36c2655ac7b1556b58f1c03c3f144efc31e"
+  },
+  "props/building_tall": {
+   "kind": "building",
+   "object": {"width_m": 22.3, "height_m": 65.9, "length_m": 22},
+   "extent_m": {"left": 18.05, "right": 10.53},
+   "aabb": [-11.22, 0, -22.22, 11.22, 65.9, 0.23],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 2565,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/building_tall/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 2513,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/building_tall/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [3.2359, 65.5645, -11],
+     "dir": [0.982, -0.188, 0],
+     "size": 0.966,
+     "color": "#ff2010"
+    }
+   ],
+   "textures": {"albedo": "props/building_tall/albedo.webp", "emit": "props/building_tall/emit.png"},
+   "roughness": 0.6,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left"],
+   "bytes": 144117,
+   "hash": "4713bed9c2c18b7136cb5a9c3f3c7660643355ca"
+  },
   "props/bush_low": {
    "kind": "plant",
    "object": {"width_m": 5, "height_m": 1.3},
@@ -4178,6 +4536,44 @@
    "tags": ["prop", "plant", "ground_align"],
    "bytes": 11767,
    "hash": "0eaa5ef8c69bc6569123b1c2aa2c6b60e13a721c"
+  },
+  "props/church": {
+   "kind": "building",
+   "object": {"width_m": 10.8, "height_m": 35.4, "length_m": 28},
+   "extent_m": {"left": 16.08, "right": 3.06},
+   "aabb": [-5.4, -0.02, -27.4, 5.4, 35.4, 0.6],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 1740,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/church/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 1284,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/church/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/church/albedo.png", "emit": "props/church/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": false,
+   "tags": ["prop", "building", "mirror_left"],
+   "bytes": 574265,
+   "hash": "b6eec099a2e2ef7f4286ad0d2b73d1350fe5e64c"
   },
   "props/cliff": {
    "kind": "rock",
@@ -4342,6 +4738,53 @@
    "bytes": 3437,
    "hash": "921873a59cd4e85f566bc8730127a21ec8c31a47"
   },
+  "props/factory": {
+   "kind": "building",
+   "object": {"width_m": 34, "height_m": 34.5, "length_m": 29},
+   "extent_m": {"left": 24.97, "right": 15.84},
+   "aabb": [-17.05, -0.02, -29.2, 17.05, 34.35, 0.2],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 1624,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/factory/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 1108,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/factory/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [13.2853, 34.2, -25.0266],
+     "dir": [1, 0, 0],
+     "size": 1.081,
+     "color": "#ff2010"
+    }
+   ],
+   "textures": {"albedo": "props/factory/albedo.png", "emit": "props/factory/emit.png"},
+   "roughness": 0.8,
+   "auto_lod": false,
+   "tags": ["prop", "building", "mirror_left"],
+   "bytes": 698290,
+   "hash": "793075a20fc226d13b6887943df610396f36e401"
+  },
   "props/farmhouse": {
    "kind": "building",
    "object": {"width_m": 11.9, "height_m": 8.6, "length_m": 17},
@@ -4376,6 +4819,32 @@
    "tags": ["prop", "building", "mirror_left"],
    "bytes": 871498,
    "hash": "a51fd523b16ef2bcc3d3a8fed5577be09545755b"
+  },
+  "props/ferry_ship": {
+   "kind": "building",
+   "object": {"width_m": 182, "height_m": 38, "length_m": 28},
+   "extent_m": {"left": 91, "right": 91},
+   "aabb": [-91, -1, -14, 91, 37.85, 14],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 1449,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/ferry_ship/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/ferry_ship/albedo.png", "emit": "props/ferry_ship/emit.png"},
+   "roughness": 0.55,
+   "auto_lod": false,
+   "tags": ["prop", "ship"],
+   "bytes": 482439,
+   "hash": "4667cb7e618d6a4183164a09d0990f922f19ea3e"
   },
   "props/fuel_pump": {
    "kind": "furniture",
@@ -4550,6 +5019,79 @@
    "tags": ["prop", "plant", "ground_align"],
    "bytes": 468785,
    "hash": "4902374892c2f14d2345224d0a79400960cc65e5"
+  },
+  "props/house_med": {
+   "kind": "building",
+   "object": {"width_m": 11, "height_m": 9, "length_m": 8},
+   "extent_m": {"left": 8.53, "right": 5.28},
+   "aabb": [-5.5, -0.02, -8.623, 5.5, 9, 1.005],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 1343,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/house_med/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 761,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/house_med/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/house_med/albedo.png", "emit": "props/house_med/emit.png"},
+   "roughness": 0.9,
+   "auto_lod": false,
+   "tags": ["prop", "building", "mirror_left"],
+   "bytes": 507401,
+   "hash": "a6b9181e4c956cb0b9996e9c3baa074d7cc330fa"
+  },
+  "props/houseboat": {
+   "kind": "building",
+   "object": {"width_m": 16, "height_m": 4.5, "length_m": 4.6},
+   "extent_m": {"left": 9.01, "right": 7.44},
+   "aabb": [-8, 0, -4.64, 8, 4.693, 0.04],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 1054,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/houseboat/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [6.5, 2.7, -0.45],
+     "dir": [1, 0, 0],
+     "size": 0.708,
+     "color": "#ffd890"
+    }
+   ],
+   "textures": {"albedo": "props/houseboat/albedo.png", "emit": "props/houseboat/emit.png"},
+   "roughness": 0.7,
+   "auto_lod": false,
+   "tags": ["prop", "boat", "water", "mirror_left"],
+   "bytes": 230411,
+   "hash": "d7e9fc36a54e8c49ebdb1f325d0b3a387a8e94a0"
   },
   "props/power_pylon": {
    "kind": "furniture",
@@ -5531,12 +6073,12 @@
    "kind": "building",
    "object": {"width_m": 25, "height_m": 32.3, "length_m": 9},
    "extent_m": {"left": 10.9, "right": 10.9},
-   "aabb": [-10.9, 0, -10.6, 10.9, 30.7, 1.4],
+   "aabb": [-10.9, -0.007, -10.6, 10.9, 30.7, 1.4],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 100000,
-     "tris": 1640,
+     "tris": 1928,
      "parts": [
       {
        "node": "body",
@@ -5550,8 +6092,8 @@
    "roughness": 0.9,
    "auto_lod": false,
    "tags": ["prop", "building"],
-   "bytes": 853363,
-   "hash": "f92413d35ae3c315f23d4bcbd466c567c75d83a3"
+   "bytes": 845593,
+   "hash": "bc67525a7ca27cce999fc235fe37033427c37828"
   },
   "traffic/bus": {
    "kind": "heavy",
@@ -7596,47 +8138,21 @@
    "paint": {"paint": "#d8d8d5", "paint2": "#1c4f96", "paint3": "#2f9a4a", "metal": 0.12}
   },
   "props/barn": {"model": "props/barn"},
-  "props/bridge_lamp": {
-   "fallback": "sprite",
-   "object": {"width_m": 2.2, "height_m": 4.85, "length_m": 0.72}
-  },
-  "props/bridge_pylon": {
-   "fallback": "sprite",
-   "object": {"width_m": 9.0, "height_m": 88.8, "length_m": 165.2}
-  },
-  "props/bridge_truss_arch": {
-   "fallback": "sprite",
-   "object": {"width_m": 32.4, "height_m": 15.6, "length_m": 1.8}
-  },
-  "props/building_block_a": {
-   "fallback": "sprite",
-   "object": {"width_m": 18.3, "height_m": 19.5, "length_m": 12.0}
-  },
-  "props/building_block_b": {
-   "fallback": "sprite",
-   "object": {"width_m": 20.4, "height_m": 22.1, "length_m": 13.0}
-  },
-  "props/building_oldtown": {
-   "fallback": "sprite",
-   "object": {"width_m": 8.4, "height_m": 20.0, "length_m": 12.0}
-  },
-  "props/building_shop": {
-   "fallback": "sprite",
-   "object": {"width_m": 14.3, "height_m": 8.65, "length_m": 10.0}
-  },
-  "props/building_tall": {
-   "fallback": "sprite",
-   "object": {"width_m": 22.3, "height_m": 65.9, "length_m": 22.0}
-  },
+  "props/bridge_lamp": {"model": "props/bridge_lamp"},
+  "props/bridge_pylon": {"model": "props/bridge_pylon"},
+  "props/bridge_pylon_bare": {"model": "props/bridge_pylon_bare", "modern_only": true},
+  "props/bridge_truss_arch": {"model": "props/bridge_truss_arch"},
+  "props/building_block_a": {"model": "props/building_block_a"},
+  "props/building_block_b": {"model": "props/building_block_b"},
+  "props/building_oldtown": {"model": "props/building_oldtown"},
+  "props/building_shop": {"model": "props/building_shop"},
+  "props/building_tall": {"model": "props/building_tall"},
   "props/bush_low": {"model": "props/bush_low"},
   "props/bush_round": {
    "model": "props/bush_round",
    "variants": ["props/bush_round", "props/bush_round_b"]
   },
-  "props/church": {
-   "fallback": "sprite",
-   "object": {"width_m": 10.8, "height_m": 35.4, "length_m": 28.0}
-  },
+  "props/church": {"model": "props/church"},
   "props/city_balkan_church": {
    "fallback": "sprite",
    "object": {"width_m": 17.6, "height_m": 24.2, "length_m": 23.0}
@@ -7826,27 +8342,15 @@
   "props/cover_grass": {"model": "props/cover_grass", "modern_only": true},
   "props/customs_booth": {"model": "props/customs_booth"},
   "props/delineator": {"model": "props/delineator"},
-  "props/factory": {
-   "fallback": "sprite",
-   "object": {"width_m": 34.0, "height_m": 34.5, "length_m": 29.0}
-  },
+  "props/factory": {"model": "props/factory"},
   "props/farmhouse": {"model": "props/farmhouse"},
-  "props/ferry_ship": {
-   "fallback": "sprite",
-   "object": {"width_m": 182.0, "height_m": 38.0, "length_m": 28.0}
-  },
+  "props/ferry_ship": {"model": "props/ferry_ship"},
   "props/fuel_pump": {"model": "props/fuel_pump"},
   "props/fuel_station": {"model": "props/fuel_station"},
   "props/haybale": {"model": "props/haybale"},
   "props/heather": {"model": "props/heather"},
-  "props/house_med": {
-   "fallback": "sprite",
-   "object": {"width_m": 11.0, "height_m": 9.0, "length_m": 8.0}
-  },
-  "props/houseboat": {
-   "fallback": "sprite",
-   "object": {"width_m": 16.0, "height_m": 4.5, "length_m": 4.6}
-  },
+  "props/house_med": {"model": "props/house_med"},
+  "props/houseboat": {"model": "props/houseboat"},
   "props/power_pylon": {"model": "props/power_pylon"},
   "props/radar_camera": {"model": "props/radar_camera"},
   "props/rock_a": {"model": "props/rock_a"},
