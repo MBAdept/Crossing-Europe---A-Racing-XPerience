@@ -27,8 +27,9 @@ extends SceneTree
 
 const RACE := "res://scenes/race/race.tscn"
 const CHECKS := ["teilchen", "gischt", "nass", "tunnel", "schneewall", "tabelle"]
-## Checks that run only when --only names them: "tabelle" (24 stage starts) is the file check_weather_tabelle.gd, so
-## that each file stays inside tools/run_render_checks.sh's time per file (RENDER_CHECK_TIMEOUT, 900 s) on a busy machine
+## Checks that run only when --only names them: "tabelle" (24 stage starts) is the files check_weather_tabelle.gd
+## (clear and rain) and check_weather_tabelle_schnee.gd (snow), so that each file stays inside
+## tools/run_render_checks.sh's time per file (RENDER_CHECK_TIMEOUT, 900 s) on a busy machine (all 24: 933 s at load 20)
 const OWN_FILE := ["tabelle"]
 const STEPS := 30
 const MIN_RAIN_PX := 600
@@ -362,7 +363,8 @@ func _check_schneewall() -> void:
 func _check_tabelle() -> void:
 	var p: Array[String] = []
 	CliArgs.all()["gfx-preset"] = "medium"
-	for kind: String in ["normal", "rain", "snow"]:
+	# "-- --tabelle-wetter=normal,rain": a part of the table (its two files share it, each under 900 s)
+	for kind: String in str(CliArgs.all().get("tabelle-wetter", "normal,rain,snow")).split(","):
 		for hour: float in [6.6, 12.0, 19.2, 22.0]:
 			var extra := {"weather": kind, "start_world_minutes": hour * 60.0}
 			var sa: Node = await _stage("arcade", extra)
