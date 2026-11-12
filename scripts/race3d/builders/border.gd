@@ -27,7 +27,12 @@ const FASCIA_OUT := 1.6            ## fascia (and roof) this far beyond the shou
 const BAND := 0.3                  ## blue band at the foot of the fascia
 const PILLAR_OUT := 0.6            ## pillars this far beyond the shoulder edges …
 const PILLAR_W := 0.55             ## … this wide (Arcade)
-const BAR := Vector2(1.8, 0.24)    ## light bar: across, along
+const BAR := Vector2(1.8, 0.3)     ## light bar: across, along
+const BAR_DROP := 0.1              ## the luminaire hangs this far below the soffit
+## Arcade's glow round each light bar (RoadRenderer._border_cover: radius 2 m, alpha 0.3 × lights): flare radius = size ×
+## 0.9; the flare layer gives a lamp near the camera only 35 % of its strength (the lamp itself carries the light there)
+const BAR_GLOW_SIZE := 2.4
+const BAR_GLOW_ENERGY := 1.2
 const BAR_T: Array[float] = [0.25, 0.5, 0.75]
 const POOL_EVERY := 4              ## a light pool every four segments (Arcade: k % 4)
 const POOL_RANGE_M := 16.0
@@ -288,12 +293,13 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 		if int(sa["index"]) % 2 == 0:
 			for t: float in BAR_T:
 				var x := lerpf(xl, xr, t)
-				var h := ROOF_H - 0.03
-				kit.quad(ctx.local(zm - BAR.y * 0.5, x - BAR.x * 0.5, h), ctx.local(zm + BAR.y * 0.5, x - BAR.x * 0.5, h),
-					ctx.local(zm + BAR.y * 0.5, x + BAR.x * 0.5, h), ctx.local(zm - BAR.y * 0.5, x + BAR.x * 0.5, h), Vector3.DOWN, BAR_C,
-					Vector2(0.3, 0.0), Vector2(12.5, 1.0))
-				lamps.append({"pos": ctx.local(zm, x, h - 0.03), "dir": Vector3.DOWN, "role": "lamp", "color": BAR_GLOW, "size": 2.0,
-					"range": 0.0, "energy": 0.6})
+				# a surface-mounted luminaire: its diffuser glows on the bottom and the sides (seen from the road at a
+				# grazing angle a flat panel would be a hairline, Arcade draws a bright bar)
+				var fb := ctx.frame(zm, x, ROOF_H - BAR_DROP * 0.5)
+				kit.box(fb, Vector3.ZERO, Vector3(BAR.x, BAR_DROP, BAR.y) * 0.5, BAR_C, Vector2(0.3, 0.0), 1 | 2 | 4 | 8 | 32,
+					Vector2(12.5, 1.0))
+				lamps.append({"pos": ctx.local(zm, x, ROOF_H - BAR_DROP - 0.02), "dir": Vector3.DOWN, "role": "lamp", "color": BAR_GLOW,
+					"size": BAR_GLOW_SIZE, "range": 0.0, "energy": BAR_GLOW_ENERGY})
 		# Arcade's light pool on the road (every fourth segment, at the road centre): its lamp sits inside the slab
 		if int(sa["index"]) % POOL_EVERY == 0:
 			lamps.append({"pos": ctx.local(zm, (xl + xr) * 0.5, (ROOF_H + SLAB_TOP) * 0.5 + 0.12), "dir": Vector3.DOWN, "role": "lamp",

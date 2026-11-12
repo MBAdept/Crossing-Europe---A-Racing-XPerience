@@ -46,6 +46,7 @@ const PLINTH_W := 0.46
 const PLINTH_H := 0.32
 const LAMP_X: Array[float] = [0.8, 2.8]
 const LAMP_SIZE := Vector2(1.0, 0.36)   ## light panel in the soffit (along, across)
+const LAMP_DROP := 0.06            ## … hanging this far below the soffit
 const PYLON_POLE_W := 0.36
 const PYLON_BOARD := Vector3(2.2, 3.8, 0.32)   ## width, height, depth of the price board
 const PYLON_BOARD_Y := 5.8         ## lower edge of the board above the road (Arcade: 5.8 – 9.6 m)
@@ -84,10 +85,11 @@ const FASCIA_GLOW := Vector2(14.5, 0.22)   ## lamp channel 14 (flood): the fasci
 ## overlap at every point of the lane
 const LAMP_RANGE_M := 9.0
 const LAMP_ENERGY := 0.6
-## Arcade's glow round each canopy lamp (radius 1.8 m, colour (1, 0.97, 0.9), alpha 0.3): flare size × 0.9 = radius
+## Arcade's glow round each canopy lamp (radius 1.8 m, colour (1, 0.97, 0.9), alpha 0.3): flare size × 0.9 = radius;
+## the flare layer gives a lamp near the camera 35 % of its strength (the luminaire itself carries the light there)
 const LAMP_GLOW := Color(1.0, 0.97, 0.9)
 const LAMP_GLOW_SIZE := 2.0
-const LAMP_GLOW_ENERGY := 0.6
+const LAMP_GLOW_ENERGY := 1.0
 const PYLON_GLOW := Color(0.5, 0.7, 1.0)   ## Arcade's glow round the lit price board (radius 2.6 m, alpha 0.25)
 const PANEL_PPM := 96.0            ## lettering atlas: pixels per metre of the canopy front and the price board
 
@@ -739,12 +741,12 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 				var zl := z0 + seg_len * 0.5
 				for lx: float in LAMP_X:
 					var x := e + lx
-					var hl := CANOPY_H - 0.02
-					var hz := LAMP_SIZE.x * 0.5
-					var hx := LAMP_SIZE.y * 0.5
-					kit.quad(ctx.local(zl - hz, x - hx, hl), ctx.local(zl + hz, x - hx, hl), ctx.local(zl + hz, x + hx, hl),
-						ctx.local(zl - hz, x + hx, hl), Vector3.DOWN, LAMP, Vector2(0.3, 0.0), Vector2(12.5, 1.0))
-					lamps.append({"pos": ctx.local(zl, x, hl - 0.03), "dir": Vector3.DOWN, "role": "canopy", "color": LAMP_GLOW,
+					# a flat luminaire under the soffit: diffuser on the bottom and the sides (a panel flush with the soffit
+					# would be a hairline from the road)
+					var fl := ctx.frame(zl, x, CANOPY_H - LAMP_DROP * 0.5)
+					kit.box(fl, Vector3.ZERO, Vector3(LAMP_SIZE.y, LAMP_DROP, LAMP_SIZE.x) * 0.5, LAMP, Vector2(0.3, 0.0), 1 | 2 | 4 | 8 | 32,
+						Vector2(12.5, 1.0))
+					lamps.append({"pos": ctx.local(zl, x, CANOPY_H - LAMP_DROP - 0.02), "dir": Vector3.DOWN, "role": "canopy", "color": LAMP_GLOW,
 						"size": LAMP_GLOW_SIZE, "range": 0.0, "energy": LAMP_GLOW_ENERGY})
 				lamps.append({"pos": ctx.local(zl, e + 0.5, CANOPY_H + 0.4), "dir": Vector3.DOWN, "role": "canopy", "color": LAMP_GLOW,
 					"size": 0.2, "range": LAMP_RANGE_M, "energy": LAMP_ENERGY})

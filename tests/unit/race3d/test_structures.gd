@@ -133,12 +133,13 @@ func test_station_on_the_fuel_lane_of_the_slice_stage() -> void:
 					var e2 := ctx.rows_edge[s].y
 					assert_between(float(it["x"]) - e2, StationB.ISLAND_IN, StationB.ISLAND_OUT, "Zapfsäule auf der Insel")
 					pumps += 1
-		# F1: nothing of the station over the road or the fuel lane lower than Arcade's canopy (5.6 m)
+		# F1: nothing of the station over the road or the fuel lane lower than Arcade's canopy (5.6 m) but its luminaires
+		# (6 cm below the soffit, far above every sight line from the 3.4 m eye to a car)
 		for v: Vector3 in verts:
 			var rc := _road_coords(ctx, v)
 			var ed := t.road_edges_at(rc.x)
 			checked += 1
-			if rc.y > ed.x and rc.y < ed.y + 0.3 and rc.z > 0.05 and rc.z < StationB.CANOPY_H - 1.0e-3:
+			if rc.y > ed.x and rc.y < ed.y + 0.3 and rc.z > 0.05 and rc.z < StationB.CANOPY_H - StationB.LAMP_DROP - 1.0e-3:
 				low_over_lane += 1
 	assert_true(want["islands"] > 10 and got["islands"] == want["islands"], "Insel auf jedem Inselsegment (%d von %d)" % [got["islands"], want["islands"]])
 	assert_true(want["canopies"] > 4 and got["canopies"] == want["canopies"], "Dach auf jedem Dachsegment (%d von %d)" % [got["canopies"], want["canopies"]])
@@ -174,11 +175,12 @@ func test_border_station_of_the_test_stage() -> void:
 			got[k] += int(part.get(k, 0))
 		letters.append_array(part.get("letterings", []))
 		# the roof keeps Arcade's height over the road and its shoulders: nothing lower than its soffit (6 m) there but
-		# the light bars, which Arcade hangs at 5.95 m
+		# the luminaires of the light bars (Arcade hangs them at 5.95 m, here 0.1 m below the soffit)
 		for v: Vector3 in (part["arrays"] as Array)[Mesh.ARRAY_VERTEX]:
 			var rc := _road_coords(ctx, v)
 			var ed := t.road_edges_at(rc.x)
-			if rc.y > ed.x - t.shoulder_w + 0.01 and rc.y < ed.y + t.shoulder_w - 0.01 and rc.z > 0.05 and rc.z < BorderB.ROOF_H - 0.05 - 1.0e-3:
+			if rc.y > ed.x - t.shoulder_w + 0.01 and rc.y < ed.y + t.shoulder_w - 0.01 and rc.z > 0.05 \
+					and rc.z < BorderB.ROOF_H - BorderB.BAR_DROP - 0.02:      # (a rigid luminaire on a sloping road: ±1–2 cm)
 				low += 1
 	assert_true(want >= 5 and got["covers"] == want, "Dach auf jedem Segment der Grenzstation (%d von %d)" % [got["covers"], want])
 	assert_eq(got["fronts"], 1, "eine Stirnblende")
