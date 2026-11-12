@@ -9,7 +9,8 @@
 //             dz = the depth along the view, as Arcade's per-row distance)
 //             and what Arcade cannot show: ripples that drift with the current (view time ce_time, never TIME), the
 //             sky mirrored along them (horizon colour towards the zenith), the sun glittering in them (shadowed),
-//             warm sparkles of the city lights at night, a darker band and a light seam where the water meets a wall
+//             the lamp pools where they reach the water at night, a darker band and a light seam where the water meets
+//             a wall
 //   1 stone   quay wall or revetment of cut stone: courses of blocks with joints, every block its own shade, a dark
 //             wet band with algae above the waterline, streaks
 //   2 brick   quay wall of brick (canals): bricks in running bond
@@ -125,6 +126,7 @@ void fragment() {
 	vec3 mirror_col = vec3(0.0);
 	vec3 extra_lin = vec3(0.0);
 	float snow = 0.0;
+	vec3 pools = ce_pools(v_world);
 	v_glint = 0.0;
 	if (v_kind < 0.5) {
 		// --- water ---
@@ -153,9 +155,9 @@ void fragment() {
 		tone = mix(tone, vec3(0.86, 0.9, 0.9), seam * 0.35 * (1.0 - night * 0.8));
 		// glitter of the sun (or the moon) in light(): only where the ripples are, near enough to resolve them
 		v_glint = glint * detail * (1.0 - smoothstep(250.0, 700.0, dist));
-		// warm sparkles of the city lights at night (Arcade's night glints), near the camera
-		float spark = step(0.985, hash12(floor(p * vec2(1.6, 4.0)) + floor(t * 2.0))) * smoothstep(0.65, 0.9, 1.0 - abs(r.y));
-		extra_lin += vec3(1.0, 0.72, 0.38) * spark * night * 0.35 * (1.0 - smoothstep(120.0, 330.0, dist)) * detail;
+		// the lamps of the deck and the quays on the water (Arcade: a warm reflection below each lamp at night) – the
+		// lamp pools of the lights layer where they reach the water, faint
+		extra_lin += pools * 0.25 * night;
 		refl_k = 0.0;
 		rough = 0.12;
 	} else if (v_kind < 1.5) {
@@ -205,7 +207,7 @@ void fragment() {
 	ROUGHNESS = rough;
 	SPECULAR = 0.0;
 	METALLIC = 0.0;
-	vec3 light_l = ce_pools(v_world) * refl_k + ce_headlight_light(v_world, refl_k);
+	vec3 light_l = pools * refl_k + ce_headlight_light(v_world, refl_k);
 	EMISSION = ce_pools_encode(ce_ground_base_lin(ALBEDO) + ce_pools_to_lin(ALBEDO) * light_l
 		+ ce_ground_unshow(mirror_col) * mirror + extra_lin);
 	float fog_t = clamp((dist - ce_fog_range.x) / max(ce_fog_range.y - ce_fog_range.x, 1.0), 0.0, 1.0);
