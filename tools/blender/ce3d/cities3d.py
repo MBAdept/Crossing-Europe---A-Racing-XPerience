@@ -310,6 +310,7 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
     step_mat = mats.baked("ce_step", opt.get("step_color", "#b3ada3"))
     pane_light = opt.get("pane_light", H.PANE_LIGHT_K)
     far_ring = bool(opt.get("far_ring", True))
+    n_arc = int(opt.get("n_arc", 8))          # segments of an arched top (8 in the house builder; 4 for small windows)
     louvre = opt.get("louvre")
     record = []
     fac = [o for o in objs if any(s.material is not None and s.material.name in by_mat for s in o.material_slots)]
@@ -384,7 +385,8 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
                     if not P._inside_poly(((rect[0] + rect[1]) * 0.5, (rect[2] + rect[3]) * 0.5), poly) or hidden(rect):
                         continue
                     src = dict(mat=g.get("glass", "#5a3a22") if str(g.get("glass", "")).startswith("#") else "#5a3a22")
-                    holes.append(H.Opening(H._outline(*rect, top=g.get("top")), "door", src, gi, rect, g.get("top")))
+                    holes.append(H.Opening(H._outline(*rect, top=g.get("top"), n_arc=n_arc), "door", src, gi, rect,
+                                           g.get("top")))
             for gi, g in enumerate(e["grids"]):
                 if g.get("kind") == "door" or cls not in P.GRID_FACES.get(g.get("face", "front"), ("front", "back")):
                     continue
@@ -403,7 +405,7 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
                         kind = "shop"
                     else:
                         kind = "louvre" if louvre and louvre[0] <= zc <= louvre[1] else "window"
-                    holes.append(H.Opening(H._outline(*rect, top=top), kind, g, gi, rect, top))
+                    holes.append(H.Opening(H._outline(*rect, top=top, n_arc=n_arc), kind, g, gi, rect, top))
             clocks = [d for d in e["decals"] if d.get("clock") and H._decal_poly(d, cls) is not None]
             for d in clocks:
                 pts = H._decal_poly(d, cls)
@@ -480,7 +482,7 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
                 fcol = g.get("frame", e.get("frame", "#e9e6de"))
                 fm = mats.vpbr("ce_frame_%s" % fcol.lstrip("#"), fcol, rough=0.55)
                 fd = (shop_glass if h.kind == "shop" else depth) - 0.015
-                inner = H._outline(a, b, c, d, top=h.top, inset=H.FRAME_W)
+                inner = H._outline(a, b, c, d, top=h.top, inset=H.FRAME_W, n_arc=n_arc)
                 if len(inner) == len(h.outline):
                     m2 = len(h.outline)
                     for i in range(m2):
@@ -508,7 +510,7 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
                     bar_area += 2.0 * bw * (span[1] - span[0]) - (4.0 * bw * bw) * len(vf)
                 if far_ring and len(inner) == len(h.outline):
                     ring = H._area(h.outline) - H._area(inner) + max(0.0, bar_area)
-                    inner1 = H._outline(a, b, c, d, top=h.top, inset=H._far_inset(a, b, c, d, h.top, ring))
+                    inner1 = H._outline(a, b, c, d, top=h.top, inset=H._far_inset(a, b, c, d, h.top, ring), n_arc=n_arc)
                     if len(inner1) == len(h.outline):
                         for i in range(len(h.outline)):
                             j = (i + 1) % len(h.outline)
@@ -779,6 +781,61 @@ def timber_members(record, log, opt, geo, mats, stats, objs=None):
     return n_mem
 
 
+# --- the flat lod1 ---------------------------------------------------------------------------------------------------
+#
+# lod1 of a city building (from the props builder's first switch distance on: 60 m at "Details: Mittel", and the level
+# of everything farther away - there is no impostor) is the cut wall flattened again: a copy of every cut wall object,
+# its coplanar faces dissolved back into the generator's wall polygons, with the atlas coordinates of the cut wall (the
+# hole fillers baked the sprite's window into the atlas: glass, glazing bars, curtains, blinds by day, its light at
+# night). No reveals, frames, bars or sills in lod1: at 60 m and more they are under a pixel and only shimmer (AS4R:
+# block B at 120 m 1.0 % against the sprite's 0.2 %), and a window-rich facade (the Speicher: 143 openings) spends
+# 10,000 triangles on them. lod1 keeps silhouette, storeys, roofs, cornices, dormers and the window rhythm of the sprite.
+
+FLAT_LOD0_PREFIXES = ("ce_reveal", "ce_shop_reveal", "ce_door_", "ce_louvre_")
+
+
+def _lod0_only(geo, prefixes):
+    """Cutter geometry that the flat lod1 wall covers (reveals, door wings, louvres) moves to level lod0."""
+    n = 0
+    for key in sorted(list(geo.tris)):
+        name, level = key
+        if level == "both" and any(name.startswith(p) for p in prefixes):
+            mat, tris = geo.tris.pop(key)
+            geo.tris.setdefault((name, "lod0"), (mat, []))[1].extend(tris)
+            n += len(tris)
+    return n
+
+
+def _flat_copies(objs):
+    """lod1 copies of the cut walls (objects with a filler, pane or display material), their coplanar faces dissolved
+    (delimit UV: one chart stays one polygon), the atlas coordinates kept; the originals become lod0. Called after the
+    packing (the atlas coordinates exist) and before the panes are moved back. Returns the copies."""
+    import bmesh
+    import bpy
+    out = []
+    for ob in objs:
+        if H._level(ob) != "both":
+            continue
+        if not any(s.material is not None and s.material.get("ce_filler") for s in ob.material_slots):
+            continue
+        fo = ob.copy()
+        fo.data = ob.data.copy()
+        fo.name = ob.name + "_flat"
+        ob.users_collection[0].objects.link(fo)
+        bm = bmesh.new()
+        bm.from_mesh(fo.data)
+        bmesh.ops.dissolve_limit(bm, angle_limit=math.radians(0.5), use_dissolve_boundaries=False, verts=bm.verts[:],
+                                 edges=bm.edges[:], delimit={"UV"})
+        bm.to_mesh(fo.data)
+        bm.free()
+        fo.data.update()
+        fo["ce_lvl"] = "lod1"
+        ob["ce_lvl"] = "lod0"
+        out.append(fo)
+    bpy.context.view_layer.update()
+    return out
+
+
 # --- far walls: the texels of the opposite wall ------------------------------------------------------------------
 
 def _base_name(name):
@@ -1034,7 +1091,7 @@ def far_uvs(charts, far_objs, matches, size):
 # --- the bake (buildings3d.bake_house with far walls, floors and cut-out density) ----------------------------------
 
 def bake_city(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, cutout=False, ao=None, far=None, floors=None,
-              cut_ppm=CUT_PPM, cut_names=()):
+              cut_ppm=CUT_PPM, cut_names=(), flat_lod1=False):
     """H.bake_house plus: charts of cut-out materials get cut_ppm texels per metre (as a weight on the packing's
     density), wall charts above floors["z"] get floors["upper"] of the density, and the far faces (far = (objects,
     matches)) take the atlas coordinates of the opposite walls after the packing (they are not baked)."""
@@ -1069,6 +1126,8 @@ def bake_city(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, cutout=False
                  area_m2=round(float(sum(c["area"] for c in charts)), 1), unwrap_s=round(time.time() - t0, 2))
     if far:
         stats["far_mapped"] = far_uvs(charts, far[0], far[1], size)
+    flat = _flat_copies(objs) if flat_lod1 else []
+    stats["flat_copies"] = len(flat)
     # texel density per wall chart (road walls): the minimum over the charts of the near walls with weight >= 0.5
     dens = [c["ppm"] for c in charts if abs(c["normal"][2]) < 0.5 and c["weight"] >= 0.5 and not c.get("hidden")
             and (c["normal"][0] < -0.5 or c["normal"][1] < -0.5)]
@@ -1089,16 +1148,27 @@ def bake_city(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, cutout=False
     stats["fillers"], stats["panes"] = H._settle_fillers(objs)
     if ao:
         t_ao = time.time()
+        for fo in flat:
+            fo.hide_render = True           # the flat copy would close every opening for the occlusion rays
         ao_bk = BK.Baker(rig, objs, mats, size, 1, BK.SAMPLES)
         a = ao_bk.ambient_occlusion(ao.get("distance", 1.5), ao.get("samples", 16), ao.get("ground", True))
+        a_far = None
+        if far:
+            # texels inside another volume (the wall behind an oriel) are never seen from outside - but a far wall
+            # reuses them: they keep their colour instead of a dark, noisy grey. Inside = no ray escapes even over
+            # 100 m (the occlusion of 2 m lets the rays that run along the inside of the oriel count as open)
+            a_far = BK.downsample(ao_bk.ambient_occlusion(100.0, 8, False), 1)
+        for fo in flat:
+            fo.hide_render = False
         a = BK.downsample(BK._blur_covered(a, 1), 1)
         cov_ao = a[..., 3] > 0.5
         k = float(ao.get("floor", 0.45)) + (1.0 - float(ao.get("floor", 0.45))) * np.power(
             np.clip(a[..., 0], 0.0, 1.0), float(ao.get("gamma", 1.0)))
         k = np.where(cov_ao, k, 1.0)
-        # texels inside another volume (the wall behind an oriel: every ray hits within the AO distance) are never seen
-        # from outside - but a far wall reuses them: they keep their colour instead of turning dark grey
-        k = np.where(a[..., 0] < float(ao.get("enclosed", 0.08)), 1.0, k)
+        if a_far is not None:
+            enc = (a_far[..., 3] > 0.5) & (a_far[..., 0] < 0.02)
+            k = np.where(enc, 1.0, k)
+            stats["enclosed_texels"] = int(enc.sum())
         pm = H._pane_mask(objs, size)
         k = np.where(pm, 1.0, k)
         stats["pane_texels"] = int(pm.sum())
@@ -1109,6 +1179,7 @@ def bake_city(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, cutout=False
     out["albedo"] = BK.dilate(base)[..., :3]
     stats["bake_s"] = round(time.time() - t0, 2)
     out["stats"] = stats
+    out["flat"] = flat
     return out
 
 
@@ -1149,6 +1220,55 @@ def _caps(objs, geo, mats):
             n += 1
         bm.free()
     return n
+
+
+def _drop_covered_slopes(objs, wall_names):
+    """Removes the sloped faces of walls (gable prisms: the faces along the roof's slopes) that lie on another surface:
+    a ray from just under such a face along its normal meets another object within 6 cm - the roof, whose top surface
+    runs through the gable's edge, or the coping over it. The sprite never shows them; in real time they fought with
+    the roof for the same depth (white stripes along the verges of the house, measured in lod1)."""
+    import bmesh
+    from mathutils import Vector
+    from mathutils.bvhtree import BVHTree
+    n_drop = 0
+    for ob in objs:
+        mats = [s.material for s in ob.material_slots]
+        if not any(m is not None and m.name in wall_names for m in mats):
+            continue
+        others = [o for o in objs if o is not ob]
+        if not others:
+            continue
+        verts, polys = [], []
+        for o in others:
+            mw = o.matrix_world
+            base = len(verts)
+            verts += [mw @ v.co for v in o.data.vertices]
+            polys += [[base + i for i in p.vertices] for p in o.data.polygons]
+        bvh = BVHTree.FromPolygons(verts, polys, all_triangles=False)
+        mw = np.array(ob.matrix_world, dtype=np.float64)
+        nm = np.linalg.inv(mw[:3, :3]).T
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        drop = []
+        for f in bm.faces:
+            m = mats[f.material_index] if f.material_index < len(mats) else None
+            if m is None or m.name not in wall_names:
+                continue
+            n = nm @ np.array(f.normal, dtype=np.float64)
+            n /= max(1e-12, np.linalg.norm(n))
+            if not 0.15 < n[2] < 0.99:
+                continue
+            c = mw[:3, :3] @ np.array(f.calc_center_median(), dtype=np.float64) + mw[:3, 3]
+            hit = bvh.ray_cast(Vector(tuple(c - n * 0.01)), Vector(tuple(n)), 0.07)
+            if hit[0] is not None:
+                drop.append(f)
+        if drop:
+            bmesh.ops.delete(bm, geom=drop, context="FACES")
+            bm.to_mesh(ob.data)
+            ob.data.update()
+            n_drop += len(drop)
+        bm.free()
+    return n_drop
 
 
 def _route(spec3d, objs):
@@ -1213,15 +1333,21 @@ def build_city(model_id, spec3d):
         for ob in objs:
             if any(ob.name.startswith(k) for k in spec3d["decimate"]):
                 ob.data.shade_smooth()
+    stats["covered_slopes"] = _drop_covered_slopes(objs, {e["material"] for e in log})
     mats = H.Mats()
     geo = H.Geo()
     patches = H.Patches()
     if spec3d.get("railings"):
         stats["railings"] = H._railings(objs, spec3d["railings"], geo, mats)
     opt = dict(spec3d.get("openings") or {})
+    flat = bool(spec3d.get("lod1_flat", True)) and bool(spec3d.get("lod1"))
+    if flat:
+        opt.setdefault("far_ring", False)
     record = []
     if spec3d.get("openings", True) is not False:
         record = cut_openings(rig, objs, log, opt, geo, mats, stats)
+    if flat:
+        stats["lod0_only_parts"] = _lod0_only(geo, FLAT_LOD0_PREFIXES)
     if spec3d.get("timber"):
         timber_members(record, log, spec3d["timber"], geo, mats, stats, objs)
     if spec3d.get("light_scale"):
@@ -1323,7 +1449,11 @@ def _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, s
         m = mats[name]
         if name in vpbr_names or m.get("ce_filler") or m.get("ce_atlas"):
             continue
-        n_scaled += _scale_emission(m, k_light) if _has_light(m) else 0
+        # light_mul {material name prefix: factor}: a facade whose painted windows the cutter cannot all open (the
+        # lobby of the office tower runs round its chamfered corners) at the factor of its cut panes (shop_light)
+        k_m = k_light * next((float(v) for pre, v in sorted((spec3d.get("light_mul") or {}).items())
+                              if name.startswith(pre)), 1.0)
+        n_scaled += _scale_emission(m, k_m) if _has_light(m) else 0
     stats["lights_scaled"] = n_scaled
     P._open_lamp_boxes(objs, [mats[n] for n in sorted(vpbr_names) if not mats[n].get("ce_vpbr")])
     lod0_objs = [o for o in objs if H._level(o) != "lod1"]
@@ -1349,7 +1479,8 @@ def _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, s
     wf = H.weight_fn(spec3d.get("view", "roadside"), dict(spec3d.get("weights") or {}))
     baked = bake_city(rig, bake_objs, bake_mats, size, weight_fn=wf, ppm_max=spec3d.get("ppm_max", 128.0),
                       cutout=bool(cut_names), ao=spec3d.get("ao"), far=far, floors=spec3d.get("floors"),
-                      cut_ppm=float(spec3d.get("cut_ppm", CUT_PPM)), cut_names=rail_names)
+                      cut_ppm=float(spec3d.get("cut_ppm", CUT_PPM)), cut_names=rail_names,
+                      flat_lod1=bool(spec3d.get("lod1_flat", True)) and bool(spec3d.get("lod1")))
     if baked["alpha"] is not None:
         from PIL import Image
         from . import leafatlas
@@ -1361,7 +1492,7 @@ def _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, s
     over = spec3d.get("overrides")
     tr = roles.Translator(glass_class=False, overrides=over)
     levels = ["lod0", "lod1"] if spec3d.get("lod1") else ["lod0"]
-    objs = objs + far_objs
+    objs = objs + far_objs + baked.get("flat", [])
     lods = []
     pts0 = None
     for li, lvl in enumerate(levels):

@@ -543,7 +543,7 @@ MODELS.update({
     "props/city_german_office": dict(
         builder="city", source="props/city_german_office", kind="building", atlas=(2048, 1024), ppm_max=48.0,
         roughness=0.5, view="roadside", ao=AO_CITY, lod1=True, lamps=("go_red",), vpbr=("go_trim",),
-        albedo_mul={"go_glass": (0.62, 0.54, 0.52)}, weights=dict(roof=0.4, away=0.3),
+        albedo_mul={"go_glass": (0.62, 0.54, 0.52)}, light_mul={"go_stone": 0.35}, weights=dict(roof=0.4, away=0.3),
         openings=dict(reveal_color="#b9b5ad", shop_depth=0.0, shop_light=0.35, reveal_m=0.2),
         gutters=False, caps=False),
     # german_old (centre): three jettied half-timbered houses - the timber as members proud of the infill (front and
@@ -579,7 +579,7 @@ MODELS.update({
         roughness=0.86, view="roadside", ao=AO_CITY, lod1=True,
         vpbr=("hga_capm", "hgb_capm", "hgc_capm", "hg_pots_m"), levels={"hg_pots": "lod0"},
         weights=dict(roof=0.45, away=0.3), floors=dict(z=(7.0,), upper=0.8, objects=("hga_body", "hgb_body", "hgc_body")),
-        openings=dict(reveal_color="#cdb9a2", sill_color="#e3dccd"), gutters=False),
+        openings=dict(reveal_color="#cdb9a2", sill_color="#e3dccd", n_arc=4), gutters=False),
     # hanse (centre): the Kontorhaus - clinker with slender piers (vpbr) over seven storeys, set-back top storeys,
     # shops with displays in the ground floor
     "props/city_hanse_kontor": dict(
@@ -594,7 +594,7 @@ MODELS.update({
         builder="city", source="props/city_hanse_speicher", kind="building", atlas=(2048, 1024), ppm_max=80.0,
         roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, vpbr=("hs_trim", "hs_wm", "hs_tur_finm"),
         weights=dict(roof=0.4, away=0.3), floors=dict(z=(8.4,), upper=0.7, objects=("hs_body",)),
-        openings=dict(reveal_color="#86402f", sill_color="#d9d2c3", gate_w=1.8), gutters=False),
+        openings=dict(reveal_color="#86402f", sill_color="#d9d2c3", gate_w=1.8, n_arc=4), gutters=False),
     # hanse (outskirts): the harbour portal crane - red steel (vpbr), machinery house and cabin baked, the red light on
     # the jib head and the two floodlights as lamps with anchors
     "props/city_hanse_crane": dict(
