@@ -18,7 +18,9 @@ extends SceneTree
 ##             with the tail lights on the lit area is only reported (the glows are R3's flares, not Arcade's)
 ##   verdeckt  a traffic picture just behind a crest (Kassel – Würzburg km 61.6, T2), lamps on, by day and at night:
 ##             0 pixels change (the picture stands at the depth of the car, as a model)
-##   laden     no sprite sheet is loaded while driving (SpriteDB.loads), 10 s with traffic and autopilot
+##   laden     no sprite sheet is loaded while driving (SpriteDB.loads), 10 s with traffic and autopilot; while a vehicle
+##             set lacks a model its stand-in shows up – with none left (AS2R, M2INT) no stand-in is drawn and no
+##             sheet is loaded in prepare()
 ## A set that has a model by now is skipped (the stand-in leaves it alone) – the check names it.
 ## "-- --save=<absolute folder>" keeps the pictures (standin_<name>_<mode>.png).
 ## (The scene and the autoloads are accessed untyped: -s scripts compile before the autoloads exist; Arcade's
@@ -577,7 +579,16 @@ func _check_laden() -> void:
 	var loads1 := int(db.get("loads"))
 	var st2: Dictionary = vl.call("standin_state") if vl != null else {}
 	_need(p, loads1 == loads0, "kein Blatt während der Fahrt geladen (SpriteDB.loads %d → %d)" % [loads0, loads1])
-	_need(p, not seen.is_empty(), "Ersatzbilder während der Fahrt gezeigt")
+	# M2INT: since AS2R every vehicle set of the shipped manifest has a model – then no stand-in is drawn and no sheet
+	# is loaded in prepare(); while one set still lacks a model, its stand-in must show up in the traffic
+	var without := 0
+	for sid: String in ModelDB.set_ids():
+		if (sid.begins_with("traffic/") or sid.begins_with("police/") or sid.begins_with("player/")) and not ModelDB.has_model(sid):
+			without += 1
+	if without > 0:
+		_need(p, not seen.is_empty(), "Ersatzbilder während der Fahrt gezeigt (%d Fahrzeug-Sets ohne Modell)" % without)
+	else:
+		_need(p, seen.is_empty() and float(st2.get("sheets_mb", 0.0)) == 0.0, "alle Fahrzeug-Sets haben ein Modell: kein Ersatzbild, kein Blatt (gezeigt %d, %.1f MB)" % [seen.size(), float(st2.get("sheets_mb", 0.0))])
 	await _free(sc)
-	_report("laden", p, "10 s mit Verkehr: SpriteDB.loads %d → %d, %d Blätter in prepare() (%.1f MB), gezeigt: %s" % [loads0, loads1,
-		(st2.get("kinds", {}) as Dictionary).size(), float(st2.get("sheets_mb", 0.0)), ", ".join(PackedStringArray(seen.keys()))])
+	_report("laden", p, "10 s mit Verkehr: SpriteDB.loads %d → %d, %d Blätter in prepare() (%.1f MB), Fahrzeug-Sets ohne Modell %d, gezeigt: %s" % [loads0, loads1,
+		(st2.get("kinds", {}) as Dictionary).size(), float(st2.get("sheets_mb", 0.0)), without, ", ".join(PackedStringArray(seen.keys()))])

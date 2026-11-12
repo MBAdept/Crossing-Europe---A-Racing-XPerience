@@ -6,13 +6,14 @@ extends SceneTree
 ## tools/run_render_checks.sh modern runs it. Prints "RENDER-CHECK <name> OK|FEHLER …"; exit code 0 when all pass.
 ##
 ##   props_spiegel   what builders/props.gd commits, drawn for real: on a straight road the same props stand on both
-##                   sides – the farmhouse (baked model, tag mirror_left), a beech stand-in (billboard, "mirror" of
-##                   the scenery rule), a rock stand-in and the street light (vpbr model, mirror_left) with their
-##                   contact shadows. The left ones go into mirrored MultiMesh nodes (negative determinant, D24). Seen
-##                   from the centre of the road with the sun at the zenith, the picture must be its own mirror image:
-##                   a mirrored node drawn inside out (culled faces, dark normals) or a billboard that does not flip
-##                   breaks the symmetry. Both halves must show something. (Birch and bale of the first version have
-##                   models since AS1b; trees turn by a random yaw, so stand-ins of sets without a model are used.)
+##                   sides – the farmhouse (baked model, tag mirror_left), the street light (vpbr model, mirror_left)
+##                   and two stand-ins of city houses (billboards, tag mirror_left) with their contact shadows. The
+##                   left ones go into mirrored MultiMesh nodes (negative determinant, D24). Seen from the centre of
+##                   the road with the sun at the zenith, the picture must be its own mirror image: a mirrored node
+##                   drawn inside out (culled faces, dark normals) or a billboard that does not flip breaks the
+##                   symmetry. Both halves must show something. (Birch and bale of the first version have models since
+##                   AS1b, beech and rocks since AS3 – trees, plants and rocks turn by a random yaw, so only models
+##                   without one and stand-ins of sets that still have no model can be used: M2INT.)
 ##   rotor           the wind turbine model (vpbr, paint code 0.875 = rotor part, UV2.y = hub height / 128 m) at
 ##                   ce_time 0 / 0.4 / 0.8 s: the rotor turns about the hub (rotor_speed 1.35 rad/s) – its pixels
 ##                   change from frame to frame – while the tower stands still (its pixels stay).
@@ -60,8 +61,8 @@ func _check_mirror() -> void:
 	var off := 1.5 * t.lane_w + t.shoulder_w
 	var items := [
 		[200, {"kind": "prop", "set": "props/farmhouse", "x": off + 6.0, "scale": 1.0, "align": "edge"}, false],
-		[204, {"kind": "prop", "set": "props/tree_beech", "x": off + 9.0, "scale": 1.0}, true],
-		[207, {"kind": "prop", "set": "props/rock_a", "x": off + 4.0, "scale": 1.0}, true],
+		[204, {"kind": "prop", "set": "props/city_german_house", "x": off + 9.0, "scale": 1.0, "align": "edge"}, false],
+		[208, {"kind": "prop", "set": "props/city_swiss_chalet", "x": off + 6.0, "scale": 1.0, "align": "edge"}, false],
 		[198, {"kind": "object", "obj": "streetlight", "x": off - 0.6, "scale": 1.0}, false],
 	]
 	for e: Array in items:
@@ -86,7 +87,7 @@ func _check_mirror() -> void:
 	b.apply_quality({"prop_lod0_m": 60.0, "prop_lod1_m": 200.0, "shadow_casters": 2, "shadow_distance_m": 120.0, "deco_density": 1.0})
 	var part := b.build(ctx, b.collect(ctx))
 	var groups: Dictionary = part.get("groups", {})
-	for key: String in ["m|props/farmhouse|1", "m|props/streetlight|1", "s|props/tree_beech|1", "s|props/rock_a|1"]:
+	for key: String in ["m|props/farmhouse|1", "m|props/streetlight|1", "s|props/city_german_house|1", "s|props/city_swiss_chalet|1"]:
 		if not groups.has(key):
 			p.append("keine gespiegelte Gruppe %s" % key)
 	# the scene: the committed props of the chunk, a camera on the centreline, the sun at the zenith
@@ -162,7 +163,7 @@ func _check_mirror() -> void:
 	if bad_share > MAX_BAD_SHARE:
 		p.append("%.2f %% der Bildpunkte weichen um mehr als 40 Stufen vom Spiegelbild ab (höchstens %.1f %%)" % [100.0 * bad_share, 100.0 * MAX_BAD_SHARE])
 	var counts: Dictionary = part.get("counts", {})
-	_report("props_spiegel", p, "Bauernhaus, Buche, Fels, Laterne je links (gespiegelter Knoten) und rechts: %d / %d Bildpunkte, Abweichung vom Spiegelbild im Mittel %.2f, über 40 Stufen %.2f %% (%s)" % [
+	_report("props_spiegel", p, "Bauernhaus, Laterne (Modelle), Stadthaus, Chalet (Ersatzbilder) je links (gespiegelter Knoten) und rechts: %d / %d Bildpunkte, Abweichung vom Spiegelbild im Mittel %.2f, über 40 Stufen %.2f %% (%s)" % [
 		obj_l, obj_r, mean, 100.0 * bad_share, str(counts)])
 	world.queue_free()
 	await process_frame
