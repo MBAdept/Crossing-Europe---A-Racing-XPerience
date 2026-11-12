@@ -18,6 +18,13 @@ extends RefCounted
 ## ensure() reads the Track's segments and so forces the generation ahead of the camera; that is harmless, the
 ## generator is sequential and its window is only cut behind the camera. A boundary can only be integrated while
 ## its segment is still inside the Track window.
+## Lead-in (FIX-ZS1, finding QA1-B1): at the start of a stage the car stands at z = 0 and the camera 9 m behind it.
+## While the kept range starts at the first boundary of the track (first == 0), road positions z < 0 and boundary
+## indices k < 0 lie on the straight continuation of boundary 0 backwards along its tangent, level at its height:
+## Arcade draws the road behind the start line with the curve and height of segment 0, and every stage starts straight
+## and level (Track._calm). point(), centre_at(), world(), frame_at() and rows_local() answer there; heading and
+## height are those of boundary 0. Nothing changes for z >= 0, nor once the path is trimmed (first > 0: clamped as
+## before). z_min() is the lowest road position the path places correctly.
 ## Owner: race3d kernel. Docs: docs/renderer-modern.md.
 
 const CLEAR_ROW_STEP := 8      ## clearance() is evaluated on every 8th boundary (24 m) and interpolated in between …
@@ -44,6 +51,7 @@ var _clear_cache: Dictionary = {}        ## coarse row -> Vector2(left, right)
 var _li := 0                             ## _locate(): lower array index, upper array index, fraction
 var _lj := 0
 var _lt := 0.0
+var _lb := 0.0                           ## _locate(): metres before boundary 0 on the lead-in (<= 0; 0 elsewhere)
 var _warned := false
 
 
@@ -98,6 +106,17 @@ func has(index: int) -> bool:
 	return index >= first and index <= last()
 
 
+## True while the kept range starts at the first boundary of the track: positions before it lie on the lead-in.
+func has_lead_in() -> bool:
+	return first == 0 and not _px.is_empty()
+
+
+## Lowest road position that world() / frame_at() / centre_at() place on the road: -INF while there is a lead-in
+## (has_lead_in()), else the first kept boundary (below it they answer with that boundary).
+func z_min() -> float:
+	return -INF if has_lead_in() else float(first) * seg_len
+
+
 ## Integrates the boundaries up to `index` (midpoint rule per segment). Reads the segments from the track, which
 ## generates them on demand.
 func ensure(index: int) -> void:
@@ -130,12 +149,28 @@ func ensure(index: int) -> void:
 		k += 1
 
 
-## Road centre at boundary k (origin-relative, with the road height). Indices outside the kept range are clamped.
+## Road centre at boundary k (origin-relative, with the road height). Indices outside the kept range are clamped,
+## except k < 0 on the lead-in.
 func point(k: int) -> Vector3:
 	if k > first + _px.size() - 1:
 		ensure(k)
+	if k < 0 and first == 0:
+		return Vector3(_row_x(k) - _ox, _py[0], _row_z(k) - _oz)
 	var i := clampi(k - first, 0, _px.size() - 1)
 	return Vector3(_px[i] - _ox, _py[i], _pz[i] - _oz)
+
+
+## Plan position of boundary k in path space (doubles): the kept boundary (clamped), or for k < 0 the lead-in.
+func _row_x(k: int) -> float:
+	if k < 0 and first == 0:
+		return _px[0] + sin(_th[0]) * float(k) * seg_len
+	return _px[clampi(k - first, 0, _px.size() - 1)]
+
+
+func _row_z(k: int) -> float:
+	if k < 0 and first == 0:
+		return _pz[0] - cos(_th[0]) * float(k) * seg_len
+	return _pz[clampi(k - first, 0, _px.size() - 1)]
 
 
 func heading(k: int) -> float:
@@ -160,13 +195,17 @@ func _locate(z: float) -> void:
 	_li = clampi(k - first, 0, maxi(0, n - 2))
 	_lj = mini(_li + 1, n - 1)
 	_lt = clampf(f - float(first + _li), 0.0, 1.0)
+	_lb = z if z < 0.0 and first == 0 else 0.0     # the lead-in: _li = 0, _lt = 0, then straight on backwards
 
 
 ## Road centre (with height) at road position z, linear inside the segment – the same straight edge a mesh built
 ## from the boundaries has.
 func centre_at(z: float) -> Vector3:
 	_locate(z)
-	return Vector3(lerpf(_px[_li], _px[_lj], _lt) - _ox, lerpf(_py[_li], _py[_lj], _lt), lerpf(_pz[_li], _pz[_lj], _lt) - _oz)
+	var c := Vector3(lerpf(_px[_li], _px[_lj], _lt) - _ox, lerpf(_py[_li], _py[_lj], _lt), lerpf(_pz[_li], _pz[_lj], _lt) - _oz)
+	if _lb < 0.0:
+		c += fwd_of(_th[0]) * _lb
+	return c
 
 
 func heading_at(z: float) -> float:
@@ -189,8 +228,11 @@ func world(z: float, x: float, h: float) -> Vector3:
 	var a1 := _th[_lj]
 	var rx := lerpf(cos(a0), cos(a1), _lt)
 	var rz := lerpf(sin(a0), sin(a1), _lt)
-	return Vector3(lerpf(_px[_li], _px[_lj], _lt) - _ox + rx * x, lerpf(_py[_li], _py[_lj], _lt) + h,
+	var p := Vector3(lerpf(_px[_li], _px[_lj], _lt) - _ox + rx * x, lerpf(_py[_li], _py[_lj], _lt) + h,
 		lerpf(_pz[_li], _pz[_lj], _lt) - _oz + rz * x)
+	if _lb < 0.0:
+		p += fwd_of(a0) * _lb
+	return p
 
 
 ## Rigid frame at road coordinates: +X right, +Y up, -Z road forward (yaw only – no pitch, no roll).
@@ -351,7 +393,7 @@ func floor_rows(a: int, b: int) -> PackedFloat64Array:
 
 ## The boundaries a..b relative to boundary a, computed in doubles (exact small numbers for a chunk):
 ## {"origin": origin-relative position of boundary a, "o": centres, "r": unit right vectors, "f": unit forward
-## vectors, "heading": headings (rad)}.
+## vectors, "heading": headings (rad)}. Rows k < 0 lie on the lead-in (straight, level, heading of boundary 0).
 func rows_local(a: int, b: int) -> Dictionary:
 	ensure(b)
 	var count := maxi(0, b - a + 1)
@@ -365,13 +407,13 @@ func rows_local(a: int, b: int) -> Dictionary:
 	hd.resize(count)
 	var n := _px.size()
 	var ia := clampi(a - first, 0, n - 1)
-	var ax := _px[ia]
+	var ax := _row_x(a)
 	var ay := _py[ia]
-	var az := _pz[ia]
+	var az := _row_z(a)
 	for q in count:
 		var i := clampi(a + q - first, 0, n - 1)
 		var th := _th[i]
-		o[q] = Vector3(_px[i] - ax, _py[i] - ay, _pz[i] - az)
+		o[q] = Vector3(_row_x(a + q) - ax, _py[i] - ay, _row_z(a + q) - az)
 		r[q] = Vector3(cos(th), 0.0, sin(th))
 		f[q] = Vector3(sin(th), 0.0, -cos(th))
 		hd[q] = th

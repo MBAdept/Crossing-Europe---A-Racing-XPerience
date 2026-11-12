@@ -19,6 +19,12 @@ extends Node3D
 ##    camera position only.
 ## The path reaches that far because RoadPath3D.clearance needs every part of the road that can be loaded together
 ## with a chunk; it forces the Track generation ahead, which is harmless (the generator is sequential).
+## Lead-in (FIX-ZS1, finding QA1-B1): while the path has its lead-in (RoadPath3D.has_lead_in(): the kept range starts
+## at the start of the track), chunk -1 = rows -chunk_segments .. 0 is a chunk like any other – the road behind the
+## start line where the camera stands during the countdown (9 m behind the car at z = 0). Its rows lie on the straight
+## lead-in of the path and carry segment 0's data without its sprites (ChunkContext.capture), so every builder builds
+## its normal road, guardrails and ground there and no prop or sign twice. It is loaded and freed by the same rules
+## (wanted while it lies at most keep_behind_m behind the camera), so nothing changes once the camera is past that.
 ## Config: graphics.modern {chunk_segments, load_path_m, landmark_path_m, keep_behind_m, threaded_build,
 ## commits_per_frame, max_chunks, rebase_m}; levels: terrain_outer_m.
 ## Owner: race3d kernel. Docs: docs/renderer-modern.md.
@@ -366,7 +372,9 @@ func _compute_wanted(cam_z: float, cam_seg: int, vis: float) -> Array[int]:
 	var seg_len := track.seg_len
 	var chunk_m := float(n) * seg_len
 	var end_seg := track.segment_count - 1
-	var c_lo := maxi(int(ceil(float(path.first) / float(n))), int(floor((cam_z - keep_behind_m) / chunk_m)))
+	# the lowest chunk the path holds: -1 = the lead-in before the start line while the path has it
+	var c_min := -1 if path.has_lead_in() else int(ceil(float(path.first) / float(n)))
+	var c_lo := maxi(c_min, int(floor((cam_z - keep_behind_m) / chunk_m)))
 	var c_hi := mini(int(floor((cam_z + load_path_m) / chunk_m)), (end_seg - 1) / n)
 	var cam_p := path.centre_at(cam_z)
 	var lim := vis + chunk_m
@@ -412,11 +420,17 @@ func _make_room(_ci: int, _cam_seg: int) -> bool:
 
 
 ## Collects chunk ci on the main thread. False when its road is no longer in the track window (far behind the camera).
+## Chunk -1 is the lead-in (rows before the start line): only while the path has it and segment 0 is still there.
 func _collect(ci: int, start_task: bool) -> bool:
 	var n := chunk_segments
 	var a := ci * n
 	var b := mini(a + n, track.segment_count - 1)
-	if b <= a or track.get_segment(a).index != a:
+	if b <= a:
+		return false
+	if a < 0:
+		if not path.has_lead_in() or track.get_segment(0).index != 0:
+			return false
+	elif track.get_segment(a).index != a:
 		return false
 	var t0 := Time.get_ticks_usec()
 	# signs are inserted into segments that were generated earlier: the road must be generated generation_lead_m

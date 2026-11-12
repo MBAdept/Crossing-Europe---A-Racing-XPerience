@@ -195,6 +195,8 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 			rim_mat.albedo_color = Color(0.05, 0.05, 0.05)
 			rim.material_override = rim_mat
 			rim.transform = Transform3D(f.basis * Basis(Vector3.RIGHT, PI * 0.5), pos)
+			# like the posts and the banner: shadows only where the quality level has shadow casters (QA1-B3)
+			rim.cast_shadow = mi.cast_shadow
 			parent.add_child(rim)
 			var lamp := MeshInstance3D.new()
 			var lamp_mesh := CylinderMesh.new()
