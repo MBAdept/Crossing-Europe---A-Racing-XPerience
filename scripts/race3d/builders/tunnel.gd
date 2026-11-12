@@ -770,9 +770,14 @@ func _hill(buf: Buf, ctx: ChunkContext, i: int, z: float, xl: float, xr: float, 
 		hgt = maxf(hgt, hb + 0.5)
 		var back := minf(HILL_BACK * pow(maxf(0.0, 1.0 - absf(tt)), 0.8), max_back) + 1.0
 		var fall := minf(HILL_FALL * (0.4 + 0.6 * (1.0 - absf(tt))), maxf(2.0, length - back))
+		# behind the ridge the slope falls below the road – but never into the tube: over it (the walls and 0.5 m more)
+		# the slope ends above the ceiling (seen from inside, a slope crossing the tube showed as a strip)
+		var foot_h := -HILL_SINK * scale
+		if x > xl - 0.5 and x < xr + 0.5:
+			foot_h = minf(_ceil_h + 1.5, hgt - 0.5)
 		front.append(ctx.local(zf + 0.05, x, hb))
 		ridge.append(ctx.local(z + back, x, hgt))
-		foot.append(ctx.local(z + back + fall, x, -HILL_SINK * scale))
+		foot.append(ctx.local(z + back + fall, x, foot_h))
 		front_h.append(hb)
 		ridge_h.append(hgt)
 	var n := xs.size()

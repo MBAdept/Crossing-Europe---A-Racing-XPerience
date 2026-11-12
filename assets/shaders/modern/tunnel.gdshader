@@ -180,8 +180,8 @@ void fragment() {
 			// tile band: enamel panels, every panel its own shade, joints, grime of the spray near the walkway
 			vec2 cell = floor(p / vec2(1.2, 0.6));
 			// every panel its own shade – faded into the mean once a panel is only a few pixels (no shimmer far down the tube)
-			float panel_fade = 1.0 - smoothstep(0.12, 0.4, max(fwidth(p.x) / 1.2, fwidth(p.y) / 0.6));
-			base *= 1.0 + 0.08 * (hash12(cell + vec2(UV.y * 0.01, 3.0)) - 0.5) * panel_fade - 0.01;
+			float panel_fade = 1.0 - smoothstep(0.06, 0.2, max(fwidth(p.x) / 1.2, fwidth(p.y) / 0.6));
+			base *= 1.0 + 0.05 * (hash12(cell + vec2(UV.y * 0.01, 3.0)) - 0.5) * panel_fade - 0.01;
 			base *= 1.0 - 0.32 * grid(p, vec2(1.2, 0.6), 0.03);
 			float grime = (1.0 - smoothstep(0.2, 1.4, v_h)) * (0.55 + 0.45 * vnoise(vec2(zw * 0.35, 1.7)));
 			base *= 1.0 - 0.28 * grime;

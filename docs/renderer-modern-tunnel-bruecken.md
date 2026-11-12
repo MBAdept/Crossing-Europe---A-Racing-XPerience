@@ -35,7 +35,8 @@ Je Tunnelsegment ab der äußeren Bankettkante beider Seiten (dort, wo Arcades W
 - **Gehweg** 0,9 m breit, 0,25 m hoch, mit Bordsteinkante – Arcades Notgehweg (`RoadRenderer._draw_ground`) in seinen
   Farben; die Fahrbahn bis dahin zeichnet `builders/road.gd`.
 - **Wand**: Fliesenband bis 2,9 m in Paneelen von 1,2 × 0,6 m mit Fugen und Straßenschmutz unten (jedes zweite
-  Segmentpaar 6 % dunkler wie Arcade), darüber Sichtbeton bis `render.tunnel.wall_height_m` (4,2 m), die Vouten um
+  Segmentpaar 6 % dunkler wie Arcade; der Ton je Paneel blendet aus, sobald ein Paneel nur wenige Bildpunkte groß ist),
+  darüber Sichtbeton bis `render.tunnel.wall_height_m` (4,2 m), die Vouten um
   `haunch_m` (1,8 m) nach innen bis `ceiling_m` (6,2 m), die Decke mit Ringfugen alle 12 m und Ruß über der Fahrbahn.
 - **Kabeltrassen** unter beiden Vouten; **Leuchten** auf beiden Vouten alle `light_every_m` (12 m) als Gehäuse mit
   Glas (den Lichthof legt die Ebene `flares` mit der Rolle `tunnel` darüber); die Wände sind neben jeder Leuchte heller.
@@ -60,11 +61,18 @@ Am ersten Segment eines Tunnels (vpbr, statisch, beleuchtet):
   dunkler Laibung bis zur Röhre;
 - **Stirnwand** 1,4 m über den Rahmen hinaus bis `ceiling_m` + 2,4 m (Arcade: `head_h`), **Gesims** darauf;
 - **Flügelmauern** 9 m zu beiden Seiten, von Kopfhöhe bis 0,6 m über dem Gelände an ihrem Ende, mit Abdeckung;
-- **Hügel**: Arcades bewachsener Hügel (85 m + halbe Straßenbreite je Seite, 30 m ± gesäte Abweichung hoch, Grat bis
-  38 m hinter dem Portal, dahinter bis 8 m unter die Straße abfallend; bei kurzen Tunneln niedriger und spätestens an der
-  Ausfahrt zu Ende) in der abgedunkelten Grasfarbe der Landschaft, über dem Portal felsgrau. Seine Vorderkante liegt auf
-  der Stirnwand, auf den Flügelmauern und jenseits davon 0,5 m im Gelände – er schließt das Geländeband am Portal
-  (Render-Prüfung: Abdeckung ≤ 0,2 % an den Portalen von U1 und Somport).
+- **Hügel**: Arcades bewachsener Hügel nach `RoadRenderer._draw_portal` mit derselben gesäten Folge je Tunnel (30 Spalten
+  und die beiden Straßenkanten, 85 m + halbe Straßenbreite je Seite, 30 m ± Abweichung hoch, Grat bis 38 m hinter dem
+  Portal), im Verlauf von der abgedunkelten Grasfarbe am Fuß zur helleren am Grat, mit glatten Normalen und Arcades
+  Nadelbäumen auf dem Grat (drei von vier Spalten, 5–9 m); hinter dem Grat fällt er bis 8 m unter die Straße – über der
+  Röhre endet der Hang über der Decke (er darf nie durch die Röhre schneiden). Bei kurzen Tunneln niedriger und
+  spätestens an der Ausfahrt zu Ende. Seine Vorderkante liegt auf der Stirnwand, auf den Flügelmauern und jenseits davon
+  0,5 m im Gelände – er schließt das Geländeband am Portal (Render-Prüfung: Abdeckung ≤ 0,2 % an den Portalen von U1 und
+  Somport).
+- **Lichthof** um die Leuchten von außen: Arcade zeigt die Leuchten der Röhre auch bei Tag von außen mit ihrem Lichthof
+  (1,6 m, `LAMP_COL`, 0,45); die Ebene `flares` lässt Tunnelleuchten nur nachts oder mit der Kamera im Tunnel leuchten.
+  Darum legt `tunnel.gdshader` den Lichthof als Licht auf die Röhre um jede Leuchte, solange die Kamera draußen ist,
+  × (1 − Lichter) – nachts und von innen zeichnet ihn die Ebene `flares`.
 
 ### 2.3 Shader (`tunnel.gdshader`)
 
@@ -144,7 +152,8 @@ Fundament und ein Querträger.
 
 - Pylon = Modell `props/bridge_pylon_bare`, in der Höhe skaliert auf `height_m` / 88,8 (Köhlbrandbrücke 95 m), links
   gespiegelt; darauf Arcades Kopfblock (1,6 m), darunter Fundament und Querträger.
-- **Seile** wie Arcade (`RoadRenderer._pylon`): 7 je Richtung, Spannweite = `cables` des Pylons, von 0,95 … 0,65 der
+- **Seile** wie Arcade (`RoadRenderer._pylon`, 0,07 m dick, Farbe #ecebe6; alle Flächen mit der Normalen nach oben –
+  hell wie Arcades Linien, kein halbdunkler Stab): 7 je Richtung, Spannweite = `cables` des Pylons, von 0,95 … 0,65 der
   Höhe zur Deckkante 1,4 m innerhalb des Pylons und 1,1 m hoch – nie über einer Spur (Unit-Test: ≥ 1,5 m jenseits der
   Spuren an Köhlbrand-, Severins- und Ada-Brücke).
 - **Nachts dunkel** wie Arcades prozeduraler Pylon (M2ZS1 übernommen): Kopie des Modellmaterials ohne Nachtatlas

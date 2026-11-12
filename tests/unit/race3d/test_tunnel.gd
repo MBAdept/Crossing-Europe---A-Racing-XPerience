@@ -222,6 +222,42 @@ func test_hill_closes_the_terrain_at_the_portal() -> void:
 	assert_eq(front_ok, front, "die Vorderkante liegt auf dem Boden des Geländes")
 
 
+## The hill never cuts through the tube (seen from inside, its slope behind the ridge showed as a green strip across
+## the Somport tunnel): no point of a portal triangle – sampled over its surface – lies in the tube behind the portal.
+func test_hill_never_cuts_through_the_tube() -> void:
+	for want: Array in [["saragossa_pau", "saragossa", "Somport-Tunnel"], ["bern_mailand", "bern", "Gotthard-Strassentunnel"],
+			["prag_nuernberg", "prag", "Tunel Valík"]]:
+		var t := _track(want[0], want[1])
+		var tu := _tunnel(t, want[2])
+		var built := _build(t, tu, 3)
+		var z_portal := _portal_z(t, tu)
+		var z_exit := _exit_z(t, tu)
+		var inside := 0
+		var example := ""
+		for e: Array in built:
+			var ctx: ChunkContext = e[0]
+			var arr: Array = (e[1] as Dictionary).get("portal", [])
+			if arr.is_empty():
+				continue
+			var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+			var idx: PackedInt32Array = arr[Mesh.ARRAY_INDEX]
+			for k in range(0, idx.size(), 3):
+				var a := v[idx[k]]
+				var b := v[idx[k + 1]]
+				var c := v[idx[k + 2]]
+				for i in 9:
+					for j in 9 - i:
+						var p := a + (b - a) * (float(i) + 0.33) / 9.0 + (c - a) * (float(j) + 0.33) / 9.0
+						var rc := _road_coords(ctx, p)
+						if rc.x < z_portal + 1.0 or rc.x > z_exit - 1.0:
+							continue
+						var row := clampi(int(round(ctx.row_of(rc.x))), 0, ctx.row_count() - 1)
+						if absf(rc.y) < ctx.shoulder_edge(row, 1 if rc.y > 0.0 else -1) - 0.2 and rc.z > 0.1 and rc.z < 6.0:
+							inside += 1
+							example = "z+%.1f x %.1f h %.1f" % [rc.x - z_portal, rc.y, rc.z]
+		assert_eq(inside, 0, "%s: nichts vom Hügel in der Röhre (%s)" % [want[2], example])
+
+
 func test_short_tunnel_low_hill_no_cap() -> void:
 	var t := _track("prag_nuernberg", "prag")
 	var tu := _tunnel(t, "Tunel Valík")
