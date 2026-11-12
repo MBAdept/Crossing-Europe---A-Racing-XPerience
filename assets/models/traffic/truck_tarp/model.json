@@ -237,8 +237,8 @@
   },
   "auto_lod": false,
   "tags": ["traffic", "heavy"],
-  "bytes": 210702,
-  "hash": "ab625706e44eb7d80df4b509ffac2d5d81fd1af8"
+  "bytes": 210703,
+  "hash": "665b549d00addd6d1dc576223a93bca405fda816"
  },
  "sets": {
   "traffic/truck_red": {

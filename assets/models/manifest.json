@@ -5836,7 +5836,7 @@
    "auto_lod": false,
    "tags": ["traffic", "heavy"],
    "bytes": 170944,
-   "hash": "14df34c0c2ee4eb8730d3cc641b9d7f485908b75"
+   "hash": "b5abd10ce4aa44f8e7f41f2ce25682bb04ef7baa"
   },
   "traffic/truck_tarp": {
    "kind": "heavy",
@@ -6073,8 +6073,8 @@
    },
    "auto_lod": false,
    "tags": ["traffic", "heavy"],
-   "bytes": 210702,
-   "hash": "ab625706e44eb7d80df4b509ffac2d5d81fd1af8"
+   "bytes": 210703,
+   "hash": "665b549d00addd6d1dc576223a93bca405fda816"
   },
   "traffic/truck_transport": {
    "kind": "heavy",
@@ -6311,8 +6311,8 @@
    },
    "auto_lod": false,
    "tags": ["traffic", "heavy"],
-   "bytes": 172239,
-   "hash": "dff17f9da69feb38f217032abfa29e20e6cceb07"
+   "bytes": 172240,
+   "hash": "f9932b1f90173867b4b1d56248e45abcdfdd2315"
   },
   "traffic/van": {
    "kind": "vehicle",
