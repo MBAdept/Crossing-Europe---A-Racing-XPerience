@@ -1897,6 +1897,10 @@ Ende der Sicht ausgedithert – Elbphilharmonie und Michel fehlten an S4. Jetzt:
   einzelnes Ersatzbild bzw. Modell an den Pfad – genau wie `_place()` es im Stück setzt; das Stück übernimmt nahtlos.
 Gemessen an S4 nach 6 s: Elbphilharmonie (1.018 m) und Michel (1.178 m) stehen am Horizont an Arcades Stelle (Michel
 etwa 15 px versetzt, Blick in die Kurve).
+- Wahrzeichen, die Arcade prozedural zeichnet und für die es weder Sprite noch Modell gibt (Belgrad, Hannover, Leipzig,
+  Dortmund, Calais, Madrid), vertritt das Ersatz-Set ihres Etappenplan-Eintrags (FIX-WASSER-R; Einzelheiten:
+  [renderer-modern-gelaende.md](renderer-modern-gelaende.md) Abschnitt 4.1). Eine getönte ferne Vertretung ist ein
+  MultiMesh mit einer Instanz, damit die Tönung schon vor dem Stück gilt.
 
 ### 14.7 Brücken: Geländer und Wasser
 
@@ -1909,8 +1913,13 @@ etwa 15 px versetzt, Blick in die Kurve).
 - `layers/far_ground.gd` (FIX-WASSER): Der Fernboden liegt auch mindestens 0,3 m unter der tiefsten Wasserfläche des
   geladenen Fensters – vorher lag er 4 m unter der tiefsten Straße und deckte Wasser zu, das tiefer liegt (Köhlbrandbrücke:
   Elbe 9 m unter der Fahrbahn, Wiese statt Fluss, Fähren auf der Wiese). Einzelheiten und die Liste der betroffenen
-  Brücken: [renderer-modern-gelaende.md](renderer-modern-gelaende.md) Abschnitt 3.
-Offen für R5: Deck, Träger, Pylone, Uferwände.
+  Brücken: [renderer-modern-gelaende.md](renderer-modern-gelaende.md) Abschnitt 3. Die Render-Prüfung
+  `terrain_cover` bewacht das an der Köhlbrandbrücke (Position K1, km 78,1: Fernboden-Anteil unter dem Horizont
+  höchstens 2 %; gemessen 0,38 %, mit dem alten `far_ground.gd` 31,96 %).
+- Pylone der Schrägseilbrücken (noch Vertretungen des Arcade-Sprites): nachts ohne die Lichtebene des Sprites und ohne
+  Scheinwerferlicht, betongrau wie Arcades prozeduraler Pylon (FIX-WASSER-R; vorher fast weiß).
+Offen für R5: Deck, Träger, Pylone (als Modell; aus der Nähe ist die Vertretung verwaschen), Uferwände, das rote
+Warnlicht auf der Pylonspitze (Arcade blinkt).
 
 ### 14.8 Zeit je Teil von `render()`
 

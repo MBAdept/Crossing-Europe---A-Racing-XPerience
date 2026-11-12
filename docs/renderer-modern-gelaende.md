@@ -175,11 +175,17 @@ Auslassungen (`debug()["dropped"]`):
 |---|---|
 | `ribbon` | die Requisite steht jenseits des gekürzten Geländebands (Kurveninnenseite, Mittelachse): dort ist kein Boden |
 | `corridor` | im Sichtkorridor einer Kurveninnenseite (F7): schmückende Requisiten einer Landschaftsregel und jede Vegetation. Eine weggelassene Pflanze wird durch **Bodendecker** ersetzt (Nachtrag A-3): Stücke der Sets aus `graphics.modern.props.bend_cover` (`props/cover_bush`, `props/cover_grass`), höchstens `bend_cover_max_h_m` (0,5 m) hoch – eins für einen Busch, drei für einen Baum, über seinen Fuß verteilt (höchstens 2,5 m), nie näher als 0,8 m an der Fahrbahnkante, nicht in den City Limits (dort ist der Boden Pflaster; `cover_pieces()`; Liste `cover_list`, `debug().cover`). Ein Set der Liste, das die Strecke selbst setzt, bleibt und wird auf diese Höhe verkleinert |
-| `missing` | weder das Set noch sein Ersatz-Set hat ein Modell oder ein Sprite-Blatt (Arcade lässt es ebenso aus) |
+| `missing` | weder das Set noch sein Ersatz-Set hat ein Modell oder ein Sprite-Blatt (Arcade lässt es ebenso aus). Ausnahme **Wahrzeichen**, die Arcade prozedural zeichnet (`proc`; `Track._build_landmark` streicht dafür ihr `fallback`): hat ihr Set weder Modell noch Sprite, steht das Ersatz-Set ihres Eintrags im Etappenplan (`landmark_fallbacks()`, mit `fallback_scale` und `fallback_tint`) – im Stück und als ferne Vertretung. Betrifft Belgrad, Hannover, Leipzig, Dortmund, Calais und Madrid (FIX-WASSER-R, QA-WASSER B1: dort fehlte das Wahrzeichen in Modern ganz) |
 | `density` | „Details“ unter 1,0 dünnt Bäume, Büsche, Felsen und niedrige Dinge (Strohballen) aus – nie Gebäude, Wahrzeichen oder hohe Bauwerke (Windräder, Masten, Mühlen); über 1,0 kommt nichts hinzu |
 
 Was ein Ereignis der Etappe gesetzt hat (Tankstelle, Grenze, Radar …, Einträge mit `offset`), bleibt auch im
 Korridor stehen, sofern es keine Vegetation ist (Regel 9).
+
+Einträge mit `prefer_proc` (die Pylone der Schrägseilbrücken: Arcade zeichnet sie prozedural, nachts betongrau) zeigen
+als Vertretung **nicht** die Lichtebene ihres Sprites – sie ist ein angestrahlter Pylon, den Arcade nie zeigt – und
+nehmen kein Scheinwerferlicht an (das Billboard ist 88 m hoch, das Licht käme vom Fuß): eigenes Material
+`dark_material()`, Gruppe `d|<set>|<gespiegelt>`. Bei Tag ist das Bild dasselbe (FIX-WASSER-R, QA-WASSER B2: nachts
+leuchteten die Pylone der Köhlbrandbrücke fast weiß).
 
 ### 4.2 Was ein Set ist (`PropLibrary`)
 
@@ -307,7 +313,7 @@ diesem Bauabschnitt dem Renderer-Kern):
 | `test_far_ground_water.gd` | Fernboden mit Wasser im Fenster (die Ebene mit ihrem eigenen `update()` an einem Stellvertreter der Renderer-Fassade): unter der Köhlbrandbrücke (km 73–80,3) liegt die Scheibe mindestens 0,25 m unter dem tiefsten Wasser des Fensters und unter jeder geladenen Straße, die zwei Fähren stehen auf der Wasserhöhe über ihr; ohne tiefes Wasser (km 2, 30, 60, 65, Elbbrücken, Ziel) genau wie bisher; kommt die Brücke ins Fenster, sinkt die Scheibe mit höchstens 0,35 m je Meter Fahrt und liegt unter dem Wasser, bevor es in Sichtweite ist; Holtenauer Hochbrücke, Severinsbrücke, Elisabethbrücke ebenso. Auf `3a23cb8` (vor der Behebung) rot |
 | `test_props.gd` | Helfer wie Arcade (`edge_anchor_x`), Spiegelung (Knoten × Instanz), Detailstufen; jedes Requisiten-Set ist Modell oder Vertretung; Stellen, Auslassungen, Lampen, Zeichenaufrufe je Set und Stück; Korridor und Dichte; auf fünf Landschaften echter Etappen ist die Liste eines Stücks die Liste seiner `TrackSegment.sprites` minus der Auslassungen |
 | `tests/race3d/check_terrain_plan.gd` (headless) | `terrain_plan_overlap`: in den zwölf härtesten Etappenrichtungen (je drei engste Kurven) und an T1–T4 überlappen sich die Geländestreifen verschiedener Straßenteile in der Draufsicht nicht; `terrain_plan_tips`: Bandspitzen derselben Kurveninnenseite (siehe 8); `terrain_plan_budget`: ≤ 1.100 Dreiecke je Stück. `-- --dump=<Ordner>` schreibt die Daten der Draufsichten |
-| `tests/race3d/render/check_terrain_cover.gd` | Geländesperre (§4.9.2): an T1–T4, S1, C1 mit `--gfx-debug=cover,far` höchstens 0,2 % magenta Bildpunkte unter der Horizontzeile; meldet die Anteile von Fernboden und Kragen |
+| `tests/race3d/render/check_terrain_cover.gd` | Geländesperre (§4.9.2): an T1–T4, S1, C1, K1 mit `--gfx-debug=cover,far` höchstens 0,2 % magenta Bildpunkte unter der Horizontzeile; meldet die Anteile von Fernboden und Kragen. K1 (Köhlbrandbrücke, Kiel – Hamburg km 78,1, FIX-WASSER-R) prüft zusätzlich höchstens 2 % Fernboden: die Scheibe darf die Elbe nicht verdecken (gemessen 0,38 %; mit dem `far_ground.gd` vor FIX-WASSER 31,96 % – rot) |
 | `tests/race3d/render/check_props_render.gd` | `props_spiegel`: beidseitig gleiche Requisiten (Bauernhaus, Laterne, Birke, Strohballen) aus der Straßenmitte, Sonne im Zenit – das Bild ist sein eigenes Spiegelbild |
 | `tests/sim/modern_sight.gd` | F7 mit dem ausgelieferten Relief (gehört dem Kern; das Netz ist dessen Profil) |
 
