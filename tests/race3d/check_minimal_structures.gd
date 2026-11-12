@@ -13,7 +13,8 @@ extends SceneTree
 ##   tore       the start gantry 14 m after the start line, the finish gantry at the finish (builders/gantry.gd);
 ##              the signs builder leaves both to it
 ##   wahrzeichen  Kiel – Hamburg km 80: landmarks beyond the committed chunks stand on the path up to Arcade's
-##              landmark range (builders/props.gd), none twice
+##              landmark range (builders/props.gd), none twice; at 22:00 (km 77.4) up to render.landmark_far_m,
+##              further than the night's sight alone allows (their illumination, M2INT)
 ##   bruecke    the Köhlbrand bridge: a railing on every water segment of the loaded chunks (builders/roadside.gd)
 ## Prints "CHECK <name> OK|FEHLER …" per check; exit code 0 when all pass.
 ## (The scene and the autoloads are accessed untyped: -s scripts compile before the autoloads exist.)
@@ -200,15 +201,29 @@ func _check_tore() -> void:
 
 func _check_wahrzeichen() -> void:
 	var p: Array[String] = []
-	var sc: Node = await _launch({"start_km": 80.0})
+	var day: Array = await _far_landmarks({"start_km": 80.0}, p)
+	# M2INT: at night Arcade draws the illumination of landmarks up to render.landmark_far_m whatever the sight
+	# (RoadRenderer._draw_far_landmarks) – the lit Elbphilharmonie over the Köhlbrandbrücke at 22:00
+	var night: Array = await _far_landmarks({"start_km": 77.4, "start_world_minutes": 22.0 * 60.0}, p)
+	_need(p, float(night[1]) > float(night[2]) + 1.0, "nachts weiter als die Wahrzeichenreichweite der Sicht (%.0f m gegen %.0f m)" % [float(night[1]), float(night[2])])
+	_report("wahrzeichen", p, "%d Wahrzeichen jenseits der Stücke, Reichweite %.0f m; 22 Uhr km 77,4: %d bis %.0f m (Sicht allein %.0f m)" % [
+		int(day[0]), float(day[1]), int(night[0]), float(night[1]), float(night[2])])
+
+
+## Launches the stage with `extra` and checks that exactly the landmarks beyond the committed chunks up to the far
+## reach of builders/props.gd stand on the path. Returns [count, far reach, landmark range of the sight alone].
+func _far_landmarks(extra: Dictionary, p: Array[String]) -> Array:
+	var sc: Node = await _launch(extra)
 	var r: Object = sc.get("renderer")
 	var trk: Object = sc.get("track")
 	var props: Object = r.call("builder", "props")
 	var far: Dictionary = props.get("_far")
 	var st: Object = r.get("streamer")
 	var chunk_m := float(int(st.get("chunk_segments"))) * float(trk.get("seg_len"))
-	var cam_z := float((r.get("view") as Dictionary).get("camera_z", 0.0))
-	var reach := float(props.call("landmark_range", float((r.get("view") as Dictionary).get("visibility_m", 900.0))))
+	var view: Dictionary = r.get("view")
+	var cam_z := float(view.get("camera_z", 0.0))
+	var reach := float(props.call("far_reach", view))
+	var by_sight := float(props.call("landmark_range", float(view.get("visibility_m", 900.0))))
 	var expected := 0
 	var lms: Array = trk.get("landmarks")
 	for li in lms.size():
@@ -216,9 +231,9 @@ func _check_wahrzeichen() -> void:
 		if z - cam_z > 0.0 and z - cam_z <= reach and st.call("chunk_node", int(floor(z / chunk_m))) == null:
 			expected += 1
 			_need(p, far.has(li), "%s (%.0f m) steht jenseits der Stücke" % [str((lms[li] as Dictionary).get("set")), z - cam_z])
-	_need(p, far.size() == expected and expected >= 1, "nur Wahrzeichen jenseits der Stücke bis zur Reichweite %.0f m (%d von %d)" % [reach, far.size(), expected])
+	_need(p, far.size() == expected and expected >= 1, "nur Wahrzeichen jenseits der Stücke bis zur Reichweite %.0f m (%d von %d, km %.1f)" % [reach, far.size(), expected, float(extra.get("start_km", 0.0))])
 	await _free(sc)
-	_report("wahrzeichen", p, "%d Wahrzeichen jenseits der Stücke, Reichweite %.0f m" % [expected, reach])
+	return [expected, reach, by_sight]
 
 
 # --- bridge railing --------------------------------------------------------------------------------------------

@@ -29,12 +29,24 @@ global uniform vec2 ce_fog_range;
 void fragment() {
 	float dist = length(VERTEX);
 	float lm_l = 0.0;
+	bool lights_only = false;
+	vec3 e = texture(emit_tex, UV).rgb;
+	// how much of the pixel is lit at night (the emission atlas is black where nothing shines)
+	float light_cover = clamp(max(e.r, max(e.g, e.b)) * 3.0, 0.0, 1.0) * clamp(ce_night, 0.0, 1.0);
 	if (landmark_law.x > 0.0) {
 		float vis = ce_fog_range.y;
 		lm_l = clamp(vis * landmark_law.x, min(vis, 600.0), max(landmark_law.y, vis));
 		float keep = 1.0 - smoothstep(lm_l * 0.72, lm_l, dist);
-		if (keep < 0.999 && fract(dot(floor(FRAGCOORD.xy), vec2(0.7548776662, 0.5698402910))) >= keep) {
-			discard;
+		float dither = fract(dot(floor(FRAGCOORD.xy), vec2(0.7548776662, 0.5698402910)));
+		if (keep < 0.999 && dither >= keep) {
+			// M2INT (Arcade's RoadRenderer._draw_landmark): at night a landmark's illumination stays visible up to
+			// landmark_law.y (render.landmark_far_m) when the model itself has faded with the night's short sight –
+			// only its lit pixels, unfogged, fading over the last 20 % of that range
+			float lights_keep = 1.0 - smoothstep(landmark_law.y * 0.8, landmark_law.y, dist);
+			if (dither >= light_cover * lights_keep) {
+				discard;
+			}
+			lights_only = true;
 		}
 	}
 	vec4 a = texture(albedo_tex, UV);
@@ -43,14 +55,18 @@ void fragment() {
 		discard;
 	}
 #endif
-	ALBEDO = a.rgb;
+	ALBEDO = lights_only ? vec3(0.0) : a.rgb;
 	ROUGHNESS = roughness;
 	METALLIC = 0.0;
-	SPECULAR = 0.35;
+	SPECULAR = lights_only ? 0.0 : 0.35;
 	// colours are sRGB-encoded here (the engine linearises ALBEDO and EMISSION): energy as pow(e, 1 / 2.2)
-	EMISSION = texture(emit_tex, UV).rgb * pow(ce_night * emit_energy, 0.4545);
-	if (lm_l > 0.0) {
+	EMISSION = e * pow(ce_night * emit_energy, 0.4545);
+	if (lights_only) {
+		FOG = vec4(0.0);
+	} else if (lm_l > 0.0) {
+		// Arcade hazes the picture of a landmark but lays its illumination over it unhazed
 		float haze = clamp((dist - ce_fog_range.x) / max(lm_l - ce_fog_range.x, 1.0), 0.0, 1.0) * 0.85;
+		haze *= 1.0 - light_cover;
 		FOG = vec4(ce_fog_unshow(min(a.rgb * ce_fog_color.rgb * 1.15, vec3(1.0))), haze);
 	} else {
 		FOG = ce_arcade_fog(a.rgb, dist, ce_fog_color, ce_fog_range);

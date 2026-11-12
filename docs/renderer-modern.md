@@ -1869,6 +1869,19 @@ Ende der Sicht ausgedithert – Elbphilharmonie und Michel fehlten an S4. Jetzt:
 Gemessen an S4 nach 6 s: Elbphilharmonie (1.018 m) und Michel (1.178 m) stehen am Horizont an Arcades Stelle (Michel
 etwa 15 px versetzt, Blick in die Kurve).
 
+**Nachts (M2INT).** Arcade zeichnet die Beleuchtung eines Wahrzeichens (Lichtebene des Sprites) bei Nacht bis
+`landmark_far_m`, auch wenn das Bild selbst mit der kurzen Nachtsicht längst ausgeblendet ist (`_draw_far_landmarks`:
+Grenze = max(L, `landmark_far_m`) bei `lights` > 0,05; `_draw_landmark`: Lichtebene ohne Dunst, Alpha `lights` ×
+Ausblendung über die letzten 20 % von `landmark_far_m`). In Modern fehlte die beleuchtete Elbphilharmonie über der
+Köhlbrandbrücke um 22 Uhr ganz. Jetzt:
+- `props.far_reach(view)`: Wahrzeichen jenseits der Stücke stehen nachts bis `landmark_far_m` am Pfad (sonst bis L).
+- `billboard.gdshader`: wo das Bild jenseits von L weggedithert wird, bleiben die Pixel der Lichtebene – geditherte
+  Deckung = Alpha der Lichtebene × `ce_night` × Ausblendung, Farbe der Lichtebene, kein Nebel. `baked.gdshader` (Michel)
+  ebenso mit dem Emissionsatlas (Deckung = 3 × hellster Kanal). Innerhalb von L dunstet nur das Bild, leuchtende Pixel
+  behalten ihr Licht (Dunst × (1 − Deckung)), wie Arcade die Lichtebene ungedunstet darüberlegt.
+- Prüfung `check_minimal_structures.gd` „wahrzeichen“: 22 Uhr, km 77,4: Reichweite 1.900 m statt 990 m der Sicht,
+  2 Wahrzeichen jenseits der Stücke (gemessen). Bild `koehl_nacht` im Bericht M2INT.
+
 ### 14.7 Brücken: Geländer und Wasser
 
 - `builders/roadside.gd` setzt auf jedem Wassersegment Arcades Geländer an die Deckkante (Bankettkante + 0,4 m außerhalb

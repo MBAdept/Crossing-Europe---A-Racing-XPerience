@@ -217,6 +217,18 @@ func landmark_range(vis: float) -> float:
 	return clampf(vis * _lm_law.x, minf(vis, 600.0), maxf(_lm_law.y, vis))
 
 
+## How far ahead landmarks stand beyond the committed chunks in the frame `view`: Arcade's landmark range – and at
+## night (palette "lights" > 0.05) at least render.landmark_far_m, where Arcade still draws their illumination
+## (RoadRenderer._draw_far_landmarks; M2INT). Beyond the range of the picture billboard.gdshader / baked.gdshader keep
+## only the lit pixels.
+func far_reach(view: Dictionary) -> float:
+	var reach := landmark_range(float(view.get("visibility_m", 900.0)))
+	var pal: Variant = view.get("palette", {})
+	if pal is Dictionary and float((pal as Dictionary).get("lights", 0.0)) > 0.05:
+		reach = maxf(reach, _lm_law.y)
+	return reach
+
+
 ## Landmarks ahead whose chunk is not committed yet, up to Arcade's landmark range: one stand-in each on the path
 ## (the path is integrated up to graphics.modern.landmark_path_m ahead). Placed like _place() places them, so the
 ## stand-in of the chunk takes over at the same spot; sets with a model are left to their chunk (none in M1).
@@ -230,7 +242,7 @@ func _update_far_landmarks(view: Dictionary, cam_z: float) -> void:
 		return
 	var trk := track as Track
 	var lib := _lib()
-	var reach := landmark_range(float(view.get("visibility_m", 900.0)))
+	var reach := far_reach(view)
 	var chunk_m := float(int(streamer.get("chunk_segments"))) * trk.seg_len
 	var terrain: Variant = _renderer.get("terrain")
 	var keep := {}

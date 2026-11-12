@@ -123,36 +123,56 @@ void fragment() {
 		lm_l = clamp(vis * landmark_law.x, min(vis, 600.0), max(landmark_law.y, vis));
 		far_keep = 1.0 - smoothstep(lm_l * 0.72, lm_l, dist);
 	}
-	if (far_keep < 0.999 && fract(dot(floor(FRAGCOORD.xy), vec2(0.7548776662, 0.5698402910))) >= far_keep) {
-		discard;
-	}
-	vec3 a = to_lin(t.rgb * COLOR.rgb);
-	// what a lit surface shows: two passes, each turned into display values, then added
-	vec3 d = show(a * ce_ambient.rgb) + show(a * ce_sun_color.rgb * v_sun);
-	if (baked_light > 0.5) {
-		// a picture with baked light: its colours times the light a mid-grey surface shows (Arcade's law: sprite
-		// x ambient colour) - the hues of the sprite stay as they were painted
-		vec3 g = vec3(to_lin(vec3(REF_GREY)).r);
-		d = t.rgb * COLOR.rgb * (show(g * ce_ambient.rgb) + show(g * ce_sun_color.rgb * v_sun)) / REF_GREY;
-	}
-	// back to the linear value with that display value (0.00083 is the linear value that still shows as 0)
-	vec3 x = pow((min(d, vec3(1.0)) + 0.055) / 1.055, vec3(2.4));
-	x += a * headlight_color * v_head;
-	if (lights_rect.z > 0.0) {
-		vec4 l = texture(tex, lights_rect.xy + UV * lights_rect.zw);
-		if (baked_light > 0.5) {
-			// Arcade lays the light layer over the sprite: picture -> light layer by its alpha x the night amount
-			vec3 lit = mix(min(d, vec3(1.0)), l.rgb, clamp(l.a * ce_night, 0.0, 1.0));
-			x = pow((lit + 0.055) / 1.055, vec3(2.4));
-		} else {
-			x += to_lin(l.rgb * l.a) * (ce_night * night_energy);
+	float dither = fract(dot(floor(FRAGCOORD.xy), vec2(0.7548776662, 0.5698402910)));
+	if (far_keep < 0.999 && dither >= far_keep) {
+		// M2INT (Arcade's RoadRenderer._draw_landmark): at night the illumination of a landmark (the light layer of its
+		// sprite) stays visible up to landmark_law.y (render.landmark_far_m) when the picture itself has faded with the
+		// night's short sight – the lit Elbphilharmonie over the Köhlbrandbrücke was missing at 22:00. Only the lit
+		// pixels, unfogged, as a dithered cover of light alpha x night x the fade over the last 20 % of that range.
+		float lights_keep = 0.0;
+		if (landmark_law.x > 0.0 && lights_rect.z > 0.0) {
+			lights_keep = clamp(ce_night, 0.0, 1.0) * (1.0 - smoothstep(landmark_law.y * 0.8, landmark_law.y, dist));
 		}
-	}
-	ALBEDO = albedo_for(x);
-	if (lm_l > 0.0) {
-		float haze = clamp((dist - ce_fog_range.x) / max(lm_l - ce_fog_range.x, 1.0), 0.0, 1.0) * 0.85;
-		FOG = vec4(ce_fog_unshow(min(t.rgb * COLOR.rgb * ce_fog_color.rgb * 1.15, vec3(1.0))), haze);
+		vec4 ll = lights_keep > 0.01 ? texture(tex, lights_rect.xy + UV * lights_rect.zw) : vec4(0.0);
+		if (dither >= ll.a * lights_keep) {
+			discard;
+		}
+		ALBEDO = albedo_for(pow((min(ll.rgb, vec3(1.0)) + 0.055) / 1.055, vec3(2.4)));
+		FOG = vec4(0.0);
 	} else {
-		FOG = ce_arcade_fog(t.rgb * COLOR.rgb, dist, ce_fog_color, ce_fog_range);
+		vec3 a = to_lin(t.rgb * COLOR.rgb);
+		// what a lit surface shows: two passes, each turned into display values, then added
+		vec3 d = show(a * ce_ambient.rgb) + show(a * ce_sun_color.rgb * v_sun);
+		if (baked_light > 0.5) {
+			// a picture with baked light: its colours times the light a mid-grey surface shows (Arcade's law:
+			// sprite x ambient colour) - the hues of the sprite stay as they were painted
+			vec3 g = vec3(to_lin(vec3(REF_GREY)).r);
+			d = t.rgb * COLOR.rgb * (show(g * ce_ambient.rgb) + show(g * ce_sun_color.rgb * v_sun)) / REF_GREY;
+		}
+		// back to the linear value with that display value (0.00083 is the linear value that still shows as 0)
+		vec3 x = pow((min(d, vec3(1.0)) + 0.055) / 1.055, vec3(2.4));
+		x += a * headlight_color * v_head;
+		float light_cover = 0.0;
+		if (lights_rect.z > 0.0) {
+			vec4 l = texture(tex, lights_rect.xy + UV * lights_rect.zw);
+			light_cover = clamp(l.a * ce_night, 0.0, 1.0);
+			if (baked_light > 0.5) {
+				// Arcade lays the light layer over the sprite: picture -> light layer by its alpha x the night amount
+				vec3 lit = mix(min(d, vec3(1.0)), l.rgb, light_cover);
+				x = pow((lit + 0.055) / 1.055, vec3(2.4));
+			} else {
+				x += to_lin(l.rgb * l.a) * (ce_night * night_energy);
+			}
+		}
+		ALBEDO = albedo_for(x);
+		if (lm_l > 0.0) {
+			// Arcade hazes the picture of a landmark, but lays its light layer over it unhazed: the lit pixels keep
+			// their light (and match the lights that stay beyond L above)
+			float haze = clamp((dist - ce_fog_range.x) / max(lm_l - ce_fog_range.x, 1.0), 0.0, 1.0) * 0.85;
+			haze *= 1.0 - light_cover;
+			FOG = vec4(ce_fog_unshow(min(t.rgb * COLOR.rgb * ce_fog_color.rgb * 1.15, vec3(1.0))), haze);
+		} else {
+			FOG = ce_arcade_fog(t.rgb * COLOR.rgb, dist, ce_fog_color, ce_fog_range);
+		}
 	}
 }
