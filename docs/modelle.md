@@ -910,6 +910,15 @@ Radhäusern und unter dem Auto und der Kontaktschatten, das Glas ist heller und 
 blass. Alle `showroom`-Flags bleiben `false`. Was fehlt, liegt im Renderer (Umgebungsspiegelung und Licht des
 Showrooms, R3/UI1), nicht im Netz.
 
+**Nachprüfung M2INT** (Kontaktbogen `--showroom --tonemap=agx` mit dem Look des Showrooms aus
+`ModernMaterials.STUDIO_LOOK`, gemessen auf der Tür jedes Autos, Echtzeit gegen Sprite): Helligkeit × 0,95 (GT),
+1,02 (Kombi), 1,18 (Kompakt), 1,08 (Limousine), 1,08 (Sportwagen); die Sättigung des Lacks liegt bei Kombi,
+Limousine und Sportwagen um 0,24–0,39 höher als im Sprite – dort mischt der Klarlack das Grau des Studios hinein,
+in Echtzeit fehlt diese Spiegelung (`env_energy` 0 im Studio), der Lack wirkt flach und bunt; der Sportwagen kippt
+nach Orange, der Kompakt bleibt blass. Kein Auto ist damit mindestens so gut wie sein Sprite: **alle Flags bleiben
+`false`**. Der nächste Schritt gehört dem Showroom (UI2/R8): ein Studiohimmel, den der Klarlack spiegelt
+(`env_zenith/horizon/ground` grau, `env_energy` > 0), Kontaktschatten unter dem Auto, dann neu vergleichen.
+
 ## 16. Fahrzeuge des Bauabschnitts 4 (AS2b): Lkw, Busse, Polizei
 
 Seit diesem Abschnitt hat **jedes Fahrzeug-Set ein Modell**: neben Spieler- und Verkehrsautos die sieben schweren
@@ -1095,7 +1104,10 @@ Lichtbalken, die es nur in `lod0` gibt.
 **Was mit dem Renn-Look gemessen ist:** `TRAFFIC_GLASS_FAR` (und `truck3d.GLASS_FAR`), `FAR_PLATE` und
 `CHECK_MEAN_EXP` sind auf `LOOK` der Fahrzeug-Ebene (`env_energy` 1,6, `paint_base` 0,9, Glas 2,2) und das Licht
 des Kontaktbogens abgestimmt. Ändern sich Look, Belichtung oder Tonkurve, sind sie neu zu messen (mittlere Farbe von
-Scheibe, Kennzeichen und Karoband in beiden Stufen an den Wechselabständen).
+Scheibe, Kennzeichen und Karoband in beiden Stufen an den Wechselabständen). Der Look steht seit M2INT an einer Stelle,
+`ModernMaterials.VEHICLE_LOOK` (A-13); RINT-B hatte ihn vorher geändert (`paint_base` 1,0 mit Knie 0,7 / Steigung
+0,45, 8 % Entsättigung, `lamp_off` 0,28) – die Nachmessung von M2INT steht unten („Ferne Stufen nach dem Look von
+RINT-B“).
 
 **Kennzeichen und Zählweise:** Mit `FAR_PLATE` `#a2a2a0` stimmt die mittlere Helligkeit; die Zählung geänderter
 Pixel steigt dadurch bei 25–60 m etwas (SUV 40 m 5,6 -> 6,8 %, Limousine 13,2 -> 14,4 %), weil die weißen Pixel des
@@ -1103,6 +1115,29 @@ Pixel steigt dadurch bei 25–60 m etwas (SUV 40 m 5,6 -> 6,8 %, Limousine 13,2 
 Wechsels auf das Kennzeichen. Bei der Limousine bleiben 11 Punkte außerhalb von Kennzeichen und Scheibe; nach dem
 Differenzbild liegen sie vor allem auf den Fugen des Kofferraumdeckels (6 mm, bei 40 m ein Zehntel Pixel), die
 `lod0` als Treppenlinie zeigt und `lod1` weglässt.
+
+### Ferne Stufen nach dem Look von RINT-B (Nachmessung M2INT)
+
+Mit den Werkzeugen von AS2R (Spielkamera 1280 × 720, vierfach überabgetastet, Renn-Look aus
+`ModernMaterials.VEHICLE_LOOK`, gemessen), mittlere Farbe in beiden Stufen am Wechselabstand:
+
+| Stelle | nahe Stufe | ferne Stufe | Urteil |
+|---|---|---|---|
+| Transporter, Heckscheibe, 40 m (`TRAFFIC_GLASS_FAR`) | (69, 86, 107) | (67, 87, 111) | stimmt (≤ 4 Stufen) |
+| Limousine, Kennzeichen, 40 m (`FAR_PLATE`, lineares Mittel) | (192, 193, 195) | (197, 201, 202) | stimmt (≤ 7) |
+| Bus, Heckscheibe, 60 m (`truck3d.GLASS_FAR`) | (70, 86, 105) | (69, 86, 105) | stimmt, 0,0 % der Fensterpixel > 24 Stufen |
+| Bus, Kennzeichen, 180 m (`heavy3d.FAR_PLATE`, seit M2INT `#a2a2a0` statt `#c4c4c1`) | (161, 170, 181) | (165, 174, 185) | stimmt (≤ 4) |
+| Polizei Belgien, Karoband, 120 m (`CHECK_MEAN_EXP` 0,6) | (166, 171, 126) | (168, 175, 112) | Rot/Grün stimmen, Blau 14 Stufen tiefer |
+
+Scheiben und Kennzeichen sind feste Farben – Knie, Entsättigung und `paint_base` von RINT-B wirken nur auf Lack und
+lassen sie unberührt. Das Karoband ist Lack: die 8 % Entsättigung ziehen die einzelnen gelben und blauen Karos von
+`lod1` zum Grau hin, die Mischfarbe von `lod2` weniger – das Band wird in 120 m (7 × 2 Pixel) etwas gelber. Offen für
+den Besitzer der Polizeimodelle: die Mischfarbe aus den Karos nach Knie und Entsättigung bilden.
+
+**Olive (AS3R-Bericht 11.):** `tree_olive_b` trägt einen eigenen lod1-Abgleich (`params` „lift“ 1,057 statt der 1,12
+der Art, `veg3d.build_tree`). Helligkeit lod0 → lod1 beim Wechsel bei 60 m, mittags / 19:30 / 23 Uhr
+(`tools/models/prop_scene.sh --mode=lods --look=race`, gemessen): vorher +5,0 / +6,5 / +8,3 %, jetzt −0,2 / +0,5 /
++0,7 %; `tree_olive` unverändert −1,9 / −0,4 / −0,4 %.
 
 ## 18. Vegetation und Natur (Bauabschnitt 4, AS3)
 
