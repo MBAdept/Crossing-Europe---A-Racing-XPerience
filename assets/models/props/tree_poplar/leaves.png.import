@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b5epalj04c167"
-path.s3tc="res://.godot/imported/leaves.png-136774aca3592dbeec010d9d06c51b2e.s3tc.ctex"
+uid="uid://cuqbog3k5eosi"
+path.s3tc="res://.godot/imported/leaves.png-0f4795eb254739234741028c4efb5a79.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/models/props/bush_round_b/leaves.png"
-dest_files=["res://.godot/imported/leaves.png-136774aca3592dbeec010d9d06c51b2e.s3tc.ctex"]
+source_file="res://assets/models/props/tree_poplar/leaves.png"
+dest_files=["res://.godot/imported/leaves.png-0f4795eb254739234741028c4efb5a79.s3tc.ctex"]
 
 [params]
 

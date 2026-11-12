@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/cliff",
+ "model": {
+  "kind": "rock",
+  "object": {"width_m": 26, "height_m": 14, "length_m": 5},
+  "extent_m": {"left": 13.42, "right": 13.45},
+  "aabb": [-13.425, -2.027, -9.757, 13.45, 14.855, 0.529],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 5799,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/cliff/lod0_body.res",
+      "classes": ["baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/cliff/albedo.png"},
+  "roughness": 0.92,
+  "auto_lod": true,
+  "tags": ["prop", "rock", "ground_sink", "face_road"],
+  "bytes": 1113291,
+  "hash": "3c03dbf3e297fd387c5407735aee34e321c8d49e"
+ },
+ "sets": {
+  "props/cliff": {"model": "props/cliff"}
+ }
+}

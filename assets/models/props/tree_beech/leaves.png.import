@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bwitmdfgm1gmk"
-path.s3tc="res://.godot/imported/leaves.png-056f26835fa6a1537d3834c33d3291b3.s3tc.ctex"
+uid="uid://dkbtllpnupemi"
+path.s3tc="res://.godot/imported/leaves.png-23a4515743fbe8f8c4c268bb944e9cc6.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/models/props/tree_oak_b/leaves.png"
-dest_files=["res://.godot/imported/leaves.png-056f26835fa6a1537d3834c33d3291b3.s3tc.ctex"]
+source_file="res://assets/models/props/tree_beech/leaves.png"
+dest_files=["res://.godot/imported/leaves.png-23a4515743fbe8f8c4c268bb944e9cc6.s3tc.ctex"]
 
 [params]
 

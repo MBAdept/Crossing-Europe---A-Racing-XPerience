@@ -188,11 +188,17 @@ def check_files(res, mid, model):
         res.err(mid, "Ordner fehlt")
         return
     named = named_files(mid, model)
+    # a seed variant may draw with a texture of its species' model ("variant_of", AS3R: one leaf atlas per species)
+    shared_ok = set()
+    base = model.get("variant_of")
+    if base:
+        shared_ok = {v for v in model.get("textures", {}).values() if v.startswith(base + "/")}
     for rel in named:
-        if not rel.startswith(mid + "/"):
+        if not rel.startswith(mid + "/") and rel not in shared_ok:
             res.err(mid, "Datei %s liegt nicht im Ordner des Modells" % rel)
         elif not os.path.exists(os.path.join(M.MODELS_DIR, rel)):
             res.err(mid, "Datei %s fehlt" % rel)
+    named = [rel for rel in named if rel not in shared_ok]
     have = [mid + "/" + f for f in M.model_files(folder)]
     for rel in have:
         if rel not in named:
@@ -662,6 +668,8 @@ def check_textures(res, mid, model, cat, textures, st):
         vram_limit = int(limit * limit * (1.0 if alpha else 0.5) * 4.0 / 3.0) + 64
         if t.get("vram_bytes", 0) > vram_limit:
             res.err(mid, "Textur %s: %d Bytes im Grafikspeicher, erlaubt %d" % (role, t["vram_bytes"], vram_limit))
+        if not rel.startswith(mid + "/"):
+            continue        # a texture shared with the species' model ("variant_of") is counted there
         st["tex_bytes"] += t.get("file_bytes", 0)
         st["vram"] += t.get("vram_bytes", 0)
 
@@ -721,6 +729,9 @@ def main():
     for mid in ids:
         check_files(res, mid, man["models"][mid])
         check_entry(res, mid, man["models"][mid])
+        base = man["models"][mid].get("variant_of")
+        if base is not None and base not in man["models"]:
+            res.err(mid, "variant_of %r ist kein Modell des Manifests" % (base,))
     check_sizes(res, man, sprite)
     stats = {}
     decoded = False

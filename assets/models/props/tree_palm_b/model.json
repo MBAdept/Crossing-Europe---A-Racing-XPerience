@@ -1,0 +1,50 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/tree_palm_b",
+ "model": {
+  "kind": "tree",
+  "object": {"width_m": 8.5, "height_m": 11},
+  "extent_m": {"left": 3.59, "right": 4.97},
+  "aabb": [-3.589, -0.578, -4.083, 4.968, 10.817, 3.831],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 1184,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/tree_palm_b/lod0_body.res",
+      "classes": ["vpbr", "leaves"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 200,
+    "tris": 714,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/tree_palm_b/lod1_body.res",
+      "classes": ["vpbr", "leaves"]
+     }
+    ]
+   }
+  ],
+  "textures": {"leaves": "props/tree_palm/leaves.png"},
+  "impostor": {
+   "texture": "props/tree_palm_b/impostor.png",
+   "size_m": [9.057, 10.835],
+   "anchor_x": 0.4239
+  },
+  "variant_of": "props/tree_palm",
+  "cards": {"lod0": 208, "lod1": 104},
+  "auto_lod": false,
+  "tags": ["prop", "tree"],
+  "bytes": 86460,
+  "hash": "a3a1f1c59ff11ee21411bb3deba39fefb54b1e9e"
+ },
+ "sets": {}
+}

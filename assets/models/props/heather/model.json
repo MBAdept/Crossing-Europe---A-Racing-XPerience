@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/heather",
+ "model": {
+  "kind": "plant",
+  "object": {"width_m": 5.6, "height_m": 0.75, "length_m": 2.6},
+  "extent_m": {"left": 2.78, "right": 2.92},
+  "aabb": [-2.772, -0.497, -2.769, 2.913, 0.613, 0.466],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 396,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/heather/lod0_body.res",
+      "classes": ["leaves"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 200,
+    "tris": 118,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/heather/lod1_body.res",
+      "classes": ["leaves"]
+     }
+    ]
+   }
+  ],
+  "textures": {"leaves": "props/heather/leaves.png"},
+  "cards": {"lod0": 30, "lod1": 30},
+  "auto_lod": false,
+  "tags": ["prop", "plant", "ground_align"],
+  "bytes": 468785,
+  "hash": "4902374892c2f14d2345224d0a79400960cc65e5"
+ },
+ "sets": {
+  "props/heather": {"model": "props/heather"}
+ }
+}

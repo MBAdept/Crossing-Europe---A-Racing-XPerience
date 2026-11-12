@@ -114,6 +114,11 @@ func _run() -> void:
 		print("contact_sheet: kein gültiges Modell-Manifest")
 		quit(1)
 		return
+	# seed variants (AS3: tree_*_b, bush_round_b) have no set of their own - the tiles build by set, so give every
+	# model without one a set of its id, in the tables of this process only (the manifest file is never touched)
+	for mid: String in ModelDB.model_ids():
+		if _sets_of(mid).is_empty() and not ModelDB._sets.has(mid):
+			ModelDB._sets[mid] = {"model": mid}
 	_night = _args.has("night") or _args.has("channels")
 	var showroom := _args.has("showroom")
 	var review := _args.has("review")

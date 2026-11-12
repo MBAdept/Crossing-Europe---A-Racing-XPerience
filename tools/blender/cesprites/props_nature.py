@@ -98,6 +98,11 @@ def _rand_in_ellipsoid(rng, a, b, c, shell=0.55):
 # 3D pipeline hook (ce3d/veg3d.py): a list here receives (centre, radius, z scale) of every crown blob - the
 # card trees of the mode "Modern" grow their leaf cards on the same blobs. None for sprite builds.
 CROWN_LOG = None
+# 3D pipeline hook (AS3, ce3d/veg3d_shapes.py): a dict here receives the shapes of the crowns that are no blob sets -
+# "tiers" (spruce: z0, radius, height, ring points of every tier), "profile" (cypress: the lathe profile), "fronds"
+# and "trunk" (palm: top, angle, length, lift of every frond; the trunk's points and radii), "heather" (centre,
+# radius, scale, "pink" | "green" of every tuft). None for sprite builds - nothing is drawn differently.
+SHAPE_LOG = None
 
 
 def crown(rig, name, center, a, b, c, n, r0, r1, mat, seed, disp=0.35, shell=0.6, subdiv=2, flat_bottom=None):
@@ -212,12 +217,19 @@ def tree_pine(rig, p):
         rr = rng.uniform(0.3, 3.1) ** 0.9
         z = 13.0 + 3.6 * (1.0 - (rr / 3.2) ** 2) * rng.uniform(0.55, 1.0) + rng.uniform(-0.4, 0.3)
         r = rng.uniform(0.6, 1.05)
-        MU.bm_sphere(r, center=(0.15 + math.cos(a) * rr, math.sin(a) * rr, z), scale=(1.35, 1.35, 0.62), subdiv=2, bm=bm)
+        c = (0.15 + math.cos(a) * rr, math.sin(a) * rr, z)
+        MU.bm_sphere(r, center=c, scale=(1.35, 1.35, 0.62), subdiv=2, bm=bm)
+        if CROWN_LOG is not None:
+            CROWN_LOG.append((c, r * 1.35, 0.62 / 1.35))
     for i in range(5):
         a = rng.uniform(0, 2 * math.pi)
-        MU.bm_sphere(rng.uniform(0.5, 0.8), center=(math.cos(a) * 1.8, math.sin(a) * 1.8, rng.uniform(10.8, 12.2)),
-                     scale=(1.4, 1.4, 0.6), subdiv=2, bm=bm)
+        r = rng.uniform(0.5, 0.8)
+        c = (math.cos(a) * 1.8, math.sin(a) * 1.8, rng.uniform(10.8, 12.2))
+        MU.bm_sphere(r, center=c, scale=(1.4, 1.4, 0.6), subdiv=2, bm=bm)
+        if CROWN_LOG is not None:
+            CROWN_LOG.append((c, r * 1.4, 0.6 / 1.4))
     ob = MU.make("pine_crown", bm, lv, parent=rig.root, smooth=True, sharp_deg=80)
+    MU.tag(ob, node_name="crown")       # 3D models replace the pads by leaf domes
     MU.displace(ob, 0.55, size=0.45, seed=s)
     return dict(object=obj_size(7.0, 18.0))
 
@@ -230,11 +242,12 @@ def tree_spruce(rig, p):
     H = 19.0
     trunk(rig, "spruce_trunk", [(0, 0, 0), (0, 0, H * 0.95)], [0.32, 0.05], b)
     bm = bmesh.new()
-    tiers = 15
+    tiers = p.get("tiers", 15)          # 3D variants only (ce3d catalog "params"); the sprite keeps 15
+    taper = p.get("taper", 0.95)
     for i in range(tiers):
         t = i / (tiers - 1)
         z0 = 1.6 + t * (H - 3.0)
-        rad = (1.0 - t) ** 0.95 * 3.2 + 0.35
+        rad = (1.0 - t) ** taper * 3.2 + 0.35
         hgt = 1.9 - t * 0.6
         segs = 16
         ring_b, ring_t = [], []
@@ -242,6 +255,8 @@ def tree_spruce(rig, p):
             a = 2 * math.pi * k / segs + rng.uniform(-0.12, 0.12)
             rk = rad * (1.0 if k % 2 == 0 else 0.78) * rng.uniform(0.85, 1.12)
             ring_b.append(Vector((math.cos(a) * rk, math.sin(a) * rk, z0 - rng.uniform(0.0, 0.35))))
+        if SHAPE_LOG is not None:
+            SHAPE_LOG.setdefault("tiers", []).append((z0, rad, hgt, [tuple(v) for v in ring_b]))
         top = bm.verts.new((0, 0, z0 + hgt))
         vb = [bm.verts.new(v) for v in ring_b]
         for k in range(segs):
@@ -250,8 +265,11 @@ def tree_spruce(rig, p):
         for k in range(segs):
             bm.faces.new((vb[(k + 1) % segs], vb[k], inner))
     MU.bm_cyl(0.25, 0.0, 1.6, center=(0, 0, H - 0.5), segs=8, bm=bm)
+    if SHAPE_LOG is not None:
+        SHAPE_LOG["spike"] = (0.25, H - 0.5, 1.6)
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     ob = MU.make("spruce_tiers", bm, lv, parent=rig.root, smooth=True, sharp_deg=50)
+    MU.tag(ob, node_name="crown")       # 3D models replace the tiers by branch cards
     MU.displace(ob, 0.25, size=0.35, seed=s)
     return dict(object=obj_size(7.0, H + 0.3))
 
@@ -272,14 +290,19 @@ def tree_cypress(rig, p):
     trunk(rig, "cyp_trunk", [(0, 0, 0), (0, 0, 1.4)], [0.18, 0.15], b)
     H = 14.0
     prof = []
+    bulge = p.get("bulge", 1.15)        # 3D variants only (ce3d catalog "params"): where the flame is widest
+    width = p.get("width", 1.25)
     for i in range(25):
         t = i / 24
-        r = 1.25 * math.sin(math.pi * min(1.0, t * 1.15) ** 0.6) * (1 - t) ** 0.35 + 0.02
+        r = width * math.sin(math.pi * min(1.0, t * bulge) ** 0.6) * (1 - t) ** 0.35 + 0.02
         prof.append((max(r, 0.02), 0.9 + t * (H - 0.9)))
     prof[0] = (0.25, 0.9)
     prof[-1] = (0.01, H)
+    if SHAPE_LOG is not None:
+        SHAPE_LOG["profile"] = list(prof)
     bm = MU.bm_lathe(prof, segs=20)
     ob = MU.make("cypress", bm, lv, parent=rig.root, smooth=True, sharp_deg=80)
+    MU.tag(ob, node_name="crown")       # 3D models replace the flame by leaf domes
     MU.displace(ob, 0.35, size=0.45, seed=s)
     return dict(object=obj_size(2.8, H))
 
@@ -301,18 +324,24 @@ def tree_palm(rig, p):
     b = bark("palm_bark", "#8a7458", "#5e4d38", scale=3.0, rings=26.0)
     lv = leaves("palm_leaves", "#3f7a2a", "#6f9a38", scale=3.0, bump=0.3)
     pts, rad = [], []
+    bend = p.get("bend", 0.9)           # 3D variants only (ce3d catalog "params"): how far the trunk curves
     for i in range(10):
         t = i / 9
-        pts.append((0.9 * math.sin(t * 1.4) - 0.2 * t, 0.0, t * 9.6))
+        pts.append((bend * math.sin(t * 1.4) - 0.2 * t, 0.0, t * 9.6))
         rad.append(0.24 - 0.07 * t)
     trunk(rig, "palm_trunk", pts, rad, b, segs=12)
     top = Vector(pts[-1])
+    if SHAPE_LOG is not None:
+        SHAPE_LOG["trunk"] = (list(pts), list(rad))
+        SHAPE_LOG["fronds"] = []
     bm = bmesh.new()
     nfr = 13
     for k in range(nfr):
         a = 2 * math.pi * k / nfr + rng.uniform(-0.15, 0.15)
         ln = rng.uniform(3.6, 4.6)
         lift = rng.uniform(0.6, 1.4)
+        if SHAPE_LOG is not None:
+            SHAPE_LOG["fronds"].append((tuple(top), a, ln, lift))
         d = Vector((math.cos(a), math.sin(a), 0.0))
         side = Vector((-d.y, d.x, 0.0))
         segs = 12
@@ -332,6 +361,7 @@ def tree_palm(rig, p):
             bm.faces.new((vl[i], vm[i], vm[i + 1], vl[i + 1]))
             bm.faces.new((vm[i], vr[i], vr[i + 1], vm[i + 1]))
     ob = MU.make("palm_fronds", bm, lv, parent=rig.root, smooth=True, sharp_deg=70)
+    MU.tag(ob, node_name="crown")       # 3D models replace the fronds by frond cards with leaflets
     MU.solidify(ob, 0.03)
     bm = bmesh.new()
     for k in range(5):
@@ -366,7 +396,11 @@ def heather(rig, p):
             y = rng.uniform(-0.2, 2.2)
             r = rng.uniform(0.28, 0.5)
             MU.bm_sphere(r, center=(x, y, r * 0.45), scale=(1.3, 1.3, 0.8), subdiv=2, bm=bm)
+            if SHAPE_LOG is not None:
+                SHAPE_LOG.setdefault("heather", []).append(((x, y, r * 0.45), r * 1.3, 0.8 / 1.3,
+                                                            "pink" if mat is pink else "green"))
         ob = MU.make("heather", bm, mat, parent=rig.root, smooth=True, sharp_deg=80)
+        MU.tag(ob, node_name="crown")   # 3D models replace the tufts by leaf domes
         MU.displace(ob, 0.15, size=0.18, seed=n)
     return dict(object=obj_size(5.6, 0.75, 2.6))
 
@@ -399,8 +433,86 @@ def rock_b(rig, p):
     return dict(object=obj_size(3.8, 1.3, 2.4))
 
 
+def _cliff_top(x):
+    edge = max(0.0, 1.0 - (abs(x) / 13.0) ** 4)
+    return 14.0 * (0.75 + 0.25 * math.sin(x * 0.45) * math.cos(x * 0.17)) * (0.35 + 0.65 * edge)
+
+
+def _cliff_solid(rig, p, mat):
+    """3D only (ce3d catalog params "solid3d"; AS3R, art review M2 - the props builder turns rocks, and the sprite's
+    slab showed torn flaps from behind and a thin horn from the side): the cliff as a closed rock body - the
+    sprite's leaning front wall up to its crest line (same columns, same lean), a rounded crest `crest` metres
+    thick, a steep back flank down to below the ground (`back_run` metres back per metre down) and both ends
+    closed by rings towards their middle (the displacement roughens them too). The same displacement as the
+    sprite, its two boulders, and the shrubs as separate objects on the crest (ce3d/rock3d.py sets each one onto
+    the displaced rock)."""
+    import bpy
+    T = float(p.get("crest", 1.8))
+    run = float(p.get("back_run", 0.28))
+    nx, nf, nc, nb = 60, 36, 4, 18
+    bm = bmesh.new()
+    cols = []
+    for i in range(nx + 1):
+        x = -13.0 + 26.0 * i / nx
+        top = _cliff_top(x)
+        prof = [(1.5 + 2.5 * (top * k / nf) / 14.0, top * k / nf) for k in range(nf + 1)]
+        yt = 1.5 + 2.5 * top / 14.0
+        for k in range(1, nc):
+            a = math.pi * k / nc
+            prof.append((yt + T * 0.5 * (1.0 - math.cos(a)), top + 0.35 * T * math.sin(a)))
+        zb0 = top - 0.2 * T
+        for k in range(nb + 1):
+            z = zb0 + (-1.0 - zb0) * k / nb
+            prof.append((yt + T + run * (zb0 - z), z))
+        cols.append([bm.verts.new((x, y, z)) for (y, z) in prof])
+    n = len(cols[0])
+    for i in range(nx):
+        for k in range(n - 1):
+            bm.faces.new((cols[i][k], cols[i + 1][k], cols[i + 1][k + 1], cols[i][k + 1]))
+    for i in (0, nx):
+        # end cap: rings of the end profile towards its middle (quads; a fan in the middle)
+        ring = cols[i]
+        cy = sum(v.co.y for v in ring) / n
+        cz = sum(v.co.z for v in ring) / n
+        prev = ring
+        for s in (0.66, 0.33):
+            cur = [bm.verts.new((v.co.x, cy + (v.co.y - cy) * s, cz + (v.co.z - cz) * s)) for v in ring]
+            for k in range(n):
+                k2 = (k + 1) % n
+                bm.faces.new((prev[k], prev[k2], cur[k2], cur[k]))
+            prev = cur
+        mid = bm.verts.new((ring[0].co.x, cy, cz))
+        for k in range(n):
+            bm.faces.new((prev[k], prev[(k + 1) % n], mid))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    ob = MU.make("cliff", bm, mat, parent=rig.root, smooth=True, sharp_deg=60)
+    MU.displace(ob, 1.6, size=2.2, kind="CLOUDS", depth=3, seed=5)
+    m = ob.modifiers.new("vor", "DISPLACE")
+    tex = bpy.data.textures.new("cliff_v", "VORONOI")
+    tex.noise_scale = 1.8
+    m.texture = tex
+    m.strength = 1.1
+    _boulder(rig, "cliff_rb", (-5.0, 0.4, 0.4), (1.1, 0.9, 0.7), mat, 13, disp=0.3)
+    _boulder(rig, "cliff_rb2", (6.5, 0.6, 0.3), (0.8, 0.7, 0.5), mat, 15, disp=0.25)
+    lv = leaves("cliff_shrub", "#4a6a2c", "#6a8a36", scale=2.0)
+    rng = random.Random(17)
+    for i in range(12):
+        q = _rand_in_ellipsoid(rng, 8.0, 1.0, 1.5, 0.6)          # the sprite's draws (crown of 12 shrubs)
+        r = rng.uniform(0.5, 0.9) * (0.75 + 0.25 * (1 - abs(q.z) / 1.5))
+        zs = rng.uniform(0.75, 1.0)
+        x = max(-12.0, min(12.0, 2.0 + q.x))
+        top = _cliff_top(x)
+        sb = MU.bm_sphere(r, center=(x, 1.5 + 2.5 * top / 14.0 + T * 0.5 + q.y * 0.5, top + 0.35 * T + r),
+                          scale=(1.0, 1.0, zs), subdiv=2)
+        so = MU.make("cliff_shrub_%02d" % i, sb, lv, parent=rig.root, smooth=True, sharp_deg=80)
+        MU.displace(so, 0.2, size=0.49, kind="CLOUDS", depth=2, seed=17)
+    return dict(object=obj_size(26.0, 14.0, 5.0))
+
+
 def cliff(rig, p):
     mat = rock("cliff_rock", "#8c857a", "#6a645c", moss="#56633a")
+    if p.get("solid3d"):
+        return _cliff_solid(rig, p, mat)
     bm = bmesh.new()
     res = bmesh.ops.create_grid(bm, x_segments=60, y_segments=36, size=1.0)
     for v in res["verts"]:

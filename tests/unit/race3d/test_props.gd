@@ -50,6 +50,15 @@ func _ctx(t: Track, ci: int, levels: Dictionary = {}, services: Dictionary = {})
 	return ctx
 
 
+## A prop set the shipped manifest still draws as a stand-in (its Arcade sprite): the first in sorted order. The
+## content packages give one set after the other a model (AS3 the beech, AS4 the church) – the tests do not name one.
+func _standin_set() -> String:
+	for sid: String in ModelDB.set_ids():
+		if sid.begins_with("props/") and str(ModelDB.resolve(sid).get("fallback", "")) == "sprite":
+			return sid
+	return ""
+
+
 func _put(t: Track, seg: int, item: Dictionary) -> void:
 	item["z"] = float(seg) * t.seg_len + float(item.get("dz", 1.0))
 	item.erase("dz")
@@ -164,7 +173,10 @@ func test_library_resolves_every_prop_set() -> void:
 	assert_near(float(birch["w"]), 7.4396, 0.001, "Zellbreite in Metern aus dem Sprite-Manifest")
 	assert_near(float(birch["h"]), 7.4396 * 320.0 / 176.0, 0.001, "… und Zellhöhe")
 	assert_eq((birch["variants"] as Array).size(), 2, "Birke: zwei Samen-Varianten (AS1b)")
-	assert_eq(int((lib.sets["props/tree_beech"] as Dictionary)["kind"]), PropLibrary.SPRITE, "Buche: noch eine Vertretung")
+	var sb := _standin_set()
+	assert_true(sb != "", "es gibt noch ein Requisiten-Set ohne Modell (sonst: Test-Manifest wie check_vehicles „kasten“)")
+	if sb != "":
+		assert_eq(int((lib.sets[sb] as Dictionary)["kind"]), PropLibrary.SPRITE, "%s: noch eine Vertretung" % sb)
 	assert_eq(str((lib.sets["props/wind_turbine"] as Dictionary)["cls"]), "other", "Windrad: kein Baum, kein Haus")
 	assert_near(float((lib.sets["props/wind_turbine"] as Dictionary)["blob"]), 0.0, 0.001, "hohe Bauwerke ohne Kontaktschatten")
 	assert_eq(int((lib.sets["unknown/thing"] if lib.sets.has("unknown/thing") else {"kind": PropLibrary.NONE})["kind"]), PropLibrary.NONE, "unbekannt")
@@ -174,17 +186,19 @@ func test_library_resolves_every_prop_set() -> void:
 
 func test_placement_drops_and_lamps() -> void:
 	var t := _track()
+	var sb := _standin_set()     # a set the manifest still draws as its Arcade sprite (AS3: no longer the beech)
+	assert_true(sb != "", "es gibt noch ein Requisiten-Set ohne Modell")
 	# chunk 6 = segments 192..224 (straight)
 	_put(t, 195, {"kind": "prop", "set": "props/farmhouse", "side": 1, "x": _x(t, 1, 40.0), "scale": 1.0, "align": "edge"})
 	_put(t, 196, {"kind": "prop", "set": "props/farmhouse", "side": -1, "x": _x(t, -1, 40.0), "scale": 0.9, "align": "edge"})
 	_put(t, 198, {"kind": "prop", "set": "props/tree_oak", "side": 1, "x": _x(t, 1, 12.0), "scale": 1.1})
-	_put(t, 199, {"kind": "prop", "set": "props/tree_beech", "side": -1, "x": _x(t, -1, 9.0), "scale": 1.0, "mirror": true, "tint": "#ff8080"})
-	_put(t, 200, {"kind": "prop", "set": "props/tree_beech", "side": 1, "x": _x(t, 1, 9.0), "scale": 1.2})
+	_put(t, 199, {"kind": "prop", "set": sb, "side": -1, "x": _x(t, -1, 9.0), "scale": 1.0, "mirror": true, "tint": "#ff8080"})
+	_put(t, 200, {"kind": "prop", "set": sb, "side": 1, "x": _x(t, 1, 9.0), "scale": 1.2})
 	_put(t, 201, {"kind": "object", "obj": "streetlight", "side": 1, "x": _x(t, 1, -0.6), "scale": 1.0})
 	_put(t, 202, {"kind": "object", "obj": "streetlight", "side": -1, "x": _x(t, -1, -0.6), "scale": 1.0})
 	_put(t, 203, {"kind": "prop", "set": "props/tree_oak", "side": 1, "x": _x(t, 1, 700.0), "scale": 1.0})        # beyond the ribbon
 	_put(t, 204, {"kind": "prop", "set": "props/does_not_exist", "side": 1, "x": _x(t, 1, 5.0), "scale": 1.0})    # no such set
-	_put(t, 205, {"kind": "prop", "set": "props/does_not_exist", "fallback": "props/tree_beech", "fallback_scale": 0.5, "side": 1,
+	_put(t, 205, {"kind": "prop", "set": "props/does_not_exist", "fallback": sb, "fallback_scale": 0.5, "side": 1,
 		"x": _x(t, 1, 6.0), "scale": 1.0})
 	_put(t, 206, {"kind": "sign", "sign": "limit", "side": 1, "x": _x(t, 1, 1.0), "scale": 1.0})                 # not a prop
 	var fake := FakeRenderer.new()
@@ -195,7 +209,7 @@ func test_placement_drops_and_lamps() -> void:
 	assert_eq(part["dropped"], {"ribbon": 1, "corridor": 0, "missing": 1, "density": 0}, "ausgelassen: jenseits des Bands, Set fehlt")
 	var groups: Dictionary = part["groups"]
 	assert_true(groups.has("m|props/farmhouse|0") and groups.has("m|props/farmhouse|1"), "Bauernhaus: rechts normal, links gespiegelt")
-	assert_true(groups.has("s|props/tree_beech|0") and groups.has("s|props/tree_beech|1"), "Buche: Vertretung, links mit Regel-Spiegelung")
+	assert_true(groups.has("s|%s|0" % sb) and groups.has("s|%s|1" % sb), "%s: Vertretung, links mit Regel-Spiegelung" % sb)
 	var oak_id := Props.chunk_variant(6, "props/tree_oak", (b.library.sets["props/tree_oak"] as Dictionary)["variants"])
 	assert_true(oak_id.begins_with("props/tree_oak"), "Eiche: eine ihrer Varianten (%s)" % oak_id)
 	assert_true(groups.has("m|%s|0" % oak_id) and not groups.has("m|%s|1" % oak_id), "Eiche: nie gespiegelt")
@@ -221,15 +235,15 @@ func test_placement_drops_and_lamps() -> void:
 	var zo := 198.0 * 3.0 + 1.0
 	assert_near(tro.origin.distance_to(ctx.local(zo, _x(t, 1, 12.0), ctx.ground(zo, _x(t, 1, 12.0)))), 0.0, 1.0e-3, "Eiche auf dem Boden")
 	# stand-ins: origin on the ground, uniform scale, instance colour = tint; the left one mirrored in the node
-	var bl: PackedFloat32Array = (groups["s|props/tree_beech|1"] as Dictionary)["buf"]
+	var bl: PackedFloat32Array = (groups["s|%s|1" % sb] as Dictionary)["buf"]
 	assert_eq(bl.size(), 16, "Vertretung: Transformation und Farbe")
 	assert_near(bl[12], 1.0, 0.01, "Tönung rot")
 	assert_near(bl[13], 0.5, 0.01, "Tönung grün")
 	var zb := 199.0 * 3.0 + 1.0
 	var pb := ctx.local(zb, _x(t, -1, 9.0), ctx.ground(zb, _x(t, -1, 9.0)))
 	assert_near((node * _transforms(bl, 16)[0]).origin.distance_to(pb), 0.0, 1.0e-3, "gespiegelte Vertretung steht an ihrem Ort")
-	var br: PackedFloat32Array = (groups["s|props/tree_beech|0"] as Dictionary)["buf"]
-	assert_eq(br.size(), 32, "rechts zwei Buchen (eine als Ersatz-Set)")
+	var br: PackedFloat32Array = (groups["s|%s|0" % sb] as Dictionary)["buf"]
+	assert_eq(br.size(), 32, "rechts zwei Vertretungen (eine als Ersatz-Set)")
 	assert_near(_transforms(br, 16)[1].basis.x.x, 0.5, 1.0e-4, "Ersatz-Set mit fallback_scale")
 	# lamps: the wall lamps of the two farmhouses (segments 195, 196), then the two street lights, in chunk coordinates
 	var lamps: Array = part["lamps"]
@@ -245,8 +259,9 @@ func test_placement_drops_and_lamps() -> void:
 	assert_true((lamps[2]["dir"] as Vector3).y < -0.9, "die Laterne leuchtet nach unten")
 	assert_near(float(lamps[2]["range"]), PropLibrary.LAMP_RANGE_M, 0.001, "Lichtkegel wie Arcades Laternen")
 	assert_true(lamps[2].has("color") and lamps[2].has("size") and lamps[2].has("energy") and str(lamps[2]["role"]) == "lights", "Felder aus A-7")
-	# contact shadows: farmhouses, oak, beeches – not the street lights
-	assert_eq(int(part["blob_n"]), 6, "Kontaktschatten")
+	# contact shadows: farmhouses, oak and the three stand-ins if their class has one – not the street lights
+	var sb_blob := float((b.library.sets[sb] as Dictionary).get("blob", 0.0)) > 0.0
+	assert_eq(int(part["blob_n"]), 3 + (3 if sb_blob else 0), "Kontaktschatten (%s: %s)" % [sb, "mit" if sb_blob else "ohne"])
 	# commit: nodes, mirrored nodes, lamps at the renderer, draw calls per set
 	var parent := Node3D.new()
 	b.commit(ctx, part, parent)
