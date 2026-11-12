@@ -168,6 +168,26 @@ im Abstand d entweder höchstens so lang wie der kurze oder mindestens so lang w
 durch sie – für d = 250 m und R = 400 m also ≤ 254 m oder ≥ 2.259 m, nie 360 … 2.000 m. `--full` rechnet alle 128 und
 bestätigt die Schranke (53–56 s gemessen).
 
+### 3.8 Vorlauf vor der Startlinie (FIX-ZS1, Befund QA1-B1)
+
+Beim stehenden Start jeder Etappe steht das Auto bei z = 0 (Mitte), sein Heck bei −2,4 m und die Kamera
+`render.camera_distance_m` = 9 m dahinter, also bei z = −9 m. Bis Zwischenstand 1 kannte der Pfad nur z ≥ 0 und
+klemmte alles davor auf Grenze 0: die Kamera stand 9 m zu weit vorn, das Spielerauto fehlte im Countdown und erschien
+nach „LOS!“ zu groß und zu tief, bis es 9 m gefahren war.
+
+Solange der Pfad am Streckenanfang beginnt (`first == 0`, `has_lead_in()`), geht er vor Grenze 0 **gerade entlang
+ihrer Tangente** weiter, auf ihrer Höhe und mit ihrer Richtung: `point(k < 0)`, `centre_at()`, `world()`,
+`frame_at()` und `rows_local()` antworten dort. Arcade zeichnet die Straße hinter der Startlinie mit Kurve und Höhe von
+Segment 0, und jede Etappe beginnt gerade und eben (`Track._calm`: keine Kurve vor 40 m, keine Steigung vor 30 m) –
+beides ist also dieselbe Straße. `z_min()` ist die tiefste Straßenposition, die der Pfad richtig setzt: −∞ mit Vorlauf,
+sonst die erste gehaltene Grenze (darunter wird wie bisher geklemmt). Für z ≥ 0 ändert sich nichts (Unit-Test:
+bitgleich mit der Interpolation der Grenzen), ebenso nicht nach `trim()` oder bei einem Start mitten in der Etappe.
+
+Der Streamer baut dort **Stück −1** (Reihen −32 … 0, 96 m, Abschnitt 4.1), die Fahrzeugebene zeigt Autos, deren Heck
+vor z = 0 liegt (Abschnitt 11.1). Belege (gemessen, Kiel – Hamburg ab km 0, Mittel): Auto im Bild an Arcades Stelle,
+Kanten ≤ 2 px von Arcades Lackfläche (192 × 192 px), Straßenmitte 0–60 m voraus ≤ 1,2 px neben Arcades Projektion
+(`tests/race3d/render/check_start_km0.gd`).
+
 ## 4. Stücke
 
 ### 4.1 Laderegel (`ChunkStreamer`)
@@ -187,6 +207,16 @@ Lücke in der Ferne zu sehen sein, bis die Kamera ein Stück weiter ist. Mit `gr
 nirgends im Netz etwas ausgelassen – zu entscheiden mit dem Zeichenbudget.
 
 Bei 900 m Sicht sind auf gerader Strecke 13–14 Stücke geladen, im Tunnel (360 m) deutlich weniger.
+
+**Stück −1, der Vorlauf** (FIX-ZS1, Abschnitt 3.8): Solange der Pfad am Streckenanfang beginnt, ist das niedrigste
+Stück −1 (Reihen −32 … 0) statt 0. Es gilt dieselbe Laderegel – gewünscht, solange es höchstens `keep_behind_m` hinter
+der Kamera liegt, also bis die Kamera 150 m gefahren ist. Seine Reihen liegen auf dem geraden Vorlauf des Pfads und
+tragen die Daten von Segment 0 mit eigenem Index und eigener Straßenposition, aber **ohne Requisiten und Schilder**
+(`ChunkContext.lead_in_snapshot()`): Straße, Markierung, Bankett, Leitplanken und Gelände entstehen wie in jedem Stück,
+nichts der Etappe steht doppelt (kein zweites Starttor). Das Gelände wiederholt den Querschnitt der Reihe 0. Die
+Kamera sieht davon nur die letzten Meter vor der Startlinie (der Boden am unteren Bildrand liegt bei 3,4 m Augenhöhe
+6,1 m vor ihr, abgeleitet); das volle Stück hält die Prüfungen „32 Segmente je Stück“ und die Zeichenregeln ohne
+Sonderfall. Ein Start bei km > 0,05 lädt kein Stück −1.
 
 ### 4.2 Ablauf je Stück
 
@@ -1262,6 +1292,10 @@ die Materialien der Fahrzeuge. Sie reden mit dem Rest nur über die Fassade (A-7
   die Kurve), Wanken ≤ 2,5° um 0,38 m Höhe (nur die Karosserie, die Räder bleiben am Boden) – die Werte von
   `render.player_*`; Blinken über `view.player.visible`. Die Grundfläche liegt höchstens 0,3 m neben dem
   Kollisionsquader (20 Posen bis R = 120 m, Unit-Test).
+- **Welche Autos gezeichnet werden** (`in_range()`): Front höchstens 14 m hinter der Kamera, Heck höchstens Sicht +
+  30 m voraus, das ganze Auto zwischen `RoadPath3D.z_min()` und der letzten integrierten Grenze. Am Start einer Etappe
+  ist `z_min()` −∞ (Vorlauf, Abschnitt 3.8): das Spielerauto mit dem Heck bei −2,4 m steht im Countdown im Bild
+  (FIX-ZS1; vorher blendete die Grenze z ≥ 0 es aus, Befund QA1-B1).
 - **Sattelzug:** die Einheiten der Gruppen (`tractor`, `trailer`) werden einzeln gestellt: die Zugmaschine vom
   Straßenpunkt unter ihrem Drehpunkt bis zur Front, der Auflieger vom Heck bis zum Boden unter dem Königszapfen, den
   er mit der Zugmaschine teilt. Die fernen Stufen (ein Netz) sind starr.
