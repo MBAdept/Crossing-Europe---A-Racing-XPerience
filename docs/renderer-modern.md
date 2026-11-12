@@ -2099,8 +2099,10 @@ der Wolke (`lights.beam_at()`), nachts das Rot der eigenen Rückleuchten.
 Arcade lässt das Draußen überstrahlt wirken, solange die Kamera im Tunnel ist (Umgebungslicht × 1,7 + 0,25, Nebel 55 %
 zu Weiß). Modern: ein Viereck über dem Ausfahrtsportal (`environment_rig.gd`, `_update_exit`), tiefengetestet – die
 Röhre verdeckt es außerhalb der Öffnung –, mischt alles, was durch die Öffnung zu sehen ist, zu einem hellen Weiß:
-55 % solange die Ausfahrt fern ist, 12 % direkt am Portal (die Augen gewöhnen sich, `exit_glare()`); danach ist das
-ganze Bild 45 m lang überstrahlt (22 % am Portal, `exit_after()`, Canvas-Ebene 1). Nur bei Tag (Leuchtdichte des
+60 % solange die Ausfahrt fern ist, 45 % direkt am Portal (die Augen sind noch auf die Röhre eingestellt –
+wie bei Arcade bleibt das Draußen hell, solange die Kamera drinnen ist; `exit_glare()`); danach ist das ganze Bild
+60 m lang überstrahlt (40 % am Portal, in rund 1,5 s bei 140 km/h abklingend; `exit_after()`, Canvas-Ebene 1). Die
+ersten Bilder mit 12 % am Portal und 22 % danach zeigten eine fast normale Ausfahrt – schwächer als Arcade. Nur bei Tag (Leuchtdichte des
 Umgebungslichts 0,35 … 0,75), nur mit einem Tunnel-Builder (seine Röhre muss das Viereck verdecken), eine Funktion der
 Kameraposition – keine Uhr. Das Viereck steht in den Aufwärm-Knoten des Rigs.
 
@@ -2146,5 +2148,6 @@ Horizontglühen, Licht und Schatten genau überein.
 | `tests/unit/race3d/test_light_pool.gd` | Lichtdeckel je „Effekte“ (2 / 4 / 8 Punktlichter, ≤ 2 Spots, keine Schatten, der Boden ausgelassen), Gesetz der Lichtkegel, Mitte eines Kegels, Abblendlicht am Boden und in der Luft (`beam_at`), Blaulicht (`beacon_of`) |
 | `tests/unit/race3d/test_weather.gd` | Wetterarten und Stufen, jede „Effekte“-Stufe mindestens mit Arcades Teilchendichte, Gischtwolken (eine bei „Aus“, drei sonst, Lkw größer, schneller weiter hinten), Länge der Lampenspiegelung |
 | `tests/race3d/check_light_cap.gd` (kopflos, im Haken von `tools/run_tests.sh`) | `deckel`: N1, Kiel – Hamburg ab km 76 um 22:30 und C1 um 21:30 im Regen, „Hoch“: in jeder Probe ≤ 8 sichtbare Punktlichter, ≤ 2 Spots, keines mit Schatten, genau ein gerichtetes Licht mit Schatten, der Schnappschuss stimmt; Lampen-Pool und Abblendlicht benutzt |
-| `tests/race3d/render/check_weather.gd` | `teilchen` (Regen und Schnee je Stufe „Niedrig“ / „Steam Deck“ / „Hoch“: Bildpunkte, mehr je Stufe, zweimal dasselbe Bild), `gischt`, `nass` (Spiegelung der Rückleuchten nachts, Fresnel bei Tag), `tunnel`, `schneewall`, `tabelle` (Wetter × Stunde gegen Arcade) |
+| `tests/race3d/render/check_weather.gd` | `teilchen` (Regen und Schnee je Stufe „Niedrig“ / „Steam Deck“ / „Hoch“: Bildpunkte, mehr je Stufe, zweimal dasselbe Bild), `gischt`, `nass` (Spiegelung der Rückleuchten nachts, Fresnel bei Tag), `tunnel`, `schneewall` |
+| `tests/race3d/render/check_weather_tabelle.gd` | `tabelle` (Wetter klar/Regen/Schnee × Stunde 6:36/12/19:12/22 Uhr, S1 „Mittel“: mittlere Leuchtdichte des Bodens 0,8 … 1,35 × Arcade, Kontrast ≥ 0,5 × Arcade, kein schwarzes Bild) – eigene Datei, weil 24 Etappenstarts neben den anderen Wetterprüfungen die 900 s je Datei von `tools/run_render_checks.sh` sprengen |
 | `tests/race3d/render/check_night.gd` | `fahrbahn` (N1: mittlere Leuchtdichte der Fahrbahn 0 … +15 % gegen Arcade, „Mittel“ und „Steam Deck“), `spielerauto` (Kompakt/N1 Schnee, Gran Turismo/Regen, Limousine/klar, 22 Uhr: Karosserie 0,6 … 1,1 × Arcades Bild), `verdeckung` (nasse Nacht: Auto hinter Kuppe und hinter Sattelzug ändert 0 Pixel, auch keine Spiegelung), `blaulicht` (Polizei 34 m voraus: nachts ≥ 400 blauere Pixel und ein Punktlicht, bei Tag keines) |

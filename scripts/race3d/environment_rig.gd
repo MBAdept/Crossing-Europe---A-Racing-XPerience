@@ -88,15 +88,17 @@ const SSAO_INTENSITY := 1.4
 ## R4: exposure ramp at a tunnel exit by day (Arcade: eyes adapted to the tunnel – the outside looks over-exposed,
 ## RoadRenderer: ambient × 1.7 + 0.25, fog 55 % towards white). A quad across the exit portal, depth tested (the
 ## tube hides it outside the opening), mixes everything seen through the opening towards EXIT_GLARE_COLOR: EXIT_GLARE_FAR
-## of it while the exit is far, EXIT_GLARE_NEAR right at the portal (the eyes adapt as it comes closer); after the
-## exit the whole picture is over-exposed for EXIT_AFTER_M of the camera's way (EXIT_AFTER at the portal). By day
-## only (the ambient's luminance from EXIT_DAY_FROM to EXIT_DAY_TO); a function of the camera position, no clock.
-const EXIT_GLARE_FAR := 0.55
-const EXIT_GLARE_NEAR := 0.12
+## of it while the exit is far, EXIT_GLARE_NEAR right at the portal (the eyes are still adapted to the tube – it stays
+## bright up to the portal, as Arcade's outside stays over-exposed while the camera is inside); after the exit the
+## whole picture is over-exposed for EXIT_AFTER_M of the camera's way (EXIT_AFTER at the portal: the eyes adapt in
+## about 1.5 s at 140 km/h). By day only (the ambient's luminance from EXIT_DAY_FROM to EXIT_DAY_TO); a function of
+## the camera position, no clock. (First pictures with 0.12 at the portal and 0.22 after it: the exit read normal.)
+const EXIT_GLARE_FAR := 0.6
+const EXIT_GLARE_NEAR := 0.45
 const EXIT_NEAR_M := 10.0
 const EXIT_FAR_M := 150.0
-const EXIT_AFTER := 0.22
-const EXIT_AFTER_M := 45.0
+const EXIT_AFTER := 0.4
+const EXIT_AFTER_M := 60.0
 const EXIT_DAY_FROM := 0.35
 const EXIT_DAY_TO := 0.75
 const EXIT_GLARE_COLOR := Color(1.0, 1.0, 0.97)

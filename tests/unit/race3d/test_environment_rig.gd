@@ -290,3 +290,19 @@ func test_wind_and_sun_azimuth() -> void:
 		var a := Rig.sun_azimuth(Vector2(0.0, float(i) / 20.0))
 		assert_true(a <= last + 1.0e-6, "der Schwenk wächst mit der Höhe")
 		last = a
+
+
+func test_exit_ramp() -> void:
+	assert_eq(Rig.exit_glare(0.0), 0.0, "an und hinter der Ausfahrt kein Viereck")
+	assert_near(Rig.exit_glare(5.0), Rig.EXIT_GLARE_NEAR, 1.0e-6, "am Portal: EXIT_GLARE_NEAR")
+	assert_near(Rig.exit_glare(500.0), Rig.EXIT_GLARE_FAR, 1.0e-6, "fern: EXIT_GLARE_FAR")
+	assert_true(Rig.EXIT_GLARE_NEAR >= 0.3, "bis zum Portal deutlich überstrahlt (Arcade: draußen hell, solange die Kamera drin ist)")
+	var last := 0.0
+	for i in 31:
+		var g := Rig.exit_glare(10.0 + float(i) * 5.0)
+		assert_true(g >= last - 1.0e-6, "die Überstrahlung wächst mit der Entfernung der Ausfahrt")
+		last = g
+	assert_near(Rig.exit_after(0.0), Rig.EXIT_AFTER, 1.0e-6, "direkt nach der Ausfahrt: EXIT_AFTER")
+	assert_eq(Rig.exit_after(-1.0), 0.0, "vor der Ausfahrt nichts")
+	assert_eq(Rig.exit_after(Rig.EXIT_AFTER_M), 0.0, "nach EXIT_AFTER_M vorbei")
+	assert_true(Rig.exit_after(20.0) < Rig.EXIT_AFTER and Rig.exit_after(20.0) > Rig.exit_after(40.0), "klingt mit dem Weg ab")

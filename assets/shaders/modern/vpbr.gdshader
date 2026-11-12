@@ -127,10 +127,14 @@ uniform float fill_shade = 0.0;
 // R4 night fill of the player car (art review KRITIK-2 A2): share of the fill that lights the clear coat evenly at
 // night (neutral sheen, × ce_night; 0 = off, the neutral default)
 uniform float fill_sheen = 0.0;
+// … and inside a tunnel (ce_tunnel; there ce_night is 1 for the lamps, but the light is the tunnel's, not the night
+// sky's): the fill keeps this share of its day value and the sheen is off (1.0 = neutral)
+uniform float fill_tunnel = 1.0;
 uniform vec3 snow_albedo = vec3(0.86, 0.88, 0.91);
 uniform float snow_night = 0.3;
 
 global uniform float ce_night;
+global uniform float ce_tunnel;
 global uniform float ce_snow;
 global uniform vec4 ce_ambient;               // linear ambient light (ModernMaterials.light_value), for `fill`
 global uniform vec3 ce_sun_dir;
@@ -330,7 +334,11 @@ void fragment() {
 		rough = mix(rough, 0.9, k);
 		metal = mix(metal, 0.0, k);
 	}
-	vec3 fill_light = fill > 0.0 ? to_lin(alb) * ce_ambient.rgb * fill * mix(1.0, fill_night, night) : vec3(0.0);
+	// the night of the sky, not the tunnel's (ce_night = max(night, tunnel) keeps the lamps of a tunnel lit)
+	float tun = clamp(ce_tunnel, 0.0, 1.0);
+	float sky_night = night * (1.0 - tun);
+	float fill_k = mix(mix(1.0, fill_night, sky_night), fill_tunnel, tun);
+	vec3 fill_light = fill > 0.0 ? to_lin(alb) * ce_ambient.rgb * fill * fill_k : vec3(0.0);
 	if (fill > 0.0 && fill_shade > 0.0) {
 		vec3 nf = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
 		fill_light *= 1.0 - fill_shade * clamp(dot(nf, normalize(ce_sun_dir)), 0.0, 1.0);
@@ -346,7 +354,7 @@ void fragment() {
 	if (fill > 0.0 && fill_sheen > 0.0 && coat > 0.0) {
 		// R4 night fill (art review KRITIK-2 A2): at night the player's fill also shows as an even sheen on the clear
 		// coat – neutral, not the paint colour, as the studio sheen keeps a dark paint of Arcade's sprites readable
-		fill_light += ce_ambient.rgb * fill * fill_sheen * night * coat * hemi;
+		fill_light += ce_ambient.rgb * fill * fill_sheen * sky_night * coat * hemi;
 	}
 	// mirrored environment: clear coat (Fresnel of a 1.5 coat), metals (tinted by their colour), glossy parts
 	vec3 refl = vec3(0.0);

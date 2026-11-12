@@ -15,7 +15,8 @@ extends SceneTree
 ##              pixels that change); rain at noon: the wet road mirrors the sky – the asphalt far ahead is brighter
 ##              than near the car, more than on a dry road (Fresnel)
 ##   tunnel     inside a tunnel (test stage km 51.5, rain) nothing falls: the precipitation is hidden
-##   tabelle    weather (clear, rain, snow) × hour (6:36, 12:00, 19:12, 22:00): mean luminance and contrast (standard
+##   tabelle    (only with --only=tabelle, or as check_weather_tabelle.gd – OWN_FILE)
+##              weather (clear, rain, snow) × hour (6:36, 12:00, 19:12, 22:00): mean luminance and contrast (standard
 ##              deviation) of the ground below the horizon in Modern against Arcade at the same simulation step – no
 ##              black frame (mean ≥ 0.02), the mean within LUM_LO … LUM_HI of Arcade's and the contrast at least
 ##              CONTRAST_LO of Arcade's
@@ -26,6 +27,9 @@ extends SceneTree
 
 const RACE := "res://scenes/race/race.tscn"
 const CHECKS := ["teilchen", "gischt", "nass", "tunnel", "schneewall", "tabelle"]
+## Checks that run only when --only names them: "tabelle" (24 stage starts) is the file check_weather_tabelle.gd, so
+## that each file stays inside tools/run_render_checks.sh's time per file (RENDER_CHECK_TIMEOUT, 900 s) on a busy machine
+const OWN_FILE := ["tabelle"]
 const STEPS := 30
 const MIN_RAIN_PX := 600
 const MIN_SNOW_PX := 300
@@ -55,7 +59,7 @@ func _run() -> void:
 	cli["no-traffic"] = true
 	var only := str(cli.get("only", ""))
 	for c: String in CHECKS:
-		if only == "" or only.split(",").has(c):
+		if (only == "" and not OWN_FILE.has(c)) or only.split(",").has(c):
 			await call("_check_" + c)
 	if not had_no_traffic:
 		cli.erase("no-traffic")

@@ -75,11 +75,14 @@ const GLOBALS: Array = [
 ## the player's fill at night at 0.6 of its day share plus an even sheen on the clear coat (fill_sheen 0.25 × night) –
 ## measured at 22:00 (render check check_night spielerauto, body p75 against Arcade's sprite): kompakt 0.80 ×, Gran
 ## Turismo 0.55 ×, limousine 0.35 × with fill_night 0.3 alone; a stronger diffuse fill lifts the dark metallic
-## limousine least (0.51 × at 2.0 while the kompakt is at 1.13 ×), the neutral sheen lifts it most.
+## limousine least (0.51 × at 2.0 while the kompakt is at 1.13 ×), the neutral sheen lifts it most. Inside a tunnel
+## (ce_night is 1 there for the lamps) the fill stays at 0.3 and the sheen off – the tunnel's bright ambient light
+## turned the blue limousine grey otherwise (fill_tunnel).
 const VEHICLE_LOOK: Array = [["vpbr", "env_energy", 1.6], ["vpbr", "paint_base", 1.0], ["vpbr", "paint_knee", 0.7],
 	["vpbr", "paint_knee_slope", 0.45], ["vpbr", "paint_desat", 0.08], ["vpbr", "flake_strength", 0.0],
 	["vpbr", "lamp_off", 0.28], ["vpbr", "tail_level", 0.5], ["vpbr", "env_night", 0.35], ["vpbr", "fill_night", 0.6],
-	["vpbr", "fill_sheen", 0.25], ["vpbr", "hemi_side", 0.72], ["vpbr", "hemi_down", 0.5], ["vpbr", "fill_shade", 0.75],
+	["vpbr", "fill_sheen", 0.25], ["vpbr", "fill_tunnel", 0.3], ["vpbr", "hemi_side", 0.72], ["vpbr", "hemi_down", 0.5],
+	["vpbr", "fill_shade", 0.75],
 	["glass", "env_energy", 2.2], ["glass", "hemi_side", 0.72], ["glass", "hemi_down", 0.5]]
 ## Extra ambient light on the player car in a race (vpbr instance uniform fill, a share of ce_ambient): Arcade draws its
 ## player sprite brighter than the scene (ambient x 1.15 + 0.08) – the car stays readable in its own shade.
@@ -91,7 +94,7 @@ const STUDIO_LOOK: Array = [["vpbr", "env_energy", 0.0], ["vpbr", "paint_base", 
 	["vpbr", "lamp_off", 0.28], ["vpbr", "tail_level", 0.5], ["glass", "env_energy", 0.0],
 	# R4: the race's hemisphere ambient and fill law stay out of the studio (its own key, fill and rim lights)
 	["vpbr", "hemi_side", 1.0], ["vpbr", "hemi_down", 1.0], ["vpbr", "fill_shade", 0.0], ["vpbr", "fill_sheen", 0.0],
-	["glass", "hemi_side", 1.0], ["glass", "hemi_down", 1.0]]
+	["vpbr", "fill_tunnel", 1.0], ["glass", "hemi_side", 1.0], ["glass", "hemi_down", 1.0]]
 
 static var _globals_added := false
 static var _shared: ModernMaterials = null
@@ -183,8 +186,10 @@ static func static_code(code: String) -> String:
 	var rx := RegEx.create_from_string("(,\\s*|\\s*:\\s*)instance_index\\(\\s*\\d+\\s*\\)")
 	# R4: static models carry snow on their upward faces on a snow stage (vehicles do not); the hemisphere ambient of
 	# the vehicle LOOK is for car bodies only (static models keep the balance of their packages)
-	return rx.sub(code, "", true).replace("instance uniform", "uniform").replace("uniform float snow_cover = 0.0;", "uniform float snow_cover = 1.0;") \
-		.replace("uniform float hemi_side = 1.0;", "const float hemi_side = 1.0;").replace("uniform float hemi_down = 1.0;", "const float hemi_down = 1.0;")
+	return rx.sub(code, "", true).replace("instance uniform", "uniform") \
+		.replace("uniform float snow_cover = 0.0;", "uniform float snow_cover = 1.0;") \
+		.replace("uniform float hemi_side = 1.0;", "const float hemi_side = 1.0;") \
+		.replace("uniform float hemi_down = 1.0;", "const float hemi_down = 1.0;")
 
 
 ## Material class a model's surface of class `cls` draws with: VPBR_STATIC for "vpbr" on every model that is not a
