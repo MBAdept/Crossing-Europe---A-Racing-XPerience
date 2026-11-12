@@ -632,6 +632,7 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 	var pillars := 0
 	var pylons := 0
 	var letterings := 0
+	var edges: Array = []              ## [segment index, paved edge incl. the fuel lane] of the island segments
 	var front_uv: Rect2 = uvs.get("fuel_front", Rect2())
 	var price_uv: Rect2 = uvs.get("fuel_price", Rect2())
 	for i in rows - 1:
@@ -653,6 +654,7 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 		var road_side := -ctx.rows_r[i]
 		if (fz & TrackSegment.FUEL_ISLAND) != 0:
 			islands += 1
+			edges.append([int(sa["index"]), e])
 			var starts_i := prev_fz < 0 or (prev_fz & TrackSegment.FUEL_ISLAND) == 0
 			var ends_i := (next_fz & TrackSegment.FUEL_ISLAND) == 0
 			var near_end := 1 if starts_i else 0
@@ -740,7 +742,7 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 		return {}
 	return {"arrays": kit.arrays() if not kit.is_empty() else [], "panels": pan.arrays() if not pan.is_empty() else [],
 		"lamps": lamps, "glows": glows, "fronts": fronts, "islands": islands, "canopies": canopies, "pillars": pillars,
-		"pylons": pylons, "letterings": letterings, "triangles": kit.triangles() + pan.count * 2}
+		"pylons": pylons, "letterings": letterings, "edges": edges, "triangles": kit.triangles() + pan.count * 2}
 
 
 ## The price pylon of an item (RoadRenderer._fuel_pylon): footing, pole, the board with the panel on both faces.
