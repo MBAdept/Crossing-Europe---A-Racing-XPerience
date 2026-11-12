@@ -257,6 +257,15 @@ func _judge(arcade: Dictionary, modern: Dictionary) -> void:
 		if ba.size.x < 60.0 or ba.size.y < 40.0:
 			_need(car_p, false, "%s: Arcades Auto nicht gefunden (%s)" % [key, str(ba)])
 			continue
+		# boden: in the countdown, the bottom rows beside the car (Arcade's box, a margin for Modern's)
+		if int(m[0]) < 180:
+			var x_from := int(ba.position.x - 0.15 * ba.size.x)
+			var x_to := int(ba.end.x + 0.15 * ba.size.x)
+			var ga := bottom_mean(a["img"], 50, x_from, x_to)
+			var gm := bottom_mean(md["img"], 50, x_from, x_to)
+			var gd := maxf(absf(ga.r - gm.r), maxf(absf(ga.g - gm.g), absf(ga.b - gm.b)))
+			_need(ground_p, gd <= GROUND_TOLERANCE, "%s: unterste Zeilen %.3f vom Arcade-Mittel (Arcade #%s, Modern #%s)" % [key, gd, ga.to_html(false), gm.to_html(false)])
+			_report_ground_msg = "unterste 50 Zeilen neben dem Auto: größte Abweichung %.3f je Kanal (Arcade #%s, Modern #%s)" % [gd, ga.to_html(false), gm.to_html(false)]
 		if bm.size.x <= 0.0:
 			_need(car_p, false, "%s: kein Spielerauto im Modern-Bild" % key)
 			continue
@@ -271,13 +280,6 @@ func _judge(arcade: Dictionary, modern: Dictionary) -> void:
 			int(bm.position.y), dl, dr, dt, db])
 		_need(car_p, absf(dl) <= tw and absf(dr) <= tw, "%s: linke/rechte Kante %+.0f/%+.0f px (≤ %.1f)" % [key, dl, dr, tw])
 		_need(car_p, absf(dt) <= th and absf(db) <= th, "%s: obere/untere Kante %+.0f/%+.0f px (≤ %.1f)" % [key, dt, db, th])
-		# boden: in the countdown, the bottom rows beside the car
-		if int(m[0]) < 180:
-			var ga := bottom_mean(a["img"], 50, int(minf(ba.position.x, bm.position.x)) - 20, int(maxf(ba.end.x, bm.end.x)) + 20)
-			var gm := bottom_mean(md["img"], 50, int(minf(ba.position.x, bm.position.x)) - 20, int(maxf(ba.end.x, bm.end.x)) + 20)
-			var gd := maxf(absf(ga.r - gm.r), maxf(absf(ga.g - gm.g), absf(ga.b - gm.b)))
-			_need(ground_p, gd <= GROUND_TOLERANCE, "%s: unterste Zeilen %.3f vom Arcade-Mittel (Arcade %s, Modern %s)" % [key, gd, ga.to_html(false), gm.to_html(false)])
-			_report_ground_msg = "unterste 50 Zeilen neben dem Auto: größte Abweichung %.3f je Kanal (Arcade #%s, Modern #%s)" % [gd, ga.to_html(false), gm.to_html(false)]
 	_report("kamera", cam_p, "Countdown und 1,5 s nach „LOS!“: Straßenmitte 0–60 m voraus höchstens %.2f px neben Arcade" % cam_worst)
 	_report("auto", car_p, " | ".join(car_msgs))
 	_report("boden", ground_p, _report_ground_msg)
