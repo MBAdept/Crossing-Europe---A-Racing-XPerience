@@ -498,6 +498,55 @@ MODELS.update({
 })
 
 
+# --- AS5a --- (wave 5): city buildings, part 1 - the styles german, german_old and hanse of props_cities.py (docs/modelle.md
+# section 20). Builder "city" in ce3d/cities3d.py (the builder "house" of AS4 plus shops with displays, timber members,
+# cut-out railings, far walls on the texels of the opposite wall, floors at different texel densities). Own block.
+BUILDER_CODE.update({
+    "city": ["ce3d/cities3d.py", "ce3d/buildings3d.py", "ce3d/props3d.py", "ce3d/bake.py", "ce3d/leafatlas.py",
+             "cesprites/props.py", "cesprites/props_buildings.py", "cesprites/props_cities.py", "cesprites/props_nature.py",
+             "render_all.py"],
+})
+AO_CITY = dict(distance=2.0, floor=0.4, gamma=0.9, samples=24)
+MODELS.update({
+    # german (outskirts): the single-family house - render, roller shutters, dormer, garage with a sectional door (a
+    # ribbed gate), steps up to the raised front door, the wall lamp beside it (light anchor); hedge and the small
+    # ornamental tree decimated and baked
+    "props/city_german_house": dict(
+        builder="city", source="props/city_german_house", kind="building", atlas=(1024, 1024), ppm_max=110.0,
+        roughness=0.88, view="roadside", ao=AO_CITY, lod1=True,
+        decimate={"gh_hedge": 0.12, "gh_tree_c": 0.16}, lamps=("gh_lamp",), vpbr=("gh_mb", "gh_dorm_fm"),
+        levels={"gh_mailbox": "lod0"}, weights=dict(roof=0.55, away=0.3),
+        openings=dict(reveal_color="#ddd6c9", sill_color="#d0cec8", gate_w=2.2),
+        gutters=dict(per_roof=2, walls=("gh_body", "gh_garage"))),
+    # german (outskirts): the 1950s Mietshaus - balconies with coloured panels and a cut-out railing (single_cutout:
+    # walls, roofs and railings in one BC3 atlas), glass-brick stairwell, dormers, chimneys, TV aerials
+    "props/city_german_mietshaus": dict(
+        builder="city", source="props/city_german_mietshaus", kind="building", atlas=(2048, 1024), ppm_max=96.0,
+        roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True,
+        vpbr=("gm_slab", "gm_panel", "gm_aer", "gm_dorm_fm", "gm_bdm"), levels={"gm_aerials": "lod0"},
+        weights=dict(roof=0.5, away=0.3), openings=dict(reveal_color="#cdbf98", sill_color="#cfcac0"),
+        gutters=dict(per_roof=2, walls=("gm_body",))),
+    # german (centre): the Gruenderzeit corner block - shop floor with displays behind the glass, pediments, cornices,
+    # quoins (vpbr), the oriel with its wrought-iron railing (cut-out), mansard with dormers; ground and first floor at
+    # full texel density, the floors above at 75 %
+    "props/city_german_gruenderzeit": dict(
+        builder="city", source="props/city_german_gruenderzeit", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True,
+        vpbr=("gg_orn", "gg_dorm_fm"), weights=dict(roof=0.5, away=0.3),
+        floors=dict(z=(7.8,), upper=0.75, objects=("gg_body",)),
+        openings=dict(reveal_color="#d8ccb0", sill_color="#efe7d3", bars={"shop": (1, [0.78])}, shop_depth=0.35),
+        gutters=False),
+    # german (centre): the office tower (scaled 0.37 - 0.5 by the scenery): stone podium with the lit lobby, the
+    # glass of the tower and its crown baked (lit cells at night as in the sprite), aviation lights with anchors
+    "props/city_german_office": dict(
+        builder="city", source="props/city_german_office", kind="building", atlas=(2048, 1024), ppm_max=48.0,
+        roughness=0.5, view="roadside", ao=AO_CITY, lod1=True, lamps=("go_red",), vpbr=("go_trim",),
+        weights=dict(roof=0.4, away=0.3), openings=dict(reveal_color="#b9b5ad", shop_depth=0.0, reveal_m=0.2),
+        gutters=False, caps=False),
+})
+# --- end AS5a ------------------------------------------------------------------------------------------------------
+
+
 def model_ids():
     return sorted(MODELS)
 
