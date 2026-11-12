@@ -61,7 +61,9 @@ const FASCIA_BANDS: Array = [[5.6, 5.95 - 0.02, Color("c8102e"), true], [5.95 - 
 const ISLAND_TOP := Color("c9c6bd")
 const KERB := Color("e0c030")
 const APRON := Color("b9b6ae")
-const UNDERSIDE := Color("9a9c9b")
+## Arcade's underside 9a9c9b is drawn flat-lit; under the real sun the soffit gets only the sky light – a lighter grey
+## keeps it about as light as Arcade's
+const UNDERSIDE := Color("b4b6b5")
 const EDGE := Color("6f7170")
 const ROOF := Color("a9aaa8")
 const RED := Color("c8102e")

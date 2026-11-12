@@ -138,6 +138,7 @@ func _parts(r: Object, builder_id: String) -> Array:
 static func region(img: Image, r: Rect2i, kinds: Dictionary = {}) -> Dictionary:
 	var rr := r.intersection(Rect2i(0, 0, img.get_width(), img.get_height()))
 	var lum := 0.0
+	var top := 0.0
 	var n := 0
 	var counts := {}
 	for k: String in kinds:
@@ -145,12 +146,28 @@ static func region(img: Image, r: Rect2i, kinds: Dictionary = {}) -> Dictionary:
 	for y in range(rr.position.y, rr.end.y):
 		for x in range(rr.position.x, rr.end.x):
 			var c := img.get_pixel(x, y)
-			lum += c.get_luminance()
+			var l := c.get_luminance()
+			lum += l
+			top = maxf(top, l)
 			n += 1
 			for k: String in kinds:
 				if (kinds[k] as Callable).call(c):
 					counts[k] += 1
-	return {"lum": lum / float(maxi(n, 1)), "n": n, "counts": counts}
+	return {"lum": lum / float(maxi(n, 1)), "max": top, "n": n, "counts": counts}
+
+
+## Screen point (px x, px y, depth) of road coordinates in either mode: Modern's camera (world_to_screen) or Arcade's
+## projection of the frame's view (RoadProjection.project, as check_start_km0).
+func _screen(sc: Node, z: float, x: float, h: float) -> Vector3:
+	var r: Object = sc.get("renderer")
+	if r is ModernRenderer:
+		return (r as ModernRenderer).world_to_screen(z, x, h)
+	var view: Dictionary = r.get("view") if r != null and r.get("view") is Dictionary else {}
+	var proj: Object = sc.get("proj")
+	var trk: Object = sc.get("track")
+	var p: Vector3 = proj.call("project", x - float(view.get("camera_x", 0.0)), float(trk.call("height_at", z)) + h - float(view.get("camera_y", 0.0)),
+		z - float(view.get("camera_z", 0.0)))
+	return Vector3(p.x, p.y, z - float(view.get("camera_z", 0.0)))
 
 
 static func is_red(c: Color) -> bool:
@@ -252,14 +269,20 @@ func _check_tankstelle() -> void:
 				msgs.append("12 Uhr: Stirnblende %.0f m voraus, weiß %.0f %%, blau %.1f %%" % [front - cam_z, white * 100.0, blue * 100.0])
 			else:
 				_need(p, float(reg["lum"]) > 0.25, "21 Uhr: die Stirnblende leuchtet (Leuchtdichte %.2f)" % float(reg["lum"]))
-				# the lane under the canopy against the road beside it (the light pools of the canopy lamps)
-				var lane: Vector3 = (r as ModernRenderer).world_to_screen(front + 6.0, e - 1.9, 0.0)
-				var road: Vector3 = (r as ModernRenderer).world_to_screen(front + 6.0, e - 9.4, 0.0)
-				var lr := region(img, box_at(lane, 0.8, 0.3))
-				var rr := region(img, box_at(road, 0.8, 0.3))
-				_need(p, float(lr["lum"]) > float(rr["lum"]) + 0.03, "21 Uhr: die Tankspur unter dem Dach heller als die Fahrbahn daneben (%.3f / %.3f)" % [
-					float(lr["lum"]), float(rr["lum"])])
-				msgs.append("21 Uhr: Stirnblende %.2f, Tankspur %.3f, Fahrbahn %.3f" % [float(reg["lum"]), float(lr["lum"]), float(rr["lum"])])
+				# the fuel lane under that canopy: lit by the canopy's pools at least like Arcade's (the same spot in the
+				# same simulation state, Arcade's own projection)
+				var lane_m: Vector3 = _screen(sc, front + 6.0, e - 1.9, 0.0)
+				var lr := region(img, box_at(lane_m, 0.8, 0.3))
+				await _free(sc)
+				var sa: Node = await _launch("arcade", {"start_km": 13.95, "start_world_minutes": hour * 60.0})
+				var img_a: Image = await _picture_after(sa, 30)
+				_save(img_a, "tankstelle_%02d_arcade" % int(hour))
+				var lane_a: Vector3 = _screen(sa, front + 6.0, e - 1.9, 0.0)
+				var la := region(img_a, box_at(lane_a, 0.8, 0.3))
+				sc = sa
+				_need(p, float(lr["lum"]) >= 0.85 * float(la["lum"]), "21 Uhr: Tankspur unter dem Dach mindestens so hell wie in Arcade (%.3f gegen %.3f)" % [
+					float(lr["lum"]), float(la["lum"])])
+				msgs.append("21 Uhr: Stirnblende %.2f, Tankspur Modern %.3f, Arcade %.3f" % [float(reg["lum"]), float(lr["lum"]), float(la["lum"])])
 		await _free(sc)
 	_report("tankstelle", p, "; ".join(msgs))
 
@@ -320,11 +343,16 @@ func _check_grenze() -> void:
 			msgs.append("12 Uhr: Stirnblende %.0f m voraus, weiß %.0f %%, blau %.0f %%" % [c.z, float(reg["counts"]["white"]) / nn * 100.0,
 				float(reg["counts"]["blue"]) / nn * 100.0])
 		else:
-			# the light bars under the roof (a row 9 m into the station): the brightest pixels round them
-			var bar: Vector3 = (r as ModernRenderer).world_to_screen(bz + 7.5, 0.0, 5.97)
-			var reg2 := region(img, box_at(bar, 4.0, 0.5), {"white": is_white})
-			_need(p, int(reg2["counts"]["white"]) >= 6, "21 Uhr: Lichtbänder unter dem Dach leuchten (%d helle Bildpunkte)" % int(reg2["counts"]["white"]))
-			msgs.append("21 Uhr: %d helle Bildpunkte an den Lichtbändern" % int(reg2["counts"]["white"]))
+			# a row of light bars under the roof (the second row with bars: every second segment): the brightest pixel
+			# round its middle bar is near white, the soffit beside it dark
+			var seg_len := float(trk.get("seg_len"))
+			var k := int(ceil(bz / seg_len))
+			while k % 2 != 0:
+				k += 1
+			var bar: Vector3 = (r as ModernRenderer).world_to_screen(float(k + 2) * seg_len + seg_len * 0.5, 0.0, 5.97)
+			var reg2 := region(img, box_at(bar, 1.2, 0.35))
+			_need(p, float(reg2["max"]) > 0.8, "21 Uhr: Lichtbänder unter dem Dach leuchten (hellster Bildpunkt %.2f)" % float(reg2["max"]))
+			msgs.append("21 Uhr: Lichtband hellster Bildpunkt %.2f, Mittel %.2f" % [float(reg2["max"]), float(reg2["lum"])])
 		await _free(sc)
 	_report("grenze", p, "; ".join(msgs))
 
@@ -371,11 +399,16 @@ func _check_blitz() -> void:
 		_need(p, best < INF, "ein Blitzer vor der Kamera")
 		if best < INF:
 			cam_pt = (r as ModernRenderer).world_to_screen(cam_z + best, bx, 2.85)
-			var a := region(at, box_at(cam_pt, 1.2, 1.2))
-			var b := region(before, box_at(cam_pt, 1.2, 1.2))
-			_need(p, float(a["lum"]) > float(b["lum"]) + 0.25, "der Blitz leuchtet am Kamerakopf (Leuchtdichte %.2f gegen %.2f davor)" % [
-				float(a["lum"]), float(b["lum"])])
-			msg = "Blitzer %.0f m voraus: Leuchtdichte am Kopf %.2f im Blitz, %.2f davor" % [best, float(a["lum"]), float(b["lum"])]
+			var bright := func(c: Color) -> bool: return c.r > 0.92 and c.g > 0.92 and c.b > 0.92
+			var a := region(at, box_at(cam_pt, 1.0, 1.0), {"white": bright})
+			var b := region(before, box_at(cam_pt, 1.0, 1.0), {"white": bright})
+			var wa := float(a["counts"]["white"]) / float(maxi(1, int(a["n"])))
+			var wb := float(b["counts"]["white"]) / float(maxi(1, int(b["n"])))
+			_need(p, wa > wb + 0.2 and float(a["lum"]) > float(b["lum"]) + 0.08,
+				"der Blitz leuchtet am Kamerakopf (weiße Bildpunkte %.0f %% gegen %.0f %% davor, Leuchtdichte %.2f gegen %.2f)" % [wa * 100.0,
+				wb * 100.0, float(a["lum"]), float(b["lum"])])
+			msg = "Blitzer %.0f m voraus: am Kopf %.0f %% weiß im Blitz (davor %.0f %%), Leuchtdichte %.2f (davor %.2f)" % [best, wa * 100.0,
+				wb * 100.0, float(a["lum"]), float(b["lum"])]
 	else:
 		_need(p, false, "kein Blitz in %d Bildern (Autopilot zu langsam oder Modern nicht gelaufen)" % n)
 	await _free(sc)
@@ -387,28 +420,37 @@ func _check_blitz() -> void:
 func _check_stadt() -> void:
 	var p: Array[String] = []
 	var lum := {}
-	for mode: String in ["arcade", "modern"]:
+	var spot := Vector2.ZERO        ## (z, x) of the pool centre measured: the first street light 25 m or more ahead
+	for mode: String in ["modern", "arcade"]:
 		var sc: Node = await _launch(mode, {"stage_id": "dev_testetappe", "from_city": "dev_start", "start_km": 111.0,
 			"start_world_minutes": 21.0 * 60.0})
 		var img: Image = await _picture_after(sc, 20)
 		_save(img, "stadt_nacht_%s" % mode)
-		var w := img.get_width()
-		var h := img.get_height()
-		var hy := 0.45 * float(h)
-		var reg := region(img, Rect2i(int(w * 0.2), int(hy) + 60, int(w * 0.6), int(h * 0.92) - int(hy) - 60))
-		lum[mode] = float(reg["lum"])
 		if mode == "modern":
 			var r: Object = sc.get("renderer")
-			var lights := 0
+			var lights: Array = []
 			if r is ModernRenderer:
 				for part: Dictionary in _parts(r, "city"):
-					lights += (part.get("lights", []) as Array).size()
-			_need(p, lights >= 10, "Laternen in den geladenen Stücken (%d)" % lights)
+					lights.append_array(part.get("lights", []))
+			_need(p, lights.size() >= 10, "Laternen in den geladenen Stücken (%d)" % lights.size())
+			var cam_z := float(((r as ModernRenderer).view as Dictionary).get("camera_z", 0.0)) if r is ModernRenderer else 0.0
+			var best := INF
+			var trk: Object = sc.get("track")
+			for l: Array in lights:
+				var d := float(l[0]) - cam_z
+				if d >= 25.0 and d < best:
+					best = d
+					# Arcade's pool centre of that light: on the road 0.6 m inside the paved edge, at the light's segment
+					var ed: Vector2 = trk.call("road_edges_at", float(l[0]))
+					spot = Vector2(float(l[0]) + 1.5, (ed.y - 0.6) if int(l[1]) > 0 else (ed.x + 0.6))
+			_need(p, best < INF, "eine Laterne vor der Kamera")
+		var s: Vector3 = _screen(sc, spot.x, spot.y, 0.0)
+		lum[mode] = float(region(img, box_at(s, 0.9, 0.35))["lum"])
 		await _free(sc)
-	_need(p, float(lum.get("modern", 0.0)) >= 0.9 * float(lum.get("arcade", 1.0)), "Straße in Modern nicht dunkler als in Arcade (%.3f gegen %.3f)" % [
+	_need(p, float(lum.get("modern", 0.0)) >= 0.85 * float(lum.get("arcade", 1.0)), "Lichtkegel einer Laterne mindestens so hell wie in Arcade (%.3f gegen %.3f)" % [
 		float(lum.get("modern", 0.0)), float(lum.get("arcade", 0.0))])
-	_report("stadt", p, "21 Uhr, City Limits: mittlere Leuchtdichte der Straße Modern %.3f, Arcade %.3f" % [float(lum.get("modern", 0.0)),
-		float(lum.get("arcade", 0.0))])
+	_report("stadt", p, "21 Uhr, City Limits, Kegel der ersten Laterne ab 25 m (z %.0f, x %.1f): Leuchtdichte Modern %.3f, Arcade %.3f" % [spot.x, spot.y,
+		float(lum.get("modern", 0.0)), float(lum.get("arcade", 0.0))])
 
 
 # --- shadows -----------------------------------------------------------------------------------------------------

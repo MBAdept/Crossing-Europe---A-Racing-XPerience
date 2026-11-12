@@ -32,7 +32,9 @@ const BAR_T: Array[float] = [0.25, 0.5, 0.75]
 const POOL_EVERY := 4              ## a light pool every four segments (Arcade: k % 4)
 const POOL_RANGE_M := 16.0
 const POOL_ENERGY := 1.27          ## 0.7 at the centre with the lights layer's 0.55 per unit (Arcade: 0.7 × lights)
-const SOFFIT := Color("8e959c")
+## Arcade's underside colour 8e959c is drawn flat-lit; under the real sun the soffit only gets the sky light – a lighter
+## grey keeps it as light as Arcade's
+const SOFFIT := Color("aab0b6")
 const SLAB := Color("f0f0ec")
 const PILLAR := Color("b8bcc2")
 const TOP_C := Color("9a9fa5")
