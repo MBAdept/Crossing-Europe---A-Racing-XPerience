@@ -304,6 +304,31 @@ func test_noise_texture_is_deterministic_and_shared() -> void:
 		assert_true(hi[ch] - lo[ch] > 150, "Kanal %d nutzt seinen Wertebereich (%d … %d)" % [ch, lo[ch], hi[ch]])
 
 
+## M2INT (finding FIX-ZS1-B1, ferries on meadow under the Köhlbrandbrücke): where the loaded window crosses water, the
+## plane lies below the water the terrain draws (TrackSegment.water_level), not only below the road.
+func test_far_ground_lies_below_the_water_of_a_bridge() -> void:
+	var t := _syn_track(1600)
+	for k in range(300, 360):
+		var s := t.get_segment(k)
+		s.water = true
+		s.water_depth = 9.0
+		s.water_level = -9.0
+	var p := RoadPath3D.new()
+	p.setup(t, 0, 120.0)
+	p.ensure(1500)
+	var fg := FarGround.new()
+	var with_water := fg.lowest_road(p, 600.0, 900.0, t)
+	var road_only := fg.lowest_road(p, 600.0, 900.0)
+	var water_lo := INF
+	for k in range(300, 360):
+		water_lo = minf(water_lo, p.height(k) - 9.0)
+	assert_true(with_water <= water_lo + 0.6, "unter dem Wasser der Brücke (%.2f, Wasser %.2f)" % [with_water, water_lo])
+	assert_true(with_water <= road_only, "nie über der tiefsten Fahrbahn (%.2f / %.2f)" % [with_water, road_only])
+	assert_near(fg.lowest_road(p, 3600.0, 900.0, t), fg.lowest_road(p, 3600.0, 900.0), 1.0e-4,
+		"ohne Wasser im Fenster: wie die Fahrbahn allein")
+	fg.free()
+
+
 func test_far_ground_lies_below_every_loaded_road() -> void:
 	var t := _syn_track(1600, {"hills": 3})
 	var p := RoadPath3D.new()

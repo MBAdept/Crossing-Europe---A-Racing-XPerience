@@ -156,7 +156,7 @@ func update(view: Dictionary, _dt: float) -> void:
 	if key != _key:
 		# the samples sit on fixed rows: nothing changes until the camera reaches the next row
 		_key = key
-		_target = lowest_road(path, cam_z, vis) - _drop
+		_target = lowest_road(path, cam_z, vis, track) - _drop
 	var moved := absf(cam_z - _last_z)
 	if not _valid or moved > SNAP_M:
 		far_y = _target
@@ -191,7 +191,11 @@ func update(view: Dictionary, _dt: float) -> void:
 
 ## Lowest road height (origin-relative) of the loaded window around road position cam_z: every SAMPLE_STEP-th row
 ## from keep_behind_m behind the camera to min(load_path_m, visibility + two chunks) ahead, inside the integrated path.
-func lowest_road(path: RoadPath3D, cam_z: float, visibility_m: float) -> float:
+## Where a bridge crosses water (or its bank slopes), the water / ground under the deck counts instead of the road
+## (TrackSegment.water_level <= 0): the plane lies below the water the terrain draws there. M2INT (finding FIX-ZS1-B1):
+## under the Köhlbrandbrücke the water lies 9 m (16 m from Hamburg) below the road, the plane 4 m below it covered the
+## Elbe with meadow and the ferries stood on grass.
+func lowest_road(path: RoadPath3D, cam_z: float, visibility_m: float, track: Track = null) -> float:
 	var seg := path.seg_len
 	var ahead := minf(_load_m, visibility_m + 2.0 * _chunk_m)
 	var k0 := maxi(path.first, int(floor((cam_z - _behind_m - _chunk_m) / seg)))
@@ -200,7 +204,10 @@ func lowest_road(path: RoadPath3D, cam_z: float, visibility_m: float) -> float:
 	var lo := INF
 	var k := k0
 	while k <= k1:
-		lo = minf(lo, path.height(k))
+		var y := path.height(k)
+		if track != null and k >= 0 and k < track.segment_count:
+			y += minf(0.0, track.get_segment(k).water_level)
+		lo = minf(lo, y)
 		k += SAMPLE_STEP
 	if lo == INF:
 		lo = path.height(clampi(int(cam_z / seg), path.first, path.last()))

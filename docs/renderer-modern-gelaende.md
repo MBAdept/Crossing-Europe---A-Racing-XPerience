@@ -138,6 +138,13 @@ ankommt.
 
 - Fenster: von `keep_behind_m` hinter der Kamera bis min(`load_path_m`, Sichtweite + zwei Stücke) voraus, jede
   vierte Reihe (feste Reihen: nichts ändert sich, bis die Kamera die nächste Reihe erreicht).
+- **Wasser zählt mit** (M2INT, Befund FIX-ZS1-B1): Liegt im Fenster eine Brücke über Wasser oder ihr Uferhang, gilt
+  dort statt der Straße die Höhe des Wassers bzw. Bodens unter dem Deck (`TrackSegment.water_level` ≤ 0). Vorher lag
+  die Scheibe unter der Köhlbrandbrücke 4 m unter der Straße, die Elbe aber 9 m (aus Hamburg 16 m) darunter: Modern
+  zeigte Wiese statt Wasser, und die beiden Fähren dort standen auf der Wiese. Jetzt liegt die Scheibe unter dem
+  Wasser (Unit-Test `test_far_ground_lies_below_the_water_of_a_bridge`; im Bild: Fähren auf der Elbe). Schiffe und
+  Hausboote stellt `Track` nur neben Brücken über Wasser (gezählt: 46 von 46 im ganzen Netz auf Wassersegmenten,
+  Rumpf ganz über Wasser).
 - Die Höhe folgt ihrem Ziel um höchstens 0,35 × die gefahrene Strecke je Bild; das erste Bild und ein Sprung über
   150 m setzen sie sofort.
 - Acht Sektoren statt eines Knotens: Ihre Mittelpunkte liegen fern der Kamera, der Renderer zeichnet sie nach dem
