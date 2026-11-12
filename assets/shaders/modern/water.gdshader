@@ -213,14 +213,13 @@ void fragment() {
 // The directional light only (the mesh is on render layer 2): Lambert like the ground law assumes, and the glitter of
 // the sun (or moon) on the water's ripples – shadowed like everything the light does.
 void light() {
-	if (!LIGHT_IS_DIRECTIONAL) {
-		return;
-	}
-	vec3 lc = LIGHT_COLOR * ATTENUATION;
-	float ndl = max(dot(NORMAL, LIGHT), 0.0);
-	DIFFUSE_LIGHT += lc * ndl * (1.0 / PI);
-	if (v_glint > 0.0) {
-		vec3 r = reflect(-LIGHT, NORMAL);
-		SPECULAR_LIGHT += lc * pow(max(dot(r, VIEW), 0.0), 700.0) * v_glint * 2.5;
+	if (LIGHT_IS_DIRECTIONAL) {
+		vec3 lc = LIGHT_COLOR * ATTENUATION;
+		float ndl = max(dot(NORMAL, LIGHT), 0.0);
+		DIFFUSE_LIGHT += lc * ndl * (1.0 / PI);
+		if (v_glint > 0.0) {
+			vec3 r = reflect(-LIGHT, NORMAL);
+			SPECULAR_LIGHT += lc * pow(max(dot(r, VIEW), 0.0), 700.0) * v_glint * 2.5;
+		}
 	}
 }
