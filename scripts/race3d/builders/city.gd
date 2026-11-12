@@ -38,8 +38,13 @@ const ROUGH_PAINT := Vector2(0.6, 0.0)
 const ROUGH_HEDGE := Vector2(0.95, 0.0)
 const ROUGH_STONE := Vector2(0.85, 0.0)
 const PICKET_EVERY := 0.25
-const BAR_EVERY := 0.18
+const BAR_EVERY := 0.22
 const PIER_EVERY := 6.0
+## Shadow casters (contract §4.10 „Schatten“): street lights are structures (from „Niedrig“ on, levels.shadow_casters
+## >= 1 – like the props builder's road furniture they stay thin lines); fences, hedges and walls are small scenery
+## (only „Hoch“, >= 3)
+const CAST_LIGHTS := 1
+const CAST_FENCES := 3
 
 var _renderer: Node
 var _mats: ModernMaterials
@@ -311,11 +316,16 @@ static func _iron(ctx: ChunkContext, kit: Station.Kit, z0: float, z1: float, xa:
 		var x := _fx(xa, xb, z0, z1, zb) + mid
 		var f := ctx.frame(zb, x, 0.0)
 		var post := fposmod(zb, PIER_EVERY) < BAR_EVERY
-		var w := 0.07 if post else 0.022
-		var top := h + (0.12 if post else 0.0)
-		kit.box(f, Vector3(0.0, (0.3 + top) * 0.5, 0.0), Vector3(w, top - 0.3, w) * 0.5, col, ROUGH_METAL, 1 | 2 | 4 | 8)
-		if not post:
-			kit.tri(f * Vector3(-w, top, 0.0), f * Vector3(w, top, 0.0), f * Vector3(0.0, top + 0.07, 0.0), f.basis.z, col, ROUGH_METAL)
+		if post:
+			kit.box(f, Vector3(0.0, (0.3 + h + 0.12) * 0.5, 0.0), Vector3(0.07, h + 0.12 - 0.3, 0.07) * 0.5, col, ROUGH_METAL, 1 | 2 | 4 | 8 | 16)
+		else:
+			# a bar: its face to the road and its back (two quads, the ends are too thin to show), a spear tip
+			var w := 0.012
+			for sgn: float in [-1.0, 1.0]:
+				var o := Vector3(sgn * 0.011 * s, 0.0, 0.0)
+				kit.quad(f * (Vector3(0.0, 0.3, -w) + o), f * (Vector3(0.0, 0.3, w) + o), f * (Vector3(0.0, h, w) + o), f * (Vector3(0.0, h, -w) + o),
+					road * -sgn, col, ROUGH_METAL)
+			kit.tri(f * Vector3(0.0, h, -w * 2.0), f * Vector3(0.0, h, w * 2.0), f * Vector3(0.0, h + 0.07, 0.0), road, col, ROUGH_METAL)
 		zb += BAR_EVERY
 
 
@@ -394,13 +404,13 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 	var arrays: Array = part.get("arrays", [])
 	if right.is_empty() and left.is_empty() and arrays.is_empty():
 		return
-	var casts := int(ctx.levels.get("shadow_casters", 0)) >= 1
-	var cast_mode := GeometryInstance3D.SHADOW_CASTING_SETTING_ON if casts else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var casters := int(ctx.levels.get("shadow_casters", 0))
+	var cast_mode := GeometryInstance3D.SHADOW_CASTING_SETTING_ON if casters >= CAST_LIGHTS else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var holder := Node3D.new()
 	holder.name = "City"
 	parent.add_child(holder)
 	if not arrays.is_empty():
-		holder.add_child(Station.vpbr_node(arrays, Station.materials_of(ctx), casts, "Fences"))
+		holder.add_child(Station.vpbr_node(arrays, Station.materials_of(ctx), casters >= CAST_FENCES, "Fences"))
 	var parts := _model()
 	for side_buf: Array in [[right, false], [left, true]]:
 		var buf: PackedFloat32Array = side_buf[0]

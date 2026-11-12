@@ -41,6 +41,10 @@ const ROUGH_METAL := Vector2(0.45, 0.5)
 const ROUGH_PAINT := Vector2(0.6, 0.0)
 const ROUGH_CONCRETE := Vector2(0.85, 0.0)
 const PANEL_PPM := 64.0
+## Arcade's glow round a lit countdown lamp (RoadRenderer._start_light_glows: radius 1.4 m, alpha 0.6): flare size ×
+## 0.9 = radius, strength 2 × alpha (the flare adds colour × 0.5 × strength)
+const LAMP_GLOW_SIZE := 1.56
+const LAMP_GLOW_ENERGY := 1.2
 
 var _renderer: Node
 var _mats: ModernMaterials
@@ -306,7 +310,7 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 			var pos: Vector3 = f * (l["pos"] as Vector3)
 			node.transform = Transform3D(f.basis * Basis(Vector3.RIGHT, PI * 0.5), pos)
 			parent.add_child(node)
-			var entry := {"pos": pos + f.basis.z * 0.05, "dir": f.basis.z, "role": "on", "color": LIGHT_RED, "size": 0.9,
+			var entry := {"pos": pos + f.basis.z * 0.05, "dir": f.basis.z, "role": "on", "color": LIGHT_RED, "size": LAMP_GLOW_SIZE,
 				"range": 0.0, "energy": 0.0}
 			lamps.append(entry)
 			_lights.append([node, lens[1], entry, int(l["i"])])
@@ -331,7 +335,7 @@ func update(view: Dictionary, _dt: float) -> void:
 		(e[1] as StandardMaterial3D).albedo_color = st[0]
 		var entry: Dictionary = e[2]
 		entry["color"] = st[0]
-		entry["energy"] = st[1]
+		entry["energy"] = float(st[1]) * LAMP_GLOW_ENERGY
 		i -= 1
 
 

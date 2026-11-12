@@ -51,6 +51,13 @@ const PYLON_BOARD := Vector3(2.2, 3.8, 0.32)   ## width, height, depth of the pr
 const PYLON_BOARD_Y := 5.8         ## lower edge of the board above the road (Arcade: 5.8 – 9.6 m)
 const PRICES: Array[String] = ["1,79", "1,85"]
 
+const JOINT := Color("2a2c30")
+const COPING := Color("c4c7cb")
+const JOINT_H := 0.02              ## dark joint between the red and the white band
+const COPING_H := 0.06             ## metal coping on top of the fascia
+## Bands of the fascia from the soffit up: [from, to, colour, lit at night] (Arcade: red 5.6–5.95, white 5.95–6.45)
+const FASCIA_BANDS: Array = [[5.6, 5.95 - 0.02, Color("c8102e"), true], [5.95 - 0.02, 5.95, Color("2a2c30"), false],
+	[5.95, 6.45 - 0.06, Color("f2f2f0"), true], [6.45 - 0.06, 6.45, Color("c4c7cb"), false]]
 const ISLAND_TOP := Color("c9c6bd")
 const KERB := Color("e0c030")
 const APRON := Color("b9b6ae")
@@ -564,6 +571,9 @@ func _draw_front(p: SignPainter, b: GeoBatch, r: Rect2, ppm: float, night: bool)
 	var blue := Color(0.30, 0.55, 1.0) if night else TEXT
 	b.rect(r, white)
 	b.rect(Rect2(r.position.x, r.end.y - BAND_RED * ppm, r.size.x, BAND_RED * ppm), red)
+	# the joint between the bands and the coping on top, as on the long sides
+	b.rect(Rect2(r.position.x, r.end.y - BAND_RED * ppm, r.size.x, JOINT_H * ppm), Color(0.0, 0.0, 0.0) if night else JOINT)
+	b.rect(Rect2(r.position.x, r.position.y, r.size.x, COPING_H * ppm), Color(0.0, 0.0, 0.0) if night else COPING)
 	p.text(tr("TANKSTELLE"), Vector2(r.get_center().x, r.position.y + 0.45 * ppm), 0.32 * ppm, blue, r.size.x * 0.8)
 
 
@@ -693,10 +703,7 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 			# fascia bands on both long sides (lit from inside at night)
 			for side_x: float in [x0, x1]:
 				var outward := road_side if side_x == x0 else -road_side
-				kit.quad(ctx.local(z0, side_x, CANOPY_H), ctx.local(z1, side_x, CANOPY_H), ctx.local(z1, side_x, hb), ctx.local(z0, side_x, hb),
-					outward, RED, ROUGH_PAINT, FASCIA_GLOW)
-				kit.quad(ctx.local(z0, side_x, hb), ctx.local(z1, side_x, hb), ctx.local(z1, side_x, h1), ctx.local(z0, side_x, h1),
-					outward, WHITE, ROUGH_PAINT, FASCIA_GLOW)
+				_bands(kit, ctx.local(z0, side_x, 0.0), ctx.local(z1, side_x, 0.0), outward)
 			if starts:
 				var fwd := ctx.rows_f[i]
 				if front_uv.size.x > 0.0:
@@ -709,11 +716,7 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 					kit.quad(ctx.local(z0, x0, hb), ctx.local(z0, x1, hb), ctx.local(z0, x1, h1), ctx.local(z0, x0, h1), -fwd, WHITE, ROUGH_PAINT)
 				fronts.append(snappedf(z0, 0.001))
 			if ends:
-				var fwd2 := ctx.rows_f[i + 1]
-				kit.quad(ctx.local(z1, x0, CANOPY_H), ctx.local(z1, x1, CANOPY_H), ctx.local(z1, x1, hb), ctx.local(z1, x0, hb), fwd2, RED,
-					ROUGH_PAINT, FASCIA_GLOW)
-				kit.quad(ctx.local(z1, x0, hb), ctx.local(z1, x1, hb), ctx.local(z1, x1, h1), ctx.local(z1, x0, h1), fwd2, WHITE, ROUGH_PAINT,
-					FASCIA_GLOW)
+				_bands(kit, ctx.local(z1, x0, 0.0), ctx.local(z1, x1, 0.0), ctx.rows_f[i + 1])
 			# steel columns with a plinth on the island: at the front and at the end of the canopy
 			if starts or ends:
 				var zp := z0 + 0.45 if starts else z1 - 0.45
@@ -743,6 +746,16 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 	return {"arrays": kit.arrays() if not kit.is_empty() else [], "panels": pan.arrays() if not pan.is_empty() else [],
 		"lamps": lamps, "glows": glows, "fronts": fronts, "islands": islands, "canopies": canopies, "pillars": pillars,
 		"pylons": pylons, "letterings": letterings, "edges": edges, "triangles": kit.triangles() + pan.count * 2}
+
+
+## The fascia on a vertical face from pa to pb (points at road level): Arcade's red band and white band (both lit a
+## little from inside at night), with a dark joint between them and a metal coping on top.
+static func _bands(kit: Kit, pa: Vector3, pb: Vector3, outward: Vector3) -> void:
+	for b: Array in FASCIA_BANDS:
+		var u0 := Vector3(0.0, float(b[0]), 0.0)
+		var u1 := Vector3(0.0, float(b[1]), 0.0)
+		kit.quad(pa + u0, pb + u0, pb + u1, pa + u1, outward, b[2], ROUGH_PAINT if bool(b[3]) else ROUGH_METAL,
+			FASCIA_GLOW if bool(b[3]) else NO_LAMP)
 
 
 ## The price pylon of an item (RoadRenderer._fuel_pylon): footing, pole, the board with the panel on both faces.
