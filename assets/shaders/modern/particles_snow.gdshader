@@ -102,7 +102,7 @@ void vertex() {
 	a *= 1.0 - smoothstep(0.8, 1.0, abs(q.x - (box_lo.x + box_hi.x) * 0.5) / (size.x * 0.5));
 	a *= smoothstep(box_hi.y, box_hi.y - 1.5, q.y);
 	v_alpha = flake_color.a * a * fade * (c0.w > 0.2 ? 1.0 : 0.0);
-	v_light = beam_at(p) * (1.0 - smoothstep(25.0, 60.0, q.z));
+	v_light = beam_at(p) * (1.0 - smoothstep(16.0, 42.0, q.z));
 }
 
 void fragment() {

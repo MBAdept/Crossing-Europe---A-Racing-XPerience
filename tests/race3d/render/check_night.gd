@@ -7,6 +7,10 @@ extends SceneTree
 ##               („Mittel“ and „Steam Deck“, no traffic, HUD hidden, the precipitation of both left in – a trimmed
 ##               mean drops single flakes): the mean luminance of the road (lane interiors 12–70 m ahead, outside the
 ##               player's car) lies within +15 % of Arcade's and is never darker (contract §6 R4)
+##   spielerauto the player's car at night (N1 Kompakt in the snow, Dortmund – Frankfurt km 121 Gran Turismo in the rain,
+##               S1 Limousine, 22:00, „Mittel“): its body – the pixels that change when the car is not drawn, without
+##               lamps, glows and the plate – at the 75th percentile of luminance at most CAR_MAX × and at least CAR_MIN ×
+##               Arcade's sprite at the same step (lead decision 8 of wave 3: never brighter than Arcade where it is dark)
 ##   verdeckung  night in the RAIN – the wet road mirrors lamps: a braking car behind a crest (Kassel – Würzburg km
 ##               61.6, T2) and a braking car right behind a semitrailer change 0 pixels (neither body, glow nor the
 ##               reflection of its lamps on the wet road shows through), and the same car is seen in front of them
@@ -18,7 +22,9 @@ extends SceneTree
 
 const RACE := "res://scenes/race/race.tscn"
 const PROBE := "res://tests/race3d/fixtures/vehicle_probe_renderer.gd"
-const CHECKS := ["fahrbahn", "verdeckung", "blaulicht"]
+const CHECKS := ["fahrbahn", "spielerauto", "verdeckung", "blaulicht"]
+const CAR_MAX := 1.10                ## the player's car at night at most this much brighter than Arcade's sprite …
+const CAR_MIN := 0.6                 ## … and at least this bright (it must stay readable)
 const STEPS := 30
 const ROAD_MAX := 0.15               ## Modern's night road at most this much brighter than Arcade's (never darker)
 const TRIM := 0.05                   ## share of the brightest and darkest probes left out (flakes, lines)
@@ -213,6 +219,98 @@ func _check_fahrbahn() -> void:
 		await _free(sc)
 	CliArgs.all().erase("gfx-preset")
 	_report("fahrbahn", p, "N1 22 Uhr Schnee, mittlere Leuchtdichte der Fahrbahn 12–70 m: " + "; ".join(parts))
+
+
+# --- spielerauto ---------------------------------------------------------------------------------------------------
+
+## A stage in `mode` stopped at step STEPS, HUD hidden: [scene, picture with the player's car, picture without it].
+func _with_without(mode: String, setup_extra: Dictionary) -> Array:
+	_renderers.set("modern_script", str(_renderers.get("MODERN_SCRIPT")))
+	var setup := {"mode": "single", "race_id": "", "autopilot": true, "autopilot_refuel": "never", "no_countdown": true,
+		"start_speed_kmh": 120.0, "traffic_warmup": false, "gfx": mode}
+	setup.merge(setup_extra, true)
+	var sc: Node = (load(RACE) as PackedScene).instantiate()
+	sc.set("setup", setup)
+	await physics_frame
+	root.add_child(sc)
+	await _until(func() -> bool: return int(sc.get("_sim_steps")) >= STEPS)
+	sc.set_process(false)
+	sc.set_physics_process(false)
+	for c: Node in sc.get_children():
+		if c is CanvasLayer and (c as CanvasLayer).layer >= 5:
+			(c as CanvasLayer).visible = false
+	var r: Node = sc.get("renderer")
+	var view: Dictionary = r.get("view")
+	if r is ModernRenderer:
+		var wl: Object = (r as ModernRenderer).layer("weather")
+		if wl != null:
+			wl.set("debug_particles", false)
+			wl.set("debug_spray", false)
+		var fl: Object = (r as ModernRenderer).layer("flares")
+		if fl != null:
+			fl.set("debug_streaks", false)
+	r.call("render", view)
+	await _frames(2)
+	await RenderingServer.frame_post_draw
+	var with_car := root.get_texture().get_image()
+	var v2 := view.duplicate()
+	var pl: Dictionary = (v2.get("player", {}) as Dictionary).duplicate()
+	pl["visible"] = false
+	v2["player"] = pl
+	r.call("render", v2)
+	await _frames(2)
+	await RenderingServer.frame_post_draw
+	var without := root.get_texture().get_image()
+	return [sc, with_car, without]
+
+
+## 75th percentile of the luminance of the car's body: pixels that change when the car is not drawn, without lamps and
+## glows (red-dominant) and the plate (very bright, grey). Returns [percentile, pixel count].
+static func _car_body(with_car: Image, without: Image) -> Array:
+	var v: Array[float] = []
+	for y in range(int(with_car.get_height() * 0.55), with_car.get_height()):
+		for x in range(int(with_car.get_width() * 0.3), int(with_car.get_width() * 0.7)):
+			var a := with_car.get_pixel(x, y)
+			var b := without.get_pixel(x, y)
+			if absf(a.get_luminance() - b.get_luminance()) < 0.03:
+				continue
+			if a.r > 0.25 and a.r > a.g * 1.5 and a.r > a.b * 1.5:
+				continue                    # lamp, glow
+			if a.get_luminance() > 0.8 and maxf(a.r, maxf(a.g, a.b)) - minf(a.r, minf(a.g, a.b)) < 0.12:
+				continue                    # number plate
+			v.append(a.get_luminance())
+	if v.size() < 50:
+		return [0.0, v.size()]
+	v.sort()
+	return [v[int(float(v.size()) * 0.75)], v.size()]
+
+
+func _check_spielerauto() -> void:
+	var p: Array[String] = []
+	var parts: Array[String] = []
+	CliArgs.all()["gfx-preset"] = "medium"
+	var cases: Array = [
+		["N1 Kompakt Schnee", {"stage_id": "hamburg_hannover", "from_city": "hamburg", "start_km": 71.0, "weather": "snow", "vehicle": "kompakt", "seed": 13}],
+		["Dortmund – Frankfurt km 121 Gran Turismo Regen", {"stage_id": "dortmund_frankfurt", "from_city": "dortmund", "start_km": 121.0, "weather": "rain", "vehicle": "gran_turismo", "seed": 14}],
+		["S1 Limousine klar", {"stage_id": "kiel_hamburg", "from_city": "kiel", "start_km": 2.0, "weather": "normal", "vehicle": "limousine", "seed": 11}]]
+	for cs: Array in cases:
+		var extra: Dictionary = (cs[1] as Dictionary).duplicate()
+		extra["start_world_minutes"] = 22.0 * 60.0
+		var got_a: Array = await _with_without("arcade", extra)
+		var a: Array = _car_body(got_a[1], got_a[2])
+		_keep(got_a[1], "spielerauto_%s_arcade" % str(extra["vehicle"]))
+		await _free(got_a[0])
+		var got_m: Array = await _with_without("modern", extra)
+		var m: Array = _car_body(got_m[1], got_m[2])
+		_keep(got_m[1], "spielerauto_%s_modern" % str(extra["vehicle"]))
+		await _free(got_m[0])
+		var ratio := float(m[0]) / maxf(float(a[0]), 1.0e-3)
+		_need(p, int(a[1]) >= 50 and int(m[1]) >= 50, "%s: das Auto ist in beiden Bildern (%d / %d Pixel)" % [cs[0], int(a[1]), int(m[1])])
+		_need(p, ratio <= CAR_MAX, "%s: höchstens %.0f %% heller als Arcades Bild (%.2f×)" % [cs[0], (CAR_MAX - 1.0) * 100.0, ratio])
+		_need(p, ratio >= CAR_MIN, "%s: mindestens %.1f× Arcades Bild (%.2f×)" % [cs[0], CAR_MIN, ratio])
+		parts.append("%s: Modern %.3f, Arcade %.3f (%.2f×)" % [cs[0], float(m[0]), float(a[0]), ratio])
+	CliArgs.all().erase("gfx-preset")
+	_report("spielerauto", p, "22 Uhr, Karosserie (75. Perzentil der Leuchtdichte): " + "; ".join(parts))
 
 
 # --- verdeckung (wet night) -----------------------------------------------------------------------------------------

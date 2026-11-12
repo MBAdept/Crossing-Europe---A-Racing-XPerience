@@ -53,6 +53,13 @@ const SIDE_TO := 0.75              ## … and where it is complete
 const ELEV_MIN_DEG := 13.0         ## elevation of the light at height 0 (a flatter light gives endless shadows)
 const ELEV_MAX_DEG := 46.0         ## … and at height 1: long enough shadows to see them from the chase camera
 const OVERCAST_ELEV_DEG := 68.0    ## rain / snow: what is left of the directed light falls from above
+## R4 night law for vertical faces (lead decision 8 of wave 3): the moon's light falls from at least this high. A low
+## moon lit the walls that face it far more than level ground (cos 30° / sin 30° = 1.7 × at 22:00; M2ZS1 measured
+## the light-concrete pylon of the Köhlbrandbrücke 40 % above Arcade, whose night is ambient light only), and the law
+## of the light split is made for level ground. From 55° up a vertical face gets at most 0.7 × what level ground gets –
+## every bright wall, bridge part and car body stays at or below the level ground's share. The moon in the sky
+## (backdrop) stays where the palette puts it.
+const MOON_MIN_ELEV_DEG := 55.0
 const SHARE_DAY := 0.5             ## directed part of the display value on level ground under a clear day sky
 const SHARE_MOON := 0.2            ## … as moonlight in a clear night
 const OVERCAST_CUT := 0.75         ## rain / snow: this much of the directed part becomes diffuse
@@ -584,7 +591,10 @@ static func light_state(pal: Dictionary, tunnel01: float, road_heading: float, b
 		var sp: Vector2 = pal.get("sun_pos", Vector2(0.0, 1.0))
 		azimuth = sun_azimuth(sp)
 		height = sp.y
-	var elev := deg_to_rad(lerpf(lerpf(ELEV_MIN_DEG, ELEV_MAX_DEG, clampf(height, 0.0, 1.0)), OVERCAST_ELEV_DEG, overcast))
+	var elev_deg := lerpf(lerpf(ELEV_MIN_DEG, ELEV_MAX_DEG, clampf(height, 0.0, 1.0)), OVERCAST_ELEV_DEG, overcast)
+	if moon:
+		elev_deg = maxf(elev_deg, MOON_MIN_ELEV_DEG)
+	var elev := deg_to_rad(elev_deg)
 	var to_sun := light_direction(azimuth, elev, road_heading, bg_offset)
 	# directed part of the display value: the sun by day, the moon in a clear night, little under clouds, none inside
 	var share_sun := SHARE_DAY * (1.0 - smoothstep(NIGHT_FROM, NIGHT_TO, night))

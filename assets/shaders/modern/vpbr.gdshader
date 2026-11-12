@@ -116,12 +116,21 @@ uniform float rotor_speed = 1.35;             // rad/s
 // ModernMaterials.static_code() gives the variant VPBR_STATIC snow_cover 1, vehicles keep 0. Snow albedo (display),
 // darker at night by snow_night (the moon would otherwise light it far above Arcade's night, R4 night law).
 uniform float snow_cover = 0.0;
+// R4 paint exposure (art review KRITIK-2 A1, M2INT note 6: the cars read flat and too bright – the Gran Turismo's rear
+// bumper +50 % against its sprite in the overcast rain): the ambient light of a body comes from the sky above, not
+// from the road below – vertical faces get hemi_side, faces turned down hemi_down of it (AO, ambient only; 1 = off,
+// the neutral default of the contact sheet); and the player's fill lights only what the sun does not (fill_shade:
+// how much a face turned towards the sun loses of it).
+uniform float hemi_side = 1.0;
+uniform float hemi_down = 1.0;
+uniform float fill_shade = 0.0;
 uniform vec3 snow_albedo = vec3(0.86, 0.88, 0.91);
 uniform float snow_night = 0.3;
 
 global uniform float ce_night;
 global uniform float ce_snow;
 global uniform vec4 ce_ambient;               // linear ambient light (ModernMaterials.light_value), for `fill`
+global uniform vec3 ce_sun_dir;
 global uniform float ce_time;
 global uniform vec3 ce_headlight_pos;         // the player's low beam (layer "lights"): channel 15
 global uniform vec3 ce_headlight_dir;
@@ -319,6 +328,17 @@ void fragment() {
 		metal = mix(metal, 0.0, k);
 	}
 	vec3 fill_light = fill > 0.0 ? to_lin(alb) * ce_ambient.rgb * fill * mix(1.0, fill_night, night) : vec3(0.0);
+	if (fill > 0.0 && fill_shade > 0.0) {
+		vec3 nf = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
+		fill_light *= 1.0 - fill_shade * clamp(dot(nf, normalize(ce_sun_dir)), 0.0, 1.0);
+	}
+	if (hemi_side < 0.999 || hemi_down < 0.999) {
+		float ny = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz).y;
+		float hemi = ny >= 0.0 ? mix(hemi_side, 1.0, ny) : mix(hemi_side, hemi_down, -ny);
+		AO = hemi;
+		AO_LIGHT_AFFECT = 0.0;
+		fill_light *= hemi;
+	}
 	// mirrored environment: clear coat (Fresnel of a 1.5 coat), metals (tinted by their colour), glossy parts
 	vec3 refl = vec3(0.0);
 	if (env_energy > 0.0) {

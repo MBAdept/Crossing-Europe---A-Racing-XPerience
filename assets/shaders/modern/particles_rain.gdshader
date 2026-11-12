@@ -114,7 +114,7 @@ void vertex() {
 	v_alpha = drop_color.a * a * fade * (c0.w > 0.2 ? 1.0 : 0.0);
 	// the low beam lights the drops it passes through – mostly the near ones (far in the cone they would pile up into
 	// a bright cloud at the vanishing point)
-	v_light = beam_at(p) * (1.0 - smoothstep(22.0, 55.0, q.z));
+	v_light = beam_at(p) * (1.0 - smoothstep(16.0, 42.0, q.z));
 }
 
 void fragment() {

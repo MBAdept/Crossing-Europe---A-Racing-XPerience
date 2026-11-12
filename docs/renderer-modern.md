@@ -2079,3 +2079,49 @@ der Wolke (`lights.beam_at()`), nachts das Rot der eigenen Rückleuchten.
   hell an der Lampe, zur Kamera hin auslaufend, mit leichtem Flimmern des Films; **tiefengetestet** (das eigene Auto
   und alles davor verdeckt es) und mit denselben fünf Tiefenproben an der Lampe wie ihr Lichtpunkt – eine Lampe hinter
   einer Kuppe oder einem Lkw hat auch keine Spiegelung. Laternen und Tankstellenlampen spiegeln nachts ebenso.
+
+### 15.5 Schnee am Boden und auf den Dingen
+
+- **Schneewälle** (`builders/terrain.gd`, `_snow_banks`): auf einer Schnee-Etappe liegt der geräumte Schnee als
+  niedriger Wall an der Außenkante der Bankette – Teil des Geländenetzes, gleiches Material, also nach dem Bodengesetz
+  so hell wie der Schneeboden; der Fuß auf dem Bankett ist schmutzig grau (die Pflugkante zeichnet den Wall gegen das
+  Weiß). Höhe 0,3 m mit langsamer Schwankung, **höchstens 0,45 m** (`BANK_MAX_M`) – wie die Bodendecker der
+  Kurvenkorridore (A-3, 0,5 m) kann er nie ein Auto vor dem Auge in 3,4 m verdecken; das Geländeprofil der
+  Fairness-Prüfungen bleibt unberührt. Nicht auf Brücken, in Tunneln, in den City Limits und neben einer Tankspur; wo er
+  endet, läuft er über drei Segmente aus. Etwa 380 Dreiecke je Stück.
+- **Schnee auf den Dingen**: nach oben weisende Flächen tragen Schnee – Dächer und Simse (`baked`), die Kronen der
+  Bäume (`leaves`), Leitplankenholme, Masten, Laternen (`vpbr` statischer Modelle: `ModernMaterials.static_code()` setzt
+  dort `snow_cover` 1, Fahrzeuge behalten 0). Nachts um 30 % dunkler (`snow_night`), damit Dächer und Kronen nicht über
+  dem Schneeboden leuchten. Fernbilder und Ersatzbilder tönen wie Arcade 15 % zu `#bfccd6`.
+
+### 15.6 Belichtungsrampe an der Tunnelausfahrt
+
+Arcade lässt das Draußen überstrahlt wirken, solange die Kamera im Tunnel ist (Umgebungslicht × 1,7 + 0,25, Nebel 55 %
+zu Weiß). Modern: ein Viereck über dem Ausfahrtsportal (`environment_rig.gd`, `_update_exit`), tiefengetestet – die
+Röhre verdeckt es außerhalb der Öffnung –, mischt alles, was durch die Öffnung zu sehen ist, zu einem hellen Weiß:
+55 % solange die Ausfahrt fern ist, 12 % direkt am Portal (die Augen gewöhnen sich, `exit_glare()`); danach ist das
+ganze Bild 45 m lang überstrahlt (22 % am Portal, `exit_after()`, Canvas-Ebene 1). Nur bei Tag (Leuchtdichte des
+Umgebungslichts 0,35 … 0,75), nur mit einem Tunnel-Builder (seine Röhre muss das Viereck verdecken), eine Funktion der
+Kameraposition – keine Uhr. Das Viereck steht in den Aufwärm-Knoten des Rigs.
+
+### 15.7 Nacht
+
+- **Mond von oben** (Nachtgesetz für senkrechte Flächen, Entscheidung 8 der Leitung): das Mondlicht fällt aus
+  mindestens 55° (`MOON_MIN_ELEV_DEG`). Ein tiefer Mond beleuchtete Wände, die ihm zugewandt sind, viel stärker als
+  ebenen Boden (um 22 Uhr 1,7-fach) – das Lichtgesetz ist für ebenen Boden gemacht; M2ZS1 maß den hellen Pylon der
+  Köhlbrandbrücke 40 % über Arcade. Ab 55° bekommt eine senkrechte Fläche höchstens 0,7 × das Mondlicht des Bodens: jede
+  helle Wand, jedes Brückenteil, jede Karosserie bleibt beim Anteil des Bodens. Der Mond am Himmel bleibt, wo die
+  Palette ihn zeichnet. `night_albedo` von `baked.gdshader` bleibt die Stellschraube je Material (Pylon 0,45).
+- **Blaulicht**: ein Polizeiauto mit Blaulicht (Ansicht `beacon` „a“/„b“) bis 160 m vor der Kamera bekommt nachts
+  einen Punktlicht aus dem Pool (es hat Vorrang vor der fernsten Lampe, der Deckel bleibt 8) und einen blauen
+  Lichtkegel auf dem Boden, beide im Takt der Phase (1,0 / 0,6). Bei Tag nichts.
+- **Deckel**: höchstens 8 Punktlichter und 2 Spots, keines mit Schatten, genau ein gerichtetes Licht – geprüft auf drei
+  Nachtetappen (`tests/race3d/check_light_cap.gd`).
+
+### 15.8 Tag: Sonnenscheibe
+
+`EnvironmentRig.sky_palette()` gibt die Palette unverändert an den Hintergrund: die Sonnenscheibe steht, wo Arcade sie
+zeichnet – mittags vorn und hoch –, auch wenn das Licht der hohen Sonne von hinten links kommt (sonst läge alles, was
+die Verfolgerkamera sieht, im Gegenlicht). Das ist Arcades eigene Abmachung: sein Panorama zeigt die Sonne vorn, seine
+Sprites sind von hinten links beleuchtet. Bei tiefer Sonne (Morgen, Abend) wird nicht geschwenkt: dort stimmen Scheibe,
+Horizontglühen, Licht und Schatten genau überein.

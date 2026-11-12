@@ -65,9 +65,14 @@ uniform float asphalt_reflect = 0.9;               // how much of the low beam a
 uniform float paint_reflect = 1.6;                 // (Arcade's factors: asphalt 0.9, lines 1.6, hatch and crosswalk 1.4, checker 1.2)
 
 uniform float wet_mirror = 0.42;                   // R4: share of the Fresnel reflection of the sky on wet asphalt
+// R4 night calibration (contract §6 R4: the mean road luminance at N1 within +15 % of Arcade and never darker): the
+// fine detail of the asphalt (polished tracks, oil, joints, patches) darkens its mean by a few per cent – measured at
+// N1 3–4 % below Arcade before; at night (outside tunnels, which have their own light) the base is lifted by this
+uniform float night_lift = 0.08;
 
 global uniform float ce_wet;
 global uniform float ce_snow;
+global uniform float ce_night;
 global uniform vec4 ce_fog_color;
 global uniform vec2 ce_fog_range;
 global uniform vec4 ce_sky_top;
@@ -373,6 +378,9 @@ void fragment() {
 		}
 		base = mix(base, col_snow, (kind == 2 ? 0.6 : 0.2) * snow);
 		reflect = 1.0;
+	}
+	if (!tunnel) {
+		base *= 1.0 + night_lift * clamp(ce_night, 0.0, 1.0);
 	}
 	base = clamp(base, vec3(0.0), vec3(1.0));
 	ALBEDO = base;

@@ -165,6 +165,15 @@ func test_night_moon_and_floor() -> void:
 	assert_near(float(night["ref"]), Rig.REF_NIGHT, 1.0e-6, "nachts gilt die dunklere Bezugs-Albedo (Nachtschwelle)")
 	var rain_night := Rig.light_state(Palette.compute(23.0, "rain", _daytime(), false), 0.0, 0.0, 0.0)
 	assert_eq(float(rain_night["share"]), 0.0, "Regennacht: kein Mond")
+	# R4 night law for vertical faces: the moon's light falls from at least MOON_MIN_ELEV_DEG at every night hour – a wall
+	# turned towards it gets less moonlight than level ground (M2ZS1: the pylon 40 % above Arcade under a low moon)
+	for hour: float in [21.0, 22.0, 23.5, 1.0, 3.0, 4.5]:
+		var st_n := Rig.light_state(Palette.compute(hour, "normal", _daytime(), false), 0.0, 0.0, 0.0)
+		if not bool(st_n["moon"]):
+			continue
+		var up := (st_n["to_sun"] as Vector3).y
+		assert_true(rad_to_deg(asin(up)) >= Rig.MOON_MIN_ELEV_DEG - 0.01, "%.1f Uhr: Mondlicht von oben (%.1f°)" % [hour, rad_to_deg(asin(up))])
+		assert_true(sqrt(1.0 - up * up) < up, "%.1f Uhr: eine Wand zum Mond bekommt weniger als ebener Boden" % hour)
 	# dusk: the sun's part is gone before the moon's begins – never two lights, never a jump
 	var last := -1.0
 	for i in 61:

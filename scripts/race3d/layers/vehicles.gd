@@ -43,7 +43,7 @@ const STEER_DEG := 7.0              ## player's front wheels: steering input sha
 const FLOATS_PER_FLARE := 20        ## MultiMesh layout: 12 transform + 4 colour + 4 custom
 const FLOATS_PER_SHADOW := 16       ## 12 transform + 4 custom
 const SPRAY_FLOATS := 13            ## R4: spray source layout of layers/weather.gd (SOURCE_FLOATS)
-const STREAK_GAIN := 0.45           ## R4: reflection of a rear lamp on the wet road, × the lamp's flare strength × wet
+const STREAK_GAIN := 0.7            ## R4: reflection of a rear lamp on the wet road, × the lamp's flare strength × wet
 const STREAK_MIN_M := 3.0
 const STREAK_MAX_M := 18.0
 const PLAYER_ID := -999999          ## view id of the player car in this layer
@@ -63,7 +63,9 @@ const XFADE_S := 0.5
 ## sharp lobe treats it as a point light and drew two white flecks on the player car (p95 luminance 193 against
 ## Arcade's 51 at DEV 21:00); the lobe keeps this share of its strength then (vpbr uniform coat_sun).
 const MOON_COAT := 0.08
-const XFADE_LODS: Array[String] = ["lod1", "lod2"]
+## R4 (M2INT note 6: the swap lod0 -> lod1 at 40 m changed 14 % of a car's pixels in one frame): lod0 cross-fades too –
+## its glass has the same dither law now (glass.gdshader xfade); the wheels of the fading level stand still for XFADE_S
+const XFADE_LODS: Array[String] = ["lod0", "lod1", "lod2"]
 const STANDIN_SHADER := "vehicle_sprite"   ## assets/shaders/modern/vehicle_sprite.gdshader (through ModernMaterials)
 const STANDIN_NEAR_M := 0.3          ## a flat stand-in whose anchor is closer than this is not drawn (Arcade's near plane)
 const FLARE_PICTURE_GAP_M := 0.08    ## a lamp glow of a sprite stand-in sits this far in front of its picture
