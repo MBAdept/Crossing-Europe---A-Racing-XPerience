@@ -54,7 +54,7 @@ Nach den Bits von `TrackSegment.fuel_zone`, wie `RoadRenderer._fuel_structures`:
 | Insel (`FUEL_ISLAND`) | 0,18 m hoch, 0,35 … 2,3 m hinter der befestigten Kante (inklusive Tankspur), gelber Bordstein zur Tankspur | gelb gestrichene Bordsteinkante oben; Betonvorplatz bis 5,4 m mit Plattenkante bis in den Boden |
 | Dach (`FUEL_CANOPY`) | Unterseite 5,6 m von 0,5 m innerhalb der Kante bis 4,6 m dahinter, dunkler Streifen 0,6 m an der Straßenseite, rotes Band 5,6–5,95, weißes 5,95–6,45 m | Blendenbänder auf beiden Längsseiten und am Ende, mit dunkler Fuge und Metallabdeckung; nachts leicht von innen leuchtend (Lampenkanal 14); Dachfläche |
 | Stirnblende (`FUEL_CANOPY_FRONT`) | weiß über rotem Band, „TANKSTELLE“ blau, Versalhöhe 0,32 m | Tafel des Schriftatlas, nachts hinterleuchtet |
-| Stützen | eine an der Front, 0,3 m, auf der Insel bei 1,3 m | an Front und Ende jedes Daches, mit Sockel |
+| Stützen | eine an der Front, 0,3 m, auf der Insel bei 1,3 m | an Front und Ende jedes Daches, mit Sockel – keine vor einem Schild (`column_plan`, siehe Fairness) |
 | Leuchten | zwei je zweitem Segment (1,0 × 0,36 m), nachts mit Schein | Leuchtfelder (Kanal 12), Arcades weißer Schein (1,8 m) über die Ebene `flares` |
 | Preissäule (`object` `fuel_pylon`) | Mast 0,36 m bis 6 m, Tafel 2,2 × 3,8 m bei 5,8–9,6 m: blau, roter Kopf 0,7 m, Zapfsäulen-Piktogramm, „1,79“ / „1,85“ | Fundament, Stahlmast, Tafelkasten mit der Tafel auf beiden Seiten; nachts leuchten Ziffern und Piktogramm, Arcades blauer Schein |
 
@@ -65,9 +65,18 @@ zwischen Unterseite und Dach: die Ebene `flares` zeichnet zu jeder Lampe mit Keg
 im Dach verdeckt ihn der Tiefentest, sichtbar bleiben nur die weißen Scheine der Leuchtfelder (Arcades Farbe).
 
 **Fairness.** Über Fahrbahn und Tankspur liegt nichts unter 5,6 m (Unit-Test über alle Ecken); die Kamera in 3,4 m
-sieht unter dem Dach jedes Auto der Spur. Die Stützen stehen auf der Insel. Die Inselsegmente liegen nur neben der
+sieht unter dem Dach jedes Auto der Spur. Die Stützen stehen auf der Insel (im Bankettstreifen, dort reicht keine
+Sichtschneise einer Kurve hin). Die Inselsegmente liegen nur neben der
 ganz geöffneten Tankspur (`Track.fuel_lane_factor` = 1, `Track.fuel_lane_at`): ihre Kante ist genau
 `Track.road_edges_at().y`, die Spurmitte `Track.fuel_lane_x()` liegt eine halbe Spur davor (Unit-Test).
+
+**Keine Stütze vor einem Schild (F1).** Arcade zeichnet ein Schild, das unter einem Dach steht, im selben Streifen
+seiner Malreihenfolge **über** den Pfeiler; in 3D würde die Stütze davor es verdecken. `column_plan()` plant die Stützen
+aus den Schildern der Strecke (rechts, aus `Track` bis 120 m hinter dem Dach gelesen, in `collect()`): die vordere
+(Arcades) fällt weg, wenn ein Schild unter dem Dach hinter ihrem Sockel steht; die am Ende (nicht in Arcade) steht nur,
+wenn bis 120 m dahinter kein Schild steht (`SIGN_SCAN_M`; ein Schild weiter hinten könnte sie nur verdecken, solange
+es mehrere hundert Meter entfernt ist). Auswertung aller Etappen: unter 39 von 1909 Dächern steht ein Schild, hinter
+134 eines in 120 m (meist Leitpfeile einer Kurve).
 
 ## 4. Grenze (`border.gd`)
 
@@ -76,8 +85,17 @@ Auf den Segmenten mit `cover == "border"` (18 m ab der Grenze), wie `RoadRendere
   Seiten mit blauem Band.
 - **Stirnblende** 6,0–7,6 m: weiß, blaues Band unten, Europaflagge 1,2 m vom linken Ende, der Name des Landes
   (`plan.borders` `name_local`, in Großbuchstaben) – eine Tafel des Schriftatlas je Grenze, nachts hinterleuchtet.
-- **Pfeiler** 0,55 m, 0,6 m außerhalb der Bankette: Arcades zwei an der Front, zwei weitere am Ende des Daches (nicht im
-  Sichtkorridor einer Kurve, F7).
+- **Pfeiler** 0,55 m, 0,6 m außerhalb der Bankette (`pillar_plan`): Arcades zwei an der Front, zwei weitere am Ende
+  des Daches – aber keiner vor einem Schild (F1) und keiner außer Arcades in der Sichtschneise einer Kurve (F7):
+  - der vordere fällt weg, wenn auf seiner Seite ein Schild unter dem Dach hinter ihm steht (Arcade zeichnet es im
+    selben Streifen über seinen Pfeiler; auf DEV „Tankstelle 15 km“ im ersten Dachsegment, Bild `v2_border_day` zeigte
+    es halb verdeckt). Statt seiner steht einer hinter diesem Schild und hinter dem Zollhäuschen (9 m nach der Grenze),
+    wenn dort bis 120 m dahinter kein Schild seiner Seite steht;
+  - die am Ende nur ohne Schild bis 120 m dahinter (nach der Grenze steht rechts meist das neue Tempolimit 20 m
+    dahinter – dann fehlt der rechte).
+  Eine Seite kann so ohne Pfeiler bleiben; das Dach kragt dann von der anderen aus. Auf DEV (Grenze in einer
+  Rechtskurve, Schilder unter dem Dach auf beiden Seiten) steht es auf zwei Pfeilern links. Auswertung aller
+  48 Grenzen: unter dem Dach steht rechts 8-mal, links 3-mal ein Schild, bis 60 m hinter dem Dach rechts 32-mal.
 - **Lichtbänder** je zweitem Segment, drei quer (25 / 50 / 75 % der Straße), Kanal 12, weißer Schein; **Lichtkegel** wie
   Arcade alle vier Segmente in der Straßenmitte, Radius 16 m, Stärke 1,27 (= 0,7 × `lights` in der Mitte), die Lampe im
   Dach verdeckt.
