@@ -59,12 +59,27 @@ func _initialize() -> void:
 	OS.add_logger(_catch)
 	root.size = Vector2i(480, 270)
 	root.get_node("Settings").call("disarm_crash_guard")
-	var setup := {"mode": "single", "race_id": "", "stage_id": "kiel_hamburg", "from_city": "kiel", "vehicle": "limousine",
+	if _preset() != "":
+		CliArgs.all()["gfx-preset"] = _preset()
+	_sc = (load(RACE) as PackedScene).instantiate()
+	_sc.set("setup", _race_setup())
+	root.add_child(_sc)
+
+
+## The race of the check (check_instance_budget_wald.gd drives a forest stage instead).
+func _race_setup() -> Dictionary:
+	return {"mode": "single", "race_id": "", "stage_id": "kiel_hamburg", "from_city": "kiel", "vehicle": "limousine",
 		"start_world_minutes": 12.0 * 60.0, "weather": "normal", "start_km": 2.0, "autopilot": false, "seed": 11,
 		"gfx": "modern", "no_countdown": true, "start_speed_kmh": 0.0}
-	_sc = (load(RACE) as PackedScene).instantiate()
-	_sc.set("setup", setup)
-	root.add_child(_sc)
+
+
+## Quality preset of the run ("" = the one this machine picks).
+func _preset() -> String:
+	return ""
+
+
+func _check_name() -> String:
+	return "instanzen"
 
 
 func _process(_dt: float) -> bool:
@@ -114,7 +129,7 @@ func _finish() -> bool:
 	if _worst_scene > SCENE_LIMIT:
 		p.append("ganze Szene höchstens %d Instanzen mit Instanz-Uniforms (%d)" % [SCENE_LIMIT, _worst_scene])
 	var ok := p.is_empty()
-	print("RENDER-CHECK %-14s %s  %s%s" % ["instanzen", "OK    " if ok else "FEHLER",
+	print("RENDER-CHECK %-14s %s  %s%s" % [_check_name(), "OK    " if ok else "FEHLER",
 		"%.0f s Verkehr bei 6-facher Zeit (%d Bilder): keine Ablehnung der Engine, Fahrzeug-Ebene höchstens %d Instanzen (Budget %d, %d freigegeben, %d Bauten), ganze Szene höchstens %d mit Instanz-Uniforms (Grenze %d; %.0f s)" % [
 			sim_s, _frames, _worst_layer, _budget, trims, builds, _worst_scene, SCENE_LIMIT, (Time.get_ticks_msec() - _wall0) / 1000.0],
 		"" if ok else "  –  FEHLT: " + "; ".join(p)])

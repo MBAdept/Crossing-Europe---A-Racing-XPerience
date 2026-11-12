@@ -18,6 +18,15 @@ extends RefCounted
 
 const SHADER_DIR := "res://assets/shaders/modern/"
 const CLASSES: Array[String] = ["vpbr", "glass", "baked", "baked_cutout", "leaves"]
+## M2INT: the class "vpbr" for STATIC geometry (props, buildings, trees, street furniture – every model that is not a
+## vehicle): the same shader with its instance uniforms (paint, lamps, fade, sun, fill, gloss, xfade) turned into plain
+## uniforms with the same defaults. Static nodes never set them, but every geometry instance whose material HAS
+## instance uniforms takes 16 slots of Godot's global shader buffer (4096 slots on llvmpipe and most desktop drivers,
+## tests/race3d/render/check_instance_budget.gd): with the trees of AS3R (a vpbr trunk in every tree model) the props
+## of a forest stage at "Hoch" pushed the scene past it – "Too many instances using shader instance variables" at
+## T1, T4 and Dortmund – Frankfurt km 121, the refused instances drawn with another one's values. The material is
+## kept under the key "vpbr|static", so set_class_parameter("vpbr", …) and apply_look() reach it as before.
+const VPBR_STATIC := "vpbr_static"
 ## Global uniforms (contract 4.5.6): name, RenderingServer type, default.
 const GLOBALS: Array = [
 	["ce_night", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, 0.0],
@@ -130,6 +139,11 @@ func shader(class_id: String) -> Shader:
 		if base != null:
 			sh = Shader.new()
 			sh.code = base.code.replace("shader_type spatial;", "shader_type spatial;\n#define CE_CUTOUT")
+	elif class_id == VPBR_STATIC:
+		var vb := shader("vpbr")
+		if vb != null:
+			sh = Shader.new()
+			sh.code = static_code(vb.code)
 	else:
 		sh = load(SHADER_DIR + class_id + ".gdshader") as Shader
 	if sh == null:
@@ -138,13 +152,31 @@ func shader(class_id: String) -> Shader:
 	return sh
 
 
+## Source of VPBR_STATIC from the source of vpbr: every "instance uniform … instance_index(n) = default" becomes a
+## plain "uniform … = default" (the hint list loses its instance_index; the defaults stay). Comments too lose the
+## words "instance uniform", so a look at the code (check_instance_budget.gd) sees none.
+static func static_code(code: String) -> String:
+	var rx := RegEx.create_from_string("(,\\s*|\\s*:\\s*)instance_index\\(\\s*\\d+\\s*\\)")
+	return rx.sub(code, "", true).replace("instance uniform", "uniform")
+
+
+## Material class a model's surface of class `cls` draws with: VPBR_STATIC for "vpbr" on every model that is not a
+## vehicle (manifest kind "vehicle" or "heavy": paint, lamps, fade, sun, fill and the level cross-fade are per car).
+static func class_for(cls: String, model: Dictionary) -> String:
+	if cls == "vpbr" and not model.is_empty() and not (str(model.get("kind", "")) in ["vehicle", "heavy"]):
+		return VPBR_STATIC
+	return cls
+
+
 ## Material of a material class for a model (manifest entry). vpbr and glass are shared by all models
 ## (per-instance data travels as instance uniforms); baked, baked_cutout and leaves get one material per
 ## texture set of the model.
 func material(class_id: String, model: Dictionary = {}) -> Material:
 	var textures: Dictionary = model.get("textures", {})
 	var key := class_id
-	if class_id == "baked" or class_id == "baked_cutout":
+	if class_id == VPBR_STATIC:
+		key = "vpbr|static"
+	elif class_id == "baked" or class_id == "baked_cutout":
 		key += "|" + str(textures.get("albedo", "")) + "|" + str(textures.get("emit", "")) + "|" + str(model.get("roughness", 0.9))
 	elif class_id == "leaves":
 		key += "|" + str(textures.get("leaves", ""))
@@ -152,7 +184,14 @@ func material(class_id: String, model: Dictionary = {}) -> Material:
 		return _materials[key]
 	var mat := ShaderMaterial.new()
 	mat.shader = shader(class_id)
-	if class_id == "baked" or class_id == "baked_cutout":
+	if class_id == VPBR_STATIC:
+		# the class parameters the scene has already put on "vpbr" (look, lamp energies, coat_sun …)
+		var vm := material("vpbr") as ShaderMaterial
+		for u: Dictionary in vm.shader.get_shader_uniform_list():
+			var v: Variant = vm.get_shader_parameter(StringName(str(u["name"])))
+			if v != null:
+				mat.set_shader_parameter(StringName(str(u["name"])), v)
+	elif class_id == "baked" or class_id == "baked_cutout":
 		if textures.has("albedo"):
 			mat.set_shader_parameter("albedo_tex", ModelDB.texture(str(textures["albedo"])))
 		if textures.has("emit"):

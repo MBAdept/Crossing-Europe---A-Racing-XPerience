@@ -182,7 +182,8 @@ static func multimesh_parts(set_id: String, lod: String, mats: ModernMaterials =
 	return out
 
 
-## Cached mesh with the class materials of `mats` set on its surfaces (surface names = classes).
+## Cached mesh with the class materials of `mats` set on its surfaces (surface names = classes). A "vpbr" surface of
+## a model that is not a vehicle gets ModernMaterials.VPBR_STATIC (no instance uniforms, M2INT – class_for()).
 static func surfaced_mesh(rel_path: String, classes: Array, model: Dictionary, mats: ModernMaterials) -> ArrayMesh:
 	var mesh := ModelDB.mesh(rel_path)
 	if mesh == null:
@@ -192,7 +193,7 @@ static func surfaced_mesh(rel_path: String, classes: Array, model: Dictionary, m
 			var cls := str(mesh.surface_get_name(s))
 			if cls == "" and s < classes.size():
 				cls = str(classes[s])
-			var want := mats.material(cls, model)
+			var want := mats.material(ModernMaterials.class_for(cls, model), model)
 			if mesh.surface_get_material(s) != want:
 				mesh.surface_set_material(s, want)
 	return mesh

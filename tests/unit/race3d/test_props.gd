@@ -85,6 +85,49 @@ func _same(a: Transform3D, b: Transform3D, eps: float = 1.0e-3) -> bool:
 		and a.basis.z.distance_to(b.basis.z) < eps
 
 
+## M2INT: static models draw "vpbr" without instance uniforms – every geometry instance whose material has them takes
+## 16 slots of the global shader buffer, and the trees of AS3R (a vpbr trunk each) filled it on forest stages. Vehicles
+## keep them (paint, lamps, fade, sun, fill, gloss, cross-fade are per car); the defaults stay; the class parameters
+## of "vpbr" (the look) reach the static material too.
+func test_static_vpbr_has_no_instance_uniforms() -> void:
+	var mats := ModernMaterials.shared()
+	var src := mats.shader("vpbr").code
+	var st := ModernMaterials.static_code(src)
+	assert_true(src.contains("instance uniform"), "vpbr selbst hat Instanz-Uniforms")
+	assert_false(st.contains("instance uniform") or st.contains("instance_index"), "vpbr_static: keine Instanz-Uniforms mehr")
+	assert_true(st.contains("uniform vec4 paint : source_color = vec4(0.5, 0.5, 0.52, 0.3);"), "Lack mit Farbhinweis und Vorgabe")
+	assert_true(st.contains("uniform vec4 lamp_a = vec4(0.0);") and st.contains("uniform float fade = 1.0;")
+		and st.contains("uniform float xfade = 0.0;"), "Lampen, Ausblendung und Überblendung mit ihren Vorgaben")
+	mats.material("vpbr")
+	mats.set_class_parameter("vpbr", "env_energy", 1.25)
+	var stat := mats.material(ModernMaterials.VPBR_STATIC) as ShaderMaterial
+	assert_true(stat != null and stat != mats.material("vpbr"), "eigenes Material für statische Modelle")
+	assert_near(float(stat.get_shader_parameter("env_energy")), 1.25, 1.0e-6, "übernimmt die Klassenparameter, die vpbr schon hat")
+	mats.set_class_parameter("vpbr", "env_energy", 1.5)
+	assert_near(float(stat.get_shader_parameter("env_energy")), 1.5, 1.0e-6, "… und die späteren (Schlüssel vpbr|static)")
+	assert_eq(ModernMaterials.class_for("vpbr", ModelDB.model("props/tree_oak")), ModernMaterials.VPBR_STATIC, "Baum: statisch")
+	assert_eq(ModernMaterials.class_for("vpbr", ModelDB.model("traffic/sedan")), "vpbr", "Verkehrsauto: mit Instanz-Uniforms")
+	assert_eq(ModernMaterials.class_for("vpbr", ModelDB.model("traffic/bus")), "vpbr", "Bus (heavy): mit Instanz-Uniforms")
+	assert_eq(ModernMaterials.class_for("leaves", ModelDB.model("props/tree_oak")), "leaves", "andere Klassen bleiben")
+	var trunks := 0
+	for pv: Variant in ModelFactory.multimesh_parts("props/tree_oak", "lod0", mats):
+		var m: Mesh = (pv as Dictionary)["mesh"]
+		for s in m.get_surface_count():
+			var sm := m.surface_get_material(s) as ShaderMaterial
+			if sm != null and sm.shader != null and sm.shader.code.contains("lamp_a"):
+				trunks += 1
+				assert_false(sm.shader.code.contains("instance uniform"), "Eiche: vpbr-Fläche ohne Instanz-Uniforms")
+	assert_true(trunks >= 1, "Eiche: Stamm (und Schattenwerfer) in vpbr_static (%d)" % trunks)
+	var car := 0
+	for pv: Variant in ModelFactory.multimesh_parts("traffic/sedan_red", "lod1", mats):
+		var m2: Mesh = (pv as Dictionary)["mesh"]
+		var sm2 := m2.surface_get_material(0) as ShaderMaterial
+		if sm2 != null and sm2.shader != null and sm2.shader.code.contains("instance uniform"):
+			car += 1
+	assert_true(car >= 1, "Verkehrsauto: vpbr mit Instanz-Uniforms (%d)" % car)
+	_cleanup()
+
+
 func test_helpers_follow_arcade() -> void:
 	for side: int in [-1, 1]:
 		for flipped: bool in [false, true]:

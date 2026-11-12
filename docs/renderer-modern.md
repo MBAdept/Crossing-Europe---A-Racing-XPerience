@@ -1767,6 +1767,19 @@ Knoten, das Budget gibt frei), Render-Prüfung `check_instance_budget.gd` (100 s
 `Logger` fängt jede Ablehnung der Engine; ganze Szene unter 230), und `tools/run_render_checks.sh` lässt jede
 Render-Prüfung scheitern, deren Ausgabe eine Ablehnung enthält.
 
+**Statische Modelle ohne Instanz-Uniforms (M2INT).** Mit den Bäumen von AS3R (jeder Baum hat einen Stamm in `vpbr`)
+und den Gebäuden von AS4R trug jeder MultiMesh-Knoten eines Stücks mit einer `vpbr`-Fläche 16 Plätze – auf
+Waldetappen in „Hoch“ lief die Szene über den Puffer: in den A/B-Bildern T1 (5 Ablehnungen) und T4 (2), im Clip
+Dortmund – Frankfurt km 121 (55), gemessen. Requisiten setzen ihre Instanz-Uniforms nie (Lack, Lampen, Ausblendung,
+`sun`, `fill`, `gloss`, Überblendung bleiben auf ihren Vorgaben). Darum zeichnen alle Modelle, die keine Fahrzeuge sind
+(Manifest-`kind` weder `vehicle` noch `heavy`: Bäume, Büsche, Gebäude, Straßenmöbel, Felsen, Wahrzeichen), ihre
+`vpbr`-Flächen mit **`ModernMaterials.VPBR_STATIC`**: derselbe Shader, die Instanz-Uniforms als gewöhnliche Uniforms
+mit denselben Vorgaben (`static_code()` ersetzt die Deklarationen), Material unter dem Schlüssel `vpbr|static` – die
+Klassenparameter von `vpbr` (Look, Lampenenergien, `coat_sun`, Himmel) erreichen es wie zuvor, beim Anlegen übernimmt
+es die schon gesetzten. Das Bild bleibt gleich; im Puffer stehen nur noch Fahrzeuge (Budget 128) und die eigenen
+Knoten von Leitplanken, Tankstelle, Tunnel und Toren. Prüfungen: `test_props` „static_vpbr“ und die Render-Prüfung
+`check_instance_budget_wald.gd` (Kassel – Würzburg ab km 46,5, „Hoch“, Autopilot 120 km/h).
+
 ### 13.9 Speicher, Ladezeit, Showroom
 
 - **Texturspeicher** (A-6: Modern höchstens Arcade + 60 MB), Kiel–Hamburg km 2, 15 s Fahrt mit Verkehr, Monitor der
