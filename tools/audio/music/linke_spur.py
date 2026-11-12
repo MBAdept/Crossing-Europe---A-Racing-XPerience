@@ -22,6 +22,9 @@ Two clips for AudioStreamInteractive (scripts/audio/modern/music_director.gd):
                            director at the next bar line after the finish.
 Both come out of ONE render and one master (the loop body sets the level; count-in, A1 and the ending get exactly its
 processing), so the join is gapless and the levels match.
+The extra clips of race_lib.Extras (stab at the finish line, the endings "rekord" and "finale", the stingers "polizei"
+and "tank"; linke_spur_<suffix>.ogg) are rendered afterwards in D minor with the track gains of this render and its
+master – they sound like the piece and sit at its level (race_lib.write_extras).
 
   python3 tools/audio/music/linke_spur.py              render, write both files, their imports and the manifest
   python3 tools/audio/music/linke_spur.py --out DIR    the same below DIR (no import files; QC --determinism)
@@ -46,10 +49,12 @@ sys.dont_write_bytecode = True
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import music_lib as mlib  # noqa: E402
 from music_lib import ms, ml  # noqa: E402
+import race_lib  # noqa: E402
 
 GENERATOR = "tools/audio/music/linke_spur.py"
 PIECE = "linke_spur"
 BPM = 132.0
+ROTATION = 1            # first race piece of a session (MusicDirector: rotation over the "race" entries)
 mlib.set_tempo(BPM)
 SR = mlib.SR
 BAR, STEP, BEAT = ms.BAR, ms.STEP, ms.BEAT
@@ -71,6 +76,10 @@ CH = {
     "A": {"root": 33, "pow": (45, 52, 57), "pad": (45, 52, 57, 61), "arp": (57, 61, 64, 69), "tri": (64, 69, 73)},
     "Gm": {"root": 31, "pow": (43, 50, 55), "pad": (43, 50, 55, 58), "arp": (55, 58, 62, 67), "tri": (62, 67, 70)},
 }
+# the key for the extra clips (race_lib.Extras): tonic, the ending's cadence, Phrygian bII and iv of the stingers, the
+# major tonic of the finale, the root the fanfares are built on (D5)
+KEY = {"tonic": "Dm", "minor_tonic": "Dm", "major_tonic": "D", "cadence": ("Bb", "C"), "bII": "Eb", "iv": "Gm",
+       "root_hi": 74}
 # phrases of the loop (id, kind, chords) – A groove + motif, B hook, P lift, D breakdown, S solo, T turnaround
 PHRASES = [
     ("A1", "A", "Dm Dm Bb C Dm Dm Bb C"),
@@ -525,7 +534,7 @@ def specs() -> dict:
                        "sends": {"hall": -10.0, "delay": -13.0}}
     sp["lead_gtr"]["lufs"] = -23.0
     sp["bell"]["lufs"] = -24.0
-    return sp
+    return mlib.apply_prefs(sp)          # the shared sub and bass levels (tools/audio/music/mischung.json)
 
 
 TRACK_GROUP = {"kick": "drums", "kick2": "drums", "snare": "drums", "snare2": "drums", "clap": "drums", "toms": "drums",
@@ -536,7 +545,8 @@ TRACK_GROUP = {"kick": "drums", "kick2": "drums", "snare": "drums", "snare2": "d
 # --- render ----------------------------------------------------------------------------------------------------------
 
 def render(n_bars: int | None = None, log=print) -> tuple:
-    """Renders the timeline (or only its first n_bars + 3 s) and mixes it. Returns (mix, levels)."""
+    """Renders the timeline (or only its first n_bars + 3 s) and mixes it. Returns (mix, levels, fit) – fit: the level
+    decisions of the Mixer (the extra clips are mixed with them)."""
     bars = BARS if n_bars is None else BARS[:n_bars]
     n = N_RENDER if n_bars is None else int(round((n_bars * BAR + 3.0) * SR))
     t_end = len(bars) * BAR
@@ -715,7 +725,7 @@ def render(n_bars: int | None = None, log=print) -> tuple:
     log(f"  {'fx':12s} {time.time() - t1:6.1f} s")
     mix = mx.finish()
     log(f"  Mischung fertig nach {time.time() - t_all:.0f} s")
-    return mix, mx.levels
+    return mix, mx.levels, mx.fit
 
 
 def info() -> dict:
@@ -739,7 +749,7 @@ def main(argv=None) -> int:
         os.makedirs(args.wav, exist_ok=True)
     if args.sketch:
         nb = min(len(BARS), 1 + args.sketch)
-        mix, levels = render(nb)
+        mix, levels, _fit = render(nb)
         m = mlib.Master()
         meas = slice(F_BODY - int(8 * BAR * SR), min(len(mix), int(nb * BAR * SR)))
         p = m.pre(mix, meas)
@@ -748,7 +758,7 @@ def main(argv=None) -> int:
             ms.write_wav(os.path.join(args.wav, f"linke_spur_skizze_{args.sketch}.wav"), y)
         print(json.dumps({"levels": levels, "master": m.info, "seconds": round(time.time() - t_start, 1)}, indent=1))
         return 0
-    mix, levels = render()
+    mix, levels, fit = render()
     body = slice(F_BODY, F_BODY + LOOP_FRAMES)
     m = mlib.Master()
     p = m.pre(mix, body)
@@ -776,19 +786,29 @@ def main(argv=None) -> int:
         a, b = parts["main"]
         rep["files"]["main"] = mlib.encode_checked(state["y"][a:b], man.file(FILES["main"]), TITLE, None)
     rep["master"] = dict(m.info)
+    del state, y
+    gain = mlib.prefs()["race_music_db"]           # music level against the car (mischung.json)
+    host = race_lib.ExtrasHost(PIECE, TITLE, GENERATOR, "ls", KEY, CH, specs)
+    rep["extras"] = race_lib.write_extras(host, fit, m, man, gain, BPM)
+    ex = race_lib.extra_ids(PIECE)
     if not args.out:
         # loop_offset a quarter frame past the body's first frame: Godot truncates time x rate to a frame
         mlib.write_ogg_import_keep(man.file(FILES["main"]), (F_BODY + 0.25) / SR, BPM, 0, 4)
         mlib.write_ogg_import_keep(man.file(FILES["ending"]), None, BPM, 0, 4)
+        for sid in ex.values():
+            mlib.write_ogg_import_keep(man.file(f"{sid}.ogg"), None, BPM, 0, 4)
     e = man.add(IDS["main"], FILES["main"], "music", GENERATOR, loop=(F_BODY, F_BODY + LOOP_FRAMES), role="race",
-                bus="MMusic", gain_db=0.0, bpm=BPM, bar_beats=4,
+                bus="MMusic", gain_db=gain, bpm=BPM, bar_beats=4,
                 note="Linke Spur: Einzähler (1 Takt) und A1 einmal, dann Schleife B1 … T, A1 (88 Takte); "
                      "ohne beat_count: Godot zählt Schläge vom Dateianfang, die Schleife endet am Dateiende")
     e.update({"piece": PIECE, "ending": IDS["ending"], "countin_beats": 4 * COUNTIN_BARS, "intro_bars": I_BODY,
-              "loop_bars": LOOP_BARS})
-    e = man.add(IDS["ending"], FILES["ending"], "music", GENERATOR, role="race_ending", bus="MMusic", gain_db=0.0,
+              "loop_bars": LOOP_BARS, "rotation": ROTATION, "key": KEY["tonic"],
+              "endings": {"rekord": ex["schluss_rekord"], "finale": ex["schluss_finale"]}, "ziel": ex["ziel"],
+              "stingers": {"busted": ex["polizei"], "out_of_fuel": ex["tank"]}})
+    e = man.add(IDS["ending"], FILES["ending"], "music", GENERATOR, role="race_ending", bus="MMusic", gain_db=gain,
                 bpm=BPM, bar_beats=4, note="Linke Spur: Schluss (B – C – d, Schlussakkord), ab dem nächsten Taktstrich")
     e["piece"] = PIECE
+    e["variant"] = "normal"
     e["qc"] = {"lufs": [-20.0, -10.0]}
     man.save()
     rep["seconds"] = round(time.time() - t_start, 1)

@@ -226,6 +226,26 @@ func test_loudness_plan_in_the_configuration() -> void:
 			assert_true(mix.context_db.has(c), "Pegel für Kontext %s" % c)
 
 
+## AU-R: the top-speed row of the plan – engine + road + wind at the car's top speed −15 ± 1 LUFS (KRITIK-FAHRBAHN
+## 2.6: measured −14.9 with the Limousine). It follows from the measured engine of each car at top speed
+## (road.engine_top_lufs) and the plan's relation: tyres tyres.under_engine_db and wind wind.under_engine_db under it.
+func test_top_speed_row_of_the_plan() -> void:
+	var mix := _mix()
+	var top := float(mix.loudness["top_speed_lufs"])
+	var tol := float(mix.loudness["top_speed_tol_db"])
+	assert_near(top, -15.0, 1.0e-6, "Höchsttempo −15 LUFS")
+	assert_near(tol, 1.0, 1.0e-6, "± 1 dB")
+	var road: Dictionary = ConfigLoader.lookup(cfg(), "audio.modern.road", {})
+	var tyres := float(ConfigLoader.lookup(road, "tyres.under_engine_db", 4.0))
+	var wind := float(ConfigLoader.lookup(road, "wind.under_engine_db", 3.0))
+	var engines: Dictionary = road.get("engine_top_lufs", {})
+	assert_true(engines.size() >= 5, "gemessener Motor je Auto")
+	for car: String in engines:
+		var e := float(engines[car])
+		var sum := e + 10.0 * log(1.0 + pow(10.0, -tyres / 10.0) + pow(10.0, -wind / 10.0)) / log(10.0)
+		assert_near(sum, top, tol, "%s: Motor %.1f + Fahrbahn + Wind = %.1f LUFS" % [car, e, sum])
+
+
 func test_state_is_plain_data() -> void:
 	var mix := _mix()
 	mix.trigger("impact")

@@ -320,7 +320,8 @@ func _scenario_delegation(_g: String) -> void:
 	var reached := bool(st["alive"]) and modern_rpm > 1000.0 and str(slots["engine"]["vehicle"]) == "gran_turismo" \
 		and float(slots["road"]["wind"]) > 0.05 and float(slots["road"]["skid"]) > 0.05 and float(slots["ambience"]["rain"]) > 0.05 \
 		and float(st["siren"]) > 0.5 and bool(st["tunnel"]) and float(slots["env"]["blend"]) > 0.0 \
-		and int((st["plays"] as Dictionary).get("crash", 0)) == 1 and int((st["plays"] as Dictionary).get("ui_ok", 0)) == 1 \
+		and int((st["plays"] as Dictionary).get("crash", 0)) + int((st["dropped"] as Dictionary).get("crash", 0)) == 1 \
+		and int((slots["impact"]["events"] as Dictionary).get("collision", 0)) == 1 and int((st["plays"] as Dictionary).get("ui_ok", 0)) == 1 \
 		and int((st["events"] as Dictionary).get("collision", 0)) == 1 and traffic.has("tunnel_blend") \
 		and (_am.call("engine_perf") as Dictionary).has("skips") and (_am.call("traffic_perf") as Dictionary).has("avg_ms")
 	var live_ok := true
@@ -659,7 +660,12 @@ func _scenario_race(_g: String) -> void:
 		var fin: Dictionary = await _drive(0.0, true)
 		var st_fin: Dictionary = _modern().call("debug_state")
 		await _end_stage()
-		var finish_ok := bool(fin["finished"]) and int((st_fin["plays"] as Dictionary).get("finish", 0)) == 1 \
+		# the finish sound: since AU-D2 the music slot claims "stage_finish" (the race piece's ending, or the ending as
+		# a one-shot) – the AudioManager's "finish" jingle of the same moment is dropped; without the claim it plays
+		var fin_music: Dictionary = (st_fin["slots"] as Dictionary)["music"]
+		var finish_sound := int((st_fin["plays"] as Dictionary).get("finish", 0)) == 1 \
+			or (int((st_fin["dropped"] as Dictionary).get("finish", 0)) == 1 and str(fin_music.get("ending_variant", "")) != "")
+		var finish_ok := bool(fin["finished"]) and finish_sound \
 			and (_inject or int((st_fin["events"] as Dictionary).get("stage_finish", 0)) == 1)
 		# the same 16 s with the Arcade profile: the simulation does not depend on the sound profile (Rule 3)
 		_am.call("set_profile", "arcade")

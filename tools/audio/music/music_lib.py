@@ -6,11 +6,16 @@ filters, reverbs, compressor, limiter and loudness meter) and adds the "modern" 
 (layered drums, sub bass, wide leads, deeper sidechain pump, new reverbs, multiband master with an M/S stage) plus
 everything a game file needs:
 
+  prefs() / apply_prefs()    the mix decisions shared by every piece (tools/audio/music/mischung.json: sub and bass
+                             level, high shelf of the master, music levels in the manifest) – one change there and
+                             render_all.py re-renders every piece the same way; all zero = the files of 2026-11-11
   set_tempo(bpm)             tempo of the frozen synthesiser (its BPM, BEAT, BAR, STEP and delay time)
   kick2 / snare2 / shaker / sub_bass, lead patches "super_l" / "super_r"      modern instruments
   Canvas                     a track buffer on a timeline (place a sound at a time, with pan)
   Mixer                      incremental mix: one stem at a time into drum / instrument / fx buses and reverb sends
-                             (a three-minute piece never holds all its stems in memory)
+                             (a three-minute piece never holds all its stems in memory); records the level decisions
+                             of a render (fit) and can mix another timeline with exactly these (ref): the extra clips of
+                             a race piece (endings, stingers) get the track gains of its body
   Master                     fit() on the part that sets the level, apply() to it and to related clips (the ending of
                              a race piece gets exactly the processing and gain of its body)
   finish_ogg()               Ogg Vorbis q5 through modern_lib (bit-exact), decoded again and measured: the true peak
@@ -48,6 +53,50 @@ OGG_QUALITY = 5.0
 TARGET_LUFS = -14.0
 TP_MAX_DBTP = -1.0              # after the Vorbis encode (QC limit)
 TP_MARGIN_DB = 0.08             # aim this far below the limit after the encode
+PREFS_FILE = os.path.join(HERE, "mischung.json")
+PREFS_DEFAULT = {"sub_db": 0.0, "bass_db": 0.0, "high_shelf_db": 0.0, "high_shelf_hz": 6000.0, "low_shelf_db": 0.0,
+                 "low_shelf_hz": 120.0, "race_music_db": 0.0, "menu_music_db": 0.0, "ui_db": 0.0}
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# shared mix decisions (tools/audio/music/mischung.json)
+# ---------------------------------------------------------------------------------------------------------------------
+
+@functools.lru_cache(maxsize=None)
+def _prefs_cached() -> tuple:
+    out = dict(PREFS_DEFAULT)
+    if os.path.exists(PREFS_FILE):
+        import json
+        with open(PREFS_FILE, encoding="utf-8") as fh:
+            data = json.load(fh)
+        for k in PREFS_DEFAULT:
+            if k in data:
+                out[k] = float(data[k])
+    return tuple(sorted(out.items()))
+
+
+def prefs() -> dict:
+    """The shared mix decisions of all pieces (mischung.json; missing keys: PREFS_DEFAULT)."""
+    return dict(_prefs_cached())
+
+
+# tracks whose level the shared decisions move: "sub" = the sine sub under the bass line and the sub kick layer,
+# "bass" = the picked and the synth bass
+PREF_TRACKS = {"sub_db": ("sub", "kick2"), "bass_db": ("bass_pick", "bass_syn")}
+
+
+def apply_prefs(sp: dict) -> dict:
+    """Moves the loudness targets of the sub and bass tracks of a piece's mix specs by the shared decisions. A value of
+    0 leaves the spec untouched (the render stays bit-identical)."""
+    p = prefs()
+    for key, names in PREF_TRACKS.items():
+        d = float(p.get(key, 0.0))
+        if d == 0.0:
+            continue
+        for name in names:
+            if name in sp:
+                sp[name]["lufs"] = float(sp[name]["lufs"]) + d
+    return sp
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -116,12 +165,14 @@ def shaker(var: int) -> np.ndarray:
 
 
 @functools.lru_cache(maxsize=None)
-def sub_bass(midi: int, dur: float) -> np.ndarray:
-    """Sine sub an octave or two below the bass note, folded into 36..75 Hz."""
+def sub_bass(midi: int, dur: float, fold_lo: float = 36.0) -> np.ndarray:
+    """Sine sub an octave or two below the bass note, folded into fold_lo .. fold_lo x 75/36 Hz (36..75 Hz: the title
+    remaster and race piece 1; the later pieces fold from 45 Hz, so that no key puts its sub near 40 Hz)."""
+    hi = 75.0 * fold_lo / 36.0
     f = float(ms.mtof(midi))
-    while f < 36.0:
+    while f < fold_lo:
         f *= 2.0
-    while f > 75.0:
+    while f > hi:
         f *= 0.5
     n = int((dur + 0.06) * SR)
     t = np.arange(n) / SR
@@ -191,20 +242,29 @@ REVERBS2 = {
 }
 
 
-def process(x: np.ndarray, spec: dict, duck: np.ndarray | None) -> np.ndarray:
+def process(x: np.ndarray, spec: dict, duck: np.ndarray | None, ref: dict | None = None,
+            rec: dict | None = None) -> np.ndarray:
     """One track: saturation, EQ, compressor, chorus, pan, sidechain pump, then its loudness target (spec["lufs"],
-    K-weighted and gated over the whole track – a constant gain)."""
+    K-weighted and gated over the whole track – a constant gain).
+    The level decisions that depend on the whole track (saturation reference peak, compressor threshold, loudness
+    gain) are written to `rec`; with `ref` (such a record of another render) they are taken from there instead of
+    being measured – a clip rendered on its own then gets exactly the processing of the piece it belongs to."""
     if x.ndim == 1:
         x = np.stack([x, x], axis=1)
     if "sat" in spec:
         k = spec["sat"]
-        pk = np.max(np.abs(x)) + 1e-12
+        pk = float(ref["sat_peak"]) if ref and "sat_peak" in ref else np.max(np.abs(x)) + 1e-12
+        if rec is not None:
+            rec["sat_peak"] = float(pk)
         x = np.tanh(k * x / pk) / math.tanh(k) * pk
     if spec.get("eq"):
         x = ms.apply_eq(x, spec["eq"])
     if "comp" in spec:
         rel, ratio, att, rls = spec["comp"]
-        x = x * ms.compressor_gain(x, ms.integrated_lufs(x) + rel, ratio, att, rls)[:, None]
+        clv = float(ref["comp_lufs"]) if ref and "comp_lufs" in ref else ms.integrated_lufs(x)
+        if rec is not None:
+            rec["comp_lufs"] = float(clv)
+        x = x * ms.compressor_gain(x, clv + rel, ratio, att, rls)[:, None]
     if spec.get("chorus"):
         x = ms.chorus(x, mix=spec["chorus"] if isinstance(spec["chorus"], float) else 0.6)
     if "pan" in spec:
@@ -212,7 +272,9 @@ def process(x: np.ndarray, spec: dict, duck: np.ndarray | None) -> np.ndarray:
         x = np.stack([x[:, 0] * gl, x[:, 1] * gr], axis=1)
     if "duck" in spec and duck is not None:
         x = x * (1.0 - spec["duck"] * (1.0 - duck))[:, None]
-    lv = ms.integrated_lufs(x)
+    lv = float(ref["lufs"]) if ref and "lufs" in ref else ms.integrated_lufs(x)
+    if rec is not None:
+        rec["lufs"] = float(lv)
     if lv > -150.0:
         x = x * ms.undb(spec["lufs"] - lv)
     return x
@@ -221,15 +283,21 @@ def process(x: np.ndarray, spec: dict, duck: np.ndarray | None) -> np.ndarray:
 class Mixer:
     """Incremental mix of one render: add() one track at a time (processed at once into its bus and its reverb and
     delay sends), finish() sums the buses: parallel compression and saturation on the drums, plate and hall reverbs,
-    the ping-pong delay."""
+    the ping-pong delay.
+    `fit` records every level decision of the render (per track, and of the drum bus); a Mixer made with ref=<the fit
+    of another render> mixes its timeline with exactly these decisions (Mixer.add of a track without a record in ref
+    measures it, as usual, and notes it in `unmatched`)."""
 
-    def __init__(self, n: int, kick_times: list, pump_release: float = 0.17, log=print):
+    def __init__(self, n: int, kick_times: list, pump_release: float = 0.17, log=print, ref: dict | None = None):
         self.n = n
         self.buses = {k: np.zeros((n, 2)) for k in ("drums", "inst", "fx")}
         self.sends = {k: np.zeros((n, 2)) for k in ("plate", "hall", "delay")}
         self.duck = ms.duck_env(kick_times, n, 1.0, 0.004, 0.02, pump_release)
         self.levels: dict[str, float] = {}
         self.log = log
+        self.ref = ref
+        self.fit: dict = {"tracks": {}, "drums": {}}
+        self.unmatched: list[str] = []
 
     def add(self, name: str, x: np.ndarray, spec: dict, auto: np.ndarray | None = None) -> None:
         if x is None or not np.any(x):
@@ -238,7 +306,14 @@ class Mixer:
             x = x[:self.n] if len(x) > self.n else np.pad(x, ((0, self.n - len(x)),) + ((0, 0),) * (x.ndim - 1))
         if auto is not None:
             x = x * (auto[:, None] if x.ndim == 2 else auto)
-        y = process(x, spec, self.duck)
+        tref = None
+        if self.ref is not None:
+            tref = self.ref.get("tracks", {}).get(name)
+            if tref is None:
+                self.unmatched.append(name)
+        rec: dict = {}
+        y = process(x, spec, self.duck, tref, rec)
+        self.fit["tracks"][name] = rec
         self.buses[spec["bus"]] += y
         for s, lvl in spec.get("sends", {}).items():
             self.sends[s] += y * ms.undb(lvl)
@@ -246,9 +321,13 @@ class Mixer:
 
     def finish(self) -> np.ndarray:
         d = self.buses["drums"]
-        par = d * ms.compressor_gain(d, ms.integrated_lufs(d) - 2.0, 6.0, 0.003, 0.10)[:, None]
+        dref = self.ref.get("drums", {}) if self.ref is not None else {}
+        dlv = float(dref["lufs"]) if "lufs" in dref else ms.integrated_lufs(d)
+        self.fit["drums"]["lufs"] = float(dlv)
+        par = d * ms.compressor_gain(d, dlv - 2.0, 6.0, 0.003, 0.10)[:, None]
         d = d + 0.5 * ms.undb(4.0) * par
-        pk = np.max(np.abs(d)) + 1e-12
+        pk = float(dref["peak"]) if "peak" in dref else np.max(np.abs(d)) + 1e-12
+        self.fit["drums"]["peak"] = float(pk)
         d = np.tanh(1.7 * d / pk) / math.tanh(1.7) * pk                 # bus saturation: rounder peaks
         out = d + self.buses["inst"] + self.buses["fx"]
         for name, r in REVERBS2.items():
@@ -300,6 +379,15 @@ class Master:
         self.target = target_lufs
         self.ceiling = ceiling_dbtp       # limiter ceiling (true peak before the encode)
         self.log = log
+        # EQ of the sum: the brand curve plus the shared shelves of mischung.json (not added at 0 dB). The low shelf
+        # (AU-R, KRITIK-MISCHUNG 2: sub_db / bass_db hardly move the bass, the kick has no knob) is the knob for "too
+        # much / too little bass"; at its default 0 every piece renders bit-identical to before.
+        p = prefs()
+        self.eq = list(self.EQ)
+        if float(p["high_shelf_db"]) != 0.0:
+            self.eq.append(("hs", float(p["high_shelf_hz"]), float(p["high_shelf_db"])))
+        if float(p["low_shelf_db"]) != 0.0:
+            self.eq.append(("ls", float(p["low_shelf_hz"]), float(p["low_shelf_db"])))
         self.band_thr: list[float] = []
         self.band_makeup: list[float] = []
         self.glue_thr = 0.0
@@ -349,7 +437,7 @@ class Master:
 
     def pre(self, x: np.ndarray, measure: slice | None = None) -> np.ndarray:
         """Everything before the output gain (fit the thresholds when `measure` is given)."""
-        x = ms.apply_eq(x, self.EQ)
+        x = ms.apply_eq(x, self.eq)
         x = self._bands(x, measure)
         x = self._glue(x, measure)
         return self._ms(x)
@@ -374,6 +462,29 @@ class Master:
     def post(self, p: np.ndarray) -> np.ndarray:
         """The output stage with the fitted gain (for a clip that follows the fitted part)."""
         return self._out(p, self.gain)[0]
+
+    def post_at(self, p: np.ndarray, ceiling_dbtp: float) -> np.ndarray:
+        """The output stage with the fitted gain and another limiter ceiling (a short clip whose true peak after the
+        encode needs a lower one – only its peaks change, its level stays that of the piece)."""
+        keep = self.ceiling
+        self.ceiling = ceiling_dbtp
+        try:
+            return self._out(p, self.gain)[0]
+        finally:
+            self.ceiling = keep
+
+    def state(self) -> dict:
+        """The fitted values (thresholds, make-up gains, output gain, ceiling) – plain data for a cache."""
+        return {"band_thr": [float(v) for v in self.band_thr], "band_makeup": [float(v) for v in self.band_makeup],
+                "glue_thr": float(self.glue_thr), "gain": float(self.gain), "ceiling": float(self.ceiling),
+                "eq": [list(b) for b in self.eq]}
+
+    def set_state(self, st: dict) -> None:
+        self.band_thr = [float(v) for v in st["band_thr"]]
+        self.band_makeup = [float(v) for v in st["band_makeup"]]
+        self.glue_thr = float(st["glue_thr"])
+        self.gain = float(st["gain"])
+        self.ceiling = float(st["ceiling"])
 
 
 # ---------------------------------------------------------------------------------------------------------------------

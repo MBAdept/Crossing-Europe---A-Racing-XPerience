@@ -104,7 +104,12 @@ func test_placeholder_entries_and_streams() -> void:
 		assert_near(float(music.beats) * 60.0 / music.bpm, music.seconds(), 0.001, "Takte füllen die Datei")
 	assert_true(a.warnings.is_empty(), "alles ladbar: %s" % str(a.warnings))
 	assert_true(a.bytes_total() > 300000, "Größe aus den Manifesten (%d Bytes)" % a.bytes_total())
-	assert_eq(a.bytes_total("ui"), blip.bytes, "je Ordner")
+	var ui_bytes := 0
+	for e in a.all_entries():
+		if e.folder == "ui":
+			ui_bytes += e.bytes
+	assert_true(ui_bytes > blip.bytes, "der Ordner ui hat mehr als den Platzhalter (UI-Klänge, AU-D2)")
+	assert_eq(a.bytes_total("ui"), ui_bytes, "je Ordner")
 	a.release()
 
 

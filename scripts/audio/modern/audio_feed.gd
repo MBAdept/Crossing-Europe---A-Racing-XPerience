@@ -2,26 +2,45 @@ class_name AudioFeed
 extends RefCounted
 ## What the Modern sound knows about the road at the player's car (contract D28, §4.7.2): derived from the Track of
 ## the stage (AudioManager.set_track) and the vehicle state of the frame (set_vehicle_state) – never from the
-## renderer. Pure and read-only: it looks at the structures of the stage (tunnels, bridges, canopies – fixed data of
-## the plan) and at the segments at and behind the car, never ahead of it, and changes nothing.
+## renderer. Pure and read-only: it looks at the structures and sections of the stage (tunnels, bridges, canopies,
+## road sections – fixed data of the plan) and at the segments at and behind the car, never ahead of it, and changes
+## nothing.
 ##
-## v0 (wave 0). update(state) fills:
-##   surface_l / surface_r   what the left / right wheels run on: "asphalt", "rumble" (edge line and rumble strip),
-##                           "shoulder" (gravel beside the road), "grass" (beyond the shoulder, no guardrail)
+## v1 (AU-C1). update(state) fills:
+##   surface_l / surface_r   what the left / right wheels run on: the paving of the road ("asphalt", "concrete",
+##                           "cobbles", "deck" – a steel bridge deck), "rumble" (profiled edge line and rumble strip,
+##                           only on rumble_roads; not on the right while the segment has a fuel lane – its edge line
+##                           has no profile, AU-R), "shoulder" (gravel beside the road), "grass" (beyond the shoulder,
+##                           no guardrail). In tunnels, on bridges and in the City Limits the shoulder is paved.
+##   paving                  the paving at the car: "asphalt", "concrete" (sections of concrete_roads, chosen per
+##                           section from concrete_share – the same section has the same paving in both directions),
+##                           "cobbles" (blocks of the city centre of cobble_styles – never on a bridge without a stone
+##                           deck: a concrete deck in the city is asphalt, AU-R3 –, and stone bridges), "deck"
+##   deck                    material of the bridge the car is on: "steel", "concrete", "stone" ("" = no bridge)
+##   rumble_road             the road has profiled edge lines (rumble_roads)
 ##   wet, snow               0..1 from the weather (dry inside a tunnel)
-##   zone                    "tunnel", "bridge", "city", "forest", "valley" (mountains) or "open"
+##   zone                    "tunnel", "bridge", "city", "cutting" (rock or cliff close beside the road on both sides
+##                           within cutting_window_m behind the car), "forest", "valley" (mountains) or "open"
 ##   tunnel, bridge, cover   the car is in a tunnel / on a bridge of this type / under a canopy ("border", "fuel")
 ##   road, scenery, city, guardrail, lanes, depth_m (distance to the nearer end of the tunnel or bridge it is in)
 ##   events                  what the car passed since the last update, in order:
 ##                           {"name": "tunnel_in" | "tunnel_out" | "bridge_in" | "bridge_out" | "cover_in" | "cover_out", "z", "kind"}
-##                           {"name": "joint", "z", "kind": "bridge_end" | "bridge"}  expansion joints of a bridge
-##                           {"name": "pass_object", "z", "side": −1 | 0 | 1, "dist_m", "size", "kind", "set"}
+##                           {"name": "joint", "z", "kind": "bridge_end" | "bridge", "deck"}  expansion joints of a bridge
+##                              (spacing per deck, joint_every: steel at both ends and between the spans, concrete
+##                              viaducts every 32 m, stone arches none – AU-R)
+##                           {"name": "pass_object", "z", "side": −1 | 0 | 1, "dist_m", "size", "kind", "set", "contact"}
 ##                              roadside things within pass_max_m: kind "tree", "building", "post", "sign", "gantry"
-##                              (overhead, side 0), "rock", "object"
+##                              (overhead, side 0), "rock", "object"; the delineator posts of roads without a guardrail
+##                              (road.delineator_every_m, as the road is drawn) as kind "post", set "delineator";
+##                              contact = the body of the car overlaps a delineator (it brushes it down)
 ## Jumps (start of a stage, more than max_scan_m in one step) reset the position without events.
 
-const SURFACES: Array[String] = ["asphalt", "rumble", "shoulder", "grass"]
-const ZONES: Array[String] = ["open", "forest", "valley", "city", "bridge", "tunnel"]
+const SURFACES: Array[String] = ["asphalt", "concrete", "cobbles", "deck", "rumble", "shoulder", "grass"]
+const PAVINGS: Array[String] = ["asphalt", "concrete", "cobbles", "deck"]
+const ZONES: Array[String] = ["open", "forest", "valley", "cutting", "city", "bridge", "tunnel"]
+## Bridge type (CityData.BRIDGE_TYPES) -> deck material.
+const BRIDGE_DECKS := {"cable_stayed": "steel", "truss_arch": "steel", "stone_arch": "stone", "canal": "concrete",
+	"causeway": "concrete", "river": "concrete"}
 ## Sprite set prefix -> [kind, size] of a passed roadside object (first match wins).
 const PROP_KINDS: Array = [
 	["props/tree_", "tree", 1.0], ["props/bush", "", 0.0], ["props/heather", "", 0.0], ["props/haybale", "", 0.0],
@@ -35,15 +54,36 @@ const PROP_KINDS: Array = [
 ## Scenery background style (data/scenery.json) -> zone.
 const STYLE_ZONES := {"forest": "forest", "mountains": "valley", "alps": "valley", "city": "city", "suburb": "city",
 	"industrial": "city"}
+## An old town cut by bridges without a stone deck gets its cobble share on its streets within ± this (AU-R3: the
+## acceptance band of docs/audio-modern.md; see cobbled_blocks).
+const COBBLE_BAND := 0.05
+const DELINEATOR_SIZE := 0.15
+const DELINEATOR_INSET_M := 0.3   ## the posts stand this far inside the outer edge of the shoulder (as drawn)
+const POST_RADIUS_M := 0.06       ## half the width of a delineator post (contact)
 
 # configuration (audio.modern.feed)
 var rumble_in_m := 0.3           ## width of the edge line inside the paved edge that sounds as "rumble"
 var rumble_out_m := 0.5          ## width of the rumble strip outside the paved edge
 var track_half_m := 0.78         ## half the track width of the car (wheel positions x ± this)
+var body_half_m := 0.93          ## half the body width of the car (contact with a delineator)
 var pass_max_m := 18.0           ## roadside objects farther from the car than this are not reported
 var max_scan_m := 90.0           ## a larger step than this is a jump (no events)
-var joint_every_m := 24.0        ## expansion joints on a bridge (0 = only at its ends)
+## Expansion joints of a bridge per deck material (feed.joint_every_m – a table, or one number for every deck):
+## metres between the joints (visible metres), 0 = only at the two ends, < 0 = none at all. A continuous steel
+## girder has joints at its abutments and between its spans, a masonry arch none, an old concrete viaduct of simply
+## supported spans one every span (KRITIK-FAHRBAHN B5).
+var joint_every: Dictionary = {"steel": 100.0, "stone": -1.0, "concrete": 32.0}
 var max_events := 12             ## per update
+var rumble_roads: Array[String] = ["autobahn"]       ## road types with profiled edge lines
+var concrete_roads: Array[String] = ["autobahn"]     ## road types that can be concrete
+var concrete_share: Dictionary = {"DE": 0.35, "_": 0.12}   ## country -> share of concrete sections ("_" = others)
+var concrete_threshold: Dictionary = {}   ## country -> [share, hash threshold] (calibrate_concrete.gd; AU-R)
+var cobble_styles: Array[String] = []                ## city styles with cobbled blocks in the centre
+var cobble_share := 0.6          ## share of the centre's blocks that are cobbled
+var cobble_block_m := 90.0       ## length of such a block (visible metres)
+var cutting_dist_m := 14.0       ## a rock or cliff this close to the paved edge counts for a cutting …
+var cutting_window_m := 60.0     ## … when both sides had one within this distance behind the car
+var delineators := true          ## report the delineator posts of roads without a guardrail
 
 var track: Object = null
 var plan: Object = null
@@ -53,6 +93,9 @@ var z := 0.0
 var x := 0.0
 var surface_l := "asphalt"
 var surface_r := "asphalt"
+var paving := "asphalt"
+var deck := ""
+var rumble_road := true
 var wet := 0.0
 var snow := 0.0
 var zone := "open"
@@ -65,12 +108,19 @@ var scenery := ""
 var city := false
 var guardrail := false
 var lanes := 3.0
+var fuel_lane := 0.0             ## share of the fuel lane on the right of the segment at the car (0 = none)
 var events: Array[Dictionary] = []
 
 var _structures: Array[Dictionary] = []   ## {kind: "tunnel"|"bridge"|"cover", type, z0, z1}, sorted by z0
 var _prev_z := 0.0
 var _has_prev := false
 var _seg_len := 3.0
+var _time_scale := 10.0
+var _delin_every := 50.0
+var _shoulder_w := 2.5
+var _concrete: Dictionary = {}   ## section index -> bool (cached decision)
+var _cobbles: Dictionary = {}    ## block index -> bool
+var _rock_z := [-1.0e9, -1.0e9]  ## z of the last rock / cliff close to the left / right edge
 
 
 func setup(modern: Dictionary) -> void:
@@ -83,14 +133,42 @@ func setup(modern: Dictionary) -> void:
 	track_half_m = clampf(float(d.get("track_half_m", track_half_m)), 0.3, 1.5)
 	pass_max_m = maxf(float(d.get("pass_max_m", pass_max_m)), 0.0)
 	max_scan_m = maxf(float(d.get("max_scan_m", max_scan_m)), 3.0)
-	joint_every_m = maxf(float(d.get("joint_every_m", joint_every_m)), 0.0)
+	var je: Variant = d.get("joint_every_m", null)
+	if je is Dictionary:
+		for k: String in je:
+			if not k.begins_with("_"):
+				joint_every[k] = float(je[k])
+	elif je is float or je is int:
+		for k: String in ["steel", "stone", "concrete"]:
+			joint_every[k] = float(je)
 	max_events = clampi(int(d.get("max_events", max_events)), 1, 64)
+	rumble_roads = _strings(d.get("rumble_roads", rumble_roads))
+	concrete_roads = _strings(d.get("concrete_roads", concrete_roads))
+	if d.get("concrete_share", null) is Dictionary:
+		concrete_share = (d["concrete_share"] as Dictionary).duplicate()
+	if d.get("concrete_threshold", null) is Dictionary:
+		concrete_threshold = (d["concrete_threshold"] as Dictionary).duplicate(true)
+	cobble_styles = _strings(d.get("cobble_styles", cobble_styles))
+	cobble_share = clampf(float(d.get("cobble_share", cobble_share)), 0.0, 1.0)
+	cobble_block_m = maxf(float(d.get("cobble_block_m", cobble_block_m)), 10.0)
+	cutting_dist_m = maxf(float(d.get("cutting_dist_m", cutting_dist_m)), 0.0)
+	cutting_window_m = maxf(float(d.get("cutting_window_m", cutting_window_m)), 0.0)
+	delineators = bool(d.get("delineators", delineators))
 
 
-## Half the track width from the car's body width (vehicles.types.<id>.width_m).
+static func _strings(v: Variant) -> Array[String]:
+	var out: Array[String] = []
+	if v is Array:
+		for s: Variant in v:
+			out.append(str(s))
+	return out
+
+
+## Half the track and the body width from the car's width (vehicles.types.<id>.width_m).
 func set_vehicle_width(width_m: float) -> void:
 	if width_m > 0.5:
 		track_half_m = clampf(width_m * 0.42, 0.3, 1.5)
+		body_half_m = clampf(width_m * 0.5, 0.3, 1.6)
 
 
 ## The track of the stage (and its plan), or (null, null) when the stage is over.
@@ -98,6 +176,8 @@ func set_track(p_track: Object, p_plan: Object = null) -> void:
 	track = p_track
 	plan = p_plan
 	_structures.clear()
+	_concrete.clear()
+	_cobbles.clear()
 	_has_prev = false
 	valid = false
 	events.clear()
@@ -106,6 +186,12 @@ func set_track(p_track: Object, p_plan: Object = null) -> void:
 		return
 	var sl: Variant = track.get("seg_len")
 	_seg_len = maxf(float(sl), 0.5) if (sl is float or sl is int) else 3.0
+	var ts: Variant = track.get("time_scale")
+	_time_scale = float(ts) if (ts is float or ts is int) else 10.0
+	var sw: Variant = track.get("shoulder_w")
+	_shoulder_w = float(sw) if (sw is float or sw is int) else 2.5
+	var tc: Variant = track.get("cfg")
+	_delin_every = maxf(float(ConfigLoader.lookup(tc, "road.delineator_every_m", 50.0)), 1.0) if tc is Dictionary else 50.0
 	if plan == null and track.get("plan") != null:
 		plan = track.get("plan")
 	_collect_structures()
@@ -118,6 +204,9 @@ func has_track() -> bool:
 func _reset_values() -> void:
 	surface_l = "asphalt"
 	surface_r = "asphalt"
+	paving = "asphalt"
+	deck = ""
+	rumble_road = true
 	wet = 0.0
 	snow = 0.0
 	zone = "open"
@@ -130,17 +219,18 @@ func _reset_values() -> void:
 	city = false
 	guardrail = false
 	lanes = 3.0
+	fuel_lane = 0.0
+	_rock_z = [-1.0e9, -1.0e9]
 
 
 ## Tunnels (plan), bridges and canopies (track) as z intervals – fixed data of the stage, no segment is touched.
 func _collect_structures() -> void:
-	var ts: float = float(track.get("time_scale")) if track.get("time_scale") != null else 10.0
 	var tunnels: Variant = plan.get("tunnels") if plan != null else null
 	if tunnels is Array:
 		for t: Variant in tunnels:
 			if t is Dictionary and (t as Dictionary).has("start_km") and (t as Dictionary).has("end_km"):
-				_structures.append({"kind": "tunnel", "type": "tunnel", "z0": float(t["start_km"]) * 1000.0 / ts,
-					"z1": float(t["end_km"]) * 1000.0 / ts})
+				_structures.append({"kind": "tunnel", "type": "tunnel", "z0": float(t["start_km"]) * 1000.0 / _time_scale,
+					"z1": float(t["end_km"]) * 1000.0 / _time_scale})
 	var bridges: Variant = track.get("bridges")
 	if bridges is Array:
 		for b: Variant in bridges:
@@ -162,6 +252,17 @@ func structures() -> Array[Dictionary]:
 	return _structures
 
 
+## Deck material of a bridge type ("concrete" for an unknown one).
+static func deck_of(bridge_type: String) -> String:
+	return str(BRIDGE_DECKS.get(bridge_type, "concrete"))
+
+
+## Metres between the expansion joints of a deck: > 0 every so many metres and at both ends, 0 only at the ends,
+## < 0 none at all.
+func joint_spacing(deck_material: String) -> float:
+	return float(joint_every.get(deck_material, joint_every.get("concrete", 32.0)))
+
+
 ## One frame: `state` = the vehicle state of §4.7.2 (needs "z" and "x"). Without a track or a position nothing is
 ## derived (valid = false, neutral values).
 func update(state: Dictionary) -> void:
@@ -173,11 +274,14 @@ func update(state: Dictionary) -> void:
 	x = float(state.get("x", 0.0))
 	valid = true
 	var moved := _has_prev and z >= _prev_z and z - _prev_z <= max_scan_m
+	if not moved:
+		_rock_z = [-1.0e9, -1.0e9]
 	_update_structures(moved)
 	_update_segment(state)
+	if moved:
+		_scan_objects(_prev_z, z, state)
+	_update_zone()
 	_update_surfaces(state)
-	if moved and pass_max_m > 0.0:
-		_scan_objects(_prev_z, z)
 	_prev_z = z
 	_has_prev = true
 
@@ -193,20 +297,22 @@ func _update_structures(moved: bool) -> void:
 		var kind := str(s["kind"])
 		if moved:
 			# boundaries crossed since the last update
+			var dk := deck_of(str(s["type"])) if kind == "bridge" else ""
+			var every := joint_spacing(dk) if kind == "bridge" else -1.0
 			if _prev_z < z0 and z >= z0:
 				_event({"name": kind + "_in", "z": z0, "kind": str(s["type"])})
-				if kind == "bridge":
-					_event({"name": "joint", "z": z0, "kind": "bridge_end"})
-			if kind == "bridge" and joint_every_m > 0.0 and z > z0 and _prev_z < z1:
-				var a := int(floor((clampf(_prev_z, z0, z1) - z0) / joint_every_m))
-				var b := int(floor((clampf(z, z0, z1) - z0) / joint_every_m))
+				if kind == "bridge" and every >= 0.0:
+					_event({"name": "joint", "z": z0, "kind": "bridge_end", "deck": dk})
+			if kind == "bridge" and every > 0.0 and z > z0 and _prev_z < z1:
+				var a := int(floor((clampf(_prev_z, z0, z1) - z0) / every))
+				var b := int(floor((clampf(z, z0, z1) - z0) / every))
 				for j in range(a + 1, b + 1):
-					var zj := z0 + float(j) * joint_every_m
-					if zj < z1 - 0.5 * joint_every_m:
-						_event({"name": "joint", "z": zj, "kind": "bridge"})
+					var zj := z0 + float(j) * every
+					if zj < z1 - 0.5 * every:
+						_event({"name": "joint", "z": zj, "kind": "bridge", "deck": dk})
 			if _prev_z < z1 and z >= z1:
-				if kind == "bridge":
-					_event({"name": "joint", "z": z1, "kind": "bridge_end"})
+				if kind == "bridge" and every >= 0.0:
+					_event({"name": "joint", "z": z1, "kind": "bridge_end", "deck": dk})
 				_event({"name": kind + "_out", "z": z1, "kind": str(s["type"])})
 		if z >= z0 and z < z1:
 			match kind:
@@ -239,15 +345,323 @@ func _update_segment(state: Dictionary) -> void:
 		city = bool(seg.get("city"))
 		guardrail = bool(seg.get("guardrail"))
 		lanes = float(seg.get("lanes"))
+		var fl: Variant = seg.get("fuel_lane")
+		fuel_lane = float(fl) if (fl is float or fl is int) else 0.0
 	var w := str(state.get("weather", "normal"))
 	wet = 1.0 if (w == "rain" and not tunnel) else 0.0
 	snow = 1.0 if (w == "snow" and not tunnel) else 0.0
+	rumble_road = rumble_roads.has(road)
+	deck = deck_of(bridge) if bridge != "" else ""
+	paving = _paving()
+
+
+## Paving at the car: a steel deck, a stone bridge (setts), a cobbled block of the city centre (off the bridges only:
+## a concrete deck in the old town stays asphalt, as the causeway to Venice is – AU-R3, KRITIK-R L2), a concrete
+## section, else asphalt.
+func _paving() -> String:
+	if deck == "steel":
+		return "deck"
+	if deck == "stone":
+		return "cobbles"
+	if tunnel:
+		return "asphalt"
+	var km := _km(z)
+	if city and deck == "" and _cobbled(km):
+		return "cobbles"
+	if not city and concrete_roads.has(road) and _concrete_section(km):
+		return "concrete"
+	return "asphalt"
+
+
+func _km(at_z: float) -> float:
+	if track.has_method("z_to_km"):
+		return float(track.call("z_to_km", at_z))
+	return at_z * _time_scale / 1000.0
+
+
+## The section at km is concrete: decided once per section from a hash of what identifies it in both driving
+## directions (stage, name, length, country, scenery) against the share of its country.
+func _concrete_section(km: float) -> bool:
+	if plan == null or not plan.has_method("section_index_at") or not plan.has_method("section_at"):
+		return false
+	var i := int(plan.call("section_index_at", km))
+	if _concrete.has(i):
+		return bool(_concrete[i])
+	var sec: Variant = plan.call("section_at", km)
+	var yes := false
+	if sec is Dictionary and not (sec as Dictionary).is_empty():
+		var d: Dictionary = sec
+		var country := str(d.get("country", ""))
+		var share := float(concrete_share.get(country, concrete_share.get("_", 0.0)))
+		yes = unit_hash(section_key(str(plan.get("stage_id")), d)) < concrete_threshold_for(country, share)
+	_concrete[i] = yes
+	return yes
+
+
+## The hash threshold of a country's concrete sections: its calibrated value (concrete_threshold: country ->
+## [share, threshold], tools/audio/modern/calibrate_concrete.gd – the country gets its share over all its sections,
+## not only on average over many), as long as the share in effect is the one it was calibrated for; else the share.
+func concrete_threshold_for(country: String, share: float) -> float:
+	var cal: Variant = concrete_threshold.get(country, null)
+	if cal is Array and (cal as Array).size() >= 2 and absf(float(cal[0]) - share) < 1.0e-6:
+		return float(cal[1])
+	return share
+
+
+## What identifies an autobahn section in both driving directions: stage, name, length, country, scenery.
+static func section_key(stage_id: String, section: Dictionary) -> String:
+	return "%s|%s|%.3f|%s|%s" % [stage_id, str(section.get("name", "")), float(section.get("length_km", 0.0)),
+		str(section.get("country", "")), str(section.get("scenery", ""))]
+
+
+## The block of the city centre at km is cobbled (centre of a city whose style has cobbles; blocks counted from the
+## finish line, so they do not move when the stage is longer or shorter in front of the city). Which blocks: see
+## cobbled_blocks (AU-R: every centre gets cobble_share of its length, not only on average over all cities; AU-R3:
+## of the length of its streets – the bridges without a stone deck, bridge_stretches, do not count; AU-R4: the stone
+## bridges count as streets that are always cobbled, stone_stretches, and a tunnel of the stage in the centre,
+## tunnel_stretches, moves blocks only when it would push the share out of its band).
+func _cobbled(km: float) -> bool:
+	if plan == null or cobble_styles.is_empty():
+		return false
+	var style: Variant = plan.get("city_style")
+	if not (style is String) or not cobble_styles.has(str(style)):
+		return false
+	if not plan.has_method("in_city_center") or not bool(plan.call("in_city_center", km)):
+		return false
+	var length: Variant = plan.get("length_km")
+	var to_finish_m := maxf((float(length) - km) * 1000.0 / _time_scale, 0.0) if (length is float or length is int) else z
+	var block := int(floor(to_finish_m / cobble_block_m))
+	if _cobbles.is_empty():
+		var centre: Variant = plan.get("city_center_km")
+		if (length is float or length is int) and (centre is float or centre is int):
+			var len_km := float(length)
+			_cobbles = cobbled_blocks(str(plan.get("to_id")), maxf(len_km - float(centre), 0.0) * 1000.0 / _time_scale,
+				cobble_block_m, cobble_share, bridge_stretches(plan, len_km, _time_scale), stone_stretches(plan, len_km, _time_scale),
+				tunnel_stretches(plan, len_km, _time_scale))
+	if _cobbles.has(block):
+		return bool(_cobbles[block])
+	var yes := unit_hash("%s|%d" % [str(plan.get("to_id")), block]) < cobble_share     # a plan without a centre length
+	_cobbles[block] = yes
+	return yes
+
+
+## The cobbled blocks of a city centre of centre_m visible metres (blocks of block_m counted from the finish line, the
+## last one shorter): block -> bool for every block. In the order of their hashes a block is taken while that brings
+## the cobbled length nearer to share × centre_m, so each centre gets its share within half a block (an 800-m centre
+## 0.55 or 0.56 at 0.6) and the hash only decides which blocks (KRITIK-FAHRBAHN B2; with a decision per block from the
+## hash alone a centre got 0.34–0.90, measured over all stages).
+## The share is that of what the car hears as the old town's streets (AU-R3, AU-R4; stretches as [from, to] in visible
+## metres before the finish):
+##   `skip`   no street – the bridges without a stone deck (bridge_stretches; the car hears the deck or asphalt there).
+##            A block counts only with its street metres, a block wholly on such a bridge is never cobbled.
+##   `paved`  streets that are always cobbled – the stone bridges (stone_stretches; their setts are "cobbles" at every
+##            pass): they count in the base and as cobbled, the blocks share the rest (KRITIK-R2-CODE M1: counted as
+##            free street before, Warschau, Lüttich, Prag, Saragossa, Burgos, Ljubljana, San Sebastián heard 0.46–0.53
+##            on their streets, Bordeaux, Dresden, Lyon, Paris, Toulouse, Tours 0.70–0.78 with the bridge).
+##   `late`   stretches of this arrival only – the tunnels of the stage (tunnel_stretches; asphalt): the allocation
+##            of the city is kept and single moves (_closer) change it only while they push the share out of the band,
+##            so every arrival without such a tunnel hears the same blocks.
+## Whenever the share misses the band (COBBLE_BAND), single moves bring it nearer (_closer) – for every centre (AU-R4;
+## a shorter base makes half a block a larger share). Without any stretch inside the centre the result is the one
+## without stretches, bit for bit.
+static func cobbled_blocks(city: String, centre_m: float, block_m: float, share: float, skip: Array = [],
+		paved: Array = [], late: Array = []) -> Dictionary:
+	var out := {}
+	if centre_m <= 0.0 or block_m <= 0.0:
+		return out
+	var n := maxi(int(ceil(centre_m / block_m - 1.0e-6)), 1)
+	var order: Array = []
+	for b in n:
+		order.append([unit_hash("%s|%d" % [city, b]), b])
+		out[b] = false
+	order.sort_custom(func(p: Array, q: Array) -> bool: return float(p[0]) < float(q[0]))
+	var fit := _street_fit(n, centre_m, block_m, share, _merged_stretches(skip), _merged_stretches(paved))
+	var street: Array[float] = fit[0]
+	var target := float(fit[1])
+	var got := 0.0
+	for row: Array in order:
+		var b := int(row[1])
+		var w := street[b]
+		if absf(got + w - target) < absf(got - target):
+			got += w
+			out[b] = true
+	_closer(out, street, order, got, target, float(fit[2]))
+	if not late.is_empty():
+		var fit2 := _street_fit(n, centre_m, block_m, share, _merged_stretches(skip + late), _merged_stretches(paved))
+		var street2: Array[float] = fit2[0]
+		var got2 := 0.0
+		for b in n:
+			got2 += street2[b] if bool(out[b]) else 0.0
+		_closer(out, street2, order, got2, float(fit2[1]), float(fit2[2]))
+	return out
+
+
+## [street metres per block, target of cobbled street metres, band] of a centre: `gaps` are no street, `setts` are
+## streets that are always cobbled (a part of them inside a gap does not count); the base of the share is the street
+## and the setts, the setts are cobbled already. Without setts the numbers are those of AU-R3, bit for bit.
+static func _street_fit(n: int, centre_m: float, block_m: float, share: float, gaps: Array, setts: Array) -> Array:
+	var street: Array[float] = []
+	var cut_all := 0.0
+	var paved_all := 0.0
+	for b in n:
+		var a0 := b * block_m
+		var w := minf(block_m, centre_m - a0)
+		var cut := 0.0
+		for g: Array in gaps:
+			cut += maxf(minf(a0 + w, float(g[1])) - maxf(a0, float(g[0])), 0.0)
+		var pav := 0.0
+		for s: Array in setts:
+			var s0 := maxf(a0, float(s[0]))
+			var s1 := minf(a0 + w, float(s[1]))
+			if s1 > s0:
+				pav += s1 - s0
+				for g: Array in gaps:
+					pav -= maxf(minf(s1, float(g[1])) - maxf(s0, float(g[0])), 0.0)
+		if cut > 0.0:
+			cut = minf(cut, w)
+			cut_all += cut
+			w = w - cut if w - cut > 1.0e-6 else 0.0
+		if pav > 0.0:
+			pav = minf(pav, w)
+			paved_all += pav
+			w = w - pav if w - pav > 1.0e-6 else 0.0
+		street.append(w)
+	var base := centre_m - cut_all
+	var target := clampf(share, 0.0, 1.0) * base
+	if paved_all > 0.0:
+		target = maxf(target - paved_all, 0.0)
+	return [street, target, COBBLE_BAND * base]
+
+
+## While the cobbled street metres `got` miss `target` by more than `band`: the best single move – drop a cobbled
+## block, swap it for one that is not, or add one (blocks in hash order, the first best move wins) – as long as one
+## brings them nearer. `out` is changed in place; returns the cobbled street metres. Deterministic: the same blocks,
+## the same hashes, the same result.
+static func _closer(out: Dictionary, street: Array[float], order: Array, got: float, target: float, band: float) -> float:
+	for _guard in street.size() * 2:
+		var err := absf(got - target)
+		if err <= band:
+			break
+		var best := err
+		var take := -1
+		var drop := -1
+		for ri: Array in order:
+			var i := int(ri[1])
+			if bool(out[i]):
+				if absf(got - street[i] - target) < best - 1.0e-6:
+					best = absf(got - street[i] - target)
+					take = -1
+					drop = i
+				for rj: Array in order:
+					var j := int(rj[1])
+					if bool(out[j]):
+						continue
+					if absf(got - street[i] + street[j] - target) < best - 1.0e-6:
+						best = absf(got - street[i] + street[j] - target)
+						take = j
+						drop = i
+			elif absf(got + street[i] - target) < best - 1.0e-6:
+				best = absf(got + street[i] - target)
+				take = i
+				drop = -1
+		if take < 0 and drop < 0:
+			break
+		if drop >= 0:
+			out[drop] = false
+			got -= street[drop]
+		if take >= 0:
+			out[take] = true
+			got += street[take]
+	return got
+
+
+## The bridges of a plan without a stone deck as stretches [from, to] in visible metres before the finish: the car
+## hears no old-town cobbles there (a steel deck is "deck", a concrete deck asphalt – _paving), so they are no street
+## of the old town and get no part of its cobble share (AU-R3). Taken from the plan, not from the track: the bridges of
+## a city count from the finish (CityData), so every stage that ends there cuts the same stretches.
+static func bridge_stretches(p: Object, length_km: float, time_scale: float) -> Array:
+	return _plan_stretches(p, "bridges", length_km, time_scale, func(b: Dictionary) -> bool: return AudioFeed.deck_of(str(b.get("type", ""))) != "stone")
+
+
+## The stone bridges of a plan as stretches [from, to] in visible metres before the finish: their setts sound as the
+## old town's cobbles at every pass (_paving: a stone deck is "cobbles"), so cobbled_blocks counts them as streets
+## that are cobbled already (AU-R4). From the plan, as bridge_stretches.
+static func stone_stretches(p: Object, length_km: float, time_scale: float) -> Array:
+	return _plan_stretches(p, "bridges", length_km, time_scale, func(b: Dictionary) -> bool: return AudioFeed.deck_of(str(b.get("type", ""))) == "stone")
+
+
+## The tunnels of a plan as stretches [from, to] in visible metres before the finish: the car hears asphalt there
+## (_paving), so they are no street of the old town (AU-R4). Tunnels are data of the stage, not of the city: only this
+## arrival has them (cobbled_blocks `late`).
+static func tunnel_stretches(p: Object, length_km: float, time_scale: float) -> Array:
+	return _plan_stretches(p, "tunnels", length_km, time_scale, func(_t: Dictionary) -> bool: return true)
+
+
+## The entries of a plan list ({start_km, end_km, …}) that `keep` accepts, as stretches before the finish.
+static func _plan_stretches(p: Object, list: String, length_km: float, time_scale: float, keep: Callable) -> Array:
+	var out: Array = []
+	var rows: Variant = p.get(list) if p != null else null
+	if not (rows is Array) or time_scale <= 0.0:
+		return out
+	for b: Variant in rows:
+		if not (b is Dictionary) or not (b as Dictionary).has("start_km") or not (b as Dictionary).has("end_km"):
+			continue
+		if not bool(keep.call(b)):
+			continue
+		out.append([(length_km - float(b["end_km"])) * 1000.0 / time_scale, (length_km - float(b["start_km"])) * 1000.0 / time_scale])
+	return out
+
+
+## Stretches [a, b] (either order) sorted and merged where they overlap; anything else in the list is ignored.
+static func _merged_stretches(stretches: Array) -> Array:
+	var spans: Array = []
+	for s: Variant in stretches:
+		if s is Array and (s as Array).size() >= 2:
+			var a := float(s[0])
+			var b := float(s[1])
+			spans.append([minf(a, b), maxf(a, b)])
+	spans.sort_custom(func(p: Array, q: Array) -> bool: return float(p[0]) < float(q[0]))
+	var out: Array = []
+	for s: Array in spans:
+		if not out.is_empty():
+			var last: Array = out[-1]
+			if float(s[0]) <= float(last[1]):
+				last[1] = maxf(float(last[1]), float(s[1]))
+				continue
+		out.append(s)
+	return out
+
+
+## A number in [0, 1) from a text – the same on every machine and in every run. String.hash() is djb2: keys that
+## differ only in their last character ("hamburg|0", "hamburg|1") differ only in the last bits of the hash, and the
+## low 24 bits used before AU-R gave every block of a city the same decision (KRITIK-FAHRBAHN B2: Hamburg always
+## cobbled, Paris never). The finaliser of MurmurHash3 (fmix32) spreads every input bit over the whole word.
+static func unit_hash(key: String) -> float:
+	var h := key.hash() & 0xFFFFFFFF
+	h ^= h >> 16
+	h = _mul32(h, 0x85EBCA6B)
+	h ^= h >> 13
+	h = _mul32(h, 0xC2B2AE35)
+	h ^= h >> 16
+	return float(h >> 8) / float(0x1000000)
+
+
+## (a · b) mod 2^32 for 32-bit unsigned a, b without overflowing the 64-bit int (16-bit halves of b).
+static func _mul32(a: int, b: int) -> int:
+	var lo := a * (b & 0xFFFF)
+	var hi := ((a * (b >> 16)) & 0xFFFF) << 16
+	return (lo + hi) & 0xFFFFFFFF
+
+
+func _update_zone() -> void:
 	if tunnel:
 		zone = "tunnel"
 	elif bridge != "":
 		zone = "bridge"
 	elif city:
 		zone = "city"
+	elif cutting_window_m > 0.0 and z - float(_rock_z[0]) <= cutting_window_m and z - float(_rock_z[1]) <= cutting_window_m:
+		zone = "cutting"
 	else:
 		zone = "open"
 		var db: Variant = track.get("scenery_db")
@@ -267,13 +681,17 @@ func _update_surfaces(state: Dictionary) -> void:
 			right = (e as Vector2).y
 	var shoulder := float(state.get("shoulder_m", 2.5))
 	var at_limit := int(state.get("off_road", 0)) >= 2 and not bool(state.get("rail_contact", false))
-	surface_l = surface_at(x - track_half_m, left, right, shoulder, at_limit and x < (left + right) * 0.5)
-	surface_r = surface_at(x + track_half_m, left, right, shoulder, at_limit and x >= (left + right) * 0.5)
+	var wl := x - track_half_m
+	var wr := x + track_half_m
+	surface_l = wheel_surface(surface_at(wl, left, right, shoulder, at_limit and x < (left + right) * 0.5), wl >= left and wl <= right)
+	# the edge line of a fuel lane (solid, as Arcade paints it) has no profile: no rumble strip there (KRITIK-FAHRBAHN B13)
+	surface_r = wheel_surface(surface_at(wr, left, right, shoulder, at_limit and x >= (left + right) * 0.5), wr >= left and wr <= right,
+		fuel_lane > 0.0)
 
 
 ## Surface under a wheel at lateral position wx: paved between left and right (the edge line counts as "rumble"),
 ## the rumble strip just outside, then the shoulder; "grass" when the car is at the open limit on that side or the
-## wheel is beyond the shoulder.
+## wheel is beyond the shoulder. (The rule without the road: wheel_surface() turns it into what this road has.)
 func surface_at(wx: float, left: float, right: float, shoulder_m: float, on_grass: bool) -> String:
 	var out := maxf(left - wx, wx - right)   # > 0: outside the paved road by this much
 	if on_grass or out > shoulder_m:
@@ -285,8 +703,31 @@ func surface_at(wx: float, left: float, right: float, shoulder_m: float, on_gras
 	return "asphalt"
 
 
-## Roadside objects of the segments the car passed in (z_from, z_to].
-func _scan_objects(z_from: float, z_to: float) -> void:
+## What a wheel really runs on on this road: the paving instead of plain "asphalt"; the edge line is a rumble only
+## on rumble roads (elsewhere paving inside the edge, shoulder outside); `plain_edge`: this edge is the edge line of
+## a fuel lane, without a profile – the paving on both sides of it (also within rumble_out_m outside it, where the
+## shoulder begins: KRITIK-R2-CODE L1, open); in tunnels, on bridges and in the City Limits the shoulder is paved
+## (walkway, deck, pavement).
+func wheel_surface(raw: String, inside: bool, plain_edge: bool = false) -> String:
+	var paved_shoulder := tunnel or bridge != "" or city
+	match raw:
+		"asphalt":
+			return paving
+		"rumble":
+			if plain_edge:
+				return paving
+			if rumble_road:
+				return "rumble"
+			return paving if (inside or paved_shoulder) else "shoulder"
+		"shoulder", "grass":
+			return paving if paved_shoulder else raw
+	return raw
+
+
+## Roadside objects of the segments the car passed in (z_from, z_to], and the delineator posts there.
+func _scan_objects(z_from: float, z_to: float, state: Dictionary) -> void:
+	var left := float(state.get("road_left", -5.625))
+	var right := float(state.get("road_right", 5.625))
 	var i0 := int(floor(z_from / _seg_len))
 	var i1 := int(floor(z_to / _seg_len))
 	for i in range(i0, i1 + 1):
@@ -308,13 +749,42 @@ func _scan_objects(z_from: float, z_to: float) -> void:
 			if str(info[0]) == "":
 				continue
 			var side := int(d.get("side", 1))
-			var dx := float(d.get("x", 0.0)) - x
+			var px := float(d.get("x", 0.0))
+			if str(info[0]) == "rock" and side != 0:
+				# a cutting: rocks close to the paved edge on both sides
+				var from_edge := (px - right) if side > 0 else (left - px)
+				if from_edge <= cutting_dist_m:
+					_rock_z[0 if side < 0 else 1] = pz
+			var dx := px - x
 			var dist := 0.0 if side == 0 else absf(dx)
 			if dist > pass_max_m:
 				continue
 			_event({"name": "pass_object", "z": pz, "side": 0 if side == 0 else (1 if dx >= 0.0 else -1), "dist_m": dist,
 				"size": float(info[1]) * float(d.get("scale", 1.0)), "kind": str(info[0]),
-				"set": str(d.get("set", d.get("sign", d.get("obj", ""))))})
+				"set": str(d.get("set", d.get("sign", d.get("obj", "")))), "contact": false})
+	if delineators:
+		_scan_delineators(z_from, z_to, left, right)
+
+
+## The delineator posts of the stretch (z_from, z_to]: every road.delineator_every_m on roads without a guardrail,
+## outside the City Limits and tunnels, DELINEATOR_INSET_M inside the outer edge of the shoulder (as the road is
+## drawn: the right one only where there is no fuel lane and no canopy).
+func _scan_delineators(z_from: float, z_to: float, left: float, right: float) -> void:
+	var zd := ceilf(z_from / _delin_every) * _delin_every
+	if zd <= z_from:
+		zd += _delin_every
+	while zd <= z_to:
+		var seg := _segment(int(floor(zd / _seg_len)))
+		if seg != null and not bool(seg.get("guardrail")) and not bool(seg.get("city")) and not bool(seg.get("tunnel")):
+			var fuel := float(seg.get("fuel_lane")) if seg.get("fuel_lane") != null else 0.0
+			var right_ok := fuel < 0.01 and str(seg.get("cover")) == ""
+			for side: int in ([-1, 1] if right_ok else [-1]):
+				var px := (left - _shoulder_w + DELINEATOR_INSET_M) if side < 0 else (right + _shoulder_w - DELINEATOR_INSET_M)
+				var dist := absf(px - x)
+				if dist <= pass_max_m:
+					_event({"name": "pass_object", "z": zd, "side": side, "dist_m": dist, "size": DELINEATOR_SIZE,
+						"kind": "post", "set": "delineator", "contact": dist < body_half_m + POST_RADIUS_M})
+		zd += _delin_every
 
 
 ## [kind, size] of a segment sprite as a passed object ("" = makes no sound: bushes, low things).
@@ -339,6 +809,7 @@ func _event(e: Dictionary) -> void:
 
 ## Plain data for tests and debugging.
 func state() -> Dictionary:
-	return {"valid": valid, "z": z, "x": x, "surface_l": surface_l, "surface_r": surface_r, "wet": wet, "snow": snow,
-		"zone": zone, "tunnel": tunnel, "bridge": bridge, "cover": cover, "depth_m": depth_m, "road": road,
-		"scenery": scenery, "city": city, "guardrail": guardrail, "lanes": lanes, "events": events.size()}
+	return {"valid": valid, "z": z, "x": x, "surface_l": surface_l, "surface_r": surface_r, "paving": paving,
+		"deck": deck, "rumble_road": rumble_road, "wet": wet, "snow": snow, "zone": zone, "tunnel": tunnel,
+		"bridge": bridge, "cover": cover, "depth_m": depth_m, "road": road, "scenery": scenery, "city": city,
+		"guardrail": guardrail, "lanes": lanes, "fuel_lane": fuel_lane, "events": events.size()}
