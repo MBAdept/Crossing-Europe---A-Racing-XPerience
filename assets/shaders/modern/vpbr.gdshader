@@ -124,6 +124,9 @@ uniform float snow_cover = 0.0;
 uniform float hemi_side = 1.0;
 uniform float hemi_down = 1.0;
 uniform float fill_shade = 0.0;
+// R4 night fill of the player car (art review KRITIK-2 A2): share of the fill that lights the clear coat evenly at
+// night (neutral sheen, × ce_night; 0 = off, the neutral default)
+uniform float fill_sheen = 0.0;
 uniform vec3 snow_albedo = vec3(0.86, 0.88, 0.91);
 uniform float snow_night = 0.3;
 
@@ -332,12 +335,18 @@ void fragment() {
 		vec3 nf = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
 		fill_light *= 1.0 - fill_shade * clamp(dot(nf, normalize(ce_sun_dir)), 0.0, 1.0);
 	}
+	float hemi = 1.0;
 	if (hemi_side < 0.999 || hemi_down < 0.999) {
 		float ny = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz).y;
-		float hemi = ny >= 0.0 ? mix(hemi_side, 1.0, ny) : mix(hemi_side, hemi_down, -ny);
+		hemi = ny >= 0.0 ? mix(hemi_side, 1.0, ny) : mix(hemi_side, hemi_down, -ny);
 		AO = hemi;
 		AO_LIGHT_AFFECT = 0.0;
 		fill_light *= hemi;
+	}
+	if (fill > 0.0 && fill_sheen > 0.0 && coat > 0.0) {
+		// R4 night fill (art review KRITIK-2 A2): at night the player's fill also shows as an even sheen on the clear
+		// coat – neutral, not the paint colour, as the studio sheen keeps a dark paint of Arcade's sprites readable
+		fill_light += ce_ambient.rgb * fill * fill_sheen * night * coat * hemi;
 	}
 	// mirrored environment: clear coat (Fresnel of a 1.5 coat), metals (tinted by their colour), glossy parts
 	vec3 refl = vec3(0.0);

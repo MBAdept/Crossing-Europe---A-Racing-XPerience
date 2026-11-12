@@ -2111,7 +2111,19 @@ Kameraposition – keine Uhr. Das Viereck steht in den Aufwärm-Knoten des Rigs.
   ebenen Boden (um 22 Uhr 1,7-fach) – das Lichtgesetz ist für ebenen Boden gemacht; M2ZS1 maß den hellen Pylon der
   Köhlbrandbrücke 40 % über Arcade. Ab 55° bekommt eine senkrechte Fläche höchstens 0,7 × das Mondlicht des Bodens: jede
   helle Wand, jedes Brückenteil, jede Karosserie bleibt beim Anteil des Bodens. Der Mond am Himmel bleibt, wo die
-  Palette ihn zeichnet. `night_albedo` von `baked.gdshader` bleibt die Stellschraube je Material (Pylon 0,45).
+  Palette ihn zeichnet. `night_albedo` von `baked.gdshader` bleibt die Stellschraube je Material (Pylon 0,45 –
+  nachgemessen mit dem Mondgesetz an der Köhlbrandbrücke km 78,1, 22 Uhr, „Hoch“, Bereich x 500–780, y 150–350:
+  Arcade 59,7, Modern 55,4 von 255, also weiter höchstens so hell wie Arcade; das Mondgesetz allein hätte den Wert
+  nicht gebraucht, die Laternen an den Seilen bei km 79,7 schon).
+- **Nacht-Füll-Licht des Spielerautos** (Kunstkritik KRITIK-2 A2: „die Karosserie bleibt nachts fast schwarz“):
+  das Füll-Licht (`fill` 0,7 des Umgebungslichts, nur das Spielerauto) bleibt nachts bei 0,6 seines Tagesanteils
+  (`fill_night`, vorher 0,3) und zeigt sich zusätzlich als gleichmäßiger Schimmer auf dem Klarlack
+  (`fill_sheen` 0,25 × `ce_night`, neutral statt in der Lackfarbe) – so hält Arcades Sprite mit seinem
+  Studioglanz auch einen dunklen Lack lesbar. Ein stärkeres diffuses Füll-Licht allein hebt den dunklen Metallic-Lack
+  der Limousine am wenigsten (bei 2,0: Limousine 0,51 ×, Kompakt schon 1,13 × Arcade), der neutrale Schimmer am
+  meisten. Gemessen mit `check_night spielerauto` (75. Perzentil der Leuchtdichte der Karosserie gegen Arcades Bild,
+  22 Uhr): vorher Kompakt 0,80 ×, Gran Turismo 0,55 ×, Limousine 0,35 ×; jetzt Kompakt 1,06 ×, Gran Turismo 0,92 ×, Limousine 0,94 ×. Die Lacke wirken nachts etwas blasser als am Tag (der Schimmer hat die Farbe des Nachthimmels) – so sieht auch das Auge nachts weniger Farbe. Bei Tag ändert
+  sich nichts (beides wirkt mit `ce_night`).
 - **Blaulicht**: ein Polizeiauto mit Blaulicht (Ansicht `beacon` „a“/„b“) bis 160 m vor der Kamera bekommt nachts
   einen Punktlicht aus dem Pool (es hat Vorrang vor der fernsten Lampe, der Deckel bleibt 8) und einen blauen
   Lichtkegel auf dem Boden, beide im Takt der Phase (1,0 / 0,6). Bei Tag nichts.
@@ -2135,4 +2147,4 @@ Horizontglühen, Licht und Schatten genau überein.
 | `tests/unit/race3d/test_weather.gd` | Wetterarten und Stufen, jede „Effekte“-Stufe mindestens mit Arcades Teilchendichte, Gischtwolken (eine bei „Aus“, drei sonst, Lkw größer, schneller weiter hinten), Länge der Lampenspiegelung |
 | `tests/race3d/check_light_cap.gd` (kopflos, im Haken von `tools/run_tests.sh`) | `deckel`: N1, Kiel – Hamburg ab km 76 um 22:30 und C1 um 21:30 im Regen, „Hoch“: in jeder Probe ≤ 8 sichtbare Punktlichter, ≤ 2 Spots, keines mit Schatten, genau ein gerichtetes Licht mit Schatten, der Schnappschuss stimmt; Lampen-Pool und Abblendlicht benutzt |
 | `tests/race3d/render/check_weather.gd` | `teilchen` (Regen und Schnee je Stufe „Niedrig“ / „Steam Deck“ / „Hoch“: Bildpunkte, mehr je Stufe, zweimal dasselbe Bild), `gischt`, `nass` (Spiegelung der Rückleuchten nachts, Fresnel bei Tag), `tunnel`, `schneewall`, `tabelle` (Wetter × Stunde gegen Arcade) |
-| `tests/race3d/render/check_night.gd` | `fahrbahn` (N1: mittlere Leuchtdichte der Fahrbahn 0 … +15 % gegen Arcade, „Mittel“ und „Steam Deck“), `spielerauto` (Karosserie nachts höchstens 10 % heller als Arcades Bild), `verdeckung` (nasse Nacht: Auto hinter Kuppe und hinter Sattelzug ändert 0 Pixel, auch keine Spiegelung), `blaulicht` |
+| `tests/race3d/render/check_night.gd` | `fahrbahn` (N1: mittlere Leuchtdichte der Fahrbahn 0 … +15 % gegen Arcade, „Mittel“ und „Steam Deck“), `spielerauto` (Kompakt/N1 Schnee, Gran Turismo/Regen, Limousine/klar, 22 Uhr: Karosserie 0,6 … 1,1 × Arcades Bild), `verdeckung` (nasse Nacht: Auto hinter Kuppe und hinter Sattelzug ändert 0 Pixel, auch keine Spiegelung), `blaulicht` (Polizei 34 m voraus: nachts ≥ 400 blauere Pixel und ein Punktlicht, bei Tag keines) |

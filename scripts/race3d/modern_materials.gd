@@ -71,11 +71,15 @@ const GLOBALS: Array = [
 ## R4 (art review KRITIK-2 A1, M2INT note 6 "Lack der Spielerautos"): hemisphere ambient on the bodies (vertical faces
 ## 0.72, faces turned down 0.5 of the ambient light – the form of the sprites' studio light; measured the Gran
 ## Turismo's rear bumper +50 % against its sprite in the overcast rain before) and the player's fill only in the shade
-## (a face turned to the sun keeps 25 % of it).
+## (a face turned to the sun keeps 25 % of it). R4 night fill (KRITIK-2 A2 "the body stays nearly black at night"):
+## the player's fill at night at 0.6 of its day share plus an even sheen on the clear coat (fill_sheen 0.25 × night) –
+## measured at 22:00 (render check check_night spielerauto, body p75 against Arcade's sprite): kompakt 0.80 ×, Gran
+## Turismo 0.55 ×, limousine 0.35 × with fill_night 0.3 alone; a stronger diffuse fill lifts the dark metallic
+## limousine least (0.51 × at 2.0 while the kompakt is at 1.13 ×), the neutral sheen lifts it most.
 const VEHICLE_LOOK: Array = [["vpbr", "env_energy", 1.6], ["vpbr", "paint_base", 1.0], ["vpbr", "paint_knee", 0.7],
 	["vpbr", "paint_knee_slope", 0.45], ["vpbr", "paint_desat", 0.08], ["vpbr", "flake_strength", 0.0],
-	["vpbr", "lamp_off", 0.28], ["vpbr", "tail_level", 0.5], ["vpbr", "env_night", 0.35], ["vpbr", "fill_night", 0.3],
-	["vpbr", "hemi_side", 0.72], ["vpbr", "hemi_down", 0.5], ["vpbr", "fill_shade", 0.75],
+	["vpbr", "lamp_off", 0.28], ["vpbr", "tail_level", 0.5], ["vpbr", "env_night", 0.35], ["vpbr", "fill_night", 0.6],
+	["vpbr", "fill_sheen", 0.25], ["vpbr", "hemi_side", 0.72], ["vpbr", "hemi_down", 0.5], ["vpbr", "fill_shade", 0.75],
 	["glass", "env_energy", 2.2], ["glass", "hemi_side", 0.72], ["glass", "hemi_down", 0.5]]
 ## Extra ambient light on the player car in a race (vpbr instance uniform fill, a share of ce_ambient): Arcade draws its
 ## player sprite brighter than the scene (ambient x 1.15 + 0.08) – the car stays readable in its own shade.
@@ -86,8 +90,8 @@ const STUDIO_LOOK: Array = [["vpbr", "env_energy", 0.0], ["vpbr", "paint_base", 
 	["vpbr", "paint_knee_slope", 0.45], ["vpbr", "paint_desat", 0.08], ["vpbr", "flake_strength", 0.6],
 	["vpbr", "lamp_off", 0.28], ["vpbr", "tail_level", 0.5], ["glass", "env_energy", 0.0],
 	# R4: the race's hemisphere ambient and fill law stay out of the studio (its own key, fill and rim lights)
-	["vpbr", "hemi_side", 1.0], ["vpbr", "hemi_down", 1.0], ["vpbr", "fill_shade", 0.0], ["glass", "hemi_side", 1.0],
-	["glass", "hemi_down", 1.0]]
+	["vpbr", "hemi_side", 1.0], ["vpbr", "hemi_down", 1.0], ["vpbr", "fill_shade", 0.0], ["vpbr", "fill_sheen", 0.0],
+	["glass", "hemi_side", 1.0], ["glass", "hemi_down", 1.0]]
 
 static var _globals_added := false
 static var _shared: ModernMaterials = null
