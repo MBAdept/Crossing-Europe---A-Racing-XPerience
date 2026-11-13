@@ -65,7 +65,7 @@ const XFADE_S := 0.5
 const MOON_COAT := 0.08
 ## R4 (M2INT note 6: the swap lod0 -> lod1 at 40 m changed 14 % of a car's pixels in one frame): lod0 cross-fades too –
 ## its glass has the same dither law now (glass.gdshader xfade); the wheels of the fading level stand still for XFADE_S
-const XFADE_LODS: Array[String] = ["lod1", "lod2"]
+const XFADE_LODS: Array[String] = ["lod0", "lod1", "lod2"]
 const STANDIN_SHADER := "vehicle_sprite"   ## assets/shaders/modern/vehicle_sprite.gdshader (through ModernMaterials)
 const STANDIN_NEAR_M := 0.3          ## a flat stand-in whose anchor is closer than this is not drawn (Arcade's near plane)
 const FLARE_PICTURE_GAP_M := 0.08    ## a lamp glow of a sprite stand-in sits this far in front of its picture
