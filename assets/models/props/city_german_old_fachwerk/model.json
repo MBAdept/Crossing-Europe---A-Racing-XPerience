@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/city_german_old_fachwerk",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 23, "height_m": 15.8, "length_m": 13},
+  "extent_m": {"left": 16, "right": 11.17},
+  "aabb": [-12.2, 0, -13.408, 11.5, 15.8, 1.108],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 6882,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_german_old_fachwerk/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 1040,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_german_old_fachwerk/lod1_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/city_german_old_fachwerk/albedo.webp", "emit": "props/city_german_old_fachwerk/emit.png"},
+  "roughness": 0.88,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left", "german_old", "center"],
+  "bytes": 407638,
+  "hash": "3325906d30ef2e1935fb3524ad44ec6c130772ae"
+ },
+ "sets": {
+  "props/city_german_old_fachwerk": {"model": "props/city_german_old_fachwerk"}
+ }
+}

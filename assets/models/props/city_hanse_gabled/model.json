@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/city_hanse_gabled",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 24, "height_m": 17.2, "length_m": 16},
+  "extent_m": {"left": 16.75, "right": 11.38},
+  "aabb": [-12.06, 0, -16, 12.094, 19.206, 0.938],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 3682,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_hanse_gabled/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 1226,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_hanse_gabled/lod1_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/city_hanse_gabled/albedo.webp", "emit": "props/city_hanse_gabled/emit.png"},
+  "roughness": 0.86,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left", "hanse", "center"],
+  "bytes": 527956,
+  "hash": "2e62a0d1ebe753286c2cfac46b160b295190f717"
+ },
+ "sets": {
+  "props/city_hanse_gabled": {"model": "props/city_hanse_gabled"}
+ }
+}

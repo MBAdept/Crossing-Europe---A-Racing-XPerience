@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/city_hanse_speicher",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 26.9, "height_m": 32.19, "length_m": 20},
+  "extent_m": {"left": 19.34, "right": 12.5},
+  "aabb": [-14.3, 0, -20.36, 13.22, 32.111, 1.4],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 8950,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_hanse_speicher/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 1283,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_hanse_speicher/lod1_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/city_hanse_speicher/albedo.webp", "emit": "props/city_hanse_speicher/emit.png"},
+  "roughness": 0.86,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left", "hanse", "center"],
+  "bytes": 682980,
+  "hash": "39bad70c9d9b4ae037d4d00862b34c08d72517d6"
+ },
+ "sets": {
+  "props/city_hanse_speicher": {"model": "props/city_hanse_speicher"}
+ }
+}

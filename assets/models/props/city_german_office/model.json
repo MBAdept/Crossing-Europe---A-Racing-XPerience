@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 409,
+    "tris": 427,
     "parts": [
      {
       "node": "body",
@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 100000,
-    "tris": 185,
+    "tris": 203,
     "parts": [
      {
       "node": "body",
@@ -60,8 +60,8 @@
   "roughness": 0.5,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "german", "center"],
-  "bytes": 324323,
-  "hash": "ccb46a913b609cbdf5cea98f2755fd42a9671e15"
+  "bytes": 324598,
+  "hash": "5cab7e6ed5c3f8d893e7f0abcd453d854bb60d36"
  },
  "sets": {
   "props/city_german_office": {"model": "props/city_german_office"}

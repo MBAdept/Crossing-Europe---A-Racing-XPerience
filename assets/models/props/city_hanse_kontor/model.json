@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/city_hanse_kontor",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 28.7, "height_m": 35.3, "length_m": 20},
+  "extent_m": {"left": 20.38, "right": 13.54},
+  "aabb": [-14.32, 0, -20.3, 14.3, 35.3, 0.32],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 9865,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_hanse_kontor/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 749,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_hanse_kontor/lod1_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/city_hanse_kontor/albedo.webp", "emit": "props/city_hanse_kontor/emit.png"},
+  "roughness": 0.86,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left", "hanse", "center"],
+  "bytes": 565661,
+  "hash": "5326ea2f7e7aaec6557094bccbd2d169cd80f774"
+ },
+ "sets": {
+  "props/city_hanse_kontor": {"model": "props/city_hanse_kontor"}
+ }
+}

@@ -1,0 +1,69 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/city_hanse_crane",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 23.47, "height_m": 32.15, "length_m": 12},
+  "extent_m": {"left": 8.79, "right": 16.34},
+  "aabb": [-4.8, 0, -12, 15.949, 31.941, 6],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 1260,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_hanse_crane/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 1052,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_hanse_crane/lod1_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "lights": [
+   {
+    "role": "lights",
+    "pos": [-2.17, 13.451, -2.85],
+    "dir": [-0.8, -0.6, 0],
+    "size": 0.64,
+    "color": "#ffd890"
+   },
+   {
+    "role": "lights",
+    "pos": [-0.12, 12.901, 0.46],
+    "dir": [-0.8, -0.6, 0],
+    "size": 0.64,
+    "color": "#ffd890"
+   },
+   {
+    "role": "lights",
+    "pos": [15.1969, 31.4, 3.9259],
+    "dir": [0.425, -0.851, 0.309],
+    "size": 0.947,
+    "color": "#ffd890"
+   }
+  ],
+  "textures": {"albedo": "props/city_hanse_crane/albedo.png", "emit": "props/city_hanse_crane/emit.png"},
+  "roughness": 0.6,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left", "hanse", "outskirts"],
+  "bytes": 261341,
+  "hash": "58663198dd7ef91fb7fe113d2857f33aed3703a3"
+ },
+ "sets": {
+  "props/city_hanse_crane": {"model": "props/city_hanse_crane"}
+ }
+}
