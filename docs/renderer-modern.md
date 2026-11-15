@@ -2105,16 +2105,25 @@ der Wolke (`lights.beam_at()`), nachts das Rot der eigenen Rückleuchten.
 
 Arcade lässt das Draußen überstrahlt wirken, solange die Kamera im Tunnel ist (Umgebungslicht × 1,7 + 0,25, Nebel 55 %
 zu Weiß). Modern: ein Viereck über dem Ausfahrtsportal (`environment_rig.gd`, `_update_exit`), tiefengetestet – die
-Röhre verdeckt es außerhalb der Öffnung –, mischt alles, was durch die Öffnung zu sehen ist, zu einem hellen Weiß:
-60 % solange die Ausfahrt fern ist, 45 % direkt am Portal (die Augen sind noch auf die Röhre eingestellt –
-wie bei Arcade bleibt das Draußen hell, solange die Kamera drinnen ist; `exit_glare()`); danach ist das ganze Bild
-60 m lang überstrahlt (40 % am Portal, in rund 1,5 s bei 140 km/h abklingend; `exit_after()`, Canvas-Ebene 1). Die
-ersten Bilder mit 12 % am Portal und 22 % danach zeigten eine fast normale Ausfahrt – schwächer als Arcade. Ist das
+Röhre verdeckt es außerhalb der Öffnung –, überbelichtet alles, was durch die Öffnung zu sehen ist: Stärke 0,6
+solange die Ausfahrt fern ist, 0,45 direkt am Portal (die Augen sind noch auf die Röhre eingestellt – wie bei Arcade
+bleibt das Draußen hell, solange die Kamera drinnen ist; `exit_glare()`); danach ist das ganze Bild 60 m lang
+überstrahlt (0,4 am Portal, in rund 1,5 s bei 140 km/h abklingend; `exit_after()`, Canvas-Ebene 1). Die ersten
+Bilder mit 12 % am Portal und 22 % danach zeigten eine fast normale Ausfahrt – schwächer als Arcade.
+**Belichtungsgesetz** (beide Stellen, `GLARE_LAW`): das Viereck und die Canvas-Ebene lesen, was hinter ihnen liegt
+(Bildschirmtextur – eine Kopie des Bildes, nur solange sie zu sehen sind), und zeigen es nach Arcades Gesetz für das
+Draußen: Anzeigewert × (1 + 0,7 s) + 0,25 s (`EXIT_GAIN`, `EXIT_LIFT`; s = Stärke / 0,6, also bei fernem Portal
+genau Arcades × 1,7 + 0,25), die hellsten Teile brennen zu `EXIT_GLARE_COLOR` aus. Die erste Fassung mischte zu Weiß –
+das las sich milchig, ein blasser Schleier über graugrünem Gras, wo Arcade helles, sattes Grün zeigt. Gemessen
+(Teststrecke km 52,8, 12 Uhr, „Hoch“, Kamera am Portal, Bereich über den Autos): Leuchtdichte Arcade 0,600, Modern
+vorher 0,638, jetzt 0,717; mittlere Sättigung Arcade 0,43, Modern vorher 0,20, jetzt 0,26 (Moderns Tagesgras ist
+grundsätzlich weniger grell als Arcades Palette). Ist das
 Spielerauto schon draußen, die Kamera aber noch drin, steht das Viereck 1,5 m vor seiner Front (`EXIT_CAR_GAP_M`):
 das Draußen dahinter ist überstrahlt, das Auto nicht verschleiert – wie Arcades Sprite (das Portal rahmt das Viereck
 von innen weiter ein). Nur bei Tag (Leuchtdichte des Umgebungslichts 0,35 … 0,75), nur mit einem Tunnel-Builder
 (seine Röhre muss das Viereck verdecken), eine Funktion der Kameraposition – keine Uhr. Das Viereck steht in den
-Aufwärm-Knoten des Rigs.
+Aufwärm-Knoten des Rigs; die Canvas-Ebene wird beim Aufwärmen zwölf Aktualisierungen lang mit Stärke 0 (Identität)
+gezeichnet, damit ihr Programm hinter dem Ladebild übersetzt wird.
 
 ### 15.7 Nacht
 

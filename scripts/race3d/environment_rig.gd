@@ -87,12 +87,16 @@ const SSAO_RADIUS := 1.2
 const SSAO_INTENSITY := 1.4
 ## R4: exposure ramp at a tunnel exit by day (Arcade: eyes adapted to the tunnel – the outside looks over-exposed,
 ## RoadRenderer: ambient × 1.7 + 0.25, fog 55 % towards white). A quad across the exit portal, depth tested (the
-## tube hides it outside the opening), mixes everything seen through the opening towards EXIT_GLARE_COLOR: EXIT_GLARE_FAR
-## of it while the exit is far, EXIT_GLARE_NEAR right at the portal (the eyes are still adapted to the tube – it stays
-## bright up to the portal, as Arcade's outside stays over-exposed while the camera is inside); after the exit the
-## whole picture is over-exposed for EXIT_AFTER_M of the camera's way (EXIT_AFTER at the portal: the eyes adapt in
-## about 1.5 s at 140 km/h). By day only (the ambient's luminance from EXIT_DAY_FROM to EXIT_DAY_TO); a function of
-## the camera position, no clock. (First pictures with 0.12 at the portal and 0.22 after it: the exit read normal.)
+## tube hides it outside the opening), over-exposes everything seen through the opening with the strength
+## EXIT_GLARE_FAR while the exit is far, EXIT_GLARE_NEAR right at the portal (the eyes are still adapted to the tube –
+## it stays bright up to the portal, as Arcade's outside stays over-exposed while the camera is inside); after the
+## exit the whole picture is over-exposed for EXIT_AFTER_M of the camera's way (EXIT_AFTER at the portal: the eyes
+## adapt in about 1.5 s at 140 km/h). By day only (the ambient's luminance from EXIT_DAY_FROM to EXIT_DAY_TO); a
+## function of the camera position, no clock. (First pictures with 0.12 at the portal and 0.22 after it: the exit
+## read normal.) The over-exposure is Arcade's law on what lies behind (screen texture): display value × (1 + gain)
+## + lift, the brightest parts burning out towards EXIT_GLARE_COLOR – EXIT_GAIN / EXIT_LIFT at the strength
+## EXIT_GLARE_FAR (1.7 × + 0.25 there, Arcade's outside palette). A plain mix towards white (the first version) read
+## milky – a pale veil over grey-green grass where Arcade shows bright lime-green grass.
 const EXIT_GLARE_FAR := 0.6
 const EXIT_GLARE_NEAR := 0.45
 const EXIT_NEAR_M := 10.0
@@ -102,6 +106,8 @@ const EXIT_AFTER_M := 60.0
 const EXIT_DAY_FROM := 0.35
 const EXIT_DAY_TO := 0.75
 const EXIT_GLARE_COLOR := Color(1.0, 1.0, 0.97)
+const EXIT_GAIN := 0.7
+const EXIT_LIFT := 0.25
 const EXIT_QUAD_H := 9.0           ## the glare quad reaches this high above the road (tube ceiling 6.2 m)
 ## … and stands at least this far beyond the front of the player's car: when the car has already left the tube, the
 ## outside behind it is over-exposed but the car is not veiled (Arcade's player sprite stays as it is; seen from inside
@@ -110,12 +116,34 @@ const EXIT_CAR_GAP_M := 1.5
 const POST_EXACT := true           ## the post path carries post_lut(): it shows what the passes wrote (RINT-B)
 const POST_LUT_SIZE := 256         ## texels of the 1D LUT (half floats; texel j belongs to the input (j + 0.5) / size)
 
+## (the exposure law of both: `glare` rgb = the white the brightest parts burn out to, a = strength 0..1 (1 at
+## EXIT_GLARE_FAR); the colour behind is a display value in both the 3D pass and the canvas – fragment() hands
+## display values to the engine, docs/modelle.md §4)
+const GLARE_LAW := """
+uniform vec4 glare = vec4(1.0, 1.0, 0.97, 0.0);
+uniform float gain = 0.7;
+uniform float lift = 0.25;
+vec3 over_expose(vec3 c) {
+	float s = clamp(glare.a, 0.0, 1.5);
+	vec3 e = c * (1.0 + gain * s) + vec3(lift * s);
+	float top = max(e.r, max(e.g, e.b));
+	return mix(min(e, vec3(1.0)), glare.rgb, smoothstep(1.0, 1.8, top) * 0.5);
+}
+"""
 const GLARE_SHADER := """shader_type spatial;
 render_mode unshaded, blend_mix, depth_draw_never, cull_disabled, fog_disabled, shadows_disabled;
-uniform vec4 glare = vec4(1.0, 1.0, 0.97, 0.0);
+uniform sampler2D screen_tex : hint_screen_texture, filter_nearest;
+""" + GLARE_LAW + """
 void fragment() {
-	ALBEDO = glare.rgb;
-	ALPHA = glare.a;
+	ALBEDO = over_expose(texture(screen_tex, SCREEN_UV).rgb);
+	ALPHA = 1.0;
+}
+"""
+const AFTER_SHADER := """shader_type canvas_item;
+uniform sampler2D screen_tex : hint_screen_texture, filter_nearest;
+""" + GLARE_LAW + """
+void fragment() {
+	COLOR = vec4(over_expose(texture(screen_tex, SCREEN_UV).rgb), 1.0);
 }
 """
 
@@ -147,6 +175,8 @@ var _zones: Dictionary = {}
 var _glare: MeshInstance3D         ## R4: the exposure quad of a tunnel exit (null until the first tunnel)
 var _glare_mat: ShaderMaterial
 var _after: ColorRect              ## R4: over-exposure of the whole picture just after a tunnel exit
+var _after_mat: ShaderMaterial
+var _after_warm := 0               ## R4: updates the after-glow layer stays drawn at strength 0 (shader warm-up)
 var _after_layer: CanvasLayer
 var _exit_state := Vector2.ZERO    ## (glare alpha, after-glow alpha) of the last update()
 
@@ -441,33 +471,46 @@ func _show_exit(a: Vector2, path: RoadPath3D, z_quad: float, fog_out: Color) -> 
 		# (the rig stands at the renderer's origin with no transform: local = origin-relative world)
 		var fr := path.frame_at(z_quad, centre, EXIT_QUAD_H * 0.5 - 0.5)
 		_glare.transform = Transform3D(fr.basis * Basis.from_scale(Vector3(w, EXIT_QUAD_H, 1.0)), fr.origin)
-		_glare_mat.set_shader_parameter(&"glare", Vector4(col.r, col.g, col.b, a.x))
+		_glare_mat.set_shader_parameter(&"glare", Vector4(col.r, col.g, col.b, a.x / EXIT_GLARE_FAR))
 		_glare.visible = true
 	elif _glare != null:
 		_glare.visible = false
-	if a.y > 0.0:
+	if a.y > 0.0 or _after_warm > 0:
+		_after_warm = maxi(_after_warm - 1, 0)
 		if _after == null:
 			_after_layer = CanvasLayer.new()
 			_after_layer.layer = 1
 			_after_layer.name = "ExitGlare"
 			_after = ColorRect.new()
 			_after.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			_after_mat = _glare_material(AFTER_SHADER)
+			_after.material = _after_mat
 			_after.set_anchors_preset(Control.PRESET_FULL_RECT)
 			_after_layer.add_child(_after)
 			add_child(_after_layer)
-		_after.color = Color(EXIT_GLARE_COLOR.r, EXIT_GLARE_COLOR.g, EXIT_GLARE_COLOR.b, a.y)
+		_after_mat.set_shader_parameter(&"glare", Vector4(EXIT_GLARE_COLOR.r, EXIT_GLARE_COLOR.g, EXIT_GLARE_COLOR.b,
+			a.y / EXIT_GLARE_FAR))
 		_after_layer.visible = true
 	elif _after_layer != null:
 		_after_layer.visible = false
 
 
-## The glare quad: unshaded, mixed over what lies behind it, depth tested, never written to depth, one draw call.
+## A material of the exposure law (GLARE_SHADER or AFTER_SHADER) with EXIT_GAIN / EXIT_LIFT.
+static func _glare_material(code: String) -> ShaderMaterial:
+	var sh := Shader.new()
+	sh.code = code
+	var m := ShaderMaterial.new()
+	m.shader = sh
+	m.set_shader_parameter(&"gain", EXIT_GAIN)
+	m.set_shader_parameter(&"lift", EXIT_LIFT)
+	return m
+
+
+## The glare quad: unshaded, over-exposes what lies behind it (screen texture), depth tested, never written to depth,
+## one draw call (and one copy of the picture while it is seen).
 func _glare_node() -> MeshInstance3D:
 	if _glare_mat == null:
-		var sh := Shader.new()
-		sh.code = GLARE_SHADER
-		_glare_mat = ShaderMaterial.new()
-		_glare_mat.shader = sh
+		_glare_mat = _glare_material(GLARE_SHADER)
 	var q := QuadMesh.new()
 	q.size = Vector2(1.0, 1.0)
 	var mi := MeshInstance3D.new()
@@ -482,8 +525,11 @@ func _glare_node() -> MeshInstance3D:
 ## R4: a fresh glare quad for the shader warm-up (the first tunnel exit must not compile it while driving).
 func warmup_nodes() -> Array:
 	var mi := _glare_node()
-	_glare_mat.set_shader_parameter(&"glare", Vector4(1.0, 1.0, 0.97, 0.05))
+	_glare_mat.set_shader_parameter(&"glare", Vector4(1.0, 1.0, 0.97, 0.0))
 	mi.scale = Vector3(0.5, 0.5, 1.0)
+	# the after-glow canvas: drawn at strength 0 (the identity) through the next updates, so its program is compiled
+	# behind the loading cover, not at the first tunnel exit
+	_after_warm = 12
 	return [mi]
 
 
