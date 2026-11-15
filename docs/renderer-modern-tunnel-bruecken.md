@@ -198,3 +198,24 @@ Die Scheibe selbst bleibt bei der ZS1-Regel (`test_far_ground_water`, Render-Pr�
 | `tests/race3d/render/check_tunnel_bridge.gd` | siehe Abschnitt 7 |
 | `tests/race3d/check_minimal_structures.gd` | `tunnel`, `bruecke` (seit FIX1) |
 | `tests/unit/race3d/test_far_ground_water.gd`, Render-Prüfung `terrain_cover` K1 | ZS1-Regel der Scheibe |
+
+## 7. Render-Prüfung `check_tunnel_bridge.gd`
+
+Ruhende Etappe (kein Autopilot, kein Verkehr, HUD aus), Modus Modern; `tools/run_render_checks.sh modern` startet sie.
+`-- --only=U1_portal,B1` prüft einzelne Stellen, `-- --save=<absoluter Ordner>` behält die Bilder.
+
+| Stelle | Ort | Bedingung |
+|---|---|---|
+| `U1_portal` | Bern – Mailand km 184,4, 60 m vor dem Gotthard-Portal, Debug-Ansicht `cover` | Portal, Rahmen und Hügel schließen das Gelände: Magenta (nichts gezeichnet) unter der Horizontzeile ≤ 0,2 % |
+| `U1_innen` | km 188, 300 m im Tunnel, `cover` | kein Himmel im ganzen Bild (Magenta ≤ 0,2 %), Leuchten an (≥ 40 helle Punkte über der Horizontzeile), Röhre weder schwarz noch weiß (mittlere Leuchtdichte 0,06–0,6) |
+| `U1_ausfahrt` | km 201,3, 60 m vor der Ausfahrt | die Öffnung weder schwarz noch ausgebrannt (Leuchtdichte 0,15–0,95, weniger als die Hälfte reines Weiß); die Röhre daneben wird nur gemeldet |
+| `Somport_portal` | Saragossa – Pau km 176,3, `cover` | wie `U1_portal` |
+| `B1` | Frankfurt – Köln km 186,2 (Severinsbrücke), `cover,far` | nichts offen unter der Horizontzeile (≤ 0,2 %), der Fernboden verdeckt den Rhein nicht (Cyan ≤ 2 %), der Builder hat Wasser gebaut |
+| `beacon` | Kiel – Hamburg km 76,4, 22 Uhr (Pylonspitzen 230 und 350 m voraus) | jede Flugbefeuerung in 2,4 s mal an, mal aus (Liste der Flare-Ebene), das Bild zeigt an ihr Rot |
+
+**Netzweit** (`-- --full`, ohne Bild, `--headless` genügt; rund 4 Minuten gemessen): baut jede Brücke und jeden
+Tunnel des Netzes – jede Richtung jeder Etappe – mit den beiden Buildern wie die Unit-Tests (ohne Renderer) und prüft,
+was jede haben muss: eine Brücke Wasser und Ufer, je Typ Pylone und Seile, Fachwerk und Portale oder Bögen; ein Tunnel
+Röhre, Leuchten und Portal.
+
+    godot --headless --path . -s res://tests/race3d/render/check_tunnel_bridge.gd -- --full

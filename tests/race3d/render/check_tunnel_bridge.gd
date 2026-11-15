@@ -21,6 +21,10 @@ extends SceneTree
 ##                   lights of the Köhlbrandbrücke blink in Arcade's rhythm – over 2.4 s every beacon is lit in some
 ##                   frames and dark in others (the flare layer's list) and the picture shows its red where it is lit
 ## "-- --only=U1_portal,B1" runs some positions, "-- --save=<absolute folder>" keeps the pictures.
+## "-- --full" (no picture, --headless is enough; about 4 minutes): builds EVERY bridge and EVERY tunnel of the network
+## – each direction of each stage – with builders/bridge.gd and builders/tunnel.gd as the unit tests do (no renderer)
+## and checks what each must have: a bridge its water and banks and per type its pylons and cables, truss and portals or
+## arches; a tunnel its tube, lamps and portal. Prints "RENDER-CHECK tunnel_bridge_full OK|FEHLER".
 ## (The scene and the autoloads are accessed untyped: -s scripts compile before the autoloads exist.)
 
 const RACE := "res://scenes/race/race.tscn"
@@ -52,6 +56,9 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	if CliArgs.all().has("full"):
+		_full_scan()
+		return
 	if DisplayServer.get_name() == "headless":
 		print("RENDER-CHECK tunnel_bridge FEHLER  braucht einen echten Renderer (Xvfb + --rendering-driver opengl3), nicht --headless")
 		quit(1)
@@ -377,3 +384,98 @@ func _check_beacon(name: String, renderer: Node, pos: Dictionary) -> void:
 		p.append("an den Feuern zeigt das Bild kein Rot (%d Bildpunkte)" % red_px_lit)
 	_report(name, p, "%s km %.1f, %02d Uhr: %d Feuer, %d blinken, %d rote Bildpunkte an ihnen in %d Bildern" % [str(pos["stage"]),
 		float(pos["km"]), int(pos["hour"]), beacons, blinking, red_px_lit, samples])
+
+
+## "-- --full": every bridge and every tunnel of the network built chunk by chunk without a renderer (see the head).
+func _full_scan() -> void:
+	var Fair: GDScript = load("res://tests/race3d/fairness.gd")
+	var BridgeB: GDScript = load("res://scripts/race3d/builders/bridge.gd")
+	var TunnelB: GDScript = load("res://scripts/race3d/builders/tunnel.gd")
+	var cfg: Dictionary = ConfigLoader.load_merged()
+	var net: Dictionary = Fair.call("load_network")
+	var radius := float(ConfigLoader.lookup(cfg, "road.curve_radius_at_1_m", 120.0))
+	var terrain_cfg: Variant = ConfigLoader.lookup(cfg, "graphics.modern.terrain", {})
+	var bridges := 0
+	var tunnels := 0
+	var bad: Array[String] = []
+	var types := {}
+	for dir: Dictionary in Fair.call("directions", net, []):
+		var plan := StagePlan.build(dir["stage"], str(dir["from"]), net["cities"], net["countries"], cfg, net["city_db"])
+		if plan.bridges.is_empty() and plan.tunnels.is_empty():
+			continue
+		var t := Track.new()
+		t.setup(plan, cfg, net["scenery"])
+		var p := RoadPath3D.new()
+		p.setup(t, 0, radius)
+		var tp := TerrainProfile.new()
+		tp.setup(p, t, terrain_cfg, net["scenery"])
+		p.set_clear_reach(1842.0)
+		# the elements of the direction in the order of the road: [z0, z1, kind, data]
+		var items: Array = []
+		for br: Dictionary in t.bridges:
+			items.append([float(br["z0"]), float(br["z1"]), "bridge", br])
+		for tu: Dictionary in plan.tunnels:
+			items.append([t.km_to_z(float(tu["start_km"])), t.km_to_z(float(tu["end_km"])), "tunnel", tu])
+		items.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) < float(b[0]))
+		var bb: Object = BridgeB.new()
+		var tb: Object = TunnelB.new()
+		var last_chunk := floori(float(t.segment_count - 1) / 32.0) - 1     # its rows stay inside the track
+		for item: Array in items:
+			var is_bridge := str(item[2]) == "bridge"
+			var c0 := maxi(int(floor(float(item[0]) / t.seg_len / 32.0)) - (0 if is_bridge else 1), 0)
+			var c1 := mini(int(floor(float(item[1]) / t.seg_len / 32.0)) + (0 if is_bridge else 1), last_chunk)
+			var sums := {}
+			for ci in range(c0, c1 + 1):
+				p.ensure(mini((ci + 1) * 32 + 700, t.segment_count - 1))
+				var ctx := ChunkContext.new()
+				ctx.cfg = cfg
+				ctx.scenery_db = net["scenery"]
+				ctx.levels = {"shadow_casters": 2, "details": 1}
+				ctx.capture(ci, ci * 32, ci * 32 + 32, p, tp, t)
+				var b: Object = bb if is_bridge else tb
+				var dbg: Dictionary = b.call("debug", b.call("build", ctx, b.call("collect", ctx)))
+				for k: String in dbg:
+					sums[k] = int(sums.get(k, 0)) + int(dbg[k])
+			var what := "%s %s (%s)" % [str(dir["name"]), str((item[3] as Dictionary).get("name", "?")), str(item[2])]
+			var miss: Array[String] = []
+			if is_bridge:
+				bridges += 1
+				var typ := str((item[3] as Dictionary).get("type", "river"))
+				types[typ] = int(types.get(typ, 0)) + 1
+				if int(sums.get("water_quads", 0)) <= 0:
+					miss.append("Wasser")
+				if int(sums.get("bank_quads", 0)) + int(sums.get("walls", 0)) <= 0:
+					miss.append("Ufer")
+				match typ:
+					"cable_stayed":
+						if int(sums.get("pylons", 0)) < 2 or int(sums.get("cables", 0)) <= 0:
+							miss.append("Pylone/Seile")
+					"truss_arch":
+						if int(sums.get("truss", 0)) <= 10 or int(sums.get("portals", 0)) <= 2:
+							miss.append("Fachwerk/Portale")
+					"stone_arch", "canal", "causeway":
+						if int(sums.get("arches", 0)) <= 3:
+							miss.append("Bögen")
+			else:
+				tunnels += 1
+				if int(sums.get("segments", 0)) <= 0 or int(sums.get("tube_triangles", 0)) <= 0:
+					miss.append("Röhre")
+				if int(sums.get("lamps", 0)) <= 0:
+					miss.append("Leuchten")
+				if int(sums.get("portals", 0)) <= 0:
+					miss.append("Portal")
+			if not miss.is_empty():
+				bad.append("%s: %s fehlt" % [what, ", ".join(miss)])
+	ModernMaterials.drop_shared()
+	var problems: Array[String] = []
+	problems.assign(bad.slice(0, 12))
+	if bridges == 0 or tunnels == 0:
+		problems.append("keine Brücke oder kein Tunnel gefunden")
+	for typ: String in CityData.BRIDGE_TYPES:
+		if not types.has(typ):
+			problems.append("kein Brückentyp %s im Netz" % typ)
+	_report("tunnel_bridge_full", problems, "%d Brücken %s, %d Tunnel gebaut, %d mit Mängeln, %.0f s" % [bridges,
+		JSON.stringify(types), tunnels, bad.size(), (Time.get_ticks_msec() - _wall0) / 1000.0])
+	print("RENDER-CHECKS %s  (%d fehlgeschlagen, %.0f s)" % ["OK" if _failed.is_empty() else "FEHLER", _failed.size(),
+		(Time.get_ticks_msec() - _wall0) / 1000.0])
+	quit(0 if _failed.is_empty() else 1)
