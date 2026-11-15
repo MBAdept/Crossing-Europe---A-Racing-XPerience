@@ -76,6 +76,10 @@ const LOS_NEAR := 55.0
 const LOS_FAR := 600.0
 const LOS_STEP := 5.0
 const LOS_MARGIN := 0.1            ## the column's half width plus this (cameras every LOS_STEP: a line can sweep past)
+## The decision costs 2–4.5 ms per canopy on the main thread (measured, llvmpipe VM under load): collect() decides one
+## more canopy that starts up to WARM_AHEAD_M beyond its chunk in advance, so that the canopies of a station are spread
+## over the chunks before it instead of all landing in one frame; camera positions are kept per stage (cache).
+const WARM_AHEAD_M := 600.0
 const BEAM_H := 0.4                ## the beam under the canopy edge that carries it over to an outer column
 const BEAM_D := 0.3
 const LAMP_X: Array[float] = [0.8, 2.8]
@@ -700,12 +704,27 @@ static func columns_in_chunk(ctx: ChunkContext, cache: Variant = null) -> Array:
 		if cache is Dictionary and (cache as Dictionary).has(key):
 			plan = (cache as Dictionary)[key]
 		else:
-			plan = canopy_columns(ctx, r0, r1)
+			plan = canopy_columns(ctx, r0, r1, cache)
 			if cache is Dictionary:
 				(cache as Dictionary)[key] = plan
 		for c: Array in plan:
 			if float(c[0]) >= za and float(c[0]) < zb:
 				out.append(c)
+	# one canopy ahead decided in advance (WARM_AHEAD_M)
+	if cache is Dictionary and ctx.path != null:
+		for zn: Dictionary in tr.zones:
+			if str(zn.get("kind", "")) != "fuel_canopy":
+				continue
+			var r0 := floorf(float(zn["z0"]) / len_s) * len_s
+			if r0 <= zb:
+				continue
+			if r0 > zb + WARM_AHEAD_M:
+				break
+			var key := "%.3f" % r0
+			if not (cache as Dictionary).has(key):
+				var r1 := ceilf(float(zn["z1"]) / len_s) * len_s
+				(cache as Dictionary)[key] = canopy_columns(ctx, r0, r1, cache)
+				break
 	return out
 
 
@@ -718,7 +737,7 @@ static func columns_in_chunk(ctx: ChunkContext, cache: Variant = null) -> Array:
 ##    QA-R6): on the island, else beyond the boards, else not at all;
 ##  * a canopy left without any column keeps its end column on the island (rather than float; in the network such an end
 ##    column still covers part of a 6–7 px board at 3 canopies, measured with the tools of FIX-R6).
-static func canopy_columns(ctx: ChunkContext, r0: float, r1: float) -> Array:
+static func canopy_columns(ctx: ChunkContext, r0: float, r1: float, cache: Variant = null) -> Array:
 	var tr := ctx.track
 	var sb := signs_behind(tr, r0, r1)
 	var signs: Array = sb["signs"]
@@ -737,7 +756,7 @@ static func canopy_columns(ctx: ChunkContext, r0: float, r1: float) -> Array:
 				var xs: Array[float] = []
 				for q: Array in cands:
 					xs.append(e + float(q[2]))
-				var hides := end_column_hides(tr, ctx.path, zc, xs, boards)
+				var hides := end_column_hides(tr, ctx.path, zc, xs, boards, cache)
 				var chosen: Array = []
 				for k in cands.size():
 					if not bool(hides[k]):
@@ -812,9 +831,10 @@ static func paved_edge_at(tr: Track, z: float) -> float:
 ## Main thread: for each candidate place x of `xs` (m from the road centre) at road position z, true when a column
 ## there would cover part of one of `boards` ([z, x, half width]) from a lane centre (and the fuel lane where it is
 ## open) LOS_NEAR..LOS_FAR before the board – world-space lines of sight on the RoadPath3D, bends included, against the
-## column's footprint (it spans every board height). Cameras every LOS_STEP metres; positions the path does not hold
-## are skipped.
-static func end_column_hides(tr: Track, p: RoadPath3D, z: float, xs: Array[float], boards: Array) -> Array:
+## column's footprint (it spans every board height). Cameras every LOS_STEP metres on a fixed grid; positions the path
+## does not hold are skipped. cache (a Dictionary, optional): keeps the camera positions of the grid for the next
+## canopies (valid while the floating origin of the path stays where it is).
+static func end_column_hides(tr: Track, p: RoadPath3D, z: float, xs: Array[float], boards: Array, cache: Variant = null) -> Array:
 	var out: Array = []
 	out.resize(xs.size())
 	out.fill(false)
@@ -825,35 +845,63 @@ static func end_column_hides(tr: Track, p: RoadPath3D, z: float, xs: Array[float
 		var cw := p.world(z, x, 0.0)
 		cols.append(Vector2(cw.x, cw.z))
 	var r := PILLAR_W * 0.5 + LOS_MARGIN
-	var cams: Array = []               ## [z, Vector2] on a fixed grid before the column
-	var zc := floorf((z - 1.0) / LOS_STEP) * LOS_STEP
-	while zc >= z - LOS_FAR:
-		if p.has(tr.segment_index_at(zc)):
-			var half := tr.lanes_at(zc) * tr.lane_w * 0.5
-			var nl := int(round(tr.lanes_at(zc)))
-			var lxs: Array[float] = []
-			for li in nl:
-				lxs.append(-half + tr.lane_w * (float(li) + 0.5))
-			if tr.fuel_lane_factor(zc) > 0.5:
-				lxs.append(half + tr.lane_w * 0.5)
-			for lx: float in lxs:
-				var w := p.world(zc, lx, 0.0)
-				cams.append([zc, Vector2(w.x, w.z)])
-		zc -= LOS_STEP
+	# only the boards behind the column, and only the cameras some of them need
+	var rel: Array = []
+	var lo := INF
+	var hi := -INF
 	for bd: Array in boards:
 		var zs := float(bd[0])
 		if zs <= z + 0.3 or zs > z + LOS_FAR or not p.has(tr.segment_index_at(zs) + 1):
 			continue
-		var w0 := p.world(zs, float(bd[1]) - float(bd[2]), 0.0)
-		var w1 := p.world(zs, float(bd[1]) + float(bd[2]), 0.0)
-		var b0 := Vector2(w0.x, w0.z)
-		var b1 := Vector2(w1.x, w1.z)
+		rel.append(bd)
+		lo = minf(lo, zs - LOS_FAR)
+		hi = maxf(hi, zs - LOS_NEAR)
+	if rel.is_empty():
+		return out
+	var cams: Array = []               ## [z, Vector2] on a fixed grid before the column
+	var grid: Dictionary = {}
+	if cache is Dictionary:
+		var cd: Dictionary = cache
+		if int(cd.get("cam_origin", -1)) != p.origin_index or not cd.has("cams"):
+			cd["cam_origin"] = p.origin_index
+			cd["cams"] = {}
+		grid = cd["cams"]
+	var zc := floorf((z - 1.0) / LOS_STEP) * LOS_STEP
+	while zc >= z - LOS_FAR:
+		if zc >= lo and zc <= hi and p.has(tr.segment_index_at(zc)):
+			var at: Variant = grid.get(zc)
+			if at == null:
+				var half := tr.lanes_at(zc) * tr.lane_w * 0.5
+				var nl := int(round(tr.lanes_at(zc)))
+				var lxs: Array[float] = []
+				for li in nl:
+					lxs.append(-half + tr.lane_w * (float(li) + 0.5))
+				if tr.fuel_lane_factor(zc) > 0.5:
+					lxs.append(half + tr.lane_w * 0.5)
+				var pts: Array[Vector2] = []
+				for lx: float in lxs:
+					var w := p.world(zc, lx, 0.0)
+					pts.append(Vector2(w.x, w.z))
+				at = pts
+				grid[zc] = pts
+			for v2: Vector2 in at:
+				cams.append([zc, v2])
+		zc -= LOS_STEP
+	for bd: Array in rel:
+		var zs := float(bd[0])
+		var e0 := p.world(zs, float(bd[1]) - float(bd[2]), 0.0)
+		var e1 := p.world(zs, float(bd[1]) + float(bd[2]), 0.0)
+		var b0 := Vector2(e0.x, e0.z)
+		var b1 := Vector2(e1.x, e1.z)
 		for cm: Array in cams:
 			var d := zs - float(cm[0])
 			if d < LOS_NEAR or d > LOS_FAR:
 				continue
 			var c: Vector2 = cm[1]
-			var db := (b0 - c).length()
+			var w0 := b0 - c
+			var w1 := b1 - c
+			var db := w0.length()
+			var db1 := w1.length()
 			for k in cols.size():
 				if bool(out[k]):
 					continue
@@ -861,13 +909,22 @@ static func end_column_hides(tr: Track, p: RoadPath3D, z: float, xs: Array[float
 				var dc := to_col.length()
 				if dc < r or db <= dc:
 					continue
-				# the column covers the angles within asin(r / dc) of its direction; the board spans its two ends' angles
-				var half_a := asin(minf(1.0, r / dc))
-				var a0 := to_col.angle_to(b0 - c)
-				var a1 := to_col.angle_to(b1 - c)
-				if maxf(a0, a1) >= -half_a and minf(a0, a1) <= half_a:
+				# the column covers the angles within asin(r / dc) of its direction; the board spans its two ends' angles.
+				# Compared as sines (monotonic up to 90°; beyond it ±2): the same test as with the angles, without atan2
+				var s0 := _sine(to_col, w0, dc, db)
+				var s1 := _sine(to_col, w1, dc, db1)
+				var lim := minf(1.0, r / dc)
+				if maxf(s0, s1) >= -lim and minf(s0, s1) <= lim:
 					out[k] = true
 	return out
+
+
+## Sine of the signed angle from v to w (lengths lv, lw), mapped to ±2 beyond 90° – a monotonic stand-in for the angle.
+static func _sine(v: Vector2, w: Vector2, lv: float, lw: float) -> float:
+	var s := v.cross(w) / maxf(lv * lw, 1.0e-9)
+	if v.dot(w) < 0.0:
+		return 2.0 if s >= 0.0 else -2.0
+	return s
 
 
 ## The columns of a canopy from r0 (start of its front segment) to r1 (end of its last segment): [[z, kind, x]], x =

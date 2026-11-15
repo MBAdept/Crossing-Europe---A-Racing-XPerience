@@ -91,7 +91,9 @@ des `RoadPath3D` mit Kurven, gegen den Querschnitt der Stütze). Sie steht auf d
 verdeckt, sonst außen, wenn sie dort keine verdeckt, sonst gar nicht (Arcade hat dort keine). Ein Dach, das so ohne jede
 Stütze bliebe, behält seine Endstütze auf der Insel – lieber als zu schweben (netzweit verdeckt eine Endstütze danach nur noch an 3 solchen Dächern Teile einer Tafel von 6–7 px; vorher 195 Paare, gemessen mit `scan_f1` von QA-R6).
 Die Sichtschneise (F7) der äußeren Stützen wird ebenfalls dort entschieden (`bend_corridor_at()` = der Test von
-`ChunkContext.in_bend_corridor()` für eine Reihe beliebigen Stücks, Unit-Test).
+`ChunkContext.in_bend_corridor()` für eine Reihe beliebigen Stücks, Unit-Test). Kosten auf dem Hauptthread: 1–4 ms je Dach (gemessen auf
+der VM unter Last 12); jedes `collect()` entscheidet deshalb ein Dach bis 600 m voraus schon im Voraus (`WARM_AHEAD_M`),
+so verteilen sich die Dächer einer Station auf die Stücke davor (höchstens 1,2–3,9 ms je Stück statt bis 12,8 ms).
 
 ## 4. Grenze (`border.gd`)
 
