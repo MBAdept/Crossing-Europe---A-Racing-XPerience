@@ -127,6 +127,10 @@ uniform float fill_shade = 0.0;
 // R4 night fill of the player car (art review KRITIK-2 A2): share of the fill that lights the clear coat evenly at
 // night (neutral sheen, × ce_night; 0 = off, the neutral default)
 uniform float fill_sheen = 0.0;
+// … and how much of the paint's own hue that sheen carries (0 = the colour of the ambient light, the neutral default;
+// 1 = the paint's chroma at the ambient light's luminance): a neutral sheen in the blue night light turned the amber
+// kompakt cream and the blue limousine grey – Arcade's sprites keep their paint saturated at night
+uniform float fill_sheen_tint = 0.0;
 // … and inside a tunnel (ce_tunnel; there ce_night is 1 for the lamps, but the light is the tunnel's, not the night
 // sky's): the fill keeps this share of its day value and the sheen is off (1.0 = neutral)
 uniform float fill_tunnel = 1.0;
@@ -353,8 +357,20 @@ void fragment() {
 	}
 	if (fill > 0.0 && fill_sheen > 0.0 && coat > 0.0) {
 		// R4 night fill (art review KRITIK-2 A2): at night the player's fill also shows as an even sheen on the clear
-		// coat – neutral, not the paint colour, as the studio sheen keeps a dark paint of Arcade's sprites readable
-		fill_light += ce_ambient.rgb * fill * fill_sheen * sky_night * coat * hemi;
+		// coat, as the studio sheen keeps a dark paint of Arcade's sprites readable; tinted by fill_sheen_tint towards
+		// the paint's chroma in the ambient light's colour (Arcade's law: sprite × ambient tint) at the ambient light's
+		// luminance – a silver paint keeps the blue of the night, an amber one its amber (chroma: luma 1, ≤ 4 per channel)
+		vec3 sheen = ce_ambient.rgb;
+		if (fill_sheen_tint > 0.0) {
+			const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);
+			float amb_l = max(dot(sheen, LUMA), 1.0e-5);
+			vec3 amb_c = sheen / amb_l;
+			vec3 pcol = to_lin(alb);
+			vec3 tinted = amb_c * min(pcol / max(dot(pcol, LUMA), 0.01), vec3(4.0));
+			tinted /= max(dot(tinted, LUMA), 0.01);
+			sheen = amb_l * mix(amb_c, tinted, clamp(fill_sheen_tint, 0.0, 1.0));
+		}
+		fill_light += sheen * fill * fill_sheen * sky_night * coat * hemi;
 	}
 	// mirrored environment: clear coat (Fresnel of a 1.5 coat), metals (tinted by their colour), glossy parts
 	vec3 refl = vec3(0.0);

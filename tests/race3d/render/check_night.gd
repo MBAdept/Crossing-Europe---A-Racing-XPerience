@@ -10,7 +10,8 @@ extends SceneTree
 ##   spielerauto the player's car at night (N1 Kompakt in the snow, Dortmund – Frankfurt km 121 Gran Turismo in the rain,
 ##               S1 Limousine, 22:00, „Mittel“): its body – the pixels that change when the car is not drawn, without
 ##               lamps, glows and the plate – at the 75th percentile of luminance at most CAR_MAX × and at least CAR_MIN ×
-##               Arcade's sprite at the same step (lead decision 8 of wave 3: never brighter than Arcade where it is dark)
+##               Arcade's sprite at the same step (lead decision 8 of wave 3: never brighter than Arcade where it is dark),
+##               and the median saturation of those pixels at least CAR_SAT_MIN × the sprite's (the paint keeps its hue)
 ##   verdeckung  night in the RAIN – the wet road mirrors lamps: a braking car behind a crest (Kassel – Würzburg km
 ##               61.6, T2) and a braking car right behind a semitrailer change 0 pixels (neither body, glow nor the
 ##               reflection of its lamps on the wet road shows through), and the same car is seen in front of them
@@ -25,6 +26,8 @@ const PROBE := "res://tests/race3d/fixtures/vehicle_probe_renderer.gd"
 const CHECKS := ["fahrbahn", "spielerauto", "verdeckung", "blaulicht"]
 const CAR_MAX := 1.10                ## the player's car at night at most this much brighter than Arcade's sprite …
 const CAR_MIN := 0.6                 ## … and at least this bright (it must stay readable)
+const CAR_SAT_MIN := 0.7             ## … and its paint at least this saturated (median HSV saturation of the body;
+                                     ## the silver GT: its sprite owes its saturation to the blue night tint)
 const STEPS := 30
 const ROAD_MAX := 0.15               ## Modern's night road at most this much brighter than Arcade's (never darker)
 const TRIM := 0.05                   ## share of the brightest and darkest probes left out (flakes, lines)
@@ -265,9 +268,10 @@ func _with_without(mode: String, setup_extra: Dictionary) -> Array:
 
 
 ## 75th percentile of the luminance of the car's body: pixels that change when the car is not drawn, without lamps and
-## glows (red-dominant) and the plate (very bright, grey). Returns [percentile, pixel count].
+## glows (red-dominant) and the plate (very bright, grey). Returns [percentile, pixel count, median saturation].
 static func _car_body(with_car: Image, without: Image) -> Array:
 	var v: Array[float] = []
+	var sat: Array[float] = []
 	for y in range(int(with_car.get_height() * 0.55), with_car.get_height()):
 		for x in range(int(with_car.get_width() * 0.3), int(with_car.get_width() * 0.7)):
 			var a := with_car.get_pixel(x, y)
@@ -279,10 +283,12 @@ static func _car_body(with_car: Image, without: Image) -> Array:
 			if a.get_luminance() > 0.8 and maxf(a.r, maxf(a.g, a.b)) - minf(a.r, minf(a.g, a.b)) < 0.12:
 				continue                    # number plate
 			v.append(a.get_luminance())
+			sat.append(a.s)
 	if v.size() < 50:
-		return [0.0, v.size()]
+		return [0.0, v.size(), 0.0]
 	v.sort()
-	return [v[int(float(v.size()) * 0.75)], v.size()]
+	sat.sort()
+	return [v[int(float(v.size()) * 0.75)], v.size(), sat[int(sat.size() / 2.0)]]
 
 
 func _check_spielerauto() -> void:
@@ -308,7 +314,10 @@ func _check_spielerauto() -> void:
 		_need(p, int(a[1]) >= 50 and int(m[1]) >= 50, "%s: das Auto ist in beiden Bildern (%d / %d Pixel)" % [cs[0], int(a[1]), int(m[1])])
 		_need(p, ratio <= CAR_MAX, "%s: höchstens %.0f %% heller als Arcades Bild (%.2f×)" % [cs[0], (CAR_MAX - 1.0) * 100.0, ratio])
 		_need(p, ratio >= CAR_MIN, "%s: mindestens %.1f× Arcades Bild (%.2f×)" % [cs[0], CAR_MIN, ratio])
-		parts.append("%s: Modern %.3f, Arcade %.3f (%.2f×)" % [cs[0], float(m[0]), float(a[0]), ratio])
+		var sat_ratio := float(m[2]) / maxf(float(a[2]), 1.0e-3)
+		_need(p, sat_ratio >= CAR_SAT_MIN, "%s: Lack mindestens %.2f× so gesättigt wie Arcades Bild (%.2f×)" % [cs[0], CAR_SAT_MIN, sat_ratio])
+		parts.append("%s: Modern %.3f, Arcade %.3f (%.2f×), Sättigung %.2f / %.2f (%.2f×)" % [cs[0], float(m[0]), float(a[0]),
+			ratio, float(m[2]), float(a[2]), sat_ratio])
 	CliArgs.all().erase("gfx-preset")
 	_report("spielerauto", p, "22 Uhr, Karosserie (75. Perzentil der Leuchtdichte): " + "; ".join(parts))
 

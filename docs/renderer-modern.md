@@ -2130,12 +2130,18 @@ Aufwärm-Knoten des Rigs.
 - **Nacht-Füll-Licht des Spielerautos** (Kunstkritik KRITIK-2 A2: „die Karosserie bleibt nachts fast schwarz“):
   das Füll-Licht (`fill` 0,7 des Umgebungslichts, nur das Spielerauto) bleibt nachts bei 0,6 seines Tagesanteils
   (`fill_night`, vorher 0,3) und zeigt sich zusätzlich als gleichmäßiger Schimmer auf dem Klarlack
-  (`fill_sheen` 0,25 × `ce_night`, neutral statt in der Lackfarbe) – so hält Arcades Sprite mit seinem
+  (`fill_sheen` 0,25 × `ce_night`) – so hält Arcades Sprite mit seinem
   Studioglanz auch einen dunklen Lack lesbar. Ein stärkeres diffuses Füll-Licht allein hebt den dunklen Metallic-Lack
   der Limousine am wenigsten (bei 2,0: Limousine 0,51 ×, Kompakt schon 1,13 × Arcade), der neutrale Schimmer am
   meisten. Gemessen mit `check_night spielerauto` (75. Perzentil der Leuchtdichte der Karosserie gegen Arcades Bild,
-  22 Uhr): vorher Kompakt 0,80 ×, Gran Turismo 0,55 ×, Limousine 0,35 ×; jetzt Kompakt 1,06 ×, Gran Turismo 0,92 ×, Limousine 0,94 ×. Die Lacke wirken nachts etwas blasser als am Tag (der Schimmer hat die Farbe des Nachthimmels) – so sieht auch das Auge nachts weniger Farbe. Bei Tag ändert
-  sich nichts (beides wirkt mit `ce_night`).
+  22 Uhr): vorher Kompakt 0,80 ×, Gran Turismo 0,55 ×, Limousine 0,35 ×; mit dem neutralen Schimmer Kompakt 1,06 ×,
+  Gran Turismo 0,92 ×, Limousine 0,94 ×. Der neutrale Schimmer machte die Lacke aber blasser als Arcades Sprites (der
+  bernsteinfarbene Kompakt cremefarben, der blaugraue GT neutral grau; mittlere Sättigung der Karosserie 0,74 × /
+  0,70 × / 0,91 × des Sprites). Darum trägt der Schimmer jetzt zu 80 % die Farbe des Lacks im Licht der Umgebung
+  (`fill_sheen_tint` 0,8, Arcades Gesetz Sprite × Umgebungsfarbe, bei gleicher Leuchtdichte): Sättigung **0,95 × /
+  0,73 × / 0,91 ×**, Helligkeit 1,04 × / 0,93 × / 0,86 × (`check_night spielerauto` prüft jetzt beides: Helligkeit
+  0,6 … 1,1 ×, Sättigung ≥ 0,7 × – der silberne GT verdankt seine Sättigung bei Arcade nur dem blauen Nachtton).
+  Bei Tag ändert sich nichts (alles wirkt mit `ce_night`).
 - **Blaulicht**: ein Polizeiauto mit Blaulicht (Ansicht `beacon` „a“/„b“) bis 160 m vor der Kamera bekommt nachts
   einen Punktlicht aus dem Pool (es hat Vorrang vor der fernsten Lampe, der Deckel bleibt 8) und einen blauen
   Lichtkegel auf dem Boden, beide im Takt der Phase (1,0 / 0,6). Bei Tag nichts.
