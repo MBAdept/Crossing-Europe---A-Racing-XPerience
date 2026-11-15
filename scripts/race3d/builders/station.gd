@@ -716,8 +716,8 @@ static func columns_in_chunk(ctx: ChunkContext, cache: Variant = null) -> Array:
 ##    shoulder band, where no corridor reaches);
 ##  * the end column (Arcade has none) stands where it covers no board from the road (end_column_hides(), B-02 of
 ##    QA-R6): on the island, else beyond the boards, else not at all;
-##  * a canopy left without any column keeps its end column on the island (rather than float; 3 of 1923 canopies of the
-##    network, measured with the tools of FIX-R6 – they cover a part of a far board in a bend, as before).
+##  * a canopy left without any column keeps its end column on the island (rather than float; in the network such an end
+##    column still covers part of a 6–7 px board at 3 canopies, measured with the tools of FIX-R6).
 static func canopy_columns(ctx: ChunkContext, r0: float, r1: float) -> Array:
 	var tr := ctx.track
 	var sb := signs_behind(tr, r0, r1)

@@ -89,7 +89,7 @@ zwischengespeichert): die Endstütze wird gegen echte Sichtlinien geprüft (`end
 dazu der offenen Tankspur, 55–600 m vor jeder Tafel beider Seiten bis 600 m hinter dem Dach, alle 10 m, Weltkoordinaten
 des `RoadPath3D` mit Kurven, gegen den Querschnitt der Stütze). Sie steht auf der Insel, wenn sie so keine Tafel
 verdeckt, sonst außen, wenn sie dort keine verdeckt, sonst gar nicht (Arcade hat dort keine). Ein Dach, das so ohne jede
-Stütze bliebe, behält seine Endstütze auf der Insel – lieber als zu schweben (3 von 1923 Dächern im Netz, gemessen).
+Stütze bliebe, behält seine Endstütze auf der Insel – lieber als zu schweben (netzweit verdeckt eine Endstütze danach nur noch an 3 solchen Dächern Teile einer Tafel von 6–7 px; vorher 195 Paare, gemessen mit `scan_f1` von QA-R6).
 Die Sichtschneise (F7) der äußeren Stützen wird ebenfalls dort entschieden (`bend_corridor_at()` = der Test von
 `ChunkContext.in_bend_corridor()` für eine Reihe beliebigen Stücks, Unit-Test).
 
