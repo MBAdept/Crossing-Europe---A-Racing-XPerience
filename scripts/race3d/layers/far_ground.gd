@@ -63,6 +63,12 @@ const FAR_WATER_BELOW := 0.05      ## … and the far water this much lower (the
 const DEEP_MARGIN_M := 0.05        ## a bridge is "deep" when its water lies below the plane's old height
 const K_GRASS := 3.0               ## kinds of water.gdshader (builders/bridge.gd)
 const K_STONE := 1.0
+## Arcade's quay colour per bridge type (= RoadRenderer.QUAY, pinned by tests/unit/race3d/test_bridge.gd) – the far
+## banks' colour without a bridge builder. A copy, not a reference: a static reference to the Arcade renderer makes this
+## layer fail to compile in "-s" scripts that preload it (road_renderer.gd names the autoload SpriteDB;
+## tests/race3d/check_terrain_plan.gd), the same reason as GroundLook.GROUND_BLEND_M.
+const ARCADE_QUAY := {"canal": Color("7a5648"), "causeway": Color("a9a395"), "river": Color("9a948a"),
+	"stone_arch": Color("a8a090"), "truss_arch": Color("8f8b84"), "cable_stayed": Color("a3a29c")}
 
 var far_y := 0.0                   ## origin-relative height of the plane
 var water_y := INF                 ## lowest water surface of the loaded window (origin-relative), INF without water
@@ -385,7 +391,7 @@ func build_river(path: RoadPath3D, track: Track, bi: int, bridge_b: Variant) -> 
 		var scen: Variant = (_renderer.get("scenery_db") as Dictionary).get(seg0.scenery, {}) if _renderer.get("scenery_db") is Dictionary else {}
 		info = (bridge_b as Object).call(&"bridge_info", br, scen, seg0.city)
 	var water_col: Color = info.get("water", Color(str(CityData.WATER_COLOR.get(str(br.get("type", "river")), "#4b6878"))))
-	var bank_col: Color = info.get("bank", RoadRenderer.QUAY.get(str(br.get("type", "river")), RoadRenderer.QUAY["river"]))
+	var bank_col: Color = info.get("bank", ARCADE_QUAY.get(str(br.get("type", "river")), ARCADE_QUAY["river"]))
 	var bank_kind := K_GRASS if str(br.get("bank", "")) != "" else K_STONE
 	# the band: the lines across the road at the water's two ends; reach on each side
 	var p0 := path.world(zw0, 0.0, 0.0)

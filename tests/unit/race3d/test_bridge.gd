@@ -371,3 +371,15 @@ func test_every_bridge_type_builds() -> void:
 				assert_true(int(sums.get("piers", 0)) >= 1, "%s: Pfeiler" % case[2])
 	for typ: String in CityData.BRIDGE_TYPES:
 		assert_true(seen.has(typ), "Brückentyp %s gebaut" % typ)
+
+
+func test_far_ground_quay_copy_equals_arcade() -> void:
+	# layers/far_ground.gd keeps a copy of Arcade's quay colours (a static reference to RoadRenderer would break the
+	# "-s" checks that preload the layer): the copy must stay Arcade's
+	var far_ground: GDScript = load("res://scripts/race3d/layers/far_ground.gd")
+	var copy: Dictionary = far_ground.get_script_constant_map().get("ARCADE_QUAY", {})
+	assert_eq(copy.size(), RoadRenderer.QUAY.size(), "so viele Kaifarben wie Arcade")
+	for typ: String in RoadRenderer.QUAY:
+		assert_true(copy.has(typ) and copy[typ] == RoadRenderer.QUAY[typ], "Kaifarbe %s wie Arcade" % typ)
+	for typ: String in CityData.BRIDGE_TYPES:
+		assert_true(copy.has(typ), "Kaifarbe für den Brückentyp %s" % typ)
