@@ -22,7 +22,7 @@ extends SceneTree
 ##             set lacks a model its stand-in shows up – with none left (AS2R, M2INT) no stand-in is drawn and no
 ##             sheet is loaded in prepare()
 ## Since AS2R every vehicle set has a model: the checks spieler … verdeckt run with a test manifest that takes the
-## models of TEST_SETS away (one player, one traffic and one box set; FIX-M2, QA-M2-SYSTEM M2S-02 – they had passed
+## models of TEST_SETS away (a player, two traffic and a box set; FIX-M2, QA-M2-SYSTEM M2S-02 – they had passed
 ## empty since then), "laden" with the shipped manifest. A check that finds nothing to compare FAILS.
 ## "-- --save=<absolute folder>" keeps the pictures (standin_<name>_<mode>.png).
 ## (The scene and the autoloads are accessed untyped: -s scripts compile before the autoloads exist; Arcade's
@@ -35,9 +35,10 @@ const PLAYERS: Array[String] = ["kombi", "sportwagen", "gran_turismo"]
 const TRAFFIC: Array[String] = ["traffic/sports_red", "traffic/sports_blue", "traffic/van_white", "traffic/suv_grey",
 	"traffic/sports_yellow", "traffic/van_red", "traffic/suv_white", "police/de"]
 const BOXES: Array[String] = ["traffic/bus_blue", "traffic/bus_red", "traffic/bus_white", "traffic/truck_blue"]
-## Sets whose model the test manifest takes away: a player car, a light traffic car (the night check wants a light
-## body), a box set (bus)
-const TEST_SETS: Array[String] = ["player/kombi", "traffic/van_white", "traffic/bus_blue"]
+## Sets whose model the test manifest takes away: a player car, the first traffic set of TRAFFIC (verkehr, verdeckt –
+## a car: "verdeckt" hides a point 2 m above the road behind the crest, the roof of a 2.6-m van still shows over it),
+## a light traffic car (the night check wants a light body: van_white first) and a box set (bus)
+const TEST_SETS: Array[String] = ["player/kombi", "traffic/sports_red", "traffic/van_white", "traffic/bus_blue"]
 const POS_PX := 3.0            ## position and size against Arcade (px)
 const BRIGHT := 0.10           ## mean brightness of the car against Arcade (fraction)
 const DIFF := 45               ## a pixel belongs to the car when the frame with it differs by more (sum of RGB, 0..765)
