@@ -306,3 +306,17 @@ func test_exit_ramp() -> void:
 	assert_eq(Rig.exit_after(-1.0), 0.0, "vor der Ausfahrt nichts")
 	assert_eq(Rig.exit_after(Rig.EXIT_AFTER_M), 0.0, "nach EXIT_AFTER_M vorbei")
 	assert_true(Rig.exit_after(20.0) < Rig.EXIT_AFTER and Rig.exit_after(20.0) > Rig.exit_after(40.0), "klingt mit dem Weg ab")
+	# FIX-R4 (QA-R4 B4/B6): the after-glow ends smoothly (no jump at EXIT_AFTER_M) and never lasts longer than
+	# EXIT_AFTER_S – a car standing behind an exit is not over-exposed for good
+	assert_true(Rig.exit_after(Rig.EXIT_AFTER_M - 0.5) < 0.02, "stetig: kurz vor EXIT_AFTER_M fast 0 (%.3f)" % Rig.exit_after(Rig.EXIT_AFTER_M - 0.5))
+	var prev := Rig.exit_after(0.0)
+	for i in 120:
+		var a := Rig.exit_after(float(i + 1) * 0.5)
+		assert_true(prev - a < 0.02, "kein Sprung zwischen %.1f und %.1f m (%.3f -> %.3f)" % [float(i) * 0.5, float(i + 1) * 0.5, prev, a])
+		prev = a
+	assert_near(Rig.exit_after_timed(0.0, 0.0), Rig.EXIT_AFTER, 1.0e-6, "zeitlich: am Portal EXIT_AFTER")
+	assert_eq(Rig.exit_after_timed(10.0, Rig.EXIT_AFTER_S), 0.0, "stehendes Auto 10 m hinter der Ausfahrt: nach EXIT_AFTER_S vorbei")
+	assert_true(Rig.exit_after_timed(10.0, Rig.EXIT_AFTER_S - 0.05) < 0.02, "zeitlich stetig (%.3f)" % Rig.exit_after_timed(10.0, Rig.EXIT_AFTER_S - 0.05))
+	assert_near(Rig.exit_after_timed(30.0, 30.0 / 38.9), Rig.exit_after(30.0), 1.0e-6, "bei 140 km/h entscheidet der Weg (Look von R4)")
+	assert_true(Rig.exit_after_timed(10.0, 1.0) < Rig.exit_after(10.0), "bei 36 km/h entscheidet die Zeit")
+	assert_eq(Rig.exit_after_timed(-1.0, 0.0), 0.0, "vor der Ausfahrt nichts")

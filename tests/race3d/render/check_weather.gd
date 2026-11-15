@@ -339,11 +339,13 @@ func _check_schneewall() -> void:
 	var r: ModernRenderer = sc.get("renderer")
 	var banks := 0
 	var chunks := 0
+	var mesh_max := 0.0
 	for c: Dictionary in r.debug_snapshot().get("chunks", []):
 		var t: Dictionary = (c.get("parts", {}) as Dictionary).get("terrain", {})
 		if not t.is_empty():
 			chunks += 1
 			banks += int(t.get("bank_tris", 0))
+			mesh_max = maxf(mesh_max, float(t.get("bank_max_m", 0.0)))
 	var tb: Object = r.builder("terrain")
 	var hmax := 0.0
 	if tb != null:
@@ -351,6 +353,9 @@ func _check_schneewall() -> void:
 			hmax = maxf(hmax, float(tb.call("bank_height", k)))
 	_need(p, banks > 0, "Schneewälle in den Stücken (%d Dreiecke in %d Stücken)" % [banks, chunks])
 	_need(p, hmax <= 0.45 + 1.0e-4, "höchstens 0,45 m hoch (%.3f m)" % hmax)
+	# FIX-R4 (QA-R4 B4): the built mesh itself – the highest bank vertex above the ground under it
+	_need(p, mesh_max > 0.05 and mesh_max <= 0.45 + 1.0e-3, "gebautes Netz: höchster Wallpunkt 0,05–0,45 m über dem Boden (%.3f m)" % mesh_max)
+	hmax = maxf(hmax, mesh_max)
 	var img: Image = await _shot(sc)
 	_save(img, "schneewall_n1")
 	await _free(sc)

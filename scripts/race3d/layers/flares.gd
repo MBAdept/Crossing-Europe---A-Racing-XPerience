@@ -46,6 +46,10 @@ const BEACON_GLOW_A := 1.6           ## flare.gdshader adds colour × 0.5 × str
 ## R4: a street or canopy lamp's reflection on the wet road, × its glow × wet (flare_streak); its streak is weighed
 ## point by point with the Fresnel term of water (negative half width, flare.gdshader fresnel_ref_m)
 const STREAK_LAMP := 0.5
+## FIX-R4 (QA-R4 B1): a streak is a strip of this many sections along its length, bent over the road's height profile
+## (flare.gdshader CE_STREAK) – a flat quad lay level at the height of its lamp's foot and hung in the air over a
+## climbing road
+const STREAK_SECTIONS := 12
 
 var _renderer: Node
 var _mats: ModernMaterials
@@ -63,6 +67,7 @@ var _sbuf := PackedFloat32Array()
 var _sn := 0
 var _veh_streak_n := 0
 var _wet := 0.0
+var _prof := PackedFloat32Array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])   ## FIX-R4: road profile of the static streak being put
 var debug_streaks := true            ## render checks switch the reflections on the wet road off (same frame without them)
 var _buf := PackedFloat32Array()
 var _veh := PackedFloat32Array()
@@ -101,9 +106,9 @@ func setup(renderer: Node) -> void:
 	var smat := _mats.material(ModernMaterials.FLARE_STREAK) as ShaderMaterial
 	if smat != null:
 		smat.set_shader_parameter(&"focal_px", _focal)
-	_mm_streak = _multimesh()
+	_mm_streak = _multimesh(streak_mesh())
 	_node_streak = _instance(_mm_streak, "WetStreaks", smat)
-	_mm_sstreak = _multimesh()
+	_mm_sstreak = _multimesh(streak_mesh())
 	_node_sstreak = _instance(_mm_sstreak, "WetStreaksStatic", smat)
 	if world is Node3D:
 		(world as Node3D).add_child(_node)
@@ -112,12 +117,12 @@ func setup(renderer: Node) -> void:
 		(world as Node3D).add_child(_node_sstreak)
 
 
-static func _multimesh() -> MultiMesh:
+static func _multimesh(mesh: Mesh = null) -> MultiMesh:
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = true
 	mm.use_custom_data = true
-	mm.mesh = _quad()
+	mm.mesh = mesh if mesh != null else _quad()
 	return mm
 
 
@@ -217,6 +222,7 @@ func _add_statics(view: Dictionary) -> void:
 	var in_tunnel := bool(view.get("camera_in_tunnel", false))
 	var vis := float(view.get("visibility_m", 900.0))
 	var time := float(view.get("time", 0.0))
+	var cam_z := float(view.get("camera_z", 0.0))
 	var cam: Camera3D = _renderer.get("camera")
 	if cam == null:
 		return
@@ -282,7 +288,9 @@ func _add_statics(view: Dictionary) -> void:
 					# R4: its reflection on the wet road, from the foot of its pool towards the camera
 					var drop := _drop_of(e, j, p, parent)
 					if drop > 0.5:
-						# (negative half width: the shader weighs the streak with the Fresnel term of water)
+						# (negative half width: the shader weighs the streak with the Fresnel term of water) – along
+						# the road's profile from the lamp's foot to the camera (FIX-R4)
+						_lamp_profile(e, j, cam_z)
 						var hw := -maxf(size * 0.9, 0.35)
 						_put_streak(p, LAMP_GLOW_COLOR, g * _wet * STREAK_LAMP, hw, drop, depth, size * 0.5)
 			elif role == "tunnel":
@@ -306,29 +314,49 @@ static func blink_lit(blink: Variant, time: float, night: float) -> bool:
 
 
 ## Height of static lamp j of entry e above the road beside it (cached per entry; recomputed when the parent moves):
-## the nearest boundary of the integrated path, like the lights layer's pools.
+## the nearest boundary of the integrated path, like the lights layer's pools. FIX-R4: the road position z of that
+## boundary is cached beside it (e[7]) for the streak's profile.
 func _drop_of(e: Array, j: int, p: Vector3, parent: Node3D) -> float:
-	if e.size() < 7 or not (e[6] is PackedFloat32Array) or (e[6] as PackedFloat32Array).size() != (e[1] as Array).size():
+	var n := (e[1] as Array).size()
+	if e.size() < 8 or not (e[6] is PackedFloat32Array) or (e[6] as PackedFloat32Array).size() != n:
 		var d := PackedFloat32Array()
-		d.resize((e[1] as Array).size())
+		d.resize(n)
 		d.fill(-1.0)
-		if e.size() < 7:
-			e.append(d)
-		else:
-			e[6] = d
+		var zs := PackedFloat32Array()
+		zs.resize(n)
+		while e.size() < 8:
+			e.append(null)
+		e[6] = d
+		e[7] = zs
 	var drops: PackedFloat32Array = e[6]
 	if drops[j] < 0.0:
-		drops[j] = _ground_drop(p, parent)
+		var got := _ground_drop(p, parent)
+		drops[j] = got.x
 		e[6] = drops
+		var zs: PackedFloat32Array = e[7]
+		zs[j] = got.y
+		e[7] = zs
 	return drops[j]
 
 
+## FIX-R4: the road profile from static lamp j of entry e (its road position, cached by _drop_of()) to the camera's
+## road position into _prof (road_profile(); level when there is no path).
+func _lamp_profile(e: Array, j: int, cam_z: float) -> void:
+	var path: RoadPath3D = _renderer.get("path") if _renderer != null else null
+	if path == null or not path.is_ready() or e.size() < 8 or not (e[7] is PackedFloat32Array):
+		_prof.fill(0.0)
+		return
+	var z := (e[7] as PackedFloat32Array)[j]
+	road_profile(path, z, cam_z, path.z_min(), float(path.last()) * path.seg_len, _prof)
+
+
 ## Height of a world point above the nearest boundary of the integrated path – searched inside the chunk above
-## `parent` (the streamer names chunk nodes "Chunk<index>"), else along the whole path (0 when there is no path).
-func _ground_drop(p: Vector3, parent: Node) -> float:
+## `parent` (the streamer names chunk nodes "Chunk<index>"), else along the whole path – and that boundary's road
+## position: Vector2(height, z) (0, 0 when there is no path).
+func _ground_drop(p: Vector3, parent: Node) -> Vector2:
 	var path: RoadPath3D = _renderer.get("path") if _renderer != null else null
 	if path == null or not path.is_ready():
-		return 0.0
+		return Vector2.ZERO
 	var from := path.first
 	var to := path.last()
 	var step := 4
@@ -344,13 +372,15 @@ func _ground_drop(p: Vector3, parent: Node) -> float:
 		node = node.get_parent()
 	var best := INF
 	var drop := 0.0
+	var best_k := from
 	for k in range(from, to + 1, step):
 		var q := path.point(k)
 		var d := (q.x - p.x) * (q.x - p.x) + (q.z - p.z) * (q.z - p.z)
 		if d < best:
 			best = d
 			drop = p.y - q.y
-	return clampf(drop, 0.0, 40.0)
+			best_k = k
+	return Vector2(clampf(drop, 0.0, 40.0), float(best_k) * path.seg_len)
 
 
 func _put_streak(pos: Vector3, col: Color, a: float, half_w: float, h: float, depth: float, lamp_r: float) -> void:
@@ -359,17 +389,9 @@ func _put_streak(pos: Vector3, col: Color, a: float, half_w: float, h: float, de
 	var o := _sn * FLOATS
 	if _sbuf.size() < o + FLOATS:
 		_sbuf.resize(maxi(o + FLOATS, maxi(32 * FLOATS, _sbuf.size() * 2)))
-	_sbuf[o] = 1.0
-	_sbuf[o + 1] = 0.0
-	_sbuf[o + 2] = 0.0
+	put_profile(_sbuf, o, _prof)
 	_sbuf[o + 3] = pos.x
-	_sbuf[o + 4] = 0.0
-	_sbuf[o + 5] = 1.0
-	_sbuf[o + 6] = 0.0
 	_sbuf[o + 7] = pos.y
-	_sbuf[o + 8] = 0.0
-	_sbuf[o + 9] = 0.0
-	_sbuf[o + 10] = 1.0
 	_sbuf[o + 11] = pos.z
 	_sbuf[o + 12] = col.r
 	_sbuf[o + 13] = col.g
@@ -435,9 +457,9 @@ func warmup_nodes() -> Array:
 		mm2.transform_format = MultiMesh.TRANSFORM_3D
 		mm2.use_colors = true
 		mm2.use_custom_data = true
-		mm2.mesh = _quad()
+		mm2.mesh = streak_mesh()
 		mm2.instance_count = 1
-		mm2.set_instance_transform(0, Transform3D(Basis.IDENTITY, Vector3(0.0, 0.8, 0.0)))
+		mm2.set_instance_transform(0, Transform3D(Basis(Vector3.ZERO, Vector3.ZERO, Vector3(1.0, 0.0, 0.0)), Vector3(0.0, 0.8, 0.0)))
 		mm2.set_instance_color(0, Color(1.0, 0.2, 0.1, 0.3))
 		mm2.set_instance_custom_data(0, Color(0.15, 0.8, 6.0, 0.1))
 		var n2 := MultiMeshInstance3D.new()
@@ -466,6 +488,52 @@ func flares() -> Array:
 				"strength": b[o + 15], "k": b[o + 16], "min_px": b[o + 17], "kind": b[o + 18], "lamp_r": b[o + 19],
 				"vehicle": bool(src[2])})
 	return out
+
+
+## FIX-R4 (QA-R4 B1): the road's height profile from road position z_from (the foot of a lamp) to z_cam (the camera's
+## foot) for flare.gdshader's streak: out[i] = road height at (i + 1) / 6 of that way minus the height at z_from
+## (6 values; z clamped into [z_lo, z_hi], the part of the path that exists).
+static func road_profile(path: RoadPath3D, z_from: float, z_cam: float, z_lo: float, z_hi: float, out: PackedFloat32Array) -> void:
+	var a := clampf(z_from, z_lo, z_hi)
+	var b := clampf(z_cam, z_lo, z_hi)
+	var h0 := path.height_at(a)
+	for i in 6:
+		out[i] = path.height_at(lerpf(a, b, float(i + 1) / 6.0)) - h0
+
+
+## FIX-R4: a streak's profile into the basis of its instance transform in a MultiMesh buffer at offset o (flare.gdshader
+## CE_STREAK: columns 0 and 1 hold the six heights, column 2 x = 1 says a profile is given). Pure.
+static func put_profile(buf: PackedFloat32Array, o: int, prof: PackedFloat32Array) -> void:
+	buf[o] = prof[0]
+	buf[o + 4] = prof[1]
+	buf[o + 8] = prof[2]
+	buf[o + 1] = prof[3]
+	buf[o + 5] = prof[4]
+	buf[o + 9] = prof[5]
+	buf[o + 2] = 1.0
+	buf[o + 6] = 0.0
+	buf[o + 10] = 0.0
+
+
+## FIX-R4: the mesh of a streak – a strip from y = -1 to 1 in STREAK_SECTIONS sections (x = -1 / 1 across), so that it
+## can follow the road's profile.
+static func streak_mesh() -> ArrayMesh:
+	var v := PackedVector3Array()
+	var idx := PackedInt32Array()
+	for i in STREAK_SECTIONS + 1:
+		var y := -1.0 + 2.0 * float(i) / float(STREAK_SECTIONS)
+		v.append(Vector3(-1.0, y, 0.0))
+		v.append(Vector3(1.0, y, 0.0))
+	for i in STREAK_SECTIONS:
+		var a := i * 2
+		idx.append_array(PackedInt32Array([a, a + 3, a + 1, a, a + 2, a + 3]))
+	var arr := []
+	arr.resize(Mesh.ARRAY_MAX)
+	arr[Mesh.ARRAY_VERTEX] = v
+	arr[Mesh.ARRAY_INDEX] = idx
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+	return mesh
 
 
 static func _quad() -> ArrayMesh:

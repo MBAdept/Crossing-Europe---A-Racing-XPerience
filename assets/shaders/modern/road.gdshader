@@ -160,6 +160,11 @@ void fragment() {
 	float rough = 0.92;
 	float spec = 0.3;
 	float reflect = 1.0;
+	// FIX-R4 (QA-R4 B2): what the lamps light – the diffuse part of the surface. The sky mirrored in the water film is
+	// part of `base` (it shows under the ambient law as the sky's own colour) but is no matte surface: the low beam and
+	// the light pools must not light it (they made the wet road in the cone 1.77 × as bright as Arcade and halved the
+	// contrast of the lines there). A real wet road gets darker in the headlights, as in Arcade.
+	vec3 lit = vec3(-1.0);
 
 	if (kind == 0) {
 		// ---------------------------------------------------------------- asphalt
@@ -268,6 +273,8 @@ void fragment() {
 		vec3 line = mix(col_line, col_line_snow, 0.5 * snow) * (1.0 + grain * 0.04);
 		// ---------------------------------------------------------------- weather on the asphalt
 		asph *= 1.0 - 0.32 * wet;
+		vec3 asph_lit = asph;
+		vec3 line_lit = line;
 		if (wet > 0.0) {
 			// R4: the water film mirrors the sky – Fresnel of water at the angle under which the camera sees the road
 			// (strong at grazing angles far ahead, weak below the car), the palette's sky between horizon and zenith
@@ -283,15 +290,20 @@ void fragment() {
 			float mirror = max(fres * wet_mirror, 0.28 * sheen) * wet;
 			asph = mix(asph, sky_k, mirror);
 			line = mix(line * (1.0 - 0.07 * wet), sky_k, mirror * 0.35);
+			asph_lit *= 1.0 - mirror;
+			line_lit *= (1.0 - 0.07 * wet) * (1.0 - mirror * 0.35);
 		}
 		asph = mix(asph, col_road_snow, 0.3 * snow);
+		asph_lit = mix(asph_lit, col_road_snow, 0.3 * snow);
 		if (snow > 0.0) {
 			// snow pushed to the edges of the lanes, with a frayed inner edge
 			float fray = (vnoise(vec2(z * 1.3, 4.0)) - 0.5) * 0.18;
 			float band = max(cover(x, la, la + 0.7 + fray, wx), cover(x, ma - 0.55 - fray, ma, wx));
 			asph = mix(asph, col_snow * (0.96 + grain * 0.1), band * 0.7 * snow);
+			asph_lit = mix(asph_lit, col_snow * (0.96 + grain * 0.1), band * 0.7 * snow);
 		}
 		vec3 surf = mix(asph, line, paint * worn);
+		vec3 surf_lit = mix(asph_lit, line_lit, paint * worn);
 		float gloss = paint * worn;
 		reflect = mix(asphalt_reflect, paint_reflect, gloss);
 		if ((flags & 16) != 0) {
@@ -303,6 +315,7 @@ void fragment() {
 			float chk = 0.5 + 0.5 * square(cx, wx / cw) * square(cz, wz / (0.5 * seg_len));
 			float on = along_seg;
 			surf = mix(surf, mix(vec3(0.08), vec3(1.0), chk) * (1.0 + grain * 0.05), on);
+			surf_lit = mix(surf_lit, mix(vec3(0.08), vec3(1.0), chk) * (1.0 + grain * 0.05), on);
 			reflect = mix(reflect, 1.2, on);
 			gloss = max(gloss, on);
 		}
@@ -353,6 +366,7 @@ void fragment() {
 			side *= 1.0 - (under * 0.22 + post * 0.38) * detail;
 		}
 		base = mix(side, surf, in_road);
+		lit = mix(side, surf_lit, in_road);
 		reflect = mix(side_reflect, reflect, in_road);
 		rough = mix(side_rough, rough, in_road);
 		spec = mix(0.25, spec, in_road);
@@ -379,14 +393,19 @@ void fragment() {
 		base = mix(base, col_snow, (kind == 2 ? 0.6 : 0.2) * snow);
 		reflect = 1.0;
 	}
+	if (lit.x < 0.0) {
+		lit = base;
+	}
 	if (!tunnel) {
 		base *= 1.0 + night_lift * clamp(ce_night, 0.0, 1.0);
+		lit *= 1.0 + night_lift * clamp(ce_night, 0.0, 1.0);
 	}
 	base = clamp(base, vec3(0.0), vec3(1.0));
+	lit = clamp(lit, vec3(0.0), vec3(1.0));
 	ALBEDO = base;
 	ROUGHNESS = rough;
 	SPECULAR = spec;
 	METALLIC = 0.0;
 	vec3 extra = ce_pools(v_world) * reflect + ce_headlight_light(v_world, reflect);
-	EMISSION = ce_pools_encode(ce_ground_base_lin(base) + ce_pools_to_lin(base) * extra);
+	EMISSION = ce_pools_encode(ce_ground_base_lin(base) + ce_pools_to_lin(lit) * extra);
 }

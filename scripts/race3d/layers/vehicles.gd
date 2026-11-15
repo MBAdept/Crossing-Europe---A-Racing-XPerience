@@ -46,6 +46,8 @@ const SPRAY_FLOATS := 13            ## R4: spray source layout of layers/weather
 const STREAK_GAIN := 0.7            ## R4: reflection of a rear lamp on the wet road, × the lamp's flare strength × wet
 const STREAK_MIN_M := 3.0
 const STREAK_MAX_M := 18.0
+## FIX-R4: the flare layer's streak layout (road_profile(), put_profile() – same package, R4)
+const Flares := preload("res://scripts/race3d/layers/flares.gd")
 const PLAYER_ID := -999999          ## view id of the player car in this layer
 ## Extra ambient light on the player car (vpbr instance uniform fill, a share of ce_ambient): Arcade draws its player
 ## sprite brighter than the scene (ambient x 1.15 + 0.08) – the car stays readable in its own shade (the sun stands
@@ -161,6 +163,9 @@ var _streaks := PackedFloat32Array()
 var _streak_n := 0
 var _wet := 0.0
 var _cam_origin := Vector3.ZERO
+var _path: RoadPath3D                ## FIX-R4: the path of this frame (road profile of the streaks)
+var _cam_z := 0.0
+var _prof := PackedFloat32Array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])   ## the road profile of the car whose flares are put
 var _shadow_mm: MultiMesh
 var _shadow_node: MultiMeshInstance3D
 var _shadow_buf := PackedFloat32Array()
@@ -450,6 +455,8 @@ func update(view: Dictionary, dt: float) -> void:
 	_wet = clampf(float(pal.get("wet", 0.0)), 0.0, 1.0)
 	_set_environment(pal)
 	var cam_z := float(view.get("camera_z", 0.0))
+	_path = path
+	_cam_z = cam_z
 	var vis := float(view.get("visibility_m", 900.0))
 	var lights := float(pal.get("lights", 0.0))
 	var time := float(view.get("time", 0.0))
@@ -937,26 +944,20 @@ func _add_spray(car: Car, c: Dictionary, obj: Dictionary, length: float, alpha: 
 
 
 ## R4: the reflection of a rear lamp on the wet road (layer "flares", flare_streak): Arcade's streaky reflections of
-## rear lights (RoadRenderer._wet_reflections, 0.22 × glow × wet) as a quad on the road from the ground under the lamp
-## towards the camera. `h` = height of the lamp above the car's ground, `dist` = the car's distance from the camera.
-func _put_streak(pos: Vector3, col: Color, s: float, lamp_r: float, h: float, dist: float) -> void:
+## rear lights (RoadRenderer._wet_reflections, 0.22 × glow × wet) as a strip on the road from the ground under the lamp
+## towards the camera. `h` = height of the lamp above the car's ground, `dist` = the car's distance from the camera,
+## `prof` = the road's height profile from the car to the camera (road_profile(); FIX-R4: the strip follows the road –
+## level at the height of the car, it hung in the air above a climbing road as a red column, QA-R4 B1).
+func _put_streak(pos: Vector3, col: Color, s: float, lamp_r: float, h: float, dist: float, prof: PackedFloat32Array) -> void:
 	var a := s * _wet * STREAK_GAIN
 	if a <= 0.004 or h <= 0.05:
 		return
 	var o := _streak_n * FLOATS_PER_FLARE
 	if _streaks.size() < o + FLOATS_PER_FLARE:
 		_streaks.resize(maxi(o + FLOATS_PER_FLARE, maxi(32 * FLOATS_PER_FLARE, _streaks.size() * 2)))
-	_streaks[o] = 1.0
-	_streaks[o + 1] = 0.0
-	_streaks[o + 2] = 0.0
+	Flares.put_profile(_streaks, o, prof)
 	_streaks[o + 3] = pos.x
-	_streaks[o + 4] = 0.0
-	_streaks[o + 5] = 1.0
-	_streaks[o + 6] = 0.0
 	_streaks[o + 7] = pos.y
-	_streaks[o + 8] = 0.0
-	_streaks[o + 9] = 0.0
-	_streaks[o + 10] = 1.0
 	_streaks[o + 11] = pos.z
 	_streaks[o + 12] = col.r
 	_streaks[o + 13] = col.g
@@ -1021,6 +1022,7 @@ func _add_flares(car: Car, info: Dictionary, la: Vector4, lb: Vector4, lights: f
 	if la == Vector4.ZERO and lb == Vector4.ZERO and bool(info.get("codes_known", false)):
 		return
 	var pts: Array = info["points_rear"] if car.flare_ref > 0.0 else info["points"]
+	var prof_done := false
 	for p: Dictionary in pts:
 		if _lamp_level(int(p["code"]), la, lb, lights) <= 0.0:
 			continue          # dark: no need for the full glow law
@@ -1058,8 +1060,12 @@ func _add_flares(car: Car, info: Dictionary, la: Vector4, lb: Vector4, lights: f
 				lamp_r *= kk
 		_put_flare(pos, dir, col, s, k, fp.z, fp.w, lamp_r)
 		if _wet > 0.0 and (role == "rear" or role == "tail" or role == "brake") and (p["pos"] as Vector3).y > 0.1:
-			# the lamp's reflection on the wet road (its height above the car's ground: the model-space y)
-			_put_streak(pos, col, s, lamp_r, (p["pos"] as Vector3).y, (pos - _cam_origin).length())
+			# the lamp's reflection on the wet road (its height above the car's ground: the model-space y), along the
+			# road from the car's rear (car.z) to the camera – one profile for all lamps of the car
+			if not prof_done and _path != null:
+				Flares.road_profile(_path, car.z, _cam_z, _path.z_min(), float(_path.last()) * _path.seg_len, _prof)
+				prof_done = true
+			_put_streak(pos, col, s, lamp_r, (p["pos"] as Vector3).y, (pos - _cam_origin).length(), _prof)
 
 
 ## World transform of the articulated unit a model-space point belongs to (the last unit whose pivot lies ahead of

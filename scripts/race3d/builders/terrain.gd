@@ -238,15 +238,17 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 			else:
 				idx.append_array(PackedInt32Array([t0, t1 + 1, t1, t0, t0 + 1, t1 + 1]))
 	var bank_tris := 0
+	var bank_top := PackedFloat32Array([0.0])
 	if bool(inp.get("snow", false)):
-		bank_tris = _snow_banks(ctx, verts, norms, cols, uvs, uv2s, custom, bands, idx, n, per_side)
+		bank_tris = _snow_banks(ctx, verts, norms, cols, uvs, uv2s, custom, bands, idx, n, per_side, bank_top)
 	var box := AABB()
 	if verts.size() > 0:
 		box = AABB(verts[0], Vector3.ZERO)
 		for v in verts:
 			box = box.expand(v)
 	return {"verts": verts, "normals": norms, "colors": cols, "uv": uvs, "uv2": uv2s, "custom": custom, "bands": bands,
-		"indices": idx, "aabb": box, "rings": n, "rows": rows, "quads": quads, "water_rows": water_rows, "bank_tris": bank_tris}
+		"indices": idx, "aabb": box, "rings": n, "rows": rows, "quads": quads, "water_rows": water_rows, "bank_tris": bank_tris,
+		"bank_max_m": bank_top[0]}
 
 
 ## R4: whether row i of a chunk may carry a snow bank (open road beside open ground).
@@ -265,10 +267,11 @@ static func bank_height(k: int) -> float:
 
 ## R4: appends the snow banks of both sides to the arrays of the ribbon (worker thread, snapshot only); returns the
 ## number of triangles. The banks lie on the ground of the first two rings (linear between them) and copy the style
-## of the ring at the shoulder edge.
+## of the ring at the shoulder edge. FIX-R4 (QA-R4 B4): top[0] = the largest height of a built bank vertex above the
+## ground under it (render check "schneewall" and test_weather judge the mesh, not bank_height()).
 static func _snow_banks(ctx: ChunkContext, verts: PackedVector3Array, norms: PackedVector3Array, cols: PackedColorArray,
 		uvs: PackedVector2Array, uv2s: PackedVector2Array, custom: PackedFloat32Array, bands: PackedFloat32Array,
-		idx: PackedInt32Array, n: int, per_side: int) -> int:
+		idx: PackedInt32Array, n: int, per_side: int, top: PackedFloat32Array) -> int:
 	var rows := ctx.row_count()
 	var np := BANK_PROFILE.size()
 	# where a bank may stand, and how far each row is from the nearest row without one (taper)
@@ -312,7 +315,9 @@ static func _snow_banks(ctx: ChunkContext, verts: PackedVector3Array, norms: Pac
 					lift = 0.025                     # on the shoulder: just above the road
 				var x := side * (base + ctx.ring_x[ro] + m)
 				var v := first + (si * rows + i) * np + q
-				verts[v] = o + right * x + Vector3(0.0, g + lift, 0.0)
+				var foot := o + right * x + Vector3(0.0, g, 0.0)
+				verts[v] = foot + Vector3(0.0, lift, 0.0)
+				top[0] = maxf(top[0], verts[v].y - foot.y)
 				cols[v] = cols[src]
 				uvs[v] = Vector2(BANK_LAT[q], uvs[src].y)
 				uv2s[v] = Vector2(x, 0.0)
@@ -480,6 +485,7 @@ func debug(part: Dictionary) -> Dictionary:
 		q[i * 3 + 1] = int(round(v.y * 1000.0))
 		q[i * 3 + 2] = int(round(v.z * 1000.0))
 	return {"vertices": verts.size(), "triangles": idx.size() / 3, "quads": int(part.get("quads", 0)), "bank_tris": int(part.get("bank_tris", 0)),
+		"bank_max_m": snappedf(float(part.get("bank_max_m", 0.0)), 0.001),
 		"rings": int(part.get("rings", 0)), "water_rows": int(part.get("water_rows", 0)), "checksum": hash(q),
 		"aabb": [snappedf(box.position.x, 0.001), snappedf(box.position.y, 0.001), snappedf(box.position.z, 0.001),
 			snappedf(box.size.x, 0.001), snappedf(box.size.y, 0.001), snappedf(box.size.z, 0.001)]}

@@ -90,6 +90,23 @@ func prepare(ctx: Dictionary) -> void:
 	_build()
 
 
+## FIX-R4 (QA-R4 B5): the slowness watchdog stepped the preset down during the countdown – the precipitation takes the
+## lower level's count and box at once (the first `_count` instances of the built MultiMesh: the shader places every
+## instance by its number alone, so the rest needs no new buffer) and the spray its lower setting.
+func quality_lowered(levels: Dictionary) -> void:
+	var before := _count
+	apply_quality(levels)
+	if _particles == null or _particles.multimesh == null:
+		return
+	_count = mini(_count, before)
+	_level = level_of(_count)
+	_box = box_for(kind, _level)
+	if _pmat != null:
+		_pmat.set_shader_parameter(&"box_lo", Vector3(-_box.x, BOX_BELOW, _box.y))
+		_pmat.set_shader_parameter(&"box_hi", Vector3(_box.x, BOX_ABOVE, _box.z))
+	_particles.multimesh.visible_instance_count = mini(_count, _particles.multimesh.instance_count)
+
+
 ## The particle level a count belongs to (graphics.levels.effects: 300 / 1,500 / 4,000).
 static func level_of(count: int) -> int:
 	return 0 if count <= 600 else (1 if count <= 2500 else 2)
@@ -351,7 +368,16 @@ func perf() -> Dictionary:
 
 func snapshot() -> Dictionary:
 	return {"weather": {"kind": kind, "particles": _count, "level": _level, "shown": _shown, "fade": snappedf(_fade, 0.001),
+		"drawn": _drawn_particles(),
 		"box": [_box.x, _box.y, _box.z], "spray_full": _spray_full, "spray_sources": _src_n, "spray_puffs": _puffs}}
+
+
+## Particles the MultiMesh draws (its visible count; -1 there means all of them).
+func _drawn_particles() -> int:
+	if _particles == null or _particles.multimesh == null:
+		return 0
+	var mm := _particles.multimesh
+	return mm.instance_count if mm.visible_instance_count < 0 else mini(mm.visible_instance_count, mm.instance_count)
 
 
 static func _quad() -> ArrayMesh:

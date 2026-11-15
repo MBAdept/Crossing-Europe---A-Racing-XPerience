@@ -103,6 +103,11 @@ const EXIT_NEAR_M := 10.0
 const EXIT_FAR_M := 150.0
 const EXIT_AFTER := 0.4
 const EXIT_AFTER_M := 60.0
+## FIX-R4 (QA-R4 B6): … and for at most this long after the camera passed the portal (view.time; the crossing time is
+## estimated from the speed, so a stage that starts behind an exit shows none): a car standing behind an exit (a jam,
+## a crash, a police stop) stayed over-exposed for good. Whichever of way and time is further along decides – above
+## 108 km/h the way (the look of R4), below it the time.
+const EXIT_AFTER_S := 2.0
 const EXIT_DAY_FROM := 0.35
 const EXIT_DAY_TO := 0.75
 const EXIT_GLARE_COLOR := Color(1.0, 1.0, 0.97)
@@ -179,6 +184,8 @@ var _after_mat: ShaderMaterial
 var _after_warm := 0               ## R4: updates the after-glow layer stays drawn at strength 0 (shader warm-up)
 var _after_layer: CanvasLayer
 var _exit_state := Vector2.ZERO    ## (glare alpha, after-glow alpha) of the last update()
+var _after_exit_z := -1.0e9         ## FIX-R4: road z of the exit the camera is behind (after-glow clock) …
+var _after_t0 := 0.0                ## … and the view time it passed that exit
 
 
 func _init() -> void:
@@ -410,7 +417,17 @@ func _update_exit(view: Dictionary, pal: Dictionary, tunnel01: float, fog_out: C
 	if not exit.is_empty() and tunnel01 > 0.5:
 		z_exit = float(exit["z"])
 		glare = day * exit_glare(z_exit - cam_z)
-	var after := day * exit_after(exit_behind(_track, cam_z))
+	var behind := exit_behind(_track, cam_z)
+	var time := float(view.get("time", 0.0))
+	if behind >= 0.0:
+		var z1 := cam_z - behind
+		if absf(z1 - _after_exit_z) > 0.5 or _after_t0 > time:
+			# a new exit behind the camera: when did the camera pass it (now minus the way at the current speed)
+			_after_exit_z = z1
+			_after_t0 = time - behind / maxf(float(view.get("speed", 0.0)) / 3.6, 1.0)
+	else:
+		_after_exit_z = -1.0e9
+	var after := day * exit_after_timed(behind, time - _after_t0)
 	_exit_state = Vector2(glare, after)
 	var pl: Dictionary = view.get("player", {})
 	var z_quad := z_exit - 0.6
@@ -432,6 +449,15 @@ static func exit_after(d: float) -> float:
 	if d < 0.0 or d >= EXIT_AFTER_M:
 		return 0.0
 	return EXIT_AFTER * (1.0 - smoothstep(0.0, EXIT_AFTER_M, d))
+
+
+## FIX-R4 (QA-R4 B6): the after-glow `d` metres and `dt` seconds after the camera passed the exit (pure): it fades
+## with whichever of the two is further along (EXIT_AFTER_M, EXIT_AFTER_S) – never longer than EXIT_AFTER_S.
+static func exit_after_timed(d: float, dt: float) -> float:
+	if d < 0.0 or d >= EXIT_AFTER_M or dt >= EXIT_AFTER_S:
+		return 0.0
+	var u := maxf(d / EXIT_AFTER_M, maxf(dt, 0.0) / EXIT_AFTER_S)
+	return EXIT_AFTER * (1.0 - smoothstep(0.0, 1.0, u))
 
 
 ## The exit of the tunnel the camera is in, when it lies within `vis` metres: {"z": road z of the exit}; else {}.
@@ -503,6 +529,10 @@ static func _glare_material(code: String) -> ShaderMaterial:
 	m.shader = sh
 	m.set_shader_parameter(&"gain", EXIT_GAIN)
 	m.set_shader_parameter(&"lift", EXIT_LIFT)
+	# FIX-R4 (QA-R4 B8): the glare quad replaces what lies behind it with the over-exposed copy of the opaque picture;
+	# drawn FIRST of all transparent things, the lamp glows, rain and glass beyond the portal come after it and stay
+	# (sorted by depth it could be drawn after a brake light outside the tube and wipe it out – F6)
+	m.render_priority = Material.RENDER_PRIORITY_MIN
 	return m
 
 
