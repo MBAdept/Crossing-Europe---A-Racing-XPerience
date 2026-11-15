@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 4539,
+    "tris": 4938,
     "parts": [
      {
       "node": "body",
@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 100000,
-    "tris": 2385,
+    "tris": 2401,
     "parts": [
      {
       "node": "body",
@@ -37,8 +37,8 @@
   "roughness": 0.86,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "german_old", "center"],
-  "bytes": 318891,
-  "hash": "116f31b0ee427e0461944950cf0e643c0801275a"
+  "bytes": 341869,
+  "hash": "2746e5e171206c8cca4ececf0014fe4e15c941fa"
  },
  "sets": {
   "props/city_german_old_barock": {"model": "props/city_german_old_barock"}
