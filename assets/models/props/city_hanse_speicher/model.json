@@ -37,8 +37,8 @@
   "roughness": 0.86,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "hanse", "center"],
-  "bytes": 682980,
-  "hash": "39bad70c9d9b4ae037d4d00862b34c08d72517d6"
+  "bytes": 696481,
+  "hash": "46bcc853642ba0329bbe1fe5e7c394586629f48c"
  },
  "sets": {
   "props/city_hanse_speicher": {"model": "props/city_hanse_speicher"}

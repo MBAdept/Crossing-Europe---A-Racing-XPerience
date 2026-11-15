@@ -60,8 +60,8 @@
   "roughness": 0.6,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "hanse", "outskirts"],
-  "bytes": 261341,
-  "hash": "58663198dd7ef91fb7fe113d2857f33aed3703a3"
+  "bytes": 265672,
+  "hash": "d2b6cab0723914a0526501d8aadebabb2c5a2859"
  },
  "sets": {
   "props/city_hanse_crane": {"model": "props/city_hanse_crane"}
