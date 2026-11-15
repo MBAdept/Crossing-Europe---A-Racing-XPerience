@@ -1306,6 +1306,9 @@ func _set_level(car: Car, lod: String) -> void:
 			gi.set_instance_shader_parameter(&"fill", fill)
 		if gloss < 1.0:
 			gi.set_instance_shader_parameter(&"gloss", gloss)
+	if fill > 0.0:
+		# FIX-M2 (B-06): the player's paint a little less saturated, like its Arcade sprite (ModernMaterials.player_paint)
+		ModelFactory.apply_paint(n, ModernMaterials.player_paint(ModelDB.resolve(car.set_id).get("paint", {})))
 	car.la = Vector4(-1, -1, -1, -1)
 	car.lb = Vector4(-1, -1, -1, -1)
 	car.mod = Color(-1, -1, -1, -1)

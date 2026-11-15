@@ -199,6 +199,26 @@ func test_model_glow_gain() -> void:
 		"Stärken Tag %.2f, Nacht %.2f, Blaulicht %.2f" % [day, night, beacon])
 
 
+## FIX-M2 (QA-M2-BILD B-06): the player's paint in a race is moved towards its luminance by VEHICLE_PLAYER_DESAT; the
+## luminance and the metal value stay, keys that are no colour stay as they are.
+func test_player_paint_is_desaturated() -> void:
+	var src := {"paint": "#1d4ea8", "paint2": "#cc1419", "metal": 0.55}
+	var out := ModernMaterials.player_paint(src)
+	assert_eq(src["paint"], "#1d4ea8", "die Vorlage bleibt unverändert")
+	assert_near(float(out["metal"]), 0.55, 1.0e-6, "Metallwert bleibt")
+	for k: String in ["paint", "paint2"]:
+		var a := Color(str(src[k]))
+		var b := Color(str(out[k]))
+		var sat_a := a.s
+		var sat_b := b.s
+		assert_true(sat_b < sat_a - 0.05,
+			"%s: weniger gesättigt (%.3f -> %.3f)" % [k, sat_a, sat_b])
+		var la := 0.2126 * a.r + 0.7152 * a.g + 0.0722 * a.b
+		var lb := 0.2126 * b.r + 0.7152 * b.g + 0.0722 * b.b
+		assert_near(lb, la, 0.01, "%s: Helligkeit bleibt (%.3f / %.3f)" % [k, la, lb])
+	assert_true(ModernMaterials.VEHICLE_PLAYER_DESAT > 0.0 and ModernMaterials.VEHICLE_PLAYER_DESAT < 0.5, "Anteil zwischen 0 und 0,5")
+
+
 func test_flare_points_merge_rear_lamps() -> void:
 	var lights := [
 		{"role": "brake", "pos": [-0.75, 0.89, 2.29], "dir": [-0.48, 0.25, 0.84], "size": 0.237, "color": "#ff2010"},
