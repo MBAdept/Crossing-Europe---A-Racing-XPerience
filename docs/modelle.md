@@ -8,7 +8,7 @@ ergibt. Kein Modell wird von Hand gebaut oder importiert. Der Modus „Arcade“
 Stand: erste Zusammenführung von M2 (M2INT) – jedes Fahrzeug-Set hat ein Modell (Spielerautos und Verkehrsautos
 aus Abschnitt 15, Sattelzüge, Busse und Polizei aus Abschnitt 16, die Nacharbeit in Abschnitt 17), dazu Vegetation
 und Natur (Abschnitt 18) und ländliche Gebäude, Stadthäuser, Brückenteile und Schiffe (Abschnitt 19) sowie
-die Stadthäuser der Stilfamilien `german`, `german_old` und `hanse` (Abschnitt 20, AS5a1); die übrigen Stilfamilien
+die Stadthäuser der Stilfamilien `german`, `german_old` und `hanse` (Abschnitt 20, AS5a1 mit Nacharbeit AS5aR1); die übrigen Stilfamilien
 (`props/city_*`) und die Wahrzeichen außer dem Michel sind noch Arcade-Bilder.
 Zahlen mit „gemessen“ stammen von der
 Build-VM (4 Kerne, mit anderen Aufträgen geteilt, Software-OpenGL), „abgeleitet“ ist gerechnet, nicht gemessen.
@@ -1525,7 +1525,7 @@ das Modell hat 88,8 m), und gerade Seile folgen keiner Kurve (bei R 449 m liegt 
 Deckkante – auf dem Seitenstreifen, nicht in der Fahrbahn); die Phase der Rotoren hängt an der ursprungsrelativen
 Weltposition und springt bei jedem Versatz des Ursprungs (alle 2 km).
 
-## 20. Stadthäuser german, german_old und hanse (Bauabschnitt 5, AS5a1)
+## 20. Stadthäuser german, german_old und hanse (Bauabschnitt 5, AS5a1, Nacharbeit AS5aR1)
 
 Die elf Stadthaus-Sets der Stilfamilien `german`, `german_old` und `hanse` haben Echtzeit-Modelle – vorher zeichnete
 Modern dort das Arcade-Bild als Platzhalter. Reihenfolge nach Häufigkeit auf Kiel–Nürnberg (gezählt: alle
@@ -1535,20 +1535,20 @@ Hafenkran 3.
 
 | Set | Platzierungen Kiel–Nürnberg | Dreiecke lod0 / lod1 | Atlas | px/m Straßenwand (Modellmaß) | Archiv Netze / Texturen |
 |---|---|---|---|---|---|
-| `city_german_house` | 282 | 2 962 / 2 526 | 1024×1024 | 60 | 97 / 254 kB |
-| `city_german_old_fachwerk` | 99 | 6 913 / 1 041 | 2048×1024 | 35–44 | 100 / 507 kB |
-| `city_german_old_fachwerk_b` | 95 | 3 332 / 978 | 2048×1024 | 42–52 | 56 / 401 kB |
-| `city_german_mietshaus` | 77 | 2 176 / 506 | 2048×1024 | 53–138 | 34 / 483 kB |
-| `city_german_gruenderzeit` | 72 | 4 410 / 2 394 | 2048×1024 | 41–141 | 76 / 552 kB |
-| `city_hanse_gabled` | 54 | 3 712 / 1 233 | 2048×1024 | 34–42 | 68 / 664 kB |
-| `city_german_old_barock` | 32 | 4 539 / 2 385 | 2048×1024 | 38–47 | 89 / 462 kB |
-| `city_hanse_speicher` | 10 | 8 950 / 1 283 | 2048×1024 | 30–43 | 114 / 740 kB |
+| `city_german_house` | 282 | 2 962 / 1 406 | 1024×1024 | 60 | 80 / 254 kB |
+| `city_german_old_fachwerk` | 99 | 7 084 / 1 050 | 2048×1024 | 34–43 | 102 / 524 kB |
+| `city_german_old_fachwerk_b` | 95 | 5 319 / 990 | 2048×1024 | 42–52 | 78 / 432 kB |
+| `city_german_mietshaus` | 77 | 2 176 / 506 | 2048×1024 | 53–138 | 34 / 490 kB |
+| `city_german_gruenderzeit` | 72 | 4 410 / 2 394 | 2048×1024 | 41–141 | 76 / 558 kB |
+| `city_hanse_gabled` | 54 | 4 882 / 1 240 | 2048×1024 | 34–42 | 80 / 672 kB |
+| `city_german_old_barock` | 32 | 4 938 / 2 401 | 2048×1024 | 38–47 | 95 / 482 kB |
+| `city_hanse_speicher` | 10 | 8 950 / 1 283 | 2048×1024 | 30–43 | 114 / 745 kB |
 | `city_german_office` | 7 | 427 / 203 | 2048×1024 | 16–21 | 11 / 360 kB |
-| `city_hanse_kontor` | 4 | 9 865 / 749 | 2048×1024 | 29–41 | 109 / 715 kB |
-| `city_hanse_crane` | 3 | 1 260 / 1 052 | 1024×1024 | 90 | 39 / 114 kB |
+| `city_hanse_kontor` | 4 | 9 865 / 749 | 2048×1024 | 29–41 | 109 / 729 kB |
+| `city_hanse_crane` | 3 | 1 260 / 1 052 | 1024×1024 | 90 | 39 / 116 kB |
 
-Summe der elf Modelle im Archiv (deflate -9 je Datei, wie `tools/pck_report.py`): Netze 0,79 MB, Texturen
-5,25 MB. Zwei Zeichenaufrufe je Stufe (`baked` bzw. `baked_cutout` + `vpbr`), kein Fernbild.
+Summe der elf Modelle im Archiv (deflate -9 je Datei, wie `tools/pck_report.py`): Netze 0,82 MB, Texturen
+5,36 MB (Stand nach der Nacharbeit AS5aR1; vorher 0,79 / 5,25 MB). Zwei Zeichenaufrufe je Stufe (`baked` bzw. `baked_cutout` + `vpbr`), kein Fernbild.
 
 Gemessen mit `validate_models.py --report`, dem Export-Bericht und `tools/kritik`-Proben (Software-OpenGL). px/m im
 Modellmaß: Der Requisiten-Builder stellt die Häuser mit 0,85–1,2 auf (Büroturm 0,37–0,5: im Spiel hat er 2- bis
@@ -1599,14 +1599,70 @@ Rinnen und Fallrohre, Lochfüller als Scheiben (Tag: das gemalte Glas des Sprite
   2,8 m) bekommt Holzflügel wie die Tür des Sprites, kein geripptes Garagentor. Gerade Tore breiter als `gate_w`
   bleiben gerippt (Garage des Einfamilienhauses).
 
+### Nacharbeit nach der Kunstkritik (AS5aR1)
+
+Die unabhängige Kunstkritik von AS5a1 fand die Häuser feiner als die Arcade-Bilder, aber in den Altstädten blinde
+Straßenflanken, gemalte Erkerfenster, Geländer, die ab etwa 75 m verschwinden, einen deutlichen Stufenwechsel der
+Fachwerkhäuser und Flimmern der Hölzer. Die Nacharbeit (alles im Bauer `city` und in Hooks des Generators, das Sprite
+bleibt unverändert):
+
+- **Straßenflanken mit Öffnungen** (Hook `close3d`, siehe Tabelle unten). Im Sprite (Blick −20°) ist die Flanke zur
+  Fahrbahn ein schmaler Streifen; im echten 3D ist sie die größte Wand, die in Augenhöhe vorbeizieht. Fachwerkzeile:
+  Erdgeschoss der Straßenflanke mit drei Fenstern und einer Rundbogentür im Sandstein. Fachwerkhaus mit Turm: die ganze
+  Flanke wie die Front – Segmentbogenfenster und Rundbogentür im Sandstein, in den Fachwerkgeschossen jedes zweite Feld
+  ein Fenster, drei Fenster im unteren und eines im oberen Giebelgeschoss. Barockhaus: Rundbogenfenster in der Rustika
+  auf den Achsen der Obergeschosse, Rundbogentür in der Mitte. Giebelzeile: die 16 m tiefe Flanke des Treppengiebelhauses
+  mit den Segmentbogenfenstern der Front auf 2,4-m-Achsen in jedem Geschoss, Seitentür, Granitsockel (0,6 m) und
+  Mauerankern an den Balkenlagen. Nachts leuchten die neuen Fenster nach denselben Zufallszahlen wie die Front.
+- **Erker mit echten Fenstern.** Die Glaskästen des Eckerkers (`props_cities.turret`) werden Fenster: Glas knapp vor
+  der Facette, ein Futter in Rahmenfarbe 10 cm vor der Facette (seine Innenseiten sind die Laibung), ein senkrechter
+  und ein waagrechter Sprossenstab, eine Sohlbank (vpbr, nur lod0). Die Konsole des Erkers bekommt eine eigene
+  gebackene Farbe (roter Sandstein, `corbel`) statt der Ausfachung – vorher eine glatte weiße Kegelfläche.
+- **Rahmenring im gemalten Glas** (`wallmat`-Hook `inner_frame`). Jedes Fenster der Art `win` trägt im Atlas innen
+  einen unbeleuchteten Ring in Rahmenfarbe, so breit wie der Rahmen des geschnittenen Fensters (`FRAME_W` 6 cm): in
+  lod0 liegt der echte Rahmen genau darüber, die flache lod1 zeigt damit dieselbe Licht- und Glasfläche wie lod0.
+- **Hölzer schmaler als das gemalte Fachwerk** (`timber.inset` 3 cm je Seite). Die Kanten der Hölzer liegen auf dem
+  gemalten Holz statt auf der weißen Ausfachung: Wo sie in Bewegung um einen Pixel springen, wechselt der Pixel von
+  Holz zu Holz; beim Wechsel zu lod1 bleibt die dunkle Fläche die des gemalten Fachwerks.
+- **Geländer, die in den kleinen Mip-Stufen nicht verschwinden** (`cut_fill`). Die Engine erzeugt die Mip-Stufen des
+  BC3-Atlas mit einem Kastenfilter; ein Geländer aus 3-cm-Stäben alle 13–14 cm (ein Fünftel bis ein Viertel deckend)
+  fiel ab Mip 4 durch den Alpha-Test und wurde in Mip 1–3 dichter. Jetzt tragen die Lücken in den Ausschneide-Karten
+  Alpha 0,4 (unter der Schwelle 0,5: in Mip 0 unverändert) und die Farbe dessen, was hinter dem Geländer liegt. Im
+  Mittel einer kleinen Mip-Stufe steigt Alpha über die Schwelle, und der Texel trägt die Mischfarbe aus Stäben und
+  Hintergrund: Das Geländer wird zu einem Band mit der mittleren Helligkeit, wie ein Geländer aus Stäben unter einem
+  Pixel aussieht – statt zu verschwinden.
+- **Gartenstufe des Einfamilienhauses** (`lod1_decimate`): lod1-Kopien von Hecken und Gartenbaum nach dem Packen noch
+  einmal dezimiert (dieselben Atlaskoordinaten), Faktor 0,5: lod1 1 406 statt 2 526 Dreiecke. Bei 0,15 zeigten 17
+  Dreiecke gegen ihre Normalen (Prüfer rot), bei 0,3 (954 Dreiecke) änderte der Stufenwechsel 20,8 % der Pixel.
+
+Gemessen nach der Nacharbeit (llvmpipe, Prüfszene im Renn-Look, „Mittel“, dieselben Werkzeuge wie die Kritik):
+
+| Messung | vorher (63544b6) | nachher |
+|---|---|---|
+| Geländer: Helligkeit des Bandes gegen Mip 0 (8-Bit-Luma, Mip 1 / 2 / 3 / 4), Mietshaus | −2,3 / −4,2 / −8,2 / +14,4 | +0,8 / +0,2 / +0,4 / −0,8 |
+| dasselbe, Gründerzeithaus | −5,2 / −8,4 / −13,6 / +18,0 | +1,1 / +0,8 / +2,3 / −0,0 |
+| Stufenwechsel 60 m Fachwerkzeile, 12 Uhr (Pixel / Helligkeit) | 32,0 % / +4,7 % | 27,1 % / +3,2 % |
+| dasselbe, 22 Uhr | 23,8 % / +9,0 % | 18,7 % / +5,0 % |
+| Stufenwechsel 22 Uhr Turmhaus / Kontor / Speicher (Helligkeit) | +5,7 / +9,9 / +4,4 % | +3,5 / +8,1 / +3,6 % |
+| Flimmern Fachwerkzeile 40 / 60 m (Pixel je Viertelpixel-Schritt; Sprite 0,1 %) | 1,1 / 1,4 % | 1,2 / 1,4 % (unverändert) |
+
+Die Spalte „Mip“ ist mit `mipband.py` aus dem gelieferten Atlas gerechnet (Kastenfilter in 8 Bit wie die Engine; ein
+Texel unter der Schwelle zeigt den Hintergrund). Das Flimmern der Hölzer hat die schmalere Form nicht gesenkt:
+Hölzer aus echter Geometrie kippen in Bewegung stärker als gemaltes Fachwerk, solange lod0 bis 60 m (Hoch: 120 m)
+gilt; eine eigene, kürzere Umschaltentfernung je Modell oder Überblenden ist Sache des Renderers (R7).
+
 ### Hook im Generator (Voreinstellung = Sprite)
 
 | Hook | Generator | im 3D-Bau |
 |---|---|---|
-| `close3d` | `props_cities.german_old_fachwerk` (über `timber_house`/`front_gable`) | Rückgiebel der beiden Häuser mit Giebel zur Straße (im Sprite offen, weil man sie nie sieht) |
+| `close3d` | `props_cities.german_old_fachwerk` (über `timber_house`/`front_gable`) | Rückgiebel der beiden Häuser mit Giebel zur Straße (im Sprite offen, weil man sie nie sieht); AS5aR1: Fenster und Rundbogentür im Sandstein-Erdgeschoss der Straßenflanke |
+| `close3d` (AS5aR1) | `props_cities.german_old_fachwerk_b` | die ganze Straßenflanke mit Öffnungen wie die Front: Segmentbogenfenster und Tür im Sandstein, jedes zweite Feld der Fachwerkgeschosse ein Fenster, vier Fenster im Giebel |
+| `close3d` (AS5aR1) | `props_cities.german_old_barock` | Rundbogenfenster in der Rustika der Straßenflanke auf den Achsen der Obergeschosse, Rundbogentür in der Mitte |
+| `close3d` (AS5aR1) | `props_cities.hanse_gabled` | Straßenflanke des Treppengiebelhauses: Segmentbogenfenster der Front auf 2,4-m-Achsen in allen Geschossen, Seitentür, Granitsockel 0,6 m (Zone nur auf der Flanke), sechs Maueranker |
+| `inner_frame` (AS5aR1) | `props_cities.wallmat` | ein unbeleuchteter Ring in Rahmenfarbe innen in jedem Fenster der Art `win` (Breite `FRAME_W` des Schnitts); nur der Bauer `city` setzt ihn |
 
 `check_sprite_geometry.py --only props --jobs 1` nach der Änderung: 86 von 86 Sprite-Sets identisch,
-`CHECK sprite_geometry OK`.
+`CHECK sprite_geometry OK` (AS5aR1 nach den neuen Hooks ebenso: 86 von 86 identisch, Materialien eingeschlossen).
 
 ### Tönung
 
@@ -1621,9 +1677,13 @@ Gut: Umriss, Geschosse, Dachformen und Fensterraster wie das Sprite (IoU 0,987�
 `k4_scene --mode=outline2`); Tiefe an den Straßenfassaden (Laibungen, Sprossen, Hölzer, Gesimse, Erker, Balkone,
 Türen mit Bogen und Stufen, Schaufenster mit Auslage); nachts dieselben Fenster wie in Arcade; geschlossene Rückseiten.
 
+Nach der Nacharbeit AS5aR1 gut: Die Straßenflanken der Altstadt- und Giebelhäuser haben Fenster und Türen im Stil
+der Front (nachts beleuchtet), der Erker des Turmhauses echte Fenster, die Geländer bleiben in jeder Entfernung als
+Band sichtbar.
+
 Noch nicht gut (gemessen auf llvmpipe, „Mittel“): Die Häuser flimmern in Bewegung stärker als ihre Sprites
-(Fachwerkzeile 1,1–1,3 % der Pixel je Viertelpixel-Schritt bei 40–60 m gegen 0,1 %; Giebelzeile 1,3 % bei 150 m gegen
-0,3 %); der Wechsel lod0 → lod1 bei 60 m ändert 10–32 % der Pixel (Fachwerk: echte Hölzer gegen gemaltes Fachwerk) –
-weiches Überblenden ist Aufgabe des Renderers (R7); ausgeschnittene Geländer dünnen ab Mip 4 aus (etwa ab 100 m,
-gerechnet); das Foyer des Büroturms leuchtet nachts als gedimmte Fläche ohne Auslage; die Tönung der Vororte fehlt den
-Modellen, bis R7 sie aufträgt. Bericht mit allen Messungen: Lieferordner von AS5a1.
+(Fachwerkzeile 1,2–1,4 % der Pixel je Viertelpixel-Schritt bei 40–60 m gegen 0,1 %, Turmhaus 1,4–1,5 %; Giebelzeile
+1,2 % bei 150 m gegen 0,4 %); der Wechsel lod0 → lod1 bei 60 m ändert 13–27 % der Pixel (Fachwerk, Kontor am meisten) –
+weiches Überblenden ist Aufgabe des Renderers (R7); das Foyer des Büroturms leuchtet nachts als gedimmte Fläche ohne
+Auslage; die Tönung der Vororte fehlt den Modellen, bis R7 sie aufträgt. Berichte mit allen Messungen: Lieferordner
+von AS5a1 und AS5aR1.
