@@ -2012,6 +2012,12 @@ Grundlage: die Befunde von QA-M2-BILD (B-…) und QA-M2-SYSTEM (M2S-…) auf `6e
   28 → 153 (ZS1 114, Arcade 182), Nacht 49 → 103; bei 20 m Tag 411 → 1 004 (= ZS1). Das schmale Bremsband des
   Sportwagens bleibt ein Modellthema (größere Lampen, mittleres Bremslicht): bei 60 m am Tag 11 rote Pixel gegen
   Arcades 34.
+- **Lack des Spielerautos** (B-06): im Rennen wird der Lack des Spielerautos bei Tag um 35 % zu seiner eigenen
+  Leuchtdichte hin entsättigt, nachts nicht (`ModernMaterials.VEHICLE_PLAYER_DESAT` × (1 − Nacht der Palette),
+  `player_paint()`; die Fahrzeug-Ebene setzt den Lack neu, wenn sich die Nacht um mehr als 0,02 ändert). Gemessen mit
+  R4s Lichtgesetz zusammen (Lackpixel farbgefiltert, „Mittel“): Limousine 12 Uhr 0,73 → 0,63 (Arcade 0,58), Sportwagen
+  19:30 0,40 → 0,39 (Arcade 0,34), Kompakt 22 Uhr Schnee 0,76 unverändert (Arcade 0,72). Der Showroom zeigt den Lack des
+  Modells.
 - **Rückfallhinweis** (M2S-07): bei `gfx_fallback` „manifest“ oder „script:…“ nennt der Hinweis fehlende oder
   beschädigte Spieldateien, sonst die Grafik (`RaceSession.fallback_from_files()`).
 - **Prüfungen**: `check_vehicle_lights` → `blaulicht` (Polizei bei 60 m, Tag ≥ 200 / Nacht ≥ 600 deutlich blauere
