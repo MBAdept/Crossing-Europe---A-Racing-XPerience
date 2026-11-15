@@ -317,7 +317,10 @@ func _check_spielerauto() -> void:
 		["S1 Limousine klar", {"stage_id": "kiel_hamburg", "from_city": "kiel", "start_km": 2.0, "weather": "normal", "vehicle": "limousine", "seed": 11}],
 		# FIX-R4 (QA-R4 B7): the limousine at the end of the dusk under the lamps of the test stage
 		["DEV Limousine 21 Uhr", {"stage_id": "dev_testetappe", "from_city": "dev_start", "start_km": 48.0, "weather": "normal", "vehicle": "limousine", "seed": 17, "hour": 21.0}]]
+	var pick := str(CliArgs.all().get("fall", ""))     # "-- --fall=<text>": only the cases whose name contains it
 	for cs: Array in cases:
+		if pick != "" and not str(cs[0]).contains(pick):
+			continue
 		var extra: Dictionary = (cs[1] as Dictionary).duplicate()
 		extra["start_world_minutes"] = float(extra.get("hour", 22.0)) * 60.0
 		extra.erase("hour")

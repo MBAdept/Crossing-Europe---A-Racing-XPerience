@@ -2194,6 +2194,18 @@ gezeichnet, damit ihr Programm hinter dem Ladebild übersetzt wird.
   0,73 × / 0,91 ×**, Helligkeit 1,04 × / 0,93 × / 0,86 × (`check_night spielerauto` prüft jetzt beides: Helligkeit
   0,6 … 1,1 ×, Sättigung ≥ 0,7 × – der silberne GT verdankt seine Sättigung bei Arcade nur dem blauen Nachtton).
   Bei Tag ändert sich nichts (alles wirkt mit `ce_night`).
+  **FIX-R4** (Befunde B3/B7 von QA-R4): der Schimmer nimmt den Ton aus dem um 35 % zur eigenen Leuchtdichte
+  gewaschenen Lack (`sheen_wash` 0,35 – das Studiolicht der Sprites wäscht den Lack, FIX-M2 B-06 hat es bei Tag
+  gemessen); mit dem vollen Ton des Modells las sich die dunkelblaue Limousine um 21 Uhr königsblau (QA-R4: Sättigung
+  1,38 × ihres Sprites). Und nachts nimmt der Himmel, den Lack, Metall und Glas spiegeln, 80 % des Tons des
+  Umgebungslichts bei seiner eigenen Leuchtdichte an (`layers/vehicles.gd` `ENV_NIGHT_TINT`, `night_tint()` – Arcades
+  Gesetz Sprite × Umgebungsfarbe; der Regen verdeckt den Nachthimmel mit grauen Wolken). Gemessen mit
+  `check_night spielerauto` (jetzt mit der Limousine auf der Teststrecke um 21 Uhr und einer Obergrenze der Sättigung
+  1,25 ×): Kompakt 1,05 × / Sättigung 1,23 ×, Gran Turismo 0,92 × / 0,77 × (vorher 0,73 ×), Limousine S1 0,88 × /
+  0,95 ×, Limousine DEV 21 Uhr 0,87 × / 1,00 ×. **Offen**: der silberne Gran Turismo liest sich nachts im Regen weiter
+  hellgrau-neutral statt blaugrau – auch mit dem vollen Himmelston (1,0) nur 0,78 ×; der neutrale Anteil kommt also
+  nicht aus dem gespiegelten Himmel (Lack `#b2b7bd`, Metall 0,9 – vermutlich das direkte Mondlicht auf dem Metall,
+  `light()`), Sache von FIX-M2 B-06 / R7.
 - **Blaulicht**: ein Polizeiauto mit Blaulicht (Ansicht `beacon` „a“/„b“) bis 160 m vor der Kamera bekommt nachts
   einen Punktlicht aus dem Pool (es hat Vorrang vor der fernsten Lampe, der Deckel bleibt 8) und einen blauen
   Lichtkegel auf dem Boden, beide im Takt der Phase (1,0 / 0,6). Bei Tag nichts.
