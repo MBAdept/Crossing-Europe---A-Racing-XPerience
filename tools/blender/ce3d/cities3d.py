@@ -61,10 +61,13 @@ BAKE_SAMPLES = 4          # Cycles samples of the colour and light bakes: they a
 
 # --- the wall log ------------------------------------------------------------------------------------------------
 
-def _log_walls(log):
+def _log_walls(log, inner_frame=0.0):
     """props_cities.wallmat writes no window log, and the file is not ours to change for that: while a model builds
     the function is wrapped. Its grids go to the log as explicit rectangles (the cutter's format, as AS4's
     _log_city_walls), with the surface spec (timber framing), the zones, the seed and per-grid shutters.
+    inner_frame (AS5aR1): passed to wallmat's hook of that name - the windows paint the frame of the cut window (its
+    inset H.FRAME_W) inside their glass, unlit: the flat lod1 shows the same lit and glazed area as the cut windows of
+    lod0, whose geometric frame covers that ring (KRITIK-5a1 K5: lod1 was 9 % brighter at night).
     Returns the function that restores the original."""
     import inspect
     from cesprites import props_cities as C
@@ -93,6 +96,8 @@ def _log_walls(log):
                         frame=a["frame"], glass=a["glass"], lit=a["lit"], warm="#ffc46b", frame_w=a["frame_w"],
                         shutters=shutters, surface=a["color"], zones=[dict(z) for z in (a["zones"] or ())],
                         seed=float(a["seed"])))
+        if inner_frame > 0.0 and "inner_frame" not in kw:
+            kw = dict(kw, inner_frame=float(inner_frame))
         return orig(*args, **kw)
     C.wallmat = logged
 
@@ -1609,7 +1614,7 @@ def build_city(model_id, spec3d):
     t0 = time.time()
     PB.WINDOW_LOG = []
     log = []
-    restore = _log_walls(log)
+    restore = _log_walls(log, float(spec3d.get("inner_frame", H.FRAME_W)) if spec3d.get("lod1") else 0.0)
     try:
         rig, info, sspec = P._build_source(spec3d)
     finally:

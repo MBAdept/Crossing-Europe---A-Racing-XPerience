@@ -208,11 +208,14 @@ def centres(g):
 
 
 def wallmat(name, color, grids=(), zones=(), frame="#ece8df", glass="#26313b", lit=0.45, strength=1.5,
-            frame_w=0.07, rough=0.85, decals=None, curtains=0.35, seed=0.0):
+            frame_w=0.07, rough=0.85, decals=None, curtains=0.35, seed=0.0, inner_frame=0.0):
     """Wall with windows. color: surface spec (see _surface); zones: [dict(box=((x0,x1),(y0,y1),(z0,z1)),
     surface=spec)] painted over it in order. grids: see grid(); per grid options: top (round|seg|pointed),
     mull dict(v=n, h=n or [fractions], w), shutters colour, blind colour (+blind_max), frame, glass, lit,
-    color (light), strength, frame_w, skip [(i, j)], kind (win|door|shop)."""
+    color (light), strength, frame_w, skip [(i, j)], kind (win|door|shop).
+    inner_frame (3D hook, AS5aR1; the sprites never set it): the frame colour also on a ring of this width inside
+    every window of kind win, unlit - the frame of the real-time model's cut window, so that its flat far level
+    keeps the lit and the glazed area of the near level."""
     m, nb = M.new_material(name)
     x, y, z = nb.coords()
     nx, ny, nz = nb.normal()
@@ -284,6 +287,9 @@ def wallmat(name, color, grids=(), zones=(), frame="#ece8df", glass="#26313b", l
             frm = nb.mul(frm, keep)
         win = nb.mul(win, rng)
         frm = nb.mul(frm, rng)
+        ring = None
+        if inner_frame > 0.0 and kind == "win":
+            ring = nb.mul(win, nb.NOT(shape(-float(inner_frame))))
         # per-window random numbers
         cmb = nb.node("ShaderNodeCombineXYZ")
         nb.feed(cmb.inputs[0], iu)
@@ -311,6 +317,8 @@ def wallmat(name, color, grids=(), zones=(), frame="#ece8df", glass="#26313b", l
         else:
             glc = gl
         apply(win, glc, 0.08 if kind != "door" else 0.5, 0.9 if kind != "door" else 0.3, 0.2 if kind != "door" else 0.0)
+        if ring is not None:
+            apply(ring, g.get("frame", frame), 0.5, 0.35)
         bars = None
         mull = g.get("mull")
         if mull and kind != "door":
@@ -340,6 +348,8 @@ def wallmat(name, color, grids=(), zones=(), frame="#ece8df", glass="#26313b", l
             lm = nb.mul(win, nb.lt(r1, lit_frac))
             if bars is not None:
                 lm = nb.mul(lm, nb.NOT(bars))
+            if ring is not None:
+                lm = nb.mul(lm, nb.NOT(ring))
             if blind is not None:
                 lm = nb.mul(lm, nb.NOT(blind))
             bright = nb.madd(r1, 0.8, 0.6) if kind == "win" else 1.0
