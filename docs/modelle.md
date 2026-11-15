@@ -1570,7 +1570,7 @@ Rinnen und Fallrohre, Lochfüller als Scheiben (Tag: das gemalte Glas des Sprite
 - **lod1 flach.** Ab der ersten Umschaltentfernung (60 m bei „Details: Mittel“) und für alles dahinter (kein
   Fernbild): die geschnittenen Wände wieder flach (Kopie, koplanare Flächen aufgelöst, dieselben Atlaskoordinaten –
   das gemalte Fenster des Sprites steht im Atlas). Laibungen, Türflügel und Lamellen nur in lod0. Speicher: lod0
-  ZAHL, lod1 ZAHL Dreiecke.
+  8 950, lod1 1 283 Dreiecke.
 - **Licht.** Alles Licht, das im Atlas bleibt (nicht geschnittene Fenster, Gauben, Turmfenster), mit dem Faktor der
   Scheiben (0,55) – sonst leuchtete ein gemaltes Fenster heller als das geschnittene daneben. Lampen werden nur mit
   `lamps` zu vpbr-Lampen mit Lichtankern (Kanal 12): die Wandlampe des Einfamilienhauses, Rotlicht und Strahler des
@@ -1579,6 +1579,10 @@ Rinnen und Fallrohre, Lochfüller als Scheiben (Tag: das gemalte Glas des Sprite
 - **Kleinkram.** Hecken und Gartenbäume dezimiert und weich schattiert (`decimate`), Tore breiter als `gate_w` gerippt,
   Stufen vor erhöhten Türen, Schornsteinköpfe des Generators (keine zweite Abdeckung), verdeckte Dachschrägen der
   Giebelprismen entfernt (sie lagen koplanar unter dem Dach: weiße Streifen am Ortgang), `n_arc` für Bögen.
+- **Türen.** Türraster mit runder Oberkante behalten ihren Bogen (Öffnung, Laibung und Flügel; das Log vermerkt den
+  Bogen als `arch`, damit die Scheibe eines Rundbogenfensters ihm folgt); ein Torbogen breiter als 2,6 m (Turmhaus:
+  2,8 m) bekommt Holzflügel wie die Tür des Sprites, kein geripptes Garagentor. Gerade Tore breiter als `gate_w`
+  bleiben gerippt (Garage des Einfamilienhauses).
 
 ### Hook im Generator (Voreinstellung = Sprite)
 
@@ -1598,4 +1602,13 @@ für die Modelle muss R7 die Tönung als Instanzfarbe auf die gebackene Albedo l
 
 ### Ehrliche Einordnung
 
-EINORDNUNG
+Gut: Umriss, Geschosse, Dachformen und Fensterraster wie das Sprite (IoU 0,987–0,999, Kran 0,922; gemessen mit
+`k4_scene --mode=outline2`); Tiefe an den Straßenfassaden (Laibungen, Sprossen, Hölzer, Gesimse, Erker, Balkone,
+Türen mit Bogen und Stufen, Schaufenster mit Auslage); nachts dieselben Fenster wie in Arcade; geschlossene Rückseiten.
+
+Noch nicht gut (gemessen auf llvmpipe, „Mittel“): Die Häuser flimmern in Bewegung stärker als ihre Sprites
+(Fachwerkzeile 1,1–1,3 % der Pixel je Viertelpixel-Schritt bei 40–60 m gegen 0,1 %; Giebelzeile 1,3 % bei 150 m gegen
+0,3 %); der Wechsel lod0 → lod1 bei 60 m ändert 10–32 % der Pixel (Fachwerk: echte Hölzer gegen gemaltes Fachwerk) –
+weiches Überblenden ist Aufgabe des Renderers (R7); ausgeschnittene Geländer dünnen ab Mip 4 aus (etwa ab 100 m,
+gerechnet); das Foyer des Büroturms leuchtet nachts als gedimmte Fläche ohne Auslage; die Tönung der Vororte fehlt den
+Modellen, bis R7 sie aufträgt. Bericht mit allen Messungen: Lieferordner von AS5a1.

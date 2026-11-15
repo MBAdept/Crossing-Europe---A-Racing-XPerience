@@ -4768,7 +4768,7 @@
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 4508,
+     "tris": 4539,
      "parts": [
       {
        "node": "body",
@@ -4780,7 +4780,7 @@
     {
      "name": "lod1",
      "max_dist_m": 100000,
-     "tris": 2383,
+     "tris": 2385,
      "parts": [
       {
        "node": "body",
@@ -4794,8 +4794,8 @@
    "roughness": 0.86,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "german_old", "center"],
-   "bytes": 318579,
-   "hash": "688407c7d5f7a023b5d83e24b175be7491116703"
+   "bytes": 318891,
+   "hash": "116f31b0ee427e0461944950cf0e643c0801275a"
   },
   "props/city_german_old_fachwerk": {
    "kind": "building",
@@ -4806,7 +4806,7 @@
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 6882,
+     "tris": 6913,
      "parts": [
       {
        "node": "body",
@@ -4818,7 +4818,7 @@
     {
      "name": "lod1",
      "max_dist_m": 100000,
-     "tris": 1040,
+     "tris": 1041,
      "parts": [
       {
        "node": "body",
@@ -4832,8 +4832,8 @@
    "roughness": 0.88,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "german_old", "center"],
-   "bytes": 407638,
-   "hash": "3325906d30ef2e1935fb3524ad44ec6c130772ae"
+   "bytes": 405736,
+   "hash": "aa7f60fa602dcef2e238ab5685469b421e7cc512"
   },
   "props/city_german_old_fachwerk_b": {
    "kind": "building",
@@ -4844,7 +4844,7 @@
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 3293,
+     "tris": 3332,
      "parts": [
       {
        "node": "body",
@@ -4856,7 +4856,7 @@
     {
      "name": "lod1",
      "max_dist_m": 100000,
-     "tris": 969,
+     "tris": 978,
      "parts": [
       {
        "node": "body",
@@ -4870,8 +4870,8 @@
    "roughness": 0.88,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "german_old", "center"],
-   "bytes": 284110,
-   "hash": "c4b6201154a2c7bae3d959f1334a3141cdaf7f81"
+   "bytes": 285455,
+   "hash": "931d411b861fd71f37dbf13bba9eaf093955843b"
   },
   "props/city_hanse_crane": {
    "kind": "building",
@@ -4943,7 +4943,7 @@
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 3682,
+     "tris": 3712,
      "parts": [
       {
        "node": "body",
@@ -4955,7 +4955,7 @@
     {
      "name": "lod1",
      "max_dist_m": 100000,
-     "tris": 1226,
+     "tris": 1233,
      "parts": [
       {
        "node": "body",
@@ -4969,8 +4969,8 @@
    "roughness": 0.86,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "hanse", "center"],
-   "bytes": 527956,
-   "hash": "2e62a0d1ebe753286c2cfac46b160b295190f717"
+   "bytes": 519637,
+   "hash": "8e403e25127be6da916816dc6bedd3a31f3cd55c"
   },
   "props/city_hanse_kontor": {
    "kind": "building",

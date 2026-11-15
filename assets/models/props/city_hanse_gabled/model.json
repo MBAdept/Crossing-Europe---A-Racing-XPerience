@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 3682,
+    "tris": 3712,
     "parts": [
      {
       "node": "body",
@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 100000,
-    "tris": 1226,
+    "tris": 1233,
     "parts": [
      {
       "node": "body",
@@ -37,8 +37,8 @@
   "roughness": 0.86,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "hanse", "center"],
-  "bytes": 527956,
-  "hash": "2e62a0d1ebe753286c2cfac46b160b295190f717"
+  "bytes": 519637,
+  "hash": "8e403e25127be6da916816dc6bedd3a31f3cd55c"
  },
  "sets": {
   "props/city_hanse_gabled": {"model": "props/city_hanse_gabled"}
