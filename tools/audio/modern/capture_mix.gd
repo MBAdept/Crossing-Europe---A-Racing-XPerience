@@ -18,6 +18,13 @@ extends SceneTree
 ## throttle from a standstill to top speed (the car's own acceleration curve), 6 s flat out, 3 s off the throttle,
 ## 8 s cruising at 130 km/h; wind as the race session sends it, no traffic, no tunnel.
 ## In a headless run the Arcade sounds are built as on a display and the Modern profile plays (ModernAudio.force_live).
+## The phases are timed by the wall clock: when the machine is too busy, the Dummy driver mixes less than real time and
+## the file comes out shorter than the run – the phase windows then lie on the wrong sound. The tool compares both and
+## FAILS (exit code 2, "capture_mix: FEHLER …") when the file is more than MAX_CLOCK_DRIFT shorter or longer than the
+## run (FIX-M2, QA-M2-SYSTEM M2S-06: 67.2 s of sound in 75 s at load 13–20). Measure on a quiet machine, or with the
+## Movie Maker clock (--write-movie <file> --fixed-fps 60 and editor/movie_writer/mix_rate=44100 in an override.cfg).
+
+const MAX_CLOCK_DRIFT := 0.02
 
 var _am: Node
 var _rec: AudioEffectRecord
@@ -113,7 +120,11 @@ func _run() -> void:
 		data.encode_s16(i, clampi(int(round(data.decode_s16(i) * gain)), -32768, 32767))
 	wav.data = data
 	var err := wav.save_to_wav(out)
+	var frames := data.size() / (2 * (2 if wav.stereo else 1))
+	var wav_s := float(frames) / maxf(1.0, float(wav.mix_rate))
+	var drift := (wav_s - total) / maxf(total, 0.001)
 	var info := {"profile": str(_am.call("profile")), "scenario": scenario, "vehicle": vehicle, "seconds": snappedf(total, 0.01),
+		"wav_seconds": snappedf(wav_s, 0.01), "clock_drift": snappedf(drift, 0.0001),
 		"mix_rate": int(wav.mix_rate), "master_db": AudioServer.get_bus_volume_db(0), "phases": _phases,
 		"placeholders": CliArgs.has("placeholders"), "mute_buses": CliArgs.get_string("mute-bus", "").split(",", false),
 		"engine": _am.call("engine_perf")}
@@ -127,6 +138,11 @@ func _run() -> void:
 	_am.call("set_profile", "arcade")
 	for i in 30:
 		await process_frame
+	if absf(drift) > MAX_CLOCK_DRIFT:
+		print("capture_mix: FEHLER – die Datei hat %.2f s Klang bei %.2f s Laufzeit (%.1f %%, erlaubt ±%.0f %%): der Mischer kam nicht mit, die Phasen liegen falsch" % [
+			wav_s, total, drift * 100.0, MAX_CLOCK_DRIFT * 100.0])
+		quit(2)
+		return
 	quit(0 if err == OK else 1)
 
 

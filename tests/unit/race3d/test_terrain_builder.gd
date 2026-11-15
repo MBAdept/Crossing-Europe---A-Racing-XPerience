@@ -313,12 +313,15 @@ func test_noise_texture_is_deterministic_and_shared() -> void:
 func test_far_ground_lies_below_the_water_of_a_bridge() -> void:
 	var t := _syn_track(1600)
 	var seg := t.seg_len
-	t.bridges.append({"z0": 301.0 * seg, "z1": 361.0 * seg, "depth": 9.0, "slope": 6.0, "type": "river"})
+	# the water lies 30 m under the deck: deeper than the plane of the lowest road of the window minus the drop, so
+	# only the water term of target_height() can put the far ground below it (FIX-M2, QA-M2-SYSTEM M2S-05: at 9 m the
+	# road plane decided alone and the test stayed green without the water term)
+	t.bridges.append({"z0": 301.0 * seg, "z1": 361.0 * seg, "depth": 30.0, "slope": 6.0, "type": "river"})
 	for k in range(301, 361):
 		var s := t.get_segment(k)
 		s.water = true
-		s.water_depth = 9.0
-		s.water_level = -9.0
+		s.water_depth = 30.0
+		s.water_level = -30.0
 	var p := RoadPath3D.new()
 	p.setup(t, 0, 120.0)
 	p.ensure(1500)
@@ -328,12 +331,15 @@ func test_far_ground_lies_below_the_water_of_a_bridge() -> void:
 	var road_only := fg.lowest_road(p, 600.0, 900.0) - drop
 	var water_lo := INF
 	for k in range(301, 361):
-		water_lo = minf(water_lo, p.height(k) - 9.0)
+		water_lo = minf(water_lo, p.height(k) - 30.0)
 	assert_near(fg.water_y, water_lo, 1.0e-3, "tiefstes Wasser des Fensters: jede Wasserreihe gelesen (%.3f, Wasser %.3f)"
 		% [fg.water_y, water_lo])
 	assert_true(with_water <= water_lo - FarGround.WATER_MARGIN_M + 1.0e-4,
 		"unter dem Wasser der Brücke (%.2f, Wasser %.2f)" % [with_water, water_lo])
 	assert_true(with_water <= road_only + 1.0e-4, "nie über der tiefsten Fahrbahn − Abstand (%.2f / %.2f)" % [with_water, road_only])
+	assert_true(water_lo - FarGround.WATER_MARGIN_M < road_only - 1.0,
+		"der Fall prüft den Wasserterm: das Wasser liegt unter der Ebene der Fahrbahn (%.2f / %.2f)" % [water_lo, road_only])
+	assert_near(with_water, water_lo - FarGround.WATER_MARGIN_M, 1.0e-3, "hier entscheidet das Wasser (%.2f)" % with_water)
 	assert_near(fg.target_height(p, t, 3600.0, 900.0), fg.lowest_road(p, 3600.0, 900.0) - drop, 1.0e-4,
 		"ohne Wasser im Fenster: wie die Fahrbahn allein")
 	assert_eq(fg.water_y, INF, "ohne Wasser im Fenster: kein Wasserstand")

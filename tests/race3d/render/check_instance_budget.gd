@@ -12,7 +12,8 @@ extends SceneTree
 ## through a Logger: none may be the refusal; after every frame the vehicles layer keeps its INSTANCE_BUDGET, and the
 ## instances with instance uniforms in the whole scene (counted every 60 frames) stay below SCENE_LIMIT, the margin
 ## for what other layers add.
-## Prints "RENDER-CHECK instanzen OK|FEHLER …"; exit code 0 when it passes.
+## Prints "RENDER-CHECK instanzen OK|FEHLER …" with the wall time of the two phases (loading until the first
+## simulation step, then the drive); exit code 0 when it passes. Subclasses set their own view time (_sim_s()).
 
 const RACE := "res://scenes/race/race.tscn"
 const SIM_S := 100.0
@@ -48,6 +49,7 @@ var _worst_layer := 0
 var _worst_scene := 0
 var _budget := 0
 var _wall0 := 0
+var _wall_live := -1               ## wall clock (ms) when the race ran its first steps: end of the loading phase
 
 
 func _initialize() -> void:
@@ -73,6 +75,12 @@ func _race_setup() -> Dictionary:
 		"gfx": "modern", "no_countdown": true, "start_speed_kmh": 0.0}
 
 
+## View time of the drive in seconds (SIM_S; check_instance_budget_wald.gd drives less – its forest is there from the
+## first picture, FIX-M2 / QA-M2-SYSTEM M2S-01).
+func _sim_s() -> float:
+	return SIM_S
+
+
 ## Quality preset of the run ("" = the one this machine picks).
 func _preset() -> String:
 	return ""
@@ -93,6 +101,7 @@ func _process(_dt: float) -> bool:
 	var view: Dictionary = r.get("view")
 	if _t0 < 0.0:
 		_t0 = float(view.get("time", 0.0))
+		_wall_live = Time.get_ticks_msec()
 		_budget = int((vl.get_script() as GDScript).get_script_constant_map().get("INSTANCE_BUDGET", 0))
 		Engine.time_scale = TIME_SCALE
 	_frames += 1
@@ -100,7 +109,7 @@ func _process(_dt: float) -> bool:
 	_worst_layer = maxi(_worst_layer, int(pf.get("vehicle_instances", 0)))
 	if _frames % 60 == 0:
 		_worst_scene = maxi(_worst_scene, _scene_instances())
-	if float(view.get("time", 0.0)) - _t0 >= SIM_S or _frames >= MAX_FRAMES:
+	if float(view.get("time", 0.0)) - _t0 >= _sim_s() or _frames >= MAX_FRAMES:
 		return _finish()
 	return false
 
@@ -120,7 +129,7 @@ func _finish() -> bool:
 		builds = int(pf.get("vehicle_builds", 0))
 	if _t0 < 0.0:
 		p.append("das Rennen lief nicht an")
-	if sim_s < SIM_S * 0.9:
+	if sim_s < _sim_s() * 0.9:
 		p.append("nur %.0f s Verkehr in %d Bildern" % [sim_s, _frames])
 	if _catch.hits > 0:
 		p.append("%d× „%s“" % [_catch.hits, _catch.first.left(90)])
@@ -129,9 +138,12 @@ func _finish() -> bool:
 	if _worst_scene > SCENE_LIMIT:
 		p.append("ganze Szene höchstens %d Instanzen mit Instanz-Uniforms (%d)" % [SCENE_LIMIT, _worst_scene])
 	var ok := p.is_empty()
+	var now := Time.get_ticks_msec()
+	var load_s := float((_wall_live if _wall_live >= 0 else now) - _wall0) / 1000.0
+	var drive_s := float(now - _wall_live) / 1000.0 if _wall_live >= 0 else 0.0
 	print("RENDER-CHECK %-14s %s  %s%s" % [_check_name(), "OK    " if ok else "FEHLER",
-		"%.0f s Verkehr bei 6-facher Zeit (%d Bilder): keine Ablehnung der Engine, Fahrzeug-Ebene höchstens %d Instanzen (Budget %d, %d freigegeben, %d Bauten), ganze Szene höchstens %d mit Instanz-Uniforms (Grenze %d; %.0f s)" % [
-			sim_s, _frames, _worst_layer, _budget, trims, builds, _worst_scene, SCENE_LIMIT, (Time.get_ticks_msec() - _wall0) / 1000.0],
+		"%.0f s Verkehr bei 6-facher Zeit (%d Bilder): keine Ablehnung der Engine, Fahrzeug-Ebene höchstens %d Instanzen (Budget %d, %d freigegeben, %d Bauten), ganze Szene höchstens %d mit Instanz-Uniforms (Grenze %d; Laden %.0f s, Fahrt %.0f s)" % [
+			sim_s, _frames, _worst_layer, _budget, trims, builds, _worst_scene, SCENE_LIMIT, load_s, drive_s],
 		"" if ok else "  –  FEHLT: " + "; ".join(p)])
 	quit(0 if ok else 1)
 	return true

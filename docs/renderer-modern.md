@@ -1992,7 +1992,42 @@ lässt sich so einer Ebene zuordnen. Gemessen headless an Kiel – Hamburg km 2 
 | `tests/unit/core/test_gfx_settings.gd` → `test_crash_guard_strikes` | Absturz-Wächter: erst der zweite Fehlstart in Folge speichert Arcade (docs/grafik-modi.md) |
 | `tests/race3d/check_facade.gd`, `tests/race/check_attract.gd`, `tools/run_tests.sh` | lastfest: Projektionsgesetz statt fester Horizontzeile, Demo-Dauer ab dem Start der Etappe, Haken läuft auch nach einem Fehler davor, Liste der Fehlschläge am Ende |
 
-### 14.10 Bekannte Lücken im Testbuild (für die Testhinweise)
+### 14.10 Nacharbeit nach der Prüfung der ersten M2-Montage (Bauabschnitt FIX-M2)
+
+Grundlage: die Befunde von QA-M2-BILD (B-…) und QA-M2-SYSTEM (M2S-…) auf `6e48405`; Messungen auf dieser Maschine
+(Software-OpenGL unter Last), Bildpaare mit `probe/qa_vehicles.gd` der Prüfung (dieselbe Ansicht, dieselben Testautos).
+
+- **Abblendlicht ohne Glanz** (B-05): die zwei Spots des Abblendlichts (`layers/lights.gd`, `SPOT_SPECULAR` 0) geben
+  keinen Glanzanteil mehr. Die Lampen sitzen neben dem Auge – auf jeder flachen, glänzenden Fläche, die zur Kamera
+  schaut, fiel der Halbvektor auf die Normale, und der scharfe Klarlack-Lappen machte Lkw-Hecktüren, Stoßfänger und
+  Kennzeichen zum weißen Kasten. Roter Lkw bei 60 m, 22 Uhr, mittlere Leuchtdichte des Hecks 152 → 47 (Arcade 42),
+  bei 20 m 109 → 61 (Arcade 56); Limousine silber bei 60 m ohne weißen Block. Arcade beleuchtet ein Auto im Kegel nur
+  diffus. Rückstrahler (Kanal 15) und Schilder behalten ihr eigenes Kegelgesetz.
+- **Schein von Bremslicht und Blaulicht der Modelle** (B-03, B-04): Arcades Leuchtgesetz liegt über einem Sprite, dessen
+  Lichtebene den ganzen Leuchtenblock (und den Lichtbalken der Polizei als breiten blauen Fleck) malt; ein Modell
+  leuchtet nur mit seinen Lampenflächen (8-cm-Lichtbalken, schmales Bremsband des Sportwagens). Der Schein selbst war
+  richtig (Rot +38 in der Mitte, gemessen mit abgeschalteten Lichtpunkten). Darum `VehiclePose3D.model_glow_gain()`:
+  Bremsanteil × 2,2 (`MODEL_BRAKE_GAIN`, ein Rücklicht allein bleibt bei Arcades Stärke), Blaulicht × 2,4
+  (`MODEL_BEACON_GAIN`); Sprite- und Kasten-Vertretungen behalten Arcades Gesetz. Polizei bei 60 m blaue Pixel Tag
+  28 → 153 (ZS1 114, Arcade 182), Nacht 49 → 103; bei 20 m Tag 411 → 1 004 (= ZS1). Das schmale Bremsband des
+  Sportwagens bleibt ein Modellthema (größere Lampen, mittleres Bremslicht): bei 60 m am Tag 11 rote Pixel gegen
+  Arcades 34.
+- **Rückfallhinweis** (M2S-07): bei `gfx_fallback` „manifest“ oder „script:…“ nennt der Hinweis fehlende oder
+  beschädigte Spieldateien, sonst die Grafik (`RaceSession.fallback_from_files()`).
+- **Prüfungen**: `check_vehicle_lights` → `blaulicht` (Polizei bei 60 m, Tag ≥ 200 / Nacht ≥ 600 deutlich blauere
+  Pixel; mit Arcades Gesetz allein 102 / 303) und `abblendlicht` (roter Lkw bei 20 und 60 m: höchstens 5 % des Hecks
+  über Leuchtdichte 200, Mittel ≤ 0,35; vorher 13 % / 45 %); `check_seam` → `rueckfall_dateien`; `check_vehicles` →
+  `leistung` schaltet ein Auto dreimal zwischen zwei Stufen und verlangt dieselben Knoten (Stufenspeicher, M2S-03);
+  `check_vehicle_standin` lädt ein Test-Manifest ohne Modell für `player/kombi`, `traffic/van_white` und
+  `traffic/bus_blue` – ein Fall ohne Vergleich ist ein FEHLER (M2S-02); `test_far_ground_lies_below_the_water_of_a_bridge`
+  legt das Wasser so tief, dass nur der Wasserterm entscheidet (M2S-05); der Unit-Läufer zählt einen Test, der an
+  einem Skriptfehler abbricht, als fehlgeschlagen (M2S-04).
+- **Waldprüfung** (M2S-01): `check_instance_budget_wald.gd` fährt 20 s statt 100 s (der Wald steht ab dem ersten
+  Bild; die Fahrzeuge allein prüft `check_instance_budget.gd` über 100 s), meldet Laden und Fahrt getrennt und darf
+  1 800 s laufen (Kopfzeile `## render-check-timeout:`); `tools/run_render_checks.sh` meldet ein Zeitlimit als
+  `ZEITLIMIT` (kein Ergebnis) statt als verletzte Regel.
+
+### 14.11 Bekannte Lücken im Testbuild (für die Testhinweise)
 
 - **Kein Wetter in der Luft** (R4, M2): kein Regen, kein Schneefall, keine Gischt; nasse Fahrbahn und Schneeränder gibt es.
 - Tunnel und Brücken nur als Mindestbauten (14.3, 14.7); keine Grenzstationen (Dach, Kabinen) – Arcade zeigt sie.

@@ -8,7 +8,9 @@
 #     all     both (default)
 #     filter  only files whose name contains it
 # Each check prints its own lines ("RENDER-CHECK <name> OK|FEHLER …", the Arcade checks "GLOW-CHECK …" /
-# "FLIP-CHECK …"); this script adds one "RENDER-CHECK-DATEI <file> OK|FEHLER" line per file. Exit code 1 if a file
+# "FLIP-CHECK …"); this script adds one "RENDER-CHECK-DATEI <file> OK|FEHLER|ZEITLIMIT" line per file (ZEITLIMIT: the
+# file ran into its time limit and gave no verdict – it counts as failed, but says it is not a broken rule; FIX-M2,
+# QA-M2-SYSTEM M2S-01). A file may raise its own limit with a line "## render-check-timeout: <s>". Exit code 1 if a file
 # failed, reported a script error or a shader that did not compile ("SHADER ERROR", "Shader compilation failed" –
 # such a material simply draws nothing), an instance the global shader buffer refused ("Too many instances using
 # shader instance variables" – it is drawn with another instance's values, RINT-B), or printed no check line at all.
@@ -57,7 +59,13 @@ run_file() {
 	fi
 	COUNT=$((COUNT + 1))
 	local t0=$SECONDS
-	nice -n 10 timeout "$TIMEOUT" xvfb-run -a -s "-screen 0 1280x720x24" "$GODOT" --path . --rendering-driver opengl3 \
+	local limit=$TIMEOUT
+	local own
+	own=$(grep -m1 -oE '^## render-check-timeout: [0-9]+' "$file" | grep -oE '[0-9]+$')
+	if [ -n "$own" ] && [ "$own" -gt "$limit" ]; then
+		limit=$own
+	fi
+	nice -n 10 timeout "$limit" xvfb-run -a -s "-screen 0 1280x720x24" "$GODOT" --path . --rendering-driver opengl3 \
 		--audio-driver Dummy --resolution 1280x720 --fixed-fps 60 -s "res://$file" -- "$@" >"$LOG" 2>&1
 	local code=$?
 	grep -E "^(RENDER-CHECK|GLOW-CHECK|FLIP-CHECK)|SCRIPT ERROR|Parse Error|SHADER ERROR|Shader compilation failed|Too many instances using shader instance variables" "$LOG"
@@ -66,7 +74,10 @@ run_file() {
 		|| ! grep -qE "^(RENDER-CHECK|GLOW-CHECK|FLIP-CHECK)" "$LOG"; then
 		verdict="FEHLER"
 		FAILED=$((FAILED + 1))
-		[ $code -eq 124 ] && echo "    Zeitlimit von $TIMEOUT s überschritten"
+		if [ $code -eq 124 ]; then
+			verdict="ZEITLIMIT"
+			echo "    Zeitlimit von $limit s überschritten – kein Ergebnis (keine Regel verletzt gemeldet; Last der Maschine?)"
+		fi
 		grep -E "^ERROR|^   at:" "$LOG" | head -6 | sed 's/^/    /'
 	fi
 	printf 'RENDER-CHECK-DATEI %-48s %s  (Exit %d, %d s)\n' "$file" "$verdict" "$code" $((SECONDS - t0))

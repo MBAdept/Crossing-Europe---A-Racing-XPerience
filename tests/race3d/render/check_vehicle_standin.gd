@@ -21,7 +21,9 @@ extends SceneTree
 ##   laden     no sprite sheet is loaded while driving (SpriteDB.loads), 10 s with traffic and autopilot; while a vehicle
 ##             set lacks a model its stand-in shows up – with none left (AS2R, M2INT) no stand-in is drawn and no
 ##             sheet is loaded in prepare()
-## A set that has a model by now is skipped (the stand-in leaves it alone) – the check names it.
+## Since AS2R every vehicle set has a model: the checks spieler … verdeckt run with a test manifest that takes the
+## models of TEST_SETS away (one player, one traffic and one box set; FIX-M2, QA-M2-SYSTEM M2S-02 – they had passed
+## empty since then), "laden" with the shipped manifest. A check that finds nothing to compare FAILS.
 ## "-- --save=<absolute folder>" keeps the pictures (standin_<name>_<mode>.png).
 ## (The scene and the autoloads are accessed untyped: -s scripts compile before the autoloads exist; Arcade's
 ## renderer is extended by a script compiled at run time for the same reason.)
@@ -33,6 +35,9 @@ const PLAYERS: Array[String] = ["kombi", "sportwagen", "gran_turismo"]
 const TRAFFIC: Array[String] = ["traffic/sports_red", "traffic/sports_blue", "traffic/van_white", "traffic/suv_grey",
 	"traffic/sports_yellow", "traffic/van_red", "traffic/suv_white", "police/de"]
 const BOXES: Array[String] = ["traffic/bus_blue", "traffic/bus_red", "traffic/bus_white", "traffic/truck_blue"]
+## Sets whose model the test manifest takes away: a player car, a light traffic car (the night check wants a light
+## body), a box set (bus)
+const TEST_SETS: Array[String] = ["player/kombi", "traffic/van_white", "traffic/bus_blue"]
 const POS_PX := 3.0            ## position and size against Arcade (px)
 const BRIGHT := 0.10           ## mean brightness of the car against Arcade (fraction)
 const DIFF := 45               ## a pixel belongs to the car when the frame with it differs by more (sum of RGB, 0..765)
@@ -82,10 +87,18 @@ func _run() -> void:
 	var had_traffic := cli.has("no-traffic")
 	_renderers.set("modern_script", PROBE)
 	var only := str(cli.get("only", ""))
+	var test_manifest := _manifest_without_models(TEST_SETS)
 	for c: String in CHECKS:
 		if only == "" or only.split(",").has(c):
 			cli["no-traffic"] = c != "laden"
+			if c == "laden":
+				ModelDB.load_manifest()
+			elif test_manifest == "" or not ModelDB.load_manifest(test_manifest):
+				var pm: Array[String] = ["Test-Manifest ohne Modell für %s" % ", ".join(TEST_SETS)]
+				_report(c, pm, "")
+				continue
 			await call("_check_" + c)
+	ModelDB.load_manifest()
 	_probe.call("reset")
 	_renderers.set("modern_script", str(_renderers.get("MODERN_SCRIPT")))
 	if not had_traffic:
@@ -108,6 +121,28 @@ func _report(check: String, problems: Array[String], msg: String) -> void:
 func _need(problems: Array[String], cond: bool, what: String) -> void:
 	if not cond:
 		problems.append(what)
+
+
+## The shipped manifest with the models of `set_ids` taken away (stand-ins {"fallback": "box", "object", "paint"} as the
+## generator writes them for a vehicle without a model; check_vehicles.gd "kasten" does the same), written to user://
+## with the shipped model folder as "root". "" when it cannot be written.
+func _manifest_without_models(set_ids: Array[String]) -> String:
+	var src: Variant = JSON.parse_string(FileAccess.get_file_as_string(ModelDB.ROOT + ModelDB.MANIFEST))
+	if not src is Dictionary:
+		return ""
+	var m: Dictionary = src
+	m["root"] = ModelDB.ROOT
+	var sets: Dictionary = m["sets"]
+	for sid: String in set_ids:
+		var r := ModelDB.resolve(sid)
+		sets[sid] = {"fallback": "box", "object": r.get("object", {}), "paint": r.get("paint", {})}
+	var path := "user://check_vehicle_standin_manifest.json"
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	if f == null:
+		return ""
+	f.store_string(JSON.stringify(m))
+	f.close()
+	return path
 
 
 func _db() -> Node:
@@ -272,11 +307,13 @@ func _compare(p: Array[String], what: String, ar: Dictionary, mo: Dictionary) ->
 func _check_spieler() -> void:
 	var p: Array[String] = []
 	var msgs: Array[String] = []
+	var compared := 0
 	for veh: String in PLAYERS:
 		var sid := "player/" + veh
 		if ModelDB.has_model(sid):
 			msgs.append("%s hat ein Modell (übersprungen)" % veh)
 			continue
+		compared += 1
 		var res := {}
 		for mode: String in ["arcade", "modern"]:
 			var sc: Node = await _launch(mode, {"vehicle": veh})
@@ -298,6 +335,7 @@ func _check_spieler() -> void:
 		var rdev := _rect_dev(a["rect"], m["rect"])
 		_need(p, rdev <= POS_PX, "%s: Bildrechteck ≤ %.0f px (%.1f px: Arcade %s, Modern %s)" % [veh, POS_PX, rdev, str(a["rect"]), str(m["rect"])])
 		msgs.append("%s: Rechteck %.1f px, Pixel %s" % [veh, rdev, _compare(p, veh, a["px"], m["px"])])
+	_need(p, compared > 0, "mindestens ein Spielerauto ohne Modell verglichen")
 	_report("spieler", p, "; ".join(msgs))
 
 
@@ -363,7 +401,8 @@ func _check_verkehr() -> void:
 	var p: Array[String] = []
 	var sid := _standin_set(TRAFFIC, VehicleStandIn.KIND_SPRITE)
 	if sid == "":
-		_report("verkehr", p, "kein Verkehrs-Set mehr ohne Modell – nichts zu vergleichen")
+		p.append("ein Verkehrs-Set ohne Modell zum Vergleich")
+		_report("verkehr", p, "kein Verkehrs-Set ohne Modell – nichts zu vergleichen")
 		return
 	var msgs := await _compare_cars(p, sid, [20.0, 60.0, 150.0], -3.75, "verkehr")
 	_report("verkehr", p, "; ".join(msgs))
@@ -373,7 +412,8 @@ func _check_kasten() -> void:
 	var p: Array[String] = []
 	var sid := _standin_set(BOXES, VehicleStandIn.KIND_BOX)
 	if sid == "":
-		_report("kasten", p, "kein Kasten-Set mehr ohne Modell – nichts zu vergleichen")
+		p.append("ein Kasten-Set ohne Modell zum Vergleich")
+		_report("kasten", p, "kein Kasten-Set ohne Modell – nichts zu vergleichen")
 		return
 	var msgs := await _compare_cars(p, sid, [30.5], -3.75, "kasten")
 	_report("kasten", p, "; ".join(msgs))
@@ -414,6 +454,7 @@ func _check_nacht() -> void:
 	var light_first: Array[String] = ["traffic/van_white", "traffic/suv_white", "traffic/van_silver", "traffic/sports_yellow"]
 	light_first.append_array(TRAFFIC)
 	var sid := _standin_set(light_first, VehicleStandIn.KIND_SPRITE)
+	_need(p, veh != "" and sid != "", "ein Spielerauto und ein Verkehrs-Set ohne Modell zum Vergleich (%s, %s)" % [veh, sid])
 	var res := {}
 	for mode: String in ["arcade", "modern"]:
 		for hour: float in [12.0, 22.0]:
@@ -509,7 +550,8 @@ func _check_verdeckt() -> void:
 	var msgs: Array[String] = []
 	var sid := _standin_set(TRAFFIC, VehicleStandIn.KIND_SPRITE)
 	if sid == "":
-		_report("verdeckt", p, "kein Verkehrs-Set mehr ohne Modell – nichts zu prüfen")
+		p.append("ein Verkehrs-Set ohne Modell zum Prüfen")
+		_report("verdeckt", p, "kein Verkehrs-Set ohne Modell – nichts zu prüfen")
 		return
 	for hour: float in [12.0, 22.0]:
 		var sc: Node = await _launch("modern", {"stage_id": "kassel_wuerzburg", "from_city": "kassel", "start_km": 61.6,

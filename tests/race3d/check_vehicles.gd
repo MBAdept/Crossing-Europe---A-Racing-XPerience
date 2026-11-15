@@ -14,7 +14,9 @@ extends SceneTree
 ##              all cars exist) at the VM's normal speed – scaled by a reference workload timed next to every sample
 ##              (fixtures/perf_clock.gd, RINT-B); while the same cars drive on, a node is only built for the first
 ##              level a car reaches in the window (the stage's own traffic drives on into lod2) and no level is
-##              freed for the instance budget (A-13, M2INT)
+##              freed for the instance budget (A-13, M2INT); one car is then moved between two distances (two
+##              levels) three times: going back to a level it has built builds nothing (the level cache of the
+##              layer; FIX-M2, QA-M2-SYSTEM M2S-03 – without the cache the window above stayed green)
 ##   schilder   the signs of the stage are drawn from the atlas made in prepare(): no SubViewport and no texture
 ##              is created while driving (SignAtlas counters), every sign the chunks hold has an atlas cell
 ##   lampen_fest  renderer.add_lamps(parent, lamps) (A-7) reaches the flare layer: static lamps glow at night (not
@@ -297,10 +299,45 @@ func _check_leistung() -> void:
 		median, raw, float(clock.call("factor"))])
 	_need(p, built <= first_levels, "keine Knoten gebaut, solange dieselben Autos fahren, außer der ersten Stufe, die ein Auto im Fenster erreicht (%d Bauten, %d erste Stufen)" % [built, first_levels])
 	_need(p, int(after.get("vehicle_trims", 0)) == int(before.get("vehicle_trims", 0)), "keine Stufe für das Instanzbudget freigegeben (%d → %d)" % [int(before.get("vehicle_trims", 0)), int(after.get("vehicle_trims", 0))])
+	# back and forth between two levels (M2S-03): the first car (14 m, lod0) goes to 100 m and back, twice. Its built
+	# levels (node ids in the layer's level cache) must stay the same nodes – a return to a built level builds nothing.
+	# (Counted per car: the stage's own traffic drives on and builds its own levels meanwhile; three cars only, far
+	# from the instance budget, so no level is freed for it.)
+	var few: Array = cars.slice(0, 3)
+	_probe.set("inject", few)
+	await _frames(30)
+	var moved: Dictionary = few[0]
+	var near_z := float(moved["z"])
+	var lods: Array[String] = []
+	var ids: Array[Dictionary] = []
+	for step in 4:
+		moved["z"] = near_z + (86.0 if step % 2 == 0 else 0.0)
+		_probe.set("inject", few)
+		await _frames(60)                        # beyond the cross-fade (XFADE_S) of the swap
+		lods.append(str((_snap_by_id(r).get(int(moved["id"]), {}) as Dictionary).get("lod", "")))
+		ids.append(_level_ids(vl, int(moved["id"])))
+	_need(p, lods[0] != lods[1] and lods[0] == lods[2] and lods[1] == lods[3], "das Auto wechselt zwischen zwei Stufen (%s)" % " → ".join(lods))
+	_need(p, ids[1].has(lods[0]) and ids[1].has(lods[1]), "beide Stufen im Stufenspeicher des Autos (%s)" % str(ids[1].keys()))
+	_need(p, ids[3] == ids[1] and ids[2] == ids[1], "zurück auf gebaute Stufen: dieselben Knoten, kein Neubau (%s)" % str(ids))
 	_probe.call("reset")
 	await _free(sc)
-	_report("leistung", p, "%d Autos (Pkw, Lkw, Kästen, Polizei): Fahrzeug-Ebene im Median %.1f µs je Auto und Bild bei normalem Tempo (p90 %.1f µs; Wanduhr %.1f µs, Referenz × %.2f), %d Knotenbauten beim Erscheinen, %d erste Stufen im Fenster" % [
-		drawn, median, float(clock.call("normal_quantile", 0.9)), raw, float(clock.call("factor")), int(before["vehicle_builds"]), built])
+	_report("leistung", p, "%d Autos (Pkw, Lkw, Kästen, Polizei): Fahrzeug-Ebene im Median %.1f µs je Auto und Bild bei normalem Tempo (p90 %.1f µs; Wanduhr %.1f µs, Referenz × %.2f), %d Knotenbauten beim Erscheinen, %d erste Stufen im Fenster; Stufenwechsel %s ohne Neubau" % [
+		drawn, median, float(clock.call("normal_quantile", 0.9)), raw, float(clock.call("factor")), int(before["vehicle_builds"]), built, " → ".join(lods)])
+
+
+## Level -> node instance id of every built level of the active car `id` of the vehicle layer (its level cache).
+func _level_ids(vl: Node, id: int) -> Dictionary:
+	var out := {}
+	var cars: Dictionary = vl.get("_cars")
+	var car: Variant = cars.get(id)
+	if car == null:
+		return out
+	var levels: Dictionary = (car as Object).get("levels")
+	for lod: Variant in levels:
+		var n: Variant = levels[lod]
+		if n is Node and is_instance_valid(n):
+			out[str(lod)] = (n as Node).get_instance_id()
+	return out
 
 
 ## Adds "<car id>|<level>" of every car of the snapshot (shown level and the level it fades out of) to `seen`.
