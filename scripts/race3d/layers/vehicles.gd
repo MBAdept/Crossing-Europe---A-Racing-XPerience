@@ -65,6 +65,11 @@ const XFADE_S := 0.5
 ## sharp lobe treats it as a point light and drew two white flecks on the player car (p95 luminance 193 against
 ## Arcade's 51 at DEV 21:00); the lobe keeps this share of its strength then (vpbr uniform coat_sun).
 const MOON_COAT := 0.08
+## FIX-R4 (QA-R4 B3): at night the sky that clear coat, metals and glass mirror takes this share of the ambient light's
+## hue at its own luminance – Arcade's law for its sprites at night (sprite × ambient colour). The rain hides the night
+## sky behind grey clouds; mirrored as it is, the silver Gran Turismo read neutral grey where its sprite is blue-grey
+## (body saturation 0.73 × the sprite at 22:00 in the rain).
+const ENV_NIGHT_TINT := 0.8
 ## R4 (M2INT note 6: the swap lod0 -> lod1 at 40 m changed 14 % of a car's pixels in one frame): lod0 cross-fades too –
 ## its glass has the same dither law now (glass.gdshader xfade); the wheels of the fading level stand still for XFADE_S
 const XFADE_LODS: Array[String] = ["lod0", "lod1", "lod2"]
@@ -1142,12 +1147,26 @@ func _set_environment(pal: Dictionary) -> void:
 	var fog: Color = pal.get("fog", bottom)
 	var horizon := bottom.lerp(fog, 0.35)
 	var ground := Color(0.30 * amb.r, 0.31 * amb.g, 0.32 * amb.b)
+	var nk := clampf(float(pal.get("night", 0.0)), 0.0, 1.0) * ENV_NIGHT_TINT
+	if nk > 0.0:
+		top = night_tint(top, amb, nk)
+		horizon = night_tint(horizon, amb, nk)
 	var tunnel: Color = Palette.TUNNEL_AMBIENT
 	for cls: String in ["vpbr", "glass"]:
 		_mats.set_class_parameter(cls, "env_zenith", top)
 		_mats.set_class_parameter(cls, "env_horizon", horizon)
 		_mats.set_class_parameter(cls, "env_ground", ground)
 		_mats.set_class_parameter(cls, "env_tunnel", tunnel * 0.45)
+
+
+## FIX-R4 (QA-R4 B3): colour `c` moved by `k` towards the hue of the ambient light `amb` at c's own luminance (pure).
+static func night_tint(c: Color, amb: Color, k: float) -> Color:
+	var la := 0.2126 * amb.r + 0.7152 * amb.g + 0.0722 * amb.b
+	if la <= 1.0e-4:
+		return c
+	var lc := 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b
+	var t := Color(amb.r / la * lc, amb.g / la * lc, amb.b / la * lc, c.a)
+	return c.lerp(t, clampf(k, 0.0, 1.0))
 
 
 # --- nodes and pool ---------------------------------------------------------------------------------------------------

@@ -8,26 +8,42 @@ extends SceneTree
 ##               mean drops single flakes): the mean luminance of the road (lane interiors 12–70 m ahead, outside the
 ##               player's car) lies within +15 % of Arcade's and is never darker (contract §6 R4)
 ##   spielerauto the player's car at night (N1 Kompakt in the snow, Dortmund – Frankfurt km 121 Gran Turismo in the rain,
-##               S1 Limousine, 22:00, „Mittel“): its body – the pixels that change when the car is not drawn, without
+##               S1 Limousine, 22:00, and – FIX-R4 – DEV Limousine at 21:00, „Mittel“): its body – the pixels that change when the car is not drawn, without
 ##               lamps, glows and the plate – at the 75th percentile of luminance at most CAR_MAX × and at least CAR_MIN ×
 ##               Arcade's sprite at the same step (lead decision 8 of wave 3: never brighter than Arcade where it is dark),
-##               and the median saturation of those pixels at least CAR_SAT_MIN × the sprite's (the paint keeps its hue)
+##               and the median saturation of those pixels CAR_SAT_MIN … CAR_SAT_MAX × the sprite's (the paint keeps its hue)
 ##   verdeckung  night in the RAIN – the wet road mirrors lamps: a braking car behind a crest (Kassel – Würzburg km
 ##               61.6, T2) and a braking car right behind a semitrailer change 0 pixels (neither body, glow nor the
 ##               reflection of its lamps on the wet road shows through), and the same car is seen in front of them
 ##   blaulicht   a police car with its beacon at night: the beacon lights the ground around the car blue (light pool
 ##               and one omni of the pool – snapshot "beacon"), off by day
+##   nass_kegel  (FIX-R4, QA-R4 B2; file check_night_nass.gd) N2 (Dortmund – Frankfurt km 121, 22:00, rain, „Mittel“):
+##               the median luminance of the player's lane in the low beam (KEGEL_FROM … KEGEL_TO m) at most
+##               WET_CONE_MAX × and at least WET_CONE_MIN × Arcade's, the continuous edge line beside it at least
+##               WET_LINE_MIN × Arcade's Weber contrast (the mirrored sky is no matte surface the headlights light)
+##   spiegelung  (FIX-R4, QA-R4 B1; file check_night_nass.gd) night in the rain, a braking car on the climb before the
+##               T2 crest at least 3 m above the camera's foot: the pixels its lamps' reflections change lie below its
+##               roof, none above (a level reflection hung in the air there as a red column)
 ## Test cars come from tests/race3d/fixtures/vehicle_probe_renderer.gd (the shipped renderer, cars added to the view).
 ## "-- --save=<absolute folder>" keeps the pictures (night_<name>.png).
 ## (The scene and the autoloads are accessed untyped: -s scripts compile before the autoloads exist.)
 
 const RACE := "res://scenes/race/race.tscn"
 const PROBE := "res://tests/race3d/fixtures/vehicle_probe_renderer.gd"
-const CHECKS := ["fahrbahn", "spielerauto", "verdeckung", "blaulicht"]
+const CHECKS := ["fahrbahn", "spielerauto", "verdeckung", "blaulicht", "nass_kegel", "spiegelung"]
+## FIX-R4: checks that run only when --only names them – the file check_night_nass.gd (so that each file stays inside
+## tools/run_render_checks.sh's time per file on a busy machine)
+const OWN_FILE := ["nass_kegel", "spiegelung"]
+const KEGEL_FROM := 16.0             ## nass_kegel: the low beam's patch, metres ahead of the camera …
+const KEGEL_TO := 34.0
+const WET_CONE_MAX := 1.15           ## … on the wet road at most this much brighter than Arcade's (QA-R4 B2: 1.77×) …
+const WET_CONE_MIN := 0.7            ## … and not much darker (a wet road gets darker in the headlights, as in Arcade)
+const WET_LINE_MIN := 0.8            ## the lane lines in it keep at least this share of Arcade's contrast
 const CAR_MAX := 1.10                ## the player's car at night at most this much brighter than Arcade's sprite …
 const CAR_MIN := 0.6                 ## … and at least this bright (it must stay readable)
 const CAR_SAT_MIN := 0.7             ## … and its paint at least this saturated (median HSV saturation of the body;
                                      ## the silver GT: its sprite owes its saturation to the blue night tint)
+const CAR_SAT_MAX := 1.25            ## FIX-R4 (QA-R4 B7): … and at most this saturated (the limousine read royal blue)
 const STEPS := 30
 const ROAD_MAX := 0.15               ## Modern's night road at most this much brighter than Arcade's (never darker)
 const TRIM := 0.05                   ## share of the brightest and darkest probes left out (flakes, lines)
@@ -56,7 +72,7 @@ func _run() -> void:
 	cli["no-traffic"] = true
 	var only := str(cli.get("only", ""))
 	for c: String in CHECKS:
-		if only == "" or only.split(",").has(c):
+		if (only == "" and not OWN_FILE.has(c)) or only.split(",").has(c):
 			await call("_check_" + c)
 	_probe.call("reset")
 	_renderers.set("modern_script", str(_renderers.get("MODERN_SCRIPT")))
@@ -298,17 +314,20 @@ func _check_spielerauto() -> void:
 	var cases: Array = [
 		["N1 Kompakt Schnee", {"stage_id": "hamburg_hannover", "from_city": "hamburg", "start_km": 71.0, "weather": "snow", "vehicle": "kompakt", "seed": 13}],
 		["Dortmund – Frankfurt km 121 Gran Turismo Regen", {"stage_id": "dortmund_frankfurt", "from_city": "dortmund", "start_km": 121.0, "weather": "rain", "vehicle": "gran_turismo", "seed": 14}],
-		["S1 Limousine klar", {"stage_id": "kiel_hamburg", "from_city": "kiel", "start_km": 2.0, "weather": "normal", "vehicle": "limousine", "seed": 11}]]
+		["S1 Limousine klar", {"stage_id": "kiel_hamburg", "from_city": "kiel", "start_km": 2.0, "weather": "normal", "vehicle": "limousine", "seed": 11}],
+		# FIX-R4 (QA-R4 B7): the limousine at the end of the dusk under the lamps of the test stage
+		["DEV Limousine 21 Uhr", {"stage_id": "dev_testetappe", "from_city": "dev_start", "start_km": 48.0, "weather": "normal", "vehicle": "limousine", "seed": 17, "hour": 21.0}]]
 	for cs: Array in cases:
 		var extra: Dictionary = (cs[1] as Dictionary).duplicate()
-		extra["start_world_minutes"] = 22.0 * 60.0
+		extra["start_world_minutes"] = float(extra.get("hour", 22.0)) * 60.0
+		extra.erase("hour")
 		var got_a: Array = await _with_without("arcade", extra)
 		var a: Array = _car_body(got_a[1], got_a[2])
-		_keep(got_a[1], "spielerauto_%s_arcade" % str(extra["vehicle"]))
+		_keep(got_a[1], "spielerauto_%s_%s_arcade" % [str(extra["vehicle"]), str(extra["stage_id"])])
 		await _free(got_a[0])
 		var got_m: Array = await _with_without("modern", extra)
 		var m: Array = _car_body(got_m[1], got_m[2])
-		_keep(got_m[1], "spielerauto_%s_modern" % str(extra["vehicle"]))
+		_keep(got_m[1], "spielerauto_%s_%s_modern" % [str(extra["vehicle"]), str(extra["stage_id"])])
 		await _free(got_m[0])
 		var ratio := float(m[0]) / maxf(float(a[0]), 1.0e-3)
 		_need(p, int(a[1]) >= 50 and int(m[1]) >= 50, "%s: das Auto ist in beiden Bildern (%d / %d Pixel)" % [cs[0], int(a[1]), int(m[1])])
@@ -316,10 +335,11 @@ func _check_spielerauto() -> void:
 		_need(p, ratio >= CAR_MIN, "%s: mindestens %.1f× Arcades Bild (%.2f×)" % [cs[0], CAR_MIN, ratio])
 		var sat_ratio := float(m[2]) / maxf(float(a[2]), 1.0e-3)
 		_need(p, sat_ratio >= CAR_SAT_MIN, "%s: Lack mindestens %.2f× so gesättigt wie Arcades Bild (%.2f×)" % [cs[0], CAR_SAT_MIN, sat_ratio])
+		_need(p, sat_ratio <= CAR_SAT_MAX, "%s: Lack höchstens %.2f× so gesättigt wie Arcades Bild (%.2f×)" % [cs[0], CAR_SAT_MAX, sat_ratio])
 		parts.append("%s: Modern %.3f, Arcade %.3f (%.2f×), Sättigung %.2f / %.2f (%.2f×)" % [cs[0], float(m[0]), float(a[0]),
 			ratio, float(m[2]), float(a[2]), sat_ratio])
 	CliArgs.all().erase("gfx-preset")
-	_report("spielerauto", p, "22 Uhr, Karosserie (75. Perzentil der Leuchtdichte): " + "; ".join(parts))
+	_report("spielerauto", p, "22 Uhr (DEV 21 Uhr), Karosserie (75. Perzentil der Leuchtdichte): " + "; ".join(parts))
 
 
 # --- verdeckung (wet night) -----------------------------------------------------------------------------------------
@@ -479,3 +499,187 @@ func _check_blaulicht() -> void:
 		msgs.append("%.0f Uhr: %d Pixel, davon %d blauer, Punktlicht %s" % [hour, int(d.x), int(d.z), "an" if bool(snap.get("beacon", false)) else "aus"])
 		await _free(sc)
 	_report("blaulicht", p, "Polizeiauto 34 m voraus, Nachbarspur: " + "; ".join(msgs))
+
+
+# --- nass_kegel (FIX-R4, QA-R4 B2) ---------------------------------------------------------------------------------
+
+## A stage in `mode` stopped at simulation step STEPS with the HUD hidden: [scene, picture of that step].
+func _stage_shot(mode: String, extra: Dictionary) -> Array:
+	_renderers.set("modern_script", str(_renderers.get("MODERN_SCRIPT")))
+	var setup := {"mode": "single", "race_id": "", "autopilot": true, "autopilot_refuel": "never", "no_countdown": true,
+		"start_speed_kmh": 120.0, "traffic_warmup": false, "gfx": mode}
+	setup.merge(extra, true)
+	var sc: Node = (load(RACE) as PackedScene).instantiate()
+	sc.set("setup", setup)
+	await physics_frame
+	root.add_child(sc)
+	await _until(func() -> bool: return int(sc.get("_sim_steps")) >= STEPS)
+	sc.set_process(false)
+	sc.set_physics_process(false)
+	for c: Node in sc.get_children():
+		if c is CanvasLayer and (c as CanvasLayer).layer >= 5:
+			(c as CanvasLayer).visible = false
+	var r: Variant = sc.get("renderer")
+	if r is ModernRenderer:
+		(r as ModernRenderer).render((r as ModernRenderer).view)
+	await process_frame
+	await RenderingServer.frame_post_draw
+	return [sc, root.get_texture().get_image()]
+
+
+## Probe rows of the low beam's patch: one per half metre KEGEL_FROM … KEGEL_TO m ahead of the camera, as
+## [row y, lane window (x0, x1), edge-line window (x0, x1)] – the window of the player's lane (±25 px round its middle)
+## and ±30 px round the continuous edge line beside it. Windows, not points: with the curve camera Modern looks a
+## little into the bend, Arcade straight ahead – the same place lies a few pixels apart in the two pictures (A-3), and
+## the line is found as the brightest pixel of its window in each picture. Empty when the player is in a middle lane
+## (no continuous line beside it).
+func _cone_rows(r: ModernRenderer) -> Array:
+	var cam_z := float(r.view["camera_z"])
+	var pl: Dictionary = r.view.get("player", {})
+	var px := float(pl.get("x", 0.0))
+	var lw := r.track.lane_w
+	var out: Array = []
+	var d := KEGEL_FROM
+	while d <= KEGEL_TO:
+		var z := cam_z + d
+		var seg := r.track.get_segment(int(z / r.track.seg_len))
+		var n := int(ceil(seg.lanes - 0.01))
+		var la := -seg.lanes * lw * 0.5
+		var lane := clampi(int(floor((px - la) / lw)), 0, maxi(n - 1, 0))
+		var edge_x := 0.0
+		if lane == n - 1:
+			edge_x = la + float(n) * lw - 0.3       # right edge line of the regular lanes (0.15 m inside, 0.3 m wide)
+		elif lane == 0:
+			edge_x = la + 0.3                       # left edge line
+		else:
+			return []
+		var qc := r.world_to_screen(z, la + (float(lane) + 0.5) * lw, 0.0)
+		var qe := r.world_to_screen(z, edge_x, 0.0)
+		if qc.z > 0.0 and qe.z > 0.0:
+			out.append([int(round(qc.y)), Vector2i(int(qc.x) - 25, int(qc.x) + 25), Vector2i(int(qe.x) - 30, int(qe.x) + 30)])
+		d += 0.5
+	return out
+
+
+## [median luminance of the lane windows, median Weber contrast of the edge line against the lane in each row].
+static func _cone_measure(img: Image, rows: Array) -> Vector2:
+	var lanes: Array[float] = []
+	var webers: Array[float] = []
+	var w := img.get_width()
+	for row: Array in rows:
+		var y: int = row[0]
+		if y < 0 or y >= img.get_height():
+			continue
+		var lw: Vector2i = row[1]
+		var ew: Vector2i = row[2]
+		var vals: Array[float] = []
+		for x in range(clampi(lw.x, 0, w - 1), clampi(lw.y, 0, w - 1) + 1):
+			vals.append(img.get_pixel(x, y).get_luminance())
+		if vals.size() < 10:
+			continue
+		vals.sort()
+		var lane := vals[vals.size() / 2]
+		var line := 0.0
+		for x in range(clampi(ew.x, 0, w - 1), clampi(ew.y, 0, w - 1) + 1):
+			line = maxf(line, img.get_pixel(x, y).get_luminance())
+		lanes.append(lane)
+		webers.append((line - lane) / maxf(lane, 0.01))
+	if lanes.is_empty():
+		return Vector2.ZERO
+	lanes.sort()
+	webers.sort()
+	return Vector2(lanes[lanes.size() / 2], webers[webers.size() / 2])
+
+
+func _check_nass_kegel() -> void:
+	var p: Array[String] = []
+	CliArgs.all()["gfx-preset"] = "medium"
+	var extra := {"stage_id": "dortmund_frankfurt", "from_city": "dortmund", "start_km": 121.0, "weather": "rain",
+		"vehicle": "gran_turismo", "seed": 14, "start_world_minutes": 22.0 * 60.0}
+	var got_a: Array = await _stage_shot("arcade", extra)
+	var arcade: Image = got_a[1]
+	await _free(got_a[0])
+	var got_m: Array = await _stage_shot("modern", extra)
+	var sc: Node = got_m[0]
+	var modern: Image = got_m[1]
+	var r: Variant = sc.get("renderer")
+	var msg := ""
+	if not (r is ModernRenderer):
+		_need(p, false, "Modern-Etappe läuft")
+	else:
+		var rows: Array = _cone_rows(r)
+		var a := _cone_measure(arcade, rows)
+		var m := _cone_measure(modern, rows)
+		var ratio := m.x / maxf(a.x, 1.0e-4)
+		var kr := m.y / maxf(a.y, 1.0e-4)
+		_keep(arcade, "nass_kegel_arcade")
+		_keep(modern, "nass_kegel_modern")
+		_need(p, rows.size() >= 20, "Spieler auf einer Randspur, genug Zeilen im Kegel (%d)" % rows.size())
+		_need(p, a.y > 0.5, "Arcade zeigt die Randlinie im Kegel (Weber %.2f)" % a.y)
+		_need(p, ratio <= WET_CONE_MAX, "nasse Fahrbahn im Abblendlicht höchstens %.2f× Arcade (%.2f×)" % [WET_CONE_MAX, ratio])
+		_need(p, ratio >= WET_CONE_MIN, "… und mindestens %.2f× (der Kegel bleibt sichtbar, %.2f×)" % [WET_CONE_MIN, ratio])
+		_need(p, kr >= WET_LINE_MIN, "Randlinie im Kegel mindestens %.1f× Arcades Kontrast (%.2f gegen %.2f = %.2f×)" % [WET_LINE_MIN, m.y, a.y, kr])
+		msg = "N2 22 Uhr Regen, eigene Spur %.0f–%.0f m: Fahrbahn Modern %.3f, Arcade %.3f (%.2f×), Randlinie Weber %.2f gegen %.2f (%.2f×), %d Zeilen" % [
+			KEGEL_FROM, KEGEL_TO, m.x, a.x, ratio, m.y, a.y, kr, rows.size()]
+	await _free(sc)
+	CliArgs.all().erase("gfx-preset")
+	_report("nass_kegel", p, msg)
+
+
+# --- spiegelung (FIX-R4, QA-R4 B1) ---------------------------------------------------------------------------------
+
+## The reflection of a far car's rear lamps on a wet road that CLIMBS towards it lies on the road: every pixel the
+## reflections change lies at or below the row of the car's lamps (a level quad hung in the air and stood as a red
+## column above the car).
+func _check_spiegelung() -> void:
+	var p: Array[String] = []
+	var sc: Node = await _launch_probe({"stage_id": "kassel_wuerzburg", "from_city": "kassel", "start_km": 61.6, "vehicle": "kombi", "seed": 12})
+	var r: Node = sc.get("renderer")
+	var view: Dictionary = r.get("view")
+	var path: RoadPath3D = r.get("path")
+	var cam_z := float(view["camera_z"])
+	var x := float((view["player"] as Dictionary).get("x", 0.0))
+	var lights := float((view["palette"] as Dictionary).get("lights", 0.0))
+	# the visible place on the climb ahead with the largest rise above the camera's foot
+	var best_z := -1.0
+	var rise := 0.0
+	var z := cam_z + 120.0
+	while z < cam_z + 520.0:
+		if _below_road(r, z, x, 0.6) < -0.4 and _below_road(r, z + 4.8, x, 0.6) < -0.4:
+			var dh := path.height_at(z) - path.height_at(cam_z)
+			if dh > rise:
+				rise = dh
+				best_z = z
+		z += 4.0
+	_need(p, best_z > 0.0 and rise >= 3.0, "ein sichtbares Auto auf der Steigung, mindestens 3 m über dem Kamerafuß (%.1f m)" % rise)
+	var msg := ""
+	if best_z > 0.0:
+		var fl: Object = r.call("layer", "flares")
+		var car := _car(9901, "traffic/sedan_red", best_z, x, {"tail": lights, "brake": 1.0})
+		fl.set("debug_streaks", true)
+		var with_s := await _shot([car])
+		var streaks := int(((fl.call("snapshot") as Dictionary).get("lights", {}) as Dictionary).get("wet_streaks", 0))
+		fl.set("debug_streaks", false)
+		var without := await _shot([car])
+		fl.set("debug_streaks", true)
+		var lamp := r.call("world_to_screen", best_z, x, 0.6) as Vector3
+		var top := r.call("world_to_screen", best_z, x, 1.4) as Vector3
+		var above := 0
+		var below := 0
+		for py in with_s.get_height():
+			for px in with_s.get_width():
+				var a := with_s.get_pixel(px, py)
+				var b := without.get_pixel(px, py)
+				if absf(a.r - b.r) + absf(a.g - b.g) + absf(a.b - b.b) <= 2.0 / 255.0:
+					continue
+				if float(py) < top.y - 2.0:
+					above += 1
+				elif absf(float(px) - lamp.x) < 40.0:
+					below += 1
+		_keep(with_s, "spiegelung_steigung")
+		_need(p, streaks >= 2, "Spiegelungen gezeichnet (%d)" % streaks)
+		_need(p, above == 0, "keine Spiegelung über dem Dach des fernen Autos (%d Pixel)" % above)
+		_need(p, below > 0, "die Spiegelung des fernen Autos liegt unter ihm auf der Straße (%d Pixel)" % below)
+		msg = "Auto %.0f m voraus, %.1f m über dem Kamerafuß: %d Pixel über dem Dach (Zeile %.0f), %d darunter" % [best_z - cam_z, rise, above, top.y, below]
+	await _free(sc)
+	_report("spiegelung", p, msg)

@@ -80,10 +80,14 @@ const GLOBALS: Array = [
 ## turned the blue limousine grey otherwise (fill_tunnel). The sheen carries 80 % of the paint's hue in the ambient
 ## light's colour (fill_sheen_tint) – the neutral sheen turned the amber kompakt cream and the GT's blue-grey neutral
 ## grey: body saturation against the sprite 0.74 × / 0.70 × / 0.91 × before, 0.95 × / 0.73 × / 0.91 × now.
+## FIX-R4 (QA-R4 B7): the sheen takes the paint's hue from the paint washed 35 % towards its luminance (sheen_wash, the
+## studio wash of the sprites; the limousine read royal blue at DEV 21:00, saturation 1.38 × its sprite); and at night
+## the mirrored sky carries the ambient light's hue (layers/vehicles.gd ENV_NIGHT_TINT, QA-R4 B3: the silver GT mirrored
+## the grey rain sky and read grey where its sprite is blue-grey).
 const VEHICLE_LOOK: Array = [["vpbr", "env_energy", 1.6], ["vpbr", "paint_base", 1.0], ["vpbr", "paint_knee", 0.7],
 	["vpbr", "paint_knee_slope", 0.45], ["vpbr", "paint_desat", 0.08], ["vpbr", "flake_strength", 0.0],
 	["vpbr", "lamp_off", 0.28], ["vpbr", "tail_level", 0.5], ["vpbr", "env_night", 0.35], ["vpbr", "fill_night", 0.6],
-	["vpbr", "fill_sheen", 0.25], ["vpbr", "fill_sheen_tint", 0.8], ["vpbr", "fill_tunnel", 0.3],
+	["vpbr", "fill_sheen", 0.25], ["vpbr", "fill_sheen_tint", 0.8], ["vpbr", "sheen_wash", 0.35], ["vpbr", "fill_tunnel", 0.3],
 	["vpbr", "hemi_side", 0.72], ["vpbr", "hemi_down", 0.5], ["vpbr", "fill_shade", 0.75],
 	["glass", "env_energy", 2.2], ["glass", "hemi_side", 0.72], ["glass", "hemi_down", 0.5]]
 ## Extra ambient light on the player car in a race (vpbr instance uniform fill, a share of ce_ambient): Arcade draws its

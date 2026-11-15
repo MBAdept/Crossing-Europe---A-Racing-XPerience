@@ -131,6 +131,10 @@ uniform float fill_sheen = 0.0;
 // 1 = the paint's chroma at the ambient light's luminance): a neutral sheen in the blue night light turned the amber
 // kompakt cream and the blue limousine grey – Arcade's sprites keep their paint saturated at night
 uniform float fill_sheen_tint = 0.0;
+// FIX-R4 (QA-R4 B7): … taken from the paint washed this much towards its own luminance – Arcade's player sprites are
+// rendered in a studio light that washes their paint (FIX-M2 B-06 measured it by day); with the model's full chroma
+// the dark-blue limousine read royal blue at night (saturation 1.38 × its sprite at DEV 21:00). 0 = the paint as it is
+uniform float sheen_wash = 0.0;
 // … and inside a tunnel (ce_tunnel; there ce_night is 1 for the lamps, but the light is the tunnel's, not the night
 // sky's): the fill keeps this share of its day value and the sheen is off (1.0 = neutral)
 uniform float fill_tunnel = 1.0;
@@ -365,7 +369,7 @@ void fragment() {
 			const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);
 			float amb_l = max(dot(sheen, LUMA), 1.0e-5);
 			vec3 amb_c = sheen / amb_l;
-			vec3 pcol = to_lin(alb);
+			vec3 pcol = to_lin(mix(alb, vec3(dot(alb, LUMA)), clamp(sheen_wash, 0.0, 1.0)));
 			vec3 tinted = amb_c * min(pcol / max(dot(pcol, LUMA), 0.01), vec3(4.0));
 			tinted /= max(dot(tinted, LUMA), 0.01);
 			sheen = amb_l * mix(amb_c, tinted, clamp(fill_sheen_tint, 0.0, 1.0));
