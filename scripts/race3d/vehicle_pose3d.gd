@@ -42,6 +42,16 @@ const REAR_GLOW_BRAKE_R := 0.12
 const REAR_GLOW_NIGHT_R := 0.18
 const REAR_GLOW_MIN_PX := 2.0
 const GLOW_MAX_PX := 70.0
+## FIX-M2 (QA-M2-BILD B-03, B-04): the glow of a MODEL's brake lights and beacons is stronger than Arcade's glow law.
+## Arcade draws its glow over a sprite whose light layer paints the whole lamp cluster (and the police light bar as a
+## wide blue blob); a model only lights its own lamp surfaces – the thin brake strip of the sports car, the 8-cm
+## light bar of the police. Measured with the flare layer switched off (the glow law itself adds Arcade's +38 red at
+## the centre, as it should), the braking cue by day reached 30–55 % of Arcade's red pixels and the beacon 25–35 % of
+## Arcade's blue pixels. The flare strength of a model's lamp is therefore multiplied: by MODEL_BRAKE_GAIN in
+## proportion to the brake level for rear and brake lamps (a tail light alone keeps Arcade's strength), by
+## MODEL_BEACON_GAIN for beacons. A sprite stand-in keeps Arcade's law (its picture has the light layers).
+const MODEL_BRAKE_GAIN := 2.2
+const MODEL_BEACON_GAIN := 2.4
 
 
 ## Arcade's fade of an item at path distance dz (m from the camera along the road; RoadRenderer._item_alpha): on the
@@ -224,6 +234,17 @@ static func flare_params(role: String, a: Vector4, b: Vector4, lights: float) ->
 		"marker":
 			return Vector4(a.x * lights * 0.7, 0.22 + 0.12 * lights, 1.5, KIND_GLOW)
 	return Vector4.ZERO
+
+
+## Factor on the flare strength of a lamp of a MODEL (not of a sprite stand-in) – see MODEL_BRAKE_GAIN. role = the
+## flare point's role, a = lamp_a (its y is the brake level).
+static func model_glow_gain(role: String, a: Vector4) -> float:
+	match role:
+		"rear", "brake":
+			return 1.0 + (MODEL_BRAKE_GAIN - 1.0) * clampf(a.y, 0.0, 1.0)
+		"beacon_a", "beacon_b":
+			return MODEL_BEACON_GAIN
+	return 1.0
 
 
 ## Flare points of a model from its lights[] (manifest format: role, pos, dir, size, color): [{"role", "pos":

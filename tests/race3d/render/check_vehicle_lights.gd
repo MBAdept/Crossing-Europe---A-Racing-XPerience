@@ -13,6 +13,13 @@ extends SceneTree
 ##                  (peak + 0.02 luminance and + 0.10 red against the same picture without the car)
 ##   bremslicht     brake light by day at 50, 150 and 300 m: braking lights the rear (more red than the tail lamp
 ##                  alone, Arcade's glow strength 0.35) at every distance
+##   blaulicht      FIX-M2 (QA-M2-BILD B-03): the beacon of the police MODEL at 60 m, by day and at 22:00, lifts at least
+##                  BEACON_MIN_PX pixels clearly bluer (+BEACON_LIFT) than the same picture with the beacon off –
+##                  the model's light bar is 8 cm high, its glow (VehiclePose3D.MODEL_BEACON_GAIN) carries the signal
+##   abblendlicht   FIX-M2 (QA-M2-BILD B-05): a red truck at 20 and 60 m in the player's low beam (22:00) stays a red
+##                  truck: at most LOWBEAM_WHITE_SHARE of its footprint above luminance 200/255 and a mean luminance of
+##                  at most LOWBEAM_MEAN (measured before the fix: 38 % white, mean 0.60 at 60 m – "a white glowing box";
+##                  Arcade 0.5 %, 0.17)
 ##   sichtgrenze    F4/F5 and Arcade's fog of sprites (FIX1, QA QB-07/QB-11): a dark car at the end of the sight
 ##                  (0.995 × visibility) changes its footprint by less than 3 % contrast; at 0.839 × visibility (where
 ##                  the simulation counts it as seen) the pixels it still covers keep at least half the contrast they
@@ -23,11 +30,17 @@ extends SceneTree
 
 const RACE := "res://scenes/race/race.tscn"
 const PROBE := "res://tests/race3d/fixtures/vehicle_probe_renderer.gd"
-const CHECKS := ["blinker", "ruecklicht_n1", "bremslicht", "sichtgrenze"]
+const CHECKS := ["blinker", "ruecklicht_n1", "bremslicht", "blaulicht", "abblendlicht", "sichtgrenze"]
 const INDICATOR_MIN_PX := Vector2(2.4, 2.0)     ## RoadRenderer.INDICATOR_MIN_PX (copied: -s script)
 const INDICATOR_MIN_GLOW_PX := 4.5              ## RoadRenderer.INDICATOR_MIN_GLOW_PX
 const N1_LUM := 0.02                            ## threshold of the tail light at 0.839 x visibility …
 const N1_RED := 0.10                            ## … and of its red channel
+## blaulicht: pixels lifted … (by day / at 22:00; measured 310 / 1061 with the model glow, 102 / 303 with Arcade's law
+## alone – Arcade's sprite with its blue light layer about 3 × that)
+const BEACON_MIN_PX := {12: 200, 22: 600}
+const BEACON_LIFT := 0.12                       ## … by at least this much blue
+const LOWBEAM_WHITE_SHARE := 0.05               ## abblendlicht: share of the footprint above luminance 200/255 …
+const LOWBEAM_MEAN := 0.35                      ## … and mean luminance of the footprint
 ## Kiel – Hamburg: start positions tried for the distance checks until the road ahead hides nothing (no crest)
 const CLEAR_KMS: Array = [2.0, 10.0, 20.0, 30.0, 45.0, 60.0, 70.0]
 
@@ -331,6 +344,81 @@ func _check_bremslicht() -> void:
 		msgs.append("%.0f m: Rot +%.2f an %d Pixeln" % [dist, red, lifted])
 	await _free(sc)
 	_report("bremslicht", p, "Bremslicht bei Tag – " + "; ".join(msgs))
+
+
+# --- blaulicht (FIX-M2) --------------------------------------------------------------------------------------------
+
+func _check_blaulicht() -> void:
+	var p: Array[String] = []
+	var msgs: Array[String] = []
+	for hour: float in [12.0, 22.0]:
+		var sc: Node = await _launch_clear({"start_world_minutes": hour * 60.0}, CLEAR_KMS, [60.0], -3.75)
+		var r: Node = sc.get("renderer")
+		var view: Dictionary = r.get("view")
+		var cam_z := float(view["camera_z"])
+		var x := float((view["player"] as Dictionary).get("x", 0.0)) - 3.75
+		var lights := float((view["palette"] as Dictionary).get("lights", 0.0))
+		var on := await _shot([_car(9701, "police/de", cam_z + 60.0, x, {"tail": lights, "beacon": "a"})])
+		var off := await _shot([_car(9701, "police/de", cam_z + 60.0, x, {"tail": lights})])
+		_keep(on, "blaulicht_%02d" % int(hour))
+		var c: Vector3 = r.call("world_to_screen", cam_z + 60.0 + float(ModelDB.object_size("police/de").get("length_m", 4.7)) * 0.5, x, 1.7)
+		var scale := Vector2(root.get_texture().get_size()) / root.get_visible_rect().size
+		var cx := int(c.x * scale.x)
+		var cy := int(c.y * scale.y)
+		var lifted := 0
+		for dy in range(-40, 41):
+			for dx in range(-40, 41):
+				var px := cx + dx
+				var py := cy + dy
+				if px < 0 or py < 0 or px >= on.get_width() or py >= on.get_height():
+					continue
+				var a := on.get_pixel(px, py)
+				var b := off.get_pixel(px, py)
+				if a.b - b.b >= BEACON_LIFT and a.b > a.r + 0.1:
+					lifted += 1
+		var need_px := int(BEACON_MIN_PX[int(hour)])
+		_need(p, lifted >= need_px, "%.0f Uhr: Blaulicht bei 60 m hebt %d Pixel um +%.2f Blau (mindestens %d)" % [hour, lifted, BEACON_LIFT, need_px])
+		msgs.append("%.0f Uhr: %d Pixel deutlich blauer" % [hour, lifted])
+		await _free(sc)
+	_report("blaulicht", p, "Polizei (Modell) bei 60 m – " + "; ".join(msgs))
+
+
+# --- abblendlicht (FIX-M2) -----------------------------------------------------------------------------------------
+
+func _check_abblendlicht() -> void:
+	var p: Array[String] = []
+	var msgs: Array[String] = []
+	var sc: Node = await _launch_clear({"start_world_minutes": 22.0 * 60.0}, CLEAR_KMS, [20.0, 60.0], 0.0)
+	var r: Node = sc.get("renderer")
+	var view: Dictionary = r.get("view")
+	var cam_z := float(view["camera_z"])
+	var x := float((view["player"] as Dictionary).get("x", 0.0))
+	var lights := float((view["palette"] as Dictionary).get("lights", 0.0))
+	var size: Dictionary = ModelDB.object_size("traffic/truck_red")
+	for dist: float in [20.0, 60.0]:
+		var on := await _shot([_car(9801, "traffic/truck_red", cam_z + dist, x, {"tail": lights, "heavy": true})])
+		_keep(on, "abblendlicht_%03d" % int(dist))
+		# the rear face only: the footprint of the last metre of the truck (a car's z is its rear)
+		var rect := _footprint(r, cam_z + dist + 0.5, x, 1.0, float(size.get("width_m", 2.5)) * 0.9, float(size.get("height_m", 3.8)))
+		var n := 0
+		var white := 0
+		var sum := 0.0
+		for py in range(maxi(rect.position.y, 0), mini(rect.end.y, on.get_height())):
+			for px in range(maxi(rect.position.x, 0), mini(rect.end.x, on.get_width())):
+				var l := _lum(on.get_pixel(px, py))
+				sum += l
+				n += 1
+				white += 1 if l > 200.0 / 255.0 else 0
+		var share := float(white) / maxf(1.0, float(n))
+		var mean := sum / maxf(1.0, float(n))
+		_need(p, n > 50, "%.0f m: Heck im Bild (%d Pixel)" % [dist, n])
+		_need(p, share <= LOWBEAM_WHITE_SHARE and mean <= LOWBEAM_MEAN,
+			"%.0f m: kein weißer Kasten (%.1f %% über 200, Mittel %.2f; höchstens %.0f %%, %.2f)" % [dist, share * 100.0, mean,
+			LOWBEAM_WHITE_SHARE * 100.0, LOWBEAM_MEAN])
+		msgs.append("%.0f m: %.1f %% weiß, Mittel %.2f" % [dist, share * 100.0, mean])
+	_need(p, lights > 0.9, "Nacht (Lichter der Palette %.2f)" % lights)
+	await _free(sc)
+	_report("abblendlicht", p, "roter Lkw im Abblendlicht, 22 Uhr – " + "; ".join(msgs))
 
 
 # --- sichtgrenze (FIX1) -------------------------------------------------------------------------------------------

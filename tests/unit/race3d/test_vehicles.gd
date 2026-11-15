@@ -175,6 +175,30 @@ func test_flares_keep_arcade_sizes() -> void:
 	assert_near(VehiclePose3D.glow_px(0.32, 711.0 / 1.0, 2.0), 70.0, 1.0e-6, "… höchstens 70 px")
 
 
+## FIX-M2 (QA-M2-BILD B-03/B-04): a model's brake lights and beacons glow stronger than Arcade's law (the sprite's light
+## layer is missing); a tail light alone, indicators and head lamps keep Arcade's strength.
+func test_model_glow_gain() -> void:
+	var braking := Vector4(0.0, 1.0, 0.0, 0.0)
+	var tail := Vector4(1.0, 0.0, 0.0, 0.0)
+	assert_near(VehiclePose3D.model_glow_gain("rear", braking), VehiclePose3D.MODEL_BRAKE_GAIN, 1.0e-6, "Bremse voll: MODEL_BRAKE_GAIN")
+	assert_near(VehiclePose3D.model_glow_gain("brake", Vector4(0.0, 0.5, 0.0, 0.0)), 1.0 + (VehiclePose3D.MODEL_BRAKE_GAIN - 1.0) * 0.5,
+		1.0e-6, "halbe Bremse: halber Zuschlag")
+	assert_near(VehiclePose3D.model_glow_gain("rear", tail), 1.0, 1.0e-6, "nur Rücklicht: Arcades Stärke")
+	assert_near(VehiclePose3D.model_glow_gain("beacon_a", Vector4.ZERO), VehiclePose3D.MODEL_BEACON_GAIN, 1.0e-6, "Blaulicht A")
+	assert_near(VehiclePose3D.model_glow_gain("beacon_b", Vector4.ZERO), VehiclePose3D.MODEL_BEACON_GAIN, 1.0e-6, "Blaulicht B")
+	for role: String in ["ind_l", "ind_r", "head", "marker", "tail"]:
+		assert_near(VehiclePose3D.model_glow_gain(role, braking), 1.0, 1.0e-6, "%s: Arcades Stärke" % role)
+	assert_true(VehiclePose3D.MODEL_BRAKE_GAIN > 1.0 and VehiclePose3D.MODEL_BEACON_GAIN > 1.0, "Zuschläge > 1")
+	# the strongest glow stays inside what the flare shader can show (colour × 0.5 × strength ≤ the lamp colour)
+	var day := VehiclePose3D.flare_params("rear", braking, Vector4.ZERO, 0.0).x * VehiclePose3D.model_glow_gain("rear", braking)
+	var night := VehiclePose3D.flare_params("rear", Vector4(1.0, 1.0, 0.0, 0.0), Vector4.ZERO, 1.0).x \
+		* VehiclePose3D.model_glow_gain("rear", braking)
+	var beacon := VehiclePose3D.flare_params("beacon_a", Vector4.ZERO, Vector4(0.0, 0.0, 1.0, 0.0), 1.0).x \
+		* VehiclePose3D.model_glow_gain("beacon_a", Vector4.ZERO)
+	assert_true(day > 0.35 and day < night and night <= 2.5 and beacon <= 2.0,
+		"Stärken Tag %.2f, Nacht %.2f, Blaulicht %.2f" % [day, night, beacon])
+
+
 func test_flare_points_merge_rear_lamps() -> void:
 	var lights := [
 		{"role": "brake", "pos": [-0.75, 0.89, 2.29], "dir": [-0.48, 0.25, 0.84], "size": 0.237, "color": "#ff2010"},

@@ -35,6 +35,12 @@ const HEADLIGHT_PITCH_DEG := 2.0
 const SPOT_ANGLE_DEG := 30.0
 const SPOT_ENERGY := 1.6            ## energy of one spot at full beam
 const SPOT_DECAY := 0.6
+## FIX-M2 (QA-M2-BILD B-05): no specular lobe from the low beam. The lamps sit next to the eye, so on every flat glossy
+## face that looks back at the camera (a truck's rear doors, a bumper, a number plate, the clear coat of a boot lid) the
+## half vector equals the normal over the whole face, and the sharp coat lobe turned it into a white glowing box:
+## truck_red rear at 60 m mean luminance 107 against Arcade's 44 (22:00, measured); without the lobe 48. Arcade lights
+## a car in its cone only diffusely. Retro-reflective tape (vpbr channel 15) and signs keep their own cone law.
+const SPOT_SPECULAR := 0.0
 const TUNNEL_BEAM := 0.35           ## Arcade: the low beam inside a tunnel by day
 const TRAFFIC_AHEAD_M := 140.0      ## traffic cones: cars up to this far ahead of the camera
 const TRAFFIC_REACH_M := 34.0
@@ -138,7 +144,7 @@ func _build_lights() -> void:
 		s.spot_angle = SPOT_ANGLE_DEG
 		s.spot_angle_attenuation = 0.8
 		s.spot_attenuation = SPOT_DECAY
-		s.light_specular = 0.6
+		s.light_specular = SPOT_SPECULAR
 		s.visible = false
 		add_child(s)
 		spots.append(s)

@@ -503,8 +503,13 @@ func test_bridge_pylon_is_a_model_with_its_aviation_light() -> void:
 			continue
 		if mmi.material_override is ShaderMaterial:
 			var mo := mmi.material_override as ShaderMaterial
-			assert_near(float(mo.get_shader_parameter("emit_energy")), 0.0, 1.0e-6, "dunkler Pylon: ohne Nachtatlas (Flutlicht)")
-			assert_near(float(mo.get_shader_parameter("night_albedo")), Props.PYLON_NIGHT_ALBEDO, 1.0e-6,
+			# (a parameter that was never set reads null: float(null) would abort the test – QA-M2-SYSTEM M2S-04)
+			var emit: Variant = mo.get_shader_parameter("emit_energy")
+			var night: Variant = mo.get_shader_parameter("night_albedo")
+			assert_true(emit is float or emit is int, "dunkler Pylon: emit_energy gesetzt (%s)" % str(emit))
+			assert_true(night is float or night is int, "dunkler Pylon: night_albedo gesetzt (%s)" % str(night))
+			assert_near(float(emit) if (emit is float or emit is int) else -1.0, 0.0, 1.0e-6, "dunkler Pylon: ohne Nachtatlas (Flutlicht)")
+			assert_near(float(night) if (night is float or night is int) else -1.0, Props.PYLON_NIGHT_ALBEDO, 1.0e-6,
 				"dunkler Pylon: nachts Beton × Umgebungslicht wie Arcade (night_albedo)")
 			assert_true(Props.PYLON_NIGHT_ALBEDO < 1.0, "… also dunkler als das beleuchtete Modell")
 			dark += 1

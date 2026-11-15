@@ -570,8 +570,17 @@ func _on_quality_lowered(preset: String) -> void:
 
 
 func _show_fallback_message() -> void:
-	hud.show_message(tr("Der Modus „Modern“ lässt sich mit dieser Grafik nicht starten. Das Spiel läuft im Modus „Arcade“ weiter."),
-		"warn", float(ConfigLoader.lookup(cfg, "time.countdown_s", 3.0)) + 6.0)
+	var text := tr("Der Modus „Modern“ lässt sich mit dieser Grafik nicht starten. Das Spiel läuft im Modus „Arcade“ weiter.")
+	if fallback_from_files(gfx_fallback):
+		text = tr("Der Modus „Modern“ lässt sich nicht starten, weil Spieldateien fehlen oder beschädigt sind. Das Spiel läuft im Modus „Arcade“ weiter.")
+	hud.show_message(text, "warn", float(ConfigLoader.lookup(cfg, "time.countdown_s", 3.0)) + 6.0)
+
+
+## True when a fallback reason (gfx_fallback) means missing or broken game files – the model manifest or a model file
+## ("manifest"), a script of the renderer ("script:<file>") – and not the graphics: the hint then points the player to
+## the installation instead of the graphics driver (FIX-M2, QA-M2-SYSTEM M2S-07).
+static func fallback_from_files(reason: String) -> bool:
+	return reason == "manifest" or reason.begins_with("script:")
 
 
 ## Modern: the crash-guard marker goes after CRASH_GUARD_S of drawn frames (real seconds, also in fast time).

@@ -39,7 +39,8 @@ extends SceneTree
 
 const PROBE := "res://tests/race3d/fixtures/seam_probe_renderer.gd"
 const RACE := "res://scenes/race/race.tscn"
-const CHECKS := ["ablauf", "marker", "abgang", "rueckfall", "ohne_renderer", "klang", "startmarker", "aufnahmeuhr", "vertrag"]
+const CHECKS := ["ablauf", "marker", "abgang", "rueckfall", "rueckfall_dateien", "ohne_renderer", "klang", "startmarker", "aufnahmeuhr",
+	"vertrag"]
 ## Contract §4.4.1: method -> number of arguments. The first three are shared by both renderers.
 const SEAM_METHODS := {"setup": 4, "render": 1, "perf_stats": 0, "apply_quality": 1, "prepare": 1, "is_prepared": 0,
 	"prepare_progress": 0, "healthy": 0, "fail_reason": 0, "debug_snapshot": 0, "world_to_screen": 3}
@@ -54,6 +55,7 @@ const PERF_KEYS := ["mode", "preset", "render_ms_avg", "render_ms_max", "chunks"
 	"vehicles", "instances", "frame_ms_median", "frame_ms_p95", "prewarm_ms", "fallback_sets", "tex_mem_mb"]
 const SNAPSHOT_KEYS := ["camera", "chunks", "vehicles", "lights", "props", "signs", "quality"]
 const FALLBACK_TEXT := "Der Modus „Modern“ lässt sich mit dieser Grafik nicht starten. Das Spiel läuft im Modus „Arcade“ weiter."
+const FALLBACK_FILES_TEXT := "Der Modus „Modern“ lässt sich nicht starten, weil Spieldateien fehlen oder beschädigt sind. Das Spiel läuft im Modus „Arcade“ weiter."
 const STATE_KEYS := ["brake", "crash", "finished", "hour", "in_tunnel", "lat_speed", "off_road", "rail_contact", "road_left",
 	"road_right", "shoulder_m", "speed", "steer", "throttle", "understeer", "weather", "x", "z"]
 
@@ -430,6 +432,30 @@ func _check_rueckfall() -> void:
 	_need(p, float(sc.get("_guard_s")) <= 0.0, "kein Marker-Zähler in Arcade")
 	_report("rueckfall", p, "Ausfall in Bild %d der Vorbereitung: weiter mit %s, %d Sprite-Sets, Meldung im HUD, Ergebnis gfx_fallback '%s'" % [
 		frames, _renderer_file(sc), pre.size(), str(res.get("gfx_fallback", ""))])
+	await _free(sc)
+
+
+# --- rueckfall_dateien: missing or broken game files ---------------------------------------------------------------------
+
+## FIX-M2 (QA-M2-SYSTEM M2S-07): missing or broken game files ("manifest") – the hint names the files, not the graphics.
+func _check_rueckfall_dateien() -> void:
+	var p: Array[String] = []
+	_use_probe(50, 4, "manifest")
+	var sc := _launch({"gfx": "modern", "autopilot": true})
+	var frames := 0
+	while str(sc.get("gfx_fallback")) == "" and frames < 200:
+		await process_frame
+		frames += 1
+	await _until(func() -> bool: return float(sc.get("stage_time")) > 0.5, 600)
+	_need(p, str(sc.get("gfx")) == "arcade" and str(sc.get("gfx_fallback")) == "manifest", "gfx arcade, gfx_fallback manifest")
+	var texts: Array = _hud_texts(sc)
+	_need(p, texts.has(FALLBACK_FILES_TEXT), "Meldung nennt die Spieldateien")
+	_need(p, not texts.has(FALLBACK_TEXT), "… und nicht die Grafik")
+	var rs: GDScript = load("res://scripts/race/race_session.gd")
+	_need(p, bool(rs.call("fallback_from_files", "script:layers/vehicles.gd")) and not bool(rs.call("fallback_from_files", "shader")) \
+		and not bool(rs.call("fallback_from_files", "selftest:debug")) and not bool(rs.call("fallback_from_files", "renderer")),
+		"Dateien: manifest und script:…; Grafik: shader, selftest, renderer")
+	_report("rueckfall_dateien", p, "Grund 'manifest' (Bild %d): Hinweis auf fehlende oder beschädigte Spieldateien" % frames)
 	await _free(sc)
 
 
