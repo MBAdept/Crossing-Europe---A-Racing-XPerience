@@ -217,6 +217,11 @@ func test_player_paint_is_desaturated() -> void:
 		var lb := 0.2126 * b.r + 0.7152 * b.g + 0.0722 * b.b
 		assert_near(lb, la, 0.01, "%s: Helligkeit bleibt (%.3f / %.3f)" % [k, la, lb])
 	assert_true(ModernMaterials.VEHICLE_PLAYER_DESAT > 0.0 and ModernMaterials.VEHICLE_PLAYER_DESAT < 0.5, "Anteil zwischen 0 und 0,5")
+	# at night the share fades out (R4's night law holds the paint there)
+	var night := ModernMaterials.player_paint(src, 1.0)
+	assert_eq(str(night["paint"]).to_lower(), str(src["paint"]).to_lower(), "nachts unverändert")
+	var dusk := Color(str(ModernMaterials.player_paint(src, 0.5)["paint"]))
+	assert_true(dusk.s < Color(str(src["paint"])).s and dusk.s > Color(str(out["paint"])).s, "Dämmerung dazwischen")
 
 
 func test_flare_points_merge_rear_lamps() -> void:

@@ -69,12 +69,14 @@ const VEHICLE_LOOK: Array = [["vpbr", "env_energy", 1.6], ["vpbr", "paint_base",
 ## Extra ambient light on the player car in a race (vpbr instance uniform fill, a share of ce_ambient): Arcade draws its
 ## player sprite brighter than the scene (ambient x 1.15 + 0.08) – the car stays readable in its own shade.
 const VEHICLE_PLAYER_FILL := 0.7
-## FIX-M2 (QA-M2-BILD B-06): the paint of the player car in a race is desaturated towards its own luminance (sRGB, before
-## the shader's paint_desat) by this share – the Arcade player sprites are rendered with Cycles in a studio light that
-## washes their paint, the models showed it about a quarter more saturated (paint pixels, hue-filtered: S1 limousine
-## 0.74 against the sprite's 0.59, C1 sports car 0.54 / 0.42, N1 kompakt 0.94 / 0.72; still 0.74 with R4's light law).
-## Race only (layers/vehicles.gd); the showroom keeps the paint of the model.
-const VEHICLE_PLAYER_DESAT := 0.25
+## FIX-M2 (QA-M2-BILD B-06): by day the paint of the player car in a race is desaturated towards its own luminance (sRGB,
+## before the shader's paint_desat) by this share, at night by (1 - palette night) of it – the Arcade player sprites are
+## rendered in a studio light that washes their paint. Measured (paint pixels, hue-filtered, vehicle probe on FIX-M2
+## merged with R4's light law, "Mittel"): limousine at noon 0.73 against the sprite's 0.58, with 0.15 / 0.30 of
+## desaturation 0.69 / 0.65; kompakt at 22:00 in snow 0.76 against 0.72 – there R4's night law already holds it and
+## 0.15 / 0.30 made it 0.67 / 0.53, so the share fades out with the night. Race only (layers/vehicles.gd); the showroom
+## keeps the paint of the model.
+const VEHICLE_PLAYER_DESAT := 0.35
 ## The studio look of the showroom (RINT-B): the engine's reflection of the studio sky (env_energy 0) and the same paint
 ## exposure and lamp levels as the race; the flakes sparkle at the showroom's distance.
 const STUDIO_LOOK: Array = [["vpbr", "env_energy", 0.0], ["vpbr", "paint_base", 1.0], ["vpbr", "paint_knee", 0.7],
@@ -99,14 +101,16 @@ static func shared() -> ModernMaterials:
 	return _shared
 
 
-## The paint dictionary of a player car in a race (VEHICLE_PLAYER_DESAT): every colour key moved towards its luminance.
-static func player_paint(paint: Dictionary) -> Dictionary:
+## The paint dictionary of a player car in a race (VEHICLE_PLAYER_DESAT): every colour key moved towards its luminance by
+## VEHICLE_PLAYER_DESAT x (1 - night); night = the palette's night amount (0 by day, 1 at night).
+static func player_paint(paint: Dictionary, night: float = 0.0) -> Dictionary:
 	var out := paint.duplicate()
+	var d := VEHICLE_PLAYER_DESAT * (1.0 - clampf(night, 0.0, 1.0))
 	for k: String in ["paint", "paint2", "paint3"]:
 		if out.has(k) and Color.html_is_valid(str(out[k])):
 			var c := Color(str(out[k]))
 			var l := 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b
-			out[k] = "#" + c.lerp(Color(l, l, l), VEHICLE_PLAYER_DESAT).to_html(false)
+			out[k] = "#" + c.lerp(Color(l, l, l), d).to_html(false)
 	return out
 
 

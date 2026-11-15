@@ -124,6 +124,7 @@ var _cfg: Dictionary = {}
 var _sets: Array[String] = []        ## vehicle sets of the stage
 var _set_cache: Dictionary = {}      ## set id -> info
 var _cars: Dictionary = {}           ## view id -> Car
+var _paint_night := 0.0             ## FIX-M2: palette night the player's paint was last set for (B-06)
 var _free: Dictionary = {}           ## set id -> Array of Car
 var _frame := 0
 var _requested := false
@@ -1029,6 +1030,14 @@ static func _put_transform(buf: PackedFloat32Array, o: int, t: Transform3D) -> v
 
 ## Environment the clear coat, metals and glass mirror (vpbr uniforms): the sky of the palette, the road below.
 func _set_environment(pal: Dictionary) -> void:
+	# FIX-M2 (B-06): the player's paint follows the night (ModernMaterials.player_paint) – applied again when it moved
+	var nt := clampf(float(pal.get("night", 0.0)), 0.0, 1.0)
+	if absf(nt - _paint_night) > 0.02:
+		_paint_night = nt
+		var pc: Variant = _cars.get(PLAYER_ID)
+		if pc is Car and (pc as Car).node != null and is_instance_valid((pc as Car).node) and not bool(((pc as Car).info as Dictionary).get("box", false)) \
+				and (pc as Car).lod != VehicleStandIn.KIND_BOX:
+			ModelFactory.apply_paint((pc as Car).node, ModernMaterials.player_paint(ModelDB.resolve((pc as Car).set_id).get("paint", {}), nt))
 	var top: Color = pal.get("sky_top", Color(0.11, 0.36, 0.79))
 	var bottom: Color = pal.get("sky_bottom", Color(0.73, 0.87, 0.96))
 	var amb: Color = pal.get("ambient", Color.WHITE)
@@ -1307,8 +1316,8 @@ func _set_level(car: Car, lod: String) -> void:
 		if gloss < 1.0:
 			gi.set_instance_shader_parameter(&"gloss", gloss)
 	if fill > 0.0:
-		# FIX-M2 (B-06): the player's paint a little less saturated, like its Arcade sprite (ModernMaterials.player_paint)
-		ModelFactory.apply_paint(n, ModernMaterials.player_paint(ModelDB.resolve(car.set_id).get("paint", {})))
+		# FIX-M2 (B-06): the player's paint a little less saturated by day, like its Arcade sprite (ModernMaterials.player_paint)
+		ModelFactory.apply_paint(n, ModernMaterials.player_paint(ModelDB.resolve(car.set_id).get("paint", {}), _paint_night))
 	car.la = Vector4(-1, -1, -1, -1)
 	car.lb = Vector4(-1, -1, -1, -1)
 	car.mod = Color(-1, -1, -1, -1)
