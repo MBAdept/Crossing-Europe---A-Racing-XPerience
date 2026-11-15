@@ -21,7 +21,7 @@ extends SceneTree
 ##                   lights of the Köhlbrandbrücke blink in Arcade's rhythm – over 2.4 s every beacon is lit in some
 ##                   frames and dark in others (the flare layer's list) and the picture shows its red where it is lit
 ## "-- --only=U1_portal,B1" runs some positions, "-- --save=<absolute folder>" keeps the pictures.
-## "-- --full" (no picture, --headless is enough; about 4 minutes): builds EVERY bridge and EVERY tunnel of the network
+## "-- --full" (no picture, --headless is enough; 90 s measured): builds EVERY bridge and EVERY tunnel of the network
 ## – each direction of each stage – with builders/bridge.gd and builders/tunnel.gd as the unit tests do (no renderer)
 ## and checks what each must have: a bridge its water and banks and per type its pylons and cables, truss and portals or
 ## arches; a tunnel its tube, lamps and portal. Prints "RENDER-CHECK tunnel_bridge_full OK|FEHLER".

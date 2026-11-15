@@ -213,7 +213,7 @@ Ruhende Etappe (kein Autopilot, kein Verkehr, HUD aus), Modus Modern; `tools/run
 | `B1` | Frankfurt – Köln km 186,2 (Severinsbrücke), `cover,far` | nichts offen unter der Horizontzeile (≤ 0,2 %), der Fernboden verdeckt den Rhein nicht (Cyan ≤ 2 %), der Builder hat Wasser gebaut |
 | `beacon` | Kiel – Hamburg km 76,4, 22 Uhr (Pylonspitzen 230 und 350 m voraus) | jede Flugbefeuerung in 2,4 s mal an, mal aus (Liste der Flare-Ebene), das Bild zeigt an ihr Rot |
 
-**Netzweit** (`-- --full`, ohne Bild, `--headless` genügt; rund 4 Minuten gemessen): baut jede Brücke und jeden
+**Netzweit** (`-- --full`, ohne Bild, `--headless` genügt; 90 s gemessen: 122 Brücken, 26 Tunnel): baut jede Brücke und jeden
 Tunnel des Netzes – jede Richtung jeder Etappe – mit den beiden Buildern wie die Unit-Tests (ohne Renderer) und prüft,
 was jede haben muss: eine Brücke Wasser und Ufer, je Typ Pylone und Seile, Fachwerk und Portale oder Bögen; ein Tunnel
 Röhre, Leuchten und Portal.
