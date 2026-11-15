@@ -298,6 +298,12 @@ def _door_city(geo, mats, h, p3, n, u_ax, depth, opt, step_mat, e):
                          "lod0")
             z += 0.45
         return
+    if h.top == "round" and (b - a) > GATE_W:
+        # an arched gateway (the guild house: 2.8 m) has the wooden wings of the sprite's door, never a ribbed garage
+        # gate: H._door decides by the width of the rect, so it gets a rect of GATE_W round the same centre (the wings
+        # still fill the whole arched outline)
+        m = (a + b) * 0.5
+        h = H.Opening(h.outline, h.kind, h.src, h.gi, (m - GATE_W * 0.5 + 0.01, m + GATE_W * 0.5 - 0.01, c, d), h.top)
     H._door(geo, mats, h, p3, n, u_ax, depth, opt, step_mat, e)
 
 
@@ -391,8 +397,9 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
                     if not P._inside_poly(((rect[0] + rect[1]) * 0.5, (rect[2] + rect[3]) * 0.5), poly) or hidden(rect):
                         continue
                     src = dict(mat=g.get("glass", "#5a3a22") if str(g.get("glass", "")).startswith("#") else "#5a3a22")
-                    holes.append(H.Opening(H._outline(*rect, top=g.get("top"), n_arc=n_arc), "door", src, gi, rect,
-                                           g.get("top")))
+                    # the log keeps a round top as "arch" (windows: the pane follows it) - a door keeps its arch too
+                    dtop = "round" if g.get("arch") else g.get("top")
+                    holes.append(H.Opening(H._outline(*rect, top=dtop, n_arc=n_arc), "door", src, gi, rect, dtop))
             for gi, g in enumerate(e["grids"]):
                 if g.get("kind") == "door" or cls not in P.GRID_FACES.get(g.get("face", "front"), ("front", "back")):
                     continue
