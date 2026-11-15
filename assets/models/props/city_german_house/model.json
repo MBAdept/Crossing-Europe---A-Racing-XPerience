@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 100000,
-    "tris": 2526,
+    "tris": 618,
     "parts": [
      {
       "node": "body",
@@ -46,8 +46,8 @@
   "roughness": 0.88,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "german", "outskirts"],
-  "bytes": 656178,
-  "hash": "3761ad140f834c30a3f2fc1440f1c89fa7615562"
+  "bytes": 627976,
+  "hash": "01870302af072888bd7cf8f77cc168599a2cb272"
  },
  "sets": {
   "props/city_german_house": {"model": "props/city_german_house"}
