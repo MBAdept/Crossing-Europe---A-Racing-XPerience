@@ -628,6 +628,10 @@ def timber_members(record, log, opt, geo, mats, stats, objs=None):
     member; level lod0 only (lod1 keeps the painted timber of the atlas)."""
     spec = dict(opt or {})
     out = float(spec.get("out", TIMBER_OUT))
+    # inset (AS5aR1): a member is this much narrower on each side than the painted timber under it - its edges lie on
+    # the painted timber, so where they alias a pixel turns from member to timber, not to the white infill (shimmer at
+    # 40 - 60 m), and at the switch to lod1 the dark area stays what the painted timber gives
+    inset = float(spec.get("inset", 0.0))
     faces = tuple(spec.get("faces", ("front", "left")))
     by_mat = {e["material"]: e for e in log}
     n_mem = 0
@@ -720,6 +724,8 @@ def timber_members(record, log, opt, geo, mats, stats, objs=None):
             a, b = max(a, umin, ua), min(b, umax, ub)
             if b - a < wd * 0.4:
                 continue
+            if inset > 0.0:
+                a, b = (a + inset if a > umin + 1e-6 else a), (b - inset if b < umax - 1e-6 else b)
             spans = [_poly_span_z(poly, a + 0.01), _poly_span_z(poly, b - 0.01)]
             if spans[0] is None or spans[1] is None:
                 continue
@@ -739,6 +745,8 @@ def timber_members(record, log, opt, geo, mats, stats, objs=None):
         for ri, (rz0, rz1) in enumerate(rails):
             if rz1 <= zmin + 0.01 or rz0 >= zmax - 0.01:
                 continue
+            if inset > 0.0:
+                rz0, rz1 = rz0 + inset, rz1 - inset
             if not free_z(rz0, rz1) or abs(sum(b2 - a2 for (a2, b2) in free_z(rz0, rz1)) - (rz1 - rz0)) > 1e-6:
                 continue
             s0, s1 = _poly_span_u(poly, rz0 + 0.005), _poly_span_u(poly, rz1 - 0.005)
@@ -760,6 +768,7 @@ def timber_members(record, log, opt, geo, mats, stats, objs=None):
                 if not free_z(fz0, fz1) or abs(sum(b2 - a2 for (a2, b2) in free_z(fz0, fz1)) - hgt) > 1e-6:
                     continue
                 hw = wd * 0.55 / max(p, hgt) * p          # horizontal half width of the painted brace
+                hw *= max(0.3, 1.0 - 2.0 * inset / wd)
                 for k in range(k0, k1 + 1):
                     if (k + phase) % every != 0:
                         continue
@@ -792,6 +801,122 @@ def timber_members(record, log, opt, geo, mats, stats, objs=None):
         geo.xform = None
     stats["timber_members"] = n_mem
     return n_mem
+
+
+# --- corner oriels (AS5aR1) ------------------------------------------------------------------------------------------
+
+def _oriel(objs, spec, geo, mats, stats):
+    """The windows of a corner oriel (props_cities.turret: thin glass boxes on the shaft facets - painted, lit from the
+    emission atlas) as windows: every glass box set back to just proud of its facet, a casing round it (frame colour,
+    `out` m proud of the facet: its inner sides are the reveal), one vertical and one horizontal glazing bar in front
+    of the glass and a sill below it - casing, bars and sill lod0 only, vpbr. The corbel of the shaft (faces looking
+    down) gets a baked material of its own (`corbel` colour, ambient occlusion from the bake) instead of the infill of
+    the timber wall: the infill made it a smooth white cone, brighter than the wall at night.
+    spec: dict(shaft=<object>, windows=(<object name prefixes>), frame, out, fw, bar, sill, corbel)."""
+    import bmesh
+    shaft = next((o for o in objs if o.name == spec["shaft"]), None)
+    if shaft is None:
+        return
+    mws = np.array(shaft.matrix_world, dtype=np.float64)
+    sv = np.array([tuple(mws[:3, :3] @ np.array(v.co) + mws[:3, 3]) for v in shaft.data.vertices])
+    cx, cy = float(sv[:, 0].mean()), float(sv[:, 1].mean())
+    out = float(spec.get("out", 0.1))
+    fw = float(spec.get("fw", 0.07))
+    bw = float(spec.get("bar", 0.035)) * 0.5
+    frame = mats.vpbr("ce_oriel_frame", spec.get("frame", "#efe9dc"), rough=0.55)
+    sill = mats.vpbr("ce_oriel_sill", spec.get("sill", "#c9bfb0"), rough=0.8)
+    up = np.array([0.0, 0.0, 1.0])
+    n_win = 0
+    for ob in objs:
+        if not any(ob.name.startswith(k) for k in spec.get("windows", ())):
+            continue
+        mw = np.array(ob.matrix_world, dtype=np.float64)
+        inv = np.linalg.inv(mw)
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        bm.verts.ensure_lookup_table()
+        seen = set()
+        for v0 in bm.verts:
+            if v0.index in seen:
+                continue
+            # one box = one connected island of 8 vertices
+            isl, stack = [], [v0]
+            while stack:
+                v = stack.pop()
+                if v.index in seen:
+                    continue
+                seen.add(v.index)
+                isl.append(v)
+                stack.extend(e.other_vert(v) for e in v.link_edges)
+            P_ = np.array([mw[:3, :3] @ np.array(v.co) + mw[:3, 3] for v in isl])
+            c = P_.mean(axis=0)
+            rad = np.array([c[0] - cx, c[1] - cy, 0.0])
+            rad /= max(1e-9, np.linalg.norm(rad))
+            tan = np.cross(up, rad)
+            d = (P_ - c) @ rad
+            u = (P_ - c) @ tan
+            z = P_[:, 2] - c[2]
+            hw, hh = float(np.max(np.abs(u))), float(np.max(np.abs(z)))
+            # the facet plane: the box stands 0.02 into it (turret(): centre at apothem + 0.02, 0.08 deep); its outer
+            # face moves back to 12 mm in front of the facet
+            facet = float(d.min()) + 0.02
+            shift = float(d.max()) - (facet + 0.012)
+            for v, dv in zip(isl, d):
+                if dv > 0.0:
+                    wp = mw[:3, :3] @ np.array(v.co) + mw[:3, 3] - rad * shift
+                    v.co = tuple(inv[:3, :3] @ wp + inv[:3, 3])
+            g0 = facet + 0.012                                # the glass face now
+
+            def q(uu, zz, dd, _c=c, _r=rad, _t=tan):
+                return _c + _t * uu + up * zz + _r * dd
+            ring_o = [(-hw - fw, -hh - fw), (hw + fw, -hh - fw), (hw + fw, hh + fw), (-hw - fw, hh + fw)]
+            ring_i = [(-hw, -hh), (hw, -hh), (hw, hh), (-hw, hh)]
+            fo = facet + out
+            for i in range(4):
+                j = (i + 1) % 4
+                # front of the casing
+                geo.quad(frame, q(*ring_o[i], fo), q(*ring_o[j], fo), q(*ring_i[j], fo), q(*ring_i[i], fo), rad, "lod0")
+                # outer side (facet to front) and inner side (the reveal, front to glass)
+                eu, ez = ring_o[j][0] - ring_o[i][0], ring_o[j][1] - ring_o[i][1]
+                ln = math.hypot(eu, ez)
+                no = tan * (ez / ln) + up * (-eu / ln)
+                geo.quad(frame, q(*ring_o[i], facet), q(*ring_o[j], facet), q(*ring_o[j], fo), q(*ring_o[i], fo), no,
+                         "lod0")
+                geo.quad(frame, q(*ring_i[i], fo), q(*ring_i[j], fo), q(*ring_i[j], g0), q(*ring_i[i], g0), -no,
+                         "lod0")
+            gb = g0 + 0.012
+            geo.quad(frame, q(-bw, -hh, gb), q(bw, -hh, gb), q(bw, hh, gb), q(-bw, hh, gb), rad, "lod0")
+            geo.quad(frame, q(-hw, -bw, gb), q(hw, -bw, gb), q(hw, bw, gb), q(-hw, bw, gb), rad, "lod0")
+            # the sill: 6 cm high, 12 cm proud of the casing, the casing's width + 4 cm each side
+            s0, s1 = -hh - fw - 0.06, -hh - fw
+            sa, sb = -hw - fw - 0.04, hw + fw + 0.04
+            so = fo + 0.06
+            geo.quad(sill, q(sa, s1, facet), q(sb, s1, facet), q(sb, s1, so), q(sa, s1, so), up, "lod0")
+            geo.quad(sill, q(sa, s0, so), q(sb, s0, so), q(sb, s1, so), q(sa, s1, so), rad, "lod0")
+            geo.quad(sill, q(sa, s0, facet), q(sa, s0, so), q(sa, s1, so), q(sa, s1, facet), -tan, "lod0")
+            geo.quad(sill, q(sb, s0, facet), q(sb, s0, so), q(sb, s1, so), q(sb, s1, facet), tan, "lod0")
+            geo.quad(sill, q(sa, s0, facet), q(sb, s0, facet), q(sb, s0, so), q(sa, s0, so), -up, "lod0")
+            n_win += 1
+        bm.to_mesh(ob.data)
+        bm.free()
+        ob.data.update()
+    # the corbel: the faces of the shaft looking down
+    col = spec.get("corbel")
+    n_corbel = 0
+    if col:
+        cm = mats.baked("ce_corbel_%s" % col.lstrip("#"), col)
+        names = [m.name if m is not None else "" for m in shaft.data.materials]
+        if cm.name not in names:
+            shaft.data.materials.append(cm)
+            names.append(cm.name)
+        mi = names.index(cm.name)
+        for f in shaft.data.polygons:
+            n = mws[:3, :3] @ np.array(f.normal)
+            if n[2] / max(1e-9, np.linalg.norm(n)) < -0.25:
+                f.material_index = mi
+                n_corbel += 1
+        shaft.data.update()
+    stats["oriel"] = dict(windows=n_win, corbel_faces=n_corbel)
 
 
 # --- the flat lod1 ---------------------------------------------------------------------------------------------------
@@ -850,6 +975,32 @@ def _flat_copies(objs):
 
 
 # --- far walls: the texels of the opposite wall ------------------------------------------------------------------
+
+def _lod1_decimated(objs, ratios):
+    """AS5aR1: lod1 copies of organic parts (hedges, the garden tree) decimated once more {name prefix: ratio} - made
+    after the packing, so they keep the atlas coordinates of the lod0 part (KRITIK-5a1 K10: the lod1 of the house kept
+    85 % of its triangles in the garden). The originals become lod0. Returns the copies."""
+    import bpy
+    out = []
+    for ob in objs:
+        r = next((float(v) for k, v in sorted(ratios.items()) if ob.name.startswith(k)), None)
+        if r is None or H._level(ob) != "both":
+            continue
+        fo = ob.copy()
+        fo.data = ob.data.copy()
+        fo.name = ob.name + "_far"
+        ob.users_collection[0].objects.link(fo)
+        m = fo.modifiers.new("ce_decimate", "DECIMATE")
+        m.decimate_type = "COLLAPSE"
+        m.ratio = r
+        fo["ce_lvl"] = "lod1"
+        ob["ce_lvl"] = "lod0"
+        out.append(fo)
+    bpy.context.view_layer.update()
+    if out:
+        core.realize(out)
+    return out
+
 
 def _base_name(name):
     """The facade material of a filler, pane or display copy (ce_fill_<m>, ce_pane_<m>, ce_disp<k>_<m>)."""
@@ -1177,7 +1328,7 @@ def _weights(spec3d):
 # --- the bake (buildings3d.bake_house with far walls, floors and cut-out density) ----------------------------------
 
 def bake_city(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, cutout=False, ao=None, far=None, floors=None,
-              cut_ppm=CUT_PPM, cut_names=(), flat_lod1=False, samples=BAKE_SAMPLES):
+              cut_ppm=CUT_PPM, cut_names=(), flat_lod1=False, samples=BAKE_SAMPLES, lod1_decimate=None):
     """H.bake_house plus: charts of cut-out materials get cut_ppm texels per metre (as a weight on the packing's
     density), wall charts above floors["z"] get floors["upper"] of the density, and the far faces (far = (objects,
     matches)) take the atlas coordinates of the opposite walls after the packing (they are not baked)."""
@@ -1214,6 +1365,10 @@ def bake_city(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, cutout=False
         stats["far_mapped"] = far_uvs(charts, far[0], far[1], size)
     flat = _flat_copies(objs) if flat_lod1 else []
     stats["flat_copies"] = len(flat)
+    if lod1_decimate:
+        dec = _lod1_decimated(objs, lod1_decimate)
+        stats["lod1_decimated"] = len(dec)
+        flat = flat + dec
     # texel density per wall chart (road walls): the minimum over the charts of the near walls with weight >= 0.5
     dens = [c["ppm"] for c in charts if abs(c["normal"][2]) < 0.5 and c["weight"] >= 0.5 and not c.get("hidden")
             and (c["normal"][0] < -0.5 or c["normal"][1] < -0.5)]
@@ -1232,6 +1387,8 @@ def bake_city(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, cutout=False
     if float(em[..., :3].max()) > 0.004:
         out["emit"]["lights"] = BK.dilate(em)[..., :3]
     stats["fillers"], stats["panes"] = H._settle_fillers(objs)
+    # the texels of the cut-out charts (railings), for the gap fill of _finish_city
+    out["cut_mask"] = _mat_mask(objs, size, cut_set) if (cutout and cut_set) else None
     if ao:
         t_ao = time.time()
         for fo in flat:
@@ -1267,6 +1424,66 @@ def bake_city(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, cutout=False
     out["stats"] = stats
     out["flat"] = flat
     return out
+
+
+def _mat_mask(objs, size, names):
+    """Texels (atlas size, top row first) covered by the faces of the materials `names` - rasterised from their atlas
+    coordinates (as buildings3d._pane_mask)."""
+    W, H_ = size
+    mask = np.zeros((H_, W), dtype=bool)
+    for ob in objs:
+        slots = [s.material for s in ob.material_slots]
+        idx = {i for i, m in enumerate(slots) if m is not None and m.name in names}
+        if not idx or BK.UV_NAME not in ob.data.uv_layers:
+            continue
+        me = ob.data
+        me.calc_loop_triangles()
+        lay = me.uv_layers[BK.UV_NAME]
+        uv = np.empty(len(me.loops) * 2, dtype=np.float64)
+        lay.data.foreach_get("uv", uv)
+        uv = uv.reshape(-1, 2)
+        for lt in me.loop_triangles:
+            if lt.material_index not in idx:
+                continue
+            p = np.array([[uv[li][0] * W - 0.5, (1.0 - uv[li][1]) * H_ - 0.5] for li in lt.loops])
+            x0, y0 = np.floor(p.min(axis=0)).astype(int) - 1
+            x1, y1 = np.ceil(p.max(axis=0)).astype(int) + 1
+            x0, y0, x1, y1 = max(0, x0), max(0, y0), min(W - 1, x1), min(H_ - 1, y1)
+            if x1 < x0 or y1 < y0:
+                continue
+            gx, gy = np.meshgrid(np.arange(x0, x1 + 1), np.arange(y0, y1 + 1))
+            (ax, ay), (bx, by), (cx, cy) = p
+            den = (by - cy) * (ax - cx) + (cx - bx) * (ay - cy)
+            if abs(den) < 1e-12:
+                continue
+            l1 = ((by - cy) * (gx - cx) + (cx - bx) * (gy - cy)) / den
+            l2 = ((cy - ay) * (gx - cx) + (ax - cx) * (gy - cy)) / den
+            l3 = 1.0 - l1 - l2
+            mask[y0:y1 + 1, x0:x1 + 1] |= (l1 >= -1e-6) & (l2 >= -1e-6) & (l3 >= -1e-6)
+    return mask
+
+
+def _cut_fill(baked, spec, stats):
+    """AS5aR1: railings that keep their weight in the small mip levels. The engine box-filters the mips of the BC3
+    atlas, and a railing of 3 cm bars every 13 - 14 cm (a fifth to a quarter opaque) lost its alpha test from mip 4
+    on (~75 m) and thickened at mips 1 - 3 (KRITIK-5a1 K7). Every texel of a cut-out chart that is not part of the
+    pattern gets alpha `alpha` (below the scissor 0.5, so mip 0 shows the bars as before) and the colour of what is
+    seen through the railing (`color`: the shaded wall behind the balcony). In a small mip the box average of a bar
+    and its gaps rises above the scissor and carries the mixed colour: the railing turns into a band with the average
+    colour of bars and background - what a railing of sub-pixel bars looks like - instead of vanishing; in between, the
+    texels that pass carry the mix too, so the band keeps its darkness at every mip level."""
+    from cesprites import materials as M
+    mask = baked.get("cut_mask")
+    if mask is None or baked.get("alpha") is None:
+        return
+    g = float(spec.get("alpha", 0.4))
+    col = np.array([v for v in M.srgb(spec.get("color", "#7a7262"))[:3]], dtype=np.float64)
+    a = baked["alpha"]
+    sel = mask & (a < 0.5)
+    a[sel] = g
+    alb = baked["albedo"]
+    alb[sel] = col
+    stats["cut_fill_texels"] = int(sel.sum())
 
 
 # --- the builder --------------------------------------------------------------------------------------------------
@@ -1436,6 +1653,8 @@ def build_city(model_id, spec3d):
         stats["lod0_only_parts"] = _lod0_only(geo, FLAT_LOD0_PREFIXES)
     if spec3d.get("timber"):
         timber_members(record, log, spec3d["timber"], geo, mats, stats, objs)
+    if spec3d.get("oriel"):
+        _oriel(objs, spec3d["oriel"], geo, mats, stats)
     if spec3d.get("light_scale"):
         stats["light_scaled"] = H._scale_lights(objs, spec3d["light_scale"])
     if spec3d.get("levels"):
@@ -1572,7 +1791,7 @@ def _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, s
                       cutout=bool(cut_names), ao=spec3d.get("ao"), far=far, floors=spec3d.get("floors"),
                       cut_ppm=float(spec3d.get("cut_ppm", CUT_PPM)), cut_names=rail_names,
                       flat_lod1=bool(spec3d.get("lod1_flat", True)) and bool(spec3d.get("lod1")),
-                      samples=int(spec3d.get("bake_samples", BAKE_SAMPLES)))
+                      samples=int(spec3d.get("bake_samples", BAKE_SAMPLES)), lod1_decimate=spec3d.get("lod1_decimate"))
     if baked["alpha"] is not None:
         from PIL import Image
         from . import leafatlas
@@ -1581,6 +1800,8 @@ def _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, s
         img = leafatlas.halo(Image.fromarray(np.concatenate([rgb8, a8[..., None]], axis=2), "RGBA"), alpha=0.33, px=2,
                              scissor=0.5)
         baked["alpha"] = np.array(img).astype(np.float64)[:, :, 3] / 255.0
+        if spec3d.get("cut_fill"):
+            _cut_fill(baked, spec3d["cut_fill"], stats)
     over = spec3d.get("overrides")
     tr = roles.Translator(glass_class=False, overrides=over)
     levels = ["lod0", "lod1"] if spec3d.get("lod1") else ["lod0"]

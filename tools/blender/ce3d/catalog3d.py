@@ -514,7 +514,8 @@ MODELS.update({
     "props/city_german_house": dict(
         builder="city", source="props/city_german_house", kind="building", atlas=(1024, 1024), ppm_max=110.0,
         roughness=0.88, view="roadside", ao=AO_CITY, lod1=True,
-        decimate={"gh_hedge": 0.35, "gh_tree_c": 0.4}, lamps=("gh_lamp",), vpbr=("gh_mb", "gh_dorm_fm"),
+        decimate={"gh_hedge": 0.35, "gh_tree_c": 0.4}, lod1_decimate={"gh_hedge": 0.15, "gh_tree_c": 0.15},
+        lamps=("gh_lamp",), vpbr=("gh_mb", "gh_dorm_fm"),
         levels={"gh_mailbox": "lod0"}, weights=dict(roof=0.55, away=0.3, objects={"gh_hedge": 0.3, "gh_tree": 0.3}),
         openings=dict(reveal_color="#ddd6c9", sill_color="#d0cec8", gate_w=2.2),
         gutters=dict(per_roof=2, walls=("gh_body", "gh_garage"))),
@@ -523,6 +524,7 @@ MODELS.update({
     "props/city_german_mietshaus": dict(
         builder="city", source="props/city_german_mietshaus", kind="building", atlas=(2048, 1024), ppm_max=96.0,
         roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True,
+        cut_fill=dict(alpha=0.4, color="#797056"),
         vpbr=("gm_slab", "gm_panel", "gm_aer", "gm_dorm_fm", "gm_bdm"), levels={"gm_aerials": "lod0"},
         weights=dict(roof=0.5, away=0.3), openings=dict(reveal_color="#cdbf98", sill_color="#cfcac0"),
         gutters=dict(per_roof=2, walls=("gm_body",))),
@@ -532,6 +534,7 @@ MODELS.update({
     "props/city_german_gruenderzeit": dict(
         builder="city", source="props/city_german_gruenderzeit", kind="building", atlas=(2048, 1024), ppm_max=100.0,
         roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True,
+        cut_fill=dict(alpha=0.4, color="#a99f85"),
         vpbr=("gg_orn", "gg_dorm_fm"), weights=dict(roof=0.5, away=0.3),
         floors=dict(z=(7.8,), upper=0.75, objects=("gg_body",)),
         openings=dict(reveal_color="#d8ccb0", sill_color="#efe7d3", bars={"shop": (1, [0.78])}, shop_depth=0.35),
@@ -552,7 +555,8 @@ MODELS.update({
     # with flowers, the roofs of the two houses with their gables to the street closed at the back (hook close3d)
     "props/city_german_old_fachwerk": dict(
         builder="city", source="props/city_german_old_fachwerk", kind="building", atlas=(2048, 1024), ppm_max=100.0,
-        roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, params={"close3d": True}, timber=dict(vary=0.14),
+        roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, params={"close3d": True},
+        timber=dict(vary=0.14, inset=0.03),
         vpbr=("gfa_hm", "gfb_hm", "gfc_hm", "gf_fl_m", "gfb_dorm_fm"), levels={"gf_fl_": "lod0"},
         weights=dict(roof=0.45, away=0.3), floors=dict(z=(6.0,), upper=0.8),
         openings=dict(reveal_color="#e3d8c4", sill_color="#d8ccb6"),
@@ -561,7 +565,9 @@ MODELS.update({
     # storeys, very steep roof with two rows of dormers, the corner oriel with its helm roof
     "props/city_german_old_fachwerk_b": dict(
         builder="city", source="props/city_german_old_fachwerk_b", kind="building", atlas=(2048, 1024),
-        ppm_max=100.0, roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, timber=dict(vary=0.14),
+        ppm_max=100.0, roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, timber=dict(vary=0.14, inset=0.03),
+        params={"close3d": True},
+        oriel=dict(shaft="gfx_erker_shaft", windows=("gfx_erker_g", "gfx_erker_l"), frame="#efe9dc", corbel="#c9c0b0"),
         vpbr=("gfx_hm", "gfx_d1_fm", "gfx_d2_fm", "gfx_erker_finm"), weights=dict(roof=0.45, away=0.3),
         floors=dict(z=(6.6,), upper=0.8), openings=dict(reveal_color="#e3d8c4", sill_color="#c79a86"),
         gutters=dict(per_roof=2, walls=("gfx_s",))),
@@ -570,6 +576,7 @@ MODELS.update({
     "props/city_german_old_barock": dict(
         builder="city", source="props/city_german_old_barock", kind="building", atlas=(2048, 1024), ppm_max=100.0,
         roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, vpbr=("gba_st", "gbb_dorm_fm"),
+        params={"close3d": True},
         weights=dict(roof=0.45, away=0.3), floors=dict(z=(7.5,), upper=0.8, objects=("gba_body", "gbb_body")),
         openings=dict(reveal_color="#e8dccb", sill_color="#f1ebe0", bars={"shop": (1, [0.78])}, shop_depth=0.35),
         gutters=dict(per_roof=2, walls=("gbb_body",))),
@@ -578,7 +585,8 @@ MODELS.update({
     "props/city_hanse_gabled": dict(
         builder="city", source="props/city_hanse_gabled", kind="building", atlas=(2048, 1024), ppm_max=100.0,
         roughness=0.86, view="roadside", ao=AO_CITY, lod1=True,
-        vpbr=("hga_capm", "hgb_capm", "hgc_capm", "hg_pots_m"), levels={"hg_pots": "lod0"},
+        params={"close3d": True}, vpbr=("hga_capm", "hgb_capm", "hgc_capm", "hg_pots_m", "hga_anchm"),
+        levels={"hg_pots": "lod0", "hga_anch": "lod0"},
         weights=dict(roof=0.45, away=0.3), floors=dict(z=(7.0,), upper=0.8, objects=("hga_body", "hgb_body", "hgc_body")),
         openings=dict(reveal_color="#cdb9a2", sill_color="#e3dccd", n_arc=4), gutters=False),
     # hanse (centre): the Kontorhaus - clinker with slender piers (vpbr) over seven storeys, set-back top storeys,
