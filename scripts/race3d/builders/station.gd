@@ -54,6 +54,12 @@ const SHOP_GLOW_AT := Vector3(-4.2, 3.0, -5.7)
 const SHOP_GLOW := Color(1.0, 0.8, 0.5)
 const SHOP_GLOW_R := 7.0
 const SHOP_GLOW_ENERGY := 2.0 * 0.25 / 0.35
+## … and the warm light of the shop's forecourt on the ground in front of it (FIX-R6, B-03 of QA-R6: at night Arcade's
+## station glows warmly as a whole, Modern's shop stood dark): a lamp under its forecourt canopy with a light pool
+## (layers/lights.gd: on the terrain, and one of its omni lights on the shop front when it is among the nearest)
+const SHOP_POOL_AT := Vector3(-4.2, 3.4, -5.2)
+const SHOP_POOL_R := 11.0
+const SHOP_POOL_ENERGY := 1.1
 const COLUMN_IN := 0.45            ## columns this far inside the canopy's front and end
 ## A column on the island Arcade does not have (at the end of a canopy) stands there only where no sign on the right
 ## is within this distance behind it: one farther behind could only be covered while it is several hundred metres away
@@ -68,8 +74,8 @@ const OUT_GAP := 0.25              ## an outer column's inner face this far beyo
 ## would then stand on no column at all (canopy_columns()).
 const LOS_NEAR := 55.0
 const LOS_FAR := 600.0
-const LOS_STEP := 10.0
-const LOS_MARGIN := 0.05           ## the column's half width plus this
+const LOS_STEP := 5.0
+const LOS_MARGIN := 0.1            ## the column's half width plus this (cameras every LOS_STEP: a line can sweep past)
 const BEAM_H := 0.4                ## the beam under the canopy edge that carries it over to an outer column
 const BEAM_D := 0.3
 const LAMP_X: Array[float] = [0.8, 2.8]
@@ -937,6 +943,8 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 				var fs := ctx.frame(zs, float(it.get("x", 0.0)), ctx.ground(zs, float(it.get("x", 0.0))))
 				glows.append({"pos": fs * SHOP_GLOW_AT, "dir": fs.basis.z, "role": "lights", "color": SHOP_GLOW, "size": SHOP_GLOW_R / 0.9,
 					"range": 0.0, "energy": SHOP_GLOW_ENERGY})
+				glows.append({"pos": fs * SHOP_POOL_AT, "dir": -fs.basis.y, "role": "lights", "color": SHOP_GLOW, "size": 0.3,
+					"range": SHOP_POOL_R, "energy": SHOP_POOL_ENERGY})
 		var fz := int(sa["fuel_zone"])
 		if fz == 0 or bool(sa["tunnel"]):
 			continue

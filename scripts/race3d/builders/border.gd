@@ -56,7 +56,7 @@ const BEAM_D := 0.4
 const MAST_TOP := 13.0
 const MAST_W := 0.5
 const STAY_R := 0.07
-const STAY_T: Array[float] = [0.55, 1.0]
+const STAY_T: Array[float] = [1.0, 0.55]   ## the upper stay to the far edge: the two never cross
 const EDGE_BEAM := Vector2(0.4, 0.45)   ## free-edge beam on the slab: width, height
 const EDGE_IN := 0.25              ## … its outer face this far inside the free edge of the slab
 const BAR := Vector2(1.8, 0.3)     ## light bar: across, along
@@ -174,7 +174,7 @@ func spec_for(country: String, name: String, left: float, right: float) -> Dicti
 ## end, the country's name in blue (cap height 0.55 m, baseline 0.95 m under the top, at most 70 % of the width).
 ## At night it is lit from inside: the white glows softly, the name and the flag's stars stronger.
 static func _draw_fascia(p: SignPainter, b: GeoBatch, r: Rect2, s: float, name: String, night: bool) -> void:
-	var white := Color(0.36, 0.36, 0.34) if night else SLAB
+	var white := Color(0.5, 0.5, 0.48) if night else SLAB
 	var blue := Color(0.12, 0.26, 0.75) if night else SignPainter.EU_BLUE
 	var flag := Color(0.03, 0.06, 0.2) if night else SignPainter.EU_BLUE
 	var star := Color(0.9, 0.75, 0.1) if night else SignPainter.EU_YELLOW
