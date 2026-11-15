@@ -6,12 +6,12 @@
   "kind": "building",
   "object": {"width_m": 24, "height_m": 17.2, "length_m": 16},
   "extent_m": {"left": 16.75, "right": 11.38},
-  "aabb": [-12.06, 0, -16, 12.094, 19.206, 0.938],
+  "aabb": [-12.3, 0, -16, 12.094, 19.206, 0.938],
   "lods": [
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 3712,
+    "tris": 4882,
     "parts": [
      {
       "node": "body",
@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 100000,
-    "tris": 1233,
+    "tris": 1240,
     "parts": [
      {
       "node": "body",
@@ -37,8 +37,8 @@
   "roughness": 0.86,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "hanse", "center"],
-  "bytes": 519637,
-  "hash": "8e403e25127be6da916816dc6bedd3a31f3cd55c"
+  "bytes": 547785,
+  "hash": "f4aea844cfca2e966c884775180b3119a0bef239"
  },
  "sets": {
   "props/city_hanse_gabled": {"model": "props/city_hanse_gabled"}
