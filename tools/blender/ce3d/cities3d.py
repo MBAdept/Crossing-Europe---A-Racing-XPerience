@@ -27,11 +27,25 @@ plus what the city buildings need:
              unlit vpbr lamp shows half its light colour by day (AS4R)
   extent     extent_m is measured on the generator's model before anything is added or decimated: the sprite's
 
+AS5aR1 (rework after the art review KRITIK-5a1):
+  flanks     the generator hook close3d also opens the road flank (-x) of the half-timbered, Baroque and Hanseatic
+             gable houses: windows and doors in the style of the front (props_cities; the sprite never sets it)
+  rings      wallmat's hook inner_frame paints the frame of the cut window (H.FRAME_W) inside the glass of every
+             window, unlit: the flat lod1 keeps the lit and glazed area of lod0, whose geometric frame covers it
+  timber     members `inset` m narrower on each side than the painted timber (edges on timber, not on the infill)
+  oriels     the glass boxes of a corner oriel become windows with casing, glazing bars and sill; its corbel gets
+             a baked colour of its own (_oriel)
+  railings   cut_fill: the gaps of the cut-out charts get alpha 0.4 and the colour behind the railing, so the box-
+             filtered mips keep the weight of the railing instead of losing it from mip 4 on (_cut_fill)
+  gardens    lod1_decimate: lod1 copies of hedges and garden trees decimated once more (_lod1_decimated)
+
 Catalog options (besides those of "house"): decimate, lamps, shop_depth (in openings), gate_w (in openings), timber
-(dict: out, k - colour factor, vary), cut_ppm, single_cutout, far (bool, default True), floors (dict z, upper,
-objects), levels, close3d (generator parameter: back gables of the timber houses), lod1_flat (default True),
-albedo_mul / light_mul (dict material prefix: factor), light_k (default PANE_LIGHT_K), shop_light, n_arc and
-louvre (in openings), caps (default False), bake_samples (default BAKE_SAMPLES).
+(dict: out, k - colour factor, vary, inset), cut_ppm, single_cutout, far (bool, default True), floors (dict z,
+upper, objects), levels, close3d (generator parameter: back gables of the timber houses, openings of the road
+flanks), lod1_flat (default True), albedo_mul / light_mul (dict material prefix: factor), light_k (default
+PANE_LIGHT_K), shop_light, n_arc and louvre (in openings), caps (default False), bake_samples (default
+BAKE_SAMPLES), inner_frame (default H.FRAME_W with lod1), oriel (dict shaft, windows, frame, corbel, out, fw, bar,
+sill), cut_fill (dict alpha, color), lod1_decimate (dict name prefix: ratio).
 Two surfaces per level (baked or baked_cutout + vpbr): city budget 10,000 triangles, 2 draw calls.
 """
 import math

@@ -567,7 +567,7 @@ MODELS.update({
         builder="city", source="props/city_german_old_fachwerk_b", kind="building", atlas=(2048, 1024),
         ppm_max=100.0, roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, timber=dict(vary=0.14, inset=0.03),
         params={"close3d": True},
-        oriel=dict(shaft="gfx_erker_shaft", windows=("gfx_erker_g", "gfx_erker_l"), frame="#efe9dc", corbel="#c9c0b0"),
+        oriel=dict(shaft="gfx_erker_shaft", windows=("gfx_erker_g", "gfx_erker_l"), frame="#efe9dc", corbel="#a98a74"),
         vpbr=("gfx_hm", "gfx_d1_fm", "gfx_d2_fm", "gfx_erker_finm"), weights=dict(roof=0.45, away=0.3),
         floors=dict(z=(6.6,), upper=0.8), openings=dict(reveal_color="#e3d8c4", sill_color="#c79a86"),
         gutters=dict(per_roof=2, walls=("gfx_s",))),
