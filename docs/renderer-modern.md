@@ -1197,6 +1197,13 @@ Aufwärm-Knoten der Haken; sie wird in vier Lichtsituationen gezeichnet – ohne
 Punktlicht, mit beiden –, je zwei gezeichnete Bilder (`WARMUP_FRAMES` = 8), mit eigenen Lichtern an der Kamera, die
 wie alle echten Lichter den Boden auslassen. Die Engine übersetzt für jede dieser Situationen eigene Programme;
 Abblendlicht und Lampen kommen sonst erst in der Dämmerung oder unter der ersten Laterne – mitten in der Fahrt.
+**Aufwärm-Ebene** (R4): die Aufwärm-Knoten liegen auf der Render-Ebene 20 (`ModernRenderer.WARMUP_LAYER`, ein
+Boden-Knoten behält `GROUND_LAYERS`); die echten Spots und Punktlichter der Lichtebene lassen sie aus
+(`lights.gd` `LIGHT_MASK`), nur die Aufwärm-Lichter erreichen sie. Vorher beleuchtete das Abblendlicht nachts die
+Aufwärm-Knoten in allen vier Phasen: die Variante „ohne positionelles Licht“ eines Materials, das die Startansicht
+nicht zeigt, fehlte – N1 (Hamburg – Hannover km 71, 22 Uhr) übersetzte das Schild-Programm beim ersten fernen
+Schild während der Fahrt (`warmup_kalt`: 3 Varianten nach 6–8 s, ermittelt über Godots Shader-Cache: das Programm
+von `sign.gdshader`). Danach 0 (443 statt 386 Varianten vor dem Start).
 
 ### 10.9 Moduswechsel
 

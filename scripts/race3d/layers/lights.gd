@@ -26,7 +26,11 @@ extends Node3D
 ## Owner: renderer core (R1; from the lights package on: R4). Docs: docs/renderer-modern.md.
 
 const GROUND_LAYERS := 2            ## render layer of ground meshes (builders/road.gd): no light of this layer reaches it
-const LIGHT_MASK := 0xFFFFF & ~2   ## cull mask of every positional light: everything but the ground
+## cull mask of every positional light: everything but the ground – and but the warm-up nodes (render layer 20,
+## ModernRenderer.WARMUP_LAYER): the shader warm-up sets their light situation alone (prewarm.gd). At night the
+## headlights lit the warm-up nodes in every phase, so the variant "no positional light" of a material that the start
+## view did not show (the signs at N1) was compiled at its first far sign – during the drive (R4, cold-cache check).
+const LIGHT_MASK := 0xFFFFF & ~2 & ~(1 << 19)
 const LAMP_COLOR := Color(1.0, 0.93, 0.8)     ## RoadRenderer.LIGHT_COL
 const MAX_POOLS := 22
 const HEADLIGHT_H := 0.66           ## height of the low beam's lamps above the road

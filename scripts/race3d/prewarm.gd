@@ -19,7 +19,8 @@ extends RefCounted
 
 const PHASES: Array[String] = ["plain", "spot", "omni", "spot_omni"]
 const FRAMES := 2                  ## drawn frames per phase
-const LIGHT_MASK := 0xFFFFF & ~2   ## like every positional light of the lights layer: not the ground
+const LIGHT_MASK := 0xFFFFF & ~2   ## not the ground, like every positional light – but the warm-up layer (R4: the lights of
+                                   ## the lights layer leave it out, ModernRenderer.WARMUP_LAYER)
 const SPOT_RANGE_M := 220.0
 const OMNI_RANGE_M := 90.0
 

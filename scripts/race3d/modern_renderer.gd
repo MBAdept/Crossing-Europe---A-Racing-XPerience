@@ -63,6 +63,10 @@ const RIG_SCRIPT := "res://scripts/race3d/environment_rig.gd"
 const LAMP_LAYERS: Array[String] = ["lights", "flares"]   ## add_lamps() forwards to these
 const WARMUP_FRAMES := 8            ## drawn frames the warm-up nodes (and the start view) are shown before the start (prewarm.gd: four light situations, two frames each)
 const WARMUP_AHEAD_M := 14.0        ## … this far in front of the camera, on the road
+## R4: render layer of the warm-up nodes (layer 20): the positional lights of the lights layer leave it out
+## (lights.gd LIGHT_MASK), only the warm-up lights of prewarm.gd reach it – the four light situations are then exactly
+## the phases, also at night when the real headlights are on (ground nodes keep GROUND_LAYERS: no positional light)
+const WARMUP_LAYER := 1 << 19
 const PREPARE_TIMEOUT_S := 120.0    ## default of graphics.modern.prepare_timeout_s
 const TIMEOUT_FRAME_MS := 250.0     ## a single frame counts at most this much towards the time limit
 const GROUND_LAYERS := 2            ## render layer of ground meshes (road, terrain): the positional lights of the lights layer leave it out
@@ -536,6 +540,7 @@ func _begin_warmup() -> void:
 			continue
 		for n: Variant in nodes:
 			if n is Node3D and (n as Node3D).get_parent() == null:
+				_warm_layer(n as Node3D)
 				_warm.add_child(n)
 				_warm_count += 1
 			elif n is Node and (n as Node).get_parent() == null:
@@ -677,6 +682,16 @@ func _part_time(i: int, t0: int) -> int:
 
 
 ## The warm-up nodes stand on the road in front of the camera, turned like a vehicle ahead.
+## R4: a warm-up node and its children on WARMUP_LAYER (a ground node keeps its layers – no positional light
+## reaches it in the drive either).
+static func _warm_layer(n: Node3D) -> void:
+	if n is VisualInstance3D and ((n as VisualInstance3D).layers & GROUND_LAYERS) == 0:
+		(n as VisualInstance3D).layers = WARMUP_LAYER
+	for c: Node in n.get_children():
+		if c is Node3D:
+			_warm_layer(c as Node3D)
+
+
 func _place_warmup() -> void:
 	_warm.transform = Transform3D(_cam_tr.basis, _cam_tr.origin + _cam_tr.basis * Vector3(0.0, -proj.cam_height, -WARMUP_AHEAD_M))
 

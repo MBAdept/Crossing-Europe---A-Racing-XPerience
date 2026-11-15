@@ -23,6 +23,9 @@ func test_light_cap_per_effects_level() -> void:
 		for s: SpotLight3D in spots:
 			assert_false(s.shadow_enabled, "Spots ohne Schatten")
 			assert_eq(s.light_cull_mask & Lights.GROUND_LAYERS, 0, "Spots lassen den Boden aus")
+			assert_eq(s.light_cull_mask & ModernRenderer.WARMUP_LAYER, 0, "Spots lassen die Aufwärm-Knoten aus")
+		for o: OmniLight3D in omnis:
+			assert_eq(o.light_cull_mask & ModernRenderer.WARMUP_LAYER, 0, "Punktlichter lassen die Aufwärm-Knoten aus")
 		l.free()
 	# the effects levels of the configuration: 2 / 4 / 8
 	var levels: Array = ConfigLoader.lookup(cfg(), "graphics.levels.effects", [])
@@ -98,3 +101,26 @@ func test_beacon_of() -> void:
 	assert_true(Lights.beacon_of(view, -100.0, 1.0, 0.0, 10000.0).is_empty(), "zu weit voraus: nichts")
 	assert_true(Lights.beacon_of(view, 100.0, 1.0, 0.0, 120.0).is_empty(), "außerhalb des Pfads: nichts")
 	assert_true(Lights.beacon_of({"cars": [{"z": 130.0, "x": 0.0}]}, 100.0, 1.0, 0.0, 10000.0).is_empty(), "ohne Blaulicht: nichts")
+
+
+## R4 (cold-cache check N1): the warm-up nodes stand on their own render layer – the real positional lights leave it
+## out, the warm-up lights of prewarm.gd reach it, so the four phases are the only light situations of a warm-up node
+## (at night the headlights lit them in every phase and the "no positional light" variant of the sign shader was
+## compiled during the drive). A ground node keeps its layer.
+func test_warmup_layer_is_lit_by_the_warmup_lights_only() -> void:
+	var pw := load("res://scripts/race3d/prewarm.gd") as Script
+	var mask := int(pw.get_script_constant_map().get("LIGHT_MASK", 0)) if pw != null else 0
+	assert_true((mask & ModernRenderer.WARMUP_LAYER) != 0, "die Aufwärm-Lichter erreichen die Aufwärm-Ebene")
+	assert_eq(mask & Lights.GROUND_LAYERS, 0, "… und lassen den Boden aus")
+	assert_eq(Lights.LIGHT_MASK & ModernRenderer.WARMUP_LAYER, 0, "die Lichter der Lichtebene lassen sie aus")
+	var root := Node3D.new()
+	var box := MeshInstance3D.new()
+	var ground := MeshInstance3D.new()
+	ground.layers = Lights.GROUND_LAYERS
+	root.add_child(box)
+	box.add_child(ground)
+	ModernRenderer._warm_layer(root)
+	assert_eq(box.layers, ModernRenderer.WARMUP_LAYER, "ein Aufwärm-Knoten liegt auf der Aufwärm-Ebene")
+	assert_eq(ground.layers, Lights.GROUND_LAYERS, "ein Boden-Knoten behält seine Ebene")
+	root.free()
+
