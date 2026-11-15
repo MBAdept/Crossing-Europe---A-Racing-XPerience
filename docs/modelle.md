@@ -1533,7 +1533,22 @@ Requisiten der Etappen des Rennens, mit Wiederholungen): Einfamilienhaus 282, Fa
 Turm 95, Mietshaus 77, Gründerzeithaus 72, Giebelhauszeile 54, Barockhaus 32, Speicher 10, Büroturm 7, Kontorhaus 4,
 Hafenkran 3.
 
-TABELLE
+| Set | Platzierungen Kiel–Nürnberg | Dreiecke lod0 / lod1 | Atlas | px/m Straßenwand (Modellmaß) | Archiv Netze / Texturen |
+|---|---|---|---|---|---|
+| `city_german_house` | 282 | 2 962 / 2 526 | 1024×1024 | 60 | 97 / 254 kB |
+| `city_german_old_fachwerk` | 99 | 6 913 / 1 041 | 2048×1024 | 35–44 | 100 / 507 kB |
+| `city_german_old_fachwerk_b` | 95 | 3 332 / 978 | 2048×1024 | 42–52 | 56 / 401 kB |
+| `city_german_mietshaus` | 77 | 2 176 / 506 | 2048×1024 | 53–138 | 34 / 483 kB |
+| `city_german_gruenderzeit` | 72 | 4 410 / 2 394 | 2048×1024 | 41–141 | 76 / 552 kB |
+| `city_hanse_gabled` | 54 | 3 712 / 1 233 | 2048×1024 | 34–42 | 68 / 664 kB |
+| `city_german_old_barock` | 32 | 4 539 / 2 385 | 2048×1024 | 38–47 | 89 / 462 kB |
+| `city_hanse_speicher` | 10 | 8 950 / 1 283 | 2048×1024 | 30–43 | 114 / 740 kB |
+| `city_german_office` | 7 | 427 / 203 | 2048×1024 | 16–21 | 11 / 360 kB |
+| `city_hanse_kontor` | 4 | 9 865 / 749 | 2048×1024 | 29–41 | 109 / 715 kB |
+| `city_hanse_crane` | 3 | 1 260 / 1 052 | 1024×1024 | 90 | 39 / 114 kB |
+
+Summe der elf Modelle im Archiv (deflate -9 je Datei, wie `tools/pck_report.py`): Netze 0,79 MB, Texturen
+5,25 MB. Zwei Zeichenaufrufe je Stufe (`baked` bzw. `baked_cutout` + `vpbr`), kein Fernbild.
 
 Gemessen mit `validate_models.py --report`, dem Export-Bericht und `tools/kritik`-Proben (Software-OpenGL). px/m im
 Modellmaß: Der Requisiten-Builder stellt die Häuser mit 0,85–1,2 auf (Büroturm 0,37–0,5: im Spiel hat er 2- bis
