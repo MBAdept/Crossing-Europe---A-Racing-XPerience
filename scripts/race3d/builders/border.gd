@@ -255,7 +255,7 @@ static func pillars_in_chunk(ctx: ChunkContext) -> Array:
 ## the free side), "free": [[r0, r1, side]] of the roofs whose `side` stands on no pillar and hangs from those masts}.
 ## The signs behind a roof are read from the track up to SIGN_SCAN_M beyond it – generated far enough ahead that the
 ## curve and crest warnings Track inserts later into segments already made are in place. The sight corridor (F7) of
-## every pillar is decided here for the whole roof (bend_corridor_at(), any row), so that a roof that spans two chunks
+## every pillar is decided here for the whole roof (Station.bend_corridor_at(), any row), so that a roof that spans two chunks
 ## gets one decision.
 static func supports_in_chunk(ctx: ChunkContext) -> Dictionary:
 	var out: Array = []
@@ -295,7 +295,7 @@ static func supports_in_chunk(ctx: ChunkContext) -> Dictionary:
 			var sd := int(p[1])
 			var ed2 := edges_at(tr, zp)
 			var px := float(sd) * ((ed2.y if sd > 0 else -ed2.x) + float(p[3]))
-			corr.append(ctx.terrain != null and bend_corridor_at(tr, ctx.terrain, zp, px))
+			corr.append(ctx.terrain != null and Station.bend_corridor_at(tr, ctx.terrain, zp, px))
 		var sup := support_plan(plan, corr)
 		for p: Array in sup["pillars"]:
 			if float(p[0]) >= za and float(p[0]) < zb:
@@ -337,27 +337,6 @@ static func support_plan(plan: Array, corridor: Array) -> Dictionary:
 			var p: Array = plan[i]
 			out.append([p[0], p[1], p[2], p[3], free != 0 and int(p[1]) == -free])
 	return {"pillars": out, "free": free}
-
-
-## Main thread: true when the road point (z, x) lies inside the sight corridor of a bend on its inside – the test of
-## ChunkContext.in_bend_corridor(), for a row of any chunk (Track segments and the TerrainProfile instead of a snapshot).
-static func bend_corridor_at(tr: Track, tp: TerrainProfile, z: float, x: float) -> bool:
-	var f := z / tr.seg_len
-	var k := maxi(int(floor(f)), 0)
-	var t := clampf(f - float(k), 0.0, 1.0)
-	var side := -1 if x < 0.0 else 1
-	var e := lerpf(_paved_edge(tr, k, side), _paved_edge(tr, k + 1, side), t)
-	var m := absf(x) - e - tr.shoulder_w
-	var cw := lerpf(tp.corridor_width(k, side), tp.corridor_width(k + 1, side), t)
-	var cmin := maxf(0.0, tp.corridor_min_m - tr.shoulder_w)
-	return cw > cmin + 0.5 and m > 0.0 and m <= cw
-
-
-## Paved edge of segment k on `side` (m from the centre, positive): ChunkContext.rows_edge of that row.
-static func _paved_edge(tr: Track, k: int, side: int) -> float:
-	var s := tr.get_segment(k)
-	var half := s.lanes * tr.lane_w * 0.5
-	return half if side < 0 else half + s.fuel_lane * tr.lane_w
 
 
 ## The pillars of a roof from r0 (start of its front segment) to r1 (end of its last segment):

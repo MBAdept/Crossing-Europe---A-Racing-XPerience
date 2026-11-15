@@ -215,6 +215,60 @@ func test_station_columns_never_in_front_of_a_sign() -> void:
 	assert_eq(covered, [], "keine Stütze vor einem Schild (F1)")
 
 
+func test_station_end_column_lines_of_sight() -> void:
+	# B-02 of QA-R6: on a straight road a column on the island cannot cover a board whose outer edge stays inside its
+	# inner face; in a right bend the lines of sight from the lanes bulge to the right and it can
+	var boards: Array = []
+	for d in range(30, 601, 30):
+		boards.append([270.0 + float(d), 4.45, 0.3])     # boards from 4.15 to 4.75 m right of the centre
+	var found := {}
+	for kind: String in ["straight", "right", "left"]:
+		var curves := SynTrack.straight(500)
+		if kind == "right":
+			curves = SynTrack.join([SynTrack.straight(92), SynTrack.arc(408, 400.0)])
+		elif kind == "left":
+			curves = SynTrack.join([SynTrack.straight(92), SynTrack.arc(408, -400.0)])
+		var t: Track = SynTrack.new()
+		t.fill(cfg(), curves, PackedFloat32Array(), {"lanes": 2.0})
+		var p := RoadPath3D.new()
+		p.setup(t, 0, float(ConfigLoader.lookup(cfg(), "road.curve_radius_at_1_m", 120.0)))
+		p.ensure(400)
+		var e := StationB.paved_edge_at(t, 270.0)
+		var xs: Array[float] = [e + StationB.PILLAR_X]
+		found[kind] = bool(StationB.end_column_hides(t, p, 270.0, xs, boards)[0])
+	assert_false(found["straight"], "gerade Strecke: die Stütze auf der Insel verdeckt keine Tafel innerhalb ihrer Innenkante")
+	assert_true(found["right"], "Rechtskurve: die Sichtlinien laufen durch die Stütze – sie würde eine Tafel verdecken")
+	assert_false(found["left"], "Linkskurve: die Sichtlinien laufen links an ihr vorbei")
+	# the real stations: every canopy stands on a column, and no end column covers a board from the lanes
+	var hiding: Array = []
+	var bare: Array = []
+	var ends := 0
+	for sid: String in ["kiel_hamburg", "dev_testetappe"]:
+		var t := _real(sid)
+		if t == null:
+			continue
+		for zn: Dictionary in t.zones:
+			if str(zn["kind"]) != "fuel_canopy":
+				continue
+			var r0 := floorf(float(zn["z0"]) / t.seg_len) * t.seg_len
+			var r1 := ceilf(float(zn["z1"]) / t.seg_len) * t.seg_len
+			var ctx := _context(t, _chunk_of(t, r0))
+			var plan := StationB.canopy_columns(ctx, r0, r1)
+			if plan.is_empty():
+				bare.append("%s km %.2f" % [sid, t.z_to_km(r0)])
+			var sb := StationB.signs_behind(t, r0, r1)
+			for c: Array in plan:
+				if not str(c[1]).begins_with("end"):
+					continue
+				ends += 1
+				var xs: Array[float] = [StationB.paved_edge_at(t, float(c[0])) + float(c[2])]
+				if bool(StationB.end_column_hides(t, ctx.path, float(c[0]), xs, sb["boards"])[0]) and plan.size() > 1:
+					hiding.append("%s km %.2f %s" % [sid, t.z_to_km(r0), str(c)])
+	assert_true(ends > 4, "Endstützen geprüft (%d)" % ends)
+	assert_eq(bare, [], "kein Dach ohne Stütze")
+	assert_eq(hiding, [], "keine Endstütze verdeckt eine Tafel (Sichtlinien aus den Spuren, Kurven eingeschlossen)")
+
+
 # --- border --------------------------------------------------------------------------------------------------------
 
 func test_border_station_of_the_test_stage() -> void:
@@ -254,7 +308,7 @@ func test_border_station_of_the_test_stage() -> void:
 			# the main-thread corridor test of the builder = the chunk's
 			for dx: float in [-0.3, 0.0, 0.3, 1.5, 4.0]:
 				var px := float(p[1]) + dx * signf(float(p[1]))
-				if BorderB.bend_corridor_at(t, ctx.terrain, float(p[0]), px) != ctx.in_bend_corridor(float(p[0]), px):
+				if StationB.bend_corridor_at(t, ctx.terrain, float(p[0]), px) != ctx.in_bend_corridor(float(p[0]), px):
 					corridor_mismatch += 1
 		# the roof keeps Arcade's height over the road and its shoulders: nothing lower than its soffit (6 m) there but
 		# the luminaires of the light bars (Arcade hangs them at 5.95 m, here 0.1 m below the soffit); in a bend's sight

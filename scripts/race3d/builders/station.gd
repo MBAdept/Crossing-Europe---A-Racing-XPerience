@@ -61,12 +61,13 @@ const COLUMN_IN := 0.45            ## columns this far inside the canopy's front
 const SIGN_SCAN_M := 120.0
 const OUT_GAP := 0.25              ## an outer column's inner face this far beyond the outer edge of the boards
 ## The rule above holds on a straight road only: in a bend the column at the end of a canopy (Arcade has none there) can
-## cover part of a board several hundred metres behind it (finding B-02 of QA-R6). So the end column is checked against
-## the real lines of sight (end_column_hides()): from the lane centres LOS_NEAR..LOS_FAR before every board on the right
-## up to LOS_FAR behind the column, every LOS_STEP metres. If it would cover one, it stands as "end_out"; if that would
-## cover one too, the canopy has no end column (Arcade has none anyway).
+## cover part of a board several hundred metres behind it, on either side of the road (finding B-02 of QA-R6). So the
+## end column is checked against the real lines of sight (end_column_hides()): from the lane centres LOS_NEAR..LOS_FAR
+## before every board up to LOS_FAR behind the column, every LOS_STEP metres. If it would cover one, it stands as
+## "end_out"; if that would cover one too, the canopy has no end column (Arcade has none anyway) – unless the canopy
+## would then stand on no column at all (canopy_columns()).
 const LOS_NEAR := 55.0
-const LOS_FAR := 400.0
+const LOS_FAR := 600.0
 const LOS_STEP := 10.0
 const LOS_MARGIN := 0.05           ## the column's half width plus this
 const BEAM_H := 0.4                ## the beam under the canopy edge that carries it over to an outer column
@@ -130,6 +131,7 @@ var _atlas := PanelAtlas.new()
 var _panel_mat: ShaderMaterial
 var _cast := false
 var _prepared := false
+var _plans: Dictionary = {}        ## main thread (collect): canopy_columns() per canopy of the stage, by its start z
 
 
 # --- shared helpers of the R6 builders -----------------------------------------------------------------------------
@@ -570,6 +572,7 @@ func apply_quality(levels: Dictionary) -> void:
 ## The two panels of every station (canopy front, price board), drawn behind the loading overlay.
 func prepare(_ctx: Dictionary) -> void:
 	_atlas.prepare(panel_specs(), _renderer)
+	_plans.clear()
 	_prepared = true
 
 
@@ -663,13 +666,13 @@ func collect(ctx: ChunkContext) -> Variant:
 	var prev_fz := -1
 	if ctx.track != null and ctx.seg_a > 0:
 		prev_fz = ctx.track.get_segment(ctx.seg_a - 1).fuel_zone
-	return {"uv": _atlas.entries.duplicate(), "prev_fz": prev_fz, "columns": columns_in_chunk(ctx)}
+	return {"uv": _atlas.entries.duplicate(), "prev_fz": prev_fz, "columns": columns_in_chunk(ctx, _plans)}
 
 
-## Main thread: the columns (column_plan()) of every canopy that reaches into the chunk, those standing in it. The
-## signs behind a canopy are read from the track up to SIGN_SCAN_M beyond it (generated far enough ahead that the curve
-## and crest warnings Track inserts later are in place).
-static func columns_in_chunk(ctx: ChunkContext) -> Array:
+## Main thread: the columns of every canopy that reaches into the chunk (canopy_columns()), those standing in it.
+## cache: a Dictionary kept by the builder for the stage – a canopy's columns are decided once (the lines of sight cost
+## a few milliseconds), whichever chunk asks first.
+static func columns_in_chunk(ctx: ChunkContext, cache: Variant = null) -> Array:
 	var out: Array = []
 	var tr := ctx.track
 	if tr == null:
@@ -686,33 +689,109 @@ static func columns_in_chunk(ctx: ChunkContext) -> Array:
 			break
 		if r1 < za:
 			continue
-		tr.get_segment(tr.segment_index_at(r1 + LOS_FAR + tr.generation_lead_m()) + 2)
-		var signs: Array = []
-		var boards: Array = []         ## [z, x of the centre, half width] of the boards on the right up to LOS_FAR behind
-		for i in range(tr.segment_index_at(r0), tr.segment_index_at(r1 + LOS_FAR) + 1):
-			var s := tr.get_segment(i)
-			for sp: Variant in s.sprites:
-				var it: Dictionary = sp
-				if str(it.get("kind", "")) == "sign" and int(it.get("side", 1)) > 0:
-					var zs := float(it.get("z", s.z))
-					var hw := SignPainter.board_half_width(str(it.get("sign", ""))) * float(it.get("scale", 1.0))
-					if zs <= r1 + SIGN_SCAN_M:
-						signs.append([zs, float(it.get("x", 0.0)) + hw - tr.road_edges_at(zs).y])
-					if not s.tunnel:
-						boards.append([zs, float(it.get("x", 0.0)), hw])
-		for c: Array in column_plan(r0, r1, signs):
-			var zc := float(c[0])
-			if zc < za or zc >= zb:
-				continue
-			var col := c
-			if str(col[1]).begins_with("end") and ctx.path != null:
-				var e := paved_edge_at(tr, zc)
-				if str(col[1]) == "end" and end_column_hides(tr, ctx.path, zc, e + PILLAR_X, boards):
-					col = [zc, "end_out", outer_place(signs, r0 - 1.0, r1 + SIGN_SCAN_M)]
-				if str(col[1]) == "end_out" and end_column_hides(tr, ctx.path, zc, e + float(col[2]), boards):
-					continue
-			out.append(col)
+		var key := "%.3f" % r0
+		var plan: Array
+		if cache is Dictionary and (cache as Dictionary).has(key):
+			plan = (cache as Dictionary)[key]
+		else:
+			plan = canopy_columns(ctx, r0, r1)
+			if cache is Dictionary:
+				(cache as Dictionary)[key] = plan
+		for c: Array in plan:
+			if float(c[0]) >= za and float(c[0]) < zb:
+				out.append(c)
 	return out
+
+
+## Main thread: the columns that stand under the canopy from r0 to r1 – [[z, kind, x]] of column_plan() (the signs on
+## the right read from the track up to SIGN_SCAN_M beyond it, generated far enough ahead that the curve and crest
+## warnings Track inserts later are in place), then:
+##  * an outer column ("front_out", "end_out") inside a bend's sight corridor stands not (F7; the island lies in the
+##    shoulder band, where no corridor reaches);
+##  * the end column (Arcade has none) stands where it covers no board from the road (end_column_hides(), B-02 of
+##    QA-R6): on the island, else beyond the boards, else not at all;
+##  * a canopy left without any column keeps its end column on the island (rather than float; 3 of 1923 canopies of the
+##    network, measured with the tools of FIX-R6 – they cover a part of a far board in a bend, as before).
+static func canopy_columns(ctx: ChunkContext, r0: float, r1: float) -> Array:
+	var tr := ctx.track
+	var sb := signs_behind(tr, r0, r1)
+	var signs: Array = sb["signs"]
+	var boards: Array = sb["boards"]
+	var out: Array = []
+	var fallback: Array = []
+	for c: Array in column_plan(r0, r1, signs):
+		var zc := float(c[0])
+		var kind := str(c[1])
+		var e := paved_edge_at(tr, zc)
+		if kind.begins_with("end"):
+			fallback = [zc, "end", PILLAR_X]
+			if ctx.path != null:
+				var cands: Array = [[zc, "end", PILLAR_X], [zc, "end_out", outer_place(signs, r0 - 1.0, r1 + SIGN_SCAN_M)]] \
+					if kind == "end" else [c]
+				var xs: Array[float] = []
+				for q: Array in cands:
+					xs.append(e + float(q[2]))
+				var hides := end_column_hides(tr, ctx.path, zc, xs, boards)
+				var chosen: Array = []
+				for k in cands.size():
+					if not bool(hides[k]):
+						chosen = cands[k]
+						break
+				if chosen.is_empty():
+					continue
+				c = chosen
+				kind = str(c[1])
+		if kind != "front" and kind != "end" and ctx.terrain != null and bend_corridor_at(tr, ctx.terrain, zc, e + float(c[2])):
+			continue
+		out.append(c)
+	if out.is_empty() and not fallback.is_empty():
+		out.append(fallback)
+	return out
+
+
+## Main thread: the signs behind a canopy from r0 to r1 – {"signs": [[z, outer edge of the board beyond the paved edge]]
+## of the signs on the right up to SIGN_SCAN_M beyond it (column_plan()), "boards": [[z, x of the centre, half width]]
+## of every board on either side up to LOS_FAR beyond it, outside tunnels (end_column_hides())}. Generates the track far
+## enough ahead that the curve and crest warnings Track inserts later are in place.
+static func signs_behind(tr: Track, r0: float, r1: float) -> Dictionary:
+	tr.get_segment(tr.segment_index_at(r1 + LOS_FAR + tr.generation_lead_m()) + 2)
+	var signs: Array = []
+	var boards: Array = []
+	for i in range(tr.segment_index_at(r0), tr.segment_index_at(r1 + LOS_FAR) + 1):
+		var s := tr.get_segment(i)
+		for sp: Variant in s.sprites:
+			var it: Dictionary = sp
+			if str(it.get("kind", "")) != "sign" or int(it.get("side", 1)) == 0:
+				continue
+			var zs := float(it.get("z", s.z))
+			var hw := SignPainter.board_half_width(str(it.get("sign", ""))) * float(it.get("scale", 1.0))
+			if int(it.get("side", 1)) > 0 and zs <= r1 + SIGN_SCAN_M:
+				signs.append([zs, float(it.get("x", 0.0)) + hw - tr.road_edges_at(zs).y])
+			if not s.tunnel:
+				boards.append([zs, float(it.get("x", 0.0)), hw])
+	return {"signs": signs, "boards": boards}
+
+
+## Main thread: true when the road point (z, x) lies inside the sight corridor of a bend on its inside – the test of
+## ChunkContext.in_bend_corridor(), for a row of any chunk (Track segments and the TerrainProfile instead of a snapshot;
+## used by the station and the border builder).
+static func bend_corridor_at(tr: Track, tp: TerrainProfile, z: float, x: float) -> bool:
+	var f := z / tr.seg_len
+	var k := maxi(int(floor(f)), 0)
+	var t := clampf(f - float(k), 0.0, 1.0)
+	var side := -1 if x < 0.0 else 1
+	var e := lerpf(_paved_edge(tr, k, side), _paved_edge(tr, k + 1, side), t)
+	var m := absf(x) - e - tr.shoulder_w
+	var cw := lerpf(tp.corridor_width(k, side), tp.corridor_width(k + 1, side), t)
+	var cmin := maxf(0.0, tp.corridor_min_m - tr.shoulder_w)
+	return cw > cmin + 0.5 and m > 0.0 and m <= cw
+
+
+## Paved edge of segment k on `side` (m from the centre, positive): ChunkContext.rows_edge of that row.
+static func _paved_edge(tr: Track, k: int, side: int) -> float:
+	var s := tr.get_segment(k)
+	var half := s.lanes * tr.lane_w * 0.5
+	return half if side < 0 else half + s.fuel_lane * tr.lane_w
 
 
 ## The paved right edge incl. the fuel lane where build() puts a column at z: the mean of the two rows of its segment
@@ -724,15 +803,21 @@ static func paved_edge_at(tr: Track, z: float) -> float:
 	return (a.lanes * tr.lane_w * 0.5 + a.fuel_lane * tr.lane_w + b.lanes * tr.lane_w * 0.5 + b.fuel_lane * tr.lane_w) * 0.5
 
 
-## Main thread: true when a column at road position (z, x) would cover part of one of `boards` ([z, x, half width])
-## from a lane centre (and the fuel lane where it is open) LOS_NEAR..LOS_FAR before the board – world-space lines of
-## sight on the RoadPath3D, bends included, against the column's footprint (it spans every board height). Cameras every
-## LOS_STEP metres; positions the path does not hold are skipped.
-static func end_column_hides(tr: Track, p: RoadPath3D, z: float, x: float, boards: Array) -> bool:
+## Main thread: for each candidate place x of `xs` (m from the road centre) at road position z, true when a column
+## there would cover part of one of `boards` ([z, x, half width]) from a lane centre (and the fuel lane where it is
+## open) LOS_NEAR..LOS_FAR before the board – world-space lines of sight on the RoadPath3D, bends included, against the
+## column's footprint (it spans every board height). Cameras every LOS_STEP metres; positions the path does not hold
+## are skipped.
+static func end_column_hides(tr: Track, p: RoadPath3D, z: float, xs: Array[float], boards: Array) -> Array:
+	var out: Array = []
+	out.resize(xs.size())
+	out.fill(false)
 	if not p.has(tr.segment_index_at(z) + 1):
-		return false
-	var cw := p.world(z, x, 0.0)
-	var col := Vector2(cw.x, cw.z)
+		return out
+	var cols: Array[Vector2] = []
+	for x: float in xs:
+		var cw := p.world(z, x, 0.0)
+		cols.append(Vector2(cw.x, cw.z))
 	var r := PILLAR_W * 0.5 + LOS_MARGIN
 	var cams: Array = []               ## [z, Vector2] on a fixed grid before the column
 	var zc := floorf((z - 1.0) / LOS_STEP) * LOS_STEP
@@ -740,12 +825,12 @@ static func end_column_hides(tr: Track, p: RoadPath3D, z: float, x: float, board
 		if p.has(tr.segment_index_at(zc)):
 			var half := tr.lanes_at(zc) * tr.lane_w * 0.5
 			var nl := int(round(tr.lanes_at(zc)))
-			var xs: Array[float] = []
+			var lxs: Array[float] = []
 			for li in nl:
-				xs.append(-half + tr.lane_w * (float(li) + 0.5))
+				lxs.append(-half + tr.lane_w * (float(li) + 0.5))
 			if tr.fuel_lane_factor(zc) > 0.5:
-				xs.append(half + tr.lane_w * 0.5)
-			for lx: float in xs:
+				lxs.append(half + tr.lane_w * 0.5)
+			for lx: float in lxs:
 				var w := p.world(zc, lx, 0.0)
 				cams.append([zc, Vector2(w.x, w.z)])
 		zc -= LOS_STEP
@@ -762,17 +847,21 @@ static func end_column_hides(tr: Track, p: RoadPath3D, z: float, x: float, board
 			if d < LOS_NEAR or d > LOS_FAR:
 				continue
 			var c: Vector2 = cm[1]
-			var to_col := col - c
-			var dc := to_col.length()
-			if dc < r:
-				continue
-			# the column covers the angles within asin(r / dc) of its direction; the board spans its two ends' angles
-			var half_a := asin(minf(1.0, r / dc))
-			var a0 := to_col.angle_to(b0 - c)
-			var a1 := to_col.angle_to(b1 - c)
-			if maxf(a0, a1) >= -half_a and minf(a0, a1) <= half_a and (b0 - c).length() > dc:
-				return true
-	return false
+			var db := (b0 - c).length()
+			for k in cols.size():
+				if bool(out[k]):
+					continue
+				var to_col := cols[k] - c
+				var dc := to_col.length()
+				if dc < r or db <= dc:
+					continue
+				# the column covers the angles within asin(r / dc) of its direction; the board spans its two ends' angles
+				var half_a := asin(minf(1.0, r / dc))
+				var a0 := to_col.angle_to(b0 - c)
+				var a1 := to_col.angle_to(b1 - c)
+				if maxf(a0, a1) >= -half_a and minf(a0, a1) <= half_a:
+					out[k] = true
+	return out
 
 
 ## The columns of a canopy from r0 (start of its front segment) to r1 (end of its last segment): [[z, kind, x]], x =
@@ -783,9 +872,7 @@ static func end_column_hides(tr: Track, p: RoadPath3D, z: float, x: float, board
 ##  * "end": on the island COLUMN_IN before r1 where no sign on the right stands within SIGN_SCAN_M behind it, otherwise
 ##    "end_out" beyond the boards. Arcade has no column there.
 ## signs: [[z, outer edge of the board beyond the paved edge]] of the signs on the right from r0 to r1 + SIGN_SCAN_M.
-## build() leaves out an outer column inside a bend's sight corridor (F7; the island lies in the shoulder band, where
-## no corridor reaches); columns_in_chunk() checks the end column against the real lines of sight (end_column_hides()).
-## Pure.
+## canopy_columns() decides which of them stand (sight corridor F7, lines of sight of the end column). Pure.
 static func column_plan(r0: float, r1: float, signs: Array) -> Array:
 	var out: Array = []
 	var zf := r0 + COLUMN_IN
@@ -925,8 +1012,6 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 				var kind := str(c[1])
 				var off := float(c[2])
 				var cx := e + off
-				if kind != "front" and kind != "end" and ctx.in_bend_corridor(zp, cx):
-					continue
 				var base := ISLAND_H
 				if off > ISLAND_OUT:
 					base = APRON_H if off < APRON_OUT - PLINTH_W * 0.5 else minf(ctx.ground(zp, cx), APRON_H)
