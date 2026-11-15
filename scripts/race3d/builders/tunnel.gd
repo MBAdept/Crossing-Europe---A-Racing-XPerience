@@ -93,6 +93,13 @@ const K_NICHE := 8.0
 const K_SOS := 9.0
 const K_METAL := 10.0
 const K_DOOR := 11.0
+## FIX-R5 (QA-R5 QR5-01): the portal mesh (frame, headwall, wing walls, hill) lies on the ground's render layer 2
+## (builders/road.gd GROUND_LAYERS): the spots of the player's low beam and the lamp omnis (layers/lights.gd LIGHT_MASK =
+## everything but layer 2) leave it out like the meadow beside it. Arcade never lights its portal with the headlights
+## (RoadRenderer._draw_portal: colour × ambient + fog); the low beam has no cut-off line (a 30° cone), so from 60–70 m it
+## lit headwall, frame and hill to the top at night and the portal read like daytime. Sun, moon, ambient and shadows
+## stay. Once the low beam has a cut-off (R4), the frame's foot may go back to layer 1.
+const PORTAL_LAYERS := 2
 const ZONE_OUT_M := 12.0           ## the zone amount rises from 12 m before a portal …
 const ZONE_IN_M := 14.0            ## … to 1 at 14 m inside (EnvironmentRig.tunnel_blend, the rig's own law)
 
@@ -851,7 +858,8 @@ func _veg_colour(scen: Variant) -> Color:
 	return veg
 
 
-## Main thread: the tube with the tunnel material, the portal in vpbr (static); the lamps go to the renderer.
+## Main thread: the tube with the tunnel material, the portal in vpbr (static) on render layer 2 (PORTAL_LAYERS); the
+## lamps go to the renderer.
 func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 	var materials: Variant = ctx.services.get("materials")
 	if not (materials is ModernMaterials):
@@ -881,6 +889,7 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 		pi.mesh = pmesh
 		pi.material_override = (materials as ModernMaterials).material(ModernMaterials.VPBR_STATIC)
 		pi.cast_shadow = shadow
+		pi.layers = PORTAL_LAYERS          # out of the low beam and the lamp omnis (QR5-01)
 		parent.add_child(pi)
 
 
