@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/city_french_immeuble",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 16.8, "height_m": 20.04, "length_m": 12},
+  "extent_m": {"left": 12.08, "right": 7.98},
+  "aabb": [-8.36, 0, -12.36, 8.36, 20.06, 1.41],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 4020,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_french_immeuble/lod0_body.res",
+      "classes": ["vpbr", "baked_cutout"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 2486,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_french_immeuble/lod1_body.res",
+      "classes": ["vpbr", "baked_cutout"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/city_french_immeuble/albedo.webp", "emit": "props/city_french_immeuble/emit.png"},
+  "roughness": 0.86,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left", "french", "center"],
+  "bytes": 360751,
+  "hash": "21d14374c5ce72295847cd0bb8b457cf3144d159"
+ },
+ "sets": {
+  "props/city_french_immeuble": {"model": "props/city_french_immeuble"}
+ }
+}

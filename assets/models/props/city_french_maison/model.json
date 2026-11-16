@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/city_french_maison",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 16.6, "height_m": 13.46, "length_m": 9},
+  "extent_m": {"left": 12.21, "right": 8.32},
+  "aabb": [-12.225, -0.181, -9.351, 7.03, 13.483, 4.66],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 3910,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_french_maison/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 1874,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_french_maison/lod1_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/city_french_maison/albedo.png", "emit": "props/city_french_maison/emit.png"},
+  "roughness": 0.88,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left", "french", "outskirts"],
+  "bytes": 818255,
+  "hash": "1f04a7292af9b6e46472754f8b8365a9826fac08"
+ },
+ "sets": {
+  "props/city_french_maison": {"model": "props/city_french_maison"}
+ }
+}
