@@ -1165,8 +1165,9 @@ def _leaf_setup(rig, objs, crowns, spec, stats):
             cell.append(got[3])
             if int(sp.get("n1", 0)) > 0:
                 # lod1 cards: fewer and larger on the same blobs (a house whose lod1 keeps the cut-out class) - the
-                # crown keeps its look at the switch distance
-                g1 = _leaf_cards(blobs, dict(sp, n=int(sp["n1"]), half=float(sp.get("half1", 0.75))), sd + 1)
+                # crown keeps its look at the switch distance. The same seed: the farthest-point choice and the
+                # random draws make them the first n1 cards of lod0 (same place, turn and cluster), only larger
+                g1 = _leaf_cards(blobs, dict(sp, n=int(sp["n1"]), half=float(sp.get("half1", 0.75))), sd)
                 if g1 is not None:
                     lod1_sets.append(g1)
             n_crowns += 1
