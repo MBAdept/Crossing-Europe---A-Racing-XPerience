@@ -21,10 +21,10 @@ extends SceneTree
 ##                  at most LOWBEAM_MEAN (measured before the fix: 38 % white, mean 0.60 at 60 m – "a white glowing box";
 ##                  Arcade 0.5 %, 0.17)
 ##   bremsschein    RINT-M2 (A-20, NACH-M2 N-01): the extra glow of a MODEL's brake lights (VehiclePose3D.MODEL_BRAKE_GAIN)
-##                  is there by day and fades at night: pixels the brake lifts by at least +0.03 red (brake on against
-##                  off, same moment) around a braking sports car at 60 m – by day at least BRAKE_DAY_MIN_PX (Arcade's glow
-##                  law alone, gain 1.0, stays below), at 22:00 at most BRAKE_NIGHT_MAX_PX (the full day gain at night
-##                  goes above) – and a braking sedan at 20 m at 22:00 at most BRAKE_NIGHT20_MAX_PX
+##                  is there by day and fades at night: the red the brake adds (brake on against off, same moment) round
+##                  a braking sports car at 60 m – by day at least BRAKE_DAY_MIN (Arcade's glow law alone, gain 1.0,
+##                  stays below), at 22:00 at most BRAKE_NIGHT_MAX (the full day gain at night goes above) – and round a
+##                  braking sedan at 20 m at 22:00 at most BRAKE_NIGHT20_MAX
 ##   sichtgrenze    F4/F5 and Arcade's fog of sprites (FIX1, QA QB-07/QB-11): a dark car at the end of the sight
 ##                  (0.995 × visibility) changes its footprint by less than 3 % contrast; at 0.839 × visibility (where
 ##                  the simulation counts it as seen) the pixels it still covers keep at least half the contrast they
@@ -46,11 +46,12 @@ const BEACON_MIN_PX := {12: 200, 22: 600}
 const BEACON_LIFT := 0.12                       ## … by at least this much blue
 const LOWBEAM_WHITE_SHARE := 0.05               ## abblendlicht: share of the footprint above luminance 200/255 …
 const LOWBEAM_MEAN := 0.35                      ## … and mean luminance of the footprint
-## bremsschein (RINT-M2): limits of the pixels the brake lifts – set from the measurements in the comment of
-## _check_bremsschein()
-const BRAKE_DAY_MIN_PX := 0
-const BRAKE_NIGHT_MAX_PX := 100000
-const BRAKE_NIGHT20_MAX_PX := 100000
+## bremsschein (RINT-M2): limits of the red the brake adds (summed lift, see _brake_lift()), measured with the head
+## (VehiclePose3D night shares 0.6 near / 0.15 far), with Arcade's glow law (MODEL_BRAKE_GAIN 1.0) and with the full
+## day gain at night (night shares 1.0)
+const BRAKE_DAY_MIN := 29.0               ## measured: gain 2.2 33.1, gain 1.0 25.0 (RINT-M2)
+const BRAKE_NIGHT_MAX := 57.0             ## measured: head 28.3 (night share 0.15 far), full day gain 68.9, gain 1.0 19.7
+const BRAKE_NIGHT20_MAX := 500.0          ## measured: head 436.1 (night share 0.6 near), full day gain 602.8, gain 1.0 161.8
 ## Kiel – Hamburg: start positions tried for the distance checks until the road ahead hides nothing (no crest)
 const CLEAR_KMS: Array = [2.0, 10.0, 20.0, 30.0, 45.0, 60.0, 70.0]
 
@@ -433,9 +434,9 @@ func _check_abblendlicht() -> void:
 
 # --- bremsschein (RINT-M2) ------------------------------------------------------------------------------------------
 
-## Pixels whose red the brake lifts by more than +0.03 (on against off) in the footprint of the car's rear, widened by
-## the glow.
-func _brake_lift(r: Node, set_id: String, z: float, x: float, lights: float) -> int:
+## The red the brake adds (on against off, summed over the pixels it lifts by more than +0.03, in units of full red) in
+## the footprint of the car's rear, widened by the glow – the strength of the glow, not only its area.
+func _brake_lift(r: Node, set_id: String, z: float, x: float, lights: float) -> float:
 	var size: Dictionary = ModelDB.object_size(set_id)
 	var on := await _shot([_car(9901, set_id, z, x, {"tail": lights, "brake": 1.0})])
 	var off := await _shot([_car(9901, set_id, z, x, {"tail": lights, "brake": 0.0})])
@@ -443,10 +444,11 @@ func _brake_lift(r: Node, set_id: String, z: float, x: float, lights: float) -> 
 	var rect := _footprint(r, z + 0.5, x, 1.0, float(size.get("width_m", 1.9)), float(size.get("height_m", 1.4)))
 	var grow := maxi(10, int(rect.size.x * 0.6))
 	rect = rect.grow(grow)
-	var lifted := 0
+	var lifted := 0.0
 	for py in range(maxi(rect.position.y, 0), mini(rect.end.y, on.get_height())):
 		for px in range(maxi(rect.position.x, 0), mini(rect.end.x, on.get_width())):
-			lifted += 1 if on.get_pixel(px, py).r - off.get_pixel(px, py).r > 0.03 else 0
+			var dr := on.get_pixel(px, py).r - off.get_pixel(px, py).r
+			lifted += dr if dr > 0.03 else 0.0
 	return lifted
 
 
@@ -460,16 +462,16 @@ func _check_bremsschein() -> void:
 		var cam_z := float(view["camera_z"])
 		var x := float((view["player"] as Dictionary).get("x", 0.0))
 		var lights := float((view["palette"] as Dictionary).get("lights", 0.0))
-		var sports := await _brake_lift(r, "traffic/sports_yellow", cam_z + 60.0, x, lights)
+		var sports: float = await _brake_lift(r, "traffic/sports_yellow", cam_z + 60.0, x, lights)
 		if hour < 18.0:
-			_need(p, sports >= BRAKE_DAY_MIN_PX, "12 Uhr: Sportwagen bei 60 m hebt %d Pixel (mindestens %d)" % [sports, BRAKE_DAY_MIN_PX])
-			msgs.append("12 Uhr Sportwagen 60 m %d Pixel" % sports)
+			_need(p, sports >= BRAKE_DAY_MIN, "12 Uhr: Sportwagen bei 60 m, Rot %.1f (mindestens %.1f)" % [sports, BRAKE_DAY_MIN])
+			msgs.append("12 Uhr Sportwagen 60 m Rot %.1f" % sports)
 		else:
-			var sedan := await _brake_lift(r, "traffic/sedan_silver", cam_z + 20.0, x, lights)
+			var sedan: float = await _brake_lift(r, "traffic/sedan_silver", cam_z + 20.0, x, lights)
 			_need(p, lights > 0.9, "Nacht (Lichter der Palette %.2f)" % lights)
-			_need(p, sports <= BRAKE_NIGHT_MAX_PX, "22 Uhr: Sportwagen bei 60 m hebt %d Pixel (höchstens %d)" % [sports, BRAKE_NIGHT_MAX_PX])
-			_need(p, sedan <= BRAKE_NIGHT20_MAX_PX, "22 Uhr: Limousine bei 20 m hebt %d Pixel (höchstens %d)" % [sedan, BRAKE_NIGHT20_MAX_PX])
-			msgs.append("22 Uhr Sportwagen 60 m %d, Limousine 20 m %d Pixel" % [sports, sedan])
+			_need(p, sports <= BRAKE_NIGHT_MAX, "22 Uhr: Sportwagen bei 60 m, Rot %.1f (höchstens %.1f)" % [sports, BRAKE_NIGHT_MAX])
+			_need(p, sedan <= BRAKE_NIGHT20_MAX, "22 Uhr: Limousine bei 20 m, Rot %.1f (höchstens %.1f)" % [sedan, BRAKE_NIGHT20_MAX])
+			msgs.append("22 Uhr Sportwagen 60 m Rot %.1f, Limousine 20 m Rot %.1f" % [sports, sedan])
 		await _free(sc)
 	_report("bremsschein", p, "Schein des Bremslichts der Modelle – " + "; ".join(msgs))
 
