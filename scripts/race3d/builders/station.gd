@@ -81,11 +81,12 @@ const LOS_MARGIN := 0.1            ## the column's half width plus this (cameras
 ## canopies of a station are spread over the chunks before it and decided on a worker instead of all landing in one
 ## frame. The canopies of a station share their cameras and segments: the lanes and the curvature are kept for the
 ## next canopy (cache "_lanes", "_curve", "_signs"), so a station of six canopies is gathered in a few calls. RINT-M2,
-## measured on the test stage ("Steam Deck"): further ahead than 600 m the gather makes the Track generate its segments
-## early (18 ms in one frame at 2000 m); one half per call left the last three of six canopies to be decided inline.
-## Before the first half, warm_step() generates the track and fills the caches in small pieces up to WARM_BUDGET_MS
-## (the first canopy of a station cost 1.2–1.5 ms per half with cold caches – 2.4 ms in one collect() on the Deck).
-const WARM_AHEAD_M := 600.0
+## measured on the test stage ("Steam Deck"): one half per call left the last three of six canopies to be decided
+## inline; the first canopy of a station cost 1.2–1.5 ms per half with cold caches (2.4 ms in one collect()). Before the
+## first half, warm_step() generates the track and fills the caches in small pieces up to WARM_BUDGET_MS – so the window
+## may reach 1200 m (forcing the generation at once made 18 ms in one frame at 2000 m; 600 m with pieces of at most 0.7 ms
+## per call left a canopy unfinished at its chunk: 8.7 ms).
+const WARM_AHEAD_M := 1200.0
 const WARM_BUDGET_MS := 1.0      ## warm_step() and a further half of a job run only while the call has used less than this
 const WARM_GEN_SEGS := 6         ## warm_step(): segments the track is generated ahead per piece (~0.25 ms on the Deck)
 const BEAM_H := 0.4                ## the beam under the canopy edge that carries it over to an outer column

@@ -2392,24 +2392,28 @@ Deck“, llvmpipe unter Last): Tankstelle bis 3,4 ms in einem Bild, über dem Bu
 läuft darum als `StationBuilder.CanopyJob`:
 - Der Hauptfaden sammelt nur, was er aus der Strecke liest, in zwei Hälften (`canopy_job_begin()`: Schilder, Tafeln,
   Krümmungen; `canopy_job_rest()`: Spuren an jeder Kamerastelle, Fahrbahnkanten), für die Dächer bis `WARM_AHEAD_M`
-  (600 m) voraus. Die Dächer einer Station teilen Schilder, Krümmungen und Kamerastellen über den Cache des Bausteins
+  (1200 m) voraus. Die Dächer einer Station teilen Schilder, Krümmungen und Kamerastellen über den Cache des Bausteins
   („_signs“, „_curve“, „_lanes“). Mit kalten Caches kostete das erste Dach einer Station zwei Hälften zu je 1,1–1,5 ms
   (2,4 ms in einem `collect()`); darum erzeugt `warm_step()` vor der ersten Hälfte die Strecke so weit, wie
   `signs_behind()` sie braucht (`WARM_GEN_SEGS` = 6 Segmente je Stück, Fortschritt im Cache „_gen“), und füllt die Caches
   der Schilder und Kamerastellen – Stück für Stück, bis der Aufruf `WARM_BUDGET_MS` (1,0 ms) gebraucht hat, mindestens
   ein Stück je Aufruf. Eine Hälfte beginnt nur innerhalb dieser Zeit. Die Werte sind dieselben, die die Hälften selbst
-  rechnen (Unit-Test `test_station_warm_step_prepares_what_the_halves_read`).
+  rechnen (Unit-Test `test_station_warm_step_prepares_what_the_halves_read`). Weil die Strecke nur noch in Stücken
+  erzeugt wird, darf der Vorlauf 1200 m sein; so bleiben genug Aufrufe, bis das Stück eines Dachs gebraucht wird.
 - Die Sichtlinien rechnet ein Arbeitsfaden (`run()`), auf einem eigenen Pfad ab dem ersten Segment, das er braucht –
   deckungsgleich mit dem des Streamers, also unabhängig vom Startort (`startdep`: 1909 Dächer, 0 abweichende Entscheide;
   vorher 43).
 - Die Korridor-Merker der Stellen (TerrainProfile) liest `CanopyJob.finish()` auf dem Hauptfaden erst, wenn die Stützen
   des Dachs gebraucht werden (beim Stück des Dachs gibt es diese Zeilen ohnehin).
-- Verworfen (gemessen): 2000 m Vorlauf – das Sammeln ließ die Strecke 1,4 km zu früh erzeugen (18 ms in einem Bild);
-  Korridor-Merker beim Sammeln – das Geländeprofil rechnete seine Zeilen 600 m voraus (bis 17 ms).
+- Verworfen (gemessen): 2000 m Vorlauf ohne `warm_step()` – das Sammeln ließ die Strecke 1,4 km auf einmal erzeugen
+  (18 ms in einem Bild); Korridor-Merker beim Sammeln – das Geländeprofil rechnete seine Zeilen 600 m voraus (bis
+  17 ms); `warm_step()` mit 600 m Vorlauf und 0,7 ms je Aufruf – ein Dach war beim Stück noch nicht fertig (8,7 ms).
 - Entscheide unverändert: `scan_f1` netzweit zeilengleich (3486 Stützen), Sonde `jobpath` (Streaming-Reihenfolge mit
   Arbeitsfaden und Cache gegen inline) 1909 Dächer, 0 verschieden. `collect()` der Tankstelle auf der Testetappe:
-  vorher bis 3,4 ms (inline) bzw. 8,0 ms (erster Arbeitsfaden-Stand), 2,4 ms mit kalten Caches, mit `warm_step()`
-  höchstens 2,08 ms, Mittel 0,12 ms (§17.10).
+  vorher bis 3,4 ms (inline) bzw. 8,0 ms (erster Arbeitsfaden-Stand), 2,4 ms mit kalten Caches, mit `warm_step()` und
+  600 m Vorlauf 2,08 ms, mit 1200 m **höchstens 1,36 ms, Mittel 0,11 ms**; alle neun Dächer beim Stück fertig (der
+  Rest dort 0,02–0,18 ms), keines inline (§17.10). Ein Lauf auf einer VM neben einem zweiten Paket: Höchstwerte
+  streuen dort stark (Requisiten in vier Läufen 0,12–4,19 ms ohne Änderung), Mittel sind belastbar.
 
 ### 17.6 Lichtebenen (A-18)
 
@@ -2448,9 +2452,8 @@ für die Modellnacharbeit.
 - Abblendlicht: keine Hell-Dunkel-Grenze wie Arcades Kegel (Lichtkegel weich).
 - Grenzstation Amsterdam – Lüttich km 210,175: eine Endstütze verdeckt die Tafel „town_ahead“ zu 22 % (keine
   Spieltafel nach A-18, gemeldet).
-- Tankstelle: `collect()` höchstens 2,08 ms auf „Deck“ (Ziel 2 ms, §17.5). Höchstwerte eines Laufs streuen auf der
-  belasteten VM stark (Requisiten in vier Läufen 0,12 / 0,34 / 0,70 / 4,19 ms) – Mittel sind belastbar, Höchstwerte nur
-  über mehrere Läufe.
+- `collect()` je Baustein auf „Deck“ nur in einzelnen Läufen auf der belasteten VM gemessen (Tankstelle 1,36 ms,
+  Höchstwerte anderer Bausteine streuen bis 4,19 ms) – auf dem Gerät nicht gemessen.
 - Geländewasser unter Brücken (FIX-R5 8.6) und Mondlichtstreifen am Portalhügel (NACH-R5 N-01) offen.
 - Kurveninnenseiten in Bergetappen: Sichtkorridor nach A-17 kommt mit R7 (A/B T1–T4: Bäume und Felsen innen fehlen).
 - Lackflackern des weißen Autos (Testbuild 1): pausiert (A-21).
