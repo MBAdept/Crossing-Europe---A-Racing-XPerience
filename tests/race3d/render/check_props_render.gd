@@ -87,7 +87,8 @@ func _check_mirror() -> void:
 	b.apply_quality({"prop_lod0_m": 60.0, "prop_lod1_m": 200.0, "shadow_casters": 2, "shadow_distance_m": 120.0, "deco_density": 1.0})
 	var part := b.build(ctx, b.collect(ctx))
 	var groups: Dictionary = part.get("groups", {})
-	for key: String in ["m|props/farmhouse|1", "m|props/streetlight|1", "s|props/city_german_house|1", "s|props/city_swiss_chalet|1"]:
+	# RINT-M2: the German town house is a model since AS5a (stand-in before) – the chalet is still a stand-in
+	for key: String in ["m|props/farmhouse|1", "m|props/streetlight|1", "m|props/city_german_house|1", "s|props/city_swiss_chalet|1"]:
 		if not groups.has(key):
 			p.append("keine gespiegelte Gruppe %s" % key)
 	# the scene: the committed props of the chunk, a camera on the centreline, the sun at the zenith
@@ -163,7 +164,7 @@ func _check_mirror() -> void:
 	if bad_share > MAX_BAD_SHARE:
 		p.append("%.2f %% der Bildpunkte weichen um mehr als 40 Stufen vom Spiegelbild ab (höchstens %.1f %%)" % [100.0 * bad_share, 100.0 * MAX_BAD_SHARE])
 	var counts: Dictionary = part.get("counts", {})
-	_report("props_spiegel", p, "Bauernhaus, Laterne (Modelle), Stadthaus, Chalet (Ersatzbilder) je links (gespiegelter Knoten) und rechts: %d / %d Bildpunkte, Abweichung vom Spiegelbild im Mittel %.2f, über 40 Stufen %.2f %% (%s)" % [
+	_report("props_spiegel", p, "Bauernhaus, Laterne, Stadthaus (Modelle), Chalet (Ersatzbild) je links (gespiegelter Knoten) und rechts: %d / %d Bildpunkte, Abweichung vom Spiegelbild im Mittel %.2f, über 40 Stufen %.2f %% (%s)" % [
 		obj_l, obj_r, mean, 100.0 * bad_share, str(counts)])
 	world.queue_free()
 	await process_frame
