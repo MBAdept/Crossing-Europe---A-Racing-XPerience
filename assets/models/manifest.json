@@ -4575,6 +4575,310 @@
    "bytes": 574265,
    "hash": "b6eec099a2e2ef7f4286ad0d2b73d1350fe5e64c"
   },
+  "props/city_belgian_stone": {
+   "kind": "building",
+   "object": {"width_m": 10, "height_m": 17.5, "length_m": 13},
+   "extent_m": {"left": 9.14, "right": 4.78},
+   "aabb": [-5.3, 0, -13, 5.06, 17.52, 0.3],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 1336,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_belgian_stone/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 278,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_belgian_stone/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_belgian_stone/albedo.png", "emit": "props/city_belgian_stone/emit.png"},
+   "roughness": 0.86,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "belgian", "center"],
+   "bytes": 644162,
+   "hash": "43bb378526b26dda8835a0e71e26d1281a55aca8"
+  },
+  "props/city_belgian_terrace": {
+   "kind": "building",
+   "object": {"width_m": 22.6, "height_m": 15.6, "length_m": 10},
+   "extent_m": {"left": 14.05, "right": 10.73},
+   "aabb": [-11.6, 0, -10.31, 11.3, 15.72, 0.6],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 2586,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_belgian_terrace/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 1162,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_belgian_terrace/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_belgian_terrace/albedo.webp", "emit": "props/city_belgian_terrace/emit.png"},
+   "roughness": 0.86,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "belgian", "center"],
+   "bytes": 409489,
+   "hash": "14e8874c4e419877d6c62edd9822fdc2f223142b"
+  },
+  "props/city_dutch_canal": {
+   "kind": "building",
+   "object": {"width_m": 19, "height_m": 17.6, "length_m": 14},
+   "extent_m": {"left": 13.76, "right": 9.3},
+   "aabb": [-9.8, 0, -14, 9.875, 17.704, 1.9],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 3734,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_dutch_canal/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 1802,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_dutch_canal/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_dutch_canal/albedo.webp", "emit": "props/city_dutch_canal/emit.png"},
+   "roughness": 0.86,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "dutch", "center"],
+   "bytes": 567366,
+   "hash": "63c46285bbc0efdd0d2f537a54c131f234df8f90"
+  },
+  "props/city_dutch_canal_b": {
+   "kind": "building",
+   "object": {"width_m": 20, "height_m": 16.6, "length_m": 14},
+   "extent_m": {"left": 14.36, "right": 9.71},
+   "aabb": [-10.15, 0, -14.1, 10.31, 17.303, 1.5],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 3623,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_dutch_canal_b/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 1543,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_dutch_canal_b/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_dutch_canal_b/albedo.webp", "emit": "props/city_dutch_canal_b/emit.png"},
+   "roughness": 0.86,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "dutch", "center"],
+   "bytes": 487956,
+   "hash": "a3fe02ec584cd2e00fdec46e2466d6a0497ad233"
+  },
+  "props/city_dutch_terrace": {
+   "kind": "building",
+   "object": {"width_m": 22.3, "height_m": 10.9, "length_m": 9},
+   "extent_m": {"left": 13.58, "right": 10.5},
+   "aabb": [-11.7, -0.218, -9.355, 11.05, 10.598, 3.082],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 3346,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_dutch_terrace/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 1060,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_dutch_terrace/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_dutch_terrace/albedo.png", "emit": "props/city_dutch_terrace/emit.png"},
+   "roughness": 0.88,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "dutch", "outskirts"],
+   "bytes": 775011,
+   "hash": "96c086e15cabe15c88f7b589087ed697af0ef4df"
+  },
+  "props/city_french_immeuble": {
+   "kind": "building",
+   "object": {"width_m": 16.8, "height_m": 20.04, "length_m": 12},
+   "extent_m": {"left": 12.08, "right": 7.98},
+   "aabb": [-8.36, 0, -12.36, 8.36, 20.06, 1.41],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 4020,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_french_immeuble/lod0_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 2486,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_french_immeuble/lod1_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_french_immeuble/albedo.webp", "emit": "props/city_french_immeuble/emit.png"},
+   "roughness": 0.86,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "french", "center"],
+   "bytes": 360751,
+   "hash": "21d14374c5ce72295847cd0bb8b457cf3144d159"
+  },
+  "props/city_french_maison": {
+   "kind": "building",
+   "object": {"width_m": 16.6, "height_m": 13.46, "length_m": 9},
+   "extent_m": {"left": 12.21, "right": 8.32},
+   "aabb": [-12.225, -0.181, -9.351, 7.03, 13.483, 4.66],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 3910,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_french_maison/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 1874,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_french_maison/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_french_maison/albedo.png", "emit": "props/city_french_maison/emit.png"},
+   "roughness": 0.88,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "french", "outskirts"],
+   "bytes": 818255,
+   "hash": "1f04a7292af9b6e46472754f8b8365a9826fac08"
+  },
+  "props/city_french_sud": {
+   "kind": "building",
+   "object": {"width_m": 19, "height_m": 8.5, "length_m": 10},
+   "extent_m": {"left": 11.22, "right": 8.52},
+   "aabb": [-12.803, -0.148, -10.55, 7.03, 9.167, 5.16],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 5359,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_french_sud/lod0_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 3716,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_french_sud/lod1_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_french_sud/albedo.png", "emit": "props/city_french_sud/emit.png"},
+   "roughness": 0.88,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "french", "outskirts"],
+   "bytes": 1062061,
+   "hash": "0bbaf8c93b62cdc58f0d6c59f1fdcec56eb8d445"
+  },
   "props/city_german_gruenderzeit": {
    "kind": "building",
    "object": {"width_m": 19.2, "height_m": 23.7, "length_m": 14},
@@ -5047,6 +5351,158 @@
    "tags": ["prop", "building", "city", "mirror_left", "hanse", "center"],
    "bytes": 696481,
    "hash": "46bcc853642ba0329bbe1fe5e7c394586629f48c"
+  },
+  "props/city_paris_corner": {
+   "kind": "building",
+   "object": {"width_m": 22.3, "height_m": 26.27, "length_m": 18},
+   "extent_m": {"left": 16.85, "right": 10.66},
+   "aabb": [-11.486, 0, -18.62, 11.12, 26.59, 0.986],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 5675,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_paris_corner/lod0_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 3418,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_paris_corner/lod1_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_paris_corner/albedo.webp", "emit": "props/city_paris_corner/emit.png"},
+   "roughness": 0.86,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "paris", "center"],
+   "bytes": 426392,
+   "hash": "777d79a51f3d953420dd5c3bff247fc98fc17c18"
+  },
+  "props/city_paris_haussmann": {
+   "kind": "building",
+   "object": {"width_m": 23.7, "height_m": 26.27, "length_m": 15},
+   "extent_m": {"left": 16.48, "right": 11.32},
+   "aabb": [-12.15, 0, -15.62, 11.82, 26.59, 2.55],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 6518,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_paris_haussmann/lod0_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 3714,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_paris_haussmann/lod1_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_paris_haussmann/albedo.webp", "emit": "props/city_paris_haussmann/emit.png"},
+   "roughness": 0.86,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "paris", "center"],
+   "bytes": 463729,
+   "hash": "2d4f77e80ac2a7dda39c1343f4576f9770516f56"
+  },
+  "props/city_swiss_chalet": {
+   "kind": "building",
+   "object": {"width_m": 14.7, "height_m": 8.67, "length_m": 11},
+   "extent_m": {"left": 11.47, "right": 7.49},
+   "aabb": [-7.394, 0, -11.8, 7.394, 8.526, 1.8],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 3128,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_swiss_chalet/lod0_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 1280,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_swiss_chalet/lod1_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_swiss_chalet/albedo.png", "emit": "props/city_swiss_chalet/emit.png"},
+   "roughness": 0.86,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "swiss", "outskirts"],
+   "bytes": 751452,
+   "hash": "0bd8a1f073635d184c3dea3ff0b7b7693109a912"
+  },
+  "props/city_swiss_laube": {
+   "kind": "building",
+   "object": {"width_m": 21, "height_m": 22.43, "length_m": 15},
+   "extent_m": {"left": 15.36, "right": 10.23},
+   "aabb": [-10.578, 0, -16.2, 10.45, 22.13, 1.2],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 4865,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_swiss_laube/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 942,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_swiss_laube/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_swiss_laube/albedo.webp", "emit": "props/city_swiss_laube/emit.png"},
+   "roughness": 0.86,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "swiss", "center"],
+   "bytes": 313895,
+   "hash": "dbbb581ae5ce2d3cc927454a2d2e0a23308a25f0"
   },
   "props/cliff": {
    "kind": "rock",
@@ -8654,14 +9110,8 @@
    "fallback": "sprite",
    "object": {"width_m": 15.2, "height_m": 9.3, "length_m": 11.0}
   },
-  "props/city_belgian_stone": {
-   "fallback": "sprite",
-   "object": {"width_m": 10.0, "height_m": 17.5, "length_m": 13.0}
-  },
-  "props/city_belgian_terrace": {
-   "fallback": "sprite",
-   "object": {"width_m": 22.6, "height_m": 15.6, "length_m": 10.0}
-  },
+  "props/city_belgian_stone": {"model": "props/city_belgian_stone"},
+  "props/city_belgian_terrace": {"model": "props/city_belgian_terrace"},
   "props/city_central_barock": {
    "fallback": "sprite",
    "object": {"width_m": 20.0, "height_m": 20.6, "length_m": 14.0}
@@ -8674,18 +9124,9 @@
    "fallback": "sprite",
    "object": {"width_m": 14.6, "height_m": 23.0, "length_m": 14.0}
   },
-  "props/city_dutch_canal": {
-   "fallback": "sprite",
-   "object": {"width_m": 19.0, "height_m": 17.6, "length_m": 14.0}
-  },
-  "props/city_dutch_canal_b": {
-   "fallback": "sprite",
-   "object": {"width_m": 20.0, "height_m": 16.6, "length_m": 14.0}
-  },
-  "props/city_dutch_terrace": {
-   "fallback": "sprite",
-   "object": {"width_m": 22.3, "height_m": 10.9, "length_m": 9.0}
-  },
+  "props/city_dutch_canal": {"model": "props/city_dutch_canal"},
+  "props/city_dutch_canal_b": {"model": "props/city_dutch_canal_b"},
+  "props/city_dutch_terrace": {"model": "props/city_dutch_terrace"},
   "props/city_eastern_house_a": {
    "fallback": "sprite",
    "object": {"width_m": 20.4, "height_m": 9.7, "length_m": 9.4}
@@ -8702,18 +9143,9 @@
    "fallback": "sprite",
    "object": {"width_m": 28.8, "height_m": 35.0, "length_m": 12.0}
   },
-  "props/city_french_immeuble": {
-   "fallback": "sprite",
-   "object": {"width_m": 16.8, "height_m": 20.04, "length_m": 12.0}
-  },
-  "props/city_french_maison": {
-   "fallback": "sprite",
-   "object": {"width_m": 16.6, "height_m": 13.46, "length_m": 9.0}
-  },
-  "props/city_french_sud": {
-   "fallback": "sprite",
-   "object": {"width_m": 19.0, "height_m": 8.5, "length_m": 10.0}
-  },
+  "props/city_french_immeuble": {"model": "props/city_french_immeuble"},
+  "props/city_french_maison": {"model": "props/city_french_maison"},
+  "props/city_french_sud": {"model": "props/city_french_sud"},
   "props/city_german_gruenderzeit": {"model": "props/city_german_gruenderzeit"},
   "props/city_german_house": {"model": "props/city_german_house"},
   "props/city_german_mietshaus": {"model": "props/city_german_mietshaus"},
@@ -8737,14 +9169,8 @@
    "fallback": "sprite",
    "object": {"width_m": 17.3, "height_m": 17.4, "length_m": 14.0}
   },
-  "props/city_paris_corner": {
-   "fallback": "sprite",
-   "object": {"width_m": 22.3, "height_m": 26.27, "length_m": 18.0}
-  },
-  "props/city_paris_haussmann": {
-   "fallback": "sprite",
-   "object": {"width_m": 23.7, "height_m": 26.27, "length_m": 15.0}
-  },
+  "props/city_paris_corner": {"model": "props/city_paris_corner"},
+  "props/city_paris_haussmann": {"model": "props/city_paris_haussmann"},
   "props/city_spanish_block": {
    "fallback": "sprite",
    "object": {"width_m": 20.6, "height_m": 27.8, "length_m": 16.0}
@@ -8757,14 +9183,8 @@
    "fallback": "sprite",
    "object": {"width_m": 19.0, "height_m": 30.2, "length_m": 14.0}
   },
-  "props/city_swiss_chalet": {
-   "fallback": "sprite",
-   "object": {"width_m": 14.7, "height_m": 8.67, "length_m": 11.0}
-  },
-  "props/city_swiss_laube": {
-   "fallback": "sprite",
-   "object": {"width_m": 21.0, "height_m": 22.43, "length_m": 15.0}
-  },
+  "props/city_swiss_chalet": {"model": "props/city_swiss_chalet"},
+  "props/city_swiss_laube": {"model": "props/city_swiss_laube"},
   "props/city_vienna_kirche": {
    "fallback": "sprite",
    "object": {"width_m": 24.0, "height_m": 39.2, "length_m": 26.0}
