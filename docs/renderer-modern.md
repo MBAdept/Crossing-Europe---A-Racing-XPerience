@@ -1912,12 +1912,17 @@ Arcades Schildschrift: Ersatzschrift der Engine, fett), Stützen auf der Insel, 
 (Lampenkanal 12, Lichtkegel und Schein über `add_lamps`, Rolle `canopy`). Die Zapfsäulen (Requisiten) stehen damit auf
 der Insel. Bild S2: gleichwertig zu Arcade.
 
+Seit R6 (Welle 3) sind Tankstelle, Grenze, Stadtmobiliar, Start-/Zieltor und Blitzer ausgebaut – Einzelheiten,
+Sichtlinien-Entscheid der Stützen, abgespannte Dächer und Prüfungen in
+[renderer-modern-bauten.md](renderer-modern-bauten.md); die Montage RINT-M2 (§17) hängt Dächer ohne Stütze an einen Mast.
+
 ### 14.5 Start- und Zieltor (`builders/gantry.gd`)
 
 Aus den Schild-Ereignissen mit Seite 0 (`start` 14 m nach der Startlinie, `finish` am Ziel), wie `SignPainter._gantry`:
 zwei Pfosten 0,45 m außerhalb der Bankette, 7 m hoch; Banner von 5,4 bis 7 m – Ziel rot mit Schachbrettstreifen und dem
 Text des Ereignisses („ZIEL“), Start dunkel mit hellem Streifen, „START“ und drei Countdown-Lampen (rot, eine mehr je
 Sekunde, alle grün beim Start; Schein über die Ebene `flares`, Farbe und Stärke je Bild aus `view.countdown`).
+Ausbau mit Fachwerkträger und Flutlichtern (R6/FIX-R6): [renderer-modern-bauten.md](renderer-modern-bauten.md).
 
 ### 14.6 Wahrzeichen bis Arcades Reichweite
 
@@ -2004,8 +2009,8 @@ lässt sich so einer Ebene zuordnen. Gemessen headless an Kiel – Hamburg km 2 
 Grundlage: die Befunde von QA-M2-BILD (B-…) und QA-M2-SYSTEM (M2S-…) auf `6e48405`; Messungen auf dieser Maschine
 (Software-OpenGL unter Last), Bildpaare mit `probe/qa_vehicles.gd` der Prüfung (dieselbe Ansicht, dieselben Testautos).
 
-- **Abblendlicht ohne Glanz** (B-05): die zwei Spots des Abblendlichts (`layers/lights.gd`, `SPOT_SPECULAR` 0) geben
-  keinen Glanzanteil mehr. Die Lampen sitzen neben dem Auge – auf jeder flachen, glänzenden Fläche, die zur Kamera
+- **Abblendlicht ohne Glanz** (B-05; seit RINT-M2 im Material statt am Licht, §17.1): die zwei Spots des Abblendlichts
+  (`layers/lights.gd`, `SPOT_SPECULAR` 0) gaben keinen Glanzanteil mehr. Die Lampen sitzen neben dem Auge – auf jeder flachen, glänzenden Fläche, die zur Kamera
   schaut, fiel der Halbvektor auf die Normale, und der scharfe Klarlack-Lappen machte Lkw-Hecktüren, Stoßfänger und
   Kennzeichen zum weißen Kasten. Roter Lkw bei 60 m, 22 Uhr, mittlere Leuchtdichte des Hecks 152 → 47 (Arcade 42),
   bei 20 m 109 → 61 (Arcade 56); Limousine silber bei 60 m ohne weißen Block. Arcade beleuchtet ein Auto im Kegel nur
@@ -2031,20 +2036,22 @@ Grundlage: die Befunde von QA-M2-BILD (B-…) und QA-M2-SYSTEM (M2S-…) auf `6e
   Pixel; mit Arcades Gesetz allein 102 / 303) und `abblendlicht` (roter Lkw bei 20 und 60 m: höchstens 5 % des Hecks
   über Leuchtdichte 200, Mittel ≤ 0,35; vorher 13 % / 45 %); `check_seam` → `rueckfall_dateien`; `check_vehicles` →
   `leistung` schaltet ein Auto dreimal zwischen zwei Stufen und verlangt dieselben Knoten (Stufenspeicher, M2S-03);
-  `check_vehicle_standin` lädt ein Test-Manifest ohne Modell für `player/kombi`, `traffic/van_white` und
-  `traffic/bus_blue` – ein Fall ohne Vergleich ist ein FEHLER (M2S-02); `test_far_ground_lies_below_the_water_of_a_bridge`
+  `check_vehicle_standin` lädt ein Test-Manifest ohne Modell für `player/kombi`, `traffic/sports_red`,
+  `traffic/van_white` und `traffic/bus_blue` (vier Sätze, `TEST_SETS`) – ein Fall ohne Vergleich ist ein FEHLER (M2S-02); `test_far_ground_lies_below_the_water_of_a_bridge`
   legt das Wasser so tief, dass nur der Wasserterm entscheidet (M2S-05); der Unit-Läufer zählt einen Test, der an
   einem Skriptfehler abbricht, als fehlgeschlagen (M2S-04).
 - **Waldprüfung** (M2S-01): `check_instance_budget_wald.gd` fährt 20 s statt 100 s (der Wald steht ab dem ersten
   Bild; die Fahrzeuge allein prüft `check_instance_budget.gd` über 100 s), meldet Laden und Fahrt getrennt und darf
-  1 800 s laufen (Kopfzeile `## render-check-timeout:`); `tools/run_render_checks.sh` meldet ein Zeitlimit als
+  1 800 s laufen (Kopfzeile `## render-check-timeout:`; seit RINT-M2 mit eingespeistem Verkehr unter Last, §17.4); `tools/run_render_checks.sh` meldet ein Zeitlimit als
   `ZEITLIMIT` (kein Ergebnis) statt als verletzte Regel.
 
-### 14.11 Bekannte Lücken im Testbuild (für die Testhinweise)
+### 14.11 Bekannte Lücken im ersten Testbuild (Stand ZS1; die heutige Liste steht in §17.9)
 
 - **Kein Wetter in der Luft** (R4, M2): kein Regen, kein Schneefall, keine Gischt; nasse Fahrbahn und Schneeränder gibt es.
+  *Seit R4 behoben (§15).*
 - Tunnel und Brücken nur als Mindestbauten (14.3, 14.7); keine Grenzstationen (Dach, Kabinen) – Arcade zeigt sie.
-- Keine Sonnenscheibe am Tag; kein überstrahltes Draußen an der Tunnelausfahrt.
+  *Seit R5 und R6 behoben (§16, renderer-modern-bauten.md).*
+- Keine Sonnenscheibe am Tag; kein überstrahltes Draußen an der Tunnelausfahrt. *Seit R4 behoben (§15.6, §15.8).*
 - Spielerautos: Limousine mit steiler Heckscheibe statt Arcades Fließheck, Kompakt mit schwarzem Dach (Modellnacharbeit).
 - Kurveninnenseiten in Bergetappen kahler als Arcade (Sichtkorridor F7: Bäume werden durch Bodendecker ersetzt –
   Entscheidung der Leitung nach A-3).
@@ -2305,12 +2312,14 @@ Der Tunnel-Builder ist die Quelle der Tunnelzone; das Umgebungs-Rig (R4) entsche
   `lights` – damit die Fahrbahn in der Röhre (R4) von außen Arcades warmes Tunnellicht zeigen kann (Befund QR5-02).
 - `snapshot()` → `"tunnel": {"zone", "zone_calls", "inside"}` im `debug_snapshot()` des Renderers.
 
-### 16.2 Wasser im Licht
+### 16.2 Portal im Licht
 
 Auch das **Tunnelportal** (Rahmen, Stirnwand, Flügelmauern, Hügel) liegt auf Ebene 2 (FIX-R5, `tunnel.gd`
 `PORTAL_LAYERS`): kein Spot des Abblendlichts und kein Lampen-Omni erreicht es, wie Arcade sein Portal nie mit den
 Scheinwerfern beleuchtet – ohne Abblendkante strahlte der 30°-Kegel nachts die Stirnwand aus 60–70 m bis oben an. Es
 bleibt im Licht von Sonne, Mond und Umgebung und wirft seinen Schatten.
+
+### 16.3 Wasser im Licht
 
 Das Wasser ist Boden (Ebene 2, kein Schatten): Lichtkegel analytisch (`inc/pools.gdshaderinc`, das Material meldet
 sich über `renderer.add_pool_material()` an), Scheinwerfer (`inc/headlight.gdshaderinc`), Arcades Bodenfarbgesetz

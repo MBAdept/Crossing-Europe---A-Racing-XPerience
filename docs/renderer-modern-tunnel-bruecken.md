@@ -99,7 +99,7 @@ Arten (`UV2.x`): 0 Fläche, 1 Kappe, 2 Leuchte, 3 grünes Schild, 4 Fliese, 5 Wa
 
 ### 2.4 Zone für die Umgebung
 
-`tunnel.gd` rechnet jedes Bild `tunnel_state` = {`amount`, `inside`, `exit_m`, `portal_m`, `exit_in_sight`, `light`}
+`tunnel.gd` rechnet jedes Bild `tunnel_state` = {`amount`, `inside`, `exit_m`, `exit_z`, `portal_m`, `exit_in_sight`, `light`}
 (`light`, FIX-R5: das Licht der Röhre – Umgebung drinnen/draußen, Tunnelnebel, `darkness_m`, `peek_m`, `cam_tunnel_z`,
 `lights` –, damit die Fahrbahn in der Röhre von außen Arcades Tunnellicht zeigen kann) und ruft –
 wenn das Umgebungs-Rig sie hat (R4, duck-typed) – `renderer.env.set_zone("tunnel", amount)` (Einzelheiten und genaue
@@ -205,12 +205,13 @@ Die Scheibe selbst bleibt bei der ZS1-Regel (`test_far_ground_water`, Render-Pr�
 | `tests/unit/race3d/test_bridge.gd` | Wasser auf den Wasserzeilen bis zum Bandende, Ufer nach Arcades Regel, ferne Kaimauer zur Kamera, Köhlbrand-Pylone (Maßstab, Befeuerung, Takt, 56 Seile = Arcades 7 je Richtung als Zahl), kein Seil über einer Spur, kein Tragwerk in den Spuren, Brückenteile nicht im Requisiten-Builder, Pylon nachts dunkel (`emit_energy` und `night_albedo` gesetzt und richtig), Brückenlampen = Arcades `bridge_lamp`-Ereignisse (Ludwigsbrücke, Ponte della Libertà), jeder Brückentyp baut |
 | `tests/unit/race3d/test_tunnel.gd` | Röhre, Nischen/Türen/Lüfter im Abstand, Kappe, Portal, Ausfahrt; nichts über der Fahrbahn; Hügel schließt das Gelände; kurzer Tunnel ohne Kappe; Kappe nur von außen; Zone nach dem Gesetz des Rigs; `set_zone` nur, wenn das Rig es kann (auch ein Rig ohne `set_zone`: kein Aufruf); Portal auf Renderlayer 2 außerhalb von `LIGHT_MASK`, Röhre auf Layer 1 |
 
-Jede dieser Regeln ist gegen einen eingebauten Fehler geprüft (FIX-R5: die Mutationen der unabhängigen Prüfung –
-`night_albedo` nicht gesetzt, 5 statt 7 Seile, keine Brückenlampen, `set_zone` ohne `has_method`, Portal auf Layer 1 –
-fängt je ein benannter Test).
 | `tests/race3d/render/check_tunnel_bridge.gd` | siehe Abschnitt 7 |
 | `tests/race3d/check_minimal_structures.gd` | `tunnel`, `bruecke` (seit FIX1) |
 | `tests/unit/race3d/test_far_ground_water.gd`, Render-Prüfung `terrain_cover` K1 | ZS1-Regel der Scheibe |
+
+Jede dieser Regeln ist gegen einen eingebauten Fehler geprüft (FIX-R5: die Mutationen der unabhängigen Prüfung –
+`night_albedo` nicht gesetzt, 5 statt 7 Seile, keine Brückenlampen, `set_zone` ohne `has_method`, Portal auf Layer 1 –
+fängt je ein benannter Test).
 
 ## 7. Render-Prüfung `check_tunnel_bridge.gd`
 
