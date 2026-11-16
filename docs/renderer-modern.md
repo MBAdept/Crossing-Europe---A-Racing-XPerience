@@ -2274,3 +2274,46 @@ Horizontglühen, Licht und Schatten genau überein.
 | `tests/race3d/render/check_night.gd` | `fahrbahn` (N1: mittlere Leuchtdichte der Fahrbahn 0 … +15 % gegen Arcade, „Mittel“ und „Steam Deck“), `spielerauto` (Kompakt/N1 Schnee, Gran Turismo/Regen, Limousine/klar, 22 Uhr: Karosserie 0,6 … 1,1 × Arcades Bild), `verdeckung` (nasse Nacht: Auto hinter Kuppe und hinter Sattelzug ändert 0 Pixel, auch keine Spiegelung), `blaulicht` (Polizei 34 m voraus: nachts ≥ 400 blauere Pixel und ein Punktlicht, bei Tag keines) |
 | `tests/race3d/render/check_night_nass.gd` (FIX-R4, eigene Datei von `check_night.gd`) | `nass_kegel` (N2 22 Uhr Regen, „Mittel“: Median der eigenen Spur im Abblendlicht 16–34 m vor der Kamera 0,7 … 1,15 × Arcade, Weber-Kontrast der Markierung dort ≥ 0,8 × Arcade – Befund B2), `spiegelung` (nasse Nacht, bremsendes Auto auf der Steigung vor der Kuppe T2, ≥ 3 m über dem Kamerafuß: kein Bildpunkt der Spiegelungen über seinem Dach, ihre Spiegelung liegt darunter auf der Straße – Befund B1) |
 | `tests/unit/race3d/test_environment_rig.gd` → `test_exit_ramp` (FIX-R4) | Nachglühen stetig (kein Sprung bei 60 m, < 0,02 bei 59,5 m) und höchstens `EXIT_AFTER_S` lang; über 108 km/h entscheidet der Weg |
+
+## 16. Tunnel, Brücken, Wasser und Ufer (Bauabschnitt R5)
+
+R5 ersetzt die Mindestbauten von FIX1 (14.3, 14.7) durch die echten Bauten; Einzelheiten:
+[renderer-modern-tunnel-bruecken.md](renderer-modern-tunnel-bruecken.md). Neu: `builders/bridge.gd` (Wasser, Ufer,
+Tragwerk, Pylone mit Seilen und Flugbefeuerung, Fachwerkportale, Brückenlampen – `builders/props.gd` lässt diese Teile
+liegen, sobald der Builder existiert), `assets/shaders/modern/water.gdshader` (Materialklasse `water`), der Ausbau von
+`builders/tunnel.gd` und `tunnel.gdshader` (Gehwege, Nischen, Notausgänge, Lüfter, Portalrahmen, Ausfahrt) und in
+`layers/far_ground.gd` Fernwasser, Fernland und Fernufer je Brücke; die Scheibe bleibt bei der Regel von 14.7.
+
+### 16.1 Zone „Tunnel“ für die Umgebung (`set_zone`)
+
+Der Tunnel-Builder ist die Quelle der Tunnelzone; das Umgebungs-Rig (R4) entscheidet, was es daraus macht. Aufrufe:
+- **Jedes Bild** in `tunnel.gd` `update(view, dt)` (nach `environment.update`, in der Reihenfolge der Builder-Haken):
+  `amount = TunnelBuilder.zone_amount(track, camera_z + 1)` – dasselbe Gesetz wie `EnvironmentRig.tunnel_blend()`
+  (0 ab 12 m vor einem Portal, 1 ab 14 m drin, Glättung `smoothstep`, eine Funktion des Orts).
+- **`renderer.env.set_zone("tunnel", amount)`** nur, wenn `renderer.env` die Methode hat (`has_method("set_zone")`,
+  duck-typed) und nur, wenn sich `amount` um mehr als 0,0001 geändert hat (erster Aufruf immer). Ohne `set_zone` bleibt
+  das Rig bei seinem eigenen Weg (`tunnel01` aus `tunnel_blend`), es ändert sich nichts.
+- **`tunnel_state`** (Eigenschaft des Builders, über `renderer.builder("tunnel")`): `amount`, `inside` (Kamera in einem
+  Tunnel), `exit_m` (Weg bis zur Ausfahrt, INF draußen), `portal_m` (Weg bis zum nächsten Portal voraus),
+  `exit_in_sight` (Ausfahrt innerhalb der Sicht) – für eine Belichtungsrampe an der Ausfahrt, ohne eigene Rechnung;
+  `exit_z` (FIX-R5) = Straßen-z, an dem die Röhre wirklich endet (Segmentgrenze nach `end_km`, wie Arcades
+  Tunnelsegmente; INF draußen) – der Rahmen der Ausfahrt steht von `exit_z` − 0,35 m bis `exit_z`; eine Belichtungsfläche
+  an der Öffnung gehört dorthin, nicht an `end_km` (das bis zu ein Segment früher liegt);
+  `light` (FIX-R5) = das Licht der Röhre in diesem Bild, wie es `tunnel.gdshader` bekommt: `ambient_in`, `ambient_out`
+  (Anzeigefaktoren der Tunnelumgebung für eine Kamera drinnen / draußen, Arcades × (0,5 + 0,5 × Lichter)), `fog`
+  (`Palette.TUNNEL_FOG`), `darkness_m`, `peek_m`, `cam_tunnel_z` (Portal-z des Tunnels der Kamera, −1e9 draußen),
+  `lights` – damit die Fahrbahn in der Röhre (R4) von außen Arcades warmes Tunnellicht zeigen kann (Befund QR5-02).
+- `snapshot()` → `"tunnel": {"zone", "zone_calls", "inside"}` im `debug_snapshot()` des Renderers.
+
+### 16.2 Wasser im Licht
+
+Auch das **Tunnelportal** (Rahmen, Stirnwand, Flügelmauern, Hügel) liegt auf Ebene 2 (FIX-R5, `tunnel.gd`
+`PORTAL_LAYERS`): kein Spot des Abblendlichts und kein Lampen-Omni erreicht es, wie Arcade sein Portal nie mit den
+Scheinwerfern beleuchtet – ohne Abblendkante strahlte der 30°-Kegel nachts die Stirnwand aus 60–70 m bis oben an. Es
+bleibt im Licht von Sonne, Mond und Umgebung und wirft seinen Schatten.
+
+Das Wasser ist Boden (Ebene 2, kein Schatten): Lichtkegel analytisch (`inc/pools.gdshaderinc`, das Material meldet
+sich über `renderer.add_pool_material()` an), Scheinwerfer (`inc/headlight.gdshaderinc`), Arcades Bodenfarbgesetz
+(`inc/ground_law.gdshaderinc`), Arcades Nebel für Boden. Der Himmel, den es spiegelt, kommt jedes Bild aus der
+Palette (`sky_top` für den Zenit, `sky_bottom` für den Horizont), das Glitzern aus Sonne (1, solange `lights` < 0,3)
+bzw. Mond (0,25), × (1 − Bewölkung).
