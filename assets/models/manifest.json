@@ -4610,8 +4610,8 @@
    "roughness": 0.86,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "belgian", "center"],
-   "bytes": 644162,
-   "hash": "43bb378526b26dda8835a0e71e26d1281a55aca8"
+   "bytes": 644117,
+   "hash": "17c4f642283fe0dc4ce6f73151001ff3a2e108c3"
   },
   "props/city_belgian_terrace": {
    "kind": "building",
@@ -4692,13 +4692,13 @@
   "props/city_dutch_canal_b": {
    "kind": "building",
    "object": {"width_m": 20, "height_m": 16.6, "length_m": 14},
-   "extent_m": {"left": 14.36, "right": 9.71},
-   "aabb": [-10.15, 0, -14.1, 10.31, 17.303, 1.5],
+   "extent_m": {"left": 14.12, "right": 9.71},
+   "aabb": [-10.15, 0, -14, 10.31, 17.303, 1.5],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 3623,
+     "tris": 3625,
      "parts": [
       {
        "node": "body",
@@ -4710,7 +4710,7 @@
     {
      "name": "lod1",
      "max_dist_m": 100000,
-     "tris": 1543,
+     "tris": 1545,
      "parts": [
       {
        "node": "body",
@@ -4724,8 +4724,8 @@
    "roughness": 0.86,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "dutch", "center"],
-   "bytes": 487956,
-   "hash": "a3fe02ec584cd2e00fdec46e2466d6a0497ad233"
+   "bytes": 487861,
+   "hash": "352d4cea93216a783acd989158bd0ec8e9f30da9"
   },
   "props/city_dutch_terrace": {
    "kind": "building",
@@ -5387,8 +5387,8 @@
    "roughness": 0.86,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "paris", "center"],
-   "bytes": 426392,
-   "hash": "777d79a51f3d953420dd5c3bff247fc98fc17c18"
+   "bytes": 430877,
+   "hash": "1892cd22ad08b7e320ef3a494158b91cf7925bc5"
   },
   "props/city_paris_haussmann": {
    "kind": "building",

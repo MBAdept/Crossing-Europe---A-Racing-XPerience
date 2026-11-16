@@ -5,13 +5,13 @@
  "model": {
   "kind": "building",
   "object": {"width_m": 20, "height_m": 16.6, "length_m": 14},
-  "extent_m": {"left": 14.36, "right": 9.71},
-  "aabb": [-10.15, 0, -14.1, 10.31, 17.303, 1.5],
+  "extent_m": {"left": 14.12, "right": 9.71},
+  "aabb": [-10.15, 0, -14, 10.31, 17.303, 1.5],
   "lods": [
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 3623,
+    "tris": 3625,
     "parts": [
      {
       "node": "body",
@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 100000,
-    "tris": 1543,
+    "tris": 1545,
     "parts": [
      {
       "node": "body",
@@ -37,8 +37,8 @@
   "roughness": 0.86,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "dutch", "center"],
-  "bytes": 487956,
-  "hash": "a3fe02ec584cd2e00fdec46e2466d6a0497ad233"
+  "bytes": 487861,
+  "hash": "352d4cea93216a783acd989158bd0ec8e9f30da9"
  },
  "sets": {
   "props/city_dutch_canal_b": {"model": "props/city_dutch_canal_b"}
