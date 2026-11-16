@@ -37,8 +37,8 @@
   "roughness": 0.86,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "dutch", "center"],
-  "bytes": 567366,
-  "hash": "63c46285bbc0efdd0d2f537a54c131f234df8f90"
+  "bytes": 563194,
+  "hash": "77258b6be999de89c935c573fd5cfc323f29a69a"
  },
  "sets": {
   "props/city_dutch_canal": {"model": "props/city_dutch_canal"}

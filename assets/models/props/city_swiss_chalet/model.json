@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 3128,
+    "tris": 3109,
     "parts": [
      {
       "node": "body",
@@ -28,7 +28,7 @@
      {
       "node": "body",
       "mesh": "props/city_swiss_chalet/lod1_body.res",
-      "classes": ["vpbr", "baked_cutout"]
+      "classes": ["vpbr", "baked"]
      }
     ]
    }
@@ -37,8 +37,8 @@
   "roughness": 0.86,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "swiss", "outskirts"],
-  "bytes": 751452,
-  "hash": "0bd8a1f073635d184c3dea3ff0b7b7693109a912"
+  "bytes": 749671,
+  "hash": "f78f2f398a355d8f4f26631cc2406487a232846c"
  },
  "sets": {
   "props/city_swiss_chalet": {"model": "props/city_swiss_chalet"}

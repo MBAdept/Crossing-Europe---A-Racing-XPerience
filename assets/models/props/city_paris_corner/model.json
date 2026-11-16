@@ -28,7 +28,7 @@
      {
       "node": "body",
       "mesh": "props/city_paris_corner/lod1_body.res",
-      "classes": ["vpbr", "baked_cutout"]
+      "classes": ["vpbr", "baked"]
      }
     ]
    }
@@ -37,8 +37,8 @@
   "roughness": 0.86,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "paris", "center"],
-  "bytes": 430877,
-  "hash": "1892cd22ad08b7e320ef3a494158b91cf7925bc5"
+  "bytes": 425778,
+  "hash": "2640ba9536a89efbe8414d157152f6c265432c00"
  },
  "sets": {
   "props/city_paris_corner": {"model": "props/city_paris_corner"}

@@ -4610,8 +4610,8 @@
    "roughness": 0.86,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "belgian", "center"],
-   "bytes": 644117,
-   "hash": "17c4f642283fe0dc4ce6f73151001ff3a2e108c3"
+   "bytes": 644231,
+   "hash": "2d06ee95c09e61fc16432395a6a3b4768474d3b7"
   },
   "props/city_belgian_terrace": {
    "kind": "building",
@@ -4648,8 +4648,8 @@
    "roughness": 0.86,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "belgian", "center"],
-   "bytes": 409489,
-   "hash": "14e8874c4e419877d6c62edd9822fdc2f223142b"
+   "bytes": 403440,
+   "hash": "7c9d1728648366706b38a60a3932655c1ab3cf18"
   },
   "props/city_dutch_canal": {
    "kind": "building",
@@ -4686,8 +4686,8 @@
    "roughness": 0.86,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "dutch", "center"],
-   "bytes": 567366,
-   "hash": "63c46285bbc0efdd0d2f537a54c131f234df8f90"
+   "bytes": 563194,
+   "hash": "77258b6be999de89c935c573fd5cfc323f29a69a"
   },
   "props/city_dutch_canal_b": {
    "kind": "building",
@@ -4724,8 +4724,8 @@
    "roughness": 0.86,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "dutch", "center"],
-   "bytes": 487861,
-   "hash": "352d4cea93216a783acd989158bd0ec8e9f30da9"
+   "bytes": 504245,
+   "hash": "966ee852039f0f7da64e308ba6bc1fdb43ac1e20"
   },
   "props/city_dutch_terrace": {
    "kind": "building",
@@ -4762,8 +4762,8 @@
    "roughness": 0.88,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "dutch", "outskirts"],
-   "bytes": 775011,
-   "hash": "96c086e15cabe15c88f7b589087ed697af0ef4df"
+   "bytes": 774929,
+   "hash": "279ca4a63c598cf709cf60b3d5b9f0f2abe9881f"
   },
   "props/city_french_immeuble": {
    "kind": "building",
@@ -4791,7 +4791,7 @@
       {
        "node": "body",
        "mesh": "props/city_french_immeuble/lod1_body.res",
-       "classes": ["vpbr", "baked_cutout"]
+       "classes": ["vpbr", "baked"]
       }
      ]
     }
@@ -4800,31 +4800,31 @@
    "roughness": 0.86,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "french", "center"],
-   "bytes": 360751,
-   "hash": "21d14374c5ce72295847cd0bb8b457cf3144d159"
+   "bytes": 358687,
+   "hash": "714de735fe81e99460a9e5541012f5ef33e92c34"
   },
   "props/city_french_maison": {
    "kind": "building",
    "object": {"width_m": 16.6, "height_m": 13.46, "length_m": 9},
    "extent_m": {"left": 12.21, "right": 8.32},
-   "aabb": [-12.225, -0.181, -9.351, 7.03, 13.483, 4.66],
+   "aabb": [-12.484, -0.181, -9.351, 7.03, 13.483, 4.66],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 3910,
+     "tris": 4250,
      "parts": [
       {
        "node": "body",
        "mesh": "props/city_french_maison/lod0_body.res",
-       "classes": ["vpbr", "baked"]
+       "classes": ["vpbr", "baked_cutout"]
       }
      ]
     },
     {
      "name": "lod1",
      "max_dist_m": 100000,
-     "tris": 1874,
+     "tris": 1760,
      "parts": [
       {
        "node": "body",
@@ -4838,19 +4838,19 @@
    "roughness": 0.88,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "french", "outskirts"],
-   "bytes": 818255,
-   "hash": "1f04a7292af9b6e46472754f8b8365a9826fac08"
+   "bytes": 960232,
+   "hash": "eef65736fbbf619dd7211888f5fd3862597198e7"
   },
   "props/city_french_sud": {
    "kind": "building",
    "object": {"width_m": 19, "height_m": 8.5, "length_m": 10},
    "extent_m": {"left": 11.22, "right": 8.52},
-   "aabb": [-12.803, -0.148, -10.55, 7.03, 9.167, 5.16],
+   "aabb": [-13.304, -0.148, -10.55, 7.03, 9.668, 5.411],
    "lods": [
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 5359,
+     "tris": 5820,
      "parts": [
       {
        "node": "body",
@@ -4862,12 +4862,12 @@
     {
      "name": "lod1",
      "max_dist_m": 100000,
-     "tris": 3716,
+     "tris": 3456,
      "parts": [
       {
        "node": "body",
        "mesh": "props/city_french_sud/lod1_body.res",
-       "classes": ["vpbr", "baked_cutout"]
+       "classes": ["vpbr", "baked"]
       }
      ]
     }
@@ -4876,8 +4876,8 @@
    "roughness": 0.88,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "french", "outskirts"],
-   "bytes": 1062061,
-   "hash": "0bbaf8c93b62cdc58f0d6c59f1fdcec56eb8d445"
+   "bytes": 1112521,
+   "hash": "456ec4489196468f0afafaa8de4c17d1b3ccd1f1"
   },
   "props/city_german_gruenderzeit": {
    "kind": "building",
@@ -5378,7 +5378,7 @@
       {
        "node": "body",
        "mesh": "props/city_paris_corner/lod1_body.res",
-       "classes": ["vpbr", "baked_cutout"]
+       "classes": ["vpbr", "baked"]
       }
      ]
     }
@@ -5387,8 +5387,8 @@
    "roughness": 0.86,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "paris", "center"],
-   "bytes": 430877,
-   "hash": "1892cd22ad08b7e320ef3a494158b91cf7925bc5"
+   "bytes": 425778,
+   "hash": "2640ba9536a89efbe8414d157152f6c265432c00"
   },
   "props/city_paris_haussmann": {
    "kind": "building",
@@ -5416,7 +5416,7 @@
       {
        "node": "body",
        "mesh": "props/city_paris_haussmann/lod1_body.res",
-       "classes": ["vpbr", "baked_cutout"]
+       "classes": ["vpbr", "baked"]
       }
      ]
     }
@@ -5425,8 +5425,8 @@
    "roughness": 0.86,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "paris", "center"],
-   "bytes": 463729,
-   "hash": "2d4f77e80ac2a7dda39c1343f4576f9770516f56"
+   "bytes": 457936,
+   "hash": "649cf51ba9f23c567f6c1e238c8078ef96b63266"
   },
   "props/city_swiss_chalet": {
    "kind": "building",
@@ -5437,7 +5437,7 @@
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 3128,
+     "tris": 3109,
      "parts": [
       {
        "node": "body",
@@ -5454,7 +5454,7 @@
       {
        "node": "body",
        "mesh": "props/city_swiss_chalet/lod1_body.res",
-       "classes": ["vpbr", "baked_cutout"]
+       "classes": ["vpbr", "baked"]
       }
      ]
     }
@@ -5463,8 +5463,8 @@
    "roughness": 0.86,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "swiss", "outskirts"],
-   "bytes": 751452,
-   "hash": "0bd8a1f073635d184c3dea3ff0b7b7693109a912"
+   "bytes": 749671,
+   "hash": "f78f2f398a355d8f4f26631cc2406487a232846c"
   },
   "props/city_swiss_laube": {
    "kind": "building",
@@ -5501,8 +5501,8 @@
    "roughness": 0.86,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "swiss", "center"],
-   "bytes": 313895,
-   "hash": "dbbb581ae5ce2d3cc927454a2d2e0a23308a25f0"
+   "bytes": 310693,
+   "hash": "d859393c1bd11d2053fe758618049055b8a9fe58"
   },
   "props/cliff": {
    "kind": "rock",
