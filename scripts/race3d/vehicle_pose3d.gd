@@ -52,6 +52,13 @@ const GLOW_MAX_PX := 70.0
 ## MODEL_BEACON_GAIN for beacons. A sprite stand-in keeps Arcade's law (its picture has the light layers).
 const MODEL_BRAKE_GAIN := 2.2
 const MODEL_BEACON_GAIN := 2.4
+## RINT-M2 (A-20, NACH-M2 N-01): MODEL_BRAKE_GAIN is for daylight, where a red halo over grey or yellow paint barely reads
+## as red. At night Arcade's glow law alone already draws a large red halo, and the full gain put three big red halos over
+## the rear (22:00, 60 m: sports car 150 red pixels against Arcade's 95, sedan at 20 m 654 against 539). The extra brake
+## gain fades with the palette's lights to this share of itself (night: 1 + 1.2 × share). The beacon keeps its gain at
+## night: with it the model's blue reaches only about half of Arcade's at 60 m (FIX-M2: 103 against 184 blue pixels) and
+## check_vehicle_lights "blaulicht" needs it.
+const MODEL_BRAKE_NIGHT_SHARE := 0.5
 
 
 ## Arcade's fade of an item at path distance dz (m from the camera along the road; RoadRenderer._item_alpha): on the
@@ -237,11 +244,13 @@ static func flare_params(role: String, a: Vector4, b: Vector4, lights: float) ->
 
 
 ## Factor on the flare strength of a lamp of a MODEL (not of a sprite stand-in) – see MODEL_BRAKE_GAIN. role = the
-## flare point's role, a = lamp_a (its y is the brake level).
-static func model_glow_gain(role: String, a: Vector4) -> float:
+## flare point's role, a = lamp_a (its y is the brake level), lights = the palette's lights (0 by day, 1 at night: the
+## brake gain fades to MODEL_BRAKE_NIGHT_SHARE of itself).
+static func model_glow_gain(role: String, a: Vector4, lights: float = 0.0) -> float:
 	match role:
 		"rear", "brake":
-			return 1.0 + (MODEL_BRAKE_GAIN - 1.0) * clampf(a.y, 0.0, 1.0)
+			var extra := (MODEL_BRAKE_GAIN - 1.0) * lerpf(1.0, MODEL_BRAKE_NIGHT_SHARE, clampf(lights, 0.0, 1.0))
+			return 1.0 + extra * clampf(a.y, 0.0, 1.0)
 		"beacon_a", "beacon_b":
 			return MODEL_BEACON_GAIN
 	return 1.0

@@ -189,10 +189,19 @@ func test_model_glow_gain() -> void:
 	for role: String in ["ind_l", "ind_r", "head", "marker", "tail"]:
 		assert_near(VehiclePose3D.model_glow_gain(role, braking), 1.0, 1.0e-6, "%s: Arcades Stärke" % role)
 	assert_true(VehiclePose3D.MODEL_BRAKE_GAIN > 1.0 and VehiclePose3D.MODEL_BEACON_GAIN > 1.0, "Zuschläge > 1")
+	# RINT-M2 (A-20): the brake gain is for daylight – at night it fades to MODEL_BRAKE_NIGHT_SHARE of the extra gain,
+	# steadily with the palette's lights; the beacon keeps its gain
+	var g_night := VehiclePose3D.model_glow_gain("rear", braking, 1.0)
+	assert_near(g_night, 1.0 + (VehiclePose3D.MODEL_BRAKE_GAIN - 1.0) * VehiclePose3D.MODEL_BRAKE_NIGHT_SHARE, 1.0e-6, "Bremse nachts")
+	assert_true(g_night > 1.0 and g_night < VehiclePose3D.MODEL_BRAKE_GAIN, "nachts zwischen Arcade und Tag (%.2f)" % g_night)
+	assert_true(VehiclePose3D.model_glow_gain("rear", braking, 0.5) < VehiclePose3D.model_glow_gain("rear", braking, 0.0)
+		and VehiclePose3D.model_glow_gain("rear", braking, 0.5) > g_night, "stetig mit den Lichtern")
+	assert_near(VehiclePose3D.model_glow_gain("rear", tail, 1.0), 1.0, 1.0e-6, "nachts nur Rücklicht: Arcades Stärke")
+	assert_near(VehiclePose3D.model_glow_gain("beacon_a", Vector4.ZERO, 1.0), VehiclePose3D.MODEL_BEACON_GAIN, 1.0e-6, "Blaulicht nachts")
 	# the strongest glow stays inside what the flare shader can show (colour × 0.5 × strength ≤ the lamp colour)
 	var day := VehiclePose3D.flare_params("rear", braking, Vector4.ZERO, 0.0).x * VehiclePose3D.model_glow_gain("rear", braking)
 	var night := VehiclePose3D.flare_params("rear", Vector4(1.0, 1.0, 0.0, 0.0), Vector4.ZERO, 1.0).x \
-		* VehiclePose3D.model_glow_gain("rear", braking)
+		* VehiclePose3D.model_glow_gain("rear", braking, 1.0)
 	var beacon := VehiclePose3D.flare_params("beacon_a", Vector4.ZERO, Vector4(0.0, 0.0, 1.0, 0.0), 1.0).x \
 		* VehiclePose3D.model_glow_gain("beacon_a", Vector4.ZERO)
 	assert_true(day > 0.35 and day < night and night <= 2.5 and beacon <= 2.0,

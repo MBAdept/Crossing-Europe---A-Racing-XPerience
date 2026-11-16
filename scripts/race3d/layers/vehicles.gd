@@ -1041,7 +1041,7 @@ func _add_flares(car: Car, info: Dictionary, la: Vector4, lb: Vector4, lights: f
 		if s <= 0.004:
 			continue
 		if car.flare_ref <= 0.0 and not bool(info.get("box", false)) and car.lod != VehicleStandIn.KIND_BOX:
-			s *= VehiclePose3D.model_glow_gain(role, la)   # FIX-M2: a model has no light layer of a sprite
+			s *= VehiclePose3D.model_glow_gain(role, la, lights)   # FIX-M2: a model has no light layer of a sprite
 		var local: Vector3 = (p["pos"] as Vector3) + (p["dir"] as Vector3) * FLARE_OFFSET_M
 		var t := car.pose
 		if not car.groups.is_empty():
