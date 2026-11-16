@@ -4905,7 +4905,7 @@
       {
        "node": "body",
        "mesh": "props/city_german_gruenderzeit/lod1_body.res",
-       "classes": ["vpbr", "baked_cutout"]
+       "classes": ["vpbr", "baked"]
       }
      ]
     }
@@ -4914,8 +4914,8 @@
    "roughness": 0.86,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "german", "center"],
-   "bytes": 389973,
-   "hash": "8e5f0756dbb0aee30ed566d54cba4c9a64f9c6c2"
+   "bytes": 383467,
+   "hash": "a72520e5e2327939e1bf201ba7066ca68d87dfcd"
   },
   "props/city_german_house": {
    "kind": "building",
@@ -4961,8 +4961,8 @@
    "roughness": 0.88,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "german", "outskirts"],
-   "bytes": 641548,
-   "hash": "124ed291c392aa41861011115791b700d1dbb7ed"
+   "bytes": 641472,
+   "hash": "bc2c437705062be7caf877810f2a5461ed9bda3e"
   },
   "props/city_german_mietshaus": {
    "kind": "building",
@@ -4990,7 +4990,7 @@
       {
        "node": "body",
        "mesh": "props/city_german_mietshaus/lod1_body.res",
-       "classes": ["vpbr", "baked_cutout"]
+       "classes": ["vpbr", "baked"]
       }
      ]
     }
@@ -4999,8 +4999,8 @@
    "roughness": 0.88,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "german", "outskirts"],
-   "bytes": 259453,
-   "hash": "d704f8e484621b43fc1a8469c731e15f336d805b"
+   "bytes": 253534,
+   "hash": "e9e121a6a5d8c161659a0896101dd8e10647d89b"
   },
   "props/city_german_office": {
    "kind": "building",
@@ -5098,8 +5098,8 @@
    "roughness": 0.86,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "german_old", "center"],
-   "bytes": 341869,
-   "hash": "2746e5e171206c8cca4ececf0014fe4e15c941fa"
+   "bytes": 334625,
+   "hash": "90b23b587b76dabdbacc5f631f5917576157cdc5"
   },
   "props/city_german_old_fachwerk": {
    "kind": "building",
@@ -5136,8 +5136,8 @@
    "roughness": 0.88,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "german_old", "center"],
-   "bytes": 435787,
-   "hash": "df441e0f8c51a08dc8b52335eaa8b834ad84f583"
+   "bytes": 432895,
+   "hash": "9a4bea1ac33575a35706daa55c94dafe0fdaea20"
   },
   "props/city_german_old_fachwerk_b": {
    "kind": "building",
@@ -5174,8 +5174,8 @@
    "roughness": 0.88,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "german_old", "center"],
-   "bytes": 341673,
-   "hash": "a49b116ff88209cacefd0ec5b76639f89daa2046"
+   "bytes": 339247,
+   "hash": "00144a06cb4f9b0212323da2db9550341c0a9ea1"
   },
   "props/city_hanse_crane": {
    "kind": "building",
@@ -5235,8 +5235,8 @@
    "roughness": 0.6,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "hanse", "outskirts"],
-   "bytes": 265672,
-   "hash": "d2b6cab0723914a0526501d8aadebabb2c5a2859"
+   "bytes": 265311,
+   "hash": "8bdc9cb5acbcfa88f1dddfe13edd79e4085a3b98"
   },
   "props/city_hanse_gabled": {
    "kind": "building",
@@ -5273,8 +5273,8 @@
    "roughness": 0.86,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "hanse", "center"],
-   "bytes": 547785,
-   "hash": "f4aea844cfca2e966c884775180b3119a0bef239"
+   "bytes": 542397,
+   "hash": "b00d4495d2dce1de06923532cf5f11035b7df5bb"
   },
   "props/city_hanse_kontor": {
    "kind": "building",
@@ -5311,8 +5311,8 @@
    "roughness": 0.86,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "hanse", "center"],
-   "bytes": 602318,
-   "hash": "8a8188e9a2563cf720f3c75ecfb8d1d6ae35332c"
+   "bytes": 583468,
+   "hash": "8aede7ccb73113d61ea99f1314645b04ac66cf57"
   },
   "props/city_hanse_speicher": {
    "kind": "building",
@@ -5349,8 +5349,8 @@
    "roughness": 0.86,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "hanse", "center"],
-   "bytes": 696481,
-   "hash": "46bcc853642ba0329bbe1fe5e7c394586629f48c"
+   "bytes": 684599,
+   "hash": "5b732ae50445d0127630994c02f2df85a9ccccee"
   },
   "props/city_paris_corner": {
    "kind": "building",
