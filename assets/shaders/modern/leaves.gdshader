@@ -39,12 +39,14 @@ global uniform vec4 ce_fog_color;
 #include "res://assets/shaders/modern/inc/fog_law.gdshaderinc"
 
 varying float v_bright;
+varying vec3 v_tint;     // RINT-M2 (A-19): placement tint (MultiMesh custom data r, g, b, 1); white without
 
 void vertex() {
 	float amp = COLOR.r;
 	float phase = COLOR.g * 6.2831853;
 	float soft = 1.0 - COLOR.b;
 	v_bright = COLOR.a;
+	v_tint = INSTANCE_CUSTOM.a > 0.5 ? INSTANCE_CUSTOM.rgb : vec3(1.0);
 	vec2 dir = ce_wind.xy;
 	float strength = ce_wind.z;
 	float gust = ce_wind.w;
@@ -71,7 +73,7 @@ void fragment() {
 	if (!FRONT_FACING) {
 		NORMAL = -NORMAL;        // the engine flips the normal of back faces: keep the crown normal
 	}
-	ALBEDO = t.rgb * v_bright;        // sRGB-encoded, as the Compatibility renderer expects it
+	ALBEDO = t.rgb * v_bright * v_tint;        // sRGB-encoded, as the Compatibility renderer expects it
 	if (ce_snow > 0.0) {
 		float up = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz).y;
 		float k = clamp(ce_snow, 0.0, 1.0) * smoothstep(0.35, 0.85, up) * 0.85;

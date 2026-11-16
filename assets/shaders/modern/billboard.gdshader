@@ -66,11 +66,15 @@ global uniform vec4 ce_fog_color;
 
 varying float v_sun;
 varying float v_head;
+// RINT-M2 (A-19): the placement tint of a MODEL's impostor (MultiMesh custom data r, g, b, 1 – builders/props.gd) times
+// COLOR (a stand-in's instance colour); white without either
+varying vec3 v_tint;
 
 const float REF_GREY = 0.38;                  // the albedo the environment's light split is exact for
 
 void vertex() {
 	// right vector of the camera, flattened: the billboard only turns about the vertical axis
+	v_tint = INSTANCE_CUSTOM.a > 0.5 ? INSTANCE_CUSTOM.rgb : vec3(1.0);
 	vec3 cr = normalize(vec3(INV_VIEW_MATRIX[0].x, 0.0, INV_VIEW_MATRIX[0].z));
 	vec3 origin = MODEL_MATRIX[3].xyz;
 	float sx = length(MODEL_MATRIX[0].xyz) * sign(determinant(mat3(MODEL_MATRIX)));
@@ -141,7 +145,8 @@ void fragment() {
 		ALBEDO = albedo_for(pow((min(ll.rgb, vec3(1.0)) + 0.055) / 1.055, vec3(2.4)));
 		FOG = vec4(0.0);
 	} else {
-		vec3 base = mix(t.rgb * COLOR.rgb, vec3(0.75, 0.8, 0.84), 0.15 * clamp(ce_snow, 0.0, 1.0));
+		vec3 tint = COLOR.rgb * v_tint;
+		vec3 base = mix(t.rgb * tint, vec3(0.75, 0.8, 0.84), 0.15 * clamp(ce_snow, 0.0, 1.0));
 		vec3 a = to_lin(base);
 		// what a lit surface shows: two passes, each turned into display values, then added
 		vec3 d = show(a * ce_ambient.rgb) + show(a * ce_sun_color.rgb * v_sun);
@@ -172,9 +177,9 @@ void fragment() {
 			// their light (and match the lights that stay beyond L above)
 			float haze = clamp((dist - ce_fog_range.x) / max(lm_l - ce_fog_range.x, 1.0), 0.0, 1.0) * 0.85;
 			haze *= 1.0 - light_cover;
-			FOG = vec4(ce_fog_unshow(min(t.rgb * COLOR.rgb * ce_fog_color.rgb * 1.15, vec3(1.0))), haze);
+			FOG = vec4(ce_fog_unshow(min(t.rgb * tint * ce_fog_color.rgb * 1.15, vec3(1.0))), haze);
 		} else {
-			FOG = ce_arcade_fog(t.rgb * COLOR.rgb, dist, ce_fog_color, ce_fog_range);
+			FOG = ce_arcade_fog(t.rgb * tint, dist, ce_fog_color, ce_fog_range);
 		}
 	}
 }

@@ -454,7 +454,7 @@ func warmup_nodes() -> Array:
 				for r: String in reps:
 					for p: Variant in lib.mesh_parts(mid, r):
 						var part: Dictionary = p
-						var node := _mmi(part, one, 1, false, false)
+						var node := _mmi(part, one_c, 1, false, false, true)
 						node.scale = Vector3.ONE * k
 						node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY if bool(part["shadow"]) \
 							else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
@@ -639,8 +639,10 @@ static func _place(ctx: ChunkContext, inp: Dictionary, out: Dictionary, i: int, 
 		groups[key] = g
 	var buf: PackedFloat32Array = g["buf"]
 	_put(buf, mirror_x(tr) if flipped else tr)
-	if not is_model:
-		buf.append_array(PackedFloat32Array([tint.r, tint.g, tint.b, 1.0]))
+	# the placement tint (tint × fallback_tint, white without one): a stand-in carries it as its instance colour, a model
+	# as its instance custom data (r, g, b, 1) – RINT-M2 (A-19): baked, vpbr_static, leaves and billboard multiply the
+	# albedo by it as Arcade multiplies the sprite; never an instance uniform (the global shader buffer, A-19)
+	buf.append_array(PackedFloat32Array([tint.r, tint.g, tint.b, 1.0]))
 	g["buf"] = buf
 	g["n"] = int(g["n"]) + 1
 	# contact shadow on the ground plane under the prop
@@ -806,7 +808,7 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 					var mp: Dictionary = p
 					if bool(mp["shadow"]):
 						continue
-					var node := _mmi(mp, buf, n, false, bool(g["mirror"]))
+					var node := _mmi(mp, buf, n, false, bool(g["mirror"]), true)
 					if bool(g.get("landmark", false)):
 						_landmark_override(node, mp)
 					elif bool(g.get("dark", false)):
@@ -821,7 +823,7 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 					var mp: Dictionary = p
 					if not bool(mp["shadow"]):
 						continue
-					var node := _mmi(mp, buf, n, false, bool(g["mirror"]))
+					var node := _mmi(mp, buf, n, false, bool(g["mirror"]), true)
 					node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 					node.set_meta(&"caster", true)
 					holder.add_child(node)
@@ -875,11 +877,14 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 	_apply_lod(holder, cam_z)
 
 
-## A MultiMeshInstance3D for one mesh: with_color = the buffer carries an instance colour (stand-ins).
-static func _mmi(part: Dictionary, buf: PackedFloat32Array, n: int, with_color: bool, mirrored: bool) -> MultiMeshInstance3D:
+## A MultiMeshInstance3D for one mesh: with_color = the buffer carries an instance colour (stand-ins), with_custom =
+## instance custom data (models: their placement tint, RINT-M2).
+static func _mmi(part: Dictionary, buf: PackedFloat32Array, n: int, with_color: bool, mirrored: bool,
+		with_custom: bool = false) -> MultiMeshInstance3D:
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = with_color
+	mm.use_custom_data = with_custom
 	mm.mesh = part["mesh"]
 	mm.instance_count = n
 	var own: Transform3D = part.get("transform", Transform3D.IDENTITY)
@@ -887,12 +892,17 @@ static func _mmi(part: Dictionary, buf: PackedFloat32Array, n: int, with_color: 
 		mm.buffer = buf
 	else:
 		# a part with a pose of its own inside the model (none of the prop models has one today)
-		var stride := 16 if with_color else 12
+		var stride := 12 + (4 if with_color else 0) + (4 if with_custom else 0)
 		for i in n:
 			var o := i * stride
 			var t := Transform3D(Basis(Vector3(buf[o], buf[o + 4], buf[o + 8]), Vector3(buf[o + 1], buf[o + 5], buf[o + 9]),
 				Vector3(buf[o + 2], buf[o + 6], buf[o + 10])), Vector3(buf[o + 3], buf[o + 7], buf[o + 11]))
 			mm.set_instance_transform(i, t * own)
+			if with_color:
+				mm.set_instance_color(i, Color(buf[o + 12], buf[o + 13], buf[o + 14], buf[o + 15]))
+			if with_custom:
+				var c := o + (16 if with_color else 12)
+				mm.set_instance_custom_data(i, Color(buf[c], buf[c + 1], buf[c + 2], buf[c + 3]))
 	var node := MultiMeshInstance3D.new()
 	node.multimesh = mm
 	if part.get("material") != null:

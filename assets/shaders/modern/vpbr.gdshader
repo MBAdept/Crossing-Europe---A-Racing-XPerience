@@ -167,6 +167,7 @@ global uniform vec2 ce_fog_range;
 
 #include "res://assets/shaders/modern/inc/fog_law.gdshaderinc"
 
+varying vec3 v_tint;     // placement tint of a prop model (RINT-M2, A-19)
 varying flat float v_code;
 varying flat vec2 v_lamp;
 varying float v_coat;
@@ -272,6 +273,9 @@ float hash13(vec3 p) {
 }
 
 void vertex() {
+	// RINT-M2 (A-19): the placement tint of a prop model (MultiMesh custom data r, g, b, 1 – builders/props.gd); white
+	// for everything else (a vehicle is no MultiMesh: INSTANCE_CUSTOM is 0 there)
+	v_tint = INSTANCE_CUSTOM.a > 0.5 ? INSTANCE_CUSTOM.rgb : vec3(1.0);
 	if (COLOR.a > 0.8 && COLOR.a < 0.95) {
 		// rotor part: turn VERTEX and NORMAL about the hub (0, UV2.y x 128 m) in the model's XY plane
 		float hub = UV2.y * 128.0;
@@ -332,6 +336,9 @@ void fragment() {
 			metal = 0.0;
 			lamp = true;
 		}
+	}
+	if (!lamp) {
+		alb *= v_tint;   // RINT-M2 (A-19): Arcade multiplies the sprite by the placement tint; lamps keep their colour
 	}
 	coat *= coat_strength * gloss;
 	if (coat > 0.0) {

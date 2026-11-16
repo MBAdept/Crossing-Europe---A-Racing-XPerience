@@ -36,6 +36,13 @@ global uniform vec2 ce_fog_range;
 
 #include "res://assets/shaders/modern/inc/fog_law.gdshaderinc"
 
+// RINT-M2 (A-19): the placement tint of the model (MultiMesh custom data r, g, b, 1 – builders/props.gd); white without
+varying vec3 v_tint;
+
+void vertex() {
+	v_tint = INSTANCE_CUSTOM.a > 0.5 ? INSTANCE_CUSTOM.rgb : vec3(1.0);
+}
+
 void fragment() {
 	float dist = length(VERTEX);
 	float lm_l = 0.0;
@@ -60,6 +67,7 @@ void fragment() {
 		}
 	}
 	vec4 a = texture(albedo_tex, UV);
+	a.rgb *= v_tint;    // Arcade multiplies the sprite by the placement tint (sRGB, as the sprite)
 #ifdef CE_CUTOUT
 	if (a.a < 0.5) {
 		discard;
