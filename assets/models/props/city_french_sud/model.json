@@ -23,7 +23,7 @@
    {
     "name": "lod1",
     "max_dist_m": 100000,
-    "tris": 3616,
+    "tris": 3636,
     "parts": [
      {
       "node": "body",
@@ -37,8 +37,8 @@
   "roughness": 0.88,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "french", "outskirts"],
-  "bytes": 1117998,
-  "hash": "232e7b137e0361d40a2c703d856d55b0d686a2dd"
+  "bytes": 1118451,
+  "hash": "682276a539d3969953676f88b9832887a87a3d34"
  },
  "sets": {
   "props/city_french_sud": {"model": "props/city_french_sud"}
