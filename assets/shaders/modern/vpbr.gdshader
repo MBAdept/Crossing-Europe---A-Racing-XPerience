@@ -112,8 +112,40 @@ uniform float flake_near_m = 14.0;            // flakes fade out towards this di
 // the rotors stand still with the paused game.
 uniform float rotor_speed = 1.35;             // rad/s
 
+// R4: snow lies on what faces up (a guardrail's top, a roof, a pylon's ledge) on a snow stage – static models only:
+// ModernMaterials.static_code() gives the variant VPBR_STATIC snow_cover 1, vehicles keep 0. Snow albedo (display),
+// darker at night by snow_night (the moon would otherwise light it far above Arcade's night, R4 night law).
+uniform float snow_cover = 0.0;
+// R4 paint exposure (art review KRITIK-2 A1, M2INT note 6: the cars read flat and too bright – the Gran Turismo's rear
+// bumper +50 % against its sprite in the overcast rain): the ambient light of a body comes from the sky above, not
+// from the road below – vertical faces get hemi_side, faces turned down hemi_down of it (AO, ambient only; 1 = off,
+// the neutral default of the contact sheet); and the player's fill lights only what the sun does not (fill_shade:
+// how much a face turned towards the sun loses of it).
+uniform float hemi_side = 1.0;
+uniform float hemi_down = 1.0;
+uniform float fill_shade = 0.0;
+// R4 night fill of the player car (art review KRITIK-2 A2): share of the fill that lights the clear coat evenly at
+// night (neutral sheen, × ce_night; 0 = off, the neutral default)
+uniform float fill_sheen = 0.0;
+// … and how much of the paint's own hue that sheen carries (0 = the colour of the ambient light, the neutral default;
+// 1 = the paint's chroma at the ambient light's luminance): a neutral sheen in the blue night light turned the amber
+// kompakt cream and the blue limousine grey – Arcade's sprites keep their paint saturated at night
+uniform float fill_sheen_tint = 0.0;
+// FIX-R4 (QA-R4 B7): … taken from the paint washed this much towards its own luminance – Arcade's player sprites are
+// rendered in a studio light that washes their paint (FIX-M2 B-06 measured it by day); with the model's full chroma
+// the dark-blue limousine read royal blue at night (saturation 1.38 × its sprite at DEV 21:00). 0 = the paint as it is
+uniform float sheen_wash = 0.0;
+// … and inside a tunnel (ce_tunnel; there ce_night is 1 for the lamps, but the light is the tunnel's, not the night
+// sky's): the fill keeps this share of its day value and the sheen is off (1.0 = neutral)
+uniform float fill_tunnel = 1.0;
+uniform vec3 snow_albedo = vec3(0.86, 0.88, 0.91);
+uniform float snow_night = 0.3;
+
 global uniform float ce_night;
+global uniform float ce_tunnel;
+global uniform float ce_snow;
 global uniform vec4 ce_ambient;               // linear ambient light (ModernMaterials.light_value), for `fill`
+global uniform vec3 ce_sun_dir;
 global uniform float ce_time;
 global uniform vec3 ce_headlight_pos;         // the player's low beam (layer "lights"): channel 15
 global uniform vec3 ce_headlight_dir;
@@ -302,7 +334,48 @@ void fragment() {
 		alb *= paint_base;          // the base coat under the clear coat
 	}
 	float night = clamp(ce_night, 0.0, 1.0);
-	vec3 fill_light = fill > 0.0 ? to_lin(alb) * ce_ambient.rgb * fill * mix(1.0, fill_night, night) : vec3(0.0);
+	if (snow_cover > 0.0 && ce_snow > 0.0 && !lamp) {
+		// R4: snow on the faces that look up
+		float up = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz).y;
+		float k = clamp(ce_snow, 0.0, 1.0) * snow_cover * smoothstep(0.45, 0.8, up);
+		alb = mix(alb, snow_albedo * (1.0 - snow_night * night), k);
+		rough = mix(rough, 0.9, k);
+		metal = mix(metal, 0.0, k);
+	}
+	// the night of the sky, not the tunnel's (ce_night = max(night, tunnel) keeps the lamps of a tunnel lit)
+	float tun = clamp(ce_tunnel, 0.0, 1.0);
+	float sky_night = night * (1.0 - tun);
+	float fill_k = mix(mix(1.0, fill_night, sky_night), fill_tunnel, tun);
+	vec3 fill_light = fill > 0.0 ? to_lin(alb) * ce_ambient.rgb * fill * fill_k : vec3(0.0);
+	if (fill > 0.0 && fill_shade > 0.0) {
+		vec3 nf = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
+		fill_light *= 1.0 - fill_shade * clamp(dot(nf, normalize(ce_sun_dir)), 0.0, 1.0);
+	}
+	float hemi = 1.0;
+	if (hemi_side < 0.999 || hemi_down < 0.999) {
+		float ny = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz).y;
+		hemi = ny >= 0.0 ? mix(hemi_side, 1.0, ny) : mix(hemi_side, hemi_down, -ny);
+		AO = hemi;
+		AO_LIGHT_AFFECT = 0.0;
+		fill_light *= hemi;
+	}
+	if (fill > 0.0 && fill_sheen > 0.0 && coat > 0.0) {
+		// R4 night fill (art review KRITIK-2 A2): at night the player's fill also shows as an even sheen on the clear
+		// coat, as the studio sheen keeps a dark paint of Arcade's sprites readable; tinted by fill_sheen_tint towards
+		// the paint's chroma in the ambient light's colour (Arcade's law: sprite × ambient tint) at the ambient light's
+		// luminance – a silver paint keeps the blue of the night, an amber one its amber (chroma: luma 1, ≤ 4 per channel)
+		vec3 sheen = ce_ambient.rgb;
+		if (fill_sheen_tint > 0.0) {
+			const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);
+			float amb_l = max(dot(sheen, LUMA), 1.0e-5);
+			vec3 amb_c = sheen / amb_l;
+			vec3 pcol = to_lin(mix(alb, vec3(dot(alb, LUMA)), clamp(sheen_wash, 0.0, 1.0)));
+			vec3 tinted = amb_c * min(pcol / max(dot(pcol, LUMA), 0.01), vec3(4.0));
+			tinted /= max(dot(tinted, LUMA), 0.01);
+			sheen = amb_l * mix(amb_c, tinted, clamp(fill_sheen_tint, 0.0, 1.0));
+		}
+		fill_light += sheen * fill * fill_sheen * sky_night * coat * hemi;
+	}
 	// mirrored environment: clear coat (Fresnel of a 1.5 coat), metals (tinted by their colour), glossy parts
 	vec3 refl = vec3(0.0);
 	if (env_energy > 0.0) {

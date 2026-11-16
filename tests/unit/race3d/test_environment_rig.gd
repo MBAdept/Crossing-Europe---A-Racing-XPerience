@@ -119,11 +119,14 @@ func test_where_the_sun_stands() -> void:
 	assert_true(turned.distance_to(to_noon) < 1.0e-5, "die Sonne schwenkt nicht mit den Kurven")
 	var only_road: Vector3 = Rig.light_state(noon, 0.0, 0.7, 0.0)["to_sun"]
 	assert_true(only_road.distance_to(to_noon) > 0.3, "… wohl aber mit der Straße gegen das Panorama")
-	# the backdrop draws the sun where the light comes from
+	# R4 (lead decision, "Keine Sonnenscheibe"): the backdrop draws the disc where Arcade draws it – at noon ahead,
+	# while the light comes from behind the left shoulder; at a low sun disc and light agree exactly
 	var rig: Node3D = Rig.new()
 	var sky: Dictionary = rig.call("sky_palette", noon)
-	assert_near((sky["sun_pos"] as Vector2).x * Rig.AZIMUTH_GAIN, float(st_noon["azimuth"]), 1.0e-6, "sky_palette(): die Sonnenscheibe steht im Azimut des Lichts")
-	assert_eq((sky["sun_pos"] as Vector2).y, (noon["sun_pos"] as Vector2).y, "… in der Höhe der Palette")
+	assert_eq(sky["sun_pos"], noon["sun_pos"], "sky_palette(): die Sonnenscheibe steht an Arcades Stelle")
+	assert_true(absf((sky["sun_pos"] as Vector2).x * Rig.AZIMUTH_GAIN) < 0.5, "… mittags vorn im Bild (Arcades Panorama)")
+	var sky_rise: Dictionary = rig.call("sky_palette", rise)
+	assert_near((sky_rise["sun_pos"] as Vector2).x * Rig.AZIMUTH_GAIN, float(st_rise["azimuth"]), 1.0e-6, "tiefe Sonne: Scheibe und Licht im selben Azimut")
 	assert_eq(noon["sun_pos"], Palette.compute(13.0, "normal", _daytime(), false)["sun_pos"], "die Palette der Ansicht bleibt unberührt")
 	assert_true(rig.get("sun") is DirectionalLight3D and (rig.get("sun") as DirectionalLight3D).shadow_enabled, "genau ein gerichtetes Licht, immer mit Schatten (D5)")
 	var lights := 0
@@ -162,6 +165,15 @@ func test_night_moon_and_floor() -> void:
 	assert_near(float(night["ref"]), Rig.REF_NIGHT, 1.0e-6, "nachts gilt die dunklere Bezugs-Albedo (Nachtschwelle)")
 	var rain_night := Rig.light_state(Palette.compute(23.0, "rain", _daytime(), false), 0.0, 0.0, 0.0)
 	assert_eq(float(rain_night["share"]), 0.0, "Regennacht: kein Mond")
+	# R4 night law for vertical faces: the moon's light falls from at least MOON_MIN_ELEV_DEG at every night hour – a wall
+	# turned towards it gets less moonlight than level ground (M2ZS1: the pylon 40 % above Arcade under a low moon)
+	for hour: float in [21.0, 22.0, 23.5, 1.0, 3.0, 4.5]:
+		var st_n := Rig.light_state(Palette.compute(hour, "normal", _daytime(), false), 0.0, 0.0, 0.0)
+		if not bool(st_n["moon"]):
+			continue
+		var up := (st_n["to_sun"] as Vector3).y
+		assert_true(rad_to_deg(asin(up)) >= Rig.MOON_MIN_ELEV_DEG - 0.01, "%.1f Uhr: Mondlicht von oben (%.1f°)" % [hour, rad_to_deg(asin(up))])
+		assert_true(sqrt(1.0 - up * up) < up, "%.1f Uhr: eine Wand zum Mond bekommt weniger als ebener Boden" % hour)
 	# dusk: the sun's part is gone before the moon's begins – never two lights, never a jump
 	var last := -1.0
 	for i in 61:
@@ -210,10 +222,64 @@ func test_tunnel_ramp() -> void:
 	assert_eq(Rig.tunnel_blend(null, 400.0), 0.0, "ohne Strecke: 0")
 
 
+## R4: set_zone(kind, amount) – the interface the structure builders (R5) call duck-typed. Without a call the rig
+## takes the tunnel from the plan (tunnel_blend); a "tunnel" zone replaces that and blends light, fog and globals.
+func test_set_zone() -> void:
+	var t: Track = SynTrack.new()
+	t.fill(cfg(), SynTrack.straight(900), PackedFloat32Array(), {"tunnel": [300, 500]})
+	var rig: Node = Rig.new()
+	rig.set("_track", t)
+	var pal := Palette.compute(12.0, "normal", _daytime())
+	var outside := {"palette": pal, "camera_z": 100.0 * t.seg_len, "visibility_m": 900.0, "time": 1.0}
+	var inside := {"palette": pal, "camera_z": 400.0 * t.seg_len, "visibility_m": 900.0, "time": 1.0}
+	assert_true(rig.has_method("set_zone") and rig.has_method("zone"), "set_zone() und zone() gibt es")
+	rig.call("update", inside, 0.0)
+	var st: Dictionary = rig.get("state")
+	assert_eq(float(st["tunnel01"]), 1.0, "ohne set_zone: der Tunnel des Etappenplans gilt (tunnel_blend)")
+	rig.call("update", outside, 0.0)
+	st = rig.get("state")
+	assert_eq(float(st["tunnel01"]), 0.0, "ohne set_zone: draußen Tageslicht")
+	var sun: DirectionalLight3D = rig.get("sun")
+	var day_energy := sun.light_energy
+	assert_true(day_energy > 0.0, "draußen scheint die Sonne")
+	rig.call("set_zone", "tunnel", 1.0)
+	rig.call("update", outside, 0.0)
+	st = rig.get("state")
+	assert_eq(float(st["tunnel01"]), 1.0, "set_zone(\"tunnel\", 1): Tunnel, auch wo der Plan keinen kennt")
+	assert_eq(sun.light_energy, 0.0, "im Tunnel keine Sonne (Energie 0)")
+	assert_true(sun.shadow_enabled and sun.visible, "das eine Schattenlicht bleibt (D5)")
+	assert_true((st["fog_color"] as Color).is_equal_approx(Palette.TUNNEL_FOG), "Tunnelnebel")
+	assert_near(float(st["fog_begin"]), Rig.TUNNEL_FOG_BEGIN_M, 1.0e-4, "Tunnelnebel ab 12 m")
+	var env_d: Color = st["display"]
+	assert_true(env_d.is_equal_approx(Palette.TUNNEL_AMBIENT), "Tunnellicht (Palette.TUNNEL_AMBIENT)")
+	rig.call("set_zone", "tunnel", 0.0)
+	rig.call("update", inside, 0.0)
+	st = rig.get("state")
+	assert_eq(float(st["tunnel01"]), 0.0, "set_zone(\"tunnel\", 0): offen, auch wo der Plan einen Tunnel hat")
+	assert_near(sun.light_energy, day_energy, 1.0e-5, "… mit derselben Sonne wie draußen")
+	rig.call("set_zone", "tunnel", 0.5)
+	rig.call("update", outside, 0.0)
+	st = rig.get("state")
+	assert_near(float(st["tunnel01"]), 0.5, 1.0e-6, "Zwischenwerte gehen durch")
+	assert_true(sun.light_energy > 0.0 and sun.light_energy < day_energy, "… halbe Sonne")
+	rig.call("set_zone", "tunnel", 7.0)
+	assert_eq(float(rig.call("zone", "tunnel")), 1.0, "Werte werden auf 0..1 begrenzt")
+	rig.call("set_zone", "tunnel", -1.0)
+	assert_eq(float(rig.call("zone", "tunnel")), 0.0, "… auch nach unten")
+	assert_eq(float(rig.call("zone", "unbekannt", 0.25)), 0.25, "eine Art, die keiner gesetzt hat: der Rückfallwert")
+	rig.call("set_zone", "bruecke_x", 1.0)
+	rig.call("update", outside, 0.0)
+	var snap: Dictionary = (rig.call("snapshot") as Dictionary)["environment"]
+	assert_true((snap["zones"] as Dictionary).has("bruecke_x"), "fremde Arten stehen im Schnappschuss und ändern nichts")
+	rig.free()
+
+
 func test_wind_and_sun_azimuth() -> void:
 	var calm := Rig.wind(12.0, 0.0, 0.0)
 	var storm := Rig.wind(12.0, 1.0, 0.0)
 	assert_true(storm.z > calm.z and calm.z > 0.0, "Regen und Schnee: mehr Wind")
+	assert_true(Rig.wind(12.0, 0.0, 0.0, 1.0).z > calm.z, "über offenem Wasser (Zone \"bridge\"): mehr Wind")
+	assert_eq(Rig.wind(12.0, 0.0, 1.0, 1.0).z, 0.0, "… aber nie im Tunnel")
 	assert_near(Vector2(calm.x, calm.y).length(), 1.0, 1.0e-5, "Windrichtung ist ein Einheitsvektor")
 	assert_eq(Rig.wind(12.0, 1.0, 1.0).z, 0.0, "im Tunnel steht die Luft")
 	assert_eq(Rig.wind(5.0, 0.3, 0.0), Rig.wind(5.0, 0.3, 0.0), "gleiche Zeit, gleicher Wind (keine Uhr)")
@@ -224,3 +290,33 @@ func test_wind_and_sun_azimuth() -> void:
 		var a := Rig.sun_azimuth(Vector2(0.0, float(i) / 20.0))
 		assert_true(a <= last + 1.0e-6, "der Schwenk wächst mit der Höhe")
 		last = a
+
+
+func test_exit_ramp() -> void:
+	assert_eq(Rig.exit_glare(0.0), 0.0, "an und hinter der Ausfahrt kein Viereck")
+	assert_near(Rig.exit_glare(5.0), Rig.EXIT_GLARE_NEAR, 1.0e-6, "am Portal: EXIT_GLARE_NEAR")
+	assert_near(Rig.exit_glare(500.0), Rig.EXIT_GLARE_FAR, 1.0e-6, "fern: EXIT_GLARE_FAR")
+	assert_true(Rig.EXIT_GLARE_NEAR >= 0.3, "bis zum Portal deutlich überstrahlt (Arcade: draußen hell, solange die Kamera drin ist)")
+	var last := 0.0
+	for i in 31:
+		var g := Rig.exit_glare(10.0 + float(i) * 5.0)
+		assert_true(g >= last - 1.0e-6, "die Überstrahlung wächst mit der Entfernung der Ausfahrt")
+		last = g
+	assert_near(Rig.exit_after(0.0), Rig.EXIT_AFTER, 1.0e-6, "direkt nach der Ausfahrt: EXIT_AFTER")
+	assert_eq(Rig.exit_after(-1.0), 0.0, "vor der Ausfahrt nichts")
+	assert_eq(Rig.exit_after(Rig.EXIT_AFTER_M), 0.0, "nach EXIT_AFTER_M vorbei")
+	assert_true(Rig.exit_after(20.0) < Rig.EXIT_AFTER and Rig.exit_after(20.0) > Rig.exit_after(40.0), "klingt mit dem Weg ab")
+	# FIX-R4 (QA-R4 B4/B6): the after-glow ends smoothly (no jump at EXIT_AFTER_M) and never lasts longer than
+	# EXIT_AFTER_S – a car standing behind an exit is not over-exposed for good
+	assert_true(Rig.exit_after(Rig.EXIT_AFTER_M - 0.5) < 0.02, "stetig: kurz vor EXIT_AFTER_M fast 0 (%.3f)" % Rig.exit_after(Rig.EXIT_AFTER_M - 0.5))
+	var prev := Rig.exit_after(0.0)
+	for i in 120:
+		var a := Rig.exit_after(float(i + 1) * 0.5)
+		assert_true(prev - a < 0.02, "kein Sprung zwischen %.1f und %.1f m (%.3f -> %.3f)" % [float(i) * 0.5, float(i + 1) * 0.5, prev, a])
+		prev = a
+	assert_near(Rig.exit_after_timed(0.0, 0.0), Rig.EXIT_AFTER, 1.0e-6, "zeitlich: am Portal EXIT_AFTER")
+	assert_eq(Rig.exit_after_timed(10.0, Rig.EXIT_AFTER_S), 0.0, "stehendes Auto 10 m hinter der Ausfahrt: nach EXIT_AFTER_S vorbei")
+	assert_true(Rig.exit_after_timed(10.0, Rig.EXIT_AFTER_S - 0.05) < 0.02, "zeitlich stetig (%.3f)" % Rig.exit_after_timed(10.0, Rig.EXIT_AFTER_S - 0.05))
+	assert_near(Rig.exit_after_timed(30.0, 30.0 / 38.9), Rig.exit_after(30.0), 1.0e-6, "bei 140 km/h entscheidet der Weg (Look von R4)")
+	assert_true(Rig.exit_after_timed(10.0, 1.0) < Rig.exit_after(10.0), "bei 36 km/h entscheidet die Zeit")
+	assert_eq(Rig.exit_after_timed(-1.0, 0.0), 0.0, "vor der Ausfahrt nichts")

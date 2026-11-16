@@ -53,6 +53,13 @@ const SIDE_TO := 0.75              ## … and where it is complete
 const ELEV_MIN_DEG := 13.0         ## elevation of the light at height 0 (a flatter light gives endless shadows)
 const ELEV_MAX_DEG := 46.0         ## … and at height 1: long enough shadows to see them from the chase camera
 const OVERCAST_ELEV_DEG := 68.0    ## rain / snow: what is left of the directed light falls from above
+## R4 night law for vertical faces (lead decision 8 of wave 3): the moon's light falls from at least this high. A low
+## moon lit the walls that face it far more than level ground (cos 30° / sin 30° = 1.7 × at 22:00; M2ZS1 measured
+## the light-concrete pylon of the Köhlbrandbrücke 40 % above Arcade, whose night is ambient light only), and the law
+## of the light split is made for level ground. From 55° up a vertical face gets at most 0.7 × what level ground gets –
+## every bright wall, bridge part and car body stays at or below the level ground's share. The moon in the sky
+## (backdrop) stays where the palette puts it.
+const MOON_MIN_ELEV_DEG := 55.0
 const SHARE_DAY := 0.5             ## directed part of the display value on level ground under a clear day sky
 const SHARE_MOON := 0.2            ## … as moonlight in a clear night
 const OVERCAST_CUT := 0.75         ## rain / snow: this much of the directed part becomes diffuse
@@ -78,8 +85,72 @@ const GLOW_INTENSITY := 0.55
 const GLOW_THRESHOLD := 1.0
 const SSAO_RADIUS := 1.2
 const SSAO_INTENSITY := 1.4
+## R4: exposure ramp at a tunnel exit by day (Arcade: eyes adapted to the tunnel – the outside looks over-exposed,
+## RoadRenderer: ambient × 1.7 + 0.25, fog 55 % towards white). A quad across the exit portal, depth tested (the
+## tube hides it outside the opening), over-exposes everything seen through the opening with the strength
+## EXIT_GLARE_FAR while the exit is far, EXIT_GLARE_NEAR right at the portal (the eyes are still adapted to the tube –
+## it stays bright up to the portal, as Arcade's outside stays over-exposed while the camera is inside); after the
+## exit the whole picture is over-exposed for EXIT_AFTER_M of the camera's way (EXIT_AFTER at the portal: the eyes
+## adapt in about 1.5 s at 140 km/h). By day only (the ambient's luminance from EXIT_DAY_FROM to EXIT_DAY_TO); a
+## function of the camera position, no clock. (First pictures with 0.12 at the portal and 0.22 after it: the exit
+## read normal.) The over-exposure is Arcade's law on what lies behind (screen texture): display value × (1 + gain)
+## + lift, the brightest parts burning out towards EXIT_GLARE_COLOR – EXIT_GAIN / EXIT_LIFT at the strength
+## EXIT_GLARE_FAR (1.7 × + 0.25 there, Arcade's outside palette). A plain mix towards white (the first version) read
+## milky – a pale veil over grey-green grass where Arcade shows bright lime-green grass.
+const EXIT_GLARE_FAR := 0.6
+const EXIT_GLARE_NEAR := 0.45
+const EXIT_NEAR_M := 10.0
+const EXIT_FAR_M := 150.0
+const EXIT_AFTER := 0.4
+const EXIT_AFTER_M := 60.0
+## FIX-R4 (QA-R4 B6): … and for at most this long after the camera passed the portal (view.time; the crossing time is
+## estimated from the speed, so a stage that starts behind an exit shows none): a car standing behind an exit (a jam,
+## a crash, a police stop) stayed over-exposed for good. Whichever of way and time is further along decides – above
+## 108 km/h the way (the look of R4), below it the time.
+const EXIT_AFTER_S := 2.0
+const EXIT_DAY_FROM := 0.35
+const EXIT_DAY_TO := 0.75
+const EXIT_GLARE_COLOR := Color(1.0, 1.0, 0.97)
+const EXIT_GAIN := 0.7
+const EXIT_LIFT := 0.25
+const EXIT_QUAD_H := 9.0           ## the glare quad reaches this high above the road (tube ceiling 6.2 m)
+## … and stands at least this far beyond the front of the player's car: when the car has already left the tube, the
+## outside behind it is over-exposed but the car is not veiled (Arcade's player sprite stays as it is; seen from inside
+## the tube, the portal still frames the quad)
+const EXIT_CAR_GAP_M := 1.5
 const POST_EXACT := true           ## the post path carries post_lut(): it shows what the passes wrote (RINT-B)
 const POST_LUT_SIZE := 256         ## texels of the 1D LUT (half floats; texel j belongs to the input (j + 0.5) / size)
+
+## (the exposure law of both: `glare` rgb = the white the brightest parts burn out to, a = strength 0..1 (1 at
+## EXIT_GLARE_FAR); the colour behind is a display value in both the 3D pass and the canvas – fragment() hands
+## display values to the engine, docs/modelle.md §4)
+const GLARE_LAW := """
+uniform vec4 glare = vec4(1.0, 1.0, 0.97, 0.0);
+uniform float gain = 0.7;
+uniform float lift = 0.25;
+vec3 over_expose(vec3 c) {
+	float s = clamp(glare.a, 0.0, 1.5);
+	vec3 e = c * (1.0 + gain * s) + vec3(lift * s);
+	float top = max(e.r, max(e.g, e.b));
+	return mix(min(e, vec3(1.0)), glare.rgb, smoothstep(1.0, 1.8, top) * 0.5);
+}
+"""
+const GLARE_SHADER := """shader_type spatial;
+render_mode unshaded, blend_mix, depth_draw_never, cull_disabled, fog_disabled, shadows_disabled;
+uniform sampler2D screen_tex : hint_screen_texture, filter_nearest;
+""" + GLARE_LAW + """
+void fragment() {
+	ALBEDO = over_expose(texture(screen_tex, SCREEN_UV).rgb);
+	ALPHA = 1.0;
+}
+"""
+const AFTER_SHADER := """shader_type canvas_item;
+uniform sampler2D screen_tex : hint_screen_texture, filter_nearest;
+""" + GLARE_LAW + """
+void fragment() {
+	COLOR = vec4(over_expose(texture(screen_tex, SCREEN_UV).rgb), 1.0);
+}
+"""
 
 var environment: Environment
 var sun: DirectionalLight3D
@@ -104,6 +175,17 @@ var _light_sig: Array = []         ## what the light of the last frame was compu
 var _sent: Dictionary = {}         ## ce_* globals as they were set last (only changes are sent)
 var _cover := false
 var _nolight := false
+## set_zone(): kind -> amount 0..1 as the owner of the zone set it last (a kind nobody set is absent)
+var _zones: Dictionary = {}
+var _glare: MeshInstance3D         ## R4: the exposure quad of a tunnel exit (null until the first tunnel)
+var _glare_mat: ShaderMaterial
+var _after: ColorRect              ## R4: over-exposure of the whole picture just after a tunnel exit
+var _after_mat: ShaderMaterial
+var _after_warm := 0               ## R4: updates the after-glow layer stays drawn at strength 0 (shader warm-up)
+var _after_layer: CanvasLayer
+var _exit_state := Vector2.ZERO    ## (glare alpha, after-glow alpha) of the last update()
+var _after_exit_z := -1.0e9         ## FIX-R4: road z of the exit the camera is behind (after-glow clock) …
+var _after_t0 := 0.0                ## … and the view time it passed that exit
 
 
 func _init() -> void:
@@ -214,11 +296,35 @@ func quality_lowered(levels: Dictionary) -> void:
 	environment.reflected_light_source = Environment.REFLECTION_SOURCE_SKY if _sky_reflections else Environment.REFLECTION_SOURCE_DISABLED
 
 
+## Zones of the structure builders (contract §6 R5, lead decision of wave 3): the builder that knows where its
+## structure begins and ends tells the rig how much the camera is inside it – duck-typed, every frame it matters:
+##   var env = renderer.get("env"); if env != null and env.has_method("set_zone"): env.call("set_zone", "tunnel", a)
+## kind "tunnel": amount 0 (open air) .. 1 (inside) blends the light to the tunnel's (Palette.TUNNEL_AMBIENT, sun
+## energy 0), the fog to Arcade's tunnel law (Palette.TUNNEL_FOG from 12 m over render.tunnel.darkness_m) and the
+## ce_* globals (ce_tunnel = amount; ce_wet, ce_snow and the wind go to 0); the backdrop shows no sky while the
+## exit is out of sight, and towards the exit the outside looks over-exposed (exposure ramp, exit_glare()).
+## kind "bridge": amount 0..1 over open water – the wind blows stronger (ce_wind).
+## Any other kind is kept and reported in snapshot() but changes nothing. The value holds until the next call of the
+## same kind; amounts are clamped to 0..1. As long as nobody calls set_zone("tunnel", …) in a stage the rig derives
+## the tunnel itself from the plan's tunnel list (tunnel_blend(), a function of the camera position) – exactly the
+## light of the minimal tube. The call is cheap (a dictionary write); the rig reads it in its next update(), which
+## runs before the builders' update() of the frame: a zone set by a builder's update() acts one frame later.
+func set_zone(kind: String, amount: float) -> void:
+	_zones[kind] = clampf(amount, 0.0, 1.0)
+
+
+## The amount of a zone as it was set last, or `fallback` when nobody set that kind in this stage.
+func zone(kind: String, fallback: float = 0.0) -> float:
+	return float(_zones.get(kind, fallback))
+
+
 func update(view: Dictionary, _dt: float) -> void:
 	var pal: Dictionary = view.get("palette", {})
 	var cam_z := float(view.get("camera_z", 0.0))
 	var tunnel01 := 1.0 if bool(view.get("camera_in_tunnel", false)) else 0.0
-	if _track != null:
+	if _zones.has("tunnel"):
+		tunnel01 = float(_zones["tunnel"])
+	elif _track != null:
 		tunnel01 = tunnel_blend(_track, cam_z + 1.0)
 	if _renderer != null:
 		var path: RoadPath3D = _renderer.get("path")
@@ -266,6 +372,9 @@ func update(view: Dictionary, _dt: float) -> void:
 	var t := float(view.get("time", 0.0))
 	_update_sky(pal, fog_color, tunnel01, t)
 	st["sky_updates"] = _sky_updates
+	_update_exit(view, pal, tunnel01, fog_out)
+	st["exit_glare"] = _exit_state.x
+	st["exit_after"] = _exit_state.y
 	state = st
 	var night := float(pal.get("lights", 0.0))
 	var overcast := float(pal.get("overcast", 0.0))
@@ -273,7 +382,7 @@ func update(view: Dictionary, _dt: float) -> void:
 	_send("ce_night", maxf(night, tunnel01))
 	_send("ce_wet", float(pal.get("wet", 0.0)) * (1.0 - tunnel01))
 	_send("ce_snow", float(pal.get("snow", 0.0)) * (1.0 - tunnel01))
-	_send("ce_wind", wind(t, overcast, tunnel01))
+	_send("ce_wind", wind(t, overcast, tunnel01, zone("bridge")))
 	_send("ce_fog_color", fog_color)
 	_send("ce_fog_range", Vector2(begin, end))
 	_send("ce_sun_dir", to_sun)
@@ -281,6 +390,177 @@ func update(view: Dictionary, _dt: float) -> void:
 	_send("ce_ambient", st["ambient"])
 	_send("ce_ambient_display", st["display"])
 	_send("ce_tunnel", tunnel01)
+	# R4: the sky wet ground mirrors (display values; inside a tunnel its darkness)
+	if not pal.is_empty():
+		_send("ce_sky_top", (pal.get("sky_top", Color.BLACK) as Color).lerp(Palette.TUNNEL_FOG, tunnel01))
+		_send("ce_sky_horizon", (pal.get("sky_bottom", Color.BLACK) as Color).lerp(Palette.TUNNEL_AMBIENT * 0.35, tunnel01))
+
+
+## R4: the exposure ramp of a tunnel exit (EXIT_* above): the glare quad across the exit portal while the camera is
+## inside a tunnel whose exit is within the sight, the over-exposure of the whole picture just after the exit. Only
+## with a tunnel builder (its tube hides the quad outside the opening) and by day.
+func _update_exit(view: Dictionary, pal: Dictionary, tunnel01: float, fog_out: Color) -> void:
+	_exit_state = Vector2.ZERO
+	if _track == null or _track.plan == null or _track.plan.tunnels.is_empty() or _renderer == null or _cover:
+		_show_exit(Vector2.ZERO, null, 0.0, fog_out)
+		return
+	var day := smoothstep(EXIT_DAY_FROM, EXIT_DAY_TO, Palette.luminance(pal.get("ambient", Color.BLACK)))
+	var path: RoadPath3D = _renderer.get("path")
+	if day <= 0.0 or path == null or not path.is_ready() or _renderer.call(&"builder", "tunnel") == null:
+		_show_exit(Vector2.ZERO, null, 0.0, fog_out)
+		return
+	var cam_z := float(view.get("camera_z", 0.0))
+	var vis := float(view.get("visibility_m", 900.0))
+	var exit := exit_ahead(_track, cam_z, vis)
+	var glare := 0.0
+	var z_exit := 0.0
+	if not exit.is_empty() and tunnel01 > 0.5:
+		z_exit = float(exit["z"])
+		glare = day * exit_glare(z_exit - cam_z)
+	var behind := exit_behind(_track, cam_z)
+	var time := float(view.get("time", 0.0))
+	if behind >= 0.0:
+		var z1 := cam_z - behind
+		if absf(z1 - _after_exit_z) > 0.5 or _after_t0 > time:
+			# a new exit behind the camera: when did the camera pass it (now minus the way at the current speed)
+			_after_exit_z = z1
+			_after_t0 = time - behind / maxf(float(view.get("speed", 0.0)) / 3.6, 1.0)
+	else:
+		_after_exit_z = -1.0e9
+	var after := day * exit_after_timed(behind, time - _after_t0)
+	_exit_state = Vector2(glare, after)
+	var pl: Dictionary = view.get("player", {})
+	var z_quad := z_exit - 0.6
+	if not pl.is_empty():
+		z_quad = maxf(z_quad, float(pl.get("z", 0.0)) + float(pl.get("length", 4.5)) + EXIT_CAR_GAP_M)
+	_show_exit(_exit_state, path if glare > 0.0 else null, z_quad, fog_out)
+
+
+## Alpha of the glare quad for an exit `d` metres ahead of the camera (pure): EXIT_GLARE_FAR far away, EXIT_GLARE_NEAR
+## at the portal.
+static func exit_glare(d: float) -> float:
+	if d <= 0.0:
+		return 0.0
+	return lerpf(EXIT_GLARE_NEAR, EXIT_GLARE_FAR, smoothstep(EXIT_NEAR_M, EXIT_FAR_M, d))
+
+
+## Alpha of the over-exposure of the whole picture `d` metres after a tunnel exit (pure; d < 0: none).
+static func exit_after(d: float) -> float:
+	if d < 0.0 or d >= EXIT_AFTER_M:
+		return 0.0
+	return EXIT_AFTER * (1.0 - smoothstep(0.0, EXIT_AFTER_M, d))
+
+
+## FIX-R4 (QA-R4 B6): the after-glow `d` metres and `dt` seconds after the camera passed the exit (pure): it fades
+## with whichever of the two is further along (EXIT_AFTER_M, EXIT_AFTER_S) – never longer than EXIT_AFTER_S.
+static func exit_after_timed(d: float, dt: float) -> float:
+	if d < 0.0 or d >= EXIT_AFTER_M or dt >= EXIT_AFTER_S:
+		return 0.0
+	var u := maxf(d / EXIT_AFTER_M, maxf(dt, 0.0) / EXIT_AFTER_S)
+	return EXIT_AFTER * (1.0 - smoothstep(0.0, 1.0, u))
+
+
+## The exit of the tunnel the camera is in, when it lies within `vis` metres: {"z": road z of the exit}; else {}.
+static func exit_ahead(track: Track, cam_z: float, vis: float) -> Dictionary:
+	if track == null or track.plan == null:
+		return {}
+	for t: Dictionary in track.plan.tunnels:
+		var z0 := track.km_to_z(float(t["start_km"]))
+		var z1 := minf(track.km_to_z(float(t["end_km"])), track.length_z)
+		if cam_z >= z0 and cam_z < z1 and z1 - cam_z <= vis:
+			return {"z": z1}
+	return {}
+
+
+## Metres the camera is past the exit of a tunnel (-1 when it is not just behind one, EXIT_AFTER_M at most).
+static func exit_behind(track: Track, cam_z: float) -> float:
+	if track == null or track.plan == null:
+		return -1.0
+	for t: Dictionary in track.plan.tunnels:
+		var z1 := minf(track.km_to_z(float(t["end_km"])), track.length_z)
+		var d := cam_z - z1
+		if d >= 0.0 and d < EXIT_AFTER_M:
+			return d
+	return -1.0
+
+
+## (z_quad: road z of the glare quad – just inside the exit portal, or beyond the player's car)
+func _show_exit(a: Vector2, path: RoadPath3D, z_quad: float, fog_out: Color) -> void:
+	var col := fog_out.lerp(EXIT_GLARE_COLOR, 0.7)
+	if a.x > 0.0 and path != null:
+		if _glare == null:
+			_glare = _glare_node()
+			add_child(_glare)
+		var edges := _track.road_edges_at(z_quad) if _track.has_method(&"road_edges_at") else Vector2(-8.0, 8.0)
+		var w := (edges.y - edges.x) + 2.0 * 2.5 + 8.0
+		var centre := (edges.x + edges.y) * 0.5
+		# (the rig stands at the renderer's origin with no transform: local = origin-relative world)
+		var fr := path.frame_at(z_quad, centre, EXIT_QUAD_H * 0.5 - 0.5)
+		_glare.transform = Transform3D(fr.basis * Basis.from_scale(Vector3(w, EXIT_QUAD_H, 1.0)), fr.origin)
+		_glare_mat.set_shader_parameter(&"glare", Vector4(col.r, col.g, col.b, a.x / EXIT_GLARE_FAR))
+		_glare.visible = true
+	elif _glare != null:
+		_glare.visible = false
+	if a.y > 0.0 or _after_warm > 0:
+		_after_warm = maxi(_after_warm - 1, 0)
+		if _after == null:
+			_after_layer = CanvasLayer.new()
+			_after_layer.layer = 1
+			_after_layer.name = "ExitGlare"
+			_after = ColorRect.new()
+			_after.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			_after_mat = _glare_material(AFTER_SHADER)
+			_after.material = _after_mat
+			_after.set_anchors_preset(Control.PRESET_FULL_RECT)
+			_after_layer.add_child(_after)
+			add_child(_after_layer)
+		_after_mat.set_shader_parameter(&"glare", Vector4(EXIT_GLARE_COLOR.r, EXIT_GLARE_COLOR.g, EXIT_GLARE_COLOR.b,
+			a.y / EXIT_GLARE_FAR))
+		_after_layer.visible = true
+	elif _after_layer != null:
+		_after_layer.visible = false
+
+
+## A material of the exposure law (GLARE_SHADER or AFTER_SHADER) with EXIT_GAIN / EXIT_LIFT.
+static func _glare_material(code: String) -> ShaderMaterial:
+	var sh := Shader.new()
+	sh.code = code
+	var m := ShaderMaterial.new()
+	m.shader = sh
+	m.set_shader_parameter(&"gain", EXIT_GAIN)
+	m.set_shader_parameter(&"lift", EXIT_LIFT)
+	# FIX-R4 (QA-R4 B8): the glare quad replaces what lies behind it with the over-exposed copy of the opaque picture;
+	# drawn FIRST of all transparent things, the lamp glows, rain and glass beyond the portal come after it and stay
+	# (sorted by depth it could be drawn after a brake light outside the tube and wipe it out – F6)
+	m.render_priority = Material.RENDER_PRIORITY_MIN
+	return m
+
+
+## The glare quad: unshaded, over-exposes what lies behind it (screen texture), depth tested, never written to depth,
+## one draw call (and one copy of the picture while it is seen).
+func _glare_node() -> MeshInstance3D:
+	if _glare_mat == null:
+		_glare_mat = _glare_material(GLARE_SHADER)
+	var q := QuadMesh.new()
+	q.size = Vector2(1.0, 1.0)
+	var mi := MeshInstance3D.new()
+	mi.name = "ExitGlare"
+	mi.mesh = q
+	mi.material_override = _glare_mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.layers = 2       # no light of the lights layer touches it (it is unshaded anyway)
+	return mi
+
+
+## R4: a fresh glare quad for the shader warm-up (the first tunnel exit must not compile it while driving).
+func warmup_nodes() -> Array:
+	var mi := _glare_node()
+	_glare_mat.set_shader_parameter(&"glare", Vector4(1.0, 1.0, 0.97, 0.0))
+	mi.scale = Vector3(0.5, 0.5, 1.0)
+	# the after-glow canvas: drawn at strength 0 (the identity) through the next updates, so its program is compiled
+	# behind the loading cover, not at the first tunnel exit
+	_after_warm = 12
+	return [mi]
 
 
 ## Sets a ce_* global when its value changed (most of them stand still for minutes).
@@ -291,12 +571,14 @@ func _send(global_name: String, value: Variant) -> void:
 	ModernMaterials.set_global(global_name, value)
 
 
-## The palette the backdrop draws: the palette of the view with the sun where the light comes from.
+## The palette the backdrop draws. R4 (lead decision of wave 3, "Keine Sonnenscheibe" of the first test build): the
+## sun disc stands where Arcade draws it – in front of the car, high at noon – also while the light of a high sun comes
+## from behind the left shoulder (sun_azimuth: the chase camera would otherwise look into the back-lit side of
+## everything). That is Arcade's own convention: its panorama shows the sun ahead while its sprites are lit from
+## behind-left. A low sun (dawn, dusk) is not swung, so there disc, horizon glow, light and shadows agree exactly;
+## between, the light turns away from the disc with the sun's height (SIDE_FROM … SIDE_TO).
 func sky_palette(pal: Dictionary) -> Dictionary:
-	var out := pal.duplicate()
-	if not pal.is_empty():
-		out["sun_pos"] = Vector2(sun_azimuth(pal.get("sun_pos", Vector2(0.0, 1.0))) / AZIMUTH_GAIN, (pal.get("sun_pos", Vector2(0.0, 1.0)) as Vector2).y)
-	return out
+	return pal
 
 
 ## Plain data for debug_snapshot(): {"environment": {…}}.
@@ -314,7 +596,8 @@ func snapshot() -> Dictionary:
 		"fog_color": [snappedf(fc.r, 0.0001), snappedf(fc.g, 0.0001), snappedf(fc.b, 0.0001)],
 		"shadow": sun.shadow_enabled, "shadow_mode": sun.directional_shadow_mode, "shadow_distance_m": sun.directional_shadow_max_distance,
 		"lights_directional": 1, "glow": environment.glow_enabled, "ssao": environment.ssao_enabled,
-		"sky_reflections": _sky_reflections, "sky_updates": _sky_updates, "post_pinned": environment.adjustment_enabled}}
+		"sky_reflections": _sky_reflections, "sky_updates": _sky_updates, "post_pinned": environment.adjustment_enabled,
+		"zones": _zones.duplicate()}}
 
 
 ## The reflection sky: the palette's gradient, refreshed at most every sky_update_s of view time and only when a
@@ -345,10 +628,10 @@ func _update_sky(pal: Dictionary, fog_color: Color, tunnel01: float, t: float) -
 	sky_material.ground_bottom_color = ground
 
 
-## ce_wind (direction x, direction z, strength, gust): a steady direction, stronger under rain and snow, with a slow
-## gust from view time (no wall clock, Rule 10); still inside a tunnel.
-static func wind(t: float, overcast: float, tunnel01: float) -> Vector4:
-	var strength := lerpf(0.3, 0.6, clampf(overcast, 0.0, 1.0)) * (1.0 - tunnel01)
+## ce_wind (direction x, direction z, strength, gust): a steady direction, stronger under rain and snow and over open
+## water (zone "bridge"), with a slow gust from view time (no wall clock, Rule 10); still inside a tunnel.
+static func wind(t: float, overcast: float, tunnel01: float, bridge: float = 0.0) -> Vector4:
+	var strength := lerpf(0.3, 0.6, clampf(overcast, 0.0, 1.0)) * (1.0 + 0.5 * clampf(bridge, 0.0, 1.0)) * (1.0 - tunnel01)
 	var gust := (0.5 + 0.5 * sin(t * 0.31) * sin(t * 0.17 + 1.3)) * (1.0 - tunnel01)
 	return Vector4(0.8, 0.6, strength, gust)
 
@@ -395,7 +678,10 @@ static func light_state(pal: Dictionary, tunnel01: float, road_heading: float, b
 		var sp: Vector2 = pal.get("sun_pos", Vector2(0.0, 1.0))
 		azimuth = sun_azimuth(sp)
 		height = sp.y
-	var elev := deg_to_rad(lerpf(lerpf(ELEV_MIN_DEG, ELEV_MAX_DEG, clampf(height, 0.0, 1.0)), OVERCAST_ELEV_DEG, overcast))
+	var elev_deg := lerpf(lerpf(ELEV_MIN_DEG, ELEV_MAX_DEG, clampf(height, 0.0, 1.0)), OVERCAST_ELEV_DEG, overcast)
+	if moon:
+		elev_deg = maxf(elev_deg, MOON_MIN_ELEV_DEG)
+	var elev := deg_to_rad(elev_deg)
 	var to_sun := light_direction(azimuth, elev, road_heading, bg_offset)
 	# directed part of the display value: the sun by day, the moon in a clear night, little under clouds, none inside
 	var share_sun := SHARE_DAY * (1.0 - smoothstep(NIGHT_FROM, NIGHT_TO, night))

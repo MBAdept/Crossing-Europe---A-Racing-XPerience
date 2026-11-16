@@ -27,6 +27,8 @@ const CLASSES: Array[String] = ["vpbr", "glass", "baked", "baked_cutout", "leave
 ## T1, T4 and Dortmund – Frankfurt km 121, the refused instances drawn with another one's values. The material is
 ## kept under the key "vpbr|static", so set_class_parameter("vpbr", …) and apply_look() reach it as before.
 const VPBR_STATIC := "vpbr_static"
+## R4: the reflections of lamps on the wet road (layer "flares"): flare.gdshader compiled with CE_STREAK.
+const FLARE_STREAK := "flare_streak"
 ## Global uniforms (contract 4.5.6): name, RenderingServer type, default.
 const GLOBALS: Array = [
 	["ce_night", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, 0.0],
@@ -47,6 +49,10 @@ const GLOBALS: Array = [
 	["ce_headlight_dir", RenderingServer.GLOBAL_VAR_TYPE_VEC3, Vector3(0.0, 0.0, -1.0)],
 	["ce_headlight", RenderingServer.GLOBAL_VAR_TYPE_VEC2, Vector2(60.0, 0.0)],
 	["ce_far_y", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, -4.0],
+	# R4: the palette's sky as DISPLAY values (zenith and horizon, blended to the tunnel's darkness) – what wet ground
+	# mirrors (road.gdshader); set by the environment rig
+	["ce_sky_top", RenderingServer.GLOBAL_VAR_TYPE_COLOR, Color(0.11, 0.36, 0.79)],
+	["ce_sky_horizon", RenderingServer.GLOBAL_VAR_TYPE_COLOR, Color(0.73, 0.87, 0.96)],
 ]
 
 ## The vehicle LOOK in one place (A-13): the class parameters a scene puts on the shared vehicle materials – [class,
@@ -62,10 +68,28 @@ const GLOBALS: Array = [
 ## their day values (the metallic player car was +44 % against its sprite at 22:00).
 ## M2INT (art review KRITIK-2 A4: 83 sparkling pixels per frame on the GT at race distance): no metallic flakes in the
 ## race – a flake cell (1/260 m) is 0.3 px wide at the player car's 9 m and only shimmers; the showroom keeps them.
+## R4 (art review KRITIK-2 A1, M2INT note 6 "Lack der Spielerautos"): hemisphere ambient on the bodies (vertical faces
+## 0.72, faces turned down 0.5 of the ambient light – the form of the sprites' studio light; measured the Gran
+## Turismo's rear bumper +50 % against its sprite in the overcast rain before) and the player's fill only in the shade
+## (a face turned to the sun keeps 25 % of it). R4 night fill (KRITIK-2 A2 "the body stays nearly black at night"):
+## the player's fill at night at 0.6 of its day share plus an even sheen on the clear coat (fill_sheen 0.25 × night) –
+## measured at 22:00 (render check check_night spielerauto, body p75 against Arcade's sprite): kompakt 0.80 ×, Gran
+## Turismo 0.55 ×, limousine 0.35 × with fill_night 0.3 alone; a stronger diffuse fill lifts the dark metallic
+## limousine least (0.51 × at 2.0 while the kompakt is at 1.13 ×), the neutral sheen lifts it most. Inside a tunnel
+## (ce_night is 1 there for the lamps) the fill stays at 0.3 and the sheen off – the tunnel's bright ambient light
+## turned the blue limousine grey otherwise (fill_tunnel). The sheen carries 80 % of the paint's hue in the ambient
+## light's colour (fill_sheen_tint) – the neutral sheen turned the amber kompakt cream and the GT's blue-grey neutral
+## grey: body saturation against the sprite 0.74 × / 0.70 × / 0.91 × before, 0.95 × / 0.73 × / 0.91 × now.
+## FIX-R4 (QA-R4 B7): the sheen takes the paint's hue from the paint washed 35 % towards its luminance (sheen_wash, the
+## studio wash of the sprites; the limousine read royal blue at DEV 21:00, saturation 1.38 × its sprite); and at night
+## the mirrored sky carries the ambient light's hue (layers/vehicles.gd ENV_NIGHT_TINT, QA-R4 B3: the silver GT mirrored
+## the grey rain sky and read grey where its sprite is blue-grey).
 const VEHICLE_LOOK: Array = [["vpbr", "env_energy", 1.6], ["vpbr", "paint_base", 1.0], ["vpbr", "paint_knee", 0.7],
 	["vpbr", "paint_knee_slope", 0.45], ["vpbr", "paint_desat", 0.08], ["vpbr", "flake_strength", 0.0],
-	["vpbr", "lamp_off", 0.28], ["vpbr", "tail_level", 0.5], ["vpbr", "env_night", 0.35], ["vpbr", "fill_night", 0.3],
-	["glass", "env_energy", 2.2]]
+	["vpbr", "lamp_off", 0.28], ["vpbr", "tail_level", 0.5], ["vpbr", "env_night", 0.35], ["vpbr", "fill_night", 0.6],
+	["vpbr", "fill_sheen", 0.25], ["vpbr", "fill_sheen_tint", 0.8], ["vpbr", "sheen_wash", 0.35], ["vpbr", "fill_tunnel", 0.3],
+	["vpbr", "hemi_side", 0.72], ["vpbr", "hemi_down", 0.5], ["vpbr", "fill_shade", 0.75],
+	["glass", "env_energy", 2.2], ["glass", "hemi_side", 0.72], ["glass", "hemi_down", 0.5]]
 ## Extra ambient light on the player car in a race (vpbr instance uniform fill, a share of ce_ambient): Arcade draws its
 ## player sprite brighter than the scene (ambient x 1.15 + 0.08) – the car stays readable in its own shade.
 const VEHICLE_PLAYER_FILL := 0.7
@@ -81,7 +105,10 @@ const VEHICLE_PLAYER_DESAT := 0.35
 ## exposure and lamp levels as the race; the flakes sparkle at the showroom's distance.
 const STUDIO_LOOK: Array = [["vpbr", "env_energy", 0.0], ["vpbr", "paint_base", 1.0], ["vpbr", "paint_knee", 0.7],
 	["vpbr", "paint_knee_slope", 0.45], ["vpbr", "paint_desat", 0.08], ["vpbr", "flake_strength", 0.6],
-	["vpbr", "lamp_off", 0.28], ["vpbr", "tail_level", 0.5], ["glass", "env_energy", 0.0]]
+	["vpbr", "lamp_off", 0.28], ["vpbr", "tail_level", 0.5], ["glass", "env_energy", 0.0],
+	# R4: the race's hemisphere ambient and fill law stay out of the studio (its own key, fill and rim lights)
+	["vpbr", "hemi_side", 1.0], ["vpbr", "hemi_down", 1.0], ["vpbr", "fill_shade", 0.0], ["vpbr", "fill_sheen", 0.0],
+	["vpbr", "fill_sheen_tint", 0.0], ["vpbr", "fill_tunnel", 1.0], ["glass", "hemi_side", 1.0], ["glass", "hemi_down", 1.0]]
 
 static var _globals_added := false
 static var _shared: ModernMaterials = null
@@ -165,6 +192,12 @@ func shader(class_id: String) -> Shader:
 		if vb != null:
 			sh = Shader.new()
 			sh.code = static_code(vb.code)
+	elif class_id == FLARE_STREAK:
+		# R4: the reflection of a lamp on the wet road – same source as "flare", compiled with the streak branch
+		var fl := shader("flare")
+		if fl != null:
+			sh = Shader.new()
+			sh.code = fl.code.replace("shader_type spatial;", "shader_type spatial;\n#define CE_STREAK")
 	else:
 		sh = load(SHADER_DIR + class_id + ".gdshader") as Shader
 	if sh == null:
@@ -178,7 +211,12 @@ func shader(class_id: String) -> Shader:
 ## words "instance uniform", so a look at the code (check_instance_budget.gd) sees none.
 static func static_code(code: String) -> String:
 	var rx := RegEx.create_from_string("(,\\s*|\\s*:\\s*)instance_index\\(\\s*\\d+\\s*\\)")
-	return rx.sub(code, "", true).replace("instance uniform", "uniform")
+	# R4: static models carry snow on their upward faces on a snow stage (vehicles do not); the hemisphere ambient of
+	# the vehicle LOOK is for car bodies only (static models keep the balance of their packages)
+	return rx.sub(code, "", true).replace("instance uniform", "uniform") \
+		.replace("uniform float snow_cover = 0.0;", "uniform float snow_cover = 1.0;") \
+		.replace("uniform float hemi_side = 1.0;", "const float hemi_side = 1.0;") \
+		.replace("uniform float hemi_down = 1.0;", "const float hemi_down = 1.0;")
 
 
 ## Material class a model's surface of class `cls` draws with: VPBR_STATIC for "vpbr" on every model that is not a

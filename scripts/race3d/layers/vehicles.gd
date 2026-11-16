@@ -42,6 +42,12 @@ const ROLL_PIVOT_Y := 0.38          ## the body rolls about this height
 const STEER_DEG := 7.0              ## player's front wheels: steering input share (deg at full lock)
 const FLOATS_PER_FLARE := 20        ## MultiMesh layout: 12 transform + 4 colour + 4 custom
 const FLOATS_PER_SHADOW := 16       ## 12 transform + 4 custom
+const SPRAY_FLOATS := 13            ## R4: spray source layout of layers/weather.gd (SOURCE_FLOATS)
+const STREAK_GAIN := 0.7            ## R4: reflection of a rear lamp on the wet road, × the lamp's flare strength × wet
+const STREAK_MIN_M := 3.0
+const STREAK_MAX_M := 18.0
+## FIX-R4: the flare layer's streak layout (road_profile(), put_profile() – same package, R4)
+const Flares := preload("res://scripts/race3d/layers/flares.gd")
 const PLAYER_ID := -999999          ## view id of the player car in this layer
 ## Extra ambient light on the player car (vpbr instance uniform fill, a share of ce_ambient): Arcade draws its player
 ## sprite brighter than the scene (ambient x 1.15 + 0.08) – the car stays readable in its own shade (the sun stands
@@ -59,7 +65,14 @@ const XFADE_S := 0.5
 ## sharp lobe treats it as a point light and drew two white flecks on the player car (p95 luminance 193 against
 ## Arcade's 51 at DEV 21:00); the lobe keeps this share of its strength then (vpbr uniform coat_sun).
 const MOON_COAT := 0.08
-const XFADE_LODS: Array[String] = ["lod1", "lod2"]
+## FIX-R4 (QA-R4 B3): at night the sky that clear coat, metals and glass mirror takes this share of the ambient light's
+## hue at its own luminance – Arcade's law for its sprites at night (sprite × ambient colour). The rain hides the night
+## sky behind grey clouds; mirrored as it is, the silver Gran Turismo read neutral grey where its sprite is blue-grey
+## (body saturation 0.73 × the sprite at 22:00 in the rain).
+const ENV_NIGHT_TINT := 0.8
+## R4 (M2INT note 6: the swap lod0 -> lod1 at 40 m changed 14 % of a car's pixels in one frame): lod0 cross-fades too –
+## its glass has the same dither law now (glass.gdshader xfade); the wheels of the fading level stand still for XFADE_S
+const XFADE_LODS: Array[String] = ["lod0", "lod1", "lod2"]
 const STANDIN_SHADER := "vehicle_sprite"   ## assets/shaders/modern/vehicle_sprite.gdshader (through ModernMaterials)
 const STANDIN_NEAR_M := 0.3          ## a flat stand-in whose anchor is closer than this is not drawn (Arcade's near plane)
 const FLARE_PICTURE_GAP_M := 0.08    ## a lamp glow of a sprite stand-in sits this far in front of its picture
@@ -149,6 +162,16 @@ var _pl_lat := 0.0
 var _pl_init := false
 var _flares := PackedFloat32Array()
 var _flare_n := 0
+# R4: spray sources for the layer "weather" and reflections of the rear lamps on the wet road for the layer "flares"
+var _spray_src := PackedFloat32Array()
+var _spray_n := 0
+var _streaks := PackedFloat32Array()
+var _streak_n := 0
+var _wet := 0.0
+var _cam_origin := Vector3.ZERO
+var _path: RoadPath3D                ## FIX-R4: the path of this frame (road profile of the streaks)
+var _cam_z := 0.0
+var _prof := PackedFloat32Array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])   ## the road profile of the car whose flares are put
 var _shadow_mm: MultiMesh
 var _shadow_node: MultiMeshInstance3D
 var _shadow_buf := PackedFloat32Array()
@@ -431,10 +454,15 @@ func update(view: Dictionary, dt: float) -> void:
 	_frame += 1
 	_flare_n = 0
 	_shadow_n = 0
+	_spray_n = 0
+	_streak_n = 0
 	_drawn = 0
 	var pal: Dictionary = view.get("palette", {})
+	_wet = clampf(float(pal.get("wet", 0.0)), 0.0, 1.0)
 	_set_environment(pal)
 	var cam_z := float(view.get("camera_z", 0.0))
+	_path = path
+	_cam_z = cam_z
 	var vis := float(view.get("visibility_m", 900.0))
 	var lights := float(pal.get("lights", 0.0))
 	var time := float(view.get("time", 0.0))
@@ -453,6 +481,7 @@ func update(view: Dictionary, dt: float) -> void:
 		_cam_tr = (cam as Camera3D).global_transform if (cam as Camera3D).is_inside_tree() else (cam as Camera3D).transform
 		_cam_inv = _cam_tr.affine_inverse()
 		_cam_heading = VehicleStandIn.camera_heading(_cam_tr)
+		_cam_origin = _cam_tr.origin
 	_shade.prepare(view, bool(view.get("camera_in_tunnel", track.is_tunnel_at(cam_z))), track)
 	for b: VehicleStandIn.SheetBatch in _batches.values():
 		b.begin()
@@ -477,6 +506,11 @@ func update(view: Dictionary, dt: float) -> void:
 	var fl: Variant = _renderer.call(&"layer", "flares")
 	if fl is Object and (fl as Object).has_method(&"set_vehicle_flares"):
 		(fl as Object).call(&"set_vehicle_flares", _flares, _flare_n)
+	if fl is Object and (fl as Object).has_method(&"set_vehicle_streaks"):
+		(fl as Object).call(&"set_vehicle_streaks", _streaks, _streak_n)
+	var wl: Variant = _renderer.call(&"layer", "weather")
+	if wl is Object and (wl as Object).has_method(&"set_spray_sources"):
+		(wl as Object).call(&"set_spray_sources", _spray_src, _spray_n)
 	var us := Time.get_ticks_usec() - t0
 	_us_sum += us
 	_us_max = maxi(_us_max, us)
@@ -624,6 +658,7 @@ func _update_car(c: Dictionary, is_player: bool, path: RoadPath3D, track: Track,
 			_xfade_step(car, time, alpha, 0.0 if in_tunnel else 1.0, la, lb)
 	# contact shadow and flares
 	_add_shadow(car, obj, length, alpha, lights, in_tunnel)
+	_add_spray(car, c, obj, length, alpha, in_tunnel, is_player, bool(c.get("heavy", false)) or not car.groups.is_empty(), la.x)
 	var l_eff := 1.0 if in_tunnel else lights
 	_add_flares(car, info, la, lb, l_eff, alpha, VehiclePose3D.light_alpha(alpha, l_eff))
 
@@ -735,6 +770,7 @@ func _update_sprite(car: Car, c: Dictionary, info: Dictionary, is_player: bool, 
 	# rows below its ground line lie on the road – and a hidden caster or a contact shadow laid a second dark patch
 	# beside or under it. Textured boxes (trucks, buses) cast like models (_update_box).
 	car.cast = false
+	_add_spray(car, c, info["obj"], length, alpha, in_tunnel, is_player, bool(c.get("heavy", false)), la.x)
 	var l_eff := 1.0 if in_tunnel else lights
 	_add_flares(car, info, la, lb, l_eff, alpha, VehiclePose3D.light_alpha(alpha, l_eff))
 
@@ -884,6 +920,68 @@ func _add_shadow(car: Car, obj: Dictionary, length: float, alpha: float, lights:
 	_shadow_n += 1
 
 
+## R4: the source of a car's spray for the layer "weather" (weather.gd SOURCE_FLOATS: rear centre on the ground,
+## forward unit vector, width, length, fade, km/h, flags, tail light, id) – only on a wet road; the layer decides the
+## rest (speed, tunnel, level).
+func _add_spray(car: Car, c: Dictionary, obj: Dictionary, length: float, alpha: float, in_tunnel: bool, is_player: bool,
+		heavy: bool, tail: float) -> void:
+	if _wet <= 0.0 or alpha <= 0.02:
+		return
+	var o := _spray_n * SPRAY_FLOATS
+	if _spray_src.size() < o + SPRAY_FLOATS:
+		_spray_src.resize(maxi(o + SPRAY_FLOATS, maxi(64 * SPRAY_FLOATS, _spray_src.size() * 2)))
+	var b := car.pose.basis
+	var fwd := -b.z.normalized()
+	var rear := car.pose.origin - fwd * (length * 0.5)
+	_spray_src[o] = rear.x
+	_spray_src[o + 1] = rear.y
+	_spray_src[o + 2] = rear.z
+	_spray_src[o + 3] = fwd.x
+	_spray_src[o + 4] = fwd.y
+	_spray_src[o + 5] = fwd.z
+	_spray_src[o + 6] = float(obj.get("width_m", 1.8))
+	_spray_src[o + 7] = length
+	_spray_src[o + 8] = alpha
+	_spray_src[o + 9] = float(c.get("speed", 0.0))
+	_spray_src[o + 10] = float((1 if is_player else 0) | (2 if heavy else 0) | (4 if in_tunnel else 0))
+	_spray_src[o + 11] = clampf(tail, 0.0, 1.0)
+	_spray_src[o + 12] = float(car.id)
+	_spray_n += 1
+
+
+## R4: the reflection of a rear lamp on the wet road (layer "flares", flare_streak): Arcade's streaky reflections of
+## rear lights (RoadRenderer._wet_reflections, 0.22 × glow × wet) as a strip on the road from the ground under the lamp
+## towards the camera. `h` = height of the lamp above the car's ground, `dist` = the car's distance from the camera,
+## `prof` = the road's height profile from the car to the camera (road_profile(); FIX-R4: the strip follows the road –
+## level at the height of the car, it hung in the air above a climbing road as a red column, QA-R4 B1).
+func _put_streak(pos: Vector3, col: Color, s: float, lamp_r: float, h: float, dist: float, prof: PackedFloat32Array) -> void:
+	var a := s * _wet * STREAK_GAIN
+	if a <= 0.004 or h <= 0.05:
+		return
+	var o := _streak_n * FLOATS_PER_FLARE
+	if _streaks.size() < o + FLOATS_PER_FLARE:
+		_streaks.resize(maxi(o + FLOATS_PER_FLARE, maxi(32 * FLOATS_PER_FLARE, _streaks.size() * 2)))
+	Flares.put_profile(_streaks, o, prof)
+	_streaks[o + 3] = pos.x
+	_streaks[o + 7] = pos.y
+	_streaks[o + 11] = pos.z
+	_streaks[o + 12] = col.r
+	_streaks[o + 13] = col.g
+	_streaks[o + 14] = col.b
+	_streaks[o + 15] = a
+	_streaks[o + 16] = maxf(lamp_r * 1.3, 0.07)
+	_streaks[o + 17] = h
+	_streaks[o + 18] = streak_length(dist)
+	_streaks[o + 19] = lamp_r
+	_streak_n += 1
+
+
+## Length (m) of a lamp's reflection on the wet road for a lamp `dist` metres from the camera: longer far away, where
+## the water film shows the grazing reflection over a long stretch (pure).
+static func streak_length(dist: float) -> float:
+	return clampf(dist * 0.3, STREAK_MIN_M, STREAK_MAX_M)
+
+
 func _commit_shadows() -> void:
 	if _shadow_mm.instance_count < _shadow_n:
 		_shadow_mm.instance_count = maxi(_shadow_n, maxi(32, _shadow_mm.instance_count * 2))
@@ -930,6 +1028,7 @@ func _add_flares(car: Car, info: Dictionary, la: Vector4, lb: Vector4, lights: f
 	if la == Vector4.ZERO and lb == Vector4.ZERO and bool(info.get("codes_known", false)):
 		return
 	var pts: Array = info["points_rear"] if car.flare_ref > 0.0 else info["points"]
+	var prof_done := false
 	for p: Dictionary in pts:
 		if _lamp_level(int(p["code"]), la, lb, lights) <= 0.0:
 			continue          # dark: no need for the full glow law
@@ -968,6 +1067,13 @@ func _add_flares(car: Car, info: Dictionary, la: Vector4, lb: Vector4, lights: f
 				k *= kk
 				lamp_r *= kk
 		_put_flare(pos, dir, col, s, k, fp.z, fp.w, lamp_r)
+		if _wet > 0.0 and (role == "rear" or role == "tail" or role == "brake") and (p["pos"] as Vector3).y > 0.1:
+			# the lamp's reflection on the wet road (its height above the car's ground: the model-space y), along the
+			# road from the car's rear (car.z) to the camera – one profile for all lamps of the car
+			if not prof_done and _path != null:
+				Flares.road_profile(_path, car.z, _cam_z, _path.z_min(), float(_path.last()) * _path.seg_len, _prof)
+				prof_done = true
+			_put_streak(pos, col, s, lamp_r, (p["pos"] as Vector3).y, (pos - _cam_origin).length(), _prof)
 
 
 ## World transform of the articulated unit a model-space point belongs to (the last unit whose pivot lies ahead of
@@ -1052,12 +1158,26 @@ func _set_environment(pal: Dictionary) -> void:
 	var fog: Color = pal.get("fog", bottom)
 	var horizon := bottom.lerp(fog, 0.35)
 	var ground := Color(0.30 * amb.r, 0.31 * amb.g, 0.32 * amb.b)
+	var nk := clampf(float(pal.get("night", 0.0)), 0.0, 1.0) * ENV_NIGHT_TINT
+	if nk > 0.0:
+		top = night_tint(top, amb, nk)
+		horizon = night_tint(horizon, amb, nk)
 	var tunnel: Color = Palette.TUNNEL_AMBIENT
 	for cls: String in ["vpbr", "glass"]:
 		_mats.set_class_parameter(cls, "env_zenith", top)
 		_mats.set_class_parameter(cls, "env_horizon", horizon)
 		_mats.set_class_parameter(cls, "env_ground", ground)
 		_mats.set_class_parameter(cls, "env_tunnel", tunnel * 0.45)
+
+
+## FIX-R4 (QA-R4 B3): colour `c` moved by `k` towards the hue of the ambient light `amb` at c's own luminance (pure).
+static func night_tint(c: Color, amb: Color, k: float) -> Color:
+	var la := 0.2126 * amb.r + 0.7152 * amb.g + 0.0722 * amb.b
+	if la <= 1.0e-4:
+		return c
+	var lc := 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b
+	var t := Color(amb.r / la * lc, amb.g / la * lc, amb.b / la * lc, c.a)
+	return c.lerp(t, clampf(k, 0.0, 1.0))
 
 
 # --- nodes and pool ---------------------------------------------------------------------------------------------------

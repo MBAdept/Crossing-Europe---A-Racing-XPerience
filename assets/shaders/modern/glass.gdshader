@@ -10,10 +10,16 @@ render_mode blend_premul_alpha, depth_draw_never, cull_back;
 // same indices as in vpbr.gdshader: both surfaces of a body share the instance
 instance uniform float fade : instance_index(5) = 1.0;          // path-distance fade (dither discard)
 instance uniform float sun : instance_index(6) = 1.0;           // 0 inside tunnels: masks the directional light
+// R4: the cross-fade of two levels of detail (vpbr: same index and law) – lod0 with its glass now fades too
+instance uniform float xfade : instance_index(9) = 0.0;
 
 uniform float fresnel_boost = 0.85;           // how far the opacity rises towards grazing angles
 uniform float mirror = 0.75;                  // strength of the mirror reflection (SPECULAR of the engine)
 uniform float tint_gain = 1.0;                // brightness of the tint seen through the pane's own colour
+// R4: the hemisphere ambient of the car bodies (vpbr.gdshader hemi_side / hemi_down, the vehicle LOOK) on the tint of
+// the panes too – lod1/lod2 draw their glazing as dark vpbr, so both levels keep the same balance (1 = off)
+uniform float hemi_side = 1.0;
+uniform float hemi_down = 1.0;
 
 // --- R3 (wave 1): the mirror image of the environment for the reflection above. The Environment of the race has
 // no Sky in every preset (the reflection source of D7 is optional), so the sky the pane mirrors is the analytic
@@ -62,9 +68,9 @@ vec3 env_light(vec3 r) {
 // --- end R3
 
 void fragment() {
-	if (fade < 0.999) {
+	if (fade < 0.999 || xfade != 0.0) {
 		float d = fract(dot(floor(FRAGCOORD.xy), vec2(0.7548776662, 0.5698402910)));
-		if (d >= fade) {
+		if (d >= fade || (xfade > 0.0 && d >= xfade) || (xfade < 0.0 && d < -xfade)) {
 			discard;
 		}
 	}
@@ -72,6 +78,11 @@ void fragment() {
 	float a = mix(COLOR.a, 1.0, f * fresnel_boost);
 	// premultiplied: the tint counts with the opacity of the pane, the reflection in full
 	ALBEDO = COLOR.rgb * tint_gain * a;         // sRGB as stored: the Compatibility renderer linearises ALBEDO itself
+	if (hemi_side < 0.999 || hemi_down < 0.999) {
+		float ny = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz).y;
+		AO = ny >= 0.0 ? mix(hemi_side, 1.0, ny) : mix(hemi_side, hemi_down, -ny);
+		AO_LIGHT_AFFECT = 0.0;
+	}
 	ROUGHNESS = max(UV.x, 0.02);
 	METALLIC = UV.y;
 	// thin clear lamp lenses (low opacity) mirror less than panes: a full sky reflection over a lamp is a milky veil

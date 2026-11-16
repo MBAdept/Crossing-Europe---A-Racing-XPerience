@@ -1197,6 +1197,13 @@ Aufwärm-Knoten der Haken; sie wird in vier Lichtsituationen gezeichnet – ohne
 Punktlicht, mit beiden –, je zwei gezeichnete Bilder (`WARMUP_FRAMES` = 8), mit eigenen Lichtern an der Kamera, die
 wie alle echten Lichter den Boden auslassen. Die Engine übersetzt für jede dieser Situationen eigene Programme;
 Abblendlicht und Lampen kommen sonst erst in der Dämmerung oder unter der ersten Laterne – mitten in der Fahrt.
+**Aufwärm-Ebene** (R4): die Aufwärm-Knoten liegen auf der Render-Ebene 20 (`ModernRenderer.WARMUP_LAYER`, ein
+Boden-Knoten behält `GROUND_LAYERS`); die echten Spots und Punktlichter der Lichtebene lassen sie aus
+(`lights.gd` `LIGHT_MASK`), nur die Aufwärm-Lichter erreichen sie. Vorher beleuchtete das Abblendlicht nachts die
+Aufwärm-Knoten in allen vier Phasen: die Variante „ohne positionelles Licht“ eines Materials, das die Startansicht
+nicht zeigt, fehlte – N1 (Hamburg – Hannover km 71, 22 Uhr) übersetzte das Schild-Programm beim ersten fernen
+Schild während der Fahrt (`warmup_kalt`: 3 Varianten nach 6–8 s, ermittelt über Godots Shader-Cache: das Programm
+von `sign.gdshader`). Danach 0 (443 statt 386 Varianten vor dem Start).
 
 ### 10.9 Moduswechsel
 
@@ -2042,3 +2049,228 @@ Grundlage: die Befunde von QA-M2-BILD (B-…) und QA-M2-SYSTEM (M2S-…) auf `6e
 - Kurveninnenseiten in Bergetappen kahler als Arcade (Sichtkorridor F7: Bäume werden durch Bodendecker ersetzt –
   Entscheidung der Leitung nach A-3).
 - Die Leistung auf echter Hardware ist nur über den Leistungstest messbar.
+
+## 15. Licht, Nacht, Wetter (Bauabschnitt R4)
+
+R4 übernimmt in Welle 3 den Renderer-Kern (Bauplan §5, Spalte W3) und baut Licht, Nacht und Wetter aus. Zahlen
+„gemessen“ stammen von der Build-VM (llvmpipe unter Xvfb bzw. headless); alles über echte Grafikkarten und das Steam
+Deck ist abgeleitet.
+
+### 15.1 Zonen: `EnvironmentRig.set_zone(kind, amount)`
+
+Die Schnittstelle, über die Bauwerke dem Umgebungs-Rig sagen, wie weit die Kamera in ihnen steckt (Bauplan §6 R5:
+„Environment changes are requested from R4 … through `EnvironmentRig.set_zone(kind, amount)`“). Aufruf immer über die
+Fassade und `has_method`, nie über einen Klassennamen:
+
+```gdscript
+var env: Node = renderer.get("env")          # null, solange environment_rig.gd fehlt
+if env != null and env.has_method("set_zone"):
+	env.call("set_zone", "tunnel", amount)   # amount 0 (draußen) … 1 (drinnen)
+```
+
+| Art | Wirkung |
+|---|---|
+| `"tunnel"` | Licht zum Tunnellicht (`Palette.TUNNEL_AMBIENT`, Sonnenenergie 0 – das eine Schattenlicht bleibt, D5), Nebel nach Arcades Tunnelgesetz (`Palette.TUNNEL_FOG` ab 12 m über `render.tunnel.darkness_m`), Globals `ce_tunnel` = amount, `ce_wet`, `ce_snow` und Wind gegen 0; der Hintergrund zeigt keinen Himmel, solange die Ausfahrt außer Sicht ist; zur Ausfahrt hin wirkt das Draußen überstrahlt (Belichtungsrampe, 15.6) |
+| `"bridge"` | 0 … 1 über offenem Wasser: der Wind (`ce_wind`) bläst um bis zu 50 % stärker |
+| jede andere | wird behalten und im Schnappschuss gezeigt (`environment.zones`), ändert nichts |
+
+- Der Wert gilt bis zum nächsten Aufruf derselben Art und wird auf 0 … 1 begrenzt; `zone(kind, fallback)` liest ihn.
+- **Solange in einer Etappe niemand `set_zone("tunnel", …)` ruft**, nimmt das Rig den Tunnel wie bisher selbst aus der
+  Tunnelliste des Etappenplans (`tunnel_blend()`, eine Funktion der Kameraposition) – das Licht der Mindestbau-Röhre
+  bleibt also unverändert, bis der Tunnel-Builder die Zone setzt. Ab dem ersten Aufruf gilt nur noch der gesetzte Wert.
+- Das Rig liest den Wert in seinem nächsten `update()`, das in jedem Bild **vor** den `update()` der Builder läuft:
+  eine Zone, die ein Builder in seinem `update()` setzt, wirkt ein Bild später (bei 60 Bildern je Sekunde 17 ms).
+- Kosten: ein Wörterbuch-Eintrag je Aufruf. Prüfung: `tests/unit/race3d/test_environment_rig.gd` → `test_set_zone`.
+
+### 15.2 Wetter in der Luft (`layers/weather.gd`)
+
+Regen und Schneefall sind **zustandslose GPU-Teilchen**: eine MultiMesh aus Vierecken, ein Zeichenaufruf; der Ort
+jedes Tropfens ist eine reine Funktion seiner Instanznummer, der Kamera und der Spielzeit `ce_time`
+(`assets/shaders/modern/particles_rain.gdshader`, `particles_snow.gdshader`). Nichts wird simuliert oder gespeichert:
+das Bild ist im Sync-Modus und mit `--shot-fast` bestimmt (Regel 10), steht im Pausenbild still und springt nicht, wenn
+der schwimmende Ursprung verlegt wird; es gibt keinen Prozess-Shader zu übersetzen. (Der Bauplan nennt
+`GPUParticles3D`; ein solcher Knoten hält Zustand je Bild auf der Grafikkarte – mit `--shot-fast` stünde er still, zwei
+Läufe gäben verschiedene Bilder, beim Ursprungsversatz spränge er. Als Vertragsfrage gemeldet.)
+
+- **Raum**: ein Kasten im Kameraraum wie Arcades (`RoadRenderer._draw_weather`: Tropfen 3 … 45 m voraus, ±14 m, bis
+  9 m hoch, 8,5 m/s Fall, 0,6 m/s Drift; Flocken 2 … 38 m, 1,2 m/s, ±0,7 m/s Schaukeln). Er dreht mit der
+  Straßenrichtung an der Kamera und wandert mit ihrem Weg (`odo` = `camera_z` modulo Tiefe): die Tropfen ziehen vorbei
+  wie in Arcade. An den Kastenflächen blenden die Teilchen weich aus statt aufzutauchen.
+- **Menge je „Effekte“**: die Teilchenzahl der Stufe (300 / 1.500 / 4.000) in einem Kasten je Stufe (`RAIN_BOX`,
+  `SNOW_BOX`) – schon „Aus“ hat mindestens Arcades Dichte (Unit-Test `test_weather`), auch die Steam-Deck-Stufe zeigt
+  Niederschlag.
+- **Aussehen**: Regen als Striche der Bewegung in 18 ms (der Fallanteil 2,5-fach wie in Arcade), Schnee als runde
+  Flocken von 4,5 cm (1,2 … 5,5 px), bei schneller Fahrt zu Strichen gezogen. Helligkeit nach Arcades Gesetz
+  (Farbe × min(1, Umgebungslicht + 0,35)) plus dem Abblendlicht dort, wo das Teilchen im Kegel hängt – nachts
+  glitzern Regen und Schnee vor dem Auto.
+- **Tunnel**: ausgeblendet über die Portalrampe (`1 − tunnel01`), drinnen unsichtbar. Kein Schatten.
+- **Wächter** (FIX-R4, Befund B5 von QA-R4): stuft der Langsamkeits-Wächter im Countdown die Voreinstellung herab,
+  folgt die Ebene sofort (`quality_lowered(levels)`): Teilchenzahl und Kasten der niedrigeren Stufe (die ersten n
+  Instanzen der gebauten MultiMesh – der Shader setzt jede Instanz nur nach ihrer Nummer, es braucht keinen neuen
+  Puffer) und die Gischt der niedrigeren Stufe. Vorher behielt der Niederschlag 4.000 Teilchen im großen Kasten –
+  genau die Füllkosten, die R4 auf llvmpipe gemessen hat. `lights.gd` hatte den Haken schon (Punktlicht-Pool).
+
+### 15.3 Gischt
+
+Hinter jedem Auto auf nasser Fahrbahn ab 40 km/h (voll bei 160 km/h, Arcades Gesetz) – auch hinter Lkw, Bussen und dem
+eigenen Auto (Arcade: nur hinter Pkw). Die Fahrzeug-Ebene gibt je Bild die Quellen weiter (`set_spray_sources`: Heck,
+Richtung, Breite, Ausblendung, Tempo, Rücklicht); die Wetter-Ebene setzt daraus weiche Wolken
+(`assets/shaders/modern/spray.gdshader`: Kamera-zugewandte Vierecke, treibendes Rauschen nach `ce_time`, weiche Kante,
+wo die Wolke Straße oder Auto trifft – Tiefentextur). Bei „Effekte: Einfach/Voll“ je eine Fahne hinter jedem
+Hinterrad und ein nachziehender Schleier, bei „Aus“ (Gischt laut Tabelle aus) eine Wolke je Auto an der Stelle von
+Arcades Ellipse – so zeigt keine Stufe weniger als Arcade. Licht auf dem Prozessor: Umgebung, das Abblendlicht am Ort
+der Wolke (`lights.beam_at()`), nachts das Rot der eigenen Rückleuchten.
+
+### 15.4 Nasse Fahrbahn
+
+- `road.gdshader`: um ein Drittel dunkler und glatter (wie bisher), dazu spiegelt der Wasserfilm den Himmel mit dem
+  Fresnel-Gesetz von Wasser unter dem Winkel, unter dem die Kamera die Straße sieht (`wet_mirror` 0,42; neue Globals
+  `ce_sky_top`, `ce_sky_horizon`, vom Rig) – nah am Auto wenig, zum Horizont viel; nie weniger als Arcades Glanz
+  (28 % der Nebelfarbe am Ende der Sicht). Markierung spiegelt etwas weniger.
+- **Abblendlicht und Lichtkegel nur auf dem diffusen Anteil** (FIX-R4, Befund B2 von QA-R4): der gespiegelte Himmel
+  gehört zum Grundwert der Fahrbahn (er zeigt sich unter dem Bodengesetz als Farbe des Himmels), ist aber keine matte
+  Fläche. `road.gdshader` führt darum neben `base` den Anteil `lit`, den die Lampen beleuchten (Asphalt × (1 − Spiegel),
+  Markierung × (1 − 0,07 nass) × (1 − 0,35 Spiegel)); `EMISSION` = Bodengesetz(`base`) + Kegel × `lit`. Vorher
+  beleuchteten Abblendlicht und Laternenkegel den gespiegelten Himmel wie hellen Asphalt: im Kegel war die nasse
+  Fahrbahn 1,77 × so hell wie Arcade (Median 108 gegen 61 von 255, N2 22 Uhr Regen, „Hoch“) und die Markierung hatte
+  weniger als den halben Kontrast – ein cremefarbener Fleck vor dem Auto. Jetzt (gemessen, dasselbe Bild): 54 gegen 61,
+  wie bei Arcade wird die nasse Straße im Scheinwerfer dunkler als die trockene; die ferne Spiegelung des Himmels bleibt.
+- **Spiegelungen der Lampen** (`flare.gdshader`, Variante `CE_STREAK`, Klasse `flare_streak`): je Rück- und
+  Bremsleuchte ein Streifen auf der Straße vom Boden unter der Lampe zur Kamera (3–18 m, mit der Entfernung länger),
+  hell an der Lampe, zur Kamera hin auslaufend, mit leichtem Flimmern des Films; **tiefengetestet** (das eigene Auto
+  und alles davor verdeckt es) und mit denselben fünf Tiefenproben an der Lampe wie ihr Lichtpunkt – eine Lampe hinter
+  einer Kuppe oder einem Lkw hat auch keine Spiegelung. Laternen und Tankstellenlampen spiegeln nachts ebenso; ihr
+  langer Streifen wird Punkt für Punkt mit dem Fresnel-Gesetz von Wasser unter dem Blickwinkel der Kamera gewichtet
+  (`flare.gdshader`, negative halbe Breite der Instanz, 1 ab `fresnel_ref_m` 15 m vor der Kamera): das nahe Ende
+  liegt steil unter der Kamera und spiegelt wenig – die ersten Bilder (C1 im Regen, 21:30) zeigten dort einen
+  gesättigten orangen Fleck um das Spielerauto. Zur Kamera hin reicht der Schleier höchstens halb so weit wie der
+  Weg vom Spiegelpunkt zur Kamera (bei einer hohen Laterne liegt der Spiegelpunkt nahe der Kamera; das Gesetz der
+  tiefen Rückleuchten, 1,3 × Weg vom Lampenfuß, zog den Streifen sonst in voller Stärke bis unter die Kamera). Die
+  kurzen Streifen der Fahrzeuglampen bleiben ohne Fresnel-Gewicht und ändern sich durch die Grenze nicht.
+- **Der Streifen liegt auf der Straße** (FIX-R4, Befund B1 von QA-R4): er war ein waagrechtes Viereck in der Höhe
+  des Bodens unter der Lampe. Stieg die Straße zum Auto hin an, hing es zwischen Auto und Kamera in der Luft und stand
+  über fernen Autos als rote, flimmernde Säule (N2 22 Uhr Regen bei 4 s: etwa 65 Bildpunkte hoch über einem Auto 300 m
+  voraus; in R4s Clip bis an den oberen Bildrand). Jetzt ist er ein Band aus 12 Abschnitten (`flares.gd`
+  `streak_mesh()`), und die Instanz trägt in ihrer sonst ungenutzten Basis das Höhenprofil der Straße vom Lampenfuß bis
+  zum Fuß der Kamera: die Höhen bei 1/6 … 6/6 des Weges relativ zum Fuß (`flares.gd` `road_profile()`, `put_profile()`;
+  Spalten 0 und 1, Spalte 2 x = 1 heißt „Profil da“). Der Shader legt jeden Punkt des Bandes auf die Catmull-Rom-Kurve
+  durch die sieben Punkte, mit 3 cm + 0,6 mm je Meter Abstand zur Kamera darüber (das Profil zwischen den Stützstellen
+  ist eine Kurve, der Tiefenpuffer in der Ferne grob). Die Augenhöhe für den Spiegelpunkt ist die Höhe der Kamera
+  über ihrem eigenen Fuß (auf einer gleichmäßigen Steigung gilt dann das Gesetz der ebenen Straße in deren Ebene).
+  Die Fahrzeug-Ebene rechnet ein Profil je Auto (vom Heck `car.z` zur `camera_z`, alle Rückleuchten des Autos teilen
+  es), die Laternen eines je Lampe von der Straßenstelle, an der ihre Höhe gemessen wird (`_drop_of()` merkt sich sie).
+  Hinter einer Kuppe verdeckt die Straße den Streifen wie bisher (Tiefentest).
+
+### 15.5 Schnee am Boden und auf den Dingen
+
+- **Schneewälle** (`builders/terrain.gd`, `_snow_banks`): auf einer Schnee-Etappe liegt der geräumte Schnee als
+  niedriger Wall an der Außenkante der Bankette – Teil des Geländenetzes, gleiches Material, also nach dem Bodengesetz
+  so hell wie der Schneeboden; der Fuß auf dem Bankett ist schmutzig grau (die Pflugkante zeichnet den Wall gegen das
+  Weiß). Höhe 0,3 m mit langsamer Schwankung, **höchstens 0,45 m** (`BANK_MAX_M`) – wie die Bodendecker der
+  Kurvenkorridore (A-3, 0,5 m) kann er nie ein Auto vor dem Auge in 3,4 m verdecken; das Geländeprofil der
+  Fairness-Prüfungen bleibt unberührt. Nicht auf Brücken, in Tunneln, in den City Limits und neben einer Tankspur; wo er
+  endet, läuft er über drei Segmente aus. Etwa 380 Dreiecke je Stück.
+- **Schnee auf den Dingen**: nach oben weisende Flächen tragen Schnee – Dächer und Simse (`baked`), die Kronen der
+  Bäume (`leaves`), Leitplankenholme, Masten, Laternen (`vpbr` statischer Modelle: `ModernMaterials.static_code()` setzt
+  dort `snow_cover` 1, Fahrzeuge behalten 0). Nachts um 30 % dunkler (`snow_night`), damit Dächer und Kronen nicht über
+  dem Schneeboden leuchten. Fernbilder und Ersatzbilder tönen wie Arcade 15 % zu `#bfccd6`.
+
+### 15.6 Belichtungsrampe an der Tunnelausfahrt
+
+Arcade lässt das Draußen überstrahlt wirken, solange die Kamera im Tunnel ist (Umgebungslicht × 1,7 + 0,25, Nebel 55 %
+zu Weiß). Modern: ein Viereck über dem Ausfahrtsportal (`environment_rig.gd`, `_update_exit`), tiefengetestet – die
+Röhre verdeckt es außerhalb der Öffnung –, überbelichtet alles, was durch die Öffnung zu sehen ist: Stärke 0,6
+solange die Ausfahrt fern ist, 0,45 direkt am Portal (die Augen sind noch auf die Röhre eingestellt – wie bei Arcade
+bleibt das Draußen hell, solange die Kamera drinnen ist; `exit_glare()`); danach ist das ganze Bild 60 m lang
+überstrahlt (0,4 am Portal, in rund 1,5 s bei 140 km/h abklingend; `exit_after()`, Canvas-Ebene 1) – **und höchstens
+`EXIT_AFTER_S` (2 s) lang** (FIX-R4, Befund B6 von QA-R4: ein Auto, das im Stau, nach einem Unfall oder bei einer
+Polizeikontrolle kurz hinter der Ausfahrt stand, blieb sonst dauernd überbelichtet). `exit_after_timed(d, dt)`: es
+klingt mit dem ab, was weiter fortgeschritten ist – Weg (`d` / 60 m) oder Zeit seit dem Portal (`dt` / 2 s, nach
+`view.time`, also bestimmt mit `--gfx-sync`); über 108 km/h entscheidet der Weg (der Look von R4 bleibt), darunter
+die Zeit. Die Zeit, zu der die Kamera das Portal passierte, schätzt das Rig aus dem Weg hinter der Ausfahrt und dem
+Tempo – eine Etappe, die hinter einer Ausfahrt beginnt, zeigt kein Nachglühen. Die ersten
+Bilder mit 12 % am Portal und 22 % danach zeigten eine fast normale Ausfahrt – schwächer als Arcade.
+**Belichtungsgesetz** (beide Stellen, `GLARE_LAW`): das Viereck und die Canvas-Ebene lesen, was hinter ihnen liegt
+(Bildschirmtextur – eine Kopie des Bildes, nur solange sie zu sehen sind), und zeigen es nach Arcades Gesetz für das
+Draußen: Anzeigewert × (1 + 0,7 s) + 0,25 s (`EXIT_GAIN`, `EXIT_LIFT`; s = Stärke / 0,6, also bei fernem Portal
+genau Arcades × 1,7 + 0,25), die hellsten Teile brennen zu `EXIT_GLARE_COLOR` aus. Die erste Fassung mischte zu Weiß –
+das las sich milchig, ein blasser Schleier über graugrünem Gras, wo Arcade helles, sattes Grün zeigt. Gemessen
+(Teststrecke km 52,8, 12 Uhr, „Hoch“, Kamera am Portal, Bereich über den Autos): Leuchtdichte Arcade 0,600, Modern
+vorher 0,638, jetzt 0,717; mittlere Sättigung Arcade 0,43, Modern vorher 0,20, jetzt 0,26 (Moderns Tagesgras ist
+grundsätzlich weniger grell als Arcades Palette). Ist das
+Spielerauto schon draußen, die Kamera aber noch drin, steht das Viereck 1,5 m vor seiner Front (`EXIT_CAR_GAP_M`):
+das Draußen dahinter ist überstrahlt, das Auto nicht verschleiert – wie Arcades Sprite (das Portal rahmt das Viereck
+von innen weiter ein). Nur bei Tag (Leuchtdichte des Umgebungslichts 0,35 … 0,75), nur mit einem Tunnel-Builder
+(seine Röhre muss das Viereck verdecken), eine Funktion der Kameraposition und der Spielzeit `view.time` – keine
+Wanduhr. Das Viereck wird als **erstes** aller durchsichtigen Dinge gezeichnet (`render_priority` −128, FIX-R4, Befund
+B8): es ersetzt, was hinter ihm liegt, durch die überstrahlte Kopie des undurchsichtigen Bildes; nach der Tiefe sortiert
+konnte es nach einem Brems- oder Blinklicht jenseits des Portals gezeichnet werden und es löschen (F6). Lichtpunkte,
+Regen und Glas kommen jetzt danach. Das Viereck steht in den
+Aufwärm-Knoten des Rigs; die Canvas-Ebene wird beim Aufwärmen zwölf Aktualisierungen lang mit Stärke 0 (Identität)
+gezeichnet, damit ihr Programm hinter dem Ladebild übersetzt wird.
+
+### 15.7 Nacht
+
+- **Mond von oben** (Nachtgesetz für senkrechte Flächen, Entscheidung 8 der Leitung): das Mondlicht fällt aus
+  mindestens 55° (`MOON_MIN_ELEV_DEG`). Ein tiefer Mond beleuchtete Wände, die ihm zugewandt sind, viel stärker als
+  ebenen Boden (um 22 Uhr 1,7-fach) – das Lichtgesetz ist für ebenen Boden gemacht; M2ZS1 maß den hellen Pylon der
+  Köhlbrandbrücke 40 % über Arcade. Ab 55° bekommt eine senkrechte Fläche höchstens 0,7 × das Mondlicht des Bodens: jede
+  helle Wand, jedes Brückenteil, jede Karosserie bleibt beim Anteil des Bodens. Der Mond am Himmel bleibt, wo die
+  Palette ihn zeichnet. `night_albedo` von `baked.gdshader` bleibt die Stellschraube je Material (Pylon 0,45 –
+  nachgemessen mit dem Mondgesetz an der Köhlbrandbrücke km 78,1, 22 Uhr, „Hoch“, Bereich x 500–780, y 150–350:
+  Arcade 59,7, Modern 55,4 von 255, also weiter höchstens so hell wie Arcade; das Mondgesetz allein hätte den Wert
+  nicht gebraucht, die Laternen an den Seilen bei km 79,7 schon).
+- **Nacht-Füll-Licht des Spielerautos** (Kunstkritik KRITIK-2 A2: „die Karosserie bleibt nachts fast schwarz“):
+  das Füll-Licht (`fill` 0,7 des Umgebungslichts, nur das Spielerauto) bleibt nachts bei 0,6 seines Tagesanteils
+  (`fill_night`, vorher 0,3) und zeigt sich zusätzlich als gleichmäßiger Schimmer auf dem Klarlack
+  (`fill_sheen` 0,25 × `ce_night`) – so hält Arcades Sprite mit seinem
+  Studioglanz auch einen dunklen Lack lesbar. Ein stärkeres diffuses Füll-Licht allein hebt den dunklen Metallic-Lack
+  der Limousine am wenigsten (bei 2,0: Limousine 0,51 ×, Kompakt schon 1,13 × Arcade), der neutrale Schimmer am
+  meisten. Gemessen mit `check_night spielerauto` (75. Perzentil der Leuchtdichte der Karosserie gegen Arcades Bild,
+  22 Uhr): vorher Kompakt 0,80 ×, Gran Turismo 0,55 ×, Limousine 0,35 ×; mit dem neutralen Schimmer Kompakt 1,06 ×,
+  Gran Turismo 0,92 ×, Limousine 0,94 ×. Der neutrale Schimmer machte die Lacke aber blasser als Arcades Sprites (der
+  bernsteinfarbene Kompakt cremefarben, der blaugraue GT neutral grau; mittlere Sättigung der Karosserie 0,74 × /
+  0,70 × / 0,91 × des Sprites). Darum trägt der Schimmer jetzt zu 80 % die Farbe des Lacks im Licht der Umgebung
+  (`fill_sheen_tint` 0,8, Arcades Gesetz Sprite × Umgebungsfarbe, bei gleicher Leuchtdichte): Sättigung **0,95 × /
+  0,73 × / 0,91 ×**, Helligkeit 1,04 × / 0,93 × / 0,86 × (`check_night spielerauto` prüft jetzt beides: Helligkeit
+  0,6 … 1,1 ×, Sättigung ≥ 0,7 × – der silberne GT verdankt seine Sättigung bei Arcade nur dem blauen Nachtton).
+  Bei Tag ändert sich nichts (alles wirkt mit `ce_night`).
+  **FIX-R4** (Befunde B3/B7 von QA-R4): der Schimmer nimmt den Ton aus dem um 35 % zur eigenen Leuchtdichte
+  gewaschenen Lack (`sheen_wash` 0,35 – das Studiolicht der Sprites wäscht den Lack, FIX-M2 B-06 hat es bei Tag
+  gemessen); mit dem vollen Ton des Modells las sich die dunkelblaue Limousine um 21 Uhr königsblau (QA-R4: Sättigung
+  1,38 × ihres Sprites). Und nachts nimmt der Himmel, den Lack, Metall und Glas spiegeln, 80 % des Tons des
+  Umgebungslichts bei seiner eigenen Leuchtdichte an (`layers/vehicles.gd` `ENV_NIGHT_TINT`, `night_tint()` – Arcades
+  Gesetz Sprite × Umgebungsfarbe; der Regen verdeckt den Nachthimmel mit grauen Wolken). Gemessen mit
+  `check_night spielerauto` (jetzt mit der Limousine auf der Teststrecke um 21 Uhr und einer Obergrenze der Sättigung
+  1,25 ×): Kompakt 1,05 × / Sättigung 1,23 ×, Gran Turismo 0,92 × / 0,77 × (vorher 0,73 ×), Limousine S1 0,88 × /
+  0,95 ×, Limousine DEV 21 Uhr 0,87 × / 1,00 ×. **Offen**: der silberne Gran Turismo liest sich nachts im Regen weiter
+  hellgrau-neutral statt blaugrau – auch mit dem vollen Himmelston (1,0) nur 0,78 ×; der neutrale Anteil kommt also
+  nicht aus dem gespiegelten Himmel (Lack `#b2b7bd`, Metall 0,9 – vermutlich das direkte Mondlicht auf dem Metall,
+  `light()`), Sache von FIX-M2 B-06 / R7.
+- **Blaulicht**: ein Polizeiauto mit Blaulicht (Ansicht `beacon` „a“/„b“) bis 160 m vor der Kamera bekommt nachts
+  einen Punktlicht aus dem Pool (es hat Vorrang vor der fernsten Lampe, der Deckel bleibt 8) und einen blauen
+  Lichtkegel auf dem Boden, beide im Takt der Phase (1,0 / 0,6). Bei Tag nichts.
+- **Deckel**: höchstens 8 Punktlichter und 2 Spots, keines mit Schatten, genau ein gerichtetes Licht – geprüft auf drei
+  Nachtetappen (`tests/race3d/check_light_cap.gd`).
+
+### 15.8 Tag: Sonnenscheibe
+
+`EnvironmentRig.sky_palette()` gibt die Palette unverändert an den Hintergrund: die Sonnenscheibe steht, wo Arcade sie
+zeichnet – mittags vorn und hoch –, auch wenn das Licht der hohen Sonne von hinten links kommt (sonst läge alles, was
+die Verfolgerkamera sieht, im Gegenlicht). Das ist Arcades eigene Abmachung: sein Panorama zeigt die Sonne vorn, seine
+Sprites sind von hinten links beleuchtet. Bei tiefer Sonne (Morgen, Abend) wird nicht geschwenkt: dort stimmen Scheibe,
+Horizontglühen, Licht und Schatten genau überein.
+
+### 15.9 Prüfungen
+
+| Prüfung | Inhalt |
+|---|---|
+| `tests/unit/race3d/test_environment_rig.gd` → `test_set_zone`, `test_night_moon_and_floor`, `test_where_the_sun_stands` | Zonen (Tunnel, Brücke, fremde Art, Grenzen), Mond ≥ 55° zu jeder Nachtstunde, Sonnenscheibe an Arcades Stelle |
+| `tests/unit/race3d/test_light_pool.gd` | Lichtdeckel je „Effekte“ (2 / 4 / 8 Punktlichter, ≤ 2 Spots, keine Schatten, der Boden ausgelassen), Gesetz der Lichtkegel, Mitte eines Kegels, Abblendlicht am Boden und in der Luft (`beam_at`), Blaulicht (`beacon_of`) |
+| `tests/unit/race3d/test_weather.gd` | Wetterarten und Stufen, jede „Effekte“-Stufe mindestens mit Arcades Teilchendichte, Gischtwolken (eine bei „Aus“, drei sonst, Lkw größer, schneller weiter hinten), Länge der Lampenspiegelung; FIX-R4: Höhenprofil der Spiegelung auf einer Steigung und seine Lage in der Instanz, Band mit Abschnitten (`test_streak_follows_the_road_profile`), Schneewall im gebauten Netz ≤ 0,45 m (`test_snow_bank_mesh_height`), Niederschlag folgt dem Wächter (`test_weather_follows_the_watchdog`) |
+| `tests/race3d/check_light_cap.gd` (kopflos, im Haken von `tools/run_tests.sh`) | `deckel`: N1, Kiel – Hamburg ab km 76 um 22:30 und C1 um 21:30 im Regen, „Hoch“: in jeder Probe ≤ 8 sichtbare Punktlichter, ≤ 2 Spots, keines mit Schatten, genau ein gerichtetes Licht mit Schatten, der Schnappschuss stimmt; Lampen-Pool und Abblendlicht benutzt |
+| `tests/race3d/render/check_weather.gd` | `teilchen` (Regen und Schnee je Stufe „Niedrig“ / „Steam Deck“ / „Hoch“: Bildpunkte, mehr je Stufe, zweimal dasselbe Bild), `gischt`, `nass` (Spiegelung der Rückleuchten nachts, Fresnel bei Tag), `tunnel`, `schneewall` (FIX-R4: auch der höchste Wallpunkt im gebauten Netz, `bank_max_m` aus `TerrainBuilder.debug()`) |
+| `tests/race3d/render/check_weather_tabelle.gd`, `check_weather_tabelle_schnee.gd` | `tabelle` (Wetter klar/Regen bzw. Schnee × Stunde 6:36/12/19:12/22 Uhr, S1 „Mittel“: mittlere Leuchtdichte des Bodens 0,8 … 1,35 × Arcade, Kontrast ≥ 0,5 × Arcade, kein schwarzes Bild) – eigene Dateien: alle 24 Etappenstarts brauchten bei Last 20 933 s, mehr als die 900 s je Datei von `tools/run_render_checks.sh`. Gemessen (R4): Helligkeit 0,90 … 1,01 ×, Kontrast 0,74 … 1,17 × |
+| `tests/race3d/render/check_night.gd` | `fahrbahn` (N1: mittlere Leuchtdichte der Fahrbahn 0 … +15 % gegen Arcade, „Mittel“ und „Steam Deck“), `spielerauto` (Kompakt/N1 Schnee, Gran Turismo/Regen, Limousine/klar, 22 Uhr: Karosserie 0,6 … 1,1 × Arcades Bild), `verdeckung` (nasse Nacht: Auto hinter Kuppe und hinter Sattelzug ändert 0 Pixel, auch keine Spiegelung), `blaulicht` (Polizei 34 m voraus: nachts ≥ 400 blauere Pixel und ein Punktlicht, bei Tag keines) |
+| `tests/race3d/render/check_night_nass.gd` (FIX-R4, eigene Datei von `check_night.gd`) | `nass_kegel` (N2 22 Uhr Regen, „Mittel“: Median der eigenen Spur im Abblendlicht 16–34 m vor der Kamera 0,7 … 1,15 × Arcade, Weber-Kontrast der Markierung dort ≥ 0,8 × Arcade – Befund B2), `spiegelung` (nasse Nacht, bremsendes Auto auf der Steigung vor der Kuppe T2, ≥ 3 m über dem Kamerafuß: kein Bildpunkt der Spiegelungen über seinem Dach, ihre Spiegelung liegt darunter auf der Straße – Befund B1) |
+| `tests/unit/race3d/test_environment_rig.gd` → `test_exit_ramp` (FIX-R4) | Nachglühen stetig (kein Sprung bei 60 m, < 0,02 bei 59,5 m) und höchstens `EXIT_AFTER_S` lang; über 108 km/h entscheidet der Weg |

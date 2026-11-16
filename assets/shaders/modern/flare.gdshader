@@ -19,9 +19,28 @@
 // smallest radius px, kind: 0 glow / 1 indicator with core, lamp radius in metres for the depth taps).
 // Mesh: a quad with corners (-1..1, -1..1) in x / y. Unshaded, additive, no fog (lamps shine through the haze;
 // their strength already carries the path-distance fade of their vehicle).
+// R4: the variant CE_STREAK (ModernMaterials class "flare_streak") draws the reflection of a lamp on the WET road –
+// Arcade's streaky reflections of rear lights (RoadRenderer._wet_reflections), here as a quad lying on the road from
+// the ground under the lamp towards the camera, depth TESTED (the player's car and everything else in front hides it)
+// and dimmed by the same five depth taps at the lamp itself (a lamp behind a crest or a truck has no reflection either).
+// Its instance: origin = the lamp, COLOR = lamp colour and strength, INSTANCE_CUSTOM = (half width m, height of the
+// lamp above the road m, length m, lamp radius m for the taps), and in the BASIS of the instance transform (unused by a
+// flare otherwise) the height profile of the road from the lamp's foot to the camera's foot (FIX-R4, QA-R4 B1): the
+// road heights relative to the foot at 1/6 … 6/6 of that way in basis columns 0 and 1 (x, y, z each), column 2 x = 1
+// when a profile is given. The streak follows that profile (Catmull-Rom through the seven points) instead of lying
+// level at the height of the foot: where the road climbs towards a far car, a level quad hung in the air between the
+// car and the camera and showed as a red column above the car. Without a profile (column 2 x = 0) the streak lies level. Bright at the lamp's foot, fading towards the camera,
+// soft across, with a slow shimmer of the rain on the water film (ce_time: frozen in the pause). A NEGATIVE half width
+// (street and canopy lamps) also weighs every point of the streak with the Fresnel term of water under the angle the
+// camera sees it at, relative to a point fresnel_ref_m from the camera's foot: the near end of the long streak of a
+// high lamp lies steeply below the camera and mirrors little (C1 in the rain: an orange blob round the player's car).
 // Load only through ModernMaterials - never with preload().
 shader_type spatial;
+#ifdef CE_STREAK
+render_mode unshaded, blend_add, depth_draw_never, cull_disabled, fog_disabled, shadows_disabled;
+#else
 render_mode unshaded, blend_add, depth_draw_never, depth_test_disabled, cull_disabled, fog_disabled, shadows_disabled;
+#endif
 
 uniform sampler2D depth_tex : hint_depth_texture, filter_nearest, repeat_disable;
 uniform float focal_px = 711.0;     // logical px per metre at 1 m (RoadProjection.focal)
@@ -29,6 +48,7 @@ uniform float logical_h = 720.0;    // logical rows of the picture (the focal le
 uniform float max_px = 70.0;        // Arcade's largest glow radius
 uniform float depth_eps = 0.12;     // m: the lamp counts as hidden only behind something this much nearer
 uniform float strength = 1.0;       // overall factor (tuning)
+uniform float fresnel_ref_m = 15.0; // CE_STREAK with a negative half width: Fresnel 1 at and beyond this distance
 
 varying vec4 v_col;
 varying vec2 v_quad;                // the quad's corner coordinates (-1..1) …
@@ -39,6 +59,85 @@ varying vec2 v_src;                 // screen uv of the lamp
 varying vec2 v_tap;                 // uv offset of the four outer depth taps
 varying float v_depth;              // view depth of the lamp (m)
 
+#ifdef CE_STREAK
+global uniform float ce_time;
+varying vec2 v_streak;              // (metres from the lamp's foot towards the camera, -1 … 1 across)
+varying vec2 v_ground;              // road position of the fragment (world xz) for the shimmer
+varying vec3 v_spec;                // (mirror point m from the foot, width before it m, width after it m)
+varying vec3 v_rh;                  // (reach m: foot to the camera's foot, camera height m, 1 = Fresnel along it)
+
+// Height of the road profile at fraction f (0 = the lamp's foot, 1 = the camera's foot) of the way: Catmull-Rom through
+// the seven samples q[0] = 0 (the foot) … q[6], linear beyond the ends.
+float profile_at(float q[7], float f) {
+	float u = clamp(f, 0.0, 1.0) * 6.0;
+	int i = min(int(floor(u)), 5);
+	float t = u - float(i);
+	float p1 = q[i];
+	float p2 = q[i + 1];
+	float p0 = i > 0 ? q[i - 1] : 2.0 * p1 - p2;
+	float p3 = i < 5 ? q[i + 2] : 2.0 * p2 - p1;
+	return 0.5 * (2.0 * p1 + (p2 - p0) * t + (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * t * t
+		+ (3.0 * p1 - p0 - 3.0 * p2 + p3) * t * t * t);
+}
+
+void vertex() {
+	vec3 lamp = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+	vec4 vp = VIEW_MATRIX * vec4(lamp, 1.0);
+	float d = max(-vp.z, 0.05);
+	float s = focal_px / d;
+	vec4 lclip = PROJECTION_MATRIX * vp;
+	float aspect = VIEWPORT_SIZE.x / max(VIEWPORT_SIZE.y, 1.0);
+	vec2 px_ndc = vec2(2.0 / (logical_h * aspect), 2.0 / logical_h);
+	v_src = (lclip.xy / lclip.w) * 0.5 + 0.5;
+	v_tap = max(INSTANCE_CUSTOM.w * s, 0.6) * px_ndc * 0.5;
+	v_depth = d;
+	// the strip on the road: from the ground under the lamp towards the camera, 3 cm above the road (a little more far
+	// away, where the depth buffer is coarse and the profile between its samples is a curve)
+	vec3 ground = lamp - vec3(0.0, INSTANCE_CUSTOM.y - 0.03, 0.0);
+	vec3 to_cam = CAMERA_POSITION_WORLD - ground;
+	to_cam.y = 0.0;
+	float reach = length(to_cam);
+	vec3 dir = reach > 0.01 ? to_cam / reach : vec3(0.0, 0.0, 1.0);
+	vec3 side = normalize(cross(vec3(0.0, 1.0, 0.0), dir));
+	bool has_prof = MODEL_MATRIX[2].x > 0.5;
+	float q[7] = float[](0.0, MODEL_MATRIX[0].x, MODEL_MATRIX[0].y, MODEL_MATRIX[0].z, MODEL_MATRIX[1].x,
+		MODEL_MATRIX[1].y, MODEL_MATRIX[1].z);
+	if (!has_prof) {
+		for (int k = 1; k < 7; k++) {
+			q[k] = 0.0;
+		}
+	}
+	// the mirror point: where the camera sees the lamp's mirror image on the road – the eye hc above the road at its
+	// own foot (the road's plane between the two: on a steady grade the law of the level road holds in that plane) and
+	// `reach` metres away, the lamp hl above the road: hl / (hc + hl) of the way from the foot to the camera. A rough
+	// water film smears the reflection along the view around it, more towards the camera.
+	float hc = max(CAMERA_POSITION_WORLD.y - ground.y - q[6], 0.5);
+	float hl = max(INSTANCE_CUSTOM.y, 0.05);
+	float sm = reach * hl / (hc + hl);
+	float t = VERTEX.y * 0.5 + 0.5;
+	float len = clamp(max(3.2 * sm + 1.0, INSTANCE_CUSTOM.z * 0.5), 1.5, max(reach - 0.8, 0.4));
+	float s_along = t * len - 0.2;
+	float lift = 0.0006 * max(reach - s_along, 0.0);
+	vec3 p = ground + dir * s_along + vec3(0.0, profile_at(q, s_along / max(reach, 0.01)) + lift, 0.0);
+	// towards the camera the smear reaches at most half the way from the mirror point to the camera's foot: for a high
+	// street lamp the mirror point lies near the camera and 1.3 × sm (the law of the low rear lamps) ran the streak at
+	// full strength up to the camera – an orange blob round the player's car at C1 in the rain
+	v_spec = vec3(sm, 0.45 * sm + 0.3, min(1.3 * sm + 0.6, 0.5 * max(reach - sm, 0.0) + 0.5));
+	v_rh = vec3(reach, hc, INSTANCE_CUSTOM.x < 0.0 ? 1.0 : 0.0);
+	// never thinner than 1.2 logical px at its own depth
+	vec4 pv = VIEW_MATRIX * vec4(p, 1.0);
+	float half_w = max(abs(INSTANCE_CUSTOM.x) * (1.0 + 0.5 * t), 0.6 * max(-pv.z, 0.05) / focal_px);
+	p += side * VERTEX.x * half_w;
+	POSITION = PROJECTION_MATRIX * (VIEW_MATRIX * vec4(p, 1.0));
+	v_streak = vec2(t * len - 0.2, VERTEX.x);
+	v_ground = p.xz;
+	v_col = COLOR;
+	v_quad = VERTEX.xy;
+	v_px = vec2(1.0);
+	v_core = vec2(0.0);
+	v_r = 1.0;
+}
+#else
 void vertex() {
 	vec4 vp = MODELVIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0);
 	float d = max(-vp.z, 0.05);
@@ -63,6 +162,7 @@ void vertex() {
 	v_r = r;
 	v_col = COLOR;
 }
+#endif
 
 // linear view depth of the depth texture at uv (GL Compatibility: reverse Z, window depth 0..1 -> NDC -1..1)
 float scene_depth(vec2 uv, mat4 inv_proj) {
@@ -86,6 +186,24 @@ void fragment() {
 	if (vis <= 0.0) {
 		discard;
 	}
+#ifdef CE_STREAK
+	// the reflection: brightest at the mirror point, smeared along the view (longer towards the camera), soft across,
+	// a slow shimmer of the film
+	float u = v_streak.x - v_spec.x;
+	float wu = u < 0.0 ? v_spec.y : v_spec.z;
+	float along = exp(-u * u / (wu * wu));
+	float across = exp(-v_streak.y * v_streak.y * 2.6);
+	float shimmer = 0.75 + 0.25 * sin(v_ground.x * 3.1 + v_ground.y * 2.3 + ce_time * 5.0) * sin(v_ground.y * 1.7 - ce_time * 3.3);
+	float fres = 1.0;
+	if (v_rh.z > 0.5) {
+		float h = v_rh.y;
+		float dc = max(v_rh.x - v_streak.x, 0.0);
+		float f = 0.02 + 0.98 * pow(1.0 - h / sqrt(h * h + dc * dc), 5.0);
+		float fr = 0.02 + 0.98 * pow(1.0 - h / sqrt(h * h + fresnel_ref_m * fresnel_ref_m), 5.0);
+		fres = min(f / fr, 1.0);
+	}
+	ALBEDO = v_col.rgb * (v_col.a * along * across * shimmer * fres) * vis * strength;
+#else
 	// Arcade's glow: 1 -> 0.55 over the first quarter of the radius, then linearly to 0 at the radius - full strength
 	// up to half a pixel diagonal of the 3D picture (px = logical px per pixel of the 3D picture)
 	float px = logical_h / max(VIEWPORT_SIZE.y, 1.0);
@@ -98,4 +216,5 @@ void fragment() {
 		c += mix(v_col.rgb, vec3(1.0, 0.9, 0.6), 0.35) * min(v_col.a * 1.25, 1.0);
 	}
 	ALBEDO = c * vis * strength;
+#endif
 }
