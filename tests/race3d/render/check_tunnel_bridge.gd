@@ -395,7 +395,7 @@ func _check_beacon(name: String, renderer: Node, pos: Dictionary) -> void:
 ## QR5-06; the method of QA-R5's independent scan):
 ##   bridge  pylons, truss portals and bridge lamps = Arcade's "pylon" / "truss_portal" / "bridge_lamp" events
 ##           (Track._build_bridge); one red aviation light per pylon; 2 × 7 stay cables per pylon (RoadRenderer._pylon);
-##           water; banks at both ends; per type its truss / arches / piers; no vertex of the structure over a lane
+##           water; banks at both ends; per type its truss / arches; no vertex of the structure over a lane
 ##           between 0.3 and 4.5 m; no cable within 1.5 m of a lane;
 ##   tunnel  one portal and one exit frame; the cap at peek_m exactly where Arcade closes the tube; SOS niches by
 ##           Arcade's rule (a green sign in every tunnel segment whose road position mod 150 m < seg_len); at least
@@ -594,9 +594,7 @@ func _full_scan() -> void:
 					"stone_arch", "canal", "causeway":
 						if int(sums.get("arches", 0)) <= 0:
 							miss.append("Bögen")
-					"river":
-						if int(sums.get("piers", 0)) <= 0:
-							miss.append("Pfeiler")
+				# (piers are Modern's own: Arcade draws none; a short river bridge spans its water without one)
 				if in_lane > 0:
 					miss.append("%d Tragwerkspunkte über den Spuren unter %.1f m (%s)" % [in_lane, SCAN_CLEAR_H, lane_ex])
 				if exp_py > 0 and cable_min < SCAN_CABLE_MIN:
@@ -606,9 +604,10 @@ func _full_scan() -> void:
 				totals["lamps"] += int(sums.get("lamps", 0))
 				totals["cables"] += int(sums.get("cables", 0))
 				if verbose:
-					print("BRIDGE %s: Pylone %d/%d Portale %d/%d Lampen %d/%d Seile %d Feuer %d Ufer %d|%d Seil-Abstand %.2f" % [what,
-						int(sums.get("pylons", 0)), exp_py, int(sums.get("portals", 0)), exp_po, int(sums.get("lamps", 0)), exp_la,
-						int(sums.get("cables", 0)), int(sums.get("beacons", 0)), bank_near, bank_far, cable_min if cable_min < INF else -1.0])
+					print("BRIDGE %s: Pylone %d/%d Portale %d/%d Lampen %d/%d Seile %d Feuer %d Ufer %d|%d Pfeiler %d Bögen %d Fachwerk %d Seil-Abstand %.2f" % [
+						what, int(sums.get("pylons", 0)), exp_py, int(sums.get("portals", 0)), exp_po, int(sums.get("lamps", 0)), exp_la,
+						int(sums.get("cables", 0)), int(sums.get("beacons", 0)), bank_near, bank_far, int(sums.get("piers", 0)),
+						int(sums.get("arches", 0)), int(sums.get("truss", 0)), cable_min if cable_min < INF else -1.0])
 			else:
 				tunnels += 1
 				var ze := float(ceili(z1 / t.seg_len - 1.0e-6)) * t.seg_len

@@ -69,6 +69,13 @@ Am ersten Segment eines Tunnels (vpbr, statisch, beleuchtet):
   spätestens an der Ausfahrt zu Ende. Seine Vorderkante liegt auf der Stirnwand, auf den Flügelmauern und jenseits davon
   0,5 m im Gelände – er schließt das Geländeband am Portal (Render-Prüfung: Abdeckung ≤ 0,2 % an den Portalen von U1 und
   Somport).
+- **Renderlayer 2** (FIX-R5, Befund QR5-01 der unabhängigen Prüfung): das ganze Portal-Mesh – Rahmen, Stirnwand,
+  Flügelmauern, Hügel – liegt auf der Bodenebene (`PORTAL_LAYERS` = 2, wie Gelände, Fahrbahn und Wasser). Die Spots des
+  Abblendlichts und die Omnis der Lampen (`layers/lights.gd` `LIGHT_MASK` = alles außer Layer 2) lassen es aus. Arcade
+  beleuchtet sein Portal nie mit den Scheinwerfern (`_draw_portal`: Farbe × Umgebungslicht + Nebel); der Spot des
+  Abblendlichts hat aber keine Abblendkante (30°-Kegel) und strahlte nachts aus 60–70 m Stirnwand, Rahmen und Hügel bis
+  oben an – das Portal sah aus wie bei Tag. Sonne, Mond, Umgebungslicht und Schatten bleiben. Sobald das Abblendlicht
+  eine Abblendkante hat (R4), darf der Fuß des Rahmens wieder auf Layer 1.
 - **Lichthof** um die Leuchten von außen: Arcade zeigt die Leuchten der Röhre auch bei Tag von außen mit ihrem Lichthof
   (1,6 m, `LAMP_COL`, 0,45); die Ebene `flares` lässt Tunnelleuchten nur nachts oder mit der Kamera im Tunnel leuchten.
   Darum legt `tunnel.gdshader` den Lichthof als Licht auf die Röhre um jede Leuchte, solange die Kamera draußen ist,
@@ -193,8 +200,12 @@ Die Scheibe selbst bleibt bei der ZS1-Regel (`test_far_ground_water`, Render-Pr�
 
 | Prüfung | Inhalt |
 |---|---|
-| `tests/unit/race3d/test_bridge.gd` | Wasser auf den Wasserzeilen bis zum Bandende, Ufer nach Arcades Regel, ferne Kaimauer zur Kamera, Köhlbrand-Pylone (Maßstab, Befeuerung, Takt, Seile), kein Seil über einer Spur, kein Tragwerk in den Spuren, Brückenteile nicht im Requisiten-Builder, Pylon nachts dunkel, jeder Brückentyp baut |
-| `tests/unit/race3d/test_tunnel.gd` | Röhre, Nischen/Türen/Lüfter im Abstand, Kappe, Portal, Ausfahrt; nichts über der Fahrbahn; Hügel schließt das Gelände; kurzer Tunnel ohne Kappe; Kappe nur von außen; Zone nach dem Gesetz des Rigs; `set_zone` nur, wenn das Rig es kann |
+| `tests/unit/race3d/test_bridge.gd` | Wasser auf den Wasserzeilen bis zum Bandende, Ufer nach Arcades Regel, ferne Kaimauer zur Kamera, Köhlbrand-Pylone (Maßstab, Befeuerung, Takt, 56 Seile = Arcades 7 je Richtung als Zahl), kein Seil über einer Spur, kein Tragwerk in den Spuren, Brückenteile nicht im Requisiten-Builder, Pylon nachts dunkel (`emit_energy` und `night_albedo` gesetzt und richtig), Brückenlampen = Arcades `bridge_lamp`-Ereignisse (Ludwigsbrücke, Ponte della Libertà), jeder Brückentyp baut |
+| `tests/unit/race3d/test_tunnel.gd` | Röhre, Nischen/Türen/Lüfter im Abstand, Kappe, Portal, Ausfahrt; nichts über der Fahrbahn; Hügel schließt das Gelände; kurzer Tunnel ohne Kappe; Kappe nur von außen; Zone nach dem Gesetz des Rigs; `set_zone` nur, wenn das Rig es kann (auch ein Rig ohne `set_zone`: kein Aufruf); Portal auf Renderlayer 2 außerhalb von `LIGHT_MASK`, Röhre auf Layer 1 |
+
+Jede dieser Regeln ist gegen einen eingebauten Fehler geprüft (FIX-R5: die Mutationen der unabhängigen Prüfung –
+`night_albedo` nicht gesetzt, 5 statt 7 Seile, keine Brückenlampen, `set_zone` ohne `has_method`, Portal auf Layer 1 –
+fängt je ein benannter Test).
 | `tests/race3d/render/check_tunnel_bridge.gd` | siehe Abschnitt 7 |
 | `tests/race3d/check_minimal_structures.gd` | `tunnel`, `bruecke` (seit FIX1) |
 | `tests/unit/race3d/test_far_ground_water.gd`, Render-Prüfung `terrain_cover` K1 | ZS1-Regel der Scheibe |
@@ -213,9 +224,22 @@ Ruhende Etappe (kein Autopilot, kein Verkehr, HUD aus), Modus Modern; `tools/run
 | `B1` | Frankfurt – Köln km 186,2 (Severinsbrücke), `cover,far` | nichts offen unter der Horizontzeile (≤ 0,2 %), der Fernboden verdeckt den Rhein nicht (Cyan ≤ 2 %), der Builder hat Wasser gebaut |
 | `beacon` | Kiel – Hamburg km 76,4, 22 Uhr (Pylonspitzen 230 und 350 m voraus) | jede Flugbefeuerung in 2,4 s mal an, mal aus (Liste der Flare-Ebene), das Bild zeigt an ihr Rot |
 
-**Netzweit** (`-- --full`, ohne Bild, `--headless` genügt; 90 s gemessen: 122 Brücken, 26 Tunnel): baut jede Brücke und jeden
-Tunnel des Netzes – jede Richtung jeder Etappe – mit den beiden Buildern wie die Unit-Tests (ohne Renderer) und prüft,
-was jede haben muss: eine Brücke Wasser und Ufer, je Typ Pylone und Seile, Fachwerk und Portale oder Bögen; ein Tunnel
-Röhre, Leuchten und Portal.
+**Netzweit** (`-- --full`, ohne Bild, `--headless` genügt; etwa 3 min): baut jede Brücke und jeden Tunnel des Netzes –
+jede Richtung jeder Etappe und der Testetappe – mit den beiden Buildern wie die Unit-Tests (ohne Renderer) und
+vergleicht **genau mit Arcades Elementen derselben Strecke** (FIX-R5, Befund QR5-06; Verfahren der unabhängigen Prüfung):
+
+- Brücke: Pylone, Fachwerkportale und Brückenlampen = Arcades Ereignisse `pylon` / `truss_portal` / `bridge_lamp`
+  (`Track._build_bridge`), je Pylon ein rotes Flugfeuer und 2 × 7 Seile (`RoadRenderer._pylon`), Wasser, Ufer an beiden
+  Enden, je Typ Fachwerkträger / Bögen (Pfeiler zeichnet Arcade keine; eine kurze Flussbrücke überspannt ihr Wasser ohne);
+  kein Punkt des Tragwerks über einer Spur zwischen 0,3 und 4,5 m, kein
+  Seil näher als 1,5 m an einer Spur;
+- Tunnel: ein Portal, ein Rahmen der Ausfahrt, die Kappe genau dort, wo Arcade die Röhre schließt, SOS-Nischen nach
+  Arcades Regel (grünes Schild in jedem Tunnelsegment mit Straßenposition mod 150 m < Segmentlänge), mindestens Arcades
+  zwei Leuchtenreihen, jedes Tunnelsegment mit Röhre; nichts der Röhre über einer Spur zwischen 0,3 und 4,5 m (Kappe und
+  Lüfter über 5,2 m ausgenommen); kein Punkt des Hügels über der Anfahrt im Sichtkorridor (Spuren + Bankett + 5,5 m,
+  mehr als 0,5 m über der Straße – F7).
+
+Je Element mit Mangel eine Zeile `MANGEL …`; `-- --only-stage=<ids>` prüft einzelne Etappen, `-- --verbose` druckt
+jedes Element mit seinen Zahlen.
 
     godot --headless --path . -s res://tests/race3d/render/check_tunnel_bridge.gd -- --full

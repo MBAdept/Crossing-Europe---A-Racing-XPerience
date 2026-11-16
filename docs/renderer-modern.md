@@ -2027,6 +2027,11 @@ Der Tunnel-Builder ist die Quelle der Tunnelzone; das Umgebungs-Rig (R4) entsche
 
 ### 15.2 Wasser im Licht
 
+Auch das **Tunnelportal** (Rahmen, Stirnwand, Flügelmauern, Hügel) liegt auf Ebene 2 (FIX-R5, `tunnel.gd`
+`PORTAL_LAYERS`): kein Spot des Abblendlichts und kein Lampen-Omni erreicht es, wie Arcade sein Portal nie mit den
+Scheinwerfern beleuchtet – ohne Abblendkante strahlte der 30°-Kegel nachts die Stirnwand aus 60–70 m bis oben an. Es
+bleibt im Licht von Sonne, Mond und Umgebung und wirft seinen Schatten.
+
 Das Wasser ist Boden (Ebene 2, kein Schatten): Lichtkegel analytisch (`inc/pools.gdshaderinc`, das Material meldet
 sich über `renderer.add_pool_material()` an), Scheinwerfer (`inc/headlight.gdshaderinc`), Arcades Bodenfarbgesetz
 (`inc/ground_law.gdshaderinc`), Arcades Nebel für Boden. Der Himmel, den es spiegelt, kommt jedes Bild aus der
