@@ -1347,13 +1347,25 @@ def _weights(spec3d):
 # --- the bake (buildings3d.bake_house with far walls, floors and cut-out density) ----------------------------------
 
 def bake_city(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, cutout=False, ao=None, far=None, floors=None,
-              cut_ppm=CUT_PPM, cut_names=(), flat_lod1=False, samples=BAKE_SAMPLES, lod1_decimate=None):
+              cut_ppm=CUT_PPM, cut_names=(), flat_lod1=False, samples=BAKE_SAMPLES, lod1_decimate=None, solid=None,
+              rails=None):
     """H.bake_house plus: charts of cut-out materials get cut_ppm texels per metre (as a weight on the packing's
     density), wall charts above floors["z"] get floors["upper"] of the density, and the far faces (far = (objects,
-    matches)) take the atlas coordinates of the opposite walls after the packing (they are not baked)."""
+    matches)) take the atlas coordinates of the opposite walls after the packing (they are not baked).
+    solid (AS5a2) {object name prefix: weight}: every chart of those objects gets that weight whatever way it faces
+    and is never hidden - the decimated crowns of garden trees: their underside faces the camera at eye level (the
+    weight `under` gave them less than a texel: they showed the neighbouring charts), and a face in a pocket between
+    two lobes counts as covered although it is seen from the street."""
     names = {m.name for m in mats}
     t0 = time.time()
     charts = BK.box_unwrap(objs, lambda m: m is not None and m.name in names, weight_fn)
+    solid = sorted(dict(solid or {}).items())
+    if solid:
+        for c in charts:
+            k = next((float(v) for pre, v in solid if c["ob"] is not None and c["ob"].name.startswith(pre)), None)
+            if k is not None:
+                c["weight"] = k
+                c["solid"] = k
     if floors:
         zs = sorted(float(z) for z in floors.get("z", ()))
         up = float(floors.get("upper", 0.7))
@@ -1370,6 +1382,11 @@ def bake_city(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, cutout=False
             if ms & cut_set and not (ms - cut_set):
                 c["cut"] = True
     hidden = H._hide_covered(charts, objs + list(far[0] if far else []))
+    for c in charts:
+        if c.get("solid") is not None and c.get("hidden"):
+            c["weight"] = c["solid"]
+            c["hidden"] = False
+            hidden -= 1
     # cut-out charts: a fixed density (as a weight relative to the density the walls get): two passes
     ppm = BK.pack(charts, size, gutter=2, ppm_max=ppm_max)
     if cut_set and any(c.get("cut") for c in charts):
@@ -1382,6 +1399,8 @@ def bake_city(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, cutout=False
                  area_m2=round(float(sum(c["area"] for c in charts)), 1), unwrap_s=round(time.time() - t0, 2))
     if far:
         stats["far_mapped"] = far_uvs(charts, far[0], far[1], size)
+    if rails:
+        stats["rail_faces_mapped"] = _rail_uvs(rails)
     flat = _flat_copies(objs) if flat_lod1 else []
     stats["flat_copies"] = len(flat)
     if lod1_decimate:
@@ -1503,6 +1522,143 @@ def _cut_fill(baked, spec, stats):
     alb = baked["albedo"]
     alb[sel] = col
     stats["cut_fill_texels"] = int(sel.sum())
+
+
+# --- railing modules (AS5a2) ------------------------------------------------------------------------------------
+
+def _rail_modules(objs, spec, stats):
+    """AS5a2: the railings of the generator (props_cities.Rails, lace_mat) repeat their pattern every `pitch` along the
+    panel (u = object x on panels along x, y on panels along y) from the band's foot - so a module of length L (a
+    multiple of the pitch, spec {object name prefix: L}) looks the same wherever it starts at a multiple of L. Every
+    railing object is cut at u = k L; one face that spans a whole module stays in the object and is baked (the master),
+    every other face moves into a copy object that is not baked: its atlas coordinates come from the master's chart
+    after the packing (_rail_uvs) - (u - k L, z). The thin faces (tops, bottoms, ends) take the colour of the top rail.
+    A balcony of 22 m cost 2 x 22 m x 0.95 m at 150 texels per metre (a Haussmann block: more texels than its atlas
+    holds); now one module per band. Returns (copies, plan)."""
+    import bmesh
+    copies, plan = [], []
+    n_split = n_kept = 0
+    items = sorted((str(k), float(v)) for k, v in dict(spec or {}).items())
+    for ob in list(objs):
+        L = next((v for pre, v in items if ob.name.startswith(pre)), None)
+        if L is None or not len(ob.data.polygons):
+            continue
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        co = np.array([tuple(v.co) for v in bm.verts], dtype=np.float64)
+        for ax in (0, 1):
+            lo, hi = float(co[:, ax].min()), float(co[:, ax].max())
+            for k in range(int(math.floor(lo / L)) + 1, int(math.ceil(hi / L))):
+                pc = [0.0, 0.0, 0.0]
+                pn = [0.0, 0.0, 0.0]
+                pc[ax] = k * L
+                pn[ax] = 1.0
+                bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=1e-6, plane_co=pc,
+                                       plane_no=pn)
+        bm.faces.ensure_lookup_table()
+        bm.faces.index_update()
+        z_top = max(v.co.z for v in bm.verts)
+        master = None
+        keyed = []
+        for f in bm.faces:
+            ax = _rail_axis(f.normal, [v.co for v in f.verts])
+            c = f.calc_center_median()
+            keyed.append(((round(c.x, 4), round(c.y, 4), round(c.z, 4), round(f.normal.x, 3), round(f.normal.y, 3)), f, ax))
+        keyed.sort(key=lambda t: t[0])
+        for _k, f, ax in keyed:
+            if ax is None:
+                continue
+            us = [v.co[ax] for v in f.verts]
+            k = math.floor((min(us) + max(us)) * 0.5 / L)
+            if min(us) <= k * L + 1e-4 and max(us) >= (k + 1) * L - 1e-4:
+                master = f
+                break
+        if master is None:
+            bm.free()
+            n_kept += 1
+            continue
+        # kept in the baked object: the master and the slanted panels (the cut corner of the Haussmann corner block:
+        # its pattern runs along x or y, not along the panel - it keeps texels of its own)
+        keep = sorted(f.index for f in bm.faces if f is master or _rail_slanted(f.normal, [v.co for v in f.verts]))
+        mpos = keep.index(master.index)
+        cp = ob.copy()
+        cp.data = ob.data.copy()
+        cp.name = ob.name + "_mod"
+        ob.users_collection[0].objects.link(cp)
+        bm2 = bm.copy()
+        bm2.faces.ensure_lookup_table()
+        bm2.faces.index_update()
+        ks = set(keep)
+        bmesh.ops.delete(bm, geom=[f for f in bm.faces if f.index not in ks], context="FACES")
+        bm.to_mesh(ob.data)
+        bm.free()
+        ob.data.update()
+        bmesh.ops.delete(bm2, geom=[f for f in bm2.faces if f.index in ks], context="FACES")
+        bm2.to_mesh(cp.data)
+        bm2.free()
+        cp.data.update()
+        copies.append(cp)
+        plan.append((cp, ob, mpos, L, z_top))
+        n_split += 1
+    stats["rail_modules"] = n_split
+    stats["rail_kept"] = n_kept
+    return copies, plan
+
+
+def _rail_slanted(n, pts):
+    """A long vertical railing face that runs along neither axis."""
+    if abs(n[2]) >= 0.1 or max(abs(n[0]), abs(n[1])) > 0.9:
+        return False
+    xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+    return math.hypot(max(xs) - min(xs), max(ys) - min(ys)) > 0.1
+
+
+def _rail_axis(n, pts):
+    """The u axis of a railing face (0: panel along x, 1: along y) or None for a thin face (top, bottom, end) or a
+    slanted one."""
+    for ax, other in ((0, 1), (1, 0)):
+        if abs(n[other]) > 0.9 and abs(n[2]) < 0.1:
+            us = [p[ax] for p in pts]
+            return ax if max(us) - min(us) > 0.1 else None
+    return None
+
+
+def _rail_uvs(plan):
+    """The atlas coordinates of the module copies from their master's chart (after the packing): an affine map
+    (u - k L, z) -> uv fitted on the master face; thin faces sample the top rail (z_top - 2 cm). Returns the number
+    of faces mapped."""
+    n = 0
+    for (cp, ob, mpos, L, z_top) in plan:
+        me = ob.data
+        lay = me.uv_layers[BK.UV_NAME]
+        poly = me.polygons[mpos]
+        pts = [me.vertices[me.loops[li].vertex_index].co for li in poly.loop_indices]
+        ax = _rail_axis(poly.normal, pts)
+        us = [p[ax] for p in pts]
+        k0 = math.floor((min(us) + max(us)) * 0.5 / L)
+        A = np.array([[p[ax] - k0 * L, p[2], 1.0] for p in pts], dtype=np.float64)
+        B = np.array([tuple(lay.data[li].uv) for li in poly.loop_indices], dtype=np.float64)
+        M_, _r, _rk, _sv = np.linalg.lstsq(A, B, rcond=None)
+        me2 = cp.data
+        if BK.UV_NAME not in me2.uv_layers:
+            me2.uv_layers.new(name=BK.UV_NAME)
+        lay2 = me2.uv_layers[BK.UV_NAME]
+        uv = np.zeros((len(me2.loops), 2), dtype=np.float32)
+        for f in me2.polygons:
+            fp = [me2.vertices[me2.loops[li].vertex_index].co for li in f.loop_indices]
+            fax = _rail_axis(f.normal, fp)
+            if fax is None:
+                for li in f.loop_indices:
+                    uv[li] = np.array([0.5 * L, z_top - 0.02, 1.0]) @ M_
+            else:
+                fu = [p[fax] for p in fp]
+                k = math.floor((min(fu) + max(fu)) * 0.5 / L)
+                for li, p in zip(f.loop_indices, fp):
+                    uv[li] = np.array([min(L, max(0.0, p[fax] - k * L)), p[2], 1.0]) @ M_
+            n += 1
+        lay2.data.foreach_set("uv", uv.reshape(-1))
+        me2.update()
+    return n
 
 
 # --- the builder --------------------------------------------------------------------------------------------------
@@ -1793,6 +1949,9 @@ def _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, s
     bake_mats = [mats[k] for k in bake_mats]
     cut_names = {m.name for m in bake_mats if BK.has_cutout(m)}
     rail_names = set(cut_names)
+    rail_copies, rail_plan = [], []
+    if spec3d.get("rail_module"):
+        rail_copies, rail_plan = _rail_modules(bake_objs, spec3d["rail_module"], stats)
     if cut_names and spec3d.get("single_cutout"):
         cut_names = {m.name for m in bake_mats}
     far = None
@@ -1810,7 +1969,8 @@ def _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, s
                       cutout=bool(cut_names), ao=spec3d.get("ao"), far=far, floors=spec3d.get("floors"),
                       cut_ppm=float(spec3d.get("cut_ppm", CUT_PPM)), cut_names=rail_names,
                       flat_lod1=bool(spec3d.get("lod1_flat", True)) and bool(spec3d.get("lod1")),
-                      samples=int(spec3d.get("bake_samples", BAKE_SAMPLES)), lod1_decimate=spec3d.get("lod1_decimate"))
+                      samples=int(spec3d.get("bake_samples", BAKE_SAMPLES)), lod1_decimate=spec3d.get("lod1_decimate"),
+                      solid=(spec3d.get("weights") or {}).get("solid"), rails=rail_plan)
     if baked["alpha"] is not None:
         from PIL import Image
         from . import leafatlas
@@ -1824,7 +1984,7 @@ def _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, s
     over = spec3d.get("overrides")
     tr = roles.Translator(glass_class=False, overrides=over)
     levels = ["lod0", "lod1"] if spec3d.get("lod1") else ["lod0"]
-    objs = objs + far_objs + baked.get("flat", [])
+    objs = objs + far_objs + rail_copies + baked.get("flat", [])
     lods = []
     pts0 = None
     for li, lvl in enumerate(levels):
