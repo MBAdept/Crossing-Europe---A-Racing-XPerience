@@ -2447,3 +2447,21 @@ für die Modellnacharbeit.
 
 ### 17.10 Prüfungen
 
+
+Neu oder geändert in dieser Montage (gemessen am Stand `b673df5`, Preset „Hoch“, llvmpipe):
+
+| Prüfung | Datei | Was | Gemessen | Gegenprobe |
+|---|---|---|---|---|
+| `bremsschein` | `render/check_vehicle_lights.gd` | Rot, das die Bremse eines Modells hinzufügt: Sportwagen 60 m 12 Uhr ≥ 29, 22 Uhr ≤ 57; Limousine 20 m 22 Uhr ≤ 500 | 33,1 / 28,3 / 436,1 | Verstärkung 1,0: Tag 25,0 → FEHLER; volle Tagesverstärkung nachts 68,9 → FEHLER |
+| `instanzen`, `instanzen_wald`, `instanzen_stadt` | `render/check_instance_budget*.gd` | ganze Szene ≤ `SCENE_LIMIT` (230) Instanzen mit Instanz-Uniforms, keine Ablehnung der Engine; Wald und Stadt mit 48 eingespeisten Autos (Fahrzeug-Ebene ≥ 90 % ihres Budgets, sonst „nicht belastet“) | 141 / 216 / 171 | Wald ohne `VPBR_STATIC`: 306, 144 Ablehnungen → FEHLER |
+| `laternen` | `render/check_night.gd` | Spiegelstreifen von vier Laternen an einer Steigung (Kassel – Würzburg km 61,6): Profilhöhe ≥ 0,3 m, Profile zwischengespeichert | Profil bis 15,84 m, 4 von 160 gerechnet | flaches Profil → FEHLER |
+| `tunnel_bridge_U1_ausfahrt` | `render/check_tunnel_bridge.gd` | Ausfahrt mindestens 0,6 × Arcades Leuchtdichte (0,89), Rahmen höchstens 0,8 | 0,584 = 0,66 ×, Rahmen 0,501 | – |
+| `props_spiegel` | `render/check_props_render.gd` | erwartet das Einfamilienhaus (seit AS5a ein Modell) in der Modellgruppe statt als Ersatzbild | Abweichung vom Spiegelbild 0,09 | – |
+| `test_model_instances_carry_the_placement_tint` | `unit/race3d/test_props.gd` | Pufferlayout 20 Werte je Instanz, jedes MultiMesh mit Farbe und Custom-Daten, Shadercode der Tönung | – | – |
+| `test_station_canopy_without_column_hangs_from_a_mast` | `unit/race3d/test_structures.gd` | Dach ohne Stütze (Prag – Leipzig km 148,08) hängt an genau einem Mast außerhalb des Sichtkorridors, der keine Tafel verdeckt | – | – |
+| `test_static_lamp_energy_is_read_every_frame` | `unit/race3d/test_light_pool.gd` | Stärke statischer Lampen je Bild aus dem Eintrag | – | – |
+| Bremsschein nah/fern/Tag | `unit/race3d/test_vehicles.gd` | `model_glow_gain()` nach Tageslicht und Abstand, stetig | – | – |
+
+Zusätzlich gemessen, nicht als Prüfung im Baum: die Hauptfadenzeit von `collect()` je Baustein
+(`ChunkStreamer.stats()["collect_by"]`: Mittel, Höchstwert, Aufrufe; §17.5) und die Sonde, die den Stützen-Entscheid
+auf dem Arbeitsfaden über das ganze Netz gegen den inline-Entscheid stellt (1909 Dächer, 0 verschieden).
