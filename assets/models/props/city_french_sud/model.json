@@ -6,12 +6,12 @@
   "kind": "building",
   "object": {"width_m": 19, "height_m": 8.5, "length_m": 10},
   "extent_m": {"left": 11.22, "right": 8.52},
-  "aabb": [-12.803, -0.148, -10.55, 7.03, 9.167, 5.16],
+  "aabb": [-13.304, -0.148, -10.55, 7.03, 9.668, 5.411],
   "lods": [
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 5359,
+    "tris": 5820,
     "parts": [
      {
       "node": "body",
@@ -23,12 +23,12 @@
    {
     "name": "lod1",
     "max_dist_m": 100000,
-    "tris": 3716,
+    "tris": 3456,
     "parts": [
      {
       "node": "body",
       "mesh": "props/city_french_sud/lod1_body.res",
-      "classes": ["vpbr", "baked_cutout"]
+      "classes": ["vpbr", "baked"]
      }
     ]
    }
@@ -37,8 +37,8 @@
   "roughness": 0.88,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "french", "outskirts"],
-  "bytes": 1062061,
-  "hash": "0bbaf8c93b62cdc58f0d6c59f1fdcec56eb8d445"
+  "bytes": 1112521,
+  "hash": "456ec4489196468f0afafaa8de4c17d1b3ccd1f1"
  },
  "sets": {
   "props/city_french_sud": {"model": "props/city_french_sud"}

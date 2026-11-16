@@ -37,8 +37,8 @@
   "roughness": 0.86,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "belgian", "center"],
-  "bytes": 409489,
-  "hash": "14e8874c4e419877d6c62edd9822fdc2f223142b"
+  "bytes": 403440,
+  "hash": "7c9d1728648366706b38a60a3932655c1ab3cf18"
  },
  "sets": {
   "props/city_belgian_terrace": {"model": "props/city_belgian_terrace"}

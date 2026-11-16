@@ -6,24 +6,24 @@
   "kind": "building",
   "object": {"width_m": 16.6, "height_m": 13.46, "length_m": 9},
   "extent_m": {"left": 12.21, "right": 8.32},
-  "aabb": [-12.225, -0.181, -9.351, 7.03, 13.483, 4.66],
+  "aabb": [-12.484, -0.181, -9.351, 7.03, 13.483, 4.66],
   "lods": [
    {
     "name": "lod0",
     "max_dist_m": 60,
-    "tris": 3910,
+    "tris": 4250,
     "parts": [
      {
       "node": "body",
       "mesh": "props/city_french_maison/lod0_body.res",
-      "classes": ["vpbr", "baked"]
+      "classes": ["vpbr", "baked_cutout"]
      }
     ]
    },
    {
     "name": "lod1",
     "max_dist_m": 100000,
-    "tris": 1874,
+    "tris": 1760,
     "parts": [
      {
       "node": "body",
@@ -37,8 +37,8 @@
   "roughness": 0.88,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "french", "outskirts"],
-  "bytes": 818255,
-  "hash": "1f04a7292af9b6e46472754f8b8365a9826fac08"
+  "bytes": 960232,
+  "hash": "eef65736fbbf619dd7211888f5fd3862597198e7"
  },
  "sets": {
   "props/city_french_maison": {"model": "props/city_french_maison"}
