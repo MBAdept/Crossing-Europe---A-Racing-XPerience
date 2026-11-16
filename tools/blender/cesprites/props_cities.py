@@ -30,6 +30,14 @@ def _lin(c):
     return M.srgb(c) if isinstance(c, str) else c
 
 
+def _toward(a, b, k):
+    """Colour a (hex or linear tuple) k of the way to colour b (linear mix); a itself at k = 0."""
+    if k <= 0.0:
+        return a
+    la, lb = _lin(a), _lin(b)
+    return tuple(la[i] + (lb[i] - la[i]) * k for i in range(3)) + (1.0,)
+
+
 def shade(c, k):
     """sRGB hex colour scaled by k (k < 1 darker) -> hex."""
     h = c.lstrip("#")
@@ -208,14 +216,18 @@ def centres(g):
 
 
 def wallmat(name, color, grids=(), zones=(), frame="#ece8df", glass="#26313b", lit=0.45, strength=1.5,
-            frame_w=0.07, rough=0.85, decals=None, curtains=0.35, seed=0.0, inner_frame=0.0):
+            frame_w=0.07, rough=0.85, decals=None, curtains=0.35, seed=0.0, inner_frame=0.0, inner_k=0.0, bars_k=0.0):
     """Wall with windows. color: surface spec (see _surface); zones: [dict(box=((x0,x1),(y0,y1),(z0,z1)),
     surface=spec)] painted over it in order. grids: see grid(); per grid options: top (round|seg|pointed),
     mull dict(v=n, h=n or [fractions], w), shutters colour, blind colour (+blind_max), frame, glass, lit,
     color (light), strength, frame_w, skip [(i, j)], kind (win|door|shop).
     inner_frame (3D hook, AS5aR1; the sprites never set it): the frame colour also on a ring of this width inside
     every window of kind win, unlit - the frame of the real-time model's cut window, so that its flat far level
-    keeps the lit and the glazed area of the near level."""
+    keeps the lit and the glazed area of the near level.
+    inner_k, bars_k (3D hooks, AS5aR2; only with inner_frame): that ring and the painted glazing bars of windows of
+    kind win this share of the way from the frame colour to the glass - the frame in the shade of the reveal, as
+    the far level sees it; at 1.0 a far window is as dark as the sprite's (KRITIK-5a2 K2: rings and bars in the
+    full frame colour made the far windows pale)."""
     m, nb = M.new_material(name)
     x, y, z = nb.coords()
     nx, ny, nz = nb.normal()
@@ -318,7 +330,7 @@ def wallmat(name, color, grids=(), zones=(), frame="#ece8df", glass="#26313b", l
             glc = gl
         apply(win, glc, 0.08 if kind != "door" else 0.5, 0.9 if kind != "door" else 0.3, 0.2 if kind != "door" else 0.0)
         if ring is not None:
-            apply(ring, g.get("frame", frame), 0.5, 0.35)
+            apply(ring, _toward(g.get("frame", frame), g.get("glass", glass), inner_k), 0.5, 0.35)
         bars = None
         mull = g.get("mull")
         if mull and kind != "door":
@@ -335,7 +347,10 @@ def wallmat(name, color, grids=(), zones=(), frame="#ece8df", glass="#26313b", l
                 b = nb.lt(nb.absf(nb.sub(zb, f * wz)), mw * 0.5)
                 bars = b if bars is None else nb.OR(bars, b)
             bars = nb.mul(bars, win)
-            apply(bars, g.get("mull_color", g.get("frame", frame)), 0.5, 0.35)
+            bar_c = g.get("mull_color", g.get("frame", frame))
+            if inner_frame > 0.0 and kind == "win" and bars_k > 0.0:
+                bar_c = _toward(bar_c, g.get("glass", glass), bars_k)
+            apply(bars, bar_c, 0.5, 0.35)
         blind = None
         if g.get("blind"):
             cover = nb.mul(nb.mul(r2, r2), g.get("blind_max", 0.8))
