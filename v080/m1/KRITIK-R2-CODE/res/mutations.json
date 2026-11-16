@@ -1,0 +1,370 @@
+{
+ "M01": {
+  "file": "scripts/audio/modern/road_audio.gd",
+  "rule": "Quietschen: Tonhöhe je Ereignis (nicht jedes Bild neu)",
+  "claim": "test_squeal_pitch_per_event",
+  "filter": "test_road_audio.gd",
+  "exit": 0,
+  "failed": [],
+  "info": "2s",
+  "caught": false
+ },
+ "M02": {
+  "file": "scripts/audio/modern/road_audio.gd",
+  "rule": "Quietschen: Tonhöhe ±5 % zufällig",
+  "claim": "test_squeal_pitch_per_event",
+  "filter": "test_road_audio.gd",
+  "exit": 1,
+  "failed": [
+   "test_squeal_pitch_per_event"
+  ],
+  "info": "2s",
+  "caught": true
+ },
+ "M03": {
+  "file": "scripts/audio/modern/road_audio.gd",
+  "rule": "Varianten zufällig statt reihum (n ≥ 3)",
+  "claim": "test_collision_variety",
+  "filter": "test_road_audio.gd",
+  "exit": 0,
+  "failed": [],
+  "info": "2s",
+  "caught": false
+ },
+ "M04": {
+  "file": "scripts/audio/modern/road_audio.gd",
+  "rule": "nie dieselbe Variante zweimal hintereinander (n ≥ 3)",
+  "claim": "test_collision_variety",
+  "filter": "test_road_audio.gd",
+  "exit": 1,
+  "failed": [
+   "test_collision_variety"
+  ],
+  "info": "2s",
+  "caught": true
+ },
+ "M05": {
+  "file": "scripts/audio/modern/road_audio.gd",
+  "rule": "Drift: mittlere Leistung des Plans erhalten (−0,1151·s²)",
+  "claim": "test_each_side_has_its_own_loop_and_drift",
+  "filter": "test_road_audio.gd",
+  "exit": 1,
+  "failed": [
+   "test_each_side_has_its_own_loop_and_drift"
+  ],
+  "info": "2s",
+  "caught": true
+ },
+ "M06": {
+  "file": "scripts/audio/modern/road_audio.gd",
+  "rule": "Drift je Seite vorhanden",
+  "claim": "test_each_side_has_its_own_loop_and_drift",
+  "filter": "test_road_audio.gd",
+  "exit": 1,
+  "failed": [
+   "test_each_side_has_its_own_loop_and_drift"
+  ],
+  "info": "2s",
+  "caught": true
+ },
+ "M07": {
+  "file": "scripts/audio/modern/road_audio.gd",
+  "rule": "Rüttelstreifen ohne Tonhöhenversatz rechts",
+  "claim": "test_each_side_has_its_own_loop_and_drift",
+  "filter": "test_road_audio.gd",
+  "exit": 1,
+  "failed": [
+   "test_each_side_has_its_own_loop_and_drift"
+  ],
+  "info": "2s",
+  "caught": true
+ },
+ "M08": {
+  "file": "scripts/audio/modern/road_audio.gd",
+  "rule": "Plattenpegel über 150 km/h flacher",
+  "claim": "test_concrete_slabs_keep_their_rhythm",
+  "filter": "test_road_audio.gd",
+  "exit": 1,
+  "failed": [
+   "test_concrete_slabs_keep_their_rhythm"
+  ],
+  "info": "2s",
+  "caught": true
+ },
+ "M09": {
+  "file": "scripts/audio/modern/road_audio.gd",
+  "rule": "Sperre nur beim Start und alle 0,5 s",
+  "claim": "test_slab_loops_lock_the_mixer_only_to_start",
+  "filter": "test_road_audio.gd",
+  "exit": 1,
+  "failed": [
+   "test_slab_loops_lock_the_mixer_only_to_start"
+  ],
+  "info": "2s",
+  "caught": true
+ },
+ "M10": {
+  "file": "scripts/audio/modern/road_audio.gd",
+  "rule": "startendes Muster übernimmt die Stelle des laufenden",
+  "claim": "test_slab_loops_lock_the_mixer_only_to_start",
+  "filter": "test_road_audio.gd",
+  "exit": 1,
+  "failed": [
+   "test_slab_loops_lock_the_mixer_only_to_start"
+  ],
+  "info": "2s",
+  "caught": true
+ },
+ "M11": {
+  "file": "scripts/audio/modern/road_audio.gd",
+  "rule": "Nachstellen: der leisere wird auf den lauteren gesetzt",
+  "claim": "(keiner: test_slab_loops_lock_the_mixer_only_to_start prüft nur slab_realigned == 0)",
+  "filter": "test_road_audio.gd",
+  "exit": 0,
+  "failed": [],
+  "info": "2s",
+  "caught": false
+ },
+ "M12": {
+  "file": "scripts/audio/modern/road_audio.gd",
+  "rule": "Nachstellen ab slabs.align_ms",
+  "claim": "(keiner)",
+  "filter": "test_road_audio.gd",
+  "exit": 0,
+  "failed": [],
+  "info": "2s",
+  "caught": false
+ },
+ "M13": {
+  "file": "scripts/audio/modern/impact_audio.gd",
+  "rule": "Glas unter 80 km/h nur mit 40 %",
+  "claim": "test_collision_variety",
+  "filter": "test_road_audio.gd",
+  "exit": 1,
+  "failed": [
+   "test_collision_variety"
+  ],
+  "info": "2s",
+  "caught": true
+ },
+ "M14": {
+  "file": "scripts/audio/modern/impact_audio.gd",
+  "rule": "Pegel je Schicht höchstens ±2 dB",
+  "claim": "test_collisions_by_closing_speed_and_partner",
+  "filter": "test_road_audio.gd",
+  "exit": 0,
+  "failed": [],
+  "info": "2s",
+  "caught": false
+ },
+ "M15": {
+  "file": "scripts/audio/modern/impact_audio.gd",
+  "rule": "Pegel je Schicht zufällig (überhaupt)",
+  "claim": "test_collisions_by_closing_speed_and_partner / test_collision_variety",
+  "filter": "test_road_audio.gd",
+  "exit": 0,
+  "failed": [],
+  "info": "2s",
+  "caught": false
+ },
+ "M16": {
+  "file": "scripts/audio/modern/impact_audio.gd",
+  "rule": "späterer Einsatz je Schicht (überhaupt)",
+  "claim": "test_collisions_by_closing_speed_and_partner",
+  "filter": "test_road_audio.gd",
+  "exit": 0,
+  "failed": [],
+  "info": "2s",
+  "caught": false
+ },
+ "M17": {
+  "file": "scripts/audio/modern/road_audio.gd",
+  "rule": "Vorbeifahrt ±2 dB",
+  "claim": "(keiner)",
+  "filter": "test_road_audio.gd",
+  "exit": 0,
+  "failed": [],
+  "info": "2s",
+  "caught": false
+ },
+ "M18": {
+  "file": "scripts/audio/modern/road_audio.gd",
+  "rule": "Vorbeifahrt: Variante zufällig",
+  "claim": "(keiner)",
+  "filter": "test_road_audio.gd",
+  "exit": 0,
+  "failed": [],
+  "info": "2s",
+  "caught": false
+ },
+ "M19": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "keine Rüttellinie an der Tankspur",
+  "claim": "test_no_rumble_at_the_fuel_lane",
+  "filter": "test_audio_feed.gd",
+  "exit": 1,
+  "failed": [
+   "test_no_rumble_at_the_fuel_lane"
+  ],
+  "info": "1s",
+  "caught": true
+ },
+ "M20": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "Fugen je Deck",
+  "claim": "test_joints_per_deck",
+  "filter": "test_audio_feed.gd",
+  "exit": 1,
+  "failed": [
+   "test_structures_and_their_events",
+   "test_joints_per_deck",
+   "test_no_old_town_cobbles_on_a_concrete_deck"
+  ],
+  "info": "2s",
+  "caught": true
+ },
+ "M21": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "kein Altstadtpflaster auf Brücken ohne Steindeck",
+  "claim": "test_no_old_town_cobbles_on_a_concrete_deck",
+  "filter": "test_audio_feed.gd",
+  "exit": 1,
+  "failed": [
+   "test_no_old_town_cobbles_on_a_concrete_deck",
+   "test_old_town_share_on_its_streets_around_a_bridge"
+  ],
+  "info": "2s",
+  "caught": true
+ },
+ "M22": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "Anteil auf den Straßen (Brücken aus der Zuteilung)",
+  "claim": "test_old_town_share_on_its_streets_around_a_bridge",
+  "filter": "test_audio_feed.gd",
+  "exit": 1,
+  "failed": [
+   "test_old_town_share_on_its_streets_around_a_bridge"
+  ],
+  "info": "1s",
+  "caught": true
+ },
+ "M23": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "Nachrücken ins Band 0,6 ± 0,05",
+  "claim": "test_cobbled_blocks_count_only_the_streets",
+  "filter": "test_audio_feed.gd",
+  "exit": 1,
+  "failed": [
+   "test_cobbled_blocks_count_only_the_streets"
+  ],
+  "info": "1s",
+  "caught": true
+ },
+ "M24": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "Steinbrücken zählen als Straße",
+  "claim": "test_cobbled_blocks_count_only_the_streets",
+  "filter": "test_audio_feed.gd",
+  "exit": 1,
+  "failed": [
+   "test_cobbled_blocks_count_only_the_streets"
+  ],
+  "info": "1s",
+  "caught": true
+ },
+ "M25": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "fmix32 (Bezugswerte)",
+  "claim": "test_unit_hash_mixes_neighbouring_keys",
+  "filter": "test_audio_feed.gd",
+  "exit": 1,
+  "failed": [
+   "test_unit_hash_mixes_neighbouring_keys"
+  ],
+  "info": "1s",
+  "caught": true
+ },
+ "M26": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "Schwelle nur für den kalibrierten Anteil",
+  "claim": "test_concrete_threshold_per_country",
+  "filter": "test_audio_feed.gd",
+  "exit": 1,
+  "failed": [
+   "test_paving_of_sections_cities_and_bridges",
+   "test_concrete_threshold_per_country"
+  ],
+  "info": "1s",
+  "caught": true
+ },
+ "M27": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "Zuteilung je Altstadt genau (statt Hash je Block)",
+  "claim": "test_cobbled_blocks_hit_the_share_per_centre",
+  "filter": "test_audio_feed.gd",
+  "exit": 1,
+  "failed": [
+   "test_cobbled_blocks_hit_the_share_per_centre",
+   "test_cobbled_blocks_count_only_the_streets"
+  ],
+  "info": "1s",
+  "caught": true
+ },
+ "M28": {
+  "file": "scripts/audio/modern/modern_buses.gd",
+  "rule": "Begrenzer hinter dem Kleber",
+  "claim": "test_base_effects / test_limiter_from_config",
+  "filter": "test_modern_buses.gd",
+  "exit": 1,
+  "failed": [
+   "test_base_effects",
+   "test_glue_compressor_from_config"
+  ],
+  "info": "1s",
+  "caught": true
+ },
+ "M29": {
+  "file": "scripts/audio/modern/modern_buses.gd",
+  "rule": "Obergrenze ohne Eintrag −2 dB",
+  "claim": "test_limiter_from_config",
+  "filter": "test_modern_buses.gd",
+  "exit": 1,
+  "failed": [
+   "test_limiter_from_config"
+  ],
+  "info": "1s",
+  "caught": true
+ },
+ "M30": {
+  "file": "scripts/audio/modern/road_audio.gd",
+  "rule": "Schnee-Knirschen mit snow_crunch",
+  "claim": "test_surfaces_per_side_wet_and_snow",
+  "filter": "test_road_audio.gd",
+  "exit": 1,
+  "failed": [
+   "test_surfaces_per_side_wet_and_snow"
+  ],
+  "info": "2s",
+  "caught": true
+ },
+ "M31": {
+  "file": "config/game_config.json",
+  "rule": "Wind im Tunnel 0 dB (AU-R)",
+  "claim": "test_wind_zones_gusts_and_fades",
+  "filter": "test_road_audio.gd",
+  "exit": 0,
+  "failed": [],
+  "info": "2s",
+  "caught": false
+ },
+ "M32": {
+  "file": "scripts/audio/modern/impact_audio.gd",
+  "rule": "Glas ab genau 80 km/h",
+  "claim": "test_collision_variety",
+  "filter": "test_road_audio.gd",
+  "exit": 0,
+  "failed": [],
+  "info": "2s",
+  "caught": false
+ }
+}

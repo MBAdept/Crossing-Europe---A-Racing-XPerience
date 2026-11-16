@@ -1,0 +1,390 @@
+c_lazy 0 Main::Setup 11.917
+c_lazy 0 Main::Setup2 106.489
+c_lazy 0 Load Autoloads 474.241
+c_lazy 0 Load Game 8.971
+c_lazy 0 Main::Start 483.675
+b_head 0 Main::Setup 11.644
+b_head 0 Main::Setup2 109.702
+b_head 0 Load Autoloads 632.01
+b_head 0 Load Game 7.979
+b_head 0 Main::Start 640.767
+a_v070 0 Main::Setup 11.758
+a_v070 0 Main::Setup2 81.798
+a_v070 0 Load Autoloads 404.944
+a_v070 0 Load Game 7.491
+a_v070 0 Main::Start 412.855
+c_lazy 1 Main::Setup 10.39
+c_lazy 1 Main::Setup2 88.223
+c_lazy 1 Load Autoloads 487.938
+c_lazy 1 Load Game 8.919
+c_lazy 1 Main::Start 497.377
+b_head 1 Main::Setup 9.75
+b_head 1 Main::Setup2 75.952
+b_head 1 Load Autoloads 506.818
+b_head 1 Load Game 8.371
+b_head 1 Main::Start 515.684
+a_v070 1 Main::Setup 11.282
+a_v070 1 Main::Setup2 116.929
+a_v070 1 Load Autoloads 481.064
+a_v070 1 Load Game 8.833
+a_v070 1 Main::Start 490.522
+c_lazy 2 Main::Setup 11.428
+c_lazy 2 Main::Setup2 90.936
+c_lazy 2 Load Autoloads 437.754
+c_lazy 2 Load Game 7.886
+c_lazy 2 Main::Start 446.048
+b_head 2 Main::Setup 10.939
+b_head 2 Main::Setup2 81.894
+b_head 2 Load Autoloads 547.541
+b_head 2 Load Game 9.788
+b_head 2 Main::Start 557.788
+a_v070 2 Main::Setup 13.135
+a_v070 2 Main::Setup2 86.514
+a_v070 2 Load Autoloads 395.311
+a_v070 2 Load Game 7.88
+a_v070 2 Main::Start 403.766
+c_lazy 3 Main::Setup 11.345
+c_lazy 3 Main::Setup2 88.688
+c_lazy 3 Load Autoloads 501.936
+c_lazy 3 Load Game 8.613
+c_lazy 3 Main::Start 511.101
+b_head 3 Main::Setup 12.626
+b_head 3 Main::Setup2 92.38
+b_head 3 Load Autoloads 579.092
+b_head 3 Load Game 7.946
+b_head 3 Main::Start 587.512
+a_v070 3 Main::Setup 12.778
+a_v070 3 Main::Setup2 83.355
+a_v070 3 Load Autoloads 468.915
+a_v070 3 Load Game 8.129
+a_v070 3 Main::Start 477.479
+c_lazy 4 Main::Setup 10.734
+c_lazy 4 Main::Setup2 81.632
+c_lazy 4 Load Autoloads 463.899
+c_lazy 4 Load Game 8.717
+c_lazy 4 Main::Start 473.121
+b_head 4 Main::Setup 10.036
+b_head 4 Main::Setup2 74.168
+b_head 4 Load Autoloads 467.666
+b_head 4 Load Game 8.525
+b_head 4 Main::Start 476.658
+a_v070 4 Main::Setup 11.309
+a_v070 4 Main::Setup2 83.051
+a_v070 4 Load Autoloads 433.049
+a_v070 4 Load Game 8.672
+a_v070 4 Main::Start 442.205
+c_lazy 5 Main::Setup 12.264
+c_lazy 5 Main::Setup2 91.283
+c_lazy 5 Load Autoloads 440.591
+c_lazy 5 Load Game 10.723
+c_lazy 5 Main::Start 451.793
+b_head 5 Main::Setup 14.59
+b_head 5 Main::Setup2 101.37
+b_head 5 Load Autoloads 556.873
+b_head 5 Load Game 9.043
+b_head 5 Main::Start 566.345
+a_v070 5 Main::Setup 10.733
+a_v070 5 Main::Setup2 82.623
+a_v070 5 Load Autoloads 445.969
+a_v070 5 Load Game 8.934
+a_v070 5 Main::Start 455.349
+c_lazy 6 Main::Setup 9.202
+c_lazy 6 Main::Setup2 69.595
+c_lazy 6 Load Autoloads 385.375
+c_lazy 6 Load Game 7.894
+c_lazy 6 Main::Start 393.657
+b_head 6 Main::Setup 10.587
+b_head 6 Main::Setup2 68.218
+b_head 6 Load Autoloads 549.493
+b_head 6 Load Game 9.43
+b_head 6 Main::Start 559.343
+a_v070 6 Main::Setup 10.682
+a_v070 6 Main::Setup2 74.129
+a_v070 6 Load Autoloads 404.158
+a_v070 6 Load Game 9.974
+a_v070 6 Main::Start 414.532
+c_lazy 7 Main::Setup 11.395
+c_lazy 7 Main::Setup2 77.335
+c_lazy 7 Load Autoloads 507.325
+c_lazy 7 Load Game 10.156
+c_lazy 7 Main::Start 517.974
+b_head 7 Main::Setup 10.757
+b_head 7 Main::Setup2 86.783
+b_head 7 Load Autoloads 611.183
+b_head 7 Load Game 8.84
+b_head 7 Main::Start 620.615
+a_v070 7 Main::Setup 10.695
+a_v070 7 Main::Setup2 81.235
+a_v070 7 Load Autoloads 427.522
+a_v070 7 Load Game 8.568
+a_v070 7 Main::Start 436.534
+c_lazy 8 Main::Setup 10.189
+c_lazy 8 Main::Setup2 78.067
+c_lazy 8 Load Autoloads 410.816
+c_lazy 8 Load Game 8.183
+c_lazy 8 Main::Start 419.441
+b_head 8 Main::Setup 9.443
+b_head 8 Main::Setup2 79.154
+b_head 8 Load Autoloads 541.645
+b_head 8 Load Game 8.388
+b_head 8 Main::Start 550.515
+a_v070 8 Main::Setup 11.575
+a_v070 8 Main::Setup2 101.006
+a_v070 8 Load Autoloads 442.939
+a_v070 8 Load Game 8.572
+a_v070 8 Main::Start 452.12
+c_lazy 9 Main::Setup 9.024
+c_lazy 9 Main::Setup2 69.672
+c_lazy 9 Load Autoloads 454.047
+c_lazy 9 Load Game 9.17
+c_lazy 9 Main::Start 463.642
+b_head 9 Main::Setup 10.762
+b_head 9 Main::Setup2 82.004
+b_head 9 Load Autoloads 544.218
+b_head 9 Load Game 8.718
+b_head 9 Main::Start 553.417
+a_v070 9 Main::Setup 11.256
+a_v070 9 Main::Setup2 82.659
+a_v070 9 Load Autoloads 444.786
+a_v070 9 Load Game 8.656
+a_v070 9 Main::Start 453.903
+c_lazy 10 Main::Setup 13.81
+c_lazy 10 Main::Setup2 96.8
+c_lazy 10 Load Autoloads 458.155
+c_lazy 10 Load Game 11.82
+c_lazy 10 Main::Start 470.47
+b_head 10 Main::Setup 10.373
+b_head 10 Main::Setup2 71.038
+b_head 10 Load Autoloads 495.239
+b_head 10 Load Game 9.053
+b_head 10 Main::Start 504.716
+a_v070 10 Main::Setup 13.772
+a_v070 10 Main::Setup2 69.925
+a_v070 10 Load Autoloads 372.341
+a_v070 10 Load Game 7.17
+a_v070 10 Main::Start 379.905
+c_lazy 11 Main::Setup 11.155
+c_lazy 11 Main::Setup2 82.072
+c_lazy 11 Load Autoloads 463.228
+c_lazy 11 Load Game 8.564
+c_lazy 11 Main::Start 472.273
+b_head 11 Main::Setup 10.87
+b_head 11 Main::Setup2 83.026
+b_head 11 Load Autoloads 556.834
+b_head 11 Load Game 8.456
+b_head 11 Main::Start 565.784
+a_v070 11 Main::Setup 9.59
+a_v070 11 Main::Setup2 84.113
+a_v070 11 Load Autoloads 443.5
+a_v070 11 Load Game 8.751
+a_v070 11 Main::Start 452.737
+c_lazy 12 Main::Setup 11.58
+c_lazy 12 Main::Setup2 92.374
+c_lazy 12 Load Autoloads 476.608
+c_lazy 12 Load Game 8.777
+c_lazy 12 Main::Start 485.855
+b_head 12 Main::Setup 10.682
+b_head 12 Main::Setup2 84.649
+b_head 12 Load Autoloads 550.925
+b_head 12 Load Game 8.038
+b_head 12 Main::Start 559.474
+a_v070 12 Main::Setup 10.593
+a_v070 12 Main::Setup2 86.438
+a_v070 12 Load Autoloads 476.511
+a_v070 12 Load Game 9.367
+a_v070 12 Main::Start 486.321
+c_lazy 13 Main::Setup 10.466
+c_lazy 13 Main::Setup2 81.888
+c_lazy 13 Load Autoloads 459.032
+c_lazy 13 Load Game 8.865
+c_lazy 13 Main::Start 468.408
+b_head 13 Main::Setup 10.522
+b_head 13 Main::Setup2 86.8
+b_head 13 Load Autoloads 560.861
+b_head 13 Load Game 9.403
+b_head 13 Main::Start 570.913
+a_v070 13 Main::Setup 10.6
+a_v070 13 Main::Setup2 82.699
+a_v070 13 Load Autoloads 450.978
+a_v070 13 Load Game 7.748
+a_v070 13 Main::Start 459.203
+c_lazy 14 Main::Setup 14.148
+c_lazy 14 Main::Setup2 98.496
+c_lazy 14 Load Autoloads 489.952
+c_lazy 14 Load Game 8.875
+c_lazy 14 Main::Start 499.343
+b_head 14 Main::Setup 12.228
+b_head 14 Main::Setup2 83.492
+b_head 14 Load Autoloads 571.827
+b_head 14 Load Game 7.649
+b_head 14 Main::Start 580.171
+a_v070 14 Main::Setup 11.421
+a_v070 14 Main::Setup2 80.754
+a_v070 14 Load Autoloads 450.15
+a_v070 14 Load Game 9.247
+a_v070 14 Main::Start 459.793
+c_lazy 15 Main::Setup 10.98
+c_lazy 15 Main::Setup2 83.609
+c_lazy 15 Load Autoloads 466.899
+c_lazy 15 Load Game 7.112
+c_lazy 15 Main::Start 474.496
+b_head 15 Main::Setup 10.678
+b_head 15 Main::Setup2 65.427
+b_head 15 Load Autoloads 441.431
+b_head 15 Load Game 7.429
+b_head 15 Main::Start 449.227
+a_v070 15 Main::Setup 8.806
+a_v070 15 Main::Setup2 65.984
+a_v070 15 Load Autoloads 372.856
+a_v070 15 Load Game 7.631
+a_v070 15 Main::Start 380.843
+c_lazy 16 Main::Setup 9.643
+c_lazy 16 Main::Setup2 75.975
+c_lazy 16 Load Autoloads 401.86
+c_lazy 16 Load Game 7.533
+c_lazy 16 Main::Start 409.872
+b_head 16 Main::Setup 10.737
+b_head 16 Main::Setup2 82.819
+b_head 16 Load Autoloads 624.026
+b_head 16 Load Game 13.9
+b_head 16 Main::Start 638.427
+a_v070 16 Main::Setup 9.202
+a_v070 16 Main::Setup2 68.595
+a_v070 16 Load Autoloads 390.123
+a_v070 16 Load Game 6.915
+a_v070 16 Main::Start 397.442
+c_lazy 17 Main::Setup 10.691
+c_lazy 17 Main::Setup2 69.156
+c_lazy 17 Load Autoloads 398.524
+c_lazy 17 Load Game 7.78
+c_lazy 17 Main::Start 406.724
+b_head 17 Main::Setup 10.809
+b_head 17 Main::Setup2 90.414
+b_head 17 Load Autoloads 617.309
+b_head 17 Load Game 13.808
+b_head 17 Main::Start 631.635
+a_v070 17 Main::Setup 9.114
+a_v070 17 Main::Setup2 72.16
+a_v070 17 Load Autoloads 382.547
+a_v070 17 Load Game 7.742
+a_v070 17 Main::Start 390.706
+c_lazy 18 Main::Setup 10.209
+c_lazy 18 Main::Setup2 74.277
+c_lazy 18 Load Autoloads 429.99
+c_lazy 18 Load Game 7.762
+c_lazy 18 Main::Start 438.182
+b_head 18 Main::Setup 10.744
+b_head 18 Main::Setup2 82.153
+b_head 18 Load Autoloads 545.681
+b_head 18 Load Game 8.743
+b_head 18 Main::Start 554.997
+a_v070 18 Main::Setup 10.85
+a_v070 18 Main::Setup2 85.457
+a_v070 18 Load Autoloads 414.777
+a_v070 18 Load Game 7.4
+a_v070 18 Main::Start 422.625
+c_lazy 19 Main::Setup 11.244
+c_lazy 19 Main::Setup2 84.829
+c_lazy 19 Load Autoloads 462.826
+c_lazy 19 Load Game 8.593
+c_lazy 19 Main::Start 471.898
+b_head 19 Main::Setup 12.639
+b_head 19 Main::Setup2 105.395
+b_head 19 Load Autoloads 549.132
+b_head 19 Load Game 9.189
+b_head 19 Main::Start 558.888
+a_v070 19 Main::Setup 11.064
+a_v070 19 Main::Setup2 81.101
+a_v070 19 Load Autoloads 436.519
+a_v070 19 Load Game 8.714
+a_v070 19 Main::Start 445.667
+c_lazy 20 Main::Setup 12.172
+c_lazy 20 Main::Setup2 92.721
+c_lazy 20 Load Autoloads 437.34
+c_lazy 20 Load Game 8.462
+c_lazy 20 Main::Start 446.45
+b_head 20 Main::Setup 10.772
+b_head 20 Main::Setup2 86.412
+b_head 20 Load Autoloads 565.277
+b_head 20 Load Game 10.979
+b_head 20 Main::Start 576.715
+a_v070 20 Main::Setup 9.932
+a_v070 20 Main::Setup2 90.525
+a_v070 20 Load Autoloads 422.495
+a_v070 20 Load Game 7.298
+a_v070 20 Main::Start 430.393
+c_lazy 21 Main::Setup 11.081
+c_lazy 21 Main::Setup2 84.83
+c_lazy 21 Load Autoloads 457.949
+c_lazy 21 Load Game 8.768
+c_lazy 21 Main::Start 467.274
+b_head 21 Main::Setup 9.936
+b_head 21 Main::Setup2 75.502
+b_head 21 Load Autoloads 475.771
+b_head 21 Load Game 8.307
+b_head 21 Main::Start 484.505
+a_v070 21 Main::Setup 10.781
+a_v070 21 Main::Setup2 141.172
+a_v070 21 Load Autoloads 413.357
+a_v070 21 Load Game 8.034
+a_v070 21 Main::Start 421.851
+c_lazy 22 Main::Setup 10.491
+c_lazy 22 Main::Setup2 85.383
+c_lazy 22 Load Autoloads 444.826
+c_lazy 22 Load Game 7.039
+c_lazy 22 Main::Start 452.421
+b_head 22 Main::Setup 10.675
+b_head 22 Main::Setup2 85.249
+b_head 22 Load Autoloads 587.446
+b_head 22 Load Game 8.873
+b_head 22 Main::Start 596.96
+a_v070 22 Main::Setup 9.6
+a_v070 22 Main::Setup2 73.232
+a_v070 22 Load Autoloads 383.861
+a_v070 22 Load Game 7.227
+a_v070 22 Main::Start 391.503
+c_lazy 23 Main::Setup 10.633
+c_lazy 23 Main::Setup2 82.971
+c_lazy 23 Load Autoloads 443.814
+c_lazy 23 Load Game 7.75
+c_lazy 23 Main::Start 452.061
+b_head 23 Main::Setup 11.137
+b_head 23 Main::Setup2 84.631
+b_head 23 Load Autoloads 572.392
+b_head 23 Load Game 11.273
+b_head 23 Main::Start 584.195
+a_v070 23 Main::Setup 10.661
+a_v070 23 Main::Setup2 89.814
+a_v070 23 Load Autoloads 441.521
+a_v070 23 Load Game 7.182
+a_v070 23 Main::Start 449.145
+c_lazy 24 Main::Setup 11.371
+c_lazy 24 Main::Setup2 82.753
+c_lazy 24 Load Autoloads 462.524
+c_lazy 24 Load Game 8.754
+c_lazy 24 Main::Start 471.786
+b_head 24 Main::Setup 14.819
+b_head 24 Main::Setup2 95.564
+b_head 24 Load Autoloads 567.435
+b_head 24 Load Game 8.854
+b_head 24 Main::Start 576.792
+a_v070 24 Main::Setup 9.334
+a_v070 24 Main::Setup2 83.197
+a_v070 24 Load Autoloads 365.57
+a_v070 24 Load Game 7.043
+a_v070 24 Main::Start 373.072
+c_lazy 25 Main::Setup 10.388
+c_lazy 25 Main::Setup2 88.572
+c_lazy 25 Load Autoloads 549
+c_lazy 25 Load Game 12.993
+c_lazy 25 Main::Start 562.446
+b_head 25 Main::Setup 11.715
+b_head 25 Main::Setup2 92.64
+b_head 25 Load Autoloads 462
+b_head 25 Load Game 8.281
+b_head 25 Main::Start 470.813
+a_v070 25 Main::Setup 10.535
+a_v070 25 Main::Setup2 78.995
+a_v070 25 Load Autoloads 435.008
+a_v070 25 Load Game 8.393
+a_v070 25 Main::Start 443.867

@@ -1,0 +1,9 @@
+v0.8.0 FIX-ZS1: Doku – Vorlauf vor der Startlinie, Stück -1, Prüfung „Start bei km 0“, Befund Köhlbrandbrücke
+
+docs/renderer-modern.md 3.8, 4.1, 11.1: der gerade Vorlauf des Pfads vor Grenze 0,
+Stück -1 und die Regel, welche Autos die Fahrzeugebene zeichnet. docs/qa-v080.md
+Abschnitt 9: QA1-B1 und QA1-B3 behoben, die neue Render-Prüfung, neuer Befund
+FIX-ZS1-B1 (Wiese statt Elbe unter der Köhlbrandbrücke, nicht behoben).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

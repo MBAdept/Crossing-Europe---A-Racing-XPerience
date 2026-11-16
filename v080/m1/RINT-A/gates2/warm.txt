@@ -1,0 +1,3 @@
+rc=0 in 89 s  (log /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/RINT-A/logs/warm_final2.log); load 7.60 6.67 6.41
+RENDER-CHECK warmup_kalt OK      kiel_hamburg km 2.0 12.0 Uhr, medium: 389 Shader-Varianten im Cache vor dem Start, während der Fahrt 0 neu übersetzt; 39 Bilder in den ersten 30 s nach dem Ladebild, Median 766.3 ms, längstes 1078 ms (Grenze 2299 ms), die fünf längsten 1078, 940, 918, 892, 874 ms; Vorbereitung 44410 ms (Selbsttest 3462 ms, Aufwärmen 40309 ms, 48 Aufwärm-Knoten); render() im Mittel 2.544 ms, Einhängen eines Stücks höchstens 1.51 ms, Bauen im Mittel 3.55 ms, 138 Zeichenaufrufe (0 im Schatten), 100953 Dreiecke
+mesa cache files: 389

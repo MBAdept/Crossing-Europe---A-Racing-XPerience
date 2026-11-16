@@ -1,0 +1,5 @@
+rc=0 in 1183 s  (log /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/RINT-A/logs/drive_final.log)
+ERGEBNIS {"aborted":false,"avg_speed_kmh":108.353574823093,"board_key":"stage:kiel_hamburg:fwd","collisions":0,"daytime":"day","distance_km":95.0,"end_world_minutes":772.605555555563,"from_city":"kiel","fuel_end_l":39.1513091619556,"fuel_start_l":21.0,"gfx":"modern","liters_refueled":41.9015248674515,"penalty_s":0.0,"police_escapes":0,"police_stops":0,"radar_flashes":0,"refuels":1,"stage_id":"kiel
+RUN {"collisions":0,"ok":true,"sim_s":315.633333333375,"speedup":0.267142439197553,"wall_s":1181.517}
+--- warnings/errors (count, unique):
+      1 WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.

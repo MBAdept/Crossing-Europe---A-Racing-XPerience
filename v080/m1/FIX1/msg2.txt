@@ -1,0 +1,18 @@
+v0.8.0 FIX1: Arcades Nebelgesetz für Requisiten, Fahrzeuge und Schilder; kein Mondglanz auf dem Lack
+
+- Neues inc/fog_law.gdshaderinc: Arcades Tönung von Sprites (RoadRenderer._modulate)
+  – zur eigenen Farbe mal aufgehellter Nebelfarbe mit 0,7 × Nebelanteil – als FOG,
+  wie Gelände und Fernboden seit RINT-B. baked, leaves, billboard, vpbr, glass und
+  sign nehmen es statt des Tiefennebels der Engine: ferne Bäume sind dunkelgrün
+  statt graublauer „Geisterbäume“, ein Wagen behält bis zur F5-Ausblendung Arcades
+  Kontrast (QA QB-07). Kontaktschatten der Requisiten blenden mit demselben
+  Gesetz aus statt als heller Nebelfleck.
+- vpbr/glass: die Glanzkeulen des gerichteten Lichts (Grundkeule, Klarlack,
+  Flocken) behalten nachts, wenn das Licht der Mond ist, nur 8 % (coat_sun /
+  sun_spec, gesetzt von der Fahrzeug-Ebene nach palette.night > 0,5 wie im Rig).
+  SPECULAR_AMOUNT ist die Spiegelstärke des Lichts, nicht des Materials – die
+  Grundkeule war trotz SPECULAR 0 aktiv. DEV 21 Uhr, Wagenausschnitt p95 der
+  Leuchtdichte 193 → 69 (Arcade 51), gemessen (QA QB-05).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

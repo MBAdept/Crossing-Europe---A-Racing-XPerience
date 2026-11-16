@@ -1,0 +1,9 @@
+v0.8.0 QA1: Änderungsmelder für Modern (modern_slice.md5) mit OpenGL-ES-Stufe
+
+tests/golden/modern_slice.md5: sechs Bilder des Schnitts Kiel – Hamburg (Start mit Countdown, S2, S3 Hoch,
+S4, S5 Niedrig, S1 Nacht) ohne --shot-fast, erzeugt mit tools/golden.sh modern-make. Zwei unabhängige Läufe
+(make und check, verschiedene Vorbereitungszeiten): 6 von 6 MD5-gleich. OpenGL ES gegen OpenGL an S3 Hoch:
+größte Abweichung 2/255, PSNR 73,2 dB (Toleranz D38: ≤ 2, ≥ 60 dB).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

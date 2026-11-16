@@ -1,0 +1,13 @@
+v0.8.0 M2INT: Doku Modelle – Stand nach M2-Zusammenführung, ferne Stufen nachgemessen, Showroom-Entscheid
+
+docs/modelle.md:
+- Standzeile oben: Fahrzeuge (15–17), Natur (18), Gebäude/Brückenteile/Schiffe (19)
+- Abschnitt 17 „Ferne Stufen nach dem Look von RINT-B“: Scheiben und Kennzeichen der fernen Stufen stimmen mit dem
+  heutigen Look (≤ 7 Stufen, gemessen mit den AS2R-Werkzeugen), Bus-Kennzeichen seit M2INT #a2a2a0; das Karoband
+  der Polizei wird in 120 m 14 Stufen gelber (Entsättigung von RINT-B, offen)
+- Olive: olive_b lod0 → lod1 jetzt −0,2 / +0,5 / +0,7 % (vorher +5,0 / +6,5 / +8,3 %)
+- Showroom-Entscheid nachgeprüft: alle Flags bleiben false (Lack ohne Klarlack-Spiegelung flach und bunter als das
+  Sprite, Kompakt +18 % heller, Sportwagen nach Orange) – nächster Schritt beim Showroom
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

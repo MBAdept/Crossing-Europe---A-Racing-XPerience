@@ -1,0 +1,10 @@
+v0.8.0 FIX-R4 (WIP): Spiegelungen auf dem Straßenprofil, nasser Kegel nur diffus, Wetter folgt dem Wächter
+
+- B1: Rücklicht- und Laternen-Spiegelungen folgen dem Höhenprofil der Straße bis zur Kamera
+  (Streifen mit 12 Abschnitten, Profil in der Basis der Instanz) statt waagrecht zu schweben
+- B2: Abblendlicht und Lichtkegel beleuchten nur den diffusen Anteil der nassen Fahrbahn
+- B5: weather.gd quality_lowered(); B6: Nachglühen höchstens EXIT_AFTER_S; B8: Blendviereck zuerst
+- B4: Schneewall-Höhe aus dem gebauten Netz, Stetigkeit des Nachglühens, Einheitstests
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

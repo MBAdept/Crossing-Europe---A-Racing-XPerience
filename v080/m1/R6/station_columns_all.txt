@@ -1,0 +1,37 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+hamburg_hannover__hamburg canopy km 11.40: keine Stütze
+hamburg_hannover__hamburg canopy km 11.61: keine Stütze
+kassel_wuerzburg__kassel canopy km 82.95: keine Stütze
+kassel_wuerzburg__kassel canopy km 83.19: keine Stütze
+kassel_wuerzburg__kassel canopy km 83.85: keine Stütze
+kassel_wuerzburg__kassel canopy km 84.06: keine Stütze
+dortmund_frankfurt__frankfurt canopy km 11.55: keine Stütze
+dortmund_frankfurt__frankfurt canopy km 11.76: keine Stütze
+magdeburg_hannover__magdeburg canopy km 10.59: keine Stütze
+magdeburg_hannover__magdeburg canopy km 10.80: keine Stütze
+magdeburg_hannover__magdeburg canopy km 11.46: keine Stütze
+magdeburg_hannover__magdeburg canopy km 11.70: keine Stütze
+bremen_amsterdam__amsterdam canopy km 11.46: keine Stütze
+bremen_amsterdam__amsterdam canopy km 11.70: keine Stütze
+barcelona_montpellier__barcelona canopy km 84.93: keine Stütze
+barcelona_montpellier__barcelona canopy km 85.14: keine Stütze
+montpellier_lyon__montpellier canopy km 11.52: keine Stütze
+montpellier_lyon__montpellier canopy km 11.73: keine Stütze
+montpellier_lyon__montpellier canopy km 165.69: keine Stütze
+montpellier_lyon__montpellier canopy km 166.35: keine Stütze
+lyon_bern__bern canopy km 88.32: keine Stütze
+lyon_bern__bern canopy km 88.53: keine Stütze
+belgrad_sofia__sofia canopy km 248.94: keine Stütze
+belgrad_sofia__sofia canopy km 249.60: keine Stütze
+belgrad_sofia__sofia canopy km 249.81: keine Stütze
+leipzig_berlin__berlin canopy km 11.46: keine Stütze
+rostock_kiel__kiel canopy km 84.63: keine Stütze
+rostock_kiel__kiel canopy km 84.84: keine Stütze
+passau_regensburg__passau canopy km 11.46: keine Stütze
+regensburg_nuernberg__nuernberg canopy km 71.88: keine Stütze
+timisoara_budapest__timisoara canopy km 168.99: keine Stütze
+timisoara_budapest__timisoara canopy km 169.65: keine Stütze
+prag_nuernberg__nuernberg canopy km 227.85: keine Stütze
+prag_nuernberg__nuernberg canopy km 228.09: keine Stütze
+COLUMNS {"both":1770,"canopies":1909,"end_only":6,"front_only":99,"none":34}

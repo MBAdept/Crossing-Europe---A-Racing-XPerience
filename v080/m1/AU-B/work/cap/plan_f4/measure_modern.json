@@ -1,0 +1,128 @@
+[
+ {
+  "file": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AU-B/work/cap/plan_f4/kombi_modern.wav",
+  "profile": "modern",
+  "scenario": "drive",
+  "vehicle": "kombi",
+  "mute_buses": [],
+  "seconds": 49.88,
+  "integrated_lufs": -17.16,
+  "lra": 6.37,
+  "true_peak_db": -6.01,
+  "phases": [
+   {
+    "name": "idle",
+    "t0": 1.531,
+    "t1": 3.035,
+    "lufs": -25.1,
+    "short_term_max": -25.1,
+    "short_term_median": -25.1,
+    "true_peak_db": -6.8,
+    "target": -24.0
+   },
+   {
+    "name": "full_throttle",
+    "t0": 4.035,
+    "t1": 32.517,
+    "lufs": -16.14,
+    "short_term_max": -15.11,
+    "short_term_median": -16.0,
+    "true_peak_db": -6.48,
+    "target": -16.0
+   },
+   {
+    "name": "flat_out",
+    "t0": 32.517,
+    "t1": 38.533,
+    "lufs": -15.81,
+    "short_term_max": -15.39,
+    "short_term_median": -15.47,
+    "true_peak_db": -6.01,
+    "target": -16.0
+   },
+   {
+    "name": "lift",
+    "t0": 38.533,
+    "t1": 41.55,
+    "lufs": -21.92,
+    "short_term_max": -21.92,
+    "short_term_median": -21.92,
+    "true_peak_db": -9.72,
+    "target": null
+   },
+   {
+    "name": "cruise_130",
+    "t0": 43.55,
+    "t1": 50.566,
+    "lufs": -21.51,
+    "short_term_max": -21.43,
+    "short_term_median": -21.56,
+    "true_peak_db": -10.82,
+    "target": -21.0
+   }
+  ]
+ },
+ {
+  "file": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AU-B/work/cap/plan_f4/sportwagen_modern.wav",
+  "profile": "modern",
+  "scenario": "drive",
+  "vehicle": "sportwagen",
+  "mute_buses": [],
+  "seconds": 39.57,
+  "integrated_lufs": -17.39,
+  "lra": 5.36,
+  "true_peak_db": -5.85,
+  "phases": [
+   {
+    "name": "idle",
+    "t0": 1.522,
+    "t1": 3.025,
+    "lufs": -24.24,
+    "short_term_max": -24.24,
+    "short_term_median": -24.24,
+    "true_peak_db": -13.57,
+    "target": -24.0
+   },
+   {
+    "name": "full_throttle",
+    "t0": 4.025,
+    "t1": 22.075,
+    "lufs": -16.26,
+    "short_term_max": -15.14,
+    "short_term_median": -16.59,
+    "true_peak_db": -5.85,
+    "target": -16.0
+   },
+   {
+    "name": "flat_out",
+    "t0": 22.075,
+    "t1": 28.093,
+    "lufs": -16.22,
+    "short_term_max": -16.07,
+    "short_term_median": -16.18,
+    "true_peak_db": -7.0,
+    "target": -16.0
+   },
+   {
+    "name": "lift",
+    "t0": 28.093,
+    "t1": 31.108,
+    "lufs": -20.13,
+    "short_term_max": -20.14,
+    "short_term_median": -20.14,
+    "true_peak_db": -7.39,
+    "target": null
+   },
+   {
+    "name": "cruise_130",
+    "t0": 33.108,
+    "t1": 40.124,
+    "lufs": -20.93,
+    "short_term_max": -20.55,
+    "short_term_median": -20.89,
+    "true_peak_db": -12.34,
+    "target": -21.0
+   }
+  ]
+ }
+]

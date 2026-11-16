@@ -1,0 +1,16 @@
+AU-B: Motor v3 dokumentiert, Lastwechselschlag dumpfer, Pegel von Kombi und Sportwagen zurückgenommen
+
+- docs/motorsound.md: neuer Abschnitt 6 (Klangprofil Modern): Bankformat ce-engine-bank-2, Synthese, Laufzeit mit
+  Mischer-Thread, Konfiguration, die fünf Motoren, Pegelplan, Prüfungen, Zahlen Arcade gegen Modern, Grenzen.
+- docs/audio-modern.md: Stand der Bausteine engine und layers, Pegel mit dem Motor v3, vier neue Fallen
+  (Schleifennaht, Meldungen am Prozessende, langes Bild, Blöcke des Dummy-Treibers), offene Punkte.
+- engine_synth3.py: Der Schlag beim Gangwechsel begann mit vollem Pegel und trug ein Ticken bis 16 kHz; jetzt
+  steile Bandflanken und 0,8 ms Anstieg (Anteil ab 5 kHz 10,8 dB tiefer). Kombi 0,4 dB und Sportwagen 0,3 dB
+  leiser: ihr Kurzzeit-Maximum bei Vollgas lag in einem von drei Läufen an der Grenze des Pegelplans.
+- Klangdateien neu erzeugt (shift_thump, tipin, kombi.json, sportwagen); audio_qc.py --determinism besteht.
+
+Gemessen mit diesen Dateien: Vollgas -16,0 bis -17,1 LUFS, Leerlauf -23,5 bis -25,1, 130 km/h -20,9 bis -22,3;
+Thread-Bank 0 Aussetzer bei sechs Hängern von 400 ms, 20 von 20 Prozessenden sauber.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

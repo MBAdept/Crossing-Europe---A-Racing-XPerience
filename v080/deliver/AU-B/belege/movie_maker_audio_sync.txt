@@ -1,0 +1,11 @@
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+ERROR: Can't create shader cache folder, no shader caching will happen: user://
+movie_probe: fertig, sync=true live=true perf={ "avg_ms": 0.69486463620981, "max_ms": 3.852, "frames": 591, "samples": 321344, "skips": 0, "ms_per_frame": 0.68157903472084, "threaded": false }
+WARNING: 1 ObjectDB instance was leaked at exit (run with `--verbose` for details).
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+ERROR: Can't create shader cache folder, no shader caching will happen: user://
+movie_probe: fertig, sync=true live=true perf={ "avg_ms": 0.69075803722504, "max_ms": 3.585, "frames": 591, "samples": 321344, "skips": 0, "ms_per_frame": 0.67755095266547, "threaded": false }
+WARNING: 1 ObjectDB instance was leaked at exit (run with `--verbose` for details).
+gran_turismo_a.wav: 480000 Frames, 48000 Hz, 2 Kanäle, Spitze 11808, sha256 882e34e80dfebbd8
+gran_turismo_b.wav: 480000 Frames, 48000 Hz, 2 Kanäle, Spitze 11808, sha256 882e34e80dfebbd8
+gleich lang: True; verschiedene Abtastwerte: 0 von 960000; größte Abweichung 0

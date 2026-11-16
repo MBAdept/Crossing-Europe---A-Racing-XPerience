@@ -1,0 +1,4 @@
+WIP v0.8.0 AS3: docs/modelle.md §15 – Fernbild der Fichte, Spalten von --mode=lods
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

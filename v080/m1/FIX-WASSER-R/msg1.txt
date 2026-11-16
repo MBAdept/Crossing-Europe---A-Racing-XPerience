@@ -1,0 +1,22 @@
+v0.8.0 FIX-WASSER-R: Wahrzeichen ohne Sprite und Modell mit Ersatzbild, Brückenpylone nachts dunkel
+
+QA-WASSER B1: Sechs Wahrzeichen, die Arcade prozedural zeichnet und für die es weder
+Sprite noch Modell gibt (Belgrad, Hannover, Leipzig, Dortmund, Calais, Madrid), ließ
+Modern weg. builders/props.gd nimmt jetzt das Ersatz-Set des Etappenplans
+(landmark_fallbacks(): Track._build_landmark streicht es bei "proc") mit fallback_scale
+und fallback_tint – im Stück und als ferne Vertretung (getönt wie im Stück).
+
+QA-WASSER B2: Die Pylone der Schrägseilbrücken ("prefer_proc") zeigten nachts die
+Lichtebene ihres Sprites (ein angestrahlter Pylon) und leuchteten fast weiß; Arcade
+zeichnet sie betongrau. Ihre Vertretung hat jetzt ein eigenes Material ohne Lichtebene
+und ohne Scheinwerferlicht (dark_material()); bei Tag unverändert.
+
+QA-WASSER B5: check_terrain_plan.gd --dump rechnet far_y mit FarGround.target_height();
+check_terrain_cover.gd prüft an der Köhlbrandbrücke (K1, km 78,1) zusätzlich, dass der
+Fernboden die Elbe nicht verdeckt (Cyan-Anteil höchstens 2 %).
+
+Tests: test_props.gd – zwei neue Tests (Pylon dunkel, Wahrzeichen mit Ersatz auf echten
+Strecken in alle sechs Städte), die Erwartung der Streckenliste kennt das Ersatz-Set.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

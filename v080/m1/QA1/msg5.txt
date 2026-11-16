@@ -1,0 +1,10 @@
+v0.8.0 QA1: Ergebnisse von Zwischenstand 1 in docs/qa-v080.md, Render-Prüfung Helligkeit gelaufen
+
+- tests/race3d/render/check_modern_render.gd „helligkeit“: 10 von 10 Fällen (S1 trocken/Regen/Schnee um
+  12, 19:30, 22 Uhr und Gotthardtunnel) im Band 0,67–1,5 × Arcade; gemessen 0,89–0,98 (Boden 0,81–0,99),
+  reinschwarz ≤ 0,7 %
+- docs/qa-v080.md §8: Tore, Listen, Clips, Leistungstest, Befund QA1-B1 (Start bei km 0: Kamera 9 m zu weit
+  vorn, Spielerauto im Countdown unsichtbar) und das Urteil zum Bild
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

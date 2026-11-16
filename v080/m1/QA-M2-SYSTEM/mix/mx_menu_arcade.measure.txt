@@ -1,0 +1,2 @@
+mx_menu_arcade.wav: Profil arcade, menu gran_turismo, 40.0 s – integriert -29.53 LUFS, Lautheitsbereich 8.03 LU, True Peak -15.27 dBTP
+  menu              1.0–  40.0 s   -29.45 LUFS  Kurzzeit max  -27.21 / Median  -28.38  True Peak -15.27   Plan -20.0

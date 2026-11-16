@@ -1,0 +1,14 @@
+v0.8.0 R4 (WIP): Laternen-Spiegelungen Punkt für Punkt nach Fresnel (im Shader)
+
+Das neue Bild C1 im Regen (21:30) zeigte den orangen Fleck um das Spielerauto
+unverändert: der Streifen einer hohen Laterne ist lang (bis zur Kamera), sein
+nahes Ende kam aus dem Ausläufer der Spiegelung einer ferneren Laterne, nicht
+aus ihrem Spiegelpunkt. Die Gewichtung mit dem Fresnel-Term von Wasser sitzt
+jetzt im Shader und gilt für jeden Punkt des Streifens unter dem Blickwinkel
+der Kamera (flare.gdshader, fresnel_ref_m 15 m; Laternen und Tankstellenlampen
+über eine negative halbe Breite der Instanz). Die Gewichtung je Lampe in
+flares.gd (b9574c2) und ihr Unit-Test entfallen. Die kurzen Streifen der
+Fahrzeuglampen bleiben ungewichtet.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,19 @@
+plans 128 128 identical 114
+  bordeaux_san_sebastian       from san_sebastian  to bordeaux     heard 0.699 -> 0.599  PP--PP--P -> PP--PP---  differing keys ['centre', 'pattern']
+  dresden_leipzig              from leipzig        to dresden      heard 0.699 -> 0.585  -P--PP-PP -> ----PP-PP  differing keys ['centre', 'pattern']
+  luettich_paris               from luettich       to paris        heard 0.783 -> 0.641  P--PPPPP-P-P -> ---PPPP-PP-P  differing keys ['centre', 'pattern']
+  lyon_bern                    from bern           to lyon         heard 0.711 -> 0.613  P--PPP-PP -> --PPPP-PP  differing keys ['centre', 'pattern']
+  madrid_saragossa             from madrid         to saragossa    heard 0.562 -> 0.561  PPP----PP -> PP-----PP  differing keys ['centre', 'pattern']
+  montpellier_lyon             from montpellier    to lyon         heard 0.71 -> 0.611  P--PPP-PP -> --PPPP-PP  differing keys ['centre', 'pattern']
+  paris_tours                  from paris          to tours        heard 0.699 -> 0.599  P---P-PPP -> P---P-PP-  differing keys ['centre', 'pattern']
+  paris_tours                  from tours          to paris        heard 0.72 -> 0.6  P--PPPPP-P-P -> ---PPPP-PP-P  differing keys ['centre', 'pattern']
+  pau_toulouse                 from pau            to toulouse     heard 0.699 -> 0.598  -P--PPP-P -> ----PPP-P  differing keys ['centre', 'pattern']
+  saragossa_barcelona          from barcelona      to saragossa    heard 0.562 -> 0.561  PPP----PP -> PP-----PP  differing keys ['centre', 'pattern']
+  saragossa_pau                from pau            to saragossa    heard 0.565 -> 0.565  PPP----PP -> PP-----PP  differing keys ['pattern']
+  toulouse_montpellier         from montpellier    to toulouse     heard 0.699 -> 0.598  -P--PPP-P -> ----PPP-P  differing keys ['centre', 'pattern']
+  tours_bordeaux               from bordeaux       to tours        heard 0.7 -> 0.6  P---P-PPP -> P---P-PP-  differing keys ['centre', 'pattern']
+  tours_bordeaux               from tours          to bordeaux     heard 0.701 -> 0.601  PP--PP--P -> PP--PP---  differing keys ['centre', 'pattern']
+  KH ('hamburg_bremen', 'bremen') identical
+  KH ('hamburg_hannover', 'hannover') identical
+  KH ('kiel_hamburg', 'hamburg') identical
+  KH ('kiel_hamburg', 'kiel') identical

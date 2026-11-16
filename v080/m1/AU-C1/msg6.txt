@@ -1,0 +1,12 @@
+v0.8.0 AU-C1: Spitzen im schlimmsten Fall – Aufprall gestaffelt, Schleifen begrenzt
+
+Gemessen (Tunnel, zwei Lkw, Martinshorn, Musik, Lkw-Crash, Leitplanke, Untersteuern):
+nach dem Begrenzer -2,26 dBTP bei Standardreglern. Die Klänge von AU-C1 allein trieben den
+Begrenzer um 2,8 dB (zwei tiefe Schläge gleichzeitig, Schleifen bei 230 km/h mit -13,8 LUFS);
+jetzt Spitze 0,0 dBFS vor dem Begrenzer: gegen Lkw ersetzt dessen Schlag den eigenen, die
+Schichten beginnen 4/9/40 ms versetzt, schwere Stufe -2 dB, Schleifen 12 dB je Dekade bis
+höchstens -17 LUFS, Funkenspitzen der Schleif-Schleife weich begrenzt, alle Schleifen auf
+-3 dBTP; Mischzustand impact senkt Auto -3 und Welt -4 dB.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

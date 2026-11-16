@@ -1,0 +1,69 @@
+16:23:47 load 19.88 19.73 19.20 golden check start
+16:36:59 load 17.22 17.73 18.25 golden check exit 0
+16:36:59 load 17.22 17.73 18.25 qa_zeit mut start
+16:37:26 load 16.33 17.44 18.14 qa_zeit mut exit 0
+16:37:26 load 16.33 17.44 18.14 qa_zeit base start
+16:37:52 load 16.29 17.34 18.09 qa_zeit base exit 0
+16:37:52 load 16.29 17.34 18.09 start h01_dev_station_day
+16:45:49 load 17.02 17.03 17.65 end h01_dev_station_day exit 0
+16:45:49 load 17.02 17.03 17.65 start h02_dev_station_night
+16:53:05 load 19.11 18.31 17.92 end h02_dev_station_night exit 0
+16:53:05 load 19.11 18.31 17.92 start h03_dev_border_day
+16:58:29 load 19.44 18.75 18.20 end h03_dev_border_day exit 0
+16:58:29 load 19.44 18.75 18.20 start h04_dev_border_night
+17:02:24 load 14.59 16.61 17.46 end h04_dev_border_night exit 0
+17:02:24 load 14.59 16.61 17.46 start h05_dev_radar_day
+17:05:21 load 13.37 15.29 16.81 end h05_dev_radar_day exit 0
+17:05:21 load 13.37 15.29 16.81 start h06_dev_radar_night
+17:08:08 load 13.77 14.90 16.42 end h06_dev_radar_night exit 0
+17:08:08 load 13.77 14.90 16.42 start h07_dev_city_day
+17:15:18 load 14.38 14.67 15.72 end h07_dev_city_day exit 0
+17:15:18 load 14.38 14.67 15.72 start h08_dev_city_night
+17:22:02 load 16.42 15.59 15.73 end h08_dev_city_night exit 0
+17:22:02 load 16.42 15.59 15.73 start h09_dev_start_day
+17:30:01 load 16.11 16.26 16.01 end h09_dev_start_day exit 0
+17:30:01 load 16.11 16.26 16.01 start h10_dev_start_night
+17:37:30 load 17.01 16.89 16.38 end h10_dev_start_night exit 0
+17:37:30 load 17.01 16.89 16.38 start h11_dev_finish_day
+17:43:28 load 19.55 18.49 17.24 end h11_dev_finish_day exit 0
+17:43:28 load 19.55 18.49 17.24 start h12_dev_finish_night
+17:48:31 load 12.99 15.67 16.46 end h12_dev_finish_night exit 0
+17:48:31 load 12.99 15.67 16.46 start k01_kh_fuel_day
+17:53:06 load 9.86 13.05 15.21 end k01_kh_fuel_day exit 0
+17:53:06 load 9.86 13.05 15.21 start k02_kh_fuel_night
+17:57:43 load 11.31 11.71 14.07 end k02_kh_fuel_night exit 0
+17:57:43 load 11.31 11.71 14.07 start k03_kh_city_night
+18:04:55 load 15.31 14.54 14.55 end k03_kh_city_night exit 0
+18:04:55 load 15.31 14.54 14.55 start k04_kh_start_day
+18:11:12 load 13.94 13.98 14.26 end k04_kh_start_day exit 0
+18:11:12 load 13.94 13.98 14.26 start k05_kh_finish_day
+18:14:47 load 14.35 13.69 14.04 end k05_kh_finish_day exit 0
+18:14:47 load 14.35 13.69 14.04 start p01_pn_border_day
+18:18:55 load 14.91 14.65 14.37 end p01_pn_border_day exit 0
+18:18:55 load 14.91 14.65 14.37 start d01_deck_station_night
+18:21:18 load 14.85 14.52 14.35 end d01_deck_station_night exit 0
+18:21:18 load 14.85 14.52 14.35 start d02_deck_border_day
+18:24:07 load 16.43 15.15 14.61 end d02_deck_border_day exit 0
+18:24:07 load 16.43 15.15 14.61 start d03_deck_city_night
+18:27:58 load 15.27 15.23 14.76 end d03_deck_city_night exit 0
+18:27:58 load 15.27 15.23 14.76 start b01_dev_station_day
+18:33:48 load 15.14 15.29 14.93 end b01_dev_station_day exit 0
+18:33:48 load 15.14 15.29 14.93 start b02_dev_station_night
+18:39:18 load 14.46 14.76 14.81 end b02_dev_station_night exit 0
+18:39:18 load 14.46 14.76 14.81 start b06_dev_radar_night
+18:41:30 load 13.39 14.08 14.54 end b06_dev_radar_night exit 0
+18:41:30 load 13.39 14.08 14.54 start b08_dev_city_night
+18:46:44 load 16.08 14.59 14.53 end b08_dev_city_night exit 0
+18:46:44 load 16.08 14.59 14.53 start b10_dev_start_night
+18:52:38 load 14.30 14.67 14.60 end b10_dev_start_night exit 0
+18:52:38 load 14.30 14.67 14.60 start b12_dev_finish_night
+18:57:19 load 14.62 14.76 14.66 end b12_dev_finish_night exit 0
+18:57:19 load 14.62 14.76 14.66 start bk01_kh_fuel_day
+19:01:37 load 13.76 14.59 14.66 end bk01_kh_fuel_day exit 0
+19:01:37 load 13.76 14.59 14.66 start bk02_kh_fuel_night
+19:06:26 load 15.63 15.15 14.87 end bk02_kh_fuel_night exit 0
+19:06:26 load 15.63 15.15 14.87 perf deck head start
+19:11:39 load 14.49 15.10 14.96 perf deck head end
+19:11:39 load 14.49 15.10 14.96 perf deck base start
+19:15:48 load 10.20 12.87 14.12 perf deck base end
+19:15:48 load 10.20 12.87 14.12 DONE

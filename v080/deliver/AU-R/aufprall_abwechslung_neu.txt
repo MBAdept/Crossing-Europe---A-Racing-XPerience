@@ -1,0 +1,19 @@
+Acht Unfälle hintereinander, nachher (AU-R)
+
+Limousine mit 110 km/h, schwere und mittlere Aufpralle nach Schließgeschwindigkeit, einer gegen einen Lkw. Je Schicht eine zufällige Variante (V1–V4; V1 ist die Datei von AU-C1), ±2 dB und bis 20 ms später; Glas ab 80 km/h Schließgeschwindigkeit, darunter in 40 % der Unfälle; der tiefe Schlag schwerer Unfälle 2,5 dB leiser als bei AU-C1, damit der neue Begrenzer höchstens 3 dB nimmt.
+
+Worauf achten: Kein Unfall klingt wie der vorige (Varianten, Pegel, Einsätze, Glas nur manchmal). Ob die schweren bei 130 km/h noch genug Wucht haben, entscheidest du – ihr tiefer Schlag ist 2,5 dB leiser als bei AU-C1.
+
+Länge 21.2 s, integriert -18.9 LUFS, True Peak -3.9 dBTP (gemessen an der WAV vor dem MP3)
+  0:01.52  schwer, 130 km/h Schließgeschwindigkeit: Blech V2 -0.8 dB +17 ms, Kleinteile V1 +0.4 dB +10 ms, Glas V3 -0.2 dB +12 ms, tiefer Schlag V1 +0.8 dB +10 ms
+  0:03.97  mittel, 35 km/h: Blech V1 -0.3 dB +12 ms, Kleinteile V2 +1.5 dB +2 ms, tiefer Schlag V1 -1.7 dB +16 ms, Stoßstange V2 -0.2 dB +4 ms (kein Glas)
+  0:06.42  schwer, 60 km/h (Glas nur manchmal): Blech V1 -0.5 dB +1 ms, Kleinteile V1 -1.0 dB +12 ms, tiefer Schlag V2 -1.4 dB +16 ms (kein Glas)
+  0:08.88  schwer, 100 km/h: Blech V1 +1.0 dB +15 ms, Kleinteile V3 -1.9 dB +7 ms, Glas V4 +1.5 dB +19 ms, tiefer Schlag V1 +0.1 dB +10 ms
+  0:11.37  mittel, 30 km/h: Blech V2 +1.5 dB +12 ms, Kleinteile V4 +1.9 dB +14 ms, tiefer Schlag V1 +1.2 dB +13 ms, Stoßstange V2 +0.4 dB +12 ms (kein Glas)
+  0:13.82  schwer, 70 km/h (Glas nur manchmal): Blech V1 -1.2 dB +6 ms, Kleinteile V3 -0.1 dB +20 ms, tiefer Schlag V1 +0.1 dB +11 ms (kein Glas)
+  0:16.28  Lkw, 90 km/h: Blech V2 -0.4 dB +12 ms, Kleinteile V1 -1.5 dB +10 ms, Glas V3 -1.9 dB +17 ms, Lkw-Aufbau V2 -1.6 dB +17 ms
+  0:18.73  schwer, 130 km/h: Blech V2 -1.9 dB +7 ms, Kleinteile V3 +0.7 dB +13 ms, Glas V1 +1.5 dB +0 ms, tiefer Schlag V2 -1.6 dB +8 ms
+
+Aufgenommen am Master-Bus des Spiels (Godot 4.7.2, Profil Modern, ohne Bildschirm, Dummy-Audiotreiber), Gesamtlautstärke 0,8 wie im Spiel voreingestellt. Gehört hat es hier niemand – das Urteil über den Klang liegt beim Nutzer.
+
+Nachtrag AU-R4: Im Spiel ist der Schlag des Lkw-Aufbaus bei schweren Lkw-Unfällen jetzt 0,5 dB leiser (wie der tiefe Schlag der Pkw-Unfälle), damit der Begrenzer auch bei vielen Lkw-Unfällen sicher höchstens 3 dB nimmt. In dieser Hörprobe betrifft das nur den Lkw-Unfall bei 0:16 – er liegt dort 0,5 dB über dem Spiel, weniger als der Zufall von ±2 dB, den jede Schicht ohnehin bekommt. Die Hörprobe ist darum nicht neu aufgenommen.

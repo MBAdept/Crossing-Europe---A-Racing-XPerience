@@ -1,0 +1,22 @@
+== rs_concrete_nolim.wav | 30.0 s | TP -1.74 dBTP | SP -1.77 dBFS | clipped 0 | I -14.63 LUFS | S-max -13.38 | drop 0 | clicks 1
+   km [24.3, 33.688]  speed [0.0, 173.7]  km/s 0.3129
+     0.03-  5.23 s km  24.300  asphalt         open    asphalt/asphalt      speed 49.4  rms -17.8  bands [21.1, 29.1, 13.0, 11.5]
+     5.23- 30.00 s km  25.017  concrete        open    concrete/concrete    speed 125.8  rms -16.5  bands [28.0, 32.7, 24.2, 20.0]
+   plays {'go': 1, 'road_pass': 12}
+   events {'stage_start': 1, 'go': 1, 'pass_object': 12}
+   slabs {'t0': 5.23, 't1': 30.0, 'speed': 125.8, 'line_hz': 14.13, 'line_over_median_db': 28.8}
+   click candidates [(17.22, 0.168, 0.0407)]
+== rs_crash_music.wav | 28.0 s | TP -1.83 dBTP | SP -2.00 dBFS | clipped 0 | I -13.96 LUFS | S-max -10.71 | drop 0 | clicks 0
+   km [30.0, 35.681]  speed [0.0, 220.0]  km/s 0.2029
+     0.03- 28.00 s km  30.010  concrete        open    concrete/concrete    speed 72.2  rms -16.1  bands [31.0, 29.9, 27.4, 21.3]
+   plays {'go': 1, 'flash': 1, 'road_pass': 5, 'impact_crunch': 1, 'impact_debris': 1, 'impact_hit_heavy': 1, 'impact_collision_heavy': 1}
+   events {'stage_start': 1, 'go': 1, 'radar_flash': 1, 'chase_start': 1, 'pass_object': 5, 'collision': 1, 'busted': 1}
+   impact {'t': 9.367, 'name': 'collision', 'km': 35.106, 'true_peak_dbtp': -4.08, 'sample_peak_dbfs': -4.08}
+   slabs {'t0': 0.03, 't1': 28.0, 'speed': 72.2, 'line_hz': 1.32, 'line_over_median_db': 28.5}
+== rs_fuel_music.wav | 40.0 s | TP -1.93 dBTP | SP -2.00 dBFS | clipped 0 | I -14.09 LUFS | S-max -12.28 | drop 0 | clicks 8
+   km [30.0, 41.555]  speed [0.0, 232.6]  km/s 0.2889
+     0.03- 40.00 s km  30.000  concrete        open    concrete/concrete    speed 104.6  rms -16.2  bands [28.0, 32.8, 21.1, 19.1]
+   plays {'go': 1, 'road_pass': 10}
+   events {'stage_start': 1, 'go': 1, 'pass_object': 10, 'out_of_fuel': 1, 'tow': 1}
+   slabs {'t0': 0.03, 't1': 40.0, 'speed': 104.6, 'line_hz': 1.09, 'line_over_median_db': 35.1}
+   click candidates [(8.44, 0.219, 0.0537), (12.06, 0.148, 0.0278), (12.07, 0.144, 0.026), (12.97, 0.268, 0.0325), (12.98, 0.21, 0.0325), (13.88, 0.307, 0.0407), (13.89, 0.2, 0.0414), (15.7, 0.263, 0.0511)]

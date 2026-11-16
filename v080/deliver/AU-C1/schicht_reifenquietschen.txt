@@ -1,0 +1,15 @@
+Reifenquietschen und Radieren (ohne Motor und Wind, mit Rollgeräusch)
+
+Untersteuern 0,3 – 0,6 – 1,0 bei 120 km/h – scharfer Spurwechsel – Untersteuern auf nasser Fahrbahn (radiert statt zu quietschen) – Rutschen beim Unfall.
+
+Länge 19.8 s, integriert -23.4 LUFS, True Peak -9.2 dBTP (gemessen, Master bei Standardreglern, Gesamtlautstärke 0,8).
+
+Zeitmarken:
+  0:00.00  Untersteuern 0.3 bei 120 km/h
+  0:03.49  Untersteuern 0.6 bei 120 km/h
+  0:07.03  Untersteuern 1.0 bei 120 km/h
+  0:10.54  scharfer Spurwechsel (Querbewegung 4 m/s)
+  0:13.07  Untersteuern 0.8 nass
+  0:16.59  Rutschen beim Unfall
+
+Aufgenommen am Master-Bus des Spiels (Godot 4.7.2, Profil Modern, ohne Bildschirm, Dummy-Audiotreiber). Gehört hat es hier niemand – das Urteil über den Klang liegt beim Nutzer.

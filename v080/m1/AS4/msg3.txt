@@ -1,0 +1,15 @@
+v0.8.0 AS4: 14 Modelle in voller Qualität exportiert, Kirchturm-Flutlicht, Prüfer kennt lod1 der Gebäude
+
+- Echter Export (Cache-Schlüssel, Cycles 2x Überabtastung, 16 Proben, Verdeckung 24 Proben) von
+  house_med, church, building_shop, factory, building_oldtown, building_block_a/b, building_tall,
+  windmill, houseboat, ferry_ship, bridge_lamp, bridge_pylon, bridge_truss_arch (2499 s gesamt)
+- Kirchturm mit sanftem Flutlicht im Nachtlicht-Atlas (Materialkopie, Licht nimmt mit der Höhe ab)
+- Gewichte der Texeldichte: Kirche und Fabrik >= 26 px/m an den Wänden zur Straße, Rückseiten der
+  Blöcke dichter; Hausboot-Atlas 1024 x 512; Silo der Fabrik matter
+- validate_models.py: explizites lod1 (Generator-Detailstufe, D21) für Land-/Stadtgebäude und
+  Pylon erlaubt - der Vertrag nennt dort "auto", Nachtrag A-4 verbietet automatische Stufen mit
+  Lampenkanälen (Scheiben). Nicht in ce3d/manifest.py (Teil jedes Cache-Schlüssels).
+- docs/modelle.md: Abschnitt 15 (Entwurf, Zahlen folgen)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

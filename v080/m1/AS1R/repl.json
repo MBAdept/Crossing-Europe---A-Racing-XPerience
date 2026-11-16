@@ -1,0 +1,10 @@
+{
+  "NETZ_L": "1 527 819",
+  "NETZ_K": "1 661 802",
+  "NETZ_S": "271 351",
+  "NETZ_H": "270 561",
+  "NETZ_W": "276 055",
+  "NETZ_T": "161 851",
+  "FREIGANG": "0 Ecken bei allen Rädern von Limousine und Kompakt (`lod0` und `show`) und der drei Verkehrsautos (vorher: Kompakt bis 52 mm, Limousine bis 77 mm, beides Stoßfänger bzw. Wanne).",
+  "LAMPEN": "Limousine `lod0`: Kanal 2 (Leuchtenkörper) Gewicht 1,00, 645 cm² von hinten (vorher Gewicht 0,50); Kanal 0 (Lichtleiter) 207 + 22 cm²; Kanal 1 (Bremssegment) 185 cm². Kompakt `lod0`: Kanal 2 Gewicht 1,00, 748 cm²; Kanal 0 123 + 43 cm²; Kanal 1 152 cm². Verkehrs-Limousine: dritte Bremsleuchte Kanal 1 mit Leuchtfarbe `#9a1208` (120 cm² von hinten in jeder Stufe); Kennzeichen Kanal 8 in `lod1`/`lod2` `#c4c4c1`, 572 cm². Alle Lampenregeln des Prüfers grün (Rücklicht, Bremslicht, Blinker hinten ≥ 60 / vorn ≥ 40 cm² je Seite in jeder Stufe)."
+}

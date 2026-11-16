@@ -1,0 +1,18 @@
+v0.8.0 R4 (WIP): Tunnelausfahrt kräftiger, Füll-Licht im Tunnel wie bisher, Wettertabelle als eigene Prüfdatei
+
+Bilder der Ausfahrt (Testetappe km 52,8, 12 Uhr): mit 12 % am Portal und 22 %
+danach wirkte die Ausfahrt fast normal, schwächer als Arcade (dort bleibt das
+Draußen überstrahlt, solange die Kamera drinnen ist). Jetzt 60 % fern, 45 % am
+Portal, danach 40 % über 60 m abklingend; Unit-Test test_exit_ramp.
+
+Im Tunnel ist ce_night 1 (für die Lampen): das neue Nacht-Füll-Licht machte
+die blaue Limousine dort grau. Füll-Licht und Schimmer folgen jetzt der Nacht
+des Himmels (ce_night × (1 − ce_tunnel)); im Tunnel bleibt das Füll-Licht bei
+0,3 wie bisher (fill_tunnel), ohne Schimmer.
+
+check_weather.gd: die Tabelle Wetter × Stunde (24 Etappenstarts) läuft als
+check_weather_tabelle.gd in eigener Datei – zusammen sprengte sie die 900 s je
+Datei von tools/run_render_checks.sh.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,30 @@
+gran_turismo_arcade.wav: Profil arcade, drive gran_turismo, 46.9 s – integriert -14.29 LUFS, Lautheitsbereich 7.28 LU, True Peak -2.7 dBTP
+  idle              1.5–   3.0 s   -17.17 LUFS  Kurzzeit max  -17.17 / Median  -17.17  True Peak  -8.19   Plan -24.0
+  full_throttle     4.0–  29.9 s   -13.24 LUFS  Kurzzeit max  -12.34 / Median  -13.15  True Peak  -2.70   Plan -16.0
+  flat_out         29.9–  35.9 s   -13.50 LUFS  Kurzzeit max  -13.12 / Median  -13.16  True Peak  -3.28   Plan -16.0
+  lift             35.9–  38.9 s   -19.91 LUFS  Kurzzeit max  -19.90 / Median  -19.90  True Peak  -8.84
+  cruise_130       40.9–  47.9 s   -19.91 LUFS  Kurzzeit max  -19.86 / Median  -19.89  True Peak -12.87   Plan -21.0
+kombi_arcade.wav: Profil arcade, drive kombi, 49.5 s – integriert -20.51 LUFS, Lautheitsbereich 6.21 LU, True Peak -7.32 dBTP
+  idle              1.5–   3.0 s   -28.36 LUFS  Kurzzeit max  -28.36 / Median  -28.36  True Peak -13.44   Plan -24.0
+  full_throttle     4.0–  32.5 s   -19.71 LUFS  Kurzzeit max  -17.74 / Median  -19.77  True Peak  -7.32   Plan -16.0
+  flat_out         32.5–  38.5 s   -18.98 LUFS  Kurzzeit max  -18.68 / Median  -18.78  True Peak  -8.22   Plan -16.0
+  lift             38.5–  41.5 s   -22.65 LUFS  Kurzzeit max  -22.64 / Median  -22.64  True Peak -11.87
+  cruise_130       43.5–  50.5 s   -24.55 LUFS  Kurzzeit max  -24.44 / Median  -24.53  True Peak -15.24   Plan -21.0
+kompakt_arcade.wav: Profil arcade, drive kompakt, 37.15 s – integriert -19.04 LUFS, Lautheitsbereich 6.08 LU, True Peak -7.15 dBTP
+  idle              1.5–   3.0 s   -23.51 LUFS  Kurzzeit max  -23.51 / Median  -23.51  True Peak -12.66   Plan -24.0
+  full_throttle     4.0–  19.7 s   -17.95 LUFS  Kurzzeit max  -16.61 / Median  -18.10  True Peak  -7.15   Plan -16.0
+  flat_out         19.7–  25.8 s   -17.28 LUFS  Kurzzeit max  -16.91 / Median  -17.10  True Peak  -7.45   Plan -16.0
+  lift             25.8–  28.8 s   -20.30 LUFS  Kurzzeit max  -20.29 / Median  -20.29  True Peak -10.53
+  cruise_130       30.8–  37.8 s   -23.03 LUFS  Kurzzeit max  -22.97 / Median  -23.06  True Peak -14.06   Plan -21.0
+limousine_arcade.wav: Profil arcade, drive limousine, 43.93 s – integriert -18.77 LUFS, Lautheitsbereich 13.07 LU, True Peak -4.84 dBTP
+  idle              1.5–   3.0 s   -23.05 LUFS  Kurzzeit max  -23.05 / Median  -23.05  True Peak -11.01   Plan -24.0
+  full_throttle     4.0–  26.8 s   -18.60 LUFS  Kurzzeit max  -16.48 / Median  -19.13  True Peak  -4.84   Plan -16.0
+  flat_out         26.8–  32.8 s   -16.01 LUFS  Kurzzeit max  -15.63 / Median  -15.73  True Peak  -6.35   Plan -16.0
+  lift             32.8–  35.9 s   -22.51 LUFS  Kurzzeit max  -22.49 / Median  -22.49  True Peak -10.63
+  cruise_130       37.9–  44.9 s   -29.04 LUFS  Kurzzeit max  -28.92 / Median  -29.15  True Peak -18.12   Plan -21.0
+sportwagen_arcade.wav: Profil arcade, drive sportwagen, 39.38 s – integriert -16.63 LUFS, Lautheitsbereich 10.77 LU, True Peak -3.78 dBTP
+  idle              1.5–   3.0 s   -24.20 LUFS  Kurzzeit max  -24.20 / Median  -24.20  True Peak -12.58   Plan -24.0
+  full_throttle     4.0–  22.1 s   -15.57 LUFS  Kurzzeit max  -14.55 / Median  -15.70  True Peak  -3.98   Plan -16.0
+  flat_out         22.1–  28.1 s   -14.11 LUFS  Kurzzeit max  -13.84 / Median  -13.87  True Peak  -3.78   Plan -16.0
+  lift             28.1–  31.1 s   -21.38 LUFS  Kurzzeit max  -21.38 / Median  -21.38  True Peak  -8.55
+  cruise_130       33.1–  40.1 s   -24.69 LUFS  Kurzzeit max  -24.62 / Median  -24.75  True Peak -15.04   Plan -21.0

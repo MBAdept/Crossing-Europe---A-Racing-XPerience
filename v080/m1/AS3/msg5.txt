@@ -1,0 +1,13 @@
+WIP v0.8.0 AS3: Fichte – Stufenwechsel abgeglichen; Prüfszene zeigt die Stufen des Props-Bauers
+
+Fichte: lod1 war nach dem letzten Abgleich um 11 % (Mittag) bis 15 % (Dämmerung)
+heller als lod0, das Fernbild 24 % dunkler als lod1. Jetzt lift (1, 1.16) und
+Fernbild-Verstärkung 1.38: lod0->lod1 +1.8 % / +4.3 %, lod1->Fernbild -8.2 % /
++6.1 % (Mittag / Dämmerung, gemessen mit prop_scene --mode=lods --look=race).
+
+prop_scene --mode=lods nimmt je Spalte die Darstellung, die der Props-Bauer für
+Stufe 0/1/2 nimmt (PropLibrary "reps"): ein Busch ohne Fernbild bleibt lod1,
+ein Felsen mit einer Stufe bleibt lod0 – vorher blieben diese Kacheln leer.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

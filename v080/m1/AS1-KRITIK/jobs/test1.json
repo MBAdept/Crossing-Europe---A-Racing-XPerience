@@ -1,0 +1,6 @@
+[
+ {"name": "t_lim_game9_day", "set": "player/limousine", "lod": "lod0", "cam": {"type": "game", "dist": 9}},
+ {"name": "t_lim_clay", "set": "player/limousine", "lod": "lod0", "mode": "clay", "size": [960, 600], "cam": {"type": "orbit", "yaw": 32, "el": 13}},
+ {"name": "t_lim_check", "set": "player/limousine", "lod": "lod0", "mode": "check", "size": [960, 600], "cam": {"type": "orbit", "yaw": 32, "el": 13}},
+ {"name": "t_lim_wire", "set": "player/limousine", "lod": "lod0", "mode": "wire", "size": [960, 600], "cam": {"type": "orbit", "yaw": 32, "el": 13}}
+]

@@ -1,0 +1,8 @@
+v0.8.0 FIX-ZS1: Doku – wann Stück -1 lebt (Kamera bis 150 m hinter der Startlinie)
+
+Zwei Sätze waren ungenau: Stück -1 ist gewünscht, solange die Kamera höchstens
+150 m hinter der Startlinie liegt (Auto bis z ≈ 159 m, km 1,6 bei Zeitmaßstab 10),
+nicht nur bei km 0. Nur docs/, kein Spielcode.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,6 @@
+Showroom: Silhouette Cycles-Sprite (Alpha > 0,9) gegen Echtzeit-show (Maske), gleiche Kamera 768x480
+  kombi         IoU 0.961  nur Sprite 3832 px  nur Modell 1298 px
+  sportwagen    IoU 0.954  nur Sprite 4042 px  nur Modell 1541 px
+  gran_turismo  IoU 0.963  nur Sprite 3134 px  nur Modell 859 px
+  limousine     IoU 0.965  nur Sprite 3261 px  nur Modell 999 px
+  kompakt       IoU 0.967  nur Sprite 3979 px  nur Modell 958 px

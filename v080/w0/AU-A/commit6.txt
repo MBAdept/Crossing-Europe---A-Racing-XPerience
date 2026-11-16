@@ -1,0 +1,13 @@
+v0.8.0 AU-A: Ducking zählt, was die Mischzustände dem Auto nehmen; measure_mix kennt die Ziele der Musik
+
+Hinter der Ziellinie stellt der Zustand „result“ das Auto 9 dB leiser. Der Schlüssel des Duckings ist jetzt die
+Lautheit nach dem Plan abzüglich dieser Absenkung (ModernMix.car_path_db): Ein leise gestelltes Auto senkt die
+Musik nicht mehr ab – auch nicht bei Vollgas im Ausrollen.
+
+measure_mix.py druckt für eine Aufnahme der Musik allein (capture_mix.gd --scenario=race_music --mute-bus=MEnv)
+die Ziele der Musik (unter Vollgas 8 dB unter dem Auto, im Leerlauf um die Ducking-Tiefe darüber) statt der Ziele
+des Autos, und für Auto und Musik zusammen keine. capture_mix.gd schreibt dafür die stumm geschalteten Busse in
+seine Beschreibung.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

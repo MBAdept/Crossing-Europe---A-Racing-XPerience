@@ -1,0 +1,10 @@
+v0.8.0 PIPE: docs/modelle.md - Pipeline, Konventionen, Messwerte und Einordnung der Referenzmodelle
+
+Ablauf und Befehle, Verzeichnisse, Modellraum, Stufen, Knoten, Materialklassen, Vertexformat VPBR-L mit
+Lampenkanälen, wie der Compatibility-Renderer rechnet (gemessen: sRGB-kodierte Shaderwerte, abschneidende
+Näherungen, Sonne als eigener Durchgang in sRGB), Texturen, Manifest, Aufruf im Spiel, Hooks der
+Generatoren und Geometrie-Prüfung, Budgets, Zahlen je Referenzmodell (gemessen) und die ehrliche
+Einordnung gegen die Cycles-Sprites samt bekannten Grenzen.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

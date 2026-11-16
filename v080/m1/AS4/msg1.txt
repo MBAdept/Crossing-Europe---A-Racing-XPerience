@@ -1,0 +1,16 @@
+WIP v0.8.0 AS4: Bauer "house" für Gebäude mit Tiefe, erste acht Gebäude (Vorschau-Bake)
+
+Neues Modul tools/blender/ce3d/buildings3d.py (props3d.py bleibt unverändert): Fenster
+und Bogenfenster in die Wände geschnitten (Laibung, Rahmen, Sprossen, Sohlbank,
+Scheibe, nachts Kanal 12 in der Lichtfarbe des Sprites), Fensterläden, Schallluken,
+Turmuhren, Türen mit Stufen, Tore, Dachrinnen, Schriftzug, Vorhangfassade, lod1 ohne
+Feinteile, Bake mit Lochfüllern (keine hellen Ränder in den Mipmaps).
+
+Hooks in props_buildings.py (Voreinstellung = Sprite): allround für Kirche, Haus,
+Fabrik, Blöcke, Altstadthaus, Laden; gable3d (Treppengiebel als ein Prisma); win3d
+(Mühle ohne gemalte Fenster). Katalog-Block "# --- AS4 ---", BUILDERS "house".
+
+Die Modelle in assets/models sind Vorschau-Bakes (halbe Auflösung) - sie werden ersetzt.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

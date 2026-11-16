@@ -1,0 +1,7 @@
+v0.8.0 UI1: Doku – Render-Prüfung des Showrooms, Rückfall-Beispielbild, Tonemapper des Showrooms
+
+docs/grafik-modi.md: --sample-gfx-fallback in der Schaltertabelle, check_showroom_render.gd in der
+Prüftabelle, Größe des Drehtellers und der Grund für AgX im Showroom.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

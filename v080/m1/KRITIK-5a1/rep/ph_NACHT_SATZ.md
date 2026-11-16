@@ -1,0 +1,1 @@
+Nachts leuchten dieselben Fenster warm und unregelmäßig wie in Arcade, Schaufenster mit Auslage, bei Tag leuchtet nichts (Bilder 06, 21; Anteil beleuchteter Fensterpixel in Hamburg 0,6–1,0 × Arcade, gemessen).

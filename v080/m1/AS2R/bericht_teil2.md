@@ -1,0 +1,31 @@
+## 2. Befunde der Kritik: geprüft, Ursache, Änderung, Messung
+
+Reihenfolge wie die Kritik (zuerst das Heck der Spielerautos, dann der Verkehr in 20–150 m). „gemessen“ mit den
+Werkzeugen der Kritik; „vorher“ = Zahlen der Kritik.
+
+| Nr. | Befund | geprüft | Ursache | Änderung | Ergebnis (gemessen) |
+|---|---|---|---|---|---|
+| A1 | Lack zu hell/satt, geclippt | bestätigt (Bild 01: Kompakt 87 %, Sportwagen 55 % geclippt, unverändert) | Licht und Belichtung: Sonne, Umgebung und Füll-Licht 0,7 werden addiert; die Lackwerte sind die des Sprites | keine am Modell (Renderer, Abschnitt 8) | – |
+| A2 | Rück- und Bremslicht nachts kleiner und dunkler als Arcade (alle), beim GT nur eine dünne Linie | bestätigt; GT: Leuchtenkörper 6–15 mm innerhalb der Streuscheibe, Lichtleiste 6 mm hoch | alle: keine Flares/kein Glow für das Spielerauto (R3), kein Nacht-Füll-Licht (R4); GT: Entwurf des Sprites (dort trägt die Leuchtschicht mit Glow) | GT (Modellteil): 3D-Hook in `player_cars`, Leuchtenkörper füllt die Streuscheibe bis 3 mm an den Rand, Lichtleiste 12 mm; der Rest ist Renderer | rote Pixel in 8 m, GT: Rücklicht 353 -> 477, Bremse 587 -> 716 (Arcade 733 / 957); die anderen vier unverändert 536–690 / 949–1 052 (Arcade 1 061–1 617 / 1 197–2 034) |
+| A3 | unbeleuchtete Lampen wirken an | bestätigt | `lamp_off` 0,5 im Shader | keine am Modell (R3) | – |
+| A4 | Metallic-Flocken blinken (GT) | bestätigt (Bild 16, Zeile 2) | Zellen kleiner als ein Pixel, `flake_near_m` 14 m | keine am Modell (R3) | – |
+| A5 | Vorderrad Sportwagen/GT im Kotflügel, Falte | bestätigt: 114 / 71 Ecken bis 84 / 61 mm im Reifen | `SmoothCar.frame()` beginnt den Querschnitt unter der Schulter (0,672 / 0,715 m), die tiefer liegt als die Reifenoberkante (0,684 / 0,70 m): der Bogen des Radlaufs wird bis 0,60 / 0,64 m abgeschnitten | `vehicles3d._clear_front_arches` (nur 3D): die Ecken des Kotflügels über dem Vorderrad (außen, über der Achse, innerhalb des Kreises Radius + 25 mm) werden auf diesen Kreis gezogen; die Fläche bleibt geschlossen, die Lippe wandert mit | Werkzeug der Kritik: 0 Ecken im Reifen bei 0°, ±7°, ±15°, ±25° in `lod0`; `show` nur bei ±25°: 2 Ecken / 15 mm bzw. 1 / 6 mm (Bild 21) |
+| A6 | Rückfahrlicht Kombi/Kompakt unsichtbar | bestätigt (Strahltest 10 % / 0 %) | Kombi: das weiße Feld lag 0,3 mm unter der roten Füllung; Kompakt: **Ursache anders** – keine Lippe, sondern die Diffusorplatte, die über den Mulden von Nebel- und Rückfahrleuchte lag | Kombi: Feld 1,7 mm vor der Füllung; Kompakt: beide Leuchten auf der Platte statt als Mulde, Platte 0,7 mm tiefer (3D-Hooks) | Strahltest: 100 % / 100 % sichtbar (Bild 16) |
+| A7 | silberne Felgen fast weiß | bestätigt | Metall spiegelt mit `env_energy` 1,6 den hellen Himmel | Felgenfarbe im 3D-Bau: Kombi `#8e9297` -> `#7a7e84`, GT `#9a9ea3` -> `#83878d` | Bild 03 (Showroom-A/B) |
+| A8 | Diffusor-Finnen als Kamm | bestätigt | frei hängende Plättchen des Generators | **nicht geändert** (niedrig; unter dem Heck, aus der Spielkamera kaum sichtbar) | – |
+| A9 | Kleinkram (Werfer ohne Spiegel, kein Rückfahrlicht bei Sportwagen/GT) | bestätigt | – | nicht geändert (niedrig, nur Showroom) | – |
+| B1 | weiße Lacke ohne Form | bestätigt | `truck3d._tone` galt nur für Lkw und Bus | `_tone` für die Farbsets der Pkw (Transporter, SUV, Schrägheck, Kombi weiß) und für die Lackierungsfarben der Polizei (16 von 18 weiß oder fast weiß) | Transporter weiß 10 m, Pixel ≥ 250: 22 473 -> 7 565 (Rest: Belichtung) |
+| B2 | Transporter `lod2` als Glaskasten; SUV-Kabine dunkle Kappe | bestätigt | Normalenregel `far_glass` der fernen Stufe | `decalgeo.car_surfaces(far_windows=True)`: Heckscheibe nach der Kontur des Entwurfs (ein Schnitt mit den Kabinen-Decals), Seitenscheiben nur im y-Bereich der Seitenfenster; Endkappen von `lod2` als Bänder (`carbody`-Hook `cap_strips`), ferne Räder einfacher, feinere Kabine bei Sportwagen/Schrägheck/Kombi – alles im Budget | 120 m: Transporter 46,4 -> 12,0 %, SUV 32,3 -> 29,8 % (Bild 13) |
+| B3 | SUV-Front: Sägezähne | bestätigt; **Ursache anders** als vermutet (nicht die Kontur der Verkleidung) | Stoßfänger dunkel erst unter 0,42 m, Schweller schon unter 0,47 m – am runden Stoßfängerende kreuzten sich die weiße und die schwarze Fläche | dunkler Teil der Stoßfänger bis zur Schwellerlinie (3D-Entwurf) | keine Zähne mehr (Bild 16) |
+| B4 | Wechsel bei 40 m mit Renn-Look 17–21 % | bestätigt; Scheibe in 40 m: `lod0` (76, 97, 127) gegen `lod1` (49, 73, 107) | `vpbr` spiegelt den Himmel etwa halb so stark wie die Klasse `glass` | eigene Scheibenfarbe der fernen Stufen `TRAFFIC_GLASS_FAR` `#3a4652` (gemessen abgestimmt), auch für Lkw und Bus (Abschnitt 4) | `lod1`-Scheibe (70, 94, 130); 40 m: Transporter 17,8 -> 4,2 %, Sportwagen 13,3 -> 11,4 % |
+| B5 | wie A3 | – | – | keine am Modell | – |
+| B6 | SUV-Rückstrahler unsichtbar | bestätigt; **Ursache genauer** | als Teil der Rückleuchtenliste in den Karosserie-Loft 3 cm hinter der Stoßfängerhaut geschnitten | auf den Stoßfänger (`bumper_decals_3d`), auch in `lod2` (`far_reflectors`) | sichtbar 0 -> 100 % |
+| B7 | Kleinkram (Kennzeichen-Zeichen wie Balken, sechseckige Räder in `lod2`, Ecken im Vorderreifen des Verkehrs-Sportwagens ab ±7°) | bestätigt | – | nicht geändert (niedrig; der Verkehr lenkt unter 2°); `lod2`-Räder jetzt Lauffläche + Scheibe, weiter sechseckig | – |
+| Flotte | Limousine/Schrägheck/Kombi 120 m 27–36 % | bestätigt | wie B2 | wie B2 | 26,9 / 35,7 / 31,4 -> 14,4 / 22,4 / 6,9 % |
+| C2 | Kontaktbogen: `--look=race` wirkungslos | bestätigt (pixelgleich) | `set_class_parameter` erreicht nur vorhandene Materialien | Kontaktbogen legt die Klassenmaterialien vor dem Look an | race gegen neutral: 0 -> 31 429 Pixel verschieden |
+| C3 | Prüfer zählt verdeckte Lampen | bestätigt | Regel nach Wicklung, nicht nach Sichtbarkeit | die drei verdeckten Lampen sind sichtbar gemacht; die Regel selbst ist eine Vertragsfrage (Abschnitt 9) | – |
+
+Zusätzlich gefunden und behoben: Das graue Kennzeichen der fernen Stufen (`#c4c4c1`) kam in 40 m 50 Stufen heller
+heraus als das `lod0`-Kennzeichen (dessen Weiß übersteuert, die Zeichen bleiben dunkel): `#a2a2a0` ergibt den
+angezeigten Mittelwert (Limousine, Spielkamera: `lod0` 192, `lod1` vorher 242, jetzt 199). Die Zählung der Kritik
+steigt dadurch bei 25–60 m um etwa einen Punkt (Abschnitt 5).

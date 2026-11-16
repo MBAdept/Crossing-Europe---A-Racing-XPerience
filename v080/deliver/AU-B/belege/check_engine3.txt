@@ -1,0 +1,36 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+ModernAudio: Profil „Modern“ gestartet (22 Busse, 21 Klangdateien)
+ModernAudio: Motorbank gran_turismo: 32000 Hz Stereo, 13 Drehzahlpunkte 699–7204/min, 252 Zyklen, 15 Clips, 2.7 MB geladen in 32 ms
+CHECK thread   OK      Gran Turismo, Vollgas 7.5 s mit 6 Hängern des Hauptthreads à 400 ms (längstes Bild 0.42 s): Mischer im eigenen Thread true, 0 Aussetzer des Generators, Motor spielt durchgehend true (ausgeblendet in 0 Bildern); 103 Füllungen, 3.59 ms je Füllung (höchstens 12.1), 0.814 ms Mischzeit je 1/60 s Klang; Drehzahl am Ende 5141/min
+ModernAudio: Profil „Modern“ gestartet (22 Busse, 21 Klangdateien)
+ModernAudio: Motorbank gran_turismo: 32000 Hz Stereo, 13 Drehzahlpunkte 699–7204/min, 252 Zyklen, 15 Clips, 2.7 MB geladen in 40 ms
+CHECK sync     OK      dieselbe Fahrt, im Hauptthread gemischt (engine_thread = false): Mischer-Thread false, 348 Aussetzer des Generators bei 6 Hängern (mit Thread: 0), 63 Füllungen, 5.45 ms je Füllung, 0.916 ms Mischzeit je 1/60 s Klang
+ModernAudio: Profil „Modern“ gestartet (22 Busse, 21 Klangdateien)
+ModernAudio: Motorbank kompakt: 32000 Hz Stereo, 13 Drehzahlpunkte 849–7007/min, 252 Zyklen, 15 Clips, 1.8 MB geladen in 34 ms
+ModernAudio: Profil „Modern“ gestartet (22 Busse, 21 Klangdateien)
+ModernAudio: Motorbank kombi: 32000 Hz Stereo, 11 Drehzahlpunkte 779–4800/min, 212 Zyklen, 1 Clips, 1.9 MB geladen in 26 ms
+ModernAudio: Profil „Modern“ gestartet (22 Busse, 21 Klangdateien)
+ModernAudio: Motorbank limousine: 32000 Hz Stereo, 13 Drehzahlpunkte 649–7204/min, 252 Zyklen, 13 Clips, 2.2 MB geladen in 39 ms
+ModernAudio: Profil „Modern“ gestartet (22 Busse, 21 Klangdateien)
+ModernAudio: Motorbank sportwagen: 32000 Hz Stereo, 14 Drehzahlpunkte 949–9208/min, 272 Zyklen, 15 Clips, 1.7 MB geladen in 44 ms
+ModernAudio: Profil „Modern“ gestartet (22 Busse, 21 Klangdateien)
+ModernAudio: Motorbank gran_turismo: 32000 Hz Stereo, 13 Drehzahlpunkte 699–7204/min, 252 Zyklen, 15 Clips, 2.7 MB geladen in 41 ms
+ModernAudio: Profil „Modern“ gestartet (22 Busse, 21 Klangdateien)
+ModernAudio: Motorbank kompakt: 32000 Hz Stereo, 13 Drehzahlpunkte 849–7007/min, 252 Zyklen, 15 Clips, 1.8 MB geladen in 28 ms
+ModernAudio: Profil „Modern“ gestartet (22 Busse, 21 Klangdateien)
+ModernAudio: Motorbank kombi: 32000 Hz Stereo, 11 Drehzahlpunkte 779–4800/min, 212 Zyklen, 1 Clips, 1.9 MB geladen in 33 ms
+ModernAudio: Profil „Modern“ gestartet (22 Busse, 21 Klangdateien)
+ModernAudio: Motorbank limousine: 32000 Hz Stereo, 13 Drehzahlpunkte 649–7204/min, 252 Zyklen, 13 Clips, 2.2 MB geladen in 46 ms
+ModernAudio: Profil „Modern“ gestartet (22 Busse, 21 Klangdateien)
+ModernAudio: Motorbank sportwagen: 32000 Hz Stereo, 14 Drehzahlpunkte 949–9208/min, 272 Zyklen, 15 Clips, 1.7 MB geladen in 27 ms
+ModernAudio: Profil „Modern“ gestartet (22 Busse, 21 Klangdateien)
+ModernAudio: Motorbank gran_turismo: 32000 Hz Stereo, 13 Drehzahlpunkte 699–7204/min, 252 Zyklen, 15 Clips, 2.7 MB geladen in 54 ms
+CHECK switch   OK      10 × arcade ↔ modern mit laufendem Mischer-Thread (10 ×) und Vorschau: Knoten 11 → 11, Busse 5 → 5, gehaltene Streams danach 0, Objekte 1615 → 1617
+ModernAudio: Profil „Modern“ gestartet (22 Busse, 21 Klangdateien)
+ModernAudio: Motorbank gran_turismo: 32000 Hz Stereo, 13 Drehzahlpunkte 699–7204/min, 252 Zyklen, 15 Clips, 2.7 MB geladen in 41 ms
+CHECK quit     OK      Spielende bei laufendem Mischer-Thread (10 Füllungen, spielt true): der Prozess endet jetzt ohne Profilwechsel
+CHECKS OK  (0 fehlgeschlagen, 22 s)
+WARNING: 8 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 3 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

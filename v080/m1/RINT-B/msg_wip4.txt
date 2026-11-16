@@ -1,0 +1,10 @@
+v0.8.0 RINT-B: Ladebalken läuft nie rückwärts, Showroom-A/B mit dem Look des Showrooms
+
+- modern_renderer.gd: ein beendeter Selbsttest bleibt bei seinem Schritt (der Balken sprang von
+  0,1 auf 0,05 zurück); vor dem Laden der Startansicht (ein langes Bild, Kiel–Hamburg auf der
+  Build-VM 1,6–1,9 s) wird einmal mit dem Balken beim Schritt „Stücke“ gezeichnet
+- contact_sheet.gd --showroom: die Echtzeit-Kachel trägt Showroom3D.STUDIO_LOOK wie der echte
+  Showroom (Entscheidung über das Manifest-Flag showroom)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

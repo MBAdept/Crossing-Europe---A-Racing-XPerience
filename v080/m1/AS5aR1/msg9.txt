@@ -1,0 +1,7 @@
+v0.8.0 AS5aR1: Einfamilienhaus lod1 - Garten mit 0,3 statt 0,15 dezimiert
+
+Bei 0,15 zeigten 17 Dreiecke gegen ihre Normalen (Prüfer). lod1 jetzt 954
+statt 2 526 Dreiecke vor der Nacharbeit; Prüfer grün.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

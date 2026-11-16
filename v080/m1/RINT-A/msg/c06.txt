@@ -1,0 +1,10 @@
+v0.8.0 RINT-A: Render-Prüfung der Sitzung in Modern, keine Bodendecker in den City Limits
+
+- tests/race3d/render/check_session_modern.gd: pause (30 Bilder der Pause
+  pixelgleich, danach bewegt sich das Bild), rueckfall (--gfx-debug=fail:
+  Arcade-Renderer, gfx_fallback selftest:debug), freigabe (nach einer
+  Modern-Etappe gibt der Arcade-Renderer Modelle und Materialien frei)
+- Bodendecker nicht in den City Limits (Grasbüschel auf dem Pflaster, C1)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

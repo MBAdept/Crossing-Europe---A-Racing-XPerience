@@ -1,0 +1,7 @@
+v0.8.0 AS5aR2: WIP Charge 1 neu exportiert (Gründerzeit, Mietshaus, Einfamilienhaus, Kontor, Giebelzeile, Speicher, Fachwerkzeile)
+
+Dieselbe Formel für das Ladenlicht und den Innenring der Fernstufe wie in Charge 2 (geteilter Bauer city);
+Mietshaus und Gründerzeit mit lod1 ohne Alpha-Test. Dreiecke unverändert. Manifest folgt.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

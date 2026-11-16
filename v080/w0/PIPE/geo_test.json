@@ -1,0 +1,16 @@
+{
+ "version": 1,
+ "source": "tag v0.7.0 (cesprites before the first 3D hook)",
+ "fields": ["objects", "verts", "polys", "tris", "bbox", "pos", "qpos", "topo", "mats", "info"],
+ "sets": {
+  "props/streetlight": [4, 210, 200, 352, [-4.27, -2.3, 0.0, 0.33, 2.3, 9.3949], "ff20af5fc21da5a9d6d1", "21bbdcbb5bd5ff4c238c", "1d915bc3665ad0c23e28", "781b9cedea4d3877a37a", "32642c8b5a724434f7e2"],
+  "traffic/sedan_red": [24, 19744, 19286, 38844, [-1.065, -0.023, 0.0, 1.065, 4.6998, 1.478], "e267c14f248aedab0d3d", "49597e6b1b87d46750ed", "8c0e8dd41471e6cccdc6", "f43584b1ade6c9fdd444", "c60221fe36563da4901f"],
+  "ui/daytime_dawn": [5, 394, 454, 752, [-1.5, -1.5, -2.2, 1.5, 1.5, 0.791], "0d0ae165efd4cb55cd27", "813b7a3cc61e64c17b82", "e5a88d9fc765b2815b1f", "94d98ec44d4b9349ead3", "d30f847cfbcd4758b781"],
+  "ui/daytime_day": [2, 250, 408, 464, [-1.0726, -0.31, -1.0726, 1.0726, 0.31, 1.0726], "06b089da2a7061ac7906", "c0bf40385c4650ef2e67", "616a3b8b1b76641ef3df", "a6ddb0836d0b643356f8", "d30f847cfbcd4758b781"],
+  "ui/daytime_dusk": [5, 394, 454, 752, [-1.5, -1.5, -2.2, 1.5, 1.5, 0.791], "ce89f0478e8fdb6d5b28", "38c1417a530a4b0bbeb7", "6f7f09cb5ac747c9cd0d", "40449541819e5169f23a", "d30f847cfbcd4758b781"],
+  "ui/daytime_night": [4, 1311, 2298, 2606, [-0.84, -1.3384, -0.72, 0.8592, 1.1384, 0.8208], "719303beb1c676bf6e25", "2923a1f5bdde6910cb3c", "4e4da46fa62c4289d735", "3aaf6521337015c11db9", "d30f847cfbcd4758b781"],
+  "ui/weather_normal": [3, 1222, 2328, 2384, [-1.0954, -0.5116, -0.7764, 1.165, 0.55, 1.165], "6511a5693ca6d867ab0d", "468c3fee7f084bbb1d0a", "96f09273b747a501e46e", "615ff6b3ff1ceee20035", "d30f847cfbcd4758b781"],
+  "ui/weather_rain": [4, 1170, 2160, 2304, [-0.97, -0.319, -0.99, 1.0, 0.319, 1.22], "5a672907cbe3bb0679b4", "46a8d3b0425367d46863", "9f1fd60f0af506fb72fc", "bbfce6fb41ca44a1b1cd", "d30f847cfbcd4758b781"],
+  "ui/weather_snow": [4, 3996, 4836, 7752, [-0.97, -0.319, -1.08, 1.0, 0.319, 1.22], "71888b37ebf7bb158684", "443da6bc1dde7ec307c2", "12c4c4763a3ef3affd36", "405dd8dccaac8f6e7e1f", "d30f847cfbcd4758b781"]
+ }
+}

@@ -1,0 +1,23 @@
+v0.8.0 M2INT: Statische Modelle ohne Instanz-Uniforms – kein Überlauf des Shader-Puffers auf Waldetappen
+
+Befund (gemessen): Mit den Bäumen von AS3R (jeder Baum hat einen Stamm in „vpbr“) und den Gebäuden von AS4R lief die
+Szene in „Hoch“ über Godots globalen Shader-Puffer (16 Plätze je Instanz mit Instanz-Uniforms, 4 096 Plätze):
+„Too many instances using shader instance variables“ in den A/B-Bildern T1 (5×) und T4 (2×) und im Clip
+Dortmund – Frankfurt km 121 (55×) – abgelehnte Instanzen zeichnet Godot mit den Werten einer anderen.
+
+Requisiten setzen ihre Instanz-Uniforms nie. Darum:
+- ModernMaterials.VPBR_STATIC: derselbe vpbr-Shader, die Instanz-Uniforms als gewöhnliche Uniforms mit denselben
+  Vorgaben (static_code()), Material unter dem Schlüssel „vpbr|static“ – Look und Klassenparameter von vpbr
+  erreichen es wie zuvor, beim Anlegen übernimmt es die schon gesetzten.
+- ModelFactory.surfaced_mesh(): vpbr-Flächen aller Modelle, die keine Fahrzeuge sind (kind weder vehicle noch heavy),
+  zeichnen mit VPBR_STATIC (ModernMaterials.class_for()).
+- test_props „static_vpbr_has_no_instance_uniforms“; Render-Prüfung check_instance_budget_wald.gd (Kassel – Würzburg
+  ab km 46,5, „Hoch“, Autopilot 120 km/h); check_instance_budget.gd dafür mit _race_setup()/_preset().
+- docs/renderer-modern.md §13.8.
+
+Gemessen: check_instance_budget ganze Szene höchstens 142 Instanzen mit Instanz-Uniforms (RINT-B: 196–229),
+instanzen_wald 140, keine Ablehnung; T1 „Hoch“ neu gerendert: 0 Ablehnungen, Bild pixelgleich mit vorher
+(größte Abweichung 0).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

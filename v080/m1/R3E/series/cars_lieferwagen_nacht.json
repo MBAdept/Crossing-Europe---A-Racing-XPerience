@@ -1,0 +1,1 @@
+[{"set": "traffic/van_white", "dist": 20.3, "lane": -3.75, "tail": -1, "brake": 1.0}, {"set": "traffic/van_red", "dist": 60.3, "lane": 0.0, "tail": -1, "blink": -1, "blink_t": 0.1}, {"set": "traffic/van_silver", "dist": 150.3, "lane": -7.5, "tail": -1}]

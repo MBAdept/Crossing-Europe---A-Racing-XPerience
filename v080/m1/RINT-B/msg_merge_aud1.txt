@@ -1,0 +1,9 @@
+v0.8.0 RINT-B: AU-D1 zusammengeführt – Musik-Kette, Titel-Remaster, Rennstück „Linke Spur“
+
+Ohne Konflikt (Vorstart von M2 auf dem Stand von UI1). Die Musik kommt in diesen
+Testbuild, weil Zwischenstand 1 das Urteil des Nutzers zu Klangrichtung und
+Musikpegel braucht: MusicDirector, Titel-Remaster für Titel und Menüs, Rennstück 1
+mit Einzähler, Schleife und Schluss.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

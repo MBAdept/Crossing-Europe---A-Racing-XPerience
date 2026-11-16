@@ -1,0 +1,7 @@
+v0.8.0 GEO: Dokumentation – Tankspur in der Sichtprüfung, Tunnelsicht als abgeleitet markiert
+
+Messung im ganzen Netz mit Zielen und Kamera auf der Tankspur (kein Fall von 30 bis 260 m),
+Laufzeit der Pfadprüfung nachgemessen.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

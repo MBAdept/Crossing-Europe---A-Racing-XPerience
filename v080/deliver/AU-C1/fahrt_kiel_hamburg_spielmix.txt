@@ -1,0 +1,15 @@
+Probefahrt Kiel – Hamburg im Spielmix (Limousine, Motor v3 + Fahrbahn + Wind + Aufprall, ohne Musik und Verkehr)
+
+Die Abschnitte sind Ausschnitte der echten Strecke nacheinander (Sprünge zwischen ihnen). Autobahn 170 km/h auf Asphalt, ab etwa 5 s Beton (A7 Holstein, Plattenfugen) – Köhlbrandbrücke mit 120 km/h: Stahldeck und Dehnfugen – A7 mit 125 km/h: nach rechts auf die profilierte Randlinie und zurück – Bankett rechts (Schotter) – an die Leitplanke: Schlag und Schleifen, von 100 auf 85 km/h – Hamburger Innenstadt mit 50 km/h über Kopfsteinpflaster (Blöcke wechseln mit Asphalt).
+
+Länge 46.7 s, integriert -16.9 LUFS, True Peak -3.7 dBTP (gemessen, Master bei Standardreglern, Gesamtlautstärke 0,8).
+
+Zeitmarken:
+  0:00.00  Autobahn 170 (Asphalt → Beton)
+  0:09.61  Köhlbrandbrücke 120
+  0:20.75  Rüttelstreifen
+  0:26.28  Bankett
+  0:31.13  Leitplanke
+  0:36.61  Pflaster Hamburg 50
+
+Aufgenommen am Master-Bus des Spiels (Godot 4.7.2, Profil Modern, ohne Bildschirm, Dummy-Audiotreiber). Gehört hat es hier niemand – das Urteil über den Klang liegt beim Nutzer.

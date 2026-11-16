@@ -1,0 +1,7 @@
+v0.8.0 AS5a1: docs/modelle.md Abschnitt 20 – Budgettabelle der elf Stadthäuser
+
+- Platzierungen auf Kiel–Nürnberg, Dreiecke je Stufe, Atlas, Texeldichte der Straßenwände, Archivbytes
+- Determinismus: Kran, Büroturm, Kontor und Speicher nach dem Türfix erneut exportiert – byte-gleich
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

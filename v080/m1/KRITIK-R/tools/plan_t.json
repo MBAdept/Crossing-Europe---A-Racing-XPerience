@@ -1,0 +1,3 @@
+{"stage": "luettich_paris", "from": "luettich", "segments": [
+ {"name": "t_wind100_tunnel", "km": 383.9, "kmh": 100.0, "throttle": 0.35, "x": 1.875, "mute": ["MEngine", "MEngineFx", "MRoad"], "seconds": 7.0, "paving": "asphalt", "nd": true}
+]}

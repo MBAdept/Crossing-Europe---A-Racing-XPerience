@@ -1,0 +1,10 @@
+AS2R (WIP): Kennzeichen der fernen Stufen in der angezeigten Mittelhelligkeit
+
+Das Weiß des lod0-Kennzeichens übersteuert in der Sonne, die Zeichen bleiben
+dunkel: das graue Feld #c4c4c1 von lod1/lod2 kam bei 40 m 50 Stufen heller
+heraus als das lod0-Kennzeichen (Limousine, Spielkamera, Renn-Look: 242
+gegen 192). #a2a2a0 ergibt 199 (gemessen). Alle Verkehrsautos und die
+Polizei neu gebaut.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

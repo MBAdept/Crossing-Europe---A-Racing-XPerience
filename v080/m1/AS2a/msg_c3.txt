@@ -1,0 +1,8 @@
+AS2a: Scheiben der Spielerautos dunkler getönt; Kontaktbogen mit AgX für das Showroom-A/B
+
+- Deckkraft der Scheiben 0,36 -> 0,48: im Sprite dunkles Glas, in Echtzeit hell und bläulich; Innenraum und
+  Hutablage bleiben aus der Spielkamera sichtbar
+- contact_sheet.gd: --tonemap=agx (der Tonemapper des Showrooms der Fahrzeugwahl)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

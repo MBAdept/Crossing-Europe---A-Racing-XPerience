@@ -1,0 +1,11 @@
+v0.8.0 R3E: Lichtpunkte ohne Schleife, wenn keine Lampe brennt; Doku 10.8 ergänzt
+
+- _add_flares kehrt sofort zurück, wenn lamp_a und lamp_b null sind und jede
+  Rolle der Lichtpunkte bekannt ist (dann ist jede Lampe dunkel) – bei Tag die
+  meisten Autos, Modelle wie Ersatzbilder. Gleiches Ergebnis, weniger Zeit
+  (check_vehicles leistung 35,6 µs).
+- Doku 10.8: Anzeigewerte wie Arcades Leinwand (albedo_for), Grenze am dunklen
+  Ende des 3D-Pfads, Leistung unter Last.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,12 @@
+v0.8.0 R4: Modern-Änderungsmelder neu – Bilder angesehen
+
+tools/golden.sh modern-check auf 866a74c: 0 von 6 identisch – gewollt, R4
+ändert das Bild (Sonnenscheibe, Himmelsspiegelung, Halbkugel-Umgebungslicht
+der Karosserien, Nacht-Füll-Licht und -Schimmer des Spielerautos, Mondgesetz).
+Alle sechs Bilder angesehen (Start, S2–S5, S1 nachts): nichts schwarz, nichts
+fehlt, Nachtbild mit Mond, Kegel und Rücklichtern. modern-make rendert
+dieselben Bilder (Hashes gleich den Bildern der Prüfung); OpenGL-ES-Stufe OK
+(höchstens 2/255, PSNR 73,2 dB).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

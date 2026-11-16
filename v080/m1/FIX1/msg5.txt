@@ -1,0 +1,21 @@
+v0.8.0 FIX1: Absturzfrage nach SIGTERM, Hinweis im Ergebnis, Doku, Prüfung der Mindestbauten
+
+- Absturz-Wächter (QA QS-04): ein SIGTERM beim Laden einer Modern-Etappe
+  (Steam „Spiel beenden“, Abmelden) hinterlässt den Marker wie ein Absturz.
+  „Bei Arcade bleiben“ speichert Arcade jetzt erst beim zweiten Fehlstart in
+  Folge (Settings.crash_strikes(), Datei neben dem Marker); beim ersten bleibt
+  nur dieser Start Arcade, der nächste versucht Modern wieder. Eine Etappe,
+  die in Modern 2 s lief, vergisst die Fehlstarts. Text der Frage sagt, was
+  die Antwort bewirkt. Unit-Test test_crash_guard_strikes.
+- Ergebnisseite (QS-07): Hinweis nach einem Rückfall 10 px tiefer, frei vom
+  Rahmen der linken Tafel.
+- Doku (QS-08): check_options_tabs und Attract in Modern laufen in
+  run_tests.sh; Vorschaubild zeigt den Look nach RINT-B; UI1 schaltet das
+  Klangprofil (audio-modern.md).
+- Neue Haken-Prüfung tests/race3d/check_minimal_structures.gd: Tunnelröhre,
+  Portal, Kappe, dunkle Leinwand bis zur Ausfahrt; Tankstelle je Flag mit
+  Schriftzug; Start- und Zieltor; Wahrzeichen jenseits der Stücke bis zur
+  Reichweite; Brückengeländer je Wassersegment – 5/5 OK (gemessen).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

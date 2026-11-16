@@ -1,0 +1,14 @@
+21:04:05 start import (load 13.47)
+21:04:10 done import
+21:04:10 start scripts (load 13.11)
+21:04:19 done scripts
+21:04:19 start tests (load 12.48)
+21:20:03 done tests
+21:20:03 start golden (load 9.39)
+21:29:31 done golden
+21:29:31 start sight (load 12.82)
+21:32:50 done sight
+21:32:50 start collect (load 9.66)
+21:32:57 done collect
+21:32:58 start modern_check (load 9.37)
+21:35:56 aborted modern_check (station.gd parse error for ~3 min during the run; restart)

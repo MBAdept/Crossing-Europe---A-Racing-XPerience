@@ -1,0 +1,8 @@
+v0.8.0 R4 (WIP): Probe – lod0 ohne Überblendung (Leistungsmessung des Vorgängers)
+
+Ungesicherte Änderung des Vorgängers nach dem Neustart gesichert: XFADE_LODS ohne lod0, nur für die
+Messung check_vehicles leistung (leistung_nolod0_*). Ergebnis: nicht schneller (4 von 4 FEHLER gegen
+2 von 5 mit lod0) – wird im nächsten Commit zurückgenommen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

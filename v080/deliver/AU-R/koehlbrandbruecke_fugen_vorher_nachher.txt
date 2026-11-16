@@ -1,0 +1,25 @@
+Köhlbrandbrücke mit 120 km/h: vorher (Fuge alle 24 m) – 2 s Stille – nachher (Enden + etwa alle 100 m)
+
+Worauf achten: Vorher klappert es über die ganze Brücke im Abstand von 0,7 s, nachher hört man die Fugen an den Enden und zwei zwischen den Feldern; dazwischen das Dröhnen des Stahldecks.
+
+Vorher – Länge 10.8 s, integriert -18.0 LUFS, True Peak -6.4 dBTP (gemessen an der WAV vor dem MP3); 12 Fugen
+  0:01.93  Fuge (Brückenende, km 78.00)
+  0:02.64  Fuge (Feldfuge, km 78.24)
+  0:03.32  Fuge (Feldfuge, km 78.48)
+  0:04.01  Fuge (Feldfuge, km 78.72)
+  0:04.72  Fuge (Feldfuge, km 78.96)
+  0:05.41  Fuge (Feldfuge, km 79.20)
+  0:06.09  Fuge (Feldfuge, km 79.44)
+  0:06.79  Fuge (Feldfuge, km 79.68)
+  0:07.49  Fuge (Feldfuge, km 79.92)
+  0:08.18  Fuge (Feldfuge, km 80.16)
+  0:08.87  Fuge (Feldfuge, km 80.40)
+  0:09.47  Fuge (Brückenende, km 80.61)
+
+Nachher (ab 0:12.77) – Länge 10.7 s, integriert -17.7 LUFS, True Peak -6.5 dBTP (gemessen an der WAV vor dem MP3); 4 Fugen
+  0:14.74  Fuge (Brückenende, km 78.00)
+  0:17.58  Fuge (Feldfuge, km 79.00)
+  0:20.43  Fuge (Feldfuge, km 80.00)
+  0:22.17  Fuge (Brückenende, km 80.61)
+
+Aufgenommen am Master-Bus des Spiels (Godot 4.7.2, Profil Modern, ohne Bildschirm, Dummy-Audiotreiber), Gesamtlautstärke 0,8 wie im Spiel voreingestellt. Gehört hat es hier niemand – das Urteil über den Klang liegt beim Nutzer.

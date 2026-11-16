@@ -1,0 +1,31 @@
+{
+  "anisotropic_filtering_level_setting": 2,
+  "suite": "gltf",
+  "test": "textures",
+  "tex_lossless_format": 4,
+  "tex_lossless_texture_mem_added_mb": 16.0,
+  "tex_vram_bptc_format": 22,
+  "tex_vram_bptc_texture_mem_added_mb": 5.33,
+  "tex_vram_s3tc_format": 17,
+  "tex_vram_s3tc_texture_mem_added_mb": 2.67,
+  "texture_mem_before_mb": 7.89,
+  "variants": [
+    {
+      "buffer_mem_mb": 6.1,
+      "canvas_draw_calls": 0,
+      "draw_calls_total": 20,
+      "name": "0_lossless_s3tc_bptc_aniso",
+      "objects_total": 20,
+      "png": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/engine-probe/shots/gltf_textures_0_lossless_s3tc_bptc_aniso.png",
+      "primitives_total": 40,
+      "shadow_draw_calls": 0,
+      "shadow_objects": 0,
+      "shadow_primitives": 32,
+      "texture_mem_mb": 31.9,
+      "video_mem_mb": 38.0,
+      "vis_draw_calls": 20,
+      "vis_objects": 20,
+      "vis_primitives": 8
+    }
+  ]
+}

@@ -1,0 +1,2181 @@
+{
+ "n": 60,
+ "tp_max": -0.29,
+ "tp_median": -0.8500000000000001,
+ "pre_tp_max": 0.86,
+ "gr_max": 0.0,
+ "gr_median": 0.0,
+ "gr_over_3db": 0,
+ "glass_share": 1.0,
+ "limiter": {
+  "lag_frames": 0,
+  "gr_max_db": 0.0,
+  "gr_share_over_0.1": 0.0,
+  "gr_share_over_0.5": 0.0,
+  "events": 0,
+  "seconds": 144.89,
+  "pre_peak_db": 0.86,
+  "post_peak_db": 0.86,
+  "diff_max": 0.0
+ },
+ "variety": {
+  "crunch": {
+   "n": 60,
+   "variants": {
+    "0": 30,
+    "1": 30
+   },
+   "direct_repeats": 0,
+   "abab_steps": 58,
+   "jitter_min_max": null,
+   "delay_min_max_ms": null,
+   "seq": "abababababababababababab"
+  },
+  "debris": {
+   "n": 60,
+   "variants": {
+    "0": 60
+   },
+   "direct_repeats": 59,
+   "abab_steps": 0,
+   "jitter_min_max": null,
+   "delay_min_max_ms": null,
+   "seq": "aaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "glass": {
+   "n": 60,
+   "variants": {
+    "0": 60
+   },
+   "direct_repeats": 59,
+   "abab_steps": 0,
+   "jitter_min_max": null,
+   "delay_min_max_ms": null,
+   "seq": "aaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "truck_boom": {
+   "n": 60,
+   "variants": {
+    "0": 60
+   },
+   "direct_repeats": 59,
+   "abab_steps": 0,
+   "jitter_min_max": null,
+   "delay_min_max_ms": null,
+   "seq": "aaaaaaaaaaaaaaaaaaaaaaaa"
+  }
+ },
+ "rows": [
+  {
+   "side": 1,
+   "tp_master_1.0": -0.71,
+   "sp_master_1.0": -0.8,
+   "pre_tp": 0.2,
+   "pre_sp": 0.19,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.72,
+   "sp_master_1.0": -0.8,
+   "pre_tp": 0.1,
+   "pre_sp": 0.03,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -2.13,
+   "sp_master_1.0": -2.13,
+   "pre_tp": -1.99,
+   "pre_sp": -1.99,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -0.9,
+   "sp_master_1.0": -1.05,
+   "pre_tp": -0.76,
+   "pre_sp": -0.91,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.75,
+   "sp_master_1.0": -0.8,
+   "pre_tp": -0.51,
+   "pre_sp": -0.56,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -3.17,
+   "sp_master_1.0": -3.18,
+   "pre_tp": -3.13,
+   "pre_sp": -3.14,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -0.76,
+   "sp_master_1.0": -0.8,
+   "pre_tp": -0.69,
+   "pre_sp": -0.73,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.74,
+   "sp_master_1.0": -0.8,
+   "pre_tp": -0.09,
+   "pre_sp": -0.15,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -3.77,
+   "sp_master_1.0": -3.8,
+   "pre_tp": -3.65,
+   "pre_sp": -3.69,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -1.05,
+   "sp_master_1.0": -1.15,
+   "pre_tp": -0.94,
+   "pre_sp": -1.03,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.8,
+   "sp_master_1.0": -0.8,
+   "pre_tp": -0.6,
+   "pre_sp": -0.6,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -3.12,
+   "sp_master_1.0": -3.13,
+   "pre_tp": -3.08,
+   "pre_sp": -3.1,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -0.66,
+   "sp_master_1.0": -0.8,
+   "pre_tp": 0.22,
+   "pre_sp": 0.07,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.8,
+   "sp_master_1.0": -0.8,
+   "pre_tp": 0.86,
+   "pre_sp": 0.86,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -2.82,
+   "sp_master_1.0": -2.89,
+   "pre_tp": -2.56,
+   "pre_sp": -2.63,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -2.14,
+   "sp_master_1.0": -2.14,
+   "pre_tp": -1.87,
+   "pre_sp": -1.87,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -1.04,
+   "sp_master_1.0": -1.04,
+   "pre_tp": -0.78,
+   "pre_sp": -0.78,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -1.78,
+   "sp_master_1.0": -1.78,
+   "pre_tp": -1.51,
+   "pre_sp": -1.51,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -0.69,
+   "sp_master_1.0": -0.8,
+   "pre_tp": -0.27,
+   "pre_sp": -0.38,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.71,
+   "sp_master_1.0": -0.8,
+   "pre_tp": 0.84,
+   "pre_sp": 0.75,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -4.04,
+   "sp_master_1.0": -4.12,
+   "pre_tp": -3.8,
+   "pre_sp": -3.88,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -1.22,
+   "sp_master_1.0": -1.23,
+   "pre_tp": -0.97,
+   "pre_sp": -0.98,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -1.28,
+   "sp_master_1.0": -1.35,
+   "pre_tp": -1.04,
+   "pre_sp": -1.1,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -3.25,
+   "sp_master_1.0": -3.31,
+   "pre_tp": -3.01,
+   "pre_sp": -3.07,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -0.76,
+   "sp_master_1.0": -0.8,
+   "pre_tp": -0.07,
+   "pre_sp": -0.11,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.8,
+   "sp_master_1.0": -0.8,
+   "pre_tp": -0.11,
+   "pre_sp": -0.11,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -2.2,
+   "sp_master_1.0": -2.27,
+   "pre_tp": -2.08,
+   "pre_sp": -2.15,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -0.71,
+   "sp_master_1.0": -0.8,
+   "pre_tp": -0.06,
+   "pre_sp": -0.15,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.62,
+   "sp_master_1.0": -0.8,
+   "pre_tp": -0.31,
+   "pre_sp": -0.48,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -2.39,
+   "sp_master_1.0": -2.55,
+   "pre_tp": -2.33,
+   "pre_sp": -2.49,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -0.67,
+   "sp_master_1.0": -0.8,
+   "pre_tp": 0.29,
+   "pre_sp": 0.16,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.78,
+   "sp_master_1.0": -0.8,
+   "pre_tp": -0.57,
+   "pre_sp": -0.59,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -2.82,
+   "sp_master_1.0": -2.82,
+   "pre_tp": -2.78,
+   "pre_sp": -2.78,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -1.56,
+   "sp_master_1.0": -1.63,
+   "pre_tp": -1.52,
+   "pre_sp": -1.59,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.8,
+   "sp_master_1.0": -0.8,
+   "pre_tp": 0.22,
+   "pre_sp": 0.22,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -3.19,
+   "sp_master_1.0": -3.21,
+   "pre_tp": -3.02,
+   "pre_sp": -3.04,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -1.18,
+   "sp_master_1.0": -1.27,
+   "pre_tp": -1.01,
+   "pre_sp": -1.11,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.8,
+   "sp_master_1.0": -0.8,
+   "pre_tp": -0.61,
+   "pre_sp": -0.61,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -1.78,
+   "sp_master_1.0": -1.85,
+   "pre_tp": -1.75,
+   "pre_sp": -1.82,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -1.5,
+   "sp_master_1.0": -1.5,
+   "pre_tp": -1.46,
+   "pre_sp": -1.46,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.79,
+   "sp_master_1.0": -0.8,
+   "pre_tp": -0.26,
+   "pre_sp": -0.26,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -3.24,
+   "sp_master_1.0": -3.58,
+   "pre_tp": -3.16,
+   "pre_sp": -3.5,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -0.72,
+   "sp_master_1.0": -0.8,
+   "pre_tp": 0.09,
+   "pre_sp": 0.01,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.79,
+   "sp_master_1.0": -0.8,
+   "pre_tp": -0.58,
+   "pre_sp": -0.58,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -3.31,
+   "sp_master_1.0": -3.31,
+   "pre_tp": -3.27,
+   "pre_sp": -3.27,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -0.77,
+   "sp_master_1.0": -0.8,
+   "pre_tp": -0.25,
+   "pre_sp": -0.28,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.76,
+   "sp_master_1.0": -0.8,
+   "pre_tp": 0.21,
+   "pre_sp": 0.16,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -2.72,
+   "sp_master_1.0": -2.86,
+   "pre_tp": -2.55,
+   "pre_sp": -2.7,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -0.8,
+   "sp_master_1.0": -0.8,
+   "pre_tp": 0.15,
+   "pre_sp": 0.15,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.73,
+   "sp_master_1.0": -0.82,
+   "pre_tp": -0.57,
+   "pre_sp": -0.66,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -2.39,
+   "sp_master_1.0": -2.43,
+   "pre_tp": -2.23,
+   "pre_sp": -2.27,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -0.29,
+   "sp_master_1.0": -0.8,
+   "pre_tp": -0.13,
+   "pre_sp": -0.65,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.59,
+   "sp_master_1.0": -0.8,
+   "pre_tp": -0.28,
+   "pre_sp": -0.49,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -2.77,
+   "sp_master_1.0": -2.78,
+   "pre_tp": -2.72,
+   "pre_sp": -2.72,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -0.53,
+   "sp_master_1.0": -0.8,
+   "pre_tp": -0.4,
+   "pre_sp": -0.67,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.67,
+   "sp_master_1.0": -0.8,
+   "pre_tp": 0.37,
+   "pre_sp": 0.24,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -3.6,
+   "sp_master_1.0": -3.84,
+   "pre_tp": -3.42,
+   "pre_sp": -3.66,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -0.8,
+   "sp_master_1.0": -0.8,
+   "pre_tp": -0.37,
+   "pre_sp": -0.37,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.91,
+   "sp_master_1.0": -1.03,
+   "pre_tp": -0.83,
+   "pre_sp": -0.95,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -3.54,
+   "sp_master_1.0": -3.57,
+   "pre_tp": -3.47,
+   "pre_sp": -3.5,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "truck_boom",
+     0,
+     -2.37,
+     0.0
+    ]
+   ]
+  }
+ ],
+ "heavy_layers": {
+  "crunch": -13.0,
+  "debris": -22.0,
+  "glass": -17.0,
+  "hit_heavy": -9.0
+ },
+ "truck_db": {
+  "heavy": -10.0,
+  "light": -14.0,
+  "medium": -12.0
+ }
+}

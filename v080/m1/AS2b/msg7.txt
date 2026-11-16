@@ -1,0 +1,12 @@
+AS2b (WIP): Schattenwerfer von Bus und Lichtbalken ganz in der Hülle
+
+Bus: Die Enden des Werfers lagen in der Ebene der Heck- und Frontfläche
+(Kontaktbogen --caster: das ganze Heck rot); jetzt 3 cm innen wie der
+Rest. Polizei: Ein Block über den ganzen Lichtbalken umschloss die
+LED-Module von lod0 und die Leuchtblöcke von lod1/lod2 - sie lagen bei
+Tag in seinem Schatten und wirkten dunkel. Der Werfer besteht jetzt aus
+Sockel, je einem Block in jedem Modul und dem Mittelteil, überall
+mindestens 1 cm innen (Schatten 1 020 bis 1 084 Dreiecke, Budget 3 000).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

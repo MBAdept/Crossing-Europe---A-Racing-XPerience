@@ -1,0 +1,12 @@
+AS2b (WIP): Bus-Gitter auch in lod2; Abschnitt 15 der Modell-Doku
+
+Bus lod2: zwei Gitterstäbe dreifacher Breite statt keiner (derselbe
+dunkle Anteil der Fläche, gemischt mit dem Lack): der Wechsel bei
+180 m ändert 23,2 statt 27,1 % der Buspixel; lod2 liegt mit 1 500
+Dreiecken genau auf dem Budget. docs/modelle.md: neuer Abschnitt 15
+(Sattelzüge, Bus, Polizei: Bau, Hooks, Budgets, gemessene Teilquader
+und Stufenwechsel), Abschnitte 1, 2, 11 und 12 nachgezogen.
+truck3d: Kopfkommentar zu den Lampenkanälen berichtigt.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

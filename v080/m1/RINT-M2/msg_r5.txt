@@ -1,0 +1,10 @@
+v0.8.0 RINT-M2: R5 zusammengeführt (Tunnel, Brücken, Wasser, Ufer; FIX-R5 80b8141)
+
+Röhrenpaneele, Gehwege, Nischen, Portale, Pylone mit Seilen,
+Fachwerkportale, Brückenlampen, echte Ufer, Fernwasser.
+Konflikte: tests/golden/modern_slice.md5 (Liste wird am Ende neu
+erzeugt) und docs/renderer-modern.md – R4 und R5 hatten beide einen
+Abschnitt 15 angelegt: R4 bleibt §15, R5 wird §16 (16.1, 16.2).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

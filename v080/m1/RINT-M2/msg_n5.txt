@@ -1,0 +1,14 @@
+v0.8.0 RINT-M2: Tönung der Platzierung auch für Modelle (A-19)
+
+props.gd legt die Tönung (tint × fallback_tint, sonst weiß) jetzt jeder
+Instanz bei: Vertretungen als Instanzfarbe wie bisher, Modelle als
+MultiMesh-Custom-Data (r, g, b, 1) – keine Instanz-Uniform. baked,
+vpbr (statisch), leaves und billboard (Fernbild) multiplizieren die Albedo
+damit wie Arcade das Sprite; Lampen behalten ihre Farbe; ohne Tönung
+(Custom a < 0,5 oder weiß) bleibt das Bild unverändert. Betroffen u. a.
+city_german_house #e8b8a4 und city_german_mietshaus #e0b09c am Rand der
+Hansestädte, building_shop/building_block_a, Kirchen, bush_low.
+Unit-Test test_model_instances_carry_the_placement_tint.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

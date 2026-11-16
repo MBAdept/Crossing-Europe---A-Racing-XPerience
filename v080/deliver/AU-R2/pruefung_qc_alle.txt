@@ -1,0 +1,111 @@
+QC engines/gran_turismo               OK       -8.9 LUFS   -1.1 dBTP   22.44 s stereo  2804.5 kB
+QC engines/kombi                      OK      -10.4 LUFS   -1.1 dBTP   15.31 s stereo  1914.3 kB
+QC engines/kompakt                    OK      -10.0 LUFS   -1.1 dBTP   15.13 s stereo  1891.1 kB
+QC engines/limousine                  OK       -9.8 LUFS   -1.1 dBTP   17.82 s stereo  2228.0 kB
+QC engines/platzhalter                OK      -14.4 LUFS   -9.1 dBTP    0.50 s stereo    62.5 kB  Naht ×0.30  [Platzhalter]
+QC engines/sportwagen                 OK       -8.8 LUFS   -1.1 dBTP   14.26 s stereo  1782.2 kB
+QC vehicle/blowoff_gt                 OK      -19.6 LUFS   -5.9 dBTP    0.75 s mono      64.6 kB
+QC vehicle/blowoff_hatch              OK      -19.5 LUFS   -5.6 dBTP    0.70 s mono     117.2 kB  (2 Varianten)
+QC vehicle/blowoff_soft               OK      -18.5 LUFS   -5.8 dBTP    0.50 s mono      43.1 kB
+QC vehicle/driveline_whine            OK       -7.5 LUFS   -6.0 dBTP    2.00 s mono     172.3 kB  Naht ×0.51
+QC vehicle/platzhalter_loop           OK      -21.1 LUFS  -12.0 dBTP    1.00 s stereo   172.3 kB  Naht ×0.38  [Platzhalter]
+QC vehicle/rail_scrape                OK      -11.1 LUFS   -3.0 dBTP    2.00 s mono     172.3 kB  Naht ×0.11
+QC vehicle/scrub                      OK      -14.2 LUFS   -3.0 dBTP    1.50 s mono     129.3 kB  Naht ×0.23
+QC vehicle/shift_thump                OK      -22.0 LUFS   -5.9 dBTP    0.23 s mono      41.0 kB  (2 Varianten)
+QC vehicle/slab_fast                  OK      -17.3 LUFS   -3.0 dBTP    3.20 s mono     275.7 kB  Naht ×0.08
+QC vehicle/slab_slow                  OK      -19.6 LUFS   -3.0 dBTP    6.40 s mono     551.3 kB  Naht ×0.04
+QC vehicle/squeal                     OK      -11.6 LUFS   -3.0 dBTP    2.00 s mono     172.3 kB  Naht ×0.24
+QC vehicle/tipin                      OK      -22.3 LUFS   -6.0 dBTP    0.38 s mono      65.5 kB  (2 Varianten)
+QC vehicle/turbo_hiss                 OK      -12.5 LUFS   -5.8 dBTP    2.00 s mono     172.3 kB  Naht ×0.12
+QC vehicle/turbo_single               OK       -7.2 LUFS   -6.0 dBTP    2.00 s mono     172.3 kB  Naht ×0.72
+QC vehicle/turbo_twin                 OK       -8.2 LUFS   -6.0 dBTP    2.00 s stereo   344.6 kB  Naht ×0.61
+QC vehicle/tyre_asphalt               OK      -13.6 LUFS   -3.5 dBTP    5.30 s mono      56.3 kB  Naht ×0.29
+QC vehicle/tyre_asphalt_b             OK      -13.7 LUFS   -3.2 dBTP    6.70 s mono      69.8 kB  Naht ×0.38
+QC vehicle/tyre_cobbles               OK      -15.6 LUFS   -3.1 dBTP    5.70 s mono      71.2 kB  Naht ×0.02
+QC vehicle/tyre_cobbles_b             OK      -15.5 LUFS   -3.4 dBTP    7.10 s mono      86.4 kB  Naht ×0.03
+QC vehicle/tyre_concrete              OK      -13.2 LUFS   -2.8 dBTP    5.10 s mono      55.2 kB  Naht ×0.55
+QC vehicle/tyre_concrete_b            OK      -12.5 LUFS   -3.6 dBTP    6.30 s mono      67.1 kB  Naht ×0.30
+QC vehicle/tyre_deck                  OK      -14.4 LUFS   -3.5 dBTP    4.90 s mono      50.5 kB  Naht ×0.26
+QC vehicle/tyre_deck_b                OK      -15.1 LUFS   -3.6 dBTP    6.10 s mono      61.8 kB  Naht ×0.19
+QC vehicle/tyre_grass                 OK      -17.1 LUFS   -3.2 dBTP    4.30 s mono      46.1 kB  Naht ×0.10
+QC vehicle/tyre_grass_b               OK      -18.3 LUFS   -3.0 dBTP    5.50 s mono      57.8 kB  Naht ×0.12
+QC vehicle/tyre_gravel                OK      -14.5 LUFS   -3.5 dBTP    4.70 s mono      52.9 kB  Naht ×0.03
+QC vehicle/tyre_gravel_b              OK      -14.3 LUFS   -3.3 dBTP    5.90 s mono      67.2 kB  Naht ×0.05
+QC vehicle/tyre_rumble                OK      -11.3 LUFS   -2.8 dBTP    4.10 s mono      43.8 kB  Naht ×0.17
+QC vehicle/tyre_rumble_b              OK      -11.7 LUFS   -2.7 dBTP    5.30 s mono      55.5 kB  Naht ×0.15
+QC vehicle/tyre_snow                  OK      -20.0 LUFS   -3.3 dBTP    5.00 s mono      53.0 kB  Naht ×0.03
+QC vehicle/tyre_snow_b                OK      -19.4 LUFS   -3.5 dBTP    6.40 s mono      67.0 kB  Naht ×0.06
+QC vehicle/tyre_wet                   OK      -13.9 LUFS   -4.0 dBTP    5.50 s mono      57.9 kB  Naht ×0.23
+QC vehicle/tyre_wet_b                 OK      -12.9 LUFS   -3.2 dBTP    6.90 s mono      71.3 kB  Naht ×0.11
+QC vehicle/wind_buffet                OK      -19.1 LUFS   -3.0 dBTP    6.20 s mono      76.1 kB  Naht ×1.89
+QC vehicle/wind_buffet_b              OK      -18.6 LUFS   -3.0 dBTP    7.60 s mono      65.5 kB  Naht ×0.39
+QC vehicle/wind_high                  OK      -10.3 LUFS   -3.1 dBTP    5.20 s mono      55.7 kB  Naht ×0.23
+QC vehicle/wind_high_b                OK      -10.8 LUFS   -2.9 dBTP    6.60 s mono      69.7 kB  Naht ×0.45
+QC vehicle/wind_low                   OK      -15.4 LUFS   -3.2 dBTP    5.90 s mono      61.5 kB  Naht ×0.25
+QC vehicle/wind_low_b                 OK      -14.7 LUFS   -3.0 dBTP    7.30 s mono      74.9 kB  Naht ×0.55
+QC vehicle/wind_mid                   OK      -12.2 LUFS   -3.5 dBTP    5.60 s mono      59.3 kB  Naht ×0.46
+QC vehicle/wind_mid_b                 OK      -12.4 LUFS   -3.2 dBTP    6.80 s mono      71.1 kB  Naht ×0.26
+QC traffic/platzhalter_loop           OK      -16.8 LUFS  -10.4 dBTP    1.00 s mono      86.2 kB  Naht ×0.20  [Platzhalter]
+QC sfx/crunch                         OK      -19.6 LUFS   -3.0 dBTP    0.92 s mono     159.3 kB  (2 Varianten)
+QC sfx/debris                         OK      -20.7 LUFS   -3.0 dBTP    1.06 s mono     365.4 kB  (4 Varianten)
+QC sfx/glass                          OK      -20.8 LUFS   -3.0 dBTP    1.33 s mono     458.1 kB  (4 Varianten)
+QC sfx/hit_heavy                      OK      -21.6 LUFS   -3.0 dBTP    0.82 s mono     141.3 kB  (2 Varianten)
+QC sfx/hit_light                      OK      -22.2 LUFS   -3.0 dBTP    0.52 s mono      89.7 kB  (2 Varianten)
+QC sfx/joint_concrete                 OK      -19.9 LUFS   -3.0 dBTP    0.56 s mono     129.3 kB  (3 Varianten)
+QC sfx/joint_steel                    OK      -20.2 LUFS   -3.0 dBTP    0.56 s mono     129.3 kB  (3 Varianten)
+QC sfx/pass_building                  OK      -13.4 LUFS   -3.0 dBTP    0.55 s mono      47.4 kB
+QC sfx/pass_gantry                    OK      -13.6 LUFS   -3.0 dBTP    0.60 s mono      51.7 kB
+QC sfx/pass_post                      OK      -11.8 LUFS   -3.0 dBTP    0.18 s mono      32.8 kB  (2 Varianten)
+QC sfx/pass_rock                      OK      -15.1 LUFS   -3.0 dBTP    0.40 s mono      34.5 kB
+QC sfx/pass_sign                      OK      -13.9 LUFS   -3.0 dBTP    0.25 s mono      21.6 kB
+QC sfx/pass_tree                      OK      -15.6 LUFS   -3.0 dBTP    0.45 s mono      73.3 kB  (2 Varianten)
+QC sfx/platzhalter_hit                OK      -19.4 LUFS   -4.4 dBTP    0.40 s stereo    68.9 kB  [Platzhalter]
+QC sfx/post_hit                       OK      -18.1 LUFS   -3.0 dBTP    0.45 s mono      77.6 kB  (2 Varianten)
+QC sfx/rail_hit                       OK      -22.3 LUFS   -3.0 dBTP    1.00 s mono     172.4 kB  (2 Varianten)
+QC sfx/rail_touch                     OK      -18.2 LUFS   -3.0 dBTP    0.40 s mono      69.0 kB  (2 Varianten)
+QC sfx/truck_boom                     OK      -20.7 LUFS   -3.0 dBTP    1.32 s mono     455.0 kB  (4 Varianten)
+QC ambience/platzhalter_bed           OK      -29.1 LUFS  -18.3 dBTP    4.00 s stereo    40.8 kB  Naht ×0.47  [Platzhalter]
+QC ui/platzhalter_blip                OK      -17.3 LUFS   -9.0 dBTP    0.12 s mono      10.4 kB  [Platzhalter]
+QC ui/ui_back                         OK      -22.7 LUFS   -9.6 dBTP    0.70 s stereo   120.6 kB
+QC ui/ui_error                        OK      -20.1 LUFS  -11.2 dBTP    0.45 s stereo    77.6 kB
+QC ui/ui_move                         OK      -23.0 LUFS  -13.1 dBTP    0.42 s stereo   144.8 kB  (2 Varianten)
+QC ui/ui_ok                           OK      -22.1 LUFS   -8.4 dBTP    0.85 s stereo   146.5 kB
+QC ui/ui_tab                          OK      -22.5 LUFS  -10.8 dBTP    0.80 s stereo   137.9 kB
+QC ui/ui_toggle                       OK      -24.2 LUFS  -11.1 dBTP    0.50 s stereo    86.2 kB
+QC music/linke_spur                   OK      -14.2 LUFS   -1.8 dBTP  176.36 s stereo  3281.7 kB  Naht ×0.08
+QC music/linke_spur_polizei           OK      -16.1 LUFS   -3.0 dBTP   10.05 s stereo   125.8 kB
+QC music/linke_spur_schluss           OK      -15.7 LUFS   -2.4 dBTP    7.84 s stereo   146.4 kB
+QC music/linke_spur_schluss_finale    OK      -14.7 LUFS   -2.2 dBTP   11.87 s stereo   200.8 kB
+QC music/linke_spur_schluss_rekord    OK      -15.3 LUFS   -2.5 dBTP   10.05 s stereo   168.7 kB
+QC music/linke_spur_tank              OK      -19.2 LUFS   -5.0 dBTP    8.24 s stereo   114.7 kB
+QC music/linke_spur_ziel              OK      -17.8 LUFS   -3.0 dBTP    6.42 s stereo    86.2 kB
+QC music/nachtfahrt                   OK      -14.2 LUFS   -1.5 dBTP  203.43 s stereo  3840.4 kB  Naht ×0.22
+QC music/nachtfahrt_polizei           OK      -15.4 LUFS   -2.5 dBTP   11.46 s stereo   150.7 kB
+QC music/nachtfahrt_schluss           OK      -15.3 LUFS   -2.2 dBTP    8.77 s stereo   168.9 kB
+QC music/nachtfahrt_schluss_finale    OK      -14.3 LUFS   -2.0 dBTP   13.74 s stereo   234.1 kB
+QC music/nachtfahrt_schluss_rekord    OK      -14.8 LUFS   -1.7 dBTP   11.46 s stereo   193.2 kB
+QC music/nachtfahrt_tank              OK      -17.9 LUFS   -4.8 dBTP    9.17 s stereo   134.8 kB
+QC music/nachtfahrt_ziel              OK      -16.5 LUFS   -2.3 dBTP    6.89 s stereo    89.2 kB
+QC music/platzhalter_takt             OK      -14.0 LUFS   -2.1 dBTP    4.00 s stereo    34.3 kB  Naht ×0.05  [Platzhalter]
+QC music/rueckenwind                  OK      -14.2 LUFS   -1.8 dBTP  155.20 s stereo  2912.3 kB  Naht ×0.48
+QC music/rueckenwind_polizei          OK      -15.8 LUFS   -3.2 dBTP    9.40 s stereo   115.0 kB
+QC music/rueckenwind_schluss          OK      -16.0 LUFS   -2.1 dBTP    7.40 s stereo   134.4 kB
+QC music/rueckenwind_schluss_finale   OK      -14.8 LUFS   -2.6 dBTP   11.00 s stereo   184.7 kB
+QC music/rueckenwind_schluss_rekord   OK      -15.7 LUFS   -2.2 dBTP    9.40 s stereo   155.3 kB
+QC music/rueckenwind_tank             OK      -19.3 LUFS   -6.4 dBTP    7.80 s stereo   106.6 kB
+QC music/rueckenwind_ziel             OK      -18.7 LUFS   -3.0 dBTP    6.20 s stereo    85.1 kB
+QC music/titel_remaster               OK      -14.1 LUFS   -1.7 dBTP  202.50 s stereo  3840.9 kB  Naht ×0.11
+QC music/zwischenspiel                OK      -14.1 LUFS   -1.5 dBTP   81.60 s stereo  1575.7 kB  Naht ×0.18
+
+Größe (Bytes der Dateien im Ordner; Budget nach Vertrag §4.11):
+  engines     11.007 MB    6 Klänge (1 Platzhalter)
+  vehicle      4.443 MB   41 Klänge (1 Platzhalter)
+  traffic      0.089 MB    1 Klänge (1 Platzhalter)
+  sfx          2.669 MB   18 Klänge (1 Platzhalter)
+  ambience     0.043 MB    1 Klänge (1 Platzhalter)
+  ui           0.748 MB    7 Klänge (1 Platzhalter)
+  music       18.539 MB   24 Klänge (1 Platzhalter)
+  Summe Klänge: 19.000 MB von 23 MB  OK
+  Summe Musik: 18.539 MB von 25 MB  OK
+
+98 Klänge geprüft, 0 mit Fehlern, 0 Probleme insgesamt -> OK

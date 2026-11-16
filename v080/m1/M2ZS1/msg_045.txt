@@ -1,0 +1,16 @@
+v0.8.0 M2ZS1: Pylon nachts entlang der ganzen Köhlbrandbrücke nicht heller als Arcade (night_albedo 0,45)
+
+Mit 0,5 lag der Pylonbereich bei km 79,7 2 Stufen über Arcade (53,7 gegen 51,6; die Laternen beleuchten die Seile
+neben dem Deck). PYLON_NIGHT_ALBEDO jetzt 0,45. Gemessen (22 Uhr, „Hoch“, ab km 77,6 mit 80 km/h und Verkehr,
+Bereich x 500–780, y 150–350, mittlere Leuchtdichte; Arcade / ZS1 / M2ZS1):
+  km 77,7  76,5 / 79,7 / 70,7     km 78,1  60,1 / 58,4 / 55,9     km 78,8  48,1 / 49,8 / 43,0
+  km 78,9  47,7 /  –   / 42,6     km 79,7  51,6 / 52,1 / 51,7
+Steam-Deck-Stufe (1280 × 800): km 77,7 / 78,1 / 78,8 Arcade 76,5 / 60,1 / 48,1, ZS1 78,4 / 61,0 / 50,9, M2ZS1 69,2 /
+57,7 / 43,5. Arcade-Bilder dieser Läufe bitgleich mit denen von FIX-WASSER-R (derselbe Simulationszustand).
+Bei Tag ändert sich nichts (night_albedo wirkt nur mit ce_night).
+
+Doku: Messreihe in renderer-modern.md 14.7, Wert in renderer-modern-gelaende.md 4.1; modelle.md: Hinweise, dass
+die Schiffe seit FIX-WASSER schwimmen und der Renderer den Nachtatlas des Pylons für die Brücken nicht zeigt.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,23 @@
+player/kompakt/lod0_body         hinten: Rueck   914 Brems   900 Bl-l  102 Bl-r  102 Rueckf   17 Umriss   15 Kennz  581 | vorn: Scheinw   101 TFL   97 Bl-l   28 Bl-r   27
+player/kompakt/show_body         hinten: Rueck   899 Brems   890 Bl-l  100 Bl-r  100 Rueckf   17 Umriss   15 Kennz  581 | vorn: Scheinw   102 TFL   98 Bl-l   27 Bl-r   27
+player/limousine/lod0_body       hinten: Rueck   874 Brems   830 Bl-l   84 Bl-r   84 Rueckf   35 Umriss   15 Kennz  581 | vorn: Scheinw    89 TFL   82 Bl-l   20 Bl-r   20
+player/limousine/show_body       hinten: Rueck   869 Brems   827 Bl-l   81 Bl-r   80 Rueckf   35 Umriss   15 Kennz  581 | vorn: Scheinw    89 TFL   82 Bl-l   20 Bl-r   19
+traffic/hatch/lod0_body          hinten: Rueck   727 Brems   846 Bl-l   95 Bl-r   95 Rueckf   91 Umriss    0 Kennz  357 | vorn: Scheinw   195 TFL   85 Bl-l  112 Bl-r  112
+traffic/hatch/lod1_body          hinten: Rueck   902 Brems  1021 Bl-l   95 Bl-r   95 Rueckf   91 Umriss    0 Kennz  572 | vorn: Scheinw   273 TFL   63 Bl-l  100 Bl-r  100
+traffic/hatch/lod2_body          hinten: Rueck   965 Brems  1084 Bl-l   95 Bl-r   95 Rueckf    0 Umriss    0 Kennz    0 | vorn: Scheinw   360 TFL    0 Bl-l   95 Bl-r   95
+traffic/sedan/lod0_body          hinten: Rueck   639 Brems   759 Bl-l   99 Bl-r   99 Rueckf   78 Umriss    0 Kennz  357 | vorn: Scheinw   161 TFL   85 Bl-l   95 Bl-r   95
+traffic/sedan/lod1_body          hinten: Rueck   847 Brems   967 Bl-l   99 Bl-r   99 Rueckf   78 Umriss    0 Kennz  572 | vorn: Scheinw   242 TFL   61 Bl-l   95 Bl-r   95
+traffic/sedan/lod2_body          hinten: Rueck   887 Brems  1007 Bl-l   99 Bl-r   99 Rueckf    0 Umriss    0 Kennz    0 | vorn: Scheinw   327 TFL    0 Bl-l   86 Bl-r   86
+traffic/truck/lod0_tractor       hinten: Rueck     0 Brems     0 Bl-l    0 Bl-r    0 Rueckf    0 Umriss    0 Kennz    0 | vorn: Scheinw  1000 TFL  318 Bl-l  320 Bl-r  320
+traffic/truck/lod0_trailer       hinten: Rueck   860 Brems   860 Bl-l  450 Bl-r  450 Rueckf  800 Umriss  320 Kennz 5717 | vorn: Scheinw     0 TFL    0 Bl-l    0 Bl-r    0
+traffic/truck/lod1_body          hinten: Rueck   860 Brems   860 Bl-l  450 Bl-r  450 Rueckf  800 Umriss  320 Kennz 5717 | vorn: Scheinw  1000 TFL  319 Bl-l  320 Bl-r  320
+traffic/truck/lod2_body          hinten: Rueck   860 Brems   860 Bl-l  450 Bl-r  450 Rueckf  800 Umriss  320 Kennz 5874 | vorn: Scheinw  1000 TFL  319 Bl-l  320 Bl-r  320
+traffic/wagon/lod0_body          hinten: Rueck   973 Brems  1093 Bl-l  102 Bl-r  102 Rueckf   32 Umriss    0 Kennz  357 | vorn: Scheinw   171 TFL   86 Bl-l   95 Bl-r   95
+traffic/wagon/lod1_body          hinten: Rueck  1188 Brems  1308 Bl-l  102 Bl-r  102 Rueckf   32 Umriss    0 Kennz  572 | vorn: Scheinw   250 TFL   64 Bl-l   90 Bl-r   90
+traffic/wagon/lod2_body          hinten: Rueck  1031 Brems  1081 Bl-l  102 Bl-r  102 Rueckf    0 Umriss    0 Kennz    0 | vorn: Scheinw   316 TFL    0 Bl-l   50 Bl-r   51
+player/kompakt       Lichtanker 12, groesster Abstand 30.9 mm, tiefster unter der Lampe 0.0 mm, Rollen brake,head,ind_l,ind_r,tail
+player/limousine     Lichtanker 13, groesster Abstand 32.7 mm, tiefster unter der Lampe 2.9 mm, Rollen brake,head,ind_l,ind_r,tail
+traffic/hatch        Lichtanker 10, groesster Abstand 0.1 mm, tiefster unter der Lampe 0.1 mm, Rollen brake,head,ind_l,ind_r,tail
+traffic/sedan        Lichtanker 11, groesster Abstand 2.1 mm, tiefster unter der Lampe 0.1 mm, Rollen brake,head,ind_l,ind_r,tail
+traffic/truck        Lichtanker 12, groesster Abstand 0.0 mm, tiefster unter der Lampe 0.0 mm, Rollen brake,head,ind_l,ind_r,marker,tail
+traffic/wagon        Lichtanker 11, groesster Abstand 3.5 mm, tiefster unter der Lampe 0.9 mm, Rollen brake,head,ind_l,ind_r,tail

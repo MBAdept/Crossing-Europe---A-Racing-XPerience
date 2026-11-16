@@ -1,0 +1,9 @@
+v0.8.0 AU-D2: Tempi mit exakter Schleife (105/150/100 bpm), Stinger-Linie in Moll (WIP)
+
+- race_lib.check_tempo(): eine Sechzehntel ganze Frames und die Schleife ein Vielfaches der
+  63-Frame-Blöcke des Kompressors (bei 108 bpm wich die Naht um -34 dBFS ab, bei 112 um -30)
+- Polizei-Stinger: Blues-Fall 5 – b5 – 4 – b3 statt einer großen Terz in Moll
+- check_music.py: Stinger nach Tonart geprüft
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

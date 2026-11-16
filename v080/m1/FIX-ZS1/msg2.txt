@@ -1,0 +1,10 @@
+v0.8.0 FIX-ZS1: Render-Prüfung „Start bei km 0“ und Einheitstests des Vorlaufs
+
+tests/race3d/render/check_start_km0.gd: Kiel – Hamburg ab km 0 mit Countdown in
+Arcade und Modern, 1 s im Countdown und 1,5 s nach „LOS!“: Kamera-Projektion der
+Straßenmitte wie Arcade (≤ 1,5 px), Lackfläche des Spielerautos in derselben Box
+(Kanten ≤ 5 %), unterste Bildzeilen wie Arcade. tests/unit/race3d/
+test_start_lead_in.gd: Pfad vor z = 0, Stück -1, Auto mit Heck vor z_lo.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

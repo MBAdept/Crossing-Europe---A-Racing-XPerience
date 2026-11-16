@@ -1,0 +1,10 @@
+v0.8.0 AU-C1: Bezug des Pegelplans ist der gemessene Motor bei Höchsttempo je Auto
+
+Wind 3 dB und Reifen 4 dB unter dem Motor bei Höchsttempo (Vertrag) gelten jetzt gegen den
+gemessenen Motor allein je Auto (audio.modern.road.engine_top_lufs, capture_mix, Vollgas bei
+Höchsttempo: Kompakt -18,5, Kombi -17,2, Limousine -17,7, Sportwagen -17,8, Gran Turismo
+-17,5 LUFS) statt gegen die -16 LUFS des Plans, die die Motoren dort nicht erreichen. Böen
+heben die mittlere Leistung nicht mehr an (Ausgleich 0,1151·s² dB).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

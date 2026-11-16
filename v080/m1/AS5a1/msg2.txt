@@ -1,0 +1,11 @@
+v0.8.0 AS5a1: WIP Stadthaus-Bauer: Licht wie die Scheiben, Foyer gedimmt, Kamine, Katalog aller elf Sets
+
+- Licht, das im Atlas bleibt (nicht geschnittene Fenster, Gauben), mit dem Faktor der Scheiben
+- Ladenfenster ohne Auslage (Foyer des Büroturms) mit eigenem Lichtanteil (shop_light)
+- albedo_mul: Glas des Büroturms dunkler (Sprite spiegelt grauen Himmel)
+- Texel in fremden Volumen (Wand hinter dem Erker) nicht abdunkeln (Rückwand nutzt sie)
+- Katalogeinträge german_old und hanse; Hook close3d in props_cities.timber_house
+  (Rückgiebel der Fachwerkhäuser mit Giebel zur Straße, nur im 3D-Bau)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

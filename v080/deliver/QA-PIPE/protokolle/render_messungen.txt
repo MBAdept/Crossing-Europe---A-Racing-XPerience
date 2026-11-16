@@ -1,0 +1,13 @@
+paint codes written 0 / 64 / 128 / 255 (bytes) -> decoded from the compressed .res: [0.0, 0.251, 0.502, 1.0]  format compressed: true
+baked_cutout shader: true, differs from baked: true, has CE_CUTOUT: true
+quad with code 0.000 -> displayed ff0000  (paint (red wanted))
+quad with code 0.251 -> displayed 00ff00  (paint2 (green wanted))
+quad with code 0.502 -> displayed 0000ff  (paint3 (blue wanted))
+quad with code 1.000 -> displayed 7f7f7f  (fixed colour (grey wanted))
+baked_cutout quad along one line: 16 samples show the background (holes), 15 show the texture
+round 1: baseline 9.01 MB, models shown 13.60 MB, after freeing the nodes + ModelDB.release_all() 13.60 MB, materials kept by ModernMaterials: 6
+round 2: baseline 9.01 MB, models shown 13.60 MB, after freeing the nodes + ModelDB.release_all() 13.60 MB, materials kept by ModernMaterials: 6
+round 3: baseline 9.01 MB, models shown 13.60 MB, after freeing the nodes + ModelDB.release_all() 13.60 MB, materials kept by ModernMaterials: 6
+after ModernMaterials.clear(): 9.01 MB
+unshaded ALBEDO [0.02, 0.04, 0.06, 0.08, 0.1, 0.15, 0.2, 0.3, 0.5] -> display [0, 4, 11, 17, 22, 37, 50, 77, 128]  (adjustment_enabled false)
+unshaded ALBEDO [0.02, 0.04, 0.06, 0.08, 0.1, 0.15, 0.2, 0.3, 0.5] -> display [0, 0, 5, 12, 19, 35, 49, 77, 128]  (adjustment_enabled true)

@@ -1,0 +1,35 @@
+prop_scene: Renn-Licht 12 Uhr, normal, Voreinstellung medium, Sicht 900 m, Stufen 60 / 200 m
+SZENE props/tree_oak 15 m lod0 1051x1027 px
+SZENE props/tree_oak 40 m lod0 276x285 px
+SZENE props/tree_oak 100 m lod1 98x104 px
+SZENE props/tree_oak 250 m impostor 37x40 px
+SZENE props/tree_oak 15 m sprite 1051x1027 px
+SZENE props/tree_oak 40 m sprite 276x285 px
+SZENE props/tree_oak 100 m sprite 98x104 px
+SZENE props/tree_oak 250 m sprite 37x40 px
+SZENE props/tree_oak_b 15 m lod0 1146x1175 px
+SZENE props/tree_oak_b 40 m lod0 272x300 px
+SZENE props/tree_oak_b 100 m lod1 94x108 px
+SZENE props/tree_oak_b 250 m impostor 36x41 px
+SZENE props/tree_oak_b 15 m sprite 1146x1175 px
+SZENE props/tree_oak_b 40 m sprite 272x300 px
+SZENE props/tree_oak_b 100 m sprite 94x108 px
+SZENE props/tree_oak_b 250 m sprite 36x41 px
+SZENE props/tree_birch 15 m lod0 422x738 px
+SZENE props/tree_birch 40 m lod0 127x253 px
+SZENE props/tree_birch 100 m lod1 46x98 px
+SZENE props/tree_birch 250 m impostor 18x39 px
+SZENE props/tree_birch 15 m sprite 422x738 px
+SZENE props/tree_birch 40 m sprite 127x253 px
+SZENE props/tree_birch 100 m sprite 46x98 px
+SZENE props/tree_birch 250 m sprite 18x39 px
+SZENE props/tree_birch_b 15 m lod0 461x786 px
+SZENE props/tree_birch_b 40 m lod0 126x255 px
+SZENE props/tree_birch_b 100 m lod1 44x97 px
+SZENE props/tree_birch_b 250 m impostor 17x38 px
+SZENE props/tree_birch_b 15 m sprite 461x786 px
+SZENE props/tree_birch_b 40 m sprite 126x255 px
+SZENE props/tree_birch_b 100 m sprite 44x97 px
+SZENE props/tree_birch_b 250 m sprite 17x38 px
+prop_scene: dist -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS3R/shots/z_dist_h12_1.png
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS3R/shots/z_dist_h12_1.png

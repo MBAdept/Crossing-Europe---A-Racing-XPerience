@@ -1,0 +1,8 @@
+AU-B: Lastwechselschlag folgt dem Drehmomentsprung des Gangwechsels
+
+Beim Bremsen bis zum Stand schaltet das Getriebe in drei Sekunden siebenmal zurück; mit festen 0,45 stand jeder
+Schlag 10 bis 15 dB über dem Mittenband des Motors im Schub (in der Aufnahme aus dem Spiel gemessen). Jetzt:
+Zurückschalten im Schub 0,2, beim Kick-down bis 0,6; Hochschalten 0,3 bis 1 mit Pedal oder Last.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,79 @@
+FIX0 working notes (scratch, for the final StructuredOutput) – facts measured so far
+====================================================================================
+Commits on top of 2c298ce (branch worktree-wf_92c01fa2-b2a-5):
+ 64f9d38 KERN shot times via GameFlow, --shot-fast during Modern preparation
+ b7fccbf KERN settings types, Gfx helpers
+ 0b51152 KERN test tools (absolute XDG, hook strictness)
+ 67745f8 GEO eye check, max_chunks key
+ 1ed8566 AU-A late loading, kept streams, late title stream, Xvfb check, QC unknown file
+ 54bf7d0 PIPE Godot side (never half a model, owners, shared materials)
+ 242f1af PIPE pipeline, shader, models, checks
+ 0720f71 docs
+ (+ final small docs commit with boot benchmark numbers)
+
+Gates (all on head 0720f71 unless noted):
+ run_tests.sh: 569 tests, 0 failed; 64 CHECK lines OK; "Tests bestanden (525 s)"; INTEG had 562 tests / 61 CHECK / 534 s. log $D/protokolle/01_run_tests_0720f71.log
+ golden.sh check: "GOLDEN arcade: 20 von 20 identisch (137 s)". log 02_
+ modern_sight --full: 128 directions, 131 s, all 6 CHECK OK; F2 0.593/0.596/0.555; F3 0 of 5923; F7 0 of 2,011,532; model 394,011 samples, eye max 0.0002 px. path_full OK 52 s (267.6 m, 2064 m). sight normal 17 s, path normal 24 s. (ran on worktree = 0720f71 for all files they read)
+ validator: CHECK models OK, 6 models, 180 sets; meshes 1.74 MB/40, textures 4.59 MB/240, sources 1.43/60; 0.9 s
+ check-keys: CHECK cache_keys OK (3.8 s); all 6 "aus dem Cache" afterwards
+ ERGEBNIS: 8 runs (2 stages x 4 combos) exit 0, 0 script errors; compare OK; all 8 ERGEBNIS lines byte-identical with INTEG's logs (md5)
+ render check models: 6 RENDER-CHECK OK (4 s)
+ loudness: full throttle -16.19 LUFS (short-term max -15.25, plan -16), flat out -16.44, idle -20.39 (plan -24), cruise -22.65 (plan -21), TP -5.06 dBTP (gran_turismo)
+ boot bench (n=15 alternating, headless): Load Autoloads median 536.3 ms (2c298ce) vs 448.1 ms (head): -88 ms
+ new models unchanged check: tree_oak, farmhouse, michel re-exported with the new key and re-baked byte-identical to HEAD files
+
+Slip to disclose: one call of the INTEG helper xvfb_script.sh with wrong arguments ran Godot once with a relative
+ XDG_DATA_HOME (engine ignored it): the run failed at once (script path wrong), wrote only an engine log into
+ ~/.local/share/godot/app_userdata/Crossing Europe – A Racing Xperience/logs (godot.log rotated). Restored the
+ previous godot.log (renamed back), removed the stray log file "--graphics=modern" from the worktree root. No
+ settings/saves existed or were written there. My scratch helpers now refuse a relative path.
+
+Pictures in $D: k1_hud_uhr_vorher_nachher.png, p1_verkehrslimousine_heck_vorher_nachher.jpg,
+ p2_spielerauto_und_verkehrslimousine_lampen_nachher.jpg, p3_lampenkanaele_renderpruefung.png,
+ p4_spielerauto_heck_vorher_nachher.jpg
+
+More facts (second batch)
+ sprite geometry: "187 Sprite-Sets gebaut in 335 s: 187 identisch (davon 1 mit anderer Flächenreihenfolge), 0 nur Fließkomma-Rauschen, 0 verändert, 0 fehlen"; CHECK sprite_geometry OK (5 min 36 s)
+ reload probe: static func reload() called from outside -> "Invalid type in function 'reload' in base 'GDScript'. Cannot convert argument 1 from String to bool."
+ res id probe: header uid -1; inner id local://ArrayMesh_r1lvw vs _6yww5 in two folders, same in the same folder; compressed files 4395 vs 4394 bytes
+ lamp areas final: sedan rear ind 98.7/98.8/95.3 (was 3.3/9.6/43.8), front 95.4/83.9/66.9 (was 19.1/9.2/4.9); limo rear ind 81.5 (was 3.4), front 21.3 unchanged
+ shadow winding 1/1872 (was 97); anchors sedan 0-1.3 mm
+ finding status: fixed 22 (0,1,3,4,5,6,10,12,13,14,15,18,19,20,22,23,25,26,27,28,29,30); partly 6 (2,11,16,21,24,32); others 8 (7,8,9,17,31,33,34,35)
+
+CONTRACT ISSUES (draft)
+ 1 §4.2/D37 --shot-fast same hashes: Arcade only (1,307 vs 20,191 lit px after 114 skipped frames, 300 GPU particles 4 s). Chosen: --shot-fast-lead=<s>, render loop on during Modern preparation; docs. Contract: add arg, Modern change detectors without --shot-fast or with lead >= longest GPU effect.
+ 2 §4.4.2 step 2: equal shot times only for scene started alone; via GameFlow boot Arcade one step behind (0:00.98 vs 0:01.00). Chosen: _lead_s credited at go-live; static Screenshotter.preparing holds foreign clocks.
+ 3 §4.5 line 593 + GEO acceptance "<= 16 chunks": rule wants 17 at 38 and 18 at 171 of 31,488 positions; nearest left-out piece 456 m. Chosen: key in config at 16; decision 18 with lead.
+ 4 §4.6.1 cache key: must include resolved sprite catalog entries + colour tables; --check-keys; export_report.json.
+ 5 §4.6.4: channel 8 = lit surface (keeps albedo); "25 %" = lamp_off 0.5 display = 22 % light; lamp energies (1.0; gains 2.2/1.6/2.0/2.0), hue-preserving; brake 2.63 x tail.
+ 6 §4.6.6 lights[].dir, pos on the lamp; §4.6.8 new validator rules.
+ 7 §4.6.7: reload() impossible ("Invalid type in function 'reload' in base 'GDScript'. Cannot convert argument 1 from String to bool") -> load_manifest(); additions missing(), owner, IMPOSTOR, shared(), never half a model.
+ 8 §4.11: release_all() + ModernMaterials.clear(); 3D buffers stay (+7.7 MB at 1280x720, QA probe); font atlases dominate texture memory (QA 135.5 MiB).
+ 9 §4.9.1 9 min target: 525 s now.
+10 §4.9.2 shader errors fail a render check file; hook strictness.
+11 D8/F6 far street lamps < 1 px (0.61 m luminaire = 1 px at ~430 m, inferred) -> far-field glow for prop anchors.
+12 Rule 8: XDG_DATA_HOME must be absolute.
+13 attract: demo timer runs during Modern preparation (progress bar 188 vs 192 px at the same shot time) -> UI2.
+
+DEVIATIONS (draft)
+ - rejected sub-point of decal finding: plate "cut short" = EU band.
+ - paint panels in --channels strip not added; render check lackcodes instead.
+ - traffic car indicators differ from sprite on purpose.
+ - max_chunks stays 16.
+ - one run with relative XDG by mistake (disclosed).
+ - not fixed: 7 (QA1), 8/35 (lead; 525 s), 9 (lead/gate 1), 17 (AS1), 31 (lead, frozen), 33 (lead/UI), 34 (UI1); partly: 2, 11, 16, 21, 24, 32.
+
+Third batch (final head a5e4e6e2ab778d1c9b38d5e085954c8def5d64b1, 10 commits, 60 files, +2954 -407)
+ determinism: diff -r -x '*_report.json' export1 export2(forced, 385 s) empty: 22 files byte-equal; folders deleted + re-bake: git status clean, md5 list equal (36 files); second bake + bake under Xvfb: clean
+ attract probe: Arcade and Modern at shot clock 6.0167 s: steps 267, pos_z 7842.27604562909 in both; Modern 6 frames with preparing > 0
+ mem probe re-measured: Arcade stage 314.4 MB alone, 321.8 MB after one Modern stage (+7.4 MB); fonts 82 atlases 142,082,048 bytes (135.5 MiB) of 322,223,320
+ audio_modern tests: 57 tests, 46 s
+ new validator rules on 2c298ce models: 41 errors (FEHLER lines), OK on new
+ render checks all at a5e4e6e: 4 of 4 files, 12 RENDER-CHECK OK + 16 GLOW + FLIP (111 s); at 14ed527 also
+ golden at a5e4e6e: 20 von 20 identisch (137 s); at 0720f71 also (137 s)
+ build at a5e4e6e: Linux tar.gz 121.0 MB, Windows zip 130.6 MB; pck: 764 files, sum 130.46 MB in archive of 277 budget; Modern meshes 1.81/40, textures 1.37/60, sounds 0.35/23, music 0.03/25; 119 s
+ sha256: x86_64 ae97e0ab..., tar.gz f610719a..., exe 88fc675a..., zip df32f4ea...
+ smoke linux arcade: f0411a30 / ce9aa243 / e13df11b (= v0.7.0 reference); modern e1050b15 / bfd979fa / 0bed7652; wine arcade same as reference; wine modern = linux modern
+ Wine quirk: TMPDIR long path -> "free(): invalid pointer"; run with TMPDIR unset
+ reload probe confirmed; relative-XDG also fixed in validate_models.py + models_contact_sheet.sh (commit a5e4e6e)

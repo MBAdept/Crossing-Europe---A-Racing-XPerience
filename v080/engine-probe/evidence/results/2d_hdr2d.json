@@ -1,0 +1,91 @@
+{
+  "hdr2d_glow_diff_vs_sdr_glow": {
+    "max": 244.0,
+    "mean": 2.9626,
+    "psnr": 22.15
+  },
+  "hdr2d_image_format": 11,
+  "sdr_glow_diff_vs_noenv": {
+    "max": 8.0,
+    "mean": 2.5819,
+    "psnr": 37.71
+  },
+  "suite": "2d",
+  "test": "hdr2d",
+  "variants": [
+    {
+      "buffer_mem_mb": 6.1,
+      "canvas_draw_calls": 18,
+      "draw_calls_total": 18,
+      "name": "0_sdr_no_env",
+      "objects_total": 160,
+      "png": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/engine-probe/shots/2d_hdr2d_0_sdr_no_env.png",
+      "primitives_total": 320,
+      "shadow_draw_calls": 0,
+      "shadow_objects": 0,
+      "shadow_primitives": 0,
+      "texture_mem_mb": 8.0,
+      "video_mem_mb": 14.1,
+      "vis_draw_calls": 0,
+      "vis_objects": 0,
+      "vis_primitives": 0
+    },
+    {
+      "buffer_mem_mb": 6.1,
+      "canvas_draw_calls": 18,
+      "diff_vs_prev_max": 8.0,
+      "diff_vs_prev_mean": 2.5819,
+      "draw_calls_total": 18,
+      "name": "1_sdr_bg_canvas_glow",
+      "objects_total": 160,
+      "png": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/engine-probe/shots/2d_hdr2d_1_sdr_bg_canvas_glow.png",
+      "primitives_total": 320,
+      "shadow_draw_calls": 0,
+      "shadow_objects": 0,
+      "shadow_primitives": 0,
+      "texture_mem_mb": 16.3,
+      "video_mem_mb": 22.5,
+      "vis_draw_calls": 0,
+      "vis_objects": 0,
+      "vis_primitives": 0
+    },
+    {
+      "buffer_mem_mb": 6.1,
+      "canvas_draw_calls": 18,
+      "diff_vs_prev_max": 244.0,
+      "diff_vs_prev_mean": 2.9626,
+      "draw_calls_total": 18,
+      "name": "2_hdr2d_bg_canvas_glow",
+      "objects_total": 160,
+      "png": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/engine-probe/shots/2d_hdr2d_2_hdr2d_bg_canvas_glow.png",
+      "primitives_total": 320,
+      "shadow_draw_calls": 0,
+      "shadow_objects": 0,
+      "shadow_primitives": 0,
+      "texture_mem_mb": 24.5,
+      "video_mem_mb": 30.7,
+      "vis_draw_calls": 0,
+      "vis_objects": 0,
+      "vis_primitives": 0
+    },
+    {
+      "buffer_mem_mb": 6.1,
+      "canvas_draw_calls": 18,
+      "diff_vs_prev_max": 240.0,
+      "diff_vs_prev_mean": 4.6321,
+      "draw_calls_total": 18,
+      "name": "3_hdr2d_no_glow",
+      "objects_total": 160,
+      "png": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/engine-probe/shots/2d_hdr2d_3_hdr2d_no_glow.png",
+      "primitives_total": 320,
+      "shadow_draw_calls": 0,
+      "shadow_objects": 0,
+      "shadow_primitives": 0,
+      "texture_mem_mb": 14.0,
+      "video_mem_mb": 20.1,
+      "vis_draw_calls": 0,
+      "vis_objects": 0,
+      "vis_primitives": 0
+    }
+  ]
+}

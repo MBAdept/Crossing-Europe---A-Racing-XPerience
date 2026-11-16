@@ -1,0 +1,16 @@
+v0.8.0 RINT-M2: Modern-Änderungsmelder neu – alle sechs Bilder angesehen
+
+tools/golden.sh modern-check (KEEP) auf 1cd689d: 0 von 6 identisch –
+erwartet nach den Merges R4, R5, R6, AS5aR1 und der Nacharbeit (Tönung,
+Bremsschein, Abblendlicht). Alle sechs angesehen: Starttor mit Fachwerk
+und Ampel, Tankstelle km 14,8 mit echtem Dach, offene Autobahn km 61,
+Hamburg-Rand km 80,6 mit getönten Einfamilienhäusern und Hansehäusern
+(kein Grünstich), Zielbanner km 95, Nacht km 3,2 mit Mond und
+Abblendlicht – plausibel, keine Fehler. modern-gles OK (max. 2/255,
+PSNR 73,2 dB).
+
+modern-make auf c72d484 ergab dieselben MD5 wie die behaltenen Bilder
+von 1cd689d (der Umbau der Tankstellendächer ändert kein Bild).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

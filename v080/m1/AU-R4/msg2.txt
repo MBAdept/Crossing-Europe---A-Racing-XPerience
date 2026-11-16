@@ -1,0 +1,25 @@
+v0.8.0 AU-R4: Altstadtpflaster wie gehört – Steinbrücken schon gepflastert, Tunnel der Etappe (WIP)
+
+KRITIK-R2-CODE M1: Der Altstadtanteil 0,6 ± 0,05 wurde in zehn Altstädten
+(20 Ankünfte) verfehlt, alle mit Steinbrücke oder Tunnel. Die Zuteilung
+zählte beide als freie Straße, der Feed spielt dort aber immer Pflaster
+bzw. Asphalt.
+
+AudioFeed.cobbled_blocks(…, skip, paved, late):
+- paved = Steinbrücken (stone_stretches): Straße, die schon gepflastert
+  ist – sie zählt in der Basis und als Pflaster, die Blöcke teilen den
+  Rest; ein Block ganz auf der Steinbrücke wird nie vergeben.
+- late = Tunnel der Etappe (tunnel_stretches): keine Straße; die Blöcke der
+  Stadt bleiben, solange der Anteil dieser Ankunft im Band liegt, sonst
+  rücken einzelne Blöcke nach (_closer) – jede Ankunft ohne Tunnel hört
+  dieselben Blöcke.
+- _closer läuft für jede Altstadt, nicht nur mit Brücke.
+Ohne Strecke in der Altstadt bitgleich wie vorher (Kiel – Hamburg
+unverändert: P--PP-P-P).
+
+Neue Tests: Steinbrücke als gepflastert (30 Städte × 8 Fälle im Band),
+Tunnel der Etappe (Blöcke bleiben oder rücken nach), echte Etappe mit
+Steinbrücke und Tunnel im 1-m-Raster.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

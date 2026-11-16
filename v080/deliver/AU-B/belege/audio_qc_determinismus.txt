@@ -1,0 +1,38 @@
+QC engines/gran_turismo               OK       -8.9 LUFS   -1.1 dBTP   22.44 s stereo  2804.5 kB
+QC engines/kombi                      OK      -10.4 LUFS   -1.1 dBTP   15.31 s stereo  1914.3 kB
+QC engines/kompakt                    OK      -10.0 LUFS   -1.1 dBTP   15.13 s stereo  1891.1 kB
+QC engines/limousine                  OK       -9.8 LUFS   -1.1 dBTP   17.82 s stereo  2228.0 kB
+QC engines/platzhalter                OK      -14.4 LUFS   -9.1 dBTP    0.50 s stereo    62.5 kB  Naht ×0.30  [Platzhalter]
+QC engines/sportwagen                 OK       -8.8 LUFS   -1.1 dBTP   14.26 s stereo  1782.2 kB
+QC vehicle/blowoff_gt                 OK      -19.6 LUFS   -5.9 dBTP    0.75 s mono      64.6 kB
+QC vehicle/blowoff_hatch              OK      -19.5 LUFS   -5.6 dBTP    0.70 s mono     117.2 kB  (2 Varianten)
+QC vehicle/blowoff_soft               OK      -18.5 LUFS   -5.8 dBTP    0.50 s mono      43.1 kB
+QC vehicle/driveline_whine            OK       -7.5 LUFS   -6.0 dBTP    2.00 s mono     172.3 kB  Naht ×0.51
+QC vehicle/platzhalter_loop           OK      -21.1 LUFS  -12.0 dBTP    1.00 s stereo   172.3 kB  Naht ×0.38  [Platzhalter]
+QC vehicle/shift_thump                OK      -22.0 LUFS   -5.9 dBTP    0.23 s mono      41.0 kB  (2 Varianten)
+QC vehicle/tipin                      OK      -22.3 LUFS   -6.0 dBTP    0.38 s mono      65.5 kB  (2 Varianten)
+QC vehicle/turbo_hiss                 OK      -12.5 LUFS   -5.8 dBTP    2.00 s mono     172.3 kB  Naht ×0.12
+QC vehicle/turbo_single               OK       -7.2 LUFS   -6.0 dBTP    2.00 s mono     172.3 kB  Naht ×0.72
+QC vehicle/turbo_twin                 OK       -8.2 LUFS   -6.0 dBTP    2.00 s stereo   344.6 kB  Naht ×0.61
+QC traffic/platzhalter_loop           OK      -16.8 LUFS  -10.4 dBTP    1.00 s mono      86.2 kB  Naht ×0.20  [Platzhalter]
+QC sfx/platzhalter_hit                OK      -19.4 LUFS   -4.4 dBTP    0.40 s stereo    68.9 kB  [Platzhalter]
+QC ambience/platzhalter_bed           OK      -29.1 LUFS  -18.3 dBTP    4.00 s stereo    40.8 kB  Naht ×0.47  [Platzhalter]
+QC ui/platzhalter_blip                OK      -17.3 LUFS   -9.0 dBTP    0.12 s mono      10.4 kB  [Platzhalter]
+QC music/platzhalter_takt             OK      -14.0 LUFS   -2.1 dBTP    4.00 s stereo    34.3 kB  Naht ×0.05  [Platzhalter]
+
+Größe (Bytes der Dateien im Ordner; Budget nach Vertrag §4.11):
+  engines     11.007 MB    6 Klänge (1 Platzhalter)
+  vehicle      1.410 MB   10 Klänge (1 Platzhalter)
+  traffic      0.089 MB    1 Klänge (1 Platzhalter)
+  sfx          0.072 MB    1 Klänge (1 Platzhalter)
+  ambience     0.043 MB    1 Klänge (1 Platzhalter)
+  ui           0.012 MB    1 Klänge (1 Platzhalter)
+  music        0.036 MB    1 Klänge (1 Platzhalter)
+  Summe Klänge: 12.632 MB von 23 MB  OK
+  Summe Musik: 0.036 MB von 25 MB  OK
+
+Determinismus (jeder Generator zweimal nach --out):
+  tools/audio/modern/engine_synth3.py: OK  (24 Dateien je Lauf, 14 Einträge)
+  tools/audio/modern/make_placeholders.py: OK  (15 Dateien je Lauf, 7 Einträge)
+
+21 Klänge geprüft, 0 mit Fehlern, 0 Probleme insgesamt -> OK

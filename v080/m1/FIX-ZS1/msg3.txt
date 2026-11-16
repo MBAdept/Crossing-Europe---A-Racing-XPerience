@@ -1,0 +1,7 @@
+v0.8.0 FIX-ZS1: Render-Prüfung „Start bei km 0“ – Boden auch ohne Modern-Auto prüfen
+
+Die Prüfung „boden“ schließt die Box von Arcades Auto aus und läuft so auch,
+wenn Modern kein Auto zeigt (Basis 92ece73: kamera und auto FEHLER, boden OK).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

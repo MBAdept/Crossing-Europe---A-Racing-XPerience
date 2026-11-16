@@ -1,0 +1,9 @@
+v0.8.0 R2 (WIP): Render-Prüfung props_spiegel – gespiegelte MultiMesh-Knoten der Requisiten wirklich gezeichnet
+
+Was builders/props.gd einhängt, auf einer geraden Straße beidseitig gleich (Bauernhaus und Laterne mit
+mirror_left, Birke und Strohballen als Vertretung mit Regel-Spiegelung), Kamera auf der Mitte, Sonne im
+Zenit: das Bild muss sein eigenes Spiegelbild sein. Gemessen: je Hälfte rund 10.000 Bildpunkte,
+Abweichung vom Spiegelbild im Mittel 0,14 Stufen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,5 @@
+
+## NACHFOLGER 3 (2026-11-15 08:05 UTC, Container neu gestartet; Kopf e68b51f = origin/wip/v080-r4, Baum sauber)
+- Plan: import + check_scripts, dann Tore einzeln (run_tests Vollauf 2/2, sight, path, render_checks all,
+  modern_check), warm.sh, bench.sh, stage.sh head+base, clips.sh, golden_check zuletzt; Bericht-Platzhalter füllen.
+- Fortschritt steht in queue9.log (sh/queue9.sh).

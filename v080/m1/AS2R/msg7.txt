@@ -1,0 +1,16 @@
+AS2R: ferne Scheiben von Lkw und Bus, Doku der Nacharbeit (Abschnitt 16)
+
+Lkw und Bus zeichnen die Scheiben ihrer fernen Stufen wie die Pkw als vpbr,
+das den Himmel etwa halb so stark spiegelt wie die Klasse glass von lod0: die
+Heckscheibe des Busses war in lod1 (59, 77, 100) gegen (78, 97, 121) und
+änderte beim Wechsel bei 60 m 43 % ihrer Pixel. truck3d.GLASS_FAR (die ferne
+Scheibenfarbe der Pkw, #3a4652) für lod1/lod2 von Lkw und Bus: lod1
+(73, 93, 119), 0,1 % der Scheibenpixel; Bus bei 60 m 11,0 -> 6,8 %
+(gemessen mit Renn-Look).
+
+docs/modelle.md Abschnitt 16: Befunde der Kunstkritik KRITIK-2 mit Ursache,
+Änderung und Messung, die Prüfung von Lkw, Bus und Polizei, was mit dem
+Renn-Look gemessen ist und was offen bleibt.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

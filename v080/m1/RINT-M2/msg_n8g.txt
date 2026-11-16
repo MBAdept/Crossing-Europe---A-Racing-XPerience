@@ -1,0 +1,18 @@
+v0.8.0 RINT-M2: Tankstellendach – Schilder der Station geteilt, gemessen unter 2,5 ms (A-18)
+
+signs_behind() hält die Schilder je Segment im Cache des Bausteins
+(„_signs“, wie „_lanes“ und „_curve“): ein Segment ist fertig, sobald die
+Strecke um den Vorlauf weiter erzeugt ist, das nächste Dach der Station
+liest nur noch die neuen Segmente.
+
+Gemessen, Testetappe ganz, „Steam Deck“, llvmpipe (Instrumentierung auf
+einer Kopie): alle neun Dächer vor ihrem Stück gesammelt und auf dem
+Arbeitsfaden entschieden, keines inline; erstes Dach einer Station zwei
+Hälften zu 1,2–1,5 ms, jedes weitere 0,2–0,6 ms; collect() der Tankstelle
+höchstens 2,40 ms, Mittel 0,14 ms (Merge-Stand inline 3,41 / 0,20;
+618561f 8,04 / 0,33). Entscheide gleich: Sonde jobpath über das ganze
+Netz (Streaming-Reihenfolge, Arbeitsfaden, Cache gegen inline) 1909
+Dächer, 0 verschieden; test_structures 13/13. Doku §17.5.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

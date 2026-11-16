@@ -1,0 +1,10 @@
+AS1R: Verkehrsautos mit Kofferraum-/Heckklappenfugen und Emblem; Doku der Nacharbeit
+
+- Fugen der Kofferraumklappe (Limousine: Heck und Deck) bzw. Heckklappe (Schrägheck, Kombi) und ein Emblem als
+  eingeschnittene Geometrie in lod0 (lod1/lod2 lassen die dünnen Teile weg).
+- docs/modelle.md: neue Hooks, Kennzeichen in allen Stufen, Glas und Innenraum, Schattenwerfer (nach den
+  Mulden eingezogen, offene Radläufe, Lkw aus Teilen), rückstrahlende Lkw-Markierung, Tabelle der Befunde der
+  Kunstkritik mit Ursache und Änderung, Kontaktbogen --clay/--caster.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

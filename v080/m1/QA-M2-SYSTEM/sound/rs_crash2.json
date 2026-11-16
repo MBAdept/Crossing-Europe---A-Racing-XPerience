@@ -1,0 +1,988 @@
+{
+	"crash": true,
+	"dropped": {
+		"crash": 1
+	},
+	"events_seen": {
+		"collision": 1,
+		"go": 1,
+		"pass_object": 4,
+		"stage_start": 1
+	},
+	"finished": false,
+	"log": [
+		{
+			"kind": "music",
+			"km": 40.0,
+			"state": {
+				"context": "off",
+				"ending": "",
+				"key": "",
+				"race_index": -1,
+				"race_phase": "idle",
+				"stingers": "{  }"
+			},
+			"t": 0.0
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 40.0,
+			"speed": 240.0,
+			"state": 0,
+			"t": 0.0
+		},
+		{
+			"kind": "play",
+			"km": 40.0,
+			"n": 1,
+			"name": "go",
+			"t": 0.017
+		},
+		{
+			"kind": "event",
+			"km": 40.0,
+			"n": 1,
+			"name": "stage_start",
+			"t": 0.017
+		},
+		{
+			"kind": "event",
+			"km": 40.0,
+			"n": 1,
+			"name": "go",
+			"t": 0.017
+		},
+		{
+			"kind": "feed",
+			"km": 40.011,
+			"state": {
+				"bridge": "",
+				"city": false,
+				"deck": "",
+				"paving": "concrete",
+				"road": "autobahn",
+				"surface_l": "concrete",
+				"surface_r": "concrete",
+				"tunnel": false,
+				"zone": "open"
+			},
+			"t": 0.033
+		},
+		{
+			"duck_db": -1.49,
+			"kind": "pos",
+			"km": 40.155,
+			"speed": 238.8,
+			"state": 0,
+			"t": 0.25
+		},
+		{
+			"kind": "event",
+			"km": 40.243,
+			"n": 1,
+			"name": "pass_object",
+			"t": 0.383
+		},
+		{
+			"kind": "play",
+			"km": 40.243,
+			"n": 1,
+			"name": "road_pass",
+			"t": 0.383
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 40.321,
+			"speed": 237.6,
+			"state": 0,
+			"t": 0.5
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 40.485,
+			"speed": 236.3,
+			"state": 0,
+			"t": 0.75
+		},
+		{
+			"kind": "event",
+			"km": 40.616,
+			"n": 2,
+			"name": "pass_object",
+			"t": 0.95
+		},
+		{
+			"kind": "play",
+			"km": 40.616,
+			"n": 2,
+			"name": "road_pass",
+			"t": 0.95
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 40.649,
+			"speed": 235.1,
+			"state": 0,
+			"t": 1.0
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 40.812,
+			"speed": 233.8,
+			"state": 0,
+			"t": 1.25
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 40.973,
+			"speed": 232.6,
+			"state": 0,
+			"t": 1.5
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 41.134,
+			"speed": 231.3,
+			"state": 0,
+			"t": 1.75
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 41.295,
+			"speed": 230.1,
+			"state": 0,
+			"t": 2.0
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 41.454,
+			"speed": 228.8,
+			"state": 0,
+			"t": 2.25
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 41.612,
+			"speed": 227.6,
+			"state": 0,
+			"t": 2.5
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 41.77,
+			"speed": 226.3,
+			"state": 0,
+			"t": 2.75
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 41.927,
+			"speed": 225.1,
+			"state": 0,
+			"t": 3.0
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 42.083,
+			"speed": 223.8,
+			"state": 0,
+			"t": 3.25
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 42.238,
+			"speed": 222.6,
+			"state": 0,
+			"t": 3.5
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 42.392,
+			"speed": 221.3,
+			"state": 0,
+			"t": 3.75
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 42.545,
+			"speed": 220.1,
+			"state": 0,
+			"t": 4.0
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 42.697,
+			"speed": 218.8,
+			"state": 0,
+			"t": 4.25
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 42.849,
+			"speed": 217.6,
+			"state": 0,
+			"t": 4.5
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 42.999,
+			"speed": 216.3,
+			"state": 0,
+			"t": 4.75
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 43.149,
+			"speed": 215.1,
+			"state": 0,
+			"t": 5.0
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 43.298,
+			"speed": 213.8,
+			"state": 0,
+			"t": 5.25
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 43.446,
+			"speed": 212.6,
+			"state": 0,
+			"t": 5.5
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 43.593,
+			"speed": 211.3,
+			"state": 0,
+			"t": 5.75
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 43.74,
+			"speed": 210.1,
+			"state": 0,
+			"t": 6.0
+		},
+		{
+			"kind": "event",
+			"km": 43.798,
+			"n": 3,
+			"name": "pass_object",
+			"t": 6.1
+		},
+		{
+			"kind": "play",
+			"km": 43.798,
+			"n": 3,
+			"name": "road_pass",
+			"t": 6.1
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 43.885,
+			"speed": 208.8,
+			"state": 0,
+			"t": 6.25
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 44.03,
+			"speed": 207.6,
+			"state": 0,
+			"t": 6.5
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 44.173,
+			"speed": 206.3,
+			"state": 0,
+			"t": 6.75
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 44.316,
+			"speed": 205.1,
+			"state": 0,
+			"t": 7.0
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 44.458,
+			"speed": 203.8,
+			"state": 0,
+			"t": 7.25
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 44.599,
+			"speed": 202.6,
+			"state": 0,
+			"t": 7.5
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 44.739,
+			"speed": 201.3,
+			"state": 0,
+			"t": 7.75
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 44.879,
+			"speed": 200.1,
+			"state": 0,
+			"t": 8.0
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 45.017,
+			"speed": 198.8,
+			"state": 0,
+			"t": 8.25
+		},
+		{
+			"kind": "event",
+			"km": 45.036,
+			"n": 4,
+			"name": "pass_object",
+			"t": 8.283
+		},
+		{
+			"kind": "play",
+			"km": 45.036,
+			"n": 4,
+			"name": "road_pass",
+			"t": 8.283
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 45.155,
+			"speed": 197.6,
+			"state": 0,
+			"t": 8.5
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 45.292,
+			"speed": 196.3,
+			"state": 0,
+			"t": 8.75
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 45.427,
+			"speed": 195.1,
+			"state": 0,
+			"t": 9.0
+		},
+		{
+			"duck_db": -1.5,
+			"kind": "pos",
+			"km": 45.562,
+			"speed": 193.8,
+			"state": 0,
+			"t": 9.25
+		},
+		{
+			"kind": "event",
+			"km": 45.589,
+			"n": 1,
+			"name": "collision",
+			"t": 9.3
+		},
+		{
+			"kind": "play",
+			"km": 45.589,
+			"n": 1,
+			"name": "impact_crunch",
+			"t": 9.3
+		},
+		{
+			"kind": "play",
+			"km": 45.589,
+			"n": 1,
+			"name": "impact_debris",
+			"t": 9.3
+		},
+		{
+			"kind": "play",
+			"km": 45.589,
+			"n": 1,
+			"name": "impact_hit_heavy",
+			"t": 9.3
+		},
+		{
+			"kind": "play",
+			"km": 45.589,
+			"n": 1,
+			"name": "impact_collision_heavy",
+			"t": 9.3
+		},
+		{
+			"duck_db": -2.33,
+			"kind": "pos",
+			"km": 45.69,
+			"speed": 169.9,
+			"state": 1,
+			"t": 9.5
+		},
+		{
+			"duck_db": -1.4,
+			"kind": "pos",
+			"km": 45.797,
+			"speed": 142.6,
+			"state": 1,
+			"t": 9.75
+		},
+		{
+			"duck_db": -2.66,
+			"kind": "pos",
+			"km": 45.887,
+			"speed": 117.9,
+			"state": 1,
+			"t": 10.0
+		},
+		{
+			"duck_db": -3.85,
+			"kind": "pos",
+			"km": 45.961,
+			"speed": 95.7,
+			"state": 1,
+			"t": 10.25
+		},
+		{
+			"duck_db": -4.27,
+			"kind": "pos",
+			"km": 46.02,
+			"speed": 76.1,
+			"state": 1,
+			"t": 10.5
+		},
+		{
+			"duck_db": -4.32,
+			"kind": "pos",
+			"km": 46.066,
+			"speed": 59.0,
+			"state": 1,
+			"t": 10.75
+		},
+		{
+			"duck_db": -3.96,
+			"kind": "pos",
+			"km": 46.102,
+			"speed": 44.5,
+			"state": 1,
+			"t": 11.0
+		},
+		{
+			"duck_db": -3.01,
+			"kind": "pos",
+			"km": 46.128,
+			"speed": 32.5,
+			"state": 1,
+			"t": 11.25
+		},
+		{
+			"duck_db": -3.34,
+			"kind": "pos",
+			"km": 46.147,
+			"speed": 23.1,
+			"state": 1,
+			"t": 11.5
+		},
+		{
+			"duck_db": -1.92,
+			"kind": "pos",
+			"km": 46.16,
+			"speed": 16.2,
+			"state": 1,
+			"t": 11.75
+		},
+		{
+			"duck_db": -1.1,
+			"kind": "pos",
+			"km": 46.17,
+			"speed": 11.8,
+			"state": 1,
+			"t": 12.0
+		},
+		{
+			"duck_db": -0.63,
+			"kind": "pos",
+			"km": 46.177,
+			"speed": 10.1,
+			"state": 1,
+			"t": 12.25
+		},
+		{
+			"duck_db": -0.36,
+			"kind": "pos",
+			"km": 46.184,
+			"speed": 10.0,
+			"state": 1,
+			"t": 12.5
+		},
+		{
+			"duck_db": -0.21,
+			"kind": "pos",
+			"km": 46.191,
+			"speed": 10.0,
+			"state": 1,
+			"t": 12.75
+		},
+		{
+			"duck_db": -0.12,
+			"kind": "pos",
+			"km": 46.198,
+			"speed": 9.1,
+			"state": 0,
+			"t": 13.0
+		},
+		{
+			"duck_db": -0.07,
+			"kind": "pos",
+			"km": 46.203,
+			"speed": 7.8,
+			"state": 0,
+			"t": 13.25
+		},
+		{
+			"duck_db": -0.04,
+			"kind": "pos",
+			"km": 46.208,
+			"speed": 6.6,
+			"state": 0,
+			"t": 13.5
+		},
+		{
+			"duck_db": -0.02,
+			"kind": "pos",
+			"km": 46.213,
+			"speed": 5.3,
+			"state": 0,
+			"t": 13.75
+		},
+		{
+			"duck_db": -0.01,
+			"kind": "pos",
+			"km": 46.216,
+			"speed": 4.1,
+			"state": 0,
+			"t": 14.0
+		},
+		{
+			"duck_db": -0.01,
+			"kind": "pos",
+			"km": 46.218,
+			"speed": 2.8,
+			"state": 0,
+			"t": 14.25
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 1.6,
+			"state": 0,
+			"t": 14.5
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.3,
+			"state": 0,
+			"t": 14.75
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 15.0
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 15.25
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 15.5
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 15.75
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 16.0
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 16.25
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 16.5
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 16.75
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 17.0
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 17.25
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 17.5
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 17.75
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 18.0
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 18.25
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 18.5
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 18.75
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 19.0
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 19.25
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 19.5
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 19.75
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 20.0
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 20.25
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 20.5
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 20.75
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 21.0
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 21.25
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 21.5
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 21.75
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 22.0
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 22.25
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 22.5
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 22.75
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 23.0
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 23.25
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 23.5
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 23.75
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 24.0
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 24.25
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 24.5
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 24.75
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 46.22,
+			"speed": 0.0,
+			"state": 0,
+			"t": 25.0
+		}
+	],
+	"master_db": 0.0,
+	"master_volume": 1.0,
+	"mix_rate": 44100,
+	"plays": {
+		"go": 1
+	},
+	"profile": "modern",
+	"race_music": true,
+	"seconds": 25.0,
+	"setup": {
+		"autopilot": false,
+		"autopilot_refuel": "never",
+		"from_city": "",
+		"gfx": "arcade",
+		"mode": "single",
+		"no_countdown": true,
+		"race_id": "",
+		"seed": 11,
+		"stage_id": "kiel_hamburg",
+		"start_km": 40.0,
+		"start_world_minutes": 720.0,
+		"vehicle": "limousine",
+		"weather": "normal"
+	}
+}

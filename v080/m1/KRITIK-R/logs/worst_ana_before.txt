@@ -1,0 +1,4 @@
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R/tools/ana_crash.py:40: RuntimeWarning: divide by zero encountered in log10
+  gr = np.where(pp > 1e-3, 20 * np.log10(pp / np.maximum(qq, 1e-9)), 0.0)
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R/cap/worst/before.wav: {"tp_master_1.0": -0.25, "sp_master_1.0": -0.8, "lufs_1.0": -8.18, "pre_tp": 5.42, "pre_sp": 5.42, "post_tp": 5.42, "gr_max": 0.0, "gr_share_over_1": 0.0, "gr_share_over_3": 0.0, "gr_median": 0.0, "pre_lufs": -5.3, "post_lufs": -5.3}
+   GR je 0,5 s: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]

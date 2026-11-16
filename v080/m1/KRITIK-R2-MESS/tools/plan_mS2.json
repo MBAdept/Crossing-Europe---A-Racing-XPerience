@@ -1,0 +1,100 @@
+{
+ "segments": [
+  {
+   "name": "reset120",
+   "km": 42.0,
+   "kmh": 120.0,
+   "throttle": 0.35,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 1.0,
+   "paving": "concrete",
+   "nd": true,
+   "noslab": true
+  },
+  {
+   "name": "s_slab120",
+   "km": 42.0,
+   "kmh": 120.0,
+   "throttle": 0.35,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 15.0,
+   "paving": "concrete",
+   "nd": true,
+   "slabonly": true
+  },
+  {
+   "name": "reset130",
+   "km": 42.0,
+   "kmh": 130.0,
+   "throttle": 0.35,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 1.0,
+   "paving": "concrete",
+   "nd": true,
+   "noslab": true
+  },
+  {
+   "name": "s_slab130",
+   "km": 42.0,
+   "kmh": 130.0,
+   "throttle": 0.35,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 15.0,
+   "paving": "concrete",
+   "nd": true,
+   "slabonly": true
+  },
+  {
+   "name": "reset140",
+   "km": 42.0,
+   "kmh": 140.0,
+   "throttle": 0.35,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 1.0,
+   "paving": "concrete",
+   "nd": true,
+   "noslab": true
+  },
+  {
+   "name": "s_slab140",
+   "km": 42.0,
+   "kmh": 140.0,
+   "throttle": 0.35,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 15.0,
+   "paving": "concrete",
+   "nd": true,
+   "slabonly": true
+  }
+ ]
+}

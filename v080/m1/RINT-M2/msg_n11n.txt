@@ -1,0 +1,12 @@
+v0.8.0 RINT-M2: Laternen-Spiegelungen – Profil zwischengespeichert und geprüft (NACH-R4 N1, N2)
+
+- layers/flares.gd: das Straßenprofil der Spiegelung einer Laterne wird je
+  Lampe gehalten, solange sich die Kamera weniger als 3 m bewegt hat
+  (PROFILE_KEEP_M); Schnappschuss meldet Streifen, größte Profilhöhe und die
+  Zahl der neu gerechneten Profile.
+- check_night_nass "laternen": Köhlbrandbrücke km 77,6, 22 Uhr Regen – die
+  Laternenstreifen haben Profile, die der Rampe folgen, und der Zwischenspeicher
+  greift.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

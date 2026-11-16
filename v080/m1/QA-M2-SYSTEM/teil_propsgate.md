@@ -1,0 +1,1 @@
+Das Tor selbst hält: `tools/run_tests.sh test_props` mit derselben Mutation meldet „12 Tests, 0 fehlgeschlagen ==> Godot meldet Skriptfehler (siehe oben) ==> Tests FEHLGESCHLAGEN“, Exit 1 (`mutations/props_gate.log`, gemessen) – rot wird es nur über den grep, nicht über den Test.

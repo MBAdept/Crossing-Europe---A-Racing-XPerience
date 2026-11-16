@@ -1,0 +1,17 @@
+AS1R: Sattelzug – Konturmarkierung leuchtet nachts, Weiß mit Form, Schattenwerfer innerhalb; Prüfregeln
+
+- Konturmarkierung, Seitenmarkierung und Dreieckrückstrahler als rückstrahlende Fläche (Kanal 14,
+  Gewicht 0,8): bei Tag ihre eigene Farbe, bei Nacht leuchtend rot wie in Arcade (als Kennzeichen-Fläche
+  mit Rücklicht x 0,45 blieb die Kontur fast dunkel).
+- Fast weiße Lackierungen (#ececea …) auf #d8d8d6 begrenzt.
+- Schattenwerfer des Lkw aus den Teilen, die wirklich da sind (Stoßfänger, Kotflügel, Tritt- und
+  Batteriekästen, Tanks, Rahmen), 3 cm innen; der Kasten unter dem Fahrerhaus und die Platte unter dem
+  Auflieger standen aus der Hülle.
+- Schattenwerfer der Pkw mit echten Radlauföffnungen (Verkehr arch_n 6, Spielerautos mit Kanten-Stationen):
+  sie schlossen die Radläufe und verschatteten die Räder.
+- Prüfer: Lichtanker von Fahrzeugen ohne dir sind ein Fehler (A-4). Export bricht ab, wenn der Innenraum der
+  Rennstufe 6 000 Dreiecke überschreitet (jetzt Limousine 3 560, Kompakt 3 658).
+- Kontaktbogen: --caster (Schattenwerfer rot über dem Modell).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

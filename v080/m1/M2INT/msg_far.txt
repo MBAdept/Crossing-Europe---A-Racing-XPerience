@@ -1,0 +1,13 @@
+v0.8.0 M2INT: Fernboden unter dem Wasser der Brücken (Fähren auf der Elbe statt auf der Wiese)
+
+Befund FIX-ZS1-B1 / AS4R M2: Unter der Köhlbrandbrücke lag die Fernboden-Scheibe 4 m unter der Straße, die Elbe
+9 m (aus Hamburg 16 m) darunter – Modern zeigte Wiese statt Wasser, die Fähren standen auf der Wiese.
+layers/far_ground.gd lowest_road() zählt jetzt für Brücken über Wasser und ihre Uferhänge die Höhe unter dem Deck
+(TrackSegment.water_level) statt der Straße. Unit-Test test_far_ground_lies_below_the_water_of_a_bridge.
+
+Gemessen: alle 46 Schiffe und Hausboote des Netzes stehen auf Wassersegmenten, der Rumpf ganz über Wasser
+(Probe über alle 128 Richtungen); die Fähre wird nie gespiegelt (Tags ohne mirror_left). A/B Köhlbrandbrücke
+12 Uhr, Hoch: Wasser zu beiden Seiten, Fähren schwimmen, kein Seil über einer Spur.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

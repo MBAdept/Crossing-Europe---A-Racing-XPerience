@@ -1,0 +1,16 @@
+v0.8.0 RINT-A: eine Freigabe beim Verlassen von Modern, saubere Prozessenden, Doku der Zusammenführung
+
+- RaceRenderers.leave_modern(always) ist die eine Stelle, die ModelDB und die
+  geteilten Materialien freigibt (A-4); GameFlow ruft sie beim Wechsel aus
+  den Menüs und beim Beenden
+- AudioManager stoppt beim Beenden Motor, Schleifen und Einzelgeräusche und
+  wartet 60 ms, bis der Audio-Server die Wiedergaben verworfen hat: vorher
+  „ObjectDB instances leaked at exit“ in 2 von 3 Läufen, danach 0 von 6
+  (Arcade) und 0 von 3 (Modern), gemessen
+- docs/renderer-modern.md §12 (Zusammenführung: Konflikt, Spiegelquelle,
+  Gelände im Licht, Lampen, Rotoren, Varianten, Bodendecker, Ende der Sicht,
+  Prüfungen, Moduswechsel), Verweis auf die Gelände-Doku; Gelände-Doku und
+  modelle.md nachgezogen
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

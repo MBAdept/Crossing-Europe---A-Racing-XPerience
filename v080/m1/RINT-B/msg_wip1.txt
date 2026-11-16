@@ -1,0 +1,19 @@
+WIP v0.8.0 RINT-B: Nachbearbeitung exakt, Bodengesetz, Horizont, Laternenschein, Lack, Zeitprüfungen
+
+- Nachbearbeitungspfad: 1D-Farbkorrektur-LUT (environment_rig.gd post_lut) hebt die zweite
+  Näherungsrunde auf; ab 8/255 exakt (gemessen), dunkle Werte nicht mehr gedrückt
+- Bodengesetz (inc/ground_law.gdshaderinc): Fahrbahn, Gelände und Fernboden zeigen ebenen
+  Boden in Arcades Farbe (Albedo × Umgebung), auch nachts; neuer Global ce_ambient_display
+- Horizont: Silhouetten auf Arcades Kuppenzeile (backdrop.gd crest_lift), Fernboden in
+  Landfarbe mit Arcades Sprite-Nebel (höchstens 70 %), Rand bis zur Silhouettenzeile;
+  Gelände mit demselben Nebel über FOG
+- Laternen und Tankdächer: Arcades warmer Schein am Leuchtenkopf (flares.gd)
+- Ersatzbilder: kein Sonnen- und kein Kontaktschatten (eingebackener Schatten reicht)
+- Fahrzeuglampen: unbeleuchtet 0,28, Rücklicht in Kanal 2 bei 0,5; Lack: weiches Knie,
+  leichte Entsättigung, paint_base 1,0
+- Beenden über GameFlow.quit_game(): Klang aus, 0,3 s warten, dann quit()
+- Zeitprüfungen (leistung, kern_zeit, neu renderer_zeit) gegen eine Referenz im selben
+  Prozess (tests/race3d/fixtures/perf_clock.gd)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

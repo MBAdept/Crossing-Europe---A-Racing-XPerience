@@ -1,0 +1,13 @@
+v0.8.0 FIX-R5: Netzlauf exakt grün (122 Brücken, 28 Tunnel, 0 Mängel), Doku
+
+Der genaue Netzlauf verlangte für jede Flussbrücke Pfeiler – Pfeiler sind aber
+Moderns eigene Zutat (Arcade zeichnet keine), und eine kurze Flussbrücke
+überspannt ihr Wasser ohne. Die Regel fällt weg, die Zahl steht in --verbose.
+Gemessen: tunnel_bridge_full OK, 122 Brücken, 28 Tunnel (Testetappe
+eingeschlossen) genau wie Arcades Elemente, 0 Mängel, 180 s.
+
+Doku: renderer-modern-tunnel-bruecken.md (Portal auf Renderlayer 2, Tests und
+Mutationen, genauer Netzlauf), renderer-modern.md 15.2 (Portal auf Ebene 2).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

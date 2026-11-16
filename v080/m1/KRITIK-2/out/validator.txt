@@ -1,0 +1,21 @@
+validate_models: 16 Modelle, 180 Sets (44 mit Modell, 136 Platzhalter)
+  Netze 10.28 MB von 40 MB, Texturen 4.59 MB im Grafikspeicher von 240 MB, Quellen 1.43 MB von 60 MB
+Modell                 Kategorie Dreiecke je Stufe                  Aufrufe        Netze B  Textur B Export s  Bake s
+landmarks/michel       landmark  lod0 3024                          1                63648    377301        -       -
+player/gran_turismo    player    lod0 48095 show 102327 shadow 2320 6/6            1772777         0        -       -
+player/kombi           player    lod0 54306 show 117206 shadow 2320 6/6            1964901         0        -       -
+player/kompakt         player    lod0 49155 show 106649 shadow 2320 6/6            1770933         0        -       -
+player/limousine       player    lod0 47904 show 98786 shadow 2320  6/6            1637806         0        -       -
+player/sportwagen      player    lod0 46940 show 95375 shadow 2320  6/6            1690967         0        -       -
+props/farmhouse        rural     lod0 104                           1                 2586    752795        -       -
+props/streetlight      furniture lod0 312                           1                 4395         0        -       -
+props/tree_oak         tree      lod0 1220 lod1 459 shadow 179      2/2              53072    373558        -       -
+traffic/hatch          car       lod0 17636 lod1 5661 lod2 1180 shadow 988 6/1/1           270561         0        -       -
+traffic/sedan          car       lod0 17552 lod1 5808 lod2 1149 shadow 972 6/1/1           271357         0        -       -
+traffic/sports         car       lod0 17751 lod1 5741 lod2 1194 shadow 972 6/1/1           287195         0        -       -
+traffic/suv            car       lod0 17824 lod1 5915 lod2 1169 shadow 1004 6/1/1           280642         0        -       -
+traffic/truck          heavy     lod0 18084 lod1 4672 lod2 1490 shadow 476 13/1/1          161851         0        -       -
+traffic/van            car       lod0 17655 lod1 5845 lod2 1189 shadow 1064 6/1/1           270960         0        -       -
+traffic/wagon          car       lod0 17459 lod1 5941 lod2 1141 shadow 940 6/1/1           276014         0        -       -
+CHECK models OK
+validator exit 0

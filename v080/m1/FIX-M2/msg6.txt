@@ -1,0 +1,4 @@
+v0.8.0 FIX-M2: Doku Lack des Spielerautos (B-06), Messwerte mit R4
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

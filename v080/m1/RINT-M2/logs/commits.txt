@@ -1,0 +1,1097 @@
+=== a3120e4 v0.8.0 RINT-M2: Tönung ohne Grünstich – Requisiten mit Farbe und Custom-Daten (A-19)
+Die Bilder nach b04d28a zeigten leuchtend grüne Fensterrahmen,
+Garagentore, Giebelkanten, Baumkronen, Stämme und Windräder (Kiel,
+Hamburg-Ortsrand). Ursache, mit Sonden auf llvmpipe gemessen: Godots
+Compatibility-Renderer liest INSTANCE_CUSTOM falsch, wenn ein MultiMesh
+Farbe ohne Custom-Daten hat ((0, 1, 0, 1)) oder Custom-Daten ohne Farbe
+über MultiMesh.buffer bekommt (Müll auf den echten Modellnetzen; über
+set_instance_custom_data richtig, aber je Instanz zu teuer). Mit Farbe
+UND Custom-Daten stimmt es (Sonde: grüne Pixel 0,292 % → 0,002 %,
+ohne Instanzdaten 0,006 %).
+
+props.gd legt jetzt jeder Instanz 20 Werte an: Transformation, Farbe,
+Custom. Modell: Farbe weiß (MODEL_COLOR), Custom = Tönung; Vertretung:
+Farbe = Tönung, Custom = NO_CUSTOM (a = 0). _mmi() setzt immer beides.
+Unit-Tests auf das neue Layout, Knoten mit Farbe und Custom-Daten.
+
+check_instance_budget: mit eingespeistem Verkehr (Wald, Stadt) darf die
+Fahrzeug-Ebene über ihr Budget gehen – 48 gezeigte Autos brauchen mehr
+Stufen, als es fasst (gemessen 208 im Wald, 176 in der Stadt), und sie
+gibt nur Pool-Autos und verborgene Stufen frei. Dort zählen die Grenze
+der ganzen Szene (230) und die Ablehnung der Engine; die Szene wird
+dann alle 10 statt 60 Bilder gezählt.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 71ed4b7 v0.8.0 RINT-M2: Bremsschein der Modelle nach Tageslicht und Abstand (A-20, NACH-M2 N-01)
+Der Zuschlag MODEL_BRAKE_GAIN 2,2 bleibt bei Tag voll; nachts fällt er mit
+den Lichtern der Palette auf einen Anteil, der vom Abstand zur Kamera
+abhängt: nah (bis 22 m) 0,6, fern (ab 60 m) 0,15, dazwischen
+smoothstep. Ein Anteil für alle Abstände ging nicht: 0,35 gab
+Sportwagen 60 m +22 % und Limousine 20 m −32 %, 0,15 gab −1 % und
+−46 % gegen Arcade.
+
+Sonde 22 Uhr, rote Pixel (Arcade / neu): Sportwagen 60 m 95 / 94,
+Limousine 20 m 539 / 476, Sportwagen 20 m 567 / 454 – alles unter
+Arcade +10 %. Das Blaulicht behält seinen Zuschlag (Polizei 60 m
+weiterhin etwa halb so viel Blau wie Arcade, Prüfung „blaulicht“ OK).
+
+check_vehicle_lights „bremsschein“ misst jetzt das aufsummierte Rot,
+das die Bremse hinzufügt (nicht nur die Pixelzahl). Schwellen aus
+Messungen: Tag ≥ 29 (Kopf 33,1; Verstärkung 1,0 nur 25,0 → FEHLER),
+Nacht Sportwagen 60 m ≤ 57 (Kopf 28,3; voller Tageszuschlag 68,9 →
+FEHLER), Limousine 20 m ≤ 500 (Kopf 436,1; voller Zuschlag 602,8 →
+FEHLER). Unit-Tests für nah/fern/Tag/stetig.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 618561f v0.8.0 RINT-M2: Stützen-Entscheid der Tankstellendächer auf einem Arbeitsfaden (A-18, NACH-R6 N-01/N-02)
+Gemessen (DEV, „Steam Deck“, llvmpipe unter Last): collect() der Tankstelle
+bis 3,4 ms in einem Bild (Mittel 0,2 ms), über dem Budget von 2 ms je Bild.
+Jetzt sammelt der Hauptfaden nur noch, was der Entscheid aus Strecke und
+Geländeprofil liest (CanopyJob: Schilder und Tafeln, Krümmung der Segmente,
+Spuren an jedem Kamerapunkt, Kanten, Korridor-Merker jeder Kandidatenstelle);
+die Sichtlinien rechnet ein Arbeitsfaden, gestartet, wenn collect() ein Dach
+vorausschaut (WARM_AHEAD_M). Der Job rechnet auf einem eigenen Pfad ab dem
+ersten Segment, das er braucht – deckungsgleich mit dem Pfad des Streamers,
+also unabhängig davon, wo das Rennen begann (N-01). canopy_columns() führt
+denselben Job sofort aus (Tests, erstes Dach). Netzweit dieselben Stützen wie
+vorher (scan_f1: 3486 Stützen, gleiche Verdeckungszählung, gemessen).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 5294d00 v0.8.0 RINT-M2: Prüfung „laternen“ an einer echten Steigung
+Die Köhlbrandbrücke ist in der Strecke eben (Profil 0 an jeder Startstelle,
+gemessen). Die Prüfung setzt jetzt vier Laternen über renderer.add_lamps() auf
+die Steigung vor der Kuppe T2 (Kassel – Würzburg km 61,6, 18,5 m auf 250 m):
+gemessen Profil bis 15,8 m, 4 von 160 Profilen gerechnet; mit flachem Profil
+(Mutation) FEHLER.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 58eba9e v0.8.0 RINT-M2: Laternen-Spiegelungen – Profil zwischengespeichert und geprüft (NACH-R4 N1, N2)
+- layers/flares.gd: das Straßenprofil der Spiegelung einer Laterne wird je
+  Lampe gehalten, solange sich die Kamera weniger als 3 m bewegt hat
+  (PROFILE_KEEP_M); Schnappschuss meldet Streifen, größte Profilhöhe und die
+  Zahl der neu gerechneten Profile.
+- check_night_nass "laternen": Köhlbrandbrücke km 77,6, 22 Uhr Regen – die
+  Laternenstreifen haben Profile, die der Rampe folgen, und der Zwischenspeicher
+  greift.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== aa44247 v0.8.0 RINT-M2: Doku nach den Merges – Verweise, Tabellen, Lücken des ersten Testbuilds
+- renderer-modern.md §14.4/§14.5: Verweis auf renderer-modern-bauten.md (R6).
+- §14.10: vier Testsätze der Ersatzbild-Prüfung (NACH-M2 N-04); Hinweise auf
+  die Änderungen der Montage beim Abblendlicht und der Waldprüfung.
+- §14.11: als Stand des ersten Testbuilds markiert, behobene Punkte genannt.
+- §16.2/16.3: Portal und Wasser in eigenen Abschnitten (NACH-R5 N-02).
+- renderer-modern-tunnel-bruecken.md: Absatz aus der Prüftabelle genommen,
+  tunnel_state nennt exit_z (NACH-R5 N-02).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== eb417a7 v0.8.0 RINT-M2: Tunnel und Brücken aus den R4/R5-Prüfungen (Notiz 11 a–d)
+- a QR5-03: die Blendfläche der Ausfahrt steht am wahren Röhrenende
+  (tunnel_state.exit_z − 0,05 m, sonst die Segmentgrenze nach end_km) statt
+  bei end_km − 0,6 m vor dem Ausfahrtsrahmen; check_tunnel_bridge U1_ausfahrt
+  prüft jetzt die Überstrahlung gegen Arcade (mindestens 0,6 × Arcades
+  Leuchtdichte 0,89 draußen) und dass der Rahmen nicht mitglüht.
+- b QR5-02: die Fahrbahn in der Röhre zeigt von außen Arcades Tunnellicht
+  (Umgebung der Röhre für eine Kamera draußen, Tunneldunst nach Arcades
+  Gesetz) statt des Bodengesetzes des offenen Himmels; road.gd liest dazu
+  tunnel_state.light jedes Bild (duck-typed).
+- c QR5-04: Steinbrücken haben Arcades Balustrade – fünf Docken je Segment
+  (0,14 m) zwischen Sockel und Handlauf, ein Pfeiler alle vier Segmente –
+  statt der geschlossenen grauen Brüstung.
+- d QR5-08: Hausboote und Schiffe schwimmen auf dem Wasser des Brückenbausteins
+  (+0,15 m) statt 15 cm darunter.
+- Streamer-Zeitmessung: Variable umbenannt; Abblendlicht-Dämpfung 0,85 … 0,95.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 4fc3d35 v0.8.0 RINT-M2: Tankstellendach ohne Stütze hängt am Mast statt an einer Notstütze (A-18)
+An den drei Dächern, deren Stützen alle wegfielen (prag_leipzig km 148,08,
+sibiu_timisoara km 148,98, prag_nuernberg km 233,13), stand bisher eine
+Notstütze auf der Insel, die Arcade nicht hat und die eine Kurventafel aus
+210 m zu 89 % verdeckte (NACH-R6 N-04). Jetzt hängt das Dach an einem Mast
+(station.gd hang_mast): zuerst rechts jenseits der Tafeln (Balken unter der
+Dachkante, Zugstangen über dem Dach), sonst – in einer Rechtskurve verdeckt
+jede Stelle rechts der Straße eine Tafel weiter vorn – links jenseits des
+Seitenstreifens, Zugstangen hoch über der Fahrbahn (7–9 m über den Spuren)
+zur Dachkante. Der Mast verdeckt aus keiner Spur eine Tafel und steht außerhalb
+des Sichtkorridors; an allen drei Dächern links (gemessen, scan_f1).
+end_column_hides() nimmt die Breite als Parameter. Unit-Test.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 747fa30 v0.8.0 RINT-M2: Lichtebenen nach FIX-R6 – Stärke je Bild, glow/halo, Blitzer (Notiz 9)
+- chunk_streamer.gd: Namenskonflikt in der neuen collect()-Zeitmessung behoben
+  (6347e41 kompilierte nicht).
+- layers/lights.gd: liest die Stärke statischer Lampen jedes Bild aus dem
+  Eintrag des Bausteins (entry_energy); Unit-Test.
+- layers/flares.gd: Lampen mit Stärke 0 (Blitzer zwischen den Blitzen,
+  dunkle Countdown-Lampen) kosten keine Instanz mehr; optionale Schlüssel
+  "halo" (Nahanteil statt STATIC_HALO) und "glow": false (kein Laternenschein).
+- builders/radar.gd: der Blitz nutzt halo 1 statt des Ausgleichs 1/0,35 in
+  FLASH_GAIN (gleiches Bild) und wirft nachts einen Lichtkegel von 9 m auf
+  die Fahrbahn.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 6347e41 v0.8.0 RINT-M2: Hauptfadenzeit von collect() je Baustein in perf_stats (A-18)
+ChunkStreamer.stats() → "collect_by": je Baustein Mittel, Höchstwert und
+Anzahl der collect()-Aufrufe – die Messgrundlage für das Budget von A-18
+(collect() aller Ebenen und Bausteine höchstens 2 ms je Bild, Deck).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 967ad21 v0.8.0 RINT-M2: Instanzbudget-Prüfungen wieder unter Last (A-19, NACH-M2 N-02)
+check_instance_budget.gd kann Verkehr einspeisen (_inject_n(): Testautos über
+die Fahrzeugsonde, Abstände wandern 20–540 m, jedes Auto durchläuft jede
+Stufe); dann muss die Fahrzeug-Ebene 90 % ihres INSTANCE_BUDGET erreichen,
+sonst FEHLER „nicht belastet“. instanzen_wald fährt jetzt den Wald von
+Dortmund – Frankfurt ab km 40 bei „Hoch“ mit 48 eingespeisten Autos (20 s
+Sicht, Kopfzeit 2400 s); neu instanzen_stadt: Würzburg – Nürnberg ab km 106
+in die Stadt bei „Hoch“, ebenso belastet.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== b04d28a v0.8.0 RINT-M2: Tönung der Platzierung auch für Modelle (A-19)
+props.gd legt die Tönung (tint × fallback_tint, sonst weiß) jetzt jeder
+Instanz bei: Vertretungen als Instanzfarbe wie bisher, Modelle als
+MultiMesh-Custom-Data (r, g, b, 1) – keine Instanz-Uniform. baked,
+vpbr (statisch), leaves und billboard (Fernbild) multiplizieren die Albedo
+damit wie Arcade das Sprite; Lampen behalten ihre Farbe; ohne Tönung
+(Custom a < 0,5 oder weiß) bleibt das Bild unverändert. Betroffen u. a.
+city_german_house #e8b8a4 und city_german_mietshaus #e0b09c am Rand der
+Hansestädte, building_shop/building_block_a, Kirchen, bush_low.
+Unit-Test test_model_instances_carry_the_placement_tint.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 1c61036 WIP v0.8.0 RINT-M2: Bremsschein der Modelle nach Tageslicht (A-20), Bildprüfung bremsschein
+model_glow_gain(role, a, lights): der Zuschlag des Bremslichts klingt mit
+den Lichtern der Palette auf MODEL_BRAKE_NIGHT_SHARE ab; das Blaulicht
+behält seinen Zuschlag (nachts ohnehin unter Arcade). Neue Bildprüfung
+bremsschein in check_vehicle_lights (Grenzen folgen nach der Messung).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 2322092 v0.8.0 RINT-M2: Abblendlicht mit Glanz, Fahrzeuge dämpfen ihn im Material (A-20)
+SPOT_SPECULAR wieder 0,5 (Standard, wie die Lampen-Omnis). Die Glanzkeulen
+eines Punkt-/Spotlichts, das von neben dem Auge kommt (das Abblendlicht des
+Spielers), nehmen jetzt vpbr und glass selbst heraus: eye_lamp_spec im
+Renn-Look 0 (Studio und Kontaktbogen neutral 1), entschieden über den Winkel
+zwischen Licht- und Blickrichtung (eye_lamp_cos 0,90 … 0,97 – ab etwa 20 m
+vor der Kamera ganz, eine Laterne über der Straße bleibt weit draußen).
+Die Fahrbahn nimmt dieses Licht ohnehin nie (Ebene 2): sie zeigt den Kegel
+über inc/headlight.gdshaderinc und den nassen Glanz im road.gdshader.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 8999769 Vertrag §11.3 (Leitung): Sichtkorridor, Bauten, Instanz-Uniforms, Nachtlicht, Plan, Stadtgebäude
+Text der Leitung (m1/lead/contract_11_3.md) wörtlich nach §11.2 angefügt:
+A-17 Sichtkorridor der Kurven, A-18 Bauten, A-19 Instanz-Uniforms und
+Tönung der Modelle, A-20 Licht bei Nacht, A-21 Plan, A-22 Stadtgebäude.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 80b8141 v0.8.0 FIX-R5: tunnel_state.exit_z – wo die Röhre wirklich endet
+Probe mit R4s Stand (origin/wip/v080-fix-r4 auf diesem Kopf, nur in einer
+Scratch-Kopie): R4s Belichtungsfläche an der Ausfahrt löst QA-R5 QR5-03 – das
+Draußen ist jetzt überstrahlt wie in Arcade. Sie steht aber bei end_km − 0,6 m,
+die Röhre endet erst an der Segmentgrenze danach (bis zu 3 m später); darum
+leuchten die letzten Meter der Röhre und R5s Rahmen der Ausfahrt mit. R5 legt
+den wahren Endpunkt jetzt in tunnel_state["exit_z"]; R4 setzt die Fläche dort
+an (genaue Änderung im Bericht). Unit-Test und Doku (renderer-modern.md 15.1).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 7153381 v0.8.0 AS5aR1: Modern-Goldens S4 und S5 neu - Stadthäuser mit Flankenöffnungen und Rahmenring
+modern-check: 4 von 6 identisch; anders modern_s4_mittel (km 80,6) und
+modern_s5_niedrig (Ziel Hamburg) - dort stehen die neu exportierten Stadthäuser
+(Fensterflanke der Giebelzeile, Rahmenring im Glas). Beide Bilder angesehen,
+gewollt. Liste aus den behaltenen Bildern von modern-check geschrieben (dieselbe
+Renderfunktion wie modern-make). modern-gles OK (max. 2/255).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 2b7dcc0 v0.8.0 FIX-R6: Modern-Änderungsmelder neu – Starttor mit Fachwerk und Flutlicht (gewollt)
+tools/golden.sh modern-check auf 2c75af0: 5 von 6 identisch, nur modern_start_mittel anders –
+das Starttor hat jetzt weiße Stützen, den Fachwerkträger über dem Banner und drei Flutlichter
+(B-03 von QA-R6). Bild angesehen (gates/modern_keep), die Änderung ist genau die gewollte; die
+Tankstelle km 14,8 (modern_s2_mittel) und die übrigen vier Bilder sind bildgleich. modern-make
+ergibt denselben Hash wie das behaltene Bild der Prüfung (deterministisch); OpenGL ES OK.
+Doku: Hauptthread-Kosten der Sichtlinienprüfung mit drei Messläufen (1,1–6,7 ms je Stück).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== ea5d8f7 v0.8.0 FIX-R5: tunnel_state.light – das Licht der Röhre für die Fahrbahn im Tunnel
+QA-R5 QR5-02 liegt in R4s Fahrbahn (road.gd/road.gdshader): von außen zeigt die
+Fahrbahn in der Röhre den Himmel statt Arcades warmem Tunnellicht. R5 legt dafür
+die Werte, die tunnel.gdshader bekommt, jedes Bild in tunnel_state["light"]
+(ambient_in, ambient_out, fog, darkness_m, peek_m, cam_tunnel_z, lights), damit R4
+sie duck-typed über renderer.builder("tunnel") lesen kann, ohne eigene Rechnung.
+Unit-Test: Werte gleich denen des Röhrenmaterials, draußen und drinnen.
+Doku: renderer-modern.md 15.1, renderer-modern-tunnel-bruecken.md 2.4.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 7610875 v0.8.0 FIX-R5: Netzlauf exakt grün (122 Brücken, 28 Tunnel, 0 Mängel), Doku
+Der genaue Netzlauf verlangte für jede Flussbrücke Pfeiler – Pfeiler sind aber
+Moderns eigene Zutat (Arcade zeichnet keine), und eine kurze Flussbrücke
+überspannt ihr Wasser ohne. Die Regel fällt weg, die Zahl steht in --verbose.
+Gemessen: tunnel_bridge_full OK, 122 Brücken, 28 Tunnel (Testetappe
+eingeschlossen) genau wie Arcades Elemente, 0 Mängel, 180 s.
+
+Doku: renderer-modern-tunnel-bruecken.md (Portal auf Renderlayer 2, Tests und
+Mutationen, genauer Netzlauf), renderer-modern.md 15.2 (Portal auf Ebene 2).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 7e575e6 v0.8.0 FIX-R5: Tunnelportal nachts aus dem Abblendlicht, Tests schützen alle R5-Regeln
+QA-R5 QR5-01 (hoch): Rahmen, Stirnwand, Flügelmauern und Hügel des Portals liegen
+jetzt auf Renderlayer 2 (wie Gelände und Wasser) – die Spots des Abblendlichts
+und die Lampen-Omnis lassen sie aus, wie Arcade sein Portal nie mit den
+Scheinwerfern beleuchtet. Sonne, Mond, Umgebungslicht und Schatten bleiben.
+
+QR5-05: neue bzw. geschärfte Unit-Tests – Brückenlampen gleich Arcades
+Ereignissen (Ludwigsbrücke, Ponte della Libertà), 56 Seile der Köhlbrandbrücke
+als Zahl, night_albedo/emit_energy erst auf null geprüft, Rig ohne set_zone
+(kein Aufruf), Portal auf Renderlayer 2 außerhalb von LIGHT_MASK. Die fünf
+Mutationen B10, B12, B14, T4 und P1 werden jetzt von benannten Tests gefangen.
+
+QR5-06: der Netzlauf check_tunnel_bridge.gd -- --full vergleicht exakt mit
+Arcade (Pylone, Flugfeuer, 14 Seile je Pylon, Fachwerkportale, Brückenlampen,
+Ufer an beiden Enden, Nischen, Kappe, Leuchtenreihen, nichts über den Spuren,
+Seilabstand, Hügel nicht im Sichtkorridor), auch für die Testetappe.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== b156763 v0.8.0 FIX-R4: Modern-Änderungsmelder modern_s1_nacht neu – Bild angesehen
+golden.sh modern-check: 5 von 6 identisch, modern_s1_nacht ANDERS (gewollt: Nacht-Schimmer aus gewaschenem
+Lack und Himmelston der Spiegelung nachts, B3/B7). Bild angesehen: Limousine marineblau und lesbar, sonst
+unverändert. Hash = md5 des von modern-check gerenderten Bildes dieser Arbeitskopie (gleich modern-make).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== bd1c2be v0.8.0 AS5aR1: docs/modelle.md Abschnitt 20 - Nacharbeit, Hooks, Messungen
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 6299928 v0.8.0 AS5aR1: Einfamilienhaus lod1 - Garten mit 0,5 dezimiert (Kompromiss)
+lod1 1 406 statt 954 (0,3) bzw. 2 526 (vorher) Dreiecke; Stufenwechsel bei 60 m
+17,2 % der Pixel (0,3: 20,8 %, vorher 11,1 %), nachts 11,5 %.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 2c75af0 v0.8.0 FIX-R6: Sichtlinien der Endstütze billiger – nur nötige Kameras, Sinus statt Winkel, ein Dach voraus
+Die Entscheidung je Dach kostete 2–4,5 ms auf dem Hauptthread, alle Dächer einer Station
+fielen in ein Stück (bis 12,8 ms, gemessen mit collect_time.gd von QA-R6). Jetzt: nur Tafeln
+hinter der Stütze und nur die Kameras, die sie brauchen; Vergleich über Sinus statt atan2
+(gleiche Entscheidung, monotone Abbildung); Kameras je Etappe zwischengespeichert; jedes
+collect() entscheidet ein Dach bis 600 m voraus. Höchstens 1,2–3,9 ms je Stück, Entscheidungen
+netzweit unverändert (scan_f1/scan_all von QA-R6, 27 Dächer einzeln verglichen).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== d159871 v0.8.0 AS5aR1: Einfamilienhaus lod1 - Garten mit 0,3 statt 0,15 dezimiert
+Bei 0,15 zeigten 17 Dreiecke gegen ihre Normalen (Prüfer). lod1 jetzt 954
+statt 2 526 Dreiecke vor der Nacharbeit; Prüfer grün.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 3f00551 v0.8.0 FIX-R4: Lack nachts gemessen, Fallfilter in check_night spielerauto, Doku
+- check_night spielerauto: -- --fall=<Text> wählt Fälle; gemessen Kompakt 1,05×/1,23×, GT 0,92×/0,77×,
+  Limousine S1 0,88×/0,95×, Limousine DEV 21 Uhr 0,87×/1,00× (Helligkeit/Sättigung gegen Arcade)
+- Doku 15.7: Schimmer aus gewaschenem Lack, Himmelston nachts; GT-Grau bleibt offen
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 5e80bca v0.8.0 AS5aR1: Manifest neu erzeugt (elf Stadthäuser neu exportiert)
+Brückenteile und Hausboot (Schlüssel mit props_cities.py) erneut exportiert:
+byte-gleich. Determinismus: Büroturm und Kran ein zweites Mal erzwungen
+exportiert - byte-gleich.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 1c09b12 v0.8.0 AS5aR1: echte Exporte Speicher, Büroturm, Kontor, Kran (Rahmenring im Atlas)
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== c94eae6 v0.8.0 FIX-R4 (WIP): Prüfungen nasse Nacht, Lack nachts (Himmelston, Schimmer gewaschen)
+- check_night_nass.gd: nass_kegel (B2) und spiegelung (B1); spielerauto mit DEV 21 Uhr und Obergrenze der Sättigung
+- B3: der gespiegelte Himmel nimmt nachts den Ton des Umgebungslichts an (ENV_NIGHT_TINT)
+- B7: Schimmer aus dem gewaschenen Lack (sheen_wash 0,35)
+- Doku 15.2, 15.4, 15.6, 15.9
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== b185bb8 v0.8.0 FIX-R6 WIP: Zahl der Notfall-Endstützen in Kommentar und Doku richtiggestellt
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 259ec2d v0.8.0 FIX-R4 (WIP): Spiegelungen auf dem Straßenprofil, nasser Kegel nur diffus, Wetter folgt dem Wächter
+- B1: Rücklicht- und Laternen-Spiegelungen folgen dem Höhenprofil der Straße bis zur Kamera
+  (Streifen mit 12 Abschnitten, Profil in der Basis der Instanz) statt waagrecht zu schweben
+- B2: Abblendlicht und Lichtkegel beleuchten nur den diffusen Anteil der nassen Fahrbahn
+- B5: weather.gd quality_lowered(); B6: Nachglühen höchstens EXIT_AFTER_S; B8: Blendviereck zuerst
+- B4: Schneewall-Höhe aus dem gebauten Netz, Stetigkeit des Nachglühens, Einheitstests
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== a3600a3 v0.8.0 AS5aR1: WIP echter Export Barockhaus
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 2042944 v0.8.0 AS5aR1: WIP echte Exporte Gründerzeithaus, Giebelzeile
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== d5c5b52 v0.8.0 FIX-R6 WIP: Zugstangen kreuzungsfrei, Sichtlinien alle 5 m, warmer Vorplatz am Shop, Grenzblende nachts heller, Doku
+- Grenze: die obere Zugstange jedes Masts läuft zur freien Kante, die untere zur Mitte
+  (vorher kreuzten sie sich am Mast, eigenes Bild grenze_12 Bild 01).
+- Tankstelle: Kameras der Sichtlinienprüfung alle 5 m, Rand 0,1 m (QA-R6 tastet alle 5 m);
+  netzweit verdecken Endstützen jetzt nur noch an den drei Dächern, die sonst ohne Stütze
+  wären (gemessen mit scan_f1 von QA-R6). Warmes Licht unter dem Vordach des Shops mit
+  Lichtkegel (B-03: Arcades Station strahlt nachts warm).
+- Grenze: Nachtbild der Stirnblende heller (0,5 statt 0,36), näher an Arcades weißer Blende.
+- docs/renderer-modern-bauten.md: Abspannung, Sichtlinien der Endstütze, Fachwerk und Flutlicht.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 8e35d9c v0.8.0 AS5aR1: WIP echte Exporte Einfamilienhaus, Fachwerkzeile, Turmhaus, Mietshaus
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== fc312bf v0.8.0 FIX-R6 WIP: Stützen je Dach einmal entschieden, Sichtlinien beidseitig bis 600 m, Tore mit Fachwerk und Flutlicht
+- Tankstelle (B-02): canopy_columns() entscheidet die Stützen eines Dachs einmal auf dem
+  Hauptthread (Zwischenspeicher je Etappe): Sichtschneise und Sichtlinien der Endstütze zu
+  allen Tafeln beider Seiten bis 600 m dahinter; ein Dach ohne jede Stütze behält seine
+  Endstütze auf der Insel (lieber als schweben). Neuer Unit-Test der Sichtlinienregel.
+- bend_corridor_at() liegt jetzt bei den gemeinsamen Hilfen in station.gd (auch für border.gd).
+- Tore (B-03): weiß lackierte Stützen wie Arcades Balken, Fachwerkträger über dem Banner
+  (7,0–7,9 m, über Arcades Banner-Oberkante, F1), drei Flutlichter mit Lichtkegel vor der
+  Linie bei Nacht, Banner-Nachtbild 0,8 statt 0,6.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== ffca594 v0.8.0 FIX-R6: Grenzdach hängt an Masten statt zu schweben, Endstütze nach Sichtlinien, Tests gegen Arcades Werte
+- B-01: Eine Dachseite ohne Pfeiler (Schild unter dem Dach in der Sichtschneise einer
+  Kurve: 5 von 48 Dächern) hängt jetzt an Masten der getragenen Seite – Abspannung über
+  der Platte zu einem Randträger, alles oberhalb von 6,8 m, nichts Neues in der
+  Sichtschneise (F7 streng). Die Korridor-Entscheidung fällt für das ganze Dach auf dem
+  Hauptthread (support_plan(), bend_corridor_at() = ChunkContext.in_bend_corridor()).
+- B-02: Die Stütze am Dachende der Tankstelle wird gegen echte Sichtlinien geprüft
+  (Fahrspuren 55–400 m vor jeder Tafel bis 400 m dahinter); verdeckt sie eine Tafel,
+  rückt sie nach außen, verdeckt auch das, entfällt sie (Arcade hat dort keine).
+- B-04: test_structures prüft Dachhöhen und Laternenkegel gegen Arcades Literale
+  (5,6 m, 6,0 m, 0,55 × lights) statt gegen die Konstanten der Builder.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 0e23b6f v0.8.0 AS5aR1: Stadthaus-Bauer eingefroren - Doku der neuen Optionen, Erkerkonsole Sandstein
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 406f28a v0.8.0 AS5aR1: WIP Rahmenring in den gemalten Fenstern für die flache lod1
+wallmat-Hook inner_frame (Sprite unverändert): der Rahmen der geschnittenen
+Fenster auch im Glas des Atlas, unbeleuchtet - lod1 behält die Lichtfläche.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== a460272 v0.8.0 AS5aR1: WIP Flankenöffnungen, Erkerfenster, Geländer-Füllung, Gartenstufe
+close3d-Hooks in props_cities (Sprite unverändert): Fachwerkzeile, Turmhaus,
+Barock und Giebelzeile bekommen Fenster und Türen an der Straßenflanke.
+cities3d: Erkerfenster mit Futter, Sprossen und Sohlbank, Konsole eigenes
+Material; Hölzer schmaler als das gemalte Fachwerk (inset); Lückenfüllung der
+Geländer-Atlanten; lod1-Kopien der Gartenteile stärker dezimiert.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 7f0eae2 v0.8.0 R4: Aufwärm-Knoten auf eigener Lichtebene (N1 kalt ohne Übersetzung)
+Die Aufwärm-Prüfung mit kaltem Cache scheiterte an N1 (Hamburg – Hannover
+km 71, 22 Uhr, Schnee): 3 Shader-Varianten nach 6–8 s Fahrt. Diagnose mit
+Godots Shader-Cache: das Programm von sign.gdshader in der Lichtsituation
+„ohne positionelles Licht“ – nachts beleuchtete das Abblendlicht die
+Aufwärm-Knoten in allen vier Phasen, und N1 zeigt kein Schild in der
+Startansicht. Bei 14 Uhr an derselben Stelle: 0 Varianten.
+
+Die Aufwärm-Knoten liegen jetzt auf Render-Ebene 20 (WARMUP_LAYER); die
+echten Spots und Punktlichter lassen sie aus, nur die Aufwärm-Lichter
+erreichen sie. N1 danach: 443 statt 386 Varianten vor dem Start, 0 während
+der Fahrt. Unit-Test test_warmup_layer_is_lit_by_the_warmup_lights_only.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 83dbdac v0.8.0 R4: Modern-Änderungsmelder neu – Bilder angesehen
+tools/golden.sh modern-check auf 866a74c: 0 von 6 identisch – gewollt, R4
+ändert das Bild (Sonnenscheibe, Himmelsspiegelung, Halbkugel-Umgebungslicht
+der Karosserien, Nacht-Füll-Licht und -Schimmer des Spielerautos, Mondgesetz).
+Alle sechs Bilder angesehen (Start, S2–S5, S1 nachts): nichts schwarz, nichts
+fehlt, Nachtbild mit Mond, Kegel und Rücklichtern. modern-make rendert
+dieselben Bilder (Hashes gleich den Bildern der Prüfung); OpenGL-ES-Stufe OK
+(höchstens 2/255, PSNR 73,2 dB).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 63544b6 v0.8.0 AS5a1: Modern-Goldens S4 und S5 neu – dort stehen jetzt die Stadthaus-Modelle
+- tools/golden.sh modern-check: 4 von 6 identisch; anders sind modern_s4_mittel (km 80,6, Hamburger Stadtrand:
+  Einfamilienhäuser, Giebelzeilen, Hafenkran als Modelle statt Arcade-Bilder) und modern_s5_niedrig (km 95, Ziel in
+  Hamburg: Speicher und Kontor). Beide Bilder angesehen: gewollt, keine Fehler.
+- Liste aus den von modern-check behaltenen Bildern geschrieben (dieselbe Renderfunktion wie modern-make, gleiche
+  Godot- und Treiberversion); GLES-Vergleich modern_s3_hoch OK (max. 2/255, PSNR 73,2 dB)
+- Arcade: tools/golden.sh check 20 von 20 und 17 von 17 identisch
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 5558bdc v0.8.0 R5: Modern-Golden s4 (Köhlbrand-Ende km 80) gewollt geändert – Bild angesehen
+tools/golden.sh modern-check auf dem Endstand: 5 von 6 identisch, nur
+modern_s4_mittel (Kiel – Hamburg km 80,6, gleich hinter der
+Köhlbrandbrücke) anders; OpenGL ES gegen OpenGL OK (2/255, 73,2 dB).
+Angesehen gegen dasselbe Bild der Basis 6e48405 (aus der Basiskopie
+gerendert, gleich der alten Liste): 2350 von 921600 Bildpunkten weichen um
+mehr als 8 ab – rechts unten hinter dem Tacho steht jetzt R5s graue
+Natursteinböschung in Arcades Kaifarbe statt Wiese/Wasser (Entscheidung 1
+der Leitung), am Horizont links Fernwasser/Fernland; sonst gleich, keine
+Fehler im Bild. Die Liste trägt für s4 die MD5 des Bildes aus diesem Lauf
+(KEEP) – genau, was modern-make schriebe; die anderen fünf Zeilen und
+modern_slice.env unverändert.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 8b7740e v0.8.0 AS5a1: docs/modelle.md Abschnitt 20 – Budgettabelle der elf Stadthäuser
+- Platzierungen auf Kiel–Nürnberg, Dreiecke je Stufe, Atlas, Texeldichte der Straßenwände, Archivbytes
+- Determinismus: Kran, Büroturm, Kontor und Speicher nach dem Türfix erneut exportiert – byte-gleich
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 2919660 v0.8.0 R5: Fernboden-Ebene ohne festen Verweis auf den Arcade-Renderer (check_terrain_plan wieder grün)
+Der volle Testlauf auf dem Endstand fiel an tests/race3d/check_terrain_plan.gd:
+das "-s"-Skript lädt layers/far_ground.gd per preload, und R5s Rückfallfarbe
+der Fernufer (RoadRenderer.QUAY) zog road_renderer.gd mit, das die Autoload
+SpriteDB nennt – "Identifier not found: SpriteDB", Kompilierung scheitert.
+Jetzt hält far_ground.gd eine Kopie ARCADE_QUAY (wie GroundLook.GROUND_BLEND_M),
+festgenagelt durch den neuen Unit-Test test_far_ground_quay_copy_equals_arcade
+in test_bridge.gd. Bild und Verhalten unverändert (die Kopie gilt nur ohne
+Brücken-Builder). check_terrain_plan allein: 3/3 OK; test_bridge 10/10.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 371c8de v0.8.0 AS5a1: Fachwerkzeile, Turmhaus, Barock und Giebelzeile neu exportiert (Rundbogentüren)
+- echte Exporte mit dem Türfix (CE_THREADS=3): Fachwerkzeile 6 913 / 1 041, Turmhaus 3 332 / 978,
+  Barock 4 539 / 2 385, Giebelzeile 3 712 / 1 233 Dreiecke (lod0 / lod1)
+- Manifest neu geschrieben; docs/modelle.md Abschnitt 20: Türen, Speicherzahlen, Einordnung
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== ef88c1a v0.8.0 R5: Netzlauf gemessen – 122 Brücken und 26 Tunnel bauen ohne Mangel
+check_tunnel_bridge.gd -- --full auf dem Endstand (headless, nice 19, Last
+um 20): 122 Brücken (cable_stayed 12, canal 10, causeway 2, river 60,
+stone_arch 35, truss_arch 3) und 26 Tunnel gebaut, 0 mit Mängeln, 90 s.
+Laufzeit in Kopf und Doku eingetragen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 866a74c v0.8.0 R4: Tunnelausfahrt überbelichtet statt milchig
+Das Viereck über dem Ausfahrtsportal und die Nachglüh-Ebene mischten das
+Draußen zu Weiß – das wirkte wie ein blasser Schleier. Jetzt lesen beide die
+Bildschirmtextur und überbelichten nach Arcades Gesetz für das Draußen
+(Anzeigewert × 1,7 + 0,25 bei voller Stärke, hellste Teile brennen aus).
+Gemessen (Teststrecke km 52,8, 12 Uhr, „Hoch“, Kamera am Portal): Leuchtdichte
+0,638 -> 0,717 (Arcade 0,600), Sättigung 0,20 -> 0,26 (Arcade 0,43). Die
+Nachglüh-Ebene wird beim Aufwärmen mit Stärke 0 gezeichnet (kein Ruckler beim
+ersten Tunnel). Bilder angesehen (shots/v8/TEXIT).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 9b3cecf v0.8.0 AS5a1: WIP Stadthaus-Bauer: Rundbogentüren behalten ihren Bogen, Torbogen mit Flügeln
+- Türraster mit runder Oberkante (im Log als "arch" vermerkt) wurden in lod0 als Rechteck geschnitten;
+  jetzt folgen Öffnung, Laibung und Flügel dem Bogen wie im Sprite (Fachwerkzeile, Turmhaus, Barock, Giebelzeile)
+- der 2,8 m breite Torbogen des Turmhauses war ein geripptes Garagentor; jetzt Holzflügel wie die Tür des Sprites
+- Exporte folgen im nächsten Schritt (alle elf: der Schlüssel des Bauers ändert sich)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== c8b18d1 v0.8.0 R6 WIP: Modern-Änderungsmelder neu (Start, Tankstelle km 14,8, Stadt km 80,6)
+tools/golden.sh modern-make auf bb38876 (llvmpipe, nice 19). Drei von sechs Bildern ändern sich
+gewollt, alle neben dem Bild der Basis 6e48405 angesehen:
+- modern_start_mittel: Starttor mit Lampengehäusen und Bannertafel (R6 gantry.gd)
+- modern_s2_mittel: Tankstelle mit Stützen, Dachblende, Preissäule (R6 station.gd)
+- modern_s4_mittel: Laternen im Seitenwechsel und Hecken in der Stadt (R6 city.gd)
+modern_s3_hoch, modern_s5_niedrig (Ziel liegt hinter der Kamera) und modern_s1_nacht bildgleich.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 2577b30 v0.8.0 R4: Nacht-Schimmer des Spielerautos in der Lackfarbe
+Der neutrale Klarlack-Schimmer des Nacht-Füll-Lichts machte die Lacke blasser
+als Arcades Sprites (Kompakt cremefarben statt bernstein, GT neutral grau statt
+blaugrau). Neues vpbr-Uniform fill_sheen_tint (Standard 0 = unverändert; im
+Renn-Look 0,8): der Schimmer trägt die Lackfarbe im Licht der Umgebung bei
+gleicher Leuchtdichte. Gemessen (check_night spielerauto, 22 Uhr, „Mittel“):
+Sättigung der Karosserie gegen Arcade vorher 0,74/0,70/0,91, jetzt 0,95/0,73/0,91;
+Helligkeit 1,04/0,93/0,86 (Schranke 0,6–1,1). Die Prüfung misst die Sättigung
+jetzt mit (mindestens 0,7 ×).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== cb08179 v0.8.0 R5 WIP: Render-Prüfung baut mit -- --full jede Brücke und jeden Tunnel des Netzes
+- check_tunnel_bridge.gd: neuer Modus "-- --full" (headless genügt, ohne
+  Bild): baut jede Brücke und jeden Tunnel jeder Richtung jeder Etappe mit
+  builders/bridge.gd und builders/tunnel.gd wie die Unit-Tests und prüft je
+  Brücke Wasser, Ufer und je Typ Pylone/Seile, Fachwerk/Portale oder Bögen,
+  je Tunnel Röhre, Leuchten und Portal. Bisher lag dieser Netzlauf nur als
+  Skript im Arbeitsordner; test_bridge.gd verweist schon darauf.
+- Doku renderer-modern-tunnel-bruecken.md: der fehlende Abschnitt 7 (Stellen
+  und Grenzen der Render-Prüfung, Netzlauf).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== e68b51f v0.8.0 R4 (WIP): lod0-Überblendung wieder an (Probe zurückgenommen)
+Die Probe ohne lod0-Überblendung war nicht schneller; die Überblendung (M2INT Notiz 6: 14 % der Autopixel
+springen beim Stufenwechsel in 40 m) bleibt.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 68c5c2b v0.8.0 R4 (WIP): Probe – lod0 ohne Überblendung (Leistungsmessung des Vorgängers)
+Ungesicherte Änderung des Vorgängers nach dem Neustart gesichert: XFADE_LODS ohne lod0, nur für die
+Messung check_vehicles leistung (leistung_nolod0_*). Ergebnis: nicht schneller (4 von 4 FEHLER gegen
+2 von 5 mit lod0) – wird im nächsten Commit zurückgenommen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 92c0084 v0.8.0 AS5a1: WIP echte Exporte aller elf Stadthäuser (german, german_old, hanse)
+Export aus dem Stand a5315cd (CE_THREADS=3, ein Worker, nice 19): Einfamilienhaus,
+Mietshaus, Gründerzeithaus, Büroturm, Fachwerkzeile a/b, Barockhaus, Giebelhaus,
+Kontor, Speicher, Hafenkran; Manifest neu erzeugt. validate_models.py --report: OK.
+docs/modelle.md: Abschnitt 20 als Entwurf (Zahlen folgen).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== a5315cd v0.8.0 AS5a1: WIP Stadthaus-Bauer: nur Lampen der Liste oben öffnen
+_open_lamp_tops öffnete auch die übrigen vpbr-Körper über 8 m (Ornamente und Gaubenrahmen des
+Gründerzeithauses: 46, Balkonplatten und Antennen des Mietshauses: 13, Mast und Kronenteile des
+Büroturms). Deren schräge Oberseiten sieht man von der Straße ab 12 m. Jetzt nur die Lampen aus
+"lamps" (Büroturm: die drei Rotlichter). Die german-Modelle werden neu exportiert.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 33ded9a v0.8.0 R4 (WIP): UID der Prüfdatei check_weather_tabelle_schnee.gd
+Vom Import erzeugt, wie bei jeder Skriptdatei im Baum.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 09d0a7b v0.8.0 AS5a1: Stadthäuser german als Modelle (Einfamilienhaus, Mietshaus, Gründerzeithaus, Büroturm)
+Echte Exporte (Bauer "city", Atlas mit Umgebungsverdeckung, lod0 + flache lod1, je Stufe zwei
+Zeichenaufrufe). Einfamilienhaus mit Garten (wenig Texel), Wandlampe mit Lichtanker; Mietshaus mit
+Balkonen (Ausschneidegeländer, eine BC3-Atlasklasse); Gründerzeithaus mit Läden und Auslagen,
+Balkon, Gesimsen, Erkern; Büroturm mit Foyer (gedimmt), Glas wie das Sprite, Flugbefeuerung mit
+Ankern. Manifest neu geschrieben.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== e2e8e4e v0.8.0 R4 (WIP): Spiegelung hoher Lampen – Schleier zur Kamera begrenzt
+Sonde an C1 im Regen (21:30, „Hoch“, Bereich hinter dem Spielerauto, mittlere
+Leuchtdichte): alles 0,134, ohne Gischt 0,132, ohne Verkehr 0,138, ohne
+Spiegelungen 0,096 – der orange Fleck kam auch mit dem Fresnel-Gewicht noch
+von den Laternen-Streifen. Ursache: der Schleier zur Kamera hin folgte dem
+Gesetz der tiefen Rückleuchten (1,3 × Weg vom Lampenfuß zum Spiegelpunkt); bei
+einer hohen Laterne liegt der Spiegelpunkt nahe der Kamera, der Streifen lief
+in voller Stärke bis unter sie. Jetzt reicht der Schleier höchstens halb so
+weit wie der Weg vom Spiegelpunkt zur Kamera. Rückleuchten unverändert (dort
+ist die neue Grenze länger als die alte).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 32e23eb v0.8.0 R4 (WIP): Laternen-Spiegelungen Punkt für Punkt nach Fresnel (im Shader)
+Das neue Bild C1 im Regen (21:30) zeigte den orangen Fleck um das Spielerauto
+unverändert: der Streifen einer hohen Laterne ist lang (bis zur Kamera), sein
+nahes Ende kam aus dem Ausläufer der Spiegelung einer ferneren Laterne, nicht
+aus ihrem Spiegelpunkt. Die Gewichtung mit dem Fresnel-Term von Wasser sitzt
+jetzt im Shader und gilt für jeden Punkt des Streifens unter dem Blickwinkel
+der Kamera (flare.gdshader, fresnel_ref_m 15 m; Laternen und Tankstellenlampen
+über eine negative halbe Breite der Instanz). Die Gewichtung je Lampe in
+flares.gd (b9574c2) und ihr Unit-Test entfallen. Die kurzen Streifen der
+Fahrzeuglampen bleiben ungewichtet.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 8456140 v0.8.0 R5 WIP: Wasser nachts ohne Glitzerpunkte, Lichtkegel der Lampen auf dem Wasser
+Die zufälligen Funken auf dem Wasser lasen sich nachts als Rauschen über dem
+ganzen Fluss (Köhlbrandbrücke 22 Uhr); jetzt nur die Lichtkegel der Lampen,
+wo sie das Wasser erreichen (schwach), wie Arcades Spiegelungen unter den
+Lampen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== d1181fe v0.8.0 R4 (WIP): Ausfahrt – das Spielerauto bleibt vor dem Überstrahlen
+Bilder der Ausfahrt mit 60/45/40 %: in der Röhre ist die Ausfahrt jetzt hell
+überstrahlt, und die blaue Limousine bleibt im Tunnel blau. Steht die Kamera
+noch drinnen, das Auto aber schon draußen, lag das Viereck zwischen Kamera und
+Auto und verschleierte es mit. Jetzt steht es mindestens 1,5 m vor der Front
+des Spielerautos (EXIT_CAR_GAP_M): das Draußen dahinter ist überstrahlt, das
+Auto nicht – wie Arcades Sprite; von innen rahmt das Portal das Viereck weiter.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== fe70c27 v0.8.0 R4 (WIP): Wettertabelle in zwei Prüfdateien (klar/Regen, Schnee)
+Die Tabelle Wetter × Stunde lief OK (Helligkeit 0,90 … 1,01 × Arcade,
+Kontrast 0,74 … 1,17 ×), brauchte aber für alle 24 Etappenstarts bei Last 20
+933 s – mehr als die 900 s, die tools/run_render_checks.sh einer Datei gibt.
+check_weather_tabelle.gd prüft jetzt klar und Regen (16 Starts),
+check_weather_tabelle_schnee.gd Schnee (8); check_weather.gd nimmt dafür
+-- --tabelle-wetter=<Arten>.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 33e78ce v0.8.0 AS5a1: WIP Stadthaus-Bauer: Garten mit wenig Texeln, Flugbefeuerung mit Anker auf der Lampe
+- weights["objects"]: Faktor je Objekt; Hecken und Gartenbaum des Einfamilienhauses 0,3
+  (vorher ein Drittel des Atlas, Wände jetzt etwa 57 statt 52 px/m)
+- geschlossene Lampenkörper über 8 m (Rotlicht auf dem Mast des Büroturms) ohne die nach oben
+  schauenden Flächen: der Lichtanker lag 277 mm in der Kugel (Prüfer), jetzt auf der Unterseite
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 66491b5 v0.8.0 R4 (WIP): UID der Prüfdatei check_weather_tabelle.gd
+Vom Import erzeugt, wie bei jeder Skriptdatei im Baum.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 052c49d v0.8.0 AS5a1: WIP Stadthaus-Bauer: Farb- und Licht-Bake mit 4 Samples
+Die EMIT-Bakes laufen in doppelter Atlasgröße; 4 Samples je Bake-Texel (16 je Atlastexel) reichen
+für die Kanten der prozeduralen Fassaden. Mit 16 Samples dauerte ein 2048 x 1024-Atlas auf der
+geteilten VM 20 Minuten (Mietshaus 1 666 s, davon Umgebungsverdeckung 402 s). Neue Option
+bake_samples; Katalogoptionen im Kopf des Moduls vollständig.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== b9574c2 v0.8.0 R4 (WIP): Laternen-Spiegelungen nach dem Fresnel-Gesetz des Spiegelpunkts
+Bild C1 im Regen um 21:30 (Frankfurt, „Hoch“): die Spiegelungen der Laternen
+kurz voraus lagen als gesättigter oranger Fleck um das Spielerauto – ihr
+Spiegelpunkt liegt steil unter der Kamera, wo nasser Asphalt kaum spiegelt.
+Jetzt wird jede Laternen-Spiegelung mit dem Fresnel-Term von Wasser an ihrem
+Spiegelpunkt gewichtet (flares.gd streak_fresnel, 1 ab 15 m vor der Kamera,
+eine Laterne 10 m voraus 0,05); Unit-Test test_lamp_streak_fresnel.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 649be5d v0.8.0 R5 WIP: Hügelhang nie durch die Röhre, Seile 0,07 m wie Arcade, Fliesenton ruhiger, Prüfung Flugbefeuerung
+- Tunnel: der Hang hinter dem Grat des Portalhügels endet über der Röhre (in
+  der Röhre des Somport-Tunnels zeigte er sich als grüner Streifen 80–95 m nach
+  dem Portal); neuer Unit-Test test_hill_never_cuts_through_the_tube.
+- Tunnel: Ton je Fliesenpaneel schwächer und früher ausgeblendet (keine
+  Streifen in der Ferne).
+- Brücken: Seile 0,07 m dick wie Arcades Linien (vorher 0,13 m: nah an der
+  Kamera breite weiße Balken an der Severinsbrücke).
+- check_tunnel_bridge: Flugbefeuerung je Bild gezählt (Schein und Glas sind
+  zwei Lichtpunkte), Position km 76,4 (Pylonspitzen im Bild); Ausfahrt: nicht
+  schwarz ab 0,15 Leuchtdichte, die Röhre daneben nur gemeldet.
+- Doku: Hügel, Lichthof, Seile.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== bb38876 v0.8.0 R6 WIP: Tore geben ihrem Tafel-Material auch das Nachtbild (emit_tex)
+Ohne das bekam das Material, das vor dem fertigen Atlas entsteht, nie das Nachtbild der
+Banner – sie hätten trotz 7b27108 nicht geleuchtet.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 367b47a v0.8.0 R6 WIP: Doku – Banner der Tore leuchten bei Nacht
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 7b27108 v0.8.0 R6 WIP: Zielbanner leuchtet bei Nacht wie Arcades (Startbanner: Schrift und Streifen)
+Bild v3_dev_finish_night: Arcade zeigt das ZIEL-Banner nachts so hell wie bei Tag, in Modern
+war es fast schwarz. Die Bannertafeln haben jetzt ein Nachtbild (0,6 der Tagesfarben, × 1,6 im
+Tafel-Shader bei voller Nacht); beim dunklen Startbanner leuchten nur Schrift und Streifen.
+Bei Tag ändert sich nichts.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 02537f6 v0.8.0 AS5a1: WIP Texeldichte: Sockel des Büroturms, Kontor und Speicher
+- Büroturm: Turm über dem Sockel (12 m) mit 0,75 der Dichte, der Sockel mit Foyer bekommt mehr
+- Kontor: Obergeschosse 0,7 statt 0,65, Dach und abgewandte Seiten weniger (Erdgeschoss >= 40 px/m)
+- Speicher: Dach 0,3 statt 0,4
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 8ceb281 v0.8.0 R4 (WIP): Tunnelausfahrt kräftiger, Füll-Licht im Tunnel wie bisher, Wettertabelle als eigene Prüfdatei
+Bilder der Ausfahrt (Testetappe km 52,8, 12 Uhr): mit 12 % am Portal und 22 %
+danach wirkte die Ausfahrt fast normal, schwächer als Arcade (dort bleibt das
+Draußen überstrahlt, solange die Kamera drinnen ist). Jetzt 60 % fern, 45 % am
+Portal, danach 40 % über 60 m abklingend; Unit-Test test_exit_ramp.
+
+Im Tunnel ist ce_night 1 (für die Lampen): das neue Nacht-Füll-Licht machte
+die blaue Limousine dort grau. Füll-Licht und Schimmer folgen jetzt der Nacht
+des Himmels (ce_night × (1 − ce_tunnel)); im Tunnel bleibt das Füll-Licht bei
+0,3 wie bisher (fill_tunnel), ohne Schimmer.
+
+check_weather.gd: die Tabelle Wetter × Stunde (24 Etappenstarts) läuft als
+check_weather_tabelle.gd in eigener Datei – zusammen sprengte sie die 900 s je
+Datei von tools/run_render_checks.sh.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== c3afd5c v0.8.0 R4 (WIP): Nacht-Füll-Licht des Spielerautos (Kunstkritik KRITIK-2 A2)
+Die Karosserie des Spielerautos war nachts zu dunkel (check_night spielerauto,
+75. Perzentil gegen Arcades Bild um 22 Uhr: Kompakt 0,80 ×, Gran Turismo
+0,55 ×, Limousine 0,35 ×). Das Füll-Licht bleibt nachts bei 0,6 seines
+Tagesanteils (vorher 0,3) und zeigt sich zusätzlich als gleichmäßiger
+Schimmer auf dem Klarlack (neues vpbr-Uniform fill_sheen 0,25 × ce_night,
+neutral statt in der Lackfarbe) – ein stärkeres diffuses Füll-Licht allein
+hob den dunklen Metallic-Lack der Limousine kaum. Jetzt 1,06 × / 0,92 × /
+0,94 ×. Bei Tag unverändert; nur das Spielerauto (fill > 0), Verkehr und
+Showroom unberührt.
+
+Köhlbrand-Pylon nachts mit dem Mondgesetz nachgemessen: Arcade 59,7,
+Modern 55,4 – night_albedo 0,45 bleibt.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== dc416e1 v0.8.0 AS5a1: WIP Stadthaus-Bauer: flache lod1, verdeckte Giebelschrägen, Rückwand-AO, Foyerlicht
+- lod1 = geschnittene Wand wieder flach (gleiche Atlaskoordinaten, Fenster aus dem Atlas),
+  Laibungen, Türflügel, Lamellen nur in lod0 (Speicher 12.170 -> 8.954 / 1.287 Dreiecke)
+- Dachschrägen der Giebelprismen unter dem Dach entfernt (weiße Streifen am Ortgang in lod1)
+- Texel, die nur von innen gesehen werden (Wand hinter dem Erker), mit zweitem AO-Lauf erkannt
+- n_arc (Bogenteilung), light_mul (Licht je Material; Foyer des Büroturms an den Fasen)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== e865d00 v0.8.0 R6 WIP: Doku – Schein vor dem Tankstellengebäude
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 51774de v0.8.0 R5 WIP: Hügel nach Arcades Bauart, Lichthof der Tunnelleuchten von außen, Seile hell, Render-Prüfung, Doku
+Nach den ersten Modern-Bildern des neuen Codes (Köhlbrand-Rampe, Holtenau,
+U1 Anfahrt und innen) gegen Arcade und die Basis:
+- Portalhügel: Arcades gesäte Folge (Spalten, Höhe, Grat), Verlauf von der
+  dunklen Grasfarbe am Fuß zur helleren am Grat, glatte Normalen, Nadelbäume
+  auf dem Grat; keine Felsfarbe und keine Streifen je Spalte mehr.
+- Tunnel von außen: Arcades Lichthof um jede Leuchte bei Tag im Shader (die
+  Ebene flares zeigt Tunnelleuchten nur nachts oder mit der Kamera im Tunnel).
+- Fliesen: Ton je Paneel blendet in der Ferne aus (kein Flimmern).
+- Wasser: Spiegelanteil nach der Tiefe in Blickrichtung wie Arcades Zeilen,
+  Spiegelfarbe vor allem Arcades Horizontfarbe.
+- Seile: Normalen nach oben, hell wie Arcades Linien, keine Metallanteile.
+- tests/race3d/render/check_tunnel_bridge.gd (U1/Somport-Portal, U1 innen,
+  U1-Ausfahrt, B1-Wasser, Flugbefeuerung), Doku
+  docs/renderer-modern-tunnel-bruecken.md und renderer-modern.md Abschnitt 15
+  (set_zone-Aufrufe).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== aa08899 v0.8.0 R4 (WIP): Spiegelung auch der zusammengelegten Rückleuchten, Doku Prüfungen
+Modelle melden Rück- und Bremslicht als eine Rolle "rear"
+(VehiclePose3D.flare_points) – die nasse Spiegelung nimmt sie jetzt mit
+(check_weather nass: 2 Spiegelungen, 932 rote Bildpunkte). Doku §15.9:
+Tabelle der neuen Prüfungen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== dfaa4cd v0.8.0 R6 WIP: Arcades warmer Schein vor dem Tankstellengebäude bei Nacht
+Render-Prüfung tankstelle 21 Uhr (Bild): Arcades Station leuchtet warm (Schein des Gebäudes,
+Radius 7 m, Alpha 0,25 × lights), in Modern fehlte er – das Gebäude ist das AS1b-Modell der
+Props. Der Builder setzt Arcades Schein über die Ebene flares vor dessen Vordach.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 5dc28f2 v0.8.0 R6 WIP: Render-Prüfung blitz misst den weichen Schein wie Arcades (Leuchtdichte +0,25, Kern weiß)
+Lauf 2 mit dem ausgeglichenen Blitz: am Kopf +0,44 Leuchtdichte, 10 % weiße Bildpunkte – Arcades
+Blitz ist ein weicher Schein von 6 m Radius, keine weiße Fläche; die alte Schwelle (+20 % weiß)
+passte dazu nicht. Lauf 2 tankstelle (40 m vor dem ersten Dach): OK.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 5393f3c v0.8.0 R6 WIP: Doku – äußere Stützen, Blitzstärke, zwei Render-Prüfdateien
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== a625d93 v0.8.0 R6 WIP: Tankstellenstützen nach außen statt weg, Blitz so hell wie Arcade, Render-Prüfung in zwei Dateien
+- station.column_plan: eine Stütze, die ein Schild verdecken könnte, rückt jenseits der
+  Schildtafeln nach außen (Träger unter der Dachkante, außerhalb des Bankettstreifens nie
+  in einer Sichtschneise); vorher fielen sie weg – 34 von 1909 Dächern standen ohne Stütze.
+- radar: die Ebene flares gibt einer Lampe, die größer als 6 px ist, nur 35 % ihrer Stärke
+  (STATIC_HALO); der Blitz hat keine leuchtende Geometrie und ist immer so groß – Stärke
+  dafür ausgeglichen. Render-Prüfung blitz (Lauf 1): am Kopf nur +0,17 Leuchtdichte.
+- check_structures.gd (countdown, zieltor, grenze, blitz) und check_structures_licht.gd
+  (tankstelle, stadt, schatten; erbt die Hilfen): alle sieben in einer Datei brauchten
+  1205 s bei Last 21 – über RENDER_CHECK_TIMEOUT (900 s).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 3e286d3 v0.8.0 R6 WIP: Grenzpfeiler rücken vor Schildern nach außen statt wegzufallen
+Mit dem Wegfallen der Pfeiler (2d80276) standen 14 der 48 Grenzdächer nur auf einer Seite.
+Jetzt rückt ein Pfeiler, der ein Schild verdecken könnte, so weit nach außen, dass seine
+Innenseite jenseits jeder Schildtafel seiner Seite steht (ein Träger unter der Dachkante
+trägt das Dach hinüber) – von der Straße aus kann er so keine Tafel verdecken. Arcades
+vordere Pfeiler bleiben, wo kein Schild unter dem Dach steht; ein Schild bei r1 steht im
+nächsten Segment. Auswertung aller Grenzen: 43 Dächer auf beiden Seiten, 4 in Kurven nur
+auf einer (Sichtschneise F7), Somport ohne Dach (Tunnel). Render-Prüfung tankstelle misst
+die Stirnblende jetzt 40 m vor dem ersten Dach (näher verdeckt das Dach über der Kamera
+die Blenden dahinter).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 101ad12 v0.8.0 R6 WIP: Doku – Pfeiler und Stützen nie vor einem Schild, Zahlen aller Etappen
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 9a5ffe4 v0.8.0 R4 (WIP): Mond von oben, Nachtanhebung der Fahrbahn, Lackform, Überblendung lod0
+Nachtgesetz für senkrechte Flächen: Mondlicht aus mindestens 55° (Wände bekommen
+höchstens 0,7 × das Mondlicht des Bodens). Fahrbahn nachts +8 % (N1 lag 3–4 %
+unter Arcade). Fahrzeuglack: Halbkugel-Umgebungslicht (senkrecht 0,72, unten 0,5)
+und Fülllicht nur im Schatten (GT im Regen +50 % gegen das Sprite). lod0 blendet
+wie lod1/lod2 über (Glas mit xfade). Lichtdeckel-Prüfung mit C1 als dritter
+Nachtetappe. Gischt weniger rot, Spiegelungen kräftiger, Teilchen im Kegel
+nur nah hell.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 2d80276 v0.8.0 R6 WIP: Pfeiler der Grenze und Stützen der Tankstelle nie vor einem Schild (F1)
+Bild v2_border_day: auf DEV verdeckte der rechte Pfeiler der Grenzstation das Schild
+"Tankstelle 15 km", das unter dem Dach steht (Arcade zeichnet es im selben Streifen über
+seinen Pfeiler). Pfeiler und Stützen werden jetzt aus den Schildern der Strecke geplant
+(border.pillar_plan, station.column_plan): Arcades vordere fallen weg, wenn ein Schild ihrer
+Seite unter dem Dach dahinter steht (an der Grenze dann einer hinter dem letzten Schild und
+dem Häuschen), die zusätzlichen am Ende stehen nur ohne Schild bis 120 m dahinter; an der
+Grenze nie in der Sichtschneise einer Kurve (F7). Unit-Tests für beide Regeln.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 452d96b v0.8.0 R5 WIP: Einheitstests für Brücken und Tunnel; Gehweg im Tunnel wie Arcade
+tests/unit/race3d/test_bridge.gd (9 Tests): Wasser auf den Wasserzeilen bis zum
+Bandende, Ufer nach Arcades Regel (Kaimauer/Böschung, Steinschüttung ohne
+Uferfarbe), ferne Kaimauer zur Kamera, Köhlbrand-Pylone (Maßstab 95/88,8,
+Befeuerung bei 96,6 m im Arcade-Takt, nachts dunkel), kein Seil über einer Spur,
+nichts vom Tragwerk in den Spuren, Brückenteile nicht mehr im Requisiten-Builder,
+jeder Brückentyp baut.
+tests/unit/race3d/test_tunnel.gd (7 Tests): Röhre, Nischen/Türen/Lüfter im
+Abstand, Kappe, Portal, Ausfahrtrahmen; nichts über der Fahrbahn (Lüfter ab
+5,2 m); Hügel schließt das Gelände am Portal; kurzer Tunnel ohne Kappe mit
+niedrigem Hügel; Kappe nur von außen; Zone nach dem Gesetz des Rigs, set_zone
+nur, wenn das Rig es kann.
+builders/tunnel.gd: Gehweg 0,9 m breit, 0,25 m hoch in Arcades Farben.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== bef968b v0.8.0 AS5a1: WIP Stadthaus-Bauer: Licht wie die Scheiben, Foyer gedimmt, Kamine, Katalog aller elf Sets
+- Licht, das im Atlas bleibt (nicht geschnittene Fenster, Gauben), mit dem Faktor der Scheiben
+- Ladenfenster ohne Auslage (Foyer des Büroturms) mit eigenem Lichtanteil (shop_light)
+- albedo_mul: Glas des Büroturms dunkler (Sprite spiegelt grauen Himmel)
+- Texel in fremden Volumen (Wand hinter dem Erker) nicht abdunkeln (Rückwand nutzt sie)
+- Katalogeinträge german_old und hanse; Hook close3d in props_cities.timber_house
+  (Rückgiebel der Fachwerkhäuser mit Giebel zur Straße, nur im 3D-Bau)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 8ddbeca v0.8.0 R6 WIP: Render-Prüfung der Bauten mit weniger Szenenstarts
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== a247f22 v0.8.0 R6 WIP: Dachunterseiten nachts von den eigenen Leuchten erhellt (Kanal 14)
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 937d3b2 v0.8.0 R5 WIP: Tunnel mit Gehwegen, Nischen, Türen, Lüftern, Portalrahmen; Fernwasser und Fernufer
+Tunnel (builders/tunnel.gd, tunnel.gdshader): erhöhte Notgehwege, Fliesenband in
+Paneelen, Kabeltrassen, Leuchten mit Gehäuse, SOS-Nischen mit orangem Schild,
+Notausgangstüren, Strahlventilatoren (Unterkante mind. 5,2 m), Portal mit
+vorstehendem Rahmen und Laibung, Rahmen der Ausfahrt, Hügel mit Fels am Portal;
+Zone für die Umgebung (tunnel_state, set_zone("tunnel", …), wenn das Rig es kann).
+Fernboden (layers/far_ground.gd): je Brücke im Fenster Fernwasser bis 3 km,
+bei tiefem Wasser Fernland in der alten Scheibenhöhe und Fernufer; die Scheibe
+bleibt bei der ZS1-Regel (test_far_ground_water grün). Wasser-Shader: light()
+ohne return (Arbeitsstand).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 6857aea v0.8.0 R6 WIP: Leuchten der Dächer als Aufbauleuchten mit stärkerem Schein (Arcades helle Lichtbänder)
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== d55e686 v0.8.0 R6 WIP: Inselende nur am echten Ende (Segment vor dem Stück aus collect)
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== b9484fc v0.8.0 R4 (WIP): Schneewälle, Schnee auf Requisiten, Tunnelausfahrt, Prüfungen
+Schneewälle am Bankett (Gelände-Netz, höchstens 0,45 m, schmutzige Pflugkante),
+Schnee auf nach oben weisenden Flächen (vpbr statisch, baked, leaves; Arcades
+Tönung der Sprites im Billboard), Belichtungsrampe an der Tunnelausfahrt
+(Blendviereck über dem Portal, Nachblenden nach der Ausfahrt), Spiegelung der
+Lampen am Spiegelpunkt der nassen Fahrbahn, kräftigere Gischt.
+Prüfungen: check_light_cap (kopflos, Lichtdeckel auf drei Nachtetappen: OK),
+render/check_night, render/check_weather (noch nicht gelaufen).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== db486c9 v0.8.0 R6 WIP: Dachunterseiten heller (wie Arcade), Render-Prüfung vergleicht Nachtlicht mit Arcade
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== cdbda5a v0.8.0 R6 WIP: Doku docs/renderer-modern-bauten.md (Bauten an der Strecke)
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 953f1bc v0.8.0 R6 WIP: Blende mit Fuge und Abdeckung, Countdown-Schein wie Arcade, Zäune schlanker
+Tankstelle: Blendenbänder mit dunkler Fuge und Metallabdeckung (auch auf der
+Stirnblendentafel). Starttor: Schein der Lampen mit Arcades 1,4 m. Stadt:
+Gitterstäbe als zwei Flächen (weniger Dreiecke), Zäune werfen erst bei
+„Schatten: Hoch“, Laternen ab „Niedrig“.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 173a412 v0.8.0 R5 WIP: Brücken-Builder mit Wasser, Ufern, Tragwerk und Brückenteilen
+Neuer Builder scripts/race3d/builders/bridge.gd und Shader
+assets/shaders/modern/water.gdshader: Wasser über den Wasserreihen des Geländes,
+Kaimauern bzw. Böschungen an beiden Ufern, Randträger, Pfeiler, Bögen,
+Fachwerkträger, Pylone (bridge_pylon_bare, Höhe pylon_m) mit Seilen nach Arcade,
+Portale und Brückenlampen. builders/props.gd überlässt die Brückenteile diesem
+Builder bereits über sein skip_bridge (keine Zeile geändert).
+Kopflos alle 122 Brücken des Netzes ohne Fehler gebaut (Arbeitsstand).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 874fb49 v0.8.0 R6 WIP: Unit-Tests und Render-Prüfung der Bauten
+tests/unit/race3d/test_structures.gd: Tankstelle genau an Track.fuel_lane_*,
+nichts über Fahrbahn und Tankspur unter Arcades Dachhöhe, Grenzdach ab 6 m,
+Laternen alle 33 m im Wechsel mit Lichtkegeln, Zäune nicht im Sichtkorridor,
+Countdown-Regel von Arcade, Blitz, Schriftatlas, statisches vpbr, Schatten.
+tests/race3d/render/check_structures.gd: Countdown-Lampen, Stirnblenden,
+Zieltor, Grenze, Blitz, Stadt bei Nacht, Schatten.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== ecadb85 v0.8.0 AS5a1: WIP Bauer "city" für Stadthäuser (Läden mit Auslage, Fachwerk, Rückwände, Etagen)
+Neues Modul tools/blender/ce3d/cities3d.py (Bauer "city", baut auf dem Bauer "house"
+von AS4 auf, ohne buildings3d.py zu ändern), Katalogblock "# --- AS5a ---" mit den
+vier Häusern des Stils german, Bauer in export_models.py eingetragen. Noch ohne
+exportierte Modelle (Zwischenstand).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== ce5ad50 v0.8.0 R6 WIP: Grenzstation, Stadt (Laternen, Zäune), Blitzer
+Neue Builder border.gd (Dach, Stirnblende mit Landesname als Tafel, Pfeiler,
+Lichtbänder, Lichtkegel wie Arcade), city.gd (Laternenmodell alle 33 m im
+Wechsel mit Lichtkegeln, Zäune/Hecken/Mauern/Gitter, Zebrastreifen-Daten),
+radar.gd (Blitz an jedem Blitzer nach view.radar_flash01). Tankstelle: Kegel
+aus einer verdeckten Lampe im Dach, weißer Schein je Leuchtfeld.
+check_minimal_structures: Schriftzüge über die Debug-Daten statt Label3D.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 818816c v0.8.0 R4 (WIP): Wetter in der Luft, Gischt, nasse Fahrbahn, Blaulicht, Sonnenscheibe
+Ebene weather: Regen und Schnee als zustandslose GPU-Teilchen (eine MultiMesh,
+Lage = f(Instanz, Kamera, ce_time)), Gischt hinter jedem Auto auf nasser Straße.
+Spiegelung der Rückleuchten und Laternen auf nasser Fahrbahn (flare_streak),
+Fresnel-Spiegelung des Himmels im Straßen-Shader (ce_sky_top/ce_sky_horizon),
+Blaulicht der Polizei als Punktlicht und Lichtkegel, Sonnenscheibe an Arcades
+Stelle. Unit-Tests test_light_pool, test_weather. Bilder folgen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== f849f01 v0.8.0 R6 WIP: Tankstelle und Tore mit Schrifttafeln statt Label3D
+Tankstelle: Insel mit gelbem Bordstein, Vorplatz, Dach mit Leuchtfeldern,
+Stirnblende als Tafel des Schriftatlas, Preissäule; Start- und Zieltor mit
+Stahlstützen, Bannertafel und Countdown-Lampen in Gehäusen. Zwischenstand.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+
+=== 47566b8 v0.8.0 R4: EnvironmentRig.set_zone(kind, amount) – Zonen für Tunnel und Brücken
+Schnittstelle für R5 (duck-typed über renderer.env): "tunnel" mischt Licht, Nebel
+und Globals zum Tunnel, "bridge" verstärkt den Wind über Wasser. Solange niemand
+set_zone("tunnel", …) ruft, gilt weiter tunnel_blend() aus dem Etappenplan.
+Unit-Test test_set_zone, Doku renderer-modern.md §15.1.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
+

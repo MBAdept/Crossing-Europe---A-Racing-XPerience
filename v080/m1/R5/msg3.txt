@@ -1,0 +1,17 @@
+v0.8.0 R5 WIP: Einheitstests für Brücken und Tunnel; Gehweg im Tunnel wie Arcade
+
+tests/unit/race3d/test_bridge.gd (9 Tests): Wasser auf den Wasserzeilen bis zum
+Bandende, Ufer nach Arcades Regel (Kaimauer/Böschung, Steinschüttung ohne
+Uferfarbe), ferne Kaimauer zur Kamera, Köhlbrand-Pylone (Maßstab 95/88,8,
+Befeuerung bei 96,6 m im Arcade-Takt, nachts dunkel), kein Seil über einer Spur,
+nichts vom Tragwerk in den Spuren, Brückenteile nicht mehr im Requisiten-Builder,
+jeder Brückentyp baut.
+tests/unit/race3d/test_tunnel.gd (7 Tests): Röhre, Nischen/Türen/Lüfter im
+Abstand, Kappe, Portal, Ausfahrtrahmen; nichts über der Fahrbahn (Lüfter ab
+5,2 m); Hügel schließt das Gelände am Portal; kurzer Tunnel ohne Kappe mit
+niedrigem Hügel; Kappe nur von außen; Zone nach dem Gesetz des Rigs, set_zone
+nur, wenn das Rig es kann.
+builders/tunnel.gd: Gehweg 0,9 m breit, 0,25 m hoch in Arcades Farben.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

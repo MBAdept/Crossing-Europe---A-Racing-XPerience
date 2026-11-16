@@ -1,0 +1,10 @@
+v0.8.0 FIX-WASSER: Modern-Änderungsmelder neu (S4 sieht die Elbe), Doku Fernboden und Wasser
+
+modern_slice.md5 neu erzeugt: nur modern_s4_mittel (km 80, auf der Köhlbrandbrücke)
+ändert sich – dort zeigt Modern jetzt die Elbe statt der Wiese; die anderen fünf
+Bilder sind MD5-gleich. Doku: Fernboden-Regel mit Wasser, betroffene Brücken, Grenze
+„kein Fernwasser“ (renderer-modern-gelaende.md, renderer-modern.md), Befund FIX-ZS1-B1
+behoben (qa-v080.md Abschnitt 10).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

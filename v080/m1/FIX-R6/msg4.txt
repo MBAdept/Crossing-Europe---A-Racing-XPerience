@@ -1,0 +1,4 @@
+v0.8.0 FIX-R6 WIP: Zahl der Notfall-Endstützen in Kommentar und Doku richtiggestellt
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

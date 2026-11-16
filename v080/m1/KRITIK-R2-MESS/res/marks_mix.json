@@ -1,0 +1,62 @@
+{
+ "file": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/AU-R/fahrt_kiel_hamburg_spielmix_neu.mp3",
+ "len_s": 45.88263038548753,
+ "marks": [
+  {
+   "label": "Bruecke",
+   "txt_s": 9.29,
+   "audible_s": 9.4,
+   "diff_s": 0.11,
+   "novelty_db": 6.1,
+   "second_db": 2.6
+  },
+  {
+   "label": "Ruettel",
+   "txt_s": 20.03,
+   "audible_s": 19.42,
+   "diff_s": -0.61,
+   "novelty_db": 3.3,
+   "second_db": 2.9
+  },
+  {
+   "label": "Bankett",
+   "txt_s": 25.35,
+   "audible_s": 24.26,
+   "diff_s": -1.09,
+   "novelty_db": 3.0,
+   "second_db": 2.7
+  },
+  {
+   "label": "Leitplanke",
+   "txt_s": 30.01,
+   "audible_s": 30.94,
+   "diff_s": 0.93,
+   "novelty_db": 4.5,
+   "second_db": 3.1
+  },
+  {
+   "label": "Innenstadt",
+   "txt_s": 35.28,
+   "audible_s": 36.38,
+   "diff_s": 1.1,
+   "novelty_db": 4.7,
+   "second_db": 4.2
+  },
+  {
+   "label": "Pflaster",
+   "txt_s": 37.39,
+   "audible_s": 36.38,
+   "diff_s": -1.01,
+   "novelty_db": 4.7,
+   "second_db": 4.2
+  },
+  {
+   "label": "Asphalt",
+   "txt_s": 43.64,
+   "audible_s": 43.16,
+   "diff_s": -0.48,
+   "novelty_db": 4.2,
+   "second_db": 3.9
+  }
+ ]
+}

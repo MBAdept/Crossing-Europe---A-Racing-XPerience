@@ -1,0 +1,27 @@
+FX-CHORD normal rows=600449 p50=375 p90=375 p99=375 max=375 m (share > 150 m: 99.58 %, > 200 m: 98.77 %, > 300 m: 88.99 %)
+  worst normal: c_req 375 m at kiel_hamburg__kiel km 0.02, 270 km/h, R_edge 587 m, sagitta 30.0 m
+  worst normal: c_req 375 m at kiel_hamburg__kiel km 2.80, 270 km/h, R_edge 617 m, sagitta 28.5 m
+  worst normal: c_req 375 m at kiel_hamburg__kiel km 1.26, 270 km/h, R_edge 894 m, sagitta 19.7 m
+  worst normal: c_req 375 m at kiel_hamburg__kiel km 2.88, 270 km/h, R_edge 546 m, sagitta 32.2 m
+  worst normal: c_req 375 m at kiel_hamburg__kiel km 0.28, 270 km/h, R_edge 587 m, sagitta 30.0 m
+  worst normal: c_req 375 m at kiel_hamburg__kiel km 0.05, 270 km/h, R_edge 587 m, sagitta 30.0 m
+  worst normal: c_req 375 m at kiel_hamburg__kiel km 2.81, 270 km/h, R_edge 557 m, sagitta 31.6 m
+  worst normal: c_req 375 m at kiel_hamburg__kiel km 1.20, 270 km/h, R_edge 422 m, sagitta 41.7 m
+FX-CHORD rain rows=629874 p50=425 p90=425 p99=425 max=425 m (share > 150 m: 99.55 %, > 200 m: 98.62 %, > 300 m: 88.68 %)
+  worst rain: c_req 425 m at kiel_hamburg__kiel km 0.63, 263 km/h, R_edge 414 m, sagitta 54.6 m
+  worst rain: c_req 425 m at kiel_hamburg__kiel km 0.31, 263 km/h, R_edge 587 m, sagitta 38.5 m
+  worst rain: c_req 425 m at kiel_hamburg__kiel km 2.88, 263 km/h, R_edge 546 m, sagitta 41.4 m
+  worst rain: c_req 425 m at kiel_hamburg__kiel km 2.84, 263 km/h, R_edge 546 m, sagitta 41.4 m
+  worst rain: c_req 425 m at kiel_hamburg__kiel km 0.28, 263 km/h, R_edge 587 m, sagitta 38.5 m
+  worst rain: c_req 425 m at kiel_hamburg__kiel km 1.25, 263 km/h, R_edge 496 m, sagitta 45.6 m
+  worst rain: c_req 425 m at kiel_hamburg__kiel km 0.09, 263 km/h, R_edge 587 m, sagitta 38.5 m
+  worst rain: c_req 425 m at kiel_hamburg__kiel km 0.54, 263 km/h, R_edge 963 m, sagitta 23.5 m
+FX-CHORD snow rows=658814 p50=493 p90=493 p99=493 max=493 m (share > 150 m: 99.54 %, > 200 m: 98.47 %, > 300 m: 88.32 %)
+  worst snow: c_req 493 m at kiel_hamburg__kiel km 0.19, 238 km/h, R_edge 587 m, sagitta 51.8 m
+  worst snow: c_req 493 m at kiel_hamburg__kiel km 2.86, 238 km/h, R_edge 546 m, sagitta 55.6 m
+  worst snow: c_req 493 m at kiel_hamburg__kiel km 0.26, 238 km/h, R_edge 587 m, sagitta 51.8 m
+  worst snow: c_req 493 m at kiel_hamburg__kiel km 0.63, 238 km/h, R_edge 414 m, sagitta 73.3 m
+  worst snow: c_req 493 m at kiel_hamburg__kiel km 1.14, 238 km/h, R_edge 414 m, sagitta 73.3 m
+  worst snow: c_req 493 m at kiel_hamburg__kiel km 0.67, 238 km/h, R_edge 414 m, sagitta 73.3 m
+  worst snow: c_req 493 m at kiel_hamburg__kiel km 0.29, 238 km/h, R_edge 587 m, sagitta 51.8 m
+  worst snow: c_req 493 m at kiel_hamburg__kiel km 0.41, 238 km/h, R_edge 930 m, sagitta 32.7 m

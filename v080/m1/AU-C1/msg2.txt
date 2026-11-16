@@ -1,0 +1,11 @@
+v0.8.0 AU-C1: Schleifen für Reifen, Fahrbahn, Wind und Leitplanke (vehicle_loops.py)
+
+17 nahtlose Mono-Schleifen (44,1 kHz, 16 Bit, 2,95 MB) in assets/audio/modern/vehicle:
+Rollgeräusch auf Asphalt, Beton, Stahldeck, Kopfsteinpflaster, Bankett, Gras, nass;
+Rüttellinie, Betonplattenfugen (zwei Entwurfstempi), Quietschen, Radieren, Wind in drei
+Bändern und Wummern nahe dem Höchsttempo, Schleifen an der Leitplanke. Jeder Eintrag trägt
+Entwurfstempo, Tonhöhengesetz und die Lautheit je Tonhöhe (lufs_pitch), damit die Pegel
+der Laufzeit für das Gehörte gelten. Fortsetzungsframes hinter loop_end, deterministisch.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

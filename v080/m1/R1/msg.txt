@@ -1,0 +1,15 @@
+v0.8.0 R1: Naht-Prüfung prüft „kein update_state() vor dem Start“ statt „leerer HUD-Zustand“; Doku Messwerte
+
+tests/race3d/check_seam.gd „ablauf“ verlangte, dass das HUD während der Vorbereitung keinen Zustand hat – gemeint
+ist: kein update_state(), kein Countdown-Piepen vor dem Start. Seit 583b72e setzt die Sitzung den Startzustand
+direkt (hud.state), damit das HUD hinter dem Ladebild mitzeichnet und seine Shader dort übersetzt werden. Die
+Prüfung sieht jetzt genau hin: _last_countdown des HUD bleibt -1 (update_state() setzt ihn immer), und neu: das
+HUD hält den Startzustand. Gefunden vom vollen Lauf von tools/run_tests.sh auf 46456fe (596 Unit-Tests grün,
+79 Prüfzeilen OK, nur diese eine FEHLER-Zeile); check_seam.gd danach 9 von 9.
+
+scripts/race3d/plain_environment.gd: Kopfkommentar mit den richtigen (gerechneten) Abweichungen des Lichtgesetzes
+(Hinweis aus dem Bericht von R1a). docs/renderer-modern.md: 10.11 Messwerte (auch unter OpenGL), 10.12 offene
+Punkte. warmup_cold.gd.uid nachgetragen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

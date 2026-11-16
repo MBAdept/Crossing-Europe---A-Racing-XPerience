@@ -1,0 +1,5 @@
+gleichzeitig gestartet  :  29.2 Schläge/s (Platten  7.2/s, Achsen 2× 7.2=14.4/s); Abstände ms: Median  33.0, 10–90 %  20.0– 62.0
+Versatz 0,37 Schleife   :  19.5 Schläge/s (Platten  7.2/s, Achsen 2× 7.2=14.4/s); Abstände ms: Median  54.0, 10–90 %  25.0– 74.0
+Versatz 0,23 Schleife   :  34.3 Schläge/s (Platten  7.2/s, Achsen 2× 7.2=14.4/s); Abstände ms: Median  26.0, 10–90 %  20.0– 42.0
+slab_slow Spitzen je Platte (dB): [np.float64(0.0), np.float64(-1.1), np.float64(-1.9), np.float64(-1.4), np.float64(-4.9), np.float64(-7.0), np.float64(-1.2), np.float64(-3.2)] Spannweite 7.0 dB
+slab_fast Spitzen je Platte (dB): [np.float64(-0.6), np.float64(-2.4), np.float64(-3.1), np.float64(0.0), np.float64(-6.4), np.float64(-6.2), np.float64(-0.7), np.float64(-0.1)] Spannweite 6.4 dB

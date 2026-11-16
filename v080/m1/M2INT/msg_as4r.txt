@@ -1,0 +1,17 @@
+v0.8.0 M2INT: AS4R zusammengeführt – Gebäude, Straßenmöbel, Brückenteile, Schiffe
+
+Zusammenführung von origin/wip/v080-as4r (09f679b): Haus, Kirche, Fabrik, Laden, Altstadthaus, Blöcke A/B,
+Büroturm, Hausboot, Fähre, Brückenlaterne, Pylon (eine Stufe, Halbfächer ±36 m), Pylon ohne Seile,
+Fachwerkportal, Fenster der Windmühle; Fensterscheiben im Nachtlicht-Atlas (AS4R, A-16).
+
+Konflikte:
+- tools/blender/ce3d/catalog3d.py, tools/blender/export_models.py: Vereinigung (Polizei, AS3, AS4)
+- docs/modelle.md: AS4 als Abschnitt 19; Standzeile oben nachgezogen; Verweise der Bauer-Module auf die
+  Abschnitte (16 Lkw/Bus/Polizei, 18 Natur, 19 Gebäude) angepasst
+- assets/models/manifest.json: neu erzeugt (--manifest-only): 87 Modelle, 183 Sets (105 mit Modell)
+
+Gemessen: Import ohne Fehler, Prüfer OK (Netze 18,08 von 40 MB, Texturen 38,20 von 240 MB, Quellen 26,58
+von 60 MB), test_props 7 von 7, Modell-Tests 48 von 48.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

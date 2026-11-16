@@ -1,0 +1,16 @@
+v0.8.0 RINT-M2: Doku §17 (Montage RINT-M2), Meldung der Budgetprüfung nennt Ablehnungen
+
+docs/renderer-modern.md §17: Abblendlicht im Material, Bremsschein nach
+Tageslicht und Abstand, Tönung mit Farbe und Custom-Daten (die beiden
+Fallen des Compatibility-Renderers), Instanzbudget unter Last mit den
+Messwerten (Kiel – Hamburg 141, Wald 216, Stadt 171 von 230), Mast der
+Tankstellendächer und Entscheid auf dem Arbeitsfaden, Lichtebenen, Tunnel
+und Brücken, Lack der Spielerautos (gemessen, offen), Lücken heute;
+§17.10 Prüfungen folgt mit den Toren.
+
+check_instance_budget: der Text nennt die Zahl der Ablehnungen der Engine
+statt immer „keine Ablehnung“ (Mutation ohne VPBR_STATIC: 144 Ablehnungen,
+ganze Szene 306 → FEHLER, wie verlangt).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,286 @@
+{
+ "ok": false,
+ "problems": [
+  "vehicle/platzhalter_loop: platzhalter_loop.wav: sha256 im Manifest '4f9c9805689cdb10ba7fa8b456117a6ccad2f3253935a44c77b141ebd3e60e99', Datei '0f63a095f5ee38241b2cb9e6144ba90a300b94a77b1d3d74f385bdab32cd7b49'",
+  "vehicle/platzhalter_loop: platzhalter_loop.wav: true_peak_db im Manifest -12.03, gemessen -6.37",
+  "vehicle/platzhalter_loop: platzhalter_loop.wav: Gleichanteil -16.5 dBFS",
+  "vehicle/platzhalter_loop: platzhalter_loop.wav: Schleifennaht rauer als ihr Umfeld (Sprung ×5.66, Knick ×16.08, erlaubt ×2) und als jede andere Stelle der Schleife (×14.12)",
+  "sfx/platzhalter_hit: platzhalter_hit.wav: sha256 im Manifest '64f5771f5d31ca7c6099fb2cbdafdd04bb9cc2fb7f0840ca15f812229ca76969', Datei '955d54578b9ff2e624e09257062b58ca4783c244772b5a581b3aecc9ed8bcedd'",
+  "sfx/platzhalter_hit: platzhalter_hit.wav: lufs im Manifest -19.45, gemessen -18.4",
+  "sfx/platzhalter_hit: platzhalter_hit.wav: true_peak_db im Manifest -4.4, gemessen 1.03",
+  "sfx/platzhalter_hit: platzhalter_hit.wav: True Peak 1.03 dBTP über -1.0",
+  "sfx/platzhalter_hit: platzhalter_hit.wav: 2 übersteuerte Stellen",
+  "ui/platzhalter_blip: platzhalter_blip.wav: frames im Manifest 5392, Datei 5292",
+  "ui/platzhalter_blip: platzhalter_blip.wav: lufs im Manifest -14.260000000000002, gemessen -17.26",
+  "music/platzhalter_takt: platzhalter_takt.ogg: Schleife [0, 181400] außerhalb der Datei (176400 Frames)",
+  "music/platzhalter_takt: 8 Schläge bei 120.0 bpm sind 4.000 s, die Schleife hat 4.113 s"
+ ],
+ "warnings": [
+  "traffic/vergessen.wav: steht in keinem Manifest-Eintrag"
+ ],
+ "folders": {
+  "engines": {
+   "files": 3,
+   "bytes": 64697,
+   "sounds": 1,
+   "placeholders": 1
+  },
+  "vehicle": {
+   "files": 3,
+   "bytes": 177508,
+   "sounds": 1,
+   "placeholders": 1
+  },
+  "traffic": {
+   "files": 4,
+   "bytes": 177557,
+   "sounds": 1,
+   "placeholders": 1
+  },
+  "sfx": {
+   "files": 3,
+   "bytes": 71646,
+   "sounds": 1,
+   "placeholders": 1
+  },
+  "ambience": {
+   "files": 3,
+   "bytes": 42768,
+   "sounds": 1,
+   "placeholders": 1
+  },
+  "ui": {
+   "files": 3,
+   "bytes": 11733,
+   "sounds": 1,
+   "placeholders": 1
+  },
+  "music": {
+   "files": 3,
+   "bytes": 36214,
+   "sounds": 1,
+   "placeholders": 1
+  }
+ },
+ "sounds": [
+  {
+   "folder": "engines",
+   "id": "platzhalter",
+   "kind": "bank",
+   "placeholder": true,
+   "generator": "tools/audio/modern/make_placeholders.py",
+   "files": [
+    {
+     "lufs": -14.39,
+     "lra": 0.0,
+     "short_term_max": -14.39,
+     "momentary_max": -14.39,
+     "true_peak_db": -9.12,
+     "sample_peak_db": -9.12,
+     "dc_db": -120.0,
+     "clipped_runs": 0,
+     "file": "platzhalter.i16",
+     "frames": 16000,
+     "channels": 2,
+     "sample_rate": 32000,
+     "bytes": 64000,
+     "sha256": "2a74c1d17e8af716fbf9167eb65cca532b51a877924207904d701799fbca91e2",
+     "seconds": 0.5,
+     "seam_ratio": 0.06,
+     "seam_kink_ratio": 0.3,
+     "seam_loop_ratio": 0.3
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "platzhalter_loop",
+   "kind": "loop",
+   "placeholder": true,
+   "generator": "tools/audio/modern/make_placeholders.py",
+   "files": [
+    {
+     "lufs": -21.09,
+     "lra": 0.0,
+     "short_term_max": -21.02,
+     "momentary_max": -20.93,
+     "true_peak_db": -6.37,
+     "sample_peak_db": -6.37,
+     "dc_db": -16.5,
+     "clipped_runs": 0,
+     "file": "platzhalter_loop.wav",
+     "frames": 44100,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 176444,
+     "sha256": "0f63a095f5ee38241b2cb9e6144ba90a300b94a77b1d3d74f385bdab32cd7b49",
+     "seconds": 1.0,
+     "seam_ratio": 5.66,
+     "seam_kink_ratio": 16.08,
+     "seam_loop_ratio": 14.12
+    }
+   ],
+   "errors": [
+    "platzhalter_loop.wav: sha256 im Manifest '4f9c9805689cdb10ba7fa8b456117a6ccad2f3253935a44c77b141ebd3e60e99', Datei '0f63a095f5ee38241b2cb9e6144ba90a300b94a77b1d3d74f385bdab32cd7b49'",
+    "platzhalter_loop.wav: true_peak_db im Manifest -12.03, gemessen -6.37",
+    "platzhalter_loop.wav: Gleichanteil -16.5 dBFS",
+    "platzhalter_loop.wav: Schleifennaht rauer als ihr Umfeld (Sprung ×5.66, Knick ×16.08, erlaubt ×2) und als jede andere Stelle der Schleife (×14.12)"
+   ]
+  },
+  {
+   "folder": "traffic",
+   "id": "platzhalter_loop",
+   "kind": "loop",
+   "placeholder": true,
+   "generator": "tools/audio/modern/make_placeholders.py",
+   "files": [
+    {
+     "lufs": -16.76,
+     "lra": 0.0,
+     "short_term_max": -16.77,
+     "momentary_max": -16.72,
+     "true_peak_db": -10.45,
+     "sample_peak_db": -10.46,
+     "dc_db": -120.0,
+     "clipped_runs": 0,
+     "file": "platzhalter_loop.wav",
+     "frames": 44100,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 88244,
+     "sha256": "81b96ea7a85d896cc5a058c552f56e24b440f3bb77bb0fb14eedff947e3d52c6",
+     "seconds": 1.0,
+     "seam_ratio": 0.15,
+     "seam_kink_ratio": 0.27,
+     "seam_loop_ratio": 0.2
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "sfx",
+   "id": "platzhalter_hit",
+   "kind": "oneshot",
+   "placeholder": true,
+   "generator": "tools/audio/modern/make_placeholders.py",
+   "files": [
+    {
+     "lufs": -18.4,
+     "lra": 0.0,
+     "short_term_max": -18.4,
+     "momentary_max": -18.4,
+     "true_peak_db": 1.03,
+     "sample_peak_db": -0.0,
+     "dc_db": -48.0,
+     "clipped_runs": 2,
+     "file": "platzhalter_hit.wav",
+     "frames": 17640,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 70604,
+     "sha256": "955d54578b9ff2e624e09257062b58ca4783c244772b5a581b3aecc9ed8bcedd",
+     "seconds": 0.4
+    }
+   ],
+   "errors": [
+    "platzhalter_hit.wav: sha256 im Manifest '64f5771f5d31ca7c6099fb2cbdafdd04bb9cc2fb7f0840ca15f812229ca76969', Datei '955d54578b9ff2e624e09257062b58ca4783c244772b5a581b3aecc9ed8bcedd'",
+    "platzhalter_hit.wav: lufs im Manifest -19.45, gemessen -18.4",
+    "platzhalter_hit.wav: true_peak_db im Manifest -4.4, gemessen 1.03",
+    "platzhalter_hit.wav: True Peak 1.03 dBTP über -1.0",
+    "platzhalter_hit.wav: 2 übersteuerte Stellen"
+   ]
+  },
+  {
+   "folder": "ambience",
+   "id": "platzhalter_bed",
+   "kind": "loop",
+   "placeholder": true,
+   "generator": "tools/audio/modern/make_placeholders.py",
+   "files": [
+    {
+     "lufs": -29.13,
+     "lra": 0.08,
+     "short_term_max": -29.09,
+     "momentary_max": -28.55,
+     "true_peak_db": -18.27,
+     "sample_peak_db": -18.27,
+     "dc_db": -119.0,
+     "clipped_runs": 0,
+     "file": "platzhalter_bed.ogg",
+     "frames": 176400,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 41812,
+     "sha256": "a5e8f24c6f21092cd14924cfa4438e3580ab03c640cdd3001cca98f8f6215db1",
+     "seconds": 4.0,
+     "seam_ratio": 0.23,
+     "seam_kink_ratio": 0.56,
+     "seam_loop_ratio": 0.47
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "ui",
+   "id": "platzhalter_blip",
+   "kind": "oneshot",
+   "placeholder": true,
+   "generator": "tools/audio/modern/make_placeholders.py",
+   "files": [
+    {
+     "lufs": -17.26,
+     "lra": 0.0,
+     "short_term_max": -17.26,
+     "momentary_max": -17.26,
+     "true_peak_db": -9.02,
+     "sample_peak_db": -9.02,
+     "dc_db": -111.1,
+     "clipped_runs": 0,
+     "file": "platzhalter_blip.wav",
+     "frames": 5292,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 10628,
+     "sha256": "af9bcc064e8d82b094ee7d934849e772cabdb447854a57da3de9ee650dfa9994",
+     "seconds": 0.12
+    }
+   ],
+   "errors": [
+    "platzhalter_blip.wav: frames im Manifest 5392, Datei 5292",
+    "platzhalter_blip.wav: lufs im Manifest -14.260000000000002, gemessen -17.26"
+   ]
+  },
+  {
+   "folder": "music",
+   "id": "platzhalter_takt",
+   "kind": "music",
+   "placeholder": true,
+   "generator": "tools/audio/modern/make_placeholders.py",
+   "files": [
+    {
+     "lufs": -13.97,
+     "lra": 0.01,
+     "short_term_max": -13.92,
+     "momentary_max": -13.26,
+     "true_peak_db": -2.14,
+     "sample_peak_db": -2.14,
+     "dc_db": -56.3,
+     "clipped_runs": 0,
+     "file": "platzhalter_takt.ogg",
+     "frames": 176400,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 35124,
+     "sha256": "5db87a4fc25f935d14f6f431584147c453c33da922f6198950752fa370664ab2",
+     "seconds": 4.0
+    }
+   ],
+   "errors": [
+    "platzhalter_takt.ogg: Schleife [0, 181400] außerhalb der Datei (176400 Frames)",
+    "8 Schläge bei 120.0 bpm sind 4.000 s, die Schleife hat 4.113 s"
+   ]
+  }
+ ],
+ "determinism": []
+}

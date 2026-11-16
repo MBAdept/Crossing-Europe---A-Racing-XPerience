@@ -1,0 +1,13 @@
+v0.8.0 R5: Fernboden-Ebene ohne festen Verweis auf den Arcade-Renderer (check_terrain_plan wieder grün)
+
+Der volle Testlauf auf dem Endstand fiel an tests/race3d/check_terrain_plan.gd:
+das "-s"-Skript lädt layers/far_ground.gd per preload, und R5s Rückfallfarbe
+der Fernufer (RoadRenderer.QUAY) zog road_renderer.gd mit, das die Autoload
+SpriteDB nennt – "Identifier not found: SpriteDB", Kompilierung scheitert.
+Jetzt hält far_ground.gd eine Kopie ARCADE_QUAY (wie GroundLook.GROUND_BLEND_M),
+festgenagelt durch den neuen Unit-Test test_far_ground_quay_copy_equals_arcade
+in test_bridge.gd. Bild und Verhalten unverändert (die Kopie gilt nur ohne
+Brücken-Builder). check_terrain_plan allein: 3/3 OK; test_bridge 10/10.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,60 @@
+QC vehicle/blowoff_gt                 OK      -19.6 LUFS   -5.9 dBTP    0.75 s mono      64.6 kB
+QC vehicle/blowoff_hatch              OK      -19.5 LUFS   -5.6 dBTP    0.70 s mono     117.2 kB  (2 Varianten)
+QC vehicle/blowoff_soft               OK      -18.5 LUFS   -5.8 dBTP    0.50 s mono      43.1 kB
+QC vehicle/driveline_whine            OK       -7.5 LUFS   -6.0 dBTP    2.00 s mono     172.3 kB  Naht ×0.51
+QC vehicle/platzhalter_loop           OK      -21.1 LUFS  -12.0 dBTP    1.00 s stereo   172.3 kB  Naht ×0.38  [Platzhalter]
+QC vehicle/rail_scrape                OK      -11.1 LUFS   -3.0 dBTP    2.00 s mono     172.3 kB  Naht ×0.11
+QC vehicle/scrub                      OK      -14.2 LUFS   -3.0 dBTP    1.50 s mono     129.3 kB  Naht ×0.23
+QC vehicle/shift_thump                OK      -22.0 LUFS   -5.9 dBTP    0.23 s mono      41.0 kB  (2 Varianten)
+QC vehicle/slab_fast                  OK      -17.7 LUFS   -3.0 dBTP    0.80 s mono      69.0 kB  Naht ×0.18
+QC vehicle/slab_slow                  OK      -20.6 LUFS   -3.0 dBTP    1.60 s mono     137.9 kB  Naht ×0.06
+QC vehicle/squeal                     OK      -11.6 LUFS   -3.0 dBTP    2.00 s mono     172.3 kB  Naht ×0.24
+QC vehicle/tipin                      OK      -22.3 LUFS   -6.0 dBTP    0.38 s mono      65.5 kB  (2 Varianten)
+QC vehicle/turbo_hiss                 OK      -12.5 LUFS   -5.8 dBTP    2.00 s mono     172.3 kB  Naht ×0.12
+QC vehicle/turbo_single               OK       -7.2 LUFS   -6.0 dBTP    2.00 s mono     172.3 kB  Naht ×0.72
+QC vehicle/turbo_twin                 OK       -8.2 LUFS   -6.0 dBTP    2.00 s stereo   344.6 kB  Naht ×0.61
+QC vehicle/tyre_asphalt               OK      -14.2 LUFS   -3.0 dBTP    2.00 s mono     172.3 kB  Naht ×0.35
+QC vehicle/tyre_cobbles               OK      -16.9 LUFS   -3.0 dBTP    2.50 s mono     215.4 kB  Naht ×0.23
+QC vehicle/tyre_concrete              OK      -12.8 LUFS   -3.0 dBTP    2.00 s mono     172.3 kB  Naht ×0.29
+QC vehicle/tyre_deck                  OK      -13.3 LUFS   -3.0 dBTP    2.00 s mono     172.3 kB  Naht ×0.25
+QC vehicle/tyre_grass                 OK      -17.7 LUFS   -3.0 dBTP    2.50 s mono     215.4 kB  Naht ×0.09
+QC vehicle/tyre_gravel                OK      -13.9 LUFS   -3.0 dBTP    2.50 s mono     215.4 kB  Naht ×0.00
+QC vehicle/tyre_rumble                OK      -10.8 LUFS   -3.0 dBTP    1.00 s mono      86.2 kB  Naht ×0.24
+QC vehicle/tyre_wet                   OK      -11.6 LUFS   -3.0 dBTP    2.00 s mono     172.3 kB  Naht ×0.25
+QC vehicle/wind_buffet                OK      -18.6 LUFS   -3.0 dBTP    3.00 s mono     258.5 kB  Naht ×0.56
+QC vehicle/wind_high                  OK      -10.7 LUFS   -3.0 dBTP    2.00 s mono     172.3 kB  Naht ×0.07
+QC vehicle/wind_low                   OK      -14.4 LUFS   -3.0 dBTP    2.00 s mono     172.3 kB  Naht ×0.19
+QC vehicle/wind_mid                   OK      -11.6 LUFS   -3.0 dBTP    2.00 s mono     172.3 kB  Naht ×0.23
+QC sfx/crunch                         OK      -19.0 LUFS   -3.0 dBTP    0.90 s mono     155.8 kB  (2 Varianten)
+QC sfx/debris                         OK      -20.4 LUFS   -3.0 dBTP    1.04 s mono      89.6 kB
+QC sfx/glass                          OK      -21.1 LUFS   -3.0 dBTP    1.31 s mono     112.8 kB
+QC sfx/hit_heavy                      OK      -21.8 LUFS   -3.0 dBTP    0.80 s mono     137.9 kB  (2 Varianten)
+QC sfx/hit_light                      OK      -22.2 LUFS   -3.0 dBTP    0.50 s mono      86.2 kB  (2 Varianten)
+QC sfx/joint_concrete                 OK      -19.9 LUFS   -3.0 dBTP    0.56 s mono     129.3 kB  (3 Varianten)
+QC sfx/joint_steel                    OK      -20.2 LUFS   -3.0 dBTP    0.56 s mono     129.3 kB  (3 Varianten)
+QC sfx/pass_building                  OK      -13.4 LUFS   -3.0 dBTP    0.55 s mono      47.4 kB
+QC sfx/pass_gantry                    OK      -13.6 LUFS   -3.0 dBTP    0.60 s mono      51.7 kB
+QC sfx/pass_post                      OK      -11.8 LUFS   -3.0 dBTP    0.18 s mono      32.8 kB  (2 Varianten)
+QC sfx/pass_rock                      OK      -15.1 LUFS   -3.0 dBTP    0.40 s mono      34.5 kB
+QC sfx/pass_sign                      OK      -13.9 LUFS   -3.0 dBTP    0.25 s mono      21.6 kB
+QC sfx/pass_tree                      OK      -15.6 LUFS   -3.0 dBTP    0.45 s mono      73.3 kB  (2 Varianten)
+QC sfx/platzhalter_hit                OK      -19.4 LUFS   -4.4 dBTP    0.40 s stereo    68.9 kB  [Platzhalter]
+QC sfx/post_hit                       OK      -18.1 LUFS   -3.0 dBTP    0.45 s mono      77.6 kB  (2 Varianten)
+QC sfx/rail_hit                       OK      -22.3 LUFS   -3.0 dBTP    1.00 s mono     172.4 kB  (2 Varianten)
+QC sfx/rail_touch                     OK      -18.2 LUFS   -3.0 dBTP    0.40 s mono      69.0 kB  (2 Varianten)
+QC sfx/truck_boom                     OK      -21.0 LUFS   -3.0 dBTP    1.30 s mono     112.0 kB
+
+Größe (Bytes der Dateien im Ordner; Budget nach Vertrag §4.11):
+  vehicle      4.378 MB   27 Klänge (1 Platzhalter)
+  sfx          1.666 MB   18 Klänge (1 Platzhalter)
+  Summe Klänge: 6.044 MB von 23 MB  OK
+  Summe Musik: 0.000 MB von 25 MB  OK
+
+Determinismus (jeder Generator zweimal nach --out):
+  tools/audio/modern/engine_synth3.py: OK  (24 Dateien je Lauf, 9 Einträge)
+  tools/audio/modern/make_placeholders.py: OK  (15 Dateien je Lauf, 2 Einträge)
+  tools/audio/modern/sfx_modern.py: OK  (30 Dateien je Lauf, 17 Einträge)
+  tools/audio/modern/vehicle_loops.py: OK  (18 Dateien je Lauf, 17 Einträge)
+
+45 Klänge geprüft, 0 mit Fehlern, 0 Probleme insgesamt -> OK
+exit=0

@@ -1,0 +1,26 @@
+v0.8.0 RINT-M2: Tönung ohne Grünstich – Requisiten mit Farbe und Custom-Daten (A-19)
+
+Die Bilder nach b04d28a zeigten leuchtend grüne Fensterrahmen,
+Garagentore, Giebelkanten, Baumkronen, Stämme und Windräder (Kiel,
+Hamburg-Ortsrand). Ursache, mit Sonden auf llvmpipe gemessen: Godots
+Compatibility-Renderer liest INSTANCE_CUSTOM falsch, wenn ein MultiMesh
+Farbe ohne Custom-Daten hat ((0, 1, 0, 1)) oder Custom-Daten ohne Farbe
+über MultiMesh.buffer bekommt (Müll auf den echten Modellnetzen; über
+set_instance_custom_data richtig, aber je Instanz zu teuer). Mit Farbe
+UND Custom-Daten stimmt es (Sonde: grüne Pixel 0,292 % → 0,002 %,
+ohne Instanzdaten 0,006 %).
+
+props.gd legt jetzt jeder Instanz 20 Werte an: Transformation, Farbe,
+Custom. Modell: Farbe weiß (MODEL_COLOR), Custom = Tönung; Vertretung:
+Farbe = Tönung, Custom = NO_CUSTOM (a = 0). _mmi() setzt immer beides.
+Unit-Tests auf das neue Layout, Knoten mit Farbe und Custom-Daten.
+
+check_instance_budget: mit eingespeistem Verkehr (Wald, Stadt) darf die
+Fahrzeug-Ebene über ihr Budget gehen – 48 gezeigte Autos brauchen mehr
+Stufen, als es fasst (gemessen 208 im Wald, 176 in der Stadt), und sie
+gibt nur Pool-Autos und verborgene Stufen frei. Dort zählen die Grenze
+der ganzen Szene (230) und die Ablehnung der Engine; die Szene wird
+dann alle 10 statt 60 Bilder gezählt.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

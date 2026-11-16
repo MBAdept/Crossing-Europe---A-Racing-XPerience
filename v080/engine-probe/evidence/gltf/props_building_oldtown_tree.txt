@@ -1,0 +1,5 @@
+ROOT [EMPTY]
+  old_caps [MESH] verts=40 polys=30 mats=1 mods=[]
+  old_gable [MESH] verts=40 polys=30 mats=1 mods=[]
+  old_roof [MESH] verts=6 polys=2 mats=1 mods=['SOLIDIFY']
+  old_walls [MESH] verts=8 polys=6 mats=1 mods=['BEVEL']

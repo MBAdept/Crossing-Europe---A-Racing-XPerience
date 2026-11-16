@@ -1,0 +1,15 @@
+v0.8.0 AS4R: Runde 2 - Scheiben getönt ohne Verdeckung, Mühle wie Sprite, Doku
+
+- Scheiben: 8 % zum Himmel getönt und ohne Umgebungsverdeckung - die
+  dunkleren gebackenen Scheiben gaben den Rahmenkanten mehr Kontrast
+  (Block B flimmerte bei 120 m in 1,7 % statt 0,1 % der Pixel, jetzt 1,0 %;
+  bei 250/400 m 0,8/0,6 % wie AS4).
+- Windmühle: Flügel wieder wie das Sprite. Das Flimmern der Kritik war die
+  Drehung des Rotors, dessen Phase an der Weltposition hängt; mit bewegter
+  Kamera flimmern Mühle und Sprite fast gleich (gemessen), schmalere oder
+  breitere Sprossen änderten nichts.
+- Fabrik-Shed-Licht 30 %, Schildlicht des Ladens 25 %.
+- Alle 15 Modelle neu exportiert, Validator OK; Doku Abschnitt 15 ergänzt.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

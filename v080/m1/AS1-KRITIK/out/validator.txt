@@ -1,0 +1,14 @@
+validate_models: 10 Modelle, 180 Sets (25 mit Modell, 155 Platzhalter)
+  Netze 4.18 MB von 40 MB, Texturen 4.59 MB im Grafikspeicher von 240 MB, Quellen 1.43 MB von 60 MB
+Modell                 Kategorie Dreiecke je Stufe                  Aufrufe        Netze B  Textur B Export s  Bake s
+landmarks/michel       landmark  lod0 3024                          1                63648    377301        -       -
+player/kompakt         player    lod0 50080 show 107042 shadow 1872 6/6            1742534         0        -       -
+player/limousine       player    lod0 45764 show 99670 shadow 1872  6/6            1573290         0        -       -
+props/farmhouse        rural     lod0 104                           1                 2586    752795        -       -
+props/streetlight      furniture lod0 312                           1                 4395         0        -       -
+props/tree_oak         tree      lod0 1220 lod1 459 shadow 179      2/2              53072    373558        -       -
+traffic/hatch          car       lod0 17317 lod1 5753 lod2 1136 shadow 652 6/1/1           256895         0        -       -
+traffic/sedan          car       lod0 17695 lod1 5805 lod2 1123 shadow 636 6/1/1           260279         0        -       -
+traffic/truck          heavy     lod0 18084 lod1 4672 lod2 1490 shadow 356 13/1/1          160568         0        -       -
+traffic/wagon          car       lod0 17888 lod1 5937 lod2 1103 shadow 604 6/1/1           269062         0        -       -
+CHECK models OK

@@ -1,0 +1,74 @@
+{
+	"engine": {
+		"avg_ms": 1.20487556053812,
+		"frames": 892,
+		"max_ms": 13.56,
+		"ms_per_frame": 1.19051464398068,
+		"samples": 481472,
+		"skips": 0,
+		"threaded": false
+	},
+	"master_db": -1.93820023536682,
+	"mix_rate": 44100,
+	"mute_buses": [
+		"MEngine",
+		"MEngineFx",
+		"MWind",
+		"MMusic"
+	],
+	"phases": [
+		{
+			"car_bus_peak_db": -20.71,
+			"car_plan_lufs": -19.9,
+			"duck_db": -2.29,
+			"name": "roll",
+			"t0": 0.5,
+			"t1": 3.0
+		},
+		{
+			"car_bus_peak_db": -12.41,
+			"car_plan_lufs": -19.9,
+			"duck_db": -2.32,
+			"name": "ramp",
+			"t0": 3.0,
+			"t1": 4.0
+		},
+		{
+			"car_bus_peak_db": -7.41,
+			"car_plan_lufs": -19.9,
+			"duck_db": -2.32,
+			"name": "skid_full",
+			"t0": 4.5,
+			"t1": 7.0
+		},
+		{
+			"car_bus_peak_db": -11.85,
+			"car_plan_lufs": -19.9,
+			"duck_db": -2.32,
+			"name": "release",
+			"t0": 7.5,
+			"t1": 10.0
+		},
+		{
+			"car_bus_peak_db": -15.04,
+			"car_plan_lufs": -19.9,
+			"duck_db": -2.32,
+			"name": "skid_04",
+			"t0": 10.5,
+			"t1": 13.0
+		},
+		{
+			"car_bus_peak_db": -19.09,
+			"car_plan_lufs": -19.9,
+			"duck_db": -2.32,
+			"name": "roll_end",
+			"t0": 13.5,
+			"t1": 15.0
+		}
+	],
+	"placeholders": false,
+	"profile": "modern",
+	"scenario": "skid",
+	"seconds": 15.0,
+	"vehicle": "gran_turismo"
+}

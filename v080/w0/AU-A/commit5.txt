@@ -1,0 +1,13 @@
+v0.8.0 AU-A: docs/audio-modern.md – Kern des Klangprofils „Modern“; AUDIO_PERF auch mit Modern
+
+docs/audio-modern.md beschreibt für die Klangpakete AU-B bis AU-E: Profilwahl, Delegation des AudioManager,
+Aufbau und Schnittstelle der Bausteine, Busse, Pegelplan mit den Messwerten (Arcade gegen Modern mit den
+Platzhalter-Bausteinen), Ducking, Renn-EQ, Mischzustände, Einmalklänge und Ereignisse, Musik-Kontexte, AudioFeed,
+Manifest-Format, Werkzeuge, Prüfungen und die gemessenen Eigenheiten der Engine (Fallen).
+
+Mit --perf gibt jetzt auch das Profil Modern beim Beenden seine Zeile AUDIO_PERF aus (ModernAudio, bevor es seine
+Bausteine freigibt); mit Arcade bleibt die Ausgabe, wie sie war. Kommentare berichtigt: Reihenfolge der Bausteine,
+„generator“ steht im Manifest je Klang.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

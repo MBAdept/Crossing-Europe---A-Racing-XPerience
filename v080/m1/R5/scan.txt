@@ -1,0 +1,151 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+BR kiel_hamburg__kiel Köhlbrandbrücke type=cable_stayed len=261 depth=9.0 slope=13.5 curve_max=0.13 dy=0.0 pylons=4 city=true lanes=2 bank=
+BR kiel_hamburg__kiel Elbbrücken type=truss_arch len=201 depth=3.6 slope=3.0 curve_max=0.02 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR kiel_hamburg__hamburg Holtenauer Hochbrücke type=river len=201 depth=16.0 slope=24.0 curve_max=0.21 dy=1.3 pylons=0 city=true lanes=2 bank=#5f7e4a
+TUN hamburg_hannover__hamburg Elbtunnel km 4.0 len 330 m
+BR hamburg_hannover__hamburg Leinebrücke type=river len=45 depth=3.0 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+TUN hamburg_hannover__hannover Elbtunnel km 142.7 len 330 m
+BR hamburg_hannover__hannover Köhlbrandbrücke type=cable_stayed len=261 depth=9.0 slope=13.5 curve_max=0.19 dy=5.6 pylons=4 city=true lanes=2 bank=
+BR hamburg_hannover__hannover Elbbrücken type=truss_arch len=201 depth=3.6 slope=3.0 curve_max=0.06 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR hannover_kassel__hannover Fuldabrücke type=river len=60 depth=3.0 slope=3.0 curve_max=0.00 dy=2.5 pylons=0 city=true lanes=2 bank=
+BR hannover_kassel__kassel Leinebrücke type=river len=45 depth=3.0 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR kassel_wuerzburg__kassel Ludwigsbrücke type=stone_arch len=78 depth=3.2 slope=3.0 curve_max=0.00 dy=0.3 pylons=0 city=true lanes=2 bank=
+BR kassel_wuerzburg__wuerzburg Fuldabrücke type=river len=60 depth=3.0 slope=3.0 curve_max=0.00 dy=1.9 pylons=0 city=true lanes=2 bank=
+BR hamburg_bremen__hamburg Wilhelm-Kaisen-Brücke type=river len=90 depth=3.0 slope=3.0 curve_max=0.27 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR hamburg_bremen__bremen Köhlbrandbrücke type=cable_stayed len=261 depth=9.0 slope=13.5 curve_max=0.25 dy=0.0 pylons=4 city=true lanes=2 bank=
+BR hamburg_bremen__bremen Elbbrücken type=truss_arch len=201 depth=3.6 slope=3.0 curve_max=0.25 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR bremen_dortmund__dortmund Wilhelm-Kaisen-Brücke type=river len=90 depth=3.0 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR dortmund_frankfurt__dortmund Friedensbrücke type=river len=111 depth=3.0 slope=3.0 curve_max=0.22 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR frankfurt_wuerzburg__frankfurt Ludwigsbrücke type=stone_arch len=78 depth=3.2 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR frankfurt_wuerzburg__wuerzburg Friedensbrücke type=river len=111 depth=3.0 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR wuerzburg_nuernberg__wuerzburg Pegnitzbrücke type=river len=33 depth=3.0 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR wuerzburg_nuernberg__nuernberg Ludwigsbrücke type=stone_arch len=81 depth=3.2 slope=3.0 curve_max=0.00 dy=2.1 pylons=0 city=true lanes=2 bank=
+BR muenchen_nuernberg__muenchen Pegnitzbrücke type=river len=33 depth=3.0 slope=3.0 curve_max=0.00 dy=1.3 pylons=0 city=true lanes=2 bank=
+BR muenchen_nuernberg__nuernberg Maximiliansbrücke type=stone_arch len=60 depth=3.2 slope=3.0 curve_max=0.14 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR hannover_bremen__hannover Wilhelm-Kaisen-Brücke type=river len=90 depth=3.0 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR hannover_bremen__bremen Leinebrücke type=river len=45 depth=3.0 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR dresden_leipzig__leipzig Augustusbrücke type=stone_arch len=120 depth=3.2 slope=3.0 curve_max=0.11 dy=4.8 pylons=0 city=true lanes=2 bank=
+TUN leipzig_erfurt__leipzig Jagdbergtunnel km 95.0 len 310 m
+TUN leipzig_erfurt__erfurt Jagdbergtunnel km 51.9 len 310 m
+BR erfurt_kassel__erfurt Fuldabrücke type=river len=60 depth=3.0 slope=3.0 curve_max=0.10 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR kassel_dortmund__dortmund Fuldabrücke type=river len=60 depth=3.0 slope=3.0 curve_max=0.29 dy=1.5 pylons=0 city=true lanes=2 bank=
+BR leipzig_magdeburg__leipzig Strombrücke type=river len=120 depth=3.0 slope=3.0 curve_max=0.27 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR magdeburg_hannover__magdeburg Leinebrücke type=river len=45 depth=3.0 slope=3.0 curve_max=0.05 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR magdeburg_hannover__hannover Strombrücke type=river len=120 depth=3.0 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR hannover_dortmund__dortmund Leinebrücke type=river len=45 depth=3.0 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+TUN bremen_amsterdam__bremen Emstunnel km 125.0 len 90 m
+BR bremen_amsterdam__bremen Singelgracht type=canal len=36 depth=1.8 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR bremen_amsterdam__bremen Prinsengracht type=canal len=42 depth=1.8 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR bremen_amsterdam__bremen Keizersgracht type=canal len=39 depth=1.8 slope=3.0 curve_max=0.11 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR bremen_amsterdam__bremen Herengracht type=canal len=45 depth=1.8 slope=3.0 curve_max=0.26 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR bremen_amsterdam__bremen Singel type=canal len=36 depth=1.8 slope=3.0 curve_max=0.26 dy=0.0 pylons=0 city=true lanes=2 bank=
+TUN bremen_amsterdam__amsterdam Emstunnel km 239.1 len 90 m
+BR bremen_amsterdam__amsterdam Wilhelm-Kaisen-Brücke type=river len=90 depth=3.0 slope=3.0 curve_max=0.08 dy=0.0 pylons=0 city=true lanes=2 bank=
+TUN amsterdam_luettich__amsterdam Koning-Willem-Alexander-Tunnel km 198.0 len 230 m
+BR amsterdam_luettich__amsterdam Pont de Fragnée type=stone_arch len=111 depth=3.2 slope=3.0 curve_max=0.18 dy=3.8 pylons=0 city=true lanes=2 bank=
+TUN amsterdam_luettich__luettich Koning-Willem-Alexander-Tunnel km 34.7 len 230 m
+BR amsterdam_luettich__luettich Singelgracht type=canal len=36 depth=1.8 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR amsterdam_luettich__luettich Prinsengracht type=canal len=42 depth=1.8 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR amsterdam_luettich__luettich Keizersgracht type=canal len=39 depth=1.8 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR amsterdam_luettich__luettich Herengracht type=canal len=45 depth=1.8 slope=3.0 curve_max=0.26 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR amsterdam_luettich__luettich Singel type=canal len=33 depth=1.8 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+TUN luettich_paris__luettich Tunnel du Landy km 385.0 len 130 m
+BR luettich_paris__luettich Pont Alexandre III type=stone_arch len=129 depth=3.2 slope=3.0 curve_max=0.20 dy=0.0 pylons=0 city=true lanes=2 bank=
+TUN luettich_paris__paris Tunnel du Landy km 8.7 len 130 m
+BR luettich_paris__paris Pont de Fragnée type=stone_arch len=108 depth=3.2 slope=3.0 curve_max=0.01 dy=1.3 pylons=0 city=true lanes=2 bank=
+BR paris_tours__paris Pont Wilson type=stone_arch len=120 depth=3.2 slope=3.0 curve_max=0.29 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR paris_tours__tours Pont Alexandre III type=stone_arch len=132 depth=3.2 slope=3.0 curve_max=0.11 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR tours_bordeaux__tours Pont de Pierre type=stone_arch len=150 depth=3.2 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR tours_bordeaux__bordeaux Pont Wilson type=stone_arch len=120 depth=3.2 slope=3.0 curve_max=0.02 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR bordeaux_san_sebastian__bordeaux Puente María Cristina type=stone_arch len=60 depth=3.2 slope=3.0 curve_max=0.00 dy=5.2 pylons=0 city=true lanes=2 bank=
+BR bordeaux_san_sebastian__san_sebastian Pont de Pierre type=stone_arch len=150 depth=3.2 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR san_sebastian_burgos__san_sebastian Puente de Santa María type=stone_arch len=51 depth=3.2 slope=3.0 curve_max=0.00 dy=1.8 pylons=0 city=true lanes=2 bank=
+BR san_sebastian_burgos__burgos Puente María Cristina type=stone_arch len=60 depth=3.2 slope=3.0 curve_max=0.16 dy=1.3 pylons=0 city=true lanes=2 bank=
+BR burgos_madrid__burgos Puente de Segovia type=stone_arch len=51 depth=3.2 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR burgos_madrid__madrid Puente de Santa María type=stone_arch len=51 depth=3.2 slope=3.0 curve_max=0.00 dy=2.3 pylons=0 city=true lanes=2 bank=
+BR madrid_saragossa__madrid Puente de Piedra type=stone_arch len=99 depth=3.2 slope=3.0 curve_max=0.19 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR madrid_saragossa__saragossa Puente de Segovia type=stone_arch len=51 depth=3.2 slope=3.0 curve_max=0.02 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR saragossa_barcelona__barcelona Puente de Piedra type=stone_arch len=99 depth=3.2 slope=3.0 curve_max=0.26 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR barcelona_montpellier__barcelona Pont Juvénal type=river len=42 depth=3.0 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+TUN saragossa_pau__saragossa Somport-Tunnel km 177.0 len 860 m
+BR saragossa_pau__saragossa Pont du XIV-Juillet type=river len=60 depth=3.0 slope=3.0 curve_max=0.00 dy=2.4 pylons=0 city=true lanes=2 bank=
+TUN saragossa_pau__pau Somport-Tunnel km 74.4 len 860 m
+BR saragossa_pau__pau Puente de Piedra type=stone_arch len=102 depth=3.2 slope=3.0 curve_max=0.01 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR pau_toulouse__pau Pont Neuf type=stone_arch len=129 depth=3.2 slope=3.0 curve_max=0.28 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR pau_toulouse__toulouse Pont du XIV-Juillet type=river len=60 depth=3.0 slope=3.0 curve_max=0.26 dy=0.6 pylons=0 city=true lanes=2 bank=
+BR toulouse_montpellier__toulouse Pont Juvénal type=river len=42 depth=3.0 slope=3.0 curve_max=0.20 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR toulouse_montpellier__montpellier Pont Neuf type=stone_arch len=129 depth=3.2 slope=3.0 curve_max=0.20 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR montpellier_lyon__montpellier Pont Lafayette type=river len=111 depth=3.0 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR montpellier_lyon__montpellier Pont Bonaparte type=stone_arch len=69 depth=3.2 slope=3.0 curve_max=0.23 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR montpellier_lyon__lyon Pont Juvénal type=river len=42 depth=3.0 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+TUN lyon_bern__lyon Tunnel de Chamoise km 80.0 len 330 m
+BR lyon_bern__lyon Kirchenfeldbrücke type=river len=111 depth=8.0 slope=12.0 curve_max=0.00 dy=3.7 pylons=0 city=true lanes=2 bank=#5f7c48
+TUN lyon_bern__bern Tunnel de Chamoise km 226.7 len 330 m
+BR lyon_bern__bern Pont Lafayette type=river len=108 depth=3.0 slope=3.0 curve_max=0.13 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR lyon_bern__bern Pont Bonaparte type=stone_arch len=69 depth=3.2 slope=3.0 curve_max=0.18 dy=0.0 pylons=0 city=true lanes=2 bank=
+TUN bern_mailand__bern Sonnenbergtunnel km 106.0 len 150 m
+TUN bern_mailand__bern Seelisbergtunnel km 130.0 len 930 m
+TUN bern_mailand__bern Gotthard-Strassentunnel km 185.0 len 1690 m
+TUN bern_mailand__mailand Gotthard-Strassentunnel km 163.1 len 1690 m
+TUN bern_mailand__mailand Seelisbergtunnel km 225.7 len 930 m
+TUN bern_mailand__mailand Sonnenbergtunnel km 257.5 len 150 m
+BR bern_mailand__mailand Kirchenfeldbrücke type=river len=108 depth=8.0 slope=12.0 curve_max=0.15 dy=2.2 pylons=0 city=true lanes=2 bank=#5f7c48
+BR mailand_venedig__mailand Ponte della Libertà type=causeway len=378 depth=1.4 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR venedig_ljubljana__venedig Drachenbrücke type=stone_arch len=39 depth=3.2 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR venedig_ljubljana__ljubljana Ponte della Libertà type=causeway len=378 depth=1.4 slope=3.0 curve_max=0.27 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR ljubljana_slavonski_brod__ljubljana Savebrücke type=river len=90 depth=3.0 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR ljubljana_slavonski_brod__slavonski_brod Drachenbrücke type=stone_arch len=39 depth=3.2 slope=3.0 curve_max=0.00 dy=1.1 pylons=0 city=true lanes=2 bank=
+BR slavonski_brod_belgrad__slavonski_brod Ada-Brücke type=cable_stayed len=171 depth=5.0 slope=3.0 curve_max=0.19 dy=0.0 pylons=4 city=true lanes=2 bank=
+BR slavonski_brod_belgrad__belgrad Savebrücke type=river len=90 depth=3.0 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR belgrad_sofia__sofia Ada-Brücke type=cable_stayed len=168 depth=5.0 slope=3.0 curve_max=0.20 dy=0.0 pylons=4 city=true lanes=2 bank=
+BR belgrad_budapest__belgrad Elisabethbrücke type=cable_stayed len=150 depth=5.0 slope=3.0 curve_max=0.27 dy=0.0 pylons=4 city=true lanes=2 bank=
+BR belgrad_budapest__budapest Ada-Brücke type=cable_stayed len=171 depth=5.0 slope=3.0 curve_max=0.00 dy=0.0 pylons=4 city=true lanes=2 bank=
+BR budapest_wien__budapest Reichsbrücke type=river len=120 depth=3.0 slope=3.0 curve_max=0.22 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR budapest_wien__wien Elisabethbrücke type=cable_stayed len=150 depth=5.0 slope=3.0 curve_max=0.22 dy=0.0 pylons=4 city=true lanes=2 bank=
+BR wien_prag__wien Most Legií type=stone_arch len=108 depth=3.2 slope=3.0 curve_max=0.17 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR wien_prag__prag Reichsbrücke type=river len=120 depth=3.0 slope=3.0 curve_max=0.25 dy=0.0 pylons=0 city=true lanes=2 bank=
+TUN prag_leipzig__prag Tunel Radejčín km 78.0 len 60 m
+TUN prag_leipzig__prag Tunnel Dölzschen km 136.0 len 110 m
+TUN prag_leipzig__leipzig Tunnel Dölzschen km 127.9 len 110 m
+TUN prag_leipzig__leipzig Tunel Radejčín km 186.4 len 60 m
+BR prag_leipzig__leipzig Most Legií type=stone_arch len=111 depth=3.2 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR leipzig_berlin__leipzig Oberbaumbrücke type=stone_arch len=72 depth=3.2 slope=3.0 curve_max=0.11 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR berlin_posen__berlin Warthebrücke type=river len=90 depth=3.0 slope=3.0 curve_max=0.13 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR berlin_posen__posen Oberbaumbrücke type=stone_arch len=69 depth=3.2 slope=3.0 curve_max=0.18 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR posen_warschau__posen Poniatowski-Brücke type=stone_arch len=138 depth=3.2 slope=3.0 curve_max=0.29 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR posen_warschau__warschau Warthebrücke type=river len=90 depth=3.0 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR warschau_bialystok__bialystok Poniatowski-Brücke type=stone_arch len=138 depth=3.2 slope=3.0 curve_max=0.01 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR bialystok_kaunas__bialystok Aleksotas-Brücke type=river len=111 depth=3.0 slope=3.0 curve_max=0.00 dy=1.9 pylons=0 city=true lanes=2 bank=
+BR kaunas_riga__kaunas Vanšu-Brücke type=cable_stayed len=150 depth=5.0 slope=3.0 curve_max=0.25 dy=0.0 pylons=4 city=true lanes=2 bank=
+BR kaunas_riga__riga Aleksotas-Brücke type=river len=111 depth=3.0 slope=3.0 curve_max=0.22 dy=2.0 pylons=0 city=true lanes=2 bank=
+BR rostock_kiel__rostock Holtenauer Hochbrücke type=river len=201 depth=16.0 slope=24.0 curve_max=0.11 dy=0.0 pylons=0 city=true lanes=2 bank=#5f7e4a
+BR wien_linz__wien Nibelungenbrücke type=river len=129 depth=3.0 slope=3.0 curve_max=0.04 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR wien_linz__linz Reichsbrücke type=river len=120 depth=3.0 slope=3.0 curve_max=0.07 dy=0.2 pylons=0 city=true lanes=2 bank=
+BR linz_passau__linz Innbrücke type=river len=90 depth=3.0 slope=3.0 curve_max=0.18 dy=6.2 pylons=0 city=true lanes=2 bank=
+BR linz_passau__passau Nibelungenbrücke type=river len=132 depth=3.0 slope=3.0 curve_max=0.07 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR passau_regensburg__passau Eiserne Brücke (Donau) type=river len=120 depth=3.0 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR passau_regensburg__regensburg Innbrücke type=river len=90 depth=3.0 slope=3.0 curve_max=0.00 dy=5.4 pylons=0 city=true lanes=2 bank=
+BR regensburg_nuernberg__regensburg Pegnitzbrücke type=river len=36 depth=3.0 slope=3.0 curve_max=0.28 dy=1.5 pylons=0 city=true lanes=2 bank=
+BR regensburg_nuernberg__nuernberg Eiserne Brücke (Donau) type=river len=120 depth=3.0 slope=3.0 curve_max=0.20 dy=3.9 pylons=0 city=true lanes=2 bank=
+BR nuernberg_fulda__nuernberg Fuldabrücke type=river len=45 depth=3.0 slope=3.0 curve_max=0.24 dy=0.8 pylons=0 city=true lanes=2 bank=
+BR nuernberg_fulda__fulda Pegnitzbrücke type=river len=36 depth=3.0 slope=3.0 curve_max=0.00 dy=1.1 pylons=0 city=true lanes=2 bank=
+BR fulda_kassel__fulda Fuldabrücke type=river len=60 depth=3.0 slope=3.0 curve_max=0.00 dy=2.1 pylons=0 city=true lanes=2 bank=
+BR fulda_kassel__kassel Fuldabrücke type=river len=45 depth=3.0 slope=3.0 curve_max=0.22 dy=1.1 pylons=0 city=true lanes=2 bank=
+BR bukarest_sibiu__bukarest Cibinbrücke type=river len=36 depth=3.0 slope=3.0 curve_max=0.13 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR bukarest_sibiu__sibiu Dâmbovița (Podul Izvor) type=river len=33 depth=3.0 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR sibiu_timisoara__sibiu Begabrücke (Podul Mihai Viteazul) type=river len=51 depth=3.0 slope=4.5 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=#5f7e4a
+BR sibiu_timisoara__timisoara Cibinbrücke type=river len=33 depth=3.0 slope=3.0 curve_max=0.00 dy=1.6 pylons=0 city=true lanes=2 bank=
+BR timisoara_budapest__timisoara Elisabethbrücke type=cable_stayed len=150 depth=5.0 slope=3.0 curve_max=0.22 dy=0.0 pylons=4 city=true lanes=2 bank=
+BR timisoara_budapest__budapest Begabrücke (Podul Mihai Viteazul) type=river len=51 depth=3.0 slope=4.5 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=#5f7e4a
+TUN prag_nuernberg__prag Tunel Valík km 88.0 len 40 m
+BR prag_nuernberg__prag Pegnitzbrücke type=river len=33 depth=3.0 slope=3.0 curve_max=0.00 dy=1.1 pylons=0 city=true lanes=2 bank=
+TUN prag_nuernberg__nuernberg Tunel Valík km 201.6 len 40 m
+BR prag_nuernberg__nuernberg Most Legií type=stone_arch len=108 depth=3.2 slope=3.0 curve_max=0.12 dy=4.0 pylons=0 city=true lanes=2 bank=
+BR frankfurt_koeln__frankfurt Severinsbrücke type=cable_stayed len=141 depth=5.0 slope=3.0 curve_max=0.00 dy=0.0 pylons=2 city=true lanes=2 bank=
+BR frankfurt_koeln__koeln Friedensbrücke type=river len=111 depth=3.0 slope=3.0 curve_max=0.15 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR koeln_bruessel__koeln Pont Van Praet (Kanal) type=river len=60 depth=3.0 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR koeln_bruessel__bruessel Severinsbrücke type=cable_stayed len=138 depth=5.0 slope=3.0 curve_max=0.00 dy=0.0 pylons=2 city=true lanes=2 bank=
+BR bruessel_calais__bruessel Pont Mollien type=river len=72 depth=3.0 slope=3.0 curve_max=0.00 dy=0.0 pylons=0 city=true lanes=2 bank=
+BR bruessel_calais__calais Pont Van Praet (Kanal) type=river len=60 depth=3.0 slope=3.0 curve_max=0.09 dy=0.0 pylons=0 city=true lanes=2 bank=
+bridges 122 tunnels 26

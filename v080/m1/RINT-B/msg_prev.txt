@@ -1,0 +1,7 @@
+v0.8.0 RINT-B: Vorschaubild „Modern“ mit dem Look nach der Zusammenführung
+
+tools/gfx_previews.sh neu laufen lassen: Kiel–Hamburg mittags mit Horizont, Bodengesetz und
+Lack von RINT-B (das Arcade-Bild ist bytegleich geblieben).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

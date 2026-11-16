@@ -1,0 +1,34 @@
+{
+ "segments": [
+  {
+   "name": "conc200_full_r0",
+   "km": 42.0,
+   "kmh": 200.0,
+   "throttle": 0.6,
+   "x": 1.875,
+   "mute": [],
+   "seconds": 60.0,
+   "paving": "concrete"
+  },
+  {
+   "name": "conc200_full_r1",
+   "km": 42.0,
+   "kmh": 200.0,
+   "throttle": 0.6,
+   "x": 1.875,
+   "mute": [],
+   "seconds": 60.0,
+   "paving": "concrete"
+  },
+  {
+   "name": "conc200_full_r2",
+   "km": 42.0,
+   "kmh": 200.0,
+   "throttle": 0.6,
+   "x": 1.875,
+   "mute": [],
+   "seconds": 60.0,
+   "paving": "concrete"
+  }
+ ]
+}

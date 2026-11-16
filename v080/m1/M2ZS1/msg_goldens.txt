@@ -1,0 +1,15 @@
+v0.8.0 M2ZS1: Modern-Änderungsmelder neu – Bilder angesehen; QA-Doku Abschnitt 12
+
+tools/golden.sh modern-make mit KEEP gerendert (472 s, gemessen), die sechs Bilder angesehen, dann diese Liste:
+- modern_start_mittel neu (e7714a12… → 1fa6d0b4…): gewollt – das Spielerauto steht im Countdown an Arcades Stelle
+  (FIX-ZS1), Starttor mit drei Lampen, Schild „Tankstelle 15 km“, Bäume von AS3R. Bei M2INT fehlte das Auto.
+- modern_s4_mittel neu (649a97ff… → 711d3901…): gewollt – der Fernboden liegt unter dem Wasser der Köhlbrandbrücke im
+  Fenster (FIX-WASSER). Gegen das S4-Bild von ZS1 (FIX-WASSER) 1,0 % der Bildpunkte anders: Verkehr und Bäume von M2.
+- modern_s2_mittel, modern_s3_hoch, modern_s5_niedrig, modern_s1_nacht: MD5-gleich mit M2INT (auch S1 bei Nacht:
+  der neue Parameter night_albedo von baked.gdshader lässt mit seiner Vorgabe 1 jedes andere Material bitgleich).
+
+docs/qa-v080.md §12: der Testbuild ZS1 in der M2-Linie – je Behebung, ob sie hält; eine Regel für den Fernboden;
+Pylone nachts mit Messreihe; die Änderungsmelder.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

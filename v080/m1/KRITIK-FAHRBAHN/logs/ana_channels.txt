@@ -1,0 +1,10 @@
+asph130_road    links  0,6–1,6 kHz: 0.20 bei 0.97 s, 0.98 bei 3.89 s
+asph130_road    rechts 0,6–1,6 kHz: 0.18 bei 0.97 s, 0.98 bei 3.89 s
+asph130_full    links  0,6–1,6 kHz: 0.17 bei 0.97 s, 0.78 bei 3.89 s
+asph130_full    rechts 0,6–1,6 kHz: 0.16 bei 0.97 s, 0.76 bei 3.89 s
+conc130_full    links  0,6–1,6 kHz: 0.35 bei 0.97 s, 0.64 bei 1.94 s
+conc130_full    rechts 0,6–1,6 kHz: 0.36 bei 0.97 s, 0.63 bei 1.94 s
+cobbles50_full  links  0,6–1,6 kHz: 0.23 bei 1.25 s, 0.74 bei 2.50 s
+cobbles50_full  rechts 0,6–1,6 kHz: 0.18 bei 1.25 s, 0.67 bei 2.50 s
+asph200_full    links  0,6–1,6 kHz: 0.12 bei 0.84 s, 0.54 bei 1.67 s
+asph200_full    rechts 0,6–1,6 kHz: 0.11 bei 0.33 s, 0.56 bei 1.67 s

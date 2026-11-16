@@ -1,0 +1,14 @@
+WIP v0.8.0 AS3: sieben neue Baumarten mit je zwei Varianten
+
+- Buche, Pappel, Olive, Kiefer: Laubkuppeln auf den Kronenkugeln des Generators
+  (Kiefer: Hook CROWN_LOG für die Nadelpolster)
+- Fichte (Ast-Karten auf den Kegeln der Etagen), Zypresse (Drehkörper der Flamme),
+  Palme (Wedel mit Fiedern, beringter Stamm): neues Modul ce3d/veg3d_shapes.py
+- props_nature.py: Hook SHAPE_LOG (Etagen, Profil, Wedel, Heide-Büschel), Kronen-Marken,
+  3D-Variantenparameter tiers/taper, bulge/width, bend (Voreinstellung = Sprite;
+  check_sprite_geometry --only props: 86 von 86 identisch)
+- Katalogblock "--- AS3 ---", Bauer rock (ce3d/rock3d.py) angemeldet
+- Stämme werden nie mehr angeschnitten, Äste außerhalb der Krone fallen weg
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

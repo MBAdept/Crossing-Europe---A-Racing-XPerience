@@ -1,0 +1,56 @@
+VIOLATIONS {'DECK': 0, 'JOFF': 0, 'PAV': 0, 'WX': 0, 'ZON': 0}
+JOINTS bridges driven 122 {'steel': 15, 'concrete': 72, 'stone': 35} mismatches 0
+JOINT POSITIONS differ between directions: 1 of 1
+   {'stage': 'fulda_kassel', 'bridge': 'Fuldabrücke', 'deck': 'concrete', 'len': [60.0, 45.0], 'fwd_m': [0.0, 32.0, 60.0], 'rev_m_from_fwd_start': [0.0, 45.0]}
+OLD TOWNS arrivals 128 (cobble style 100); street share out of 0.6±0.05: 26; heard (stone bridge = cobbles) out: 3; cobbles on non-stone bridge/tunnel: 0; cobbles in a style without: 0
+   street warschau         0.456 heard 0.550 stone 138 tunnel 0 non-stone 0 (warschau_bialystok from bialystok)
+   street warschau         0.458 heard 0.551 stone 138 tunnel 0 non-stone 0 (posen_warschau from posen)
+   street luettich         0.491 heard 0.560 stone 108 tunnel 0 non-stone 0 (luettich_paris from paris)
+   street luettich         0.492 heard 0.562 stone 111 tunnel 0 non-stone 0 (amsterdam_luettich from amsterdam)
+   street prag             0.492 heard 0.562 stone 111 tunnel 0 non-stone 0 (prag_leipzig from leipzig)
+   street prag             0.494 heard 0.562 stone 108 tunnel 0 non-stone 0 (wien_prag from wien)
+   street prag             0.494 heard 0.562 stone 108 tunnel 0 non-stone 0 (prag_nuernberg from nuernberg)
+   street saragossa        0.499 heard 0.561 stone 99 tunnel 0 non-stone 0 (madrid_saragossa from madrid)
+   street saragossa        0.499 heard 0.561 stone 99 tunnel 0 non-stone 0 (saragossa_barcelona from barcelona)
+   street saragossa        0.501 heard 0.565 stone 102 tunnel 0 non-stone 0 (saragossa_pau from pau)
+   street bordeaux         0.506 heard 0.599 stone 150 tunnel 0 non-stone 0 (bordeaux_san_sebastian from san_sebastian)
+   street bordeaux         0.509 heard 0.601 stone 150 tunnel 0 non-stone 0 (tours_bordeaux from tours)
+   street dresden          0.512 heard 0.585 stone 120 tunnel 0 non-stone 0 (dresden_leipzig from leipzig)
+   street toulouse         0.520 heard 0.598 stone 129 tunnel 0 non-stone 0 (pau_toulouse from pau)
+   street toulouse         0.520 heard 0.598 stone 129 tunnel 0 non-stone 0 (toulouse_montpellier from montpellier)
+   street burgos           0.521 heard 0.551 stone 51 tunnel 0 non-stone 0 (san_sebastian_burgos from san_sebastian)
+   street burgos           0.521 heard 0.551 stone 51 tunnel 0 non-stone 0 (burgos_madrid from madrid)
+   street ljubljana        0.526 heard 0.549 stone 39 tunnel 0 non-stone 0 (venedig_ljubljana from venedig)
+   street ljubljana        0.527 heard 0.550 stone 39 tunnel 0 non-stone 0 (ljubljana_slavonski_brod from slavonski_brod)
+   street tours            0.528 heard 0.599 stone 120 tunnel 0 non-stone 0 (paris_tours from paris)
+   street tours            0.529 heard 0.600 stone 120 tunnel 0 non-stone 0 (tours_bordeaux from bordeaux)
+   street san_sebastian    0.530 heard 0.565 stone 60 tunnel 0 non-stone 0 (bordeaux_san_sebastian from bordeaux)
+   street san_sebastian    0.530 heard 0.565 stone 60 tunnel 0 non-stone 0 (san_sebastian_burgos from burgos)
+   street paris            0.539 heard 0.600 stone 132 tunnel 0 non-stone 0 (paris_tours from tours)
+   street barcelona        0.549 heard 0.549 stone 0 tunnel 0 non-stone 0 (saragossa_barcelona from saragossa)
+   street barcelona        0.549 heard 0.549 stone 0 tunnel 0 non-stone 0 (barcelona_montpellier from montpellier)
+cities with differing patterns between arrivals: {}
+   HAMBURG from kiel         street 0.551 pattern P--PP-P-P tunnel 0
+   HAMBURG from hannover     street 0.615 pattern P--PP-P-P tunnel 330
+   HAMBURG from bremen       street 0.551 pattern P--PP-P-P tunnel 0
+CONCRETE per country (sections, km, share, got(km over keys), heard(metres driven both dirs), judged/ok):
+   DE   168   4519.0 0.35 0.349 0.355 judged OK
+   FR    50   2155.0 0.10 0.104 0.107 judged OK
+   ES    36   1415.0 0.10 0.085 0.092 judged OK
+   PL    17    820.0 0.25 0.238 0.230 judged OK
+   RS    14    665.0 0.10 0.060 0.063 judged OK
+   HU    14    560.0 0.10 0.125 0.113 judged OK
+   RO    15    530.0 0.10 0.094 0.104 judged OK
+   CZ    15    502.0 0.40 0.418 0.425 judged OK
+   BE    17    490.0 0.30 0.296 0.322 judged OK
+   CH    13    470.0 0.10 0.096 0.080 judged OK
+   IT    13    468.0 0.10 0.075 0.082 judged OK
+   NL    14    435.0 0.10 0.103 0.061 judged OK
+   AT    15    414.0 0.15 0.155 0.121 judged OK
+   HR     8    320.0 0.10 0.141 0.150 not judged
+   SI     5    210.0 0.10 0.190 0.211 not judged
+   LT     3    165.0 0.10 0.000 0.000 not judged
+   BG     1     25.0 0.10 0.000 0.000 not judged
+   LV     1     20.0 0.10 0.000 0.000 not judged
+section decisions differing between directions: 0
+FUEL lanes 410 {'rumble_with_lane': 0, 'with_lane': 78171, 'rumble_before': 79400, 'before': 82000} lanes with rumble: 0 autobahn lanes without rumble before (probe sanity): 0

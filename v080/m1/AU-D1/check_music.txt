@@ -1,0 +1,25 @@
+Titel-Remaster gegen die Titelmelodie von v0.5.0: Tonklassen je Takt gleich verteilt (Kosinus im Median 0.970, kleinster 0.651, 94 % der Takte >= 0,85); Akkord-Grundton in 97 von 108 Takten gleich (89.8 %), Original gegen Partitur 94.4 %, Remaster gegen Partitur 90.7 %; Tonart vor dem Schlussrefrain E-Moll / G-Dur (= E-Moll) -> OK
+  Takt   6 intro    Partitur Am   Original F#m  Remaster C   
+  Takt   8 intro    Partitur B    Original B    Remaster C   
+  Takt  17 verse1   Partitur Em   Original Bm   Remaster Em  
+  Takt  22 verse1   Partitur Em   Original Bm   Remaster Em  
+  Takt  30 verse1   Partitur Em   Original Bm   Remaster Em  
+  Takt  33 pre1     Partitur Am   Original Am   Remaster C   
+  Takt  34 pre1     Partitur Am   Original A    Remaster Em  
+  Takt  39 pre1     Partitur B    Original B    Remaster G   
+  Takt  57 pre2     Partitur Am   Original Am   Remaster C   
+  Takt  58 pre2     Partitur Am   Original A    Remaster Em  
+  Takt 108 outro    Partitur B    Original B    Remaster C   
+Linke Spur gegen ihre Partitur: Grundton in 85 von 97 Takten (87.6 %), Tonart D-Moll; Schluss A# – C – Dm -> OK
+  Takt   0 in  0  Partitur A   gehört C   
+  Takt  31 P1  6  Partitur A   gehört Em  
+  Takt  32 P1  7  Partitur A   gehört Em  
+  Takt  41 D   0  Partitur Bb  gehört Dm  
+  Takt  45 D   4  Partitur Bb  gehört Dm  
+  Takt  48 D   7  Partitur A   gehört Em  
+  Takt  58 P2  1  Partitur Gm  gehört D   
+  Takt  63 P2  6  Partitur A   gehört Em  
+  Takt  64 P2  7  Partitur A   gehört Em  
+  Takt  83 T   2  Partitur Bb  gehört Dm  
+  Takt  87 T   6  Partitur A   gehört C#m 
+  Takt  88 T   7  Partitur A   gehört Em  

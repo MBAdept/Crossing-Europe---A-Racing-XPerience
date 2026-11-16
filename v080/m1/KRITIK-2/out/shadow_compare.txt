@@ -1,0 +1,9 @@
+Schatten am Boden von oben: Werfer (wie im Spiel) gegen die Karosserie selbst als Werfer, gleiche Sonne
+  kombi         10180 px verschieden (von 800000)
+  sportwagen    12354 px verschieden (von 800000)
+  gran_turismo  8832 px verschieden (von 800000)
+  limousine     10440 px verschieden (von 800000)
+  kompakt       8924 px verschieden (von 800000)
+  suv           6189 px verschieden
+  van           6640 px verschieden
+  sports        5987 px verschieden

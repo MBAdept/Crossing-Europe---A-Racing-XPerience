@@ -1,0 +1,14 @@
+Fall                               Stufe    Spitze     TP  LUFSm  HP180  Klein  <100Hz  Schichten (Spitze dB am Master, mittig)
+Rempler 6 km/h                     light     -13.4  -13.2  -32.4   -2.6   -0.9     55%  debris -31.2, hit_light -13.2
+                                   Spitze nach 180-Hz-Hochpass -15.8, Kleinlautsprecher -14.3 dBFS
+Auffahren 30 km/h                  medium     -7.2   -7.1  -23.4   -1.0    0.6     35%  crunch -14.7, debris -23.7, hit_heavy -10.7, hit_light -12.7
+                                   Spitze nach 180-Hz-Hochpass -10.9, Kleinlautsprecher -9.4 dBFS
+schwer 70 km/h                     heavy      -5.6   -5.4  -21.6   -0.8    0.7     32%  crunch -13.0, debris -22.0, glass -17.0, hit_heavy -9.0
+                                   ohne Glas -22.1 LUFS momentan; Spitze nach 180-Hz-Hochpass -8.0, Kleinlautsprecher -7.2 dBFS
+schwer 130 km/h                    heavy      -2.9   -2.8  -18.9   -0.8    0.7     32%  crunch -10.3, debris -19.3, glass -14.3, hit_heavy -6.3
+                                   ohne Glas -19.4 LUFS momentan; Spitze nach 180-Hz-Hochpass -5.3, Kleinlautsprecher -4.5 dBFS
+Lkw 40 km/h                        medium     -8.9   -8.9  -20.9   -1.7   -0.3     51%  crunch -13.5, debris -22.5, hit_light -11.5, truck_boom -10.5
+                                   Spitze nach 180-Hz-Hochpass -10.4, Kleinlautsprecher -8.8 dBFS
+Lkw 110 km/h                       heavy      -6.8   -6.8  -18.5   -1.5   -0.2     49%  crunch -11.0, debris -20.0, glass -15.0, truck_boom -8.0
+                                   ohne Glas -18.9 LUFS momentan; Spitze nach 180-Hz-Hochpass -8.2, Kleinlautsprecher -6.7 dBFS
+Schwenk 0.7: lauterer Kanal +2.8 dB, leiserer -9.6 dB (Gesetz gleicher Leistung)

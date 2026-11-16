@@ -1,0 +1,9 @@
+v0.8.0 R4 (WIP): Spiegelung auch der zusammengelegten Rückleuchten, Doku Prüfungen
+
+Modelle melden Rück- und Bremslicht als eine Rolle "rear"
+(VehiclePose3D.flare_points) – die nasse Spiegelung nimmt sie jetzt mit
+(check_weather nass: 2 Spiegelungen, 932 rote Bildpunkte). Doku §15.9:
+Tabelle der neuen Prüfungen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

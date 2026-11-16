@@ -1,0 +1,7 @@
+v0.8.0 AS5aR1: WIP Rahmenring in den gemalten Fenstern für die flache lod1
+
+wallmat-Hook inner_frame (Sprite unverändert): der Rahmen der geschnittenen
+Fenster auch im Glas des Atlas, unbeleuchtet - lod1 behält die Lichtfläche.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

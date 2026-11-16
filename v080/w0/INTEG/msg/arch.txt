@@ -1,0 +1,10 @@
+v0.8.0 Integration Welle 0: ARCHITECTURE.md §15 nennt den zusammengeführten Stand
+
+Der Absatz „Stand Welle 0“ stammt aus dem Kern-Paket und kannte die drei anderen Pakete noch nicht: Er
+kündigte das Klangprofil „Modern“ für spätere Wellen an. Nach dem Zusammenführen stehen Geometrie-Kern,
+Modell-Pipeline und Audio-Kern im Baum – der Absatz verweist jetzt auf ihre Dokumentation
+(docs/renderer-modern.md, docs/modelle.md, docs/audio-modern.md) und sagt, wie das Klangprofil bis zur
+Anbindung in GameFlow erreichbar ist. Nur Dokumentation, kein Code.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

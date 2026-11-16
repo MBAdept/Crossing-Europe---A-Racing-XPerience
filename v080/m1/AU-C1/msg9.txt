@@ -1,0 +1,9 @@
+v0.8.0 AU-C1: Doku Fahrbahn, Wind, Aufprall (audio-modern.md Abschnitt 15, Feed v1)
+
+Abschnitt 15: was zu hören ist, die Klänge, Pegelplan mit dem gemessenen Motor als Bezug,
+Aufprall als Spitze, der schlimmste Fall (-2,26 dBTP), Rechenzeit, Fallen, offene Punkte.
+Abschnitt 8 auf Feed v1, Werkzeuge, Prüfungen, Bausteine; Beschreibung der neuen Schlüssel
+in audio.modern (_doc_modern).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

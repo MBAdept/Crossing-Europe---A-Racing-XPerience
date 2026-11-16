@@ -1,0 +1,1 @@
+1.07:Rempler 6 km/h Unters,3.69:Auffahren 30 km/h Unt,6.30:schwerer Aufprall 70 ,8.91:schwerer Aufprall 130,11.53:Lkw 40 km/h Unterschi,14.15:Lkw 110 km/h Untersch,16.76:Leitplanke gestreift (,18.98:Leitplanke getroffen (,21.20:Leitplanke hart (5 m/s,23.41:an der Leitplanke entl,28.44:Leitpfosten umgefahren,30.78:ende

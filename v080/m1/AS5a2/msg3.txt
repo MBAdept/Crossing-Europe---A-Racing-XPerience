@@ -1,0 +1,14 @@
+v0.8.0 AS5a2: Kranzgesims der Grachtenhaus-Flanke kürzer, Auslage der Eckhaus-Abschrägung, Kreuzstock des Maashauses
+
+- props_cities (Hook close3d, dutch_canal_b): das Kranzgesims der Straßenflanke endet 1 m vor der Rückwand -
+  bis zur Ecke geführt ragte es in der Ansicht des Sprites aus dessen linker Ausdehnung (extent_m.left 14,36
+  gegen 13,96, Prüfer rot); Sprite unverändert
+- cities3d: die Auslage eines Schaufensters der abgeschrägten Ecke liest u = (x - y) / Wurzel 2 wie wallmat
+  (vorher diagonale Streifen)
+- Katalog: Maashaus mit 11 cm breiten Sprossen (der steinerne Kreuzstock des Sprites ist 14 cm breit)
+
+Modelle folgen mit dem nächsten Export (Code-Änderung: alle Stadthäuser, Brückenteile und das Hausboot werden neu
+exportiert und müssen bis auf die drei geänderten byte-gleich bleiben).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

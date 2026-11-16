@@ -1,0 +1,7 @@
+{"segments": [
+ {"name": "conc130_full", "km": 30.0, "kmh": 130.0, "throttle": 0.35, "x": 1.875, "mute": [], "seconds": 20.0, "feed": {"concrete_share": {"_": 1.0}}},
+ {"name": "conc130_road", "km": 30.0, "kmh": 130.0, "throttle": 0.35, "x": 1.875, "mute": ["MEngine", "MEngineFx", "MWind"], "seconds": 20.0, "feed": {"concrete_share": {"_": 1.0}}},
+ {"name": "conc130_noslab_full", "km": 30.0, "kmh": 130.0, "throttle": 0.35, "x": 1.875, "mute": [], "seconds": 20.0, "feed": {"concrete_share": {"_": 1.0}}, "road_set": {"_slab_db": -80.0}},
+ {"name": "conc200_nopass_full", "km": 30.0, "kmh": 200.0, "throttle": 0.6, "x": 1.875, "mute": [], "seconds": 15.0, "feed": {"concrete_share": {"_": 1.0}}, "road_set": {"_pass_min": 999.0}},
+ {"name": "conc170_full", "km": 30.0, "kmh": 170.0, "throttle": 0.5, "x": 1.875, "mute": [], "seconds": 15.0, "feed": {"concrete_share": {"_": 1.0}}}
+]}

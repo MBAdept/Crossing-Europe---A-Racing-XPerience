@@ -1,0 +1,14 @@
+{
+	"fullscreen": false,
+	"language": "de",
+	"leaderboard_filter": "all",
+	"master_volume": 0.55,
+	"music_volume": 0.35,
+	"player_name": "Änne – Test",
+	"settings_version": 3,
+	"sfx_volume": 1.0,
+	"unknown_future_key": {
+		"a": 1.0
+	},
+	"vibration": true
+}

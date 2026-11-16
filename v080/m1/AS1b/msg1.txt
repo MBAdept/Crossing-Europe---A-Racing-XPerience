@@ -1,0 +1,12 @@
+AS1b (WIP): Kartenbäume neu (Eiche, Birke je zwei Varianten), Büsche, Bodendecker, Prüfszene
+
+- veg3d: viele kleine Laubkarten auf der Außenhaut der Kronenkugeln, Helligkeit aus der Verdeckung in der
+  Krone, Schattierung je Klumpen, Äste bis in jeden Klumpen, Birkenstamm mit Rindenmarken, Kern mit
+  unverzerrten UVs, LOD-Farben und Fernbild auf die Stufe davor abgeglichen
+- leafatlas: Blatt-Atlas 1024 (Büsche 512) mit kuppelförmigen Klumpen, Halo-Alpha für Mipmaps, Grasbüschel
+- Büsche bush_round (+ _b), bush_low; Bodendecker cover_bush, cover_grass als Sets nur für Modern
+- Prüfer und test_model_db: Sets mit "modern_only" (additiv)
+- tools/models_prop_scene.sh: Modelle neben der Straße durch die Spielkamera (Abstände, Stufen, Straßenrand)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

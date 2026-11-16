@@ -1,0 +1,16 @@
+v0.8.0 FIX1: Prüfläufe lastfest – Haken läuft immer, Fassade und Attract ohne Zeitabhängigkeit
+
+- tools/run_tests.sh: Schritte 3 und 4 (Integrationsszenarien, Haken der
+  Modern-Prüfungen) laufen auch nach einem Fehler davor; am Ende die Liste
+  aller fehlgeschlagenen Schritte und Dateien (QS-01).
+- check_facade "fassade": der Punkt 100 m voraus wird gegen Arcades
+  Projektionsgesetz geprüft (Horizontzeile aus der Kamera, Augenhöhe minus
+  Straßenhöhe mal Brennweite durch Tiefe) statt gegen 0,45 × Fensterhöhe –
+  eine Steigung vor dem Wagen ließ die Prüfung je nach gefahrener Strecke
+  scheitern; "geruest" wartet auf mindestens sechs Bilder (QS-02).
+- check_attract: Dauer ab dem Start der Etappe (Modern bereitet erst vor),
+  Grenze wächst mit der längsten Bildzeit, Eingaben erst bei laufender Demo,
+  Zielszene 0,3 km vor dem Ziel mit 40 s Demo (QS-03).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

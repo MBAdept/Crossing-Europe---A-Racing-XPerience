@@ -1,0 +1,40 @@
+{
+ "bpm": 132.0,
+ "bar_s": 1.8181818181818181,
+ "bars": 20,
+ "levels": {
+  "kick": -19.3,
+  "kick2": -25.0,
+  "snare": -20.5,
+  "snare2": -19.78,
+  "clap": -27.0,
+  "toms": -21.5,
+  "hats": -30.5,
+  "shaker": -36.0,
+  "crash": -28.5,
+  "bass_pick": -20.5,
+  "bass_syn": -20.5,
+  "sub": -27.0,
+  "pad": -25.5,
+  "arp": -25.5,
+  "lead_syn": -19.5,
+  "lead_wide": -24.5,
+  "harm_syn": -25.5,
+  "fx": -27.0,
+  "gtr_L": -22.5,
+  "gtr_R": -22.5,
+  "gtr_L2": -27.5,
+  "gtr_R2": -27.5,
+  "lead_gtr": -24.0
+ },
+ "master": {
+  "mb_low_gr_db": -1.96,
+  "mb_mid_gr_db": -0.99,
+  "mb_high_gr_db": -1.27,
+  "glue_gr_db": -0.82,
+  "limiter_gr_db": 0.0,
+  "lufs": -14.0
+ },
+ "seconds": 46.5,
+ "downbeat_s": 3.6363636363636362
+}

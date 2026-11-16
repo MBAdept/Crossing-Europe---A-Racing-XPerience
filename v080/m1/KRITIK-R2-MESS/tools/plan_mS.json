@@ -1,0 +1,116 @@
+{
+ "segments": [
+  {
+   "name": "s_slab110",
+   "km": 42.0,
+   "kmh": 110.0,
+   "throttle": 0.35,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 15.0,
+   "paving": "concrete",
+   "nd": true,
+   "slabonly": true
+  },
+  {
+   "name": "s_slab130",
+   "km": 42.0,
+   "kmh": 130.0,
+   "throttle": 0.35,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 15.0,
+   "paving": "concrete",
+   "nd": true,
+   "slabonly": true
+  },
+  {
+   "name": "s_slab140",
+   "km": 42.0,
+   "kmh": 140.0,
+   "throttle": 0.5,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 15.0,
+   "paving": "concrete",
+   "nd": true,
+   "slabonly": true
+  },
+  {
+   "name": "s_slab150",
+   "km": 42.0,
+   "kmh": 150.0,
+   "throttle": 0.5,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 15.0,
+   "paving": "concrete",
+   "nd": true,
+   "slabonly": true
+  },
+  {
+   "name": "s_slab160",
+   "km": 42.0,
+   "kmh": 160.0,
+   "throttle": 0.5,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 15.0,
+   "paving": "concrete",
+   "nd": true,
+   "slabonly": true
+  },
+  {
+   "name": "s_slab170",
+   "km": 42.0,
+   "kmh": 170.0,
+   "throttle": 0.5,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 15.0,
+   "paving": "concrete",
+   "nd": true,
+   "slabonly": true
+  },
+  {
+   "name": "s_slab200",
+   "km": 42.0,
+   "kmh": 200.0,
+   "throttle": 0.5,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 15.0,
+   "paving": "concrete",
+   "nd": true,
+   "slabonly": true
+  }
+ ]
+}

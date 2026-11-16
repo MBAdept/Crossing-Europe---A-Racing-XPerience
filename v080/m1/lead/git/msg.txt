@@ -1,0 +1,8 @@
+Bauvertrag v0.8.0: Nachträge §11.2 (A-9 bis A-16) aus M1 und den frühen M2-Paketen
+
+Leitungsentscheidungen mit Belegen: Ersatzbilder, Look-Gesetze, Messregeln, Plan, Modelle,
+Messkriterien des Modern-Klangs, Testbuilds und QA nach QA1 (Start bei km 0 als Position S0,
+Schilder in F1, Kurvenkamera), Umgebungsmodelle nach AS3R/AS4R.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,10 @@
+v0.8.0 AS5a1: Stadthäuser german als Modelle (Einfamilienhaus, Mietshaus, Gründerzeithaus, Büroturm)
+
+Echte Exporte (Bauer "city", Atlas mit Umgebungsverdeckung, lod0 + flache lod1, je Stufe zwei
+Zeichenaufrufe). Einfamilienhaus mit Garten (wenig Texel), Wandlampe mit Lichtanker; Mietshaus mit
+Balkonen (Ausschneidegeländer, eine BC3-Atlasklasse); Gründerzeithaus mit Läden und Auslagen,
+Balkon, Gesimsen, Erkern; Büroturm mit Foyer (gedimmt), Glas wie das Sprite, Flugbefeuerung mit
+Ankern. Manifest neu geschrieben.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

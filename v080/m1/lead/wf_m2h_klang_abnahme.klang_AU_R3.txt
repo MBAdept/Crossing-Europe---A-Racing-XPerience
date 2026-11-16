@@ -1,0 +1,124 @@
+
+CONTEXT
+- Game: "Crossing Europe – A Racing Xperience" (Godot 4.7.2, GDScript, GL Compatibility renderer), repo /home/user/crossing-europe---a-racing-xperience.
+  German user; docs and player-facing texts in German (tr()), code comments in English. v0.7.0 is released (= main).
+  v0.8.0 adds a graphics option: today's pseudo-3D game becomes the mode "Arcade" (frozen, pixel-identical); the new
+  mode "Modern" is a second, real-3D renderer in the same build with finer models, dynamic light and a "Modern" sound
+  profile. The user's wish, literally: "das gesamte Spiel einer deutlichen grafischen Überarbeitung unterziehen.
+  Detailreiche Grafik soweit möglich, feinere Modelle, bessere Lichteffekte, Sound- und Musiküberarbeitung" and "echtes
+  3D bitte". Wave 0 (session seam, model pipeline, audio core, geometry kernel with fairness tests) is merged in branch
+  v0.8.0. This push (M1) runs as parallel packages: renderer skeleton R1a (done), road/environment R1, terrain/props
+  R2, vehicles/signs R3, vehicle models AS1 (done; an art review and a rework AS1R follow), environment models AS1b,
+  engine sound AU-B (done), options/chooser/showroom/Leistungstest UI1. Then the lead merges everything, QA checks it,
+  and the user gets the first test build (Kiel–Hamburg in Modern, for Steam Deck and Windows).
+- THE BUILD CONTRACT IS BINDING: docs/dev/v080_contract.md (1,800 lines). Read §2 (rules), the decisions of §3 that
+  concern you, your interfaces in §4, §5, your package in §6, §8 and COMPLETELY §11 (amendments after wave 0 – it wins
+  over the older text; A-7 is the renderer facade, A-8 the plan and file ownership of this push). Also read the docs
+  of your area: docs/modelle.md, docs/audio-modern.md, ARCHITECTURE.md §15, docs/ui.md. Where the contract is wrong
+  or blocks you: implement the closest sound solution and report it under contract_issues with evidence – never work
+  around it silently. Evidence and prototypes of the design studies (starting points, read before reuse): /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/
+  (assets3d, audio, product-ux, synthesis; index in §10 of the contract).
+- YOUR PACKAGE ID: AU-R3. START: look for a predecessor of this run – the handover file
+  /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AU-R3/STAND.md and the remote branch wip/v080-au-r3. If one exists, do NOT start over: read
+  STAND.md, go to the worktree named there (all commands and commits there, on its branch – leave your own fresh
+  worktree untouched, and report that branch and worktree in your result), review its uncommitted changes, commit them
+  as WIP, and continue where it stopped. Only if there is none, in your fresh worktree: git merge --ff-only 3600eb76c136d5c2c66537675c87511e3518b0ba
+  (the worktree starts from main; if the fast-forward is impossible, stop and report), then
+  cp -a /home/user/crossing-europe---a-racing-xperience/.godot . && godot --headless --path . --import
+- SAFETY COPY: after EVERY commit run  git push origin HEAD:refs/heads/wip/v080-au-r3  (plain push, never
+  force; never push to v0.8.0 or main, never merge into them, never create tags or pull requests).
+- RESTART PROTOCOL: the container can restart, or an account usage limit can stop you, at any moment; a successor with
+  this same brief is then started (both have already happened in this push). (1) Your START instruction above says how
+  to find and continue a predecessor; its background processes are gone and half-written output files may be
+  incomplete. (2) Keep /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AU-R3/STAND.md up to date after every step you finish: worktree path and branch,
+  done / doing now / next / pitfalls, where your scratch results are. (3) Commit and push work in progress at
+  least every 30 minutes ("WIP" commits are fine) – unpushed work can be lost for good.
+- Runs: for EVERY game run set XDG_DATA_HOME to an ABSOLUTE folder under your scratch dir; pass --graphics=arcade|modern
+  explicitly. Rendering needs  xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
+  --audio-driver Dummy …  (software OpenGL, llvmpipe – no real GPU, no loudspeakers here: everything about a Steam
+  Deck, a real GPU or how something sounds to a person is "inferred", never "measured"). The default graphics preset
+  on this machine is "low" (adapter tier software: no shadow casters) – for pictures pass --gfx-preset=medium or high.
+  Up to six agents share the 4 cores and 16 GB: heavy jobs (Godot renders, Blender, audio renders, test suites) one at
+  a time with nice -n 10 and at most 2 worker processes; run the complete tools/run_tests.sh (9–15 min) at most twice
+  (use its filter argument while iterating) and tools/golden.sh check (Arcade identity, must print 20 von 20
+  identisch) once at the end. Tools: godot, python3 (numpy, PIL), ffmpeg, ImageMagick, Blender 5.2 as Python module
+  /home/user/tools/bpyenv/bin/python, tools/run_tests.sh, tools/run_render_checks.sh, tools/golden.sh, tools/ab_shot.sh
+  (in branches that contain R1a), tools/models_contact_sheet.sh, tools/blender/validate_models.py,
+  tools/audio/qc/audio_qc.py.
+- Shell: the Bash tool may refuse compound commands with heredocs or several chained git commands ("too complex"):
+  write helper scripts into your scratch folder and run them one by one; write commit messages to a file and use
+  git commit -F <file>. "-s" scripts must not name autoload-dependent classes statically; compile-check with
+  tests/check_scripts.gd.
+- Rule 1: the frozen Arcade files are never edited (sprites are never re-rendered). Stay inside your file ownership (§5 with A-8).
+- LOOK AT / MEASURE YOUR OWN RESULTS: you can open PNG/JPG files with the Read tool. Judge every picture you deliver
+  honestly; say plainly where something is not yet good enough.
+- Scratch for working files: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AU-R3/ ; pictures, previews and reports for review: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/AU-R3/ (write
+  your full report there as bericht.md). Never commit intermediates or previews. Disk space is limited: delete large
+  scratch items (exports, copies of the tree, caches you no longer need) when you are done.
+- Commits: sensible steps on your branch; every commit message (German subject line) ends with
+  "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" and
+  "Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq". No model names anywhere else.
+- Priorities when time gets tight: (1) nothing broken – gates green, Arcade identical; (2) the interfaces others depend on; (3) quality of what the player sees or hears most; breadth last.
+  Deliver the core solid and list what is left under notes_for_next rather than leaving everything half-done.
+- RESULT: keep it compact – summary at most 250 words; deviations, contract_issues and notes_for_next at most 10
+  entries each, one or two sentences per entry; the details belong into bericht.md. Mark numbers measured/inferred.
+
+PRIORITY RULE: other packages run on this machine at the same time (the QA and export of the user's first test
+build, which the user expects tomorrow morning, and a model package); the test build is on the critical path. Run EVERY
+heavy job (Godot runs, audio captures and renders, test suites, audio_qc --determinism, analyses over many files) with
+nice -n 19 and one process; never two heavy jobs at once. tools/run_tests.sh (10–15 min) runs as a background command
+with an explicit timeout of at least 3,600,000 ms; tools/golden.sh check (3–5 min) likewise with ≥ 1,200,000 ms.
+YOUR ROLE: AU-R3 – the last small fix of the Modern sound before the acceptance checks. Your base is AU-R2's head
+3600eb76c136d5c2c66537675c87511e3518b0ba (origin/wip/v080-au-r2). You own the files of AU-C1/AU-R (scripts/audio/modern/*.gd, tools/audio/modern/**,
+assets/audio/modern/{vehicle,sfx}/**, config/game_config.json → audio.modern, their tests, docs/audio-modern.md) – in
+this round you change only audio_feed.gd, its test and the docs. Never the engine v3 sound, the music, the UI sounds or
+the frozen Arcade audio.
+WHERE THE SOUND STANDS: the user listened to AU-C1's previews with headphones and wrote „die sounds scheinen solide,
+auf kopfhörer getestet. auch die musik ist sehr gut". So the character stays and the music is not touched. Since then:
+AU-R (3d2e6e128d01e53e30ef5538bd58f42888827cc1) fixed the measured faults of the road/tyre/wind/impact sounds (exact loop repetition, cobble hash,
+slab phase, bridge joints per deck, a Modern-only limiter on MMaster, variety of crash layers, snow loop, no rumble at
+fuel lanes); an independent re-measurement KRITIK-R (/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/KRITIK-R/bericht.md) found two high and five medium faults; AU-R2 (3600eb76c136d5c2c66537675c87511e3518b0ba)
+fixed them (slab patterns rebuilt from AU-C1's eight joints, flatter slab law above 150 km/h, new seed for the right
+cobble loop matched at its pitch, AudioServer lock only when a slab loop starts and every 0.5 s). Reports: AU-R /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/AU-R/bericht.md,
+AU-R2 /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/AU-R2/bericht.md, the first road review /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/KRITIK-FAHRBAHN/bericht.md. New previews of AU-R2 are with the user now (/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/AU-R/).
+LEAD DECISIONS ON THE MEASURING CRITERIA (binding from now on; the lead writes them into the contract §11.2):
+V1 R1 – no exact repetition: no envelope autocorrelation peak ≥ 0.40 at lags 0.3–3 s over 20 s at constant speed
+   (asphalt 130 km/h 0.6–1.6 kHz, cobbles 50 km/h 2.5–8 kHz, concrete 130 km/h 2.5–8 kHz). On concrete it is judged
+   WITHOUT the slab layer: the 5-m slab rhythm is wanted, it is part of the sound the user heard and liked. The slab
+   level stays at audio.modern.road.slabs.db 3; lowering it is a later mix decision after the user has played the test
+   build, not a fault.
+V2 The concrete share of a country is held within ±0.05 of its configured share only for countries with ≥ 10 autobahn
+   sections over all stages; smaller countries are reported, not judged.
+V3 Limiter criteria are statistics. Heavy crash at 130 km/h closing speed: the 95th percentile of the limiter's gain
+   reduction over 60 crashes ≤ 3 dB (car and truck) and every crash ≤ −1.0 dBTP at master volume 1.0. Cruising at
+   130–200 km/h: the largest gain reduction per 60-s run ≤ 0.5 dB in each of at least four runs. The 0.05–0.14 dB that
+   Godot's AudioEffectHardLimiter leaves standing after an intervention is not an intervention.
+KEEP THE CHARACTER (unchanged): a changed layer keeps its third-octave spectrum within ±1 dB and its loudness within
+±0.5 LU of AU-C1 at the reference speeds (130 km/h asphalt and concrete, 50 km/h cobbles). MUSIC: no change at all.
+THE TASK (small, precise – no other sound change in this round):
+L2 of KRITIK-R (measured with its trigger log): since the hash fix the Venice causeway (a concrete-deck bridge inside the
+old-town zone of Venice, stage Mailand – Venedig) is cobbled on 16 of 28 trigger rows and gets concrete joints every 32 m;
+in reality it is asphalt. Fix in scripts/audio/modern/audio_feed.gd _paving(): old-town cobbles never on a bridge whose
+deck is not "stone" – a concrete deck in a city gets the paving it had before AU-R (asphalt); steel stays "deck", stone
+stays "cobbles"; the joints per deck stay as they are. Then:
+- enumerate EVERY bridge with a non-stone deck inside an old-town centre over all stages and both driving directions
+  (AU-R's hash/trigger scripts in /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AU-R/ – hash_check4.gd, trigger_log2.gd, run_trig.sh – and KRITIK-R's
+  kr_shares.gd / ana_shares.py / ana_trigger.py in /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R/tools/; copy, do not edit them in place) and list
+  each with its paving before → after;
+- keep every old town's cobble share within 0.6 ± 0.05 of its streets: if a centre loses cobbled blocks to such a
+  bridge, take the bridge blocks out of the allocation base of AudioFeed.cobbled_blocks when that is cheap and robust
+  (deterministic, identical in both driving directions); otherwise report the centres that fall below 0.55 with their
+  numbers (in Venice the road ends at Piazzale Roma right behind the causeway, so a lower share there is acceptable
+  when documented);
+- a unit test (tests/unit/audio_modern/test_audio_feed.gd): a city plan with a concrete-deck bridge in its centre gets
+  no cobbles on the bridge and its share on the streets; make sure it FAILS on today's code before you fix it;
+- the Kiel – Hamburg trigger log must not change; if it does, re-record the two drive previews in /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/AU-R/
+  with AU-R2's scripts (/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AU-R2/, /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AU-R/drive_ab.gd, build_deliver.py) and update their .txt; otherwise
+  leave every preview untouched.
+DOCS: docs/audio-modern.md – the acceptance criteria of the Modern sound per V1–V3 where the targets are listed, the
+deck rule above, and a short line „Stand nach AU-R3". config _doc entries if a key's meaning changes (none should).
+GATES: the feed tests via the filter of tools/run_tests.sh while iterating; at the end tools/run_tests.sh once,
+tools/golden.sh check once (20 von 20 identisch), check_arcade_lean OK, git diff v0.7.0..HEAD over the frozen Arcade
+paths empty; no sound file changes (so no audio_qc needed – prove with git diff --stat 3600eb76c136d5c2c66537675c87511e3518b0ba..HEAD).
+DELIVER: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/AU-R3/bericht.md (German, short): the bridge table before → after, the shares, the gates.
+Push every commit to origin wip/v080-au-r3. Return the result format with package "AU-R3".

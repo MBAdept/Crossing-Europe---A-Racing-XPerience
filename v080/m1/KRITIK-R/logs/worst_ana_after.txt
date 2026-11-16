@@ -1,0 +1,2 @@
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R/cap/worst/after.wav: {"tp_master_1.0": -1.43, "sp_master_1.0": -2.0, "lufs_1.0": -9.29, "pre_tp": 5.53, "pre_sp": 5.5, "post_tp": -1.43, "gr_max": 7.5, "gr_share_over_1": 0.991, "gr_share_over_3": 0.861, "gr_median": 4.04, "pre_lufs": -5.25, "post_lufs": -9.29}
+   GR je 0,5 s: [4.6, 6.3, 5.9, 5.3, 5.6, 6.1, 5.1, 6.3, 7.2, 5.5, 4.8, 5.0, 7.4, 6.4, 6.4, 5.3, 5.5, 6.6, 6.8, 6.4, 5.1, 6.9, 4.5, 6.2, 7.5, 5.3, 4.2]

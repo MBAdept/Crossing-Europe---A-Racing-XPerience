@@ -1,0 +1,16 @@
+v0.8.0 RINT-M2: Tankstellendach ohne Stütze hängt am Mast statt an einer Notstütze (A-18)
+
+An den drei Dächern, deren Stützen alle wegfielen (prag_leipzig km 148,08,
+sibiu_timisoara km 148,98, prag_nuernberg km 233,13), stand bisher eine
+Notstütze auf der Insel, die Arcade nicht hat und die eine Kurventafel aus
+210 m zu 89 % verdeckte (NACH-R6 N-04). Jetzt hängt das Dach an einem Mast
+(station.gd hang_mast): zuerst rechts jenseits der Tafeln (Balken unter der
+Dachkante, Zugstangen über dem Dach), sonst – in einer Rechtskurve verdeckt
+jede Stelle rechts der Straße eine Tafel weiter vorn – links jenseits des
+Seitenstreifens, Zugstangen hoch über der Fahrbahn (7–9 m über den Spuren)
+zur Dachkante. Der Mast verdeckt aus keiner Spur eine Tafel und steht außerhalb
+des Sichtkorridors; an allen drei Dächern links (gemessen, scan_f1).
+end_column_hides() nimmt die Breite als Parameter. Unit-Test.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

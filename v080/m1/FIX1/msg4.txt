@@ -1,0 +1,21 @@
+v0.8.0 FIX1: Tankstelle, Start-/Zieltor, Wahrzeichen bis Arcades Reichweite, Brückengeländer, helleres Wasser
+
+- builders/station.gd (Dateiname aus der Registry, R6 übernimmt): Arcades
+  Tankstelle als Geometrie – Zapfinsel 0,18 m mit gelbem Bordstein, Dach über
+  Insel und halber Tankspur mit rot-weißem Band, Stirnblende mit „TANKSTELLE“
+  (Label3D in Arcades Schildschrift), Stützen, Dachlampen (Kanal 12, Lichtkegel
+  und Schein über add_lamps) (QA QB-02).
+- builders/gantry.gd: Start- und Zieltor aus den Schild-Ereignissen mit Seite 0
+  – Pfosten, Banner (Ziel rot mit Schachbrettstreifen und „ZIEL“, Start dunkel
+  mit „START“ und drei Countdown-Lampen nach view.countdown) (QA QB-04).
+- Wahrzeichen: props.gd zeichnet sie mit Arcades Wahrzeichengesetz
+  (landmark_fade: sichtbar bis Sicht × 2, höchstens 1.900 m, mit Dunst) in
+  billboard und baked, jenseits der geladenen Stücke als einzelne Ersatzbilder
+  bzw. Modelle am Pfad; Elbphilharmonie und Michel stehen an S4 wie in Arcade
+  am Horizont (vorher erst unter ~765 m) (QA QB-03b).
+- Brücken: Geländer nach Arcades Typ an der Deckkante (Stahl, Brüstung,
+  Mauer, Eisen) im Randausstattungs-Builder; Wasser in der Farbe der Brücke und
+  zum Horizont hin den Himmel spiegelnd wie Arcades water_tint (QA QB-03a).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

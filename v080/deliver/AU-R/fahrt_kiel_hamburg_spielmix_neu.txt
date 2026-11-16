@@ -1,0 +1,17 @@
+Fahrt Kiel – Hamburg im Spielmix, nachher (Stand AU-R2), mit Rennmusik
+
+Die Fahrt von „vorher_nachher“ (zweite Hälfte) mit der Rennmusik, wie sie im Spiel liegt (Ducking unter dem Auto, Renn-EQ). Musik unverändert. In Hamburg wechseln Pflaster und Asphalt (Zeiten unten).
+
+Länge 45.9 s, integriert -15.9 LUFS, True Peak -3.9 dBTP (gemessen an der WAV vor dem MP3)
+  0:00.09  Autobahn 170 km/h, Asphalt → Beton (A7 Holstein, Plattenfugen)
+  0:09.29  Köhlbrandbrücke 120 km/h (Stahldeck, Dehnfugen)
+  0:20.03  Rüttelstreifen (125 km/h)
+  0:25.35  Bankett rechts (Schotter)
+  0:30.01  Leitplanke: Schlag und Schleifen
+  0:35.28  Hamburger Innenstadt 50 km/h
+  0:35.29  unter den Rädern: Asphalt (km 88.40)
+  0:37.39  unter den Rädern: Pflaster (km 88.70)
+  0:43.64  unter den Rädern: Asphalt (km 89.60)
+  0:45.88  Ende
+
+Aufgenommen am Master-Bus des Spiels (Godot 4.7.2, Profil Modern, ohne Bildschirm, Dummy-Audiotreiber), Gesamtlautstärke 0,8 wie im Spiel voreingestellt. Gehört hat es hier niemand – das Urteil über den Klang liegt beim Nutzer.

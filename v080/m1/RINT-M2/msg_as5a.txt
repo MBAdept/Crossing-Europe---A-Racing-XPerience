@@ -1,0 +1,9 @@
+v0.8.0 RINT-M2: AS5a zusammengeführt (Stadtgebäude Teil 1; AS5aR1 7153381)
+
+Stile hanse, german, german_old des Rennens Kiel – Nürnberg: 11 Sätze
+mit Flankenöffnungen, Erkern, Geländern, die in den Mips bleiben.
+Konflikt nur in tests/golden/modern_slice.* (Liste wird am Ende neu
+erzeugt); manifest.json hat nur AS5a seit der Basis geändert.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

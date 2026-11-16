@@ -1,0 +1,11 @@
+AS2b (WIP): Verschlussstangen des Aufliegers auch in lod2; Doku nachgezogen
+
+Die vier Verschlussstangen sind bei 60 bis 180 m die hellen Linien des
+Hecks; ohne sie wurde das Heck beim Wechsel bei 180 m zur glatten
+Fläche (27,5 % der Lkw-Pixel änderten sich, gemessen; jetzt 1,2 %).
+lod2: +48 Dreiecke (1 346 bzw. 1 270 von 1 500). docs/modelle.md:
+Abschnitt 15 mit den Schattenwerfern, den Zahlen der Endfassung und
+den Stufenwechseln.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

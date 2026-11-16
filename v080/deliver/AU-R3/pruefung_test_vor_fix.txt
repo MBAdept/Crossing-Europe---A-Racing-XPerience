@@ -1,0 +1,26 @@
+244 Skripte geprüft, 0 fehlerhaft
+ok    test_audio_feed.gd :: test_without_track_or_position_nothing_is_derived
+ok    test_audio_feed.gd :: test_surface_under_a_wheel
+ok    test_audio_feed.gd :: test_surfaces_per_side_from_the_state
+ok    test_audio_feed.gd :: test_structures_and_their_events
+ok    test_audio_feed.gd :: test_zone_from_scenery_and_city
+ok    test_audio_feed.gd :: test_passed_objects
+ok    test_audio_feed.gd :: test_jumps_make_no_events
+ok    test_audio_feed.gd :: test_on_a_real_track
+ok    test_audio_feed.gd :: test_paving_of_sections_cities_and_bridges
+ok    test_audio_feed.gd :: test_concrete_is_the_same_in_both_directions
+ok    test_audio_feed.gd :: test_rumble_only_on_rumble_roads
+ok    test_audio_feed.gd :: test_delineators_on_roads_without_guardrail
+ok    test_audio_feed.gd :: test_cutting_between_rocks
+ok    test_audio_feed.gd :: test_joints_per_deck
+ok    test_audio_feed.gd :: test_no_rumble_at_the_fuel_lane
+ok    test_audio_feed.gd :: test_unit_hash_mixes_neighbouring_keys
+ok    test_audio_feed.gd :: test_cobbled_blocks_hit_the_share_per_centre
+ok    test_audio_feed.gd :: test_concrete_threshold_per_country
+FAIL  test_audio_feed.gd :: test_no_old_town_cobbles_on_a_concrete_deck
+      auf dem Betondeck Asphalt, kein Altstadtpflaster: erwartet { "asphalt": 381.0 }, ist { "cobbles": 381.0 }
+FAIL  test_audio_feed.gd :: test_old_town_share_on_its_streets_around_a_bridge
+      kein Pflaster auf dem Betondeck: erwartet 0.0 ± 0.0, ist 240.0
+      Pflasteranteil der Straßen 0.420 (Ziel 0,6 ± 0,05): erwartet 0.6 ± 0.05, ist 0.42
+20 Tests, 2 fehlgeschlagen
+==> Tests FEHLGESCHLAGEN (11 s)

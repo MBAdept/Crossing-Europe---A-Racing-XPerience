@@ -1,0 +1,14 @@
+v0.8.0 M2INT: Modern-Änderungsmelder neu – Bilder des Inhalts von M2 angesehen
+
+Leitungsnotiz 9: tests/golden/modern_slice.md5 neu erzeugt (tools/golden.sh modern-make), nachdem ich die sechs
+Bilder angesehen habe (modern-check mit KEEP auf af5fbe1: 0 von 6 identisch, OpenGL ES gegen OpenGL an S3 „Hoch“ OK,
+max. Abweichung 2/255, PSNR 73,2 dB; modern-make danach pixelgleich mit diesen Bildern):
+- Start (Mittel): Starttor, Countdown „1“ – das Spielerauto fehlt im Countdown noch (Befund des ersten Testbuilds,
+  der Start-Fix ZS1 ist bis 12:00 UTC nicht freigegeben und nicht zusammengeführt).
+- S2, S3 (Hoch), S4, S5: Bäume von AS3R, Verkehr von AS2R, Gebäude von AS4R; S5 im Ziel wie Arcade.
+- S1 Nacht: Bäume und Heide neu, Rücklichter, Mond.
+Die Änderung kommt vom Inhalt (AS2R, AS3R, AS4R) und von c317625 (Wahrzeichen nachts); b2c6b52 (VPBR_STATIC) ist
+pixelgleich (T1 nachgeprüft).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,200 @@
+[
+{
+"name": "suv_white_lod2_wire_rear",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false,
+"mode": "wire"
+},
+{
+"name": "suv_white_lod2_wire_front",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 6
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false,
+"mode": "wire"
+},
+{
+"name": "suv_white_lod2_wire_rear34",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false,
+"mode": "wire"
+},
+{
+"name": "suv_white_lod2_shaded_rear",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "suv_white_lod2_shaded_front",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 6
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "suv_white_lod2_shaded_rear34",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "wagon_green_lod2_wire_rear",
+"set": "traffic/wagon_green",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false,
+"mode": "wire"
+},
+{
+"name": "wagon_green_lod2_wire_front",
+"set": "traffic/wagon_green",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 6
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false,
+"mode": "wire"
+},
+{
+"name": "wagon_green_lod2_wire_rear34",
+"set": "traffic/wagon_green",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false,
+"mode": "wire"
+},
+{
+"name": "wagon_green_lod2_shaded_rear",
+"set": "traffic/wagon_green",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "wagon_green_lod2_shaded_front",
+"set": "traffic/wagon_green",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 6
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "wagon_green_lod2_shaded_rear34",
+"set": "traffic/wagon_green",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+}
+]

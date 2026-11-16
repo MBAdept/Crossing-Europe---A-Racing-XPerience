@@ -1,0 +1,11 @@
+v0.8.0 RINT-M2: Render-Prüfung props_spiegel – Einfamilienhaus ist seit AS5a ein Modell
+
+tools/run_render_checks.sh all (27 von 28 Dateien OK) meldete in
+check_props_render „props_spiegel“: keine gespiegelte Gruppe
+s|props/city_german_house|1 – das Einfamilienhaus ist seit AS5a ein
+Modell (Gruppe m|…), das Bild selbst war in Ordnung (Abweichung vom
+Spiegelbild 0,09). Erwartete Gruppe und Text angepasst; einzeln:
+props_spiegel OK, rotor OK.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

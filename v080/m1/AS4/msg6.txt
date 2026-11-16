@@ -1,0 +1,7 @@
+v0.8.0 AS4: Doku Abschnitt 15 vollständig (Geometrie-Gate, Stufenwechsel)
+
+- docs/modelle.md: Ergebnis von check_sprite_geometry.py --only props (86 von 86 identisch), Messwerte des
+  Stufenwechsels nachgetragen
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

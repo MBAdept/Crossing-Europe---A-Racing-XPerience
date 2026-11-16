@@ -1,0 +1,25 @@
+07:43 import exit 0 Fehlerzeilen 0; check_scripts exit 1 – Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org  330 Skripte geprüft, 0 fehlerhaft 
+gate import fertig (14 s, nice 10)
+08:00 run_tests (tests) exit 0 – 802 Tests, 0 fehlgeschlagen – 150 CHECK OK, 0 CHECK FEHLER
+gate tests fertig (1008 s, nice 10)
+08:07 golden check exit 0 – GOLDEN arcade: 20 von 20 identisch (193 s) GOLDEN arcade-ui: 17 von 17 identisch (245 s) 
+gate golden fertig (444 s, nice 10)
+08:26 modern-check (KEEP) exit 1 – GOLDEN modern: 0 von 6 identisch (896 s) GOLDEN modern-gles: modern_s3_hoch OpenGL ES gegen OpenGL: OK max. Abweichung 2/255, PSNR 73.2 dB, 8564 Pixel verschieden (241 s) 
+gate modernkeep fertig (1145 s, nice 10)
+modern-make exit 0
+09:06 modern-check exit 0 – GOLDEN modern: 6 von 6 identisch (799 s) GOLDEN modern-gles: modern_s3_hoch OpenGL ES gegen OpenGL: OK max. Abweichung 2/255, PSNR 73.2 dB, 8564 Pixel verschieden (234 s) 
+gate moderncheck fertig (1039 s, nice 10)
+12:11 render checks exit 1 – 27 Dateien OK, 1 Dateien rot
+gate render fertig (3842 s, nice 10)
+12:14 modern_sight --full exit 0 (6 OK, 0 FEHLER); modern_path_check --full exit 0 (2 OK, 0 FEHLER)
+gate sight fertig (201 s, nice 10)
+12:19 ergebnis – ERGEBNIS kiel_hamburg: 28 Schlüssel, identisch (außer gfx) ERGEBNIS dev_testetappe: 28 Schlüssel, identisch (außer gfx) ERGEBNIS saragossa_pau: 28 Schlüssel, identisch (außer gfx) 
+gate ergebnis fertig (275 s, nice 10)
+12:21 texmem – 4 Messungen
+gate texmem fertig (106 s, nice 10)
+13:42 validate exit 0 – CHECK models OK
+gate validate fertig (4 s, nice 10)
+13:52 check-keys exit 0 – CHECK cache_keys OK      98 Modelle: ein geänderter Lack, Metallwert, Blickwink
+gate keys fertig (644 s, nice 10)
+13:55 audio_qc exit 0 –  98 Klänge geprüft, 0 mit Fehlern, 0 Probleme insgesamt -> OK 
+gate audio fertig (178 s, nice 10)

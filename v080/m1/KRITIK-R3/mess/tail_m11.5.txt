@@ -1,0 +1,9 @@
+runs [('truck_9312_m11.5.json', 2.13), ('truck_9313_m11.5.json', 2.51), ('truck_9312_r4.res.json', 2.2), ('truck_9314_r4.res.json', 2.85), ('truck_9315_r4.res.json', 2.69)]
+share > 2.0 dB: 27 of 300 = 0.090
+share > 2.5 dB: 16 of 300 = 0.053
+share > 2.8 dB: 10 of 300 = 0.033
+share > 3.0 dB: 3 of 300 = 0.010
+per-crash P(>3 dB) 0.010: risk p95 > 3 in a 60-crash run (>= 4 of 60 above 3 dB) 0.0031
+per-crash P(>3 dB) 0.020: risk p95 > 3 in a 60-crash run (>= 4 of 60 above 3 dB) 0.0322
+per-crash P(>3 dB) 0.030: risk p95 > 3 in a 60-crash run (>= 4 of 60 above 3 dB) 0.1057
+subsampled 60-runs: p95 median 2.42, 95 % range 1.77-2.92, share > 3 dB 0.0000, share > 2.8 dB 0.153

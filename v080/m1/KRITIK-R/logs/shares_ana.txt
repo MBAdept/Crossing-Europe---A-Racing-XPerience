@@ -1,0 +1,40 @@
+== before: Beton 5/17 Länder in ±0,05, gesamt 0.242 (Soll 0.205); Pflaster 0/47 Altstädte in ±0,05, ganz 29, nie 18, Mittel 0.61; Richtungen ungleich 46/61
+   DE:  3950.6 km, Beton 0.427 (Soll 0.35) NEIN
+   FR:  1991.7 km, Beton 0.114 (Soll 0.1) ok
+   ES:  1315.0 km, Beton 0.163 (Soll 0.1) NEIN
+   PL:   760.0 km, Beton 0.336 (Soll 0.25) NEIN
+   RS:   645.0 km, Beton 0.000 (Soll 0.1) NEIN
+   HU:   520.0 km, Beton 0.183 (Soll 0.1) NEIN
+   RO:   490.0 km, Beton 0.000 (Soll 0.1) NEIN
+   CZ:   481.0 km, Beton 0.450 (Soll 0.4) NEIN
+   BE:   450.0 km, Beton 0.511 (Soll 0.3) NEIN
+   CH:   439.2 km, Beton 0.137 (Soll 0.1) ok
+   IT:   428.0 km, Beton 0.117 (Soll 0.1) ok
+   NL:   412.7 km, Beton 0.036 (Soll 0.1) NEIN
+   AT:   374.0 km, Beton 0.131 (Soll 0.15) ok
+   HR:   300.0 km, Beton 0.067 (Soll 0.1) ok
+   SI:   190.0 km, Beton 0.000 (Soll 0.1) NEIN
+   LT:   145.0 km, Beton 0.000 (Soll 0.1) NEIN
+   BG:     5.0 km, Beton 0.000 (Soll 0.1) NEIN
+   Altstädte niedrigste: [('amsterdam', 0.0), ('belgrad', 0.0), ('bern', 0.0), ('bremen', 0.0)] höchste: [('toulouse', 1.0), ('tours', 1.0), ('wien', 1.0), ('wuerzburg', 1.0)]
+   Hamburg: {'stages': 3, 'share_mean': 1.0, 'share_min': 1.0, 'share_max': 1.0, 'ok': False, 'pattern': 'PPPPPPPPP', 'all_or_nothing': True}
+== after: Beton 14/17 Länder in ±0,05, gesamt 0.2 (Soll 0.205); Pflaster 47/47 Altstädte in ±0,05, ganz 0, nie 0, Mittel 0.563; Richtungen ungleich 46/61
+   DE:  3950.6 km, Beton 0.347 (Soll 0.35) ok
+   FR:  1991.7 km, Beton 0.103 (Soll 0.1) ok
+   ES:  1315.0 km, Beton 0.091 (Soll 0.1) ok
+   PL:   760.0 km, Beton 0.230 (Soll 0.25) ok
+   RS:   645.0 km, Beton 0.062 (Soll 0.1) ok
+   HU:   520.0 km, Beton 0.135 (Soll 0.1) ok
+   RO:   490.0 km, Beton 0.102 (Soll 0.1) ok
+   CZ:   481.0 km, Beton 0.395 (Soll 0.4) ok
+   BE:   450.0 km, Beton 0.322 (Soll 0.3) ok
+   CH:   439.2 km, Beton 0.057 (Soll 0.1) ok
+   IT:   428.0 km, Beton 0.082 (Soll 0.1) ok
+   NL:   412.7 km, Beton 0.061 (Soll 0.1) ok
+   AT:   374.0 km, Beton 0.118 (Soll 0.15) ok
+   HR:   300.0 km, Beton 0.150 (Soll 0.1) ok
+   SI:   190.0 km, Beton 0.211 (Soll 0.1) NEIN
+   LT:   145.0 km, Beton 0.000 (Soll 0.1) NEIN
+   BG:     5.0 km, Beton 0.000 (Soll 0.1) NEIN
+   Altstädte niedrigste: [('amsterdam', 0.55), ('barcelona', 0.55), ('belgrad', 0.55), ('bern', 0.55)] höchste: [('wien', 0.6), ('bukarest', 0.64), ('madrid', 0.64), ('paris', 0.64)]
+   Hamburg: {'stages': 3, 'share_mean': 0.55, 'share_min': 0.55, 'share_max': 0.55, 'ok': True, 'pattern': 'P--PP-P-P', 'all_or_nothing': False}

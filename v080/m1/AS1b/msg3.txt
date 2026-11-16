@@ -1,0 +1,13 @@
+AS1b (WIP): Tankstelle, Zapfsäule, Blitzer, Scheune, Zollhäuschen, Windmühle, Leitpfosten, Strommast
+
+- Tankstelle: Ladenfenster echt eingeschnitten (auch Seiten und Rückseite), Lampenfelder unter dem Dach mit
+  Lichtankern; der Lichtschleier des Sprites gehört nicht zum Modell
+- Zapfsäule, Blitzer, Leitpfosten: ein Atlas mit Umgebungsverdeckung (Straßenmöbel: ein Zeichenaufruf)
+- Scheune: Torrahmen und Streben als Bretter; Windmühle: Flügel mit Rotor-Code
+- Strommast: Baumeister "lattice" – Fachwerk in einen Ausschneide-Atlas gezeichnet (erster Lauf der Klasse
+  baked_cutout), Halo-Alpha 3 Texel für die Mipmaps (gemessen: Stufe 4 behält 84 % der Deckung)
+- Lampen an Wänden: die Wandseite des Lampenkastens fällt weg, der Lichtanker liegt vorn auf der Lampe
+- cesprites-Hooks (Voreinstellung = Sprite): lights3d/allround (Tankstelle), boards3d (Scheune), PYLON_LOG
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

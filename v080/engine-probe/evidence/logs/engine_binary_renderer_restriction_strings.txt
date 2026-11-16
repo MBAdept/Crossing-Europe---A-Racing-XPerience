@@ -1,0 +1,50 @@
+ 	// Glow always uses the screen blend mode in the Compatibility renderer 
+  not supported in OpenGL renderer
+ "Shader Baker" doesn't work with the Compatibility renderer.
+ "Shader Baker" is not supported when using the Compatibility renderer.
+ 'hint_normal_roughness_texture' is only available when using the Forward+ renderer.
+ - Meshes are not tracked in the Compatibility renderer.
+ - On the web platform, the Compatibility renderer is always used.
+ AreaLights don't support shadows in the Compatibility renderer.
+ Auto-exposure is only available when using the Forward+ renderer.
+ Compressed 3D textures are not supported in the Compatibility renderer.
+ Cubemap Arrays are not supported in the Compatibility renderer.
+ Debug CanvasItem Redraw is not available yet when using the Compatibility renderer.
+ Decals are only available when using the Forward+ or Mobile renderer.
+ Depth of field blur is only available when using the Forward+ or Mobile renderer.
+ Dual paraboloid shadow mode not supported in the Compatibility renderer. Please use CubeMap shadow mode instead.
+ FSR1 3D scaling is only available when using the Forward+ renderer.
+ FSR2 3D scaling is only available when using the Forward+ renderer.
+ GeometryInstance3D transparency is only available when using the Forward+ renderer.
+ GeometryInstance3D visibility range transparency fade is only available when using the Forward+ renderer.
+ MetalFX Spatial 3D scaling is only available when using the Forward+ or Mobile renderer.
+ MetalFX Temporal 3D scaling is only available when using the Forward+ renderer.
+ MetalFX and FSR upscaling are not supported in the Compatibility renderer. Falling back to bilinear scaling.
+ Only supported in the Forward+ and Mobile rendering methods, not Compatibility.
+ Particle sub-emitters are not available when using the Compatibility renderer.
+ Particle sub-emitters are only available when using the Forward+ or Mobile renderer.
+ Particle trails are only available when using the Forward+ or Mobile renderer.
+ Please use the Compatibility renderer.
+ Projector textures are not supported when using the Compatibility renderer yet. Support will be added in a future release.
+ Reading from the normal-roughness texture is only available when using the Forward+ or Mobile renderer.
+ SDF Particle Colliders are not available in the Compatibility renderer.
+ SDFGI is only available when using the Forward+ renderer.
+ Screen-space AA is only available when using the Forward+ or Mobile renderer.
+ Screen-space ambient occlusion (SSAO) is only available when using the Forward+ or Compatibility renderers.
+ Screen-space indirect lighting (SSIL) is only available when using the Forward+ renderer.
+ Screen-space reflections (SSR) are only available when using the Forward+ renderer.
+ Sub-emitter modes other than SUB_EMITTER_DISABLED are not supported in the Compatibility renderer.
+ Subsurface scattering is only available when using the Forward+ renderer.
+ TAA is only available when using the Forward+ renderer.
+ The Compatibility renderer does not support SDF collisions in 3D particle shaders
+ The Compatibility renderer does not support manually emitting particles.
+ The Compatibility renderer does not support overriding the GPU with the --gpu-index command line argument. Falling back to the default GPU for OpenGL applications.
+ The Compatibility renderer does not support particle sub-emitters.
+ The Compatibility renderer does not support particle trails.
+ The image format %d is not supported by the Compatibility renderer.
+ Transmittance is only available when using the Forward+ renderer.
+ Type  SamplerCubeArray is not supported in the Compatibility renderer, please use another type.
+ Vector field particle attractors are not available in the Compatibility renderer.
+ Volumetric fog is only available when using the Forward+ renderer.
+ VoxelGI nodes are not supported when using the Compatibility renderer yet. Support will be added in a future release.
+ VoxelGI nodes are not supported when using the Dummy renderer.

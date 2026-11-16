@@ -1,0 +1,37 @@
+{
+ "B10_dark_pylon": {
+  "summary": "11 Tests, 1 fehlgeschlagen",
+  "failed_tests": [
+   "test_dark_pylon_material_at_night"
+  ],
+  "script_errors": 0
+ },
+ "B12_cables_count": {
+  "summary": "11 Tests, 1 fehlgeschlagen",
+  "failed_tests": [
+   "test_koehlbrand_pylons_beacons_and_cables"
+  ],
+  "script_errors": 0
+ },
+ "B14_lamps_skip": {
+  "summary": "11 Tests, 1 fehlgeschlagen",
+  "failed_tests": [
+   "test_bridge_lamps_like_arcades_events"
+  ],
+  "script_errors": 0
+ },
+ "T4_zone_guard": {
+  "summary": "9 Tests, 1 fehlgeschlagen",
+  "failed_tests": [
+   "test_set_zone_only_when_the_rig_has_it"
+  ],
+  "script_errors": 2
+ },
+ "P1_portal_layer": {
+  "summary": "9 Tests, 1 fehlgeschlagen",
+  "failed_tests": [
+   "test_portal_on_the_ground_layer_out_of_the_low_beam"
+  ],
+  "script_errors": 0
+ }
+}

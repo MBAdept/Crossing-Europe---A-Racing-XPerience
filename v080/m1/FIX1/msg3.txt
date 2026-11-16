@@ -1,0 +1,18 @@
+v0.8.0 FIX1: Minimale Tunnelröhre mit Portal und Hügel (statt offenem Gelände)
+
+- Neuer Builder scripts/race3d/builders/tunnel.gd (Dateiname aus der Registry,
+  R5 übernimmt ihn in M2): Röhre je Tunnelsegment in Arcades Formen und Farben
+  (Fliesenband, Wand, Vouten, Decke), Lampenbänder alle 12 m mit Arcades
+  Lichthof über die Flare-Ebene (Rolle "tunnel"), grünes Notrufschild alle
+  150 m; am Portal Stirnwand mit Flügelmauern und Arcades bewachsener Hügel
+  (gesät je Tunnel, kürzer bei kurzen Tunneln) in vpbr.
+- Neuer Shader tunnel.gdshader: unbeleuchtet mit Arcades Tunnellicht und
+  Tunnelnebel, von außen (eingewöhnte Augen) halb so hell; für eine Kamera
+  außerhalb nur die ersten peek_m (45 m), dahinter eine dunkle Kappe.
+- Hintergrund: mit Röhre bleibt die Leinwand im Tunnel dunkel, bis die
+  Ausfahrt in Sicht ist (Arcades _tunnel_exit_visible).
+- Bilder (gemessen, llvmpipe): U1 Gotthard, DEV Testtunnel nachts, Elbtunnel
+  (Hamburg–Hannover km 3,3) von außen und innen wie Arcade (QA QB-01).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

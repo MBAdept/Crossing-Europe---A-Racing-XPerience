@@ -1,0 +1,1 @@
+[{"set": "traffic/sports_red", "dist": 20.3, "lane": -3.75}, {"set": "traffic/sports_yellow", "dist": 60.3, "lane": 0.0, "blink": -1, "blink_t": 0.1}, {"set": "traffic/sports_blue", "dist": 150.3, "lane": -7.5}]

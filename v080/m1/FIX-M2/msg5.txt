@@ -1,0 +1,11 @@
+v0.8.0 FIX-M2: Lack des Spielerautos bei Tag weniger gesättigt, nachts R4s Gesetz (B-06)
+
+- VEHICLE_PLAYER_DESAT 0,35 × (1 − Nacht der Palette): bei Tag 35 % zur eigenen Leuchtdichte, nachts nichts –
+  R4s Nachtgesetz hält den Lack dort schon. Die Ebene setzt den Lack neu, wenn sich die Nacht um > 0,02 ändert.
+- Gemessen in der Fahrzeugsonde auf dem Zusammenführungsbaum (FIX-M2 + origin/wip/v080-r4, „Mittel“, Lackpixel
+  farbgefiltert): Limousine 12 Uhr ohne 0,726, mit 0,15 / 0,30 Entsättigung 0,693 / 0,647 (Arcade 0,583);
+  Kompakt 22 Uhr Schnee ohne 0,755, mit 0,15 / 0,30 0,672 / 0,530 (Arcade 0,718).
+- Unit-Test: nachts unverändert, Dämmerung dazwischen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

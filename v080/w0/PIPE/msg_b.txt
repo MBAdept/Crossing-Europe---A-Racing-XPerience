@@ -1,0 +1,31 @@
+v0.8.0 PIPE: Spieler-Limousine (lod0, show, Schattenwerfer), Prüfer, ModelDB-Test, Kontaktbogen bei Nacht
+
+Modelle
+- player/limousine: lod0 49 636 Dreiecke (Karosserie + 4 Räder), show 102 314, Schattenwerfer 1 872.
+  Hook carbody.DETAIL["graze"] (Voreinstellung 0 = Sprite unverändert): aufgesetzte Flächen enden, wo die
+  Karosserie sich von ihrer Projektion abwendet - sonst ziehen sich Lampen als Streifen über die Flanke.
+  Lichtanker einer Lampe über die ganze Wagenbreite werden in links / rechts geteilt.
+- props/tree_oak: Fernbild neu abgestimmt (siehe Billboard).
+
+Werkzeuge
+- tools/blender/validate_models.py: Manifest = Fragmente = Dateien, Budgets, Namen, dekodierte Lackcodes
+  und Lampenkanäle, Atlas-Koordinaten, Größen gegen das Sprite-Manifest, Räder am Boden, Texturstufen.
+- tests/unit/core/test_model_db.gd: alle 180 Sets ohne ui/* lösen auf, Größen = Sprite-Manifest,
+  Manifest = Merge der Fragmente, Netze tragen Klassen und Dreieckszahlen des Manifests.
+- ModelDB.load_manifest() statt reload(): auf einem Klassennamen ruft GDScript bei reload() die
+  Methode Script.reload(keep_state) der Skript-Ressource auf, nie die statische Funktion.
+- Kontaktbogen: Nachtkacheln als Nahaufnahme der Lampen, hellstes Farbset bei Nacht, Prüfstreifen aller
+  15 Lampenkanäle (--channels), Showroom-Kamera wie das Sprite (rechte Seite, Lens-Shift), Energien
+  wählbar, Glow addiert nur noch (Soft Light änderte den Kontrast des ganzen Bildes).
+- Bake: .import-Dateien nur innerhalb des Projekts, Zeiten früherer Läufe bleiben im Bericht;
+  _cache3d bekommt .gdignore (Godot importierte die Zwischenstände als Szenen);
+  inspect_models.gd liest die automatischen Stufen aus den gespeicherten Flächen.
+
+Billboard
+- ce_sun_color / ce_ambient sind lineare Lichtwerte (ModernMaterials.light_value). Der Shader bildet die
+  Rechnung des Renderers nach (Näherungen sRGB <-> linear, Sonne als eigener Durchgang in sRGB addiert):
+  Fernbild und lod1 der Eiche stimmen bei Tag in Rot und Grün auf 3 % überein und sind bei Mondlicht
+  gleich dunkel (vorher nachts etwa viermal zu hell).
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

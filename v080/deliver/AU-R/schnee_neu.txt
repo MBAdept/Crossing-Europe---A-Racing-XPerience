@@ -1,0 +1,12 @@
+Schnee bei 50, 90 und 130 km/h, nachher (AU-R)
+
+Limousine auf verschneiter Autobahn (Motor + Fahrbahn + Wind): das Rollen gedämpft (Tiefpass), dazu die neue eigene Schnee-Schleife – weiches Knirschen gepressten Schnees statt der Steinschläge des Schotters, die AU-C1 dafür nahm.
+
+Worauf achten: Knirschen statt Prasseln; kein Rhythmus, der sich wiederholt.
+
+Länge 16.9 s, integriert -18.7 LUFS, True Peak -7.5 dBTP (gemessen an der WAV vor dem MP3)
+  0:00.07  Schnee 50 km/h
+  0:05.68  Schnee 90 km/h
+  0:11.30  Schnee 130 km/h
+
+Aufgenommen am Master-Bus des Spiels (Godot 4.7.2, Profil Modern, ohne Bildschirm, Dummy-Audiotreiber), Gesamtlautstärke 0,8 wie im Spiel voreingestellt. Gehört hat es hier niemand – das Urteil über den Klang liegt beim Nutzer.

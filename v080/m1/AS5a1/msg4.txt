@@ -1,0 +1,8 @@
+v0.8.0 AS5a1: WIP Texeldichte: Sockel des Büroturms, Kontor und Speicher
+
+- Büroturm: Turm über dem Sockel (12 m) mit 0,75 der Dichte, der Sockel mit Foyer bekommt mehr
+- Kontor: Obergeschosse 0,7 statt 0,65, Dach und abgewandte Seiten weniger (Erdgeschoss >= 40 px/m)
+- Speicher: Dach 0,3 statt 0,4
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

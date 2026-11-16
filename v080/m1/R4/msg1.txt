@@ -1,0 +1,9 @@
+v0.8.0 R4: EnvironmentRig.set_zone(kind, amount) – Zonen für Tunnel und Brücken
+
+Schnittstelle für R5 (duck-typed über renderer.env): "tunnel" mischt Licht, Nebel
+und Globals zum Tunnel, "bridge" verstärkt den Wind über Wasser. Solange niemand
+set_zone("tunnel", …) ruft, gilt weiter tunnel_blend() aus dem Etappenplan.
+Unit-Test test_set_zone, Doku renderer-modern.md §15.1.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,4 @@
+{"segments": [
+ {"name": "conc200_auR_r0", "km": 42.0, "kmh": 200.0, "throttle": 0.6, "x": 1.875, "mute": [], "seconds": 60.0, "paving": "concrete", "slab_db": 4.5},
+ {"name": "conc200_auR_r1", "km": 42.0, "kmh": 200.0, "throttle": 0.6, "x": 1.875, "mute": [], "seconds": 60.0, "paving": "concrete", "slab_db": 4.5}
+]}

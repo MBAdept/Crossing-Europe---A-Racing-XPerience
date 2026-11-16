@@ -1,0 +1,632 @@
+[
+{
+"set": "showroom/kombi",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kombi_sr_sheet_agx",
+"tonemap": "agx",
+"contact": false
+},
+{
+"set": "showroom/kombi",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kombi_sr_studio_race",
+"rig": "studio"
+},
+{
+"set": "showroom/kombi",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kombi_sr_studio_neutral",
+"rig": "studio",
+"look": "neutral"
+},
+{
+"set": "showroom/kombi",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kombi_sr_studio_race_norims",
+"rig": "studio",
+"no_rims": true
+},
+{
+"set": "showroom/kombi",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kombi_sr_mask",
+"mode": "mask",
+"contact": false,
+"no_ground": true
+},
+{
+"set": "showroom/kombi",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kombi_sr_clay",
+"mode": "clay",
+"rig": "studio"
+},
+{
+"set": "showroom/sportwagen",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "sportwagen_sr_sheet_agx",
+"tonemap": "agx",
+"contact": false
+},
+{
+"set": "showroom/sportwagen",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "sportwagen_sr_studio_race",
+"rig": "studio"
+},
+{
+"set": "showroom/sportwagen",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "sportwagen_sr_studio_neutral",
+"rig": "studio",
+"look": "neutral"
+},
+{
+"set": "showroom/sportwagen",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "sportwagen_sr_studio_race_norims",
+"rig": "studio",
+"no_rims": true
+},
+{
+"set": "showroom/sportwagen",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "sportwagen_sr_mask",
+"mode": "mask",
+"contact": false,
+"no_ground": true
+},
+{
+"set": "showroom/sportwagen",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "sportwagen_sr_clay",
+"mode": "clay",
+"rig": "studio"
+},
+{
+"set": "showroom/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "gran_turismo_sr_sheet_agx",
+"tonemap": "agx",
+"contact": false
+},
+{
+"set": "showroom/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "gran_turismo_sr_studio_race",
+"rig": "studio"
+},
+{
+"set": "showroom/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "gran_turismo_sr_studio_neutral",
+"rig": "studio",
+"look": "neutral"
+},
+{
+"set": "showroom/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "gran_turismo_sr_studio_race_norims",
+"rig": "studio",
+"no_rims": true
+},
+{
+"set": "showroom/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "gran_turismo_sr_mask",
+"mode": "mask",
+"contact": false,
+"no_ground": true
+},
+{
+"set": "showroom/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "gran_turismo_sr_clay",
+"mode": "clay",
+"rig": "studio"
+},
+{
+"set": "showroom/limousine",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "limousine_sr_sheet_agx",
+"tonemap": "agx",
+"contact": false
+},
+{
+"set": "showroom/limousine",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "limousine_sr_studio_race",
+"rig": "studio"
+},
+{
+"set": "showroom/limousine",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "limousine_sr_studio_neutral",
+"rig": "studio",
+"look": "neutral"
+},
+{
+"set": "showroom/limousine",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "limousine_sr_studio_race_norims",
+"rig": "studio",
+"no_rims": true
+},
+{
+"set": "showroom/limousine",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "limousine_sr_mask",
+"mode": "mask",
+"contact": false,
+"no_ground": true
+},
+{
+"set": "showroom/limousine",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "limousine_sr_clay",
+"mode": "clay",
+"rig": "studio"
+},
+{
+"set": "showroom/kompakt",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kompakt_sr_sheet_agx",
+"tonemap": "agx",
+"contact": false
+},
+{
+"set": "showroom/kompakt",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kompakt_sr_studio_race",
+"rig": "studio"
+},
+{
+"set": "showroom/kompakt",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kompakt_sr_studio_neutral",
+"rig": "studio",
+"look": "neutral"
+},
+{
+"set": "showroom/kompakt",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kompakt_sr_studio_race_norims",
+"rig": "studio",
+"no_rims": true
+},
+{
+"set": "showroom/kompakt",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kompakt_sr_mask",
+"mode": "mask",
+"contact": false,
+"no_ground": true
+},
+{
+"set": "showroom/kompakt",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kompakt_sr_clay",
+"mode": "clay",
+"rig": "studio"
+}
+]

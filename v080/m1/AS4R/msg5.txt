@@ -1,0 +1,10 @@
+WIP v0.8.0 AS4R: Fachwerkportal dunkler, Doku Mühle ehrlich
+
+- Fachwerkportal: Stahl #49585a statt STEEL_GREEN des Sprites (Sonne und
+  Himmelslicht machen das Modell heller und blauer); Kontrast zum Himmel bei
+  100 m 98 -> 108 (Sprite 109), bei 400 m 86 -> 94 (Sprite 138, AS4 82)
+- Doku Abschnitt 15: Mühle flimmert mit bewegter Kamera 1,3- bis 1,7-mal so
+  stark wie das Sprite (nicht "fast gleich"), Portal-Absatz nachgezogen
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

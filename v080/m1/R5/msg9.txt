@@ -1,0 +1,16 @@
+v0.8.0 R5: Modern-Golden s4 (Köhlbrand-Ende km 80) gewollt geändert – Bild angesehen
+
+tools/golden.sh modern-check auf dem Endstand: 5 von 6 identisch, nur
+modern_s4_mittel (Kiel – Hamburg km 80,6, gleich hinter der
+Köhlbrandbrücke) anders; OpenGL ES gegen OpenGL OK (2/255, 73,2 dB).
+Angesehen gegen dasselbe Bild der Basis 6e48405 (aus der Basiskopie
+gerendert, gleich der alten Liste): 2350 von 921600 Bildpunkten weichen um
+mehr als 8 ab – rechts unten hinter dem Tacho steht jetzt R5s graue
+Natursteinböschung in Arcades Kaifarbe statt Wiese/Wasser (Entscheidung 1
+der Leitung), am Horizont links Fernwasser/Fernland; sonst gleich, keine
+Fehler im Bild. Die Liste trägt für s4 die MD5 des Bildes aus diesem Lauf
+(KEEP) – genau, was modern-make schriebe; die anderen fünf Zeilen und
+modern_slice.env unverändert.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

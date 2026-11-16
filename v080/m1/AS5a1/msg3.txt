@@ -1,0 +1,10 @@
+v0.8.0 AS5a1: WIP Stadthaus-Bauer: flache lod1, verdeckte Giebelschrägen, Rückwand-AO, Foyerlicht
+
+- lod1 = geschnittene Wand wieder flach (gleiche Atlaskoordinaten, Fenster aus dem Atlas),
+  Laibungen, Türflügel, Lamellen nur in lod0 (Speicher 12.170 -> 8.954 / 1.287 Dreiecke)
+- Dachschrägen der Giebelprismen unter dem Dach entfernt (weiße Streifen am Ortgang in lod1)
+- Texel, die nur von innen gesehen werden (Wand hinter dem Erker), mit zweitem AO-Lauf erkannt
+- n_arc (Bogenteilung), light_mul (Licht je Material; Foyer des Büroturms an den Fasen)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

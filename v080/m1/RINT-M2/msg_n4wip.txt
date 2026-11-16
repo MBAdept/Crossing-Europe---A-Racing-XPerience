@@ -1,0 +1,9 @@
+WIP v0.8.0 RINT-M2: Bremsschein der Modelle nach Tageslicht (A-20), Bildprüfung bremsschein
+
+model_glow_gain(role, a, lights): der Zuschlag des Bremslichts klingt mit
+den Lichtern der Palette auf MODEL_BRAKE_NIGHT_SHARE ab; das Blaulicht
+behält seinen Zuschlag (nachts ohnehin unter Arcade). Neue Bildprüfung
+bremsschein in check_vehicle_lights (Grenzen folgen nach der Messung).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

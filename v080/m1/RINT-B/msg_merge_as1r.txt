@@ -1,0 +1,11 @@
+v0.8.0 RINT-B: AS1R zusammengeführt – Nacharbeit der Fahrzeugmodelle nach der Kunstkritik
+
+Ohne Konflikt. assets/models/manifest.json mit export_models.py --manifest-only neu
+erzeugt (gleich dem automatischen Zusammenführen: 28 Modelle, 182 Sets, 40 mit Modell).
+validate_models.py: CHECK models OK (Netze 4,47 MB, Texturen 15,94 MB).
+AS1R hat in ce3d/lod.py nur die Tabellen der Fahrzeuge geändert; AS1b hat keine Datei
+geändert, die ein Fahrzeug-Bauer liest. Die Requisiten bleiben byte-gleich, die
+Fahrzeuge werden im nächsten Schritt mit dem zusammengeführten Stand neu exportiert.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

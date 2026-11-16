@@ -1,0 +1,10 @@
+v0.8.0 QA1: Schluss-Tore, Testbuild und Befund QA1-B3 in docs/qa-v080.md, gemessene Dauern
+
+Nur Doku. Die Tore liefen auf 10d836f (Spieldateien = Basis 28e4e8e):
+golden.sh check 20/20 + 17/17, run_tests.sh bestanden (845 s, 693/0),
+run_render_checks.sh all 16/17 (check_light_base "schatten": Lampenringe
+des Starttors werfen bei "Schatten: Aus" Schatten, QA1-B3). Die Dauer-
+Spalte in Abschnitt 1 nennt jetzt die von QA1 gemessenen Laufzeiten.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,5 @@
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R/cap/crash/before_truck.wav: n 16, TP@1.0 max -0.57 median -0.90 dBTP | vor dem Begrenzer TP max 0.58 | GR max 0.00 median 0.00, >3 dB: 0 | Glas 1.00 | lag 0
+   crunch      {0: 8, 1: 8} Wiederholungen 0 abab 14 jitter None delay None abababababababab
+   debris      {0: 16} Wiederholungen 15 abab 0 jitter None delay None aaaaaaaaaaaaaaaa
+   glass       {0: 16} Wiederholungen 15 abab 0 jitter None delay None aaaaaaaaaaaaaaaa
+   truck_boom  {0: 16} Wiederholungen 15 abab 0 jitter None delay None aaaaaaaaaaaaaaaa

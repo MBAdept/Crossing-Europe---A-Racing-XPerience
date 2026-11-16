@@ -1,0 +1,18 @@
+Rüttelstreifen, Brückenfugen und Betonplatten bei drei Tempi (ohne Motor und Wind)
+
+Rüttelstreifen rechts bei 60, 120, 200 km/h – Stahlbrücke (Köhlbrandbrücke) mit Fugen bei 60, 120, 200 km/h – Betonplatten bei 90, 140, 200 km/h (der Takt von Vorder- und Hinterachse bleibt bei jedem Tempo exakt).
+
+Länge 33.6 s, integriert -21.3 LUFS, True Peak -4.5 dBTP (gemessen, Master bei Standardreglern, Gesamtlautstärke 0,8).
+
+Zeitmarken:
+  0:00.00  Rüttelstreifen rechts 60 km/h
+  0:04.20  Rüttelstreifen rechts 120 km/h
+  0:08.46  Rüttelstreifen rechts 200 km/h
+  0:12.77  Stahlbrücke, Fugen bei 60 km/h
+  0:16.43  Stahlbrücke, Fugen bei 120 km/h
+  0:20.07  Stahlbrücke, Fugen bei 200 km/h
+  0:23.65  Betonplatten 90 km/h
+  0:27.17  Betonplatten 140 km/h
+  0:30.69  Betonplatten 200 km/h
+
+Aufgenommen am Master-Bus des Spiels (Godot 4.7.2, Profil Modern, ohne Bildschirm, Dummy-Audiotreiber). Gehört hat es hier niemand – das Urteil über den Klang liegt beim Nutzer.

@@ -1,0 +1,60 @@
+== /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-FAHRBAHN/logs/trig_kiel_hamburg.log: 316 rows, 343 events printed
+stage kiel_hamburg time 316 s avg 108.4 km/h collisions 0
+counts {"bridge_in": 2, "bridge_out": 2, "cover_in": 5, "cover_out": 5, "joint": 21, "joint_bridge_end_steel": 4, "joint_bridge_steel": 17, "pass_building": 50, "pass_gantry": 2, "pass_object": 317, "pass_post": 134, "pass_sign": 30, "pass_tree": 83}
+bridges [{'km0': 78.0, 'km1': 80.61, 'type': 'cable_stayed', 'z0': 7800.0, 'z1': 8061.0}, {'km0': 84.0, 'km1': 86.01, 'type': 'truss_arch', 'z0': 8400.0, 'z1': 8601.0}]
+track zones {'fuel': 1, 'fuel_canopy': 5, 'bridge': 2}
+valid feed rows 315 / 316
+surfaces (l,r): {('asphalt', 'asphalt'): 171, ('concrete', 'concrete'): 68, ('cobbles', 'cobbles'): 40, ('deck', 'deck'): 35, ('asphalt', 'rumble'): 1}
+paving at autobahn                      : {'concrete': 68, 'asphalt': 118}
+paving at city                          : {'asphalt': 52}
+paving at city/bridge:cable_stayed      : {'deck': 20}
+paving at city/bridge:truss_arch        : {'asphalt': 1, 'deck': 15}
+paving at city/centre                   : {'asphalt': 1, 'cobbles': 40}
+zone at truth bridge                            : {'bridge': 35, 'city': 1}
+zone at truth city                              : {'city': 93}
+zone at truth other:north_plain                 : {'open': 186}
+mismatch / special counts: {'rumble_rows': 1, 'cover_rows': 1, 'bridge': 1}
+  rumble: [(13.811, 7.52, 'asphalt', 'rumble', 'autobahn')]
+  cover: [(14.081, 'fuel', '', None, True)]
+  bridge: [(84.023, False, True)]
+speed median 85 km/h, max 235
+events printed: {'pass_object': 308, 'cover_in': 5, 'cover_out': 5, 'bridge_in': 2, 'joint': 21, 'bridge_out': 2}
+bridge cable_stayed z 7800.0..8061.0 (261 m): 12 joints at +[0.0, 24.0, 48.0, 72.0, 96.0, 120.0, 144.0, 168.0, 192.0, 216.0, 240.0, 261.0]  decks Counter({'steel': 12})
+bridge truss_arch z 8400.0..8601.0 (201 m): 9 joints at +[0.0, 24.0, 48.0, 72.0, 96.0, 120.0, 144.0, 168.0, 201.0]  decks Counter({'steel': 9})
+joints off any bridge: [] 0
+bridge_in [(78.0, 'cable_stayed', False, 'cable_stayed'), (84.0, 'truss_arch', False, 'truss_arch')]
+bridge_out [(80.61, 'cable_stayed', False, ''), (86.01, 'truss_arch', False, '')]
+cover_in [(13.996, 'fuel', False, ''), (14.216, 'fuel', False, ''), (14.436, 'fuel', False, ''), (14.656, 'fuel', False, ''), (14.876, 'fuel', False, '')]
+cover_out [(14.116, 'fuel', False, ''), (14.336, 'fuel', False, ''), (14.556, 'fuel', False, ''), (14.776, 'fuel', False, ''), (14.94, 'fuel', False, '')]
+pass objects (kind, where, set):
+    122  ('post', 'city', 'streetlight')
+     28  ('tree', 'open', 'props/tree_birch')
+     24  ('tree', 'open', 'props/tree_oak')
+     21  ('building', 'city', 'props/city_hanse_gable')
+     19  ('building', 'city', 'props/city_german_hous')
+     11  ('tree', 'city', 'props/tree_oak')
+     11  ('tree', 'city', 'props/tree_beech')
+     10  ('sign', 'open', 'chevron')
+      9  ('post', 'open', 'props/fuel_pump')
+      9  ('tree', 'city', 'props/tree_birch')
+      6  ('sign', 'open', 'limit')
+      6  ('building', 'city', 'props/building_shop')
+      5  ('object', 'city', 'props/bridge_truss_arc')
+      4  ('object', 'city', 'props/bridge_pylon')
+      3  ('sign', 'open', 'distance')
+      3  ('building', 'city', 'props/city_hanse_speic')
+      2  ('sign', 'open', 'unlimited')
+      2  ('post', 'open', 'props/radar_camera')
+      2  ('sign', 'city', 'town')
+      1  ('gantry', 'open', 'start')
+      1  ('sign', 'open', 'crest')
+      1  ('sign', 'open', 'curve')
+      1  ('sign', 'open', 'fuel')
+      1  ('sign', 'open', 'fuel_lane')
+      1  ('post', 'open', 'fuel_pylon')
+      1  ('sign', 'open', 'radar')
+      1  ('sign', 'open', 'town_ahead')
+      1  ('sign', 'city', 'limit')
+      1  ('building', 'city', 'props/city_hanse_konto')
+      1  ('gantry', 'city', 'finish')
+pass distance (side objects): min 3.8 median 7.5 max 17.9 m

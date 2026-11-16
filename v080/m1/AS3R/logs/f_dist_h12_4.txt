@@ -1,0 +1,35 @@
+prop_scene: Renn-Licht 12 Uhr, normal, Voreinstellung medium, Sicht 900 m, Stufen 60 / 200 m
+SZENE props/tree_spruce 15 m lod0 558x1304 px
+SZENE props/tree_spruce 40 m lod0 155x414 px
+SZENE props/tree_spruce 100 m lod1 55x157 px
+SZENE props/tree_spruce 250 m impostor 21x61 px
+SZENE props/tree_spruce 15 m sprite 558x1304 px
+SZENE props/tree_spruce 40 m sprite 155x414 px
+SZENE props/tree_spruce 100 m sprite 55x157 px
+SZENE props/tree_spruce 250 m sprite 21x61 px
+SZENE props/tree_spruce_b 15 m lod0 606x1353 px
+SZENE props/tree_spruce_b 40 m lod0 164x419 px
+SZENE props/tree_spruce_b 100 m lod1 58x157 px
+SZENE props/tree_spruce_b 250 m impostor 22x62 px
+SZENE props/tree_spruce_b 15 m sprite 606x1353 px
+SZENE props/tree_spruce_b 40 m sprite 164x419 px
+SZENE props/tree_spruce_b 100 m sprite 58x157 px
+SZENE props/tree_spruce_b 250 m sprite 22x62 px
+SZENE props/tree_cypress 15 m lod0 175x747 px
+SZENE props/tree_cypress 40 m lod0 50x266 px
+SZENE props/tree_cypress 100 m lod1 18x105 px
+SZENE props/tree_cypress 250 m impostor 7x42 px
+SZENE props/tree_cypress 15 m sprite 175x747 px
+SZENE props/tree_cypress 40 m sprite 50x266 px
+SZENE props/tree_cypress 100 m sprite 18x105 px
+SZENE props/tree_cypress 250 m sprite 7x42 px
+SZENE props/tree_cypress_b 15 m lod0 161x742 px
+SZENE props/tree_cypress_b 40 m lod0 46x266 px
+SZENE props/tree_cypress_b 100 m lod1 16x105 px
+SZENE props/tree_cypress_b 250 m impostor 6x42 px
+SZENE props/tree_cypress_b 15 m sprite 161x742 px
+SZENE props/tree_cypress_b 40 m sprite 46x266 px
+SZENE props/tree_cypress_b 100 m sprite 16x105 px
+SZENE props/tree_cypress_b 250 m sprite 6x42 px
+prop_scene: dist -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS3R/shots/f_dist_h12_4.png
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS3R/shots/f_dist_h12_4.png

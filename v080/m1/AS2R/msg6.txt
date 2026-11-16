@@ -1,0 +1,14 @@
+AS2R (WIP): Karoband der Polizei in der Ferne so hell wie die Karos
+
+Das linear gemittelte Karoband von lod1-Flanken und lod2 kam mit dem Renn-Look
+27-33 Stufen heller heraus als die Karos daneben (Belgien, 120 m: lod2
+(201, 201, 136) gegen lod1 (174, 178, 125)): die gelbe Zelle liegt in der
+Schulter der Tonkurve. police3d._hex_mix nimmt jetzt das Potenzmittel in
+linearem Licht (CHECK_MEAN_EXP 0,6): lod2 (171, 180, 121) gegen (173, 178, 124),
+gemessen. Betrifft Belgien, Schweiz, Litauen, Lettland, Rumänien.
+
+Dazu der Kommentar zur Weißbegrenzung der Polizei (16 von 18 Lackierungen)
+und der Abschnitt 15 der Modell-Doku.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

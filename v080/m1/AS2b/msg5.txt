@@ -1,0 +1,15 @@
+AS2b (WIP): Karos der Polizei auch in lod1 an Heck und Front; Bus-Lüftungsgitter in lod1
+
+Belgien, Schweiz, Litauen, Lettland, Rumänien: Bei 40 m wechselte das
+Karomuster bisher zu einer Fläche in der Mischfarbe (29,9 % der
+Autopixel änderten sich, gemessen). lod1 zeigt die Karos jetzt auf den
+Stoßfängern (Heck und Front, was die Spielkamera sieht); die Flanken
+bleiben in der Mischfarbe, der Teil der Karosserie hinter den
+Stoßfängern wird nicht mehr geschnitten. Platz im Budget (6 000):
+ein Stationspaar weniger je Radlauf und je Ende, Belgien/Schweiz/
+Rumänien etwas längerer Stationsabstand. lod0 und lod2 unverändert.
+Bus: die Lüftungsgitter am Heck auch in lod1 (vorher leere Fläche bei
+60 bis 180 m, das Sprite zeigt dort das graue Feld).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

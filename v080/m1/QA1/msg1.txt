@@ -1,0 +1,13 @@
+v0.8.0 QA1 (WIP): Werkzeuge für A/B-Bögen, Clips, Testbuild, Rauchtest und Goldens
+
+- tools/ab_sheet.sh: A/B-Bögen aller Referenzpositionen je Voreinstellung über tools/ab_shot.sh
+- tools/ab_clip.sh: A/B-Clip mit Movie Maker, Ladebild abgeschnitten, H.264 nebeneinander
+- tools/build_testbuild.sh: Testbuild mit eigener Version, eigenem Nutzerordner und eigenen Namen
+  (nur für den Build gepatcht, danach wiederhergestellt)
+- tools/smoke_modern.sh: Rauchtest eines Exports (Linux unter Xvfb, Windows unter Wine)
+- tools/golden.sh: zweite Arcade-Liste (Menüs, Start über GameFlow, Pause, Ladebild, 1280×800) und
+  Änderungsmelder für Modern mit OpenGL-ES-Stufe; Listen tests/golden/arcade_ui_frames.txt,
+  tests/golden/modern_frames.txt, Bildhelfer tests/golden/ui_shots.gd (Hash-Listen folgen)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,16 @@
+assets/shaders/modern/tunnel.gdshader
+assets/shaders/modern/water.gdshader
+assets/shaders/modern/water.gdshader.uid
+docs/renderer-modern-tunnel-bruecken.md
+docs/renderer-modern.md
+scripts/race3d/builders/bridge.gd
+scripts/race3d/builders/bridge.gd.uid
+scripts/race3d/builders/tunnel.gd
+scripts/race3d/layers/far_ground.gd
+tests/golden/modern_slice.md5
+tests/race3d/render/check_tunnel_bridge.gd
+tests/race3d/render/check_tunnel_bridge.gd.uid
+tests/unit/race3d/test_bridge.gd
+tests/unit/race3d/test_bridge.gd.uid
+tests/unit/race3d/test_tunnel.gd
+tests/unit/race3d/test_tunnel.gd.uid

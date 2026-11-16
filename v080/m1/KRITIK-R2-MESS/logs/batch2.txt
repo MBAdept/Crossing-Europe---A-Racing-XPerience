@@ -1,0 +1,69 @@
+=== Aobj 00:33:30
+obj A exit 0 in 162 s
+kr_capture: asph130_full 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/A/asph130_full.wav (OK) feed asphalt/asphalt asphalt zone open | pre 847872 post 847
+kr_capture: cobbles50_full 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/A/cobbles50_full.wav (OK) feed cobbles/cobbles cobbles zone city | pre 856064 post
+kr_capture: conc130_noslab_full 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/A/conc130_noslab_full.wav (OK) feed concrete/concrete concrete zone open | pr
+kr_capture: conc130_full 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/A/conc130_full.wav (OK) feed concrete/concrete concrete zone open | pre 851968 post 
+kr_capture: asph130_road 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/A/asph130_road.wav (OK) feed asphalt/asphalt asphalt zone open | pre 843776 post 843
+kr_capture: cobbles50_road 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/A/cobbles50_road.wav (OK) feed cobbles/cobbles cobbles zone city | pre 851968 post
+kr_capture: conc130_noslab_road 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/A/conc130_noslab_road.wav (OK) feed concrete/concrete concrete zone open | pr
+=== Vobj 00:36:12
+obj V exit 0 in 398 s
+kr_capture: conc200_r0 60.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/V/conc200_r0.wav (OK) feed concrete/concrete concrete zone open | pre 2543616 post 254
+kr_capture: conc200_r1 60.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/V/conc200_r1.wav (OK) feed concrete/concrete concrete zone open | pre 2543616 post 254
+kr_capture: conc200_r2 60.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/V/conc200_r2.wav (OK) feed concrete/concrete concrete zone open | pre 2551808 post 255
+kr_capture: conc200_r3 60.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/V/conc200_r3.wav (OK) feed concrete/concrete concrete zone open | pre 2535424 post 253
+kr_capture: conc170_60 60.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/V/conc170_60.wav (OK) feed concrete/concrete concrete zone open | pre 2535424 post 253
+kr_capture: asph200_60 60.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/V/asph200_60.wav (OK) feed asphalt/asphalt asphalt zone open | pre 2547712 post 254771
+kr_capture: vmax_full 15.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/V/vmax_full.wav (OK) feed asphalt/asphalt asphalt zone open | pre 626688 post 626688
+=== Cobj 00:42:50
+obj C exit 0 in 72 s
+kr_capture: c_cobbles50_road_s0 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/C/c_cobbles50_road_s0.wav (OK) feed cobbles/cobbles cobbles zone city | pre 8
+kr_capture: c_cobbles50_road_s1 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/C/c_cobbles50_road_s1.wav (OK) feed cobbles/cobbles cobbles zone city | pre 8
+kr_capture: c_cobbles50_road_s2 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/C/c_cobbles50_road_s2.wav (OK) feed cobbles/cobbles cobbles zone city | pre 8
+=== Cc1 00:44:02
+c1 C exit 0 in 72 s
+kr_capture: c_cobbles50_road_s0 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/c1/C/c_cobbles50_road_s0.wav (OK) feed cobbles/cobbles cobbles zone city | pre 86
+kr_capture: c_cobbles50_road_s1 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/c1/C/c_cobbles50_road_s1.wav (OK) feed cobbles/cobbles cobbles zone city | pre 86
+kr_capture: c_cobbles50_road_s2 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/c1/C/c_cobbles50_road_s2.wav (OK) feed cobbles/cobbles cobbles zone city | pre 85
+=== crash_car 00:45:14
+--- obj crash_car_obj exit 0 in 157 s (00:47:51)
+kr_crash: heavy layers {"crunch":-13.0,"debris":-22.0,"glass":-17.0,"hit_heavy":-11.5}, truck {"heavy":-11.0,"light":-14.0,"medium":-12.0}
+kr_crash: 60 Unfälle, 0 Quietschen, 0 Vorbeifahrten -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/crash/car_obj.wav (OK), pre
+=== crash_truck 00:47:51
+--- obj crash_truck_obj exit 0 in 157 s (00:50:28)
+kr_crash: heavy layers {"crunch":-13.0,"debris":-22.0,"glass":-17.0,"hit_heavy":-11.5}, truck {"heavy":-11.0,"light":-14.0,"medium":-12.0}
+kr_crash: 60 Unfälle, 0 Quietschen, 0 Vorbeifahrten -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/crash/truck_obj.wav (OK), p
+=== A2obj 00:50:28
+obj A2 exit 0 in 162 s
+kr_capture: asph130_full 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/A2/asph130_full.wav (OK) feed asphalt/asphalt asphalt zone open | pre 839680 post 83
+kr_capture: cobbles50_full 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/A2/cobbles50_full.wav (OK) feed cobbles/cobbles cobbles zone city | pre 843776 pos
+kr_capture: conc130_noslab_full 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/A2/conc130_noslab_full.wav (OK) feed concrete/concrete concrete zone open | p
+kr_capture: conc130_full 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/A2/conc130_full.wav (OK) feed concrete/concrete concrete zone open | pre 827392 post
+kr_capture: asph130_road 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/A2/asph130_road.wav (OK) feed asphalt/asphalt asphalt zone open | pre 831488 post 83
+kr_capture: cobbles50_road 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/A2/cobbles50_road.wav (OK) feed cobbles/cobbles cobbles zone city | pre 831488 pos
+kr_capture: conc130_noslab_road 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/obj/A2/conc130_noslab_road.wav (OK) feed concrete/concrete concrete zone open | p
+=== Ac1 00:53:10
+c1 A exit 0 in 162 s
+kr_capture: asph130_full 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/c1/A/asph130_full.wav (OK) feed asphalt/asphalt asphalt zone open | pre 851968 post 8519
+kr_capture: cobbles50_full 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/c1/A/cobbles50_full.wav (OK) feed cobbles/cobbles cobbles zone city | pre 856064 post 
+kr_capture: conc130_noslab_full 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/c1/A/conc130_noslab_full.wav (OK) feed concrete/concrete concrete zone open | pre
+kr_capture: conc130_full 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/c1/A/conc130_full.wav (OK) feed concrete/concrete concrete zone open | pre 843776 post 8
+kr_capture: asph130_road 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/c1/A/asph130_road.wav (OK) feed asphalt/asphalt asphalt zone open | pre 851968 post 8519
+kr_capture: cobbles50_road 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/c1/A/cobbles50_road.wav (OK) feed cobbles/cobbles cobbles zone city | pre 843776 post 
+kr_capture: conc130_noslab_road 20.0 s -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/c1/A/conc130_noslab_road.wav (OK) feed concrete/concrete concrete zone open | pre
+=== worst_obj 00:55:52
+--- obj worst_obj exit 0 in 16 s (00:56:08)
+kr_worst: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/worst/obj.wav (14.0 s) -> OK, pre 557056 post 557056
+=== worst_c1 00:56:08
+--- c1 worst_c1 exit 0 in 17 s (00:56:25)
+kr_worst: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/worst/c1.wav (14.0 s) -> OK, pre 585728 post 585728
+=== crash_car_c1 00:56:25
+--- c1 crash_car_c1 exit 0 in 158 s (00:59:03)
+kr_crash: heavy layers {"crunch":-13.0,"debris":-22.0,"glass":-17.0,"hit_heavy":-9.0}, truck {"heavy":-10.0,"light":-14.0,"medium":-12.0}
+kr_crash: 60 Unfälle, 0 Quietschen, 0 Vorbeifahrten -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/crash/car_c1.wav (OK), pre 
+=== crash_truck_c1 00:59:03
+--- c1 crash_truck_c1 exit 0 in 158 s (01:01:41)
+kr_crash: heavy layers {"crunch":-13.0,"debris":-22.0,"glass":-17.0,"hit_heavy":-9.0}, truck {"heavy":-10.0,"light":-14.0,"medium":-12.0}
+kr_crash: 60 Unfälle, 0 Quietschen, 0 Vorbeifahrten -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/cap/crash/truck_c1.wav (OK), pr
+=== batch2 fertig 01:01:41

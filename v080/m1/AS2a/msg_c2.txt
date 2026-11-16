@@ -1,0 +1,17 @@
+AS2a: Kombi, Sportwagen und Gran Turismo als Modelle; Rückleuchten um die Ecke für alle Spielerautos
+
+- player/{kombi,sportwagen,gran_turismo}: Rennstufe, Showroom-Stufe, Schattenwerfer, Innenraum, Glas
+  (Prüfer grün: alle 18 Modelle)
+- Rückleuchten laufen um die Hinterecke (WRAP3D in cardetail.lamp: seitliche Mulde ab dem Ende der
+  Heckleuchte auf der Karosserie, Füllung mit Rück-/Bremslicht, Lichtleiter, Streuscheibe) - Befund A9
+- Projektoren der Scheinwerfer liegen über dem Chromreflektor (vorher verdeckt); zusätzlicher Projektor bei
+  Sportwagen und GT (Abblendlicht >= 80 cm2)
+- Dritte Bremsleuchte von Kompakt, Kombi, Sportwagen, GT: dunkles Gehäuse mit nach hinten leuchtender Fläche
+  (Lichtanker mit Richtung)
+- Felgen von Kombi und GT im Silber des Sprites statt Weiß; Kombi mit gröberem Stationsabstand (Budget)
+- Exporter: verdrehte Splitter an Radlaufkanten und gefaltete Pfad-/Linsenflächen entfernt (Wicklungsregel),
+  Lichtanker seitlich versenkter Teile; Detail-Overrides je Spielerauto
+- Kontaktbogen: --arcade (Arcade-Sprite neben der Spielkamera), --day
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,17 @@
+v0.8.0 FIX-M2: Waldprüfung in Minuten statt Stunden, Zeitlimit als ZEITLIMIT, schärfere Tests, Mitschnitt-Uhr
+
+- M2S-01: check_instance_budget_wald fährt 20 s statt 100 s Sichtzeit (der Wald steht ab dem ersten Bild),
+  meldet Laden und Fahrt getrennt, eigenes Zeitlimit 1800 s per Kopfzeile; run_render_checks.sh meldet
+  Exit 124 als ZEITLIMIT (kein Ergebnis). Gemessen bei Last 20–24: 921 s mit 35 s, 456 s mit 20 s; mit
+  der Mutation „Bäume wieder mit vpbr“ (Instanz-Uniforms) wird sie rot (9× Ablehnung der Engine).
+- M2S-02: check_vehicle_standin lädt ein Test-Manifest ohne Modell für player/kombi, traffic/van_white,
+  traffic/bus_blue; ein Fall ohne Vergleich ist FEHLER.
+- M2S-03: check_vehicles „leistung“ schaltet ein Auto dreimal zwischen zwei Stufen und verlangt
+  dieselben Knoten im Stufenspeicher.
+- M2S-05: test_far_ground_lies_below_the_water_of_a_bridge mit Wasser 30 m unter dem Deck – ohne
+  Wasserterm in target_height() rot (geprüft).
+- M2S-06: capture_mix.gd vergleicht Dateilänge und Laufzeit, > 2 % Abweichung = FEHLER (Exit 2).
+- Doku docs/renderer-modern.md 14.10 (FIX-M2).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

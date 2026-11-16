@@ -1,0 +1,8 @@
+[
+ {"name": "t_kombi_g9", "set": "player/kombi", "cam": {"type": "game", "dist": 9.0}},
+ {"name": "t_kombi_g9_neutral", "set": "player/kombi", "cam": {"type": "game", "dist": 9.0}, "look": "neutral"},
+ {"name": "t_sports_rear34", "set": "traffic/sports_red", "cam": {"type": "orbit", "yaw": 32, "el": 13}, "size": [960, 600], "msaa": 4},
+ {"name": "t_gt_studio", "set": "showroom/gran_turismo", "lod": "show", "rig": "studio", "cam": {"type": "showroom"}, "size": [768, 480], "msaa": 4, "lamp_b": [1,0,0,0]},
+ {"name": "t_kombi_section", "set": "player/kombi", "mode": "section_col", "section": [1, 0, 0, 0.0], "cam": {"type": "orbit", "yaw": 90, "el": 6}, "size": [960, 600], "msaa": 4, "hide": ["wheel_0l","wheel_0r","wheel_1l","wheel_1r"]},
+ {"name": "t_kombi_night", "set": "player/kombi", "night": true, "lamp_a": [1,1,0,0], "lamp_b": [1,0,0,0], "cam": {"type": "game", "dist": 8.0}}
+]

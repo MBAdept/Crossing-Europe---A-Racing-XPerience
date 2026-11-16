@@ -1,0 +1,14 @@
+Sportwagen (4,0 l B6 Saugmotor) – derselbe Fahrablauf, abwechselnd mit dem Motor des Profils Arcade und dem Motor v3 des Profils Modern,
+jeweils im Spiel über die Busse des Profils aufgenommen (nur der Motor mit seinen Fahrzeugebenen, ohne Wind, Reifen, Verkehr).
+Für den Vergleich pegelgleich gemacht: Modern um 1.0 dB angehoben (im Spiel ist der Motor von Modern über die ganze Fahrt leiser:
+Arcade -18.3 LUFS, Modern -19.3 LUFS; Modern folgt dem Pegelplan, Vollgas −16 LUFS mit Wind).
+Niemand hat diese Datei gehört; sie ist aus den Aufnahmen geschnitten und nur gemessen.
+
+   0.0 –    7.2 s  ARCADE  Start, Leerlauf, zwei Gasstöße im Stand
+   7.5 –   14.7 s  MODERN  Start, Leerlauf, zwei Gasstöße im Stand
+  15.4 –   25.9 s  ARCADE  Vollgas durch die Gänge
+  26.3 –   36.8 s  MODERN  Vollgas durch die Gänge
+  37.5 –   48.3 s  ARCADE  Reisetempo 200 km/h, Gas weg, Bremsen mit Rückschalten
+  48.7 –   59.5 s  MODERN  Reisetempo 200 km/h, Gas weg, Bremsen mit Rückschalten
+  60.2 –   78.3 s  ARCADE  130 km/h, Kick-down, Gas weg, Anhalten
+  78.7 –   96.8 s  MODERN  130 km/h, Kick-down, Gas weg, Anhalten

@@ -1,0 +1,10 @@
+v0.8.0 FIX1: Doku – Mindestbauten, Nebelgesetz, Mondglanz, Absturzfrage, Lücken des Testbuilds
+
+- docs/renderer-modern.md §14: Nebelgesetz für alles in der Landschaft,
+  Mondglanz, Tunnelröhre mit Portal und Kappe, Tankstelle, Start-/Zieltor,
+  Wahrzeichen bis Arcades Reichweite, Brückengeländer und Wasser, Zeit je
+  Teil von render(), Prüfungen, bekannte Lücken für die Testhinweise.
+- docs/grafik-modi.md: erst der zweite Fehlstart in Folge speichert Arcade.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

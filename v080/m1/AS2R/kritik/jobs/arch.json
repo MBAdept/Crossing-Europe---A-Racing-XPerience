@@ -1,0 +1,526 @@
+[
+{
+"name": "sportwagen_lod0_shaded_sidelow",
+"set": "player/sportwagen",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 0
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_lod0_shaded_wheelf",
+"set": "player/sportwagen",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.5095000000000001,
+0.0,
+-1.7169999999999999,
+0.9595,
+0.924,
+-0.7929999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_lod0_shaded_wheelf_low",
+"set": "player/sportwagen",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.5095000000000001,
+0.0,
+-1.7169999999999999,
+0.9595,
+0.924,
+-0.7929999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "sportwagen_lod0_clay_sidelow",
+"set": "player/sportwagen",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 0
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false,
+"mode": "clay"
+},
+{
+"name": "sportwagen_lod0_clay_wheelf",
+"set": "player/sportwagen",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.5095000000000001,
+0.0,
+-1.7169999999999999,
+0.9595,
+0.924,
+-0.7929999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false,
+"mode": "clay"
+},
+{
+"name": "sportwagen_lod0_clay_wheelf_low",
+"set": "player/sportwagen",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.5095000000000001,
+0.0,
+-1.7169999999999999,
+0.9595,
+0.924,
+-0.7929999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true,
+"mode": "clay"
+},
+{
+"name": "sportwagen_show_shaded_sidelow",
+"set": "player/sportwagen",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 0
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_show_shaded_wheelf",
+"set": "player/sportwagen",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.5095000000000001,
+0.0,
+-1.7169999999999999,
+0.9595,
+0.924,
+-0.7929999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_show_shaded_wheelf_low",
+"set": "player/sportwagen",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.5095000000000001,
+0.0,
+-1.7169999999999999,
+0.9595,
+0.924,
+-0.7929999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "sportwagen_show_clay_sidelow",
+"set": "player/sportwagen",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 0
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false,
+"mode": "clay"
+},
+{
+"name": "sportwagen_show_clay_wheelf",
+"set": "player/sportwagen",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.5095000000000001,
+0.0,
+-1.7169999999999999,
+0.9595,
+0.924,
+-0.7929999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false,
+"mode": "clay"
+},
+{
+"name": "sportwagen_show_clay_wheelf_low",
+"set": "player/sportwagen",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.5095000000000001,
+0.0,
+-1.7169999999999999,
+0.9595,
+0.924,
+-0.7929999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true,
+"mode": "clay"
+},
+{
+"name": "gran_turismo_lod0_shaded_sidelow",
+"set": "player/gran_turismo",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 0
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_lod0_shaded_wheelf",
+"set": "player/gran_turismo",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.5295000000000001,
+0.0,
+-1.845,
+0.9795,
+0.94,
+-0.905
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_lod0_shaded_wheelf_low",
+"set": "player/gran_turismo",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.5295000000000001,
+0.0,
+-1.845,
+0.9795,
+0.94,
+-0.905
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "gran_turismo_lod0_clay_sidelow",
+"set": "player/gran_turismo",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 0
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false,
+"mode": "clay"
+},
+{
+"name": "gran_turismo_lod0_clay_wheelf",
+"set": "player/gran_turismo",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.5295000000000001,
+0.0,
+-1.845,
+0.9795,
+0.94,
+-0.905
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false,
+"mode": "clay"
+},
+{
+"name": "gran_turismo_lod0_clay_wheelf_low",
+"set": "player/gran_turismo",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.5295000000000001,
+0.0,
+-1.845,
+0.9795,
+0.94,
+-0.905
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true,
+"mode": "clay"
+},
+{
+"name": "gran_turismo_show_shaded_sidelow",
+"set": "player/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 0
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_show_shaded_wheelf",
+"set": "player/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.5295000000000001,
+0.0,
+-1.845,
+0.9795,
+0.94,
+-0.905
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_show_shaded_wheelf_low",
+"set": "player/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.5295000000000001,
+0.0,
+-1.845,
+0.9795,
+0.94,
+-0.905
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "gran_turismo_show_clay_sidelow",
+"set": "player/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 0
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false,
+"mode": "clay"
+},
+{
+"name": "gran_turismo_show_clay_wheelf",
+"set": "player/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.5295000000000001,
+0.0,
+-1.845,
+0.9795,
+0.94,
+-0.905
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false,
+"mode": "clay"
+},
+{
+"name": "gran_turismo_show_clay_wheelf_low",
+"set": "player/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.5295000000000001,
+0.0,
+-1.845,
+0.9795,
+0.94,
+-0.905
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true,
+"mode": "clay"
+}
+]

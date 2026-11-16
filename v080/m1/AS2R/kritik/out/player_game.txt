@@ -1,0 +1,12 @@
+kombi         Lack #1d6b45: Sprite H 152° S 0.55 V 0.30 geclippt 0 % | Modern Renn-Look H 159° S 0.73 V 0.45 geclippt 0 % | Modern neutral H 160° S 0.81 V 0.40 geclippt 0 %  (n 2989/3169/3914)
+sportwagen    Lack #cc1419: Sprite H 354° S 0.63 V 0.58 geclippt 0 % | Modern Renn-Look H 351° S 0.74 V 0.94 geclippt 55 % | Modern neutral H 354° S 0.85 V 0.92 geclippt 49 %  (n 3551/3924/3934)
+gran_turismo  Lack #b2b7bd: Sprite H 212° S 0.12 V 0.64 geclippt 1 % | Modern Renn-Look H 215° S 0.17 V 0.71 geclippt 24 % | Modern neutral H 227° S 0.07 V 0.61 geclippt 27 %  (n 1002/2252/362)
+limousine     Lack #1d4ea8: Sprite H 221° S 0.59 V 0.48 geclippt 0 % | Modern Renn-Look H 219° S 0.74 V 0.74 geclippt 25 % | Modern neutral H 219° S 0.84 V 0.64 geclippt 1 %  (n 5145/5532/5541)
+kompakt       Lack #f0b30a: Sprite H 43° S 0.77 V 0.72 geclippt 0 % | Modern Renn-Look H 54° S 0.81 V 0.96 geclippt 87 % | Modern neutral H 53° S 0.89 V 0.95 geclippt 85 %  (n 3005/3121/3153)
+
+Silhouette 9 m (Sprite-Alpha > 0,9 gegen Modell-Maske):
+  kombi         IoU 0.992 nur Sprite 260 px, nur Modell 459 px
+  sportwagen    IoU 0.992 nur Sprite 297 px, nur Modell 477 px
+  gran_turismo  IoU 0.990 nur Sprite 326 px, nur Modell 547 px
+  limousine     IoU 0.994 nur Sprite 242 px, nur Modell 296 px
+  kompakt       IoU 0.989 nur Sprite 407 px, nur Modell 601 px

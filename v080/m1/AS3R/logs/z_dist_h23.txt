@@ -1,0 +1,43 @@
+prop_scene: Renn-Licht 23 Uhr, normal, Voreinstellung medium, Sicht 495 m, Stufen 60 / 200 m
+SZENE props/tree_oak 15 m lod0 1051x1027 px
+SZENE props/tree_oak 40 m lod0 276x285 px
+SZENE props/tree_oak 100 m lod1 98x104 px
+SZENE props/tree_oak 250 m impostor 37x40 px
+SZENE props/tree_oak 15 m sprite 1051x1027 px
+SZENE props/tree_oak 40 m sprite 276x285 px
+SZENE props/tree_oak 100 m sprite 98x104 px
+SZENE props/tree_oak 250 m sprite 37x40 px
+SZENE props/tree_birch 15 m lod0 422x738 px
+SZENE props/tree_birch 40 m lod0 127x253 px
+SZENE props/tree_birch 100 m lod1 46x98 px
+SZENE props/tree_birch 250 m impostor 18x39 px
+SZENE props/tree_birch 15 m sprite 422x738 px
+SZENE props/tree_birch 40 m sprite 127x253 px
+SZENE props/tree_birch 100 m sprite 46x98 px
+SZENE props/tree_birch 250 m sprite 18x39 px
+SZENE props/tree_spruce 15 m lod0 558x1304 px
+SZENE props/tree_spruce 40 m lod0 155x414 px
+SZENE props/tree_spruce 100 m lod1 55x157 px
+SZENE props/tree_spruce 250 m impostor 21x61 px
+SZENE props/tree_spruce 15 m sprite 558x1304 px
+SZENE props/tree_spruce 40 m sprite 155x414 px
+SZENE props/tree_spruce 100 m sprite 55x157 px
+SZENE props/tree_spruce 250 m sprite 21x61 px
+SZENE props/tree_palm 15 m lod0 696x756 px
+SZENE props/tree_palm 40 m lod0 180x226 px
+SZENE props/tree_palm 100 m lod1 62x84 px
+SZENE props/tree_palm 250 m impostor 24x33 px
+SZENE props/tree_palm 15 m sprite 696x756 px
+SZENE props/tree_palm 40 m sprite 180x226 px
+SZENE props/tree_palm 100 m sprite 62x84 px
+SZENE props/tree_palm 250 m sprite 24x33 px
+SZENE props/bush_round 15 m lod0 265x178 px
+SZENE props/bush_round 40 m lod0 74x59 px
+SZENE props/bush_round 100 m lod1 26x23 px
+SZENE props/bush_round 250 m lod1 10x9 px
+SZENE props/bush_round 15 m sprite 265x178 px
+SZENE props/bush_round 40 m sprite 74x59 px
+SZENE props/bush_round 100 m sprite 26x23 px
+SZENE props/bush_round 250 m sprite 10x9 px
+prop_scene: dist -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS3R/shots/z_dist_h23.png
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS3R/shots/z_dist_h23.png

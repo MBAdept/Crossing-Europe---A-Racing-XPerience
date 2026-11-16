@@ -1,0 +1,10 @@
+# item specs (anchor x = census edge x + extent_l * scale)
+GER="props/city_german_house@26.1;props/city_german_mietshaus@22.6;props/city_german_gruenderzeit@22.3*1.06;props/city_german_office@28.6*0.45"
+OLD="props/city_german_old_fachwerk@23.5;props/city_german_old_fachwerk_b@18.2;props/city_german_old_barock@23.6*1.05"
+HAN="props/city_hanse_gabled@25.3;props/city_hanse_speicher@28.3;props/city_hanse_kontor@42.2*1.11;props/city_hanse_crane@68.8*1.05"
+ALL="props/city_german_house,props/city_german_mietshaus,props/city_german_gruenderzeit,props/city_german_office,props/city_german_old_fachwerk,props/city_german_old_fachwerk_b,props/city_german_old_barock,props/city_hanse_gabled,props/city_hanse_speicher,props/city_hanse_kontor,props/city_hanse_crane"
+# streets for the drive clips (pairs right/left; left = negative anchor, mirrored)
+SOLD="props/city_german_old_fachwerk@23.5;props/city_german_old_fachwerk_b@-18.2;props/city_german_old_barock@24.6*1.05;props/city_german_old_fachwerk@-23.5;props/city_german_old_fachwerk_b@18.2;props/city_german_old_barock@-24.6*1.05"
+SGER="props/city_german_gruenderzeit@22.3*1.06;props/city_german_mietshaus@-22.6;props/city_german_mietshaus@22.6;props/city_german_gruenderzeit@-22.3*1.06;props/city_german_gruenderzeit@21.9*1.03;props/city_german_office@-29.5*0.45"
+SHAN="props/city_hanse_gabled@25.3;props/city_hanse_gabled@-25.3*1.05;props/city_hanse_speicher@28.3;props/city_hanse_gabled@-24.3;props/city_hanse_gabled@26.0*1.1;props/city_hanse_speicher@-27.0*0.95"
+SSUB="props/city_german_house@26.1;props/city_german_house@-26.5*1.03;props/city_german_mietshaus@28.6;props/city_german_house@-25.0*0.95;props/city_german_house@27.0*1.08;props/city_german_mietshaus@-30.0"

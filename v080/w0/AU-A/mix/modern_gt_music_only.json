@@ -1,0 +1,58 @@
+{
+	"engine": {
+		"avg_ms": 1.91569216757741,
+		"frames": 549,
+		"max_ms": 6.447,
+		"samples": 1501426,
+		"skips": 0
+	},
+	"master_db": -1.93820023536682,
+	"mix_rate": 44100,
+	"phases": [
+		{
+			"car_bus_peak_db": -6.22,
+			"car_plan_lufs": -24.0,
+			"duck_db": 0.0,
+			"name": "idle",
+			"t0": 1.504,
+			"t1": 3.016
+		},
+		{
+			"car_bus_peak_db": -1.23,
+			"car_plan_lufs": -16.18,
+			"duck_db": -4.47,
+			"name": "full_throttle",
+			"t0": 4.017,
+			"t1": 29.899
+		},
+		{
+			"car_bus_peak_db": -1.37,
+			"car_plan_lufs": -16.0,
+			"duck_db": -4.5,
+			"name": "flat_out",
+			"t0": 29.899,
+			"t1": 35.915
+		},
+		{
+			"car_bus_peak_db": -4.1,
+			"car_plan_lufs": -20.97,
+			"duck_db": -1.96,
+			"name": "lift",
+			"t0": 35.915,
+			"t1": 38.932
+		},
+		{
+			"car_bus_peak_db": -11.47,
+			"car_plan_lufs": -20.19,
+			"duck_db": -2.11,
+			"name": "cruise_130",
+			"t0": 40.932,
+			"t1": 47.948
+		}
+	],
+	"placeholders": true,
+	"profile": "modern",
+	"scenario": "race_music",
+	"seconds": 47.95,
+	"vehicle": "gran_turismo"
+}

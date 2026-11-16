@@ -1,0 +1,19 @@
+21:40:15 start import (load 11.43)
+21:40:22 done import
+21:40:22 start scripts (load 11.32)
+21:40:32 done scripts
+21:40:32 start tests (load 11.34)
+21:56:31 done tests
+21:56:31 start collect (load 10.01)
+21:56:39 done collect
+21:56:39 start modern_check (load 9.61)
+22:24:12 done modern_check
+22:24:12 start render (load 15.52)
+23:45:28 done render
+23:45:28 start perf_head (load 15.18)
+23:50:39 done perf_head
+23:50:39 start perf_base (load 17.39)
+23:55:43 done perf_base
+23:55:43 start golden (load 12.22)
+00:05:06 done golden
+00:05:06 chain end

@@ -1,0 +1,100 @@
+
+CONTEXT
+- Game: "Crossing Europe – A Racing Xperience" (Godot 4.7.2, GDScript, GL Compatibility renderer), repo /home/user/crossing-europe---a-racing-xperience.
+  German user; docs and player-facing texts in German (tr()), code comments in English. v0.7.0 is released (= main).
+  v0.8.0 adds a graphics option: today's pseudo-3D game becomes the mode "Arcade" (frozen, pixel-identical); the new
+  mode "Modern" is a second, real-3D renderer in the same build with finer models, dynamic light and a "Modern" sound
+  profile. The user's wish, literally: "das gesamte Spiel einer deutlichen grafischen Überarbeitung unterziehen.
+  Detailreiche Grafik soweit möglich, feinere Modelle, bessere Lichteffekte, Sound- und Musiküberarbeitung" and "echtes
+  3D bitte". Wave 0 (session seam, model pipeline, audio core, geometry kernel with fairness tests) is merged in branch
+  v0.8.0. This push (M1) runs as parallel packages: renderer skeleton R1a (done), road/environment R1, terrain/props
+  R2, vehicles/signs R3, vehicle models AS1 (done; an art review and a rework AS1R follow), environment models AS1b,
+  engine sound AU-B (done), options/chooser/showroom/Leistungstest UI1. Then the lead merges everything, QA checks it,
+  and the user gets the first test build (Kiel–Hamburg in Modern, for Steam Deck and Windows).
+- THE BUILD CONTRACT IS BINDING: docs/dev/v080_contract.md (1,800 lines). Read §2 (rules), the decisions of §3 that
+  concern you, your interfaces in §4, §5, your package in §6, §8 and COMPLETELY §11 (amendments after wave 0 – it wins
+  over the older text; A-7 is the renderer facade, A-8 the plan and file ownership of this push). Also read the docs
+  of your area: docs/renderer-modern.md, docs/modelle.md, ARCHITECTURE.md §15. Where the contract is wrong
+  or blocks you: implement the closest sound solution and report it under contract_issues with evidence – never work
+  around it silently. Evidence and prototypes of the design studies (starting points, read before reuse): /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/
+  (renderer3d/out/spike_src, engine-probe/evidence/prototypes, synthesis/out; index in §10 of the contract).
+- YOUR PACKAGE ID: QA1. START: look for a predecessor of this run – the handover file
+  /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/QA1/STAND.md and the remote branch wip/v080-qa1. If one exists, do NOT start over: read
+  STAND.md, go to the worktree named there (all commands and commits there, on its branch – leave your own fresh
+  worktree untouched, and report that branch and worktree in your result), review its uncommitted changes, commit them
+  as WIP, and continue where it stopped. Only if there is none, in your fresh worktree: git merge --ff-only c0ffee150000000000000000000000000000000
+  (the worktree starts from main; if the fast-forward is impossible, stop and report), then
+  cp -a /home/user/crossing-europe---a-racing-xperience/.godot . && godot --headless --path . --import
+- SAFETY COPY: after EVERY commit run  git push origin HEAD:refs/heads/wip/v080-qa1  (plain push, never
+  force; never push to v0.8.0 or main, never merge into them, never create tags or pull requests).
+- RESTART PROTOCOL: the container can restart, or an account usage limit can stop you, at any moment; a successor with
+  this same brief is then started (both have already happened in this push). (1) Your START instruction above says how
+  to find and continue a predecessor; its background processes are gone and half-written output files may be
+  incomplete. (2) Keep /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/QA1/STAND.md up to date after every step you finish: worktree path and branch,
+  done / doing now / next / pitfalls, where your scratch results are. (3) Commit and push work in progress at
+  least every 30 minutes ("WIP" commits are fine) – unpushed work can be lost for good.
+- Runs: for EVERY game run set XDG_DATA_HOME to an ABSOLUTE folder under your scratch dir; pass --graphics=arcade|modern
+  explicitly. Rendering needs  xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
+  --audio-driver Dummy …  (software OpenGL, llvmpipe – no real GPU, no loudspeakers here: everything about a Steam
+  Deck, a real GPU or how something sounds to a person is "inferred", never "measured"). The default graphics preset
+  on this machine is "low" (adapter tier software: no shadow casters) – for pictures pass --gfx-preset=medium or high.
+  Up to six agents share the 4 cores and 16 GB: heavy jobs (Godot renders, Blender, audio renders, test suites) one at
+  a time with nice -n 10 and at most 2 worker processes; run the complete tools/run_tests.sh (9–15 min) at most twice
+  (use its filter argument while iterating) and tools/golden.sh check (Arcade identity, must print 20 von 20
+  identisch) once at the end. Tools: godot, python3 (numpy, PIL), ffmpeg, ImageMagick, Blender 5.2 as Python module
+  /home/user/tools/bpyenv/bin/python, tools/run_tests.sh, tools/run_render_checks.sh, tools/golden.sh, tools/ab_shot.sh
+  (in branches that contain R1a), tools/models_contact_sheet.sh, tools/blender/validate_models.py,
+  tools/audio/qc/audio_qc.py.
+- Shell: the Bash tool may refuse compound commands with heredocs or several chained git commands ("too complex"):
+  write helper scripts into your scratch folder and run them one by one; write commit messages to a file and use
+  git commit -F <file>. "-s" scripts must not name autoload-dependent classes statically; compile-check with
+  tests/check_scripts.gd.
+- Rule 1: the frozen Arcade files are never edited. Stay inside your file ownership (§5 with A-8); packages of this push talk to each other only through the facade of A-7 with duck typing.
+- LOOK AT YOUR OWN PICTURES: you can open PNG/JPG files with the Read tool. Judge every picture you deliver honestly
+  against the Arcade frame of the same simulation state. "Modern" has to look clearly better than Arcade, not merely
+  different; say plainly where it does not yet.
+- Scratch for working files: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/QA1/ ; pictures, previews and reports for review: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA1/ (write
+  your full report there as bericht.md). Never commit intermediates or previews. Disk space is limited: delete large
+  scratch items (exports, copies of the tree, caches you no longer need) when you are done.
+- Commits: sensible steps on your branch; every commit message (German subject line) ends with
+  "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" and
+  "Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq". No model names anywhere else.
+- Priorities when time gets tight: (1) nothing broken – gates green, Arcade identical, fairness tests green; (2) the interfaces others depend on; (3) the look.
+  Deliver the core solid and list what is left under notes_for_next rather than leaving everything half-done.
+- RESULT: keep it compact – summary at most 250 words; deviations, contract_issues and notes_for_next at most 10
+  entries each, one or two sentences per entry; the details belong into bericht.md. Mark numbers measured/inferred.
+
+YOUR ROLE: QA1 – GATE 1 AND THE FIRST TEST BUILD FOR THE USER (Zwischenstand 1). Your base is c0ffee150000000000000000000000000000000 (branch
+br-nacharbeit:FIX1). State: {"summary":"s","open":[{"check":"c","result":"partial","evidence":"e"}],"notes":[],"look":"l"}
+QA verdicts: ["v","v"]
+Produce, measured on this machine (llvmpipe; real hardware inferred):
+1. A/B sheets (Arcade | Modern, same simulation state, tools/ab_shot.sh, --gfx-preset=high and the preset the
+   machine picks) at every reference position of §4.9.2: S1–S5, T1–T4, N1, N2, C1, U1, DEV. LOOK at every one.
+2. Three A/B clips of 30 s each, side by side with the HUD (ffmpeg, H.264, ≤ 25 MB each): the start of Kiel–Hamburg by
+   day, a night drive (dev_testetappe km 48, 21:00) and rain (N2).
+3. The Leistungstest on llvmpipe per preset (low, medium, high) through the real runner (--bench=all --bench-out=…),
+   the three leistungstest.json files and a short table.
+4. tests/golden/modern_slice.md5 (Modern goldens of the slice, rendered without --shot-fast; prove that two runs give
+   the same hashes, otherwise document why not and what tolerance the check uses) and the second identity list of the
+   contract; hook both into tools/golden.sh or run_render_checks.sh; commit on your branch.
+5. TEST BUILDS for the user: Linux x86_64 (also for the Steam Deck) and Windows x86_64 from your final commit with
+   tools/build_linux.sh and tools/build_windows.sh (or build_release.sh with ALLOW_DIRTY=1 when you have to change
+   project.godot only for the build). They must not touch the user's normal v0.7.0 installation: version string
+   "0.8.0-zs1" visible on the title screen, application/config/use_custom_user_dir = true with
+   custom_user_dir_name "crossing-europe-zwischenstand" (records, settings and saves separate), executable names
+   CrossingEurope-ZS1.x86_64 / CrossingEurope-ZS1.exe, archives CrossingEurope-ZS1-linux-x86_64.tar.gz and
+   CrossingEurope-ZS1-windows-x86_64.zip with LIZENZEN.txt, SHA256SUMS, each archive ≤ 400 MiB. Do these build-only
+   changes without committing them to the shared files (or as a separate commit that is clearly marked "nur für
+   den Testbuild" and reverted right after). Smoke-test both: Linux under Xvfb (chooser → Modern → a race start,
+   Leistungstest), Windows under Wine (start, Modern race start). Put the archives, LIZENZEN.txt and SHA256SUMS into
+   /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/gate1/build/.
+6. /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/gate1/: bericht.md (German, for the lead: every gate with its result), steamdeck_checkliste.md
+   (German, for the user: how to install the test build on the Steam Deck next to v0.7.0 – desktop mode, unpack,
+   "Add a Non-Steam Game", Proton not needed for the Linux build; what to try: chooser, Modern on Kiel–Hamburg,
+   options Grafik/Klang, Leistungstest and where leistungstest.json lies on Deck and Windows; the curve camera –
+   in Modern the camera turns slightly into bends, and the user decides after driving whether it stays, gets
+   stronger or weaker; records and settings of the test build live in their own folder, name the paths on Deck and
+   Windows), was_neu.md (German, short, for the user: what Modern already shows and what is still missing in this
+   intermediate state – honest; vehicles without a model still show their Arcade picture, their models are being
+   built; the race music: track 1 „Linke Spur“ and the remastered title theme are in, tracks 2–3 follow).
+Return the result format with package "QA1": one acceptance entry per item above.

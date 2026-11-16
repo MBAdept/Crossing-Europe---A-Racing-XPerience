@@ -1,0 +1,7 @@
+v0.8.0 R4 (WIP): lod0-Überblendung wieder an (Probe zurückgenommen)
+
+Die Probe ohne lod0-Überblendung war nicht schneller; die Überblendung (M2INT Notiz 6: 14 % der Autopixel
+springen beim Stufenwechsel in 40 m) bleibt.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

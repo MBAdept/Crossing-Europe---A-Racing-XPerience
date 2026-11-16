@@ -1,0 +1,8 @@
+# independent fixture: generators of tag v0.7.0 (git archive) built with check_sprite_geometry.py --write, compared with tools/blender/fixtures/geometry_v070.json
+Fixture geschrieben: ../out/fixture_from_tag_v070.json (187 Sets gebaut in 314 s, 616 s Rechenzeit)
+
+real	5m15.390s
+user	11m48.443s
+sys	0m53.121s
+exit 0
+187 sets in both; 186 exactly equal in all 12 fields; landmarks/fernsehturm_berlin differs in 'topo' only (ctopo and nstat equal)

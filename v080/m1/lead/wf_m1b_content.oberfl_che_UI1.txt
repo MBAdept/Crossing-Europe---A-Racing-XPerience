@@ -1,0 +1,128 @@
+
+CONTEXT
+- Game: "Crossing Europe – A Racing Xperience" (Godot 4.7.2, GDScript, GL Compatibility renderer), repo /home/user/crossing-europe---a-racing-xperience.
+  German user; docs and player-facing texts in German (tr()), code comments in English. v0.7.0 is released (= main).
+  v0.8.0 adds a graphics option: today's pseudo-3D game becomes the mode "Arcade" (frozen, pixel-identical); the new
+  mode "Modern" is a second, real-3D renderer in the same build with finer models, dynamic light and a "Modern" sound
+  profile. The user's wish, literally: "das gesamte Spiel einer deutlichen grafischen Überarbeitung unterziehen.
+  Detailreiche Grafik soweit möglich, feinere Modelle, bessere Lichteffekte, Sound- und Musiküberarbeitung" and "echtes
+  3D bitte". Wave 0 (session seam, model pipeline, audio core, geometry kernel with fairness tests) is merged in branch
+  v0.8.0. This push (M1) runs as parallel packages: renderer skeleton R1a (done), road/environment R1, terrain/props
+  R2, vehicles/signs R3, vehicle models AS1 (done; an art review and a rework AS1R follow), environment models AS1b,
+  engine sound AU-B (done), options/chooser/showroom/Leistungstest UI1. Then the lead merges everything, QA checks it,
+  and the user gets the first test build (Kiel–Hamburg in Modern, for Steam Deck and Windows).
+- THE BUILD CONTRACT IS BINDING: docs/dev/v080_contract.md (1,800 lines). Read §2 (rules), the decisions of §3 that
+  concern you, your interfaces in §4, §5, your package in §6, §8 and COMPLETELY §11 (amendments after wave 0 – it wins
+  over the older text; A-7 is the renderer facade, A-8 the plan and file ownership of this push). Also read the docs
+  of your area: docs/modelle.md, docs/audio-modern.md, ARCHITECTURE.md §15, docs/ui.md. Where the contract is wrong
+  or blocks you: implement the closest sound solution and report it under contract_issues with evidence – never work
+  around it silently. Evidence and prototypes of the design studies (starting points, read before reuse): /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/
+  (assets3d, audio, product-ux, synthesis; index in §10 of the contract).
+- YOUR PACKAGE ID: UI1. You CONTINUE the work of a predecessor that was stopped in the middle
+  of its work by an account usage limit (not by a fault of its own). Its handover note is /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/UI1/STAND.md; its
+  scratch results are in /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/UI1/ and /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/UI1/. All of its work is committed: branch worktree-wf_bade9e46-06a-3,
+  head d46a06be5aecf446c93e18f21edde2b3df926fc9. The last commit ("… Stand beim Abbruch …"), if present, was made by the lead from the predecessor's
+  uncommitted files and is UNREVIEWED – review it and compile-check it (tests/check_scripts.gd) before you build on it.
+  The predecessor's old worktree /home/user/crossing-europe---a-racing-xperience/.claude/worktrees/wf_bade9e46-06a-3 stays as it is: never work or commit there.
+  START: read STAND.md. If its worktree line names a worktree OTHER than /home/user/crossing-europe---a-racing-xperience/.claude/worktrees/wf_bade9e46-06a-3, a successor of this run already
+  worked there and was stopped too – continue in THAT worktree (all commands and commits there, on its branch; review
+  and commit its uncommitted changes as WIP first; report that branch and worktree in your result). Otherwise, in your
+  fresh worktree: git merge --ff-only d46a06be5aecf446c93e18f21edde2b3df926fc9   (the worktree starts from main; if the fast-forward is impossible,
+  stop and report), then  cp -a /home/user/crossing-europe---a-racing-xperience/.godot . && godot --headless --path . --import , rewrite STAND.md at once with
+  YOUR worktree path and branch (keep the predecessor's done/next/pitfalls), and continue with its "next" list until
+  the whole brief below is done.
+- SAFETY COPY: after EVERY commit run  git push origin HEAD:refs/heads/wip/v080-ui1  (plain push, never
+  force; never push to v0.8.0 or main, never merge into them, never create tags or pull requests).
+- RESTART PROTOCOL: the container can restart, or an account usage limit can stop you, at any moment; a successor with
+  this same brief is then started (both have already happened in this push). (1) Your START instruction above says how
+  to find and continue a predecessor; its background processes are gone and half-written output files may be
+  incomplete. (2) Keep /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/UI1/STAND.md up to date after every step you finish: worktree path and branch,
+  done / doing now / next / pitfalls, where your scratch results are. (3) Commit and push work in progress at
+  least every 30 minutes ("WIP" commits are fine) – unpushed work can be lost for good.
+- Runs: for EVERY game run set XDG_DATA_HOME to an ABSOLUTE folder under your scratch dir; pass --graphics=arcade|modern
+  explicitly. Rendering needs  xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
+  --audio-driver Dummy …  (software OpenGL, llvmpipe – no real GPU, no loudspeakers here: everything about a Steam
+  Deck, a real GPU or how something sounds to a person is "inferred", never "measured"). The default graphics preset
+  on this machine is "low" (adapter tier software: no shadow casters) – for pictures pass --gfx-preset=medium or high.
+  Up to six agents share the 4 cores and 16 GB: heavy jobs (Godot renders, Blender, audio renders, test suites) one at
+  a time with nice -n 10 and at most 2 worker processes; run the complete tools/run_tests.sh (9–15 min) at most twice
+  (use its filter argument while iterating) and tools/golden.sh check (Arcade identity, must print 20 von 20
+  identisch) once at the end. Tools: godot, python3 (numpy, PIL), ffmpeg, ImageMagick, Blender 5.2 as Python module
+  /home/user/tools/bpyenv/bin/python, tools/run_tests.sh, tools/run_render_checks.sh, tools/golden.sh, tools/ab_shot.sh
+  (in branches that contain R1a), tools/models_contact_sheet.sh, tools/blender/validate_models.py,
+  tools/audio/qc/audio_qc.py.
+- Shell: the Bash tool may refuse compound commands with heredocs or several chained git commands ("too complex"):
+  write helper scripts into your scratch folder and run them one by one; write commit messages to a file and use
+  git commit -F <file>. "-s" scripts must not name autoload-dependent classes statically; compile-check with
+  tests/check_scripts.gd.
+- Rule 1: the frozen Arcade files are never edited (sprites are never re-rendered). Stay inside your file ownership (§5 with A-8).
+- LOOK AT / MEASURE YOUR OWN RESULTS: you can open PNG/JPG files with the Read tool. Judge every picture you deliver
+  honestly; say plainly where something is not yet good enough.
+- Scratch for working files: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/UI1/ ; pictures, previews and reports for review: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/UI1/ (write
+  your full report there as bericht.md). Never commit intermediates or previews. Disk space is limited: delete large
+  scratch items (exports, copies of the tree, caches you no longer need) when you are done.
+- Commits: sensible steps on your branch; every commit message (German subject line) ends with
+  "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" and
+  "Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq". No model names anywhere else.
+- Priorities when time gets tight: (1) nothing broken – gates green, Arcade identical; (2) the interfaces others depend on; (3) quality of what the player sees or hears most; breadth last.
+  Deliver the core solid and list what is left under notes_for_next rather than leaving everything half-done.
+- RESULT: keep it compact – summary at most 250 words; deviations, contract_issues and notes_for_next at most 10
+  entries each, one or two sentences per entry; the details belong into bericht.md. Mark numbers measured/inferred.
+
+YOUR PACKAGE BRIEF (the same as your predecessor's):
+YOUR PACKAGE: UI1 – OPTIONEN, AUSWAHL, SHOWROOM, LADEBILD, LEISTUNGSTEST (contract §6 wave 2 "UI1"; decisions D31–D36;
+interfaces §4.1, §4.2, §4.8; amendments A-2, A-5, A-8; docs/ui.md; prototype with a 10/10 gamepad check:
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/product-ux/evidence/spike_scripts.diff and spike_tests.diff). Files: scripts/ui/screens/{options_screen,
+graphics_choice_screen, benchmark_screen, title_screen, result_screen, race_result_screen}.gd, scripts/ui/{game_flow,
+attract_mode}.gd, scripts/ui/widgets/{showroom_3d, car_showcase, loading_overlay}.gd,
+scripts/core/{settings, gfx, gfx_self_test, screenshotter}.gd, tests/race/check_options_tabs.gd,
+tests/unit/ui/test_showroom.gd, docs/ui.md, docs/grafik-modi.md – and, added by the lead for this push, the
+Leistungstest runner scripts/race3d/benchmark.gd (class ModernBenchmark as specified in §4.8) with the command line
+flags --bench=<scene id|all> and --bench-out=<file.json>, because the first test build for the user must contain a
+working Leistungstest. Implement §4.8 except the watchdog offers (a later package), plus:
+- What the user confirmed: ONE switch "Grafik: Arcade/Modern" changes picture and sound together; the sound can be
+  chosen separately in the options ("Klang": Wie Grafik | Arcade | Modern); race music on by default with the Modern
+  sound and switchable off, none in Arcade; a one-time chooser "GRAFIK WÄHLEN" for everyone at the first start of
+  v0.8.0 (conditions D32); leaderboards shared between the modes (entries carry gfx).
+- GameFlow calls AudioManager.set_profile(Settings.sound()) at boot and on Settings.sound_profile_changed (never
+  during a stage), set_music_context() next to the existing set_music() calls, set_race_music() when the option
+  changes – today no caller exists, so a stored "Modern" plays the Arcade sound.
+- Attract demos run in the effective mode (setup.gfx only from Settings.effective_graphics()) and count their 30 s
+  from RaceSession.stage_live / is_live(), not from the scene start; tests/race/check_attract*.gd pass with
+  --graphics=arcade unchanged and are extended for Modern (the demo check pins content_scale_aspect == KEEP, which
+  is Arcade only – Modern uses EXPAND, and GameFlow resets the aspect when it returns to the menus).
+- Crash-guard question on the title (Settings.crash_guard, disarm_crash_guard()); LoadingOverlay.set_progress(p);
+  gfx and gfx_fallback from the stage result into the leaderboard entry and onto the result screens.
+- Gfx.watchdog_verdict judges against max(display frame time, 1/60 s) with a unit test (A-2).
+- Showroom3D inside CarShowcase (SubViewport with own_world_3d in PHYSICAL pixels, key light with shadow, fill, two
+  rim lights, slow turntable, materials through ModernMaterials.shared(), models through ModelDB/ModelFactory at the
+  level "show", only for sets with showroom: true – today none has it, the vehicle package is working on that in
+  parallel, so test with a fixture manifest and with the limousine forced; otherwise the sprite as today). Switching
+  "Grafik" changes the showroom at once. Leaving Modern frees what it loaded.
+- The preview pictures of the options page and the two cards of the chooser show the same road in both modes. The
+  real Modern renderer is being built in parallel: ship a small tool that renders both pictures from one fixed stage
+  position (Kiel–Hamburg, day) into the UI assets, run it with what exists today, and say in notes_for_next that the
+  pictures must be regenerated at the end.
+- The Leistungstest: three fixed 20 s autopilot scenes of graphics.benchmark.scenes with setup.gfx = "modern", fixed
+  seed, result screen and user://leistungstest.json in the format of §4.8 (average and 1 %-low fps, frame time
+  p95/p99, script ms, draw calls, primitives from the renderer's perf_stats(), adapter, preset, resolution,
+  suggested preset). It must run with whatever Modern renderer the build contains (today the stub) and fall back
+  cleanly when Modern cannot start. The user will run it on a Steam Deck and on Windows and send the file back.
+Everything must be fully usable with a gamepad and on the Steam Deck: every new screen fits 1280×720 and 1280×800
+with text ≥ 18 px (deliver screenshots in both sizes), focus order without traps, LB/RB for the tabs, one A confirms
+the chooser. Prove every acceptance item: check_options_tabs 10/10 with real pad events; check_menu_pad 9/9,
+test_steam_deck and test_menu_input unchanged; the chooser condition matrix (D32) unit-tested; settings round trip
+of every new option. Any HUD or menu change must keep the Arcade goldens identical (tools/golden.sh check 20 von
+20) – the existing screens look exactly as before in Arcade apart from the new options. tools/run_tests.sh is owned
+by the integration in this push: if your new check files are not picked up by its existing lists, run them by hand
+and say under notes_for_next what has to be hooked in. Return the result format.
+
+UPDATE SINCE THE BRIEF WAS WRITTEN: the vehicle models AS1 (commit 53bcc1b255c448c94953a80fca21688f690c5fb0) and the engine sound AU-B (commit
+84140023230515a502d59368dcd52e699e559366) are finished. Merge both into your branch early (git merge --no-edit 53bcc1b255c448c94953a80fca21688f690c5fb0, then
+git merge --no-edit 84140023230515a502d59368dcd52e699e559366; the lead checked that both merge cleanly with your predecessor's head), so that you
+can test Showroom3D with the real show level of player/limousine and player/kompakt (their showroom flag is still false
+– force it in tests as the brief says) and the sound-profile switch with the real Modern engine. AU-B's notes for you:
+EngineAudio3.preview(id) loads the bank on a worker task (22–75 ms) and blips once it is there; at most three banks stay
+cached; frame.engine carries load (0..1). AS1's note for the showroom: the real-time paint is still flat (the paint
+shader with clear coat comes from the renderer package R3 in parallel), so the showroom light rig has to carry the look;
+check it with tools/models_contact_sheet.sh <png> --only="player/*" --showroom once your rig exists.

@@ -1,0 +1,2 @@
+a42fb79a4bd66197a32d3675c5851333d92d66ac  assets/models/props/streetlight/lod0_body.res
+e3b6c319f0a4bc2db3594f46cc6b039010089cba  assets/models/props/streetlight/model.json

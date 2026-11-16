@@ -1,0 +1,15 @@
+v0.8.0 FIX-R6: Grenzdach hängt an Masten statt zu schweben, Endstütze nach Sichtlinien, Tests gegen Arcades Werte
+
+- B-01: Eine Dachseite ohne Pfeiler (Schild unter dem Dach in der Sichtschneise einer
+  Kurve: 5 von 48 Dächern) hängt jetzt an Masten der getragenen Seite – Abspannung über
+  der Platte zu einem Randträger, alles oberhalb von 6,8 m, nichts Neues in der
+  Sichtschneise (F7 streng). Die Korridor-Entscheidung fällt für das ganze Dach auf dem
+  Hauptthread (support_plan(), bend_corridor_at() = ChunkContext.in_bend_corridor()).
+- B-02: Die Stütze am Dachende der Tankstelle wird gegen echte Sichtlinien geprüft
+  (Fahrspuren 55–400 m vor jeder Tafel bis 400 m dahinter); verdeckt sie eine Tafel,
+  rückt sie nach außen, verdeckt auch das, entfällt sie (Arcade hat dort keine).
+- B-04: test_structures prüft Dachhöhen und Laternenkegel gegen Arcades Literale
+  (5,6 m, 6,0 m, 0,55 × lights) statt gegen die Konstanten der Builder.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,6 @@
+v0.8.0 RINT-A: R2 (Gelände, Fernboden, Requisiten, Kontaktschatten) zusammengeführt
+
+Paket R2 des Schubs M1 (A-8), Stand b947e73.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

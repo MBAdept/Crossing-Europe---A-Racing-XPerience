@@ -1,0 +1,1163 @@
+[
+{
+"name": "warm_00",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"size": [
+320,
+200
+]
+},
+{
+"name": "warm_01",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"size": [
+320,
+200
+]
+},
+{
+"name": "warm_02",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"size": [
+320,
+200
+]
+},
+{
+"name": "warm_03",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"size": [
+320,
+200
+]
+},
+{
+"name": "warm_04",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"size": [
+320,
+200
+]
+},
+{
+"name": "warm_05",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"size": [
+320,
+200
+]
+},
+{
+"name": "warm_06",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"size": [
+320,
+200
+]
+},
+{
+"name": "warm_07",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"size": [
+320,
+200
+]
+},
+{
+"name": "warm_08",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"size": [
+320,
+200
+]
+},
+{
+"name": "warm_09",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"size": [
+320,
+200
+]
+},
+{
+"name": "warm_10",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"size": [
+320,
+200
+]
+},
+{
+"name": "warm_11",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"size": [
+320,
+200
+]
+},
+{
+"name": "kombi_g8_day_y",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"settle": 60
+},
+{
+"name": "kombi_g9_day_y",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"settle": 60
+},
+{
+"name": "kombi_g30_day_y",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 30.0
+},
+"settle": 60
+},
+{
+"name": "kombi_g9_ss_y",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4,
+"settle": 60
+},
+{
+"name": "kombi_g9_ss_neutral_y",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4,
+"look": "neutral",
+"settle": 60
+},
+{
+"name": "kombi_g8_backlit_y",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"sun": [
+0.35,
+0.6,
+-1.0
+],
+"settle": 60
+},
+{
+"name": "kombi_g8_low_y",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0,
+"ss": 0.75
+},
+"msaa": 0,
+"settle": 60
+},
+{
+"name": "kombi_g8_daybrake_y",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"lamp_a": [
+0,
+1,
+0,
+0
+],
+"settle": 60
+},
+{
+"name": "kombi_g8_nighttail_y",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"settle": 60
+},
+{
+"name": "kombi_g8_nightbrake_y",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"settle": 60
+},
+{
+"name": "kombi_g30_nighttail_y",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 30.0
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"settle": 60
+},
+{
+"name": "kombi_g30_nightbrake_y",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 30.0
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"settle": 60
+},
+{
+"name": "kombi_g9_yaw+10_ss_y",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4,
+"yaw": 10,
+"settle": 60
+},
+{
+"name": "kombi_g9_yaw-10_ss_y",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4,
+"yaw": -10,
+"settle": 60
+},
+{
+"name": "kombi_g9_mask_ss_y",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4,
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"settle": 60
+},
+{
+"name": "kombi_lod0_rear34_y",
+"set": "player/kombi",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false,
+"settle": 60
+},
+{
+"name": "suv_g10_lod0_day_y",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 10
+},
+"settle": 60
+},
+{
+"name": "suv_g20_lod0_day_y",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 20
+},
+"settle": 60
+},
+{
+"name": "suv_g25_lod0_day_y",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 25
+},
+"settle": 60
+},
+{
+"name": "suv_g25_lod1_day_y",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 25
+},
+"settle": 60
+},
+{
+"name": "suv_g30_lod0_day_y",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+},
+"settle": 60
+},
+{
+"name": "suv_g40_lod0_day_y",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 40
+},
+"settle": 60
+},
+{
+"name": "suv_g40_lod1_day_y",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 40
+},
+"settle": 60
+},
+{
+"name": "suv_g60_lod0_day_y",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 60
+},
+"settle": 60
+},
+{
+"name": "suv_g60_lod1_day_y",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 60
+},
+"settle": 60
+},
+{
+"name": "suv_g80_lod1_day_y",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 80
+},
+"settle": 60
+},
+{
+"set": "showroom/kombi",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kombi_sr_sheet_agx_y",
+"tonemap": "agx",
+"contact": false,
+"settle": 60
+},
+{
+"set": "showroom/kombi",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kombi_sr_studio_race_y",
+"rig": "studio",
+"settle": 60
+},
+{
+"set": "showroom/kombi",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kombi_sr_studio_neutral_y",
+"rig": "studio",
+"look": "neutral",
+"settle": 60
+},
+{
+"set": "showroom/kombi",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kombi_sr_studio_race_norims_y",
+"rig": "studio",
+"no_rims": true,
+"settle": 60
+},
+{
+"set": "showroom/kombi",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kombi_sr_mask_y",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"settle": 60
+},
+{
+"set": "showroom/kombi",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kombi_sr_clay_y",
+"mode": "clay",
+"rig": "studio",
+"settle": 60
+},
+{
+"set": "showroom/sportwagen",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "sportwagen_sr_sheet_agx_y",
+"tonemap": "agx",
+"contact": false,
+"settle": 60
+},
+{
+"set": "showroom/sportwagen",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "sportwagen_sr_studio_race_y",
+"rig": "studio",
+"settle": 60
+},
+{
+"set": "showroom/sportwagen",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "sportwagen_sr_studio_neutral_y",
+"rig": "studio",
+"look": "neutral",
+"settle": 60
+},
+{
+"set": "showroom/sportwagen",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "sportwagen_sr_studio_race_norims_y",
+"rig": "studio",
+"no_rims": true,
+"settle": 60
+},
+{
+"set": "showroom/sportwagen",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "sportwagen_sr_mask_y",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"settle": 60
+},
+{
+"set": "showroom/sportwagen",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "sportwagen_sr_clay_y",
+"mode": "clay",
+"rig": "studio",
+"settle": 60
+},
+{
+"set": "showroom/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "gran_turismo_sr_sheet_agx_y",
+"tonemap": "agx",
+"contact": false,
+"settle": 60
+},
+{
+"set": "showroom/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "gran_turismo_sr_studio_race_y",
+"rig": "studio",
+"settle": 60
+},
+{
+"set": "showroom/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "gran_turismo_sr_studio_neutral_y",
+"rig": "studio",
+"look": "neutral",
+"settle": 60
+},
+{
+"set": "showroom/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "gran_turismo_sr_studio_race_norims_y",
+"rig": "studio",
+"no_rims": true,
+"settle": 60
+},
+{
+"set": "showroom/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "gran_turismo_sr_mask_y",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"settle": 60
+},
+{
+"set": "showroom/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "gran_turismo_sr_clay_y",
+"mode": "clay",
+"rig": "studio",
+"settle": 60
+},
+{
+"set": "showroom/limousine",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "limousine_sr_sheet_agx_y",
+"tonemap": "agx",
+"contact": false,
+"settle": 60
+},
+{
+"set": "showroom/limousine",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "limousine_sr_studio_race_y",
+"rig": "studio",
+"settle": 60
+},
+{
+"set": "showroom/limousine",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "limousine_sr_studio_neutral_y",
+"rig": "studio",
+"look": "neutral",
+"settle": 60
+},
+{
+"set": "showroom/limousine",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "limousine_sr_studio_race_norims_y",
+"rig": "studio",
+"no_rims": true,
+"settle": 60
+},
+{
+"set": "showroom/limousine",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "limousine_sr_mask_y",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"settle": 60
+},
+{
+"set": "showroom/limousine",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "limousine_sr_clay_y",
+"mode": "clay",
+"rig": "studio",
+"settle": 60
+},
+{
+"set": "showroom/kompakt",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kompakt_sr_sheet_agx_y",
+"tonemap": "agx",
+"contact": false,
+"settle": 60
+},
+{
+"set": "showroom/kompakt",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kompakt_sr_studio_race_y",
+"rig": "studio",
+"settle": 60
+},
+{
+"set": "showroom/kompakt",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kompakt_sr_studio_neutral_y",
+"rig": "studio",
+"look": "neutral",
+"settle": 60
+},
+{
+"set": "showroom/kompakt",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kompakt_sr_studio_race_norims_y",
+"rig": "studio",
+"no_rims": true,
+"settle": 60
+},
+{
+"set": "showroom/kompakt",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kompakt_sr_mask_y",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"settle": 60
+},
+{
+"set": "showroom/kompakt",
+"lod": "show",
+"cam": {
+"type": "showroom"
+},
+"size": [
+768,
+480
+],
+"msaa": 4,
+"lamp_b": [
+1,
+0,
+0,
+0
+],
+"name": "kompakt_sr_clay_y",
+"mode": "clay",
+"rig": "studio",
+"settle": 60
+},
+{
+"name": "kombi_g8_day_y2",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"settle": 60
+},
+{
+"name": "kombi_g8_daybrake_y2",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"settle": 60,
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+}
+]

@@ -1,0 +1,670 @@
+{
+	"counts_before_fingerprint": {
+		"am_children": 0,
+		"buses": 5,
+		"nodes": 11,
+		"objects": 2003,
+		"orphans": 0,
+		"resources": 109,
+		"root_children": 9
+	},
+	"counts_boot": {
+		"am_children": 0,
+		"buses": 5,
+		"nodes": 11,
+		"objects": 1611,
+		"orphans": 0,
+		"resources": 67,
+		"root_children": 9
+	},
+	"counts_end": {
+		"am_children": 0,
+		"buses": 5,
+		"nodes": 11,
+		"objects": 2008,
+		"orphans": 0,
+		"resources": 109,
+		"root_children": 9
+	},
+	"display": "headless",
+	"drive": {
+		"bus_fx": "f556404b3f83eb8b4cb398d9e093ebdd036c615259132bf982fee6f063b3eeb6",
+		"bus_fx_values": 720,
+		"engine": "1ea2d8bcf361643005901c2f8893dd05c9ce8ef89bcf94a73c650c56decfc70c",
+		"engine_values": 1440,
+		"internal_values": 4680,
+		"internals": "71e7c2f0d557335a77ecefa513e83f8ef49a67d7072dc15abb0cb0cd6bb461c0",
+		"last_engine": [
+			650.0,
+			0.0
+		],
+		"players_at_end": "3c88bf13b58cba9ca7fe10c55db47931f52b52975cf1e9eaa0c9b0ec29c7c6be",
+		"players_at_end_n": 0,
+		"traffic": "fd70489b401ab8bd3b3c723a51eed1f5396dbd91bd023445c6f65f5d77db0b0a"
+	},
+	"exercise": "modern_race",
+	"godot": "4.7.2-stable (official)",
+	"has_profiles": true,
+	"notes": [
+		"race 0: gfx=modern renderer=modern_renderer.gd profile=modern",
+		"race 1: gfx=modern renderer=modern_renderer.gd profile=modern",
+		"race 2: gfx=modern renderer=modern_renderer.gd profile=modern",
+		"race 3: gfx=modern renderer=modern_renderer.gd profile=modern",
+		"race 4: gfx=modern renderer=modern_renderer.gd profile=modern",
+		"race 5: gfx=modern renderer=modern_renderer.gd profile=modern",
+		"race 6: gfx=modern renderer=modern_renderer.gd profile=modern",
+		"race 7: gfx=modern renderer=modern_renderer.gd profile=modern",
+		"race 8: gfx=modern renderer=modern_renderer.gd profile=modern",
+		"race 9: gfx=modern renderer=modern_renderer.gd profile=modern",
+		"race 10: gfx=modern renderer=modern_renderer.gd profile=modern",
+		"race 11: gfx=modern renderer=modern_renderer.gd profile=modern",
+		"race 12: gfx=modern renderer=modern_renderer.gd profile=modern",
+		"race 13: gfx=modern renderer=modern_renderer.gd profile=modern",
+		"race 14: gfx=modern renderer=modern_renderer.gd profile=modern",
+		"race 15: gfx=modern renderer=modern_renderer.gd profile=modern",
+		"race 16: gfx=modern renderer=modern_renderer.gd profile=modern",
+		"race 17: gfx=modern renderer=modern_renderer.gd profile=modern",
+		"race 18: gfx=modern renderer=modern_renderer.gd profile=modern",
+		"race 19: gfx=modern renderer=modern_renderer.gd profile=modern"
+	],
+	"profile_after": "arcade",
+	"static": {
+		"am_tree": [],
+		"am_vars": {
+			"_audio_cfg": {
+				"dict_keys": "[\"_doc\", \"attract\", \"audio\", \"city_limits\", \"collision\", \"daytime\", \"debug\", \"driving\", \"fuel\", \"graphics\", \"hud\", \"input\", \"leaderboard\", \"police\", \"radar\", \"render\", \"road\", \"routing\", \"stages\", \"time\", \"traffic\", \"vehicles\", \"weather\"]"
+			},
+			"_bank_dir": "\"res://assets/audio/engines\"",
+			"_bank_override": "\"\"",
+			"_banks": {
+				"dict_keys": "[\"res://assets/audio/engines/gran_turismo.json\", \"res://assets/audio/engines/kombi.json\", \"res://assets/audio/engines/kompakt.json\", \"res://assets/audio/engines/limousine.json\", \"res://assets/audio/engines/sportwagen.json\"]"
+			},
+			"_eng": null,
+			"_eng_start_pending": "false",
+			"_eng_started_at": "-100.0",
+			"_engine_active": "false",
+			"_engine_buffer": "0.25",
+			"_engine_db": "-3.0",
+			"_engine_latency": "0.07",
+			"_engine_speed": "0.0",
+			"_engine_start_latency": "0.2",
+			"_engine_t": "-100.0",
+			"_engine_throttle": "0.0",
+			"_engine_vmax": "250.0",
+			"_fb_gearbox": {
+				"object": "RefCounted",
+				"script": "res://scripts/audio/engine_gearbox.gd"
+			},
+			"_gear": "1",
+			"_gears": "6",
+			"_hint_chase": "false",
+			"_hint_rain": "0.0",
+			"_hint_siren": "-1.0",
+			"_hint_skid": "0.0",
+			"_hint_t": "-100.0",
+			"_idle_hz": "38.0",
+			"_last_play": {
+				"dict_keys": "[]"
+			},
+			"_loop_players": {
+				"dict_keys": "[]"
+			},
+			"_max_hz": "175.0",
+			"_modern": null,
+			"_music": null,
+			"_music_ctx": "\"menu\"",
+			"_music_ctx_args": {
+				"dict_keys": "[\"stage\"]"
+			},
+			"_music_ctx_last": "false",
+			"_music_samples": {
+				"pf32": 0
+			},
+			"_music_thread_task": "-1",
+			"_music_wanted": "true",
+			"_next_oneshot": "0",
+			"_oneshots": {
+				"array_size": 0
+			},
+			"_pitch_s": "0.5",
+			"_preview": null,
+			"_preview_next": null,
+			"_preview_on": "true",
+			"_preview_t": "0.0",
+			"_race_music": "false",
+			"_rain_explicit": "0.0",
+			"_rain_explicit_t": "-100.0",
+			"_room": {
+				"object": "RefCounted",
+				"script": "res://scripts/audio/room_audio.gd"
+			},
+			"_shift_dip": "0.0",
+			"_siren_dist": "0.3",
+			"_siren_on": "false",
+			"_skid_explicit": "0.0",
+			"_skid_explicit_t": "-100.0",
+			"_stopped_frame": "-1",
+			"_streams": {
+				"dict_keys": "[]"
+			},
+			"_throttle_s": "0.0",
+			"_time": "84.13333333332984",
+			"_traffic": {
+				"object": "RefCounted",
+				"script": "res://scripts/audio/traffic_audio.gd"
+			},
+			"_traffic_listener": {
+				"dict_keys": "[]"
+			},
+			"_traffic_t": "-100.0",
+			"_traffic_vehicles": {
+				"array_size": 0
+			},
+			"_tunnel": "false",
+			"_vehicle_id": "\"\"",
+			"_vol": {
+				"dict_keys": "[]",
+				"values": "{}"
+			},
+			"_wind_speed": "0.0",
+			"sounds_ready": "false"
+		},
+		"banks": {
+			"gran_turismo": {
+				"car": "c7e2e6245b56521df69d7bdd818a4691d0bd230fdad1f53b429072ad1b6fce03",
+				"clips": "22bc31276c2d868c257f2d3e1752908596e2dbf02dc34915582d9507cee79c86",
+				"cyc_len": "933a4a48b748f65a6cb924bd647efbf96b116a1ed1512c0a5d6acdd9bb357bc5",
+				"cyc_off": "c632022ce4c5e1c9b00e1079babb094b1371fb39af66f4b886fb31d67808526c",
+				"data": "ae1d3c1bd76217e65eb1882748045f625d80fa92dd8ae69386d1017db0a1ce1a",
+				"engine": "fae9101d083c5f79aa4328cb7ffd638acbfc7a8a397a71f63917933456a53805",
+				"errors": "3bf4e509ee1fd83a8ff2106fbad74e32c260307aeccef9f8ce7eec93414499a8",
+				"gearbox": "ee8955c571ced61b781b0cf8187a18bb19375e082fc3fd561269a439126fc3ca",
+				"idle_load": "1f1ed4540c0468e5adb83caa57ebaf3948ee4f41fd7a4be0774fea93b0f1aa62",
+				"layers": "109f98f8c8c4acb1ef3101787f0a582892d968152ef36ba21c814f17758fc141",
+				"log_rpms": "4a478797450134ffe040ca0caf411dc0b0adccfa80311d7b1459710ebbba1947",
+				"mix_gain": "670fa7c4568f361bf0226c8f7b88cf5c070ca92ae22c49877e97caf13f558b91",
+				"off_gain": "670fa7c4568f361bf0226c8f7b88cf5c070ca92ae22c49877e97caf13f558b91",
+				"overlaps": "176690849503b0723fea28e1139bcbe9ea4f6a24f9c9573469be8769e7e39241",
+				"path": "e0ead2d535633226ad2ff405f0199e6434bc13abf6d003eeb5d7e305b25b0427",
+				"periods": "e313b3ff230f241ffe6855e10218c515805ddb3c74c091baac9c2f6624b7d6ba",
+				"rpms": "68a373e044f8420cb51ae301fea22c8869ad45d6bcb89beaa10c9760780da18f",
+				"sample_rate": "133e34340ef3b59a456a4e032de6e3b36cd5486f3c63232e50af655331c5f930",
+				"var_count": "5017b9b46a00ce6d6cc518b081862a35cd7e950942e4538b598a20c0109a08c1",
+				"var_first": "e2023b892c2806653e1532b2ef6326110ad60dfafff1bffd391a18752c7afb09",
+				"warnings": "3bf4e509ee1fd83a8ff2106fbad74e32c260307aeccef9f8ce7eec93414499a8"
+			},
+			"gran_turismo_after_render": "3b8095486b9c119029571170a7379f679a84682150215c4aafad00c0963eb146",
+			"kombi": {
+				"car": "f31003e99df52aca0a3e9275fe34ace7022d35d4163cb58d0dbcec5a3a8d83e0",
+				"clips": "41fe8a1443fede60d9b537968a2428e5f9908181d6526ab8daab3bfcb242e7df",
+				"cyc_len": "a783abd9c6174e9901d596b8b0b5ce6b461085b2050eb87f170fa7c3a807c512",
+				"cyc_off": "20ae12a0a7045bff2eb7e2c570932604f32b07856b482bf3992ffb8eecff1331",
+				"data": "b160834cd16c6fdab62fd654651327283dcae957c6b9edffad7fe2ac15d600f6",
+				"engine": "fdecfd32ba12159f2ed32476b18e95968fa9af3f5dbf904235b1d86c4ade943d",
+				"errors": "3bf4e509ee1fd83a8ff2106fbad74e32c260307aeccef9f8ce7eec93414499a8",
+				"gearbox": "afa9e1946f22d1deaae017ef12f6f474ca1ca55d71176bf52c4829c4e21fd3ab",
+				"idle_load": "1f1ed4540c0468e5adb83caa57ebaf3948ee4f41fd7a4be0774fea93b0f1aa62",
+				"layers": "8276b4a860cf7adf0b48748e7aab560225831cb3ffd2e34d3c173370b468d173",
+				"log_rpms": "7c76e649c2235acdc36ee3cf601505070543004dfeababad5f178f521a0dd869",
+				"mix_gain": "af532368d60e77ea295d105fdc1ec06ad4ef05b4b1d8c18e4e5d78d3eebcf59f",
+				"off_gain": "670fa7c4568f361bf0226c8f7b88cf5c070ca92ae22c49877e97caf13f558b91",
+				"overlaps": "c00626d286d9da3e072dae6f459f1c248e0a5a1a34c5d889e7df6cff95c465dc",
+				"path": "d2008deaa6d3b22d6ae53243a566a6d422cd85a055f6b2ae3f787e1f5774b579",
+				"periods": "486e37775295c155b473e5479f49b43a097e1530c8358c11f84f467a0dca9c05",
+				"rpms": "c5615332e179b98ceb8dd9bf4f0acdd333ea873e83e6c5ced7e5e0dcaed6a4f8",
+				"sample_rate": "133e34340ef3b59a456a4e032de6e3b36cd5486f3c63232e50af655331c5f930",
+				"var_count": "c8854491ef81a938ce36d61b888df023ca52aecd97cabe4c289e802bb26e2b9e",
+				"var_first": "72d62a8ed12f1c95060de2ac9fd1cc1e75fc1a904101fade052395f4a61c1556",
+				"warnings": "3bf4e509ee1fd83a8ff2106fbad74e32c260307aeccef9f8ce7eec93414499a8"
+			},
+			"kombi_after_render": "ca047c1e796e1965e1a709f9c3d699d8a3ca93f415953eb5526a8a48697966fb",
+			"kompakt": {
+				"car": "63b3c231ddb620faaec0e35ecc7bf005165c6dbdceca7edce9f6426197800783",
+				"clips": "3efa5b2e9e69e3b4b581f1142e2f5724e224546e60c27fc3814d5c48329c2a4c",
+				"cyc_len": "b7ca981dc7aa34fa9ab503d6776e70acd8deaa4780b24ad3baf6b94a368ecb82",
+				"cyc_off": "c7872f5407221d604b94e1fdeb4997db6e8956b8d4db6e56fe7e87f1d9f3b5b2",
+				"data": "999ed88b8393fd4c737c77a0c0bedf02192e2c0d33c9f4d8ab95d0d5dfa177d5",
+				"engine": "582a055c3a598dd6319d3b628871f4b0c0a28e2ee42ff6fb46425191e2870541",
+				"errors": "3bf4e509ee1fd83a8ff2106fbad74e32c260307aeccef9f8ce7eec93414499a8",
+				"gearbox": "58510da74c0f7690b208ba6b21e1bb98fffe4a55bddfdb253c7f4be879605916",
+				"idle_load": "1f1ed4540c0468e5adb83caa57ebaf3948ee4f41fd7a4be0774fea93b0f1aa62",
+				"layers": "48278936f50cf573ebde0b3e46ac769ce999bdaa5596c52d0b80fc87af2da6ae",
+				"log_rpms": "6ea24686f7c5ef18ecb09f1b7f1debcdac74780b056bfa0804de43dcfaeac5f0",
+				"mix_gain": "7bbc8f17825bb53f39415cdc2704aa8fd7163afd12e3296849b8dc7298159b52",
+				"off_gain": "670fa7c4568f361bf0226c8f7b88cf5c070ca92ae22c49877e97caf13f558b91",
+				"overlaps": "176690849503b0723fea28e1139bcbe9ea4f6a24f9c9573469be8769e7e39241",
+				"path": "f29ce3563e7824b8156f763ed339051c5213f41f15fce8ba593030e0ab491890",
+				"periods": "a86b9fe069ad23044fd455ea727e1ed68751b8416a4738e4a78c59691094865f",
+				"rpms": "4ead9c0dba1867a6fd719d8a9cddca9d2a479cd011389087cf8d03ca5d835c91",
+				"sample_rate": "133e34340ef3b59a456a4e032de6e3b36cd5486f3c63232e50af655331c5f930",
+				"var_count": "5017b9b46a00ce6d6cc518b081862a35cd7e950942e4538b598a20c0109a08c1",
+				"var_first": "e2023b892c2806653e1532b2ef6326110ad60dfafff1bffd391a18752c7afb09",
+				"warnings": "3bf4e509ee1fd83a8ff2106fbad74e32c260307aeccef9f8ce7eec93414499a8"
+			},
+			"kompakt_after_render": "4eb792b8f005c2ae51f50d8082ed02155e7ca82d2325f2ad622787ada3a3f9e4",
+			"limousine": {
+				"car": "20ba18f75ea98dc0b95ce8fbbbd1b34d5bef45773eac01bbe3845ac592d7538d",
+				"clips": "d2c172074551a66ac24ee1ff71c488aff14d0a84b37e0e5950844843d8d0375f",
+				"cyc_len": "895305f0332cac6755f798f32f21f5383023ac5b1796e33e142da1f8d01b422b",
+				"cyc_off": "542c5b1d902d19f6ac6fac8448bccedf1c376094b8398aadf7f87a19f42490c7",
+				"data": "7e8263bc5d78ce6a531d37fbdd7eb207c31b5a87e14ccf8a832ea5ac6558c134",
+				"engine": "bfa4e4c279502a41434d2c3737e5df44ce90c415b6915b12d42588ca9ef91c0a",
+				"errors": "3bf4e509ee1fd83a8ff2106fbad74e32c260307aeccef9f8ce7eec93414499a8",
+				"gearbox": "914a8433f74604fae6e44ac7305500e9499b1befb53ddcaed9018bc747c82e4e",
+				"idle_load": "1f1ed4540c0468e5adb83caa57ebaf3948ee4f41fd7a4be0774fea93b0f1aa62",
+				"layers": "06710ef9a7323c874a6022fe6db8df4e184d6020a5dc2d1149df5a45ad49be15",
+				"log_rpms": "2f5ccfc4148aa5b51e50e0c74f61f86c5bcc7c87e8bb9bd9da0a90732d590f32",
+				"mix_gain": "1381f411fe5e45f3fb3716671dd326019c45a6ee125f43355240bbc224a141ed",
+				"off_gain": "670fa7c4568f361bf0226c8f7b88cf5c070ca92ae22c49877e97caf13f558b91",
+				"overlaps": "176690849503b0723fea28e1139bcbe9ea4f6a24f9c9573469be8769e7e39241",
+				"path": "6a9af8abd4d91701f52f61c87076af27590aafc186b3a72663aa648950d821b0",
+				"periods": "53e7babcd59255d15a184f28cb9bb5bb5e53988a11eb6f4c014ac6c277c73258",
+				"rpms": "7c12ad65a04aaa0944f111292456f8c596c35a6c028d9d106a77197f8eeff395",
+				"sample_rate": "133e34340ef3b59a456a4e032de6e3b36cd5486f3c63232e50af655331c5f930",
+				"var_count": "5017b9b46a00ce6d6cc518b081862a35cd7e950942e4538b598a20c0109a08c1",
+				"var_first": "e2023b892c2806653e1532b2ef6326110ad60dfafff1bffd391a18752c7afb09",
+				"warnings": "3bf4e509ee1fd83a8ff2106fbad74e32c260307aeccef9f8ce7eec93414499a8"
+			},
+			"limousine_after_render": "d7a1428b62b589205e1afc03c485b25f0cd59fa5c123dd0eed4105742a6c2ac8",
+			"sportwagen": {
+				"car": "177c3f680278ba9808fa420a04657a11d50003d31992ad85a6562e13c1cfe052",
+				"clips": "bc32ddbb17a20107991d9dc6021deaa8043e7d5f71728006b23ba37cd2783d61",
+				"cyc_len": "422f2dc7445f2c8a8703c9d312d2e16530e5727313b88aeaf97c3325c0636408",
+				"cyc_off": "72101273546c011c5a799614ab96f6239ed4440490cd3db15413603df1a85547",
+				"data": "3043931842df55324ff320976f5666e5c3841be2faf2a18137702257fa5fd2f7",
+				"engine": "e077c7853445a6b4bb3d7abbccbd9a1e79464106287ea41c31f02d6bd55cf81a",
+				"errors": "3bf4e509ee1fd83a8ff2106fbad74e32c260307aeccef9f8ce7eec93414499a8",
+				"gearbox": "fa237e7dbe2798925025bc61df86add302817686f51a91549fc2dbed49d2a561",
+				"idle_load": "1f1ed4540c0468e5adb83caa57ebaf3948ee4f41fd7a4be0774fea93b0f1aa62",
+				"layers": "8deb5ddb7022409f8d5b3f0444ea3e1e6e3db010d723efe140a235a3548732e3",
+				"log_rpms": "ef099d9b130033ea83d7a3a961dc503fe960dfcf5e5a4927954aa262cf7ba8fc",
+				"mix_gain": "761ef7b503332d8f6a3586131b6a0a9a6bac6656da915b1e8f44382c09d94560",
+				"off_gain": "bee9e2611a7a5c67f384870b282b09065aba6a1901bc89441c22331ead85cdbc",
+				"overlaps": "fd45ccd70e3a0c9ca9fb7d862a520aa4b49c70b0802a7f5898e56010505f4082",
+				"path": "a81d87af0952a9c0b138e72c07be1c53e82c1a677da41580bf0bcb8d17d62065",
+				"periods": "1444d55b4b4969c7903ccab4fc281ebfa4821c05ee4004295c41431dc86095a7",
+				"rpms": "7a6f46f6a47c4d86f5e08a8d14476edfead28ed4781a32e77f097d31ebeb604e",
+				"sample_rate": "133e34340ef3b59a456a4e032de6e3b36cd5486f3c63232e50af655331c5f930",
+				"var_count": "b49a620cc3f714b75d5e7f9be335b48f98cb16c46080f6a71bf083a4a7aaed3e",
+				"var_first": "d72ccdd21d05379e09afdb05ecaa5c6a6e9dd9014f901d2eab9cf01f4c2e37f0",
+				"warnings": "3bf4e509ee1fd83a8ff2106fbad74e32c260307aeccef9f8ce7eec93414499a8"
+			},
+			"sportwagen_after_render": "2c1d279275692b8eed034a884897d363db03a72d0d46f0e57b2d9faf19c49c21"
+		},
+		"buses": [
+			{
+				"bypass": false,
+				"channels": 1,
+				"effects": [
+					{
+						"class": "AudioEffectHardLimiter",
+						"enabled": true,
+						"params": {
+							"ceiling_db": "-0.8",
+							"pre_gain_db": "0.0",
+							"release": "0.12"
+						}
+					}
+				],
+				"index": 0,
+				"mute": false,
+				"name": "Master",
+				"send": "",
+				"solo": false,
+				"volume_db": "-1.9382002"
+			},
+			{
+				"bypass": false,
+				"channels": 1,
+				"effects": [],
+				"index": 1,
+				"mute": false,
+				"name": "SFX",
+				"send": "Master",
+				"solo": false,
+				"volume_db": "0.0"
+			},
+			{
+				"bypass": false,
+				"channels": 1,
+				"effects": [],
+				"index": 2,
+				"mute": false,
+				"name": "Music",
+				"send": "Master",
+				"solo": false,
+				"volume_db": "-12.09804"
+			},
+			{
+				"bypass": false,
+				"channels": 1,
+				"effects": [
+					{
+						"class": "AudioEffectDelay",
+						"enabled": true,
+						"params": {
+							"dry": "1.0",
+							"feedback_active": "false",
+							"feedback_delay_ms": "340.0",
+							"feedback_level_db": "-6.0",
+							"feedback_lowpass": "16000.0",
+							"tap1_active": "true",
+							"tap1_delay_ms": "17.0",
+							"tap1_level_db": "-16.0",
+							"tap1_pan": "-0.15",
+							"tap2_active": "true",
+							"tap2_delay_ms": "23.0",
+							"tap2_level_db": "-16.0",
+							"tap2_pan": "0.15"
+						}
+					},
+					{
+						"class": "AudioEffectReverb",
+						"enabled": true,
+						"params": {
+							"damping": "0.45",
+							"dry": "1.0",
+							"hipass": "0.03",
+							"predelay_feedback": "0.3",
+							"predelay_msec": "22.0",
+							"room_size": "0.86",
+							"spread": "1.0",
+							"wet": "0.0"
+						}
+					}
+				],
+				"index": 3,
+				"mute": false,
+				"name": "Room",
+				"send": "SFX",
+				"solo": false,
+				"volume_db": "0.0"
+			},
+			{
+				"bypass": false,
+				"channels": 1,
+				"effects": [
+					{
+						"class": "AudioEffectReverb",
+						"enabled": true,
+						"params": {
+							"damping": "0.7",
+							"dry": "1.0",
+							"hipass": "0.1",
+							"predelay_feedback": "0.0",
+							"predelay_msec": "3.0",
+							"room_size": "0.1",
+							"spread": "1.0",
+							"wet": "0.6"
+						}
+					}
+				],
+				"index": 4,
+				"mute": false,
+				"name": "Engine",
+				"send": "Room",
+				"solo": false,
+				"volume_db": "0.0"
+			}
+		],
+		"engines": {
+			"gran_turismo": {
+				"samples": 230400,
+				"sha": "40da17b5848e8c3524e6e3b9b9af0bfe3084ff2ae000fa139699eaf6f7662401",
+				"state": "{\n\"boost\": 0.15035910596538365,\n\"gear\": 2,\n\"load\": 0.85,\n\"rpm\": 3299.287677597202\n}"
+			},
+			"kombi": {
+				"samples": 230400,
+				"sha": "bb7cdbe38d3d8c2ea5646ab082fabdae127da54900cbc2c57794ae7ab7a5202f",
+				"state": "{\n\"boost\": 2.038745460141867e-06,\n\"gear\": 6,\n\"load\": 0.0,\n\"rpm\": 1097.1605455193767\n}"
+			},
+			"kompakt": {
+				"samples": 230400,
+				"sha": "49897529da4cafcfe0d8594d2602b8c28a2503dc9bbdb17bd00dbabb7e5fc970",
+				"state": "{\n\"boost\": 0.12731637818865862,\n\"gear\": 3,\n\"load\": 0.0,\n\"rpm\": 2791.6360544818363\n}"
+			},
+			"limousine": {
+				"samples": 230400,
+				"sha": "09c23602d8deb9a458b823ea7c4b0aa6bbc5832c1b0bcc07496ac8cbec111e13",
+				"state": "{\n\"boost\": 0.10652253690162629,\n\"gear\": 4,\n\"load\": 0.0,\n\"rpm\": 2174.608735830779\n}"
+			},
+			"sportwagen": {
+				"samples": 230400,
+				"sha": "d564479668162a41b26ae89e5efc95f6f69ef1af711715d8070f55ddca1842b5",
+				"state": "{\n\"boost\": 0.0,\n\"gear\": 1,\n\"load\": 0.85,\n\"rpm\": 6617.31787873322\n}"
+			}
+		},
+		"room": {
+			"_applied": "Vector2(-16, 0)",
+			"blend": "0.0",
+			"damping": "0.45",
+			"engine_width": "0.6",
+			"engine_width_hipass": "0.1",
+			"fade_s": "0.8",
+			"hipass": "0.03",
+			"predelay_feedback": "0.3",
+			"predelay_ms": "22.0",
+			"reflections_db": "-16.0",
+			"reflections_tunnel_db": "-8.0",
+			"room_size": "0.86",
+			"tunnel": "false",
+			"tunnel_wet": "0.3",
+			"wet": "0.0"
+		},
+		"sounds_ready": false,
+		"streams": {},
+		"traffic": {
+			"classes": "4d159113222bfeb85fbe717cc2393ee8a6a85b7ce5ac1791c4eade5e3dd6de41",
+			"models": "4d159113222bfeb85fbe717cc2393ee8a6a85b7ce5ac1791c4eade5e3dd6de41",
+			"ok": false,
+			"path": "",
+			"siren_stream": null,
+			"sounds": {},
+			"state": "fcef5574b33c53a3acb41a4ee45165d03190a9abb1cca5dcfb076249b9694bbd",
+			"vars": {
+				"_police_idx": "-1",
+				"_siren_level": "0.0",
+				"_siren_on": "false",
+				"ahead_m": "3.0",
+				"air_m": "30.0",
+				"doppler_k": "2.0",
+				"fade_s": "0.3",
+				"hysteresis": "0.25",
+				"level_db": "2.5",
+				"listener_v": "0.0",
+				"listener_x": "0.0",
+				"listener_z": "0.0",
+				"max_m": "150.0",
+				"ok": "false",
+				"pan_width": "0.85",
+				"path": "\"\"",
+				"ref_m": "3.0",
+				"rolloff": "1.0",
+				"siren_db": "-1.9",
+				"siren_fade_s": "0.35",
+				"siren_floor": "0.3",
+				"siren_max_m": "900.0",
+				"siren_ref_m": "30.0",
+				"siren_rolloff": "0.6",
+				"voice_count": "6"
+			},
+			"voice_count": 6,
+			"voices": 6
+		}
+	},
+	"static_after_drive": {
+		"am_tree": [],
+		"buses": [
+			{
+				"bypass": false,
+				"channels": 1,
+				"effects": [
+					{
+						"class": "AudioEffectHardLimiter",
+						"enabled": true,
+						"params": {
+							"ceiling_db": "-0.8",
+							"pre_gain_db": "0.0",
+							"release": "0.12"
+						}
+					}
+				],
+				"index": 0,
+				"mute": false,
+				"name": "Master",
+				"send": "",
+				"solo": false,
+				"volume_db": "-1.9382002"
+			},
+			{
+				"bypass": false,
+				"channels": 1,
+				"effects": [],
+				"index": 1,
+				"mute": false,
+				"name": "SFX",
+				"send": "Master",
+				"solo": false,
+				"volume_db": "0.0"
+			},
+			{
+				"bypass": false,
+				"channels": 1,
+				"effects": [],
+				"index": 2,
+				"mute": false,
+				"name": "Music",
+				"send": "Master",
+				"solo": false,
+				"volume_db": "-12.09804"
+			},
+			{
+				"bypass": false,
+				"channels": 1,
+				"effects": [
+					{
+						"class": "AudioEffectDelay",
+						"enabled": true,
+						"params": {
+							"dry": "1.0",
+							"feedback_active": "false",
+							"feedback_delay_ms": "340.0",
+							"feedback_level_db": "-6.0",
+							"feedback_lowpass": "16000.0",
+							"tap1_active": "true",
+							"tap1_delay_ms": "17.0",
+							"tap1_level_db": "-16.0",
+							"tap1_pan": "-0.15",
+							"tap2_active": "true",
+							"tap2_delay_ms": "23.0",
+							"tap2_level_db": "-16.0",
+							"tap2_pan": "0.15"
+						}
+					},
+					{
+						"class": "AudioEffectReverb",
+						"enabled": true,
+						"params": {
+							"damping": "0.45",
+							"dry": "1.0",
+							"hipass": "0.03",
+							"predelay_feedback": "0.3",
+							"predelay_msec": "22.0",
+							"room_size": "0.86",
+							"spread": "1.0",
+							"wet": "0.0"
+						}
+					}
+				],
+				"index": 3,
+				"mute": false,
+				"name": "Room",
+				"send": "SFX",
+				"solo": false,
+				"volume_db": "0.0"
+			},
+			{
+				"bypass": false,
+				"channels": 1,
+				"effects": [
+					{
+						"class": "AudioEffectReverb",
+						"enabled": true,
+						"params": {
+							"damping": "0.7",
+							"dry": "1.0",
+							"hipass": "0.1",
+							"predelay_feedback": "0.0",
+							"predelay_msec": "3.0",
+							"room_size": "0.1",
+							"spread": "1.0",
+							"wet": "0.6"
+						}
+					}
+				],
+				"index": 4,
+				"mute": false,
+				"name": "Engine",
+				"send": "Room",
+				"solo": false,
+				"volume_db": "0.0"
+			}
+		],
+		"room": {
+			"_applied": "Vector2(-16, 0)",
+			"blend": "0.0",
+			"damping": "0.45",
+			"engine_width": "0.6",
+			"engine_width_hipass": "0.1",
+			"fade_s": "0.8",
+			"hipass": "0.03",
+			"predelay_feedback": "0.3",
+			"predelay_ms": "22.0",
+			"reflections_db": "-16.0",
+			"reflections_tunnel_db": "-8.0",
+			"room_size": "0.86",
+			"tunnel": "false",
+			"tunnel_wet": "0.3",
+			"wet": "0.0"
+		},
+		"traffic": {
+			"classes": "4d159113222bfeb85fbe717cc2393ee8a6a85b7ce5ac1791c4eade5e3dd6de41",
+			"models": "4d159113222bfeb85fbe717cc2393ee8a6a85b7ce5ac1791c4eade5e3dd6de41",
+			"ok": false,
+			"path": "",
+			"siren_stream": null,
+			"sounds": {},
+			"state": "fcef5574b33c53a3acb41a4ee45165d03190a9abb1cca5dcfb076249b9694bbd",
+			"vars": {
+				"_police_idx": "-1",
+				"_siren_level": "0.0",
+				"_siren_on": "false",
+				"ahead_m": "3.0",
+				"air_m": "30.0",
+				"doppler_k": "2.0",
+				"fade_s": "0.3",
+				"hysteresis": "0.25",
+				"level_db": "2.5",
+				"listener_v": "0.0",
+				"listener_x": "0.0",
+				"listener_z": "0.0",
+				"max_m": "150.0",
+				"ok": "false",
+				"pan_width": "0.85",
+				"path": "\"\"",
+				"ref_m": "3.0",
+				"rolloff": "1.0",
+				"siren_db": "-1.9",
+				"siren_fade_s": "0.35",
+				"siren_floor": "0.3",
+				"siren_max_m": "900.0",
+				"siren_ref_m": "30.0",
+				"siren_rolloff": "0.6",
+				"voice_count": "6"
+			},
+			"voice_count": 6,
+			"voices": 6
+		}
+	},
+	"switches": 20
+}

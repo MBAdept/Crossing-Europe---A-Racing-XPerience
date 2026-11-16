@@ -1,0 +1,74 @@
+{
+ "tyre_asphalt": {
+  "pitch": 1.028,
+  "max_abs_db": 0.43,
+  "at_hz": 40,
+  "rms_db": 0.16
+ },
+ "tyre_concrete": {
+  "pitch": 1.028,
+  "max_abs_db": 0.36,
+  "at_hz": 50,
+  "rms_db": 0.14
+ },
+ "tyre_deck": {
+  "pitch": 1.0,
+  "max_abs_db": 0.63,
+  "at_hz": 79,
+  "rms_db": 0.21
+ },
+ "tyre_cobbles": {
+  "pitch": 1.0,
+  "max_abs_db": 0.87,
+  "at_hz": 126,
+  "rms_db": 0.4
+ },
+ "tyre_gravel": {
+  "pitch": 1.131,
+  "max_abs_db": 0.96,
+  "at_hz": 79,
+  "rms_db": 0.32
+ },
+ "tyre_grass": {
+  "pitch": 1.0,
+  "max_abs_db": 0.76,
+  "at_hz": 32,
+  "rms_db": 0.31
+ },
+ "tyre_wet": {
+  "pitch": 1.024,
+  "max_abs_db": 0.54,
+  "at_hz": 40,
+  "rms_db": 0.22
+ },
+ "tyre_rumble": {
+  "pitch": 1.204,
+  "max_abs_db": 0.44,
+  "at_hz": 50,
+  "rms_db": 0.21
+ },
+ "wind_low": {
+  "pitch": 0.94,
+  "max_abs_db": 0.3,
+  "at_hz": 1585,
+  "rms_db": 0.12
+ },
+ "wind_mid": {
+  "pitch": 0.901,
+  "max_abs_db": 0.35,
+  "at_hz": 10000,
+  "rms_db": 0.16
+ },
+ "wind_high": {
+  "pitch": 0.901,
+  "max_abs_db": 0.35,
+  "at_hz": 1259,
+  "rms_db": 0.2
+ },
+ "wind_buffet": {
+  "pitch": 1.0,
+  "max_abs_db": 0.7,
+  "at_hz": 25,
+  "rms_db": 0.28
+ }
+}

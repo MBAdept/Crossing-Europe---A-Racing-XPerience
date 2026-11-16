@@ -1,0 +1,14 @@
+v0.8.0 AS4: Runde 3 – kein Farbsprung beim Stufenwechsel, Pylonfuß dichter, Fähre ohne grüne Lichtflecken
+
+- lod1 der Gebäude: statt Rahmen und Sprossen ein breiterer Rahmenring mit derselben Fläche (_far_inset) –
+  gleiche mittlere Fensterfarbe bei Tag, nachts derselbe Anteil leuchtender Scheibe (Block B lod0/lod1 bei 60 m
+  vorher 8/255 Unterschied, jetzt 1/255)
+- Büroturm: Lisenenseiten auch in lod1 (streifend verdecken sie das Glas; vorher änderten sich 18 % der Pixel)
+- Pylon: Texeldichte folgt der Höhe (band_w 1 / 0,6 / 0,45): Fuß neben der Fahrbahn 29,9 statt 21,8 px/m;
+  Seile 0,28 / 0,34 m statt 0,24 / 0,4 m (kleinerer Sprung beim Umschalten)
+- Fähre: Positionslichter ohne Lichtanker (roles.lights() färbt alle Anker einer Rolle wie die erste Lampe –
+  die weißen Toplichter warfen grüne Flecken)
+- alle Modelle neu exportiert, Doku Abschnitt 15 nachgezogen
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,7 @@
+tw_wind.wav: Profil modern, wind gran_turismo ohne MEngine+MEngineFx+MRoad+MMusic, 22.0 s – integriert -28.01 LUFS, Lautheitsbereich 20.35 LU, True Peak -13.21 dBTP
+  v0                0.5–   2.0 s  -140.69 LUFS  Kurzzeit max -140.69 / Median -140.69  True Peak -120.00
+  v50               3.5–   6.0 s   -63.17 LUFS  Kurzzeit max  -63.17 / Median  -63.17  True Peak -51.42
+  v100              7.5–  10.0 s   -44.32 LUFS  Kurzzeit max  -44.32 / Median  -44.32  True Peak -32.44
+  v150             11.5–  14.0 s   -35.29 LUFS  Kurzzeit max  -35.29 / Median  -35.29  True Peak -24.43
+  v200             15.5–  18.0 s   -29.26 LUFS  Kurzzeit max  -29.26 / Median  -29.26  True Peak -17.88
+  v240             19.5–  22.0 s   -24.63 LUFS  Kurzzeit max  -24.63 / Median  -24.63  True Peak -13.21

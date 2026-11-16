@@ -1,0 +1,1015 @@
+{
+ "n": 24,
+ "tp_max": -0.66,
+ "tp_median": -0.8,
+ "pre_tp_max": 1.38,
+ "gr_max": 0.0,
+ "gr_median": 0.0,
+ "gr_over_3db": 0,
+ "glass_share": 1.0,
+ "limiter": {
+  "lag_frames": 0,
+  "gr_max_db": 0.0,
+  "gr_share_over_0.1": 0.0,
+  "gr_share_over_0.5": 0.0,
+  "events": 0,
+  "seconds": 126.5,
+  "pre_peak_db": 1.38,
+  "post_peak_db": 1.38,
+  "diff_max": 0.0
+ },
+ "variety": {
+  "crunch": {
+   "n": 24,
+   "variants": {
+    "0": 12,
+    "1": 12
+   },
+   "direct_repeats": 0,
+   "abab_steps": 22,
+   "jitter_min_max": null,
+   "delay_min_max_ms": null,
+   "seq": "abababababababababababab"
+  },
+  "debris": {
+   "n": 24,
+   "variants": {
+    "0": 24
+   },
+   "direct_repeats": 23,
+   "abab_steps": 0,
+   "jitter_min_max": null,
+   "delay_min_max_ms": null,
+   "seq": "aaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "glass": {
+   "n": 24,
+   "variants": {
+    "0": 24
+   },
+   "direct_repeats": 23,
+   "abab_steps": 0,
+   "jitter_min_max": null,
+   "delay_min_max_ms": null,
+   "seq": "aaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "hit_heavy": {
+   "n": 24,
+   "variants": {
+    "0": 12,
+    "1": 12
+   },
+   "direct_repeats": 0,
+   "abab_steps": 22,
+   "jitter_min_max": null,
+   "delay_min_max_ms": null,
+   "seq": "abababababababababababab"
+  }
+ },
+ "rows": [
+  {
+   "side": 1,
+   "tp_master_1.0": -1.28,
+   "sp_master_1.0": -1.31,
+   "pre_tp": -1.28,
+   "pre_sp": -1.31,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "hit_heavy",
+     0,
+     -1.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.69,
+   "sp_master_1.0": -0.8,
+   "pre_tp": 0.17,
+   "pre_sp": 0.09,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "hit_heavy",
+     1,
+     -1.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -2.16,
+   "sp_master_1.0": -2.19,
+   "pre_tp": -2.01,
+   "pre_sp": -2.04,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "hit_heavy",
+     0,
+     -1.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -0.8,
+   "sp_master_1.0": -1.24,
+   "pre_tp": -0.64,
+   "pre_sp": -1.08,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "hit_heavy",
+     1,
+     -1.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.8,
+   "sp_master_1.0": -0.8,
+   "pre_tp": 1.38,
+   "pre_sp": 1.38,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "hit_heavy",
+     0,
+     -1.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -1.61,
+   "sp_master_1.0": -1.64,
+   "pre_tp": -1.26,
+   "pre_sp": -1.29,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "hit_heavy",
+     1,
+     -1.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -0.73,
+   "sp_master_1.0": -0.8,
+   "pre_tp": 0.23,
+   "pre_sp": 0.17,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "hit_heavy",
+     0,
+     -1.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.74,
+   "sp_master_1.0": -0.8,
+   "pre_tp": 0.96,
+   "pre_sp": 0.9,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "hit_heavy",
+     1,
+     -1.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -3.0,
+   "sp_master_1.0": -3.24,
+   "pre_tp": -2.71,
+   "pre_sp": -2.96,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "hit_heavy",
+     0,
+     -1.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -1.65,
+   "sp_master_1.0": -1.68,
+   "pre_tp": -1.37,
+   "pre_sp": -1.39,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "hit_heavy",
+     1,
+     -1.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.95,
+   "sp_master_1.0": -0.95,
+   "pre_tp": -0.66,
+   "pre_sp": -0.67,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "hit_heavy",
+     0,
+     -1.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -2.8,
+   "sp_master_1.0": -2.99,
+   "pre_tp": -2.51,
+   "pre_sp": -2.71,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "hit_heavy",
+     1,
+     -1.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -0.8,
+   "sp_master_1.0": -0.8,
+   "pre_tp": 0.48,
+   "pre_sp": 0.48,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "hit_heavy",
+     0,
+     -1.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.73,
+   "sp_master_1.0": -0.8,
+   "pre_tp": 0.31,
+   "pre_sp": 0.27,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "hit_heavy",
+     1,
+     -1.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -2.51,
+   "sp_master_1.0": -2.57,
+   "pre_tp": -2.33,
+   "pre_sp": -2.39,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "hit_heavy",
+     0,
+     -1.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -0.78,
+   "sp_master_1.0": -0.8,
+   "pre_tp": -0.49,
+   "pre_sp": -0.51,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "hit_heavy",
+     1,
+     -1.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.8,
+   "sp_master_1.0": -0.8,
+   "pre_tp": 0.09,
+   "pre_sp": 0.09,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "hit_heavy",
+     0,
+     -1.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -2.01,
+   "sp_master_1.0": -2.11,
+   "pre_tp": -1.87,
+   "pre_sp": -1.96,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "hit_heavy",
+     1,
+     -1.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -0.8,
+   "sp_master_1.0": -0.8,
+   "pre_tp": -0.51,
+   "pre_sp": -0.51,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "hit_heavy",
+     0,
+     -1.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.66,
+   "sp_master_1.0": -0.8,
+   "pre_tp": -0.23,
+   "pre_sp": -0.37,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "hit_heavy",
+     1,
+     -1.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -1.15,
+   "sp_master_1.0": -1.26,
+   "pre_tp": -1.07,
+   "pre_sp": -1.19,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "hit_heavy",
+     0,
+     -1.37,
+     0.0
+    ]
+   ]
+  },
+  {
+   "side": 1,
+   "tp_master_1.0": -0.78,
+   "sp_master_1.0": -1.07,
+   "pre_tp": -0.71,
+   "pre_sp": -0.99,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.7
+    ],
+    [
+     "hit_heavy",
+     1,
+     -1.37,
+     0.7
+    ]
+   ]
+  },
+  {
+   "side": -1,
+   "tp_master_1.0": -0.76,
+   "sp_master_1.0": -0.8,
+   "pre_tp": -0.5,
+   "pre_sp": -0.54,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     0,
+     -5.37,
+     -0.7
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     -0.7
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     -0.7
+    ],
+    [
+     "hit_heavy",
+     0,
+     -1.37,
+     -0.7
+    ]
+   ]
+  },
+  {
+   "side": 0,
+   "tp_master_1.0": -2.1,
+   "sp_master_1.0": -2.13,
+   "pre_tp": -2.05,
+   "pre_sp": -2.08,
+   "gr_max": 0.0,
+   "glass": true,
+   "layers": [
+    [
+     "crunch",
+     1,
+     -5.37,
+     0.0
+    ],
+    [
+     "debris",
+     0,
+     -14.37,
+     0.0
+    ],
+    [
+     "glass",
+     0,
+     -9.37,
+     0.0
+    ],
+    [
+     "hit_heavy",
+     1,
+     -1.37,
+     0.0
+    ]
+   ]
+  }
+ ],
+ "heavy_layers": {
+  "crunch": -13.0,
+  "debris": -22.0,
+  "glass": -17.0,
+  "hit_heavy": -9.0
+ },
+ "truck_db": {
+  "heavy": -10.0,
+  "light": -14.0,
+  "medium": -12.0
+ },
+ "squeal": {
+  "n": 16,
+  "hz_min": 861.3,
+  "hz_max": 862.7,
+  "hz_mean": 861.7,
+  "spread_pct": 0.08,
+  "std_pct": 0.08,
+  "pulses": [
+   {
+    "factor": 1.0,
+    "peak_hz": 861.3
+   },
+   {
+    "factor": 1.0,
+    "peak_hz": 861.3
+   },
+   {
+    "factor": 1.0,
+    "peak_hz": 862.7
+   },
+   {
+    "factor": 1.0,
+    "peak_hz": 862.7
+   },
+   {
+    "factor": 1.0,
+    "peak_hz": 861.3
+   },
+   {
+    "factor": 1.0,
+    "peak_hz": 861.3
+   },
+   {
+    "factor": 1.0,
+    "peak_hz": 861.3
+   },
+   {
+    "factor": 1.0,
+    "peak_hz": 862.7
+   },
+   {
+    "factor": 1.0,
+    "peak_hz": 861.3
+   },
+   {
+    "factor": 1.0,
+    "peak_hz": 861.3
+   },
+   {
+    "factor": 1.0,
+    "peak_hz": 861.3
+   },
+   {
+    "factor": 1.0,
+    "peak_hz": 862.7
+   },
+   {
+    "factor": 1.0,
+    "peak_hz": 861.3
+   },
+   {
+    "factor": 1.0,
+    "peak_hz": 861.3
+   },
+   {
+    "factor": 1.0,
+    "peak_hz": 861.3
+   },
+   {
+    "factor": 1.0,
+    "peak_hz": 862.7
+   }
+  ]
+ },
+ "passes": {
+  "n": 10,
+  "per_id": {
+   "pass_sign": "aa",
+   "pass_tree": "bbababab"
+  },
+  "jitter": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ]
+ }
+}

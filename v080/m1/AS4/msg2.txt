@@ -1,0 +1,18 @@
+WIP v0.8.0 AS4: Brückenteile, Schiffe, Mühlenfenster, Lochfüller im Bake
+
+- tools/blender/ce3d/bridges3d.py (neu): Bauer "pylon" (Pylon in einem Atlas, Seile aus den
+  Balken des Generators neu gebaut, lod1 mit dickeren Seilen), "truss" (Gurte als Geometrie,
+  Fachwerk als mipmap-festes Ausschneidebild), "lantern" (Laternenglas als angestrahlte
+  Fläche, die nach unten schauenden Flächen als Lampe mit Lichtanker)
+- buildings3d.py: Bake mit Lochfüllern (gemaltes Fenster in der Öffnung nur für die Farbe),
+  umschriebene Bögen, Strahltest für verdeckte Öffnungen, Fensterlog von props_cities.wallmat
+  von außen, Geländer als Pfosten und Holme, Schnittebenen für lange Karten, Dezimierung der
+  Topfpflanzen, Drehung (Fähre)
+- Hook lowpoly3d in props_road.ferry_ship (Voreinstellung = Sprite)
+- Katalog: bridge_lamp, bridge_pylon, bridge_truss_arch, ferry_ship, houseboat, windmill (neu
+  mit echten Öffnungen)
+
+Modelle in assets/models weiterhin Vorschau-Bakes.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

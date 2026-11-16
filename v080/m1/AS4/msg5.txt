@@ -1,0 +1,10 @@
+v0.8.0 AS4: Werkszeichen der Fabrik spiegelsymmetrisch, Doku-Tabelle und Einordnung
+
+- Fabrik: statt des Schriftzugs „WERK 2“ ein Zahnrad zwischen Balken (_gear_logo, nachts beleuchtet). Die Fabrik
+  trägt mirror_left; am linken Fahrbahnrand spiegelt der Requisiten-Builder sie (D24), der Schriftzug stand dort in
+  Spiegelschrift (A/B Bremen–Dortmund km 2,9). lod0 1 624 / lod1 1 108 Dreiecke.
+- Neuer Export aller AS4-Modelle (buildings3d.py ist Teil jedes Schlüssels): alle übrigen 13 Modelle byte-gleich.
+- docs/modelle.md Abschnitt 15: Tabelle der Modelle, Stufenwechsel-Messung, ehrliche Einordnung
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

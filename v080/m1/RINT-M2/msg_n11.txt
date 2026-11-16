@@ -1,0 +1,20 @@
+v0.8.0 RINT-M2: Tunnel und Brücken aus den R4/R5-Prüfungen (Notiz 11 a–d)
+
+- a QR5-03: die Blendfläche der Ausfahrt steht am wahren Röhrenende
+  (tunnel_state.exit_z − 0,05 m, sonst die Segmentgrenze nach end_km) statt
+  bei end_km − 0,6 m vor dem Ausfahrtsrahmen; check_tunnel_bridge U1_ausfahrt
+  prüft jetzt die Überstrahlung gegen Arcade (mindestens 0,6 × Arcades
+  Leuchtdichte 0,89 draußen) und dass der Rahmen nicht mitglüht.
+- b QR5-02: die Fahrbahn in der Röhre zeigt von außen Arcades Tunnellicht
+  (Umgebung der Röhre für eine Kamera draußen, Tunneldunst nach Arcades
+  Gesetz) statt des Bodengesetzes des offenen Himmels; road.gd liest dazu
+  tunnel_state.light jedes Bild (duck-typed).
+- c QR5-04: Steinbrücken haben Arcades Balustrade – fünf Docken je Segment
+  (0,14 m) zwischen Sockel und Handlauf, ein Pfeiler alle vier Segmente –
+  statt der geschlossenen grauen Brüstung.
+- d QR5-08: Hausboote und Schiffe schwimmen auf dem Wasser des Brückenbausteins
+  (+0,15 m) statt 15 cm darunter.
+- Streamer-Zeitmessung: Variable umbenannt; Abblendlicht-Dämpfung 0,85 … 0,95.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

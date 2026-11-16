@@ -1,0 +1,1 @@
+Die Regel selbst ist bewacht: Mit derselben Mutation wird `check_vehicles` **„instanzen“ rot** (`höchstens 577 Instanzen der gebauten Stufen (Budget 128) … FEHLT: höchstens 128 Instanzen nach jedem Bild`, `mutations/mut_leistung_cache_instanzen.log`, gemessen) – nur der beim Merge geänderte Fall „leistung“ behauptet mehr, als er prüft.

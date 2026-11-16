@@ -1,0 +1,7 @@
+True Peak der Aufnahme -9.02 -> -8.59 dBTP
+  L: crest 13.56 -> 13.87 dB (+0.31); q99.9 11.29 -> 11.19; q99 8.83 -> 8.48; RMS -22.71 -> -22.9 dBFS; lautester Stein gegen vorher +0.12 dB
+      vorher: [[np.float64(0.29), 13.56], [np.float64(17.79), 13.56], [np.float64(2.79), 13.56], [np.float64(10.29), 13.56], [np.float64(5.29), 13.56], [np.float64(7.79), 13.56]]
+      nachher: [[np.float64(18.29), 13.87], [np.float64(4.79), 13.84], [np.float64(15.59), 13.44], [np.float64(9.89), 13.42], [np.float64(5.36), 13.3], [np.float64(4.19), 13.24]]
+  R: crest 13.58 -> 13.94 dB (+0.36); q99.9 11.31 -> 11.13; q99 8.84 -> 8.44; RMS -22.74 -> -22.89 dBFS; lautester Stein gegen vorher +0.21 dB
+      vorher: [[np.float64(14.04), 13.58], [np.float64(16.54), 13.58], [np.float64(19.04), 13.58], [np.float64(6.54), 13.58], [np.float64(9.04), 13.58], [np.float64(1.54), 13.58]]
+      nachher: [[np.float64(2.2), 13.94], [np.float64(5.7), 13.63], [np.float64(2.6), 13.52], [np.float64(12.72), 13.49], [np.float64(12.66), 13.32], [np.float64(15.36), 13.26]]

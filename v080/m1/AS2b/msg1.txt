@@ -1,0 +1,10 @@
+AS2b (WIP): 18 Polizeiautos als Modelle – Lackierung, Schriftzug und Lichtbalken
+
+Neuer Bauer ce3d/police3d.py: das Verkehrsauto aus traffic3d mit den Bändern und
+Karos der Landeslackierung (als Lackcodes paint/paint2/paint3, eingeschnitten),
+dem Wort für Polizei an beiden Flanken und hinten (lod0) und einem Lichtbalken
+mit Blaulicht A links und B rechts (Kanäle 10/11). Katalog, Cache-Schlüssel und
+Exporter kennen den Bauer "police"; alle 18 Sets lösen zu einem Modell auf.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

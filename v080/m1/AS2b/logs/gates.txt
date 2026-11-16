@@ -1,0 +1,32 @@
+== 1 determinism (11:54:15)
+export police/* exit 0
+bake police/* exit 0
+export traffic/bus exit 0
+bake traffic/bus exit 0
+export traffic/truck* exit 0
+bake traffic/truck* exit 0
+geschrieben: assets/models/manifest.json (37 Modelle, 180 Sets: 65 mit Modell, 115 Platzhalter)
+git status (empty = identical):
+== 2 check_sprite_geometry (11:55:26)
+geometry exit 0
+25 Sprite-Sets gebaut in 67 s: 25 identisch (davon 0 mit anderer Flächenreihenfolge), 0 nur Fließkomma-Rauschen, 0 verändert, 0 fehlen
+CHECK sprite_geometry OK
+== 3 run_tests (11:56:34)
+tests exit 1
+594 Tests, 0 fehlgeschlagen
+CHECKS OK  (0 fehlgeschlagen, 55 s)
+CHECKS OK  (0 fehlgeschlagen, 30 s)
+CHECKS OK  (0 fehlgeschlagen, 6 s)
+CHECKS OK  (0 fehlgeschlagen, 122 s)
+CHECKS OK  (0 fehlgeschlagen, 6 s)
+CHECKS OK  (0 fehlgeschlagen, 3 s)
+CHECKS OK  (0 fehlgeschlagen, 6 s)
+CHECK kasten     FEHLER  Sets ohne Modell als Kasten mit Lampen, Sattelzug in 2 Einheiten  –  FEHLT: Set ohne Modell als Kasten gezeigt (9101: { "id": 9101, "set": "traffic/sports_red", "model": "traffic/sports", "lod": "lod0", "z": 221.0, "x": 0.0, "yaw_deg": 0.0, "dist": 32.225, "lamps": { "tail": 0.0, "brake": 1.0, "ind_l": 0.0, "ind_r": 0.0, "head": 0.0, "beacon_a": 0.0, "beacon_b": 0.0 }, "fade": 1.0, "sun": 1.0, "pos": [-11.1877470016479, 1.03453183174133, -222.670852661133], "shown": true, "box": false, "player": false, "cast": true, "caster": 1, "basis": [(0.992972, 0.0, -0.118346), (0.003576, 0.999543, 0.030001), (0.118292, -0.030214, 0.992519)] }); Set ohne Modell als Kasten gezeigt (9102: { "id": 9102, "set": "police/at", "model": "police/at", "lod": "lod1", "z": 236.0, "x": 3.75, "yaw_deg": 0.0, "dist": 47.4, "lamps": { "tail": 0.0, "brake": 0.0, "ind_l": 0.0, "ind_r": 0.0, "head": 0.0, "beacon_a": 1.0, "beacon_b": 0.0 }, "fade": 1.0, "sun": 1.0, "pos": [-9.26000022888184, 1.49323225021362, -238.182998657227], "shown": true, "box": false, "player": false, "cast": true, "caster": 1, "basis": [(0.992972, 0.0, -0.118346), (0.003576, 0.999543, 0.030001), (0.118292, -0.030214, 0.992519)] })
+CHECK leistung   FEHLER  34 Autos (Pkw, Lkw, Kästen, Polizei): Fahrzeug-Ebene im Median 34.6 µs je Auto und Bild (p90 48.5 µs), 35 Knotenbauten beim Erscheinen  –  FEHLT: keine Knoten gebaut, solange dieselben Autos fahren (34 → 35)
+CHECKS FEHLER  (2 fehlgeschlagen, 10 s)
+==> tests/race3d/check_vehicles.gd fehlgeschlagen (Exit 1)
+==> Tests FEHLGESCHLAGEN (593 s)
+== 4 golden (12:06:27)
+golden exit 0
+GOLDEN arcade: 20 von 20 identisch (215 s)
+gates.sh fertig (12:10:09)

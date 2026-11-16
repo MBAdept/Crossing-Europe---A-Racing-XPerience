@@ -1,0 +1,10062 @@
+[
+{
+"name": "kombi_g8_day",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+}
+},
+{
+"name": "kombi_g9_day",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 9.0
+}
+},
+{
+"name": "kombi_g30_day",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 30.0
+}
+},
+{
+"name": "kombi_g9_ss",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4
+},
+{
+"name": "kombi_g9_ss_neutral",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4,
+"look": "neutral"
+},
+{
+"name": "kombi_g8_backlit",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"sun": [
+0.35,
+0.6,
+-1.0
+]
+},
+{
+"name": "kombi_g8_low",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0,
+"ss": 0.75
+},
+"msaa": 0
+},
+{
+"name": "kombi_g8_daybrake",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+},
+{
+"name": "kombi_g8_nighttail",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kombi_g8_nightbrake",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kombi_g30_nighttail",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 30.0
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kombi_g30_nightbrake",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 30.0
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kombi_g9_yaw+10_ss",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4,
+"yaw": 10
+},
+{
+"name": "kombi_g9_yaw-10_ss",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4,
+"yaw": -10
+},
+{
+"name": "kombi_g9_mask_ss",
+"set": "player/kombi",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4,
+"mode": "mask",
+"contact": false,
+"no_ground": true
+},
+{
+"name": "kombi_lod0_rear34",
+"set": "player/kombi",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kombi_show_rear34",
+"set": "player/kombi",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_clay_rear34",
+"set": "player/kombi",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_facets_rear34",
+"set": "player/kombi",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_wire_rear34",
+"set": "player/kombi",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_normals_rear34",
+"set": "player/kombi",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_check_rear34",
+"set": "player/kombi",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kombi_checkcb_rear34",
+"set": "player/kombi",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kombi_noglass_rear34",
+"set": "player/kombi",
+"mode": "noglass",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_caster_rear34",
+"set": "player/kombi",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_lod0_rear",
+"set": "player/kombi",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kombi_lampmap_rear",
+"set": "player/kombi",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_lod0_side",
+"set": "player/kombi",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kombi_show_side",
+"set": "player/kombi",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_clay_side",
+"set": "player/kombi",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_noglass_side",
+"set": "player/kombi",
+"mode": "noglass",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_lampmap_side",
+"set": "player/kombi",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_caster_side",
+"set": "player/kombi",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_lod0_front34",
+"set": "player/kombi",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kombi_show_front34",
+"set": "player/kombi",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_clay_front34",
+"set": "player/kombi",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_check_front34",
+"set": "player/kombi",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kombi_checkcb_front34",
+"set": "player/kombi",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kombi_lod0_rearclose",
+"set": "player/kombi",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.145,
+0.15,
+1.1119999999999999,
+1.145,
+1.3114999999999999,
+2.412
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kombi_show_rearclose",
+"set": "player/kombi",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.145,
+0.15,
+1.1119999999999999,
+1.145,
+1.3114999999999999,
+2.412
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_clay_rearclose",
+"set": "player/kombi",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.145,
+0.15,
+1.1119999999999999,
+1.145,
+1.3114999999999999,
+2.412
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_facets_rearclose",
+"set": "player/kombi",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.145,
+0.15,
+1.1119999999999999,
+1.145,
+1.3114999999999999,
+2.412
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_wire_rearclose",
+"set": "player/kombi",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.145,
+0.15,
+1.1119999999999999,
+1.145,
+1.3114999999999999,
+2.412
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_lampmap_rearclose",
+"set": "player/kombi",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.145,
+0.15,
+1.1119999999999999,
+1.145,
+1.3114999999999999,
+2.412
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_caster_rearclose",
+"set": "player/kombi",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.145,
+0.15,
+1.1119999999999999,
+1.145,
+1.3114999999999999,
+2.412
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_lod0_frontclose",
+"set": "player/kombi",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.145,
+0.1,
+-2.407,
+1.145,
+1.22,
+-1.107
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kombi_show_frontclose",
+"set": "player/kombi",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.145,
+0.1,
+-2.407,
+1.145,
+1.22,
+-1.107
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_clay_frontclose",
+"set": "player/kombi",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.145,
+0.1,
+-2.407,
+1.145,
+1.22,
+-1.107
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_facets_frontclose",
+"set": "player/kombi",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.145,
+0.1,
+-2.407,
+1.145,
+1.22,
+-1.107
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_wire_frontclose",
+"set": "player/kombi",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.145,
+0.1,
+-2.407,
+1.145,
+1.22,
+-1.107
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_lampmap_frontclose",
+"set": "player/kombi",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.145,
+0.1,
+-2.407,
+1.145,
+1.22,
+-1.107
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_caster_frontclose",
+"set": "player/kombi",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.145,
+0.1,
+-2.407,
+1.145,
+1.22,
+-1.107
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_lod0_wheel",
+"set": "player/kombi",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.4875,
+0.0,
+0.9669999999999999,
+0.9375,
+0.906,
+1.873
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kombi_show_wheel",
+"set": "player/kombi",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.4875,
+0.0,
+0.9669999999999999,
+0.9375,
+0.906,
+1.873
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_lod0_wheelf",
+"set": "player/kombi",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.4875,
+0.0,
+-1.863,
+0.9375,
+0.906,
+-0.9569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kombi_clay_wheelf",
+"set": "player/kombi",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.4875,
+0.0,
+-1.863,
+0.9375,
+0.906,
+-0.9569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_check_wheelf",
+"set": "player/kombi",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.4875,
+0.0,
+-1.863,
+0.9375,
+0.906,
+-0.9569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kombi_checkcb_wheelf",
+"set": "player/kombi",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.4875,
+0.0,
+-1.863,
+0.9375,
+0.906,
+-0.9569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kombi_lod0_cabin",
+"set": "player/kombi",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 10,
+"el": 20,
+"aabb": [
+-0.9389,
+0.9454999999999999,
+-0.48140000000000005,
+0.9389,
+1.525,
+1.9296
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kombi_show_cabin",
+"set": "player/kombi",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 10,
+"el": 20,
+"aabb": [
+-0.9389,
+0.9454999999999999,
+-0.48140000000000005,
+0.9389,
+1.525,
+1.9296
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_noglass_cabin",
+"set": "player/kombi",
+"mode": "noglass",
+"cam": {
+"type": "orbit",
+"yaw": 10,
+"el": 20,
+"aabb": [
+-0.9389,
+0.9454999999999999,
+-0.48140000000000005,
+0.9389,
+1.525,
+1.9296
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_lod0_taillamp",
+"set": "player/kombi",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.5634999999999999,
+0.6282000000000001,
+1.9496,
+1.1635,
+1.0282,
+2.5496
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kombi_show_taillamp",
+"set": "player/kombi",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.5634999999999999,
+0.6282000000000001,
+1.9496,
+1.1635,
+1.0282,
+2.5496
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_lod0_headlamp",
+"set": "player/kombi",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 152,
+"el": 10,
+"aabb": [
+0.3152,
+0.5284,
+-2.5286999999999997,
+0.9152,
+0.9284000000000001,
+-1.9286999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kombi_show_headlamp",
+"set": "player/kombi",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 152,
+"el": 10,
+"aabb": [
+0.3152,
+0.5284,
+-2.5286999999999997,
+0.9152,
+0.9284000000000001,
+-1.9286999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_lod0_top",
+"set": "player/kombi",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 38
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kombi_clay_top",
+"set": "player/kombi",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 38
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_lod0_front",
+"set": "player/kombi",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 6
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kombi_lod0_under",
+"set": "player/kombi",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "kombi_check_under",
+"set": "player/kombi",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "kombi_checkcb_under",
+"set": "player/kombi",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "kombi_lod0_wheelf_low",
+"set": "player/kombi",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.4875,
+0.0,
+-1.863,
+0.9375,
+0.906,
+-0.9569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "kombi_check_wheelf_low",
+"set": "player/kombi",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.4875,
+0.0,
+-1.863,
+0.9375,
+0.906,
+-0.9569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "kombi_checkcb_wheelf_low",
+"set": "player/kombi",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.4875,
+0.0,
+-1.863,
+0.9375,
+0.906,
+-0.9569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "kombi_sec_driver",
+"set": "player/kombi",
+"mode": "section_col",
+"section": [
+-1,
+0,
+0,
+0.36
+],
+"cam": {
+"type": "orbit",
+"yaw": -90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_sec_mid",
+"set": "player/kombi",
+"mode": "section_col",
+"section": [
+-1,
+0,
+0,
+0.0
+],
+"cam": {
+"type": "orbit",
+"yaw": -90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_sec_rearaxle",
+"set": "player/kombi",
+"mode": "section_col",
+"section": [
+0,
+0,
+1,
+1.42
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 4,
+"aabb": [
+-1.2,
+0,
+1.22,
+1.2,
+1.6,
+1.6199999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_sec_frontaxle",
+"set": "player/kombi",
+"mode": "section_col",
+"section": [
+0,
+0,
+-1,
+1.41
+],
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 4,
+"aabb": [
+-1.2,
+0,
+-1.6099999999999999,
+1.2,
+1.6,
+-1.21
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_sec_rearseat",
+"set": "player/kombi",
+"mode": "section_col",
+"section": [
+0,
+0,
+1,
+0.97
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 4,
+"aabb": [
+-1.2,
+0,
+0.7699999999999999,
+1.2,
+1.6,
+1.17
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_shadow_caster",
+"set": "player/kombi",
+"mode": "shaded",
+"contact": false,
+"sun_world": [
+0.45,
+0.8,
+0.35
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 89,
+"aabb": [
+-2.6,
+0,
+-3.4,
+2.6,
+0.2,
+3.4
+]
+},
+"size": [
+800,
+1000
+],
+"msaa": 4
+},
+{
+"name": "kombi_shadow_body",
+"set": "player/kombi",
+"mode": "body_caster",
+"contact": false,
+"sun_world": [
+0.45,
+0.8,
+0.35
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 89,
+"aabb": [
+-2.6,
+0,
+-3.4,
+2.6,
+0.2,
+3.4
+]
+},
+"size": [
+800,
+1000
+],
+"msaa": 4
+},
+{
+"name": "kombi_night_tail",
+"set": "player/kombi",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.145,
+0.15,
+1.1119999999999999,
+1.145,
+1.3114999999999999,
+2.412
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kombi_night_brake",
+"set": "player/kombi",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.145,
+0.15,
+1.1119999999999999,
+1.145,
+1.3114999999999999,
+2.412
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kombi_night_indl",
+"set": "player/kombi",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.145,
+0.15,
+1.1119999999999999,
+1.145,
+1.3114999999999999,
+2.412
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kombi_night_indr",
+"set": "player/kombi",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.145,
+0.15,
+1.1119999999999999,
+1.145,
+1.3114999999999999,
+2.412
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+1
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kombi_night_reverse",
+"set": "player/kombi",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.145,
+0.15,
+1.1119999999999999,
+1.145,
+1.3114999999999999,
+2.412
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+1,
+0,
+0
+]
+},
+{
+"name": "kombi_night_head",
+"set": "player/kombi",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.145,
+0.1,
+-2.407,
+1.145,
+1.22,
+-1.107
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kombi_night_headind",
+"set": "player/kombi",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.145,
+0.1,
+-2.407,
+1.145,
+1.22,
+-1.107
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+1
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kombi_night_drl",
+"set": "player/kombi",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.145,
+0.1,
+-2.407,
+1.145,
+1.22,
+-1.107
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+0,
+0,
+0,
+0
+],
+"lamp_b": [
+0,
+0,
+0,
+0
+]
+},
+{
+"name": "kombi_night_taillamp",
+"set": "player/kombi",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.5634999999999999,
+0.6282000000000001,
+1.9496,
+1.1635,
+1.0282,
+2.5496
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kombi_night_rear_tail",
+"set": "player/kombi",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kombi_night_rear_brake",
+"set": "player/kombi",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kombi_day_rear_brake",
+"set": "player/kombi",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+},
+{
+"name": "kombi_steer+25",
+"set": "player/kombi",
+"steer": 25,
+"cam": {
+"type": "orbit",
+"yaw": 140,
+"el": 14
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_steer+25_top",
+"set": "player/kombi",
+"steer": 25,
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 70
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_steer-25",
+"set": "player/kombi",
+"steer": -25,
+"cam": {
+"type": "orbit",
+"yaw": 140,
+"el": 14
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_steer-25_top",
+"set": "player/kombi",
+"steer": -25,
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 70
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kombi_spin45_wheelf",
+"set": "player/kombi",
+"spin": 45,
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.4875,
+0.0,
+-1.863,
+0.9375,
+0.906,
+-0.9569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_g8_day",
+"set": "player/sportwagen",
+"cam": {
+"type": "game",
+"dist": 8.0
+}
+},
+{
+"name": "sportwagen_g9_day",
+"set": "player/sportwagen",
+"cam": {
+"type": "game",
+"dist": 9.0
+}
+},
+{
+"name": "sportwagen_g30_day",
+"set": "player/sportwagen",
+"cam": {
+"type": "game",
+"dist": 30.0
+}
+},
+{
+"name": "sportwagen_g9_ss",
+"set": "player/sportwagen",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.85
+},
+"msaa": 4
+},
+{
+"name": "sportwagen_g9_ss_neutral",
+"set": "player/sportwagen",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.85
+},
+"msaa": 4,
+"look": "neutral"
+},
+{
+"name": "sportwagen_g8_backlit",
+"set": "player/sportwagen",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"sun": [
+0.35,
+0.6,
+-1.0
+]
+},
+{
+"name": "sportwagen_g8_low",
+"set": "player/sportwagen",
+"cam": {
+"type": "game",
+"dist": 8.0,
+"ss": 0.75
+},
+"msaa": 0
+},
+{
+"name": "sportwagen_g8_daybrake",
+"set": "player/sportwagen",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+},
+{
+"name": "sportwagen_g8_nighttail",
+"set": "player/sportwagen",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sportwagen_g8_nightbrake",
+"set": "player/sportwagen",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sportwagen_g30_nighttail",
+"set": "player/sportwagen",
+"cam": {
+"type": "game",
+"dist": 30.0
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sportwagen_g30_nightbrake",
+"set": "player/sportwagen",
+"cam": {
+"type": "game",
+"dist": 30.0
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sportwagen_g9_yaw+10_ss",
+"set": "player/sportwagen",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.85
+},
+"msaa": 4,
+"yaw": 10
+},
+{
+"name": "sportwagen_g9_yaw-10_ss",
+"set": "player/sportwagen",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.85
+},
+"msaa": 4,
+"yaw": -10
+},
+{
+"name": "sportwagen_g9_mask_ss",
+"set": "player/sportwagen",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.85
+},
+"msaa": 4,
+"mode": "mask",
+"contact": false,
+"no_ground": true
+},
+{
+"name": "sportwagen_lod0_rear34",
+"set": "player/sportwagen",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_show_rear34",
+"set": "player/sportwagen",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_clay_rear34",
+"set": "player/sportwagen",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_facets_rear34",
+"set": "player/sportwagen",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_wire_rear34",
+"set": "player/sportwagen",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_normals_rear34",
+"set": "player/sportwagen",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_check_rear34",
+"set": "player/sportwagen",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_checkcb_rear34",
+"set": "player/sportwagen",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_noglass_rear34",
+"set": "player/sportwagen",
+"mode": "noglass",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_caster_rear34",
+"set": "player/sportwagen",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_lod0_rear",
+"set": "player/sportwagen",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_lampmap_rear",
+"set": "player/sportwagen",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_lod0_side",
+"set": "player/sportwagen",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_show_side",
+"set": "player/sportwagen",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_clay_side",
+"set": "player/sportwagen",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_noglass_side",
+"set": "player/sportwagen",
+"mode": "noglass",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_lampmap_side",
+"set": "player/sportwagen",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_caster_side",
+"set": "player/sportwagen",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_lod0_front34",
+"set": "player/sportwagen",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_show_front34",
+"set": "player/sportwagen",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_clay_front34",
+"set": "player/sportwagen",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_check_front34",
+"set": "player/sportwagen",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_checkcb_front34",
+"set": "player/sportwagen",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_lod0_rearclose",
+"set": "player/sportwagen",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.17,
+0.15,
+0.9429999999999998,
+1.17,
+1.06812,
+2.243
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_show_rearclose",
+"set": "player/sportwagen",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.17,
+0.15,
+0.9429999999999998,
+1.17,
+1.06812,
+2.243
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_clay_rearclose",
+"set": "player/sportwagen",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.17,
+0.15,
+0.9429999999999998,
+1.17,
+1.06812,
+2.243
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_facets_rearclose",
+"set": "player/sportwagen",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.17,
+0.15,
+0.9429999999999998,
+1.17,
+1.06812,
+2.243
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_wire_rearclose",
+"set": "player/sportwagen",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.17,
+0.15,
+0.9429999999999998,
+1.17,
+1.06812,
+2.243
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_lampmap_rearclose",
+"set": "player/sportwagen",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.17,
+0.15,
+0.9429999999999998,
+1.17,
+1.06812,
+2.243
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_caster_rearclose",
+"set": "player/sportwagen",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.17,
+0.15,
+0.9429999999999998,
+1.17,
+1.06812,
+2.243
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_lod0_frontclose",
+"set": "player/sportwagen",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.17,
+0.1,
+-2.232,
+1.17,
+0.9936,
+-0.9320000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_show_frontclose",
+"set": "player/sportwagen",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.17,
+0.1,
+-2.232,
+1.17,
+0.9936,
+-0.9320000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_clay_frontclose",
+"set": "player/sportwagen",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.17,
+0.1,
+-2.232,
+1.17,
+0.9936,
+-0.9320000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_facets_frontclose",
+"set": "player/sportwagen",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.17,
+0.1,
+-2.232,
+1.17,
+0.9936,
+-0.9320000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_wire_frontclose",
+"set": "player/sportwagen",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.17,
+0.1,
+-2.232,
+1.17,
+0.9936,
+-0.9320000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_lampmap_frontclose",
+"set": "player/sportwagen",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.17,
+0.1,
+-2.232,
+1.17,
+0.9936,
+-0.9320000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_caster_frontclose",
+"set": "player/sportwagen",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.17,
+0.1,
+-2.232,
+1.17,
+0.9936,
+-0.9320000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_lod0_wheel",
+"set": "player/sportwagen",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.48700000000000004,
+0.0,
+0.833,
+0.937,
+0.924,
+1.757
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_show_wheel",
+"set": "player/sportwagen",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.48700000000000004,
+0.0,
+0.833,
+0.937,
+0.924,
+1.757
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_lod0_wheelf",
+"set": "player/sportwagen",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.5095000000000001,
+0.0,
+-1.7169999999999999,
+0.9595,
+0.924,
+-0.7929999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_clay_wheelf",
+"set": "player/sportwagen",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.5095000000000001,
+0.0,
+-1.7169999999999999,
+0.9595,
+0.924,
+-0.7929999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_check_wheelf",
+"set": "player/sportwagen",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.5095000000000001,
+0.0,
+-1.7169999999999999,
+0.9595,
+0.924,
+-0.7929999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_checkcb_wheelf",
+"set": "player/sportwagen",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.5095000000000001,
+0.0,
+-1.7169999999999999,
+0.9595,
+0.924,
+-0.7929999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_lod0_cabin",
+"set": "player/sportwagen",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 10,
+"el": 20,
+"aabb": [
+-0.9593999999999999,
+0.77004,
+-0.4464000000000001,
+0.9593999999999999,
+1.242,
+1.7944
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_show_cabin",
+"set": "player/sportwagen",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 10,
+"el": 20,
+"aabb": [
+-0.9593999999999999,
+0.77004,
+-0.4464000000000001,
+0.9593999999999999,
+1.242,
+1.7944
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_noglass_cabin",
+"set": "player/sportwagen",
+"mode": "noglass",
+"cam": {
+"type": "orbit",
+"yaw": 10,
+"el": 20,
+"aabb": [
+-0.9593999999999999,
+0.77004,
+-0.4464000000000001,
+0.9593999999999999,
+1.242,
+1.7944
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_lod0_taillamp",
+"set": "player/sportwagen",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.39799999999999996,
+0.5807,
+1.8665999999999998,
+0.998,
+0.9806999999999999,
+2.4665999999999997
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_show_taillamp",
+"set": "player/sportwagen",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.39799999999999996,
+0.5807,
+1.8665999999999998,
+0.998,
+0.9806999999999999,
+2.4665999999999997
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_lod0_headlamp",
+"set": "player/sportwagen",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 152,
+"el": 10,
+"aabb": [
+0.23659999999999998,
+0.42660000000000003,
+-2.3367,
+0.8366,
+0.8266,
+-1.7367000000000001
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_show_headlamp",
+"set": "player/sportwagen",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 152,
+"el": 10,
+"aabb": [
+0.23659999999999998,
+0.42660000000000003,
+-2.3367,
+0.8366,
+0.8266,
+-1.7367000000000001
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_lod0_top",
+"set": "player/sportwagen",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 38
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_clay_top",
+"set": "player/sportwagen",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 38
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_lod0_front",
+"set": "player/sportwagen",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 6
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sportwagen_lod0_under",
+"set": "player/sportwagen",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "sportwagen_check_under",
+"set": "player/sportwagen",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "sportwagen_checkcb_under",
+"set": "player/sportwagen",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "sportwagen_lod0_wheelf_low",
+"set": "player/sportwagen",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.5095000000000001,
+0.0,
+-1.7169999999999999,
+0.9595,
+0.924,
+-0.7929999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "sportwagen_check_wheelf_low",
+"set": "player/sportwagen",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.5095000000000001,
+0.0,
+-1.7169999999999999,
+0.9595,
+0.924,
+-0.7929999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "sportwagen_checkcb_wheelf_low",
+"set": "player/sportwagen",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.5095000000000001,
+0.0,
+-1.7169999999999999,
+0.9595,
+0.924,
+-0.7929999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "sportwagen_sec_driver",
+"set": "player/sportwagen",
+"mode": "section_col",
+"section": [
+-1,
+0,
+0,
+0.36
+],
+"cam": {
+"type": "orbit",
+"yaw": -90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_sec_mid",
+"set": "player/sportwagen",
+"mode": "section_col",
+"section": [
+-1,
+0,
+0,
+0.0
+],
+"cam": {
+"type": "orbit",
+"yaw": -90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_sec_rearaxle",
+"set": "player/sportwagen",
+"mode": "section_col",
+"section": [
+0,
+0,
+1,
+1.295
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 4,
+"aabb": [
+-1.2,
+0,
+1.095,
+1.2,
+1.6,
+1.4949999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_sec_frontaxle",
+"set": "player/sportwagen",
+"mode": "section_col",
+"section": [
+0,
+0,
+-1,
+1.255
+],
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 4,
+"aabb": [
+-1.2,
+0,
+-1.4549999999999998,
+1.2,
+1.6,
+-1.055
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_sec_rearseat",
+"set": "player/sportwagen",
+"mode": "section_col",
+"section": [
+0,
+0,
+1,
+0.845
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 4,
+"aabb": [
+-1.2,
+0,
+0.6449999999999999,
+1.2,
+1.6,
+1.045
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_shadow_caster",
+"set": "player/sportwagen",
+"mode": "shaded",
+"contact": false,
+"sun_world": [
+0.45,
+0.8,
+0.35
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 89,
+"aabb": [
+-2.6,
+0,
+-3.4,
+2.6,
+0.2,
+3.4
+]
+},
+"size": [
+800,
+1000
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_shadow_body",
+"set": "player/sportwagen",
+"mode": "body_caster",
+"contact": false,
+"sun_world": [
+0.45,
+0.8,
+0.35
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 89,
+"aabb": [
+-2.6,
+0,
+-3.4,
+2.6,
+0.2,
+3.4
+]
+},
+"size": [
+800,
+1000
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_night_tail",
+"set": "player/sportwagen",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.17,
+0.15,
+0.9429999999999998,
+1.17,
+1.06812,
+2.243
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sportwagen_night_brake",
+"set": "player/sportwagen",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.17,
+0.15,
+0.9429999999999998,
+1.17,
+1.06812,
+2.243
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sportwagen_night_indl",
+"set": "player/sportwagen",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.17,
+0.15,
+0.9429999999999998,
+1.17,
+1.06812,
+2.243
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sportwagen_night_indr",
+"set": "player/sportwagen",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.17,
+0.15,
+0.9429999999999998,
+1.17,
+1.06812,
+2.243
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+1
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sportwagen_night_reverse",
+"set": "player/sportwagen",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.17,
+0.15,
+0.9429999999999998,
+1.17,
+1.06812,
+2.243
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+1,
+0,
+0
+]
+},
+{
+"name": "sportwagen_night_head",
+"set": "player/sportwagen",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.17,
+0.1,
+-2.232,
+1.17,
+0.9936,
+-0.9320000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sportwagen_night_headind",
+"set": "player/sportwagen",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.17,
+0.1,
+-2.232,
+1.17,
+0.9936,
+-0.9320000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+1
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sportwagen_night_drl",
+"set": "player/sportwagen",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.17,
+0.1,
+-2.232,
+1.17,
+0.9936,
+-0.9320000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+0,
+0,
+0,
+0
+],
+"lamp_b": [
+0,
+0,
+0,
+0
+]
+},
+{
+"name": "sportwagen_night_taillamp",
+"set": "player/sportwagen",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.39799999999999996,
+0.5807,
+1.8665999999999998,
+0.998,
+0.9806999999999999,
+2.4665999999999997
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sportwagen_night_rear_tail",
+"set": "player/sportwagen",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sportwagen_night_rear_brake",
+"set": "player/sportwagen",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sportwagen_day_rear_brake",
+"set": "player/sportwagen",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+},
+{
+"name": "sportwagen_steer+25",
+"set": "player/sportwagen",
+"steer": 25,
+"cam": {
+"type": "orbit",
+"yaw": 140,
+"el": 14
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_steer+25_top",
+"set": "player/sportwagen",
+"steer": 25,
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 70
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_steer-25",
+"set": "player/sportwagen",
+"steer": -25,
+"cam": {
+"type": "orbit",
+"yaw": 140,
+"el": 14
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_steer-25_top",
+"set": "player/sportwagen",
+"steer": -25,
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 70
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sportwagen_spin45_wheelf",
+"set": "player/sportwagen",
+"spin": 45,
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.5095000000000001,
+0.0,
+-1.7169999999999999,
+0.9595,
+0.924,
+-0.7929999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_g8_day",
+"set": "player/gran_turismo",
+"cam": {
+"type": "game",
+"dist": 8.0
+}
+},
+{
+"name": "gran_turismo_g9_day",
+"set": "player/gran_turismo",
+"cam": {
+"type": "game",
+"dist": 9.0
+}
+},
+{
+"name": "gran_turismo_g30_day",
+"set": "player/gran_turismo",
+"cam": {
+"type": "game",
+"dist": 30.0
+}
+},
+{
+"name": "gran_turismo_g9_ss",
+"set": "player/gran_turismo",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.7
+},
+"msaa": 4
+},
+{
+"name": "gran_turismo_g9_ss_neutral",
+"set": "player/gran_turismo",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.7
+},
+"msaa": 4,
+"look": "neutral"
+},
+{
+"name": "gran_turismo_g8_backlit",
+"set": "player/gran_turismo",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"sun": [
+0.35,
+0.6,
+-1.0
+]
+},
+{
+"name": "gran_turismo_g8_low",
+"set": "player/gran_turismo",
+"cam": {
+"type": "game",
+"dist": 8.0,
+"ss": 0.75
+},
+"msaa": 0
+},
+{
+"name": "gran_turismo_g8_daybrake",
+"set": "player/gran_turismo",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+},
+{
+"name": "gran_turismo_g8_nighttail",
+"set": "player/gran_turismo",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "gran_turismo_g8_nightbrake",
+"set": "player/gran_turismo",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "gran_turismo_g30_nighttail",
+"set": "player/gran_turismo",
+"cam": {
+"type": "game",
+"dist": 30.0
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "gran_turismo_g30_nightbrake",
+"set": "player/gran_turismo",
+"cam": {
+"type": "game",
+"dist": 30.0
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "gran_turismo_g9_yaw+10_ss",
+"set": "player/gran_turismo",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.7
+},
+"msaa": 4,
+"yaw": 10
+},
+{
+"name": "gran_turismo_g9_yaw-10_ss",
+"set": "player/gran_turismo",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.7
+},
+"msaa": 4,
+"yaw": -10
+},
+{
+"name": "gran_turismo_g9_mask_ss",
+"set": "player/gran_turismo",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.7
+},
+"msaa": 4,
+"mode": "mask",
+"contact": false,
+"no_ground": true
+},
+{
+"name": "gran_turismo_lod0_rear34",
+"set": "player/gran_turismo",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_show_rear34",
+"set": "player/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_clay_rear34",
+"set": "player/gran_turismo",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_facets_rear34",
+"set": "player/gran_turismo",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_wire_rear34",
+"set": "player/gran_turismo",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_normals_rear34",
+"set": "player/gran_turismo",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_check_rear34",
+"set": "player/gran_turismo",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_checkcb_rear34",
+"set": "player/gran_turismo",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_noglass_rear34",
+"set": "player/gran_turismo",
+"mode": "noglass",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_caster_rear34",
+"set": "player/gran_turismo",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_lod0_rear",
+"set": "player/gran_turismo",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_lampmap_rear",
+"set": "player/gran_turismo",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_lod0_side",
+"set": "player/gran_turismo",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_show_side",
+"set": "player/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_clay_side",
+"set": "player/gran_turismo",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_noglass_side",
+"set": "player/gran_turismo",
+"mode": "noglass",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_lampmap_side",
+"set": "player/gran_turismo",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_caster_side",
+"set": "player/gran_turismo",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_lod0_front34",
+"set": "player/gran_turismo",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_show_front34",
+"set": "player/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_clay_front34",
+"set": "player/gran_turismo",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_check_front34",
+"set": "player/gran_turismo",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_checkcb_front34",
+"set": "player/gran_turismo",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_lod0_rearclose",
+"set": "player/gran_turismo",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.195,
+0.15,
+1.1889999999999998,
+1.195,
+1.1051,
+2.489
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_show_rearclose",
+"set": "player/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.195,
+0.15,
+1.1889999999999998,
+1.195,
+1.1051,
+2.489
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_clay_rearclose",
+"set": "player/gran_turismo",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.195,
+0.15,
+1.1889999999999998,
+1.195,
+1.1051,
+2.489
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_facets_rearclose",
+"set": "player/gran_turismo",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.195,
+0.15,
+1.1889999999999998,
+1.195,
+1.1051,
+2.489
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_wire_rearclose",
+"set": "player/gran_turismo",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.195,
+0.15,
+1.1889999999999998,
+1.195,
+1.1051,
+2.489
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_lampmap_rearclose",
+"set": "player/gran_turismo",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.195,
+0.15,
+1.1889999999999998,
+1.195,
+1.1051,
+2.489
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_caster_rearclose",
+"set": "player/gran_turismo",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.195,
+0.15,
+1.1889999999999998,
+1.195,
+1.1051,
+2.489
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_lod0_frontclose",
+"set": "player/gran_turismo",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.195,
+0.1,
+-2.482,
+1.195,
+1.028,
+-1.1820000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_show_frontclose",
+"set": "player/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.195,
+0.1,
+-2.482,
+1.195,
+1.028,
+-1.1820000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_clay_frontclose",
+"set": "player/gran_turismo",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.195,
+0.1,
+-2.482,
+1.195,
+1.028,
+-1.1820000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_facets_frontclose",
+"set": "player/gran_turismo",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.195,
+0.1,
+-2.482,
+1.195,
+1.028,
+-1.1820000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_wire_frontclose",
+"set": "player/gran_turismo",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.195,
+0.1,
+-2.482,
+1.195,
+1.028,
+-1.1820000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_lampmap_frontclose",
+"set": "player/gran_turismo",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.195,
+0.1,
+-2.482,
+1.195,
+1.028,
+-1.1820000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_caster_frontclose",
+"set": "player/gran_turismo",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.195,
+0.1,
+-2.482,
+1.195,
+1.028,
+-1.1820000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_lod0_wheel",
+"set": "player/gran_turismo",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.5095000000000001,
+0.0,
+1.055,
+0.9595,
+0.94,
+1.9949999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_show_wheel",
+"set": "player/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.5095000000000001,
+0.0,
+1.055,
+0.9595,
+0.94,
+1.9949999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_lod0_wheelf",
+"set": "player/gran_turismo",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.5295000000000001,
+0.0,
+-1.845,
+0.9795,
+0.94,
+-0.905
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_clay_wheelf",
+"set": "player/gran_turismo",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.5295000000000001,
+0.0,
+-1.845,
+0.9795,
+0.94,
+-0.905
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_check_wheelf",
+"set": "player/gran_turismo",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.5295000000000001,
+0.0,
+-1.845,
+0.9795,
+0.94,
+-0.905
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_checkcb_wheelf",
+"set": "player/gran_turismo",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.5295000000000001,
+0.0,
+-1.845,
+0.9795,
+0.94,
+-0.905
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_lod0_cabin",
+"set": "player/gran_turismo",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 10,
+"el": 20,
+"aabb": [
+-0.9799,
+0.7967,
+-0.49640000000000006,
+0.9799,
+1.285,
+1.9912
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_show_cabin",
+"set": "player/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 10,
+"el": 20,
+"aabb": [
+-0.9799,
+0.7967,
+-0.49640000000000006,
+0.9799,
+1.285,
+1.9912
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_noglass_cabin",
+"set": "player/gran_turismo",
+"mode": "noglass",
+"cam": {
+"type": "orbit",
+"yaw": 10,
+"el": 20,
+"aabb": [
+-0.9799,
+0.7967,
+-0.49640000000000006,
+0.9799,
+1.285,
+1.9912
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_lod0_taillamp",
+"set": "player/gran_turismo",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.4654,
+0.6913,
+2.0565,
+1.0654,
+1.0913,
+2.6565
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_show_taillamp",
+"set": "player/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.4654,
+0.6913,
+2.0565,
+1.0654,
+1.0913,
+2.6565
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_lod0_headlamp",
+"set": "player/gran_turismo",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 152,
+"el": 10,
+"aabb": [
+0.34559999999999996,
+0.4238,
+-2.5978,
+0.9456,
+0.8238000000000001,
+-1.9978
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_show_headlamp",
+"set": "player/gran_turismo",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 152,
+"el": 10,
+"aabb": [
+0.34559999999999996,
+0.4238,
+-2.5978,
+0.9456,
+0.8238000000000001,
+-1.9978
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_lod0_top",
+"set": "player/gran_turismo",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 38
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_clay_top",
+"set": "player/gran_turismo",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 38
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_lod0_front",
+"set": "player/gran_turismo",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 6
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "gran_turismo_lod0_under",
+"set": "player/gran_turismo",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "gran_turismo_check_under",
+"set": "player/gran_turismo",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "gran_turismo_checkcb_under",
+"set": "player/gran_turismo",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "gran_turismo_lod0_wheelf_low",
+"set": "player/gran_turismo",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.5295000000000001,
+0.0,
+-1.845,
+0.9795,
+0.94,
+-0.905
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "gran_turismo_check_wheelf_low",
+"set": "player/gran_turismo",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.5295000000000001,
+0.0,
+-1.845,
+0.9795,
+0.94,
+-0.905
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "gran_turismo_checkcb_wheelf_low",
+"set": "player/gran_turismo",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.5295000000000001,
+0.0,
+-1.845,
+0.9795,
+0.94,
+-0.905
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "gran_turismo_sec_driver",
+"set": "player/gran_turismo",
+"mode": "section_col",
+"section": [
+-1,
+0,
+0,
+0.36
+],
+"cam": {
+"type": "orbit",
+"yaw": -90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_sec_mid",
+"set": "player/gran_turismo",
+"mode": "section_col",
+"section": [
+-1,
+0,
+0,
+0.0
+],
+"cam": {
+"type": "orbit",
+"yaw": -90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_sec_rearaxle",
+"set": "player/gran_turismo",
+"mode": "section_col",
+"section": [
+0,
+0,
+1,
+1.525
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 4,
+"aabb": [
+-1.2,
+0,
+1.325,
+1.2,
+1.6,
+1.7249999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_sec_frontaxle",
+"set": "player/gran_turismo",
+"mode": "section_col",
+"section": [
+0,
+0,
+-1,
+1.375
+],
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 4,
+"aabb": [
+-1.2,
+0,
+-1.575,
+1.2,
+1.6,
+-1.175
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_sec_rearseat",
+"set": "player/gran_turismo",
+"mode": "section_col",
+"section": [
+0,
+0,
+1,
+1.075
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 4,
+"aabb": [
+-1.2,
+0,
+0.8749999999999999,
+1.2,
+1.6,
+1.275
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_shadow_caster",
+"set": "player/gran_turismo",
+"mode": "shaded",
+"contact": false,
+"sun_world": [
+0.45,
+0.8,
+0.35
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 89,
+"aabb": [
+-2.6,
+0,
+-3.4,
+2.6,
+0.2,
+3.4
+]
+},
+"size": [
+800,
+1000
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_shadow_body",
+"set": "player/gran_turismo",
+"mode": "body_caster",
+"contact": false,
+"sun_world": [
+0.45,
+0.8,
+0.35
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 89,
+"aabb": [
+-2.6,
+0,
+-3.4,
+2.6,
+0.2,
+3.4
+]
+},
+"size": [
+800,
+1000
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_night_tail",
+"set": "player/gran_turismo",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.195,
+0.15,
+1.1889999999999998,
+1.195,
+1.1051,
+2.489
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "gran_turismo_night_brake",
+"set": "player/gran_turismo",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.195,
+0.15,
+1.1889999999999998,
+1.195,
+1.1051,
+2.489
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "gran_turismo_night_indl",
+"set": "player/gran_turismo",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.195,
+0.15,
+1.1889999999999998,
+1.195,
+1.1051,
+2.489
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "gran_turismo_night_indr",
+"set": "player/gran_turismo",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.195,
+0.15,
+1.1889999999999998,
+1.195,
+1.1051,
+2.489
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+1
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "gran_turismo_night_reverse",
+"set": "player/gran_turismo",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.195,
+0.15,
+1.1889999999999998,
+1.195,
+1.1051,
+2.489
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+1,
+0,
+0
+]
+},
+{
+"name": "gran_turismo_night_head",
+"set": "player/gran_turismo",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.195,
+0.1,
+-2.482,
+1.195,
+1.028,
+-1.1820000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "gran_turismo_night_headind",
+"set": "player/gran_turismo",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.195,
+0.1,
+-2.482,
+1.195,
+1.028,
+-1.1820000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+1
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "gran_turismo_night_drl",
+"set": "player/gran_turismo",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.195,
+0.1,
+-2.482,
+1.195,
+1.028,
+-1.1820000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+0,
+0,
+0,
+0
+],
+"lamp_b": [
+0,
+0,
+0,
+0
+]
+},
+{
+"name": "gran_turismo_night_taillamp",
+"set": "player/gran_turismo",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.4654,
+0.6913,
+2.0565,
+1.0654,
+1.0913,
+2.6565
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "gran_turismo_night_rear_tail",
+"set": "player/gran_turismo",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "gran_turismo_night_rear_brake",
+"set": "player/gran_turismo",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "gran_turismo_day_rear_brake",
+"set": "player/gran_turismo",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+},
+{
+"name": "gran_turismo_steer+25",
+"set": "player/gran_turismo",
+"steer": 25,
+"cam": {
+"type": "orbit",
+"yaw": 140,
+"el": 14
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_steer+25_top",
+"set": "player/gran_turismo",
+"steer": 25,
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 70
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_steer-25",
+"set": "player/gran_turismo",
+"steer": -25,
+"cam": {
+"type": "orbit",
+"yaw": 140,
+"el": 14
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_steer-25_top",
+"set": "player/gran_turismo",
+"steer": -25,
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 70
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "gran_turismo_spin45_wheelf",
+"set": "player/gran_turismo",
+"spin": 45,
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.5295000000000001,
+0.0,
+-1.845,
+0.9795,
+0.94,
+-0.905
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_g8_day",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 8.0
+}
+},
+{
+"name": "limousine_g9_day",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+}
+},
+{
+"name": "limousine_g30_day",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 30.0
+}
+},
+{
+"name": "limousine_g9_ss",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4
+},
+{
+"name": "limousine_g9_ss_neutral",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4,
+"look": "neutral"
+},
+{
+"name": "limousine_g8_backlit",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"sun": [
+0.35,
+0.6,
+-1.0
+]
+},
+{
+"name": "limousine_g8_low",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 8.0,
+"ss": 0.75
+},
+"msaa": 0
+},
+{
+"name": "limousine_g8_daybrake",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+},
+{
+"name": "limousine_g8_nighttail",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_g8_nightbrake",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_g30_nighttail",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 30.0
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_g30_nightbrake",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 30.0
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_g9_yaw+10_ss",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4,
+"yaw": 10
+},
+{
+"name": "limousine_g9_yaw-10_ss",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4,
+"yaw": -10
+},
+{
+"name": "limousine_g9_mask_ss",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4,
+"mode": "mask",
+"contact": false,
+"no_ground": true
+},
+{
+"name": "limousine_lod0_rear34",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_show_rear34",
+"set": "player/limousine",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_clay_rear34",
+"set": "player/limousine",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_facets_rear34",
+"set": "player/limousine",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_wire_rear34",
+"set": "player/limousine",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_normals_rear34",
+"set": "player/limousine",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_check_rear34",
+"set": "player/limousine",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_checkcb_rear34",
+"set": "player/limousine",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_noglass_rear34",
+"set": "player/limousine",
+"mode": "noglass",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_caster_rear34",
+"set": "player/limousine",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_lod0_rear",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_lampmap_rear",
+"set": "player/limousine",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_lod0_side",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_show_side",
+"set": "player/limousine",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_clay_side",
+"set": "player/limousine",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_noglass_side",
+"set": "player/limousine",
+"mode": "noglass",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_lampmap_side",
+"set": "player/limousine",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_caster_side",
+"set": "player/limousine",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_lod0_front34",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_show_front34",
+"set": "player/limousine",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_clay_front34",
+"set": "player/limousine",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_check_front34",
+"set": "player/limousine",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_checkcb_front34",
+"set": "player/limousine",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_lod0_rearclose",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_show_rearclose",
+"set": "player/limousine",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_clay_rearclose",
+"set": "player/limousine",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_facets_rearclose",
+"set": "player/limousine",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_wire_rearclose",
+"set": "player/limousine",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_lampmap_rearclose",
+"set": "player/limousine",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_caster_rearclose",
+"set": "player/limousine",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_lod0_frontclose",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.15,
+0.1,
+-2.432,
+1.15,
+1.1904000000000001,
+-1.132
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_show_frontclose",
+"set": "player/limousine",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.15,
+0.1,
+-2.432,
+1.15,
+1.1904000000000001,
+-1.132
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_clay_frontclose",
+"set": "player/limousine",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.15,
+0.1,
+-2.432,
+1.15,
+1.1904000000000001,
+-1.132
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_facets_frontclose",
+"set": "player/limousine",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.15,
+0.1,
+-2.432,
+1.15,
+1.1904000000000001,
+-1.132
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_wire_frontclose",
+"set": "player/limousine",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.15,
+0.1,
+-2.432,
+1.15,
+1.1904000000000001,
+-1.132
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_lampmap_frontclose",
+"set": "player/limousine",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.15,
+0.1,
+-2.432,
+1.15,
+1.1904000000000001,
+-1.132
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_caster_frontclose",
+"set": "player/limousine",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.15,
+0.1,
+-2.432,
+1.15,
+1.1904000000000001,
+-1.132
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_lod0_wheel",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.4925,
+0.0,
+1.02,
+0.9425,
+0.91,
+1.9300000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_show_wheel",
+"set": "player/limousine",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.4925,
+0.0,
+1.02,
+0.9425,
+0.91,
+1.9300000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_lod0_wheelf",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.4925,
+0.0,
+-1.9000000000000001,
+0.9425,
+0.91,
+-0.99
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_clay_wheelf",
+"set": "player/limousine",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.4925,
+0.0,
+-1.9000000000000001,
+0.9425,
+0.91,
+-0.99
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_check_wheelf",
+"set": "player/limousine",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.4925,
+0.0,
+-1.9000000000000001,
+0.9425,
+0.91,
+-0.99
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_checkcb_wheelf",
+"set": "player/limousine",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.4925,
+0.0,
+-1.9000000000000001,
+0.9425,
+0.91,
+-0.99
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_lod0_cabin",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 10,
+"el": 20,
+"aabb": [
+-0.9429999999999998,
+0.9225599999999999,
+-0.4864,
+0.9429999999999998,
+1.488,
+1.9496
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_show_cabin",
+"set": "player/limousine",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 10,
+"el": 20,
+"aabb": [
+-0.9429999999999998,
+0.9225599999999999,
+-0.4864,
+0.9429999999999998,
+1.488,
+1.9496
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_noglass_cabin",
+"set": "player/limousine",
+"mode": "noglass",
+"cam": {
+"type": "orbit",
+"yaw": 10,
+"el": 20,
+"aabb": [
+-0.9429999999999998,
+0.9225599999999999,
+-0.4864,
+0.9429999999999998,
+1.488,
+1.9496
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_lod0_taillamp",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.49089999999999995,
+0.7312000000000001,
+2.0266,
+1.0909,
+1.1312,
+2.6266
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_show_taillamp",
+"set": "player/limousine",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.49089999999999995,
+0.7312000000000001,
+2.0266,
+1.0909,
+1.1312,
+2.6266
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_lod0_headlamp",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 152,
+"el": 10,
+"aabb": [
+0.3374,
+0.5141,
+-2.5772,
+0.9374,
+0.9140999999999999,
+-1.9772
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_show_headlamp",
+"set": "player/limousine",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 152,
+"el": 10,
+"aabb": [
+0.3374,
+0.5141,
+-2.5772,
+0.9374,
+0.9140999999999999,
+-1.9772
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_lod0_top",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 38
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_clay_top",
+"set": "player/limousine",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 38
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_lod0_front",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 6
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_lod0_under",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "limousine_check_under",
+"set": "player/limousine",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "limousine_checkcb_under",
+"set": "player/limousine",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "limousine_lod0_wheelf_low",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.4925,
+0.0,
+-1.9000000000000001,
+0.9425,
+0.91,
+-0.99
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "limousine_check_wheelf_low",
+"set": "player/limousine",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.4925,
+0.0,
+-1.9000000000000001,
+0.9425,
+0.91,
+-0.99
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "limousine_checkcb_wheelf_low",
+"set": "player/limousine",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.4925,
+0.0,
+-1.9000000000000001,
+0.9425,
+0.91,
+-0.99
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "limousine_sec_driver",
+"set": "player/limousine",
+"mode": "section_col",
+"section": [
+-1,
+0,
+0,
+0.36
+],
+"cam": {
+"type": "orbit",
+"yaw": -90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_sec_mid",
+"set": "player/limousine",
+"mode": "section_col",
+"section": [
+-1,
+0,
+0,
+0.0
+],
+"cam": {
+"type": "orbit",
+"yaw": -90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_sec_rearaxle",
+"set": "player/limousine",
+"mode": "section_col",
+"section": [
+0,
+0,
+1,
+1.475
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 4,
+"aabb": [
+-1.2,
+0,
+1.2750000000000001,
+1.2,
+1.6,
+1.675
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_sec_frontaxle",
+"set": "player/limousine",
+"mode": "section_col",
+"section": [
+0,
+0,
+-1,
+1.445
+],
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 4,
+"aabb": [
+-1.2,
+0,
+-1.645,
+1.2,
+1.6,
+-1.245
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_sec_rearseat",
+"set": "player/limousine",
+"mode": "section_col",
+"section": [
+0,
+0,
+1,
+1.0250000000000001
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 4,
+"aabb": [
+-1.2,
+0,
+0.8250000000000001,
+1.2,
+1.6,
+1.225
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_shadow_caster",
+"set": "player/limousine",
+"mode": "shaded",
+"contact": false,
+"sun_world": [
+0.45,
+0.8,
+0.35
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 89,
+"aabb": [
+-2.6,
+0,
+-3.4,
+2.6,
+0.2,
+3.4
+]
+},
+"size": [
+800,
+1000
+],
+"msaa": 4
+},
+{
+"name": "limousine_shadow_body",
+"set": "player/limousine",
+"mode": "body_caster",
+"contact": false,
+"sun_world": [
+0.45,
+0.8,
+0.35
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 89,
+"aabb": [
+-2.6,
+0,
+-3.4,
+2.6,
+0.2,
+3.4
+]
+},
+"size": [
+800,
+1000
+],
+"msaa": 4
+},
+{
+"name": "limousine_night_tail",
+"set": "player/limousine",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_night_brake",
+"set": "player/limousine",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_night_indl",
+"set": "player/limousine",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_night_indr",
+"set": "player/limousine",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+1
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_night_reverse",
+"set": "player/limousine",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+1,
+0,
+0
+]
+},
+{
+"name": "limousine_night_head",
+"set": "player/limousine",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.15,
+0.1,
+-2.432,
+1.15,
+1.1904000000000001,
+-1.132
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_night_headind",
+"set": "player/limousine",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.15,
+0.1,
+-2.432,
+1.15,
+1.1904000000000001,
+-1.132
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+1
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_night_drl",
+"set": "player/limousine",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.15,
+0.1,
+-2.432,
+1.15,
+1.1904000000000001,
+-1.132
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+0,
+0,
+0,
+0
+],
+"lamp_b": [
+0,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_night_taillamp",
+"set": "player/limousine",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.49089999999999995,
+0.7312000000000001,
+2.0266,
+1.0909,
+1.1312,
+2.6266
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_night_rear_tail",
+"set": "player/limousine",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_night_rear_brake",
+"set": "player/limousine",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_day_rear_brake",
+"set": "player/limousine",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+},
+{
+"name": "limousine_steer+25",
+"set": "player/limousine",
+"steer": 25,
+"cam": {
+"type": "orbit",
+"yaw": 140,
+"el": 14
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_steer+25_top",
+"set": "player/limousine",
+"steer": 25,
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 70
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_steer-25",
+"set": "player/limousine",
+"steer": -25,
+"cam": {
+"type": "orbit",
+"yaw": 140,
+"el": 14
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_steer-25_top",
+"set": "player/limousine",
+"steer": -25,
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 70
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_spin45_wheelf",
+"set": "player/limousine",
+"spin": 45,
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.4925,
+0.0,
+-1.9000000000000001,
+0.9425,
+0.91,
+-0.99
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_g8_day",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 8.0
+}
+},
+{
+"name": "kompakt_g9_day",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+}
+},
+{
+"name": "kompakt_g30_day",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 30.0
+}
+},
+{
+"name": "kompakt_g9_ss",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.9
+},
+"msaa": 4
+},
+{
+"name": "kompakt_g9_ss_neutral",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.9
+},
+"msaa": 4,
+"look": "neutral"
+},
+{
+"name": "kompakt_g8_backlit",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"sun": [
+0.35,
+0.6,
+-1.0
+]
+},
+{
+"name": "kompakt_g8_low",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 8.0,
+"ss": 0.75
+},
+"msaa": 0
+},
+{
+"name": "kompakt_g8_daybrake",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+},
+{
+"name": "kompakt_g8_nighttail",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_g8_nightbrake",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 8.0
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_g30_nighttail",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 30.0
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_g30_nightbrake",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 30.0
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_g9_yaw+10_ss",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.9
+},
+"msaa": 4,
+"yaw": 10
+},
+{
+"name": "kompakt_g9_yaw-10_ss",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.9
+},
+"msaa": 4,
+"yaw": -10
+},
+{
+"name": "kompakt_g9_mask_ss",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.9
+},
+"msaa": 4,
+"mode": "mask",
+"contact": false,
+"no_ground": true
+},
+{
+"name": "kompakt_lod0_rear34",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_show_rear34",
+"set": "player/kompakt",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_clay_rear34",
+"set": "player/kompakt",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_facets_rear34",
+"set": "player/kompakt",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_wire_rear34",
+"set": "player/kompakt",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_normals_rear34",
+"set": "player/kompakt",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_check_rear34",
+"set": "player/kompakt",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_checkcb_rear34",
+"set": "player/kompakt",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_noglass_rear34",
+"set": "player/kompakt",
+"mode": "noglass",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_caster_rear34",
+"set": "player/kompakt",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_lod0_rear",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_lampmap_rear",
+"set": "player/kompakt",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_lod0_side",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_show_side",
+"set": "player/kompakt",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_clay_side",
+"set": "player/kompakt",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_noglass_side",
+"set": "player/kompakt",
+"mode": "noglass",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_lampmap_side",
+"set": "player/kompakt",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_caster_side",
+"set": "player/kompakt",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_lod0_front34",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_show_front34",
+"set": "player/kompakt",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_clay_front34",
+"set": "player/kompakt",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_check_front34",
+"set": "player/kompakt",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_checkcb_front34",
+"set": "player/kompakt",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_lod0_rearclose",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_show_rearclose",
+"set": "player/kompakt",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_clay_rearclose",
+"set": "player/kompakt",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_facets_rearclose",
+"set": "player/kompakt",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_wire_rearclose",
+"set": "player/kompakt",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_lampmap_rearclose",
+"set": "player/kompakt",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_caster_rearclose",
+"set": "player/kompakt",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_lod0_frontclose",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.11,
+0.1,
+-2.057,
+1.11,
+1.1864000000000001,
+-0.7569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_show_frontclose",
+"set": "player/kompakt",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.11,
+0.1,
+-2.057,
+1.11,
+1.1864000000000001,
+-0.7569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_clay_frontclose",
+"set": "player/kompakt",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.11,
+0.1,
+-2.057,
+1.11,
+1.1864000000000001,
+-0.7569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_facets_frontclose",
+"set": "player/kompakt",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.11,
+0.1,
+-2.057,
+1.11,
+1.1864000000000001,
+-0.7569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_wire_frontclose",
+"set": "player/kompakt",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.11,
+0.1,
+-2.057,
+1.11,
+1.1864000000000001,
+-0.7569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_lampmap_frontclose",
+"set": "player/kompakt",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.11,
+0.1,
+-2.057,
+1.11,
+1.1864000000000001,
+-0.7569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_caster_frontclose",
+"set": "player/kompakt",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.11,
+0.1,
+-2.057,
+1.11,
+1.1864000000000001,
+-0.7569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_lod0_wheel",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.45549999999999996,
+0.0,
+0.948,
+0.9055,
+0.884,
+1.8319999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_show_wheel",
+"set": "player/kompakt",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.45549999999999996,
+0.0,
+0.948,
+0.9055,
+0.884,
+1.8319999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_lod0_wheelf",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.45549999999999996,
+0.0,
+-1.672,
+0.9055,
+0.884,
+-0.788
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_clay_wheelf",
+"set": "player/kompakt",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.45549999999999996,
+0.0,
+-1.672,
+0.9055,
+0.884,
+-0.788
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_check_wheelf",
+"set": "player/kompakt",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.45549999999999996,
+0.0,
+-1.672,
+0.9055,
+0.884,
+-0.788
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_checkcb_wheelf",
+"set": "player/kompakt",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.45549999999999996,
+0.0,
+-1.672,
+0.9055,
+0.884,
+-0.788
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_lod0_cabin",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 10,
+"el": 20,
+"aabb": [
+-0.9102,
+0.91946,
+-0.4114,
+0.9102,
+1.483,
+1.6512000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_show_cabin",
+"set": "player/kompakt",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 10,
+"el": 20,
+"aabb": [
+-0.9102,
+0.91946,
+-0.4114,
+0.9102,
+1.483,
+1.6512000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_noglass_cabin",
+"set": "player/kompakt",
+"mode": "noglass",
+"cam": {
+"type": "orbit",
+"yaw": 10,
+"el": 20,
+"aabb": [
+-0.9102,
+0.91946,
+-0.4114,
+0.9102,
+1.483,
+1.6512000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_lod0_taillamp",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.44139999999999996,
+0.6839,
+1.6608,
+1.0413999999999999,
+1.0839,
+2.2608
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_show_taillamp",
+"set": "player/kompakt",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.44139999999999996,
+0.6839,
+1.6608,
+1.0413999999999999,
+1.0839,
+2.2608
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_lod0_headlamp",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 152,
+"el": 10,
+"aabb": [
+0.2717,
+0.47900000000000004,
+-2.2456,
+0.8717,
+0.879,
+-1.6456
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_show_headlamp",
+"set": "player/kompakt",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 152,
+"el": 10,
+"aabb": [
+0.2717,
+0.47900000000000004,
+-2.2456,
+0.8717,
+0.879,
+-1.6456
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_lod0_top",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 38
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_clay_top",
+"set": "player/kompakt",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 38
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_lod0_front",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 6
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_lod0_under",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "kompakt_check_under",
+"set": "player/kompakt",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "kompakt_checkcb_under",
+"set": "player/kompakt",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "kompakt_lod0_wheelf_low",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.45549999999999996,
+0.0,
+-1.672,
+0.9055,
+0.884,
+-0.788
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "kompakt_check_wheelf_low",
+"set": "player/kompakt",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.45549999999999996,
+0.0,
+-1.672,
+0.9055,
+0.884,
+-0.788
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "kompakt_checkcb_wheelf_low",
+"set": "player/kompakt",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 100,
+"el": -4,
+"aabb": [
+0.45549999999999996,
+0.0,
+-1.672,
+0.9055,
+0.884,
+-0.788
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "kompakt_sec_driver",
+"set": "player/kompakt",
+"mode": "section_col",
+"section": [
+-1,
+0,
+0,
+0.36
+],
+"cam": {
+"type": "orbit",
+"yaw": -90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_sec_mid",
+"set": "player/kompakt",
+"mode": "section_col",
+"section": [
+-1,
+0,
+0,
+0.0
+],
+"cam": {
+"type": "orbit",
+"yaw": -90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_sec_rearaxle",
+"set": "player/kompakt",
+"mode": "section_col",
+"section": [
+0,
+0,
+1,
+1.39
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 4,
+"aabb": [
+-1.2,
+0,
+1.19,
+1.2,
+1.6,
+1.5899999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_sec_frontaxle",
+"set": "player/kompakt",
+"mode": "section_col",
+"section": [
+0,
+0,
+-1,
+1.23
+],
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 4,
+"aabb": [
+-1.2,
+0,
+-1.43,
+1.2,
+1.6,
+-1.03
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_sec_rearseat",
+"set": "player/kompakt",
+"mode": "section_col",
+"section": [
+0,
+0,
+1,
+0.94
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 4,
+"aabb": [
+-1.2,
+0,
+0.7399999999999999,
+1.2,
+1.6,
+1.14
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_shadow_caster",
+"set": "player/kompakt",
+"mode": "shaded",
+"contact": false,
+"sun_world": [
+0.45,
+0.8,
+0.35
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 89,
+"aabb": [
+-2.6,
+0,
+-3.4,
+2.6,
+0.2,
+3.4
+]
+},
+"size": [
+800,
+1000
+],
+"msaa": 4
+},
+{
+"name": "kompakt_shadow_body",
+"set": "player/kompakt",
+"mode": "body_caster",
+"contact": false,
+"sun_world": [
+0.45,
+0.8,
+0.35
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 89,
+"aabb": [
+-2.6,
+0,
+-3.4,
+2.6,
+0.2,
+3.4
+]
+},
+"size": [
+800,
+1000
+],
+"msaa": 4
+},
+{
+"name": "kompakt_night_tail",
+"set": "player/kompakt",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_night_brake",
+"set": "player/kompakt",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_night_indl",
+"set": "player/kompakt",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_night_indr",
+"set": "player/kompakt",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+1
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_night_reverse",
+"set": "player/kompakt",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+1,
+0,
+0
+]
+},
+{
+"name": "kompakt_night_head",
+"set": "player/kompakt",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.11,
+0.1,
+-2.057,
+1.11,
+1.1864000000000001,
+-0.7569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_night_headind",
+"set": "player/kompakt",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.11,
+0.1,
+-2.057,
+1.11,
+1.1864000000000001,
+-0.7569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+1
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_night_drl",
+"set": "player/kompakt",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.11,
+0.1,
+-2.057,
+1.11,
+1.1864000000000001,
+-0.7569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+0,
+0,
+0,
+0
+],
+"lamp_b": [
+0,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_night_taillamp",
+"set": "player/kompakt",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.44139999999999996,
+0.6839,
+1.6608,
+1.0413999999999999,
+1.0839,
+2.2608
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_night_rear_tail",
+"set": "player/kompakt",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_night_rear_brake",
+"set": "player/kompakt",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_day_rear_brake",
+"set": "player/kompakt",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+},
+{
+"name": "kompakt_steer+25",
+"set": "player/kompakt",
+"steer": 25,
+"cam": {
+"type": "orbit",
+"yaw": 140,
+"el": 14
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_steer+25_top",
+"set": "player/kompakt",
+"steer": 25,
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 70
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_steer-25",
+"set": "player/kompakt",
+"steer": -25,
+"cam": {
+"type": "orbit",
+"yaw": 140,
+"el": 14
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_steer-25_top",
+"set": "player/kompakt",
+"steer": -25,
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 70
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_spin45_wheelf",
+"set": "player/kompakt",
+"spin": 45,
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.45549999999999996,
+0.0,
+-1.672,
+0.9055,
+0.884,
+-0.788
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+}
+]

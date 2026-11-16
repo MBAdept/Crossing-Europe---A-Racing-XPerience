@@ -1,0 +1,8 @@
+v0.8.0 AS5aR1: Manifest neu erzeugt (elf Stadthäuser neu exportiert)
+
+Brückenteile und Hausboot (Schlüssel mit props_cities.py) erneut exportiert:
+byte-gleich. Determinismus: Büroturm und Kran ein zweites Mal erzwungen
+exportiert - byte-gleich.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

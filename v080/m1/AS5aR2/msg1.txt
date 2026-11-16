@@ -1,0 +1,14 @@
+v0.8.0 AS5aR2: WIP Bauer city - helleres Ladenlicht, dunklere Fernfenster, lod1 ohne Ausschneiden, Blattkarten
+
+- cities3d._display_mat: Auslage nachts heller (SHOP_GLOW 1,4, Wurzel der Innenfarbe, Deckenlicht oben)
+  - KRITIK-5a2 K1
+- props_cities.wallmat: 3D-Hooks inner_k / bars_k (Innenrahmen und gemalte Sprossen der Fernstufe zum Glas hin),
+  nur mit inner_frame - die Sprites setzen ihn nie (K2)
+- lod1_opaque: lod1 ohne Alpha-Test, Geländer als Band aus Stäben und cut_fill-Farbe (K4)
+- leaf_cards: Blattkarten (leafatlas, AS3) auf den Blobs der Gartenkrone im Ausschneide-Atlas, Krone als Kern (K3)
+- Katalog: lod1_opaque für die sieben single_cutout-Häuser, Blattkarten für Südhaus und Loire-Haus
+
+Nur Code und Katalog - keine Modelle (Probe-Exporte nicht im Commit).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

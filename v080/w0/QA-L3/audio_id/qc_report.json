@@ -1,0 +1,256 @@
+{
+ "ok": true,
+ "problems": [],
+ "warnings": [],
+ "folders": {
+  "engines": {
+   "files": 3,
+   "bytes": 64697,
+   "sounds": 1,
+   "placeholders": 1
+  },
+  "vehicle": {
+   "files": 3,
+   "bytes": 177508,
+   "sounds": 1,
+   "placeholders": 1
+  },
+  "traffic": {
+   "files": 3,
+   "bytes": 89313,
+   "sounds": 1,
+   "placeholders": 1
+  },
+  "sfx": {
+   "files": 3,
+   "bytes": 71646,
+   "sounds": 1,
+   "placeholders": 1
+  },
+  "ambience": {
+   "files": 3,
+   "bytes": 42768,
+   "sounds": 1,
+   "placeholders": 1
+  },
+  "ui": {
+   "files": 3,
+   "bytes": 11672,
+   "sounds": 1,
+   "placeholders": 1
+  },
+  "music": {
+   "files": 3,
+   "bytes": 36141,
+   "sounds": 1,
+   "placeholders": 1
+  }
+ },
+ "sounds": [
+  {
+   "folder": "engines",
+   "id": "platzhalter",
+   "kind": "bank",
+   "placeholder": true,
+   "generator": "tools/audio/modern/make_placeholders.py",
+   "files": [
+    {
+     "lufs": -14.39,
+     "lra": 0.0,
+     "short_term_max": -14.39,
+     "momentary_max": -14.39,
+     "true_peak_db": -9.12,
+     "sample_peak_db": -9.12,
+     "dc_db": -120.0,
+     "clipped_runs": 0,
+     "file": "platzhalter.i16",
+     "frames": 16000,
+     "channels": 2,
+     "sample_rate": 32000,
+     "bytes": 64000,
+     "sha256": "2a74c1d17e8af716fbf9167eb65cca532b51a877924207904d701799fbca91e2",
+     "seconds": 0.5,
+     "seam_ratio": 0.06,
+     "seam_kink_ratio": 0.3,
+     "seam_loop_ratio": 0.3
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "platzhalter_loop",
+   "kind": "loop",
+   "placeholder": true,
+   "generator": "tools/audio/modern/make_placeholders.py",
+   "files": [
+    {
+     "lufs": -21.13,
+     "lra": 0.0,
+     "short_term_max": -21.12,
+     "momentary_max": -21.09,
+     "true_peak_db": -12.03,
+     "sample_peak_db": -12.04,
+     "dc_db": -120.0,
+     "clipped_runs": 0,
+     "file": "platzhalter_loop.wav",
+     "frames": 44100,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 176444,
+     "sha256": "4f9c9805689cdb10ba7fa8b456117a6ccad2f3253935a44c77b141ebd3e60e99",
+     "seconds": 1.0,
+     "seam_ratio": 0.2,
+     "seam_kink_ratio": 0.43,
+     "seam_loop_ratio": 0.38
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "traffic",
+   "id": "platzhalter_loop",
+   "kind": "loop",
+   "placeholder": true,
+   "generator": "tools/audio/modern/make_placeholders.py",
+   "files": [
+    {
+     "lufs": -16.76,
+     "lra": 0.0,
+     "short_term_max": -16.77,
+     "momentary_max": -16.72,
+     "true_peak_db": -10.45,
+     "sample_peak_db": -10.46,
+     "dc_db": -120.0,
+     "clipped_runs": 0,
+     "file": "platzhalter_loop.wav",
+     "frames": 44100,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 88244,
+     "sha256": "81b96ea7a85d896cc5a058c552f56e24b440f3bb77bb0fb14eedff947e3d52c6",
+     "seconds": 1.0,
+     "seam_ratio": 0.15,
+     "seam_kink_ratio": 0.27,
+     "seam_loop_ratio": 0.2
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "sfx",
+   "id": "platzhalter_hit",
+   "kind": "oneshot",
+   "placeholder": true,
+   "generator": "tools/audio/modern/make_placeholders.py",
+   "files": [
+    {
+     "lufs": -19.45,
+     "lra": 0.0,
+     "short_term_max": -19.45,
+     "momentary_max": -19.45,
+     "true_peak_db": -4.4,
+     "sample_peak_db": -6.02,
+     "dc_db": -53.5,
+     "clipped_runs": 0,
+     "file": "platzhalter_hit.wav",
+     "frames": 17640,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 70604,
+     "sha256": "64f5771f5d31ca7c6099fb2cbdafdd04bb9cc2fb7f0840ca15f812229ca76969",
+     "seconds": 0.4
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "ambience",
+   "id": "platzhalter_bed",
+   "kind": "loop",
+   "placeholder": true,
+   "generator": "tools/audio/modern/make_placeholders.py",
+   "files": [
+    {
+     "lufs": -29.13,
+     "lra": 0.08,
+     "short_term_max": -29.09,
+     "momentary_max": -28.55,
+     "true_peak_db": -18.27,
+     "sample_peak_db": -18.27,
+     "dc_db": -119.0,
+     "clipped_runs": 0,
+     "file": "platzhalter_bed.ogg",
+     "frames": 176400,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 41812,
+     "sha256": "a5e8f24c6f21092cd14924cfa4438e3580ab03c640cdd3001cca98f8f6215db1",
+     "seconds": 4.0,
+     "seam_ratio": 0.23,
+     "seam_kink_ratio": 0.56,
+     "seam_loop_ratio": 0.47
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "ui",
+   "id": "platzhalter_blip",
+   "kind": "oneshot",
+   "placeholder": true,
+   "generator": "tools/audio/modern/make_placeholders.py",
+   "files": [
+    {
+     "lufs": -17.26,
+     "lra": 0.0,
+     "short_term_max": -17.26,
+     "momentary_max": -17.26,
+     "true_peak_db": -9.02,
+     "sample_peak_db": -9.02,
+     "dc_db": -111.1,
+     "clipped_runs": 0,
+     "file": "platzhalter_blip.wav",
+     "frames": 5292,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 10628,
+     "sha256": "af9bcc064e8d82b094ee7d934849e772cabdb447854a57da3de9ee650dfa9994",
+     "seconds": 0.12
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "platzhalter_takt",
+   "kind": "music",
+   "placeholder": true,
+   "generator": "tools/audio/modern/make_placeholders.py",
+   "files": [
+    {
+     "lufs": -13.97,
+     "lra": 0.01,
+     "short_term_max": -13.92,
+     "momentary_max": -13.26,
+     "true_peak_db": -2.14,
+     "sample_peak_db": -2.14,
+     "dc_db": -56.3,
+     "clipped_runs": 0,
+     "file": "platzhalter_takt.ogg",
+     "frames": 176400,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 35124,
+     "sha256": "5db87a4fc25f935d14f6f431584147c453c33da922f6198950752fa370664ab2",
+     "seconds": 4.0,
+     "seam_ratio": 0.72,
+     "seam_kink_ratio": 8.71,
+     "seam_loop_ratio": 0.05
+    }
+   ],
+   "errors": []
+  }
+ ],
+ "determinism": []
+}

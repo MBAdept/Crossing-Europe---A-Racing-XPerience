@@ -1,0 +1,7 @@
+v0.8.0 AS5aR2: WIP echte Exporte Lyoner Haus, niederländische Reihenhäuser, Maashaus, Haussmann-Block
+
+Helleres Ladenlicht (Bäckerei, Bogenläden), dunklerer Innenring und gemalte Sprossen der Fernstufe; Lyoner Haus
+und Haussmann-Block mit lod1 ohne Alpha-Test. Manifest folgt mit dem letzten Modell.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

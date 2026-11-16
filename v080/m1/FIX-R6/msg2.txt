@@ -1,0 +1,13 @@
+v0.8.0 FIX-R6 WIP: Stützen je Dach einmal entschieden, Sichtlinien beidseitig bis 600 m, Tore mit Fachwerk und Flutlicht
+
+- Tankstelle (B-02): canopy_columns() entscheidet die Stützen eines Dachs einmal auf dem
+  Hauptthread (Zwischenspeicher je Etappe): Sichtschneise und Sichtlinien der Endstütze zu
+  allen Tafeln beider Seiten bis 600 m dahinter; ein Dach ohne jede Stütze behält seine
+  Endstütze auf der Insel (lieber als schweben). Neuer Unit-Test der Sichtlinienregel.
+- bend_corridor_at() liegt jetzt bei den gemeinsamen Hilfen in station.gd (auch für border.gd).
+- Tore (B-03): weiß lackierte Stützen wie Arcades Balken, Fachwerkträger über dem Banner
+  (7,0–7,9 m, über Arcades Banner-Oberkante, F1), drei Flutlichter mit Lichtkegel vor der
+  Linie bei Nacht, Banner-Nachtbild 0,8 statt 0,6.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

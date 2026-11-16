@@ -1,0 +1,23 @@
+v0.8.0 RINT-M2: Bremsschein der Modelle nach Tageslicht und Abstand (A-20, NACH-M2 N-01)
+
+Der Zuschlag MODEL_BRAKE_GAIN 2,2 bleibt bei Tag voll; nachts fällt er mit
+den Lichtern der Palette auf einen Anteil, der vom Abstand zur Kamera
+abhängt: nah (bis 22 m) 0,6, fern (ab 60 m) 0,15, dazwischen
+smoothstep. Ein Anteil für alle Abstände ging nicht: 0,35 gab
+Sportwagen 60 m +22 % und Limousine 20 m −32 %, 0,15 gab −1 % und
+−46 % gegen Arcade.
+
+Sonde 22 Uhr, rote Pixel (Arcade / neu): Sportwagen 60 m 95 / 94,
+Limousine 20 m 539 / 476, Sportwagen 20 m 567 / 454 – alles unter
+Arcade +10 %. Das Blaulicht behält seinen Zuschlag (Polizei 60 m
+weiterhin etwa halb so viel Blau wie Arcade, Prüfung „blaulicht“ OK).
+
+check_vehicle_lights „bremsschein“ misst jetzt das aufsummierte Rot,
+das die Bremse hinzufügt (nicht nur die Pixelzahl). Schwellen aus
+Messungen: Tag ≥ 29 (Kopf 33,1; Verstärkung 1,0 nur 25,0 → FEHLER),
+Nacht Sportwagen 60 m ≤ 57 (Kopf 28,3; voller Tageszuschlag 68,9 →
+FEHLER), Limousine 20 m ≤ 500 (Kopf 436,1; voller Zuschlag 602,8 →
+FEHLER). Unit-Tests für nah/fern/Tag/stetig.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

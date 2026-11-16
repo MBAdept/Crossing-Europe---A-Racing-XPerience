@@ -1,0 +1,9 @@
+AS2a: Doku – gemessene Zahlen aller Pkw-Modelle, Prüfungen, bekannte Grenzen
+
+- Abschnitt 11: Dreiecke, Bytes, Zeiten und Lampenflächen der fünf Spielerautos und sechs Pkw-Typen (Stand AS2a),
+  Innenraum je Spielerauto, Lichtanker.
+- Abschnitt 12: Vorderräder Sportwagen/GT im Lack (84 / 61 mm, verdeckt), Blinker der Spielerautos leuchten nie.
+- Abschnitt 14: Stufenwechsel 40 / 120 m, Sprite-Geometrie 187/187, Determinismus, Radfreiheit.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

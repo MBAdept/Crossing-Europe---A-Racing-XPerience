@@ -1,0 +1,21 @@
+QA-PROPS cam_z=22171.0 km=221.8
+QA-CHUNK index=230 seg 7360..7392 dropped={"corridor":0,"density":0,"missing":0,"ribbon":0} props=7
+  OK   seg=7391 j=0 z=+3.6 x=+38.3 side=1 set=props/tree_beech scale=1.00 event beyond_shoulder=32.0 ribbon=436.2 corridor=false
+  OK   seg=7391 j=1 z=+3.6 x=+23.0 side=1 set=props/tree_beech scale=0.75 event beyond_shoulder=16.7 ribbon=436.2 corridor=true
+QA-CHUNK index=231 seg 7392..7424 dropped={"corridor":0,"density":0,"missing":0,"ribbon":0} props=16
+  OK   seg=7394 j=0 z=+13.3 x=+29.7 side=1 set=props/tree_oak scale=0.90 event beyond_shoulder=23.4 ribbon=436.2 corridor=false
+  OK   seg=7400 j=0 z=+29.0 x=+63.8 side=1 set=landmarks/frankfurt_skyline scale=1.00 event beyond_shoulder=57.5 ribbon=436.2 corridor=false
+  OK   seg=7402 j=0 z=+35.9 x=-8.0 side=-1 set=props/city_german_gruenderzeit scale=1.07 deco beyond_shoulder=1.8 ribbon=1000.0 corridor=false
+  OK   seg=7405 j=0 z=+45.6 x=+13.4 side=1 set=props/tree_oak scale=0.93 event beyond_shoulder=7.2 ribbon=436.2 corridor=true
+  OK   seg=7405 j=1 z=+44.1 x=+17.5 side=1 set=props/tree_oak scale=1.02 event beyond_shoulder=11.2 ribbon=436.2 corridor=true
+  OK   seg=7408 j=0 z=+54.5 x=-8.6 side=-1 set=props/city_german_mietshaus scale=1.05 deco beyond_shoulder=2.4 ribbon=1000.0 corridor=false
+  OK   seg=7410 j=0 z=+60.4 x=-8.7 side=-1 set=props/city_german_gruenderzeit scale=0.96 deco beyond_shoulder=2.4 ribbon=1000.0 corridor=false
+  OK   seg=7417 j=0 z=+81.3 x=-10.6 side=-1 set=props/city_german_mietshaus scale=0.93 deco beyond_shoulder=4.3 ribbon=1000.0 corridor=false
+  OK   seg=7417 j=1 z=+80.9 x=+10.0 side=1 set=props/building_block_b scale=1.12 deco beyond_shoulder=3.8 ribbon=436.2 corridor=true
+  OK   seg=7419 j=0 z=+88.2 x=+6.9 side=1 set=props/city_german_gruenderzeit scale=1.07 deco beyond_shoulder=0.6 ribbon=436.2 corridor=true
+QA-CHUNK index=232 seg 7424..7456 dropped={"corridor":0,"density":0,"missing":0,"ribbon":0} props=13
+  OK   seg=7427 j=0 z=+112.3 x=-8.8 side=-1 set=props/city_german_mietshaus scale=1.12 deco beyond_shoulder=2.5 ribbon=1000.0 corridor=false
+  OK   seg=7428 j=0 z=+114.9 x=-8.7 side=-1 set=props/city_german_gruenderzeit scale=1.05 deco beyond_shoulder=2.5 ribbon=1000.0 corridor=false
+  OK   seg=7436 j=0 z=+139.7 x=-7.5 side=-1 set=props/city_german_gruenderzeit scale=0.96 deco beyond_shoulder=1.2 ribbon=1000.0 corridor=false
+  OK   seg=7436 j=1 z=+139.1 x=+8.9 side=1 set=props/city_german_mietshaus scale=1.13 deco beyond_shoulder=2.6 ribbon=436.2 corridor=true
+QA-PROPS-END

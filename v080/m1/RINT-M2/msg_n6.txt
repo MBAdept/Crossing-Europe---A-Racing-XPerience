@@ -1,0 +1,12 @@
+v0.8.0 RINT-M2: Instanzbudget-Prüfungen wieder unter Last (A-19, NACH-M2 N-02)
+
+check_instance_budget.gd kann Verkehr einspeisen (_inject_n(): Testautos über
+die Fahrzeugsonde, Abstände wandern 20–540 m, jedes Auto durchläuft jede
+Stufe); dann muss die Fahrzeug-Ebene 90 % ihres INSTANCE_BUDGET erreichen,
+sonst FEHLER „nicht belastet“. instanzen_wald fährt jetzt den Wald von
+Dortmund – Frankfurt ab km 40 bei „Hoch“ mit 48 eingespeisten Autos (20 s
+Sicht, Kopfzeit 2400 s); neu instanzen_stadt: Würzburg – Nürnberg ab km 106
+in die Stadt bei „Hoch“, ebenso belastet.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

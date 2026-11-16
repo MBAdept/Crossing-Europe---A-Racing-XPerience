@@ -1,0 +1,20 @@
+Aufprall nach Schließgeschwindigkeit und Partner, Leitplanke, Leitpfosten (Spielmix mit Motor, 110 km/h)
+
+Rempler (6 km/h) – Auffahren (30 km/h) – schwerer Aufprall 70 und 130 km/h – Lkw 40 und 110 km/h – Leitplanke gestreift, getroffen, hart – an der Leitplanke entlang schleifen (110 → 60 km/h) – Leitpfosten umgefahren. Seitenrichtig: rechts/links nach Seite des anderen Fahrzeugs.
+
+Länge 30.2 s, integriert -19.2 LUFS, True Peak -2.5 dBTP (gemessen, Master bei Standardreglern, Gesamtlautstärke 0,8).
+
+Zeitmarken (auf etwa ±0,2 s genau – Uhr des Skripts, der aufgenommene Ton läuft ihr leicht voraus):
+  0:00.98  Rempler, 6 km/h Unterschied
+  0:03.60  Auffahren, 30 km/h Unterschied
+  0:06.21  schwerer Aufprall, 70 km/h
+  0:08.82  schwerer Aufprall, 130 km/h
+  0:11.44  Lkw, 40 km/h Unterschied
+  0:14.06  Lkw, 110 km/h Unterschied
+  0:16.67  Leitplanke gestreift (0,5 m/s)
+  0:18.89  Leitplanke getroffen (2 m/s)
+  0:21.11  Leitplanke hart (5 m/s)
+  0:23.32  an der Leitplanke entlang schleifen, 110 → 60 km/h
+  0:28.35  Leitpfosten umgefahren (90 km/h)
+
+Aufgenommen am Master-Bus des Spiels (Godot 4.7.2, Profil Modern, ohne Bildschirm, Dummy-Audiotreiber). Gehört hat es hier niemand – das Urteil über den Klang liegt beim Nutzer.

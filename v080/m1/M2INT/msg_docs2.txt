@@ -1,0 +1,8 @@
+v0.8.0 M2INT: Doku Modelle – Stufenwechsel lod1 → lod2 mit Überblendung nachgemessen (auch Bus)
+
+docs/modelle.md, Abschnitt 17 „Ferne Stufen nach dem Look von RINT-B“: größte Änderung je Bild rund um den Wechsel
+SUV 7,2 %, Sportwagen 8,1 %, Polizei Belgien 13,1 %, Bus 4,7 % (Grenze 180 m × 90/120 = 135 m auf diesem Rechner;
+Probe von RINT-B mit überschriebenem Wechselabstand), vorher ohne Überblendung 28–30 / 38 / 22 % in einem Bild.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

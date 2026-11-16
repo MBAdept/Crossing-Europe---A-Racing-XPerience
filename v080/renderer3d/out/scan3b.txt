@@ -1,0 +1,9 @@
+cross-section sides sampled: 251540
+ruled ribbon  40 m wide is conflict-free on 100.00 % of the sides (not: 0 = 0.0 km of road side)
+ruled ribbon  80 m wide is conflict-free on 100.00 % of the sides (not: 0 = 0.0 km of road side)
+ruled ribbon 120 m wide is conflict-free on 100.00 % of the sides (not: 0 = 0.0 km of road side)
+ruled ribbon 160 m wide is conflict-free on 99.92 % of the sides (not: 189 = 4.5 km of road side)
+ruled ribbon 240 m wide is conflict-free on 99.66 % of the sides (not: 846 = 20.3 km of road side)
+ruled ribbon 320 m wide is conflict-free on 99.29 % of the sides (not: 1782 = 42.8 km of road side)
+ruled ribbon 480 m wide is conflict-free on 97.35 % of the sides (not: 6660 = 159.8 km of road side)
+narrowest (limit < 80 m): 0 samples; examples:

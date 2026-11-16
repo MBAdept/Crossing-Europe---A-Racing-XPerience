@@ -1,0 +1,16 @@
+## inject=none
+QA inject: mode none
+QA inject: root children at frame 5: ["Config", "InputSetup", "Settings", "GameData", "SpriteDB", "Leaderboards", "SaveGame", "AudioManager", "GameFlow", "Race"]
+00b9c70a624911317430bf2f9ae2080c  golden/s1_none_00.png
+## inject=before
+QA inject: mode before
+QA inject: root children at frame 5: ["Config", "InputSetup", "Settings", "GameData", "SpriteDB", "Leaderboards", "SaveGame", "AudioManager", "GameFlow", "Race"]
+QA inject: Modern scene built at frame 20: 7 models, 6 materials, loads 19
+QA inject: Modern scene freed at frame 70, loads 0
+00b9c70a624911317430bf2f9ae2080c  golden/s1_before_00.png
+## inject=during
+QA inject: mode during
+QA inject: root children at frame 5: ["Config", "InputSetup", "Settings", "GameData", "SpriteDB", "Leaderboards", "SaveGame", "AudioManager", "GameFlow", "Race"]
+QA inject: Modern scene built at frame 20: 7 models, 6 materials, loads 19
+00b9c70a624911317430bf2f9ae2080c  golden/s1_during_00.png
+golden list: 00b9c70a624911317430bf2f9ae2080c  race_s1_00.png

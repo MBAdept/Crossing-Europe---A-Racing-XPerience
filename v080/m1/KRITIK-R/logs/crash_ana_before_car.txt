@@ -1,0 +1,7 @@
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R/cap/crash/before_car.wav: n 24, TP@1.0 max -0.66 median -0.80 dBTP | vor dem Begrenzer TP max 1.38 | GR max 0.00 median 0.00, >3 dB: 0 | Glas 1.00 | lag 0
+   crunch      {0: 12, 1: 12} Wiederholungen 0 abab 22 jitter None delay None abababababababababababab
+   debris      {0: 24} Wiederholungen 23 abab 0 jitter None delay None aaaaaaaaaaaaaaaaaaaaaaaa
+   glass       {0: 24} Wiederholungen 23 abab 0 jitter None delay None aaaaaaaaaaaaaaaaaaaaaaaa
+   hit_heavy   {0: 12, 1: 12} Wiederholungen 0 abab 22 jitter None delay None abababababababababababab
+   Quietschen: {'n': 16, 'hz_min': 861.3, 'hz_max': 862.7, 'hz_mean': 861.7, 'spread_pct': 0.08, 'std_pct': 0.08}
+   Vorbeifahrten: 10 {'pass_sign': 'aa', 'pass_tree': 'bbababab'} jitter 0.0 0.0

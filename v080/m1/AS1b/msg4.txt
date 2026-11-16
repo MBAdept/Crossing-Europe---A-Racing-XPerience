@@ -1,0 +1,9 @@
+AS1b (WIP): Doku Abschnitt 14 (Umgebung des Schnitts), Prüfszene nach tools/models/
+
+- docs/modelle.md §14: Sets der ersten 75 km, Kartenbäume (Krone, Licht, Holz, Kern, Halo-Alpha, Stufen ohne
+  Sprung, Varianten), Büsche und Bodendecker (Sets props/cover_bush, props/cover_grass, nur Modern), Gebäude mit
+  Tiefe, Rotor-Code, Strommast im Ausschneide-Atlas, neue Hooks, gemessene Tabelle, offene Punkte
+- tools/models_prop_scene.sh -> tools/models/prop_scene.sh (liegt jetzt in der Dateihoheit der Pipeline)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

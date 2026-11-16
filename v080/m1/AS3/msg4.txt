@@ -1,0 +1,8 @@
+WIP v0.8.0 AS3: Bodengras dichter und dunkler
+
+Das Bodengras (props/cover_grass) las sich aus 15 m als ein hellgrüner Fleck.
+Jetzt 14 Büschel mit 110 Halmen, dunklere Halme mit mehr Kontrast
+(veg3d.GRASS, Katalogeintrag im AS3-Block). 84/28 Dreiecke.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,12 @@
+v0.8.0 RINT-A: R3 (Fahrzeuge, Lichtpunkte, Lack und Glas, Schilder) zusammengeführt
+
+Paket R3 des Schubs M1 (A-8), Stand 4d02ada.
+
+Konflikt assets/shaders/modern/contact_shadow.gdshader (beide neu angelegt):
+R2s Datei bleibt contact_shadow.gdshader (Kontaktschatten der Requisiten),
+R3s Fahrzeug-Schattenfleck heißt jetzt vehicle_shadow.gdshader (Klasse
+"vehicle_shadow"). docs/renderer-modern.md: R1s und R3s Abschnitt 10
+hintereinander (R3 als Abschnitt 11).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,10 @@
+v0.8.0 AS5aR1: Modern-Goldens S4 und S5 neu - Stadthäuser mit Flankenöffnungen und Rahmenring
+
+modern-check: 4 von 6 identisch; anders modern_s4_mittel (km 80,6) und
+modern_s5_niedrig (Ziel Hamburg) - dort stehen die neu exportierten Stadthäuser
+(Fensterflanke der Giebelzeile, Rahmenring im Glas). Beide Bilder angesehen,
+gewollt. Liste aus den behaltenen Bildern von modern-check geschrieben (dieselbe
+Renderfunktion wie modern-make). modern-gles OK (max. 2/255).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

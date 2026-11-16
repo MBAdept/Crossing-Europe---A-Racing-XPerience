@@ -1,0 +1,16 @@
+{"segments": [
+ {"name": "asph130_full", "km": 15.0, "kmh": 130.0, "throttle": 0.35, "x": 1.875, "mute": [], "seconds": 20.0, "feed": {"concrete_share": {"_": 0.0}}},
+ {"name": "asph130_road", "km": 15.0, "kmh": 130.0, "throttle": 0.35, "x": 1.875, "mute": ["MEngine", "MEngineFx", "MWind"], "seconds": 20.0, "feed": {"concrete_share": {"_": 0.0}}},
+ {"name": "asph130_wind", "km": 15.0, "kmh": 130.0, "throttle": 0.35, "x": 1.875, "mute": ["MEngine", "MEngineFx", "MRoad"], "seconds": 20.0, "feed": {"concrete_share": {"_": 0.0}}},
+ {"name": "conc130_full", "km": 30.0, "kmh": 130.0, "throttle": 0.35, "x": 1.875, "mute": [], "seconds": 20.0, "feed": {"concrete_share": {"_": 1.0}}},
+ {"name": "conc130_road", "km": 30.0, "kmh": 130.0, "throttle": 0.35, "x": 1.875, "mute": ["MEngine", "MEngineFx", "MWind"], "seconds": 20.0, "feed": {"concrete_share": {"_": 1.0}}},
+ {"name": "cobbles50_full", "km": 87.3, "kmh": 50.0, "throttle": 0.25, "x": 1.875, "mute": [], "seconds": 20.0, "feed": {"cobble_share": 1.0}},
+ {"name": "cobbles50_road", "km": 87.3, "kmh": 50.0, "throttle": 0.25, "x": 1.875, "mute": ["MEngine", "MEngineFx", "MWind"], "seconds": 20.0, "feed": {"cobble_share": 1.0}},
+ {"name": "wet130_road", "km": 15.0, "kmh": 130.0, "throttle": 0.35, "x": 1.875, "mute": ["MEngine", "MEngineFx", "MWind"], "seconds": 15.0, "weather": "rain", "feed": {"concrete_share": {"_": 0.0}}},
+ {"name": "vmax_full", "km": 15.0, "kmh": -1.0, "throttle": 1.0, "x": 1.875, "mute": [], "seconds": 15.0, "feed": {"concrete_share": {"_": 0.0}}},
+ {"name": "asph200_full", "km": 20.0, "kmh": 200.0, "throttle": 0.6, "x": 1.875, "mute": [], "seconds": 15.0, "feed": {"concrete_share": {"_": 0.0}}},
+ {"name": "conc200_full", "km": 30.0, "kmh": 200.0, "throttle": 0.6, "x": 1.875, "mute": [], "seconds": 15.0, "feed": {"concrete_share": {"_": 1.0}}},
+ {"name": "gravel100_road", "km": 40.0, "kmh": 100.0, "throttle": 0.3, "x": 6.6, "mute": ["MEngine", "MEngineFx", "MWind"], "seconds": 10.0, "state": {"off_road": 1}, "feed": {"concrete_share": {"_": 0.0}}},
+ {"name": "rumble130_road", "km": 15.0, "kmh": 130.0, "throttle": 0.35, "x": 5.15, "mute": ["MEngine", "MEngineFx", "MWind"], "seconds": 10.0, "feed": {"concrete_share": {"_": 0.0}}},
+ {"name": "grass60_road", "km": 40.0, "kmh": 60.0, "throttle": 0.3, "x": 9.5, "mute": ["MEngine", "MEngineFx", "MWind"], "seconds": 10.0, "state": {"off_road": 2, "x": 9.5, "road_left": -5.625, "road_right": 5.625}, "feed": {"concrete_share": {"_": 0.0}}}
+]}

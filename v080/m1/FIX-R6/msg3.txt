@@ -1,0 +1,13 @@
+v0.8.0 FIX-R6 WIP: Zugstangen kreuzungsfrei, Sichtlinien alle 5 m, warmer Vorplatz am Shop, Grenzblende nachts heller, Doku
+
+- Grenze: die obere Zugstange jedes Masts läuft zur freien Kante, die untere zur Mitte
+  (vorher kreuzten sie sich am Mast, eigenes Bild grenze_12 Bild 01).
+- Tankstelle: Kameras der Sichtlinienprüfung alle 5 m, Rand 0,1 m (QA-R6 tastet alle 5 m);
+  netzweit verdecken Endstützen jetzt nur noch an den drei Dächern, die sonst ohne Stütze
+  wären (gemessen mit scan_f1 von QA-R6). Warmes Licht unter dem Vordach des Shops mit
+  Lichtkegel (B-03: Arcades Station strahlt nachts warm).
+- Grenze: Nachtbild der Stirnblende heller (0,5 statt 0,36), näher an Arcades weißer Blende.
+- docs/renderer-modern-bauten.md: Abspannung, Sichtlinien der Endstütze, Fachwerk und Flutlicht.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

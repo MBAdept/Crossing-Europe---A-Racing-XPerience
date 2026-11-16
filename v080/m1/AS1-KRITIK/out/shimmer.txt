@@ -1,0 +1,2 @@
+limousine: Autofläche 40460 px; Modern MSAA 2x: mittlerer Treppenfehler 0.7 Stufen, zeitliche Schwankung des Fehlers > 8 Stufen an 721 px (1.8 %); Arcade: Zellwechsel c->l2 ändert 2513 px um > 24 Stufen (6.2 %) auf einen Schlag
+kompakt: Autofläche 29920 px; Modern MSAA 2x: mittlerer Treppenfehler 1.5 Stufen, zeitliche Schwankung des Fehlers > 8 Stufen an 2994 px (10.0 %); Arcade: Zellwechsel c->l2 ändert 4887 px um > 24 Stufen (16.3 %) auf einen Schlag

@@ -1,0 +1,38 @@
+{
+ "alt (title_theme.ogg 1:00–1:30)": {
+  "lufs": -13.25,
+  "lra": 2.0,
+  "tp": -1.38,
+  "plr": 11.9,
+  "crest": 14.0,
+  "corr": 0.75,
+  "side_mid": -8.4,
+  "side_mid_<120": -27.0,
+  "side_mid_2k-8k": -4.4,
+  "side_mid_>8k": -9.1,
+  "sub_30-60": -16.7,
+  "bass_60-250": -2.1,
+  "mid_250-2k": -5.4,
+  "pres_2k-8k": -12.1,
+  "air_>8k": -22.3,
+  "low_band_dyn_p95-p10": 13.9
+ },
+ "neu (Remaster-Skizze)": {
+  "lufs": -13.29,
+  "lra": 2.0,
+  "tp": -2.2,
+  "plr": 11.1,
+  "crest": 13.2,
+  "corr": 0.74,
+  "side_mid": -8.3,
+  "side_mid_<120": -25.6,
+  "side_mid_2k-8k": -1.7,
+  "side_mid_>8k": -4.7,
+  "sub_30-60": -9.5,
+  "bass_60-250": -2.4,
+  "mid_250-2k": -7.1,
+  "pres_2k-8k": -10.1,
+  "air_>8k": -17.1,
+  "low_band_dyn_p95-p10": 13.9
+ }
+}

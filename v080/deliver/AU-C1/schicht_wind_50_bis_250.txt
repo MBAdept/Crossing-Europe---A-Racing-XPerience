@@ -1,0 +1,14 @@
+Wind von 50 bis 250 km/h (ohne Motor und Fahrbahn), dann 250 km/h auf einer Brücke
+
+Drei Bänder mit Böen, ab etwa 200 km/h das Wummern wie bei offenem Fenster; auf der Brücke stärker und böiger. Unter 60 km/h ist der Wind fast unhörbar (so geplant: 55 dB je Dekade Tempo).
+
+Länge 30.0 s, integriert -22.0 LUFS, True Peak -5.8 dBTP (gemessen, Master bei Standardreglern, Gesamtlautstärke 0,8).
+
+Zeitmarken:
+  0:00.00  Wind 50 km/h
+  0:06.22  100 km/h
+  0:12.47  150 km/h
+  0:18.72  200 km/h
+  0:27.94  250 km/h Brücke (stärker, böiger)
+
+Aufgenommen am Master-Bus des Spiels (Godot 4.7.2, Profil Modern, ohne Bildschirm, Dummy-Audiotreiber). Gehört hat es hier niemand – das Urteil über den Klang liegt beim Nutzer.

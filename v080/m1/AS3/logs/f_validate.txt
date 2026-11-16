@@ -1,0 +1,51 @@
+validate_models: 46 Modelle, 182 Sets (51 mit Modell, 131 Platzhalter)
+  Netze 5.23 MB von 40 MB, Texturen 37.37 MB im Grafikspeicher von 240 MB, Quellen 37.10 MB von 60 MB
+Modell                 Kategorie Dreiecke je Stufe                  Aufrufe        Netze B  Textur B Export s  Bake s
+landmarks/michel       landmark  lod0 3024                          1                63648    377301        -       -
+player/kompakt         player    lod0 47524 show 100332 shadow 2320 6/6            1661802         0     14.6    0.09
+player/limousine       player    lod0 44095 show 94629 shadow 2320  6/6            1527819         0     13.8    0.10
+props/barn             rural     lod0 290                           2                 5652    431474        -       -
+props/bush_low         plant     lod0 395 lod1 115                  1/1              12387    445810      1.4    0.01
+props/bush_round       plant     lod0 396 lod1 111                  1/1              12029    445311      1.4    0.01
+props/bush_round_b     plant     lod0 396 lod1 117                  1/1              12047    445311      1.1    0.01
+props/cliff            cliff     lod0 4341                          1                89818    886805    167.2    0.03
+props/cover_bush       plant     lod0 236 lod1 111                  1/1               8154    444811      1.0    0.02
+props/cover_grass      plant     lod0 84 lod1 28                    1/1               4366    299568     0.79    0.02
+props/customs_booth    rural     lod0 206                           2                 3783     66565        -       -
+props/delineator       furniture lod0 12                            1                  691      2746        -       -
+props/farmhouse        rural     lod0 1107                          2                15352    856146        -       -
+props/fuel_pump        furniture lod0 384                           1                 7259    105771        -       -
+props/fuel_station     rural     lod0 1480                          2                23467    244163        -       -
+props/haybale          furniture lod0 672                           1                 7575    195357        -       -
+props/heather          plant     lod0 390 lod1 118                  1/1              12806    455522      1.2    0.00
+props/power_pylon      pylon     lod0 220                           1                 3638    165059        -       -
+props/radar_camera     furniture lod0 328                           1                 5428     19436        -       -
+props/rock_a           rock      lod0 640                           1                11361    143951     43.6    0.01
+props/rock_b           rock      lod0 960                           1                17391    168180     47.5    0.01
+props/streetlight      furniture lod0 274                           1                 4104         0        -       -
+props/tree_beech       tree      lod0 2471 lod1 888 shadow 186      2/2              65841   1985628      8.6    0.02
+props/tree_beech_b     tree      lod0 2462 lod1 889 shadow 177      2/2              65670   1997383     11.4    0.01
+props/tree_birch       tree      lod0 2304 lod1 673 shadow 225      2/2              55201   2006629      6.3    0.03
+props/tree_birch_b     tree      lod0 2400 lod1 723 shadow 259      2/2              57055   2008565      6.2    0.02
+props/tree_cypress     tree      lod0 1236 lod1 316 shadow 128      2/2              40996   1744815      6.0    0.08
+props/tree_cypress_b   tree      lod0 1236 lod1 316 shadow 128      2/2              40478   1735127      5.3    0.06
+props/tree_oak         tree      lod0 2465 lod1 887 shadow 175      2/2              66629   1952241      6.1    0.02
+props/tree_oak_b       tree      lod0 2475 lod1 885 shadow 203      2/2              67944   1951209      6.2    0.02
+props/tree_olive       tree      lod0 2295 lod1 828 shadow 248      2/2              60151   2116376      5.1    0.02
+props/tree_olive_b     tree      lod0 2190 lod1 791 shadow 227      2/2              57511   2113610      5.3    0.01
+props/tree_palm        tree      lod0 1184 lod1 714                 2/2              26806    721718      3.3    0.13
+props/tree_palm_b      tree      lod0 1184 lod1 714                 2/2              26809    721231      3.2    0.07
+props/tree_pine        tree      lod0 1693 lod1 592 shadow 192      2/2              41726   2152984      5.1    0.04
+props/tree_pine_b      tree      lod0 1970 lod1 688 shadow 192      2/2              48439   2155833      5.6    0.05
+props/tree_poplar      tree      lod0 2470 lod1 888 shadow 136      2/2              69481   1956912      7.3    0.04
+props/tree_poplar_b    tree      lod0 2470 lod1 886 shadow 136      2/2              68427   1958255      6.5    0.04
+props/tree_spruce      tree      lod0 1062 lod1 462 shadow 282      2/2              58016   1302739      3.8    0.05
+props/tree_spruce_b    tree      lod0 858 lod1 378 shadow 234       2/2              47278   1296953      4.4    0.04
+props/wind_turbine     furniture lod0 744                           1                 9716         0        -       -
+props/windmill         rural     lod0 1640                          2                23796    829567        -       -
+traffic/hatch          car       lod0 17636 lod1 5661 lod2 1180 shadow 988 6/1/1           270561         0      2.5    0.02
+traffic/sedan          car       lod0 17555 lod1 5809 lod2 1149 shadow 972 6/1/1           271351         0      2.5    0.02
+traffic/truck          heavy     lod0 18084 lod1 4672 lod2 1490 shadow 476 13/1/1          161852         0      1.0    0.02
+traffic/wagon          car       lod0 17464 lod1 5941 lod2 1141 shadow 940 6/1/1           276055         0      2.2    0.02
+CHECK models OK
+exit 0

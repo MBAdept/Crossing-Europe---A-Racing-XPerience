@@ -1,0 +1,102 @@
+[
+{
+"name": "bus_white_180_lod1",
+"set": "traffic/bus_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 180.0
+}
+},
+{
+"name": "bus_white_180_lod1_ss4",
+"set": "traffic/bus_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 180.0,
+"ss": 4.0
+},
+"msaa": 4
+},
+{
+"name": "bus_white_180_lod1_clay_ss4",
+"set": "traffic/bus_white",
+"lod": "lod1",
+"mode": "clay",
+"cam": {
+"type": "game",
+"dist": 180.0,
+"ss": 4.0
+},
+"msaa": 4
+},
+{
+"name": "bus_white_180_lod1_mask_ss4",
+"set": "traffic/bus_white",
+"lod": "lod1",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"cam": {
+"type": "game",
+"dist": 180.0,
+"ss": 4.0
+},
+"msaa": 4
+},
+{
+"name": "bus_white_180_lod2",
+"set": "traffic/bus_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 180.0
+}
+},
+{
+"name": "bus_white_180_lod2_ss4",
+"set": "traffic/bus_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 180.0,
+"ss": 4.0
+},
+"msaa": 4
+},
+{
+"name": "bus_white_180_lod2_clay_ss4",
+"set": "traffic/bus_white",
+"lod": "lod2",
+"mode": "clay",
+"cam": {
+"type": "game",
+"dist": 180.0,
+"ss": 4.0
+},
+"msaa": 4
+},
+{
+"name": "bus_white_180_lod2_mask_ss4",
+"set": "traffic/bus_white",
+"lod": "lod2",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"cam": {
+"type": "game",
+"dist": 180.0,
+"ss": 4.0
+},
+"msaa": 4
+},
+{
+"name": "empty_day",
+"set": "",
+"cam": {
+"type": "game",
+"dist": 30
+}
+}
+]

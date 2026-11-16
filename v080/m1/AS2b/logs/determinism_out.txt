@@ -1,0 +1,23 @@
+export police/* exit 0
+export traffic/bus exit 0
+export traffic/truck* exit 0
+bake 1 police/* exit 0
+bake 1 traffic/bus exit 0
+bake 1 traffic/truck* exit 0
+== git status after forced export + bake (empty = identical):
+ M assets/models/manifest.json
+ M assets/models/traffic/bus/model.json
+ M assets/models/traffic/bus/shadow.res
+ M tools/blender/ce3d/heavy3d.py
+bake 2 police/* exit 0
+bake 2 traffic/bus exit 0
+bake 2 traffic/truck* exit 0
+== files hashed: 142
+second bake byte-identical
+== git status after second bake:
+ M assets/models/manifest.json
+ M assets/models/traffic/bus/model.json
+ M assets/models/traffic/bus/shadow.res
+ M tools/blender/ce3d/heavy3d.py
+CHECK cache_keys OK      37 Modelle: ein geänderter Lack, Metallwert, Blickwinkel oder eine Markierung im Sprite-Katalog ergibt für genau die betroffenen Modelle einen neuen Schlüssel
+determinism.sh fertig

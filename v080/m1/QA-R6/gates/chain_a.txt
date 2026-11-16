@@ -1,0 +1,9 @@
+15:20:50 load 16.28 16.36 16.49 start
+15:45:30 load 15.04 16.24 16.66 run_tests exit 1
+15:49:02 load 14.75 15.53 16.29 sight exit 0
+15:50:32 load 14.79 15.35 16.16 path exit 0
+16:09:46 load 18.63 19.18 18.44 rc structures exit 0
+16:17:14 load 19.59 19.69 18.94 rc start_km0 exit 0
+16:21:23 load 20.21 19.77 19.13 rc light_base exit 0
+16:23:42 load 20.22 19.79 19.22 rc terrain_cover exit 0
+16:23:42 load 20.22 19.79 19.22 done

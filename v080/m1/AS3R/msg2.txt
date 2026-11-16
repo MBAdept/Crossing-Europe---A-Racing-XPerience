@@ -1,0 +1,12 @@
+WIP v0.8.0 AS3R: lod1 auf dem Rand von lod0, Fernbild mit Relief im Sprite-Licht, Abgleich
+
+- lod1 einer Kuppel: jede zweite Randecke von lod0 (gleiche Lage, Verwacklung, Texturlage) als (1, 3, 6)
+  bzw. Fächer (1, 6); der Versuch mit reinen Fächern über den ganzen Rand wurde verworfen (gemessen:
+  lod1 26 % dunkler, 15 % kleiner, stachelig)
+- Fernbild: Relief mit den eigenen Normalen des Modells (Attribut ce_nrm, Cycles dreht Rückseiten-
+  Normalen um); Fichte zusätzlich zu 25 % im Licht des Sprite-Rigs mit Schatten (Etagen)
+- Abgleich bei Tag: lod0 -> lod1 und lod1 -> Fernbild innerhalb weniger Prozent (lift, gain, sat je Art)
+- Büsche: 15 Kuppeln, weniger Kontrast im Laubball
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,15 @@
+Silhouette: Sprite (Alpha > 0,9, ohne Bodenschatten) gegen Modell (rote Maske), gleiche Kamera
+  sedan   +0° lod0: IoU 0.951, nur Sprite  1180 px, nur Modell   426 px (bei 104 px/m)
+  sedan   +0° lod2: IoU 0.945, nur Sprite  1623 px, nur Modell   193 px (bei 104 px/m)
+  sedan  +24° lod0: IoU 0.957, nur Sprite  1452 px, nur Modell   628 px (bei 104 px/m)
+  sedan  +24° lod2: IoU 0.943, nur Sprite  2386 px, nur Modell   363 px (bei 104 px/m)
+  hatch   +0° lod0: IoU 0.942, nur Sprite  1268 px, nur Modell   490 px (bei 104 px/m)
+  hatch   +0° lod2: IoU 0.939, nur Sprite  1403 px, nur Modell   437 px (bei 104 px/m)
+  hatch  +24° lod0: IoU 0.956, nur Sprite  1328 px, nur Modell   648 px (bei 104 px/m)
+  hatch  +24° lod2: IoU 0.949, nur Sprite  1811 px, nur Modell   471 px (bei 104 px/m)
+  wagon   +0° lod0: IoU 0.950, nur Sprite  1213 px, nur Modell   495 px (bei 104 px/m)
+  wagon   +0° lod2: IoU 0.944, nur Sprite  1478 px, nur Modell   406 px (bei 104 px/m)
+  wagon  +24° lod0: IoU 0.951, nur Sprite  1685 px, nur Modell   923 px (bei 104 px/m)
+  wagon  +24° lod2: IoU 0.930, nur Sprite  3000 px, nur Modell   705 px (bei 104 px/m)
+  limousine Spielkamera 9 m (1,65x): IoU 0.995, nur Sprite 244 px, nur Modell 191 px
+  kompakt   Spielkamera 9 m (1,65x): IoU 0.994, nur Sprite 104 px, nur Modell 298 px

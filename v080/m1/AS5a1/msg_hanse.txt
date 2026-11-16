@@ -1,0 +1,9 @@
+v0.8.0 AS5a1: Stadthäuser hanse als Modelle (Giebelhauszeile, Speicher, Kontorhaus, Hafenkran)
+
+Echte Exporte (Bauer "city"). Giebelhäuser mit Blendnischen als vertiefte Öffnungen, Speicher mit
+Ladeluken, Kontorhaus mit Läden und Auslagen und Pfeilern (vpbr), Hafenkran mit Rotlicht und
+Strahlern als Lampen mit Lichtankern. Speicher im Budget (Bögen mit 4 Teilen, flache lod1).
+Manifest neu geschrieben.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

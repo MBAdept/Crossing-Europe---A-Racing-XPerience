@@ -1,0 +1,5 @@
+linux_opengl3_es arcade: OK (22 s; OpenGL API OpenGL ES 3.2 Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits))
+linux_opengl3_es modern: OK (164 s; OpenGL API OpenGL ES 3.2 Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits))
+linux_opengl3_es Leistungstest: OK autobahn: 4.2 fps, p95 479 ms, Voreinstellung low, Stufe software, Version 0.8.0-zs1, Vorschlag arcade/low (41 s)
+linux_opengl3_es Nutzerordner: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/FIX-WASSER/smoke/gles/xdg/crossing-europe-zwischenstand (leistungstest.json logs shader_cache )
+SMOKE linux_opengl3_es: OK

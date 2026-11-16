@@ -1,0 +1,88 @@
+{
+  "16_materials_n4000": {
+    "draw_calls": 4000,
+    "frame_wall_ms": 20.239,
+    "objects": 4000,
+    "render_cpu_ms": 16.868,
+    "setup_cpu_ms": 0.031
+  },
+  "16_materials_n4000_shadow_ortho": {
+    "draw_calls": 8000,
+    "frame_wall_ms": 40.095,
+    "objects": 8000,
+    "render_cpu_ms": 35.004,
+    "setup_cpu_ms": 0.032
+  },
+  "16_materials_n4000_shadow_pssm2": {
+    "draw_calls": 8000,
+    "frame_wall_ms": 42.26,
+    "objects": 8000,
+    "render_cpu_ms": 37.61,
+    "setup_cpu_ms": 0.031
+  },
+  "16_materials_n4000_shadow_pssm4": {
+    "draw_calls": 12000,
+    "frame_wall_ms": 62.763,
+    "objects": 12000,
+    "render_cpu_ms": 49.069,
+    "setup_cpu_ms": 0.032
+  },
+  "gdscript_rs_instance_set_transform_4000_us": 443.6,
+  "gdscript_set_position_4000_nodes_us": 908.5,
+  "gdscript_set_transform_4000_nodes_us": 714.0,
+  "local_rendering_device_available": false,
+  "multimesh_n4000": {
+    "draw_calls": 1,
+    "frame_wall_ms": 12.333,
+    "objects": 1,
+    "render_cpu_ms": 10.493,
+    "setup_cpu_ms": 0.005
+  },
+  "n0": {
+    "draw_calls": 0,
+    "frame_wall_ms": 1.204,
+    "objects": 0,
+    "render_cpu_ms": 0.137,
+    "setup_cpu_ms": 0.004
+  },
+  "render_cpu_ms_when_4000_instances_move_each_frame": 14.611,
+  "rs_instances_16_materials_n4000": {
+    "draw_calls": 4000,
+    "frame_wall_ms": 19.961,
+    "objects": 4000,
+    "render_cpu_ms": 15.022,
+    "setup_cpu_ms": 0.023
+  },
+  "same_material_n1000": {
+    "draw_calls": 1000,
+    "frame_wall_ms": 6.336,
+    "objects": 1000,
+    "render_cpu_ms": 4.28,
+    "setup_cpu_ms": 0.017
+  },
+  "same_material_n2000": {
+    "draw_calls": 2000,
+    "frame_wall_ms": 12.492,
+    "objects": 2000,
+    "render_cpu_ms": 9.899,
+    "setup_cpu_ms": 0.024
+  },
+  "same_material_n4000": {
+    "draw_calls": 4000,
+    "frame_wall_ms": 24.407,
+    "objects": 4000,
+    "render_cpu_ms": 20.421,
+    "setup_cpu_ms": 0.034
+  },
+  "same_material_n500": {
+    "draw_calls": 500,
+    "frame_wall_ms": 4.91,
+    "objects": 500,
+    "render_cpu_ms": 2.951,
+    "setup_cpu_ms": 0.015
+  },
+  "suite": "perf",
+  "test": "drawcalls",
+  "variants": [],
+  "window_size": "(320, 180)"
+}

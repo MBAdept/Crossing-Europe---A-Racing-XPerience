@@ -1,0 +1,11 @@
+AS2a: Lufteinlässe als echte Mulde, Rückbank frei von den Hinterrädern, Heckscheibe des Sportwagens in lod2
+
+- player_cars.grille: die Mulde geht in alle Körper unter der Kontur. Die Front der Karosserie liegt 1-4 cm
+  hinter der Haut des Stoßfängers; der Boden der Mulde lag dort, zwischen den Lamellen schien der Lack durch
+  (Sportwagen: rote Bänder; Kompakt, Limousine, Kombi: z-Kampf).
+- carinterior: die Rückbank von Sportwagen und GT bleibt aus den Radhäusern (vorher 89 / 60 mm im Hinterreifen).
+- traffic/sports lod2: far_pane_ny 0,25 (CAR_3D "design"), die 17 Grad flache Fließheckscheibe war zur Hälfte Lack.
+- cardetail: import os oben; Doku Abschnitt 14 (Showroom-Entscheid, 3D-only-Teile, lod2-Scheiben).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

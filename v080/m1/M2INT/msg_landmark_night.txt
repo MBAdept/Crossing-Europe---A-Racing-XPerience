@@ -1,0 +1,23 @@
+v0.8.0 M2INT: Beleuchtete Wahrzeichen nachts bis landmark_far_m wie in Arcade
+
+Befund aus dem A/B Kiel – Hamburg km 77,4 um 22 Uhr: Arcade zeigt die beleuchtete Elbphilharmonie und den Michel
+über der Köhlbrandbrücke, Modern zeigte nichts – nachts ist die Sicht kurz (495 m), Wahrzeichen standen nur bis
+L = 2 × Sicht (990 m) am Pfad und wurden darüber hinaus weggedithert. Arcade zeichnet die Lichtebene eines
+Wahrzeichens nachts bis render.landmark_far_m (1 900 m), ohne Dunst (RoadRenderer._draw_far_landmarks,
+_draw_landmark).
+
+- builders/props.gd: far_reach(view) – nachts (Palette „lights“ > 0,05) stehen Wahrzeichen jenseits der Stücke bis
+  landmark_far_m am Pfad.
+- billboard.gdshader: wo das Bild jenseits von L weggedithert wird, bleiben die Pixel der Lichtebene (Deckung =
+  Alpha × ce_night × Ausblendung über die letzten 20 % von landmark_far_m, ohne Nebel); innerhalb von L dunstet nur
+  das Bild, leuchtende Pixel behalten ihr Licht.
+- baked.gdshader (Michel, Modell): dasselbe mit dem Emissionsatlas; für Gebäude ohne landmark_law unverändert.
+- check_minimal_structures.gd „wahrzeichen“: zweiter Start um 22 Uhr bei km 77,4 – Reichweite 1 900 m statt 990 m,
+  2 Wahrzeichen jenseits der Stücke (gemessen, OK).
+- docs/renderer-modern.md §14.6 „Nachts“.
+
+Bild: A/B koehl_nacht3 (Hoch) – Elbphilharmonie und Michel leuchten wie in Arcade. Modern-Goldens mit Nacht und
+Wahrzeichen ändern sich damit; sie werden nach dem ZS1-Merge einmal neu erzeugt.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

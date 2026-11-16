@@ -1,0 +1,8 @@
+v0.8.0 FIX-M2: Modern-Änderungsmelder neu – Bilder angesehen
+
+Alle sechs Modern-Bilder (tools/golden.sh modern-make, KEEP) gegen die von M2ZS1 verglichen: Tag (Start, S2,
+S3, S4, S5) ändert sich nur das Spielerauto (Lack bei Tag entsättigt, ~22 600 Pixel im Kasten des Autos;
+S5 dazu der stärkere Bremsschein), Nacht (S1) 116 Pixel (Schein, Abblendlicht). Sonst nichts.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,34 @@
+Lampenkonturen von hinten (orthografisch, 4x Sprite-Auflösung): Fläche in px und Überdeckung (IoU) mit lod0
+  sedan  Blinker l   lod0   454 px IoU 1.00 | lod1   454 px IoU 1.00 | lod2   454 px IoU 1.00
+  sedan  Blinker r   lod0   454 px IoU 1.00 | lod1   454 px IoU 1.00 | lod2   454 px IoU 1.00
+  sedan  Rück+Brems  lod0  2691 px IoU 1.00 | lod1  3570 px IoU 0.74 | lod2  3785 px IoU 0.64
+  sedan  Brems       lod0   504 px IoU 1.00 | lod1   504 px IoU 1.00 | lod2   504 px IoU 1.00
+  sedan  Rückfahr    lod0   366 px IoU 1.00 | lod1   367 px IoU 1.00 | lod2     0 px IoU 0.00
+  hatch  Blinker l   lod0   416 px IoU 1.00 | lod1   416 px IoU 1.00 | lod2   416 px IoU 1.00
+  hatch  Blinker r   lod0   416 px IoU 1.00 | lod1   416 px IoU 1.00 | lod2   416 px IoU 1.00
+  hatch  Rück+Brems  lod0  3184 px IoU 1.00 | lod1  3776 px IoU 0.82 | lod2  4137 px IoU 0.72
+  hatch  Brems       lod0   490 px IoU 1.00 | lod1   490 px IoU 1.00 | lod2   490 px IoU 1.00
+  hatch  Rückfahr    lod0   384 px IoU 1.00 | lod1   384 px IoU 1.00 | lod2     0 px IoU 0.00
+  wagon  Blinker l   lod0   440 px IoU 1.00 | lod1   440 px IoU 1.00 | lod2   440 px IoU 1.00
+  wagon  Blinker r   lod0   440 px IoU 1.00 | lod1   440 px IoU 1.00 | lod2   440 px IoU 1.00
+  wagon  Rück+Brems  lod0  4082 px IoU 1.00 | lod1  4845 px IoU 0.74 | lod2  3882 px IoU 0.58
+  wagon  Brems       lod0   504 px IoU 1.00 | lod1   504 px IoU 1.00 | lod2   182 px IoU 0.36
+  wagon  Rückfahr    lod0   127 px IoU 1.00 | lod1   126 px IoU 0.99 | lod2     0 px IoU 0.00
+
+Blinker allein (links), Spielkamera 1280x720, MSAA 2x: Pixel die sich ändern (> 12 Stufen), Helligkeit aus -> an, Farbe an
+  sedan   30 m lod0 Tag:     13 px,  79.6 -> 146.6 (x1.84), an [242, 128, 43], aus [141, 67, 22]
+  sedan   30 m lod0 Nacht:   13 px,  14.8 -> 116.5, an [224, 93, 24]
+  sedan   80 m lod1 Tag:      3 px,  96.9 -> 141.0 (x1.46), an [232, 121, 69], aus [159, 82, 60]
+  sedan   80 m lod1 Nacht:    3 px,  20.9 ->  87.2, an [183, 65, 21]
+  hatch   30 m lod0 Tag:     11 px, 100.0 -> 161.0 (x1.61), an [223, 151, 66], aus [148, 91, 42]
+  hatch   30 m lod0 Nacht:   11 px,  14.0 -> 108.2, an [181, 93, 34]
+  hatch   80 m lod1 Tag:      2 px, 142.2 -> 171.8 (x1.21), an [242, 156, 120], aus [209, 125, 111]
+  hatch   80 m lod1 Nacht:    4 px,  40.5 ->  89.2, an [149, 74, 56]
+  wagon   30 m lod0 Tag:     14 px,  73.3 -> 132.1 (x1.80), an [236, 110, 34], aus [150, 56, 13]
+  wagon   30 m lod0 Nacht:   14 px,  21.4 -> 107.7, an [221, 82, 20]
+  wagon   80 m lod1 Tag:      3 px,  94.6 -> 130.3 (x1.38), an [223, 108, 73], aus [162, 77, 64]
+  wagon   80 m lod1 Nacht:    3 px,  24.7 ->  75.2, an [171, 52, 17]
+  truck   30 m lod0 Tag:     36 px,  85.0 -> 171.0 (x2.01), an [220, 168, 52], aus [121, 81, 16]
+  truck   30 m lod0 Nacht:   36 px,   0.9 -> 132.6, an [198, 122, 34]
+  truck   80 m lod1 Tag:      6 px,  78.5 -> 150.2 (x1.91), an [220, 139, 47], aus [119, 71, 25]
+  truck   80 m lod1 Nacht:    6 px,   5.5 -> 115.9, an [200, 99, 26]

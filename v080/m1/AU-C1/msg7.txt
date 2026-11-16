@@ -1,0 +1,9 @@
+v0.8.0 AU-C1: Pegel nach der Probefahrt Kiel – Hamburg abgestimmt
+
+Gemessen in der Probefahrt (Spielmix, Limousine): Brückenfugen trafen den Begrenzer (jetzt
+-5 dB, Fahrt bleibt bei -3,3 dBTP ohne Begrenzung), Kopfsteinpflaster lag 7,8 dB unter dem
+Mix (+5 dB, jetzt 4,4 dB), Betonplattenfugen +4 dB, Rüttelstreifen +2 dB, Bankett +4 dB,
+Sprühzischen bei Nässe +5 dB.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

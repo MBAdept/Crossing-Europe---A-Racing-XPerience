@@ -1,0 +1,121 @@
+
+CONTEXT
+- Game: "Crossing Europe – A Racing Xperience" (Godot 4.7.2, GDScript, GL Compatibility renderer), repo /home/user/crossing-europe---a-racing-xperience.
+  German user; docs and player-facing texts in German (tr()), code comments in English. v0.7.0 is released (= main).
+  v0.8.0 adds a graphics option: today's pseudo-3D game becomes the mode "Arcade" (frozen, pixel-identical); the new
+  mode "Modern" is a second, real-3D renderer in the same build with finer models, dynamic light and a "Modern" sound
+  profile. The user's wish, literally: "das gesamte Spiel einer deutlichen grafischen Überarbeitung unterziehen.
+  Detailreiche Grafik soweit möglich, feinere Modelle, bessere Lichteffekte, Sound- und Musiküberarbeitung" and "echtes
+  3D bitte". Wave 0 (session seam, model pipeline, audio core, geometry kernel with fairness tests) is merged in branch
+  v0.8.0. This push (M1) runs as parallel packages: renderer skeleton R1a (done), road/environment R1, terrain/props
+  R2, vehicles/signs R3, vehicle models AS1 (done; an art review and a rework AS1R follow), environment models AS1b,
+  engine sound AU-B (done), options/chooser/showroom/Leistungstest UI1. Then the lead merges everything, QA checks it,
+  and the user gets the first test build (Kiel–Hamburg in Modern, for Steam Deck and Windows).
+- THE BUILD CONTRACT IS BINDING: docs/dev/v080_contract.md (1,800 lines). Read §2 (rules), the decisions of §3 that
+  concern you, your interfaces in §4, §5, your package in §6, §8 and COMPLETELY §11 (amendments after wave 0 – it wins
+  over the older text; A-7 is the renderer facade, A-8 the plan and file ownership of this push). Also read the docs
+  of your area: docs/modelle.md, docs/audio-modern.md, ARCHITECTURE.md §15, docs/ui.md. Where the contract is wrong
+  or blocks you: implement the closest sound solution and report it under contract_issues with evidence – never work
+  around it silently. Evidence and prototypes of the design studies (starting points, read before reuse): /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/
+  (assets3d, audio, product-ux, synthesis; index in §10 of the contract).
+- YOUR PACKAGE ID: KRITIK-R2-MESS – a read-only role: no commits, no branch, no safety copy. START: if
+  /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/STAND.md exists, a predecessor was stopped by an account usage limit – read it, reuse its working
+  copy and partial results, and continue.
+- RESTART PROTOCOL: the container can restart, or an account usage limit can stop you, at any moment; a successor with
+  this same brief is then started (both have already happened in this push). (1) Your START instruction above says how
+  to find and continue a predecessor; its background processes are gone and half-written output files may be
+  incomplete. (2) Keep /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/STAND.md up to date after every step you finish: worktree path and branch,
+  done / doing now / next / pitfalls, where your scratch results are.
+- Runs: for EVERY game run set XDG_DATA_HOME to an ABSOLUTE folder under your scratch dir; pass --graphics=arcade|modern
+  explicitly. Rendering needs  xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
+  --audio-driver Dummy …  (software OpenGL, llvmpipe – no real GPU, no loudspeakers here: everything about a Steam
+  Deck, a real GPU or how something sounds to a person is "inferred", never "measured"). The default graphics preset
+  on this machine is "low" (adapter tier software: no shadow casters) – for pictures pass --gfx-preset=medium or high.
+  Up to six agents share the 4 cores and 16 GB: heavy jobs (Godot renders, Blender, audio renders, test suites) one at
+  a time with nice -n 10 and at most 2 worker processes; run the complete tools/run_tests.sh (9–15 min) at most twice
+  (use its filter argument while iterating) and tools/golden.sh check (Arcade identity, must print 20 von 20
+  identisch) once at the end. Tools: godot, python3 (numpy, PIL), ffmpeg, ImageMagick, Blender 5.2 as Python module
+  /home/user/tools/bpyenv/bin/python, tools/run_tests.sh, tools/run_render_checks.sh, tools/golden.sh, tools/ab_shot.sh
+  (in branches that contain R1a), tools/models_contact_sheet.sh, tools/blender/validate_models.py,
+  tools/audio/qc/audio_qc.py.
+- Shell: the Bash tool may refuse compound commands with heredocs or several chained git commands ("too complex"):
+  write helper scripts into your scratch folder and run them one by one; write commit messages to a file and use
+  git commit -F <file>. "-s" scripts must not name autoload-dependent classes statically; compile-check with
+  tests/check_scripts.gd.
+- Rule 1: the frozen Arcade files are never edited (sprites are never re-rendered). Stay inside your file ownership (§5 with A-8).
+- LOOK AT / MEASURE YOUR OWN RESULTS: you can open PNG/JPG files with the Read tool. Judge every picture you deliver
+  honestly; say plainly where something is not yet good enough.
+- Scratch for working files: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R2-MESS/ ; pictures, previews and reports for review: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/KRITIK-R2-MESS/ (write
+  your full report there as bericht.md). Never commit intermediates or previews. Disk space is limited: delete large
+  scratch items (exports, copies of the tree, caches you no longer need) when you are done.
+- You make no commits and change no branch.
+- Priorities when time gets tight: (1) nothing broken – gates green, Arcade identical; (2) the interfaces others depend on; (3) quality of what the player sees or hears most; breadth last.
+  Deliver the core solid and list what is left under notes_for_next rather than leaving everything half-done.
+- RESULT: keep it compact – summary at most 250 words; deviations, contract_issues and notes_for_next at most 10
+  entries each, one or two sentences per entry; the details belong into bericht.md. Mark numbers measured/inferred.
+
+PRIORITY RULE: other packages run on this machine at the same time (the QA and export of the user's first test
+build, which the user expects tomorrow morning, and a model package); the test build is on the critical path. Run EVERY
+heavy job (Godot runs, audio captures and renders, test suites, audio_qc --determinism, analyses over many files) with
+nice -n 19 and one process; never two heavy jobs at once. tools/run_tests.sh (10–15 min) runs as a background command
+with an explicit timeout of at least 3,600,000 ms; tools/golden.sh check (3–5 min) likewise with ≥ 1,200,000 ms.
+YOUR ROLE: INDEPENDENT ACCEPTANCE MEASUREMENT of the final Modern sound head – lens MEASUREMENT. A second reviewer looks
+at the code, the triggering and regressions at the same time; do not duplicate that. No commits, no pushes.
+THE OBJECT: AU-R3's head c0ffee110000000000000000000000000000000 (origin/wip/v080-au-r3) = AU-C1 + AU-R + AU-R2 + AU-R3. AU-R3's report:
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/AU-R3/bericht.md.
+WORK ON COPIES, never in a worktree of another package: for each head you need,
+  mkdir -p <dir> && git -C /home/user/crossing-europe---a-racing-xperience archive <commit> | tar -x -C <dir>   then  cp -a /home/user/crossing-europe---a-racing-xperience/.godot <dir>/  and import
+  once (nice -n 19 godot --headless --path <dir> --import). Heads: the object c0ffee110000000000000000000000000000000, AU-C1 4209268f0bad80beb9abc2609d92a74cd7279db1 (the sound the
+  user heard), AU-R 3d2e6e128d01e53e30ef5538bd58f42888827cc1 where a before/after needs it. Absolute XDG_DATA_HOME under your scratch dir for every
+  run. Delete the copies when you are done (disk space is limited).
+WHERE THE SOUND STANDS: the user listened to AU-C1's previews with headphones and wrote „die sounds scheinen solide,
+auf kopfhörer getestet. auch die musik ist sehr gut". So the character stays and the music is not touched. Since then:
+AU-R (3d2e6e128d01e53e30ef5538bd58f42888827cc1) fixed the measured faults of the road/tyre/wind/impact sounds (exact loop repetition, cobble hash,
+slab phase, bridge joints per deck, a Modern-only limiter on MMaster, variety of crash layers, snow loop, no rumble at
+fuel lanes); an independent re-measurement KRITIK-R (/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/KRITIK-R/bericht.md) found two high and five medium faults; AU-R2 (3600eb76c136d5c2c66537675c87511e3518b0ba)
+fixed them (slab patterns rebuilt from AU-C1's eight joints, flatter slab law above 150 km/h, new seed for the right
+cobble loop matched at its pitch, AudioServer lock only when a slab loop starts and every 0.5 s). Reports: AU-R /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/AU-R/bericht.md,
+AU-R2 /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/AU-R2/bericht.md, the first road review /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/KRITIK-FAHRBAHN/bericht.md. New previews of AU-R2 are with the user now (/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/AU-R/).
+LEAD DECISIONS ON THE MEASURING CRITERIA (binding from now on; the lead writes them into the contract §11.2):
+V1 R1 – no exact repetition: no envelope autocorrelation peak ≥ 0.40 at lags 0.3–3 s over 20 s at constant speed
+   (asphalt 130 km/h 0.6–1.6 kHz, cobbles 50 km/h 2.5–8 kHz, concrete 130 km/h 2.5–8 kHz). On concrete it is judged
+   WITHOUT the slab layer: the 5-m slab rhythm is wanted, it is part of the sound the user heard and liked. The slab
+   level stays at audio.modern.road.slabs.db 3; lowering it is a later mix decision after the user has played the test
+   build, not a fault.
+V2 The concrete share of a country is held within ±0.05 of its configured share only for countries with ≥ 10 autobahn
+   sections over all stages; smaller countries are reported, not judged.
+V3 Limiter criteria are statistics. Heavy crash at 130 km/h closing speed: the 95th percentile of the limiter's gain
+   reduction over 60 crashes ≤ 3 dB (car and truck) and every crash ≤ −1.0 dBTP at master volume 1.0. Cruising at
+   130–200 km/h: the largest gain reduction per 60-s run ≤ 0.5 dB in each of at least four runs. The 0.05–0.14 dB that
+   Godot's AudioEffectHardLimiter leaves standing after an intervention is not an intervention.
+KEEP THE CHARACTER (unchanged): a changed layer keeps its third-octave spectrum within ±1 dB and its loudness within
+±0.5 LU of AU-C1 at the reference speeds (130 km/h asphalt and concrete, 50 km/h cobbles). MUSIC: no change at all.
+TOOLS: the scripts of the last re-measurement, /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R/tools/, and AU-R2's copies with its additions,
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AU-R2/ktools/ (kr_capture.gd with plans A = as played and B = without drift, gusts and pass-bys,
+kr_crash.gd, kr_perf_conc.gd, kr_seam.gd, kr_slab.gd, kr_worst.gd, ana_cap.py, ana_compare.py, ana_crash.py,
+crash_p95.py, ana_peaks.py, ana_seam.py, dsp.py). Copy them and re-run them so the numbers compare 1:1 – but never
+take a number from a report: measure it yourself. Where randomness enters (crashes, drift), use NEW seeds (not 777/778).
+YOU CANNOT HEAR. Numbers are measured; how it sounds to a person is inferred – say so.
+CHECK, ranked by what the player hears most (the motorway at 100–200 km/h first):
+1 KEEP THE CHARACTER against AU-C1, deterministic (plan B): spectra and loudness of the road layers and game mixes at
+  130 km/h asphalt and concrete and 50 km/h cobbles; the slab layer in the game at 110, 130, 150, 170 and 200 km/h (AU-R2
+  rebuilt the patterns from AU-C1's eight joints and flattened the slab law above 150 km/h – is the level continuous at
+  150 km/h, about −0.9 dB at 170 and −2 dB at 200 against AU-R, as documented?); the right cobble loop (new seed,
+  matched at its pitch): loudest stones per channel against AU-C1, crest factor, true peak of the layer.
+2 R1 under V1: asphalt 130, cobbles 50, concrete 130 without the slab layer – no peak ≥ 0.40 at 0.3–3 s; report the peaks
+  up to 8 s, and concrete with slabs for the record.
+3 V3: 60 car and 60 truck heavy crashes at 130 km/h closing with your own seeds (median, p95, max gain reduction; max
+  true peak at master volume 1.0); 200 km/h on concrete in four 60-s runs; top speed with road and wind; AU-C1's
+  worst-case stack (true peak only).
+4 Seams and artefacts in the game: every Ogg loop and both slab WAVs play sample-exact (no click at a seam or when a slab
+  pattern starts or is realigned); no new tonal line; no zipper noise from the per-side drift; no pumping while cruising.
+5 CPU: road and impact script time per frame on concrete and asphalt against AU-C1 (interleaved runs under the same
+  load), AudioServer locks in the steady state.
+6 THE PREVIEWS THE USER IS LISTENING TO NOW (/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/AU-R/*.mp3 with their .txt): do the timestamps in the .txt
+  match what is audible in the file (onset of concrete; the four joints on the Köhlbrandbrücke at 0:14.7 / 17.6 / 20.4 /
+  22.2 in the bridge A/B; Hamburg in fahrt_kiel_hamburg_vorher_nachher: asphalt 1:23.7, cobbles 1:25.8, asphalt 1:32.0)?
+  Is the „nachher" half really the sound of the current head (re-capture a 10-s excerpt on c0ffee110000000000000000000000000000000 and compare)?
+SEVERITY: blocker = a gate missed, a true peak above −1.0 dBTP, or a click or regression the player hears; high = a V1/V3
+target or a character limit missed, or a preview that misleads the user; medium/low = the rest.
+DELIVER /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/KRITIK-R2-MESS/bericht.md (German): a table per check (AU-C1 → final head, with AU-R where it
+helps) and the ranked findings; nothing else.

@@ -1,0 +1,8 @@
+v0.8.0 FIX-R4: Lack nachts gemessen, Fallfilter in check_night spielerauto, Doku
+
+- check_night spielerauto: -- --fall=<Text> wählt Fälle; gemessen Kompakt 1,05×/1,23×, GT 0,92×/0,77×,
+  Limousine S1 0,88×/0,95×, Limousine DEV 21 Uhr 0,87×/1,00× (Helligkeit/Sättigung gegen Arcade)
+- Doku 15.7: Schimmer aus gewaschenem Lack, Himmelston nachts; GT-Grau bleibt offen
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,7 @@
+v0.8.0 AS5aR2: WIP echte Exporte Südhaus, Lütticher Reihenhäuser, Loire-Haus
+
+Südhaus und Loire-Haus mit Blattkarten an der Gartenkrone (lod0, Ausschneide-Klasse), lod1 ohne Alpha-Test;
+alle drei mit hellerem Ladenlicht und dunklerem Innenring der Fernstufe. Manifest folgt mit dem letzten Modell.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

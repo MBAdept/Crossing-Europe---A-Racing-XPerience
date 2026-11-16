@@ -1,0 +1,21 @@
+v0.8.0 KERN: Grafikmodus und Qualität (Gfx, Settings v3), Renderer-Naht der Rennsitzung, Modern-Gerüst
+
+- Gfx (rein, statisch): Modus-Auflösung (--graphics > graphics.force_mode > Absturz-Marker > Wahl > Arcade),
+  Klangprofil (auto folgt der gewählten Grafik), Stufe der Grafikkarte, Voreinstellungen, Renderer-Parameter
+  aus config graphics.levels, Urteil des Langsamkeits-Wächters
+- Settings: settings_version 3 mit graphics_mode, sound_profile, gfx_preset, gfx_custom, race_music – nur
+  gespeichert, wenn gewählt; unbekannte Schlüssel bleiben erhalten; Vollbild zählt weiter ab Version 2 als Wahl
+  (FULLSCREEN_CHOICE_SINCE); Signale, effective_graphics(), quality(), quality_levels(), sound(), adapter_tier(),
+  Absturz-Marker user://modern_start.lock
+- GfxSelfTest: Render-Selbsttest (96×96, beleuchtete Kugel, Shader-Fläche) mit reinem Urteil über das Bild
+- RaceRenderers + ModernRenderer (Gerüst: Kamera mit Arcades Projektion, Himmelsfarbe über eine Canvas-Ebene,
+  eine graue Ebene; prepare() über mehrere Bilder; --gfx-debug=fail)
+- Rennsitzung: Modus je Etappe, Marker zuerst, Ladebild und Stillstand bis is_prepared(), Rückfall auf Arcade
+  mit Meldung und Ergebnisfeld gfx_fallback, in Modern nur HUD-Icons als Sprite-Blätter, Marker nach 2 s weg,
+  Ansicht mit hour / dt / player.type, Ergebnis mit gfx, Klang-Hooks set_track / set_vehicle_state / event
+- Screenshotter: --shot-fast (Bild erst 0,1 s vor der Aufnahme wieder berechnen), hold
+- config graphics: Voreinstellungen, Stufen, Renderer-Parameter, Wächter, Leistungstest-Szenen, Budgets
+- Tests: tests/unit/core/test_gfx_settings.gd (21 Tests), Versions-Pin in test_gamepad.gd
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

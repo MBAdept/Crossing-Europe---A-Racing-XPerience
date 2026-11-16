@@ -1,0 +1,99 @@
+
+CONTEXT
+- Game: "Crossing Europe – A Racing Xperience" (Godot 4.7.2, GDScript, GL Compatibility renderer), repo /home/user/crossing-europe---a-racing-xperience.
+  German user; docs and player-facing texts in German (tr()), code comments in English. v0.7.0 is released (= main).
+  v0.8.0 adds a graphics option: today's pseudo-3D game becomes the mode "Arcade" (frozen, pixel-identical); the new
+  mode "Modern" is a second, real-3D renderer in the same build with finer models, dynamic light and a "Modern" sound
+  profile. The user's wish, literally: "das gesamte Spiel einer deutlichen grafischen Überarbeitung unterziehen.
+  Detailreiche Grafik soweit möglich, feinere Modelle, bessere Lichteffekte, Sound- und Musiküberarbeitung" and "echtes
+  3D bitte". Wave 0 (session seam, model pipeline, audio core, geometry kernel with fairness tests) is merged in branch
+  v0.8.0. This push (M1) runs as parallel packages: renderer skeleton R1a (done), road/environment R1, terrain/props
+  R2, vehicles/signs R3, vehicle models AS1 (done; an art review and a rework AS1R follow), environment models AS1b,
+  engine sound AU-B (done), options/chooser/showroom/Leistungstest UI1. Then the lead merges everything, QA checks it,
+  and the user gets the first test build (Kiel–Hamburg in Modern, for Steam Deck and Windows).
+- THE BUILD CONTRACT IS BINDING: docs/dev/v080_contract.md (1,800 lines). Read §2 (rules), the decisions of §3 that
+  concern you, your interfaces in §4, §5, your package in §6, §8 and COMPLETELY §11 (amendments after wave 0 – it wins
+  over the older text; A-7 is the renderer facade, A-8 the plan and file ownership of this push). Also read the docs
+  of your area: docs/modelle.md, docs/audio-modern.md, ARCHITECTURE.md §15, docs/ui.md. Where the contract is wrong
+  or blocks you: implement the closest sound solution and report it under contract_issues with evidence – never work
+  around it silently. Evidence and prototypes of the design studies (starting points, read before reuse): /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/
+  (assets3d, audio, product-ux, synthesis; index in §10 of the contract).
+- YOUR PACKAGE ID: AS2b. START: look for a predecessor of this run – the handover file
+  /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS2b/STAND.md and the remote branch wip/v080-as2b. If one exists, do NOT start over: read
+  STAND.md, go to the worktree named there (all commands and commits there, on its branch – leave your own fresh
+  worktree untouched, and report that branch and worktree in your result), review its uncommitted changes, commit them
+  as WIP, and continue where it stopped. Only if there is none, in your fresh worktree: git merge --ff-only c0ffee120000000000000000000000000000000
+  (the worktree starts from main; if the fast-forward is impossible, stop and report), then
+  cp -a /home/user/crossing-europe---a-racing-xperience/.godot . && godot --headless --path . --import
+- SAFETY COPY: after EVERY commit run  git push origin HEAD:refs/heads/wip/v080-as2b  (plain push, never
+  force; never push to v0.8.0 or main, never merge into them, never create tags or pull requests).
+- RESTART PROTOCOL: the container can restart, or an account usage limit can stop you, at any moment; a successor with
+  this same brief is then started (both have already happened in this push). (1) Your START instruction above says how
+  to find and continue a predecessor; its background processes are gone and half-written output files may be
+  incomplete. (2) Keep /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS2b/STAND.md up to date after every step you finish: worktree path and branch,
+  done / doing now / next / pitfalls, where your scratch results are. (3) Commit and push work in progress at
+  least every 30 minutes ("WIP" commits are fine) – unpushed work can be lost for good.
+- Runs: for EVERY game run set XDG_DATA_HOME to an ABSOLUTE folder under your scratch dir; pass --graphics=arcade|modern
+  explicitly. Rendering needs  xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
+  --audio-driver Dummy …  (software OpenGL, llvmpipe – no real GPU, no loudspeakers here: everything about a Steam
+  Deck, a real GPU or how something sounds to a person is "inferred", never "measured"). The default graphics preset
+  on this machine is "low" (adapter tier software: no shadow casters) – for pictures pass --gfx-preset=medium or high.
+  Up to six agents share the 4 cores and 16 GB: heavy jobs (Godot renders, Blender, audio renders, test suites) one at
+  a time with nice -n 10 and at most 2 worker processes; run the complete tools/run_tests.sh (9–15 min) at most twice
+  (use its filter argument while iterating) and tools/golden.sh check (Arcade identity, must print 20 von 20
+  identisch) once at the end. Tools: godot, python3 (numpy, PIL), ffmpeg, ImageMagick, Blender 5.2 as Python module
+  /home/user/tools/bpyenv/bin/python, tools/run_tests.sh, tools/run_render_checks.sh, tools/golden.sh, tools/ab_shot.sh
+  (in branches that contain R1a), tools/models_contact_sheet.sh, tools/blender/validate_models.py,
+  tools/audio/qc/audio_qc.py.
+- Shell: the Bash tool may refuse compound commands with heredocs or several chained git commands ("too complex"):
+  write helper scripts into your scratch folder and run them one by one; write commit messages to a file and use
+  git commit -F <file>. "-s" scripts must not name autoload-dependent classes statically; compile-check with
+  tests/check_scripts.gd.
+- Rule 1: the frozen Arcade files are never edited (sprites are never re-rendered). Stay inside your file ownership (§5 with A-8).
+- LOOK AT / MEASURE YOUR OWN RESULTS: you can open PNG/JPG files with the Read tool. Judge every picture you deliver
+  honestly; say plainly where something is not yet good enough.
+- Scratch for working files: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS2b/ ; pictures, previews and reports for review: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/AS2b/ (write
+  your full report there as bericht.md). Never commit intermediates or previews. Disk space is limited: delete large
+  scratch items (exports, copies of the tree, caches you no longer need) when you are done.
+- Commits: sensible steps on your branch; every commit message (German subject line) ends with
+  "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" and
+  "Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq". No model names anywhere else.
+- Priorities when time gets tight: (1) nothing broken – gates green, Arcade identical; (2) the interfaces others depend on; (3) quality of what the player sees or hears most; breadth last.
+  Deliver the core solid and list what is left under notes_for_next rather than leaving everything half-done.
+- RESULT: keep it compact – summary at most 250 words; deviations, contract_issues and notes_for_next at most 10
+  entries each, one or two sentences per entry; the details belong into bericht.md. Mark numbers measured/inferred.
+
+EARLY START – PRIORITY RULE: you are an early start of the next push (M2). The assembly of push M1 runs at the
+same time and is on the critical path for the user's first test build. Run EVERY heavy job (Blender exports and bakes,
+Godot renders, test suites) with nice -n 19 (not 10) and at most one worker process (export_models.py --jobs 1);
+never two heavy jobs at once.
+YOUR ROLE: AS2b – TRUCKS, BUSES, POLICE (contract §6 wave 4 "AS2b"; D17–D24; §4.6; A-4; docs/modelle.md). Your base
+is AS2a's final head c0ffee120000000000000000000000000000000 (branch br-modelle:AS2a; it contains AS1, AS1R, R3 and AS2a). Copy its export cache
+first: cp -a /wt/modelle:AS2a/tools/blender/_cache3d tools/blender/ . Push every commit to origin wip/v080-as2b.
+AS2a's report: {"branch":"br-modelle:AS2a","commit":"c0ffee120000000000000000000000000000000","worktree":"/wt/modelle:AS2a","summary":"s","open":[{"check":"c","result":"partial","evidence":"e"}],"deviations":[],"quality":"q","notes":[],"media":[]}
+MODELS: every heavy set (traffic/truck_* and traffic/bus_*: 7 sets – check whether the AS1 truck already covers the
+truck liveries and build what is missing; buses as articulated or rigid bodies like the Arcade box parts) and all 18
+police sets (police/<country>: the car bodies come from AS2a's cars with the country liveries, light bars and
+beacons). Acceptance: validator green; all 7 heavy and 18 police sets resolve to models; beacon channels A and B
+alternate; the part boxes equal the Arcade box parts (collision unchanged); trucks and buses articulate through groups
+with pivots like the AS1 semitrailer (R3's vehicle layer builds the articulation from groups).
+FILES YOU OWN: cesprites/{heavy, police}.py (additive hooks only – check_sprite_geometry.py after every change),
+tools/blender/ce3d/{heavy3d, police3d}.py (new) and truck3d.py, assets/models/traffic/{truck_*, bus_*}/**,
+assets/models/police/**, the shared pipeline files of §5 (backwards-compatible), the regenerated manifest. Never
+touch the car models of AS2a (an art review of them runs in parallel; its rework follows after you), the renderer,
+the frozen Arcade files and sprites.
+THE PIPELINE AND ITS STANDARD: the vehicle models of the slice went through build (AS1), an independent art review
+(/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/AS1-KRITIK/bericht.md – read it completely, its defect list is the checklist of what not to repeat)
+and a rework (AS1R, /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/AS1R/bericht.md and /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS1R/STAND.md – its fixes are the standard every
+new car must meet from the start: lamp bodies, bumper ends, wheel-arch liners, brake discs, plates, glass, rims, LOD
+pop limits, caster rules, validator rules). Its tools are in /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS1R/bin (rebuild.sh, sheet.sh, pop.sh,
+popmeasure.py, probe.py …) and the reviewer's tools in /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS1-KRITIK/tools_kritik – reuse them (copy into
+your own scratch folder, do not edit them in place).
+THE QUALITY BAR for heavy vehicles: the truck is the most frequent obstacle of the game – its rear at 20–150 m must
+read at once (lamps, underrun bar, reflective contour marking, plates, mud flaps); cabs with windows, mirrors, steps,
+tanks and lights; buses with windows, doors, destination display, wheels in real arches; police cars as finished as the
+traffic cars they are built on, with livery decals that follow the body and light bars with depth. Work in rounds:
+build, contact sheets day and night (every lamp channel incl. beacons A/B), chase-camera views at 20/60/150 m next to
+the Arcade sprite or box, LOOK, fix, repeat. DELIVER to /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/AS2b/ with bericht.md. GATES: validator,
+budgets of §4.6.9, check_sprite_geometry, export determinism, tools/run_tests.sh (once, at the end), tools/golden.sh
+check 20 von 20. Return the result format with package "AS2b".

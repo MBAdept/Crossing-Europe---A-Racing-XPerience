@@ -1,0 +1,17 @@
+AS1R: Spielerautos Runde 1 – Rücklicht ganz, Stoßfänger vor dem Rad, kein Keil, grobe Innenverkleidung
+
+- Leuchtenkörper der Rückleuchten mit vollem Gewicht (Kanal 2): bei Nacht leuchtet die ganze Leuchte,
+  nicht nur die Lichtleiter.
+- Stoßfänger enden am Radlauf (Hook bumper_clamp): beim Kompakt lief der vordere 9 cm in den Radlauf und
+  stand 52 mm im Reifen.
+- Wanne und Armaturenbrett bleiben aus den Radhäusern heraus (auch bei 25° Lenkeinschlag).
+- Hutablage folgt der Außenhaut: ihre Ecke stand beim Kompakt als schwarzes Blatt über den Rückleuchten.
+- Innenverkleidung als grober Loft (Kompakt 1 378 statt 4 112 Dreiecke).
+- Bremsscheiben mit harten Kanten und matt, Limousinen-Felgen anthrazit wie im Sprite, Kennzeichen hellgrau
+  mit kräftigeren Zeichen, Fugen 8 mm.
+- Dritte Bremsleuchte der Limousine als nach hinten blickende Fläche (Lichtanker mit dir).
+- Schattenwerfer liegt auch unter den Mulden von Leuchten und Grill.
+- Kontaktbogen: --clay, Ansichten Vorderrad und Heck nah bei Nacht.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

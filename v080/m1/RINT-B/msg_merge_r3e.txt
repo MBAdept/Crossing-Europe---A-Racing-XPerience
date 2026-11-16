@@ -1,0 +1,11 @@
+v0.8.0 RINT-B: R3E zusammengeführt – Arcade-Bilder als Ersatz für Fahrzeuge ohne 3D-Modell
+
+Konflikt nur in docs/renderer-modern.md: RINT-A hatte die Abschnitte neu nummeriert.
+RINT-As Nummern bleiben; R3Es Abschnitt „Ersatzbilder“ steht jetzt als 11.8 im
+Fahrzeug-Abschnitt von R3, seine Verweise zeigen auf 11.1 und 11.7. Die beiden
+überholten Offen-Punkte von R3 (Mittagssonne, Scheinwerferkegel) bleiben durch
+RINT-As Erledigt-Vermerk ersetzt. vehicles.gd ohne Konflikt: RINT-As Klasse
+vehicle_shadow (Kontaktschatten) und R3Es Ersatzbilder sind beide drin.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

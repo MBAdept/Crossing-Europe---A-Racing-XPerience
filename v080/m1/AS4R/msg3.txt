@@ -1,0 +1,14 @@
+WIP v0.8.0 AS4R: Runde 1 exportiert, Ladenschild mit Zeichen, Seilenden außerhalb
+
+Alle 15 AS4-Modelle mit dem Code der Runde 1 neu exportiert (Scheiben im
+Atlas, Shed-Glas, Mühlenflügel, Vorhangfassade, Kirche, Fachwerk). Dazu:
+- Ladenhaus: Zeichen auf dem Schild (Einkaufstasche zwischen zwei Balken,
+  spiegelsymmetrisch, nachts beleuchtet), Schildlicht gedimmt.
+- Pylon: Seilachse an der Deckkante bei x -1,15 m (die 0,32 m starken Seile
+  enden außerhalb der Geländerlinie).
+- Runde 2 im Katalog vorbereitet: Shed-Licht 30 %, Schildlicht 25 %.
+Gemessen (Paris-Tours km 131,3, 23 Uhr, hoch): Fensterlicht Spitze 216
+(vorher 165, Arcade 225), Pixel über 150: 376 (vorher 143, Arcade 543).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

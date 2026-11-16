@@ -1,0 +1,18 @@
+v0.8.0 M2INT: AS3R zusammengeführt – Vegetation und Natur (18 Bäume, Büsche, Heide, Felsen, Klippe)
+
+Zusammenführung von origin/wip/v080-as3r (638debc): neun Baumarten mit je zwei Saat-Varianten (ein
+Laubatlas je Art über variant_of), Büsche, Bodendecker, Heide, Felsen a/b und Klippe, nachgearbeitet nach
+der Kunstkritik (AS3R).
+
+Konflikte:
+- tools/blender/ce3d/catalog3d.py: Vereinigung (Polizei von AS2b/AS2R und der AS3-Block)
+- docs/modelle.md: AS3 als Abschnitt 18 hinter den Fahrzeug-Abschnitten 15–17
+- assets/models/manifest.json: neu erzeugt (--manifest-only): 73 Modelle, 182 Sets (91 mit Modell)
+
+Dazu (Leitungsnotiz 4): tests/unit/race3d/test_props.gd nach dem geprüften Vorschlag von AS3, aber ohne
+festen Set-Namen – die Tests nehmen das erste Requisiten-Set, das das Manifest noch als Arcade-Bild zeigt
+(die Buche hat seit AS3 ein Modell, die Kirche seit AS4), und zählen dessen Kontaktschatten nach seiner
+Klasse. Gemessen: test_props 7 von 7, Modell-Tests 48 von 48, Prüfer OK.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

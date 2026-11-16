@@ -1,0 +1,11 @@
+v0.8.0 AU-R: Plattenabgleich erst ab 6 ms, Tiefen-Kuhschwanz für die Musik (Standard 0) (WIP)
+
+- slabs.align_ms 1,5 -> 6,0: Godot meldet die Abspielposition in Schritten von
+  64 Frames; zwei Schleifen im Gleichschritt lesen sich als 0/2/4 ms Abstand.
+  Gemessen über 141 s Fahrt (100-160 km/h): 0 Neuabgleiche, größter Abstand 4,5 ms.
+- music_lib/mischung.json: low_shelf_db/low_shelf_hz (Standard 0 dB, 120 Hz);
+  bei 0 dB wird kein Filter eingefügt, die Musik bleibt bitgleich.
+- Doku audio-modern.md: Abschnitte 5, 6, 8-10, 15 teilweise nachgezogen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

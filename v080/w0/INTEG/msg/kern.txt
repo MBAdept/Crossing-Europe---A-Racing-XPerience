@@ -1,0 +1,7 @@
+Merge v0.8.0 KERN: Grafikmodus und Qualität, Renderer-Naht, Modern-Gerüst, Werkzeuge
+
+Welle 0, Paket KERN (Stand 89ab8eb): Settings v3 und Gfx, Renderer-Naht der Rennsitzung mit
+Modern-Gerüst, Arcade-Bildgleichheit, Render-Prüfungen, Größentabelle, Haken für die Modern-Prüfungen.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

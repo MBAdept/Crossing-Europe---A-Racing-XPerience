@@ -1,0 +1,204 @@
+{
+	"events": {
+		"bridge_in": 1,
+		"bridge_out": 1,
+		"joint": 12,
+		"pass_object": 63,
+		"rail_hit": 1
+	},
+	"impact": {
+		"busy": 0,
+		"events": {
+			"rail_hit": 1
+		},
+		"last": [
+			[
+				"rail_hit",
+				0,
+				-5.41,
+				0.7
+			]
+		],
+		"plays": {
+			"rail_hit": 1
+		},
+		"scrape": 0.0
+	},
+	"phases": [
+		{
+			"km": 37.65,
+			"km_beton": 40.0,
+			"name": "autobahn",
+			"t": 0.08
+		},
+		{
+			"km": 77.18,
+			"km0": 78.0,
+			"km1": 80.6,
+			"name": "bruecke",
+			"t": 9.64
+		},
+		{
+			"km": 52.0,
+			"name": "ruettelstreifen",
+			"t": 20.8
+		},
+		{
+			"km": 53.92,
+			"name": "bankett",
+			"t": 26.34
+		},
+		{
+			"km": 55.45,
+			"name": "leitplanke",
+			"t": 31.18
+		},
+		{
+			"km": 88.4,
+			"name": "pflaster",
+			"t": 36.65
+		},
+		{
+			"km": 89.93,
+			"name": "ende",
+			"t": 47.65
+		}
+	],
+	"road": {
+		"joints": 12,
+		"passes": 63,
+		"played": {
+			"joint": 12,
+			"pass": 59
+		},
+		"players": 8,
+		"scrub": 0.0,
+		"skid": 0.0,
+		"slab": 0.0,
+		"snow": 0.0,
+		"surfaces": {
+			"cobbles": [
+				0.418,
+				0.418
+			]
+		},
+		"vehicle": "limousine",
+		"wet": 0.0,
+		"wind": 0.00298101385124028,
+		"zone_db": -0.999998933195597
+	},
+	"seconds": 47.6541,
+	"surfaces": [
+		{
+			"km": 37.65,
+			"surfaces": "asphalt/asphalt",
+			"t": 0.09
+		},
+		{
+			"km": 40.01,
+			"surfaces": "concrete/concrete",
+			"t": 4.97
+		},
+		{
+			"km": 77.18,
+			"surfaces": "asphalt/asphalt",
+			"t": 9.65
+		},
+		{
+			"km": 78.01,
+			"surfaces": "deck/deck",
+			"t": 12.11
+		},
+		{
+			"km": 80.62,
+			"surfaces": "asphalt/asphalt",
+			"t": 19.82
+		},
+		{
+			"km": 52.01,
+			"surfaces": "concrete/concrete",
+			"t": 20.82
+		},
+		{
+			"km": 52.79,
+			"surfaces": "concrete/rumble",
+			"t": 23.06
+		},
+		{
+			"km": 53.48,
+			"surfaces": "concrete/concrete",
+			"t": 25.06
+		},
+		{
+			"km": 54.19,
+			"surfaces": "concrete/rumble",
+			"t": 27.12
+		},
+		{
+			"km": 54.41,
+			"surfaces": "concrete/shoulder",
+			"t": 27.79
+		},
+		{
+			"km": 54.65,
+			"surfaces": "rumble/shoulder",
+			"t": 28.56
+		},
+		{
+			"km": 55.13,
+			"surfaces": "concrete/shoulder",
+			"t": 30.09
+		},
+		{
+			"km": 55.18,
+			"surfaces": "concrete/rumble",
+			"t": 30.27
+		},
+		{
+			"km": 55.23,
+			"surfaces": "concrete/concrete",
+			"t": 30.44
+		},
+		{
+			"km": 55.63,
+			"surfaces": "concrete/rumble",
+			"t": 31.79
+		},
+		{
+			"km": 55.69,
+			"surfaces": "concrete/shoulder",
+			"t": 31.97
+		},
+		{
+			"km": 55.73,
+			"surfaces": "shoulder/shoulder",
+			"t": 32.13
+		},
+		{
+			"km": 56.55,
+			"surfaces": "rumble/shoulder",
+			"t": 35.21
+		},
+		{
+			"km": 56.61,
+			"surfaces": "concrete/shoulder",
+			"t": 35.44
+		},
+		{
+			"km": 56.66,
+			"surfaces": "concrete/rumble",
+			"t": 35.66
+		},
+		{
+			"km": 56.71,
+			"surfaces": "concrete/concrete",
+			"t": 35.89
+		},
+		{
+			"km": 88.4,
+			"surfaces": "cobbles/cobbles",
+			"t": 36.66
+		}
+	],
+	"vehicle": "limousine"
+}

@@ -1,0 +1,7 @@
+v0.8.0 AS5a2: Chalet und Berner Lauben (swiss) als Echtzeit-Modelle
+
+Echte Exporte (export_models.py, Bauer city), gebacken, Manifest neu erzeugt. Werte (Dreiecke, Atlas, Texeldichte,
+Bytes, Backzeit) in docs/modelle.md Abschnitt 21 und im Bericht.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

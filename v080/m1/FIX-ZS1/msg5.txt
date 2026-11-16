@@ -1,0 +1,8 @@
+v0.8.0 FIX-ZS1: Modern-Änderungsmelder neu – nur der Start bei km 0 ändert sich
+
+tools/golden.sh modern-make auf 0906efc (716 s): modern_start_mittel zeigt jetzt
+das Spielerauto im Countdown an Arcades Stelle (0a7600ec… → 3978bb55…); die
+fünf Bilder bei km > 0 (S2, S3, S4, S5, S1 nachts) sind MD5-gleich geblieben.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

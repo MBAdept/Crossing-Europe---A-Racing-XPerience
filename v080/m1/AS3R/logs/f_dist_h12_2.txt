@@ -1,0 +1,35 @@
+prop_scene: Renn-Licht 12 Uhr, normal, Voreinstellung medium, Sicht 900 m, Stufen 60 / 200 m
+SZENE props/tree_beech 15 m lod0 862x1108 px
+SZENE props/tree_beech 40 m lod0 231x324 px
+SZENE props/tree_beech 100 m lod1 82x120 px
+SZENE props/tree_beech 250 m impostor 31x47 px
+SZENE props/tree_beech 15 m sprite 862x1108 px
+SZENE props/tree_beech 40 m sprite 231x324 px
+SZENE props/tree_beech 100 m sprite 82x120 px
+SZENE props/tree_beech 250 m sprite 31x47 px
+SZENE props/tree_beech_b 15 m lod0 869x1157 px
+SZENE props/tree_beech_b 40 m lod0 222x327 px
+SZENE props/tree_beech_b 100 m lod1 78x120 px
+SZENE props/tree_beech_b 250 m impostor 29x46 px
+SZENE props/tree_beech_b 15 m sprite 869x1157 px
+SZENE props/tree_beech_b 40 m sprite 222x327 px
+SZENE props/tree_beech_b 100 m sprite 78x120 px
+SZENE props/tree_beech_b 250 m sprite 29x46 px
+SZENE props/tree_poplar 15 m lod0 402x1228 px
+SZENE props/tree_poplar 40 m lod0 112x408 px
+SZENE props/tree_poplar 100 m lod1 39x157 px
+SZENE props/tree_poplar 250 m impostor 15x62 px
+SZENE props/tree_poplar 15 m sprite 402x1228 px
+SZENE props/tree_poplar 40 m sprite 112x408 px
+SZENE props/tree_poplar 100 m sprite 39x157 px
+SZENE props/tree_poplar 250 m sprite 15x62 px
+SZENE props/tree_poplar_b 15 m lod0 371x1149 px
+SZENE props/tree_poplar_b 40 m lod0 106x387 px
+SZENE props/tree_poplar_b 100 m lod1 38x149 px
+SZENE props/tree_poplar_b 250 m impostor 14x59 px
+SZENE props/tree_poplar_b 15 m sprite 371x1149 px
+SZENE props/tree_poplar_b 40 m sprite 106x387 px
+SZENE props/tree_poplar_b 100 m sprite 38x149 px
+SZENE props/tree_poplar_b 250 m sprite 14x59 px
+prop_scene: dist -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS3R/shots/f_dist_h12_2.png
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS3R/shots/f_dist_h12_2.png

@@ -1,0 +1,42 @@
+HEAD 634e28b78bd6ca2c3afbc0cd1177fde1bcb6793b 04:04:11
+== import start 04:04:11
+== import exit 0 (5 s)
+   import: Fehlerzeilen 0
+== check_scripts start 04:04:16
+== check_scripts exit 0 (7 s)
+306 Skripte geprüft, 0 fehlerhaft
+== run_tests start 04:04:23
+== run_tests exit 0 (865 s)
+CHECKS OK  (7 von 7 bestanden, 0 s)
+CHECKS OK  (0 fehlgeschlagen, 59 s)
+==> Tests bestanden (865 s)
+== golden_check start 04:18:48
+== golden_check exit 0 (368 s)
+GOLDEN arcade: 20 von 20 identisch (157 s)
+GOLDEN arcade-ui: 17 von 17 identisch (205 s)
+== golden_modern_check start 04:24:56
+== golden_modern_check exit 0 (864 s)
+GOLDEN modern: 6 von 6 identisch (698 s)
+GOLDEN modern-gles: modern_s3_hoch OpenGL ES gegen OpenGL: OK max. Abweichung 2/255, PSNR 73.2 dB, 8553 Pixel verschieden (159 s)
+== render_checks start 04:39:20
+== render_checks exit 0 (1579 s)
+RENDER-CHECK-DATEI tests/race/check_glow_occlusion.gd               OK  (Exit 0, 53 s)
+RENDER-CHECK-DATEI tests/race/check_sprite_flip.gd                  OK  (Exit 0, 1 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_facade_render.gd       OK  (Exit 0, 16 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_instance_budget.gd     OK  (Exit 0, 147 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_light_base.gd          OK  (Exit 0, 99 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_models.gd              OK  (Exit 0, 8 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_modern_render.gd       OK  (Exit 0, 341 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_occlusion.gd           OK  (Exit 0, 33 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_props_render.gd        OK  (Exit 0, 6 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_quit_sound.gd          OK  (Exit 0, 28 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_road_parity.gd         OK  (Exit 0, 24 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_seam_render.gd         OK  (Exit 0, 188 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_session_modern.gd      OK  (Exit 0, 41 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_showroom_render.gd     OK  (Exit 0, 50 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_start_km0.gd           OK  (Exit 0, 179 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_terrain_cover.gd       OK  (Exit 0, 64 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_vehicle_lights.gd      OK  (Exit 0, 57 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_vehicle_standin.gd     OK  (Exit 0, 239 s)
+==> 18 von 18 Render-Prüfdateien in Ordnung
+== fertig 05:05:39

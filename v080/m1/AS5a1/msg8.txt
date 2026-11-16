@@ -1,0 +1,9 @@
+v0.8.0 AS5a1: WIP echte Exporte aller elf Stadthäuser (german, german_old, hanse)
+
+Export aus dem Stand a5315cd (CE_THREADS=3, ein Worker, nice 19): Einfamilienhaus,
+Mietshaus, Gründerzeithaus, Büroturm, Fachwerkzeile a/b, Barockhaus, Giebelhaus,
+Kontor, Speicher, Hafenkran; Manifest neu erzeugt. validate_models.py --report: OK.
+docs/modelle.md: Abschnitt 20 als Entwurf (Zahlen folgen).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,2341 @@
+[
+{
+"name": "truck_g15_lod0_day",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 23.25
+}
+},
+{
+"name": "truck_g15_lod0_day_ss",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 23.25,
+"ss": 3.0
+},
+"msaa": 4
+},
+{
+"name": "truck_g20_lod0_day",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 28.25
+}
+},
+{
+"name": "truck_g20_lod0_day_ss",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 28.25,
+"ss": 3.0
+},
+"msaa": 4
+},
+{
+"name": "truck_g40_lod0_day",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 48.25
+}
+},
+{
+"name": "truck_g40_lod0_day_ss",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 48.25,
+"ss": 3.0
+},
+"msaa": 4
+},
+{
+"name": "truck_g60_lod0_day",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 68.25
+}
+},
+{
+"name": "truck_g60_lod0_day_ss",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 68.25,
+"ss": 3.0
+},
+"msaa": 4
+},
+{
+"name": "truck_g60_lod1_day",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 68.25
+}
+},
+{
+"name": "truck_g60_lod1_day_ss",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 68.25,
+"ss": 3.0
+},
+"msaa": 4
+},
+{
+"name": "truck_g100_lod1_day",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 108.25
+}
+},
+{
+"name": "truck_g100_lod1_day_ss",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 108.25,
+"ss": 3.0
+},
+"msaa": 4
+},
+{
+"name": "truck_g150_lod1_day",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 158.25
+}
+},
+{
+"name": "truck_g150_lod1_day_ss",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 158.25,
+"ss": 3.0
+},
+"msaa": 4
+},
+{
+"name": "truck_g180_lod1_day",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 188.25
+}
+},
+{
+"name": "truck_g180_lod1_day_ss",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 188.25,
+"ss": 3.0
+},
+"msaa": 4
+},
+{
+"name": "truck_g180_lod2_day",
+"set": "traffic/truck_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 188.25
+}
+},
+{
+"name": "truck_g180_lod2_day_ss",
+"set": "traffic/truck_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 188.25,
+"ss": 3.0
+},
+"msaa": 4
+},
+{
+"name": "truck_g250_lod2_day",
+"set": "traffic/truck_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 258.25
+}
+},
+{
+"name": "truck_g250_lod2_day_ss",
+"set": "traffic/truck_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 258.25,
+"ss": 3.0
+},
+"msaa": 4
+},
+{
+"name": "truck_g20_lod0_daybrake",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 28.25
+},
+"lamp_a": [
+0,
+1,
+1,
+0
+]
+},
+{
+"name": "truck_g20_lod0_nighttail",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 28.25
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "truck_g20_lod0_nightbrake",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 28.25
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "truck_g60_lod1_daybrake",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 68.25
+},
+"lamp_a": [
+0,
+1,
+1,
+0
+]
+},
+{
+"name": "truck_g60_lod1_nighttail",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 68.25
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "truck_g60_lod1_nightbrake",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 68.25
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "truck_g150_lod1_daybrake",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 158.25
+},
+"lamp_a": [
+0,
+1,
+1,
+0
+]
+},
+{
+"name": "truck_g150_lod1_nighttail",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 158.25
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "truck_g150_lod1_nightbrake",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 158.25
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "truck_g250_lod2_daybrake",
+"set": "traffic/truck_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 258.25
+},
+"lamp_a": [
+0,
+1,
+1,
+0
+]
+},
+{
+"name": "truck_g250_lod2_nighttail",
+"set": "traffic/truck_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 258.25
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "truck_g250_lod2_nightbrake",
+"set": "traffic/truck_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 258.25
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "truck_g12_lane",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 20.25,
+"lane": -3.5
+}
+},
+{
+"name": "truck_g30_lane",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 38.25,
+"lane": -3.5
+}
+},
+{
+"name": "truck_g40_oncoming_night",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"yaw": 180,
+"cam": {
+"type": "game",
+"dist": 40,
+"lane": 3.5
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "truck_lod0_rear34",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lod1_rear34",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_wirelod1_rear34",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lod2_rear34",
+"set": "traffic/truck_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_wirelod2_rear34",
+"set": "traffic/truck_white",
+"lod": "lod2",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_clay_rear34",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_wirelod0_rear34",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_checkcb_rear34",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_check_rear34",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "check",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lampmap_rear34",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_caster_rear34",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lod0_rear",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lod0_side",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lod1_side",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_wirelod1_side",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lod2_side",
+"set": "traffic/truck_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_wirelod2_side",
+"set": "traffic/truck_white",
+"lod": "lod2",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_clay_side",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_wirelod0_side",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_checkcb_side",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_check_side",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "check",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lampmap_side",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_caster_side",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lod0_front34",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lod1_front34",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_wirelod1_front34",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lod2_front34",
+"set": "traffic/truck_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_wirelod2_front34",
+"set": "traffic/truck_white",
+"lod": "lod2",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_clay_front34",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_wirelod0_front34",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_checkcb_front34",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_check_front34",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "check",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lampmap_front34",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_caster_front34",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lod0_top",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 38
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lod0_rearclose",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+6.6,
+1.6,
+4.1,
+8.3
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lod1_rearclose",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+6.6,
+1.6,
+4.1,
+8.3
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_wirelod1_rearclose",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+6.6,
+1.6,
+4.1,
+8.3
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lod2_rearclose",
+"set": "traffic/truck_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+6.6,
+1.6,
+4.1,
+8.3
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_wirelod2_rearclose",
+"set": "traffic/truck_white",
+"lod": "lod2",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+6.6,
+1.6,
+4.1,
+8.3
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_clay_rearclose",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+6.6,
+1.6,
+4.1,
+8.3
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_wirelod0_rearclose",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+6.6,
+1.6,
+4.1,
+8.3
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_checkcb_rearclose",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+6.6,
+1.6,
+4.1,
+8.3
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_check_rearclose",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "check",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+6.6,
+1.6,
+4.1,
+8.3
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lampmap_rearclose",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+6.6,
+1.6,
+4.1,
+8.3
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_caster_rearclose",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+6.6,
+1.6,
+4.1,
+8.3
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lod0_cabclose",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 150,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+-8.3,
+1.6,
+4.0,
+-5.0
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lod1_cabclose",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 150,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+-8.3,
+1.6,
+4.0,
+-5.0
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_wirelod1_cabclose",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 150,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+-8.3,
+1.6,
+4.0,
+-5.0
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lod2_cabclose",
+"set": "traffic/truck_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 150,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+-8.3,
+1.6,
+4.0,
+-5.0
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_wirelod2_cabclose",
+"set": "traffic/truck_white",
+"lod": "lod2",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 150,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+-8.3,
+1.6,
+4.0,
+-5.0
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_clay_cabclose",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 150,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+-8.3,
+1.6,
+4.0,
+-5.0
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_wirelod0_cabclose",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 150,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+-8.3,
+1.6,
+4.0,
+-5.0
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_checkcb_cabclose",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 150,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+-8.3,
+1.6,
+4.0,
+-5.0
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_check_cabclose",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "check",
+"cam": {
+"type": "orbit",
+"yaw": 150,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+-8.3,
+1.6,
+4.0,
+-5.0
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lampmap_cabclose",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 150,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+-8.3,
+1.6,
+4.0,
+-5.0
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_caster_cabclose",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 150,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+-8.3,
+1.6,
+4.0,
+-5.0
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lod0_wheels",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 70,
+"el": 6,
+"aabb": [
+0.6,
+0.0,
+-4.0,
+1.6,
+1.4,
+-2.2
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lod0_trailerwheels",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 70,
+"el": 6,
+"aabb": [
+0.6,
+0.0,
+1.8,
+1.6,
+1.4,
+6.1
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lod0_coupling",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 60,
+"el": 20,
+"aabb": [
+-1.4,
+0.0,
+-5.5,
+1.4,
+4.0,
+-1.5
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lod0_cabside",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4,
+"aabb": [
+-1.6,
+0.0,
+-8.3,
+1.6,
+4.0,
+-2.0
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_lod0_night_tail",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+6.6,
+1.6,
+4.1,
+8.3
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "truck_lod0_night_brake",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+6.6,
+1.6,
+4.1,
+8.3
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "truck_lod1_night_brake",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+6.6,
+1.6,
+4.1,
+8.3
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "truck_lod2_night_brake",
+"set": "traffic/truck_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+6.6,
+1.6,
+4.1,
+8.3
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "truck_lod0_night_indl",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+6.6,
+1.6,
+4.1,
+8.3
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "truck_lod0_night_reverse",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+6.6,
+1.6,
+4.1,
+8.3
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+1,
+0,
+0
+]
+},
+{
+"name": "truck_lod0_night_head",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 150,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+-8.3,
+1.6,
+4.0,
+-5.0
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "truck_lod1_night_head",
+"set": "traffic/truck_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 150,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+-8.3,
+1.6,
+4.0,
+-5.0
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "truck_lod2_night_head",
+"set": "traffic/truck_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 150,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+-8.3,
+1.6,
+4.0,
+-5.0
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "truck_lod0_night_headind",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 150,
+"el": 10,
+"aabb": [
+-1.6,
+0.0,
+-8.3,
+1.6,
+4.0,
+-5.0
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+1
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "truck_paint_truck_white",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 140,
+"el": 12
+},
+"size": [
+640,
+400
+],
+"msaa": 4
+},
+{
+"name": "truck_paint_truck_white_rear",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 30,
+"el": 10
+},
+"size": [
+640,
+400
+],
+"msaa": 4
+},
+{
+"name": "truck_paint_truck_blue",
+"set": "traffic/truck_blue",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 140,
+"el": 12
+},
+"size": [
+640,
+400
+],
+"msaa": 4
+},
+{
+"name": "truck_paint_truck_blue_rear",
+"set": "traffic/truck_blue",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 30,
+"el": 10
+},
+"size": [
+640,
+400
+],
+"msaa": 4
+},
+{
+"name": "truck_paint_truck_green",
+"set": "traffic/truck_green",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 140,
+"el": 12
+},
+"size": [
+640,
+400
+],
+"msaa": 4
+},
+{
+"name": "truck_paint_truck_green_rear",
+"set": "traffic/truck_green",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 30,
+"el": 10
+},
+"size": [
+640,
+400
+],
+"msaa": 4
+},
+{
+"name": "truck_paint_truck_red",
+"set": "traffic/truck_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 140,
+"el": 12
+},
+"size": [
+640,
+400
+],
+"msaa": 4
+},
+{
+"name": "truck_paint_truck_red_rear",
+"set": "traffic/truck_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 30,
+"el": 10
+},
+"size": [
+640,
+400
+],
+"msaa": 4
+},
+{
+"name": "truck_art0_top",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"articulate": 0,
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 80,
+"aabb": [
+-6,
+0,
+-9,
+6,
+4,
+9
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_art0_34",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"articulate": 0,
+"cam": {
+"type": "orbit",
+"yaw": 120,
+"el": 18,
+"aabb": [
+-3,
+0,
+-8.5,
+3,
+4,
+-1
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_art15_top",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"articulate": 15,
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 80,
+"aabb": [
+-6,
+0,
+-9,
+6,
+4,
+9
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_art15_34",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"articulate": 15,
+"cam": {
+"type": "orbit",
+"yaw": 120,
+"el": 18,
+"aabb": [
+-3,
+0,
+-8.5,
+3,
+4,
+-1
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_art30_top",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"articulate": 30,
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 80,
+"aabb": [
+-6,
+0,
+-9,
+6,
+4,
+9
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_art30_34",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"articulate": 30,
+"cam": {
+"type": "orbit",
+"yaw": 120,
+"el": 18,
+"aabb": [
+-3,
+0,
+-8.5,
+3,
+4,
+-1
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_art45_top",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"articulate": 45,
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 80,
+"aabb": [
+-6,
+0,
+-9,
+6,
+4,
+9
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_art45_34",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"articulate": 45,
+"cam": {
+"type": "orbit",
+"yaw": 120,
+"el": 18,
+"aabb": [
+-3,
+0,
+-8.5,
+3,
+4,
+-1
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "truck_steer25",
+"set": "traffic/truck_white",
+"lod": "lod0",
+"steer": 25,
+"cam": {
+"type": "orbit",
+"yaw": 140,
+"el": 14,
+"aabb": [
+-1.6,
+0.0,
+-8.3,
+1.6,
+4.0,
+-5.0
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+}
+]

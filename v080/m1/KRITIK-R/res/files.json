@@ -1,0 +1,695 @@
+{
+ "variants": {
+  "glass": {
+   "a": {
+    "shape_max_db": [
+     4.6,
+     1585.0
+    ],
+    "level_equal_peak_db": -0.07,
+    "lead_silent": true,
+    "a_equals_old_after_lead": true,
+    "seconds": 1.329,
+    "peak_dbfs": -3.13
+   },
+   "b": {
+    "shape_max_db": [
+     9.65,
+     1259.0
+    ],
+    "level_equal_peak_db": 0.73,
+    "lead_silent": true,
+    "a_equals_old_after_lead": false,
+    "seconds": 1.329,
+    "peak_dbfs": -3.86
+   },
+   "c": {
+    "shape_max_db": [
+     6.87,
+     1585.0
+    ],
+    "level_equal_peak_db": -0.8,
+    "lead_silent": true,
+    "a_equals_old_after_lead": false,
+    "seconds": 1.329,
+    "peak_dbfs": -3.11
+   },
+   "d": {
+    "shape_max_db": [
+     6.11,
+     1995.0
+    ],
+    "level_equal_peak_db": 0.61,
+    "lead_silent": true,
+    "a_equals_old_after_lead": false,
+    "seconds": 1.329,
+    "peak_dbfs": -3.63
+   }
+  },
+  "debris": {
+   "a": {
+    "shape_max_db": [
+     1.16,
+     1259.0
+    ],
+    "level_equal_peak_db": -0.08,
+    "lead_silent": true,
+    "a_equals_old_after_lead": true,
+    "seconds": 1.06,
+    "peak_dbfs": -3.0
+   },
+   "b": {
+    "shape_max_db": [
+     6.84,
+     2512.0
+    ],
+    "level_equal_peak_db": 0.36,
+    "lead_silent": true,
+    "a_equals_old_after_lead": false,
+    "seconds": 1.06,
+    "peak_dbfs": -3.0
+   },
+   "c": {
+    "shape_max_db": [
+     5.31,
+     1995.0
+    ],
+    "level_equal_peak_db": 0.47,
+    "lead_silent": true,
+    "a_equals_old_after_lead": false,
+    "seconds": 1.06,
+    "peak_dbfs": -3.03
+   },
+   "d": {
+    "shape_max_db": [
+     5.07,
+     1995.0
+    ],
+    "level_equal_peak_db": 0.44,
+    "lead_silent": true,
+    "a_equals_old_after_lead": false,
+    "seconds": 1.06,
+    "peak_dbfs": -3.06
+   }
+  },
+  "truck_boom": {
+   "a": {
+    "shape_max_db": [
+     2.41,
+     50.0
+    ],
+    "level_equal_peak_db": -0.07,
+    "lead_silent": true,
+    "a_equals_old_after_lead": true,
+    "seconds": 1.32,
+    "peak_dbfs": -3.07
+   },
+   "b": {
+    "shape_max_db": [
+     3.13,
+     398.0
+    ],
+    "level_equal_peak_db": -0.3,
+    "lead_silent": true,
+    "a_equals_old_after_lead": false,
+    "seconds": 1.32,
+    "peak_dbfs": -3.04
+   },
+   "c": {
+    "shape_max_db": [
+     2.3,
+     50.0
+    ],
+    "level_equal_peak_db": -0.23,
+    "lead_silent": true,
+    "a_equals_old_after_lead": false,
+    "seconds": 1.32,
+    "peak_dbfs": -3.04
+   },
+   "d": {
+    "shape_max_db": [
+     2.76,
+     398.0
+    ],
+    "level_equal_peak_db": 0.06,
+    "lead_silent": true,
+    "a_equals_old_after_lead": false,
+    "seconds": 1.32,
+    "peak_dbfs": -3.0
+   }
+  }
+ },
+ "lead": {
+  "hit_heavy_a": {
+   "identical_after_20ms": true,
+   "lead_silent": true
+  },
+  "hit_heavy_b": {
+   "identical_after_20ms": true,
+   "lead_silent": true
+  },
+  "hit_light_a": {
+   "identical_after_20ms": true,
+   "lead_silent": true
+  },
+  "hit_light_b": {
+   "identical_after_20ms": true,
+   "lead_silent": true
+  },
+  "crunch_a": {
+   "identical_after_20ms": true,
+   "lead_silent": true
+  },
+  "crunch_b": {
+   "identical_after_20ms": true,
+   "lead_silent": true
+  }
+ },
+ "loops": {
+  "tyre_asphalt": {
+   "len_old_s": 2.0,
+   "len_a_s": 5.3,
+   "len_b_s": 6.7,
+   "shape_a_db": [
+    0.6,
+    200.0
+   ],
+   "shape_b_db": [
+    0.64,
+    158.0
+   ],
+   "tonal_old": [],
+   "tonal_a": [],
+   "tonal_b": [],
+   "seam_a": [
+    0.352,
+    0.291
+   ],
+   "seam_b": [
+    0.455,
+    0.568
+   ],
+   "seam_old": [
+    0.722,
+    1.242
+   ],
+   "crest_old": 14.5,
+   "crest_a": 13.4,
+   "crest_b": 13.9,
+   "gcd_frames": 4410,
+   "common_period_s": 355.1
+  },
+  "tyre_concrete": {
+   "len_old_s": 2.0,
+   "len_a_s": 5.1,
+   "len_b_s": 6.3,
+   "shape_a_db": [
+    1.12,
+    63.0
+   ],
+   "shape_b_db": [
+    0.64,
+    40.0
+   ],
+   "tonal_old": [],
+   "tonal_a": [],
+   "tonal_b": [],
+   "seam_a": [
+    0.323,
+    0.588
+   ],
+   "seam_b": [
+    0.108,
+    0.441
+   ],
+   "seam_old": [
+    0.66,
+    1.582
+   ],
+   "crest_old": 13.9,
+   "crest_a": 14.5,
+   "crest_b": 13.1,
+   "gcd_frames": 13230,
+   "common_period_s": 107.1
+  },
+  "tyre_cobbles": {
+   "len_old_s": 2.5,
+   "len_a_s": 5.7,
+   "len_b_s": 7.1,
+   "shape_a_db": [
+    0.78,
+    40.0
+   ],
+   "shape_b_db": [
+    0.88,
+    40.0
+   ],
+   "tonal_old": [],
+   "tonal_a": [],
+   "tonal_b": [
+    [
+     121,
+     12.4
+    ]
+   ],
+   "seam_a": [
+    0.018,
+    0.037
+   ],
+   "seam_b": [
+    0.137,
+    0.105
+   ],
+   "seam_old": [
+    0.831,
+    0.814
+   ],
+   "crest_old": 15.6,
+   "crest_a": 14.2,
+   "crest_b": 16.2,
+   "gcd_frames": 4410,
+   "common_period_s": 404.7
+  },
+  "tyre_deck": {
+   "len_old_s": 2.0,
+   "len_a_s": 4.9,
+   "len_b_s": 6.1,
+   "shape_a_db": [
+    0.56,
+    25.0
+   ],
+   "shape_b_db": [
+    0.63,
+    32.0
+   ],
+   "tonal_old": [],
+   "tonal_a": [],
+   "tonal_b": [],
+   "seam_a": [
+    0.328,
+    0.267
+   ],
+   "seam_b": [
+    0.001,
+    0.194
+   ],
+   "seam_old": [
+    1.823,
+    3.354
+   ],
+   "crest_old": 13.1,
+   "crest_a": 13.6,
+   "crest_b": 14.1,
+   "gcd_frames": 4410,
+   "common_period_s": 298.9
+  },
+  "tyre_rumble": {
+   "len_old_s": 1.0,
+   "len_a_s": 4.1,
+   "len_b_s": 5.3,
+   "shape_a_db": [
+    2.23,
+    32.0
+   ],
+   "shape_b_db": [
+    2.2,
+    32.0
+   ],
+   "tonal_old": [
+    [
+     100,
+     26.0
+    ],
+    [
+     201,
+     20.0
+    ],
+    [
+     300,
+     16.0
+    ],
+    [
+     400,
+     14.2
+    ]
+   ],
+   "tonal_a": [
+    [
+     100,
+     23.7
+    ],
+    [
+     201,
+     19.2
+    ],
+    [
+     300,
+     14.1
+    ]
+   ],
+   "tonal_b": [
+    [
+     100,
+     23.3
+    ],
+    [
+     201,
+     18.8
+    ],
+    [
+     300,
+     14.4
+    ]
+   ],
+   "seam_a": [
+    0.097,
+    0.204
+   ],
+   "seam_b": [
+    0.17,
+    0.159
+   ],
+   "seam_old": [
+    0.247,
+    0.098
+   ],
+   "crest_old": 9.5,
+   "crest_a": 10.1,
+   "crest_b": 10.7,
+   "gcd_frames": 4410,
+   "common_period_s": 217.3
+  },
+  "tyre_gravel": {
+   "len_old_s": 2.5,
+   "len_a_s": 4.7,
+   "len_b_s": 5.9,
+   "shape_a_db": [
+    0.58,
+    32.0
+   ],
+   "shape_b_db": [
+    0.73,
+    200.0
+   ],
+   "tonal_old": [],
+   "tonal_a": [],
+   "tonal_b": [],
+   "seam_a": [
+    0.026,
+    0.047
+   ],
+   "seam_b": [
+    0.038,
+    0.065
+   ],
+   "seam_old": [
+    0.033,
+    0.032
+   ],
+   "crest_old": 15.7,
+   "crest_a": 15.6,
+   "crest_b": 15.6,
+   "gcd_frames": 4410,
+   "common_period_s": 277.3
+  },
+  "tyre_grass": {
+   "len_old_s": 2.5,
+   "len_a_s": 4.3,
+   "len_b_s": 5.5,
+   "shape_a_db": [
+    0.79,
+    79.0
+   ],
+   "shape_b_db": [
+    1.16,
+    200.0
+   ],
+   "tonal_old": [],
+   "tonal_a": [],
+   "tonal_b": [],
+   "seam_a": [
+    0.134,
+    0.16
+   ],
+   "seam_b": [
+    0.171,
+    0.193
+   ],
+   "seam_old": [
+    0.61,
+    0.681
+   ],
+   "crest_old": 14.3,
+   "crest_a": 13.6,
+   "crest_b": 15.1,
+   "gcd_frames": 4410,
+   "common_period_s": 236.5
+  },
+  "tyre_wet": {
+   "len_old_s": 2.0,
+   "len_a_s": 5.5,
+   "len_b_s": 6.9,
+   "shape_a_db": [
+    2.09,
+    100.0
+   ],
+   "shape_b_db": [
+    2.32,
+    100.0
+   ],
+   "tonal_old": [],
+   "tonal_a": [],
+   "tonal_b": [],
+   "seam_a": [
+    0.156,
+    0.321
+   ],
+   "seam_b": [
+    0.116,
+    0.119
+   ],
+   "seam_old": [
+    0.343,
+    0.19
+   ],
+   "crest_old": 13.9,
+   "crest_a": 14.8,
+   "crest_b": 15.1,
+   "gcd_frames": 4410,
+   "common_period_s": 379.5
+  },
+  "wind_low": {
+   "len_old_s": 2.0,
+   "len_a_s": 5.9,
+   "len_b_s": 7.3,
+   "shape_a_db": [
+    0.68,
+    40.0
+   ],
+   "shape_b_db": [
+    0.87,
+    100.0
+   ],
+   "tonal_old": [],
+   "tonal_a": [],
+   "tonal_b": [],
+   "seam_a": [
+    0.282,
+    0.232
+   ],
+   "seam_b": [
+    0.43,
+    0.594
+   ],
+   "seam_old": [
+    0.947,
+    0.819
+   ],
+   "crest_old": 11.6,
+   "crest_a": 12.5,
+   "crest_b": 12.0,
+   "gcd_frames": 4410,
+   "common_period_s": 430.7
+  },
+  "wind_mid": {
+   "len_old_s": 2.0,
+   "len_a_s": 5.6,
+   "len_b_s": 6.8,
+   "shape_a_db": [
+    0.39,
+    126.0
+   ],
+   "shape_b_db": [
+    0.33,
+    79.0
+   ],
+   "tonal_old": [],
+   "tonal_a": [],
+   "tonal_b": [],
+   "seam_a": [
+    0.338,
+    0.582
+   ],
+   "seam_b": [
+    0.213,
+    0.312
+   ],
+   "seam_old": [
+    0.232,
+    0.72
+   ],
+   "crest_old": 12.4,
+   "crest_a": 12.6,
+   "crest_b": 13.1,
+   "gcd_frames": 17640,
+   "common_period_s": 95.2
+  },
+  "wind_high": {
+   "len_old_s": 2.0,
+   "len_a_s": 5.2,
+   "len_b_s": 6.6,
+   "shape_a_db": [
+    0.22,
+    1259.0
+   ],
+   "shape_b_db": [
+    0.25,
+    3162.0
+   ],
+   "tonal_old": [
+    [
+     3153,
+     12.8
+    ],
+    [
+     3159,
+     14.8
+    ]
+   ],
+   "tonal_a": [],
+   "tonal_b": [],
+   "seam_a": [
+    0.06,
+    0.277
+   ],
+   "seam_b": [
+    0.318,
+    0.559
+   ],
+   "seam_old": [
+    0.056,
+    0.09
+   ],
+   "crest_old": 13.2,
+   "crest_a": 13.4,
+   "crest_b": 13.4,
+   "gcd_frames": 8820,
+   "common_period_s": 171.6
+  },
+  "wind_buffet": {
+   "len_old_s": 3.0,
+   "len_a_s": 6.2,
+   "len_b_s": 7.6,
+   "shape_a_db": [
+    0.55,
+    100.0
+   ],
+   "shape_b_db": [
+    0.66,
+    200.0
+   ],
+   "tonal_old": [],
+   "tonal_a": [],
+   "tonal_b": [],
+   "seam_a": [
+    0.535,
+    2.375
+   ],
+   "seam_b": [
+    0.024,
+    0.708
+   ],
+   "seam_old": [
+    6.669,
+    33.826
+   ],
+   "crest_old": 15.8,
+   "crest_a": 16.3,
+   "crest_b": 15.9,
+   "gcd_frames": 8820,
+   "common_period_s": 235.6
+  }
+ },
+ "slabs": {
+  "slab_slow": {
+   "len_old_s": 1.6,
+   "len_new_s": 6.4,
+   "shape_db": [
+    1.15,
+    25.0
+   ],
+   "seam_new": [
+    2.334,
+    3.198
+   ],
+   "crest_old": 17.9,
+   "crest_new": 18.4
+  },
+  "slab_fast": {
+   "len_old_s": 0.8,
+   "len_new_s": 3.2,
+   "shape_db": [
+    1.2,
+    25.0
+   ],
+   "seam_new": [
+    0.649,
+    0.806
+   ],
+   "crest_old": 15.4,
+   "crest_new": 14.7
+  }
+ },
+ "snow": {
+  "gravel_old": {
+   "pings_per_s_2_6k": 0.0,
+   "tonal": [],
+   "centroid_hz": 3038,
+   "share_below_180": 0.318,
+   "seam": [
+    0.033,
+    0.032
+   ]
+  },
+  "gravel_new_a": {
+   "pings_per_s_2_6k": 0.0,
+   "tonal": [],
+   "centroid_hz": 3012,
+   "share_below_180": 0.326,
+   "seam": [
+    0.026,
+    0.047
+   ]
+  },
+  "snow_a": {
+   "pings_per_s_2_6k": 0.0,
+   "tonal": [],
+   "centroid_hz": 2411,
+   "share_below_180": 0.077,
+   "seam": [
+    0.056,
+    0.041
+   ]
+  },
+  "snow_b": {
+   "pings_per_s_2_6k": 0.0,
+   "tonal": [],
+   "centroid_hz": 2404,
+   "share_below_180": 0.079,
+   "seam": [
+    0.097,
+    0.063
+   ]
+  }
+ }
+}

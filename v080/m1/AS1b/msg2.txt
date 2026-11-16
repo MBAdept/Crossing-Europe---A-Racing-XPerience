@@ -1,0 +1,12 @@
+AS1b (WIP): Gebäude mit Tiefe (Bauernhaus), Heuballen, Windrad mit Rotor-Code
+
+- props3d: Baumeister "building" – Fenster und Türen aus den Fassaden-Rastern echt eingeschnitten (Laibung
+  gebacken, Rahmen, Sohlbank, Scheiben als vpbr; beleuchtete Scheiben Lampenkanal 12), Dachrinnen mit
+  Fallrohren, Schornsteinabdeckung, Umgebungsverdeckung im Atlas
+- bake: Umgebungsverdeckung (Cycles AO, Atlasgröße, mit Bodenplatte) – Option, Voreinstellung wie bisher
+- cesprites: Hooks WINDOW_LOG (props_buildings.facade) und hub_subdiv (props_road.wind_turbine),
+  Voreinstellung = Sprite
+- Windrad: Rotor mit Lackcode 0.875 (Nabenhöhe in UV2.y); Prüfer kennt den Code (additiv)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

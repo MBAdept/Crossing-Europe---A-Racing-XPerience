@@ -1,0 +1,12 @@
+v0.8.0 RINT-A: eine Spiegelquelle für Lack und Glas
+
+Gemessen am Spielerauto (S1, 12 und 19:24 Uhr, Hoch): Sky der Umgebung und
+R3s analytischer Himmel spiegelten im Rennen beide (+3 bis +10 Stufen auf dem
+Auto). Ist der analytische Himmel an (env_energy > 0, das Rennen), hält vpbr
+die Spiegelung der Engine heraus (SPECULAR 0, METALLIC 0, Diffusanteil eines
+Metalls linear aus ALBEDO, f0 über Varyings an light()); Glas ebenso
+(SPECULAR 0). Ohne ihn (Showroom, Kontaktbogen, neutrale Prüfungen) spiegelt
+die Engine wie bisher. Fahrbahn, Gelände und Requisiten behalten den Sky.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

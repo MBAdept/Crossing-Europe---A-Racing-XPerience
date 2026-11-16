@@ -1,0 +1,13 @@
+v0.8.0 RINT-M2: Abblendlicht mit Glanz, Fahrzeuge dämpfen ihn im Material (A-20)
+
+SPOT_SPECULAR wieder 0,5 (Standard, wie die Lampen-Omnis). Die Glanzkeulen
+eines Punkt-/Spotlichts, das von neben dem Auge kommt (das Abblendlicht des
+Spielers), nehmen jetzt vpbr und glass selbst heraus: eye_lamp_spec im
+Renn-Look 0 (Studio und Kontaktbogen neutral 1), entschieden über den Winkel
+zwischen Licht- und Blickrichtung (eye_lamp_cos 0,90 … 0,97 – ab etwa 20 m
+vor der Kamera ganz, eine Laterne über der Straße bleibt weit draußen).
+Die Fahrbahn nimmt dieses Licht ohnehin nie (Ebene 2): sie zeigt den Kegel
+über inc/headlight.gdshaderinc und den nassen Glanz im road.gdshader.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

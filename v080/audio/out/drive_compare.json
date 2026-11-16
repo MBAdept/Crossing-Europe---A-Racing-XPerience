@@ -1,0 +1,234 @@
+{
+ "phases": {
+  "Leerlauf": {
+   "alt (Spiel v0.7.0)": {
+    "lufs": -17.17,
+    "crest": 8.62,
+    "corr": 1.0,
+    "sm": -27.36,
+    "lf": -1.83,
+    "hf": -26.57,
+    "flux": 3.13,
+    "mod": 0.96,
+    "bands": 11.0
+   },
+   "neu nur Antrieb": {
+    "lufs": -18.64,
+    "crest": 8.88,
+    "corr": 0.94,
+    "sm": -15.37,
+    "lf": -3.1,
+    "hf": -25.64,
+    "flux": 2.56,
+    "mod": 1.27,
+    "bands": 14.0
+   },
+   "neu komplett": {
+    "lufs": -18.64,
+    "crest": 8.88,
+    "corr": 0.94,
+    "sm": -15.37,
+    "lf": -3.1,
+    "hf": -25.64,
+    "flux": 2.56,
+    "mod": 1.27,
+    "bands": 14.0
+   }
+  },
+  "Vollgas durch die Gänge": {
+   "alt (Spiel v0.7.0)": {
+    "lufs": -13.11,
+    "crest": 13.5,
+    "corr": 0.74,
+    "sm": -8.2,
+    "lf": -15.91,
+    "hf": -12.38,
+    "flux": 2.93,
+    "mod": 1.12,
+    "bands": 26.0
+   },
+   "neu nur Antrieb": {
+    "lufs": -14.28,
+    "crest": 12.54,
+    "corr": 0.62,
+    "sm": -6.29,
+    "lf": -15.68,
+    "hf": -17.71,
+    "flux": 2.21,
+    "mod": 1.5,
+    "bands": 27.0
+   },
+   "neu komplett": {
+    "lufs": -13.11,
+    "crest": 14.58,
+    "corr": 0.57,
+    "sm": -5.65,
+    "lf": -13.29,
+    "hf": -13.74,
+    "flux": 2.91,
+    "mod": 1.36,
+    "bands": 29.0
+   }
+  },
+  "Vollgas bei 266 km/h": {
+   "alt (Spiel v0.7.0)": {
+    "lufs": -12.82,
+    "crest": 12.08,
+    "corr": 0.73,
+    "sm": -7.78,
+    "lf": -17.63,
+    "hf": -13.72,
+    "flux": 3.08,
+    "mod": 0.46,
+    "bands": 26.0
+   },
+   "neu nur Antrieb": {
+    "lufs": -14.74,
+    "crest": 11.04,
+    "corr": 0.68,
+    "sm": -7.07,
+    "lf": -19.48,
+    "hf": -18.01,
+    "flux": 1.81,
+    "mod": 0.44,
+    "bands": 27.0
+   },
+   "neu komplett": {
+    "lufs": -11.99,
+    "crest": 14.76,
+    "corr": 0.57,
+    "sm": -5.56,
+    "lf": -12.75,
+    "hf": -11.05,
+    "flux": 3.43,
+    "mod": 0.61,
+    "bands": 29.0
+   }
+  },
+  "Gas weg (Schub)": {
+   "alt (Spiel v0.7.0)": {
+    "lufs": -17.78,
+    "crest": 17.26,
+    "corr": 0.88,
+    "sm": -12.04,
+    "lf": -14.71,
+    "hf": -19.5,
+    "flux": 3.17,
+    "mod": 0.91,
+    "bands": 28.0
+   },
+   "neu nur Antrieb": {
+    "lufs": -23.17,
+    "crest": 18.23,
+    "corr": 0.51,
+    "sm": -4.24,
+    "lf": -20.69,
+    "hf": -19.06,
+    "flux": 1.5,
+    "mod": 0.32,
+    "bands": 23.0
+   },
+   "neu komplett": {
+    "lufs": -16.06,
+    "crest": 15.33,
+    "corr": 0.43,
+    "sm": -4.0,
+    "lf": -9.43,
+    "hf": -9.68,
+    "flux": 3.52,
+    "mod": 0.62,
+    "bands": 29.0
+   }
+  },
+  "130 km/h Teillast": {
+   "alt (Spiel v0.7.0)": {
+    "lufs": -18.58,
+    "crest": 9.55,
+    "corr": 0.95,
+    "sm": -15.65,
+    "lf": -18.36,
+    "hf": -30.33,
+    "flux": 3.22,
+    "mod": 0.22,
+    "bands": 21.0
+   },
+   "neu nur Antrieb": {
+    "lufs": -20.24,
+    "crest": 10.41,
+    "corr": 0.79,
+    "sm": -8.6,
+    "lf": -19.96,
+    "hf": -28.15,
+    "flux": 3.37,
+    "mod": 0.51,
+    "bands": 21.0
+   },
+   "neu komplett": {
+    "lufs": -19.28,
+    "crest": 16.76,
+    "corr": 0.76,
+    "sm": -8.1,
+    "lf": -16.24,
+    "hf": -16.76,
+    "flux": 3.38,
+    "mod": 0.6,
+    "bands": 29.0
+   }
+  },
+  "Kick-down": {
+   "alt (Spiel v0.7.0)": {
+    "lufs": -13.45,
+    "crest": 13.47,
+    "corr": 0.76,
+    "sm": -8.72,
+    "lf": -16.79,
+    "hf": -13.7,
+    "flux": 3.01,
+    "mod": 1.13,
+    "bands": 26.0
+   },
+   "neu nur Antrieb": {
+    "lufs": -14.12,
+    "crest": 11.09,
+    "corr": 0.65,
+    "sm": -6.74,
+    "lf": -16.31,
+    "hf": -18.52,
+    "flux": 2.6,
+    "mod": 1.39,
+    "bands": 29.0
+   },
+   "neu komplett": {
+    "lufs": -13.53,
+    "crest": 13.17,
+    "corr": 0.62,
+    "sm": -6.29,
+    "lf": -15.54,
+    "hf": -15.27,
+    "flux": 3.14,
+    "mod": 1.25,
+    "bands": 29.0
+   }
+  }
+ },
+ "overall": {
+  "alt (Spiel v0.7.0)": {
+   "lufs_i": -14.58,
+   "lra": 6.3,
+   "true_peak": -2.68,
+   "corr": 0.799
+  },
+  "neu nur Antrieb": {
+   "lufs_i": -15.91,
+   "lra": 6.2,
+   "true_peak": -5.1,
+   "corr": 0.699
+  },
+  "neu komplett": {
+   "lufs_i": -14.43,
+   "lra": 6.7,
+   "true_peak": -0.75,
+   "corr": 0.631
+  }
+ }
+}

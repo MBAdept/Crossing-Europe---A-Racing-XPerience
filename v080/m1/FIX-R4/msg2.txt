@@ -1,0 +1,9 @@
+v0.8.0 FIX-R4 (WIP): Prüfungen nasse Nacht, Lack nachts (Himmelston, Schimmer gewaschen)
+
+- check_night_nass.gd: nass_kegel (B2) und spiegelung (B1); spielerauto mit DEV 21 Uhr und Obergrenze der Sättigung
+- B3: der gespiegelte Himmel nimmt nachts den Ton des Umgebungslichts an (ENV_NIGHT_TINT)
+- B7: Schimmer aus dem gewaschenen Lack (sheen_wash 0,35)
+- Doku 15.2, 15.4, 15.6, 15.9
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

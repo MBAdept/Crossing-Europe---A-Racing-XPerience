@@ -1,0 +1,11 @@
+v0.8.0 AS5a1: Modern-Goldens S4 und S5 neu – dort stehen jetzt die Stadthaus-Modelle
+
+- tools/golden.sh modern-check: 4 von 6 identisch; anders sind modern_s4_mittel (km 80,6, Hamburger Stadtrand:
+  Einfamilienhäuser, Giebelzeilen, Hafenkran als Modelle statt Arcade-Bilder) und modern_s5_niedrig (km 95, Ziel in
+  Hamburg: Speicher und Kontor). Beide Bilder angesehen: gewollt, keine Fehler.
+- Liste aus den von modern-check behaltenen Bildern geschrieben (dieselbe Renderfunktion wie modern-make, gleiche
+  Godot- und Treiberversion); GLES-Vergleich modern_s3_hoch OK (max. 2/255, PSNR 73,2 dB)
+- Arcade: tools/golden.sh check 20 von 20 und 17 von 17 identisch
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

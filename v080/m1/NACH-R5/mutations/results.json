@@ -1,0 +1,70 @@
+{
+ "BASE": {
+  "exit": 0,
+  "summary": "11 Tests, 0 fehlgeschlagen",
+  "failed_tests": [],
+  "script_errors": 0
+ },
+ "BASE_T": {
+  "exit": 0,
+  "summary": "9 Tests, 0 fehlgeschlagen",
+  "failed_tests": [],
+  "script_errors": 0
+ },
+ "B10_dark_pylon": {
+  "exit": 1,
+  "summary": "11 Tests, 1 fehlgeschlagen",
+  "failed_tests": [
+   "test_dark_pylon_material_at_night"
+  ],
+  "script_errors": 0
+ },
+ "B12_cables_count": {
+  "exit": 1,
+  "summary": "11 Tests, 1 fehlgeschlagen",
+  "failed_tests": [
+   "test_koehlbrand_pylons_beacons_and_cables"
+  ],
+  "script_errors": 0
+ },
+ "B14_lamps_skip": {
+  "exit": 1,
+  "summary": "11 Tests, 1 fehlgeschlagen",
+  "failed_tests": [
+   "test_bridge_lamps_like_arcades_events"
+  ],
+  "script_errors": 0
+ },
+ "T4_zone_guard": {
+  "exit": 1,
+  "summary": "9 Tests, 1 fehlgeschlagen",
+  "failed_tests": [
+   "test_set_zone_only_when_the_rig_has_it"
+  ],
+  "script_errors": 2
+ },
+ "P1_portal_layer": {
+  "exit": 1,
+  "summary": "9 Tests, 1 fehlgeschlagen",
+  "failed_tests": [
+   "test_portal_on_the_ground_layer_out_of_the_low_beam"
+  ],
+  "script_errors": 0
+ },
+ "L1_light_early_return": {
+  "exit": 1,
+  "summary": "9 Tests, 1 fehlgeschlagen",
+  "failed_tests": [
+   "test_cap_only_for_a_camera_outside"
+  ],
+  "script_errors": 0
+ },
+ "X1_exit_z_end_km": {
+  "exit": 1,
+  "summary": "9 Tests, 1 fehlgeschlagen",
+  "failed_tests": [
+   "test_set_zone_only_when_the_rig_has_it"
+  ],
+  "script_errors": 0
+ }
+}

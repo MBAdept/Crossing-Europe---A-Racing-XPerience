@@ -1,0 +1,20 @@
+== 1 determinism (14:10:24)
+export player/* exit 0
+bake 1 player/* exit 0
+export traffic/* exit 0
+bake 1 traffic/* exit 0
+export police/* exit 0
+bake 1 police/* exit 0
+geschrieben: assets/models/manifest.json (37 Modelle, 180 Sets: 65 mit Modell, 115 Platzhalter)
+git status after forced export + bake (empty = identical):
+bake 2 player/* exit 0
+bake 2 traffic/* exit 0
+bake 2 police/* exit 0
+files hashed: 213
+second bake byte-identical
+CHECK cache_keys OK      37 Modelle: ein geänderter Lack, Metallwert, Blickwinkel oder eine Markierung im Sprite-Katalog ergibt für genau die betroffenen Modelle einen neuen Schlüssel
+== 2 check_sprite_geometry (14:13:44)
+geometry exit 0
+61 Sprite-Sets gebaut in 404 s: 61 identisch (davon 0 mit anderer Flächenreihenfolge), 0 nur Fließkomma-Rauschen, 0 verändert, 0 fehlen
+CHECK sprite_geometry OK
+gates.sh fertig (14:20:29)

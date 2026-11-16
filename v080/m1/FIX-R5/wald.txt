@@ -1,0 +1,1 @@
+**OK** – `RENDER_CHECK_TIMEOUT=2700 tools/run_render_checks.sh modern instance_budget_wald` allein: „instanzen_wald OK – 1018 Bilder, Fahrzeug-Ebene höchstens 127 Instanzen (Budget 128), ganze Szene höchstens 140 mit Instanz-Uniforms“ (770 s). Damit alle 20 Render-Prüfdateien grün

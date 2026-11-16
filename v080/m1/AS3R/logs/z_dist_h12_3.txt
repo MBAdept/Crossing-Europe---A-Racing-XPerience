@@ -1,0 +1,35 @@
+prop_scene: Renn-Licht 12 Uhr, normal, Voreinstellung medium, Sicht 900 m, Stufen 60 / 200 m
+SZENE props/tree_olive 15 m lod0 582x383 px
+SZENE props/tree_olive 40 m lod0 164x122 px
+SZENE props/tree_olive 100 m lod1 59x46 px
+SZENE props/tree_olive 250 m impostor 22x18 px
+SZENE props/tree_olive 15 m sprite 582x383 px
+SZENE props/tree_olive 40 m sprite 164x122 px
+SZENE props/tree_olive 100 m sprite 59x46 px
+SZENE props/tree_olive 250 m sprite 22x18 px
+SZENE props/tree_olive_b 15 m lod0 623x388 px
+SZENE props/tree_olive_b 40 m lod0 169x120 px
+SZENE props/tree_olive_b 100 m lod1 60x45 px
+SZENE props/tree_olive_b 250 m impostor 23x18 px
+SZENE props/tree_olive_b 15 m sprite 623x388 px
+SZENE props/tree_olive_b 40 m sprite 169x120 px
+SZENE props/tree_olive_b 100 m sprite 60x45 px
+SZENE props/tree_olive_b 250 m sprite 23x18 px
+SZENE props/tree_pine 15 m lod0 590x1115 px
+SZENE props/tree_pine 40 m lod0 156x344 px
+SZENE props/tree_pine 100 m lod1 54x129 px
+SZENE props/tree_pine 250 m impostor 20x50 px
+SZENE props/tree_pine 15 m sprite 590x1115 px
+SZENE props/tree_pine 40 m sprite 156x344 px
+SZENE props/tree_pine 100 m sprite 54x129 px
+SZENE props/tree_pine 250 m sprite 20x50 px
+SZENE props/tree_pine_b 15 m lod0 570x1063 px
+SZENE props/tree_pine_b 40 m lod0 159x337 px
+SZENE props/tree_pine_b 100 m lod1 57x128 px
+SZENE props/tree_pine_b 250 m impostor 22x50 px
+SZENE props/tree_pine_b 15 m sprite 570x1063 px
+SZENE props/tree_pine_b 40 m sprite 159x337 px
+SZENE props/tree_pine_b 100 m sprite 57x128 px
+SZENE props/tree_pine_b 250 m sprite 22x50 px
+prop_scene: dist -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS3R/shots/z_dist_h12_3.png
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS3R/shots/z_dist_h12_3.png

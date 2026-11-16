@@ -1,0 +1,12 @@
+v0.8.0 R4 (WIP): Schneewälle, Schnee auf Requisiten, Tunnelausfahrt, Prüfungen
+
+Schneewälle am Bankett (Gelände-Netz, höchstens 0,45 m, schmutzige Pflugkante),
+Schnee auf nach oben weisenden Flächen (vpbr statisch, baked, leaves; Arcades
+Tönung der Sprites im Billboard), Belichtungsrampe an der Tunnelausfahrt
+(Blendviereck über dem Portal, Nachblenden nach der Ausfahrt), Spiegelung der
+Lampen am Spiegelpunkt der nassen Fahrbahn, kräftigere Gischt.
+Prüfungen: check_light_cap (kopflos, Lichtdeckel auf drei Nachtetappen: OK),
+render/check_night, render/check_weather (noch nicht gelaufen).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

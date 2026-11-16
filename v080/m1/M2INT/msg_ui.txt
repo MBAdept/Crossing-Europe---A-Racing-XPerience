@@ -1,0 +1,14 @@
+v0.8.0 M2INT: Menüklänge des Modern-Klangs für Seitenwechsel, Wertwechsel und „geht nicht“
+
+Leitungsnotiz 8: Die drei UI-Klänge von AU-D2, die noch keinen Aufruf hatten, klingen im Profil Modern:
+- Optionen LB/RB (Seitenwechsel): „ui/ui_tab“
+- ◀▶ in einer Optionszeile: „ui/ui_toggle“
+- ◀▶ am Ende einer Liste ohne Umlauf: „ui/ui_error“
+Im Profil Arcade bleibt es beim Klang von v0.7.0 („ui_move“, am Listenende still). Neue Hilfe
+UiKit.sound_modern(modern, arcade) liest das Klangprofil des AudioManager, nie den Grafikmodus (Regel 4).
+
+Prüfung: tests/race/check_options_tabs.gd um „klang_wert“ und „klang_seite“ erweitert (zählt die Klänge der
+SfxBank im Profil Modern), gemessen 12 von 12 OK; die Arcade-Seite deckt check_music.gd „arcade“ ab.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

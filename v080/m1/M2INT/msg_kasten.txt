@@ -1,0 +1,17 @@
+v0.8.0 M2INT: Fahrzeugprüfung „kasten“ mit Test-Manifest, „leistung“ zählt erste Stufen im Fenster
+
+Seit AS2a/AS2b hat jedes Fahrzeug-Set ein Modell; zwei Prüfungen von tests/race3d/check_vehicles.gd
+gingen von Sets ohne Modell aus (A-13):
+- kasten: ein Test-Manifest (das ausgelieferte, bei traffic/sports_red und police/at ohne Modell, in
+  user://) prüft den Ersatz; danach wird das ausgelieferte Manifest wieder geladen. ModelDB.load_manifest
+  liest dafür ein optionales "root" (Ordner der Netz- und Texturpfade, nur res://) – der Generator
+  schreibt den Schlüssel nie.
+- leistung: ein Knoten darf nur für die erste Stufe gebaut werden, die ein Auto im Messfenster erreicht
+  (gemessen: ein Sportwagen des echten Verkehrs fährt von lod1 nach lod2 – vorher war er ein Kasten
+  ohne Stufen); dazu: keine Stufe für das Instanzbudget freigegeben. Zeitmessung unverändert lastfest.
+
+Gemessen: check_vehicles 8 von 8 OK (leistung 28,7 µs je Auto, 1 erste Stufe im Fenster),
+Unit-Tests vehicles/model/showroom grün.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

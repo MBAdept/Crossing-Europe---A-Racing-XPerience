@@ -1,0 +1,23 @@
+v0.8.0 RINT-M2: Tankstellendach – Sammeln in zwei Hälften, Korridor erst beim Dach (A-18)
+
+Nachgemessen nach 618561f (DEV, „Steam Deck“, llvmpipe): collect() der
+Tankstelle bis 8,0 ms in einem Bild (vorher 3,4 ms) – das Sammeln auf dem
+Hauptfaden las die Korridor-Merker der Stellen 600 m voraus und ließ das
+Geländeprofil dort seine Zeilen rechnen (Sonde: bis 17 ms beim ersten
+Dach einer Station; die Sichtlinien selbst 0,1–1,8 ms auf dem
+Arbeitsfaden).
+
+- Die Korridor-Merker liest CanopyJob.finish() auf dem Hauptfaden erst,
+  wenn die Stützen des Dachs gebraucht werden (dann gibt es die Zeilen
+  ohnehin); run() legt die zu prüfenden Stützen und – nur wenn ein Dach
+  alle verlieren kann – die Maststellen ohne Tafel in Reihenfolge ab.
+- Das Sammeln verteilt sich auf zwei collect()-Aufrufe
+  (canopy_job_begin(): Schilder, Plan, Krümmungen; canopy_job_rest():
+  Spuren und Kanten; lanes_at() einmal statt zweimal je Stelle).
+  Sonde: je Hälfte höchstens 1,2 / 1,4 ms (vorher am Stück bis 3,9 ms).
+- Entscheide unverändert: scan_f1 über das ganze Netz zeilengleich
+  (3486 Stützen, 1648 Verdeckungszeilen identisch), startdep 1909 Dächer
+  0 abweichend; test_structures 13/13.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

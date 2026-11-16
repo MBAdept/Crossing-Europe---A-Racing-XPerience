@@ -1,0 +1,57 @@
+== /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R/logs/trig_luettich_paris.log: 194 rows, 306 events printed
+stage luettich_paris time 193 s avg 102.5 km/h collisions 0
+counts {"bridge_in": 1, "bridge_out": 1, "pass_building": 64, "pass_gantry": 1, "pass_object": 312, "pass_post": 106, "pass_rock": 3, "pass_sign": 20, "pass_tree": 98, "tunnel_in": 1, "tunnel_out": 1}
+bridges [{'km0': 387.0, 'km1': 388.29, 'type': 'stone_arch', 'z0': 38700.0, 'z1': 38829.0}]
+track zones {'fuel': 5, 'fuel_canopy': 18, 'border': 1, 'bridge': 1}
+valid feed rows 193 / 194
+surfaces (l,r): {('asphalt', 'asphalt'): 152, ('cobbles', 'cobbles'): 41}
+paving at autobahn                      : {'asphalt': 82}
+paving at city                          : {'asphalt': 52}
+paving at city/centre                   : {'cobbles': 38, 'asphalt': 13}
+paving at city/centre/bridge:stone_arch : {'asphalt': 1, 'cobbles': 3}
+paving at city/centre/tunnel            : {'asphalt': 4}
+zone at truth bridge                            : {'city': 1, 'bridge': 3}
+zone at truth city                              : {'city': 102, 'bridge': 1}
+zone at truth other:farmland_fr                 : {'open': 41}
+zone at truth other:forest_hills                : {'forest': 41}
+zone at truth tunnel                            : {'city': 1, 'tunnel': 3}
+mismatch / special counts: {'tunnel': 1, 'bridge': 2}
+  tunnel: [(385.027, False, True)]
+  bridge: [(387.041, False, True), (388.323, True, False)]
+speed median 90 km/h, max 235
+events printed: {'pass_object': 302, 'tunnel_in': 1, 'tunnel_out': 1, 'bridge_in': 1, 'bridge_out': 1}
+bridge stone_arch z 38700.0..38829.0 (129 m): 0 joints at +[]  decks Counter()
+joints off any bridge: [] 0
+tunnel_in [(385.0, 'tunnel', True, '')]
+tunnel_out [(386.3, 'tunnel', False, '')]
+bridge_in [(387.0, 'stone_arch', False, 'stone_arch')]
+bridge_out [(388.29, 'stone_arch', False, 'stone_arch')]
+pass objects (kind, where, set):
+    106  ('post', 'city', 'streetlight')
+     29  ('tree', 'city', 'props/tree_beech')
+     28  ('building', 'city', 'props/city_french_mais')
+     24  ('building', 'city', 'props/city_paris_hauss')
+     22  ('tree', 'open', 'props/tree_spruce')
+     19  ('tree', 'city', 'props/tree_oak')
+     10  ('object', 'city', 'props/bridge_lamp')
+      9  ('tree', 'open', 'props/tree_beech')
+      9  ('sign', 'open', 'chevron')
+      7  ('tree', 'open', 'props/tree_poplar')
+      7  ('tree', 'city', 'props/tree_poplar')
+      5  ('building', 'city', 'props/city_paris_corne')
+      4  ('building', 'city', 'props/building_shop')
+      3  ('rock', 'open', 'props/rock_a')
+      3  ('tree', 'open', 'props/tree_oak')
+      3  ('building', 'city', 'props/city_french_imme')
+      2  ('sign', 'open', 'distance')
+      2  ('tree', 'open', 'props/tree_pine')
+      2  ('sign', 'city', 'town')
+      1  ('sign', 'open', 'curve')
+      1  ('sign', 'open', 'crest')
+      1  ('sign', 'open', 'limit')
+      1  ('sign', 'open', 'town_ahead')
+      1  ('sign', 'city', 'limit')
+      1  ('sign', 'city', 'curve')
+      1  ('sign', 'city', 'tunnel')
+      1  ('gantry', 'city', 'finish')
+pass distance (side objects): min 2.6 median 7.5 max 18.0 m

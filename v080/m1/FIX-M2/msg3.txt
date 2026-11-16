@@ -1,0 +1,9 @@
+v0.8.0 FIX-M2: Ersatzbild-Prüfung vergleicht traffic/sports_red (Kuppe), van_white nur nachts
+
+- check_vehicle_standin: Test-Manifest ohne Modell auch für traffic/sports_red. „verdeckt“ versteckt einen
+  Punkt 2 m über der Straße hinter der Kuppe – das Dach des 2,6 m hohen Transporters ragte darüber (1 bzw.
+  15 Pixel), mit dem Sportwagen 0 Pixel; „verkehr“ mit sports_red: 1/1/0 px, Helligkeit −1,2/−3,2/+5,0 %.
+  (traffic/van_white bei 150 m: Helligkeit −12,3 % gegen Arcade – nur Information, Rückfallweg.)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

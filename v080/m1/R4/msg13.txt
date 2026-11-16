@@ -1,0 +1,14 @@
+v0.8.0 R4 (WIP): Spiegelung hoher Lampen – Schleier zur Kamera begrenzt
+
+Sonde an C1 im Regen (21:30, „Hoch“, Bereich hinter dem Spielerauto, mittlere
+Leuchtdichte): alles 0,134, ohne Gischt 0,132, ohne Verkehr 0,138, ohne
+Spiegelungen 0,096 – der orange Fleck kam auch mit dem Fresnel-Gewicht noch
+von den Laternen-Streifen. Ursache: der Schleier zur Kamera hin folgte dem
+Gesetz der tiefen Rückleuchten (1,3 × Weg vom Lampenfuß zum Spiegelpunkt); bei
+einer hohen Laterne liegt der Spiegelpunkt nahe der Kamera, der Streifen lief
+in voller Stärke bis unter sie. Jetzt reicht der Schleier höchstens halb so
+weit wie der Weg vom Spiegelpunkt zur Kamera. Rückleuchten unverändert (dort
+ist die neue Grenze länger als die alte).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

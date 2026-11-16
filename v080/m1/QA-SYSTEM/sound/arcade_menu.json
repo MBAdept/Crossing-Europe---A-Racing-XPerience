@@ -1,0 +1,24 @@
+{
+	"engine": {
+		"avg_ms": 0.0,
+		"frames": 0,
+		"max_ms": 0.0,
+		"samples": 0,
+		"skips": 0
+	},
+	"master_db": -1.93820023536682,
+	"mix_rate": 44100,
+	"mute_buses": [],
+	"phases": [
+		{
+			"name": "menu",
+			"t0": 1.001,
+			"t1": 40.015
+		}
+	],
+	"placeholders": false,
+	"profile": "arcade",
+	"scenario": "menu",
+	"seconds": 40.01,
+	"vehicle": "gran_turismo"
+}

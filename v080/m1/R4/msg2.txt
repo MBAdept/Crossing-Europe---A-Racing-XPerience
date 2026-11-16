@@ -1,0 +1,11 @@
+v0.8.0 R4 (WIP): Wetter in der Luft, Gischt, nasse Fahrbahn, Blaulicht, Sonnenscheibe
+
+Ebene weather: Regen und Schnee als zustandslose GPU-Teilchen (eine MultiMesh,
+Lage = f(Instanz, Kamera, ce_time)), Gischt hinter jedem Auto auf nasser Straße.
+Spiegelung der Rückleuchten und Laternen auf nasser Fahrbahn (flare_streak),
+Fresnel-Spiegelung des Himmels im Straßen-Shader (ce_sky_top/ce_sky_horizon),
+Blaulicht der Polizei als Punktlicht und Lichtkegel, Sonnenscheibe an Arcades
+Stelle. Unit-Tests test_light_pool, test_weather. Bilder folgen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

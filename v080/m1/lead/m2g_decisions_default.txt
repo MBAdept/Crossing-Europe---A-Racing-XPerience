@@ -1,0 +1,20 @@
+LEAD DECISIONS – DEFAULTS (edit after the user's answers; the five questions sent at ~17:20 UTC were:
+1 race music under the engine – melody audible or louder?  2 bass: too much / fine / too little?
+3 highs: too shrill / fine?  4 road: pumping every second on the motorway?  5 cobbles, glass, squeal: artificial or too loud?)
+
+D1 Race music under the car (Q1). Default = the mix review's recommendation (changes D29):
+   audio.modern.music.race_eq = [{"shelf":"low","hz":160.0,"db":-3.0}] (replaces today's race EQ with its 500–1250 Hz dip),
+   music.context_db.race 1.0 → 0.8, duck.depth_db 4.5 → 3.0, loudness.music_under_car_db 8 → 6.5
+   (model: melody under full throttle 41/33/27 % → 63/58/52 % at 130/200/250 km/h, engine ≥ 95 % audible).
+   "Musik passt / laut genug" → keep D29 at 8 dB, only race_eq + context_db.race 0.8 (melody 51/40 %, same loudness).
+   "Musik zu laut" → keep today's values; context_db.race −1 with music_under_car_db 10 only if the user says so.
+D2 Bass (Q2). "zu viel" → mischung.json low_shelf_db −3, low_shelf_hz 120 (render_all). "passt"/no answer → 0.
+   "zu wenig" → sub_db +3 (render_all; headphones only).
+D3 Highs (Q3). "zu schrill/anstrengend" → mischung.json high_shelf_db −3, high_shelf_hz 4000, and the side lift in
+   music_lib Master._ms +2 → +0.5 dB (render_all). "passt"/no answer → unchanged.
+D4 Road (Q4/Q5). R1–R7 of the brief as written. Cobbles: 12 dB over asphalt unless the user asks for less/more.
+   "Fahrbahn/Wind zu laut/leise unter dem Motor" → road.tyres.under_engine_db / road.wind.under_engine_db ±2 per step.
+   Glass/squeal: if the user likes them, keep the sound and only add variants (no new timbre).
+D5 Small speakers. No handheld mix is built in this round. If the user reports that the tyres cover the engine on the
+   Deck or phone speakers, AU-R measures it and proposes the handheld mix for AU-E (notes_for_next).
+D6 Menu/UI/stingers unchanged unless the verdict names them (knob sheet §6 of the mix review).

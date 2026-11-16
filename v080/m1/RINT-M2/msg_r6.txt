@@ -1,0 +1,9 @@
+v0.8.0 RINT-M2: R6 zusammengeführt (Tankstelle, Grenze, Stadt, Start/Ziel, Blitzer; FIX-R6 2b7dcc0)
+
+Echte Tankstellendächer mit Sichtlinien-Entscheid der Stützen,
+abgespannte Grenzdächer, Stadtmobiliar, Start-/Zieltore mit Fachwerk
+und Flutlicht, Blitzer. Konflikt nur in tests/golden/modern_slice.*
+(Liste wird am Ende neu erzeugt).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

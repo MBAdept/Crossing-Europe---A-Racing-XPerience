@@ -1,0 +1,7 @@
+Merge v0.8.0 AU-A: Audio-Kern des Klangprofils „Modern“
+
+Welle 0, Paket AU-A (Stand f331432): ModernAudio, Busse, Pegelplan, Bausteine, Werkzeuge (QC,
+Generator-Bibliothek), Platzhalter mit Manifesten; der AudioManager delegiert.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

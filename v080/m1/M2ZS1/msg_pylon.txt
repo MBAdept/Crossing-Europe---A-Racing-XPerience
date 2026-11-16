@@ -1,0 +1,28 @@
+v0.8.0 M2ZS1: Brückenpylon als Modell nachts dunkel wie in Arcade, rote Flugbefeuerung blinkt
+
+Nach dem Zusammenführen mit ZS1 galt die dunkle Vertretung von FIX-WASSER-R (QA-WASSER B2) nicht mehr: seit AS4R ist
+props/bridge_pylon ein Modell, und dessen Nachtatlas ist der angestrahlte Pylon des Sprites, den Arcade nie zeigt;
+dazu hellt der Mond die hellen Betonflächen auf, wo Arcades prozeduraler Pylon Beton × Umgebungslicht ist.
+Köhlbrandbrücke km 78,1, 22 Uhr, „Hoch“, Bereich von FIX-WASSER-R (x 500–780, y 150–350), mittlere Leuchtdichte
+(gemessen): Arcade 60,1, ZS1 58,4, zusammengeführt 84,4 – die Pylone leuchteten wieder hellgrau.
+
+- builders/props.gd: Einträge mit prefer_proc (nur die Pylone der Schrägseilbrücken) kommen als Modell in eine
+  eigene Gruppe „md|…“; _dark_model_override() gibt dem Knoten eine Kopie des Materials ohne Nachtatlas
+  (emit_energy 0) und mit night_albedo PYLON_NIGHT_ALBEDO = 0,5. Ohne Nachtatlas allein: 79,5; mit 0,55: 60,2 –
+  0,5 hält den Pylon wie die Vertretung von ZS1 etwas dunkler als Arcade.
+- assets/shaders/modern/baked.gdshader: neuer Parameter night_albedo (Vorgabe 1 = Faktor genau 1,0, jedes andere
+  Material bleibt bildgleich), Albedo und Nebelfarbe nachts × night_albedo. Kein neuer Shader, keine neue Variante.
+- Rote Flugbefeuerung (Arcade blinkt, RoadRenderer._pylon: 1,6 s Takt, 0,8 s an, Seite × 0,4 s versetzt): der
+  Lampenanker des Pylonmodells (88,3 m) bekommt in props.gd PYLON_BLINK als „blink“; layers/flares.gd lässt eine
+  Lampe mit Takt nur in ihrer Phase leuchten (blink_lit(), nach view.time, nur nachts wie Arcade ab Lichtern 0,2)
+  und gibt ihr Arcades roten Schein (Radius max(3 px, 1,2 m), Stärke 0,8 × Lichter).
+- Tests (test_props): Pylon als dunkles Modell (emit_energy 0, night_albedo) mit blinkender roter Befeuerung
+  (Takt 1,6/0,8 s, Phasen ±0,4 s), blink_lit() gegen Arcades Formel über 1,6 s in 10-ms-Schritten; die Vertretung
+  bleibt der Rückfall ohne Modell (Test-Manifest). 12 von 12 grün (gemessen).
+- Doku: renderer-modern.md 11.2, 12.4, 14.7; renderer-modern-gelaende.md 4.1, 4.8, 6.
+
+Dateibesitz: props.gd, flares.gd und baked.gdshader gehören R2/R3 bzw. ihren Nachfolgern; geändert im Auftrag der
+Leitung (Pylone nachts nicht heller als Arcade, Warnlicht als Lampe, wenn billig).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

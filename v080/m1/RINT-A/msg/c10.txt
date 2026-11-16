@@ -1,0 +1,16 @@
+v0.8.0 RINT-A: kern_zeit misst wieder nur den Renderer-Kern
+
+check_modern_stage kern_zeit soll die GDScript-Zeit des Renderer-Kerns je
+Bild messen („ohne Fahrzeug-, Requisiten- und Gelände-Ebene“, Grenze
+0,6 ms). Seit der Zusammenführung aktualisiert render() auch Gelände,
+Requisiten, Schilder, Fernboden, Fahrzeuge und Lichtpunkte; die Prüfung maß
+alles mit (0,499 bzw. 0,618 ms in zwei Gesamtläufen, einmal rot).
+
+Neues Testdouble tests/race3d/fixtures/core_renderer.gd: der ausgelieferte
+Renderer mit Straße, Randausstattung, Hintergrund, Lichtern und Overlay
+(Gelände-Band der Debug-Straße wie vor dem Gelände). kern_zeit startet die
+Etappe damit: Kern 0,194 ms allein, 0,251 ms im Lauf der ganzen Datei
+(gemessen, headless), check_modern_stage.gd 7 von 7 OK.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

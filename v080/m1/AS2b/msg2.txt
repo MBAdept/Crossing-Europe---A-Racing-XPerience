@@ -1,0 +1,15 @@
+AS2b (WIP): Reisebus als Modell, größere Blaulicht-Module
+
+Neuer Bauer ce3d/heavy3d.py: der Bus des Sprites als starres Modell –
+Fensterband mit sieben Scheiben, Doppeltür rechts, Streifen als paint2/paint3,
+Gepäckklappen, Seitenmarkierungen, Heckscheibe, Motorlamellen, hohe
+Rückleuchten mit Blinker und Rückfahrlicht, dritte Bremsleuchte, rote
+Umrissleuchten, Frontscheibe mit Zielanzeige, Scheinwerfer, Blinker, Grill,
+Stoßfänger mit Kennzeichen, Radhausschalen, Spiegel an Auslegern; lod0–lod2
+und Schattenwerfer im Budget. Die langen waagrechten Linien (Schürze,
+Streifen, Fensterband) sind Kanten des Lofts. Lkw-Räder mit Radius als
+Parameter; ferne Reifen ohne innere Flanke (Lkw lod2 1 490 -> 1 298).
+Polizei: LED-Module im Lichtbalken füllen die Kuppeln.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,11 @@
+v0.8.0 R4 (WIP): Ausfahrt – das Spielerauto bleibt vor dem Überstrahlen
+
+Bilder der Ausfahrt mit 60/45/40 %: in der Röhre ist die Ausfahrt jetzt hell
+überstrahlt, und die blaue Limousine bleibt im Tunnel blau. Steht die Kamera
+noch drinnen, das Auto aber schon draußen, lag das Viereck zwischen Kamera und
+Auto und verschleierte es mit. Jetzt steht es mindestens 1,5 m vor der Front
+des Spielerautos (EXIT_CAR_GAP_M): das Draußen dahinter ist überstrahlt, das
+Auto nicht – wie Arcades Sprite; von innen rahmt das Portal das Viereck weiter.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

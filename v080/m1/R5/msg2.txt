@@ -1,0 +1,14 @@
+v0.8.0 R5 WIP: Tunnel mit Gehwegen, Nischen, Türen, Lüftern, Portalrahmen; Fernwasser und Fernufer
+
+Tunnel (builders/tunnel.gd, tunnel.gdshader): erhöhte Notgehwege, Fliesenband in
+Paneelen, Kabeltrassen, Leuchten mit Gehäuse, SOS-Nischen mit orangem Schild,
+Notausgangstüren, Strahlventilatoren (Unterkante mind. 5,2 m), Portal mit
+vorstehendem Rahmen und Laibung, Rahmen der Ausfahrt, Hügel mit Fels am Portal;
+Zone für die Umgebung (tunnel_state, set_zone("tunnel", …), wenn das Rig es kann).
+Fernboden (layers/far_ground.gd): je Brücke im Fenster Fernwasser bis 3 km,
+bei tiefem Wasser Fernland in der alten Scheibenhöhe und Fernufer; die Scheibe
+bleibt bei der ZS1-Regel (test_far_ground_water grün). Wasser-Shader: light()
+ohne return (Arbeitsstand).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,125 @@
+PIPE - Prüfprotokoll (alle Ausgaben auf der Build-VM gemessen, 4 Kerne mit anderen Aufträgen geteilt)
+
+=== 1 Sprite-Geometrie nach allen Hooks: tools/blender/check_sprite_geometry.py --jobs 2
+REIHENFOLGE landmarks/fernsehturm_berlin          gleiche Flächen und Normalen, andere Reihenfolge im Netz (zählt als identisch)
+187 Sprite-Sets gebaut in 338 s: 187 identisch (davon 1 mit anderer Flächenreihenfolge), 0 nur Fließkomma-Rauschen, 0 verändert, 0 fehlen
+CHECK sprite_geometry OK
+real	5m38.758s
+
+=== 1a Fixture aus dem Generatorstand vor dem ersten Hook (Commit af28726) neu geschrieben, gegen die erste Fixture:
+anders: landmarks/fernsehturm_berlin             ['topo']
+187 Sets in der alten Fixture, 187 in der neuen; 186 in allen 10 alten Feldern gleich, 1 anders, 0 zusätzlich
+    (das eine abweichende Feld: Blenders UV-Kugel liefert ihre Flächen in jedem Prozess in anderer Reihenfolge)
+
+=== 2 Prüfer: python3 tools/blender/validate_models.py --report
+validate_models: 6 Modelle, 180 Sets (10 mit Modell, 170 Platzhalter)
+  Netze 1.73 MB von 40 MB, Texturen 4.59 MB im Grafikspeicher von 240 MB, Quellen 1.43 MB von 60 MB
+Modell                 Kategorie Dreiecke je Stufe                  Aufrufe        Netze B  Textur B Export s  Bake s
+landmarks/michel       landmark  lod0 3024                          1                63648    377301    315.4    0.01
+player/limousine       player    lod0 49636 show 102314 shadow 1872 6/6            1445196         0      4.9    0.09
+props/farmhouse        rural     lod0 104                           1                 2586    752795     49.4    0.00
+props/streetlight      furniture lod0 312                           1                 5023         0     0.15    0.00
+props/tree_oak         tree      lod0 1220 lod1 459 shadow 179      2/2              53072    373558      1.7    0.01
+traffic/sedan          car       lod0 17276 lod1 4147 lod2 1144 shadow 632 6/1/1           247795         0      9.9    0.02
+CHECK models OK
+
+=== 2a Der Prüfer schlägt an (eingebaute Fehler, danach wiederhergestellt):
+== 1 manifest differs from the fragments (tris of the streetlight changed in manifest.json)
+FEHLER manifest.json: weicht von sets_default.json + Fragmenten ab (export_models.py --manifest-only)
+CHECK models FEHLER (1)
+== 2 a mesh file changed after the bake (one byte appended to the streetlight mesh)
+FEHLER props/streetlight: hash passt nicht zu den Dateien (neu backen)
+FEHLER props/streetlight: bytes 5023 statt 5024
+CHECK models FEHLER (2)
+== 3 decoded vertex data off their values (paint code 0.3, lamp channel 5.2, atlas UV 1.4 planted in the inspect report)
+FEHLER player/limousine: lod0_body.res[vpbr]: automatische (dezimierte) Stufe in einem Modell ohne auto_lod
+FEHLER props/farmhouse: lod0_body.res[baked]: Atlas-Koordinaten außerhalb 0..1: [0.0024, 0.0031, 1.4, 0.9976]
+FEHLER traffic/sedan: lod0_body.res[vpbr]: Lackcodes neben den Werten 0 / 0.25 / 0.5 / 1: [0.3]
+FEHLER traffic/sedan: lod0_body.res[vpbr]: Lampenkanäle neben Kanal + 0.5: [5.2]
+FEHLER traffic/sedan: lod0/wheel_0l: Rad steht 20.0 mm über dem Boden
+FEHLER traffic/sedan: lod0/wheel_0r: Rad steht 20.0 mm über dem Boden
+FEHLER traffic/sedan: lod0/wheel_1l: Rad steht 20.0 mm über dem Boden
+FEHLER traffic/sedan: lod0/wheel_1r: Rad steht 20.0 mm über dem Boden
+CHECK models FEHLER (8)
+== after restoring
+CHECK models OK
+ M assets/models/manifest.json
+ M assets/models/props/tree_oak/impostor.png
+ M assets/models/props/tree_oak/model.json
+?? assets/models/player/
+
+=== 3 Bake zweimal, byte-gleich:
+BAKE 1 = BAKE 2: 28 Dateien byte-gleich (gleicher, jeweils leerer Zielordner)
+REPO: gelöscht und neu gebacken = vorher: 34 Dateien byte-gleich
+ M assets/models/manifest.json
+?? assets/models/player/
+
+=== 3a Export erzwungen wiederholt, Zwischenstände byte-gleich:
+EXPORT props/streetlight               0.2 s  lod0 312  glb 22 kB
+EXPORT props/streetlight: 1 Dateien byte-gleich
+EXPORT traffic/sedan                   9.9 s  lod0 17276, lod1 4147, lod2 1144  glb 863 kB
+EXPORT traffic/sedan: 1 Dateien byte-gleich
+EXPORT player/limousine                4.9 s  lod0 49636, show 102314  glb 4372 kB
+EXPORT player/limousine: 1 Dateien byte-gleich
+EXPORT props/tree_oak                  1.7 s  lod0 1220, lod1 459  glb 120 kB
+EXPORT props/tree_oak: 3 Dateien byte-gleich
+EXPORT props/farmhouse                49.4 s  lod0 104  glb 9 kB
+EXPORT props/farmhouse: 3 Dateien byte-gleich
+EXPORT landmarks/michel              315.4 s  lod0 3024  glb 198 kB
+EXPORT landmarks/michel: 3 Dateien byte-gleich
+
+=== 4 Renderer-Arithmetik (unbeleuchtetes Material, ALBEDO = Wert):
+ALBEDO value                          0.01  0.02  0.03  0.04  0.05  0.06  0.08  0.10  0.15  0.20  0.30  0.50  0.80  1.00
+identity (value x 255)                 2.6   5.1   7.6  10.2  12.8  15.3  20.4  25.5  38.2  51.0  76.5 127.5 204.0 255.0
+show(to_lin(value)) x 255              0.0   0.0   1.1   4.4   7.6  10.8  16.8  22.7  36.7  50.3  76.6 127.8 203.9 255.0
+unshaded, no post                        0     0     1     4     7    11    17    22    37    50    77   128   204   255
+unshaded, post path on                   0     0     0     0     1     5    12    19    35    49    77   128   204   255
+lit by white ambient 1.0, post on        0     0     0     0     1     5    12    19    35    49    77   128   204   255
+
+=== 5 Eiche: lod1 gegen Fernbild (Anzeigewerte der Krone, vier Sonnenrichtungen bei Tag, Mondlicht, Mondlicht x4):
+day 0,0.5,1                        lod1 [ 70.8 121.7  31.9] impostor [ 69.6 119.1  26.8] impostor/lod1 display [0.98 0.98 0.84]  linear [0.97 0.96 0.75]
+day -0.55,0.92,0.55                lod1 [ 64.2 112.5  28.3] impostor [ 63.3 110.3  23.4] impostor/lod1 display [0.99 0.98 0.83]  linear [0.97 0.96 0.75]
+day 1,0.5,0                        lod1 [ 56.9 102.2  24.2] impostor [55.1 98.8 18.8]   impostor/lod1 display [0.97 0.97 0.78]  linear [0.94 0.93 0.7 ]
+day 0.3,0.5,-1                     lod1 [48.6 90.2 20.2]   impostor [48.2 88.1 16.1]   impostor/lod1 display [0.99 0.98 0.8 ]  linear [0.98 0.95 0.74]
+night -0.55,0.92,0.55              lod1 [0.  4.5 0.1]      impostor [0.  2.8 0.2]      impostor/lod1 display [0.   0.64 0.43]  linear [1.   0.8  1.02]
+night x4 -0.55,0.92,0.55           lod1 [ 6.2 33.5  3.6]   impostor [ 5.2 32.8  3. ]   impostor/lod1 display [0.83 0.98 0.83]  linear [0.88 0.96 0.92]
+night 0.3,0.5,-1                   lod1 [0.1 0.5 0.4]      impostor [0.4 0.7 1.1]      impostor/lod1 display [0.83 1.27 2.14]  linear [1.05 1.02 1.12]
+night x4 0.3,0.5,-1                lod1 [ 1.2 19.7  1.1]   impostor [ 1.8 18.7  2.5]   impostor/lod1 display [1.44 0.95 2.36]  linear [1.09 0.93 1.25]
+
+=== 6 tools/run_tests.sh (ganzer Lauf auf dem eingecheckten Stand)
+163 Skripte geprüft, 0 fehlerhaft
+ok    test_model_db.gd :: test_manifest_is_available
+ok    test_model_db.gd :: test_every_sprite_set_resolves
+ok    test_model_db.gd :: test_object_sizes_equal_the_sprite_manifest
+ok    test_model_db.gd :: test_stand_ins_follow_the_kind_of_set
+ok    test_model_db.gd :: test_manifest_is_the_merge_of_its_fragments
+ok    test_model_db.gd :: test_files_exist_and_meshes_carry_the_manifest
+ok    test_model_db.gd :: test_reference_sets
+ok    test_model_db.gd :: test_resolving_loads_nothing
+ok    test_model_db.gd :: test_request_loads_in_the_background
+ok    test_model_db.gd :: test_missing_manifest_resolves_nothing
+ok    test_network_data.gd :: test_real_tunnels_and_borders
+ok    test_police_system.gd :: test_chase_into_city_limits_on_real_stage
+ok    test_city_track.gd :: test_real_arrivals_keep_park_trees_off_bridges
+ok    test_sprite_db.gd :: test_real_manifest_is_consistent
+ok    test_route_info.gd :: test_real_route_options_cover_the_whole_route
+451 Tests, 0 fehlgeschlagen
+CHECKS OK  (0 fehlgeschlagen, 40 s)
+CHECKS OK  (0 fehlgeschlagen, 30 s)
+CHECKS OK  (0 fehlgeschlagen, 6 s)
+CHECKS OK  (0 fehlgeschlagen, 119 s)
+real	7m13.584s
+CHECK-Zeilen OK: 44, fehlgeschlagen: 0
+
+=== 7 ModelFactory ohne Fenster: jedes Set mit Modell in jeder Stufe, MultiMesh-Teile, Fernbild
+landmarks/michel        lod0: 1 Knoten, 0 Räder, 1 MultiMesh-Teile
+player/limousine        lod0: 6 Knoten, 4 Räder, Schatten, 6 MultiMesh-Teile  show: 6 Knoten, 4 Räder, Schatten, 6 MultiMesh-Teile
+props/farmhouse         lod0: 1 Knoten, 0 Räder, 1 MultiMesh-Teile
+props/streetlight       lod0: 1 Knoten, 0 Räder, 1 MultiMesh-Teile
+props/tree_oak          lod0: 2 Knoten, 0 Räder, Schatten, 2 MultiMesh-Teile  lod1: 2 Knoten, 0 Räder, Schatten, 2 MultiMesh-Teile  Fernbild ok
+showroom/limousine      lod0: 6 Knoten, 4 Räder, Schatten, 6 MultiMesh-Teile  show: 6 Knoten, 4 Räder, Schatten, 6 MultiMesh-Teile
+traffic/sedan_black     lod0: 6 Knoten, 4 Räder, Schatten, 6 MultiMesh-Teile  lod1: 2 Knoten, 0 Räder, Schatten, 2 MultiMesh-Teile  lod2: 2 Knoten, 0 Räder, Schatten, 2 MultiMesh-Teile
+traffic/sedan_blue      lod0: 6 Knoten, 4 Räder, Schatten, 6 MultiMesh-Teile  lod1: 2 Knoten, 0 Räder, Schatten, 2 MultiMesh-Teile  lod2: 2 Knoten, 0 Räder, Schatten, 2 MultiMesh-Teile
+traffic/sedan_red       lod0: 6 Knoten, 4 Räder, Schatten, 6 MultiMesh-Teile  lod1: 2 Knoten, 0 Räder, Schatten, 2 MultiMesh-Teile  lod2: 2 Knoten, 0 Räder, Schatten, 2 MultiMesh-Teile
+traffic/sedan_silver    lod0: 6 Knoten, 4 Räder, Schatten, 6 MultiMesh-Teile  lod1: 2 Knoten, 0 Räder, Schatten, 2 MultiMesh-Teile  lod2: 2 Knoten, 0 Räder, Schatten, 2 MultiMesh-Teile
+ModelFactory: OK, Materialien: 6

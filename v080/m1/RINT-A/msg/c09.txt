@@ -1,0 +1,20 @@
+v0.8.0 RINT-A: Lichtpunkte bei 75 % 3D-Auflösung, Aufwärmen der Requisiten je Modell
+
+Zwei Fehler, die erst die Zusammenführung zeigt:
+
+- „Niedrig“ (Voreinstellung für Software-Grafik) zeichnet das 3D-Bild mit
+  75 % (R1); eine Heckleuchte in 150 m fiel zwischen die Bildpunkte, ihr
+  Lichtpunkt (R3) hatte die volle Stärke nur im Mittelpunkt. Gemessen:
+  Bremslicht bei Tag in 150 m Rot +0,07 statt +0,57 bei 100 %
+  (check_vehicle_lights bremslicht rot). flare.gdshader hält die volle
+  Stärke bis zu einer halben Bildpunkt-Diagonale des 3D-Bilds, der Radius
+  bleibt: „Niedrig“ 150 m +0,16, 300 m +0,33; „Hoch“ wie vorher oder heller.
+- warmup_cold.gd mit allen Inhalten: 2 Shader-Varianten mitten in der Fahrt
+  (auch ohne Verkehr und HUD). props.gd warmup_nodes() zeigt jetzt jede
+  Darstellung jedes geladenen Modells so, wie commit() sie zeichnet, statt
+  eines Knotens je Materialklasse: 0 Varianten während der Fahrt.
+
+Doku: docs/renderer-modern.md 12.9.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

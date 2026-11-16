@@ -1,0 +1,25 @@
+v0.8.0 AU-A: Pegelplan gemessen – Ducking nach Fahrzustand, Renn-EQ aus Kuhschwanzfiltern, Mess-Werkzeuge
+
+tools/audio/modern/capture_mix.gd nimmt auf, was ein Klangprofil bei einer festen Fahrt oder im Menü auf den
+Master-Bus legt; measure_mix.py misst die Lautheit je Abschnitt gegen den Pegelplan. Daraus (auf dieser VM,
+Gran Turismo, Standardregler): Arcade Vollgas −13,1 LUFS, Modern mit den Platzhalter-Bausteinen −16,2 LUFS,
+Menümusik −29,7 → −21,6 LUFS (erste 50 s der Titelmelodie).
+
+Zwei Dinge hat die Messung geändert:
+
+- Das Ducking der Musik folgt jetzt der Lautheit, die der Plan dem Auto in seinem Fahrzustand gibt
+  (ModernMix.car_lufs: Leerlauf, Reisetempo, Vollgas), nicht mehr dem Pegelmesser des Auto-Busses. Weder Spitze
+  noch Effektivwert des Busses folgen der Lautheit des Motors (Leerlauf / 130 km/h / Vollgas bei −20,4 / −22,7 /
+  −16,2 LUFS: Spitze −6,4 / −11,1 / −0,3 dBFS) – die Musik wäre im Leerlauf tiefer abgesenkt worden als bei
+  Tempo 130.
+- Der Renn-EQ der Musik besteht aus zwei Kuhschwanzfiltern in Reihe (breite Mulde: 62 Hz −1,0 dB, 500 Hz
+  −3,0 dB, ab 4 kHz 0 dB; in der Prüfung mit Tönen gemessen) statt aus AudioEffectEQ10. Godots Band-Equalizer
+  sind nicht neutral: mit allen Bändern auf 0 dB hebt der EQ10 das Signal um 1,4 bis 3,3 dB an (EQ21 etwa
+  3,9 dB, EQ6 0,5 bis 2,6 dB; aus Impulsantworten gemessen) – die Musik lag im Rennen 2 dB über dem Plan. Der EQ
+  blendet mit dem Kontext ein und aus, statt zu schalten. Musik im Rennen (Platzhalter-Stück): −19,7 LUFS im
+  Leerlauf, −24,1 LUFS unter Vollgas (Plan: 8 dB unter dem Auto).
+
+Außerdem: --mute-bus=<Modern-Bus> bleibt über Lautstärkeänderungen hinweg stumm (zum Messen einzelner Gruppen).
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

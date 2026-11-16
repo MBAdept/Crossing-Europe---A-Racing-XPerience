@@ -1,0 +1,47 @@
+Schleife          s   LUFS  Crest Schwerp.  Neig.  <180Hz  HP180  Klein    cv        innen  Töne
+rail_scrape    2.00  -11.1   10.6     5657    1.6     11%   -0.2    0.6  0.12  1.21s/0.15  455 Hz +17, 789 Hz +16, 1338 Hz +16, 1343 Hz +15
+scrub          1.50  -14.2   16.1     2390    2.9      0%   -0.0    1.7  0.30  1.29s/0.20  
+slab_fast      0.80  -17.7   15.4      259   -1.1     84%   -5.1   -4.0  0.59  0.50s/0.91  40 Hz +19, 70 Hz +17, 110 Hz +21, 131 Hz +18
+slab_slow      1.60  -20.6   17.9      278   -0.5     86%   -5.1   -3.7  0.83  1.40s/0.97  65 Hz +15, 75 Hz +13, 140 Hz +12, 295 Hz +12
+squeal         2.00  -11.5   11.9     1215    6.3      0%   -0.0    0.9  0.39  1.52s/0.08  803 Hz +24, 809 Hz +26, 816 Hz +21, 821 Hz +22
+tyre_asphalt   2.00  -14.2   14.5     1106   -0.6      4%   -0.1    0.8  0.19  0.08s/0.23  
+tyre_cobbles   2.50  -16.9   15.6      320   -3.2     41%   -1.9   -2.1  0.41  1.88s/0.14  
+tyre_concrete  2.00  -12.8   13.9     1623    0.9      2%   -0.1    1.3  0.20  0.08s/0.32  
+tyre_deck      2.00  -13.3   13.1      729   -2.5     25%   -0.8   -0.1  0.25  0.08s/0.46  
+tyre_grass     2.50  -17.7   14.3      399   -0.8     79%   -2.7   -1.5  0.56  0.09s/0.24  
+tyre_gravel    2.50  -13.9   15.7     3063    1.9     31%   -0.4    1.3  0.25  1.01s/0.21  
+tyre_rumble    1.00  -10.8    9.5      269   -3.7     70%   -4.3   -4.4  0.29  0.20s/0.21  100 Hz +24, 201 Hz +20, 300 Hz +15, 400 Hz +12
+tyre_wet       2.00  -11.6   13.9     4042    2.4      2%   -0.0    1.4  0.15  0.08s/0.36  
+wind_buffet    3.00  -18.6   15.8       95   -8.6     92%   -8.6   -9.7  0.89  1.97s/0.16  
+wind_high      2.00  -10.7   13.2     6497   12.5      0%   -0.0    1.1  0.07  1.71s/0.16  3159 Hz +13
+wind_low       2.00  -14.4   11.6      223   -3.3     78%   -4.0   -4.1  0.39  1.11s/0.15  
+wind_mid       2.00  -11.5   12.4     1356    0.5      1%   -0.0    1.2  0.14  1.51s/0.14  
+
+Paare (zwei Spieler je Ebene, Versatz L/2, gleiche Tonhöhe):
+  tyre_asphalt  pan ±0.55: Kanalkorrelation  0.65; Monosumme gegen sich selbst nach L/2 = 1.00 s:  1.00; ein Kanal nach L/2:  0.65; Hüllkurve L/2: Kanal 0.11, Mono 1.00; Mono − Stereo -0.8 dB
+  tyre_concrete pan ±0.55: Kanalkorrelation  0.65; Monosumme gegen sich selbst nach L/2 = 1.00 s:  1.00; ein Kanal nach L/2:  0.65; Hüllkurve L/2: Kanal 0.21, Mono 1.00; Mono − Stereo -0.8 dB
+  tyre_wet      pan ±0.55: Kanalkorrelation  0.65; Monosumme gegen sich selbst nach L/2 = 1.00 s:  1.00; ein Kanal nach L/2:  0.65; Hüllkurve L/2: Kanal 0.28, Mono 1.00; Mono − Stereo -0.8 dB
+  wind_low      pan ±0.70: Kanalkorrelation  0.45; Monosumme gegen sich selbst nach L/2 = 1.00 s:  1.00; ein Kanal nach L/2:  0.45; Hüllkurve L/2: Kanal 0.22, Mono 1.00; Mono − Stereo -1.4 dB
+  wind_mid      pan ±0.70: Kanalkorrelation  0.45; Monosumme gegen sich selbst nach L/2 = 1.00 s:  1.00; ein Kanal nach L/2:  0.45; Hüllkurve L/2: Kanal 0.22, Mono 1.00; Mono − Stereo -1.4 dB
+  wind_high     pan ±0.70: Kanalkorrelation  0.45; Monosumme gegen sich selbst nach L/2 = 1.00 s:  1.00; ein Kanal nach L/2:  0.45; Hüllkurve L/2: Kanal 0.16, Mono 1.00; Mono − Stereo -1.4 dB
+  wind_buffet   pan ±0.70: Kanalkorrelation  0.47; Monosumme gegen sich selbst nach L/2 = 1.50 s:  1.00; ein Kanal nach L/2:  0.47; Hüllkurve L/2: Kanal 0.32, Mono 1.00; Mono − Stereo -1.4 dB
+
+Einmalklang      Var     s  LUFSm  Crest Schwerp.  <100  <180  HP180  Klein  Töne
+crunch             2  0.90  -15.3   19.8     1417    0%    2%   -0.2    1.5  1440+16, 2694+17
+debris             1  1.04  -17.9   22.4     2446    0%    0%   -0.0    2.2  894+16, 2544+16, 2584+15, 2595+19
+glass              1  1.31  -16.5   24.6     6182    0%    0%   -0.0    0.9  3012+21, 3203+23, 3959+21, 5795+27, 8751+25
+hit_heavy          2  0.80  -19.1   20.6      479   78%   80%   -1.7   -0.2  170+20
+hit_light          2  0.50  -22.2   23.0      220   80%   97%   -2.6   -0.9  1104+16, 2299+16, 3623+18
+joint_concrete     3  0.56  -18.4   16.8       98   89%   98%  -10.0   -8.8  
+joint_steel        3  0.56  -18.8   18.2      305   65%   73%   -3.5   -2.8  519+27, 853+24, 883+19, 1324+28, 2191+18
+pass_building      1  0.55  -13.3   14.7     1039    9%   17%   -0.4    0.5  
+pass_gantry        1  0.60  -13.3   15.9     1800    9%   16%   -0.3    0.9  
+pass_post          2  0.18  -15.2   14.8     7638    0%    0%   -0.0    0.5  
+pass_rock          1  0.40  -15.1   16.9     7462    0%    0%   -0.0    0.5  
+pass_sign          1  0.25  -16.0   15.2     5675    0%    0%   -0.0    1.0  
+pass_tree          2  0.45  -15.6   18.5     4416    0%    1%   -0.0    1.2  
+post_hit           2  0.45  -18.1   19.1     2451    1%    3%   -0.0    0.8  
+rail_hit           2  1.00  -16.9   19.8      599   10%   10%   -1.2   -1.0  207+58, 452+54, 783+47, 1332+43, 2188+32
+rail_touch         2  0.40  -18.2   18.9     5780    0%    0%   -0.0    0.6  458+34, 781+28, 1330+21
+truck_boom         1  1.30  -15.8   17.6      278   62%   78%   -2.9   -1.9  118+46, 188+39, 310+30, 455+24, 743+15
+-> results/assets.json

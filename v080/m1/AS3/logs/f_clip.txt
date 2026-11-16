@@ -1,0 +1,3 @@
+prop_scene: Renn-Licht 12 Uhr, normal, Voreinstellung medium, Sicht 900 m, Stufen 60 / 200 m
+prop_scene: clip -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS3/clip2/c_NNN.png (120 Bilder)
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS3/clip2/c_000.png

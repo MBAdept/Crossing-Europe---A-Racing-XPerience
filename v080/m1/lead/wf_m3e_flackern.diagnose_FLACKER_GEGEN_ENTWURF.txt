@@ -1,0 +1,79 @@
+
+CONTEXT
+- Game: "Crossing Europe – A Racing Xperience" (Godot 4.7.2, GDScript, GL Compatibility renderer), repo /home/user/crossing-europe---a-racing-xperience.
+  German user; docs and player-facing texts in German (tr()), code comments in English. v0.7.0 is released (= main).
+  v0.8.0 adds a graphics option: today's pseudo-3D game becomes the mode "Arcade" (frozen, pixel-identical); the new
+  mode "Modern" is a second, real-3D renderer in the same build with finer models, dynamic light and a "Modern" sound
+  profile. The user's wish, literally: "das gesamte Spiel einer deutlichen grafischen Überarbeitung unterziehen.
+  Detailreiche Grafik soweit möglich, feinere Modelle, bessere Lichteffekte, Sound- und Musiküberarbeitung" and "echtes
+  3D bitte". Wave 0 (session seam, model pipeline, audio core, geometry kernel with fairness tests) is merged in branch
+  v0.8.0. This push (M1) runs as parallel packages: renderer skeleton R1a (done), road/environment R1, terrain/props
+  R2, vehicles/signs R3, vehicle models AS1 (done; an art review and a rework AS1R follow), environment models AS1b,
+  engine sound AU-B (done), options/chooser/showroom/Leistungstest UI1. Then the lead merges everything, QA checks it,
+  and the user gets the first test build (Kiel–Hamburg in Modern, for Steam Deck and Windows).
+- THE BUILD CONTRACT IS BINDING: docs/dev/v080_contract.md (1,800 lines). Read §2 (rules), the decisions of §3 that
+  concern you, your interfaces in §4, §5, your package in §6, §8 and COMPLETELY §11 (amendments after wave 0 – it wins
+  over the older text; A-7 is the renderer facade, A-8 the plan and file ownership of this push). Also read the docs
+  of your area: docs/renderer-modern.md, docs/modelle.md, ARCHITECTURE.md §15. Where the contract is wrong
+  or blocks you: implement the closest sound solution and report it under contract_issues with evidence – never work
+  around it silently. Evidence and prototypes of the design studies (starting points, read before reuse): /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/
+  (renderer3d/out/spike_src, engine-probe/evidence/prototypes, synthesis/out; index in §10 of the contract).
+- YOUR PACKAGE ID: FLACKER-GEGEN-ENTWURF – a read-only role: no commits, no branch, no safety copy. START: if
+  /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/FLACKER-GEGEN-ENTWURF/STAND.md exists, a predecessor was stopped by an account usage limit – read it, reuse its working
+  copy and partial results, and continue.
+- RESTART PROTOCOL: the container can restart, or an account usage limit can stop you, at any moment; a successor with
+  this same brief is then started (both have already happened in this push). (1) Your START instruction above says how
+  to find and continue a predecessor; its background processes are gone and half-written output files may be
+  incomplete. (2) Keep /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/FLACKER-GEGEN-ENTWURF/STAND.md up to date after every step you finish: worktree path and branch,
+  done / doing now / next / pitfalls, where your scratch results are.
+- Runs: for EVERY game run set XDG_DATA_HOME to an ABSOLUTE folder under your scratch dir; pass --graphics=arcade|modern
+  explicitly. Rendering needs  xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
+  --audio-driver Dummy …  (software OpenGL, llvmpipe – no real GPU, no loudspeakers here: everything about a Steam
+  Deck, a real GPU or how something sounds to a person is "inferred", never "measured"). The default graphics preset
+  on this machine is "low" (adapter tier software: no shadow casters) – for pictures pass --gfx-preset=medium or high.
+  Up to six agents share the 4 cores and 16 GB: heavy jobs (Godot renders, Blender, audio renders, test suites) one at
+  a time with nice -n 10 and at most 2 worker processes; run the complete tools/run_tests.sh (9–15 min) at most twice
+  (use its filter argument while iterating) and tools/golden.sh check (Arcade identity, must print 20 von 20
+  identisch) once at the end. Tools: godot, python3 (numpy, PIL), ffmpeg, ImageMagick, Blender 5.2 as Python module
+  /home/user/tools/bpyenv/bin/python, tools/run_tests.sh, tools/run_render_checks.sh, tools/golden.sh, tools/ab_shot.sh
+  (in branches that contain R1a), tools/models_contact_sheet.sh, tools/blender/validate_models.py,
+  tools/audio/qc/audio_qc.py.
+- Shell: the Bash tool may refuse compound commands with heredocs or several chained git commands ("too complex"):
+  write helper scripts into your scratch folder and run them one by one; write commit messages to a file and use
+  git commit -F <file>. "-s" scripts must not name autoload-dependent classes statically; compile-check with
+  tests/check_scripts.gd.
+- Rule 1: the frozen Arcade files are never edited. Stay inside your file ownership (§5 with A-8); packages of this push talk to each other only through the facade of A-7 with duck typing.
+- LOOK AT YOUR OWN PICTURES: you can open PNG/JPG files with the Read tool. Judge every picture you deliver honestly
+  against the Arcade frame of the same simulation state. "Modern" has to look clearly better than Arcade, not merely
+  different; say plainly where it does not yet.
+- Scratch for working files: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/FLACKER-GEGEN-ENTWURF/ ; pictures, previews and reports for review: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FLACKER-GEGEN-ENTWURF/ (write
+  your full report there as bericht.md). Never commit intermediates or previews. Disk space is limited: delete large
+  scratch items (exports, copies of the tree, caches you no longer need) when you are done.
+- You make no commits and change no branch.
+- Priorities when time gets tight: (1) nothing broken – gates green, Arcade identical, fairness tests green; (2) the interfaces others depend on; (3) the look.
+  Deliver the core solid and list what is left under notes_for_next rather than leaving everything half-done.
+- RESULT: keep it compact – summary at most 250 words; deviations, contract_issues and notes_for_next at most 10
+  entries each, one or two sentences per entry; the details belong into bericht.md. Mark numbers measured/inferred.
+
+THE USER'S REPORT (German, verbatim, 2026-11-12), two messages: (1) "ZS1 Kassel-Erfurt auf meinem Main-PC gespielt.
+Keine größeren Bugs, aber leichtes Clipping bei einem weissen PKW. trat 2 mal auf und hing offenbar mit meiner
+Lenkbewegung zusammen, sah nur etwas merkwürdig aus und ist kein Game Breaker." (2) asked what was clipping: "ich meinte
+mit Clipping das Grafikflackern. Der Wagen war schätzungsweise "reale" 40 Meter vor mir und "verlor" kurz seine
+Lackierung :)" – i.e. a GRAPHICS FLICKER, not cars passing through each other: in the first test build ZS1 (commit
+39849f0263921f798da4326b83dff30d83a947d2, archives in /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/ZS1/), on the stage Kassel – Erfurt (network stage "erfurt_kassel"; find out in which race
+and direction the user can drive it), on the user's Windows main PC with a real graphics card, most probably in the mode
+"Modern" with the preset the first start chose for that PC, a white passenger car (traffic) about 40 m ahead of the user
+briefly LOST ITS PAINT – twice in the stage, apparently connected with the user's steering. Not game-breaking, but it
+looked strange.
+YOUR ROLE: FLACKER-GEGEN-ENTWURF – ADVERSARIAL COUNTER-CHECK. Try to REFUTE the FIX DESIGN: does it remove the cause for every vehicle model, level and preset, or only hide it; can it break fairness (a car or its lights visible later, smaller or dimmer than in Arcade), Arcade identity, the look of the cars (paint, coat, lamps by day and at night, tunnels), performance (per-frame cost with 40 cars), the merge with R4 (vehicles.gd and friends are R4's in wave 3), the vehicle models of the M2 head (AS2R), or miss a case (trucks, police, player cars, box and sprite stand-ins, pooled cars, a model loaded late)?
+THE DIAGNOSIS (report /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FLACKER-DIAGNOSE/bericht.md): {"root_causes":[{"id":"M1","what":"w","evidence":"e","user_case":"most likely"}],"fix_design":"d","fairness_argument":"f","arcade_identity":"a","tests":[],"acceptance":[],"risks":[]}
+The investigations behind it: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FLACKER-NACHSTELLEN/bericht.md and /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FLACKER-ANALYSE/bericht.md (pictures in their folders).
+HARD RULES FOR ANY FIX: Arcade and the simulation stay exactly as they are (frozen Arcade files, scripts/gameplay/**,
+scripts/race/** except the Modern seam, config values Arcade reads). The fix lives in the Modern renderer and/or the
+vehicle models. Fairness (contract F1/F6, tests/sim/modern_sight.gd): a car must never be visible later or smaller than
+in Arcade; its lights keep their minimum size. A level switch of a car must be invisible at every preset (no change of
+paint, brightness or colour a player can notice – measure the changed-pixel share and the colour difference of the car
+across the switch); the fix must hold for every vehicle model (traffic, trucks, police, player cars) and every level,
+not only the white car. Prefer the root cause over a cover-up (a cross-fade only hides a wrong level).
+Be concrete: every problem with evidence (file:line, numbers, picture) and a correction. If you find nothing that
+matters, say refuted=false and list what you checked. Notes into /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FLACKER-GEGEN-ENTWURF/bericht.md.

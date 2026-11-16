@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# R6 gates, part B (final head): Arcade identity (golden.sh check), Modern change detectors (modern-check, pictures
+# kept), the two Modern simulation checks with --full. Logs in R6/gates/.
+S=/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/R6
+WT=/home/user/crossing-europe---a-racing-xperience/.claude/worktrees/wf_3b3101bc-877-1
+G=$S/gates
+mkdir -p "$G" "$S/xdg/gates"
+NICE=19
+if [ -e /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/lead/QA_M2_FERTIG ]; then
+	NICE=10
+fi
+export XDG_DATA_HOME=$S/xdg/gates
+export MESA_SHADER_CACHE_DIR=$S/mesa
+cd "$WT" || exit 1
+echo "HEAD $(git rev-parse --short HEAD)  status: $(git status --short | wc -l) Zeilen  nice $NICE  $(date +%H:%M)"
+T0=$SECONDS
+T0=$SECONDS
+# R6 gates, part B (final head): Arcade identity (golden.sh check), Modern change detectors (modern-check, pictures
+# kept), the two Modern simulation checks with --full. Logs in R6/gates/.
+S=/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/R6
+WT=/home/user/crossing-europe---a-racing-xperience/.claude/worktrees/wf_3b3101bc-877-1
+G=$S/gates
+mkdir -p "$G" "$S/xdg/gates"
+NICE=19
+if [ -e /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/lead/QA_M2_FERTIG ]; then
+	NICE=10
+fi
+export XDG_DATA_HOME=$S/xdg/gates
+export MESA_SHADER_CACHE_DIR=$S/mesa
+cd "$WT" || exit 1
+echo "HEAD $(git rev-parse --short HEAD)  status: $(git status --short | wc -l) Zeilen  nice $NICE  $(date +%H:%M)"
+T0=$SECONDS
+nice -n "$NICE" tools/golden.sh check > "$G/golden_check.log" 2>&1
+echo "== golden check exit $? ($((SECONDS - T0)) s)"
+grep -E "^GOLDEN|==>" "$G/golden_check.log" | tail -8
+T0=$SECONDS
+rm -rf "$G/modern_keep"
+KEEP=$G/modern_keep nice -n "$NICE" tools/golden.sh modern-check > "$G/golden_modern_check.log" 2>&1
+echo "== golden modern-check exit $? ($((SECONDS - T0)) s)"
+grep -E "^GOLDEN|==>" "$G/golden_modern_check.log" | tail -10
+echo "GATES_B1 DONE $(date +%H:%M)"

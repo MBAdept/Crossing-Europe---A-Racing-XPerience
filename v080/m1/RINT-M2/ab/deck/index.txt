@@ -1,0 +1,5 @@
+# tools/ab_sheet.sh – 2026-11-16 10:49 UTC, commit 6b17293 (geändert)
+# Bildschirm 1280x800, Aufnahmezeit(en) 3 s, Voreinstellungen: deck
+S1   deck    187 s  OK  --stage=kiel_hamburg --from=kiel --hour=12 --weather=normal --vehicle=limousine --seed=11 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-speed=120 --start-km=2 --gfx-preset=deck
+N2   deck    214 s  OK  --stage=dortmund_frankfurt --from=dortmund --start-km=121 --hour=16 --weather=rain --vehicle=gran_turismo --seed=14 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-speed=110 --gfx-preset=deck
+U1   deck    123 s  OK  --stage=bern_mailand --from=bern --start-km=186 --hour=12 --weather=normal --vehicle=limousine --seed=16 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-speed=100 --gfx-preset=deck

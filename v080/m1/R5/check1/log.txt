@@ -1,0 +1,16 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+
+AudioManager: Verkehrsgeräusche res://assets/audio/traffic/traffic_sounds.json geladen in 20 ms (9 Klänge, 6 Klassen)
+AudioManager: Klänge erzeugt in 541 ms
+AudioManager: Titelmelodie res://assets/audio/music/title_theme.ogg geladen in 16 ms
+AudioManager: Motorbank limousine: 32000 Hz, 13 Drehzahlpunkte 649–7204/min, 208 Zyklen, 10 Clips, 2.2 MB geladen in 9 ms
+RENDER-CHECK tunnel_bridge_U1_portal OK      bern_mailand km 184.4: unter dem Horizont 0.000 % Magenta
+RENDER-CHECK tunnel_bridge_U1_innen OK      bern_mailand km 188.0: 0.000 % Magenta im Bild, 612 Leuchtenpunkte, Leuchtdichte 0.322, Zone 1.00
+RENDER-CHECK tunnel_bridge_U1_ausfahrt FEHLER  bern_mailand km 201.3: Ausfahrt 2145 Bildpunkte, Leuchtdichte 0.226 (Röhre daneben 0.449), 0.0 % reines Weiß  –  FEHLT: Ausfahrt zu dunkel (Leuchtdichte 0.226, mindestens 0.25); Ausfahrt nicht heller als die Röhre (0.226 gegen 0.449)
+RENDER-CHECK tunnel_bridge_Somport_portal OK      saragossa_pau km 176.3: unter dem Horizont 0.000 % Magenta
+RENDER-CHECK tunnel_bridge_B1       OK      frankfurt_koeln km 186.2: unter dem Horizont 0.000 % Magenta, 0.00 % Fernboden; 630 Wasserflächen, 1 Fernflüsse
+RENDER-CHECK tunnel_bridge_beacon   FEHLER  kiel_hamburg km 76.9, 22 Uhr: 4 Feuer, 2 blinken, 0 rote Bildpunkte an ihnen in 36 Bildern  –  FEHLT: 2 von 4 Feuern blinken nicht (immer an oder nie an in 36 Bildern); an den Feuern zeigt das Bild kein Rot (0 Bildpunkte)
+RENDER-CHECKS FEHLER  (2 fehlgeschlagen, 234 s)

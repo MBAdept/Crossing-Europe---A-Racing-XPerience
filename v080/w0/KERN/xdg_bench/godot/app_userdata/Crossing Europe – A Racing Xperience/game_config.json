@@ -1,0 +1,46 @@
+{
+ "attract": {
+  "demo_s": 20.0,
+  "scenes": [
+   {
+    "id": "autobahn",
+    "name": "Autobahn bei Tag",
+    "stage": "dortmund_frankfurt",
+    "from": "dortmund",
+    "km": 121.0,
+    "hour": 12.0,
+    "weather": "normal",
+    "vehicle": "limousine",
+    "speed_kmh": 170,
+    "cruise_kmh": 200,
+    "seed": 21
+   },
+   {
+    "id": "stadt_nacht_regen",
+    "name": "Stadt bei Nacht im Regen",
+    "stage": "dortmund_frankfurt",
+    "from": "dortmund",
+    "km": 216.0,
+    "hour": 22.0,
+    "weather": "rain",
+    "vehicle": "kombi",
+    "speed_kmh": 100,
+    "cruise_kmh": 110,
+    "seed": 22
+   },
+   {
+    "id": "berg_tunnel",
+    "name": "Bergstrecke mit Tunnel",
+    "stage": "bern_mailand",
+    "from": "bern",
+    "km": 180.5,
+    "hour": 15.0,
+    "weather": "normal",
+    "vehicle": "sportwagen",
+    "speed_kmh": 130,
+    "cruise_kmh": 150,
+    "seed": 23
+   }
+  ]
+ }
+}

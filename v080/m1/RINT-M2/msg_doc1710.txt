@@ -1,0 +1,10 @@
+v0.8.0 RINT-M2: Doku §17.10 – Prüfungen der Montage mit Messwerten und Gegenproben
+
+Tabelle der neuen und geänderten Prüfungen (bremsschein, instanzen,
+instanzen_wald, instanzen_stadt, laternen, tunnel_bridge_U1_ausfahrt,
+props_spiegel und die Unit-Tests zu Tönung, Tankstellendach, Lampenstärke,
+Bremsschein) mit den Werten am Stand b673df5 und den Gegenproben
+(Verstärkung 1,0, ohne VPBR_STATIC, flaches Profil).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

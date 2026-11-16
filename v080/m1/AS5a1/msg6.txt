@@ -1,0 +1,9 @@
+v0.8.0 AS5a1: WIP Stadthaus-Bauer: Garten mit wenig Texeln, Flugbefeuerung mit Anker auf der Lampe
+
+- weights["objects"]: Faktor je Objekt; Hecken und Gartenbaum des Einfamilienhauses 0,3
+  (vorher ein Drittel des Atlas, Wände jetzt etwa 57 statt 52 px/m)
+- geschlossene Lampenkörper über 8 m (Rotlicht auf dem Mast des Büroturms) ohne die nach oben
+  schauenden Flächen: der Lichtanker lag 277 mm in der Kugel (Prüfer), jetzt auf der Unterseite
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

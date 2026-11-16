@@ -1,0 +1,8552 @@
+[
+{
+"name": "suv_g10_lod0_day",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 10
+}
+},
+{
+"name": "suv_g20_lod0_day",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 20
+}
+},
+{
+"name": "suv_g25_lod0_day",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 25
+}
+},
+{
+"name": "suv_g25_lod1_day",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 25
+}
+},
+{
+"name": "suv_g30_lod0_day",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+}
+},
+{
+"name": "suv_g40_lod0_day",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 40
+}
+},
+{
+"name": "suv_g40_lod1_day",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 40
+}
+},
+{
+"name": "suv_g60_lod0_day",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 60
+}
+},
+{
+"name": "suv_g60_lod1_day",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 60
+}
+},
+{
+"name": "suv_g80_lod1_day",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 80
+}
+},
+{
+"name": "suv_g90_lod1_day",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 90
+}
+},
+{
+"name": "suv_g90_lod2_day",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 90
+}
+},
+{
+"name": "suv_g120_lod1_day",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 120
+}
+},
+{
+"name": "suv_g120_lod2_day",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 120
+}
+},
+{
+"name": "suv_g160_lod1_day",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 160
+}
+},
+{
+"name": "suv_g160_lod2_day",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 160
+}
+},
+{
+"name": "suv_g200_lod2_day",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 200
+}
+},
+{
+"name": "suv_g10_lod0_ss",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 10,
+"ss": 3.0
+},
+"msaa": 4
+},
+{
+"name": "suv_g30_lod0_ss",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30,
+"ss": 3.0
+},
+"msaa": 4
+},
+{
+"name": "suv_g80_lod1_ss",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 80,
+"ss": 3.0
+},
+"msaa": 4
+},
+{
+"name": "suv_g120_lod2_ss",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 120,
+"ss": 3.0
+},
+"msaa": 4
+},
+{
+"name": "suv_g10_lod0_daybrake",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 10
+},
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+},
+{
+"name": "suv_g10_lod0_dayind",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 10
+},
+"lamp_a": [
+0,
+0,
+1,
+0
+]
+},
+{
+"name": "suv_g10_lod0_nighttail",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 10
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_g10_lod0_nightbrake",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 10
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_g30_lod0_daybrake",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+},
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+},
+{
+"name": "suv_g30_lod0_dayind",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+},
+"lamp_a": [
+0,
+0,
+1,
+0
+]
+},
+{
+"name": "suv_g30_lod0_nighttail",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_g30_lod0_nightbrake",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_g80_lod1_daybrake",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 80
+},
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+},
+{
+"name": "suv_g80_lod1_dayind",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 80
+},
+"lamp_a": [
+0,
+0,
+1,
+0
+]
+},
+{
+"name": "suv_g80_lod1_nighttail",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 80
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_g80_lod1_nightbrake",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 80
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_g150_lod2_daybrake",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 150
+},
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+},
+{
+"name": "suv_g150_lod2_dayind",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 150
+},
+"lamp_a": [
+0,
+0,
+1,
+0
+]
+},
+{
+"name": "suv_g150_lod2_nighttail",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 150
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_g150_lod2_nightbrake",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 150
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_g12_lane",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 12,
+"lane": -3.5
+}
+},
+{
+"name": "suv_g25_lane",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 25,
+"lane": -3.5
+}
+},
+{
+"name": "suv_g15_backlit",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 15
+},
+"sun": [
+0.35,
+0.6,
+-1.0
+]
+},
+{
+"name": "suv_g30_oncoming_night",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"yaw": 180,
+"cam": {
+"type": "game",
+"dist": 30,
+"lane": 3.5
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_g30_oncoming_day",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"yaw": 180,
+"cam": {
+"type": "game",
+"dist": 30,
+"lane": 3.5
+}
+},
+{
+"name": "suv_ortho_lod0_y+0",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"yaw": 0,
+"pivot": "rear",
+"contact": false,
+"size": [
+1136,
+496
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.4615,
+"anchor": [
+0.5,
+0.9706
+],
+"pivot_z": 2.31
+}
+},
+{
+"name": "suv_ortho_lod1_y+0",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"yaw": 0,
+"pivot": "rear",
+"contact": false,
+"size": [
+1136,
+496
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.4615,
+"anchor": [
+0.5,
+0.9706
+],
+"pivot_z": 2.31
+}
+},
+{
+"name": "suv_ortho_lod2_y+0",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"yaw": 0,
+"pivot": "rear",
+"contact": false,
+"size": [
+1136,
+496
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.4615,
+"anchor": [
+0.5,
+0.9706
+],
+"pivot_z": 2.31
+}
+},
+{
+"name": "suv_ortho_lod0_y+12",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"yaw": 12,
+"pivot": "rear",
+"contact": false,
+"size": [
+1136,
+496
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.4615,
+"anchor": [
+0.5,
+0.9706
+],
+"pivot_z": 2.31
+}
+},
+{
+"name": "suv_ortho_lod0_y-12",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"yaw": -12,
+"pivot": "rear",
+"contact": false,
+"size": [
+1136,
+496
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.4615,
+"anchor": [
+0.5,
+0.9706
+],
+"pivot_z": 2.31
+}
+},
+{
+"name": "suv_ortho_lod0_y+24",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"yaw": 24,
+"pivot": "rear",
+"contact": false,
+"size": [
+1136,
+496
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.4615,
+"anchor": [
+0.5,
+0.9706
+],
+"pivot_z": 2.31
+}
+},
+{
+"name": "suv_ortho_lod1_y+24",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"yaw": 24,
+"pivot": "rear",
+"contact": false,
+"size": [
+1136,
+496
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.4615,
+"anchor": [
+0.5,
+0.9706
+],
+"pivot_z": 2.31
+}
+},
+{
+"name": "suv_ortho_lod2_y+24",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"yaw": 24,
+"pivot": "rear",
+"contact": false,
+"size": [
+1136,
+496
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.4615,
+"anchor": [
+0.5,
+0.9706
+],
+"pivot_z": 2.31
+}
+},
+{
+"name": "suv_ortho_lod0_y-24",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"yaw": -24,
+"pivot": "rear",
+"contact": false,
+"size": [
+1136,
+496
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.4615,
+"anchor": [
+0.5,
+0.9706
+],
+"pivot_z": 2.31
+}
+},
+{
+"name": "suv_sil_lod0_y0",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"yaw": 0,
+"pivot": "rear",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"size": [
+568,
+248
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.4615,
+"anchor": [
+0.5,
+0.9706
+],
+"pivot_z": 2.31
+}
+},
+{
+"name": "suv_sil_lod0_y24",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"yaw": 24,
+"pivot": "rear",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"size": [
+568,
+248
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.4615,
+"anchor": [
+0.5,
+0.9706
+],
+"pivot_z": 2.31
+}
+},
+{
+"name": "suv_sil_lod2_y0",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"yaw": 0,
+"pivot": "rear",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"size": [
+568,
+248
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.4615,
+"anchor": [
+0.5,
+0.9706
+],
+"pivot_z": 2.31
+}
+},
+{
+"name": "suv_sil_lod2_y24",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"yaw": 24,
+"pivot": "rear",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"size": [
+568,
+248
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.4615,
+"anchor": [
+0.5,
+0.9706
+],
+"pivot_z": 2.31
+}
+},
+{
+"name": "suv_ortho_lampmap_lod0",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"pivot": "rear",
+"mode": "lampmap",
+"msaa": 0,
+"size": [
+1136,
+496
+],
+"no_ground": true,
+"contact": false,
+"cam": {
+"type": "ortho",
+"el": 0.0,
+"width_m": 5.4615,
+"anchor": [
+0.5,
+0.95
+],
+"pivot_z": 2.31
+}
+},
+{
+"name": "suv_ortho_lampmapf_lod0",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"pivot": "rear",
+"yaw": 180,
+"mode": "lampmap",
+"msaa": 0,
+"size": [
+1136,
+496
+],
+"no_ground": true,
+"contact": false,
+"cam": {
+"type": "ortho",
+"el": 0.0,
+"width_m": 5.4615,
+"anchor": [
+0.5,
+0.95
+],
+"pivot_z": 2.31
+}
+},
+{
+"name": "suv_ortho_lampmap_lod1",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"pivot": "rear",
+"mode": "lampmap",
+"msaa": 0,
+"size": [
+1136,
+496
+],
+"no_ground": true,
+"contact": false,
+"cam": {
+"type": "ortho",
+"el": 0.0,
+"width_m": 5.4615,
+"anchor": [
+0.5,
+0.95
+],
+"pivot_z": 2.31
+}
+},
+{
+"name": "suv_ortho_lampmapf_lod1",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"pivot": "rear",
+"yaw": 180,
+"mode": "lampmap",
+"msaa": 0,
+"size": [
+1136,
+496
+],
+"no_ground": true,
+"contact": false,
+"cam": {
+"type": "ortho",
+"el": 0.0,
+"width_m": 5.4615,
+"anchor": [
+0.5,
+0.95
+],
+"pivot_z": 2.31
+}
+},
+{
+"name": "suv_ortho_lampmap_lod2",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"pivot": "rear",
+"mode": "lampmap",
+"msaa": 0,
+"size": [
+1136,
+496
+],
+"no_ground": true,
+"contact": false,
+"cam": {
+"type": "ortho",
+"el": 0.0,
+"width_m": 5.4615,
+"anchor": [
+0.5,
+0.95
+],
+"pivot_z": 2.31
+}
+},
+{
+"name": "suv_ortho_lampmapf_lod2",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"pivot": "rear",
+"yaw": 180,
+"mode": "lampmap",
+"msaa": 0,
+"size": [
+1136,
+496
+],
+"no_ground": true,
+"contact": false,
+"cam": {
+"type": "ortho",
+"el": 0.0,
+"width_m": 5.4615,
+"anchor": [
+0.5,
+0.95
+],
+"pivot_z": 2.31
+}
+},
+{
+"name": "suv_lod0_rear34",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "suv_lod1_rear34",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_wirelod1_rear34",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_lod2_rear34",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_wirelod2_rear34",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_clay_rear34",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_wirelod0_rear34",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_checkcb_rear34",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_checkng_rear34",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_normals_rear34",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_caster_rear34",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_lod0_rear",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "suv_lod0_side",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "suv_lod1_side",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_wirelod1_side",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_lod2_side",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_wirelod2_side",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_clay_side",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_wirelod0_side",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_checkcb_side",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_checkng_side",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_normals_side",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_caster_side",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_lod0_front34",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "suv_lod1_front34",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_wirelod1_front34",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_lod2_front34",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_wirelod2_front34",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_clay_front34",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_wirelod0_front34",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_checkcb_front34",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_checkng_front34",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_normals_front34",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_lod0_rearclose",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "suv_lod1_rearclose",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_wirelod1_rearclose",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_lod2_rearclose",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_wirelod2_rearclose",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_clay_rearclose",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_wirelod0_rearclose",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_checkcb_rearclose",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_checkng_rearclose",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_normals_rearclose",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_lampmap_rearclose",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_caster_rearclose",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_lod0_frontclose",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.105,
+0.1,
+-2.31,
+1.105,
+1.4296,
+-1.01
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "suv_lampmap_frontclose",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.105,
+0.1,
+-2.31,
+1.105,
+1.4296,
+-1.01
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_lod0_wheel",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.4965,
+0.0,
+0.835,
+0.9465,
+0.98,
+1.815
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "suv_lod0_taillamp",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.44849999999999995,
+0.8097000000000001,
+1.9437,
+1.0485,
+1.2097,
+2.5437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "suv_lod0_headlamp",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 152,
+"el": 10,
+"aabb": [
+0.3600999999999999,
+0.6247,
+-2.5261,
+0.9601,
+1.0247,
+-1.9261000000000001
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "suv_lod0_top",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 38
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "suv_lod0_under",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "suv_shadow_caster",
+"set": "traffic/suv_white",
+"mode": "shaded",
+"contact": false,
+"sun_world": [
+0.45,
+0.8,
+0.35
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 89,
+"aabb": [
+-2.6,
+0,
+-3.6,
+2.6,
+0.2,
+3.6
+]
+},
+"size": [
+800,
+1000
+],
+"msaa": 4
+},
+{
+"name": "suv_shadow_body",
+"set": "traffic/suv_white",
+"mode": "body_caster",
+"contact": false,
+"sun_world": [
+0.45,
+0.8,
+0.35
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 89,
+"aabb": [
+-2.6,
+0,
+-3.6,
+2.6,
+0.2,
+3.6
+]
+},
+"size": [
+800,
+1000
+],
+"msaa": 4
+},
+{
+"name": "suv_lod0_night_tail",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_lod1_night_tail",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_lod2_night_tail",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_lod0_night_brake",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_lod1_night_brake",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_lod2_night_brake",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_lod0_night_indl",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_lod1_night_indl",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_lod2_night_indl",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_lod0_night_reverse",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+1,
+0,
+0
+]
+},
+{
+"name": "suv_lod0_night_head",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.105,
+0.1,
+-2.31,
+1.105,
+1.4296,
+-1.01
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_lod1_night_head",
+"set": "traffic/suv_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.105,
+0.1,
+-2.31,
+1.105,
+1.4296,
+-1.01
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_lod2_night_head",
+"set": "traffic/suv_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.105,
+0.1,
+-2.31,
+1.105,
+1.4296,
+-1.01
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_lod0_night_headind",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.105,
+0.1,
+-2.31,
+1.105,
+1.4296,
+-1.01
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+1
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_lod0_night_off_day",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.105,
+0.15,
+1.0119999999999998,
+1.105,
+1.5368199999999999,
+2.312
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": false,
+"lamp_a": [
+0,
+0,
+0,
+0
+],
+"lamp_b": [
+0,
+0,
+0,
+0
+]
+},
+{
+"name": "suv_paint_suv_white",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+640,
+400
+],
+"msaa": 4
+},
+{
+"name": "suv_paint_suv_white_g30",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+}
+},
+{
+"name": "suv_paint_suv_black",
+"set": "traffic/suv_black",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+640,
+400
+],
+"msaa": 4
+},
+{
+"name": "suv_paint_suv_black_g30",
+"set": "traffic/suv_black",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+}
+},
+{
+"name": "suv_paint_suv_brown",
+"set": "traffic/suv_brown",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+640,
+400
+],
+"msaa": 4
+},
+{
+"name": "suv_paint_suv_brown_g30",
+"set": "traffic/suv_brown",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+}
+},
+{
+"name": "suv_paint_suv_grey",
+"set": "traffic/suv_grey",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+640,
+400
+],
+"msaa": 4
+},
+{
+"name": "suv_paint_suv_grey_g30",
+"set": "traffic/suv_grey",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+}
+},
+{
+"name": "suv_steer25",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"steer": 25,
+"cam": {
+"type": "orbit",
+"yaw": 140,
+"el": 14
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "suv_steer25_top",
+"set": "traffic/suv_white",
+"lod": "lod0",
+"steer": 25,
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 70
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_g10_lod0_day",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 10
+}
+},
+{
+"name": "van_g20_lod0_day",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 20
+}
+},
+{
+"name": "van_g25_lod0_day",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 25
+}
+},
+{
+"name": "van_g25_lod1_day",
+"set": "traffic/van_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 25
+}
+},
+{
+"name": "van_g30_lod0_day",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+}
+},
+{
+"name": "van_g40_lod0_day",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 40
+}
+},
+{
+"name": "van_g40_lod1_day",
+"set": "traffic/van_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 40
+}
+},
+{
+"name": "van_g60_lod0_day",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 60
+}
+},
+{
+"name": "van_g60_lod1_day",
+"set": "traffic/van_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 60
+}
+},
+{
+"name": "van_g80_lod1_day",
+"set": "traffic/van_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 80
+}
+},
+{
+"name": "van_g90_lod1_day",
+"set": "traffic/van_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 90
+}
+},
+{
+"name": "van_g90_lod2_day",
+"set": "traffic/van_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 90
+}
+},
+{
+"name": "van_g120_lod1_day",
+"set": "traffic/van_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 120
+}
+},
+{
+"name": "van_g120_lod2_day",
+"set": "traffic/van_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 120
+}
+},
+{
+"name": "van_g160_lod1_day",
+"set": "traffic/van_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 160
+}
+},
+{
+"name": "van_g160_lod2_day",
+"set": "traffic/van_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 160
+}
+},
+{
+"name": "van_g200_lod2_day",
+"set": "traffic/van_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 200
+}
+},
+{
+"name": "van_g10_lod0_ss",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 10,
+"ss": 3.0
+},
+"msaa": 4
+},
+{
+"name": "van_g30_lod0_ss",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30,
+"ss": 3.0
+},
+"msaa": 4
+},
+{
+"name": "van_g80_lod1_ss",
+"set": "traffic/van_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 80,
+"ss": 3.0
+},
+"msaa": 4
+},
+{
+"name": "van_g120_lod2_ss",
+"set": "traffic/van_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 120,
+"ss": 3.0
+},
+"msaa": 4
+},
+{
+"name": "van_g10_lod0_daybrake",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 10
+},
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+},
+{
+"name": "van_g10_lod0_dayind",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 10
+},
+"lamp_a": [
+0,
+0,
+1,
+0
+]
+},
+{
+"name": "van_g10_lod0_nighttail",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 10
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "van_g10_lod0_nightbrake",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 10
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "van_g30_lod0_daybrake",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+},
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+},
+{
+"name": "van_g30_lod0_dayind",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+},
+"lamp_a": [
+0,
+0,
+1,
+0
+]
+},
+{
+"name": "van_g30_lod0_nighttail",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "van_g30_lod0_nightbrake",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "van_g80_lod1_daybrake",
+"set": "traffic/van_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 80
+},
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+},
+{
+"name": "van_g80_lod1_dayind",
+"set": "traffic/van_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 80
+},
+"lamp_a": [
+0,
+0,
+1,
+0
+]
+},
+{
+"name": "van_g80_lod1_nighttail",
+"set": "traffic/van_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 80
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "van_g80_lod1_nightbrake",
+"set": "traffic/van_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 80
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "van_g150_lod2_daybrake",
+"set": "traffic/van_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 150
+},
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+},
+{
+"name": "van_g150_lod2_dayind",
+"set": "traffic/van_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 150
+},
+"lamp_a": [
+0,
+0,
+1,
+0
+]
+},
+{
+"name": "van_g150_lod2_nighttail",
+"set": "traffic/van_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 150
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "van_g150_lod2_nightbrake",
+"set": "traffic/van_white",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 150
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "van_g12_lane",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 12,
+"lane": -3.5
+}
+},
+{
+"name": "van_g25_lane",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 25,
+"lane": -3.5
+}
+},
+{
+"name": "van_g15_backlit",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 15
+},
+"sun": [
+0.35,
+0.6,
+-1.0
+]
+},
+{
+"name": "van_g30_oncoming_night",
+"set": "traffic/van_white",
+"lod": "lod0",
+"yaw": 180,
+"cam": {
+"type": "game",
+"dist": 30,
+"lane": 3.5
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "van_g30_oncoming_day",
+"set": "traffic/van_white",
+"lod": "lod0",
+"yaw": 180,
+"cam": {
+"type": "game",
+"dist": 30,
+"lane": 3.5
+}
+},
+{
+"name": "van_ortho_lod0_y+0",
+"set": "traffic/van_white",
+"lod": "lod0",
+"yaw": 0,
+"pivot": "rear",
+"contact": false,
+"size": [
+1296,
+672
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 6.2308,
+"anchor": [
+0.5,
+0.9783
+],
+"pivot_z": 2.7
+}
+},
+{
+"name": "van_ortho_lod1_y+0",
+"set": "traffic/van_white",
+"lod": "lod1",
+"yaw": 0,
+"pivot": "rear",
+"contact": false,
+"size": [
+1296,
+672
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 6.2308,
+"anchor": [
+0.5,
+0.9783
+],
+"pivot_z": 2.7
+}
+},
+{
+"name": "van_ortho_lod2_y+0",
+"set": "traffic/van_white",
+"lod": "lod2",
+"yaw": 0,
+"pivot": "rear",
+"contact": false,
+"size": [
+1296,
+672
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 6.2308,
+"anchor": [
+0.5,
+0.9783
+],
+"pivot_z": 2.7
+}
+},
+{
+"name": "van_ortho_lod0_y+12",
+"set": "traffic/van_white",
+"lod": "lod0",
+"yaw": 12,
+"pivot": "rear",
+"contact": false,
+"size": [
+1296,
+672
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 6.2308,
+"anchor": [
+0.5,
+0.9783
+],
+"pivot_z": 2.7
+}
+},
+{
+"name": "van_ortho_lod0_y-12",
+"set": "traffic/van_white",
+"lod": "lod0",
+"yaw": -12,
+"pivot": "rear",
+"contact": false,
+"size": [
+1296,
+672
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 6.2308,
+"anchor": [
+0.5,
+0.9783
+],
+"pivot_z": 2.7
+}
+},
+{
+"name": "van_ortho_lod0_y+24",
+"set": "traffic/van_white",
+"lod": "lod0",
+"yaw": 24,
+"pivot": "rear",
+"contact": false,
+"size": [
+1296,
+672
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 6.2308,
+"anchor": [
+0.5,
+0.9783
+],
+"pivot_z": 2.7
+}
+},
+{
+"name": "van_ortho_lod1_y+24",
+"set": "traffic/van_white",
+"lod": "lod1",
+"yaw": 24,
+"pivot": "rear",
+"contact": false,
+"size": [
+1296,
+672
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 6.2308,
+"anchor": [
+0.5,
+0.9783
+],
+"pivot_z": 2.7
+}
+},
+{
+"name": "van_ortho_lod2_y+24",
+"set": "traffic/van_white",
+"lod": "lod2",
+"yaw": 24,
+"pivot": "rear",
+"contact": false,
+"size": [
+1296,
+672
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 6.2308,
+"anchor": [
+0.5,
+0.9783
+],
+"pivot_z": 2.7
+}
+},
+{
+"name": "van_ortho_lod0_y-24",
+"set": "traffic/van_white",
+"lod": "lod0",
+"yaw": -24,
+"pivot": "rear",
+"contact": false,
+"size": [
+1296,
+672
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 6.2308,
+"anchor": [
+0.5,
+0.9783
+],
+"pivot_z": 2.7
+}
+},
+{
+"name": "van_sil_lod0_y0",
+"set": "traffic/van_white",
+"lod": "lod0",
+"yaw": 0,
+"pivot": "rear",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"size": [
+648,
+336
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 6.2308,
+"anchor": [
+0.5,
+0.9783
+],
+"pivot_z": 2.7
+}
+},
+{
+"name": "van_sil_lod0_y24",
+"set": "traffic/van_white",
+"lod": "lod0",
+"yaw": 24,
+"pivot": "rear",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"size": [
+648,
+336
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 6.2308,
+"anchor": [
+0.5,
+0.9783
+],
+"pivot_z": 2.7
+}
+},
+{
+"name": "van_sil_lod2_y0",
+"set": "traffic/van_white",
+"lod": "lod2",
+"yaw": 0,
+"pivot": "rear",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"size": [
+648,
+336
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 6.2308,
+"anchor": [
+0.5,
+0.9783
+],
+"pivot_z": 2.7
+}
+},
+{
+"name": "van_sil_lod2_y24",
+"set": "traffic/van_white",
+"lod": "lod2",
+"yaw": 24,
+"pivot": "rear",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"size": [
+648,
+336
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 6.2308,
+"anchor": [
+0.5,
+0.9783
+],
+"pivot_z": 2.7
+}
+},
+{
+"name": "van_ortho_lampmap_lod0",
+"set": "traffic/van_white",
+"lod": "lod0",
+"pivot": "rear",
+"mode": "lampmap",
+"msaa": 0,
+"size": [
+1296,
+672
+],
+"no_ground": true,
+"contact": false,
+"cam": {
+"type": "ortho",
+"el": 0.0,
+"width_m": 6.2308,
+"anchor": [
+0.5,
+0.95
+],
+"pivot_z": 2.7
+}
+},
+{
+"name": "van_ortho_lampmapf_lod0",
+"set": "traffic/van_white",
+"lod": "lod0",
+"pivot": "rear",
+"yaw": 180,
+"mode": "lampmap",
+"msaa": 0,
+"size": [
+1296,
+672
+],
+"no_ground": true,
+"contact": false,
+"cam": {
+"type": "ortho",
+"el": 0.0,
+"width_m": 6.2308,
+"anchor": [
+0.5,
+0.95
+],
+"pivot_z": 2.7
+}
+},
+{
+"name": "van_ortho_lampmap_lod1",
+"set": "traffic/van_white",
+"lod": "lod1",
+"pivot": "rear",
+"mode": "lampmap",
+"msaa": 0,
+"size": [
+1296,
+672
+],
+"no_ground": true,
+"contact": false,
+"cam": {
+"type": "ortho",
+"el": 0.0,
+"width_m": 6.2308,
+"anchor": [
+0.5,
+0.95
+],
+"pivot_z": 2.7
+}
+},
+{
+"name": "van_ortho_lampmapf_lod1",
+"set": "traffic/van_white",
+"lod": "lod1",
+"pivot": "rear",
+"yaw": 180,
+"mode": "lampmap",
+"msaa": 0,
+"size": [
+1296,
+672
+],
+"no_ground": true,
+"contact": false,
+"cam": {
+"type": "ortho",
+"el": 0.0,
+"width_m": 6.2308,
+"anchor": [
+0.5,
+0.95
+],
+"pivot_z": 2.7
+}
+},
+{
+"name": "van_ortho_lampmap_lod2",
+"set": "traffic/van_white",
+"lod": "lod2",
+"pivot": "rear",
+"mode": "lampmap",
+"msaa": 0,
+"size": [
+1296,
+672
+],
+"no_ground": true,
+"contact": false,
+"cam": {
+"type": "ortho",
+"el": 0.0,
+"width_m": 6.2308,
+"anchor": [
+0.5,
+0.95
+],
+"pivot_z": 2.7
+}
+},
+{
+"name": "van_ortho_lampmapf_lod2",
+"set": "traffic/van_white",
+"lod": "lod2",
+"pivot": "rear",
+"yaw": 180,
+"mode": "lampmap",
+"msaa": 0,
+"size": [
+1296,
+672
+],
+"no_ground": true,
+"contact": false,
+"cam": {
+"type": "ortho",
+"el": 0.0,
+"width_m": 6.2308,
+"anchor": [
+0.5,
+0.95
+],
+"pivot_z": 2.7
+}
+},
+{
+"name": "van_lod0_rear34",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "van_lod1_rear34",
+"set": "traffic/van_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_wirelod1_rear34",
+"set": "traffic/van_white",
+"lod": "lod1",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_lod2_rear34",
+"set": "traffic/van_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_wirelod2_rear34",
+"set": "traffic/van_white",
+"lod": "lod2",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_clay_rear34",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_wirelod0_rear34",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_checkcb_rear34",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_checkng_rear34",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_normals_rear34",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_caster_rear34",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_lod0_rear",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "van_lod0_side",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "van_lod1_side",
+"set": "traffic/van_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_wirelod1_side",
+"set": "traffic/van_white",
+"lod": "lod1",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_lod2_side",
+"set": "traffic/van_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_wirelod2_side",
+"set": "traffic/van_white",
+"lod": "lod2",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_clay_side",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_wirelod0_side",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_checkcb_side",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_checkng_side",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_normals_side",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_caster_side",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_lod0_front34",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "van_lod1_front34",
+"set": "traffic/van_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_wirelod1_front34",
+"set": "traffic/van_white",
+"lod": "lod1",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_lod2_front34",
+"set": "traffic/van_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_wirelod2_front34",
+"set": "traffic/van_white",
+"lod": "lod2",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_clay_front34",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_wirelod0_front34",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_checkcb_front34",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_checkng_front34",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_normals_front34",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_lod0_rearclose",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "van_lod1_rearclose",
+"set": "traffic/van_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_wirelod1_rearclose",
+"set": "traffic/van_white",
+"lod": "lod1",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_lod2_rearclose",
+"set": "traffic/van_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_wirelod2_rearclose",
+"set": "traffic/van_white",
+"lod": "lod2",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_clay_rearclose",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_wirelod0_rearclose",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_checkcb_rearclose",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_checkng_rearclose",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_normals_rearclose",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_lampmap_rearclose",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_caster_rearclose",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_lod0_frontclose",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.165,
+0.1,
+-2.7,
+1.165,
+1.9920000000000002,
+-1.4000000000000001
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "van_lampmap_frontclose",
+"set": "traffic/van_white",
+"lod": "lod0",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.165,
+0.1,
+-2.7,
+1.165,
+1.9920000000000002,
+-1.4000000000000001
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_lod0_wheel",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.5665,
+0.0,
+1.155,
+1.0165,
+0.92,
+2.075
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "van_lod0_taillamp",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.5921000000000001,
+0.5752999999999999,
+2.3429,
+1.1921,
+0.9753000000000001,
+2.9429
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "van_lod0_headlamp",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 152,
+"el": 10,
+"aabb": [
+0.42619999999999997,
+0.7152000000000001,
+-2.774,
+1.0262,
+1.1152,
+-2.1740000000000004
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "van_lod0_top",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 38
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "van_lod0_under",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "van_shadow_caster",
+"set": "traffic/van_white",
+"mode": "shaded",
+"contact": false,
+"sun_world": [
+0.45,
+0.8,
+0.35
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 89,
+"aabb": [
+-2.6,
+0,
+-3.6,
+2.6,
+0.2,
+3.6
+]
+},
+"size": [
+800,
+1000
+],
+"msaa": 4
+},
+{
+"name": "van_shadow_body",
+"set": "traffic/van_white",
+"mode": "body_caster",
+"contact": false,
+"sun_world": [
+0.45,
+0.8,
+0.35
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 89,
+"aabb": [
+-2.6,
+0,
+-3.6,
+2.6,
+0.2,
+3.6
+]
+},
+"size": [
+800,
+1000
+],
+"msaa": 4
+},
+{
+"name": "van_lod0_night_tail",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "van_lod1_night_tail",
+"set": "traffic/van_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "van_lod2_night_tail",
+"set": "traffic/van_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "van_lod0_night_brake",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "van_lod1_night_brake",
+"set": "traffic/van_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "van_lod2_night_brake",
+"set": "traffic/van_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "van_lod0_night_indl",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "van_lod1_night_indl",
+"set": "traffic/van_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "van_lod2_night_indl",
+"set": "traffic/van_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "van_lod0_night_reverse",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+1,
+0,
+0
+]
+},
+{
+"name": "van_lod0_night_head",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.165,
+0.1,
+-2.7,
+1.165,
+1.9920000000000002,
+-1.4000000000000001
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "van_lod1_night_head",
+"set": "traffic/van_white",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.165,
+0.1,
+-2.7,
+1.165,
+1.9920000000000002,
+-1.4000000000000001
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "van_lod2_night_head",
+"set": "traffic/van_white",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.165,
+0.1,
+-2.7,
+1.165,
+1.9920000000000002,
+-1.4000000000000001
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "van_lod0_night_headind",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.165,
+0.1,
+-2.7,
+1.165,
+1.9920000000000002,
+-1.4000000000000001
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+1
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "van_lod0_night_off_day",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.165,
+0.15,
+1.402,
+1.165,
+2.1414,
+2.702
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": false,
+"lamp_a": [
+0,
+0,
+0,
+0
+],
+"lamp_b": [
+0,
+0,
+0,
+0
+]
+},
+{
+"name": "van_paint_van_white",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+640,
+400
+],
+"msaa": 4
+},
+{
+"name": "van_paint_van_white_g30",
+"set": "traffic/van_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+}
+},
+{
+"name": "van_paint_van_darkblue",
+"set": "traffic/van_darkblue",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+640,
+400
+],
+"msaa": 4
+},
+{
+"name": "van_paint_van_darkblue_g30",
+"set": "traffic/van_darkblue",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+}
+},
+{
+"name": "van_paint_van_red",
+"set": "traffic/van_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+640,
+400
+],
+"msaa": 4
+},
+{
+"name": "van_paint_van_red_g30",
+"set": "traffic/van_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+}
+},
+{
+"name": "van_paint_van_silver",
+"set": "traffic/van_silver",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+640,
+400
+],
+"msaa": 4
+},
+{
+"name": "van_paint_van_silver_g30",
+"set": "traffic/van_silver",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+}
+},
+{
+"name": "van_steer25",
+"set": "traffic/van_white",
+"lod": "lod0",
+"steer": 25,
+"cam": {
+"type": "orbit",
+"yaw": 140,
+"el": 14
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "van_steer25_top",
+"set": "traffic/van_white",
+"lod": "lod0",
+"steer": 25,
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 70
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_g10_lod0_day",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 10
+}
+},
+{
+"name": "sports_g20_lod0_day",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 20
+}
+},
+{
+"name": "sports_g25_lod0_day",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 25
+}
+},
+{
+"name": "sports_g25_lod1_day",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 25
+}
+},
+{
+"name": "sports_g30_lod0_day",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+}
+},
+{
+"name": "sports_g40_lod0_day",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 40
+}
+},
+{
+"name": "sports_g40_lod1_day",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 40
+}
+},
+{
+"name": "sports_g60_lod0_day",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 60
+}
+},
+{
+"name": "sports_g60_lod1_day",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 60
+}
+},
+{
+"name": "sports_g80_lod1_day",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 80
+}
+},
+{
+"name": "sports_g90_lod1_day",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 90
+}
+},
+{
+"name": "sports_g90_lod2_day",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 90
+}
+},
+{
+"name": "sports_g120_lod1_day",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 120
+}
+},
+{
+"name": "sports_g120_lod2_day",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 120
+}
+},
+{
+"name": "sports_g160_lod1_day",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 160
+}
+},
+{
+"name": "sports_g160_lod2_day",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 160
+}
+},
+{
+"name": "sports_g200_lod2_day",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 200
+}
+},
+{
+"name": "sports_g10_lod0_ss",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 10,
+"ss": 3.0
+},
+"msaa": 4
+},
+{
+"name": "sports_g30_lod0_ss",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30,
+"ss": 3.0
+},
+"msaa": 4
+},
+{
+"name": "sports_g80_lod1_ss",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 80,
+"ss": 3.0
+},
+"msaa": 4
+},
+{
+"name": "sports_g120_lod2_ss",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 120,
+"ss": 3.0
+},
+"msaa": 4
+},
+{
+"name": "sports_g10_lod0_daybrake",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 10
+},
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+},
+{
+"name": "sports_g10_lod0_dayind",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 10
+},
+"lamp_a": [
+0,
+0,
+1,
+0
+]
+},
+{
+"name": "sports_g10_lod0_nighttail",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 10
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_g10_lod0_nightbrake",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 10
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_g30_lod0_daybrake",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+},
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+},
+{
+"name": "sports_g30_lod0_dayind",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+},
+"lamp_a": [
+0,
+0,
+1,
+0
+]
+},
+{
+"name": "sports_g30_lod0_nighttail",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_g30_lod0_nightbrake",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_g80_lod1_daybrake",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 80
+},
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+},
+{
+"name": "sports_g80_lod1_dayind",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 80
+},
+"lamp_a": [
+0,
+0,
+1,
+0
+]
+},
+{
+"name": "sports_g80_lod1_nighttail",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 80
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_g80_lod1_nightbrake",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 80
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_g150_lod2_daybrake",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 150
+},
+"lamp_a": [
+0,
+1,
+0,
+0
+]
+},
+{
+"name": "sports_g150_lod2_dayind",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 150
+},
+"lamp_a": [
+0,
+0,
+1,
+0
+]
+},
+{
+"name": "sports_g150_lod2_nighttail",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 150
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_g150_lod2_nightbrake",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 150
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_g12_lane",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 12,
+"lane": -3.5
+}
+},
+{
+"name": "sports_g25_lane",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 25,
+"lane": -3.5
+}
+},
+{
+"name": "sports_g15_backlit",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 15
+},
+"sun": [
+0.35,
+0.6,
+-1.0
+]
+},
+{
+"name": "sports_g30_oncoming_night",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"yaw": 180,
+"cam": {
+"type": "game",
+"dist": 30,
+"lane": 3.5
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_g30_oncoming_day",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"yaw": 180,
+"cam": {
+"type": "game",
+"dist": 30,
+"lane": 3.5
+}
+},
+{
+"name": "sports_ortho_lod0_y+0",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"yaw": 0,
+"pivot": "rear",
+"contact": false,
+"size": [
+1120,
+368
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.3846,
+"anchor": [
+0.5,
+0.9604
+],
+"pivot_z": 2.225
+}
+},
+{
+"name": "sports_ortho_lod1_y+0",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"yaw": 0,
+"pivot": "rear",
+"contact": false,
+"size": [
+1120,
+368
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.3846,
+"anchor": [
+0.5,
+0.9604
+],
+"pivot_z": 2.225
+}
+},
+{
+"name": "sports_ortho_lod2_y+0",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"yaw": 0,
+"pivot": "rear",
+"contact": false,
+"size": [
+1120,
+368
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.3846,
+"anchor": [
+0.5,
+0.9604
+],
+"pivot_z": 2.225
+}
+},
+{
+"name": "sports_ortho_lod0_y+12",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"yaw": 12,
+"pivot": "rear",
+"contact": false,
+"size": [
+1120,
+368
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.3846,
+"anchor": [
+0.5,
+0.9604
+],
+"pivot_z": 2.225
+}
+},
+{
+"name": "sports_ortho_lod0_y-12",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"yaw": -12,
+"pivot": "rear",
+"contact": false,
+"size": [
+1120,
+368
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.3846,
+"anchor": [
+0.5,
+0.9604
+],
+"pivot_z": 2.225
+}
+},
+{
+"name": "sports_ortho_lod0_y+24",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"yaw": 24,
+"pivot": "rear",
+"contact": false,
+"size": [
+1120,
+368
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.3846,
+"anchor": [
+0.5,
+0.9604
+],
+"pivot_z": 2.225
+}
+},
+{
+"name": "sports_ortho_lod1_y+24",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"yaw": 24,
+"pivot": "rear",
+"contact": false,
+"size": [
+1120,
+368
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.3846,
+"anchor": [
+0.5,
+0.9604
+],
+"pivot_z": 2.225
+}
+},
+{
+"name": "sports_ortho_lod2_y+24",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"yaw": 24,
+"pivot": "rear",
+"contact": false,
+"size": [
+1120,
+368
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.3846,
+"anchor": [
+0.5,
+0.9604
+],
+"pivot_z": 2.225
+}
+},
+{
+"name": "sports_ortho_lod0_y-24",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"yaw": -24,
+"pivot": "rear",
+"contact": false,
+"size": [
+1120,
+368
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.3846,
+"anchor": [
+0.5,
+0.9604
+],
+"pivot_z": 2.225
+}
+},
+{
+"name": "sports_sil_lod0_y0",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"yaw": 0,
+"pivot": "rear",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"size": [
+560,
+184
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.3846,
+"anchor": [
+0.5,
+0.9604
+],
+"pivot_z": 2.225
+}
+},
+{
+"name": "sports_sil_lod0_y24",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"yaw": 24,
+"pivot": "rear",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"size": [
+560,
+184
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.3846,
+"anchor": [
+0.5,
+0.9604
+],
+"pivot_z": 2.225
+}
+},
+{
+"name": "sports_sil_lod2_y0",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"yaw": 0,
+"pivot": "rear",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"size": [
+560,
+184
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.3846,
+"anchor": [
+0.5,
+0.9604
+],
+"pivot_z": 2.225
+}
+},
+{
+"name": "sports_sil_lod2_y24",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"yaw": 24,
+"pivot": "rear",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"size": [
+560,
+184
+],
+"msaa": 4,
+"cam": {
+"type": "ortho",
+"el": 9.0,
+"width_m": 5.3846,
+"anchor": [
+0.5,
+0.9604
+],
+"pivot_z": 2.225
+}
+},
+{
+"name": "sports_ortho_lampmap_lod0",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"pivot": "rear",
+"mode": "lampmap",
+"msaa": 0,
+"size": [
+1120,
+368
+],
+"no_ground": true,
+"contact": false,
+"cam": {
+"type": "ortho",
+"el": 0.0,
+"width_m": 5.3846,
+"anchor": [
+0.5,
+0.95
+],
+"pivot_z": 2.225
+}
+},
+{
+"name": "sports_ortho_lampmapf_lod0",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"pivot": "rear",
+"yaw": 180,
+"mode": "lampmap",
+"msaa": 0,
+"size": [
+1120,
+368
+],
+"no_ground": true,
+"contact": false,
+"cam": {
+"type": "ortho",
+"el": 0.0,
+"width_m": 5.3846,
+"anchor": [
+0.5,
+0.95
+],
+"pivot_z": 2.225
+}
+},
+{
+"name": "sports_ortho_lampmap_lod1",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"pivot": "rear",
+"mode": "lampmap",
+"msaa": 0,
+"size": [
+1120,
+368
+],
+"no_ground": true,
+"contact": false,
+"cam": {
+"type": "ortho",
+"el": 0.0,
+"width_m": 5.3846,
+"anchor": [
+0.5,
+0.95
+],
+"pivot_z": 2.225
+}
+},
+{
+"name": "sports_ortho_lampmapf_lod1",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"pivot": "rear",
+"yaw": 180,
+"mode": "lampmap",
+"msaa": 0,
+"size": [
+1120,
+368
+],
+"no_ground": true,
+"contact": false,
+"cam": {
+"type": "ortho",
+"el": 0.0,
+"width_m": 5.3846,
+"anchor": [
+0.5,
+0.95
+],
+"pivot_z": 2.225
+}
+},
+{
+"name": "sports_ortho_lampmap_lod2",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"pivot": "rear",
+"mode": "lampmap",
+"msaa": 0,
+"size": [
+1120,
+368
+],
+"no_ground": true,
+"contact": false,
+"cam": {
+"type": "ortho",
+"el": 0.0,
+"width_m": 5.3846,
+"anchor": [
+0.5,
+0.95
+],
+"pivot_z": 2.225
+}
+},
+{
+"name": "sports_ortho_lampmapf_lod2",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"pivot": "rear",
+"yaw": 180,
+"mode": "lampmap",
+"msaa": 0,
+"size": [
+1120,
+368
+],
+"no_ground": true,
+"contact": false,
+"cam": {
+"type": "ortho",
+"el": 0.0,
+"width_m": 5.3846,
+"anchor": [
+0.5,
+0.95
+],
+"pivot_z": 2.225
+}
+},
+{
+"name": "sports_lod0_rear34",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sports_lod1_rear34",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_wirelod1_rear34",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_lod2_rear34",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_wirelod2_rear34",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_clay_rear34",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_wirelod0_rear34",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_checkcb_rear34",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_checkng_rear34",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_normals_rear34",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_caster_rear34",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_lod0_rear",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sports_lod0_side",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sports_lod1_side",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_wirelod1_side",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_lod2_side",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_wirelod2_side",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_clay_side",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_wirelod0_side",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_checkcb_side",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_checkng_side",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_normals_side",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_caster_side",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_lod0_front34",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sports_lod1_front34",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_wirelod1_front34",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_lod2_front34",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_wirelod2_front34",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_clay_front34",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_wirelod0_front34",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_checkcb_front34",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_checkng_front34",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_normals_front34",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_lod0_rearclose",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sports_lod1_rearclose",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_wirelod1_rearclose",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_lod2_rearclose",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_wirelod2_rearclose",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_clay_rearclose",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_wirelod0_rearclose",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_checkcb_rearclose",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_checkng_rearclose",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_normals_rearclose",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_lampmap_rearclose",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_caster_rearclose",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_lod0_frontclose",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.13,
+0.1,
+-2.225,
+1.13,
+1.008,
+-0.925
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sports_lampmap_frontclose",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.13,
+0.1,
+-2.225,
+1.13,
+1.008,
+-0.925
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_lod0_wheel",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.49400000000000005,
+0.0,
+0.78,
+0.9440000000000001,
+0.92,
+1.7
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sports_lod0_taillamp",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.41839999999999994,
+0.5304,
+1.8730999999999998,
+1.0184,
+0.9304000000000001,
+2.4730999999999996
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sports_lod0_headlamp",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 152,
+"el": 10,
+"aabb": [
+0.3594,
+0.34890000000000004,
+-2.4225999999999996,
+0.9594,
+0.7489000000000001,
+-1.8225999999999998
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sports_lod0_top",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 38
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "sports_lod0_under",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "sports_shadow_caster",
+"set": "traffic/sports_red",
+"mode": "shaded",
+"contact": false,
+"sun_world": [
+0.45,
+0.8,
+0.35
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 89,
+"aabb": [
+-2.6,
+0,
+-3.6,
+2.6,
+0.2,
+3.6
+]
+},
+"size": [
+800,
+1000
+],
+"msaa": 4
+},
+{
+"name": "sports_shadow_body",
+"set": "traffic/sports_red",
+"mode": "body_caster",
+"contact": false,
+"sun_world": [
+0.45,
+0.8,
+0.35
+],
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 89,
+"aabb": [
+-2.6,
+0,
+-3.6,
+2.6,
+0.2,
+3.6
+]
+},
+"size": [
+800,
+1000
+],
+"msaa": 4
+},
+{
+"name": "sports_lod0_night_tail",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_lod1_night_tail",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_lod2_night_tail",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_lod0_night_brake",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_lod1_night_brake",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_lod2_night_brake",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_lod0_night_indl",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_lod1_night_indl",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_lod2_night_indl",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_lod0_night_reverse",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+1,
+0,
+0
+]
+},
+{
+"name": "sports_lod0_night_head",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.13,
+0.1,
+-2.225,
+1.13,
+1.008,
+-0.925
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_lod1_night_head",
+"set": "traffic/sports_red",
+"lod": "lod1",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.13,
+0.1,
+-2.225,
+1.13,
+1.008,
+-0.925
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_lod2_night_head",
+"set": "traffic/sports_red",
+"lod": "lod2",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.13,
+0.1,
+-2.225,
+1.13,
+1.008,
+-0.925
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_lod0_night_headind",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.13,
+0.1,
+-2.225,
+1.13,
+1.008,
+-0.925
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+1
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_lod0_night_off_day",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.13,
+0.15,
+0.9269999999999998,
+1.13,
+1.0836,
+2.227
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": false,
+"lamp_a": [
+0,
+0,
+0,
+0
+],
+"lamp_b": [
+0,
+0,
+0,
+0
+]
+},
+{
+"name": "sports_paint_sports_red",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+640,
+400
+],
+"msaa": 4
+},
+{
+"name": "sports_paint_sports_red_g30",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+}
+},
+{
+"name": "sports_paint_sports_black",
+"set": "traffic/sports_black",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+640,
+400
+],
+"msaa": 4
+},
+{
+"name": "sports_paint_sports_black_g30",
+"set": "traffic/sports_black",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+}
+},
+{
+"name": "sports_paint_sports_blue",
+"set": "traffic/sports_blue",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+640,
+400
+],
+"msaa": 4
+},
+{
+"name": "sports_paint_sports_blue_g30",
+"set": "traffic/sports_blue",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+}
+},
+{
+"name": "sports_paint_sports_orange",
+"set": "traffic/sports_orange",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+640,
+400
+],
+"msaa": 4
+},
+{
+"name": "sports_paint_sports_orange_g30",
+"set": "traffic/sports_orange",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+}
+},
+{
+"name": "sports_paint_sports_yellow",
+"set": "traffic/sports_yellow",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+640,
+400
+],
+"msaa": 4
+},
+{
+"name": "sports_paint_sports_yellow_g30",
+"set": "traffic/sports_yellow",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+}
+},
+{
+"name": "sports_steer25",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"steer": 25,
+"cam": {
+"type": "orbit",
+"yaw": 140,
+"el": 14
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sports_steer25_top",
+"set": "traffic/sports_red",
+"lod": "lod0",
+"steer": 25,
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 70
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sedan_g10_lod0_day",
+"set": "traffic/sedan_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 10
+}
+},
+{
+"name": "sedan_g30_lod0_day",
+"set": "traffic/sedan_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+}
+},
+{
+"name": "sedan_g40_lod0_day",
+"set": "traffic/sedan_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 40
+}
+},
+{
+"name": "sedan_g40_lod1_day",
+"set": "traffic/sedan_red",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 40
+}
+},
+{
+"name": "sedan_g80_lod1_day",
+"set": "traffic/sedan_red",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 80
+}
+},
+{
+"name": "sedan_g120_lod1_day",
+"set": "traffic/sedan_red",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 120
+}
+},
+{
+"name": "sedan_g120_lod2_day",
+"set": "traffic/sedan_red",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 120
+}
+},
+{
+"name": "sedan_lod0_rear34",
+"set": "traffic/sedan_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sedan_lod0_side",
+"set": "traffic/sedan_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sedan_lod0_front34",
+"set": "traffic/sedan_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "sedan_g30_lod0_nighttail",
+"set": "traffic/sedan_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "hatch_g10_lod0_day",
+"set": "traffic/hatch_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 10
+}
+},
+{
+"name": "hatch_g30_lod0_day",
+"set": "traffic/hatch_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+}
+},
+{
+"name": "hatch_g40_lod0_day",
+"set": "traffic/hatch_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 40
+}
+},
+{
+"name": "hatch_g40_lod1_day",
+"set": "traffic/hatch_red",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 40
+}
+},
+{
+"name": "hatch_g80_lod1_day",
+"set": "traffic/hatch_red",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 80
+}
+},
+{
+"name": "hatch_g120_lod1_day",
+"set": "traffic/hatch_red",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 120
+}
+},
+{
+"name": "hatch_g120_lod2_day",
+"set": "traffic/hatch_red",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 120
+}
+},
+{
+"name": "hatch_lod0_rear34",
+"set": "traffic/hatch_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "hatch_lod0_side",
+"set": "traffic/hatch_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "hatch_lod0_front34",
+"set": "traffic/hatch_red",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "hatch_g30_lod0_nighttail",
+"set": "traffic/hatch_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "wagon_g10_lod0_day",
+"set": "traffic/wagon_green",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 10
+}
+},
+{
+"name": "wagon_g30_lod0_day",
+"set": "traffic/wagon_green",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+}
+},
+{
+"name": "wagon_g40_lod0_day",
+"set": "traffic/wagon_green",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 40
+}
+},
+{
+"name": "wagon_g40_lod1_day",
+"set": "traffic/wagon_green",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 40
+}
+},
+{
+"name": "wagon_g80_lod1_day",
+"set": "traffic/wagon_green",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 80
+}
+},
+{
+"name": "wagon_g120_lod1_day",
+"set": "traffic/wagon_green",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 120
+}
+},
+{
+"name": "wagon_g120_lod2_day",
+"set": "traffic/wagon_green",
+"lod": "lod2",
+"cam": {
+"type": "game",
+"dist": 120
+}
+},
+{
+"name": "wagon_lod0_rear34",
+"set": "traffic/wagon_green",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "wagon_lod0_side",
+"set": "traffic/wagon_green",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "wagon_lod0_front34",
+"set": "traffic/wagon_green",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "wagon_g30_lod0_nighttail",
+"set": "traffic/wagon_green",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 30
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "empty_day",
+"set": "",
+"cam": {
+"type": "game",
+"dist": 30
+}
+},
+{
+"name": "empty_night",
+"set": "",
+"night": true,
+"cam": {
+"type": "game",
+"dist": 30
+}
+},
+{
+"name": "empty_day_ss3",
+"set": "",
+"cam": {
+"type": "game",
+"dist": 30,
+"ss": 3.0
+},
+"msaa": 4
+}
+]

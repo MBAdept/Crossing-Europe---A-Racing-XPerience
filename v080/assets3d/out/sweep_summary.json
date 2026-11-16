@@ -1,0 +1,70 @@
+{
+ "models": 155,
+ "ok": 152,
+ "errors": {
+  "landmarks/eiffel_tower": "KeyError('x')",
+  "landmarks/riesenrad": "KeyError('x')",
+  "landmarks/koelner_dom": "KeyError('x')"
+ },
+ "cutout": [
+  "landmarks/dom_regensburg",
+  "landmarks/kathedrale_burgos",
+  "landmarks/mariendom_linz",
+  "props/city_balkan_house_b",
+  "props/city_baltic_jugendstil",
+  "props/city_baltic_wood",
+  "props/city_baltic_wood_b",
+  "props/city_central_jugendstil",
+  "props/city_eastern_house_a",
+  "props/city_eastern_house_c",
+  "props/city_french_immeuble",
+  "props/city_french_sud",
+  "props/city_german_gruenderzeit",
+  "props/city_german_mietshaus",
+  "props/city_italian_block",
+  "props/city_italian_palazzo",
+  "props/city_italian_venezia",
+  "props/city_paris_corner",
+  "props/city_paris_haussmann",
+  "props/city_spanish_block",
+  "props/city_spanish_casa",
+  "props/city_spanish_ladrillo",
+  "props/city_swiss_chalet",
+  "props/city_vienna_palais",
+  "props/houseboat"
+ ],
+ "light_volumes": [
+  [
+   "props/fuel_station",
+   [
+    "fs_haze"
+   ]
+  ],
+  [
+   "props/streetlight",
+   [
+    "sl_cone"
+   ]
+  ]
+ ],
+ "many_charts": [
+  [
+   "landmarks/dom_regensburg",
+   3353
+  ],
+  [
+   "landmarks/kulturpalast_warschau",
+   3046
+  ],
+  [
+   "landmarks/mariendom_linz",
+   2892
+  ],
+  [
+   "landmarks/duomo_milano",
+   2648
+  ]
+ ],
+ "build_min": 8.8,
+ "export_min": 27.6
+}

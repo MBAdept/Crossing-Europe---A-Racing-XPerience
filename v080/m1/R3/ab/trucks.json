@@ -1,0 +1,3 @@
+[{"set": "traffic/truck_white", "dist": 42, "lane": 3.75, "tail": -1, "brake": 0, "speed": 80},
+ {"set": "traffic/truck_red", "dist": 30, "lane": 0, "tail": -1, "brake": 0, "blink": 1, "blink_t": 0.1, "speed": 82},
+ {"set": "traffic/sedan_blue", "dist": 75, "lane": -3.75, "tail": -1, "brake": 1, "speed": 95}]

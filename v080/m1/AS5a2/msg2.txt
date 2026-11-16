@@ -1,0 +1,14 @@
+v0.8.0 AS5a2: Bauer city - Fenstergitter ohne Verdeckung, abgeschrägte Ecke, Blumen glatt, schräge Geländer im Modul
+
+- openings.cover_skip: Objekte, die kein Fenster verdecken (französische Fenstergitter 10-16 cm vor dem
+  Glas, Blumen und Kästen vor den Fenstern, Traufen knapp über den obersten Fenstern) - ihre Fenster
+  blieben gemalt
+- openings.chamfer: Fenster und Laden der 45-Grad-Ecke des Haussmann-Eckhauses werden geschnitten (vorher
+  gemalt; die Raster der Ecke wurden in die Rückwand geschnitten)
+- rail_module: schräge Geländerplatten lesen u = x und teilen das Modul (vorher eigene Texel: ein Drittel
+  des Eckhaus-Atlas)
+- smooth: Blumenkugeln glatt schattiert
+- Katalog: Gewichte Haussmann (Dach 0,35, abgewandt 0,25), Maashaus-Atlas 1024 x 1024
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

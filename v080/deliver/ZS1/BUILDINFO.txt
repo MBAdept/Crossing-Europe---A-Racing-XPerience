@@ -1,0 +1,12 @@
+Testbuild: 0.8.0-zs1 (ZS1), Windows-Version 0.8.0.1
+Nutzerordner: crossing-europe-zwischenstand (Linux/Steam Deck ~/.local/share/crossing-europe-zwischenstand/, Windows %APPDATA%\crossing-europe-zwischenstand\)
+Commit: 39849f0263921f798da4326b83dff30d83a947d2
+Commit-Zeit: 2026-11-12 10:08:24 UTC (SOURCE_DATE_EPOCH=1794478104)
+Godot: 4.7.2.stable.official.ed1daf0bf
+Archive: Linux 140 MiB, Windows 149 MiB (Grenze 400 MiB)
+
+c569981167ad0eba6523b5519400569262252755d02ee62c2c6c9aa78c5eec63  CrossingEurope-ZS1-linux-x86_64.tar.gz
+3cf4984ac87a0dd9052177ff94d47a77c745ae516c7ee6488a807fa29bcd4fa5  CrossingEurope-ZS1-windows-x86_64.zip
+59248e240b9910c06a827e69182ace794c47230daaa7813c8a1c013629b4d00f  CrossingEurope-ZS1.x86_64
+96130d5df5630b2673df0b9bce61a8843847a289ddf2e5b58414224d92d40619  CrossingEurope-ZS1.exe
+6cc0cd78ad64099d3cd0e63b206ce70555e5bef2870de3ce397c6299d20132d3  LIZENZEN.txt

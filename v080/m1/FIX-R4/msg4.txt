@@ -1,0 +1,8 @@
+v0.8.0 FIX-R4: Modern-Änderungsmelder modern_s1_nacht neu – Bild angesehen
+
+golden.sh modern-check: 5 von 6 identisch, modern_s1_nacht ANDERS (gewollt: Nacht-Schimmer aus gewaschenem
+Lack und Himmelston der Spiegelung nachts, B3/B7). Bild angesehen: Limousine marineblau und lesbar, sonst
+unverändert. Hash = md5 des von modern-check gerenderten Bildes dieser Arbeitskopie (gleich modern-make).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

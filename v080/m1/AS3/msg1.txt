@@ -1,0 +1,13 @@
+WIP v0.8.0 AS3: Laubkuppeln statt flacher Karten, Prüfszene mit Renn-Licht
+
+- ce3d/veg3d.py: Krone aus Laubkuppeln - je Kronenkugel des Sprites eine gewölbte
+  Karte auf ihrem freien Teil, Normalen der Kugel je Ecke, Verdeckung und Himmelslicht
+  je Ecke, Unterteilung nach Wichtigkeit im Dreiecksbudget; Stamm reicht unter den Boden
+- ce3d/leafatlas.py: Blattkugel-Zellen (deckende Laubmasse, zerzauster Rand),
+  Artenpalette aus den Generatorfarben; halo/bleed/coverage unverändert (Strommast)
+- tools/models/prop_scene.gd/.sh: --look=race (EnvironmentRig, Palette, Voreinstellung),
+  --sprite (Arcade-Sprite im selben Licht), UMSCHALT-Messung, --mode=clip
+- Eiche und Birke (je zwei Varianten) neu gebaut (Zwischenstand)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,22 @@
+QA-PROPS cam_z=6291.0 km=63.0
+QA-CHUNK index=65 seg 2080..2112 dropped={"corridor":7,"density":0,"missing":0,"ribbon":0} props=4
+  OK   seg=2100 j=0 z=+9.6 x=+27.7 side=1 set=props/tree_spruce scale=1.24 deco beyond_shoulder=19.5 ribbon=1000.0 corridor=false
+  OK   seg=2100 j=1 z=+9.0 x=+20.1 side=1 set=props/tree_beech scale=0.95 deco beyond_shoulder=11.9 ribbon=1000.0 corridor=false
+  OK   seg=2100 j=2 z=+9.0 x=+19.2 side=1 set=props/tree_pine scale=1.06 deco beyond_shoulder=11.0 ribbon=1000.0 corridor=false
+  FEHLT seg=2107 j=0 z=+32.9 x=-25.1 side=-1 set=props/tree_beech scale=1.19 deco beyond_shoulder=17.0 ribbon=315.3 corridor=true
+  FEHLT seg=2108 j=0 z=+34.2 x=-25.1 side=-1 set=props/tree_spruce scale=1.11 deco beyond_shoulder=17.0 ribbon=315.3 corridor=true
+QA-CHUNK index=66 seg 2112..2144 dropped={"corridor":5,"density":0,"missing":0,"ribbon":0} props=6
+  OK   seg=2112 j=0 z=+45.8 x=+25.4 side=1 set=props/tree_spruce scale=1.20 deco beyond_shoulder=17.3 ribbon=1000.0 corridor=false
+  FEHLT seg=2114 j=0 z=+52.0 x=-28.0 side=-1 set=props/tree_beech scale=1.18 deco beyond_shoulder=19.9 ribbon=315.3 corridor=true
+  OK   seg=2115 j=0 z=+56.2 x=+24.8 side=1 set=props/tree_pine scale=1.02 deco beyond_shoulder=16.7 ribbon=1000.0 corridor=false
+  OK   seg=2116 j=0 z=+58.0 x=+28.2 side=1 set=props/tree_spruce scale=1.21 deco beyond_shoulder=20.1 ribbon=1000.0 corridor=false
+  FEHLT seg=2121 j=0 z=+73.4 x=-27.2 side=-1 set=props/tree_beech scale=1.07 deco beyond_shoulder=19.1 ribbon=315.3 corridor=true
+  OK   seg=2124 j=0 z=+82.0 x=+32.5 side=1 set=props/tree_spruce scale=0.95 deco beyond_shoulder=24.4 ribbon=1000.0 corridor=false
+  OK   seg=2128 j=0 z=+93.9 x=+28.3 side=1 set=props/tree_spruce scale=1.11 deco beyond_shoulder=20.2 ribbon=1000.0 corridor=false
+  FEHLT seg=2130 j=0 z=+101.2 x=-11.4 side=-1 set=props/tree_pine scale=0.91 deco beyond_shoulder=3.3 ribbon=315.3 corridor=true
+  FEHLT seg=2132 j=0 z=+106.0 x=-15.5 side=-1 set=props/tree_spruce scale=1.01 deco beyond_shoulder=7.4 ribbon=315.3 corridor=true
+  FEHLT seg=2136 j=0 z=+117.6 x=-32.9 side=-1 set=props/tree_spruce scale=1.15 deco beyond_shoulder=24.8 ribbon=315.3 corridor=true
+  OK   seg=2140 j=0 z=+129.7 x=+34.1 side=1 set=props/tree_spruce scale=0.87 deco beyond_shoulder=26.0 ribbon=1000.0 corridor=false
+QA-CHUNK index=67 seg 2144..2176 dropped={"corridor":5,"density":0,"missing":0,"ribbon":0} props=4
+  OK   seg=2144 j=0 z=+143.4 x=+19.0 side=1 set=props/tree_spruce scale=0.86 deco beyond_shoulder=10.8 ribbon=1000.0 corridor=false
+QA-PROPS-END

@@ -1,0 +1,7 @@
+v0.8.0 AS5a2: Grachtenhäuser B, Haussmann-Eckhaus und Maashaus neu exportiert, Manifest neu erzeugt
+
+Nach 771b079: Prüfer grün (extent_m.left des Grachtenhauses B 13,98 gegen Sprite 13,96), Auslage der
+abgeschrägten Ecke mit Regalen statt Streifen, Kreuzstock des Maashauses 11 cm.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

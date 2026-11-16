@@ -1,0 +1,61 @@
+{
+	"engine": {
+		"avg_ms": 3.80435182481752,
+		"frames": 685,
+		"max_ms": 18.105,
+		"ms_per_frame": 0.916308368495077,
+		"samples": 1516800,
+		"skips": 0,
+		"threaded": true
+	},
+	"master_db": -1.93820023536682,
+	"mix_rate": 44100,
+	"mute_buses": [],
+	"phases": [
+		{
+			"car_bus_peak_db": -12.65,
+			"car_plan_lufs": -24.0,
+			"duck_db": 0.0,
+			"name": "idle",
+			"t0": 1.541,
+			"t1": 3.045
+		},
+		{
+			"car_bus_peak_db": -5.06,
+			"car_plan_lufs": -16.18,
+			"duck_db": -4.47,
+			"name": "full_throttle",
+			"t0": 4.045,
+			"t1": 29.928
+		},
+		{
+			"car_bus_peak_db": -4.91,
+			"car_plan_lufs": -16.0,
+			"duck_db": -4.5,
+			"name": "flat_out",
+			"t0": 29.928,
+			"t1": 35.944
+		},
+		{
+			"car_bus_peak_db": -7.02,
+			"car_plan_lufs": -20.97,
+			"duck_db": -1.96,
+			"name": "lift",
+			"t0": 35.944,
+			"t1": 38.961
+		},
+		{
+			"car_bus_peak_db": -13.06,
+			"car_plan_lufs": -20.19,
+			"duck_db": -2.11,
+			"name": "cruise_130",
+			"t0": 40.961,
+			"t1": 47.977
+		}
+	],
+	"placeholders": false,
+	"profile": "modern",
+	"scenario": "drive",
+	"seconds": 47.98,
+	"vehicle": "gran_turismo"
+}

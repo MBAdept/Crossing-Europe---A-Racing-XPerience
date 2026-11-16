@@ -1,0 +1,149 @@
+{
+ "titel_remaster": {
+  "lufs": -13.93,
+  "tp_file": -1.8,
+  "gain_db": 0.0,
+  "lra": 3.14,
+  "tilt_1k_10k": -1.15,
+  "ref_tilt_1k_10k": -0.54,
+  "delta_bands_rel_db": {
+   "sub_lt40": -0.64,
+   "sub_40_60": -0.77,
+   "bass_60_120": 0.19,
+   "bass_120_250": 0.25,
+   "lowmid_250_800": 0.35,
+   "mid_800_2k": 0.39,
+   "presence_2k_5k": 0.06,
+   "brill_5k_8k": -0.94,
+   "air_8k_12k": -1.38,
+   "air_gt12k": -1.49
+  },
+  "sha_same": null
+ },
+ "linke_spur": {
+  "lufs": -14.07,
+  "tp_file": -2.08,
+  "gain_db": 1.0,
+  "lra": 2.19,
+  "tilt_1k_10k": -1.16,
+  "ref_tilt_1k_10k": -0.55,
+  "delta_bands_rel_db": {
+   "sub_lt40": -0.39,
+   "sub_40_60": -0.74,
+   "bass_60_120": 0.2,
+   "bass_120_250": 0.24,
+   "lowmid_250_800": 0.34,
+   "mid_800_2k": 0.39,
+   "presence_2k_5k": 0.06,
+   "brill_5k_8k": -0.94,
+   "air_8k_12k": -1.38,
+   "air_gt12k": -1.49
+  },
+  "sha_same": null
+ },
+ "nachtfahrt": {
+  "lufs": -14.07,
+  "tp_file": -1.57,
+  "gain_db": 1.0,
+  "lra": 3.56,
+  "tilt_1k_10k": -1.44,
+  "ref_tilt_1k_10k": -0.83,
+  "delta_bands_rel_db": {
+   "sub_lt40": -0.54,
+   "sub_40_60": -0.85,
+   "bass_60_120": 0.19,
+   "bass_120_250": 0.24,
+   "lowmid_250_800": 0.37,
+   "mid_800_2k": 0.4,
+   "presence_2k_5k": 0.06,
+   "brill_5k_8k": -0.98,
+   "air_8k_12k": -1.38,
+   "air_gt12k": -1.49
+  },
+  "sha_same": null
+ },
+ "rueckenwind": {
+  "lufs": -14.08,
+  "tp_file": -1.72,
+  "gain_db": 1.0,
+  "lra": 2.07,
+  "tilt_1k_10k": -1.08,
+  "ref_tilt_1k_10k": -0.47,
+  "delta_bands_rel_db": {
+   "sub_lt40": -0.44,
+   "sub_40_60": -0.8,
+   "bass_60_120": 0.22,
+   "bass_120_250": 0.25,
+   "lowmid_250_800": 0.34,
+   "mid_800_2k": 0.39,
+   "presence_2k_5k": 0.06,
+   "brill_5k_8k": -0.95,
+   "air_8k_12k": -1.39,
+   "air_gt12k": -1.5
+  },
+  "sha_same": null
+ },
+ "zwischenspiel": {
+  "lufs": -14.03,
+  "tp_file": -1.25,
+  "gain_db": 0.0,
+  "lra": 1.74,
+  "tilt_1k_10k": -3.77,
+  "ref_tilt_1k_10k": -3.15,
+  "delta_bands_rel_db": {
+   "sub_lt40": -0.9,
+   "sub_40_60": -0.88,
+   "bass_60_120": -0.13,
+   "bass_120_250": 0.1,
+   "lowmid_250_800": 0.22,
+   "mid_800_2k": 0.21,
+   "presence_2k_5k": -0.1,
+   "brill_5k_8k": -1.2,
+   "air_8k_12k": -1.59,
+   "air_gt12k": -1.69
+  },
+  "sha_same": null
+ },
+ "linke_spur_schluss": {
+  "lufs": -15.63,
+  "tp_file": -2.4,
+  "gain_db": 1.0,
+  "lra": 7.71,
+  "tilt_1k_10k": -2.27,
+  "ref_tilt_1k_10k": -1.65,
+  "delta_bands_rel_db": {
+   "sub_lt40": 0.26,
+   "sub_40_60": -0.9,
+   "bass_60_120": -0.09,
+   "bass_120_250": 0.24,
+   "lowmid_250_800": 0.33,
+   "mid_800_2k": 0.33,
+   "presence_2k_5k": 0.05,
+   "brill_5k_8k": -1.05,
+   "air_8k_12k": -1.48,
+   "air_gt12k": -1.6
+  },
+  "sha_same": null
+ },
+ "nachtfahrt_tank": {
+  "lufs": -17.66,
+  "tp_file": -4.61,
+  "gain_db": 1.0,
+  "lra": 13.8,
+  "tilt_1k_10k": -7.76,
+  "ref_tilt_1k_10k": -7.13,
+  "delta_bands_rel_db": {
+   "sub_lt40": -0.54,
+   "sub_40_60": -1.23,
+   "bass_60_120": -0.23,
+   "bass_120_250": 0.1,
+   "lowmid_250_800": 0.22,
+   "mid_800_2k": 0.21,
+   "presence_2k_5k": 0.02,
+   "brill_5k_8k": -1.07,
+   "air_8k_12k": -1.68,
+   "air_gt12k": -2.04
+  },
+  "sha_same": null
+ }
+}

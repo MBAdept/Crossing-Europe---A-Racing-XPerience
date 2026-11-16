@@ -1,0 +1,13 @@
+Silhouette Sprite (Alpha > 0,9) gegen Modell (Maske), Sprite-Kamera 9°, 2-fache Sprite-Auflösung:
+  suv      +0° lod0: IoU 0.950, nur Sprite 1215 px, nur Modell 677 px
+  suv      +0° lod2: IoU 0.930, nur Sprite 2333 px, nur Modell 326 px
+  suv     +24° lod0: IoU 0.955, nur Sprite 1655 px, nur Modell 999 px
+  suv     +24° lod2: IoU 0.931, nur Sprite 3387 px, nur Modell 615 px
+  van      +0° lod0: IoU 0.950, nur Sprite 2513 px, nur Modell 497 px
+  van      +0° lod2: IoU 0.927, nur Sprite 4150 px, nur Modell 185 px
+  van     +24° lod0: IoU 0.960, nur Sprite 3307 px, nur Modell 555 px
+  van     +24° lod2: IoU 0.942, nur Sprite 5344 px, nur Modell 243 px
+  sports   +0° lod0: IoU 0.938, nur Sprite 1412 px, nur Modell 470 px
+  sports   +0° lod2: IoU 0.937, nur Sprite 1599 px, nur Modell 311 px
+  sports  +24° lod0: IoU 0.945, nur Sprite 1476 px, nur Modell 870 px
+  sports  +24° lod2: IoU 0.945, nur Sprite 1835 px, nur Modell 475 px

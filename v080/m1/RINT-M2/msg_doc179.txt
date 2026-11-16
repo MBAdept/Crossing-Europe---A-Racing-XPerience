@@ -1,0 +1,10 @@
+v0.8.0 RINT-M2: Doku §17.9 – Lücken aus den A/B-Bildern (Lack in der Dämmerung, Kurveninnenseiten, Tankstelle)
+
+Aus den A/B-Bildern der weiteren Stellen: die Limousine wirkt um 19:30
+grau-lila statt Blau (Farbton von Heck und Dach 271–276° statt Arcades
+242°, am Tag 217° / 222°) – gelistet, Ursache vermutlich der Abendhimmel
+im Lack. Dazu der Höchstwert von collect() der Tankstelle (2,40 ms gegen
+das Ziel 2 ms) und die Kurveninnenseiten T1–T4 als Verweis auf R7.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

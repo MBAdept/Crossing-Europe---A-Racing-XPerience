@@ -1,0 +1,10 @@
+v0.8.0 RINT-M2: Prüfung „laternen“ an einer echten Steigung
+
+Die Köhlbrandbrücke ist in der Strecke eben (Profil 0 an jeder Startstelle,
+gemessen). Die Prüfung setzt jetzt vier Laternen über renderer.add_lamps() auf
+die Steigung vor der Kuppe T2 (Kassel – Würzburg km 61,6, 18,5 m auf 250 m):
+gemessen Profil bis 15,8 m, 4 von 160 Profilen gerechnet; mit flachem Profil
+(Mutation) FEHLER.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

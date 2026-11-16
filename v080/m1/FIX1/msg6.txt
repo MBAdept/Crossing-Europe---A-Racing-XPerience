@@ -1,0 +1,15 @@
+v0.8.0 FIX1: Zeit je Teil von render() und Render-Prüfung an der Sichtgrenze
+
+- ModernRenderer.perf_stats(): hooks_ms_avg / hooks_ms_max je Teil von
+  render() (Umgebung, Streamer, Kamera, jeder Builder und jede Ebene mit
+  update()); der Leistungstest schreibt je Szene script_ms_max und
+  hooks_ms_max, damit eine Spitze auf dem Steam Deck einer Ebene zugeordnet
+  werden kann (QA QB-10).
+- check_vehicle_lights → sichtgrenze (Pflichtprüfung §4.9.2, F4/F5, QA QB-11):
+  schwarze Limousine an der Sichtgrenze unter 3 % Kontrast (gemessen 0,00 %),
+  bei 0,839 × Sicht behalten ihre Pixel mindestens die Hälfte des Kontrasts
+  am Nebelbeginn (gemessen 16 % gegen 22 %) – Arcades Tönung statt des
+  Tiefennebels der Engine.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

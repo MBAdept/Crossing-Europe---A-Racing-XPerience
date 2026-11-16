@@ -1,0 +1,133 @@
+{
+ "ok": true,
+ "problems": [],
+ "warnings": [],
+ "folders": {
+  "music": {
+   "files": 9,
+   "bytes": 7482748,
+   "sounds": 4,
+   "placeholders": 1
+  }
+ },
+ "sounds": [
+  {
+   "folder": "music",
+   "id": "linke_spur",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/linke_spur.py",
+   "files": [
+    {
+     "lufs": -14.16,
+     "lra": 1.98,
+     "short_term_max": -12.49,
+     "momentary_max": -11.44,
+     "true_peak_db": -1.8,
+     "sample_peak_db": -2.03,
+     "dc_db": -95.2,
+     "clipped_runs": 0,
+     "file": "linke_spur.ogg",
+     "frames": 7777636,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 3360413,
+     "sha256": "d8fb904656567142fb836cc64440af9fcbaf3ee7d37663b9356cb8627afaf8ee",
+     "seconds": 176.364,
+     "seam_ratio": 0.15,
+     "seam_kink_ratio": 0.14,
+     "seam_loop_ratio": 0.08
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "linke_spur_schluss",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/linke_spur.py",
+   "files": [
+    {
+     "lufs": -15.73,
+     "lra": 5.81,
+     "short_term_max": -13.66,
+     "momentary_max": -11.98,
+     "true_peak_db": -2.43,
+     "sample_peak_db": -2.63,
+     "dc_db": -81.0,
+     "clipped_runs": 0,
+     "file": "linke_spur_schluss.ogg",
+     "frames": 345584,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 149961,
+     "sha256": "f6630635a896df3bb933b7c61d9c7c124fef765aa06870b870c7c9274280514a",
+     "seconds": 7.836
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "platzhalter_takt",
+   "kind": "music",
+   "placeholder": true,
+   "generator": "tools/audio/modern/make_placeholders.py",
+   "files": [
+    {
+     "lufs": -13.97,
+     "lra": 0.01,
+     "short_term_max": -13.92,
+     "momentary_max": -13.26,
+     "true_peak_db": -2.14,
+     "sample_peak_db": -2.14,
+     "dc_db": -56.3,
+     "clipped_runs": 0,
+     "file": "platzhalter_takt.ogg",
+     "frames": 176400,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 35124,
+     "sha256": "5db87a4fc25f935d14f6f431584147c453c33da922f6198950752fa370664ab2",
+     "seconds": 4.0,
+     "seam_ratio": 0.72,
+     "seam_kink_ratio": 8.71,
+     "seam_loop_ratio": 0.05
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "titel_remaster",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/title_remaster.py",
+   "files": [
+    {
+     "lufs": -14.12,
+     "lra": 3.28,
+     "short_term_max": -11.9,
+     "momentary_max": -10.96,
+     "true_peak_db": -1.67,
+     "sample_peak_db": -1.88,
+     "dc_db": -100.1,
+     "clipped_runs": 0,
+     "file": "titel_remaster.ogg",
+     "frames": 8930250,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 3933107,
+     "sha256": "63ca5b0dbdf449bee416de7f054ec82e9ce5498e903b209b5010d872e74da174",
+     "seconds": 202.5,
+     "seam_ratio": 0.18,
+     "seam_kink_ratio": 0.13,
+     "seam_loop_ratio": 0.11
+    }
+   ],
+   "errors": []
+  }
+ ],
+ "determinism": []
+}

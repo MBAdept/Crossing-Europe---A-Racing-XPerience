@@ -1,0 +1,10 @@
+v0.8.0 AS5aR1: WIP Flankenöffnungen, Erkerfenster, Geländer-Füllung, Gartenstufe
+
+close3d-Hooks in props_cities (Sprite unverändert): Fachwerkzeile, Turmhaus,
+Barock und Giebelzeile bekommen Fenster und Türen an der Straßenflanke.
+cities3d: Erkerfenster mit Futter, Sprossen und Sohlbank, Konsole eigenes
+Material; Hölzer schmaler als das gemalte Fachwerk (inset); Lückenfüllung der
+Geländer-Atlanten; lod1-Kopien der Gartenteile stärker dezimiert.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

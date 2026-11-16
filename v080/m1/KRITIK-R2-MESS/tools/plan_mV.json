@@ -1,0 +1,74 @@
+{
+ "segments": [
+  {
+   "name": "conc200_r0",
+   "km": 42.0,
+   "kmh": 200.0,
+   "throttle": 0.6,
+   "x": 1.875,
+   "mute": [],
+   "seconds": 60.0,
+   "paving": "concrete"
+  },
+  {
+   "name": "conc200_r1",
+   "km": 42.0,
+   "kmh": 200.0,
+   "throttle": 0.6,
+   "x": 1.875,
+   "mute": [],
+   "seconds": 60.0,
+   "paving": "concrete"
+  },
+  {
+   "name": "conc200_r2",
+   "km": 42.0,
+   "kmh": 200.0,
+   "throttle": 0.6,
+   "x": 1.875,
+   "mute": [],
+   "seconds": 60.0,
+   "paving": "concrete"
+  },
+  {
+   "name": "conc200_r3",
+   "km": 42.0,
+   "kmh": 200.0,
+   "throttle": 0.6,
+   "x": 1.875,
+   "mute": [],
+   "seconds": 60.0,
+   "paving": "concrete"
+  },
+  {
+   "name": "conc170_60",
+   "km": 42.0,
+   "kmh": 170.0,
+   "throttle": 0.5,
+   "x": 1.875,
+   "mute": [],
+   "seconds": 60.0,
+   "paving": "concrete"
+  },
+  {
+   "name": "asph200_60",
+   "km": 20.0,
+   "kmh": 200.0,
+   "throttle": 0.6,
+   "x": 1.875,
+   "mute": [],
+   "seconds": 60.0,
+   "paving": "asphalt"
+  },
+  {
+   "name": "vmax_full",
+   "km": 15.0,
+   "kmh": -1.0,
+   "throttle": 1.0,
+   "x": 1.875,
+   "mute": [],
+   "seconds": 15.0,
+   "paving": "asphalt"
+  }
+ ]
+}

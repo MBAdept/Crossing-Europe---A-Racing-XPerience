@@ -1,0 +1,11 @@
+v0.8.0 R6 WIP: Modern-Änderungsmelder neu (Start, Tankstelle km 14,8, Stadt km 80,6)
+
+tools/golden.sh modern-make auf bb38876 (llvmpipe, nice 19). Drei von sechs Bildern ändern sich
+gewollt, alle neben dem Bild der Basis 6e48405 angesehen:
+- modern_start_mittel: Starttor mit Lampengehäusen und Bannertafel (R6 gantry.gd)
+- modern_s2_mittel: Tankstelle mit Stützen, Dachblende, Preissäule (R6 station.gd)
+- modern_s4_mittel: Laternen im Seitenwechsel und Hecken in der Stadt (R6 city.gd)
+modern_s3_hoch, modern_s5_niedrig (Ziel liegt hinter der Kamera) und modern_s1_nacht bildgleich.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

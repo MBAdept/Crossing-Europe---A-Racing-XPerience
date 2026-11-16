@@ -1,0 +1,9 @@
+WIP v0.8.0 AS3: Kontaktbogen zeigt die Saat-Varianten
+
+Varianten (tree_*_b, bush_round_b) haben kein eigenes Set; der Kontaktbogen baut
+seine Kacheln über das Set und ließ sie leer. Wie prop_scene bekommt jetzt jedes
+Modell ohne Set eines mit seiner Id – nur in den Tabellen dieses Prozesses, die
+Manifest-Datei bleibt unberührt. Für Modelle mit Set ändert sich nichts.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

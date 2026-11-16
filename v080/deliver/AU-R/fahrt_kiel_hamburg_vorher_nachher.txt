@@ -1,0 +1,31 @@
+Fahrt Kiel – Hamburg: vorher (Stand AU-C1, die Fassung, die du gehört hast) – 2 s Stille – nachher (Stand AU-R2)
+
+Dieselbe geskriptete Fahrt zweimal (Limousine, Motor + Fahrbahn + Wind + Aufprall, ohne Musik und Verkehr): Autobahn auf Asphalt in den Betonabschnitt, Köhlbrandbrücke, Rüttelstreifen, Bankett, Leitplanke, Hamburger Innenstadt. Die Betonabschnitte sind in beiden Fahrten dieselben (wie in der Probefahrt von AU-C1).
+
+Neu in dieser Runde (AU-R2): Die Betonplatten bestehen wieder aus genau den Fugenschlägen, die du bei AU-C1 gehört hast (nur in längerer, gemischter Folge, damit sich das Muster nicht alle 40 m wiederholt); bei 170 km/h sind sie knapp 1 dB leiser als in der Runde davor (über 150 km/h werden die Platten langsamer lauter). Auf dem Hamburger Pflaster fehlen die zwei einzelnen lauten Steine, die rechts alle 7 s wiederkamen.
+
+Worauf achten: Rollen und Wind wiederholen sich nicht mehr im Sekundentakt (jede Seite eine eigene, längere Schleife); auf der Köhlbrandbrücke nur noch an den Enden und alle 100 m eine Fuge statt alle 24 m; in Hamburg wechseln nachher Pflaster und Asphalt (vorher war die ganze Altstadt gepflastert). Die Klangfarbe von Rollen, Platten und Wind soll gleich geblieben sein.
+
+Vorher – Länge 46.6 s, integriert -17.0 LUFS, True Peak -4.2 dBTP (gemessen an der WAV vor dem MP3)
+  0:00.08  Autobahn 170 km/h, Asphalt → Beton (A7 Holstein, Plattenfugen)
+  0:09.43  Köhlbrandbrücke 120 km/h (Stahldeck, Dehnfugen)
+  0:20.35  Rüttelstreifen (125 km/h)
+  0:25.77  Bankett rechts (Schotter)
+  0:30.51  Leitplanke: Schlag und Schleifen
+  0:35.86  Hamburger Innenstadt 50 km/h
+  0:35.87  unter den Rädern: Pflaster (km 88.40)
+  0:46.62  Ende
+
+Nachher (ab 0:48.63) – Länge 45.6 s, integriert -17.2 LUFS, True Peak -4.1 dBTP (gemessen an der WAV vor dem MP3)
+  0:48.68  Autobahn 170 km/h, Asphalt → Beton (A7 Holstein, Plattenfugen)
+  0:57.82  Köhlbrandbrücke 120 km/h (Stahldeck, Dehnfugen)
+  1:08.56  Rüttelstreifen (125 km/h)
+  1:13.87  Bankett rechts (Schotter)
+  1:18.50  Leitplanke: Schlag und Schleifen
+  1:23.72  Hamburger Innenstadt 50 km/h
+  1:23.73  unter den Rädern: Asphalt (km 88.40)
+  1:25.81  unter den Rädern: Pflaster (km 88.70)
+  1:31.98  unter den Rädern: Asphalt (km 89.60)
+  1:34.23  Ende
+
+Aufgenommen am Master-Bus des Spiels (Godot 4.7.2, Profil Modern, ohne Bildschirm, Dummy-Audiotreiber), Gesamtlautstärke 0,8 wie im Spiel voreingestellt. Gehört hat es hier niemand – das Urteil über den Klang liegt beim Nutzer.

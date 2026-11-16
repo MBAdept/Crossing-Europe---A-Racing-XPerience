@@ -1,0 +1,10 @@
+v0.8.0 AU-C1: AudioFeed v1 – Fahrbahnbelag, Rüttellinie je Straße, Leitpfosten, Einschnitt
+
+Der Feed leitet jetzt aus Strecke und Plan ab: Belag (Asphalt, Beton je Abschnitt nach
+Landesanteil – in beiden Richtungen gleich –, Kopfsteinpflaster in Altstadtblöcken und auf
+Steinbrücken, Stahldeck), Deckmaterial der Brücke an jeder Fuge, profilierte Randlinie nur
+auf rumble_roads, befestigter Rand in Tunnel, Brücke und Stadt, die Leitpfosten der Straßen
+ohne Leitplanke (mit Berührung) und die Zone „cutting“. Konfiguration audio.modern.feed.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

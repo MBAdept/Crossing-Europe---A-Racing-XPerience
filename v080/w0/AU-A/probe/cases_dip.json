@@ -1,0 +1,15 @@
+[
+ {"name": "none", "fx": []},
+ {"name": "a_1000m3_200p2", "fx": [
+  {"cls": "AudioEffectLowShelfFilter", "cutoff_hz": 1000.0, "gain": 0.8414, "resonance": 0.5, "db": 0},
+  {"cls": "AudioEffectLowShelfFilter", "cutoff_hz": 200.0, "gain": 1.1220, "resonance": 0.5, "db": 0}]},
+ {"name": "b_1100m32_180p22", "fx": [
+  {"cls": "AudioEffectLowShelfFilter", "cutoff_hz": 1100.0, "gain": 0.8318, "resonance": 0.5, "db": 0},
+  {"cls": "AudioEffectLowShelfFilter", "cutoff_hz": 180.0, "gain": 1.1350, "resonance": 0.5, "db": 0}]},
+ {"name": "c_1200m33_160p23", "fx": [
+  {"cls": "AudioEffectLowShelfFilter", "cutoff_hz": 1200.0, "gain": 0.8270, "resonance": 0.5, "db": 0},
+  {"cls": "AudioEffectLowShelfFilter", "cutoff_hz": 160.0, "gain": 1.1416, "resonance": 0.5, "db": 0}]},
+ {"name": "d_1200m3_150p2", "fx": [
+  {"cls": "AudioEffectLowShelfFilter", "cutoff_hz": 1200.0, "gain": 0.8414, "resonance": 0.5, "db": 0},
+  {"cls": "AudioEffectLowShelfFilter", "cutoff_hz": 150.0, "gain": 1.1220, "resonance": 0.5, "db": 0}]}
+]

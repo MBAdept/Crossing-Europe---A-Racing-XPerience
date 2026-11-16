@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "date": "2026-11-11 15:48:44",
+  "adapter": "llvmpipe (LLVM 20.1.2, 256 bits)",
+  "api": "4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+  "tier": "software",
+  "preset": "low",
+  "quality": {
+    "shadows": 0,
+    "details": 0,
+    "scale": 75,
+    "aa": 0,
+    "effects": 0
+  },
+  "resolution": [
+    1280,
+    720
+  ],
+  "scenes": [
+    {
+      "id": "autobahn",
+      "avg_fps": 8.7,
+      "low1_fps": 5.7,
+      "frame_ms_p95": 136.21,
+      "frame_ms_p99": 176.48,
+      "script_ms": 1.944,
+      "draw_calls": 128,
+      "primitives": 86891,
+      "name": "Autobahn bei Tag",
+      "frames": 44,
+      "seconds": 5.05,
+      "frame_ms_median": 113.09,
+      "frame_ms_max": 176.48,
+      "draw_calls_shadow": 0,
+      "primitives_shadow": 0,
+      "frame_draw_calls": 236,
+      "frame_primitives": 92875,
+      "sim_ms": 1.097,
+      "prepare_s": 5.41,
+      "video_mem_mb": 169.3
+    }
+  ],
+  "suggested_preset": "low",
+  "suggested_mode": "arcade",
+  "verdict": "too_slow",
+  "refresh_hz": -1.0,
+  "target_ms": 16.667,
+  "vsync": false,
+  "game_version": "0.7.0",
+  "os": "Windows",
+  "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+  "cpu_threads": 4,
+  "vendor": "Mesa",
+  "driver": "opengl3",
+  "fallback": "",
+  "aborted": false,
+  "error": "",
+  "seconds": 5.0,
+  "renderer_stub": false,
+  "worst_scene": "autobahn",
+  "headroom": 0.15
+}

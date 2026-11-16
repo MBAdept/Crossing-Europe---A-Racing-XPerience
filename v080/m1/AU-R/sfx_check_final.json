@@ -1,0 +1,128 @@
+{
+ "glass": {
+  "variants": [
+   {
+    "file": "glass_b.wav",
+    "max_band_dev_db": 0.2,
+    "d_lufs_m": 0.05
+   },
+   {
+    "file": "glass_c.wav",
+    "max_band_dev_db": 0.84,
+    "d_lufs_m": -0.74
+   },
+   {
+    "file": "glass_d.wav",
+    "max_band_dev_db": 0.31,
+    "d_lufs_m": 0.1
+   }
+  ],
+  "a_equals_old_after_lead": true,
+  "lead_samples": 882,
+  "lufs_m": [
+   -16.54,
+   -16.49,
+   -17.28,
+   -16.44
+  ]
+ },
+ "debris": {
+  "variants": [
+   {
+    "file": "debris_b.wav",
+    "max_band_dev_db": 0.89,
+    "d_lufs_m": 0.78
+   },
+   {
+    "file": "debris_c.wav",
+    "max_band_dev_db": 0.91,
+    "d_lufs_m": 0.64
+   },
+   {
+    "file": "debris_d.wav",
+    "max_band_dev_db": 0.76,
+    "d_lufs_m": 0.51
+   }
+  ],
+  "a_equals_old_after_lead": true,
+  "lead_samples": 882,
+  "lufs_m": [
+   -17.91,
+   -17.13,
+   -17.27,
+   -17.4
+  ]
+ },
+ "truck_boom": {
+  "variants": [
+   {
+    "file": "truck_boom_b.wav",
+    "max_band_dev_db": 0.42,
+    "d_lufs_m": -0.2
+   },
+   {
+    "file": "truck_boom_c.wav",
+    "max_band_dev_db": 0.32,
+    "d_lufs_m": -0.12
+   },
+   {
+    "file": "truck_boom_d.wav",
+    "max_band_dev_db": 0.62,
+    "d_lufs_m": 0.18
+   }
+  ],
+  "a_equals_old_after_lead": true,
+  "lead_samples": 882,
+  "lufs_m": [
+   -15.84,
+   -16.04,
+   -15.96,
+   -15.66
+  ]
+ },
+ "hit_heavy": {
+  "variants": [
+   {
+    "file": "hit_heavy_b.wav",
+    "max_band_dev_db": 5.89,
+    "d_lufs_m": 0.8
+   }
+  ],
+  "a_equals_old_after_lead": true,
+  "lead_samples": 882,
+  "lufs_m": [
+   -19.08,
+   -18.28
+  ]
+ },
+ "hit_light": {
+  "variants": [
+   {
+    "file": "hit_light_b.wav",
+    "max_band_dev_db": 6.35,
+    "d_lufs_m": 0.91
+   }
+  ],
+  "a_equals_old_after_lead": true,
+  "lead_samples": 882,
+  "lufs_m": [
+   -22.2,
+   -21.3
+  ]
+ },
+ "crunch": {
+  "variants": [
+   {
+    "file": "crunch_b.wav",
+    "max_band_dev_db": 10.07,
+    "d_lufs_m": 0.83
+   }
+  ],
+  "a_equals_old_after_lead": true,
+  "lead_samples": 882,
+  "lufs_m": [
+   -15.31,
+   -14.48
+  ]
+ }
+}

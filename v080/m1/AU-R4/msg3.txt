@@ -1,0 +1,21 @@
+v0.8.0 AU-R4: Lkw-Aufbau beim schweren Aufprall −11,5 dB, Doku Abschnitt 15.12
+
+KRITIK-R2-MESS M1: V3 hielt beim Lkw nur knapp – 95 % der Begrenzung
+2,66 dB aus 60 Unfällen, die Abnahme konnte am Zufall scheitern.
+Nachgemessen mit dem Werkzeug der Prüfung (kr_crash.gd, je 60 schwere
+Lkw-Unfälle, 130 km/h Schließgeschwindigkeit):
+- truck.heavy −11: 2,78 / 2,72 dB (Folgen 9312 / 9313), über 120 Unfälle
+  2,78 dB; Bootstrap: 14 % der Abnahmen mit 60 Unfällen über 3 dB.
+- truck.heavy −11,5: 2,13 / 2,51 dB, über 120 Unfälle 2,34 dB, True Peak
+  höchstens −1,39 dBTP; Bootstrap 2 %.
+Der Schlag des Aufbaus liegt damit wie der eigene tiefe Schlag bei
+−11,5 dB. Keine Klangdatei geändert.
+
+Doku: Abschnitt 15.12 (Tests, Altstadtpflaster wie gehört, Lkw-Aufprall),
+Abnahmetabelle 15.11, offene Punkte 15.8, Prüfungen 12, Abschnitt 8;
+KRITIK-R2-CODE L2: Plattengesetz „4 statt 20 dB je Dekade“, Größenzeile,
+Randlinie der Tankspur (durchgezogen, ohne Profil; auch im Code-Kommentar).
+Beschreibung von cobble_share in audio._doc_modern.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

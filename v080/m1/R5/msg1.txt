@@ -1,0 +1,12 @@
+v0.8.0 R5 WIP: Brücken-Builder mit Wasser, Ufern, Tragwerk und Brückenteilen
+
+Neuer Builder scripts/race3d/builders/bridge.gd und Shader
+assets/shaders/modern/water.gdshader: Wasser über den Wasserreihen des Geländes,
+Kaimauern bzw. Böschungen an beiden Ufern, Randträger, Pfeiler, Bögen,
+Fachwerkträger, Pylone (bridge_pylon_bare, Höhe pylon_m) mit Seilen nach Arcade,
+Portale und Brückenlampen. builders/props.gd überlässt die Brückenteile diesem
+Builder bereits über sein skip_bridge (keine Zeile geändert).
+Kopflos alle 122 Brücken des Netzes ohne Fehler gebaut (Arbeitsstand).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

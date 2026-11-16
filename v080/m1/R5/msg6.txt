@@ -1,0 +1,13 @@
+v0.8.0 R5 WIP: Render-Prüfung baut mit -- --full jede Brücke und jeden Tunnel des Netzes
+
+- check_tunnel_bridge.gd: neuer Modus "-- --full" (headless genügt, ohne
+  Bild): baut jede Brücke und jeden Tunnel jeder Richtung jeder Etappe mit
+  builders/bridge.gd und builders/tunnel.gd wie die Unit-Tests und prüft je
+  Brücke Wasser, Ufer und je Typ Pylone/Seile, Fachwerk/Portale oder Bögen,
+  je Tunnel Röhre, Leuchten und Portal. Bisher lag dieser Netzlauf nur als
+  Skript im Arbeitsordner; test_bridge.gd verweist schon darauf.
+- Doku renderer-modern-tunnel-bruecken.md: der fehlende Abschnitt 7 (Stellen
+  und Grenzen der Render-Prüfung, Netzlauf).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

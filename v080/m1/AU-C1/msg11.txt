@@ -1,0 +1,10 @@
+v0.8.0 AU-C1: Doku – Aufprall-Spitzen gemessen, schlimmster Fall auf dem Endstand
+
+Abschnitt 15.4: Spitzen je Aufprall, Leitplanke, Leitpfosten und Schleifen (nur MImpact hörbar, an den
+Einsätzen im Ton gemessen). 15.5: Wiederholung des schlimmsten Falls auf dem Endstand (-2,44 dBTP),
+Überschwingen des Begrenzers 0,3-0,7 dB, bei Gesamtlautstärke 1,0 etwa -0,5 bis -0,1 dBTP (abgeleitet).
+15.3: Abstand von Reifen und Wind zum Motor bei 130 km/h aus Gesetz und gemessenem Motor. 15.7: Zeitmarken
+des Dummy-Treibers laufen bis 0,4 s hinter dem Ton her.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

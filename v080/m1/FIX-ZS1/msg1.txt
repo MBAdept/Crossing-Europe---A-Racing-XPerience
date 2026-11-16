@@ -1,0 +1,10 @@
+v0.8.0 FIX-ZS1 (WIP): Vorlauf vor der Startlinie, Spielerauto im Countdown, Lampenringe ohne Schatten
+
+QA1-B1: RoadPath3D führt die Straße vor Grenze 0 gerade entlang ihrer Tangente
+weiter (nur solange der Pfad am Streckenanfang beginnt), der Streamer baut dort
+Stück -1 mit den Daten von Segment 0 ohne Requisiten, die Fahrzeugebene zeigt
+Autos vor z = 0 (RoadPath3D.z_min()). QA1-B3: die Ringe der Countdown-Lampen
+folgen shadow_casters wie Pfosten und Banner.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

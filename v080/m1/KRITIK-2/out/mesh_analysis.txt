@@ -1,0 +1,211 @@
+== Netze: Fläche | Dreiecke | Ecken | entartet | Normale gegen Wicklung | offene Kanten | nicht-mannigfaltig | doppelte Flächen | Fläche m²
+player/kombi/lod0_body.res               vpbr    43876  35600    0    0  13030   169   235   78.270
+player/kombi/lod0_body.res               glass    4410   3023    0    0   1632     0     2    3.459
+player/kombi/shadow.res                  vpbr     2320   1460    0    1      0     0     0   42.535
+player/kombi/show_body.res               vpbr    90297  64571    0    1  19459   322   499   78.317
+player/kombi/show_body.res               glass   10653   6715    0    0   2855     0    18    3.462
+player/kombi/show_wheel.res              vpbr     4064   3660    0    0    348     0     0    1.777
+player/kombi/wheel.res                   vpbr     1505   1261    0    0    187     0     0    1.694
+player/sportwagen/lod0_body.res          vpbr    37773  32147    0    0  10054    71   110   67.147
+player/sportwagen/lod0_body.res          glass    2587   2024    0    0   1425     0     0    2.419
+player/sportwagen/shadow.res             vpbr     2320   1460    0    5      0     0     0   35.805
+player/sportwagen/show_body.res          vpbr    72522  52198    0    0  13188    72   111   66.820
+player/sportwagen/show_body.res          glass    5397   3714    0    0   1989     0     0    2.419
+player/sportwagen/show_wheel_f.res       vpbr     4364   4020    0    0    348     0     0    1.884
+player/sportwagen/show_wheel_r.res       vpbr     4364   4020    0    0    348     0     0    2.047
+player/sportwagen/wheel_f.res            vpbr     1645   1461    0    0    187     0     0    1.798
+player/sportwagen/wheel_r.res            vpbr     1645   1461    0    0    187     0     0    1.961
+player/gran_turismo/lod0_body.res        vpbr    38952  31712    0    0  10550   190   235   70.413
+player/gran_turismo/lod0_body.res        glass    3123   2258    0    0   1385     0     1    2.541
+player/gran_turismo/shadow.res           vpbr     2320   1460    0    5      0     0     0   39.418
+player/gran_turismo/show_body.res        vpbr    78994  55266    0    1  15209   261   440   70.415
+player/gran_turismo/show_body.res        glass    7077   4643    0    0   2225     0     9    2.543
+player/gran_turismo/show_wheel_f.res     vpbr     4064   3660    0    0    348     0     0    2.023
+player/gran_turismo/show_wheel_r.res     vpbr     4064   3660    0    0    348     0     0    2.172
+player/gran_turismo/wheel_f.res          vpbr     1505   1261    0    0    187     0     0    1.936
+player/gran_turismo/wheel_r.res          vpbr     1505   1261    0    0    187     0     0    2.084
+player/limousine/lod0_body.res           vpbr    39182  31597    0    0  11227    65   232   73.117
+player/limousine/lod0_body.res           glass    2702   2001    0    0   1268     0     0    3.078
+player/limousine/shadow.res              vpbr     2320   1460    0    1      0     0     0   39.821
+player/limousine/show_body.res           vpbr    76133  52751    0    1  14786    99   216   73.078
+player/limousine/show_body.res           glass    6397   4159    0    0   1891     0     2    3.075
+player/limousine/show_wheel.res          vpbr     4064   3660    0    0    348     0     0    1.804
+player/limousine/wheel.res               vpbr     1505   1261    0    0    187     0     0    1.721
+player/kompakt/lod0_body.res             vpbr    39615  32182    0    0  10652    95    90   68.388
+player/kompakt/lod0_body.res             glass    3296   2408    0    0   1502     0     2    2.214
+player/kompakt/shadow.res                vpbr     2320   1460    0    6      0     0     0   34.778
+player/kompakt/show_body.res             vpbr    82587  58428    0    0  16520   126   306   68.372
+player/kompakt/show_body.res             glass    7326   4832    0    0   2346     0     7    2.207
+player/kompakt/show_wheel.res            vpbr     4184   3804    0    0    348     0     0    1.669
+player/kompakt/wheel.res                 vpbr     1561   1341    0    0    187     0     0    1.590
+traffic/suv/lod0_body.res                vpbr    13488   9935    0    0   1270    16     0   52.811
+traffic/suv/lod0_body.res                glass    1088    812    0    0    514     0     0    4.925
+traffic/suv/lod1_body.res                vpbr     5915   5079    0    2    505     4     2   61.371
+traffic/suv/lod2_body.res                vpbr     1169   1215    0    0    241     0     0   52.845
+traffic/suv/shadow.res                   vpbr     1004    740    0    3      0     0     0   46.401
+traffic/suv/wheel.res                    vpbr      812    772    0    0    138     0     0    1.920
+traffic/van/lod0_body.res                vpbr    13225   9380    0    2   1139     0     4   73.886
+traffic/van/lod0_body.res                glass     846    657    0    0    356     0     0    4.751
+traffic/van/lod1_body.res                vpbr     5845   4855    0    0    669     0     1   81.660
+traffic/van/lod2_body.res                vpbr     1189   1223    0    0    237     0     0   71.480
+traffic/van/shadow.res                   vpbr     1064    772    0    4      0     0     0   65.450
+traffic/van/wheel.res                    vpbr      896    892    0    0    138     0     0    1.665
+traffic/sports/lod0_body.res             vpbr    13184   9449    0    2   1084     0     0   47.265
+traffic/sports/lod0_body.res             glass     759    568    0    0    363     0     0    2.870
+traffic/sports/lod1_body.res             vpbr     5741   4691    0    2    491     0     2   53.356
+traffic/sports/lod2_body.res             vpbr     1194   1228    0    0    252     0     0   45.210
+traffic/sports/shadow.res                vpbr      972    724    0    0      0     0     0   38.386
+traffic/sports/wheel_f.res               vpbr      952    972    0    0    138     0     0    1.821
+traffic/sports/wheel_r.res               vpbr      952    972    0    0    138     0     0    1.982
+traffic/sedan/lod0_body.res              vpbr    13460   9532    0    0   1134     0     5   46.117
+traffic/sedan/lod0_body.res              glass     844    626    0    0    396     0     0    3.022
+traffic/sedan/lod1_body.res              vpbr     5808   4632    0    0    488     0     1   52.045
+traffic/sedan/lod2_body.res              vpbr     1149   1147    0    0    231     0     0   43.807
+traffic/sedan/shadow.res                 vpbr      972    724    0    4      0     0     0   38.686
+traffic/sedan/wheel.res                  vpbr      812    772    0    0    138     0     0    1.433
+traffic/hatch/lod0_body.res              vpbr    13547   9445    0    2   1191     0     2   41.098
+traffic/hatch/lod0_body.res              glass     841    625    0    0    399     0     0    2.949
+traffic/hatch/lod1_body.res              vpbr     5661   4534    0    2    541     0     2   46.738
+traffic/hatch/lod2_body.res              vpbr     1180   1158    0    0    266     0     0   40.922
+traffic/hatch/shadow.res                 vpbr      988    732    0    3      0     0     0   35.819
+traffic/hatch/wheel.res                  vpbr      812    772    0    0    138     0     0    1.325
+traffic/wagon/lod0_body.res              vpbr    13256   9779    0    1   1132    18     3   51.883
+traffic/wagon/lod0_body.res              glass     955    718    0    0    467     0     0    4.172
+traffic/wagon/lod1_body.res              vpbr     5941   5059    0    0    533     4     1   58.912
+traffic/wagon/lod2_body.res              vpbr     1141   1227    0    0    271     0     0   49.062
+traffic/wagon/shadow.res                 vpbr      940    708    0    6      0     0     0   43.885
+traffic/wagon/wheel.res                  vpbr      812    772    0    0    138     0     0    1.433
+
+== Räder (Netz im Radraum: Rollachse X)
+player/kombi           player/kombi/wheel.res             R(manifest) 0.333 r_max 0.3340 halbe Breite 0.125 x-Mitte +0.0000 Ring-Mitte -0.0/-0.0 mm unrund 4.0 mm; Unterkante pos.y - R = +0.0 mm
+player/sportwagen      player/sportwagen/wheel_f.res      R(manifest) 0.342 r_max 0.3430 halbe Breite 0.131 x-Mitte +0.0000 Ring-Mitte -0.0/-0.0 mm unrund 4.0 mm; Unterkante pos.y - R = +0.0 mm
+player/gran_turismo    player/gran_turismo/wheel_f.res    R(manifest) 0.350 r_max 0.3510 halbe Breite 0.135 x-Mitte +0.0000 Ring-Mitte -0.0/-0.0 mm unrund 4.0 mm; Unterkante pos.y - R = +0.0 mm
+player/limousine       player/limousine/wheel.res         R(manifest) 0.335 r_max 0.3360 halbe Breite 0.125 x-Mitte +0.0000 Ring-Mitte -0.0/-0.0 mm unrund 4.0 mm; Unterkante pos.y - R = +0.0 mm
+player/kompakt         player/kompakt/wheel.res           R(manifest) 0.322 r_max 0.3230 halbe Breite 0.120 x-Mitte +0.0000 Ring-Mitte -0.0/-0.0 mm unrund 4.0 mm; Unterkante pos.y - R = +0.0 mm
+traffic/suv            traffic/suv/wheel.res              R(manifest) 0.370 r_max 0.3710 halbe Breite 0.125 x-Mitte +0.0000 Ring-Mitte -0.0/-0.0 mm unrund 1.0 mm; Unterkante pos.y - R = +0.0 mm
+traffic/van            traffic/van/wheel.res              R(manifest) 0.340 r_max 0.3410 halbe Breite 0.116 x-Mitte +0.0000 Ring-Mitte -0.0/-0.0 mm unrund 1.0 mm; Unterkante pos.y - R = +0.0 mm
+traffic/sports         traffic/sports/wheel_f.res         R(manifest) 0.340 r_max 0.3410 halbe Breite 0.131 x-Mitte +0.0000 Ring-Mitte -0.0/-0.0 mm unrund 1.0 mm; Unterkante pos.y - R = +0.0 mm
+traffic/sedan          traffic/sedan/wheel.res            R(manifest) 0.320 r_max 0.3210 halbe Breite 0.116 x-Mitte +0.0000 Ring-Mitte -0.0/-0.0 mm unrund 1.0 mm; Unterkante pos.y - R = +0.0 mm
+traffic/hatch          traffic/hatch/wheel.res            R(manifest) 0.310 r_max 0.3110 halbe Breite 0.111 x-Mitte +0.0000 Ring-Mitte -0.0/-0.0 mm unrund 1.0 mm; Unterkante pos.y - R = +0.0 mm
+traffic/wagon          traffic/wagon/wheel.res            R(manifest) 0.320 r_max 0.3210 halbe Breite 0.116 x-Mitte +0.0000 Ring-Mitte -0.0/-0.0 mm unrund 1.0 mm; Unterkante pos.y - R = +0.0 mm
+
+== Freigang: Karosserie-Ecken (inkl. Innenraum) im Reifenvolumen; Lenkwinkel: Ecken / Tiefe mm / Lage auf dem Reifen (0° oben, +90° vorn) 5/50/95 %
+player/kombi           lod0  wheel_0l  R 0.333: -25°: 0 / 0 mm; -15°: 0 / 0 mm; -7°: 0 / 0 mm; +0°: 0 / 0 mm; +7°: 0 / 0 mm; +15°: 0 / 0 mm; +25°: 0 / 0 mm
+player/kombi           lod0  wheel_0r  R 0.333: -25°: 0 / 0 mm; -15°: 0 / 0 mm; -7°: 0 / 0 mm; +0°: 0 / 0 mm; +7°: 0 / 0 mm; +15°: 0 / 0 mm; +25°: 0 / 0 mm
+player/kombi           lod0  wheel_1l  R 0.333: +0°: 0 / 0 mm
+player/kombi           lod0  wheel_1r  R 0.333: +0°: 0 / 0 mm
+player/kombi           show  wheel_0l  R 0.333: -25°: 0 / 0 mm; -15°: 0 / 0 mm; -7°: 0 / 0 mm; +0°: 0 / 0 mm; +7°: 0 / 0 mm; +15°: 0 / 0 mm; +25°: 0 / 0 mm
+player/kombi           show  wheel_0r  R 0.333: -25°: 0 / 0 mm; -15°: 0 / 0 mm; -7°: 0 / 0 mm; +0°: 0 / 0 mm; +7°: 0 / 0 mm; +15°: 0 / 0 mm; +25°: 0 / 0 mm
+player/kombi           show  wheel_1l  R 0.333: +0°: 0 / 0 mm
+player/kombi           show  wheel_1r  R 0.333: +0°: 0 / 0 mm
+player/sportwagen      lod0  wheel_0l  R 0.342: -25°: 49 / 89 mm / [-29.0, -16.0, -4.0]; -15°: 54 / 87 mm / [-27.0, -13.0, 1.0]; -7°: 73 / 85 mm / [-33.0, -9.0, 21.0]; +0°: 114 / 84 mm / [-31.0, 7.0, 42.0]; +7°: 93 / 82 mm / [-19.0, 13.0, 37.0]; +15°: 71 / 81 mm / [-1.0, 17.0, 39.0]; +25°: 66 / 79 mm / [3.0, 21.0, 40.0]
+player/sportwagen      lod0  wheel_0r  R 0.342: -25°: 66 / 79 mm / [3.0, 21.0, 40.0]; -15°: 71 / 81 mm / [-1.0, 17.0, 39.0]; -7°: 94 / 82 mm / [-19.0, 11.0, 37.0]; +0°: 116 / 84 mm / [-31.0, 7.0, 42.0]; +7°: 73 / 85 mm / [-33.0, -9.0, 21.0]; +15°: 54 / 87 mm / [-27.0, -13.0, 1.0]; +25°: 49 / 89 mm / [-29.0, -16.0, -4.0]
+player/sportwagen      lod0  wheel_1l  R 0.342: +0°: 0 / 0 mm
+player/sportwagen      lod0  wheel_1r  R 0.342: +0°: 0 / 0 mm
+player/sportwagen      show  wheel_0l  R 0.342: -25°: 125 / 89 mm / [-30.0, -15.0, -3.0]; -15°: 130 / 87 mm / [-29.0, -12.0, 0.0]; -7°: 165 / 85 mm / [-27.0, -8.0, 19.0]; +0°: 280 / 84 mm / [-24.0, 7.0, 40.0]; +7°: 220 / 82 mm / [-12.0, 14.0, 40.0]; +15°: 179 / 81 mm / [-0.0, 18.0, 41.0]; +25°: 164 / 79 mm / [4.0, 21.0, 42.0]
+player/sportwagen      show  wheel_0r  R 0.342: -25°: 164 / 79 mm / [4.0, 21.0, 42.0]; -15°: 179 / 81 mm / [-0.0, 18.0, 41.0]; -7°: 220 / 82 mm / [-12.0, 14.0, 40.0]; +0°: 282 / 84 mm / [-24.0, 7.0, 40.0]; +7°: 165 / 85 mm / [-27.0, -8.0, 19.0]; +15°: 131 / 87 mm / [-29.0, -12.0, 1.0]; +25°: 125 / 89 mm / [-30.0, -15.0, -3.0]
+player/sportwagen      show  wheel_1l  R 0.342: +0°: 0 / 0 mm
+player/sportwagen      show  wheel_1r  R 0.342: +0°: 0 / 0 mm
+player/gran_turismo    lod0  wheel_0l  R 0.350: -25°: 32 / 66 mm / [-23.0, -10.0, -6.0]; -15°: 34 / 64 mm / [-26.0, -14.0, -2.0]; -7°: 38 / 62 mm / [-24.0, -7.0, 10.0]; +0°: 71 / 61 mm / [-21.0, 4.0, 31.0]; +7°: 53 / 60 mm / [-7.0, 14.0, 34.0]; +15°: 47 / 59 mm / [-0.0, 17.0, 35.0]; +25°: 41 / 56 mm / [9.0, 20.0, 36.0]
+player/gran_turismo    lod0  wheel_0r  R 0.350: -25°: 41 / 56 mm / [9.0, 20.0, 36.0]; -15°: 47 / 59 mm / [-0.0, 17.0, 35.0]; -7°: 53 / 60 mm / [-7.0, 14.0, 34.0]; +0°: 71 / 61 mm / [-21.0, 4.0, 31.0]; +7°: 38 / 62 mm / [-24.0, -7.0, 10.0]; +15°: 34 / 64 mm / [-26.0, -14.0, -2.0]; +25°: 32 / 66 mm / [-23.0, -10.0, -6.0]
+player/gran_turismo    lod0  wheel_1l  R 0.350: +0°: 0 / 0 mm
+player/gran_turismo    lod0  wheel_1r  R 0.350: +0°: 0 / 0 mm
+player/gran_turismo    show  wheel_0l  R 0.350: -25°: 72 / 63 mm / [-26.0, -13.0, -4.0]; -15°: 73 / 64 mm / [-25.0, -10.0, 0.0]; -7°: 83 / 63 mm / [-22.0, -7.0, 10.0]; +0°: 179 / 61 mm / [-23.0, 6.0, 35.0]; +7°: 125 / 60 mm / [-4.0, 15.0, 33.0]; +15°: 108 / 59 mm / [2.0, 18.0, 34.0]; +25°: 106 / 57 mm / [4.0, 18.0, 34.0]
+player/gran_turismo    show  wheel_0r  R 0.350: -25°: 106 / 57 mm / [4.0, 18.0, 34.0]; -15°: 108 / 59 mm / [2.0, 18.0, 34.0]; -7°: 125 / 60 mm / [-4.0, 15.0, 33.0]; +0°: 179 / 61 mm / [-23.0, 6.0, 35.0]; +7°: 83 / 63 mm / [-22.0, -7.0, 10.0]; +15°: 73 / 64 mm / [-25.0, -10.0, 0.0]; +25°: 72 / 63 mm / [-26.0, -13.0, -4.0]
+player/gran_turismo    show  wheel_1l  R 0.350: +0°: 0 / 0 mm
+player/gran_turismo    show  wheel_1r  R 0.350: +0°: 0 / 0 mm
+player/limousine       lod0  wheel_0l  R 0.335: -25°: 0 / 0 mm; -15°: 0 / 0 mm; -7°: 0 / 0 mm; +0°: 0 / 0 mm; +7°: 0 / 0 mm; +15°: 0 / 0 mm; +25°: 0 / 0 mm
+player/limousine       lod0  wheel_0r  R 0.335: -25°: 0 / 0 mm; -15°: 0 / 0 mm; -7°: 0 / 0 mm; +0°: 0 / 0 mm; +7°: 0 / 0 mm; +15°: 0 / 0 mm; +25°: 0 / 0 mm
+player/limousine       lod0  wheel_1l  R 0.335: +0°: 0 / 0 mm
+player/limousine       lod0  wheel_1r  R 0.335: +0°: 0 / 0 mm
+player/limousine       show  wheel_0l  R 0.335: -25°: 0 / 0 mm; -15°: 0 / 0 mm; -7°: 0 / 0 mm; +0°: 0 / 0 mm; +7°: 0 / 0 mm; +15°: 0 / 0 mm; +25°: 0 / 0 mm
+player/limousine       show  wheel_0r  R 0.335: -25°: 0 / 0 mm; -15°: 0 / 0 mm; -7°: 0 / 0 mm; +0°: 0 / 0 mm; +7°: 0 / 0 mm; +15°: 0 / 0 mm; +25°: 0 / 0 mm
+player/limousine       show  wheel_1l  R 0.335: +0°: 0 / 0 mm
+player/limousine       show  wheel_1r  R 0.335: +0°: 0 / 0 mm
+player/kompakt         lod0  wheel_0l  R 0.322: -25°: 0 / 0 mm; -15°: 0 / 0 mm; -7°: 0 / 0 mm; +0°: 0 / 0 mm; +7°: 0 / 0 mm; +15°: 0 / 0 mm; +25°: 0 / 0 mm
+player/kompakt         lod0  wheel_0r  R 0.322: -25°: 0 / 0 mm; -15°: 0 / 0 mm; -7°: 0 / 0 mm; +0°: 0 / 0 mm; +7°: 0 / 0 mm; +15°: 0 / 0 mm; +25°: 0 / 0 mm
+player/kompakt         lod0  wheel_1l  R 0.322: +0°: 0 / 0 mm
+player/kompakt         lod0  wheel_1r  R 0.322: +0°: 0 / 0 mm
+player/kompakt         show  wheel_0l  R 0.322: -25°: 0 / 0 mm; -15°: 0 / 0 mm; -7°: 0 / 0 mm; +0°: 0 / 0 mm; +7°: 0 / 0 mm; +15°: 0 / 0 mm; +25°: 0 / 0 mm
+player/kompakt         show  wheel_0r  R 0.322: -25°: 0 / 0 mm; -15°: 0 / 0 mm; -7°: 0 / 0 mm; +0°: 0 / 0 mm; +7°: 0 / 0 mm; +15°: 0 / 0 mm; +25°: 0 / 0 mm
+player/kompakt         show  wheel_1l  R 0.322: +0°: 0 / 0 mm
+player/kompakt         show  wheel_1r  R 0.322: +0°: 0 / 0 mm
+traffic/suv            lod0  wheel_0l  R 0.370: -25°: 0 / 0 mm; -15°: 0 / 0 mm; -7°: 0 / 0 mm; +0°: 0 / 0 mm; +7°: 0 / 0 mm; +15°: 0 / 0 mm; +25°: 0 / 0 mm
+traffic/suv            lod0  wheel_0r  R 0.370: -25°: 0 / 0 mm; -15°: 0 / 0 mm; -7°: 0 / 0 mm; +0°: 0 / 0 mm; +7°: 0 / 0 mm; +15°: 0 / 0 mm; +25°: 0 / 0 mm
+traffic/suv            lod0  wheel_1l  R 0.370: +0°: 0 / 0 mm
+traffic/suv            lod0  wheel_1r  R 0.370: +0°: 0 / 0 mm
+traffic/van            lod0  wheel_0l  R 0.340: -25°: 0 / 0 mm; -15°: 0 / 0 mm; -7°: 0 / 0 mm; +0°: 0 / 0 mm; +7°: 0 / 0 mm; +15°: 0 / 0 mm; +25°: 0 / 0 mm
+traffic/van            lod0  wheel_0r  R 0.340: -25°: 0 / 0 mm; -15°: 0 / 0 mm; -7°: 0 / 0 mm; +0°: 0 / 0 mm; +7°: 0 / 0 mm; +15°: 0 / 0 mm; +25°: 0 / 0 mm
+traffic/van            lod0  wheel_1l  R 0.340: +0°: 0 / 0 mm
+traffic/van            lod0  wheel_1r  R 0.340: +0°: 0 / 0 mm
+traffic/sports         lod0  wheel_0l  R 0.340: -25°: 2 / 16 mm / [-22.0, -21.0, -21.0]; -15°: 3 / 22 mm / [-18.0, -18.0, -18.0]; -7°: 2 / 27 mm / [-22.0, -19.0, -16.0]; +0°: 0 / 0 mm; +7°: 2 / 36 mm / [16.0, 16.0, 16.0]; +15°: 8 / 32 mm / [18.0, 19.0, 19.0]; +25°: 8 / 25 mm / [21.0, 22.0, 22.0]
+traffic/sports         lod0  wheel_0r  R 0.340: -25°: 8 / 25 mm / [21.0, 22.0, 22.0]; -15°: 8 / 32 mm / [18.0, 19.0, 19.0]; -7°: 2 / 36 mm / [16.0, 16.0, 16.0]; +0°: 0 / 0 mm; +7°: 2 / 27 mm / [-22.0, -19.0, -16.0]; +15°: 3 / 22 mm / [-18.0, -18.0, -18.0]; +25°: 2 / 16 mm / [-22.0, -21.0, -21.0]
+traffic/sports         lod0  wheel_1l  R 0.340: +0°: 0 / 0 mm
+traffic/sports         lod0  wheel_1r  R 0.340: +0°: 0 / 0 mm
+traffic/sedan          lod0  wheel_0l  R 0.320: -25°: 0 / 0 mm; -15°: 0 / 0 mm; -7°: 0 / 0 mm; +0°: 0 / 0 mm; +7°: 0 / 0 mm; +15°: 0 / 0 mm; +25°: 0 / 0 mm
+traffic/sedan          lod0  wheel_0r  R 0.320: -25°: 0 / 0 mm; -15°: 0 / 0 mm; -7°: 0 / 0 mm; +0°: 0 / 0 mm; +7°: 0 / 0 mm; +15°: 0 / 0 mm; +25°: 0 / 0 mm
+traffic/sedan          lod0  wheel_1l  R 0.320: +0°: 0 / 0 mm
+traffic/sedan          lod0  wheel_1r  R 0.320: +0°: 0 / 0 mm
+traffic/hatch          lod0  wheel_0l  R 0.310: -25°: 0 / 0 mm; -15°: 0 / 0 mm; -7°: 0 / 0 mm; +0°: 0 / 0 mm; +7°: 0 / 0 mm; +15°: 0 / 0 mm; +25°: 0 / 0 mm
+traffic/hatch          lod0  wheel_0r  R 0.310: -25°: 0 / 0 mm; -15°: 0 / 0 mm; -7°: 0 / 0 mm; +0°: 0 / 0 mm; +7°: 0 / 0 mm; +15°: 0 / 0 mm; +25°: 0 / 0 mm
+traffic/hatch          lod0  wheel_1l  R 0.310: +0°: 0 / 0 mm
+traffic/hatch          lod0  wheel_1r  R 0.310: +0°: 0 / 0 mm
+traffic/wagon          lod0  wheel_0l  R 0.320: -25°: 0 / 0 mm; -15°: 0 / 0 mm; -7°: 0 / 0 mm; +0°: 0 / 0 mm; +7°: 0 / 0 mm; +15°: 0 / 0 mm; +25°: 0 / 0 mm
+traffic/wagon          lod0  wheel_0r  R 0.320: -25°: 0 / 0 mm; -15°: 0 / 0 mm; -7°: 0 / 0 mm; +0°: 0 / 0 mm; +7°: 0 / 0 mm; +15°: 0 / 0 mm; +25°: 0 / 0 mm
+traffic/wagon          lod0  wheel_1l  R 0.320: +0°: 0 / 0 mm
+traffic/wagon          lod0  wheel_1r  R 0.320: +0°: 0 / 0 mm
+
+== Innenraum (Farben/Rauheit von carinterior.py): Dreiecke; Ecken außerhalb der äußeren Hülle (konvexe Hülle je 2-cm-Station in x-y): Abstand mm, z, Punkt
+player/kombi           lod0  Innenraum 2280 Dreiecke; 392 mm bei z +1.27 [-0.6399999856948853, 0.25999999046325684, 1.2790000438690186]; 174 mm bei z -1.25 [-0.4880000054836273, 0.25999999046325684, -1.25]; 137 mm bei z +1.53 [-0.6399999856948853, 0.25999999046325684, 1.531000018119812]; 10 mm bei z +0.01 [-0.7760000228881836, 0.25999999046325684, 0.014000000432133675]; 10 mm bei z -0.23 [-0.7749999761581421, 0.25999999046325684, -0.23899999260902405]
+player/kombi           show  Innenraum 3736 Dreiecke; 400 mm bei z +1.27 [-0.6399999856948853, 0.25999999046325684, 1.2790000438690186]; 174 mm bei z -1.25 [-0.4880000054836273, 0.25999999046325684, -1.25]; 137 mm bei z +1.53 [-0.6399999856948853, 0.25999999046325684, 1.531000018119812]
+player/sportwagen      lod0  Innenraum 2280 Dreiecke; 455 mm bei z +1.26 [-0.6119999885559082, 0.23000000417232513, 1.2640000581741333]; 381 mm bei z +1.06 [-0.6119999885559082, 0.23000000417232513, 1.0609999895095825]; 333 mm bei z -0.98 [-0.5009999871253967, 0.23000000417232513, -0.9750000238418579]; 217 mm bei z +1.46 [-0.6119999885559082, 0.23000000417232513, 1.468000054359436]; 171 mm bei z +1.04 [-0.5830000042915344, 0.43700000643730164, 1.0509999990463257]; 169 mm bei z +1.00 [-0.5839999914169312, 0.36800000071525574, 0.9950000047683716]
+player/sportwagen      show  Innenraum 3736 Dreiecke; 455 mm bei z +1.26 [-0.6119999885559082, 0.23000000417232513, 1.2640000581741333]; 390 mm bei z +1.06 [-0.6119999885559082, 0.23000000417232513, 1.0609999895095825]; 328 mm bei z -0.98 [-0.5009999871253967, 0.23000000417232513, -0.9750000238418579]; 217 mm bei z +1.46 [-0.6119999885559082, 0.23000000417232513, 1.468000054359436]; 178 mm bei z +1.00 [-0.5839999914169312, 0.36800000071525574, 0.9950000047683716]; 172 mm bei z +1.04 [-0.5839999914169312, 0.4350000023841858, 1.0429999828338623]
+player/gran_turismo    lod0  Innenraum 2268 Dreiecke; 472 mm bei z +1.50 [-0.6320000290870667, 0.23999999463558197, 1.5069999694824219]; 421 mm bei z +1.32 [-0.6320000290870667, 0.23999999463558197, 1.3179999589920044]; 219 mm bei z +1.70 [-0.6320000290870667, 0.23999999463558197, 1.6959999799728394]; 175 mm bei z +1.24 [-0.6029999852180481, 0.44699999690055847, 1.2410000562667847]; 160 mm bei z +1.26 [-0.6019999980926514, 0.460999995470047, 1.2569999694824219]; 103 mm bei z +1.18 [-0.6039999723434448, 0.35899999737739563, 1.1749999523162842]
+player/gran_turismo    show  Innenraum 3724 Dreiecke; 472 mm bei z +1.50 [-0.6320000290870667, 0.23999999463558197, 1.5069999694824219]; 425 mm bei z +1.32 [-0.6320000290870667, 0.23999999463558197, 1.3179999589920044]; 219 mm bei z +1.70 [-0.6320000290870667, 0.23999999463558197, 1.6959999799728394]; 141 mm bei z +1.24 [-0.6029999852180481, 0.44999998807907104, 1.246999979019165]; 138 mm bei z +1.26 [-0.6019999980926514, 0.460999995470047, 1.2569999694824219]; 113 mm bei z +1.22 [-0.6039999723434448, 0.4449999928474426, 1.2330000400543213]
+player/limousine       lod0  Innenraum 2268 Dreiecke; 441 mm bei z +1.43 [-0.6449999809265137, 0.25999999046325684, 1.4249999523162842]; 337 mm bei z +1.23 [-0.6449999809265137, 0.25999999046325684, 1.2289999723434448]; 243 mm bei z -1.13 [-0.492000013589859, 0.25999999046325684, -1.128999948501587]; 140 mm bei z -1.33 [-0.492000013589859, 0.25999999046325684, -1.3250000476837158]; 10 mm bei z +0.83 [-0.7850000262260437, 0.25999999046325684, 0.8360000252723694]; 10 mm bei z -0.35 [-0.781000018119812, 0.25999999046325684, -0.34299999475479126]
+player/limousine       show  Innenraum 3724 Dreiecke; 440 mm bei z +1.43 [-0.6449999809265137, 0.25999999046325684, 1.4249999523162842]; 337 mm bei z +1.23 [-0.6449999809265137, 0.25999999046325684, 1.2289999723434448]; 190 mm bei z -1.13 [-0.492000013589859, 0.25999999046325684, -1.128999948501587]; 140 mm bei z -1.33 [-0.492000013589859, 0.25999999046325684, -1.3250000476837158]
+player/kompakt         lod0  Innenraum 2280 Dreiecke; 410 mm bei z +1.32 [-0.6129999756813049, 0.2549999952316284, 1.3240000009536743]; 277 mm bei z +1.12 [-0.6129999756813049, 0.2549999952316284, 1.121000051498413]; 126 mm bei z +1.52 [-0.6129999756813049, 0.2549999952316284, 1.5260000228881836]; 15 mm bei z +0.52 [-0.7310000061988831, 0.2549999952316284, 0.5149999856948853]; 15 mm bei z +0.32 [-0.7300000190734863, 0.2549999952316284, 0.31299999356269836]; 15 mm bei z -0.10 [-0.7300000190734863, 0.2549999952316284, -0.09099999815225601]
+player/kompakt         show  Innenraum 3736 Dreiecke; 413 mm bei z +1.32 [-0.6129999756813049, 0.2549999952316284, 1.3240000009536743]; 262 mm bei z +1.12 [-0.6129999756813049, 0.2549999952316284, 1.121000051498413]; 126 mm bei z +1.52 [-0.6129999756813049, 0.2549999952316284, 1.5260000228881836]
+
+== Lampenflächen je Kanal (cm², von hinten / von vorn / seitlich, Gewicht)
+player/kombi           lod0  k0:170/1/148@1.0 k1:139/0/90@1.0 k2:612/1/1435@1.0 k3:91/29/58@1.0 k4:91/29/58@1.0 k5:0/92/43@1.0 k6:0/82/58@1.0 k7:41/0/36@1.0 k8:581/581/9@0.6 k9:15/15/6@1.0
+player/kombi           show  k0:174/0/152@1.0 k1:140/0/93@1.0 k2:645/0/1478@1.0 k3:90/28/58@1.0 k4:90/28/58@1.0 k5:0/93/43@1.0 k6:0/82/60@1.0 k7:41/0/36@1.0 k8:581/581/9@0.6 k9:15/15/6@1.0
+player/sportwagen      lod0  k0:185/0/108@1.0 k1:148/0/56@1.0 k2:619/0/310@1.0 k3:79/30/42@1.0 k4:79/30/42@1.0 k5:0/85/21@1.0 k6:0/80/61@1.0 k8:581/581/9@0.6 k9:15/15/6@1.0
+player/sportwagen      show  k0:186/0/107@1.0 k1:147/0/55@1.0 k2:617/0/297@1.0 k3:79/31/43@1.0 k4:79/31/43@1.0 k5:0/84/20@1.0 k6:0/79/61@1.0 k8:581/581/9@0.6 k9:15/15/6@1.0
+player/gran_turismo    lod0  k0:164/1/78@1.0 k1:101/0/80@1.0 k2:226/1/259@1.0 k3:85/31/66@1.0 k4:86/31/66@1.0 k5:0/102/68@1.0 k6:0/71/60@1.0 k8:581/581/9@0.6 k9:15/15/6@1.0
+player/gran_turismo    show  k0:146/0/79@1.0 k1:103/0/89@1.0 k2:238/1/294@1.0 k3:85/32/64@1.0 k4:86/32/67@1.0 k5:0/101/68@1.0 k6:0/72/60@1.0 k8:581/581/9@0.6 k9:15/15/6@1.0
+player/limousine       lod0  k0:230/0/108@1.0 k1:185/0/54@1.0 k2:656/0/682@1.0 k3:97/20/75@1.0 k4:96/20/75@1.0 k5:0/90/52@1.0 k6:0/82/55@1.0 k7:35/0/1@1.0 k8:581/581/9@0.6 k9:15/15/6@1.0
+player/limousine       show  k0:228/0/96@1.0 k1:185/0/55@1.0 k2:654/0/659@1.0 k3:93/20/62@1.0 k4:93/19/61@1.0 k5:0/89/49@1.0 k6:0/82/55@1.0 k7:35/0/1@1.0 k8:581/581/9@0.6 k9:15/15/6@1.0
+player/kompakt         lod0  k0:167/0/119@1.0 k1:138/0/17@1.0 k2:763/0/706@1.0 k3:115/28/74@1.0 k4:115/27/74@1.0 k5:0/101/41@1.0 k6:0/97/67@1.0 k7:17/0/0@1.0 k8:581/581/9@0.6 k9:15/15/6@1.0
+player/kompakt         show  k0:163/0/91@1.0 k1:138/0/15@1.0 k2:760/0/656@1.0 k3:113/27/70@1.0 k4:113/27/69@1.0 k5:0/103/46@1.0 k6:0/98/69@1.0 k7:17/0/0@1.0 k8:581/581/9@0.6 k9:15/15/6@1.0
+traffic/suv            lod0  k0:184/0/52@0.3 k1:140/0/2@1.0 k2:591/0/328@1.0 k3:120/108/212@1.0 k4:120/108/212@1.0 k5:0/264/116@1.0 k6:0/74/24@1.0 k7:59/0/0@1.0 k8:357/0/0@0.6
+traffic/suv            lod1  k0:184/0/64@0.3 k1:140/0/2@1.0 k2:711/0/408@1.0 k3:120/98/187@1.0 k4:120/98/188@1.0 k5:0/329/157@1.0 k6:0/64/16@1.0 k7:59/0/0@1.0 k8:572/0/0@0.6
+traffic/suv            lod2  k1:140/0/2@1.0 k2:740/0/384@1.0 k3:120/90/233@1.0 k4:120/91/234@1.0 k5:0/414/172@1.0 k8:572/0/0@0.6
+traffic/van            lod0  k1:107/0/0@1.0 k2:489/0/368@1.0 k3:86/109/198@1.0 k4:86/109/199@1.0 k5:0/476/171@1.0 k6:0/70/17@1.0 k7:144/0/111@1.0 k8:357/0/0@0.6
+traffic/van            lod1  k1:112/0/0@1.0 k2:624/0/426@1.0 k3:85/109/187@1.0 k4:85/109/188@1.0 k5:0/505/171@1.0 k6:0/62/16@1.0 k7:142/0/111@1.0 k8:572/0/0@0.6
+traffic/van            lod2  k1:112/0/0@1.0 k2:763/0/758@1.0 k3:82/100/245@1.0 k4:83/98/245@1.0 k5:0/583/140@1.0 k8:572/0/0@0.6
+traffic/sports         lod0  k2:830/0/335@1.0 k3:74/85/155@1.0 k4:74/85/155@1.0 k5:0/142/63@1.0 k6:0/44/11@1.0 k7:30/0/2@1.0 k8:357/0/0@0.6
+traffic/sports         lod1  k2:940/0/425@1.0 k3:73/85/146@1.0 k4:73/85/146@1.0 k5:0/212/113@1.0 k6:0/27/3@1.0 k7:30/0/4@1.0 k8:572/0/0@0.6
+traffic/sports         lod2  k2:933/0/367@1.0 k3:71/85/211@1.0 k4:71/85/210@1.0 k5:0/241/93@1.0 k8:572/0/0@0.6
+traffic/sedan          lod0  k1:120/0/3@1.0 k2:639/0/365@1.0 k3:99/95/154@1.0 k4:99/95/154@1.0 k5:0/161/52@1.0 k6:0/85/35@1.0 k7:78/0/0@1.0 k8:357/0/0@0.6
+traffic/sedan          lod1  k1:120/0/5@1.0 k2:847/0/468@1.0 k3:99/95/152@1.0 k4:99/95/152@1.0 k5:0/242/115@1.0 k6:0/61/16@1.0 k7:78/0/0@1.0 k8:572/0/0@0.6
+traffic/sedan          lod2  k1:120/0/6@1.0 k2:887/0/391@1.0 k3:99/86/170@1.0 k4:99/86/170@1.0 k5:0/327/159@1.0 k8:572/0/0@0.6
+traffic/hatch          lod0  k1:119/0/1@1.0 k2:727/0/358@1.0 k3:95/112/199@1.0 k4:95/112/199@1.0 k5:0/195/58@1.0 k6:0/85/34@1.0 k7:91/0/0@1.0 k8:357/0/0@0.6
+traffic/hatch          lod1  k1:119/0/2@1.0 k2:902/0/462@1.0 k3:95/100/168@1.0 k4:95/100/167@1.0 k5:0/273/127@1.0 k6:0/63/15@1.0 k7:91/0/0@1.0 k8:572/0/0@0.6
+traffic/hatch          lod2  k1:119/0/2@1.0 k2:965/0/487@1.0 k3:95/95/217@1.0 k4:95/95/218@1.0 k5:0/360/149@1.0 k8:572/0/0@0.6
+traffic/wagon          lod0  k1:120/0/2@1.0 k2:973/0/675@1.0 k3:102/95/141@1.0 k4:102/95/141@1.0 k5:0/171/54@1.0 k6:0/86/33@1.0 k7:32/0/0@1.0 k8:357/0/0@0.6
+traffic/wagon          lod1  k1:120/0/3@1.0 k2:1188/0/761@1.0 k3:102/90/134@1.0 k4:102/90/133@1.0 k5:0/250/115@1.0 k6:0/64/16@1.0 k7:32/0/0@1.0 k8:572/0/0@0.6
+traffic/wagon          lod2  k1:49/0/1@1.0 k2:1031/0/936@1.0 k3:102/50/106@1.0 k4:102/51/104@1.0 k5:0/316/184@1.0 k8:572/0/0@0.6
+
+== Budgets (Manifest) und Zeichenaufrufe (Flächen je Teil)
+player/kombi           lod0 54306/55000 (98.7 %) Aufrufe 6 · show 117206/120000 (97.7 %) Aufrufe 6 · Werfer 2320/3000 · Bytes 1964901
+player/sportwagen      lod0 46940/55000 (85.3 %) Aufrufe 6 · show 95375/120000 (79.5 %) Aufrufe 6 · Werfer 2320/3000 · Bytes 1690967
+player/gran_turismo    lod0 48095/55000 (87.4 %) Aufrufe 6 · show 102327/120000 (85.3 %) Aufrufe 6 · Werfer 2320/3000 · Bytes 1772777
+player/limousine       lod0 47904/55000 (87.1 %) Aufrufe 6 · show 98786/120000 (82.3 %) Aufrufe 6 · Werfer 2320/3000 · Bytes 1637806
+player/kompakt         lod0 49155/55000 (89.4 %) Aufrufe 6 · show 106649/120000 (88.9 %) Aufrufe 6 · Werfer 2320/3000 · Bytes 1770933
+traffic/suv            lod0 17824/18000 (99.0 %) Aufrufe 6 · lod1 5915/6000 (98.6 %) Aufrufe 1 · lod2 1169/1200 (97.4 %) Aufrufe 1 · Werfer 1004 · Bytes 280642
+traffic/van            lod0 17655/18000 (98.1 %) Aufrufe 6 · lod1 5845/6000 (97.4 %) Aufrufe 1 · lod2 1189/1200 (99.1 %) Aufrufe 1 · Werfer 1064 · Bytes 270960
+traffic/sports         lod0 17751/18000 (98.6 %) Aufrufe 6 · lod1 5741/6000 (95.7 %) Aufrufe 1 · lod2 1194/1200 (99.5 %) Aufrufe 1 · Werfer 972 · Bytes 287195
+traffic/sedan          lod0 17552/18000 (97.5 %) Aufrufe 6 · lod1 5808/6000 (96.8 %) Aufrufe 1 · lod2 1149/1200 (95.8 %) Aufrufe 1 · Werfer 972 · Bytes 271357
+traffic/hatch          lod0 17636/18000 (98.0 %) Aufrufe 6 · lod1 5661/6000 (94.3 %) Aufrufe 1 · lod2 1180/1200 (98.3 %) Aufrufe 1 · Werfer 988 · Bytes 270561
+traffic/wagon          lod0 17459/18000 (97.0 %) Aufrufe 6 · lod1 5941/6000 (99.0 %) Aufrufe 1 · lod2 1141/1200 (95.1 %) Aufrufe 1 · Werfer 940 · Bytes 276014

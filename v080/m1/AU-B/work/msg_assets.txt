@@ -1,0 +1,15 @@
+AU-B: Motorbanken v3 und Fahrzeugklänge des Klangprofils Modern
+
+Erzeugt mit tools/audio/modern/engine_synth3.py (deterministisch, audio_qc
+prüft durch zweimaliges Rendern): fünf Banken im Format ce-engine-bank-2
+(Stereo, 32 kHz, int16, drei Ebenen je Drehzahlpunkt: Schub, Last,
+Ansaugung) und zwölf Fahrzeugklänge (Lader, Antriebsheulen, Gasannahme,
+Lastwechselschlag, Schubumluft). Schleifen tragen 16 Frames Fortsetzung
+hinter dem Schleifenende.
+
+Pegelplan mit diesen Dateien gemessen (capture_mix, fünf Autos):
+Vollgas -15,8 bis -17,1 LUFS, Leerlauf -23,7 bis -25,0, Reisetempo
+-21,0 bis -21,9.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

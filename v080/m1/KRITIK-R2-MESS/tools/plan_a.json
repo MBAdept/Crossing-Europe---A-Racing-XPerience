@@ -1,0 +1,17 @@
+{"segments": [
+ {"name": "asph130_full", "km": 15.0, "kmh": 130.0, "throttle": 0.35, "x": 1.875, "mute": [], "seconds": 20.0, "paving": "asphalt"},
+ {"name": "asph130_road", "km": 15.0, "kmh": 130.0, "throttle": 0.35, "x": 1.875, "mute": ["MEngine", "MEngineFx", "MWind"], "seconds": 20.0, "paving": "asphalt"},
+ {"name": "asph130_wind", "km": 15.0, "kmh": 130.0, "throttle": 0.35, "x": 1.875, "mute": ["MEngine", "MEngineFx", "MRoad"], "seconds": 20.0, "paving": "asphalt"},
+ {"name": "asph130_engine", "km": 15.0, "kmh": 130.0, "throttle": 0.35, "x": 1.875, "mute": ["MRoad", "MWind"], "seconds": 20.0, "paving": "asphalt"},
+ {"name": "conc130_full", "km": 42.0, "kmh": 130.0, "throttle": 0.35, "x": 1.875, "mute": [], "seconds": 20.0, "paving": "concrete"},
+ {"name": "conc130_road", "km": 42.0, "kmh": 130.0, "throttle": 0.35, "x": 1.875, "mute": ["MEngine", "MEngineFx", "MWind"], "seconds": 20.0, "paving": "concrete"},
+ {"name": "conc130_noslab_full", "km": 42.0, "kmh": 130.0, "throttle": 0.35, "x": 1.875, "mute": [], "seconds": 20.0, "paving": "concrete", "noslab": true},
+ {"name": "cobbles50_full", "km": 87.3, "kmh": 50.0, "throttle": 0.25, "x": 1.875, "mute": [], "seconds": 20.0, "paving": "cobbles"},
+ {"name": "cobbles50_road", "km": 87.3, "kmh": 50.0, "throttle": 0.25, "x": 1.875, "mute": ["MEngine", "MEngineFx", "MWind"], "seconds": 20.0, "paving": "cobbles"},
+ {"name": "asph200_full", "km": 20.0, "kmh": 200.0, "throttle": 0.6, "x": 1.875, "mute": [], "seconds": 20.0, "paving": "asphalt"},
+ {"name": "conc170_full", "km": 42.0, "kmh": 170.0, "throttle": 0.5, "x": 1.875, "mute": [], "seconds": 20.0, "paving": "concrete"},
+ {"name": "conc200_full", "km": 42.0, "kmh": 200.0, "throttle": 0.6, "x": 1.875, "mute": [], "seconds": 60.0, "paving": "concrete"},
+ {"name": "vmax_full", "km": 15.0, "kmh": -1.0, "throttle": 1.0, "x": 1.875, "mute": [], "seconds": 15.0, "paving": "asphalt"},
+ {"name": "vmax_engine", "km": 15.0, "kmh": -1.0, "throttle": 1.0, "x": 1.875, "mute": ["MRoad", "MWind"], "seconds": 15.0, "paving": "asphalt"},
+ {"name": "rumble130_full", "km": 15.0, "kmh": 130.0, "throttle": 0.35, "x": 5.15, "mute": [], "seconds": 10.0, "paving": "asphalt"}
+]}

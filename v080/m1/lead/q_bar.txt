@@ -1,0 +1,32 @@
+THE QUALITY BAR. The wave-0 reference cars are not good enough – look at ${SP}/deliver/FIX0/p5_kontaktbogen_tag.jpg and
+p6_kontaktbogen_nacht.jpg first: blobby bodies, crumpled coarse levels, lamps as flat patches, opaque glass, no
+interior, dull rims. "Feinere Modelle" is the user's explicit wish, and the player car is on screen for the whole
+game, seen from behind and slightly above at 6–12 m. What a finished car needs, most-seen first:
+- A clean, taut body: crisp character lines and wheel arches, smooth shading with hard edges only where metal is
+  folded (split normals / marked sharp edges survive the export), correct proportions against the sprite generator's
+  silhouette, panel gaps for doors, bonnet, boot and fuel flap, no dents or waves from decimation at any level.
+- The rear: lamp clusters with depth (housing, lens, inner structure) whose lit areas pass the validator's lamp rules
+  at every level, a third brake light, number plate with frame and lit plate lamp, bumper with diffuser/reflectors,
+  exhaust tips, badge, rear window with a visible parcel shelf and headrests behind real transparent glass.
+- Glass and interior for the player cars: transparent tinted glass (you own the look part of glass.gdshader, A-8;
+  keep the instance uniforms and the fade untouched) over a simple dark interior – seats, headrests, dashboard,
+  steering wheel on the left; traffic cars may keep dark glass with a reflective look but must not look painted.
+- Wheels: multi-spoke rims with depth, brake discs behind them, tyres with a rounded shoulder and sidewall, real
+  wheel arches with dark liners; nothing floating, nothing intersecting.
+- Front: headlights with reflector and lens depth, daytime running lights, grille with depth, mirrors with glass,
+  wipers, door handles, roof antenna.
+- Coarser levels (LOD1/LOD2) keep the silhouette and the lamp outlines exactly (same outlines at all levels, bounds
+  check between levels, decals cut along their contour – no saw teeth at bumper corners); they simplify, they never
+  crumple. Indicators of every traffic design ≥ 60 cm² from behind and ≥ 40 cm² from ahead per side.
+- The truck: a believable tractor (cab with windows, mirrors, steps, tanks, lights, mud flaps) and a box trailer
+  with underrun bar, lamp bars, reflective contour marking, plates; liveries as paint sets. It is the most frequent
+  obstacle of the game: its rear at 20–150 m must read at once (lamps, markings).
+Stay inside the budgets of §4.6.9 – spend triangles where the camera looks (rear and sides of the player car at
+LOD0; the "show" level for the vehicle selection may be generous). Use the generators' own detail levels and
+design tables (cesprites, hooks only – additive, no sprite vertex may move) rather than decimating a dense mesh.
+Shaders: vpbr.gdshader, model_factory.gd and modern_materials.gd belong to the renderer package R3 in this push –
+do not edit them; say under notes_for_next what the cars would need from the paint shader (clear coat, flakes,
+chrome …). Work in rounds: build, render the contact sheets (day, night, each lamp channel, the chase-camera view
+from behind at 8 m and 30 m, the showroom A/B), LOOK at them, list the worst defects, fix, repeat – at least three
+rounds for the two player cars. Set showroom: true only when the real-time show level is at least as good as the
+sprite in the same-camera A/B; otherwise leave it false and say exactly what is missing.

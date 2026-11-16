@@ -1,0 +1,13 @@
+v0.8.0 R4: Tunnelausfahrt überbelichtet statt milchig
+
+Das Viereck über dem Ausfahrtsportal und die Nachglüh-Ebene mischten das
+Draußen zu Weiß – das wirkte wie ein blasser Schleier. Jetzt lesen beide die
+Bildschirmtextur und überbelichten nach Arcades Gesetz für das Draußen
+(Anzeigewert × 1,7 + 0,25 bei voller Stärke, hellste Teile brennen aus).
+Gemessen (Teststrecke km 52,8, 12 Uhr, „Hoch“, Kamera am Portal): Leuchtdichte
+0,638 -> 0,717 (Arcade 0,600), Sättigung 0,20 -> 0,26 (Arcade 0,43). Die
+Nachglüh-Ebene wird beim Aufwärmen mit Stärke 0 gezeichnet (kein Ruckler beim
+ersten Tunnel). Bilder angesehen (shots/v8/TEXIT).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

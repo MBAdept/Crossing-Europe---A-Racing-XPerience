@@ -1,0 +1,12 @@
+AU-B: Test für das Schubknallen mit festem Seed, Zahlen der Endaufnahmen in der Dokumentation
+
+test_engine_slot_drives_the_v3_bank erwartete mindestens einen Knall in einer halben Sekunde nach dem Gaswegnehmen.
+Die Knalle sind zufällig verteilt und der Seed des Mischers außerhalb des synchronen Betriebs zufällig: Im zweiten
+Gesamtlauf fiel keiner ins Fenster (etwa einer von zehn Läufen). Jetzt setzt der Test den Seed und rendert die
+ganze Knallzeit (1,5 s): sechs Clips, in vier Läufen gleich.
+
+docs/motorsound.md: Tabelle der Fahrt im Spiel aus den Aufnahmen der Endfassung, Grenzen um Schleifennaht und
+Schläge beim Schalten ergänzt.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,52 @@
+{
+	"marks": [
+		{
+			"label": "Rempler 6",
+			"pre_frame": 65536,
+			"t": 1.50061
+		},
+		{
+			"label": "Auffahren 30",
+			"pre_frame": 172032,
+			"t": 4.000418
+		},
+		{
+			"label": "schwer 70",
+			"pre_frame": 282624,
+			"t": 6.500393
+		},
+		{
+			"label": "schwer 130",
+			"pre_frame": 389120,
+			"t": 9.00019
+		},
+		{
+			"label": "Lkw 40",
+			"pre_frame": 495616,
+			"t": 11.500117
+		},
+		{
+			"label": "Lkw 110",
+			"pre_frame": 602112,
+			"t": 14.000045
+		},
+		{
+			"label": "schwer 130 mittig",
+			"pre_frame": 712704,
+			"t": 16.51659
+		},
+		{
+			"label": "Leitplanke 2",
+			"pre_frame": 819200,
+			"t": 19.016483
+		},
+		{
+			"label": "Leitplanke 5",
+			"pre_frame": 929792,
+			"t": 21.516436
+		}
+	],
+	"master_db": -1.93820023536682,
+	"mix_rate": 44100.0,
+	"pre_frames": 1056768
+}

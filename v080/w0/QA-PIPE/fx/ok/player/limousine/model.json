@@ -1,0 +1,188 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "player/limousine",
+ "model": {
+  "kind": "vehicle",
+  "object": {"width_m": 1.86, "length_m": 4.85, "height_m": 1.448},
+  "aabb": [-1.15, 0, -2.432, 1.15, 1.448, 2.437],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 49636,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "player/limousine/lod0_body.res",
+      "classes": ["vpbr", "glass"]
+     },
+     {
+      "node": "wheel_0l",
+      "mesh": "player/limousine/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [-0.7925, 0.335, -1.445],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.335, "steer": true}
+     },
+     {
+      "node": "wheel_0r",
+      "mesh": "player/limousine/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [0.7925, 0.335, -1.445],
+      "wheel": {"radius": 0.335, "steer": true}
+     },
+     {
+      "node": "wheel_1l",
+      "mesh": "player/limousine/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [-0.7925, 0.335, 1.475],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.335, "steer": false}
+     },
+     {
+      "node": "wheel_1r",
+      "mesh": "player/limousine/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [0.7925, 0.335, 1.475],
+      "wheel": {"radius": 0.335, "steer": false}
+     }
+    ]
+   },
+   {
+    "name": "show",
+    "max_dist_m": 0,
+    "tris": 102314,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "player/limousine/show_body.res",
+      "classes": ["vpbr", "glass"]
+     },
+     {
+      "node": "wheel_0l",
+      "mesh": "player/limousine/show_wheel.res",
+      "classes": ["vpbr"],
+      "pos": [-0.7925, 0.335, -1.445],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.335, "steer": true}
+     },
+     {
+      "node": "wheel_0r",
+      "mesh": "player/limousine/show_wheel.res",
+      "classes": ["vpbr"],
+      "pos": [0.7925, 0.335, -1.445],
+      "wheel": {"radius": 0.335, "steer": true}
+     },
+     {
+      "node": "wheel_1l",
+      "mesh": "player/limousine/show_wheel.res",
+      "classes": ["vpbr"],
+      "pos": [-0.7925, 0.335, 1.475],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.335, "steer": false}
+     },
+     {
+      "node": "wheel_1r",
+      "mesh": "player/limousine/show_wheel.res",
+      "classes": ["vpbr"],
+      "pos": [0.7925, 0.335, 1.475],
+      "wheel": {"radius": 0.335, "steer": false}
+     }
+    ]
+   }
+  ],
+  "shadow": {"mesh": "player/limousine/shadow.res", "tris": 1872},
+  "lights": [
+   {
+    "role": "brake",
+    "pos": [-0.7525, 0.9138, 2.38],
+    "size": 0.1,
+    "color": "#ff2414"
+   },
+   {
+    "role": "brake",
+    "pos": [0.7525, 0.9138, 2.3799],
+    "size": 0.1,
+    "color": "#ff2414"
+   },
+   {
+    "role": "head",
+    "pos": [-0.6734, 0.7135, -2.2772],
+    "size": 0.09,
+    "color": "#fff3d6"
+   },
+   {
+    "role": "head",
+    "pos": [0.6734, 0.7133, -2.277],
+    "size": 0.09,
+    "color": "#fff3d6"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-1.0968, 1.0362, -1.2484],
+    "size": 0.079,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-0.9005, 0.9005, 2.2489],
+    "size": 0.036,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-0.8657, 0.7027, -2.1342],
+    "size": 0.046,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [0.8657, 0.7027, -2.1342],
+    "size": 0.046,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [0.9005, 0.9005, 2.249],
+    "size": 0.036,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [1.0968, 1.0362, -1.2484],
+    "size": 0.079,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "tail",
+    "pos": [-0.6884, 0.8732, 2.3808],
+    "size": 0.116,
+    "color": "#ff1a0e"
+   },
+   {
+    "role": "tail",
+    "pos": [0.6883, 0.8732, 2.3809],
+    "size": 0.116,
+    "color": "#ff1a0e"
+   }
+  ],
+  "paint": {"paint": "#1d4ea8", "metal": 0.55},
+  "auto_lod": false,
+  "tags": ["player"],
+  "bytes": 1445196,
+  "hash": "ee25e9a61972d91010ce68490e6bdf8b503e201d"
+ },
+ "sets": {
+  "player/limousine": {
+   "model": "player/limousine",
+   "paint": {"paint": "#1d4ea8", "metal": 0.55}
+  },
+  "showroom/limousine": {
+   "model": "player/limousine",
+   "lod": "show",
+   "showroom": false,
+   "paint": {"paint": "#1d4ea8", "metal": 0.55}
+  }
+ }
+}

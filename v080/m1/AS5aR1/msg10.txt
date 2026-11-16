@@ -1,0 +1,7 @@
+v0.8.0 AS5aR1: Einfamilienhaus lod1 - Garten mit 0,5 dezimiert (Kompromiss)
+
+lod1 1 406 statt 954 (0,3) bzw. 2 526 (vorher) Dreiecke; Stufenwechsel bei 60 m
+17,2 % der Pixel (0,3: 20,8 %, vorher 11,1 %), nachts 11,5 %.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

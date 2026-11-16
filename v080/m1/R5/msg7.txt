@@ -1,0 +1,9 @@
+v0.8.0 R5: Netzlauf gemessen – 122 Brücken und 26 Tunnel bauen ohne Mangel
+
+check_tunnel_bridge.gd -- --full auf dem Endstand (headless, nice 19, Last
+um 20): 122 Brücken (cable_stayed 12, canal 10, causeway 2, river 60,
+stone_arch 35, truss_arch 3) und 26 Tunnel gebaut, 0 mit Mängeln, 90 s.
+Laufzeit in Kopf und Doku eingetragen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

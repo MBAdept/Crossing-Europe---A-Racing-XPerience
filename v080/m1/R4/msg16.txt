@@ -1,0 +1,13 @@
+v0.8.0 R4: Nacht-Schimmer des Spielerautos in der Lackfarbe
+
+Der neutrale Klarlack-Schimmer des Nacht-Füll-Lichts machte die Lacke blasser
+als Arcades Sprites (Kompakt cremefarben statt bernstein, GT neutral grau statt
+blaugrau). Neues vpbr-Uniform fill_sheen_tint (Standard 0 = unverändert; im
+Renn-Look 0,8): der Schimmer trägt die Lackfarbe im Licht der Umgebung bei
+gleicher Leuchtdichte. Gemessen (check_night spielerauto, 22 Uhr, „Mittel“):
+Sättigung der Karosserie gegen Arcade vorher 0,74/0,70/0,91, jetzt 0,95/0,73/0,91;
+Helligkeit 1,04/0,93/0,86 (Schranke 0,6–1,1). Die Prüfung misst die Sättigung
+jetzt mit (mindestens 0,7 ×).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

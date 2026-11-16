@@ -1,0 +1,37 @@
+{
+ "S_lamps_skip": {
+  "exit": 1,
+  "first": [
+   "MANGEL kassel_wuerzburg__kassel Ludwigsbrücke (bridge stone_arch, km 206.01–206.79): Brückenlampen 0 statt 6 (Arcade)",
+   "RENDER-CHECK tunnel_bridge_full     FEHLER  2 Brücken {\"river\":1,\"stone_arch\":1}, 0 Tunnel exakt gegen Arcade geprüft ({\"cables\":0,\"caps\":0,\"lamps\":0,\"niches\":0,\"portals\":0,\"pylons\":0}), 1 mit Mängeln, 2 s  –  FEHLT: kassel_wuerzburg__kassel Ludwigsbrücke (bridge stone_arch, km 206.01–206.79): Brückenlampen 0 statt 6 (Arcade); keine Brücke oder kein Tunnel gefunden"
+  ]
+ },
+ "S_cables_5": {
+  "exit": 1,
+  "first": [
+   "MANGEL kiel_hamburg__kiel Köhlbrandbrücke (bridge cable_stayed, km 78.00–80.61): Seile 40 statt 56 (Arcade: 7 je Richtung)",
+   "RENDER-CHECK tunnel_bridge_full     FEHLER  3 Brücken {\"cable_stayed\":1,\"river\":1,\"truss_arch\":1}, 0 Tunnel exakt gegen Arcade geprüft ({\"cables\":40,\"caps\":0,\"lamps\":0,\"niches\":0,\"portals\":5,\"pylons\":4}), 1 mit Mängeln, 4 s  –  FEHLT: kiel_hamburg__kiel Köhlbrandbrücke (bridge cable_stayed, km 78.00–80.61): Seile 40 statt 56 (Arcade: 7 je Richtung); keine Brücke oder kein Tunnel gefunden"
+  ]
+ },
+ "S_portals_skip": {
+  "exit": 1,
+  "first": [
+   "MANGEL kiel_hamburg__kiel Elbbrücken (bridge truss_arch, km 84.00–86.01): Fachwerkportale 0 statt 5 (Arcade)",
+   "RENDER-CHECK tunnel_bridge_full     FEHLER  3 Brücken {\"cable_stayed\":1,\"river\":1,\"truss_arch\":1}, 0 Tunnel exakt gegen Arcade geprüft ({\"cables\":56,\"caps\":0,\"lamps\":0,\"niches\":0,\"portals\":0,\"pylons\":4}), 1 mit Mängeln, 4 s  –  FEHLT: kiel_hamburg__kiel Elbbrücken (bridge truss_arch, km 84.00–86.01): Fachwerkportale 0 statt 5 (Arcade); keine Brücke oder kein Tunnel gefunden"
+  ]
+ },
+ "S_niches_off": {
+  "exit": 1,
+  "first": [
+   "MANGEL bern_mailand__bern Sonnenbergtunnel (tunnel , km 106.00–107.50): Nischen 0 statt 1 (Arcades grüne Schilder)",
+   "MANGEL bern_mailand__bern Seelisbergtunnel (tunnel , km 130.00–139.30): Nischen 0 statt 6 (Arcades grüne Schilder)"
+  ]
+ },
+ "S_cap_off": {
+  "exit": 1,
+  "first": [
+   "MANGEL bern_mailand__bern Sonnenbergtunnel (tunnel , km 106.00–107.50): Kappe 0 statt 1",
+   "MANGEL bern_mailand__bern Seelisbergtunnel (tunnel , km 130.00–139.30): Kappe 0 statt 1"
+  ]
+ }
+}

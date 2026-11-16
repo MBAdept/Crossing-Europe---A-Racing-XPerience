@@ -1,0 +1,10 @@
+v0.8.0 AU-R3: Doku – Deck-Regel, Pflaster der Straßen, Abnahmekriterien V1–V3, Stand nach AU-R3
+
+docs/audio-modern.md: Stand nach AU-R3 (Abschnitt 1), Belag und Zuteilung im Feed
+(Abschnitt 8), Tests (12), offene Punkte nach den Leitungsentscheiden V1–V3 und neu
+Steinbrücken und Tunnel in Altstädten (15.8), neuer Abschnitt 15.11 mit Regel,
+Messung über alle Etappen und beide Richtungen und den Abnahmekriterien.
+Konfiguration: nur die Beschreibung von cobble_share (Anteil der Straßen).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

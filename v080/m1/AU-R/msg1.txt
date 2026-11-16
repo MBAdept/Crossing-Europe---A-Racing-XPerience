@@ -1,0 +1,14 @@
+v0.8.0 AU-R: Pflaster-Hash gemischt, Brückenfugen je Deck, keine Rüttellinie an der Tankspur (WIP)
+
+- AudioFeed.unit_hash: murmur3-fmix32 über String.hash() (djb2 änderte bei "<ziel>|<block>" nur die
+  letzten Bits: jede Stadt ganz oder gar nicht gepflastert)
+- feed.joint_every_m als Tabelle je Deck: Stahl 100 m (an den Enden und zwischen den Feldern),
+  Beton 32 m, Stein keine
+- rechts keine Rüttellinie, solange das Segment eine Tankspur hat
+- vehicle_loops.py: je Seite eine eigene Schleife (zweiter Seed, 4-7,6 s, Ogg Vorbis), Schnee-Schleife,
+  Betonplatten mit 32 Platten (noch nicht ins Repository gerendert)
+- audio_qc.py: Schleifen in vehicle/ dürfen Ogg Vorbis sein
+- Tests: Fugen je Deck, Tankspur, Hash gegen Python-Bezug
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

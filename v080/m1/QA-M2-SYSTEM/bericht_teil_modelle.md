@@ -1,0 +1,10 @@
+## 3. Modell-Pipeline
+
+| Prüfung | Ergebnis | Beleg |
+|---|---|---|
+| Manifest neu erzeugt (`export_models.py --manifest-only`, in der Kopie) | **byte-gleich** mit dem eingecheckten (auch `sets_default.json`); 87 Modelle, 183 Sets (105 mit Modell, 78 Platzhalter) | `models/manifest_only.log`, `md5sum -c` (gemessen) |
+| Manifest gegen die Modellordner | 87 Modelle = 87 Ordner mit `model.json`; 490 genannte Netz-/Texturdateien alle vorhanden, jede Textur mit `.import`; **keine** Datei in den Ordnern, die das Manifest nicht nennt; kein Set nennt ein fehlendes Modell, keine Variante ein fehlendes | `bin/models_cheap.sh` → `models_cheap.out` (gemessen) |
+| `validate_models.py --report` | **OK** – Netze 18,08 MB von 40 MB, Texturen 38,20 MB Grafikspeicher von 240 MB, Quellen 26,58 MB von 60 MB | `models/validate.log` (gemessen) |
+| Export-Determinismus (`bin/export_det.sh`, in der Prüfkopie) | 5 Modelle über alle M2-Materialwege mit `--force --jobs=1` aus den Generatoren neu exportiert und gebacken: `traffic/truck` (Rückstrahler-Kanal 15, 3,3 s), `police/de` (7,5 s), `props/tree_olive_b` (Samenvariante mit geteiltem Blattatlas, 11,2 s), `props/bridge_pylon` (Cycles-Atlas, 138,9 s), `props/church` (Haus-Bauer, Atlas mit Nachtfenstern, 424,0 s) – **alle Dateien byte-gleich mit den eingecheckten**; ein **zweites Backen byte-gleich** mit dem ersten | `exportdet/export.log`, `bake_1.log`, `bake_2.log` (gemessen) |
+| `export_models.py --check-keys` | **OK** – „87 Modelle: ein geänderter Lack, Metallwert, Blickwinkel oder eine Markierung im Sprite-Katalog ergibt für genau die betroffenen Modelle einen neuen Schlüssel“ (≈ 20 min unter Last) | `q_export_det.log` (gemessen) |
+| `check_sprite_geometry.py --jobs 2` (Sprites unverändert gegen das Fixture aus v0.7.0) | **OK**: 187 Sprite-Sets gebaut (1 185 s), 187 identisch – davon 1 nur mit anderer Flächenreihenfolge (`landmarks/fernsehturm_berlin`, Blenders UV-Kugel, bekannt), 0 verändert, 0 fehlend | `exportdet/sprite_geometry.log` (gemessen) |

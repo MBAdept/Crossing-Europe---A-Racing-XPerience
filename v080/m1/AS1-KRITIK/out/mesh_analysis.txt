@@ -1,0 +1,94 @@
+Netze: Fläche | Dreiecke | Ecken | entartet | Normale gegen Wicklung | offene Kanten | nicht-mannigfaltig | doppelte Flächen | Rücken-an-Rücken-Paare | Fläche m²
+player/kompakt/lod0_body.res               vpbr    40850  32538    0    2   8592  5511    91   8178   69.945
+player/kompakt/lod0_body.res               glass    2986   2186    0    0   1372     0     2      0    2.177
+player/kompakt/shadow.res                  vpbr     1872   1236    0    1      0     0     0      0   34.777
+player/kompakt/show_body.res               vpbr    83668  57938    0    0  12291 14284   190  20354   69.978
+player/kompakt/show_body.res               glass    6638   4382    0    0   2152     0     7      0    2.170
+player/kompakt/show_wheel.res              vpbr     4184   3744    0    0    348     0     0      0    1.669
+player/kompakt/wheel.res                   vpbr     1561   1309    0    0    187     0     0      0    1.590
+player/limousine/lod0_body.res             vpbr    37188  29417    0    0   8162  4593   114   6844   72.634
+player/limousine/lod0_body.res             glass    2556   1887    0    0   1192     0     0      0    3.043
+player/limousine/shadow.res                vpbr     1872   1236    0    1      0     0     0      0   39.873
+player/limousine/show_body.res             vpbr    77342  51930    0    1  10753 12486   133  17752   72.590
+player/limousine/show_body.res             glass    6072   3931    0    0   1762     0     2      0    3.040
+player/limousine/show_wheel.res            vpbr     4064   3600    0    0    348     0     0      0    1.804
+player/limousine/wheel.res                 vpbr     1505   1229    0    0    187     0     0      0    1.721
+traffic/hatch/lod0_body.res                vpbr    12316   8624    0    2   1030     0     2      0   41.298
+traffic/hatch/lod0_body.res                glass     841    625    0    0    399     0     0      0    2.949
+traffic/hatch/lod1_body.res                vpbr     5753   4582    0    0    533     0     2      0   46.923
+traffic/hatch/lod2_body.res                vpbr     1136   1126    0    0    202     0     0      0   41.472
+traffic/hatch/shadow.res                   vpbr      652    540    0    0      0     0     0      0   35.633
+traffic/hatch/wheel.res                    vpbr     1040    810    0    0    138     0     0      0    1.341
+traffic/sedan/lod0_body.res                vpbr    12691   8900    0    3   1083     0     4      0   46.118
+traffic/sedan/lod0_body.res                glass     844    626    0    0    396     0     0      0    3.022
+traffic/sedan/lod1_body.res                vpbr     5805   4628    0    1    477     0     1      0   52.030
+traffic/sedan/lod2_body.res                vpbr     1123   1104    0    0    199     0     0      0   44.381
+traffic/sedan/shadow.res                   vpbr      636    532    0    0      0     0     0      0   38.218
+traffic/sedan/wheel.res                    vpbr     1040    810    0    0    138     0     0      0    1.451
+traffic/truck/lod0_tractor.res             vpbr     2622   2525    0    0     86     0     0      0   84.331
+traffic/truck/lod0_tractor.res             glass      14     20    0    0     20     0     0      0    2.977
+traffic/truck/lod0_trailer.res             vpbr     2136   2881    0    0    140     0     0      0  205.121
+traffic/truck/lod1_body.res                vpbr     4672   4997    0    0    556     0     0      0  344.730
+traffic/truck/lod2_body.res                vpbr     1490   1921    0    0    296     0     0      0  294.475
+traffic/truck/shadow.res                   vpbr      356    624    0    0      0     0     0      0  272.945
+traffic/truck/wheel_drive.res              vpbr     1824   1368    0    0    168     0     0      0    5.005
+traffic/truck/wheel_front.res              vpbr     1208   1060    0    0    112     0     0      0    2.859
+traffic/truck/wheel_trailer.res            vpbr     1208   1060    0    0    112     0     0      0    3.050
+traffic/wagon/lod0_body.res                vpbr    12773   9423    0    6   1123    18     3      0   51.884
+traffic/wagon/lod0_body.res                glass     955    718    0    0    467     0     0      0    4.172
+traffic/wagon/lod1_body.res                vpbr     5937   5051    0    0    525     4     1      0   58.896
+traffic/wagon/lod2_body.res                vpbr     1103   1172    0    0    227     0     0      0   49.636
+traffic/wagon/shadow.res                   vpbr      604    516    0    0      0     0     0      0   43.113
+traffic/wagon/wheel.res                    vpbr     1040    810    0    0    138     0     0      0    1.451
+
+Räder (Netz im Radraum: Rollachse X):
+player/kompakt/show_wheel.res              halbe Breite 0.120  x-Mitte +0.0000  yz-Mitte (Box) +0.0000 +0.0000  Außenradius 0.3150..0.3220  Ringmitte -0.0000 -0.0000
+player/kompakt/wheel.res                   halbe Breite 0.120  x-Mitte +0.0000  yz-Mitte (Box) +0.0000 +0.0000  Außenradius 0.3190..0.3230  Ringmitte -0.0000 -0.0000
+player/limousine/show_wheel.res            halbe Breite 0.125  x-Mitte +0.0000  yz-Mitte (Box) +0.0000 +0.0000  Außenradius 0.3280..0.3350  Ringmitte -0.0000 -0.0000
+player/limousine/wheel.res                 halbe Breite 0.125  x-Mitte +0.0000  yz-Mitte (Box) +0.0000 +0.0000  Außenradius 0.3320..0.3360  Ringmitte -0.0000 -0.0000
+traffic/hatch/wheel.res                    halbe Breite 0.111  x-Mitte +0.0000  yz-Mitte (Box) +0.0000 -0.0021  Außenradius 0.3070..0.3110  Ringmitte -0.0000 -0.0000
+traffic/sedan/wheel.res                    halbe Breite 0.116  x-Mitte +0.0000  yz-Mitte (Box) +0.0000 -0.0022  Außenradius 0.3170..0.3210  Ringmitte -0.0000 -0.0000
+traffic/truck/wheel_drive.res              halbe Breite 0.324  x-Mitte +0.0000  yz-Mitte (Box) +0.0000 -0.0000  Außenradius 0.5260..0.5300  Ringmitte -0.0000 -0.0000
+traffic/truck/wheel_front.res              halbe Breite 0.189  x-Mitte +0.0230  yz-Mitte (Box) +0.0000 +0.0000  Außenradius 0.5260..0.5300  Ringmitte -0.0000 -0.0000
+traffic/truck/wheel_trailer.res            halbe Breite 0.203  x-Mitte +0.0040  yz-Mitte (Box) +0.0000 +0.0000  Außenradius 0.5260..0.5300  Ringmitte -0.0000 -0.0000
+traffic/wagon/wheel.res                    halbe Breite 0.116  x-Mitte +0.0000  yz-Mitte (Box) +0.0000 -0.0022  Außenradius 0.3170..0.3210  Ringmitte -0.0000 -0.0000
+
+Freigang: Karosserie-Ecken im Reifen-Volumen (drehend; Vorderräder auch bei ±25° Lenkung):
+player/limousine   lod0  wheel_0l           R 0.335 hb 0.125: schlimmster Lenkwinkel -20°:     6 Ecken, bis 30 mm tief; erster Kontakt bei 0°; Beispiele (relativ zur Radmitte) [[0.006, -0.075, 0.316], [0.006, -0.075, 0.316], [0.024, 0.309, 0.13]]
+player/limousine   lod0  wheel_0r           R 0.335 hb 0.125: schlimmster Lenkwinkel +20°:     6 Ecken, bis 30 mm tief; erster Kontakt bei 0°; Beispiele (relativ zur Radmitte) [[-0.036, 0.3, 0.14], [-0.036, 0.3, 0.14], [-0.036, 0.306, 0.127]]
+player/limousine   lod0  wheel_1l           R 0.335 hb 0.125: schlimmster Lenkwinkel  +0°:     2 Ecken, bis 77 mm tief; erster Kontakt bei 0°; Beispiele (relativ zur Radmitte) [[0.004, -0.075, -0.246], [0.004, -0.075, -0.246]]
+player/limousine   lod0  wheel_1r           R 0.335 hb 0.125: schlimmster Lenkwinkel  +0°:     2 Ecken, bis 77 mm tief; erster Kontakt bei 0°; Beispiele (relativ zur Radmitte) [[-0.004, -0.075, -0.246], [-0.004, -0.075, -0.246]]
+player/limousine   show  wheel_0l           R 0.335 hb 0.125: schlimmster Lenkwinkel -20°:     9 Ecken, bis 30 mm tief; erster Kontakt bei 0°; Beispiele (relativ zur Radmitte) [[0.006, -0.075, 0.316], [0.006, -0.075, 0.316], [0.026, 0.303, 0.14]]
+player/limousine   show  wheel_0r           R 0.335 hb 0.125: schlimmster Lenkwinkel +20°:     9 Ecken, bis 30 mm tief; erster Kontakt bei 0°; Beispiele (relativ zur Radmitte) [[-0.036, 0.3, 0.14], [-0.036, 0.3, 0.14], [-0.036, 0.303, 0.13]]
+player/limousine   show  wheel_1l           R 0.335 hb 0.125: schlimmster Lenkwinkel  +0°:     2 Ecken, bis 77 mm tief; erster Kontakt bei 0°; Beispiele (relativ zur Radmitte) [[0.004, -0.075, -0.246], [0.004, -0.075, -0.246]]
+player/limousine   show  wheel_1r           R 0.335 hb 0.125: schlimmster Lenkwinkel  +0°:     2 Ecken, bis 77 mm tief; erster Kontakt bei 0°; Beispiele (relativ zur Radmitte) [[-0.004, -0.075, -0.246], [-0.004, -0.075, -0.246]]
+player/kompakt     lod0  wheel_0l           R 0.322 hb 0.120: schlimmster Lenkwinkel  +5°:     7 Ecken, bis 43 mm tief; erster Kontakt bei 0°; Beispiele (relativ zur Radmitte) [[-0.126, 0.148, -0.27], [-0.119, 0.081, -0.27], [-0.11, 0.014, -0.27]]
+player/kompakt     lod0  wheel_0r           R 0.322 hb 0.120: schlimmster Lenkwinkel  -5°:     7 Ecken, bis 43 mm tief; erster Kontakt bei 0°; Beispiele (relativ zur Radmitte) [[0.059, -0.15, -0.27], [0.08, -0.141, -0.27], [0.089, -0.12, -0.27]]
+player/kompakt     lod0  wheel_1l           R 0.322 hb 0.120: schlimmster Lenkwinkel  +0°:     4 Ecken, bis 45 mm tief; erster Kontakt bei 0°; Beispiele (relativ zur Radmitte) [[-0.104, 0.041, 0.31], [-0.095, -0.028, 0.31], [0.016, -0.067, -0.269]]
+player/kompakt     lod0  wheel_1r           R 0.322 hb 0.120: schlimmster Lenkwinkel  +0°:     4 Ecken, bis 45 mm tief; erster Kontakt bei 0°; Beispiele (relativ zur Radmitte) [[-0.016, -0.067, -0.269], [-0.016, -0.067, -0.269], [0.095, -0.028, 0.31]]
+player/kompakt     show  wheel_0l           R 0.322 hb 0.120: schlimmster Lenkwinkel  +5°:    12 Ecken, bis 44 mm tief; erster Kontakt bei 0°; Beispiele (relativ zur Radmitte) [[-0.126, 0.148, -0.27], [-0.122, 0.11, -0.27], [-0.118, 0.072, -0.27]]
+player/kompakt     show  wheel_0r           R 0.322 hb 0.120: schlimmster Lenkwinkel  -5°:    12 Ecken, bis 44 mm tief; erster Kontakt bei 0°; Beispiele (relativ zur Radmitte) [[0.059, -0.15, -0.27], [0.07, -0.147, -0.27], [0.08, -0.141, -0.27]]
+player/kompakt     show  wheel_1l           R 0.322 hb 0.120: schlimmster Lenkwinkel  +0°:     6 Ecken, bis 45 mm tief; erster Kontakt bei 0°; Beispiele (relativ zur Radmitte) [[-0.107, 0.06, 0.31], [-0.102, 0.021, 0.31], [-0.096, -0.018, 0.31]]
+player/kompakt     show  wheel_1r           R 0.322 hb 0.120: schlimmster Lenkwinkel  +0°:     6 Ecken, bis 45 mm tief; erster Kontakt bei 0°; Beispiele (relativ zur Radmitte) [[-0.016, -0.067, -0.269], [-0.016, -0.067, -0.269], [0.09, -0.057, 0.31]]
+traffic/sedan      lod0  wheel_0l           R 0.320 hb 0.116: schlimmster Lenkwinkel -25°:     0 Ecken, bis 0 mm tief; erster Kontakt bei None°; Beispiele (relativ zur Radmitte) []
+traffic/sedan      lod0  wheel_0r           R 0.320 hb 0.116: schlimmster Lenkwinkel -25°:     0 Ecken, bis 0 mm tief; erster Kontakt bei None°; Beispiele (relativ zur Radmitte) []
+traffic/sedan      lod0  wheel_1l           R 0.320 hb 0.116: schlimmster Lenkwinkel  +0°:     0 Ecken, bis 0 mm tief; erster Kontakt bei None°; Beispiele (relativ zur Radmitte) []
+traffic/sedan      lod0  wheel_1r           R 0.320 hb 0.116: schlimmster Lenkwinkel  +0°:     0 Ecken, bis 0 mm tief; erster Kontakt bei None°; Beispiele (relativ zur Radmitte) []
+traffic/hatch      lod0  wheel_0l           R 0.310 hb 0.111: schlimmster Lenkwinkel -25°:     0 Ecken, bis 0 mm tief; erster Kontakt bei None°; Beispiele (relativ zur Radmitte) []
+traffic/hatch      lod0  wheel_0r           R 0.310 hb 0.111: schlimmster Lenkwinkel -25°:     0 Ecken, bis 0 mm tief; erster Kontakt bei None°; Beispiele (relativ zur Radmitte) []
+traffic/hatch      lod0  wheel_1l           R 0.310 hb 0.111: schlimmster Lenkwinkel  +0°:     0 Ecken, bis 0 mm tief; erster Kontakt bei None°; Beispiele (relativ zur Radmitte) []
+traffic/hatch      lod0  wheel_1r           R 0.310 hb 0.111: schlimmster Lenkwinkel  +0°:     0 Ecken, bis 0 mm tief; erster Kontakt bei None°; Beispiele (relativ zur Radmitte) []
+traffic/wagon      lod0  wheel_0l           R 0.320 hb 0.116: schlimmster Lenkwinkel -25°:     0 Ecken, bis 0 mm tief; erster Kontakt bei None°; Beispiele (relativ zur Radmitte) []
+traffic/wagon      lod0  wheel_0r           R 0.320 hb 0.116: schlimmster Lenkwinkel -25°:     0 Ecken, bis 0 mm tief; erster Kontakt bei None°; Beispiele (relativ zur Radmitte) []
+traffic/wagon      lod0  wheel_1l           R 0.320 hb 0.116: schlimmster Lenkwinkel  +0°:     0 Ecken, bis 0 mm tief; erster Kontakt bei None°; Beispiele (relativ zur Radmitte) []
+traffic/wagon      lod0  wheel_1r           R 0.320 hb 0.116: schlimmster Lenkwinkel  +0°:     0 Ecken, bis 0 mm tief; erster Kontakt bei None°; Beispiele (relativ zur Radmitte) []
+traffic/truck      lod0  tractor/wheel_0l   R 0.530 hb 0.189: schlimmster Lenkwinkel -25°:     0 Ecken, bis 0 mm tief; erster Kontakt bei None°; Beispiele (relativ zur Radmitte) []
+traffic/truck      lod0  tractor/wheel_0r   R 0.530 hb 0.189: schlimmster Lenkwinkel -25°:     0 Ecken, bis 0 mm tief; erster Kontakt bei None°; Beispiele (relativ zur Radmitte) []
+traffic/truck      lod0  tractor/wheel_1l   R 0.530 hb 0.324: schlimmster Lenkwinkel  +0°:     0 Ecken, bis 0 mm tief; erster Kontakt bei None°; Beispiele (relativ zur Radmitte) []
+traffic/truck      lod0  tractor/wheel_1r   R 0.530 hb 0.324: schlimmster Lenkwinkel  +0°:     0 Ecken, bis 0 mm tief; erster Kontakt bei None°; Beispiele (relativ zur Radmitte) []
+traffic/truck      lod0  trailer/wheel_0l   R 0.530 hb 0.203: schlimmster Lenkwinkel  +0°:     0 Ecken, bis 0 mm tief; erster Kontakt bei None°; Beispiele (relativ zur Radmitte) []
+traffic/truck      lod0  trailer/wheel_0r   R 0.530 hb 0.203: schlimmster Lenkwinkel  +0°:     0 Ecken, bis 0 mm tief; erster Kontakt bei None°; Beispiele (relativ zur Radmitte) []
+traffic/truck      lod0  trailer/wheel_1l   R 0.530 hb 0.203: schlimmster Lenkwinkel  +0°:     0 Ecken, bis 0 mm tief; erster Kontakt bei None°; Beispiele (relativ zur Radmitte) []
+traffic/truck      lod0  trailer/wheel_1r   R 0.530 hb 0.203: schlimmster Lenkwinkel  +0°:     0 Ecken, bis 0 mm tief; erster Kontakt bei None°; Beispiele (relativ zur Radmitte) []
+traffic/truck      lod0  trailer/wheel_2l   R 0.530 hb 0.203: schlimmster Lenkwinkel  +0°:     0 Ecken, bis 0 mm tief; erster Kontakt bei None°; Beispiele (relativ zur Radmitte) []
+traffic/truck      lod0  trailer/wheel_2r   R 0.530 hb 0.203: schlimmster Lenkwinkel  +0°:     0 Ecken, bis 0 mm tief; erster Kontakt bei None°; Beispiele (relativ zur Radmitte) []

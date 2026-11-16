@@ -1,0 +1,17 @@
+AS2R (WIP): ferne Verglasung, SUV-Stoßfänger, Rückfahrlichter, GT-Rücklicht
+
+- lod1/lod2 der Verkehrsautos und der Polizei: eigene, hellere Scheibenfarbe
+  (TRAFFIC_GLASS_FAR), damit sie mit dem Renn-Look wie das Glas von lod0
+  wirkt; Wechsel bei 40 m gemessen: Transporter 17,7 -> 4,6 %, Sportwagen
+  13,3 -> 9,3 % (B4)
+- SUV: dunkler Stoßfänger-Unterteil bis zur Schwellerlinie (keine weißen
+  Sägezähne an den Ecken, B3), Rückstrahler auf dem Stoßfänger statt 3 cm
+  dahinter (B6)
+- Kombi: Rückfahrlicht vor dem Leuchtenkörper; Kompakt: Rückfahr- und
+  Nebelschlussleuchte auf dem Diffusor statt darunter verdeckt (A6)
+- Gran Turismo: Leuchtenkörper füllt die ganze Streuscheibe, Lichtleiste
+  doppelt so hoch (A2); Felgen von Kombi und GT dunkler (A7)
+- alle Änderungen an cesprites nur im 3D-Bau (detail extras)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

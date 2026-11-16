@@ -1,0 +1,1 @@
+**teilweise bestätigt:** im Rennen ist die Blässe schwächer als in der Prüfszene (Dunst, Gegenlicht) – Paris und Bern lesen sich fern gut, etwas heller als Arcade; in Lyon zeigen die Fenster des Lyoner Hauses bei ≈ 150 m rosa-lila Flecken (Bild 13). Messbar ist sie überall (5.4)

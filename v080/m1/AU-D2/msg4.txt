@@ -1,0 +1,9 @@
+v0.8.0 AU-D2: Synth-Phrasen ohne Schnitt am Ende, Zwischenspiel-Naht (WIP)
+
+- race_lib.phrase_end(): die letzten 60 ms jeder Synth-Phrase ausgeblendet (Patch soft: der
+  Ausklang lag beim Abschneiden 34 dB unter der Spitze – ein leises Knacken in ruhigen Stellen)
+- Zwischenspiel: die Linie der Kehre endet vor dem Schleifenpunkt
+- check_music.py: Tank-Stinger am Schlussakkord geprüft
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

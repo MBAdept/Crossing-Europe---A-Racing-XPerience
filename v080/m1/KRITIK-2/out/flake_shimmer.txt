@@ -1,0 +1,6 @@
+Metallic-Flocken im Spielbild (8 m, 1280x720, MSAA 2x), Gierschritte 0,2°:
+  kombi         Glitzerpixel je Bild 0–0 (Mittel 0) von ~48076 Autopixeln; je Schritt an/aus 0–0 (Mittel 0)
+  sportwagen    Glitzerpixel je Bild 0–0 (Mittel 0) von ~42813 Autopixeln; je Schritt an/aus 0–0 (Mittel 0)
+  gran_turismo  Glitzerpixel je Bild 78–92 (Mittel 83) von ~45516 Autopixeln; je Schritt an/aus 149–167 (Mittel 155)
+  limousine     Glitzerpixel je Bild 0–0 (Mittel 0) von ~48717 Autopixeln; je Schritt an/aus 0–0 (Mittel 0)
+  kompakt       Glitzerpixel je Bild 0–0 (Mittel 0) von ~43238 Autopixeln; je Schritt an/aus 0–0 (Mittel 0)

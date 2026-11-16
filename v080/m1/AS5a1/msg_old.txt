@@ -1,0 +1,9 @@
+v0.8.0 AS5a1: Stadthäuser german_old als Modelle (Fachwerkzeile, Fachwerkhaus mit Turm, Barockhaus)
+
+Echte Exporte (Bauer "city"). Fachwerk als Hölzer 3,5 cm vor der Ausfachung (nur lod0, Front und
+Straßenseite), Blumenkästen, Balkenköpfe; Rückgiebel der Häuser mit Giebel zur Straße geschlossen
+(Hook close3d); Barockhaus mit Läden und Auslagen, Gesimsen, Gauben. Erdgeschosse mit voller
+Texeldichte (floors). lod1 = die flache Wand mit den gemalten Fenstern. Manifest neu geschrieben.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

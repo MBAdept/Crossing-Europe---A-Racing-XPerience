@@ -1,0 +1,6 @@
+v0.8.0 RINT-A: R1 (Straße, Umgebung, Licht, Overlay, Qualität, Vorwärmen, Kern) zusammengeführt
+
+Paket R1 des Schubs M1 (A-8), Stand 21bca09.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

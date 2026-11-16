@@ -1,0 +1,72 @@
+{
+ "props/city_german_gruenderzeit": {
+  "uniform_1024x1024": 18.8,
+  "uniform_2048x1024": 27.3,
+  "uniform_2048x2048": 37.8,
+  "charts": 49,
+  "area_m2": 2221.0,
+  "weighted_1024x1024": 26.8,
+  "weighted_2048x1024": 34.2,
+  "weighted_2048x2048": 54.4
+ },
+ "props/city_paris_haussmann": {
+  "uniform_1024x1024": 16.1,
+  "uniform_2048x1024": 23.6,
+  "uniform_2048x2048": 33.3,
+  "charts": 185,
+  "area_m2": 2869.0,
+  "weighted_1024x1024": 23.8,
+  "weighted_2048x1024": 31.4,
+  "weighted_2048x2048": 49.0
+ },
+ "props/city_hanse_gabled": {
+  "uniform_1024x1024": 14.1,
+  "uniform_2048x1024": 19.0,
+  "uniform_2048x2048": 29.1,
+  "charts": 98,
+  "area_m2": 3960.0,
+  "weighted_1024x1024": 19.8,
+  "weighted_2048x1024": 26.4,
+  "weighted_2048x2048": 40.1
+ },
+ "props/city_german_house": {
+  "uniform_1024x1024": 25.0,
+  "uniform_2048x1024": 37.0,
+  "uniform_2048x2048": 52.0,
+  "charts": 500,
+  "area_m2": 999.0,
+  "weighted_1024x1024": 40.9,
+  "weighted_2048x1024": 57.7,
+  "weighted_2048x2048": 82.7
+ },
+ "props/farmhouse": {
+  "uniform_1024x1024": 22.5,
+  "uniform_2048x1024": 31.3,
+  "uniform_2048x2048": 45.4,
+  "charts": 22,
+  "area_m2": 1360.0,
+  "weighted_1024x1024": 36.2,
+  "weighted_2048x1024": 53.0,
+  "weighted_2048x2048": 72.9
+ },
+ "landmarks/michel": {
+  "uniform_1024x1024": 4.5,
+  "uniform_2048x1024": 6.7,
+  "uniform_2048x2048": 9.6,
+  "charts": 956,
+  "area_m2": 33076.0,
+  "weighted_1024x1024": 7.1,
+  "weighted_2048x1024": 10.0,
+  "weighted_2048x2048": 14.5
+ },
+ "landmarks/koelner_dom": {
+  "uniform_1024x1024": 1.7,
+  "uniform_2048x1024": 2.6,
+  "uniform_2048x2048": 4.0,
+  "charts": 6061,
+  "area_m2": 159759.0,
+  "weighted_1024x1024": 2.5,
+  "weighted_2048x1024": 3.8,
+  "weighted_2048x2048": 5.8
+ }
+}

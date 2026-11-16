@@ -1,0 +1,9 @@
+wagon_white_1280x800_side_d36 | lod0->lod1 (Kaskade 2): Autopixel 1336, >24 Stufen 10.6 %, Mittel (120,121,125) -> (119,119,123), Differenz Mittel 3.2, max 116
+wagon_white_1280x800_side_d36 | lod1->lod2 (Kaskade 2): Autopixel 1336, >24 Stufen 26.0 %, Mittel (119,119,123) -> (114,117,123), Differenz Mittel 5.5, max 211
+wagon_white_1280x800_side_d36 | Kaskade1->Kaskade2 lod0: Autopixel 1336, >24 Stufen 0.4 %, Mittel (120,121,125) -> (120,121,125), Differenz Mittel 0.1, max 46
+wagon_white_1280x800_side_d36 | Kaskade1->Kaskade2 lod1: Autopixel 1336, >24 Stufen 0.4 %, Mittel (119,119,123) -> (119,119,123), Differenz Mittel 0.1, max 46
+wagon_white_1280x800_side_d36 | lod0 K1 -> lod1 K2: Autopixel 1336, >24 Stufen 10.9 %, Mittel (120,121,125) -> (119,119,123), Differenz Mittel 3.1, max 116
+wagon_white_1280x800_side_d36 | lod0 -> lod0 abgelehnt ohne Dither: Autopixel 1336, >24 Stufen 52.5 %, Mittel (120,121,125) -> (152,152,156), Differenz Mittel 53.8, max 132
+wagon_white_1280x800_side_d36 | lod0 -> lod0 abgelehnt: Autopixel 1336, >24 Stufen 55.8 %, Mittel (120,121,125) -> (156,155,158), Differenz Mittel 59.1, max 132
+wagon_white_1280x800_side_d36 | lod1 -> lod1 abgelehnt: Autopixel 1336, >24 Stufen 55.6 %, Mittel (119,119,123) -> (158,157,160), Differenz Mittel 65.9, max 132
+wagon_white_1280x800_side_d36 | Bogen: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/FLACKER-ANALYSE/swap/wagon_white_1280x800_side_d36.png (Spalten: lod0 K2, lod1 K2, lod2 K2, lod0 K1, lod0 abgelehnt, lod1 abgelehnt, lod0 abgelehnt, Dither aus; Ausschnitt [P: (611, 393), S: (53, 42)], Zoom 4)

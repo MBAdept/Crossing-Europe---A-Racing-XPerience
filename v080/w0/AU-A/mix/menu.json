@@ -1,0 +1,46 @@
+[
+ {
+  "file": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/w0/AU-A/mix/arcade_menu.wav",
+  "profile": "arcade",
+  "scenario": "menu",
+  "vehicle": "gran_turismo",
+  "seconds": 49.69,
+  "integrated_lufs": -29.65,
+  "lra": 7.57,
+  "true_peak_db": -15.27,
+  "phases": [
+   {
+    "name": "menu",
+    "t0": 1.001,
+    "t1": 50.014,
+    "lufs": -29.59,
+    "short_term_max": -27.21,
+    "short_term_median": -29.73,
+    "true_peak_db": -15.27,
+    "target": -20.0
+   }
+  ]
+ },
+ {
+  "file": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/w0/AU-A/mix/modern_menu.wav",
+  "profile": "modern",
+  "scenario": "menu",
+  "vehicle": "gran_turismo",
+  "seconds": 49.69,
+  "integrated_lufs": -21.64,
+  "lra": 7.55,
+  "true_peak_db": -7.31,
+  "phases": [
+   {
+    "name": "menu",
+    "t0": 1.0,
+    "t1": 50.015,
+    "lufs": -21.6,
+    "short_term_max": -19.23,
+    "short_term_median": -21.73,
+    "true_peak_db": -7.31,
+    "target": -20.0
+   }
+  ]
+ }
+]

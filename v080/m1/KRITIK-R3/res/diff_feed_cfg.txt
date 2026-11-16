@@ -1,0 +1,233 @@
+diff --git a/config/game_config.json b/config/game_config.json
+index 9fefef7..3134aec 100644
+--- a/config/game_config.json
++++ b/config/game_config.json
+@@ -435,7 +435,7 @@
+ 		"reverb_fade_s": 0.8,
+ 		"engine_width": 0.6,
+ 		"engine_width_hipass": 0.1,
+-		"_doc_modern": "Klangprofil „Modern“ (v0.8.0, docs/audio-modern.md). profile = Profil erzwingen: \"\" (Einstellung „Klang“ gilt), \"arcade\" oder \"modern\" – für Tests und als Schalter neben der ausführbaren Datei; die Kommandozeile --sound= gewinnt. Alles Weitere unter modern liest nur das Profil „Modern“; Arcade liest nichts davon. placeholders = Platzhalter-Klänge aus den Manifesten benutzen (nur für Tests und Pipeline-Prüfungen: im Spiel klingt nie ein Platzhalter, eine Rolle ohne echten Klang nimmt den Arcade-Klang oder bleibt still). engine_thread = Motor-Mischer in einem eigenen Thread (false oder --audio-sync: im Hauptthread). loudness = Ziele des Pegelplans bei Standardreglern (Gesamt 0,8, Effekte 1,0, Musik 0,7): Vollgas full_throttle_lufs (Kurzzeit), Reisetempo cruise_lufs, Leerlauf idle_lufs, Höchsttempo top_speed_lufs ± top_speed_tol_db (Motor + Fahrbahn + Wind), Musik im Rennen music_under_car_db unter dem Auto, Menümusik menu_music_lufs, Musikdateien gemastert auf master_lufs mit höchstens true_peak_dbtp. levels = fester Pegel je Bus in dB (der Regler „Effekte“ wirkt zusätzlich auf MSfx, „Musik“ auf MMusic, „Gesamtlautstärke“ auf Master); MSfx 0 dB, seit der Motor v3 seinen Pegel selbst mitbringt (die Banken sind so abgestimmt, dass Vollgas mit allen Buspegeln auf 0 dB bei −16 LUFS liegt; die −3 dB von Bauabschnitt 0 glichen nur die lautere Arcade-Bank aus). engine = Motor v3 (docs/motorsound.md „Modern“): level_db = Pegel des Motors zusätzlich zu mix.gain der Bank (gilt auch für die Fahrzeugebenen), preview / preview_db = Gasstoß in der Fahrzeugwahl und sein Pegel dazu, latency_s = Vorlauf, den der Mischer-Thread im Generator hält (kleiner = direktere Reaktion auf das Gas), sync_latency_s = Vorlauf beim Mischen im Hauptthread (engine_thread false oder --audio-sync), start_latency_s = dasselbe in der ersten Sekunde einer Etappe, buffer_s = Puffergröße des Generators; motion = Bewegung des Klangs, damit er nie wie eine Schleife steht, als Standardabweichungen: rpm und load relativ, level_db in dB – schnelle Unruhe –, rpm_slow, load_slow und level_slow_db – langsames Atmen über Sekunden –, cycle_db je Arbeitsspiel (0 schaltet einen Anteil ab). layers = Fahrzeugebenen auf MEngineFx (Laderton und -rauschen, Achs- und Getriebeheulen, Gasannahme, Lastwechselschlag, Schubumluft): enabled, level_db für alle, turbo_db, driveline_db und shots_db (Einmalklänge) je Gruppe dazu. glue = Summenkompressor auf MMaster: threshold_db, ratio = wirksames Verhältnis (der Code rechnet es in den Wert um, den Godots Kompressor dafür braucht), attack_ms, release_ms, gain_db. limiter = Begrenzer des Modern-Klangs auf MMaster hinter dem Summenkompressor (vor der Gesamtlautstärke, wirkt also bei jeder Lautstärke; der Begrenzer von Arcade auf Master bleibt unberührt): ceiling_db, release_s, pre_gain_db, enabled. duck = Absenken der Musik unter dem Auto: die Lautheit, die der Pegelplan dem Auto in seinem Fahrzustand gibt (Leerlauf im Stand, Reisetempo beim Rollen ab pace_cruise × Höchsttempo, Vollgas bei voller Motorlast), senkt bus von from_lufs bis to_lufs um 0 bis depth_db, schnell hinunter (attack_s), langsam zurück (release_s); was ein Mischzustand dem Auto nimmt (result), zählt mit – ein leise gestelltes Auto senkt die Musik nicht ab. snapshots = Mischzustände, die weich ein- (attack_s) und ausblenden (release_s): gain_db je Bus, lowpass_hz je Bus (Tiefpass), hold_s für ausgelöste Zustände – pause (Pausenmenü), impact (Kollision), siren (Verfolgung), result (nach der Ziellinie). music = Pegel der Musik je Kontext context_db (auf eine Datei mit master_lufs bezogen; race gleicht mit aus, was die Klangregelung im Rennen an Lautheit nimmt – gemessen 1,4 dB an der Titelmelodie, 1,7 dB am Platzhalter-Stück), race_eq = Klangregelung der Musik im Rennen, die dem Motor Platz macht: Kuhschwanzfilter in Reihe, je Eintrag shelf (\"low\" = unterhalb von hz, \"high\" = oberhalb), hz (dort ist die Hälfte erreicht, der Übergang reicht etwa eine Oktave nach beiden Seiten) und db; die beiden Einträge ergeben zusammen eine breite Mulde um 500 Hz (gemessen: 62 Hz −1,0 dB, 250 Hz −2,7 dB, 500 Hz −3,0 dB, 1 kHz −1,9 dB, 2 kHz −0,3 dB, ab 4 kHz 0 dB); race_eq_fade_s = so lange blendet sie beim Wechsel des Kontexts ein und aus; fade_in_s / fade_out_s = Überblenden zwischen Stücken. feed = was aus der Strecke abgeleitet wird (AudioFeed): rumble_in_m / rumble_out_m = Breite von Randlinie und Rüttelstreifen innerhalb / außerhalb des Fahrbahnrands, pass_max_m = bis zu diesem seitlichen Abstand zählen Objekte am Rand als Vorbeifahrt, max_scan_m = größerer Sprung des Autos in einem Bild gilt als Versetzen (keine Ereignisse), joint_every_m = Abstand der Dehnfugen auf Brücken je Deck (steel = Stahl, stone = Steinbogen, concrete = Beton; Meter zwischen den Fugen und an beiden Enden, 0 = nur an den Enden, kleiner 0 = gar keine); rumble_roads = Straßentypen mit profilierter Randlinie, concrete_roads / concrete_share = Straßentypen, die Beton sein können, und der Anteil je Land (\"_\" = übrige) – je Abschnitt entschieden, in beiden Richtungen gleich, concrete_threshold = je Land [Anteil, Hash-Schwelle], mit der das Land seinen Anteil über alle seine Abschnitte trifft (tools/audio/modern/calibrate_concrete.gd schreibt sie aus; gilt nur, solange der Anteil gleich ist), cobble_styles / cobble_share / cobble_block_m = Baustile mit Kopfsteinpflaster in der Altstadt, Anteil der Straßen jeder Altstadt (auf einen halben Block genau; eine Brücke ohne Steindeck ist keine Straße und nie gepflastert, eine Altstadt mit einer solchen Brücke liegt im Band ±0,05) und Länge der Blöcke, cutting_dist_m / cutting_window_m = Fels so nah am Rand auf beiden Seiten innerhalb dieser Strecke = Einschnitt, delineators = Leitpfosten der Straßen ohne Leitplanke melden (docs/audio-modern.md 8, 15). road = Reifen, Fahrbahn, Wind (AU-C1, docs/audio-modern.md 15): alle Ziele sind Lautheit am Master bei Standardreglern (ref_path_db = Gesamtlautstärke 0,8); engine_top_lufs = gemessener Motor allein bei Höchsttempo je Auto, der Bezug des Plans (bei Höchsttempo Wind wind.under_engine_db und Reifen tyres.under_engine_db darunter, darunter slope_db je Dekade Tempo); tyres.surface_db / slope_by_surface = Belag und Rand gegen Asphalt (snow = das Knirschen im Schnee), wet_db, snow_*, loose_boost; sides = die beiden Seiten eines Belags spielen je eine eigene Schleife: pitch = Tonhöhe rechts gegen links (exact_pitch: Beläge ohne diesen Versatz, der Rüttelstreifen), drift_db / drift_s = langsame Pegelschwankung je Seite; slabs = Betonplattenfugen (align_ms: so weit dürfen die beiden Entwürfe auseinanderlaufen, bevor der leisere wieder in den Takt gesetzt wird; oberhalb von high_kmh steigt ihr Pegel nur noch um high_slope_db statt slope_db je Dekade); squeal = Quietschen und Radieren (pitch_spread: Tonhöhe je Quietschen zufällig um diesen Anteil); joints = Brückenfugen (Momentanlautheit bei 100 km/h); passes = Vorbeifahrten (bei 100 km/h, 3 m, Größe 1; jitter_db = Pegel je Vorbeifahrt zufällig ±); wind.bands_db = Verhältnis der Bänder, buffet_from = ab diesem Anteil des Höchsttempos das Wummern, gust_db / gust_s = Böen, zone_db / zone_gust = Zonen. impact = Aufprall (AU-C1): Einmalklänge als Spitze am Master (file_peak_db = Spitze der Dateien), variation = jede Schicht eines Aufpralls zufällig ±db und bis 2 × ms später, collision.tiers_kmh = Stufen nach Schließgeschwindigkeit mit ihren Schichten, collision.glass = Glas bricht ab from_kmh Schließgeschwindigkeit, darunter mit der Wahrscheinlichkeit chance, truck = Schlag eines Lkw-/Busaufbaus statt des eigenen, rail = Leitplanke (Schlag ab hard_mps, Schleifen als Lautheit bis scrape_max_lufs), post = umgefahrener Leitpfosten. env = Raumklang auf MEnv: überschreibt für Modern einzelne Schlüssel des Arcade-Raumklangs (reverb_*, reflections_*). traffic = überschreibt für Modern einzelne Verkehrs-Schlüssel (traffic_*, siren_*); traffic_voices höchstens 8 (Busse MTrafficV0–7). Alle Werte außer den Zielen sind Startwerte (abgeleitet, noch an keinem echten Modern-Klang gemessen); die Pakete AU-B bis AU-E stimmen sie ab.",
++		"_doc_modern": "Klangprofil „Modern“ (v0.8.0, docs/audio-modern.md). profile = Profil erzwingen: \"\" (Einstellung „Klang“ gilt), \"arcade\" oder \"modern\" – für Tests und als Schalter neben der ausführbaren Datei; die Kommandozeile --sound= gewinnt. Alles Weitere unter modern liest nur das Profil „Modern“; Arcade liest nichts davon. placeholders = Platzhalter-Klänge aus den Manifesten benutzen (nur für Tests und Pipeline-Prüfungen: im Spiel klingt nie ein Platzhalter, eine Rolle ohne echten Klang nimmt den Arcade-Klang oder bleibt still). engine_thread = Motor-Mischer in einem eigenen Thread (false oder --audio-sync: im Hauptthread). loudness = Ziele des Pegelplans bei Standardreglern (Gesamt 0,8, Effekte 1,0, Musik 0,7): Vollgas full_throttle_lufs (Kurzzeit), Reisetempo cruise_lufs, Leerlauf idle_lufs, Höchsttempo top_speed_lufs ± top_speed_tol_db (Motor + Fahrbahn + Wind), Musik im Rennen music_under_car_db unter dem Auto, Menümusik menu_music_lufs, Musikdateien gemastert auf master_lufs mit höchstens true_peak_dbtp. levels = fester Pegel je Bus in dB (der Regler „Effekte“ wirkt zusätzlich auf MSfx, „Musik“ auf MMusic, „Gesamtlautstärke“ auf Master); MSfx 0 dB, seit der Motor v3 seinen Pegel selbst mitbringt (die Banken sind so abgestimmt, dass Vollgas mit allen Buspegeln auf 0 dB bei −16 LUFS liegt; die −3 dB von Bauabschnitt 0 glichen nur die lautere Arcade-Bank aus). engine = Motor v3 (docs/motorsound.md „Modern“): level_db = Pegel des Motors zusätzlich zu mix.gain der Bank (gilt auch für die Fahrzeugebenen), preview / preview_db = Gasstoß in der Fahrzeugwahl und sein Pegel dazu, latency_s = Vorlauf, den der Mischer-Thread im Generator hält (kleiner = direktere Reaktion auf das Gas), sync_latency_s = Vorlauf beim Mischen im Hauptthread (engine_thread false oder --audio-sync), start_latency_s = dasselbe in der ersten Sekunde einer Etappe, buffer_s = Puffergröße des Generators; motion = Bewegung des Klangs, damit er nie wie eine Schleife steht, als Standardabweichungen: rpm und load relativ, level_db in dB – schnelle Unruhe –, rpm_slow, load_slow und level_slow_db – langsames Atmen über Sekunden –, cycle_db je Arbeitsspiel (0 schaltet einen Anteil ab). layers = Fahrzeugebenen auf MEngineFx (Laderton und -rauschen, Achs- und Getriebeheulen, Gasannahme, Lastwechselschlag, Schubumluft): enabled, level_db für alle, turbo_db, driveline_db und shots_db (Einmalklänge) je Gruppe dazu. glue = Summenkompressor auf MMaster: threshold_db, ratio = wirksames Verhältnis (der Code rechnet es in den Wert um, den Godots Kompressor dafür braucht), attack_ms, release_ms, gain_db. limiter = Begrenzer des Modern-Klangs auf MMaster hinter dem Summenkompressor (vor der Gesamtlautstärke, wirkt also bei jeder Lautstärke; der Begrenzer von Arcade auf Master bleibt unberührt): ceiling_db, release_s, pre_gain_db, enabled. duck = Absenken der Musik unter dem Auto: die Lautheit, die der Pegelplan dem Auto in seinem Fahrzustand gibt (Leerlauf im Stand, Reisetempo beim Rollen ab pace_cruise × Höchsttempo, Vollgas bei voller Motorlast), senkt bus von from_lufs bis to_lufs um 0 bis depth_db, schnell hinunter (attack_s), langsam zurück (release_s); was ein Mischzustand dem Auto nimmt (result), zählt mit – ein leise gestelltes Auto senkt die Musik nicht ab. snapshots = Mischzustände, die weich ein- (attack_s) und ausblenden (release_s): gain_db je Bus, lowpass_hz je Bus (Tiefpass), hold_s für ausgelöste Zustände – pause (Pausenmenü), impact (Kollision), siren (Verfolgung), result (nach der Ziellinie). music = Pegel der Musik je Kontext context_db (auf eine Datei mit master_lufs bezogen; race gleicht mit aus, was die Klangregelung im Rennen an Lautheit nimmt – gemessen 1,4 dB an der Titelmelodie, 1,7 dB am Platzhalter-Stück), race_eq = Klangregelung der Musik im Rennen, die dem Motor Platz macht: Kuhschwanzfilter in Reihe, je Eintrag shelf (\"low\" = unterhalb von hz, \"high\" = oberhalb), hz (dort ist die Hälfte erreicht, der Übergang reicht etwa eine Oktave nach beiden Seiten) und db; die beiden Einträge ergeben zusammen eine breite Mulde um 500 Hz (gemessen: 62 Hz −1,0 dB, 250 Hz −2,7 dB, 500 Hz −3,0 dB, 1 kHz −1,9 dB, 2 kHz −0,3 dB, ab 4 kHz 0 dB); race_eq_fade_s = so lange blendet sie beim Wechsel des Kontexts ein und aus; fade_in_s / fade_out_s = Überblenden zwischen Stücken. feed = was aus der Strecke abgeleitet wird (AudioFeed): rumble_in_m / rumble_out_m = Breite von Randlinie und Rüttelstreifen innerhalb / außerhalb des Fahrbahnrands, pass_max_m = bis zu diesem seitlichen Abstand zählen Objekte am Rand als Vorbeifahrt, max_scan_m = größerer Sprung des Autos in einem Bild gilt als Versetzen (keine Ereignisse), joint_every_m = Abstand der Dehnfugen auf Brücken je Deck (steel = Stahl, stone = Steinbogen, concrete = Beton; Meter zwischen den Fugen und an beiden Enden, 0 = nur an den Enden, kleiner 0 = gar keine); rumble_roads = Straßentypen mit profilierter Randlinie, concrete_roads / concrete_share = Straßentypen, die Beton sein können, und der Anteil je Land (\"_\" = übrige) – je Abschnitt entschieden, in beiden Richtungen gleich, concrete_threshold = je Land [Anteil, Hash-Schwelle], mit der das Land seinen Anteil über alle seine Abschnitte trifft (tools/audio/modern/calibrate_concrete.gd schreibt sie aus; gilt nur, solange der Anteil gleich ist), cobble_styles / cobble_share / cobble_block_m = Baustile mit Kopfsteinpflaster in der Altstadt, Anteil jeder Altstadt, wie er zu hören ist (Straßen und Steinbrücken; eine Steinbrücke zählt als schon gepflasterte Straße, eine Brücke ohne Steindeck und ein Tunnel sind keine Straße und nie gepflastert; jede Altstadt im Band ±0,05, ein Tunnel der Etappe verschiebt die Blöcke der Stadt nur, wenn er den Anteil aus dem Band schiebt) und Länge der Blöcke, cutting_dist_m / cutting_window_m = Fels so nah am Rand auf beiden Seiten innerhalb dieser Strecke = Einschnitt, delineators = Leitpfosten der Straßen ohne Leitplanke melden (docs/audio-modern.md 8, 15). road = Reifen, Fahrbahn, Wind (AU-C1, docs/audio-modern.md 15): alle Ziele sind Lautheit am Master bei Standardreglern (ref_path_db = Gesamtlautstärke 0,8); engine_top_lufs = gemessener Motor allein bei Höchsttempo je Auto, der Bezug des Plans (bei Höchsttempo Wind wind.under_engine_db und Reifen tyres.under_engine_db darunter, darunter slope_db je Dekade Tempo); tyres.surface_db / slope_by_surface = Belag und Rand gegen Asphalt (snow = das Knirschen im Schnee), wet_db, snow_*, loose_boost; sides = die beiden Seiten eines Belags spielen je eine eigene Schleife: pitch = Tonhöhe rechts gegen links (exact_pitch: Beläge ohne diesen Versatz, der Rüttelstreifen), drift_db / drift_s = langsame Pegelschwankung je Seite; slabs = Betonplattenfugen (align_ms: so weit dürfen die beiden Entwürfe auseinanderlaufen, bevor der leisere wieder in den Takt gesetzt wird; oberhalb von high_kmh steigt ihr Pegel nur noch um high_slope_db statt slope_db je Dekade); squeal = Quietschen und Radieren (pitch_spread: Tonhöhe je Quietschen zufällig um diesen Anteil); joints = Brückenfugen (Momentanlautheit bei 100 km/h); passes = Vorbeifahrten (bei 100 km/h, 3 m, Größe 1; jitter_db = Pegel je Vorbeifahrt zufällig ±); wind.bands_db = Verhältnis der Bänder, buffet_from = ab diesem Anteil des Höchsttempos das Wummern, gust_db / gust_s = Böen, zone_db / zone_gust = Zonen. impact = Aufprall (AU-C1): Einmalklänge als Spitze am Master (file_peak_db = Spitze der Dateien), variation = jede Schicht eines Aufpralls zufällig ±db und bis 2 × ms später, collision.tiers_kmh = Stufen nach Schließgeschwindigkeit mit ihren Schichten, collision.glass = Glas bricht ab from_kmh Schließgeschwindigkeit, darunter mit der Wahrscheinlichkeit chance, truck = Schlag eines Lkw-/Busaufbaus statt des eigenen, rail = Leitplanke (Schlag ab hard_mps, Schleifen als Lautheit bis scrape_max_lufs), post = umgefahrener Leitpfosten. env = Raumklang auf MEnv: überschreibt für Modern einzelne Schlüssel des Arcade-Raumklangs (reverb_*, reflections_*). traffic = überschreibt für Modern einzelne Verkehrs-Schlüssel (traffic_*, siren_*); traffic_voices höchstens 8 (Busse MTrafficV0–7). Alle Werte außer den Zielen sind Startwerte (abgeleitet, noch an keinem echten Modern-Klang gemessen); die Pakete AU-B bis AU-E stimmen sie ab.",
+ 		"profile": "",
+ 		"modern": {
+ 			"placeholders": false,
+@@ -489,7 +489,7 @@
+ 					"light": {"ref_kmh": 8.0, "layers": {"hit_light": -12.0, "debris": -30.0}},
+ 					"medium": {"ref_kmh": 28.0, "layers": {"hit_light": -13.0, "hit_heavy": -11.0, "crunch": -15.0, "debris": -24.0}},
+ 					"heavy": {"ref_kmh": 70.0, "layers": {"hit_heavy": -11.5, "crunch": -13.0, "glass": -17.0, "debris": -22.0}},
+-					"truck": {"light": -14.0, "medium": -12.0, "heavy": -11.0}},
++					"truck": {"light": -14.0, "medium": -12.0, "heavy": -11.5}},
+ 				"rail": {"hit_peak_db": -9.0, "touch_peak_db": -17.0, "hard_mps": 1.2, "ref_mps": 3.0, "slope_db": 10.0, "max_db": 4.0,
+ 					"scrape_lufs": -21.0, "scrape_slope_db": 12.0, "scrape_max_lufs": -17.0, "scrape_min_kmh": 5.0},
+ 				"post": {"peak_db": -15.0, "ref_kmh": 80.0, "slope_db": 20.0}},
+diff --git a/scripts/audio/modern/audio_feed.gd b/scripts/audio/modern/audio_feed.gd
+index 90ace86..fc234a6 100644
+--- a/scripts/audio/modern/audio_feed.gd
++++ b/scripts/audio/modern/audio_feed.gd
+@@ -9,8 +9,8 @@ extends RefCounted
+ ## v1 (AU-C1). update(state) fills:
+ ##   surface_l / surface_r   what the left / right wheels run on: the paving of the road ("asphalt", "concrete",
+ ##                           "cobbles", "deck" – a steel bridge deck), "rumble" (profiled edge line and rumble strip,
+-##                           only on rumble_roads; not on the right while the segment has a fuel lane – its edge is a
+-##                           plain dashed line, AU-R), "shoulder" (gravel beside the road), "grass" (beyond the shoulder,
++##                           only on rumble_roads; not on the right while the segment has a fuel lane – its edge line
++##                           has no profile, AU-R), "shoulder" (gravel beside the road), "grass" (beyond the shoulder,
+ ##                           no guardrail). In tunnels, on bridges and in the City Limits the shoulder is paved.
+ ##   paving                  the paving at the car: "asphalt", "concrete" (sections of concrete_roads, chosen per
+ ##                           section from concrete_share – the same section has the same paving in both directions),
+@@ -417,7 +417,9 @@ static func section_key(stage_id: String, section: Dictionary) -> String:
+ ## The block of the city centre at km is cobbled (centre of a city whose style has cobbles; blocks counted from the
+ ## finish line, so they do not move when the stage is longer or shorter in front of the city). Which blocks: see
+ ## cobbled_blocks (AU-R: every centre gets cobble_share of its length, not only on average over all cities; AU-R3:
+-## of the length of its streets – the bridges without a stone deck, bridge_stretches, do not count).
++## of the length of its streets – the bridges without a stone deck, bridge_stretches, do not count; AU-R4: the stone
++## bridges count as streets that are always cobbled, stone_stretches, and a tunnel of the stage in the centre,
++## tunnel_stretches, moves blocks only when it would push the share out of its band).
+ func _cobbled(km: float) -> bool:
+ 	if plan == null or cobble_styles.is_empty():
+ 		return false
+@@ -432,8 +434,10 @@ func _cobbled(km: float) -> bool:
+ 	if _cobbles.is_empty():
+ 		var centre: Variant = plan.get("city_center_km")
+ 		if (length is float or length is int) and (centre is float or centre is int):
+-			_cobbles = cobbled_blocks(str(plan.get("to_id")), maxf(float(length) - float(centre), 0.0) * 1000.0 / _time_scale,
+-				cobble_block_m, cobble_share, bridge_stretches(plan, float(length), _time_scale))
++			var len_km := float(length)
++			_cobbles = cobbled_blocks(str(plan.get("to_id")), maxf(len_km - float(centre), 0.0) * 1000.0 / _time_scale,
++				cobble_block_m, cobble_share, bridge_stretches(plan, len_km, _time_scale), stone_stretches(plan, len_km, _time_scale),
++				tunnel_stretches(plan, len_km, _time_scale))
+ 	if _cobbles.has(block):
+ 		return bool(_cobbles[block])
+ 	var yes := unit_hash("%s|%d" % [str(plan.get("to_id")), block]) < cobble_share     # a plan without a centre length
+@@ -446,36 +450,34 @@ func _cobbled(km: float) -> bool:
+ ## the cobbled length nearer to share × centre_m, so each centre gets its share within half a block (an 800-m centre
+ ## 0.55 or 0.56 at 0.6) and the hash only decides which blocks (KRITIK-FAHRBAHN B2; with a decision per block from the
+ ## hash alone a centre got 0.34–0.90, measured over all stages).
+-## `skip`: stretches of the centre that are no street ([from, to] in visible metres before the finish – the bridges
+-## without a stone deck, bridge_stretches; AU-R3). A block counts only with its street metres and the share is that of
+-## the streets, so no cobbled block is spent on a bridge where the car hears none; a block wholly on such a bridge is
+-## never cobbled. The shorter base makes half a block a larger share (Amsterdam, Regensburg, Timişoara, Kaunas and Linz
+-## got 0.65–0.66 from the greedy alone): while a centre cut by such a stretch misses the share by more than COBBLE_BAND,
+-## single moves bring it nearer (_closer). Without such a stretch inside the centre the result is the one without
+-## `skip`, bit for bit.
+-static func cobbled_blocks(city: String, centre_m: float, block_m: float, share: float, skip: Array = []) -> Dictionary:
++## The share is that of what the car hears as the old town's streets (AU-R3, AU-R4; stretches as [from, to] in visible
++## metres before the finish):
++##   `skip`   no street – the bridges without a stone deck (bridge_stretches; the car hears the deck or asphalt there).
++##            A block counts only with its street metres, a block wholly on such a bridge is never cobbled.
++##   `paved`  streets that are always cobbled – the stone bridges (stone_stretches; their setts are "cobbles" at every
++##            pass): they count in the base and as cobbled, the blocks share the rest (KRITIK-R2-CODE M1: counted as
++##            free street before, Warschau, Lüttich, Prag, Saragossa, Burgos, Ljubljana, San Sebastián heard 0.46–0.53
++##            on their streets, Bordeaux, Dresden, Lyon, Paris, Toulouse, Tours 0.70–0.78 with the bridge).
++##   `late`   stretches of this arrival only – the tunnels of the stage (tunnel_stretches; asphalt): the allocation
++##            of the city is kept and single moves (_closer) change it only while they push the share out of the band,
++##            so every arrival without such a tunnel hears the same blocks.
++## Whenever the share misses the band (COBBLE_BAND), single moves bring it nearer (_closer) – for every centre (AU-R4;
++## a shorter base makes half a block a larger share). Without any stretch inside the centre the result is the one
++## without stretches, bit for bit.
++static func cobbled_blocks(city: String, centre_m: float, block_m: float, share: float, skip: Array = [],
++		paved: Array = [], late: Array = []) -> Dictionary:
+ 	var out := {}
+ 	if centre_m <= 0.0 or block_m <= 0.0:
+ 		return out
+ 	var n := maxi(int(ceil(centre_m / block_m - 1.0e-6)), 1)
+-	var gaps := _merged_stretches(skip)
+ 	var order: Array = []
+-	var street: Array[float] = []
+-	var cut_all := 0.0
+ 	for b in n:
+ 		order.append([unit_hash("%s|%d" % [city, b]), b])
+ 		out[b] = false
+-		var w := minf(block_m, centre_m - b * block_m)
+-		var cut := 0.0
+-		for g: Array in gaps:
+-			cut += maxf(minf(b * block_m + w, float(g[1])) - maxf(b * block_m, float(g[0])), 0.0)
+-		if cut > 0.0:
+-			cut = minf(cut, w)
+-			cut_all += cut
+-			w = w - cut if w - cut > 1.0e-6 else 0.0
+-		street.append(w)
+ 	order.sort_custom(func(p: Array, q: Array) -> bool: return float(p[0]) < float(q[0]))
+-	var target := clampf(share, 0.0, 1.0) * (centre_m - cut_all)
++	var fit := _street_fit(n, centre_m, block_m, share, _merged_stretches(skip), _merged_stretches(paved))
++	var street: Array[float] = fit[0]
++	var target := float(fit[1])
+ 	var got := 0.0
+ 	for row: Array in order:
+ 		var b := int(row[1])
+@@ -483,11 +485,54 @@ static func cobbled_blocks(city: String, centre_m: float, block_m: float, share:
+ 		if absf(got + w - target) < absf(got - target):
+ 			got += w
+ 			out[b] = true
+-	if cut_all > 0.0:
+-		_closer(out, street, order, got, target, COBBLE_BAND * (centre_m - cut_all))
++	_closer(out, street, order, got, target, float(fit[2]))
++	if not late.is_empty():
++		var fit2 := _street_fit(n, centre_m, block_m, share, _merged_stretches(skip + late), _merged_stretches(paved))
++		var street2: Array[float] = fit2[0]
++		var got2 := 0.0
++		for b in n:
++			got2 += street2[b] if bool(out[b]) else 0.0
++		_closer(out, street2, order, got2, float(fit2[1]), float(fit2[2]))
+ 	return out
+ 
+ 
++## [street metres per block, target of cobbled street metres, band] of a centre: `gaps` are no street, `setts` are
++## streets that are always cobbled (a part of them inside a gap does not count); the base of the share is the street
++## and the setts, the setts are cobbled already. Without setts the numbers are those of AU-R3, bit for bit.
++static func _street_fit(n: int, centre_m: float, block_m: float, share: float, gaps: Array, setts: Array) -> Array:
++	var street: Array[float] = []
++	var cut_all := 0.0
++	var paved_all := 0.0
++	for b in n:
++		var a0 := b * block_m
++		var w := minf(block_m, centre_m - a0)
++		var cut := 0.0
++		for g: Array in gaps:
++			cut += maxf(minf(a0 + w, float(g[1])) - maxf(a0, float(g[0])), 0.0)
++		var pav := 0.0
++		for s: Array in setts:
++			var s0 := maxf(a0, float(s[0]))
++			var s1 := minf(a0 + w, float(s[1]))
++			if s1 > s0:
++				pav += s1 - s0
++				for g: Array in gaps:
++					pav -= maxf(minf(s1, float(g[1])) - maxf(s0, float(g[0])), 0.0)
++		if cut > 0.0:
++			cut = minf(cut, w)
++			cut_all += cut
++			w = w - cut if w - cut > 1.0e-6 else 0.0
++		if pav > 0.0:
++			pav = minf(pav, w)
++			paved_all += pav
++			w = w - pav if w - pav > 1.0e-6 else 0.0
++		street.append(w)
++	var base := centre_m - cut_all
++	var target := clampf(share, 0.0, 1.0) * base
++	if paved_all > 0.0:
++		target = maxf(target - paved_all, 0.0)
++	return [street, target, COBBLE_BAND * base]
++
++
+ ## While the cobbled street metres `got` miss `target` by more than `band`: the best single move – drop a cobbled
+ ## block, swap it for one that is not, or add one (blocks in hash order, the first best move wins) – as long as one
+ ## brings them nearer. `out` is changed in place; returns the cobbled street metres. Deterministic: the same blocks,
+@@ -535,14 +580,33 @@ static func _closer(out: Dictionary, street: Array[float], order: Array, got: fl
+ ## of the old town and get no part of its cobble share (AU-R3). Taken from the plan, not from the track: the bridges of
+ ## a city count from the finish (CityData), so every stage that ends there cuts the same stretches.
+ static func bridge_stretches(p: Object, length_km: float, time_scale: float) -> Array:
++	return _plan_stretches(p, "bridges", length_km, time_scale, func(b: Dictionary) -> bool: return AudioFeed.deck_of(str(b.get("type", ""))) != "stone")
++
++
++## The stone bridges of a plan as stretches [from, to] in visible metres before the finish: their setts sound as the
++## old town's cobbles at every pass (_paving: a stone deck is "cobbles"), so cobbled_blocks counts them as streets
++## that are cobbled already (AU-R4). From the plan, as bridge_stretches.
++static func stone_stretches(p: Object, length_km: float, time_scale: float) -> Array:
++	return _plan_stretches(p, "bridges", length_km, time_scale, func(b: Dictionary) -> bool: return AudioFeed.deck_of(str(b.get("type", ""))) == "stone")
++
++
++## The tunnels of a plan as stretches [from, to] in visible metres before the finish: the car hears asphalt there
++## (_paving), so they are no street of the old town (AU-R4). Tunnels are data of the stage, not of the city: only this
++## arrival has them (cobbled_blocks `late`).
++static func tunnel_stretches(p: Object, length_km: float, time_scale: float) -> Array:
++	return _plan_stretches(p, "tunnels", length_km, time_scale, func(_t: Dictionary) -> bool: return true)
++
++
++## The entries of a plan list ({start_km, end_km, …}) that `keep` accepts, as stretches before the finish.
++static func _plan_stretches(p: Object, list: String, length_km: float, time_scale: float, keep: Callable) -> Array:
+ 	var out: Array = []
+-	var bridges: Variant = p.get("bridges") if p != null else null
+-	if not (bridges is Array) or time_scale <= 0.0:
++	var rows: Variant = p.get(list) if p != null else null
++	if not (rows is Array) or time_scale <= 0.0:
+ 		return out
+-	for b: Variant in bridges:
++	for b: Variant in rows:
+ 		if not (b is Dictionary) or not (b as Dictionary).has("start_km") or not (b as Dictionary).has("end_km"):
+ 			continue
+-		if deck_of(str((b as Dictionary).get("type", ""))) == "stone":
++		if not bool(keep.call(b)):
+ 			continue
+ 		out.append([(length_km - float(b["end_km"])) * 1000.0 / time_scale, (length_km - float(b["start_km"])) * 1000.0 / time_scale])
+ 	return out
+@@ -620,7 +684,7 @@ func _update_surfaces(state: Dictionary) -> void:
+ 	var wl := x - track_half_m
+ 	var wr := x + track_half_m
+ 	surface_l = wheel_surface(surface_at(wl, left, right, shoulder, at_limit and x < (left + right) * 0.5), wl >= left and wl <= right)
+-	# the right edge of a fuel lane is a plain dashed line without a profile, paved on both sides (KRITIK-FAHRBAHN B13)
++	# the edge line of a fuel lane (solid, as Arcade paints it) has no profile: no rumble strip there (KRITIK-FAHRBAHN B13)
+ 	surface_r = wheel_surface(surface_at(wr, left, right, shoulder, at_limit and x >= (left + right) * 0.5), wr >= left and wr <= right,
+ 		fuel_lane > 0.0)
+ 
+@@ -640,8 +704,9 @@ func surface_at(wx: float, left: float, right: float, shoulder_m: float, on_gras
+ 
+ 
+ ## What a wheel really runs on on this road: the paving instead of plain "asphalt"; the edge line is a rumble only
+-## on rumble roads (elsewhere paving inside the edge, shoulder outside); `plain_edge`: this edge is the dashed line
+-## of a fuel lane – paving on both sides of it; in tunnels, on bridges and in the City Limits the shoulder is paved
++## on rumble roads (elsewhere paving inside the edge, shoulder outside); `plain_edge`: this edge is the edge line of
++## a fuel lane, without a profile – the paving on both sides of it (also within rumble_out_m outside it, where the
++## shoulder begins: KRITIK-R2-CODE L1, open); in tunnels, on bridges and in the City Limits the shoulder is paved
+ ## (walkway, deck, pavement).
+ func wheel_surface(raw: String, inside: bool, plain_edge: bool = false) -> String:
+ 	var paved_shoulder := tunnel or bridge != "" or city

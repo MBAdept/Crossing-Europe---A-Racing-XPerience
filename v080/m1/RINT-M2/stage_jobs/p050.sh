@@ -1,0 +1,7 @@
+cd /home/user/crossing-europe---a-racing-xperience/.claude/worktrees/wf_9927a373-337-1
+export MESA_SHADER_CACHE_DIR=/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/RINT-M2/mesa LP_NUM_THREADS=2 GFX_ARGS="--gfx-preset=high"
+mkdir -p /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/RINT-M2/ab/clips
+CLIP_S=30 SIDE=960x540 tools/ab_clip.sh /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/RINT-M2/ab/clips/koehlbrand_nacht_regen.mp4 --stage=kiel_hamburg --from=kiel --start-km=76.3 --hour=22 --weather=rain --vehicle=limousine --seed=11 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-speed=100 > /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/RINT-M2/ab/clips/clip1.log 2>&1
+echo "clip1 exit $?"
+CLIP_S=30 SIDE=960x540 tools/ab_clip.sh /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/RINT-M2/ab/clips/gotthard_ausfahrt.mp4 --stage=bern_mailand --from=bern --start-km=199.6 --hour=12 --weather=normal --vehicle=limousine --seed=16 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-speed=120 > /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/RINT-M2/ab/clips/clip2.log 2>&1
+echo "clip2 exit $?"

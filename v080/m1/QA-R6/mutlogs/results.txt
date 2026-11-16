@@ -1,0 +1,21 @@
+M00 unchanged: exit 0, 0 fail lines, 7s
+DONE
+M01 fuel lane edge +0.2 m: CAUGHT (exit 1, 1 fail lines, 4s) FAIL  test_structures.gd :: test_station_on_the_fuel_lane_of_the_slice_stage
+M02 station column never moves for a sign (F1): CAUGHT (exit 1, 1 fail lines, 4s) FAIL  test_structures.gd :: test_station_columns_never_in_front_of_a_sign
+M03 canopy soffit 5.4 m instead of 5.6 m: NOT CAUGHT (exit 0, 0 fail lines, 4s) 
+M04 border pillar never moves for a sign (F1): CAUGHT (exit 1, 2 fail lines, 3s) FAIL  test_structures.gd :: test_border_station_of_the_test_stage
+M05 border pillars ignore the bend corridor (F7): CAUGHT (exit 1, 1 fail lines, 4s) FAIL  test_structures.gd :: test_border_station_of_the_test_stage
+M06 border roof 5.8 m: NOT CAUGHT (exit 0, 0 fail lines, 6s) 
+M07 city: right-side street lights only: CAUGHT (exit 1, 1 fail lines, 5s) FAIL  test_structures.gd :: test_city_lights_every_33_m_alternating_with_pools
+M08 city lamp energy 0.55 (PropLibrary's): NOT CAUGHT (exit 0, 0 fail lines, 4s) 
+M09 city fences ignore the bend corridor (F7): CAUGHT (exit 1, 1 fail lines, 5s) FAIL  test_structures.gd :: test_city_fences_stay_out_of_bend_corridors
+M10 countdown one lamp late: CAUGHT (exit 1, 1 fail lines, 5s) FAIL  test_structures.gd :: test_gantries_and_the_countdown_rule
+M11 radar flash below 0.05: CAUGHT (exit 1, 1 fail lines, 5s) FAIL  test_structures.gd :: test_radar_cameras_and_flash
+M12 station casts with shadows off: CAUGHT (exit 1, 1 fail lines, 5s) FAIL  test_structures.gd :: test_committed_nodes_static_material_and_shadow_rule
+M13 all R6 nodes: dynamic vpbr (instance uniforms): CAUGHT (exit 1, 1 fail lines, 6s) FAIL  test_structures.gd :: test_committed_nodes_static_material_and_shadow_rule
+M14 station: no pylon: CAUGHT (exit 1, 1 fail lines, 5s) FAIL  test_structures.gd :: test_station_on_the_fuel_lane_of_the_slice_stage
+M15 gantry: no countdown lamps: CAUGHT (exit 1, 1 fail lines, 6s) FAIL  test_structures.gd :: test_gantries_and_the_countdown_rule
+M16 city lamps: no light pool: CAUGHT (exit 1, 1 fail lines, 6s) FAIL  test_structures.gd :: test_city_lights_every_33_m_alternating_with_pools
+M17 border: country name not upper case: CAUGHT (exit 1, 1 fail lines, 6s) FAIL  test_structures.gd :: test_border_station_of_the_test_stage
+M18 station: canopy also on island-only segments: CAUGHT (exit 1, 1 fail lines, 5s) FAIL  test_structures.gd :: test_station_on_the_fuel_lane_of_the_slice_stage
+DONE

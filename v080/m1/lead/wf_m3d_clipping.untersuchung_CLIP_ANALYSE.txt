@@ -1,0 +1,106 @@
+
+CONTEXT
+- Game: "Crossing Europe – A Racing Xperience" (Godot 4.7.2, GDScript, GL Compatibility renderer), repo /home/user/crossing-europe---a-racing-xperience.
+  German user; docs and player-facing texts in German (tr()), code comments in English. v0.7.0 is released (= main).
+  v0.8.0 adds a graphics option: today's pseudo-3D game becomes the mode "Arcade" (frozen, pixel-identical); the new
+  mode "Modern" is a second, real-3D renderer in the same build with finer models, dynamic light and a "Modern" sound
+  profile. The user's wish, literally: "das gesamte Spiel einer deutlichen grafischen Überarbeitung unterziehen.
+  Detailreiche Grafik soweit möglich, feinere Modelle, bessere Lichteffekte, Sound- und Musiküberarbeitung" and "echtes
+  3D bitte". Wave 0 (session seam, model pipeline, audio core, geometry kernel with fairness tests) is merged in branch
+  v0.8.0. This push (M1) runs as parallel packages: renderer skeleton R1a (done), road/environment R1, terrain/props
+  R2, vehicles/signs R3, vehicle models AS1 (done; an art review and a rework AS1R follow), environment models AS1b,
+  engine sound AU-B (done), options/chooser/showroom/Leistungstest UI1. Then the lead merges everything, QA checks it,
+  and the user gets the first test build (Kiel–Hamburg in Modern, for Steam Deck and Windows).
+- THE BUILD CONTRACT IS BINDING: docs/dev/v080_contract.md (1,800 lines). Read §2 (rules), the decisions of §3 that
+  concern you, your interfaces in §4, §5, your package in §6, §8 and COMPLETELY §11 (amendments after wave 0 – it wins
+  over the older text; A-7 is the renderer facade, A-8 the plan and file ownership of this push). Also read the docs
+  of your area: docs/renderer-modern.md, docs/modelle.md, ARCHITECTURE.md §15. Where the contract is wrong
+  or blocks you: implement the closest sound solution and report it under contract_issues with evidence – never work
+  around it silently. Evidence and prototypes of the design studies (starting points, read before reuse): /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/
+  (renderer3d/out/spike_src, engine-probe/evidence/prototypes, synthesis/out; index in §10 of the contract).
+- YOUR PACKAGE ID: CLIP-ANALYSE – a read-only role: no commits, no branch, no safety copy. START: if
+  /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/CLIP-ANALYSE/STAND.md exists, a predecessor was stopped by an account usage limit – read it, reuse its working
+  copy and partial results, and continue.
+- RESTART PROTOCOL: the container can restart, or an account usage limit can stop you, at any moment; a successor with
+  this same brief is then started (both have already happened in this push). (1) Your START instruction above says how
+  to find and continue a predecessor; its background processes are gone and half-written output files may be
+  incomplete. (2) Keep /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/CLIP-ANALYSE/STAND.md up to date after every step you finish: worktree path and branch,
+  done / doing now / next / pitfalls, where your scratch results are.
+- Runs: for EVERY game run set XDG_DATA_HOME to an ABSOLUTE folder under your scratch dir; pass --graphics=arcade|modern
+  explicitly. Rendering needs  xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
+  --audio-driver Dummy …  (software OpenGL, llvmpipe – no real GPU, no loudspeakers here: everything about a Steam
+  Deck, a real GPU or how something sounds to a person is "inferred", never "measured"). The default graphics preset
+  on this machine is "low" (adapter tier software: no shadow casters) – for pictures pass --gfx-preset=medium or high.
+  Up to six agents share the 4 cores and 16 GB: heavy jobs (Godot renders, Blender, audio renders, test suites) one at
+  a time with nice -n 10 and at most 2 worker processes; run the complete tools/run_tests.sh (9–15 min) at most twice
+  (use its filter argument while iterating) and tools/golden.sh check (Arcade identity, must print 20 von 20
+  identisch) once at the end. Tools: godot, python3 (numpy, PIL), ffmpeg, ImageMagick, Blender 5.2 as Python module
+  /home/user/tools/bpyenv/bin/python, tools/run_tests.sh, tools/run_render_checks.sh, tools/golden.sh, tools/ab_shot.sh
+  (in branches that contain R1a), tools/models_contact_sheet.sh, tools/blender/validate_models.py,
+  tools/audio/qc/audio_qc.py.
+- Shell: the Bash tool may refuse compound commands with heredocs or several chained git commands ("too complex"):
+  write helper scripts into your scratch folder and run them one by one; write commit messages to a file and use
+  git commit -F <file>. "-s" scripts must not name autoload-dependent classes statically; compile-check with
+  tests/check_scripts.gd.
+- Rule 1: the frozen Arcade files are never edited. Stay inside your file ownership (§5 with A-8); packages of this push talk to each other only through the facade of A-7 with duck typing.
+- LOOK AT YOUR OWN PICTURES: you can open PNG/JPG files with the Read tool. Judge every picture you deliver honestly
+  against the Arcade frame of the same simulation state. "Modern" has to look clearly better than Arcade, not merely
+  different; say plainly where it does not yet.
+- Scratch for working files: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/CLIP-ANALYSE/ ; pictures, previews and reports for review: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/CLIP-ANALYSE/ (write
+  your full report there as bericht.md). Never commit intermediates or previews. Disk space is limited: delete large
+  scratch items (exports, copies of the tree, caches you no longer need) when you are done.
+- You make no commits and change no branch.
+- Priorities when time gets tight: (1) nothing broken – gates green, Arcade identical, fairness tests green; (2) the interfaces others depend on; (3) the look.
+  Deliver the core solid and list what is left under notes_for_next rather than leaving everything half-done.
+- RESULT: keep it compact – summary at most 250 words; deviations, contract_issues and notes_for_next at most 10
+  entries each, one or two sentences per entry; the details belong into bericht.md. Mark numbers measured/inferred.
+
+THE USER'S REPORT (German, verbatim, 2026-11-12): "ZS1 Kassel-Erfurt auf meinem Main-PC gespielt. Keine größeren Bugs,
+aber leichtes Clipping bei einem weissen PKW. trat 2 mal auf und hing offenbar mit meiner Lenkbewegung zusammen, sah nur
+etwas merkwürdig aus und ist kein Game Breaker." – i.e. the first test build ZS1 (commit 39849f0263921f798da4326b83dff30d83a947d2, archives in
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/ZS1/), the stage Kassel – Erfurt (network stage "erfurt_kassel"; find out in which race and direction the
+user can drive it), on the user's Windows main PC with a real graphics card – most probably in the graphics mode
+"Modern" (the point of the test build), but Arcade is not excluded. No bigger bugs. A white passenger car (PKW) clipped
+slightly, twice, apparently connected with the user's steering movement; it looked strange, not game-breaking. It is not
+said whether the white car was the user's own car or a traffic car; traffic models in ZS1 come in several colours, white
+among them, and the player cars Limousine and Kompakt are models in ZS1 (Kombi, Sportwagen, GT still pictures).
+YOUR ROLE: CLIP-ANALYSE – INDEPENDENT CODE AND GEOMETRY ANALYSIS (no rendering needed; read the code of both builds with
+git show 39849f0263921f798da4326b83dff30d83a947d2:<path> and git show 6e484056ec87e2fa614061000a362feb2b5a6db8:<path> in /home/user/crossing-europe---a-racing-xperience, read assets/models/manifest.json and the sprite manifest of
+both, run python for the numbers; you may run headless Godot scripts from a scratch checkout if you need numbers only the
+engine gives – nice -n 19).
+LEADS THE LEAD FOUND IN THE CODE (unverified – confirm or refute each with evidence, and look for others):
+- The simulation collides axis-aligned boxes: scripts/gameplay/traffic_system.gd find_collision() hits only when
+  |dz| < (length_a + length_b)/2 × hitbox_scale and |dx| < (width_a + width_b)/2 × hitbox_scale, with
+  collision.hitbox_scale 0.95 (config/game_config.json) – two cars can overlap by about 5 % of their summed half sizes
+  without a collision (Arcade hides that: its pictures are drawn one over the other).
+- A car BEHIND the player (dz < 0) only collides when at least collision.rear_min_visible_fraction 1/3 of it is visible
+  through Arcade's projection (proj.visible_fraction) – the player can steer into a car beside-behind it that Arcade's
+  camera does not show; Modern's chase camera may show it.
+- After a collision the player is invulnerable (slowdown_s 3 + push_extra_s 0.5 + invulnerable_grace_s 0.75) and
+  blinks – it can pass through traffic.
+- Modern turns the models visibly: scripts/race3d/layers/vehicles.gd – the player's yaw = steering × player_steer_deg 3
+  + understeer × 6 + lateral speed, up to player_yaw_max_deg 20, body roll up to 2.5°, the front wheels steer; traffic
+  cars take their own heading from the lateral speed up to vehicle_yaw_max_deg 30 (config render.*). The collision boxes
+  do not turn – a corner of a turned model can reach into a neighbour that the simulation does not touch.
+- The model sizes are matched to the sprite manifest's object sizes (validator ±2 %); whether they equal the simulation's
+  collision sizes (vehicle.width_m/length_m, traffic car width/length) is not checked anywhere.
+- Also possible: wheels through the wheel arches when steering, a model through the guardrail or the road, the camera's
+  near plane cutting a car beside the camera.
+WHAT TO DO: for every mechanism by which two vehicle models (or a model and the road, guardrail, camera) can visibly
+intersect in Modern, give the code path (file:line) and the worst-case penetration depth computed from the real numbers:
+the collision sizes of every player car and traffic type (vehicle.width_m/length_m, traffic widths/lengths), the model
+sizes (manifest extents, all levels), the hitbox scale, the yaw limits and smoothing, body roll, wheel steer and wheel
+arch clearance, the rear rule (when exactly a car beside-behind does not collide, how far the player can steer into it),
+the invulnerable phase, the camera (near plane, position, curve camera). Rank them by how well they fit "slight, twice,
+linked to my steering, a white PKW". Then list fix options with what each solves, its risks, its fairness (F1/F6:
+never later or smaller than Arcade) and its cost.
+HARD RULES FOR ANY FIX: the simulation, the collision rules and Arcade stay exactly as they are (the frozen Arcade files,
+scripts/gameplay/**, scripts/race/** except the Modern seam, config values Arcade reads) – both modes share physics, results
+and leaderboards, so a collision must happen in Modern exactly when it happens in Arcade. The fix is visual and lives in
+the Modern renderer. Fairness (contract F1/F6, tests/sim/modern_sight.gd): a car must never be visible later or smaller
+than in Arcade; its lights keep their minimum size. Prefer a clean visual rule (for example: turned models keep their
+corners out of a neighbour – limit the visual yaw against close neighbours; a residual overlap of a few centimetres from
+the 0.95 hitbox resolved by a small symmetric visual side offset; a car the simulation lets the player drive into,
+because Arcade would not show it, fades out or ghosts while it overlaps instead of showing the cut) – but decide from
+the evidence, not from this list.
+Write bericht.md into /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/CLIP-ANALYSE/.

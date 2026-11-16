@@ -1,0 +1,2293 @@
+{
+ "tree_oak": {
+  "id": "props/tree_oak",
+  "name": "tree_oak",
+  "objects": 3,
+  "materials_src": 2,
+  "mat_classes": {
+   "proc": 2
+  },
+  "realize_s": 0.0,
+  "bake": {
+   "atlas": [
+    512,
+    512
+   ],
+   "charts": 479,
+   "ppm": 9.7,
+   "area_m2": 1208.3,
+   "unwrap_s": 0.05,
+   "bake_s": 6.2,
+   "coverage": 0.878
+  },
+  "textures": {
+   "albedo": {
+    "file": "tree_oak_albedo.png",
+    "bytes": 321190,
+    "size": [
+     512,
+     512
+    ]
+   },
+   "orm": {
+    "file": "tree_oak_orm.png",
+    "bytes": 29833,
+    "size": [
+     512,
+     512
+    ]
+   }
+  },
+  "glb": "tree_oak.glb",
+  "glb_bytes": 572572,
+  "nodes": {
+   "body": {
+    "origin": [
+     0.0,
+     0.0,
+     -0.0
+    ],
+    "tris": 5900,
+    "surfaces": 1
+   }
+  },
+  "surfaces": {
+   "baked": {
+    "tris": 5900,
+    "verts": 5755,
+    "kind": "baked"
+   }
+  },
+  "tris": 5900,
+  "verts": 5755,
+  "write_s": 0.41,
+  "total_s": 6.65,
+  "draw_surfaces": 1,
+  "build_s": 0.17
+ },
+ "traffic_truck": {
+  "id": "traffic/truck_white",
+  "name": "traffic_truck",
+  "objects": 35,
+  "materials_src": 9,
+  "mat_classes": {
+   "mask": 3,
+   "flat": 6
+  },
+  "realize_s": 0.0,
+  "bake": {
+   "atlas": [
+    2048,
+    1024
+   ],
+   "charts": 27,
+   "ppm": 77.6,
+   "area_m2": 202.0,
+   "unwrap_s": 0.0,
+   "bake_s": 21.29,
+   "coverage": 0.608
+  },
+  "textures": {
+   "albedo": {
+    "file": "traffic_truck_albedo.png",
+    "bytes": 16145,
+    "size": [
+     2048,
+     1024
+    ]
+   },
+   "orm": {
+    "file": "traffic_truck_orm.png",
+    "bytes": 15478,
+    "size": [
+     2048,
+     1024
+    ]
+   },
+   "emit_tail": {
+    "file": "traffic_truck_emit_tail.png",
+    "bytes": 7137,
+    "size": [
+     2048,
+     1024
+    ]
+   },
+   "emit_brake": {
+    "file": "traffic_truck_emit_brake.png",
+    "bytes": 6317,
+    "size": [
+     2048,
+     1024
+    ]
+   }
+  },
+  "glb": "traffic_truck.glb",
+  "glb_bytes": 598084,
+  "nodes": {
+   "body": {
+    "origin": [
+     0.0,
+     0.0,
+     -0.0
+    ],
+    "tris": 3728,
+    "surfaces": 2
+   },
+   "wheel_0l": {
+    "origin": [
+     -1.085,
+     0.53,
+     -15.25
+    ],
+    "tris": 728,
+    "surfaces": 1
+   },
+   "wheel_0r": {
+    "origin": [
+     1.085,
+     0.53,
+     -15.25
+    ],
+    "tris": 728,
+    "surfaces": 1
+   },
+   "wheel_1l": {
+    "origin": [
+     -0.92,
+     0.53,
+     -11.35
+    ],
+    "tris": 1120,
+    "surfaces": 1
+   },
+   "wheel_1r": {
+    "origin": [
+     0.92,
+     0.53,
+     -11.35
+    ],
+    "tris": 1120,
+    "surfaces": 1
+   },
+   "wheel_4l": {
+    "origin": [
+     -1.0525,
+     0.53,
+     -3.0
+    ],
+    "tris": 728,
+    "surfaces": 1
+   },
+   "wheel_4r": {
+    "origin": [
+     1.0525,
+     0.53,
+     -3.0
+    ],
+    "tris": 728,
+    "surfaces": 1
+   },
+   "wheel_3l": {
+    "origin": [
+     -1.0525,
+     0.53,
+     -4.31
+    ],
+    "tris": 728,
+    "surfaces": 1
+   },
+   "wheel_3r": {
+    "origin": [
+     1.0525,
+     0.53,
+     -4.31
+    ],
+    "tris": 728,
+    "surfaces": 1
+   },
+   "wheel_2l": {
+    "origin": [
+     -1.0525,
+     0.53,
+     -5.62
+    ],
+    "tris": 728,
+    "surfaces": 1
+   },
+   "wheel_2r": {
+    "origin": [
+     1.0525,
+     0.53,
+     -5.62
+    ],
+    "tris": 728,
+    "surfaces": 1
+   }
+  },
+  "surfaces": {
+   "baked": {
+    "tris": 388,
+    "verts": 786,
+    "kind": "baked"
+   },
+   "trim": {
+    "tris": 11404,
+    "verts": 12284,
+    "kind": "trim"
+   }
+  },
+  "tris": 11792,
+  "verts": 13070,
+  "write_s": 1.52,
+  "total_s": 22.83,
+  "draw_surfaces": 12,
+  "build_s": 1.97
+ },
+ "traffic_sedan": {
+  "id": "traffic/sedan_red",
+  "name": "traffic_sedan",
+  "objects": 24,
+  "materials_src": 11,
+  "mat_classes": {
+   "flat": 8,
+   "mask": 3
+  },
+  "realize_s": 0.06,
+  "bake": {
+   "atlas": [
+    1024,
+    1024
+   ],
+   "charts": 76,
+   "ppm": 128.2,
+   "area_m2": 44.3,
+   "unwrap_s": 0.15,
+   "bake_s": 25.2,
+   "coverage": 0.743
+  },
+  "textures": {
+   "albedo": {
+    "file": "traffic_sedan_albedo.png",
+    "bytes": 39926,
+    "size": [
+     1024,
+     1024
+    ]
+   },
+   "orm": {
+    "file": "traffic_sedan_orm.png",
+    "bytes": 37562,
+    "size": [
+     1024,
+     1024
+    ]
+   },
+   "emit_tail": {
+    "file": "traffic_sedan_emit_tail.png",
+    "bytes": 4685,
+    "size": [
+     1024,
+     1024
+    ]
+   },
+   "emit_brake": {
+    "file": "traffic_sedan_emit_brake.png",
+    "bytes": 4759,
+    "size": [
+     1024,
+     1024
+    ]
+   }
+  },
+  "glb": "traffic_sedan.glb",
+  "glb_bytes": 1134612,
+  "nodes": {
+   "body": {
+    "origin": [
+     0.0,
+     0.0,
+     -0.0
+    ],
+    "tris": 35820,
+    "surfaces": 3
+   },
+   "wheel_1l": {
+    "origin": [
+     -0.7525,
+     0.32,
+     -0.965
+    ],
+    "tris": 756,
+    "surfaces": 1
+   },
+   "wheel_1r": {
+    "origin": [
+     0.7525,
+     0.32,
+     -0.965
+    ],
+    "tris": 756,
+    "surfaces": 1
+   },
+   "wheel_0l": {
+    "origin": [
+     -0.7525,
+     0.32,
+     -3.765
+    ],
+    "tris": 756,
+    "surfaces": 1
+   },
+   "wheel_0r": {
+    "origin": [
+     0.7525,
+     0.32,
+     -3.765
+    ],
+    "tris": 756,
+    "surfaces": 1
+   }
+  },
+  "surfaces": {
+   "baked": {
+    "tris": 35568,
+    "verts": 21124,
+    "kind": "baked"
+   },
+   "glass": {
+    "tris": 24,
+    "verts": 48,
+    "kind": "glass"
+   },
+   "trim": {
+    "tris": 3252,
+    "verts": 3544,
+    "kind": "trim"
+   }
+  },
+  "tris": 38844,
+  "verts": 24716,
+  "write_s": 1.11,
+  "total_s": 26.53,
+  "draw_surfaces": 7,
+  "build_s": 1.73
+ },
+ "building_gruenderzeit": {
+  "id": "props/city_german_gruenderzeit",
+  "name": "building_gruenderzeit",
+  "objects": 11,
+  "materials_src": 10,
+  "mat_classes": {
+   "proc": 5,
+   "flat": 5
+  },
+  "realize_s": 0.0,
+  "bake": {
+   "atlas": [
+    2048,
+    2048
+   ],
+   "charts": 37,
+   "ppm": 37.8,
+   "area_m2": 2208.0,
+   "unwrap_s": 0.0,
+   "bake_s": 38.99,
+   "coverage": 0.768
+  },
+  "textures": {
+   "albedo": {
+    "file": "building_gruenderzeit_albedo.png",
+    "bytes": 1005606,
+    "size": [
+     2048,
+     2048
+    ]
+   },
+   "orm": {
+    "file": "building_gruenderzeit_orm.png",
+    "bytes": 24746,
+    "size": [
+     2048,
+     2048
+    ]
+   },
+   "emit_lights": {
+    "file": "building_gruenderzeit_emit_lights.png",
+    "bytes": 14809,
+    "size": [
+     2048,
+     2048
+    ]
+   }
+  },
+  "glb": "building_gruenderzeit.glb",
+  "glb_bytes": 1248400,
+  "nodes": {
+   "body": {
+    "origin": [
+     0.0,
+     0.0,
+     -0.0
+    ],
+    "tris": 2822,
+    "surfaces": 3
+   }
+  },
+  "surfaces": {
+   "baked": {
+    "tris": 182,
+    "verts": 302,
+    "kind": "baked"
+   },
+   "glass": {
+    "tris": 48,
+    "verts": 96,
+    "kind": "glass"
+   },
+   "trim": {
+    "tris": 2592,
+    "verts": 4680,
+    "kind": "trim"
+   }
+  },
+  "tris": 2822,
+  "verts": 5078,
+  "write_s": 7.02,
+  "total_s": 46.04,
+  "draw_surfaces": 3,
+  "build_s": 8.93
+ },
+ "landmark_michel": {
+  "id": "landmarks/michel",
+  "name": "landmark_michel",
+  "objects": 8,
+  "materials_src": 7,
+  "mat_classes": {
+   "proc": 6,
+   "flat": 1
+  },
+  "realize_s": 0.0,
+  "bake": {
+   "atlas": [
+    2048,
+    2048
+   ],
+   "charts": 980,
+   "ppm": 9.6,
+   "area_m2": 33525.8,
+   "unwrap_s": 0.04,
+   "bake_s": 54.5,
+   "coverage": 0.833
+  },
+  "textures": {
+   "albedo": {
+    "file": "landmark_michel_albedo.png",
+    "bytes": 2268596,
+    "size": [
+     2048,
+     2048
+    ]
+   },
+   "orm": {
+    "file": "landmark_michel_orm.png",
+    "bytes": 69285,
+    "size": [
+     2048,
+     2048
+    ]
+   },
+   "emit_lights": {
+    "file": "landmark_michel_emit_lights.png",
+    "bytes": 82890,
+    "size": [
+     2048,
+     2048
+    ]
+   }
+  },
+  "glb": "landmark_michel.glb",
+  "glb_bytes": 2624628,
+  "nodes": {
+   "body": {
+    "origin": [
+     0.0,
+     0.0,
+     -0.0
+    ],
+    "tris": 3024,
+    "surfaces": 1
+   }
+  },
+  "surfaces": {
+   "baked": {
+    "tris": 3024,
+    "verts": 5730,
+    "kind": "baked"
+   }
+  },
+  "tris": 3024,
+  "verts": 5730,
+  "write_s": 10.29,
+  "total_s": 64.84,
+  "draw_surfaces": 1,
+  "build_s": 1.35
+ },
+ "player_kompakt_lod0": {
+  "id": "player/kompakt",
+  "name": "player_kompakt_lod0",
+  "objects": 98,
+  "materials_src": 47,
+  "mat_classes": {
+   "flat": 40,
+   "lens": 5,
+   "proc": 2
+  },
+  "realize_s": 0.01,
+  "textures": {},
+  "glb": "player_kompakt_lod0.glb",
+  "glb_bytes": 8314112,
+  "nodes": {
+   "body": {
+    "origin": [
+     0.0,
+     0.0,
+     -0.0
+    ],
+    "tris": 258762,
+    "surfaces": 9
+   },
+   "wheel_0r": {
+    "origin": [
+     0.7555,
+     0.322,
+     -1.23
+    ],
+    "tris": 5376,
+    "surfaces": 1
+   },
+   "wheel_0l": {
+    "origin": [
+     -0.7555,
+     0.322,
+     -1.23
+    ],
+    "tris": 5376,
+    "surfaces": 1
+   },
+   "wheel_1r": {
+    "origin": [
+     0.7555,
+     0.322,
+     1.39
+    ],
+    "tris": 5376,
+    "surfaces": 1
+   },
+   "wheel_1l": {
+    "origin": [
+     -0.7555,
+     0.322,
+     1.39
+    ],
+    "tris": 5932,
+    "surfaces": 2
+   }
+  },
+  "surfaces": {
+   "em_brake+tail_8c_02_00_ff_02_01": {
+    "tris": 670,
+    "verts": 529,
+    "kind": "emissive"
+   },
+   "em_brake_ff_04_01": {
+    "tris": 664,
+    "verts": 554,
+    "kind": "emissive"
+   },
+   "em_tail_19_17_12": {
+    "tris": 120,
+    "verts": 192,
+    "kind": "emissive"
+   },
+   "em_tail_38_00_00": {
+    "tris": 3127,
+    "verts": 1713,
+    "kind": "emissive"
+   },
+   "em_tail_4c_01_00": {
+    "tris": 220,
+    "verts": 158,
+    "kind": "emissive"
+   },
+   "glass": {
+    "tris": 22559,
+    "verts": 11963,
+    "kind": "glass"
+   },
+   "lens": {
+    "tris": 8926,
+    "verts": 5723,
+    "kind": "lens"
+   },
+   "paint": {
+    "tris": 137236,
+    "verts": 70398,
+    "kind": "paint"
+   },
+   "trim": {
+    "tris": 107300,
+    "verts": 70835,
+    "kind": "trim"
+   }
+  },
+  "tris": 280822,
+  "verts": 162065,
+  "write_s": 1.26,
+  "total_s": 1.27,
+  "draw_surfaces": 14,
+  "build_s": 21.52
+ },
+ "player_kompakt_opt1": {
+  "id": "player/kompakt",
+  "name": "player_kompakt_opt1",
+  "objects": 98,
+  "materials_src": 47,
+  "mat_classes": {
+   "flat": 40,
+   "lens": 5,
+   "proc": 2
+  },
+  "realize_s": 0.01,
+  "textures": {},
+  "glb": "player_kompakt_opt1.glb",
+  "glb_bytes": 2497848,
+  "nodes": {
+   "body": {
+    "origin": [
+     0.0,
+     0.0,
+     -0.0
+    ],
+    "tris": 60627,
+    "surfaces": 9
+   },
+   "wheel_0r": {
+    "origin": [
+     0.7555,
+     0.322,
+     -1.23
+    ],
+    "tris": 5376,
+    "surfaces": 1
+   },
+   "wheel_0l": {
+    "origin": [
+     -0.7555,
+     0.322,
+     -1.23
+    ],
+    "tris": 5376,
+    "surfaces": 1
+   },
+   "wheel_1r": {
+    "origin": [
+     0.7555,
+     0.322,
+     1.39
+    ],
+    "tris": 5376,
+    "surfaces": 1
+   },
+   "wheel_1l": {
+    "origin": [
+     -0.7555,
+     0.322,
+     1.39
+    ],
+    "tris": 5932,
+    "surfaces": 2
+   }
+  },
+  "surfaces": {
+   "em_brake+tail_8c_02_00_ff_02_01": {
+    "tris": 467,
+    "verts": 370,
+    "kind": "emissive"
+   },
+   "em_brake_ff_04_01": {
+    "tris": 664,
+    "verts": 554,
+    "kind": "emissive"
+   },
+   "em_tail_19_17_12": {
+    "tris": 120,
+    "verts": 192,
+    "kind": "emissive"
+   },
+   "em_tail_38_00_00": {
+    "tris": 1700,
+    "verts": 938,
+    "kind": "emissive"
+   },
+   "em_tail_4c_01_00": {
+    "tris": 71,
+    "verts": 61,
+    "kind": "emissive"
+   },
+   "glass": {
+    "tris": 1962,
+    "verts": 1148,
+    "kind": "glass"
+   },
+   "lens": {
+    "tris": 5177,
+    "verts": 3363,
+    "kind": "lens"
+   },
+   "paint": {
+    "tris": 32668,
+    "verts": 17050,
+    "kind": "paint"
+   },
+   "trim": {
+    "tris": 39858,
+    "verts": 32198,
+    "kind": "trim"
+   }
+  },
+  "tris": 82687,
+  "verts": 55874,
+  "write_s": 0.34,
+  "total_s": 1.46,
+  "draw_surfaces": 14,
+  "build_s": 20.3
+ },
+ "player_kompakt_opt3": {
+  "id": "player/kompakt",
+  "name": "player_kompakt_opt3",
+  "objects": 98,
+  "materials_src": 47,
+  "mat_classes": {
+   "flat": 40,
+   "lens": 5,
+   "proc": 2
+  },
+  "realize_s": 0.01,
+  "textures": {},
+  "glb": "player_kompakt_opt3.glb",
+  "glb_bytes": 1726224,
+  "nodes": {
+   "body": {
+    "origin": [
+     0.0,
+     0.0,
+     -0.0
+    ],
+    "tris": 29707,
+    "surfaces": 9
+   },
+   "wheel_0r": {
+    "origin": [
+     0.7555,
+     0.322,
+     -1.23
+    ],
+    "tris": 5376,
+    "surfaces": 1
+   },
+   "wheel_0l": {
+    "origin": [
+     -0.7555,
+     0.322,
+     -1.23
+    ],
+    "tris": 5376,
+    "surfaces": 1
+   },
+   "wheel_1r": {
+    "origin": [
+     0.7555,
+     0.322,
+     1.39
+    ],
+    "tris": 5376,
+    "surfaces": 1
+   },
+   "wheel_1l": {
+    "origin": [
+     -0.7555,
+     0.322,
+     1.39
+    ],
+    "tris": 5932,
+    "surfaces": 2
+   }
+  },
+  "surfaces": {
+   "em_brake+tail_8c_02_00_ff_02_01": {
+    "tris": 301,
+    "verts": 251,
+    "kind": "emissive"
+   },
+   "em_brake_ff_04_01": {
+    "tris": 664,
+    "verts": 554,
+    "kind": "emissive"
+   },
+   "em_tail_19_17_12": {
+    "tris": 120,
+    "verts": 192,
+    "kind": "emissive"
+   },
+   "em_tail_38_00_00": {
+    "tris": 1121,
+    "verts": 627,
+    "kind": "emissive"
+   },
+   "em_tail_4c_01_00": {
+    "tris": 44,
+    "verts": 46,
+    "kind": "emissive"
+   },
+   "glass": {
+    "tris": 488,
+    "verts": 318,
+    "kind": "glass"
+   },
+   "lens": {
+    "tris": 3459,
+    "verts": 2353,
+    "kind": "lens"
+   },
+   "paint": {
+    "tris": 13404,
+    "verts": 7228,
+    "kind": "paint"
+   },
+   "trim": {
+    "tris": 32166,
+    "verts": 27801,
+    "kind": "trim"
+   }
+  },
+  "tris": 51767,
+  "verts": 39370,
+  "write_s": 0.21,
+  "total_s": 1.55,
+  "draw_surfaces": 14,
+  "build_s": 20.88
+ },
+ "player_kompakt_opt3c50": {
+  "id": "player/kompakt",
+  "name": "player_kompakt_opt3c50",
+  "objects": 98,
+  "materials_src": 47,
+  "mat_classes": {
+   "flat": 40,
+   "lens": 5,
+   "proc": 2
+  },
+  "realize_s": 0.01,
+  "textures": {},
+  "glb": "player_kompakt_opt3c50.glb",
+  "glb_bytes": 1033664,
+  "nodes": {
+   "body": {
+    "origin": [
+     0.0,
+     0.0,
+     -0.0
+    ],
+    "tris": 18132,
+    "surfaces": 9
+   },
+   "wheel_0r": {
+    "origin": [
+     0.7555,
+     0.322,
+     -1.23
+    ],
+    "tris": 2834,
+    "surfaces": 1
+   },
+   "wheel_0l": {
+    "origin": [
+     -0.7555,
+     0.322,
+     -1.23
+    ],
+    "tris": 2834,
+    "surfaces": 1
+   },
+   "wheel_1r": {
+    "origin": [
+     0.7555,
+     0.322,
+     1.39
+    ],
+    "tris": 2834,
+    "surfaces": 1
+   },
+   "wheel_1l": {
+    "origin": [
+     -0.7555,
+     0.322,
+     1.39
+    ],
+    "tris": 3112,
+    "surfaces": 2
+   }
+  },
+  "surfaces": {
+   "em_brake+tail_8c_02_00_ff_02_01": {
+    "tris": 301,
+    "verts": 251,
+    "kind": "emissive"
+   },
+   "em_brake_ff_04_01": {
+    "tris": 386,
+    "verts": 399,
+    "kind": "emissive"
+   },
+   "em_tail_19_17_12": {
+    "tris": 120,
+    "verts": 192,
+    "kind": "emissive"
+   },
+   "em_tail_38_00_00": {
+    "tris": 560,
+    "verts": 343,
+    "kind": "emissive"
+   },
+   "em_tail_4c_01_00": {
+    "tris": 44,
+    "verts": 46,
+    "kind": "emissive"
+   },
+   "glass": {
+    "tris": 488,
+    "verts": 318,
+    "kind": "glass"
+   },
+   "lens": {
+    "tris": 1837,
+    "verts": 1349,
+    "kind": "lens"
+   },
+   "paint": {
+    "tris": 6823,
+    "verts": 3612,
+    "kind": "paint"
+   },
+   "trim": {
+    "tris": 19187,
+    "verts": 17070,
+    "kind": "trim"
+   }
+  },
+  "tris": 29746,
+  "verts": 23580,
+  "write_s": 0.11,
+  "total_s": 1.68,
+  "draw_surfaces": 14,
+  "build_s": 20.78
+ },
+ "player_kompakt_opt5c25": {
+  "id": "player/kompakt",
+  "name": "player_kompakt_opt5c25",
+  "objects": 98,
+  "materials_src": 47,
+  "mat_classes": {
+   "flat": 40,
+   "lens": 5,
+   "proc": 2
+  },
+  "realize_s": 0.01,
+  "textures": {},
+  "glb": "player_kompakt_opt5c25.glb",
+  "glb_bytes": 476200,
+  "nodes": {
+   "body": {
+    "origin": [
+     0.0,
+     0.0,
+     -0.0
+    ],
+    "tris": 8059,
+    "surfaces": 9
+   },
+   "wheel_0r": {
+    "origin": [
+     0.7555,
+     0.3216,
+     -1.23
+    ],
+    "tris": 1090,
+    "surfaces": 1
+   },
+   "wheel_0l": {
+    "origin": [
+     -0.7555,
+     0.3216,
+     -1.23
+    ],
+    "tris": 1090,
+    "surfaces": 1
+   },
+   "wheel_1r": {
+    "origin": [
+     0.7555,
+     0.3216,
+     1.39
+    ],
+    "tris": 1090,
+    "surfaces": 1
+   },
+   "wheel_1l": {
+    "origin": [
+     -0.7555,
+     0.3216,
+     1.39
+    ],
+    "tris": 1180,
+    "surfaces": 2
+   }
+  },
+  "surfaces": {
+   "em_brake+tail_8c_02_00_ff_02_01": {
+    "tris": 184,
+    "verts": 168,
+    "kind": "emissive"
+   },
+   "em_brake_ff_04_01": {
+    "tris": 198,
+    "verts": 288,
+    "kind": "emissive"
+   },
+   "em_tail_19_17_12": {
+    "tris": 120,
+    "verts": 192,
+    "kind": "emissive"
+   },
+   "em_tail_38_00_00": {
+    "tris": 177,
+    "verts": 132,
+    "kind": "emissive"
+   },
+   "em_tail_4c_01_00": {
+    "tris": 38,
+    "verts": 41,
+    "kind": "emissive"
+   },
+   "glass": {
+    "tris": 232,
+    "verts": 168,
+    "kind": "glass"
+   },
+   "lens": {
+    "tris": 756,
+    "verts": 640,
+    "kind": "lens"
+   },
+   "paint": {
+    "tris": 2264,
+    "verts": 1286,
+    "kind": "paint"
+   },
+   "trim": {
+    "tris": 8540,
+    "verts": 7897,
+    "kind": "trim"
+   }
+  },
+  "tris": 12509,
+  "verts": 10812,
+  "write_s": 0.05,
+  "total_s": 1.52,
+  "draw_surfaces": 14,
+  "build_s": 21.74
+ },
+ "player_kompakt_c06": {
+  "id": "player/kompakt",
+  "name": "player_kompakt_c06",
+  "objects": 98,
+  "materials_src": 47,
+  "mat_classes": {
+   "flat": 40,
+   "lens": 5,
+   "proc": 2
+  },
+  "realize_s": 0.01,
+  "textures": {},
+  "glb": "player_kompakt_c06.glb",
+  "glb_bytes": 195332,
+  "nodes": {
+   "body": {
+    "origin": [
+     0.0,
+     0.0,
+     -0.0
+    ],
+    "tris": 2954,
+    "surfaces": 9
+   },
+   "wheel_0r": {
+    "origin": [
+     0.7531,
+     0.3186,
+     -1.2276
+    ],
+    "tris": 375,
+    "surfaces": 1
+   },
+   "wheel_0l": {
+    "origin": [
+     -0.7531,
+     0.3186,
+     -1.2276
+    ],
+    "tris": 375,
+    "surfaces": 1
+   },
+   "wheel_1r": {
+    "origin": [
+     0.7531,
+     0.3186,
+     1.3924
+    ],
+    "tris": 375,
+    "surfaces": 1
+   },
+   "wheel_1l": {
+    "origin": [
+     -0.7531,
+     0.3186,
+     1.3924
+    ],
+    "tris": 429,
+    "surfaces": 2
+   }
+  },
+  "surfaces": {
+   "em_brake+tail_8c_02_00_ff_02_01": {
+    "tris": 19,
+    "verts": 31,
+    "kind": "emissive"
+   },
+   "em_brake_ff_04_01": {
+    "tris": 66,
+    "verts": 87,
+    "kind": "emissive"
+   },
+   "em_tail_19_17_12": {
+    "tris": 120,
+    "verts": 192,
+    "kind": "emissive"
+   },
+   "em_tail_38_00_00": {
+    "tris": 39,
+    "verts": 41,
+    "kind": "emissive"
+   },
+   "em_tail_4c_01_00": {
+    "tris": 32,
+    "verts": 36,
+    "kind": "emissive"
+   },
+   "glass": {
+    "tris": 87,
+    "verts": 82,
+    "kind": "glass"
+   },
+   "lens": {
+    "tris": 179,
+    "verts": 141,
+    "kind": "lens"
+   },
+   "paint": {
+    "tris": 639,
+    "verts": 347,
+    "kind": "paint"
+   },
+   "trim": {
+    "tris": 3327,
+    "verts": 3279,
+    "kind": "trim"
+   }
+  },
+  "tris": 4508,
+  "verts": 4236,
+  "write_s": 0.03,
+  "total_s": 1.31,
+  "draw_surfaces": 14,
+  "build_s": 22.19
+ },
+ "traffic_sedan_geo_raw": {
+  "id": "traffic/sedan_red",
+  "name": "traffic_sedan_geo_raw",
+  "objects": 33,
+  "materials_src": 21,
+  "mat_classes": {
+   "flat": 21
+  },
+  "realize_s": 0.03,
+  "textures": {},
+  "glb": "traffic_sedan_geo_raw.glb",
+  "glb_bytes": 1624488,
+  "nodes": {
+   "body": {
+    "origin": [
+     0.0,
+     0.0,
+     -0.0
+    ],
+    "tris": 55648,
+    "surfaces": 6
+   },
+   "wheel_1l": {
+    "origin": [
+     -0.7525,
+     0.32,
+     -0.965
+    ],
+    "tris": 756,
+    "surfaces": 1
+   },
+   "wheel_1r": {
+    "origin": [
+     0.7525,
+     0.32,
+     -0.965
+    ],
+    "tris": 756,
+    "surfaces": 1
+   },
+   "wheel_0l": {
+    "origin": [
+     -0.7525,
+     0.32,
+     -3.765
+    ],
+    "tris": 756,
+    "surfaces": 1
+   },
+   "wheel_0r": {
+    "origin": [
+     0.7525,
+     0.32,
+     -3.765
+    ],
+    "tris": 756,
+    "surfaces": 1
+   }
+  },
+  "surfaces": {
+   "em_brake+tail_ff_0e_05_ff_04_01": {
+    "tris": 693,
+    "verts": 436,
+    "kind": "emissive"
+   },
+   "em_brake_ff_1a_0a": {
+    "tris": 84,
+    "verts": 65,
+    "kind": "emissive"
+   },
+   "em_tail_1e_1b_15": {
+    "tris": 310,
+    "verts": 187,
+    "kind": "emissive"
+   },
+   "glass": {
+    "tris": 10097,
+    "verts": 5528,
+    "kind": "glass"
+   },
+   "paint": {
+    "tris": 36240,
+    "verts": 19133,
+    "kind": "paint"
+   },
+   "trim": {
+    "tris": 11248,
+    "verts": 9647,
+    "kind": "trim"
+   }
+  },
+  "tris": 58672,
+  "verts": 34996,
+  "write_s": 0.25,
+  "total_s": 0.28,
+  "draw_surfaces": 10,
+  "build_s": 4.91
+ },
+ "traffic_sedan_geo": {
+  "id": "traffic/sedan_red",
+  "name": "traffic_sedan_geo",
+  "objects": 33,
+  "materials_src": 21,
+  "mat_classes": {
+   "flat": 21
+  },
+  "realize_s": 0.06,
+  "textures": {},
+  "glb": "traffic_sedan_geo.glb",
+  "glb_bytes": 1180896,
+  "nodes": {
+   "body": {
+    "origin": [
+     0.0,
+     0.0,
+     -0.0
+    ],
+    "tris": 36733,
+    "surfaces": 6
+   },
+   "wheel_1l": {
+    "origin": [
+     -0.7525,
+     0.32,
+     -0.965
+    ],
+    "tris": 756,
+    "surfaces": 1
+   },
+   "wheel_1r": {
+    "origin": [
+     0.7525,
+     0.32,
+     -0.965
+    ],
+    "tris": 756,
+    "surfaces": 1
+   },
+   "wheel_0l": {
+    "origin": [
+     -0.7525,
+     0.32,
+     -3.765
+    ],
+    "tris": 756,
+    "surfaces": 1
+   },
+   "wheel_0r": {
+    "origin": [
+     0.7525,
+     0.32,
+     -3.765
+    ],
+    "tris": 756,
+    "surfaces": 1
+   }
+  },
+  "surfaces": {
+   "em_brake+tail_ff_0e_05_ff_04_01": {
+    "tris": 1073,
+    "verts": 643,
+    "kind": "emissive"
+   },
+   "em_brake_ff_1a_0a": {
+    "tris": 156,
+    "verts": 107,
+    "kind": "emissive"
+   },
+   "em_tail_1e_1b_15": {
+    "tris": 508,
+    "verts": 294,
+    "kind": "emissive"
+   },
+   "glass": {
+    "tris": 15615,
+    "verts": 8386,
+    "kind": "glass"
+   },
+   "paint": {
+    "tris": 7778,
+    "verts": 4717,
+    "kind": "paint"
+   },
+   "trim": {
+    "tris": 14627,
+    "verts": 11680,
+    "kind": "trim"
+   }
+  },
+  "tris": 39757,
+  "verts": 25827,
+  "write_s": 0.13,
+  "total_s": 0.24,
+  "draw_surfaces": 10,
+  "build_s": 5.71
+ },
+ "traffic_sedan_geo_l1": {
+  "id": "traffic/sedan_red",
+  "name": "traffic_sedan_geo_l1",
+  "objects": 33,
+  "materials_src": 20,
+  "mat_classes": {
+   "flat": 20
+  },
+  "realize_s": 0.08,
+  "textures": {},
+  "glb": "traffic_sedan_geo_l1.glb",
+  "glb_bytes": 413528,
+  "nodes": {
+   "body": {
+    "origin": [
+     0.0,
+     0.0,
+     -0.0
+    ],
+    "tris": 7610,
+    "surfaces": 6
+   },
+   "wheel_1l": {
+    "origin": [
+     -0.7525,
+     0.32,
+     -0.965
+    ],
+    "tris": 756,
+    "surfaces": 1
+   },
+   "wheel_1r": {
+    "origin": [
+     0.7525,
+     0.32,
+     -0.965
+    ],
+    "tris": 756,
+    "surfaces": 1
+   },
+   "wheel_0l": {
+    "origin": [
+     -0.7525,
+     0.32,
+     -3.765
+    ],
+    "tris": 756,
+    "surfaces": 1
+   },
+   "wheel_0r": {
+    "origin": [
+     0.7525,
+     0.32,
+     -3.765
+    ],
+    "tris": 756,
+    "surfaces": 1
+   }
+  },
+  "surfaces": {
+   "em_brake+tail_ff_0e_05_ff_04_01": {
+    "tris": 76,
+    "verts": 69,
+    "kind": "emissive"
+   },
+   "em_brake_ff_1a_0a": {
+    "tris": 50,
+    "verts": 46,
+    "kind": "emissive"
+   },
+   "em_tail_1e_1b_15": {
+    "tris": 35,
+    "verts": 30,
+    "kind": "emissive"
+   },
+   "glass": {
+    "tris": 868,
+    "verts": 609,
+    "kind": "glass"
+   },
+   "paint": {
+    "tris": 3545,
+    "verts": 2528,
+    "kind": "paint"
+   },
+   "trim": {
+    "tris": 6060,
+    "verts": 6085,
+    "kind": "trim"
+   }
+  },
+  "tris": 10634,
+  "verts": 9367,
+  "write_s": 0.04,
+  "total_s": 0.18,
+  "draw_surfaces": 10,
+  "build_s": 3.48
+ },
+ "player_kompakt_d1": {
+  "id": "player/kompakt",
+  "name": "player_kompakt_d1",
+  "objects": 98,
+  "materials_src": 47,
+  "mat_classes": {
+   "flat": 40,
+   "lens": 5,
+   "proc": 2
+  },
+  "realize_s": 0.01,
+  "textures": {},
+  "glb": "player_kompakt_d1.glb",
+  "glb_bytes": 2975008,
+  "nodes": {
+   "body": {
+    "origin": [
+     0.0,
+     0.0,
+     -0.0
+    ],
+    "tris": 82320,
+    "surfaces": 9
+   },
+   "wheel_0r": {
+    "origin": [
+     0.7555,
+     0.322,
+     -1.23
+    ],
+    "tris": 4284,
+    "surfaces": 1
+   },
+   "wheel_0l": {
+    "origin": [
+     -0.7555,
+     0.322,
+     -1.23
+    ],
+    "tris": 4284,
+    "surfaces": 1
+   },
+   "wheel_1r": {
+    "origin": [
+     0.7555,
+     0.322,
+     1.39
+    ],
+    "tris": 4284,
+    "surfaces": 1
+   },
+   "wheel_1l": {
+    "origin": [
+     -0.7555,
+     0.322,
+     1.39
+    ],
+    "tris": 4444,
+    "surfaces": 2
+   }
+  },
+  "surfaces": {
+   "em_brake+tail_8c_02_00_ff_02_01": {
+    "tris": 235,
+    "verts": 232,
+    "kind": "emissive"
+   },
+   "em_brake_ff_04_01": {
+    "tris": 268,
+    "verts": 336,
+    "kind": "emissive"
+   },
+   "em_tail_19_17_12": {
+    "tris": 120,
+    "verts": 192,
+    "kind": "emissive"
+   },
+   "em_tail_38_00_00": {
+    "tris": 799,
+    "verts": 477,
+    "kind": "emissive"
+   },
+   "em_tail_4c_01_00": {
+    "tris": 88,
+    "verts": 76,
+    "kind": "emissive"
+   },
+   "glass": {
+    "tris": 5880,
+    "verts": 3361,
+    "kind": "glass"
+   },
+   "lens": {
+    "tris": 2762,
+    "verts": 2079,
+    "kind": "lens"
+   },
+   "paint": {
+    "tris": 45352,
+    "verts": 23806,
+    "kind": "paint"
+   },
+   "trim": {
+    "tris": 44112,
+    "verts": 35463,
+    "kind": "trim"
+   }
+  },
+  "tris": 99616,
+  "verts": 66022,
+  "write_s": 0.4,
+  "total_s": 0.41,
+  "draw_surfaces": 14,
+  "build_s": 23.5
+ },
+ "player_kompakt_d2": {
+  "id": "player/kompakt",
+  "name": "player_kompakt_d2",
+  "objects": 98,
+  "materials_src": 47,
+  "mat_classes": {
+   "flat": 40,
+   "lens": 5,
+   "proc": 2
+  },
+  "realize_s": 0.01,
+  "textures": {},
+  "glb": "player_kompakt_d2.glb",
+  "glb_bytes": 1679156,
+  "nodes": {
+   "body": {
+    "origin": [
+     0.0,
+     0.0,
+     -0.0
+    ],
+    "tris": 37228,
+    "surfaces": 9
+   },
+   "wheel_0r": {
+    "origin": [
+     0.7555,
+     0.322,
+     -1.23
+    ],
+    "tris": 3168,
+    "surfaces": 1
+   },
+   "wheel_0l": {
+    "origin": [
+     -0.7555,
+     0.322,
+     -1.23
+    ],
+    "tris": 3168,
+    "surfaces": 1
+   },
+   "wheel_1r": {
+    "origin": [
+     0.7555,
+     0.322,
+     1.39
+    ],
+    "tris": 3168,
+    "surfaces": 1
+   },
+   "wheel_1l": {
+    "origin": [
+     -0.7555,
+     0.322,
+     1.39
+    ],
+    "tris": 3252,
+    "surfaces": 2
+   }
+  },
+  "surfaces": {
+   "em_brake+tail_8c_02_00_ff_02_01": {
+    "tris": 134,
+    "verts": 146,
+    "kind": "emissive"
+   },
+   "em_brake_ff_04_01": {
+    "tris": 192,
+    "verts": 290,
+    "kind": "emissive"
+   },
+   "em_tail_19_17_12": {
+    "tris": 120,
+    "verts": 192,
+    "kind": "emissive"
+   },
+   "em_tail_38_00_00": {
+    "tris": 274,
+    "verts": 183,
+    "kind": "emissive"
+   },
+   "em_tail_4c_01_00": {
+    "tris": 44,
+    "verts": 48,
+    "kind": "emissive"
+   },
+   "glass": {
+    "tris": 2045,
+    "verts": 1284,
+    "kind": "glass"
+   },
+   "lens": {
+    "tris": 1239,
+    "verts": 1071,
+    "kind": "lens"
+   },
+   "paint": {
+    "tris": 19656,
+    "verts": 10672,
+    "kind": "paint"
+   },
+   "trim": {
+    "tris": 26280,
+    "verts": 24189,
+    "kind": "trim"
+   }
+  },
+  "tris": 49984,
+  "verts": 38075,
+  "write_s": 0.18,
+  "total_s": 0.19,
+  "draw_surfaces": 14,
+  "build_s": 22.85
+ },
+ "player_kompakt_d3": {
+  "id": "player/kompakt",
+  "name": "player_kompakt_d3",
+  "objects": 98,
+  "materials_src": 47,
+  "mat_classes": {
+   "flat": 40,
+   "lens": 5,
+   "proc": 2
+  },
+  "realize_s": 0.01,
+  "textures": {},
+  "glb": "player_kompakt_d3.glb",
+  "glb_bytes": 1114712,
+  "nodes": {
+   "body": {
+    "origin": [
+     0.0,
+     0.0,
+     -0.0
+    ],
+    "tris": 19368,
+    "surfaces": 9
+   },
+   "wheel_0r": {
+    "origin": [
+     0.7555,
+     0.322,
+     -1.2318
+    ],
+    "tris": 2406,
+    "surfaces": 1
+   },
+   "wheel_0l": {
+    "origin": [
+     -0.7555,
+     0.322,
+     -1.2318
+    ],
+    "tris": 2406,
+    "surfaces": 1
+   },
+   "wheel_1r": {
+    "origin": [
+     0.7555,
+     0.322,
+     1.3882
+    ],
+    "tris": 2406,
+    "surfaces": 1
+   },
+   "wheel_1l": {
+    "origin": [
+     -0.7555,
+     0.322,
+     1.3882
+    ],
+    "tris": 2450,
+    "surfaces": 2
+   }
+  },
+  "surfaces": {
+   "em_brake+tail_8c_02_00_ff_02_01": {
+    "tris": 90,
+    "verts": 102,
+    "kind": "emissive"
+   },
+   "em_brake_ff_04_01": {
+    "tris": 152,
+    "verts": 266,
+    "kind": "emissive"
+   },
+   "em_tail_19_17_12": {
+    "tris": 120,
+    "verts": 192,
+    "kind": "emissive"
+   },
+   "em_tail_38_00_00": {
+    "tris": 81,
+    "verts": 67,
+    "kind": "emissive"
+   },
+   "em_tail_4c_01_00": {
+    "tris": 36,
+    "verts": 40,
+    "kind": "emissive"
+   },
+   "glass": {
+    "tris": 765,
+    "verts": 621,
+    "kind": "glass"
+   },
+   "lens": {
+    "tris": 551,
+    "verts": 579,
+    "kind": "lens"
+   },
+   "paint": {
+    "tris": 9184,
+    "verts": 5258,
+    "kind": "paint"
+   },
+   "trim": {
+    "tris": 18057,
+    "verts": 18655,
+    "kind": "trim"
+   }
+  },
+  "tris": 29036,
+  "verts": 25780,
+  "write_s": 0.11,
+  "total_s": 0.12,
+  "draw_surfaces": 14,
+  "build_s": 21.67
+ },
+ "landmark_eiffel": {
+  "id": "landmarks/eiffel_tower",
+  "name": "landmark_eiffel",
+  "objects": 8,
+  "materials_src": 7,
+  "mat_classes": {
+   "proc": 5,
+   "flat": 2
+  },
+  "realize_s": 0.0,
+  "bake": {
+   "atlas": [
+    2048,
+    2048
+   ],
+   "charts": 12347,
+   "ppm": 2.4,
+   "area_m2": 125958.9,
+   "unwrap_s": 0.54,
+   "bake_s": 76.64,
+   "coverage": 0.706
+  },
+  "textures": {
+   "albedo": {
+    "file": "landmark_eiffel_albedo.png",
+    "bytes": 1784115,
+    "size": [
+     2048,
+     2048
+    ]
+   },
+   "orm": {
+    "file": "landmark_eiffel_orm.png",
+    "bytes": 773008,
+    "size": [
+     2048,
+     2048
+    ]
+   },
+   "emit_lights": {
+    "file": "landmark_eiffel_emit_lights.png",
+    "bytes": 2686181,
+    "size": [
+     2048,
+     2048
+    ]
+   }
+  },
+  "glb": "landmark_eiffel.glb",
+  "glb_bytes": 7007496,
+  "nodes": {
+   "body": {
+    "origin": [
+     0.0,
+     0.0,
+     -0.0
+    ],
+    "tris": 25152,
+    "surfaces": 1
+   }
+  },
+  "surfaces": {
+   "baked": {
+    "tris": 25152,
+    "verts": 50338,
+    "kind": "baked"
+   }
+  },
+  "tris": 25152,
+  "verts": 50338,
+  "write_s": 10.91,
+  "total_s": 88.11,
+  "draw_surfaces": 1,
+  "build_s": 6.43
+ },
+ "building_haussmann": {
+  "id": "props/city_paris_haussmann",
+  "name": "building_haussmann",
+  "objects": 21,
+  "materials_src": 19,
+  "mat_classes": {
+   "flat": 11,
+   "proc": 4,
+   "mask": 4
+  },
+  "realize_s": 0.0,
+  "bake": {
+   "atlas": [
+    2048,
+    2048
+   ],
+   "charts": 185,
+   "ppm": 33.3,
+   "area_m2": 2868.5,
+   "unwrap_s": 0.01,
+   "bake_s": 89.7,
+   "coverage": 0.793
+  },
+  "textures": {
+   "albedo": {
+    "file": "building_haussmann_albedo.png",
+    "bytes": 1252910,
+    "size": [
+     2048,
+     2048
+    ]
+   },
+   "orm": {
+    "file": "building_haussmann_orm.png",
+    "bytes": 26705,
+    "size": [
+     2048,
+     2048
+    ]
+   },
+   "emit_lights": {
+    "file": "building_haussmann_emit_lights.png",
+    "bytes": 15500,
+    "size": [
+     2048,
+     2048
+    ]
+   }
+  },
+  "glb": "building_haussmann.glb",
+  "glb_bytes": 1544776,
+  "nodes": {
+   "body": {
+    "origin": [
+     0.0,
+     0.0,
+     -0.0
+    ],
+    "tris": 3518,
+    "surfaces": 4
+   }
+  },
+  "surfaces": {
+   "baked": {
+    "tris": 614,
+    "verts": 1086,
+    "kind": "baked"
+   },
+   "em_lights_ff_c5_34": {
+    "tris": 72,
+    "verts": 144,
+    "kind": "emissive"
+   },
+   "glass": {
+    "tris": 36,
+    "verts": 72,
+    "kind": "glass"
+   },
+   "trim": {
+    "tris": 2796,
+    "verts": 4998,
+    "kind": "trim"
+   }
+  },
+  "tris": 3518,
+  "verts": 6300,
+  "write_s": 9.45,
+  "total_s": 99.2,
+  "draw_surfaces": 4,
+  "build_s": 9.75
+ },
+ "police_de": {
+  "id": "police/de",
+  "name": "police_de",
+  "objects": 32,
+  "materials_src": 18,
+  "mat_classes": {
+   "flat": 15,
+   "mask": 3
+  },
+  "realize_s": 0.06,
+  "bake": {
+   "atlas": [
+    1024,
+    1024
+   ],
+   "charts": 80,
+   "ppm": 121.7,
+   "area_m2": 50.1,
+   "unwrap_s": 0.14,
+   "bake_s": 29.19,
+   "coverage": 0.765
+  },
+  "textures": {
+   "albedo": {
+    "file": "police_de_albedo.png",
+    "bytes": 47911,
+    "size": [
+     1024,
+     1024
+    ]
+   },
+   "orm": {
+    "file": "police_de_orm.png",
+    "bytes": 35192,
+    "size": [
+     1024,
+     1024
+    ]
+   },
+   "emit_tail": {
+    "file": "police_de_emit_tail.png",
+    "bytes": 6725,
+    "size": [
+     1024,
+     1024
+    ]
+   },
+   "emit_brake": {
+    "file": "police_de_emit_brake.png",
+    "bytes": 6738,
+    "size": [
+     1024,
+     1024
+    ]
+   }
+  },
+  "glb": "police_de.glb",
+  "glb_bytes": 1269192,
+  "nodes": {
+   "body": {
+    "origin": [
+     0.0,
+     0.0,
+     -0.0
+    ],
+    "tris": 39091,
+    "surfaces": 5
+   },
+   "wheel_1l": {
+    "origin": [
+     -0.7625,
+     0.32,
+     -1.035
+    ],
+    "tris": 756,
+    "surfaces": 1
+   },
+   "wheel_1r": {
+    "origin": [
+     0.7625,
+     0.32,
+     -1.035
+    ],
+    "tris": 756,
+    "surfaces": 1
+   },
+   "wheel_0l": {
+    "origin": [
+     -0.7625,
+     0.32,
+     -3.835
+    ],
+    "tris": 756,
+    "surfaces": 1
+   },
+   "wheel_0r": {
+    "origin": [
+     0.7625,
+     0.32,
+     -3.835
+    ],
+    "tris": 756,
+    "surfaces": 1
+   }
+  },
+  "surfaces": {
+   "baked": {
+    "tris": 37584,
+    "verts": 22252,
+    "kind": "baked"
+   },
+   "em_beacon_a_07_1a_ff": {
+    "tris": 188,
+    "verts": 384,
+    "kind": "emissive"
+   },
+   "em_beacon_b_07_1a_ff": {
+    "tris": 188,
+    "verts": 384,
+    "kind": "emissive"
+   },
+   "glass": {
+    "tris": 24,
+    "verts": 48,
+    "kind": "glass"
+   },
+   "trim": {
+    "tris": 4131,
+    "verts": 4630,
+    "kind": "trim"
+   }
+  },
+  "tris": 42115,
+  "verts": 27698,
+  "write_s": 0.92,
+  "total_s": 30.34,
+  "draw_surfaces": 9,
+  "build_s": 2.13
+ },
+ "traffic_bus": {
+  "id": "traffic/bus_white",
+  "name": "traffic_bus",
+  "objects": 12,
+  "materials_src": 4,
+  "mat_classes": {
+   "mask": 1,
+   "flat": 3
+  },
+  "realize_s": 0.0,
+  "bake": {
+   "atlas": [
+    2048,
+    1024
+   ],
+   "charts": 17,
+   "ppm": 90.8,
+   "area_m2": 160.1,
+   "unwrap_s": 0.03,
+   "bake_s": 18.13,
+   "coverage": 1.0
+  },
+  "textures": {
+   "albedo": {
+    "file": "traffic_bus_albedo.png",
+    "bytes": 29920,
+    "size": [
+     2048,
+     1024
+    ]
+   },
+   "orm": {
+    "file": "traffic_bus_orm.png",
+    "bytes": 24878,
+    "size": [
+     2048,
+     1024
+    ]
+   },
+   "emit_tail": {
+    "file": "traffic_bus_emit_tail.png",
+    "bytes": 10226,
+    "size": [
+     2048,
+     1024
+    ]
+   },
+   "emit_brake": {
+    "file": "traffic_bus_emit_brake.png",
+    "bytes": 10147,
+    "size": [
+     2048,
+     1024
+    ]
+   }
+  },
+  "glb": "traffic_bus.glb",
+  "glb_bytes": 384460,
+  "nodes": {
+   "body": {
+    "origin": [
+     0.0,
+     0.0,
+     -0.0
+    ],
+    "tris": 4692,
+    "surfaces": 2
+   },
+   "wheel_0l": {
+    "origin": [
+     -1.075,
+     0.5,
+     -10.0
+    ],
+    "tris": 728,
+    "surfaces": 1
+   },
+   "wheel_0r": {
+    "origin": [
+     1.075,
+     0.5,
+     -10.0
+    ],
+    "tris": 728,
+    "surfaces": 1
+   },
+   "wheel_1l": {
+    "origin": [
+     -0.93,
+     0.5,
+     -3.15
+    ],
+    "tris": 1120,
+    "surfaces": 1
+   },
+   "wheel_1r": {
+    "origin": [
+     0.93,
+     0.5,
+     -3.15
+    ],
+    "tris": 1120,
+    "surfaces": 1
+   }
+  },
+  "surfaces": {
+   "baked": {
+    "tris": 4380,
+    "verts": 3047,
+    "kind": "baked"
+   },
+   "trim": {
+    "tris": 4008,
+    "verts": 4272,
+    "kind": "trim"
+   }
+  },
+  "tris": 8388,
+  "verts": 7319,
+  "write_s": 1.02,
+  "total_s": 19.21,
+  "draw_surfaces": 6,
+  "build_s": 4.39
+ }
+}

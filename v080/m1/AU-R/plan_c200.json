@@ -1,0 +1,3 @@
+{"segments": [
+ {"name": "conc200_long", "km": 30.0, "kmh": 200.0, "throttle": 0.6, "x": 1.875, "mute": [], "seconds": 60.0, "feed": {"concrete_share": {"_": 1.0}}}
+]}

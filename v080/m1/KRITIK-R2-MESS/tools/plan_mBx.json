@@ -1,0 +1,176 @@
+{
+ "segments": [
+  {
+   "name": "c_rumble130_road",
+   "km": 15.0,
+   "kmh": 130.0,
+   "throttle": 0.35,
+   "x": 5.15,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 10.0,
+   "paving": "asphalt",
+   "nd": true
+  },
+  {
+   "name": "c_deck80_road",
+   "km": 78.12,
+   "kmh": 80.0,
+   "throttle": 0.3,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 8.0,
+   "paving": "",
+   "nd": true,
+   "nojoint": true
+  },
+  {
+   "name": "c_wet130_road",
+   "km": 15.0,
+   "kmh": 130.0,
+   "throttle": 0.35,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 15.0,
+   "paving": "asphalt",
+   "nd": true,
+   "weather": "rain"
+  },
+  {
+   "name": "c_gravel100_road",
+   "km": 40.0,
+   "kmh": 100.0,
+   "throttle": 0.3,
+   "x": 6.6,
+   "off_road": 1,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 10.0,
+   "paving": "asphalt",
+   "nd": true
+  },
+  {
+   "name": "c_grass60_road",
+   "km": 40.0,
+   "kmh": 60.0,
+   "throttle": 0.3,
+   "x": 9.5,
+   "off_road": 2,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 10.0,
+   "paving": "asphalt",
+   "nd": true
+  },
+  {
+   "name": "c_wind130",
+   "km": 15.0,
+   "kmh": 130.0,
+   "throttle": 0.35,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MRoad"
+   ],
+   "seconds": 20.0,
+   "paving": "asphalt",
+   "nd": true
+  },
+  {
+   "name": "c_wind200",
+   "km": 20.0,
+   "kmh": 200.0,
+   "throttle": 0.6,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MRoad"
+   ],
+   "seconds": 20.0,
+   "paving": "asphalt",
+   "nd": true
+  },
+  {
+   "name": "c_windvmax",
+   "km": 15.0,
+   "kmh": -1.0,
+   "throttle": 1.0,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MRoad"
+   ],
+   "seconds": 15.0,
+   "paving": "asphalt",
+   "nd": true
+  },
+  {
+   "name": "s_snow50_road",
+   "km": 15.0,
+   "kmh": 50.0,
+   "throttle": 0.25,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 12.0,
+   "paving": "asphalt",
+   "nd": true,
+   "weather": "snow"
+  },
+  {
+   "name": "s_snow90_road",
+   "km": 15.0,
+   "kmh": 90.0,
+   "throttle": 0.3,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 12.0,
+   "paving": "asphalt",
+   "nd": true,
+   "weather": "snow"
+  },
+  {
+   "name": "s_snow130_road",
+   "km": 15.0,
+   "kmh": 130.0,
+   "throttle": 0.35,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 12.0,
+   "paving": "asphalt",
+   "nd": true,
+   "weather": "snow"
+  }
+ ]
+}

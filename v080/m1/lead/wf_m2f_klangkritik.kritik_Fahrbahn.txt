@@ -1,0 +1,115 @@
+
+CONTEXT
+- Game: "Crossing Europe – A Racing Xperience" (Godot 4.7.2, GDScript, GL Compatibility renderer), repo /home/user/crossing-europe---a-racing-xperience.
+  German user; docs and player-facing texts in German (tr()), code comments in English. v0.7.0 is released (= main).
+  v0.8.0 adds a graphics option: today's pseudo-3D game becomes the mode "Arcade" (frozen, pixel-identical); the new
+  mode "Modern" is a second, real-3D renderer in the same build with finer models, dynamic light and a "Modern" sound
+  profile. The user's wish, literally: "das gesamte Spiel einer deutlichen grafischen Überarbeitung unterziehen.
+  Detailreiche Grafik soweit möglich, feinere Modelle, bessere Lichteffekte, Sound- und Musiküberarbeitung" and "echtes
+  3D bitte". Wave 0 (session seam, model pipeline, audio core, geometry kernel with fairness tests) is merged in branch
+  v0.8.0. This push (M1) runs as parallel packages: renderer skeleton R1a (done), road/environment R1, terrain/props
+  R2, vehicles/signs R3, vehicle models AS1 (done; an art review and a rework AS1R follow), environment models AS1b,
+  engine sound AU-B (done), options/chooser/showroom/Leistungstest UI1. Then the lead merges everything, QA checks it,
+  and the user gets the first test build (Kiel–Hamburg in Modern, for Steam Deck and Windows).
+- THE BUILD CONTRACT IS BINDING: docs/dev/v080_contract.md (1,800 lines). Read §2 (rules), the decisions of §3 that
+  concern you, your interfaces in §4, §5, your package in §6, §8 and COMPLETELY §11 (amendments after wave 0 – it wins
+  over the older text; A-7 is the renderer facade, A-8 the plan and file ownership of this push). Also read the docs
+  of your area: docs/modelle.md, docs/audio-modern.md, ARCHITECTURE.md §15, docs/ui.md. Where the contract is wrong
+  or blocks you: implement the closest sound solution and report it under contract_issues with evidence – never work
+  around it silently. Evidence and prototypes of the design studies (starting points, read before reuse): /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/
+  (assets3d, audio, product-ux, synthesis; index in §10 of the contract).
+- YOUR PACKAGE ID: KRITIK-FAHRBAHN – a read-only role: no commits, no branch, no safety copy. START: if
+  /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-FAHRBAHN/STAND.md exists, a predecessor was stopped by an account usage limit – read it, reuse its working
+  copy and partial results, and continue.
+- RESTART PROTOCOL: the container can restart, or an account usage limit can stop you, at any moment; a successor with
+  this same brief is then started (both have already happened in this push). (1) Your START instruction above says how
+  to find and continue a predecessor; its background processes are gone and half-written output files may be
+  incomplete. (2) Keep /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-FAHRBAHN/STAND.md up to date after every step you finish: worktree path and branch,
+  done / doing now / next / pitfalls, where your scratch results are.
+- Runs: for EVERY game run set XDG_DATA_HOME to an ABSOLUTE folder under your scratch dir; pass --graphics=arcade|modern
+  explicitly. Rendering needs  xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
+  --audio-driver Dummy …  (software OpenGL, llvmpipe – no real GPU, no loudspeakers here: everything about a Steam
+  Deck, a real GPU or how something sounds to a person is "inferred", never "measured"). The default graphics preset
+  on this machine is "low" (adapter tier software: no shadow casters) – for pictures pass --gfx-preset=medium or high.
+  Up to six agents share the 4 cores and 16 GB: heavy jobs (Godot renders, Blender, audio renders, test suites) one at
+  a time with nice -n 10 and at most 2 worker processes; run the complete tools/run_tests.sh (9–15 min) at most twice
+  (use its filter argument while iterating) and tools/golden.sh check (Arcade identity, must print 20 von 20
+  identisch) once at the end. Tools: godot, python3 (numpy, PIL), ffmpeg, ImageMagick, Blender 5.2 as Python module
+  /home/user/tools/bpyenv/bin/python, tools/run_tests.sh, tools/run_render_checks.sh, tools/golden.sh, tools/ab_shot.sh
+  (in branches that contain R1a), tools/models_contact_sheet.sh, tools/blender/validate_models.py,
+  tools/audio/qc/audio_qc.py.
+- Shell: the Bash tool may refuse compound commands with heredocs or several chained git commands ("too complex"):
+  write helper scripts into your scratch folder and run them one by one; write commit messages to a file and use
+  git commit -F <file>. "-s" scripts must not name autoload-dependent classes statically; compile-check with
+  tests/check_scripts.gd.
+- Rule 1: the frozen Arcade files are never edited (sprites are never re-rendered). Stay inside your file ownership (§5 with A-8).
+- LOOK AT / MEASURE YOUR OWN RESULTS: you can open PNG/JPG files with the Read tool. Judge every picture you deliver
+  honestly; say plainly where something is not yet good enough.
+- Scratch for working files: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-FAHRBAHN/ ; pictures, previews and reports for review: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/KRITIK-FAHRBAHN/ (write
+  your full report there as bericht.md). Never commit intermediates or previews. Disk space is limited: delete large
+  scratch items (exports, copies of the tree, caches you no longer need) when you are done.
+- You make no commits and change no branch.
+- Priorities when time gets tight: (1) nothing broken – gates green, Arcade identical; (2) the interfaces others depend on; (3) quality of what the player sees or hears most; breadth last.
+  Deliver the core solid and list what is left under notes_for_next rather than leaving everything half-done.
+- RESULT: keep it compact – summary at most 250 words; deviations, contract_issues and notes_for_next at most 10
+  entries each, one or two sentences per entry; the details belong into bericht.md. Mark numbers measured/inferred.
+
+PRIORITY RULE: the assembly and QA of the user's first test build run on this machine at the same time and are on
+the critical path. Run EVERY heavy job (Godot runs, audio renders, analyses over many files) with nice -n 19 and one
+process; never two heavy jobs at once. Never run tools/run_tests.sh or tools/golden.sh (not needed for a review).
+YOUR ROLE: INDEPENDENT MEASUREMENT REVIEW OF THE ROAD, TYRE, WIND AND IMPACT SOUNDS (AU-C1) AND OF THEIR TRIGGERING IN THE
+GAME. No building.
+THE OBJECT OF REVIEW: the complete Modern sound profile on head 4209268f0bad80beb9abc2609d92a74cd7279db1 (branch origin/wip/v080-au-c1; the builder's
+worktree /home/user/crossing-europe---a-racing-xperience/.claude/worktrees/wf_f5d01292-ef8-1 is READ-ONLY for you – no edits, no commits there). Work on a copy in your scratch folder:
+cp -a the worktree without build/ (and without .godot), then cp -a /home/user/crossing-europe---a-racing-xperience/.godot into the copy and import once
+(godot --headless --path <copy> --import), absolute XDG_DATA_HOME for every run. You make no commits.
+What it contains: AU-A (audio core: buses MCar/MWorld/MMusic/MImpact …, ModernMix, capture tools), AU-B (engine v3 –
+the user heard and liked the engine A/B), AU-D1 (music chain tools/audio/music/, title remaster, race track 1 „Linke
+Spur", MusicDirector), AU-D2 (race tracks 2 „Nachtfahrt" and 3 „Rückenwind", interlude, stingers, UI sounds; ONE mix
+file tools/audio/music/mischung.json for every decision the user may still change), AU-C1 (AudioFeed, road, wind,
+impacts). Reports: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/{AU-B,AU-D1,AU-D2,AU-C1}/bericht.md and the previews next to them; docs/audio-modern.md
+(complete) and the audio study /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/audio (src, out, deliver). Contract: docs/dev/v080_contract.md §3 D25–D30, §4.7,
+§11 A-5.
+THE USER: has heard the engine A/B (liked it), AU-D1's previews (track 1 and the title remaster: „der Stil passt
+super"; bass and level are judged tonight with headphones) and gets AU-D2's and AU-C1's previews for tonight as well.
+The user plays on a Steam Deck (small stereo speakers and headphones) and on Windows. A race lasts hours.
+YOU CANNOT HEAR. Everything about how something sounds to a person is inferred; numbers are measured. Use objective
+measurements (ITU-R BS.1770 loudness and true peak, third-octave/critical-band spectra, spectral tilt, crest factor,
+stereo correlation and mono sum, modulation spectra, autocorrelation for repetition, onset/transient analysis, masking
+estimates per critical band) and well-established acoustic facts about real sources; say plainly what a person must
+judge. Python with numpy/scipy (if present)/PIL and ffmpeg are available; write your analysis scripts into your scratch
+folder. Your job is to make the ONE rework after the user's verdict tonight fast and right: concrete, ranked findings
+with file → parameter → value fixes, and a list of the data knobs with their measured effect.
+REVIEW (rank by what the player hears most – the motorway at 100–200 km/h first):
+1. Plausibility per layer against the physics of real sources (measure the sounds in assets/audio/modern/{vehicle,sfx}
+   and in the previews): tyre/road rolling noise (broadband, its main band and its rise with speed; the tyre cavity
+   resonance), asphalt vs concrete slabs (joint thumps at the axle pair, slab length), steel deck and expansion joints
+   (double hit at the wheelbase), cobbles (impact rate from stone pitch × speed), rumble strip (tonal buzz at
+   speed / groove pitch with harmonics – note that its fundamental is around 100 Hz at motorway speed), gravel shoulder,
+   grass, wet (spray hiss), snow, squeal (tonal with jitter) and scrub, wind (three bands, gusts, the open-window
+   buffeting), impacts (layering, partner, side, the glass layer). Name each place where the measurements suggest an
+   artificial sound (steady filtered noise, a pure tone, ringing glass) and how the generator could make it more
+   natural (decorrelated layers, random modulation, granular playback, longer loops).
+2. Repetition: the loops are 0.8–3 s long. Play constant speed for 20 s in the game mix and measure the self-similarity
+   (autocorrelation of the envelope and of the spectrum frames); say which loops would likely be heard as repeating and
+   what length or layering would hide it.
+3. Triggering in the game: run headless Modern stages with logging of the AudioFeed state once per second (surface
+   per side, deck, joints, rumble strip, paving, zone, delineators) – Kiel – Hamburg completely, plus one stage with a
+   long bridge, one with a city centre and one southern stage – and compare with the Track data (motorway class,
+   bridges, cities, tunnels, fuel lanes, border posts): wrong or missing triggers, joints off the bridge ends, cobbles
+   outside towns, rumble strip off motorways, tunnel/cutting zones where there is none. AU-C1 notes that the capture
+   tool capture_mix.gd sends no vehicle state – use AU-C1's scratch scripts (/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AU-C1/: drive_demo.gd,
+   layers_demo.gd, worst_case.gd, perf.gd, phases.py, peaks.py; copy them) or your own.
+4. Small speakers and mono: apply a 180 Hz high-pass and a typical small-speaker response (Steam Deck class) to the game
+   mix at 130 km/h: does the road layer stay audible, does the rumble strip vanish (its fundamental), does the wind turn
+   into hiss? Mono sum of the side-panned sounds (ModernAudioPan) and the centre loudness of its pan law.
+5. Levels and safety: the plan of D29 against the measured sums (AU-C1's contract issues: full throttle at top speed
+   −14.4/−14.6 LUFS with road and wind; engines alone −17.2 to −18.5), heavy impacts at −2.8 dBFS, the master limiter
+   (sample-peak, threshold −0.8 dB before the master volume, overshoot 0.1–0.7 dB, worst case at master volume 1.0
+   inferred −0.5 to −0.1 dBTP), the traffic and siren placeholders driving the limiter by up to 4 dB. Propose concrete
+   lead decisions with numbers (e.g. a true-peak-safe limiter threshold for the Modern profile only, the top-speed row
+   of the plan) – the Arcade profile and its config stay frozen.
+6. Cost and hygiene: CPU per frame of road/impact under the frame budget, allocations per frame, no "leaked at exit"
+   with either profile, the Arcade profile plays nothing new (verify).
+DELIVER to /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/KRITIK-FAHRBAHN/ (German): bericht.md with the ranked findings, the measurements (tables,
+spectrum pictures with German captions) and the knobs; nothing else.

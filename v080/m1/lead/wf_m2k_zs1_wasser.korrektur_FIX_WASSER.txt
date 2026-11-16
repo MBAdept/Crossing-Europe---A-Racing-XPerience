@@ -1,0 +1,127 @@
+
+CONTEXT
+- Game: "Crossing Europe – A Racing Xperience" (Godot 4.7.2, GDScript, GL Compatibility renderer), repo /home/user/crossing-europe---a-racing-xperience.
+  German user; docs and player-facing texts in German (tr()), code comments in English. v0.7.0 is released (= main).
+  v0.8.0 adds a graphics option: today's pseudo-3D game becomes the mode "Arcade" (frozen, pixel-identical); the new
+  mode "Modern" is a second, real-3D renderer in the same build with finer models, dynamic light and a "Modern" sound
+  profile. The user's wish, literally: "das gesamte Spiel einer deutlichen grafischen Überarbeitung unterziehen.
+  Detailreiche Grafik soweit möglich, feinere Modelle, bessere Lichteffekte, Sound- und Musiküberarbeitung" and "echtes
+  3D bitte". Wave 0 (session seam, model pipeline, audio core, geometry kernel with fairness tests) is merged in branch
+  v0.8.0. This push (M1) runs as parallel packages: renderer skeleton R1a (done), road/environment R1, terrain/props
+  R2, vehicles/signs R3, vehicle models AS1 (done; an art review and a rework AS1R follow), environment models AS1b,
+  engine sound AU-B (done), options/chooser/showroom/Leistungstest UI1. Then the lead merges everything, QA checks it,
+  and the user gets the first test build (Kiel–Hamburg in Modern, for Steam Deck and Windows).
+- THE BUILD CONTRACT IS BINDING: docs/dev/v080_contract.md (1,800 lines). Read §2 (rules), the decisions of §3 that
+  concern you, your interfaces in §4, §5, your package in §6, §8 and COMPLETELY §11 (amendments after wave 0 – it wins
+  over the older text; A-7 is the renderer facade, A-8 the plan and file ownership of this push). Also read the docs
+  of your area: docs/renderer-modern.md, docs/modelle.md, ARCHITECTURE.md §15. Where the contract is wrong
+  or blocks you: implement the closest sound solution and report it under contract_issues with evidence – never work
+  around it silently. Evidence and prototypes of the design studies (starting points, read before reuse): /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/
+  (renderer3d/out/spike_src, engine-probe/evidence/prototypes, synthesis/out; index in §10 of the contract).
+- YOUR PACKAGE ID: FIX-WASSER. START: look for a predecessor of this run – the handover file
+  /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/FIX-WASSER/STAND.md and the remote branch wip/v080-fix-wasser. If one exists, do NOT start over: read
+  STAND.md, go to the worktree named there (all commands and commits there, on its branch – leave your own fresh
+  worktree untouched, and report that branch and worktree in your result), review its uncommitted changes, commit them
+  as WIP, and continue where it stopped. Only if there is none, in your fresh worktree: git merge --ff-only 3a23cb8dad346b623118fc0bcab9c0ffaea1efbf
+  (the worktree starts from main; if the fast-forward is impossible, stop and report), then
+  cp -a /home/user/crossing-europe---a-racing-xperience/.godot . && godot --headless --path . --import
+- SAFETY COPY: after EVERY commit run  git push origin HEAD:refs/heads/wip/v080-fix-wasser  (plain push, never
+  force; never push to v0.8.0 or main, never merge into them, never create tags or pull requests).
+- RESTART PROTOCOL: the container can restart, or an account usage limit can stop you, at any moment; a successor with
+  this same brief is then started (both have already happened in this push). (1) Your START instruction above says how
+  to find and continue a predecessor; its background processes are gone and half-written output files may be
+  incomplete. (2) Keep /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/FIX-WASSER/STAND.md up to date after every step you finish: worktree path and branch,
+  done / doing now / next / pitfalls, where your scratch results are. (3) Commit and push work in progress at
+  least every 30 minutes ("WIP" commits are fine) – unpushed work can be lost for good.
+- Runs: for EVERY game run set XDG_DATA_HOME to an ABSOLUTE folder under your scratch dir; pass --graphics=arcade|modern
+  explicitly. Rendering needs  xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
+  --audio-driver Dummy …  (software OpenGL, llvmpipe – no real GPU, no loudspeakers here: everything about a Steam
+  Deck, a real GPU or how something sounds to a person is "inferred", never "measured"). The default graphics preset
+  on this machine is "low" (adapter tier software: no shadow casters) – for pictures pass --gfx-preset=medium or high.
+  Up to six agents share the 4 cores and 16 GB: heavy jobs (Godot renders, Blender, audio renders, test suites) one at
+  a time with nice -n 10 and at most 2 worker processes; run the complete tools/run_tests.sh (9–15 min) at most twice
+  (use its filter argument while iterating) and tools/golden.sh check (Arcade identity, must print 20 von 20
+  identisch) once at the end. Tools: godot, python3 (numpy, PIL), ffmpeg, ImageMagick, Blender 5.2 as Python module
+  /home/user/tools/bpyenv/bin/python, tools/run_tests.sh, tools/run_render_checks.sh, tools/golden.sh, tools/ab_shot.sh
+  (in branches that contain R1a), tools/models_contact_sheet.sh, tools/blender/validate_models.py,
+  tools/audio/qc/audio_qc.py.
+- Shell: the Bash tool may refuse compound commands with heredocs or several chained git commands ("too complex"):
+  write helper scripts into your scratch folder and run them one by one; write commit messages to a file and use
+  git commit -F <file>. "-s" scripts must not name autoload-dependent classes statically; compile-check with
+  tests/check_scripts.gd.
+- Rule 1: the frozen Arcade files are never edited. Stay inside your file ownership (§5 with A-8); packages of this push talk to each other only through the facade of A-7 with duck typing.
+- LOOK AT YOUR OWN PICTURES: you can open PNG/JPG files with the Read tool. Judge every picture you deliver honestly
+  against the Arcade frame of the same simulation state. "Modern" has to look clearly better than Arcade, not merely
+  different; say plainly where it does not yet.
+- Scratch for working files: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/FIX-WASSER/ ; pictures, previews and reports for review: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-WASSER/ (write
+  your full report there as bericht.md). Never commit intermediates or previews. Disk space is limited: delete large
+  scratch items (exports, copies of the tree, caches you no longer need) when you are done.
+- Commits: sensible steps on your branch; every commit message (German subject line) ends with
+  "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" and
+  "Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq". No model names anywhere else.
+- Priorities when time gets tight: (1) nothing broken – gates green, Arcade identical, fairness tests green; (2) the interfaces others depend on; (3) the look.
+  Deliver the core solid and list what is left under notes_for_next rather than leaving everything half-done.
+- RESULT: keep it compact – summary at most 250 words; deviations, contract_issues and notes_for_next at most 10
+  entries each, one or two sentences per entry; the details belong into bericht.md. Mark numbers measured/inferred.
+
+YOUR ROLE: FIX-WASSER – THE WATER UNDER THE BRIDGES OF THE FIRST TEST BUILD.
+CRITICAL PATH: the user expects the first test build (Zwischenstand 1, Steam Deck and Windows) this morning
+(German time); this fix decides whether it goes out with the Elbe under the Köhlbrandbrücke. Work straight and
+measured, no detours, no improvements beyond your brief; look at the clock (date -u) now and then and keep STAND.md
+current. Until about 06:45 UTC an independent check of the same test build runs beside you: heavy jobs with nice -n 10,
+one Godot/test run at a time; afterwards nice -n 5 (a model-assembly package runs with nice 19 the whole time).
+tools/run_tests.sh takes 13–15 min, tools/run_render_checks.sh all about 26 min, tools/golden.sh check about 6 min,
+modern-make 12 min and modern-check 14 min – run them as background commands with a timeout of at least 3,600,000 ms and
+poll their logs.
+Your base is 3a23cb8dad346b623118fc0bcab9c0ffaea1efbf (origin/wip/v080-fix-zs1): the corrected first test build (the start of every stage was fixed
+there; report /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-ZS1/bericht.md, pictures /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-ZS1/bilder/boote_*.jpg). For this fix YOU OWN:
+scripts/race3d/layers/far_ground.gd, the terrain/water code the fix needs (scripts/race3d/terrain_profile.gd,
+builders/terrain.gd, ground_look.gd), the tests you add, tests/golden/modern_slice.*, docs/renderer-modern*.md and
+docs/qa-v080.md. The frozen Arcade files stay untouched (rule 1).
+
+THE FAULT (FIX-ZS1, measured): under the Köhlbrandbrücke (Kiel – Hamburg km 77.5–80) Modern shows meadow where Arcade
+shows the Elbe, and the two ferries (km 78.95 and 79.14, props with "h": −depth from scripts/race/track.gd lines
+834–844) stand on that meadow. Cause: the far-ground plane of layers/far_ground.gd lies at "lowest road of the loaded
+window − far_ground_drop_m (4 m)"; the water rows of the terrain (terrain_profile.gd: hh = water_h, water_level ≤ 0)
+lie 9 m under the road there, so the opaque plane covers them. At the Elbbrücken (km 84.6) the water is right. Every
+high bridge over deep water on every stage is affected the same way – find them all from the data (bridges with water
+deeper than the drop) and list them.
+FIX it at the root: the plane must lie below the lowest water surface of the loaded window as well (for example: the
+lowest of road − drop and water surface − a small margin, sampled like lowest_road(); keep FOLLOW_SLOPE/snap behaviour
+sane so the plane does not visibly jump when a bridge comes into the window). The plane only moves DOWN, so it still
+hides nothing (rule F7); check that the gaps it closes (12 m at a medial axis, the hole of a tight bend, beyond the
+outer ring) still look like distant land and not like a pit – especially next to the bridges and at night. If the
+far ground beyond the outer ring then shows meadow colour right next to a wide river, say so with a picture (do not
+start a far-water feature; list it).
+Acceptance: (a) Köhlbrandbrücke km 77.5–80 by day (12 h) and at night (22 h), --gfx-preset=high and the Steam Deck
+preset (deck): the Elbe under and beside the bridge like Arcade (colour, extent), the two ferries float on the water at
+a sensible height (look at them from the deck and from the bridge ramp) – A/B with tools/ab_shot.sh, LOOK at every
+picture; (b) the Elbbrücken km 84.6 unchanged in look; (c) at least three more bridges over deep water on other stages
+(pick from your list: e.g. a Rhine, Danube or Elbe crossing and one coastal or lagoon causeway) A/B by day; (d) away
+from water nothing changes: tools/golden.sh modern-make may change ONLY the pictures that see deep water (expected
+modern_s4_mittel at km 80 at most – show old and new MD5 lists and look at every changed picture), modern-check green;
+(e) tools/run_render_checks.sh all green, including the terrain cover check and the new start check; (f) a unit test
+for the plane height with water in the window that fails on 3a23cb8dad346b623118fc0bcab9c0ffaea1efbf.
+
+THE TEST BUILD from your final, clean, pushed commit (read the usage at the top of
+tools/build_testbuild.sh first; it sets version, user folder and the Windows file version only for the export and
+restores them): OUT=/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/FIX-WASSER/testbuild tools/build_testbuild.sh 0.8.0-zs1 ZS1 crossing-europe-zwischenstand
+Copy both archives, LIZENZEN.txt, SHA256SUMS and BUILDINFO.txt into /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-WASSER/build/ (sha256sum -c --ignore-missing there
+must pass). The builds in /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/gate1/build/ and /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-ZS1/build/ stay untouched – the lead swaps
+after the review. Smoke tests with tools/smoke_modern.sh on the Linux export (once plain, once with
+DRIVER=opengl3_es) and on the Windows export under Wine (wine64, own WINEPREFIX, TMPDIR unset, paths as Z:<abs path>,
+wineserver -w between runs); the first start like a player with /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/FIX-ZS1/chooser_walk.sh (copy it into your
+scratch and adapt its paths); and with the EXPORTED Linux build and the EXPORTED Windows build under Wine: the standing
+start of Kiel – Hamburg in Modern (countdown and 1.5 s after "LOS!", the car at Arcade's place) and the Köhlbrandbrücke
+(km 78.6, flying start) with the Elbe under it – pictures into your report. FIX-ZS1's scripts in /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/FIX-ZS1/
+(export_start.sh, smokes.sh, triptych.sh, ab_queue1.sh, gates.sh) show how it did all of this; copy and adapt them.
+THE USER DOCUMENTS: copy /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-ZS1/was_neu.md and /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-ZS1/steamdeck_checkliste.md to /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-WASSER/ and
+change only what your fix makes untrue (the sentence about meadow under the Köhlbrandbrücke and the ships on it goes
+when the fix is verified in the exported build); plain German, no internal labels or package names.
+GATES on the final head (commands and output in bericht.md): import clean; tests/check_scripts.gd; tools/run_tests.sh
+green (once at the end; filter argument while iterating) incl. the fairness checks; tools/golden.sh check (20 von 20
+and 17 von 17 identisch); tools/golden.sh modern-make + modern-check (incl. OpenGL ES); tools/run_render_checks.sh all.
+If time runs short: (1) the water fixed and seen in the exported builds, (2) the gates, (3) the documents. Push every
+commit to origin wip/v080-fix-wasser. Report /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-WASSER/bericht.md with before/after pictures (Arcade | Modern before |
+Modern after). Return the result format with package "FIX-WASSER": one acceptance entry per item (a)–(f), the build,
+each smoke test and each gate.

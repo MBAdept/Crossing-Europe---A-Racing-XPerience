@@ -1,0 +1,24 @@
+v0.8.0 AU-R4: Tests schützen Quietschen, Varianten, Aufprall- und Vorbeifahrtzufall, Plattenabgleich
+
+KRITIK-R2-CODE H1–H4, M2 (und L3): Die Tests von test_road_audio.gd ließen
+zwölf gebrochene Regeln grün. Neu bzw. erweitert:
+- test_squeal_pitch_per_event: Tonhöhe je Bild aufgezeichnet, solange das
+  Quietschen hörbar ist – kein Wechsel (vorher nur der Endwert).
+- test_collision_variety: Folge der Lkw-Varianten und 400 Ziehungen von
+  pick_variant bei vier Varianten – auf jede folgen verschiedene, keine
+  feste Reihenfolge, jede Folge 20–47 %; Glas genau ab from_kmh.
+- test_collision_layers_vary_in_level_and_onset (neu): 60 Unfälle, 240
+  Schichten – Pegelzufall in ±2 dB mit Spannweite und Streuung, späterer
+  Einsatz in > 90 % der Schichten, höchstens 20 ms.
+- test_slab_loops_are_put_back_in_step (neu): Platzhalter-Spieler laufen
+  mit ihrer Tonhöhe, das schnelle Muster 5e-4 zu schnell – nachgestellt
+  wird erst über align_ms, nur das leisere, danach im Takt.
+- test_pass_by_variants_and_levels_at_random (neu): 60 Vorbeifahrten –
+  ±2 dB im gespielten Pegel, jede Variante, bei zwei Varianten zufällig.
+- test_wind_zones_gusts_and_fades: Fahrtwind im Tunnel 0 dB (AU-R).
+
+Mutationen der Prüfung (gleiche Zeilen): M01, M03, M11, M12, M14–M18,
+M31, M32 vorher grün, jetzt rot. Kein Code geändert.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

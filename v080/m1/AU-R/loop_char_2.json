@@ -1,0 +1,174 @@
+{
+ "tyre_asphalt": {
+  "pitch": 1.028,
+  "a": {
+   "max_abs_db": 0.65,
+   "at_hz": 40,
+   "rms_db": 0.17
+  },
+  "b": {
+   "max_abs_db": 0.31,
+   "at_hz": 40,
+   "rms_db": 0.15
+  }
+ },
+ "tyre_concrete": {
+  "pitch": 1.028,
+  "a": {
+   "max_abs_db": 0.36,
+   "at_hz": 32,
+   "rms_db": 0.12
+  },
+  "b": {
+   "max_abs_db": 0.46,
+   "at_hz": 25,
+   "rms_db": 0.2
+  }
+ },
+ "tyre_deck": {
+  "pitch": 1.0,
+  "a": {
+   "max_abs_db": 0.25,
+   "at_hz": 25,
+   "rms_db": 0.12
+  },
+  "b": {
+   "max_abs_db": 0.46,
+   "at_hz": 32,
+   "rms_db": 0.13
+  }
+ },
+ "tyre_cobbles": {
+  "pitch": 1.0,
+  "a": {
+   "max_abs_db": 0.44,
+   "at_hz": 100,
+   "rms_db": 0.24
+  },
+  "b": {
+   "max_abs_db": 0.41,
+   "at_hz": 32,
+   "rms_db": 0.22
+  }
+ },
+ "tyre_gravel": {
+  "pitch": 1.131,
+  "a": {
+   "max_abs_db": 1.22,
+   "at_hz": 40,
+   "rms_db": 0.39
+  },
+  "b": {
+   "max_abs_db": 1.15,
+   "at_hz": 25,
+   "rms_db": 0.43
+  }
+ },
+ "tyre_grass": {
+  "pitch": 1.0,
+  "a": {
+   "max_abs_db": 1.17,
+   "at_hz": 25,
+   "rms_db": 0.28
+  },
+  "b": {
+   "max_abs_db": 0.64,
+   "at_hz": 32,
+   "rms_db": 0.2
+  }
+ },
+ "tyre_wet": {
+  "pitch": 1.024,
+  "a": {
+   "max_abs_db": 0.33,
+   "at_hz": 251,
+   "rms_db": 0.11
+  },
+  "b": {
+   "max_abs_db": 0.89,
+   "at_hz": 32,
+   "rms_db": 0.23
+  }
+ },
+ "tyre_rumble": {
+  "pitch": 1.204,
+  "a": {
+   "max_abs_db": 0.81,
+   "at_hz": 79,
+   "rms_db": 0.28
+  },
+  "b": {
+   "max_abs_db": 0.65,
+   "at_hz": 158,
+   "rms_db": 0.26
+  }
+ },
+ "wind_low": {
+  "pitch": 0.94,
+  "a": {
+   "max_abs_db": 0.35,
+   "at_hz": 40,
+   "rms_db": 0.14
+  },
+  "b": {
+   "max_abs_db": 0.33,
+   "at_hz": 25,
+   "rms_db": 0.13
+  }
+ },
+ "wind_mid": {
+  "pitch": 0.901,
+  "a": {
+   "max_abs_db": 0.29,
+   "at_hz": 63,
+   "rms_db": 0.15
+  },
+  "b": {
+   "max_abs_db": 0.19,
+   "at_hz": 1259,
+   "rms_db": 0.11
+  }
+ },
+ "wind_high": {
+  "pitch": 0.901,
+  "a": {
+   "max_abs_db": 0.16,
+   "at_hz": 10000,
+   "rms_db": 0.09
+  },
+  "b": {
+   "max_abs_db": 0.18,
+   "at_hz": 10000,
+   "rms_db": 0.07
+  }
+ },
+ "wind_buffet": {
+  "pitch": 1.0,
+  "a": {
+   "max_abs_db": 1.19,
+   "at_hz": 25,
+   "rms_db": 0.35
+  },
+  "b": {
+   "max_abs_db": 0.83,
+   "at_hz": 25,
+   "rms_db": 0.31
+  }
+ },
+ "slab_slow": {
+  "pitch": 1.444,
+  "a": {
+   "max_abs_db": 1.0,
+   "at_hz": 3981,
+   "rms_db": 0.37
+  }
+ },
+ "slab_fast": {
+  "pitch": 0.722,
+  "a": {
+   "max_abs_db": 0.6,
+   "at_hz": 3981,
+   "rms_db": 0.33
+  }
+ }
+}

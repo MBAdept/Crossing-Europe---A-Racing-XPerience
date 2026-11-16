@@ -1,0 +1,158 @@
+{
+ "modern_drive_sportwagen_r1": {
+  "seconds": 38.64,
+  "dropouts": [],
+  "click_candidates": [],
+  "n_clicks": 0,
+  "rms_l_db": -20.48,
+  "rms_r_db": -20.23,
+  "lr_corr": 0.839,
+  "peak_dbfs": -4.75,
+  "phases": [
+   {
+    "car_bus_peak_db": -13.97,
+    "car_plan_lufs": -24.0,
+    "duck_db": 0.0,
+    "name": "idle",
+    "t0": 1.535,
+    "t1": 3.04
+   },
+   {
+    "car_bus_peak_db": -5.09,
+    "car_plan_lufs": -16.13,
+    "duck_db": -4.49,
+    "name": "full_throttle",
+    "t0": 4.04,
+    "t1": 22.084
+   },
+   {
+    "car_bus_peak_db": -3.98,
+    "car_plan_lufs": -16.05,
+    "duck_db": -4.49,
+    "name": "flat_out",
+    "t0": 22.084,
+    "t1": 28.087
+   },
+   {
+    "car_bus_peak_db": -6.69,
+    "car_plan_lufs": -20.87,
+    "duck_db": -2.26,
+    "name": "lift",
+    "t0": 28.087,
+    "t1": 31.091
+   },
+   {
+    "car_bus_peak_db": -11.05,
+    "car_plan_lufs": -20.07,
+    "duck_db": -2.2,
+    "name": "cruise_130",
+    "t0": 33.091,
+    "t1": 40.104
+   }
+  ]
+ },
+ "modern_drive_sportwagen_r2": {
+  "seconds": 37.8,
+  "dropouts": [],
+  "click_candidates": [],
+  "n_clicks": 0,
+  "rms_l_db": -20.51,
+  "rms_r_db": -20.26,
+  "lr_corr": 0.832,
+  "peak_dbfs": -4.71,
+  "phases": [
+   {
+    "car_bus_peak_db": -13.64,
+    "car_plan_lufs": -24.0,
+    "duck_db": 0.0,
+    "name": "idle",
+    "t0": 1.548,
+    "t1": 3.06
+   },
+   {
+    "car_bus_peak_db": -5.1,
+    "car_plan_lufs": -16.14,
+    "duck_db": -4.48,
+    "name": "full_throttle",
+    "t0": 4.06,
+    "t1": 22.111
+   },
+   {
+    "car_bus_peak_db": -2.77,
+    "car_plan_lufs": -16.04,
+    "duck_db": -4.49,
+    "name": "flat_out",
+    "t0": 22.111,
+    "t1": 28.128
+   },
+   {
+    "car_bus_peak_db": -5.13,
+    "car_plan_lufs": -20.88,
+    "duck_db": -2.26,
+    "name": "lift",
+    "t0": 28.128,
+    "t1": 31.129
+   },
+   {
+    "car_bus_peak_db": -9.66,
+    "car_plan_lufs": -20.07,
+    "duck_db": -2.2,
+    "name": "cruise_130",
+    "t0": 33.13,
+    "t1": 40.143
+   }
+  ]
+ },
+ "modern_drive_sportwagen_r3": {
+  "seconds": 38.08,
+  "dropouts": [],
+  "click_candidates": [],
+  "n_clicks": 0,
+  "rms_l_db": -20.47,
+  "rms_r_db": -20.23,
+  "lr_corr": 0.837,
+  "peak_dbfs": -5.6,
+  "phases": [
+   {
+    "car_bus_peak_db": -13.0,
+    "car_plan_lufs": -24.0,
+    "duck_db": 0.0,
+    "name": "idle",
+    "t0": 1.531,
+    "t1": 3.043
+   },
+   {
+    "car_bus_peak_db": -4.36,
+    "car_plan_lufs": -16.15,
+    "duck_db": -4.48,
+    "name": "full_throttle",
+    "t0": 4.043,
+    "t1": 22.094
+   },
+   {
+    "car_bus_peak_db": -4.51,
+    "car_plan_lufs": -16.03,
+    "duck_db": -4.49,
+    "name": "flat_out",
+    "t0": 22.094,
+    "t1": 28.11
+   },
+   {
+    "car_bus_peak_db": -8.34,
+    "car_plan_lufs": -20.88,
+    "duck_db": -2.25,
+    "name": "lift",
+    "t0": 28.11,
+    "t1": 31.111
+   },
+   {
+    "car_bus_peak_db": -10.85,
+    "car_plan_lufs": -20.07,
+    "duck_db": -2.2,
+    "name": "cruise_130",
+    "t0": 33.111,
+    "t1": 40.113
+   }
+  ]
+ }
+}

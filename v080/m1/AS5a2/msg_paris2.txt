@@ -1,0 +1,7 @@
+v0.8.0 AS5a2: Haussmann-Block und -Eckhaus (paris) als Echtzeit-Modelle, Manifest neu erzeugt
+
+Echte Exporte (export_models.py, Bauer city), gebacken. Manifest neu erzeugt (export_models.py --manifest-only):
+die zwölf Sets dutch, belgian, french, paris und swiss zeigen jetzt auf ihre Modelle statt auf den Platzhalter.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

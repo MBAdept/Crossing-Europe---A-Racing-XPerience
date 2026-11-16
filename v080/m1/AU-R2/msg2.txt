@@ -1,0 +1,14 @@
+v0.8.0 AU-R2: Platten aus den Fugen von AU-C1 neu erzeugt, Pflaster rechts mit anderem Seed, Plattenpegel über 150 km/h flacher (WIP)
+
+- slab_slow/slab_fast: 32 Platten aus den 8 Fugen der AU-C1-Entwürfe (Folge 3311, Akzent ±1,2 dB, härteste
+  Fuge 1 dB unter der härtesten von AU-C1) – Modell: Terzen bei 90–230 km/h, auch das Paar im Gleichschritt
+  bei 120–140 km/h, höchstens 0,43 dB neben AU-C1 (KRITIK-R H1: +1,75 dB bei 400 Hz).
+- tyre_cobbles_b: Seed-Versatz 64 statt 50 – beim alten trafen alle vier Räder zweimal je Schleife binnen
+  1–3 ms zusammen (Spitzen 2 dB über AU-C1, KRITIK-R M5).
+- road.slabs.high_kmh 150 / high_slope_db 8: oberhalb von 150 km/h steigt der Plattenpegel nur noch um
+  8 dB je Dekade (200 km/h: −1,5 dB; Begrenzer beim Reisen auf Beton, KRITIK-R M3) – Wert vorläufig.
+- Test: Sperre des Audioservers nur beim Start und alle 0,5 s; Gesetz oberhalb von 150 km/h.
+  Alle übrigen Schleifen bitgleich neu erzeugt.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

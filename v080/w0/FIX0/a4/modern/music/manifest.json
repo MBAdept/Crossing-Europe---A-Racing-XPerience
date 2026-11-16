@@ -1,0 +1,7 @@
+{
+	"format": "ce-audio-manifest-1",
+	"folder": "music",
+	"sounds": {
+		"platzhalter_takt": {"file": "platzhalter_takt.ogg", "kind": "music", "role": "race", "bus": "MMusic", "gain_db": 0.0, "lufs": -13.97, "true_peak_db": -2.14, "sample_rate": 44100, "channels": 2, "frames": 176400, "loop": [0, 176400], "bpm": 120.0, "beats": 8, "bar_beats": 4, "bytes": 35124, "sha256": "5db87a4fc25f935d14f6f431584147c453c33da922f6198950752fa370664ab2", "placeholder": true, "generator": "tools/audio/modern/make_placeholders.py", "note": "Platzhalter (Welle 0): wird im Spiel nie abgespielt"}
+	}
+}

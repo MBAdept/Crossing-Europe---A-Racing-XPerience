@@ -1,0 +1,172 @@
+{
+ "M19": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "keine Rüttellinie an der Tankspur",
+  "filter": "test_audio_feed.gd",
+  "exit": 1,
+  "failed": [
+   "test_no_rumble_at_the_fuel_lane"
+  ],
+  "info": "2s",
+  "caught": true
+ },
+ "M20": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "Fugen je Deck",
+  "filter": "test_audio_feed.gd",
+  "exit": 1,
+  "failed": [
+   "test_structures_and_their_events",
+   "test_joints_per_deck",
+   "test_no_old_town_cobbles_on_a_concrete_deck"
+  ],
+  "info": "1s",
+  "caught": true
+ },
+ "M21": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "kein Altstadtpflaster auf Brücken ohne Steindeck",
+  "filter": "test_audio_feed.gd",
+  "exit": 1,
+  "failed": [
+   "test_no_old_town_cobbles_on_a_concrete_deck",
+   "test_old_town_share_on_its_streets_around_a_bridge"
+  ],
+  "info": "1s",
+  "caught": true
+ },
+ "M22": {
+  "error": "old text found 0 times",
+  "rule": "Anteil auf den Straßen (Brücken aus der Zuteilung)"
+ },
+ "M23": {
+  "error": "old text found 0 times",
+  "rule": "Nachrücken ins Band 0,6 ± 0,05"
+ },
+ "M24": {
+  "error": "old text found 0 times",
+  "rule": "Steinbrücken zählen als Straße"
+ },
+ "M25": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "fmix32 (Bezugswerte)",
+  "filter": "test_audio_feed.gd",
+  "exit": 1,
+  "failed": [
+   "test_unit_hash_mixes_neighbouring_keys"
+  ],
+  "info": "2s",
+  "caught": true
+ },
+ "M26": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "Schwelle nur für den kalibrierten Anteil",
+  "filter": "test_audio_feed.gd",
+  "exit": 1,
+  "failed": [
+   "test_paving_of_sections_cities_and_bridges",
+   "test_concrete_threshold_per_country"
+  ],
+  "info": "1s",
+  "caught": true
+ },
+ "M27": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "Zuteilung je Altstadt genau (statt Hash je Block)",
+  "filter": "test_audio_feed.gd",
+  "exit": 1,
+  "failed": [
+   "test_cobbled_blocks_hit_the_share_per_centre",
+   "test_cobbled_blocks_count_only_the_streets",
+   "test_cobbled_blocks_count_a_stone_bridge_as_cobbled"
+  ],
+  "info": "2s",
+  "caught": true
+ },
+ "M33": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "Steinbrücke als schon gepflasterte Straße (AU-R4)",
+  "filter": "test_audio_feed.gd",
+  "exit": 1,
+  "failed": [
+   "test_cobbled_blocks_count_a_stone_bridge_as_cobbled"
+  ],
+  "info": "2s",
+  "caught": true
+ },
+ "M34": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "Tunnel der Etappe rückt ins Band nach (AU-R4)",
+  "filter": "test_audio_feed.gd",
+  "exit": 1,
+  "failed": [
+   "test_cobbled_blocks_with_a_tunnel_of_the_stage"
+  ],
+  "info": "1s",
+  "caught": true
+ },
+ "M35": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "Nachrücken für jede Altstadt, nicht nur mit Brücke (AU-R4)",
+  "filter": "test_audio_feed.gd",
+  "exit": 1,
+  "failed": [
+   "test_cobbled_blocks_count_a_stone_bridge_as_cobbled"
+  ],
+  "info": "1s",
+  "caught": true
+ },
+ "M36": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "Tunnel ändert die Blöcke der Stadt nur, wenn er den Anteil aus dem Band schiebt (AU-R4)",
+  "filter": "test_audio_feed.gd",
+  "exit": 1,
+  "failed": [
+   "test_cobbled_blocks_with_a_tunnel_of_the_stage"
+  ],
+  "info": "1s",
+  "caught": true
+ },
+ "M37": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "nur Steinbrücken sind schon gepflastert (AU-R4)",
+  "filter": "test_audio_feed.gd",
+  "exit": 1,
+  "failed": [
+   "test_cobbled_blocks_count_a_stone_bridge_as_cobbled"
+  ],
+  "info": "1s",
+  "caught": true
+ },
+ "M38": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "Tunnel der Etappe aus dem Plan (AU-R4)",
+  "filter": "test_audio_feed.gd",
+  "exit": 1,
+  "failed": [
+   "test_cobbled_blocks_count_a_stone_bridge_as_cobbled"
+  ],
+  "info": "1s",
+  "caught": true
+ },
+ "M39": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "der Feed gibt die Steinbrücken weiter (AU-R4)",
+  "filter": "test_audio_feed.gd",
+  "exit": 1,
+  "failed": [
+   "test_old_town_with_a_stone_bridge_and_a_tunnel"
+  ],
+  "info": "1s",
+  "caught": true
+ },
+ "M40": {
+  "file": "scripts/audio/modern/audio_feed.gd",
+  "rule": "der Feed gibt die Tunnel weiter (AU-R4)",
+  "filter": "test_audio_feed.gd",
+  "exit": 0,
+  "failed": [],
+  "info": "1s",
+  "caught": false
+ }
+}

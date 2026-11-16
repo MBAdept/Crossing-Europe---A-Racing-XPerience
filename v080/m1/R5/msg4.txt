@@ -1,0 +1,20 @@
+v0.8.0 R5 WIP: Hügel nach Arcades Bauart, Lichthof der Tunnelleuchten von außen, Seile hell, Render-Prüfung, Doku
+
+Nach den ersten Modern-Bildern des neuen Codes (Köhlbrand-Rampe, Holtenau,
+U1 Anfahrt und innen) gegen Arcade und die Basis:
+- Portalhügel: Arcades gesäte Folge (Spalten, Höhe, Grat), Verlauf von der
+  dunklen Grasfarbe am Fuß zur helleren am Grat, glatte Normalen, Nadelbäume
+  auf dem Grat; keine Felsfarbe und keine Streifen je Spalte mehr.
+- Tunnel von außen: Arcades Lichthof um jede Leuchte bei Tag im Shader (die
+  Ebene flares zeigt Tunnelleuchten nur nachts oder mit der Kamera im Tunnel).
+- Fliesen: Ton je Paneel blendet in der Ferne aus (kein Flimmern).
+- Wasser: Spiegelanteil nach der Tiefe in Blickrichtung wie Arcades Zeilen,
+  Spiegelfarbe vor allem Arcades Horizontfarbe.
+- Seile: Normalen nach oben, hell wie Arcades Linien, keine Metallanteile.
+- tests/race3d/render/check_tunnel_bridge.gd (U1/Somport-Portal, U1 innen,
+  U1-Ausfahrt, B1-Wasser, Flugbefeuerung), Doku
+  docs/renderer-modern-tunnel-bruecken.md und renderer-modern.md Abschnitt 15
+  (set_zone-Aufrufe).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

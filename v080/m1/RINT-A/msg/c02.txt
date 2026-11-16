@@ -1,0 +1,23 @@
+v0.8.0 RINT-A: Gelände im Licht, Rotoren drehen, Varianten je Stück, Bodendecker in Kurven
+
+- Kern: TerrainProfile kürzt die Innenseite auch nach der stärksten Krümmung
+  der Seite in der Nähe (R2, drei Zeilen); check_terrain_plan streng (0 Paare),
+  modern_sight --full grün
+- Gelände und Fernboden auf Render-Ebene 2 mit Abblendlicht und Lichtkegeln
+  (inc/headlight + inc/pools, Arcades Rückstrahlfaktoren), Fernboden angemeldet
+- Lampen der Requisiten: Laternen und Tankdach mit Kegel nach unten (Gruppe
+  teilt sich Arcades Licht), Wandlampen mit kleinem Kegel vor der Wand,
+  Flugbefeuerung ohne Kegel; Lichter-Ebene legt Wandlampen-Kegel vor die Wand
+- vpbr: Rotorteile (Lackcode 0,875) drehen um die Nabe mit ce_time (AS1b),
+  im Uhrzeigersinn von der Straße aus; Render-Prüfung rotor
+- Requisiten: eine Variante je Stück und Set (stabiler Hash); weggelassene
+  Pflanzen im Kurvenkorridor werden Bodendecker (cover_bush/cover_grass,
+  höchstens 0,5 m, Nachtrag A-3); Konfiguration graphics.modern.props
+- Prüfungen an den Stand nach AS1b angepasst (props_spiegel mit Vertretungen,
+  test_props: Varianten, Wandlampen, Bodendecker, Zeichenaufrufe je Seite);
+  check_light_base schatten vergleicht beleuchtete, unbeschattete Flächen
+- run_tests.sh: check_options_tabs (Arcade), check_attract und
+  check_attract_scenes zusätzlich in Modern
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

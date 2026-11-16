@@ -1,0 +1,19 @@
+WIP v0.8.0 RINT-M2: Tankstellendach – Vorlauf mit Zeitbudget, Spuren und Krümmung geteilt (A-18)
+
+Nachgemessen (Testetappe, „Steam Deck“, Instrumentierung): mit einem
+halben Job je collect() reichten 600 m Vorlauf bei sechs Dächern einer
+Station nicht – die letzten drei Dächer wurden inline entschieden
+(4–6 ms). 2000 m Vorlauf lösten das, ließen aber die Strecke 1,4 km zu
+früh erzeugen (18 ms in einem Bild) – verworfen.
+
+Jetzt: Vorlauf wieder 600 m; collect() beginnt weitere Hälften, solange
+der Aufruf weniger als WARM_BUDGET_MS (0,5 ms) gebraucht hat; die Dächer
+einer Station teilen ihre Kamerastellen (Spuren) und Segment-Krümmungen
+über den Cache des Bausteins („_lanes“, „_curve“) – das zweite und jedes
+weitere Dach kostet so etwa 0,5 ms statt 2. Entscheide gleich: Sonde
+jobpath (Streaming-Reihenfolge mit Arbeitsfaden und Cache gegen inline)
+auf Testetappe und Kiel – Hamburg 22 Dächer, 0 verschieden;
+test_structures 13/13. Netzlauf und Messung im Rennen folgen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

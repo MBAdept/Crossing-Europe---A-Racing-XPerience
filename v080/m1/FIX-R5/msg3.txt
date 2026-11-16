@@ -1,0 +1,12 @@
+v0.8.0 FIX-R5: tunnel_state.light – das Licht der Röhre für die Fahrbahn im Tunnel
+
+QA-R5 QR5-02 liegt in R4s Fahrbahn (road.gd/road.gdshader): von außen zeigt die
+Fahrbahn in der Röhre den Himmel statt Arcades warmem Tunnellicht. R5 legt dafür
+die Werte, die tunnel.gdshader bekommt, jedes Bild in tunnel_state["light"]
+(ambient_in, ambient_out, fog, darkness_m, peek_m, cam_tunnel_z, lights), damit R4
+sie duck-typed über renderer.builder("tunnel") lesen kann, ohne eigene Rechnung.
+Unit-Test: Werte gleich denen des Röhrenmaterials, draußen und drinnen.
+Doku: renderer-modern.md 15.1, renderer-modern-tunnel-bruecken.md 2.4.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

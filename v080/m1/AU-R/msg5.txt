@@ -1,0 +1,16 @@
+v0.8.0 AU-R: Betonanteil je Land über eine kalibrierte Schwelle, Doku (WIP)
+
+- AudioFeed: section_key (wie bisher) und concrete_threshold_for: je Land eine
+  Hash-Schwelle aus audio.modern.feed.concrete_threshold ([Anteil, Schwelle]),
+  gültig nur für den Anteil, mit dem sie gerechnet wurde (Aufnahmen und Tests mit
+  eigenem Anteil bleiben unberührt).
+- tools/audio/modern/calibrate_concrete.gd: rechnet die Schwellen über alle
+  sichtbaren Etappen (jeder Abschnitt einmal, beide Richtungen gleich).
+  Gemessen: 14 von 18 Ländern im Anteil ±0,05 (nur fmix32: 8, AU-C1: 5);
+  SI, LT, BG, LV haben 1-5 Abschnitte (nächster möglicher Anteil 0 oder >= 0,19).
+  Gesamt 0,205 bei Soll 0,207.
+- Doku audio-modern.md: Feed (8), Werkzeuge (10), Tests (12), Mischung (14.10),
+  Klänge (15.2), Aufprall (15.4), schlimmster Fall (15.5), offene Punkte (15.8).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

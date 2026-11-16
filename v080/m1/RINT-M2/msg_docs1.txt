@@ -1,0 +1,12 @@
+v0.8.0 RINT-M2: Doku nach den Merges – Verweise, Tabellen, Lücken des ersten Testbuilds
+
+- renderer-modern.md §14.4/§14.5: Verweis auf renderer-modern-bauten.md (R6).
+- §14.10: vier Testsätze der Ersatzbild-Prüfung (NACH-M2 N-04); Hinweise auf
+  die Änderungen der Montage beim Abblendlicht und der Waldprüfung.
+- §14.11: als Stand des ersten Testbuilds markiert, behobene Punkte genannt.
+- §16.2/16.3: Portal und Wasser in eigenen Abschnitten (NACH-R5 N-02).
+- renderer-modern-tunnel-bruecken.md: Absatz aus der Prüftabelle genommen,
+  tunnel_state nennt exit_z (NACH-R5 N-02).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

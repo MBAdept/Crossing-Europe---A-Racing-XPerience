@@ -1,0 +1,11 @@
+v0.8.0 FIX-R6: Sichtlinien der Endstütze billiger – nur nötige Kameras, Sinus statt Winkel, ein Dach voraus
+
+Die Entscheidung je Dach kostete 2–4,5 ms auf dem Hauptthread, alle Dächer einer Station
+fielen in ein Stück (bis 12,8 ms, gemessen mit collect_time.gd von QA-R6). Jetzt: nur Tafeln
+hinter der Stütze und nur die Kameras, die sie brauchen; Vergleich über Sinus statt atan2
+(gleiche Entscheidung, monotone Abbildung); Kameras je Etappe zwischengespeichert; jedes
+collect() entscheidet ein Dach bis 600 m voraus. Höchstens 1,2–3,9 ms je Stück, Entscheidungen
+netzweit unverändert (scan_f1/scan_all von QA-R6, 27 Dächer einzeln verglichen).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

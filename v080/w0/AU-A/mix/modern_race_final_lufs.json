@@ -1,0 +1,65 @@
+[
+ {
+  "file": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/w0/AU-A/mix/modern_race_final.wav",
+  "profile": "modern",
+  "scenario": "race_music",
+  "vehicle": "gran_turismo",
+  "mute_buses": [],
+  "seconds": 46.9,
+  "integrated_lufs": -16.34,
+  "lra": 4.01,
+  "true_peak_db": -3.99,
+  "phases": [
+   {
+    "name": "idle",
+    "t0": 1.505,
+    "t1": 3.017,
+    "lufs": -17.07,
+    "short_term_max": -17.07,
+    "short_term_median": -17.07,
+    "true_peak_db": -4.85,
+    "target": null
+   },
+   {
+    "name": "full_throttle",
+    "t0": 4.017,
+    "t1": 29.899,
+    "lufs": -15.66,
+    "short_term_max": -14.97,
+    "short_term_median": -15.55,
+    "true_peak_db": -3.99,
+    "target": null
+   },
+   {
+    "name": "flat_out",
+    "t0": 29.899,
+    "t1": 35.915,
+    "lufs": -15.84,
+    "short_term_max": -15.49,
+    "short_term_median": -15.56,
+    "true_peak_db": -5.24,
+    "target": null
+   },
+   {
+    "name": "lift",
+    "t0": 35.915,
+    "t1": 38.932,
+    "lufs": -19.09,
+    "short_term_max": -19.08,
+    "short_term_median": -19.08,
+    "true_peak_db": -6.62,
+    "target": null
+   },
+   {
+    "name": "cruise_130",
+    "t0": 40.932,
+    "t1": 47.948,
+    "lufs": -19.22,
+    "short_term_max": -19.19,
+    "short_term_median": -19.24,
+    "true_peak_db": -7.43,
+    "target": null
+   }
+  ]
+ }
+]

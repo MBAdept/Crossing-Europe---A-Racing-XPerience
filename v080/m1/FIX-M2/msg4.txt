@@ -1,0 +1,10 @@
+v0.8.0 FIX-M2 (WIP): Lack des Spielerautos im Rennen weniger gesättigt (B-06)
+
+- ModernMaterials.VEHICLE_PLAYER_DESAT 0,25 und player_paint(): die Lackfarben des Spielerautos im Rennen zur
+  eigenen Leuchtdichte hin (layers/vehicles.gd beim Stufenwechsel); Showroom unverändert. Gemessen vorher
+  (Lackpixel, farbgefiltert): S1 0,74 gegen Arcade 0,59, C1 0,54/0,42, N1 0,94/0,72; mit R4s Lichtgesetz S1 0,74.
+  Wert wird noch an S1/C1/N1 nachgemessen.
+- Unit-Test test_player_paint_is_desaturated.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

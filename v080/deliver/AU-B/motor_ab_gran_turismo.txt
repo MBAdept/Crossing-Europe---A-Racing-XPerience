@@ -1,0 +1,14 @@
+Gran Turismo (4,0 l V8 Biturbo) – derselbe Fahrablauf, abwechselnd mit dem Motor des Profils Arcade und dem Motor v3 des Profils Modern,
+jeweils im Spiel über die Busse des Profils aufgenommen (nur der Motor mit seinen Fahrzeugebenen, ohne Wind, Reifen, Verkehr).
+Für den Vergleich pegelgleich gemacht: Modern um 3.9 dB angehoben (im Spiel ist der Motor von Modern über die ganze Fahrt leiser:
+Arcade -16.2 LUFS, Modern -20.0 LUFS; Modern folgt dem Pegelplan, Vollgas −16 LUFS mit Wind).
+Niemand hat diese Datei gehört; sie ist aus den Aufnahmen geschnitten und nur gemessen.
+
+   0.0 –    7.2 s  ARCADE  Start, Leerlauf, zwei Gasstöße im Stand
+   7.5 –   14.7 s  MODERN  Start, Leerlauf, zwei Gasstöße im Stand
+  15.4 –   28.0 s  ARCADE  Vollgas durch die Gänge
+  28.3 –   40.9 s  MODERN  Vollgas durch die Gänge
+  41.6 –   52.4 s  ARCADE  Reisetempo 200 km/h, Gas weg, Bremsen mit Rückschalten
+  52.8 –   63.6 s  MODERN  Reisetempo 200 km/h, Gas weg, Bremsen mit Rückschalten
+  64.3 –   82.1 s  ARCADE  130 km/h, Kick-down, Gas weg, Anhalten
+  82.5 –  100.3 s  MODERN  130 km/h, Kick-down, Gas weg, Anhalten

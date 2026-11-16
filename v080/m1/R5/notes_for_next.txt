@@ -1,0 +1,6 @@
+notes_for_next (Entwurf)
+1. R3 layers/flares.gd: Tunnelleuchten (Rolle "tunnel") auch bei Tag von außen an – Arcade zeigt Leuchten + Lichthof von außen. Änderung: in _add_statics `var on := 1.0 if role == "on" or role == "tunnel" else (...)`. Danach in tunnel.gdshader den Tages-Lichthof abschalten (halo_k = 0.0), sonst doppelt.
+2. R4 environment_rig.gd: Arcade überbelichtet das Draußen aus dem Tunnel (RoadRenderer: amb_out = min(2, amb*1.7+0.25), Nebel lerp weiß 0,55). Modern: Ausfahrt 0,226 Leuchtdichte gegen Röhre 0,449 (gemessen). Quelle: renderer.builder("tunnel").tunnel_state (exit_m, exit_in_sight) oder set_zone("tunnel", amount).
+3. R2 builders/terrain.gd: Wasserzeilen werden vom Brücken-Builder 0,15 m darüber überdeckt; terrain könnte die Wasser-Quads überspringen, wenn renderer.builder("bridge") existiert (ca. 768 Dreiecke je Brückenstück, kein Z-Kampf bei streifendem Blick).
+4. AS4 Modell props/bridge_pylon_bare: Sonnenseite tags ~12 % heller als Arcades Grau (182–187 gegen 151–169, km 78,4); Atlas 10 % dunkler und night_albedo 0,5 statt 0,45 hielte die Nacht gleich.
+5. Doku renderer-modern.md: Abschnitt 15 (R5) kann mit R4/R6 kollidieren – beim Zusammenführen nummerieren.

@@ -1,0 +1,10 @@
+[
+ {"name": "kompakt_corner_shaded", "set": "player/kompakt", "lod": "lod0", "mode": "shaded", "size": [960, 600],
+  "cam": {"type": "orbit", "yaw": 70, "el": 12, "fov": 30, "fit": 1.05, "aabb": [0.3, 0.5, 1.2, 1.0, 1.2, 2.1]}},
+ {"name": "kompakt_corner_clay", "set": "player/kompakt", "lod": "lod0", "mode": "clay", "size": [960, 600],
+  "cam": {"type": "orbit", "yaw": 70, "el": 12, "fov": 30, "fit": 1.05, "aabb": [0.3, 0.5, 1.2, 1.0, 1.2, 2.1]}},
+ {"name": "kompakt_corner_check", "set": "player/kompakt", "lod": "lod0", "mode": "check", "size": [960, 600],
+  "cam": {"type": "orbit", "yaw": 70, "el": 12, "fov": 30, "fit": 1.05, "aabb": [0.3, 0.5, 1.2, 1.0, 1.2, 2.1]}},
+ {"name": "limo_corner_clay", "set": "player/limousine", "lod": "lod0", "mode": "clay", "size": [960, 600],
+  "cam": {"type": "orbit", "yaw": 70, "el": 12, "fov": 30, "fit": 1.05, "aabb": [0.3, 0.5, 1.6, 1.0, 1.2, 2.45]}}
+]

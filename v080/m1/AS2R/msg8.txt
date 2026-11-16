@@ -1,0 +1,7 @@
+AS2R: Modell-Doku Abschnitt 16 umbrochen
+
+Nur der Zeilenumbruch eines Absatzes (Zeile über 120 Zeichen); kein Inhalt
+geändert.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

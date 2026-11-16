@@ -1,0 +1,5 @@
+AudioManager: Verkehrsgeräusche res://assets/audio/traffic/traffic_sounds.json geladen in 4 ms (9 Klänge, 6 Klassen)
+AudioManager: Klänge erzeugt in 164 ms
+AudioManager: Titelmelodie res://assets/audio/music/title_theme.ogg geladen in 15 ms
+contact_sheet: 90 Kacheln (1800 x 3600) -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS3/shots/f_kontakt_tree__tag.png
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS3/shots/f_kontakt_tree__tag.png

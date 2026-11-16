@@ -1,0 +1,237 @@
+==============================================================================================================
+res://assets/models/landmarks/michel/lod0_body.res class ArrayMesh bytes 63648 uid uid://<invalid> deps [] name='' blend 0 shadow_mesh False custom_aabb [P: (0.0, 0.0, 0.0), S: (0.0, 0.0, 0.0)]
+  aabb [-41.4, 0.0, -44.6, 31.8, 132.0, 0.8]
+  surface baked        verts   5730 tris   3024 area 33525.74 m2  fmt 34896613399  compressed True  normal True tangent True color False uv True uv2 False custom False bones False material False prim 3
+     stored keys ['format', 'primitive', 'vertex_data', 'vertex_count', 'attribute_data', 'aabb', 'uv_scale', 'index_data', 'index_count', 'lods', 'name'] vertex/attr/index bytes 68760 22920 18144 uv_scale (0.0, 0.0, 0.0, 0.0) auto lods [[2.52396512031555, 7608], [7.97790241241455, 2976], [11.9668531417847, 1320], [17.9502792358398, 600]]
+     normals bad length 0, winding agree 3024 / against 0, degenerate 0, mixed code tris 0, mixed lamp tris 0
+     uv range [0.0012, 0.0013, 0.9987, 0.9988]
+==============================================================================================================
+res://assets/models/player/limousine/lod0_body.res class ArrayMesh bytes 422507 uid uid://<invalid> deps [] name='' blend 0 shadow_mesh False custom_aabb [P: (0.0, 0.0, 0.0), S: (0.0, 0.0, 0.0)]
+  aabb [-1.15, 0.145, -2.4322, 1.15, 1.448, 2.437]
+  surface vpbr         verts  22881 tris  33448 area    56.66 m2  fmt 34896613439  compressed True  normal True tangent True color True uv True uv2 True custom False bones False material False prim 3
+     stored keys ['format', 'primitive', 'vertex_data', 'vertex_count', 'attribute_data', 'aabb', 'uv_scale', 'index_data', 'index_count', 'name'] vertex/attr/index bytes 274572 274572 200688 uv_scale (1.8, 2.0, 17.0, 2.0) auto lods []
+     normals bad length 0, winding agree 33440 / against 5, degenerate 3, mixed code tris 0, mixed lamp tris 0
+     uv range [0.03, -0.0, 0.9, 1.0]
+     paint codes (vertices): {'0.0': 11596, '1.0': 11285}
+     paint codes (tris): {'0.0': 20788, '1.0': 12660}  area: {'0.0': 46.197, '1.0': 10.464}
+     UV2.x (vertices): {'-1.0001': 21904, '0.5': 475, '1.5': 84, '3.5': 34, '4.5': 34, '5.5': 100, '6.5': 108, '7.5': 46, '8.5': 96}
+       ch  0 tail       raw 0.5     tris   525 area   1072.3 cm2  bounds x[-0.924 0.924] y[0.432 0.979] z[2.192 2.419]  weights {'0.2': 213, '0.3': 36, '0.9': 124, '1.0': 152}  colours {'ff1a0e': 489, 'ff2a10': 36}
+       ch  1 brake      raw 1.5     tris    96 area    155.9 cm2  bounds x[-0.855 0.855] y[0.897 0.931] z[2.316 2.410]  weights {'1.0': 96}  colours {'ff2414': 96}
+       ch  3 ind_l      raw 3.5     tris    18 area     75.8 cm2  bounds x[-1.137 -0.841] y[0.687 1.044] z[-2.172 2.274]  weights {'1.0': 18}  colours {'ffa01a': 18}
+       ch  4 ind_r      raw 4.5     tris    18 area     75.8 cm2  bounds x[0.841 1.137] y[0.687 1.044] z[-2.172 2.274]  weights {'1.0': 18}  colours {'ffa01a': 18}
+       ch  5 head       raw 5.5     tris    96 area    127.7 cm2  bounds x[-0.766 0.766] y[0.688 0.740] z[-2.330 -2.209]  weights {'1.0': 96}  colours {'fff3d6': 96}
+       ch  6 drl        raw 6.5     tris   104 area    144.9 cm2  bounds x[-0.893 0.893] y[0.696 0.750] z[-2.308 -2.082]  weights {'1.0': 104}  colours {'eef3ff': 104}
+       ch  7 reverse    raw 7.5     tris    48 area     35.8 cm2  bounds x[-0.621 0.621] y[0.922 0.949] z[2.412 2.415]  weights {'1.0': 48}  colours {'fff6e6': 48}
+       ch  8 plate      raw 8.5     tris    60 area   1211.7 cm2  bounds x[-0.260 0.260] y[0.634 0.746] z[2.402 2.406]  weights {'0.6': 60}  colours {'fff4dc': 60}
+     rough/metal (tris): [('0.3/0.55', 20788), ('0.45/0.0', 4083), ('0.08/1.0', 2244), ('0.5/0.0', 1594), ('0.6/0.0', 1498), ('0.55/0.0', 1045), ('0.5/0.2', 477), ('0.3/0.0', 421), ('0.3/0.9', 282), ('0.35/0.0', 276), ('0.25/0.0', 236), ('0.4/0.0', 120), ('0.3/0.2', 96), ('0.03/0.95', 88)] ... 19 combos
+  surface glass        verts   2919 tris   4300 area     3.27 m2  fmt 34896613407  compressed True  normal True tangent True color True uv True uv2 False custom False bones False material False prim 3
+     stored keys ['format', 'primitive', 'vertex_data', 'vertex_count', 'attribute_data', 'aabb', 'uv_scale', 'index_data', 'index_count', 'name'] vertex/attr/index bytes 35028 23352 25800 uv_scale (0.0, 0.0, 0.0, 0.0) auto lods []
+     normals bad length 0, winding agree 4300 / against 0, degenerate 0, mixed code tris 0, mixed lamp tris 0
+     uv range [0.012, 0.0, 0.05, 0.0]
+     glass colours: {'0d1115 a=1.0': 1768, '8c120a a=0.494': 132, 'c41a0f a=0.494': 688, 'dfe6ec a=0.141': 331}
+     rough/metal (tris): [('0.01/0.0', 2996), ('0.05/0.0', 1304)]
+==============================================================================================================
+res://assets/models/player/limousine/shadow.res class ArrayMesh bytes 17847 uid uid://<invalid> deps [] name='' blend 0 shadow_mesh False custom_aabb [P: (0.0, 0.0, 0.0), S: (0.0, 0.0, 0.0)]
+  aabb [-0.9302, 0.0, -2.39, 0.9302, 1.4479, 2.4]
+  surface vpbr         verts   1236 tris   1872 area    42.12 m2  fmt 34896613439  compressed True  normal True tangent True color True uv True uv2 True custom False bones False material False prim 3
+     stored keys ['format', 'primitive', 'vertex_data', 'vertex_count', 'attribute_data', 'aabb', 'uv_scale', 'index_data', 'index_count', 'name'] vertex/attr/index bytes 14832 14832 11232 uv_scale (1.6, 0.0, 2.0, 0.0) auto lods []
+     normals bad length 0, winding agree 1775 / against 97, degenerate 0, mixed code tris 0, mixed lamp tris 0
+     uv range [0.8, 0.0, 0.8, 0.0]
+     paint codes (vertices): {'1.0': 1236}
+     paint codes (tris): {'1.0': 1872}  area: {'1.0': 42.119}
+     UV2.x (vertices): {'-1.0': 1236}
+     rough/metal (tris): [('0.8/0.0', 1872)] ... 1 combos
+==============================================================================================================
+res://assets/models/player/limousine/show_body.res class ArrayMesh bytes 900926 uid uid://<invalid> deps [] name='' blend 0 shadow_mesh False custom_aabb [P: (0.0, 0.0, 0.0), S: (0.0, 0.0, 0.0)]
+  aabb [-1.15, 0.145, -2.4322, 1.15, 1.448, 2.437]
+  surface vpbr         verts  44913 tris  74426 area    56.66 m2  fmt 34896613439  compressed True  normal True tangent True color True uv True uv2 True custom False bones False material False prim 3
+     stored keys ['format', 'primitive', 'vertex_data', 'vertex_count', 'attribute_data', 'aabb', 'uv_scale', 'index_data', 'index_count', 'name'] vertex/attr/index bytes 538956 538956 446556 uv_scale (1.8, 2.0, 17.0, 2.0) auto lods []
+     normals bad length 0, winding agree 74421 / against 3, degenerate 2, mixed code tris 0, mixed lamp tris 0
+     uv range [0.03, -0.0, 0.9, 1.0]
+     paint codes (vertices): {'0.0': 25336, '1.0': 19577}
+     paint codes (tris): {'0.0': 47588, '1.0': 26838}  area: {'0.0': 46.235, '1.0': 10.43}
+     UV2.x (vertices): {'-1.0001': 43288, '0.5': 942, '1.5': 144, '3.5': 45, '4.5': 45, '5.5': 128, '6.5': 165, '7.5': 60, '8.5': 96}
+       ch  0 tail       raw 0.5     tris  1230 area   1052.4 cm2  bounds x[-0.911 0.911] y[0.433 0.977] z[2.219 2.411]  weights {'0.2': 674, '0.3': 64, '0.9': 216, '1.0': 276}  colours {'ff1a0e': 1166, 'ff2a10': 64}
+       ch  1 brake      raw 1.5     tris   196 area    152.1 cm2  bounds x[-0.851 0.851] y[0.896 0.930] z[2.314 2.406]  weights {'1.0': 196}  colours {'ff2414': 196}
+       ch  3 ind_l      raw 3.5     tris    32 area     77.1 cm2  bounds x[-1.137 -0.838] y[0.687 1.044] z[-2.168 2.276]  weights {'1.0': 32}  colours {'ffa01a': 32}
+       ch  4 ind_r      raw 4.5     tris    29 area     78.0 cm2  bounds x[0.838 1.137] y[0.687 1.044] z[-2.168 2.276]  weights {'1.0': 29}  colours {'ffa01a': 29}
+       ch  5 head       raw 5.5     tris   152 area    121.7 cm2  bounds x[-0.764 0.764] y[0.687 0.738] z[-2.326 -2.210]  weights {'1.0': 152}  colours {'fff3d6': 152}
+       ch  6 drl        raw 6.5     tris   166 area    142.2 cm2  bounds x[-0.889 0.889] y[0.696 0.747] z[-2.310 -2.083]  weights {'1.0': 166}  colours {'eef3ff': 166}
+       ch  7 reverse    raw 7.5     tris    72 area     35.2 cm2  bounds x[-0.621 0.621] y[0.922 0.948] z[2.407 2.409]  weights {'1.0': 72}  colours {'fff6e6': 72}
+       ch  8 plate      raw 8.5     tris    60 area   1211.7 cm2  bounds x[-0.260 0.260] y[0.634 0.746] z[2.402 2.406]  weights {'0.6': 60}  colours {'fff4dc': 60}
+     rough/metal (tris): [('0.3/0.55', 47588), ('0.45/0.0', 11641), ('0.08/1.0', 3457), ('0.55/0.0', 2846), ('0.6/0.0', 2554), ('0.5/0.0', 1866), ('0.5/0.2', 1325), ('0.3/0.0', 882), ('0.3/0.9', 704), ('0.35/0.0', 492), ('0.25/0.0', 426), ('0.3/0.2', 152), ('0.4/0.0', 120), ('0.85/0.0', 108)] ... 19 combos
+  surface glass        verts   6994 tris  11536 area     3.18 m2  fmt 34896613407  compressed True  normal True tangent True color True uv True uv2 False custom False bones False material False prim 3
+     stored keys ['format', 'primitive', 'vertex_data', 'vertex_count', 'attribute_data', 'aabb', 'uv_scale', 'index_data', 'index_count', 'name'] vertex/attr/index bytes 83928 55952 69216 uv_scale (0.0, 0.0, 0.0, 0.0) auto lods []
+     normals bad length 0, winding agree 11536 / against 0, degenerate 0, mixed code tris 0, mixed lamp tris 0
+     uv range [0.012, 0.0, 0.05, 0.0]
+     glass colours: {'0d1115 a=1.0': 4772, '8c120a a=0.494': 168, 'c41a0f a=0.494': 1380, 'dfe6ec a=0.141': 674}
+     rough/metal (tris): [('0.01/0.0', 8711), ('0.05/0.0', 2825)]
+==============================================================================================================
+res://assets/models/player/limousine/show_wheel.res class ArrayMesh bytes 60902 uid uid://<invalid> deps [] name='' blend 0 shadow_mesh False custom_aabb [P: (0.0, 0.0, 0.0), S: (0.0, 0.0, 0.0)]
+  aabb [-0.1255, -0.335, -0.335, 0.1255, 0.335, 0.335]
+  surface vpbr         verts   3600 tris   4088 area     1.80 m2  fmt 34896613439  compressed True  normal True tangent True color True uv True uv2 True custom False bones False material False prim 3
+     stored keys ['format', 'primitive', 'vertex_data', 'vertex_count', 'attribute_data', 'aabb', 'uv_scale', 'index_data', 'index_count', 'lods', 'name'] vertex/attr/index bytes 43200 43200 24528 uv_scale (1.64, 2.0, 2.0, 0.0) auto lods [[0.00634173909202218, 12264], [0.0328462235629559, 6132], [0.344717651605606, 2244]]
+     normals bad length 0, winding agree 4064 / against 0, degenerate 24, mixed code tris 0, mixed lamp tris 0
+     uv range [0.22, -0.0, 0.82, 1.0]
+     paint codes (vertices): {'1.0': 3600}
+     paint codes (tris): {'1.0': 4088}  area: {'1.0': 1.804}
+     UV2.x (vertices): {'-1.0': 3600}
+     rough/metal (tris): [('0.82/0.0', 2400), ('0.22/1.0', 1224), ('0.5/0.4', 284), ('0.42/0.85', 180)] ... 4 combos
+==============================================================================================================
+res://assets/models/player/limousine/wheel.res class ArrayMesh bytes 43014 uid uid://<invalid> deps [] name='' blend 0 shadow_mesh False custom_aabb [P: (0.0, 0.0, 0.0), S: (0.0, 0.0, 0.0)]
+  aabb [-0.1255, -0.335, -0.335, 0.1255, 0.335, 0.335]
+  surface vpbr         verts   2720 tris   2972 area     1.80 m2  fmt 34896613439  compressed True  normal True tangent True color True uv True uv2 True custom False bones False material False prim 3
+     stored keys ['format', 'primitive', 'vertex_data', 'vertex_count', 'attribute_data', 'aabb', 'uv_scale', 'index_data', 'index_count', 'lods', 'name'] vertex/attr/index bytes 32640 32640 17832 uv_scale (1.64, 2.0, 2.0, 0.0) auto lods [[0.0112228142097592, 8916], [0.288358449935913, 3840]]
+     normals bad length 0, winding agree 2956 / against 0, degenerate 16, mixed code tris 0, mixed lamp tris 0
+     uv range [0.22, -0.0, 0.82, 1.0]
+     paint codes (vertices): {'1.0': 2720}
+     paint codes (tris): {'1.0': 2972}  area: {'1.0': 1.799}
+     UV2.x (vertices): {'-1.0': 2720}
+     rough/metal (tris): [('0.82/0.0', 1600), ('0.22/1.0', 1016), ('0.5/0.4', 236), ('0.42/0.85', 120)] ... 4 combos
+==============================================================================================================
+res://assets/models/props/farmhouse/lod0_body.res class ArrayMesh bytes 2586 uid uid://<invalid> deps [] name='' blend 0 shadow_mesh False custom_aabb [P: (0.0, 0.0, 0.0), S: (0.0, 0.0, 0.0)]
+  aabb [-5.95, 0.0, -17.45, 5.95, 8.9, 0.45]
+  surface baked        verts    224 tris    104 area  1364.86 m2  fmt 34896613399  compressed True  normal True tangent True color False uv True uv2 False custom False bones False material False prim 3
+     stored keys ['format', 'primitive', 'vertex_data', 'vertex_count', 'attribute_data', 'aabb', 'uv_scale', 'index_data', 'index_count', 'lods', 'name'] vertex/attr/index bytes 2688 896 624 uv_scale (0.0, 0.0, 0.0, 0.0) auto lods [[14.0114822387695, 288]]
+     normals bad length 0, winding agree 104 / against 0, degenerate 0, mixed code tris 0, mixed lamp tris 0
+     uv range [0.0024, 0.0031, 0.9974, 0.9976]
+==============================================================================================================
+res://assets/models/props/streetlight/lod0_body.res class ArrayMesh bytes 5023 uid uid://<invalid> deps [] name='' blend 0 shadow_mesh False custom_aabb [P: (0.0, 0.0, 0.0), S: (0.0, 0.0, 0.0)]
+  aabb [-2.325, 0.0, -0.16, 0.16, 9.3949, 0.16]
+  surface vpbr         verts    440 tris    312 area     7.22 m2  fmt 34896613439  compressed True  normal True tangent True color True uv True uv2 True custom False bones False material False prim 3
+     stored keys ['format', 'primitive', 'vertex_data', 'vertex_count', 'attribute_data', 'aabb', 'uv_scale', 'index_data', 'index_count', 'lods', 'name'] vertex/attr/index bytes 5280 5280 1872 uv_scale (0.9, 1.4, 25.0, 2.0) auto lods [[0.109409771859646, 936], [0.3521508872509, 468], [0.60965770483017, 168], [1.80098807811737, 84]]
+     normals bad length 0, winding agree 312 / against 0, degenerate 0, mixed code tris 0, mixed lamp tris 0
+     uv range [0.2, -0.0, 0.45, 0.7]
+     paint codes (vertices): {'1.0': 440}
+     paint codes (tris): {'1.0': 312}  area: {'1.0': 7.217}
+     UV2.x (vertices): {'-1.0': 384, '12.5': 56}
+       ch 12 lights     raw 12.5    tris    80 area   2910.9 cm2  bounds x[-2.255 -1.685] y[9.170 9.310] z[-0.130 0.130]  weights {'1.0': 80}  colours {'fff0cf': 80}
+     rough/metal (tris): [('0.45/0.7', 124), ('0.4/0.5', 108), ('0.2/0.0', 80)] ... 3 combos
+==============================================================================================================
+res://assets/models/props/tree_oak/lod0_body.res class ArrayMesh bytes 37009 uid uid://<invalid> deps [] name='' blend 0 shadow_mesh False custom_aabb [P: (0.0, 0.0, 0.0), S: (0.0, 0.0, 0.0)]
+  aabb [-6.6417, -0.016, -5.5351, 6.7213, 13.5974, 5.6516]
+  surface vpbr         verts    270 tris    300 area    30.92 m2  fmt 34896613439  compressed True  normal True tangent True color True uv True uv2 True custom False bones False material False prim 3
+     stored keys ['format', 'primitive', 'vertex_data', 'vertex_count', 'attribute_data', 'aabb', 'uv_scale', 'index_data', 'index_count', 'name'] vertex/attr/index bytes 3240 3240 1800 uv_scale (1.8, 0.0, 2.0, 0.0) auto lods []
+     normals bad length 0, winding agree 300 / against 0, degenerate 0, mixed code tris 0, mixed lamp tris 0
+     uv range [0.9, 0.0, 0.9, 0.0]
+     paint codes (vertices): {'1.0': 270}
+     paint codes (tris): {'1.0': 300}  area: {'1.0': 30.925}
+     UV2.x (vertices): {'-1.0': 270}
+     rough/metal (tris): [('0.9/0.0', 300)] ... 1 combos
+  surface leaves       verts   1722 tris    920 area  2648.44 m2  fmt 34896613407  compressed True  normal True tangent True color True uv True uv2 False custom False bones False material False prim 3
+     stored keys ['format', 'primitive', 'vertex_data', 'vertex_count', 'attribute_data', 'aabb', 'uv_scale', 'index_data', 'index_count', 'name'] vertex/attr/index bytes 20664 13776 5520 uv_scale (0.0, 0.0, 0.0, 0.0) auto lods []
+     normals bad length 0, winding agree 910 / against 10, degenerate 0, mixed code tris 0, mixed lamp tris 0
+     uv range [0.001, 0.001, 0.999, 0.999]
+     leaf colour range (r amp, g phase, b stiff, a bright) min/max: [0.0, 0.0, 0.302, 0.62, 1.0, 1.0, 1.0, 1.0] normals outward share 0.999
+==============================================================================================================
+res://assets/models/props/tree_oak/lod1_body.res class ArrayMesh bytes 13311 uid uid://<invalid> deps [] name='' blend 0 shadow_mesh False custom_aabb [P: (0.0, 0.0, 0.0), S: (0.0, 0.0, 0.0)]
+  aabb [-6.7228, -0.016, -5.6953, 6.8096, 13.6677, 5.8587]
+  surface vpbr         verts    103 tris     99 area    14.40 m2  fmt 34896613439  compressed True  normal True tangent True color True uv True uv2 True custom False bones False material False prim 3
+     stored keys ['format', 'primitive', 'vertex_data', 'vertex_count', 'attribute_data', 'aabb', 'uv_scale', 'index_data', 'index_count', 'name'] vertex/attr/index bytes 1236 1236 594 uv_scale (1.8, 0.0, 2.0, 0.0) auto lods []
+     normals bad length 0, winding agree 99 / against 0, degenerate 0, mixed code tris 0, mixed lamp tris 0
+     uv range [0.9, 0.0, 0.9, 0.0]
+     paint codes (vertices): {'1.0': 103}
+     paint codes (tris): {'1.0': 99}  area: {'1.0': 14.402}
+     UV2.x (vertices): {'-1.0': 103}
+     rough/metal (tris): [('0.9/0.0', 99)] ... 1 combos
+  surface leaves       verts    602 tris    360 area  1904.59 m2  fmt 34896613407  compressed True  normal True tangent True color True uv True uv2 False custom False bones False material False prim 3
+     stored keys ['format', 'primitive', 'vertex_data', 'vertex_count', 'attribute_data', 'aabb', 'uv_scale', 'index_data', 'index_count', 'name'] vertex/attr/index bytes 7224 4816 2160 uv_scale (0.0, 0.0, 0.0, 0.0) auto lods []
+     normals bad length 0, winding agree 356 / against 4, degenerate 0, mixed code tris 0, mixed lamp tris 0
+     uv range [0.001, 0.001, 0.999, 0.999]
+     leaf colour range (r amp, g phase, b stiff, a bright) min/max: [0.0, 0.0, 0.306, 0.62, 1.0, 0.992, 1.0, 1.0] normals outward share 0.998
+==============================================================================================================
+res://assets/models/props/tree_oak/shadow.res class ArrayMesh bytes 2752 uid uid://<invalid> deps [] name='' blend 0 shadow_mesh False custom_aabb [P: (0.0, 0.0, 0.0), S: (0.0, 0.0, 0.0)]
+  aabb [-5.6687, -0.016, -4.7157, 5.4153, 12.6135, 4.6733]
+  surface vpbr         verts    145 tris    179 area   297.43 m2  fmt 34896613439  compressed True  normal True tangent True color True uv True uv2 True custom False bones False material False prim 3
+     stored keys ['format', 'primitive', 'vertex_data', 'vertex_count', 'attribute_data', 'aabb', 'uv_scale', 'index_data', 'index_count', 'name'] vertex/attr/index bytes 1740 1740 1074 uv_scale (1.84, 0.0, 2.0, 0.0) auto lods []
+     normals bad length 0, winding agree 179 / against 0, degenerate 0, mixed code tris 0, mixed lamp tris 0
+     uv range [0.9, 0.0, 0.92, 0.0]
+     paint codes (vertices): {'1.0': 145}
+     paint codes (tris): {'1.0': 179}  area: {'1.0': 297.429}
+     UV2.x (vertices): {'-1.0': 145}
+     rough/metal (tris): [('0.9/0.0', 99), ('0.92/0.0', 80)] ... 2 combos
+==============================================================================================================
+res://assets/models/traffic/sedan/lod0_body.res class ArrayMesh bytes 171450 uid uid://<invalid> deps [] name='' blend 0 shadow_mesh False custom_aabb [P: (0.0, 0.0, 0.0), S: (0.0, 0.0, 0.0)]
+  aabb [-1.065, 0.1289, -2.35, 1.065, 1.48, 2.373]
+  surface vpbr         verts  10477 tris  14310 area    53.02 m2  fmt 34896613439  compressed True  normal True tangent True color True uv True uv2 True custom False bones False material False prim 3
+     stored keys ['format', 'primitive', 'vertex_data', 'vertex_count', 'attribute_data', 'aabb', 'uv_scale', 'index_data', 'index_count', 'name'] vertex/attr/index bytes 125724 125724 85860 uv_scale (1.6, 2.0, 17.0, 2.0) auto lods []
+     normals bad length 0, winding agree 14298 / against 0, degenerate 12, mixed code tris 0, mixed lamp tris 0
+     uv range [0.05, -0.0, 0.8, 1.0]
+     paint codes (vertices): {'0.0': 7243, '1.0': 3234}
+     paint codes (tris): {'0.0': 10868, '1.0': 3442}  area: {'0.0': 39.661, '1.0': 13.363}
+     UV2.x (vertices): {'-1.0001': 9934, '1.5': 14, '2.5': 163, '3.5': 73, '4.5': 70, '5.5': 135, '6.5': 44, '7.5': 28, '8.5': 16}
+       ch  1 brake      raw 1.5     tris    12 area    222.7 cm2  bounds x[-0.200 0.200] y[1.300 1.330] z[0.960 1.009]  weights {'1.0': 12}  colours {'ff2414': 12}
+       ch  2 tail_brake raw 2.5     tris   195 area   1089.3 cm2  bounds x[-0.901 0.901] y[0.801 0.928] z[1.747 2.315]  weights {'1.0': 195}  colours {'ff2010': 195}
+       ch  3 ind_l      raw 3.5     tris    76 area     48.3 cm2  bounds x[-0.905 -0.790] y[0.640 0.843] z[-2.215 2.263]  weights {'1.0': 76}  colours {'ffa01a': 76}
+       ch  4 ind_r      raw 4.5     tris    72 area     48.2 cm2  bounds x[0.790 0.905] y[0.640 0.843] z[-2.215 2.263]  weights {'1.0': 72}  colours {'ffa01a': 72}
+       ch  5 head       raw 5.5     tris   154 area    439.9 cm2  bounds x[-0.873 0.873] y[0.658 0.718] z[-2.306 -2.090]  weights {'1.0': 154}  colours {'fff3d6': 154}
+       ch  6 drl        raw 6.5     tris    41 area     41.5 cm2  bounds x[-0.780 0.780] y[0.645 0.671] z[-2.311 -2.220]  weights {'1.0': 41}  colours {'eef3ff': 41}
+       ch  7 reverse    raw 7.5     tris    28 area    118.7 cm2  bounds x[-0.600 0.600] y[0.797 0.845] z[2.315 2.315]  weights {'1.0': 28}  colours {'fff6e6': 28}
+       ch  8 plate      raw 8.5     tris    16 area    533.5 cm2  bounds x[-0.225 0.260] y[0.330 0.440] z[2.350 2.350]  weights {'0.6': 16}  colours {'fff4dc': 16}
+     rough/metal (tris): [('0.28/0.3', 10868), ('0.5/0.0', 1224), ('0.12/0.0', 834), ('0.6/0.0', 760), ('0.08/0.5', 223), ('0.1/0.0', 195), ('0.55/0.0', 66), ('0.12/1.0', 36), ('0.8/0.0', 36), ('0.05/0.9', 24), ('0.7/0.0', 24), ('0.45/0.0', 20)] ... 12 combos
+  surface glass        verts    680 tris    934 area     2.74 m2  fmt 34896613407  compressed True  normal True tangent True color True uv True uv2 False custom False bones False material False prim 3
+     stored keys ['format', 'primitive', 'vertex_data', 'vertex_count', 'attribute_data', 'aabb', 'uv_scale', 'index_data', 'index_count', 'name'] vertex/attr/index bytes 8160 5440 5604 uv_scale (0.0, 0.0, 0.0, 0.0) auto lods []
+     normals bad length 0, winding agree 934 / against 0, degenerate 0, mixed code tris 0, mixed lamp tris 0
+     uv range [0.03, 0.0, 0.03, 0.0]
+     glass colours: {'151c23 a=1.0': 680}
+     rough/metal (tris): [('0.03/0.0', 934)]
+==============================================================================================================
+res://assets/models/traffic/sedan/lod1_body.res class ArrayMesh bytes 47410 uid uid://<invalid> deps [] name='' blend 0 shadow_mesh False custom_aabb [P: (0.0, 0.0, 0.0), S: (0.0, 0.0, 0.0)]
+  aabb [-1.065, 0.0, -2.35, 1.065, 1.48, 2.35]
+  surface vpbr         verts   3524 tris   4147 area    57.75 m2  fmt 34896613439  compressed True  normal True tangent True color True uv True uv2 True custom False bones False material False prim 3
+     stored keys ['format', 'primitive', 'vertex_data', 'vertex_count', 'attribute_data', 'aabb', 'uv_scale', 'index_data', 'index_count', 'name'] vertex/attr/index bytes 42288 42288 24882 uv_scale (1.7, 2.0, 17.0, 2.0) auto lods []
+     normals bad length 0, winding agree 4147 / against 0, degenerate 0, mixed code tris 0, mixed lamp tris 0
+     uv range [0.06, -0.0, 0.85, 1.0]
+     paint codes (vertices): {'0.0': 1442, '1.0': 2082}
+     paint codes (tris): {'0.0': 2098, '1.0': 2049}  area: {'0.0': 38.375, '1.0': 19.377}
+     UV2.x (vertices): {'-1.0001': 3229, '1.5': 8, '2.5': 89, '3.5': 28, '4.5': 28, '5.5': 66, '6.5': 36, '7.5': 28, '8.5': 12}
+       ch  1 brake      raw 1.5     tris     6 area    221.9 cm2  bounds x[-0.200 0.200] y[1.300 1.330] z[0.957 1.009]  weights {'1.0': 6}  colours {'ff2414': 6}
+       ch  2 tail_brake raw 2.5     tris    87 area   1071.6 cm2  bounds x[-0.898 0.898] y[0.800 0.928] z[2.121 2.315]  weights {'1.0': 87}  colours {'ff2010': 87}
+       ch  3 ind_l      raw 3.5     tris    26 area     22.4 cm2  bounds x[-0.902 -0.790] y[0.641 0.804] z[-2.163 2.200]  weights {'1.0': 26}  colours {'ffa01a': 26}
+       ch  4 ind_r      raw 4.5     tris    26 area     22.4 cm2  bounds x[0.790 0.902] y[0.641 0.804] z[-2.163 2.200]  weights {'1.0': 26}  colours {'ffa01a': 26}
+       ch  5 head       raw 5.5     tris    68 area    387.6 cm2  bounds x[-0.864 0.864] y[0.661 0.718] z[-2.256 -2.090]  weights {'1.0': 68}  colours {'fff3d6': 68}
+       ch  6 drl        raw 6.5     tris    30 area     38.3 cm2  bounds x[-0.780 0.780] y[0.645 0.671] z[-2.270 -2.166]  weights {'1.0': 30}  colours {'eef3ff': 30}
+       ch  7 reverse    raw 7.5     tris    28 area    118.7 cm2  bounds x[-0.600 0.600] y[0.797 0.845] z[2.312 2.315]  weights {'1.0': 28}  colours {'fff6e6': 28}
+       ch  8 plate      raw 8.5     tris    12 area    572.0 cm2  bounds x[-0.260 0.260] y[0.330 0.440] z[2.350 2.350]  weights {'0.6': 12}  colours {'fff4dc': 12}
+     rough/metal (tris): [('0.28/0.3', 2098), ('0.5/0.0', 439), ('0.12/0.0', 416), ('0.85/0.0', 312), ('0.06/0.0', 249), ('0.6/0.0', 192), ('0.25/1.0', 160), ('0.08/0.5', 126), ('0.1/0.0', 87), ('0.55/0.0', 32), ('0.7/0.0', 24), ('0.45/0.0', 12)] ... 12 combos
+==============================================================================================================
+res://assets/models/traffic/sedan/lod2_body.res class ArrayMesh bytes 14652 uid uid://<invalid> deps [] name='' blend 0 shadow_mesh False custom_aabb [P: (0.0, 0.0, 0.0), S: (0.0, 0.0, 0.0)]
+  aabb [-0.922, 0.0, -2.35, 0.922, 1.48, 2.35]
+  surface vpbr         verts   1195 tris   1144 area    55.08 m2  fmt 34896613439  compressed True  normal True tangent True color True uv True uv2 True custom False bones False material False prim 3
+     stored keys ['format', 'primitive', 'vertex_data', 'vertex_count', 'attribute_data', 'aabb', 'uv_scale', 'index_data', 'index_count', 'name'] vertex/attr/index bytes 14340 14340 6864 uv_scale (1.7, 2.0, 17.0, 2.0) auto lods []
+     normals bad length 0, winding agree 1144 / against 0, degenerate 0, mixed code tris 0, mixed lamp tris 0
+     uv range [0.06, -0.0, 0.85, 1.0]
+     paint codes (vertices): {'0.0': 471, '1.0': 724}
+     paint codes (tris): {'0.0': 548, '1.0': 596}  area: {'0.0': 36.723, '1.0': 18.355}
+     UV2.x (vertices): {'-1.0001': 1010, '1.5': 12, '2.5': 50, '3.5': 11, '4.5': 13, '5.5': 54, '6.5': 27, '7.5': 12, '8.5': 6}
+       ch  1 brake      raw 1.5     tris    10 area    211.9 cm2  bounds x[-0.200 0.200] y[1.300 1.330] z[0.937 1.000]  weights {'1.0': 10}  colours {'ff2414': 10}
+       ch  2 tail_brake raw 2.5     tris    50 area   1101.4 cm2  bounds x[-0.885 0.885] y[0.787 0.936] z[1.750 2.315]  weights {'1.0': 50}  colours {'ff2010': 50}
+       ch  3 ind_l      raw 3.5     tris     7 area    111.4 cm2  bounds x[-0.885 -0.790] y[0.641 0.846] z[-2.168 1.935]  weights {'1.0': 7}  colours {'ffa01a': 7}
+       ch  4 ind_r      raw 4.5     tris     9 area    114.4 cm2  bounds x[0.790 0.885] y[0.641 0.846] z[-2.167 1.943]  weights {'1.0': 9}  colours {'ffa01a': 9}
+       ch  5 head       raw 5.5     tris    56 area    615.9 cm2  bounds x[-0.840 0.839] y[0.647 0.730] z[-2.272 -2.070]  weights {'1.0': 56}  colours {'fff3d6': 56}
+       ch  6 drl        raw 6.5     tris    19 area     38.0 cm2  bounds x[-0.780 0.780] y[0.645 0.671] z[-2.271 -2.171]  weights {'1.0': 19}  colours {'eef3ff': 19}
+       ch  7 reverse    raw 7.5     tris     8 area    107.3 cm2  bounds x[-0.600 0.600] y[0.797 0.845] z[2.315 2.315]  weights {'1.0': 8}  colours {'fff6e6': 8}
+       ch  8 plate      raw 8.5     tris     4 area    572.0 cm2  bounds x[-0.260 0.260] y[0.330 0.440] z[2.350 2.350]  weights {'0.6': 4}  colours {'fff4dc': 4}
+     rough/metal (tris): [('0.28/0.3', 548), ('0.85/0.0', 144), ('0.06/0.0', 123), ('0.08/0.5', 83), ('0.25/1.0', 80), ('0.6/0.0', 62), ('0.1/0.0', 50), ('0.12/0.0', 26), ('0.7/0.0', 24), ('0.45/0.0', 4)] ... 10 combos
+==============================================================================================================
+res://assets/models/traffic/sedan/shadow.res class ArrayMesh bytes 7183 uid uid://<invalid> deps [] name='' blend 0 shadow_mesh False custom_aabb [P: (0.0, 0.0, 0.0), S: (0.0, 0.0, 0.0)]
+  aabb [-0.922, 0.0, -2.35, 0.922, 1.48, 2.35]
+  surface vpbr         verts    656 tris    632 area    55.08 m2  fmt 34896613439  compressed True  normal True tangent True color True uv True uv2 True custom False bones False material False prim 3
+     stored keys ['format', 'primitive', 'vertex_data', 'vertex_count', 'attribute_data', 'aabb', 'uv_scale', 'index_data', 'index_count', 'name'] vertex/attr/index bytes 7872 7872 3792 uv_scale (1.6, 0.0, 2.0, 0.0) auto lods []
+     normals bad length 0, winding agree 632 / against 0, degenerate 0, mixed code tris 0, mixed lamp tris 0
+     uv range [0.8, 0.0, 0.8, 0.0]
+     paint codes (vertices): {'1.0': 656}
+     paint codes (tris): {'1.0': 632}  area: {'1.0': 55.078}
+     UV2.x (vertices): {'-1.0': 656}
+     rough/metal (tris): [('0.8/0.0', 632)] ... 1 combos
+==============================================================================================================
+res://assets/models/traffic/sedan/wheel.res class ArrayMesh bytes 7100 uid uid://<invalid> deps [] name='' blend 0 shadow_mesh False custom_aabb [P: (0.0, 0.0, 0.0), S: (0.0, 0.0, 0.0)]
+  aabb [-0.1075, -0.32, -0.3151, 0.1075, 0.32, 0.3151]
+  surface vpbr         verts    552 tris    508 area     1.25 m2  fmt 34896613439  compressed True  normal True tangent True color True uv True uv2 True custom False bones False material False prim 3
+     stored keys ['format', 'primitive', 'vertex_data', 'vertex_count', 'attribute_data', 'aabb', 'uv_scale', 'index_data', 'index_count', 'lods', 'name'] vertex/attr/index bytes 6624 6624 3048 uv_scale (1.7, 2.0, 2.0, 0.0) auto lods [[0.224856168031693, 1524], [0.587021708488464, 264]]
+     normals bad length 0, winding agree 508 / against 0, degenerate 0, mixed code tris 0, mixed lamp tris 0
+     uv range [0.25, -0.0, 0.85, 1.0]
+     paint codes (vertices): {'1.0': 552}
+     paint codes (tris): {'1.0': 508}  area: {'1.0': 1.247}
+     UV2.x (vertices): {'-1.0': 552}
+     rough/metal (tris): [('0.85/0.0', 252), ('0.25/1.0', 196), ('0.5/0.2', 60)] ... 3 combos

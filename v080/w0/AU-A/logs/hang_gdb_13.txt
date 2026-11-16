@@ -1,0 +1,351 @@
+[New LWP 26268]
+[New LWP 26267]
+[New LWP 26266]
+[New LWP 26265]
+[New LWP 26264]
+[New LWP 26263]
+[New LWP 26262]
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+futex_wait (private=0, expected=2, futex_word=0x90fcd70) at ../sysdeps/nptl/futex-internal.h:146
+
+warning: 146	../sysdeps/nptl/futex-internal.h: No such file or directory
+
+Thread 8 (Thread 0x7fc9ffcea6c0 (LWP 26262) "godot"):
+#0  0x00007fc9ffe98e51 in __futex_abstimed_wait_common64 (private=0, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0xe6db008) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=0, abstime=0x0, clockid=0, expected=0, futex_word=0xe6db008) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0xe6db008, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007fc9ffe9b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0xe6dafb8, cond=0xe6dafe0) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0xe6dafe0, mutex=0xe6dafb8) at ./nptl/pthread_cond_wait.c:627
+#5  0x00000000044f3da3 in ?? ()
+#6  0x0000000004406195 in ?? ()
+#7  0x00000000052e6c23 in ?? ()
+#8  0x00007fc9ffe9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#9  0x00007fc9fff29ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 7 (Thread 0x7fc9ff4c06c0 (LWP 26263) "WorkerThread 0"):
+#0  0x00007fc9ffe98e51 in __futex_abstimed_wait_common64 (private=1619750147, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0xe829de8) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=1619750147, abstime=0x0, clockid=0, expected=0, futex_word=0xe829de8) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0xe829de8, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007fc9ffe9b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0xe6dcae8, cond=0xe829dc0) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0xe829dc0, mutex=0xe6dcae8) at ./nptl/pthread_cond_wait.c:627
+#5  0x000000000490545d in ?? ()
+#6  0x0000000004406195 in ?? ()
+#7  0x00000000052e6c23 in ?? ()
+#8  0x00007fc9ffe9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#9  0x00007fc9fff29ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 6 (Thread 0x7fc9fecbf6c0 (LWP 26264) "WorkerThread 1"):
+#0  0x00007fc9ffe98e51 in __futex_abstimed_wait_common64 (private=1619750147, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0xe829e50) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=1619750147, abstime=0x0, clockid=0, expected=0, futex_word=0xe829e50) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0xe829e50, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007fc9ffe9b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0xe6dcae8, cond=0xe829e28) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0xe829e28, mutex=0xe6dcae8) at ./nptl/pthread_cond_wait.c:627
+#5  0x000000000490545d in ?? ()
+#6  0x0000000004406195 in ?? ()
+#7  0x00000000052e6c23 in ?? ()
+#8  0x00007fc9ffe9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#9  0x00007fc9fff29ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 5 (Thread 0x7fc9fe4be6c0 (LWP 26265) "WorkerThread 2"):
+#0  0x00007fc9ffe98e51 in __futex_abstimed_wait_common64 (private=1619750147, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0xe829eb8) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=1619750147, abstime=0x0, clockid=0, expected=0, futex_word=0xe829eb8) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0xe829eb8, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007fc9ffe9b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0xe6dcae8, cond=0xe829e90) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0xe829e90, mutex=0xe6dcae8) at ./nptl/pthread_cond_wait.c:627
+#5  0x000000000490545d in ?? ()
+#6  0x0000000004406195 in ?? ()
+#7  0x00000000052e6c23 in ?? ()
+#8  0x00007fc9ffe9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#9  0x00007fc9fff29ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 4 (Thread 0x7fc9f5bff6c0 (LWP 26266) "WorkerThread 3"):
+#0  0x00007fc9ffe98e51 in __futex_abstimed_wait_common64 (private=1619750147, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0xe829f20) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=1619750147, abstime=0x0, clockid=0, expected=0, futex_word=0xe829f20) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0xe829f20, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007fc9ffe9b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0xe6dcae8, cond=0xe829ef8) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0xe829ef8, mutex=0xe6dcae8) at ./nptl/pthread_cond_wait.c:627
+#5  0x000000000490545d in ?? ()
+#6  0x0000000004406195 in ?? ()
+#7  0x00000000052e6c23 in ?? ()
+#8  0x00007fc9ffe9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#9  0x00007fc9fff29ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 3 (Thread 0x7fc9fd7516c0 (LWP 26267) "godot"):
+#0  0x0000000003b93c7b in ?? ()
+#1  0x0000000003af406c in ?? ()
+#2  0x0000000003b19784 in ?? ()
+#3  0x0000000004d993d5 in ?? ()
+#4  0x0000000003b05157 in ?? ()
+#5  0x0000000004406195 in ?? ()
+#6  0x00000000052e6c23 in ?? ()
+#7  0x00007fc9ffe9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#8  0x00007fc9fff29ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 2 (Thread 0x7fc9fcf506c0 (LWP 26268) "godot"):
+#0  0x00007fc9ffe98e51 in __futex_abstimed_wait_common64 (private=0, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0xfba5fb0) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=0, abstime=0x0, clockid=0, expected=0, futex_word=0xfba5fb0) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0xfba5fb0, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007fc9ffe9b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0xfba5f60, cond=0xfba5f88) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0xfba5f88, mutex=0xfba5f60) at ./nptl/pthread_cond_wait.c:627
+#5  0x00000000006e23d6 in ?? ()
+#6  0x00000000052e6c23 in ?? ()
+#7  0x00007fc9ffe9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#8  0x00007fc9fff29ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 1 (Thread 0x7fca001ceb00 (LWP 26258) "godot"):
+#0  futex_wait (private=0, expected=2, futex_word=0x90fcd70) at ../sysdeps/nptl/futex-internal.h:146
+#1  __GI___lll_lock_wait (futex=futex@entry=0x90fcd70, private=0) at ./nptl/lowlevellock.c:49
+#2  0x00007fc9ffea0237 in lll_mutex_lock_optimized (mutex=0x90fcd70) at ./nptl/pthread_mutex_lock.c:48
+#3  ___pthread_mutex_lock (mutex=0x90fcd70) at ./nptl/pthread_mutex_lock.c:128
+#4  0x0000000003af5097 in ?? ()
+#5  0x0000000003b84869 in ?? ()
+#6  0x0000000000af9647 in ?? ()
+#7  0x00000000009380de in ?? ()
+#8  0x00000000048f70b5 in ?? ()
+#9  0x00000000046ada1b in ?? ()
+#10 0x0000000000b1c5b8 in ?? ()
+#11 0x00000000009380de in ?? ()
+#12 0x00000000048f70b5 in ?? ()
+#13 0x00000000046ada1b in ?? ()
+[Switching to thread 3 (Thread 0x7fc9fd7516c0 (LWP 26267))]
+#0  0x0000000003b93c7b in ?? ()
+rip            0x3b93c7b           0x3b93c7b
+rsp            0x7fc9fd74f7d0      0x7fc9fd74f7d0
+rbp            0x1076f088          0x1076f088
+rax            0x1076f218          276230680
+rbx            0x1076eed0          276229840
+rcx            0x0                 0
+rdx            0x1076f488          276231304
+rsi            0x1076f088          276230280
+rdi            0x1076eed0          276229840
+r8             0x0                 0
+r9             0x40                64
+r10            0x2000              8192
+r11            0x127b24c0          310060224
+r12            0x8c0               2240
+r13            0x80                128
+r14            0x0                 0
+r15            0x8c0               2240
+   0x3b93c21:	and    0x5f0(%rbx),%r12d
+   0x3b93c28:	mov    %r12d,0x5e8(%rbx)
+   0x3b93c2f:	cmp    %r14d,%r13d
+   0x3b93c32:	jle    0x3b93c87
+   0x3b93c34:	mov    %r13d,%edx
+   0x3b93c37:	movslq %r14d,%rcx
+   0x3b93c3a:	sub    %r14d,%edx
+   0x3b93c3d:	lea    0x0(%rbp,%rcx,8),%rax
+   0x3b93c42:	add    %rcx,%rdx
+   0x3b93c45:	lea    0x0(%rbp,%rdx,8),%rdx
+   0x3b93c4a:	mov    %rdx,%rcx
+   0x3b93c4d:	sub    %rax,%rcx
+   0x3b93c50:	and    $0x8,%ecx
+   0x3b93c53:	je     0x3b93c68
+   0x3b93c55:	movq   $0x0,(%rax)
+   0x3b93c5c:	add    $0x8,%rax
+   0x3b93c60:	cmp    %rax,%rdx
+   0x3b93c63:	je     0x3b93c80
+   0x3b93c65:	nopl   (%rax)
+   0x3b93c68:	movq   $0x0,(%rax)
+   0x3b93c6f:	add    $0x10,%rax
+   0x3b93c73:	movq   $0x0,-0x8(%rax)
+=> 0x3b93c7b:	cmp    %rax,%rdx
+   0x3b93c7e:	jne    0x3b93c68
+   0x3b93c80:	addl   $0x1,0x5f8(%rbx)
+   0x3b93c87:	pxor   %xmm1,%xmm1
+   0x3b93c8b:	mov    0x608(%rbx),%rdi
+   0x3b93c92:	cvtsi2ss %r13d,%xmm1
+   0x3b93c97:	movss  %xmm1,0xc(%rsp)
+   0x3b93c9d:	call   0x3b23930
+   0x3b93ca2:	movss  0xc(%rsp),%xmm1
+   0x3b93ca8:	mov    %r13d,%eax
+   0x3b93cab:	divss  %xmm0,%xmm1
+   0x3b93caf:	movss  0x600(%rbx),%xmm0
+   0x3b93cb7:	addss  %xmm1,%xmm0
+   0x3b93cbb:	movss  %xmm0,0x600(%rbx)
+   0x3b93cc3:	add    $0x18,%rsp
+   0x3b93cc7:	pop    %rbx
+   0x3b93cc8:	pop    %rbp
+   0x3b93cc9:	pop    %r12
+   0x3b93ccb:	pop    %r13
+   0x3b93ccd:	pop    %r14
+   0x3b93ccf:	pop    %r15
+   0x3b93cd1:	ret
+   0x3b93cd2:	mov    %r10d,%eax
+   0x3b93cd5:	sub    %r12d,%eax
+   0x3b93cd8:	cmp    %eax,%edx
+   0x3b93cda:	mov    %eax,%r14d
+   0x3b93cdd:	mov    %eax,%r12d
+   0x3b93ce0:	cmovle %edx,%r14d
+   0x3b93ce4:	jmp    0x3b93baf
+   0x3b93ce9:	nop
+   0x3b93cea:	nopw   0x0(%rax,%rax,1)
+   0x3b93cf0:	mov    0x608(%rdi),%rdi
+   0x3b93cf7:	jmp    0x3b23930
+   0x3b93cfc:	nopl   0x0(%rax)
+   0x3b93d00:	movq   $0x81a70d0,(%rdi)
+   0x3b93d07:	jmp    0x490e5b0
+   0x3b93d0c:	nopl   0x0(%rax)
+   0x3b93d10:	movq   $0x81a7070,(%rdi)
+
+--- generator object memory (pointer at this+0x608)
+0x1076f4d8:	0x0000000011419260	0x0000000000000000
+0x11419260:	0xd2200000	0xd2280000	0xd2300000	0xd2400000
+0x11419270:	0xd2800000	0xd3000000	0xd3800000	0xd3c00000
+0x11419280:	0xd3e00000	0xd4000000	0xd8000000	0xe0000000
+0x11419290:	0xe8000000	0xea000000	0xec000000	0xec100000
+0x114192a0:	0xec200000	0xec300000	0xec380000	0xec400000
+0x114192b0:	0xec404000	0xec408000	0xec40c000	0xec40d000
+0x114192c0:	0xec40e000	0xec410000	0xec414000	0xec418000
+0x114192d0:	0xec41a000	0xec41c000	0xec420000	0xec428000
+0x114192e0:	0xec42a000	0xec42c000	0xec42e000	0xec430000
+0x114192f0:	0xec440000	0xec480000	0xec500000	0xec600000
+0x11419300:	0xec800000	0xed000000	0xee000000	0xef000000
+0x11419310:	0xf0000000	0xf1000000	0xf1800000	0xf1c00000
+0x11419320:	0xf1e00000	0xf2000000	0xf2200000	0xf2400000
+0x11419330:	0xf2480000	0xf2500000	0xf2600000	0xf2800000
+0x11419340:	0xf2c00000	0xf3000000	0xf4000000	0xf5000000
+0x11419350:	0xf6000000	0xf7000000	0xf7200000	0xf7300000
+0x11419360:	0xf7400000	0xf7480000	0xf7500000	0xf7580000
+0x11419370:	0xf7600000	0xf7700000	0xf7800000	0xf8000000
+
+--- playback object memory around 0x5e0
+0x1076f4b0:	0x127b24c0	0x00000000	0x000008c0	0x000008c0
+0x1076f4c0:	0x00001fff	0x00000000	0x5234b03f	0x00000001
+0x1076f4d0:	0x91000000	0x00000000	0x11419260	0x00000000
+0x1076f4e0:	0x00000000	0x00000000	0x00000581	0x00000000
+
+--- rate returned by the call at 0x3b93c9d
+Breakpoint 1 at 0x3b93ca2
+
+Thread 3 "godot" hit Breakpoint 1, 0x0000000003b93ca2 in ?? ()
+$1 = -2.12676479e+37
+$2 = 128
+
+--- frame 1
+#1  0x0000000003af406c in ?? ()
+   0x3af3fa4:	cmovne %r14d,%r12d
+   0x3af3fa8:	cmovne %ebx,%r13d
+   0x3af3fac:	movaps %xmm1,%xmm4
+   0x3af3faf:	mov    0x10(%rsp),%rsi
+   0x3af3fb4:	mov    (%rsp),%rdx
+   0x3af3fb8:	mov    $0xffffffff,%ebx
+   0x3af3fbd:	mulss  %xmm1,%xmm4
+   0x3af3fc1:	movaps %xmm1,%xmm3
+   0x3af3fc4:	subss  0x46a89dc(%rip),%xmm3        # 0x819c9a8
+   0x3af3fcc:	subps  %xmm5,%xmm0
+   0x3af3fcf:	add    %rsi,%rax
+   0x3af3fd2:	lea    0x1b8(%r15),%rbp
+   0x3af3fd9:	mulss  %xmm4,%xmm3
+   0x3af3fdd:	subss  %xmm3,%xmm4
+   0x3af3fe1:	movaps %xmm4,%xmm6
+   0x3af3fe4:	subss  %xmm4,%xmm1
+   0x3af3fe8:	movq   0x1e72cd8(%rip),%xmm4        # 0x5966cc8
+   0x3af3ff0:	subss  %xmm3,%xmm6
+   0x3af3ff4:	movsldup %xmm3,%xmm3
+   0x3af3ff8:	movsldup %xmm1,%xmm1
+   0x3af3ffc:	movsldup %xmm6,%xmm6
+   0x3af4000:	mulps  %xmm3,%xmm0
+   0x3af4003:	movaps %xmm2,%xmm3
+   0x3af4006:	subps  %xmm5,%xmm2
+   0x3af4009:	subps  %xmm7,%xmm3
+   0x3af400c:	mulps  %xmm6,%xmm2
+   0x3af400f:	mulps  %xmm3,%xmm1
+   0x3af4012:	addps  %xmm5,%xmm2
+   0x3af4015:	addps  %xmm1,%xmm0
+   0x3af4018:	mulps  %xmm4,%xmm0
+   0x3af401b:	addps  %xmm2,%xmm0
+   0x3af401e:	movlps %xmm0,(%rdx,%r14,8)
+   0x3af4023:	mov    %rax,0x5c0(%r15)
+   0x3af402a:	cmp    $0x7fffff,%rax
+   0x3af4030:	jbe    0x3af4097
+   0x3af4032:	nopw   0x0(%rax,%rax,1)
+   0x3af4038:	mov    (%r15),%rax
+   0x3af403b:	mov    $0x80,%edx
+   0x3af4040:	mov    %rbp,%rsi
+   0x3af4043:	mov    %r15,%rdi
+   0x3af4046:	movups 0x598(%r15),%xmm7
+   0x3af404e:	movups 0x5a8(%r15),%xmm5
+   0x3af4056:	movups %xmm7,0x198(%r15)
+   0x3af405e:	movups %xmm5,0x1a8(%r15)
+   0x3af4066:	call   *0x1c8(%rax)
+=> 0x3af406c:	cmp    $0x80,%eax
+   0x3af4071:	cmove  %ebx,%eax
+   0x3af4074:	mov    %eax,0x5b8(%r15)
+   0x3af407b:	mov    0x5c0(%r15),%rax
+   0x3af4082:	sub    $0x800000,%rax
+   0x3af4088:	mov    %rax,0x5c0(%r15)
+   0x3af408f:	cmp    $0x7fffff,%rax
+   0x3af4095:	ja     0x3af4038
+   0x3af4097:	add    $0x1,%r14
+   0x3af409b:	cmp    %r14,0x8(%rsp)
+   0x3af40a0:	jne    0x3af3f30
+   0x3af40a6:	mov    %r12d,%r14d
+   0x3af40a9:	mov    %r13d,%r12d
+   0x3af40ac:	mov    0x1c(%rsp),%r13d
+   0x3af40b1:	mov    %r13d,%eax
+   0x3af40b4:	cmp    %eax,%r13d
+   0x3af40b7:	jne    0x3af40c0
+   0x3af40b9:	test   %r12b,%r12b
+   0x3af40bc:	cmovne %r13d,%r14d
+   0x3af40c0:	add    $0x28,%rsp
+   0x3af40c4:	mov    %r14d,%eax
+   0x3af40c7:	pop    %rbx
+   0x3af40c8:	pop    %rbp
+   0x3af40c9:	pop    %r12
+   0x3af40cb:	pop    %r13
+   0x3af40cd:	pop    %r14
+   0x3af40cf:	pop    %r15
+   0x3af40d1:	ret
+   0x3af40d2:	subsd  %xmm1,%xmm0
+   0x3af40d6:	cvttsd2si %xmm0,%rdi
+   0x3af40db:	btc    $0x3f,%rdi
+   0x3af40e0:	test   %r13d,%r13d
+   0x3af40e3:	jg     0x3af3f0d
+   0x3af40e9:	mov    $0x1,%r12d
+   0x3af40ef:	xor    %eax,%eax
+   0x3af40f1:	mov    $0xffffffff,%r14d
+   0x3af40f7:	jmp    0x3af40b4
+   0x3af40f9:	call   *%rax
+   0x3af40fb:	movd   %xmm0,%ebx
+   0x3af40ff:	jmp    0x3af3ea4
+   0x3af4104:	data16 cs nopw 0x0(%rax,%rax,1)
+   0x3af410f:	nop
+   0x3af4110:	jmp    0x3af3e50
+   0x3af4115:	nop
+   0x3af4116:	cs nopw 0x0(%rax,%rax,1)
+rax            0xfd600000          4250927104
+rbx            0xffffffff          4294967295
+rcx            0x0                 0
+rdx            0x1076f488          276231304
+rsi            0x1076f088          276230280
+rdi            0x11419260          289509984
+rbp            0x1076f088          0x1076f088
+rsp            0x7fc9fd74f820      0x7fc9fd74f820
+r8             0x0                 0
+r9             0x40                64
+r10            0x2000              8192
+r11            0x127b24c0          310060224
+r12            0xffffffff          4294967295
+r13            0x201               513
+r14            0x0                 0
+r15            0x1076eed0          276229840
+rip            0x3af406c           0x3af406c
+eflags         0x202               [ IF ]
+cs             0x33                51
+ss             0x2b                43
+ds             0x0                 0
+es             0x0                 0
+fs             0x0                 0
+gs             0x0                 0
+k0             0x10000             65536
+k1             0x0                 0
+k2             0xfff               4095
+k3             0x0                 0
+k4             0x4920008001008     1286428738719752
+k5             0xa24               2596
+k6             0x2000              8192
+k7             0x0                 0
+fs_base        0x7fc9fd7516c0      140505517463232
+gs_base        0x0                 0
+[Inferior 1 (process 26258) detached]

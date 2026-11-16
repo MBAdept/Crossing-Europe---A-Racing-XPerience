@@ -1,0 +1,24 @@
+HEAD bd30c5c 09:17:18
+import rc=0 errors: 0
+  (import 5 s, load 1.21)
+run_tests rc=1 ==> Tests FEHLGESCHLAGEN (882 s)
+  (tests 883 s, load 9.43)
+golden rc=0 GOLDEN arcade: 20 von 20 identisch (225 s)
+  (golden 231 s, load 8.31)
+render rc=1 ==> 10 von 13 Render-Prüfdateien in Ordnung
+  (render 793 s, load 10.24)
+path_check --full rc=0 2 OK, 0 FEHLER
+  (path 57 s, load 7.78)
+sight --full rc=0 6 OK, 0 FEHLER
+  (sight 141 s, load 5.88)
+validate rc=0 CHECK models OK
+  (validate 2 s, load 5.88)
+run_stage arcade rc=0
+run_stage modern rc=0
+ERGEBNIS 28 Schlüssel, verschieden: ['gfx']
+  (ergebnis 53 s, load 6.36)
+drive: rc=0 in 1183 s  (log /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/RINT-A/logs/drive_final.log)
+  (drive 1183 s, load 5.31)
+warm: RENDER-CHECK warmup_kalt FEHLER  kiel_hamburg km 2.0 12.0 Uhr, medium: 376 Shader-Varianten im Cache vor dem Start, während der Fahrt 2 neu übersetzt (bei 3.0 s, 3.0 s); 68 Bilder in den ersten 30 s
+  (warm 74 s, load 4.54)
+DONE 10:14:20

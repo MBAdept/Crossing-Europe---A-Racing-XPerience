@@ -1,0 +1,9 @@
+v0.8.0 AU-A: Prüfung – das Rennen mit Modern fährt auch ohne Wiedergabe mit den Platzhaltern
+
+check_modern_audio.gd schaltet für das Szenario „race“ die Platzhalter-Klänge in beiden Läufen ein (bisher nur im
+Lauf mit Wiedergabe): Das Abnahmekriterium „Rennen ohne Bildschirm mit dem Profil Modern und Platzhaltern, ohne
+Fehler“ deckt damit auch der reine Headless-Lauf ab. Die übrigen Szenarien dieses Laufs bleiben bei der
+ausgelieferten Einstellung ohne Platzhalter.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,60 @@
+Gesamtlautstärke -1.94 dB (Aufnahme vor der Lautstärke, hier angewendet)
+Abschnitt              s   LUFS Kurz.max     TP  Korr Mono-St  HP180  Klein
+asph130_full        19.7  -17.2    -16.7  -10.3  0.98    -0.1   -8.0   -8.4
+asph130_road        19.6  -29.7    -29.6  -19.4  0.65    -0.8   -0.1    0.8
+asph130_wind        19.4  -37.3    -35.8  -23.7  0.45    -1.4   -2.1   -1.3
+asph130_engine      19.4  -17.1    -16.6  -12.1  1.00    -0.0   -9.9  -11.6
+asph200_full        19.6  -17.8    -17.5   -8.6  0.87    -0.4   -3.1   -2.9
+asph200_engine      19.5  -19.9    -19.5  -14.3  1.00    -0.0   -5.6   -7.6
+asph200_roadwind    19.4  -22.2    -21.9  -10.1  0.56    -1.0   -0.6    0.5
+vmax_full           14.7  -14.9    -14.6   -2.8  0.78    -0.5   -1.7   -1.6
+vmax_engine         14.7  -17.1    -16.5  -12.0  1.00    -0.0   -2.2   -3.9
+conc130_full        19.6  -16.6    -15.8   -5.7  0.98    -0.1   -6.9   -6.7
+conc130_road        19.6  -24.3    -24.2   -8.7  0.90    -0.4   -1.8   -0.5
+rumble130_full       9.8  -16.1    -15.9   -6.4  0.91    -0.3   -6.8   -7.2
+rumble130_road       9.8  -20.8    -20.7  -10.1  0.90    -0.8   -3.8   -3.8
+cobbles50_full      14.8  -19.0    -18.7   -7.7  0.87    -0.3   -4.8   -5.2
+cobbles50_road      14.8  -22.9    -22.8  -10.7  0.68    -0.8   -2.1   -2.3
+
+Wiederholung bei konstantem Tempo (Hüllkurve 10 ms, log; Spektralrahmen 20 ms, Bark):
+  vorhergesagte Perioden: {'Asphalt L/2': 0.972, 'Asphalt L': 1.945, 'Wind tief L/2': 1.064, 'Wind tief L': 2.129, 'Wind mittel/hoch L/2': 1.109, 'Wind mittel/hoch L': 2.219}
+  asph130_road      Hüllkurve: Spitze 0.81 bei 0.97 s, 0.96 bei 3.89 s (Median -0.02) | Spektrum: 0.28 bei 0.98 s, 0.70 bei 2.92 s (Median -0.01) | 0,6–1,6 kHz: 0.81 bei 0.97 s / 0.98 bei 3.89 s | 2,5–8 kHz: 0.58 bei 0.97 s
+  asph130_wind      Hüllkurve: Spitze 0.48 bei 1.06 s, 0.57 bei 2.13 s (Median -0.00) | Spektrum: 0.30 bei 0.30 s, 0.29 bei 2.22 s (Median 0.03) | 0,6–1,6 kHz: 0.50 bei 0.35 s / 0.39 bei 2.22 s | 2,5–8 kHz: 0.72 bei 0.30 s
+  asph130_full      Hüllkurve: Spitze 0.32 bei 0.35 s, 0.15 bei 2.08 s (Median 0.09) | Spektrum: 0.18 bei 0.98 s, 0.34 bei 2.92 s (Median -0.01) | 0,6–1,6 kHz: 0.64 bei 0.97 s / 0.76 bei 3.89 s | 2,5–8 kHz: 0.38 bei 0.97 s
+  asph130_engine    Hüllkurve: Spitze 0.22 bei 0.35 s, 0.15 bei 1.63 s (Median 0.02) | Spektrum: 0.12 bei 0.42 s, 0.09 bei 2.00 s (Median -0.00) | 0,6–1,6 kHz: 0.14 bei 0.42 s / 0.10 bei 2.75 s | 2,5–8 kHz: 0.20 bei 0.35 s
+  conc130_road      Hüllkurve: Spitze 0.86 bei 1.11 s, 0.79 bei 1.80 s (Median -0.02) | Spektrum: 0.33 bei 1.52 s, 0.68 bei 1.94 s (Median -0.08) | 0,6–1,6 kHz: 0.78 bei 0.97 s / 0.67 bei 1.94 s | 2,5–8 kHz: 0.91 bei 0.97 s
+  conc130_full      Hüllkurve: Spitze 0.33 bei 0.35 s, 0.22 bei 2.22 s (Median 0.05) | Spektrum: 0.23 bei 1.52 s, 0.48 bei 1.94 s (Median -0.05) | 0,6–1,6 kHz: 0.70 bei 0.97 s / 0.61 bei 1.94 s | 2,5–8 kHz: 0.89 bei 0.97 s
+  asph200_full      Hüllkurve: Spitze 0.11 bei 1.27 s, 0.09 bei 3.74 s (Median 0.03) | Spektrum: 0.27 bei 0.84 s, 0.20 bei 3.34 s (Median -0.00) | 0,6–1,6 kHz: 0.47 bei 0.84 s / 0.63 bei 2.51 s | 2,5–8 kHz: 0.32 bei 0.84 s
+  asph200_roadwind  Hüllkurve: Spitze 0.33 bei 0.94 s, 0.51 bei 1.87 s (Median 0.07) | Spektrum: 0.31 bei 0.84 s, 0.24 bei 3.34 s (Median -0.01) | 0,6–1,6 kHz: 0.52 bei 0.84 s / 0.69 bei 2.51 s | 2,5–8 kHz: 0.29 bei 0.84 s
+  cobbles50_road    Hüllkurve: Spitze 1.00 bei 1.25 s, 1.00 bei 2.50 s (Median -0.03) | Spektrum: 0.19 bei 1.26 s, 0.97 bei 2.50 s (Median -0.01) | 0,6–1,6 kHz: 0.95 bei 1.25 s / 0.95 bei 2.50 s | 2,5–8 kHz: 1.00 bei 1.25 s
+  cobbles50_full    Hüllkurve: Spitze 0.22 bei 0.40 s, 0.48 bei 2.50 s (Median 0.01) | Spektrum: 0.12 bei 1.26 s, 0.73 bei 2.50 s (Median -0.00) | 0,6–1,6 kHz: 0.69 bei 1.25 s / 0.69 bei 2.50 s | 2,5–8 kHz: 0.98 bei 1.25 s
+
+Kritische Bänder bei 130 km/h: Pegel der Schicht gegen den Rest (dB, + = Schicht lauter):
+     20-  100 Hz  Motor  -46.1  Reifen  -51.0  Wind  -42.7 dB   Reifen/Rest -10.0  Wind/Rest  +2.2
+    100-  200 Hz  Motor  -18.9  Reifen  -48.4  Wind  -45.7 dB   Reifen/Rest -29.6  Wind/Rest -26.9
+    200-  300 Hz  Motor  -33.3  Reifen  -45.7  Wind  -50.9 dB   Reifen/Rest -12.4  Wind/Rest -17.8
+    300-  400 Hz  Motor  -49.4  Reifen  -46.9  Wind  -53.5 dB   Reifen/Rest  +1.0  Wind/Rest  -8.5
+    400-  510 Hz  Motor  -55.5  Reifen  -46.2  Wind  -54.7 dB   Reifen/Rest  +5.9  Wind/Rest  -9.0
+    510-  630 Hz  Motor  -53.5  Reifen  -44.7  Wind  -54.5 dB   Reifen/Rest  +6.2  Wind/Rest -10.3
+    630-  770 Hz  Motor  -54.2  Reifen  -43.3  Wind  -54.6 dB   Reifen/Rest  +8.1  Wind/Rest -11.6
+    770-  920 Hz  Motor  -52.3  Reifen  -42.5  Wind  -55.2 dB   Reifen/Rest  +8.0  Wind/Rest -13.2
+    920- 1080 Hz  Motor  -51.5  Reifen  -42.1  Wind  -55.5 dB   Reifen/Rest  +7.9  Wind/Rest -13.8
+   1080- 1270 Hz  Motor  -54.8  Reifen  -42.6  Wind  -55.7 dB   Reifen/Rest  +9.6  Wind/Rest -13.3
+   1270- 1480 Hz  Motor  -57.4  Reifen  -43.9  Wind  -56.1 dB   Reifen/Rest  +9.7  Wind/Rest -12.3
+   1480- 1720 Hz  Motor  -57.4  Reifen  -45.4  Wind  -56.7 dB   Reifen/Rest  +8.7  Wind/Rest -11.7
+   1720- 2000 Hz  Motor  -58.0  Reifen  -47.0  Wind  -57.5 dB   Reifen/Rest  +7.7  Wind/Rest -10.8
+   2000- 2320 Hz  Motor  -58.4  Reifen  -48.5  Wind  -58.4 dB   Reifen/Rest  +6.9  Wind/Rest -10.3
+   2320- 2700 Hz  Motor  -57.8  Reifen  -50.0  Wind  -59.3 dB   Reifen/Rest  +5.5  Wind/Rest  -9.9
+   2700- 3150 Hz  Motor  -58.1  Reifen  -51.5  Wind  -59.1 dB   Reifen/Rest  +4.1  Wind/Rest  -8.5
+   3150- 3700 Hz  Motor  -59.6  Reifen  -52.8  Wind  -60.4 dB   Reifen/Rest  +4.1  Wind/Rest  -8.4
+   3700- 4400 Hz  Motor  -62.6  Reifen  -54.0  Wind  -60.5 dB   Reifen/Rest  +4.4  Wind/Rest  -7.1
+   4400- 5300 Hz  Motor  -62.0  Reifen  -55.3  Wind  -60.6 dB   Reifen/Rest  +2.9  Wind/Rest  -6.1
+   5300- 6400 Hz  Motor  -63.3  Reifen  -56.9  Wind  -61.0 dB   Reifen/Rest  +2.1  Wind/Rest  -5.0
+   6400- 7700 Hz  Motor  -64.1  Reifen  -58.7  Wind  -61.9 dB   Reifen/Rest  +1.1  Wind/Rest  -4.3
+   7700- 9500 Hz  Motor  -65.2  Reifen  -60.1  Wind  -62.7 dB   Reifen/Rest  +0.7  Wind/Rest  -3.8
+   9500-12000 Hz  Motor  -68.3  Reifen  -62.0  Wind  -64.5 dB   Reifen/Rest  +1.0  Wind/Rest  -3.4
+  12000-15500 Hz  Motor  -71.0  Reifen  -64.7  Wind  -67.3 dB   Reifen/Rest  +1.1  Wind/Rest  -3.6
+  200 km/h, Reifen+Wind gegen Motor je Band: [12.3, -13.0, 12.8, -4.2, 7.7, 14.6, 16.1, 14.1, 12.5, 16.0, 18.4, 17.7, 16.5, 16.3, 15.3, 11.2, 13.9, 9.3, 13.0, 12.4, 10.9, 10.3, 10.7, 10.6]
+
+Rüttelstreifen 130 km/h (nur Fahrbahn): Grundton 120.4 Hz; {'fund_hz': 120.37037037037037, 'h1': [np.float64(-25.1), np.float64(-42.7)], 'h2': [np.float64(-35.9), np.float64(-36.8)], 'h3': [np.float64(-41.2), np.float64(-41.2)], 'h4': [np.float64(-36.7), np.float64(-36.6)], 'top_peaks_hz': [118.4, 119.8, 121.1, 239.6, 240.9, 481.8]}
+-> results/capture.json

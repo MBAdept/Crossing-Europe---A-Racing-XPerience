@@ -1,0 +1,3255 @@
+{
+	"crash": false,
+	"dropped": {
+		"finish": 1
+	},
+	"events_seen": {
+		"go": 1,
+		"pass_object": 92,
+		"stage_finish": 1,
+		"stage_start": 1
+	},
+	"finished": true,
+	"log": [
+		{
+			"kind": "music",
+			"km": 86.6,
+			"state": {
+				"context": "off",
+				"ending": "",
+				"key": "",
+				"race_index": -1,
+				"race_phase": "idle",
+				"stingers": "{  }"
+			},
+			"t": 0.0
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 86.6,
+			"speed": 0.0,
+			"state": 0,
+			"t": 0.0
+		},
+		{
+			"kind": "play",
+			"km": 86.6,
+			"n": 1,
+			"name": "go",
+			"t": 0.017
+		},
+		{
+			"kind": "event",
+			"km": 86.6,
+			"n": 1,
+			"name": "stage_start",
+			"t": 0.017
+		},
+		{
+			"kind": "event",
+			"km": 86.6,
+			"n": 1,
+			"name": "go",
+			"t": 0.017
+		},
+		{
+			"kind": "feed",
+			"km": 86.6,
+			"state": {
+				"bridge": "",
+				"city": true,
+				"deck": "",
+				"paving": "asphalt",
+				"road": "city",
+				"surface_l": "asphalt",
+				"surface_r": "asphalt",
+				"tunnel": false,
+				"zone": "city"
+			},
+			"t": 0.033
+		},
+		{
+			"duck_db": -4.42,
+			"kind": "pos",
+			"km": 86.602,
+			"speed": 4.8,
+			"state": 0,
+			"t": 0.25
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 86.607,
+			"speed": 9.9,
+			"state": 0,
+			"t": 0.5
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 86.616,
+			"speed": 14.9,
+			"state": 0,
+			"t": 0.75
+		},
+		{
+			"kind": "event",
+			"km": 86.618,
+			"n": 1,
+			"name": "pass_object",
+			"t": 0.8
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 86.628,
+			"speed": 19.8,
+			"state": 0,
+			"t": 1.0
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 86.643,
+			"speed": 24.7,
+			"state": 0,
+			"t": 1.25
+		},
+		{
+			"kind": "event",
+			"km": 86.644,
+			"n": 2,
+			"name": "pass_object",
+			"t": 1.267
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 86.662,
+			"speed": 29.5,
+			"state": 0,
+			"t": 1.5
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 86.685,
+			"speed": 34.3,
+			"state": 0,
+			"t": 1.75
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 86.71,
+			"speed": 39.0,
+			"state": 0,
+			"t": 2.0
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 86.739,
+			"speed": 43.6,
+			"state": 0,
+			"t": 2.25
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 86.771,
+			"speed": 48.2,
+			"state": 0,
+			"t": 2.5
+		},
+		{
+			"kind": "event",
+			"km": 86.799,
+			"n": 3,
+			"name": "pass_object",
+			"t": 2.7
+		},
+		{
+			"kind": "play",
+			"km": 86.799,
+			"n": 1,
+			"name": "road_pass",
+			"t": 2.7
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 86.806,
+			"speed": 52.7,
+			"state": 0,
+			"t": 2.75
+		},
+		{
+			"kind": "event",
+			"km": 86.841,
+			"n": 4,
+			"name": "pass_object",
+			"t": 2.983
+		},
+		{
+			"kind": "play",
+			"km": 86.841,
+			"n": 2,
+			"name": "road_pass",
+			"t": 2.983
+		},
+		{
+			"duck_db": -3.3,
+			"kind": "pos",
+			"km": 86.844,
+			"speed": 57.1,
+			"state": 0,
+			"t": 3.0
+		},
+		{
+			"kind": "event",
+			"km": 86.871,
+			"n": 5,
+			"name": "pass_object",
+			"t": 3.167
+		},
+		{
+			"kind": "play",
+			"km": 86.871,
+			"n": 3,
+			"name": "road_pass",
+			"t": 3.167
+		},
+		{
+			"duck_db": -4.48,
+			"kind": "pos",
+			"km": 86.885,
+			"speed": 61.5,
+			"state": 0,
+			"t": 3.25
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 86.93,
+			"speed": 65.8,
+			"state": 0,
+			"t": 3.5
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 86.977,
+			"speed": 70.1,
+			"state": 0,
+			"t": 3.75
+		},
+		{
+			"kind": "event",
+			"km": 86.98,
+			"n": 6,
+			"name": "pass_object",
+			"t": 3.767
+		},
+		{
+			"kind": "play",
+			"km": 86.98,
+			"n": 4,
+			"name": "road_pass",
+			"t": 3.767
+		},
+		{
+			"kind": "feed",
+			"km": 87.01,
+			"state": {
+				"bridge": "",
+				"city": true,
+				"deck": "",
+				"paving": "cobbles",
+				"road": "city",
+				"surface_l": "cobbles",
+				"surface_r": "cobbles",
+				"tunnel": false,
+				"zone": "city"
+			},
+			"t": 3.917
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 87.027,
+			"speed": 74.3,
+			"state": 0,
+			"t": 4.0
+		},
+		{
+			"kind": "event",
+			"km": 87.055,
+			"n": 7,
+			"name": "pass_object",
+			"t": 4.133
+		},
+		{
+			"kind": "play",
+			"km": 87.055,
+			"n": 5,
+			"name": "road_pass",
+			"t": 4.133
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 87.08,
+			"speed": 78.4,
+			"state": 0,
+			"t": 4.25
+		},
+		{
+			"kind": "event",
+			"km": 87.132,
+			"n": 8,
+			"name": "pass_object",
+			"t": 4.483
+		},
+		{
+			"kind": "play",
+			"km": 87.132,
+			"n": 6,
+			"name": "road_pass",
+			"t": 4.483
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 87.136,
+			"speed": 82.5,
+			"state": 0,
+			"t": 4.5
+		},
+		{
+			"duck_db": -3.74,
+			"kind": "pos",
+			"km": 87.195,
+			"speed": 86.5,
+			"state": 0,
+			"t": 4.75
+		},
+		{
+			"duck_db": -4.45,
+			"kind": "pos",
+			"km": 87.257,
+			"speed": 90.5,
+			"state": 0,
+			"t": 5.0
+		},
+		{
+			"kind": "event",
+			"km": 87.295,
+			"n": 9,
+			"name": "pass_object",
+			"t": 5.15
+		},
+		{
+			"kind": "play",
+			"km": 87.295,
+			"n": 7,
+			"name": "road_pass",
+			"t": 5.15
+		},
+		{
+			"kind": "event",
+			"km": 87.317,
+			"n": 10,
+			"name": "pass_object",
+			"t": 5.233
+		},
+		{
+			"kind": "play",
+			"km": 87.317,
+			"n": 8,
+			"name": "road_pass",
+			"t": 5.233
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 87.321,
+			"speed": 94.4,
+			"state": 0,
+			"t": 5.25
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 87.388,
+			"speed": 98.2,
+			"state": 0,
+			"t": 5.5
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 87.458,
+			"speed": 102.0,
+			"state": 0,
+			"t": 5.75
+		},
+		{
+			"kind": "event",
+			"km": 87.467,
+			"n": 11,
+			"name": "pass_object",
+			"t": 5.783
+		},
+		{
+			"kind": "play",
+			"km": 87.467,
+			"n": 9,
+			"name": "road_pass",
+			"t": 5.783
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 87.53,
+			"speed": 105.7,
+			"state": 0,
+			"t": 6.0
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 87.605,
+			"speed": 109.4,
+			"state": 0,
+			"t": 6.25
+		},
+		{
+			"kind": "event",
+			"km": 87.645,
+			"n": 12,
+			"name": "pass_object",
+			"t": 6.383
+		},
+		{
+			"kind": "play",
+			"km": 87.645,
+			"n": 10,
+			"name": "road_pass",
+			"t": 6.383
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 87.682,
+			"speed": 113.0,
+			"state": 0,
+			"t": 6.5
+		},
+		{
+			"kind": "event",
+			"km": 87.735,
+			"n": 13,
+			"name": "pass_object",
+			"t": 6.667
+		},
+		{
+			"kind": "play",
+			"km": 87.735,
+			"n": 11,
+			"name": "road_pass",
+			"t": 6.667
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 87.762,
+			"speed": 116.6,
+			"state": 0,
+			"t": 6.75
+		},
+		{
+			"kind": "event",
+			"km": 87.8,
+			"n": 14,
+			"name": "pass_object",
+			"t": 6.867
+		},
+		{
+			"kind": "play",
+			"km": 87.8,
+			"n": 12,
+			"name": "road_pass",
+			"t": 6.867
+		},
+		{
+			"kind": "feed",
+			"km": 87.822,
+			"state": {
+				"bridge": "",
+				"city": true,
+				"deck": "",
+				"paving": "asphalt",
+				"road": "city",
+				"surface_l": "asphalt",
+				"surface_r": "asphalt",
+				"tunnel": false,
+				"zone": "city"
+			},
+			"t": 6.933
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 87.844,
+			"speed": 120.1,
+			"state": 0,
+			"t": 7.0
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 87.929,
+			"speed": 123.5,
+			"state": 0,
+			"t": 7.25
+		},
+		{
+			"kind": "event",
+			"km": 87.98,
+			"n": 15,
+			"name": "pass_object",
+			"t": 7.4
+		},
+		{
+			"kind": "play",
+			"km": 87.98,
+			"n": 13,
+			"name": "road_pass",
+			"t": 7.4
+		},
+		{
+			"duck_db": -4.28,
+			"kind": "pos",
+			"km": 88.016,
+			"speed": 126.9,
+			"state": 0,
+			"t": 7.5
+		},
+		{
+			"kind": "event",
+			"km": 88.027,
+			"n": 16,
+			"name": "pass_object",
+			"t": 7.533
+		},
+		{
+			"kind": "play",
+			"km": 88.027,
+			"n": 14,
+			"name": "road_pass",
+			"t": 7.533
+		},
+		{
+			"duck_db": -4.36,
+			"kind": "pos",
+			"km": 88.105,
+			"speed": 130.2,
+			"state": 0,
+			"t": 7.75
+		},
+		{
+			"kind": "event",
+			"km": 88.129,
+			"n": 17,
+			"name": "pass_object",
+			"t": 7.817
+		},
+		{
+			"kind": "play",
+			"km": 88.129,
+			"n": 15,
+			"name": "road_pass",
+			"t": 7.817
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 88.197,
+			"speed": 133.1,
+			"state": 0,
+			"t": 8.0
+		},
+		{
+			"kind": "event",
+			"km": 88.203,
+			"n": 18,
+			"name": "pass_object",
+			"t": 8.017
+		},
+		{
+			"kind": "play",
+			"km": 88.203,
+			"n": 16,
+			"name": "road_pass",
+			"t": 8.017
+		},
+		{
+			"duck_db": -3.24,
+			"kind": "pos",
+			"km": 88.287,
+			"speed": 127.1,
+			"state": 0,
+			"t": 8.25
+		},
+		{
+			"kind": "event",
+			"km": 88.31,
+			"n": 19,
+			"name": "pass_object",
+			"t": 8.317
+		},
+		{
+			"kind": "play",
+			"km": 88.31,
+			"n": 17,
+			"name": "road_pass",
+			"t": 8.317
+		},
+		{
+			"duck_db": -2.42,
+			"kind": "pos",
+			"km": 88.372,
+			"speed": 118.5,
+			"state": 0,
+			"t": 8.5
+		},
+		{
+			"kind": "event",
+			"km": 88.389,
+			"n": 20,
+			"name": "pass_object",
+			"t": 8.55
+		},
+		{
+			"kind": "play",
+			"km": 88.389,
+			"n": 18,
+			"name": "road_pass",
+			"t": 8.55
+		},
+		{
+			"duck_db": -1.88,
+			"kind": "pos",
+			"km": 88.451,
+			"speed": 110.0,
+			"state": 0,
+			"t": 8.75
+		},
+		{
+			"kind": "event",
+			"km": 88.456,
+			"n": 21,
+			"name": "pass_object",
+			"t": 8.767
+		},
+		{
+			"kind": "play",
+			"km": 88.456,
+			"n": 19,
+			"name": "road_pass",
+			"t": 8.767
+		},
+		{
+			"kind": "event",
+			"km": 88.491,
+			"n": 22,
+			"name": "pass_object",
+			"t": 8.883
+		},
+		{
+			"kind": "play",
+			"km": 88.491,
+			"n": 20,
+			"name": "road_pass",
+			"t": 8.883
+		},
+		{
+			"kind": "event",
+			"km": 88.525,
+			"n": 23,
+			"name": "pass_object",
+			"t": 9.0
+		},
+		{
+			"kind": "play",
+			"km": 88.525,
+			"n": 21,
+			"name": "road_pass",
+			"t": 9.0
+		},
+		{
+			"duck_db": -1.52,
+			"kind": "pos",
+			"km": 88.525,
+			"speed": 101.7,
+			"state": 0,
+			"t": 9.0
+		},
+		{
+			"duck_db": -1.25,
+			"kind": "pos",
+			"km": 88.592,
+			"speed": 93.9,
+			"state": 0,
+			"t": 9.25
+		},
+		{
+			"kind": "event",
+			"km": 88.635,
+			"n": 24,
+			"name": "pass_object",
+			"t": 9.417
+		},
+		{
+			"kind": "play",
+			"km": 88.635,
+			"n": 22,
+			"name": "road_pass",
+			"t": 9.417
+		},
+		{
+			"duck_db": -4.17,
+			"kind": "pos",
+			"km": 88.655,
+			"speed": 86.6,
+			"state": 0,
+			"t": 9.5
+		},
+		{
+			"kind": "feed",
+			"km": 88.712,
+			"state": {
+				"bridge": "",
+				"city": true,
+				"deck": "",
+				"paving": "cobbles",
+				"road": "city",
+				"surface_l": "cobbles",
+				"surface_r": "cobbles",
+				"tunnel": false,
+				"zone": "city"
+			},
+			"t": 9.75
+		},
+		{
+			"duck_db": -2.8,
+			"kind": "pos",
+			"km": 88.712,
+			"speed": 79.7,
+			"state": 0,
+			"t": 9.75
+		},
+		{
+			"kind": "event",
+			"km": 88.731,
+			"n": 25,
+			"name": "pass_object",
+			"t": 9.833
+		},
+		{
+			"kind": "play",
+			"km": 88.731,
+			"n": 23,
+			"name": "road_pass",
+			"t": 9.833
+		},
+		{
+			"kind": "event",
+			"km": 88.741,
+			"n": 26,
+			"name": "pass_object",
+			"t": 9.883
+		},
+		{
+			"kind": "play",
+			"km": 88.741,
+			"n": 24,
+			"name": "road_pass",
+			"t": 9.883
+		},
+		{
+			"duck_db": -1.83,
+			"kind": "pos",
+			"km": 88.765,
+			"speed": 73.4,
+			"state": 0,
+			"t": 10.0
+		},
+		{
+			"kind": "event",
+			"km": 88.782,
+			"n": 27,
+			"name": "pass_object",
+			"t": 10.083
+		},
+		{
+			"kind": "play",
+			"km": 88.782,
+			"n": 25,
+			"name": "road_pass",
+			"t": 10.083
+		},
+		{
+			"duck_db": -3.34,
+			"kind": "pos",
+			"km": 88.814,
+			"speed": 67.7,
+			"state": 0,
+			"t": 10.25
+		},
+		{
+			"kind": "event",
+			"km": 88.817,
+			"n": 28,
+			"name": "pass_object",
+			"t": 10.267
+		},
+		{
+			"kind": "play",
+			"km": 88.817,
+			"n": 26,
+			"name": "road_pass",
+			"t": 10.267
+		},
+		{
+			"duck_db": -3.06,
+			"kind": "pos",
+			"km": 88.859,
+			"speed": 62.5,
+			"state": 0,
+			"t": 10.5
+		},
+		{
+			"duck_db": -1.86,
+			"kind": "pos",
+			"km": 88.901,
+			"speed": 58.0,
+			"state": 0,
+			"t": 10.75
+		},
+		{
+			"duck_db": -3.65,
+			"kind": "pos",
+			"km": 88.94,
+			"speed": 54.4,
+			"state": 0,
+			"t": 11.0
+		},
+		{
+			"kind": "event",
+			"km": 88.96,
+			"n": 29,
+			"name": "pass_object",
+			"t": 11.133
+		},
+		{
+			"duck_db": -2.87,
+			"kind": "pos",
+			"km": 88.975,
+			"speed": 45.0,
+			"state": 0,
+			"t": 11.25
+		},
+		{
+			"kind": "event",
+			"km": 88.979,
+			"n": 30,
+			"name": "pass_object",
+			"t": 11.283
+		},
+		{
+			"kind": "play",
+			"km": 88.979,
+			"n": 27,
+			"name": "road_pass",
+			"t": 11.283
+		},
+		{
+			"duck_db": -1.65,
+			"kind": "pos",
+			"km": 89.004,
+			"speed": 40.2,
+			"state": 0,
+			"t": 11.5
+		},
+		{
+			"kind": "event",
+			"km": 89.012,
+			"n": 31,
+			"name": "pass_object",
+			"t": 11.567
+		},
+		{
+			"kind": "play",
+			"km": 89.012,
+			"n": 28,
+			"name": "road_pass",
+			"t": 11.567
+		},
+		{
+			"duck_db": -0.96,
+			"kind": "pos",
+			"km": 89.032,
+			"speed": 39.8,
+			"state": 0,
+			"t": 11.75
+		},
+		{
+			"duck_db": -2.38,
+			"kind": "pos",
+			"km": 89.06,
+			"speed": 40.2,
+			"state": 0,
+			"t": 12.0
+		},
+		{
+			"duck_db": -2.55,
+			"kind": "pos",
+			"km": 89.088,
+			"speed": 40.5,
+			"state": 0,
+			"t": 12.25
+		},
+		{
+			"kind": "event",
+			"km": 89.107,
+			"n": 32,
+			"name": "pass_object",
+			"t": 12.417
+		},
+		{
+			"duck_db": -2.62,
+			"kind": "pos",
+			"km": 89.116,
+			"speed": 40.9,
+			"state": 0,
+			"t": 12.5
+		},
+		{
+			"duck_db": -2.66,
+			"kind": "pos",
+			"km": 89.144,
+			"speed": 41.3,
+			"state": 0,
+			"t": 12.75
+		},
+		{
+			"duck_db": -2.72,
+			"kind": "pos",
+			"km": 89.173,
+			"speed": 41.3,
+			"state": 0,
+			"t": 13.0
+		},
+		{
+			"duck_db": -2.55,
+			"kind": "pos",
+			"km": 89.202,
+			"speed": 41.7,
+			"state": 0,
+			"t": 13.25
+		},
+		{
+			"duck_db": -2.65,
+			"kind": "pos",
+			"km": 89.231,
+			"speed": 42.1,
+			"state": 0,
+			"t": 13.5
+		},
+		{
+			"duck_db": -2.52,
+			"kind": "pos",
+			"km": 89.26,
+			"speed": 42.2,
+			"state": 0,
+			"t": 13.75
+		},
+		{
+			"kind": "event",
+			"km": 89.288,
+			"n": 33,
+			"name": "pass_object",
+			"t": 13.983
+		},
+		{
+			"duck_db": -2.65,
+			"kind": "pos",
+			"km": 89.29,
+			"speed": 42.5,
+			"state": 0,
+			"t": 14.0
+		},
+		{
+			"duck_db": -2.54,
+			"kind": "pos",
+			"km": 89.319,
+			"speed": 42.6,
+			"state": 0,
+			"t": 14.25
+		},
+		{
+			"duck_db": -2.69,
+			"kind": "pos",
+			"km": 89.349,
+			"speed": 42.7,
+			"state": 0,
+			"t": 14.5
+		},
+		{
+			"duck_db": -2.59,
+			"kind": "pos",
+			"km": 89.379,
+			"speed": 43.0,
+			"state": 0,
+			"t": 14.75
+		},
+		{
+			"kind": "event",
+			"km": 89.387,
+			"n": 34,
+			"name": "pass_object",
+			"t": 14.817
+		},
+		{
+			"kind": "play",
+			"km": 89.387,
+			"n": 29,
+			"name": "road_pass",
+			"t": 14.817
+		},
+		{
+			"duck_db": -2.51,
+			"kind": "pos",
+			"km": 89.409,
+			"speed": 43.1,
+			"state": 0,
+			"t": 15.0
+		},
+		{
+			"kind": "event",
+			"km": 89.437,
+			"n": 35,
+			"name": "pass_object",
+			"t": 15.233
+		},
+		{
+			"duck_db": -2.73,
+			"kind": "pos",
+			"km": 89.439,
+			"speed": 43.2,
+			"state": 0,
+			"t": 15.25
+		},
+		{
+			"kind": "event",
+			"km": 89.447,
+			"n": 36,
+			"name": "pass_object",
+			"t": 15.317
+		},
+		{
+			"kind": "play",
+			"km": 89.447,
+			"n": 30,
+			"name": "road_pass",
+			"t": 15.317
+		},
+		{
+			"duck_db": -2.67,
+			"kind": "pos",
+			"km": 89.469,
+			"speed": 43.3,
+			"state": 0,
+			"t": 15.5
+		},
+		{
+			"duck_db": -2.61,
+			"kind": "pos",
+			"km": 89.499,
+			"speed": 43.7,
+			"state": 0,
+			"t": 15.75
+		},
+		{
+			"kind": "event",
+			"km": 89.501,
+			"n": 37,
+			"name": "pass_object",
+			"t": 15.767
+		},
+		{
+			"kind": "play",
+			"km": 89.501,
+			"n": 31,
+			"name": "road_pass",
+			"t": 15.767
+		},
+		{
+			"duck_db": -2.57,
+			"kind": "pos",
+			"km": 89.529,
+			"speed": 43.7,
+			"state": 0,
+			"t": 16.0
+		},
+		{
+			"duck_db": -2.57,
+			"kind": "pos",
+			"km": 89.56,
+			"speed": 43.8,
+			"state": 0,
+			"t": 16.25
+		},
+		{
+			"duck_db": -2.49,
+			"kind": "pos",
+			"km": 89.59,
+			"speed": 43.9,
+			"state": 0,
+			"t": 16.5
+		},
+		{
+			"kind": "feed",
+			"km": 89.606,
+			"state": {
+				"bridge": "",
+				"city": true,
+				"deck": "",
+				"paving": "asphalt",
+				"road": "city",
+				"surface_l": "asphalt",
+				"surface_r": "asphalt",
+				"tunnel": false,
+				"zone": "city"
+			},
+			"t": 16.633
+		},
+		{
+			"kind": "event",
+			"km": 89.617,
+			"n": 38,
+			"name": "pass_object",
+			"t": 16.717
+		},
+		{
+			"kind": "play",
+			"km": 89.617,
+			"n": 32,
+			"name": "road_pass",
+			"t": 16.717
+		},
+		{
+			"duck_db": -2.47,
+			"kind": "pos",
+			"km": 89.621,
+			"speed": 44.0,
+			"state": 0,
+			"t": 16.75
+		},
+		{
+			"duck_db": -2.47,
+			"kind": "pos",
+			"km": 89.651,
+			"speed": 44.1,
+			"state": 0,
+			"t": 17.0
+		},
+		{
+			"duck_db": -2.47,
+			"kind": "pos",
+			"km": 89.682,
+			"speed": 44.2,
+			"state": 0,
+			"t": 17.25
+		},
+		{
+			"duck_db": -2.47,
+			"kind": "pos",
+			"km": 89.713,
+			"speed": 44.3,
+			"state": 0,
+			"t": 17.5
+		},
+		{
+			"duck_db": -2.48,
+			"kind": "pos",
+			"km": 89.743,
+			"speed": 44.3,
+			"state": 0,
+			"t": 17.75
+		},
+		{
+			"kind": "event",
+			"km": 89.768,
+			"n": 39,
+			"name": "pass_object",
+			"t": 17.95
+		},
+		{
+			"duck_db": -2.48,
+			"kind": "pos",
+			"km": 89.774,
+			"speed": 44.4,
+			"state": 0,
+			"t": 18.0
+		},
+		{
+			"duck_db": -2.48,
+			"kind": "pos",
+			"km": 89.805,
+			"speed": 44.5,
+			"state": 0,
+			"t": 18.25
+		},
+		{
+			"duck_db": -2.54,
+			"kind": "pos",
+			"km": 89.836,
+			"speed": 44.6,
+			"state": 0,
+			"t": 18.5
+		},
+		{
+			"duck_db": -2.57,
+			"kind": "pos",
+			"km": 89.867,
+			"speed": 44.7,
+			"state": 0,
+			"t": 18.75
+		},
+		{
+			"kind": "event",
+			"km": 89.875,
+			"n": 40,
+			"name": "pass_object",
+			"t": 18.817
+		},
+		{
+			"kind": "play",
+			"km": 89.875,
+			"n": 33,
+			"name": "road_pass",
+			"t": 18.817
+		},
+		{
+			"duck_db": -2.57,
+			"kind": "pos",
+			"km": 89.898,
+			"speed": 44.8,
+			"state": 0,
+			"t": 19.0
+		},
+		{
+			"kind": "event",
+			"km": 89.925,
+			"n": 41,
+			"name": "pass_object",
+			"t": 19.217
+		},
+		{
+			"kind": "play",
+			"km": 89.925,
+			"n": 34,
+			"name": "road_pass",
+			"t": 19.217
+		},
+		{
+			"duck_db": -2.62,
+			"kind": "pos",
+			"km": 89.929,
+			"speed": 44.6,
+			"state": 0,
+			"t": 19.25
+		},
+		{
+			"kind": "event",
+			"km": 89.948,
+			"n": 42,
+			"name": "pass_object",
+			"t": 19.4
+		},
+		{
+			"kind": "play",
+			"km": 89.948,
+			"n": 35,
+			"name": "road_pass",
+			"t": 19.4
+		},
+		{
+			"duck_db": -2.66,
+			"kind": "pos",
+			"km": 89.96,
+			"speed": 44.7,
+			"state": 0,
+			"t": 19.5
+		},
+		{
+			"duck_db": -2.67,
+			"kind": "pos",
+			"km": 89.991,
+			"speed": 44.7,
+			"state": 0,
+			"t": 19.75
+		},
+		{
+			"duck_db": -2.46,
+			"kind": "pos",
+			"km": 90.022,
+			"speed": 44.8,
+			"state": 0,
+			"t": 20.0
+		},
+		{
+			"duck_db": -2.48,
+			"kind": "pos",
+			"km": 90.053,
+			"speed": 44.9,
+			"state": 0,
+			"t": 20.25
+		},
+		{
+			"duck_db": -2.56,
+			"kind": "pos",
+			"km": 90.084,
+			"speed": 45.0,
+			"state": 0,
+			"t": 20.5
+		},
+		{
+			"kind": "event",
+			"km": 90.089,
+			"n": 43,
+			"name": "pass_object",
+			"t": 20.533
+		},
+		{
+			"kind": "play",
+			"km": 90.089,
+			"n": 36,
+			"name": "road_pass",
+			"t": 20.533
+		},
+		{
+			"kind": "event",
+			"km": 90.097,
+			"n": 44,
+			"name": "pass_object",
+			"t": 20.6
+		},
+		{
+			"duck_db": -2.6,
+			"kind": "pos",
+			"km": 90.116,
+			"speed": 44.8,
+			"state": 0,
+			"t": 20.75
+		},
+		{
+			"duck_db": -2.66,
+			"kind": "pos",
+			"km": 90.147,
+			"speed": 44.9,
+			"state": 0,
+			"t": 21.0
+		},
+		{
+			"duck_db": -2.44,
+			"kind": "pos",
+			"km": 90.178,
+			"speed": 45.0,
+			"state": 0,
+			"t": 21.25
+		},
+		{
+			"duck_db": -2.47,
+			"kind": "pos",
+			"km": 90.209,
+			"speed": 45.1,
+			"state": 0,
+			"t": 21.5
+		},
+		{
+			"duck_db": -2.55,
+			"kind": "pos",
+			"km": 90.241,
+			"speed": 45.1,
+			"state": 0,
+			"t": 21.75
+		},
+		{
+			"duck_db": -2.62,
+			"kind": "pos",
+			"km": 90.272,
+			"speed": 45.0,
+			"state": 0,
+			"t": 22.0
+		},
+		{
+			"kind": "event",
+			"km": 90.278,
+			"n": 45,
+			"name": "pass_object",
+			"t": 22.05
+		},
+		{
+			"kind": "play",
+			"km": 90.278,
+			"n": 37,
+			"name": "road_pass",
+			"t": 22.05
+		},
+		{
+			"duck_db": -2.38,
+			"kind": "pos",
+			"km": 90.303,
+			"speed": 45.0,
+			"state": 0,
+			"t": 22.25
+		},
+		{
+			"duck_db": -2.47,
+			"kind": "pos",
+			"km": 90.335,
+			"speed": 45.1,
+			"state": 0,
+			"t": 22.5
+		},
+		{
+			"duck_db": -2.54,
+			"kind": "pos",
+			"km": 90.366,
+			"speed": 45.2,
+			"state": 0,
+			"t": 22.75
+		},
+		{
+			"duck_db": -2.6,
+			"kind": "pos",
+			"km": 90.397,
+			"speed": 45.0,
+			"state": 0,
+			"t": 23.0
+		},
+		{
+			"kind": "event",
+			"km": 90.426,
+			"n": 47,
+			"name": "pass_object",
+			"t": 23.233
+		},
+		{
+			"kind": "play",
+			"km": 90.426,
+			"n": 38,
+			"name": "road_pass",
+			"t": 23.233
+		},
+		{
+			"duck_db": -2.66,
+			"kind": "pos",
+			"km": 90.429,
+			"speed": 45.1,
+			"state": 0,
+			"t": 23.25
+		},
+		{
+			"duck_db": -2.46,
+			"kind": "pos",
+			"km": 90.46,
+			"speed": 45.2,
+			"state": 0,
+			"t": 23.5
+		},
+		{
+			"duck_db": -2.54,
+			"kind": "pos",
+			"km": 90.491,
+			"speed": 45.3,
+			"state": 0,
+			"t": 23.75
+		},
+		{
+			"kind": "feed",
+			"km": 90.508,
+			"state": {
+				"bridge": "",
+				"city": true,
+				"deck": "",
+				"paving": "cobbles",
+				"road": "city",
+				"surface_l": "cobbles",
+				"surface_r": "cobbles",
+				"tunnel": false,
+				"zone": "city"
+			},
+			"t": 23.883
+		},
+		{
+			"duck_db": -2.62,
+			"kind": "pos",
+			"km": 90.523,
+			"speed": 45.1,
+			"state": 0,
+			"t": 24.0
+		},
+		{
+			"duck_db": -2.38,
+			"kind": "pos",
+			"km": 90.554,
+			"speed": 45.2,
+			"state": 0,
+			"t": 24.25
+		},
+		{
+			"duck_db": -2.47,
+			"kind": "pos",
+			"km": 90.585,
+			"speed": 45.3,
+			"state": 0,
+			"t": 24.5
+		},
+		{
+			"kind": "event",
+			"km": 90.606,
+			"n": 48,
+			"name": "pass_object",
+			"t": 24.667
+		},
+		{
+			"kind": "play",
+			"km": 90.606,
+			"n": 39,
+			"name": "road_pass",
+			"t": 24.667
+		},
+		{
+			"duck_db": -2.55,
+			"kind": "pos",
+			"km": 90.617,
+			"speed": 45.3,
+			"state": 0,
+			"t": 24.75
+		},
+		{
+			"duck_db": -2.64,
+			"kind": "pos",
+			"km": 90.648,
+			"speed": 45.1,
+			"state": 0,
+			"t": 25.0
+		},
+		{
+			"duck_db": -2.44,
+			"kind": "pos",
+			"km": 90.68,
+			"speed": 45.2,
+			"state": 0,
+			"t": 25.25
+		},
+		{
+			"duck_db": -2.51,
+			"kind": "pos",
+			"km": 90.711,
+			"speed": 45.3,
+			"state": 0,
+			"t": 25.5
+		},
+		{
+			"duck_db": -2.6,
+			"kind": "pos",
+			"km": 90.742,
+			"speed": 45.1,
+			"state": 0,
+			"t": 25.75
+		},
+		{
+			"kind": "event",
+			"km": 90.757,
+			"n": 49,
+			"name": "pass_object",
+			"t": 25.867
+		},
+		{
+			"duck_db": -2.66,
+			"kind": "pos",
+			"km": 90.774,
+			"speed": 45.2,
+			"state": 0,
+			"t": 26.0
+		},
+		{
+			"kind": "event",
+			"km": 90.782,
+			"n": 50,
+			"name": "pass_object",
+			"t": 26.067
+		},
+		{
+			"duck_db": -2.46,
+			"kind": "pos",
+			"km": 90.805,
+			"speed": 45.3,
+			"state": 0,
+			"t": 26.25
+		},
+		{
+			"duck_db": -2.55,
+			"kind": "pos",
+			"km": 90.837,
+			"speed": 45.4,
+			"state": 0,
+			"t": 26.5
+		},
+		{
+			"duck_db": -2.64,
+			"kind": "pos",
+			"km": 90.868,
+			"speed": 45.2,
+			"state": 0,
+			"t": 26.75
+		},
+		{
+			"duck_db": -2.44,
+			"kind": "pos",
+			"km": 90.9,
+			"speed": 45.3,
+			"state": 0,
+			"t": 27.0
+		},
+		{
+			"duck_db": -2.51,
+			"kind": "pos",
+			"km": 90.931,
+			"speed": 45.4,
+			"state": 0,
+			"t": 27.25
+		},
+		{
+			"kind": "event",
+			"km": 90.937,
+			"n": 51,
+			"name": "pass_object",
+			"t": 27.3
+		},
+		{
+			"kind": "play",
+			"km": 90.937,
+			"n": 40,
+			"name": "road_pass",
+			"t": 27.3
+		},
+		{
+			"duck_db": -2.6,
+			"kind": "pos",
+			"km": 90.962,
+			"speed": 45.2,
+			"state": 0,
+			"t": 27.5
+		},
+		{
+			"duck_db": -2.38,
+			"kind": "pos",
+			"km": 90.994,
+			"speed": 45.3,
+			"state": 0,
+			"t": 27.75
+		},
+		{
+			"duck_db": -2.47,
+			"kind": "pos",
+			"km": 91.025,
+			"speed": 45.3,
+			"state": 0,
+			"t": 28.0
+		},
+		{
+			"duck_db": -2.55,
+			"kind": "pos",
+			"km": 91.057,
+			"speed": 45.4,
+			"state": 0,
+			"t": 28.25
+		},
+		{
+			"kind": "event",
+			"km": 91.088,
+			"n": 52,
+			"name": "pass_object",
+			"t": 28.5
+		},
+		{
+			"duck_db": -2.65,
+			"kind": "pos",
+			"km": 91.088,
+			"speed": 45.2,
+			"state": 0,
+			"t": 28.5
+		},
+		{
+			"duck_db": -2.45,
+			"kind": "pos",
+			"km": 91.12,
+			"speed": 45.3,
+			"state": 0,
+			"t": 28.75
+		},
+		{
+			"duck_db": -2.54,
+			"kind": "pos",
+			"km": 91.151,
+			"speed": 45.4,
+			"state": 0,
+			"t": 29.0
+		},
+		{
+			"duck_db": -2.62,
+			"kind": "pos",
+			"km": 91.183,
+			"speed": 45.2,
+			"state": 0,
+			"t": 29.25
+		},
+		{
+			"duck_db": -2.41,
+			"kind": "pos",
+			"km": 91.214,
+			"speed": 45.3,
+			"state": 0,
+			"t": 29.5
+		},
+		{
+			"duck_db": -2.5,
+			"kind": "pos",
+			"km": 91.246,
+			"speed": 45.4,
+			"state": 0,
+			"t": 29.75
+		},
+		{
+			"kind": "event",
+			"km": 91.267,
+			"n": 53,
+			"name": "pass_object",
+			"t": 29.917
+		},
+		{
+			"kind": "play",
+			"km": 91.267,
+			"n": 41,
+			"name": "road_pass",
+			"t": 29.917
+		},
+		{
+			"duck_db": -2.6,
+			"kind": "pos",
+			"km": 91.277,
+			"speed": 45.2,
+			"state": 0,
+			"t": 30.0
+		},
+		{
+			"duck_db": -2.38,
+			"kind": "pos",
+			"km": 91.308,
+			"speed": 45.3,
+			"state": 0,
+			"t": 30.25
+		},
+		{
+			"duck_db": -2.47,
+			"kind": "pos",
+			"km": 91.34,
+			"speed": 45.4,
+			"state": 0,
+			"t": 30.5
+		},
+		{
+			"duck_db": -2.56,
+			"kind": "pos",
+			"km": 91.371,
+			"speed": 45.4,
+			"state": 0,
+			"t": 30.75
+		},
+		{
+			"duck_db": -2.65,
+			"kind": "pos",
+			"km": 91.403,
+			"speed": 45.2,
+			"state": 0,
+			"t": 31.0
+		},
+		{
+			"kind": "event",
+			"km": 91.418,
+			"n": 54,
+			"name": "pass_object",
+			"t": 31.117
+		},
+		{
+			"duck_db": -2.45,
+			"kind": "pos",
+			"km": 91.434,
+			"speed": 45.3,
+			"state": 0,
+			"t": 31.25
+		},
+		{
+			"duck_db": -2.54,
+			"kind": "pos",
+			"km": 91.466,
+			"speed": 45.4,
+			"state": 0,
+			"t": 31.5
+		},
+		{
+			"duck_db": -2.64,
+			"kind": "pos",
+			"km": 91.497,
+			"speed": 45.2,
+			"state": 0,
+			"t": 31.75
+		},
+		{
+			"duck_db": -2.44,
+			"kind": "pos",
+			"km": 91.529,
+			"speed": 45.3,
+			"state": 0,
+			"t": 32.0
+		},
+		{
+			"duck_db": -2.53,
+			"kind": "pos",
+			"km": 91.56,
+			"speed": 45.4,
+			"state": 0,
+			"t": 32.25
+		},
+		{
+			"duck_db": -2.62,
+			"kind": "pos",
+			"km": 91.592,
+			"speed": 45.2,
+			"state": 0,
+			"t": 32.5
+		},
+		{
+			"kind": "event",
+			"km": 91.598,
+			"n": 55,
+			"name": "pass_object",
+			"t": 32.55
+		},
+		{
+			"kind": "play",
+			"km": 91.598,
+			"n": 42,
+			"name": "road_pass",
+			"t": 32.55
+		},
+		{
+			"duck_db": -2.38,
+			"kind": "pos",
+			"km": 91.623,
+			"speed": 45.3,
+			"state": 0,
+			"t": 32.75
+		},
+		{
+			"duck_db": -2.47,
+			"kind": "pos",
+			"km": 91.655,
+			"speed": 45.4,
+			"state": 0,
+			"t": 33.0
+		},
+		{
+			"duck_db": -2.56,
+			"kind": "pos",
+			"km": 91.686,
+			"speed": 45.2,
+			"state": 0,
+			"t": 33.25
+		},
+		{
+			"duck_db": -2.66,
+			"kind": "pos",
+			"km": 91.717,
+			"speed": 45.3,
+			"state": 0,
+			"t": 33.5
+		},
+		{
+			"kind": "event",
+			"km": 91.747,
+			"n": 56,
+			"name": "pass_object",
+			"t": 33.733
+		},
+		{
+			"duck_db": -2.46,
+			"kind": "pos",
+			"km": 91.749,
+			"speed": 45.3,
+			"state": 0,
+			"t": 33.75
+		},
+		{
+			"duck_db": -2.55,
+			"kind": "pos",
+			"km": 91.78,
+			"speed": 45.4,
+			"state": 0,
+			"t": 34.0
+		},
+		{
+			"duck_db": -2.65,
+			"kind": "pos",
+			"km": 91.812,
+			"speed": 45.2,
+			"state": 0,
+			"t": 34.25
+		},
+		{
+			"kind": "event",
+			"km": 91.818,
+			"n": 57,
+			"name": "pass_object",
+			"t": 34.3
+		},
+		{
+			"duck_db": -2.45,
+			"kind": "pos",
+			"km": 91.843,
+			"speed": 45.3,
+			"state": 0,
+			"t": 34.5
+		},
+		{
+			"duck_db": -2.54,
+			"kind": "pos",
+			"km": 91.875,
+			"speed": 45.4,
+			"state": 0,
+			"t": 34.75
+		},
+		{
+			"kind": "event",
+			"km": 91.902,
+			"n": 58,
+			"name": "pass_object",
+			"t": 34.967
+		},
+		{
+			"kind": "play",
+			"km": 91.902,
+			"n": 43,
+			"name": "road_pass",
+			"t": 34.967
+		},
+		{
+			"duck_db": -2.64,
+			"kind": "pos",
+			"km": 91.906,
+			"speed": 45.2,
+			"state": 0,
+			"t": 35.0
+		},
+		{
+			"kind": "event",
+			"km": 91.927,
+			"n": 59,
+			"name": "pass_object",
+			"t": 35.167
+		},
+		{
+			"kind": "play",
+			"km": 91.927,
+			"n": 44,
+			"name": "road_pass",
+			"t": 35.167
+		},
+		{
+			"duck_db": -2.44,
+			"kind": "pos",
+			"km": 91.938,
+			"speed": 45.3,
+			"state": 0,
+			"t": 35.25
+		},
+		{
+			"duck_db": -2.51,
+			"kind": "pos",
+			"km": 91.969,
+			"speed": 45.4,
+			"state": 0,
+			"t": 35.5
+		},
+		{
+			"duck_db": -2.6,
+			"kind": "pos",
+			"km": 92.001,
+			"speed": 45.2,
+			"state": 0,
+			"t": 35.75
+		},
+		{
+			"duck_db": -2.38,
+			"kind": "pos",
+			"km": 92.032,
+			"speed": 45.3,
+			"state": 0,
+			"t": 36.0
+		},
+		{
+			"duck_db": -2.47,
+			"kind": "pos",
+			"km": 92.064,
+			"speed": 45.4,
+			"state": 0,
+			"t": 36.25
+		},
+		{
+			"kind": "event",
+			"km": 92.078,
+			"n": 60,
+			"name": "pass_object",
+			"t": 36.367
+		},
+		{
+			"duck_db": -2.56,
+			"kind": "pos",
+			"km": 92.095,
+			"speed": 45.2,
+			"state": 0,
+			"t": 36.5
+		},
+		{
+			"duck_db": -2.66,
+			"kind": "pos",
+			"km": 92.126,
+			"speed": 45.3,
+			"state": 0,
+			"t": 36.75
+		},
+		{
+			"duck_db": -2.46,
+			"kind": "pos",
+			"km": 92.158,
+			"speed": 45.3,
+			"state": 0,
+			"t": 37.0
+		},
+		{
+			"duck_db": -2.55,
+			"kind": "pos",
+			"km": 92.189,
+			"speed": 45.4,
+			"state": 0,
+			"t": 37.25
+		},
+		{
+			"duck_db": -2.65,
+			"kind": "pos",
+			"km": 92.221,
+			"speed": 45.2,
+			"state": 0,
+			"t": 37.5
+		},
+		{
+			"duck_db": -2.45,
+			"kind": "pos",
+			"km": 92.252,
+			"speed": 45.3,
+			"state": 0,
+			"t": 37.75
+		},
+		{
+			"kind": "event",
+			"km": 92.257,
+			"n": 61,
+			"name": "pass_object",
+			"t": 37.783
+		},
+		{
+			"kind": "play",
+			"km": 92.257,
+			"n": 45,
+			"name": "road_pass",
+			"t": 37.783
+		},
+		{
+			"duck_db": -2.53,
+			"kind": "pos",
+			"km": 92.284,
+			"speed": 45.4,
+			"state": 0,
+			"t": 38.0
+		},
+		{
+			"kind": "feed",
+			"km": 92.307,
+			"state": {
+				"bridge": "",
+				"city": true,
+				"deck": "",
+				"paving": "asphalt",
+				"road": "city",
+				"surface_l": "asphalt",
+				"surface_r": "asphalt",
+				"tunnel": false,
+				"zone": "city"
+			},
+			"t": 38.183
+		},
+		{
+			"duck_db": -2.62,
+			"kind": "pos",
+			"km": 92.315,
+			"speed": 45.2,
+			"state": 0,
+			"t": 38.25
+		},
+		{
+			"kind": "event",
+			"km": 92.338,
+			"n": 62,
+			"name": "pass_object",
+			"t": 38.433
+		},
+		{
+			"kind": "play",
+			"km": 92.338,
+			"n": 46,
+			"name": "road_pass",
+			"t": 38.433
+		},
+		{
+			"duck_db": -2.41,
+			"kind": "pos",
+			"km": 92.347,
+			"speed": 45.3,
+			"state": 0,
+			"t": 38.5
+		},
+		{
+			"duck_db": -2.5,
+			"kind": "pos",
+			"km": 92.378,
+			"speed": 45.4,
+			"state": 0,
+			"t": 38.75
+		},
+		{
+			"kind": "event",
+			"km": 92.408,
+			"n": 64,
+			"name": "pass_object",
+			"t": 38.983
+		},
+		{
+			"kind": "play",
+			"km": 92.408,
+			"n": 47,
+			"name": "road_pass",
+			"t": 38.983
+		},
+		{
+			"duck_db": -2.6,
+			"kind": "pos",
+			"km": 92.41,
+			"speed": 45.2,
+			"state": 0,
+			"t": 39.0
+		},
+		{
+			"duck_db": -2.38,
+			"kind": "pos",
+			"km": 92.441,
+			"speed": 45.3,
+			"state": 0,
+			"t": 39.25
+		},
+		{
+			"duck_db": -2.47,
+			"kind": "pos",
+			"km": 92.473,
+			"speed": 45.4,
+			"state": 0,
+			"t": 39.5
+		},
+		{
+			"duck_db": -2.56,
+			"kind": "pos",
+			"km": 92.504,
+			"speed": 45.2,
+			"state": 0,
+			"t": 39.75
+		},
+		{
+			"kind": "event",
+			"km": 92.51,
+			"n": 65,
+			"name": "pass_object",
+			"t": 39.8
+		},
+		{
+			"kind": "play",
+			"km": 92.51,
+			"n": 48,
+			"name": "road_pass",
+			"t": 39.8
+		},
+		{
+			"duck_db": -2.66,
+			"kind": "pos",
+			"km": 92.536,
+			"speed": 45.3,
+			"state": 0,
+			"t": 40.0
+		},
+		{
+			"duck_db": -2.46,
+			"kind": "pos",
+			"km": 92.567,
+			"speed": 45.3,
+			"state": 0,
+			"t": 40.25
+		},
+		{
+			"kind": "event",
+			"km": 92.588,
+			"n": 66,
+			"name": "pass_object",
+			"t": 40.417
+		},
+		{
+			"kind": "play",
+			"km": 92.588,
+			"n": 49,
+			"name": "road_pass",
+			"t": 40.417
+		},
+		{
+			"duck_db": -2.55,
+			"kind": "pos",
+			"km": 92.598,
+			"speed": 45.4,
+			"state": 0,
+			"t": 40.5
+		},
+		{
+			"duck_db": -2.64,
+			"kind": "pos",
+			"km": 92.63,
+			"speed": 45.2,
+			"state": 0,
+			"t": 40.75
+		},
+		{
+			"duck_db": -2.44,
+			"kind": "pos",
+			"km": 92.661,
+			"speed": 45.3,
+			"state": 0,
+			"t": 41.0
+		},
+		{
+			"duck_db": -2.53,
+			"kind": "pos",
+			"km": 92.693,
+			"speed": 45.4,
+			"state": 0,
+			"t": 41.25
+		},
+		{
+			"duck_db": -2.62,
+			"kind": "pos",
+			"km": 92.724,
+			"speed": 45.2,
+			"state": 0,
+			"t": 41.5
+		},
+		{
+			"kind": "event",
+			"km": 92.737,
+			"n": 67,
+			"name": "pass_object",
+			"t": 41.6
+		},
+		{
+			"duck_db": -2.41,
+			"kind": "pos",
+			"km": 92.756,
+			"speed": 45.3,
+			"state": 0,
+			"t": 41.75
+		},
+		{
+			"duck_db": -2.5,
+			"kind": "pos",
+			"km": 92.787,
+			"speed": 45.4,
+			"state": 0,
+			"t": 42.0
+		},
+		{
+			"duck_db": -2.6,
+			"kind": "pos",
+			"km": 92.819,
+			"speed": 45.2,
+			"state": 0,
+			"t": 42.25
+		},
+		{
+			"duck_db": -2.38,
+			"kind": "pos",
+			"km": 92.85,
+			"speed": 45.3,
+			"state": 0,
+			"t": 42.5
+		},
+		{
+			"duck_db": -2.47,
+			"kind": "pos",
+			"km": 92.882,
+			"speed": 45.4,
+			"state": 0,
+			"t": 42.75
+		},
+		{
+			"duck_db": -2.56,
+			"kind": "pos",
+			"km": 92.913,
+			"speed": 45.4,
+			"state": 0,
+			"t": 43.0
+		},
+		{
+			"kind": "event",
+			"km": 92.917,
+			"n": 68,
+			"name": "pass_object",
+			"t": 43.033
+		},
+		{
+			"kind": "play",
+			"km": 92.917,
+			"n": 50,
+			"name": "road_pass",
+			"t": 43.033
+		},
+		{
+			"duck_db": -2.65,
+			"kind": "pos",
+			"km": 92.945,
+			"speed": 45.3,
+			"state": 0,
+			"t": 43.25
+		},
+		{
+			"duck_db": -2.45,
+			"kind": "pos",
+			"km": 92.976,
+			"speed": 45.3,
+			"state": 0,
+			"t": 43.5
+		},
+		{
+			"duck_db": -2.54,
+			"kind": "pos",
+			"km": 93.008,
+			"speed": 45.4,
+			"state": 0,
+			"t": 43.75
+		},
+		{
+			"duck_db": -2.64,
+			"kind": "pos",
+			"km": 93.039,
+			"speed": 45.2,
+			"state": 0,
+			"t": 44.0
+		},
+		{
+			"kind": "event",
+			"km": 93.066,
+			"n": 69,
+			"name": "pass_object",
+			"t": 44.217
+		},
+		{
+			"kind": "play",
+			"km": 93.066,
+			"n": 51,
+			"name": "road_pass",
+			"t": 44.217
+		},
+		{
+			"kind": "event",
+			"km": 93.068,
+			"n": 70,
+			"name": "pass_object",
+			"t": 44.233
+		},
+		{
+			"duck_db": -2.44,
+			"kind": "pos",
+			"km": 93.07,
+			"speed": 45.3,
+			"state": 0,
+			"t": 44.25
+		},
+		{
+			"duck_db": -2.53,
+			"kind": "pos",
+			"km": 93.102,
+			"speed": 45.4,
+			"state": 0,
+			"t": 44.5
+		},
+		{
+			"duck_db": -2.6,
+			"kind": "pos",
+			"km": 93.133,
+			"speed": 45.2,
+			"state": 0,
+			"t": 44.75
+		},
+		{
+			"kind": "event",
+			"km": 93.157,
+			"n": 71,
+			"name": "pass_object",
+			"t": 44.933
+		},
+		{
+			"kind": "play",
+			"km": 93.157,
+			"n": 52,
+			"name": "road_pass",
+			"t": 44.933
+		},
+		{
+			"duck_db": -2.38,
+			"kind": "pos",
+			"km": 93.165,
+			"speed": 45.3,
+			"state": 0,
+			"t": 45.0
+		},
+		{
+			"duck_db": -2.47,
+			"kind": "pos",
+			"km": 93.196,
+			"speed": 45.4,
+			"state": 0,
+			"t": 45.25
+		},
+		{
+			"duck_db": -2.56,
+			"kind": "pos",
+			"km": 93.228,
+			"speed": 45.2,
+			"state": 0,
+			"t": 45.5
+		},
+		{
+			"kind": "event",
+			"km": 93.247,
+			"n": 72,
+			"name": "pass_object",
+			"t": 45.65
+		},
+		{
+			"kind": "play",
+			"km": 93.247,
+			"n": 53,
+			"name": "road_pass",
+			"t": 45.65
+		},
+		{
+			"duck_db": -2.66,
+			"kind": "pos",
+			"km": 93.259,
+			"speed": 45.3,
+			"state": 0,
+			"t": 45.75
+		},
+		{
+			"duck_db": -2.46,
+			"kind": "pos",
+			"km": 93.291,
+			"speed": 45.4,
+			"state": 0,
+			"t": 46.0
+		},
+		{
+			"duck_db": -2.55,
+			"kind": "pos",
+			"km": 93.322,
+			"speed": 45.4,
+			"state": 0,
+			"t": 46.25
+		},
+		{
+			"duck_db": -2.65,
+			"kind": "pos",
+			"km": 93.354,
+			"speed": 45.3,
+			"state": 0,
+			"t": 46.5
+		},
+		{
+			"duck_db": -2.45,
+			"kind": "pos",
+			"km": 93.385,
+			"speed": 45.3,
+			"state": 0,
+			"t": 46.75
+		},
+		{
+			"kind": "event",
+			"km": 93.398,
+			"n": 73,
+			"name": "pass_object",
+			"t": 46.85
+		},
+		{
+			"duck_db": -2.53,
+			"kind": "pos",
+			"km": 93.417,
+			"speed": 45.4,
+			"state": 0,
+			"t": 47.0
+		},
+		{
+			"duck_db": -2.62,
+			"kind": "pos",
+			"km": 93.448,
+			"speed": 45.2,
+			"state": 0,
+			"t": 47.25
+		},
+		{
+			"duck_db": -2.41,
+			"kind": "pos",
+			"km": 93.48,
+			"speed": 45.3,
+			"state": 0,
+			"t": 47.5
+		},
+		{
+			"duck_db": -2.5,
+			"kind": "pos",
+			"km": 93.511,
+			"speed": 45.4,
+			"state": 0,
+			"t": 47.75
+		},
+		{
+			"duck_db": -2.6,
+			"kind": "pos",
+			"km": 93.543,
+			"speed": 45.2,
+			"state": 0,
+			"t": 48.0
+		},
+		{
+			"duck_db": -2.38,
+			"kind": "pos",
+			"km": 93.574,
+			"speed": 45.3,
+			"state": 0,
+			"t": 48.25
+		},
+		{
+			"kind": "event",
+			"km": 93.578,
+			"n": 74,
+			"name": "pass_object",
+			"t": 48.283
+		},
+		{
+			"kind": "play",
+			"km": 93.578,
+			"n": 54,
+			"name": "road_pass",
+			"t": 48.283
+		},
+		{
+			"kind": "event",
+			"km": 93.601,
+			"n": 75,
+			"name": "pass_object",
+			"t": 48.467
+		},
+		{
+			"kind": "play",
+			"km": 93.601,
+			"n": 55,
+			"name": "road_pass",
+			"t": 48.467
+		},
+		{
+			"duck_db": -2.47,
+			"kind": "pos",
+			"km": 93.606,
+			"speed": 45.4,
+			"state": 0,
+			"t": 48.5
+		},
+		{
+			"duck_db": -2.56,
+			"kind": "pos",
+			"km": 93.637,
+			"speed": 45.5,
+			"state": 0,
+			"t": 48.75
+		},
+		{
+			"duck_db": -2.65,
+			"kind": "pos",
+			"km": 93.669,
+			"speed": 45.3,
+			"state": 0,
+			"t": 49.0
+		},
+		{
+			"duck_db": -2.45,
+			"kind": "pos",
+			"km": 93.7,
+			"speed": 45.4,
+			"state": 0,
+			"t": 49.25
+		},
+		{
+			"kind": "event",
+			"km": 93.727,
+			"n": 76,
+			"name": "pass_object",
+			"t": 49.467
+		},
+		{
+			"duck_db": -2.54,
+			"kind": "pos",
+			"km": 93.731,
+			"speed": 45.4,
+			"state": 0,
+			"t": 49.5
+		},
+		{
+			"duck_db": -2.63,
+			"kind": "pos",
+			"km": 93.763,
+			"speed": 45.3,
+			"state": 0,
+			"t": 49.75
+		},
+		{
+			"kind": "event",
+			"km": 93.786,
+			"n": 77,
+			"name": "pass_object",
+			"t": 49.933
+		},
+		{
+			"kind": "play",
+			"km": 93.786,
+			"n": 56,
+			"name": "road_pass",
+			"t": 49.933
+		},
+		{
+			"duck_db": -2.67,
+			"kind": "pos",
+			"km": 93.794,
+			"speed": 45.3,
+			"state": 0,
+			"t": 50.0
+		},
+		{
+			"duck_db": -2.67,
+			"kind": "pos",
+			"km": 93.826,
+			"speed": 45.7,
+			"state": 0,
+			"t": 50.25
+		},
+		{
+			"kind": "event",
+			"km": 93.83,
+			"n": 78,
+			"name": "pass_object",
+			"t": 50.283
+		},
+		{
+			"kind": "play",
+			"km": 93.83,
+			"n": 57,
+			"name": "road_pass",
+			"t": 50.283
+		},
+		{
+			"duck_db": -2.67,
+			"kind": "pos",
+			"km": 93.858,
+			"speed": 46.4,
+			"state": 0,
+			"t": 50.5
+		},
+		{
+			"duck_db": -4.48,
+			"kind": "pos",
+			"km": 93.892,
+			"speed": 50.9,
+			"state": 0,
+			"t": 50.75
+		},
+		{
+			"kind": "event",
+			"km": 93.909,
+			"n": 79,
+			"name": "pass_object",
+			"t": 50.867
+		},
+		{
+			"kind": "play",
+			"km": 93.909,
+			"n": 58,
+			"name": "road_pass",
+			"t": 50.867
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 93.929,
+			"speed": 55.4,
+			"state": 0,
+			"t": 51.0
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 93.969,
+			"speed": 59.8,
+			"state": 0,
+			"t": 51.25
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 94.012,
+			"speed": 64.2,
+			"state": 0,
+			"t": 51.5
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 94.058,
+			"speed": 68.5,
+			"state": 0,
+			"t": 51.75
+		},
+		{
+			"kind": "event",
+			"km": 94.061,
+			"n": 80,
+			"name": "pass_object",
+			"t": 51.767
+		},
+		{
+			"kind": "play",
+			"km": 94.061,
+			"n": 59,
+			"name": "road_pass",
+			"t": 51.767
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 94.107,
+			"speed": 72.7,
+			"state": 0,
+			"t": 52.0
+		},
+		{
+			"kind": "feed",
+			"km": 94.111,
+			"state": {
+				"bridge": "",
+				"city": true,
+				"deck": "",
+				"paving": "cobbles",
+				"road": "city",
+				"surface_l": "cobbles",
+				"surface_r": "cobbles",
+				"tunnel": false,
+				"zone": "city"
+			},
+			"t": 52.017
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 94.159,
+			"speed": 76.8,
+			"state": 0,
+			"t": 52.25
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 94.214,
+			"speed": 80.9,
+			"state": 0,
+			"t": 52.5
+		},
+		{
+			"kind": "event",
+			"km": 94.233,
+			"n": 81,
+			"name": "pass_object",
+			"t": 52.583
+		},
+		{
+			"kind": "play",
+			"km": 94.233,
+			"n": 60,
+			"name": "road_pass",
+			"t": 52.583
+		},
+		{
+			"kind": "event",
+			"km": 94.245,
+			"n": 82,
+			"name": "pass_object",
+			"t": 52.633
+		},
+		{
+			"kind": "play",
+			"km": 94.245,
+			"n": 61,
+			"name": "road_pass",
+			"t": 52.633
+		},
+		{
+			"kind": "event",
+			"km": 94.249,
+			"n": 83,
+			"name": "pass_object",
+			"t": 52.65
+		},
+		{
+			"kind": "play",
+			"km": 94.249,
+			"n": 62,
+			"name": "road_pass",
+			"t": 52.65
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 94.272,
+			"speed": 85.0,
+			"state": 0,
+			"t": 52.75
+		},
+		{
+			"duck_db": -4.16,
+			"kind": "pos",
+			"km": 94.333,
+			"speed": 89.0,
+			"state": 0,
+			"t": 53.0
+		},
+		{
+			"kind": "event",
+			"km": 94.396,
+			"n": 84,
+			"name": "pass_object",
+			"t": 53.25
+		},
+		{
+			"kind": "play",
+			"km": 94.396,
+			"n": 63,
+			"name": "road_pass",
+			"t": 53.25
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 94.396,
+			"speed": 92.9,
+			"state": 0,
+			"t": 53.25
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 94.462,
+			"speed": 96.8,
+			"state": 0,
+			"t": 53.5
+		},
+		{
+			"kind": "event",
+			"km": 94.498,
+			"n": 85,
+			"name": "pass_object",
+			"t": 53.633
+		},
+		{
+			"kind": "play",
+			"km": 94.498,
+			"n": 64,
+			"name": "road_pass",
+			"t": 53.633
+		},
+		{
+			"kind": "event",
+			"km": 94.503,
+			"n": 86,
+			"name": "pass_object",
+			"t": 53.65
+		},
+		{
+			"kind": "play",
+			"km": 94.503,
+			"n": 65,
+			"name": "road_pass",
+			"t": 53.65
+		},
+		{
+			"duck_db": -4.5,
+			"kind": "pos",
+			"km": 94.53,
+			"speed": 100.6,
+			"state": 0,
+			"t": 53.75
+		},
+		{
+			"kind": "event",
+			"km": 94.578,
+			"n": 87,
+			"name": "pass_object",
+			"t": 53.917
+		},
+		{
+			"kind": "play",
+			"km": 94.578,
+			"n": 66,
+			"name": "road_pass",
+			"t": 53.917
+		},
+		{
+			"duck_db": -4.22,
+			"kind": "pos",
+			"km": 94.601,
+			"speed": 102.4,
+			"state": 0,
+			"t": 54.0
+		},
+		{
+			"duck_db": -2.81,
+			"kind": "pos",
+			"km": 94.67,
+			"speed": 95.5,
+			"state": 0,
+			"t": 54.25
+		},
+		{
+			"kind": "event",
+			"km": 94.674,
+			"n": 88,
+			"name": "pass_object",
+			"t": 54.267
+		},
+		{
+			"kind": "play",
+			"km": 94.674,
+			"n": 67,
+			"name": "road_pass",
+			"t": 54.267
+		},
+		{
+			"kind": "event",
+			"km": 94.725,
+			"n": 89,
+			"name": "pass_object",
+			"t": 54.467
+		},
+		{
+			"kind": "play",
+			"km": 94.725,
+			"n": 68,
+			"name": "road_pass",
+			"t": 54.467
+		},
+		{
+			"duck_db": -1.95,
+			"kind": "pos",
+			"km": 94.734,
+			"speed": 88.1,
+			"state": 0,
+			"t": 54.5
+		},
+		{
+			"duck_db": -1.4,
+			"kind": "pos",
+			"km": 94.792,
+			"speed": 81.6,
+			"state": 0,
+			"t": 54.75
+		},
+		{
+			"duck_db": -1.05,
+			"kind": "pos",
+			"km": 94.847,
+			"speed": 75.7,
+			"state": 0,
+			"t": 55.0
+		},
+		{
+			"duck_db": -0.8,
+			"kind": "pos",
+			"km": 94.897,
+			"speed": 70.4,
+			"state": 0,
+			"t": 55.25
+		},
+		{
+			"kind": "event",
+			"km": 94.901,
+			"n": 90,
+			"name": "pass_object",
+			"t": 55.267
+		},
+		{
+			"kind": "play",
+			"km": 94.901,
+			"n": 69,
+			"name": "road_pass",
+			"t": 55.267
+		},
+		{
+			"duck_db": -3.83,
+			"kind": "pos",
+			"km": 94.944,
+			"speed": 65.6,
+			"state": 0,
+			"t": 55.5
+		},
+		{
+			"duck_db": -4.49,
+			"kind": "pos",
+			"km": 94.992,
+			"speed": 69.9,
+			"state": 0,
+			"t": 55.75
+		},
+		{
+			"kind": "event",
+			"km": 95.0,
+			"n": 1,
+			"name": "stage_finish",
+			"t": 55.8
+		},
+		{
+			"kind": "event",
+			"km": 95.011,
+			"n": 91,
+			"name": "pass_object",
+			"t": 55.85
+		},
+		{
+			"kind": "play",
+			"km": 95.011,
+			"n": 70,
+			"name": "road_pass",
+			"t": 55.85
+		},
+		{
+			"duck_db": -4.41,
+			"kind": "pos",
+			"km": 95.038,
+			"speed": 63.8,
+			"state": 2,
+			"t": 56.0
+		},
+		{
+			"kind": "event",
+			"km": 95.05,
+			"n": 92,
+			"name": "pass_object",
+			"t": 56.067
+		},
+		{
+			"kind": "play",
+			"km": 95.05,
+			"n": 71,
+			"name": "road_pass",
+			"t": 56.067
+		},
+		{
+			"duck_db": -3.59,
+			"kind": "pos",
+			"km": 95.08,
+			"speed": 55.0,
+			"state": 2,
+			"t": 56.25
+		},
+		{
+			"duck_db": -2.26,
+			"kind": "pos",
+			"km": 95.114,
+			"speed": 46.3,
+			"state": 2,
+			"t": 56.5
+		},
+		{
+			"duck_db": -1.3,
+			"kind": "pos",
+			"km": 95.143,
+			"speed": 37.5,
+			"state": 2,
+			"t": 56.75
+		},
+		{
+			"duck_db": -0.74,
+			"kind": "pos",
+			"km": 95.166,
+			"speed": 28.8,
+			"state": 2,
+			"t": 57.0
+		},
+		{
+			"duck_db": -0.43,
+			"kind": "pos",
+			"km": 95.183,
+			"speed": 20.0,
+			"state": 2,
+			"t": 57.25
+		},
+		{
+			"duck_db": -0.24,
+			"kind": "pos",
+			"km": 95.194,
+			"speed": 11.3,
+			"state": 2,
+			"t": 57.5
+		},
+		{
+			"duck_db": -0.14,
+			"kind": "pos",
+			"km": 95.198,
+			"speed": 2.5,
+			"state": 2,
+			"t": 57.75
+		},
+		{
+			"duck_db": -0.08,
+			"kind": "pos",
+			"km": 95.198,
+			"speed": 0.0,
+			"state": 2,
+			"t": 58.0
+		},
+		{
+			"duck_db": -0.05,
+			"kind": "pos",
+			"km": 95.198,
+			"speed": 0.0,
+			"state": 2,
+			"t": 58.25
+		},
+		{
+			"duck_db": -0.03,
+			"kind": "pos",
+			"km": 95.198,
+			"speed": 0.0,
+			"state": 2,
+			"t": 58.5
+		},
+		{
+			"duck_db": -0.02,
+			"kind": "pos",
+			"km": 95.198,
+			"speed": 0.0,
+			"state": 2,
+			"t": 58.75
+		},
+		{
+			"duck_db": -0.01,
+			"kind": "pos",
+			"km": 95.198,
+			"speed": 0.0,
+			"state": 2,
+			"t": 59.0
+		},
+		{
+			"duck_db": -0.01,
+			"kind": "pos",
+			"km": 95.198,
+			"speed": 0.0,
+			"state": 2,
+			"t": 59.25
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 95.198,
+			"speed": 0.0,
+			"state": 2,
+			"t": 59.5
+		},
+		{
+			"duck_db": 0.0,
+			"kind": "pos",
+			"km": 95.198,
+			"speed": 0.0,
+			"state": 2,
+			"t": 59.75
+		}
+	],
+	"master_db": 0.0,
+	"master_volume": 1.0,
+	"mix_rate": 44100,
+	"plays": {
+		"go": 1
+	},
+	"profile": "modern",
+	"race_music": true,
+	"seconds": 59.82,
+	"setup": {
+		"autopilot": true,
+		"autopilot_refuel": "never",
+		"from_city": "",
+		"gfx": "arcade",
+		"mode": "single",
+		"no_countdown": true,
+		"race_id": "",
+		"seed": 7,
+		"stage_id": "kiel_hamburg",
+		"start_km": 86.6,
+		"start_world_minutes": 720.0,
+		"vehicle": "limousine",
+		"weather": "normal"
+	}
+}

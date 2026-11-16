@@ -1,0 +1,11 @@
+v0.8.0 AU-R2: Doku – Nachbesserung mit Messungen vorher/nachher (Abschnitt 15.10), Fallen und offene Punkte
+
+- docs/audio-modern.md 15.10: H1 (Plattenschicht +1,75 → +0,55 dB je Terz), H2 (Vertragsfrage: Beton-Takt
+  0,687, ohne Platten 0,196, bei slabs.db −3 0,369), M1 (Sperre nur beim Start/alle 0,5 s), M3 (Begrenzer bei
+  200 km/h in vier Läufen ≤ 0,44 dB), M2/M4 (je 60 Unfälle: 95 % 2,14 / 2,42 dB; Lkw mit −10 dB 3,02 dB – die
+  Senkung bleibt), M5 (lautester Stein +3,0 → +0,21 dB).
+- 15.7 Fallen 7 (Gleichschritt addiert kohärent) und 8 (AudioEffectHardLimiter gibt nicht ganz frei),
+  15.4/15.6/15.8 nachgezogen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

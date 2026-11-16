@@ -1,0 +1,12 @@
+v0.8.0 AU-A: Prüfung – nach allem liefert die gemeinsam benutzte Motorbank noch den Mischer-Ausgang von v0.7.0
+
+check_modern_audio.gd (arcade_after) vergleicht jetzt auch den Motor-Mischer: mit der Bank, die der AudioManager
+zwischenspeichert und aus der beide Profile gespielt haben, entsteht nach 20 Profilwechseln und einem Stück
+Etappe mit Modern derselbe Ausgang wie in v0.7.0 (SHA-256 über 355 733 Abtastwerte). arcade_golden.gd bekommt dafür
+engine_hash_bank(); die Fingerabdrücke bleiben, wie sie sind.
+
+docs/audio-modern.md: 56 Tests, 0 Hänger des Audio-Threads in jetzt 66 Läufen, Herkunft der Zahlen zum Renn-EQ
+genauer.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,287 @@
+{
+ "baseline_test_bridge": {
+  "code": 0,
+  "summary": "10 Tests, 0 fehlgeschlagen",
+  "fails": [],
+  "errs": [],
+  "secs": 8
+ },
+ "baseline_test_tunnel": {
+  "code": 0,
+  "summary": "8 Tests, 0 fehlgeschlagen",
+  "fails": [],
+  "errs": [],
+  "secs": 7
+ },
+ "baseline_test_far_ground_water": {
+  "code": 0,
+  "summary": "4 Tests, 0 fehlgeschlagen",
+  "fails": [],
+  "errs": [],
+  "secs": 4
+ },
+ "B1_water_height": {
+  "rule": "water on the water rows",
+  "test": "test_bridge",
+  "caught": true,
+  "code": 1,
+  "summary": "10 Tests, 1 fehlgeschlagen",
+  "fails": [
+   "FAIL  test_bridge.gd :: test_water_lies_on_the_water_rows_out_to_the_ribbon"
+  ],
+  "errs": [],
+  "secs": 8
+ },
+ "B2_water_reach": {
+  "rule": "water out to the last ring",
+  "test": "test_bridge",
+  "caught": true,
+  "code": 1,
+  "summary": "10 Tests, 1 fehlgeschlagen",
+  "fails": [
+   "FAIL  test_bridge.gd :: test_water_lies_on_the_water_rows_out_to_the_ribbon"
+  ],
+  "errs": [],
+  "secs": 7
+ },
+ "B3_bank_rule": {
+  "rule": "banks by Arcade rule",
+  "test": "test_bridge",
+  "caught": true,
+  "code": 1,
+  "summary": "10 Tests, 2 fehlgeschlagen",
+  "fails": [
+   "FAIL  test_bridge.gd :: test_banks_follow_arcades_rule",
+   "FAIL  test_bridge.gd :: test_far_quay_wall_faces_the_camera_and_reaches_into_the_water"
+  ],
+  "errs": [],
+  "secs": 8
+ },
+ "B4_far_wall_faces": {
+  "rule": "far quay wall faces camera",
+  "test": "test_bridge",
+  "caught": true,
+  "code": 1,
+  "summary": "10 Tests, 1 fehlgeschlagen",
+  "fails": [
+   "FAIL  test_bridge.gd :: test_far_quay_wall_faces_the_camera_and_reaches_into_the_water"
+  ],
+  "errs": [],
+  "secs": 8
+ },
+ "B5_pylon_scale": {
+  "rule": "pylon height_m/88.8",
+  "test": "test_bridge",
+  "caught": true,
+  "code": 1,
+  "summary": "10 Tests, 1 fehlgeschlagen",
+  "fails": [
+   "FAIL  test_bridge.gd :: test_koehlbrand_pylons_beacons_and_cables"
+  ],
+  "errs": [],
+  "secs": 8
+ },
+ "B6_beacon_height": {
+  "rule": "beacon at height_m + 1.6",
+  "test": "test_bridge",
+  "caught": true,
+  "code": 1,
+  "summary": "10 Tests, 1 fehlgeschlagen",
+  "fails": [
+   "FAIL  test_bridge.gd :: test_koehlbrand_pylons_beacons_and_cables"
+  ],
+  "errs": [],
+  "secs": 8
+ },
+ "B7_cable_lane": {
+  "rule": "no cable over a lane",
+  "test": "test_bridge",
+  "caught": true,
+  "code": 1,
+  "summary": "10 Tests, 2 fehlgeschlagen",
+  "fails": [
+   "FAIL  test_bridge.gd :: test_no_cable_reaches_over_a_lane",
+   "FAIL  test_bridge.gd :: test_structure_keeps_out_of_the_lanes"
+  ],
+  "errs": [],
+  "secs": 9
+ },
+ "B8_truss_lane": {
+  "rule": "structure out of the lanes",
+  "test": "test_bridge",
+  "caught": true,
+  "code": 1,
+  "summary": "10 Tests, 1 fehlgeschlagen",
+  "fails": [
+   "FAIL  test_bridge.gd :: test_structure_keeps_out_of_the_lanes"
+  ],
+  "errs": [],
+  "secs": 8
+ },
+ "B9_edge_beam_lane": {
+  "rule": "structure out of the lanes (edge beam)",
+  "test": "test_bridge",
+  "caught": true,
+  "code": 1,
+  "summary": "10 Tests, 1 fehlgeschlagen",
+  "fails": [
+   "FAIL  test_bridge.gd :: test_structure_keeps_out_of_the_lanes"
+  ],
+  "errs": [],
+  "secs": 8
+ },
+ "B10_dark_pylon": {
+  "rule": "pylon dark at night",
+  "test": "test_bridge",
+  "caught": false,
+  "code": 0,
+  "summary": "10 Tests, 0 fehlgeschlagen",
+  "fails": [],
+  "errs": [
+   "SCRIPT ERROR: Invalid call. Nonexistent 'float' constructor."
+  ],
+  "secs": 9
+ },
+ "B11_blink_phase": {
+  "rule": "blink phase per side",
+  "test": "test_bridge",
+  "caught": true,
+  "code": 1,
+  "summary": "10 Tests, 1 fehlgeschlagen",
+  "fails": [
+   "FAIL  test_bridge.gd :: test_koehlbrand_pylons_beacons_and_cables"
+  ],
+  "errs": [],
+  "secs": 8
+ },
+ "B12_cables_count": {
+  "rule": "7 cables per side (Arcade)",
+  "test": "test_bridge",
+  "caught": false,
+  "code": 0,
+  "summary": "10 Tests, 0 fehlgeschlagen",
+  "fails": [],
+  "errs": [],
+  "secs": 8
+ },
+ "B13_portals_skip": {
+  "rule": "truss portals built",
+  "test": "test_bridge",
+  "caught": true,
+  "code": 1,
+  "summary": "10 Tests, 1 fehlgeschlagen",
+  "fails": [
+   "FAIL  test_bridge.gd :: test_every_bridge_type_builds"
+  ],
+  "errs": [],
+  "secs": 8
+ },
+ "B14_lamps_skip": {
+  "rule": "bridge lamps built",
+  "test": "test_bridge",
+  "caught": false,
+  "code": 0,
+  "summary": "10 Tests, 0 fehlgeschlagen",
+  "fails": [],
+  "errs": [],
+  "secs": 8
+ },
+ "T1_niches": {
+  "rule": "SOS niches",
+  "test": "test_tunnel",
+  "caught": true,
+  "code": 1,
+  "summary": "8 Tests, 1 fehlgeschlagen",
+  "fails": [
+   "FAIL  test_tunnel.gd :: test_tube_niches_doors_fans_cap_portal_exit"
+  ],
+  "errs": [],
+  "secs": 7
+ },
+ "T2_fans_low": {
+  "rule": "nothing of the tube over the road (fans)",
+  "test": "test_tunnel",
+  "caught": true,
+  "code": 1,
+  "summary": "8 Tests, 1 fehlgeschlagen",
+  "fails": [
+   "FAIL  test_tunnel.gd :: test_nothing_of_the_tube_over_the_road"
+  ],
+  "errs": [],
+  "secs": 7
+ },
+ "T3_cap_inside": {
+  "rule": "cap only from outside",
+  "test": "test_tunnel",
+  "caught": true,
+  "code": 1,
+  "summary": "8 Tests, 1 fehlgeschlagen",
+  "fails": [
+   "FAIL  test_tunnel.gd :: test_cap_only_for_a_camera_outside"
+  ],
+  "errs": [],
+  "secs": 7
+ },
+ "T4_zone_guard": {
+  "rule": "set_zone duck-typed",
+  "test": "test_tunnel",
+  "caught": false,
+  "code": 0,
+  "summary": "8 Tests, 0 fehlgeschlagen",
+  "fails": [],
+  "errs": [],
+  "secs": 6
+ },
+ "T5_peek_cap": {
+  "rule": "end cap at peek_m",
+  "test": "test_tunnel",
+  "caught": true,
+  "code": 1,
+  "summary": "8 Tests, 1 fehlgeschlagen",
+  "fails": [
+   "FAIL  test_tunnel.gd :: test_tube_niches_doors_fans_cap_portal_exit"
+  ],
+  "errs": [],
+  "secs": 6
+ },
+ "T6_portal": {
+  "rule": "portal + hill",
+  "test": "test_tunnel",
+  "caught": true,
+  "code": 1,
+  "summary": "8 Tests, 3 fehlgeschlagen",
+  "fails": [
+   "FAIL  test_tunnel.gd :: test_tube_niches_doors_fans_cap_portal_exit",
+   "FAIL  test_tunnel.gd :: test_hill_closes_the_terrain_at_the_portal",
+   "FAIL  test_tunnel.gd :: test_short_tunnel_low_hill_no_cap"
+  ],
+  "errs": [],
+  "secs": 4
+ },
+ "F1_zs1_rule": {
+  "rule": "ZS1 far ground below water",
+  "test": "test_far_ground_water",
+  "caught": true,
+  "code": 1,
+  "summary": "4 Tests, 3 fehlgeschlagen",
+  "fails": [
+   "FAIL  test_far_ground_water.gd :: test_plane_lies_below_the_elbe_under_the_koehlbrand_bridge",
+   "FAIL  test_far_ground_water.gd :: test_plane_glides_down_when_the_bridge_enters_the_window",
+   "FAIL  test_far_ground_water.gd :: test_deep_bridges_of_other_stages_stay_visible"
+  ],
+  "errs": [],
+  "secs": 3
+ },
+ "F2_quay_copy": {
+  "rule": "pinned Arcade quay copy",
+  "test": "test_bridge",
+  "caught": true,
+  "code": 1,
+  "summary": "10 Tests, 1 fehlgeschlagen",
+  "fails": [
+   "FAIL  test_bridge.gd :: test_far_ground_quay_copy_equals_arcade"
+  ],
+  "errs": [],
+  "secs": 8
+ }
+}

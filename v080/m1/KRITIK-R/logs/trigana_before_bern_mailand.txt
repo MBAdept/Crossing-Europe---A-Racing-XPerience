@@ -1,0 +1,43 @@
+== /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-FAHRBAHN/logs/trig_bern_mailand.log: 311 rows, 368 events printed
+counts {"cover_in": 4, "cover_out": 4, "pass_object": 356, "pass_post": 8, "pass_post_delin": 2, "pass_rock": 44, "pass_sign": 117, "pass_tree": 185, "tunnel_in": 3, "tunnel_out": 3}
+bridges []
+track zones {'fuel': 5, 'fuel_canopy': 21, 'border': 1}
+valid feed rows 310 / 311
+surfaces (l,r): {('asphalt', 'asphalt'): 284, ('concrete', 'concrete'): 26}
+paving at autobahn                      : {'asphalt': 194, 'concrete': 26}
+paving at autobahn/tunnel               : {'asphalt': 21}
+paving at landstrasse                   : {'asphalt': 1}
+paving at landstrasse/tunnel            : {'asphalt': 68}
+zone at truth other:alps                        : {'valley': 193, 'tunnel': 2, 'cutting': 2}
+zone at truth other:forest_hills                : {'forest': 24}
+zone at truth tunnel                            : {'tunnel': 89}
+mismatch / special counts: {'tunnel': 2, 'cutting_rows': 2, 'cover_rows': 1}
+  tunnel: [(107.593, True, False), (201.946, True, False)]
+  cutting: [(153.006, 'alps'), (176.733, 'alps')]
+  cover: [(160.343, 'fuel', '', None, None)]
+speed median 126 km/h, max 235
+events printed: {'pass_object': 354, 'tunnel_in': 3, 'tunnel_out': 3, 'cover_in': 4, 'cover_out': 4}
+joints off any bridge: [] 0
+tunnel_in [(106.0, 'tunnel', True, ''), (130.0, 'tunnel', True, ''), (185.0, 'tunnel', True, '')]
+tunnel_out [(107.5, 'tunnel', False, ''), (139.3, 'tunnel', False, ''), (201.9, 'tunnel', False, '')]
+cover_in [(159.773, 'fuel', False, ''), (159.993, 'fuel', False, ''), (160.213, 'fuel', False, ''), (160.433, 'fuel', False, '')]
+cover_out [(159.893, 'fuel', False, ''), (160.113, 'fuel', False, ''), (160.333, 'fuel', False, ''), (160.553, 'fuel', False, '')]
+pass objects (kind, where, set):
+    174  ('tree', 'open', 'props/tree_spruce')
+     79  ('sign', 'open', 'chevron')
+     39  ('rock', 'open', 'props/rock_a')
+     11  ('sign', 'open', 'crest')
+     10  ('sign', 'open', 'curve')
+      8  ('tree', 'open', 'props/tree_pine')
+      8  ('post', 'open', 'props/fuel_pump')
+      5  ('rock', 'open', 'props/cliff')
+      4  ('sign', 'open', 'limit')
+      4  ('sign', 'open', 'fuel')
+      3  ('tree', 'open', 'props/tree_beech')
+      3  ('sign', 'open', 'tunnel')
+      2  ('sign', 'open', 'distance')
+      1  ('sign', 'open', 'fuel_lane')
+      1  ('sign', 'open', 'autobahn_end')
+      1  ('sign', 'open', 'autobahn')
+      1  ('sign', 'open', 'radar')
+pass distance (side objects): min 4.9 median 12.7 max 18.0 m

@@ -1,0 +1,20 @@
+v0.8.0 FIX-R5: Tunnelportal nachts aus dem Abblendlicht, Tests schützen alle R5-Regeln
+
+QA-R5 QR5-01 (hoch): Rahmen, Stirnwand, Flügelmauern und Hügel des Portals liegen
+jetzt auf Renderlayer 2 (wie Gelände und Wasser) – die Spots des Abblendlichts
+und die Lampen-Omnis lassen sie aus, wie Arcade sein Portal nie mit den
+Scheinwerfern beleuchtet. Sonne, Mond, Umgebungslicht und Schatten bleiben.
+
+QR5-05: neue bzw. geschärfte Unit-Tests – Brückenlampen gleich Arcades
+Ereignissen (Ludwigsbrücke, Ponte della Libertà), 56 Seile der Köhlbrandbrücke
+als Zahl, night_albedo/emit_energy erst auf null geprüft, Rig ohne set_zone
+(kein Aufruf), Portal auf Renderlayer 2 außerhalb von LIGHT_MASK. Die fünf
+Mutationen B10, B12, B14, T4 und P1 werden jetzt von benannten Tests gefangen.
+
+QR5-06: der Netzlauf check_tunnel_bridge.gd -- --full vergleicht exakt mit
+Arcade (Pylone, Flugfeuer, 14 Seile je Pylon, Fachwerkportale, Brückenlampen,
+Ufer an beiden Enden, Nischen, Kappe, Leuchtenreihen, nichts über den Spuren,
+Seilabstand, Hügel nicht im Sichtkorridor), auch für die Testetappe.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,64 @@
+{
+ "plain": {
+  "A": 0.4883,
+  "sine_step_max": 0.03068,
+  "start_rise_10_90_samples": 32,
+  "start_first_audible_at": 0,
+  "start_step_ratio": 13.95,
+  "restart": {
+   "step_ratio": 15.57,
+   "amp_min_rel": 0.111,
+   "dip_width_samples": 484
+  },
+  "restart2": {
+   "step_ratio": 6.13,
+   "amp_min_rel": 0.502,
+   "dip_width_samples": 617
+  },
+  "steps": {
+   "step_ratio": 22.93,
+   "amp_change_per_sample_max_rel_to_3db_step": 5.3635,
+   "samples_for_3db_change_min": 0.2
+  },
+  "drift": {
+   "step_ratio": 28.6,
+   "line_55_65_db": 8.0,
+   "line_83_90_db": -6.5,
+   "line_170_175_db": 1.0,
+   "amp_db_range": 24.69
+  },
+  "stop_fall_90_10_samples": 408,
+  "stop_step_ratio": 0.95
+ },
+ "2d": {
+  "A": 0.2441,
+  "sine_step_max": 0.01534,
+  "start_rise_10_90_samples": 32,
+  "start_first_audible_at": 4009,
+  "start_step_ratio": 13.95,
+  "restart": {
+   "step_ratio": 14.51,
+   "amp_min_rel": 0.064,
+   "dip_width_samples": 499
+  },
+  "restart2": {
+   "step_ratio": 1.36,
+   "amp_min_rel": 0.637,
+   "dip_width_samples": 624
+  },
+  "steps": {
+   "step_ratio": 16.23,
+   "amp_change_per_sample_max_rel_to_3db_step": 3.797,
+   "samples_for_3db_change_min": 0.3
+  },
+  "drift": {
+   "step_ratio": 33.31,
+   "line_55_65_db": 10.2,
+   "line_83_90_db": -3.8,
+   "line_170_175_db": 1.2,
+   "amp_db_range": 26.25
+  },
+  "stop_fall_90_10_samples": 409,
+  "stop_step_ratio": 0.97
+ }
+}

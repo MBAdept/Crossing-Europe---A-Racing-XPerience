@@ -1,0 +1,15 @@
+v0.8.0 AU-D2: Zwischenspiel, UI-Klänge, Tempi mit ganzen Frames, Tests (WIP)
+
+- zwischenspiel.py (e-Moll, 98 bpm, Hook der Titelmelodie leise), ui_klaenge.py (sechs Menüklänge),
+  render_all.py; check_music.py prüft alle Rennstücke und ihre Zusatzclips
+- Tempi 108 / 147 / 98 bpm: eine Sechzehntel ist eine ganze Zahl von Frames – bei 112/144 bpm
+  rundeten Einsätze auf halben Frames in den zwei Durchgängen verschieden (Naht −30 dBFS)
+- Sub der neuen Stücke ab 45 Hz gefaltet (kein Tiefbass bei 42 Hz); Tank-Stinger lauter
+- MusicDirector: Taktuhr beginnt mit jedem Start des Streams neu
+- Tests: test_music_director (Rotation, Zwischenspiel, Varianten, Ziel-Schlag, Stinger),
+  check_music.gd (alle Stücke, Varianten, Naht des Zwischenspiels); AU-A-Tests auf das Ziel als
+  Musik und die UI-Klänge umgestellt
+- Doku: Musik-Zeilen in audio-modern.md
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,10 @@
+arcade 1 "avg_ms":1.92788043478261,"frames":184,"max_ms":7.152,"samples":533479,"skips":18 0 Fehlerzeilen
+modern 1 "avg_ms":1.99450549450549,"frames":182,"max_ms":6.482,"samples":532864,"skips":0 0 Fehlerzeilen
+arcade 2 "avg_ms":1.98340555555556,"frames":180,"max_ms":4.645,"samples":533497,"skips":18 0 Fehlerzeilen
+modern 2 "avg_ms":1.77971657754011,"frames":187,"max_ms":5.506,"samples":535788,"skips":0 0 Fehlerzeilen
+arcade 3 "avg_ms":2.01442696629213,"frames":178,"max_ms":6.487,"samples":528881,"skips":60 0 Fehlerzeilen
+modern 3 "avg_ms":1.95116042780749,"frames":187,"max_ms":5.911,"samples":533498,"skips":18 0 Fehlerzeilen
+arcade 4 "avg_ms":1.98240540540541,"frames":185,"max_ms":6.409,"samples":535788,"skips":0 0 Fehlerzeilen
+modern 4 "avg_ms":1.95997883597884,"frames":189,"max_ms":4.885,"samples":533479,"skips":18 0 Fehlerzeilen
+arcade 5 "avg_ms":1.94235869565217,"frames":184,"max_ms":4.713,"samples":535769,"skips":0 0 Fehlerzeilen
+modern 5 "avg_ms":1.84196153846154,"frames":182,"max_ms":4.599,"samples":533081,"skips":21 0 Fehlerzeilen

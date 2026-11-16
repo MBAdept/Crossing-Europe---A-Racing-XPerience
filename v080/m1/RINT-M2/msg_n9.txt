@@ -1,0 +1,15 @@
+v0.8.0 RINT-M2: Lichtebenen nach FIX-R6 – Stärke je Bild, glow/halo, Blitzer (Notiz 9)
+
+- chunk_streamer.gd: Namenskonflikt in der neuen collect()-Zeitmessung behoben
+  (6347e41 kompilierte nicht).
+- layers/lights.gd: liest die Stärke statischer Lampen jedes Bild aus dem
+  Eintrag des Bausteins (entry_energy); Unit-Test.
+- layers/flares.gd: Lampen mit Stärke 0 (Blitzer zwischen den Blitzen,
+  dunkle Countdown-Lampen) kosten keine Instanz mehr; optionale Schlüssel
+  "halo" (Nahanteil statt STATIC_HALO) und "glow": false (kein Laternenschein).
+- builders/radar.gd: der Blitz nutzt halo 1 statt des Ausgleichs 1/0,35 in
+  FLASH_GAIN (gleiches Bild) und wirft nachts einen Lichtkegel von 9 m auf
+  die Fahrbahn.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,10 @@
+AS2b (WIP): Lichtbalken mit durchgehenden LED-Modulen; Kontaktbogen zeigt Arcade-Quader und -Sprite
+
+Lichtbalken: drei LED-Module je Seite füllen die klare Kuppel (Deckkraft
+0,22), die fernen Stufen leuchten auf derselben Fläche – Blaulicht A/B
+springt beim Stufenwechsel nicht mehr. Kontaktbogen: --arcade auch für
+Verkehr, Polizei (Zelle "c" mit Heckanker) und Lkw/Bus (Heckfläche des
+Arcade-Quaders); Spielkamera-Kachel mit Blaulicht A für Polizeiautos.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

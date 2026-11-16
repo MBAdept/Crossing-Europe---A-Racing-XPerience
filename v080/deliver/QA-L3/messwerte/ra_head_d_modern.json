@@ -1,0 +1,94 @@
+{
+	"bus_count": 12,
+	"display": "X11",
+	"engine": "1f923ee019c314c339185757c522f8872f50cb785c7ea94b759c2536845585a1",
+	"engine_samples": [
+		[
+			0,
+			"700.0",
+			0,
+			"4000.0"
+		],
+		[
+			100,
+			"722.4491746247404",
+			0,
+			"4000.0"
+		],
+		[
+			200,
+			"2433.2336531529713",
+			1,
+			"4000.366425663272"
+		],
+		[
+			300,
+			"4857.732354972273",
+			1,
+			"4012.666767677276"
+		],
+		[
+			400,
+			"5423.968405620773",
+			2,
+			"4041.882418911791"
+		],
+		[
+			500,
+			"3437.9830965481174",
+			4,
+			"4084.199743769269"
+		],
+		[
+			600,
+			"5903.865036467239",
+			3,
+			"4135.86351427171"
+		],
+		[
+			700,
+			"5214.909273461244",
+			4,
+			"4199.610434170201"
+		],
+		[
+			800,
+			"5958.72438767145",
+			4,
+			"4273.885632755243"
+		]
+	],
+	"final_km": "4.356305296255003",
+	"frames": 900,
+	"handed": "591765dcc9f9a7cc89f6a7b35ab43e0ce4c011630cae5000543ac66175ac2ac4",
+	"loops": "6a85c62ba939764b3fbe80dcfaa04cc3e48e1b631ce09b342666faee11d7ef2f",
+	"notes": [
+		"vorher: modern, gfx modern, Klang modern"
+	],
+	"oneshots": [
+		[
+			1,
+			1,
+			"[\"beep\"]"
+		],
+		[
+			61,
+			2,
+			"[\"beep\"]"
+		],
+		[
+			121,
+			3,
+			"[\"beep\"]"
+		],
+		[
+			180,
+			4,
+			"[\"beep\", \"go\"]"
+		]
+	],
+	"pre": "modern",
+	"result": "{\n\"aborted\": false,\n\"avg_speed_kmh\": 2703.755215577151,\n\"board_key\": \"stage:dev_testetappe:fwd\",\n\"collisions\": 0,\n\"daytime\": \"night\",\n\"distance_km\": 130.0,\n\"end_world_minutes\": 1261.9972222222223,\n\"from_city\": \"dev_start\",\n\"fuel_end_l\": 59.04400450114347,\n\"fuel_start_l\": 60.0,\n\"liters_refueled\": 0.0,\n\"penalty_s\": 0.0,\n\"police_escapes\": 0,\n\"police_stops\": 0,\n\"radar_flashes\": 0,\n\"refuels\": 0,\n\"stage_id\": \"dev_testetappe\",\n\"stage_name\": \"Teststadt – Testdorp\",\n\"start_hour\": 21.0,\n\"start_towed\": false,\n\"start_world_minutes\": 1260.0,\n\"tank_l\": 60.0,\n\"time_s\": 11.983333333333508,\n\"to_city\": \"dev_ziel\",\n\"tow_events\": 0,\n\"vehicle\": \"gran_turismo\",\n\"weather\": \"rain\"\n}",
+	"sim": "7732cd7fffbe6e1cd384881c1b5fe776c0452ce2f76ae1ffeb677561de5682d5",
+	"traffic": "ee60562405aa593b95e0fff7e6fd23d9e1307eb4128f6d07d43dbf2d265174b0"
+}

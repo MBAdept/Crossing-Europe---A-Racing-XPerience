@@ -1,0 +1,10 @@
+v0.8.0 AU-C1: Rüttelstreifen und Brückenfugen bei hohem Tempo unter dem Begrenzer
+
+Gemessen (nur Fahrbahn, 200 km/h): Rüttelstreifen und Stahlbrücke allein erreichten den
+Begrenzer. Rüttelstreifen jetzt +7 dB mit 15 dB je Dekade (eine Seite bei 60/120/200 km/h
+etwa -27/-22/-19 LUFS), Schläge der Schleife weich begrenzt (Scheitelfaktor 13 -> 10 dB);
+Fugen -29 LUFS bei 100 km/h mit 12 dB je Dekade, Brückenenden +1 dB. Spitzen nur Fahrbahn
+bei 200 km/h jetzt -4,6 bis -4,8 dBFS.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

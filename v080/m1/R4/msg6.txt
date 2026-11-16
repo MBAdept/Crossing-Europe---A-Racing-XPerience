@@ -1,0 +1,17 @@
+v0.8.0 R4 (WIP): Nacht-Füll-Licht des Spielerautos (Kunstkritik KRITIK-2 A2)
+
+Die Karosserie des Spielerautos war nachts zu dunkel (check_night spielerauto,
+75. Perzentil gegen Arcades Bild um 22 Uhr: Kompakt 0,80 ×, Gran Turismo
+0,55 ×, Limousine 0,35 ×). Das Füll-Licht bleibt nachts bei 0,6 seines
+Tagesanteils (vorher 0,3) und zeigt sich zusätzlich als gleichmäßiger
+Schimmer auf dem Klarlack (neues vpbr-Uniform fill_sheen 0,25 × ce_night,
+neutral statt in der Lackfarbe) – ein stärkeres diffuses Füll-Licht allein
+hob den dunklen Metallic-Lack der Limousine kaum. Jetzt 1,06 × / 0,92 × /
+0,94 ×. Bei Tag unverändert; nur das Spielerauto (fill > 0), Verkehr und
+Showroom unberührt.
+
+Köhlbrand-Pylon nachts mit dem Mondgesetz nachgemessen: Arcade 59,7,
+Modern 55,4 – night_albedo 0,45 bleibt.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

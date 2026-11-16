@@ -1,0 +1,27 @@
+INTEG wave 0 – working notes (scratch, not part of the repository)
+
+Branch worktree-wf_92c01fa2-b2a-5, base e479043 (v0.8.0; the worktree started on e3505e2 = main and was
+fast-forwarded first).
+Merges (--no-ff, no conflicts): KERN 9aa9442, PIPE f6a01b2, AU-A dcdef96, GEO c6ae6e7.
+Doc glue: 2c298ce ARCHITECTURE.md §15 status paragraph.
+
+Gates (all measured on this VM):
+- import: exit 0, 12 reimport steps first run 5.7 s, second run 4.5 s without reimport, tree clean (c6ae6e7)
+- manifest regenerated: byte-identical (md5 aa72f6f8c8c05e213f489ece4615d701), 6 models, 180 sets (10/170)
+- run_tests.sh (c6ae6e7): 562 unit tests 0 failed, 61 CHECK lines 0 FEHLER, 528 s, exit 0
+- golden check (c6ae6e7): 20 of 20, 148 s
+- modern_sight --full: all OK 136 s (F1 0 in 99,424,500; lanes 0 in 326,680,500; F2 0.593/0.596/0.555; F3 0 of 5923;
+  F7 0 of 2,011,532; model 394,011 0); normal 18 s
+- modern_path_check: normal 24 s, --full 55 s; clearance 267.6 m; loops 2064 m
+- validate_models.py: CHECK models OK (0.9 s); meshes 1.73 MB, textures 4.59 MB VRAM, sources 1.43 MB
+- check_sprite_geometry.py: 187 sets in 351 s, 187 identical (1 REIHENFOLGE), 0 changed
+- ModelDB tests: 10 of 10
+- run_stage: dev_testetappe time_s 448.249999999921, kiel_hamburg 328.933333333363; 28 keys; 4 combos each
+- headless race --sound=modern: 4 runs, "ModernAudio: Profil Modern gestartet (22 Busse, 7 Klangdateien, stumm)"
+- audio check direct: headless 7/7, --live 8/8, Xvfb --live 8/8; Xvfb without --live 2 FEHLER (test expects no playback)
+- check_session with --sound=modern: 15/15 in both graphics modes; check_seam --sound=modern 7/7
+- golden frames with --sound=modern: 20 of 20 identical
+- render checks all: 3 of 3 files, 90 s
+- build_release 0.7.0 on 2c298ce: exe 441.1 MB, x86_64 405.3 MB, zip 130.6 MB, tar.gz 121.0 MB, 128 s
+- Wine: v0.7.0 exe = new exe = Linux export: f0411a30…, ce9aa243…, e13df11b…; Modern stub Wine = Linux: 0fe92724…, 6b5dbbde…, 270e5348…
+- marker demo: as KERN

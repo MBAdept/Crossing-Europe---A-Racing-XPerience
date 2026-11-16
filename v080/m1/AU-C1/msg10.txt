@@ -1,0 +1,6 @@
+v0.8.0 AU-C1: UID des Tests test_road_audio.gd
+
+Wie bei allen anderen Testskripten liegt die von Godot erzeugte .uid-Datei im Repository.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

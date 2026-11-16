@@ -1,0 +1,9 @@
+{"segments": [
+ {"name": "asph130_road", "km": 15.0, "kmh": 130.0, "throttle": 0.35, "x": 1.875, "mute": ["MEngine", "MEngineFx", "MWind"], "seconds": 20.0, "feed": {"concrete_share": {"_": 0.0}}, "road_set": {"_drift_db": 0.0, "_gust_db": 0.0, "_pass_min": 999.0}},
+ {"name": "conc130_road", "km": 30.0, "kmh": 130.0, "throttle": 0.35, "x": 1.875, "mute": ["MEngine", "MEngineFx", "MWind"], "seconds": 20.0, "feed": {"concrete_share": {"_": 1.0}}, "road_set": {"_drift_db": 0.0, "_gust_db": 0.0, "_pass_min": 999.0}},
+ {"name": "cobbles50_road", "km": 87.3, "kmh": 50.0, "throttle": 0.25, "x": 1.875, "mute": ["MEngine", "MEngineFx", "MWind"], "seconds": 20.0, "feed": {"cobble_share": 1.0}, "road_set": {"_drift_db": 0.0, "_gust_db": 0.0, "_pass_min": 999.0}},
+ {"name": "asph130_wind", "km": 15.0, "kmh": 130.0, "throttle": 0.35, "x": 1.875, "mute": ["MEngine", "MEngineFx", "MRoad"], "seconds": 20.0, "feed": {"concrete_share": {"_": 0.0}}, "road_set": {"_drift_db": 0.0, "_gust_db": 0.0, "_pass_min": 999.0}},
+ {"name": "asph130_full", "km": 15.0, "kmh": 130.0, "throttle": 0.35, "x": 1.875, "mute": [], "seconds": 20.0, "feed": {"concrete_share": {"_": 0.0}}, "road_set": {"_drift_db": 0.0, "_gust_db": 0.0, "_pass_min": 999.0}},
+ {"name": "conc130_full", "km": 30.0, "kmh": 130.0, "throttle": 0.35, "x": 1.875, "mute": [], "seconds": 20.0, "feed": {"concrete_share": {"_": 1.0}}, "road_set": {"_drift_db": 0.0, "_gust_db": 0.0, "_pass_min": 999.0}},
+ {"name": "cobbles50_full", "km": 87.3, "kmh": 50.0, "throttle": 0.25, "x": 1.875, "mute": [], "seconds": 20.0, "feed": {"cobble_share": 1.0}, "road_set": {"_drift_db": 0.0, "_gust_db": 0.0, "_pass_min": 999.0}}
+]}

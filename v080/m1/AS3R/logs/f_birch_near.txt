@@ -1,0 +1,15 @@
+prop_scene: Renn-Licht 12 Uhr, normal, Voreinstellung medium, Sicht 900 m, Stufen 60 / 200 m
+SZENE props/tree_birch 8 m lod0 1036x1590 px
+SZENE props/tree_birch 12 m lod0 572x958 px
+SZENE props/tree_birch 25 m lod0 221x418 px
+SZENE props/tree_birch 8 m sprite 1036x1590 px
+SZENE props/tree_birch 12 m sprite 572x958 px
+SZENE props/tree_birch 25 m sprite 221x418 px
+SZENE props/tree_birch_b 8 m lod0 1307x1890 px
+SZENE props/tree_birch_b 12 m lod0 649x1049 px
+SZENE props/tree_birch_b 25 m lod0 227x429 px
+SZENE props/tree_birch_b 8 m sprite 1307x1890 px
+SZENE props/tree_birch_b 12 m sprite 649x1049 px
+SZENE props/tree_birch_b 25 m sprite 227x429 px
+prop_scene: dist -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS3R/shots/f_birch_near.png
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS3R/shots/f_birch_near.png

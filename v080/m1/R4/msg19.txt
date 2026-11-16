@@ -1,0 +1,16 @@
+v0.8.0 R4: Aufwärm-Knoten auf eigener Lichtebene (N1 kalt ohne Übersetzung)
+
+Die Aufwärm-Prüfung mit kaltem Cache scheiterte an N1 (Hamburg – Hannover
+km 71, 22 Uhr, Schnee): 3 Shader-Varianten nach 6–8 s Fahrt. Diagnose mit
+Godots Shader-Cache: das Programm von sign.gdshader in der Lichtsituation
+„ohne positionelles Licht“ – nachts beleuchtete das Abblendlicht die
+Aufwärm-Knoten in allen vier Phasen, und N1 zeigt kein Schild in der
+Startansicht. Bei 14 Uhr an derselben Stelle: 0 Varianten.
+
+Die Aufwärm-Knoten liegen jetzt auf Render-Ebene 20 (WARMUP_LAYER); die
+echten Spots und Punktlichter lassen sie aus, nur die Aufwärm-Lichter
+erreichen sie. N1 danach: 443 statt 386 Varianten vor dem Start, 0 während
+der Fahrt. Unit-Test test_warmup_layer_is_lit_by_the_warmup_lights_only.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

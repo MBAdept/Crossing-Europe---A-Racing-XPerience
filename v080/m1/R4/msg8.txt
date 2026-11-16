@@ -1,0 +1,11 @@
+v0.8.0 R4 (WIP): Laternen-Spiegelungen nach dem Fresnel-Gesetz des Spiegelpunkts
+
+Bild C1 im Regen um 21:30 (Frankfurt, „Hoch“): die Spiegelungen der Laternen
+kurz voraus lagen als gesättigter oranger Fleck um das Spielerauto – ihr
+Spiegelpunkt liegt steil unter der Kamera, wo nasser Asphalt kaum spiegelt.
+Jetzt wird jede Laternen-Spiegelung mit dem Fresnel-Term von Wasser an ihrem
+Spiegelpunkt gewichtet (flares.gd streak_fresnel, 1 ab 15 m vor der Kamera,
+eine Laterne 10 m voraus 0,05); Unit-Test test_lamp_streak_fresnel.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,14 @@
+v0.8.0 M2INT: Fahrzeug-Look an einer Stelle (ModernMaterials), keine Metallic-Flocken im Rennen
+
+A-13 / Leitungsnotiz 6: Der Look der Fahrzeuge steht jetzt nur in ModernMaterials – VEHICLE_LOOK (Rennen),
+VEHICLE_PLAYER_FILL und STUDIO_LOOK (Showroom) mit apply_look(), das jede Klassen-Materialie vor dem Einstellen
+anlegt. Fahrzeug-Ebene (LOOK, PLAYER_FILL als Verweise), Showroom (studio_look()), Kontaktbogen und prop_scene lesen
+dort; showroom_3d.gd nennt die Klasse nur im Funktionsrumpf (Arcade-Start lädt nichts von Modern).
+
+Kunstkritik KRITIK-2 A4 (83 glitzernde Pixel je Bild beim Gran Turismo): im Renn-Look flake_strength 0 – eine
+Flockenzelle (1/260 m) ist beim Spielerauto in 9 m 0,3 px breit und flimmert nur; der Showroom behält die Flocken.
+
+Doku: renderer-modern.md (11.3, 13), audio-modern.md (UI-Klänge verdrahtet).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

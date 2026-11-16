@@ -1,0 +1,2 @@
+mx_menu_modern.wav: Profil modern, menu gran_turismo, 40.0 s – integriert -21.28 LUFS, Lautheitsbereich 9.63 LU, True Peak -8.13 dBTP
+  menu              1.0–  40.0 s   -21.21 LUFS  Kurzzeit max  -19.16 / Median  -20.09  True Peak  -8.13   Plan -20.0

@@ -1,0 +1,16 @@
+AS1R: Verkehrsautos – Felgen anthrazit, Glas mit Spiegelung, Kennzeichen in allen Stufen, runde Stoßfänger-Enden
+
+- Felgen in allen Stufen wie im Sprite (#5a5d62, Metall 0,6, Rauheit 0,35) statt hellsilbern.
+- Glas heller, glatter und leicht metallisch: der Himmel spiegelt sich (lod1/lod2 mit denselben Werten).
+- Dritte Bremsleuchte mit dunklerer Leuchtfarbe (Hook chmsl_lamp): unbeleuchtet kein roter Balken mehr.
+- Kennzeichen in lod1/lod2 im Mittelwert des lod0-Kennzeichens samt Zeichen und in lod2 behalten;
+  Spiegel aller Stufen mit dunklem Spiegelglas nach hinten; lod2-Heck unten dunkel wie der Stoßfänger
+  (Limousine, Kombi). Stufenwechsel 40 m: 6,6-9,8 % der Autopixel (vorher 6-11 %).
+- Stoßfänger enden am Radlauf und laufen dort rund in die Karosserie (bumper_end_r), Auspuff als
+  dunkles Rohr.
+- Reifen der Verkehrsautos mit 9 Profilpunkten (Hook tyre_lite): 300 Dreiecke je Rad weniger, Platz im
+  Budget.
+- Spielerautos: Stoßfänger-Enden ebenfalls gerundet.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

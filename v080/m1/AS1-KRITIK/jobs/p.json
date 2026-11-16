@@ -1,0 +1,4116 @@
+[
+{
+"name": "limousine_g9_day",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+}
+},
+{
+"name": "limousine_g9_day_backlit",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"sun": [
+0.35,
+0.6,
+-1.0
+]
+},
+{
+"name": "limousine_g9_day_ss",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4
+},
+{
+"name": "limousine_g9_day_brake_ind",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"lamp_a": [
+0,
+1,
+1,
+0
+]
+},
+{
+"name": "limousine_g9_night_tail",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_g9_night_brake_ind",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_g9_night_reverse",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+1,
+0,
+0
+]
+},
+{
+"name": "limousine_g9_low",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 0.75
+},
+"msaa": 0
+},
+{
+"name": "limousine_g9_msaa0",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"msaa": 0
+},
+{
+"name": "limousine_g9_yaw-20",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -20
+},
+{
+"name": "limousine_g9_yaw-20_ss",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4,
+"yaw": -20
+},
+{
+"name": "limousine_g9_yaw-10",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -10
+},
+{
+"name": "limousine_g9_yaw-10_ss",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4,
+"yaw": -10
+},
+{
+"name": "limousine_g9_yaw+10",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 10
+},
+{
+"name": "limousine_g9_yaw+10_ss",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4,
+"yaw": 10
+},
+{
+"name": "limousine_g9_yaw+20",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 20
+},
+{
+"name": "limousine_g9_yaw+20_ss",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4,
+"yaw": 20
+},
+{
+"name": "limousine_sweep_00",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -2.0
+},
+{
+"name": "limousine_sweep_01",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -1.8
+},
+{
+"name": "limousine_sweep_02",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -1.6
+},
+{
+"name": "limousine_sweep_03",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -1.4
+},
+{
+"name": "limousine_sweep_04",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -1.2
+},
+{
+"name": "limousine_sweep_05",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -1.0
+},
+{
+"name": "limousine_sweep_06",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -0.7999999999999998
+},
+{
+"name": "limousine_sweep_07",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -0.5999999999999999
+},
+{
+"name": "limousine_sweep_08",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -0.3999999999999999
+},
+{
+"name": "limousine_sweep_09",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -0.19999999999999996
+},
+{
+"name": "limousine_sweep_10",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 0.0
+},
+{
+"name": "limousine_sweep_11",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 0.20000000000000018
+},
+{
+"name": "limousine_sweep_12",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 0.40000000000000036
+},
+{
+"name": "limousine_sweep_13",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 0.6000000000000001
+},
+{
+"name": "limousine_sweep_14",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 0.8000000000000003
+},
+{
+"name": "limousine_sweep_15",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 1.0
+},
+{
+"name": "limousine_sweep_16",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 1.2000000000000002
+},
+{
+"name": "limousine_sweep_17",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 1.4000000000000004
+},
+{
+"name": "limousine_sweep_18",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 1.6
+},
+{
+"name": "limousine_sweep_19",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 1.8000000000000003
+},
+{
+"name": "limousine_sweep_20",
+"set": "player/limousine",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 2.0
+},
+{
+"name": "limousine_lod0_rear34",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_show_rear34",
+"set": "player/limousine",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_clay_rear34",
+"set": "player/limousine",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_facets_rear34",
+"set": "player/limousine",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_wire_rear34",
+"set": "player/limousine",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_normals_rear34",
+"set": "player/limousine",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_check_rear34",
+"set": "player/limousine",
+"mode": "check",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_checkng_rear34",
+"set": "player/limousine",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_checkcb_rear34",
+"set": "player/limousine",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_clayng_rear34",
+"set": "player/limousine",
+"mode": "clay_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_lod0_rear",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_lod0_side",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_show_side",
+"set": "player/limousine",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_clay_side",
+"set": "player/limousine",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_check_side",
+"set": "player/limousine",
+"mode": "check",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_checkng_side",
+"set": "player/limousine",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_checkcb_side",
+"set": "player/limousine",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_lod0_front34",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_show_front34",
+"set": "player/limousine",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_clay_front34",
+"set": "player/limousine",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_facets_front34",
+"set": "player/limousine",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_wire_front34",
+"set": "player/limousine",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_normals_front34",
+"set": "player/limousine",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_check_front34",
+"set": "player/limousine",
+"mode": "check",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_checkng_front34",
+"set": "player/limousine",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_checkcb_front34",
+"set": "player/limousine",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_clayng_front34",
+"set": "player/limousine",
+"mode": "clay_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_lod0_rearclose",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_show_rearclose",
+"set": "player/limousine",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_clay_rearclose",
+"set": "player/limousine",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_facets_rearclose",
+"set": "player/limousine",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_wire_rearclose",
+"set": "player/limousine",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_normals_rearclose",
+"set": "player/limousine",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_check_rearclose",
+"set": "player/limousine",
+"mode": "check",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_checkng_rearclose",
+"set": "player/limousine",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_checkcb_rearclose",
+"set": "player/limousine",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_lampmap_rearclose",
+"set": "player/limousine",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_caster_rearclose",
+"set": "player/limousine",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_lod0_frontclose",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.15,
+0.1,
+-2.432,
+1.15,
+1.1904000000000001,
+-1.132
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_show_frontclose",
+"set": "player/limousine",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.15,
+0.1,
+-2.432,
+1.15,
+1.1904000000000001,
+-1.132
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_clay_frontclose",
+"set": "player/limousine",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.15,
+0.1,
+-2.432,
+1.15,
+1.1904000000000001,
+-1.132
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_facets_frontclose",
+"set": "player/limousine",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.15,
+0.1,
+-2.432,
+1.15,
+1.1904000000000001,
+-1.132
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_wire_frontclose",
+"set": "player/limousine",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.15,
+0.1,
+-2.432,
+1.15,
+1.1904000000000001,
+-1.132
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_normals_frontclose",
+"set": "player/limousine",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.15,
+0.1,
+-2.432,
+1.15,
+1.1904000000000001,
+-1.132
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_lampmap_frontclose",
+"set": "player/limousine",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.15,
+0.1,
+-2.432,
+1.15,
+1.1904000000000001,
+-1.132
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_caster_frontclose",
+"set": "player/limousine",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.15,
+0.1,
+-2.432,
+1.15,
+1.1904000000000001,
+-1.132
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_lod0_wheel",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.4925,
+0.0,
+1.02,
+0.9425,
+0.91,
+1.9300000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_show_wheel",
+"set": "player/limousine",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.4925,
+0.0,
+1.02,
+0.9425,
+0.91,
+1.9300000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_clay_wheel",
+"set": "player/limousine",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.4925,
+0.0,
+1.02,
+0.9425,
+0.91,
+1.9300000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_check_wheel",
+"set": "player/limousine",
+"mode": "check",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.4925,
+0.0,
+1.02,
+0.9425,
+0.91,
+1.9300000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_checkng_wheel",
+"set": "player/limousine",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.4925,
+0.0,
+1.02,
+0.9425,
+0.91,
+1.9300000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_checkcb_wheel",
+"set": "player/limousine",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.4925,
+0.0,
+1.02,
+0.9425,
+0.91,
+1.9300000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_lod0_wheelf",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.4925,
+0.0,
+-1.9000000000000001,
+0.9425,
+0.91,
+-0.99
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_lod0_cabin",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 10,
+"el": 20,
+"aabb": [
+-0.9429999999999998,
+0.9225599999999999,
+-0.4864,
+0.9429999999999998,
+1.488,
+1.9496
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_clayng_cabin",
+"set": "player/limousine",
+"mode": "clay_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 10,
+"el": 20,
+"aabb": [
+-0.9429999999999998,
+0.9225599999999999,
+-0.4864,
+0.9429999999999998,
+1.488,
+1.9496
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_lod0_taillamp",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.43529999999999996,
+0.7157,
+2.0698000000000003,
+1.0352999999999999,
+1.1157,
+2.6698
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_show_taillamp",
+"set": "player/limousine",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.43529999999999996,
+0.7157,
+2.0698000000000003,
+1.0352999999999999,
+1.1157,
+2.6698
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_lod0_headlamp",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 152,
+"el": 10,
+"aabb": [
+0.33759999999999996,
+0.5134000000000001,
+-2.5757999999999996,
+0.9376,
+0.9134,
+-1.9757999999999998
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_show_headlamp",
+"set": "player/limousine",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 152,
+"el": 10,
+"aabb": [
+0.33759999999999996,
+0.5134000000000001,
+-2.5757999999999996,
+0.9376,
+0.9134,
+-1.9757999999999998
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_lod0_top",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 38
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_clay_top",
+"set": "player/limousine",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 38
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_lod0_front",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 6
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "limousine_lod0_under",
+"set": "player/limousine",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "limousine_check_under",
+"set": "player/limousine",
+"mode": "check",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "limousine_checkng_under",
+"set": "player/limousine",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "limousine_checkcb_under",
+"set": "player/limousine",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "limousine_night_tail",
+"set": "player/limousine",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_night_brake",
+"set": "player/limousine",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_night_indl",
+"set": "player/limousine",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_night_indr",
+"set": "player/limousine",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+1
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_night_reverse",
+"set": "player/limousine",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.15,
+0.15,
+1.1369999999999998,
+1.15,
+1.27968,
+2.437
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+1,
+0,
+0
+]
+},
+{
+"name": "limousine_night_head",
+"set": "player/limousine",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.15,
+0.1,
+-2.432,
+1.15,
+1.1904000000000001,
+-1.132
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_night_headind",
+"set": "player/limousine",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.15,
+0.1,
+-2.432,
+1.15,
+1.1904000000000001,
+-1.132
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+1
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_night_drl",
+"set": "player/limousine",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.15,
+0.1,
+-2.432,
+1.15,
+1.1904000000000001,
+-1.132
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+0,
+0,
+0,
+0
+],
+"lamp_b": [
+0,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_night_taillamp",
+"set": "player/limousine",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.43529999999999996,
+0.7157,
+2.0698000000000003,
+1.0352999999999999,
+1.1157,
+2.6698
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "limousine_steer+25",
+"set": "player/limousine",
+"steer": 25,
+"cam": {
+"type": "orbit",
+"yaw": 140,
+"el": 14
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_steer+25_top",
+"set": "player/limousine",
+"steer": 25,
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 70
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_steer-25",
+"set": "player/limousine",
+"steer": -25,
+"cam": {
+"type": "orbit",
+"yaw": 140,
+"el": 14
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "limousine_steer-25_top",
+"set": "player/limousine",
+"steer": -25,
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 70
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_g9_day",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+}
+},
+{
+"name": "kompakt_g9_day_backlit",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"sun": [
+0.35,
+0.6,
+-1.0
+]
+},
+{
+"name": "kompakt_g9_day_ss",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4
+},
+{
+"name": "kompakt_g9_day_brake_ind",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"lamp_a": [
+0,
+1,
+1,
+0
+]
+},
+{
+"name": "kompakt_g9_night_tail",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_g9_night_brake_ind",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"night": true,
+"lamp_a": [
+1,
+1,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_g9_night_reverse",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+1,
+0,
+0
+]
+},
+{
+"name": "kompakt_g9_low",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 0.75
+},
+"msaa": 0
+},
+{
+"name": "kompakt_g9_msaa0",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"msaa": 0
+},
+{
+"name": "kompakt_g9_yaw-20",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -20
+},
+{
+"name": "kompakt_g9_yaw-20_ss",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4,
+"yaw": -20
+},
+{
+"name": "kompakt_g9_yaw-10",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -10
+},
+{
+"name": "kompakt_g9_yaw-10_ss",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4,
+"yaw": -10
+},
+{
+"name": "kompakt_g9_yaw+10",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 10
+},
+{
+"name": "kompakt_g9_yaw+10_ss",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4,
+"yaw": 10
+},
+{
+"name": "kompakt_g9_yaw+20",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 20
+},
+{
+"name": "kompakt_g9_yaw+20_ss",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0,
+"ss": 1.65
+},
+"msaa": 4,
+"yaw": 20
+},
+{
+"name": "kompakt_sweep_00",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -2.0
+},
+{
+"name": "kompakt_sweep_01",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -1.8
+},
+{
+"name": "kompakt_sweep_02",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -1.6
+},
+{
+"name": "kompakt_sweep_03",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -1.4
+},
+{
+"name": "kompakt_sweep_04",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -1.2
+},
+{
+"name": "kompakt_sweep_05",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -1.0
+},
+{
+"name": "kompakt_sweep_06",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -0.7999999999999998
+},
+{
+"name": "kompakt_sweep_07",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -0.5999999999999999
+},
+{
+"name": "kompakt_sweep_08",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -0.3999999999999999
+},
+{
+"name": "kompakt_sweep_09",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": -0.19999999999999996
+},
+{
+"name": "kompakt_sweep_10",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 0.0
+},
+{
+"name": "kompakt_sweep_11",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 0.20000000000000018
+},
+{
+"name": "kompakt_sweep_12",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 0.40000000000000036
+},
+{
+"name": "kompakt_sweep_13",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 0.6000000000000001
+},
+{
+"name": "kompakt_sweep_14",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 0.8000000000000003
+},
+{
+"name": "kompakt_sweep_15",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 1.0
+},
+{
+"name": "kompakt_sweep_16",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 1.2000000000000002
+},
+{
+"name": "kompakt_sweep_17",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 1.4000000000000004
+},
+{
+"name": "kompakt_sweep_18",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 1.6
+},
+{
+"name": "kompakt_sweep_19",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 1.8000000000000003
+},
+{
+"name": "kompakt_sweep_20",
+"set": "player/kompakt",
+"cam": {
+"type": "game",
+"dist": 9.0
+},
+"yaw": 2.0
+},
+{
+"name": "kompakt_lod0_rear34",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_show_rear34",
+"set": "player/kompakt",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_clay_rear34",
+"set": "player/kompakt",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_facets_rear34",
+"set": "player/kompakt",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_wire_rear34",
+"set": "player/kompakt",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_normals_rear34",
+"set": "player/kompakt",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_check_rear34",
+"set": "player/kompakt",
+"mode": "check",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_checkng_rear34",
+"set": "player/kompakt",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_checkcb_rear34",
+"set": "player/kompakt",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_clayng_rear34",
+"set": "player/kompakt",
+"mode": "clay_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 32,
+"el": 13
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_lod0_rear",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 9
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_lod0_side",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_show_side",
+"set": "player/kompakt",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_clay_side",
+"set": "player/kompakt",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_check_side",
+"set": "player/kompakt",
+"mode": "check",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_checkng_side",
+"set": "player/kompakt",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_checkcb_side",
+"set": "player/kompakt",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 90,
+"el": 4
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_lod0_front34",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_show_front34",
+"set": "player/kompakt",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_clay_front34",
+"set": "player/kompakt",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_facets_front34",
+"set": "player/kompakt",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_wire_front34",
+"set": "player/kompakt",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_normals_front34",
+"set": "player/kompakt",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_check_front34",
+"set": "player/kompakt",
+"mode": "check",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_checkng_front34",
+"set": "player/kompakt",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_checkcb_front34",
+"set": "player/kompakt",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_clayng_front34",
+"set": "player/kompakt",
+"mode": "clay_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 148,
+"el": 11
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_lod0_rearclose",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_show_rearclose",
+"set": "player/kompakt",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_clay_rearclose",
+"set": "player/kompakt",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_facets_rearclose",
+"set": "player/kompakt",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_wire_rearclose",
+"set": "player/kompakt",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_normals_rearclose",
+"set": "player/kompakt",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_check_rearclose",
+"set": "player/kompakt",
+"mode": "check",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_checkng_rearclose",
+"set": "player/kompakt",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_checkcb_rearclose",
+"set": "player/kompakt",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_lampmap_rearclose",
+"set": "player/kompakt",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_caster_rearclose",
+"set": "player/kompakt",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_lod0_frontclose",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.11,
+0.1,
+-2.057,
+1.11,
+1.1864000000000001,
+-0.7569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_show_frontclose",
+"set": "player/kompakt",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.11,
+0.1,
+-2.057,
+1.11,
+1.1864000000000001,
+-0.7569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_clay_frontclose",
+"set": "player/kompakt",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.11,
+0.1,
+-2.057,
+1.11,
+1.1864000000000001,
+-0.7569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_facets_frontclose",
+"set": "player/kompakt",
+"mode": "facets",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.11,
+0.1,
+-2.057,
+1.11,
+1.1864000000000001,
+-0.7569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_wire_frontclose",
+"set": "player/kompakt",
+"mode": "wire",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.11,
+0.1,
+-2.057,
+1.11,
+1.1864000000000001,
+-0.7569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_normals_frontclose",
+"set": "player/kompakt",
+"mode": "normals",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.11,
+0.1,
+-2.057,
+1.11,
+1.1864000000000001,
+-0.7569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_lampmap_frontclose",
+"set": "player/kompakt",
+"mode": "lampmap",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.11,
+0.1,
+-2.057,
+1.11,
+1.1864000000000001,
+-0.7569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_caster_frontclose",
+"set": "player/kompakt",
+"mode": "caster",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.11,
+0.1,
+-2.057,
+1.11,
+1.1864000000000001,
+-0.7569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_lod0_wheel",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.45549999999999996,
+0.0,
+0.948,
+0.9055,
+0.884,
+1.8319999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_show_wheel",
+"set": "player/kompakt",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.45549999999999996,
+0.0,
+0.948,
+0.9055,
+0.884,
+1.8319999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_clay_wheel",
+"set": "player/kompakt",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.45549999999999996,
+0.0,
+0.948,
+0.9055,
+0.884,
+1.8319999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_check_wheel",
+"set": "player/kompakt",
+"mode": "check",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.45549999999999996,
+0.0,
+0.948,
+0.9055,
+0.884,
+1.8319999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_checkng_wheel",
+"set": "player/kompakt",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.45549999999999996,
+0.0,
+0.948,
+0.9055,
+0.884,
+1.8319999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_checkcb_wheel",
+"set": "player/kompakt",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 68,
+"el": 6,
+"aabb": [
+0.45549999999999996,
+0.0,
+0.948,
+0.9055,
+0.884,
+1.8319999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_lod0_wheelf",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 112,
+"el": 6,
+"aabb": [
+0.45549999999999996,
+0.0,
+-1.672,
+0.9055,
+0.884,
+-0.788
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_lod0_cabin",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 10,
+"el": 20,
+"aabb": [
+-0.9102,
+0.91946,
+-0.4114,
+0.9102,
+1.483,
+1.6512000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_clayng_cabin",
+"set": "player/kompakt",
+"mode": "clay_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 10,
+"el": 20,
+"aabb": [
+-0.9102,
+0.91946,
+-0.4114,
+0.9102,
+1.483,
+1.6512000000000002
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_lod0_taillamp",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.3793,
+0.6659999999999999,
+1.6994,
+0.9793000000000001,
+1.066,
+2.2994
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_show_taillamp",
+"set": "player/kompakt",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.3793,
+0.6659999999999999,
+1.6994,
+0.9793000000000001,
+1.066,
+2.2994
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_lod0_headlamp",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 152,
+"el": 10,
+"aabb": [
+0.2715,
+0.47800000000000004,
+-2.2429,
+0.8715,
+0.8780000000000001,
+-1.6429
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_show_headlamp",
+"set": "player/kompakt",
+"lod": "show",
+"cam": {
+"type": "orbit",
+"yaw": 152,
+"el": 10,
+"aabb": [
+0.2715,
+0.47800000000000004,
+-2.2429,
+0.8715,
+0.8780000000000001,
+-1.6429
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_lod0_top",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 38
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_clay_top",
+"set": "player/kompakt",
+"mode": "clay",
+"cam": {
+"type": "orbit",
+"yaw": 0,
+"el": 38
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_lod0_front",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 6
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": false
+},
+{
+"name": "kompakt_lod0_under",
+"set": "player/kompakt",
+"lod": "lod0",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "kompakt_check_under",
+"set": "player/kompakt",
+"mode": "check",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "kompakt_checkng_under",
+"set": "player/kompakt",
+"mode": "check_noglass",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "kompakt_checkcb_under",
+"set": "player/kompakt",
+"mode": "check_cb",
+"cam": {
+"type": "orbit",
+"yaw": 35,
+"el": -8
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"no_ground": true
+},
+{
+"name": "kompakt_night_tail",
+"set": "player/kompakt",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_night_brake",
+"set": "player/kompakt",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+1,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_night_indl",
+"set": "player/kompakt",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_night_indr",
+"set": "player/kompakt",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+1
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_night_reverse",
+"set": "player/kompakt",
+"cam": {
+"type": "orbit",
+"yaw": 18,
+"el": 10,
+"aabb": [
+-1.11,
+0.15,
+0.764,
+1.11,
+1.27538,
+2.064
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+1,
+0,
+0
+]
+},
+{
+"name": "kompakt_night_head",
+"set": "player/kompakt",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.11,
+0.1,
+-2.057,
+1.11,
+1.1864000000000001,
+-0.7569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_night_headind",
+"set": "player/kompakt",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.11,
+0.1,
+-2.057,
+1.11,
+1.1864000000000001,
+-0.7569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+1,
+1
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_night_drl",
+"set": "player/kompakt",
+"cam": {
+"type": "orbit",
+"yaw": 162,
+"el": 8,
+"aabb": [
+-1.11,
+0.1,
+-2.057,
+1.11,
+1.1864000000000001,
+-0.7569999999999999
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+0,
+0,
+0,
+0
+],
+"lamp_b": [
+0,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_night_taillamp",
+"set": "player/kompakt",
+"cam": {
+"type": "orbit",
+"yaw": 28,
+"el": 12,
+"aabb": [
+0.3793,
+0.6659999999999999,
+1.6994,
+0.9793000000000001,
+1.066,
+2.2994
+]
+},
+"size": [
+960,
+600
+],
+"msaa": 4,
+"night": true,
+"lamp_a": [
+1,
+0,
+0,
+0
+],
+"lamp_b": [
+1,
+0,
+0,
+0
+]
+},
+{
+"name": "kompakt_steer+25",
+"set": "player/kompakt",
+"steer": 25,
+"cam": {
+"type": "orbit",
+"yaw": 140,
+"el": 14
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_steer+25_top",
+"set": "player/kompakt",
+"steer": 25,
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 70
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_steer-25",
+"set": "player/kompakt",
+"steer": -25,
+"cam": {
+"type": "orbit",
+"yaw": 140,
+"el": 14
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+},
+{
+"name": "kompakt_steer-25_top",
+"set": "player/kompakt",
+"steer": -25,
+"cam": {
+"type": "orbit",
+"yaw": 180,
+"el": 70
+},
+"size": [
+960,
+600
+],
+"msaa": 4
+}
+]

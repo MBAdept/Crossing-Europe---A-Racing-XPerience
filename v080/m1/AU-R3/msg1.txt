@@ -1,0 +1,13 @@
+v0.8.0 AU-R3: kein Altstadtpflaster auf Brücken ohne Steindeck, Pflasteranteil der Straßen (WIP)
+
+KRITIK-R L2: Der Damm nach Venedig (Betondeck in der Altstadtzone) war auf 16 von
+28 Zeilen gepflastert. _paving() pflastert jetzt nur abseits der Brücken: ein
+Betondeck in der Stadt bleibt Asphalt, Stahl bleibt "deck", Stein bleibt Pflaster,
+die Fugen je Deck bleiben. cobbled_blocks() nimmt die Brücken ohne Steindeck aus der
+Zuteilung (bridge_stretches aus dem Plan), damit jede Altstadt ihren Anteil auf den
+Straßen bekommt; ohne solche Brücke in der Altstadt ist die Zuteilung bitgleich.
+Tests: Damm (Anteil 1) und Brücke mitten in der Altstadt (0,42 -> 0,60), beide auf
+dem alten Stand rot; Zuteilung nur über Straßenmeter.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

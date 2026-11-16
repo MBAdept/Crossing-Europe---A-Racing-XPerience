@@ -1,0 +1,20 @@
+v0.8.0 M2INT: Korrigierten ersten Testbuild (ZS1) zusammengeführt – Start-Fix und Elbe unter der Köhlbrandbrücke
+
+Zusammenführung von COMMIT (ZS1_FERTIG der Leitung):
+- FIX-ZS1: Vorlauf der Straße vor der Startlinie (Kamera 9 m hinter dem Auto, Spielerauto im Countdown sichtbar;
+  scripts/race3d/road_path.gd, chunk_context.gd, chunk_streamer.gd, layers/vehicles.gd), Lampenringe des Starttors
+  ohne Schatten (builders/gantry.gd), Render-Prüfung „Start bei km 0“ (check_start_km0.gd), Einheitstests des
+  Vorlaufs, Doku.
+- FIX-WASSER: Fernboden unter dem tiefsten Wasser des geladenen Fensters (layers/far_ground.gd, target_height /
+  lowest_water über Track.bridges), test_far_ground_water.gd, Doku.
+
+Konflikte:
+- scripts/race3d/layers/far_ground.gd: dieselbe Ursache hatte M2INT in b341df8 behoben (Fernboden unter dem Wasser
+  der geladenen Brücken, Befund FIX-ZS1-B1). Übernommen ist die Lösung von FIX-WASSER (geprüft im Testbuild, eigene
+  Tests); mein lowest_road(…, track) und test_terrain_builder „far_ground_lies_below_the_water_of_a_bridge“ entfallen
+  (test_far_ground_water.gd deckt es ab).
+- docs/renderer-modern-gelaende.md: Text von FIX-WASSER, mein doppelter Absatz entfernt.
+KONFLIKTE_REST
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

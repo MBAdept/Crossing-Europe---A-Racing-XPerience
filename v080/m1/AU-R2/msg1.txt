@@ -1,0 +1,11 @@
+v0.8.0 AU-R2: Plattenmuster aus den Fugen von AU-C1, Sperre nur beim Start (WIP)
+
+- vehicle_loops.py: die 32-Platten-Muster entstehen aus den 8 Fugen der AU-C1-Entwürfe (gemischte Folge,
+  für beide Entwürfe gleich, Akzent ±1,2 dB, nie härter als die härteste Fuge von AU-C1) – zwischen 110 und
+  150 km/h treffen sich die Schläge beider Entwürfe wie bei AU-C1 (KRITIK-R H1); Pflaster: Obergrenze der
+  Steinstärke (M5, noch nicht benutzt). Noch nicht neu erzeugt.
+- road_audio.gd: AudioServer.lock() nur, wenn eine Plattenschleife startet, und für den Abgleich alle 0,5 s
+  (KRITIK-R M1).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,6 @@
+mx_race_music_off.wav: Profil modern, race_music gran_turismo, 47.87 s – integriert -16.61 LUFS, Lautheitsbereich 7.22 LU, True Peak -3.82 dBTP
+  idle              1.5–   3.0 s   -23.96 LUFS  Kurzzeit max  -23.96 / Median  -23.96  True Peak -11.58
+  full_throttle     4.0–  29.9 s   -15.78 LUFS  Kurzzeit max  -14.85 / Median  -15.60  True Peak  -5.12
+  flat_out         29.9–  35.9 s   -14.42 LUFS  Kurzzeit max  -14.29 / Median  -14.37  True Peak  -3.82
+  lift             35.9–  38.9 s   -19.00 LUFS  Kurzzeit max  -19.00 / Median  -19.00  True Peak  -7.41
+  cruise_130       40.9–  47.9 s   -21.47 LUFS  Kurzzeit max  -20.92 / Median  -21.60  True Peak -12.02

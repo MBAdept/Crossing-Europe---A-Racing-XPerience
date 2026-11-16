@@ -1,0 +1,25 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+UEBERZEICHNUNG props/tree_oak @20 m Kuppeln/Karten 67 Dreiecke leaves 2060 Bildfläche 644178 px
+UEBERZEICHNUNG props/tree_birch @20 m Kuppeln/Karten 33 Dreiecke leaves 1584 Bildfläche 123626 px
+UEBERZEICHNUNG props/tree_beech @20 m Kuppeln/Karten 62 Dreiecke leaves 2084 Bildfläche 633160 px
+UEBERZEICHNUNG props/tree_poplar @20 m Kuppeln/Karten 82 Dreiecke leaves 2228 Bildfläche 463627 px
+UEBERZEICHNUNG props/tree_olive @20 m Kuppeln/Karten 40 Dreiecke leaves 1940 Bildfläche 182153 px
+UEBERZEICHNUNG props/tree_pine @20 m Kuppeln/Karten 30 Dreiecke leaves 1440 Bildfläche 130783 px
+UEBERZEICHNUNG props/tree_spruce @20 m Kuppeln/Karten 270 Dreiecke leaves 1026 Bildfläche 579787 px
+UEBERZEICHNUNG props/tree_cypress @20 m Kuppeln/Karten 0 Dreiecke leaves 1200 Bildfläche 43829 px
+UEBERZEICHNUNG props/tree_palm @20 m Kuppeln/Karten 208 Dreiecke leaves 416 Bildfläche 28184 px
+UEBERZEICHNUNG props/tree_oak_b @20 m Kuppeln/Karten 67 Dreiecke leaves 2132 Bildfläche 669866 px
+UEBERZEICHNUNG props/tree_birch_b @20 m Kuppeln/Karten 34 Dreiecke leaves 1632 Bildfläche 128676 px
+UEBERZEICHNUNG props/tree_beech_b @20 m Kuppeln/Karten 62 Dreiecke leaves 2084 Bildfläche 635219 px
+UEBERZEICHNUNG props/tree_poplar_b @20 m Kuppeln/Karten 80 Dreiecke leaves 2204 Bildfläche 425781 px
+UEBERZEICHNUNG props/tree_olive_b @20 m Kuppeln/Karten 39 Dreiecke leaves 1892 Bildfläche 180658 px
+UEBERZEICHNUNG props/tree_pine_b @20 m Kuppeln/Karten 36 Dreiecke leaves 1728 Bildfläche 155566 px
+UEBERZEICHNUNG props/tree_spruce_b @20 m Kuppeln/Karten 216 Dreiecke leaves 822 Bildfläche 455347 px
+UEBERZEICHNUNG props/tree_cypress_b @20 m Kuppeln/Karten 0 Dreiecke leaves 1200 Bildfläche 33153 px
+UEBERZEICHNUNG props/tree_palm_b @20 m Kuppeln/Karten 208 Dreiecke leaves 416 Bildfläche 27903 px
+UEBERZEICHNUNG props/bush_round @20 m Kuppeln/Karten 20 Dreiecke leaves 396 Bildfläche 45150 px
+UEBERZEICHNUNG props/bush_round_b @20 m Kuppeln/Karten 19 Dreiecke leaves 396 Bildfläche 48786 px
+UEBERZEICHNUNG props/bush_low @20 m Kuppeln/Karten 25 Dreiecke leaves 395 Bildfläche 38887 px
+UEBERZEICHNUNG props/cover_bush @20 m Kuppeln/Karten 9 Dreiecke leaves 236 Bildfläche 3796 px
+UEBERZEICHNUNG props/heather @20 m Kuppeln/Karten 30 Dreiecke leaves 390 Bildfläche 16985 px

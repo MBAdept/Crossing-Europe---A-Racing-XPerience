@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "date": "2026-11-12 19:20:49",
+  "adapter": "llvmpipe (LLVM 20.1.2, 256 bits)",
+  "api": "4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+  "tier": "software",
+  "preset": "low",
+  "quality": {
+    "shadows": 0,
+    "details": 0,
+    "scale": 75,
+    "aa": 0,
+    "effects": 0
+  },
+  "resolution": [
+    1280,
+    720
+  ],
+  "scenes": [],
+  "suggested_preset": "low",
+  "suggested_mode": "arcade",
+  "verdict": "",
+  "refresh_hz": -1.0,
+  "target_ms": 16.667,
+  "vsync": false,
+  "game_version": "0.7.0",
+  "os": "Linux (Ubuntu 24.04.5 LTS)",
+  "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+  "cpu_threads": 4,
+  "vendor": "Mesa",
+  "driver": "opengl3",
+  "fallback": "selftest:debug",
+  "aborted": false,
+  "error": "",
+  "seconds": 20.0,
+  "renderer_stub": false,
+  "worst_scene": "",
+  "headroom": 0.0
+}

@@ -1,0 +1,9 @@
+AS2R: Kontaktbogen setzt den Renn-Look wirklich (Kunstkritik C2)
+
+set_class_parameter erreicht nur vorhandene Materialien: der Kontaktbogen legt
+die Klassenmaterialien jetzt vor dem Look an, wie die Fahrzeug-Ebene. Vorher
+war --look=race pixelgleich mit --look=neutral (gemessen jetzt: 31 429 von
+144 000 Pixeln einer Kachel unterscheiden sich).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

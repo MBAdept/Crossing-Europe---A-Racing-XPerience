@@ -1,0 +1,1 @@
+[{"set": "traffic/sports_red", "dist": 20.3, "lane": -3.75}, {"set": "traffic/van_white", "dist": 45.3, "lane": 0.0}, {"set": "police/de", "dist": 70.3, "lane": -3.75, "beacon": "a"}, {"set": "traffic/suv_grey", "dist": 110.3, "lane": -7.5}, {"set": "traffic/bus_red", "dist": 160.3, "lane": 0.0}]

@@ -1,0 +1,99 @@
+## Probe rows of the low beam's patch: one per half metre KEGEL_FROM … KEGEL_TO m ahead of the camera, as
+## [row y, lane window (x0, x1), edge-line window (x0, x1)] – the window of the player's lane (±25 px round its middle)
+## and ±30 px round the continuous edge line beside it. Windows, not points: with the curve camera Modern looks a
+## little into the bend, Arcade straight ahead – the same place lies a few pixels apart in the two pictures (A-3), and
+## the line is found as the brightest pixel of its window in each picture. Empty when the player is in a middle lane
+## (no continuous line beside it).
+func _cone_rows(r: ModernRenderer) -> Array:
+	var cam_z := float(r.view["camera_z"])
+	var pl: Dictionary = r.view.get("player", {})
+	var px := float(pl.get("x", 0.0))
+	var lw := r.track.lane_w
+	var out: Array = []
+	var d := KEGEL_FROM
+	while d <= KEGEL_TO:
+		var z := cam_z + d
+		var seg := r.track.get_segment(int(z / r.track.seg_len))
+		var n := int(ceil(seg.lanes - 0.01))
+		var la := -seg.lanes * lw * 0.5
+		var lane := clampi(int(floor((px - la) / lw)), 0, maxi(n - 1, 0))
+		var edge_x := 0.0
+		if lane == n - 1:
+			edge_x = la + float(n) * lw - 0.3       # right edge line of the regular lanes (0.15 m inside, 0.3 m wide)
+		elif lane == 0:
+			edge_x = la + 0.3                       # left edge line
+		else:
+			return []
+		var qc := r.world_to_screen(z, la + (float(lane) + 0.5) * lw, 0.0)
+		var qe := r.world_to_screen(z, edge_x, 0.0)
+		if qc.z > 0.0 and qe.z > 0.0:
+			out.append([int(round(qc.y)), Vector2i(int(qc.x) - 25, int(qc.x) + 25), Vector2i(int(qe.x) - 30, int(qe.x) + 30)])
+		d += 0.5
+	return out
+
+
+## [median luminance of the lane windows, median Weber contrast of the edge line against the lane in each row].
+static func _cone_measure(img: Image, rows: Array) -> Vector2:
+	var lanes: Array[float] = []
+	var webers: Array[float] = []
+	var w := img.get_width()
+	for row: Array in rows:
+		var y: int = row[0]
+		if y < 0 or y >= img.get_height():
+			continue
+		var lw: Vector2i = row[1]
+		var ew: Vector2i = row[2]
+		var vals: Array[float] = []
+		for x in range(clampi(lw.x, 0, w - 1), clampi(lw.y, 0, w - 1) + 1):
+			vals.append(img.get_pixel(x, y).get_luminance())
+		if vals.size() < 10:
+			continue
+		vals.sort()
+		var lane := vals[vals.size() / 2]
+		var line := 0.0
+		for x in range(clampi(ew.x, 0, w - 1), clampi(ew.y, 0, w - 1) + 1):
+			line = maxf(line, img.get_pixel(x, y).get_luminance())
+		lanes.append(lane)
+		webers.append((line - lane) / maxf(lane, 0.01))
+	if lanes.is_empty():
+		return Vector2.ZERO
+	lanes.sort()
+	webers.sort()
+	return Vector2(lanes[lanes.size() / 2], webers[webers.size() / 2])
+
+
+func _check_nass_kegel() -> void:
+	var p: Array[String] = []
+	CliArgs.all()["gfx-preset"] = "medium"
+	var extra := {"stage_id": "dortmund_frankfurt", "from_city": "dortmund", "start_km": 121.0, "weather": "rain",
+		"vehicle": "gran_turismo", "seed": 14, "start_world_minutes": 22.0 * 60.0}
+	var got_a: Array = await _stage_shot("arcade", extra)
+	var arcade: Image = got_a[1]
+	await _free(got_a[0])
+	var got_m: Array = await _stage_shot("modern", extra)
+	var sc: Node = got_m[0]
+	var modern: Image = got_m[1]
+	var r: Variant = sc.get("renderer")
+	var msg := ""
+	if not (r is ModernRenderer):
+		_need(p, false, "Modern-Etappe läuft")
+	else:
+		var rows: Array = _cone_rows(r)
+		var a := _cone_measure(arcade, rows)
+		var m := _cone_measure(modern, rows)
+		var ratio := m.x / maxf(a.x, 1.0e-4)
+		var kr := m.y / maxf(a.y, 1.0e-4)
+		_keep(arcade, "nass_kegel_arcade")
+		_keep(modern, "nass_kegel_modern")
+		_need(p, rows.size() >= 20, "Spieler auf einer Randspur, genug Zeilen im Kegel (%d)" % rows.size())
+		_need(p, a.y > 0.5, "Arcade zeigt die Randlinie im Kegel (Weber %.2f)" % a.y)
+		_need(p, ratio <= WET_CONE_MAX, "nasse Fahrbahn im Abblendlicht höchstens %.2f× Arcade (%.2f×)" % [WET_CONE_MAX, ratio])
+		_need(p, ratio >= WET_CONE_MIN, "… und mindestens %.2f× (der Kegel bleibt sichtbar, %.2f×)" % [WET_CONE_MIN, ratio])
+		_need(p, kr >= WET_LINE_MIN, "Randlinie im Kegel mindestens %.1f× Arcades Kontrast (%.2f gegen %.2f = %.2f×)" % [WET_LINE_MIN, m.y, a.y, kr])
+		msg = "N2 22 Uhr Regen, eigene Spur %.0f–%.0f m: Fahrbahn Modern %.3f, Arcade %.3f (%.2f×), Randlinie Weber %.2f gegen %.2f (%.2f×), %d Zeilen" % [
+			KEGEL_FROM, KEGEL_TO, m.x, a.x, ratio, m.y, a.y, kr, rows.size()]
+	await _free(sc)
+	CliArgs.all().erase("gfx-preset")
+	_report("nass_kegel", p, msg)
+
+

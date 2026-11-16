@@ -1,0 +1,29 @@
+stage directions: 130 (non-dev 128)
+total road 3017 km visible metres (29400 odometer km)
+self-proximity <  40 m within 960 m of path:        0 m of road (0.00 %), 0 of 128 stage directions
+self-proximity <  80 m within 960 m of path:        0 m of road (0.00 %), 0 of 128 stage directions
+self-proximity < 150 m within 960 m of path:  2999328 m of road (99.40 %), 128 of 128 stage directions
+self-proximity <  40 m within 1900 m of path:        0 m of road (0.00 %), 0 of 128 stage directions
+self-proximity <  80 m within 1900 m of path:        0 m of road (0.00 %), 0 of 128 stage directions
+self-proximity < 150 m within 1900 m of path:  2999328 m of road (99.40 %), 128 of 128 stage directions
+cumulative heading: max |theta| = 455 deg (saragossa_pau__pau)
+heading range (max-min) median 156 deg, max 508 deg
+max heading change inside 300 m: median 39 deg, p90 61, max 123 deg (saragossa_pau__saragossa)
+max heading change inside 495 m: median 45 deg, p90 72, max 151 deg (saragossa_pau__saragossa)
+max heading change inside 900 m: median 60 deg, p90 101, max 219 deg (saragossa_pau__pau)
+max heading change inside 960 m: median 64 deg, p90 106, max 222 deg (saragossa_pau__pau)
+camera positions with road ahead (<=900 m) turned > 90 deg: 23400 m (0.78 %), > 150 deg: 3120 m (0.10 %)
+
+worst 12 by self-proximity (<80 m within 960 m):
+  kiel_hamburg__kiel                    95 km  max|curve| 0.29  <40:     0 m  <80:     0 m  <150:  9960 m  min 143.3 m (arc  144 m, dy  +3.7 m, km 8.5)  dtheta900  45 deg
+  kiel_hamburg__hamburg                 95 km  max|curve| 0.29  <40:     0 m  <80:     0 m  <150:  9960 m  min 143.5 m (arc  144 m, dy  +0.0 m, km 17.8)  dtheta900  37 deg
+  hamburg_hannover__hamburg            150 km  max|curve| 0.27  <40:     0 m  <80:     0 m  <150: 15468 m  min 143.4 m (arc  144 m, dy  +1.8 m, km 28.3)  dtheta900  60 deg
+  hamburg_hannover__hannover           150 km  max|curve| 0.28  <40:     0 m  <80:     0 m  <150: 15468 m  min 143.3 m (arc  144 m, dy  -1.2 m, km 121.1)  dtheta900  54 deg
+  hannover_kassel__hannover            165 km  max|curve| 0.41  <40:     0 m  <80:     0 m  <150: 16968 m  min 142.6 m (arc  144 m, dy -11.0 m, km 67.9)  dtheta900  83 deg
+  hannover_kassel__kassel              165 km  max|curve| 0.41  <40:     0 m  <80:     0 m  <150: 16968 m  min 142.6 m (arc  144 m, dy  +5.9 m, km 85.3)  dtheta900  65 deg
+  kassel_wuerzburg__kassel             210 km  max|curve| 0.43  <40:     0 m  <80:     0 m  <150: 21468 m  min 142.7 m (arc  144 m, dy  -8.7 m, km 96.8)  dtheta900  80 deg
+  kassel_wuerzburg__wuerzburg          210 km  max|curve| 0.43  <40:     0 m  <80:     0 m  <150: 21468 m  min 142.4 m (arc  144 m, dy  -6.7 m, km 60.0)  dtheta900  79 deg
+  hamburg_bremen__hamburg              120 km  max|curve| 0.29  <40:     0 m  <80:     0 m  <150: 12468 m  min 143.3 m (arc  144 m, dy  +0.0 m, km 2.0)  dtheta900  44 deg
+  hamburg_bremen__bremen               120 km  max|curve| 0.25  <40:     0 m  <80:     0 m  <150: 12468 m  min 143.5 m (arc  144 m, dy  +0.0 m, km 104.6)  dtheta900  28 deg
+  bremen_dortmund__bremen              235 km  max|curve| 0.29  <40:     0 m  <80:     0 m  <150: 23964 m  min 143.3 m (arc  144 m, dy  +0.0 m, km 217.9)  dtheta900  54 deg
+  bremen_dortmund__dortmund            235 km  max|curve| 0.28  <40:     0 m  <80:     0 m  <150: 23964 m  min 143.3 m (arc  144 m, dy -10.0 m, km 132.1)  dtheta900  54 deg

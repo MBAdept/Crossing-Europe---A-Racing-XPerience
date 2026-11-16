@@ -1,0 +1,12 @@
+QA-PROPS cam_z=-9.0 km=0
+QA-CHUNK index=-1 seg -32..0 dropped={"corridor":0,"density":0,"missing":0,"ribbon":0} props=0
+QA-CHUNK index=0 seg 0..32 dropped={"corridor":1,"density":0,"missing":0,"ribbon":0} props=5
+  OK   seg=0 j=0 z=+10.1 x=+24.0 side=1 set=props/tree_birch scale=1.07 deco beyond_shoulder=15.8 ribbon=1000.0 corridor=false
+  OK   seg=0 j=1 z=+9.8 x=-42.4 side=-1 set=props/haybale scale=1.00 deco beyond_shoulder=34.3 ribbon=472.5 corridor=false
+  FEHLT seg=9 j=0 z=+36.9 x=-17.1 side=-1 set=props/tree_oak scale=1.10 deco beyond_shoulder=9.0 ribbon=472.5 corridor=true
+  OK   seg=11 j=0 z=+44.9 x=+17.0 side=1 set=props/bush_round scale=0.91 deco beyond_shoulder=8.8 ribbon=1000.0 corridor=false
+  OK   seg=13 j=0 z=+51.0 x=+17.6 side=1 set=props/tree_birch scale=1.13 deco beyond_shoulder=9.5 ribbon=1000.0 corridor=false
+  OK   seg=27 j=0 z=+92.4 x=+19.5 side=1 set=props/tree_oak scale=0.91 deco beyond_shoulder=11.4 ribbon=1000.0 corridor=false
+QA-CHUNK index=1 seg 32..64 dropped={"corridor":1,"density":0,"missing":0,"ribbon":0} props=3
+  OK   seg=39 j=0 z=+126.4 x=+19.5 side=1 set=props/tree_birch scale=1.02 deco beyond_shoulder=11.4 ribbon=1000.0 corridor=false
+QA-PROPS-END

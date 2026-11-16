@@ -1,0 +1,1 @@
+Kiel – Hamburg ganz, Modus Modern, „Mittel“, Xvfb: Ziel erreicht, 0 Skript-/Shaderfehler, `ERGEBNIS` bytegleich mit der Basis; `render()` 2,22 / 24,6 ms (Basis 2,09 / 18,4), Commit max 2,92 ms (2,66), 105 Aufrufe / 93 050 Primitive (gleich) – Abschnitt 6

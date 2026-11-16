@@ -1,0 +1,1267 @@
+{
+ "kompakt": {
+  "arcade": {
+   "integrated_lufs": -20.62,
+   "lra": 5.44,
+   "true_peak_db": -10.1,
+   "phases": {
+    "idle": {
+     "lufs": -24.11,
+     "corr": 0.99,
+     "balance_db": -0.03,
+     "mono_db": -0.1,
+     "centroid_hz": 107,
+     "share_2k_db": -22.6,
+     "share_5k_db": -25.6,
+     "mod_std_db": 2.27,
+     "peak": 0.295
+    },
+    "revs": {
+     "lufs": -20.97,
+     "corr": 0.98,
+     "balance_db": -0.02,
+     "mono_db": -0.07,
+     "centroid_hz": 103,
+     "share_2k_db": -27.2,
+     "share_5k_db": -33.6,
+     "mod_std_db": 2.52,
+     "peak": 0.312
+    },
+    "pull": {
+     "lufs": -18.56,
+     "corr": 0.87,
+     "balance_db": -0.1,
+     "mono_db": -0.52,
+     "centroid_hz": 904,
+     "share_2k_db": -9.0,
+     "share_5k_db": -9.4,
+     "mod_std_db": 1.26,
+     "peak": 0.311
+    },
+    "cruise_hi": {
+     "lufs": -22.12,
+     "corr": 0.95,
+     "balance_db": 2.22,
+     "mono_db": -1.2,
+     "centroid_hz": 227,
+     "share_2k_db": -17.5,
+     "share_5k_db": -25.7,
+     "mod_std_db": 0.41,
+     "peak": 0.187
+    },
+    "lift": {
+     "lufs": -20.96,
+     "corr": 0.97,
+     "balance_db": -0.04,
+     "mono_db": -0.1,
+     "centroid_hz": 139,
+     "share_2k_db": -25.8,
+     "share_5k_db": -34.8,
+     "mod_std_db": 0.43,
+     "peak": 0.143
+    },
+    "brake": {
+     "lufs": -22.17,
+     "corr": 0.97,
+     "balance_db": 0.05,
+     "mono_db": -0.1,
+     "centroid_hz": 121,
+     "share_2k_db": -26.9,
+     "share_5k_db": -36.1,
+     "mod_std_db": 1.11,
+     "peak": 0.166
+    },
+    "cruise_130": {
+     "lufs": -22.96,
+     "corr": 0.99,
+     "balance_db": 0.2,
+     "mono_db": -0.15,
+     "centroid_hz": 125,
+     "share_2k_db": -24.1,
+     "share_5k_db": -37.5,
+     "mod_std_db": 1.53,
+     "peak": 0.282
+    },
+    "kickdown": {
+     "lufs": -18.37,
+     "corr": 0.9,
+     "balance_db": 0.07,
+     "mono_db": -0.42,
+     "centroid_hz": 758,
+     "share_2k_db": -10.0,
+     "share_5k_db": -10.3,
+     "mod_std_db": 2.28,
+     "peak": 0.295
+    },
+    "lift2": {
+     "lufs": -21.8,
+     "corr": 0.97,
+     "balance_db": -0.15,
+     "mono_db": -0.15,
+     "centroid_hz": 130,
+     "share_2k_db": -25.5,
+     "share_5k_db": -35.4,
+     "mod_std_db": 0.85,
+     "peak": 0.17
+    },
+    "stop": {
+     "lufs": -22.51,
+     "corr": 0.98,
+     "balance_db": -0.02,
+     "mono_db": -0.08,
+     "centroid_hz": 110,
+     "share_2k_db": -26.0,
+     "share_5k_db": -31.2,
+     "mod_std_db": 1.63,
+     "peak": 0.24
+    }
+   },
+   "engine_perf": {
+    "avg_ms": 2.2570987654321,
+    "frames": 567,
+    "max_ms": 9.607,
+    "samples": 1552096,
+    "skips": 0
+   }
+  },
+  "modern": {
+   "integrated_lufs": -19.36,
+   "lra": 8.09,
+   "true_peak_db": -8.59,
+   "phases": {
+    "idle": {
+     "lufs": -23.72,
+     "corr": 1.0,
+     "balance_db": -0.03,
+     "mono_db": -0.02,
+     "centroid_hz": 99,
+     "share_2k_db": -23.2,
+     "share_5k_db": -25.9,
+     "mod_std_db": 2.62,
+     "peak": 0.308
+    },
+    "revs": {
+     "lufs": -22.53,
+     "corr": 0.99,
+     "balance_db": -0.02,
+     "mono_db": -0.04,
+     "centroid_hz": 132,
+     "share_2k_db": -24.5,
+     "share_5k_db": -31.2,
+     "mod_std_db": 2.94,
+     "peak": 0.221
+    },
+    "pull": {
+     "lufs": -16.35,
+     "corr": 0.97,
+     "balance_db": 0.03,
+     "mono_db": -0.14,
+     "centroid_hz": 448,
+     "share_2k_db": -14.2,
+     "share_5k_db": -17.3,
+     "mod_std_db": 1.68,
+     "peak": 0.342
+    },
+    "cruise_hi": {
+     "lufs": -20.1,
+     "corr": 0.99,
+     "balance_db": 0.14,
+     "mono_db": -0.11,
+     "centroid_hz": 207,
+     "share_2k_db": -21.0,
+     "share_5k_db": -28.5,
+     "mod_std_db": 0.96,
+     "peak": 0.231
+    },
+    "lift": {
+     "lufs": -24.16,
+     "corr": 1.0,
+     "balance_db": 0.08,
+     "mono_db": -0.04,
+     "centroid_hz": 141,
+     "share_2k_db": -25.2,
+     "share_5k_db": -33.4,
+     "mod_std_db": 0.47,
+     "peak": 0.099
+    },
+    "brake": {
+     "lufs": -24.11,
+     "corr": 1.0,
+     "balance_db": -0.02,
+     "mono_db": -0.03,
+     "centroid_hz": 142,
+     "share_2k_db": -24.8,
+     "share_5k_db": -34.1,
+     "mod_std_db": 2.26,
+     "peak": 0.192
+    },
+    "cruise_130": {
+     "lufs": -22.25,
+     "corr": 0.99,
+     "balance_db": 0.18,
+     "mono_db": -0.11,
+     "centroid_hz": 147,
+     "share_2k_db": -25.5,
+     "share_5k_db": -32.9,
+     "mod_std_db": 1.03,
+     "peak": 0.222
+    },
+    "kickdown": {
+     "lufs": -16.1,
+     "corr": 0.98,
+     "balance_db": 0.0,
+     "mono_db": -0.07,
+     "centroid_hz": 375,
+     "share_2k_db": -15.5,
+     "share_5k_db": -18.2,
+     "mod_std_db": 2.54,
+     "peak": 0.305
+    },
+    "lift2": {
+     "lufs": -26.07,
+     "corr": 1.0,
+     "balance_db": -0.22,
+     "mono_db": -0.11,
+     "centroid_hz": 134,
+     "share_2k_db": -25.1,
+     "share_5k_db": -32.7,
+     "mod_std_db": 1.0,
+     "peak": 0.14
+    },
+    "stop": {
+     "lufs": -23.47,
+     "corr": 1.0,
+     "balance_db": -0.05,
+     "mono_db": -0.04,
+     "centroid_hz": 119,
+     "share_2k_db": -24.7,
+     "share_5k_db": -30.0,
+     "mod_std_db": 2.32,
+     "peak": 0.218
+    }
+   },
+   "engine_perf": {
+    "avg_ms": 3.48541897810219,
+    "frames": 685,
+    "max_ms": 9.785,
+    "ms_per_frame": 0.813939344351715,
+    "samples": 1564416,
+    "skips": 0,
+    "threaded": true
+   }
+  },
+  "ab_gain_modern_db": -1.26
+ },
+ "kombi": {
+  "arcade": {
+   "integrated_lufs": -23.23,
+   "lra": 5.34,
+   "true_peak_db": -11.13,
+   "phases": {
+    "idle": {
+     "lufs": -28.71,
+     "corr": 0.85,
+     "balance_db": 0.12,
+     "mono_db": -0.85,
+     "centroid_hz": 628,
+     "share_2k_db": -10.2,
+     "share_5k_db": -18.8,
+     "mod_std_db": 2.24,
+     "peak": 0.221
+    },
+    "revs": {
+     "lufs": -25.84,
+     "corr": 0.96,
+     "balance_db": -0.06,
+     "mono_db": -0.29,
+     "centroid_hz": 182,
+     "share_2k_db": -17.7,
+     "share_5k_db": -27.4,
+     "mod_std_db": 3.18,
+     "peak": 0.188
+    },
+    "pull": {
+     "lufs": -21.16,
+     "corr": 0.8,
+     "balance_db": -0.15,
+     "mono_db": -0.8,
+     "centroid_hz": 1013,
+     "share_2k_db": -6.8,
+     "share_5k_db": -21.2,
+     "mod_std_db": 1.55,
+     "peak": 0.274
+    },
+    "cruise_hi": {
+     "lufs": -24.77,
+     "corr": 0.95,
+     "balance_db": -0.38,
+     "mono_db": -0.44,
+     "centroid_hz": 274,
+     "share_2k_db": -14.4,
+     "share_5k_db": -27.4,
+     "mod_std_db": 0.53,
+     "peak": 0.15
+    },
+    "lift": {
+     "lufs": -26.03,
+     "corr": 0.99,
+     "balance_db": 0.28,
+     "mono_db": -0.19,
+     "centroid_hz": 114,
+     "share_2k_db": -21.7,
+     "share_5k_db": -41.7,
+     "mod_std_db": 0.27,
+     "peak": 0.094
+    },
+    "brake": {
+     "lufs": -25.55,
+     "corr": 0.99,
+     "balance_db": -0.3,
+     "mono_db": -0.18,
+     "centroid_hz": 79,
+     "share_2k_db": -25.1,
+     "share_5k_db": -38.9,
+     "mod_std_db": 0.54,
+     "peak": 0.111
+    },
+    "cruise_130": {
+     "lufs": -25.27,
+     "corr": 0.98,
+     "balance_db": -0.29,
+     "mono_db": -0.25,
+     "centroid_hz": 106,
+     "share_2k_db": -21.2,
+     "share_5k_db": -31.8,
+     "mod_std_db": 0.95,
+     "peak": 0.208
+    },
+    "kickdown": {
+     "lufs": -21.78,
+     "corr": 0.85,
+     "balance_db": 0.0,
+     "mono_db": -0.59,
+     "centroid_hz": 872,
+     "share_2k_db": -7.5,
+     "share_5k_db": -24.1,
+     "mod_std_db": 1.94,
+     "peak": 0.249
+    },
+    "lift2": {
+     "lufs": -25.83,
+     "corr": 0.99,
+     "balance_db": -0.25,
+     "mono_db": -0.17,
+     "centroid_hz": 89,
+     "share_2k_db": -23.5,
+     "share_5k_db": -43.1,
+     "mod_std_db": 0.47,
+     "peak": 0.112
+    },
+    "stop": {
+     "lufs": -26.04,
+     "corr": 0.98,
+     "balance_db": -0.05,
+     "mono_db": -0.17,
+     "centroid_hz": 121,
+     "share_2k_db": -19.7,
+     "share_5k_db": -27.9,
+     "mod_std_db": 2.43,
+     "peak": 0.177
+    }
+   },
+   "engine_perf": {
+    "avg_ms": 2.00196178343949,
+    "frames": 628,
+    "max_ms": 10.871,
+    "samples": 1772000,
+    "skips": 0
+   }
+  },
+  "modern": {
+   "integrated_lufs": -19.38,
+   "lra": 9.56,
+   "true_peak_db": -6.35,
+   "phases": {
+    "idle": {
+     "lufs": -24.57,
+     "corr": 1.0,
+     "balance_db": -0.0,
+     "mono_db": -0.0,
+     "centroid_hz": 454,
+     "share_2k_db": -11.8,
+     "share_5k_db": -20.1,
+     "mod_std_db": 2.39,
+     "peak": 0.478
+    },
+    "revs": {
+     "lufs": -23.4,
+     "corr": 1.0,
+     "balance_db": -0.02,
+     "mono_db": -0.02,
+     "centroid_hz": 231,
+     "share_2k_db": -16.2,
+     "share_5k_db": -25.4,
+     "mod_std_db": 2.47,
+     "peak": 0.36
+    },
+    "pull": {
+     "lufs": -16.72,
+     "corr": 0.99,
+     "balance_db": -0.01,
+     "mono_db": -0.03,
+     "centroid_hz": 786,
+     "share_2k_db": -9.2,
+     "share_5k_db": -15.1,
+     "mod_std_db": 1.76,
+     "peak": 0.383
+    },
+    "cruise_hi": {
+     "lufs": -20.84,
+     "corr": 1.0,
+     "balance_db": 0.15,
+     "mono_db": -0.09,
+     "centroid_hz": 376,
+     "share_2k_db": -14.1,
+     "share_5k_db": -22.7,
+     "mod_std_db": 1.19,
+     "peak": 0.295
+    },
+    "lift": {
+     "lufs": -25.07,
+     "corr": 1.0,
+     "balance_db": 0.36,
+     "mono_db": -0.18,
+     "centroid_hz": 118,
+     "share_2k_db": -21.2,
+     "share_5k_db": -40.3,
+     "mod_std_db": 0.6,
+     "peak": 0.106
+    },
+    "brake": {
+     "lufs": -25.49,
+     "corr": 1.0,
+     "balance_db": -0.19,
+     "mono_db": -0.1,
+     "centroid_hz": 102,
+     "share_2k_db": -22.3,
+     "share_5k_db": -31.8,
+     "mod_std_db": 1.24,
+     "peak": 0.169
+    },
+    "cruise_130": {
+     "lufs": -22.03,
+     "corr": 1.0,
+     "balance_db": -0.21,
+     "mono_db": -0.11,
+     "centroid_hz": 177,
+     "share_2k_db": -18.2,
+     "share_5k_db": -25.1,
+     "mod_std_db": 1.14,
+     "peak": 0.273
+    },
+    "kickdown": {
+     "lufs": -17.68,
+     "corr": 1.0,
+     "balance_db": -0.04,
+     "mono_db": -0.03,
+     "centroid_hz": 706,
+     "share_2k_db": -10.1,
+     "share_5k_db": -15.3,
+     "mod_std_db": 2.66,
+     "peak": 0.314
+    },
+    "lift2": {
+     "lufs": -26.35,
+     "corr": 1.0,
+     "balance_db": -0.1,
+     "mono_db": -0.05,
+     "centroid_hz": 96,
+     "share_2k_db": -22.8,
+     "share_5k_db": -39.9,
+     "mod_std_db": 0.85,
+     "peak": 0.12
+    },
+    "stop": {
+     "lufs": -25.54,
+     "corr": 1.0,
+     "balance_db": -0.15,
+     "mono_db": -0.07,
+     "centroid_hz": 150,
+     "share_2k_db": -17.9,
+     "share_5k_db": -25.4,
+     "mod_std_db": 1.06,
+     "peak": 0.25
+    }
+   },
+   "engine_perf": {
+    "avg_ms": 3.3634587628866,
+    "frames": 776,
+    "max_ms": 17.015,
+    "ms_per_frame": 0.781375437083872,
+    "samples": 1781504,
+    "skips": 0,
+    "threaded": true
+   }
+  },
+  "ab_gain_modern_db": -3.85
+ },
+ "limousine": {
+  "arcade": {
+   "integrated_lufs": -21.43,
+   "lra": 9.16,
+   "true_peak_db": -7.99,
+   "phases": {
+    "idle": {
+     "lufs": -23.2,
+     "corr": 0.99,
+     "balance_db": 0.08,
+     "mono_db": -0.12,
+     "centroid_hz": 84,
+     "share_2k_db": -24.6,
+     "share_5k_db": -26.8,
+     "mod_std_db": 1.82,
+     "peak": 0.29
+    },
+    "revs": {
+     "lufs": -22.2,
+     "corr": 0.98,
+     "balance_db": -0.02,
+     "mono_db": -0.09,
+     "centroid_hz": 110,
+     "share_2k_db": -26.3,
+     "share_5k_db": -32.3,
+     "mod_std_db": 4.6,
+     "peak": 0.398
+    },
+    "pull": {
+     "lufs": -19.65,
+     "corr": 0.9,
+     "balance_db": 0.02,
+     "mono_db": -0.31,
+     "centroid_hz": 514,
+     "share_2k_db": -12.3,
+     "share_5k_db": -15.2,
+     "mod_std_db": 2.25,
+     "peak": 0.298
+    },
+    "cruise_hi": {
+     "lufs": -24.31,
+     "corr": 0.97,
+     "balance_db": -0.81,
+     "mono_db": -0.5,
+     "centroid_hz": 200,
+     "share_2k_db": -20.5,
+     "share_5k_db": -33.9,
+     "mod_std_db": 1.89,
+     "peak": 0.123
+    },
+    "lift": {
+     "lufs": -28.02,
+     "corr": 0.96,
+     "balance_db": 0.46,
+     "mono_db": -0.34,
+     "centroid_hz": 194,
+     "share_2k_db": -20.5,
+     "share_5k_db": -30.7,
+     "mod_std_db": 3.13,
+     "peak": 0.206
+    },
+    "brake": {
+     "lufs": -25.46,
+     "corr": 0.97,
+     "balance_db": -0.28,
+     "mono_db": -0.22,
+     "centroid_hz": 177,
+     "share_2k_db": -23.5,
+     "share_5k_db": -34.0,
+     "mod_std_db": 4.4,
+     "peak": 0.235
+    },
+    "cruise_130": {
+     "lufs": -25.85,
+     "corr": 0.98,
+     "balance_db": -0.35,
+     "mono_db": -0.23,
+     "centroid_hz": 148,
+     "share_2k_db": -24.8,
+     "share_5k_db": -34.5,
+     "mod_std_db": 4.71,
+     "peak": 0.274
+    },
+    "kickdown": {
+     "lufs": -19.8,
+     "corr": 0.91,
+     "balance_db": -0.08,
+     "mono_db": -0.33,
+     "centroid_hz": 486,
+     "share_2k_db": -12.8,
+     "share_5k_db": -16.8,
+     "mod_std_db": 4.11,
+     "peak": 0.242
+    },
+    "lift2": {
+     "lufs": -24.81,
+     "corr": 0.97,
+     "balance_db": -0.1,
+     "mono_db": -0.13,
+     "centroid_hz": 166,
+     "share_2k_db": -23.1,
+     "share_5k_db": -34.5,
+     "mod_std_db": 4.35,
+     "peak": 0.212
+    },
+    "stop": {
+     "lufs": -23.67,
+     "corr": 0.98,
+     "balance_db": -0.08,
+     "mono_db": -0.12,
+     "centroid_hz": 109,
+     "share_2k_db": -25.5,
+     "share_5k_db": -30.4,
+     "mod_std_db": 4.42,
+     "peak": 0.274
+    }
+   },
+   "engine_perf": {
+    "avg_ms": 1.98309468438538,
+    "frames": 602,
+    "max_ms": 5.627,
+    "samples": 1629568,
+    "skips": 0
+   }
+  },
+  "modern": {
+   "integrated_lufs": -19.96,
+   "lra": 5.73,
+   "true_peak_db": -9.8,
+   "phases": {
+    "idle": {
+     "lufs": -23.96,
+     "corr": 1.0,
+     "balance_db": -0.04,
+     "mono_db": -0.02,
+     "centroid_hz": 81,
+     "share_2k_db": -24.8,
+     "share_5k_db": -26.6,
+     "mod_std_db": 11.66,
+     "peak": 0.316
+    },
+    "revs": {
+     "lufs": -22.18,
+     "corr": 1.0,
+     "balance_db": -0.06,
+     "mono_db": -0.05,
+     "centroid_hz": 151,
+     "share_2k_db": -23.3,
+     "share_5k_db": -30.7,
+     "mod_std_db": 3.51,
+     "peak": 0.221
+    },
+    "pull": {
+     "lufs": -17.72,
+     "corr": 0.97,
+     "balance_db": -0.01,
+     "mono_db": -0.12,
+     "centroid_hz": 425,
+     "share_2k_db": -15.0,
+     "share_5k_db": -20.2,
+     "mod_std_db": 1.52,
+     "peak": 0.293
+    },
+    "cruise_hi": {
+     "lufs": -20.86,
+     "corr": 1.0,
+     "balance_db": -0.07,
+     "mono_db": -0.05,
+     "centroid_hz": 189,
+     "share_2k_db": -23.9,
+     "share_5k_db": -32.3,
+     "mod_std_db": 1.2,
+     "peak": 0.179
+    },
+    "lift": {
+     "lufs": -26.27,
+     "corr": 1.0,
+     "balance_db": 0.05,
+     "mono_db": -0.03,
+     "centroid_hz": 207,
+     "share_2k_db": -17.9,
+     "share_5k_db": -27.6,
+     "mod_std_db": 2.44,
+     "peak": 0.187
+    },
+    "brake": {
+     "lufs": -22.9,
+     "corr": 1.0,
+     "balance_db": 0.01,
+     "mono_db": -0.01,
+     "centroid_hz": 190,
+     "share_2k_db": -20.8,
+     "share_5k_db": -31.8,
+     "mod_std_db": 3.5,
+     "peak": 0.209
+    },
+    "cruise_130": {
+     "lufs": -21.21,
+     "corr": 1.0,
+     "balance_db": 0.01,
+     "mono_db": -0.02,
+     "centroid_hz": 125,
+     "share_2k_db": -28.0,
+     "share_5k_db": -34.5,
+     "mod_std_db": 1.27,
+     "peak": 0.253
+    },
+    "kickdown": {
+     "lufs": -17.81,
+     "corr": 0.98,
+     "balance_db": 0.05,
+     "mono_db": -0.09,
+     "centroid_hz": 342,
+     "share_2k_db": -16.7,
+     "share_5k_db": -22.3,
+     "mod_std_db": 1.55,
+     "peak": 0.254
+    },
+    "lift2": {
+     "lufs": -25.08,
+     "corr": 1.0,
+     "balance_db": -0.0,
+     "mono_db": -0.01,
+     "centroid_hz": 196,
+     "share_2k_db": -18.5,
+     "share_5k_db": -28.7,
+     "mod_std_db": 1.9,
+     "peak": 0.157
+    },
+    "stop": {
+     "lufs": -21.99,
+     "corr": 1.0,
+     "balance_db": -0.01,
+     "mono_db": -0.01,
+     "centroid_hz": 142,
+     "share_2k_db": -23.7,
+     "share_5k_db": -31.5,
+     "mod_std_db": 3.54,
+     "peak": 0.22
+    }
+   },
+   "engine_perf": {
+    "avg_ms": 3.4834649859944,
+    "frames": 714,
+    "max_ms": 10.691,
+    "ms_per_frame": 0.812426178530365,
+    "samples": 1632768,
+    "skips": 0,
+    "threaded": true
+   }
+  },
+  "ab_gain_modern_db": -1.47
+ },
+ "sportwagen": {
+  "arcade": {
+   "integrated_lufs": -18.3,
+   "lra": 10.27,
+   "true_peak_db": -6.33,
+   "phases": {
+    "idle": {
+     "lufs": -24.09,
+     "corr": 0.96,
+     "balance_db": -0.14,
+     "mono_db": -0.21,
+     "centroid_hz": 242,
+     "share_2k_db": -17.5,
+     "share_5k_db": -20.6,
+     "mod_std_db": 2.72,
+     "peak": 0.322
+    },
+    "revs": {
+     "lufs": -19.85,
+     "corr": 0.88,
+     "balance_db": -0.07,
+     "mono_db": -0.4,
+     "centroid_hz": 421,
+     "share_2k_db": -15.4,
+     "share_5k_db": -25.0,
+     "mod_std_db": 5.07,
+     "peak": 0.388
+    },
+    "pull": {
+     "lufs": -16.02,
+     "corr": 0.75,
+     "balance_db": -0.06,
+     "mono_db": -0.71,
+     "centroid_hz": 849,
+     "share_2k_db": -11.1,
+     "share_5k_db": -21.7,
+     "mod_std_db": 1.22,
+     "peak": 0.482
+    },
+    "cruise_hi": {
+     "lufs": -16.34,
+     "corr": 0.84,
+     "balance_db": 1.44,
+     "mono_db": -1.07,
+     "centroid_hz": 282,
+     "share_2k_db": -21.0,
+     "share_5k_db": -29.8,
+     "mod_std_db": 2.1,
+     "peak": 0.293
+    },
+    "lift": {
+     "lufs": -27.4,
+     "corr": 0.91,
+     "balance_db": -0.01,
+     "mono_db": -0.3,
+     "centroid_hz": 490,
+     "share_2k_db": -12.1,
+     "share_5k_db": -23.2,
+     "mod_std_db": 3.8,
+     "peak": 0.28
+    },
+    "brake": {
+     "lufs": -25.74,
+     "corr": 0.92,
+     "balance_db": 0.03,
+     "mono_db": -0.28,
+     "centroid_hz": 399,
+     "share_2k_db": -14.3,
+     "share_5k_db": -24.3,
+     "mod_std_db": 3.56,
+     "peak": 0.277
+    },
+    "cruise_130": {
+     "lufs": -21.95,
+     "corr": 0.95,
+     "balance_db": -0.36,
+     "mono_db": -0.31,
+     "centroid_hz": 221,
+     "share_2k_db": -21.7,
+     "share_5k_db": -29.9,
+     "mod_std_db": 3.25,
+     "peak": 0.436
+    },
+    "kickdown": {
+     "lufs": -16.88,
+     "corr": 0.74,
+     "balance_db": -0.03,
+     "mono_db": -0.71,
+     "centroid_hz": 906,
+     "share_2k_db": -11.0,
+     "share_5k_db": -21.9,
+     "mod_std_db": 2.73,
+     "peak": 0.464
+    },
+    "lift2": {
+     "lufs": -28.11,
+     "corr": 0.92,
+     "balance_db": -0.31,
+     "mono_db": -0.47,
+     "centroid_hz": 590,
+     "share_2k_db": -9.8,
+     "share_5k_db": -20.8,
+     "mod_std_db": 1.12,
+     "peak": 0.237
+    },
+    "stop": {
+     "lufs": -24.64,
+     "corr": 0.91,
+     "balance_db": -0.05,
+     "mono_db": -0.34,
+     "centroid_hz": 381,
+     "share_2k_db": -14.6,
+     "share_5k_db": -23.2,
+     "mod_std_db": 3.75,
+     "peak": 0.317
+    }
+   },
+   "engine_perf": {
+    "avg_ms": 1.97644626593807,
+    "frames": 549,
+    "max_ms": 10.931,
+    "samples": 1495694,
+    "skips": 0
+   }
+  },
+  "modern": {
+   "integrated_lufs": -19.27,
+   "lra": 7.2,
+   "true_peak_db": -9.69,
+   "phases": {
+    "idle": {
+     "lufs": -24.34,
+     "corr": 1.0,
+     "balance_db": 0.06,
+     "mono_db": -0.05,
+     "centroid_hz": 232,
+     "share_2k_db": -17.7,
+     "share_5k_db": -21.2,
+     "mod_std_db": 2.98,
+     "peak": 0.31
+    },
+    "revs": {
+     "lufs": -19.85,
+     "corr": 0.91,
+     "balance_db": 0.17,
+     "mono_db": -0.35,
+     "centroid_hz": 473,
+     "share_2k_db": -13.7,
+     "share_5k_db": -22.9,
+     "mod_std_db": 3.3,
+     "peak": 0.325
+    },
+    "pull": {
+     "lufs": -16.72,
+     "corr": 0.72,
+     "balance_db": 0.24,
+     "mono_db": -0.85,
+     "centroid_hz": 1027,
+     "share_2k_db": -9.6,
+     "share_5k_db": -18.9,
+     "mod_std_db": 1.21,
+     "peak": 0.318
+    },
+    "cruise_hi": {
+     "lufs": -17.28,
+     "corr": 0.96,
+     "balance_db": 0.23,
+     "mono_db": -0.22,
+     "centroid_hz": 306,
+     "share_2k_db": -19.7,
+     "share_5k_db": -30.1,
+     "mod_std_db": 1.16,
+     "peak": 0.325
+    },
+    "lift": {
+     "lufs": -24.25,
+     "corr": 0.96,
+     "balance_db": 0.03,
+     "mono_db": -0.13,
+     "centroid_hz": 528,
+     "share_2k_db": -10.4,
+     "share_5k_db": -21.7,
+     "mod_std_db": 1.9,
+     "peak": 0.253
+    },
+    "brake": {
+     "lufs": -24.5,
+     "corr": 0.97,
+     "balance_db": 0.0,
+     "mono_db": -0.1,
+     "centroid_hz": 390,
+     "share_2k_db": -12.8,
+     "share_5k_db": -23.7,
+     "mod_std_db": 1.2,
+     "peak": 0.169
+    },
+    "cruise_130": {
+     "lufs": -21.11,
+     "corr": 0.97,
+     "balance_db": 0.1,
+     "mono_db": -0.15,
+     "centroid_hz": 221,
+     "share_2k_db": -19.2,
+     "share_5k_db": -27.2,
+     "mod_std_db": 1.26,
+     "peak": 0.258
+    },
+    "kickdown": {
+     "lufs": -17.55,
+     "corr": 0.73,
+     "balance_db": 0.08,
+     "mono_db": -0.75,
+     "centroid_hz": 974,
+     "share_2k_db": -10.2,
+     "share_5k_db": -19.7,
+     "mod_std_db": 1.51,
+     "peak": 0.32
+    },
+    "lift2": {
+     "lufs": -26.19,
+     "corr": 0.95,
+     "balance_db": -0.02,
+     "mono_db": -0.16,
+     "centroid_hz": 476,
+     "share_2k_db": -11.0,
+     "share_5k_db": -22.1,
+     "mod_std_db": 1.08,
+     "peak": 0.122
+    },
+    "stop": {
+     "lufs": -23.06,
+     "corr": 0.95,
+     "balance_db": 0.04,
+     "mono_db": -0.17,
+     "centroid_hz": 366,
+     "share_2k_db": -15.1,
+     "share_5k_db": -24.3,
+     "mod_std_db": 2.68,
+     "peak": 0.297
+    }
+   },
+   "engine_perf": {
+    "avg_ms": 3.92802411575563,
+    "frames": 622,
+    "max_ms": 17.868,
+    "ms_per_frame": 0.867575350832339,
+    "samples": 1501952,
+    "skips": 0,
+    "threaded": true
+   }
+  },
+  "ab_gain_modern_db": 0.96
+ },
+ "gran_turismo": {
+  "arcade": {
+   "integrated_lufs": -16.16,
+   "lra": 7.2,
+   "true_peak_db": -3.1,
+   "phases": {
+    "idle": {
+     "lufs": -17.8,
+     "corr": 0.99,
+     "balance_db": -0.13,
+     "mono_db": -0.13,
+     "centroid_hz": 106,
+     "share_2k_db": -23.4,
+     "share_5k_db": -25.4,
+     "mod_std_db": 2.62,
+     "peak": 0.486
+    },
+    "revs": {
+     "lufs": -16.53,
+     "corr": 0.95,
+     "balance_db": 0.04,
+     "mono_db": -0.18,
+     "centroid_hz": 200,
+     "share_2k_db": -22.3,
+     "share_5k_db": -29.1,
+     "mod_std_db": 2.84,
+     "peak": 0.504
+    },
+    "pull": {
+     "lufs": -13.36,
+     "corr": 0.77,
+     "balance_db": -0.11,
+     "mono_db": -0.71,
+     "centroid_hz": 765,
+     "share_2k_db": -12.5,
+     "share_5k_db": -27.7,
+     "mod_std_db": 1.41,
+     "peak": 0.7
+    },
+    "cruise_hi": {
+     "lufs": -17.23,
+     "corr": 0.87,
+     "balance_db": 1.65,
+     "mono_db": -1.13,
+     "centroid_hz": 381,
+     "share_2k_db": -18.5,
+     "share_5k_db": -31.2,
+     "mod_std_db": 1.31,
+     "peak": 0.37
+    },
+    "lift": {
+     "lufs": -22.4,
+     "corr": 0.94,
+     "balance_db": -0.3,
+     "mono_db": -0.31,
+     "centroid_hz": 292,
+     "share_2k_db": -18.9,
+     "share_5k_db": -30.9,
+     "mod_std_db": 1.0,
+     "peak": 0.272
+    },
+    "brake": {
+     "lufs": -20.7,
+     "corr": 0.9,
+     "balance_db": -0.21,
+     "mono_db": -0.37,
+     "centroid_hz": 305,
+     "share_2k_db": -18.6,
+     "share_5k_db": -27.9,
+     "mod_std_db": 2.1,
+     "peak": 0.342
+    },
+    "cruise_130": {
+     "lufs": -18.98,
+     "corr": 0.94,
+     "balance_db": -0.47,
+     "mono_db": -0.39,
+     "centroid_hz": 216,
+     "share_2k_db": -22.4,
+     "share_5k_db": -33.2,
+     "mod_std_db": 1.69,
+     "peak": 0.446
+    },
+    "kickdown": {
+     "lufs": -14.34,
+     "corr": 0.73,
+     "balance_db": 0.01,
+     "mono_db": -0.72,
+     "centroid_hz": 909,
+     "share_2k_db": -11.5,
+     "share_5k_db": -26.6,
+     "mod_std_db": 2.55,
+     "peak": 0.674
+    },
+    "lift2": {
+     "lufs": -21.4,
+     "corr": 0.89,
+     "balance_db": -0.54,
+     "mono_db": -0.54,
+     "centroid_hz": 295,
+     "share_2k_db": -18.5,
+     "share_5k_db": -28.4,
+     "mod_std_db": 1.67,
+     "peak": 0.334
+    },
+    "stop": {
+     "lufs": -18.79,
+     "corr": 0.96,
+     "balance_db": -0.06,
+     "mono_db": -0.2,
+     "centroid_hz": 170,
+     "share_2k_db": -22.0,
+     "share_5k_db": -27.8,
+     "mod_std_db": 2.61,
+     "peak": 0.446
+    }
+   },
+   "engine_perf": {
+    "avg_ms": 2.22301615798923,
+    "frames": 557,
+    "max_ms": 7.22,
+    "samples": 1552096,
+    "skips": 0
+   }
+  },
+  "modern": {
+   "integrated_lufs": -20.02,
+   "lra": 7.99,
+   "true_peak_db": -8.49,
+   "phases": {
+    "idle": {
+     "lufs": -24.58,
+     "corr": 0.99,
+     "balance_db": 0.06,
+     "mono_db": -0.05,
+     "centroid_hz": 145,
+     "share_2k_db": -20.4,
+     "share_5k_db": -22.0,
+     "mod_std_db": 2.56,
+     "peak": 0.327
+    },
+    "revs": {
+     "lufs": -23.3,
+     "corr": 0.92,
+     "balance_db": 0.03,
+     "mono_db": -0.26,
+     "centroid_hz": 300,
+     "share_2k_db": -19.0,
+     "share_5k_db": -27.8,
+     "mod_std_db": 3.04,
+     "peak": 0.247
+    },
+    "pull": {
+     "lufs": -17.13,
+     "corr": 0.78,
+     "balance_db": -0.01,
+     "mono_db": -0.57,
+     "centroid_hz": 818,
+     "share_2k_db": -12.3,
+     "share_5k_db": -20.3,
+     "mod_std_db": 1.62,
+     "peak": 0.376
+    },
+    "cruise_hi": {
+     "lufs": -20.98,
+     "corr": 0.89,
+     "balance_db": 0.1,
+     "mono_db": -0.34,
+     "centroid_hz": 424,
+     "share_2k_db": -18.8,
+     "share_5k_db": -27.8,
+     "mod_std_db": 1.27,
+     "peak": 0.227
+    },
+    "lift": {
+     "lufs": -26.61,
+     "corr": 0.95,
+     "balance_db": -0.37,
+     "mono_db": -0.3,
+     "centroid_hz": 329,
+     "share_2k_db": -17.0,
+     "share_5k_db": -28.2,
+     "mod_std_db": 0.68,
+     "peak": 0.107
+    },
+    "brake": {
+     "lufs": -23.78,
+     "corr": 0.92,
+     "balance_db": 0.02,
+     "mono_db": -0.21,
+     "centroid_hz": 366,
+     "share_2k_db": -18.7,
+     "share_5k_db": -29.6,
+     "mod_std_db": 3.32,
+     "peak": 0.244
+    },
+    "cruise_130": {
+     "lufs": -21.46,
+     "corr": 0.94,
+     "balance_db": 0.05,
+     "mono_db": -0.18,
+     "centroid_hz": 224,
+     "share_2k_db": -21.6,
+     "share_5k_db": -30.4,
+     "mod_std_db": 1.0,
+     "peak": 0.276
+    },
+    "kickdown": {
+     "lufs": -16.88,
+     "corr": 0.77,
+     "balance_db": -0.02,
+     "mono_db": -0.58,
+     "centroid_hz": 851,
+     "share_2k_db": -12.1,
+     "share_5k_db": -19.9,
+     "mod_std_db": 2.05,
+     "peak": 0.327
+    },
+    "lift2": {
+     "lufs": -25.49,
+     "corr": 0.92,
+     "balance_db": 0.0,
+     "mono_db": -0.19,
+     "centroid_hz": 345,
+     "share_2k_db": -17.3,
+     "share_5k_db": -27.7,
+     "mod_std_db": 2.16,
+     "peak": 0.198
+    },
+    "stop": {
+     "lufs": -24.21,
+     "corr": 0.94,
+     "balance_db": 0.09,
+     "mono_db": -0.24,
+     "centroid_hz": 287,
+     "share_2k_db": -19.0,
+     "share_5k_db": -25.2,
+     "mod_std_db": 2.57,
+     "peak": 0.232
+    }
+   },
+   "engine_perf": {
+    "avg_ms": 3.57145797101449,
+    "frames": 690,
+    "max_ms": 19.524,
+    "ms_per_frame": 0.841772558342898,
+    "samples": 1561344,
+    "skips": 0,
+    "threaded": true
+   }
+  },
+  "ab_gain_modern_db": 3.86
+ }
+}

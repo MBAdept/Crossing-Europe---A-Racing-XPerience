@@ -1,0 +1,6 @@
+AS1R: Doku – gemessene Zahlen der Fahrzeuge nach der Nacharbeit
+
+- docs/modelle.md, Abschnitt 11: Dreiecke, Aufrufe, Bytes und Zeiten der sechs Fahrzeuge auf dem Stand nach AS1R.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

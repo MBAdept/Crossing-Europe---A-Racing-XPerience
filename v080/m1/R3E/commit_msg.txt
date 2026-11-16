@@ -1,0 +1,13 @@
+v0.8.0 R3E: Render-Prüfung der Ersatzbilder, Schlagschatten wie Arcade
+
+- check_vehicle_standin: Spielerautos (kombi, sportwagen, gran_turismo),
+  Verkehr bei 20/60/150 m und Bus gegen Arcades eigenes Bild (Lage und
+  Größe ≤ 3 px, Helligkeit ± 10 %), kein Blatt-Laden während der Fahrt
+- gefaltetes Bild: die Zeilen unter der Bodenlinie einer Spalte (Arcades
+  Schlagschatten) liegen auf der Straße statt unter ihr; flaches Bild ein
+  wenig zum Auge gezogen
+- Alpha-Schnitt 0,8: die Schlagschatten der Blätter (Alpha 0,5–0,75)
+  mischen sich wie in Arcade statt hart zu decken
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

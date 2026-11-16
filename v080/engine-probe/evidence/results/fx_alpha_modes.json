@@ -1,0 +1,50 @@
+{
+  "suite": "fx",
+  "test": "alpha_modes",
+  "variants": [
+    {
+      "buffer_mem_mb": 15.4,
+      "canvas_draw_calls": 0,
+      "draw_calls_total": 745,
+      "frame_ms_median": 140.02,
+      "frame_ms_min": 123.59,
+      "name": "0_scissor_hash_prepass_blend_a2c_no_msaa",
+      "objects_total": 746,
+      "png": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/engine-probe/shots/fx_alpha_modes_0_scissor_hash_prepass_blend_a2c_no_msaa.png",
+      "primitives_total": 568802,
+      "render_cpu_ms_median": 105.87,
+      "render_gpu_ms_median": 132.88,
+      "shadow_draw_calls": 0,
+      "shadow_objects": 0,
+      "shadow_primitives": 133152,
+      "texture_mem_mb": 8.2,
+      "video_mem_mb": 23.7,
+      "vis_draw_calls": 745,
+      "vis_objects": 746,
+      "vis_primitives": 435650
+    },
+    {
+      "buffer_mem_mb": 15.4,
+      "canvas_draw_calls": 0,
+      "diff_vs_prev_max": 199.0,
+      "diff_vs_prev_mean": 0.2586,
+      "draw_calls_total": 745,
+      "frame_ms_median": 274.64,
+      "frame_ms_min": 262.65,
+      "name": "1_same_with_msaa4x",
+      "objects_total": 746,
+      "png": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/engine-probe/shots/fx_alpha_modes_1_same_with_msaa4x.png",
+      "primitives_total": 568802,
+      "render_cpu_ms_median": 270.81,
+      "render_gpu_ms_median": 273.78,
+      "shadow_draw_calls": 0,
+      "shadow_objects": 0,
+      "shadow_primitives": 133152,
+      "texture_mem_mb": 36.4,
+      "video_mem_mb": 51.8,
+      "vis_draw_calls": 745,
+      "vis_objects": 746,
+      "vis_primitives": 435650
+    }
+  ]
+}

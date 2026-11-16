@@ -1,0 +1,9 @@
+v0.8.0 AS5a1: WIP Stadthaus-Bauer: Rundbogentüren behalten ihren Bogen, Torbogen mit Flügeln
+
+- Türraster mit runder Oberkante (im Log als "arch" vermerkt) wurden in lod0 als Rechteck geschnitten;
+  jetzt folgen Öffnung, Laibung und Flügel dem Bogen wie im Sprite (Fachwerkzeile, Turmhaus, Barock, Giebelzeile)
+- der 2,8 m breite Torbogen des Turmhauses war ein geripptes Garagentor; jetzt Holzflügel wie die Tür des Sprites
+- Exporte folgen im nächsten Schritt (alle elf: der Schlüssel des Bauers ändert sich)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

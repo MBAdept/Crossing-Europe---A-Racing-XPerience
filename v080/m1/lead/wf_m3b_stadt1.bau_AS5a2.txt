@@ -1,0 +1,191 @@
+
+CONTEXT
+- Game: "Crossing Europe – A Racing Xperience" (Godot 4.7.2, GDScript, GL Compatibility renderer), repo /home/user/crossing-europe---a-racing-xperience.
+  German user; docs and player-facing texts in German (tr()), code comments in English. v0.7.0 is released (= main).
+  v0.8.0 adds a graphics option: today's pseudo-3D game becomes the mode "Arcade" (frozen, pixel-identical); the new
+  mode "Modern" is a second, real-3D renderer in the same build with finer models, dynamic light and a "Modern" sound
+  profile. The user's wish, literally: "das gesamte Spiel einer deutlichen grafischen Überarbeitung unterziehen.
+  Detailreiche Grafik soweit möglich, feinere Modelle, bessere Lichteffekte, Sound- und Musiküberarbeitung" and "echtes
+  3D bitte". Wave 0 (session seam, model pipeline, audio core, geometry kernel with fairness tests) is merged in branch
+  v0.8.0. This push (M1) runs as parallel packages: renderer skeleton R1a (done), road/environment R1, terrain/props
+  R2, vehicles/signs R3, vehicle models AS1 (done; an art review and a rework AS1R follow), environment models AS1b,
+  engine sound AU-B (done), options/chooser/showroom/Leistungstest UI1. Then the lead merges everything, QA checks it,
+  and the user gets the first test build (Kiel–Hamburg in Modern, for Steam Deck and Windows).
+- THE BUILD CONTRACT IS BINDING: docs/dev/v080_contract.md (1,800 lines). Read §2 (rules), the decisions of §3 that
+  concern you, your interfaces in §4, §5, your package in §6, §8 and COMPLETELY §11 (amendments after wave 0 – it wins
+  over the older text; A-7 is the renderer facade, A-8 the plan and file ownership of this push). Also read the docs
+  of your area: docs/modelle.md, docs/audio-modern.md, ARCHITECTURE.md §15, docs/ui.md. Where the contract is wrong
+  or blocks you: implement the closest sound solution and report it under contract_issues with evidence – never work
+  around it silently. Evidence and prototypes of the design studies (starting points, read before reuse): /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/
+  (assets3d, audio, product-ux, synthesis; index in §10 of the contract).
+- YOUR PACKAGE ID: AS5a2. START: look for a predecessor of this run – the handover file
+  /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS5a2/STAND.md and the remote branch wip/v080-as5a2. If one exists, do NOT start over: read
+  STAND.md, go to the worktree named there (all commands and commits there, on its branch – leave your own fresh
+  worktree untouched, and report that branch and worktree in your result), review its uncommitted changes, commit them
+  as WIP, and continue where it stopped. Only if there is none, in your fresh worktree: git merge --ff-only abc1234
+  (the worktree starts from main; if the fast-forward is impossible, stop and report), then
+  cp -a /home/user/crossing-europe---a-racing-xperience/.godot . && godot --headless --path . --import
+- SAFETY COPY: after EVERY commit run  git push origin HEAD:refs/heads/wip/v080-as5a2  (plain push, never
+  force; never push to v0.8.0 or main, never merge into them, never create tags or pull requests).
+- RESTART PROTOCOL: the container can restart, or an account usage limit can stop you, at any moment; a successor with
+  this same brief is then started (both have already happened in this push). (1) Your START instruction above says how
+  to find and continue a predecessor; its background processes are gone and half-written output files may be
+  incomplete. (2) Keep /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS5a2/STAND.md up to date after every step you finish: worktree path and branch,
+  done / doing now / next / pitfalls, where your scratch results are. (3) Commit and push work in progress at
+  least every 30 minutes ("WIP" commits are fine) – unpushed work can be lost for good.
+- Runs: for EVERY game run set XDG_DATA_HOME to an ABSOLUTE folder under your scratch dir; pass --graphics=arcade|modern
+  explicitly. Rendering needs  xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
+  --audio-driver Dummy …  (software OpenGL, llvmpipe – no real GPU, no loudspeakers here: everything about a Steam
+  Deck, a real GPU or how something sounds to a person is "inferred", never "measured"). The default graphics preset
+  on this machine is "low" (adapter tier software: no shadow casters) – for pictures pass --gfx-preset=medium or high.
+  Up to six agents share the 4 cores and 16 GB: heavy jobs (Godot renders, Blender, audio renders, test suites) one at
+  a time with nice -n 10 and at most 2 worker processes; run the complete tools/run_tests.sh (9–15 min) at most twice
+  (use its filter argument while iterating) and tools/golden.sh check (Arcade identity, must print 20 von 20
+  identisch) once at the end. Tools: godot, python3 (numpy, PIL), ffmpeg, ImageMagick, Blender 5.2 as Python module
+  /home/user/tools/bpyenv/bin/python, tools/run_tests.sh, tools/run_render_checks.sh, tools/golden.sh, tools/ab_shot.sh
+  (in branches that contain R1a), tools/models_contact_sheet.sh, tools/blender/validate_models.py,
+  tools/audio/qc/audio_qc.py.
+- Shell: the Bash tool may refuse compound commands with heredocs or several chained git commands ("too complex"):
+  write helper scripts into your scratch folder and run them one by one; write commit messages to a file and use
+  git commit -F <file>. "-s" scripts must not name autoload-dependent classes statically; compile-check with
+  tests/check_scripts.gd.
+- Rule 1: the frozen Arcade files are never edited (sprites are never re-rendered). Stay inside your file ownership (§5 with A-8).
+- LOOK AT / MEASURE YOUR OWN RESULTS: you can open PNG/JPG files with the Read tool. Judge every picture you deliver
+  honestly; say plainly where something is not yet good enough.
+- Scratch for working files: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS5a2/ ; pictures, previews and reports for review: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/AS5a2/ (write
+  your full report there as bericht.md). Never commit intermediates or previews. Disk space is limited: delete large
+  scratch items (exports, copies of the tree, caches you no longer need) when you are done.
+- Commits: sensible steps on your branch; every commit message (German subject line) ends with
+  "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" and
+  "Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq". No model names anywhere else.
+- Priorities when time gets tight: (1) nothing broken – gates green, Arcade identical; (2) the interfaces others depend on; (3) quality of what the player sees or hears most; breadth last.
+  Deliver the core solid and list what is left under notes_for_next rather than leaving everything half-done.
+- RESULT: keep it compact – summary at most 250 words; deviations, contract_issues and notes_for_next at most 10
+  entries each, one or two sentences per entry; the details belong into bericht.md. Mark numbers measured/inferred.
+
+SITUATION OF PUSH M2 (lead): your base 6e484056ec87e2fa614061000a362feb2b5a6db8 (origin/wip/v080-m2int) is the M2 assembly – M2INT merged all
+vehicle models (AS2R), vegetation (AS3R), rural buildings, town houses, street furniture, bridge parts and ships (AS4R)
+and the reworked Modern sound onto the first test build (report /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/M2INT/bericht.md); M2ZS1 merged the fixes of the first
+test build the user got (report /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/M2ZS1/bericht.md). What the user has and what is still missing or worse than Arcade:
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/ZS1/was_neu.md (German; read it) – among the missing: "Städte: die meisten Gebäude … sind noch
+Arcade-Bilder; Stadtmodelle folgen". That is your package: the 46 props/city_* sets are still Arcade-picture stand-ins
+(manifest entry "fallback": "sprite"). THE USER IS AWAY for an indefinite time and asked us to go on without their test
+results: decide by the contract and by an honest comparison with Arcade (Modern has to look clearly better, not merely
+different). BESIDE YOU run the wave-3 renderer packages R4 (light, night, weather), R5 (tunnels, bridges, water), R6
+(fuel station, border, city street furniture, start/finish, radar), their independent reviews, and the QA and fix round
+of the assembly (QA-M2, FIX-M2). They render and measure performance on this machine, so run EVERY heavy job of yours
+(Blender exports and bakes, Godot renders, test suites, check_sprite_geometry) with nice -n 19 (not 10) and one worker
+(export_models.py --jobs 1, check_sprite_geometry --jobs 1), never two heavy jobs at once, and before you start Blender
+or Godot check free -g: below 3 GB "available", wait (sleep 60, check again). Nobody else touches tools/blender/** or
+assets/models/** in this phase. Afterwards the lead merges your branch with R4, R5, R6 and FIX-M2 (RINT-M2), and the
+renderer package R7 (landmarks, skyline, far LOD, LOD tuning) builds on your city models.
+YOUR ROLE: AS5a2 – CITY BUILDINGS PART 1, BATCH 2 OF 2 (contract §6 wave 5 "AS5a"; §4.6 complete with §4.6.9; docs/modelle.md
+sections 15–19). Your base is abc1234. Push every commit to origin wip/v080-as5a2.
+MODELS: props/city_dutch_canal, city_dutch_canal_b, city_dutch_terrace, city_belgian_terrace, city_belgian_stone,
+city_french_maison, city_french_sud, city_french_immeuble, city_paris_haussmann, city_paris_corner, city_swiss_chalet,
+city_swiss_laube (12 sets – the styles dutch, belgian, french, paris and swiss). They make Amsterdam (dutch), Brüssel, Lüttich and Calais (belgian), Tours and Pau (french), Bordeaux, Lyon, Montpellier
+and Toulouse (french_south: french_immeuble, french_sud), Paris (paris) and Bern (swiss), and through mixed styles
+Dortmund (ruhr: tinted dutch_terrace). Order of work: the sets the player sees most often first (census script); commit
+and push each finished style.
+BATCH 1 (hanse, german, german_old) is built, reviewed and reworked; your base contains it. What its review found
+and how the rework ended – apply these lessons from the start: NOT AVAILABLE – batch 1 was not run in this workflow; read its reports in /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/{KRITIK-5a1,AS5aR1}/ if they exist.
+FILES YOU OWN: tools/blender/cesprites/props_cities.py (additive hooks only – no sprite vertex may move; sprites are never
+re-rendered), a new module tools/blender/ce3d/cities3d.py for what is specific to city buildings, AS4's builder
+tools/blender/ce3d/buildings3d.py (builder "house"; AS4 and AS4R are finished, it is yours now), the model folders
+assets/models/props/city_<your styles>_*/**, your catalog entries in ONE clearly marked block ("# --- AS5a ---"), and the
+shared pipeline files (ce3d core/glb/roles/bake/lod/manifest/catalog3d/export, export_models.py, validate_models.py,
+tools/models/**, model_db.gd) only backwards-compatibly and additively; regenerate assets/models/manifest.json on your
+branch and list every shared-file change with one line of purpose in your report. Prefer the new module over edits to
+buildings3d.py: a code change there changes the cache key of AS4's eight house models – if you fix something shared,
+re-export them and prove they look the same (contact sheet before/after, changed-pixel share) or better, and say so.
+Never touch the renderer (scripts/race3d/**, assets/shaders/modern/** – R4/R5/R6 work there now; write what your
+buildings need from it under notes_for_next), the vehicles, the vegetation (veg3d.py, leafatlas.py, props_nature.py),
+the landmarks (props_landmarks, AS6), the frozen Arcade files, sprites and the sprite manifest.
+THE PIPELINE AND ITS STANDARD: AS4 built the rural buildings and town houses (church, factory, house_med, building_block_a/b,
+building_oldtown, building_shop, building_tall), bridge parts and ships with the builder "house" in
+tools/blender/ce3d/buildings3d.py (read its module docstring: openings with reveals, frames, glazing bars and sills,
+shutters, louvres, clocks, doors and gates, gutters, signs as geometry, curtain walls, octagon towers, lod1 without the
+fine parts; two surfaces baked + vpbr; the houseboat already reads walls from props_cities.wallmat through
+_log_city_walls). Read COMPLETELY: the reports /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/AS4/bericht.md (incl. its weaknesses), the independent art review
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/KRITIK-4/bericht.md and the rework /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/AS4R/bericht.md (above all "Ehrliche Einordnung" – the list of what is still not good is
+your checklist of what not to repeat: panes ~10 levels lighter than the sprite's painted glass and grey-lilac at 250 m,
+shimmer of block B at 120 m (1.0 % vs the sprite's 0.2 %), shop windows lit as flat white areas without a display,
+thin struts losing coverage in the alpha test of small mips) and AS4R's handover /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS4R/STAND.md; AS1b's
+pitfalls in /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS1b/STAND.md (BC3 alpha quantisation – halo alpha <= 0.33 for cutouts with threshold 0.5; ccw
+polygons for delaunay_2d_cdt; bake AO last; a comment change in a builder changes its cache key). Helper scripts to copy
+into your scratch folder (never edit them in place): /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS1b/{cycle.sh, batch_build.sh, stage_sets.gd} and
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS4R/ (census_all.gd = where each set stands in the network, budget_table.py, lum.py, hue.py, ab.sh,
+batch_views.sh). Copy AS4R's export cache first: cp -a /home/user/crossing-europe---a-racing-xperience/.claude/worktrees/wf_aad8d49e-fb4-6/tools/blender/_cache3d
+tools/blender/ (keyed by content; saves Blender time). Committed tools: tools/models/prop_scene.sh <png>
+--models=a,b [--mode=dist|lods|road] [--look=race] (game camera at distances, level steps, road-side scene),
+tools/models_contact_sheet.sh, tools/ab_shot.sh (Arcade | Modern from the same simulation state at a stage position;
+the race draws every set that has a model and the others as Arcade-picture stand-ins), validate_models.py --report,
+check_sprite_geometry.py, tools/pck_report.py. Night windows on your base: AS4R made a pane the hole filler of its
+window moved back into the reveal – by day the sprite's painted glass, at night the sprite's light of that window from
+the emission atlas (emit_energy 1.6, matched against Arcade: peak 216 vs 225 at 23:00) – reuse that, do not invent a
+second way. The class baked_cutout (alpha-scissor parts in the baked atlas) exists in the material code and the
+validator but has no model yet – railings and wrought iron of your buildings are its first users: prove it works in
+the race (no shimmer in motion, no halo, coverage kept in small mips).
+THE QUALITY BAR FOR CITY BUILDINGS. They line the road at every city arrival and departure: in the centres facades stand
+0.3–3 m beyond the road edge on BOTH sides every 24–30 m (scenery "x": [0.3, 2.5], "align": "edge"), in the outskirts
+4–12 m beyond it – so the chase camera passes them at 5–15 m for the last and first kilometres of many stages, closer
+than anything except the cars, mostly at 50–100 km/h, by day, at dusk and at night. A finished city building:
+- has the proportions, storeys, roof shape, gables, colours and features of its Arcade sprite (overlay of the
+  silhouette in the sprite's view): the generators in props_cities.py ARE the look – the models come from the same
+  Blender geometry with depth added, never a new design.
+- has real depth where the camera sees it from the street: window reveals with frames, sills and glazing bars, shop
+  fronts with glazing, a display or interior hint behind it and a fascia, doors with steps, arcades and passages as
+  real openings, cornices, string courses, pilasters, window pediments and quoins as geometry, balconies with slabs and
+  railings, oriels and dormers, roof overhangs with eaves and gutters, chimneys; brick bonds, plaster, stone, timber
+  and roof coverings (tiles, slate, zinc) with a readable rhythm in the baked atlas with ambient occlusion – never a
+  flat-coloured box. Texel density on road-facing walls >= 26 px/m (contract), and >= 40 px/m on the ground floor and
+  first floor of the centre buildings (seen at 5–15 m); keep the bytes down by baking a repeated bay or window module
+  once and reusing its texels, and by reusing coarse texels on walls away from the road and on the far side ("reused
+  walls on the far side", contract).
+- per style, true to the generator: hanse – brick stepped and curved gables, Kontor, warehouse (Speicher) with hoist
+  beams and loading doors, the harbour crane as a steel structure with its lamp; german – Gründerzeit stucco facades with
+  cornices, pilasters, window pediments and balconies, the Mietshaus, the office building, the suburban house;
+  german_old – timber framing (Fachwerk) with jettied upper storeys, the Baroque facade with its gable and volutes;
+  dutch – canal houses with neck, bell and step gables, hoist beams, tall sash windows, the terrace; belgian – terrace
+  and stone houses; french – maison, sud (shutters, tiles), immeuble; paris – Haussmann blocks with stone facades,
+  wrought-iron balconies, zinc mansard roofs with dormers, the corner building with its café; swiss – the chalet with
+  wooden balconies and deep eaves, the Laube with its arcades. Look at the generator of each set for what it shows.
+- gardens, trees, hedges, flowers, fences and bikes that the generator draws around a house: cheap versions (cards,
+  simple boxes, the AS3 tree models if a tree stands there) inside the budget – never thousands of triangles (the
+  contract names city_eastern_house_c with 23,000 garden triangles as the outlier to trim).
+- lives at night: windows lit warmly and irregularly from single rooms (the same windows as the sprite's light layer,
+  not every window, none by day), shop windows and café lit with something behind the glass, entrance and wall lamps as
+  light anchors (lamp channel 12 + "lights"), the crane's lamp; nothing glows by day.
+- is tintable: some scenery placements tint a city set and Arcade multiplies the sprite by that colour – city_german_house
+  #e8b8a4 and city_german_mietshaus #e0b09c in the hanse outskirts (Kiel, Hamburg, Bremen, Rostock), city_german_mietshaus
+  #f6eee2 in the bavarian outskirts, city_german_gruenderzeit #f6eedc in the bavarian and #ece4d0 in the swiss centre,
+  city_dutch_terrace #ead6cc in the ruhr outskirts. The Modern renderer passes the tint only to stand-ins today (R7 adds
+  it for model instances): bake the albedo in the sprite's own colours, no pre-tint, and show in a contact sheet how each
+  tinted placement will look (your albedo atlas multiplied by the tint) next to the tinted sprite.
+- coarser levels keep silhouette, storeys and window rhythm; lod1 from the props builder's switch distance (60 m at
+  "Details: Mittel"), an impostor beyond 250 m only if it is cheaper and invisible; no visible pop at the switch
+  distances (measure the changed-pixel share, the sprite's own swap as reference); no shimmer of railings, glazing bars
+  or timber at 40–150 m in motion (consecutive frames of a 50 km/h drive through a centre).
+- Budgets (§4.6.9): city building 10,000 triangles lod0, <= 2 draw calls per level; textures inside the tier. Archive
+  share (tools/pck_report.py; M2ZS1 measured models 18.73 of 40 MB and textures 13.04 of 60 MB): at most 3 MB meshes and
+  7 MB textures per batch – AS5b (12 more styles) and AS6 (33 landmarks) still have to fit. Report the bake time and the
+  bytes per model.
+Work in rounds: build, render day, dusk and night in the game camera, LOOK, list the worst defects, fix, repeat – at
+least three rounds. The independent art reviewer after you will drive through the city centres.
+GATES on your final head (commands and output in bericht.md): python3 tools/blender/validate_models.py --report green;
+the budget table per model (triangles per level, draw calls, bytes, texel density road side / far side, bake time);
+check_sprite_geometry.py --only props --jobs 1 without "ANDERS" (after every change of props_cities.py, not only at
+the end); export determinism (export_models.py --check-keys OK and a second forced bake of your models byte-identical);
+AS4's house models byte-identical, or re-exported on purpose with before/after evidence; the race in Modern draws your
+models without script errors (tools/ab_shot.sh at three city arrivals of your batch, --gfx-preset=high and medium, noon,
+dusk and 22:00 – find the positions with census_all.gd); tools/run_tests.sh green (once, at the end); tools/golden.sh
+check 20 von 20 and 17 von 17 identisch (once, at the end; Arcade is frozen); tools/golden.sh modern-check – where a
+Modern golden changes because your models appear in it, LOOK at the new picture first, then modern-make, and say so in
+the commit; the archive estimate of tools/pck_report.py inside your share (if it needs tools/build_linux.sh, delete the
+build afterwards).
+DELIVER to /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/AS5a2/ (German file names and captions): contact sheets day and night of every model
+and level; game-camera views at 5–10, 30, 100 and 250 m beside the road next to the Arcade sprite; close-ups of the
+street-level facades; the tinted placements; A/B pictures Arcade | Modern at three city arrivals (--gfx-preset=high and
+medium, noon, dusk, 22:00); one 10-s clip at 50 km/h through a city centre with your buildings (fixed 60 fps);
+bericht.md with the budget table, the measurements and an honest assessment (good / not yet good / missing). An
+independent art reviewer inspects your branch afterwards and a rework step follows – name what you consider weakest. Return the result format with package "AS5a2".

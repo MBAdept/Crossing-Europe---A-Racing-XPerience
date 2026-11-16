@@ -1,0 +1,18 @@
+WIP v0.8.0 AS4R: Scheiben im Atlas, Shed-Glas, Mühlenflügel, Turm, Kirche
+
+Code der Runde 1 (Modelle werden neu exportiert):
+- Fensterscheiben sind keine vpbr-Lampen mehr (unbeleuchtet zeigen sie die
+  halbe Leuchtfarbe: braune Scheiben neben blauen bei Tag). Die Scheibe ist
+  der Lochfüller des Fensters, in die Laibung zurückgesetzt: bei Tag das
+  gemalte Glas des Sprites, nachts das Licht des Sprites für genau dieses
+  Fenster x 0,55 aus dem Nachtlicht-Atlas.
+- Vorhangfassade und Mühlenfenster: Scheiben als einfarbige Atlasfelder,
+  Turm mit Glasverlauf, gut gestreuter Lichtauswahl und gedimmtem Foyer mit
+  Pfosten.
+- Fabrik: Shed-Verglasung mit Sprossen, Licht 45 %, nach oben abklingend.
+- Mühle: Flügel mit sieben 13-cm-Sprossen statt dreizehn 7-cm-Sprossen
+  (Hook sail_bars), Kirche: Putz 12 % dunkler (Hook plaster).
+- Fachwerkportal: Streben 1,2x breiter und dunkler.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,12 @@
+v0.8.0 AU-R3: Altstädte mit Brücke ohne Steindeck im Band 0,6 ± 0,05 (WIP)
+
+Über alle Etappen und beide Richtungen gemessen: Mit der kürzeren Basis (Straßen ohne
+die Brücken) verfehlte die Zuteilung in Hashfolge fünf Altstädte um bis zu einen
+halben Block (Amsterdam, Regensburg, Timişoara, Kaunas, Linz 0,65-0,66). Liegt eine
+von solchen Brücken geschnittene Altstadt außerhalb von COBBLE_BAND, bringen einzelne
+Schritte (Block weg, tauschen, dazu; der erste beste in Hashfolge) sie näher; jetzt
+0,58-0,62. Altstädte ohne solche Brücke bleiben bitgleich, jede Stadt hat bei jeder
+Ankunft dieselben Blöcke. Test: Straßenanteil im Band für 150 Fälle.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

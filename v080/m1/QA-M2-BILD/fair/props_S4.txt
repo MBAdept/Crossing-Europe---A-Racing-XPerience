@@ -1,0 +1,17 @@
+QA-PROPS cam_z=8031.0 km=80.4
+QA-CHUNK index=83 seg 2656..2688 dropped={"corridor":0,"density":0,"missing":0,"ribbon":0} props=8
+QA-CHUNK index=84 seg 2688..2720 dropped={"corridor":3,"density":0,"missing":0,"ribbon":0} props=12
+  OK   seg=2693 j=0 z=+48.3 x=+15.1 side=1 set=props/city_german_house scale=1.08 deco beyond_shoulder=8.8 ribbon=1000.0 corridor=false
+  FEHLT seg=2694 j=0 z=+53.3 x=-12.7 side=-1 set=props/tree_birch scale=0.85 deco beyond_shoulder=6.4 ribbon=724.5 corridor=true
+  OK   seg=2701 j=0 z=+72.2 x=-17.7 side=-1 set=props/city_german_house scale=0.93 deco beyond_shoulder=11.4 ribbon=724.5 corridor=false
+  OK   seg=2704 j=0 z=+82.9 x=-15.0 side=-1 set=props/city_hanse_gabled scale=0.95 deco beyond_shoulder=8.7 ribbon=724.5 corridor=true
+  OK   seg=2709 j=0 z=+98.4 x=+12.3 side=1 set=props/city_german_house scale=1.02 deco beyond_shoulder=6.1 ribbon=1000.0 corridor=false
+  FEHLT seg=2710 j=0 z=+100.8 x=-8.8 side=-1 set=props/bush_round scale=0.98 deco beyond_shoulder=2.5 ribbon=724.5 corridor=true
+  FEHLT seg=2714 j=0 z=+112.2 x=-10.1 side=-1 set=props/tree_birch scale=0.89 deco beyond_shoulder=3.9 ribbon=724.5 corridor=true
+  OK   seg=2717 j=0 z=+121.0 x=-14.8 side=-1 set=props/city_german_house scale=0.99 deco beyond_shoulder=8.5 ribbon=724.5 corridor=true
+  OK   seg=2719 j=0 z=+126.0 x=+11.0 side=1 set=props/tree_oak scale=0.83 deco beyond_shoulder=4.8 ribbon=1000.0 corridor=false
+QA-CHUNK index=85 seg 2720..2752 dropped={"corridor":1,"density":0,"missing":0,"ribbon":0} props=14
+  OK   seg=2722 j=0 z=+136.8 x=+16.5 side=1 set=props/city_hanse_gabled scale=1.07 deco beyond_shoulder=10.3 ribbon=1000.0 corridor=false
+  OK   seg=2724 j=0 z=+141.1 x=-83.0 side=-1 set=props/city_hanse_crane scale=1.02 deco beyond_shoulder=76.8 ribbon=724.5 corridor=false
+  OK   seg=2725 j=0 z=+145.5 x=+14.1 side=1 set=props/city_german_house scale=1.07 deco beyond_shoulder=7.9 ribbon=1000.0 corridor=false
+QA-PROPS-END

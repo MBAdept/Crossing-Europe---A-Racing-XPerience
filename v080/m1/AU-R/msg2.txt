@@ -1,0 +1,17 @@
+v0.8.0 AU-R: eigene Schleife je Seite, Begrenzer auf MMaster, Aufprall-Varianten (WIP)
+
+- road_audio.gd: jede Seite eines Belags, der Nässe, des Schnees und des Winds spielt eine eigene
+  Schleife (Ogg Vorbis, 4-7,6 s), Start an zufälliger Stelle, langsame Pegeldrift je Seite, rechts
+  Tonhöhe x1,02 (nicht der Rüttelstreifen); die beiden Plattenschleifen laufen immer im Takt
+  (Start an der Stelle der laufenden unter AudioServer.lock, Nachführen bei mehr als 1,5 ms);
+  eigene Schnee-Schleife; Quietschen je Ereignis +-5 %; Vorbeifahrten zufällige Variante +-2 dB
+- impact_audio.gd: Varianten zufällig (nie zweimal dieselbe), je Schicht +-2 dB und bis 20 ms
+  später, Glas ab 80 km/h Schließgeschwindigkeit, darunter mit 40 %
+- modern_buses.gd: Begrenzer des Modern-Klangs auf MMaster (Obergrenze -2 dB, audio.modern.limiter)
+- Plan: loudness.top_speed_lufs -15 +-1 (Motor + Fahrbahn + Wind) mit Test
+- Wind im Tunnel 0 dB statt -3
+- Klänge neu gerendert: 26 Ogg-Schleifen + 32-Platten-Muster; Glas, Kleinteile, Lkw-Schlag je vier
+  Varianten (an die Terzbalance der bisherigen Datei angeglichen), 20 ms Vorlauf für die Schichten
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,16 @@
+v0.8.0 AU-R: Schleifen an den gehörten Klang von AU-C1 angeglichen (zwei Spieler, halbe Schleife versetzt) (WIP)
+
+AU-C1 spielte jede Schleife auf zwei geschwenkten Spielern, die dieselbe Schleife
+eine halbe Länge versetzt lasen: In jedem Kanal addierten sich die Harmonischen
+der Schleife abwechselnd gleich- und gegenphasig. Bei rhythmischen Texturen formte
+das die Terzen (im Spiel gemessen: Pflaster 50 km/h +1,0 dB bei 126 Hz). Die
+Bezugsschleife von match_loop ist darum jetzt dieser gehörte Klang (heard();
+Rüttelstreifen ausgenommen: dort klingt immer nur eine Seite).
+
+Simulation des gehörten Klangs bei den Bezugstempi (neue Seiten unabhängig,
+rechts 2 % höher): höchstens 0,71 dB daneben (vorher 0,96; Pflaster 0,87 dB bei
+126 Hz -> 0,71 dB bei 10 kHz). QC grün (59 Klänge, deterministisch), audio_modern-Tests grün
+bis auf eine zeitkritische Musikprüfung unter Last (einzeln wiederholt: OK).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

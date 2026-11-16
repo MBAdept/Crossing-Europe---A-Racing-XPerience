@@ -1,0 +1,13 @@
+v0.8.0 RINT-A: Render-Prüfungen klassen und lkw nach der Zusammenführung
+
+check_models klassen: das Bauernhaus von AS1b zeigt seine Anfahrtsseite wie
+alle Requisiten auf +Z (Nachtrag A-4) und beleuchtet dort die Fenster - die
+Prüfung dreht es nicht mehr um 180° (vorher 0 Pixel Fenster bei Nacht).
+
+check_occlusion lkw: der Lichtkegel des verdeckten Autos beleuchtet seit der
+Lichter-Ebene die Fahrbahn vor ihm, neben dem Sattelzug zu Recht sichtbar.
+Die Prüfung gilt dem Auto und seinen Lampen hinter dem Lkw und lässt die
+Kegel des Verkehrs dafür weg.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

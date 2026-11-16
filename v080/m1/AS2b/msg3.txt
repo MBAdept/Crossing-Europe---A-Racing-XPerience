@@ -1,0 +1,12 @@
+AS2b (WIP): Sattelzug in drei Ausführungen wie im Sprite – Koffer mit Schriftzug, Plane
+
+Der Lkw-Bauer kennt die Ausführungen von cesprites.heavy.TRUCK_VARIANTS:
+traffic/truck (weiß, „LOGISTIK“), traffic/truck_transport (blau,
+„TRANSPORT“) – das Wort als eingeschnittene Glyphen-Umrisse in der
+Streifenfarbe – und traffic/truck_tarp (rot, grün): Planenseiten, an 22
+Spanngurten eingezogen, mit Schnallen. Fahrerhaus: Scheiben wie bei den
+Verkehrsautos (heller, spiegelnd), fünf Begrenzungsleuchten an der
+Sonnenblende, Seitenblinker. Glyphen-Umrisse als Funktion in police3d.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

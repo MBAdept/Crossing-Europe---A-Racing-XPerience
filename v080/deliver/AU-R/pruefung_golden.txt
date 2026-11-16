@@ -1,0 +1,19 @@
+    rushhour    35 s
+    pyrenaeen   19 s
+    paris       25 s
+    hamburg     21 s
+    regen       20 s
+    venedig     21 s
+    wien        27 s
+    race_s1      9 s
+    race_t1     16 s
+    race_n1     12 s
+    race_n2     15 s
+    race_c1     16 s
+    race_u1     17 s
+GOLDEN arcade: 20 von 20 identisch (253 s)
+
+real	4m19.676s
+user	3m27.080s
+sys	0m11.946s
+exit 0

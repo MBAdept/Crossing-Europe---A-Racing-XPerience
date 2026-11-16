@@ -1,0 +1,10 @@
+tw_ui.wav: Profil modern, ui gran_turismo ohne MMusic, 10.0 s – integriert -15.16 LUFS, Lautheitsbereich 8.39 LU, True Peak -7.65 dBTP
+  ui_move           1.0–   2.0 s   -28.96 LUFS  Kurzzeit max  -28.96 / Median  -28.96  True Peak -15.02
+  ui_ok             2.0–   3.0 s   -23.56 LUFS  Kurzzeit max  -23.56 / Median  -23.56  True Peak -10.30
+  ui_back           3.0–   4.0 s   -25.45 LUFS  Kurzzeit max  -25.45 / Median  -25.45  True Peak -11.54
+  ui_ui_tab         4.0–   5.0 s   -25.53 LUFS  Kurzzeit max  -25.53 / Median  -25.53  True Peak -12.71
+  ui_ui_toggle      5.0–   6.0 s   -27.48 LUFS  Kurzzeit max  -27.48 / Median  -27.48  True Peak -12.99
+  ui_ui_error       6.0–   7.0 s   -25.96 LUFS  Kurzzeit max  -25.96 / Median  -25.96  True Peak -13.17
+  beep              7.0–   8.0 s   -19.24 LUFS  Kurzzeit max  -19.24 / Median  -19.24  True Peak -10.40
+  go                8.0–   9.0 s   -12.60 LUFS  Kurzzeit max  -12.60 / Median  -12.60  True Peak  -8.35
+  finish            9.0–  10.0 s   -10.65 LUFS  Kurzzeit max  -10.65 / Median  -10.65  True Peak  -7.65

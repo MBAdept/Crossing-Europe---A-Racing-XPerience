@@ -1,0 +1,7 @@
+{
+	"format": "ce-audio-manifest-1",
+	"folder": "engines",
+	"sounds": {
+		"platzhalter": {"file": "platzhalter.i16", "kind": "bank", "bus": "MEngine", "lufs": -14.39, "true_peak_db": -9.12, "sample_rate": 32000, "channels": 2, "frames": 16000, "loop": [0, 16000], "bytes": 64000, "sha256": "2a74c1d17e8af716fbf9167eb65cca532b51a877924207904d701799fbca91e2", "placeholder": true, "generator": "tools/audio/modern/make_placeholders.py", "note": "Platzhalter (Welle 0): wird im Spiel nie abgespielt"}
+	}
+}

@@ -1,0 +1,13 @@
+v0.8.0 KERN: Signal stage_live, Selbsttest übersteht einen freigegebenen Renderer, Feinschliff
+
+- Rennsitzung: Signal stage_live und is_live() – die Etappe beginnt zu laufen (Arcade sofort, Modern nach der
+  Vorbereitung); die Modern-Methoden des Renderers nur über has_method (prepare, apply_quality, healthy, …)
+- GfxSelfTest.run(): verlässt der Elternknoten währenddessen den Baum, endet der Test ohne Urteil ("aborted");
+  das Modern-Gerüst startet ihn aus einer statischen Funktion und merkt sich nur ein Urteil
+- Gfx.classify_adapter: Intel „UHD Graphics 7xx“ zählt nicht als schwach
+- tools/golden.sh: --gfx-sync in jedem Lauf, Hilfetext ohne Codezeile; tools/run_render_checks.sh ebenso
+- Tests: stage_live im Ablauf und im Klang-Test, abgebrochener Selbsttest in der Render-Prüfung, Grafikkarten
+- ARCHITECTURE.md §8 und §15.1
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

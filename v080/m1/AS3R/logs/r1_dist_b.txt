@@ -1,0 +1,43 @@
+prop_scene: Renn-Licht 12 Uhr, normal, Voreinstellung medium, Sicht 900 m, Stufen 60 / 200 m
+SZENE props/bush_round 15 m lod0 266x190 px
+SZENE props/bush_round 40 m lod0 75x64 px
+SZENE props/bush_round 100 m lod1 26x25 px
+SZENE props/bush_round 250 m lod1 10x10 px
+SZENE props/bush_round 15 m sprite 266x190 px
+SZENE props/bush_round 40 m sprite 75x64 px
+SZENE props/bush_round 100 m sprite 26x25 px
+SZENE props/bush_round 250 m sprite 10x10 px
+SZENE props/bush_low 15 m lod0 347x120 px
+SZENE props/bush_low 40 m lod0 108x38 px
+SZENE props/bush_low 100 m lod1 40x14 px
+SZENE props/bush_low 250 m lod1 16x5 px
+SZENE props/bush_low 15 m sprite 347x120 px
+SZENE props/bush_low 40 m sprite 108x38 px
+SZENE props/bush_low 100 m sprite 40x14 px
+SZENE props/bush_low 250 m sprite 16x5 px
+SZENE props/heather 15 m lod0 334x79 px
+SZENE props/heather 40 m lod0 111x24 px
+SZENE props/heather 100 m lod1 42x9 px
+SZENE props/heather 250 m lod1 16x3 px
+SZENE props/heather 15 m sprite 334x79 px
+SZENE props/heather 40 m sprite 111x24 px
+SZENE props/heather 100 m sprite 42x9 px
+SZENE props/heather 250 m sprite 16x3 px
+SZENE props/rock_a 15 m lod0 214x137 px
+SZENE props/rock_a 40 m lod0 68x48 px
+SZENE props/rock_a 100 m lod0 25x19 px
+SZENE props/rock_a 250 m lod0 10x7 px
+SZENE props/rock_a 15 m sprite 214x137 px
+SZENE props/rock_a 40 m sprite 68x48 px
+SZENE props/rock_a 100 m sprite 25x19 px
+SZENE props/rock_a 250 m sprite 10x7 px
+SZENE props/cliff 15 m lod0 1320x829 px
+SZENE props/cliff 40 m lod0 484x304 px
+SZENE props/cliff 100 m lod0 192x121 px
+SZENE props/cliff 250 m lod0 77x48 px
+SZENE props/cliff 15 m sprite 1320x829 px
+SZENE props/cliff 40 m sprite 484x304 px
+SZENE props/cliff 100 m sprite 192x121 px
+SZENE props/cliff 250 m sprite 77x48 px
+prop_scene: dist -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS3R/shots/r1_dist_b.png
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS3R/shots/r1_dist_b.png

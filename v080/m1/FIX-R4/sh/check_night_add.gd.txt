@@ -1,0 +1,205 @@
+
+
+# --- nass_kegel (FIX-R4, QA-R4 B2) ---------------------------------------------------------------------------------
+
+## A stage in `mode` stopped at simulation step STEPS with the HUD hidden: [scene, picture of that step].
+func _stage_shot(mode: String, extra: Dictionary) -> Array:
+	_renderers.set("modern_script", str(_renderers.get("MODERN_SCRIPT")))
+	var setup := {"mode": "single", "race_id": "", "autopilot": true, "autopilot_refuel": "never", "no_countdown": true,
+		"start_speed_kmh": 120.0, "traffic_warmup": false, "gfx": mode}
+	setup.merge(extra, true)
+	var sc: Node = (load(RACE) as PackedScene).instantiate()
+	sc.set("setup", setup)
+	await physics_frame
+	root.add_child(sc)
+	await _until(func() -> bool: return int(sc.get("_sim_steps")) >= STEPS)
+	sc.set_process(false)
+	sc.set_physics_process(false)
+	for c: Node in sc.get_children():
+		if c is CanvasLayer and (c as CanvasLayer).layer >= 5:
+			(c as CanvasLayer).visible = false
+	var r: Variant = sc.get("renderer")
+	if r is ModernRenderer:
+		(r as ModernRenderer).render((r as ModernRenderer).view)
+	await process_frame
+	await RenderingServer.frame_post_draw
+	return [sc, root.get_texture().get_image()]
+
+
+## Median of the luminance at the points (inside the picture).
+static func _median(img: Image, pts: Array[Vector2]) -> float:
+	var v: Array[float] = []
+	for p: Vector2 in pts:
+		var x := int(p.x)
+		var y := int(p.y)
+		if x >= 0 and y >= 0 and x < img.get_width() and y < img.get_height():
+			v.append(img.get_pixel(x, y).get_luminance())
+	if v.is_empty():
+		return 0.0
+	v.sort()
+	return v[v.size() / 2]
+
+
+## Probe points of the low beam's patch on the road and of the lane lines in it: [asphalt points (the player's lane,
+## KEGEL_FROM … KEGEL_TO m ahead of the camera, away from the lines and the car), [line point, asphalt point beside it]
+## pairs (centre of a dash of the lines that bound the player's lane, the asphalt 0.55 m inside the lane)].
+func _cone_points(r: ModernRenderer) -> Array:
+	var cam_z := float(r.view["camera_z"])
+	var pl: Dictionary = r.view.get("player", {})
+	var pz := float(pl.get("z", 0.0))
+	var px := float(pl.get("x", 0.0))
+	var pl_len := float(pl.get("length", 4.5))
+	var box := Rect2()
+	var first := true
+	for zz: float in [pz - 0.3, pz + pl_len + 0.3]:
+		for xx: float in [px - 1.2, px + 1.2]:
+			for hh: float in [0.0, 1.7]:
+				var q := r.world_to_screen(zz, xx, hh)
+				if q.z <= 0.0:
+					continue
+				if first:
+					box = Rect2(Vector2(q.x, q.y), Vector2.ZERO)
+					first = false
+				else:
+					box = box.expand(Vector2(q.x, q.y))
+	box = box.grow(4.0)
+	var asph: Array[Vector2] = []
+	var pairs: Array = []
+	var lw := r.track.lane_w
+	var d := KEGEL_FROM
+	while d <= KEGEL_TO:
+		var z := cam_z + d
+		var seg := r.track.get_segment(int(z / r.track.seg_len))
+		var la := -seg.lanes * lw * 0.5
+		var lane := clampi(int(floor((px - la) / lw)), 0, maxi(int(ceil(seg.lanes - 0.01)) - 1, 0))
+		for off: float in [-0.8, -0.4, 0.0, 0.4, 0.8]:
+			var q := r.world_to_screen(z, la + (float(lane) + 0.5) * lw + off, 0.0)
+			if q.z > 0.0 and not box.has_point(Vector2(q.x, q.y)):
+				asph.append(Vector2(q.x, q.y))
+		# the dashed lines on both sides of the lane: paint on [0, 6) m of every 18 m – the middle of a dash
+		var ph := fposmod(z, 18.0)
+		if ph >= 1.5 and ph <= 4.5:
+			for n: int in [lane, lane + 1]:
+				if n < 1 or n > int(ceil(seg.lanes - 0.01)) - 1:
+					continue
+				var lx := la + float(n) * lw
+				var inner := lx + (0.55 if n == lane else -0.55)
+				var ql := r.world_to_screen(z, lx, 0.0)
+				var qa := r.world_to_screen(z, inner, 0.0)
+				if ql.z > 0.0 and qa.z > 0.0 and not box.has_point(Vector2(ql.x, ql.y)):
+					pairs.append([Vector2(ql.x, ql.y), Vector2(qa.x, qa.y)])
+		d += 0.5
+	return [asph, pairs]
+
+
+## Median Weber contrast of the line points against the asphalt beside them.
+static func _line_contrast(img: Image, pairs: Array) -> float:
+	var v: Array[float] = []
+	for pr: Array in pairs:
+		var a: Vector2 = pr[0]
+		var b: Vector2 = pr[1]
+		var la := img.get_pixel(int(a.x), int(a.y)).get_luminance()
+		var lb := img.get_pixel(int(b.x), int(b.y)).get_luminance()
+		v.append((la - lb) / maxf(lb, 0.01))
+	if v.is_empty():
+		return 0.0
+	v.sort()
+	return v[v.size() / 2]
+
+
+func _check_nass_kegel() -> void:
+	var p: Array[String] = []
+	CliArgs.all()["gfx-preset"] = "medium"
+	var extra := {"stage_id": "dortmund_frankfurt", "from_city": "dortmund", "start_km": 121.0, "weather": "rain",
+		"vehicle": "gran_turismo", "seed": 14, "start_world_minutes": 22.0 * 60.0}
+	var got_a: Array = await _stage_shot("arcade", extra)
+	var arcade: Image = got_a[1]
+	await _free(got_a[0])
+	var got_m: Array = await _stage_shot("modern", extra)
+	var sc: Node = got_m[0]
+	var modern: Image = got_m[1]
+	var r: Variant = sc.get("renderer")
+	var msg := ""
+	if not (r is ModernRenderer):
+		_need(p, false, "Modern-Etappe läuft")
+	else:
+		var pts: Array = _cone_points(r)
+		var asph: Array[Vector2] = []
+		asph.assign(pts[0])
+		var pairs: Array = pts[1]
+		var la := _median(arcade, asph)
+		var lm := _median(modern, asph)
+		var ka := _line_contrast(arcade, pairs)
+		var km := _line_contrast(modern, pairs)
+		var ratio := lm / maxf(la, 1.0e-4)
+		var kr := km / maxf(ka, 1.0e-4)
+		_keep(arcade, "nass_kegel_arcade")
+		_keep(modern, "nass_kegel_modern")
+		_need(p, asph.size() >= 60 and pairs.size() >= 8, "genug Proben im Kegel (%d Asphalt, %d Linie)" % [asph.size(), pairs.size()])
+		_need(p, ratio <= WET_CONE_MAX, "nasse Fahrbahn im Abblendlicht höchstens %.2f× Arcade (%.2f×)" % [WET_CONE_MAX, ratio])
+		_need(p, ratio >= WET_CONE_MIN, "… und mindestens %.2f× (der Kegel bleibt sichtbar, %.2f×)" % [WET_CONE_MIN, ratio])
+		_need(p, kr >= WET_LINE_MIN, "Markierung im Kegel mindestens %.1f× Arcades Kontrast (%.2f gegen %.2f = %.2f×)" % [WET_LINE_MIN, km, ka, kr])
+		msg = "N2 22 Uhr Regen, Kegel %.0f–%.0f m: Fahrbahn Modern %.3f, Arcade %.3f (%.2f×), Markierung Weber %.2f gegen %.2f (%.2f×), %d / %d Proben" % [
+			KEGEL_FROM, KEGEL_TO, lm, la, ratio, km, ka, kr, asph.size(), pairs.size()]
+	await _free(sc)
+	CliArgs.all().erase("gfx-preset")
+	_report("nass_kegel", p, msg)
+
+
+# --- spiegelung (FIX-R4, QA-R4 B1) ---------------------------------------------------------------------------------
+
+## The reflection of a far car's rear lamps on a wet road that CLIMBS towards it lies on the road: every pixel the
+## reflections change lies at or below the row of the car's lamps (a level quad hung in the air and stood as a red
+## column above the car).
+func _check_spiegelung() -> void:
+	var p: Array[String] = []
+	var sc: Node = await _launch_probe({"stage_id": "kassel_wuerzburg", "from_city": "kassel", "start_km": 61.6, "vehicle": "kombi", "seed": 12})
+	var r: Node = sc.get("renderer")
+	var view: Dictionary = r.get("view")
+	var path: RoadPath3D = r.get("path")
+	var cam_z := float(view["camera_z"])
+	var x := float((view["player"] as Dictionary).get("x", 0.0))
+	var lights := float((view["palette"] as Dictionary).get("lights", 0.0))
+	# the visible place on the climb ahead with the largest rise above the camera's foot
+	var best_z := -1.0
+	var rise := 0.0
+	var z := cam_z + 120.0
+	while z < cam_z + 520.0:
+		if _below_road(r, z, x, 0.6) < -0.4 and _below_road(r, z + 4.8, x, 0.6) < -0.4:
+			var dh := path.height_at(z) - path.height_at(cam_z)
+			if dh > rise:
+				rise = dh
+				best_z = z
+		z += 4.0
+	_need(p, best_z > 0.0 and rise >= 3.0, "ein sichtbares Auto auf der Steigung, mindestens 3 m über dem Kamerafuß (%.1f m)" % rise)
+	var msg := ""
+	if best_z > 0.0:
+		var fl: Object = r.call("layer", "flares")
+		var car := _car(9901, "traffic/sedan_red", best_z, x, {"tail": lights, "brake": 1.0})
+		fl.set("debug_streaks", true)
+		var with_s := await _shot([car])
+		var streaks := int(((fl.call("snapshot") as Dictionary).get("lights", {}) as Dictionary).get("wet_streaks", 0))
+		fl.set("debug_streaks", false)
+		var without := await _shot([car])
+		fl.set("debug_streaks", true)
+		var lamp := r.call("world_to_screen", best_z, x, 0.6) as Vector3
+		var top := r.call("world_to_screen", best_z, x, 1.4) as Vector3
+		var above := 0
+		var below := 0
+		for py in with_s.get_height():
+			for px in with_s.get_width():
+				var a := with_s.get_pixel(px, py)
+				var b := without.get_pixel(px, py)
+				if absf(a.r - b.r) + absf(a.g - b.g) + absf(a.b - b.b) <= 2.0 / 255.0:
+					continue
+				if float(py) < top.y - 2.0:
+					above += 1
+				elif absf(float(px) - lamp.x) < 40.0:
+					below += 1
+		_keep(with_s, "spiegelung_steigung")
+		_need(p, streaks >= 2, "Spiegelungen gezeichnet (%d)" % streaks)
+		_need(p, above == 0, "keine Spiegelung über dem Dach des fernen Autos (%d Pixel)" % above)
+		_need(p, below > 0, "die Spiegelung des fernen Autos liegt unter ihm auf der Straße (%d Pixel)" % below)
+		msg = "Auto %.0f m voraus, %.1f m über dem Kamerafuß: %d Pixel über dem Dach (Zeile %.0f), %d darunter" % [best_z - cam_z, rise, above, top.y, below]
+	await _free(sc)
+	_report("spiegelung", p, msg)

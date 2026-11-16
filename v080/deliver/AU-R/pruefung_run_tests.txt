@@ -1,0 +1,907 @@
+244 Skripte geprüft, 0 fehlerhaft
+ok    test_arcade_identity.gd :: test_engine_mixer_output_is_byte_identical_to_v070
+ok    test_arcade_identity.gd :: test_engine_mixer_output_with_the_modern_profile_running
+ok    test_arcade_identity.gd :: test_sfx_synth_sounds_are_byte_identical_to_v070
+ok    test_arcade_identity.gd :: test_traffic_and_room_model_are_identical_to_v070
+ok    test_arcade_identity.gd :: test_frozen_audio_files_are_unchanged
+ok    test_arcade_identity.gd :: test_oneshot_levels_equal_the_audio_manager_table
+ok    test_audio_feed.gd :: test_without_track_or_position_nothing_is_derived
+ok    test_audio_feed.gd :: test_surface_under_a_wheel
+ok    test_audio_feed.gd :: test_surfaces_per_side_from_the_state
+ok    test_audio_feed.gd :: test_structures_and_their_events
+ok    test_audio_feed.gd :: test_zone_from_scenery_and_city
+ok    test_audio_feed.gd :: test_passed_objects
+ok    test_audio_feed.gd :: test_jumps_make_no_events
+ok    test_audio_feed.gd :: test_on_a_real_track
+ok    test_audio_feed.gd :: test_paving_of_sections_cities_and_bridges
+ok    test_audio_feed.gd :: test_concrete_is_the_same_in_both_directions
+ok    test_audio_feed.gd :: test_rumble_only_on_rumble_roads
+ok    test_audio_feed.gd :: test_delineators_on_roads_without_guardrail
+ok    test_audio_feed.gd :: test_cutting_between_rocks
+ok    test_audio_feed.gd :: test_joints_per_deck
+ok    test_audio_feed.gd :: test_no_rumble_at_the_fuel_lane
+ok    test_audio_feed.gd :: test_unit_hash_mixes_neighbouring_keys
+ok    test_audio_feed.gd :: test_cobbled_blocks_hit_the_share_per_centre
+ok    test_audio_feed.gd :: test_concrete_threshold_per_country
+ok    test_engine3_bank.gd :: test_fixture_is_flattened_for_the_mixer
+ok    test_engine3_bank.gd :: test_refuses_broken_descriptions
+ok    test_engine3_bank.gd :: test_notes_tolerated_deviations
+ok    test_engine3_bank.gd :: test_shipped_banks_and_their_vehicle_sounds
+      Motor v3 mit Wiedergabe CHECK thread   OK      Gran Turismo, Vollgas 7.5 s mit 6 Hängern des Hauptthreads à 400 ms (längstes Bild 0.70 s): Mischer im eigenen Thread true, 0 Aussetzer des Generators, Motor spielt durchgehend true (ausgeblendet in 0 Bildern); 91 Füllungen, 5.46 ms je Füllung (höchstens 55.1), 1.152 ms Mischzeit je 1/60 s Klang; Drehzahl am Ende 5140/min
+      Motor v3 mit Wiedergabe CHECK sync     OK      dieselbe Fahrt, im Hauptthread gemischt (engine_thread = false): Mischer-Thread false, 367 Aussetzer des Generators bei 6 Hängern (mit Thread: 0), 54 Füllungen, 7.67 ms je Füllung, 1.249 ms Mischzeit je 1/60 s Klang
+      Motor v3 mit Wiedergabe CHECK switch   OK      10 × arcade ↔ modern mit laufendem Mischer-Thread (10 ×) und Vorschau: Knoten 11 → 11, Busse 5 → 5, gehaltene Streams danach 0, Objekte 1619 → 1621
+      Motor v3 mit Wiedergabe CHECK quit     OK      Spielende bei laufendem Mischer-Thread (11 Füllungen, spielt true): der Prozess endet jetzt ohne Profilwechsel
+      Motor v3 mit Wiedergabe: 23.9 s, Exit 0
+ok    test_engine3_checks.gd :: test_engine_thread_in_a_running_game
+      Spielende 1 CHECK quit     OK      Spielende bei laufendem Mischer-Thread (9 Füllungen, spielt true): der Prozess endet jetzt ohne Profilwechsel
+      Spielende 1: 1.9 s, Exit 0
+      Spielende 2 CHECK quit     OK      Spielende bei laufendem Mischer-Thread (12 Füllungen, spielt true): der Prozess endet jetzt ohne Profilwechsel
+      Spielende 2: 1.8 s, Exit 0
+ok    test_engine3_checks.gd :: test_quitting_with_a_running_engine_thread
+ok    test_engine3_mix.gd :: test_output_is_finite_and_within_unity
+ok    test_engine3_mix.gd :: test_variants_random_never_twice_in_a_row
+ok    test_engine3_mix.gd :: test_cycle_length_follows_rpm
+ok    test_engine3_mix.gd :: test_no_clicks_at_cycle_boundaries_on_both_channels
+ok    test_engine3_mix.gd :: test_continuous_over_rpm_sweep
+ok    test_engine3_mix.gd :: test_blend_between_rpm_points_keeps_the_power
+ok    test_engine3_mix.gd :: test_blend_between_the_loads_keeps_the_power
+ok    test_engine3_mix.gd :: test_induction_follows_the_pedal_and_exhaust_the_load
+ok    test_engine3_mix.gd :: test_limiter_cut_pattern
+ok    test_engine3_mix.gd :: test_clips_start_crackles_and_panning
+ok    test_engine3_mix.gd :: test_same_seed_and_control_give_the_same_samples
+ok    test_engine3_mix.gd :: test_movement_never_a_static_loop
+      kompakt      Volllast R−L +0.03 dB, Mono-Summe 0.05 dB unter dem lauteren Kanal
+      kompakt      Schub    R−L +0.00 dB, Mono-Summe 0.00 dB unter dem lauteren Kanal
+      kombi        Volllast R−L -0.00 dB, Mono-Summe 0.01 dB unter dem lauteren Kanal
+      kombi        Schub    R−L -0.00 dB, Mono-Summe 0.00 dB unter dem lauteren Kanal
+      limousine    Volllast R−L -0.00 dB, Mono-Summe 0.04 dB unter dem lauteren Kanal
+      limousine    Schub    R−L +0.01 dB, Mono-Summe 0.01 dB unter dem lauteren Kanal
+      sportwagen   Volllast R−L +0.13 dB, Mono-Summe 0.39 dB unter dem lauteren Kanal
+      sportwagen   Schub    R−L +0.03 dB, Mono-Summe 0.23 dB unter dem lauteren Kanal
+      gran_turismo Volllast R−L +0.02 dB, Mono-Summe 0.30 dB unter dem lauteren Kanal
+      gran_turismo Schub    R−L +0.42 dB, Mono-Summe 0.51 dB unter dem lauteren Kanal
+ok    test_engine3_mix.gd :: test_shipped_banks_balance_and_mono_sum
+      Mischer v3, Gran Turismo, Volllast zwischen zwei Drehzahlpunkten: 0.953 ms je Bild (1/60 s Klang, 32 kHz Stereo), höchstens 3.44 ms
+ok    test_engine3_mix.gd :: test_render_time_per_frame
+      Schubknallen in 1,5 s nach dem Gaswegnehmen (fester Seed): 6 Clips
+ok    test_engine3_slot.gd :: test_engine_slot_drives_the_v3_bank
+ok    test_engine3_slot.gd :: test_start_clip_only_from_a_standstill
+ok    test_engine3_slot.gd :: test_synchronous_mode_is_sample_identical
+ok    test_engine3_slot.gd :: test_preview_blip
+ok    test_engine3_slot.gd :: test_a_long_frame_is_not_a_session_gone
+ok    test_engine3_slot.gd :: test_layers_follow_the_engine
+ok    test_modern_assets.gd :: test_every_folder_has_a_manifest
+ok    test_modern_assets.gd :: test_placeholders_are_hidden_unless_asked_for
+ok    test_modern_assets.gd :: test_placeholder_entries_and_streams
+ok    test_modern_assets.gd :: test_raw_engine_data_reads_back
+ok    test_modern_assets.gd :: test_broken_manifests_are_reported
+ok    test_modern_audio.gd :: test_start_builds_everything_and_shutdown_removes_it
+ok    test_modern_audio.gd :: test_engine_follows_the_session
+ok    test_modern_audio.gd :: test_calls_while_paused_or_after_stop_all_are_ignored
+ok    test_modern_audio.gd :: test_rain_skid_and_siren_rules
+ok    test_modern_audio.gd :: test_one_shots_reach_their_slot
+ok    test_modern_audio.gd :: test_a_play_and_its_event_sound_once
+ok    test_modern_audio.gd :: test_snapshots_follow_the_game
+ok    test_modern_audio.gd :: test_ducking_follows_the_car
+ok    test_modern_audio.gd :: test_no_ducking_for_a_car_the_mix_turned_down
+ok    test_modern_audio.gd :: test_effects_mute_follows_the_arcade_sfx_bus_and_the_setting
+ok    test_modern_audio.gd :: test_volume_settings_and_plan_levels_on_the_buses
+ok    test_modern_audio.gd :: test_music_contexts
+ok    test_modern_audio.gd :: test_track_and_state_reach_the_feed_and_the_slots
+ok    test_modern_audio.gd :: test_traffic_runs_on_eight_modern_voices
+ok    test_modern_buses.gd :: test_names_are_exactly_the_contract_list
+ok    test_modern_buses.gd :: test_build_creates_every_bus_after_the_existing_ones
+ok    test_modern_buses.gd :: test_base_effects
+ok    test_modern_buses.gd :: test_fader_lowpass_and_eq
+ok    test_modern_buses.gd :: test_slot_effect_goes_before_lowpass_and_fader
+ok    test_modern_buses.gd :: test_glue_compressor_from_config
+ok    test_modern_buses.gd :: test_limiter_from_config
+ok    test_modern_buses.gd :: test_compressor_ratio_conversion
+ok    test_modern_buses.gd :: test_other_buses_are_left_alone
+ok    test_modern_buses.gd :: test_build_twice_and_leftovers
+      ohne Wiedergabe CHECK arcade_boot    OK      Start mit Profil arcade (erwartet arcade); 5 Busse mit allen Effektwerten wie in v0.7.0 (arcade_v070_headless.json)
+      ohne Wiedergabe CHECK new_api        OK      set_race_music, set_music_context, set_track, set_vehicle_state und 14 Ereignisse mit dem Profil Arcade: nichts ändert sich (Knoten 11, Busse 5), Kontext und Schalter gemerkt
+      ohne Wiedergabe CHECK modern_buses   OK      22 Modern-Busse hinter den 5 vorhandenen, Sends nach links (in Ordnung); Arcade-Busse dabei unverändert; zweites set_profile("modern") ohne Wirkung
+      ohne Wiedergabe CHECK switch_20      OK      20 × arcade ↔ modern (ohne Wiedergabe): Knoten 11 → 11, Busse 5 → 5, Kinder des AudioManagers 0 → 0, verwaiste Knoten 0 → 0; 0 gehaltene Generator-Streams 0.0 s nach dem letzten Wechsel freigegeben (Profil Arcad
+      ohne Wiedergabe CHECK delegation     OK      Arcade-Motor 2127/min; Modern: Aufrufe kommen an (Motor 3413/min, Wind, Quietschen, Regen, Horn, Tunnel, Einmalklänge, Ereignis), Arcade steht dabei still (true); Menümusik übergeben (true/true/true); zurück in 
+      ohne Wiedergabe CHECK race           OK      Teststadt – Testdorp ab km 49,4 im Regen, 16 s (Zeitraffer 8×) mit dem Profil Modern und Platzhaltern bis km 57.26: Motor bis 6484/min, Sitzung in 205 von 206 Bildern da, Tunnelhall in 114 Bildern, Feed gültig (
+      ohne Wiedergabe CHECK arcade_after   OK      nach allem: Profil Arcade, 5 Busse mit Sends, Pegeln und Effekten wie in v0.7.0 (arcade_v070_headless.json); Motor-Mischer mit der von beiden Profilen benutzten Bank der Limousine: 355733 Abtastwerte, SHA-256 wi
+      ohne Wiedergabe: 14.3 s, Exit 0
+ok    test_modern_checks.gd :: test_profiles_in_a_running_game
+      mit Wiedergabe CHECK arcade_boot    OK      Start mit Profil arcade (erwartet arcade); 12 Busse mit allen Effektwerten wie in v0.7.0 (arcade_v070_display.json)
+      mit Wiedergabe CHECK new_api        OK      set_race_music, set_music_context, set_track, set_vehicle_state und 14 Ereignisse mit dem Profil Arcade: nichts ändert sich (Knoten 46, Busse 12), Kontext und Schalter gemerkt
+      mit Wiedergabe CHECK modern_buses   OK      22 Modern-Busse hinter den 12 vorhandenen, Sends nach links (in Ordnung); Arcade-Busse dabei unverändert; zweites set_profile("modern") ohne Wirkung
+      mit Wiedergabe CHECK switch_20      OK      20 × arcade ↔ modern (mit bis zu 33 Playern): Knoten 46 → 46, Busse 12 → 12, Kinder des AudioManagers 15 → 15, verwaiste Knoten 0 → 0; 11 gehaltene Generator-Streams 1.8 s nach dem letzten Wechsel freigegeben (P
+      mit Wiedergabe CHECK delegation     OK      Arcade-Motor 2138/min; Modern: Aufrufe kommen an (Motor 3398/min, Wind, Quietschen, Regen, Horn, Tunnel, Einmalklänge, Ereignis) – hörbar: Motor spielt, 1 Verkehrsstimme, Arcade steht dabei still (true); Menümus
+      mit Wiedergabe CHECK mix            OK      Pegelkette: Ton über MUI -23.08 dB (Plan -23.01), über MMusic -26.11 dB (Plan -26.11); Ducking: Musik -23.01 → -27.51 dB bei Vollgas (−4.5 dB, Zustand -4.5 dB), danach -23.07 dB; Pause: 5-kHz-Ton -23.0 → -59.8 d
+      mit Wiedergabe CHECK race           OK      Teststadt – Testdorp ab km 49,4 im Regen, 16 s (Zeitraffer 8×) mit dem Profil Modern und Platzhaltern bis km 57.26: Motor bis 6486/min, Sitzung in 186 von 187 Bildern da, Tunnelhall in 105 Bildern, Feed gültig (
+      mit Wiedergabe CHECK arcade_after   OK      nach allem: Profil Arcade, 12 Busse mit Sends, Pegeln und Effekten wie in v0.7.0 (arcade_v070_display.json); Motor-Mischer mit der von beiden Profilen benutzten Bank der Limousine: 355733 Abtastwerte, SHA-256 wi
+      mit Wiedergabe: 27.5 s, Exit 0
+ok    test_modern_checks.gd :: test_profiles_in_a_running_game_with_playback
+      Arcade-Start CHECK arcade_lean    OK      Start und eine Etappe (23 Schritte) mit Bild und Klang Arcade: 0 von 35 Skripten des Modern-Klangs, des Modern-Renderers und der Modell-Datenbank geladen
+      Arcade-Start: 2.1 s, Exit 0
+ok    test_modern_checks.gd :: test_arcade_start_loads_nothing_of_modern
+ok    test_modern_mix.gd :: test_static_levels_follow_plan_and_settings
+ok    test_modern_mix.gd :: test_car_loudness_after_the_plan
+ok    test_modern_mix.gd :: test_car_path_counts_the_mix_states
+ok    test_modern_mix.gd :: test_duck_target_curve
+ok    test_modern_mix.gd :: test_duck_attack_and_release_times
+ok    test_modern_mix.gd :: test_snapshot_pause_lowpass_and_gain
+ok    test_modern_mix.gd :: test_snapshot_trigger_holds_and_releases
+ok    test_modern_mix.gd :: test_snapshots_and_duck_add_up
+ok    test_modern_mix.gd :: test_result_snapshot_takes_car_and_world_down
+ok    test_modern_mix.gd :: test_effects_off_stops_ducking_and_dips_and_waits_for_the_tail
+ok    test_modern_mix.gd :: test_loudness_plan_in_the_configuration
+ok    test_modern_mix.gd :: test_top_speed_row_of_the_plan
+ok    test_modern_mix.gd :: test_state_is_plain_data
+      Musik im laufenden Spiel CHECK interactive  OK      linke_spur schluss (nach der Schleife): Hauptdatei 7777636 Frames, Schleife ab Frame 721636, nach dem Dateiende Abweichung 0 zum ersten Durchgang; bis zum Wechsel Frame für Frame (Abweichung 0); 0.596 s vor dem Taktstrich angefordert – Beginn 2.90 ms vor dem Taktstrich (Restfehler 0), Clip 1; leisestes 5-ms-Fenster 6.4 dB unter der Musik davor; erste 100 ms +0.01 dB gegenüber dem Clip allein OK; nachtfahrt schluss (nach der Schleife): Hauptdatei 8971199 Frames, Schleife ab Frame 907199, nach dem Dateiende Abweichung 0 zum ersten Durchgang; bis zum Wechsel Frame für F
+      Musik im laufenden Spiel CHECK race         OK      Kiel – Hamburg ab km 2 mit Countdown: Rennstück race/linke_spur#1 (playing); 4 Einsätze auf MUI, der Schlag nach dem Einzähler kommt 146.3 ms nach „LOS!“ (Abgleich des Einzählers 0.28 dB) – erlaubt 455 ms (Treiber mischt in Schüben von 4096 Frames, Bilder im Countdown im Median 8 ms, im Einzähler bis 322 ms); Spielzeit-Abstand im Director -0.00151515151515 s (erlaubt 341 ms); Vollgas bei Zeitraffer 2 (154 km/h, Gas 1.00): Musik nach dem Fader -4.5 dB gegenüber dem Countdown (Median über 1 s, tiefstes 50-ms-Fenster -4.5 dB; Mischung -4.5 dB), ohne Sitzung wieder -0.1 
+      Musik im laufenden Spiel CHECK arcade       OK      Profil Arcade nach Menü, UI-Klängen, Rennkontext, Etappenereignissen (mit Stingern) und Zwischenspiel-Kontext: ModernAudio keins, Modern-Busse keine, geladene Modern-Musik/UI-Klänge keine, Menümusik res://assets/audio/music/title_theme.ogg (3 Player spielen)
+      Musik im laufenden Spiel: 16.5 s, Exit 0
+ok    test_music_checks.gd :: test_music_in_a_running_game
+      Beenden im Menü CHECK quit_menu    OK      Musik spielte (music/titel_remaster, idle); Profil beendet: 0 Player übrig, 0,3 s später quit()
+      Beenden im Menü: 3.5 s, Exit 0
+      Beenden im Rennen CHECK quit_race    OK      Musik spielte (race/linke_spur#1, playing); Profil beendet: 0 Player übrig, 0,3 s später quit()
+      Beenden im Rennen: 3.4 s, Exit 0
+ok    test_music_checks.gd :: test_quitting_while_music_plays
+ok    test_music_director.gd :: test_menu_contexts_play_the_title_remaster
+ok    test_music_director.gd :: test_interlude_between_the_stages
+ok    test_music_director.gd :: test_race_piece_waits_for_the_stage_and_lands_on_go
+ok    test_music_director.gd :: test_rotation_of_the_race_pieces
+ok    test_music_director.gd :: test_countdown_numbers_reanchor_the_start
+ok    test_music_director.gd :: test_short_countdown_go_and_fallback_start
+ok    test_music_director.gd :: test_finish_restart_and_leaving_the_race
+ok    test_music_director.gd :: test_ending_variants_and_the_stab_at_the_finish_line
+ok    test_music_director.gd :: test_stingers_on_the_beat_over_the_ducked_piece
+ok    test_music_director.gd :: test_finish_without_race_music
+ok    test_music_director.gd :: test_option_race_music_and_countin_pause
+ok    test_music_director.gd :: test_race_stream_of_the_piece
+ok    test_music_director.gd :: test_placeholders_never_replace_a_real_piece
+ok    test_road_audio.gd :: test_the_loudness_plan_at_top_speed
+ok    test_road_audio.gd :: test_the_speed_laws
+ok    test_road_audio.gd :: test_surfaces_per_side_wet_and_snow
+ok    test_road_audio.gd :: test_squeal_and_scrub
+ok    test_road_audio.gd :: test_concrete_slabs_keep_their_rhythm
+ok    test_road_audio.gd :: test_bridge_joints_with_the_exact_axle_gap
+ok    test_road_audio.gd :: test_passed_objects
+ok    test_road_audio.gd :: test_wind_zones_gusts_and_fades
+ok    test_road_audio.gd :: test_collisions_by_closing_speed_and_partner
+ok    test_road_audio.gd :: test_collision_variety
+ok    test_road_audio.gd :: test_each_side_has_its_own_loop_and_drift
+ok    test_road_audio.gd :: test_squeal_pitch_per_event
+ok    test_road_audio.gd :: test_guardrail_scrape_and_delineators
+ok    test_gfx_settings.gd :: test_adapter_tiers
+ok    test_gfx_settings.gd :: test_recommendations_by_tier
+ok    test_gfx_settings.gd :: test_mode_resolution_order
+ok    test_gfx_settings.gd :: test_mode_resolution_matrix
+ok    test_gfx_settings.gd :: test_sound_matrix
+ok    test_gfx_settings.gd :: test_presets_of_the_configuration
+ok    test_gfx_settings.gd :: test_custom_values_and_limits
+ok    test_gfx_settings.gd :: test_command_line_overrides_of_the_quality
+ok    test_gfx_settings.gd :: test_levels_are_flat_typed_renderer_parameters
+ok    test_gfx_settings.gd :: test_watchdog_verdict
+ok    test_gfx_settings.gd :: test_new_player_has_no_choice_and_saves_none
+ok    test_gfx_settings.gd :: test_file_of_v070_keeps_everything_and_gets_no_mode
+ok    test_gfx_settings.gd :: test_file_without_version_migrates
+ok    test_gfx_settings.gd :: test_choices_are_stored_once_chosen
+ok    test_gfx_settings.gd :: test_keys_of_a_newer_version_survive
+ok    test_gfx_settings.gd :: test_damaged_values_count_as_not_chosen
+ok    test_gfx_settings.gd :: test_wrongly_typed_old_keys_do_not_stop_the_reading
+ok    test_gfx_settings.gd :: test_sound_follows_the_chosen_graphics_and_signals
+ok    test_gfx_settings.gd :: test_quality_of_a_run
+ok    test_gfx_settings.gd :: test_command_line_beats_the_settings
+ok    test_gfx_settings.gd :: test_crash_guard_marker
+ok    test_gfx_settings.gd :: test_self_test_verdict
+ok    test_gfx_ui.gd :: test_chooser_condition_matrix
+ok    test_gfx_ui.gd :: test_chooser_recommendation
+ok    test_gfx_ui.gd :: test_choice_sets_mode_and_sound_follows
+ok    test_gfx_ui.gd :: test_watchdog_never_judges_below_60_hz
+ok    test_gfx_ui.gd :: test_frame_stats
+ok    test_gfx_ui.gd :: test_preset_ladder
+ok    test_gfx_ui.gd :: test_bench_suggestion
+ok    test_gfx_ui.gd :: test_benchmark_offers
+ok    test_gfx_ui.gd :: test_options_preset_and_single_values
+ok    test_gfx_ui.gd :: test_round_trip_of_every_new_option
+ok    test_gfx_ui.gd :: test_leaderboard_entries_carry_the_mode
+ok    test_gfx_ui.gd :: test_race_entry_mode_summary
+ok    test_model_db.gd :: test_manifest_is_available
+ok    test_model_db.gd :: test_every_sprite_set_resolves
+ok    test_model_db.gd :: test_object_sizes_equal_the_sprite_manifest
+ok    test_model_db.gd :: test_stand_ins_follow_the_kind_of_set
+ok    test_model_db.gd :: test_manifest_is_the_merge_of_its_fragments
+ok    test_model_db.gd :: test_files_exist_and_meshes_carry_the_manifest
+ok    test_model_db.gd :: test_reference_sets
+ok    test_model_db.gd :: test_resolving_loads_nothing
+ok    test_model_db.gd :: test_request_loads_in_the_background
+ok    test_model_db.gd :: test_missing_manifest_resolves_nothing
+ok    test_model_db.gd :: test_malformed_entries_make_the_manifest_invalid
+ok    test_model_db.gd :: test_a_model_with_a_missing_file_is_not_built
+ok    test_model_db.gd :: test_empty_level_means_the_sets_own_level
+ok    test_model_db.gd :: test_owners_keep_the_caches_of_each_other
+ok    test_model_db.gd :: test_materials_share_one_instance
+ok    test_cities.gd :: test_every_city_resolves_to_a_style
+ok    test_cities.gd :: test_style_fallbacks
+ok    test_cities.gd :: test_city_data_validates
+ok    test_cities.gd :: test_city_sceneries_complete
+ok    test_cities.gd :: test_arrivals_build_without_warnings
+ok    test_cities.gd :: test_required_landmarks_and_bridges
+ok    test_cities.gd :: test_bridge_and_landmark_resolution
+ok    test_cities.gd :: test_skyline_prefers_procedural_stand_ins
+ok    test_cities.gd :: test_v070_cities
+ok    test_game_data.gd :: test_wrapper_api
+ok    test_leaderboards.gd :: test_ranking_and_ties
+ok    test_leaderboards.gd :: test_vehicle_filter_and_per_vehicle_storage
+ok    test_leaderboards.gd :: test_seeded_entries
+ok    test_leaderboards.gd :: test_seed_entries_follow_the_stage_make_up
+ok    test_leaderboards.gd :: test_race_board_counts_a_fuel_stop_per_carried_stage
+ok    test_leaderboards.gd :: test_race_board_seeded_from_shortest_route
+ok    test_leaderboards.gd :: test_persistence_roundtrip
+ok    test_leaderboards.gd :: test_corrupt_and_old_files
+ok    test_leaderboards.gd :: test_v06_file_converted_once
+ok    test_leaderboards.gd :: test_round_trip_through_v06_keeps_converted_times
+ok    test_leaderboards.gd :: test_time_scale_override_converts_both_ways
+ok    test_network_data.gd :: test_network_loads
+ok    test_network_data.gd :: test_validate_reports_nothing
+ok    test_network_data.gd :: test_every_stage_builds_both_directions_without_warnings
+ok    test_network_data.gd :: test_design_rules_both_directions
+ok    test_network_data.gd :: test_race_legs_full_tank_reaches_the_next_first_station
+ok    test_network_data.gd :: test_sections_sum_and_allowed_values
+ok    test_network_data.gd :: test_stage_lengths_and_intermediate_cities
+ok    test_network_data.gd :: test_tutorial_stage
+ok    test_network_data.gd :: test_country_sign_colours
+ok    test_network_data.gd :: test_real_tunnels_and_borders
+ok    test_network_data.gd :: test_landscape_changes_at_every_border
+ok    test_network_data.gd :: test_koenigsrennen_split_stages_200_400
+ok    test_network_data.gd :: test_validation_reports_border_and_split_problems
+ok    test_network_data.gd :: test_directional_radars
+ok    test_network_data.gd :: test_cities_inside_map_and_projection_consistent
+ok    test_network_data.gd :: test_map_file_polygons_drawable
+ok    test_routing.gd :: test_kiel_nuernberg_choice_at_hamburg
+ok    test_routing.gd :: test_kiel_nuernberg_two_balanced_routes
+ok    test_routing.gd :: test_route_options_show_whole_route
+ok    test_routing.gd :: test_route_details_consistent_everywhere
+ok    test_routing.gd :: test_legs_summary_of_race_routes
+ok    test_routing.gd :: test_choices_only_where_designed
+ok    test_routing.gd :: test_all_races_routable_and_visit_waypoints_in_order
+ok    test_routing.gd :: test_koenigsrennen
+ok    test_routing.gd :: test_revisit_allowed_in_new_leg
+ok    test_routing.gd :: test_ferry_leg
+ok    test_routing.gd :: test_waypoint_helpers
+ok    test_routing.gd :: test_shortest_path_and_board_length
+ok    test_routing.gd :: test_tolerance_from_config
+ok    test_routing.gd :: test_synthetic_network_rules
+ok    test_routing.gd :: test_wien_hamburg_user_route
+ok    test_routing.gd :: test_bukarest_calais_choice_in_wien
+ok    test_routing.gd :: test_new_stages_keep_the_old_routes
+ok    test_save_game.gd :: test_roundtrip
+ok    test_save_game.gd :: test_atomic_write_keeps_backup
+ok    test_save_game.gd :: test_corrupt_file_falls_back
+ok    test_save_game.gd :: test_old_or_incomplete_files
+ok    test_save_game.gd :: test_fuel_carried_over_in_the_save
+ok    test_save_game.gd :: test_clear_race
+== (a) Kollision bei 200 km/h – Zeitverlust (Ziel 7–10 s, Pflicht für Beschleunigung 3) ==
+Fahrzeug      Beschl.  auf 10 km/h s  Endpunkt s  Schub m  wieder 200 s  Verlust s
+kompakt       4        3.00           3.52        3.00     15.1          7.01
+kombi         2        3.00           3.52        3.00     21.9          9.55
+limousine     3        3.00           3.52        3.00     17.5          8.02
+sportwagen    5        3.00           3.52        3.00     13.2          6.24
+gran_turismo  4        3.00           3.52        3.00     15.1          7.04
+ok    test_design_numbers.gd :: test_a_collision_at_200_costs_7_to_10_s
+== (b) Von der Polizei erwischt – Zeitverlust ab dem Zugriff (Ziel 15–20 s, Referenz 160–180 km/h) ==
+Fahrzeug      bei 140  bei 160  bei 180  bei 200  Verfolgung s (160)  Bremsen + Stehen s
+kompakt       14.9     15.7     16.6     17.5     19.2                4.0 + 10.0
+kombi         16.6     17.7     18.9     20.2     19.2                4.0 + 10.0
+limousine     15.6     16.6     17.5     18.6     19.2                4.0 + 10.0
+sportwagen    14.4     15.1     15.8     16.7     19.2                4.0 + 10.0
+gran_turismo  14.9     15.7     16.6     17.5     19.2                4.0 + 10.0
+== (b2) Erwischt an der Tankstelle (Limousine, ~42 L): Polizeistopp kommt zum Tanken hinzu ==
+Fall          Stand s  davon Tanken s  Polizei s  Ablauf
+refuel_only   21.1     21.1            0.0        refuel_started > refuel_finished
+refuel_first  31.1     21.1            10.0       refuel_started > pull_over > refuel_finished > caught > released
+caught_first  30.8     20.7            10.0       pull_over > refuel_started > refuel_finished > caught > released
+ok    test_design_numbers.gd :: test_b_police_stop_costs_15_to_20_s
+== (c) Tankdauer = 5 s fest + 2 s je 5 L (leerer 50-L-Tank: 25 s) ==
+Fall                 Tank L  getankt L  Dauer s  Formel s
+leerer 50-L-Tank     50      50.0       25.00    25.00
+kompakt (leer)       45      45.0       23.00    23.00
+kombi (leer)         70      70.0       33.00    33.00
+limousine (leer)     60      60.0       29.00    29.00
+sportwagen (leer)    55      55.0       27.00    27.00
+gran_turismo (leer)  60      60.0       29.00    29.00
+halber 50-L-Tank     50      25.0       15.02    15.00
+ok    test_design_numbers.gd :: test_c_refuel_empty_50l_takes_25_s
+== (d) Verbrauch (L/100 km) = 14 + 0,00034 v² und Reichweite mit 50 L ==
+km/h  L/100 km  simuliert L/100 km  Reichweite km
+100   17.40     17.40               287
+130   19.75     19.75               253
+180   25.02     25.02               200
+250   35.25     35.25               142
+== (d) Reichweite je Fahrzeug (voller Tank, km) ==
+Fahrzeug      Tank L  Faktor  bei 130  bei 180  bei 250  bei vmax
+kompakt       45      0.85    268      212      150      166
+kombi         70      1.00    355      280      199      214
+limousine     60      1.00    304      240      170      174
+sportwagen    55      1.15    242      191      136      132
+gran_turismo  60      1.30    234      184      131      119
+ok    test_design_numbers.gd :: test_d_consumption_and_range_table
+== (e) Flucht: Tempo halten nach dem Blitzer (Limousine; Flucht ab Ø 220 km/h über 12 s) ==
+Tempo                                     Ergebnis  nach s  min. Abstand m  Ø km/h
+200                                       caught    57.5    0               200.0
+210                                       caught    72.0    119             210.0
+219                                       caught    72.0    299             219.0
+222                                       escaped   12.0    320             222.0
+230                                       escaped   12.0    320             230.0
+kompakt Vollgas ab 140, Regen+Nacht       escaped   18.4    244             220.0
+kombi Vollgas ab 140, Regen+Nacht         escaped   22.3    193             220.0
+limousine Vollgas ab 140, Regen+Nacht     escaped   16.8    230             220.0
+sportwagen Vollgas ab 140, Regen+Nacht    escaped   13.8    259             220.0
+gran_turismo Vollgas ab 140, Regen+Nacht  escaped   14.5    247             220.1
+kompakt dito, 4.5 % bergauf               escaped   19.8    242             220.0
+kombi dito, 4.5 % bergauf                 escaped   22.9    191             220.0
+limousine dito, 4.5 % bergauf             escaped   17.0    229             220.0
+sportwagen dito, 4.5 % bergauf            escaped   13.9    258             220.0
+gran_turismo dito, 4.5 % bergauf          escaped   14.6    246             220.0
+== (e2) Verfolgung in die City Limits: Würzburg – Kassel, Radar km 155–160, City Limits ab km 190 (Kompakt hält das Tempo) ==
+Tempo  geblitzt km  Ende    bei km  Verfolgung s  km in den City Limits
+190    155.0        caught  175.2   38.3          0.0
+200    155.0        caught  186.9   57.5          0.0
+210    155.0        caught  197.0   72.0          7.0
+219    155.0        caught  198.8   72.0          8.8
+ok    test_design_numbers.gd :: test_e_escape_at_222_but_not_at_210
+== (f) Höchstgeschwindigkeit bei Regen in der Nacht (Ziel >= 220 km/h, auch an Steigungen bis Hügelstufe 2 = 4.5 %), Hügelstufe 3 (7 %) und Schnee ==
+Fahrzeug      vmax  Regen+Nacht km/h  0-220 s  R+N 4,5 %  trocken 7 %  R+N 7 %  Schnee Tag  Schnee+Nacht
+kompakt       230   222.0             16.7     220.7      221.7        214.0    202.4       200.4
+kombi         235   226.8             26.2     225.5      226.5        218.7    206.8       204.7
+limousine     245   236.5             18.6     235.1      236.2        228.0    215.6       213.4
+sportwagen    255   246.1             12.8     244.7      245.8        237.3    224.4       222.2
+gran_turismo  270   260.6             15.0     259.1      260.3        251.2    237.6       235.2
+ok    test_design_numbers.gd :: test_f_all_vehicles_reach_220_in_rain_at_night
+== (g) Verkehr: Tageskurve, Nacht x1.00, Verfolgung -80 %, City Limits x2,5 ==
+Größe                                                          Wert                       Bemerkung
+Dichte 08:00 (Autobahn, Fz/km)                                 16.00
+Dichte 03:00                                                   1.92                       x0.12 von 08:00
+Dichte 12:00 / 17:30 / 23:30                                   11.20 / 15.84 / 3.92
+Verfolgung (12:00)                                             2.24                       x0.20 (-80 %)
+City Limits (12:00)                                            14.00                      x2.50 vs. Stadtstraße ohne City Limits, x1.25 vs. Autobahn
+sim: sichtbare Autos 08:00 / 03:00                             12.1 / 2.3                 Spieler 160 km/h
+sim: Ø Wunschtempo neuer Autos 12:00 / 00:30                   123.5 / 114.6 km/h         Faktor je Auto 1.000 / 1.000
+sim: sichtbare Autos vor / in Verfolgung                       8.2 / 1.3                  x0.16 (Spieler 225 km/h, 15 s nach Beginn)
+sim: sichtbare Autos City Limits                               10.2                       Spieler 80 km/h
+sim: Überlappungen Auto/Auto (alle Läufe)                      0                          muss 0 sein
+sim: Auftauchen/Verschwinden im Bild                           0                          muss 0 sein
+sim: Spieler steht auf der Fahrbahn (17:30)                    0 Treffer                  46 Autos ausgewichen/gebremst
+sim: Spurwechsel in 60 s (12:00)                               12
+sim: Wunschtempo Autobahn 12:00 min Pkw (schwere min–max)      114.5 (81.3–88.5) km/h     Lkw 80–90, Busse 95–100 km/h
+sim: Ø Wunschtempo neuer Autos 12:00 trocken / Regen / Schnee  123.5 / 103.2 / 77.5 km/h  traffic.weather
+sim: Landstraße 17:00, Spieler 90 km/h, 120 s                  0.0 s (ohne Regel 72.0 s)  längstes Nebeneinander zweier gleich schneller Autos (rollende Sperre)
+ok    test_design_numbers.gd :: test_g_traffic_density_speed_chase_city
+== (h) Beschleunigung 0–100 / 0–200 km/h (Ziel ±10 %) ==
+Fahrzeug      vmax  0-100 s  Ziel  Abw.    0-200 s  Ziel   Abw.    0-vmax s  a0 km/h/s  q
+kompakt       230   4.60     4.60  -0.0 %  12.02    12.00  +0.1 %  19.3      25.0       0.477
+kombi         235   7.02     7.00  +0.2 %  19.02    19.00  +0.1 %  36.7      16.8       0.378
+limousine     245   5.60     5.60  -0.0 %  14.50    14.50  +0.0 %  28.8      20.7       0.409
+sportwagen    255   3.80     3.80  -0.0 %  10.00    10.00  +0.0 %  25.2      30.9       0.322
+gran_turismo  270   4.62     4.60  +0.4 %  12.02    12.00  +0.1 %  38.7      25.6       0.263
+ok    test_design_numbers.gd :: test_h_acceleration_times
+ok    test_environment_clock.gd :: test_clock_time_lapse
+ok    test_environment_clock.gd :: test_daytime_categories
+ok    test_environment_clock.gd :: test_night_amount_smooth
+ok    test_environment_clock.gd :: test_vmax_factors_and_escape_requirement
+ok    test_environment_clock.gd :: test_visibility
+ok    test_environment_clock.gd :: test_weather_picking_by_region
+ok    test_environment_clock.gd :: test_weather_race_modes
+ok    test_environment_clock.gd :: test_next_stage_starts_8h_later
+ok    test_fuel_system.gd :: test_consumption_formula_and_vehicle_factors
+ok    test_fuel_system.gd :: test_consumption_counts_odometer_km
+ok    test_fuel_system.gd :: test_range_and_design_table
+ok    test_fuel_system.gd :: test_announcements_once_per_station
+ok    test_fuel_system.gd :: test_first_station_is_announced_at_the_start
+ok    test_fuel_system.gd :: test_carried_start_fuel
+ok    test_fuel_system.gd :: test_start_check
+ok    test_fuel_system.gd :: test_full_tank_at_the_last_station_reaches_the_next_first_station
+ok    test_fuel_system.gd :: test_distance_to_next_station
+ok    test_fuel_system.gd :: test_refuel_duration_empty_tank_25s
+ok    test_fuel_system.gd :: test_refuel_trigger_flow_and_control
+ok    test_fuel_system.gd :: test_refuel_abort_needs_fresh_throttle_press
+ok    test_fuel_system.gd :: test_full_tank_does_not_stop
+ok    test_fuel_system.gd :: test_empty_tank_tow
+ok    test_fuel_system.gd :: test_empty_tank_can_still_roll_into_the_fuel_lane
+ok    test_fuel_system.gd :: test_empty_tank_refuel_is_not_aborted_into_a_tow
+ok    test_fuel_system.gd :: test_reserve_signal
+ok    test_police_system.gd :: test_police_slows_in_curves_and_escape_follows
+ok    test_police_system.gd :: test_police_accelerates_after_curve
+ok    test_police_system.gd :: test_police_curve_speed_below_every_car
+ok    test_police_system.gd :: test_warning_once_with_limit
+ok    test_police_system.gd :: test_zone_signals_and_tolerance
+ok    test_police_system.gd :: test_chase_gap_shrinks_and_grows
+ok    test_police_system.gd :: test_escape_when_holding_222_but_not_210
+ok    test_police_system.gd :: test_escape_needs_full_window_and_average
+ok    test_police_system.gd :: test_caught_stop_and_release
+ok    test_police_system.gd :: test_catch_timeout
+ok    test_police_system.gd :: test_no_new_radar_during_chase_and_each_radar_once
+ok    test_police_system.gd :: test_chase_continues_into_city_limits
+ok    test_police_system.gd :: test_chase_into_city_limits_on_real_stage
+ok    test_police_system.gd :: test_police_stop_adds_to_refuel_time
+ok    test_police_system.gd :: test_stop_waits_while_another_system_holds_the_car
+ok    test_police_system.gd :: test_police_car_overtakes_into_pull_over_position
+ok    test_traffic_system.gd :: test_daily_curve_and_night_speed
+ok    test_traffic_system.gd :: test_density_factors_section_city_chase
+ok    test_traffic_system.gd :: test_cars_appear_and_vanish_only_out_of_sight
+ok    test_traffic_system.gd :: test_cars_from_behind_are_faster_than_the_player
+ok    test_traffic_system.gd :: test_despawn_far_behind_and_far_ahead
+ok    test_traffic_system.gd :: test_following_distance_and_brake_lights
+ok    test_traffic_system.gd :: test_traffic_brakes_softer_in_snow
+ok    test_traffic_system.gd :: test_overtakes_slower_car_and_keeps_right
+ok    test_traffic_system.gd :: test_merges_before_lane_ends
+ok    test_traffic_system.gd :: test_zipper_at_a_lane_drop
+ok    test_traffic_system.gd :: test_cars_avoid_the_stationary_player
+ok    test_traffic_system.gd :: test_car_brakes_or_evades_when_player_cuts_in
+ok    test_traffic_system.gd :: test_fuel_lane_use
+ok    test_traffic_system.gd :: test_trucks_stay_right
+ok    test_traffic_system.gd :: test_find_collision_and_rear_visibility_rule
+ok    test_traffic_system.gd :: test_space_beside
+ok    test_traffic_system.gd :: test_centre_hit_pushes_to_side_with_more_space
+ok    test_traffic_system.gd :: test_no_rolling_roadblock_side_by_side
+ok    test_traffic_system.gd :: test_side_rule_drops_back_when_it_cannot_pass
+    Lkw 54 km/h: linke Spur neben dem Spieler blockiert 24 % (ohne Haltefenster 100 %)
+ok    test_traffic_system.gd :: test_yielding_car_does_not_hover_beside_the_player
+ok    test_traffic_system.gd :: test_speeds_per_class_limit_and_weather
+ok    test_traffic_system.gd :: test_dimensions_from_manifest
+ok    test_traffic_system.gd :: test_deterministic_for_seed
+ok    test_traffic_system.gd :: test_chase_and_city_change_visible_traffic
+ok    test_traffic_system.gd :: test_lane_changes_are_signalled
+ok    test_traffic_system.gd :: test_cut_in_in_front_of_a_fast_player_is_fair
+ok    test_traffic_system.gd :: test_elephant_race_on_three_lanes_only
+ok    test_traffic_system.gd :: test_elephant_race_gives_up_in_snow
+ok    test_traffic_system.gd :: test_traffic_comes_in_clusters
+ok    test_vehicle_model.gd :: test_resolve_spec_has_derived_values
+ok    test_vehicle_model.gd :: test_accel_times_match_ratings_within_10_percent
+ok    test_vehicle_model.gd :: test_acceleration_is_frame_rate_independent
+ok    test_vehicle_model.gd :: test_fit_curve_reproduces_targets
+ok    test_vehicle_model.gd :: test_brake_and_coast
+ok    test_vehicle_model.gd :: test_max_speed_weather_night_grade
+ok    test_vehicle_model.gd :: test_grade_keeps_escape_speed_in_slightly_worse_conditions
+ok    test_vehicle_model.gd :: test_all_vehicles_reach_220_in_rain_at_night
+ok    test_vehicle_model.gd :: test_steering_ramps_with_speed_and_agility
+ok    test_vehicle_model.gd :: test_steering_response_is_smooth
+ok    test_vehicle_model.gd :: test_car_follows_road_below_safe_speed
+ok    test_vehicle_model.gd :: test_safe_curve_speed_formula_and_excess
+ok    test_vehicle_model.gd :: test_agility_orders_curve_speeds
+ok    test_vehicle_model.gd :: test_understeer_drift_grows_with_excess_and_time
+ok    test_vehicle_model.gd :: test_counter_steer_holds_slightly_but_not_clearly_too_fast
+ok    test_vehicle_model.gd :: test_drift_recovers_after_braking
+ok    test_vehicle_model.gd :: test_sliding_scrubs_speed
+ok    test_vehicle_model.gd :: test_weather_grip_lowers_curve_speed
+ok    test_vehicle_model.gd :: test_brake_works_while_rolling_out
+ok    test_vehicle_model.gd :: test_understeer_is_frame_rate_independent
+ok    test_vehicle_model.gd :: test_drift_into_guardrail_is_costly
+ok    test_vehicle_model.gd :: test_shoulder_slows_down
+ok    test_vehicle_model.gd :: test_guardrail_scrape_and_bounce
+ok    test_vehicle_model.gd :: test_guardrail_never_pins_a_standing_car
+ok    test_vehicle_model.gd :: test_guardrail_scrapes_while_pressed_into_it
+ok    test_vehicle_model.gd :: test_grass_without_guardrail
+ok    test_vehicle_model.gd :: test_collision_sequence
+ok    test_vehicle_model.gd :: test_crash_ignored_while_invulnerable
+ok    test_vehicle_model.gd :: test_push_direction_rules
+ok    test_vehicle_model.gd :: test_auto_control_and_release
+ok    test_vehicle_model.gd :: test_braking_limited_by_grip
+ok    test_vehicle_model.gd :: test_traction_limits_the_start_in_snow
+ok    test_vehicle_model.gd :: test_steering_slides_on_snow
+ok    test_autopilot_fuel.gd :: test_last_station_covers_the_next_stage
+ok    test_autopilot_fuel.gd :: test_economy_pace_to_the_next_station
+ok    test_autopilot_weather.gd :: test_steering_does_not_swing_on_snow
+ok    test_autopilot_weather.gd :: test_plans_with_the_braking_of_the_weather
+ok    test_autopilot_weather.gd :: test_fuel_lane_approach_waits_for_a_gap
+ok    test_autopilot_weather.gd :: test_lane_end_stops_instead_of_forcing_into_a_jam
+ok    test_autopilot_weather.gd :: test_does_not_overtake_in_an_ending_lane
+ok    test_autopilot_weather.gd :: test_fuel_lane_exit_waits_for_the_traffic_behind
+    snow, gran_turismo, 110 km: Ø 85 km/h, 0 Mal vor ihm eingeschert
+    rain, kompakt, 80 km: Ø 109 km/h, 1 Mal vor ihm eingeschert
+ok    test_autopilot_weather.gd :: test_autopilot_gets_through_traffic_in_snow_and_rain
+ok    test_box_vehicle.gd :: test_drawn_box_is_the_collision_box
+ok    test_box_vehicle.gd :: test_visible_faces
+ok    test_box_vehicle.gd :: test_truck_alongside_stays_visible
+ok    test_box_vehicle.gd :: test_slices_follow_the_curve
+ok    test_box_vehicle.gd :: test_slices_are_stable_relative_to_the_vehicle
+ok    test_box_vehicle.gd :: test_face_orientation
+ok    test_box_vehicle.gd :: test_light_overlays
+ok    test_box_vehicle.gd :: test_rear_lights_of_a_semi_trailer
+ok    test_city_render.gd :: test_landmark_fade_has_no_pop_in
+ok    test_city_render.gd :: test_water_tint_mirrors_the_sky_towards_the_horizon
+ok    test_city_render.gd :: test_eiffel_profile
+ok    test_city_render.gd :: test_terrain_under_bridges
+ok    test_city_render.gd :: test_backdrop_city_styles
+ok    test_city_render.gd :: test_backdrop_behind_range_parameters
+ok    test_city_render.gd :: test_ground_blends_into_the_centre
+ok    test_city_render.gd :: test_atomium_and_lighthouse_procs
+ok    test_city_track.gd :: test_plan_has_no_warnings
+ok    test_city_track.gd :: test_outskirts_and_center_scenery
+ok    test_city_track.gd :: test_bridges_are_water_zones_with_a_bank
+ok    test_city_track.gd :: test_no_scenery_props_on_water
+ok    test_city_track.gd :: test_bridge_structures
+ok    test_city_track.gd :: test_landmarks_as_events_with_cleared_surroundings
+ok    test_city_track.gd :: test_city_track_is_deterministic
+ok    test_city_track.gd :: test_park_trees_keep_off_bridges
+ok    test_city_track.gd :: test_real_arrivals_keep_park_trees_off_bridges
+ok    test_glow_occlusion.gd :: test_glow_visibility_at_the_crest_line
+ok    test_glow_occlusion.gd :: test_glow_bands_follow_the_nearer_ground
+ok    test_glow_occlusion.gd :: test_glow_atlas
+ok    test_glow_occlusion.gd :: test_geo_batch_glow_quads
+ok    test_glow_occlusion.gd :: test_tunnel_window
+ok    test_glow_occlusion.gd :: test_point_in_quad
+ok    test_glow_occlusion.gd :: test_slice_of_row
+ok    test_glow_occlusion.gd :: test_tunnel_window_portal_frame
+ok    test_glow_occlusion.gd :: test_convex_signed_distance_and_edge_visibility
+ok    test_glow_occlusion.gd :: test_player_silhouette
+ok    test_glow_occlusion.gd :: test_emit_item_glows_bands_and_player
+ok    test_palette.gd :: test_all_keys_for_all_hours_and_weathers
+ok    test_palette.gd :: test_continuity
+ok    test_palette.gd :: test_day_and_night
+ok    test_palette.gd :: test_weather
+ok    test_palette.gd :: test_tunnel_variant
+ok    test_palette.gd :: test_lit
+ok    test_police_curves.gd :: test_session_cap_matches_braking_envelope
+ok    test_police_curves.gd :: test_curvy_radar_chases_can_be_escaped
+ok    test_projection.gd :: test_project_basics
+ok    test_projection.gd :: test_ground_rows
+ok    test_projection.gd :: test_player_car_on_screen
+ok    test_projection.gd :: test_visible_fraction_rule
+ok    test_projection.gd :: test_view_angle
+ok    test_render_helpers.gd :: test_geo_batch
+ok    test_render_helpers.gd :: test_autopilot_braking_curve
+ok    test_render_helpers.gd :: test_autopilot_brakes_for_curves
+ok    test_render_helpers.gd :: test_sprite_flip_in_place
+ok    test_render_helpers.gd :: test_edge_aligned_props_keep_their_near_edge
+ok    test_render_helpers.gd :: test_backdrop_wrap
+ok    test_session_rules.gd :: test_collisions_stay_active_unless_standing
+ok    test_session_rules.gd :: test_next_station_for_the_hud
+ok    test_session_rules.gd :: test_empty_tank_can_roll_into_a_fuel_lane
+ok    test_session_rules.gd :: test_police_car_overtakes_beside_the_player
+ok    test_session_rules.gd :: test_tutorial_queue
+ok    test_session_rules.gd :: test_tutorial_texts_use_the_configuration
+ok    test_session_rules.gd :: test_tutorial_low_tank_comes_first
+ok    test_session_rules.gd :: test_carry_messages
+ok    test_session_rules.gd :: test_weather_hint_and_city_announcement
+ok    test_signs.gd :: test_country_styles_from_data
+ok    test_signs.gd :: test_unknown_country_uses_the_german_style
+ok    test_signs.gd :: test_board_sizes
+SpriteDB: Zusatz-Manifest geladen: res://tests/fixtures/legacy/manifest.json (5 Sets)
+ok    test_sprite_db.gd :: test_old_manifest_still_works
+ok    test_sprite_db.gd :: test_real_manifest_is_consistent
+ok    test_sprite_db.gd :: test_yaw_from_names_and_lists
+SpriteDB: Zusatz-Manifest geladen: res://tests/fixtures/sprites/manifest.json (4 Sets)
+ok    test_sprite_db.gd :: test_fixture_sets
+SpriteDB: Zusatz-Manifest geladen: res://tests/fixtures/sprites/manifest.json (4 Sets)
+SpriteDB: Zusatz-Manifest geladen: res://assets/sprites/manifest.json (187 Sets)
+ok    test_sprite_db.gd :: test_box_parts_span_the_collision_box
+SpriteDB: Zusatz-Manifest geladen: res://tests/fixtures/legacy/manifest.json (5 Sets)
+SpriteDB: Zusatz-Manifest geladen: res://tests/fixtures/sprites/manifest.json (4 Sets)
+ok    test_sprite_db.gd :: test_overlay_and_aliases
+ok    test_track.gd :: test_conversions
+ok    test_track.gd :: test_determinism
+ok    test_track.gd :: test_window_streaming
+ok    test_track.gd :: test_lane_transitions
+ok    test_track.gd :: test_fuel_lane_factor
+ok    test_track.gd :: test_events
+ok    test_track.gd :: test_signs_in_tunnels_hang_inside_the_tube
+ok    test_track.gd :: test_signs_carry_country_and_road
+ok    test_track.gd :: test_geometry_bounds
+ok    test_track.gd :: test_scenery_props_outside_road
+ok    test_track.gd :: test_scenery_file_complete
+ok    test_track.gd :: test_sharp_curves_have_warning_sign_and_chevrons
+ok    test_track.gd :: test_curve_signs_same_when_streamed
+ok    test_track.gd :: test_curves_are_seen_in_time
+ok    test_track.gd :: test_traffic_is_seen_in_time
+ok    test_track.gd :: test_blind_crests_have_a_warning_sign
+ok    test_track.gd :: test_tunnel_road_is_dry
+ok    test_track.gd :: test_every_sharp_curve_has_a_warning_sign
+ok    test_vehicle_pose.gd :: test_truck_in_neighbour_lane_gets_a_small_yaw
+ok    test_vehicle_pose.gd :: test_front_centre_matches_true_perspective
+ok    test_vehicle_pose.gd :: test_own_heading_during_lane_change
+ok    test_vehicle_pose.gd :: test_yaw_is_limited
+ok    test_vehicle_pose.gd :: test_critically_damped_smoothing
+ok    test_vehicle_pose.gd :: test_no_cell_flicker_on_a_constant_curve
+ok    test_vehicle_pose.gd :: test_cell_hysteresis_band
+ok    test_vehicle_pose.gd :: test_player_yaw_components
+ok    test_vehicle_pose.gd :: test_player_view_angle_keeps_rear_and_front_in_place
+ok    test_vehicle_pose.gd :: test_roll_and_perspective_scale
+ok    test_vehicle_pose.gd :: test_warp_columns_follow_the_rotated_car
+ok    test_vehicle_pose.gd :: test_warp_puts_front_and_flank_on_the_true_projection
+ok    test_chase_camera.gd :: test_straight_matches_arcade_projection
+ok    test_chase_camera.gd :: test_frustum_matches_engine_projection
+ok    test_chase_camera.gd :: test_shake_moves_the_picture
+ok    test_chase_camera.gd :: test_look_yaw
+ok    test_chase_camera.gd :: test_arcade_model_matches_road_renderer
+ok    test_chase_camera.gd :: test_curve_parity_bounds
+ok    test_chunk_streamer.gd :: test_context_snapshot
+ok    test_chunk_streamer.gd :: test_registry
+ok    test_chunk_streamer.gd :: test_debug_road_builder
+ok    test_chunk_streamer.gd :: test_sync_mode_is_deterministic
+ok    test_chunk_streamer.gd :: test_threaded_mode_matches_sync
+ok    test_chunk_streamer.gd :: test_real_stage_limits_rebase_and_trim
+ok    test_chunk_streamer.gd :: test_end_of_the_road_and_visibility
+ok    test_chunk_streamer.gd :: test_streamer_keeps_the_track_and_sees_late_signs
+ok    test_fairness.gd :: test_envelopes_and_speed_profile
+ok    test_fairness.gd :: test_path_scan
+ok    test_fairness.gd :: test_frustum_scan_needs_the_look_into_the_bend
+ok    test_fairness.gd :: test_crest_scan
+ok    test_road_path.gd :: test_arc_matches_closed_form
+ok    test_road_path.gd :: test_coordinates
+ok    test_road_path.gd :: test_world_is_bilinear_between_rows
+ok    test_road_path.gd :: test_rebase_keeps_positions
+ok    test_road_path.gd :: test_trim_and_window
+ok    test_road_path.gd :: test_floor_y
+ok    test_road_path.gd :: test_clearance_u_turn
+ok    test_road_path.gd :: test_clearance_before_a_tight_bend
+ok    test_road_path.gd :: test_forced_generation_keeps_the_track
+ok    test_terrain_profile.gd :: test_straight_profile
+ok    test_terrain_profile.gd :: test_inside_of_a_bend_is_cut
+ok    test_terrain_profile.gd :: test_medial_axis_cut
+ok    test_terrain_profile.gd :: test_sight_corridor
+ok    test_terrain_profile.gd :: test_never_above_the_road_inside_the_corridor
+ok    test_terrain_profile.gd :: test_relief_rules
+ok    test_terrain_profile.gd :: test_rows_and_shared_rows
+ok    test_core.gd :: test_time_table_from_design_document
+ok    test_core.gd :: test_avg_speed_matches_speedometer
+ok    test_core.gd :: test_format
+ok    test_core.gd :: test_config_override_merge
+ok    test_core.gd :: test_stage_plan_rules_and_reverse
+ok    test_core.gd :: test_stage_plan_fuel_stations_per_direction
+ok    test_core.gd :: test_projection_visible_fraction
+ok    test_platform.gd :: test_fullscreen_default_by_screen_and_scaling
+ok    test_platform.gd :: test_window_scale_follows_desktop_scaling_as_far_as_it_fits
+ok    test_platform.gd :: test_window_centred_with_title_bar_on_screen
+ok    test_platform.gd :: test_settings_file_atomic_with_backup
+ok    test_platform.gd :: test_close_request_saves_unsaved_settings
+ok    test_platform.gd :: test_override_file_with_bom_and_crlf
+ok    test_attract_mode.gd :: test_config_and_scenes
+ok    test_attract_mode.gd :: test_scene_setup_for_the_race_session
+ok    test_attract_mode.gd :: test_scene_index_by_number_or_id
+ok    test_attract_mode.gd :: test_idle_timer
+ok    test_attract_mode.gd :: test_wake_events
+ok    test_attract_mode.gd :: test_input_ends_demo_and_is_swallowed
+ok    test_attract_mode.gd :: test_demo_duration_and_rotation
+ok    test_attract_mode.gd :: test_effect_buses_muted_and_restored
+ok    test_attract_mode.gd :: test_effect_buses_come_back_after_their_tails
+ok    test_attract_mode.gd :: test_title_backdrop_cover_fit
+ok    test_attract_mode.gd :: test_no_demos_after_long_idle
+ok    test_audio_synth.gd :: test_engine_loop_is_seamless_and_normalized
+ok    test_audio_synth.gd :: test_siren_two_tones
+ok    test_audio_synth.gd :: test_one_shots_in_range
+ok    test_audio_synth.gd :: test_wav_wrapping
+ok    test_audio_synth.gd :: test_virtual_gearbox
+ok    test_audio_synth.gd :: test_title_theme_loops_after_the_intro
+ok    test_audio_synth.gd :: test_title_theme_seam_through_godot_playback
+ok    test_engine_audio.gd :: test_output_is_finite_and_within_unity
+ok    test_engine_audio.gd :: test_variants_random_never_twice_in_a_row
+ok    test_engine_audio.gd :: test_cycle_length_follows_rpm
+ok    test_engine_audio.gd :: test_no_clicks_at_cycle_boundaries
+ok    test_engine_audio.gd :: test_continuous_over_rpm_sweep
+ok    test_engine_audio.gd :: test_equal_power_load_blend
+ok    test_engine_audio.gd :: test_limiter_cut_pattern
+ok    test_engine_audio.gd :: test_crackles_and_blowoff_after_lifting
+ok    test_engine_audio.gd :: test_shift_crack_and_whistle_on_full_throttle_run
+ok    test_engine_audio.gd :: test_start_clip_then_idle
+ok    test_engine_audio.gd :: test_fade_out_goes_silent
+ok    test_engine_audio.gd :: test_preview_blip_goes_up_and_back_to_idle
+      EngineAudio pro Frame (533 Samples, 32 kHz): 4 Quellen + Turbo 0.310 ms, Begrenzer im Stand 0.297 ms, Schub + Knallen 0.196 ms
+ok    test_engine_audio.gd :: test_cpu_time_per_frame
+ok    test_engine_bank.gd :: test_valid_fixture_loads
+ok    test_engine_bank.gd :: test_data_is_padded_for_safe_reads
+ok    test_engine_bank.gd :: test_broken_fixture_files
+ok    test_engine_bank.gd :: test_truncated_data_file
+ok    test_engine_bank.gd :: test_structural_errors
+ok    test_engine_bank.gd :: test_contract_deviations_are_warnings
+ok    test_engine_gearbox.gd :: test_rpm_always_between_idle_and_limiter
+ok    test_engine_gearbox.gd :: test_full_throttle_run_shifts_up_in_order
+ok    test_engine_gearbox.gd :: test_light_throttle_shifts_earlier
+ok    test_engine_gearbox.gd :: test_coasting_downshifts
+ok    test_engine_gearbox.gd :: test_braking_downshifts_with_blip_on_sporty_cars
+ok    test_engine_gearbox.gd :: test_idle_at_standstill
+ok    test_engine_gearbox.gd :: test_free_revving_with_inertia_up_to_the_limiter
+ok    test_engine_gearbox.gd :: test_launch_slips_at_launch_rpm
+ok    test_engine_gearbox.gd :: test_no_hunting_at_vmax_and_while_cruising
+ok    test_engine_gearbox.gd :: test_top_gear_holds_vmax_below_limiter
+ok    test_engine_gearbox.gd :: test_kickdown_skips_gears_without_hunting
+ok    test_engine_gearbox.gd :: test_generic_profile
+ok    test_gamepad.gd :: test_every_gamepad_drives_and_confirms
+ok    test_gamepad.gd :: test_ui_step_counts_a_stick_once_per_frame_and_keys_with_echo
+ok    test_gamepad.gd :: test_pad_repeat_after_delay_only_while_held
+ok    test_gamepad.gd :: test_page_index_clamps
+ok    test_gamepad.gd :: test_name_entry_b_deletes_one_character_also_with_selection
+ok    test_gamepad.gd :: test_name_entry_box_b_on_empty_closes_without_change
+ok    test_gamepad.gd :: test_name_entry_a_or_start_in_empty_field_go_to_the_keys
+ok    test_gamepad.gd :: test_name_entry_hints_follow_the_focus
+ok    test_gamepad.gd :: test_typing_starts_editing_a_navigated_line_edit
+ok    test_gamepad.gd :: test_confirm_box_names_its_keys
+ok    test_gamepad.gd :: test_stick_steering_curve
+ok    test_gamepad.gd :: test_only_the_active_pads_stick_steers
+ok    test_gamepad.gd :: test_pad_disconnect_counts_only_a_pad_in_use
+ok    test_gamepad.gd :: test_unused_pad_neither_steers_nor_pauses
+ok    test_gamepad.gd :: test_title_remembers_only_the_screens_it_comes_back_from
+ok    test_gamepad.gd :: test_list_footers_name_the_page_keys_and_fit
+ok    test_gamepad.gd :: test_haptics_pulses_levels_and_rate
+ok    test_gamepad.gd :: test_fullscreen_start_value_under_gamescope_and_only_the_choice_saved
+ok    test_gamepad.gd :: test_old_settings_file_counts_only_a_stored_fullscreen_true
+ok    test_gamepad.gd :: test_standby_detection
+ok    test_gamepad.gd :: test_view_interpolation_is_even_at_40_fps
+ok    test_gamepad.gd :: test_track_sprite_sets_cover_everything_the_stage_draws
+ok    test_map_view.gd :: test_fit_keeps_points_inside_and_aspect
+ok    test_map_view.gd :: test_fit_min_span_for_single_stage
+ok    test_map_view.gd :: test_fit_degenerate
+ok    test_map_view.gd :: test_latlon_projection_orientation
+ok    test_menu_input.gd :: test_gamepad_a_b_are_menu_actions
+ok    test_menu_input.gd :: test_name_entry_gamepad_handlers
+ok    test_menu_input.gd :: test_name_entry_dpad_neighbours
+ok    test_menu_input.gd :: test_stage_select_focus_chain
+ok    test_menu_input.gd :: test_pending_stage_result_stays_in_save_until_done
+ok    test_menu_input.gd :: test_continue_converts_a_race_saved_with_factor_12
+ok    test_menu_input.gd :: test_race_from_v06_gets_no_race_board_entry
+ok    test_race_state.gd :: test_create_initial_state
+ok    test_race_state.gd :: test_stage_legs_totals_and_pause
+ok    test_race_state.gd :: test_waypoint_advance_and_finish
+ok    test_race_state.gd :: test_finish_reached_early_without_waypoint_is_not_finished
+ok    test_race_state.gd :: test_tour_start_equals_finish
+ok    test_race_state.gd :: test_ferry_leg
+ok    test_race_state.gd :: test_fuel_carries_over
+ok    test_race_state.gd :: test_finishes_race
+ok    test_race_state.gd :: test_save_round_trip
+ok    test_race_state.gd :: test_saved_race_converted_to_new_time_scale
+ok    test_race_state.gd :: test_weather_modes
+ok    test_race_state.gd :: test_tutorial_stage_is_dry
+ok    test_race_state.gd :: test_route_enumeration
+ok    test_route_info.gd :: test_continuation_from_data_module_wins
+ok    test_route_info.gd :: test_continuation_from_race_routes
+ok    test_route_info.gd :: test_continuation_from_via_cities
+ok    test_route_info.gd :: test_totals_show_the_trade_off
+ok    test_route_info.gd :: test_ferry_legs_are_counted_not_summed
+ok    test_route_info.gd :: test_data_summary_overrides_computed_values
+ok    test_route_info.gd :: test_via_cities_exclude_target
+ok    test_route_info.gd :: test_route_via_fit_keeps_whole_names
+ok    test_route_info.gd :: test_race_select_facts_line
+ok    test_route_info.gd :: test_real_route_options_cover_the_whole_route
+ok    test_showroom.gd :: test_which_sets_get_the_3d_showroom
+ok    test_showroom.gd :: test_shipped_manifest_and_forced_limousine
+ok    test_showroom.gd :: test_render_size_in_physical_pixels
+ok    test_showroom.gd :: test_framing
+ok    test_showroom.gd :: test_car_showcase_loads_the_showroom_only_at_run_time
+ok    test_steam_deck.gd :: test_input_mode_follows_the_device
+ok    test_steam_deck.gd :: test_key_hints_gamepad_only
+ok    test_steam_deck.gd :: test_tutorial_control_hints_follow_the_device
+ok    test_steam_deck.gd :: test_options_name_with_gamepad_keyboard
+ok    test_steam_deck.gd :: test_hud_fit_shortens_long_texts
+ok    test_traffic_audio.gd :: test_load_fixture_with_looping_streams
+ok    test_traffic_audio.gd :: test_missing_or_broken_files
+ok    test_traffic_audio.gd :: test_class_of_sprite_ids
+ok    test_traffic_audio.gd :: test_pan_gains_constant_power
+ok    test_traffic_audio.gd :: test_distance_gain
+ok    test_traffic_audio.gd :: test_doppler_factor
+ok    test_traffic_audio.gd :: test_speed_pitch_level_and_air
+ok    test_traffic_audio.gd :: test_id_random_and_spread
+ok    test_traffic_audio.gd :: test_nearest_vehicles_get_voices
+ok    test_traffic_audio.gd :: test_hysteresis_and_release_before_reuse
+ok    test_traffic_audio.gd :: test_gains_change_smoothly_frame_to_frame
+ok    test_traffic_audio.gd :: test_pass_by_on_the_left
+ok    test_traffic_audio.gd :: test_truck_louder_than_car_at_the_same_distance
+ok    test_traffic_audio.gd :: test_pause_fades_out_and_vehicle_gone_releases
+ok    test_traffic_audio.gd :: test_listener_ahead_offset
+ok    test_traffic_audio.gd :: test_siren_centred_and_spatial
+ok    test_traffic_audio.gd :: test_reset_silences_everything
+      TrafficAudio.update: 0.046 ms je Frame (max 0.175 ms) bei 41 Fahrzeugen, 6 Stimmen
+ok    test_traffic_audio.gd :: test_cpu_time_per_frame
+ok    test_traffic_audio.gd :: test_room_tunnel_blend
+ok    test_ui_format.gd :: test_decimal_and_units
+ok    test_ui_format.gd :: test_time_and_delta
+ok    test_ui_format.gd :: test_start_time_steps
+ok    test_ui_format.gd :: test_marquee_text
+ok    test_ui_format.gd :: test_fuel_strip_texts
+ok    test_ui_format.gd :: test_pace_delta
+ok    test_ui_format.gd :: test_names
+ok    test_ui_texts.gd :: test_number_and_hours
+ok    test_ui_texts.gd :: test_texts_follow_config_values
+ok    test_ui_texts.gd :: test_tutorial_tips_from_config_and_stage
+ok    test_ui_texts.gd :: test_tow_text_matches_mechanic
+ok    test_ui_texts.gd :: test_station_distance_here
+ok    test_ui_texts.gd :: test_placement_headline
+ok    test_ui_texts.gd :: test_entry_index_finds_submitted_entry
+ok    test_ui_texts.gd :: test_default_filter_from_config
+ok    test_ui_texts.gd :: test_leaderboard_icons_next_to_time
+652 Tests, 0 fehlgeschlagen
+CHECK coll_right      OK      Spur 2, Auffahrunfall genau von hinten -> geschoben nach links (erwartet links)
+CHECK coll_left       OK      Spur 0, Auffahrunfall genau von hinten -> geschoben nach rechts (erwartet rechts)
+CHECK coll_middle     OK      Spur 1, Auffahrunfall genau von hinten -> geschoben nach links (erwartet links)
+CHECK dry_rollout     OK      Ausrollen mit leerem Tank: Kollision true, tiefste Überlappung ohne Kollision 0.00 m, Abschleppen gezählt 0 -> 1
+CHECK dry_into_lane   OK      leer in die Tankspur gerollt und getankt: Abschleppen 0, Meldung ["Tank leer! Rechts in die Tankspur rollen lassen"]
+CHECK finish_rollout  OK      nach dem Ziel: Kollision true, tiefste Überlappung 0.09 m, Kollisionen der Etappe 0 (unverändert)
+CHECK refuel_chase    OK      Verfolgung beim Tanken: Polizei blockiert genau beim Tanken (Abweichungen 0), HUD beim Tanken (Abweichungen 0), Stillstand 27.8 s (Tanken + Polizei-Stopp)
+CHECK carry_tow       OK      1,9 L im Gran Turismo: vor dem Start abgeschleppt true, Strafe 90 s, Abschleppen 1, Tank 30.0 L, Meldung true
+CHECK carry_eco       OK      3 L im Gran Turismo: Sparfahrt bis 78 km/h (Ansage höchstens 120 km/h), getankt bei km 11.35 (Tankstelle 12.0), Abschleppen 0, Meldung true
+CHECK tutorial        OK      Tutorial: 14 Hinweise, fehlend [], zuerst der Tank true, letzte Tankstelle danach true (nicht an der Ansage true)
+CHECK no_tutorial     OK      andere Etappe ohne Tutorial-Hinweise (0)
+CHECK rail_feedback   OK      Leitplanke mit Abdrift 5.6 m/s: Tempo 200 -> 133 km/h, Wackeln 0.36 s, Aufblitzen (1.0, 0.55, 0.25, 0.2603)
+CHECK preload         OK      Dortmund – Frankfurt ab km 200: 69 Blätter vorab, 0 während der Fahrt nachgeladen []
+CHECK gfx_independent OK      Teststadt – Testdorp ab km 108 mit modern_renderer.gd und road_renderer.gd: Ergebnis gleich true (Zeit 113.700 / 113.700 s), Verkehrs-Hash in 114 / 114 Sekunden gleich, bis zu 21 Autos, Seitenverhältnis Modern füllt das Fenster
+CHECK gfx_fallback    OK      erzwungener Fehler: erst modern_renderer.gd (Marker geschrieben), dann road_renderer.gd, gfx arcade, gfx_fallback 'selftest:debug', Meldung true, 67 Sprite-Sets geladen, Fenster 16:9 true, Marker danach entfernt, Etappe läuft (40 km/h)
+CHECKS OK  (0 fehlgeschlagen, 61 s)
+CHECK titel        OK      Titelbildschirm
+CHECK idle         OK      Demo 1.00 s nach der letzten Eingabe (idle_s 1)
+CHECK demo         OK      Szene rushhour, Autopilot 185 km/h, HUD reduziert, Modus arcade, Seitenverhältnis keep
+CHECK busse        OK      Effekt-Busse stumm ["SFX", "Room", "Engine"], Music unverändert
+CHECK dauer        OK      4.07 s (demo_s 4 + Überblendung), zurück im Titel, Busse wie vorher
+CHECK naechste     OK      pyrenaeen nach rushhour
+CHECK taste        OK      Enter beendet sofort, Echo/Loslassen ohne Wirkung, Fokus auf Rennen starten
+CHECK menue        OK      ▼ bewegt den Fokus wieder
+CHECK gamepad      OK      Gamepad A beendet die Demo, kein Menüpunkt
+CHECK klick        OK      Klick beendet die Demo, kein Menüpunkt
+CHECK ziel         OK      Ziel in der Demo: Ende finished, kein Ergebnis
+CHECK keine_daten  OK      Spielstand, Bestenlisten (Dateien und Speicher: 0 Listen), Einstellungen unverändert
+CHECK musik        OK      ohne Audioausgabe (headless): Titelmusik blieb angefordert
+CHECKS OK  (0 fehlgeschlagen, 31 s)
+CHECK stick_wert   OK      Fahrzeug 1 / gehalten 1, Startzeit 1 / ▲ 2 (je Stunde 2), Lautstärke 8 → 7
+CHECK halten       OK      Steuerkreuz 1 s gehalten: 7 Einträge (vorher 1), RB +8, LB −8, 134 Einträge
+CHECK geraet1      OK      zweites Gamepad: A → stage_select, B → title
+CHECK tippen       OK      Feld per Steuerkreuz erreicht (Bearbeitung false), getippt Q, x → 'AnkeQx'
+CHECK tastatur     OK      A öffnet (true), erstes B: 'Ank', leer noch offen (true), B schließt (true), Name 'Anke'
+CHECK beenden      OK      Abfrage vor dem Beenden (true), B bricht ab (true), gemerkte Wahl -1, neuer Titel auf „Beenden“ false
+CHECK drift        OK      Pad 0 driftet 0,16, Pad 1 fährt: Lenkung 0.000 (vorher 0,05); Pad 0 übernimmt (Gerät 0): -1.00; Pad 1 zurück: 0.60
+CHECK trennen      OK      ruhendes Pad (Tastatur fährt): Pause false, Gas 1.00; Pad hält RT: Pause true, Gas der Taste 1.00; aktives Pad: Pause true
+CHECK rennen       OK      Gerät 1: Lenkung 1.00, Gas 1.00, Start pausiert true / weiter true; Kollision: Vibration (0.5, 0.9), Pause: (0.0, 0.0); Ansicht halb zwischen zwei Schritten true
+CHECKS OK  (0 fehlgeschlagen, 7 s)
+CHECK rushhour   OK      Ende time, Ø 103 km/h (min 32), Kollisionen 0, Leitplanke 0, neben der Fahrbahn 0.0 s, kleinster Abstand 14.5 m (t=25.4 s), in den ersten 3 s 139.3 m
+CHECK pyrenaeen  OK      Ende time, Ø 120 km/h (min 57), Kollisionen 0, Leitplanke 0, neben der Fahrbahn 0.0 s, kleinster Abstand 26.4 m (t=30.0 s), in den ersten 3 s 465.0 m
+CHECK paris      OK      Ende time, Ø 98 km/h (min 52), Kollisionen 0, Leitplanke 0, neben der Fahrbahn 0.0 s, kleinster Abstand 25.0 m (t=29.5 s), in den ersten 3 s 157.8 m
+CHECK hamburg    OK      Ende time, Ø 90 km/h (min 47), Kollisionen 0, Leitplanke 0, neben der Fahrbahn 0.0 s, kleinster Abstand 23.7 m (t=23.4 s), in den ersten 3 s 327.9 m
+CHECK regen      OK      Ende time, Ø 184 km/h (min 117), Kollisionen 0, Leitplanke 0, neben der Fahrbahn 0.0 s, kleinster Abstand 41.8 m (t=4.0 s), in den ersten 3 s 468.5 m
+CHECK venedig    OK      Ende time, Ø 79 km/h (min 55), Kollisionen 0, Leitplanke 0, neben der Fahrbahn 0.0 s, kleinster Abstand 25.8 m (t=22.6 s), in den ersten 3 s 31.3 m
+CHECK wien       OK      Ende time, Ø 88 km/h (min 42), Kollisionen 0, Leitplanke 0, neben der Fahrbahn 0.0 s, kleinster Abstand 14.5 m (t=24.5 s), in den ersten 3 s 282.4 m
+CHECKS OK  (0 fehlgeschlagen, 146 s)
+CHECK escape_ideal  OK       281 Radarfelder × 10 Fahrzeug/Wetter: 2810 Verfolgungen, 0 nicht zu entkommen, längste Flucht 15.5 s (93 s)
+CHECK escape_good   OK       281 Radarfelder × 10 Fahrzeug/Wetter: 2810 Verfolgungen, 0 nicht zu entkommen, längste Flucht 16.7 s (93 s)
+CHECK vorbereitung    OK      Etappe bereitet vor true, Bild schwarz true, Demo läuft false, Fortschritt 0.00
+CHECK modus           OK      Modus modern (setup.gfx –), Seitenverhältnis expand
+CHECK ab_start        OK      Vorbereitung 1.19 s, Demo ab dem Start der Etappe 2.10 s (demo_s 2.0), ab dem Szenenstart 3.28 s, Ende time
+CHECK titel           OK      zurück im Titel, Menüs mit „expand“
+CHECKS OK  (4 von 4 bestanden, 5 s)
+CHECK laeufer          OK      res://scripts/race3d/benchmark.gd
+CHECK lauf             OK      Szenen ["autobahn", "stadt_nacht_regen", "berg_tunnel"], Rückfall '', Fehler '', Gerüst true
+CHECK format           OK      fehlt [], Qualität {"aa":1,"details":1,"effects":1,"scale":100,"shadows":2}, Zahlen true, Vorschlag medium/modern
+CHECK datei            OK      user://leistungstest.json: true, --bench-out: true
+CHECK bildschirm       OK      Bildschirm benchmark, Bildrate begrenzt 0 (vorher 0)
+CHECK rueckfall        OK      Rückfall 'selftest:debug', Vorschlag arcade, geschrieben true
+CHECK abbruch          OK      abgebrochen true, geschrieben false, Bildschirm benchmark
+CHECK auswahl          OK      1 Szene(n), Fehler 'no_scene', setup.gfx modern, Seed 23
+CHECKS OK  (8 von 8 bestanden, 7 s)
+CHECK models          OK      validate_models.py: 10 Modelle, 180 Sets (25 mit Modell, 155 Platzhalter)
+CHECK defekte_dateien OK      abgeschnittene, fremde und fehlende Netzdatei: build() und multimesh_parts() liefern nichts statt eines halben Modells, missing() nennt 3 Dateien, das unbeschädigte Modell bleibt nutzbar
+CHECKS OK  (0 fehlgeschlagen, 2 s)
+CHECK ablauf         OK      Modern mit Prüf-Renderer: 9 Bilder Vorbereitung ohne Simulationsschritt, 8 Startansichten gezeichnet, 67 Sets an prepare(), 7 Sprite-Blätter geladen (nur ui/*)
+CHECK marker         OK      Marker 0.44 s nach dem Start noch da, 1.58 s später entfernt
+CHECK abgang         OK      ordentlich beendet (nach dem Start, in der Vorbereitung): Marker weg; Marker des letzten Laufs bleibt; Etappenwechsel: Marker und Strecke der neuen Etappe bleiben
+CHECK rueckfall      OK      Ausfall in Bild 5 der Vorbereitung: weiter mit road_renderer.gd, 67 Sprite-Sets, Meldung im HUD, Ergebnis gfx_fallback 'shader'
+CHECK ohne_renderer  OK      Modern-Skript fehlt: road_renderer.gd, gfx_fallback 'renderer'
+CHECK klang          OK      Klang-Hooks: 15 Ereignisse (stage_start countdown countdown countdown go collision rail_hit refuel_start refuel_done out_of_fuel tow radar_flash chase_start escaped busted), 50 Zustände mit 18 Schlüsseln
+CHECK startmarker    OK      Marker des letzten Laufs: Arcade mit Grund crash_guard, nach dem Aufheben wieder Modern
+CHECK aufnahmeuhr    OK      fremder Screenshotter mit --shot-fast: Uhr steht in der Vorbereitung von Modern (Bild wird gerechnet), läuft ab dem Start, nach Rückfall und frühem Abgang; Arcade hält sie nie an
+CHECKS OK  (0 fehlgeschlagen, 6 s)
+CHECK modern_3d       OK      3D true, Stufe show
+CHECK welt            OK      eigene Welt true, durchsichtig true, Größe (33, 20) (soll (33, 20), Faktor (0.05, 0.05))
+CHECK sprite          OK      Kombi: 3D false
+CHECK zurueck_3d      OK      Limousine sofort wieder in 3D (Zwischenspeicher): true
+CHECK arcade_frei     OK      3D weg true, geladene Dateien 0 (vorher 3), gemeinsame Materialien frei
+CHECK modern_wieder   OK      3D wieder da: true
+CHECK abmelden        OK      Besitzer bei ModelDB: 0
+CHECKS OK  (7 von 7 bestanden, 0 s)
+CHECK modern_path_clearance OK     kleinster Abstand 267.6 m (bukarest_sibiu__sibiu, km 57.8, 360 m Weg) – verlangt >= 250 m bei 360 … 1900 m Weg; 128 Etappenrichtungen
+CHECK modern_path_loops     OK     Annäherung unter 250 m jenseits von 1900 m Weg frühestens nach 2064 m Weg (bukarest_sibiu__sibiu) – verlangt >= 2000 m (24 s)
+CHECK modern_sight_f1       OK     0 Fälle bis 270 m (erster Fall bei 280 m) in 10296510 Stichproben, 12 Etappenrichtungen
+CHECK modern_sight_f1_lanes OK     0 Fälle bis 260 m mit der Kamera in den Außenspuren (erster Fall bei 270 m) in 33831390 Stichproben
+CHECK modern_sight_f2       OK     Anhalteweg / Entfernung höchstens 0.593 trocken, 0.596 Regen, 0.555 Schnee (verlangt <= 0.60)
+CHECK modern_sight_f3       OK     0 von 874 Zielen (Fahrzeug) und 0 (Schild) später als in Arcade und innerhalb des Anhaltewegs
+CHECK modern_sight_f7       OK     0 von 207166 Querschnittsseiten mit Gelände über der Fahrbahn im Sichtkorridor
+CHECK modern_sight_model    OK     225176 Stichproben über ChaseCamera3D/RoadProjection nachgerechnet: 0 abweichend, 0 senkrecht außerhalb, 0 mit dem Augpunkt mehr als 0.5 px neben dem der Sichtprüfung (größte Abweichung 0.0002 px) (19 s)
+==> Tests bestanden (708 s)
+
+real	11m48.639s
+user	9m14.299s
+sys	0m7.002s
+exit 0

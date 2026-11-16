@@ -1,0 +1,668 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "models": {
+  "landmarks/michel": {
+   "kind": "landmark",
+   "object": {"width_m": 72, "height_m": 132, "length_m": 44},
+   "extent_m": {"left": 49.4, "right": 27.54},
+   "aabb": [-41.4, 0, -44.6, 31.8, 132, 0.8],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 3024,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/michel/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/michel/albedo.webp", "emit": "landmarks/michel/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 440949,
+   "hash": "17f842e877e00dc397b43e5ead7623d6ea4f2c46"
+  },
+  "player/limousine": {
+   "kind": "vehicle",
+   "object": {"width_m": 1.86, "length_m": 4.85, "height_m": 1.448},
+   "aabb": [-1.15, 0, -2.432, 1.15, 1.448, 2.437],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 49636,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "player/limousine/lod0_body.res",
+       "classes": ["vpbr", "glass"]
+      },
+      {
+       "node": "wheel_0l",
+       "mesh": "player/limousine/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [-0.7925, 0.335, -1.445],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.335, "steer": true}
+      },
+      {
+       "node": "wheel_0r",
+       "mesh": "player/limousine/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [0.7925, 0.335, -1.445],
+       "wheel": {"radius": 0.335, "steer": true}
+      },
+      {
+       "node": "wheel_1l",
+       "mesh": "player/limousine/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [-0.7925, 0.335, 1.475],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.335, "steer": false}
+      },
+      {
+       "node": "wheel_1r",
+       "mesh": "player/limousine/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [0.7925, 0.335, 1.475],
+       "wheel": {"radius": 0.335, "steer": false}
+      }
+     ]
+    },
+    {
+     "name": "show",
+     "max_dist_m": 0,
+     "tris": 102314,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "player/limousine/show_body.res",
+       "classes": ["vpbr", "glass"]
+      },
+      {
+       "node": "wheel_0l",
+       "mesh": "player/limousine/show_wheel.res",
+       "classes": ["vpbr"],
+       "pos": [-0.7925, 0.335, -1.445],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.335, "steer": true}
+      },
+      {
+       "node": "wheel_0r",
+       "mesh": "player/limousine/show_wheel.res",
+       "classes": ["vpbr"],
+       "pos": [0.7925, 0.335, -1.445],
+       "wheel": {"radius": 0.335, "steer": true}
+      },
+      {
+       "node": "wheel_1l",
+       "mesh": "player/limousine/show_wheel.res",
+       "classes": ["vpbr"],
+       "pos": [-0.7925, 0.335, 1.475],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.335, "steer": false}
+      },
+      {
+       "node": "wheel_1r",
+       "mesh": "player/limousine/show_wheel.res",
+       "classes": ["vpbr"],
+       "pos": [0.7925, 0.335, 1.475],
+       "wheel": {"radius": 0.335, "steer": false}
+      }
+     ]
+    }
+   ],
+   "shadow": {"mesh": "player/limousine/shadow.res", "tris": 1872},
+   "lights": [
+    {
+     "role": "brake",
+     "pos": [-0.7525, 0.9138, 2.38],
+     "size": 0.1,
+     "color": "#ff2414"
+    },
+    {
+     "role": "brake",
+     "pos": [0.7525, 0.9138, 2.3799],
+     "size": 0.1,
+     "color": "#ff2414"
+    },
+    {
+     "role": "head",
+     "pos": [-0.6734, 0.7135, -2.2772],
+     "size": 0.09,
+     "color": "#fff3d6"
+    },
+    {
+     "role": "head",
+     "pos": [0.6734, 0.7133, -2.277],
+     "size": 0.09,
+     "color": "#fff3d6"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-1.0968, 1.0362, -1.2484],
+     "size": 0.079,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-0.9005, 0.9005, 2.2489],
+     "size": 0.036,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-0.8657, 0.7027, -2.1342],
+     "size": 0.046,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [0.8657, 0.7027, -2.1342],
+     "size": 0.046,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [0.9005, 0.9005, 2.249],
+     "size": 0.036,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [1.0968, 1.0362, -1.2484],
+     "size": 0.079,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "tail",
+     "pos": [-0.6884, 0.8732, 2.3808],
+     "size": 0.116,
+     "color": "#ff1a0e"
+    },
+    {
+     "role": "tail",
+     "pos": [0.6883, 0.8732, 2.3809],
+     "size": 0.116,
+     "color": "#ff1a0e"
+    }
+   ],
+   "paint": {"paint": "#1d4ea8", "metal": 0.55},
+   "auto_lod": false,
+   "tags": ["player"],
+   "bytes": 1445196,
+   "hash": "ee25e9a61972d91010ce68490e6bdf8b503e201d"
+  },
+  "props/farmhouse": {
+   "kind": "building",
+   "object": {"width_m": 11.9, "height_m": 8.6, "length_m": 17},
+   "extent_m": {"left": 12.53, "right": 5.62},
+   "aabb": [-5.95, 0, -17.45, 5.95, 8.9, 0.45],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 104,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/farmhouse/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [3, 3.2, 0.12],
+     "size": 0.686,
+     "color": "#ffd890"
+    }
+   ],
+   "textures": {"albedo": "props/farmhouse/albedo.png", "emit": "props/farmhouse/emit.png"},
+   "roughness": 0.9,
+   "auto_lod": true,
+   "tags": ["prop", "building", "mirror_left"],
+   "bytes": 755381,
+   "hash": "f7530a479e1e585507c66fdf0b0a70e48e94a104"
+  },
+  "props/streetlight": {
+   "kind": "furniture",
+   "object": {"width_m": 2.4, "height_m": 9.45},
+   "extent_m": {"left": 2.33, "right": 0.16},
+   "aabb": [-2.325, 0, -0.16, 0.16, 9.395, 0.16],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 312,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/streetlight/lod0_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "role": "lights",
+     "pos": [-1.97, 9.24, 0],
+     "size": 0.609,
+     "color": "#fff0cf"
+    }
+   ],
+   "auto_lod": true,
+   "tags": ["prop", "road", "mirror_left"],
+   "bytes": 5023,
+   "hash": "01142e68d1a27ee225bbcbd0f38667b187106495"
+  },
+  "props/tree_oak": {
+   "kind": "tree",
+   "object": {"width_m": 12, "height_m": 13.5},
+   "extent_m": {"left": 6.35, "right": 6.44},
+   "aabb": [-6.642, -0.016, -5.535, 6.721, 13.597, 5.652],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 1220,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/tree_oak/lod0_body.res",
+       "classes": ["vpbr", "leaves"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 200,
+     "tris": 459,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/tree_oak/lod1_body.res",
+       "classes": ["vpbr", "leaves"]
+      }
+     ]
+    }
+   ],
+   "shadow": {"mesh": "props/tree_oak/shadow.res", "tris": 179},
+   "textures": {"leaves": "props/tree_oak/leaves.png"},
+   "impostor": {
+    "texture": "props/tree_oak/impostor.png",
+    "size_m": [13.287, 13.702],
+    "anchor_x": 0.4966
+   },
+   "cards": {"lod0": 420, "lod1": 140},
+   "auto_lod": false,
+   "tags": ["prop", "tree"],
+   "bytes": 426630,
+   "hash": "017d646106c8d69475b7754105b2da3751e5be00"
+  },
+  "traffic/sedan": {
+   "kind": "vehicle",
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.48},
+   "extent_m": {"left": 1.07, "right": 1.07},
+   "aabb": [-1.065, 0, -2.35, 1.065, 1.48, 2.373],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 40,
+     "tris": 17276,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/sedan/lod0_body.res",
+       "classes": ["vpbr", "glass"]
+      },
+      {
+       "node": "wheel_0l",
+       "mesh": "traffic/sedan/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [-0.7525, 0.32, -1.415],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.32, "steer": true}
+      },
+      {
+       "node": "wheel_0r",
+       "mesh": "traffic/sedan/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [0.7525, 0.32, -1.415],
+       "wheel": {"radius": 0.32, "steer": true}
+      },
+      {
+       "node": "wheel_1l",
+       "mesh": "traffic/sedan/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [-0.7525, 0.32, 1.385],
+       "yaw_deg": 180,
+       "wheel": {"radius": 0.32, "steer": false}
+      },
+      {
+       "node": "wheel_1r",
+       "mesh": "traffic/sedan/wheel.res",
+       "classes": ["vpbr"],
+       "pos": [0.7525, 0.32, 1.385],
+       "wheel": {"radius": 0.32, "steer": false}
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 120,
+     "tris": 4147,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/sedan/lod1_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    },
+    {
+     "name": "lod2",
+     "max_dist_m": 100000,
+     "tris": 1144,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "traffic/sedan/lod2_body.res",
+       "classes": ["vpbr"]
+      }
+     ]
+    }
+   ],
+   "shadow": {"mesh": "traffic/sedan/shadow.res", "tris": 632},
+   "lights": [
+    {
+     "role": "brake",
+     "pos": [-0.7368, 0.8683, 2.266],
+     "size": 0.263,
+     "color": "#ff2414"
+    },
+    {
+     "role": "brake",
+     "pos": [0, 1.315, 0.9849],
+     "size": 0.168,
+     "color": "#ff2414"
+    },
+    {
+     "role": "brake",
+     "pos": [0.7368, 0.8684, 2.266],
+     "size": 0.263,
+     "color": "#ff2414"
+    },
+    {
+     "role": "head",
+     "pos": [-0.7187, 0.6913, -2.2319],
+     "size": 0.167,
+     "color": "#fff3d6"
+    },
+    {
+     "role": "head",
+     "pos": [0.7187, 0.6913, -2.2319],
+     "size": 0.167,
+     "color": "#fff3d6"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-0.8766, 0.7961, 2.1406],
+     "size": 0.027,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_l",
+     "pos": [-0.8571, 0.6779, -2.113],
+     "size": 0.074,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [0.8571, 0.6779, -2.1129],
+     "size": 0.074,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "ind_r",
+     "pos": [0.8759, 0.7957, 2.1519],
+     "size": 0.027,
+     "color": "#ffa01a"
+    },
+    {
+     "role": "tail",
+     "pos": [-0.7368, 0.8683, 2.266],
+     "size": 0.263,
+     "color": "#ff2010"
+    },
+    {
+     "role": "tail",
+     "pos": [0.7368, 0.8684, 2.266],
+     "size": 0.263,
+     "color": "#ff2010"
+    }
+   ],
+   "paint": {"paint": "#b52424", "metal": 0.3},
+   "auto_lod": false,
+   "tags": ["traffic", "car"],
+   "bytes": 247795,
+   "hash": "c749ec735e62a07a230de6ef3eda66a1c60cb3f2"
+  }
+ },
+ "sets": {
+  "landmarks/atomium": {
+   "fallback": "sprite",
+   "object": {"width_m": 75.98, "height_m": 102.01, "length_m": 84.95}
+  },
+  "landmarks/basilica_pilar": {
+   "fallback": "sprite",
+   "object": {"width_m": 141.0, "height_m": 92.0, "length_m": 78.0}
+  },
+  "landmarks/basilika_koekelberg": {
+   "fallback": "sprite",
+   "object": {"width_m": 120.0, "height_m": 89.0, "length_m": 167.0}
+  },
+  "landmarks/beffroi_calais": {
+   "fallback": "sprite",
+   "object": {"width_m": 84.0, "height_m": 75.0, "length_m": 26.0}
+  },
+  "landmarks/campanile_venezia": {
+   "fallback": "sprite",
+   "object": {"width_m": 76.0, "height_m": 98.6, "length_m": 80.0}
+  },
+  "landmarks/catedrala_mantuirii": {
+   "fallback": "sprite",
+   "object": {"width_m": 67.5, "height_m": 127.0, "length_m": 126.0}
+  },
+  "landmarks/catedrala_timisoara": {
+   "fallback": "sprite",
+   "object": {"width_m": 48.0, "height_m": 90.5, "length_m": 63.0}
+  },
+  "landmarks/dom_fulda": {
+   "fallback": "sprite",
+   "object": {"width_m": 48.0, "height_m": 65.0, "length_m": 99.0}
+  },
+  "landmarks/dom_passau": {
+   "fallback": "sprite",
+   "object": {"width_m": 34.0, "height_m": 68.0, "length_m": 102.0}
+  },
+  "landmarks/dom_regensburg": {
+   "fallback": "sprite",
+   "object": {"width_m": 39.0, "height_m": 105.0, "length_m": 90.0}
+  },
+  "landmarks/duomo_milano": {
+   "fallback": "sprite",
+   "object": {"width_m": 92.0, "height_m": 108.5, "length_m": 158.0}
+  },
+  "landmarks/eiffel_tower": {
+   "fallback": "sprite",
+   "object": {"width_m": 125.0, "height_m": 330.0, "length_m": 125.0}
+  },
+  "landmarks/elbphilharmonie": {
+   "fallback": "sprite",
+   "object": {"width_m": 110.0, "height_m": 110.0, "length_m": 78.0}
+  },
+  "landmarks/fernsehturm_berlin": {
+   "fallback": "sprite",
+   "object": {"width_m": 78.0, "height_m": 368.0, "length_m": 70.0}
+  },
+  "landmarks/frankfurt_skyline": {
+   "fallback": "sprite",
+   "object": {"width_m": 320.0, "height_m": 300.0, "length_m": 80.0}
+  },
+  "landmarks/frauenkirche_dresden": {
+   "fallback": "sprite",
+   "object": {"width_m": 46.4, "height_m": 91.0, "length_m": 55.2}
+  },
+  "landmarks/frauenkirche_muenchen": {
+   "fallback": "sprite",
+   "object": {"width_m": 40.0, "height_m": 98.6, "length_m": 109.0}
+  },
+  "landmarks/freiheitsdenkmal_riga": {
+   "fallback": "sprite",
+   "object": {"width_m": 18.0, "height_m": 42.0, "length_m": 18.0}
+  },
+  "landmarks/kaiserburg_nuernberg": {
+   "fallback": "sprite",
+   "object": {"width_m": 158.0, "height_m": 66.0, "length_m": 46.0}
+  },
+  "landmarks/kathedrale_burgos": {
+   "fallback": "sprite",
+   "object": {"width_m": 59.0, "height_m": 88.0, "length_m": 106.0}
+  },
+  "landmarks/koelner_dom": {
+   "fallback": "sprite",
+   "object": {"width_m": 86.2, "height_m": 157.4, "length_m": 144.6}
+  },
+  "landmarks/kulturpalast_warschau": {
+   "fallback": "sprite",
+   "object": {"width_m": 190.0, "height_m": 237.0, "length_m": 68.0}
+  },
+  "landmarks/mariendom_linz": {
+   "fallback": "sprite",
+   "object": {"width_m": 60.0, "height_m": 134.8, "length_m": 130.0}
+  },
+  "landmarks/michel": {"model": "landmarks/michel"},
+  "landmarks/nevsky_kathedrale": {
+   "fallback": "sprite",
+   "object": {"width_m": 55.0, "height_m": 53.0, "length_m": 72.0}
+  },
+  "landmarks/palatul_parlamentului": {
+   "fallback": "sprite",
+   "object": {"width_m": 270.0, "height_m": 86.0, "length_m": 240.0}
+  },
+  "landmarks/parlament_budapest": {
+   "fallback": "sprite",
+   "object": {"width_m": 268.0, "height_m": 96.0, "length_m": 123.0}
+  },
+  "landmarks/riesenrad": {
+   "fallback": "sprite",
+   "object": {"width_m": 63.0, "height_m": 64.75, "length_m": 24.0}
+  },
+  "landmarks/sagrada_familia": {
+   "fallback": "sprite",
+   "object": {"width_m": 93.0, "height_m": 172.5, "length_m": 62.0}
+  },
+  "landmarks/st_petri_riga": {
+   "fallback": "sprite",
+   "object": {"width_m": 75.0, "height_m": 123.25, "length_m": 30.0}
+  },
+  "landmarks/stadtpfarrkirche_sibiu": {
+   "fallback": "sprite",
+   "object": {"width_m": 30.8, "height_m": 73.3, "length_m": 83.0}
+  },
+  "landmarks/stephansdom": {
+   "fallback": "sprite",
+   "object": {"width_m": 113.0, "height_m": 136.4, "length_m": 49.0}
+  },
+  "landmarks/veitsdom_prag": {
+   "fallback": "sprite",
+   "object": {"width_m": 174.0, "height_m": 96.5, "length_m": 80.0}
+  },
+  "player/gran_turismo": {
+   "fallback": "box",
+   "object": {"width_m": 1.95, "length_m": 4.95, "height_m": 1.285},
+   "paint": {"paint": "#b2b7bd", "metal": 0.9}
+  },
+  "player/kombi": {
+   "fallback": "box",
+   "object": {"width_m": 1.85, "length_m": 4.8, "height_m": 1.537},
+   "paint": {"paint": "#1d6b45", "metal": 0.55}
+  },
+  "player/kompakt": {
+   "fallback": "box",
+   "object": {"width_m": 1.78, "length_m": 4.1, "height_m": 1.435},
+   "paint": {"paint": "#f0b30a", "metal": 0.0}
+  },
+  "player/limousine": {
+   "model": "player/limousine",
+   "paint": {"paint": "#1d4ea8", "metal": 0.55}
+  },
+  "player/sportwagen": {
+   "fallback": "box",
+   "object": {"width_m": 1.9, "length_m": 4.45, "height_m": 1.232},
+   "paint": {"paint": "#cc1419", "metal": 0.15}
+  },
+  "police/at": {
+   "fallback": "box",
+   "object": {"width_m": 1.9, "length_m": 4.62, "height_m": 1.88},
+   "paint": {"paint": "#eef0f2", "paint2": "#1e4597", "paint3": "#d3262c", "metal": 0.3}
+  },
+  "police/be": {
+   "fallback": "box",
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.65},
+   "paint": {"paint": "#f2f2ef", "paint2": "#1b3a8f", "paint3": "#e6dc1f", "metal": 0.3}
+  },
+  "police/bg": {
+   "fallback": "box",
+   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.64},
+   "paint": {"paint": "#f2f2ef", "paint2": "#1b3f8f", "paint3": "#d22a2a", "metal": 0.3}
+  },
+  "police/ch": {
+   "fallback": "box",
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.65},
+   "paint": {"paint": "#f2f2ef", "paint2": "#e04a16", "paint3": "#f2d21c", "metal": 0.3}
+  },
+  "police/cz": {
+   "fallback": "box",
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.65},
+   "paint": {"paint": "#e9ecef", "paint2": "#1c3f8f", "paint3": "#e9d81f", "metal": 0.3}
+  },
+  "police/de": {
+   "fallback": "box",
+   "object": {"width_m": 1.84, "length_m": 4.8, "height_m": 1.65},
+   "paint": {"paint": "#c9cdd3", "paint2": "#1f4c9c", "paint3": "#1f4c9c", "metal": 0.6}
+  },
+  "police/es": {
+   "fallback": "box",
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.61},
+   "paint": {"paint": "#f2f2ef", "paint2": "#1b3d8c", "paint3": "#1b3d8c", "metal": 0.3}
+  },
+  "police/fr": {
+   "fallback": "box",
+   "object": {"width_m": 1.76, "length_m": 4.05, "height_m": 1.64},
+   "paint": {"paint": "#f2f2ef", "paint2": "#1c2f7a", "paint3": "#d6262b", "metal": 0.3}
+  },
+  "police/hr": {
+   "fallback": "box",
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.61},
+   "paint": {"paint": "#f2f2ef", "paint2": "#1b3a8c", "paint3": "#1b3a8c", "metal": 0.3}
+  },
+  "police/hu": {
+   "fallback": "box",
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.61},
+   "paint": {"paint": "#f2f2ef", "paint2": "#1b3a8a", "paint3": "#e3d61c", "metal": 0.3}
+  },
+  "police/it": {
+   "fallback": "box",
+   "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.61},
+   "pa

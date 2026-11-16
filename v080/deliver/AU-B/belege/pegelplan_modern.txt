@@ -1,0 +1,130 @@
+Pegelplan Modern mit den ausgelieferten Dateien (capture_mix.gd + measure_mix.py, Echtzeit, ohne Bildschirm, Dummy-Treiber).
+Kompakt, Limousine, Gran Turismo: Lauf f3; Kombi, Sportwagen: Lauf f4 (nach der Rücknahme um 0,4 / 0,3 dB).
+
+gran_turismo_modern.wav: Profil modern, drive gran_turismo, 47.28 s – integriert -17.13 LUFS, Lautheitsbereich 6.63 LU, True Peak -6.08 dBTP
+  idle              1.5–   3.0 s   -23.50 LUFS  Kurzzeit max  -23.50 / Median  -23.50  True Peak -14.26   Plan -24.0
+  full_throttle     4.0–  29.9 s   -16.21 LUFS  Kurzzeit max  -15.51 / Median  -16.16  True Peak  -6.08   Plan -16.0
+  flat_out         29.9–  35.9 s   -15.34 LUFS  Kurzzeit max  -14.98 / Median  -15.18  True Peak  -6.27   Plan -16.0
+  lift             35.9–  39.0 s   -20.62 LUFS  Kurzzeit max  -20.61 / Median  -20.61  True Peak  -9.86
+  cruise_130       41.0–  48.0 s   -22.29 LUFS  Kurzzeit max  -22.06 / Median  -22.32  True Peak -12.88   Plan -21.0
+--
+kompakt_modern.wav: Profil modern, drive kompakt, 37.34 s – integriert -17.68 LUFS, Lautheitsbereich 6.59 LU, True Peak -6.06 dBTP
+  idle              1.5–   3.0 s   -23.85 LUFS  Kurzzeit max  -23.85 / Median  -23.85  True Peak -13.79   Plan -24.0
+  full_throttle     4.0–  19.8 s   -15.98 LUFS  Kurzzeit max  -14.84 / Median  -15.98  True Peak  -6.06   Plan -16.0
+  flat_out         19.8–  25.8 s   -16.63 LUFS  Kurzzeit max  -16.41 / Median  -16.50  True Peak  -7.00   Plan -16.0
+  lift             25.8–  28.8 s   -21.85 LUFS  Kurzzeit max  -21.87 / Median  -21.87  True Peak -10.92
+  cruise_130       30.8–  37.8 s   -21.94 LUFS  Kurzzeit max  -21.74 / Median  -21.86  True Peak -12.67   Plan -21.0
+limousine_modern.wav: Profil modern, drive limousine, 44.3 s – integriert -17.67 LUFS, Lautheitsbereich 6.68 LU, True Peak -6.46 dBTP
+  idle              1.5–   3.0 s   -24.24 LUFS  Kurzzeit max  -24.24 / Median  -24.24  True Peak -13.35   Plan -24.0
+  full_throttle     4.0–  26.9 s   -17.06 LUFS  Kurzzeit max  -16.18 / Median  -17.23  True Peak  -6.46   Plan -16.0
+  flat_out         26.9–  32.9 s   -15.01 LUFS  Kurzzeit max  -14.76 / Median  -14.82  True Peak  -6.98   Plan -16.0
+  lift             32.9–  35.9 s   -20.41 LUFS  Kurzzeit max  -20.43 / Median  -20.43  True Peak  -9.73
+  cruise_130       37.9–  44.9 s   -21.62 LUFS  Kurzzeit max  -21.55 / Median  -21.62  True Peak -13.39   Plan -21.0
+kombi_modern.wav: Profil modern, drive kombi, 49.88 s – integriert -17.16 LUFS, Lautheitsbereich 6.37 LU, True Peak -6.01 dBTP
+  idle              1.5–   3.0 s   -25.10 LUFS  Kurzzeit max  -25.10 / Median  -25.10  True Peak  -6.80   Plan -24.0
+  full_throttle     4.0–  32.5 s   -16.14 LUFS  Kurzzeit max  -15.11 / Median  -16.00  True Peak  -6.48   Plan -16.0
+  flat_out         32.5–  38.5 s   -15.81 LUFS  Kurzzeit max  -15.39 / Median  -15.47  True Peak  -6.01   Plan -16.0
+  lift             38.5–  41.5 s   -21.92 LUFS  Kurzzeit max  -21.92 / Median  -21.92  True Peak  -9.72
+  cruise_130       43.5–  50.6 s   -21.51 LUFS  Kurzzeit max  -21.43 / Median  -21.56  True Peak -10.82   Plan -21.0
+sportwagen_modern.wav: Profil modern, drive sportwagen, 39.57 s – integriert -17.39 LUFS, Lautheitsbereich 5.36 LU, True Peak -5.85 dBTP
+  idle              1.5–   3.0 s   -24.24 LUFS  Kurzzeit max  -24.24 / Median  -24.24  True Peak -13.57   Plan -24.0
+  full_throttle     4.0–  22.1 s   -16.26 LUFS  Kurzzeit max  -15.14 / Median  -16.59  True Peak  -5.85   Plan -16.0
+  flat_out         22.1–  28.1 s   -16.22 LUFS  Kurzzeit max  -16.07 / Median  -16.18  True Peak  -7.00   Plan -16.0
+  lift             28.1–  31.1 s   -20.13 LUFS  Kurzzeit max  -20.14 / Median  -20.14  True Peak  -7.39
+  cruise_130       33.1–  40.1 s   -20.93 LUFS  Kurzzeit max  -20.55 / Median  -20.89  True Peak -12.34   Plan -21.0
+
+Frühere Läufe (zur Streuung von Lauf zu Lauf): f1 und f2 mit den Pegeln vor der Rücknahme von Kombi und Sportwagen
+(f1 außerdem vor der Rücknahme des Kompakten um 0,5 dB), f3 = alle fünf nach dem dumpferen Lastwechselschlag.
+--- plan_f1_modern
+gran_turismo_modern.wav: Profil modern, drive gran_turismo, 47.28 s – integriert -17.04 LUFS, Lautheitsbereich 6.64 LU, True Peak -5.95 dBTP
+  idle              1.5–   3.0 s   -24.67 LUFS  Kurzzeit max  -24.67 / Median  -24.67  True Peak -15.47   Plan -24.0
+  full_throttle     4.0–  29.9 s   -16.12 LUFS  Kurzzeit max  -15.50 / Median  -15.85  True Peak  -6.23   Plan -16.0
+  flat_out         29.9–  35.9 s   -15.19 LUFS  Kurzzeit max  -14.90 / Median  -15.02  True Peak  -5.95   Plan -16.0
+  lift             35.9–  39.0 s   -20.61 LUFS  Kurzzeit max  -20.60 / Median  -20.60  True Peak  -8.77
+  cruise_130       41.0–  48.0 s   -21.84 LUFS  Kurzzeit max  -21.77 / Median  -21.85  True Peak -13.43   Plan -21.0
+kombi_modern.wav: Profil modern, drive kombi, 49.88 s – integriert -16.83 LUFS, Lautheitsbereich 6.6 LU, True Peak -5.38 dBTP
+  idle              1.5–   3.0 s   -25.37 LUFS  Kurzzeit max  -25.37 / Median  -25.37  True Peak  -6.85   Plan -24.0
+  full_throttle     4.0–  32.5 s   -15.87 LUFS  Kurzzeit max  -14.75 / Median  -15.71  True Peak  -5.74   Plan -16.0
+  flat_out         32.5–  38.5 s   -15.27 LUFS  Kurzzeit max  -14.82 / Median  -14.97  True Peak  -5.38   Plan -16.0
+  lift             38.5–  41.5 s   -21.72 LUFS  Kurzzeit max  -21.72 / Median  -21.72  True Peak -10.05
+  cruise_130       43.5–  50.6 s   -21.06 LUFS  Kurzzeit max  -20.79 / Median  -21.31  True Peak -10.89   Plan -21.0
+kompakt_modern.wav: Profil modern, drive kompakt, 37.34 s – integriert -17.31 LUFS, Lautheitsbereich 6.94 LU, True Peak -5.72 dBTP
+  idle              1.5–   3.0 s   -23.68 LUFS  Kurzzeit max  -23.68 / Median  -23.68  True Peak -11.58   Plan -24.0
+  full_throttle     4.0–  19.8 s   -15.52 LUFS  Kurzzeit max  -14.40 / Median  -15.60  True Peak  -5.72   Plan -16.0
+  flat_out         19.8–  25.8 s   -16.68 LUFS  Kurzzeit max  -16.42 / Median  -16.63  True Peak  -6.57   Plan -16.0
+  lift             25.8–  28.8 s   -21.55 LUFS  Kurzzeit max  -21.55 / Median  -21.55  True Peak  -8.93
+  cruise_130       30.8–  37.8 s   -20.90 LUFS  Kurzzeit max  -20.40 / Median  -20.52  True Peak -12.31   Plan -21.0
+limousine_modern.wav: Profil modern, drive limousine, 44.3 s – integriert -17.94 LUFS, Lautheitsbereich 5.69 LU, True Peak -5.73 dBTP
+  idle              1.5–   3.0 s   -24.37 LUFS  Kurzzeit max  -24.37 / Median  -24.37  True Peak -13.09   Plan -24.0
+  full_throttle     4.0–  26.9 s   -17.19 LUFS  Kurzzeit max  -16.13 / Median  -17.16  True Peak  -6.90   Plan -16.0
+  flat_out         26.9–  32.9 s   -15.86 LUFS  Kurzzeit max  -15.58 / Median  -15.64  True Peak  -5.73   Plan -16.0
+  lift             32.9–  35.9 s   -20.66 LUFS  Kurzzeit max  -20.69 / Median  -20.69  True Peak -10.73
+  cruise_130       37.9–  44.9 s   -21.43 LUFS  Kurzzeit max  -21.34 / Median  -21.49  True Peak -13.14   Plan -21.0
+sportwagen_modern.wav: Profil modern, drive sportwagen, 39.66 s – integriert -17.05 LUFS, Lautheitsbereich 5.35 LU, True Peak -5.69 dBTP
+  idle              1.5–   3.0 s   -24.58 LUFS  Kurzzeit max  -24.58 / Median  -24.58  True Peak -14.17   Plan -24.0
+  full_throttle     4.0–  22.1 s   -15.98 LUFS  Kurzzeit max  -15.00 / Median  -15.96  True Peak  -5.69   Plan -16.0
+  flat_out         22.1–  28.1 s   -15.55 LUFS  Kurzzeit max  -15.42 / Median  -15.63  True Peak  -6.14   Plan -16.0
+  lift             28.1–  31.1 s   -20.36 LUFS  Kurzzeit max  -20.38 / Median  -20.38  True Peak  -9.35
+  cruise_130       33.1–  40.1 s   -20.34 LUFS  Kurzzeit max  -19.98 / Median  -20.09  True Peak -12.05   Plan -21.0
+--- plan_f2_modern
+gran_turismo_modern.wav: Profil modern, drive gran_turismo, 47.37 s – integriert -16.99 LUFS, Lautheitsbereich 6.57 LU, True Peak -5.19 dBTP
+  idle              1.5–   3.0 s   -23.74 LUFS  Kurzzeit max  -23.74 / Median  -23.74  True Peak -13.97   Plan -24.0
+  full_throttle     4.0–  29.9 s   -15.98 LUFS  Kurzzeit max  -15.18 / Median  -15.70  True Peak  -5.19   Plan -16.0
+  flat_out         29.9–  35.9 s   -15.47 LUFS  Kurzzeit max  -15.31 / Median  -15.37  True Peak  -5.83   Plan -16.0
+  lift             35.9–  39.0 s   -20.73 LUFS  Kurzzeit max  -20.72 / Median  -20.72  True Peak  -9.19
+  cruise_130       41.0–  48.0 s   -21.51 LUFS  Kurzzeit max  -21.20 / Median  -21.62  True Peak -12.99   Plan -21.0
+kombi_modern.wav: Profil modern, drive kombi, 49.89 s – integriert -16.9 LUFS, Lautheitsbereich 6.13 LU, True Peak -5.4 dBTP
+  idle              1.5–   3.0 s   -25.03 LUFS  Kurzzeit max  -25.03 / Median  -25.03  True Peak  -7.44   Plan -24.0
+  full_throttle     4.0–  32.5 s   -15.94 LUFS  Kurzzeit max  -14.84 / Median  -16.07  True Peak  -5.40   Plan -16.0
+  flat_out         32.5–  38.5 s   -15.52 LUFS  Kurzzeit max  -15.16 / Median  -15.31  True Peak  -5.47   Plan -16.0
+  lift             38.5–  41.5 s   -21.40 LUFS  Kurzzeit max  -21.41 / Median  -21.41  True Peak -10.86
+  cruise_130       43.5–  50.6 s   -21.09 LUFS  Kurzzeit max  -21.08 / Median  -21.24  True Peak -11.14   Plan -21.0
+kompakt_modern.wav: Profil modern, drive kompakt, 37.34 s – integriert -17.61 LUFS, Lautheitsbereich 6.77 LU, True Peak -6.98 dBTP
+  idle              1.5–   3.0 s   -23.65 LUFS  Kurzzeit max  -23.65 / Median  -23.65  True Peak -13.25   Plan -24.0
+  full_throttle     4.0–  19.8 s   -15.86 LUFS  Kurzzeit max  -15.08 / Median  -15.74  True Peak  -6.98   Plan -16.0
+  flat_out         19.8–  25.8 s   -16.64 LUFS  Kurzzeit max  -16.51 / Median  -16.56  True Peak  -7.38   Plan -16.0
+  lift             25.8–  28.8 s   -21.79 LUFS  Kurzzeit max  -21.80 / Median  -21.80  True Peak -12.30
+  cruise_130       30.8–  37.8 s   -21.89 LUFS  Kurzzeit max  -21.60 / Median  -21.76  True Peak -12.28   Plan -21.0
+limousine_modern.wav: Profil modern, drive limousine, 44.21 s – integriert -17.8 LUFS, Lautheitsbereich 5.89 LU, True Peak -5.4 dBTP
+  idle              1.5–   3.0 s   -24.20 LUFS  Kurzzeit max  -24.20 / Median  -24.20  True Peak -10.02   Plan -24.0
+  full_throttle     4.0–  26.9 s   -17.06 LUFS  Kurzzeit max  -16.18 / Median  -17.20  True Peak  -6.78   Plan -16.0
+  flat_out         26.9–  32.9 s   -15.54 LUFS  Kurzzeit max  -15.27 / Median  -15.38  True Peak  -5.40   Plan -16.0
+  lift             32.9–  35.9 s   -21.04 LUFS  Kurzzeit max  -21.05 / Median  -21.05  True Peak  -9.61
+  cruise_130       37.9–  44.9 s   -21.12 LUFS  Kurzzeit max  -20.85 / Median  -20.98  True Peak -12.06   Plan -21.0
+sportwagen_modern.wav: Profil modern, drive sportwagen, 39.57 s – integriert -17.04 LUFS, Lautheitsbereich 5.7 LU, True Peak -5.62 dBTP
+  idle              1.5–   3.0 s   -24.23 LUFS  Kurzzeit max  -24.23 / Median  -24.23  True Peak -12.45   Plan -24.0
+  full_throttle     4.0–  22.1 s   -15.83 LUFS  Kurzzeit max  -14.92 / Median  -15.92  True Peak  -5.62   Plan -16.0
+  flat_out         22.1–  28.1 s   -15.65 LUFS  Kurzzeit max  -15.49 / Median  -15.57  True Peak  -5.94   Plan -16.0
+  lift             28.1–  31.1 s   -20.45 LUFS  Kurzzeit max  -20.47 / Median  -20.47  True Peak  -8.53
+  cruise_130       33.1–  40.1 s   -21.04 LUFS  Kurzzeit max  -20.88 / Median  -21.02  True Peak -11.45   Plan -21.0
+--- plan_f3_modern
+gran_turismo_modern.wav: Profil modern, drive gran_turismo, 47.28 s – integriert -17.13 LUFS, Lautheitsbereich 6.63 LU, True Peak -6.08 dBTP
+  idle              1.5–   3.0 s   -23.50 LUFS  Kurzzeit max  -23.50 / Median  -23.50  True Peak -14.26   Plan -24.0
+  full_throttle     4.0–  29.9 s   -16.21 LUFS  Kurzzeit max  -15.51 / Median  -16.16  True Peak  -6.08   Plan -16.0
+  flat_out         29.9–  35.9 s   -15.34 LUFS  Kurzzeit max  -14.98 / Median  -15.18  True Peak  -6.27   Plan -16.0
+  lift             35.9–  39.0 s   -20.62 LUFS  Kurzzeit max  -20.61 / Median  -20.61  True Peak  -9.86
+  cruise_130       41.0–  48.0 s   -22.29 LUFS  Kurzzeit max  -22.06 / Median  -22.32  True Peak -12.88   Plan -21.0
+kombi_modern.wav: Profil modern, drive kombi, 49.78 s – integriert -16.84 LUFS, Lautheitsbereich 6.91 LU, True Peak -5.98 dBTP
+  idle              1.5–   3.0 s   -24.74 LUFS  Kurzzeit max  -24.74 / Median  -24.74  True Peak  -6.37   Plan -24.0
+  full_throttle     4.0–  32.5 s   -15.82 LUFS  Kurzzeit max  -14.22 / Median  -15.83  True Peak  -5.98   Plan -16.0
+  flat_out         32.5–  38.5 s   -15.54 LUFS  Kurzzeit max  -15.25 / Median  -15.30  True Peak  -6.04   Plan -16.0
+  lift             38.5–  41.6 s   -21.63 LUFS  Kurzzeit max  -21.63 / Median  -21.63  True Peak -11.02
+  cruise_130       43.6–  50.6 s   -21.30 LUFS  Kurzzeit max  -21.27 / Median  -21.35  True Peak -12.02   Plan -21.0
+kompakt_modern.wav: Profil modern, drive kompakt, 37.34 s – integriert -17.68 LUFS, Lautheitsbereich 6.59 LU, True Peak -6.06 dBTP
+  idle              1.5–   3.0 s   -23.85 LUFS  Kurzzeit max  -23.85 / Median  -23.85  True Peak -13.79   Plan -24.0
+  full_throttle     4.0–  19.8 s   -15.98 LUFS  Kurzzeit max  -14.84 / Median  -15.98  True Peak  -6.06   Plan -16.0
+  flat_out         19.8–  25.8 s   -16.63 LUFS  Kurzzeit max  -16.41 / Median  -16.50  True Peak  -7.00   Plan -16.0
+  lift             25.8–  28.8 s   -21.85 LUFS  Kurzzeit max  -21.87 / Median  -21.87  True Peak -10.92
+  cruise_130       30.8–  37.8 s   -21.94 LUFS  Kurzzeit max  -21.74 / Median  -21.86  True Peak -12.67   Plan -21.0
+limousine_modern.wav: Profil modern, drive limousine, 44.3 s – integriert -17.67 LUFS, Lautheitsbereich 6.68 LU, True Peak -6.46 dBTP
+  idle              1.5–   3.0 s   -24.24 LUFS  Kurzzeit max  -24.24 / Median  -24.24  True Peak -13.35   Plan -24.0
+  full_throttle     4.0–  26.9 s   -17.06 LUFS  Kurzzeit max  -16.18 / Median  -17.23  True Peak  -6.46   Plan -16.0
+  flat_out         26.9–  32.9 s   -15.01 LUFS  Kurzzeit max  -14.76 / Median  -14.82  True Peak  -6.98   Plan -16.0
+  lift             32.9–  35.9 s   -20.41 LUFS  Kurzzeit max  -20.43 / Median  -20.43  True Peak  -9.73
+  cruise_130       37.9–  44.9 s   -21.62 LUFS  Kurzzeit max  -21.55 / Median  -21.62  True Peak -13.39   Plan -21.0
+sportwagen_modern.wav: Profil modern, drive sportwagen, 39.57 s – integriert -17.08 LUFS, Lautheitsbereich 5.97 LU, True Peak -4.75 dBTP
+  idle              1.5–   3.0 s   -24.34 LUFS  Kurzzeit max  -24.34 / Median  -24.34  True Peak -12.12   Plan -24.0
+  full_throttle     4.0–  22.1 s   -15.91 LUFS  Kurzzeit max  -14.51 / Median  -16.32  True Peak  -5.48   Plan -16.0
+  flat_out         22.1–  28.1 s   -15.79 LUFS  Kurzzeit max  -15.54 / Median  -15.71  True Peak  -4.75   Plan -16.0
+  lift             28.1–  31.1 s   -20.08 LUFS  Kurzzeit max  -20.09 / Median  -20.09  True Peak  -8.51
+  cruise_130       33.1–  40.1 s   -20.90 LUFS  Kurzzeit max  -20.66 / Median  -21.00  True Peak -10.58   Plan -21.0

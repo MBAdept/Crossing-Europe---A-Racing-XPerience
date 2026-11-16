@@ -1,0 +1,12 @@
+v0.8.0 GEO: Dokumentation des Geometrie-Kerns, Kurvenkorridor für Requisiten, Streamer-Feinschliff
+
+- docs/renderer-modern.md: Weltmodell, Stücke, Gelände, Kamera, Fairness – mit den Messwerten
+  des ganzen Netzes und den Regeln für Änderungen
+- ChunkContext.in_bend_corridor(): Sichtkorridor einer Kurveninnenseite für den Requisiten-Builder (F7)
+- ChunkStreamer: register() nach dem ersten Laden baut neu, Kurvenradius eines fertigen Pfads gilt,
+  setup() verträgt auch nur den Abschnitt graphics.modern
+- RoadPath3D.set_clear_reach(): geänderte Reichweite verwirft die gemerkten freien Breiten
+- modern_path_check: größte Koordinate eines Pfads (Raster ohne schwimmenden Ursprung)
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

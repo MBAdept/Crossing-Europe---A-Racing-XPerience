@@ -1,0 +1,7 @@
+v0.8.0 RINT-A: UI1 (Optionen, Auswahl, Leistungstest, Showroom, Vorführung) zusammengeführt
+
+Paket UI1 des Schubs M1 (A-8), Stand 3b89a33; enthält die Fahrzeugmodelle
+AS1 (53bcc1b) und den Motorklang AU-B (8414002).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

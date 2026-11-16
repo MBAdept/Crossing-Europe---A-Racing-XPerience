@@ -1,0 +1,14 @@
+WIP v0.8.0 AS3: Heide, Felsen, Klippe, Büsche; Farbabgleich mit den Sprites
+
+- Heide: rosa Blütenbüschel und grüne Zweige des Generators als Laubkuppeln (Hook SHAPE_LOG)
+- Felsen a/b und Klippe: neuer Bauer rock (ce3d/rock3d.py) - Generatorgeometrie mit echten
+  Facetten, Atlas mit Gesteinsmaterial und Umgebungsverdeckung, Klippenfuß unter dem Boden,
+  ein Zeichenaufruf
+- Büsche und Bodendecker mit dem neuen Bauer; Kern heller (keine dunklen Streifen)
+- Farbe je Art an das Sprite angeglichen (gemessen im Renn-Licht: Abweichung der Helligkeit
+  der Krone bei Tag höchstens 5 %), Fernbild-Abgleich je Art
+- prop_scene: Helligkeit und Farbton der Umschaltung aus den inneren Pixeln
+- Wicklung gekrümmter Flächen (Olivenstamm, Klippe) folgt den Normalen; Prüfer grün
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

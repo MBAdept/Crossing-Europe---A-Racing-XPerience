@@ -1,0 +1,36 @@
+{
+  "bg_color": {
+    "frame_ms_median": 79.64,
+    "frame_ms_min": 54.64,
+    "render_cpu_ms_median": 73.41,
+    "render_gpu_ms_median": 80.46
+  },
+  "process_mode_1": {
+    "frame_ms_median": 103.23,
+    "frame_ms_min": 72.69,
+    "render_cpu_ms_median": 93.81,
+    "render_gpu_ms_median": 100.21
+  },
+  "process_mode_2": {
+    "frame_ms_median": 84.4,
+    "frame_ms_min": 55.29,
+    "render_cpu_ms_median": 77.59,
+    "render_gpu_ms_median": 85.11
+  },
+  "process_mode_3": {
+    "frame_ms_median": 97.58,
+    "frame_ms_min": 79.53,
+    "render_cpu_ms_median": 90.66,
+    "render_gpu_ms_median": 96.89
+  },
+  "realtime_but_no_sky_ambient_no_reflection": {
+    "frame_ms_median": 78.0,
+    "frame_ms_min": 55.4,
+    "render_cpu_ms_median": 71.22,
+    "render_gpu_ms_median": 77.14
+  },
+  "suite": "sky",
+  "test": "skycost2",
+  "variants": [],
+  "viewport_size": "(1280.0, 720.0)"
+}

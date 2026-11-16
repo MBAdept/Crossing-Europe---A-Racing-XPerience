@@ -1,0 +1,9 @@
+v0.8.0 RINT-A: Prüfung lampen_fest rechnet mit den Lampen der Etappe
+
+Seit der Zusammenführung melden die Requisiten der Etappe eigene feste Lampen
+an (Laternen, Wandlampen, Flugbefeuerung). check_vehicles lampen_fest nimmt
+ihre Zahl als Grundlinie und erkennt die beiden Test-Lampen am Ort (vorher:
+absolute Zahlen 2 und 0, im Gesamtlauf FEHLER).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

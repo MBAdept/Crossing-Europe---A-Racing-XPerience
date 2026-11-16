@@ -1,0 +1,38 @@
+v0.8.0 M2ZS1: Ersten Testbuild (ZS1, 39849f0) in die M2-Linie zusammengeführt
+
+Zusammenführung von origin/wip/v080-fix-wasser-r (39849f0 = Zwischenstand 1, beim Nutzer) auf M2INT (49f221e):
+- FIX-ZS1: Vorlauf der Straße vor der Startlinie (Kamera 9 m hinter dem Auto, Spielerauto im Countdown sichtbar;
+  road_path.gd, chunk_context.gd, chunk_streamer.gd, layers/vehicles.gd), Lampenringe des Starttors ohne Schatten
+  (builders/gantry.gd), Render-Prüfung „Start bei km 0“ (check_start_km0.gd), Einheitstests des Vorlaufs.
+- FIX-WASSER: Fernboden unter dem tiefsten Wasser des geladenen Fensters (layers/far_ground.gd), Unit-Test
+  test_far_ground_water.gd.
+- FIX-WASSER-R: Ersatz-Sets der sechs prozeduralen Wahrzeichen, dunkle Vertretung der Brückenpylone
+  (builders/props.gd), Render-Prüfposition K1, Draufsicht über FarGround.target_height().
+
+Konflikte:
+- layers/far_ground.gd: eine Regel – die von FIX-WASSER (target_height/lowest_water/window_rows, Scheibe 0,3 m
+  unter dem tiefsten Wasser), die der Nutzer im Testbuild hat und die test_far_ground_water und K1 bewachen.
+  M2INTs b341df8 (Wasserhöhe in lowest_road, jede vierte Reihe, 4 m darunter) deckt nichts mehr ab: dieselben
+  Reihen (nur Brückenreihen tragen water_level), aber ohne die Prüfung, ob die Reihe noch im Speicher der Strecke
+  liegt, und mit einer anderen Höhe an den Elbbrücken. Von b341df8 bleibt der Unit-Test
+  test_far_ground_lies_below_the_water_of_a_bridge, umgestellt auf target_height() mit einer Brücke in
+  Track.bridges; er prüft jetzt auch, dass jede Wasserreihe gelesen wird (die tiefste liegt zwischen zwei
+  Straßenproben).
+- docs/renderer-modern-gelaende.md: Text von FIX-WASSER, dazu M2INTs Befund (46 von 46 Schiffen auf Wasser) und
+  der Satz zur einen Regel.
+- tests/golden/modern_slice.*: vorerst M2INTs Liste; Start und S4 ändern sich mit ZS1 – neu erzeugt im nächsten
+  Commit, nachdem ich die Bilder angesehen habe.
+
+Inhaltliche Konflikte (automatisch gemischt, aber rot):
+- test_props „Pylon-Vertretung bleibt nachts dunkel“: seit AS4R ist props/bridge_pylon ein Modell, die
+  Vertretung gibt es nur noch, wenn das Modell fehlt. Der Test prüft sie jetzt mit einem Test-Manifest ohne
+  das Pylon-Modell (wie check_vehicles „kasten“); neu test_bridge_pylon_is_a_model_with_its_aviation_light:
+  beide Seiten als Modell, keine Vertretung, je Pylon ein rotes Warnlicht als Lampenanker.
+- test_props „prozedurale Wahrzeichen bekommen ihr Ersatz-Set“: props/church und props/building_tall sind seit
+  AS4R Modelle – das Ersatz-Set steht als Modell (Gesetz der Wahrzeichen, nie gespiegelt, fallback_scale; ohne
+  Tönung) oder als Vertretung (getönt). Geprüft jetzt auf jeder Anfahrt in die sechs Städte (20), nicht nur einer.
+
+Unit-Tests race3d: 119 von 119 grün (gemessen).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

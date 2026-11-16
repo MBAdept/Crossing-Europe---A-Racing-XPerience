@@ -1,0 +1,20 @@
+v0.8.0 RINT-B: Überblendung der fernen Stufen, Rückstrahler im Abblendlicht, Nachtlack, Showroom-Look
+
+- Fahrzeuge: lod1 und lod2 eines Modells blenden über 0,5 s Sichtzeit mit gegenläufigem Dither
+  über (vpbr-Instanzwert xfade) statt in einem Bild zu wechseln; Prüfung check_vehicles → ueberblendung
+- Lampenkanal 15 „retro“: Konturband und Rückstrahler des Lkw leuchten im Kegel des eigenen
+  Abblendlichts statt mit der Nacht überall (roles.py, truck3d.py, Prüfer bis Kanal 15, vpbr);
+  Lkw neu exportiert und gebacken, Manifest neu erzeugt
+- Nachts spiegelt der Lack den Palettenhimmel nur zu 35 %, das Fülllicht des Spielerautos
+  sinkt auf 30 % (Metalllack des Spielerautos war +44 % gegen sein Sprite)
+- Lack: Knie-Steigung 0,45 (mittags und in der Dämmerung innerhalb von 10 % des Sprites,
+  außer Kompakt in der Dämmerung mit der Sonne voraus)
+- Ferner Boden: der Rand zeigt das Mittel des fernen Bodens (das Muster lief auf der Wand
+  in senkrechte Streifen)
+- Showroom setzt seinen eigenen Look auf die geteilten Materialien (übernahm sonst den des
+  letzten Rennens)
+- Doku: Ersatzbilder in 11.1/11.7/11.8, Kanal 15 in modelle.md, ARCHITECTURE.md §15
+  leave_modern(always), quality_lowered, gfx_lowered
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

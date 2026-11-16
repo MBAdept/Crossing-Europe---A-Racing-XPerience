@@ -1,0 +1,16 @@
+v0.8.0 PIPE: Geometrie-Prüfung unabhängig von der Flächenreihenfolge, Fixture um ctopo/nstat ergänzt
+
+Blenders UV-Kugel (bmesh.ops.create_uvsphere, Kugel des Berliner Fernsehturms) liefert ihre Flächen in
+jedem Prozess in anderer Reihenfolge - auch mit den unveränderten Generatoren von v0.7.0. Das Feld "topo"
+dieses Sets ließ sich deshalb nie wiederholen.
+
+- check_sprite_geometry.py: zwei Felder mehr. "ctopo" = Polygone als Eckenzyklen (ab der kleinsten
+  Ecke) mit Materialindex und Glättung, sortiert, dazu scharfe Kanten und Objektmerkmale; "nstat" =
+  sechs gewichtete Summen über alle Eckennormalen, mit Toleranz verglichen. Weicht nur "topo" ab und
+  sind ctopo und nstat gleich, zählt das Set als identisch (gleiche Ecken, Flächen, Normalen).
+- Fixture neu geschrieben aus dem Generatorstand vor dem ersten Hook (Commit af28726 = Stand v0.7.0):
+  186 von 187 Sets in allen zehn bisherigen Feldern gleich der alten Fixture, das 187. nur in "topo".
+- Prüfung nach allen Hooks: 187 von 187 Sets identisch (davon 1 mit anderer Flächenreihenfolge).
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

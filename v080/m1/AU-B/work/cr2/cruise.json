@@ -1,0 +1,332 @@
+{
+ "kompakt": {
+  "arcade": {
+   "cruise_130": {
+    "lufs": -22.43,
+    "mod50_std": 0.16,
+    "mod1s_std": 0.01,
+    "mod50_range": 0.47,
+    "spectrum_move_db": 0.23,
+    "dominant_band_hz": 79,
+    "dominance_db": 17.6,
+    "repeat_ac": 0.86,
+    "bands_within_30db": 7,
+    "dominance_a_db": 12.8,
+    "dominant_band_a_hz": 79,
+    "bands_within_30db_a": 22,
+    "speed": 130.0
+   },
+   "cruise_200": {
+    "lufs": -20.93,
+    "mod50_std": 0.11,
+    "mod1s_std": 0.02,
+    "mod50_range": 0.38,
+    "spectrum_move_db": 0.68,
+    "dominant_band_hz": 125,
+    "dominance_db": 27.1,
+    "repeat_ac": 0.38,
+    "bands_within_30db": 15,
+    "dominance_a_db": 12.5,
+    "dominant_band_a_hz": 125,
+    "bands_within_30db_a": 19,
+    "speed": 195.5
+   }
+  },
+  "modern": {
+   "cruise_130": {
+    "lufs": -21.16,
+    "mod50_std": 0.92,
+    "mod1s_std": 0.65,
+    "mod50_range": 3.04,
+    "spectrum_move_db": 1.44,
+    "dominant_band_hz": 79,
+    "dominance_db": 26.9,
+    "repeat_ac": 0.12,
+    "bands_within_30db": 18,
+    "dominance_a_db": 11.5,
+    "dominant_band_a_hz": 157,
+    "bands_within_30db_a": 22,
+    "speed": 130.0
+   },
+   "cruise_200": {
+    "lufs": -18.33,
+    "mod50_std": 0.83,
+    "mod1s_std": 0.58,
+    "mod50_range": 2.73,
+    "spectrum_move_db": 1.12,
+    "dominant_band_hz": 125,
+    "dominance_db": 24.9,
+    "repeat_ac": 0.11,
+    "bands_within_30db": 16,
+    "dominance_a_db": 9.4,
+    "dominant_band_a_hz": 125,
+    "bands_within_30db_a": 20,
+    "speed": 195.5
+   }
+  }
+ },
+ "kombi": {
+  "arcade": {
+   "cruise_130": {
+    "lufs": -24.33,
+    "mod50_std": 0.07,
+    "mod1s_std": 0.02,
+    "mod50_range": 0.2,
+    "spectrum_move_db": 0.36,
+    "dominant_band_hz": 62,
+    "dominance_db": 27.4,
+    "repeat_ac": 0.25,
+    "bands_within_30db": 7,
+    "dominance_a_db": 16.1,
+    "dominant_band_a_hz": 1587,
+    "bands_within_30db_a": 20,
+    "speed": 130.0
+   },
+   "cruise_200": {
+    "lufs": -22.83,
+    "mod50_std": 0.14,
+    "mod1s_std": 0.02,
+    "mod50_range": 0.46,
+    "spectrum_move_db": 0.54,
+    "dominant_band_hz": 99,
+    "dominance_db": 21.8,
+    "repeat_ac": 0.53,
+    "bands_within_30db": 17,
+    "dominance_a_db": 9.0,
+    "dominant_band_a_hz": 2000,
+    "bands_within_30db_a": 22,
+    "speed": 199.75
+   }
+  },
+  "modern": {
+   "cruise_130": {
+    "lufs": -20.49,
+    "mod50_std": 0.83,
+    "mod1s_std": 0.5,
+    "mod50_range": 2.83,
+    "spectrum_move_db": 1.17,
+    "dominant_band_hz": 62,
+    "dominance_db": 24.2,
+    "repeat_ac": 0.06,
+    "bands_within_30db": 17,
+    "dominance_a_db": 14.9,
+    "dominant_band_a_hz": 1587,
+    "bands_within_30db_a": 20,
+    "speed": 130.0
+   },
+   "cruise_200": {
+    "lufs": -17.93,
+    "mod50_std": 0.84,
+    "mod1s_std": 0.53,
+    "mod50_range": 2.86,
+    "spectrum_move_db": 1.16,
+    "dominant_band_hz": 99,
+    "dominance_db": 21.8,
+    "repeat_ac": 0.09,
+    "bands_within_30db": 22,
+    "dominance_a_db": 7.7,
+    "dominant_band_a_hz": 2000,
+    "bands_within_30db_a": 20,
+    "speed": 199.75
+   }
+  }
+ },
+ "limousine": {
+  "arcade": {
+   "cruise_130": {
+    "lufs": -31.47,
+    "mod50_std": 0.18,
+    "mod1s_std": 0.03,
+    "mod50_range": 0.6,
+    "spectrum_move_db": 1.19,
+    "dominant_band_hz": 198,
+    "dominance_db": 24.8,
+    "repeat_ac": 0.32,
+    "bands_within_30db": 20,
+    "dominance_a_db": 17.7,
+    "dominant_band_a_hz": 198,
+    "bands_within_30db_a": 19,
+    "speed": 130.0
+   },
+   "cruise_200": {
+    "lufs": -19.35,
+    "mod50_std": 0.1,
+    "mod1s_std": 0.02,
+    "mod50_range": 0.33,
+    "spectrum_move_db": 0.49,
+    "dominant_band_hz": 157,
+    "dominance_db": 27.4,
+    "repeat_ac": 0.41,
+    "bands_within_30db": 4,
+    "dominance_a_db": 23.1,
+    "dominant_band_a_hz": 157,
+    "bands_within_30db_a": 15,
+    "speed": 200.0
+   }
+  },
+  "modern": {
+   "cruise_130": {
+    "lufs": -18.73,
+    "mod50_std": 0.79,
+    "mod1s_std": 0.46,
+    "mod50_range": 2.62,
+    "spectrum_move_db": 0.83,
+    "dominant_band_hz": 99,
+    "dominance_db": 22.8,
+    "repeat_ac": 0.07,
+    "bands_within_30db": 4,
+    "dominance_a_db": 18.5,
+    "dominant_band_a_hz": 198,
+    "bands_within_30db_a": 19,
+    "speed": 130.0
+   },
+   "cruise_200": {
+    "lufs": -16.54,
+    "mod50_std": 0.83,
+    "mod1s_std": 0.59,
+    "mod50_range": 2.75,
+    "spectrum_move_db": 1.16,
+    "dominant_band_hz": 157,
+    "dominance_db": 29.5,
+    "repeat_ac": 0.19,
+    "bands_within_30db": 5,
+    "dominance_a_db": 21.2,
+    "dominant_band_a_hz": 157,
+    "bands_within_30db_a": 16,
+    "speed": 200.0
+   }
+  }
+ },
+ "sportwagen": {
+  "arcade": {
+   "cruise_130": {
+    "lufs": -24.41,
+    "mod50_std": 0.09,
+    "mod1s_std": 0.02,
+    "mod50_range": 0.31,
+    "spectrum_move_db": 0.44,
+    "dominant_band_hz": 125,
+    "dominance_db": 23.8,
+    "repeat_ac": 0.17,
+    "bands_within_30db": 18,
+    "dominance_a_db": 11.9,
+    "dominant_band_a_hz": 250,
+    "bands_within_30db_a": 21,
+    "speed": 130.0
+   },
+   "cruise_200": {
+    "lufs": -14.96,
+    "mod50_std": 0.11,
+    "mod1s_std": 0.02,
+    "mod50_range": 0.37,
+    "spectrum_move_db": 0.48,
+    "dominant_band_hz": 198,
+    "dominance_db": 26.0,
+    "repeat_ac": 0.18,
+    "bands_within_30db": 12,
+    "dominance_a_db": 17.4,
+    "dominant_band_a_hz": 198,
+    "bands_within_30db_a": 17,
+    "speed": 200.0
+   }
+  },
+  "modern": {
+   "cruise_130": {
+    "lufs": -19.24,
+    "mod50_std": 0.88,
+    "mod1s_std": 0.62,
+    "mod50_range": 2.88,
+    "spectrum_move_db": 1.11,
+    "dominant_band_hz": 125,
+    "dominance_db": 23.5,
+    "repeat_ac": 0.16,
+    "bands_within_30db": 18,
+    "dominance_a_db": 10.1,
+    "dominant_band_a_hz": 250,
+    "bands_within_30db_a": 23,
+    "speed": 130.0
+   },
+   "cruise_200": {
+    "lufs": -15.16,
+    "mod50_std": 0.83,
+    "mod1s_std": 0.6,
+    "mod50_range": 2.72,
+    "spectrum_move_db": 0.95,
+    "dominant_band_hz": 198,
+    "dominance_db": 23.4,
+    "repeat_ac": 0.08,
+    "bands_within_30db": 13,
+    "dominance_a_db": 15.3,
+    "dominant_band_a_hz": 198,
+    "bands_within_30db_a": 17,
+    "speed": 200.0
+   }
+  }
+ },
+ "gran_turismo": {
+  "arcade": {
+   "cruise_130": {
+    "lufs": -19.85,
+    "mod50_std": 0.11,
+    "mod1s_std": 0.01,
+    "mod50_range": 0.39,
+    "spectrum_move_db": 0.55,
+    "dominant_band_hz": 157,
+    "dominance_db": 24.6,
+    "repeat_ac": 0.57,
+    "bands_within_30db": 19,
+    "dominance_a_db": 15.8,
+    "dominant_band_a_hz": 157,
+    "bands_within_30db_a": 22,
+    "speed": 130.0
+   },
+   "cruise_200": {
+    "lufs": -16.75,
+    "mod50_std": 0.24,
+    "mod1s_std": 0.04,
+    "mod50_range": 0.79,
+    "spectrum_move_db": 0.78,
+    "dominant_band_hz": 250,
+    "dominance_db": 20.5,
+    "repeat_ac": 0.53,
+    "bands_within_30db": 22,
+    "dominance_a_db": 13.4,
+    "dominant_band_a_hz": 250,
+    "bands_within_30db_a": 18,
+    "speed": 200.0
+   }
+  },
+  "modern": {
+   "cruise_130": {
+    "lufs": -21.33,
+    "mod50_std": 0.86,
+    "mod1s_std": 0.56,
+    "mod50_range": 2.73,
+    "spectrum_move_db": 1.09,
+    "dominant_band_hz": 157,
+    "dominance_db": 23.8,
+    "repeat_ac": 0.15,
+    "bands_within_30db": 20,
+    "dominance_a_db": 13.0,
+    "dominant_band_a_hz": 157,
+    "bands_within_30db_a": 20,
+    "speed": 130.0
+   },
+   "cruise_200": {
+    "lufs": -18.77,
+    "mod50_std": 0.81,
+    "mod1s_std": 0.56,
+    "mod50_range": 2.68,
+    "spectrum_move_db": 1.09,
+    "dominant_band_hz": 250,
+    "dominance_db": 19.7,
+    "repeat_ac": 0.07,
+    "bands_within_30db": 21,
+    "dominance_a_db": 13.3,
+    "dominant_band_a_hz": 250,
+    "bands_within_30db_a": 18,
+    "speed": 200.0
+   }
+  }
+ }
+}

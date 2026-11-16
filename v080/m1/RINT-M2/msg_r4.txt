@@ -1,0 +1,10 @@
+v0.8.0 RINT-M2: R4 zusammengeführt (Licht, Nacht, Wetter; FIX-R4 b156763)
+
+Regen und Schnee in der Luft, Gischt, nasse Fahrbahn mit Spiegelungen
+entlang des Straßenprofils, Schneewälle, Sonnenscheibe, Überstrahlung
+an der Tunnelausfahrt, Blaulicht-Schein, Nachtgesetz der Modelle.
+Konflikt nur in tests/golden/modern_slice.{md5,env}: R4s Seite genommen,
+die Liste wird nach allen Merges einmal neu erzeugt (nach Ansehen).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

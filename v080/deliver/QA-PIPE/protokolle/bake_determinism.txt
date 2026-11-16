@@ -1,0 +1,42 @@
+# md5 of assets/models: committed (integrated worktree), bake 1 (headless, export 1), bake 2 (headless, export 2, model folders deleted first), bake 3 (Xvfb + opengl3, folders deleted first)
+## committed.md5: 36 files, md5 of the list: f291d78ce1a58ba3152af80700d6d0de
+## bake1.md5: 36 files, md5 of the list: f291d78ce1a58ba3152af80700d6d0de
+## bake2.md5: 36 files, md5 of the list: f291d78ce1a58ba3152af80700d6d0de
+## bake3_xvfb.md5: 36 files, md5 of the list: f291d78ce1a58ba3152af80700d6d0de
+## committed list
+2f44b8efb05237f0d1a995870b0fae52  assets/models/landmarks/michel/albedo.webp
+a81816c465a4b58276b413054a3debe9  assets/models/landmarks/michel/albedo.webp.import
+98a358bc3cd44459fb9368904da68308  assets/models/landmarks/michel/emit.png
+815160bb86dfc704a513c8fb84acbcdc  assets/models/landmarks/michel/emit.png.import
+69c38ecf5fd8fef8048297371d1562ad  assets/models/landmarks/michel/lod0_body.res
+7ecd6bbf814910efc8ef3335a3f3e4f4  assets/models/landmarks/michel/model.json
+aa72f6f8c8c05e213f489ece4615d701  assets/models/manifest.json
+cb4d110ebce4690ce483adcbff612a44  assets/models/player/limousine/lod0_body.res
+81ea37feb6766f4786f046eba58c3518  assets/models/player/limousine/model.json
+c971b0b74a25a6e4b223cc6427e0dcda  assets/models/player/limousine/shadow.res
+9c85a07878de36f32ad9a85270a444d8  assets/models/player/limousine/show_body.res
+7280749157e203e45b31d53fdc432304  assets/models/player/limousine/show_wheel.res
+66150275666ff3d23b5a281755b97762  assets/models/player/limousine/wheel.res
+4b72ee543f5025a36fab2f5e3f54cc64  assets/models/props/farmhouse/albedo.png
+7015c0473d3639a8ec653e7f0a0943d1  assets/models/props/farmhouse/albedo.png.import
+e68ab807618e6b8cdf4e944a04d78ea8  assets/models/props/farmhouse/emit.png
+14a88cbad8353ba2fd371c2c37192cfb  assets/models/props/farmhouse/emit.png.import
+aa5413d65d5d4976a863b66c3f832b33  assets/models/props/farmhouse/lod0_body.res
+91453fea29939e15da67b56c12f5901f  assets/models/props/farmhouse/model.json
+7daf10a29399d11be6cc9a8a2bd7204a  assets/models/props/streetlight/lod0_body.res
+1d26150df437e2adb27ce27dd8804643  assets/models/props/streetlight/model.json
+9b2cce86fbf39e278d38e33e9d3c4ddc  assets/models/props/tree_oak/impostor.png
+5ea074fe5867a19dda1f6060399dec3d  assets/models/props/tree_oak/impostor.png.import
+4289bea711f6e35dfa75b4485c4794a9  assets/models/props/tree_oak/leaves.png
+dedbf0249323ec472e7b01eea4859e40  assets/models/props/tree_oak/leaves.png.import
+eeb40dd3cfae377af45a85ed6f9ed5b9  assets/models/props/tree_oak/lod0_body.res
+0fcccb0f850268c45a424ab3a12f2b9d  assets/models/props/tree_oak/lod1_body.res
+f957fa5009bbea04abe9bf9660675225  assets/models/props/tree_oak/model.json
+486ee65a2de243bc083f03c9a7296619  assets/models/props/tree_oak/shadow.res
+7e29fd7af3a9f782c8974bde5763bad3  assets/models/sets_default.json
+4a7b7e6fe05c9a107cea8637a6efc994  assets/models/traffic/sedan/lod0_body.res
+f3f77a0a394b5349407bd64a2909004d  assets/models/traffic/sedan/lod1_body.res
+ac1f94634aedb3876bf7709bb80c1089  assets/models/traffic/sedan/lod2_body.res
+b3b4caef5b4066105d79121da5a01ef6  assets/models/traffic/sedan/model.json
+76766338b1d03020a4ddbb4fe82e8a26  assets/models/traffic/sedan/shadow.res
+dfe5ed60dd7564e795d70626e8c2ba06  assets/models/traffic/sedan/wheel.res

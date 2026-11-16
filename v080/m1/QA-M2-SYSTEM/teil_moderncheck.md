@@ -1,0 +1,1 @@
+**6 von 6 identisch** (Start, S2, S3, S4, S5, S1 Nacht; 1 905 s) und OpenGL ES gegen OpenGL bei S3: OK, höchstens 2/255, PSNR 73,2 dB (467 s) – 15.11., Last 15–20 (`q_modern_check.log`; Startbild angesehen: Auto im Countdown hinter dem Starttor, wie Arcades Startstand). Mutation `lane_line_w` × 1,2 macht ihn rot (Abschnitt 4)

@@ -1,0 +1,26 @@
+LEAD NOTES FOR THE ASSEMBLY (measured by the lead with git merge-tree on the pushed heads unless marked):
+1. Known conflict: assets/shaders/modern/contact_shadow.gdshader (+ .uid) is an add/add conflict. R2 made it for prop
+   contact shadows (scripts/race3d/prop_library.gd CONTACT_SHADER constant, builders/props.gd, docs/renderer-modern-gelaende.md
+   §4.7). R3 made a different shader with the same name for vehicle blob shadows (scripts/race3d/layers/vehicles.gd:155
+   loads it as ModernMaterials class "contact_shadow" = SHADER_DIR + class_id + ".gdshader"). Resolution: keep R2's file
+   as contact_shadow.gdshader; move R3's to assets/shaders/modern/vehicle_shadow.gdshader (class "vehicle_shadow",
+   new .uid from the import, never a copied uid), change vehicles.gd and every warm-up/prewarm/test list that names the
+   class. All other pairs merged without conflict in the lead's trial (r1, r2, r3, as1b, ui1, au-b on top of v0.8.0).
+2. R2 report: apply the three kernel lines that cut TerrainProfile also by _kappa() of the side (R2 bericht §9 item 1,
+   script /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/R2/bin/exp_kernel.sh), rerun modern_sight --full, then set STRICT = true in
+   tests/race3d/check_terrain_plan.gd.
+3. R1 report: put the terrain mesh on render layer 2 like the road, include inc/pools.gdshaderinc and
+   inc/headlight.gdshaderinc in the terrain and far-ground shaders, register their materials with
+   renderer.add_pool_material(); --gfx-debug=cover must also apply in environment_rig.gd (fog off) and
+   layers/backdrop.gd (magenta canvas) or check_terrain_cover fails. Street lamps of prop models go to the lights
+   layer through add_static(holder, lamps) (role "lights", range 9 m).
+4. check_light_base 'schatten' compares the mean of the whole picture; with tree and car shadows that mean drops by
+   more than 2 % for good reason. Change it to compare lit, unshadowed regions (D5: lit surfaces equally bright),
+   document the change in docs/renderer-modern.md.
+5. F7: keep R2's stricter reading for now (no decorative props of any class on the inside of bends inside the
+   corridor); the lead decides with the mountain pictures of gate 2. Ground cover <= 0.5 m only once such models exist.
+6. Docs: link docs/renderer-modern-gelaende.md from docs/renderer-modern.md; one doc per area, German.
+7. HUD: the session now sets hud.state during preparation without update_state(); keep the HUD drawable from
+   hud.state alone (UI1 screens may touch the HUD).
+8. Rerun tests/race3d/render/warmup_cold.gd with all content (empty XDG and Mesa cache; command in its header) and
+   report compiled variants while driving (load-independent measure), plus the frame rule.

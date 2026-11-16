@@ -1,0 +1,23 @@
+v0.8.0 KERN: Arcade-Bildgleichheit (golden.sh), Naht-Prüfungen, Render-Prüfungen, Größentabelle, Architektur
+
+- tools/golden.sh make|check|list|compare + tests/golden: 20 Bilder (14 Attract, 6 Rennen mit HUD) als MD5-Liste
+  aus dem Tag v0.7.0; check rendert mit --graphics=arcade --shot-fast und endet mit Exit 1, wenn ein Bild abweicht
+- tools/run_tests.sh: allgemeiner Haken für tests/race3d/check_*.gd und tests/sim/modern_*.gd, eigenes
+  XDG_DATA_HOME ohne Vorgabe des Aufrufers, --graphics=arcade für die Läufe des Spiels und der Rennszene
+- tools/run_render_checks.sh [arcade|modern|all]: Xvfb-Prüfungen (Arcade: Leuchten, Sprite-Spiegelung;
+  Modern: jede tests/race3d/render/check_*.gd)
+- tests/race/check_session.gd: gfx_independent (beide Renderer: gleiches Ergebnis, gleicher Verkehrs-Hash je
+  Sekunde), gfx_fallback; preload mit setup.gfx = arcade
+- tests/race3d/check_seam.gd mit Prüf-Renderer: Ablauf, Marker, früher Abgang, Rückfall, fehlender Renderer,
+  Klang-Hooks, Marker des letzten Laufs
+- tests/race3d/render/check_seam_render.gd: Selbsttest, Bild des Gerüsts, gleiche Aufnahmezeit = gleicher
+  Zustand, Rückfall bildgleich, Arcade nach Modern bildgleich, 16:10-Fenster
+- tools/pck_report.py: Größentabelle je Teil des Budgets und Größengrenze (Warnung 300 MB, Abbruch 330 MB);
+  Aufruf in build_linux.sh, build_windows.sh und build_release.sh
+- Export: *.i16 in den Filtern beider Vorgaben; .gitattributes (*.res, *.glb, *.webp, *.i16 binär);
+  .gitignore (/tools/blender/_cache3d/)
+- ARCHITECTURE.md: §15 Grafikmodi (Einstellungen, Gfx, Qualität, Konfiguration, Renderer-Naht, Ablauf,
+  Prüfungen), Kommandozeile, Klang-Hooks, Werkzeuge
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

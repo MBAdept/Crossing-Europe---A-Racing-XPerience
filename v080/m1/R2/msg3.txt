@@ -1,0 +1,11 @@
+v0.8.0 R2: Dokumentation docs/renderer-modern-gelaende.md, Sonne der Vertretungen 0,8 / 1,15
+
+Neue deutsche Dokumentation des Bauabschnitts: Geländeband (Netz, Eckpunktdaten, Shader-Schichten,
+Landschaftsstile, Haken), Fernboden, Requisiten (Quelle und Auslassungen, PropLibrary, Stellen,
+MultiMesh und Spiegelung, Detailstufen, Vertretungen, Kontaktschatten, Lampen, Laden), Konfiguration,
+Prüfungen, Messwerte, offene Punkte.
+Vertretungen: gemessen gegen Arcade 13–21 % dunkler mit 0,72 / 1,18, 7–16 % mit 1,0 / 1,0 (Arcade
+nebelt Sprites schon aus der Nähe); jetzt 0,8 / 1,15.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

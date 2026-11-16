@@ -1,0 +1,15 @@
+AS2a (WIP): SUV, Transporter und Sportwagen als Modelle; Hooks für die drei neuen Spielerautos
+
+- Katalog: traffic/{suv,van,sports} (alle 13 Farbsets), player/{kombi,sportwagen,gran_turismo} (noch ohne Bake)
+- traffic3d: Blinker, Rückfahrlicht und Tagfahrlicht der drei neuen Entwürfe, Option "order" (der Leuchtbalken
+  des Sportwagens lag mit seiner Gruppe unter dem schwarzen Ring der Leuchten), Kofferraum-/Türfugen samt
+  Transporter-Türen bis ins Dach, Heckflügel in allen Stufen, höhere Schulter beim Sportwagen, verdrehte
+  Splitter an den Radlaufkanten entfernt (Sportwagen 12, Limousine 3, Kombi 5)
+- Reflektoren ohne Lichtanker und ohne lod2-Schnitt; Budget-Overrides je Modell; Prüfer grün
+- Spielerautos (nur 3D): Blinker für Kombi, Sportwagen, GT; Kühlergrill/Lufteinlass/Heckgitter als Mulde mit
+  Lamellen; Spiegelarm beginnt in der Karosserie; Rückleuchte läuft um die Ecke (WRAP3D)
+- Innenraum nach cesprites/carinterior.py (Vertrag §6)
+- Kontaktbogen: --look=race (Lack-Look und Fülllicht der Fahrzeug-Ebene), --only mit Kommas
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

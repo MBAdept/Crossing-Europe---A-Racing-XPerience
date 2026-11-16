@@ -1,0 +1,18 @@
+v0.8.0 M2INT: AS2R zusammengeführt – alle Fahrzeugmodelle (Spieler, Verkehr, Lkw, Bus, Polizei)
+
+Zusammenführung von origin/wip/v080-as2r (c7546c1): 37 Fahrzeugmodelle für alle Fahrzeug-Sets
+(AS2a: Kombi, Sportwagen, Gran Turismo mit Innenraum, Glas, Felgen; SUV, Transporter, Sportwagen;
+AS2b: drei Sattelzug-Typen, Bus, 18 Polizeiautos; AS2R: Nacharbeit nach der Kunstkritik).
+
+Konflikte:
+- tools/blender/ce3d/catalog3d.py, tools/blender/export_models.py: Vereinigung (Umgebung von AS1b und
+  die Polizei-/Bus-Bauer von AS2b)
+- tools/models/contact_sheet.gd: --showroom setzt den Look des echten Showrooms (RINT-B), sonst der
+  Renn-Look mit vorher angelegten Klassenmaterialien (AS2R C2)
+- docs/modelle.md: beide Teile, eine Nummerierung (14 Umgebung, 15 AS2a, 16 AS2b, 17 AS2R)
+- assets/models/traffic/truck/*: Stand von AS2R; der Rückstrahler-Kanal 15 (RINT-B) steckt im
+  zusammengeführten truck3d.py und wird im nächsten Schritt neu exportiert
+- assets/models/manifest.json: neu erzeugt (--manifest-only), nicht von Hand gemischt
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

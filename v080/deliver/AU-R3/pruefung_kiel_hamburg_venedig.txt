@@ -1,0 +1,45 @@
+AU-R3 – Feed von AU-R2 (3600eb7, Kopie) gegen AU-R3 über ganze Etappen auf der echten Track, 1-m-Schritte (stage_compare.gd)
+== kh
+RESULT {"event_diff_steps":0,"events_new":325,"from":"kiel","paving_old_to_new_m":{"asphalt>asphalt":5097.0,"cobbles>cobbles":441.0,"concrete>concrete":3500.0,"deck>deck":462.0},"stage":"kiel_hamburg","state_diff_steps":0,"step_m":1.0,"steps":9500,"to":"hamburg"}
+== hk
+RESULT {"event_diff_steps":0,"events_new":343,"from":"hamburg","paving_old_to_new_m":{"asphalt>asphalt":3550.0,"cobbles>cobbles":450.0,"concrete>concrete":5500.0},"stage":"kiel_hamburg","state_diff_steps":0,"step_m":1.0,"steps":9500,"to":"kiel"}
+== mv
+STRETCH {"bridge":"","km0":268.4,"km1":268.71,"m":31.0,"paving":"cobbles>asphalt"}
+STRETCH {"bridge":"Ponte della Libertà","km0":269.6,"km1":271.41,"m":181.0,"paving":"cobbles>asphalt"}
+RESULT {"event_diff_steps":0,"events_new":654,"from":"mailand","paving_old_to_new_m":{"asphalt>asphalt":23607.0,"cobbles>asphalt":212.0,"cobbles>cobbles":181.0,"concrete>concrete":3500.0},"stage":"mailand_venedig","state_diff_steps":212,"step_m":1.0,"steps":27500,"to":"venedig"}
+== vm
+RESULT {"event_diff_steps":0,"events_new":726,"from":"venedig","paving_old_to_new_m":{"asphalt>asphalt":23559.0,"cobbles>cobbles":441.0,"concrete>concrete":3500.0},"stage":"mailand_venedig","state_diff_steps":0,"step_m":1.0,"steps":27500,"to":"mailand"}
+
+AU-R3 – Triggerlog mit Autopilot (trigger_log2.gd von AU-R), vorher = Baum auf 3600eb7, nachher = AU-R3
+== Kiel – Hamburg
+Zeilen 316 316 | Ereignisse 329 329
+ERGEBNIS gleich: True | Zählungen gleich: True
+Ereignisse nach Ort/Art gleich: True | nur vorher: 0 | nur nachher: 0
+Zeilen je Kategorie (Belag, links, rechts, Zone, Deck) gleich: True
+Zeilen mit anderer Kategorie an derselben Stelle der Folge: 0
+GLEICH
+== Mailand – Venedig (ab km 255)
+Zeilen 124 124 | Ereignisse 235 235
+ERGEBNIS gleich: True | Zählungen gleich: True
+Ereignisse nach Ort/Art gleich: True | nur vorher: 0 | nur nachher: 0
+Zeilen je Kategorie (Belag, links, rechts, Zone, Deck) gleich: False
+    ('asphalt', 'asphalt', 'asphalt', 'bridge', 'concrete') 13 -> 28
+    ('cobbles', 'cobbles', 'cobbles', 'bridge', 'concrete') 15 -> 0
+Zeilen mit anderer Kategorie an derselben Stelle der Folge: 15
+VERSCHIEDEN
+-- vorher
+rows by place / paving:
+  centre                       {'asphalt': 8, 'cobbles': 12}
+  centre/bridge:causeway       {'cobbles': 15, 'asphalt': 12}
+  city                         {'asphalt': 77}
+joints: {'bridge_end/concrete': 2, 'bridge/concrete': 11}
+counts: {"bridge_in": 1, "bridge_out": 1, "joint": 13, "joint_bridge_concrete": 11, "joint_bridge_end_concrete": 2, "pass_building": 57, "pass_gantry": 1, "pass_object": 240, "pass_post": 99, "pass_sign": 1, "pass_tree": 42}
+ERGEBNIS time_s=124.000 distance=275.0 collisions=0
+-- nachher
+rows by place / paving:
+  centre                       {'asphalt': 8, 'cobbles': 12}
+  centre/bridge:causeway       {'asphalt': 27}
+  city                         {'asphalt': 77}
+joints: {'bridge_end/concrete': 2, 'bridge/concrete': 11}
+counts: {"bridge_in": 1, "bridge_out": 1, "joint": 13, "joint_bridge_concrete": 11, "joint_bridge_end_concrete": 2, "pass_building": 57, "pass_gantry": 1, "pass_object": 240, "pass_post": 99, "pass_sign": 1, "pass_tree": 42}
+ERGEBNIS time_s=124.000 distance=275.0 collisions=0

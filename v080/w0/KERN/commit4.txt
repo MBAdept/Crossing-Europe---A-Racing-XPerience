@@ -1,0 +1,13 @@
+v0.8.0 KERN: Absturz-Marker und Klang-Strecke gehören der Etappe, die sie gesetzt hat
+
+GameFlow hängt die Szene der nächsten Etappe ein, bevor die alte den Baum verlassen hat: Die abgehende Etappe
+nahm sonst den frisch geschriebenen Marker und die Strecke des Klangs (set_track) der neuen mit.
+- Rennsitzung: Besitzer-Kennung für Marker und Strecke; ein ordentlicher Abgang nimmt den eigenen Marker immer mit
+  (auch während der Vorbereitung – nur ein abgeschossener Prozess lässt ihn zurück), ein Marker des letzten Laufs
+  bleibt für die Frage auf dem Titel
+- tests/race3d/check_seam.gd „abgang“: früher Abgang, Abgang in der Vorbereitung, Marker des letzten Laufs,
+  Etappenwechsel mit überlappenden Szenen
+- ARCHITECTURE.md §15.5 entsprechend
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

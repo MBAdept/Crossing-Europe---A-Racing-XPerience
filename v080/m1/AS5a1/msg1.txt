@@ -1,0 +1,9 @@
+v0.8.0 AS5a1: WIP Bauer "city" für Stadthäuser (Läden mit Auslage, Fachwerk, Rückwände, Etagen)
+
+Neues Modul tools/blender/ce3d/cities3d.py (Bauer "city", baut auf dem Bauer "house"
+von AS4 auf, ohne buildings3d.py zu ändern), Katalogblock "# --- AS5a ---" mit den
+vier Häusern des Stils german, Bauer in export_models.py eingetragen. Noch ohne
+exportierte Modelle (Zwischenstand).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

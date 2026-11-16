@@ -1,0 +1,82 @@
+
+CONTEXT
+- Game: "Crossing Europe – A Racing Xperience" (Godot 4.7.2, GDScript, GL Compatibility renderer), repo /home/user/crossing-europe---a-racing-xperience.
+  German user; docs and player-facing texts in German (tr()), code comments in English. v0.7.0 is released (= main).
+  v0.8.0 adds a graphics option: today's pseudo-3D game becomes the mode "Arcade" (frozen, pixel-identical); the new
+  mode "Modern" is a second, real-3D renderer in the same build with finer models, dynamic light and a "Modern" sound
+  profile. The user's wish, literally: "das gesamte Spiel einer deutlichen grafischen Überarbeitung unterziehen.
+  Detailreiche Grafik soweit möglich, feinere Modelle, bessere Lichteffekte, Sound- und Musiküberarbeitung" and "echtes
+  3D bitte". Wave 0 (session seam, model pipeline, audio core, geometry kernel with fairness tests) is merged in branch
+  v0.8.0. This push (M1) runs as parallel packages: renderer skeleton R1a (done), road/environment R1, terrain/props
+  R2, vehicles/signs R3, vehicle models AS1 (done; an art review and a rework AS1R follow), environment models AS1b,
+  engine sound AU-B (done), options/chooser/showroom/Leistungstest UI1. Then the lead merges everything, QA checks it,
+  and the user gets the first test build (Kiel–Hamburg in Modern, for Steam Deck and Windows).
+- THE BUILD CONTRACT IS BINDING: docs/dev/v080_contract.md (1,800 lines). Read §2 (rules), the decisions of §3 that
+  concern you, your interfaces in §4, §5, your package in §6, §8 and COMPLETELY §11 (amendments after wave 0 – it wins
+  over the older text; A-7 is the renderer facade, A-8 the plan and file ownership of this push). Also read the docs
+  of your area: docs/modelle.md, docs/audio-modern.md, ARCHITECTURE.md §15, docs/ui.md. Where the contract is wrong
+  or blocks you: implement the closest sound solution and report it under contract_issues with evidence – never work
+  around it silently. Evidence and prototypes of the design studies (starting points, read before reuse): /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/
+  (assets3d, audio, product-ux, synthesis; index in §10 of the contract).
+- YOUR PACKAGE ID: KRITIK-2 – a read-only role: no commits, no branch, no safety copy. START: if
+  /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-2/STAND.md exists, a predecessor was stopped by an account usage limit – read it, reuse its working
+  copy and partial results, and continue.
+- RESTART PROTOCOL: the container can restart, or an account usage limit can stop you, at any moment; a successor with
+  this same brief is then started (both have already happened in this push). (1) Your START instruction above says how
+  to find and continue a predecessor; its background processes are gone and half-written output files may be
+  incomplete. (2) Keep /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-2/STAND.md up to date after every step you finish: worktree path and branch,
+  done / doing now / next / pitfalls, where your scratch results are.
+- Runs: for EVERY game run set XDG_DATA_HOME to an ABSOLUTE folder under your scratch dir; pass --graphics=arcade|modern
+  explicitly. Rendering needs  xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
+  --audio-driver Dummy …  (software OpenGL, llvmpipe – no real GPU, no loudspeakers here: everything about a Steam
+  Deck, a real GPU or how something sounds to a person is "inferred", never "measured"). The default graphics preset
+  on this machine is "low" (adapter tier software: no shadow casters) – for pictures pass --gfx-preset=medium or high.
+  Up to six agents share the 4 cores and 16 GB: heavy jobs (Godot renders, Blender, audio renders, test suites) one at
+  a time with nice -n 10 and at most 2 worker processes; run the complete tools/run_tests.sh (9–15 min) at most twice
+  (use its filter argument while iterating) and tools/golden.sh check (Arcade identity, must print 20 von 20
+  identisch) once at the end. Tools: godot, python3 (numpy, PIL), ffmpeg, ImageMagick, Blender 5.2 as Python module
+  /home/user/tools/bpyenv/bin/python, tools/run_tests.sh, tools/run_render_checks.sh, tools/golden.sh, tools/ab_shot.sh
+  (in branches that contain R1a), tools/models_contact_sheet.sh, tools/blender/validate_models.py,
+  tools/audio/qc/audio_qc.py.
+- Shell: the Bash tool may refuse compound commands with heredocs or several chained git commands ("too complex"):
+  write helper scripts into your scratch folder and run them one by one; write commit messages to a file and use
+  git commit -F <file>. "-s" scripts must not name autoload-dependent classes statically; compile-check with
+  tests/check_scripts.gd.
+- Rule 1: the frozen Arcade files are never edited (sprites are never re-rendered). Stay inside your file ownership (§5 with A-8).
+- LOOK AT / MEASURE YOUR OWN RESULTS: you can open PNG/JPG files with the Read tool. Judge every picture you deliver
+  honestly; say plainly where something is not yet good enough.
+- Scratch for working files: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-2/ ; pictures, previews and reports for review: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/KRITIK-2/ (write
+  your full report there as bericht.md). Never commit intermediates or previews. Disk space is limited: delete large
+  scratch items (exports, copies of the tree, caches you no longer need) when you are done.
+- You make no commits and change no branch.
+- Priorities when time gets tight: (1) nothing broken – gates green, Arcade identical; (2) the interfaces others depend on; (3) quality of what the player sees or hears most; breadth last.
+  Deliver the core solid and list what is left under notes_for_next rather than leaving everything half-done.
+- RESULT: keep it compact – summary at most 250 words; deviations, contract_issues and notes_for_next at most 10
+  entries each, one or two sentences per entry; the details belong into bericht.md. Mark numbers measured/inferred.
+
+EARLY START – PRIORITY RULE: you are an early start of the next push (M2). The assembly of push M1 runs at the
+same time and is on the critical path for the user's first test build. Run EVERY heavy job (Blender exports and bakes,
+Godot renders, test suites) with nice -n 19 (not 10) and at most one worker process (export_models.py --jobs 1);
+never two heavy jobs at once.
+YOUR ROLE: INDEPENDENT ART REVIEW OF THE CAR MODELS (no building). AS2a delivered the remaining player and traffic cars
+on branch br-modelle:AS2a (commit c0ffee120000000000000000000000000000000), worktree /wt/modelle:AS2a – READ-ONLY for you: no edits, no commits
+there. Work on a copy in your scratch folder (cp -a the worktree without build/ and without tools/blender/_cache3d;
+absolute XDG_DATA_HOME). You make no commits.
+Its report: {"branch":"br-modelle:AS2a","commit":"c0ffee120000000000000000000000000000000","worktree":"/wt/modelle:AS2a","summary":"s","open":[{"check":"c","result":"partial","evidence":"e"}],"deviations":[],"quality":"q","notes":[],"media":[]}
+The review of the first cars and its tools: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/AS1-KRITIK/bericht.md and /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS1-KRITIK/tools_kritik
+(the game camera of D12, the sprite comparison as road_renderer.gd draws it, mesh dumps) – reuse them.
+Do not trust the report – render and look yourself. You are the art director who answers one question for the user:
+are these cars visibly FINER than the Arcade sprites and good enough to be looked at for hours? Review all five player
+cars (kombi, sportwagen, gran_turismo, and limousine and kompakt again because interiors, glass and rims changed) and
+traffic suv, van, sports (plus a quick look at sedan, hatch, wagon for consistency of the fleet):
+1. The chase camera from behind and above at 8 m and 30 m (1280×720, the shipped shaders, a daylight rig with one
+   shadowed sun and a night rig), front and rear three-quarter close-ups, side views, every LOD level at its distance
+   (40 m, 120 m) and enlarged, every lamp channel at night, interiors through the glass, a flat-shaded or wireframe view.
+2. Side by side with the Cycles sprite of the same vehicle in the same camera, and with the generator's silhouette.
+3. Defects, each with where, what, a picture as evidence and a fix the builder can carry out: proportions, waves,
+   faceting, holes, normals, z-fighting, floating or saw-tooth decals, lamps without depth, lamp outlines that change
+   between levels, LOD pops, missing parts, glass that looks painted, interiors that clip through the body, wheels
+   that intersect or float, wrong spin or steering pivots, shadow meshes that do not match, paint sets that look
+   wrong; validator, budgets, lamp rules, draw calls per car, the showroom flags (deserved or too cautious?).
+Rank by what the player sees most (the rear of the player cars first). Comparison sheets and bericht.md into
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/KRITIK-2/.

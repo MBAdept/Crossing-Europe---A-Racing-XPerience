@@ -1,0 +1,11 @@
+WIP v0.8.0 AS3R: Holz nur tief in der Krone, voller Rand in lod1 bei Restbudget, palm_b, Doku §15
+
+- Äste innerhalb von 90 % der Kugeln und 92 % der ganzen Krone (von der Kronenachse gesehen)
+- lod1 bekommt bei übrigem Budget den ganzen Rand von lod0 (1, 6, 12): Kiefer, Olive, Birke, Buche
+  (Kiefer: 34 statt 52 % geänderte Pixel beim Wechsel, Flimmern wieder wie in AS3)
+- Kiefer: ruhigerer Polsterrand; Birke: Schattenwerfer mit dem einfachen Stamm
+- palm_b mit der Stammkrümmung des Sprites (nur eine andere Saat)
+- docs/modelle.md §15: Unterteilung, Kern, Palme, Felsen, Hook solid3d, Abschnitt „Nacharbeit (AS3R)“
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

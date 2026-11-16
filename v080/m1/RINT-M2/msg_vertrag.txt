@@ -1,0 +1,8 @@
+Vertrag §11.3 (Leitung): Sichtkorridor, Bauten, Instanz-Uniforms, Nachtlicht, Plan, Stadtgebäude
+
+Text der Leitung (m1/lead/contract_11_3.md) wörtlich nach §11.2 angefügt:
+A-17 Sichtkorridor der Kurven, A-18 Bauten, A-19 Instanz-Uniforms und
+Tönung der Modelle, A-20 Licht bei Nacht, A-21 Plan, A-22 Stadtgebäude.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

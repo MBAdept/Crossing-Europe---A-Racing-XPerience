@@ -1,0 +1,10 @@
+AS1b: Laterne – Lichtanker schaut nach unten; Doku mit gemessenem Determinismus
+
+- prop_vpbr-Option hidden_tops: die nach oben schauenden Flächen der Linse (im Leuchtenkopf, nie sichtbar)
+  fallen weg; der Anker liegt auf der Unterseite der Linse, dir (0.007, -1, 0) statt (-0.965, 0.261, 0)
+  (die Regel für geschlossene Fahrzeuglampen gab der Laterne eine Richtung zur Seite und nach oben)
+- props/streetlight: 274 statt 312 Dreiecke, zweimal gebaut byte-identisch
+- Doku §14: Laterne, Exportzeiten unter Last, Determinismus aller 21 Requisiten (369 s, keine Datei verändert)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

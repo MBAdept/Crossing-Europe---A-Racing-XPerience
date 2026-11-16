@@ -1,0 +1,11 @@
+v0.8.0 FIX-R6: Modern-Änderungsmelder neu – Starttor mit Fachwerk und Flutlicht (gewollt)
+
+tools/golden.sh modern-check auf 2c75af0: 5 von 6 identisch, nur modern_start_mittel anders –
+das Starttor hat jetzt weiße Stützen, den Fachwerkträger über dem Banner und drei Flutlichter
+(B-03 von QA-R6). Bild angesehen (gates/modern_keep), die Änderung ist genau die gewollte; die
+Tankstelle km 14,8 (modern_s2_mittel) und die übrigen vier Bilder sind bildgleich. modern-make
+ergibt denselben Hash wie das behaltene Bild der Prüfung (deterministisch); OpenGL ES OK.
+Doku: Hauptthread-Kosten der Sichtlinienprüfung mit drei Messläufen (1,1–6,7 ms je Stück).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

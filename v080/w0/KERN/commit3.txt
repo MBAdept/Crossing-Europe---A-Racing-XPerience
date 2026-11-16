@@ -1,0 +1,4 @@
+v0.8.0 KERN: BUILDINFO nennt die Archivgrößen gerundet statt abgeschnitten
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

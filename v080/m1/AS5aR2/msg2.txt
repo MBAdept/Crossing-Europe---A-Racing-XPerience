@@ -1,0 +1,13 @@
+v0.8.0 AS5aR2: Bauer city eingefroren - Ladenlicht 1,6, Fernring 0,75, Geranien, Kronen-lod1
+
+- SHOP_GLOW 1,6 nach dem A/B Paris 22 Uhr auf den Probe-Modellen (Ladenfläche 22 % gegen Arcade 28 %,
+  vorher 11 %; Helligkeit noch unter Arcade)
+- INNER_K 0,75 (Innenring der Fernstufe näher am Glas)
+- flower_shape: Geranienkugeln längs des Kastens gestreckt, flach (Chalet, K7)
+- lod1_decimate der Gartenkronen von Südhaus und Loire-Haus kleiner (lod1 spart mehr, K10)
+- Modul-Text von cities3d.py um die AS5aR2-Optionen ergänzt
+
+Nur Code und Katalog; die Modelle folgen mit dem echten Export.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

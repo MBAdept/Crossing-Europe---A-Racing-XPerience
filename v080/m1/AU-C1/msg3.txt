@@ -1,0 +1,10 @@
+v0.8.0 AU-C1: Einmalklänge für Fugen, Vorbeifahrten, Kollisionen, Leitplanke (sfx_modern.py)
+
+17 Klänge in assets/audio/modern/sfx (1,57 MB, Mono, True Peak -3 dBTP): Dehnfugen von
+Stahl- und Betonbrücken mit drei Achsabständen, Vorbeifahrten an Pfosten, Schild, Baum,
+Gebäude, Schilderbrücke und Fels, Schichten einer Kollision (leicht, schwer, Blech, Glas,
+Kleinteile, Lkw), Schlag in und Streifen an der Leitplanke, umgefahrener Leitpfosten. Jeder
+Eintrag trägt die Momentanlautheit je Variante (lufs_m) für die Pegel der Laufzeit.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

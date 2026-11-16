@@ -1,0 +1,9 @@
+hatch_white_1280x800_ahead_d40 | lod0->lod1 (Kaskade 2): Autopixel 1019, >24 Stufen 6.5 %, Mittel (112,113,118) -> (111,111,115), Differenz Mittel 3.2, max 97
+hatch_white_1280x800_ahead_d40 | lod1->lod2 (Kaskade 2): Autopixel 1019, >24 Stufen 17.0 %, Mittel (111,111,115) -> (108,109,113), Differenz Mittel 4.8, max 193
+hatch_white_1280x800_ahead_d40 | Kaskade1->Kaskade2 lod0: Autopixel 1019, >24 Stufen 4.6 %, Mittel (110,111,116) -> (112,113,118), Differenz Mittel 3.2, max 62
+hatch_white_1280x800_ahead_d40 | Kaskade1->Kaskade2 lod1: Autopixel 1019, >24 Stufen 4.7 %, Mittel (109,110,113) -> (111,111,115), Differenz Mittel 3.3, max 62
+hatch_white_1280x800_ahead_d40 | lod0 K1 -> lod1 K2: Autopixel 1019, >24 Stufen 11.4 %, Mittel (110,111,116) -> (111,111,115), Differenz Mittel 1.6, max 97
+hatch_white_1280x800_ahead_d40 | lod0 -> lod0 abgelehnt ohne Dither: Autopixel 1019, >24 Stufen 55.5 %, Mittel (112,113,118) -> (149,149,152), Differenz Mittel 62.4, max 127
+hatch_white_1280x800_ahead_d40 | lod0 -> lod0 abgelehnt: Autopixel 1019, >24 Stufen 56.9 %, Mittel (112,113,118) -> (149,148,149), Differenz Mittel 59.8, max 140
+hatch_white_1280x800_ahead_d40 | lod1 -> lod1 abgelehnt: Autopixel 1019, >24 Stufen 60.0 %, Mittel (111,111,115) -> (155,153,153), Differenz Mittel 71.6, max 140
+hatch_white_1280x800_ahead_d40 | Bogen: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/FLACKER-ANALYSE/swap/hatch_white_1280x800_ahead_d40.png (Spalten: lod0 K2, lod1 K2, lod2 K2, lod0 K1, lod0 abgelehnt, lod1 abgelehnt, lod0 abgelehnt, Dither aus; Ausschnitt [P: (619, 390), S: (48, 40)], Zoom 5)

@@ -1,0 +1,8 @@
+v0.8.0 R3: Feste Lampen (add_static) haengten das Spiel auf – Schleife ohne Fortschritt; Pruefung lampen_fest
+
+flares.gd _add_statics(): der Index lief nicht weiter (Endlosschleife, sobald ein Builder eine Lampe anmeldet),
+und ein freigegebener Elternknoten wurde einer typisierten Variablen zugewiesen. check_vehicles.gd lampen_fest:
+Tag aus, Nacht an, Fernschein staerker als der Halo in der Naehe, folgt dem Knoten, vergessen beim Freigeben.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

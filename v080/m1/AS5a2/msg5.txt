@@ -1,0 +1,8 @@
+v0.8.0 AS5a2: docs/modelle.md Abschnitt 21 - Stadthäuser dutch, belgian, french, paris und swiss
+
+Tabelle (Dreiecke, Atlas, Texeldichte, Archivanteil, Exportzeit), neue Optionen des Bauers city (rail_module,
+weights.solid, cover_skip, chamfer, smooth), Hooks close3d, Messungen (Stufenwechsel, Flimmern, Geländer in den
+Mip-Stufen) und ehrliche Einordnung; Kopfzeile nennt Abschnitt 21.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

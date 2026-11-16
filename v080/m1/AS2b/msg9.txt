@@ -1,0 +1,11 @@
+AS2b: Lkw, Busse und Polizei als Modelle – Prüfungen der Endfassung in der Doku
+
+docs/modelle.md Abschnitt 15: Sprite-Geometrie (25 von 25 Sets
+identisch) und Determinismus (erzwungener Export und Bake aller 22
+Modelle ergeben die eingecheckten Dateien, weiterer Bake byte-gleich,
+Cache-Schlüssel grün) gemessen eingetragen. Endstand AS2b: jedes
+Fahrzeug-Set hat ein Modell (Sattelzug in drei Bauarten, Reisebus,
+18 Polizeiautos), Prüfer grün, Arcade-Bilder 20 von 20 identisch.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

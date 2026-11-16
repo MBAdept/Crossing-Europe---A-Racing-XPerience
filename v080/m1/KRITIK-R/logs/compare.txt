@@ -1,0 +1,59 @@
+== R1 Wiederholung (Spielmix, Hüllkurven-Autokorrelation, Monosumme) – vorher -> nachher
+  asph130_full         600-1600  vorher [0.97, 0.635] [[0.97, 0.635], [2.92, 0.595], [1.94, 0.473]] | nachher [0.39, 0.098] [[0.39, 0.098], [0.31, 0.095], [0.37, 0.081]] | 3–8 s [[5.15, 0.142], [6.39, 0.139], [5.39, 0.093], [5.18, 0.085]] | L/R nachher [0.32, 0.213] [0.39, 0.123]
+  asph130_full         2500-8000 vorher [0.97, 0.37] [[0.97, 0.37], [2.92, 0.343], [1.94, 0.25]] | nachher [0.42, 0.15] [[0.42, 0.15], [0.44, 0.142], [0.3, 0.135]] | 3–8 s [[6.39, 0.154], [5.15, 0.147], [5.2, 0.114], [6.34, 0.106]] | L/R nachher [0.3, 0.348] [0.44, 0.195]
+  conc130_full         2500-8000 vorher [0.97, 0.889] [[0.97, 0.889], [1.94, 0.8], [0.83, 0.748]] | nachher [1.8, 0.642] [[1.8, 0.642], [2.63, 0.639], [2.77, 0.604]] | 3–8 s [[4.43, 0.678], [4.57, 0.648], [6.23, 0.611], [6.37, 0.608]] | L/R nachher [1.8, 0.515] [1.8, 0.619]
+  conc130_full         600-1600  vorher [0.97, 0.705] [[0.97, 0.705], [1.94, 0.602], [2.91, 0.495]] | nachher [2.63, 0.325] [[2.63, 0.325], [2.49, 0.311], [2.77, 0.301]] | 3–8 s [[4.43, 0.343], [6.37, 0.323], [3.6, 0.315], [3.46, 0.311]] | L/R nachher [2.63, 0.242] [1.94, 0.297]
+  conc130_noslab_full  2500-8000 vorher [0.97, 0.833] [[0.97, 0.833], [2.92, 0.824], [1.94, 0.735]] | nachher [0.3, 0.289] [[1.4, 0.26], [0.36, 0.25], [1.44, 0.245]] | 3–8 s [[3.03, 0.122], [4.96, 0.111], [3.11, 0.102], [3.08, 0.1]] | L/R nachher [0.3, 0.31] [1.4, 0.215]
+  cobbles50_full       2500-8000 vorher [2.5, 0.985] [[2.5, 0.985], [1.25, 0.984], [2.44, 0.176]] | nachher [0.54, 0.183] [[0.54, 0.183], [0.35, 0.166], [0.57, 0.165]] | 3–8 s [[5.7, 0.328], [6.96, 0.294], [7.9, 0.076], [3.2, 0.075]] | L/R nachher [0.49, 0.186] [0.35, 0.211]
+  cobbles50_full       600-1600  vorher [1.25, 0.721] [[1.25, 0.721], [2.5, 0.718], [1.94, 0.138]] | nachher [0.44, 0.198] [[0.44, 0.198], [0.32, 0.188], [0.34, 0.171]] | 3–8 s [[6.96, 0.16], [7.89, 0.121], [7.96, 0.116], [7.93, 0.107]] | L/R nachher [0.44, 0.194] [0.3, 0.179]
+  cobbles50_full       broad     vorher [2.5, 0.238] [[2.5, 0.238], [0.45, 0.178], [0.4, 0.138]] | nachher [0.45, 0.131] [[0.45, 0.131], [0.3, 0.129], [0.81, 0.122]] | 3–8 s [[7.92, 0.101], [6.59, 0.064], [7.63, 0.063], [5.08, 0.062]] | L/R nachher [0.81, 0.119] [0.3, 0.194]
+  asph200_full         600-1600  vorher [2.51, 0.577] [[2.51, 0.577], [1.67, 0.514], [0.84, 0.443]] | nachher [1.2, 0.107] [[1.2, 0.107], [2.81, 0.093], [1.7, 0.091]] | 3–8 s [[5.49, 0.134], [4.43, 0.106], [3.55, 0.066], [3.01, 0.049]] | L/R nachher [0.34, 0.147] [0.32, 0.198]
+  asph130_road         600-1600  vorher [0.97, 0.814] [[0.97, 0.814], [2.92, 0.768], [1.94, 0.595]] | nachher [0.57, 0.181] [[0.57, 0.181], [0.38, 0.178], [0.34, 0.177]] | 3–8 s [[6.39, 0.202], [5.15, 0.166], [5.95, 0.107], [5.99, 0.106]] | L/R nachher [0.34, 0.255] [0.48, 0.348]
+  conc130_road         2500-8000 vorher [0.97, 0.913] [[0.97, 0.913], [1.94, 0.824], [1.8, 0.76]] | nachher [1.8, 0.679] [[1.8, 0.679], [0.83, 0.663], [0.97, 0.659]] | 3–8 s [[5.4, 0.706], [6.37, 0.667], [4.43, 0.663], [6.23, 0.66]] | L/R nachher [0.97, 0.592] [2.63, 0.517]
+  cobbles50_road       2500-8000 vorher [1.25, 0.999] [[1.25, 0.999], [2.5, 0.999], [1.19, 0.168]] | nachher [1.98, 0.103] [[1.98, 0.103], [2.04, 0.102], [2.45, 0.09]] | 3–8 s [[5.7, 0.478], [6.96, 0.339], [3.72, 0.082], [4.98, 0.077]] | L/R nachher [0.72, 0.146] [0.56, 0.118]
+  asph130_wind         600-1600  vorher [0.35, 0.52] [[0.35, 0.52], [0.32, 0.507], [0.4, 0.479]] | nachher [0.31, 0.201] [[0.31, 0.201], [0.33, 0.197], [0.35, 0.188]] | 3–8 s [[5.45, 0.093], [5.53, 0.086], [5.55, 0.078], [5.17, 0.069]] | L/R nachher [0.3, 0.285] [0.33, 0.252]
+  asph130_wind         2500-8000 vorher [0.3, 0.716] [[0.34, 0.689], [0.43, 0.627], [0.46, 0.612]] | nachher [0.3, 0.243] [[0.33, 0.223], [0.35, 0.222], [0.37, 0.217]] | 3–8 s [[4.54, 0.158], [4.56, 0.156], [5.09, 0.155], [5.04, 0.152]] | L/R nachher [0.3, 0.406] [0.32, 0.403]
+== Pegel und Spitzen (Spielmix, A) – vorher -> nachher; Lautheit @0.8 = Aufnahme - 1.94 dB
+  asph130_full         LUFS@0.8  -17.08 ->  -17.06 (+0.02) | TP@1.0  -8.71 ->  -7.90 | vor dem Begrenzer: Spitze vorher -8.72 nachher -7.91, GR max 0.0 dB, 0 Eingriffe in 19.22 s, Anteil >0,5 dB 0.0
+  asph130_road         LUFS@0.8  -29.69 ->  -29.19 (+0.50) | TP@1.0 -16.64 -> -15.18 | vor dem Begrenzer: Spitze vorher -16.66 nachher -15.25, GR max 0.0 dB, 0 Eingriffe in 18.67 s, Anteil >0,5 dB 0.0
+  asph130_wind         LUFS@0.8  -37.25 ->  -36.22 (+1.03) | TP@1.0 -21.88 -> -21.20 | vor dem Begrenzer: Spitze vorher -21.92 nachher -21.2, GR max 0.0 dB, 0 Eingriffe in 18.57 s, Anteil >0,5 dB 0.0
+  asph130_engine       LUFS@0.8  -16.88 ->  -17.26 (-0.38) | TP@1.0  -9.86 -> -10.00 | vor dem Begrenzer: Spitze vorher -9.86 nachher -10.01, GR max 0.0 dB, 0 Eingriffe in 18.67 s, Anteil >0,5 dB 0.0
+  conc130_full         LUFS@0.8  -16.52 ->  -16.57 (-0.05) | TP@1.0  -4.02 ->  -4.39 | vor dem Begrenzer: Spitze vorher -4.11 nachher -4.4, GR max 0.0 dB, 0 Eingriffe in 19.13 s, Anteil >0,5 dB 0.0
+  conc130_road         LUFS@0.8  -24.32 ->  -24.17 (+0.15) | TP@1.0  -6.79 ->  -7.12 | vor dem Begrenzer: Spitze vorher -6.79 nachher -7.12, GR max 0.0 dB, 0 Eingriffe in 18.76 s, Anteil >0,5 dB 0.0
+  conc130_noslab_full  LUFS@0.8  -16.43 ->  -17.02 (-0.59) | TP@1.0  -7.88 ->  -8.03 | vor dem Begrenzer: Spitze vorher -7.89 nachher -8.05, GR max 0.0 dB, 0 Eingriffe in 18.95 s, Anteil >0,5 dB 0.0
+  cobbles50_full       LUFS@0.8  -19.35 ->  -19.35 (+0.00) | TP@1.0  -5.54 ->  -4.02 | vor dem Begrenzer: Spitze vorher -5.71 nachher -4.05, GR max 0.0 dB, 0 Eingriffe in 19.13 s, Anteil >0,5 dB 0.0
+  cobbles50_road       LUFS@0.8  -22.92 ->  -22.99 (-0.07) | TP@1.0  -8.67 ->  -5.50 | vor dem Begrenzer: Spitze vorher -8.98 nachher -5.49, GR max 0.0 dB, 0 Eingriffe in 19.22 s, Anteil >0,5 dB 0.0
+  asph200_full         LUFS@0.8  -18.01 ->  -18.32 (-0.31) | TP@1.0  -6.42 ->  -6.68 | vor dem Begrenzer: Spitze vorher -6.49 nachher -6.68, GR max 0.0 dB, 0 Eingriffe in 19.04 s, Anteil >0,5 dB 0.0
+  conc170_full         LUFS@0.8  -15.03 ->  -15.23 (-0.20) | TP@1.0  -1.50 ->  -1.94 | vor dem Begrenzer: Spitze vorher -1.61 nachher -1.97, GR max 0.03 dB, 0 Eingriffe in 18.95 s, Anteil >0,5 dB 0.0
+  conc200_full         LUFS@0.8  -15.79 ->  -15.83 (-0.04) | TP@1.0  -0.80 ->  -1.94 | vor dem Begrenzer: Spitze vorher -0.58 nachher -1.56, GR max 0.44 dB, 9 Eingriffe in 56.75 s, Anteil >0,5 dB 0.0
+  vmax_full            LUFS@0.8  -14.94 ->  -14.72 (+0.22) | TP@1.0  -2.32 ->  -1.93 | vor dem Begrenzer: Spitze vorher -2.3 nachher -1.19, GR max 0.81 dB, 1 Eingriffe in 14.3 s, Anteil >0,5 dB 0.0049
+  vmax_engine          LUFS@0.8  -17.51 ->  -17.20 (+0.31) | TP@1.0 -10.34 -> -10.27 | vor dem Begrenzer: Spitze vorher -10.45 nachher -10.13, GR max 0.14 dB, 1 Eingriffe in 14.39 s, Anteil >0,5 dB 0.0
+  rumble130_full       LUFS@0.8  -16.08 ->  -15.94 (+0.14) | TP@1.0  -4.35 ->  -3.55 | vor dem Begrenzer: Spitze vorher -4.32 nachher -3.43, GR max 0.14 dB, 1 Eingriffe in 9.66 s, Anteil >0,5 dB 0.0
+== Klangfarbe (B, ohne Zufall) – Lautheit (ungated, @1.0) und größte Terz-Abweichung 25 Hz–12,5 kHz (30 dB)
+  c_asph130_road      -27.81 ->  -27.64 LUFS (+0.17 LU) | größte Terz +0.54 dB bei 251 Hz | asphalt/asphalt -> asphalt/asphalt
+  c_conc130_road      -22.38 ->  -22.34 LUFS (+0.04 LU) | größte Terz +1.09 dB bei 398 Hz | concrete/concrete -> concrete/concrete  <-- außerhalb
+  c_conc130_tyre      -25.30 ->  -25.24 LUFS (+0.06 LU) | größte Terz +0.44 dB bei 50 Hz | concrete/concrete -> concrete/concrete
+  c_conc130_slab      -25.49 ->  -25.43 LUFS (+0.06 LU) | größte Terz +1.75 dB bei 398 Hz | concrete/concrete -> concrete/concrete  <-- außerhalb
+  c_cobbles50_road    -20.99 ->  -21.27 LUFS (-0.28 LU) | größte Terz -0.77 dB bei 40 Hz | cobbles/cobbles -> cobbles/cobbles
+  c_rumble130_road    -18.84 ->  -18.86 LUFS (-0.02 LU) | größte Terz +0.48 dB bei 79 Hz | asphalt/rumble -> asphalt/rumble
+  c_deck80_road       -31.34 ->  -31.10 LUFS (+0.24 LU) | größte Terz +0.55 dB bei 40 Hz | deck/deck -> deck/deck
+  c_wet130_road       -22.91 ->  -22.87 LUFS (+0.04 LU) | größte Terz -0.56 dB bei 25 Hz | asphalt/asphalt -> asphalt/asphalt
+  c_gravel100_road    -17.80 ->  -17.75 LUFS (+0.05 LU) | größte Terz +0.77 dB bei 25 Hz | asphalt/shoulder -> asphalt/shoulder
+  c_grass60_road      -20.69 ->  -20.75 LUFS (-0.06 LU) | größte Terz +0.74 dB bei 50 Hz | asphalt/grass -> asphalt/grass
+  c_wind130           -34.78 ->  -34.74 LUFS (+0.04 LU) | größte Terz -0.33 dB bei 25 Hz | asphalt/asphalt -> asphalt/asphalt
+  c_wind200           -24.48 ->  -24.44 LUFS (+0.04 LU) | größte Terz +0.71 dB bei 25 Hz | asphalt/asphalt -> asphalt/asphalt
+  c_windvmax          -18.53 ->  -18.50 LUFS (+0.03 LU) | größte Terz -0.54 dB bei 25 Hz | asphalt/asphalt -> asphalt/asphalt
+  c_asph130_full      -15.14 ->  -15.19 LUFS (-0.05 LU) | größte Terz +0.42 dB bei 40 Hz | asphalt/asphalt -> asphalt/asphalt
+  c_conc130_full      -14.59 ->  -14.63 LUFS (-0.04 LU) | größte Terz +0.78 dB bei 501 Hz | concrete/concrete -> concrete/concrete
+  c_cobbles50_full    -17.25 ->  -16.95 LUFS (+0.30 LU) | größte Terz -1.02 dB bei 40 Hz | cobbles/cobbles -> cobbles/cobbles  <-- außerhalb
+  s_snow50_road       -40.40 ->  -39.56 LUFS (+0.84 LU) | größte Terz -6.27 dB bei 50 Hz | asphalt/asphalt -> asphalt/asphalt  <-- außerhalb
+  s_snow90_road       -33.71 ->  -32.71 LUFS (+1.00 LU) | größte Terz -6.04 dB bei 63 Hz | asphalt/asphalt -> asphalt/asphalt  <-- außerhalb
+  s_snow130_road      -29.23 ->  -28.32 LUFS (+0.91 LU) | größte Terz -6.43 dB bei 126 Hz | asphalt/asphalt -> asphalt/asphalt  <-- außerhalb
+== dieselben Schichten mit Drift (A, wie gespielt)
+  asph130_road        -27.76 ->  -27.25 LUFS (+0.51) | größte Terz +0.87 dB bei 100 Hz
+  conc130_road        -22.38 ->  -22.23 LUFS (+0.15) | größte Terz +1.13 dB bei 501 Hz
+  cobbles50_road      -20.98 ->  -21.07 LUFS (-0.09) | größte Terz -0.61 dB bei 40 Hz
+  asph130_wind        -35.28 ->  -34.29 LUFS (+0.99) | größte Terz +1.46 dB bei 794 Hz
+  asph130_full        -15.15 ->  -15.12 LUFS (+0.03) | größte Terz -0.71 dB bei 63 Hz
+  conc130_full        -14.58 ->  -14.63 LUFS (-0.05) | größte Terz +0.78 dB bei 501 Hz
+  cobbles50_full      -17.41 ->  -17.40 LUFS (+0.01) | größte Terz -0.83 dB bei 40 Hz

@@ -1,0 +1,15 @@
+AS2R (WIP): lod2-Scheiben nach den Fensterkonturen, weiße Lacke begrenzt
+
+- lod2 der Verkehrsautos: Heckscheibe entlang der Kontur des Entwurfs
+  geschnitten (Säulen bleiben Lack), Seitenscheiben nur im Bereich der
+  Seitenfenster (der Transporter war oben ein Glaskasten, B2), dunkler
+  Stoßfänger auch an den gerundeten Ecken
+- Endkappen der lod2-Lofts als Bänder (carbody-Hook cap_strips, Sprite
+  unverändert), Räder in lod2 als Lauffläche + Scheibe in Mischfarbe:
+  Platz im Budget von 1 200 Dreiecken
+- fast weiße Lacke der Pkw und der Polizei wie beim Lkw begrenzt (B1)
+- Polizei: Heckscheibe nach der Kontur ("rear"), Tschechien behält die
+  Normalenregel (Budget)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

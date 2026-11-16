@@ -1,0 +1,109 @@
+{
+ "file": "gt_tyres.wav",
+ "vehicle": "gran_turismo",
+ "mute": [
+  "MMusic",
+  "MEngine",
+  "MEngineFx",
+  "MWind"
+ ],
+ "phases": {
+  "idle": {
+   "t0": 2.0,
+   "t1": 4.203,
+   "lufs": -200.69,
+   "st_median": -200.69,
+   "st_max": -200.69,
+   "tp": -200.0,
+   "duck_med": 0.0,
+   "car_plan_med": -24.0,
+   "kmh": 0.0,
+   "throttle": 0.0
+  },
+  "v80": {
+   "t0": 7.003,
+   "t1": 16.22,
+   "lufs": -36.98,
+   "st_median": -36.97,
+   "st_max": -36.9,
+   "tp": -26.54,
+   "duck_med": -1.898,
+   "car_plan_med": -20.47,
+   "kmh": 80.0,
+   "throttle": 0.3
+  },
+  "v130": {
+   "t0": 19.02,
+   "t1": 28.236,
+   "lufs": -30.7,
+   "st_median": -30.69,
+   "st_max": -30.56,
+   "tp": -19.61,
+   "duck_med": -2.429,
+   "car_plan_med": -19.76,
+   "kmh": 130.0,
+   "throttle": 0.3
+  },
+  "v130_full": {
+   "t0": 31.036,
+   "t1": 38.252,
+   "lufs": -30.68,
+   "st_median": -30.71,
+   "st_max": -30.57,
+   "tp": -18.93,
+   "duck_med": -4.5,
+   "car_plan_med": -16.0,
+   "kmh": 130.0,
+   "throttle": 1.0
+  },
+  "v200_full": {
+   "t0": 41.137,
+   "t1": 50.338,
+   "lufs": -25.0,
+   "st_median": -25.03,
+   "st_max": -24.93,
+   "tp": -12.75,
+   "duck_med": -4.5,
+   "car_plan_med": -16.0,
+   "kmh": 200.0,
+   "throttle": 1.0
+  },
+  "v250_full": {
+   "t0": 53.25,
+   "t1": 62.451,
+   "lufs": -22.09,
+   "st_median": -22.04,
+   "st_max": -21.96,
+   "tp": -11.41,
+   "duck_med": -4.5,
+   "car_plan_med": -16.0,
+   "kmh": 250.0,
+   "throttle": 1.0
+  },
+  "lift": {
+   "t0": 63.451,
+   "t1": 67.067,
+   "lufs": -26.15,
+   "st_median": -26.16,
+   "st_max": -25.76,
+   "tp": -14.12,
+   "duck_med": -1.573,
+   "car_plan_med": -21.0,
+   "kmh": 160.0,
+   "throttle": 0.0
+  },
+  "v130_back": {
+   "t0": 69.267,
+   "t1": 74.468,
+   "lufs": -30.6,
+   "st_median": -30.6,
+   "st_max": -30.58,
+   "tp": -20.42,
+   "duck_med": -2.429,
+   "car_plan_med": -19.76,
+   "kmh": 130.0,
+   "throttle": 0.3
+  }
+ },
+ "integrated": -25.78
+}

@@ -1,0 +1,30 @@
+{
+ "segments": [
+  {
+   "name": "c_cobbles50_road",
+   "km": 87.3,
+   "kmh": 50.0,
+   "throttle": 0.25,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 20.0,
+   "paving": "cobbles",
+   "nd": true
+  },
+  {
+   "name": "c_cobbles50_full",
+   "km": 87.3,
+   "kmh": 50.0,
+   "throttle": 0.25,
+   "x": 1.875,
+   "mute": [],
+   "seconds": 20.0,
+   "paving": "cobbles",
+   "nd": true
+  }
+ ]
+}

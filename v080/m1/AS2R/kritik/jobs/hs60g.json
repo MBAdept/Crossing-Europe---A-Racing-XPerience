@@ -1,0 +1,194 @@
+[
+{
+"name": "bus_white_60_lod0",
+"set": "traffic/bus_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 60.0
+}
+},
+{
+"name": "bus_white_60_lod0_ss4",
+"set": "traffic/bus_white",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 60.0,
+"ss": 4.0
+},
+"msaa": 4
+},
+{
+"name": "bus_white_60_lod0_clay_ss4",
+"set": "traffic/bus_white",
+"lod": "lod0",
+"mode": "clay",
+"cam": {
+"type": "game",
+"dist": 60.0,
+"ss": 4.0
+},
+"msaa": 4
+},
+{
+"name": "bus_white_60_lod0_mask_ss4",
+"set": "traffic/bus_white",
+"lod": "lod0",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"cam": {
+"type": "game",
+"dist": 60.0,
+"ss": 4.0
+},
+"msaa": 4
+},
+{
+"name": "bus_white_60_lod1",
+"set": "traffic/bus_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 60.0
+}
+},
+{
+"name": "bus_white_60_lod1_ss4",
+"set": "traffic/bus_white",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 60.0,
+"ss": 4.0
+},
+"msaa": 4
+},
+{
+"name": "bus_white_60_lod1_clay_ss4",
+"set": "traffic/bus_white",
+"lod": "lod1",
+"mode": "clay",
+"cam": {
+"type": "game",
+"dist": 60.0,
+"ss": 4.0
+},
+"msaa": 4
+},
+{
+"name": "bus_white_60_lod1_mask_ss4",
+"set": "traffic/bus_white",
+"lod": "lod1",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"cam": {
+"type": "game",
+"dist": 60.0,
+"ss": 4.0
+},
+"msaa": 4
+},
+{
+"name": "truck_red_60_lod0",
+"set": "traffic/truck_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 60.0
+}
+},
+{
+"name": "truck_red_60_lod0_ss4",
+"set": "traffic/truck_red",
+"lod": "lod0",
+"cam": {
+"type": "game",
+"dist": 60.0,
+"ss": 4.0
+},
+"msaa": 4
+},
+{
+"name": "truck_red_60_lod0_clay_ss4",
+"set": "traffic/truck_red",
+"lod": "lod0",
+"mode": "clay",
+"cam": {
+"type": "game",
+"dist": 60.0,
+"ss": 4.0
+},
+"msaa": 4
+},
+{
+"name": "truck_red_60_lod0_mask_ss4",
+"set": "traffic/truck_red",
+"lod": "lod0",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"cam": {
+"type": "game",
+"dist": 60.0,
+"ss": 4.0
+},
+"msaa": 4
+},
+{
+"name": "truck_red_60_lod1",
+"set": "traffic/truck_red",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 60.0
+}
+},
+{
+"name": "truck_red_60_lod1_ss4",
+"set": "traffic/truck_red",
+"lod": "lod1",
+"cam": {
+"type": "game",
+"dist": 60.0,
+"ss": 4.0
+},
+"msaa": 4
+},
+{
+"name": "truck_red_60_lod1_clay_ss4",
+"set": "traffic/truck_red",
+"lod": "lod1",
+"mode": "clay",
+"cam": {
+"type": "game",
+"dist": 60.0,
+"ss": 4.0
+},
+"msaa": 4
+},
+{
+"name": "truck_red_60_lod1_mask_ss4",
+"set": "traffic/truck_red",
+"lod": "lod1",
+"mode": "mask",
+"contact": false,
+"no_ground": true,
+"cam": {
+"type": "game",
+"dist": 60.0,
+"ss": 4.0
+},
+"msaa": 4
+},
+{
+"name": "empty_day",
+"set": "",
+"cam": {
+"type": "game",
+"dist": 30
+}
+}
+]

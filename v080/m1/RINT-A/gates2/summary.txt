@@ -1,0 +1,12 @@
+HEAD 9b4be1c 10:31:51
+import rc=0 errors: 0
+  (import 5 s, load 5.21)
+render rc=0 ==> 13 von 13 Render-Prüfdateien in Ordnung
+  (render 667 s, load 8.94)
+run_tests rc=1 ==> Tests FEHLGESCHLAGEN (817 s)
+  (tests 817 s, load 6.16)
+warm: RENDER-CHECK warmup_kalt OK      kiel_hamburg km 2.0 12.0 Uhr, medium: 389 Shader-Varianten im Cache vor dem Start, während der Fahrt 0 neu übersetzt; 39 Bilder in den ersten 30 s nach dem Ladebild, Median 766.3 ms, längstes 1078 ms (Grenze 2299 ms), die f�
+  (warm 89 s, load 7.60)
+drive: rc=0 in 1528 s  (log /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/RINT-A/logs/drive_final2.log)
+  (drive 1528 s, load 8.32)
+DONE 11:23:37

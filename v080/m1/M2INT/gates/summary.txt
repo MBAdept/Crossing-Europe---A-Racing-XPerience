@@ -1,0 +1,30 @@
+05:31 check-keys exit 0 – CHECK cache_keys OK      87 Modelle: ein geänderter Lack, M
+gate keys fertig (440 s, nice 19)
+05:44 check_sprite_geometry exit 0 – CHECK sprite_geometry OK
+gate geometry fertig (754 s, nice 19)
+05:46 audio_qc exit 0 – 98 OK, 0 FEHLER –  98 Klänge geprüft, 0 mit Fehlern, 0 Probleme insgesamt -> OK 
+gate audio fertig (154 s, nice 19)
+05:46 validate exit 0 – CHECK models OK
+gate validate fertig (3 s, nice 19)
+05:46 zweiter Bake aller Modelle exit 0 – traffic/wagon                  24576 Dreiecke   5 Netze    276617 Bytes   0.03 s – git status: 0 geänderte Dateien unter assets/models
+gate bake fertig (4 s, nice 19)
+08:22 modern_sight --full exit 0 (6 OK, 0 FEHLER); modern_path_check --full exit 0 (2 OK, 0 FEHLER)
+gate sight fertig (195 s, nice 19)
+08:27 ergebnis – ERGEBNIS kiel_hamburg: 28 Schlüssel, identisch (außer gfx) ERGEBNIS dev_testetappe: 28 Schlüssel, identisch (außer gfx) ERGEBNIS saragossa_pau: 28 Schlüssel, identisch (außer gfx) 
+gate ergebnis fertig (245 s, nice 19)
+08:30 autopilot – autopilot kiel_hamburg exit 0 (0 Skriptfehler) autopilot dresden_leipzig exit 0 (0 Skriptfehler) 
+gate autopilot fertig (222 s, nice 19)
+08:32 texmem – 4 Messungen
+gate texmem fertig (103 s, nice 19)
+08:33 build_linux exit 1, build_windows exit 1
+gate builds fertig (18 s, nice 19)
+08:35 build_linux exit 0, build_windows exit 0
+gate builds fertig (130 s, nice 19)
+12:11 import exit 0 Fehlerzeilen 0
+gate import fertig (6 s, nice 19)
+12:26 run_tests exit 0 – ==> Tests bestanden (903 s) – 735 Tests, 0 fehlgeschlagen
+gate tests fertig (903 s, nice 19)
+12:33 golden check exit 0 – GOLDEN arcade: 20 von 20 identisch (174 s) GOLDEN arcade-ui: 17 von 17 identisch (212 s) 
+gate golden fertig (391 s, nice 19)
+12:56 render checks exit 1 – 17 Dateien OK, 4 FEHLER-Zeilen
+gate render fertig (1385 s, nice 19)

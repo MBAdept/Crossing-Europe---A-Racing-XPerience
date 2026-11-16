@@ -1,0 +1,8 @@
+v0.8.0 AS5a1: Fachwerkzeile, Turmhaus, Barock und Giebelzeile neu exportiert (Rundbogentüren)
+
+- echte Exporte mit dem Türfix (CE_THREADS=3): Fachwerkzeile 6 913 / 1 041, Turmhaus 3 332 / 978,
+  Barock 4 539 / 2 385, Giebelzeile 3 712 / 1 233 Dreiecke (lod0 / lod1)
+- Manifest neu geschrieben; docs/modelle.md Abschnitt 20: Türen, Speicherzahlen, Einordnung
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

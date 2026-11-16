@@ -1,0 +1,11 @@
+| `city_german_house` | 0,3 % | 99,7 % | 0,993 | 0,996 |
+| `city_german_mietshaus` | 0,5 % | 99,9 % | 0,995 | 0,999 |
+| `city_german_gruenderzeit` | 0,0 % | 99,9 % | 0,999 | 0,999 |
+| `city_german_office` | 0,0 % | 99,7 % | 0,997 | 0,997 |
+| `city_german_old_fachwerk` | 0,1 % | 99,9 % | 0,998 | 0,999 |
+| `city_german_old_fachwerk_b` | 0,0 % | 99,9 % | 0,999 | 0,999 |
+| `city_german_old_barock` | 0,0 % | 99,9 % | 0,999 | 0,999 |
+| `city_hanse_gabled` | 0,1 % | 99,9 % | 0,998 | 0,998 |
+| `city_hanse_kontor` | 0,0 % | 98,7 % | 0,987 | 0,987 |
+| `city_hanse_speicher` | 0,0 % | 99,9 % | 0,999 | 0,999 |
+| `city_hanse_crane` | 2,0 % | 94,0 % | 0,922 | 0,922 |

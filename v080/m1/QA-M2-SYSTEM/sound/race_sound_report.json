@@ -1,0 +1,1004 @@
+{
+ "rs_koehlbrand.wav": {
+  "seconds": 28.0,
+  "profile": "modern",
+  "master_volume": 1.0,
+  "finished": false,
+  "true_peak_dbtp": -4.54,
+  "sample_peak_dbfs": -4.57,
+  "clipped_runs": 0,
+  "integrated_lufs": -16.33,
+  "short_term_max_lufs": -13.4,
+  "dropouts": [],
+  "click_candidates": [
+   [
+    12.4,
+    0.053,
+    0.0128
+   ],
+   [
+    17.33,
+    0.057,
+    0.0138
+   ]
+  ],
+  "n_click_candidates": 2,
+  "km_from_to": [
+   77.6,
+   81.949
+  ],
+  "speed_min_max": [
+   0.0,
+   129.3
+  ],
+  "km_per_s": 0.1553,
+  "intervals": [
+   {
+    "paving": "asphalt",
+    "deck": "",
+    "zone": "city",
+    "surf": "asphalt/asphalt",
+    "km": 77.6,
+    "t0": 0.03,
+    "t1": 3.92,
+    "bands_db": [
+     21.0,
+     29.1,
+     12.7,
+     11.4
+    ],
+    "rms_db": -18.2,
+    "speed": 38.4
+   },
+   {
+    "paving": "deck",
+    "deck": "steel",
+    "zone": "bridge",
+    "surf": "deck/deck",
+    "km": 78.01,
+    "t0": 3.92,
+    "t1": 17.35,
+    "bands_db": [
+     20.6,
+     32.5,
+     21.9,
+     18.4
+    ],
+    "rms_db": -18.8,
+    "speed": 69.9
+   },
+   {
+    "paving": "asphalt",
+    "deck": "",
+    "zone": "city",
+    "surf": "asphalt/asphalt",
+    "km": 80.618,
+    "t0": 17.35,
+    "t1": 28.0,
+    "bands_db": [
+     32.6,
+     22.1,
+     12.5,
+     4.0
+    ],
+    "rms_db": -17.8,
+    "speed": 45.0
+   }
+  ],
+  "plays": {
+   "go": 1,
+   "road_pass": 28,
+   "road_joint": 4
+  },
+  "events": {
+   "stage_start": 1,
+   "go": 1,
+   "pass_object": 39,
+   "bridge_in": 1,
+   "joint": 4,
+   "bridge_out": 1
+  },
+  "joint_transients": [
+   {
+    "t": 3.917,
+    "km": 78.01,
+    "name": "road_joint",
+    "peak_over_median_db": 6.4
+   },
+   {
+    "t": 7.517,
+    "km": 79.021,
+    "name": "road_joint",
+    "peak_over_median_db": 5.2
+   },
+   {
+    "t": 12.417,
+    "km": 80.006,
+    "name": "road_joint",
+    "peak_over_median_db": 9.1
+   },
+   {
+    "t": 17.35,
+    "km": 80.618,
+    "name": "road_joint",
+    "peak_over_median_db": 10.3
+   }
+  ],
+  "impacts": [],
+  "slab_rhythm": []
+ },
+ "rs_concrete.wav": {
+  "seconds": 30.0,
+  "profile": "modern",
+  "master_volume": 1.0,
+  "finished": false,
+  "true_peak_dbtp": -1.98,
+  "sample_peak_dbfs": -2.0,
+  "clipped_runs": 0,
+  "integrated_lufs": -14.63,
+  "short_term_max_lufs": -13.39,
+  "dropouts": [],
+  "click_candidates": [
+   [
+    17.22,
+    0.168,
+    0.0407
+   ]
+  ],
+  "n_click_candidates": 1,
+  "km_from_to": [
+   24.3,
+   33.688
+  ],
+  "speed_min_max": [
+   0.0,
+   173.7
+  ],
+  "km_per_s": 0.3129,
+  "intervals": [
+   {
+    "paving": "asphalt",
+    "deck": "",
+    "zone": "open",
+    "surf": "asphalt/asphalt",
+    "km": 24.3,
+    "t0": 0.03,
+    "t1": 5.23,
+    "bands_db": [
+     21.2,
+     29.1,
+     13.0,
+     11.5
+    ],
+    "rms_db": -17.8,
+    "speed": 49.4
+   },
+   {
+    "paving": "concrete",
+    "deck": "",
+    "zone": "open",
+    "surf": "concrete/concrete",
+    "km": 25.017,
+    "t0": 5.23,
+    "t1": 30.0,
+    "bands_db": [
+     28.0,
+     32.7,
+     24.2,
+     20.0
+    ],
+    "rms_db": -16.5,
+    "speed": 125.8
+   }
+  ],
+  "plays": {
+   "go": 1,
+   "road_pass": 12
+  },
+  "events": {
+   "stage_start": 1,
+   "go": 1,
+   "pass_object": 12
+  },
+  "joint_transients": [],
+  "impacts": [],
+  "slab_rhythm": [
+   {
+    "t0": 5.23,
+    "t1": 30.0,
+    "speed": 125.8,
+    "line_hz": 14.13,
+    "line_over_median_db": 28.7
+   }
+  ]
+ },
+ "rs_cobbles.wav": {
+  "seconds": 59.81,
+  "profile": "modern",
+  "master_volume": 1.0,
+  "finished": true,
+  "true_peak_dbtp": -1.55,
+  "sample_peak_dbfs": -2.0,
+  "clipped_runs": 0,
+  "integrated_lufs": -15.38,
+  "short_term_max_lufs": -11.76,
+  "dropouts": [],
+  "click_candidates": [
+   [
+    13.51,
+    0.091,
+    0.0199
+   ],
+   [
+    16.56,
+    0.093,
+    0.0185
+   ]
+  ],
+  "n_click_candidates": 2,
+  "km_from_to": [
+   86.6,
+   95.198
+  ],
+  "speed_min_max": [
+   0.0,
+   133.1
+  ],
+  "km_per_s": 0.1439,
+  "intervals": [
+   {
+    "paving": "asphalt",
+    "deck": "",
+    "zone": "city",
+    "surf": "asphalt/asphalt",
+    "km": 86.6,
+    "t0": 0.03,
+    "t1": 3.92,
+    "bands_db": [
+     21.1,
+     29.1,
+     12.7,
+     11.4
+    ],
+    "rms_db": -18.2,
+    "speed": 38.4
+   },
+   {
+    "paving": "cobbles",
+    "deck": "",
+    "zone": "city",
+    "surf": "cobbles/cobbles",
+    "km": 87.01,
+    "t0": 3.92,
+    "t1": 6.93,
+    "bands_db": [
+     20.7,
+     29.0,
+     16.4,
+     12.4
+    ],
+    "rms_db": -14.0,
+    "speed": 96.0
+   },
+   {
+    "paving": "asphalt",
+    "deck": "",
+    "zone": "city",
+    "surf": "asphalt/asphalt",
+    "km": 87.822,
+    "t0": 6.93,
+    "t1": 9.75,
+    "bands_db": [
+     8.4,
+     23.8,
+     14.8,
+     11.1
+    ],
+    "rms_db": -21.2,
+    "speed": 112.6
+   },
+   {
+    "paving": "cobbles",
+    "deck": "",
+    "zone": "city",
+    "surf": "cobbles/cobbles",
+    "km": 88.712,
+    "t0": 9.75,
+    "t1": 16.63,
+    "bands_db": [
+     30.6,
+     25.6,
+     11.4,
+     8.8
+    ],
+    "rms_db": -18.5,
+    "speed": 47.4
+   },
+   {
+    "paving": "asphalt",
+    "deck": "",
+    "zone": "city",
+    "surf": "asphalt/asphalt",
+    "km": 89.606,
+    "t0": 16.63,
+    "t1": 23.88,
+    "bands_db": [
+     32.5,
+     22.0,
+     11.7,
+     3.0
+    ],
+    "rms_db": -18.2,
+    "speed": 44.8
+   },
+   {
+    "paving": "cobbles",
+    "deck": "",
+    "zone": "city",
+    "surf": "cobbles/cobbles",
+    "km": 90.508,
+    "t0": 23.88,
+    "t1": 38.18,
+    "bands_db": [
+     32.9,
+     26.6,
+     15.2,
+     10.6
+    ],
+    "rms_db": -16.8,
+    "speed": 45.3
+   },
+   {
+    "paving": "asphalt",
+    "deck": "",
+    "zone": "city",
+    "surf": "asphalt/asphalt",
+    "km": 92.307,
+    "t0": 38.18,
+    "t1": 52.02,
+    "bands_db": [
+     31.8,
+     22.5,
+     17.1,
+     6.9
+    ],
+    "rms_db": -16.6,
+    "speed": 47.1
+   },
+   {
+    "paving": "cobbles",
+    "deck": "",
+    "zone": "city",
+    "surf": "cobbles/cobbles",
+    "km": 94.111,
+    "t0": 52.02,
+    "t1": 59.81,
+    "bands_db": [
+     26.3,
+     33.3,
+     20.0,
+     16.8
+    ],
+    "rms_db": -17.5,
+    "speed": 49.6
+   }
+  ],
+  "plays": {
+   "go": 1,
+   "road_pass": 71
+  },
+  "events": {
+   "stage_start": 1,
+   "go": 1,
+   "pass_object": 92,
+   "stage_finish": 1
+  },
+  "joint_transients": [],
+  "impacts": [],
+  "slab_rhythm": []
+ },
+ "rs_crash.wav": {
+  "seconds": 25.0,
+  "profile": "modern",
+  "master_volume": 1.0,
+  "finished": false,
+  "true_peak_dbtp": -1.93,
+  "sample_peak_dbfs": -2.0,
+  "clipped_runs": 0,
+  "integrated_lufs": -14.88,
+  "short_term_max_lufs": -11.04,
+  "dropouts": [],
+  "click_candidates": [
+   [
+    17.03,
+    0.055,
+    0.0112
+   ],
+   [
+    17.21,
+    0.051,
+    0.01
+   ],
+   [
+    17.3,
+    0.056,
+    0.0101
+   ],
+   [
+    17.4,
+    0.066,
+    0.0099
+   ],
+   [
+    17.43,
+    0.057,
+    0.0099
+   ],
+   [
+    17.67,
+    0.059,
+    0.0107
+   ],
+   [
+    17.95,
+    0.052,
+    0.012
+   ],
+   [
+    18.2,
+    0.063,
+    0.0139
+   ],
+   [
+    20.2,
+    0.066,
+    0.0139
+   ],
+   [
+    20.33,
+    0.051,
+    0.012
+   ],
+   [
+    22.3,
+    0.065,
+    0.0134
+   ],
+   [
+    22.39,
+    0.066,
+    0.0132
+   ],
+   [
+    22.57,
+    0.065,
+    0.0129
+   ],
+   [
+    22.66,
+    0.063,
+    0.0132
+   ],
+   [
+    22.76,
+    0.058,
+    0.014
+   ]
+  ],
+  "n_click_candidates": 19,
+  "km_from_to": [
+   30.0,
+   35.681
+  ],
+  "speed_min_max": [
+   0.0,
+   220.0
+  ],
+  "km_per_s": 0.2272,
+  "intervals": [
+   {
+    "paving": "concrete",
+    "deck": "",
+    "zone": "open",
+    "surf": "concrete/concrete",
+    "km": 30.01,
+    "t0": 0.03,
+    "t1": 25.0,
+    "bands_db": [
+     29.4,
+     29.6,
+     27.3,
+     20.3
+    ],
+    "rms_db": -17.2,
+    "speed": 80.9
+   }
+  ],
+  "plays": {
+   "go": 1,
+   "flash": 1,
+   "road_pass": 5,
+   "impact_crunch": 1,
+   "impact_debris": 1,
+   "impact_hit_heavy": 1,
+   "impact_collision_heavy": 1
+  },
+  "events": {
+   "stage_start": 1,
+   "go": 1,
+   "radar_flash": 1,
+   "chase_start": 1,
+   "pass_object": 5,
+   "collision": 1,
+   "busted": 1
+  },
+  "joint_transients": [],
+  "impacts": [
+   {
+    "t": 9.367,
+    "name": "collision",
+    "km": 35.106,
+    "true_peak_dbtp": -4.56,
+    "sample_peak_dbfs": -4.63
+   }
+  ],
+  "slab_rhythm": [
+   {
+    "t0": 0.03,
+    "t1": 25.0,
+    "speed": 80.9,
+    "line_hz": 0.62,
+    "line_over_median_db": 25.2
+   }
+  ]
+ },
+ "rs_crash2.wav": {
+  "seconds": 25.0,
+  "profile": "modern",
+  "master_volume": 1.0,
+  "finished": false,
+  "true_peak_dbtp": -2.13,
+  "sample_peak_dbfs": -2.13,
+  "clipped_runs": 0,
+  "integrated_lufs": -16.94,
+  "short_term_max_lufs": -12.0,
+  "dropouts": [],
+  "click_candidates": [
+   [
+    13.42,
+    0.053,
+    0.0101
+   ],
+   [
+    13.47,
+    0.054,
+    0.0081
+   ],
+   [
+    13.49,
+    0.085,
+    0.0081
+   ],
+   [
+    15.08,
+    0.069,
+    0.0161
+   ],
+   [
+    16.5,
+    0.051,
+    0.0126
+   ],
+   [
+    16.56,
+    0.07,
+    0.0109
+   ],
+   [
+    16.71,
+    0.065,
+    0.0104
+   ],
+   [
+    16.74,
+    0.064,
+    0.0103
+   ],
+   [
+    16.96,
+    0.059,
+    0.0104
+   ],
+   [
+    17.02,
+    0.056,
+    0.01
+   ],
+   [
+    17.05,
+    0.057,
+    0.01
+   ],
+   [
+    17.15,
+    0.053,
+    0.011
+   ],
+   [
+    17.24,
+    0.059,
+    0.0112
+   ],
+   [
+    17.27,
+    0.056,
+    0.0102
+   ],
+   [
+    17.3,
+    0.054,
+    0.01
+   ]
+  ],
+  "n_click_candidates": 87,
+  "km_from_to": [
+   40.0,
+   46.22
+  ],
+  "speed_min_max": [
+   0.0,
+   240.0
+  ],
+  "km_per_s": 0.2488,
+  "intervals": [
+   {
+    "paving": "concrete",
+    "deck": "",
+    "zone": "open",
+    "surf": "concrete/concrete",
+    "km": 40.011,
+    "t0": 0.03,
+    "t1": 25.0,
+    "bands_db": [
+     29.4,
+     27.4,
+     26.2,
+     22.0
+    ],
+    "rms_db": -18.7,
+    "speed": 88.6
+   }
+  ],
+  "plays": {
+   "go": 1,
+   "road_pass": 4,
+   "impact_crunch": 1,
+   "impact_debris": 1,
+   "impact_hit_heavy": 1,
+   "impact_collision_heavy": 1
+  },
+  "events": {
+   "stage_start": 1,
+   "go": 1,
+   "pass_object": 4,
+   "collision": 1
+  },
+  "joint_transients": [],
+  "impacts": [
+   {
+    "t": 9.3,
+    "name": "collision",
+    "km": 45.589,
+    "true_peak_dbtp": -4.06,
+    "sample_peak_dbfs": -4.17
+   }
+  ],
+  "slab_rhythm": [
+   {
+    "t0": 0.03,
+    "t1": 25.0,
+    "speed": 88.6,
+    "line_hz": 0.66,
+    "line_over_median_db": 19.5
+   }
+  ]
+ },
+ "rs_arcade_koehlbrand.wav": {
+  "seconds": 28.0,
+  "profile": "arcade",
+  "master_volume": 1.0,
+  "finished": false,
+  "true_peak_dbtp": -4.51,
+  "sample_peak_dbfs": -4.54,
+  "clipped_runs": 0,
+  "integrated_lufs": -20.91,
+  "short_term_max_lufs": -13.75,
+  "dropouts": [],
+  "click_candidates": [],
+  "n_click_candidates": 0,
+  "km_from_to": [
+   77.6,
+   81.949
+  ],
+  "speed_min_max": [
+   0.0,
+   129.3
+  ],
+  "km_per_s": 0.1553,
+  "intervals": [],
+  "plays": {},
+  "events": {},
+  "joint_transients": [],
+  "impacts": [],
+  "slab_rhythm": []
+ },
+ "rs_concrete_nolim.wav": {
+  "seconds": 30.0,
+  "profile": "modern",
+  "master_volume": 1.0,
+  "finished": false,
+  "true_peak_dbtp": -1.74,
+  "sample_peak_dbfs": -1.77,
+  "clipped_runs": 0,
+  "integrated_lufs": -14.63,
+  "short_term_max_lufs": -13.38,
+  "dropouts": [],
+  "click_candidates": [
+   [
+    17.22,
+    0.168,
+    0.0407
+   ]
+  ],
+  "n_click_candidates": 1,
+  "km_from_to": [
+   24.3,
+   33.688
+  ],
+  "speed_min_max": [
+   0.0,
+   173.7
+  ],
+  "km_per_s": 0.3129,
+  "intervals": [
+   {
+    "paving": "asphalt",
+    "deck": "",
+    "zone": "open",
+    "surf": "asphalt/asphalt",
+    "km": 24.3,
+    "t0": 0.03,
+    "t1": 5.23,
+    "bands_db": [
+     21.1,
+     29.1,
+     13.0,
+     11.5
+    ],
+    "rms_db": -17.8,
+    "speed": 49.4
+   },
+   {
+    "paving": "concrete",
+    "deck": "",
+    "zone": "open",
+    "surf": "concrete/concrete",
+    "km": 25.017,
+    "t0": 5.23,
+    "t1": 30.0,
+    "bands_db": [
+     28.0,
+     32.7,
+     24.2,
+     20.0
+    ],
+    "rms_db": -16.5,
+    "speed": 125.8
+   }
+  ],
+  "plays": {
+   "go": 1,
+   "road_pass": 12
+  },
+  "events": {
+   "stage_start": 1,
+   "go": 1,
+   "pass_object": 12
+  },
+  "joint_transients": [],
+  "impacts": [],
+  "slab_rhythm": [
+   {
+    "t0": 5.23,
+    "t1": 30.0,
+    "speed": 125.8,
+    "line_hz": 14.13,
+    "line_over_median_db": 28.8
+   }
+  ]
+ },
+ "rs_crash_music.wav": {
+  "seconds": 28.0,
+  "profile": "modern",
+  "master_volume": 1.0,
+  "finished": false,
+  "true_peak_dbtp": -1.83,
+  "sample_peak_dbfs": -2.0,
+  "clipped_runs": 0,
+  "integrated_lufs": -13.96,
+  "short_term_max_lufs": -10.71,
+  "dropouts": [],
+  "click_candidates": [],
+  "n_click_candidates": 0,
+  "km_from_to": [
+   30.0,
+   35.681
+  ],
+  "speed_min_max": [
+   0.0,
+   220.0
+  ],
+  "km_per_s": 0.2029,
+  "intervals": [
+   {
+    "paving": "concrete",
+    "deck": "",
+    "zone": "open",
+    "surf": "concrete/concrete",
+    "km": 30.01,
+    "t0": 0.03,
+    "t1": 28.0,
+    "bands_db": [
+     31.0,
+     29.9,
+     27.4,
+     21.3
+    ],
+    "rms_db": -16.1,
+    "speed": 72.2
+   }
+  ],
+  "plays": {
+   "go": 1,
+   "flash": 1,
+   "road_pass": 5,
+   "impact_crunch": 1,
+   "impact_debris": 1,
+   "impact_hit_heavy": 1,
+   "impact_collision_heavy": 1
+  },
+  "events": {
+   "stage_start": 1,
+   "go": 1,
+   "radar_flash": 1,
+   "chase_start": 1,
+   "pass_object": 5,
+   "collision": 1,
+   "busted": 1
+  },
+  "joint_transients": [],
+  "impacts": [
+   {
+    "t": 9.367,
+    "name": "collision",
+    "km": 35.106,
+    "true_peak_dbtp": -4.08,
+    "sample_peak_dbfs": -4.08
+   }
+  ],
+  "slab_rhythm": [
+   {
+    "t0": 0.03,
+    "t1": 28.0,
+    "speed": 72.2,
+    "line_hz": 1.32,
+    "line_over_median_db": 28.5
+   }
+  ]
+ },
+ "rs_fuel_music.wav": {
+  "seconds": 40.0,
+  "profile": "modern",
+  "master_volume": 1.0,
+  "finished": false,
+  "true_peak_dbtp": -1.93,
+  "sample_peak_dbfs": -2.0,
+  "clipped_runs": 0,
+  "integrated_lufs": -14.09,
+  "short_term_max_lufs": -12.28,
+  "dropouts": [],
+  "click_candidates": [
+   [
+    8.44,
+    0.219,
+    0.0537
+   ],
+   [
+    12.06,
+    0.148,
+    0.0278
+   ],
+   [
+    12.07,
+    0.144,
+    0.026
+   ],
+   [
+    12.97,
+    0.268,
+    0.0325
+   ],
+   [
+    12.98,
+    0.21,
+    0.0325
+   ],
+   [
+    13.88,
+    0.307,
+    0.0407
+   ],
+   [
+    13.89,
+    0.2,
+    0.0414
+   ],
+   [
+    15.7,
+    0.263,
+    0.0511
+   ]
+  ],
+  "n_click_candidates": 8,
+  "km_from_to": [
+   30.0,
+   41.555
+  ],
+  "speed_min_max": [
+   0.0,
+   232.6
+  ],
+  "km_per_s": 0.2889,
+  "intervals": [
+   {
+    "paving": "concrete",
+    "deck": "",
+    "zone": "open",
+    "surf": "concrete/concrete",
+    "km": 30.0,
+    "t0": 0.03,
+    "t1": 40.0,
+    "bands_db": [
+     28.0,
+     32.8,
+     21.1,
+     19.1
+    ],
+    "rms_db": -16.2,
+    "speed": 104.6
+   }
+  ],
+  "plays": {
+   "go": 1,
+   "road_pass": 10
+  },
+  "events": {
+   "stage_start": 1,
+   "go": 1,
+   "pass_object": 10,
+   "out_of_fuel": 1,
+   "tow": 1
+  },
+  "joint_transients": [],
+  "impacts": [],
+  "slab_rhythm": [
+   {
+    "t0": 0.03,
+    "t1": 40.0,
+    "speed": 104.6,
+    "line_hz": 1.09,
+    "line_over_median_db": 35.1
+   }
+  ]
+ }
+}

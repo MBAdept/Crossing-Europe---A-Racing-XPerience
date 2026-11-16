@@ -1,0 +1,11 @@
+Nacht, Spielkamera 8 m: rote Lampenpixel (R > 120, R > 2G, R > 2B) und ihr mittleres Rot - Rücklicht / Bremse
+  kombi         Modern Rücklicht   536 px (R 155), Bremse   991 px (R 220) | Arcade-Sprite tail  1617 px (R 233), brake  2034 px (R 231)
+      Tag: Bremse an/aus ändert 884 px um > 24 Stufen; Mittel der Helligkeit dort 89 -> 136
+  sportwagen    Modern Rücklicht   690 px (R 170), Bremse  1052 px (R 240) | Arcade-Sprite tail  1061 px (R 238), brake  1197 px (R 237)
+      Tag: Bremse an/aus ändert 898 px um > 24 Stufen; Mittel der Helligkeit dort 105 -> 144
+  gran_turismo  Modern Rücklicht   477 px (R 183), Bremse   716 px (R 238) | Arcade-Sprite tail   733 px (R 217), brake   957 px (R 225)
+      Tag: Bremse an/aus ändert 480 px um > 24 Stufen; Mittel der Helligkeit dort 126 -> 160
+  limousine     Modern Rücklicht   555 px (R 179), Bremse  1000 px (R 222) | Arcade-Sprite tail  1369 px (R 232), brake  1656 px (R 234)
+      Tag: Bremse an/aus ändert 884 px um > 24 Stufen; Mittel der Helligkeit dort 82 -> 125
+  kompakt       Modern Rücklicht   538 px (R 163), Bremse   949 px (R 230) | Arcade-Sprite tail  1193 px (R 236), brake  1479 px (R 238)
+      Tag: Bremse an/aus ändert 832 px um > 24 Stufen; Mittel der Helligkeit dort 95 -> 138

@@ -1,0 +1,10 @@
+v0.8.0 FIX-WASSER-R: Doku – Wahrzeichen-Ersatz, dunkle Brückenpylone, Prüfposition K1
+
+docs/renderer-modern-gelaende.md und docs/renderer-modern.md beschreiben das Ersatz-Set
+der prozeduralen Wahrzeichen ohne Sprite und Modell (QA-WASSER B1), die dunkle Vertretung
+der Brückenpylone (B2) und die neue Position K1 der Geländesperre (B5: Fernboden-Anteil
+an der Köhlbrandbrücke höchstens 2 %, gemessen 0,38 %; mit dem alten far_ground.gd
+31,96 %). docs/qa-v080.md Abschnitt 11: Befunde, Behebung, Belege, was offen bleibt.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

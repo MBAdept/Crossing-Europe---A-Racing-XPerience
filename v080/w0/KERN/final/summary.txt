@@ -1,0 +1,92 @@
+=== Commit (14:40:46)
+89ab8ebbad81aa0563e3cb3bbfb386f9366e01a3
+=== 1 tools/run_tests.sh (14:40:46)
+    Exit 0, 461 s
+462 Tests, 0 fehlgeschlagen
+CHECKS OK  (0 fehlgeschlagen, 56 s)
+CHECKS OK  (0 fehlgeschlagen, 29 s)
+CHECKS OK  (0 fehlgeschlagen, 6 s)
+CHECKS OK  (0 fehlgeschlagen, 119 s)
+CHECKS OK  (0 fehlgeschlagen, 5 s)
+==> Tests bestanden (461 s)
+=== 2 tools/golden.sh check (14:48:27)
+    Exit 0, 181 s
+    race_u1     10 s
+GOLDEN arcade: 20 von 20 identisch (176 s)
+=== 3 tools/run_render_checks.sh all (14:51:28)
+    Exit 0, 133 s
+GLOW-CHECK 16 OK, 0 FEHLER
+RENDER-CHECK-DATEI tests/race/check_glow_occlusion.gd               OK  (Exit 0, 45 s)
+FLIP-CHECK OK: gespiegelte Sprites liegen an Ort und Stelle (x 100..199, rot links)
+RENDER-CHECK-DATEI tests/race/check_sprite_flip.gd                  OK  (Exit 0, 2 s)
+RENDER-CHECK selbsttest     OK      Selbsttest bestanden: Kugel 0.87, Hintergrund 0.00, Shader-Fläche 0.09 0.80 0.30, 168 ms beim ersten und 48 ms beim zweiten Mal; abgebrochen ohne Urteil
+RENDER-CHECK modern_bild    OK      Modern (Gerüst): Himmel 4b8de3, Ebene 56585e, Horizont in Zeile 324, HUD darüber; Vorbereitung und 30 Schritte in 36 Bildern
+RENDER-CHECK gleiche_zeit   OK      Aufnahme bei 2,5 s: Arcade nach 152 Bildern, Modern nach 154 Bildern – beide nach 151 Simulationsschritten, HUD Regen: Brems 4.4833
+RENDER-CHECK rueckfall      OK      erzwungener Ausfall: Arcade-Bild des gleichen Schritts, 0 Pixel Abweichung unter der Meldung, Meldung 54012 Pixel
+RENDER-CHECK arcade_gleich  OK      Arcade (Nacht, Regen) – Modern – Arcade im selben Prozess: 0 Pixel verschieden
+RENDER-CHECK fenster_16_10  OK      16:10-Fenster: Modern (1280.0, 800.0) ohne Balken, Arcade (1280.0, 720.0) mit Balken
+RENDER-CHECKS OK  (0 fehlgeschlagen, 81 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_seam_render.gd         OK  (Exit 0, 82 s)
+==> 3 von 3 Render-Prüfdateien in Ordnung
+=== 4 run_stage.gd in beiden Modi (14:53:41)
+    dev_testetappe arcade: Exit 0
+    dev_testetappe modern: Exit 0
+    kiel_hamburg arcade: Exit 0
+    kiel_hamburg modern: Exit 0
+dev_testetappe: 28 Schlüssel, 27 gleich, verschieden: ['gfx'] (arcade gfx=arcade, modern gfx=modern), time_s 448.249999999921 / 448.249999999921, Reihenfolge der Schlüssel gleich: True
+kiel_hamburg: 28 Schlüssel, 27 gleich, verschieden: ['gfx'] (arcade gfx=arcade, modern gfx=modern), time_s 328.933333333363 / 328.933333333363, Reihenfolge der Schlüssel gleich: True
+ERGEBNIS-VERGLEICH OK
+=== 5 tools/build_release.sh 0.7.0 (14:55:17)
+    Exit 0, 121 s
+Größe des Builds build/CrossingEurope.x86_64 – 397.9 MB, Spieldaten (PCK, Godot 4.7.2): 641 Dateien
+Programm (Godot-Vorlage)                1      73.52          28.31       38.0
+Arcade-Sprites                        375     305.22          71.07       71.0
+Arcade-Klang und -Musik                31      15.75          14.72       14.7
+UI, Schriften, Skripte, Daten         235       3.38           3.00        5.0
+Modern: Modelle (Meshes)                0       0.00           0.00       40.0
+Modern: Texturen                        0       0.00           0.00       60.0
+Modern: Klang                           0       0.00           0.00       23.0
+Modern: Musik                           0       0.00           0.00       25.0
+Summe                                 642     397.86         117.10      277.0
+Archiv (geschätzt aus der Summe): 117.1 MB – Grenzen: Warnung über 300, Abbruch über 330, hartes Limit 350 MB – in Ordnung
+Größe des Builds build/CrossingEurope.exe – 433.7 MB, Spieldaten (PCK, Godot 4.7.2): 641 Dateien
+Programm (Godot-Vorlage)                1     109.30          37.95       38.0
+Arcade-Sprites                        375     305.22          71.07       71.0
+Arcade-Klang und -Musik                31      15.75          14.72       14.7
+UI, Schriften, Skripte, Daten         235       3.38           3.00        5.0
+Modern: Modelle (Meshes)                0       0.00           0.00       40.0
+Modern: Texturen                        0       0.00           0.00       60.0
+Modern: Klang                           0       0.00           0.00       23.0
+Modern: Musik                           0       0.00           0.00       25.0
+Summe                                 642     433.64         126.74      277.0
+Archiv build/CrossingEurope-windows-x86_64.zip (gemessen): 126.9 MB – Grenzen: Warnung über 300, Abbruch über 330, hartes Limit 350 MB – in Ordnung
+Archiv CrossingEurope-linux-x86_64.tar.gz (gemessen): 117.2 MB – Grenzen: Warnung über 300, Abbruch über 330, hartes Limit 350 MB – in Ordnung
+Archiv CrossingEurope-windows-x86_64.zip (gemessen): 126.9 MB – Grenzen: Warnung über 300, Abbruch über 330, hartes Limit 350 MB – in Ordnung
+Version: 0.7.0
+Commit: 89ab8ebbad81aa0563e3cb3bbfb386f9366e01a3
+Archive: Linux 117 MB, Windows 127 MB (Grenze 330 MB, hartes Limit 350 MB)
+=== 6 Wine: Arcade-Bilder der neuen .exe gegen v0.7.0 (14:57:18)
+    Exit 0, 26 s
+  neu race_s1: Exit 0, 10 s, 0 Skriptfehler, OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device:
+  neu regen: Exit 0, 16 s, 0 Skriptfehler, OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device:
+f0411a30a43e5d04e8909cea96fd2ba1  neu_race_s1_00.png
+ce9aa2435f574f339c7570dbf092730a  neu_regen_00.png
+e13df11b1989dbe039442e9053a2107f  neu_regen_01.png
+    Referenz (v0.7.0-.exe, dieselben Läufe):
+f0411a30a43e5d04e8909cea96fd2ba1  v070_race_s1_00.png
+ce9aa2435f574f339c7570dbf092730a  v070_regen_00.png
+e13df11b1989dbe039442e9053a2107f  v070_regen_01.png
+=== 7 Absturz-Marker über echte Programmstarts (14:57:44)
+1) gespeicherte Wahl 'modern', kein --graphics: normaler Lauf
+   Marker während des Laufs gesehen: ja (modern 0.7.0 1794322665)
+   Exit 0, gfx im Ergebnis: modern, Marker nach dem Lauf: entfernt
+2) Lauf wird abgeschossen, sobald der Marker geschrieben ist (kill -9 = Absturz im Modus Modern)
+   Marker nach dem Absturz: bleibt
+3) nächster Start, gleiche Einstellungen
+   Exit 0, gfx im Ergebnis: arcade (Wahl in settings.json: "graphics_mode": "modern"), Marker: bleibt bis zur Antwort
+4) mit --graphics=modern trotz Marker (die Kommandozeile gewinnt)
+   Exit 0, gfx im Ergebnis: modern, Marker nach 2 s Modern: entfernt
+5) danach wieder ohne Argument
+   Exit 0, gfx im Ergebnis: modern, Marker: keiner
+Skriptfehler in den Protokollen: 0
+=== fertig (14:58:19)

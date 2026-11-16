@@ -1,0 +1,253 @@
+{
+ "shape_p": 3.8500000000000023,
+ "fit_rms_db": 0.03697677242246139,
+ "configs": {
+  "heute": {
+   "eq": [
+    {
+     "shelf": "low",
+     "hz": 1100.0,
+     "db": -3.2
+    },
+    {
+     "shelf": "low",
+     "hz": 180.0,
+     "db": 2.2
+    }
+   ],
+   "depth": 4.5,
+   "rows": {
+    "v80": {
+     "mel": 1.0,
+     "smr": 13.589,
+     "bass": 0.978,
+     "high": 1.0,
+     "car": 0.961,
+     "mel_spk": 1.0,
+     "duck_db": -1.9
+    },
+    "v130": {
+     "mel": 0.988,
+     "smr": 7.245,
+     "bass": 0.941,
+     "high": 1.0,
+     "car": 0.976,
+     "mel_spk": 0.988,
+     "duck_db": -2.43
+    },
+    "v130_full": {
+     "mel": 0.433,
+     "smr": -4.288,
+     "bass": 0.915,
+     "high": 0.964,
+     "car": 0.996,
+     "mel_spk": 0.434,
+     "duck_db": -4.5
+    },
+    "v200_full": {
+     "mel": 0.348,
+     "smr": -6.094,
+     "bass": 0.925,
+     "high": 0.912,
+     "car": 0.996,
+     "mel_spk": 0.349,
+     "duck_db": -4.5
+    },
+    "v250_full": {
+     "mel": 0.281,
+     "smr": -6.614,
+     "bass": 0.886,
+     "high": 0.896,
+     "car": 0.999,
+     "mel_spk": 0.282,
+     "duck_db": -4.5
+    }
+   },
+   "context_race_db_for_equal_loudness": 1.01
+  },
+  "heute_duck_3.0": {
+   "eq": [
+    {
+     "shelf": "low",
+     "hz": 1100.0,
+     "db": -3.2
+    },
+    {
+     "shelf": "low",
+     "hz": 180.0,
+     "db": 2.2
+    }
+   ],
+   "depth": 3.0,
+   "rows": {
+    "v80": {
+     "mel": 1.0,
+     "smr": 14.222,
+     "bass": 0.982,
+     "high": 1.0,
+     "car": 0.958,
+     "mel_spk": 1.0,
+     "duck_db": -1.27
+    },
+    "v130": {
+     "mel": 0.992,
+     "smr": 8.055,
+     "bass": 0.954,
+     "high": 1.0,
+     "car": 0.973,
+     "mel_spk": 0.992,
+     "duck_db": -1.62
+    },
+    "v130_full": {
+     "mel": 0.538,
+     "smr": -2.788,
+     "bass": 0.929,
+     "high": 0.978,
+     "car": 0.993,
+     "mel_spk": 0.539,
+     "duck_db": -3.0
+    },
+    "v200_full": {
+     "mel": 0.457,
+     "smr": -4.594,
+     "bass": 0.941,
+     "high": 0.937,
+     "car": 0.992,
+     "mel_spk": 0.458,
+     "duck_db": -3.0
+    },
+    "v250_full": {
+     "mel": 0.4,
+     "smr": -5.114,
+     "bass": 0.911,
+     "high": 0.924,
+     "car": 0.998,
+     "mel_spk": 0.401,
+     "duck_db": -3.0
+    }
+   },
+   "context_race_db_for_equal_loudness": 1.01
+  },
+  "tiefen_-3_160_duck_3.0": {
+   "eq": [
+    {
+     "shelf": "low",
+     "hz": 160.0,
+     "db": -3.0
+    }
+   ],
+   "depth": 3.0,
+   "rows": {
+    "v80": {
+     "mel": 1.0,
+     "smr": 15.348,
+     "bass": 0.981,
+     "high": 1.0,
+     "car": 0.947,
+     "mel_spk": 1.0,
+     "duck_db": -1.27
+    },
+    "v130": {
+     "mel": 0.997,
+     "smr": 9.146,
+     "bass": 0.946,
+     "high": 1.0,
+     "car": 0.975,
+     "mel_spk": 0.997,
+     "duck_db": -1.62
+    },
+    "v130_full": {
+     "mel": 0.629,
+     "smr": -1.64,
+     "bass": 0.881,
+     "high": 0.976,
+     "car": 0.997,
+     "mel_spk": 0.63,
+     "duck_db": -3.0
+    },
+    "v200_full": {
+     "mel": 0.575,
+     "smr": -3.454,
+     "bass": 0.919,
+     "high": 0.934,
+     "car": 0.996,
+     "mel_spk": 0.576,
+     "duck_db": -3.0
+    },
+    "v250_full": {
+     "mel": 0.523,
+     "smr": -4.013,
+     "bass": 0.864,
+     "high": 0.921,
+     "car": 0.999,
+     "mel_spk": 0.523,
+     "duck_db": -3.0
+    }
+   },
+   "context_race_db_for_equal_loudness": 0.83
+  },
+  "tiefen_-3_160_hoehen_-2_5k_duck_3.0": {
+   "eq": [
+    {
+     "shelf": "low",
+     "hz": 160.0,
+     "db": -3.0
+    },
+    {
+     "shelf": "high",
+     "hz": 5000.0,
+     "db": -2.0
+    }
+   ],
+   "depth": 3.0,
+   "rows": {
+    "v80": {
+     "mel": 1.0,
+     "smr": 15.615,
+     "bass": 0.983,
+     "high": 1.0,
+     "car": 0.944,
+     "mel_spk": 1.0,
+     "duck_db": -1.27
+    },
+    "v130": {
+     "mel": 0.997,
+     "smr": 9.412,
+     "bass": 0.951,
+     "high": 1.0,
+     "car": 0.973,
+     "mel_spk": 0.997,
+     "duck_db": -1.62
+    },
+    "v130_full": {
+     "mel": 0.65,
+     "smr": -1.359,
+     "bass": 0.886,
+     "high": 0.97,
+     "car": 0.996,
+     "mel_spk": 0.652,
+     "duck_db": -3.0
+    },
+    "v200_full": {
+     "mel": 0.593,
+     "smr": -3.204,
+     "bass": 0.925,
+     "high": 0.92,
+     "car": 0.995,
+     "mel_spk": 0.594,
+     "duck_db": -3.0
+    },
+    "v250_full": {
+     "mel": 0.544,
+     "smr": -3.758,
+     "bass": 0.873,
+     "high": 0.903,
+     "car": 0.999,
+     "mel_spk": 0.544,
+     "duck_db": -3.0
+    }
+   },
+   "context_race_db_for_equal_loudness": 1.14
+  }
+ }
+}

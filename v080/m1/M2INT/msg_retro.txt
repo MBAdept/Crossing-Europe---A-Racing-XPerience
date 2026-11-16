@@ -1,0 +1,15 @@
+v0.8.0 M2INT: Sattelzüge mit Rückstrahler-Kanal 15 („retro“) neu exportiert
+
+Die drei Sattelzug-Typen von AS2b/AS2R (Koffer „LOGISTIK“, Koffer „TRANSPORT“, Planen) bauen ihren
+Auflieger mit demselben truck3d._trailer: Konturband (rot/gelb) und Dreiecksrückstrahler tragen jetzt in
+allen drei Typen „retro:%.2f" % TAPE_NIGHT (RINT-B) und leuchten im Abblendlicht des Spielers. Bus und
+Polizei haben keine retroreflektierenden Flächen (Leuchtenfelder Kanal 9, Reflektorbett der Lichtbalken
+ist Chrom); die Rückstrahler des SUV bleiben am Rücklicht (Kanal 0, Gewicht 0,3, ohne Lichtanker) wie im
+Arcade-Sprite.
+
+- gemessen: Kanal 15 in lod0_trailer / lod1 / lod2 aller drei Typen (60 / 52 / 1 502 Ecken)
+- Export + Bake ein zweites Mal erzwungen: byte-gleich; Manifest neu erzeugt; Prüfer OK
+- Kommentare in truck3d.py auf Kanal 15 nachgezogen
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

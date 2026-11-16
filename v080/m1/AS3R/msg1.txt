@@ -1,0 +1,19 @@
+WIP v0.8.0 AS3R: Birkenrinde, gemeinsame Kuppelränder, Büsche, Fernbild-Relief, geteilter Laubatlas, Klippe, Palme
+
+Nacharbeit nach der Kunstkritik von AS3 (erste Runde):
+- Birkenstamm: weiße Rinde mit dünnen Querbändern (je Marke ein eigenes Ringpaar, Farbe je Viereck)
+  statt Schachbrett aus Dreiecken; lod1 dieselben Marken, größer und heller
+- Kuppeln: ein Rand je Kuppel für lod0 und lod1 (gleiche Ecken, Verwacklung, Texturlage), Rand
+  ausgefranst, jede zweite Randecke hängt; Kuppeln von unten/seitlich zuerst verfeinert; Äste nur
+  innerhalb von 90 % der Ballen; Kern näher an den Kuppelrändern
+- Büsche: kleinste Ballen zusammengefasst (höchstens 14 Kuppeln mit 12-Eck-Rand), Kern auch in lod1,
+  Schürze bis 0,4 m unter den Boden, sattere Laubbälle; Heide mit Kern und Schürze; Gras ab -0,1 m
+- Fernbild: Relief im Licht des Sprite-Rigs, Sättigung, Alpha-Halo; Palme 512 px
+- Saat-Varianten zeichnen mit dem Laubatlas ihrer Art (variant_of): -15 MB Texturquellen
+- Klippe als geschlossener Felskörper (Grat, Rückflanke, Enden), Sträucher auf dem Grat; Felsfüße
+  im Boden; Kennzeichen ground_align/ground_sink/face_road für den Props-Bauer
+- Palme: breitere, hängendere Wedel, dunklerer Stamm mit Ringen +-8 %, palm_b gebogen
+- Zypresse: Windphase je Ring, Normalen der oberen Hälfte nach oben; Olive, Kiefer: Farben
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

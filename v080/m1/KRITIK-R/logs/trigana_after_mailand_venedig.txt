@@ -1,0 +1,49 @@
+== /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/KRITIK-R/logs/trig_mailand_venedig.log: 204 rows, 300 events printed
+stage mailand_venedig time 203 s avg 97.5 km/h collisions 0
+counts {"bridge_in": 1, "bridge_out": 1, "cover_in": 4, "cover_out": 4, "joint": 13, "joint_bridge_concrete": 11, "joint_bridge_end_concrete": 2, "pass_building": 57, "pass_gantry": 1, "pass_object": 297, "pass_post": 107, "pass_sign": 6, "pass_tree": 86}
+bridges [{'km0': 268.41, 'km1': 272.19, 'type': 'causeway', 'z0': 26841.0, 'z1': 27219.0}]
+track zones {'fuel': 4, 'fuel_canopy': 19, 'bridge': 1}
+valid feed rows 203 / 204
+surfaces (l,r): {('asphalt', 'asphalt'): 173, ('cobbles', 'cobbles'): 30}
+paving at autobahn                      : {'asphalt': 80}
+paving at city                          : {'asphalt': 74}
+paving at city/centre                   : {'asphalt': 7, 'cobbles': 14}
+paving at city/centre/bridge:causeway   : {'asphalt': 12, 'cobbles': 16}
+zone at truth bridge                            : {'city': 1, 'bridge': 27}
+zone at truth city                              : {'open': 1, 'city': 94}
+zone at truth other:lombardy                    : {'open': 80}
+mismatch / special counts: {'cover_rows': 2, 'city': 1, 'road': 1, 'rumble_road': 1, 'bridge': 1}
+  cover: [(220.119, 'fuel', '', None, True), (220.678, 'fuel', '', None, None)]
+  city: [(255.064, False, True)]
+  road: [(255.064, 'autobahn', 'city')]
+  rumble_road: [(255.064, True, False)]
+  bridge: [(268.422, False, True)]
+speed median 57 km/h, max 235
+events printed: {'cover_in': 4, 'pass_object': 277, 'cover_out': 4, 'bridge_in': 1, 'joint': 13, 'bridge_out': 1}
+bridge causeway z 26841.0..27219.0 (378 m): 13 joints at +[0.0, 32.0, 64.0, 96.0, 128.0, 160.0, 192.0, 224.0, 256.0, 288.0, 320.0, 352.0, 378.0]  decks Counter({'concrete': 13})
+joints off any bridge: [] 0
+bridge_in [(268.41, 'causeway', False, 'causeway')]
+bridge_out [(272.19, 'causeway', False, 'causeway')]
+cover_in [(220.064, 'fuel', False, ''), (220.284, 'fuel', False, ''), (220.504, 'fuel', False, ''), (220.724, 'fuel', False, '')]
+cover_out [(220.184, 'fuel', False, ''), (220.404, 'fuel', False, ''), (220.624, 'fuel', False, ''), (220.84, 'fuel', False, '')]
+pass objects (kind, where, set):
+     99  ('post', 'city', 'streetlight')
+     38  ('tree', 'open', 'props/tree_poplar')
+     33  ('tree', 'city', 'props/tree_cypress')
+     24  ('building', 'city', 'props/city_spanish_cas')
+     20  ('object', 'city', 'props/bridge_lamp')
+     14  ('building', 'city', 'props/city_french_sud')
+      9  ('building', 'city', 'props/city_italian_blo')
+      8  ('post', 'open', 'props/fuel_pump')
+      7  ('tree', 'city', 'props/tree_poplar')
+      7  ('building', 'city', 'props/city_italian_pal')
+      5  ('tree', 'open', 'props/tree_cypress')
+      3  ('building', 'city', 'props/city_italian_ven')
+      2  ('sign', 'open', 'distance')
+      2  ('sign', 'city', 'town')
+      2  ('tree', 'city', 'props/tree_beech')
+      1  ('sign', 'open', 'town_ahead')
+      1  ('sign', 'city', 'limit')
+      1  ('tree', 'city', 'props/tree_oak')
+      1  ('gantry', 'city', 'finish')
+pass distance (side objects): min 3.7 median 9.8 max 17.8 m

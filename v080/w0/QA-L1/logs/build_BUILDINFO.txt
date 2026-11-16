@@ -1,0 +1,11 @@
+Version: 0.7.0
+Commit: 2c298ce8358011adb0bdd39d1ae4e58befc9b13b
+Commit-Zeit: 2026-11-10 19:24:44 UTC (SOURCE_DATE_EPOCH=1794338684)
+Godot: 4.7.2.stable.official.ed1daf0bf
+Archive: Linux 121 MB, Windows 131 MB (Grenze 330 MB, hartes Limit 350 MB)
+
+85de712647b32030397cb7942c1fec70baea0c898bb317ed040ae36bc63a4889  CrossingEurope.x86_64
+091a28c117b44ad29973d516ee6e94343bc1beefd0ef09f003d5845af596e2dd  CrossingEurope-linux-x86_64.tar.gz
+4c5fce55a38ee59595cd182b57c07ab357c29227d89b4ca28fe3ccfd3fb805c0  CrossingEurope.exe
+a0ee3085fad06059daf02b38ebea3f2854a37be56b3da516823d0d84e88a5d22  CrossingEurope-windows-x86_64.zip
+6cc0cd78ad64099d3cd0e63b206ce70555e5bef2870de3ce397c6299d20132d3  LIZENZEN.txt

@@ -1,0 +1,21 @@
+D=/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R3E
+01_sport_tag.jpg – Sportwagen ohne Modell bei 20/60/150 m, 12 Uhr, links Arcade, rechts Modern mit Arcades Bild; Spieler Kombi
+02_sport_nacht.jpg – derselbe Sportwagen um 22 Uhr: Rücklichtebene des Blatts und R3s Lichtpunkte
+03_lieferwagen_tag.jpg – Lieferwagen ohne Modell bei 20/60/150 m, 12 Uhr; Spieler Sportwagen
+04_lieferwagen_nacht.jpg – Lieferwagen um 22 Uhr
+05_suv_tag.jpg – SUV ohne Modell bei 20/60/150 m, 12 Uhr; Spieler Gran Turismo
+06_suv_nacht.jpg – SUV um 22 Uhr
+07_polizei_tag.jpg – Polizei ohne Modell, Blaulicht bei 60 m, 12 Uhr; Spieler Kombi
+08_polizei_nacht.jpg – Polizei um 22 Uhr mit Blaulichtebene
+09_bus_tag.jpg – Bus als echter Kasten mit Arcades Flächen bei 20/58/150 m, 12 Uhr
+10_bus_nacht.jpg – Bus-Kasten um 22 Uhr mit Rücklichtbildern
+11_lkw_tag.jpg – Sattelzug ohne Modell als gelenkiger Kasten, 12 Uhr; Spieler Gran Turismo
+12_lkw_nacht.jpg – Sattelzug um 22 Uhr
+13_vorher_nachher_tag.jpg – vorher R3s gemalter Kasten, nachher Arcades Bild (R3E), 12 Uhr
+14_vorher_nachher_nacht.jpg – vorher/nachher um 22 Uhr
+15_kurve_t1.jpg – Kurve T1: nahe Autos gefaltet wie Arcades Warp, Modern mit Blick in die Kurve
+16_detail_sportwagen_20m_tag.jpg – Ausschnitt 4-fach: gefalteter Sportwagen bei 20 m, Tag
+17_detail_sportwagen_20m_nacht.jpg – Ausschnitt 4-fach: gefalteter Sportwagen bei 20 m, Nacht
+18_detail_spieler_kombi.jpg – Ausschnitt 2-fach: Spielerauto Kombi, Arcade gegen Modern
+19_detail_spieler_sportwagen.jpg – Ausschnitt 2-fach: Spielerauto Sportwagen
+20_detail_spieler_gran_turismo.jpg – Ausschnitt 2-fach: Spielerauto Gran Turismo

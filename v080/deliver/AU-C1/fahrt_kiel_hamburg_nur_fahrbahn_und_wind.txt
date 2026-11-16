@@ -1,0 +1,15 @@
+Dieselbe Fahrt ohne Motor: nur Fahrbahn, Wind, Fugen, Leitplanke
+
+Gleiche Fahrt und Pegel wie im Spiel, nur die Busse MEngine und MEngineFx stumm – so ist zu hören, was AU-C1 beiträgt.
+
+Länge 46.7 s, integriert -22.0 LUFS, True Peak -5.7 dBTP (gemessen, Master bei Standardreglern, Gesamtlautstärke 0,8).
+
+Zeitmarken:
+  0:00.00  Autobahn 170 (Asphalt → Beton)
+  0:09.54  Köhlbrandbrücke 120
+  0:20.65  Rüttelstreifen
+  0:26.19  Bankett
+  0:31.02  Leitplanke
+  0:36.49  Pflaster Hamburg 50
+
+Aufgenommen am Master-Bus des Spiels (Godot 4.7.2, Profil Modern, ohne Bildschirm, Dummy-Audiotreiber). Gehört hat es hier niemand – das Urteil über den Klang liegt beim Nutzer.

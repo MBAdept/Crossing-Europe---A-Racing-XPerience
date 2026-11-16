@@ -1,0 +1,25 @@
+validate_models: 21 Modelle, 182 Sets (40 mit Modell, 142 Platzhalter)
+  Netze 4.56 MB von 40 MB, Texturen 15.94 MB im Grafikspeicher von 240 MB, Quellen 10.29 MB von 60 MB
+Modell                 Kategorie Dreiecke je Stufe                  Aufrufe        Netze B  Textur B Export s  Bake s
+props/barn             rural     lod0 290                           2                 5652    431474     80.9    0.01
+props/bush_low         plant     lod0 384 lod1 104                  1/1              18611    339881     0.80    0.01
+props/bush_round       plant     lod0 372 lod1 88                   1/1              17550    335267     0.65    0.01
+props/bush_round_b     plant     lod0 372 lod1 88                   1/1              17484    335267     0.75    0.01
+props/cover_bush       plant     lod0 182 lod1 54                   1/1               9341    339192     0.75    0.00
+props/cover_grass      plant     lod0 42 lod1 12                    1/1               2559    254707     0.68    0.00
+props/customs_booth    rural     lod0 206                           2                 3783     66565     23.5    0.01
+props/delineator       furniture lod0 12                            1                  691      2746      2.7    0.00
+props/farmhouse        rural     lod0 1107                          2                15352    856146     92.5    0.01
+props/fuel_pump        furniture lod0 384                           1                 7259    105771     37.5    0.00
+props/fuel_station     rural     lod0 1480                          2                23467    244163    133.4    0.00
+props/haybale          furniture lod0 672                           1                 7575    195357     27.6    0.00
+props/power_pylon      pylon     lod0 220                           1                 3638    165059      2.2    0.00
+props/radar_camera     furniture lod0 328                           1                 5428     19436      8.2    0.00
+props/streetlight      furniture lod0 312                           1                 4395         0     0.09    0.00
+props/tree_birch       tree      lod0 1880 lod1 591 shadow 154      2/2              70113   1378381      6.3    0.02
+props/tree_birch_b     tree      lod0 1910 lod1 644 shadow 177      2/2              71372   1374564      6.5    0.02
+props/tree_oak         tree      lod0 1490 lod1 679 shadow 179      2/2              66237   1572315      4.9    0.06
+props/tree_oak_b       tree      lod0 1520 lod1 755 shadow 235      2/2              68268   1570228      5.5    0.10
+props/wind_turbine     furniture lod0 744                           1                 9716         0     0.15    0.00
+props/windmill         rural     lod0 1640                          2                23796    829567     73.8    0.01
+CHECK models OK

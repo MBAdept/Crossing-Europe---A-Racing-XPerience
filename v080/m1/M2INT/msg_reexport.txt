@@ -1,0 +1,16 @@
+v0.8.0 M2INT: olive_b mit eigenem lod1-Abgleich, Bus-Kennzeichen der fernen Stufe; Export-Determinismus belegt
+
+- tree_olive_b: eigener lod1-lift 1,057 statt des Art-Werts 1,12 (veg3d.build_tree liest params "lift" einer
+  Saat-Variante; AS3R-Bericht 11.: lod1 war mittags/abends/nachts +5,0/+6,5/+8,3 % heller als lod0 beim Wechsel)
+- Bus lod2: Kennzeichen #a2a2a0 wie bei den Verkehrsautos (heavy3d.FAR_PLATE; #c4c4c1 kam etwa 50 Stufen heller als
+  das nahe Kennzeichen heraus, AS2R-Messung am selben Kennzeichenmaterial)
+- Leitungsnotiz 7: AS4Rs Hook in cesprites/props_buildings.py ändert den Schlüssel des Bauers „building“ – die
+  AS1b-Modelle (Bauernhaus, Scheune, Heuballen, Tankstelle, Zapfsäule, Blitzer, Zollhäuschen, Leitpfosten) und dazu
+  Strommast, Windrad, Laterne und Michel neu exportiert: alle Dateien byte-gleich
+- danach EIN Bake aller 87 Modelle aus den Zwischenständen (Pakete AS2R/AS3R/AS4R + die neu exportierten): außer
+  olive_b und Bus byte-gleich mit dem Stand im Repository; Manifest neu erzeugt, Prüfer OK
+
+Gemessen (logs/reexport.log): Export 14 Modelle 11 min bei nice 19 (Michel 354 s), Bake 87 Modelle 2,0 s.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

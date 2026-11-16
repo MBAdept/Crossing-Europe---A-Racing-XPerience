@@ -1,0 +1,6 @@
+v0.8.0 RINT-A: AS1b (Umgebungsmodelle des Schnitts) zusammengeführt
+
+Paket AS1b des Schubs M1 (A-8), Stand adff0b3.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

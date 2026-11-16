@@ -1,0 +1,160 @@
+integ 0 Main::Setup 10.882
+integ 0 Main::Setup2 86.04
+integ 0 Load Autoloads 525.115
+integ 0 Load Game 9.407
+integ 0 Main::Start 535.001
+fix0 0 Main::Setup 10.75
+fix0 0 Main::Setup2 82.861
+fix0 0 Load Autoloads 459.87
+fix0 0 Load Game 8.585
+fix0 0 Main::Start 468.939
+integ 1 Main::Setup 9.237
+integ 1 Main::Setup2 73.792
+integ 1 Load Autoloads 480.082
+integ 1 Load Game 7.922
+integ 1 Main::Start 488.452
+fix0 1 Main::Setup 12.402
+fix0 1 Main::Setup2 91.597
+fix0 1 Load Autoloads 492.447
+fix0 1 Load Game 10.217
+fix0 1 Main::Start 503.204
+integ 2 Main::Setup 10.994
+integ 2 Main::Setup2 85.408
+integ 2 Load Autoloads 561.725
+integ 2 Load Game 8.115
+integ 2 Main::Start 570.35
+fix0 2 Main::Setup 11.112
+fix0 2 Main::Setup2 82.538
+fix0 2 Load Autoloads 444.471
+fix0 2 Load Game 8.488
+fix0 2 Main::Start 453.459
+integ 3 Main::Setup 10.424
+integ 3 Main::Setup2 96.674
+integ 3 Load Autoloads 524.841
+integ 3 Load Game 7.846
+integ 3 Main::Start 533.237
+fix0 3 Main::Setup 13.039
+fix0 3 Main::Setup2 112.834
+fix0 3 Load Autoloads 460.645
+fix0 3 Load Game 8.391
+fix0 3 Main::Start 469.771
+integ 4 Main::Setup 10.94
+integ 4 Main::Setup2 82.519
+integ 4 Load Autoloads 549.61
+integ 4 Load Game 9.241
+integ 4 Main::Start 559.334
+fix0 4 Main::Setup 11.252
+fix0 4 Main::Setup2 85.437
+fix0 4 Load Autoloads 437.152
+fix0 4 Load Game 14.894
+fix0 4 Main::Start 452.479
+integ 5 Main::Setup 11.695
+integ 5 Main::Setup2 87.504
+integ 5 Load Autoloads 549.685
+integ 5 Load Game 9.181
+integ 5 Main::Start 559.346
+fix0 5 Main::Setup 12.698
+fix0 5 Main::Setup2 109.185
+fix0 5 Load Autoloads 415.97
+fix0 5 Load Game 7.977
+fix0 5 Main::Start 424.383
+integ 6 Main::Setup 11.929
+integ 6 Main::Setup2 84.266
+integ 6 Load Autoloads 487.593
+integ 6 Load Game 7.647
+integ 6 Main::Start 495.72
+fix0 6 Main::Setup 9.644
+fix0 6 Main::Setup2 69.11
+fix0 6 Load Autoloads 408.645
+fix0 6 Load Game 8.983
+fix0 6 Main::Start 418.193
+integ 7 Main::Setup 11.167
+integ 7 Main::Setup2 84.736
+integ 7 Load Autoloads 536.281
+integ 7 Load Game 7.927
+integ 7 Main::Start 544.681
+fix0 7 Main::Setup 12.34
+fix0 7 Main::Setup2 80.307
+fix0 7 Load Autoloads 519.885
+fix0 7 Load Game 8.606
+fix0 7 Main::Start 528.989
+integ 8 Main::Setup 10.459
+integ 8 Main::Setup2 82.896
+integ 8 Load Autoloads 539.379
+integ 8 Load Game 10.016
+integ 8 Main::Start 549.852
+fix0 8 Main::Setup 11.205
+fix0 8 Main::Setup2 82.814
+fix0 8 Load Autoloads 448.08
+fix0 8 Load Game 7.767
+fix0 8 Main::Start 456.322
+integ 9 Main::Setup 10.826
+integ 9 Main::Setup2 82.846
+integ 9 Load Autoloads 571.845
+integ 9 Load Game 8.756
+integ 9 Main::Start 581.292
+fix0 9 Main::Setup 10.555
+fix0 9 Main::Setup2 86.442
+fix0 9 Load Autoloads 503.257
+fix0 9 Load Game 7.033
+fix0 9 Main::Start 510.798
+integ 10 Main::Setup 14.304
+integ 10 Main::Setup2 84.932
+integ 10 Load Autoloads 469.711
+integ 10 Load Game 7.52
+integ 10 Main::Start 477.656
+fix0 10 Main::Setup 11.043
+fix0 10 Main::Setup2 70.339
+fix0 10 Load Autoloads 378.77
+fix0 10 Load Game 7.517
+fix0 10 Main::Start 386.705
+integ 11 Main::Setup 14.581
+integ 11 Main::Setup2 97.845
+integ 11 Load Autoloads 482.846
+integ 11 Load Game 7.378
+integ 11 Main::Start 490.77
+fix0 11 Main::Setup 9.136
+fix0 11 Main::Setup2 74.418
+fix0 11 Load Autoloads 464.15
+fix0 11 Load Game 7.267
+fix0 11 Main::Start 472.031
+integ 12 Main::Setup 12.144
+integ 12 Main::Setup2 76.684
+integ 12 Load Autoloads 464.901
+integ 12 Load Game 8.71
+integ 12 Main::Start 474.113
+fix0 12 Main::Setup 15.451
+fix0 12 Main::Setup2 93.373
+fix0 12 Load Autoloads 488.014
+fix0 12 Load Game 9.039
+fix0 12 Main::Start 497.664
+integ 13 Main::Setup 10.344
+integ 13 Main::Setup2 82.554
+integ 13 Load Autoloads 553.094
+integ 13 Load Game 8.746
+integ 13 Main::Start 562.298
+fix0 13 Main::Setup 15.729
+fix0 13 Main::Setup2 89.739
+fix0 13 Load Autoloads 400.037
+fix0 13 Load Game 8.797
+fix0 13 Main::Start 409.287
+integ 14 Main::Setup 10.239
+integ 14 Main::Setup2 79.908
+integ 14 Load Autoloads 503.154
+integ 14 Load Game 8.337
+integ 14 Main::Start 511.939
+fix0 14 Main::Setup 9.082
+fix0 14 Main::Setup2 70.114
+fix0 14 Load Autoloads 446.125
+fix0 14 Load Game 8.589
+fix0 14 Main::Start 455.194
+integ 15 Main::Setup 9.856
+integ 15 Main::Setup2 82.381
+integ 15 Load Autoloads 561.827
+integ 15 Load Game 8.934
+integ 15 Main::Start 571.2
+fix0 15 Main::Setup 10.788
+fix0 15 Main::Setup2 82.006
+fix0 15 Load Autoloads 468.458
+fix0 15 Load Game 8.935
+fix0 15 Main::Start 477.842

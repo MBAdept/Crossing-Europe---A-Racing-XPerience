@@ -1,0 +1,9 @@
+v0.8.0 AS5a1: WIP Stadthaus-Bauer: nur Lampen der Liste oben öffnen
+
+_open_lamp_tops öffnete auch die übrigen vpbr-Körper über 8 m (Ornamente und Gaubenrahmen des
+Gründerzeithauses: 46, Balkonplatten und Antennen des Mietshauses: 13, Mast und Kronenteile des
+Büroturms). Deren schräge Oberseiten sieht man von der Straße ab 12 m. Jetzt nur die Lampen aus
+"lamps" (Büroturm: die drei Rotlichter). Die german-Modelle werden neu exportiert.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

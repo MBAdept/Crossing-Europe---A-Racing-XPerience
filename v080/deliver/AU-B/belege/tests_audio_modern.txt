@@ -1,0 +1,125 @@
+227 Skripte geprüft, 0 fehlerhaft
+ok    test_arcade_identity.gd :: test_engine_mixer_output_is_byte_identical_to_v070
+ok    test_arcade_identity.gd :: test_engine_mixer_output_with_the_modern_profile_running
+ok    test_arcade_identity.gd :: test_sfx_synth_sounds_are_byte_identical_to_v070
+ok    test_arcade_identity.gd :: test_traffic_and_room_model_are_identical_to_v070
+ok    test_arcade_identity.gd :: test_frozen_audio_files_are_unchanged
+ok    test_arcade_identity.gd :: test_oneshot_levels_equal_the_audio_manager_table
+ok    test_audio_feed.gd :: test_without_track_or_position_nothing_is_derived
+ok    test_audio_feed.gd :: test_surface_under_a_wheel
+ok    test_audio_feed.gd :: test_surfaces_per_side_from_the_state
+ok    test_audio_feed.gd :: test_structures_and_their_events
+ok    test_audio_feed.gd :: test_zone_from_scenery_and_city
+ok    test_audio_feed.gd :: test_passed_objects
+ok    test_audio_feed.gd :: test_jumps_make_no_events
+ok    test_audio_feed.gd :: test_on_a_real_track
+ok    test_engine3_bank.gd :: test_fixture_is_flattened_for_the_mixer
+ok    test_engine3_bank.gd :: test_refuses_broken_descriptions
+ok    test_engine3_bank.gd :: test_notes_tolerated_deviations
+ok    test_engine3_bank.gd :: test_shipped_banks_and_their_vehicle_sounds
+      Motor v3 mit Wiedergabe CHECK thread   OK      Gran Turismo, Vollgas 7.5 s mit 6 Hängern des Hauptthreads à 400 ms (längstes Bild 0.42 s): Mischer im eigenen Thread true, 0 Aussetzer des Generators, Motor spielt durchgehend true (ausgeblendet in 0 Bildern); 105 Füllungen, 3.83 ms je Füllung (höchstens 9.9), 0.899 ms Mischzeit je 1/60 s Klang; Drehzahl am Ende 5143/min
+      Motor v3 mit Wiedergabe CHECK sync     OK      dieselbe Fahrt, im Hauptthread gemischt (engine_thread = false): Mischer-Thread false, 368 Aussetzer des Generators bei 6 Hängern (mit Thread: 0), 60 Füllungen, 5.51 ms je Füllung, 0.906 ms Mischzeit je 1/60 s Klang
+      Motor v3 mit Wiedergabe CHECK switch   OK      10 × arcade ↔ modern mit laufendem Mischer-Thread (10 ×) und Vorschau: Knoten 11 → 11, Busse 5 → 5, gehaltene Streams danach 0, Objekte 1615 → 1617
+      Motor v3 mit Wiedergabe CHECK quit     OK      Spielende bei laufendem Mischer-Thread (9 Füllungen, spielt true): der Prozess endet jetzt ohne Profilwechsel
+      Motor v3 mit Wiedergabe: 23.0 s, Exit 0
+ok    test_engine3_checks.gd :: test_engine_thread_in_a_running_game
+      Spielende 1 CHECK quit     OK      Spielende bei laufendem Mischer-Thread (10 Füllungen, spielt true): der Prozess endet jetzt ohne Profilwechsel
+      Spielende 1: 1.6 s, Exit 0
+      Spielende 2 CHECK quit     OK      Spielende bei laufendem Mischer-Thread (9 Füllungen, spielt true): der Prozess endet jetzt ohne Profilwechsel
+      Spielende 2: 1.6 s, Exit 0
+ok    test_engine3_checks.gd :: test_quitting_with_a_running_engine_thread
+ok    test_engine3_mix.gd :: test_output_is_finite_and_within_unity
+ok    test_engine3_mix.gd :: test_variants_random_never_twice_in_a_row
+ok    test_engine3_mix.gd :: test_cycle_length_follows_rpm
+ok    test_engine3_mix.gd :: test_no_clicks_at_cycle_boundaries_on_both_channels
+ok    test_engine3_mix.gd :: test_continuous_over_rpm_sweep
+ok    test_engine3_mix.gd :: test_blend_between_rpm_points_keeps_the_power
+ok    test_engine3_mix.gd :: test_blend_between_the_loads_keeps_the_power
+ok    test_engine3_mix.gd :: test_induction_follows_the_pedal_and_exhaust_the_load
+ok    test_engine3_mix.gd :: test_limiter_cut_pattern
+ok    test_engine3_mix.gd :: test_clips_start_crackles_and_panning
+ok    test_engine3_mix.gd :: test_same_seed_and_control_give_the_same_samples
+ok    test_engine3_mix.gd :: test_movement_never_a_static_loop
+      kompakt      Volllast R−L +0.03 dB, Mono-Summe 0.05 dB unter dem lauteren Kanal
+      kompakt      Schub    R−L +0.00 dB, Mono-Summe 0.00 dB unter dem lauteren Kanal
+      kombi        Volllast R−L -0.00 dB, Mono-Summe 0.01 dB unter dem lauteren Kanal
+      kombi        Schub    R−L -0.00 dB, Mono-Summe 0.00 dB unter dem lauteren Kanal
+      limousine    Volllast R−L -0.00 dB, Mono-Summe 0.04 dB unter dem lauteren Kanal
+      limousine    Schub    R−L +0.01 dB, Mono-Summe 0.01 dB unter dem lauteren Kanal
+      sportwagen   Volllast R−L +0.13 dB, Mono-Summe 0.39 dB unter dem lauteren Kanal
+      sportwagen   Schub    R−L +0.03 dB, Mono-Summe 0.23 dB unter dem lauteren Kanal
+      gran_turismo Volllast R−L +0.02 dB, Mono-Summe 0.30 dB unter dem lauteren Kanal
+      gran_turismo Schub    R−L +0.42 dB, Mono-Summe 0.51 dB unter dem lauteren Kanal
+ok    test_engine3_mix.gd :: test_shipped_banks_balance_and_mono_sum
+      Mischer v3, Gran Turismo, Volllast zwischen zwei Drehzahlpunkten: 0.813 ms je Bild (1/60 s Klang, 32 kHz Stereo), höchstens 1.50 ms
+ok    test_engine3_mix.gd :: test_render_time_per_frame
+ok    test_engine3_slot.gd :: test_engine_slot_drives_the_v3_bank
+ok    test_engine3_slot.gd :: test_start_clip_only_from_a_standstill
+ok    test_engine3_slot.gd :: test_synchronous_mode_is_sample_identical
+ok    test_engine3_slot.gd :: test_preview_blip
+ok    test_engine3_slot.gd :: test_a_long_frame_is_not_a_session_gone
+ok    test_engine3_slot.gd :: test_layers_follow_the_engine
+ok    test_modern_assets.gd :: test_every_folder_has_a_manifest
+ok    test_modern_assets.gd :: test_placeholders_are_hidden_unless_asked_for
+ok    test_modern_assets.gd :: test_placeholder_entries_and_streams
+ok    test_modern_assets.gd :: test_raw_engine_data_reads_back
+ok    test_modern_assets.gd :: test_broken_manifests_are_reported
+ok    test_modern_audio.gd :: test_start_builds_everything_and_shutdown_removes_it
+ok    test_modern_audio.gd :: test_engine_follows_the_session
+ok    test_modern_audio.gd :: test_calls_while_paused_or_after_stop_all_are_ignored
+ok    test_modern_audio.gd :: test_rain_skid_and_siren_rules
+ok    test_modern_audio.gd :: test_one_shots_reach_their_slot
+ok    test_modern_audio.gd :: test_a_play_and_its_event_sound_once
+ok    test_modern_audio.gd :: test_snapshots_follow_the_game
+ok    test_modern_audio.gd :: test_ducking_follows_the_car
+ok    test_modern_audio.gd :: test_no_ducking_for_a_car_the_mix_turned_down
+ok    test_modern_audio.gd :: test_effects_mute_follows_the_arcade_sfx_bus_and_the_setting
+ok    test_modern_audio.gd :: test_volume_settings_and_plan_levels_on_the_buses
+ok    test_modern_audio.gd :: test_music_contexts
+ok    test_modern_audio.gd :: test_track_and_state_reach_the_feed_and_the_slots
+ok    test_modern_audio.gd :: test_traffic_runs_on_eight_modern_voices
+ok    test_modern_buses.gd :: test_names_are_exactly_the_contract_list
+ok    test_modern_buses.gd :: test_build_creates_every_bus_after_the_existing_ones
+ok    test_modern_buses.gd :: test_base_effects
+ok    test_modern_buses.gd :: test_fader_lowpass_and_eq
+ok    test_modern_buses.gd :: test_slot_effect_goes_before_lowpass_and_fader
+ok    test_modern_buses.gd :: test_glue_compressor_from_config
+ok    test_modern_buses.gd :: test_compressor_ratio_conversion
+ok    test_modern_buses.gd :: test_other_buses_are_left_alone
+ok    test_modern_buses.gd :: test_build_twice_and_leftovers
+      ohne Wiedergabe CHECK arcade_boot    OK      Start mit Profil arcade (erwartet arcade); 5 Busse mit allen Effektwerten wie in v0.7.0 (arcade_v070_headless.json)
+      ohne Wiedergabe CHECK new_api        OK      set_race_music, set_music_context, set_track, set_vehicle_state und 14 Ereignisse mit dem Profil Arcade: nichts ändert sich (Knoten 11, Busse 5), Kontext und Schalter gemerkt
+      ohne Wiedergabe CHECK modern_buses   OK      22 Modern-Busse hinter den 5 vorhandenen, Sends nach links (in Ordnung); Arcade-Busse dabei unverändert; zweites set_profile("modern") ohne Wirkung
+      ohne Wiedergabe CHECK switch_20      OK      20 × arcade ↔ modern (ohne Wiedergabe): Knoten 11 → 11, Busse 5 → 5, Kinder des AudioManagers 0 → 0, verwaiste Knoten 0 → 0; 0 gehaltene Generator-Streams 0.0 s nach dem letzten Wechsel freigegeben (Profil Arcad
+      ohne Wiedergabe CHECK delegation     OK      Arcade-Motor 2129/min; Modern: Aufrufe kommen an (Motor 3272/min, Wind, Quietschen, Regen, Horn, Tunnel, Einmalklänge, Ereignis), Arcade steht dabei still (true); Menümusik übergeben (true/true/true); zurück in 
+      ohne Wiedergabe CHECK race           OK      Teststadt – Testdorp ab km 49,4 im Regen, 16 s (Zeitraffer 8×) mit dem Profil Modern und Platzhaltern bis km 57.26: Motor bis 6494/min, Sitzung in 213 von 214 Bildern da, Tunnelhall in 114 Bildern, Feed gültig (
+      ohne Wiedergabe CHECK arcade_after   OK      nach allem: Profil Arcade, 5 Busse mit Sends, Pegeln und Effekten wie in v0.7.0 (arcade_v070_headless.json); Motor-Mischer mit der von beiden Profilen benutzten Bank der Limousine: 355733 Abtastwerte, SHA-256 wi
+      ohne Wiedergabe: 10.8 s, Exit 0
+ok    test_modern_checks.gd :: test_profiles_in_a_running_game
+      mit Wiedergabe CHECK arcade_boot    OK      Start mit Profil arcade (erwartet arcade); 12 Busse mit allen Effektwerten wie in v0.7.0 (arcade_v070_display.json)
+      mit Wiedergabe CHECK new_api        OK      set_race_music, set_music_context, set_track, set_vehicle_state und 14 Ereignisse mit dem Profil Arcade: nichts ändert sich (Knoten 46, Busse 12), Kontext und Schalter gemerkt
+      mit Wiedergabe CHECK modern_buses   OK      22 Modern-Busse hinter den 12 vorhandenen, Sends nach links (in Ordnung); Arcade-Busse dabei unverändert; zweites set_profile("modern") ohne Wirkung
+      mit Wiedergabe CHECK switch_20      OK      20 × arcade ↔ modern (mit bis zu 27 Playern): Knoten 46 → 46, Busse 12 → 12, Kinder des AudioManagers 15 → 15, verwaiste Knoten 0 → 0; 24 gehaltene Generator-Streams 1.8 s nach dem letzten Wechsel freigegeben (P
+      mit Wiedergabe CHECK delegation     OK      Arcade-Motor 2138/min; Modern: Aufrufe kommen an (Motor 3279/min, Wind, Quietschen, Regen, Horn, Tunnel, Einmalklänge, Ereignis) – hörbar: Motor spielt, 1 Verkehrsstimme, Arcade steht dabei still (true); Menümus
+      mit Wiedergabe CHECK mix            OK      Pegelkette: Ton über MUI -23.05 dB (Plan -23.01), über MMusic -26.09 dB (Plan -26.11); Ducking: Musik -22.99 → -27.49 dB bei Vollgas (−4.5 dB, Zustand -4.5 dB), danach -23.05 dB; Pause: 5-kHz-Ton -23.0 → -59.8 d
+      mit Wiedergabe CHECK race           OK      Teststadt – Testdorp ab km 49,4 im Regen, 16 s (Zeitraffer 8×) mit dem Profil Modern und Platzhaltern bis km 57.26: Motor bis 6491/min, Sitzung in 257 von 258 Bildern da, Tunnelhall in 144 Bildern, Feed gültig (
+      mit Wiedergabe CHECK arcade_after   OK      nach allem: Profil Arcade, 12 Busse mit Sends, Pegeln und Effekten wie in v0.7.0 (arcade_v070_display.json); Motor-Mischer mit der von beiden Profilen benutzten Bank der Limousine: 355733 Abtastwerte, SHA-256 wi
+      mit Wiedergabe: 24.2 s, Exit 0
+ok    test_modern_checks.gd :: test_profiles_in_a_running_game_with_playback
+      Arcade-Start CHECK arcade_lean    OK      Start und eine Etappe (20 Schritte) mit Bild und Klang Arcade: 0 von 33 Skripten des Modern-Klangs, des Modern-Renderers und der Modell-Datenbank geladen
+      Arcade-Start: 1.7 s, Exit 0
+ok    test_modern_checks.gd :: test_arcade_start_loads_nothing_of_modern
+ok    test_modern_mix.gd :: test_static_levels_follow_plan_and_settings
+ok    test_modern_mix.gd :: test_car_loudness_after_the_plan
+ok    test_modern_mix.gd :: test_car_path_counts_the_mix_states
+ok    test_modern_mix.gd :: test_duck_target_curve
+ok    test_modern_mix.gd :: test_duck_attack_and_release_times
+ok    test_modern_mix.gd :: test_snapshot_pause_lowpass_and_gain
+ok    test_modern_mix.gd :: test_snapshot_trigger_holds_and_releases
+ok    test_modern_mix.gd :: test_snapshots_and_duck_add_up
+ok    test_modern_mix.gd :: test_result_snapshot_takes_car_and_world_down
+ok    test_modern_mix.gd :: test_effects_off_stops_ducking_and_dips_and_waits_for_the_tail
+ok    test_modern_mix.gd :: test_loudness_plan_in_the_configuration
+ok    test_modern_mix.gd :: test_state_is_plain_data
+83 Tests, 0 fehlgeschlagen
+==> Tests bestanden (87 s)

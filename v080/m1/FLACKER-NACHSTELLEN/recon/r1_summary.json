@@ -1,0 +1,23 @@
+{
+  "args": {
+    "autopilot-refuel": "never",
+    "from": "erfurt",
+    "gfx-preset": "medium",
+    "graphics": "modern",
+    "hour": "12",
+    "out": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/FLACKER-NACHSTELLEN/recon/r1",
+    "sim-s": "150",
+    "stage": "erfurt_kassel",
+    "start-km": "1",
+    "ts": "6"
+  },
+  "first": "",
+  "frames": 1519,
+  "km_end": 72.0731842918086,
+  "live_frames": 1503,
+  "other_errors": {},
+  "refusal_frames": 0,
+  "refusals": 0,
+  "scene_max": 156,
+  "wall_s": 902.697
+}

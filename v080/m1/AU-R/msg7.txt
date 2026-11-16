@@ -1,0 +1,10 @@
+v0.8.0 AU-R: Doku – Messungen vorher/nachher auf dem Endstand (Abschnitt 15.9)
+
+Alle Zahlen auf dem Endstand der Schleifen nachgemessen: Wiederholung im Spielmix
+(Asphalt 0,603 -> 0,111, Pflaster 0,982 -> 0,146, Beton 0,887 -> 0,647 durch den
+Plattentakt), Klangfarbe ohne Zufall (höchstens 0,97 dB je Terz, Lautheit
+höchstens 0,27 LU), Begrenzer bei Gesamtlautstärke 1,0 (Unfall -1,71, Lkw -1,66,
+Höchsttempo -2,93, schlimmster Fall -1,59 dBTP; 200 km/h auf Beton bis 1,0 dB).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

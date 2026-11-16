@@ -1,0 +1,17 @@
+v0.8.0 RINT-B: Instanzbudget der Fahrzeug-Ebene für Godots globalen Shader-Puffer
+
+Der Compatibility-Renderer gibt jeder Instanz mit Instanz-Uniforms 16 Plätze des globalen
+Shader-Puffers, und der ist so groß wie der Uniform-Block der GPU (64 KB = 4096 Plätze mit
+llvmpipe und den meisten Desktop-Treibern): ab etwa 250 solchen Instanzen lehnt Godot ab
+(„Too many instances using shader instance variables“) und zeichnet die Instanz mit den
+Werten einer anderen. Die Pools der Fahrzeug-Ebene behielten ihre gebauten Stufen – nach
+einigen Minuten Verkehr lief das Spiel darüber (gemessen: 15–17 Ablehnungen in 900 Bildern).
+
+- layers/vehicles.gd: INSTANCE_BUDGET 128 für alle gebauten Stufen (aktive und gepoolte
+  Autos); darüber werden zuerst gepoolte Autos, dann nicht gezeigte Stufen freigegeben
+- check_vehicles → instanzen (headless, 180 s Verkehr), Render-Prüfung
+  check_instance_budget.gd (fängt die Ablehnung über einen Logger)
+- run_render_checks.sh: eine Ablehnung des Puffers lässt jede Render-Prüfung scheitern
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

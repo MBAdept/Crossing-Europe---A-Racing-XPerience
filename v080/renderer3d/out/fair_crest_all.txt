@@ -1,0 +1,21 @@
+targets: 5923 (every 300 m where the road ahead of the camera is not flat), relief 0.0 m beyond 10 m, ribbon half width 100 m
+car: seen from (m) arcade p10 180 p50 510 | 3D p10 180 p50 510 | crest-limited targets 4211 (71.1 %)
+   3D - arcade (m): min -564  p1 -12  p5 0  p50 0  p95 0  max 660 ; 3D later by > 6 m: 76 (1.28 %), > 30 m: 22 ; 3D earlier by > 6 m: 41 (0.69 %)
+   arcade: seen from less than the stopping sight distance (dry, fastest drivable speed, 1 s reaction): 816 of 5923 (13.78 %); 3D: 814 (13.74 %)
+   3D later than arcade AND then inside the stopping sight distance: 0 ; of them already short in arcade: 0
+     koeln_bruessel__koeln z 10977: arcade 750 m, 3D 186 m
+     frankfurt_koeln__koeln z 5877: arcade 750 m, 3D 198 m
+     saragossa_pau__pau z 4077: arcade 750 m, 3D 216 m
+     belgrad_sofia__sofia z 11877: arcade 750 m, 3D 240 m
+     saragossa_pau__saragossa z 17577: arcade 750 m, 3D 252 m
+     saragossa_pau__saragossa z 16077: arcade 738 m, 3D 264 m
+sign: seen from (m) arcade p10 246 p50 612 | 3D p10 246 p50 618 | crest-limited targets 3742 (63.2 %)
+   3D - arcade (m): min -558  p1 -12  p5 0  p50 0  p95 0  max 528 ; 3D later by > 6 m: 72 (1.22 %), > 30 m: 23 ; 3D earlier by > 6 m: 40 (0.68 %)
+   arcade: seen from less than the stopping sight distance (dry, fastest drivable speed, 1 s reaction): 345 of 5923 (5.82 %); 3D: 344 (5.81 %)
+   3D later than arcade AND then inside the stopping sight distance: 0 ; of them already short in arcade: 0
+     san_sebastian_burgos__san_sebastian z 5277: arcade 750 m, 3D 192 m
+     belgrad_sofia__sofia z 11877: arcade 750 m, 3D 288 m
+     saragossa_pau__pau z 4077: arcade 750 m, 3D 300 m
+     belgrad_sofia__sofia z 12777: arcade 750 m, 3D 342 m
+     saragossa_pau__saragossa z 22677: arcade 594 m, 3D 228 m
+     saragossa_pau__pau z 4377: arcade 750 m, 3D 408 m

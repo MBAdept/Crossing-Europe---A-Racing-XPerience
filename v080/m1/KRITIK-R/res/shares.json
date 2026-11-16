@@ -1,0 +1,1154 @@
+{
+ "before": {
+  "countries": {
+   "DE": {
+    "km": 3950.6,
+    "concrete_km": 1685.8,
+    "share": 0.427,
+    "target": 0.35,
+    "ok": false,
+    "stage_rows": 31
+   },
+   "FR": {
+    "km": 1991.7,
+    "concrete_km": 226.7,
+    "share": 0.114,
+    "target": 0.1,
+    "ok": true,
+    "stage_rows": 10
+   },
+   "ES": {
+    "km": 1315.0,
+    "concrete_km": 215.0,
+    "share": 0.163,
+    "target": 0.1,
+    "ok": false,
+    "stage_rows": 7
+   },
+   "PL": {
+    "km": 760.0,
+    "concrete_km": 255.0,
+    "share": 0.336,
+    "target": 0.25,
+    "ok": false,
+    "stage_rows": 4
+   },
+   "RS": {
+    "km": 645.0,
+    "concrete_km": 0.0,
+    "share": 0.0,
+    "target": 0.1,
+    "ok": false,
+    "stage_rows": 3
+   },
+   "HU": {
+    "km": 520.0,
+    "concrete_km": 95.0,
+    "share": 0.183,
+    "target": 0.1,
+    "ok": false,
+    "stage_rows": 3
+   },
+   "RO": {
+    "km": 490.0,
+    "concrete_km": 0.0,
+    "share": 0.0,
+    "target": 0.1,
+    "ok": false,
+    "stage_rows": 3
+   },
+   "CZ": {
+    "km": 481.0,
+    "concrete_km": 216.6,
+    "share": 0.45,
+    "target": 0.4,
+    "ok": false,
+    "stage_rows": 3
+   },
+   "BE": {
+    "km": 450.0,
+    "concrete_km": 230.0,
+    "share": 0.511,
+    "target": 0.3,
+    "ok": false,
+    "stage_rows": 4
+   },
+   "CH": {
+    "km": 439.2,
+    "concrete_km": 60.0,
+    "share": 0.137,
+    "target": 0.1,
+    "ok": true,
+    "stage_rows": 2
+   },
+   "IT": {
+    "km": 428.0,
+    "concrete_km": 50.0,
+    "share": 0.117,
+    "target": 0.1,
+    "ok": true,
+    "stage_rows": 3
+   },
+   "NL": {
+    "km": 412.7,
+    "concrete_km": 15.0,
+    "share": 0.036,
+    "target": 0.1,
+    "ok": false,
+    "stage_rows": 2
+   },
+   "AT": {
+    "km": 374.0,
+    "concrete_km": 49.0,
+    "share": 0.131,
+    "target": 0.15,
+    "ok": true,
+    "stage_rows": 4
+   },
+   "HR": {
+    "km": 300.0,
+    "concrete_km": 20.0,
+    "share": 0.067,
+    "target": 0.1,
+    "ok": true,
+    "stage_rows": 2
+   },
+   "SI": {
+    "km": 190.0,
+    "concrete_km": 0.0,
+    "share": 0.0,
+    "target": 0.1,
+    "ok": false,
+    "stage_rows": 2
+   },
+   "LT": {
+    "km": 145.0,
+    "concrete_km": 0.0,
+    "share": 0.0,
+    "target": 0.1,
+    "ok": false,
+    "stage_rows": 2
+   },
+   "BG": {
+    "km": 5.0,
+    "concrete_km": 0.0,
+    "share": 0.0,
+    "target": 0.1,
+    "ok": false,
+    "stage_rows": 1
+   }
+  },
+  "countries_ok": 5,
+  "countries_n": 17,
+  "concrete_total": 0.242,
+  "concrete_target_total": 0.205,
+  "cities": {
+   "amsterdam": {
+    "stages": 2,
+    "share_mean": 0.0,
+    "share_min": 0.0,
+    "share_max": 0.0,
+    "ok": false,
+    "pattern": "---------",
+    "all_or_nothing": true
+   },
+   "barcelona": {
+    "stages": 2,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "belgrad": {
+    "stages": 3,
+    "share_mean": 0.0,
+    "share_min": 0.0,
+    "share_max": 0.0,
+    "ok": false,
+    "pattern": "---------",
+    "all_or_nothing": true
+   },
+   "bern": {
+    "stages": 2,
+    "share_mean": 0.0,
+    "share_min": 0.0,
+    "share_max": 0.0,
+    "ok": false,
+    "pattern": "---------",
+    "all_or_nothing": true
+   },
+   "bialystok": {
+    "stages": 2,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "bordeaux": {
+    "stages": 2,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "bremen": {
+    "stages": 4,
+    "share_mean": 0.0,
+    "share_min": 0.0,
+    "share_max": 0.0,
+    "ok": false,
+    "pattern": "---------",
+    "all_or_nothing": true
+   },
+   "bruessel": {
+    "stages": 2,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "budapest": {
+    "stages": 3,
+    "share_mean": 0.0,
+    "share_min": 0.0,
+    "share_max": 0.0,
+    "ok": false,
+    "pattern": "---------",
+    "all_or_nothing": true
+   },
+   "bukarest": {
+    "stages": 1,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "burgos": {
+    "stages": 2,
+    "share_mean": 0.0,
+    "share_min": 0.0,
+    "share_max": 0.0,
+    "ok": false,
+    "pattern": "---------",
+    "all_or_nothing": true
+   },
+   "calais": {
+    "stages": 1,
+    "share_mean": 0.0,
+    "share_min": 0.0,
+    "share_max": 0.0,
+    "ok": false,
+    "pattern": "---------",
+    "all_or_nothing": true
+   },
+   "dresden": {
+    "stages": 1,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "erfurt": {
+    "stages": 2,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "fulda": {
+    "stages": 2,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "hamburg": {
+    "stages": 3,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "kaunas": {
+    "stages": 2,
+    "share_mean": 0.0,
+    "share_min": 0.0,
+    "share_max": 0.0,
+    "ok": false,
+    "pattern": "---------",
+    "all_or_nothing": true
+   },
+   "kiel": {
+    "stages": 2,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "linz": {
+    "stages": 2,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "ljubljana": {
+    "stages": 2,
+    "share_mean": 0.0,
+    "share_min": 0.0,
+    "share_max": 0.0,
+    "ok": false,
+    "pattern": "---------",
+    "all_or_nothing": true
+   },
+   "luettich": {
+    "stages": 2,
+    "share_mean": 0.0,
+    "share_min": 0.0,
+    "share_max": 0.0,
+    "ok": false,
+    "pattern": "---------",
+    "all_or_nothing": true
+   },
+   "lyon": {
+    "stages": 2,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "madrid": {
+    "stages": 2,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "mailand": {
+    "stages": 2,
+    "share_mean": 0.0,
+    "share_min": 0.0,
+    "share_max": 0.0,
+    "ok": false,
+    "pattern": "---------",
+    "all_or_nothing": true
+   },
+   "montpellier": {
+    "stages": 3,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "muenchen": {
+    "stages": 1,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "nuernberg": {
+    "stages": 5,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "paris": {
+    "stages": 2,
+    "share_mean": 0.0,
+    "share_min": 0.0,
+    "share_max": 0.0,
+    "ok": false,
+    "pattern": "------------",
+    "all_or_nothing": true
+   },
+   "passau": {
+    "stages": 2,
+    "share_mean": 0.0,
+    "share_min": 0.0,
+    "share_max": 0.0,
+    "ok": false,
+    "pattern": "---------",
+    "all_or_nothing": true
+   },
+   "pau": {
+    "stages": 2,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "posen": {
+    "stages": 2,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "prag": {
+    "stages": 3,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "regensburg": {
+    "stages": 2,
+    "share_mean": 0.0,
+    "share_min": 0.0,
+    "share_max": 0.0,
+    "ok": false,
+    "pattern": "---------",
+    "all_or_nothing": true
+   },
+   "riga": {
+    "stages": 1,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "rostock": {
+    "stages": 1,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "san_sebastian": {
+    "stages": 2,
+    "share_mean": 0.0,
+    "share_min": 0.0,
+    "share_max": 0.0,
+    "ok": false,
+    "pattern": "---------",
+    "all_or_nothing": true
+   },
+   "saragossa": {
+    "stages": 3,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "sibiu": {
+    "stages": 2,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "slavonski_brod": {
+    "stages": 2,
+    "share_mean": 0.0,
+    "share_min": 0.0,
+    "share_max": 0.0,
+    "ok": false,
+    "pattern": "---------",
+    "all_or_nothing": true
+   },
+   "sofia": {
+    "stages": 1,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "timisoara": {
+    "stages": 2,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "toulouse": {
+    "stages": 2,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "tours": {
+    "stages": 2,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "venedig": {
+    "stages": 2,
+    "share_mean": 0.0,
+    "share_min": 0.0,
+    "share_max": 0.0,
+    "ok": false,
+    "pattern": "--------",
+    "all_or_nothing": true
+   },
+   "warschau": {
+    "stages": 2,
+    "share_mean": 0.0,
+    "share_min": 0.0,
+    "share_max": 0.0,
+    "ok": false,
+    "pattern": "---------",
+    "all_or_nothing": true
+   },
+   "wien": {
+    "stages": 3,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPPP",
+    "all_or_nothing": true
+   },
+   "wuerzburg": {
+    "stages": 3,
+    "share_mean": 1.0,
+    "share_min": 1.0,
+    "share_max": 1.0,
+    "ok": false,
+    "pattern": "PPPPPPPPP",
+    "all_or_nothing": true
+   }
+  },
+  "cities_ok": 0,
+  "cities_n": 47,
+  "cities_full": 29,
+  "cities_none": 18,
+  "cobble_mean": 0.61,
+  "pairs_mismatch": 46,
+  "pairs": 61
+ },
+ "after": {
+  "countries": {
+   "DE": {
+    "km": 3950.6,
+    "concrete_km": 1371.9,
+    "share": 0.347,
+    "target": 0.35,
+    "ok": true,
+    "stage_rows": 31
+   },
+   "FR": {
+    "km": 1991.7,
+    "concrete_km": 205.0,
+    "share": 0.103,
+    "target": 0.1,
+    "ok": true,
+    "stage_rows": 10
+   },
+   "ES": {
+    "km": 1315.0,
+    "concrete_km": 120.0,
+    "share": 0.091,
+    "target": 0.1,
+    "ok": true,
+    "stage_rows": 7
+   },
+   "PL": {
+    "km": 760.0,
+    "concrete_km": 175.0,
+    "share": 0.23,
+    "target": 0.25,
+    "ok": true,
+    "stage_rows": 4
+   },
+   "RS": {
+    "km": 645.0,
+    "concrete_km": 40.0,
+    "share": 0.062,
+    "target": 0.1,
+    "ok": true,
+    "stage_rows": 3
+   },
+   "HU": {
+    "km": 520.0,
+    "concrete_km": 70.0,
+    "share": 0.135,
+    "target": 0.1,
+    "ok": true,
+    "stage_rows": 3
+   },
+   "RO": {
+    "km": 490.0,
+    "concrete_km": 50.0,
+    "share": 0.102,
+    "target": 0.1,
+    "ok": true,
+    "stage_rows": 3
+   },
+   "CZ": {
+    "km": 481.0,
+    "concrete_km": 190.0,
+    "share": 0.395,
+    "target": 0.4,
+    "ok": true,
+    "stage_rows": 3
+   },
+   "BE": {
+    "km": 450.0,
+    "concrete_km": 145.0,
+    "share": 0.322,
+    "target": 0.3,
+    "ok": true,
+    "stage_rows": 4
+   },
+   "CH": {
+    "km": 439.2,
+    "concrete_km": 25.0,
+    "share": 0.057,
+    "target": 0.1,
+    "ok": true,
+    "stage_rows": 2
+   },
+   "IT": {
+    "km": 428.0,
+    "concrete_km": 35.0,
+    "share": 0.082,
+    "target": 0.1,
+    "ok": true,
+    "stage_rows": 3
+   },
+   "NL": {
+    "km": 412.7,
+    "concrete_km": 25.0,
+    "share": 0.061,
+    "target": 0.1,
+    "ok": true,
+    "stage_rows": 2
+   },
+   "AT": {
+    "km": 374.0,
+    "concrete_km": 44.0,
+    "share": 0.118,
+    "target": 0.15,
+    "ok": true,
+    "stage_rows": 4
+   },
+   "HR": {
+    "km": 300.0,
+    "concrete_km": 45.0,
+    "share": 0.15,
+    "target": 0.1,
+    "ok": true,
+    "stage_rows": 2
+   },
+   "SI": {
+    "km": 190.0,
+    "concrete_km": 40.0,
+    "share": 0.211,
+    "target": 0.1,
+    "ok": false,
+    "stage_rows": 2
+   },
+   "LT": {
+    "km": 145.0,
+    "concrete_km": 0.0,
+    "share": 0.0,
+    "target": 0.1,
+    "ok": false,
+    "stage_rows": 2
+   },
+   "BG": {
+    "km": 5.0,
+    "concrete_km": 0.0,
+    "share": 0.0,
+    "target": 0.1,
+    "ok": false,
+    "stage_rows": 1
+   }
+  },
+  "countries_ok": 14,
+  "countries_n": 17,
+  "concrete_total": 0.2,
+  "concrete_target_total": 0.205,
+  "cities": {
+   "amsterdam": {
+    "stages": 2,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "-P--PP-PP",
+    "all_or_nothing": false
+   },
+   "barcelona": {
+    "stages": 2,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "-PP-P-P-P",
+    "all_or_nothing": false
+   },
+   "belgrad": {
+    "stages": 3,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "-PP---PPP",
+    "all_or_nothing": false
+   },
+   "bern": {
+    "stages": 2,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "P-PP---PP",
+    "all_or_nothing": false
+   },
+   "bialystok": {
+    "stages": 2,
+    "share_mean": 0.562,
+    "share_min": 0.5625,
+    "share_max": 0.5625,
+    "ok": true,
+    "pattern": "PP--PP-P-",
+    "all_or_nothing": false
+   },
+   "bordeaux": {
+    "stages": 2,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "PP--PP--P",
+    "all_or_nothing": false
+   },
+   "bremen": {
+    "stages": 4,
+    "share_mean": 0.562,
+    "share_min": 0.5625,
+    "share_max": 0.5625,
+    "ok": true,
+    "pattern": "P-P-PP-P-",
+    "all_or_nothing": false
+   },
+   "bruessel": {
+    "stages": 2,
+    "share_mean": 0.6,
+    "share_min": 0.6,
+    "share_max": 0.6,
+    "ok": true,
+    "pattern": "PP-PP-P-P-",
+    "all_or_nothing": false
+   },
+   "budapest": {
+    "stages": 3,
+    "share_mean": 0.562,
+    "share_min": 0.5625,
+    "share_max": 0.5625,
+    "ok": true,
+    "pattern": "PPP--P-P-",
+    "all_or_nothing": false
+   },
+   "bukarest": {
+    "stages": 1,
+    "share_mean": 0.64,
+    "share_min": 0.64,
+    "share_max": 0.64,
+    "ok": true,
+    "pattern": "--PPPPP-PP-P",
+    "all_or_nothing": false
+   },
+   "burgos": {
+    "stages": 2,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "-PPP-P--P",
+    "all_or_nothing": false
+   },
+   "calais": {
+    "stages": 1,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "-P-P--PPP",
+    "all_or_nothing": false
+   },
+   "dresden": {
+    "stages": 1,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "-P--PP-PP",
+    "all_or_nothing": false
+   },
+   "erfurt": {
+    "stages": 2,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "-PP-P--PP",
+    "all_or_nothing": false
+   },
+   "fulda": {
+    "stages": 2,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "PP--P--PP",
+    "all_or_nothing": false
+   },
+   "hamburg": {
+    "stages": 3,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "P--PP-P-P",
+    "all_or_nothing": false
+   },
+   "kaunas": {
+    "stages": 2,
+    "share_mean": 0.562,
+    "share_min": 0.5625,
+    "share_max": 0.5625,
+    "ok": true,
+    "pattern": "-P--PPPP-",
+    "all_or_nothing": false
+   },
+   "kiel": {
+    "stages": 2,
+    "share_mean": 0.562,
+    "share_min": 0.5625,
+    "share_max": 0.5625,
+    "ok": true,
+    "pattern": "-PPPPP---",
+    "all_or_nothing": false
+   },
+   "linz": {
+    "stages": 2,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "P---PP-PP",
+    "all_or_nothing": false
+   },
+   "ljubljana": {
+    "stages": 2,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "P-PPP---P",
+    "all_or_nothing": false
+   },
+   "luettich": {
+    "stages": 2,
+    "share_mean": 0.562,
+    "share_min": 0.5625,
+    "share_max": 0.5625,
+    "ok": true,
+    "pattern": "-PPPP-P--",
+    "all_or_nothing": false
+   },
+   "lyon": {
+    "stages": 2,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "---PPP-PP",
+    "all_or_nothing": false
+   },
+   "madrid": {
+    "stages": 2,
+    "share_mean": 0.64,
+    "share_min": 0.64,
+    "share_max": 0.64,
+    "ok": true,
+    "pattern": "PPP-PP--PP-P",
+    "all_or_nothing": false
+   },
+   "mailand": {
+    "stages": 2,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "--P-PPP-P",
+    "all_or_nothing": false
+   },
+   "montpellier": {
+    "stages": 3,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "P-PP-P--P",
+    "all_or_nothing": false
+   },
+   "muenchen": {
+    "stages": 1,
+    "share_mean": 0.6,
+    "share_min": 0.6,
+    "share_max": 0.6,
+    "ok": true,
+    "pattern": "PP-PP-P-P-",
+    "all_or_nothing": false
+   },
+   "nuernberg": {
+    "stages": 5,
+    "share_mean": 0.562,
+    "share_min": 0.5625,
+    "share_max": 0.5625,
+    "ok": true,
+    "pattern": "--P-PPPP-",
+    "all_or_nothing": false
+   },
+   "paris": {
+    "stages": 2,
+    "share_mean": 0.64,
+    "share_min": 0.64,
+    "share_max": 0.64,
+    "ok": true,
+    "pattern": "P--PPPPP-P-P",
+    "all_or_nothing": false
+   },
+   "passau": {
+    "stages": 2,
+    "share_mean": 0.562,
+    "share_min": 0.5625,
+    "share_max": 0.5625,
+    "ok": true,
+    "pattern": "P--P-PPP-",
+    "all_or_nothing": false
+   },
+   "pau": {
+    "stages": 2,
+    "share_mean": 0.562,
+    "share_min": 0.5625,
+    "share_max": 0.5625,
+    "ok": true,
+    "pattern": "PP--P-PP-",
+    "all_or_nothing": false
+   },
+   "posen": {
+    "stages": 2,
+    "share_mean": 0.562,
+    "share_min": 0.5625,
+    "share_max": 0.5625,
+    "ok": true,
+    "pattern": "P-PP-P-P-",
+    "all_or_nothing": false
+   },
+   "prag": {
+    "stages": 3,
+    "share_mean": 0.562,
+    "share_min": 0.5625,
+    "share_max": 0.5625,
+    "ok": true,
+    "pattern": "PPPP-P---",
+    "all_or_nothing": false
+   },
+   "regensburg": {
+    "stages": 2,
+    "share_mean": 0.562,
+    "share_min": 0.5625,
+    "share_max": 0.5625,
+    "ok": true,
+    "pattern": "P-P-P-PP-",
+    "all_or_nothing": false
+   },
+   "riga": {
+    "stages": 1,
+    "share_mean": 0.562,
+    "share_min": 0.5625,
+    "share_max": 0.5625,
+    "ok": true,
+    "pattern": "-P-PPP-P-",
+    "all_or_nothing": false
+   },
+   "rostock": {
+    "stages": 1,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "P----PPPP",
+    "all_or_nothing": false
+   },
+   "san_sebastian": {
+    "stages": 2,
+    "share_mean": 0.562,
+    "share_min": 0.5625,
+    "share_max": 0.5625,
+    "ok": true,
+    "pattern": "-PP--PPP-",
+    "all_or_nothing": false
+   },
+   "saragossa": {
+    "stages": 3,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "PPP----PP",
+    "all_or_nothing": false
+   },
+   "sibiu": {
+    "stages": 2,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "-P---PPPP",
+    "all_or_nothing": false
+   },
+   "slavonski_brod": {
+    "stages": 2,
+    "share_mean": 0.562,
+    "share_min": 0.5625,
+    "share_max": 0.5625,
+    "ok": true,
+    "pattern": "PP--PP-P-",
+    "all_or_nothing": false
+   },
+   "sofia": {
+    "stages": 1,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "P----PPPP",
+    "all_or_nothing": false
+   },
+   "timisoara": {
+    "stages": 2,
+    "share_mean": 0.562,
+    "share_min": 0.5625,
+    "share_max": 0.5625,
+    "ok": true,
+    "pattern": "P-PP-P-P-",
+    "all_or_nothing": false
+   },
+   "toulouse": {
+    "stages": 2,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "-P--PPP-P",
+    "all_or_nothing": false
+   },
+   "tours": {
+    "stages": 2,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "P---P-PPP",
+    "all_or_nothing": false
+   },
+   "venedig": {
+    "stages": 2,
+    "share_mean": 0.591,
+    "share_min": 0.5909,
+    "share_max": 0.5909,
+    "ok": true,
+    "pattern": "P-P-PP-P",
+    "all_or_nothing": false
+   },
+   "warschau": {
+    "stages": 2,
+    "share_mean": 0.55,
+    "share_min": 0.55,
+    "share_max": 0.55,
+    "ok": true,
+    "pattern": "--PPPP--P",
+    "all_or_nothing": false
+   },
+   "wien": {
+    "stages": 3,
+    "share_mean": 0.6,
+    "share_min": 0.6,
+    "share_max": 0.6,
+    "ok": true,
+    "pattern": "--PPPPP-P-",
+    "all_or_nothing": false
+   },
+   "wuerzburg": {
+    "stages": 3,
+    "share_mean": 0.562,
+    "share_min": 0.5625,
+    "share_max": 0.5625,
+    "ok": true,
+    "pattern": "P--P-PPP-",
+    "all_or_nothing": false
+   }
+  },
+  "cities_ok": 47,
+  "cities_n": 47,
+  "cities_full": 0,
+  "cities_none": 0,
+  "cobble_mean": 0.563,
+  "pairs_mismatch": 46,
+  "pairs": 61
+ }
+}

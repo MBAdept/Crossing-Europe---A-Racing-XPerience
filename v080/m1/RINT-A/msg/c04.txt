@@ -1,0 +1,10 @@
+v0.8.0 RINT-A: ferne Requisiten blenden am Ende der Sicht aus (helle Rauten am Horizont)
+
+Die hellen Rauten am Horizont von S1 (AS1b) sind die Fernbilder ferner Bäume:
+jenseits des Nebelendes reine Nebelfarbe vor den dunstigen Silhouetten des
+Hintergrunds (gemessen: ohne Fernbild-Knoten verschwinden sie, ohne
+Kontaktschatten nicht). billboard und leaves blenden zwischen 0,85 und 1,0 des
+Nebelendes mit geordnetem Dither aus, wie Arcades Sprites am Ende der Sicht.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

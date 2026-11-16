@@ -1,0 +1,14 @@
+Kombi (2,0 l R4 Turbodiesel) – derselbe Fahrablauf, abwechselnd mit dem Motor des Profils Arcade und dem Motor v3 des Profils Modern,
+jeweils im Spiel über die Busse des Profils aufgenommen (nur der Motor mit seinen Fahrzeugebenen, ohne Wind, Reifen, Verkehr).
+Für den Vergleich pegelgleich gemacht: Modern um 3.8 dB abgesenkt (im Spiel ist der Motor von Modern über die ganze Fahrt lauter:
+Arcade -23.2 LUFS, Modern -19.4 LUFS; Modern folgt dem Pegelplan, Vollgas −16 LUFS mit Wind).
+Niemand hat diese Datei gehört; sie ist aus den Aufnahmen geschnitten und nur gemessen.
+
+   0.0 –    7.2 s  ARCADE  Start, Leerlauf, zwei Gasstöße im Stand
+   7.5 –   14.7 s  MODERN  Start, Leerlauf, zwei Gasstöße im Stand
+  15.4 –   35.5 s  ARCADE  Vollgas durch die Gänge
+  35.8 –   55.9 s  MODERN  Vollgas durch die Gänge
+  56.6 –   67.4 s  ARCADE  Reisetempo 200 km/h, Gas weg, Bremsen mit Rückschalten
+  67.8 –   78.6 s  MODERN  Reisetempo 200 km/h, Gas weg, Bremsen mit Rückschalten
+  79.3 –   96.6 s  ARCADE  130 km/h, Kick-down, Gas weg, Anhalten
+  96.9 –  114.2 s  MODERN  130 km/h, Kick-down, Gas weg, Anhalten

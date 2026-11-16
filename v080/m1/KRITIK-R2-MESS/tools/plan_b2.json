@@ -1,0 +1,103 @@
+{
+ "segments": [
+  {
+   "name": "c_conc130_slab",
+   "km": 42.0,
+   "kmh": 130.0,
+   "throttle": 0.35,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 20.0,
+   "paving": "concrete",
+   "nd": true,
+   "slabonly": true
+  },
+  {
+   "name": "c_conc130_road",
+   "km": 42.0,
+   "kmh": 130.0,
+   "throttle": 0.35,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 20.0,
+   "paving": "concrete",
+   "nd": true
+  },
+  {
+   "name": "c_conc130_tyre",
+   "km": 42.0,
+   "kmh": 130.0,
+   "throttle": 0.35,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 20.0,
+   "paving": "concrete",
+   "nd": true,
+   "noslab": true
+  },
+  {
+   "name": "c_cobbles50_road",
+   "km": 87.3,
+   "kmh": 50.0,
+   "throttle": 0.25,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 20.0,
+   "paving": "cobbles",
+   "nd": true
+  },
+  {
+   "name": "c_conc130_full",
+   "km": 42.0,
+   "kmh": 130.0,
+   "throttle": 0.35,
+   "x": 1.875,
+   "mute": [],
+   "seconds": 20.0,
+   "paving": "concrete",
+   "nd": true
+  },
+  {
+   "name": "c_cobbles50_full",
+   "km": 87.3,
+   "kmh": 50.0,
+   "throttle": 0.25,
+   "x": 1.875,
+   "mute": [],
+   "seconds": 20.0,
+   "paving": "cobbles",
+   "nd": true
+  },
+  {
+   "name": "c_asph130_road",
+   "km": 15.0,
+   "kmh": 130.0,
+   "throttle": 0.35,
+   "x": 1.875,
+   "mute": [
+    "MEngine",
+    "MEngineFx",
+    "MWind"
+   ],
+   "seconds": 20.0,
+   "paving": "asphalt",
+   "nd": true
+  }
+ ]
+}

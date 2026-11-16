@@ -1,0 +1,42 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/farmhouse",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 11.9, "height_m": 8.6, "length_m": 17},
+  "extent_m": {"left": 12.53, "right": 5.62},
+  "aabb": [-5.95, 0, -17.45, 5.95, 8.9, 0.45],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 104,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/farmhouse/lod0_body.res",
+      "classes": ["baked"]
+     }
+    ]
+   }
+  ],
+  "lights": [
+   {
+    "role": "lights",
+    "pos": [3, 3.2, 0.12],
+    "size": 0.686,
+    "color": "#ffd890"
+   }
+  ],
+  "textures": {"albedo": "props/farmhouse/albedo.png", "emit": "props/farmhouse/emit.png"},
+  "roughness": 0.9,
+  "auto_lod": true,
+  "tags": ["prop", "building", "mirror_left"],
+  "bytes": 755381,
+  "hash": "f7530a479e1e585507c66fdf0b0a70e48e94a104"
+ },
+ "sets": {
+  "props/farmhouse": {"model": "props/farmhouse"}
+ }
+}

@@ -1,0 +1,16 @@
+v0.8.0 RINT-M2: Stützen-Entscheid der Tankstellendächer auf einem Arbeitsfaden (A-18, NACH-R6 N-01/N-02)
+
+Gemessen (DEV, „Steam Deck“, llvmpipe unter Last): collect() der Tankstelle
+bis 3,4 ms in einem Bild (Mittel 0,2 ms), über dem Budget von 2 ms je Bild.
+Jetzt sammelt der Hauptfaden nur noch, was der Entscheid aus Strecke und
+Geländeprofil liest (CanopyJob: Schilder und Tafeln, Krümmung der Segmente,
+Spuren an jedem Kamerapunkt, Kanten, Korridor-Merker jeder Kandidatenstelle);
+die Sichtlinien rechnet ein Arbeitsfaden, gestartet, wenn collect() ein Dach
+vorausschaut (WARM_AHEAD_M). Der Job rechnet auf einem eigenen Pfad ab dem
+ersten Segment, das er braucht – deckungsgleich mit dem Pfad des Streamers,
+also unabhängig davon, wo das Rennen begann (N-01). canopy_columns() führt
+denselben Job sofort aus (Tests, erstes Dach). Netzweit dieselben Stützen wie
+vorher (scan_f1: 3486 Stützen, gleiche Verdeckungszählung, gemessen).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

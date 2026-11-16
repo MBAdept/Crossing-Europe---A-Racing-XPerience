@@ -1,0 +1,11 @@
+| `city_german_house` | 11,2 / 14,9 %, Helligkeit +2,6 % | 8,8 / 10,9 %, Helligkeit +4,0 % |
+| `city_german_mietshaus` | 14,1 / 20,2 %, Helligkeit -1,3 % | 10,7 / 15,3 %, Helligkeit +2,3 % |
+| `city_german_gruenderzeit` | 17,9 / 22,3 %, Helligkeit -1,1 % | 13,8 / 19,2 %, Helligkeit +4,5 % |
+| `city_german_office` | 2,8 / 2,9 %, Helligkeit -0,1 % | 3,9 / 4,9 %, Helligkeit +1,9 % |
+| `city_german_old_fachwerk` | 31,7 / 45,2 %, Helligkeit +4,6 % | 23,7 / 28,9 %, Helligkeit +8,9 % |
+| `city_german_old_fachwerk_b` | 17,3 / 19,7 %, Helligkeit +2,8 % | 9,9 / 13,8 %, Helligkeit +5,9 % |
+| `city_german_old_barock` | 17,6 / 23,3 %, Helligkeit -1,7 % | 13,8 / 18,4 %, Helligkeit +1,7 % |
+| `city_hanse_gabled` | 15,3 / 20,6 %, Helligkeit -2,2 % | 10,1 / 15,0 %, Helligkeit +1,5 % |
+| `city_hanse_kontor` | 25,6 / 29,0 %, Helligkeit -1,6 % | 18,6 / 25,1 %, Helligkeit +9,1 % |
+| `city_hanse_speicher` | 18,4 / 24,9 %, Helligkeit -1,1 % | 14,8 / 17,1 %, Helligkeit +4,1 % |
+| `city_hanse_crane` | 2,0 / 2,2 %, Helligkeit -0,0 % | 2,2 / 2,5 %, Helligkeit +6,7 % |

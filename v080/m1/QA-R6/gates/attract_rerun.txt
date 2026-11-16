@@ -1,0 +1,6 @@
+mut run 1 load 16.62: CHECK idle         OK      Demo 1.00 s nach der letzten Eingabe (idle_s 1) CHECKS OK  (0 fehlgeschlagen, 34 s) 
+base run 1 load 17.49: CHECK idle         OK      Demo 1.00 s nach der letzten Eingabe (idle_s 1) CHECKS OK  (0 fehlgeschlagen, 34 s) 
+mut run 2 load 16.99: CHECK idle         OK      Demo 1.00 s nach der letzten Eingabe (idle_s 1) CHECKS OK  (0 fehlgeschlagen, 34 s) 
+base run 2 load 16.95: CHECK idle         OK      Demo 1.01 s nach der letzten Eingabe (idle_s 1) CHECKS OK  (0 fehlgeschlagen, 33 s) 
+mut run 3 load 17.04: CHECK idle         OK      Demo 1.00 s nach der letzten Eingabe (idle_s 1) CHECKS OK  (0 fehlgeschlagen, 33 s) 
+base run 3 load 16.81: CHECK idle         OK      Demo 1.13 s nach der letzten Eingabe (idle_s 1) CHECKS OK  (0 fehlgeschlagen, 35 s) 

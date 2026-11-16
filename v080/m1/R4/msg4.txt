@@ -1,0 +1,12 @@
+v0.8.0 R4 (WIP): Mond von oben, Nachtanhebung der Fahrbahn, Lackform, Überblendung lod0
+
+Nachtgesetz für senkrechte Flächen: Mondlicht aus mindestens 55° (Wände bekommen
+höchstens 0,7 × das Mondlicht des Bodens). Fahrbahn nachts +8 % (N1 lag 3–4 %
+unter Arcade). Fahrzeuglack: Halbkugel-Umgebungslicht (senkrecht 0,72, unten 0,5)
+und Fülllicht nur im Schatten (GT im Regen +50 % gegen das Sprite). lod0 blendet
+wie lod1/lod2 über (Glas mit xfade). Lichtdeckel-Prüfung mit C1 als dritter
+Nachtetappe. Gischt weniger rot, Spiegelungen kräftiger, Teilchen im Kegel
+nur nah hell.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

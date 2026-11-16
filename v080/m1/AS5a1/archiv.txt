@@ -1,0 +1,1 @@
+Netze 0,79 MB und Texturen 5,25 MB im Archiv (deflate -9 je Datei wie tools/pck_report.py; Anteil der Charge: höchstens 3 MB / 7 MB)

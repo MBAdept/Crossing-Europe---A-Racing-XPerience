@@ -1,0 +1,9 @@
+v0.8.0 QA1 (WIP): Clip mit Bitratenkappe, Rauchtest auch über OpenGL ES, Entwurf docs/qa-v080.md
+
+- tools/ab_clip.sh: H.264 mit Obergrenze der Bitrate aus MAX_MB und CLIP_S (ein Durchgang reicht),
+  Ladebild bis 120 s gesucht
+- tools/smoke_modern.sh: DRIVER=opengl3_es für den Linux-Export (der Weg, den ANGLE unter Windows nimmt)
+- docs/qa-v080.md: Tore, beide Arcade-Listen, Änderungsmelder für Modern, Bilder und Clips, Testbuilds (Entwurf)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

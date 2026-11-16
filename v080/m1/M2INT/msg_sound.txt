@@ -1,0 +1,15 @@
+v0.8.0 M2INT: Modern-Klang von M2 zusammengeführt (AU-R4: AU-D2, AU-C1, AU-R, AU-R2, AU-R3)
+
+Zusammenführung von f253687 (Kopf AU-R4, enthält AU-D2, AU-C1, AU-R, AU-R2, AU-R3; unabhängige
+Nachprüfung KRITIK-R3: zusammenführbar): Rennstücke 2 und 3 („Nachtfahrt“, „Rückenwind“), Zwischenspiel,
+Stinger, UI-Klänge; Rollgeräusch je Belag und Seite, Reifen, Wind, Aufprall, Begrenzer nur im Profil
+Modern, Feed v1; Nacharbeit nach dem Hörurteil des Nutzers („solide“, Musik „sehr gut“).
+
+Konflikt docs/audio-modern.md §1: der Text von FIX1 zur Einstellung „Klang“ bleibt, die neuen Absätze
+von AU-D2, AU-C1 und AU-R3 kommen dazu; der überholte Satz „Niemand schaltet das Profil bisher im Spiel
+um …“ entfällt.
+
+Gemessen: Import ohne Fehler, config/game_config.json gültig, Klang-Tests 172 von 172 (Filter „audio“).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

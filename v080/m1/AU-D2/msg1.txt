@@ -1,0 +1,15 @@
+v0.8.0 AU-D2: Musik-Kette für Stücke 2–3, Stinger und gemeinsame Mischung (WIP)
+
+- tools/audio/music/mischung.json: gemeinsame Mischentscheidungen aller Stücke (Sub, Bass, Höhen,
+  Pegel im Manifest); alle Werte 0 = bitgleich zu den Dateien von AU-D1 (Titel und Linke Spur
+  nachgerendert: gleiche sha256)
+- music_lib: Mixer zeichnet seine Pegelentscheidungen auf (fit) und mischt andere Zeitleisten
+  damit (ref); Master.post_at/state
+- race_lib: gemeinsame Rennstück-Kette (Voicings, Zeitleiste, Render-Schleife, RacePiece) und die
+  Zusatzclips je Stück (Ziel-Schlag, Schluss Rekord/Finale, Stinger Polizei/Tank)
+- nachtfahrt.py (c-Moll, 112 bpm) und rueckenwind.py (A-Dur, 144 bpm): Partituren
+- linke_spur.py: Zusatzclips über race_lib, Manifest mit Rotation und Varianten
+- MusicDirector: Reihenfolge der Rennstücke, Zwischenspiel, Schluss-Varianten, Stinger (WIP)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

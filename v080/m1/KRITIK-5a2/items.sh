@@ -1,0 +1,10 @@
+# KRITIK-5a2 item specs (anchor x = edge (centre 7 m, outskirts 13 m) + extent_l * scale)
+DUT="props/city_dutch_canal@20.8;props/city_dutch_canal_b@21.1;props/city_dutch_terrace@26.6"
+BEL="props/city_belgian_terrace@21.1;props/city_belgian_stone@16.1"
+FRA="props/city_french_sud@24.2;props/city_french_maison@25.2;props/city_french_immeuble@19.1"
+PAR="props/city_paris_haussmann@23.5;props/city_paris_corner@23.9"
+SWI="props/city_swiss_chalet@24.5;props/city_swiss_laube@22.4"
+ALL12="props/city_dutch_canal,props/city_dutch_canal_b,props/city_dutch_terrace,props/city_belgian_terrace,props/city_belgian_stone,props/city_french_maison,props/city_french_sud,props/city_french_immeuble,props/city_paris_haussmann,props/city_paris_corner,props/city_swiss_chalet,props/city_swiss_laube"
+SPAR="props/city_paris_haussmann@23.5;props/city_paris_haussmann@-23.5;props/city_paris_corner@23.9;props/city_paris_haussmann@-24.3*1.05;props/city_paris_haussmann@24.3*1.05;props/city_paris_corner@-23.9"
+SAMS="props/city_dutch_canal@20.8;props/city_dutch_canal_b@-21.1;props/city_dutch_canal_b@21.1;props/city_dutch_canal@-20.8;props/city_dutch_canal@21.6*1.05;props/city_dutch_canal_b@-21.6*1.05"
+SBER="props/city_swiss_laube@22.4;props/city_swiss_laube@-22.4;props/city_swiss_laube@23.4*1.05;props/city_swiss_laube@-23.4*1.05"

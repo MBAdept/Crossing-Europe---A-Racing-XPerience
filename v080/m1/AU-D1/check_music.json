@@ -1,0 +1,215 @@
+{
+ "title": {
+  "bars": 108,
+  "same_root": 97,
+  "same_root_frac": 0.898,
+  "chroma_cos_median": 0.97,
+  "chroma_cos_min": 0.651,
+  "chroma_cos_ge_085": 0.944,
+  "original_vs_score": 0.944,
+  "remaster_vs_score": 0.907,
+  "key_original": "E-Moll",
+  "key_remaster": "G-Dur (= E-Moll)",
+  "differences": [
+   {
+    "bar": 6,
+    "section": "intro",
+    "score": "Am",
+    "original": "F#m",
+    "remaster": "C",
+    "same_root": false,
+    "chroma_cos": 0.728
+   },
+   {
+    "bar": 8,
+    "section": "intro",
+    "score": "B",
+    "original": "B",
+    "remaster": "C",
+    "same_root": false,
+    "chroma_cos": 0.931
+   },
+   {
+    "bar": 17,
+    "section": "verse1",
+    "score": "Em",
+    "original": "Bm",
+    "remaster": "Em",
+    "same_root": false,
+    "chroma_cos": 0.916
+   },
+   {
+    "bar": 22,
+    "section": "verse1",
+    "score": "Em",
+    "original": "Bm",
+    "remaster": "Em",
+    "same_root": false,
+    "chroma_cos": 0.714
+   },
+   {
+    "bar": 30,
+    "section": "verse1",
+    "score": "Em",
+    "original": "Bm",
+    "remaster": "Em",
+    "same_root": false,
+    "chroma_cos": 0.977
+   },
+   {
+    "bar": 33,
+    "section": "pre1",
+    "score": "Am",
+    "original": "Am",
+    "remaster": "C",
+    "same_root": false,
+    "chroma_cos": 0.932
+   },
+   {
+    "bar": 34,
+    "section": "pre1",
+    "score": "Am",
+    "original": "A",
+    "remaster": "Em",
+    "same_root": false,
+    "chroma_cos": 0.952
+   },
+   {
+    "bar": 39,
+    "section": "pre1",
+    "score": "B",
+    "original": "B",
+    "remaster": "G",
+    "same_root": false,
+    "chroma_cos": 0.776
+   },
+   {
+    "bar": 57,
+    "section": "pre2",
+    "score": "Am",
+    "original": "Am",
+    "remaster": "C",
+    "same_root": false,
+    "chroma_cos": 0.96
+   },
+   {
+    "bar": 58,
+    "section": "pre2",
+    "score": "Am",
+    "original": "A",
+    "remaster": "Em",
+    "same_root": false,
+    "chroma_cos": 0.989
+   },
+   {
+    "bar": 108,
+    "section": "outro",
+    "score": "B",
+    "original": "B",
+    "remaster": "C",
+    "same_root": false,
+    "chroma_cos": 0.932
+   }
+  ],
+  "ok": true
+ },
+ "race": {
+  "bars": 97,
+  "root_hits": 85,
+  "root_frac": 0.876,
+  "key": "D-Moll",
+  "misses": [
+   {
+    "bar": 0,
+    "phrase": "in",
+    "j": 0,
+    "score": "A",
+    "heard": "C"
+   },
+   {
+    "bar": 31,
+    "phrase": "P1",
+    "j": 6,
+    "score": "A",
+    "heard": "Em"
+   },
+   {
+    "bar": 32,
+    "phrase": "P1",
+    "j": 7,
+    "score": "A",
+    "heard": "Em"
+   },
+   {
+    "bar": 41,
+    "phrase": "D",
+    "j": 0,
+    "score": "Bb",
+    "heard": "Dm"
+   },
+   {
+    "bar": 45,
+    "phrase": "D",
+    "j": 4,
+    "score": "Bb",
+    "heard": "Dm"
+   },
+   {
+    "bar": 48,
+    "phrase": "D",
+    "j": 7,
+    "score": "A",
+    "heard": "Em"
+   },
+   {
+    "bar": 58,
+    "phrase": "P2",
+    "j": 1,
+    "score": "Gm",
+    "heard": "D"
+   },
+   {
+    "bar": 63,
+    "phrase": "P2",
+    "j": 6,
+    "score": "A",
+    "heard": "Em"
+   },
+   {
+    "bar": 64,
+    "phrase": "P2",
+    "j": 7,
+    "score": "A",
+    "heard": "Em"
+   },
+   {
+    "bar": 83,
+    "phrase": "T",
+    "j": 2,
+    "score": "Bb",
+    "heard": "Dm"
+   },
+   {
+    "bar": 87,
+    "phrase": "T",
+    "j": 6,
+    "score": "A",
+    "heard": "C#m"
+   },
+   {
+    "bar": 88,
+    "phrase": "T",
+    "j": 7,
+    "score": "A",
+    "heard": "Em"
+   }
+  ],
+  "ending": [
+   "A#",
+   "C",
+   "Dm"
+  ],
+  "ending_ok": true,
+  "ok": true
+ }
+}

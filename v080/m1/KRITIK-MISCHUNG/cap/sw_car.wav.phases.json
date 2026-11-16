@@ -1,0 +1,106 @@
+{
+ "file": "sw_car.wav",
+ "vehicle": "sportwagen",
+ "mute": [
+  "MMusic"
+ ],
+ "phases": {
+  "idle": {
+   "t0": 2.0,
+   "t1": 4.202,
+   "lufs": -24.24,
+   "st_median": -24.2,
+   "st_max": -23.82,
+   "tp": -14.44,
+   "duck_med": 0.0,
+   "car_plan_med": -24.0,
+   "kmh": 0.0,
+   "throttle": 0.0
+  },
+  "v80": {
+   "t0": 7.002,
+   "t1": 16.218,
+   "lufs": -19.14,
+   "st_median": -18.88,
+   "st_max": -18.57,
+   "tp": -11.25,
+   "duck_med": -1.948,
+   "car_plan_med": -20.4,
+   "kmh": 80.0,
+   "throttle": 0.3
+  },
+  "v130": {
+   "t0": 19.019,
+   "t1": 28.235,
+   "lufs": -19.87,
+   "st_median": -19.68,
+   "st_max": -19.3,
+   "tp": -11.57,
+   "duck_med": -2.51,
+   "car_plan_med": -19.65,
+   "kmh": 130.0,
+   "throttle": 0.3
+  },
+  "v130_full": {
+   "t0": 31.035,
+   "t1": 38.251000000000005,
+   "lufs": -17.75,
+   "st_median": -17.74,
+   "st_max": -17.55,
+   "tp": -9.38,
+   "duck_med": -4.5,
+   "car_plan_med": -16.0,
+   "kmh": 130.0,
+   "throttle": 1.0
+  },
+  "v200_full": {
+   "t0": 41.122,
+   "t1": 50.323,
+   "lufs": -15.06,
+   "st_median": -15.17,
+   "st_max": -14.72,
+   "tp": -7.05,
+   "duck_med": -4.5,
+   "car_plan_med": -16.0,
+   "kmh": 200.0,
+   "throttle": 1.0
+  },
+  "v250_full": {
+   "t0": 53.191,
+   "t1": 62.391000000000005,
+   "lufs": -15.26,
+   "st_median": -15.3,
+   "st_max": -15.1,
+   "tp": -4.75,
+   "duck_med": -4.5,
+   "car_plan_med": -16.0,
+   "kmh": 250.0,
+   "throttle": 1.0
+  },
+  "lift": {
+   "t0": 63.391000000000005,
+   "t1": 67.008,
+   "lufs": -20.73,
+   "st_median": -20.95,
+   "st_max": -20.81,
+   "tp": -11.33,
+   "duck_med": -1.535,
+   "car_plan_med": -21.0,
+   "kmh": 160.0,
+   "throttle": 0.0
+  },
+  "v130_back": {
+   "t0": 69.208,
+   "t1": 74.424,
+   "lufs": -20.21,
+   "st_median": -20.24,
+   "st_max": -20.15,
+   "tp": -11.26,
+   "duck_med": -2.51,
+   "car_plan_med": -19.65,
+   "kmh": 130.0,
+   "throttle": 0.3
+  }
+ },
+ "integrated": -17.54
+}

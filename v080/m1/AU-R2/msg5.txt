@@ -1,0 +1,9 @@
+v0.8.0 AU-R2: Konfigurationsbeschreibung der Plattenschlüssel, Modellzahl in Doku und Generator genauer
+
+- config/game_config.json audio._doc_modern: slabs.high_kmh / high_slope_db beschrieben.
+- docs 15.10 und vehicle_loops.py: das Modell trifft +1,72 statt +1,75 dB bei 398 Hz; von 64 Paaren neuer
+  Zufallsmuster lag keines bei 120–140 km/h innerhalb 1 dB.
+- audio_qc (vehicle, sfx, mit Determinismus): 59 Klänge, 0 Fehler; alle Ordner: 98 Klänge, 19,0 von 23 MB.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

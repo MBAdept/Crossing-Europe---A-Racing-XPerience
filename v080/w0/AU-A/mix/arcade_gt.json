@@ -1,0 +1,43 @@
+{
+	"engine": {
+		"avg_ms": 1.95864640883978,
+		"frames": 543,
+		"max_ms": 6.771,
+		"samples": 1510496,
+		"skips": 0
+	},
+	"master_db": -1.93820023536682,
+	"mix_rate": 44100,
+	"phases": [
+		{
+			"name": "idle",
+			"t0": 1.505,
+			"t1": 3.016
+		},
+		{
+			"name": "full_throttle",
+			"t0": 4.016,
+			"t1": 29.898
+		},
+		{
+			"name": "flat_out",
+			"t0": 29.898,
+			"t1": 35.915
+		},
+		{
+			"name": "lift",
+			"t0": 35.915,
+			"t1": 38.931
+		},
+		{
+			"name": "cruise_130",
+			"t0": 40.931,
+			"t1": 47.948
+		}
+	],
+	"placeholders": false,
+	"profile": "arcade",
+	"scenario": "drive",
+	"seconds": 47.95,
+	"vehicle": "gran_turismo"
+}

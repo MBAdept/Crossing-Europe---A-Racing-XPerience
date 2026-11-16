@@ -1,0 +1,5 @@
+OBJ ft_antenna|MESH|0|1|0|ROOT               v247    lv 963b1eb5 ls 4558013b mi d00044a7 sm 9544a343 cn 7fe72051 slots ft_antenna  mods 
+OBJ ft_pavilion|MESH|0|1|0|ROOT              v228    lv 8205b08a ls f5fbb9e3 mi 14e86149 sm 7686dac4 cn 3e68ea80 slots ft_pavilion  mods 
+OBJ ft_red|MESH|0|1|0|ROOT                   v276    lv 0b615148 ls ca49f780 mi 8f4d1ed9 sm f7c77b23 cn fa34f10e slots ft_red  mods 
+OBJ ft_shaft|MESH|0|1|0|ROOT                 v385    lv 9c3061e1 ls af4f8fac mi 15bd7f16 sm a9c9467b cn ecc94a78 slots ft_concrete  mods 
+OBJ ft_sphere|MESH|0|1|0|ROOT                v1298   lv 7fa589a5 ls adb7aef0 mi d86174cb sm d892bf73 cn 20125e46 slots ft_sphere  mods 

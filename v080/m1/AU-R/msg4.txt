@@ -1,0 +1,16 @@
+v0.8.0 AU-R: Schleifen an die Klangbalance von AU-C1 angeglichen, Pflaster je Altstadt genau, schwerer Schlag leiser (WIP)
+
+- vehicle_loops.py: match_loop gleicht jede neue Schleife (beide Seiten, beide
+  Plattenmuster) in 1/12-Oktav-Bändern an die Schleife von AU-C1 an (kreisförmig,
+  nahtlos). Gemessen bei den Bezugstempi: Terzen höchstens 1,0 dB daneben
+  (vorher bis 3,5 dB beim Pflaster rechts).
+- AudioFeed.cobbled_blocks: jede Altstadt bekommt ihren Pflasteranteil auf einen
+  halben Block genau, der Hash wählt nur die Blöcke. Gemessen über alle Etappen:
+  47 Altstädte 0,55-0,64 (nur Hash: 0,34-0,90; AU-C1: 29 ganz, 18 gar nicht).
+- Aufprall schwer: hit_heavy -9,0 -> -11,5 dB, Lkw-Schlag -10,0 -> -11,0 dB.
+  Gemessen bei 130 km/h Schließgeschwindigkeit, Gesamtlautstärke 1,0: Begrenzer
+  höchstens 2,4 dB (24 Unfälle; vorher 4,0), Lkw 2,1 dB (16).
+- QC grün (59 Klänge, Generatoren deterministisch), audio_modern 122 Tests grün.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,4 @@
+STUFEN props/tree_oak  lod0@60m rgb(60,103,32) 11980 px  lod1@60m rgb(59,103,31) 12314 px  lod1@200m rgb(67,111,37) 1093 px  impostor@200m rgb(63,107,35) 1018 px
+STUFEN props/tree_oak_b  lod0@60m rgb(60,102,32) 11100 px  lod1@60m rgb(59,101,30) 11163 px  lod1@200m rgb(65,107,35) 978 px  impostor@200m rgb(62,105,34) 922 px
+STUFEN props/tree_birch  lod0@60m rgb(103,144,56) 4088 px  lod1@60m rgb(106,148,56) 3950 px  lod1@200m rgb(112,154,64) 342 px  impostor@200m rgb(111,154,67) 367 px
+STUFEN props/tree_birch_b  lod0@60m rgb(111,154,60) 3827 px  lod1@60m rgb(113,156,61) 3808 px  lod1@200m rgb(119,161,71) 334 px  impostor@200m rgb(114,159,68) 346 px

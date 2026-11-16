@@ -1,0 +1,35 @@
+prop_scene: Renn-Licht 12 Uhr, normal, Voreinstellung medium, Sicht 900 m, Stufen 60 / 200 m
+SZENE props/tree_palm 15 m lod0 696x756 px
+SZENE props/tree_palm 40 m lod0 180x226 px
+SZENE props/tree_palm 100 m lod1 62x84 px
+SZENE props/tree_palm 250 m impostor 24x33 px
+SZENE props/tree_palm 15 m sprite 696x756 px
+SZENE props/tree_palm 40 m sprite 180x226 px
+SZENE props/tree_palm 100 m sprite 62x84 px
+SZENE props/tree_palm 250 m sprite 24x33 px
+SZENE props/tree_palm_b 15 m lod0 695x726 px
+SZENE props/tree_palm_b 40 m lod0 188x224 px
+SZENE props/tree_palm_b 100 m lod1 66x84 px
+SZENE props/tree_palm_b 250 m impostor 25x33 px
+SZENE props/tree_palm_b 15 m sprite 695x726 px
+SZENE props/tree_palm_b 40 m sprite 188x224 px
+SZENE props/tree_palm_b 100 m sprite 66x84 px
+SZENE props/tree_palm_b 250 m sprite 25x33 px
+SZENE props/bush_round 15 m lod0 265x178 px
+SZENE props/bush_round 40 m lod0 74x59 px
+SZENE props/bush_round 100 m lod1 26x23 px
+SZENE props/bush_round 250 m lod1 10x9 px
+SZENE props/bush_round 15 m sprite 265x178 px
+SZENE props/bush_round 40 m sprite 74x59 px
+SZENE props/bush_round 100 m sprite 26x23 px
+SZENE props/bush_round 250 m sprite 10x9 px
+SZENE props/bush_round_b 15 m lod0 269x190 px
+SZENE props/bush_round_b 40 m lod0 76x64 px
+SZENE props/bush_round_b 100 m lod1 27x25 px
+SZENE props/bush_round_b 250 m lod1 10x10 px
+SZENE props/bush_round_b 15 m sprite 269x190 px
+SZENE props/bush_round_b 40 m sprite 76x64 px
+SZENE props/bush_round_b 100 m sprite 27x25 px
+SZENE props/bush_round_b 250 m sprite 10x10 px
+prop_scene: dist -> /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS3R/shots/f_dist_h12_5.png
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AS3R/shots/f_dist_h12_5.png

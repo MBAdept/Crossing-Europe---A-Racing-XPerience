@@ -1,0 +1,7 @@
+tw_skid.wav: Profil modern, skid gran_turismo ohne MEngine+MEngineFx+MWind+MMusic, 15.0 s – integriert -23.94 LUFS, Lautheitsbereich 11.8 LU, True Peak -8.94 dBTP
+  roll              0.5–   3.0 s   -32.14 LUFS  Kurzzeit max  -32.14 / Median  -32.14  True Peak -22.01
+  ramp              3.0–   4.0 s   -24.89 LUFS  Kurzzeit max  -24.89 / Median  -24.89  True Peak -14.21
+  skid_full         4.5–   7.0 s   -18.33 LUFS  Kurzzeit max  -18.33 / Median  -18.33  True Peak  -8.94
+  release           7.5–  10.0 s   -31.97 LUFS  Kurzzeit max  -31.97 / Median  -31.97  True Peak -21.78
+  skid_04          10.5–  13.0 s   -26.73 LUFS  Kurzzeit max  -26.73 / Median  -26.73  True Peak -17.20
+  roll_end         13.5–  15.0 s   -31.73 LUFS  Kurzzeit max  -31.73 / Median  -31.73  True Peak -22.54

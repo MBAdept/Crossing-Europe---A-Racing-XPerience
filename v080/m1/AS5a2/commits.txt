@@ -1,0 +1,13 @@
+- `6abcb57` Katalog der zwölf Stadthäuser, Hooks close3d der Straßenflanken, Geländermodule (WIP)
+- `93e5031` Bauer city – Fenstergitter ohne Verdeckung, abgeschrägte Ecke, Blumen glatt, schräge Geländer im Modul
+- `abec2ad` Südhaus, Loire-Haus und Lyoner Stadthaus (french, french_south) als Echtzeit-Modelle
+- `63ca0ef` Lütticher Reihenhäuser und Maashaus (belgian) als Echtzeit-Modelle
+- `f435fd9` Reihenhäuser und Grachtenhäuser A und B (dutch) als Echtzeit-Modelle
+- `60462fa` Chalet und Berner Lauben (swiss) als Echtzeit-Modelle
+- `02d93cb` Haussmann-Block und -Eckhaus (paris) als Echtzeit-Modelle, Manifest neu erzeugt
+- `771b079` Kranzgesims der Grachtenhaus-Flanke kürzer, Auslage der Eckhaus-Abschrägung, Kreuzstock des Maashauses
+- `adef9df` Grachtenhäuser B, Haussmann-Eckhaus und Maashaus neu exportiert, Manifest neu erzeugt
+- `3c5e37a` docs/modelle.md Abschnitt 21 – Stadthäuser dutch, belgian, french, paris und swiss
+
+Die Stil-Commits `abec2ad` … `60462fa` tragen Modelle ohne neues Manifest (erst `02d93cb` erzeugt es für alle
+zwölf); dazwischen ist das Manifest nicht auf dem Stand der Modellordner. Der Endstand ist konsistent (Prüfer grün).

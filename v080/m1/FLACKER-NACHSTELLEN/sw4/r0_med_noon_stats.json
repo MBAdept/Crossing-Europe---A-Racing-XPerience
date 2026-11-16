@@ -1,0 +1,116 @@
+{
+ "traffic/hatch_white": {
+  "band": [
+   38.2,
+   42.0
+  ],
+  "pairs": 20,
+  "switches": [
+   {
+    "from": "lod1",
+    "to": "lod0",
+    "d": 38.0,
+    "cd": 38.0,
+    "i": 31,
+    "refusals_before": 80,
+    "refusals_at": 86,
+    "frame_change": {
+     "car_px": 1172,
+     "share": 0.9215,
+     "de_px_mean": 24.36,
+     "de_px_p95": 56.3,
+     "share_de10": 0.6834,
+     "de_mean_colour": 4.94,
+     "L_a": 48.8,
+     "L_b": 44.3,
+     "rgb_a": [
+      117.19999694824219,
+      120.0,
+      125.9000015258789
+     ],
+     "rgb_b": [
+      106.19999694824219,
+      110.5,
+      119.5999984741211
+     ],
+     "visible_px_a": 1130,
+     "visible_px_b": 652,
+     "paint_px_a": 548,
+     "paint_px_b": 177
+    },
+    "motion_share_median": 0.1504
+   },
+   {
+    "from": "lod0",
+    "to": "lod1",
+    "d": 42.2,
+    "cd": 42.2,
+    "i": 92,
+    "refusals_before": 86,
+    "refusals_at": 86,
+    "frame_change": {
+     "car_px": 920,
+     "share": 0.8565,
+     "de_px_mean": 23.81,
+     "de_px_p95": 54.4,
+     "share_de10": 0.6728,
+     "de_mean_colour": 3.48,
+     "L_a": 45.6,
+     "L_b": 48.4,
+     "rgb_a": [
+      109.5999984741211,
+      114.30000305175781,
+      123.0999984741211
+     ],
+     "rgb_b": [
+      116.30000305175781,
+      119.0999984741211,
+      124.9000015258789
+     ],
+     "visible_px_a": 503,
+     "visible_px_b": 901,
+     "paint_px_a": 151,
+     "paint_px_b": 434
+    },
+    "motion_share_median": 0.1765
+   }
+  ],
+  "same_d_mid": {
+   "car_px": 1028,
+   "share": 0.8959,
+   "de_px_mean": 24.27,
+   "de_px_p95": 53.7,
+   "share_de10": 0.7062,
+   "de_mean_colour": 3.1,
+   "L_a": 49.0,
+   "L_b": 46.7,
+   "rgb_a": [
+    117.80000305175781,
+    120.5,
+    126.30000305175781
+   ],
+   "rgb_b": [
+    111.9000015258789,
+    116.80000305175781,
+    125.5
+   ],
+   "visible_px_a": 995,
+   "visible_px_b": 567,
+   "paint_px_a": 473,
+   "paint_px_b": 172,
+   "d": 40.2,
+   "lod_in": "lod1",
+   "lod_out": "lod0",
+   "i_in": 20,
+   "i_out": 82
+  },
+  "same_d_share_range": [
+   0.8302,
+   0.913
+  ],
+  "same_d_de_mean_colour_range": [
+   2.75,
+   4.2
+  ]
+ }
+}

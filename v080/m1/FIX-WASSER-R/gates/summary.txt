@@ -1,0 +1,51 @@
+HEAD 39849f0263921f798da4326b83dff30d83a947d2 10:17:13
+== import start 10:17:13
+== import exit 0 (5 s)
+   import: Fehlerzeilen 0
+== check_scripts start 10:17:18
+== check_scripts exit 0 (9 s)
+307 Skripte geprüft, 0 fehlerhaft
+== run_tests start 10:17:27
+== run_tests exit 0 (876 s)
+CHECKS OK  (0 fehlgeschlagen, 41 s)
+CHECKS OK  (0 fehlgeschlagen, 5 s)
+CHECKS OK  (7 von 7 bestanden, 0 s)
+CHECKS OK  (0 fehlgeschlagen, 59 s)
+==> Tests bestanden (876 s)
+== golden_check start 10:32:03
+== golden_check exit 0 (287 s)
+GOLDEN arcade: 20 von 20 identisch (147 s)
+GOLDEN arcade-ui: 17 von 17 identisch (135 s)
+== golden_modern_check start 10:36:50
+== golden_modern_check exit 0 (635 s)
+GOLDEN modern: 6 von 6 identisch (497 s)
+GOLDEN modern-gles: modern_s3_hoch OpenGL ES gegen OpenGL: OK max. Abweichung 2/255, PSNR 73.2 dB, 8553 Pixel verschieden (133 s)
+== render_checks start 10:47:25
+== render_checks exit 0 (1310 s)
+RENDER-CHECK-DATEI tests/race/check_glow_occlusion.gd               OK  (Exit 0, 29 s)
+RENDER-CHECK-DATEI tests/race/check_sprite_flip.gd                  OK  (Exit 0, 2 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_facade_render.gd       OK  (Exit 0, 10 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_instance_budget.gd     OK  (Exit 0, 102 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_light_base.gd          OK  (Exit 0, 73 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_models.gd              OK  (Exit 0, 8 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_modern_render.gd       OK  (Exit 0, 205 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_occlusion.gd           OK  (Exit 0, 22 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_props_render.gd        OK  (Exit 0, 5 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_quit_sound.gd          OK  (Exit 0, 22 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_road_parity.gd         OK  (Exit 0, 18 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_seam_render.gd         OK  (Exit 0, 160 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_session_modern.gd      OK  (Exit 0, 43 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_showroom_render.gd     OK  (Exit 0, 45 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_start_km0.gd           OK  (Exit 0, 185 s)
+RENDER-CHECK terrain_cover_T1   OK      kassel_wuerzburg km 46.5: unter dem Horizont 0.000 % Magenta (0 von 505600 Bildpunkten), Fernboden 2.80 %, Kragen 2.52 %; Fernboden 43.9 m unter der Kamera, 12 Stücke
+RENDER-CHECK terrain_cover_T2   OK      kassel_wuerzburg km 61.9: unter dem Horizont 0.000 % Magenta (0 von 505600 Bildpunkten), Fernboden 0.00 %, Kragen 0.00 %; Fernboden 31.1 m unter der Kamera, 13 Stücke
+RENDER-CHECK terrain_cover_T3   OK      saragossa_pau km 172.8: unter dem Horizont 0.000 % Magenta (0 von 505600 Bildpunkten), Fernboden 0.00 %, Kragen 0.00 %; Fernboden 8.6 m unter der Kamera, 14 Stücke
+RENDER-CHECK terrain_cover_T4   OK      saragossa_pau km 198.8: unter dem Horizont 0.000 % Magenta (0 von 505600 Bildpunkten), Fernboden 0.27 %, Kragen 1.67 %; Fernboden 27.5 m unter der Kamera, 17 Stücke
+RENDER-CHECK terrain_cover_S1   OK      kiel_hamburg km 2.0: unter dem Horizont 0.000 % Magenta (0 von 505600 Bildpunkten), Fernboden 0.00 %, Kragen 0.00 %; Fernboden 16.7 m unter der Kamera, 13 Stücke
+RENDER-CHECK terrain_cover_C1   OK      dortmund_frankfurt km 221.0: unter dem Horizont 0.000 % Magenta (0 von 505600 Bildpunkten), Fernboden 1.62 %, Kragen 0.16 %; Fernboden 7.4 m unter der Kamera, 9 Stücke
+RENDER-CHECK terrain_cover_K1   OK      kiel_hamburg km 78.1: unter dem Horizont 0.000 % Magenta (0 von 505600 Bildpunkten), Fernboden 0.38 %, Kragen 0.53 %; Fernboden 12.7 m unter der Kamera, 12 Stücke
+RENDER-CHECK-DATEI tests/race3d/render/check_terrain_cover.gd       OK  (Exit 0, 64 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_vehicle_lights.gd      OK  (Exit 0, 63 s)
+RENDER-CHECK-DATEI tests/race3d/render/check_vehicle_standin.gd     OK  (Exit 0, 250 s)
+==> 18 von 18 Render-Prüfdateien in Ordnung
+== fertig 11:09:15

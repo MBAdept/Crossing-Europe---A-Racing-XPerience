@@ -1,0 +1,4661 @@
+{
+ "bridges": {
+  "kiel|Holtenauer Hochbrücke": {
+   "to": "kiel",
+   "name": "Holtenauer Hochbrücke",
+   "type": "river",
+   "deck": "concrete",
+   "style": "hanse",
+   "cobble_style": true,
+   "arrivals": [
+    "kiel_hamburg ab hamburg",
+    "rostock_kiel ab rostock"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 51.0,
+     "length_m": 201.0,
+     "to_finish_m": [
+      749.0,
+      950.0
+     ],
+     "old": {
+      "asphalt": 51.0
+     },
+     "new": {
+      "asphalt": 51.0
+     },
+     "joints": [
+      7,
+      7
+     ]
+    },
+    {
+     "in_centre_m": 50.0,
+     "length_m": 201.0,
+     "to_finish_m": [
+      750.0,
+      951.0
+     ],
+     "old": {
+      "asphalt": 50.0
+     },
+     "new": {
+      "asphalt": 50.0
+     },
+     "joints": [
+      7,
+      7
+     ]
+    }
+   ]
+  },
+  "hannover|Leinebrücke": {
+   "to": "hannover",
+   "name": "Leinebrücke",
+   "type": "river",
+   "deck": "concrete",
+   "style": "german",
+   "cobble_style": false,
+   "arrivals": [
+    "hamburg_hannover ab hamburg",
+    "hannover_kassel ab kassel",
+    "hannover_bremen ab bremen",
+    "magdeburg_hannover ab magdeburg",
+    "hannover_dortmund ab dortmund"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 45.0,
+     "length_m": 45.0,
+     "to_finish_m": [
+      234.0,
+      279.0
+     ],
+     "old": {
+      "asphalt": 45.0
+     },
+     "new": {
+      "asphalt": 45.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    },
+    {
+     "in_centre_m": 45.0,
+     "length_m": 45.0,
+     "to_finish_m": [
+      236.0,
+      281.0
+     ],
+     "old": {
+      "asphalt": 45.0
+     },
+     "new": {
+      "asphalt": 45.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    },
+    {
+     "in_centre_m": 45.0,
+     "length_m": 45.0,
+     "to_finish_m": [
+      235.0,
+      280.0
+     ],
+     "old": {
+      "asphalt": 45.0
+     },
+     "new": {
+      "asphalt": 45.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    }
+   ]
+  },
+  "kassel|Fuldabrücke": {
+   "to": "kassel",
+   "name": "Fuldabrücke",
+   "type": "river",
+   "deck": "concrete",
+   "style": "german",
+   "cobble_style": false,
+   "arrivals": [
+    "hannover_kassel ab hannover",
+    "kassel_wuerzburg ab wuerzburg",
+    "erfurt_kassel ab erfurt",
+    "kassel_dortmund ab dortmund",
+    "fulda_kassel ab fulda"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 60.0,
+     "length_m": 60.0,
+     "to_finish_m": [
+      240.0,
+      300.0
+     ],
+     "old": {
+      "asphalt": 60.0
+     },
+     "new": {
+      "asphalt": 60.0
+     },
+     "joints": [
+      3,
+      3
+     ]
+    },
+    {
+     "in_centre_m": 60.0,
+     "length_m": 60.0,
+     "to_finish_m": [
+      239.0,
+      299.0
+     ],
+     "old": {
+      "asphalt": 60.0
+     },
+     "new": {
+      "asphalt": 60.0
+     },
+     "joints": [
+      3,
+      3
+     ]
+    },
+    {
+     "in_centre_m": 60.0,
+     "length_m": 60.0,
+     "to_finish_m": [
+      241.0,
+      301.0
+     ],
+     "old": {
+      "asphalt": 60.0
+     },
+     "new": {
+      "asphalt": 60.0
+     },
+     "joints": [
+      3,
+      3
+     ]
+    }
+   ]
+  },
+  "wuerzburg|Ludwigsbrücke": {
+   "to": "wuerzburg",
+   "name": "Ludwigsbrücke",
+   "type": "stone_arch",
+   "deck": "stone",
+   "style": "german_old",
+   "cobble_style": true,
+   "arrivals": [
+    "kassel_wuerzburg ab kassel",
+    "frankfurt_wuerzburg ab frankfurt",
+    "wuerzburg_nuernberg ab nuernberg"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 78.0,
+     "length_m": 78.0,
+     "to_finish_m": [
+      321.0,
+      399.0
+     ],
+     "old": {
+      "cobbles": 78.0
+     },
+     "new": {
+      "cobbles": 78.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    },
+    {
+     "in_centre_m": 81.0,
+     "length_m": 81.0,
+     "to_finish_m": [
+      320.0,
+      401.0
+     ],
+     "old": {
+      "cobbles": 81.0
+     },
+     "new": {
+      "cobbles": 81.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  "bremen|Wilhelm-Kaisen-Brücke": {
+   "to": "bremen",
+   "name": "Wilhelm-Kaisen-Brücke",
+   "type": "river",
+   "deck": "concrete",
+   "style": "hanse",
+   "cobble_style": true,
+   "arrivals": [
+    "hamburg_bremen ab hamburg",
+    "bremen_dortmund ab dortmund",
+    "hannover_bremen ab hannover",
+    "bremen_amsterdam ab amsterdam"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 90.0,
+     "length_m": 90.0,
+     "to_finish_m": [
+      231.0,
+      321.0
+     ],
+     "old": {
+      "asphalt": 52.0,
+      "cobbles": 38.0
+     },
+     "new": {
+      "asphalt": 90.0
+     },
+     "joints": [
+      4,
+      4
+     ]
+    },
+    {
+     "in_centre_m": 90.0,
+     "length_m": 90.0,
+     "to_finish_m": [
+      229.0,
+      319.0
+     ],
+     "old": {
+      "asphalt": 49.0,
+      "cobbles": 41.0
+     },
+     "new": {
+      "asphalt": 90.0
+     },
+     "joints": [
+      4,
+      4
+     ]
+    },
+    {
+     "in_centre_m": 90.0,
+     "length_m": 90.0,
+     "to_finish_m": [
+      230.0,
+      320.0
+     ],
+     "old": {
+      "asphalt": 51.0,
+      "cobbles": 39.0
+     },
+     "new": {
+      "asphalt": 90.0
+     },
+     "joints": [
+      4,
+      4
+     ]
+    },
+    {
+     "in_centre_m": 90.0,
+     "length_m": 90.0,
+     "to_finish_m": [
+      230.0,
+      320.0
+     ],
+     "old": {
+      "asphalt": 50.0,
+      "cobbles": 40.0
+     },
+     "new": {
+      "asphalt": 90.0
+     },
+     "joints": [
+      4,
+      4
+     ]
+    }
+   ]
+  },
+  "frankfurt|Friedensbrücke": {
+   "to": "frankfurt",
+   "name": "Friedensbrücke",
+   "type": "river",
+   "deck": "concrete",
+   "style": "german",
+   "cobble_style": false,
+   "arrivals": [
+    "dortmund_frankfurt ab dortmund",
+    "frankfurt_wuerzburg ab wuerzburg",
+    "frankfurt_koeln ab koeln"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 111.0,
+     "length_m": 111.0,
+     "to_finish_m": [
+      339.0,
+      450.0
+     ],
+     "old": {
+      "asphalt": 111.0
+     },
+     "new": {
+      "asphalt": 111.0
+     },
+     "joints": [
+      4,
+      4
+     ]
+    },
+    {
+     "in_centre_m": 111.0,
+     "length_m": 111.0,
+     "to_finish_m": [
+      340.0,
+      451.0
+     ],
+     "old": {
+      "asphalt": 111.0
+     },
+     "new": {
+      "asphalt": 111.0
+     },
+     "joints": [
+      4,
+      4
+     ]
+    }
+   ]
+  },
+  "nuernberg|Pegnitzbrücke": {
+   "to": "nuernberg",
+   "name": "Pegnitzbrücke",
+   "type": "river",
+   "deck": "concrete",
+   "style": "german_old",
+   "cobble_style": true,
+   "arrivals": [
+    "wuerzburg_nuernberg ab wuerzburg",
+    "muenchen_nuernberg ab muenchen",
+    "regensburg_nuernberg ab regensburg",
+    "nuernberg_fulda ab fulda",
+    "prag_nuernberg ab prag"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 33.0,
+     "length_m": 33.0,
+     "to_finish_m": [
+      326.0,
+      359.0
+     ],
+     "old": {
+      "asphalt": 33.0
+     },
+     "new": {
+      "asphalt": 33.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    },
+    {
+     "in_centre_m": 36.0,
+     "length_m": 36.0,
+     "to_finish_m": [
+      324.0,
+      360.0
+     ],
+     "old": {
+      "asphalt": 36.0
+     },
+     "new": {
+      "asphalt": 36.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    },
+    {
+     "in_centre_m": 36.0,
+     "length_m": 36.0,
+     "to_finish_m": [
+      325.0,
+      361.0
+     ],
+     "old": {
+      "asphalt": 35.0,
+      "cobbles": 1.0
+     },
+     "new": {
+      "asphalt": 36.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    }
+   ]
+  },
+  "muenchen|Maximiliansbrücke": {
+   "to": "muenchen",
+   "name": "Maximiliansbrücke",
+   "type": "stone_arch",
+   "deck": "stone",
+   "style": "bavarian",
+   "cobble_style": true,
+   "arrivals": [
+    "muenchen_nuernberg ab nuernberg"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 60.0,
+     "length_m": 60.0,
+     "to_finish_m": [
+      359.0,
+      419.0
+     ],
+     "old": {
+      "cobbles": 60.0
+     },
+     "new": {
+      "cobbles": 60.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  "dresden|Augustusbrücke": {
+   "to": "dresden",
+   "name": "Augustusbrücke",
+   "type": "stone_arch",
+   "deck": "stone",
+   "style": "central",
+   "cobble_style": true,
+   "arrivals": [
+    "dresden_leipzig ab leipzig"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 120.0,
+     "length_m": 120.0,
+     "to_finish_m": [
+      241.0,
+      361.0
+     ],
+     "old": {
+      "cobbles": 120.0
+     },
+     "new": {
+      "cobbles": 120.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  "magdeburg|Strombrücke": {
+   "to": "magdeburg",
+   "name": "Strombrücke",
+   "type": "river",
+   "deck": "concrete",
+   "style": "german_east",
+   "cobble_style": false,
+   "arrivals": [
+    "leipzig_magdeburg ab leipzig",
+    "magdeburg_hannover ab hannover"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 120.0,
+     "length_m": 120.0,
+     "to_finish_m": [
+      230.0,
+      350.0
+     ],
+     "old": {
+      "asphalt": 120.0
+     },
+     "new": {
+      "asphalt": 120.0
+     },
+     "joints": [
+      5,
+      5
+     ]
+    },
+    {
+     "in_centre_m": 120.0,
+     "length_m": 120.0,
+     "to_finish_m": [
+      229.0,
+      349.0
+     ],
+     "old": {
+      "asphalt": 120.0
+     },
+     "new": {
+      "asphalt": 120.0
+     },
+     "joints": [
+      5,
+      5
+     ]
+    }
+   ]
+  },
+  "amsterdam|Singelgracht": {
+   "to": "amsterdam",
+   "name": "Singelgracht",
+   "type": "canal",
+   "deck": "concrete",
+   "style": "dutch",
+   "cobble_style": true,
+   "arrivals": [
+    "bremen_amsterdam ab bremen",
+    "amsterdam_luettich ab luettich"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 36.0,
+     "length_m": 36.0,
+     "to_finish_m": [
+      665.0,
+      701.0
+     ],
+     "old": {
+      "cobbles": 36.0
+     },
+     "new": {
+      "asphalt": 36.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    },
+    {
+     "in_centre_m": 36.0,
+     "length_m": 36.0,
+     "to_finish_m": [
+      664.0,
+      700.0
+     ],
+     "old": {
+      "cobbles": 36.0
+     },
+     "new": {
+      "asphalt": 36.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    }
+   ]
+  },
+  "amsterdam|Prinsengracht": {
+   "to": "amsterdam",
+   "name": "Prinsengracht",
+   "type": "canal",
+   "deck": "concrete",
+   "style": "dutch",
+   "cobble_style": true,
+   "arrivals": [
+    "bremen_amsterdam ab bremen",
+    "amsterdam_luettich ab luettich"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 42.0,
+     "length_m": 42.0,
+     "to_finish_m": [
+      518.0,
+      560.0
+     ],
+     "old": {
+      "asphalt": 20.0,
+      "cobbles": 22.0
+     },
+     "new": {
+      "asphalt": 42.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    },
+    {
+     "in_centre_m": 42.0,
+     "length_m": 42.0,
+     "to_finish_m": [
+      517.0,
+      559.0
+     ],
+     "old": {
+      "asphalt": 20.0,
+      "cobbles": 22.0
+     },
+     "new": {
+      "asphalt": 42.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    }
+   ]
+  },
+  "amsterdam|Keizersgracht": {
+   "to": "amsterdam",
+   "name": "Keizersgracht",
+   "type": "canal",
+   "deck": "concrete",
+   "style": "dutch",
+   "cobble_style": true,
+   "arrivals": [
+    "bremen_amsterdam ab bremen",
+    "amsterdam_luettich ab luettich"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 39.0,
+     "length_m": 39.0,
+     "to_finish_m": [
+      392.0,
+      431.0
+     ],
+     "old": {
+      "cobbles": 39.0
+     },
+     "new": {
+      "asphalt": 39.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    },
+    {
+     "in_centre_m": 39.0,
+     "length_m": 39.0,
+     "to_finish_m": [
+      391.0,
+      430.0
+     ],
+     "old": {
+      "cobbles": 39.0
+     },
+     "new": {
+      "asphalt": 39.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    }
+   ]
+  },
+  "amsterdam|Herengracht": {
+   "to": "amsterdam",
+   "name": "Herengracht",
+   "type": "canal",
+   "deck": "concrete",
+   "style": "dutch",
+   "cobble_style": true,
+   "arrivals": [
+    "bremen_amsterdam ab bremen",
+    "amsterdam_luettich ab luettich"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 45.0,
+     "length_m": 45.0,
+     "to_finish_m": [
+      266.0,
+      311.0
+     ],
+     "old": {
+      "asphalt": 45.0
+     },
+     "new": {
+      "asphalt": 45.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    },
+    {
+     "in_centre_m": 45.0,
+     "length_m": 45.0,
+     "to_finish_m": [
+      265.0,
+      310.0
+     ],
+     "old": {
+      "asphalt": 45.0
+     },
+     "new": {
+      "asphalt": 45.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    }
+   ]
+  },
+  "amsterdam|Singel": {
+   "to": "amsterdam",
+   "name": "Singel",
+   "type": "canal",
+   "deck": "concrete",
+   "style": "dutch",
+   "cobble_style": true,
+   "arrivals": [
+    "bremen_amsterdam ab bremen",
+    "amsterdam_luettich ab luettich"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 36.0,
+     "length_m": 36.0,
+     "to_finish_m": [
+      155.0,
+      191.0
+     ],
+     "old": {
+      "asphalt": 12.0,
+      "cobbles": 24.0
+     },
+     "new": {
+      "asphalt": 36.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    },
+    {
+     "in_centre_m": 33.0,
+     "length_m": 33.0,
+     "to_finish_m": [
+      157.0,
+      190.0
+     ],
+     "old": {
+      "asphalt": 11.0,
+      "cobbles": 22.0
+     },
+     "new": {
+      "asphalt": 33.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    }
+   ]
+  },
+  "luettich|Pont de Fragnée": {
+   "to": "luettich",
+   "name": "Pont de Fragnée",
+   "type": "stone_arch",
+   "deck": "stone",
+   "style": "belgian",
+   "cobble_style": true,
+   "arrivals": [
+    "amsterdam_luettich ab amsterdam",
+    "luettich_paris ab paris"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 111.0,
+     "length_m": 111.0,
+     "to_finish_m": [
+      190.0,
+      301.0
+     ],
+     "old": {
+      "cobbles": 111.0
+     },
+     "new": {
+      "cobbles": 111.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    },
+    {
+     "in_centre_m": 108.0,
+     "length_m": 108.0,
+     "to_finish_m": [
+      191.0,
+      299.0
+     ],
+     "old": {
+      "cobbles": 108.0
+     },
+     "new": {
+      "cobbles": 108.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  "paris|Pont Alexandre III": {
+   "to": "paris",
+   "name": "Pont Alexandre III",
+   "type": "stone_arch",
+   "deck": "stone",
+   "style": "paris",
+   "cobble_style": true,
+   "arrivals": [
+    "luettich_paris ab luettich",
+    "paris_tours ab tours"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 129.0,
+     "length_m": 129.0,
+     "to_finish_m": [
+      671.0,
+      800.0
+     ],
+     "old": {
+      "cobbles": 129.0
+     },
+     "new": {
+      "cobbles": 129.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    },
+    {
+     "in_centre_m": 132.0,
+     "length_m": 132.0,
+     "to_finish_m": [
+      669.0,
+      801.0
+     ],
+     "old": {
+      "cobbles": 132.0
+     },
+     "new": {
+      "cobbles": 132.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  "tours|Pont Wilson": {
+   "to": "tours",
+   "name": "Pont Wilson",
+   "type": "stone_arch",
+   "deck": "stone",
+   "style": "french",
+   "cobble_style": true,
+   "arrivals": [
+    "paris_tours ab paris",
+    "tours_bordeaux ab bordeaux"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 120.0,
+     "length_m": 120.0,
+     "to_finish_m": [
+      159.0,
+      279.0
+     ],
+     "old": {
+      "cobbles": 120.0
+     },
+     "new": {
+      "cobbles": 120.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  "bordeaux|Pont de Pierre": {
+   "to": "bordeaux",
+   "name": "Pont de Pierre",
+   "type": "stone_arch",
+   "deck": "stone",
+   "style": "french_south",
+   "cobble_style": true,
+   "arrivals": [
+    "tours_bordeaux ab tours",
+    "bordeaux_san_sebastian ab san_sebastian"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 150.0,
+     "length_m": 150.0,
+     "to_finish_m": [
+      150.0,
+      300.0
+     ],
+     "old": {
+      "cobbles": 150.0
+     },
+     "new": {
+      "cobbles": 150.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  "san_sebastian|Puente María Cristina": {
+   "to": "san_sebastian",
+   "name": "Puente María Cristina",
+   "type": "stone_arch",
+   "deck": "stone",
+   "style": "spanish_north",
+   "cobble_style": true,
+   "arrivals": [
+    "bordeaux_san_sebastian ab bordeaux",
+    "san_sebastian_burgos ab burgos"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 60.0,
+     "length_m": 60.0,
+     "to_finish_m": [
+      159.0,
+      219.0
+     ],
+     "old": {
+      "cobbles": 60.0
+     },
+     "new": {
+      "cobbles": 60.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  "burgos|Puente de Santa María": {
+   "to": "burgos",
+   "name": "Puente de Santa María",
+   "type": "stone_arch",
+   "deck": "stone",
+   "style": "spanish_north",
+   "cobble_style": true,
+   "arrivals": [
+    "san_sebastian_burgos ab san_sebastian",
+    "burgos_madrid ab madrid"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 51.0,
+     "length_m": 51.0,
+     "to_finish_m": [
+      210.0,
+      261.0
+     ],
+     "old": {
+      "cobbles": 51.0
+     },
+     "new": {
+      "cobbles": 51.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  "madrid|Puente de Segovia": {
+   "to": "madrid",
+   "name": "Puente de Segovia",
+   "type": "stone_arch",
+   "deck": "stone",
+   "style": "spanish",
+   "cobble_style": true,
+   "arrivals": [
+    "burgos_madrid ab burgos",
+    "madrid_saragossa ab saragossa"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 51.0,
+     "length_m": 51.0,
+     "to_finish_m": [
+      150.0,
+      201.0
+     ],
+     "old": {
+      "cobbles": 51.0
+     },
+     "new": {
+      "cobbles": 51.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  "saragossa|Puente de Piedra": {
+   "to": "saragossa",
+   "name": "Puente de Piedra",
+   "type": "stone_arch",
+   "deck": "stone",
+   "style": "spanish",
+   "cobble_style": true,
+   "arrivals": [
+    "madrid_saragossa ab madrid",
+    "saragossa_barcelona ab barcelona",
+    "saragossa_pau ab pau"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 99.0,
+     "length_m": 99.0,
+     "to_finish_m": [
+      180.0,
+      279.0
+     ],
+     "old": {
+      "cobbles": 99.0
+     },
+     "new": {
+      "cobbles": 99.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    },
+    {
+     "in_centre_m": 102.0,
+     "length_m": 102.0,
+     "to_finish_m": [
+      179.0,
+      281.0
+     ],
+     "old": {
+      "cobbles": 102.0
+     },
+     "new": {
+      "cobbles": 102.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  "montpellier|Pont Juvénal": {
+   "to": "montpellier",
+   "name": "Pont Juvénal",
+   "type": "river",
+   "deck": "concrete",
+   "style": "french_south",
+   "cobble_style": true,
+   "arrivals": [
+    "barcelona_montpellier ab barcelona",
+    "toulouse_montpellier ab toulouse",
+    "montpellier_lyon ab lyon"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 42.0,
+     "length_m": 42.0,
+     "to_finish_m": [
+      299.0,
+      341.0
+     ],
+     "old": {
+      "cobbles": 42.0
+     },
+     "new": {
+      "asphalt": 42.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    }
+   ]
+  },
+  "pau|Pont du XIV-Juillet": {
+   "to": "pau",
+   "name": "Pont du XIV-Juillet",
+   "type": "river",
+   "deck": "concrete",
+   "style": "french",
+   "cobble_style": true,
+   "arrivals": [
+    "saragossa_pau ab saragossa",
+    "pau_toulouse ab toulouse"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 60.0,
+     "length_m": 60.0,
+     "to_finish_m": [
+      200.0,
+      260.0
+     ],
+     "old": {
+      "asphalt": 60.0
+     },
+     "new": {
+      "asphalt": 60.0
+     },
+     "joints": [
+      3,
+      3
+     ]
+    }
+   ]
+  },
+  "toulouse|Pont Neuf": {
+   "to": "toulouse",
+   "name": "Pont Neuf",
+   "type": "stone_arch",
+   "deck": "stone",
+   "style": "french_south",
+   "cobble_style": true,
+   "arrivals": [
+    "pau_toulouse ab pau",
+    "toulouse_montpellier ab montpellier"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 129.0,
+     "length_m": 129.0,
+     "to_finish_m": [
+      170.0,
+      299.0
+     ],
+     "old": {
+      "cobbles": 129.0
+     },
+     "new": {
+      "cobbles": 129.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  "lyon|Pont Lafayette": {
+   "to": "lyon",
+   "name": "Pont Lafayette",
+   "type": "river",
+   "deck": "concrete",
+   "style": "french_south",
+   "cobble_style": true,
+   "arrivals": [
+    "montpellier_lyon ab montpellier",
+    "lyon_bern ab bern"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 111.0,
+     "length_m": 111.0,
+     "to_finish_m": [
+      389.0,
+      500.0
+     ],
+     "old": {
+      "cobbles": 111.0
+     },
+     "new": {
+      "asphalt": 111.0
+     },
+     "joints": [
+      4,
+      4
+     ]
+    },
+    {
+     "in_centre_m": 108.0,
+     "length_m": 108.0,
+     "to_finish_m": [
+      391.0,
+      499.0
+     ],
+     "old": {
+      "cobbles": 108.0
+     },
+     "new": {
+      "asphalt": 108.0
+     },
+     "joints": [
+      4,
+      4
+     ]
+    }
+   ]
+  },
+  "lyon|Pont Bonaparte": {
+   "to": "lyon",
+   "name": "Pont Bonaparte",
+   "type": "stone_arch",
+   "deck": "stone",
+   "style": "french_south",
+   "cobble_style": true,
+   "arrivals": [
+    "montpellier_lyon ab montpellier",
+    "lyon_bern ab bern"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 69.0,
+     "length_m": 69.0,
+     "to_finish_m": [
+      191.0,
+      260.0
+     ],
+     "old": {
+      "cobbles": 69.0
+     },
+     "new": {
+      "cobbles": 69.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    },
+    {
+     "in_centre_m": 69.0,
+     "length_m": 69.0,
+     "to_finish_m": [
+      190.0,
+      259.0
+     ],
+     "old": {
+      "cobbles": 69.0
+     },
+     "new": {
+      "cobbles": 69.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  "bern|Kirchenfeldbrücke": {
+   "to": "bern",
+   "name": "Kirchenfeldbrücke",
+   "type": "river",
+   "deck": "concrete",
+   "style": "swiss",
+   "cobble_style": true,
+   "arrivals": [
+    "lyon_bern ab lyon",
+    "bern_mailand ab mailand"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 111.0,
+     "length_m": 111.0,
+     "to_finish_m": [
+      190.0,
+      301.0
+     ],
+     "old": {
+      "cobbles": 111.0
+     },
+     "new": {
+      "asphalt": 111.0
+     },
+     "joints": [
+      4,
+      4
+     ]
+    },
+    {
+     "in_centre_m": 108.0,
+     "length_m": 108.0,
+     "to_finish_m": [
+      191.0,
+      299.0
+     ],
+     "old": {
+      "cobbles": 108.0
+     },
+     "new": {
+      "asphalt": 108.0
+     },
+     "joints": [
+      4,
+      4
+     ]
+    }
+   ]
+  },
+  "venedig|Ponte della Libertà": {
+   "to": "venedig",
+   "name": "Ponte della Libertà",
+   "type": "causeway",
+   "deck": "concrete",
+   "style": "italian",
+   "cobble_style": true,
+   "arrivals": [
+    "mailand_venedig ab mailand",
+    "venedig_ljubljana ab ljubljana"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 378.0,
+     "length_m": 378.0,
+     "to_finish_m": [
+      281.0,
+      659.0
+     ],
+     "old": {
+      "asphalt": 167.0,
+      "cobbles": 211.0
+     },
+     "new": {
+      "asphalt": 378.0
+     },
+     "joints": [
+      13,
+      13
+     ]
+    },
+    {
+     "in_centre_m": 378.0,
+     "length_m": 378.0,
+     "to_finish_m": [
+      281.0,
+      659.0
+     ],
+     "old": {
+      "asphalt": 169.0,
+      "cobbles": 209.0
+     },
+     "new": {
+      "asphalt": 378.0
+     },
+     "joints": [
+      13,
+      13
+     ]
+    }
+   ]
+  },
+  "ljubljana|Drachenbrücke": {
+   "to": "ljubljana",
+   "name": "Drachenbrücke",
+   "type": "stone_arch",
+   "deck": "stone",
+   "style": "central",
+   "cobble_style": true,
+   "arrivals": [
+    "venedig_ljubljana ab venedig",
+    "ljubljana_slavonski_brod ab slavonski_brod"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 39.0,
+     "length_m": 39.0,
+     "to_finish_m": [
+      200.0,
+      239.0
+     ],
+     "old": {
+      "cobbles": 39.0
+     },
+     "new": {
+      "cobbles": 39.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  "slavonski_brod|Savebrücke": {
+   "to": "slavonski_brod",
+   "name": "Savebrücke",
+   "type": "river",
+   "deck": "concrete",
+   "style": "balkan",
+   "cobble_style": true,
+   "arrivals": [
+    "ljubljana_slavonski_brod ab ljubljana",
+    "slavonski_brod_belgrad ab belgrad"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 90.0,
+     "length_m": 90.0,
+     "to_finish_m": [
+      209.0,
+      299.0
+     ],
+     "old": {
+      "asphalt": 90.0
+     },
+     "new": {
+      "asphalt": 90.0
+     },
+     "joints": [
+      4,
+      4
+     ]
+    },
+    {
+     "in_centre_m": 90.0,
+     "length_m": 90.0,
+     "to_finish_m": [
+      211.0,
+      301.0
+     ],
+     "old": {
+      "asphalt": 90.0
+     },
+     "new": {
+      "asphalt": 90.0
+     },
+     "joints": [
+      4,
+      4
+     ]
+    }
+   ]
+  },
+  "belgrad|Ada-Brücke": {
+   "to": "belgrad",
+   "name": "Ada-Brücke",
+   "type": "cable_stayed",
+   "deck": "steel",
+   "style": "balkan",
+   "cobble_style": true,
+   "arrivals": [
+    "slavonski_brod_belgrad ab slavonski_brod",
+    "belgrad_sofia ab sofia",
+    "belgrad_budapest ab budapest"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 171.0,
+     "length_m": 171.0,
+     "to_finish_m": [
+      430.0,
+      601.0
+     ],
+     "old": {
+      "deck": 171.0
+     },
+     "new": {
+      "deck": 171.0
+     },
+     "joints": [
+      3,
+      3
+     ]
+    },
+    {
+     "in_centre_m": 168.0,
+     "length_m": 168.0,
+     "to_finish_m": [
+      431.0,
+      599.0
+     ],
+     "old": {
+      "deck": 168.0
+     },
+     "new": {
+      "deck": 168.0
+     },
+     "joints": [
+      3,
+      3
+     ]
+    }
+   ]
+  },
+  "budapest|Elisabethbrücke": {
+   "to": "budapest",
+   "name": "Elisabethbrücke",
+   "type": "cable_stayed",
+   "deck": "steel",
+   "style": "central",
+   "cobble_style": true,
+   "arrivals": [
+    "belgrad_budapest ab belgrad",
+    "budapest_wien ab wien",
+    "timisoara_budapest ab timisoara"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 150.0,
+     "length_m": 150.0,
+     "to_finish_m": [
+      190.0,
+      340.0
+     ],
+     "old": {
+      "deck": 150.0
+     },
+     "new": {
+      "deck": 150.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    },
+    {
+     "in_centre_m": 150.0,
+     "length_m": 150.0,
+     "to_finish_m": [
+      191.0,
+      341.0
+     ],
+     "old": {
+      "deck": 150.0
+     },
+     "new": {
+      "deck": 150.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    }
+   ]
+  },
+  "wien|Reichsbrücke": {
+   "to": "wien",
+   "name": "Reichsbrücke",
+   "type": "river",
+   "deck": "concrete",
+   "style": "vienna",
+   "cobble_style": true,
+   "arrivals": [
+    "budapest_wien ab budapest",
+    "wien_prag ab prag",
+    "wien_linz ab linz"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 120.0,
+     "length_m": 120.0,
+     "to_finish_m": [
+      581.0,
+      701.0
+     ],
+     "old": {
+      "asphalt": 72.0,
+      "cobbles": 48.0
+     },
+     "new": {
+      "asphalt": 120.0
+     },
+     "joints": [
+      5,
+      5
+     ]
+    }
+   ]
+  },
+  "prag|Most Legií": {
+   "to": "prag",
+   "name": "Most Legií",
+   "type": "stone_arch",
+   "deck": "stone",
+   "style": "central",
+   "cobble_style": true,
+   "arrivals": [
+    "wien_prag ab wien",
+    "prag_leipzig ab leipzig",
+    "prag_nuernberg ab nuernberg"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 108.0,
+     "length_m": 108.0,
+     "to_finish_m": [
+      191.0,
+      299.0
+     ],
+     "old": {
+      "cobbles": 108.0
+     },
+     "new": {
+      "cobbles": 108.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    },
+    {
+     "in_centre_m": 111.0,
+     "length_m": 111.0,
+     "to_finish_m": [
+      190.0,
+      301.0
+     ],
+     "old": {
+      "cobbles": 111.0
+     },
+     "new": {
+      "cobbles": 111.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  "berlin|Oberbaumbrücke": {
+   "to": "berlin",
+   "name": "Oberbaumbrücke",
+   "type": "stone_arch",
+   "deck": "stone",
+   "style": "german",
+   "cobble_style": false,
+   "arrivals": [
+    "leipzig_berlin ab leipzig",
+    "berlin_posen ab posen"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 72.0,
+     "length_m": 72.0,
+     "to_finish_m": [
+      529.0,
+      601.0
+     ],
+     "old": {
+      "cobbles": 72.0
+     },
+     "new": {
+      "cobbles": 72.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    },
+    {
+     "in_centre_m": 69.0,
+     "length_m": 69.0,
+     "to_finish_m": [
+      531.0,
+      600.0
+     ],
+     "old": {
+      "cobbles": 69.0
+     },
+     "new": {
+      "cobbles": 69.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  "posen|Warthebrücke": {
+   "to": "posen",
+   "name": "Warthebrücke",
+   "type": "river",
+   "deck": "concrete",
+   "style": "eastern",
+   "cobble_style": true,
+   "arrivals": [
+    "berlin_posen ab berlin",
+    "posen_warschau ab warschau"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 90.0,
+     "length_m": 90.0,
+     "to_finish_m": [
+      231.0,
+      321.0
+     ],
+     "old": {
+      "cobbles": 90.0
+     },
+     "new": {
+      "asphalt": 90.0
+     },
+     "joints": [
+      4,
+      4
+     ]
+    },
+    {
+     "in_centre_m": 90.0,
+     "length_m": 90.0,
+     "to_finish_m": [
+      230.0,
+      320.0
+     ],
+     "old": {
+      "cobbles": 90.0
+     },
+     "new": {
+      "asphalt": 90.0
+     },
+     "joints": [
+      4,
+      4
+     ]
+    }
+   ]
+  },
+  "warschau|Poniatowski-Brücke": {
+   "to": "warschau",
+   "name": "Poniatowski-Brücke",
+   "type": "stone_arch",
+   "deck": "stone",
+   "style": "eastern",
+   "cobble_style": true,
+   "arrivals": [
+    "posen_warschau ab posen",
+    "warschau_bialystok ab bialystok"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 138.0,
+     "length_m": 138.0,
+     "to_finish_m": [
+      281.0,
+      419.0
+     ],
+     "old": {
+      "cobbles": 138.0
+     },
+     "new": {
+      "cobbles": 138.0
+     },
+     "joints": [
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  "kaunas|Aleksotas-Brücke": {
+   "to": "kaunas",
+   "name": "Aleksotas-Brücke",
+   "type": "river",
+   "deck": "concrete",
+   "style": "baltic",
+   "cobble_style": true,
+   "arrivals": [
+    "bialystok_kaunas ab bialystok",
+    "kaunas_riga ab riga"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 111.0,
+     "length_m": 111.0,
+     "to_finish_m": [
+      209.0,
+      320.0
+     ],
+     "old": {
+      "asphalt": 111.0
+     },
+     "new": {
+      "asphalt": 111.0
+     },
+     "joints": [
+      4,
+      4
+     ]
+    },
+    {
+     "in_centre_m": 111.0,
+     "length_m": 111.0,
+     "to_finish_m": [
+      210.0,
+      321.0
+     ],
+     "old": {
+      "asphalt": 111.0
+     },
+     "new": {
+      "asphalt": 111.0
+     },
+     "joints": [
+      4,
+      4
+     ]
+    }
+   ]
+  },
+  "riga|Vanšu-Brücke": {
+   "to": "riga",
+   "name": "Vanšu-Brücke",
+   "type": "cable_stayed",
+   "deck": "steel",
+   "style": "baltic",
+   "cobble_style": true,
+   "arrivals": [
+    "kaunas_riga ab kaunas"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 150.0,
+     "length_m": 150.0,
+     "to_finish_m": [
+      210.0,
+      360.0
+     ],
+     "old": {
+      "deck": 150.0
+     },
+     "new": {
+      "deck": 150.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    }
+   ]
+  },
+  "linz|Nibelungenbrücke": {
+   "to": "linz",
+   "name": "Nibelungenbrücke",
+   "type": "river",
+   "deck": "concrete",
+   "style": "austrian",
+   "cobble_style": true,
+   "arrivals": [
+    "wien_linz ab wien",
+    "linz_passau ab passau"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 129.0,
+     "length_m": 129.0,
+     "to_finish_m": [
+      230.0,
+      359.0
+     ],
+     "old": {
+      "asphalt": 129.0
+     },
+     "new": {
+      "asphalt": 129.0
+     },
+     "joints": [
+      5,
+      5
+     ]
+    },
+    {
+     "in_centre_m": 132.0,
+     "length_m": 132.0,
+     "to_finish_m": [
+      229.0,
+      361.0
+     ],
+     "old": {
+      "asphalt": 131.0,
+      "cobbles": 1.0
+     },
+     "new": {
+      "asphalt": 132.0
+     },
+     "joints": [
+      5,
+      5
+     ]
+    }
+   ]
+  },
+  "passau|Innbrücke": {
+   "to": "passau",
+   "name": "Innbrücke",
+   "type": "river",
+   "deck": "concrete",
+   "style": "bavarian",
+   "cobble_style": true,
+   "arrivals": [
+    "linz_passau ab linz",
+    "passau_regensburg ab regensburg"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 90.0,
+     "length_m": 90.0,
+     "to_finish_m": [
+      409.0,
+      499.0
+     ],
+     "old": {
+      "asphalt": 40.0,
+      "cobbles": 50.0
+     },
+     "new": {
+      "asphalt": 90.0
+     },
+     "joints": [
+      4,
+      4
+     ]
+    },
+    {
+     "in_centre_m": 90.0,
+     "length_m": 90.0,
+     "to_finish_m": [
+      411.0,
+      501.0
+     ],
+     "old": {
+      "asphalt": 38.0,
+      "cobbles": 52.0
+     },
+     "new": {
+      "asphalt": 90.0
+     },
+     "joints": [
+      4,
+      4
+     ]
+    }
+   ]
+  },
+  "regensburg|Eiserne Brücke (Donau)": {
+   "to": "regensburg",
+   "name": "Eiserne Brücke (Donau)",
+   "type": "river",
+   "deck": "concrete",
+   "style": "bavarian",
+   "cobble_style": true,
+   "arrivals": [
+    "passau_regensburg ab passau",
+    "regensburg_nuernberg ab nuernberg"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 120.0,
+     "length_m": 120.0,
+     "to_finish_m": [
+      180.0,
+      300.0
+     ],
+     "old": {
+      "asphalt": 31.0,
+      "cobbles": 89.0
+     },
+     "new": {
+      "asphalt": 120.0
+     },
+     "joints": [
+      5,
+      5
+     ]
+    }
+   ]
+  },
+  "fulda|Fuldabrücke": {
+   "to": "fulda",
+   "name": "Fuldabrücke",
+   "type": "river",
+   "deck": "concrete",
+   "style": "german_old",
+   "cobble_style": true,
+   "arrivals": [
+    "nuernberg_fulda ab nuernberg",
+    "fulda_kassel ab kassel"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 45.0,
+     "length_m": 45.0,
+     "to_finish_m": [
+      256.0,
+      301.0
+     ],
+     "old": {
+      "asphalt": 45.0
+     },
+     "new": {
+      "asphalt": 45.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    },
+    {
+     "in_centre_m": 45.0,
+     "length_m": 45.0,
+     "to_finish_m": [
+      255.0,
+      300.0
+     ],
+     "old": {
+      "asphalt": 45.0
+     },
+     "new": {
+      "asphalt": 45.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    }
+   ]
+  },
+  "sibiu|Cibinbrücke": {
+   "to": "sibiu",
+   "name": "Cibinbrücke",
+   "type": "river",
+   "deck": "concrete",
+   "style": "central",
+   "cobble_style": true,
+   "arrivals": [
+    "bukarest_sibiu ab bukarest",
+    "sibiu_timisoara ab timisoara"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 36.0,
+     "length_m": 36.0,
+     "to_finish_m": [
+      205.0,
+      241.0
+     ],
+     "old": {
+      "asphalt": 36.0
+     },
+     "new": {
+      "asphalt": 36.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    },
+    {
+     "in_centre_m": 33.0,
+     "length_m": 33.0,
+     "to_finish_m": [
+      206.0,
+      239.0
+     ],
+     "old": {
+      "asphalt": 33.0
+     },
+     "new": {
+      "asphalt": 33.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    }
+   ]
+  },
+  "bukarest|Dâmbovița (Podul Izvor)": {
+   "to": "bukarest",
+   "name": "Dâmbovița (Podul Izvor)",
+   "type": "river",
+   "deck": "concrete",
+   "style": "balkan",
+   "cobble_style": true,
+   "arrivals": [
+    "bukarest_sibiu ab sibiu"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 33.0,
+     "length_m": 33.0,
+     "to_finish_m": [
+      226.0,
+      259.0
+     ],
+     "old": {
+      "cobbles": 33.0
+     },
+     "new": {
+      "asphalt": 33.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    }
+   ]
+  },
+  "timisoara|Begabrücke (Podul Mihai Viteazul)": {
+   "to": "timisoara",
+   "name": "Begabrücke (Podul Mihai Viteazul)",
+   "type": "river",
+   "deck": "concrete",
+   "style": "central",
+   "cobble_style": true,
+   "arrivals": [
+    "sibiu_timisoara ab sibiu",
+    "timisoara_budapest ab budapest"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 51.0,
+     "length_m": 51.0,
+     "to_finish_m": [
+      209.0,
+      260.0
+     ],
+     "old": {
+      "cobbles": 51.0
+     },
+     "new": {
+      "asphalt": 51.0
+     },
+     "joints": [
+      3,
+      3
+     ]
+    }
+   ]
+  },
+  "koeln|Severinsbrücke": {
+   "to": "koeln",
+   "name": "Severinsbrücke",
+   "type": "cable_stayed",
+   "deck": "steel",
+   "style": "german",
+   "cobble_style": false,
+   "arrivals": [
+    "frankfurt_koeln ab frankfurt",
+    "koeln_bruessel ab bruessel"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 141.0,
+     "length_m": 141.0,
+     "to_finish_m": [
+      220.0,
+      361.0
+     ],
+     "old": {
+      "deck": 141.0
+     },
+     "new": {
+      "deck": 141.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    },
+    {
+     "in_centre_m": 138.0,
+     "length_m": 138.0,
+     "to_finish_m": [
+      221.0,
+      359.0
+     ],
+     "old": {
+      "deck": 138.0
+     },
+     "new": {
+      "deck": 138.0
+     },
+     "joints": [
+      2,
+      2
+     ]
+    }
+   ]
+  },
+  "bruessel|Pont Van Praet (Kanal)": {
+   "to": "bruessel",
+   "name": "Pont Van Praet (Kanal)",
+   "type": "river",
+   "deck": "concrete",
+   "style": "belgian",
+   "cobble_style": true,
+   "arrivals": [
+    "koeln_bruessel ab koeln",
+    "bruessel_calais ab calais"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 60.0,
+     "length_m": 60.0,
+     "to_finish_m": [
+      341.0,
+      401.0
+     ],
+     "old": {
+      "cobbles": 60.0
+     },
+     "new": {
+      "asphalt": 60.0
+     },
+     "joints": [
+      3,
+      3
+     ]
+    }
+   ]
+  },
+  "calais|Pont Mollien": {
+   "to": "calais",
+   "name": "Pont Mollien",
+   "type": "river",
+   "deck": "concrete",
+   "style": "belgian",
+   "cobble_style": true,
+   "arrivals": [
+    "bruessel_calais ab bruessel"
+   ],
+   "variants": [
+    {
+     "in_centre_m": 72.0,
+     "length_m": 72.0,
+     "to_finish_m": [
+      389.0,
+      461.0
+     ],
+     "old": {
+      "asphalt": 72.0
+     },
+     "new": {
+      "asphalt": 72.0
+     },
+     "joints": [
+      3,
+      3
+     ]
+    }
+   ]
+  }
+ },
+ "cities": {
+  "hamburg": {
+   "style": "hanse",
+   "cobble_style": true,
+   "arrivals": [
+    "kiel_hamburg ab kiel",
+    "hamburg_hannover ab hannover",
+    "hamburg_bremen ab bremen"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 800.0,
+     "nonstone_m": 0.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.551,
+     "share_new": 0.551,
+     "street_cob_old": 441.0,
+     "street_cob_new": 441.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "P--PP-P-P",
+     "pattern_new": "P--PP-P-P",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 470.0,
+     "nonstone_m": 0.0,
+     "stone_m": 0.0,
+     "tunnel_m": 330.0,
+     "share_old": 0.615,
+     "share_new": 0.615,
+     "street_cob_old": 289.0,
+     "street_cob_new": 289.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "P--PP-P-P",
+     "pattern_new": "P--PP-P-P",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "kiel": {
+   "style": "hanse",
+   "cobble_style": true,
+   "arrivals": [
+    "kiel_hamburg ab hamburg",
+    "rostock_kiel ab rostock"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 749.0,
+     "nonstone_m": 51.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.601,
+     "share_new": 0.601,
+     "street_cob_old": 450.0,
+     "street_cob_new": 450.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "-PPPPP---",
+     "pattern_new": "-PPPPP---",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 750.0,
+     "nonstone_m": 50.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.6,
+     "share_new": 0.6,
+     "street_cob_old": 450.0,
+     "street_cob_new": 450.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "-PPPPP---",
+     "pattern_new": "-PPPPP---",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "hannover": {
+   "style": "german",
+   "cobble_style": false,
+   "arrivals": [
+    "hamburg_hannover ab hamburg",
+    "hannover_kassel ab kassel",
+    "hannover_bremen ab bremen",
+    "magdeburg_hannover ab magdeburg",
+    "hannover_dortmund ab dortmund"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 755.0,
+     "nonstone_m": 45.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.0,
+     "share_new": 0.0,
+     "street_cob_old": 0.0,
+     "street_cob_new": 0.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "",
+     "pattern_new": "",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "kassel": {
+   "style": "german",
+   "cobble_style": false,
+   "arrivals": [
+    "hannover_kassel ab hannover",
+    "kassel_wuerzburg ab wuerzburg",
+    "erfurt_kassel ab erfurt",
+    "kassel_dortmund ab dortmund",
+    "fulda_kassel ab fulda"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 740.0,
+     "nonstone_m": 60.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.0,
+     "share_new": 0.0,
+     "street_cob_old": 0.0,
+     "street_cob_new": 0.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "",
+     "pattern_new": "",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "wuerzburg": {
+   "style": "german_old",
+   "cobble_style": true,
+   "arrivals": [
+    "kassel_wuerzburg ab kassel",
+    "frankfurt_wuerzburg ab frankfurt",
+    "wuerzburg_nuernberg ab nuernberg"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 722.0,
+     "nonstone_m": 0.0,
+     "stone_m": 78.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.569,
+     "share_new": 0.569,
+     "street_cob_old": 411.0,
+     "street_cob_new": 411.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 78.0,
+     "pattern_old": "P--P-PPP-",
+     "pattern_new": "P--P-PPP-",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 719.0,
+     "nonstone_m": 0.0,
+     "stone_m": 81.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.57,
+     "share_new": 0.57,
+     "street_cob_old": 410.0,
+     "street_cob_new": 410.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 81.0,
+     "pattern_old": "P--P-PPP-",
+     "pattern_new": "P--P-PPP-",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "bremen": {
+   "style": "hanse",
+   "cobble_style": true,
+   "arrivals": [
+    "hamburg_bremen ab hamburg",
+    "bremen_dortmund ab dortmund",
+    "hannover_bremen ab hannover",
+    "bremen_amsterdam ab amsterdam"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 710.0,
+     "nonstone_m": 90.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.575,
+     "share_new": 0.575,
+     "street_cob_old": 408.0,
+     "street_cob_new": 408.0,
+     "bridge_cob_old": 38.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "P-P-PP-P-",
+     "pattern_new": "P-P-PP-P-",
+     "changed": true,
+     "diff_m": 38.0,
+     "surface_diff_m": 38.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 710.0,
+     "nonstone_m": 90.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.576,
+     "share_new": 0.576,
+     "street_cob_old": 409.0,
+     "street_cob_new": 409.0,
+     "bridge_cob_old": 41.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "P-P-PP-P-",
+     "pattern_new": "P-P-PP-P-",
+     "changed": true,
+     "diff_m": 41.0,
+     "surface_diff_m": 41.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 710.0,
+     "nonstone_m": 90.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.573,
+     "share_new": 0.573,
+     "street_cob_old": 407.0,
+     "street_cob_new": 407.0,
+     "bridge_cob_old": 39.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "P-P-PP-P-",
+     "pattern_new": "P-P-PP-P-",
+     "changed": true,
+     "diff_m": 39.0,
+     "surface_diff_m": 39.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 710.0,
+     "nonstone_m": 90.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.582,
+     "share_new": 0.582,
+     "street_cob_old": 413.0,
+     "street_cob_new": 413.0,
+     "bridge_cob_old": 40.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "P-P-PP-P-",
+     "pattern_new": "P-P-PP-P-",
+     "changed": true,
+     "diff_m": 40.0,
+     "surface_diff_m": 40.0
+    }
+   ]
+  },
+  "dortmund": {
+   "style": "ruhr",
+   "cobble_style": false,
+   "arrivals": [
+    "bremen_dortmund ab bremen",
+    "dortmund_frankfurt ab frankfurt",
+    "kassel_dortmund ab kassel",
+    "hannover_dortmund ab hannover"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 800.0,
+     "nonstone_m": 0.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.0,
+     "share_new": 0.0,
+     "street_cob_old": 0.0,
+     "street_cob_new": 0.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "",
+     "pattern_new": "",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "frankfurt": {
+   "style": "german",
+   "cobble_style": false,
+   "arrivals": [
+    "dortmund_frankfurt ab dortmund",
+    "frankfurt_wuerzburg ab wuerzburg",
+    "frankfurt_koeln ab koeln"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 689.0,
+     "nonstone_m": 111.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.0,
+     "share_new": 0.0,
+     "street_cob_old": 0.0,
+     "street_cob_new": 0.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "",
+     "pattern_new": "",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "nuernberg": {
+   "style": "german_old",
+   "cobble_style": true,
+   "arrivals": [
+    "wuerzburg_nuernberg ab wuerzburg",
+    "muenchen_nuernberg ab muenchen",
+    "regensburg_nuernberg ab regensburg",
+    "nuernberg_fulda ab fulda",
+    "prag_nuernberg ab prag"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 767.0,
+     "nonstone_m": 33.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.584,
+     "share_new": 0.584,
+     "street_cob_old": 448.0,
+     "street_cob_new": 448.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "--P-PPPP-",
+     "pattern_new": "--P-PPPP-",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 767.0,
+     "nonstone_m": 33.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.588,
+     "share_new": 0.588,
+     "street_cob_old": 451.0,
+     "street_cob_new": 451.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "--P-PPPP-",
+     "pattern_new": "--P-PPPP-",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 764.0,
+     "nonstone_m": 36.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.586,
+     "share_new": 0.586,
+     "street_cob_old": 448.0,
+     "street_cob_new": 448.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "--P-PPPP-",
+     "pattern_new": "--P-PPPP-",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 764.0,
+     "nonstone_m": 36.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.589,
+     "share_new": 0.589,
+     "street_cob_old": 450.0,
+     "street_cob_new": 450.0,
+     "bridge_cob_old": 1.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "--P-PPPP-",
+     "pattern_new": "--P-PPPP-",
+     "changed": true,
+     "diff_m": 1.0,
+     "surface_diff_m": 1.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 767.0,
+     "nonstone_m": 33.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.589,
+     "share_new": 0.589,
+     "street_cob_old": 452.0,
+     "street_cob_new": 452.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "--P-PPPP-",
+     "pattern_new": "--P-PPPP-",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "muenchen": {
+   "style": "bavarian",
+   "cobble_style": true,
+   "arrivals": [
+    "muenchen_nuernberg ab nuernberg"
+   ],
+   "variants": [
+    {
+     "centre_m": 900.0,
+     "street_m": 840.0,
+     "nonstone_m": 0.0,
+     "stone_m": 60.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.57,
+     "share_new": 0.57,
+     "street_cob_old": 479.0,
+     "street_cob_new": 479.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 60.0,
+     "pattern_old": "PP-PP-P-P-P",
+     "pattern_new": "PP-PP-P-P-P",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "leipzig": {
+   "style": "german_east",
+   "cobble_style": false,
+   "arrivals": [
+    "dresden_leipzig ab dresden",
+    "leipzig_erfurt ab erfurt",
+    "leipzig_magdeburg ab magdeburg",
+    "prag_leipzig ab prag",
+    "leipzig_berlin ab berlin"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 800.0,
+     "nonstone_m": 0.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.0,
+     "share_new": 0.0,
+     "street_cob_old": 0.0,
+     "street_cob_new": 0.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "",
+     "pattern_new": "",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "dresden": {
+   "style": "central",
+   "cobble_style": true,
+   "arrivals": [
+    "dresden_leipzig ab leipzig"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 680.0,
+     "nonstone_m": 0.0,
+     "stone_m": 120.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.646,
+     "share_new": 0.646,
+     "street_cob_old": 439.0,
+     "street_cob_new": 439.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 120.0,
+     "pattern_old": "-P--PP-PP",
+     "pattern_new": "-P--PP-PP",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "erfurt": {
+   "style": "german_old",
+   "cobble_style": true,
+   "arrivals": [
+    "leipzig_erfurt ab leipzig",
+    "erfurt_kassel ab kassel"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 800.0,
+     "nonstone_m": 0.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.551,
+     "share_new": 0.551,
+     "street_cob_old": 441.0,
+     "street_cob_new": 441.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "-PP-P--PP",
+     "pattern_new": "-PP-P--PP",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "magdeburg": {
+   "style": "german_east",
+   "cobble_style": false,
+   "arrivals": [
+    "leipzig_magdeburg ab leipzig",
+    "magdeburg_hannover ab hannover"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 680.0,
+     "nonstone_m": 120.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.0,
+     "share_new": 0.0,
+     "street_cob_old": 0.0,
+     "street_cob_new": 0.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "",
+     "pattern_new": "",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "amsterdam": {
+   "style": "dutch",
+   "cobble_style": true,
+   "arrivals": [
+    "bremen_amsterdam ab bremen",
+    "amsterdam_luettich ab luettich"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 602.0,
+     "nonstone_m": 198.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.532,
+     "share_new": 0.603,
+     "street_cob_old": 320.0,
+     "street_cob_new": 363.0,
+     "bridge_cob_old": 121.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "-P--PP-PP",
+     "pattern_new": "-PPPPP-P-",
+     "changed": true,
+     "diff_m": 324.0,
+     "surface_diff_m": 324.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 605.0,
+     "nonstone_m": 195.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.531,
+     "share_new": 0.605,
+     "street_cob_old": 321.0,
+     "street_cob_new": 366.0,
+     "bridge_cob_old": 119.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "-P--PP-PP",
+     "pattern_new": "-PPPPP-P-",
+     "changed": true,
+     "diff_m": 324.0,
+     "surface_diff_m": 324.0
+    }
+   ]
+  },
+  "luettich": {
+   "style": "belgian",
+   "cobble_style": true,
+   "arrivals": [
+    "amsterdam_luettich ab amsterdam",
+    "luettich_paris ab paris"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 689.0,
+     "nonstone_m": 0.0,
+     "stone_m": 111.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.492,
+     "share_new": 0.492,
+     "street_cob_old": 339.0,
+     "street_cob_new": 339.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 111.0,
+     "pattern_old": "-PPPP-P--",
+     "pattern_new": "-PPPP-P--",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 692.0,
+     "nonstone_m": 0.0,
+     "stone_m": 108.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.491,
+     "share_new": 0.491,
+     "street_cob_old": 340.0,
+     "street_cob_new": 340.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 108.0,
+     "pattern_old": "-PPPP-P--",
+     "pattern_new": "-PPPP-P--",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "paris": {
+   "style": "paris",
+   "cobble_style": true,
+   "arrivals": [
+    "luettich_paris ab luettich",
+    "paris_tours ab tours"
+   ],
+   "variants": [
+    {
+     "centre_m": 1000.0,
+     "street_m": 741.0,
+     "nonstone_m": 0.0,
+     "stone_m": 129.0,
+     "tunnel_m": 130.0,
+     "share_old": 0.745,
+     "share_new": 0.745,
+     "street_cob_old": 552.0,
+     "street_cob_new": 552.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 129.0,
+     "pattern_old": "P--PPPPP-P-P",
+     "pattern_new": "P--PPPPP-P-P",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    },
+    {
+     "centre_m": 1000.0,
+     "street_m": 868.0,
+     "nonstone_m": 0.0,
+     "stone_m": 132.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.677,
+     "share_new": 0.677,
+     "street_cob_old": 588.0,
+     "street_cob_new": 588.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 132.0,
+     "pattern_old": "P--PPPPP-P-P",
+     "pattern_new": "P--PPPPP-P-P",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "tours": {
+   "style": "french",
+   "cobble_style": true,
+   "arrivals": [
+    "paris_tours ab paris",
+    "tours_bordeaux ab bordeaux"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 680.0,
+     "nonstone_m": 0.0,
+     "stone_m": 120.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.646,
+     "share_new": 0.646,
+     "street_cob_old": 439.0,
+     "street_cob_new": 439.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 120.0,
+     "pattern_old": "P---P-PPP",
+     "pattern_new": "P---P-PPP",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 680.0,
+     "nonstone_m": 0.0,
+     "stone_m": 120.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.647,
+     "share_new": 0.647,
+     "street_cob_old": 440.0,
+     "street_cob_new": 440.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 120.0,
+     "pattern_old": "P---P-PPP",
+     "pattern_new": "P---P-PPP",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "bordeaux": {
+   "style": "french_south",
+   "cobble_style": true,
+   "arrivals": [
+    "tours_bordeaux ab tours",
+    "bordeaux_san_sebastian ab san_sebastian"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 650.0,
+     "nonstone_m": 0.0,
+     "stone_m": 150.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.632,
+     "share_new": 0.632,
+     "street_cob_old": 411.0,
+     "street_cob_new": 411.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 150.0,
+     "pattern_old": "PP--PP--P",
+     "pattern_new": "PP--PP--P",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 650.0,
+     "nonstone_m": 0.0,
+     "stone_m": 150.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.629,
+     "share_new": 0.629,
+     "street_cob_old": 409.0,
+     "street_cob_new": 409.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 150.0,
+     "pattern_old": "PP--PP--P",
+     "pattern_new": "PP--PP--P",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "san_sebastian": {
+   "style": "spanish_north",
+   "cobble_style": true,
+   "arrivals": [
+    "bordeaux_san_sebastian ab bordeaux",
+    "san_sebastian_burgos ab burgos"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 740.0,
+     "nonstone_m": 0.0,
+     "stone_m": 60.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.53,
+     "share_new": 0.53,
+     "street_cob_old": 392.0,
+     "street_cob_new": 392.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 60.0,
+     "pattern_old": "-PP--PPP-",
+     "pattern_new": "-PP--PPP-",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "burgos": {
+   "style": "spanish_north",
+   "cobble_style": true,
+   "arrivals": [
+    "san_sebastian_burgos ab san_sebastian",
+    "burgos_madrid ab madrid"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 749.0,
+     "nonstone_m": 0.0,
+     "stone_m": 51.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.521,
+     "share_new": 0.521,
+     "street_cob_old": 390.0,
+     "street_cob_new": 390.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 51.0,
+     "pattern_old": "-PPP-P--P",
+     "pattern_new": "-PPP-P--P",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "madrid": {
+   "style": "spanish",
+   "cobble_style": true,
+   "arrivals": [
+    "burgos_madrid ab burgos",
+    "madrid_saragossa ab saragossa"
+   ],
+   "variants": [
+    {
+     "centre_m": 1000.0,
+     "street_m": 949.0,
+     "nonstone_m": 0.0,
+     "stone_m": 51.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.62,
+     "share_new": 0.62,
+     "street_cob_old": 588.0,
+     "street_cob_new": 588.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 51.0,
+     "pattern_old": "PPP-PP--PP-P",
+     "pattern_new": "PPP-PP--PP-P",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    },
+    {
+     "centre_m": 1000.0,
+     "street_m": 949.0,
+     "nonstone_m": 0.0,
+     "stone_m": 51.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.621,
+     "share_new": 0.621,
+     "street_cob_old": 589.0,
+     "street_cob_new": 589.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 51.0,
+     "pattern_old": "PPP-PP--PP-P",
+     "pattern_new": "PPP-PP--PP-P",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "saragossa": {
+   "style": "spanish",
+   "cobble_style": true,
+   "arrivals": [
+    "madrid_saragossa ab madrid",
+    "saragossa_barcelona ab barcelona",
+    "saragossa_pau ab pau"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 701.0,
+     "nonstone_m": 0.0,
+     "stone_m": 99.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.501,
+     "share_new": 0.501,
+     "street_cob_old": 351.0,
+     "street_cob_new": 351.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 99.0,
+     "pattern_old": "PPP----PP",
+     "pattern_new": "PPP----PP",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 698.0,
+     "nonstone_m": 0.0,
+     "stone_m": 102.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.501,
+     "share_new": 0.501,
+     "street_cob_old": 350.0,
+     "street_cob_new": 350.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 102.0,
+     "pattern_old": "PPP----PP",
+     "pattern_new": "PPP----PP",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "barcelona": {
+   "style": "spanish",
+   "cobble_style": true,
+   "arrivals": [
+    "saragossa_barcelona ab saragossa",
+    "barcelona_montpellier ab montpellier"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 800.0,
+     "nonstone_m": 0.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.549,
+     "share_new": 0.549,
+     "street_cob_old": 439.0,
+     "street_cob_new": 439.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "-PP-P-P-P",
+     "pattern_new": "-PP-P-P-P",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "montpellier": {
+   "style": "french_south",
+   "cobble_style": true,
+   "arrivals": [
+    "barcelona_montpellier ab barcelona",
+    "toulouse_montpellier ab toulouse",
+    "montpellier_lyon ab lyon"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 758.0,
+     "nonstone_m": 42.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.526,
+     "share_new": 0.646,
+     "street_cob_old": 399.0,
+     "street_cob_new": 490.0,
+     "bridge_cob_old": 42.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "P-PP-P--P",
+     "pattern_new": "P-PP-P-PP",
+     "changed": true,
+     "diff_m": 133.0,
+     "surface_diff_m": 133.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 758.0,
+     "nonstone_m": 42.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.525,
+     "share_new": 0.645,
+     "street_cob_old": 398.0,
+     "street_cob_new": 489.0,
+     "bridge_cob_old": 42.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "P-PP-P--P",
+     "pattern_new": "P-PP-P-PP",
+     "changed": true,
+     "diff_m": 133.0,
+     "surface_diff_m": 133.0
+    }
+   ]
+  },
+  "pau": {
+   "style": "french",
+   "cobble_style": true,
+   "arrivals": [
+    "saragossa_pau ab saragossa",
+    "pau_toulouse ab toulouse"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 740.0,
+     "nonstone_m": 60.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.608,
+     "share_new": 0.608,
+     "street_cob_old": 450.0,
+     "street_cob_new": 450.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "PP--P-PP-",
+     "pattern_new": "PP--P-PP-",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 740.0,
+     "nonstone_m": 60.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.607,
+     "share_new": 0.607,
+     "street_cob_old": 449.0,
+     "street_cob_new": 449.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "PP--P-PP-",
+     "pattern_new": "PP--P-PP-",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "toulouse": {
+   "style": "french_south",
+   "cobble_style": true,
+   "arrivals": [
+    "pau_toulouse ab pau",
+    "toulouse_montpellier ab montpellier"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 671.0,
+     "nonstone_m": 0.0,
+     "stone_m": 129.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.641,
+     "share_new": 0.641,
+     "street_cob_old": 430.0,
+     "street_cob_new": 430.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 129.0,
+     "pattern_old": "-P--PPP-P",
+     "pattern_new": "-P--PPP-P",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "lyon": {
+   "style": "french_south",
+   "cobble_style": true,
+   "arrivals": [
+    "montpellier_lyon ab montpellier",
+    "lyon_bern ab bern"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 620.0,
+     "nonstone_m": 111.0,
+     "stone_m": 69.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.532,
+     "share_new": 0.677,
+     "street_cob_old": 330.0,
+     "street_cob_new": 420.0,
+     "bridge_cob_old": 111.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 69.0,
+     "pattern_old": "---PPP-PP",
+     "pattern_new": "P--PPP-PP",
+     "changed": true,
+     "diff_m": 201.0,
+     "surface_diff_m": 201.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 623.0,
+     "nonstone_m": 108.0,
+     "stone_m": 69.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.535,
+     "share_new": 0.679,
+     "street_cob_old": 333.0,
+     "street_cob_new": 423.0,
+     "bridge_cob_old": 108.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 69.0,
+     "pattern_old": "---PPP-PP",
+     "pattern_new": "P--PPP-PP",
+     "changed": true,
+     "diff_m": 198.0,
+     "surface_diff_m": 198.0
+    }
+   ]
+  },
+  "bern": {
+   "style": "swiss",
+   "cobble_style": true,
+   "arrivals": [
+    "lyon_bern ab lyon",
+    "bern_mailand ab mailand"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 689.0,
+     "nonstone_m": 111.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.479,
+     "share_new": 0.608,
+     "street_cob_old": 330.0,
+     "street_cob_new": 419.0,
+     "bridge_cob_old": 111.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "P-PP---PP",
+     "pattern_new": "P-PP--PPP",
+     "changed": true,
+     "diff_m": 200.0,
+     "surface_diff_m": 200.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 692.0,
+     "nonstone_m": 108.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.481,
+     "share_new": 0.61,
+     "street_cob_old": 333.0,
+     "street_cob_new": 422.0,
+     "bridge_cob_old": 108.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "P-PP---PP",
+     "pattern_new": "P-PP--PPP",
+     "changed": true,
+     "diff_m": 197.0,
+     "surface_diff_m": 197.0
+    }
+   ]
+  },
+  "mailand": {
+   "style": "italian",
+   "cobble_style": true,
+   "arrivals": [
+    "bern_mailand ab bern",
+    "mailand_venedig ab venedig"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 800.0,
+     "nonstone_m": 0.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.551,
+     "share_new": 0.551,
+     "street_cob_old": 441.0,
+     "street_cob_new": 441.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "--P-PPP-P",
+     "pattern_new": "--P-PPP-P",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "venedig": {
+   "style": "italian",
+   "cobble_style": true,
+   "arrivals": [
+    "mailand_venedig ab mailand",
+    "venedig_ljubljana ab ljubljana"
+   ],
+   "variants": [
+    {
+     "centre_m": 660.0,
+     "street_m": 282.0,
+     "nonstone_m": 378.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.645,
+     "share_new": 0.642,
+     "street_cob_old": 182.0,
+     "street_cob_new": 181.0,
+     "bridge_cob_old": 211.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "P-P-PP-P",
+     "pattern_new": "P-P-----",
+     "changed": true,
+     "diff_m": 212.0,
+     "surface_diff_m": 212.0
+    },
+    {
+     "centre_m": 660.0,
+     "street_m": 282.0,
+     "nonstone_m": 378.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.642,
+     "share_new": 0.638,
+     "street_cob_old": 181.0,
+     "street_cob_new": 180.0,
+     "bridge_cob_old": 209.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "P-P-PP-P",
+     "pattern_new": "P-P-----",
+     "changed": true,
+     "diff_m": 210.0,
+     "surface_diff_m": 210.0
+    }
+   ]
+  },
+  "ljubljana": {
+   "style": "central",
+   "cobble_style": true,
+   "arrivals": [
+    "venedig_ljubljana ab venedig",
+    "ljubljana_slavonski_brod ab slavonski_brod"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 761.0,
+     "nonstone_m": 0.0,
+     "stone_m": 39.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.526,
+     "share_new": 0.526,
+     "street_cob_old": 400.0,
+     "street_cob_new": 400.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 39.0,
+     "pattern_old": "P-PPP---P",
+     "pattern_new": "P-PPP---P",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 761.0,
+     "nonstone_m": 0.0,
+     "stone_m": 39.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.527,
+     "share_new": 0.527,
+     "street_cob_old": 401.0,
+     "street_cob_new": 401.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 39.0,
+     "pattern_old": "P-PPP---P",
+     "pattern_new": "P-PPP---P",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "slavonski_brod": {
+   "style": "balkan",
+   "cobble_style": true,
+   "arrivals": [
+    "ljubljana_slavonski_brod ab ljubljana",
+    "slavonski_brod_belgrad ab belgrad"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 710.0,
+     "nonstone_m": 90.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.635,
+     "share_new": 0.635,
+     "street_cob_old": 451.0,
+     "street_cob_new": 451.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "PP--PP-P-",
+     "pattern_new": "PP--PP-P-",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 710.0,
+     "nonstone_m": 90.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.632,
+     "share_new": 0.632,
+     "street_cob_old": 449.0,
+     "street_cob_new": 449.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "PP--PP-P-",
+     "pattern_new": "PP--PP-P-",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "belgrad": {
+   "style": "balkan",
+   "cobble_style": true,
+   "arrivals": [
+    "slavonski_brod_belgrad ab slavonski_brod",
+    "belgrad_sofia ab sofia",
+    "belgrad_budapest ab budapest"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 629.0,
+     "nonstone_m": 171.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.604,
+     "share_new": 0.604,
+     "street_cob_old": 380.0,
+     "street_cob_new": 380.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "-PP---PPP",
+     "pattern_new": "-PP---PPP",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 632.0,
+     "nonstone_m": 168.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.603,
+     "share_new": 0.603,
+     "street_cob_old": 381.0,
+     "street_cob_new": 381.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "-PP---PPP",
+     "pattern_new": "-PP---PPP",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 629.0,
+     "nonstone_m": 171.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.603,
+     "share_new": 0.603,
+     "street_cob_old": 379.0,
+     "street_cob_new": 379.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "-PP---PPP",
+     "pattern_new": "-PP---PPP",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "sofia": {
+   "style": "balkan",
+   "cobble_style": true,
+   "arrivals": [
+    "belgrad_sofia ab belgrad"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 800.0,
+     "nonstone_m": 0.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.551,
+     "share_new": 0.551,
+     "street_cob_old": 441.0,
+     "street_cob_new": 441.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "P----PPPP",
+     "pattern_new": "P----PPPP",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "budapest": {
+   "style": "central",
+   "cobble_style": true,
+   "arrivals": [
+    "belgrad_budapest ab belgrad",
+    "budapest_wien ab wien",
+    "timisoara_budapest ab timisoara"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 650.0,
+     "nonstone_m": 150.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.572,
+     "share_new": 0.602,
+     "street_cob_old": 372.0,
+     "street_cob_new": 391.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "PPP--P-P-",
+     "pattern_new": "PPPP-P-P-",
+     "changed": true,
+     "diff_m": 19.0,
+     "surface_diff_m": 19.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 650.0,
+     "nonstone_m": 150.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.574,
+     "share_new": 0.602,
+     "street_cob_old": 373.0,
+     "street_cob_new": 391.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "PPP--P-P-",
+     "pattern_new": "PPPP-P-P-",
+     "changed": true,
+     "diff_m": 18.0,
+     "surface_diff_m": 18.0
+    }
+   ]
+  },
+  "wien": {
+   "style": "vienna",
+   "cobble_style": true,
+   "arrivals": [
+    "budapest_wien ab budapest",
+    "wien_prag ab prag",
+    "wien_linz ab linz"
+   ],
+   "variants": [
+    {
+     "centre_m": 900.0,
+     "street_m": 780.0,
+     "nonstone_m": 120.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.632,
+     "share_new": 0.632,
+     "street_cob_old": 493.0,
+     "street_cob_new": 493.0,
+     "bridge_cob_old": 48.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "--PPPPP-P-P",
+     "pattern_new": "--PPPPP-P-P",
+     "changed": true,
+     "diff_m": 48.0,
+     "surface_diff_m": 48.0
+    },
+    {
+     "centre_m": 900.0,
+     "street_m": 780.0,
+     "nonstone_m": 120.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.631,
+     "share_new": 0.631,
+     "street_cob_old": 492.0,
+     "street_cob_new": 492.0,
+     "bridge_cob_old": 48.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "--PPPPP-P-P",
+     "pattern_new": "--PPPPP-P-P",
+     "changed": true,
+     "diff_m": 48.0,
+     "surface_diff_m": 48.0
+    }
+   ]
+  },
+  "prag": {
+   "style": "central",
+   "cobble_style": true,
+   "arrivals": [
+    "wien_prag ab wien",
+    "prag_leipzig ab leipzig",
+    "prag_nuernberg ab nuernberg"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 692.0,
+     "nonstone_m": 0.0,
+     "stone_m": 108.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.494,
+     "share_new": 0.494,
+     "street_cob_old": 342.0,
+     "street_cob_new": 342.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 108.0,
+     "pattern_old": "PPPP-P---",
+     "pattern_new": "PPPP-P---",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 689.0,
+     "nonstone_m": 0.0,
+     "stone_m": 111.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.492,
+     "share_new": 0.492,
+     "street_cob_old": 339.0,
+     "street_cob_new": 339.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 111.0,
+     "pattern_old": "PPPP-P---",
+     "pattern_new": "PPPP-P---",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "berlin": {
+   "style": "german",
+   "cobble_style": false,
+   "arrivals": [
+    "leipzig_berlin ab leipzig",
+    "berlin_posen ab posen"
+   ],
+   "variants": [
+    {
+     "centre_m": 1000.0,
+     "street_m": 928.0,
+     "nonstone_m": 0.0,
+     "stone_m": 72.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.0,
+     "share_new": 0.0,
+     "street_cob_old": 0.0,
+     "street_cob_new": 0.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 72.0,
+     "pattern_old": "",
+     "pattern_new": "",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    },
+    {
+     "centre_m": 1000.0,
+     "street_m": 931.0,
+     "nonstone_m": 0.0,
+     "stone_m": 69.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.0,
+     "share_new": 0.0,
+     "street_cob_old": 0.0,
+     "street_cob_new": 0.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 69.0,
+     "pattern_old": "",
+     "pattern_new": "",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "posen": {
+   "style": "eastern",
+   "cobble_style": true,
+   "arrivals": [
+    "berlin_posen ab berlin",
+    "posen_warschau ab warschau"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 710.0,
+     "nonstone_m": 90.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.51,
+     "share_new": 0.623,
+     "street_cob_old": 362.0,
+     "street_cob_new": 442.0,
+     "bridge_cob_old": 90.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "P-PP-P-P-",
+     "pattern_new": "P-PP-P-PP",
+     "changed": true,
+     "diff_m": 170.0,
+     "surface_diff_m": 170.0
+    }
+   ]
+  },
+  "warschau": {
+   "style": "eastern",
+   "cobble_style": true,
+   "arrivals": [
+    "posen_warschau ab posen",
+    "warschau_bialystok ab bialystok"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 662.0,
+     "nonstone_m": 0.0,
+     "stone_m": 138.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.458,
+     "share_new": 0.458,
+     "street_cob_old": 303.0,
+     "street_cob_new": 303.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 138.0,
+     "pattern_old": "--PPPP--P",
+     "pattern_new": "--PPPP--P",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 662.0,
+     "nonstone_m": 0.0,
+     "stone_m": 138.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.456,
+     "share_new": 0.456,
+     "street_cob_old": 302.0,
+     "street_cob_new": 302.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 138.0,
+     "pattern_old": "--PPPP--P",
+     "pattern_new": "--PPPP--P",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "bialystok": {
+   "style": "eastern",
+   "cobble_style": true,
+   "arrivals": [
+    "warschau_bialystok ab warschau",
+    "bialystok_kaunas ab kaunas"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 800.0,
+     "nonstone_m": 0.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.561,
+     "share_new": 0.561,
+     "street_cob_old": 449.0,
+     "street_cob_new": 449.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "PP--PP-P-",
+     "pattern_new": "PP--PP-P-",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "kaunas": {
+   "style": "baltic",
+   "cobble_style": true,
+   "arrivals": [
+    "bialystok_kaunas ab bialystok",
+    "kaunas_riga ab riga"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 689.0,
+     "nonstone_m": 111.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.653,
+     "share_new": 0.582,
+     "street_cob_old": 450.0,
+     "street_cob_new": 401.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "-P--PPPP-",
+     "pattern_new": "-P-P-PPP-",
+     "changed": true,
+     "diff_m": 129.0,
+     "surface_diff_m": 129.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 689.0,
+     "nonstone_m": 111.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.653,
+     "share_new": 0.581,
+     "street_cob_old": 450.0,
+     "street_cob_new": 400.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "-P--PPPP-",
+     "pattern_new": "-P-P-PPP-",
+     "changed": true,
+     "diff_m": 128.0,
+     "surface_diff_m": 128.0
+    }
+   ]
+  },
+  "riga": {
+   "style": "baltic",
+   "cobble_style": true,
+   "arrivals": [
+    "kaunas_riga ab kaunas"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 650.0,
+     "nonstone_m": 150.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.554,
+     "share_new": 0.602,
+     "street_cob_old": 360.0,
+     "street_cob_new": 391.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "-P-PPP-P-",
+     "pattern_new": "-PP-PP-P-",
+     "changed": true,
+     "diff_m": 31.0,
+     "surface_diff_m": 31.0
+    }
+   ]
+  },
+  "rostock": {
+   "style": "hanse",
+   "cobble_style": true,
+   "arrivals": [
+    "rostock_kiel ab kiel"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 800.0,
+     "nonstone_m": 0.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.55,
+     "share_new": 0.55,
+     "street_cob_old": 440.0,
+     "street_cob_new": 440.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "P----PPPP",
+     "pattern_new": "P----PPPP",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "linz": {
+   "style": "austrian",
+   "cobble_style": true,
+   "arrivals": [
+    "wien_linz ab wien",
+    "linz_passau ab passau"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 671.0,
+     "nonstone_m": 129.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.654,
+     "share_new": 0.598,
+     "street_cob_old": 439.0,
+     "street_cob_new": 401.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "P---PP-PP",
+     "pattern_new": "P-P--P-PP",
+     "changed": true,
+     "diff_m": 140.0,
+     "surface_diff_m": 140.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 668.0,
+     "nonstone_m": 132.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.654,
+     "share_new": 0.596,
+     "street_cob_old": 437.0,
+     "street_cob_new": 398.0,
+     "bridge_cob_old": 1.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "P---PP-PP",
+     "pattern_new": "P-P--P-PP",
+     "changed": true,
+     "diff_m": 138.0,
+     "surface_diff_m": 138.0
+    }
+   ]
+  },
+  "passau": {
+   "style": "bavarian",
+   "cobble_style": true,
+   "arrivals": [
+    "linz_passau ab linz",
+    "passau_regensburg ab regensburg"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 710.0,
+     "nonstone_m": 90.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.563,
+     "share_new": 0.632,
+     "street_cob_old": 400.0,
+     "street_cob_new": 449.0,
+     "bridge_cob_old": 50.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "P--P-PPP-",
+     "pattern_new": "P--PPPPP-",
+     "changed": true,
+     "diff_m": 99.0,
+     "surface_diff_m": 99.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 710.0,
+     "nonstone_m": 90.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.561,
+     "share_new": 0.632,
+     "street_cob_old": 398.0,
+     "street_cob_new": 449.0,
+     "bridge_cob_old": 52.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "P--P-PPP-",
+     "pattern_new": "P--PPPPP-",
+     "changed": true,
+     "diff_m": 103.0,
+     "surface_diff_m": 103.0
+    }
+   ]
+  },
+  "regensburg": {
+   "style": "bavarian",
+   "cobble_style": true,
+   "arrivals": [
+    "passau_regensburg ab passau",
+    "regensburg_nuernberg ab nuernberg"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 680.0,
+     "nonstone_m": 120.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.526,
+     "share_new": 0.618,
+     "street_cob_old": 358.0,
+     "street_cob_new": 420.0,
+     "bridge_cob_old": 89.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "P-P-P-PP-",
+     "pattern_new": "PP-P--PP-",
+     "changed": true,
+     "diff_m": 329.0,
+     "surface_diff_m": 329.0
+    }
+   ]
+  },
+  "fulda": {
+   "style": "german_old",
+   "cobble_style": true,
+   "arrivals": [
+    "nuernberg_fulda ab nuernberg",
+    "fulda_kassel ab kassel"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 755.0,
+     "nonstone_m": 45.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.581,
+     "share_new": 0.581,
+     "street_cob_old": 439.0,
+     "street_cob_new": 439.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "PP--P--PP",
+     "pattern_new": "PP--P--PP",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "sibiu": {
+   "style": "central",
+   "cobble_style": true,
+   "arrivals": [
+    "bukarest_sibiu ab bukarest",
+    "sibiu_timisoara ab timisoara"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 764.0,
+     "nonstone_m": 36.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.576,
+     "share_new": 0.576,
+     "street_cob_old": 440.0,
+     "street_cob_new": 440.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "-P---PPPP",
+     "pattern_new": "-P---PPPP",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    },
+    {
+     "centre_m": 800.0,
+     "street_m": 767.0,
+     "nonstone_m": 33.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.574,
+     "share_new": 0.574,
+     "street_cob_old": 440.0,
+     "street_cob_new": 440.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "-P---PPPP",
+     "pattern_new": "-P---PPPP",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "bukarest": {
+   "style": "balkan",
+   "cobble_style": true,
+   "arrivals": [
+    "bukarest_sibiu ab sibiu"
+   ],
+   "variants": [
+    {
+     "centre_m": 1000.0,
+     "street_m": 967.0,
+     "nonstone_m": 33.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.627,
+     "share_new": 0.627,
+     "street_cob_old": 606.0,
+     "street_cob_new": 606.0,
+     "bridge_cob_old": 33.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "--PPPPP-PP-P",
+     "pattern_new": "--PPPPP-PP-P",
+     "changed": true,
+     "diff_m": 33.0,
+     "surface_diff_m": 33.0
+    }
+   ]
+  },
+  "timisoara": {
+   "style": "central",
+   "cobble_style": true,
+   "arrivals": [
+    "sibiu_timisoara ab sibiu",
+    "timisoara_budapest ab budapest"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 749.0,
+     "nonstone_m": 51.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.535,
+     "share_new": 0.601,
+     "street_cob_old": 401.0,
+     "street_cob_new": 450.0,
+     "bridge_cob_old": 51.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "P-PP-P-P-",
+     "pattern_new": "P--P-PPP-",
+     "changed": true,
+     "diff_m": 180.0,
+     "surface_diff_m": 180.0
+    }
+   ]
+  },
+  "koeln": {
+   "style": "german",
+   "cobble_style": false,
+   "arrivals": [
+    "frankfurt_koeln ab frankfurt",
+    "koeln_bruessel ab bruessel"
+   ],
+   "variants": [
+    {
+     "centre_m": 900.0,
+     "street_m": 759.0,
+     "nonstone_m": 141.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.0,
+     "share_new": 0.0,
+     "street_cob_old": 0.0,
+     "street_cob_new": 0.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "",
+     "pattern_new": "",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    },
+    {
+     "centre_m": 900.0,
+     "street_m": 762.0,
+     "nonstone_m": 138.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.0,
+     "share_new": 0.0,
+     "street_cob_old": 0.0,
+     "street_cob_new": 0.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "",
+     "pattern_new": "",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  },
+  "bruessel": {
+   "style": "belgian",
+   "cobble_style": true,
+   "arrivals": [
+    "koeln_bruessel ab koeln",
+    "bruessel_calais ab calais"
+   ],
+   "variants": [
+    {
+     "centre_m": 900.0,
+     "street_m": 840.0,
+     "nonstone_m": 60.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.569,
+     "share_new": 0.569,
+     "street_cob_old": 478.0,
+     "street_cob_new": 478.0,
+     "bridge_cob_old": 60.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "PP-PP-P-P--",
+     "pattern_new": "PP-PP-P-P--",
+     "changed": true,
+     "diff_m": 60.0,
+     "surface_diff_m": 60.0
+    }
+   ]
+  },
+  "calais": {
+   "style": "belgian",
+   "cobble_style": true,
+   "arrivals": [
+    "bruessel_calais ab bruessel"
+   ],
+   "variants": [
+    {
+     "centre_m": 800.0,
+     "street_m": 728.0,
+     "nonstone_m": 72.0,
+     "stone_m": 0.0,
+     "tunnel_m": 0.0,
+     "share_old": 0.606,
+     "share_new": 0.606,
+     "street_cob_old": 441.0,
+     "street_cob_new": 441.0,
+     "bridge_cob_old": 0.0,
+     "bridge_cob_new": 0.0,
+     "stone_cob_new": 0.0,
+     "pattern_old": "-P-P--PPP",
+     "pattern_new": "-P-P--PPP",
+     "changed": false,
+     "diff_m": 0.0,
+     "surface_diff_m": 0.0
+    }
+   ]
+  }
+ },
+ "notes": [
+  "amsterdam: 2 verschiedene Ankünfte",
+  "belgrad: 3 verschiedene Ankünfte",
+  "bern: 2 verschiedene Ankünfte",
+  "bordeaux: 2 verschiedene Ankünfte",
+  "bremen: 4 verschiedene Ankünfte",
+  "budapest: 2 verschiedene Ankünfte",
+  "hamburg: 2 verschiedene Ankünfte",
+  "kaunas: 2 verschiedene Ankünfte",
+  "kiel: 2 verschiedene Ankünfte",
+  "linz: 2 verschiedene Ankünfte",
+  "ljubljana: 2 verschiedene Ankünfte",
+  "luettich: 2 verschiedene Ankünfte",
+  "lyon: 2 verschiedene Ankünfte",
+  "madrid: 2 verschiedene Ankünfte",
+  "montpellier: 2 verschiedene Ankünfte",
+  "nuernberg: 5 verschiedene Ankünfte",
+  "paris: 2 verschiedene Ankünfte",
+  "passau: 2 verschiedene Ankünfte",
+  "pau: 2 verschiedene Ankünfte",
+  "prag: 2 verschiedene Ankünfte",
+  "saragossa: 2 verschiedene Ankünfte",
+  "sibiu: 2 verschiedene Ankünfte",
+  "slavonski_brod: 2 verschiedene Ankünfte",
+  "tours: 2 verschiedene Ankünfte",
+  "venedig: 2 verschiedene Ankünfte",
+  "warschau: 2 verschiedene Ankünfte",
+  "wien: 2 verschiedene Ankünfte",
+  "wuerzburg: 2 verschiedene Ankünfte"
+ ]
+}

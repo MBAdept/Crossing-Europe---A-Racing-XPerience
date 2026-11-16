@@ -1,0 +1,11 @@
+v0.8.0 R4 (WIP): Wettertabelle in zwei Prüfdateien (klar/Regen, Schnee)
+
+Die Tabelle Wetter × Stunde lief OK (Helligkeit 0,90 … 1,01 × Arcade,
+Kontrast 0,74 … 1,17 ×), brauchte aber für alle 24 Etappenstarts bei Last 20
+933 s – mehr als die 900 s, die tools/run_render_checks.sh einer Datei gibt.
+check_weather_tabelle.gd prüft jetzt klar und Regen (16 Starts),
+check_weather_tabelle_schnee.gd Schnee (8); check_weather.gd nimmt dafür
+-- --tabelle-wetter=<Arten>.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

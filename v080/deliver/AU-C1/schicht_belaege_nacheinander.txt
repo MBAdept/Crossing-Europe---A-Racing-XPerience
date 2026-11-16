@@ -1,0 +1,17 @@
+Beläge nacheinander, Pegel wie im Spiel ohne Motor und Wind
+
+Asphalt 100 km/h – Beton 100 km/h mit Plattenfugen – Stahldeck 100 km/h (mit Brückenfugen) – Kopfsteinpflaster 50 km/h – Bankett rechts 100 km/h – Gras am Rand 60 km/h – nasser Asphalt 100 km/h – Schnee 80 km/h. Leise Stellen sind auch im Spiel leise (Asphalt bei 100 km/h: -33,1 LUFS gemessen – rund 10 dB unter dem Motor bei Reisetempo, abgeleitet).
+
+Länge 34.0 s, integriert -24.1 LUFS, True Peak -8.1 dBTP (gemessen, Master bei Standardreglern, Gesamtlautstärke 0,8).
+
+Zeitmarken:
+  0:00.00  Asphalt 100 km/h
+  0:03.99  Beton 100 km/h (mit Plattenfugen)
+  0:08.60  Stahldeck 100 km/h
+  0:12.65  Kopfsteinpflaster 50 km/h
+  0:17.28  Bankett rechts 100 km/h
+  0:21.29  Gras am Rand (beide Seiten neben der Fahrbahn) 60 km/h
+  0:25.29  Asphalt nass 100 km/h
+  0:29.80  Schnee 80 km/h
+
+Aufgenommen am Master-Bus des Spiels (Godot 4.7.2, Profil Modern, ohne Bildschirm, Dummy-Audiotreiber). Gehört hat es hier niemand – das Urteil über den Klang liegt beim Nutzer.

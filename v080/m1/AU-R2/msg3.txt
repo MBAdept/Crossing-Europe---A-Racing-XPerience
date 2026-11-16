@@ -1,0 +1,11 @@
+v0.8.0 AU-R2: Pflaster rechts für seine Tonhöhe angeglichen, Plattenpegel über 150 km/h 4 dB je Dekade (WIP)
+
+- vehicle_loops.py: match_loop(…, pitch): die rechte Pflasterschleife wird für die Tonhöhe angeglichen, mit der
+  sie spielt (× 1,02) – der steile Anstieg des Karosserie-Grollens unter 48 Hz nahm sonst 0,5 dB aus der
+  40-Hz-Terz (Modell: −0,87 → −0,41 dB gegen AU-C1). Nur tyre_cobbles_b neu, alles andere bitgleich.
+- road.slabs.high_slope_db 8 → 4: bei 200 km/h auf Beton nahm der Begrenzer mit 8 dB je Dekade in einem von
+  vier Läufen noch 0,65 dB (Grenze 0,5); Platten bei 200 km/h jetzt 2,0 dB, bei 170 km/h 0,9 dB unter AU-R.
+- Doku 15.1/15.2 nachgezogen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

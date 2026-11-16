@@ -1,0 +1,11 @@
+v0.8.0 AU-D1: Titel-Remaster mit Tempo und Takten im Manifest
+
+Der Manifest-Eintrag des Titel-Remasters trägt wie das Rennstück bpm
+(128), bar_beats, intro_bars (8) und loop_bars (100); die
+Import-Einstellungen bekommen bpm=128 (beat_count bleibt 0, die
+Schleife endet am Dateiende – keine hörbare Änderung). Der Generator
+schreibt Import und Eintrag über register(), die Datei selbst ist
+unverändert (gleiche sha256).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

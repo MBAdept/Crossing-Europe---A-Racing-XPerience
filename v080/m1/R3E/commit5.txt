@@ -1,0 +1,16 @@
+v0.8.0 R3E: Ersatzbilder in der Tiefe des Autos, Nacht wie Arcade, Prüfungen nacht und verdeckt
+
+- Verkehrsbilder werden nicht mehr zum Auge gezogen (sie standen 2,6 % näher als
+  ihr Auto): die Zeilen unter der Bodenlinie rücken entlang ihres Sehstrahls auf
+  die Straße (onto_road, 2 cm darüber), das Bild behält die Tiefe des Autos.
+- Shader gibt den Anzeigewert wie Arcades Leinwand aus (albedo_for: der
+  Compatibility-Renderer dunkelt ein ungeleuchtetes ALBEDO sonst ab, nachts bis
+  25 %).
+- Spielerbild: Zelle auch beim Blinken weiter wie Arcade (_player_sprite_cell).
+- Render-Prüfung nacht (Karosserie von Spieler und hellem Auto bei 20/60 m,
+  Helligkeit ± 10 %) und verdeckt (Ersatzbild hinter der Kuppe T2, Tag und Nacht,
+  Lampen an: 0 Pixel).
+- Doku renderer-modern.md 10.8.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

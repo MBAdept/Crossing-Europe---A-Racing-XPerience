@@ -1,0 +1,70 @@
+# two forced exports: #1 --jobs=2, #2 --jobs=1 (all six models in one Blender process); md5 of the intermediates
+## export 1
+d41d8cd98f00b204e9800998ecf8427e  ./.gdignore
+84fa4170499fec4185513b7f52e2ccf6  ./.gitignore
+a13fc0271e22578918f841f4c87a22e8  ./bake_report.json
+2f44b8efb05237f0d1a995870b0fae52  ./landmarks/michel/albedo.webp
+98a358bc3cd44459fb9368904da68308  ./landmarks/michel/emit.png
+d61cd36cc833a0112edbfa9c7a5a8258  ./landmarks/michel/model.glb
+c761bc690aa9ed25a02bc1b8bd152d1c  ./landmarks/michel/model_meta.json
+b28b585d092845e9780f597910f66401  ./player/limousine/model.glb
+c49fd3bd146fc99a8f5836d9bc9b44f1  ./player/limousine/model_meta.json
+4b72ee543f5025a36fab2f5e3f54cc64  ./props/farmhouse/albedo.png
+e68ab807618e6b8cdf4e944a04d78ea8  ./props/farmhouse/emit.png
+d7084abe5d8d41e8c6ebf419bb73cfe2  ./props/farmhouse/model.glb
+e531a2d0b429fb1f8797989cc3653495  ./props/farmhouse/model_meta.json
+c2a824f57431c0504dc1a1fdb15a53d9  ./props/streetlight/model.glb
+b133807144416e316e5d72a067fc9aa0  ./props/streetlight/model_meta.json
+9b2cce86fbf39e278d38e33e9d3c4ddc  ./props/tree_oak/impostor.png
+4289bea711f6e35dfa75b4485c4794a9  ./props/tree_oak/leaves.png
+54cd21cc5d4429d9b5d237a418eb1e89  ./props/tree_oak/model.glb
+4f49ad40e69e2ebcb7ebffb97b366f97  ./props/tree_oak/model_meta.json
+0f578a8cdde8f309296d51352470fcd1  ./traffic/sedan/model.glb
+432ba90f3a431a09fed2ae2ba8af8603  ./traffic/sedan/model_meta.json
+## export 2
+d41d8cd98f00b204e9800998ecf8427e  ./.gdignore
+84fa4170499fec4185513b7f52e2ccf6  ./.gitignore
+a13fc0271e22578918f841f4c87a22e8  ./bake_report.json
+2f44b8efb05237f0d1a995870b0fae52  ./landmarks/michel/albedo.webp
+98a358bc3cd44459fb9368904da68308  ./landmarks/michel/emit.png
+d61cd36cc833a0112edbfa9c7a5a8258  ./landmarks/michel/model.glb
+32d500fc42e9fb1c58be00fe5a11ff0e  ./landmarks/michel/model_meta.json
+b28b585d092845e9780f597910f66401  ./player/limousine/model.glb
+603ad0ba0cbcf55bd68fda645547054e  ./player/limousine/model_meta.json
+4b72ee543f5025a36fab2f5e3f54cc64  ./props/farmhouse/albedo.png
+e68ab807618e6b8cdf4e944a04d78ea8  ./props/farmhouse/emit.png
+d7084abe5d8d41e8c6ebf419bb73cfe2  ./props/farmhouse/model.glb
+1d3b6cbee6385504d4793526a4b8f224  ./props/farmhouse/model_meta.json
+c2a824f57431c0504dc1a1fdb15a53d9  ./props/streetlight/model.glb
+35b3e429256431f8e76c16b07991bedb  ./props/streetlight/model_meta.json
+9b2cce86fbf39e278d38e33e9d3c4ddc  ./props/tree_oak/impostor.png
+4289bea711f6e35dfa75b4485c4794a9  ./props/tree_oak/leaves.png
+54cd21cc5d4429d9b5d237a418eb1e89  ./props/tree_oak/model.glb
+48e7f73ff726a2dbf8b376dc6b853ba8  ./props/tree_oak/model_meta.json
+0f578a8cdde8f309296d51352470fcd1  ./traffic/sedan/model.glb
+0190503d41888d4dd971de45d79feafb  ./traffic/sedan/model_meta.json
+## diff
+7c7
+< c761bc690aa9ed25a02bc1b8bd152d1c  ./landmarks/michel/model_meta.json
+---
+> 32d500fc42e9fb1c58be00fe5a11ff0e  ./landmarks/michel/model_meta.json
+9c9
+< c49fd3bd146fc99a8f5836d9bc9b44f1  ./player/limousine/model_meta.json
+---
+> 603ad0ba0cbcf55bd68fda645547054e  ./player/limousine/model_meta.json
+13c13
+< e531a2d0b429fb1f8797989cc3653495  ./props/farmhouse/model_meta.json
+---
+> 1d3b6cbee6385504d4793526a4b8f224  ./props/farmhouse/model_meta.json
+15c15
+< b133807144416e316e5d72a067fc9aa0  ./props/streetlight/model_meta.json
+---
+> 35b3e429256431f8e76c16b07991bedb  ./props/streetlight/model_meta.json
+19c19
+< 4f49ad40e69e2ebcb7ebffb97b366f97  ./props/tree_oak/model_meta.json
+---
+> 48e7f73ff726a2dbf8b376dc6b853ba8  ./props/tree_oak/model_meta.json
+21c21
+< 432ba90f3a431a09fed2ae2ba8af8603  ./traffic/sedan/model_meta.json
+---
+> 0190503d41888d4dd971de45d79feafb  ./traffic/sedan/model_meta.json

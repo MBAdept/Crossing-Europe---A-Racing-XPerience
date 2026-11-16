@@ -1,0 +1,14 @@
+Kompakt (2,0 l R4 Turbo) – derselbe Fahrablauf, abwechselnd mit dem Motor des Profils Arcade und dem Motor v3 des Profils Modern,
+jeweils im Spiel über die Busse des Profils aufgenommen (nur der Motor mit seinen Fahrzeugebenen, ohne Wind, Reifen, Verkehr).
+Für den Vergleich pegelgleich gemacht: Modern um 1.3 dB abgesenkt (im Spiel ist der Motor von Modern über die ganze Fahrt lauter:
+Arcade -20.6 LUFS, Modern -19.4 LUFS; Modern folgt dem Pegelplan, Vollgas −16 LUFS mit Wind).
+Niemand hat diese Datei gehört; sie ist aus den Aufnahmen geschnitten und nur gemessen.
+
+   0.0 –    7.2 s  ARCADE  Start, Leerlauf, zwei Gasstöße im Stand
+   7.5 –   14.7 s  MODERN  Start, Leerlauf, zwei Gasstöße im Stand
+  15.4 –   28.1 s  ARCADE  Vollgas durch die Gänge
+  28.4 –   41.0 s  MODERN  Vollgas durch die Gänge
+  41.7 –   52.6 s  ARCADE  Reisetempo 200 km/h, Gas weg, Bremsen mit Rückschalten
+  52.9 –   63.8 s  MODERN  Reisetempo 200 km/h, Gas weg, Bremsen mit Rückschalten
+  64.5 –   82.3 s  ARCADE  130 km/h, Kick-down, Gas weg, Anhalten
+  82.6 –  100.5 s  MODERN  130 km/h, Kick-down, Gas weg, Anhalten

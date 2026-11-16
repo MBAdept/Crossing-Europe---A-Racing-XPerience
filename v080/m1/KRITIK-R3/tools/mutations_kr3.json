@@ -1,0 +1,138 @@
+[
+ [
+  "K01",
+  "scripts/audio/modern/road_audio.gd",
+  "if sq > 0.002 and squeal.level < ModernAudioPan.SILENT:",
+  "if sq > 0.002 and (squeal.level < ModernAudioPan.SILENT or _rng_start.randf() < 0.1):",
+  "test_road_audio.gd",
+  "H1: Tonhöhe springt gelegentlich (10 % der Bilder) während eines Quietschens"
+ ],
+ [
+  "K02",
+  "scripts/audio/modern/road_audio.gd",
+  "var p := (0.9 + 0.22 * us + 0.08 * clampf(v / 250.0, 0.0, 1.0)) * squeal_factor",
+  "var p := (0.9 + 0.22 * us + 0.08 * clampf(v / 250.0, 0.0, 1.0)) * (1.0 + _rng_start.randf_range(-_squeal_spread, _squeal_spread))",
+  "test_road_audio.gd",
+  "H1: Zufall je Bild in der gespielten Tonhöhe statt in squeal_factor"
+ ],
+ [
+  "K03",
+  "scripts/audio/modern/road_audio.gd",
+  "\tvar v := rng.randi_range(0, n - 2)\n\treturn v + 1 if v >= last else v",
+  "\treturn (last + 1 + rng.randi_range(0, 1)) % n",
+  "test_road_audio.gd",
+  "H2: Nachfolger nur last+1 oder last+2 (halb zufällig)"
+ ],
+ [
+  "K04",
+  "scripts/audio/modern/impact_audio.gd",
+  "var v := RoadAudio.pick_variant(_rng, n, int(_last_variant.get(id, -1)))",
+  "var v := (int(_last_variant.get(id, -1)) + 1) % n",
+  "test_road_audio.gd",
+  "H2: Aufprall-Varianten reihum im Aufrufer"
+ ],
+ [
+  "K05",
+  "scripts/audio/modern/impact_audio.gd",
+  "var jitter := _rng.randf_range(-_vary_db, _vary_db) if vary else 0.0",
+  "var jitter := _rng.randf_range(-0.5 * _vary_db, 0.5 * _vary_db) if vary else 0.0",
+  "test_road_audio.gd",
+  "H3: Schichtpegel nur ±1 dB"
+ ],
+ [
+  "K06",
+  "scripts/audio/modern/impact_audio.gd",
+  "var jitter := _rng.randf_range(-_vary_db, _vary_db) if vary else 0.0",
+  "var jitter := _rng.randf_range(0.0, _vary_db) if vary else 0.0",
+  "test_road_audio.gd",
+  "H3: Schichtpegel nur nach oben"
+ ],
+ [
+  "K07",
+  "scripts/audio/modern/impact_audio.gd",
+  "var delay_s := minf(_rng.randf_range(0.0, 2.0 * _vary_ms / 1000.0), lead_s) if (vary and lead_s > 0.0) else 0.0",
+  "var delay_s := minf(_rng.randf_range(0.0, _vary_ms / 1000.0), lead_s) if (vary and lead_s > 0.0) else 0.0",
+  "test_road_audio.gd",
+  "H3: Einsatz nur bis 10 ms später"
+ ],
+ [
+  "K08",
+  "scripts/audio/modern/impact_audio.gd",
+  "ModernAudioPan.apply(pl, db_to_linear(db + jitter), pan)",
+  "ModernAudioPan.apply(pl, db_to_linear(db), pan)",
+  "test_road_audio.gd",
+  "H3: Pegelzufall gewürfelt, aber nicht gespielt"
+ ],
+ [
+  "K09",
+  "scripts/audio/modern/impact_audio.gd",
+  "pl.play(maxf(lead_s - delay_s, 0.0))",
+  "pl.play(lead_s)",
+  "test_road_audio.gd",
+  "H3: Einsatzzufall gewürfelt, aber nicht gespielt"
+ ],
+ [
+  "K10",
+  "scripts/audio/modern/road_audio.gd",
+  "quiet.restart(0, (slab_slow if loud else slab_fast).share())",
+  "quiet.restart(0, (slab_slow if loud else slab_fast).share() + 0.002)",
+  "test_road_audio.gd",
+  "H4: nachgestellt, aber daneben (0,2 % der Schleife)"
+ ],
+ [
+  "K11",
+  "scripts/audio/modern/road_audio.gd",
+  "var loud := slab_slow.level >= slab_fast.level",
+  "var loud := true",
+  "test_road_audio.gd",
+  "H4: immer das schnelle Muster nachgestellt (auch wenn es das lautere ist)"
+ ],
+ [
+  "K12",
+  "scripts/audio/modern/road_audio.gd",
+  "var jitter := _rng_start.randf_range(-_pass_jitter_db, _pass_jitter_db)",
+  "var jitter := _rng_start.randf_range(-0.5 * _pass_jitter_db, 0.5 * _pass_jitter_db)",
+  "test_road_audio.gd",
+  "M2: Vorbeifahrt nur ±1 dB"
+ ],
+ [
+  "K13",
+  "scripts/audio/modern/road_audio.gd",
+  "var variant := pick_variant(_rng_start, n, int(_pass_last.get(id, -1)))",
+  "var variant := (int(_pass_last.get(id, -1)) + 1) % n",
+  "test_road_audio.gd",
+  "M2: Vorbeifahrt-Varianten im Wechsel"
+ ],
+ [
+  "K14",
+  "scripts/audio/modern/road_audio.gd",
+  "var gain := db_to_linear(target + jitter - _lufs_m(e, variant) - _ref_path_db)",
+  "var gain := db_to_linear(target - _lufs_m(e, variant) - _ref_path_db)",
+  "test_road_audio.gd",
+  "M2: Vorbeifahrt-Zufall nicht im gespielten Pegel"
+ ],
+ [
+  "K15",
+  "scripts/audio/modern/audio_feed.gd",
+  "\tif paved_all > 0.0:\n\t\ttarget = maxf(target - paved_all, 0.0)",
+  "\tif false:\n\t\ttarget = maxf(target - paved_all, 0.0)",
+  "test_audio_feed.gd",
+  "M1: Steinbrücke in der Basis, aber nicht vom Ziel abgezogen"
+ ],
+ [
+  "K16",
+  "scripts/audio/modern/audio_feed.gd",
+  "\tvar base := centre_m - cut_all\n",
+  "\tvar base := centre_m - cut_all - paved_all\n",
+  "test_audio_feed.gd",
+  "M1: Steinbrücke nicht in der Basis (Lesart Straßen allein)"
+ ],
+ [
+  "K17",
+  "scripts/audio/modern/audio_feed.gd",
+  "\t_closer(out, street2, order, got2, float(fit2[1]), float(fit2[2]))\n",
+  "\tpass\n",
+  "test_audio_feed.gd",
+  "M1: Tunnel der Etappe rückt nie nach"
+ ]
+]

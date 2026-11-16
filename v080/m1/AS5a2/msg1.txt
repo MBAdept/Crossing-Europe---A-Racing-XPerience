@@ -1,0 +1,12 @@
+v0.8.0 AS5a2: Katalog der zwölf Stadthäuser, Hooks close3d der Straßenflanken, Geländermodule (WIP)
+
+- Katalog (AS5a-Block): french_sud, belgian_terrace, french_maison, french_immeuble, dutch_terrace,
+  belgian_stone, paris_haussmann, swiss_chalet, dutch_canal, swiss_laube, dutch_canal_b, paris_corner
+- props_cities: Hooks close3d (nur 3D, Sprite unverändert: check_sprite_geometry 86 von 86 identisch) -
+  Fenster und Türen an den Straßenflanken (-x) der Grachten-, Reihen-, Stein-, Lyoner und Laubenhäuser,
+  Rückgiebel der Grachtenhäuser
+- cities3d: weights.solid (Baumkronen ohne Unterseiten-Gewicht, nie verdeckt), rail_module (Geländer als
+  wiederholtes Modul: ein Modul im Atlas, alle anderen Flächen auf dessen Texel)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

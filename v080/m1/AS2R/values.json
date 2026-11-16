@@ -1,0 +1,8 @@
+{
+  "COMMITS": "`7c86864` (C2), `a79f959`, `d5a62a2`, `ecff521`, `8039c36`, `77cea90` (WIP-Stände), `2faa219` (Lkw/Bus-Scheiben, Doku), `c7546c1` (Ende: nur Umbruch der Doku); alle auf `origin wip/v080-as2r` gesichert",
+  "VALIDATOR": "**CHECK models OK** – 37 Modelle, 180 Sets (65 mit Modell, 115 Platzhalter), Netze 16,45 MB von 40 MB, Texturen 4,59 MB von 240 MB, Quellen 1,43 MB von 60 MB; alle Budgets eingehalten (Abschnitt 5)",
+  "DET3": "erzwungener Export + Bake von Polizei (18), Lkw (3) und Bus nach Commit `2faa219`: `git status` leer, zweiter Bake byte-gleich (142 Dateien), `--check-keys` grün",
+  "TESTS": "613 s: 241 Skripte fehlerfrei, **594 Unit-Tests, 0 fehlgeschlagen**, 79 CHECK-Zeilen, davon **2 rot** in `tests/race3d/check_vehicles.gd` (R3): `kasten` (erwartet Sets ohne Modell als Kasten – jedes Fahrzeug-Set hat jetzt ein Modell) und `leistung` (35 statt 34 Knotenbauten). Dieselben zwei wie bei AS2b; Exit 1 nur deswegen (Abschnitt 9)",
+  "GOLDEN": "**GOLDEN arcade: 20 von 20 identisch** (185 s)",
+  "GATES_SHORT": "Prüfer grün, Sprite-Geometrie 61 von 61 identisch, Export deterministisch (auch nach den letzten Änderungen), 594 Unit-Tests ohne Fehler, Golden 20 von 20 identisch; rot nur die zwei bekannten Prüfungen `kasten`/`leistung` von R3 (Abschnitt 7)"
+}

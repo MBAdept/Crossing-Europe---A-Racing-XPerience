@@ -1,0 +1,11 @@
+v0.8.0 R2 (WIP): Feldmuster berechnet statt aus der Zelltextur, Arcade-Bänder scharf im Shader
+
+Der Boden zeigte an Hängen unter flachem Blickwinkel Streifen: Schattierung, Farbe und Furchenrichtung
+jedes Felds kamen aus einer gefilterten Zelltextur, deren Werte in der Ferne verschwimmen. Die Felder
+sind jetzt ein im Shader berechnetes Voronoi-Muster (etwa 70 x 110 m) mit geglätteter Grenze; Ränder,
+Furchen und Flecken blenden nach dem Fußabdruck des Bildpunkts aus. Arcades zwei Grastöne zeichnet der
+Shader scharf aus der Bandphase (UV.y); die Eckpunktfarbe ist das Mittel, CUSTOM1 trägt die halbe
+Differenz und ihren Anteil (TerrainBuilder.band_tone() rechnet es für Tests nach).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

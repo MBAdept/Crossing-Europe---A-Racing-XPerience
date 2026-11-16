@@ -1,0 +1,6 @@
+v0.8.0 R4 (WIP): UID der Prüfdatei check_weather_tabelle_schnee.gd
+
+Vom Import erzeugt, wie bei jeder Skriptdatei im Baum.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

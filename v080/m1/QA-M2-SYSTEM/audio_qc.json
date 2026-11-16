@@ -1,0 +1,3258 @@
+{
+ "ok": true,
+ "problems": [],
+ "warnings": [],
+ "folders": {
+  "engines": {
+   "files": 13,
+   "bytes": 11007169,
+   "sounds": 6,
+   "placeholders": 1
+  },
+  "vehicle": {
+   "files": 89,
+   "bytes": 4442817,
+   "sounds": 41,
+   "placeholders": 1
+  },
+  "traffic": {
+   "files": 3,
+   "bytes": 89313,
+   "sounds": 1,
+   "placeholders": 1
+  },
+  "sfx": {
+   "files": 79,
+   "bytes": 2669135,
+   "sounds": 18,
+   "placeholders": 1
+  },
+  "ambience": {
+   "files": 3,
+   "bytes": 42768,
+   "sounds": 1,
+   "placeholders": 1
+  },
+  "ui": {
+   "files": 17,
+   "bytes": 748382,
+   "sounds": 7,
+   "placeholders": 1
+  },
+  "music": {
+   "files": 49,
+   "bytes": 18539396,
+   "sounds": 24,
+   "placeholders": 1
+  }
+ },
+ "sounds": [
+  {
+   "folder": "engines",
+   "id": "gran_turismo",
+   "kind": "bank",
+   "placeholder": false,
+   "generator": "tools/audio/modern/engine_synth3.py",
+   "files": [
+    {
+     "lufs": -8.91,
+     "lra": 22.6,
+     "short_term_max": -6.54,
+     "momentary_max": -5.4,
+     "true_peak_db": -1.1,
+     "sample_peak_db": -1.59,
+     "dc_db": -47.4,
+     "clipped_runs": 0,
+     "file": "gran_turismo.i16",
+     "frames": 717963,
+     "channels": 2,
+     "sample_rate": 32000,
+     "bytes": 2871852,
+     "sha256": "04ba06883954b870cd1018f57568a5ff8c039becf747e48f3a58301b15b030de",
+     "seconds": 22.436
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "engines",
+   "id": "kombi",
+   "kind": "bank",
+   "placeholder": false,
+   "generator": "tools/audio/modern/engine_synth3.py",
+   "files": [
+    {
+     "lufs": -10.39,
+     "lra": 10.08,
+     "short_term_max": -7.54,
+     "momentary_max": -6.22,
+     "true_peak_db": -1.1,
+     "sample_peak_db": -1.99,
+     "dc_db": -44.0,
+     "clipped_runs": 0,
+     "file": "kombi.i16",
+     "frames": 490058,
+     "channels": 2,
+     "sample_rate": 32000,
+     "bytes": 1960232,
+     "sha256": "27d086e10c133773351f597482f08c073c7614b50ea43bb262b4c4ba8970ca71",
+     "seconds": 15.314
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "engines",
+   "id": "kompakt",
+   "kind": "bank",
+   "placeholder": false,
+   "generator": "tools/audio/modern/engine_synth3.py",
+   "files": [
+    {
+     "lufs": -10.01,
+     "lra": 6.41,
+     "short_term_max": -7.15,
+     "momentary_max": -6.12,
+     "true_peak_db": -1.1,
+     "sample_peak_db": -1.91,
+     "dc_db": -48.7,
+     "clipped_runs": 0,
+     "file": "kompakt.i16",
+     "frames": 484128,
+     "channels": 2,
+     "sample_rate": 32000,
+     "bytes": 1936512,
+     "sha256": "1fa9dae2552811ca2d4543009e1332e7e34f34f4d1d2d900a71ea9ca792f489e",
+     "seconds": 15.129
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "engines",
+   "id": "limousine",
+   "kind": "bank",
+   "placeholder": false,
+   "generator": "tools/audio/modern/engine_synth3.py",
+   "files": [
+    {
+     "lufs": -9.78,
+     "lra": 6.6,
+     "short_term_max": -7.02,
+     "momentary_max": -6.3,
+     "true_peak_db": -1.1,
+     "sample_peak_db": -2.12,
+     "dc_db": -48.2,
+     "clipped_runs": 0,
+     "file": "limousine.i16",
+     "frames": 570368,
+     "channels": 2,
+     "sample_rate": 32000,
+     "bytes": 2281472,
+     "sha256": "c00288f3939eadfd1b485338b4cc9b129673abe8d5e519348aeada5d1eb8d5e7",
+     "seconds": 17.824
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "engines",
+   "id": "platzhalter",
+   "kind": "bank",
+   "placeholder": true,
+   "generator": "tools/audio/modern/make_placeholders.py",
+   "files": [
+    {
+     "lufs": -14.39,
+     "lra": 0.0,
+     "short_term_max": -14.39,
+     "momentary_max": -14.39,
+     "true_peak_db": -9.12,
+     "sample_peak_db": -9.12,
+     "dc_db": -120.0,
+     "clipped_runs": 0,
+     "file": "platzhalter.i16",
+     "frames": 16000,
+     "channels": 2,
+     "sample_rate": 32000,
+     "bytes": 64000,
+     "sha256": "2a74c1d17e8af716fbf9167eb65cca532b51a877924207904d701799fbca91e2",
+     "seconds": 0.5,
+     "seam_ratio": 0.06,
+     "seam_kink_ratio": 0.3,
+     "seam_loop_ratio": 0.3
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "engines",
+   "id": "sportwagen",
+   "kind": "bank",
+   "placeholder": false,
+   "generator": "tools/audio/modern/engine_synth3.py",
+   "files": [
+    {
+     "lufs": -8.81,
+     "lra": 3.7,
+     "short_term_max": -7.1,
+     "momentary_max": -6.48,
+     "true_peak_db": -1.1,
+     "sample_peak_db": -1.69,
+     "dc_db": -66.4,
+     "clipped_runs": 0,
+     "file": "sportwagen.i16",
+     "frames": 456240,
+     "channels": 2,
+     "sample_rate": 32000,
+     "bytes": 1824960,
+     "sha256": "fe30f1c6949d2fdf4f9d302834c278168cefd1137f26caf2c869a84406bab18d",
+     "seconds": 14.258
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "blowoff_gt",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/modern/engine_synth3.py",
+   "files": [
+    {
+     "lufs": -19.58,
+     "lra": 0.0,
+     "short_term_max": -19.11,
+     "momentary_max": -16.74,
+     "true_peak_db": -5.9,
+     "sample_peak_db": -6.02,
+     "dc_db": -63.1,
+     "clipped_runs": 0,
+     "file": "blowoff_gt.wav",
+     "frames": 33075,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 66194,
+     "sha256": "0612be4b28601b15c854a1054431f9cdfef7814a2f0843da043739c63b5041f5",
+     "seconds": 0.75
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "blowoff_hatch",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/modern/engine_synth3.py",
+   "files": [
+    {
+     "lufs": -19.53,
+     "lra": 0.0,
+     "short_term_max": -19.51,
+     "momentary_max": -17.34,
+     "true_peak_db": -5.59,
+     "sample_peak_db": -6.02,
+     "dc_db": -69.3,
+     "clipped_runs": 0,
+     "file": "blowoff_hatch_a.wav",
+     "frames": 30869,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 61782,
+     "sha256": "bcf62c3b8aa35677dacf729d6b88685bcc036e804555ac4e63d915e8230ffd70",
+     "seconds": 0.7
+    },
+    {
+     "lufs": -20.38,
+     "lra": 0.0,
+     "short_term_max": -19.86,
+     "momentary_max": -17.89,
+     "true_peak_db": -6.78,
+     "sample_peak_db": -6.78,
+     "dc_db": -70.3,
+     "clipped_runs": 0,
+     "file": "blowoff_hatch_b.wav",
+     "frames": 29106,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 58256,
+     "sha256": "deb4fe102d0244fef6a8ed8cd05ae6cdc5fa29e7827181e3a8b06ee420214291",
+     "seconds": 0.66
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "blowoff_soft",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/modern/engine_synth3.py",
+   "files": [
+    {
+     "lufs": -18.53,
+     "lra": 0.0,
+     "short_term_max": -17.87,
+     "momentary_max": -16.95,
+     "true_peak_db": -5.77,
+     "sample_peak_db": -6.02,
+     "dc_db": -76.4,
+     "clipped_runs": 0,
+     "file": "blowoff_soft.wav",
+     "frames": 22050,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 44144,
+     "sha256": "d6cf2630185fbf9ac278a1a26742f0df4615c9bc93358042404e5954e86559ab",
+     "seconds": 0.5
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "driveline_whine",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/engine_synth3.py",
+   "files": [
+    {
+     "lufs": -7.55,
+     "lra": 0.0,
+     "short_term_max": -7.55,
+     "momentary_max": -7.54,
+     "true_peak_db": -5.98,
+     "sample_peak_db": -6.02,
+     "dc_db": -72.8,
+     "clipped_runs": 0,
+     "file": "driveline_whine.wav",
+     "frames": 88216,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 176476,
+     "sha256": "5ae33bca59ae28bdbf4988d48933b9e7194a26daa35c0021d586d2b4f6f47a56",
+     "seconds": 2.0,
+     "seam_ratio": 0.51,
+     "seam_kink_ratio": 0.17,
+     "seam_loop_ratio": 0.51
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "platzhalter_loop",
+   "kind": "loop",
+   "placeholder": true,
+   "generator": "tools/audio/modern/make_placeholders.py",
+   "files": [
+    {
+     "lufs": -21.13,
+     "lra": 0.0,
+     "short_term_max": -21.12,
+     "momentary_max": -21.09,
+     "true_peak_db": -12.03,
+     "sample_peak_db": -12.04,
+     "dc_db": -120.0,
+     "clipped_runs": 0,
+     "file": "platzhalter_loop.wav",
+     "frames": 44100,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 176444,
+     "sha256": "4f9c9805689cdb10ba7fa8b456117a6ccad2f3253935a44c77b141ebd3e60e99",
+     "seconds": 1.0,
+     "seam_ratio": 0.2,
+     "seam_kink_ratio": 0.43,
+     "seam_loop_ratio": 0.38
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "rail_scrape",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -11.13,
+     "lra": 0.0,
+     "short_term_max": -11.12,
+     "momentary_max": -10.93,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -5.94,
+     "dc_db": -102.6,
+     "clipped_runs": 0,
+     "file": "rail_scrape.wav",
+     "frames": 88216,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 176476,
+     "sha256": "eb565cbaf4cee9775095850c8aece9a2450b5fa1893f1647873bb23896cf2e31",
+     "seconds": 2.0,
+     "seam_ratio": 0.11,
+     "seam_kink_ratio": 0.12,
+     "seam_loop_ratio": 0.11
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "scrub",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -14.22,
+     "lra": 0.0,
+     "short_term_max": -14.2,
+     "momentary_max": -13.73,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.02,
+     "dc_db": -104.6,
+     "clipped_runs": 0,
+     "file": "scrub.wav",
+     "frames": 66166,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 132376,
+     "sha256": "f62d0952737b6d1eefd61771918ae5d95d644263110fac0278d3f77726d50a0c",
+     "seconds": 1.5,
+     "seam_ratio": 0.28,
+     "seam_kink_ratio": 0.13,
+     "seam_loop_ratio": 0.23
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "shift_thump",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/modern/engine_synth3.py",
+   "files": [
+    {
+     "lufs": -21.96,
+     "lra": 0.0,
+     "short_term_max": -21.96,
+     "momentary_max": -21.96,
+     "true_peak_db": -5.92,
+     "sample_peak_db": -6.02,
+     "dc_db": -57.0,
+     "clipped_runs": 0,
+     "file": "shift_thump_a.wav",
+     "frames": 9922,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 19888,
+     "sha256": "daede335e7db5ce146fba07ee5cb3e7573eaff7eea54bc00514a86c165082f91",
+     "seconds": 0.225
+    },
+    {
+     "lufs": -22.08,
+     "lra": 0.0,
+     "short_term_max": -22.08,
+     "momentary_max": -22.08,
+     "true_peak_db": -6.28,
+     "sample_peak_db": -6.36,
+     "dc_db": -55.3,
+     "clipped_runs": 0,
+     "file": "shift_thump_b.wav",
+     "frames": 11025,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 22094,
+     "sha256": "75b8e104ec8c9b0dc45a74153ebd9d24ce851ea2e2dadf24420857f53486ba80",
+     "seconds": 0.25
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "slab_fast",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -17.29,
+     "lra": 0.0,
+     "short_term_max": -17.23,
+     "momentary_max": -16.32,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.01,
+     "dc_db": -106.5,
+     "clipped_runs": 0,
+     "file": "slab_fast.wav",
+     "frames": 141136,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 282316,
+     "sha256": "145c1a571932c2b37447efc89b9e12bc1def4602f799e3dfe96097e979ee7964",
+     "seconds": 3.2,
+     "seam_ratio": 0.0,
+     "seam_kink_ratio": 0.08,
+     "seam_loop_ratio": 0.08
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "slab_slow",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -19.62,
+     "lra": 0.45,
+     "short_term_max": -19.3,
+     "momentary_max": -18.39,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.27,
+     "dc_db": -120.0,
+     "clipped_runs": 0,
+     "file": "slab_slow.wav",
+     "frames": 282256,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 564556,
+     "sha256": "c73b3e9047bf4016363656f252bcfd76446c7a718a053cf9de1ca02aab5ea840",
+     "seconds": 6.4,
+     "seam_ratio": 0.0,
+     "seam_kink_ratio": 0.04,
+     "seam_loop_ratio": 0.04
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "squeal",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -11.55,
+     "lra": 0.0,
+     "short_term_max": -11.49,
+     "momentary_max": -10.06,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.0,
+     "dc_db": -85.9,
+     "clipped_runs": 0,
+     "file": "squeal.wav",
+     "frames": 88216,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 176476,
+     "sha256": "6fd75b5b54b4d6b1f9139ad4a13b388b600a8967ec193bb8d396d4ba34f9d268",
+     "seconds": 2.0,
+     "seam_ratio": 0.3,
+     "seam_kink_ratio": 0.27,
+     "seam_loop_ratio": 0.24
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "tipin",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/modern/engine_synth3.py",
+   "files": [
+    {
+     "lufs": -22.29,
+     "lra": 0.0,
+     "short_term_max": -22.29,
+     "momentary_max": -22.29,
+     "true_peak_db": -5.98,
+     "sample_peak_db": -6.02,
+     "dc_db": -59.2,
+     "clipped_runs": 0,
+     "file": "tipin_a.wav",
+     "frames": 16758,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 33560,
+     "sha256": "b8cf19eef2c2341ab9d6c5f87ea7776ed1639ca40cc61551c3f921c65ed5c16c",
+     "seconds": 0.38
+    },
+    {
+     "lufs": -22.08,
+     "lra": 0.0,
+     "short_term_max": -22.08,
+     "momentary_max": -22.08,
+     "true_peak_db": -6.66,
+     "sample_peak_db": -6.73,
+     "dc_db": -61.1,
+     "clipped_runs": 0,
+     "file": "tipin_b.wav",
+     "frames": 16758,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 33560,
+     "sha256": "b6cde41e1f43c7aa483754ebeb2d60d196369620a0b67cba0531b00b678cdd15",
+     "seconds": 0.38
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "turbo_hiss",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/engine_synth3.py",
+   "files": [
+    {
+     "lufs": -12.46,
+     "lra": 0.0,
+     "short_term_max": -12.48,
+     "momentary_max": -12.36,
+     "true_peak_db": -5.79,
+     "sample_peak_db": -6.02,
+     "dc_db": -116.3,
+     "clipped_runs": 0,
+     "file": "turbo_hiss.wav",
+     "frames": 88216,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 176476,
+     "sha256": "a68c4b07a905c3df83ae51180ccdc946eeea905729c5cf9b3ac967bc73daa35f",
+     "seconds": 2.0,
+     "seam_ratio": 0.14,
+     "seam_kink_ratio": 0.05,
+     "seam_loop_ratio": 0.12
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "turbo_single",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/engine_synth3.py",
+   "files": [
+    {
+     "lufs": -7.23,
+     "lra": 0.0,
+     "short_term_max": -7.11,
+     "momentary_max": -6.73,
+     "true_peak_db": -5.98,
+     "sample_peak_db": -6.02,
+     "dc_db": -91.5,
+     "clipped_runs": 0,
+     "file": "turbo_single.wav",
+     "frames": 88216,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 176476,
+     "sha256": "a6dcb830b5c48451b89a0a791f3db1d10ed19a2beaf61d976d5d54380475b435",
+     "seconds": 2.0,
+     "seam_ratio": 0.61,
+     "seam_kink_ratio": 0.72,
+     "seam_loop_ratio": 0.72
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "turbo_twin",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/engine_synth3.py",
+   "files": [
+    {
+     "lufs": -8.21,
+     "lra": 0.0,
+     "short_term_max": -8.23,
+     "momentary_max": -7.6,
+     "true_peak_db": -5.98,
+     "sample_peak_db": -6.02,
+     "dc_db": -95.3,
+     "clipped_runs": 0,
+     "file": "turbo_twin.wav",
+     "frames": 88216,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 352908,
+     "sha256": "6b79f660d7d8aaf7279116f7f8af3df14927d3bce5f79647eb5b74b2bb28f0a0",
+     "seconds": 2.0,
+     "seam_ratio": 0.64,
+     "seam_kink_ratio": 0.34,
+     "seam_loop_ratio": 0.61
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "tyre_asphalt",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -13.55,
+     "lra": 0.19,
+     "short_term_max": -13.44,
+     "momentary_max": -12.58,
+     "true_peak_db": -3.47,
+     "sample_peak_db": -3.47,
+     "dc_db": -91.8,
+     "clipped_runs": 0,
+     "file": "tyre_asphalt.ogg",
+     "frames": 233730,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 57624,
+     "sha256": "7a9b80729a3a71cb42d650518ac246fe43814d7b827fa80eb483fe3cc349fba4",
+     "seconds": 5.3,
+     "seam_ratio": 0.35,
+     "seam_kink_ratio": 0.29,
+     "seam_loop_ratio": 0.29
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "tyre_asphalt_b",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -13.73,
+     "lra": 0.4,
+     "short_term_max": -13.4,
+     "momentary_max": -12.66,
+     "true_peak_db": -3.16,
+     "sample_peak_db": -3.16,
+     "dc_db": -91.4,
+     "clipped_runs": 0,
+     "file": "tyre_asphalt_b.ogg",
+     "frames": 295470,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 71490,
+     "sha256": "13093441dad56caadeafdf716d4cfe0672ab30ef526815da447bf8379bd64982",
+     "seconds": 6.7,
+     "seam_ratio": 0.45,
+     "seam_kink_ratio": 0.57,
+     "seam_loop_ratio": 0.38
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "tyre_cobbles",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -15.62,
+     "lra": 0.09,
+     "short_term_max": -15.4,
+     "momentary_max": -14.67,
+     "true_peak_db": -3.11,
+     "sample_peak_db": -3.14,
+     "dc_db": -77.1,
+     "clipped_runs": 0,
+     "file": "tyre_cobbles.ogg",
+     "frames": 251370,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 72915,
+     "sha256": "04b677c679342a02f34521838fdf763ae19c380fbe2ce28e2384438635b2d099",
+     "seconds": 5.7,
+     "seam_ratio": 0.02,
+     "seam_kink_ratio": 0.04,
+     "seam_loop_ratio": 0.02
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "tyre_cobbles_b",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -15.51,
+     "lra": 0.29,
+     "short_term_max": -15.24,
+     "momentary_max": -14.63,
+     "true_peak_db": -3.38,
+     "sample_peak_db": -3.41,
+     "dc_db": -91.4,
+     "clipped_runs": 0,
+     "file": "tyre_cobbles_b.ogg",
+     "frames": 313110,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 88482,
+     "sha256": "55d593b801e83f73160971f62142451562480af3249f7e7d9b916c4676e162af",
+     "seconds": 7.1,
+     "seam_ratio": 0.06,
+     "seam_kink_ratio": 0.05,
+     "seam_loop_ratio": 0.03
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "tyre_concrete",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -13.17,
+     "lra": 0.19,
+     "short_term_max": -12.88,
+     "momentary_max": -11.36,
+     "true_peak_db": -2.82,
+     "sample_peak_db": -2.82,
+     "dc_db": -86.0,
+     "clipped_runs": 0,
+     "file": "tyre_concrete.ogg",
+     "frames": 224910,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 56560,
+     "sha256": "356c1ae541f2adfbf71f325b38c7d268d715381c3c3d0b7d14486066cf674b4b",
+     "seconds": 5.1,
+     "seam_ratio": 0.32,
+     "seam_kink_ratio": 0.59,
+     "seam_loop_ratio": 0.55
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "tyre_concrete_b",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -12.54,
+     "lra": 0.5,
+     "short_term_max": -12.21,
+     "momentary_max": -11.39,
+     "true_peak_db": -3.61,
+     "sample_peak_db": -3.61,
+     "dc_db": -99.0,
+     "clipped_runs": 0,
+     "file": "tyre_concrete_b.ogg",
+     "frames": 277830,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 68669,
+     "sha256": "3a3264de1df12bc97bf671431f536ac47d61f404036e05aec6086f2bfa967637",
+     "seconds": 6.3,
+     "seam_ratio": 0.11,
+     "seam_kink_ratio": 0.44,
+     "seam_loop_ratio": 0.3
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "tyre_deck",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -14.45,
+     "lra": 0.12,
+     "short_term_max": -14.21,
+     "momentary_max": -13.14,
+     "true_peak_db": -3.52,
+     "sample_peak_db": -3.52,
+     "dc_db": -101.4,
+     "clipped_runs": 0,
+     "file": "tyre_deck.ogg",
+     "frames": 216090,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 51706,
+     "sha256": "fb3bbbb27a7dfa2f9115cdb43330f8881a35ad6dc3a3b6303c6b7e4aed6c6d17",
+     "seconds": 4.9,
+     "seam_ratio": 0.33,
+     "seam_kink_ratio": 0.27,
+     "seam_loop_ratio": 0.26
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "tyre_deck_b",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -15.09,
+     "lra": 0.49,
+     "short_term_max": -14.96,
+     "momentary_max": -13.3,
+     "true_peak_db": -3.58,
+     "sample_peak_db": -3.58,
+     "dc_db": -95.1,
+     "clipped_runs": 0,
+     "file": "tyre_deck_b.ogg",
+     "frames": 269010,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 63283,
+     "sha256": "99ad8a9e42d5d22610506e005f1b4345fd2e112c74dc26271034604fd47fa4ba",
+     "seconds": 6.1,
+     "seam_ratio": 0.0,
+     "seam_kink_ratio": 0.19,
+     "seam_loop_ratio": 0.19
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "tyre_grass",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -17.06,
+     "lra": 0.02,
+     "short_term_max": -16.87,
+     "momentary_max": -14.83,
+     "true_peak_db": -3.17,
+     "sample_peak_db": -3.22,
+     "dc_db": -81.6,
+     "clipped_runs": 0,
+     "file": "tyre_grass.ogg",
+     "frames": 189630,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 47161,
+     "sha256": "615836f7c5002ba68f3d7906f93000d1d44ec583cb93d5a24cc70621c04effd4",
+     "seconds": 4.3,
+     "seam_ratio": 0.13,
+     "seam_kink_ratio": 0.16,
+     "seam_loop_ratio": 0.1
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "tyre_grass_b",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -18.32,
+     "lra": 0.47,
+     "short_term_max": -17.69,
+     "momentary_max": -16.01,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.0,
+     "dc_db": -80.8,
+     "clipped_runs": 0,
+     "file": "tyre_grass_b.ogg",
+     "frames": 242550,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 59175,
+     "sha256": "25ec091f06298eec3ba46560626019e9a7a3cd80eeddedac9e9536ca9cc46e59",
+     "seconds": 5.5,
+     "seam_ratio": 0.17,
+     "seam_kink_ratio": 0.19,
+     "seam_loop_ratio": 0.12
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "tyre_gravel",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -14.51,
+     "lra": 0.02,
+     "short_term_max": -14.47,
+     "momentary_max": -14.17,
+     "true_peak_db": -3.52,
+     "sample_peak_db": -3.52,
+     "dc_db": -78.6,
+     "clipped_runs": 0,
+     "file": "tyre_gravel.ogg",
+     "frames": 207270,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 54157,
+     "sha256": "d10f8870eabce90ba528ef88bcc57b98c85e76785f4969bd52cf024a83ddc986",
+     "seconds": 4.7,
+     "seam_ratio": 0.03,
+     "seam_kink_ratio": 0.05,
+     "seam_loop_ratio": 0.03
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "tyre_gravel_b",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -14.28,
+     "lra": 0.13,
+     "short_term_max": -14.27,
+     "momentary_max": -13.56,
+     "true_peak_db": -3.27,
+     "sample_peak_db": -3.27,
+     "dc_db": -83.7,
+     "clipped_runs": 0,
+     "file": "tyre_gravel_b.ogg",
+     "frames": 260190,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 68778,
+     "sha256": "c92eb5771ccc6da245833dfcc91de804b6f16bc481be972ae06b0eadd3b2a1d0",
+     "seconds": 5.9,
+     "seam_ratio": 0.04,
+     "seam_kink_ratio": 0.07,
+     "seam_loop_ratio": 0.05
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "tyre_rumble",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -11.32,
+     "lra": 0.04,
+     "short_term_max": -11.31,
+     "momentary_max": -10.95,
+     "true_peak_db": -2.8,
+     "sample_peak_db": -2.82,
+     "dc_db": -70.5,
+     "clipped_runs": 0,
+     "file": "tyre_rumble.ogg",
+     "frames": 180810,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 44839,
+     "sha256": "3c8aa30ad64934f2cc7ed4392cdde3a04d02e261a3b84d1e445f7f0711f23b20",
+     "seconds": 4.1,
+     "seam_ratio": 0.1,
+     "seam_kink_ratio": 0.2,
+     "seam_loop_ratio": 0.17
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "tyre_rumble_b",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -11.73,
+     "lra": 0.09,
+     "short_term_max": -11.66,
+     "momentary_max": -11.32,
+     "true_peak_db": -2.7,
+     "sample_peak_db": -2.7,
+     "dc_db": -72.4,
+     "clipped_runs": 0,
+     "file": "tyre_rumble_b.ogg",
+     "frames": 233730,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 56798,
+     "sha256": "85d939e58ddbcd509f4c423ee23ac1350c8d8d10b447be7bb1127f3d5d51b8cc",
+     "seconds": 5.3,
+     "seam_ratio": 0.17,
+     "seam_kink_ratio": 0.16,
+     "seam_loop_ratio": 0.15
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "tyre_snow",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -19.96,
+     "lra": 0.42,
+     "short_term_max": -19.66,
+     "momentary_max": -17.72,
+     "true_peak_db": -3.3,
+     "sample_peak_db": -3.86,
+     "dc_db": -91.2,
+     "clipped_runs": 0,
+     "file": "tyre_snow.ogg",
+     "frames": 220500,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 54312,
+     "sha256": "6c0a13de982a7c8904951cfb886506d00d5952c49857459e02ed1c04290af915",
+     "seconds": 5.0,
+     "seam_ratio": 0.06,
+     "seam_kink_ratio": 0.04,
+     "seam_loop_ratio": 0.03
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "tyre_snow_b",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -19.44,
+     "lra": 0.48,
+     "short_term_max": -19.18,
+     "momentary_max": -16.93,
+     "true_peak_db": -3.45,
+     "sample_peak_db": -3.78,
+     "dc_db": -117.3,
+     "clipped_runs": 0,
+     "file": "tyre_snow_b.ogg",
+     "frames": 282240,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 68609,
+     "sha256": "a8ac4fa27ce395abf2080e7ca53c06e08032e79191f8ec1aceb3dc2ba6cb43d5",
+     "seconds": 6.4,
+     "seam_ratio": 0.1,
+     "seam_kink_ratio": 0.06,
+     "seam_loop_ratio": 0.06
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "tyre_wet",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -13.95,
+     "lra": 0.2,
+     "short_term_max": -13.9,
+     "momentary_max": -12.75,
+     "true_peak_db": -4.05,
+     "sample_peak_db": -4.54,
+     "dc_db": -100.5,
+     "clipped_runs": 0,
+     "file": "tyre_wet.ogg",
+     "frames": 242550,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 59269,
+     "sha256": "59f962b350c7a7b4af24c7a5a7f32e661f7989d03ecfd5aeae9ecb86a0ba3c04",
+     "seconds": 5.5,
+     "seam_ratio": 0.16,
+     "seam_kink_ratio": 0.32,
+     "seam_loop_ratio": 0.23
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "tyre_wet_b",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -12.9,
+     "lra": 0.34,
+     "short_term_max": -12.73,
+     "momentary_max": -11.8,
+     "true_peak_db": -3.22,
+     "sample_peak_db": -3.22,
+     "dc_db": -87.9,
+     "clipped_runs": 0,
+     "file": "tyre_wet_b.ogg",
+     "frames": 304290,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 73056,
+     "sha256": "f61cfcb20f320a91a56750366889fdd66ecb3f062ef2b0b34ec5f23c7d52331c",
+     "seconds": 6.9,
+     "seam_ratio": 0.12,
+     "seam_kink_ratio": 0.12,
+     "seam_loop_ratio": 0.11
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "wind_buffet",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -19.07,
+     "lra": 0.56,
+     "short_term_max": -18.66,
+     "momentary_max": -16.53,
+     "true_peak_db": -3.01,
+     "sample_peak_db": -3.01,
+     "dc_db": -92.5,
+     "clipped_runs": 0,
+     "file": "wind_buffet.ogg",
+     "frames": 273420,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 77903,
+     "sha256": "404ede1515eb7c33c77e938bd04666831232eaadce24334da12d59d291be3f84",
+     "seconds": 6.2,
+     "seam_ratio": 0.54,
+     "seam_kink_ratio": 2.37,
+     "seam_loop_ratio": 1.89
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "wind_buffet_b",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -18.6,
+     "lra": 0.52,
+     "short_term_max": -18.05,
+     "momentary_max": -15.76,
+     "true_peak_db": -2.98,
+     "sample_peak_db": -2.98,
+     "dc_db": -90.9,
+     "clipped_runs": 0,
+     "file": "wind_buffet_b.ogg",
+     "frames": 335160,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 67044,
+     "sha256": "dc88bb39b074d35dcad7e140910ac039ffa610c13d90d59371e67274cd26e016",
+     "seconds": 7.6,
+     "seam_ratio": 0.02,
+     "seam_kink_ratio": 0.71,
+     "seam_loop_ratio": 0.39
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "wind_high",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -10.34,
+     "lra": 0.13,
+     "short_term_max": -10.26,
+     "momentary_max": -10.01,
+     "true_peak_db": -3.12,
+     "sample_peak_db": -3.12,
+     "dc_db": -120.0,
+     "clipped_runs": 0,
+     "file": "wind_high.ogg",
+     "frames": 229320,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 57029,
+     "sha256": "c86396cf35b386fc0333a4a2d2a25717066a304e4e0514c4fad3eaea49e1e83b",
+     "seconds": 5.2,
+     "seam_ratio": 0.06,
+     "seam_kink_ratio": 0.28,
+     "seam_loop_ratio": 0.23
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "wind_high_b",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -10.85,
+     "lra": 0.06,
+     "short_term_max": -10.79,
+     "momentary_max": -10.48,
+     "true_peak_db": -2.86,
+     "sample_peak_db": -3.62,
+     "dc_db": -120.0,
+     "clipped_runs": 0,
+     "file": "wind_high_b.ogg",
+     "frames": 291060,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 71377,
+     "sha256": "d059ded359ab5d7ef1145ab4cad50bbeab7a9ff6f1196f095f8c5107f2fdfeef",
+     "seconds": 6.6,
+     "seam_ratio": 0.32,
+     "seam_kink_ratio": 0.56,
+     "seam_loop_ratio": 0.45
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "wind_low",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -15.36,
+     "lra": 0.11,
+     "short_term_max": -15.3,
+     "momentary_max": -14.45,
+     "true_peak_db": -3.25,
+     "sample_peak_db": -3.25,
+     "dc_db": -93.9,
+     "clipped_runs": 0,
+     "file": "wind_low.ogg",
+     "frames": 260190,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 62940,
+     "sha256": "6f08091a3a2c2054e8d77e1280428d2629fbd2de877992530b174d005a5436e3",
+     "seconds": 5.9,
+     "seam_ratio": 0.28,
+     "seam_kink_ratio": 0.23,
+     "seam_loop_ratio": 0.25
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "wind_low_b",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -14.65,
+     "lra": 0.23,
+     "short_term_max": -14.46,
+     "momentary_max": -13.76,
+     "true_peak_db": -2.98,
+     "sample_peak_db": -3.0,
+     "dc_db": -75.8,
+     "clipped_runs": 0,
+     "file": "wind_low_b.ogg",
+     "frames": 321930,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 76671,
+     "sha256": "c4810242deb43d8cf241dc41a0350e69e4244f7a928763547c902fe0b79887db",
+     "seconds": 7.3,
+     "seam_ratio": 0.43,
+     "seam_kink_ratio": 0.59,
+     "seam_loop_ratio": 0.55
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "wind_mid",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -12.23,
+     "lra": 0.05,
+     "short_term_max": -12.17,
+     "momentary_max": -11.91,
+     "true_peak_db": -3.5,
+     "sample_peak_db": -3.51,
+     "dc_db": -91.0,
+     "clipped_runs": 0,
+     "file": "wind_mid.ogg",
+     "frames": 246960,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 60731,
+     "sha256": "59c19fc6373b3870ea28d77edb84a95914ccb2a494345b0e8a929ee25ef3a27e",
+     "seconds": 5.6,
+     "seam_ratio": 0.34,
+     "seam_kink_ratio": 0.58,
+     "seam_loop_ratio": 0.46
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "vehicle",
+   "id": "wind_mid_b",
+   "kind": "loop",
+   "placeholder": false,
+   "generator": "tools/audio/modern/vehicle_loops.py",
+   "files": [
+    {
+     "lufs": -12.41,
+     "lra": 0.05,
+     "short_term_max": -12.34,
+     "momentary_max": -12.25,
+     "true_peak_db": -3.16,
+     "sample_peak_db": -3.17,
+     "dc_db": -99.3,
+     "clipped_runs": 0,
+     "file": "wind_mid_b.ogg",
+     "frames": 299880,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 72832,
+     "sha256": "32de653cead43bbe3351319d0742adf644807c0d170aa1fe36ab103f4c889b09",
+     "seconds": 6.8,
+     "seam_ratio": 0.21,
+     "seam_kink_ratio": 0.31,
+     "seam_loop_ratio": 0.26
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "traffic",
+   "id": "platzhalter_loop",
+   "kind": "loop",
+   "placeholder": true,
+   "generator": "tools/audio/modern/make_placeholders.py",
+   "files": [
+    {
+     "lufs": -16.76,
+     "lra": 0.0,
+     "short_term_max": -16.77,
+     "momentary_max": -16.72,
+     "true_peak_db": -10.45,
+     "sample_peak_db": -10.46,
+     "dc_db": -120.0,
+     "clipped_runs": 0,
+     "file": "platzhalter_loop.wav",
+     "frames": 44100,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 88244,
+     "sha256": "81b96ea7a85d896cc5a058c552f56e24b440f3bb77bb0fb14eedff947e3d52c6",
+     "seconds": 1.0,
+     "seam_ratio": 0.15,
+     "seam_kink_ratio": 0.27,
+     "seam_loop_ratio": 0.2
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "sfx",
+   "id": "crunch",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/modern/sfx_modern.py",
+   "files": [
+    {
+     "lufs": -19.61,
+     "lra": 0.0,
+     "short_term_max": -18.8,
+     "momentary_max": -15.31,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.05,
+     "dc_db": -97.7,
+     "clipped_runs": 0,
+     "file": "crunch_a.wav",
+     "frames": 40748,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 81540,
+     "sha256": "2e3b460d2e3df1c7502be07af0f86e392e63960750537cfd2bd81eefb4aa4f93",
+     "seconds": 0.924
+    },
+    {
+     "lufs": -18.01,
+     "lra": 0.0,
+     "short_term_max": -17.92,
+     "momentary_max": -14.48,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.13,
+     "dc_db": -85.8,
+     "clipped_runs": 0,
+     "file": "crunch_b.wav",
+     "frames": 40748,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 81540,
+     "sha256": "5e62ffe77cd975f07a93d587800c4ec690ec19f44912adf0c27233c444132897",
+     "seconds": 0.924
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "sfx",
+   "id": "debris",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/modern/sfx_modern.py",
+   "files": [
+    {
+     "lufs": -20.66,
+     "lra": 0.0,
+     "short_term_max": -20.44,
+     "momentary_max": -17.91,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.0,
+     "dc_db": -99.7,
+     "clipped_runs": 0,
+     "file": "debris_a.wav",
+     "frames": 46746,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 93536,
+     "sha256": "cc79a1b0bb8f6b159941005253ee6aa856657144be8a65e342a9453269708d3b",
+     "seconds": 1.06
+    },
+    {
+     "lufs": -20.47,
+     "lra": 0.0,
+     "short_term_max": -20.02,
+     "momentary_max": -17.13,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.0,
+     "dc_db": -86.3,
+     "clipped_runs": 0,
+     "file": "debris_b.wav",
+     "frames": 46746,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 93536,
+     "sha256": "0ec475101b4fa13d8a16c2ab17036dec50b042dc4ce57a4365af8177b83555c8",
+     "seconds": 1.06
+    },
+    {
+     "lufs": -18.97,
+     "lra": 0.0,
+     "short_term_max": -19.97,
+     "momentary_max": -17.27,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.03,
+     "dc_db": -82.2,
+     "clipped_runs": 0,
+     "file": "debris_c.wav",
+     "frames": 46746,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 93536,
+     "sha256": "15ed8d7600775d172e99832209d7b87b56c78541bcc3fde657204e4915c2cf6f",
+     "seconds": 1.06
+    },
+    {
+     "lufs": -18.77,
+     "lra": 0.0,
+     "short_term_max": -20.01,
+     "momentary_max": -17.4,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.06,
+     "dc_db": -95.6,
+     "clipped_runs": 0,
+     "file": "debris_d.wav",
+     "frames": 46746,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 93536,
+     "sha256": "f448493a317af9280393491eaa1a1cfdd8c002ccf211096cdabe7358afa9b500",
+     "seconds": 1.06
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "sfx",
+   "id": "glass",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/modern/sfx_modern.py",
+   "files": [
+    {
+     "lufs": -20.84,
+     "lra": 0.0,
+     "short_term_max": -21.57,
+     "momentary_max": -16.54,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.13,
+     "dc_db": -120.0,
+     "clipped_runs": 0,
+     "file": "glass_a.wav",
+     "frames": 58609,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 117262,
+     "sha256": "311a1a8a0e28cfaced0b2d20453dd4c615e24cce9738504f33e51e97aa8e0f85",
+     "seconds": 1.329
+    },
+    {
+     "lufs": -22.34,
+     "lra": 0.0,
+     "short_term_max": -21.5,
+     "momentary_max": -16.49,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.86,
+     "dc_db": -113.3,
+     "clipped_runs": 0,
+     "file": "glass_b.wav",
+     "frames": 58609,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 117262,
+     "sha256": "6c7292b5b555504ae7acf1ed87df94dca72ac083a54ae3c078ab88e8f64d1d29",
+     "seconds": 1.329
+    },
+    {
+     "lufs": -23.62,
+     "lra": 0.0,
+     "short_term_max": -22.28,
+     "momentary_max": -17.28,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.11,
+     "dc_db": -120.0,
+     "clipped_runs": 0,
+     "file": "glass_c.wav",
+     "frames": 58609,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 117262,
+     "sha256": "03d5d90bf99a765dce02e54a7345dbd06cd997c8d86ebb581fbfe5cd36d3a7cb",
+     "seconds": 1.329
+    },
+    {
+     "lufs": -21.79,
+     "lra": 0.0,
+     "short_term_max": -21.39,
+     "momentary_max": -16.44,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.63,
+     "dc_db": -120.0,
+     "clipped_runs": 0,
+     "file": "glass_d.wav",
+     "frames": 58609,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 117262,
+     "sha256": "02c8cb5dbb6e4a89f960cde1ac6a7828121c8670c5c16fbc1877606e45f3d5c6",
+     "seconds": 1.329
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "sfx",
+   "id": "hit_heavy",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/modern/sfx_modern.py",
+   "files": [
+    {
+     "lufs": -21.59,
+     "lra": 0.0,
+     "short_term_max": -22.2,
+     "momentary_max": -19.08,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.13,
+     "dc_db": -62.9,
+     "clipped_runs": 0,
+     "file": "hit_heavy_a.wav",
+     "frames": 36162,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 72368,
+     "sha256": "51a0e8d93cbc1fcdd7dafa5b702b27174acea2298f17d79fec12d4d0034ff651",
+     "seconds": 0.82
+    },
+    {
+     "lufs": -20.76,
+     "lra": 0.0,
+     "short_term_max": -21.39,
+     "momentary_max": -18.28,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.17,
+     "dc_db": -63.8,
+     "clipped_runs": 0,
+     "file": "hit_heavy_b.wav",
+     "frames": 36162,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 72368,
+     "sha256": "bea7afe46f0dcbac1e6033269b5f0c9d9489ef9ae33fc65b099ce52cb28cd307",
+     "seconds": 0.82
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "sfx",
+   "id": "hit_light",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/modern/sfx_modern.py",
+   "files": [
+    {
+     "lufs": -22.2,
+     "lra": 0.0,
+     "short_term_max": -23.34,
+     "momentary_max": -22.2,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.19,
+     "dc_db": -67.7,
+     "clipped_runs": 0,
+     "file": "hit_light_a.wav",
+     "frames": 22932,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 45908,
+     "sha256": "12dd325220d2107289ae9d160461c9aa9e42326e2245b28f2f4b5423c6358d83",
+     "seconds": 0.52
+    },
+    {
+     "lufs": -21.3,
+     "lra": 0.0,
+     "short_term_max": -22.44,
+     "momentary_max": -21.3,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.37,
+     "dc_db": -65.5,
+     "clipped_runs": 0,
+     "file": "hit_light_b.wav",
+     "frames": 22932,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 45908,
+     "sha256": "2752efdbcf6b9a6273246c81941fbca570e4994ab1ce14753bca1a2e24aa4991",
+     "seconds": 0.52
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "sfx",
+   "id": "joint_concrete",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/modern/sfx_modern.py",
+   "files": [
+    {
+     "lufs": -19.85,
+     "lra": 0.0,
+     "short_term_max": -19.89,
+     "momentary_max": -18.43,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.0,
+     "dc_db": -50.3,
+     "clipped_runs": 0,
+     "file": "joint_concrete_a.wav",
+     "frames": 24696,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 49436,
+     "sha256": "23adedf1c77b9e304dfab5a3276a6706ad4b69ca7a412c7cdbb0ddf90505091a",
+     "seconds": 0.56
+    },
+    {
+     "lufs": -19.52,
+     "lra": 0.0,
+     "short_term_max": -20.4,
+     "momentary_max": -19.52,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.05,
+     "dc_db": -49.9,
+     "clipped_runs": 0,
+     "file": "joint_concrete_b.wav",
+     "frames": 21609,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 43262,
+     "sha256": "6b0586c079692467dd2a995683b209bc4d5676bc10b32ba6d652996323e4f2ec",
+     "seconds": 0.49
+    },
+    {
+     "lufs": -18.27,
+     "lra": 0.0,
+     "short_term_max": -18.78,
+     "momentary_max": -18.27,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.02,
+     "dc_db": -50.7,
+     "clipped_runs": 0,
+     "file": "joint_concrete_c.wav",
+     "frames": 19845,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 39734,
+     "sha256": "0bb2add9288f15aa1a90a888b6e473e6f116318701a341c4ae9fc2a18189be3a",
+     "seconds": 0.45
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "sfx",
+   "id": "joint_steel",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/modern/sfx_modern.py",
+   "files": [
+    {
+     "lufs": -20.19,
+     "lra": 0.0,
+     "short_term_max": -20.25,
+     "momentary_max": -18.79,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.0,
+     "dc_db": -53.2,
+     "clipped_runs": 0,
+     "file": "joint_steel_a.wav",
+     "frames": 24696,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 49436,
+     "sha256": "41f4b04da47b0d2caebc03aa1d735e67171ffe9490e682a3b7bbcd49a09618fd",
+     "seconds": 0.56
+    },
+    {
+     "lufs": -17.34,
+     "lra": 0.0,
+     "short_term_max": -18.22,
+     "momentary_max": -17.34,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.04,
+     "dc_db": -51.4,
+     "clipped_runs": 0,
+     "file": "joint_steel_b.wav",
+     "frames": 21609,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 43262,
+     "sha256": "56952f739cd6e1c0766ad0415ee4724c9fb5d0ca3c8778695d8a1902dd755e03",
+     "seconds": 0.49
+    },
+    {
+     "lufs": -20.26,
+     "lra": 0.0,
+     "short_term_max": -20.77,
+     "momentary_max": -20.26,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.1,
+     "dc_db": -54.4,
+     "clipped_runs": 0,
+     "file": "joint_steel_c.wav",
+     "frames": 19845,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 39734,
+     "sha256": "48aedc37fea92818a2a85c6bfaa77ac84d88151a857b5385ef4f53baa41de406",
+     "seconds": 0.45
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "sfx",
+   "id": "pass_building",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/modern/sfx_modern.py",
+   "files": [
+    {
+     "lufs": -13.4,
+     "lra": 0.0,
+     "short_term_max": -14.65,
+     "momentary_max": -13.31,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.05,
+     "dc_db": -85.8,
+     "clipped_runs": 0,
+     "file": "pass_building.wav",
+     "frames": 24255,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 48554,
+     "sha256": "d00a0b50e72e5a4a67e174a71aaf5f3c626e15c0e4336b2a6ed6013c6b92533f",
+     "seconds": 0.55
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "sfx",
+   "id": "pass_gantry",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/modern/sfx_modern.py",
+   "files": [
+    {
+     "lufs": -13.64,
+     "lra": 0.0,
+     "short_term_max": -15.0,
+     "momentary_max": -13.29,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.0,
+     "dc_db": -72.1,
+     "clipped_runs": 0,
+     "file": "pass_gantry.wav",
+     "frames": 26460,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 52964,
+     "sha256": "fab8341d1924ac3d8422fb728c43b3e0fc47f4e65b5eb3861dcff6211ae785fd",
+     "seconds": 0.6
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "sfx",
+   "id": "pass_post",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/modern/sfx_modern.py",
+   "files": [
+    {
+     "lufs": -11.77,
+     "lra": 0.0,
+     "short_term_max": -11.77,
+     "momentary_max": -11.77,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.0,
+     "dc_db": -110.4,
+     "clipped_runs": 0,
+     "file": "pass_post_a.wav",
+     "frames": 7938,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 15920,
+     "sha256": "686163bdfaadf2e3208dea000ce7fb5b2a526fc25092832a17885c32f2946f24",
+     "seconds": 0.18
+    },
+    {
+     "lufs": -12.71,
+     "lra": 0.0,
+     "short_term_max": -12.71,
+     "momentary_max": -12.71,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.0,
+     "dc_db": -119.4,
+     "clipped_runs": 0,
+     "file": "pass_post_b.wav",
+     "frames": 8820,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 17684,
+     "sha256": "b1e10e84cff0a1d76fd0a94065ef1bc0a06a9f38775837a165f53089eeecb5ac",
+     "seconds": 0.2
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "sfx",
+   "id": "pass_rock",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/modern/sfx_modern.py",
+   "files": [
+    {
+     "lufs": -15.14,
+     "lra": 0.0,
+     "short_term_max": -15.14,
+     "momentary_max": -15.14,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -4.2,
+     "dc_db": -109.6,
+     "clipped_runs": 0,
+     "file": "pass_rock.wav",
+     "frames": 17640,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 35324,
+     "sha256": "b9cb3f791bf4cd1bf8e77be8de67db67de26b5940f95855f0424908d45d13e0c",
+     "seconds": 0.4
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "sfx",
+   "id": "pass_sign",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/modern/sfx_modern.py",
+   "files": [
+    {
+     "lufs": -13.92,
+     "lra": 0.0,
+     "short_term_max": -13.92,
+     "momentary_max": -13.92,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -4.43,
+     "dc_db": -90.0,
+     "clipped_runs": 0,
+     "file": "pass_sign.wav",
+     "frames": 11025,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 22094,
+     "sha256": "042584700e837a4ba5e752c51c55b81e7a4d34ef42c05a2f6873c784f7fc2747",
+     "seconds": 0.25
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "sfx",
+   "id": "pass_tree",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/modern/sfx_modern.py",
+   "files": [
+    {
+     "lufs": -15.6,
+     "lra": 0.0,
+     "short_term_max": -16.1,
+     "momentary_max": -15.6,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.0,
+     "dc_db": -101.2,
+     "clipped_runs": 0,
+     "file": "pass_tree_a.wav",
+     "frames": 19845,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 39734,
+     "sha256": "1f0a3ea905e1b73216708bad165359243ea5cc14517936bb4377582544ae1511",
+     "seconds": 0.45
+    },
+    {
+     "lufs": -16.24,
+     "lra": 0.0,
+     "short_term_max": -16.24,
+     "momentary_max": -16.24,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.0,
+     "dc_db": -87.5,
+     "clipped_runs": 0,
+     "file": "pass_tree_b.wav",
+     "frames": 17640,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 35324,
+     "sha256": "6187a99b47fb47609a9e1255426de7e74486d46036c9faf757ccc05ea52627f2",
+     "seconds": 0.4
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "sfx",
+   "id": "platzhalter_hit",
+   "kind": "oneshot",
+   "placeholder": true,
+   "generator": "tools/audio/modern/make_placeholders.py",
+   "files": [
+    {
+     "lufs": -19.45,
+     "lra": 0.0,
+     "short_term_max": -19.45,
+     "momentary_max": -19.45,
+     "true_peak_db": -4.4,
+     "sample_peak_db": -6.02,
+     "dc_db": -53.5,
+     "clipped_runs": 0,
+     "file": "platzhalter_hit.wav",
+     "frames": 17640,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 70604,
+     "sha256": "64f5771f5d31ca7c6099fb2cbdafdd04bb9cc2fb7f0840ca15f812229ca76969",
+     "seconds": 0.4
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "sfx",
+   "id": "post_hit",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/modern/sfx_modern.py",
+   "files": [
+    {
+     "lufs": -18.14,
+     "lra": 0.0,
+     "short_term_max": -18.65,
+     "momentary_max": -18.14,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.02,
+     "dc_db": -75.8,
+     "clipped_runs": 0,
+     "file": "post_hit_a.wav",
+     "frames": 19845,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 39734,
+     "sha256": "5bde3edd77a71648ae2a4024bf0aa9d1d1aa0710cc3596c70da7c74b66ab90fd",
+     "seconds": 0.45
+    },
+    {
+     "lufs": -19.1,
+     "lra": 0.0,
+     "short_term_max": -19.61,
+     "momentary_max": -19.1,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.02,
+     "dc_db": -83.8,
+     "clipped_runs": 0,
+     "file": "post_hit_b.wav",
+     "frames": 19845,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 39734,
+     "sha256": "a7aa6a0c6bc1ef3ddb6bfe1bb30c6553691ac323cd6a40c527f82ee31a90e9fe",
+     "seconds": 0.45
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "sfx",
+   "id": "rail_hit",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/modern/sfx_modern.py",
+   "files": [
+    {
+     "lufs": -22.3,
+     "lra": 0.0,
+     "short_term_max": -20.41,
+     "momentary_max": -16.89,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.0,
+     "dc_db": -66.3,
+     "clipped_runs": 0,
+     "file": "rail_hit_a.wav",
+     "frames": 44100,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 88244,
+     "sha256": "d343e5c867f8f4f2e45bf86c6a12d4cc15b8eead7d381f327a973d11606dc918",
+     "seconds": 1.0
+    },
+    {
+     "lufs": -21.89,
+     "lra": 0.0,
+     "short_term_max": -19.99,
+     "momentary_max": -16.45,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.12,
+     "dc_db": -67.7,
+     "clipped_runs": 0,
+     "file": "rail_hit_b.wav",
+     "frames": 44100,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 88244,
+     "sha256": "c187999a6e5ba3bb79ed713a8e4f363bfd7daf13ae73f6212c75badc9bc64f18",
+     "seconds": 1.0
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "sfx",
+   "id": "rail_touch",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/modern/sfx_modern.py",
+   "files": [
+    {
+     "lufs": -18.17,
+     "lra": 0.0,
+     "short_term_max": -18.17,
+     "momentary_max": -18.17,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -4.86,
+     "dc_db": -77.6,
+     "clipped_runs": 0,
+     "file": "rail_touch_a.wav",
+     "frames": 17640,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 35324,
+     "sha256": "74e255b322aaf98f1d003d89f0941e592d8c61ec77017db08c7e38ff8e0c705c",
+     "seconds": 0.4
+    },
+    {
+     "lufs": -15.66,
+     "lra": 0.0,
+     "short_term_max": -15.66,
+     "momentary_max": -15.66,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.65,
+     "dc_db": -96.1,
+     "clipped_runs": 0,
+     "file": "rail_touch_b.wav",
+     "frames": 17640,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 35324,
+     "sha256": "757d8d7e59adc600843206fee3ce8137efce33a176506ef5e31312ca01386644",
+     "seconds": 0.4
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "sfx",
+   "id": "truck_boom",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/modern/sfx_modern.py",
+   "files": [
+    {
+     "lufs": -20.66,
+     "lra": 0.0,
+     "short_term_max": -20.78,
+     "momentary_max": -15.84,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.07,
+     "dc_db": -66.1,
+     "clipped_runs": 0,
+     "file": "truck_boom_a.wav",
+     "frames": 58212,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 116468,
+     "sha256": "458a091ff2721f44fbe504fa8c7d79a05a6c106f2c6ec803fa3ec42726755b6d",
+     "seconds": 1.32
+    },
+    {
+     "lufs": -20.91,
+     "lra": 0.0,
+     "short_term_max": -20.98,
+     "momentary_max": -16.04,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.04,
+     "dc_db": -65.4,
+     "clipped_runs": 0,
+     "file": "truck_boom_b.wav",
+     "frames": 58212,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 116468,
+     "sha256": "0483221f479cf4d4bd23216c2751d3881c16708bccfc4b75d4e851036fb3e31c",
+     "seconds": 1.32
+    },
+    {
+     "lufs": -20.78,
+     "lra": 0.0,
+     "short_term_max": -20.9,
+     "momentary_max": -15.97,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.04,
+     "dc_db": -65.9,
+     "clipped_runs": 0,
+     "file": "truck_boom_c.wav",
+     "frames": 58212,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 116468,
+     "sha256": "18356db5129d3a0185ccb85a001759afba07db9823a55caefad489ce5b0b62b7",
+     "seconds": 1.32
+    },
+    {
+     "lufs": -20.46,
+     "lra": 0.0,
+     "short_term_max": -20.59,
+     "momentary_max": -15.66,
+     "true_peak_db": -3.0,
+     "sample_peak_db": -3.0,
+     "dc_db": -65.8,
+     "clipped_runs": 0,
+     "file": "truck_boom_d.wav",
+     "frames": 58212,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 116468,
+     "sha256": "0ba2773f805f5ee3ef4dc78ff01c82c632f1239d55148529562386d528be542d",
+     "seconds": 1.32
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "ambience",
+   "id": "platzhalter_bed",
+   "kind": "loop",
+   "placeholder": true,
+   "generator": "tools/audio/modern/make_placeholders.py",
+   "files": [
+    {
+     "lufs": -29.13,
+     "lra": 0.08,
+     "short_term_max": -29.09,
+     "momentary_max": -28.55,
+     "true_peak_db": -18.27,
+     "sample_peak_db": -18.27,
+     "dc_db": -119.0,
+     "clipped_runs": 0,
+     "file": "platzhalter_bed.ogg",
+     "frames": 176400,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 41812,
+     "sha256": "a5e8f24c6f21092cd14924cfa4438e3580ab03c640cdd3001cca98f8f6215db1",
+     "seconds": 4.0,
+     "seam_ratio": 0.23,
+     "seam_kink_ratio": 0.56,
+     "seam_loop_ratio": 0.47
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "ui",
+   "id": "platzhalter_blip",
+   "kind": "oneshot",
+   "placeholder": true,
+   "generator": "tools/audio/modern/make_placeholders.py",
+   "files": [
+    {
+     "lufs": -17.26,
+     "lra": 0.0,
+     "short_term_max": -17.26,
+     "momentary_max": -17.26,
+     "true_peak_db": -9.02,
+     "sample_peak_db": -9.02,
+     "dc_db": -111.1,
+     "clipped_runs": 0,
+     "file": "platzhalter_blip.wav",
+     "frames": 5292,
+     "channels": 1,
+     "sample_rate": 44100,
+     "bytes": 10628,
+     "sha256": "af9bcc064e8d82b094ee7d934849e772cabdb447854a57da3de9ee650dfa9994",
+     "seconds": 0.12
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "ui",
+   "id": "ui_back",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/music/ui_klaenge.py",
+   "files": [
+    {
+     "lufs": -22.7,
+     "lra": 0.0,
+     "short_term_max": -21.97,
+     "momentary_max": -19.54,
+     "true_peak_db": -9.6,
+     "sample_peak_db": -9.6,
+     "dc_db": -120.0,
+     "clipped_runs": 0,
+     "file": "ui_back.wav",
+     "frames": 30870,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 123524,
+     "sha256": "7e445eb292dfb65b6fbd07e0856af7c510f922f6321921c294c6fea29234bf1c",
+     "seconds": 0.7
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "ui",
+   "id": "ui_error",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/music/ui_klaenge.py",
+   "files": [
+    {
+     "lufs": -20.05,
+     "lra": 0.0,
+     "short_term_max": -20.56,
+     "momentary_max": -20.05,
+     "true_peak_db": -11.23,
+     "sample_peak_db": -11.23,
+     "dc_db": -120.0,
+     "clipped_runs": 0,
+     "file": "ui_error.wav",
+     "frames": 19845,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 79424,
+     "sha256": "25709e8d680408e0f494f963735fd14b7a4cf42abd2d1ec12393abf95e5fc22b",
+     "seconds": 0.45
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "ui",
+   "id": "ui_move",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/music/ui_klaenge.py",
+   "files": [
+    {
+     "lufs": -23.04,
+     "lra": 0.0,
+     "short_term_max": -23.25,
+     "momentary_max": -23.04,
+     "true_peak_db": -13.08,
+     "sample_peak_db": -13.09,
+     "dc_db": -120.0,
+     "clipped_runs": 0,
+     "file": "ui_move_1.wav",
+     "frames": 18522,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 74132,
+     "sha256": "a354e3f03139710210d1aa7a7f9acea49e1b16a302dbf6c9dbaa01ef03cf6c0e",
+     "seconds": 0.42
+    },
+    {
+     "lufs": -23.04,
+     "lra": 0.0,
+     "short_term_max": -23.25,
+     "momentary_max": -23.04,
+     "true_peak_db": -14.19,
+     "sample_peak_db": -14.22,
+     "dc_db": -120.0,
+     "clipped_runs": 0,
+     "file": "ui_move_2.wav",
+     "frames": 18522,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 74132,
+     "sha256": "b39a8023e5b5977f50bae3a63ceeeb05fa505a889835745af6e88cef242a4c16",
+     "seconds": 0.42
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "ui",
+   "id": "ui_ok",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/music/ui_klaenge.py",
+   "files": [
+    {
+     "lufs": -22.09,
+     "lra": 0.0,
+     "short_term_max": -20.91,
+     "momentary_max": -18.05,
+     "true_peak_db": -8.37,
+     "sample_peak_db": -8.52,
+     "dc_db": -120.0,
+     "clipped_runs": 0,
+     "file": "ui_ok.wav",
+     "frames": 37485,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 149984,
+     "sha256": "5a15cffe80a80886f56278396b809d9f3231d745c78bdd394ceae722e32737ae",
+     "seconds": 0.85
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "ui",
+   "id": "ui_tab",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/music/ui_klaenge.py",
+   "files": [
+    {
+     "lufs": -22.53,
+     "lra": 0.0,
+     "short_term_max": -22.64,
+     "momentary_max": -20.74,
+     "true_peak_db": -10.78,
+     "sample_peak_db": -10.99,
+     "dc_db": -120.0,
+     "clipped_runs": 0,
+     "file": "ui_tab.wav",
+     "frames": 35280,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 141164,
+     "sha256": "22f6b49b3eb258f662052366eed2f1466b20beee7d53718ec8cb95fd7fa6ed23",
+     "seconds": 0.8
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "ui",
+   "id": "ui_toggle",
+   "kind": "oneshot",
+   "placeholder": false,
+   "generator": "tools/audio/music/ui_klaenge.py",
+   "files": [
+    {
+     "lufs": -24.21,
+     "lra": 0.0,
+     "short_term_max": -22.51,
+     "momentary_max": -21.54,
+     "true_peak_db": -11.05,
+     "sample_peak_db": -11.1,
+     "dc_db": -120.0,
+     "clipped_runs": 0,
+     "file": "ui_toggle.wav",
+     "frames": 22050,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 88244,
+     "sha256": "79a969e53bf92401d2fa003f859a64f87d8bfecfe7681d76bb907752f741c8bd",
+     "seconds": 0.5
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "linke_spur",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/linke_spur.py",
+   "files": [
+    {
+     "lufs": -14.16,
+     "lra": 1.98,
+     "short_term_max": -12.49,
+     "momentary_max": -11.44,
+     "true_peak_db": -1.8,
+     "sample_peak_db": -2.03,
+     "dc_db": -95.2,
+     "clipped_runs": 0,
+     "file": "linke_spur.ogg",
+     "frames": 7777636,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 3360413,
+     "sha256": "d8fb904656567142fb836cc64440af9fcbaf3ee7d37663b9356cb8627afaf8ee",
+     "seconds": 176.364,
+     "seam_ratio": 0.15,
+     "seam_kink_ratio": 0.14,
+     "seam_loop_ratio": 0.08
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "linke_spur_polizei",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/linke_spur.py",
+   "files": [
+    {
+     "lufs": -16.06,
+     "lra": 7.07,
+     "short_term_max": -15.7,
+     "momentary_max": -13.02,
+     "true_peak_db": -3.02,
+     "sample_peak_db": -3.02,
+     "dc_db": -93.5,
+     "clipped_runs": 0,
+     "file": "linke_spur_polizei.ogg",
+     "frames": 443405,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 128799,
+     "sha256": "f06919fcd3eafbba17574f25e7d609388cbf17048aba8cfe9d6a9225186719b2",
+     "seconds": 10.055
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "linke_spur_schluss",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/linke_spur.py",
+   "files": [
+    {
+     "lufs": -15.73,
+     "lra": 5.81,
+     "short_term_max": -13.66,
+     "momentary_max": -11.98,
+     "true_peak_db": -2.43,
+     "sample_peak_db": -2.63,
+     "dc_db": -81.0,
+     "clipped_runs": 0,
+     "file": "linke_spur_schluss.ogg",
+     "frames": 345584,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 149961,
+     "sha256": "f6630635a896df3bb933b7c61d9c7c124fef765aa06870b870c7c9274280514a",
+     "seconds": 7.836
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "linke_spur_schluss_finale",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/linke_spur.py",
+   "files": [
+    {
+     "lufs": -14.66,
+     "lra": 12.22,
+     "short_term_max": -12.66,
+     "momentary_max": -10.94,
+     "true_peak_db": -2.2,
+     "sample_peak_db": -2.38,
+     "dc_db": -81.0,
+     "clipped_runs": 0,
+     "file": "linke_spur_schluss_finale.ogg",
+     "frames": 523587,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 205638,
+     "sha256": "58ca7fbb15fd7cfade922102830197a2d1ec2305263cd1912bbe55157a6b4b19",
+     "seconds": 11.873
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "linke_spur_schluss_rekord",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/linke_spur.py",
+   "files": [
+    {
+     "lufs": -15.29,
+     "lra": 12.38,
+     "short_term_max": -13.64,
+     "momentary_max": -11.95,
+     "true_peak_db": -2.47,
+     "sample_peak_db": -2.57,
+     "dc_db": -83.7,
+     "clipped_runs": 0,
+     "file": "linke_spur_schluss_rekord.ogg",
+     "frames": 443405,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 172716,
+     "sha256": "f1fb148091300efcc8806e7fcccef1fccfa661aa349bff91281b95db6637b511",
+     "seconds": 10.055
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "linke_spur_tank",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/linke_spur.py",
+   "files": [
+    {
+     "lufs": -19.2,
+     "lra": 6.68,
+     "short_term_max": -18.32,
+     "momentary_max": -16.04,
+     "true_peak_db": -4.95,
+     "sample_peak_db": -4.95,
+     "dc_db": -88.4,
+     "clipped_runs": 0,
+     "file": "linke_spur_tank.ogg",
+     "frames": 363224,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 117456,
+     "sha256": "24acd009131b5f83888ccea036df1098f601b0347815b797705f93402bf2f10a",
+     "seconds": 8.236
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "linke_spur_ziel",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/linke_spur.py",
+   "files": [
+    {
+     "lufs": -17.83,
+     "lra": 19.32,
+     "short_term_max": -19.04,
+     "momentary_max": -12.49,
+     "true_peak_db": -2.98,
+     "sample_peak_db": -3.09,
+     "dc_db": -81.8,
+     "clipped_runs": 0,
+     "file": "linke_spur_ziel.ogg",
+     "frames": 283042,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 88224,
+     "sha256": "325c5e04ecdce4c31275840685ac4abed9746cc33945cdab7daa66f626591c88",
+     "seconds": 6.418
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "nachtfahrt",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/nachtfahrt.py",
+   "files": [
+    {
+     "lufs": -14.24,
+     "lra": 3.44,
+     "short_term_max": -11.8,
+     "momentary_max": -10.68,
+     "true_peak_db": -1.52,
+     "sample_peak_db": -1.56,
+     "dc_db": -100.2,
+     "clipped_runs": 0,
+     "file": "nachtfahrt.ogg",
+     "frames": 8971199,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 3932527,
+     "sha256": "2239fe4ddb22e240811c23ff4c97f497dc1c65702bf7f54dfde467e4f20c9aed",
+     "seconds": 203.429,
+     "seam_ratio": 0.38,
+     "seam_kink_ratio": 0.34,
+     "seam_loop_ratio": 0.22
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "nachtfahrt_polizei",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/nachtfahrt.py",
+   "files": [
+    {
+     "lufs": -15.43,
+     "lra": 5.57,
+     "short_term_max": -14.86,
+     "momentary_max": -12.14,
+     "true_peak_db": -2.51,
+     "sample_peak_db": -2.55,
+     "dc_db": -93.6,
+     "clipped_runs": 0,
+     "file": "nachtfahrt_polizei.ogg",
+     "frames": 505260,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 154266,
+     "sha256": "fb6f55a127e13b4d9d5a62e658f9ff135cbba34e36e14ba598d732ccc6178d32",
+     "seconds": 11.457
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "nachtfahrt_schluss",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/nachtfahrt.py",
+   "files": [
+    {
+     "lufs": -15.27,
+     "lra": 4.92,
+     "short_term_max": -12.94,
+     "momentary_max": -11.51,
+     "true_peak_db": -2.16,
+     "sample_peak_db": -2.21,
+     "dc_db": -76.1,
+     "clipped_runs": 0,
+     "file": "nachtfahrt_schluss.ogg",
+     "frames": 386820,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 172904,
+     "sha256": "9dbacdb5a01ef926b38f602dfefdf1b63495e84c8e0269b9d1fa0d85d40ff7b3",
+     "seconds": 8.771
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "nachtfahrt_schluss_finale",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/nachtfahrt.py",
+   "files": [
+    {
+     "lufs": -14.34,
+     "lra": 11.19,
+     "short_term_max": -12.3,
+     "momentary_max": -10.38,
+     "true_peak_db": -2.05,
+     "sample_peak_db": -2.14,
+     "dc_db": -91.8,
+     "clipped_runs": 0,
+     "file": "nachtfahrt_schluss_finale.ogg",
+     "frames": 606060,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 239743,
+     "sha256": "18d6615a376a743888483c25696a9e9b5020a48df948a3719d910e2d6c64d792",
+     "seconds": 13.743
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "nachtfahrt_schluss_rekord",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/nachtfahrt.py",
+   "files": [
+    {
+     "lufs": -14.77,
+     "lra": 8.69,
+     "short_term_max": -13.12,
+     "momentary_max": -11.54,
+     "true_peak_db": -1.69,
+     "sample_peak_db": -1.69,
+     "dc_db": -91.3,
+     "clipped_runs": 0,
+     "file": "nachtfahrt_schluss_rekord.ogg",
+     "frames": 505260,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 197868,
+     "sha256": "8efc0dc9bef9d18e230fc350bda47c8b76ab2562d598052e5e68c84976a04ebd",
+     "seconds": 11.457
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "nachtfahrt_tank",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/nachtfahrt.py",
+   "files": [
+    {
+     "lufs": -17.95,
+     "lra": 6.81,
+     "short_term_max": -17.23,
+     "momentary_max": -14.97,
+     "true_peak_db": -4.76,
+     "sample_peak_db": -4.76,
+     "dc_db": -91.2,
+     "clipped_runs": 0,
+     "file": "nachtfahrt_tank.ogg",
+     "frames": 404460,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 138005,
+     "sha256": "cabf95cb5efdf3f80d3198a51da2c91dfa14c950c5b47a7f235780a3ee2d127f",
+     "seconds": 9.171
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "nachtfahrt_ziel",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/nachtfahrt.py",
+   "files": [
+    {
+     "lufs": -16.47,
+     "lra": 18.75,
+     "short_term_max": -17.69,
+     "momentary_max": -11.91,
+     "true_peak_db": -2.33,
+     "sample_peak_db": -2.6,
+     "dc_db": -87.2,
+     "clipped_runs": 0,
+     "file": "nachtfahrt_ziel.ogg",
+     "frames": 303660,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 91362,
+     "sha256": "aba01ca02698e6fc6f4b78441fc17723f7b885c1499fb5eab17c9c66156e2e57",
+     "seconds": 6.886
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "platzhalter_takt",
+   "kind": "music",
+   "placeholder": true,
+   "generator": "tools/audio/modern/make_placeholders.py",
+   "files": [
+    {
+     "lufs": -13.97,
+     "lra": 0.01,
+     "short_term_max": -13.92,
+     "momentary_max": -13.26,
+     "true_peak_db": -2.14,
+     "sample_peak_db": -2.14,
+     "dc_db": -56.3,
+     "clipped_runs": 0,
+     "file": "platzhalter_takt.ogg",
+     "frames": 176400,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 35124,
+     "sha256": "5db87a4fc25f935d14f6f431584147c453c33da922f6198950752fa370664ab2",
+     "seconds": 4.0,
+     "seam_ratio": 0.72,
+     "seam_kink_ratio": 8.71,
+     "seam_loop_ratio": 0.05
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "rueckenwind",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/rueckenwind.py",
+   "files": [
+    {
+     "lufs": -14.16,
+     "lra": 2.12,
+     "short_term_max": -12.52,
+     "momentary_max": -11.31,
+     "true_peak_db": -1.78,
+     "sample_peak_db": -1.78,
+     "dc_db": -95.2,
+     "clipped_runs": 0,
+     "file": "rueckenwind.ogg",
+     "frames": 6844320,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 2982200,
+     "sha256": "c7ee8de6409f2b96d7feccbe1fabd09590cb826408aa4e6410a926b6eb1a3f33",
+     "seconds": 155.2,
+     "seam_ratio": 0.44,
+     "seam_kink_ratio": 0.74,
+     "seam_loop_ratio": 0.48
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "rueckenwind_polizei",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/rueckenwind.py",
+   "files": [
+    {
+     "lufs": -15.84,
+     "lra": 3.62,
+     "short_term_max": -15.37,
+     "momentary_max": -13.12,
+     "true_peak_db": -3.16,
+     "sample_peak_db": -3.29,
+     "dc_db": -87.4,
+     "clipped_runs": 0,
+     "file": "rueckenwind_polizei.ogg",
+     "frames": 414540,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 117709,
+     "sha256": "e999ae60a4714d2407aadb38ac8142e67c429f74b517a34e71347c5f4e9f3508",
+     "seconds": 9.4
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "rueckenwind_schluss",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/rueckenwind.py",
+   "files": [
+    {
+     "lufs": -15.97,
+     "lra": 8.71,
+     "short_term_max": -14.01,
+     "momentary_max": -12.09,
+     "true_peak_db": -2.15,
+     "sample_peak_db": -2.25,
+     "dc_db": -88.5,
+     "clipped_runs": 0,
+     "file": "rueckenwind_schluss.ogg",
+     "frames": 326340,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 137577,
+     "sha256": "9c5cbee4f707a12412a19ad9e196f5a84a5b5bf9051c575b3ceb6db0df41017d",
+     "seconds": 7.4
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "rueckenwind_schluss_finale",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/rueckenwind.py",
+   "files": [
+    {
+     "lufs": -14.84,
+     "lra": 13.45,
+     "short_term_max": -12.9,
+     "momentary_max": -11.11,
+     "true_peak_db": -2.64,
+     "sample_peak_db": -2.78,
+     "dc_db": -86.1,
+     "clipped_runs": 0,
+     "file": "rueckenwind_schluss_finale.ogg",
+     "frames": 485100,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 189118,
+     "sha256": "0da164f192ab6d8a6fdfacf272d2b2350d4a7c4ccc1e5f475cff904bf8a4f7de",
+     "seconds": 11.0
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "rueckenwind_schluss_rekord",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/rueckenwind.py",
+   "files": [
+    {
+     "lufs": -15.65,
+     "lra": 11.98,
+     "short_term_max": -14.16,
+     "momentary_max": -12.1,
+     "true_peak_db": -2.24,
+     "sample_peak_db": -2.24,
+     "dc_db": -80.2,
+     "clipped_runs": 0,
+     "file": "rueckenwind_schluss_rekord.ogg",
+     "frames": 414540,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 159076,
+     "sha256": "2b8646e4e947c28f3bd82d2c9d8a1d8418b90b7de7d172dd5457ea2af690de04",
+     "seconds": 9.4
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "rueckenwind_tank",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/rueckenwind.py",
+   "files": [
+    {
+     "lufs": -19.26,
+     "lra": 12.36,
+     "short_term_max": -18.47,
+     "momentary_max": -16.22,
+     "true_peak_db": -6.44,
+     "sample_peak_db": -6.45,
+     "dc_db": -88.0,
+     "clipped_runs": 0,
+     "file": "rueckenwind_tank.ogg",
+     "frames": 343980,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 109203,
+     "sha256": "b596416efecde7ff5aa659ab22bd128e3ba20d4c15809fd16c2758e529519275",
+     "seconds": 7.8
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "rueckenwind_ziel",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/rueckenwind.py",
+   "files": [
+    {
+     "lufs": -18.74,
+     "lra": 19.53,
+     "short_term_max": -19.75,
+     "momentary_max": -12.8,
+     "true_peak_db": -2.99,
+     "sample_peak_db": -3.14,
+     "dc_db": -89.4,
+     "clipped_runs": 0,
+     "file": "rueckenwind_ziel.ogg",
+     "frames": 273420,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 87113,
+     "sha256": "50d70422a3355debd52bd7a093284d034651db3b75a077beb4f08059f9cdbf0e",
+     "seconds": 6.2
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "titel_remaster",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/title_remaster.py",
+   "files": [
+    {
+     "lufs": -14.12,
+     "lra": 3.28,
+     "short_term_max": -11.9,
+     "momentary_max": -10.96,
+     "true_peak_db": -1.67,
+     "sample_peak_db": -1.88,
+     "dc_db": -100.1,
+     "clipped_runs": 0,
+     "file": "titel_remaster.ogg",
+     "frames": 8930250,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 3933107,
+     "sha256": "63ca5b0dbdf449bee416de7f054ec82e9ce5498e903b209b5010d872e74da174",
+     "seconds": 202.5,
+     "seam_ratio": 0.18,
+     "seam_kink_ratio": 0.13,
+     "seam_loop_ratio": 0.11
+    }
+   ],
+   "errors": []
+  },
+  {
+   "folder": "music",
+   "id": "zwischenspiel",
+   "kind": "music",
+   "placeholder": false,
+   "generator": "tools/audio/music/zwischenspiel.py",
+   "files": [
+    {
+     "lufs": -14.13,
+     "lra": 1.69,
+     "short_term_max": -12.98,
+     "momentary_max": -11.69,
+     "true_peak_db": -1.51,
+     "sample_peak_db": -1.59,
+     "dc_db": -86.4,
+     "clipped_runs": 0,
+     "file": "zwischenspiel.ogg",
+     "frames": 3598560,
+     "channels": 2,
+     "sample_rate": 44100,
+     "bytes": 1613503,
+     "sha256": "0847f1d6ebbc38bff15f5fa0b6674b791d6a10bebd9b5974a639232dad9b97c3",
+     "seconds": 81.6,
+     "seam_ratio": 0.18,
+     "seam_kink_ratio": 0.3,
+     "seam_loop_ratio": 0.18
+    }
+   ],
+   "errors": []
+  }
+ ],
+ "determinism": []
+}

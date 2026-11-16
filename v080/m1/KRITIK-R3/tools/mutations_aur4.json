@@ -1,0 +1,90 @@
+[
+ [
+  "M22b",
+  "scripts/audio/modern/audio_feed.gd",
+  "cobble_block_m, cobble_share, bridge_stretches(plan, len_km, _time_scale), stone_stretches(plan, len_km, _time_scale),",
+  "cobble_block_m, cobble_share, [], stone_stretches(plan, len_km, _time_scale),",
+  "test_audio_feed.gd",
+  "Anteil auf den Straßen (Brücken aus der Zuteilung) – Stelle von AU-R4"
+ ],
+ [
+  "M23b",
+  "scripts/audio/modern/audio_feed.gd",
+  "\t_closer(out, street, order, got, target, float(fit[2]))\n",
+  "\tpass\n",
+  "test_audio_feed.gd",
+  "Nachrücken ins Band 0,6 ± 0,05 – Stelle von AU-R4"
+ ],
+ [
+  "M24b",
+  "scripts/audio/modern/audio_feed.gd",
+  "return AudioFeed.deck_of(str(b.get(\"type\", \"\"))) != \"stone\")",
+  "return true)",
+  "test_audio_feed.gd",
+  "Steinbrücken sind keine Lücke der Straße – Stelle von AU-R4"
+ ],
+ [
+  "M33",
+  "scripts/audio/modern/audio_feed.gd",
+  "var fit := _street_fit(n, centre_m, block_m, share, _merged_stretches(skip), _merged_stretches(paved))",
+  "var fit := _street_fit(n, centre_m, block_m, share, _merged_stretches(skip), [])",
+  "test_audio_feed.gd",
+  "Steinbrücke als schon gepflasterte Straße (AU-R4)"
+ ],
+ [
+  "M34",
+  "scripts/audio/modern/audio_feed.gd",
+  "\tif not late.is_empty():\n",
+  "\tif false:\n",
+  "test_audio_feed.gd",
+  "Tunnel der Etappe rückt ins Band nach (AU-R4)"
+ ],
+ [
+  "M35",
+  "scripts/audio/modern/audio_feed.gd",
+  "\t_closer(out, street, order, got, target, float(fit[2]))\n",
+  "\tif not skip.is_empty():\n\t\t_closer(out, street, order, got, target, float(fit[2]))\n",
+  "test_audio_feed.gd",
+  "Nachrücken für jede Altstadt, nicht nur mit Brücke (AU-R4)"
+ ],
+ [
+  "M36",
+  "scripts/audio/modern/audio_feed.gd",
+  "var fit := _street_fit(n, centre_m, block_m, share, _merged_stretches(skip), _merged_stretches(paved))",
+  "var fit := _street_fit(n, centre_m, block_m, share, _merged_stretches(skip + late), _merged_stretches(paved))",
+  "test_audio_feed.gd",
+  "Tunnel ändert die Blöcke der Stadt nur, wenn er den Anteil aus dem Band schiebt (AU-R4)"
+ ],
+ [
+  "M37",
+  "scripts/audio/modern/audio_feed.gd",
+  "return AudioFeed.deck_of(str(b.get(\"type\", \"\"))) == \"stone\")",
+  "return true)",
+  "test_audio_feed.gd",
+  "nur Steinbrücken sind schon gepflastert (AU-R4)"
+ ],
+ [
+  "M38",
+  "scripts/audio/modern/audio_feed.gd",
+  "func(_t: Dictionary) -> bool: return true)",
+  "func(_t: Dictionary) -> bool: return false)",
+  "test_audio_feed.gd",
+  "Tunnel der Etappe aus dem Plan (AU-R4)"
+ ],
+ [
+  "M39",
+  "scripts/audio/modern/audio_feed.gd",
+  "bridge_stretches(plan, len_km, _time_scale), stone_stretches(plan, len_km, _time_scale),",
+  "bridge_stretches(plan, len_km, _time_scale), [],",
+  "test_audio_feed.gd",
+  "der Feed gibt die Steinbrücken weiter (AU-R4)"
+ ],
+ [
+  "M40",
+  "scripts/audio/modern/audio_feed.gd",
+  "\t\t\t\ttunnel_stretches(plan, len_km, _time_scale))",
+  "\t\t\t\t[])",
+  "test_audio_feed.gd",
+  "der Feed gibt die Tunnel weiter (AU-R4)"
+ ]
+]

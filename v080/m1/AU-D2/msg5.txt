@@ -1,0 +1,13 @@
+v0.8.0 AU-D2: Rennstücke 2 und 3, Zwischenspiel, Schlüsse, Stinger, UI-Klänge
+
+- „Nachtfahrt“ (c-Moll, 105 bpm) und „Rückenwind“ (A-Dur, 150 bpm) mit Einzähler, Schleife und
+  Schluss; je Stück (auch „Linke Spur“) Ziel-Schlag, Schluss „Rekord“ und „Finale“, Stinger
+  „Polizei“ und „Tank“ in der Tonart des Stücks
+- Zwischenspiel (e-Moll, 100 bpm, Schleife 76,8 s) für race_menu und result
+- UI-Klänge im Ordner ui: ui_move (2 Varianten), ui_ok, ui_back, ui_tab, ui_toggle, ui_error
+- „Linke Spur“ (Hauptdatei, Schluss) und das Titel-Remaster bitgleich
+- check_music.gd: Arcade auch mit Stinger-Ereignissen und UI-Klängen; test_modern_audio.gd:
+  ui_move hat jetzt seine Modern-Datei
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

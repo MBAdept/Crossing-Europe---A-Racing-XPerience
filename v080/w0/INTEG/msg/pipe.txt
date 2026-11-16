@@ -1,0 +1,7 @@
+Merge v0.8.0 PIPE: Modell-Pipeline und Referenzmodelle
+
+Welle 0, Paket PIPE (Stand 59e7b8d): eigener GLB-Schreiber, Bake, ModelDB, ModernMaterials,
+ModelFactory, fünf Shader, sechs Referenzmodelle, Geometrie-Fixture der Sprite-Generatoren.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

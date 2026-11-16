@@ -1,0 +1,13 @@
+WIP v0.8.0 AS4R: Pylon aufrecht, Seile an der Deckkante, eine Stufe
+
+Kunstkritik AS4, M1/M5: Die Seile des Pylons endeten 0,4 m innerhalb der
+Fahrbahn und reichten 15 m vor die Brücke. Jetzt steht das Bein senkrecht
+und 0,9 m weiter außen (Fuß und Sockel enden an der Deckkante), sieben Seile
+je Seite laufen vom Kopf zur Deckkante (Modell-x -1,4 m, 1,1 m hoch, wie
+Arcade) und bleiben innerhalb 36 m vom Pylon - Platz, den jede
+Schrägseilbrücke des Netzes hat (mindestens 40,5 m). Eine Stufe, Seile
+0,32 m. Neu: props/bridge_pylon_bare (Pylon ohne Seile, nur Modern) für
+einen Renderer, der die Seile je Brücke zeichnet.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

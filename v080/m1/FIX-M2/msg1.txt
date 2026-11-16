@@ -1,0 +1,17 @@
+v0.8.0 FIX-M2: Blaulicht und Bremslicht der Modelle kräftiger, Abblendlicht ohne Glanzkasten, Rückfalltext, Testläufer
+
+- B-05: die zwei Abblendlicht-Spots haben keinen Glanzanteil mehr (SPOT_SPECULAR 0). Flache glänzende
+  Flächen, die zur Kamera schauen (Lkw-Hecktüren, Stoßfänger, Kennzeichen), wurden zum weißen Kasten:
+  roter Lkw bei 60 m, 22 Uhr, mittlere Leuchtdichte 107 statt Arcades 44, jetzt 48 (gemessen).
+- B-03/B-04: Schein von Bremslicht und Blaulicht eines MODELLS stärker als Arcades Gesetz
+  (VehiclePose3D.model_glow_gain: Bremse × 2,2, Blaulicht × 2,4) – das Modell hat die Lichtebene des
+  Sprites nicht. Polizei bei 60 m Tag: blaue Pixel 28 -> 153 (ZS1 114, Arcade 182), Nacht 49 -> 103.
+  Sprite- und Kasten-Vertretungen behalten Arcades Gesetz.
+- Render-Prüfungen blaulicht und abblendlicht (check_vehicle_lights), Unit-Test test_model_glow_gain.
+- M2S-07: Rückfallhinweis nennt bei fehlenden/kaputten Spieldateien (manifest, script:…) die Dateien,
+  nicht die Grafik; check_seam rueckfall_dateien.
+- M2S-04: tests/run_tests.gd zählt einen Test, der an einem Skriptfehler abbricht, als FEHLGESCHLAGEN
+  (Logger); test_props prüft die Pylon-Parameter auf null.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

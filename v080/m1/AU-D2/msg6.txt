@@ -1,0 +1,9 @@
+v0.8.0 AU-D2: Doku Musik (Abschnitt 14) mit Stücken 2–3, Stingern, UI-Klängen
+
+- docs/audio-modern.md Abschnitt 14 neu gegliedert (14.1–14.14): Tabelle aller Musikdateien, Kette,
+  „Nachtfahrt“, „Rückenwind“, Schlüsse/Ziel-Schlag/Stinger, Zwischenspiel, UI-Klänge, gemeinsame
+  Mischung, MusicDirector, Prüfungen, Fallen 12–15, offene Punkte – mit den gemessenen Werten
+- mischung.json: Verweis auf Abschnitt 14.10, Pegelschlüssel genauer beschrieben
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

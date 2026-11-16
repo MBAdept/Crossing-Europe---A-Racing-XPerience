@@ -1,0 +1,11 @@
+AS2R (WIP): Radlauf vorn bei Sportwagen und GT frei, SUV-Rückstrahler in lod2
+
+- Sportwagen und Gran Turismo: der Kotflügel über dem Vorderrad folgt im
+  3D-Bau dem Kreis Reifenradius + 25 mm (der Querschnitt begann unter der
+  Schulter und lief 84 / 61 mm in den Reifen, A5). Gemessen mit dem
+  Werkzeug der Kritik: 0 Ecken im Reifen bei 0° und ±7° (vorher 114 / 71)
+- SUV: Rückstrahler auch in lod2 (sie sind jetzt auf dem Stoßfänger zu
+  sehen und verschwanden beim Wechsel bei 120 m)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

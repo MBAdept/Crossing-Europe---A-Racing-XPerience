@@ -1,0 +1,12 @@
+v0.8.0 FIX-R5: tunnel_state.exit_z – wo die Röhre wirklich endet
+
+Probe mit R4s Stand (origin/wip/v080-fix-r4 auf diesem Kopf, nur in einer
+Scratch-Kopie): R4s Belichtungsfläche an der Ausfahrt löst QA-R5 QR5-03 – das
+Draußen ist jetzt überstrahlt wie in Arcade. Sie steht aber bei end_km − 0,6 m,
+die Röhre endet erst an der Segmentgrenze danach (bis zu 3 m später); darum
+leuchten die letzten Meter der Röhre und R5s Rahmen der Ausfahrt mit. R5 legt
+den wahren Endpunkt jetzt in tunnel_state["exit_z"]; R4 setzt die Fläche dort
+an (genaue Änderung im Bericht). Unit-Test und Doku (renderer-modern.md 15.1).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

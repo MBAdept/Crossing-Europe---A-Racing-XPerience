@@ -1,0 +1,9 @@
+v0.8.0 QA1: zweite Arcade-Identitätsliste aus v0.7.0 (Menüs, GameFlow-Start, Pause, Ladebild, 1280×800)
+
+tests/golden/arcade_ui_v070.md5 aus dem Tag v0.7.0 erzeugt (tools/golden.sh make ui): 17 Bilder, MD5 der
+RGB-Pixel nach der Maske (Pfeile der Fahrzeugwahl und Startzeit folgen der Wanduhr, die Versionsnummer im
+Titel ändert sich mit dem Release). Zweimal gegen diesen Baum geprüft: 17 von 17 identisch.
+README der Goldens auf die drei Listen nachgezogen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

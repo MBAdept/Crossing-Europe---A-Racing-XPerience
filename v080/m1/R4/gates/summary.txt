@@ -1,0 +1,35 @@
+== import start 18:53:36 head 66491b5 nice 19
+== import exit=0 secs=7
+== check_scripts start 18:53:43 head 66491b5 nice 19
+== check_scripts exit=0 secs=12
+== fertig 18:53:55
+== run_tests start 19:43:42 head e2e8e4e nice 19
+== run_tests exit=1 secs=1951
+== sight start 20:16:13 head 33ded9a nice 19
+== import start 08:04:42 head e68b51f nice 19
+== import exit=0 secs=28
+== check_scripts start 08:05:10 head e68b51f nice 19
+== check_scripts exit=0 secs=12
+== fertig 08:05:22
+== sight start 08:40:30 head 2577b30 nice 19
+== sight start 08:56:58 head 866a74c nice 19
+== sight exit=0 secs=257
+== fertig 09:01:15
+== path start 09:01:15 head 866a74c nice 19
+== path exit=0 secs=104
+== fertig 09:02:59
+== render_checks start 09:02:59 head 866a74c nice 19
+== render_checks exit=0 secs=7777
+== fertig 11:12:36
+== run_tests start 11:12:36 head 866a74c nice 10
+== run_tests exit=1 secs=1366
+== fertig 11:35:22
+== modern_check start 11:35:22 head 866a74c nice 10
+== modern_check exit=1 secs=2275
+== fertig 12:13:17
+== modern_make start 12:13:39 head 866a74c nice 10
+== modern_make exit=0 secs=1668
+== fertig 12:41:27
+== golden_check start 12:41:27 head 866a74c nice 10
+== golden_check exit=0 secs=820
+== fertig 12:55:07

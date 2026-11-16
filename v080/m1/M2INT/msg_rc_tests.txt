@@ -1,0 +1,16 @@
+v0.8.0 M2INT: Zwei Render-Prüfungen an den neuen Inhalt angepasst (Spiegelung, Ersatzbilder)
+
+Vorlauf von tools/run_render_checks.sh all auf b2c6b52 (gemessen): 15 von 18 Dateien OK. Außer check_light_base
+„schatten“ (QA1-Befund, den der ZS1-Start-Fix behebt) zwei Prüfungen, die der Inhalt von M2 überholt hat
+(Leitungsnotiz 4):
+
+- check_props_render „props_spiegel“: Buche und Fels hatten noch Ersatzbilder – seit AS3 sind es Modelle, die sich
+  zufällig drehen (Bäume, Pflanzen, Felsen), das Bild kann nicht mehr sein eigenes Spiegelbild sein (Abweichung 10,56,
+  keine Gruppe „s|props/tree_beech|1“). Jetzt Bauernhaus und Laterne (Modelle ohne Drehung) und zwei Stadthäuser
+  ohne Modell (Ersatzbilder, mirror_left): Abweichung 0,13, über 40 Stufen 0,04 % – OK.
+- check_vehicle_standin „laden“: verlangte gezeigte Ersatzbilder während der Fahrt – seit AS2R hat jedes
+  Fahrzeug-Set ein Modell. Jetzt: solange ein Set ohne Modell ist, muss sein Ersatzbild erscheinen; ohne solche Sets
+  kein Ersatzbild und kein Blatt in prepare() (gemessen 0, 0,0 MB) – OK.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

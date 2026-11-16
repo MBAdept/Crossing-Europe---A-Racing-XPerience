@@ -1,0 +1,19 @@
+props/tree_oak           Modell außerhalb des Sprite-Umrisses   4.9 %, Sprite vom Modell gedeckt  98.8 %
+props/tree_oak_b         Modell außerhalb des Sprite-Umrisses  10.2 %, Sprite vom Modell gedeckt  83.2 %
+props/tree_birch         Modell außerhalb des Sprite-Umrisses   8.3 %, Sprite vom Modell gedeckt  97.1 %
+props/tree_birch_b       Modell außerhalb des Sprite-Umrisses  21.9 %, Sprite vom Modell gedeckt  80.5 %
+props/tree_beech         Modell außerhalb des Sprite-Umrisses   2.7 %, Sprite vom Modell gedeckt  98.5 %
+props/tree_beech_b       Modell außerhalb des Sprite-Umrisses   8.7 %, Sprite vom Modell gedeckt  91.9 %
+props/tree_poplar        Modell außerhalb des Sprite-Umrisses   8.7 %, Sprite vom Modell gedeckt  99.1 %
+props/tree_poplar_b      Modell außerhalb des Sprite-Umrisses  16.7 %, Sprite vom Modell gedeckt  87.5 %
+props/tree_olive         Modell außerhalb des Sprite-Umrisses   5.3 %, Sprite vom Modell gedeckt  97.7 %
+props/tree_olive_b       Modell außerhalb des Sprite-Umrisses  10.4 %, Sprite vom Modell gedeckt  86.7 %
+props/tree_pine          Modell außerhalb des Sprite-Umrisses  11.7 %, Sprite vom Modell gedeckt  94.6 %
+props/tree_pine_b        Modell außerhalb des Sprite-Umrisses  24.2 %, Sprite vom Modell gedeckt  84.6 %
+props/tree_spruce        Modell außerhalb des Sprite-Umrisses  10.6 %, Sprite vom Modell gedeckt  91.1 %
+props/tree_spruce_b      Modell außerhalb des Sprite-Umrisses  10.7 %, Sprite vom Modell gedeckt  79.4 %
+props/tree_cypress       Modell außerhalb des Sprite-Umrisses   5.2 %, Sprite vom Modell gedeckt  97.8 %
+props/tree_cypress_b     Modell außerhalb des Sprite-Umrisses   2.5 %, Sprite vom Modell gedeckt  76.4 %
+props/tree_palm          Modell außerhalb des Sprite-Umrisses  33.3 %, Sprite vom Modell gedeckt  67.5 %
+props/tree_palm_b        Modell außerhalb des Sprite-Umrisses  69.3 %, Sprite vom Modell gedeckt  32.7 %
+shots/f_umrisse.png (2052, 1581)

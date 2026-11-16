@@ -1,0 +1,13 @@
+v0.8.0 FIX-WASSER: Fernboden unter dem tiefsten Wasser des geladenen Fensters
+
+Die Fernboden-Scheibe lag 4 m unter der tiefsten geladenen Straße und deckte unter
+hohen Brücken das Wasser zu (Köhlbrandbrücke: Elbe 9 m unter der Fahrbahn, Wiese
+statt Fluss, Fähren auf der Wiese). Jetzt liegt sie zusätzlich 0,3 m unter der
+tiefsten Wasserfläche des Fensters (jede Reihe jeder Brücke darin, Höhe wie das
+Gelände sie zeichnet). Ohne tiefes Wasser bleibt alles wie bisher; der Abstieg
+folgt FOLLOW_SLOPE, wenn eine Brücke ins Fenster kommt.
+
+Einheitstests test_far_ground_water.gd (3 von 4 rot auf 3a23cb8).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

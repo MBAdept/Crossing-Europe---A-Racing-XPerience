@@ -1,0 +1,9 @@
+v0.8.0 AS5a1: WIP Stadthaus-Bauer: Farb- und Licht-Bake mit 4 Samples
+
+Die EMIT-Bakes laufen in doppelter Atlasgröße; 4 Samples je Bake-Texel (16 je Atlastexel) reichen
+für die Kanten der prozeduralen Fassaden. Mit 16 Samples dauerte ein 2048 x 1024-Atlas auf der
+geteilten VM 20 Minuten (Mietshaus 1 666 s, davon Umgebungsverdeckung 402 s). Neue Option
+bake_samples; Katalogoptionen im Kopf des Moduls vollständig.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
