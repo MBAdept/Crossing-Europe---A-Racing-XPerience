@@ -2022,7 +2022,11 @@ Der Tunnel-Builder ist die Quelle der Tunnelzone; das Umgebungs-Rig (R4) entsche
   das Rig bei seinem eigenen Weg (`tunnel01` aus `tunnel_blend`), es ändert sich nichts.
 - **`tunnel_state`** (Eigenschaft des Builders, über `renderer.builder("tunnel")`): `amount`, `inside` (Kamera in einem
   Tunnel), `exit_m` (Weg bis zur Ausfahrt, INF draußen), `portal_m` (Weg bis zum nächsten Portal voraus),
-  `exit_in_sight` (Ausfahrt innerhalb der Sicht) – für eine Belichtungsrampe an der Ausfahrt, ohne eigene Rechnung.
+  `exit_in_sight` (Ausfahrt innerhalb der Sicht) – für eine Belichtungsrampe an der Ausfahrt, ohne eigene Rechnung;
+  `light` (FIX-R5) = das Licht der Röhre in diesem Bild, wie es `tunnel.gdshader` bekommt: `ambient_in`, `ambient_out`
+  (Anzeigefaktoren der Tunnelumgebung für eine Kamera drinnen / draußen, Arcades × (0,5 + 0,5 × Lichter)), `fog`
+  (`Palette.TUNNEL_FOG`), `darkness_m`, `peek_m`, `cam_tunnel_z` (Portal-z des Tunnels der Kamera, −1e9 draußen),
+  `lights` – damit die Fahrbahn in der Röhre (R4) von außen Arcades warmes Tunnellicht zeigen kann (Befund QR5-02).
 - `snapshot()` → `"tunnel": {"zone", "zone_calls", "inside"}` im `debug_snapshot()` des Renderers.
 
 ### 15.2 Wasser im Licht

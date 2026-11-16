@@ -99,7 +99,9 @@ Arten (`UV2.x`): 0 Fläche, 1 Kappe, 2 Leuchte, 3 grünes Schild, 4 Fliese, 5 Wa
 
 ### 2.4 Zone für die Umgebung
 
-`tunnel.gd` rechnet jedes Bild `tunnel_state` = {`amount`, `inside`, `exit_m`, `portal_m`, `exit_in_sight`} und ruft –
+`tunnel.gd` rechnet jedes Bild `tunnel_state` = {`amount`, `inside`, `exit_m`, `portal_m`, `exit_in_sight`, `light`}
+(`light`, FIX-R5: das Licht der Röhre – Umgebung drinnen/draußen, Tunnelnebel, `darkness_m`, `peek_m`, `cam_tunnel_z`,
+`lights` –, damit die Fahrbahn in der Röhre von außen Arcades Tunnellicht zeigen kann) und ruft –
 wenn das Umgebungs-Rig sie hat (R4, duck-typed) – `renderer.env.set_zone("tunnel", amount)` (Einzelheiten und genaue
 Aufrufe: renderer-modern.md Abschnitt 15). `amount` folgt demselben Gesetz wie `EnvironmentRig.tunnel_blend()`
 (0 ab 12 m vor einem Portal bis 1 bei 14 m drin, eine Funktion des Orts); ohne `set_zone` behält das Rig seinen eigenen

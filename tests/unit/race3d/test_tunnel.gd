@@ -298,8 +298,20 @@ func test_cap_only_for_a_camera_outside() -> void:
 	var m: ShaderMaterial = b.call("tube_material")
 	b.call("update", {"camera_z": _portal_z(t, tu) - 60.0, "palette": pal, "visibility_m": 900.0}, 0.016)
 	assert_true(float(m.get_shader_parameter("cam_tunnel_z")) < -1.0e8, "draußen: Kappe aller Tunnel zu")
+	var light: Dictionary = (b.get("tunnel_state") as Dictionary).get("light", {})
+	assert_true(float(light.get("cam_tunnel_z", 0.0)) < -1.0e8, "tunnel_state.light: draußen")
 	b.call("update", {"camera_z": _portal_z(t, tu) + 200.0, "palette": pal, "visibility_m": 360.0, "camera_in_tunnel": true}, 0.016)
 	assert_near(float(m.get_shader_parameter("cam_tunnel_z")), _portal_z(t, tu), 0.01, "drin: die Röhre des eigenen Tunnels ohne Kappe")
+	# FIX-R5: the tube's light for others (R4's road in the tube, QR5-02) – the tube material's values, every frame
+	b.call("update", {"camera_z": _portal_z(t, tu) + 201.0, "palette": pal, "visibility_m": 360.0, "camera_in_tunnel": true}, 0.016)
+	light = (b.get("tunnel_state") as Dictionary).get("light", {})
+	assert_near(float(light.get("cam_tunnel_z", 0.0)), _portal_z(t, tu), 0.01, "tunnel_state.light: Portal des eigenen Tunnels")
+	var amb_in: Vector3 = m.get_shader_parameter("ambient_in")
+	var amb_l: Color = light.get("ambient_in", Color.BLACK)
+	assert_near(amb_l.r, amb_in.x, 1.0e-6, "tunnel_state.light.ambient_in = Röhre")
+	assert_eq(light.get("fog"), Palette.TUNNEL_FOG, "tunnel_state.light.fog = Arcades Tunnelnebel")
+	assert_near(float(light.get("darkness_m", 0.0)), float(ConfigLoader.lookup(_config(), "render.tunnel.darkness_m", 260.0)), 1.0e-6,
+		"tunnel_state.light.darkness_m")
 	r.free()
 
 

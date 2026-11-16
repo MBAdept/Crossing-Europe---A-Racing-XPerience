@@ -103,7 +103,12 @@ const PORTAL_LAYERS := 2
 const ZONE_OUT_M := 12.0           ## the zone amount rises from 12 m before a portal …
 const ZONE_IN_M := 14.0            ## … to 1 at 14 m inside (EnvironmentRig.tunnel_blend, the rig's own law)
 
-var tunnel_state: Dictionary = {}  ## {"amount", "inside", "portal_z", "exit_m", "portal_m", "exit_in_sight"}: read by tests and the rig
+var tunnel_state: Dictionary = {}  ## {"amount", "inside", "exit_m", "portal_m", "exit_in_sight", "light"}: read by tests and the rig
+## FIX-R5: the tube's light of this frame for whoever draws something inside a tube (R4's road: QA-R5 QR5-02 – seen
+## from outside, the road in the tube must show Arcade's tunnel light, not the open sky's): {"ambient_in",
+## "ambient_out" (display factors, Color), "fog" (Palette.TUNNEL_FOG), "darkness_m", "peek_m", "cam_tunnel_z"
+## (portal z of the tunnel the camera is in, -1e9 outside), "lights"} – the uniforms of tunnel.gdshader.
+var _light: Dictionary = {}
 
 var _renderer: Object
 var _material: ShaderMaterial
@@ -949,6 +954,7 @@ func update(view: Dictionary, _dt: float) -> void:
 	var lights := float((pal as Dictionary).get("lights", 0.0))
 	var key := "%s|%.3f|%.1f" % [amb.to_html(), lights, cam_tunnel]
 	if key == _state_key:
+		tunnel_state["light"] = _light
 		return
 	_state_key = key
 	var m := tube_material()
@@ -957,6 +963,9 @@ func update(view: Dictionary, _dt: float) -> void:
 	m.set_shader_parameter("ambient_out", Vector3(amb.r * k, amb.g * k, amb.b * k))
 	m.set_shader_parameter("cam_tunnel_z", cam_tunnel)
 	m.set_shader_parameter("lights", clampf(lights, 0.0, 1.0))
+	_light = {"ambient_in": amb, "ambient_out": Color(amb.r * k, amb.g * k, amb.b * k), "fog": Palette.TUNNEL_FOG,
+		"darkness_m": _dark_m, "peek_m": _peek_m, "cam_tunnel_z": cam_tunnel, "lights": clampf(lights, 0.0, 1.0)}
+	tunnel_state["light"] = _light
 
 
 ## tunnel_state for this frame and the call EnvironmentRig.set_zone("tunnel", amount) when the rig has it.
