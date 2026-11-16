@@ -76,10 +76,15 @@ const LOS_NEAR := 55.0
 const LOS_FAR := 600.0
 const LOS_STEP := 5.0
 const LOS_MARGIN := 0.1            ## the column's half width plus this (cameras every LOS_STEP: a line can sweep past)
-## The decision costs 2–4.5 ms per canopy on the main thread (measured, llvmpipe VM under load): collect() decides one
-## more canopy that starts up to WARM_AHEAD_M beyond its chunk in advance, so that the canopies of a station are spread
-## over the chunks before it instead of all landing in one frame; camera positions are kept per stage (cache).
+## The decision costs 2–6 ms per canopy (measured, llvmpipe VM under load): collect() gathers the jobs (CanopyJob) of the
+## canopies that start up to WARM_AHEAD_M beyond its chunk, a further half only within WARM_BUDGET_MS, so that the
+## canopies of a station are spread over the chunks before it and decided on a worker instead of all landing in one
+## frame. The canopies of a station share their cameras and segments: the lanes and the curvature are kept for the
+## next canopy (cache "_lanes", "_curve"), so a station of six canopies is gathered in about four calls. RINT-M2,
+## measured on the test stage ("Steam Deck"): further ahead than 600 m the gather makes the Track generate its segments
+## early (18 ms in one frame at 2000 m); one half per call left the last three of six canopies to be decided inline.
 const WARM_AHEAD_M := 600.0
+const WARM_BUDGET_MS := 0.5      ## a further half of a job starts only while the call has used less than this
 const BEAM_H := 0.4                ## the beam under the canopy edge that carries it over to an outer column
 const BEAM_D := 0.3
 ## RINT-M2 (contract §11.3 A-18): a canopy whose columns all fell out – the outer ones in a bend's sight corridor (F7),
@@ -435,7 +440,8 @@ static func canopy_job(ctx: ChunkContext, r0: float, r1: float) -> CanopyJob:
 
 
 ## Main thread, first half of canopy_job(): the signs, the column plan and the curvature of the job's segments.
-static func canopy_job_begin(ctx: ChunkContext, r0: float, r1: float) -> CanopyJob:
+## shared: the builder's cache (Dictionary) – the curvature of the segments is kept there for the next canopy.
+static func canopy_job_begin(ctx: ChunkContext, r0: float, r1: float, shared: Variant = null) -> CanopyJob:
 	var tr := ctx.track
 	var job := CanopyJob.new()
 	job.r0 = r0
@@ -452,24 +458,37 @@ static func canopy_job_begin(ctx: ChunkContext, r0: float, r1: float) -> CanopyJ
 	while ka < kb and tr.get_segment(ka).index != ka:
 		ka += 1
 	job.k0 = ka
+	var cc: Dictionary = _shared_part(shared, "_curve", ka)
 	for k in range(ka, kb + 1):
-		var s := tr.get_segment(k)
-		if s.index != k:
-			break
-		job.curve.append(s.curve)
+		var cv: Variant = cc.get(k)
+		if cv == null:
+			var s := tr.get_segment(k)
+			if s.index != k:
+				break
+			cv = s.curve
+			cc[k] = cv
+		job.curve.append(float(cv))
 	if job.curve.size() < 2:
 		job.curve.clear()          # no path: the decision keeps every column (as without ctx.path)
 	return job
 
 
 ## Main thread, second half of canopy_job(): the cameras (lane centres) and the paved edges at the column places.
-static func canopy_job_rest(ctx: ChunkContext, job: CanopyJob) -> void:
+## shared: the builder's cache – the cameras are kept there for the next canopy (its grid overlaps).
+static func canopy_job_rest(ctx: ChunkContext, job: CanopyJob, shared: Variant = null) -> void:
 	var tr := ctx.track
 	var r0 := job.r0
 	var r1 := job.r1
 	# cameras: the lane centres (and the open fuel lane) on the LOS_STEP grid before the canopy
 	var zc := floorf((r0 - 1.0 - LOS_FAR - LOS_STEP) / LOS_STEP) * LOS_STEP
+	var lc: Dictionary = _shared_part(shared, "_lanes", int(round(zc / LOS_STEP)))
 	while zc <= r1 + LOS_STEP:
+		var gi := int(round(zc / LOS_STEP))
+		var hit: Variant = lc.get(gi)
+		if hit != null:
+			job.lanes[gi] = hit
+			zc += LOS_STEP
+			continue
 		var lanes := tr.lanes_at(zc)
 		var half := lanes * tr.lane_w * 0.5
 		var nl := int(round(lanes))
@@ -478,7 +497,8 @@ static func canopy_job_rest(ctx: ChunkContext, job: CanopyJob) -> void:
 			lx.append(-half + tr.lane_w * (float(li) + 0.5))
 		if tr.fuel_lane_factor(zc) > 0.5:
 			lx.append(half + tr.lane_w * 0.5)
-		job.lanes[int(round(zc / LOS_STEP))] = lx
+		job.lanes[gi] = lx
+		lc[gi] = lx
 		zc += LOS_STEP
 	# column places: paved edges and the first place of a left mast (the corridor flags: finish())
 	for c: Array in job.plan:
@@ -487,6 +507,19 @@ static func canopy_job_rest(ctx: ChunkContext, job: CanopyJob) -> void:
 		job.left_from[CanopyJob.zkey(z)] = tr.lanes_at(z) * tr.lane_w * 0.5 + tr.shoulder_w + MAST_LEFT_GAP
 	# the mast may also stand at the front (r0 + COLUMN_IN) – the first entry of the plan is there
 	job.gathered = true
+
+
+## The part `name` of the builder's cache (shared) for the gather of the next canopy: a Dictionary index -> value,
+## emptied when the new canopy starts beyond everything kept (index `from` past the largest key – another station).
+## Without a cache a fresh one.
+static func _shared_part(shared: Variant, name: String, from: int) -> Dictionary:
+	if not (shared is Dictionary):
+		return {}
+	var d: Dictionary = (shared as Dictionary).get(name, {})
+	if not d.is_empty() and from > int(d.keys().max()):
+		d.clear()
+	(shared as Dictionary)[name] = d
+	return d
 var _mats: ModernMaterials
 var _atlas := PanelAtlas.new()
 var _panel_mat: ShaderMaterial
@@ -1054,11 +1087,11 @@ static func columns_in_chunk(ctx: ChunkContext, cache: Variant = null) -> Array:
 		var plan: Array
 		var got: Variant = (cache as Dictionary).get(key) if cache is Dictionary else null
 		if got is CanopyJob:
-			# decided on a worker since the chunk 600 m before; wait for it (normally long done) – or, when the race
+			# decided on a worker since a chunk before (WARM_AHEAD_M); wait for it (normally long done) – or, when the race
 			# started closer than that, gathered and decided here
 			var job: CanopyJob = got
 			if not job.gathered:
-				canopy_job_rest(ctx, job)
+				canopy_job_rest(ctx, job, cache)
 			if job.task >= 0:
 				WorkerThreadPool.wait_for_task_completion(job.task)
 				job.task = -1
@@ -1076,8 +1109,11 @@ static func columns_in_chunk(ctx: ChunkContext, cache: Variant = null) -> Array:
 		for c: Array in plan:
 			if float(c[0]) >= za and float(c[0]) < zb:
 				out.append(c)
-	# one canopy ahead decided in advance (WARM_AHEAD_M)
+	# the canopies ahead decided in advance (WARM_AHEAD_M), gathered here (main thread, WARM_BUDGET_MS per collect())
+	# and decided on a worker thread – RINT-M2 (A-18)
 	if cache is Dictionary and ctx.path != null:
+		var t0 := Time.get_ticks_usec()
+		var budget_us := int(WARM_BUDGET_MS * 1000.0)
 		for zn: Dictionary in tr.zones:
 			if str(zn.get("kind", "")) != "fuel_canopy":
 				continue
@@ -1089,15 +1125,17 @@ static func columns_in_chunk(ctx: ChunkContext, cache: Variant = null) -> Array:
 			var key := "%.3f" % r0
 			var ahead: Variant = (cache as Dictionary).get(key)
 			if ahead == null:
-				# RINT-M2 (A-18): gathered here (main thread, one half per collect()), decided on a worker thread
+				if Time.get_ticks_usec() - t0 > budget_us:
+					break
 				var r1 := ceilf(float(zn["z1"]) / len_s) * len_s
-				(cache as Dictionary)[key] = canopy_job_begin(ctx, r0, r1)
-				break
+				ahead = canopy_job_begin(ctx, r0, r1, cache)
+				(cache as Dictionary)[key] = ahead
 			if ahead is CanopyJob and not (ahead as CanopyJob).gathered:
+				if Time.get_ticks_usec() - t0 > budget_us:
+					break
 				var job: CanopyJob = ahead
-				canopy_job_rest(ctx, job)
+				canopy_job_rest(ctx, job, cache)
 				job.task = WorkerThreadPool.add_task(job.run, false, "Modern canopy %.0f" % r0)
-				break
 	return out
 
 
