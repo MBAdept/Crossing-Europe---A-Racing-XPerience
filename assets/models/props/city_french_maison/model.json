@@ -23,12 +23,12 @@
    {
     "name": "lod1",
     "max_dist_m": 100000,
-    "tris": 1760,
+    "tris": 1880,
     "parts": [
      {
       "node": "body",
       "mesh": "props/city_french_maison/lod1_body.res",
-      "classes": ["vpbr", "baked"]
+      "classes": ["vpbr", "baked_cutout"]
      }
     ]
    }
@@ -37,8 +37,8 @@
   "roughness": 0.88,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "french", "outskirts"],
-  "bytes": 960232,
-  "hash": "eef65736fbbf619dd7211888f5fd3862597198e7"
+  "bytes": 964413,
+  "hash": "702938bb8678149d5900ac1279d5d6463c2fb36b"
  },
  "sets": {
   "props/city_french_maison": {"model": "props/city_french_maison"}

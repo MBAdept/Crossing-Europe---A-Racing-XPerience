@@ -4824,12 +4824,12 @@
     {
      "name": "lod1",
      "max_dist_m": 100000,
-     "tris": 1760,
+     "tris": 1880,
      "parts": [
       {
        "node": "body",
        "mesh": "props/city_french_maison/lod1_body.res",
-       "classes": ["vpbr", "baked"]
+       "classes": ["vpbr", "baked_cutout"]
       }
      ]
     }
@@ -4838,8 +4838,8 @@
    "roughness": 0.88,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "french", "outskirts"],
-   "bytes": 960232,
-   "hash": "eef65736fbbf619dd7211888f5fd3862597198e7"
+   "bytes": 964413,
+   "hash": "702938bb8678149d5900ac1279d5d6463c2fb36b"
   },
   "props/city_french_sud": {
    "kind": "building",
@@ -4862,12 +4862,12 @@
     {
      "name": "lod1",
      "max_dist_m": 100000,
-     "tris": 3456,
+     "tris": 3616,
      "parts": [
       {
        "node": "body",
        "mesh": "props/city_french_sud/lod1_body.res",
-       "classes": ["vpbr", "baked"]
+       "classes": ["vpbr", "baked_cutout"]
       }
      ]
     }
@@ -4876,8 +4876,8 @@
    "roughness": 0.88,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "french", "outskirts"],
-   "bytes": 1112521,
-   "hash": "456ec4489196468f0afafaa8de4c17d1b3ccd1f1"
+   "bytes": 1117998,
+   "hash": "232e7b137e0361d40a2c703d856d55b0d686a2dd"
   },
   "props/city_german_gruenderzeit": {
    "kind": "building",
