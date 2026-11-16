@@ -164,9 +164,8 @@ func _check_station() -> void:
 	_need(p, want_canopy > 0 and _sum(parts, "canopies") == want_canopy, "Dach auf jedem Dachsegment (%d von %d)" % [_sum(parts, "canopies"), want_canopy])
 	_need(p, _sum(parts, "fronts") == want_front and want_front >= 1, "Stirnblende mit Schrift (%d von %d)" % [_sum(parts, "fronts"), want_front])
 	_need(p, _sum(parts, "lamps") > 0, "Dachlampen (%d)" % _sum(parts, "lamps"))
-	var labels := 0
-	for n: Node in root.find_children("*", "Label3D", true, false):
-		labels += 1 if (n as Label3D).text == "TANKSTELLE" else 0
+	# R6: the lettering is a panel of the builder's lettering atlas (no Label3D any more)
+	var labels := _sum(parts, "letterings")
 	_need(p, labels == want_front, "Schriftzug TANKSTELLE (%d)" % labels)
 	await _free(sc)
 	_report("station", p, "Tankstelle: %d Insel- und %d Dachsegmente, %d Stirnblende(n), %d Lampen" % [want_island, want_canopy, want_front, _sum(parts, "lamps")])
@@ -189,9 +188,10 @@ func _check_tore() -> void:
 	for e: Array in _parts(r, "gantry"):
 		kinds.append_array((e[2] as Dictionary).get("gantries", []))
 	_need(p, kinds.count("finish") == 1, "Zieltor am Ziel (%s)" % str(kinds))
+	# R6: the banner is a panel of the builder's lettering atlas (no Label3D any more)
 	var ziel := 0
-	for n: Node in root.find_children("*", "Label3D", true, false):
-		ziel += 1 if (n as Label3D).text == "ZIEL" else 0
+	for e: Array in _parts(r, "gantry"):
+		ziel += ((e[2] as Dictionary).get("letterings", []) as Array).count("ZIEL")
 	_need(p, ziel == 1, "Schrift ZIEL (%d)" % ziel)
 	await _free(sc)
 	_report("tore", p, "Starttor und Zieltor mit Schrift")
