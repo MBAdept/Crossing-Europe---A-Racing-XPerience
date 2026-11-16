@@ -573,6 +573,10 @@ func test_radar_cameras_and_flash() -> void:
 	RadarB.flash_entry(e, 0.5)
 	assert_near(float(e["size"]) * RadarB.FLARE_K, RadarB.FLASH_R_M * 0.5, 1.0e-4, "Radius mit dem Blitz")
 	assert_near(float(e["energy"]), RadarB.FLASH_GAIN * 0.5, 1.0e-6, "Stärke mit dem Blitz")
+	# RINT-M2: the flash is a pure glow (its full strength near the camera, no warm street-lamp glow) and lights a pool
+	# on the road at night through the lights layer (which reads its energy every frame)
+	assert_near(RadarB.FLASH_HALO, 1.0, 1.0e-6, "Blitz: voller Nahanteil (halo 1)")
+	assert_true(RadarB.FLASH_POOL_M > 0.0, "Blitz: Lichtkegel auf der Fahrbahn (%.0f m)" % RadarB.FLASH_POOL_M)
 
 
 # --- lettering atlas -----------------------------------------------------------------------------------------------

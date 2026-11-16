@@ -209,14 +209,25 @@ func add_static(parent: Node3D, lamps: Array) -> void:
 		if reach <= 0.0:
 			continue
 		var dir: Vector3 = d.get("dir", Vector3.DOWN)
+		# "src": the builder's own dictionary – its "energy" is read every frame (RINT-M2, FIX-R6 note: the radar flash
+		# changes it per frame and lights the road under the camera with it)
 		entries.append({"pos": d.get("pos", Vector3.ZERO), "dir": dir.normalized() if dir.length_squared() > 1.0e-6 else Vector3.DOWN,
-			"color": d.get("color", LAMP_COLOR), "range": reach, "energy": float(d.get("energy", 1.0)), "drop": -1.0})
+			"color": d.get("color", LAMP_COLOR), "range": reach, "energy": float(d.get("energy", 1.0)), "drop": -1.0, "src": d})
 	if entries.is_empty():
 		return
 	_statics.append([parent, entries])
 	_static_count += entries.size()
 	_rank_seg = -1
 	parent.tree_exiting.connect(_forget.bind(_statics, parent), CONNECT_ONE_SHOT)
+
+
+## Energy of a static lamp entry this frame: the builder's dictionary ("src") may change it per frame (the radar flash);
+## without one, the energy given to add_static(). Pure (unit test).
+static func entry_energy(e: Dictionary) -> float:
+	var src: Variant = e.get("src")
+	if src is Dictionary:
+		return maxf(0.0, float((src as Dictionary).get("energy", e.get("energy", 1.0))))
+	return maxf(0.0, float(e.get("energy", 1.0)))
 
 
 ## Retro-reflectors of a chunk part: {pos, dir (unit, where the reflector looks), color, size (m)}, local to parent.
@@ -371,7 +382,7 @@ func _update_pools(view: Dictionary, lamps_on: float, lights: float, ambient: Co
 		var centre := pool_centre(pos[i], dirs[i], float(e["drop"]))
 		# the farthest lamp fades before the next one takes its place: no light pops on or off
 		var fade := 1.0 if is_inf(next_d) else clampf((next_d - dist[i]) / maxf(next_d * 0.15, 1.0), 0.0, 1.0)
-		var light := display_to_light(POOL_LEVEL * float(e["energy"]) * lamps_on * fade, e["color"], ambient)
+		var light := display_to_light(POOL_LEVEL * entry_energy(e) * lamps_on * fade, e["color"], ambient)
 		_pool_pos[n] = Vector4(centre.x, centre.y, centre.z, float(e["range"]))
 		_pool_col[n] = Vector4(light.r, light.g, light.b, 0.0)
 		_pool_dir[n] = Vector4.ZERO
@@ -405,7 +416,7 @@ func _update_pools(view: Dictionary, lamps_on: float, lights: float, ambient: Co
 		o.position = pos[i]
 		o.omni_range = float(e2["range"]) * OMNI_REACH
 		o.light_color = e2["color"]
-		o.light_energy = OMNI_ENERGY * float(e2["energy"]) * lamps_on * fade2
+		o.light_energy = OMNI_ENERGY * entry_energy(e2) * lamps_on * fade2
 		o.visible = o.light_energy > 0.001
 		if o.visible:
 			_omni_active += 1

@@ -262,6 +262,9 @@ func _add_statics(view: Dictionary) -> void:
 			var on := 1.0 if role == "on" else (maxf(night, 1.0 if in_tunnel else 0.0) if ROLES_NIGHT.has(role) else night)
 			if on <= 0.01:
 				continue
+			var energy := float(l.get("energy", 1.0))
+			if energy <= 0.0:
+				continue      # RINT-M2 (QA-R6): a lamp switched off this frame (radar flash, countdown lamp) costs no instance
 			var blink: Variant = l.get("blink")
 			if blink != null and not blink_lit(blink, time, night):
 				continue
@@ -276,11 +279,13 @@ func _add_statics(view: Dictionary) -> void:
 			var px := size * _focal / depth
 			# far-field: the glow takes over where the lamp itself shrinks below a pixel
 			var far := clampf((STATIC_NEAR_PX - px) / (STATIC_NEAR_PX - STATIC_FAR_PX), 0.0, 1.0)
-			var energy := float(l.get("energy", 1.0))
-			var s := on * energy * alpha * lerpf(STATIC_HALO, 1.0, far)
+			# optional "halo": the share of its strength near the camera instead of STATIC_HALO (1 for a pure glow without
+			# lit geometry – the radar flash; R6)
+			var s := on * energy * alpha * lerpf(float(l.get("halo", STATIC_HALO)), 1.0, far)
 			var col: Color = l.get("color", Color(1.0, 0.9, 0.7))
 			_put(p, dirs[j], col, s, size * STATIC_K, STATIC_MIN_PX, 0.0, size * 0.5)
-			if dirs[j].y < -0.5 and float(l.get("range", 0.0)) > 0.0:
+			# optional "glow": false – no warm glow of a street lamp's head (a lamp under a canopy, R6)
+			if dirs[j].y < -0.5 and float(l.get("range", 0.0)) > 0.0 and bool(l.get("glow", true)):
 				# Arcade's warm glow round the head of a street or canopy lamp
 				var g := on * alpha * LAMP_GLOW_A * clampf(energy / LAMP_GLOW_REF_ENERGY, 0.0, 1.0)
 				_put(p, dirs[j], LAMP_GLOW_COLOR, g, LAMP_GLOW_M, LAMP_GLOW_MIN_PX, 0.0, size * 0.5)

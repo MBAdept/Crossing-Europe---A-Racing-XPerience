@@ -468,10 +468,10 @@ func _collect(ci: int, start_task: bool) -> bool:
 		if st == null:
 			_collect_by[bld.id()] = [ub, ub, 1]
 		else:
-			var a: Array = st
-			a[0] = int(a[0]) + ub
-			a[1] = maxi(int(a[1]), ub)
-			a[2] = int(a[2]) + 1
+			var acc: Array = st
+			acc[0] = int(acc[0]) + ub
+			acc[1] = maxi(int(acc[1]), ub)
+			acc[2] = int(acc[2]) + 1
 	c.state = COLLECTED
 	_chunks[ci] = c
 	var us := Time.get_ticks_usec() - t0

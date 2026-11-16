@@ -8,6 +8,20 @@ extends TestCase
 const Lights := preload("res://scripts/race3d/layers/lights.gd")
 
 
+## RINT-M2 (FIX-R6 note): a static lamp's energy is read from the builder's own dictionary every frame – the radar
+## flash changes it per frame and lights the road under the camera with it; without that dictionary the energy given.
+func test_static_lamp_energy_is_read_every_frame() -> void:
+	var src := {"pos": Vector3.ZERO, "dir": Vector3.DOWN, "range": 9.0, "energy": 0.0}
+	var e := {"energy": 0.0, "src": src}
+	assert_near(Lights.entry_energy(e), 0.0, 1.0e-6, "aus")
+	src["energy"] = 1.6
+	assert_near(Lights.entry_energy(e), 1.6, 1.0e-6, "die Änderung im Eintrag des Bausteins gilt im selben Bild")
+	src["energy"] = -1.0
+	assert_near(Lights.entry_energy(e), 0.0, 1.0e-6, "nie negativ")
+	assert_near(Lights.entry_energy({"energy": 0.7}), 0.7, 1.0e-6, "ohne Quelle: die gegebene Stärke")
+	assert_near(Lights.entry_energy({}), 1.0, 1.0e-6, "ohne Angabe: 1")
+
+
 func test_light_cap_per_effects_level() -> void:
 	for want: int in [0, 2, 4, 8, 12, 40]:
 		var l: Node3D = Lights.new()
