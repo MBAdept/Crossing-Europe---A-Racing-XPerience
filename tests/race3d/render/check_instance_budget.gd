@@ -189,8 +189,10 @@ func _finish() -> bool:
 	var load_s := float((_wall_live if _wall_live >= 0 else now) - _wall0) / 1000.0
 	var drive_s := float(now - _wall_live) / 1000.0 if _wall_live >= 0 else 0.0
 	print("RENDER-CHECK %-14s %s  %s%s" % [_check_name(), "OK    " if ok else "FEHLER",
-		"%.0f s Verkehr bei 6-facher Zeit (%d Bilder%s): keine Ablehnung der Engine, Fahrzeug-Ebene höchstens %d Instanzen (Budget %d, %d freigegeben, %d Bauten), ganze Szene höchstens %d mit Instanz-Uniforms (Grenze %d; Laden %.0f s, Fahrt %.0f s)" % [
-			sim_s, _frames, ", %d eingespeiste Autos" % _inject_n() if _inject_n() > 0 else "", _worst_layer, _budget, trims, builds,
+		"%.0f s Verkehr bei 6-facher Zeit (%d Bilder%s): %s, Fahrzeug-Ebene höchstens %d Instanzen (Budget %d, %d freigegeben, %d Bauten), ganze Szene höchstens %d mit Instanz-Uniforms (Grenze %d; Laden %.0f s, Fahrt %.0f s)" % [
+			sim_s, _frames, ", %d eingespeiste Autos" % _inject_n() if _inject_n() > 0 else "",
+			"keine Ablehnung der Engine" if _catch.hits == 0 else "%d Ablehnungen der Engine" % _catch.hits,
+			_worst_layer, _budget, trims, builds,
 			_worst_scene, SCENE_LIMIT, load_s, drive_s],
 		"" if ok else "  –  FEHLT: " + "; ".join(p)])
 	quit(0 if ok else 1)
