@@ -89,6 +89,9 @@ var _build_us_max := 0
 var _collect_us_max := 0
 var _collect_us_sum := 0
 var _collects := 0
+## RINT-M2 (A-18: collect() of every layer and builder at most 2 ms per frame on the Deck preset): main-thread time of
+## each builder's collect() – id -> [sum us, max us, calls]
+var _collect_by: Dictionary = {}
 var _commit_us_max := 0
 var _commit_us_sum := 0
 var _commits := 0
@@ -291,7 +294,17 @@ func stats() -> Dictionary:
 		"build_ms_avg": float(_build_us_sum) / maxf(1.0, float(_builds)) / 1000.0, "build_ms_max": float(_build_us_max) / 1000.0,
 		"collect_ms_avg": float(_collect_us_sum) / maxf(1.0, float(_collects)) / 1000.0, "collect_ms_max": float(_collect_us_max) / 1000.0,
 		"commit_ms_avg": float(_commit_us_sum) / maxf(1.0, float(_commits)) / 1000.0, "commit_ms_max": float(_commit_us_max) / 1000.0,
-		"commits": _commits, "rebases": _rebases, "restarts": _restarts}
+		"commits": _commits, "rebases": _rebases, "restarts": _restarts, "collect_by": _collect_by_ms()}
+
+
+## collect() per builder: id -> {"avg_ms", "max_ms", "n"} (RINT-M2, A-18).
+func _collect_by_ms() -> Dictionary:
+	var out := {}
+	for id: Variant in _collect_by:
+		var a: Array = _collect_by[id]
+		out[str(id)] = {"avg_ms": snappedf(float(a[0]) / maxf(1.0, float(a[2])) / 1000.0, 0.001),
+			"max_ms": snappedf(float(a[1]) / 1000.0, 0.001), "n": int(a[2])}
+	return out
 
 
 ## Forgets the timing maxima (after the load, so that perf_stats() shows the drive).
@@ -302,6 +315,7 @@ func reset_stats() -> void:
 	_collect_us_max = 0
 	_collect_us_sum = 0
 	_collects = 0
+	_collect_by.clear()
 	_commit_us_max = 0
 	_commit_us_sum = 0
 	_commits = 0
@@ -447,7 +461,17 @@ func _collect(ci: int, start_task: bool) -> bool:
 	ctx.capture(ci, a, b, path, terrain, track)
 	c.ctx = ctx
 	for bld: ChunkBuilder in _builders:
+		var tb := Time.get_ticks_usec()
 		c.inputs.append(bld.collect(ctx))
+		var ub := Time.get_ticks_usec() - tb
+		var st: Variant = _collect_by.get(bld.id())
+		if st == null:
+			_collect_by[bld.id()] = [ub, ub, 1]
+		else:
+			var a: Array = st
+			a[0] = int(a[0]) + ub
+			a[1] = maxi(int(a[1]), ub)
+			a[2] = int(a[2]) + 1
 	c.state = COLLECTED
 	_chunks[ci] = c
 	var us := Time.get_ticks_usec() - t0
