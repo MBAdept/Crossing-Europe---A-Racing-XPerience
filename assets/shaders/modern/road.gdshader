@@ -69,6 +69,15 @@ uniform float wet_mirror = 0.42;                   // R4: share of the Fresnel r
 // fine detail of the asphalt (polished tracks, oil, joints, patches) darkens its mean by a few per cent – measured at
 // N1 3–4 % below Arcade before; at night (outside tunnels, which have their own light) the base is lifted by this
 uniform float night_lift = 0.08;
+// RINT-M2 (QR5-02, FIX-R5 §8.2): the road inside a tube seen from OUTSIDE the tunnel shows Arcade's tunnel light, as the
+// tube itself does (tunnel.gdshader) – not the open sky's ground law (cold grey by day, a dark hole at night): albedo ×
+// the tunnel ambient for a camera outside (display factor), towards the tunnel fog by Arcade's law over the camera
+// distance. builders/road.gd sets these every frame from the tunnel builder's tunnel_state.light (duck-typed);
+// tunnel_out 0 (the camera is in a tunnel, or no tunnel builder): the fragment keeps the path it had.
+uniform float tunnel_out = 0.0;
+uniform vec3 tunnel_ambient = vec3(0.46, 0.36, 0.24);
+uniform vec3 tunnel_fog = vec3(0.07, 0.05, 0.03);
+uniform float tunnel_darkness_m = 260.0;
 
 global uniform float ce_wet;
 global uniform float ce_snow;
@@ -407,5 +416,13 @@ void fragment() {
 	SPECULAR = spec;
 	METALLIC = 0.0;
 	vec3 extra = ce_pools(v_world) * reflect + ce_headlight_light(v_world, reflect);
-	EMISSION = ce_pools_encode(ce_ground_base_lin(base) + ce_pools_to_lin(lit) * extra);
+	if (tunnel && tunnel_out > 0.5) {
+		// Arcade's tunnel light (tunnel.gdshader's law): no light of the open sky, the tube's ambient and its haze
+		float tf = pow(clamp((length(VERTEX) - 12.0) / max(tunnel_darkness_m, 1.0), 0.0, 1.0), 0.8);
+		ALBEDO = vec3(0.0);
+		SPECULAR = 0.0;
+		EMISSION = ce_pools_encode(ce_ground_unshow(mix(base * tunnel_ambient, tunnel_fog, tf)) + ce_pools_to_lin(lit) * extra);
+	} else {
+		EMISSION = ce_pools_encode(ce_ground_base_lin(base) + ce_pools_to_lin(lit) * extra);
+	}
 }

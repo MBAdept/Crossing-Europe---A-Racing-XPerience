@@ -38,7 +38,7 @@ uniform float sun_spec = 1.0;
 // RINT-M2 (A-20): share of the lobe of a positional light next to the eye – the player's low beam (vpbr.gdshader
 // eye_lamp_spec); neutral by default, the race look sets 0
 uniform float eye_lamp_spec = 1.0;
-uniform vec2 eye_lamp_cos = vec2(0.90, 0.97);
+uniform vec2 eye_lamp_cos = vec2(0.85, 0.95);
 
 global uniform vec4 ce_fog_color;
 global uniform vec2 ce_fog_range;

@@ -98,6 +98,7 @@ const SSAO_INTENSITY := 1.4
 ## EXIT_GLARE_FAR (1.7 × + 0.25 there, Arcade's outside palette). A plain mix towards white (the first version) read
 ## milky – a pale veil over grey-green grass where Arcade shows bright lime-green grass.
 const EXIT_GLARE_FAR := 0.6
+const EXIT_QUAD_IN_M := 0.05        ## RINT-M2: the glare quad this far inside the true end of the tube (tunnel_state.exit_z)
 const EXIT_GLARE_NEAR := 0.45
 const EXIT_NEAR_M := 10.0
 const EXIT_FAR_M := 150.0
@@ -430,7 +431,15 @@ func _update_exit(view: Dictionary, pal: Dictionary, tunnel01: float, fog_out: C
 	var after := day * exit_after_timed(behind, time - _after_t0)
 	_exit_state = Vector2(glare, after)
 	var pl: Dictionary = view.get("player", {})
-	var z_quad := z_exit - 0.6
+	# RINT-M2 (QR5-03, FIX-R5 §8.1): the glare quad stands at the true end of the tube – the segment boundary after
+	# end_km, where the tunnel builder's exit frame ends (tunnel_state.exit_z, read duck-typed) – 5 cm inside it; at
+	# end_km − 0.6 m it stood up to 3.6 m in front of the exit frame and burnt it white (L 244 against Arcade's 157)
+	var z_quad := ceilf(z_exit / _track.seg_len - 1.0e-6) * _track.seg_len - EXIT_QUAD_IN_M
+	var tb: Variant = _renderer.call(&"builder", "tunnel")
+	if tb is Object and (tb as Object).get("tunnel_state") is Dictionary:
+		var ez := float(((tb as Object).get("tunnel_state") as Dictionary).get("exit_z", INF))
+		if is_finite(ez) and absf(ez - z_quad) < _track.seg_len:
+			z_quad = ez - EXIT_QUAD_IN_M
 	if not pl.is_empty():
 		z_quad = maxf(z_quad, float(pl.get("z", 0.0)) + float(pl.get("length", 4.5)) + EXIT_CAR_GAP_M)
 	_show_exit(_exit_state, path if glare > 0.0 else null, z_quad, fog_out)

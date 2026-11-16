@@ -76,6 +76,7 @@ var _cover_max_h := 0.5
 var _skip_objects := false
 var _skip_landmarks := false
 var _skip_bridge := false
+const BRIDGE_WATER_LIFT := 0.15     ## builders/bridge.gd WATER_LIFT (A-7: no class of a builder of the same wave named)
 var _holders: Array = []           ## committed "Props" nodes (main thread: commit / update)
 var _lod_z := -1.0e12              ## camera position of the last look at the chunk levels
 var _prepared := false
@@ -596,7 +597,9 @@ static func _place(ctx: ChunkContext, inp: Dictionary, out: Dictionary, i: int, 
 		sc = minf(sc, cover_max_h / maxf(0.01, float(e["height"])))   # ground cover inside the corridor
 	var h := 0.0
 	if it.has("h"):
-		h = float(it["h"])              # given relative to the road (ships on the water)
+		# given relative to the road (ships on the water); RINT-M2 (QR5-08): with the bridge builder the water lies
+		# WATER_LIFT (0.15 m) above the terrain's water rows – the boats float on it, not 15 cm below
+		h = float(it["h"]) + (BRIDGE_WATER_LIFT if bool(inp.get("skip_bridge", false)) else 0.0)
 	elif not it.has("bridge"):
 		h = ctx.ground(z, x)
 	var key := ""

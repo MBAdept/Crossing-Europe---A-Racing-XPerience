@@ -60,6 +60,8 @@ var _lane_line := 0.15
 var _dash := {"autobahn": Vector2i(2, 4), "landstrasse": Vector2i(2, 4), "city": Vector2i(1, 2)}
 var _post_every := 2               ## segments between guardrail posts
 var _renderer: Object
+var _tunnel_out_sent := -1.0       ## RINT-M2: last tunnel_out / tunnel light sent to the material
+var _tunnel_sent := Vector4(-1.0, -1.0, -1.0, -1.0)
 
 
 ## Vertex arrays of one chunk while it is built (one per build() call: nothing of it lives in the builder).
@@ -155,6 +157,38 @@ func apply_quality(levels: Dictionary) -> void:
 
 ## Reads the values the mesh and the paint depend on (config render.* and road.*). Called by setup(); without a
 ## renderer by the first collect().
+## Every frame (main thread, RINT-M2 QR5-02): the tunnel light for the road inside a tube seen from outside – from the
+## tunnel builder's tunnel_state.light (duck-typed, contract §11.3 A-18): ambient for a camera outside the tunnel, fog,
+## darkness; tunnel_out 1 while the camera is in no tunnel.
+func update(_view: Dictionary, _dt: float) -> void:
+	if material == null or _renderer == null or not _renderer.has_method(&"builder"):
+		return
+	var tb: Variant = _renderer.call(&"builder", "tunnel")
+	var light: Variant = (tb as Object).get("tunnel_state") if tb is Object else null
+	light = (light as Dictionary).get("light") if light is Dictionary else null
+	if not (light is Dictionary) or (light as Dictionary).is_empty():
+		_set_tunnel_out(0.0)
+		return
+	var l: Dictionary = light
+	var out := 1.0 if float(l.get("cam_tunnel_z", -1.0e9)) < -1.0e8 else 0.0
+	_set_tunnel_out(out)
+	if out > 0.5:
+		var amb: Color = l.get("ambient_out", Color(0.46, 0.36, 0.24))
+		var fog: Color = l.get("fog", Color(0.07, 0.05, 0.03))
+		var key := Vector4(amb.r, amb.g, amb.b, float(l.get("darkness_m", 260.0)))
+		if key != _tunnel_sent:
+			_tunnel_sent = key
+			material.set_shader_parameter("tunnel_ambient", Vector3(amb.r, amb.g, amb.b))
+			material.set_shader_parameter("tunnel_fog", Vector3(fog.r, fog.g, fog.b))
+			material.set_shader_parameter("tunnel_darkness_m", key.w)
+
+
+func _set_tunnel_out(v: float) -> void:
+	if v != _tunnel_out_sent:
+		_tunnel_out_sent = v
+		material.set_shader_parameter("tunnel_out", v)
+
+
 func configure(cfg: Dictionary) -> void:
 	_configured = true
 	var r: Dictionary = ConfigLoader.lookup(cfg, "render", {})

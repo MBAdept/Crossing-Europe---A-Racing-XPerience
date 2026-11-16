@@ -145,9 +145,10 @@ uniform float fill_tunnel = 1.0;
 // red truck rear at 60 m, 22:00, mean luminance 152 against Arcade's 42). Arcade lights what stands in its cone only
 // diffusely. The material takes these lobes out, the light keeps its specular for everything else; the angle between
 // the directions to the light and to the eye decides (eye_lamp_cos: full lobes below x, none above y – the low beam is
-// inside y from about 20 m in front of the camera on, a street lamp overhead stays far outside).
+// inside y from about 18 m in front of the camera on – measured: red truck rear at 20/60 m within +11/+4 % of Arcade –,
+// a street lamp overhead stays far outside).
 uniform float eye_lamp_spec = 1.0;
-uniform vec2 eye_lamp_cos = vec2(0.90, 0.97);
+uniform vec2 eye_lamp_cos = vec2(0.85, 0.95);
 uniform vec3 snow_albedo = vec3(0.86, 0.88, 0.91);
 uniform float snow_night = 0.3;
 

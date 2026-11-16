@@ -10,9 +10,11 @@ extends SceneTree
 ##   U1_innen        300 m inside (km 188), cover: no sky anywhere – magenta at most 0.2 % of the whole picture; the
 ##                   lamps are lit (bright lamp pixels above the horizon row); the tube is neither black nor white
 ##   U1_ausfahrt     60 m before the exit (km 201.3), normal picture: the exit opening (projected from the tunnel's end)
-##                   is neither black nor blown out – its mean luminance between EXIT_MIN and EXIT_MAX, less than half
-##                   of its pixels pure white (the tube beside it is reported: Arcade over-exposes the outside seen from
-##                   a tunnel, RoadRenderer: ambient × 1.7 + 0.25 – an exposure of the environment, not of the tube)
+##                   is over-exposed like Arcade's (RoadRenderer: ambient × 1.7 + 0.25 – the outside reads L ≈ 227/255
+##                   in Arcade, EXIT_ARCADE): its mean luminance at least EXIT_MIN_SHARE of Arcade's (RINT-M2; R5 alone
+##                   showed 69/255 there), not blown out (at most EXIT_MAX, less than half pure white); and the exit
+##                   frame of the tunnel builder at the true end of the tube does not glow with it (mean of its upper
+##                   beam at most FRAME_MAX – the glare quad stood in front of it before, L 244, QR5-03)
 ##   Somport_portal  Saragossa – Pau, 70 m before the Somport portal (km 177), cover: as U1_portal
 ##   B1              Frankfurt – Köln, Severinsbrücke from its ramp (km 186.2), --gfx-debug=cover,far: nothing open below
 ##                   the horizon (magenta ≤ 0.2 %), the far-ground plane does not cover the Rhine (cyan ≤ 2 %), the
@@ -38,7 +40,10 @@ const LAMP_LUM := 0.8               ## a lamp pixel …
 const LAMP_MIN_PX := 40             ## … and at least this many of them above the horizon row inside the tube
 const TUBE_MIN := 0.06              ## mean luminance of the picture inside the tube: not black …
 const TUBE_MAX := 0.6               ## … and not white
-const EXIT_MIN := 0.15              ## mean luminance of the exit opening: not black (the tube's darkness is ~0.05) …
+const EXIT_ARCADE := 0.89          ## Arcade's outside seen through the exit at U1, 12:00 (L 227/255, measured by FIX-R5)
+const EXIT_MIN_SHARE := 0.6         ## the opening at least this share of it (RINT-M2: measured 0.66 with the glare)
+const EXIT_MIN := EXIT_ARCADE * EXIT_MIN_SHARE   ## mean luminance of the exit opening: over-exposed as Arcade's …
+const FRAME_MAX := 0.8              ## the exit frame's upper beam: not burnt white by the glare (concrete ~0.53)
 const EXIT_MAX := 0.95              ## … not blown out
 const EXIT_WHITE_MAX := 0.5         ## share of pure white pixels in the opening
 const POSITIONS: Array = [
@@ -292,14 +297,30 @@ func _check_exit(name: String, renderer: Node, pos: Dictionary) -> void:
 				wn += 1
 	var mean := sum / float(maxi(n, 1))
 	var wall_mean := wall / float(maxi(wn, 1))
+	# the exit frame (builders/tunnel.gd: from the true end of the tube − 0.35 m to it; its upper beam above the opening)
+	var z_tube := ceilf(z_exit / track.seg_len - 1.0e-6) * track.seg_len
+	var fa := cam.unproject_position(path.world(z_tube - 0.2, -2.5, 5.25))
+	var fb := cam.unproject_position(path.world(z_tube - 0.2, 2.5, 5.55))
+	var frect := Rect2(Vector2(minf(fa.x, fb.x), minf(fa.y, fb.y)), Vector2(absf(fb.x - fa.x), maxf(absf(fb.y - fa.y), 2.0)))
+	frect = frect.intersection(Rect2(Vector2.ZERO, Vector2(img.get_size())))
+	var fsum := 0.0
+	var fn := 0
+	for y in range(int(frect.position.y), int(ceil(frect.end.y))):
+		for x in range(int(frect.position.x), int(frect.end.x)):
+			fsum += _lum(img.get_pixel(x, y))
+			fn += 1
+	var frame_mean := fsum / float(maxi(fn, 1))
+	if fn >= 10 and frame_mean > FRAME_MAX:
+		p.append("der Ausfahrtsrahmen glüht mit (Leuchtdichte %.3f, höchstens %.2f)" % [frame_mean, FRAME_MAX])
 	if n < 200:
 		p.append("die Ausfahrt ist nicht im Bild (%d Bildpunkte)" % n)
 	if mean < EXIT_MIN:
-		p.append("Ausfahrt zu dunkel (Leuchtdichte %.3f, mindestens %.2f)" % [mean, EXIT_MIN])
+		p.append("Ausfahrt nicht überstrahlt wie bei Arcade (Leuchtdichte %.3f, mindestens %.2f = %.0f %% von Arcades %.2f)" % [mean,
+			EXIT_MIN, EXIT_MIN_SHARE * 100.0, EXIT_ARCADE])
 	if mean > EXIT_MAX or float(white) / float(maxi(n, 1)) > EXIT_WHITE_MAX:
 		p.append("Ausfahrt ausgebrannt (Leuchtdichte %.3f, %.0f %% reines Weiß)" % [mean, 100.0 * float(white) / float(maxi(n, 1))])
-	_report(name, p, "%s km %.1f: Ausfahrt %d Bildpunkte, Leuchtdichte %.3f (Röhre daneben %.3f), %.1f %% reines Weiß" % [
-		str(pos["stage"]), float(pos["km"]), n, mean, wall_mean, 100.0 * float(white) / float(maxi(n, 1))])
+	_report(name, p, "%s km %.1f: Ausfahrt %d Bildpunkte, Leuchtdichte %.3f = %.2f × Arcade (Röhre daneben %.3f), %.1f %% reines Weiß; Rahmen %.3f (%d Bildpunkte)" % [
+		str(pos["stage"]), float(pos["km"]), n, mean, mean / EXIT_ARCADE, wall_mean, 100.0 * float(white) / float(maxi(n, 1)), frame_mean, fn])
 
 
 func _check_water(name: String, renderer: Node, pos: Dictionary) -> void:

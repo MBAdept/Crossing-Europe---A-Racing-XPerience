@@ -56,6 +56,15 @@ const ROUGH_PLASTIC := Vector2(0.55, 0.0)
 const ROUGH_REFLECTOR := Vector2(0.2, 0.0)
 const ROUGH_RAILING := Vector2(0.5, 0.3)
 const ROUGH_STONE := Vector2(0.9, 0.0)
+## RINT-M2 (QR5-04): the stone balustrade of a "stone_arch" bridge as Arcade draws it (RoadRenderer._balustrade): five
+## balusters per segment between plinth and handrail, a pedestal every fourth segment
+const BALUSTERS := 5
+const BALUSTER_W := 0.14
+const BALUSTER_FROM := 0.24
+const BALUSTER_TO := 0.92
+const BALUSTER_IN := 0.09          ## the balusters' centre this far behind the road face (the closed band was 0.18 m)
+const PEDESTAL_W := 0.56
+const PEDESTAL_H := 1.32
 const CONCRETE := Color("b9b5aa")             ## RoadRenderer.CONCRETE
 const BRIDGE_EXTRA_M := 0.4                   ## Track.BRIDGE_DECK_EXTRA_M
 
@@ -272,8 +281,8 @@ func _railing(buf: Buf, ctx: ChunkContext, i: int, z0: float, z1: float, side: i
 	var bands: Array = []            # [h0, h1, colour, thickness (m), roughness/metallic]
 	match kind:
 		"stone_arch":
-			bands = [[0.0, 0.24, col.darkened(0.22), 0.3, ROUGH_STONE], [0.24, 0.92, col.darkened(0.08), 0.18, ROUGH_STONE],
-				[0.92, 1.14, col.lightened(0.08), 0.32, ROUGH_STONE]]
+			# RINT-M2 (QR5-04): plinth and handrail as bands, between them Arcade's balusters (below) – not a closed wall
+			bands = [[0.0, 0.24, col.darkened(0.22), 0.3, ROUGH_STONE], [0.92, 1.14, col.lightened(0.08), 0.32, ROUGH_STONE]]
 		"causeway":
 			bands = [[0.0, 0.82, col, 0.3, ROUGH_STONE], [0.82, 0.92, col.lightened(0.12), 0.34, ROUGH_STONE]]
 		"canal":
@@ -296,11 +305,25 @@ func _railing(buf: Buf, ctx: ChunkContext, i: int, z0: float, z1: float, side: i
 			c.lightened(0.05), rm)
 	if kind == "causeway":
 		return
-	# posts (balusters of a parapet, bars of an iron railing): every second segment, at the near row
+	if kind == "stone_arch":
+		# Arcade's balustrade (RoadRenderer._balustrade): BALUSTERS per segment, 0.14 m square, from the plinth (0.24 m)
+		# to the handrail (0.92 m), in the middle of the 0.18 m the closed band had; a pedestal 0.56 m wide and 1.32 m
+		# high every fourth segment
+		var bc := col.darkened(0.04)
+		var fw := ctx.rows_f[i]
+		for k in BALUSTERS:
+			var f := (float(k) + 0.5) / float(BALUSTERS)
+			var z := lerpf(z0, z1, f)
+			var x := lerpf(xa, xb, f) + s * BALUSTER_IN
+			_post(buf, ctx.local(z, x, BALUSTER_FROM), fw, inward_a, BALUSTER_W, BALUSTER_TO - BALUSTER_FROM, bc)
+		if seg_index % 4 == 0:
+			_post(buf, ctx.local(z0, xa + s * 0.15, 0.0), fw, inward_a, PEDESTAL_W, PEDESTAL_H, col.lightened(0.03))
+		return
+	# posts (bars of an iron railing, posts of a steel one): every second segment, at the near row
 	if seg_index % 2 != 0:
 		return
-	var top := 1.1 if kind != "stone_arch" else 1.14
-	var w := 0.1 if kind != "stone_arch" else 0.2
+	var top := 1.1
+	var w := 0.1
 	var fwd := ctx.rows_f[i]
 	var c0 := ctx.local(z0, xa + s * 0.05, 0.0)
 	var along := fwd * (w * 0.5)
@@ -311,6 +334,17 @@ func _railing(buf: Buf, ctx: ChunkContext, i: int, z0: float, z1: float, side: i
 	buf.quad(c0 - along - across, c0 + along - across, c0 + along - across + up, c0 - along - across + up, -inward_a, pc, ROUGH_RAILING)
 	buf.quad(c0 - along - across, c0 - along + across, c0 - along + across + up, c0 - along - across + up, -fwd, pc, ROUGH_RAILING)
 	buf.quad(c0 + along - across, c0 + along + across, c0 + along + across + up, c0 + along - across + up, fwd, pc, ROUGH_RAILING)
+
+
+## A square post of width w and height h standing at c0 (its foot centre): four faces along fwd and across (inward).
+func _post(buf: Buf, c0: Vector3, fwd: Vector3, inward: Vector3, w: float, h: float, col: Color) -> void:
+	var along := fwd * (w * 0.5)
+	var across := inward * (w * 0.5)
+	var up := Vector3(0.0, h, 0.0)
+	buf.quad(c0 - along + across, c0 + along + across, c0 + along + across + up, c0 - along + across + up, inward, col, ROUGH_STONE)
+	buf.quad(c0 - along - across, c0 + along - across, c0 + along - across + up, c0 - along - across + up, -inward, col.darkened(0.1), ROUGH_STONE)
+	buf.quad(c0 - along - across, c0 - along + across, c0 - along + across + up, c0 - along - across + up, -fwd, col, ROUGH_STONE)
+	buf.quad(c0 + along - across, c0 + along + across, c0 + along + across + up, c0 + along - across + up, fwd, col, ROUGH_STONE)
 
 
 ## One delineator post at road position (z, x): white, a black band near the top, the reflector on the face that
