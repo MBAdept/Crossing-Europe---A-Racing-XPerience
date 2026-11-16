@@ -208,11 +208,14 @@ def centres(g):
 
 
 def wallmat(name, color, grids=(), zones=(), frame="#ece8df", glass="#26313b", lit=0.45, strength=1.5,
-            frame_w=0.07, rough=0.85, decals=None, curtains=0.35, seed=0.0):
+            frame_w=0.07, rough=0.85, decals=None, curtains=0.35, seed=0.0, inner_frame=0.0):
     """Wall with windows. color: surface spec (see _surface); zones: [dict(box=((x0,x1),(y0,y1),(z0,z1)),
     surface=spec)] painted over it in order. grids: see grid(); per grid options: top (round|seg|pointed),
     mull dict(v=n, h=n or [fractions], w), shutters colour, blind colour (+blind_max), frame, glass, lit,
-    color (light), strength, frame_w, skip [(i, j)], kind (win|door|shop)."""
+    color (light), strength, frame_w, skip [(i, j)], kind (win|door|shop).
+    inner_frame (3D hook, AS5aR1; the sprites never set it): the frame colour also on a ring of this width inside
+    every window of kind win, unlit - the frame of the real-time model's cut window, so that its flat far level
+    keeps the lit and the glazed area of the near level."""
     m, nb = M.new_material(name)
     x, y, z = nb.coords()
     nx, ny, nz = nb.normal()
@@ -284,6 +287,9 @@ def wallmat(name, color, grids=(), zones=(), frame="#ece8df", glass="#26313b", l
             frm = nb.mul(frm, keep)
         win = nb.mul(win, rng)
         frm = nb.mul(frm, rng)
+        ring = None
+        if inner_frame > 0.0 and kind == "win":
+            ring = nb.mul(win, nb.NOT(shape(-float(inner_frame))))
         # per-window random numbers
         cmb = nb.node("ShaderNodeCombineXYZ")
         nb.feed(cmb.inputs[0], iu)
@@ -311,6 +317,8 @@ def wallmat(name, color, grids=(), zones=(), frame="#ece8df", glass="#26313b", l
         else:
             glc = gl
         apply(win, glc, 0.08 if kind != "door" else 0.5, 0.9 if kind != "door" else 0.3, 0.2 if kind != "door" else 0.0)
+        if ring is not None:
+            apply(ring, g.get("frame", frame), 0.5, 0.35)
         bars = None
         mull = g.get("mull")
         if mull and kind != "door":
@@ -340,6 +348,8 @@ def wallmat(name, color, grids=(), zones=(), frame="#ece8df", glass="#26313b", l
             lm = nb.mul(win, nb.lt(r1, lit_frac))
             if bars is not None:
                 lm = nb.mul(lm, nb.NOT(bars))
+            if ring is not None:
+                lm = nb.mul(lm, nb.NOT(ring))
             if blind is not None:
                 lm = nb.mul(lm, nb.NOT(blind))
             bright = nb.madd(r1, 0.8, 0.6) if kind == "win" else 1.0
@@ -1312,8 +1322,28 @@ def hanse_gabled(rig, p):
                glass=shade(brA, 0.55), frame=shade(brA, 0.8)),
           grid("front", xa - 4.8, 2, 4.8, ta + 0.3, 1, 2.3, (0.55, 1.5), sill=0.2, top="pointed", kind="door",
                glass=shade(brA, 0.55), frame=shade(brA, 0.8))]
+    zA = []
+    c3d = bool(p.get("close3d", False))
+    if c3d:
+        # 3D hook (AS5aR1): the road flank (-x) of the step-gable house - 16 m deep, a narrow strip in the sprite - gets
+        # the segmental windows of the front on 2.4 m axes in every storey, a side door, a granite plinth and wall
+        # anchors at the floor beams
+        x0a = xa - wa / 2
+        gA += [grid("left", 1.6, 6, 2.4, 0.0, 1, 4.0, (1.1, 1.9), sill=1.2, top="seg", skip=[(3, 0)], **fr),
+               grid("left", 1.6, 6, 2.4, 4.0, 2, 3.3, (1.1, 1.9), sill=0.7, top="seg", **fr),
+               grid("left", 1.6 + 3 * 2.4, 1, 2.4, 0.0, 1, 3.7, (1.3, 2.6), sill=0.0, top="seg", kind="door",
+                    glass="#3b2a20", frame="#e9e2d4")]
+        zA = [dict(box=((x0a - 0.3, x0a + 0.3), (0.002, D - 0.002), (-1.0, 0.6)),
+                   surface=dict(color="#8b8781", kind="ashlar", h=0.6, w=1.3, strength=0.45, noise=0.06))]
     gable_house(rig, "hga", xa, wa, D, ta, "step", 6.5, dict(color=brA, kind="brick", scale=2.4), gA,
-                trim="#ece6da", roof_c="#7e3a2a", seed=1)
+                trim="#ece6da", roof_c="#7e3a2a", seed=1, zones=zA)
+    if c3d:
+        bm = bmesh.new()
+        for y in (4.0, 8.8, 13.6):
+            for z in (4.15, 7.45):
+                bx(bm, x0a - 0.035, x0a, y - 0.03, y + 0.03, z - 0.38, z + 0.38)
+                bx(bm, x0a - 0.05, x0a - 0.015, y - 0.16, y + 0.16, z - 0.03, z + 0.03)
+        mk(rig, "hga_anch", bm, basic("hga_anchm", "#2c2724", rough=0.55, metal=0.4))
     # B: volute gable, plastered
     xb, wb, tb = -0.25, 7.5, 13.1
     gB = [grid("front", xb - 3.3, 3, 2.2, 3.8, 3, 3.1, (1.1, 1.85), sill=0.7, **fr),
@@ -1803,11 +1833,13 @@ TIMBER_WIN = dict(frame="#efe9dc", mull=dict(v=1, h=[0.5], w=0.06), lit=0.5)
 
 def timber_house(rig, name, x0, x1, d, storeys, infill, timber, pitch=1.1, jetty=0.35, left_jetty=False,
                  gable=None, gh=0.0, eaves_roof=None, roof_c="#7d3a2a", base=None, wins=None, extra_grids=(),
-                 seed=0, shutters=None, door=None):
+                 seed=0, shutters=None, door=None, close3d=False):
     """Jettied half-timbered house. storeys: [(z0, z1)] (the first one is stone `base` if given, else
     timber); each upper storey projects `jetty` further to the front (and to the left if left_jetty).
     wins: per storey a list of bay indices with windows; gable: kind of the front gable (ridge along y)
-    or eaves_roof = (ridge height) for a roof with its eaves to the street."""
+    or eaves_roof = (ridge height) for a roof with its eaves to the street.
+    close3d (3D hook, AS5a; the sprite never sets it): a back gable closes the far end of a roof with its
+    gable to the street - the sprite never shows that end, the real-time model is seen from behind in bends."""
     u0 = x0 + 0.1
     floors = [(z0, z1) for k, (z0, z1) in enumerate(storeys) if not (k == 0 and base)]
     zt = storeys[-1][1]
@@ -1855,7 +1887,8 @@ def timber_house(rig, name, x0, x1, d, storeys, infill, timber, pitch=1.1, jetty
     xl = x0 - (nfront * jetty if left_jetty else 0.0)
     roof = roofmat(name + "_rm", roof_c, "tiles", rows=0.26)
     if gable:
-        front_gable(rig, name + "_gable", gable, (xl + x1) / 2, x1 - xl, zt, gh, wall, y0=yf, depth=0.4)
+        front_gable(rig, name + "_gable", gable, (xl + x1) / 2, x1 - xl, zt, gh, wall, y0=yf, depth=0.4,
+                    back=(d - 0.4, gh) if close3d else None)
         zr = zt + gh + 0.15
         saddle(rig, name + "_roof", xl, x1, yf, d, zt, zr, roof, axis="y", over_side=0.25, over_end=0.25,
                over_end0=0.35)
@@ -1873,13 +1906,20 @@ def german_old_fachwerk(rig, p):
     D = 13.0
     st3 = [(0.0, 3.2), (3.2, 6.0), (6.0, 8.8)]
     sand = dict(color="#c8a27c", kind="ashlar", h=0.5, w=1.0, strength=0.5)
+    c3d = bool(p.get("close3d", False))     # 3D hook (AS5a): back gables of the houses with a front gable
+    # 3D hook (AS5aR1): the stone ground floor of the road flank (-x) gets windows and a round-arched door in the style of
+    # the front - in the sprite (-20 deg) that flank is a narrow strip, in 3D the largest wall passing at eye level
+    side_a = [grid("left", u - 0.55, 1, 1.1, 0.0, 1, 3.2, (1.1, 1.3), sill=1.0, **TIMBER_WIN) for u in (3.7, 8.1, 11.0)]
+    side_a.append(grid("left", 5.25, 1, 1.3, 0.0, 1, 3.0, (1.3, 2.4), sill=0.0, top="round", kind="door",
+                       glass="#4a3222", frame="#b48d68"))
     timber_house(rig, "gfa", -11.25, -4.25, D, st3, "#efe8da", "#3e2a1d", left_jetty=True, gable="tri", gh=6.6,
-                 base=sand, seed=1, wins={1: [1, 3, 5], 2: [1, 3, 5]},
+                 base=sand, seed=1, wins={1: [1, 3, 5], 2: [1, 3, 5]}, close3d=c3d,
                  door=grid("front", -9.85, 1, 2.0, 0.0, 1, 3.0, (1.5, 2.6), sill=0.0, top="round", kind="door",
                            glass="#4a3222", frame="#b48d68"),
                  extra_grids=[grid("front", -7.4, 1, 1.8, 0.0, 1, 3.0, (1.1, 1.3), sill=1.0, **TIMBER_WIN),
                               grid("front", -8.6, 1, 1.0, 9.3, 1, 1.8, (0.75, 1.1), sill=0.2, **TIMBER_WIN),
-                              grid("front", -8.6, 1, 1.0, 11.6, 1, 1.4, (0.6, 0.8), sill=0.2, **TIMBER_WIN)])
+                              grid("front", -8.6, 1, 1.0, 11.6, 1, 1.4, (0.6, 0.8), sill=0.2, **TIMBER_WIN)]
+                 + (side_a if c3d else []))
     _, roofB, zrB, yfB = timber_house(rig, "gfb", -4.25, 4.75, D, [(0.0, 3.0), (3.0, 5.8), (5.8, 8.6)], "#e6c47e",
                                       "#7a2b1f", eaves_roof=15.8, roof_c="#8a3b2a", seed=2,
                                       wins={0: [1, 5], 1: [1, 3, 5, 7], 2: [1, 3, 5, 7]},
@@ -1890,7 +1930,7 @@ def german_old_fachwerk(rig, p):
             z_up=0.8, glass_seed=7)
     green = dict(color="#b5c79c", noise=0.05)
     timber_house(rig, "gfc", 4.75, 11.25, D, [(0.0, 3.1), (3.1, 5.9), (5.9, 8.7)], "#ece2c6", "#3b2a1e", gable="tri",
-                 gh=6.2, base=green, seed=3, roof_c="#743628", wins={1: [1, 3], 2: [1, 3]},
+                 gh=6.2, base=green, seed=3, roof_c="#743628", wins={1: [1, 3], 2: [1, 3]}, close3d=c3d,
                  door=grid("front", 5.35, 1, 1.4, 0.0, 1, 2.7, (1.05, 2.3), sill=0.0, kind="door", glass="#3c4b35",
                            frame="#efe9dc"),
                  extra_grids=[grid("front", 7.6, 1, 2.0, 0.0, 1, 3.1, (1.4, 1.4), sill=0.9, **TIMBER_WIN),
@@ -1908,12 +1948,30 @@ def german_old_fachwerk_b(rig, p):
     D = 13.0
     x0, x1 = -7.0, 7.0
     sand = dict(color="#b5735c", kind="ashlar", h=0.55, w=1.1, strength=0.5)
+    extra = [grid("front", 2.0, 2, 2.2, 0.0, 1, 3.6, (1.1, 1.5), sill=1.1, top="seg", **TIMBER_WIN)]
+    if p.get("close3d", False):
+        # 3D hook (AS5aR1): the road flank (-x) - in the sprite (-20 deg) a narrow strip without openings - gets the
+        # openings of the front: segmental windows and a round-arched door in the sandstone, the timber storeys every
+        # other bay as on the front (bays 7 .. 15 from u0 = x0 + 0.1), three windows in the lower and one in the upper
+        # floor of the gable end
+        pt, u0 = 1.15, x0 + 0.1
+        extra += [grid("left", u - 0.55, 1, 1.1, 0.0, 1, 3.6, (1.1, 1.5), sill=1.1, top="seg", **TIMBER_WIN)
+                  for u in (2.0, 4.4, 9.4, 11.6)]
+        extra.append(grid("left", 6.25, 1, 1.3, 0.0, 1, 3.6, (1.2, 2.6), sill=0.0, top="round", kind="door",
+                          glass="#3f2a1c", frame="#9c6250"))
+        for (z0, z1) in ((3.6, 6.6), (6.6, 9.6)):
+            extra += [grid("left", u0 + (j - 0.5) * pt, 1, 2 * pt, z0, 1, z1 - z0, (pt - 0.24, 1.3), sill=0.85,
+                           **TIMBER_WIN) for j in (7, 9, 11, 13, 15)]
+        zg = 9.6 + (21.0 - 9.6) * 0.4          # the floor line of the gable (timber_house: eaves_roof floors)
+        extra += [grid("left", u0 + (j - 0.5) * pt, 1, 2 * pt, 9.6, 1, zg - 9.6, (pt - 0.24, 1.3), sill=0.85,
+                       **TIMBER_WIN) for j in (9, 11, 13)]
+        extra.append(grid("left", u0 + 10.5 * pt, 1, 2 * pt, zg, 1, 3.0, (pt - 0.34, 1.1), sill=0.85, **TIMBER_WIN))
     wall, roof, zr, yf = timber_house(
         rig, "gfx", x0, x1, D, [(0.0, 3.6), (3.6, 6.6), (6.6, 9.6)], "#f0e9da", "#3a2619", eaves_roof=21.0,
         roof_c="#6f3326", base=sand, seed=4, pitch=1.15, wins={1: [3, 5, 7, 9], 2: [3, 5, 7, 9]},
         door=grid("front", -1.6, 1, 3.2, 0.0, 1, 3.5, (2.8, 3.2), sill=0.0, top="round", kind="door", glass="#3f2a1c",
                   frame="#9c6250"),
-        extra_grids=[grid("front", 2.0, 2, 2.2, 0.0, 1, 3.6, (1.1, 1.5), sill=1.1, top="seg", **TIMBER_WIN)])
+        extra_grids=extra)
     px = math.degrees(math.atan((zr - 9.6) / ((D - yf) / 2)))
     dormers(rig, "gfx_d1", [-4.0, -1.3, 1.4, 4.1], yf, 9.6, px, 1.3, 1.3, basic("gfx_dw", "#f0e9da"), roof,
             kind="gable", z_up=1.0, glass_seed=8)
@@ -1938,6 +1996,12 @@ def german_old_barock(rig, p):
            grid("front", xa0 + 3.05, 1, 2.2, 0.0, 1, 4.0, (1.6, 3.2), sill=0.0, top="round", kind="door",
                 glass="#4b3424", frame="#f4efe6"),
            grid("left", 1.2, 5, 2.4, 4.0, 3, 3.3, (1.1, 1.9), sill=0.8, **fr)]
+    if p.get("close3d", False):
+        # 3D hook (AS5aR1): round-arched windows in the rusticated ground floor of the road flank (-x), on the axes of
+        # the floors above, and a round-arched door in the middle axis - the sprite shows that flank as a narrow strip
+        ga += [grid("left", 1.2, 5, 2.4, 0.0, 1, 4.0, (1.2, 2.2), sill=0.75, top="round", skip=[(2, 0)], **fr),
+               grid("left", 1.2 + 2 * 2.4, 1, 2.4, 0.0, 1, 4.0, (1.5, 3.0), sill=0.0, top="round", kind="door",
+                    glass="#4b3424", frame="#f4efe6")]
     gz = [grid("front", -5.3, 1, 1.0, ze + 0.3, 1, 1.9, (0.8, 1.4), sill=0.2, top="seg", **fr),
           grid("front", -5.2, 1, 0.8, ze + 2.4, 1, 1.0, (0.55, 0.55), sill=0.2, top="round", **fr)]
     wa = wallmat("gba_wall", dict(color="#e7b19c", noise=0.05), ga + gz, seed=2,

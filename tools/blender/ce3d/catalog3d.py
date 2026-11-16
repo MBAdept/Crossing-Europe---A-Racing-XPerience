@@ -498,6 +498,123 @@ MODELS.update({
 })
 
 
+# --- AS5a --- (wave 5): city buildings, part 1 - the styles german, german_old and hanse of props_cities.py (docs/modelle.md
+# section 20). Builder "city" in ce3d/cities3d.py (the builder "house" of AS4 plus shops with displays, timber members,
+# cut-out railings, far walls on the texels of the opposite wall, floors at different texel densities). Own block.
+BUILDER_CODE.update({
+    "city": ["ce3d/cities3d.py", "ce3d/buildings3d.py", "ce3d/props3d.py", "ce3d/bake.py", "ce3d/leafatlas.py",
+             "cesprites/props.py", "cesprites/props_buildings.py", "cesprites/props_cities.py", "cesprites/props_nature.py",
+             "render_all.py"],
+})
+AO_CITY = dict(distance=2.0, floor=0.4, gamma=0.9, samples=24)
+MODELS.update({
+    # german (outskirts): the single-family house - render, roller shutters, dormer, garage with a sectional door (a
+    # ribbed gate), steps up to the raised front door, the wall lamp beside it (light anchor); hedge and the small
+    # ornamental tree decimated and baked
+    "props/city_german_house": dict(
+        builder="city", source="props/city_german_house", kind="building", atlas=(1024, 1024), ppm_max=110.0,
+        roughness=0.88, view="roadside", ao=AO_CITY, lod1=True,
+        decimate={"gh_hedge": 0.35, "gh_tree_c": 0.4}, lod1_decimate={"gh_hedge": 0.5, "gh_tree_c": 0.5},
+        lamps=("gh_lamp",), vpbr=("gh_mb", "gh_dorm_fm"),
+        levels={"gh_mailbox": "lod0"}, weights=dict(roof=0.55, away=0.3, objects={"gh_hedge": 0.3, "gh_tree": 0.3}),
+        openings=dict(reveal_color="#ddd6c9", sill_color="#d0cec8", gate_w=2.2),
+        gutters=dict(per_roof=2, walls=("gh_body", "gh_garage"))),
+    # german (outskirts): the 1950s Mietshaus - balconies with coloured panels and a cut-out railing (single_cutout:
+    # walls, roofs and railings in one BC3 atlas), glass-brick stairwell, dormers, chimneys, TV aerials
+    "props/city_german_mietshaus": dict(
+        builder="city", source="props/city_german_mietshaus", kind="building", atlas=(2048, 1024), ppm_max=96.0,
+        roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True,
+        cut_fill=dict(alpha=0.4, color="#797056"),
+        vpbr=("gm_slab", "gm_panel", "gm_aer", "gm_dorm_fm", "gm_bdm"), levels={"gm_aerials": "lod0"},
+        weights=dict(roof=0.5, away=0.3), openings=dict(reveal_color="#cdbf98", sill_color="#cfcac0"),
+        gutters=dict(per_roof=2, walls=("gm_body",))),
+    # german (centre): the Gruenderzeit corner block - shop floor with displays behind the glass, pediments, cornices,
+    # quoins (vpbr), the oriel with its wrought-iron railing (cut-out), mansard with dormers; ground and first floor at
+    # full texel density, the floors above at 75 %
+    "props/city_german_gruenderzeit": dict(
+        builder="city", source="props/city_german_gruenderzeit", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True,
+        cut_fill=dict(alpha=0.4, color="#a99f85"),
+        vpbr=("gg_orn", "gg_dorm_fm"), weights=dict(roof=0.5, away=0.3),
+        floors=dict(z=(7.8,), upper=0.75, objects=("gg_body",)),
+        openings=dict(reveal_color="#d8ccb0", sill_color="#efe7d3", bars={"shop": (1, [0.78])}, shop_depth=0.35),
+        gutters=False),
+    # german (centre): the office tower (scaled 0.37 - 0.5 by the scenery): stone podium with the lobby (its light at
+    # 35 % of a pane: a white field at night otherwise), the glass of the tower and its crown baked (lit cells at night
+    # as in the sprite), darker than the generator's base colour (the sprite's metallic glass mirrors a grey sky:
+    # measured at 100 m sprite (78, 95, 103), baked base colour (97, 128, 141)), aviation lights with anchors
+    "props/city_german_office": dict(
+        builder="city", source="props/city_german_office", kind="building", atlas=(2048, 1024), ppm_max=48.0,
+        roughness=0.5, view="roadside", ao=AO_CITY, lod1=True, lamps=("go_red",), vpbr=("go_trim",),
+        albedo_mul={"go_glass": (0.62, 0.54, 0.52)}, light_mul={"go_stone": 0.35}, weights=dict(roof=0.4, away=0.3),
+        floors=dict(z=(12.0,), upper=0.75, objects=()),
+        openings=dict(reveal_color="#b9b5ad", shop_depth=0.0, shop_light=0.35, reveal_m=0.2),
+        gutters=False, caps=False),
+    # german_old (centre): three jettied half-timbered houses - the timber as members proud of the infill (front and
+    # the road side; the painted timber stays under them and carries lod1), beam heads under the jetties, window boxes
+    # with flowers, the roofs of the two houses with their gables to the street closed at the back (hook close3d)
+    "props/city_german_old_fachwerk": dict(
+        builder="city", source="props/city_german_old_fachwerk", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, params={"close3d": True},
+        timber=dict(vary=0.14, inset=0.03),
+        vpbr=("gfa_hm", "gfb_hm", "gfc_hm", "gf_fl_m", "gfb_dorm_fm"), levels={"gf_fl_": "lod0"},
+        weights=dict(roof=0.45, away=0.3), floors=dict(z=(6.0,), upper=0.8),
+        openings=dict(reveal_color="#e3d8c4", sill_color="#d8ccb6"),
+        gutters=dict(per_roof=2, walls=("gfa_s", "gfb_s", "gfc_s"))),
+    # german_old (centre): the guild house - red sandstone ground floor with the arched gateway, two jettied timber
+    # storeys, very steep roof with two rows of dormers, the corner oriel with its helm roof
+    "props/city_german_old_fachwerk_b": dict(
+        builder="city", source="props/city_german_old_fachwerk_b", kind="building", atlas=(2048, 1024),
+        ppm_max=100.0, roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, timber=dict(vary=0.14, inset=0.03),
+        params={"close3d": True},
+        oriel=dict(shaft="gfx_erker_shaft", windows=("gfx_erker_g", "gfx_erker_l"), frame="#efe9dc", corbel="#a98a74"),
+        vpbr=("gfx_hm", "gfx_d1_fm", "gfx_d2_fm", "gfx_erker_finm"), weights=dict(roof=0.45, away=0.3),
+        floors=dict(z=(6.6,), upper=0.8), openings=dict(reveal_color="#e3d8c4", sill_color="#c79a86"),
+        gutters=dict(per_roof=2, walls=("gfx_s",))),
+    # german_old (centre): two baroque town houses - giant pilasters, cornices, window pediments and surrounds of
+    # stucco (vpbr), the volute cross gable with its oculus, mansard; the yellow house with its oriel and a shop
+    "props/city_german_old_barock": dict(
+        builder="city", source="props/city_german_old_barock", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, vpbr=("gba_st", "gbb_dorm_fm"),
+        params={"close3d": True},
+        weights=dict(roof=0.45, away=0.3), floors=dict(z=(7.5,), upper=0.8, objects=("gba_body", "gbb_body")),
+        openings=dict(reveal_color="#e8dccb", sill_color="#f1ebe0", bars={"shop": (1, [0.78])}, shop_depth=0.35),
+        gutters=dict(per_roof=2, walls=("gbb_body",))),
+    # hanse (centre): three merchant houses - step gable with blind niches, volute gable, pointed gable with lancet
+    # windows; copings (vpbr), plinth plants
+    "props/city_hanse_gabled": dict(
+        builder="city", source="props/city_hanse_gabled", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True,
+        params={"close3d": True}, vpbr=("hga_capm", "hgb_capm", "hgc_capm", "hg_pots_m", "hga_anchm"),
+        levels={"hg_pots": "lod0", "hga_anch": "lod0"},
+        weights=dict(roof=0.45, away=0.3), floors=dict(z=(7.0,), upper=0.8, objects=("hga_body", "hgb_body", "hgc_body")),
+        openings=dict(reveal_color="#cdb9a2", sill_color="#e3dccd", n_arc=4), gutters=False),
+    # hanse (centre): the Kontorhaus - clinker with slender piers (vpbr) over seven storeys, set-back top storeys,
+    # shops with displays in the ground floor
+    "props/city_hanse_kontor": dict(
+        builder="city", source="props/city_hanse_kontor", kind="building", atlas=(2048, 1024), ppm_max=80.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, vpbr=("hk_pier",),
+        weights=dict(roof=0.25, away=0.25), floors=dict(z=(7.9,), upper=0.7, objects=("hk_body",)),
+        openings=dict(reveal_color="#5e3a30", sill_color="#7a5246", bars={"shop": (1, [0.75])}, shop_depth=0.35),
+        gutters=False, caps=False),
+    # hanse (centre): the Speicherstadt warehouse - loading doors on every floor, winch housings, glazed bands, step
+    # gables, the corner turret, copper roof
+    "props/city_hanse_speicher": dict(
+        builder="city", source="props/city_hanse_speicher", kind="building", atlas=(2048, 1024), ppm_max=80.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, vpbr=("hs_trim", "hs_wm", "hs_tur_finm"),
+        weights=dict(roof=0.3, away=0.3), floors=dict(z=(8.4,), upper=0.7, objects=("hs_body",)),
+        openings=dict(reveal_color="#86402f", sill_color="#d9d2c3", gate_w=1.8, n_arc=4), gutters=False),
+    # hanse (outskirts): the harbour portal crane - red steel (vpbr), machinery house and cabin baked, the red light on
+    # the jib head and the two floodlights as lamps with anchors
+    "props/city_hanse_crane": dict(
+        builder="city", source="props/city_hanse_crane", kind="building", atlas=(1024, 1024), ppm_max=90.0,
+        roughness=0.6, view="roadside", ao=dict(distance=1.5, floor=0.45, gamma=0.9, samples=24), lod1=True,
+        lamps=("hc_redl", "hc_flood_m"), vpbr=("hc_red", "hc_dark"), weights=dict(roof=0.5, away=0.4),
+        openings=dict(reveal_color="#8f9194", sill_color="#a7a9ab"), gutters=False, caps=False),
+})
+# --- end AS5a ------------------------------------------------------------------------------------------------------
+
+
 def model_ids():
     return sorted(MODELS)
 

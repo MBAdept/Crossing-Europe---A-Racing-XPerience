@@ -59,6 +59,9 @@ COST.update({"rock": 60.0})
 BUILDERS.update({"house": ("ce3d.buildings3d", "build_house"), "pylon": ("ce3d.bridges3d", "build_pylon"),
                  "truss": ("ce3d.bridges3d", "build_truss"), "lantern": ("ce3d.bridges3d", "build_lantern")})
 COST.update({"house": 180.0, "pylon": 60.0, "truss": 10.0, "lantern": 3.0})
+# --- AS5a --- (wave 5): city buildings of props_cities (docs/modelle.md section 20)
+BUILDERS.update({"city": ("ce3d.cities3d", "build_city")})
+COST.update({"city": 300.0})
 
 
 def builder(name):
