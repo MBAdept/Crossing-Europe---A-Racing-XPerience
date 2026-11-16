@@ -68,6 +68,13 @@ var _sn := 0
 var _veh_streak_n := 0
 var _wet := 0.0
 var _prof := PackedFloat32Array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])   ## FIX-R4: road profile of the static streak being put
+## RINT-M2 (NACH-R4 N1): a lamp's streak profile is kept while the camera's road position moved less than this – in a
+## lamp-lined city at night in the rain every lamp recomputed its seven heights every frame (4.2 µs each, measured by
+## NACH-R4: 100 lamps ≈ 0.42 ms per frame); the profile's far end is then at most this far off its camera foot
+const PROFILE_KEEP_M := 3.0
+var _lamp_prof_n := 0                ## static streaks with a road profile this frame (snapshot, check_night_nass)
+var _lamp_prof_max := 0.0            ## … and the largest height of their profiles (m)
+var _lamp_prof_computed := 0         ## profiles computed (not taken from the cache) since the start – measurement
 var debug_streaks := true            ## render checks switch the reflections on the wet road off (same frame without them)
 var _buf := PackedFloat32Array()
 var _veh := PackedFloat32Array()
@@ -186,6 +193,8 @@ func update(view: Dictionary, _dt: float) -> void:
 	var t0 := Time.get_ticks_usec()
 	_n = 0
 	_sn = 0
+	_lamp_prof_n = 0
+	_lamp_prof_max = 0.0
 	_wet = clampf(float((view.get("palette", {}) as Dictionary).get("wet", 0.0)), 0.0, 1.0)
 	if bool(view.get("camera_in_tunnel", false)):
 		_wet = 0.0
@@ -351,8 +360,34 @@ func _lamp_profile(e: Array, j: int, cam_z: float) -> void:
 	if path == null or not path.is_ready() or e.size() < 8 or not (e[7] is PackedFloat32Array):
 		_prof.fill(0.0)
 		return
-	var z := (e[7] as PackedFloat32Array)[j]
-	road_profile(path, z, cam_z, path.z_min(), float(path.last()) * path.seg_len, _prof)
+	var n := (e[1] as Array).size()
+	while e.size() < 10:
+		e.append(null)
+	if not (e[8] is PackedFloat32Array) or (e[8] as PackedFloat32Array).size() != n * 6:
+		var pc := PackedFloat32Array()
+		pc.resize(n * 6)
+		var zc := PackedFloat32Array()
+		zc.resize(n)
+		zc.fill(-1.0e9)
+		e[8] = pc
+		e[9] = zc
+	var cached: PackedFloat32Array = e[8]
+	var at: PackedFloat32Array = e[9]
+	if absf(at[j] - cam_z) < PROFILE_KEEP_M:
+		for i in 6:
+			_prof[i] = cached[j * 6 + i]
+	else:
+		var z := (e[7] as PackedFloat32Array)[j]
+		road_profile(path, z, cam_z, path.z_min(), float(path.last()) * path.seg_len, _prof)
+		for i in 6:
+			cached[j * 6 + i] = _prof[i]
+		at[j] = cam_z
+		e[8] = cached
+		e[9] = at
+		_lamp_prof_computed += 1
+	_lamp_prof_n += 1
+	for i in 6:
+		_lamp_prof_max = maxf(_lamp_prof_max, absf(_prof[i]))
 
 
 ## Height of a world point above the nearest boundary of the integrated path – searched inside the chunk above
@@ -475,7 +510,9 @@ func warmup_nodes() -> Array:
 
 
 func snapshot() -> Dictionary:
-	return {"lights": {"flares": _n + _veh_n, "static_lamps": _static_count, "wet_streaks": _sn + _veh_streak_n}}
+	return {"lights": {"flares": _n + _veh_n, "static_lamps": _static_count, "wet_streaks": _sn + _veh_streak_n,
+		"lamp_streak_profiles": _lamp_prof_n, "lamp_streak_profile_max_m": snappedf(_lamp_prof_max, 0.001),
+		"lamp_streak_profiles_computed": _lamp_prof_computed}}
 
 
 func perf() -> Dictionary:

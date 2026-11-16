@@ -30,10 +30,10 @@ extends SceneTree
 
 const RACE := "res://scenes/race/race.tscn"
 const PROBE := "res://tests/race3d/fixtures/vehicle_probe_renderer.gd"
-const CHECKS := ["fahrbahn", "spielerauto", "verdeckung", "blaulicht", "nass_kegel", "spiegelung"]
+const CHECKS := ["fahrbahn", "spielerauto", "verdeckung", "blaulicht", "nass_kegel", "spiegelung", "laternen"]
 ## FIX-R4: checks that run only when --only names them – the file check_night_nass.gd (so that each file stays inside
 ## tools/run_render_checks.sh's time per file on a busy machine)
-const OWN_FILE := ["nass_kegel", "spiegelung"]
+const OWN_FILE := ["nass_kegel", "spiegelung", "laternen"]
 const KEGEL_FROM := 16.0             ## nass_kegel: the low beam's patch, metres ahead of the camera …
 const KEGEL_TO := 34.0
 const WET_CONE_MAX := 1.15           ## … on the wet road at most this much brighter than Arcade's (QA-R4 B2: 1.77×) …
@@ -45,6 +45,7 @@ const CAR_SAT_MIN := 0.7             ## … and its paint at least this saturate
                                      ## the silver GT: its sprite owes its saturation to the blue night tint)
 const CAR_SAT_MAX := 1.25            ## FIX-R4 (QA-R4 B7): … and at most this saturated (the limousine read royal blue)
 const STEPS := 30
+const LAMP_PROFILE_MIN_M := 0.3   ## laternen: the largest height of a lamp streak's profile on the ramp
 const ROAD_MAX := 0.15               ## Modern's night road at most this much brighter than Arcade's (never darker)
 const TRIM := 0.05                   ## share of the brightest and darkest probes left out (flakes, lines)
 
@@ -634,6 +635,44 @@ func _check_nass_kegel() -> void:
 ## The reflection of a far car's rear lamps on a wet road that CLIMBS towards it lies on the road: every pixel the
 ## reflections change lies at or below the row of the car's lamps (a level quad hung in the air and stood as a red
 ## column above the car).
+## RINT-M2 (NACH-R4 N2): the reflections of the STATIC lamps follow the road too – Kiel – Hamburg km 77.6 at 22:00 in the
+## rain, on the ramp of the Köhlbrandbrücke under its lamps: the flare layer puts wet streaks of static lamps, every
+## one with a road profile (layers/flares.gd _lamp_profile(), cached per lamp while the camera moves less than
+## PROFILE_KEEP_M), and on the ramp the profiles are not flat (at least LAMP_PROFILE_MIN_M) – a broken profile (flat,
+## the old level streak that stood in the air over a climbing road, QA-R4 B1) fails here. Also: the cache works (fewer
+## profiles computed than streaks put over the frames).
+func _check_laternen() -> void:
+	var p: Array[String] = []
+	var sc: Node = await _launch_probe({"start_km": 77.6, "weather": "rain"})
+	var r: Node = sc.get("renderer")
+	Engine.time_scale = 1.0
+	var puts := 0
+	var prof_max := 0.0
+	var n_last := 0
+	for i in 40:
+		await process_frame
+		var snap: Dictionary = (r.call("debug_snapshot") as Dictionary).get("lights", {})
+		var n := int(snap.get("lamp_streak_profiles", 0))
+		puts += n
+		n_last = maxi(n_last, n)
+		prof_max = maxf(prof_max, float(snap.get("lamp_streak_profile_max_m", 0.0)))
+	Engine.time_scale = 0.0
+	var snap2: Dictionary = (r.call("debug_snapshot") as Dictionary).get("lights", {})
+	var computed := int(snap2.get("lamp_streak_profiles_computed", 0))
+	_keep(await _capture(), "laternen_koehlbrand")
+	_need(p, n_last >= 4, "Spiegelungen der Laternen auf der nassen Rampe (%d)" % n_last)
+	_need(p, prof_max >= LAMP_PROFILE_MIN_M, "ihre Profile folgen der Rampe (größte Höhe %.2f m, mindestens %.2f m)" % [prof_max, LAMP_PROFILE_MIN_M])
+	_need(p, computed > 0 and computed < puts, "Profile zwischengespeichert (%d gerechnet für %d Streifen)" % [computed, puts])
+	await _free(sc)
+	_report("laternen", p, "Köhlbrandbrücke km 77,6, 22 Uhr Regen: %d Laternenstreifen je Bild, Profil bis %.2f m, %d von %d gerechnet" % [
+		n_last, prof_max, computed, puts])
+
+
+func _capture() -> Image:
+	await RenderingServer.frame_post_draw
+	return root.get_texture().get_image()
+
+
 func _check_spiegelung() -> void:
 	var p: Array[String] = []
 	var sc: Node = await _launch_probe({"stage_id": "kassel_wuerzburg", "from_city": "kassel", "start_km": 61.6, "vehicle": "kombi", "seed": 12})
