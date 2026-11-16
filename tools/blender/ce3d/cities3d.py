@@ -46,6 +46,8 @@ flanks), lod1_flat (default True), albedo_mul / light_mul (dict material prefix:
 PANE_LIGHT_K), shop_light, n_arc and louvre (in openings), caps (default False), bake_samples (default
 BAKE_SAMPLES), inner_frame (default H.FRAME_W with lod1), oriel (dict shaft, windows, frame, corbel, out, fw, bar,
 sill), cut_fill (dict alpha, color), lod1_decimate (dict name prefix: ratio).
+AS5a2: weights.solid (dict name prefix: weight), rail_module (dict name prefix: module length), smooth (name prefixes),
+openings.cover_skip (name prefixes), openings.chamfer (bool).
 Two surfaces per level (baked or baked_cutout + vpbr): city budget 10,000 triangles, 2 draw calls.
 """
 import math
@@ -347,7 +349,10 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
     fac = [o for o in objs if any(s.material is not None and s.material.name in by_mat for s in o.material_slots)]
     if not fac:
         return record
-    cover = H.Cover(objs)
+    # cover_skip (AS5a2): objects that never cover a window - French window guards stand 10 - 16 cm in front of
+    # the glass (inside the cover distance of 0.3 m): their windows stayed painted
+    skip_cover = tuple(opt.get("cover_skip", ()))
+    cover = H.Cover([o for o in objs if not (skip_cover and o.name.startswith(skip_cover))])
     fill_cache = {}
     disp_cache = {}
     n_open = n_shut = n_louvre = n_door = n_clock = n_skip = n_hidden = n_shop = 0
@@ -367,6 +372,10 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
             e = by_mat[mat.name]
             n = np.array(f.normal, dtype=np.float64)
             cls, u_ax = H._face_frame(n)
+            if cls is None and opt.get("chamfer") and abs(n[2]) < 0.1 and n[0] < -0.6 and n[1] < -0.6:
+                # AS5a2: the cut front-left corner (pan coupe) of a corner block - wallmat's face "chamfer", u = (x - y)
+                # / sqrt 2: its windows and shop are cut like those of the axis faces (catalog option chamfer)
+                cls, u_ax = "chamfer", np.array([0.70711, -0.70711, 0.0])
             if cls is None or cls in opt.get("skip_faces", ()):
                 continue
             vs = [np.array(v.co, dtype=np.float64) for v in f.verts]
@@ -410,7 +419,7 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
                     doors.append(H.Opening(pts, "door", d, -1, rect))
             holes = list(doors)
             for gi, g in enumerate(e["grids"]):
-                if g.get("kind") != "door" or cls not in P.GRID_FACES.get(g.get("face", "front"), ("front", "back")):
+                if g.get("kind") != "door" or cls not in _grid_faces(g):
                     continue
                 for rect in g.get("rects") or []:
                     if not P._inside_poly(((rect[0] + rect[1]) * 0.5, (rect[2] + rect[3]) * 0.5), poly) or hidden(rect):
@@ -420,7 +429,7 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
                     dtop = "round" if g.get("arch") else g.get("top")
                     holes.append(H.Opening(H._outline(*rect, top=dtop, n_arc=n_arc), "door", src, gi, rect, dtop))
             for gi, g in enumerate(e["grids"]):
-                if g.get("kind") == "door" or cls not in P.GRID_FACES.get(g.get("face", "front"), ("front", "back")):
+                if g.get("kind") == "door" or cls not in _grid_faces(g):
                     continue
                 top = "round" if g.get("arch") else g.get("top")
                 for rect in (g["rects"] if "rects" in g else P._grid_windows(g)):
@@ -578,6 +587,13 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
     stats.update(openings=n_open, doors=n_door, shops=n_shop, shutters=n_shut, louvres=n_louvre, clocks=n_clock,
                  skipped=n_skip, hidden=n_hidden)
     return record
+
+
+def _grid_faces(g):
+    """The wall classes a grid paints (props3d.GRID_FACES; a grid of the chamfer face only on the chamfer)."""
+    if g.get("face") == "chamfer":
+        return ("chamfer",)
+    return P.GRID_FACES.get(g.get("face", "front"), ("front", "back"))
 
 
 def _reveal_span(geo, mat, outline, p3, n, u_ax, d0, d1):
@@ -1532,7 +1548,8 @@ def _rail_modules(objs, spec, stats):
     multiple of the pitch, spec {object name prefix: L}) looks the same wherever it starts at a multiple of L. Every
     railing object is cut at u = k L; one face that spans a whole module stays in the object and is baked (the master),
     every other face moves into a copy object that is not baked: its atlas coordinates come from the master's chart
-    after the packing (_rail_uvs) - (u - k L, z). The thin faces (tops, bottoms, ends) take the colour of the top rail.
+    after the packing (_rail_uvs) - (u - k L, z). The thin faces (tops, bottoms, ends) take the colour of the top rail,
+    slanted panels read u = x (_rail_axis).
     A balcony of 22 m cost 2 x 22 m x 0.95 m at 150 texels per metre (a Haussmann block: more texels than its atlas
     holds); now one module per band. Returns (copies, plan)."""
     import bmesh
@@ -1566,7 +1583,7 @@ def _rail_modules(objs, spec, stats):
             keyed.append(((round(c.x, 4), round(c.y, 4), round(c.z, 4), round(f.normal.x, 3), round(f.normal.y, 3)), f, ax))
         keyed.sort(key=lambda t: t[0])
         for _k, f, ax in keyed:
-            if ax is None:
+            if ax is None or _rail_slanted(f.normal, [v.co for v in f.verts]):
                 continue
             us = [v.co[ax] for v in f.verts]
             k = math.floor((min(us) + max(us)) * 0.5 / L)
@@ -1577,10 +1594,8 @@ def _rail_modules(objs, spec, stats):
             bm.free()
             n_kept += 1
             continue
-        # kept in the baked object: the master and the slanted panels (the cut corner of the Haussmann corner block:
-        # its pattern runs along x or y, not along the panel - it keeps texels of its own)
-        keep = sorted(f.index for f in bm.faces if f is master or _rail_slanted(f.normal, [v.co for v in f.verts]))
-        mpos = keep.index(master.index)
+        keep = [master.index]
+        mpos = 0
         cp = ob.copy()
         cp.data = ob.data.copy()
         cp.name = ob.name + "_mod"
@@ -1614,12 +1629,15 @@ def _rail_slanted(n, pts):
 
 
 def _rail_axis(n, pts):
-    """The u axis of a railing face (0: panel along x, 1: along y) or None for a thin face (top, bottom, end) or a
-    slanted one."""
+    """The u axis of a railing face (0: panel along x, 1: along y) or None for a thin face (top, bottom, end). A
+    slanted panel (the cut corner of the Haussmann corner block) reads x: lace_mat's pattern runs along x or y there
+    too (stretched by sqrt 2 along the panel), and the cuts at x = k L keep each piece inside one module."""
     for ax, other in ((0, 1), (1, 0)):
         if abs(n[other]) > 0.9 and abs(n[2]) < 0.1:
             us = [p[ax] for p in pts]
             return ax if max(us) - min(us) > 0.1 else None
+    if _rail_slanted(n, pts):
+        return 0
     return None
 
 
@@ -1810,6 +1828,13 @@ def build_city(model_id, spec3d):
         # the decimated crowns shade smooth (flat-shaded facets made the hedge a heap of crystals)
         for ob in objs:
             if any(ob.name.startswith(k) for k in spec3d["decimate"]):
+                ob.data.shade_smooth()
+    if spec3d.get("smooth"):
+        # AS5a2: flower blobs (icospheres of props_cities.flowers) shade smooth - flat-shaded they read as faceted
+        # plastic gems from the street
+        pre = tuple(spec3d["smooth"])
+        for ob in objs:
+            if ob.name.startswith(pre):
                 ob.data.shade_smooth()
     stats["covered_slopes"] = _drop_covered_slopes(objs, {e["material"] for e in log})
     mats = H.Mats()
