@@ -93,7 +93,8 @@ Stütze bliebe, behält seine Endstütze auf der Insel – lieber als zu schwebe
 Die Sichtschneise (F7) der äußeren Stützen wird ebenfalls dort entschieden (`bend_corridor_at()` = der Test von
 `ChunkContext.in_bend_corridor()` für eine Reihe beliebigen Stücks, Unit-Test). Kosten auf dem Hauptthread: 1–4 ms je Dach (gemessen auf
 der VM unter Last 12); jedes `collect()` entscheidet deshalb ein Dach bis 600 m voraus schon im Voraus (`WARM_AHEAD_M`),
-so verteilen sich die Dächer einer Station auf die Stücke davor (höchstens 1,2–3,9 ms je Stück statt bis 12,8 ms).
+so verteilen sich die Dächer einer Station auf die Stücke davor (höchstens 1,1–6,7 ms je Stück in drei Läufen, stark
+streuend, statt bis 12,8 ms; Basis 0,1–0,6 ms).
 
 ## 4. Grenze (`border.gd`)
 
