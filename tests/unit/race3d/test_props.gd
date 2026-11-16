@@ -261,33 +261,35 @@ func test_placement_drops_and_lamps() -> void:
 	var e_farm: Dictionary = b.library.sets["props/farmhouse"]
 	var z := 195.0 * 3.0 + 1.0
 	var x := _x(t, 1, 40.0) + float(e_farm["extent_l"])
-	var tr := _transforms((groups["m|props/farmhouse|0"] as Dictionary)["buf"], 12)[0]
+	var tr := _transforms((groups["m|props/farmhouse|0"] as Dictionary)["buf"], Props.INSTANCE_FLOATS)[0]
 	assert_true(_same(tr, ctx.frame(z, x, ctx.ground(z, x))), "Bauernhaus rechts = ChunkContext.frame() auf dem Boden, Vorderkante bei x")
 	assert_true(ctx.ground(z, x) < -0.5, "… und der Boden liegt dort unter der Fahrbahn")
 	# on the left: mirrored node x instance = frame x mirror, scaled; the mirrored model's left extent faces the road
 	var zl := 196.0 * 3.0 + 1.0
 	var xl := _x(t, -1, 40.0) - float(e_farm["extent_l"]) * 0.9
-	var trl := _transforms((groups["m|props/farmhouse|1"] as Dictionary)["buf"], 12)[0]
+	var trl := _transforms((groups["m|props/farmhouse|1"] as Dictionary)["buf"], Props.INSTANCE_FLOATS)[0]
 	var node := Transform3D(Basis.from_scale(Vector3(-1.0, 1.0, 1.0)), Vector3.ZERO)
 	var want := ctx.frame(zl, xl, ctx.ground(zl, xl)).scaled_local(Vector3(0.9, 0.9, 0.9)) * node
 	assert_true(_same(node * trl, want), "Bauernhaus links: gespiegelt, 0,9-fach, auf dem Boden")
 	# the oak: upright, scaled, turned by its stable yaw
-	var tro := _transforms((groups["m|%s|0" % oak_id] as Dictionary)["buf"], 12)[0]
+	var tro := _transforms((groups["m|%s|0" % oak_id] as Dictionary)["buf"], Props.INSTANCE_FLOATS)[0]
 	assert_near(tro.basis.y.y, 1.1, 1.0e-4, "Eiche steht aufrecht und ist 1,1-fach")
 	assert_near(tro.basis.x.length(), 1.1, 1.0e-4, "gleichmäßig skaliert")
 	var zo := 198.0 * 3.0 + 1.0
 	assert_near(tro.origin.distance_to(ctx.local(zo, _x(t, 1, 12.0), ctx.ground(zo, _x(t, 1, 12.0)))), 0.0, 1.0e-3, "Eiche auf dem Boden")
-	# stand-ins: origin on the ground, uniform scale, instance colour = tint; the left one mirrored in the node
+	# stand-ins: origin on the ground, uniform scale, instance colour = tint, empty custom data (RINT-M2: see
+	# Props.NO_CUSTOM); the left one mirrored in the node
 	var bl: PackedFloat32Array = (groups["s|%s|1" % sb] as Dictionary)["buf"]
-	assert_eq(bl.size(), 16, "Vertretung: Transformation und Farbe")
+	assert_eq(bl.size(), 20, "Vertretung: Transformation, Farbe und leere Custom-Daten")
 	assert_near(bl[12], 1.0, 0.01, "Tönung rot")
 	assert_near(bl[13], 0.5, 0.01, "Tönung grün")
+	assert_near(bl[19], 0.0, 1.0e-6, "Custom-Daten a = 0: keine zweite Tönung")
 	var zb := 199.0 * 3.0 + 1.0
 	var pb := ctx.local(zb, _x(t, -1, 9.0), ctx.ground(zb, _x(t, -1, 9.0)))
-	assert_near((node * _transforms(bl, 16)[0]).origin.distance_to(pb), 0.0, 1.0e-3, "gespiegelte Vertretung steht an ihrem Ort")
+	assert_near((node * _transforms(bl, 20)[0]).origin.distance_to(pb), 0.0, 1.0e-3, "gespiegelte Vertretung steht an ihrem Ort")
 	var br: PackedFloat32Array = (groups["s|%s|0" % sb] as Dictionary)["buf"]
-	assert_eq(br.size(), 32, "rechts zwei Vertretungen (eine als Ersatz-Set)")
-	assert_near(_transforms(br, 16)[1].basis.x.x, 0.5, 1.0e-4, "Ersatz-Set mit fallback_scale")
+	assert_eq(br.size(), 40, "rechts zwei Vertretungen (eine als Ersatz-Set)")
+	assert_near(_transforms(br, 20)[1].basis.x.x, 0.5, 1.0e-4, "Ersatz-Set mit fallback_scale")
 	# lamps: the wall lamps of the two farmhouses (segments 195, 196), then the two street lights, in chunk coordinates
 	var lamps: Array = part["lamps"]
 	assert_eq(lamps.size(), 4, "vier Lampen: zwei Wandlampen der Bauernhäuser, zwei Laternen")
@@ -350,18 +352,20 @@ func test_model_instances_carry_the_placement_tint() -> void:
 	var g: Dictionary = (part["groups"] as Dictionary).get("m|props/farmhouse|0", {})
 	assert_eq(int(g.get("n", 0)), 3, "drei Bauernhäuser in einer Gruppe")
 	var buf: PackedFloat32Array = g.get("buf", PackedFloat32Array())
-	assert_eq(buf.size(), 3 * 16, "je Instanz Transformation und Tönung (12 + 4)")
-	if buf.size() == 48:
+	assert_eq(buf.size(), 3 * Props.INSTANCE_FLOATS, "je Instanz Transformation, Farbe (weiß) und Tönung (12 + 4 + 4)")
+	if buf.size() == 60:
 		var want := Color("#e8b8a4")
-		assert_near(buf[12], want.r, 1.0e-4, "getönt: rot")
-		assert_near(buf[13], want.g, 1.0e-4, "getönt: grün")
-		assert_near(buf[14], want.b, 1.0e-4, "getönt: blau")
-		assert_near(buf[15], 1.0, 1.0e-6, "getönt: a = 1 (die Shader lesen die Tönung nur dann)")
 		for k in 4:
-			assert_near(buf[16 + 12 + k], 1.0, 1.0e-6, "ungetönt: weiß (Bild unverändert) [%d]" % k)
+			assert_near(buf[12 + k], 1.0, 1.0e-6, "Instanzfarbe eines Modells weiß [%d]" % k)
+		assert_near(buf[16], want.r, 1.0e-4, "getönt: rot")
+		assert_near(buf[17], want.g, 1.0e-4, "getönt: grün")
+		assert_near(buf[18], want.b, 1.0e-4, "getönt: blau")
+		assert_near(buf[19], 1.0, 1.0e-6, "getönt: a = 1 (die Shader lesen die Tönung nur dann)")
+		for k in 4:
+			assert_near(buf[20 + 16 + k], 1.0, 1.0e-6, "ungetönt: weiß (Bild unverändert) [%d]" % k)
 		var fb := Color("#ff8080") * Color("#808080")
-		assert_near(buf[32 + 12], fb.r, 1.0e-4, "Ersatz-Set: tint × fallback_tint (rot)")
-		assert_near(buf[32 + 13], fb.g, 1.0e-4, "Ersatz-Set: tint × fallback_tint (grün)")
+		assert_near(buf[40 + 16], fb.r, 1.0e-4, "Ersatz-Set: tint × fallback_tint (rot)")
+		assert_near(buf[40 + 17], fb.g, 1.0e-4, "Ersatz-Set: tint × fallback_tint (grün)")
 	var parent := Node3D.new()
 	b.commit(ctx, part, parent)
 	var holder := parent.get_child(0) as Node3D
@@ -372,9 +376,21 @@ func test_model_instances_carry_the_placement_tint() -> void:
 			continue
 		models += 1
 		assert_true(mmi.multimesh.use_custom_data, "Modell-Knoten trägt die Tönung als Instanzdaten (%s)" % mmi.multimesh.mesh.resource_path)
-		assert_false(mmi.multimesh.use_colors, "… nicht als Farbe (die Scheitelfarben der Modelle sind Daten)")
+		assert_true(mmi.multimesh.use_colors, "… und eine (weiße) Instanzfarbe – siehe Props.NO_CUSTOM")
 		assert_eq(mmi.multimesh.instance_count, 3, "drei Instanzen")
 	assert_true(models >= 1, "Knoten des Modells gebaut (%d)" % models)
+	# Godot's Compatibility renderer reads INSTANCE_CUSTOM wrongly unless a MultiMesh has colours AND custom data
+	# (measured: bright green tints, see Props.NO_CUSTOM): _mmi() makes every node so, a stand-in's buffer carries
+	# NO_CUSTOM (headless there are no stand-ins in a chunk: the builder's node maker directly)
+	var one := PackedFloat32Array()
+	Props._put(one, Transform3D.IDENTITY)
+	one.append_array(PackedFloat32Array([1.0, 0.5, 0.5, 1.0]))
+	one.append_array(PackedFloat32Array(Props.NO_CUSTOM))
+	var sn := Props._mmi({"mesh": QuadMesh.new()}, one, 1, false)
+	assert_true(sn.multimesh.use_colors and sn.multimesh.use_custom_data, "Vertretung: Farbe und Custom-Daten")
+	assert_eq((Props.NO_CUSTOM as Array).size(), 4, "NO_CUSTOM: vier Werte")
+	assert_near(float(Props.NO_CUSTOM[3]), 0.0, 1.0e-6, "NO_CUSTOM: a = 0 (die Shader tönen nicht)")
+	sn.free()
 	# the shaders read it: custom data, a > 0.5, multiplied into the albedo
 	var mats := ModernMaterials.shared()
 	for cls: String in ["baked", "leaves", "billboard", "vpbr"]:

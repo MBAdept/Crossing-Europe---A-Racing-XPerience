@@ -1671,7 +1671,12 @@ Gründerzeithaus `#f6eedc` und `#ece4d0`). Der Atlas trägt die ungetönten Farb
 dasselbe wie das getönte Sprite (Kontaktbogen in der Lieferung). Seit der Montage RINT-M2 (Vertrag A-19) bekommt jede
 Modell-Instanz die Tönung der Platzierung (`tint` × `fallback_tint`, sonst Weiß) als MultiMesh-Custom-Data (r, g, b, 1);
 `baked`, `vpbr` (statisch), `leaves` und `billboard` multiplizieren die Albedo damit wie Arcade das Sprite – keine
-Instanz-Uniform (docs/renderer-modern.md §17).
+Instanz-Uniform (docs/renderer-modern.md §17). Jedes MultiMesh der Requisiten trägt Instanzfarbe UND Custom-Daten
+(20 Werte je Instanz): ein Modell Weiß als Farbe und die Tönung als Custom-Daten, eine Vertretung (Sprite-Karte) die
+Tönung als Farbe und leere Custom-Daten (a = 0). Godots Compatibility-Renderer liest `INSTANCE_CUSTOM` in den beiden
+anderen Anordnungen falsch (gemessen mit Sonden): mit Farbe ohne Custom-Daten als (0, 1, 0, 1), mit Custom-Daten ohne
+Farbe über `MultiMesh.buffer` als Müll auf den echten Modellnetzen – leuchtend grüne Fensterrahmen, Garagentore,
+Bäume und Windräder im ersten Stand dieser Montage (`props.gd` `NO_CUSTOM`).
 
 ### Ehrliche Einordnung
 

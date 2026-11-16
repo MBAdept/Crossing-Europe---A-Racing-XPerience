@@ -44,6 +44,17 @@ const RIBBON_MARGIN_M := 1.0       ## a prop needs this much ribbon beyond its f
 const SLOPE_PROBE_M := 1.5         ## the ground plane under a prop is taken from points this far apart
 const BLOB_LIFT_M := 0.03
 const SHADOW_KEEP_M := 40.0        ## shadow casters stay on this far beyond the reach of the shadow map
+## RINT-M2 (A-19): every MultiMesh of this builder carries an instance colour AND custom data – 20 floats per
+## instance: transform, colour, custom. A stand-in: colour = its tint, custom = NO_CUSTOM; a model: colour = white
+## (MODEL_COLOR – Godot multiplies it into the vertex colour, which the models use as data), custom = its tint (r, g, b, 1).
+## Godot's Compatibility renderer (4.7.2, measured with probes on llvmpipe) reads INSTANCE_CUSTOM wrongly in the two
+## other layouts: with colours but no custom data as (0, 1, 0, 1), and with custom data but no colours, set through
+## MultiMesh.buffer, as garbage on the real prop meshes (bright green windows, trees and turbines) – fine only through
+## set_instance_custom_data(), which is too slow per instance. A MultiMesh with neither reads (0, 0, 0, 0) and a
+## MeshInstance3D 0: a < 0.5, the shaders leave the albedo as it is.
+const NO_CUSTOM := [0.0, 0.0, 0.0, 0.0]
+const MODEL_COLOR := [1.0, 1.0, 1.0, 1.0]
+const INSTANCE_FLOATS := 20
 const LOD_HYSTERESIS_M := 6.0      ## a chunk leaves a level this much later than it enters it
 const LOD_STEP_M := 2.0            ## update() looks at the chunk levels again after this much driving
 const COVER_PER_TREE := 3          ## pieces of ground cover for a tree dropped in a bend corridor (one for a bush)
@@ -385,7 +396,8 @@ func _update_far_landmarks(view: Dictionary, cam_z: float) -> void:
 					var one := PackedFloat32Array()
 					_put(one, Transform3D.IDENTITY)
 					one.append_array(PackedFloat32Array([tint.r, tint.g, tint.b, 1.0]))
-					var mm := _mmi(pd, one, 1, true, false)
+					one.append_array(PackedFloat32Array(NO_CUSTOM))
+					var mm := _mmi(pd, one, 1, false)
 					mm.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 					node.add_child(mm)
 					continue
@@ -437,6 +449,7 @@ func warmup_nodes() -> Array:
 	var one := PackedFloat32Array()
 	_put(one, Transform3D.IDENTITY)
 	var one_c := one.duplicate()
+	one_c.append_array(PackedFloat32Array(MODEL_COLOR))
 	one_c.append_array(PackedFloat32Array([1.0, 1.0, 1.0, 1.0]))
 	var models := {}
 	var standin := false
@@ -455,7 +468,7 @@ func warmup_nodes() -> Array:
 				for r: String in reps:
 					for p: Variant in lib.mesh_parts(mid, r):
 						var part: Dictionary = p
-						var node := _mmi(part, one_c, 1, false, false, true)
+						var node := _mmi(part, one_c, 1, false)
 						node.scale = Vector3.ONE * k
 						node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY if bool(part["shadow"]) \
 							else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
@@ -464,7 +477,7 @@ func warmup_nodes() -> Array:
 			var s := lib.standin(set_id)
 			if not s.is_empty():
 				standin = true
-				out.append(_mmi(s, one_c, 1, true, false))
+				out.append(_mmi(s, one_c, 1, false))
 	var c := lib.contact()
 	var blob := MultiMeshInstance3D.new()
 	var mm := MultiMesh.new()
@@ -644,8 +657,14 @@ static func _place(ctx: ChunkContext, inp: Dictionary, out: Dictionary, i: int, 
 	_put(buf, mirror_x(tr) if flipped else tr)
 	# the placement tint (tint × fallback_tint, white without one): a stand-in carries it as its instance colour, a model
 	# as its instance custom data (r, g, b, 1) – RINT-M2 (A-19): baked, vpbr_static, leaves and billboard multiply the
-	# albedo by it as Arcade multiplies the sprite; never an instance uniform (the global shader buffer, A-19)
-	buf.append_array(PackedFloat32Array([tint.r, tint.g, tint.b, 1.0]))
+	# albedo by it as Arcade multiplies the sprite; never an instance uniform (the global shader buffer, A-19). Layout:
+	# INSTANCE_FLOATS (see NO_CUSTOM)
+	if is_model:
+		buf.append_array(PackedFloat32Array(MODEL_COLOR))
+		buf.append_array(PackedFloat32Array([tint.r, tint.g, tint.b, 1.0]))
+	else:
+		buf.append_array(PackedFloat32Array([tint.r, tint.g, tint.b, 1.0]))
+		buf.append_array(PackedFloat32Array(NO_CUSTOM))
 	g["buf"] = buf
 	g["n"] = int(g["n"]) + 1
 	# contact shadow on the ground plane under the prop
@@ -811,7 +830,7 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 					var mp: Dictionary = p
 					if bool(mp["shadow"]):
 						continue
-					var node := _mmi(mp, buf, n, false, bool(g["mirror"]), true)
+					var node := _mmi(mp, buf, n, bool(g["mirror"]))
 					if bool(g.get("landmark", false)):
 						_landmark_override(node, mp)
 					elif bool(g.get("dark", false)):
@@ -826,7 +845,7 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 					var mp: Dictionary = p
 					if not bool(mp["shadow"]):
 						continue
-					var node := _mmi(mp, buf, n, false, bool(g["mirror"]), true)
+					var node := _mmi(mp, buf, n, bool(g["mirror"]))
 					node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 					node.set_meta(&"caster", true)
 					holder.add_child(node)
@@ -838,7 +857,7 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 				s = {"mesh": s["mesh"], "material": landmark_material(str(g["set"]))}
 			elif bool(g.get("dark", false)):
 				s = {"mesh": s["mesh"], "material": dark_material(str(g["set"]))}
-			var node := _mmi(s, buf, n, true, bool(g["mirror"]))
+			var node := _mmi(s, buf, n, bool(g["mirror"]))
 			node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			node.set_meta(&"levels", 7)
 			holder.add_child(node)
@@ -880,14 +899,12 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 	_apply_lod(holder, cam_z)
 
 
-## A MultiMeshInstance3D for one mesh: with_color = the buffer carries an instance colour (stand-ins), with_custom =
-## instance custom data (models: their placement tint, RINT-M2).
-static func _mmi(part: Dictionary, buf: PackedFloat32Array, n: int, with_color: bool, mirrored: bool,
-		with_custom: bool = false) -> MultiMeshInstance3D:
+## A MultiMeshInstance3D for one mesh; buf: INSTANCE_FLOATS per instance (transform, colour, custom – see NO_CUSTOM).
+static func _mmi(part: Dictionary, buf: PackedFloat32Array, n: int, mirrored: bool) -> MultiMeshInstance3D:
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
-	mm.use_colors = with_color
-	mm.use_custom_data = with_custom
+	mm.use_colors = true
+	mm.use_custom_data = true
 	mm.mesh = part["mesh"]
 	mm.instance_count = n
 	var own: Transform3D = part.get("transform", Transform3D.IDENTITY)
@@ -895,17 +912,13 @@ static func _mmi(part: Dictionary, buf: PackedFloat32Array, n: int, with_color: 
 		mm.buffer = buf
 	else:
 		# a part with a pose of its own inside the model (none of the prop models has one today)
-		var stride := 12 + (4 if with_color else 0) + (4 if with_custom else 0)
 		for i in n:
-			var o := i * stride
+			var o := i * INSTANCE_FLOATS
 			var t := Transform3D(Basis(Vector3(buf[o], buf[o + 4], buf[o + 8]), Vector3(buf[o + 1], buf[o + 5], buf[o + 9]),
 				Vector3(buf[o + 2], buf[o + 6], buf[o + 10])), Vector3(buf[o + 3], buf[o + 7], buf[o + 11]))
 			mm.set_instance_transform(i, t * own)
-			if with_color:
-				mm.set_instance_color(i, Color(buf[o + 12], buf[o + 13], buf[o + 14], buf[o + 15]))
-			if with_custom:
-				var c := o + (16 if with_color else 12)
-				mm.set_instance_custom_data(i, Color(buf[c], buf[c + 1], buf[c + 2], buf[c + 3]))
+			mm.set_instance_color(i, Color(buf[o + 12], buf[o + 13], buf[o + 14], buf[o + 15]))
+			mm.set_instance_custom_data(i, Color(buf[o + 16], buf[o + 17], buf[o + 18], buf[o + 19]))
 	var node := MultiMeshInstance3D.new()
 	node.multimesh = mm
 	if part.get("material") != null:

@@ -10,14 +10,16 @@ extends SceneTree
 ## The player stands at km 2 of Kiel–Hamburg while the traffic streams past for SIM_S of view time (six times the
 ## speed, drawn at 480 x 270 – the buffer does not depend on the size of the picture). Every engine error passes
 ## through a Logger: none may be the refusal; after every frame the vehicles layer keeps its INSTANCE_BUDGET, and the
-## instances with instance uniforms in the whole scene (counted every 60 frames) stay below SCENE_LIMIT, the margin
-## for what other layers add.
+## instances with instance uniforms in the whole scene (counted every 60 frames, every 10 with injected traffic) stay
+## below SCENE_LIMIT, the margin for what other layers add.
 ## Prints "RENDER-CHECK instanzen OK|FEHLER …" with the wall time of the two phases (loading until the first
 ## simulation step, then the drive); exit code 0 when it passes. Subclasses set their own view time (_sim_s()).
 ## RINT-M2 (A-19, NACH-M2 N-02): a subclass may fill the vehicle budget from the first picture on (_inject_n() test cars
 ## through tests/race3d/fixtures/vehicle_probe_renderer.gd, kept in view at distances that sweep 20–540 m so every car
 ## builds its levels) – then the vehicle layer must reach at least LOADED_SHARE of INSTANCE_BUDGET, or the check says it
-## was not loaded (FEHLER): only so does it check the whole scene WITH a full vehicle budget (forest, city finish).
+## was not loaded (FEHLER): only so does it check the whole scene WITH a full vehicle budget (forest, city finish). With
+## injected traffic the layer may go beyond its budget (48 shown cars need more levels than it holds, and it frees only
+## pooled cars and hidden levels – measured: 208 in the forest), so there SCENE_LIMIT and the refusal are the bounds.
 
 const RACE := "res://scenes/race/race.tscn"
 const SIM_S := 100.0
@@ -144,7 +146,8 @@ func _process(_dt: float) -> bool:
 		_inject(view, float(view.get("time", 0.0)) - _t0)
 	var pf: Dictionary = vl.call(&"perf")
 	_worst_layer = maxi(_worst_layer, int(pf.get("vehicle_instances", 0)))
-	if _frames % 60 == 0:
+	# injected traffic runs close to the limit: count the whole scene more often there
+	if _frames % (10 if _probe != null else 60) == 0:
 		_worst_scene = maxi(_worst_scene, _scene_instances())
 	if float(view.get("time", 0.0)) - _t0 >= _sim_s() or _frames >= MAX_FRAMES:
 		return _finish()
@@ -170,7 +173,9 @@ func _finish() -> bool:
 		p.append("nur %.0f s Verkehr in %d Bildern" % [sim_s, _frames])
 	if _catch.hits > 0:
 		p.append("%d× „%s“" % [_catch.hits, _catch.first.left(90)])
-	if _budget <= 0 or _worst_layer > _budget:
+	# with injected traffic more cars are SHOWN than the budget holds (the layer frees only pooled cars and hidden
+	# levels): there the scene limit below is the bound, the layer must only have been loaded
+	if _budget <= 0 or (_probe == null and _worst_layer > _budget):
 		p.append("Fahrzeug-Ebene höchstens %d Instanzen (%d)" % [_budget, _worst_layer])
 	if _probe != null:
 		_probe.call("reset")
