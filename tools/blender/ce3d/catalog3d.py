@@ -624,7 +624,7 @@ MODELS.update({
         rail_module={"fs_rail": 1.0},
         cut_fill=dict(alpha=0.4, color="#b08a68"),
         decimate={"fs_plane_c": 0.35, "fs_ol0": 0.4, "fs_ol1": 0.4},
-        lod1_decimate={"fs_plane_c": 0.5, "fs_ol0": 0.5, "fs_ol1": 0.5},
+        lod1_decimate={"fs_plane_c": 0.3, "fs_ol0": 0.4, "fs_ol1": 0.4},
         vpbr=("fs_gen", "fs_potm", "fs_gate_", "fs_olf", "fs_slab"), levels={"fs_olf": "lod0", "fs_pots": "lod0"},
         smooth=("fs_olf",),
         # AS5aR2 (KRITIK-5a2 K3): leaf cards on the plane tree's blobs in the cut-out atlas, the crown a core inside
@@ -652,7 +652,7 @@ MODELS.update({
         single_cutout=True, lod1_opaque=True,
         leaf_cards={"fm_tree_c": dict(n=170, half=0.5, core=0.9, down=-0.75,
                                       atlas=dict(base=("#3f6b28", "#62903a"), gain=0.95))},
-        decimate={"fm_tree_c": 0.35, "fm_hyd": 0.4}, lod1_decimate={"fm_tree_c": 0.5, "fm_hyd": 0.5},
+        decimate={"fm_tree_c": 0.35, "fm_hyd": 0.4}, lod1_decimate={"fm_tree_c": 0.35, "fm_hyd": 0.5},
         vpbr=("fm_stone", "fm_gate_", "fm_hf", "fm_dorm_fm"), levels={"fm_hf": "lod0"}, smooth=("fm_hf",),
         weights=dict(roof=0.5, away=0.3, objects={"fm_tree": 0.3, "fm_hyd": 0.3, "fm_wall2": 0.6},
                      solid={"fm_tree_c": 0.3, "fm_hyd": 0.3}),
@@ -710,6 +710,7 @@ MODELS.update({
         rail_module={"sch_bal": 0.88},
         cut_fill=dict(alpha=0.4, color="#6a4a32"),
         vpbr=("sch_wood", "sch_ger"), levels={"sch_ger": "lod0"}, weights=dict(roof=0.5, away=0.3), smooth=("sch_ger",),
+        flower_shape={"sch_ger": (1.2, 0.8, 0.6, 0.04)},
         openings=dict(reveal_color="#d8d2c4", sill_color="#6e4224", cover_skip=("sch_ger",)), gutters=False),
     # dutch (centre): three Amsterdam canal houses - step, bell and neck gable, tall sash windows, stoops, hoist beam;
     # the road flank of the step-gable house with windows (close3d)

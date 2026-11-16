@@ -48,6 +48,10 @@ BAKE_SAMPLES), inner_frame (default H.FRAME_W with lod1), oriel (dict shaft, win
 sill), cut_fill (dict alpha, color), lod1_decimate (dict name prefix: ratio).
 AS5a2: weights.solid (dict name prefix: weight), rail_module (dict name prefix: module length), smooth (name prefixes),
 openings.cover_skip (name prefixes), openings.chamfer (bool).
+AS5aR2 (rework after the art review KRITIK-5a2): shop displays lit brighter at night (SHOP_GLOW, SHOP_EM, SHOP_CEIL);
+the far level's inner frame ring and painted glazing bars towards the glass (inner_k, bars_k; wallmat hooks);
+lod1_opaque (bool: lod1 without the cut-out class); leaf_cards (dict crown object prefix: card spec, see "leaf cards"),
+leaf_px (texels of the leaf sheet); flower_shape (dict name prefix: (x, y, z scale, jitter)).
 Two surfaces per level (baked or baked_cutout + vpbr): city budget 10,000 triangles, 2 draw calls.
 """
 import math
@@ -73,10 +77,10 @@ LAMP_TOP_MIN_Z = 8.0      # closed lamp bodies higher than this lose their upwar
 BAKE_SAMPLES = 4          # Cycles samples of the colour and light bakes: they are EMIT bakes at twice the atlas size
 #                           (bake.SUPERSAMPLE), 4 x 4 = 16 jittered samples per atlas texel are enough for the edges
 #                           of the procedural facades; bake.SAMPLES (16) cost the 2048 x 1024 atlases 20 minutes each
-SHOP_GLOW = 1.4           # AS5aR2: light of a shop display x the grid's light x strength x PANE_LIGHT_K (was 1.25)
+SHOP_GLOW = 1.6           # AS5aR2: light of a shop display x the grid's light x strength x PANE_LIGHT_K (was 1.25)
 SHOP_EM = (0.3, 0.75)     # AS5aR2: lit display = a + b x sqrt(interior colour) (was 0.2 + 0.8 x colour)
 SHOP_CEIL = (0.26, 0.35)  # AS5aR2: ceiling light - the top share of the display rises to + this brightness
-INNER_K = 0.6             # AS5aR2: the far level's inner frame ring this share of the way to the glass (wallmat)
+INNER_K = 0.75            # AS5aR2: the far level's inner frame ring this share of the way to the glass (wallmat)
 BARS_K = 0.35             # AS5aR2: its painted glazing bars this share of the way to the glass
 
 
@@ -1187,6 +1191,49 @@ def _scale_about(ob, cen, k):
     ob.data.update()
 
 
+def _flower_shape(objs, spec):
+    """AS5aR2 (KRITIK-5a2 K7: the geraniums of the chalet read as a string of large plastic beads): every blob
+    (loose part) of the flower objects {name prefix: (x scale, y scale, z scale, jitter m)} scaled about its own centre
+    and moved by a fixed pseudo-random offset - stretched along the window box (x) the blobs overlap into a low,
+    uneven cushion instead of a row of equal balls. Returns the number of blobs."""
+    n = 0
+    for ob in objs:
+        k = next((v for pre, v in sorted(spec.items()) if ob.name.startswith(pre)), None)
+        if k is None or not len(ob.data.vertices):
+            continue
+        sx, sy, sz, jit = (float(v) for v in k)
+        me = ob.data
+        nv = len(me.vertices)
+        co = np.empty(nv * 3)
+        me.vertices.foreach_get("co", co)
+        co = co.reshape(-1, 3)
+        ev = np.empty(len(me.edges) * 2, dtype=np.int64)
+        me.edges.foreach_get("vertices", ev)
+        par = np.arange(nv)
+
+        def find(i):
+            while par[i] != i:
+                par[i] = par[par[i]]
+                i = par[i]
+            return i
+        for a, b in ev.reshape(-1, 2):
+            ra, rb = find(int(a)), find(int(b))
+            if ra != rb:
+                par[max(ra, rb)] = min(ra, rb)
+        roots = np.array([find(i) for i in range(nv)])
+        for r in np.unique(roots):
+            sel = roots == r
+            c = co[sel].mean(axis=0)
+            h = zlib.crc32(("%s|%.3f|%.3f|%.3f" % (ob.name, c[0], c[1], c[2])).encode()) / 2.0 ** 32
+            off = np.array([math.cos(h * 6.283), math.sin(h * 6.283), -0.5]) * jit * ((h * 7.31) % 1.0)
+            sc = 0.85 + 0.3 * ((h * 13.7) % 1.0)
+            co[sel] = c + off + (co[sel] - c) * np.array([sx, sy, sz]) * sc
+            n += 1
+        me.vertices.foreach_set("co", co.reshape(-1))
+        me.update()
+    return n
+
+
 def _uv_rect(ob, size):
     """Pixel rectangle (x0, y0, x1, y1; top row first) of an object's atlas coordinates."""
     W, H_ = size
@@ -2131,6 +2178,8 @@ def build_city(model_id, spec3d):
         for ob in objs:
             if ob.name.startswith(pre):
                 ob.data.shade_smooth()
+    if spec3d.get("flower_shape"):
+        stats["flower_blobs"] = _flower_shape(objs, spec3d["flower_shape"])
     leaf = _leaf_setup(rig, objs, crowns, leaf_spec, stats) if leaf_spec else None
     if leaf is not None:
         objs = objs + [leaf["res"]]
