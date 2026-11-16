@@ -138,6 +138,16 @@ uniform float sheen_wash = 0.0;
 // … and inside a tunnel (ce_tunnel; there ce_night is 1 for the lamps, but the light is the tunnel's, not the night
 // sky's): the fill keeps this share of its day value and the sheen is off (1.0 = neutral)
 uniform float fill_tunnel = 1.0;
+// RINT-M2 (A-20): share of the specular lobes of a POSITIONAL light that shines from next to the eye (1 = neutral, the
+// race look sets 0). The player's low beam sits 0.66 m above the road on the car's nose below a camera 9 m behind it:
+// every face that looks back at the camera sees it under the half vector of its own normal, and the sharp lobes of a
+// flat glossy face (a truck's rear doors, a bumper, a number plate, a boot lid) lit the whole face white (FIX-M2 B-05:
+// red truck rear at 60 m, 22:00, mean luminance 152 against Arcade's 42). Arcade lights what stands in its cone only
+// diffusely. The material takes these lobes out, the light keeps its specular for everything else; the angle between
+// the directions to the light and to the eye decides (eye_lamp_cos: full lobes below x, none above y – the low beam is
+// inside y from about 20 m in front of the camera on, a street lamp overhead stays far outside).
+uniform float eye_lamp_spec = 1.0;
+uniform vec2 eye_lamp_cos = vec2(0.90, 0.97);
 uniform vec3 snow_albedo = vec3(0.86, 0.88, 0.91);
 uniform float snow_night = 0.3;
 
@@ -445,7 +455,9 @@ void light() {
 	vec3 fr = f0 + (f90 - f0) * f5;
 	// the lobes of the directional light keep the share coat_sun (the moon at night); lamps unchanged. SPECULAR_AMOUNT
 	// is the light's specular, not the material's SPECULAR (0 in the race): this lobe is always there
-	float cs = LIGHT_IS_DIRECTIONAL ? coat_sun : 1.0;
+	// … and of a positional light next to the eye the share eye_lamp_spec (RINT-M2, A-20)
+	float cs = LIGHT_IS_DIRECTIONAL ? coat_sun
+		: mix(1.0, eye_lamp_spec, smoothstep(eye_lamp_cos.x, eye_lamp_cos.y, dot(LIGHT, VIEW)));
 	SPECULAR_LIGHT += lc * SPECULAR_AMOUNT * ndl * d_ggx(ndh, a) * v_ggx(ndl, ndv, a) * fr * cs;
 	if (v_coat > 0.0) {
 		float dr = d_ggx(ndh, mix(0.001, 0.1, coat_roughness));

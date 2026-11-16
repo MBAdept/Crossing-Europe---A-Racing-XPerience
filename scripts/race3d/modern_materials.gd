@@ -89,7 +89,10 @@ const VEHICLE_LOOK: Array = [["vpbr", "env_energy", 1.6], ["vpbr", "paint_base",
 	["vpbr", "lamp_off", 0.28], ["vpbr", "tail_level", 0.5], ["vpbr", "env_night", 0.35], ["vpbr", "fill_night", 0.6],
 	["vpbr", "fill_sheen", 0.25], ["vpbr", "fill_sheen_tint", 0.8], ["vpbr", "sheen_wash", 0.35], ["vpbr", "fill_tunnel", 0.3],
 	["vpbr", "hemi_side", 0.72], ["vpbr", "hemi_down", 0.5], ["vpbr", "fill_shade", 0.75],
-	["glass", "env_energy", 2.2], ["glass", "hemi_side", 0.72], ["glass", "hemi_down", 0.5]]
+	["glass", "env_energy", 2.2], ["glass", "hemi_side", 0.72], ["glass", "hemi_down", 0.5],
+	# RINT-M2 (A-20): no specular lobes of the player's low beam on vehicles and static models (they made flat glossy
+	# faces white boxes, FIX-M2 B-05) – through the material; the light keeps its specular (layers/lights.gd)
+	["vpbr", "eye_lamp_spec", 0.0], ["glass", "eye_lamp_spec", 0.0]]
 ## Extra ambient light on the player car in a race (vpbr instance uniform fill, a share of ce_ambient): Arcade draws its
 ## player sprite brighter than the scene (ambient x 1.15 + 0.08) – the car stays readable in its own shade.
 const VEHICLE_PLAYER_FILL := 0.7
@@ -108,7 +111,8 @@ const STUDIO_LOOK: Array = [["vpbr", "env_energy", 0.0], ["vpbr", "paint_base", 
 	["vpbr", "lamp_off", 0.28], ["vpbr", "tail_level", 0.5], ["glass", "env_energy", 0.0],
 	# R4: the race's hemisphere ambient and fill law stay out of the studio (its own key, fill and rim lights)
 	["vpbr", "hemi_side", 1.0], ["vpbr", "hemi_down", 1.0], ["vpbr", "fill_shade", 0.0], ["vpbr", "fill_sheen", 0.0],
-	["vpbr", "fill_sheen_tint", 0.0], ["vpbr", "fill_tunnel", 1.0], ["glass", "hemi_side", 1.0], ["glass", "hemi_down", 1.0]]
+	["vpbr", "fill_sheen_tint", 0.0], ["vpbr", "fill_tunnel", 1.0], ["glass", "hemi_side", 1.0], ["glass", "hemi_down", 1.0],
+	["vpbr", "eye_lamp_spec", 1.0], ["glass", "eye_lamp_spec", 1.0]]
 
 static var _globals_added := false
 static var _shared: ModernMaterials = null

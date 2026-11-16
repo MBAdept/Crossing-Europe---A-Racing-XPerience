@@ -39,12 +39,14 @@ const HEADLIGHT_PITCH_DEG := 2.0
 const SPOT_ANGLE_DEG := 30.0
 const SPOT_ENERGY := 1.6            ## energy of one spot at full beam
 const SPOT_DECAY := 0.6
-## FIX-M2 (QA-M2-BILD B-05): no specular lobe from the low beam. The lamps sit next to the eye, so on every flat glossy
-## face that looks back at the camera (a truck's rear doors, a bumper, a number plate, the clear coat of a boot lid) the
-## half vector equals the normal over the whole face, and the sharp coat lobe turned it into a white glowing box:
-## truck_red rear at 60 m mean luminance 107 against Arcade's 44 (22:00, measured); without the lobe 48. Arcade lights
-## a car in its cone only diffusely. Retro-reflective tape (vpbr channel 15) and signs keep their own cone law.
-const SPOT_SPECULAR := 0.0
+## Specular of the low beam: the engine's default, like the lamp omnis. FIX-M2 (QA-M2-BILD B-05) had set 0: the lamps
+## sit next to the eye, so on every flat glossy face that looks back at the camera (a truck's rear doors, a bumper, a
+## number plate, the clear coat of a boot lid) the half vector equals the normal over the whole face, and the sharp coat
+## lobe turned it into a white glowing box (truck_red rear at 60 m mean luminance 107 against Arcade's 44, 22:00). Since
+## RINT-M2 (A-20) the MATERIALS take the lobes of a light next to the eye out (vpbr/glass eye_lamp_spec in the race look,
+## ModernMaterials.VEHICLE_LOOK) – not the light for everything. The ground never takes this light (GROUND_LAYERS): the
+## road shows the beam through inc/headlight.gdshaderinc, the wet road its own sheen (road.gdshader).
+const SPOT_SPECULAR := 0.5
 const TUNNEL_BEAM := 0.35           ## Arcade: the low beam inside a tunnel by day
 const TRAFFIC_AHEAD_M := 140.0      ## traffic cones: cars up to this far ahead of the camera
 const TRAFFIC_REACH_M := 34.0

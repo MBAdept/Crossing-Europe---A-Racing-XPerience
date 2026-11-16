@@ -35,6 +35,10 @@ uniform float env_energy = 0.0;               // neutral by default; the vehicle
 // FIX1 (QA QB-05): share of the sharp lobe of the directional light – at night the moon (layers/vehicles.gd sets it
 // with the paint's coat_sun); neutral by default
 uniform float sun_spec = 1.0;
+// RINT-M2 (A-20): share of the lobe of a positional light next to the eye – the player's low beam (vpbr.gdshader
+// eye_lamp_spec); neutral by default, the race look sets 0
+uniform float eye_lamp_spec = 1.0;
+uniform vec2 eye_lamp_cos = vec2(0.90, 0.97);
 
 global uniform vec4 ce_fog_color;
 global uniform vec2 ce_fog_range;
@@ -123,6 +127,7 @@ void light() {
 	float ldh = clamp(dot(LIGHT, h), 0.0, 1.0);
 	float a = max(ROUGHNESS * ROUGHNESS, 0.002);
 	float fr = mix(0.08, 1.0, pow(1.0 - ldh, 5.0));
-	float ss = LIGHT_IS_DIRECTIONAL ? sun_spec : 1.0;
+	float ss = LIGHT_IS_DIRECTIONAL ? sun_spec
+		: mix(1.0, eye_lamp_spec, smoothstep(eye_lamp_cos.x, eye_lamp_cos.y, dot(LIGHT, VIEW)));
 	SPECULAR_LIGHT += lc * SPECULAR_AMOUNT * ndl * d_ggx(ndh, a) * v_ggx(ndl, ndv, a) * fr * ss;
 }
