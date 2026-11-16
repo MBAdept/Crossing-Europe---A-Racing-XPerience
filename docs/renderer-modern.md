@@ -2023,6 +2023,9 @@ Der Tunnel-Builder ist die Quelle der Tunnelzone; das Umgebungs-Rig (R4) entsche
 - **`tunnel_state`** (Eigenschaft des Builders, über `renderer.builder("tunnel")`): `amount`, `inside` (Kamera in einem
   Tunnel), `exit_m` (Weg bis zur Ausfahrt, INF draußen), `portal_m` (Weg bis zum nächsten Portal voraus),
   `exit_in_sight` (Ausfahrt innerhalb der Sicht) – für eine Belichtungsrampe an der Ausfahrt, ohne eigene Rechnung;
+  `exit_z` (FIX-R5) = Straßen-z, an dem die Röhre wirklich endet (Segmentgrenze nach `end_km`, wie Arcades
+  Tunnelsegmente; INF draußen) – der Rahmen der Ausfahrt steht von `exit_z` − 0,35 m bis `exit_z`; eine Belichtungsfläche
+  an der Öffnung gehört dorthin, nicht an `end_km` (das bis zu ein Segment früher liegt);
   `light` (FIX-R5) = das Licht der Röhre in diesem Bild, wie es `tunnel.gdshader` bekommt: `ambient_in`, `ambient_out`
   (Anzeigefaktoren der Tunnelumgebung für eine Kamera drinnen / draußen, Arcades × (0,5 + 0,5 × Lichter)), `fog`
   (`Palette.TUNNEL_FOG`), `darkness_m`, `peek_m`, `cam_tunnel_z` (Portal-z des Tunnels der Kamera, −1e9 draußen),

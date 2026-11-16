@@ -351,6 +351,7 @@ func test_set_zone_only_when_the_rig_has_it() -> void:
 	assert_near(float(st.get("amount", -1.0)), 1.0, 1.0e-6, "tunnel_state: drin")
 	assert_true(bool(st.get("inside", false)), "tunnel_state: inside")
 	assert_near(float(st.get("exit_m", 0.0)), t.km_to_z(float(tu["end_km"])) - z0 - 100.0, 0.01, "Weg bis zur Ausfahrt")
+	assert_near(float(st.get("exit_z", 0.0)), _exit_z(t, tu), 0.01, "exit_z: wo die Röhre endet (Segmentgrenze, Rahmen der Ausfahrt)")
 	# a rig without set_zone: no call (a call would be a script error), the state is kept (QA-R5 QR5-05)
 	r.env = EnvWithoutZone.new()
 	b.call("update", {"camera_z": z0 - 5.0, "palette": pal, "visibility_m": 900.0}, 0.016)

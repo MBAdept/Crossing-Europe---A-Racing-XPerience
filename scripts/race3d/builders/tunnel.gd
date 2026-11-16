@@ -103,7 +103,11 @@ const PORTAL_LAYERS := 2
 const ZONE_OUT_M := 12.0           ## the zone amount rises from 12 m before a portal …
 const ZONE_IN_M := 14.0            ## … to 1 at 14 m inside (EnvironmentRig.tunnel_blend, the rig's own law)
 
-var tunnel_state: Dictionary = {}  ## {"amount", "inside", "exit_m", "portal_m", "exit_in_sight", "light"}: read by tests and the rig
+var tunnel_state: Dictionary = {}  ## {"amount", "inside", "exit_m", "exit_z", "portal_m", "exit_in_sight", "light"}: read by tests and the rig
+## "exit_z" (FIX-R5): road z where the tube really ends – at the segment boundary after the tunnel's end_km, as Arcade's
+## tunnel segments end (INF outside a tunnel); the frame of the exit stands from exit_z − 0.35 m to exit_z. exit_m is
+## measured to the plan's end_km (up to one segment earlier): an exposure quad at the opening belongs at exit_z, not
+## there (with R4's glare quad at end_km − 0.6 m the last metres of the tube and the exit frame were over-exposed).
 ## FIX-R5: the tube's light of this frame for whoever draws something inside a tube (R4's road: QA-R5 QR5-02 – seen
 ## from outside, the road in the tube must show Arcade's tunnel light, not the open sky's): {"ambient_in",
 ## "ambient_out" (display factors, Color), "fog" (Palette.TUNNEL_FOG), "darkness_m", "peek_m", "cam_tunnel_z"
@@ -973,14 +977,16 @@ func _update_zone(view: Dictionary, track: Track, cam_z: float, t: Dictionary) -
 	var amount := zone_amount(track, cam_z + 1.0)
 	var vis := float(view.get("visibility_m", 900.0))
 	var exit_m := INF
+	var exit_z := INF
 	if not t.is_empty():
 		exit_m = track.km_to_z(float(t["end_km"])) - cam_z
+		exit_z = float(ceili(track.km_to_z(float(t["end_km"])) / track.seg_len - 1.0e-6)) * track.seg_len
 	var portal_m := INF
 	for tt: Dictionary in track.plan.tunnels:
 		var zp := track.km_to_z(float(tt["start_km"]))
 		if zp > cam_z:
 			portal_m = minf(portal_m, zp - cam_z)
-	tunnel_state = {"amount": amount, "inside": not t.is_empty(), "exit_m": exit_m, "portal_m": portal_m,
+	tunnel_state = {"amount": amount, "inside": not t.is_empty(), "exit_m": exit_m, "exit_z": exit_z, "portal_m": portal_m,
 		"exit_in_sight": not t.is_empty() and exit_m <= vis}
 	var env: Variant = _renderer.get("env")
 	if env is Object and is_instance_valid(env) and (env as Object).has_method(&"set_zone"):
