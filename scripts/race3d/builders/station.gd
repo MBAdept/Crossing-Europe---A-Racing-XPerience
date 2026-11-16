@@ -150,6 +150,277 @@ const PYLON_GLOW := Color(0.5, 0.7, 1.0)   ## Arcade's glow round the lit price 
 const PANEL_PPM := 96.0            ## lettering atlas: pixels per metre of the canopy front and the price board
 
 var _renderer: Node                ## untyped: packages talk to each other through the facade only
+
+
+## RINT-M2 (contract §11.3 A-18, NACH-R6 N-01/N-02): the columns of one canopy decided as a job. The main thread only
+## gathers what the decision reads from the Track and the TerrainProfile (gather(): the signs and boards behind the
+## canopy, the curvature of the segments the lines of sight cross, the lanes at every camera place, the paved edges and
+## the sight-corridor flags of every candidate place – well below a millisecond); the lines of sight themselves (run())
+## need nothing of the running game and go to a worker thread, started when collect() looks one canopy ahead
+## (WARM_AHEAD_M). They are computed on a path of their own, integrated from the first segment the job needs with
+## heading 0 – congruent to the streamer's path, so the decision is the same wherever the race started (the streamer's
+## path begins 150 m before the start: before, canopies near a start decided on fewer cameras, NACH-R6 N-01).
+class CanopyJob extends RefCounted:
+	var r0 := 0.0
+	var r1 := 0.0
+	var plan: Array = []                ## column_plan()
+	var signs: Array = []
+	var boards: Array = []
+	var seg_len := 3.0
+	var inv_r1 := 1.0 / 120.0
+	var k0 := 0                         ## first segment of the job's own path
+	var curve := PackedFloat32Array()   ## curvature value of segments k0, k0 + 1, …
+	var lanes: Dictionary = {}          ## camera grid index (z / LOS_STEP) -> PackedFloat32Array of lane centres x
+	var edges: Dictionary = {}          ## column z (snapped) -> paved edge there
+	var left_from: Dictionary = {}      ## column z (snapped) -> first place of a left mast (m left of the centre)
+	var corridor: Dictionary = {}       ## place key -> true when it lies in a bend's sight corridor
+	var result: Array = []
+	var task := -1
+	var _px := PackedFloat64Array()
+	var _pz := PackedFloat64Array()
+	var _th := PackedFloat64Array()
+
+	static func zkey(z: float) -> int:
+		return int(round(z * 100.0))
+
+	static func pkey(z: float, x: float) -> String:
+		return "%d|%d" % [int(round(z * 100.0)), int(round(x * 100.0))]
+
+	func has_seg(k: int) -> bool:
+		return k >= k0 and k <= k0 + curve.size()
+
+	func _integrate() -> void:
+		_px.resize(curve.size() + 1)
+		_pz.resize(curve.size() + 1)
+		_th.resize(curve.size() + 1)
+		var x := 0.0
+		var z := 0.0
+		var a := 0.0
+		_px[0] = 0.0
+		_pz[0] = 0.0
+		_th[0] = 0.0
+		for i in curve.size():
+			var da := float(curve[i]) * inv_r1 * seg_len
+			var mid := a + da * 0.5
+			x += sin(mid) * seg_len
+			z -= cos(mid) * seg_len
+			a += da
+			_px[i + 1] = x
+			_pz[i + 1] = z
+			_th[i + 1] = a
+
+	## Plan position of road coordinates (z, x) on the job's path – RoadPath3D.world() without height.
+	func world2(z: float, x: float) -> Vector2:
+		var f := z / seg_len - float(k0)
+		var n := _px.size()
+		var i := clampi(int(floor(f)), 0, maxi(0, n - 2))
+		var j := mini(i + 1, n - 1)
+		var u := clampf(f - float(i), 0.0, 1.0)
+		var rx := lerpf(cos(_th[i]), cos(_th[j]), u)
+		var rz := lerpf(sin(_th[i]), sin(_th[j]), u)
+		return Vector2(lerpf(_px[i], _px[j], u) + rx * x, lerpf(_pz[i], _pz[j], u) + rz * x)
+
+	## end_column_hides() on the job's data (same lines of sight, cameras and boards).
+	func hides(z: float, xs: Array[float], width: float) -> Array:
+		var out: Array = []
+		out.resize(xs.size())
+		out.fill(false)
+		if not has_seg(int(floor(z / seg_len)) + 1):
+			return out
+		var cols: Array[Vector2] = []
+		for x: float in xs:
+			cols.append(world2(z, x))
+		var r := width * 0.5 + LOS_MARGIN
+		var rel: Array = []
+		var lo := INF
+		var hi := -INF
+		for bd: Array in boards:
+			var zs := float(bd[0])
+			if zs <= z + 0.3 or zs > z + LOS_FAR or not has_seg(int(floor(zs / seg_len)) + 1):
+				continue
+			rel.append(bd)
+			lo = minf(lo, zs - LOS_FAR)
+			hi = maxf(hi, zs - LOS_NEAR)
+		if rel.is_empty():
+			return out
+		var cams: Array = []
+		var zc := floorf((z - 1.0) / LOS_STEP) * LOS_STEP
+		while zc >= z - LOS_FAR:
+			if zc >= lo and zc <= hi and has_seg(int(floor(zc / seg_len))):
+				var lx: Variant = lanes.get(int(round(zc / LOS_STEP)))
+				if lx is PackedFloat32Array:
+					for x: float in lx:
+						cams.append([zc, world2(zc, x)])
+			zc -= LOS_STEP
+		for bd: Array in rel:
+			var zs := float(bd[0])
+			var b0 := world2(zs, float(bd[1]) - float(bd[2]))
+			var b1 := world2(zs, float(bd[1]) + float(bd[2]))
+			for cm: Array in cams:
+				var d := zs - float(cm[0])
+				if d < LOS_NEAR or d > LOS_FAR:
+					continue
+				var c: Vector2 = cm[1]
+				var w0 := b0 - c
+				var w1 := b1 - c
+				var db := w0.length()
+				var db1 := w1.length()
+				for k in cols.size():
+					if bool(out[k]):
+						continue
+					var to_col := cols[k] - c
+					var dc := to_col.length()
+					if dc < r or db <= dc:
+						continue
+					var s0 := sine(to_col, w0, dc, db)
+					var s1 := sine(to_col, w1, dc, db1)
+					var lim := minf(1.0, r / dc)
+					if maxf(s0, s1) >= -lim and minf(s0, s1) <= lim:
+						out[k] = true
+		return out
+
+	## The candidate places of a mast right of the road at zc (x from the road centre; e = the paved edge there).
+	static func mast_right(zc: float, e: float, signs: Array, r0: float, r1: float) -> Array[float]:
+		var xs: Array[float] = []
+		var off := maxf(outer(signs, r0 - 1.0, r1 + SIGN_SCAN_M), CANOPY_OUT + MAST_W) + MAST_STEP
+		while off <= CANOPY_OUT + MAST_MAX_OUT:
+			xs.append(e + off)
+			off += MAST_STEP
+		return xs
+
+
+	## … and left of it, from `left` (m left of the centre: the left shoulder + MAST_LEFT_GAP) outwards.
+	static func mast_left(left: float) -> Array[float]:
+		var xs: Array[float] = []
+		var o := left
+		while o <= left + MAST_MAX_OUT:
+			xs.append(-o)
+			o += MAST_STEP
+		return xs
+
+	## outer_place() of the builder (an inner class cannot call the outer script's static functions).
+	static func outer(sgns: Array, z0: float, z1: float) -> float:
+		var far := PILLAR_X
+		for s: Array in sgns:
+			if float(s[0]) >= z0 and float(s[0]) <= z1:
+				far = maxf(far, float(s[1]) + OUT_GAP + PILLAR_W * 0.5)
+		return far
+
+	## _sine() of the builder.
+	static func sine(v: Vector2, w: Vector2, lv: float, lw: float) -> float:
+		var s := v.cross(w) / maxf(lv * lw, 1.0e-9)
+		if v.dot(w) < 0.0:
+			return 2.0 if s >= 0.0 else -2.0
+		return s
+
+
+	## The decision of canopy_columns() (WORKER THREAD or inline).
+	func run() -> void:
+		_integrate()
+		var out: Array = []
+		var fallback: Array = []
+		for c0: Array in plan:
+			var c: Array = c0
+			var zc := float(c[0])
+			var kind := str(c[1])
+			var e := float(edges.get(zkey(zc), 0.0))
+			if kind.begins_with("end"):
+				fallback = [zc, "end", PILLAR_X]
+				var cands: Array = [[zc, "end", PILLAR_X], [zc, "end_out", outer(signs, r0 - 1.0, r1 + SIGN_SCAN_M)]] \
+					if kind == "end" else [c]
+				var xs: Array[float] = []
+				for q: Array in cands:
+					xs.append(e + float(q[2]))
+				var hid := hides(zc, xs, PILLAR_W)
+				var chosen: Array = []
+				for k in cands.size():
+					if not bool(hid[k]):
+						chosen = cands[k]
+						break
+				if chosen.is_empty():
+					continue
+				c = chosen
+				kind = str(c[1])
+			if kind != "front" and kind != "end" and bool(corridor.get(pkey(zc, e + float(c[2])), false)):
+				continue
+			out.append(c)
+		if out.is_empty() and not fallback.is_empty():
+			var mast := _mast(float(fallback[0]))
+			if mast.is_empty():
+				mast = _mast(r0 + COLUMN_IN)
+			out.append(mast if not mast.is_empty() else fallback)
+		result = out
+
+	## The mast of a canopy left without any column (MAST_TOP): right of the road beyond the boards, else beyond the
+	## left shoulder – the first place that covers no board and stands outside the sight corridor; [] when none.
+	func _mast(zc: float) -> Array:
+		var e := float(edges.get(zkey(zc), 0.0))
+		var xs := mast_right(zc, e, signs, r0, r1)
+		var hid := hides(zc, xs, MAST_W)
+		for k in xs.size():
+			if not bool(hid[k]) and not bool(corridor.get(pkey(zc, xs[k]), false)):
+				return [zc, "mast", xs[k] - e]
+		var xl := mast_left(float(left_from.get(zkey(zc), 9.0)))
+		var hl := hides(zc, xl, MAST_W)
+		for k in xl.size():
+			if not bool(hl[k]) and not bool(corridor.get(pkey(zc, xl[k]), false)):
+				return [zc, "mast_l", xl[k]]
+		return []
+
+
+## Main thread: everything the decision of the canopy from r0 to r1 reads from the Track and the TerrainProfile, as a
+## CanopyJob (run() it inline or on a worker).
+static func canopy_job(ctx: ChunkContext, r0: float, r1: float) -> CanopyJob:
+	var tr := ctx.track
+	var job := CanopyJob.new()
+	job.r0 = r0
+	job.r1 = r1
+	var sb := signs_behind(tr, r0, r1)
+	job.signs = sb["signs"]
+	job.boards = sb["boards"]
+	job.plan = column_plan(r0, r1, job.signs)
+	job.seg_len = tr.seg_len
+	if ctx.path != null:
+		job.inv_r1 = ctx.path.inv_r1
+	var kb := tr.segment_index_at(r1 + LOS_FAR) + 3
+	var ka := maxi(0, tr.segment_index_at(r0 - LOS_FAR - 3.0 * LOS_STEP))
+	while ka < kb and tr.get_segment(ka).index != ka:
+		ka += 1
+	job.k0 = ka
+	for k in range(ka, kb + 1):
+		var s := tr.get_segment(k)
+		if s.index != k:
+			break
+		job.curve.append(s.curve)
+	if job.curve.size() < 2:
+		job.curve.clear()          # no path: the decision keeps every column (as without ctx.path)
+	# cameras: the lane centres (and the open fuel lane) on the LOS_STEP grid before the canopy
+	var zc := floorf((r0 - 1.0 - LOS_FAR - LOS_STEP) / LOS_STEP) * LOS_STEP
+	while zc <= r1 + LOS_STEP:
+		var half := tr.lanes_at(zc) * tr.lane_w * 0.5
+		var nl := int(round(tr.lanes_at(zc)))
+		var lx := PackedFloat32Array()
+		for li in nl:
+			lx.append(-half + tr.lane_w * (float(li) + 0.5))
+		if tr.fuel_lane_factor(zc) > 0.5:
+			lx.append(half + tr.lane_w * 0.5)
+		job.lanes[int(round(zc / LOS_STEP))] = lx
+		zc += LOS_STEP
+	# column places: paved edges, outer and mast candidates and their corridor flags
+	var far := outer_place(job.signs, r0 - 1.0, r1 + SIGN_SCAN_M)
+	for c: Array in job.plan:
+		var z := float(c[0])
+		var e := paved_edge_at(tr, z)
+		job.edges[CanopyJob.zkey(z)] = e
+		var left := tr.lanes_at(z) * tr.lane_w * 0.5 + tr.shoulder_w + MAST_LEFT_GAP
+		job.left_from[CanopyJob.zkey(z)] = left
+		var places: Array[float] = [e + far, e + float(c[2])]
+		places.append_array(CanopyJob.mast_right(z, e, job.signs, r0, r1))
+		places.append_array(CanopyJob.mast_left(left))
+		for x: float in places:
+			job.corridor[CanopyJob.pkey(z, x)] = ctx.terrain != null and bend_corridor_at(tr, ctx.terrain, z, x)
+	# the mast may also stand at the front (r0 + COLUMN_IN) – the first entry of the plan is there
+	return job
 var _mats: ModernMaterials
 var _atlas := PanelAtlas.new()
 var _panel_mat: ShaderMaterial
@@ -715,8 +986,17 @@ static func columns_in_chunk(ctx: ChunkContext, cache: Variant = null) -> Array:
 			continue
 		var key := "%.3f" % r0
 		var plan: Array
-		if cache is Dictionary and (cache as Dictionary).has(key):
-			plan = (cache as Dictionary)[key]
+		var got: Variant = (cache as Dictionary).get(key) if cache is Dictionary else null
+		if got is CanopyJob:
+			# decided on a worker since the chunk 600 m before; wait for it (normally long done)
+			var job: CanopyJob = got
+			if job.task >= 0:
+				WorkerThreadPool.wait_for_task_completion(job.task)
+				job.task = -1
+			plan = job.result
+			(cache as Dictionary)[key] = plan
+		elif got is Array:
+			plan = got
 		else:
 			plan = canopy_columns(ctx, r0, r1, cache)
 			if cache is Dictionary:
@@ -736,8 +1016,11 @@ static func columns_in_chunk(ctx: ChunkContext, cache: Variant = null) -> Array:
 				break
 			var key := "%.3f" % r0
 			if not (cache as Dictionary).has(key):
+				# RINT-M2 (A-18): gathered here (main thread), decided on a worker thread
 				var r1 := ceilf(float(zn["z1"]) / len_s) * len_s
-				(cache as Dictionary)[key] = canopy_columns(ctx, r0, r1, cache)
+				var job := canopy_job(ctx, r0, r1)
+				job.task = WorkerThreadPool.add_task(job.run, false, "Modern canopy %.0f" % r0)
+				(cache as Dictionary)[key] = job
 				break
 	return out
 
@@ -751,85 +1034,13 @@ static func columns_in_chunk(ctx: ChunkContext, cache: Variant = null) -> Array:
 ##    QA-R6): on the island, else beyond the boards, else not at all;
 ##  * a canopy left without any column keeps its end column on the island (rather than float; in the network such an end
 ##    column still covers part of a 6–7 px board at 3 canopies, measured with the tools of FIX-R6).
-static func canopy_columns(ctx: ChunkContext, r0: float, r1: float, cache: Variant = null) -> Array:
-	var tr := ctx.track
-	var sb := signs_behind(tr, r0, r1)
-	var signs: Array = sb["signs"]
-	var boards: Array = sb["boards"]
-	var out: Array = []
-	var fallback: Array = []
-	for c: Array in column_plan(r0, r1, signs):
-		var zc := float(c[0])
-		var kind := str(c[1])
-		var e := paved_edge_at(tr, zc)
-		if kind.begins_with("end"):
-			fallback = [zc, "end", PILLAR_X]
-			if ctx.path != null:
-				var cands: Array = [[zc, "end", PILLAR_X], [zc, "end_out", outer_place(signs, r0 - 1.0, r1 + SIGN_SCAN_M)]] \
-					if kind == "end" else [c]
-				var xs: Array[float] = []
-				for q: Array in cands:
-					xs.append(e + float(q[2]))
-				var hides := end_column_hides(tr, ctx.path, zc, xs, boards, cache)
-				var chosen: Array = []
-				for k in cands.size():
-					if not bool(hides[k]):
-						chosen = cands[k]
-						break
-				if chosen.is_empty():
-					continue
-				c = chosen
-				kind = str(c[1])
-		if kind != "front" and kind != "end" and ctx.terrain != null and bend_corridor_at(tr, ctx.terrain, zc, e + float(c[2])):
-			continue
-		out.append(c)
-	if out.is_empty() and not fallback.is_empty():
-		var mast := hang_mast(ctx, float(fallback[0]), signs, boards, r0, r1, cache)
-		if mast.is_empty():
-			mast = hang_mast(ctx, r0 + COLUMN_IN, signs, boards, r0, r1, cache)
-		out.append(mast if not mast.is_empty() else fallback)
-	return out
+static func canopy_columns(ctx: ChunkContext, r0: float, r1: float, _cache: Variant = null) -> Array:
+	var job := canopy_job(ctx, r0, r1)
+	job.run()
+	return job.result
 
 
-## Main thread: the mast that hangs a canopy left without any column (see MAST_TOP) at road position zc – [zc, "mast",
-## x beyond the paved edge] at the first candidate place that covers no board (end_column_hides() with the mast's width)
-## and stands outside the bend's sight corridor; [] when there is none (the canopy keeps its emergency column).
-static func hang_mast(ctx: ChunkContext, zc: float, signs: Array, boards: Array, r0: float, r1: float, cache: Variant = null) -> Array:
-	if ctx.path == null or ctx.track == null:
-		return []
-	var tr := ctx.track
-	var e := paved_edge_at(tr, zc)
-	var off := maxf(outer_place(signs, r0 - 1.0, r1 + SIGN_SCAN_M), CANOPY_OUT + MAST_W) + MAST_STEP
-	var xs: Array[float] = []
-	while off <= CANOPY_OUT + MAST_MAX_OUT:
-		xs.append(e + off)
-		off += MAST_STEP
-	var hides := end_column_hides(tr, ctx.path, zc, xs, boards, cache, MAST_W)
-	for k in xs.size():
-		if bool(hides[k]):
-			continue
-		if ctx.terrain != null and bend_corridor_at(tr, ctx.terrain, zc, xs[k]):
-			continue
-		return [zc, "mast", xs[k] - e]
-	# in a bend to the right every place right of the road lies in some line of sight to a board farther on: the mast
-	# stands on the other side, beyond the left shoulder (outside the bend), and its stays cross high over the road
-	var left := tr.lanes_at(zc) * tr.lane_w * 0.5 + tr.shoulder_w + MAST_LEFT_GAP
-	var xl: Array[float] = []
-	var o := left
-	while o <= left + MAST_MAX_OUT:
-		xl.append(-o)
-		o += MAST_STEP
-	var hl := end_column_hides(tr, ctx.path, zc, xl, boards, cache, MAST_W)
-	for k in xl.size():
-		if bool(hl[k]):
-			continue
-		if ctx.terrain != null and bend_corridor_at(tr, ctx.terrain, zc, xl[k]):
-			continue
-		return [zc, "mast_l", xl[k]]
-	return []
-
-
-## WORKER THREAD. The mast of a canopy without column (hang_mast()): at (zp, cx) from the ground to MAST_TOP with a head
+## WORKER THREAD. The mast of a canopy without column (CanopyJob._mast()): at (zp, cx) from the ground to MAST_TOP with a head
 ## plate, a beam under the canopy edge over to it, and its stays from the mast head to the road edge and the middle of
 ## the canopy's top (e = the paved edge there).
 static func _mast(ctx: ChunkContext, kit: Kit, zp: float, e: float, cx: float) -> void:

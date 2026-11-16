@@ -1668,8 +1668,10 @@ gilt; eine eigene, kürzere Umschaltentfernung je Modell oder Überblenden ist S
 
 Fünf Sets werden auf den Etappen getönt (Einfamilienhaus `#e8b8a4`, Mietshaus `#e0b09c` und `#f6eee2`,
 Gründerzeithaus `#f6eedc` und `#ece4d0`). Der Atlas trägt die ungetönten Farben des Sprites; Albedo × Tönung ergibt
-dasselbe wie das getönte Sprite (Kontaktbogen in der Lieferung). Der Requisiten-Builder tönt bisher nur Platzhalter –
-für die Modelle muss R7 die Tönung als Instanzfarbe auf die gebackene Albedo legen.
+dasselbe wie das getönte Sprite (Kontaktbogen in der Lieferung). Seit der Montage RINT-M2 (Vertrag A-19) bekommt jede
+Modell-Instanz die Tönung der Platzierung (`tint` × `fallback_tint`, sonst Weiß) als MultiMesh-Custom-Data (r, g, b, 1);
+`baked`, `vpbr` (statisch), `leaves` und `billboard` multiplizieren die Albedo damit wie Arcade das Sprite – keine
+Instanz-Uniform (docs/renderer-modern.md §17).
 
 ### Ehrliche Einordnung
 
@@ -1685,5 +1687,5 @@ Noch nicht gut (gemessen auf llvmpipe, „Mittel“): Die Häuser flimmern in Be
 (Fachwerkzeile 1,2–1,4 % der Pixel je Viertelpixel-Schritt bei 40–60 m gegen 0,1 %, Turmhaus 1,4–1,5 %; Giebelzeile
 1,2 % bei 150 m gegen 0,4 %); der Wechsel lod0 → lod1 bei 60 m ändert 13–27 % der Pixel (Fachwerk, Kontor am meisten) –
 weiches Überblenden ist Aufgabe des Renderers (R7); das Foyer des Büroturms leuchtet nachts als gedimmte Fläche ohne
-Auslage; die Tönung der Vororte fehlt den Modellen, bis R7 sie aufträgt. Berichte mit allen Messungen: Lieferordner
+Auslage. Berichte mit allen Messungen: Lieferordner
 von AS5a1 und AS5aR1.
