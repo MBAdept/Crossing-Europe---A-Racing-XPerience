@@ -1143,9 +1143,10 @@ LEAF_RES_M = 4.0          # side of the reserved quad (m); its chart weight give
 
 def _leaf_setup(rig, objs, crowns, spec, stats):
     """The cards of every logged crown whose object name starts with a key of spec (catalog leaf_cards: {prefix:
-    dict(n, half, out, el, crown_w, down, core, atlas)}); the crown object itself shrinks by `core` towards its blobs'
-    centre (it stays inside the cards as the leaf mass). Returns dict(pos, nor, uv, cell, res, seed) or None."""
-    pos, nor, uv, cell, shrunk = [], [], [], [], []
+    dict(n, half, out, el, crown_w, down, core, atlas, n1, half1)}); the crown object itself shrinks by `core` towards
+    its blobs' centre (it stays inside the cards as the leaf mass); n1 > 0: lod1 gets n1 cards of half1 too. Returns
+    dict(pos, nor, uv, cell, res, seed, shrunk, lod1) or None."""
+    pos, nor, uv, cell, shrunk, lod1_sets = [], [], [], [], [], []
     n_crowns = 0
     seed = 0
     for pre, sp in sorted(spec.items()):
@@ -1162,6 +1163,12 @@ def _leaf_setup(rig, objs, crowns, spec, stats):
             nor.append(got[1])
             uv.append(got[2])
             cell.append(got[3])
+            if int(sp.get("n1", 0)) > 0:
+                # lod1 cards: fewer and larger on the same blobs (a house whose lod1 keeps the cut-out class) - the
+                # crown keeps its look at the switch distance
+                g1 = _leaf_cards(blobs, dict(sp, n=int(sp["n1"]), half=float(sp.get("half1", 0.75))), sd + 1)
+                if g1 is not None:
+                    lod1_sets.append(g1)
             n_crowns += 1
             k = float(sp.get("core", 0.92))
             cen = np.mean([b[0] for b in blobs], axis=0)
@@ -1172,8 +1179,13 @@ def _leaf_setup(rig, objs, crowns, spec, stats):
     if not pos:
         return None
     out = dict(pos=np.concatenate(pos), nor=np.concatenate(nor), uv=np.concatenate(uv), cell=np.concatenate(cell),
-               seed=seed, spec=dict(sorted(spec.items())[0][1]), res=_leaf_reserve(rig, LEAF_RES_M), shrunk=shrunk)
-    stats["leaf_cards"] = dict(crowns=n_crowns, tris=int(out["pos"].shape[0]))
+               seed=seed, spec=dict(sorted(spec.items())[0][1]), res=_leaf_reserve(rig, LEAF_RES_M), shrunk=shrunk,
+               lod1=None)
+    if lod1_sets:
+        out["lod1"] = dict(pos=np.concatenate([g[0] for g in lod1_sets]), nor=np.concatenate([g[1] for g in lod1_sets]),
+                           uv=np.concatenate([g[2] for g in lod1_sets]), cell=np.concatenate([g[3] for g in lod1_sets]))
+    stats["leaf_cards"] = dict(crowns=n_crowns, tris=int(out["pos"].shape[0]),
+                               tris_lod1=int(out["lod1"]["pos"].shape[0]) if out["lod1"] else 0)
     return out
 
 
@@ -2364,9 +2376,9 @@ def _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, s
     levels = ["lod0", "lod1"] if spec3d.get("lod1") else ["lod0"]
     lod1_opaque = bool(spec3d.get("lod1_opaque", False))
     objs = objs + far_objs + rail_copies + baked.get("flat", [])
-    if leaf is not None:
-        # the lod1 copies of a crown (lod1_decimate, made from the shrunk lod0 crown) get the generator's size back:
-        # lod1 has no cards round its core
+    if leaf is not None and leaf["lod1"] is None:
+        # the lod1 copies of a crown (lod1_decimate, made from the shrunk lod0 crown) get the generator's size back
+        # when lod1 has no cards round its core
         for name, cen, k in leaf["shrunk"]:
             for o in objs:
                 if o.name == name + "_far":
@@ -2397,6 +2409,11 @@ def _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, s
             patches.add_to(mb, lvl)
         if li == 0 and leaf is not None:
             mb.add("baked_cutout", leaf["pos"], leaf["nor"], uv=_leaf_uv(leaf, size))
+        if li == 1 and leaf is not None and leaf["lod1"] is not None:
+            if lod1_opaque:
+                raise RuntimeError("%s: lod1 leaf cards need lod1 in the cut-out class (no lod1_opaque)" % model_id)
+            mb.add("baked_cutout", leaf["lod1"]["pos"], leaf["lod1"]["nor"],
+                   uv=_leaf_uv(dict(leaf["lod1"], rect=leaf["rect"]), size))
         if li == 0:
             pts0 = mb.points()
         max_d = H.LOD0_M if (li == 0 and len(levels) > 1) else 100000

@@ -620,15 +620,16 @@ MODELS.update({
     # oleanders decimated
     "props/city_french_sud": dict(
         builder="city", source="props/city_french_sud", kind="building", atlas=(1024, 1024), ppm_max=110.0,
-        roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True, lod1_opaque=True,
+        roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True,
         rail_module={"fs_rail": 1.0},
         cut_fill=dict(alpha=0.4, color="#b08a68"),
         decimate={"fs_plane_c": 0.35, "fs_ol0": 0.4, "fs_ol1": 0.4},
         lod1_decimate={"fs_plane_c": 0.3, "fs_ol0": 0.4, "fs_ol1": 0.4},
         vpbr=("fs_gen", "fs_potm", "fs_gate_", "fs_olf", "fs_slab"), levels={"fs_olf": "lod0", "fs_pots": "lod0"},
         smooth=("fs_olf",),
-        # AS5aR2 (KRITIK-5a2 K3): leaf cards on the plane tree's blobs in the cut-out atlas, the crown a core inside
-        leaf_cards={"fs_plane_c": dict(n=230, half=0.5, core=0.9, down=-0.75,
+        # AS5aR2 (KRITIK-5a2 K3): leaf cards on the plane tree's blobs in the cut-out atlas, the crown a core inside;
+        # lod1 keeps the cut-out class and gets fewer, larger cards (no jump of the crown at the switch)
+        leaf_cards={"fs_plane_c": dict(n=230, half=0.5, core=0.9, down=-0.75, n1=80, half1=0.75,
                                        atlas=dict(base=("#5d7f2e", "#86a84a"), gain=0.88))},
         weights=dict(roof=0.5, away=0.3, objects={"fs_plane": 0.3, "fs_ol": 0.3, "fs_wall2": 0.6},
                      solid={"fs_plane_c": 0.3, "fs_ol0": 0.3, "fs_ol1": 0.3}),
@@ -647,10 +648,10 @@ MODELS.update({
     "props/city_french_maison": dict(
         builder="city", source="props/city_french_maison", kind="building", atlas=(1024, 1024), ppm_max=110.0,
         roughness=0.88, view="roadside", ao=AO_CITY, lod1=True,
-        # AS5aR2 (KRITIK-5a2 K3): leaf cards on the garden tree - the cut-out class for lod0 (single_cutout), lod1
-        # opaque with the crown's core
-        single_cutout=True, lod1_opaque=True,
-        leaf_cards={"fm_tree_c": dict(n=170, half=0.5, core=0.9, down=-0.75,
+        # AS5aR2 (KRITIK-5a2 K3): leaf cards on the garden tree - the cut-out class (single_cutout) in both levels,
+        # lod1 with fewer, larger cards
+        single_cutout=True,
+        leaf_cards={"fm_tree_c": dict(n=170, half=0.5, core=0.9, down=-0.75, n1=60, half1=0.75,
                                       atlas=dict(base=("#3f6b28", "#62903a"), gain=0.95))},
         decimate={"fm_tree_c": 0.35, "fm_hyd": 0.4}, lod1_decimate={"fm_tree_c": 0.35, "fm_hyd": 0.5},
         vpbr=("fm_stone", "fm_gate_", "fm_hf", "fm_dorm_fm"), levels={"fm_hf": "lod0"}, smooth=("fm_hf",),
