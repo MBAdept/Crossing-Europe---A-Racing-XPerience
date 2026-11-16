@@ -678,7 +678,7 @@ MODELS.update({
         roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, params={"close3d": True},
         vpbr=("bs_capm",), weights=dict(roof=0.45, away=0.3),
         floors=dict(z=(7.1,), upper=0.8, objects=("bs_body",)),
-        openings=dict(reveal_color="#8f7a6c", sill_color="#cfcabe", n_arc=6), gutters=False),
+        openings=dict(reveal_color="#8f7a6c", sill_color="#cfcabe", n_arc=6, bar_w=0.11), gutters=False),
     # paris (centre): the Haussmann block - rusticated shop floor with arched shop fronts and displays, the cafe with its
     # awning and tables, ashlar storeys with pediments, surrounds and cornices (vpbr), the continuous wrought-iron
     # balconies of the second and fifth floor and the window railings (cut-out), zinc mansard with dormers

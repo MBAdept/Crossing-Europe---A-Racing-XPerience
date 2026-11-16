@@ -2177,7 +2177,9 @@ def dutch_canal_b(rig, p):
     bm = bmesh.new()
     cornice(bm, xa - wa / 2, xa + wa / 2, 0.0, 0.1, 13.0, [(0.12, 0.1), (0.2, 0.3), (0.12, 0.4)])
     if c3d:
-        cornice(bm, xa - wa / 2, xa - wa / 2 + 0.1, 0.1, D - 0.3, 13.0, [(0.12, 0.1), (0.2, 0.3), (0.12, 0.4)])
+        # the flank cornice stops 1 m before the back: running to the back corner it stuck out of the sprite's left
+        # extent in the view of the sprite (0.4 m outset at y = 14 m: extent_m.left 14.36 against 13.96)
+        cornice(bm, xa - wa / 2, xa - wa / 2 + 0.1, 0.1, D - 1.0, 13.0, [(0.12, 0.1), (0.2, 0.3), (0.12, 0.4)])
     mk(rig, "dba_orn", bm, capm)
     bm = bmesh.new()
     bx(bm, xa - 0.9, xa + 0.9, -1.4, 0.0, 0.0, 0.9)

@@ -142,8 +142,12 @@ def _display_mat(base, g, gi, e, cache, sink):
     m, nb = M.new_material("ce_disp%d_%s" % (gi, base.name))
     x, y, z = nb.coords()
     nx, ny, _nz = nb.normal()
-    side = nb.gt(nb.absf(nx), nb.absf(ny))
-    u = nb.mixf(side, x, y)
+    if g.get("face") == "chamfer":
+        # AS5a2: the shop of a cut corner - wallmat's u of the face "chamfer" (x - y) / sqrt 2 (x or y gave stripes)
+        u = nb.mul(nb.sub(x, y), 0.70711)
+    else:
+        side = nb.gt(nb.absf(nx), nb.absf(ny))
+        u = nb.mixf(side, x, y)
     u0, pu, z0, pz = float(g["u0"]), float(g["pu"]), float(g["z0"]), float(g["pz"])
     wu, wz = (float(v) for v in g["win"])
     sill = float(g.get("sill", (pz - wz) * 0.5))
