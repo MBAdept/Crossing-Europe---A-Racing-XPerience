@@ -28,7 +28,7 @@
      {
       "node": "body",
       "mesh": "props/city_paris_haussmann/lod1_body.res",
-      "classes": ["vpbr", "baked_cutout"]
+      "classes": ["vpbr", "baked"]
      }
     ]
    }
@@ -37,8 +37,8 @@
   "roughness": 0.86,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "paris", "center"],
-  "bytes": 463729,
-  "hash": "2d4f77e80ac2a7dda39c1343f4576f9770516f56"
+  "bytes": 457936,
+  "hash": "649cf51ba9f23c567f6c1e238c8078ef96b63266"
  },
  "sets": {
   "props/city_paris_haussmann": {"model": "props/city_paris_haussmann"}

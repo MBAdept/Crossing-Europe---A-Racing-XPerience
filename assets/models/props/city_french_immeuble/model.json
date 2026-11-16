@@ -28,7 +28,7 @@
      {
       "node": "body",
       "mesh": "props/city_french_immeuble/lod1_body.res",
-      "classes": ["vpbr", "baked_cutout"]
+      "classes": ["vpbr", "baked"]
      }
     ]
    }
@@ -37,8 +37,8 @@
   "roughness": 0.86,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "french", "center"],
-  "bytes": 360751,
-  "hash": "21d14374c5ce72295847cd0bb8b457cf3144d159"
+  "bytes": 358687,
+  "hash": "714de735fe81e99460a9e5541012f5ef33e92c34"
  },
  "sets": {
   "props/city_french_immeuble": {"model": "props/city_french_immeuble"}
