@@ -2438,11 +2438,15 @@ für die Modellnacharbeit.
 ### 17.9 Bekannte Lücken (Stand RINT-M2)
 
 - Lack: Kompakt nachts satter, Gran Turismo im Regen blasser als Arcade (17.8).
+- Lack in der Abenddämmerung (19:30): die Limousine wirkt grau-lila statt Blau – Heck und Dach im A/B-Bild Farbton
+  271–276° statt Arcades 242°, Sättigung 0,27–0,28 / 0,29, Helligkeit 0,30 / 0,37 (Hamburg Mitte, Kiel Stadtrand;
+  am Tag 217° / 222°). Vermutlich spiegelt der Abendhimmel zu stark im Lack (gefolgert).
 - Abblendlicht: keine Hell-Dunkel-Grenze wie Arcades Kegel (Lichtkegel weich).
 - Grenzstation Amsterdam – Lüttich km 210,175: eine Endstütze verdeckt die Tafel „town_ahead“ zu 22 % (keine
   Spieltafel nach A-18, gemeldet).
+- Tankstelle: `collect()` höchstens 2,40 ms auf „Deck“ (Ziel 2 ms; das erste Dach einer Station, §17.5).
 - Geländewasser unter Brücken (FIX-R5 8.6) und Mondlichtstreifen am Portalhügel (NACH-R5 N-01) offen.
-- Kurveninnenseiten in Bergetappen: Sichtkorridor nach A-17 kommt mit R7.
+- Kurveninnenseiten in Bergetappen: Sichtkorridor nach A-17 kommt mit R7 (A/B T1–T4: Bäume und Felsen innen fehlen).
 - Lackflackern des weißen Autos (Testbuild 1): pausiert (A-21).
 
 ### 17.10 Prüfungen
