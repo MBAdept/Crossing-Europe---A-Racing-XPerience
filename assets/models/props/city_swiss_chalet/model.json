@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/city_swiss_chalet",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 14.7, "height_m": 8.67, "length_m": 11},
+  "extent_m": {"left": 11.47, "right": 7.49},
+  "aabb": [-7.394, 0, -11.8, 7.394, 8.526, 1.8],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 3128,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_swiss_chalet/lod0_body.res",
+      "classes": ["vpbr", "baked_cutout"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 1280,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_swiss_chalet/lod1_body.res",
+      "classes": ["vpbr", "baked_cutout"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/city_swiss_chalet/albedo.png", "emit": "props/city_swiss_chalet/emit.png"},
+  "roughness": 0.86,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left", "swiss", "outskirts"],
+  "bytes": 751452,
+  "hash": "0bd8a1f073635d184c3dea3ff0b7b7693109a912"
+ },
+ "sets": {
+  "props/city_swiss_chalet": {"model": "props/city_swiss_chalet"}
+ }
+}
