@@ -2389,15 +2389,23 @@ dem Dach), sonst links jenseits des Seitenstreifens mit Zugstangen 7–9 m über
 `scan_f1` über das ganze Netz: Paare an Tankstellen-Endstützen 38 → 3, keines ≥ 6 px.
 `ChunkStreamer.stats()` → `collect_by` misst die Hauptfadenzeit von `collect()` je Baustein. Gemessen (DEV, „Steam
 Deck“, llvmpipe unter Last): Tankstelle bis 3,4 ms in einem Bild, über dem Budget von 2 ms. Der Entscheid der Stützen
-läuft darum als `StationBuilder.CanopyJob`: der Hauptfaden sammelt nur, was er aus der Strecke liest, verteilt auf zwei
-`collect()`-Aufrufe (`canopy_job_begin()`: Schilder, Tafeln, Krümmungen; `canopy_job_rest()`: Spuren an jeder
-Kamerastelle, Fahrbahnkanten – je etwa 1 ms); die Sichtlinien rechnet ein Arbeitsfaden (gestartet, wenn `collect()` ein
-Dach vorausschaut), auf einem eigenen Pfad ab dem ersten Segment, das er braucht – deckungsgleich mit dem des
-Streamers, also unabhängig vom Startort (`startdep`: 1909 Dächer, 0 abweichende Entscheide; vorher 43). Die
-Korridor-Merker der Stellen (TerrainProfile) liest `CanopyJob.finish()` erst, wenn die Stützen des Dachs gebraucht
-werden: 600 m voraus gelesen ließen sie das Geländeprofil dort seine Zeilen rechnen (bis 17 ms in einem Bild, Sonde;
-im Rennen `collect()` der Tankstelle bis 8,0 ms), beim Stück des Dachs gibt es diese Zeilen ohnehin. Netzweit dieselben
-Stützen (`scan_f1`: 3486). Gemessen §17.10.
+läuft darum als `StationBuilder.CanopyJob`:
+- Der Hauptfaden sammelt nur, was er aus der Strecke liest, in zwei Hälften (`canopy_job_begin()`: Schilder, Tafeln,
+  Krümmungen; `canopy_job_rest()`: Spuren an jeder Kamerastelle, Fahrbahnkanten). `collect()` beginnt eine weitere
+  Hälfte nur, solange der Aufruf weniger als `WARM_BUDGET_MS` (0,5 ms) gebraucht hat, für die Dächer bis
+  `WARM_AHEAD_M` (600 m) voraus. Die Dächer einer Station teilen Schilder, Krümmungen und Kamerastellen über den Cache des
+  Bausteins („_signs“, „_curve“, „_lanes“): das erste Dach einer Station kostet zwei Hälften zu je 1,1–1,5 ms, jedes
+  weitere 0,2–0,6 ms (gemessen, Testetappe „Steam Deck“).
+- Die Sichtlinien rechnet ein Arbeitsfaden (`run()`), auf einem eigenen Pfad ab dem ersten Segment, das er braucht –
+  deckungsgleich mit dem des Streamers, also unabhängig vom Startort (`startdep`: 1909 Dächer, 0 abweichende Entscheide;
+  vorher 43).
+- Die Korridor-Merker der Stellen (TerrainProfile) liest `CanopyJob.finish()` auf dem Hauptfaden erst, wenn die Stützen
+  des Dachs gebraucht werden (beim Stück des Dachs gibt es diese Zeilen ohnehin).
+- Verworfen (gemessen): 2000 m Vorlauf – das Sammeln ließ die Strecke 1,4 km zu früh erzeugen (18 ms in einem Bild);
+  Korridor-Merker beim Sammeln – das Geländeprofil rechnete seine Zeilen 600 m voraus (bis 17 ms).
+- Entscheide unverändert: `scan_f1` netzweit zeilengleich (3486 Stützen), Sonde `jobpath` (Streaming-Reihenfolge mit
+  Arbeitsfaden und Cache gegen inline) 1909 Dächer, 0 verschieden. `collect()` der Tankstelle auf der Testetappe:
+  vorher bis 3,4 ms (inline) bzw. 8,0 ms (erster Arbeitsfaden-Stand), jetzt höchstens 2,4 ms, Mittel 0,14 ms (§17.10).
 
 ### 17.6 Lichtebenen (A-18)
 
