@@ -109,6 +109,7 @@ var _commit_steps := 0
 var _frame_commit_us := 0          ## FIX-RINT: commit time of the current frame (all steps of one update())
 ## FIX-RINT (B-01): main-thread time of each builder's commit() – id -> [sum us, max us, calls]
 var _commit_by: Dictionary = {}
+var _update_us_max: Dictionary = {}  ## FIX-RINT (F-08): part of update() -> longest µs
 var _rebases := 0
 var _restarts := 0
 
@@ -201,6 +202,7 @@ func update(cam_z: float, visibility_m: float) -> void:
 	# every frame a little: the path always reaches as far as the farthest chunk that can be collected needs it
 	# (clearance, valley floor, late signs), so collecting a chunk never has to generate road
 	var ahead := int(_ahead_m() / seg_len)
+	var tu := Time.get_ticks_usec()
 	path.ensure(cam_seg + ahead)
 	if path.last() < cam_seg:
 		# the road between the old path and the camera is gone from the track window (a jump ahead)
@@ -212,13 +214,16 @@ func update(cam_z: float, visibility_m: float) -> void:
 		cam_z = float(cam_seg) * seg_len
 	if path.origin_distance(cam_seg) > rebase_m:
 		_rebase(cam_seg)
+	tu = _part_us("path", tu)
 	var moved := cam_seg != _last_cam_seg or absf(visibility_m - _last_vis) > 0.5
 	if moved:
 		_last_cam_seg = cam_seg
 		_last_vis = visibility_m
 		_free_behind(cam_z)
+		tu = _part_us("free", tu)
 		_wanted = _compute_wanted(cam_z, cam_seg, visibility_m)
 		_trim(cam_seg)
+		tu = _part_us("wanted", tu)
 	var at_once := sync or not _loaded
 	# collect: everything at once at load / in sync mode, else one chunk per update
 	var collected := false
@@ -231,6 +236,7 @@ func update(cam_z: float, visibility_m: float) -> void:
 			collected = true
 			if not at_once:
 				break
+	tu = _part_us("collect", tu)
 	if at_once:
 		flush()
 		_loaded = true
@@ -265,6 +271,16 @@ func update(cam_z: float, visibility_m: float) -> void:
 		if Time.get_ticks_usec() - t0 >= budget_us:
 			break
 	_commit_us_max = maxi(_commit_us_max, _frame_commit_us)
+	_part_us("commit", tu)
+
+
+## FIX-RINT (QA-RINT-BILD F-08): the longest time of each part of update() – "path" (generation, rebase), "free"
+## (chunks behind the camera), "wanted", "collect", "commit" (with the builds finished on the main thread) – for
+## stats()["update_ms_max"]: the streamer's hitches of up to 17 ms (Kiel – Hamburg, Deck) name their part.
+func _part_us(part: String, t0: int) -> int:
+	var now := Time.get_ticks_usec()
+	_update_us_max[part] = maxi(int(_update_us_max.get(part, 0)), now - t0)
+	return now
 
 
 ## Builds and commits everything that is collected, now (load, sync mode, tests).
@@ -318,7 +334,14 @@ func stats() -> Dictionary:
 		"collect_ms_avg": float(_collect_us_sum) / maxf(1.0, float(_collects)) / 1000.0, "collect_ms_max": float(_collect_us_max) / 1000.0,
 		"commit_ms_avg": float(_commit_us_sum) / maxf(1.0, float(_commits)) / 1000.0, "commit_ms_max": float(_commit_us_max) / 1000.0,
 		"commits": _commits, "commit_steps": _commit_steps, "rebases": _rebases, "restarts": _restarts,
-		"collect_by": _collect_by_ms(), "commit_by": _by_ms(_commit_by)}
+		"collect_by": _collect_by_ms(), "commit_by": _by_ms(_commit_by), "update_ms_max": _update_ms_max()}
+
+
+func _update_ms_max() -> Dictionary:
+	var out := {}
+	for k: Variant in _update_us_max:
+		out[str(k)] = snappedf(float(_update_us_max[k]) / 1000.0, 0.001)
+	return out
 
 
 ## collect() per builder: id -> {"avg_ms", "max_ms", "n"} (RINT-M2, A-18).
@@ -351,6 +374,7 @@ func reset_stats() -> void:
 	_commit_steps = 0
 	_frame_commit_us = 0
 	_commit_by.clear()
+	_update_us_max.clear()
 
 
 ## The chunk node of a chunk index (null when it is not committed – also while it is being committed, B-01).

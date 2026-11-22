@@ -1145,6 +1145,11 @@ func _set_environment(pal: Dictionary) -> void:
 				and (pc as Car).lod != VehicleStandIn.KIND_BOX:
 			ModelFactory.apply_paint((pc as Car).node, ModernMaterials.player_paint(ModelDB.resolve((pc as Car).set_id).get("paint", {}), nt,
 				(pc as Car).set_id))
+			# FIX-RINT (F-06): and its fill (a set of ModernMaterials.VEHICLE_PLAYER_NIGHT has its own share at night)
+			var pf := ModernMaterials.player_fill((pc as Car).set_id, nt)
+			for gi: GeometryInstance3D in (pc as Car).geo:
+				if is_instance_valid(gi):
+					gi.set_instance_shader_parameter(&"fill", pf)
 	var top: Color = pal.get("sky_top", Color(0.11, 0.36, 0.79))
 	var bottom: Color = pal.get("sky_bottom", Color(0.73, 0.87, 0.96))
 	var amb: Color = pal.get("ambient", Color.WHITE)
@@ -1429,7 +1434,7 @@ func _set_level(car: Car, lod: String) -> void:
 				car.roll_nodes.append([gi, gi.transform])
 	_apply_casting(car)
 	# readability of the player car (Arcade brightens its player sprite as well) and a matt coat on the stand-in
-	var fill := PLAYER_FILL if car.id == PLAYER_ID and lod != VehicleStandIn.KIND_BOX else 0.0
+	var fill := ModernMaterials.player_fill(car.set_id, _paint_night) if car.id == PLAYER_ID and lod != VehicleStandIn.KIND_BOX else 0.0
 	var gloss := BOX_GLOSS if lod == "box" else 1.0
 	for gi: GeometryInstance3D in car.geo:
 		if fill > 0.0:

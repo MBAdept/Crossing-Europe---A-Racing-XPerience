@@ -243,6 +243,9 @@ func test_player_paint_is_desaturated() -> void:
 	assert_true(sw_night.s < Color("#cc1419").s - 0.2 and sw_night.v < Color("#cc1419").v, "Sportwagen nachts weniger gesättigt und dunkler (%.2f / %.2f)" % [
 		sw_night.s, sw_night.v])
 	assert_eq(str(ModernMaterials.player_paint(red, 1.0, "player/limousine")["paint"]).to_lower(), "#cc1419", "ohne Eintrag nachts unverändert")
+	assert_near(ModernMaterials.player_fill("player/sportwagen", 0.0), ModernMaterials.VEHICLE_PLAYER_FILL, 1.0e-6, "Füllung bei Tag wie alle")
+	assert_true(ModernMaterials.player_fill("player/sportwagen", 1.0) < ModernMaterials.VEHICLE_PLAYER_FILL * 0.6, "Sportwagen nachts weniger Füllung")
+	assert_near(ModernMaterials.player_fill("player/limousine", 1.0), ModernMaterials.VEHICLE_PLAYER_FILL, 1.0e-6, "ohne Eintrag unverändert")
 
 
 func test_flare_points_merge_rear_lamps() -> void:

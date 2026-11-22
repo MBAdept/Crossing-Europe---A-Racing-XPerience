@@ -2522,12 +2522,25 @@ Lampen-Elternknoten, der noch nicht im Baum ist, und vergessen einen, der ihn ve
 halb eingehängtes Stück, das verworfen wird). `stats()` meldet `commit_steps` und `commit_by` (Zeit je Baustein);
 `commit_ms_max` ist jetzt die Einhängezeit eines Bildes. Der Leistungstest schreibt je Szene `chunk_commit_ms_max`,
 `collect_ms_max_by` und `commit_ms_max_by` – das Budget wird auf dem Gerät gemessen, nicht auf der geteilten VM.
+Gemessen (Kiel – Hamburg ganz, „Steam Deck“, Xvfb, Zeitraffer 16, Last 7–11): Einhängen höchstens 3,24 ms je Bild
+(QA vorher auf demselben Lauf 8,96 ms), 95 Stücke in 100 Schritten, längster einzelner Baustein `road` 2,37 ms;
+Regel 3 hält (Prüfsumme der 347 Sekunden gleich v0.7.0). `stats()["update_ms_max"]` nennt die längste Zeit jedes Teils
+von `update()` (Pfad, Freigeben, Auswahl, Sammeln, Einhängen) – für die verbliebenen Stöße des Streamers (bis 17 ms
+auf dieser VM, `perf_stats()["spikes"]`).
 
 ### 18.3 Weitere Änderungen
 
 - **Tankstelle nachts (F-05):** `builders/station.gd` legt Arcades Lichtschicht des Tankstellen-Sprites nach: ein
-  warmes Lichtvolumen unter dem Vordach des Shops (vier Leuchtscheine) und die drei Schaufenster (Flare-Ebene, nur
-  nachts).
+  warmes Lichtvolumen unter dem Vordach des Shops (vier Leuchtscheine, `SHOP_VOLUME_*`) und die drei Schaufenster
+  (`SHOP_WINDOW_*`) – Flare-Ebene, nur nachts, `"halo": 1` (keine beleuchtete Geometrie dahinter: volle Stärke auch nah
+  an der Kamera). Gemessen (Kiel – Hamburg km 14,3 → Tankstelle, 21 Uhr, „Hoch“, Bildzone x 780–1280, y 250–460):
+  Arcade 96,4, vorher 74,7 (0,77 ×), jetzt 91,6 (0,95 ×). Die Prüfung `tankstelle` misst um 21 Uhr zusätzlich die
+  Tankstelle als Ganzes (Dächer, Vorplatz, Shop; mindestens 0,85 × Arcade).
+- **Spielerautos nachts (F-06):** `ModernMaterials.VEHICLE_PLAYER_NIGHT` – je Set ein eigener Nachtanteil
+  (Entsättigung, Helligkeit des Lacks, Anteil der Füllung und damit des Klarlack-Glanzes); nur der rote Sportwagen hat
+  einen Eintrag (0,5 / 0,7 / 0,2): nachts im Regen vorher 1,19 × Arcades Leuchtdichte bei 1,83 × Sättigung, jetzt
+  1,01 × / 1,21 ×. Die Prüfung `spielerauto` umfasst jetzt alle fünf Autos; rote Lacke misst sie in der oberen
+  Hälfte des Autos ohne Farbtonregel (die Farbtonregel hielt roten Lack für Lampenschein).
 - **`collect()` der Tankstelle (B-03):** `canopy_job_rest()` hält die Frist von `WARM_BUDGET_MS` ein und macht im
   nächsten `collect()` weiter.
 - **Stöße (F-08):** `perf_stats()["spikes"]` – die zwölf längsten Teile eines Bildes über 8 ms mit Etappen-km; der
