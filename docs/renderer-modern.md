@@ -2557,7 +2557,8 @@ Jenseits von L bleiben nachts nur seine leuchtenden Pixel. Prüfungen: `check_la
 - Fernsehturm: Schaft in drei Kegelstümpfen, Kugel mit Fensterring (nachts warm), oberer Schaft, Antenne mit
   rot-weißen Bändern, rote Flugwarnlichter bei 252 m (fest) und 300 / 368 m (1,5 s blinkend) – wie Arcade.
 - Leuchtturm: weißer Turm mit Fenstern, Wärterhaus mit Dach, schwarze Galerie, Laternenraum (nachts hell), Kuppel; das
-  Feuer blitzt viermal je Umdrehung (15 s).
+  Feuer blitzt viermal je Umdrehung (15 s), dazu Arcades vier kreisende Lichtstrahlen (240 m, flache Bänder, die sich
+  um ihre Achse zur Kamera drehen; CE_GLOW Art 3).
 - Hochhausgruppe: fünf Türme mit Glasfassade (Geschossbänder alle 4 m, Pfosten alle 3 m im Shader, nachts 35 % der
   Fenster hell wie Arcade), Mast oder Pyramide, blinkendes Flugwarnlicht je Turm.
 Dreiecke (gemessen): Kuppelkirche 1.626–1.636, Fernsehturm 1.012, Leuchtturm 246, Hochhausgruppe 124 (die Fassade
@@ -2590,5 +2591,5 @@ erst, wenn die Etappe vorbereitet ist (vorher steht die Kamera noch nicht im Sta
 | `tests/race3d/render/check_landmarks_render.gd` | „wahrzeichen_stelle“ (Pixel des Wahrzeichens in Arcades Bild desselben Zustands gesucht: Versatz ≤ 5 % der Bildbreite), „wahrzeichen_weich“, „wahrzeichen_nacht“ |
 | `tests/race3d/check_minimal_structures.gd` | „wahrzeichen“ verweist auf die Prüfungen oben, sobald es den Builder gibt |
 
-Offen: Modelle der Wahrzeichen (AS6); Lichtkegel des Leuchtturms als Strahlen (heute ein blitzender Punkt);
-Wahrzeichen-Modelle mit Glas- oder Laubflächen blenden diese Flächen nicht weich aus.
+Offen: Modelle der Wahrzeichen (AS6); Wahrzeichen-Modelle mit Glas- oder Laubflächen blenden diese Flächen nicht
+weich aus.

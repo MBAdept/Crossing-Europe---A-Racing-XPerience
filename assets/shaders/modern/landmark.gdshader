@@ -41,7 +41,7 @@ render_mode unshaded, cull_disabled, depth_draw_opaque, shadows_disabled;
 render_mode unshaded, cull_disabled, blend_add, depth_draw_never, shadows_disabled;
 #else
 #ifdef CE_BLEND
-render_mode cull_back, blend_mix, depth_draw_opaque;
+render_mode cull_back, blend_mix, depth_draw_always;
 #elif defined(CE_CUTOUT)
 render_mode cull_disabled;
 #else
