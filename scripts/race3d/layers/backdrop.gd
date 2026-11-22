@@ -357,6 +357,10 @@ func skyline(view: Dictionary, heading: float) -> Array:
 	var cam_z := float(view.get("camera_z", 0.0))
 	if sky.is_empty() or not track.is_city_at(cam_z + proj.cam_distance):
 		return []
+	# a silhouette is anchored when first seen: not before the camera stands where the stage shows it (while the stage
+	# is prepared the camera's yaw is not yet the one of the start view)
+	if _renderer.has_method(&"is_prepared") and not bool(_renderer.call(&"is_prepared")):
+		return []
 	var vis := float(view.get("visibility_m", _draw_distance))
 	var l := clampf(vis * _lm_law.x, minf(vis, 600.0), maxf(_lm_law.y, vis))
 	var out: Array = []

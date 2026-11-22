@@ -13,11 +13,14 @@ extends SceneTree
 ##               of the frame width (contract §6 wave 5, acceptance of R7); a picture and a model
 ##   prozedural  Belgrad: Arcade's procedural landmark (no sprite, no model) stands as its 3D shape (domed_church)
 ##   weich       far away (beyond 0.70 of the landmark range) the landmark draws with its translucent material
+##   skyline     Paris, City Limits km 376: the backdrop shows the skyline of cities.json (Sacré-Cœur at full strength,
+##               the Eiffel tower – a landmark on the road 1.85 km ahead, just beyond its range – faint, fading out as
+##               the 3D landmark comes into range: no double); outside the City Limits (km 300) none
 ## Prints "CHECK <name> OK|FEHLER …" per check; exit code 0 when all pass.
 ## (The scene and the autoloads are accessed untyped: -s scripts compile before the autoloads exist.)
 
 const RACE := "res://scenes/race/race.tscn"
-const CHECKS := ["reichweite", "nacht", "position", "prozedural", "weich"]
+const CHECKS := ["reichweite", "nacht", "position", "prozedural", "weich", "skyline"]
 const Fair := preload("res://tests/race3d/fairness.gd")
 ## Landmarks with a straight approach of 640 m: [stage, from, landmark set] (a scan of every stage direction; the city
 ## arrivals of the ten A/B cities all bend, |curve| 0.11–0.29, within the last 640 m)
@@ -283,3 +286,26 @@ func _check_weich() -> void:
 	_need(p, far >= 1, "ein Wahrzeichen im Ausblendbereich (%d)" % far)
 	await _free(sc)
 	_report("weich", p, "km 76: %d Wahrzeichen jenseits von 0,70 L = %.0f m durchscheinend, %d näher deckend" % [far, 0.70 * l, near])
+
+
+func _check_skyline() -> void:
+	var p: Array[String] = []
+	var sc: Node = await _launch({"stage_id": "luettich_paris", "from_city": "luettich", "start_km": 376.0})
+	var r: Object = sc.get("renderer")
+	var bd: Object = r.call("layer", "backdrop")
+	var sky: Array = (((bd.call("snapshot") as Dictionary).get("backdrop", {}) as Dictionary).get("skyline", []) as Array)
+	var by_set := {}
+	for e: Dictionary in sky:
+		by_set[str(e["set"])] = e
+	_need(p, by_set.has("landmarks/sacre_coeur") and float((by_set.get("landmarks/sacre_coeur", {}) as Dictionary).get("alpha", 0.0)) > 0.99,
+		"Sacré-Cœur in der Skyline (%s)" % str(by_set.get("landmarks/sacre_coeur")))
+	var eiffel: Dictionary = by_set.get("landmarks/eiffel_tower", {})
+	_need(p, not eiffel.is_empty() and float(eiffel.get("alpha", 1.0)) < 0.5, "Eiffelturm in der Skyline schwach, das Wahrzeichen kommt in Reichweite (%s)" % str(eiffel))
+	await _free(sc)
+	sc = await _launch({"stage_id": "luettich_paris", "from_city": "luettich", "start_km": 300.0})
+	r = sc.get("renderer")
+	bd = r.call("layer", "backdrop")
+	var outside: Array = (((bd.call("snapshot") as Dictionary).get("backdrop", {}) as Dictionary).get("skyline", []) as Array)
+	_need(p, outside.is_empty(), "außerhalb der City Limits keine Skyline (%d)" % outside.size())
+	await _free(sc)
+	_report("skyline", p, "Paris km 376: %s; km 300: keine" % ", ".join(sky.map(func(e: Dictionary) -> String: return "%s %.2f bei x %.0f" % [str(e["set"]).get_file(), float(e["alpha"]), float(e["x"])])))

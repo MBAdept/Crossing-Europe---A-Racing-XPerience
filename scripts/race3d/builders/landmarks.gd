@@ -513,48 +513,65 @@ func model_materials(cls: String, src: Material, tint: Color, _md: Dictionary) -
 	return out
 
 
-## Hook of the renderer: every material variant the stage's landmarks use, drawn once behind the loading cover
-## (a quad each – the variant is a matter of the shader, not of the mesh; opaque ones also as shadow casters).
+## Hook of the renderer: every material variant the stage's landmarks use, on the real meshes (a vertex layout of its
+## own can select a program variant of its own), each opaque one also as a shadow caster, shown once behind the
+## loading cover and freed by the renderer. Small (about 2 m): they stand in front of the camera.
 func warmup_nodes() -> Array:
 	var out: Array = []
 	if _track == null or not _lib().ready():
 		return out
 	if not _resolved:
 		_resolve()
-	var used := {}
+	var done := {}
 	for p: Dictionary in _plans:
 		match int(p["rep"]):
 			PICTURE:
-				used["picture"] = true
+				var st := _lib().standin(str(p["set"]))
+				if not st.is_empty() and not done.has("picture"):
+					done["picture"] = true
+					var pair := picture_materials(st["material"], Color.WHITE)
+					for b in 2:
+						out.append(_warm_node(st["mesh"], -1, pair[b], b == 1, false, 2.0 / maxf(1.0, (st["mesh"] as Mesh).get_aabb().size.y)))
 			PROC:
-				used["vcol"] = true
-				if _proc(str(p["proc_key"]), p["item"]).get("glow_mesh") != null:
-					used["glow"] = true
+				var key := "proc|" + str(p["proc_key"])
+				if done.has(key):
+					continue
+				done[key] = true
+				var pm := _proc(str(p["proc_key"]), p["item"])
+				var mesh: Mesh = pm["mesh"]
+				var k := 2.0 / maxf(1.0, mesh.get_aabb().size.y)
+				for b in 2:
+					out.append(_warm_node(mesh, -1, _material("vcol", b == 1), b == 1, b == 0, k))
+				if pm.get("glow_mesh") is Mesh:
+					out.append(_warm_node(pm["glow_mesh"], -1, _material("glow", false), true, false, k))
 			MODEL:
+				var key := "model|" + str(p["model"])
+				if done.has(key):
+					continue
+				done[key] = true
 				var md: Dictionary = _lib().models.get(str(p["model"]), {})
 				var reps: Array = md.get("reps", [])
 				for pv: Variant in (_lib().mesh_parts(str(p["model"]), str(reps[0])) if not reps.is_empty() else []):
 					var mesh: Mesh = (pv as Dictionary)["mesh"]
+					var k := 2.0 / maxf(1.0, mesh.get_aabb().size.y)
 					for si in mesh.get_surface_count():
-						match surface_class(mesh, si):
-							"baked":
-								used["atlas"] = true
-							"baked_cutout":
-								used["atlas_cutout"] = true
-							"vpbr", ModernMaterials.VPBR_STATIC:
-								used["vcol"] = true
-	var quad := PropLibrary.standin_mesh(2.0, 2.0, 0.5, 1.0)
-	for v: String in used:
-		for blend: bool in ([false] if v == "glow" else [false, true]):
-			var mi := MeshInstance3D.new()
-			mi.mesh = quad
-			var m := _material(v, blend)
-			m.set_shader_parameter("lm_fade", Vector4(0.5 if blend else 1.0, 0.2, 0.5, 0.2))
-			mi.material_override = m
-			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if not blend and v != "picture" and v != "glow" \
-				else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-			out.append(mi)
+						var pair := model_materials(surface_class(mesh, si), mesh.surface_get_material(si), Color.WHITE, md)
+						for b in (2 if not pair.is_empty() else 0):
+							out.append(_warm_node(mesh, si, pair[b], b == 1, b == 0, k))
 	return out
+
+
+func _warm_node(mesh: Mesh, surface: int, mat: Material, blend: bool, casts: bool, k: float) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	if surface < 0:
+		mi.material_override = mat
+	else:
+		mi.set_surface_override_material(surface, mat)
+	(mat as ShaderMaterial).set_shader_parameter("lm_fade", Vector4(0.5 if blend else 1.0, 0.2, 0.5, 0.2))
+	mi.scale = Vector3.ONE * k
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if casts else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return mi
 
 
 # --- procedural shapes ----------------------------------------------------------------------------------------------
