@@ -128,8 +128,8 @@ func test_procedural_shapes() -> void:
 	var cases := [
 		{"proc": "tv_tower", "height_m": 209.0, "scale": 1.0, "glows": 3, "slim": true},
 		{"proc": "lighthouse", "height_m": 51.0, "scale": 1.0, "glows": 1, "slim": true},
-		{"proc": "domed_church", "height_m": 98.0 * 0.65, "scale": 1.0, "wall": "#e4dccc", "dome": "#6f9c86", "cross": false, "glows": 0, "slim": false},
-		{"proc": "domed_church", "height_m": 82.0, "scale": 1.0, "wall": "#f0ece2", "dome": "#6f9c86", "glows": 0, "slim": false},
+		{"proc": "domed_church", "height_m": 98.0 * 0.65, "scale": 1.0, "wall": "#e4dccc", "dome": "#6f9c86", "cross": false, "glows": 1, "slim": false},
+		{"proc": "domed_church", "height_m": 82.0, "scale": 1.0, "wall": "#f0ece2", "dome": "#6f9c86", "glows": 1, "slim": false},
 		{"proc": "skyscrapers", "height_m": 250.0, "scale": 1.0, "glows": 5, "slim": false}]
 	for c: Dictionary in cases:
 		var out: Dictionary = Landmarks.proc_mesh(c)

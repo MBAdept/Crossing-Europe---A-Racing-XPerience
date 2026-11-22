@@ -627,7 +627,7 @@ static func _domed_church(kit: ShapeKit, wall: Color, dome: Color, cross: bool) 
 	var win := wall.darkened(0.45)
 	var dome_d := dome.darkened(0.25)
 	var dz := -22.0                   # the body's middle (depth 44 m)
-	kit.set_paint(wall, 0.85, 0.0, 14, 0.55)
+	kit.set_paint(wall, 0.85, 0.0, 14, 0.42)
 	kit.box(Vector3(-32.0, 0.0, -44.0), Vector3(32.0, 30.0, 0.0))
 	kit.set_paint(wall.darkened(0.25), 0.85, 0.0, 14, 0.4)
 	kit.box(Vector3(-32.6, 28.8, -44.6), Vector3(32.6, 30.4, 0.6))
@@ -679,6 +679,8 @@ static func _domed_church(kit: ShapeKit, wall: Color, dome: Color, cross: bool) 
 	kit.box(Vector3(-0.3, 74.0, dz - 0.3), Vector3(0.3, 80.0, dz + 0.3))
 	if cross:
 		kit.box(Vector3(-1.6, 77.75, dz - 0.25), Vector3(1.6, 78.25, dz + 0.25))
+	# Arcade's warm glow round the main dome at night (RoadRenderer._lm_domed: radius 16 m, alpha 0.4)
+	kit.glow(Vector3(0.0, 56.0, dz), Color(1.0, 0.82, 0.5), 0.4, 16.0, 4.0, Vector4(0.0, 0.0, 0.0, 0.0))
 
 
 ## Television tower (RoadRenderer._lm_tv, reference height 368 m – the Berlin Fernsehturm; Arcade scales it for every

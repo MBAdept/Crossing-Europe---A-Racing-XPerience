@@ -280,6 +280,7 @@ void fragment() {
 	float w = UV2.y;
 	vec3 emis = vec3(0.0);
 	float la = 0.0;
+	float fl_keep = 0.0;
 	if (ch == 16) {
 		// glass facade: floor bands every 4 m, mullions every 3 m (model metres), random lit windows at night
 		vec3 n = abs(normalize(v_onrm));
@@ -306,7 +307,9 @@ void fragment() {
 		la = w;
 		emis = alb * w;
 	} else if (ch == 14) {
-		emis = alb * flood_light * (w * lights);
+		// Arcade lays its floodlight over the hazed picture: the lit share keeps its light through the haze
+		fl_keep = w * lights;
+		emis = alb * flood_light * fl_keep;
 	} else if (ch == 10 || ch == 11) {
 		float on = mod(ce_time + (ch == 11 ? 0.75 : 0.0), 1.5) < 0.75 ? 1.0 : 0.0;
 		la = w * lights * on;
@@ -331,7 +334,7 @@ void fragment() {
 	METALLIC = metal * wb;
 	SPECULAR = 0.4 * wb;
 	EMISSION = pow(max(emis, vec3(0.0)), vec3(1.0));
-	FOG = vec4(ce_fog_unshow(min(COLOR.rgb * tint * ce_fog_color.rgb * 1.15, vec3(1.0))), haze * (1.0 - la));
+	FOG = vec4(ce_fog_unshow(min(COLOR.rgb * tint * ce_fog_color.rgb * 1.15, vec3(1.0))), haze * (1.0 - la) * (1.0 - fl_keep));
 #elif defined(CE_GLOW)
 	float fall;
 	if (v_beam > 0.5) {
