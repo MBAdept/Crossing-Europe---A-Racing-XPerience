@@ -192,3 +192,32 @@ func test_variants() -> void:
 			assert_true(sh != null and sh.code.contains("#define"), "%s%s: eigener Shader" % [v, " (durchscheinend)" if blend else ""])
 			assert_eq(sh.code.contains("#define CE_BLEND"), blend, "%s: CE_BLEND genau bei der durchscheinenden Variante" % v)
 	_cleanup()
+
+
+## Open point N1 of the reviews: the placement tint of a landmark (tint, × fallback_tint when the fallback set draws)
+## reaches its materials – near and far, opaque and translucent – as Arcade multiplies the sprite (RoadRenderer
+## _prep_prop: tint × fallback_tint); a procedural shape keeps its catalogue colours (Arcade draws it untinted).
+func test_tint_reaches_every_landmark_material() -> void:
+	var sets := {"props/church": {"kind": PropLibrary.SPRITE, "extent_l": 5.0, "extent_r": 5.0, "variants": []}}
+	var it := {"set": "landmarks/none", "side": 1, "x": 30.0, "z": 0.0, "scale": 2.0, "align": "edge", "tint": "#c0a080",
+		"fallback": "props/church", "fallback_scale": 1.5, "fallback_tint": "#80c0ff"}
+	var p: Dictionary = Landmarks.resolve_item(it, sets, {})
+	var want := Color("#c0a080") * Color("#80c0ff")
+	assert_eq(str(p["set"]), "props/church", "das Ersatz-Set zeichnet")
+	assert_near(float(p["scale"]), 3.0, 1.0e-5, "mit fallback_scale")
+	assert_true((p["tint"] as Color).is_equal_approx(want), "Tönung × Ersatztönung (%s)" % str(p["tint"]))
+	var b = Landmarks.new()
+	var src := ShaderMaterial.new()
+	var pair: Array = b.picture_materials(src, p["tint"])
+	for m: ShaderMaterial in pair:
+		var t: Variant = m.get_shader_parameter("tint")
+		assert_true(t is Vector3 and (t as Vector3).is_equal_approx(Vector3(want.r, want.g, want.b)), "Bild: Tönung im Material (%s)" % str(t))
+	for cls: String in ["baked", "baked_cutout", "vpbr"]:
+		for m: ShaderMaterial in b.model_materials(cls, ShaderMaterial.new(), p["tint"], {}):
+			var t: Variant = m.get_shader_parameter("tint")
+			assert_true(t is Vector3 and (t as Vector3).is_equal_approx(Vector3(want.r, want.g, want.b)), "Modell (%s): Tönung im Material" % cls)
+	assert_true(b.model_materials("glass", ShaderMaterial.new(), p["tint"], {}).is_empty(), "Glas behält sein Klassenmaterial")
+	var pp: Dictionary = Landmarks.resolve_item({"set": "landmarks/none", "side": 1, "x": 30.0, "z": 0.0, "proc": "tv_tower",
+		"tint": "#ff0000", "height_m": 100.0}, sets, {})
+	assert_eq(int(pp["rep"]), Landmarks.PROC, "prozedural")
+	_cleanup()
