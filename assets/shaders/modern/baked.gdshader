@@ -24,6 +24,8 @@ uniform float emit_energy = 1.6;              // linear energy of lit windows / 
 uniform float night_albedo = 1.0;
 // R7c: share of the facade's lit colour a lit window pixel gives up for its light (fragment(), lead decision 4)
 uniform float window_cover = 1.0;
+// R7c: the night atlas reaches its full light at ce_night = window_ramp (Arcade: palette lights 0.65 at 19:30, 1 from 21:00)
+uniform float window_ramp = 0.6;
 // R7c: mip bias of the alpha test of the cut-out variant (fragment(), lead decision 3)
 uniform float cutout_bias = 2.0;
 // R7c: mip bias of the colour, growing from albedo_bias_m.x to albedo_bias_m.y metres (lead decision 3: the painted beams
@@ -109,14 +111,15 @@ void fragment() {
 	// light as the night comes, as Arcade lays the light layer of a sprite over it (mix by alpha x lights) – added on top
 	// of a facade still lit by the dusk sky the windows hardly showed at 19:30. Not where the night atlas is off
 	// (emit_energy 0: the pylons of the cable-stayed bridges keep their concrete)
-	float cover_k = window_cover * step(0.001, emit_energy) * light_cover;
+	float night_k = clamp(ce_night / max(window_ramp, 0.01), 0.0, 1.0);
+	float cover_k = window_cover * step(0.001, emit_energy) * clamp(max(e.r, max(e.g, e.b)) * 3.0, 0.0, 1.0) * night_k;
 	ALBEDO = lights_only ? vec3(0.0) : alb * (1.0 - cover_k);
 	ROUGHNESS = roughness;
 	METALLIC = 0.0;
 	SPECULAR = lights_only ? 0.0 : 0.35;
 	v_spec = lights_only ? 0.0 : 1.0;
 	// colours are sRGB-encoded here (the engine linearises ALBEDO and EMISSION): energy as pow(e, 1 / 2.2)
-	EMISSION = e * pow(ce_night * emit_energy, 0.4545);
+	EMISSION = e * pow(night_k * emit_energy, 0.4545);
 	if (lights_only) {
 		FOG = vec4(0.0);
 	} else if (lm_l > 0.0) {
