@@ -266,13 +266,19 @@ void fragment() {
 		// glass facade: floor bands every 4 m, mullions every 3 m (model metres), random lit windows at night
 		vec3 n = abs(normalize(v_onrm));
 		float u = n.x > n.z ? v_obj.z : v_obj.x;
-		float fl = floor(v_obj.y / 4.0);
-		float col_i = floor(u / 3.0);
 		// floor bands and mullions, faded to their mean where they get finer than a pixel (no stair-step aliasing)
 		float band = bands(v_obj.y / 4.0, 0.14) + bands(u / 3.0, 0.1);
 		alb *= 1.0 - 0.3 * min(band, 1.0);
 		rough = 0.25;
-		float lit = step(hash12(vec2(col_i, fl) + floor(v_obj.xz * 0.01)), window_share) * (1.0 - min(band, 1.0));
+		// night: offices lit at random (Arcade: 35 %) on a coarser grid – two mullion fields wide, one floor high, a
+		// pane inside each cell; where the cells get smaller than a few pixels they melt into their mean glow
+		// instead of glittering
+		float cu = u / 6.0;
+		float cv = v_obj.y / 4.0;
+		float pane = step(0.18, fract(cu)) * step(fract(cu), 0.82) * step(0.3, fract(cv)) * step(fract(cv), 0.85);
+		float lit = step(hash12(vec2(floor(cu), floor(cv)) + floor(v_obj.xz * 0.01)), window_share) * pane;
+		float fw = max(fwidth(cu), fwidth(cv));
+		lit = mix(lit, window_share * 0.64 * 0.55, clamp(fw * 1.5 - 0.2, 0.0, 1.0));
 		la = lit * lights;
 		emis = window_color * la * 1.2;
 	} else if (ch == 12) {
