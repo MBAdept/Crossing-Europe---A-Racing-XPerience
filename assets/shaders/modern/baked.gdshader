@@ -22,6 +22,14 @@ uniform float emit_energy = 1.6;              // linear energy of lit windows / 
 // the ambient light at night, while the moon lights the light-concrete faces of the model (the Köhlbrandbrücke's
 // pylons were far brighter than Arcade's at 22:00).
 uniform float night_albedo = 1.0;
+// R7c: share of the facade's lit colour a lit window pixel gives up for its light (fragment(), lead decision 4)
+uniform float window_cover = 1.0;
+// R7c: mip bias of the alpha test of the cut-out variant (fragment(), lead decision 3)
+uniform float cutout_bias = 2.0;
+// R7c: mip bias of the colour, growing from albedo_bias_m.x to albedo_bias_m.y metres (lead decision 3: the painted beams
+// and bars of far facades shimmer less; near the camera the atlas stays as sharp as it was)
+uniform float albedo_bias = 1.25;
+uniform vec2 albedo_bias_m = vec2(30.0, 120.0);
 // FIX1 (QA QB-03): a landmark model keeps Arcade's landmark law (RoadRenderer.landmark_fade) – visible up to
 // L = clamp(visibility × x, min(visibility, 600), max(y, visibility)), fading out over its last 28 % (ordered dither),
 // its colour going towards the fog colour × 1.15 by 0.85 × the haze; x <= 0: an ordinary prop (builders/props.gd sets
@@ -80,10 +88,13 @@ void fragment() {
 			lights_only = true;
 		}
 	}
-	vec4 a = texture(albedo_tex, UV);
+	vec4 a = texture(albedo_tex, UV, albedo_bias * smoothstep(albedo_bias_m.x, albedo_bias_m.y, dist));
 	a.rgb *= v_tint;    // Arcade multiplies the sprite by the placement tint (sRGB, as the sprite)
 #ifdef CE_CUTOUT
-	if (a.a < 0.5) {
+	// R7c (lead decision 3): the alpha test reads the cut-out from a mip level cutout_bias coarser than the colour – the
+	// bake keeps the coverage of every mip level (cut_fill, A-22), and the coarser level holds the thin railings, bars and
+	// leaf cards steady from pixel to pixel instead of letting them flicker while the camera moves. The test stays at 0.5.
+	if (texture(albedo_tex, UV, cutout_bias).a < 0.5) {
 		discard;
 	}
 #endif
@@ -94,7 +105,12 @@ void fragment() {
 		float k = clamp(ce_snow, 0.0, 1.0) * smoothstep(0.5, 0.82, up) * (1.0 - light_cover);
 		alb = mix(alb, snow_albedo * (1.0 - snow_night * clamp(ce_night, 0.0, 1.0)), k);
 	}
-	ALBEDO = lights_only ? vec3(0.0) : alb;
+	// R7c (lead decision 4, windows at dusk): a lit pixel of the night atlas REPLACES the facade's lit colour by its
+	// light as the night comes, as Arcade lays the light layer of a sprite over it (mix by alpha x lights) – added on top
+	// of a facade still lit by the dusk sky the windows hardly showed at 19:30. Not where the night atlas is off
+	// (emit_energy 0: the pylons of the cable-stayed bridges keep their concrete)
+	float cover_k = window_cover * step(0.001, emit_energy) * light_cover;
+	ALBEDO = lights_only ? vec3(0.0) : alb * (1.0 - cover_k);
 	ROUGHNESS = roughness;
 	METALLIC = 0.0;
 	SPECULAR = lights_only ? 0.0 : 0.35;

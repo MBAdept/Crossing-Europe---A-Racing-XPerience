@@ -586,5 +586,7 @@ static func build_impostor(set_id: String, mats: ModernMaterials) -> MeshInstanc
 	var mi := MeshInstance3D.new()
 	mi.name = "impostor"
 	mi.mesh = billboard_mesh(float(size[0]), float(size[1]), float(imp.get("anchor_x", 0.5)))
-	mi.material_override = mats.billboard(ModelDB.texture(str(imp.get("texture", ""))))
+	var mat := mats.billboard(ModelDB.texture(str(imp.get("texture", ""))))
+	mat.set_shader_parameter("relief_night", PropLibrary.IMPOSTOR_RELIEF_NIGHT)   # R7c: as the race's impostors
+	mi.material_override = mat
 	return mi

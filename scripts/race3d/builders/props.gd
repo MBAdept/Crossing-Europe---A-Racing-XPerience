@@ -243,9 +243,20 @@ func model_bands(model_id: String) -> Dictionary:
 		return b
 	var md: Dictionary = _lib().models.get(model_id, {})
 	var lod_m: Vector2 = md.get("lod_m", Vector2.ZERO)
-	var out := lod_bands(md.get("reps", []), lod_m, _lod0_m, _lod1_m, _lod_ref, float(_lod0_override.get(model_id, 0.0)), _lod_fade)
+	var out := lod_bands(md.get("reps", []), lod_m, _lod0_m, _lod1_m, _lod_ref, lod0_override(model_id), _lod_fade)
 	_bands[model_id] = out
 	return out
+
+
+## The lod0 distance (m at "Mittel") graphics.modern.props.lod0_m gives a model: its own entry, else that of the first of
+## its tags that has one ("city": the city houses); 0 = the model's own max_dist_m.
+func lod0_override(model_id: String) -> float:
+	if _lod0_override.has(model_id):
+		return float(_lod0_override[model_id])
+	for t: Variant in ModelDB.model(model_id).get("tags", []):
+		if _lod0_override.has("tag:" + str(t)):
+			return float(_lod0_override["tag:" + str(t)])
+	return 0.0
 
 
 ## Mean shadowed share of the sun beyond the shadow reach for a model of class cls (1 = no change): the model's own

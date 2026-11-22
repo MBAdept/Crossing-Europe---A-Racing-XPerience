@@ -961,7 +961,11 @@ func test_lod_bands_per_model() -> void:
 	var b := Props.new()
 	b._read_config(cfg())
 	b.apply_quality({"prop_lod0_m": 60.0, "prop_lod1_m": 200.0})
-	assert_near(float(b._lod0_override.get("props/city_german_old_fachwerk", 0.0)), 35.0, 1.0e-4, "Konfiguration: Fachwerk lod0 35 m")
+	# measured shimmer (lead decision 3): lod0 of the city houses ends at 35 m on "Mittel", that of the half-timbered and
+	# the Paris houses at 30 m (their beams, railings and frames flicker 1–1.4 % in lod0 at 40–60 m, the sprite 0–0.3 %)
+	assert_near(b.lod0_override("props/city_german_old_fachwerk"), 30.0, 1.0e-4, "Konfiguration: Fachwerk lod0 30 m")
+	assert_near(b.lod0_override("props/city_dutch_canal"), 35.0, 1.0e-4, "Konfiguration: Stadthaus (Tag city) lod0 35 m")
+	assert_near(b.lod0_override("props/farmhouse"), 0.0, 1.0e-4, "Bauernhaus: kein Ersatz (eigenes max_dist_m)")
 
 
 ## R7c: the static vpbr variant carries the level band, the far light and the rotor phase (static_code() patches the
