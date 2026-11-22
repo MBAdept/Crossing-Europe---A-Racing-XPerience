@@ -422,3 +422,4 @@ Grundlage: FIX-M2 bericht.md B-01 (Sehnenstudie, Vorschau T4), A-3/A-10 ("Entsch
 - R7: QA-R7b fertig (Journal), QA-R7a läuft, R7c baut (965b8a9; Hilfsdateien zusätzlich auf wip/v080-r7c-sicherung 8b33b62).
 - Probe-Merge fix-rint → r7a → r7b → r7c(WIP): Konflikte chunk_streamer.gd, docs/renderer-modern.md, test_props.gd.
 - R7d-Auftragsentwurf: m1/lead/m6_r7d_draft.js. WIEDERAUFNAHME.md aktualisiert, Archiv gepusht.
+- Danach: fehlende check_lod_band.gd.uid auf wip/v080-r7c committet (8153d20); tools/r7c_tmp/ in info/exclude (Sonden, gesichert auf r7c-sicherung).

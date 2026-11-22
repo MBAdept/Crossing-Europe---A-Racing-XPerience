@@ -17,7 +17,7 @@ Haltung des Nutzers: Qualität vor Tempo, keine Prüfungen/Nacharbeit streichen;
   aber N-01 Reflektoren-SCRIPT-ERROR zuerst beheben → RINT-M3), as5ar2 216ac5c (in R7c gemergt).
 - LÄUFT beim Abbruch: R7-Workflow (wf_ba4424b4-294, Skript m1/lead/wf_m5_r7.js, args m1/lead/args_m5.json):
   R7a gebaut 509bb16 (origin/wip/v080-r7a), QA-R7a läuft; R7b gebaut 2c154bc (origin/wip/v080-r7b), QA-R7b fertig
-  (Ergebnis im Journal); R7c baut noch (origin/wip/v080-r7c 965b8a9; ungesicherte Hilfsdateien zusätzlich auf
+  (Ergebnis im Journal); R7c baut noch (origin/wip/v080-r7c 8153d20 – letzter Commit = fehlende .uid von check_lod_band, von der Leitung; ungesicherte Hilfsdateien zusätzlich auf
   origin/wip/v080-r7c-sicherung 8b33b62 – nur tools/r7c_tmp und eine .uid, nicht mergen).
 
 ## Fortsetzen
