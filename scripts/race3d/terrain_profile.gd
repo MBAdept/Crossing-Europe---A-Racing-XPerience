@@ -138,6 +138,12 @@ func _fit_clear_max() -> void:
 		path.set_clear_max(maxf(path.clear_max_m, rings[_n - 1] + clear_margin_m + 30.0))
 
 
+## Computes the sight corridor (SightCorridor) up to row k until the clock passes deadline_us (< 0: no limit); true
+## when it is done. The streamer calls it in frames without other work, ahead of the chunks it will collect.
+func warm(k: int, deadline_us: int) -> bool:
+	return sight.warm(k, deadline_us)
+
+
 ## Forgets cached rows before before_index (call it with the path's trim(); a huge value forgets everything).
 func trim(before_index: int) -> void:
 	for cache: Dictionary in [_kappa_cache, _amp_cache, _rows]:

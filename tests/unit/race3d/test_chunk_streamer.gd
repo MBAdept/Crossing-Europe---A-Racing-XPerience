@@ -180,8 +180,10 @@ func test_context_snapshot() -> void:
 	var cb := ChunkContext.new()
 	cb.capture(4, 128, 160, pb, tpb, tb)
 	var eb := tpb.edge(140, 1)
-	assert_true(cb.in_bend_corridor(420.0, eb + 20.0), "Kurveninnenseite: 20 m neben dem Bankett liegt im Kurvenkorridor")
-	assert_false(cb.in_bend_corridor(420.0, -(eb + 20.0)), "Kurvenaußenseite nicht")
+	var cwb := tpb.corridor_width(140, 1)
+	assert_true(cwb > cb.corridor_min + 0.5, "Kurveninnenseite: die Sichtlinien verlassen die Straße (%.1f m)" % cwb)
+	assert_true(cb.in_bend_corridor(420.0, eb + cwb * 0.5), "Kurveninnenseite: die halbe Korridorbreite neben dem Bankett liegt im Kurvenkorridor")
+	assert_false(cb.in_bend_corridor(420.0, -(eb + cwb * 0.5)), "Kurvenaußenseite nicht")
 	assert_false(cb.in_bend_corridor(420.0, 0.0), "die Fahrbahn selbst zählt nicht")
 	assert_false(cb.in_bend_corridor(420.0, eb + tpb.corridor_width(140, 1) + 5.0), "jenseits des Korridors nicht")
 	# plain track values for the worker thread

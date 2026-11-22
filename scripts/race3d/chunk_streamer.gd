@@ -17,6 +17,8 @@ extends Node3D
 ##    jump loads everything that is wanted at once (behind the loading overlay). With sync = true (--gfx-sync,
 ##    tests) every update builds and commits everything at once on the main thread, so the result depends on the
 ##    camera position only.
+##  * a frame that neither collects nor commits computes a little of the sight corridor ahead (TerrainProfile.warm(),
+##    contract A-17), so that collecting a chunk finds its rows ready.
 ## The path reaches that far because RoadPath3D.clearance needs every part of the road that can be loaded together
 ## with a chunk; it forces the Track generation ahead, which is harmless (the generator is sequential).
 ## Lead-in (FIX-ZS1, finding QA1-B1): while the path has its lead-in (RoadPath3D.has_lead_in(): the kept range starts
@@ -33,6 +35,7 @@ signal rebased(shift: Vector3)
 
 const COLLECTED := 0
 const BUILDING := 1
+const WARM_US := 250                   ## main-thread time per frame for the sight corridor ahead (_warm_corridor())
 const BUILT := 2
 const COMMITTED := 3
 
@@ -97,6 +100,9 @@ var _commit_us_sum := 0
 var _commits := 0
 var _rebases := 0
 var _restarts := 0
+var _warm_us_max := 0                  ## _warm_corridor(): main-thread time per frame
+var _warm_us_sum := 0
+var _warm_calls := 0
 
 
 ## game_cfg = the whole game configuration (ConfigLoader.load_merged()); the builders get it as ChunkContext.cfg.
@@ -242,6 +248,22 @@ func update(cam_z: float, visibility_m: float) -> void:
 			break
 		_commit(best)
 		done += 1
+	if done == 0:
+		_warm_corridor(cam_seg)
+
+
+## A frame without a collect and without a commit computes a little of the sight corridor (TerrainProfile.warm(),
+## A-17) of the rows the next chunks will read, so that collecting a chunk finds them ready: up to two chunks beyond
+## the farthest one that can be wanted, at most WARM_US (and at least one camera row) per frame.
+func _warm_corridor(cam_seg: int) -> void:
+	var n := chunk_segments
+	var far := (int(floor((float(cam_seg) * track.seg_len + load_path_m) / (float(n) * track.seg_len))) + 2) * n + 4
+	var t0 := Time.get_ticks_usec()
+	terrain.warm(far, t0 + WARM_US)
+	var us := Time.get_ticks_usec() - t0
+	_warm_us_max = maxi(_warm_us_max, us)
+	_warm_us_sum += us
+	_warm_calls += 1
 
 
 ## Builds and commits everything that is collected, now (load, sync mode, tests).
@@ -288,13 +310,15 @@ func snapshot() -> Dictionary:
 
 ## Timing and counters for perf_stats(): chunks, pending, builds, build_ms_avg / _max (ChunkBuilder.build of all
 ## builders per chunk), collect_ms_avg / _max (snapshot on the main thread), commit_ms_avg / _max, commits, rebases,
-## restarts.
+## restarts, corridor_warm_ms_avg / _max (_warm_corridor() per frame that ran it).
 func stats() -> Dictionary:
 	return {"chunks": _chunks.size(), "pending": pending_count(), "builds": _builds,
 		"build_ms_avg": float(_build_us_sum) / maxf(1.0, float(_builds)) / 1000.0, "build_ms_max": float(_build_us_max) / 1000.0,
 		"collect_ms_avg": float(_collect_us_sum) / maxf(1.0, float(_collects)) / 1000.0, "collect_ms_max": float(_collect_us_max) / 1000.0,
 		"commit_ms_avg": float(_commit_us_sum) / maxf(1.0, float(_commits)) / 1000.0, "commit_ms_max": float(_commit_us_max) / 1000.0,
-		"commits": _commits, "rebases": _rebases, "restarts": _restarts, "collect_by": _collect_by_ms()}
+		"commits": _commits, "rebases": _rebases, "restarts": _restarts, "collect_by": _collect_by_ms(),
+		"corridor_warm_ms_avg": float(_warm_us_sum) / maxf(1.0, float(_warm_calls)) / 1000.0,
+		"corridor_warm_ms_max": float(_warm_us_max) / 1000.0}
 
 
 ## collect() per builder: id -> {"avg_ms", "max_ms", "n"} (RINT-M2, A-18).
@@ -319,6 +343,9 @@ func reset_stats() -> void:
 	_commit_us_max = 0
 	_commit_us_sum = 0
 	_commits = 0
+	_warm_us_max = 0
+	_warm_us_sum = 0
+	_warm_calls = 0
 
 
 ## The chunk node of a chunk index (null when it is not committed).

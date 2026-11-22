@@ -22,8 +22,8 @@ extends RefCounted
 ## the corridor's edges there (both lines on both sides: beyond a quarter turn of the road the order of the crossings
 ## flips). Rows in between are interpolated; MARGIN_M covers the sampling of the cameras (measured against an
 ## exhaustive reference in tests/unit/race3d/test_sight_corridor.gd). A sight line never counts beyond the medial axis
-## to another part of the road (RoadPath3D.clearance()): the ground there belongs to that part, and the terrain ribbon
-## and the props end before it anyway. Targets that turned more than MAX_TURN from the camera's heading are left out.
+## to another part of the road (RoadPath3D.clearance(), applied when a row is read): the ground there belongs to that
+## part, and the terrain ribbon and the props end before it anyway. Targets that turned more than MAX_TURN from the camera's heading are left out.
 ## Computed lazily and incrementally while rows are asked for (ensure()), each camera once per stage; the results are
 ## plain per-row numbers that TerrainProfile snapshots into every ChunkContext (worker-safe).
 ## Values: metres beyond the outer shoulder edge (shoulder_w beyond the paved edge); NONE + MARGIN_M where no sight
@@ -127,14 +127,26 @@ static func envelopes(cfg: Dictionary) -> Array[Dictionary]:
 ## passes (NONE + MARGIN_M where none leaves the road). Main thread (reads the path and the track).
 func width(k: int, side: int) -> float:
 	ensure(k + row_step)
-	return _interp(k, side) + MARGIN_M
+	return _clamped(k, side) + MARGIN_M
 
 
 ## The largest width() of row k and its two neighbours (whether a sight line leaves the road near the row: the
 ## builders interpolate between rows).
 func width_near(k: int, side: int) -> float:
 	ensure(k + 1 + row_step)
-	return maxf(maxf(_interp(k - 1, side), _interp(k, side)), _interp(k + 1, side)) + MARGIN_M
+	return maxf(maxf(_clamped(k - 1, side), _clamped(k, side)), _clamped(k + 1, side)) + MARGIN_M
+
+
+## The crossings of row k, never beyond the medial axis to another part of the road (applied when a row is read, so
+## that computing the fans never needs the path farther ahead than the rows they reach).
+func _clamped(k: int, side: int) -> float:
+	var w := _interp(k, side)
+	if w <= 0.0:
+		return w
+	var s := track.get_segment(maxi(k, 0))
+	var half := s.lanes * _lane_w * 0.5
+	var edge := (half if side < 0 else half + s.fuel_lane * _lane_w) + _shoulder
+	return minf(w, path.clearance(k, side) - edge)
 
 
 ## L (m) of a camera at row a: the sight line length the corridor covers there.
@@ -257,6 +269,9 @@ func _ensure_need(k: int) -> void:
 		return
 	var last := track.segment_count - 1
 	var lo := _n_hi + 1
+	if lo > last:
+		_n_hi = k     # rows beyond the track answer with the last value (_need_at clamps)
+		return
 	var hi := mini(maxi(k, lo + 63), last)
 	if k > last:
 		hi = last
@@ -479,13 +494,9 @@ func _camera(c: int) -> void:
 				if xr > -INF:
 					var wi := lo_row + d
 					var w := xr - _ger[q]
-					if w > 0.0:
-						w = minf(xr, path.clearance(c + d, 1)) - _ger[q]
 					if w > _wr[wi]:
 						_wr[wi] = w
 					var w2 := xl - _gel[q]
-					if w2 > 0.0:
-						w2 = minf(xl, path.clearance(c + d, -1)) - _gel[q]
 					if w2 > _wl[wi]:
 						_wl[wi] = w2
 			d -= 1
@@ -529,10 +540,7 @@ func _camera_simple(c: int, qc: int, dn: int, has_end: bool, ft: float) -> void:
 				var den := njx * uz - njz * ux
 				if den * den > 0.0025 * (ux * ux + uz * uz) and (dx * njz - dz * njx) / den > 0.0:
 					var x := (dx * uz - dz * ux) / den * sgn
-					var edge := _ger[q] if right else _gel[q]
-					var w := x - edge
-					if w > 0.0:
-						w = minf(x, path.clearance(c + d, 1 if right else -1)) - edge
+					var w := x - (_ger[q] if right else _gel[q])
 					var wi := lo_row + d
 					if right:
 						if w > _wr[wi]:
