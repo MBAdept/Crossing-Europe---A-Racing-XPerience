@@ -52,6 +52,7 @@ var _law := Vector2(2.0, 1900.0)    ## render.landmark_range_factor, render.land
 var _path_m := 1900.0               ## graphics.modern.landmark_path_m
 var _fog_frac := 0.45               ## graphics.modern.fog.begin_frac (render.fog_start_frac in Arcade)
 var _casters := 2
+var _blend_from := BLEND_FROM       ## graphics.modern.landmark_blend_from (tests force the translucent variant with 0)
 var _prepared := false
 var _plans: Array = []              ## per index of Track.landmarks: the resolved plan (_resolve)
 var _resolved := false
@@ -87,6 +88,7 @@ func read_config(cfg: Dictionary) -> void:
 		float(ConfigLoader.lookup(cfg, "render.landmark_far_m", 1900.0)))
 	_path_m = float(ConfigLoader.lookup(cfg, "graphics.modern.landmark_path_m", 1900.0))
 	_fog_frac = float(ConfigLoader.lookup(cfg, "graphics.modern.fog.begin_frac", 0.45))
+	_blend_from = float(ConfigLoader.lookup(cfg, "graphics.modern.landmark_blend_from", BLEND_FROM))
 
 
 func apply_quality(levels: Dictionary) -> void:
@@ -298,7 +300,7 @@ func update(view: Dictionary, _dt: float) -> void:
 			if e == null:
 				continue
 		var f := fade(maxf(d, 0.0), vis, fog_start, night, _law, bool(p["flood"]))
-		_apply(e as Dictionary, d, f, d >= BLEND_FROM * l)
+		_apply(e as Dictionary, d, f, d >= _blend_from * l)
 
 
 ## Shows the opaque or the translucent materials and sets the law of this frame on them.

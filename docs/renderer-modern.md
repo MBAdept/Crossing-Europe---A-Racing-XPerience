@@ -2560,8 +2560,9 @@ Jenseits von L bleiben nachts nur seine leuchtenden Pixel. Prüfungen: `check_la
   Feuer blitzt viermal je Umdrehung (15 s).
 - Hochhausgruppe: fünf Türme mit Glasfassade (Geschossbänder alle 4 m, Pfosten alle 3 m im Shader, nachts 35 % der
   Fenster hell wie Arcade), Mast oder Pyramide, blinkendes Flugwarnlicht je Turm.
-Dreiecke (gemessen): Kuppelkirche ≈ 2.700, Fernsehturm ≈ 1.900, Leuchtturm ≈ 600, Hochhäuser ≈ 70 – je eine
-Zeichenfläche plus eine für die Leuchtpunkte.
+Dreiecke (gemessen): Kuppelkirche 1.626–1.636, Fernsehturm 1.012, Leuchtturm 246, Hochhausgruppe 124 (die Fassade
+zeichnet der Shader) – je eine Fläche plus eine für die Leuchtpunkte; gebaut in 0,3–3,8 ms beim ersten Gebrauch
+(zwischengespeichert je Art und Maß).
 
 ### 18.5 Skyline im Hintergrund (`layers/backdrop.gd`)
 
