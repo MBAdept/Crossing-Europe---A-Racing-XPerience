@@ -409,8 +409,11 @@ Fahrbahnrand). Engste Kurve des Netzes: 83,6 m.
   keine Sichtlinie in die Kurve über sie läuft (mehr als eine Sehne L vor der Kurve immer).
 - **Rechnung**: faul und schrittweise, wenn Reihen gelesen werden (`ensure()`), jede Kamera einmal je Etappe; dazu
   rechnet der Streamer in Bildern ohne Sammeln und Festschreiben höchstens 0,25 ms (und mindestens eine Kamera) voraus
-  (`TerrainProfile.warm()`), bis zwei Stücke über das fernste ladbare hinaus – ein gesammeltes Stück findet seine
-  Reihen fertig vor. Ein Start mitten in der Etappe kennt die Kameras vor dem ersten Pfadpunkt (150–246 m hinter der
+  (`TerrainProfile.warm()`), bis zwei Stücke über `landmark_path_m` hinaus (die fernen Wahrzeichen lesen das Gelände
+  ihrer Reihe so weit voraus); beim Laden diese ganze Strecke auf einmal, und solange der Korridor hinter dem liegt,
+  was das nächste Sammeln braucht, bis 2 ms je Bild – ein gesammeltes Stück findet seine Reihen fertig vor.
+  `perf_stats()` zeigt, was trotzdem im Hauptthread nachgerechnet wird (`corridor_sync_ms_max`, `_sum`, `_calls`;
+  bei Zeitraffer 40 – 1,3 s Fahrt je Bild – unvermeidlich, bei Zeitraffer 4 nach dem Laden kein Aufruf, gemessen). Ein Start mitten in der Etappe kennt die Kameras vor dem ersten Pfadpunkt (150–246 m hinter der
   Kamera) nicht: an den 13 Bildstellen sind die Reihen ab der Kamera an 11 Stellen gleich, an zweien weichen 4 bzw. 8
   Reihenseiten direkt an der Kamera um höchstens 0,56 m ab (gemessen).
 
