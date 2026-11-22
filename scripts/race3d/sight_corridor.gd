@@ -360,7 +360,8 @@ func _geometry(c: int) -> void:
 		var half := s.lanes * _lane_w * 0.5
 		var paved_r := half + s.fuel_lane * _lane_w
 		var a := -half + _lane_w * 0.5
-		var b := paved_r - _lane_w * 0.5
+		# the rightmost lane centre: the fuel lane's as soon as it opens (Track.fuel_lane_x(), also in its taper)
+		var b := half + _lane_w * 0.5 if s.fuel_lane > 0.0 else half - _lane_w * 0.5
 		if a > b:
 			a = (a + b) * 0.5
 			b = a

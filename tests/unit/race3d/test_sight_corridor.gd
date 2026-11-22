@@ -25,14 +25,14 @@ func _make(curves: PackedFloat32Array, opts: Dictionary = {}, terrain_cfg: Dicti
 	return [t, p, tp, tp.sight]
 
 
-## Lane centres of row k (signed lateral offsets), fuel lane included.
+## Lane centres of row k (signed lateral offsets), fuel lane included (Track.fuel_lane_x(): also in its taper).
 static func _lanes(t: Track, k: int) -> PackedFloat32Array:
 	var s := t.get_segment(maxi(k, 0))
 	var half := s.lanes * t.lane_w * 0.5
 	var out := PackedFloat32Array()
-	for i in int(round(s.lanes)):
-		out.append(-half + t.lane_w * (float(i) + 0.5))
-	if s.fuel_lane > 0.5:
+	for i in int(ceil(s.lanes - 1.0e-4)):
+		out.append(minf(-half + t.lane_w * (float(i) + 0.5), half - t.lane_w * 0.5))
+	if s.fuel_lane > 0.0:
 		out.append(half + t.lane_w * 0.5)
 	return out
 
