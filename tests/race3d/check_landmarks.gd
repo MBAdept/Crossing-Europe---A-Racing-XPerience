@@ -145,8 +145,21 @@ func _check_reichweite() -> void:
 	var b: Object = r.call("builder", "landmarks")
 	_need(p, b != null, "der Builder landmarks ist registriert")
 	var props: Object = r.call("builder", "props")
-	_need(p, props != null and bool(props.get("_skip_landmarks")), "builders/props.gd überlässt die Wahrzeichen dem Builder landmarks")
-	_need(p, props != null and (props.get("_far") as Dictionary).is_empty(), "builders/props.gd stellt keine fernen Wahrzeichen auf")
+	# the props builder draws none of them – neither in its chunks (its debug counts by set) nor beyond them (its far
+	# stand-ins, if it still has that member)
+	var lm_sets := {}
+	for it: Dictionary in (trk.get("landmarks") as Array):
+		lm_sets[str(it["set"])] = true
+	var in_props := 0
+	for c: Dictionary in ((r.call("debug_snapshot") as Dictionary).get("chunks", []) as Array):
+		var part: Variant = (c.get("parts", {}) as Dictionary).get("props")
+		if part is Dictionary:
+			for k: String in ((part as Dictionary).get("counts", {}) as Dictionary):
+				if lm_sets.has(k) and k.begins_with("landmarks/"):
+					in_props += 1
+	_need(p, in_props == 0, "builders/props.gd zeichnet kein Wahrzeichen in seinen Stücken (%d)" % in_props)
+	var far: Variant = props.get("_far") if props != null else null
+	_need(p, not (far is Dictionary) or (far as Dictionary).is_empty(), "builders/props.gd stellt keine fernen Wahrzeichen auf")
 	var view: Dictionary = r.get("view")
 	var vis := float(view.get("visibility_m", 900.0))
 	var reach := clampf(vis * 2.0, minf(vis, 600.0), maxf(1900.0, vis))
