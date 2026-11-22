@@ -391,6 +391,8 @@ func test_commit_is_spread_over_frames() -> void:
 	st.update(cam_z, 900.0)
 	assert_eq(st.pending_count(), 0, "beim Laden wird alles Sichtbare sofort ganz eingehängt")
 	st.reset_stats()        # as the renderer does after the load: the drive's numbers only
+	var first_node := st.chunk_node(0)
+	assert_true(first_node != null, "Stück 0 hängt nach dem Laden")
 	var hidden_seen := 0
 	var answered_early := 0
 	var spread := 0
@@ -418,11 +420,16 @@ func test_commit_is_spread_over_frames() -> void:
 	# (counted, not timed – load-robust, A-11: 1.2 ms per builder against the budget of 2 ms)
 	assert_true(most >= 1 and most <= 2, "höchstens zwei der vier Bausteine je Bild (%d)" % most)
 	assert_true((s["commit_by"] as Dictionary).has("slow0"), "Zeit je Baustein (commit_by)")
+	# FIX-RINT (F-08): a chunk behind the camera leaves the tree at once and is freed in pieces over the next updates
+	assert_false(is_instance_valid(first_node), "Stück 0 weit hinter der Kamera ist freigegeben")
+	assert_true((st.get("_trash") as Array).size() <= 2, "der Abfall wird abgetragen (%d Knoten offen)" % (st.get("_trash") as Array).size())
+	assert_true((s["update_ms_max"] as Dictionary).has("trash"), "Teilzeit des Freigebens (update_ms_max)")
 	st.flush()
 	assert_true(st.is_idle(), "flush(): ein halb eingehängtes Stück wird fertig")
 	for c: Variant in st.get("_chunks").values():
 		assert_true((c.node as Node3D).get_parent() == st, "danach hängen alle Stücke im Baum")
 	st.clear()
+	assert_eq((st.get("_trash") as Array).size(), 0, "clear(): kein Abfall bleibt")
 	root.free()
 
 

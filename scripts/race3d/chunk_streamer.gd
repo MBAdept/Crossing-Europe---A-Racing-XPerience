@@ -44,6 +44,15 @@ const COMMITTING := 4      ## FIX-RINT (B-01): some builders committed, the node
 ## chunk_node() answers only then; the lamp layers wait for a lamp parent that has not entered the tree yet and forget
 ## one that left it or was freed (a chunk dropped half-done). Load and sync mode (flush()) commit whole chunks.
 const COMMIT_BUDGET_MS := 2.0
+## FIX-RINT (QA-RINT-BILD F-08): a chunk left behind the camera leaves the tree at once (its lamps are forgotten, nothing
+## of it is drawn) but is freed in pieces – child by child while a frame has used less than FREE_BUDGET_MS. Freeing a
+## whole chunk in one frame was the streamer's hitch: update_ms_max "free" up to 141.7 ms, the "streamer" spikes of
+## 8–144 ms all fell there (Kiel – Hamburg, "Steam Deck", Xvfb, measured). clear() frees everything at once.
+const FREE_BUDGET_MS := 1.0
+## … and only TRASH_DELAY updates after it left the tree: freeing a mesh the renderer may still be drawing from (the
+## frame before) made the driver wait for that frame – single frees of up to 134 ms on llvmpipe right after the drop
+## (measured, update_ms_max "trash"; inferred: a GPU sync on delete).
+const TRASH_DELAY := 4
 
 
 ## One chunk on its way through collect -> build -> commit. The build task only touches `parts` and `build_us`.
@@ -110,6 +119,8 @@ var _frame_commit_us := 0          ## FIX-RINT: commit time of the current frame
 ## FIX-RINT (B-01): main-thread time of each builder's commit() – id -> [sum us, max us, calls]
 var _commit_by: Dictionary = {}
 var _update_us_max: Dictionary = {}  ## FIX-RINT (F-08): part of update() -> longest µs
+var _trash: Array[Node] = []         ## FIX-RINT (F-08): chunk nodes out of the tree, oldest first, freed in pieces
+var _trash_age := PackedInt32Array() ## … the updates since each left the tree
 var _rebases := 0
 var _restarts := 0
 
@@ -180,10 +191,12 @@ func clear() -> void:
 	_chunks.clear()
 	_wanted.clear()
 	_loaded = false
+	_free_trash(-1)
 
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_PREDELETE:
+		_free_trash(-1)
 		for c: Variant in _chunks.values():
 			var ch := c as Chunk
 			if ch != null and ch.task >= 0:
@@ -203,6 +216,8 @@ func update(cam_z: float, visibility_m: float) -> void:
 	# (clearance, valley floor, late signs), so collecting a chunk never has to generate road
 	var ahead := int(_ahead_m() / seg_len)
 	var tu := Time.get_ticks_usec()
+	_free_trash(int(FREE_BUDGET_MS * 1000.0))
+	tu = _part_us("trash", tu)
 	path.ensure(cam_seg + ahead)
 	if path.last() < cam_seg:
 		# the road between the old path and the camera is gone from the track window (a jump ahead)
@@ -638,5 +653,34 @@ func _drop(c: Chunk) -> void:
 	if c.node != null:
 		if c.node.get_parent() != null:
 			c.node.get_parent().remove_child(c.node)
-		c.node.free()
+		_trash.append(c.node)          # F-08: freed in pieces by _free_trash()
+		_trash_age.append(0)
 		c.node = null
+
+
+## F-08: frees nodes of dropped chunks – the last child of the last node first, while this call has used less than
+## budget_us (at least one piece); budget_us < 0: everything now.
+func _free_trash(budget_us: int) -> void:
+	var t0 := Time.get_ticks_usec()
+	var first := true
+	if budget_us >= 0:
+		for i in _trash_age.size():
+			_trash_age[i] += 1
+	while not _trash.is_empty():
+		if budget_us >= 0 and (_trash_age[0] < TRASH_DELAY or (not first and Time.get_ticks_usec() - t0 >= budget_us)):
+			return
+		var n: Node = _trash[0]
+		if not is_instance_valid(n):
+			_trash.remove_at(0)
+			_trash_age.remove_at(0)
+			continue
+		first = false
+		var k := n.get_child_count()
+		if k > 0 and budget_us >= 0:
+			var ch := n.get_child(k - 1)
+			n.remove_child(ch)
+			ch.free()
+		else:
+			_trash.remove_at(0)
+			_trash_age.remove_at(0)
+			n.free()

@@ -2525,8 +2525,11 @@ halb eingehängtes Stück, das verworfen wird). `stats()` meldet `commit_steps` 
 Gemessen (Kiel – Hamburg ganz, „Steam Deck“, Xvfb, Zeitraffer 16, Last 7–11): Einhängen höchstens 3,24 ms je Bild
 (QA vorher auf demselben Lauf 8,96 ms), 95 Stücke in 100 Schritten, längster einzelner Baustein `road` 2,37 ms;
 Regel 3 hält (Prüfsumme der 347 Sekunden gleich v0.7.0). `stats()["update_ms_max"]` nennt die längste Zeit jedes Teils
-von `update()` (Pfad, Freigeben, Auswahl, Sammeln, Einhängen) – für die verbliebenen Stöße des Streamers (bis 17 ms
-auf dieser VM, `perf_stats()["spikes"]`).
+von `update()` (Pfad, Abfall, Freigeben, Auswahl, Sammeln, Einhängen). Damit gefunden (zweiter Lauf): die Stöße des
+Streamers (8–144 ms auf dieser VM, `perf_stats()["spikes"]`) lagen im **Freigeben** der Stücke hinter der Kamera
+(`free` bis 141,7 ms), nicht im Einhängen. Ein solches Stück verlässt jetzt sofort den Baum (seine Lampen werden
+vergessen, nichts davon wird gezeichnet) und wird Kind für Kind freigegeben, höchstens `FREE_BUDGET_MS` (1 ms) je
+Bild; `clear()` gibt alles sofort frei.
 
 ### 18.3 Weitere Änderungen
 
