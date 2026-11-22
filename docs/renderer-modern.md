@@ -2479,3 +2479,62 @@ Neu oder geändert in dieser Montage (gemessen am Stand `b673df5`, Preset „Hoc
 Zusätzlich gemessen, nicht als Prüfung im Baum: die Hauptfadenzeit von `collect()` je Baustein
 (`ChunkStreamer.stats()["collect_by"]`: Mittel, Höchstwert, Aufrufe; §17.5) und die Sonde, die den Stützen-Entscheid
 auf dem Arbeitsfaden über das ganze Netz gegen den inline-Entscheid stellt (1909 Dächer, 0 verschieden).
+
+## 18. Nacharbeit FIX-RINT (nach QA-RINT-BILD und QA-RINT-SYSTEM)
+
+### 18.1 Tunnelausfahrt bei Tag (Befund F-01)
+
+Nach einer Ausfahrt bei Tag war das ganze Bild gut eine Sekunde lang ausgewaschen (Schnee: 65–68 % reines Weiß gegen
+Arcades 0,3 %, Leitlinien kaum zu sehen – Regel 9), davor zeigte Modern drei Bilder lang eine sandbraune Landschaft
+ohne Schnee. Drei Ursachen, drei Änderungen:
+
+- **Wetter bleibt beim Wetter.** `ce_snow` und `ce_wet` folgten der Tunnelrampe der Kamera (× (1 − tunnel01)): solange
+  die Kamera in der Röhre war, verlor die ganze Welt ihren Schnee. Jetzt tragen beide immer den Wert der Palette; in
+  der Röhre nimmt sie niemand an (die Fahrbahn kennzeichnet ihre Tunnelsegmente, Flag 64; die Röhre hat kein Wetter,
+  Fahrzeuge keinen Schnee).
+- **Licht des Himmels ab dem Portal.** Die Tunnelrampe (`EnvironmentRig.tunnel_blend()`, gleiches Gesetz in
+  `builders/tunnel.gd` `zone_amount()`) lief an der Ausfahrt bis 12 m hinter das Portal: die ersten 26 m Landschaft
+  standen im warmen Tunnellicht. Jetzt fällt sie von 14 m vor der Ausfahrt auf 0 an der Ausfahrt – wie Arcades Palette,
+  die bei Kamera + 1 m umschaltet. Blendviereck und Nachglühen entscheiden ebenfalls bei Kamera + 1 m (mit der Kamera
+  selbst stand das Viereck in dem Bild, in dem Arcade schon normal zeigt, noch vor dem Auto: 59 % Weiß).
+- **Nachglühen ohne Ausbrennen.** Die Canvas-Ebene nach der Ausfahrt hat ein eigenes Gesetz:
+  1 − (1 − c)^(1 + 0,9 × Stärke) (`AFTER_SHADER`, `after_law()`). Schwarz bleibt Schwarz, Weiß bleibt Weiß, es ist
+  monoton (Fahrbahn und Markierung behalten ihre Reihenfolge und mindestens 80 % ihres Abstands) und hebt die
+  Mitteltöne; reines Weiß wird nur, was schon fast weiß war (über ≈ 0,83 am Portal). Bei Schnee entfällt es
+  (`EXIT_AFTER_SNOW`): das verschneite Draußen ist schon das hellste Bild des Spiels. Das Viereck in der Öffnung behält
+  Arcades Gesetz (× 1,7 + 0,25) – das ist Arcades Draußen, solange die Kamera drin ist.
+
+Prüfung `tunnel_bridge_ausfahrt_schnee` / `_trocken` (`render/check_tunnel_bridge.gd`): Arcade und Modern derselben
+Simulationsschritte, ab dem Schritt, in dem die Kamera die Ausfahrt passiert, 2 s lang jedes sechste Bild; im Bildband
+25–80 % höchstens Arcades Anteil reiner Weißpixel + 5 Punkte, im Bodenband 50–80 % (Leuchtdichte ≥ 0,6, Sättigung
+< 0,1) mindestens 0,5 × Arcades Schnee. Gemessen (Valík 8 Uhr Schnee 80 km/h; Gotthard 12 Uhr 100 km/h): Weiß höchstens
++0,1 / +1,0 Punkte, Schnee mindestens 0,99 × Arcade. Gegenprobe auf den Bildern des alten Stands: die braunen Bilder
+0,00 Schnee gegen Arcades 0,59, das Ausbrennen 0,66 Weiß – beides wäre rot.
+
+### 18.2 Einhängen unter Zeitbudget (Befund B-01)
+
+§4.10 erlaubt 3 ms Einhängen je Bild; ganze Stücke brauchten in jeder Messung seit der Basis 3,8–9,0 ms. Im
+Fahrbetrieb hängt `ChunkStreamer` ein Stück jetzt Baustein für Baustein ein (`COMMIT_BUDGET_MS` 2 ms je Bild, einer
+mindestens, der nächste nur, wenn seine bisherige mittlere Zeit noch passt). Der Knoten des Stücks kommt erst in den
+Baum, wenn alle Bausteine eingehängt sind – wie vorher während eines ganzen Einhängens; `chunk_node()` antwortet erst
+dann. Laden und `--gfx-sync` (`flush()`) hängen ganze Stücke ein wie bisher. Die Lichtebenen warten auf einen
+Lampen-Elternknoten, der noch nicht im Baum ist, und vergessen einen, der ihn verlassen hat oder freigegeben wurde (ein
+halb eingehängtes Stück, das verworfen wird). `stats()` meldet `commit_steps` und `commit_by` (Zeit je Baustein);
+`commit_ms_max` ist jetzt die Einhängezeit eines Bildes. Der Leistungstest schreibt je Szene `chunk_commit_ms_max`,
+`collect_ms_max_by` und `commit_ms_max_by` – das Budget wird auf dem Gerät gemessen, nicht auf der geteilten VM.
+
+### 18.3 Weitere Änderungen
+
+- **Tankstelle nachts (F-05):** `builders/station.gd` legt Arcades Lichtschicht des Tankstellen-Sprites nach: ein
+  warmes Lichtvolumen unter dem Vordach des Shops (vier Leuchtscheine) und die drei Schaufenster (Flare-Ebene, nur
+  nachts).
+- **`collect()` der Tankstelle (B-03):** `canopy_job_rest()` hält die Frist von `WARM_BUDGET_MS` ein und macht im
+  nächsten `collect()` weiter.
+- **Stöße (F-08):** `perf_stats()["spikes"]` – die zwölf längsten Teile eines Bildes über 8 ms mit Etappen-km; der
+  Leistungstest schreibt sie mit.
+- **Langsamkeitswächter (B-04):** Ein Bild über 1 s im Countdown bleibt eine Pause, drei davon urteilen sofort
+  „langsam“ (auf der niedrigsten Stufe „zu langsam“) – vorher bekam der langsamste Rechner kein Urteil.
+- **Zensus (B-05):** `check_instance_budget` zählt die Szene zusätzlich in jedem Bild, in dem die Fahrzeug-Ebene ihren
+  bisher höchsten Wert erreicht, und meldet die obere Schranke Ebene + übrige.
+- **Tönungswächter (B-02):** `test_props` verlangt für `baked`, `leaves` und `billboard` die Multiplikation mit der
+  Tönung im Code ohne Kommentare.

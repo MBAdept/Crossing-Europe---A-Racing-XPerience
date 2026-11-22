@@ -69,12 +69,14 @@ const SHOP_VOLUME_X: Array[float] = [-6.8, -2.6, 1.6, 5.6]
 const SHOP_VOLUME_AT := Vector2(2.6, -2.2)      ## (height, z) of the volume glows
 const SHOP_VOLUME := Color(1.0, 0.93, 0.78)
 const SHOP_VOLUME_SIZE := 4.6
-const SHOP_VOLUME_ENERGY := 1.5
-const SHOP_WINDOW_X: Array[float] = [9.55, 13.0, 16.5]
-const SHOP_WINDOW_AT := Vector2(2.45, -1.0)     ## (height, z): in front of the panes
+const SHOP_VOLUME_ENERGY := 1.2
+const SHOP_WINDOW_X: Array[float] = [11.0, 14.0, 17.0]
+const SHOP_WINDOW_AT := Vector2(1.7, -2.4)      ## (height, z): 0.5 m in front of the panes (shop front at z ≈ -2.9)
 const SHOP_WINDOW := Color(1.0, 0.94, 0.82)
 const SHOP_WINDOW_SIZE := 2.2
-const SHOP_WINDOW_ENERGY := 2.4
+const SHOP_WINDOW_ENERGY := 1.6
+## (both are pure glows without lit geometry behind them: "halo" 1 – the flare layer gives them their whole strength near
+## the camera too, not the 35 % of a lamp whose lit geometry carries the light there)
 const COLUMN_IN := 0.45            ## columns this far inside the canopy's front and end
 ## A column on the island Arcade does not have (at the end of a canopy) stands there only where no sign on the right
 ## is within this distance behind it: one farther behind could only be covered while it is several hundred metres away
@@ -1529,10 +1531,10 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 				# lit shop windows (glows of the flare layer, night only like every lamp of role "lights")
 				for vx: float in SHOP_VOLUME_X:
 					glows.append({"pos": fs * Vector3(vx, SHOP_VOLUME_AT.x, SHOP_VOLUME_AT.y), "dir": fs.basis.z, "role": "lights",
-						"color": SHOP_VOLUME, "size": SHOP_VOLUME_SIZE, "range": 0.0, "energy": SHOP_VOLUME_ENERGY})
+						"color": SHOP_VOLUME, "size": SHOP_VOLUME_SIZE, "range": 0.0, "energy": SHOP_VOLUME_ENERGY, "halo": 1.0})
 				for wx: float in SHOP_WINDOW_X:
 					glows.append({"pos": fs * Vector3(wx, SHOP_WINDOW_AT.x, SHOP_WINDOW_AT.y), "dir": fs.basis.z, "role": "lights",
-						"color": SHOP_WINDOW, "size": SHOP_WINDOW_SIZE, "range": 0.0, "energy": SHOP_WINDOW_ENERGY})
+						"color": SHOP_WINDOW, "size": SHOP_WINDOW_SIZE, "range": 0.0, "energy": SHOP_WINDOW_ENERGY, "halo": 1.0})
 		var fz := int(sa["fuel_zone"])
 		if fz == 0 or bool(sa["tunnel"]):
 			continue

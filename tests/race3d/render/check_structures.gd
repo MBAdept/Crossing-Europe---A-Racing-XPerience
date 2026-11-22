@@ -16,7 +16,8 @@ extends SceneTree
 ## check_structures_licht.gd (extends this file):
 ##   tankstelle  Kiel – Hamburg ~40 m before the fuel stop, 12:00: the front of the first canopy 25 m or more ahead shows
 ##               its panel (white fascia, blue lettering, red band) – no Label3D anywhere; 21:00: the fascia glows and
-##               the light pools light the lane under the canopy at least 0.85 × Arcade's at the same spot
+##               the light pools light the lane under the canopy at least 0.85 × Arcade's at the same spot, and the
+##               fuel stop as a whole (canopies, forecourt, shop – _zone_rect) is at least ZONE_MIN × Arcade's (FIX-RINT)
 ##   stadt       the test stage in its City Limits at 21:00: the pool of the first street light 25 m or more ahead is at
 ##               least 0.85 × as bright as Arcade's at the same spot
 ##   schatten    at the fuel stop with „Schatten: Aus“ no node of the structure builders casts a shadow, with „Mittel“
@@ -27,6 +28,11 @@ extends SceneTree
 const RACE := "res://scenes/race/race.tscn"
 const BUILDERS := ["station", "border", "city", "gantry", "radar"]
 const STATION_KM := 13.62          ## Kiel – Hamburg: the camera ~40 m before the first canopy of the fuel stop
+## FIX-RINT (QA-RINT-BILD F-05): at 21:00 the fuel stop as a whole (canopies, forecourt, shop) at least ZONE_MIN ×
+## Arcade's mean luminance – the lane alone (above) stayed green while the zone under the roofs was 0.77 ×
+const ZONE_MIN := 0.85
+const ZONE_DEPTH_M := 60.0
+const ZONE_WIDTH_M := 24.0
 
 var _failed: Array[String] = []
 var _wall0 := 0
@@ -302,18 +308,43 @@ func _check_tankstelle() -> void:
 				# same simulation state, Arcade's own projection)
 				var lane_m: Vector3 = _screen(sc, front + 6.0, e - 1.9, 0.0)
 				var lr := region(img, box_at(lane_m, 0.8, 0.3))
+				# FIX-RINT (QA-RINT-BILD F-05): the canopy zone as a whole – canopies, forecourt and the shop beside them
+				var zr := region(img, _zone_rect(sc, front, e))
 				await _free(sc)
 				var sa: Node = await _launch("arcade", {"start_km": STATION_KM, "start_world_minutes": hour * 60.0})
 				var img_a: Image = await _picture_after(sa, 30)
 				_save(img_a, "tankstelle_%02d_arcade" % int(hour))
 				var lane_a: Vector3 = _screen(sa, front + 6.0, e - 1.9, 0.0)
 				var la := region(img_a, box_at(lane_a, 0.8, 0.3))
+				var za := region(img_a, _zone_rect(sa, front, e))
 				sc = sa
+				_need(p, float(zr["lum"]) >= ZONE_MIN * float(za["lum"]), "21 Uhr: die Tankstelle als Ganzes mindestens %.2f × so hell wie in Arcade (%.3f gegen %.3f)" % [
+					ZONE_MIN, float(zr["lum"]), float(za["lum"])])
 				_need(p, float(lr["lum"]) >= 0.85 * float(la["lum"]), "21 Uhr: Tankspur unter dem Dach mindestens so hell wie in Arcade (%.3f gegen %.3f)" % [
 					float(lr["lum"]), float(la["lum"])])
-				msgs.append("21 Uhr: Stirnblende %.2f, Tankspur Modern %.3f, Arcade %.3f" % [float(reg["lum"]), float(lr["lum"]), float(la["lum"])])
+				msgs.append("21 Uhr: Stirnblende %.2f, Tankspur Modern %.3f, Arcade %.3f, Tankstelle als Ganzes Modern %.3f, Arcade %.3f (%.2f ×)" % [
+					float(reg["lum"]), float(lr["lum"]), float(la["lum"]), float(zr["lum"]), float(za["lum"]), float(zr["lum"]) / maxf(float(za["lum"]), 1.0e-4)])
 		await _free(sc)
 	_report("tankstelle", p, "; ".join(msgs))
+
+
+## FIX-RINT (F-05): the screen rectangle of the fuel stop seen from the camera – the box from the first canopy's front
+## to ZONE_DEPTH_M beyond it, from the shoulder to ZONE_WIDTH_M beyond the paved edge, ground to above the fascia (the
+## bounding rectangle of its corners in the mode's own projection, clipped to the picture).
+func _zone_rect(sc: Node, front: float, e: float) -> Rect2i:
+	var lo := Vector2(1.0e9, 1.0e9)
+	var hi := Vector2(-1.0e9, -1.0e9)
+	for z: float in [front, front + ZONE_DEPTH_M]:
+		for x: float in [e - 1.0, e + ZONE_WIDTH_M]:
+			for h: float in [0.0, 7.0]:
+				var q: Vector3 = _screen(sc, z, x, h)
+				if q.z <= 0.5:
+					continue
+				lo = Vector2(minf(lo.x, q.x), minf(lo.y, q.y))
+				hi = Vector2(maxf(hi.x, q.x), maxf(hi.y, q.y))
+	if lo.x > hi.x:
+		return Rect2i()
+	return Rect2i(Vector2i(lo), Vector2i(hi - lo)).intersection(Rect2i(0, 0, 1280, 720))
 
 
 # --- finish gantry -----------------------------------------------------------------------------------------------

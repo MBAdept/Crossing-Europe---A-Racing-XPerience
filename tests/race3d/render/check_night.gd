@@ -318,7 +318,11 @@ func _check_spielerauto() -> void:
 		["Dortmund – Frankfurt km 121 Gran Turismo Regen", {"stage_id": "dortmund_frankfurt", "from_city": "dortmund", "start_km": 121.0, "weather": "rain", "vehicle": "gran_turismo", "seed": 14}],
 		["S1 Limousine klar", {"stage_id": "kiel_hamburg", "from_city": "kiel", "start_km": 2.0, "weather": "normal", "vehicle": "limousine", "seed": 11}],
 		# FIX-R4 (QA-R4 B7): the limousine at the end of the dusk under the lamps of the test stage
-		["DEV Limousine 21 Uhr", {"stage_id": "dev_testetappe", "from_city": "dev_start", "start_km": 48.0, "weather": "normal", "vehicle": "limousine", "seed": 17, "hour": 21.0}]]
+		["DEV Limousine 21 Uhr", {"stage_id": "dev_testetappe", "from_city": "dev_start", "start_km": 48.0, "weather": "normal", "vehicle": "limousine", "seed": 17, "hour": 21.0}],
+		# FIX-RINT (QA-RINT-BILD F-06): the red sports car at night in the rain (VALN: Prague – Nuremberg before the Valík
+		# tunnel) and the Kombi – every player car once at night
+		["VALN Sportwagen Regen", {"stage_id": "prag_nuernberg", "from_city": "prag", "start_km": 86.8, "weather": "rain", "vehicle": "sportwagen", "seed": 22}],
+		["S3 Kombi klar", {"stage_id": "kiel_hamburg", "from_city": "kiel", "start_km": 60.0, "weather": "normal", "vehicle": "kombi", "seed": 11}]]
 	var pick := str(CliArgs.all().get("fall", ""))     # "-- --fall=<text>": only the cases whose name contains it
 	for cs: Array in cases:
 		if pick != "" and not str(cs[0]).contains(pick):
