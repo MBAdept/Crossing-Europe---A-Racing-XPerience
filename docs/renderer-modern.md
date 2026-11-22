@@ -2544,7 +2544,10 @@ Materialien, keine Instanz-Uniform** (A-19).
 
 Weich statt gerastert (Befund B-09): ab 0,70 L zeichnet ein Wahrzeichen mit der durchscheinenden Variante seines
 Materials (CE_BLEND, `blend_mix`), näher mit der deckenden (Schatten, Tiefe – nahe Wahrzeichen werfen Schatten).
-Jenseits von L bleiben nachts nur seine leuchtenden Pixel. Prüfungen: `check_landmarks.gd` „weich“ (Material),
+Jenseits von L bleiben nachts nur seine leuchtenden Pixel. Die durchscheinenden Varianten der beleuchteten Klassen
+schreiben Tiefe (`depth_draw_always`): bei voller Deckung ist die Kuppelkirche in beiden Varianten pixelgleich
+(gemessen, Sonne mit Schatten, 0 von 921.600 Pixeln verschieden; mit `depth_draw_opaque` waren es 481 – die
+Flächen eines Netzes überdeckten sich in Zeichenreihenfolge). Prüfungen: `check_landmarks.gd` „weich“ (Material),
 `render/check_landmarks_render.gd` „wahrzeichen_weich“ (Differenzbild ohne Rastermuster).
 
 ### 18.4 Die prozeduralen Formen
