@@ -2555,8 +2555,9 @@ Flächen eines Netzes überdeckten sich in Zeichenreihenfolge). Prüfungen: `che
 `ShapeKit` baut Dreiecke im Format CE_VCOL (Farbe, Rauheit/Metall in UV, Lampenkanal in UV2) und Leuchtpunkte (CE_GLOW).
 - Kuppelkirche: Baukörper 64 × 44 × 30 m mit Gesims und flachem Walmdach, zwei Reihen Rundbogenfenster auf allen
   Seiten, Portal, zwei Seitenkuppeln auf Tambouren, Haupttambour mit zwölf Fenstern, Hauptkuppel, Laterne, Spitze,
-  Kreuz (außer `cross: false`). Farben `wall` / `dome` des Katalogs. Nachts angestrahlt (Kanal 14), Fenster warm
-  (Kanal 12).
+  Kreuz (außer `cross: false`). Farben `wall` / `dome` des Katalogs. Nachts angestrahlt (Kanal 14; das Licht geht wie
+  Arcades Überzug ungedunstet durch den Dunst), Fenster warm (Kanal 12), warmer Schein um die Hauptkuppel wie Arcades
+  `_lm_glow` (16 m, 0,4).
 - Fernsehturm: Schaft in drei Kegelstümpfen, Kugel mit Fensterring (nachts warm), oberer Schaft, Antenne mit
   rot-weißen Bändern, rote Flugwarnlichter bei 252 m (fest) und 300 / 368 m (1,5 s blinkend) – wie Arcade.
 - Leuchtturm: weißer Turm mit Fenstern, Wärterhaus mit Dach, schwarze Galerie, Laternenraum (nachts hell), Kuppel; das
