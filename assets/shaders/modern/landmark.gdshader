@@ -74,6 +74,8 @@ uniform vec3 flood_light = vec3(1.0, 0.8, 0.5);        // channel 14: Arcade's f
 uniform vec3 window_color = vec3(1.0, 0.88, 0.6);      // channel 16 at night: Arcade's lit office windows
 uniform float window_share = 0.35;
 uniform vec3 beacon_color = vec3(1.0, 0.12, 0.08);
+#elif defined(CE_GLOW)
+uniform float viewport_h = 720.0;                       // height of the picture in pixels (set by the builder)
 #endif
 
 global uniform float ce_snow;
@@ -151,8 +153,10 @@ void vertex() {
 	// lamp's own geometry does not cut it
 	vec4 c = MODELVIEW_MATRIX * vec4(VERTEX, 1.0);
 	float depth = max(-c.z, 0.1);
-	float px_per_m = PROJECTION_MATRIX[1][1] * VIEWPORT_SIZE.y * 0.5 / depth;
-	float r = max(UV2.x, UV2.y / max(px_per_m, 1.0e-4));
+	// pixels per metre at this depth (viewport_h from the builder: VIEWPORT_SIZE reads 0 in the vertex stage of the
+	// Compatibility renderer – the quads covered the whole sky); never more than a few per cent of the depth
+	float px_per_m = PROJECTION_MATRIX[1][1] * viewport_h * 0.5 / depth;
+	float r = min(max(UV2.x, UV2.y / max(px_per_m, 1.0e-4)), depth * 0.03);
 	c.xyz += normalize(-c.xyz) * min(r * 1.5, depth * 0.5);
 	c.xy += UV * r;
 	POSITION = PROJECTION_MATRIX * c;

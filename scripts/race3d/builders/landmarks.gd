@@ -398,6 +398,7 @@ func _make(li: int, p: Dictionary, world: Node3D) -> Variant:
 				gi.mesh = gm
 				gi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 				var glow := _material("glow", false)
+				glow.set_shader_parameter("viewport_h", _viewport_h())
 				gi.material_override = glow
 				(e["mats"] as Array).append(glow)
 				node.add_child(gi)
@@ -407,6 +408,15 @@ func _make(li: int, p: Dictionary, world: Node3D) -> Variant:
 	node.transform = _place(z, x, side, sc, rep != PICTURE)
 	_live[li] = e
 	return e
+
+
+## Height of the picture in pixels (the glow points keep a minimum size in pixels).
+func _viewport_h() -> float:
+	if _renderer is Node and (_renderer as Node).is_inside_tree():
+		var h := (_renderer as Node).get_viewport().get_visible_rect().size.y
+		if h > 0.0:
+			return h
+	return 720.0
 
 
 ## One drawable slot: [geometry, opaque material, translucent material, surface (-1 = override), casts].
