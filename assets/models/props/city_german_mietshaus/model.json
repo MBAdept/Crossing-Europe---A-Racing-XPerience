@@ -28,7 +28,7 @@
      {
       "node": "body",
       "mesh": "props/city_german_mietshaus/lod1_body.res",
-      "classes": ["vpbr", "baked_cutout"]
+      "classes": ["vpbr", "baked"]
      }
     ]
    }
@@ -37,8 +37,8 @@
   "roughness": 0.88,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "german", "outskirts"],
-  "bytes": 259453,
-  "hash": "d704f8e484621b43fc1a8469c731e15f336d805b"
+  "bytes": 253534,
+  "hash": "e9e121a6a5d8c161659a0896101dd8e10647d89b"
  },
  "sets": {
   "props/city_german_mietshaus": {"model": "props/city_german_mietshaus"}

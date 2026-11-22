@@ -523,7 +523,7 @@ MODELS.update({
     # walls, roofs and railings in one BC3 atlas), glass-brick stairwell, dormers, chimneys, TV aerials
     "props/city_german_mietshaus": dict(
         builder="city", source="props/city_german_mietshaus", kind="building", atlas=(2048, 1024), ppm_max=96.0,
-        roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True,
+        roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True, lod1_opaque=True,
         cut_fill=dict(alpha=0.4, color="#797056"),
         vpbr=("gm_slab", "gm_panel", "gm_aer", "gm_dorm_fm", "gm_bdm"), levels={"gm_aerials": "lod0"},
         weights=dict(roof=0.5, away=0.3), openings=dict(reveal_color="#cdbf98", sill_color="#cfcac0"),
@@ -533,7 +533,7 @@ MODELS.update({
     # full texel density, the floors above at 75 %
     "props/city_german_gruenderzeit": dict(
         builder="city", source="props/city_german_gruenderzeit", kind="building", atlas=(2048, 1024), ppm_max=100.0,
-        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True, lod1_opaque=True,
         cut_fill=dict(alpha=0.4, color="#a99f85"),
         vpbr=("gg_orn", "gg_dorm_fm"), weights=dict(roof=0.5, away=0.3),
         floors=dict(z=(7.8,), upper=0.75, objects=("gg_body",)),
@@ -611,6 +611,146 @@ MODELS.update({
         roughness=0.6, view="roadside", ao=dict(distance=1.5, floor=0.45, gamma=0.9, samples=24), lod1=True,
         lamps=("hc_redl", "hc_flood_m"), vpbr=("hc_red", "hc_dark"), weights=dict(roof=0.5, away=0.4),
         openings=dict(reveal_color="#8f9194", sill_color="#a7a9ab"), gutters=False, caps=False),
+})
+# AS5a2 (batch 2): the styles french, belgian, dutch, swiss and paris - same builder "city"; the road flanks (-x) that
+# the sprite shows as a narrow strip get openings in the style of the front through the generator hook close3d
+MODELS.update({
+    # french (outskirts): the southern house - ochre-pink render, lavender-blue shutters (geometry), canal tiles with the
+    # genoise under the eave (vpbr), the wrought-iron balcony (cut-out), garden wall with the iron gate, plane tree and
+    # oleanders decimated
+    "props/city_french_sud": dict(
+        builder="city", source="props/city_french_sud", kind="building", atlas=(1024, 1024), ppm_max=110.0,
+        roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True,
+        rail_module={"fs_rail": 1.0},
+        cut_fill=dict(alpha=0.4, color="#b08a68"),
+        decimate={"fs_plane_c": 0.35, "fs_ol0": 0.4, "fs_ol1": 0.4},
+        lod1_decimate={"fs_plane_c": 0.3, "fs_ol0": 0.4, "fs_ol1": 0.4},
+        vpbr=("fs_gen", "fs_potm", "fs_gate_", "fs_olf", "fs_slab"), levels={"fs_olf": "lod0", "fs_pots": "lod0"},
+        smooth=("fs_olf",),
+        # AS5aR2 (KRITIK-5a2 K3): leaf cards on the plane tree's blobs in the cut-out atlas, the crown a core inside;
+        # lod1 keeps the cut-out class and the same cards (no jump of the crown at the switch)
+        leaf_cards={"fs_plane_c": dict(n=230, half=0.5, core=0.9, down=-0.75, n1=230, half1=0.5,
+                                       atlas=dict(base=("#5d7f2e", "#86a84a"), gain=0.88))},
+        weights=dict(roof=0.5, away=0.3, objects={"fs_plane": 0.3, "fs_ol": 0.3, "fs_wall2": 0.6},
+                     solid={"fs_plane_c": 0.3, "fs_ol0": 0.3, "fs_ol1": 0.3}),
+        openings=dict(reveal_color="#d8a67c", sill_color="#efe3cf"), gutters=False),
+    # belgian (centre): four Liege terraced houses in red, brown, white and ochre brick with bluestone lintels and sills
+    # (vpbr), the cafe with its green front and lit sign, coloured cornices on consoles (vpbr), slate roof with dormers
+    "props/city_belgian_terrace": dict(
+        builder="city", source="props/city_belgian_terrace", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, params={"close3d": True},
+        vpbr=("bt_blue", "bt_corm", "bt_dorm_fm"), weights=dict(roof=0.45, away=0.3),
+        floors=dict(z=(6.7,), upper=0.8, objects=("bt_body",)),
+        openings=dict(reveal_color="#8a7f76", sill_color="#61666d", bars={"shop": (1, [0.78])}, shop_depth=0.35),
+        gutters=dict(per_roof=2, walls=("bt_body",))),
+    # french (outskirts): the Loire house - tuffeau ashlar, quoins and cornice (vpbr), blue-grey shutters, slate roof
+    # with stone dormers, the garden wall with its iron gate, hydrangeas and the garden tree decimated
+    "props/city_french_maison": dict(
+        builder="city", source="props/city_french_maison", kind="building", atlas=(1024, 1024), ppm_max=110.0,
+        roughness=0.88, view="roadside", ao=AO_CITY, lod1=True,
+        # AS5aR2 (KRITIK-5a2 K3): leaf cards on the garden tree - the cut-out class (single_cutout) in both levels,
+        # lod1 with the same cards
+        single_cutout=True,
+        leaf_cards={"fm_tree_c": dict(n=170, half=0.5, core=0.9, down=-0.75, n1=170, half1=0.5,
+                                      atlas=dict(base=("#3f6b28", "#62903a"), gain=0.95))},
+        decimate={"fm_tree_c": 0.35, "fm_hyd": 0.4}, lod1_decimate={"fm_tree_c": 0.35, "fm_hyd": 0.5},
+        vpbr=("fm_stone", "fm_gate_", "fm_hf", "fm_dorm_fm"), levels={"fm_hf": "lod0"}, smooth=("fm_hf",),
+        weights=dict(roof=0.5, away=0.3, objects={"fm_tree": 0.3, "fm_hyd": 0.3, "fm_wall2": 0.6},
+                     solid={"fm_tree_c": 0.3, "fm_hyd": 0.3}),
+        openings=dict(reveal_color="#d6ccb3", sill_color="#efe8d5"),
+        gutters=dict(per_roof=2, walls=("fm_body",))),
+    # french (centre): the Lyon town house - ochre render over a stone shop floor, the bakery with its blue front,
+    # awning and lit sign, grey-green shutters, window railings and the first-floor balcony (cut-out), surrounds,
+    # cornices and quoins (vpbr), slate and zinc mansard with dormers
+    "props/city_french_immeuble": dict(
+        builder="city", source="props/city_french_immeuble", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True, lod1_opaque=True,
+        params={"close3d": True},
+        rail_module={"fi_rail": 0.99}, cut_fill=dict(alpha=0.4, color="#6f6250"),
+        vpbr=("fi_stone",), weights=dict(roof=0.45, away=0.3),
+        floors=dict(z=(7.4,), upper=0.8, objects=("fi_body",)),
+        openings=dict(reveal_color="#c99a5e", sill_color="#ece4d2", bars={"shop": (1, [0.78])}, shop_depth=0.35,
+                      cover_skip=("fi_rail",)),
+        gutters=False),
+    # dutch (outskirts, tinted #ead6cc in the Ruhr): four brick terraced houses with big windows, wide flat dormers,
+    # orange tiles, door canopies (vpbr), low hedges decimated, two bicycles (vpbr, lod0)
+    "props/city_dutch_terrace": dict(
+        builder="city", source="props/city_dutch_terrace", kind="building", atlas=(1024, 1024), ppm_max=110.0,
+        roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, params={"close3d": True},
+        decimate={"dt_hedge": 0.35}, lod1_decimate={"dt_hedge": 0.5},
+        vpbr=("dt_trim", "dt_bike", "dt_dorm_fm"), levels={"dt_bike": "lod0"},
+        weights=dict(roof=0.5, away=0.3, objects={"dt_hedge": 0.3}, solid={"dt_hedge": 0.3}),
+        openings=dict(reveal_color="#7a4030", sill_color="#d9d4ca", cover_skip=("dt_roof",)),
+        gutters=dict(per_roof=2, walls=("dt_body",))),
+    # belgian (centre): the Mosan Renaissance house - red brick with limestone bands, stone cross windows, bluestone
+    # ground floor with the arched door, step gable, slate roof
+    "props/city_belgian_stone": dict(
+        builder="city", source="props/city_belgian_stone", kind="building", atlas=(1024, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, params={"close3d": True},
+        vpbr=("bs_capm",), weights=dict(roof=0.45, away=0.3),
+        floors=dict(z=(7.1,), upper=0.8, objects=("bs_body",)),
+        openings=dict(reveal_color="#8f7a6c", sill_color="#cfcabe", n_arc=6, bar_w=0.11), gutters=False),
+    # paris (centre): the Haussmann block - rusticated shop floor with arched shop fronts and displays, the cafe with its
+    # awning and tables, ashlar storeys with pediments, surrounds and cornices (vpbr), the continuous wrought-iron
+    # balconies of the second and fifth floor and the window railings (cut-out), zinc mansard with dormers
+    "props/city_paris_haussmann": dict(
+        builder="city", source="props/city_paris_haussmann", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True, lod1_opaque=True,
+        rail_module={"phm_rail": 1.0},
+        cut_fill=dict(alpha=0.4, color="#8f8676"),
+        vpbr=("phm_stone", "phm_slab", "phm_tbm", "phm_dorm_fm"), levels={"phm_tables": "lod0"},
+        weights=dict(roof=0.35, away=0.25), floors=dict(z=(10.2,), upper=0.75, objects=("phm_body",)),
+        openings=dict(reveal_color="#cfc2a6", sill_color="#e8dcc4", bars={"shop": (1, [0.8])}, shop_depth=0.35,
+                      cover_skip=("phm_rail",)),
+        gutters=False),
+    # swiss (outskirts): the Bernese chalet - white rendered ground floor, log storeys, the deep eave with carved
+    # bargeboards (vpbr), the balconies with cut-out balustrades, green shutters, geraniums (vpbr, lod0), firewood
+    "props/city_swiss_chalet": dict(
+        builder="city", source="props/city_swiss_chalet", kind="building", atlas=(1024, 1024), ppm_max=110.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True, lod1_opaque=True,
+        rail_module={"sch_bal": 0.88},
+        cut_fill=dict(alpha=0.4, color="#6a4a32"),
+        vpbr=("sch_wood", "sch_ger"), levels={"sch_ger": "lod0"}, weights=dict(roof=0.5, away=0.3), smooth=("sch_ger",),
+        flower_shape={"sch_ger": (1.2, 0.8, 0.6, 0.04)},
+        openings=dict(reveal_color="#d8d2c4", sill_color="#6e4224", cover_skip=("sch_ger",)), gutters=False),
+    # dutch (centre): three Amsterdam canal houses - step, bell and neck gable, tall sash windows, stoops, hoist beam;
+    # the road flank of the step-gable house with windows (close3d)
+    "props/city_dutch_canal": dict(
+        builder="city", source="props/city_dutch_canal", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, params={"close3d": True},
+        vpbr=("dca_capm", "dcb_capm", "dcc_capm", "dc_pots_m"), levels={"dc_pots": "lod0"}, smooth=("dc_pots",),
+        weights=dict(roof=0.45, away=0.3), floors=dict(z=(6.8,), upper=0.8, objects=("dca_body", "dcb_body", "dcc_body")),
+        openings=dict(reveal_color="#7a4a3a", sill_color="#ece8de", n_arc=4), gutters=False),
+    # swiss (centre): the Bern arcade houses (Lauben) - sandstone piers and round arches with the shops behind, flower
+    # boxes (vpbr) and geraniums (lod0), deep eave, dormers; the road flank's ground floor with shop windows (close3d)
+    "props/city_swiss_laube": dict(
+        builder="city", source="props/city_swiss_laube", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, params={"close3d": True},
+        vpbr=("sl2_bx", "sl2_ger", "sl2_sof", "sl2_dorm_fm"), levels={"sl2_ger": "lod0"}, smooth=("sl2_ger",),
+        weights=dict(roof=0.45, away=0.3), floors=dict(z=(7.4,), upper=0.8, objects=("sl2_body",)),
+        openings=dict(reveal_color="#9a957e", sill_color="#d8d2c0", bars={"shop": (1, [0.78])}, shop_depth=0.35,
+                      cover_skip=("sl2_ger", "sl2_boxes", "sl2_roof", "sl2_soffit")),
+        gutters=False),
+    # dutch (centre): cornice house with its crest, spout-gable warehouse with shutters and loading doors, Renaissance
+    # step gable with sandstone bands; the road flank of the cornice house with windows (close3d)
+    "props/city_dutch_canal_b": dict(
+        builder="city", source="props/city_dutch_canal_b", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, params={"close3d": True},
+        vpbr=("dba_capm", "dbb_capm", "dbc_capm", "dba_st", "dbb_hm", "dbc_om"),
+        weights=dict(roof=0.45, away=0.3), floors=dict(z=(6.8,), upper=0.8, objects=("dba_body", "dbb_body", "dbc_body")),
+        openings=dict(reveal_color="#b8b2a6", sill_color="#ece8de", n_arc=4), gutters=False),
+    # paris (centre): the Haussmann corner block with its cut corner (pan coupe) - as the block, balconies round the
+    # chamfer
+    "props/city_paris_corner": dict(
+        builder="city", source="props/city_paris_corner", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True, lod1_opaque=True,
+        rail_module={"phc_rail": 1.0},
+        cut_fill=dict(alpha=0.4, color="#8f8676"),
+        vpbr=("phc_stone", "phc_slab", "phc_dorm_fm"),
+        weights=dict(roof=0.35, away=0.25), floors=dict(z=(10.2,), upper=0.75, objects=("phc_body",)),
+        openings=dict(reveal_color="#cfc2a6", sill_color="#e8dcc4", bars={"shop": (1, [0.8])}, shop_depth=0.35,
+                      cover_skip=("phc_rail",), chamfer=True),
+        gutters=False),
 })
 # --- end AS5a ------------------------------------------------------------------------------------------------------
 

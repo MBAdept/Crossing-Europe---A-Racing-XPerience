@@ -46,6 +46,12 @@ flanks), lod1_flat (default True), albedo_mul / light_mul (dict material prefix:
 PANE_LIGHT_K), shop_light, n_arc and louvre (in openings), caps (default False), bake_samples (default
 BAKE_SAMPLES), inner_frame (default H.FRAME_W with lod1), oriel (dict shaft, windows, frame, corbel, out, fw, bar,
 sill), cut_fill (dict alpha, color), lod1_decimate (dict name prefix: ratio).
+AS5a2: weights.solid (dict name prefix: weight), rail_module (dict name prefix: module length), smooth (name prefixes),
+openings.cover_skip (name prefixes), openings.chamfer (bool).
+AS5aR2 (rework after the art review KRITIK-5a2): shop displays lit brighter at night (SHOP_GLOW, SHOP_EM, SHOP_CEIL);
+the far level's inner frame ring and painted glazing bars towards the glass (inner_k, bars_k; wallmat hooks);
+lod1_opaque (bool: lod1 without the cut-out class); leaf_cards (dict crown object prefix: card spec, see "leaf cards"),
+leaf_px (texels of the leaf sheet); flower_shape (dict name prefix: (x, y, z scale, jitter)).
 Two surfaces per level (baked or baked_cutout + vpbr): city budget 10,000 triangles, 2 draw calls.
 """
 import math
@@ -71,17 +77,26 @@ LAMP_TOP_MIN_Z = 8.0      # closed lamp bodies higher than this lose their upwar
 BAKE_SAMPLES = 4          # Cycles samples of the colour and light bakes: they are EMIT bakes at twice the atlas size
 #                           (bake.SUPERSAMPLE), 4 x 4 = 16 jittered samples per atlas texel are enough for the edges
 #                           of the procedural facades; bake.SAMPLES (16) cost the 2048 x 1024 atlases 20 minutes each
+SHOP_GLOW = 1.6           # AS5aR2: light of a shop display x the grid's light x strength x PANE_LIGHT_K (was 1.25)
+SHOP_EM = (0.3, 0.75)     # AS5aR2: lit display = a + b x sqrt(interior colour) (was 0.2 + 0.8 x colour)
+SHOP_CEIL = (0.26, 0.35)  # AS5aR2: ceiling light - the top share of the display rises to + this brightness
+INNER_K = 0.75            # AS5aR2: the far level's inner frame ring this share of the way to the glass (wallmat)
+BARS_K = 0.35             # AS5aR2: its painted glazing bars this share of the way to the glass
 
 
 # --- the wall log ------------------------------------------------------------------------------------------------
 
-def _log_walls(log, inner_frame=0.0):
+def _log_walls(log, inner_frame=0.0, inner_k=0.0, bars_k=0.0):
     """props_cities.wallmat writes no window log, and the file is not ours to change for that: while a model builds
     the function is wrapped. Its grids go to the log as explicit rectangles (the cutter's format, as AS4's
     _log_city_walls), with the surface spec (timber framing), the zones, the seed and per-grid shutters.
     inner_frame (AS5aR1): passed to wallmat's hook of that name - the windows paint the frame of the cut window (its
     inset H.FRAME_W) inside their glass, unlit: the flat lod1 shows the same lit and glazed area as the cut windows of
     lod0, whose geometric frame covers that ring (KRITIK-5a1 K5: lod1 was 9 % brighter at night).
+    inner_k, bars_k (AS5aR2): passed with inner_frame - the ring and the painted glazing bars that share of the way
+    from the frame colour to the glass (wallmat). lod0 never shows them (its geometric frame and bars lie 1.5 cm in
+    front of them); the flat lod1 seen from 60 m on gets windows as dark as the sprite's instead of a second white
+    frame inside each one (KRITIK-5a2 K2: far facades 5 - 10 % paler, windows pale lilac).
     Returns the function that restores the original."""
     import inspect
     from cesprites import props_cities as C
@@ -112,6 +127,10 @@ def _log_walls(log, inner_frame=0.0):
                         seed=float(a["seed"])))
         if inner_frame > 0.0 and "inner_frame" not in kw:
             kw = dict(kw, inner_frame=float(inner_frame))
+            if inner_k > 0.0:
+                kw["inner_k"] = float(inner_k)
+            if bars_k > 0.0:
+                kw["bars_k"] = float(bars_k)
         return orig(*args, **kw)
     C.wallmat = logged
 
@@ -140,8 +159,12 @@ def _display_mat(base, g, gi, e, cache, sink):
     m, nb = M.new_material("ce_disp%d_%s" % (gi, base.name))
     x, y, z = nb.coords()
     nx, ny, _nz = nb.normal()
-    side = nb.gt(nb.absf(nx), nb.absf(ny))
-    u = nb.mixf(side, x, y)
+    if g.get("face") == "chamfer":
+        # AS5a2: the shop of a cut corner - wallmat's u of the face "chamfer" (x - y) / sqrt 2 (x or y gave stripes)
+        u = nb.mul(nb.sub(x, y), 0.70711)
+    else:
+        side = nb.gt(nb.absf(nx), nb.absf(ny))
+        u = nb.mixf(side, x, y)
     u0, pu, z0, pz = float(g["u0"]), float(g["pu"]), float(g["z0"]), float(g["pz"])
     wu, wz = (float(v) for v in g["win"])
     sill = float(g.get("sill", (pz - wz) * 0.5))
@@ -265,8 +288,16 @@ def _display_mat(base, g, gi, e, cache, sink):
     if len(cols) > 1:
         light = nb.mix(nb.gt(r2, 0.55), light, M.srgb(cols[1]))
     lit_m = nb.lt(r1, lit)
-    glow = nb.color_scale(nb.color_scale(light, nb.mul(lum, st * 1.25)), lit_m)
-    em = nb.color_scale(nb.vadd(nb.color_scale(interior, 0.8), (0.2, 0.2, 0.2)), 1.0)
+    # AS5aR2 (KRITIK-5a2 K1: the lit shops of Paris were 149 against Arcade's 203 in brightness, on a third of the
+    # area): a bright shop - back wall and goods in the light (square root of the interior colour: dark furniture
+    # stays readable), a band of ceiling light in the top fifth, SHOP_GLOW of the window light
+    ceil = nb.math("MINIMUM", nb.math("MAXIMUM", nb.mul(nb.sub(t, 1.0 - SHOP_CEIL[0]), 1.0 / SHOP_CEIL[0]), 0.0), 1.0)
+    lum = nb.add(lum, nb.mul(ceil, SHOP_CEIL[1]))
+    glow = nb.color_scale(nb.color_scale(light, nb.mul(lum, st * SHOP_GLOW)), lit_m)
+    sq = nb.node("ShaderNodeVectorMath", operation="POWER")
+    nb.links.new(interior, sq.inputs[0])
+    sq.inputs[1].default_value = (0.5, 0.5, 0.5)
+    em = nb.vadd(nb.color_scale(sq.outputs[0], SHOP_EM[1]), (SHOP_EM[0],) * 3)
     # multiply the lit interior by the light colour (vector multiply)
     mul = nb.node("ShaderNodeVectorMath", operation="MULTIPLY")
     nb.links.new(em, mul.inputs[0])
@@ -347,7 +378,10 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
     fac = [o for o in objs if any(s.material is not None and s.material.name in by_mat for s in o.material_slots)]
     if not fac:
         return record
-    cover = H.Cover(objs)
+    # cover_skip (AS5a2): objects that never cover a window - French window guards stand 10 - 16 cm in front of
+    # the glass (inside the cover distance of 0.3 m): their windows stayed painted
+    skip_cover = tuple(opt.get("cover_skip", ()))
+    cover = H.Cover([o for o in objs if not (skip_cover and o.name.startswith(skip_cover))])
     fill_cache = {}
     disp_cache = {}
     n_open = n_shut = n_louvre = n_door = n_clock = n_skip = n_hidden = n_shop = 0
@@ -367,6 +401,10 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
             e = by_mat[mat.name]
             n = np.array(f.normal, dtype=np.float64)
             cls, u_ax = H._face_frame(n)
+            if cls is None and opt.get("chamfer") and abs(n[2]) < 0.1 and n[0] < -0.6 and n[1] < -0.6:
+                # AS5a2: the cut front-left corner (pan coupe) of a corner block - wallmat's face "chamfer", u = (x - y)
+                # / sqrt 2: its windows and shop are cut like those of the axis faces (catalog option chamfer)
+                cls, u_ax = "chamfer", np.array([0.70711, -0.70711, 0.0])
             if cls is None or cls in opt.get("skip_faces", ()):
                 continue
             vs = [np.array(v.co, dtype=np.float64) for v in f.verts]
@@ -410,7 +448,7 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
                     doors.append(H.Opening(pts, "door", d, -1, rect))
             holes = list(doors)
             for gi, g in enumerate(e["grids"]):
-                if g.get("kind") != "door" or cls not in P.GRID_FACES.get(g.get("face", "front"), ("front", "back")):
+                if g.get("kind") != "door" or cls not in _grid_faces(g):
                     continue
                 for rect in g.get("rects") or []:
                     if not P._inside_poly(((rect[0] + rect[1]) * 0.5, (rect[2] + rect[3]) * 0.5), poly) or hidden(rect):
@@ -420,7 +458,7 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
                     dtop = "round" if g.get("arch") else g.get("top")
                     holes.append(H.Opening(H._outline(*rect, top=dtop, n_arc=n_arc), "door", src, gi, rect, dtop))
             for gi, g in enumerate(e["grids"]):
-                if g.get("kind") == "door" or cls not in P.GRID_FACES.get(g.get("face", "front"), ("front", "back")):
+                if g.get("kind") == "door" or cls not in _grid_faces(g):
                     continue
                 top = "round" if g.get("arch") else g.get("top")
                 for rect in (g["rects"] if "rects" in g else P._grid_windows(g)):
@@ -578,6 +616,13 @@ def cut_openings(rig, objs, log, opt, geo, mats, stats):
     stats.update(openings=n_open, doors=n_door, shops=n_shop, shutters=n_shut, louvres=n_louvre, clocks=n_clock,
                  skipped=n_skip, hidden=n_hidden)
     return record
+
+
+def _grid_faces(g):
+    """The wall classes a grid paints (props3d.GRID_FACES; a grid of the chamfer face only on the chamfer)."""
+    if g.get("face") == "chamfer":
+        return ("chamfer",)
+    return P.GRID_FACES.get(g.get("face", "front"), ("front", "back"))
 
 
 def _reveal_span(geo, mat, outline, p3, n, u_ax, d0, d1):
@@ -949,6 +994,321 @@ def _oriel(objs, spec, geo, mats, stats):
 # 10,000 triangles on them. lod1 keeps silhouette, storeys, roofs, cornices, dormers and the window rhythm of the sprite.
 
 FLAT_LOD0_PREFIXES = ("ce_reveal", "ce_shop_reveal", "ce_door_", "ce_louvre_")
+
+
+# --- leaf cards of garden trees (AS5aR2) ---------------------------------------------------------------------------
+#
+# KRITIK-5a2 K3: the decimated generator crown of a garden tree read from the street (10 - 15 m) as a cluster of
+# faceted green stones. The quality bar names the AS3 card trees; a model of its own beside the house is the props
+# builder's business (R7), and a third surface (class leaves) breaks the city budget of two draw calls. A house that
+# draws its facade in the cut-out class anyway (single_cutout) can carry leaf cards in that class: the cards lie on
+# the blobs of the generator's crown (props_nature.CROWN_LOG, the blobs the AS3 card trees grow on), their texture -
+# leaf clusters of leafatlas (the AS3 leaves, mip-safe halo) in the generator's two leaf colours - is pasted into a
+# region of the house's atlas that a reserved chart keeps free (LEAF_RES), the decimated crown shrinks a little and
+# stays inside as the closed leaf mass. Every corner takes the normal of its blob (blended with the crown's
+# roundness): a blob is lit on its sun side like the shaded spheres of the sprite, neighbouring cards never jump.
+# Only lod0: lod1 (from 60 m) keeps the opaque core.
+
+LEAF_RES = "ce_leafres"   # the reserved chart (a quad far below the model, never drawn)
+LEAF_SPECIES = dict(leaf="ovate", sat=0.8, gain=1.06, tint=(1.0, 1.0, 1.08))
+
+
+def _crown_logger():
+    """props_cities.crown wrapped while the model builds: {crown object name: [(centre, radius, z scale)]} (the blob
+    list props_nature keeps for the card trees). Returns (log, restore)."""
+    from cesprites import props_cities as C
+    from cesprites import props_nature as PN
+    orig = C.crown
+    log = {}
+
+    def logged(rig, name, *args, **kw):
+        outer = PN.CROWN_LOG
+        PN.CROWN_LOG = []
+        try:
+            return orig(rig, name, *args, **kw)
+        finally:
+            log[name] = [(tuple(float(v) for v in c), float(r), float(zs)) for (c, r, zs) in PN.CROWN_LOG]
+            if outer is not None:
+                outer.extend(PN.CROWN_LOG)
+            PN.CROWN_LOG = outer
+    C.crown = logged
+
+    def restore():
+        C.crown = orig
+    return log, restore
+
+
+def _leaf_cards(blobs, spec, seed):
+    """Leaf cards on the exposed surface of a crown's blobs. spec: n (cards), half (card half size in blob radii),
+    out (m off the blob), el (elevation limits of the card normal, degrees), crown_w (share of the crown's
+    roundness in the corner normals), down (lowest blob-normal z that still gets cards). Returns
+    (pos (T, 3, 3), nor (T, 3, 3), cell uv (T, 3, 2) in 0..1 of a cell, cell index (T,))."""
+    rng = np.random.default_rng(int(seed))
+    bc = np.array([b[0] for b in blobs], dtype=np.float64)
+    br = np.array([b[1] for b in blobs], dtype=np.float64)
+    bz = np.array([b[2] for b in blobs], dtype=np.float64)
+    centre = bc.mean(axis=0)
+    ext = np.maximum(np.abs(bc - centre).max(axis=0) + br.max(), 0.3)
+    k = 96
+    i = np.arange(k) + 0.5
+    phi = np.arccos(1.0 - 2.0 * i / k)
+    th = math.pi * (1.0 + 5.0 ** 0.5) * i
+    dirs = np.stack([np.sin(phi) * np.cos(th), np.sin(phi) * np.sin(th), np.cos(phi)], axis=1)
+    cand = []
+    for bi in range(len(blobs)):
+        n = dirs / np.linalg.norm(dirs * np.array([1.0, 1.0, 1.0 / bz[bi]]), axis=1)[:, None]
+        p = bc[bi] + dirs * br[bi] * np.array([1.0, 1.0, bz[bi]])
+        q = (p[:, None, :] - bc[None, :, :]) / (br[None, :, None] * np.stack([np.ones_like(bz), np.ones_like(bz), bz],
+                                                                                axis=1)[None, :, :])
+        inside = (np.sum(q * q, axis=2) < 0.97 ** 2)
+        inside[:, bi] = False
+        nz = n[:, 2] / np.linalg.norm(n, axis=1)
+        ok = ~inside.any(axis=1) & (nz >= float(spec.get("down", -0.55)))
+        for j in np.nonzero(ok)[0]:
+            cand.append((bi, p[j], n[j] / np.linalg.norm(n[j])))
+    if not cand:
+        return None
+    order = rng.permutation(len(cand))
+    want = int(spec.get("n", 160))
+    # spread: farthest-point thinning of the shuffled candidates
+    picked = []
+    pts = np.array([cand[j][1] for j in order])
+    dmin = np.full(len(order), np.inf)
+    cur = 0
+    for _ in range(min(want, len(order))):
+        picked.append(order[cur])
+        dmin = np.minimum(dmin, np.linalg.norm(pts - pts[cur], axis=1))
+        cur = int(np.argmax(dmin))
+        if dmin[cur] <= 0.0:
+            break
+    half_k = float(spec.get("half", 0.55))
+    out = float(spec.get("out", 0.04))
+    el_lo, el_hi = (math.radians(float(v)) for v in spec.get("el", (-34.0, 40.0)))
+    cw = float(spec.get("crown_w", 0.22))
+    pos, nor, uv, cell = [], [], [], []
+    quad_uv = np.array([(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)])
+    for j in picked:
+        bi, p, n = cand[j]
+        el = math.asin(max(-1.0, min(1.0, n[2])))
+        el = min(max(el, el_lo), el_hi)
+        hz = math.hypot(n[0], n[1])
+        hx, hy = (n[0] / hz, n[1] / hz) if hz > 1e-6 else (1.0, 0.0)
+        cn = np.array([hx * math.cos(el), hy * math.cos(el), math.sin(el)])
+        t1 = np.array([-hy, hx, 0.0])
+        t2 = np.cross(cn, t1)
+        roll = rng.uniform(-0.35, 0.35)
+        a1 = t1 * math.cos(roll) + t2 * math.sin(roll)
+        a2 = -t1 * math.sin(roll) + t2 * math.cos(roll)          # upwards on the card: the cluster's light side
+        h = br[bi] * half_k * rng.uniform(0.85, 1.15)
+        c = p + n * out
+        corners = [c - a1 * h - a2 * h, c + a1 * h - a2 * h, c + a1 * h + a2 * h, c - a1 * h + a2 * h]
+        cn_ = []
+        for q in corners:
+            d = (q - bc[bi]) * np.array([1.0, 1.0, 1.0 / (bz[bi] * bz[bi])])
+            d /= max(np.linalg.norm(d), 1e-9)
+            dc = (q - centre) / ext
+            dc /= max(np.linalg.norm(dc), 1e-9)
+            v = d * (1.0 - cw) + dc * cw
+            cn_.append(v / max(np.linalg.norm(v), 1e-9))
+        ci = int(rng.integers(0, 4))
+        flip = rng.random() < 0.5
+        u = quad_uv.copy()
+        if flip:
+            u[:, 0] = 1.0 - u[:, 0]
+        for tri in ((0, 1, 2), (0, 2, 3)):
+            pos.append([corners[t] for t in tri])
+            nor.append([cn_[t] for t in tri])
+            uv.append([u[t] for t in tri])
+            cell.append(ci)
+    return np.array(pos), np.array(nor), np.array(uv), np.array(cell)
+
+
+def _leaf_reserve(rig, px_m=4.0):
+    """The reserved chart: a quad of px_m x px_m metres far below the model with a material of its own (baked)."""
+    import bpy
+    from cesprites import materials as M
+    mat = M.basic(LEAF_RES, "#4f7a2c", rough=0.9)
+    me = bpy.data.meshes.new(LEAF_RES)
+    z = -60.0
+    me.from_pydata([(0.0, 0.0, z), (px_m, 0.0, z), (px_m, px_m, z), (0.0, px_m, z)], [], [(0, 1, 2, 3)])
+    me.materials.append(mat)
+    ob = bpy.data.objects.new(LEAF_RES, me)
+    bpy.context.scene.collection.objects.link(ob)
+    ob["ce_lvl"] = "lod0"
+    return ob
+
+
+LEAF_RES_M = 4.0          # side of the reserved quad (m); its chart weight gives it leaf_px texels
+
+
+def _leaf_setup(rig, objs, crowns, spec, stats):
+    """The cards of every logged crown whose object name starts with a key of spec (catalog leaf_cards: {prefix:
+    dict(n, half, out, el, crown_w, down, core, atlas, n1, half1)}); the crown object itself shrinks by `core` towards
+    its blobs' centre (it stays inside the cards as the leaf mass); n1 > 0: lod1 gets n1 cards of half1 too. Returns
+    dict(pos, nor, uv, cell, res, seed, shrunk, lod1) or None."""
+    pos, nor, uv, cell, shrunk, lod1_sets = [], [], [], [], [], []
+    n_crowns = 0
+    seed = 0
+    for pre, sp in sorted(spec.items()):
+        for name in sorted(crowns):
+            blobs = crowns[name]
+            if not name.startswith(pre) or not blobs:
+                continue
+            sd = zlib.crc32(name.encode("utf-8"))
+            seed = seed or sd
+            got = _leaf_cards(blobs, sp, sd)
+            if got is None:
+                continue
+            pos.append(got[0])
+            nor.append(got[1])
+            uv.append(got[2])
+            cell.append(got[3])
+            if int(sp.get("n1", 0)) > 0:
+                # lod1 cards: fewer and larger on the same blobs (a house whose lod1 keeps the cut-out class) - the
+                # crown keeps its look at the switch distance. The same seed: the farthest-point choice and the
+                # random draws make them the first n1 cards of lod0 (same place, turn and cluster), only larger
+                g1 = _leaf_cards(blobs, dict(sp, n=int(sp["n1"]), half=float(sp.get("half1", 0.75))), sd)
+                if g1 is not None:
+                    lod1_sets.append(g1)
+            n_crowns += 1
+            k = float(sp.get("core", 0.92))
+            cen = np.mean([b[0] for b in blobs], axis=0)
+            for ob in objs:
+                if ob.name.startswith(name) and len(ob.data.vertices):
+                    _scale_about(ob, cen, k)
+                    shrunk.append((ob.name, cen, k))
+    if not pos:
+        return None
+    out = dict(pos=np.concatenate(pos), nor=np.concatenate(nor), uv=np.concatenate(uv), cell=np.concatenate(cell),
+               seed=seed, spec=dict(sorted(spec.items())[0][1]), res=_leaf_reserve(rig, LEAF_RES_M), shrunk=shrunk,
+               lod1=None)
+    if lod1_sets:
+        out["lod1"] = dict(pos=np.concatenate([g[0] for g in lod1_sets]), nor=np.concatenate([g[1] for g in lod1_sets]),
+                           uv=np.concatenate([g[2] for g in lod1_sets]), cell=np.concatenate([g[3] for g in lod1_sets]))
+    stats["leaf_cards"] = dict(crowns=n_crowns, tris=int(out["pos"].shape[0]),
+                               tris_lod1=int(out["lod1"]["pos"].shape[0]) if out["lod1"] else 0)
+    return out
+
+
+def _scale_about(ob, cen, k):
+    """The mesh of a realised object scaled by k about the world point cen (in place)."""
+    co = np.empty(len(ob.data.vertices) * 3)
+    ob.data.vertices.foreach_get("co", co)
+    co = co.reshape(-1, 3)
+    mw = np.array(ob.matrix_world, dtype=np.float64)
+    inv = np.linalg.inv(mw)
+    wc = co @ mw[:3, :3].T + mw[:3, 3]
+    wc = cen + (wc - cen) * k
+    lc = wc @ inv[:3, :3].T + inv[:3, 3]
+    ob.data.vertices.foreach_set("co", lc.reshape(-1))
+    ob.data.update()
+
+
+def _flower_shape(objs, spec):
+    """AS5aR2 (KRITIK-5a2 K7: the geraniums of the chalet read as a string of large plastic beads): every blob
+    (loose part) of the flower objects {name prefix: (x scale, y scale, z scale, jitter m)} scaled about its own centre
+    and moved by a fixed pseudo-random offset - stretched along the window box (x) the blobs overlap into a low,
+    uneven cushion instead of a row of equal balls. Returns the number of blobs."""
+    n = 0
+    for ob in objs:
+        k = next((v for pre, v in sorted(spec.items()) if ob.name.startswith(pre)), None)
+        if k is None or not len(ob.data.vertices):
+            continue
+        sx, sy, sz, jit = (float(v) for v in k)
+        me = ob.data
+        nv = len(me.vertices)
+        co = np.empty(nv * 3)
+        me.vertices.foreach_get("co", co)
+        co = co.reshape(-1, 3)
+        ev = np.empty(len(me.edges) * 2, dtype=np.int64)
+        me.edges.foreach_get("vertices", ev)
+        par = np.arange(nv)
+
+        def find(i):
+            while par[i] != i:
+                par[i] = par[par[i]]
+                i = par[i]
+            return i
+        for a, b in ev.reshape(-1, 2):
+            ra, rb = find(int(a)), find(int(b))
+            if ra != rb:
+                par[max(ra, rb)] = min(ra, rb)
+        roots = np.array([find(i) for i in range(nv)])
+        for r in np.unique(roots):
+            sel = roots == r
+            c = co[sel].mean(axis=0)
+            h = zlib.crc32(("%s|%.3f|%.3f|%.3f" % (ob.name, c[0], c[1], c[2])).encode()) / 2.0 ** 32
+            off = np.array([math.cos(h * 6.283), math.sin(h * 6.283), -0.5]) * jit * ((h * 7.31) % 1.0)
+            sc = 0.85 + 0.3 * ((h * 13.7) % 1.0)
+            co[sel] = c + off + (co[sel] - c) * np.array([sx, sy, sz]) * sc
+            n += 1
+        me.vertices.foreach_set("co", co.reshape(-1))
+        me.update()
+    return n
+
+
+def _uv_rect(ob, size):
+    """Pixel rectangle (x0, y0, x1, y1; top row first) of an object's atlas coordinates."""
+    W, H_ = size
+    lay = ob.data.uv_layers[BK.UV_NAME]
+    uv = np.empty(len(lay.data) * 2)
+    lay.data.foreach_get("uv", uv)
+    uv = uv.reshape(-1, 2)
+    x0, x1 = float(uv[:, 0].min()) * W, float(uv[:, 0].max()) * W
+    y0, y1 = (1.0 - float(uv[:, 1].max())) * H_, (1.0 - float(uv[:, 1].min())) * H_
+    return int(math.ceil(x0)), int(math.ceil(y0)), int(math.floor(x1)), int(math.floor(y1))
+
+
+def _leaf_paste(baked, leaf, size, stats):
+    """Pastes the leaf sheet into the reserved chart's texels (albedo linear, alpha). Returns its rectangle
+    (x0, y0, side) - a square, the cells half of it."""
+    x0, y0, x1, y1 = _uv_rect(leaf["res"], size)
+    side = (min(x1 - x0, y1 - y0) // 2) * 2
+    if side < 32:
+        raise RuntimeError("leaf sheet: reserved chart of %d texels" % side)
+    sheet = _leaf_sheet(side, leaf["spec"], leaf["seed"])
+    alb = baked["albedo"]
+    alb[y0:y0 + side, x0:x0 + side] = core.srgb_to_lin(sheet[:, :, :3])
+    baked["alpha"][y0:y0 + side, x0:x0 + side] = sheet[:, :, 3]
+    for k in list(baked["emit"].keys()):
+        em = baked["emit"][k]
+        em[y0:y0 + side, x0:x0 + side] = 0.0
+    stats["leaf_sheet_px"] = int(side)
+    return (x0, y0, side)
+
+
+def _leaf_uv(leaf, size):
+    """Atlas coordinates (top row first, as the level meshes) of the cards: cell `cell` of the pasted sheet, its top
+    row at the card's top."""
+    W, H_ = size
+    x0, y0, side = leaf["rect"]
+    cs = side // 2
+    ci = leaf["cell"]
+    cx = (ci % 2).astype(np.float64)
+    cy = (ci // 2).astype(np.float64)
+    cu = leaf["uv"][:, :, 0]
+    cv = leaf["uv"][:, :, 1]
+    px = x0 + (cx[:, None] * cs) + 0.5 + cu * (cs - 1.0)
+    py = y0 + (cy[:, None] * cs) + 0.5 + (1.0 - cv) * (cs - 1.0)
+    return np.stack([px / W, py / H_], axis=2)
+
+
+def _leaf_sheet(size, spec, seed):
+    """2 x 2 leaf clusters (leafatlas.cluster, AS3) in the generator's leaf colours as an RGBA array (size x size):
+    halo for the scissor 0.5 of baked_cutout, colours bled into the transparent texels."""
+    import random
+    from PIL import Image
+    from . import leafatlas
+    sp = leafatlas.species_atlas(dict(LEAF_SPECIES, **dict(spec.get("atlas") or {})))
+    rng = random.Random(int(seed))
+    cs = size // 2
+    sheet = Image.new("RGBA", (cs * 2, cs * 2), (0, 0, 0, 0))
+    for r in range(2):
+        for c in range(2):
+            cl = leafatlas.cluster(cs, rng, sp)
+            cl = leafatlas.bleed(leafatlas.halo(cl, alpha=0.33, px=2, scissor=0.5), scissor=0.5)
+            sheet.paste(cl, (c * cs, r * cs))
+    return np.asarray(sheet).astype(np.float64) / 255.0
 
 
 def _lod0_only(geo, prefixes):
@@ -1347,13 +1707,25 @@ def _weights(spec3d):
 # --- the bake (buildings3d.bake_house with far walls, floors and cut-out density) ----------------------------------
 
 def bake_city(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, cutout=False, ao=None, far=None, floors=None,
-              cut_ppm=CUT_PPM, cut_names=(), flat_lod1=False, samples=BAKE_SAMPLES, lod1_decimate=None):
+              cut_ppm=CUT_PPM, cut_names=(), flat_lod1=False, samples=BAKE_SAMPLES, lod1_decimate=None, solid=None,
+              rails=None, leaf_px=256):
     """H.bake_house plus: charts of cut-out materials get cut_ppm texels per metre (as a weight on the packing's
     density), wall charts above floors["z"] get floors["upper"] of the density, and the far faces (far = (objects,
-    matches)) take the atlas coordinates of the opposite walls after the packing (they are not baked)."""
+    matches)) take the atlas coordinates of the opposite walls after the packing (they are not baked).
+    solid (AS5a2) {object name prefix: weight}: every chart of those objects gets that weight whatever way it faces
+    and is never hidden - the decimated crowns of garden trees: their underside faces the camera at eye level (the
+    weight `under` gave them less than a texel: they showed the neighbouring charts), and a face in a pocket between
+    two lobes counts as covered although it is seen from the street."""
     names = {m.name for m in mats}
     t0 = time.time()
     charts = BK.box_unwrap(objs, lambda m: m is not None and m.name in names, weight_fn)
+    solid = sorted(dict(solid or {}).items())
+    if solid:
+        for c in charts:
+            k = next((float(v) for pre, v in solid if c["ob"] is not None and c["ob"].name.startswith(pre)), None)
+            if k is not None:
+                c["weight"] = k
+                c["solid"] = k
     if floors:
         zs = sorted(float(z) for z in floors.get("z", ()))
         up = float(floors.get("upper", 0.7))
@@ -1370,18 +1742,31 @@ def bake_city(rig, objs, mats, size, weight_fn=None, ppm_max=512.0, cutout=False
             if ms & cut_set and not (ms - cut_set):
                 c["cut"] = True
     hidden = H._hide_covered(charts, objs + list(far[0] if far else []))
+    for c in charts:
+        if c.get("solid") is not None and c.get("hidden"):
+            c["weight"] = c["solid"]
+            c["hidden"] = False
+            hidden -= 1
     # cut-out charts: a fixed density (as a weight relative to the density the walls get): two passes
     ppm = BK.pack(charts, size, gutter=2, ppm_max=ppm_max)
-    if cut_set and any(c.get("cut") for c in charts):
+    res = [c for c in charts if c["ob"] is not None and c["ob"].name == LEAF_RES]
+    for c in res:
+        c["hidden"] = False
+    if (cut_set and any(c.get("cut") for c in charts)) or res:
         for c in charts:
             if c.get("cut"):
                 c["weight"] = max(c["weight"], float(cut_ppm) / max(ppm, 1.0))
+        for c in res:
+            # the leaf sheet (AS5aR2): leaf_px texels on a side whatever density the walls get
+            c["weight"] = float(leaf_px) / (LEAF_RES_M * max(ppm, 1.0))
         ppm = BK.pack(charts, size, gutter=2, ppm_max=ppm_max)
     BK.write_uvs(charts, size)
     stats = dict(atlas=list(size), charts=len(charts), hidden=hidden, ppm=round(ppm, 2),
                  area_m2=round(float(sum(c["area"] for c in charts)), 1), unwrap_s=round(time.time() - t0, 2))
     if far:
         stats["far_mapped"] = far_uvs(charts, far[0], far[1], size)
+    if rails:
+        stats["rail_faces_mapped"] = _rail_uvs(rails)
     flat = _flat_copies(objs) if flat_lod1 else []
     stats["flat_copies"] = len(flat)
     if lod1_decimate:
@@ -1503,6 +1888,145 @@ def _cut_fill(baked, spec, stats):
     alb = baked["albedo"]
     alb[sel] = col
     stats["cut_fill_texels"] = int(sel.sum())
+
+
+# --- railing modules (AS5a2) ------------------------------------------------------------------------------------
+
+def _rail_modules(objs, spec, stats):
+    """AS5a2: the railings of the generator (props_cities.Rails, lace_mat) repeat their pattern every `pitch` along the
+    panel (u = object x on panels along x, y on panels along y) from the band's foot - so a module of length L (a
+    multiple of the pitch, spec {object name prefix: L}) looks the same wherever it starts at a multiple of L. Every
+    railing object is cut at u = k L; one face that spans a whole module stays in the object and is baked (the master),
+    every other face moves into a copy object that is not baked: its atlas coordinates come from the master's chart
+    after the packing (_rail_uvs) - (u - k L, z). The thin faces (tops, bottoms, ends) take the colour of the top rail,
+    slanted panels read u = x (_rail_axis).
+    A balcony of 22 m cost 2 x 22 m x 0.95 m at 150 texels per metre (a Haussmann block: more texels than its atlas
+    holds); now one module per band. Returns (copies, plan)."""
+    import bmesh
+    copies, plan = [], []
+    n_split = n_kept = 0
+    items = sorted((str(k), float(v)) for k, v in dict(spec or {}).items())
+    for ob in list(objs):
+        L = next((v for pre, v in items if ob.name.startswith(pre)), None)
+        if L is None or not len(ob.data.polygons):
+            continue
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        co = np.array([tuple(v.co) for v in bm.verts], dtype=np.float64)
+        for ax in (0, 1):
+            lo, hi = float(co[:, ax].min()), float(co[:, ax].max())
+            for k in range(int(math.floor(lo / L)) + 1, int(math.ceil(hi / L))):
+                pc = [0.0, 0.0, 0.0]
+                pn = [0.0, 0.0, 0.0]
+                pc[ax] = k * L
+                pn[ax] = 1.0
+                bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=1e-6, plane_co=pc,
+                                       plane_no=pn)
+        bm.faces.ensure_lookup_table()
+        bm.faces.index_update()
+        z_top = max(v.co.z for v in bm.verts)
+        master = None
+        keyed = []
+        for f in bm.faces:
+            ax = _rail_axis(f.normal, [v.co for v in f.verts])
+            c = f.calc_center_median()
+            keyed.append(((round(c.x, 4), round(c.y, 4), round(c.z, 4), round(f.normal.x, 3), round(f.normal.y, 3)), f, ax))
+        keyed.sort(key=lambda t: t[0])
+        for _k, f, ax in keyed:
+            if ax is None or _rail_slanted(f.normal, [v.co for v in f.verts]):
+                continue
+            us = [v.co[ax] for v in f.verts]
+            k = math.floor((min(us) + max(us)) * 0.5 / L)
+            if min(us) <= k * L + 1e-4 and max(us) >= (k + 1) * L - 1e-4:
+                master = f
+                break
+        if master is None:
+            bm.free()
+            n_kept += 1
+            continue
+        keep = [master.index]
+        mpos = 0
+        cp = ob.copy()
+        cp.data = ob.data.copy()
+        cp.name = ob.name + "_mod"
+        ob.users_collection[0].objects.link(cp)
+        bm2 = bm.copy()
+        bm2.faces.ensure_lookup_table()
+        bm2.faces.index_update()
+        ks = set(keep)
+        bmesh.ops.delete(bm, geom=[f for f in bm.faces if f.index not in ks], context="FACES")
+        bm.to_mesh(ob.data)
+        bm.free()
+        ob.data.update()
+        bmesh.ops.delete(bm2, geom=[f for f in bm2.faces if f.index in ks], context="FACES")
+        bm2.to_mesh(cp.data)
+        bm2.free()
+        cp.data.update()
+        copies.append(cp)
+        plan.append((cp, ob, mpos, L, z_top))
+        n_split += 1
+    stats["rail_modules"] = n_split
+    stats["rail_kept"] = n_kept
+    return copies, plan
+
+
+def _rail_slanted(n, pts):
+    """A long vertical railing face that runs along neither axis."""
+    if abs(n[2]) >= 0.1 or max(abs(n[0]), abs(n[1])) > 0.9:
+        return False
+    xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+    return math.hypot(max(xs) - min(xs), max(ys) - min(ys)) > 0.1
+
+
+def _rail_axis(n, pts):
+    """The u axis of a railing face (0: panel along x, 1: along y) or None for a thin face (top, bottom, end). A
+    slanted panel (the cut corner of the Haussmann corner block) reads x: lace_mat's pattern runs along x or y there
+    too (stretched by sqrt 2 along the panel), and the cuts at x = k L keep each piece inside one module."""
+    for ax, other in ((0, 1), (1, 0)):
+        if abs(n[other]) > 0.9 and abs(n[2]) < 0.1:
+            us = [p[ax] for p in pts]
+            return ax if max(us) - min(us) > 0.1 else None
+    if _rail_slanted(n, pts):
+        return 0
+    return None
+
+
+def _rail_uvs(plan):
+    """The atlas coordinates of the module copies from their master's chart (after the packing): an affine map
+    (u - k L, z) -> uv fitted on the master face; thin faces sample the top rail (z_top - 2 cm). Returns the number
+    of faces mapped."""
+    n = 0
+    for (cp, ob, mpos, L, z_top) in plan:
+        me = ob.data
+        lay = me.uv_layers[BK.UV_NAME]
+        poly = me.polygons[mpos]
+        pts = [me.vertices[me.loops[li].vertex_index].co for li in poly.loop_indices]
+        ax = _rail_axis(poly.normal, pts)
+        us = [p[ax] for p in pts]
+        k0 = math.floor((min(us) + max(us)) * 0.5 / L)
+        A = np.array([[p[ax] - k0 * L, p[2], 1.0] for p in pts], dtype=np.float64)
+        B = np.array([tuple(lay.data[li].uv) for li in poly.loop_indices], dtype=np.float64)
+        M_, _r, _rk, _sv = np.linalg.lstsq(A, B, rcond=None)
+        me2 = cp.data
+        if BK.UV_NAME not in me2.uv_layers:
+            me2.uv_layers.new(name=BK.UV_NAME)
+        lay2 = me2.uv_layers[BK.UV_NAME]
+        uv = np.zeros((len(me2.loops), 2), dtype=np.float32)
+        for f in me2.polygons:
+            fp = [me2.vertices[me2.loops[li].vertex_index].co for li in f.loop_indices]
+            fax = _rail_axis(f.normal, fp)
+            if fax is None:
+                for li in f.loop_indices:
+                    uv[li] = np.array([0.5 * L, z_top - 0.02, 1.0]) @ M_
+            else:
+                fu = [p[fax] for p in fp]
+                k = math.floor((min(fu) + max(fu)) * 0.5 / L)
+                for li, p in zip(f.loop_indices, fp):
+                    uv[li] = np.array([min(L, max(0.0, p[fax] - k * L)), p[2], 1.0]) @ M_
+            n += 1
+        lay2.data.foreach_set("uv", uv.reshape(-1))
+        me2.update()
+    return n
 
 
 # --- the builder --------------------------------------------------------------------------------------------------
@@ -1628,12 +2152,17 @@ def build_city(model_id, spec3d):
     t0 = time.time()
     PB.WINDOW_LOG = []
     log = []
-    restore = _log_walls(log, float(spec3d.get("inner_frame", H.FRAME_W)) if spec3d.get("lod1") else 0.0)
+    restore = _log_walls(log, float(spec3d.get("inner_frame", H.FRAME_W)) if spec3d.get("lod1") else 0.0,
+                         float(spec3d.get("inner_k", INNER_K)), float(spec3d.get("bars_k", BARS_K)))
+    leaf_spec = dict(spec3d.get("leaf_cards") or {})
+    crowns, restore_c = _crown_logger() if leaf_spec else ({}, None)
     try:
         rig, info, sspec = P._build_source(spec3d)
     finally:
         PB.WINDOW_LOG = None
         restore()
+        if restore_c is not None:
+            restore_c()
     for e in log:
         for d in e["decals"]:
             pts = d.get("poly") or []
@@ -1655,6 +2184,18 @@ def build_city(model_id, spec3d):
         for ob in objs:
             if any(ob.name.startswith(k) for k in spec3d["decimate"]):
                 ob.data.shade_smooth()
+    if spec3d.get("smooth"):
+        # AS5a2: flower blobs (icospheres of props_cities.flowers) shade smooth - flat-shaded they read as faceted
+        # plastic gems from the street
+        pre = tuple(spec3d["smooth"])
+        for ob in objs:
+            if ob.name.startswith(pre):
+                ob.data.shade_smooth()
+    if spec3d.get("flower_shape"):
+        stats["flower_blobs"] = _flower_shape(objs, spec3d["flower_shape"])
+    leaf = _leaf_setup(rig, objs, crowns, leaf_spec, stats) if leaf_spec else None
+    if leaf is not None:
+        objs = objs + [leaf["res"]]
     stats["covered_slopes"] = _drop_covered_slopes(objs, {e["material"] for e in log})
     mats = H.Mats()
     geo = H.Geo()
@@ -1692,7 +2233,7 @@ def build_city(model_id, spec3d):
         stats["floor_cuts"] = H._split_planes(objs, dict(objects=pre, axis=2, at=tuple(floors.get("z", ()))))
     objs = objs + geo.objects(rig, model_id.split("/")[-1])
     objs = objs + patches.objects(rig)
-    return _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, src_pts, log)
+    return _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, src_pts, log, leaf)
 
 
 def _has_light(mat):
@@ -1754,7 +2295,7 @@ def _mul_base(mat, rgb):
     return n
 
 
-def _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, src_pts, log):
+def _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, src_pts, log, leaf=None):
     from .export import sprite_extent
     mats, vpbr_names = _route(spec3d, objs)
     # albedo_mul {material name prefix: (r, g, b)}: a baked material darker or cooler than the generator's (the glass of
@@ -1793,7 +2334,11 @@ def _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, s
     bake_mats = [mats[k] for k in bake_mats]
     cut_names = {m.name for m in bake_mats if BK.has_cutout(m)}
     rail_names = set(cut_names)
-    if cut_names and spec3d.get("single_cutout"):
+    rail_copies, rail_plan = [], []
+    if spec3d.get("rail_module"):
+        rail_copies, rail_plan = _rail_modules(bake_objs, spec3d["rail_module"], stats)
+    if (cut_names or leaf is not None) and spec3d.get("single_cutout"):
+        # (AS5aR2: leaf cards need the cut-out class even on a house without railings)
         cut_names = {m.name for m in bake_mats}
     far = None
     far_objs = []
@@ -1810,7 +2355,9 @@ def _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, s
                       cutout=bool(cut_names), ao=spec3d.get("ao"), far=far, floors=spec3d.get("floors"),
                       cut_ppm=float(spec3d.get("cut_ppm", CUT_PPM)), cut_names=rail_names,
                       flat_lod1=bool(spec3d.get("lod1_flat", True)) and bool(spec3d.get("lod1")),
-                      samples=int(spec3d.get("bake_samples", BAKE_SAMPLES)), lod1_decimate=spec3d.get("lod1_decimate"))
+                      samples=int(spec3d.get("bake_samples", BAKE_SAMPLES)), lod1_decimate=spec3d.get("lod1_decimate"),
+                      solid=(spec3d.get("weights") or {}).get("solid"), rails=rail_plan,
+                      leaf_px=int(spec3d.get("leaf_px", 256)))
     if baked["alpha"] is not None:
         from PIL import Image
         from . import leafatlas
@@ -1821,15 +2368,27 @@ def _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, s
         baked["alpha"] = np.array(img).astype(np.float64)[:, :, 3] / 255.0
         if spec3d.get("cut_fill"):
             _cut_fill(baked, spec3d["cut_fill"], stats)
+    if leaf is not None:
+        if baked["alpha"] is None:
+            raise RuntimeError("%s: leaf_cards need the cut-out class (single_cutout)" % model_id)
+        leaf["rect"] = _leaf_paste(baked, leaf, size, stats)
     over = spec3d.get("overrides")
     tr = roles.Translator(glass_class=False, overrides=over)
     levels = ["lod0", "lod1"] if spec3d.get("lod1") else ["lod0"]
-    objs = objs + far_objs + baked.get("flat", [])
+    lod1_opaque = bool(spec3d.get("lod1_opaque", False))
+    objs = objs + far_objs + rail_copies + baked.get("flat", [])
+    if leaf is not None and leaf["lod1"] is None:
+        # the lod1 copies of a crown (lod1_decimate, made from the shrunk lod0 crown) get the generator's size back
+        # when lod1 has no cards round its core
+        for name, cen, k in leaf["shrunk"]:
+            for o in objs:
+                if o.name == name + "_far":
+                    _scale_about(o, cen, 1.0 / k)
     lods = []
     pts0 = None
     for li, lvl in enumerate(levels):
         mb = core.MeshBuilder()
-        level_objs = [o for o in objs if H._level(o) in ("both", lvl)]
+        level_objs = [o for o in objs if H._level(o) in ("both", lvl) and o.name != LEAF_RES]
         tl = tr if li == 0 else roles.Translator(glass_class=False, overrides=over)
         for soup in core.soups_of(level_objs, uv_layer=BK.UV_NAME):
             for mi in np.unique(soup.mi):
@@ -1842,9 +2401,20 @@ def _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, s
                     raise RuntimeError("%s: %s has no atlas coordinates (only lod0 parts are baked)" % (model_id, soup.name))
                 uv = soup.uv[sel].copy()
                 uv[:, :, 1] = 1.0 - uv[:, :, 1]
-                mb.add("baked_cutout" if mat.name in cut_names else "baked", soup.pos[sel], soup.nor[sel], uv=uv)
+                # AS5aR2 (KRITIK-5a2 K4): lod1_opaque - lod1 draws no alpha test: a railing (a thin box of the
+                # generator, both faces modelled) is the band of its bars and the gap colour of _cut_fill, what the
+                # eye averages from 60 m on - no shimmer of the scissor, back faces culled
+                cut = mat.name in cut_names and not (li > 0 and lod1_opaque)
+                mb.add("baked_cutout" if cut else "baked", soup.pos[sel], soup.nor[sel], uv=uv)
         if patches is not None:
             patches.add_to(mb, lvl)
+        if li == 0 and leaf is not None:
+            mb.add("baked_cutout", leaf["pos"], leaf["nor"], uv=_leaf_uv(leaf, size))
+        if li == 1 and leaf is not None and leaf["lod1"] is not None:
+            if lod1_opaque:
+                raise RuntimeError("%s: lod1 leaf cards need lod1 in the cut-out class (no lod1_opaque)" % model_id)
+            mb.add("baked_cutout", leaf["lod1"]["pos"], leaf["lod1"]["nor"],
+                   uv=_leaf_uv(dict(leaf["lod1"], rect=leaf["rect"]), size))
         if li == 0:
             pts0 = mb.points()
         max_d = H.LOD0_M if (li == 0 and len(levels) > 1) else 100000

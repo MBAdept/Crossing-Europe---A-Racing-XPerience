@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/city_dutch_terrace",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 22.3, "height_m": 10.9, "length_m": 9},
+  "extent_m": {"left": 13.58, "right": 10.5},
+  "aabb": [-11.7, -0.218, -9.355, 11.05, 10.598, 3.082],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 3346,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_dutch_terrace/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 1060,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_dutch_terrace/lod1_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/city_dutch_terrace/albedo.png", "emit": "props/city_dutch_terrace/emit.png"},
+  "roughness": 0.88,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left", "dutch", "outskirts"],
+  "bytes": 774929,
+  "hash": "279ca4a63c598cf709cf60b3d5b9f0f2abe9881f"
+ },
+ "sets": {
+  "props/city_dutch_terrace": {"model": "props/city_dutch_terrace"}
+ }
+}

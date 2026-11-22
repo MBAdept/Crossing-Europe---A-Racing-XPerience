@@ -30,6 +30,14 @@ def _lin(c):
     return M.srgb(c) if isinstance(c, str) else c
 
 
+def _toward(a, b, k):
+    """Colour a (hex or linear tuple) k of the way to colour b (linear mix); a itself at k = 0."""
+    if k <= 0.0:
+        return a
+    la, lb = _lin(a), _lin(b)
+    return tuple(la[i] + (lb[i] - la[i]) * k for i in range(3)) + (1.0,)
+
+
 def shade(c, k):
     """sRGB hex colour scaled by k (k < 1 darker) -> hex."""
     h = c.lstrip("#")
@@ -208,14 +216,18 @@ def centres(g):
 
 
 def wallmat(name, color, grids=(), zones=(), frame="#ece8df", glass="#26313b", lit=0.45, strength=1.5,
-            frame_w=0.07, rough=0.85, decals=None, curtains=0.35, seed=0.0, inner_frame=0.0):
+            frame_w=0.07, rough=0.85, decals=None, curtains=0.35, seed=0.0, inner_frame=0.0, inner_k=0.0, bars_k=0.0):
     """Wall with windows. color: surface spec (see _surface); zones: [dict(box=((x0,x1),(y0,y1),(z0,z1)),
     surface=spec)] painted over it in order. grids: see grid(); per grid options: top (round|seg|pointed),
     mull dict(v=n, h=n or [fractions], w), shutters colour, blind colour (+blind_max), frame, glass, lit,
     color (light), strength, frame_w, skip [(i, j)], kind (win|door|shop).
     inner_frame (3D hook, AS5aR1; the sprites never set it): the frame colour also on a ring of this width inside
     every window of kind win, unlit - the frame of the real-time model's cut window, so that its flat far level
-    keeps the lit and the glazed area of the near level."""
+    keeps the lit and the glazed area of the near level.
+    inner_k, bars_k (3D hooks, AS5aR2; only with inner_frame): that ring and the painted glazing bars of windows of
+    kind win this share of the way from the frame colour to the glass - the frame in the shade of the reveal, as
+    the far level sees it; at 1.0 a far window is as dark as the sprite's (KRITIK-5a2 K2: rings and bars in the
+    full frame colour made the far windows pale)."""
     m, nb = M.new_material(name)
     x, y, z = nb.coords()
     nx, ny, nz = nb.normal()
@@ -318,7 +330,7 @@ def wallmat(name, color, grids=(), zones=(), frame="#ece8df", glass="#26313b", l
             glc = gl
         apply(win, glc, 0.08 if kind != "door" else 0.5, 0.9 if kind != "door" else 0.3, 0.2 if kind != "door" else 0.0)
         if ring is not None:
-            apply(ring, g.get("frame", frame), 0.5, 0.35)
+            apply(ring, _toward(g.get("frame", frame), g.get("glass", glass), inner_k), 0.5, 0.35)
         bars = None
         mull = g.get("mull")
         if mull and kind != "door":
@@ -335,7 +347,10 @@ def wallmat(name, color, grids=(), zones=(), frame="#ece8df", glass="#26313b", l
                 b = nb.lt(nb.absf(nb.sub(zb, f * wz)), mw * 0.5)
                 bars = b if bars is None else nb.OR(bars, b)
             bars = nb.mul(bars, win)
-            apply(bars, g.get("mull_color", g.get("frame", frame)), 0.5, 0.35)
+            bar_c = g.get("mull_color", g.get("frame", frame))
+            if inner_frame > 0.0 and kind == "win" and bars_k > 0.0:
+                bar_c = _toward(bar_c, g.get("glass", glass), bars_k)
+            apply(bars, bar_c, 0.5, 0.35)
         blind = None
         if g.get("blind"):
             cover = nb.mul(nb.mul(r2, r2), g.get("blind_max", 0.8))
@@ -2075,9 +2090,11 @@ SASH = dict(frame="#f4f2ec", mull=dict(v=1, h=[0.5], w=0.07), lit=0.5)
 
 
 def _canal_house(rig, name, xc, w, d, floors, gable, gh, brick, trim="#f2efe6", door_c="#1f3a2a", painted=None,
-                 gwin=None, seed=0, ground=3.6, upper=3.2):
+                 gwin=None, seed=0, ground=3.6, upper=3.2, side=None, close3d=False):
     """One canal house: brick front with tall sash windows, raised entrance (stoop), front gable of
-    kind `gable` (step | bell | neck | spout | cornice), saddle roof along y, hoist beam."""
+    kind `gable` (step | bell | neck | spout | cornice), saddle roof along y, hoist beam.
+    side, close3d (3D hooks, AS5a2; the sprite never sets them): side = extra grids (the road flank of the corner
+    house); close3d closes the back of the roof with a gable and runs the string course along the flank (-x)."""
     x0, x1 = xc - w / 2, xc + w / 2
     zt = ground + upper * (floors - 1)
     n = 2 if w < 6.2 else 3
@@ -2090,6 +2107,7 @@ def _canal_house(rig, name, xc, w, d, floors, gable, gh, brick, trim="#f2efe6", 
     for gi in gwin or []:
         grids.append(grid("front", xc - gi[0] / 2, 1, gi[0], zt + gi[1], 1, gi[2], (gi[3], gi[2] - 0.3),
                           sill=0.1, **SASH))
+    grids += list(side or [])
     surf = dict(color=brick, kind="brick", mortar=shade(brick, 1.5), scale=2.4) if not painted else dict(color=painted)
     wall = wallmat(name + "_wall", surf, grids, frame=trim, seed=seed)
     bm = bmesh.new()
@@ -2101,6 +2119,9 @@ def _canal_house(rig, name, xc, w, d, floors, gable, gh, brick, trim="#f2efe6", 
     zr = zt + min(gh - 0.4, (w / 2) * math.tan(math.radians(rp)))
     roof = roofmat(name + "_roof", "#5a4a42" if seed % 2 else "#463f3c", "tiles", rows=0.28)
     saddle(rig, name + "_roof", x0 + 0.02, x1 - 0.02, 0.5, d, zt, zr, roof, axis="y", over_side=0.0, over_end=0.0)
+    if close3d:
+        # the back of the roof is open in the sprite (never seen); in 3D it shows across bends
+        front_gable(rig, name + "_bg", "tri", xc, w, zt, zr - zt, wall, y0=d - 0.3, depth=0.3)
     bm = bmesh.new()
     bx(bm, x0 + 0.45 + pu / 2 - 0.9, x0 + 0.45 + pu / 2 + 0.9, -1.4, 0.0, 0.0, 0.9)
     bx(bm, x0 + 0.45 + pu / 2 - 0.9, x0 + 0.45 + pu / 2 + 0.9, -1.9, -1.4, 0.0, 0.45)
@@ -2109,6 +2130,8 @@ def _canal_house(rig, name, xc, w, d, floors, gable, gh, brick, trim="#f2efe6", 
     # string course, hoist beam
     bx(bm, x0 + 0.1, x1 - 0.1, -0.08, 0.0, ground - 0.15, ground)
     bx(bm, xc - 0.12, xc + 0.12, -1.1, 0.4, zt + gh - 1.05, zt + gh - 0.8)
+    if close3d and side and min(g["z0"] for g in side) < ground:
+        bx(bm, x0 - 0.08, x0, 0.1, d - 0.1, ground - 0.15, ground)
     mk(rig, name + "_trim", bm, capm)
     return zt + gh
 
@@ -2117,13 +2140,24 @@ def dutch_canal(rig, p):
     """Three Amsterdam canal houses: step gable (red-brown brick), bell gable (dark painted brick with
     white sandstone), neck gable (orange-red brick)."""
     D = 14.0
+    c3d = bool(p.get("close3d", False))
+    side_a = side_b = None
+    if c3d:
+        # 3D hook (AS5a2): the road flank (-x) of the step-gable house - 14 m deep, a narrow blank strip in the sprite,
+        # the largest wall passing at eye level in 3D - gets sash windows on 3-m axes in every storey and a side door;
+        # the bell-gable house shows three windows of its top storey above the neighbour's eave
+        side_a = [grid("left", 1.0, 4, 3.0, 0.0, 1, 3.6, (1.0, 1.9), sill=1.2, skip=[(2, 0)], **SASH),
+                  grid("left", 7.0, 1, 3.0, 0.0, 1, 2.8, (1.05, 2.3), sill=0.0, kind="door", glass="#1f3a2a",
+                       frame="#f2efe6"),
+                  grid("left", 1.0, 4, 3.0, 3.6, 2, 3.2, (1.0, 2.0), sill=0.6, **SASH)]
+        side_b = [grid("left", 2.5, 3, 3.0, 10.0, 1, 3.2, (1.0, 1.9), sill=0.7, **SASH)]
     tops = [
         _canal_house(rig, "dca", -6.25, 6.5, D, 3, "step", 5.0, "#6e3123", seed=1,
-                     gwin=[(2.0, 0.6, 2.0, 0.95), (2.0, 2.7, 1.8, 0.85)]),
+                     gwin=[(2.0, 0.6, 2.0, 0.95), (2.0, 2.7, 1.8, 0.85)], side=side_a, close3d=c3d),
         _canal_house(rig, "dcb", -0.25, 5.5, D, 4, "bell", 4.4, "#3a2c27", painted="#2f2a27", seed=2,
-                     gwin=[(2.0, 0.7, 2.2, 1.0)]),
+                     gwin=[(2.0, 0.7, 2.2, 1.0)], side=side_b, close3d=c3d),
         _canal_house(rig, "dcc", 6.25, 7.0, D, 3, "neck", 6.0, "#a3462c", seed=3,
-                     gwin=[(2.2, 0.4, 2.0, 1.0), (2.2, 2.6, 1.9, 0.9)]),
+                     gwin=[(2.2, 0.4, 2.0, 1.0), (2.2, 2.6, 1.9, 0.9)], close3d=c3d),
     ]
     flowers(rig, "dc_pots", [(-6.25 - 1.0 + 0.5 * k, -1.2, 1.05) for k in range(3)] +
             [(6.25 + 0.5 * k, -1.25, 1.05) for k in range(3)], colors=("#3f6b28", "#c43a3a"), r=0.22, seed=7)
@@ -2144,11 +2178,23 @@ def dutch_canal_b(rig, p):
           grid("front", xa - 3.6, 3, 2.4, 0.0, 1, 3.6, (1.25, 1.9), sill=1.2, skip=[(1, 0)], **SASH),
           grid("front", xa - 1.2, 1, 2.4, 0.9, 1, 2.7, (1.1, 2.45), sill=0.0, kind="door", glass="#1f2a3a", frame="#f2efe6"),
           grid("front", xa - 0.6, 1, 1.2, 13.25, 1, 1.4, (0.8, 0.8), sill=0.25, top="round", **SASH)]
+    c3d = bool(p.get("close3d", False))
+    if c3d:
+        # 3D hook (AS5a2): the road flank (-x) of the cornice house - a blank white wall of 14 x 13 m in the sprite -
+        # gets sash windows on 3-m axes in all four storeys, a side door, and the cornice runs round the corner
+        ga += [grid("left", 1.0, 4, 3.0, 3.6, 3, 3.2, (1.1, 2.0), sill=0.6, **SASH),
+               grid("left", 1.0, 4, 3.0, 0.0, 1, 3.6, (1.1, 1.9), sill=1.2, skip=[(2, 0)], **SASH),
+               grid("left", 7.0, 1, 3.0, 0.0, 1, 2.8, (1.05, 2.4), sill=0.0, kind="door", glass="#1f2a3a",
+                    frame="#f2efe6")]
     wall, capm, _ = gable_house(rig, "dba", xa, wa, D, 13.2, "cornice", 1.6, dict(color="#d8d4cb", noise=0.04), ga,
                                 trim="#f4f2ec", roof_c="#4a4440", seed=11, pitch=40.0)
     front_gable(rig, "dba_crest", "volute", xa, 3.4, 14.8, 1.5, wall, y0=0.0, depth=0.4, cap_mat=capm)
     bm = bmesh.new()
     cornice(bm, xa - wa / 2, xa + wa / 2, 0.0, 0.1, 13.0, [(0.12, 0.1), (0.2, 0.3), (0.12, 0.4)])
+    if c3d:
+        # the flank cornice stops 1 m before the back: running to the back corner it stuck out of the sprite's left
+        # extent in the view of the sprite (0.4 m outset at y = 14 m: extent_m.left 14.36 against 13.96)
+        cornice(bm, xa - wa / 2, xa - wa / 2 + 0.1, 0.1, D - 1.0, 13.0, [(0.12, 0.1), (0.2, 0.3), (0.12, 0.4)])
     mk(rig, "dba_orn", bm, capm)
     bm = bmesh.new()
     bx(bm, xa - 0.9, xa + 0.9, -1.4, 0.0, 0.0, 0.9)
@@ -2220,6 +2266,14 @@ def dutch_terrace(rig, p):
                        glass=("#2f4a6a", "#6a2f2a", "#2f5a3a", "#3a3a3a")[k], frame="#f7f6f2"),
                   grid("front", xs + 0.5, 2, 2.2, 3.1, 1, 2.6, (1.4, 1.4), sill=0.7, **fr)]
     grids.append(grid("left", 1.2, 2, 3.3, 3.1, 1, 2.6, (1.0, 1.3), sill=0.7, **fr))
+    c3d = bool(p.get("close3d", False))
+    if c3d:
+        # 3D hook (AS5a2): the ground floor of the end house's flank (-x) - blank in the sprite - gets a window and a
+        # side door under a canopy, the gable end an attic window
+        grids += [grid("left", 1.2, 2, 3.3, 0.3, 1, 2.8, (1.0, 1.4), sill=0.75, skip=[(1, 0)], **fr),
+                  grid("left", 4.5, 1, 3.3, 0.3, 1, 2.8, (1.0, 2.25), sill=0.0, kind="door", glass="#3a3a3a",
+                       frame="#f7f6f2"),
+                  grid("left", D / 2 - 0.6, 1, 1.2, ze + 0.6, 1, 1.6, (0.9, 1.1), sill=0.2, **fr)]
     wall = wallmat("dt_wall", dict(color="#8c4a35", kind="brick", scale=2.6), grids, seed=21,
                    zones=[dict(box=((-99, 99), (-99, 99), (-1, 0.3)), surface=dict(color="#5d5a55"))])
     bm = bmesh.new()
@@ -2237,6 +2291,8 @@ def dutch_terrace(rig, p):
     for k in range(n):
         xs = x0 + k * wu
         bx(bm, xs + 3.35, xs + 4.85, -0.9, 0.0, 2.75, 2.85)
+    if c3d:
+        bx(bm, x0 - 0.9, x0, 4.5 + 1.65 - 0.75, 4.5 + 1.65 + 0.75, 2.75, 2.85)
     mk(rig, "dt_trim", bm, trim)
     for k in range(n):
         xs = x0 + k * wu
@@ -2318,6 +2374,14 @@ def belgian_terrace(rig, p):
         zones.append(dict(box=((xs - (1.0 if k == 0 else 0.0), xs + wu + (1.0 if k == n - 1 else 0.0)), (-99, 99),
                                (0.6, 99)), surface=bricks[k]))
     grids.append(grid("left", 1.0, 3, 2.6, 3.6, 2, 3.1, (1.0, 1.8), sill=0.6, **fr))
+    c3d = bool(p.get("close3d", False))
+    if c3d:
+        # 3D hook (AS5a2): the ground floor of the road flank (-x) - blank in the sprite - gets two windows and a side
+        # door on the axes of the storeys above (with bluestone lintels and sills), the gable end an attic window
+        grids += [grid("left", 1.0, 3, 2.6, 0.0, 1, 3.6, (1.0, 2.0), sill=1.0, skip=[(1, 0)], **fr),
+                  grid("left", 3.6, 1, 2.6, 0.3, 1, 3.3, (1.1, 2.7), sill=0.0, kind="door", glass="#3a2a20",
+                       frame="#e9e6de"),
+                  grid("left", D / 2 - 0.7, 1, 1.4, ze + 0.5, 1, 2.0, (0.9, 1.3), sill=0.2, **fr)]
     wall = wallmat("bt_wall", dict(color="#5f646b", noise=0.05), grids, zones=zones, seed=41)
     bm = bmesh.new()
     bx(bm, x0, x1, 0.0, D, 0.0, ze)
@@ -2328,6 +2392,9 @@ def belgian_terrace(rig, p):
         if g.get("kind", "win") == "win" and g["face"] == "front":
             lintels(bm, g, 0.0, h=0.2, out=0.05, ext=0.08, gap=0.0)
             sills(bm, g, 0.0, h=0.08, out=0.1, ext=0.06)
+        elif c3d and g.get("kind", "win") == "win" and g["face"] == "left" and g["z0"] < ze:
+            lintels(bm, g, x0, h=0.2, out=0.05, ext=0.08, gap=0.0)
+            sills(bm, g, x0, h=0.08, out=0.1, ext=0.06)
     bx(bm, x0 + 3 * wu + 0.2, x1 - 0.2, -0.2, 0.0, 3.35, 3.75)
     mk(rig, "bt_blue", bm, blue)
     sign = M.basic("bt_sign", "#1f3d2c", rough=0.4, emit={"lights": ("#ffd27a", 1.2)})
@@ -2366,6 +2433,12 @@ def belgian_stone(rig, p):
          grid("front", -2.4, 2, 2.4, zt + 0.5, 1, 2.5, (1.0, 1.8), sill=0.2, **fr),
          grid("front", -0.6, 1, 1.2, zt + 3.3, 1, 1.8, (0.75, 1.2), sill=0.2, **fr),
          grid("left", 1.2, 4, 2.8, 3.8, 2, 3.3, (1.2, 2.0), sill=0.6, **fr)]
+    if p.get("close3d", False):
+        # 3D hook (AS5a2): the bluestone ground floor of the road flank (-x) - blank in the sprite - gets cross windows
+        # on the axes of the storeys above and a round-arched side door in the second bay
+        g += [grid("left", 1.2, 4, 2.8, 0.0, 1, 3.8, (1.2, 2.0), sill=0.9, skip=[(1, 0)], **fr),
+              grid("left", 4.0, 1, 2.8, 0.0, 1, 3.6, (1.4, 2.8), sill=0.0, top="round", kind="door", glass="#3b2e24",
+                   frame="#cfcabe")]
     zones = [dict(box=((-99, 99), (-99, 99), (-1, 3.6)), surface=dict(color="#7f8287", kind="ashlar", h=0.5, w=0.9,
                                                                        strength=0.5))]
     z = 4.3
@@ -2622,6 +2695,14 @@ def french_immeuble(rig, p):
                glass="#2c3f4f"),
           grid("front", -1.44, 1, 2.88, 0.0, 1, 4.0, (1.3, 3.0), sill=0.0, kind="door", glass="#3a2c24", frame="#e5dccb"),
           grid("front", 1.44, 2, 2.88, 0.0, 1, 4.0, (2.0, 2.8), sill=0.5, kind="shop", frame="#6a4a34", glass="#2c3f4f")]
+    c3d = bool(p.get("close3d", False))
+    if c3d:
+        # 3D hook (AS5a2): the stone ground floor of the road flank (-x) - blank in the sprite - continues the corner
+        # bakery with two shop windows and gets the house door in the third bay
+        g += [grid("left", 1.2, 2, 3.2, 0.0, 1, 4.0, (2.2, 3.0), sill=0.3, kind="shop", frame="#264a73",
+                   glass="#2c3f4f"),
+              grid("left", 7.6, 1, 3.2, 0.0, 1, 4.0, (1.3, 3.0), sill=0.0, kind="door", glass="#3a2c24",
+                   frame="#e5dccb")]
     wall = wallmat("fi_wall", dict(color="#e3b06e", noise=0.08), g, seed=81,
                    zones=[dict(box=((-99, 99), (-99, 99), (-1, 4.0)), surface=dict(color="#d9c8a6", kind="ashlar", h=0.55,
                                                                                     w=1.2, strength=0.4))])
@@ -3301,6 +3382,14 @@ def swiss_laube(rig, p):
                           surface=dict(color=cols[k], kind="ashlar" if k != 1 else "plain", h=0.5, w=1.1, strength=0.35,
                                        noise=0.06)))
     grids.append(grid("left", 4.0, 3, 3.3, za, 3, 3.2, (1.0, 1.8), sill=0.75, **fr))
+    c3d = bool(p.get("close3d", False))
+    if c3d:
+        # 3D hook (AS5a2): the ground floor of the road flank (-x) behind the arcade - blank in the sprite - gets two
+        # shop windows and a door on the axes of the storeys above; those windows get flower boxes as on the front
+        grids += [grid("left", 4.0, 3, 3.3, 0.0, 1, za, (2.2, 2.6), sill=0.3, kind="shop", frame="#4a3a2a",
+                       glass="#2f3b3f", skip=[(1, 0)]),
+                  grid("left", 7.3, 1, 3.3, 0.0, 1, za, (1.2, 2.6), sill=0.0, kind="door", glass="#3a2a20",
+                       frame="#4a3a2a")]
     wall = wallmat("sl2_wall", "#b2ad93", grids, zones=zones, seed=191)
     bm = bmesh.new()
     bx(bm, x0, x1, 0.0, D, za, ze)
@@ -3329,6 +3418,10 @@ def swiss_laube(rig, p):
             for (u, zc, i, j) in centres(gg):
                 bx(bf, u - 0.62, u + 0.62, -0.32, 0.0, zc - 0.95 - 0.25, zc - 0.95)
                 pts += [(u - 0.45 + 0.3 * q, -0.17, zc - 0.95 + 0.05) for q in range(4)]
+        elif c3d and gg["face"] == "left" and gg.get("kind", "win") == "win":
+            for (u, zc, i, j) in centres(gg):
+                bx(bf, x0 - 0.32, x0, u - 0.55, u + 0.55, zc - 0.9 - 0.25, zc - 0.9)
+                pts += [(x0 - 0.17, u - 0.4 + 0.27 * q, zc - 0.9 + 0.05) for q in range(4)]
     mk(rig, "sl2_boxes", bf, basic("sl2_bx", "#6a4a2c", rough=0.7))
     flowers(rig, "sl2_ger", pts, colors=("#d81f26", "#e8343a", "#3f6b28"), r=0.15, seed=19)
     roof = roofmat("sl2_roof", "#8d4c36", "tiles", rows=0.3)

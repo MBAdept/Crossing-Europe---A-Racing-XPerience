@@ -46,8 +46,8 @@
   "roughness": 0.88,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "german", "outskirts"],
-  "bytes": 641548,
-  "hash": "124ed291c392aa41861011115791b700d1dbb7ed"
+  "bytes": 641472,
+  "hash": "bc2c437705062be7caf877810f2a5461ed9bda3e"
  },
  "sets": {
   "props/city_german_house": {"model": "props/city_german_house"}
