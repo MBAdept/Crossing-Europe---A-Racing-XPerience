@@ -24,9 +24,16 @@ extends CanvasLayer
 ##  * --gfx-debug=cover fills the whole canvas with magenta (terrain cover checks count those pixels).
 ## The canvas is redrawn only when its picture would change by about a quarter of a pixel (heading, time-driven
 ## clouds and stars, palette, scenery blend, size); between those frames it costs nothing.
-## Not drawn here: skyline landmark silhouettes of the destination city (they need the landmark sets – the
-## landmarks package) – RaceBackdrop.landmarks stays empty.
-## Duck-typed layer: setup(renderer), update(view, dt), snapshot(). Owner: renderer core (R1).
+##  * R7b: the SKYLINE of the destination city (cities.json "skyline") inside the City Limits, as Arcade draws it
+##    (RoadRenderer._skyline_silhouettes / _draw_skyline_landmark, frozen): each silhouette anchored to the panorama
+##    when first seen – one that also stands on the road as a landmark starts in its true direction from the camera
+##    (in 3D: the direction of its anchor on the path) – then turning with the panorama, faded out while that
+##    landmark is within its landmark range (the 3D landmark of builders/landmarks.gd takes over: no double), at
+##    render.skyline_distance_m in size. A sprite silhouette is the "c" cell of its sheet (and its light layer at night),
+##    a procedural one Arcade's own 2D drawing (RoadRenderer._draw_landmark_proc through a RoadRenderer instance that is
+##    never in the tree, drawing into this canvas through its GeoBatch). Sheets are resolved in prepare().
+## Duck-typed layer: setup(renderer), prepare(ctx), update(view, dt), snapshot(). Owner: renderer core (R1); the
+## skyline: package R7 (wave 5: R7b).
 
 const BACKDROP_LAYER := -10
 const COVER := Color(1.0, 0.0, 1.0)
@@ -76,6 +83,13 @@ var _drawn_time := -1.0e9
 var _drawn_sig: Array = []
 var _redraws := 0
 var _frames := 0
+# R7b: skyline silhouettes (Arcade's RoadRenderer._skyline_silhouettes)
+var _sky_painter: RoadRenderer          ## draws Arcade's procedural silhouettes into this canvas; never in the tree
+var _sky_anchor: Dictionary = {}        ## skyline index -> panorama angle (rad), fixed when first seen
+var _sky_dist := 1800.0                 ## render.skyline_distance_m
+var _lm_law := Vector2(2.0, 1900.0)     ## render.landmark_range_factor, render.landmark_far_m
+var _sky_sig: Array = []
+var _sky_list: Array = []               ## this frame's silhouettes (snapshot)
 
 
 func _init() -> void:
@@ -99,6 +113,9 @@ func setup(renderer: Node) -> void:
 	if cfg is Dictionary:
 		blend_s = float(ConfigLoader.lookup(cfg, "render.background_blend_s", blend_s))
 		_draw_distance = maxf(1.0, float(ConfigLoader.lookup(cfg, "render.draw_distance_m", _draw_distance)))
+		_sky_dist = maxf(200.0, float(ConfigLoader.lookup(cfg, "render.skyline_distance_m", _sky_dist)))
+		_lm_law = Vector2(float(ConfigLoader.lookup(cfg, "render.landmark_range_factor", 2.0)),
+			float(ConfigLoader.lookup(cfg, "render.landmark_far_m", 1900.0)))
 	if proj != null:
 		_horizon_frac = proj.horizon_y / maxf(1.0, proj.screen.y)
 		sky_proj.focal = proj.focal
@@ -108,6 +125,31 @@ func setup(renderer: Node) -> void:
 		_size = proj.screen
 	_fit(_size)
 	backdrop.setup(sky_proj, batch, blend_s)
+	backdrop.sprite_cb = _draw_skyline_landmark
+
+
+## R7b: the skyline's pictures are resolved (and their sheets loaded) behind the loading cover, not in the race.
+func prepare(_ctx: Dictionary) -> void:
+	var track: Track = _renderer.get("track") if _renderer != null else null
+	if track == null or track.plan == null or track.plan.skyline.is_empty():
+		return
+	var p := _painter()
+	for e: Dictionary in track.plan.skyline:
+		p.call(&"_prep_prop", e)
+
+
+func _painter() -> RoadRenderer:
+	if _sky_painter == null:
+		_sky_painter = RoadRenderer.new()
+		_sky_painter.batch = batch
+		_sky_painter.proj = sky_proj
+	return _sky_painter
+
+
+func _exit_tree() -> void:
+	if _sky_painter != null:
+		_sky_painter.free()
+		_sky_painter = null
 
 
 func update(view: Dictionary, _dt: float) -> void:
@@ -153,13 +195,14 @@ func update(view: Dictionary, _dt: float) -> void:
 	else:
 		_flat = 0.0
 	canvas.position = Vector2(-MARGIN, 0.0) + (view.get("shake", Vector2.ZERO) as Vector2)
+	backdrop.landmarks = skyline(view, heading)
 	var lift := crest_lift(view)
 	if absf(lift - _drawn_lift) >= LIFT_STEP or (lift == 0.0 and _drawn_lift != 0.0):
 		_drawn_lift = lift
 	lift_rows = maxf(_drawn_lift, 0.0)          # the row the canvas draws on – the far ground's rim takes the same
 	# redraw only when the picture changes
 	var sig := [_size, _cover, _scen_id, _flat, _haze, pal.get("sky_top"), pal.get("sky_bottom"), pal.get("ambient"), fog,
-		pal.get("sun_pos"), pal.get("moon_pos"), pal.get("stars"), backdrop._blend < 1.0, _drawn_lift]
+		pal.get("sun_pos"), pal.get("moon_pos"), pal.get("stars"), backdrop._blend < 1.0, _drawn_lift, _sky_sig]
 	var every := REDRAW_S_NIGHT if float(pal.get("stars", 0.0)) > 0.02 else REDRAW_S_DAY
 	if sig != _drawn_sig or absf(wrapf(_heading - _drawn_heading, -PI, PI)) > REDRAW_ANGLE or absf(_time - _drawn_time) >= every \
 			or backdrop._blend < 1.0:
@@ -208,7 +251,8 @@ func snapshot() -> Dictionary:
 	return {"backdrop": {"plain": false, "cover": _cover, "flat": _flat >= 0.999, "tunnel": snappedf(_flat, 0.001),
 		"horizon_frac": _horizon_frac, "horizon_row": snappedf(sky_proj.horizon_y, 0.01), "size": [_size.x, _size.y],
 		"heading": snappedf(_heading, 0.00001), "scenery": _scen_id, "redraws": _redraws, "frames": _frames,
-		"lift_rows": snappedf(lift_rows, 0.01), "base_row": snappedf(sky_proj.horizon_y - lift_rows, 0.01)}}
+		"lift_rows": snappedf(lift_rows, 0.01), "base_row": snappedf(sky_proj.horizon_y - lift_rows, 0.01),
+		"skyline": _sky_list.duplicate(true)}}
 
 
 ## True when the camera is in a tunnel whose exit lies within the sight (view.visibility_m), or not in a tunnel.
@@ -294,3 +338,117 @@ func _background_for(scen_id: String) -> Dictionary:
 		_bg_cache[scen_id] = m
 		c = m
 	return c
+
+
+# --- skyline (R7b) -------------------------------------------------------------------------------------------------
+
+## The skyline silhouettes of this frame for RaceBackdrop.landmarks: Arcade's RoadRenderer._skyline_silhouettes –
+## only inside the City Limits (the camera's ground point), each faded out while its landmark is within the landmark
+## range (smoothstep(L, 1.15 L, its distance)), anchored to the panorama when first seen. heading = the panorama angle
+## of the screen centre (the road's angle at the car plus the camera's yaw against it).
+func skyline(view: Dictionary, heading: float) -> Array:
+	_sky_list = []
+	_sky_sig = []
+	var track: Track = _renderer.get("track") if _renderer != null else null
+	var proj: RoadProjection = _renderer.get("proj") if _renderer != null else null
+	if track == null or track.plan == null or proj == null:
+		return []
+	var sky: Array[Dictionary] = track.plan.skyline
+	var cam_z := float(view.get("camera_z", 0.0))
+	if sky.is_empty() or not track.is_city_at(cam_z + proj.cam_distance):
+		return []
+	var vis := float(view.get("visibility_m", _draw_distance))
+	var l := clampf(vis * _lm_law.x, minf(vis, 600.0), maxf(_lm_law.y, vis))
+	var out: Array = []
+	for i in sky.size():
+		var e: Dictionary = sky[i]
+		var a := 1.0
+		var prop_km := float(e.get("prop_km", -1.0))
+		var dz := 0.0
+		if prop_km >= 0.0:
+			dz = track.km_to_z(prop_km) - cam_z
+			a = smoothstep(l, l * 1.15, dz) if dz > 0.0 else 0.0
+		if a <= 0.01:
+			continue
+		if not _sky_anchor.has(i):
+			_sky_anchor[i] = heading + skyline_offset(i, e, dz, track)
+		out.append({"entry": e, "angle": float(_sky_anchor[i]), "alpha": a, "s": sky_proj.focal / _sky_dist})
+		_sky_list.append({"set": str(e.get("set", "")), "angle": snappedf(float(_sky_anchor[i]), 0.0001), "alpha": snappedf(a, 0.001),
+			"x": snappedf(sky_proj.screen.x * 0.5 - MARGIN + RaceBackdrop.wrap_angle(float(_sky_anchor[i]) - heading) * sky_proj.focal, 0.1)})
+		_sky_sig.append(snappedf(a, 0.015))
+		_sky_sig.append(i)
+	return out
+
+
+## Panorama offset of skyline entry i against the screen centre when it is first seen (RoadRenderer._skyline_offset):
+## its azimuth_deg if given; for one that also stands on the road as a landmark the true direction of that landmark
+## from the camera (its anchor on the path, against the camera's axis); else Arcade's fixed offsets.
+func skyline_offset(i: int, e: Dictionary, dz: float, track: Track) -> float:
+	var az := float(e.get("azimuth_deg", NAN))
+	if not is_nan(az):
+		return deg_to_rad(az)
+	if dz > 0.0:
+		var cam: Camera3D = _renderer.get("camera") if _renderer != null else null
+		var path: Variant = _renderer.get("path") if _renderer != null else null
+		if cam != null and path is RoadPath3D and (path as RoadPath3D).is_ready():
+			for it: Dictionary in track.landmarks:
+				if str(it["set"]) != str(e["set"]):
+					continue
+				var z := float(it["z"])
+				var k := int(floor(z / track.seg_len))
+				if not ((path as RoadPath3D).has(k) and (path as RoadPath3D).has(k + 1)):
+					break
+				var x := float(it.get("x", 0.0))
+				if it.has("proc"):
+					x += float(int(it.get("side", 1))) * float(it.get("width_m", 30.0)) * 0.5 * float(it.get("scale", 1.0))
+				var t := cam.global_transform if cam.is_inside_tree() else cam.transform
+				var local := t.affine_inverse() * (path as RoadPath3D).world(z, x, 0.0)
+				return atan2(local.x, -local.z)
+	return RoadRenderer.SKY_OFFSETS[i % RoadRenderer.SKY_OFFSETS.size()]
+
+
+## RaceBackdrop.sprite_cb: one skyline silhouette standing on the panorama base line at pos (s = px per m) – Arcade's
+## RoadRenderer._draw_skyline_landmark: the "c" cell of its sprite × the ambient light towards the fog × 1.15 by the
+## haze, tinted, with its light layer at night; or Arcade's procedural silhouette.
+func _draw_skyline_landmark(entry: Dictionary, pos: Vector2, s: float, alpha: float, haze: float) -> void:
+	var p := _painter()
+	var pc: Array = p.call(&"_prep_prop", entry)
+	var amb: Color = _pal.get("ambient", Color.WHITE)
+	var lights := float(_pal.get("lights", 0.0)) * alpha
+	p.set(&"_amb_out", amb)
+	p.set(&"_fog_outc", _fog)
+	p.set(&"_lm_amb", amb)
+	p.set(&"_lm_haze", haze)
+	p.set(&"_lm_alpha", alpha)
+	p.set(&"_time", _time)
+	var info: Array = pc[1]
+	var anchor := Vector3(pos.x, pos.y, s)
+	if not info.is_empty():
+		var tint: Color = pc[5]
+		var mod := Color(amb.r, amb.g, amb.b).lerp(_fog * 1.15, haze)
+		_sky_cell(info, "base", anchor, float(pc[2]), Color(mod.r * tint.r, mod.g * tint.g, mod.b * tint.b, alpha))
+		if lights > 0.02 and (info[RoadRenderer.SI_ROWS] as Dictionary).has("lights"):
+			_sky_cell(info, "lights", anchor, float(pc[2]), Color(1, 1, 1, lights))
+	elif str(pc[4]) != "":
+		p.call(&"_draw_landmark_proc", str(pc[4]), entry, anchor, lights)
+
+
+## Draws the "c" cell of `layer` of a sprite (Arcade's info array) with its anchor at p (x, y, px per m) into this
+## canvas – RoadRenderer._sprite_cell, but onto the backdrop's canvas item.
+func _sky_cell(info: Array, layer: String, p: Vector3, scale: float, modulate: Color) -> void:
+	var row := int((info[RoadRenderer.SI_ROWS] as Dictionary).get(layer, -1))
+	if row < 0:
+		return
+	var cell: Vector2 = info[RoadRenderer.SI_CELL]
+	var w := cell.x / float(info[RoadRenderer.SI_PPM]) * p.z * scale
+	var h := w * cell.y / cell.x
+	if w < 0.8:
+		return
+	var dest := RoadRenderer.sprite_dest(Vector2(p.x, p.y), w, h, info[RoadRenderer.SI_ANCHOR], false)
+	if dest.position.x > sky_proj.screen.x + 4.0 or dest.end.x < -4.0:
+		return
+	var ai := int((info[RoadRenderer.SI_COLS] as Dictionary).get("c", 0))
+	var tex: Texture2D = info[RoadRenderer.SI_TEX]
+	batch.flush()
+	RenderingServer.canvas_item_add_texture_rect_region(canvas.get_canvas_item(), dest, tex.get_rid(),
+		RoadRenderer.cell_src(info, ai, row), modulate)

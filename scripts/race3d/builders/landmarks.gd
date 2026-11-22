@@ -603,7 +603,7 @@ static func _domed_church(kit: ShapeKit, wall: Color, dome: Color, cross: bool) 
 	kit.set_paint(wall.darkened(0.25), 0.85, 0.0, 14, 0.4)
 	kit.box(Vector3(-32.6, 28.8, -44.6), Vector3(32.6, 30.4, 0.6))
 	kit.set_paint(shade, 0.8, 0.0, -1, 0.0)
-	kit.hip_roof(Vector3(-33.6, 30.4, -45.6), Vector3(33.6, 30.4, 1.6), 6.0, 4.0)
+	kit.hip_roof(Vector3(-33.6, 30.4, -45.2), Vector3(33.6, 30.4, 0.6), 6.0, 4.0)
 	# windows: two rows of tall arched windows between the ends, a portal in the middle of the front
 	kit.set_paint(win, 0.6, 0.0, 12, 0.35)
 	for row in 2:
@@ -682,16 +682,16 @@ static func _tv_tower(kit: ShapeKit) -> void:
 ## the keeper's house, the black gallery, the lantern room (lit at night) under its cupola; the lamp flashes four times
 ## a revolution (15 s) as a glow.
 static func _lighthouse(kit: ShapeKit) -> void:
-	var c := Vector3(0.0, 0.0, -12.0)
+	var c := Vector3(0.0, 0.0, -7.0)
 	kit.set_paint(Color("f0f0ec"), 0.7, 0.0, 14, 0.4)
 	kit.cylinder(c, 0.0, 40.0, 5.0, 3.4, 16, false)
 	kit.set_paint(Color("3a3e44"), 0.5, 0.0, 12, 0.4)
 	for i in 4:
 		kit.slit(c + Vector3(0.0, 0.0, 0.0), lerpf(5.0, 3.4, (10.0 + float(i) * 8.0) / 40.0) + 0.02, PI * 0.5, 9.0 + float(i) * 8.0, 11.0 + float(i) * 8.0, 1.0)
 	kit.set_paint(Color("e6e3dc"), 0.85, 0.0, 14, 0.3)
-	kit.box(Vector3(-9.0, 0.0, -12.0 - 7.0), Vector3(9.0, 5.0, -12.0 + 7.0))
+	kit.box(Vector3(-9.0, 0.0, -14.0), Vector3(9.0, 5.0, 0.0))
 	kit.set_paint(Color("4f565e"), 0.7, 0.0, -1, 0.0)
-	kit.hip_roof(Vector3(-9.6, 5.0, -19.6), Vector3(9.6, 5.0, -4.4), 2.4, 1.4)
+	kit.hip_roof(Vector3(-9.6, 5.0, -14.6), Vector3(9.6, 5.0, 0.6), 2.4, 1.4)
 	kit.set_paint(Color("2b2d30"), 0.6, 0.3, -1, 0.0)
 	kit.cylinder(c, 40.0, 41.5, 4.6, 4.6, 16, true)
 	kit.set_paint(Color("5d6670"), 0.25, 0.3, 12, 0.9)

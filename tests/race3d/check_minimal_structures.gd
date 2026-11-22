@@ -201,6 +201,10 @@ func _check_tore() -> void:
 
 func _check_wahrzeichen() -> void:
 	var p: Array[String] = []
+	# R7b: with builders/landmarks.gd the landmarks are that builder's (props.gd skips them): tests/race3d/check_landmarks.gd
+	if ResourceLoader.exists("res://scripts/race3d/builders/landmarks.gd"):
+		_report("wahrzeichen", p, "übernommen von builders/landmarks.gd (geprüft in tests/race3d/check_landmarks.gd)")
+		return
 	var day: Array = await _far_landmarks({"start_km": 80.0}, p)
 	# M2INT: at night Arcade draws the illumination of landmarks up to render.landmark_far_m whatever the sight
 	# (RoadRenderer._draw_far_landmarks) – the lit Elbphilharmonie over the Köhlbrandbrücke at 22:00
