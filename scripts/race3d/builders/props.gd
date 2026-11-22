@@ -197,6 +197,15 @@ func quality_lowered(levels: Dictionary) -> void:
 	apply_quality(levels)
 	for mid: Variant in _models_seen.keys():
 		_ensure_bands(str(mid), str(_models_seen[mid]))
+	# the level nodes already committed switch by the new bands too (their meta "band" decides in _apply_lod())
+	for h: Variant in _holders:
+		if not is_instance_valid(h):
+			continue
+		(h as Node).remove_meta(&"span_key")
+		for c: Node in (h as Node).get_children():
+			if c.has_meta(&"band") and c.has_meta(&"model"):
+				var bands := model_bands(str(c.get_meta(&"model")))
+				c.set_meta(&"band", bands.get(str(c.get_meta(&"rep")), c.get_meta(&"band")))
 	_lod_z = -1.0e12
 
 
@@ -1085,6 +1094,7 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 					node.set_meta(&"levels", int(rep_levels[rep]))
 					node.set_meta(&"rep", rep)
 					node.set_meta(&"band", bands.get(rep, Vector4(-2.0, -1.0, LOD_ENDLESS, 2.0 * LOD_ENDLESS)))
+					node.set_meta(&"model", model_id)
 					holder.add_child(node)
 			if has_caster and cast_ok and not reps.is_empty():
 				for p: Variant in lib.mesh_parts(model_id, str(reps[mini(1, reps.size() - 1)])):
