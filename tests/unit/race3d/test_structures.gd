@@ -340,6 +340,17 @@ func test_station_warm_step_prepares_what_the_halves_read() -> void:
 	assert_eq(a.boards, b.boards, "Tafeln")
 	assert_eq(a.plan, b.plan, "Stützenplan")
 	assert_eq(a.lanes, b.lanes, "Kameras")
+	# FIX-RINT (QA-RINT-SYSTEM B-03): the rest in pieces under a deadline (every call past it) ends in the same job
+	var t3 := _real("prag_leipzig")
+	var ctx3 := _context(t3, _chunk_of(t3, r0))
+	var c := StationB.canopy_job_begin(ctx3, r0, r1, {})
+	var cache3 := {}
+	var pieces := 1
+	while not StationB.canopy_job_rest(ctx3, c, cache3, Time.get_ticks_usec() - 1) and pieces < 100000:
+		pieces += 1
+	assert_true(pieces > 10 and c.gathered, "Rest in Stücken (%d Aufrufe)" % pieces)
+	assert_eq(c.lanes, b.lanes, "… dieselben Kameras")
+	assert_eq(c.edges, b.edges, "… dieselben Kanten")
 	a.run()
 	a.finish(t, ctx.terrain)
 	b.run()

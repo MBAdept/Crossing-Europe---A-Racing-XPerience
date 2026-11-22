@@ -404,6 +404,8 @@ func _scene_result(sc: Dictionary, measured_s: float) -> Dictionary:
 		"chunk_commit_ms_max": snappedf(float(p1.get("chunk_commit_ms_max", 0.0)), 0.01),
 		"collect_ms_max_by": _max_by((p1.get("streamer", {}) as Dictionary).get("collect_by", {})),
 		"commit_ms_max_by": _max_by((p1.get("streamer", {}) as Dictionary).get("commit_by", {})),
+		# FIX-RINT (QA-RINT-BILD F-08): the longest parts of a frame over 8 ms with their place ([part, ms, km])
+		"spikes": p1.get("spikes", []),
 	}
 
 

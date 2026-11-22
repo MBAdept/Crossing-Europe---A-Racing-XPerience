@@ -136,6 +136,11 @@ var _part_ids: Array[String] = []
 var _part_us_sum := PackedInt64Array()
 var _part_us_max := PackedInt64Array()
 var _part_frames := 0
+## FIX-RINT (QA-RINT-BILD F-08): every part of a frame that took SPIKE_MS or longer since the stage is prepared –
+## [part, ms, stage km of the camera] for perf_stats()["spikes"] (the SPIKE_KEEP longest), so a hitch on the Deck names its place
+const SPIKE_MS := 8.0
+const SPIKE_KEEP := 12
+var _spikes: Array = []
 var _quality := Quality.new()       ## viewport and RenderingServer states of the quality levels
 var _probe := PerfProbe.new()       ## frame times and the watchdog of the countdown
 var _warmup: RefCounted             ## Prewarm while the warm-up runs
@@ -412,6 +417,7 @@ func _build() -> void:
 	_part_us_max.resize(_part_ids.size())
 	_part_us_max.fill(0)
 	_part_frames = 0
+	_spikes.clear()
 
 
 ## A new instance of the script at `script_path`, or null when it does not load.
@@ -678,7 +684,26 @@ func _part_time(i: int, t0: int) -> int:
 		_part_us_sum[i] += us
 		if us > _part_us_max[i]:
 			_part_us_max[i] = us
+		if float(us) >= SPIKE_MS * 1000.0:
+			_note_spike(i, us)
 	return now
+
+
+## F-08: keeps the SPIKE_KEEP longest parts of a frame over SPIKE_MS (part id, ms, camera km).
+func _note_spike(i: int, us: int) -> void:
+	var cz := float(view.get("camera_z", 0.0))
+	var km := track.z_to_km(cz) if track != null else cz / 1000.0
+	var e := [_part_ids[i] if i < _part_ids.size() else str(i), snappedf(float(us) / 1000.0, 0.01), snappedf(km, 0.01)]
+	if _spikes.size() < SPIKE_KEEP:
+		_spikes.append(e)
+	else:
+		var low := 0
+		for k in _spikes.size():
+			if float(_spikes[k][1]) < float(_spikes[low][1]):
+				low = k
+		if float(e[1]) <= float(_spikes[low][1]):
+			return
+		_spikes[low] = e
 
 
 ## The warm-up nodes stand on the road in front of the camera, turned like a vehicle ahead.
@@ -749,6 +774,9 @@ func perf_stats() -> Dictionary:
 		hooks_max[_part_ids[i]] = snappedf(float(_part_us_max[i]) / 1000.0, 0.001)
 	out["hooks_ms_avg"] = hooks_avg
 	out["hooks_ms_max"] = hooks_max
+	var spikes := _spikes.duplicate()
+	spikes.sort_custom(func(u: Array, v: Array) -> bool: return float(u[1]) > float(v[1]))
+	out["spikes"] = spikes            # [part, ms, stage km of the camera] – the longest first
 	out.merge(_probe.stats(), true)
 	if is_inside_tree() and DisplayServer.get_name() != "headless":
 		var vp := get_viewport().get_viewport_rid()

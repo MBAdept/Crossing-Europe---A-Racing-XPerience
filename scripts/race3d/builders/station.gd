@@ -60,6 +60,21 @@ const SHOP_GLOW_ENERGY := 2.0 * 0.25 / 0.35
 const SHOP_POOL_AT := Vector3(-4.2, 3.4, -5.2)
 const SHOP_POOL_R := 11.0
 const SHOP_POOL_ENERGY := 1.1
+## FIX-RINT (QA-RINT-BILD F-05): Arcade's station sprite carries a light layer that at night fills the space under the
+## shop's forecourt canopy with a warm light volume (lateral -8.4 … +7.2 m of the anchor, from the ground to the canopy)
+## and lights its three shop windows as large cream panels (+7.9 … +18.1 m, 1.2 … 3.7 m high); the model (AS1b) has
+## eight small downlights there and dark panes – under the roofs Modern read 0.77 × Arcade's luminance (QA, TS15N).
+## Model frame (as the props builder places it): x lateral, y up, the front at z ≈ -1.2, its depth towards -z.
+const SHOP_VOLUME_X: Array[float] = [-6.8, -2.6, 1.6, 5.6]
+const SHOP_VOLUME_AT := Vector2(2.6, -2.2)      ## (height, z) of the volume glows
+const SHOP_VOLUME := Color(1.0, 0.93, 0.78)
+const SHOP_VOLUME_SIZE := 4.6
+const SHOP_VOLUME_ENERGY := 1.5
+const SHOP_WINDOW_X: Array[float] = [9.55, 13.0, 16.5]
+const SHOP_WINDOW_AT := Vector2(2.45, -1.0)     ## (height, z): in front of the panes
+const SHOP_WINDOW := Color(1.0, 0.94, 0.82)
+const SHOP_WINDOW_SIZE := 2.2
+const SHOP_WINDOW_ENERGY := 2.4
 const COLUMN_IN := 0.45            ## columns this far inside the canopy's front and end
 ## A column on the island Arcade does not have (at the end of a canopy) stands there only where no sign on the right
 ## is within this distance behind it: one farther behind could only be covered while it is several hundred metres away
@@ -191,6 +206,7 @@ class CanopyJob extends RefCounted:
 	var fallback: Array = []
 	var result: Array = []
 	var gathered := false               ## canopy_job_rest() done
+	var rest_zc := INF                  ## FIX-RINT (B-03): the next camera place of an interrupted canopy_job_rest()
 	var done := false                   ## run() done
 	var task := -1
 	var _px := PackedFloat64Array()
@@ -479,13 +495,18 @@ static func canopy_job_begin(ctx: ChunkContext, r0: float, r1: float, shared: Va
 
 ## Main thread, second half of canopy_job(): the cameras (lane centres) and the paved edges at the column places.
 ## shared: the builder's cache – the cameras are kept there for the next canopy (its grid overlaps).
-static func canopy_job_rest(ctx: ChunkContext, job: CanopyJob, shared: Variant = null) -> void:
+## FIX-RINT (QA-RINT-SYSTEM B-03): with deadline_us > 0 it stops once the clock passes it (after at least one camera
+## place) and goes on from there in the next call – true when the job is gathered. collect() of the station stayed
+## at 3.6–4.9 ms at most under load (A-18: 2 ms on the Deck): a cold rest of a canopy ahead ran whole in one call.
+static func canopy_job_rest(ctx: ChunkContext, job: CanopyJob, shared: Variant = null, deadline_us: int = 0) -> bool:
 	var tr := ctx.track
 	var r0 := job.r0
 	var r1 := job.r1
 	# cameras: the lane centres (and the open fuel lane) on the LOS_STEP grid before the canopy
-	var zc := floorf((r0 - 1.0 - LOS_FAR - LOS_STEP) / LOS_STEP) * LOS_STEP
-	var lc: Dictionary = _shared_part(shared, "_lanes", int(round(zc / LOS_STEP)))
+	var z_first := floorf((r0 - 1.0 - LOS_FAR - LOS_STEP) / LOS_STEP) * LOS_STEP
+	var zc := z_first if not is_finite(job.rest_zc) else job.rest_zc
+	var lc: Dictionary = _shared_part(shared, "_lanes", int(round(z_first / LOS_STEP)))
+	var fresh := 0
 	while zc <= r1 + LOS_STEP:
 		var gi := int(round(zc / LOS_STEP))
 		var hit: Variant = lc.get(gi)
@@ -493,10 +514,15 @@ static func canopy_job_rest(ctx: ChunkContext, job: CanopyJob, shared: Variant =
 			job.lanes[gi] = hit
 			zc += LOS_STEP
 			continue
+		if deadline_us > 0 and fresh > 0 and Time.get_ticks_usec() > deadline_us:
+			job.rest_zc = zc
+			return false
 		var lx := _lane_xs(tr, zc)
 		job.lanes[gi] = lx
 		lc[gi] = lx
+		fresh += 1
 		zc += LOS_STEP
+	job.rest_zc = INF
 	# column places: paved edges and the first place of a left mast (the corridor flags: finish())
 	for c: Array in job.plan:
 		var z := float(c[0])
@@ -504,6 +530,7 @@ static func canopy_job_rest(ctx: ChunkContext, job: CanopyJob, shared: Variant =
 		job.left_from[CanopyJob.zkey(z)] = tr.lanes_at(z) * tr.lane_w * 0.5 + tr.shoulder_w + MAST_LEFT_GAP
 	# the mast may also stand at the front (r0 + COLUMN_IN) – the first entry of the plan is there
 	job.gathered = true
+	return true
 
 
 ## The part `name` of the builder's cache (shared) for the gather of the next canopy: a Dictionary index -> value,
@@ -1201,7 +1228,9 @@ static func columns_in_chunk(ctx: ChunkContext, cache: Variant = null) -> Array:
 				if Time.get_ticks_usec() - t0 > budget_us:
 					break
 				var job: CanopyJob = ahead
-				canopy_job_rest(ctx, job, cache)
+				# (B-03: in pieces under the budget – the next collect() goes on)
+				if not canopy_job_rest(ctx, job, cache, t0 + budget_us):
+					break
 				job.task = WorkerThreadPool.add_task(job.run, false, "Modern canopy %.0f" % r0)
 	return out
 
@@ -1496,6 +1525,14 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 					"range": 0.0, "energy": SHOP_GLOW_ENERGY})
 				glows.append({"pos": fs * SHOP_POOL_AT, "dir": -fs.basis.y, "role": "lights", "color": SHOP_GLOW, "size": 0.3,
 					"range": SHOP_POOL_R, "energy": SHOP_POOL_ENERGY})
+				# FIX-RINT (F-05): Arcade's light layer of the station – the warm volume under the forecourt canopy and the
+				# lit shop windows (glows of the flare layer, night only like every lamp of role "lights")
+				for vx: float in SHOP_VOLUME_X:
+					glows.append({"pos": fs * Vector3(vx, SHOP_VOLUME_AT.x, SHOP_VOLUME_AT.y), "dir": fs.basis.z, "role": "lights",
+						"color": SHOP_VOLUME, "size": SHOP_VOLUME_SIZE, "range": 0.0, "energy": SHOP_VOLUME_ENERGY})
+				for wx: float in SHOP_WINDOW_X:
+					glows.append({"pos": fs * Vector3(wx, SHOP_WINDOW_AT.x, SHOP_WINDOW_AT.y), "dir": fs.basis.z, "role": "lights",
+						"color": SHOP_WINDOW, "size": SHOP_WINDOW_SIZE, "range": 0.0, "energy": SHOP_WINDOW_ENERGY})
 		var fz := int(sa["fuel_zone"])
 		if fz == 0 or bool(sa["tunnel"]):
 			continue
