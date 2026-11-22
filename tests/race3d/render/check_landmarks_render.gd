@@ -14,6 +14,10 @@ extends SceneTree
 ##                       softly – its difference picture has no dither pattern (the change between neighbouring pixels
 ##                       stays well below the change itself; an ordered dither changes from pixel to pixel)
 ##   wahrzeichen_nacht   km 77.4, 22:00: beyond the night's sight its illumination stays (bright pixels)
+##   flugfeuer           Bremen – Dortmund km 225, 22:00: the Florianturm (3D shape of Arcade's TV tower) shows its red
+##                       aviation lights as small glows – some red pixels, and the landmark changes only a small part
+##                       of the picture (the first glows covered the whole sky in red: VIEWPORT_SIZE reads 0 in the
+##                       vertex stage of the Compatibility renderer)
 ## "-- --save=<absolute folder>" keeps the pictures. (Scripts started with -s compile before the autoloads exist.)
 
 const RACE := "res://scenes/race/race.tscn"
@@ -41,6 +45,7 @@ func _run() -> void:
 	await _check_stelle()
 	await _check_weich()
 	await _check_nacht()
+	await _check_flugfeuer()
 	root.get_node("Settings").call("disarm_crash_guard")
 	print("RENDER-CHECKS %s  (%d fehlgeschlagen)" % ["OK" if _failed.is_empty() else "FEHLER", _failed.size()])
 	quit(0 if _failed.is_empty() else 1)
@@ -263,6 +268,26 @@ func _check_nacht() -> void:
 	_need(p, far >= 1, "ein Wahrzeichen jenseits der Sicht nur mit seiner Beleuchtung (%d)" % far)
 	_need(p, bright >= 12, "seine Beleuchtung leuchtet (%d helle Pixel)" % bright)
 	_report("wahrzeichen_nacht", p, "22 Uhr km 77,4: %d Wahrzeichen nur beleuchtet, %d helle Pixel von %d (Bild %d breit)" % [far, bright, int(dm[2]), w])
+
+
+func _check_flugfeuer() -> void:
+	var p: Array[String] = []
+	var pair: Array = await _modern_pair({"stage_id": "bremen_dortmund", "from_city": "bremen", "start_km": 225.0,
+		"start_world_minutes": 22.0 * 60.0})
+	_save_img(pair[0], "flugfeuer_modern")
+	var dm: Array = _diff(pair[0], pair[1])
+	var img: Image = pair[0]
+	var total := img.get_width() * img.get_height()
+	var mask: PackedByteArray = dm[0]
+	var data := img.get_data()
+	var red := 0
+	for i in mask.size():
+		if mask[i] == 1 and data[i * 3] >= 150 and data[i * 3] > 2 * data[i * 3 + 1] and data[i * 3] > 2 * data[i * 3 + 2]:
+			red += 1
+	var share := float(int(dm[2])) / float(total)
+	_need(p, red >= 3, "rote Flugwarnlichter zu sehen (%d rote Pixel)" % red)
+	_need(p, share <= 0.03, "das Wahrzeichen ändert nur einen kleinen Teil des Bildes (%.2f %%)" % (share * 100.0))
+	_report("flugfeuer", p, "Florianturm 22 Uhr: %d rote Pixel, Wahrzeichen %.2f %% des Bildes (%d Pixel, um %s)" % [red, share * 100.0, int(dm[2]), str(dm[1])])
 
 
 func _need(problems: Array[String], cond: bool, what: String) -> void:

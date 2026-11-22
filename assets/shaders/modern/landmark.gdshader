@@ -123,6 +123,13 @@ vec3 albedo_for(vec3 x) {
 	return max(c, vec3(0.0));
 }
 
+// share of a pixel covered by a periodic band of width w (in periods) at coordinate v: the band itself near the
+// camera, its mean w where a period gets smaller than about two pixels
+float bands(float v, float w) {
+	float fw = fwidth(v);
+	return mix(step(fract(v), w), w, clamp(fw * 2.0 - 0.25, 0.0, 1.0));
+}
+
 float hash12(vec2 p) {
 	vec3 p3 = fract(vec3(p.xyx) * 0.1031);
 	p3 += dot(p3, p3.yzx + 33.33);
@@ -261,7 +268,8 @@ void fragment() {
 		float u = n.x > n.z ? v_obj.z : v_obj.x;
 		float fl = floor(v_obj.y / 4.0);
 		float col_i = floor(u / 3.0);
-		float band = step(fract(v_obj.y / 4.0), 0.14) + step(fract(u / 3.0), 0.1);
+		// floor bands and mullions, faded to their mean where they get finer than a pixel (no stair-step aliasing)
+		float band = bands(v_obj.y / 4.0, 0.14) + bands(u / 3.0, 0.1);
 		alb *= 1.0 - 0.3 * min(band, 1.0);
 		rough = 0.25;
 		float lit = step(hash12(vec2(col_i, fl) + floor(v_obj.xz * 0.01)), window_share) * (1.0 - min(band, 1.0));
