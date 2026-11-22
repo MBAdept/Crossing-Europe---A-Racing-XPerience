@@ -2529,7 +2529,11 @@ von `update()` (Pfad, Abfall, Freigeben, Auswahl, Sammeln, Einhängen). Damit ge
 Streamers (8–144 ms auf dieser VM, `perf_stats()["spikes"]`) lagen im **Freigeben** der Stücke hinter der Kamera
 (`free` bis 141,7 ms), nicht im Einhängen. Ein solches Stück verlässt jetzt sofort den Baum (seine Lampen werden
 vergessen, nichts davon wird gezeichnet) und wird Kind für Kind freigegeben, höchstens `FREE_BUDGET_MS` (1 ms) je
-Bild; `clear()` gibt alles sofort frei.
+Bild, frühestens `TRASH_DELAY` (4) Aufrufe nachdem es den Baum verlassen hat (dritter Lauf ohne Wartezeit: ein
+einzelnes Kind brauchte noch 134 ms – gefolgert: der Treiber wartet beim Löschen auf ein Bild, das das Netz noch
+zeichnet); `clear()` gibt alles sofort frei. Vierter Lauf: `trash` höchstens 57 ms, aber auch der reine
+GDScript-Teil `path` 49,6 ms – auf der geteilten VM (Last 12) ist ein einzelner Stoß dieser Größe nicht mehr vom
+Rauschen zu trennen. Ob die Stöße auf dem Gerät weg sind, zeigt erst `spikes` des Leistungstests auf dem Deck.
 
 ### 18.3 Weitere Änderungen
 

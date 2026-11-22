@@ -20,6 +20,7 @@ const STATIC_MIN_PX := 1.6           ## … at least this many px
 const STATIC_NEAR_PX := 6.0          ## lamp geometry this large on screen: only the halo share of the glow …
 const STATIC_FAR_PX := 1.0           ## … this small: the whole glow
 const STATIC_HALO := 0.35            ## halo share near the camera
+const STATIC_SEEN := 10              ## FIX-RINT (B-01): index of the "parent was in the tree" flag in a _static entry
 ## Arcade's glow of a street lamp (RoadRenderer._streetlight: radius max(3 px, 2.4 m), colour (1, 0.75, 0.4), alpha
 ## 0.5 x lights): every lamp that looks down onto a light pool (street and canopy lamps) gets it as a second flare at
 ## its head, scaled by its energy against a street lamp's (RINT-B: the heads lacked Arcade's warm halo at night)
@@ -185,8 +186,10 @@ func add_static(parent: Node3D, lamps: Array) -> void:
 			list.append(l)
 	if list.is_empty():
 		return
-	# [parent, lamps, transform, positions, directions, positions valid, drops, drop z (_drop_of), parent was in the tree]
-	_static.append([parent, list, Transform3D(), PackedVector3Array(), PackedVector3Array(), false, null, null, false])
+	# [parent, lamps, transform, positions, directions, positions valid, drops, drop z (_drop_of), profiles, profile z
+	# (_lamp_profile), parent was in the tree (STATIC_SEEN)]
+	_static.append([parent, list, Transform3D(), PackedVector3Array(), PackedVector3Array(), false, null, null, null,
+			null, false])
 	_static_count += list.size()
 
 
@@ -242,7 +245,7 @@ func _add_statics(view: Dictionary) -> void:
 	while i < _static.size():
 		var e: Array = _static[i]
 		var pv: Variant = e[0]
-		if not is_instance_valid(pv) or (bool(e[8]) and not (pv as Node3D).is_inside_tree()):
+		if not is_instance_valid(pv) or (bool(e[STATIC_SEEN]) and not (pv as Node3D).is_inside_tree()):
 			_static_count -= (e[1] as Array).size()
 			_static.remove_at(i)
 			continue
@@ -251,7 +254,7 @@ func _add_statics(view: Dictionary) -> void:
 			# its lamps wait for it (a parent that LEFT the tree is forgotten above)
 			i += 1
 			continue
-		e[8] = true
+		e[STATIC_SEEN] = true
 		var parent: Node3D = pv
 		var gt := parent.global_transform
 		var lamps: Array = e[1]
