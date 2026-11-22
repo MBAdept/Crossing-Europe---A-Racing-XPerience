@@ -19,7 +19,7 @@
 //   CE_GLOW      soft additive glow points (aviation lights, a lighthouse lamp – Arcade's _lm_glow): a quad per
 //                point whose four corners share the centre; UV = corner (-1..1), UV2 = (size m, minimum px),
 //                COLOR = colour and strength, CUSTOM0 = (mode 0 steady / 1 blink / 2 flash, period s, lit s,
-//                phase s); drawn only at night
+//                phase s); mode 3 = a lighthouse beam (see vertex()); drawn only at night
 //   CE_BLEND     the translucent variant (blend_mix): the landmark fades out softly over the last 28 % of its range
 //                and keeps only its lit pixels beyond it (B-09: the opaque materials faded with an ordered dither).
 //                The builder swaps to it from 0.70 x the range on; nearer the opaque variant draws (shadows, depth).
@@ -102,6 +102,7 @@ varying vec3 v_obj;
 varying vec3 v_onrm;
 #elif defined(CE_GLOW)
 varying float v_on;
+varying float v_beam;
 #endif
 
 // the renderer's sRGB -> linear for albedo values
@@ -156,6 +157,22 @@ void vertex() {
 	v_obj = VERTEX;
 	v_onrm = NORMAL;
 #elif defined(CE_GLOW)
+	v_beam = 0.0;
+	if (CUSTOM0.x > 2.5) {
+		// a lighthouse beam (mode 3): a long flat quad from the lamp, turning about the vertical once in CUSTOM0.y
+		// seconds (CUSTOM0.w = its phase), widening along its CUSTOM0.z metres to UV2.x; it faces the camera about
+		// its own axis. UV.x = 0 at the lamp .. 1 at the tip, UV.y = -1 .. 1 across.
+		float ang = ce_time * 6.2831853 / max(CUSTOM0.y, 0.01) + CUSTOM0.w;
+		vec3 dir = normalize(vec3(cos(ang), -0.03, sin(ang)));
+		vec3 cam_m = (inverse(MODEL_MATRIX) * vec4(CAMERA_POSITION_WORLD, 1.0)).xyz;
+		vec3 side = cross(dir, normalize(cam_m - VERTEX));
+		side = length(side) > 1.0e-3 ? normalize(side) : vec3(0.0, 1.0, 0.0);
+		vec3 p = VERTEX + dir * (UV.x * CUSTOM0.z) + side * (UV.y * (0.4 + UV2.x * UV.x));
+		POSITION = PROJECTION_MATRIX * (MODELVIEW_MATRIX * vec4(p, 1.0));
+		// brighter while it sweeps across the view than when it points away (Arcade: 0.45 .. 1)
+		v_on = mix(0.45, 1.0, 0.5 + 0.5 * dot(dir, normalize(cam_m - VERTEX)));
+		v_beam = 1.0;
+	} else {
 	// a camera-facing quad round the point, at least UV2.y pixels across, pulled towards the camera so that the
 	// lamp's own geometry does not cut it
 	vec4 c = MODELVIEW_MATRIX * vec4(VERTEX, 1.0);
@@ -176,6 +193,7 @@ void vertex() {
 		on = 0.35 + 0.65 * pow(max(cos(turn - 0.785398), 0.0), 24.0);
 	}
 	v_on = on;
+	}
 #endif
 }
 
@@ -315,11 +333,17 @@ void fragment() {
 	EMISSION = pow(max(emis, vec3(0.0)), vec3(1.0));
 	FOG = vec4(ce_fog_unshow(min(COLOR.rgb * tint * ce_fog_color.rgb * 1.15, vec3(1.0))), haze * (1.0 - la));
 #elif defined(CE_GLOW)
-	float r2 = dot(UV, UV);
-	if (r2 > 1.0) {
-		discard;
+	float fall;
+	if (v_beam > 0.5) {
+		float t = clamp(UV.x, 0.0, 1.0);
+		fall = pow(1.0 - t, 1.6) * (1.0 - UV.y * UV.y) * smoothstep(0.0, 0.04, t);
+	} else {
+		float r2 = dot(UV, UV);
+		if (r2 > 1.0) {
+			discard;
+		}
+		fall = exp(-r2 * 4.0) + 0.6 * exp(-r2 * 40.0);
 	}
-	float fall = exp(-r2 * 4.0) + 0.6 * exp(-r2 * 40.0);
 	ALBEDO = COLOR.rgb * (COLOR.a * fall * v_on * lights);
 	FOG = vec4(0.0);
 #endif

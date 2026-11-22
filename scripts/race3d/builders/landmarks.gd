@@ -729,6 +729,9 @@ static func _lighthouse(kit: ShapeKit) -> void:
 	kit.dome(c, 47.0, 2.6, 3.0, 12, 5)
 	kit.box(c + Vector3(-0.2, 50.0, -0.2), c + Vector3(0.2, 51.0, 0.2))
 	kit.glow(c + Vector3(0.0, 44.2, 0.0), Color(1.0, 0.95, 0.8), 1.0, 3.0, 4.0, Vector4(2.0, 15.0, 0.0, 0.0))
+	# Arcade's four beams (RoadRenderer.LIGHTHOUSE_BEAM_M 240 m, one revolution in LIGHTHOUSE_PERIOD_S 15 s)
+	for i in 4:
+		kit.beam(c + Vector3(0.0, 44.2, 0.0), Color(1.0, 0.96, 0.82), 0.22, 240.0 / kit.k, 15.0, float(i) * PI * 0.5)
 
 
 ## Skyscraper cluster (RoadRenderer._lm_skyscrapers, reference height 259 m – Frankfurt, Cuatro Torres): five towers
@@ -779,6 +782,10 @@ class ShapeKit:
 	var _gc := PackedColorArray()
 	var _gs := PackedVector2Array()
 	var _gm: Array[Vector4] = []
+	# lighthouse beams: position, colour + strength, (3, period, length, phase)
+	var _bp := PackedVector3Array()
+	var _bc := PackedColorArray()
+	var _bm: Array[Vector4] = []
 
 	func set_paint(col: Color, rough: float, metal: float, channel: int, weight: float) -> void:
 		_col = col
@@ -965,6 +972,12 @@ class ShapeKit:
 		_gs.append(Vector2(size_m * k, min_px))
 		_gm.append(mode)
 
+	## A lighthouse beam (CE_GLOW mode 3): from p, `length_m` long (reference metres), turning once in `period` s.
+	func beam(p: Vector3, col: Color, strength: float, length_m: float, period: float, phase: float) -> void:
+		_bp.append(p * k)
+		_bc.append(Color(col.r, col.g, col.b, strength))
+		_bm.append(Vector4(3.0, period, length_m * k, phase))
+
 	func tris() -> int:
 		return _i.size() / 3
 
@@ -985,7 +998,7 @@ class ShapeKit:
 		return m
 
 	func glow_mesh() -> ArrayMesh:
-		if _gp.is_empty():
+		if _gp.is_empty() and _bp.is_empty():
 			return null
 		var v := PackedVector3Array()
 		var uv := PackedVector2Array()
@@ -993,8 +1006,8 @@ class ShapeKit:
 		var col := PackedColorArray()
 		var cu := PackedFloat32Array()
 		var idx := PackedInt32Array()
-		var lo := _gp[0]
-		var hi := _gp[0]
+		var lo := _gp[0] if not _gp.is_empty() else _bp[0]
+		var hi := lo
 		for g in _gp.size():
 			var b := v.size()
 			for corner: Vector2 in [Vector2(-1.0, -1.0), Vector2(1.0, -1.0), Vector2(1.0, 1.0), Vector2(-1.0, 1.0)]:
@@ -1007,6 +1020,18 @@ class ShapeKit:
 			idx.append_array(PackedInt32Array([b, b + 2, b + 1, b, b + 3, b + 2]))
 			lo = lo.min(_gp[g])
 			hi = hi.max(_gp[g])
+		for g in _bp.size():
+			var b := v.size()
+			var m: Vector4 = _bm[g]
+			for corner: Vector2 in [Vector2(0.0, -1.0), Vector2(1.0, -1.0), Vector2(1.0, 1.0), Vector2(0.0, 1.0)]:
+				v.append(_bp[g])
+				uv.append(corner)
+				uv2.append(Vector2(0.07 * m.z, 0.0))
+				col.append(_bc[g])
+				cu.append_array(PackedFloat32Array([m.x, m.y, m.z, m.w]))
+			idx.append_array(PackedInt32Array([b, b + 2, b + 1, b, b + 3, b + 2]))
+			lo = lo.min(_bp[g] - Vector3.ONE * m.z)
+			hi = hi.max(_bp[g] + Vector3.ONE * m.z)
 		var arr := []
 		arr.resize(Mesh.ARRAY_MAX)
 		arr[Mesh.ARRAY_VERTEX] = v
