@@ -1911,7 +1911,30 @@ Loire-Haus die Gartenmauer mit 0,6 der Dichte), „Export“ die Zeit mit Bake (
 | Fernbild: dunkles Zehntel lod0 60 m → lod1 250 m, Haussmann / Lauben / Maashaus | +23 / +25 / +22 | +23 / +26 / +22 (unverändert) |
 | Gartenmauer Südhaus / Loire-Haus, Straßenseite (Packdichte × 0,6) | 32,5 / 30,6 px/m | 32,1 / 29,9 px/m |
 
-Nicht erreicht: Die Fernfassaden bleiben blass (der dunklere Innenring der Fernstufe war nicht die Ursache; das Glas des
-Atlas ist schon bei 60 m 11–21 Stufen heller als das gemalte Spiegelglas des Sprites); die Blattkarten flimmern bei
-100–150 m mehr als die alte Kugelkrone; Haussmann und Eckhaus flimmern in lod0 (40–60 m) weiter 5–10 × so stark wie
-das Sprite (Alpha-Test der Gitter, geometrische Sprossen) – Fall für TAA/Mip-Bias oder ein kürzeres lod0 (R7).
+Nicht erreicht: Die Fernfassaden bleiben blass (Ursache unten – im Modell nicht zu beheben); die Blattkarten flimmern
+bei 100–150 m mehr als die alte Kugelkrone; Haussmann und Eckhaus flimmern in lod0 (40–60 m) weiter 5–10 × so stark
+wie das Sprite (Alpha-Test der Gitter, geometrische Sprossen) – Fall für TAA/Mip-Bias oder ein kürzeres lod0 (R7).
+
+### Warum ferne Fassaden blass werden (gemessen)
+
+Dieselbe Prüfszene (`lodcol`: lod0, lod1 und Sprite im Renn-Licht, 12 Uhr, Hoch) dreimal: mit den Schatten des
+Rennens (Reichweite 200 m, Ausblenden ab 170 m), mit 1 000 m Reichweite und ganz ohne Sonnenschatten. Mittlere
+Helligkeit lod0 bei 60 → 250 m:
+
+| Modell | Schatten wie im Rennen | Reichweite 1 000 m | ohne Schatten | Sprite |
+|---|---|---|---|---|
+| Haussmann | 134 → 147 (+10 %) | 136 → 142 (+5 %) | 106 → 106 (−1 %) | 112 → 110 |
+| Chalet | 75 → 96 (+29 %) | 76 → 83 (+8 %) | 71 → 70 (−1 %) | 74 → 70 |
+| Lauben | 105 → 110 (+5 %) | 106 → 104 (−2 %) | 83 → 79 (−4 %) | 92 → 89 |
+| Südhaus | 116 → 127 (+10 %) | 117 → 119 (+2 %) | 94 → 93 (−1 %) | 101 → 98 |
+| Maashaus | 107 → 111 (+4 %) | 107 → 110 (+3 %) | 78 → 80 (+3 %) | 91 → 89 |
+
+Ohne Sonnenschatten bleibt jedes Modell über die Entfernung gleich hell, und sein dunkles Zehntel (die Fenster) hellt
+von 60 auf 250 m nur um 1–9 Stufen auf wie das des Sprites (3–11) – die Mip-Kette des Atlas ist es nicht (Ausnahme
+Maashaus +15 gegen +7). Blass macht die Fassaden das Ende der Echtzeitschatten: jenseits der Reichweite (Hoch 200 m,
+Mittel 120 m, ausgeblendet ab 85 %) fällt die Sonne voll auf Laibungen, Arkaden, Balkon- und Traufschatten; davor
+löst die gröbste Schattenstufe die feinen Schatten schon nicht mehr auf (mit 1 000 m Reichweite dunkles Zehntel
+noch +1 bis +21). Das Sprite hat seine Schatten eingebacken. Ohne Schatten ist das ganze Bild dunkler (vermutlich, weil der
+Kompatibilitäts-Renderer das Sonnenlicht dann in einem anderen Durchgang rechnet) – verglichen wird nur der Verlauf
+über die Entfernung. Abhilfe gehört in den Renderer (R4/R7): jenseits der Schattenreichweite den gerichteten Anteil
+auf Gebäuden um einen mittleren Schattenanteil senken oder ein Fernbild mit eingebackenen Schatten (A-16).
