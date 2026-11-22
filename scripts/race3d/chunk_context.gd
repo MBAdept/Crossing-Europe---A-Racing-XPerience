@@ -36,7 +36,7 @@ var floor_y := PackedFloat32Array()     ## valley floor per row, chunk-local y
 var rings := 0                          ## terrain rings per side
 var ring_x := PackedFloat32Array()      ## terrain ring distances beyond the shoulder per row and side
 var ring_h := PackedFloat32Array()      ## terrain heights at those rings, relative to the road of the row
-var corridor := PackedVector2Array()    ## sight corridor beyond the shoulder per row (left, right), fairness rule F7
+var corridor := PackedVector2Array()    ## sight corridor beyond the shoulder per row (left, right), fairness rule F7 (A-17)
 var corridor_min := 5.5                 ## its width away from bends (TerrainProfile.corridor_min_m - shoulder)
 var origin := Vector3.ZERO              ## origin-relative position of row 0 when the snapshot was taken
 var seg_len := 3.0
@@ -210,9 +210,11 @@ func in_corridor(z: float, x: float) -> bool:
 	return m <= (c.x if si == 0 else c.y)
 
 
-## True when (z, x) lies inside the sight corridor of a bend, on its inside – where fairness rule F7 allows no
-## decorative vegetation (the props builder leaves such props out). Away from bends the corridor is only the
-## corridor_min strip beside the road, and that strip does not count here.
+## True when (z, x) lies inside the sight corridor of a bend – the envelope of the real sight lines (SightCorridor,
+## contract A-17) where one leaves the road, at least the plain strip + TerrainProfile.BEND_FLOOR_M – where fairness
+## rule F7 allows nothing taller than 0.5 m (the props builder leaves such props out or puts ground cover there, the
+## city builder its fence pieces). Away from bends the corridor is only the corridor_min strip beside the road, and
+## that strip does not count here.
 func in_bend_corridor(z: float, x: float) -> bool:
 	var f := z / seg_len - float(seg_a)
 	var i := clampi(int(floor(f)), 0, rows_o.size() - 2)
