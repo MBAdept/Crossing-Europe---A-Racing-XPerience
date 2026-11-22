@@ -7,8 +7,8 @@
 //   the level fades in from in0 to in1 and out from out0 to out1 (ordered dither, the same pattern as the F5 fade);
 //   the neighbouring level uses the same band the other way round, so the two share the pixels without a hole and
 //   without drawing one pixel twice. Default: always visible (every model that props.gd does not set).
-// An instance outside its band is collapsed to one point in vertex() (no fragments at all); the shadow pass decides
-// at the middle of the band without dither, so exactly one level casts.
+// An instance outside its band is collapsed to one point in vertex() (no fragments at all); in the shadow pass the
+// finer level casts through the whole band, without dither (ce_lod_discard), so exactly one level casts.
 // The main camera is MAIN_CAM_INV_VIEW_MATRIX (in the shadow pass VIEW_MATRIX belongs to the light).
 // Also here: the far light (lead decision 2 of R7c) – beyond the reach of the real-time shadows the directional light
 // on a model is lowered to its mean shadowed share far_sun (set per model by props.gd; 1 = unchanged), fading in with
@@ -38,15 +38,21 @@ float ce_lod_shadow_pass(vec3 cam, mat4 main_inv_view) {
 	return distance(cam, main_inv_view[3].xyz) > 0.5 ? 1.0 : 0.0;
 }
 
-// fragment(): true = discard this pixel (d = v_lod_d, shadow = v_lod_shadow). The shadow pass keeps a whole level per
-// instance (threshold 0.5, no dither), so exactly one level casts
+// fragment(): true = discard this pixel (d = v_lod_d, shadow = v_lod_shadow). In the shadow pass exactly one level of
+// an instance casts, without dither: the finer one through the whole band (a level casts once it has faded in
+// completely and until it has faded out completely) – the coarse shell of a far level would otherwise shadow the
+// recessed windows and doors of the finer level while the two share the pixels (render check check_lod_band: the
+// middle of the band changed 9.3 % of a house's pixels at once, more than the hard swap's 7.1 %)
 bool ce_lod_discard(float d, float shadow, vec2 frag) {
 	float fin = clamp((d - lod_band.x) / max(lod_band.y - lod_band.x, 0.001), 0.0, 1.0);
 	float fout = clamp((lod_band.w - d) / max(lod_band.w - lod_band.z, 0.001), 0.0, 1.0);
 	if (fin >= 1.0 && fout >= 1.0) {
 		return false;
 	}
-	float t = shadow > 0.5 ? 0.5 : fract(dot(floor(frag), vec2(0.7548776662, 0.5698402910)));
+	if (shadow > 0.5) {
+		return fin < 1.0 || fout <= 0.0;
+	}
+	float t = fract(dot(floor(frag), vec2(0.7548776662, 0.5698402910)));
 	return t < 1.0 - fin || t >= fout;
 }
 

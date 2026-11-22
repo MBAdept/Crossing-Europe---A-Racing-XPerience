@@ -387,8 +387,10 @@ einem Stadthaus 8–32 % seiner Pixel in einem Bild (AS5aR1, AS5aR2). Jetzt:
   (`inc/lod_band.gdshaderinc`). Nachbarstufen teilen sich das Band in umgekehrter Richtung und dasselbe geordnete
   Raster (wie das F5-Ausblenden): kein Loch, kein Pixel doppelt. Eine Instanz außerhalb ihres Bandes fällt im
   Vertex-Shader auf einen Punkt zusammen (keine Fragmente). Im Schattendurchgang (Kamera ≠ Hauptkamera,
-  `MAIN_CAM_INV_VIEW_MATRIX` gibt es nur in `vertex()`) entscheidet die Mitte des Bandes ohne Raster, so wirft genau
-  eine Stufe.
+  `MAIN_CAM_INV_VIEW_MATRIX` gibt es nur in `vertex()`) wirft ohne Raster genau eine Stufe: die feinere durch das
+  ganze Band – sonst beschattet die gröbere Hülle die zurückliegenden Fenster und Türen der feineren, solange beide
+  sich die Pixel teilen (`check_lod_band`: in der Bandmitte änderten sich 9,3 % der Pixel eines Hauses auf einmal,
+  mehr als beim harten Wechsel mit 7,1 %).
 - **Entfernungen.** Stufe 0 eines Modells gilt bis `prop_lod0_m` („Details“: 40 / 60 / 120 m) × `max_dist_m` der
   Stufe 0 aus `model.json` / `lod_ref_m` (60 = der Standard des Exporters, also die Entfernung bei „Mittel“);
   Stufe 1 entsprechend mit `prop_lod1_m` und `lod1_ref_m` (200). `graphics.modern.props.lod0_m` ersetzt den Wert
