@@ -20,6 +20,7 @@ uniform float far_sun = 1.0;
 
 varying float v_lod_d;      // distance of the instance from the main camera (vertex)
 varying float v_lod_depth;  // view depth of the vertex (m): the far light
+varying float v_lod_shadow; // 1 in the shadow pass (the camera of the pass is not the main camera), 0 else
 
 // distance of the instance (MODEL_MATRIX includes the MultiMesh instance) from the main camera
 float ce_lod_distance(mat4 model, mat4 main_inv_view) {
@@ -31,15 +32,21 @@ bool ce_lod_hidden(float d) {
 	return d < lod_band.x || d > lod_band.w;
 }
 
-// fragment(): true = discard this pixel. cam = CAMERA_POSITION_WORLD, main = MAIN_CAM_INV_VIEW_MATRIX[3].xyz: they
-// differ in the shadow pass, which keeps a whole level per instance (threshold 0.5, no dither)
-bool ce_lod_discard(float d, vec2 frag, vec3 cam, vec3 main) {
+// vertex(): 1 in the shadow pass – the pass's camera (CAMERA_POSITION_WORLD) is not the main camera; MAIN_CAM_INV_VIEW_MATRIX
+// exists in vertex() only
+float ce_lod_shadow_pass(vec3 cam, mat4 main_inv_view) {
+	return distance(cam, main_inv_view[3].xyz) > 0.5 ? 1.0 : 0.0;
+}
+
+// fragment(): true = discard this pixel (d = v_lod_d, shadow = v_lod_shadow). The shadow pass keeps a whole level per
+// instance (threshold 0.5, no dither), so exactly one level casts
+bool ce_lod_discard(float d, float shadow, vec2 frag) {
 	float fin = clamp((d - lod_band.x) / max(lod_band.y - lod_band.x, 0.001), 0.0, 1.0);
 	float fout = clamp((lod_band.w - d) / max(lod_band.w - lod_band.z, 0.001), 0.0, 1.0);
 	if (fin >= 1.0 && fout >= 1.0) {
 		return false;
 	}
-	float t = distance(cam, main) > 0.5 ? 0.5 : fract(dot(floor(frag), vec2(0.7548776662, 0.5698402910)));
+	float t = shadow > 0.5 ? 0.5 : fract(dot(floor(frag), vec2(0.7548776662, 0.5698402910)));
 	return t < 1.0 - fin || t >= fout;
 }
 

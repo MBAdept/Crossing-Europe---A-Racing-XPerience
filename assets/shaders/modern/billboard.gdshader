@@ -88,6 +88,7 @@ void vertex() {
 	vec3 wp = origin + cr * (VERTEX.x * sx) + vec3(0.0, VERTEX.y * sy, 0.0);
 	VERTEX = (inverse(MODEL_MATRIX) * vec4(wp, 1.0)).xyz;
 	v_lod_d = ce_lod_distance(MODEL_MATRIX, MAIN_CAM_INV_VIEW_MATRIX);
+	v_lod_shadow = ce_lod_shadow_pass(CAMERA_POSITION_WORLD, MAIN_CAM_INV_VIEW_MATRIX);
 	if (ce_lod_hidden(v_lod_d)) {
 		VERTEX = vec3(0.0);
 	}
@@ -126,7 +127,7 @@ vec3 albedo_for(vec3 x) {
 }
 
 void fragment() {
-	if (ce_lod_discard(v_lod_d, FRAGCOORD.xy, CAMERA_POSITION_WORLD, MAIN_CAM_INV_VIEW_MATRIX[3].xyz)) {
+	if (ce_lod_discard(v_lod_d, v_lod_shadow, FRAGCOORD.xy)) {
 		discard;
 	}
 	vec4 t = texture(tex, uv_rect.xy + UV * uv_rect.zw);

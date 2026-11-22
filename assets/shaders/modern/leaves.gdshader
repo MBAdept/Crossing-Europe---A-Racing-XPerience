@@ -64,6 +64,7 @@ void vertex() {
 	// the push is given in world axes; trees are only turned about the vertical axis and scaled
 	VERTEX += (inverse(MODEL_MATRIX) * vec4(push, 0.0)).xyz;
 	v_lod_d = ce_lod_distance(MODEL_MATRIX, MAIN_CAM_INV_VIEW_MATRIX);
+	v_lod_shadow = ce_lod_shadow_pass(CAMERA_POSITION_WORLD, MAIN_CAM_INV_VIEW_MATRIX);
 	if (ce_lod_hidden(v_lod_d)) {
 		VERTEX = vec3(0.0);
 	}
@@ -71,7 +72,7 @@ void vertex() {
 }
 
 void fragment() {
-	if (ce_lod_discard(v_lod_d, FRAGCOORD.xy, CAMERA_POSITION_WORLD, MAIN_CAM_INV_VIEW_MATRIX[3].xyz)) {
+	if (ce_lod_discard(v_lod_d, v_lod_shadow, FRAGCOORD.xy)) {
 		discard;
 	}
 	vec4 t = texture(leaf_tex, UV);

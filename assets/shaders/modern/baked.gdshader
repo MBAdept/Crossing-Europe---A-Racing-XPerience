@@ -47,6 +47,7 @@ varying float v_spec;      // R7c: 0 for the lit pixels of a far landmark (SPECU
 void vertex() {
 	v_tint = INSTANCE_CUSTOM.a > 0.5 ? INSTANCE_CUSTOM.rgb : vec3(1.0);
 	v_lod_d = ce_lod_distance(MODEL_MATRIX, MAIN_CAM_INV_VIEW_MATRIX);
+	v_lod_shadow = ce_lod_shadow_pass(CAMERA_POSITION_WORLD, MAIN_CAM_INV_VIEW_MATRIX);
 	if (ce_lod_hidden(v_lod_d)) {
 		VERTEX = vec3(0.0);
 	}
@@ -54,7 +55,7 @@ void vertex() {
 }
 
 void fragment() {
-	if (ce_lod_discard(v_lod_d, FRAGCOORD.xy, CAMERA_POSITION_WORLD, MAIN_CAM_INV_VIEW_MATRIX[3].xyz)) {
+	if (ce_lod_discard(v_lod_d, v_lod_shadow, FRAGCOORD.xy)) {
 		discard;
 	}
 	float dist = length(VERTEX);

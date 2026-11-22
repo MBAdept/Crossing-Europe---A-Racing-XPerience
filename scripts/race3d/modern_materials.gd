@@ -236,10 +236,11 @@ static func static_code(code: String) -> String:
 const STATIC_INJECT: Array = [
 	["\nvoid vertex() {\n", "\n#include \"res://assets/shaders/modern/inc/lod_band.gdshaderinc\"\n\nvoid vertex() {\n" +
 		"\tv_lod_d = ce_lod_distance(MODEL_MATRIX, MAIN_CAM_INV_VIEW_MATRIX);\n" +
+		"\tv_lod_shadow = ce_lod_shadow_pass(CAMERA_POSITION_WORLD, MAIN_CAM_INV_VIEW_MATRIX);\n" +
 		"\tif (ce_lod_hidden(v_lod_d)) {\n\t\tVERTEX = vec3(0.0);\n\t}\n" +
 		"\tv_lod_depth = -(MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).z;\n"],
 	["\nvoid fragment() {\n", "\nvoid fragment() {\n" +
-		"\tif (ce_lod_discard(v_lod_d, FRAGCOORD.xy, CAMERA_POSITION_WORLD, MAIN_CAM_INV_VIEW_MATRIX[3].xyz)) {\n\t\tdiscard;\n\t}\n"],
+		"\tif (ce_lod_discard(v_lod_d, v_lod_shadow, FRAGCOORD.xy)) {\n\t\tdiscard;\n\t}\n"],
 	["vec3 lc = LIGHT_COLOR * ATTENUATION * k;",
 		"vec3 lc = LIGHT_COLOR * ce_far_attenuation(ATTENUATION, LIGHT_IS_DIRECTIONAL, v_lod_depth) * k;"],
 	["float ang = -ce_time * rotor_speed + wp0.x * 0.37 + wp0.z * 0.23;",
