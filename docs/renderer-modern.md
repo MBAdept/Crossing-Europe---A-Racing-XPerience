@@ -2590,9 +2590,9 @@ erst, wenn die Etappe vorbereitet ist (vorher steht die Kamera noch nicht im Sta
 | `scripts/race3d/builders/landmarks.gd` | der Builder (Plan je Wahrzeichen, Gesetz, Materialien, Formen, Aufwärmen auf den echten Netzen) |
 | `assets/shaders/modern/landmark.gdshader` | CE_PICTURE, CE_ATLAS (+ CE_CUTOUT), CE_VCOL, CE_GLOW, je mit CE_BLEND |
 | `scripts/race3d/layers/backdrop.gd` | Skyline (§18.5) |
-| `tests/unit/race3d/test_landmarks.gd` | Gesetz = `RoadRenderer.landmark_fade` an 20 Abständen und drei Sichtweiten, Reichweite, jedes Wahrzeichen der 55 Städte hat eine Darstellung (die sechs prozeduralen als 3D-Form), Anker wie Arcade, Formen (Höhe, schlank, Flächen nach außen gewunden, Leuchtpunkte), keine Instanz-Uniform, Varianten |
+| `tests/unit/race3d/test_landmarks.gd` | Gesetz = `RoadRenderer.landmark_fade` an 20 Abständen und drei Sichtweiten, Reichweite, jedes Wahrzeichen der 55 Städte hat eine Darstellung (die sechs prozeduralen als 3D-Form), Anker wie Arcade, Formen (Höhe, schlank, Flächen nach außen gewunden, Leuchtpunkte), keine Instanz-Uniform, Varianten, Tönung ferner und naher Wahrzeichen (offener Punkt N1) |
 | `tests/race3d/check_landmarks.gd` | „reichweite“, „nacht“, „position“, „prozedural“, „weich“, „skyline“ in der echten Rennszene (headless) |
-| `tests/race3d/render/check_landmarks_render.gd` | „wahrzeichen_stelle“ (Pixel des Wahrzeichens in Arcades Bild desselben Zustands gesucht: Versatz ≤ 5 % der Bildbreite), „wahrzeichen_weich“, „wahrzeichen_nacht“ |
+| `tests/race3d/render/check_landmarks_render.gd` | „wahrzeichen_stelle“ (Pixel des Wahrzeichens in Arcades Bild desselben Zustands gesucht: Versatz ≤ 5 % der Bildbreite), „wahrzeichen_weich“, „wahrzeichen_nacht“, „flugfeuer“ (Dortmund 22 Uhr: rote Flugwarnlichter sichtbar, aber höchstens 3 % des Bildes rot – die Leuchtpunkte rechnen ihre Größe mit der Bildhöhe aus einer Uniform, `VIEWPORT_SIZE` liest im Vertex-Schritt 0) |
 | `tests/race3d/check_minimal_structures.gd` | „wahrzeichen“ verweist auf die Prüfungen oben, sobald es den Builder gibt |
 
 Offen: Modelle der Wahrzeichen (AS6); Wahrzeichen-Modelle mit Glas- oder Laubflächen blenden diese Flächen nicht
