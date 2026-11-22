@@ -217,10 +217,38 @@ static func static_code(code: String) -> String:
 	var rx := RegEx.create_from_string("(,\\s*|\\s*:\\s*)instance_index\\(\\s*\\d+\\s*\\)")
 	# R4: static models carry snow on their upward faces on a snow stage (vehicles do not); the hemisphere ambient of
 	# the vehicle LOOK is for car bodies only (static models keep the balance of their packages)
-	return rx.sub(code, "", true).replace("instance uniform", "uniform") \
+	var out := rx.sub(code, "", true).replace("instance uniform", "uniform") \
 		.replace("uniform float snow_cover = 0.0;", "uniform float snow_cover = 1.0;") \
 		.replace("uniform float hemi_side = 1.0;", "const float hemi_side = 1.0;") \
 		.replace("uniform float hemi_down = 1.0;", "const float hemi_down = 1.0;")
+	for r: Array in STATIC_INJECT:
+		out = out.replace(str(r[0]), str(r[1]))
+	return out
+
+
+## R7c: what static_code() adds to the static variant of vpbr – [text of vpbr.gdshader, replacement]; every entry must
+## match once (tests/unit/race3d/test_props.gd checks the markers of STATIC_MARKERS in the result):
+##   - the level of detail per instance with its dither cross-fade and the far light (inc/lod_band.gdshaderinc, A-22,
+##     lead decision 2): collapse at the start of vertex() (the rotor turns only VERTEX, so a collapsed instance stays a
+##     point), discard at the start of fragment(), the attenuation of the directional light in light()
+##   - the rotor phase of a wind turbine or windmill from its instance data (MultiMesh custom data a = 1 + phase,
+##     builders/props.gd) instead of its origin-relative position, which jumps at every rebase of the floating origin
+const STATIC_INJECT: Array = [
+	["\nvoid vertex() {\n", "\n#include \"res://assets/shaders/modern/inc/lod_band.gdshaderinc\"\n\nvoid vertex() {\n" +
+		"\tv_lod_d = ce_lod_distance(MODEL_MATRIX, MAIN_CAM_INV_VIEW_MATRIX);\n" +
+		"\tif (ce_lod_hidden(v_lod_d)) {\n\t\tVERTEX = vec3(0.0);\n\t}\n" +
+		"\tv_lod_depth = -(MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).z;\n"],
+	["\nvoid fragment() {\n", "\nvoid fragment() {\n" +
+		"\tif (ce_lod_discard(v_lod_d, FRAGCOORD.xy, CAMERA_POSITION_WORLD, MAIN_CAM_INV_VIEW_MATRIX[3].xyz)) {\n\t\tdiscard;\n\t}\n"],
+	["vec3 lc = LIGHT_COLOR * ATTENUATION * k;",
+		"vec3 lc = LIGHT_COLOR * ce_far_attenuation(ATTENUATION, LIGHT_IS_DIRECTIONAL, v_lod_depth) * k;"],
+	["float ang = -ce_time * rotor_speed + wp0.x * 0.37 + wp0.z * 0.23;",
+		"float ang = -ce_time * rotor_speed + (INSTANCE_CUSTOM.a > 0.5 ? fract(INSTANCE_CUSTOM.a) * 6.2831853 : wp0.x * 0.37 + wp0.z * 0.23);"]]
+const STATIC_MARKERS: Array[String] = ["inc/lod_band.gdshaderinc", "ce_lod_hidden(v_lod_d)", "ce_lod_discard(v_lod_d",
+	"ce_far_attenuation(ATTENUATION", "fract(INSTANCE_CUSTOM.a) * 6.2831853"]
+## R7c: the classes that get a material of their own per mesh of a static model (material(…, mesh_path)): each level of
+## a prop model then carries its own distance band (lod_band) and far light (far_sun, shadow_far) – builders/props.gd.
+const PER_MESH_CLASSES: Array[String] = [VPBR_STATIC, "baked", "baked_cutout", "leaves"]
 
 
 ## Material class a model's surface of class `cls` draws with: VPBR_STATIC for "vpbr" on every model that is not a
@@ -233,8 +261,11 @@ static func class_for(cls: String, model: Dictionary) -> String:
 
 ## Material of a material class for a model (manifest entry). vpbr and glass are shared by all models
 ## (per-instance data travels as instance uniforms); baked, baked_cutout and leaves get one material per
-## texture set of the model.
-func material(class_id: String, model: Dictionary = {}) -> Material:
+## texture set of the model. R7c: with mesh_path (ModelFactory.surfaced_mesh() passes it for every model that is
+## not a vehicle) the classes of PER_MESH_CLASSES get one material per mesh – each level of detail of a prop model
+## draws with uniforms of its own (lod_band, far_sun, shadow_far: builders/props.gd); the key starts like the class key,
+## so set_class_parameter() and apply_look() reach it as before.
+func material(class_id: String, model: Dictionary = {}, mesh_path: String = "") -> Material:
 	var textures: Dictionary = model.get("textures", {})
 	var key := class_id
 	if class_id == VPBR_STATIC:
@@ -243,6 +274,8 @@ func material(class_id: String, model: Dictionary = {}) -> Material:
 		key += "|" + str(textures.get("albedo", "")) + "|" + str(textures.get("emit", "")) + "|" + str(model.get("roughness", 0.9))
 	elif class_id == "leaves":
 		key += "|" + str(textures.get("leaves", ""))
+	if mesh_path != "" and PER_MESH_CLASSES.has(class_id):
+		key += "|mesh|" + mesh_path
 	if _materials.has(key):
 		return _materials[key]
 	var mat := ShaderMaterial.new()

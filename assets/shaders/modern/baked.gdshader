@@ -3,6 +3,9 @@
 // ModernMaterials builds the cut-out variant from this file by defining CE_CUTOUT (alpha scissor, both
 // faces drawn: railings, fences, lattice parts). Load only through ModernMaterials - never with preload().
 // Fog: Arcade's law for things in the landscape (inc/fog_law.gdshaderinc, FIX1) instead of the engine's depth fog.
+// R7c: the level of detail per instance with a dither cross-fade (inc/lod_band.gdshaderinc, A-22) and the far light
+// beyond the reach of the real-time shadows (light() below: the engine's own model – Lambert + Schlick-GGX – with the
+// directional light lowered to the model's mean shadowed share there, lead decision 2 of R7c).
 shader_type spatial;
 #ifdef CE_CUTOUT
 render_mode cull_disabled;
@@ -35,15 +38,25 @@ global uniform vec4 ce_fog_color;
 global uniform vec2 ce_fog_range;
 
 #include "res://assets/shaders/modern/inc/fog_law.gdshaderinc"
+#include "res://assets/shaders/modern/inc/lod_band.gdshaderinc"
 
 // RINT-M2 (A-19): the placement tint of the model (MultiMesh custom data r, g, b, 1 – builders/props.gd); white without
 varying vec3 v_tint;
+varying float v_spec;      // R7c: 0 for the lit pixels of a far landmark (SPECULAR 0 there), 1 elsewhere
 
 void vertex() {
 	v_tint = INSTANCE_CUSTOM.a > 0.5 ? INSTANCE_CUSTOM.rgb : vec3(1.0);
+	v_lod_d = ce_lod_distance(MODEL_MATRIX, MAIN_CAM_INV_VIEW_MATRIX);
+	if (ce_lod_hidden(v_lod_d)) {
+		VERTEX = vec3(0.0);
+	}
+	v_lod_depth = -(MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).z;
 }
 
 void fragment() {
+	if (ce_lod_discard(v_lod_d, FRAGCOORD.xy, CAMERA_POSITION_WORLD, MAIN_CAM_INV_VIEW_MATRIX[3].xyz)) {
+		discard;
+	}
 	float dist = length(VERTEX);
 	float lm_l = 0.0;
 	bool lights_only = false;
@@ -84,6 +97,7 @@ void fragment() {
 	ROUGHNESS = roughness;
 	METALLIC = 0.0;
 	SPECULAR = lights_only ? 0.0 : 0.35;
+	v_spec = lights_only ? 0.0 : 1.0;
 	// colours are sRGB-encoded here (the engine linearises ALBEDO and EMISSION): energy as pow(e, 1 / 2.2)
 	EMISSION = e * pow(ce_night * emit_energy, 0.4545);
 	if (lights_only) {
@@ -95,5 +109,35 @@ void fragment() {
 		FOG = vec4(ce_fog_unshow(min(a.rgb * ce_fog_color.rgb * 1.15, vec3(1.0))), haze);
 	} else {
 		FOG = ce_arcade_fog(alb, dist, ce_fog_color, ce_fog_range);
+	}
+}
+
+// R7c: the engine's lighting model for this material (GL Compatibility 4.7: Lambert diffuse, Schlick-GGX specular with
+// f0 = 0.16 x SPECULAR^2 and f90 = clamp(50 f0, 0, 1)) – unchanged near the camera – with the attenuation of the
+// directional light taken through the far light law of inc/lod_band.gdshaderinc (ce_far_attenuation).
+float ce_d_ggx(float ndh, float a) {
+	float t = ndh * a;
+	float k = a / (1.0 - ndh * ndh + t * t);
+	return k * k * (1.0 / PI);
+}
+
+float ce_v_ggx(float ndl, float ndv, float a) {
+	return 0.5 / mix(2.0 * ndl * ndv, ndl + ndv, a);
+}
+
+void light() {
+	float att = ce_far_attenuation(ATTENUATION, LIGHT_IS_DIRECTIONAL, v_lod_depth);
+	float ndl = clamp(dot(NORMAL, LIGHT), 0.0, 1.0);
+	DIFFUSE_LIGHT += LIGHT_COLOR * att * ndl * (1.0 / PI);
+	if (ROUGHNESS > 0.0 && v_spec > 0.5) {
+		vec3 h = normalize(VIEW + LIGHT);
+		float ndh = clamp(dot(NORMAL, h), 0.0, 1.0);
+		float ndv = max(dot(NORMAL, VIEW), 1e-4);
+		float ldh = clamp(dot(LIGHT, h), 0.0, 1.0);
+		float a = ROUGHNESS * ROUGHNESS;
+		float f0 = 0.16 * 0.35 * 0.35;
+		float f90 = clamp(50.0 * f0, 0.0, 1.0);
+		float f = f0 + (f90 - f0) * pow(1.0 - ldh, 5.0);
+		SPECULAR_LIGHT += LIGHT_COLOR * att * SPECULAR_AMOUNT * ndl * ce_d_ggx(ndh, a) * ce_v_ggx(ndl, ndv, a) * f;
 	}
 }
