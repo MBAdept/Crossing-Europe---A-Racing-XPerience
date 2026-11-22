@@ -68,6 +68,9 @@ var _n_hi := -1                        ## last row of _need that is final
 var cameras := 0
 var skipped := 0
 var usec := 0
+var sync_us_max := 0                   ## longest ensure() that had to compute (a reader ahead of warm(): main thread)
+var sync_us_sum := 0
+var sync_calls := 0
 
 
 ## p may still be empty (the streamer sets it up later); nothing is computed before the first row is asked for.
@@ -181,7 +184,14 @@ func trim(before_index: int) -> void:
 
 ## Makes the rows up to k final: every camera at or before k computed.
 func ensure(k: int) -> void:
-	warm(k, -1)
+	if not _started or _cam_next <= k:
+		var t0 := Time.get_ticks_usec()
+		warm(k, -1)
+		var us := Time.get_ticks_usec() - t0
+		if us > 0:
+			sync_us_max = maxi(sync_us_max, us)
+			sync_us_sum += us
+			sync_calls += 1
 
 
 ## Computes the cameras up to row k, until the clock (Time.get_ticks_usec()) passes deadline_us (< 0: no limit).

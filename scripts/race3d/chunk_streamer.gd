@@ -18,7 +18,9 @@ extends Node3D
 ##    tests) every update builds and commits everything at once on the main thread, so the result depends on the
 ##    camera position only.
 ##  * a frame that neither collects nor commits computes a little of the sight corridor ahead (TerrainProfile.warm(),
-##    contract A-17), so that collecting a chunk finds its rows ready.
+##    contract A-17), so that collecting a chunk finds its rows ready – up to two chunks beyond landmark_path_m, because
+##    the far landmarks of the props builder read the terrain (and with it the corridor) of their rows that far ahead;
+##    loading computes that front at once (R7a measured main-thread spikes of up to 24 ms in the props hook without it).
 ## The path reaches that far because RoadPath3D.clearance needs every part of the road that can be loaded together
 ## with a chunk; it forces the Track generation ahead, which is harmless (the generator is sequential).
 ## Lead-in (FIX-ZS1, finding QA1-B1): while the path has its lead-in (RoadPath3D.has_lead_in(): the kept range starts
@@ -36,6 +38,7 @@ signal rebased(shift: Vector3)
 const COLLECTED := 0
 const BUILDING := 1
 const WARM_US := 250                   ## main-thread time per frame for the sight corridor ahead (_warm_corridor())
+const WARM_CATCHUP_US := 2000          ## the same while the corridor lags behind the rows the next collect reads
 const BUILT := 2
 const COMMITTED := 3
 
@@ -226,6 +229,7 @@ func update(cam_z: float, visibility_m: float) -> void:
 	if at_once:
 		flush()
 		_loaded = true
+		terrain.warm(_warm_front(cam_seg, maxf(load_path_m, landmark_path_m)), -1)
 		return
 	if collected:
 		return   # one main-thread job per frame: a frame that collected a chunk commits none
@@ -253,17 +257,32 @@ func update(cam_z: float, visibility_m: float) -> void:
 
 
 ## A frame without a collect and without a commit computes a little of the sight corridor (TerrainProfile.warm(),
-## A-17) of the rows the next chunks will read, so that collecting a chunk finds them ready: up to two chunks beyond
-## the farthest one that can be wanted, at most WARM_US (and at least one camera row) per frame.
+## A-17) of the rows the next chunks and the far landmarks will read, so that nobody waits for them on the main
+## thread: up to two chunks beyond landmark_path_m, at most WARM_US (and at least one camera row) per frame –
+## WARM_CATCHUP_US while the corridor does not yet reach two chunks beyond the farthest chunk that can be wanted.
 func _warm_corridor(cam_seg: int) -> void:
-	var n := chunk_segments
-	var far := (int(floor((float(cam_seg) * track.seg_len + load_path_m) / (float(n) * track.seg_len))) + 2) * n + 4
+	var far := _warm_front(cam_seg, maxf(load_path_m, landmark_path_m))
+	var need := _warm_front(cam_seg, load_path_m)
+	var sight: Variant = terrain.get("sight")
+	var behind: bool = sight != null and int(sight.call(&"front")) < need
 	var t0 := Time.get_ticks_usec()
-	terrain.warm(far, t0 + WARM_US)
+	terrain.warm(far, t0 + (WARM_CATCHUP_US if behind else WARM_US))
 	var us := Time.get_ticks_usec() - t0
 	_warm_us_max = maxi(_warm_us_max, us)
 	_warm_us_sum += us
 	_warm_calls += 1
+
+
+## A counter of the sight corridor (SightCorridor: sync_us_max, sync_us_sum, sync_calls), 0 without one.
+func _sight_stat(key: String) -> float:
+	var sight: Variant = terrain.get("sight") if terrain != null else null
+	return float(sight.get(key)) if sight != null else 0.0
+
+
+## The row two chunks beyond the chunk that holds the point reach_m ahead of camera row cam_seg (+ 4 rows).
+func _warm_front(cam_seg: int, reach_m: float) -> int:
+	var n := chunk_segments
+	return (int(floor((float(cam_seg) * track.seg_len + reach_m) / (float(n) * track.seg_len))) + 2) * n + 4
 
 
 ## Builds and commits everything that is collected, now (load, sync mode, tests).
@@ -318,7 +337,9 @@ func stats() -> Dictionary:
 		"commit_ms_avg": float(_commit_us_sum) / maxf(1.0, float(_commits)) / 1000.0, "commit_ms_max": float(_commit_us_max) / 1000.0,
 		"commits": _commits, "rebases": _rebases, "restarts": _restarts, "collect_by": _collect_by_ms(),
 		"corridor_warm_ms_avg": float(_warm_us_sum) / maxf(1.0, float(_warm_calls)) / 1000.0,
-		"corridor_warm_ms_max": float(_warm_us_max) / 1000.0}
+		"corridor_warm_ms_max": float(_warm_us_max) / 1000.0,
+		"corridor_sync_ms_max": _sight_stat("sync_us_max") / 1000.0,
+		"corridor_sync_ms_sum": _sight_stat("sync_us_sum") / 1000.0, "corridor_sync_calls": int(_sight_stat("sync_calls"))}
 
 
 ## collect() per builder: id -> {"avg_ms", "max_ms", "n"} (RINT-M2, A-18).
