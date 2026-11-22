@@ -186,6 +186,33 @@ func test_context_snapshot() -> void:
 	assert_false(cb.in_bend_corridor(420.0, -(eb + cwb * 0.5)), "Kurvenaußenseite nicht")
 	assert_false(cb.in_bend_corridor(420.0, 0.0), "die Fahrbahn selbst zählt nicht")
 	assert_false(cb.in_bend_corridor(420.0, eb + tpb.corridor_width(140, 1) + 5.0), "jenseits des Korridors nicht")
+	# a footprint larger than its foot (R7a): the near edge or a crown reaching in counts, along the road too
+	var far := eb + cwb + 5.0
+	assert_false(cb.in_bend_corridor(420.0, far, 4.0), "Fuß 5 m jenseits, Reichweite 4 m: nicht im Korridor")
+	assert_true(cb.in_bend_corridor(420.0, far, 6.0), "Fuß 5 m jenseits, Reichweite 6 m: die Vorderkante reicht hinein")
+	assert_true(cb.in_bend_corridor(420.0, far, far + 50.0), "Reichweite über das Bankett hinaus: zählt")
+	assert_false(cb.in_bend_corridor(420.0, -(eb + 2.0), 30.0), "Kurvenaußenseite auch mit Reichweite nicht")
+	assert_false(cb.in_bend_corridor(420.0, 1.0, 3.0), "Fuß auf der Fahrbahn: kein Kurvenkorridor-Fall")
+	# along the road: just behind the end of a short bend's corridor (straight – arc – straight)
+	var ts: Track = SynTrack.new()
+	ts.fill(cfg(), SynTrack.join([SynTrack.straight(150), SynTrack.arc(60, 150.0), SynTrack.straight(250)]))
+	var ps := RoadPath3D.new()
+	ps.setup(ts, 0, 120.0)
+	var tps := TerrainProfile.new()
+	tps.setup(ps, ts, {}, {})
+	var cmin := maxf(0.0, tps.corridor_min_m - ts.shoulder_w)
+	var r_end := -1
+	for k in range(150, 440):
+		if tps.corridor_width(k, 1) > cmin + 0.5:
+			r_end = k
+	assert_true(r_end > 210 and r_end < 420, "der Korridor des kurzen Bogens endet auf der Geraden danach (Reihe %d)" % r_end)
+	var cs := ChunkContext.new()
+	cs.capture(9, r_end - 16, r_end + 16, ps, tps, ts)
+	var zb := float(r_end + 3) * 3.0
+	var xb := tps.edge(r_end + 3, 1) + 1.0
+	assert_false(cs.in_bend_corridor(zb, xb), "9 m hinter dem Korridorende: der Fuß allein nicht")
+	assert_true(cs.in_bend_corridor(zb, xb, 0.0, 12.0), "mit halber Länge 12 m reicht das Objekt in den Korridor zurück")
+	assert_false(cs.in_bend_corridor(zb, xb, 0.0, 6.0), "mit halber Länge 6 m nicht")
 	# plain track values for the worker thread
 	assert_near(ctx.seg_len, 3.0, 1.0e-6, "seg_len")
 	assert_near(ctx.lane_w, t.lane_w, 1.0e-6, "lane_w")

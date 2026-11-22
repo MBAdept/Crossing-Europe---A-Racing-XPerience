@@ -215,13 +215,23 @@ func in_corridor(z: float, x: float) -> bool:
 ## rule F7 allows nothing taller than 0.5 m (the props builder leaves such props out or puts ground cover there, the
 ## city builder its fence pieces). Away from bends the corridor is only the corridor_min strip beside the road, and
 ## that strip does not count here.
-func in_bend_corridor(z: float, x: float) -> bool:
-	var f := z / seg_len - float(seg_a)
-	var i := clampi(int(floor(f)), 0, rows_o.size() - 2)
-	var t := clampf(f - float(i), 0.0, 1.0)
+## Without the optional arguments only the foot (z, x) is tested. An object that is larger than its foot passes
+## reach = how far it extends from x towards the road (m: the near edge of an edge-aligned building, a crown's
+## radius) and half_len = half its length along the road (m): then true when any part of that footprint beyond the
+## shoulder lies in the corridor (A-17: nothing taller than 0.5 m inside the envelope; R7a measured props whose foot
+## is outside but whose near part reaches in).
+func in_bend_corridor(z: float, x: float, reach: float = 0.0, half_len: float = 0.0) -> bool:
 	var si := 0 if x < 0.0 else 1
-	var e := rows_edge[i].lerp(rows_edge[i + 1], t)
-	var m := (-x + e.x if si == 0 else x - e.y) - shoulder_w
-	var c := corridor[i].lerp(corridor[i + 1], t)
-	var cw := c.x if si == 0 else c.y
-	return cw > corridor_min + 0.5 and m > 0.0 and m <= cw
+	var n := 0 if half_len <= 0.0 else int(ceil(half_len * 2.0 / seg_len))
+	for q in n + 1:
+		var zq := z if n == 0 else z - half_len + half_len * 2.0 * float(q) / float(n)
+		var f := zq / seg_len - float(seg_a)
+		var i := clampi(int(floor(f)), 0, rows_o.size() - 2)
+		var t := clampf(f - float(i), 0.0, 1.0)
+		var e := rows_edge[i].lerp(rows_edge[i + 1], t)
+		var m := (-x + e.x if si == 0 else x - e.y) - shoulder_w
+		var c := corridor[i].lerp(corridor[i + 1], t)
+		var cw := c.x if si == 0 else c.y
+		if cw > corridor_min + 0.5 and m > 0.0 and m - maxf(reach, 0.0) <= cw:
+			return true
+	return false
