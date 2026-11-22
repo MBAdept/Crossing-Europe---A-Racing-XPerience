@@ -704,9 +704,9 @@ static func _tv_tower(kit: ShapeKit) -> void:
 		kit.set_paint(Color("c8402e") if i % 2 == 0 else Color("eeeeea"), 0.6, 0.1, -1, 0.0)
 		kit.cylinder(c, h0, h0 + 11.6, lerpf(1.9, 0.6, float(i) / 10.0), lerpf(1.9, 0.6, float(i + 1) / 10.0), 8, i == 9)
 	var red := Color(1.0, 0.12, 0.08)
-	kit.glow(c + Vector3(0.0, 252.0, 0.0), red, 0.85, 6.0, 2.5, Vector4(0.0, 0.0, 0.0, 0.0))
-	kit.glow(c + Vector3(0.0, 300.0, 0.0), red, 0.85, 6.0, 2.5, Vector4(1.0, 1.5, 0.75, 0.0))
-	kit.glow(c + Vector3(0.0, 368.0, 0.0), red, 0.85, 6.0, 2.5, Vector4(1.0, 1.5, 0.75, 0.0))
+	kit.glow(c + Vector3(0.0, 252.0, 0.0), red, 0.6, 5.0, 2.5, Vector4(0.0, 0.0, 0.0, 0.0))
+	kit.glow(c + Vector3(0.0, 300.0, 0.0), red, 0.6, 5.0, 2.5, Vector4(1.0, 1.5, 0.75, 0.0))
+	kit.glow(c + Vector3(0.0, 368.0, 0.0), red, 0.6, 5.0, 2.5, Vector4(1.0, 1.5, 0.75, 0.0))
 
 
 ## Lighthouse (RoadRenderer._lm_lighthouse, reference height 51 m – Calais): white tapered tower with small windows on
@@ -762,7 +762,7 @@ static func _skyscrapers(kit: ShapeKit) -> void:
 				kit.set_paint(base.darkened(0.1), 0.5, 0.2, -1, 0.0)
 				kit.pyramid(Vector3(xo - hw, top, zc - hw), Vector3(xo + hw, top, zc + hw), 24.0)
 				top += 24.0
-		kit.glow(Vector3(xo, top, zc), Color(1.0, 0.12, 0.08), 0.85, 3.0, 2.5, Vector4(1.0, 1.6, 0.8, absf(xo) * 0.01))
+		kit.glow(Vector3(xo, top, zc), Color(1.0, 0.12, 0.08), 0.6, 3.0, 2.5, Vector4(1.0, 1.6, 0.8, absf(xo) * 0.01))
 		i += 1
 
 
