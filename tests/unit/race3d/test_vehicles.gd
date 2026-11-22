@@ -234,6 +234,15 @@ func test_player_paint_is_desaturated() -> void:
 	assert_eq(str(night["paint"]).to_lower(), str(src["paint"]).to_lower(), "nachts unverändert")
 	var dusk := Color(str(ModernMaterials.player_paint(src, 0.5)["paint"]))
 	assert_true(dusk.s < Color(str(src["paint"])).s and dusk.s > Color(str(out["paint"])).s, "Dämmerung dazwischen")
+	# FIX-RINT (QA-RINT-BILD F-06): the red sports car keeps a night share of its own – less saturated and darker at
+	# night, unchanged by day against the others; a set without an entry as before
+	var red := {"paint": "#cc1419"}
+	var sw_day := Color(str(ModernMaterials.player_paint(red, 0.0, "player/sportwagen")["paint"]))
+	var sw_night := Color(str(ModernMaterials.player_paint(red, 1.0, "player/sportwagen")["paint"]))
+	assert_eq(sw_day.to_html(false), Color(str(ModernMaterials.player_paint(red, 0.0)["paint"])).to_html(false), "Sportwagen bei Tag wie alle")
+	assert_true(sw_night.s < Color("#cc1419").s - 0.2 and sw_night.v < Color("#cc1419").v, "Sportwagen nachts weniger gesättigt und dunkler (%.2f / %.2f)" % [
+		sw_night.s, sw_night.v])
+	assert_eq(str(ModernMaterials.player_paint(red, 1.0, "player/limousine")["paint"]).to_lower(), "#cc1419", "ohne Eintrag nachts unverändert")
 
 
 func test_flare_points_merge_rear_lamps() -> void:

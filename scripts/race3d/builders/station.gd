@@ -69,12 +69,12 @@ const SHOP_VOLUME_X: Array[float] = [-6.8, -2.6, 1.6, 5.6]
 const SHOP_VOLUME_AT := Vector2(2.6, -2.2)      ## (height, z) of the volume glows
 const SHOP_VOLUME := Color(1.0, 0.93, 0.78)
 const SHOP_VOLUME_SIZE := 4.6
-const SHOP_VOLUME_ENERGY := 1.2
+const SHOP_VOLUME_ENERGY := 1.6
 const SHOP_WINDOW_X: Array[float] = [11.0, 14.0, 17.0]
 const SHOP_WINDOW_AT := Vector2(1.7, -2.4)      ## (height, z): 0.5 m in front of the panes (shop front at z ≈ -2.9)
 const SHOP_WINDOW := Color(1.0, 0.94, 0.82)
 const SHOP_WINDOW_SIZE := 2.2
-const SHOP_WINDOW_ENERGY := 1.6
+const SHOP_WINDOW_ENERGY := 2.0
 ## (both are pure glows without lit geometry behind them: "halo" 1 – the flare layer gives them their whole strength near
 ## the camera too, not the 35 % of a lamp whose lit geometry carries the light there)
 const COLUMN_IN := 0.45            ## columns this far inside the canopy's front and end

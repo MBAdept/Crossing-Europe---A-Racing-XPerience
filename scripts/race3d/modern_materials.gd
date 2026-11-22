@@ -104,6 +104,13 @@ const VEHICLE_PLAYER_FILL := 0.7
 ## 0.15 / 0.30 made it 0.67 / 0.53, so the share fades out with the night. Race only (layers/vehicles.gd); the showroom
 ## keeps the paint of the model.
 const VEHICLE_PLAYER_DESAT := 0.35
+## FIX-RINT (QA-RINT-BILD F-06): the night share of a set whose paint R4's night law does not hold – set -> Vector2(the
+## desaturation at night, the paint's value at night). The red sports car: at 22:00 in the rain (render check
+## check_night "spielerauto", the red-safe body sample) 1.19 × Arcade's luminance at 1.83 × its saturation – its paint
+## (#cc1419) is the most saturated of the five, the sprite's red reads dark (#924750 in the studio light). The others
+## stay at 0 / 1 (kompakt 1.05 × / 1.23 ×, Gran Turismo 0.92 × / 0.77 ×, limousine 0.87–0.88 × / 0.95–1.00 ×, Kombi
+## 0.86 × / 1.10 ×, measured).
+const VEHICLE_PLAYER_NIGHT := {"player/sportwagen": Vector2(0.6, 0.85)}
 ## The studio look of the showroom (RINT-B): the engine's reflection of the studio sky (env_energy 0) and the same paint
 ## exposure and lamp levels as the race; the flakes sparkle at the showroom's distance.
 const STUDIO_LOOK: Array = [["vpbr", "env_energy", 0.0], ["vpbr", "paint_base", 1.0], ["vpbr", "paint_knee", 0.7],
@@ -133,15 +140,23 @@ static func shared() -> ModernMaterials:
 
 
 ## The paint dictionary of a player car in a race (VEHICLE_PLAYER_DESAT): every colour key moved towards its luminance by
-## VEHICLE_PLAYER_DESAT x (1 - night); night = the palette's night amount (0 by day, 1 at night).
-static func player_paint(paint: Dictionary, night: float = 0.0) -> Dictionary:
+## VEHICLE_PLAYER_DESAT x (1 - night); night = the palette's night amount (0 by day, 1 at night). FIX-RINT: a set of
+## VEHICLE_PLAYER_NIGHT (set_id) takes its own desaturation and value at night instead (blended with the night).
+static func player_paint(paint: Dictionary, night: float = 0.0, set_id: String = "") -> Dictionary:
 	var out := paint.duplicate()
-	var d := VEHICLE_PLAYER_DESAT * (1.0 - clampf(night, 0.0, 1.0))
+	var n := clampf(night, 0.0, 1.0)
+	var d := VEHICLE_PLAYER_DESAT * (1.0 - n)
+	var value := 1.0
+	var per: Variant = VEHICLE_PLAYER_NIGHT.get(set_id)
+	if per is Vector2:
+		d += (per as Vector2).x * n
+		value = lerpf(1.0, (per as Vector2).y, n)
 	for k: String in ["paint", "paint2", "paint3"]:
 		if out.has(k) and Color.html_is_valid(str(out[k])):
 			var c := Color(str(out[k]))
 			var l := 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b
-			out[k] = "#" + c.lerp(Color(l, l, l), d).to_html(false)
+			var m := c.lerp(Color(l, l, l), d)
+			out[k] = "#" + Color(m.r * value, m.g * value, m.b * value).to_html(false)
 	return out
 
 

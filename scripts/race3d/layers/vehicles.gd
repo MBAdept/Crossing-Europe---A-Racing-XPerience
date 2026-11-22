@@ -1143,7 +1143,8 @@ func _set_environment(pal: Dictionary) -> void:
 		var pc: Variant = _cars.get(PLAYER_ID)
 		if pc is Car and (pc as Car).node != null and is_instance_valid((pc as Car).node) and not bool(((pc as Car).info as Dictionary).get("box", false)) \
 				and (pc as Car).lod != VehicleStandIn.KIND_BOX:
-			ModelFactory.apply_paint((pc as Car).node, ModernMaterials.player_paint(ModelDB.resolve((pc as Car).set_id).get("paint", {}), nt))
+			ModelFactory.apply_paint((pc as Car).node, ModernMaterials.player_paint(ModelDB.resolve((pc as Car).set_id).get("paint", {}), nt,
+				(pc as Car).set_id))
 	var top: Color = pal.get("sky_top", Color(0.11, 0.36, 0.79))
 	var bottom: Color = pal.get("sky_bottom", Color(0.73, 0.87, 0.96))
 	var amb: Color = pal.get("ambient", Color.WHITE)
@@ -1437,7 +1438,7 @@ func _set_level(car: Car, lod: String) -> void:
 			gi.set_instance_shader_parameter(&"gloss", gloss)
 	if fill > 0.0:
 		# FIX-M2 (B-06): the player's paint a little less saturated by day, like its Arcade sprite (ModernMaterials.player_paint)
-		ModelFactory.apply_paint(n, ModernMaterials.player_paint(ModelDB.resolve(car.set_id).get("paint", {}), _paint_night))
+		ModelFactory.apply_paint(n, ModernMaterials.player_paint(ModelDB.resolve(car.set_id).get("paint", {}), _paint_night, car.set_id))
 	car.la = Vector4(-1, -1, -1, -1)
 	car.lb = Vector4(-1, -1, -1, -1)
 	car.mod = Color(-1, -1, -1, -1)

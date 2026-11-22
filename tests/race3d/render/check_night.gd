@@ -287,16 +287,33 @@ func _with_without(mode: String, setup_extra: Dictionary) -> Array:
 
 ## 75th percentile of the luminance of the car's body: pixels that change when the car is not drawn, without lamps and
 ## glows (red-dominant) and the plate (very bright, grey). Returns [percentile, pixel count, median saturation].
-static func _car_body(with_car: Image, without: Image) -> Array:
+## red_paint (FIX-RINT, F-06): a red car's paint is red-dominant itself – the hue cannot tell it from its lamps and their
+## glow, so only the upper half of the car is sampled (roof, rear window, boot lid: above the lamps) and only very bright
+## pixels (lamp cores, highlights) are left out. (With the hue rule the red sports car showed 0.58 × Arcade at a
+## saturation of 0.07 – what was left were its black trims.)
+static func _car_body(with_car: Image, without: Image, red_paint: bool = false) -> Array:
 	var v: Array[float] = []
 	var sat: Array[float] = []
+	var y_top := with_car.get_height()
+	var y_bottom := 0
+	if red_paint:
+		for y in range(int(with_car.get_height() * 0.55), with_car.get_height()):
+			for x in range(int(with_car.get_width() * 0.3), int(with_car.get_width() * 0.7), 4):
+				if absf(with_car.get_pixel(x, y).get_luminance() - without.get_pixel(x, y).get_luminance()) >= 0.03:
+					y_top = mini(y_top, y)
+					y_bottom = maxi(y_bottom, y)
 	for y in range(int(with_car.get_height() * 0.55), with_car.get_height()):
+		if red_paint and (y < y_top or y > y_top + int(float(y_bottom - y_top) * 0.45)):
+			continue
 		for x in range(int(with_car.get_width() * 0.3), int(with_car.get_width() * 0.7)):
 			var a := with_car.get_pixel(x, y)
 			var b := without.get_pixel(x, y)
 			if absf(a.get_luminance() - b.get_luminance()) < 0.03:
 				continue
-			if a.r > 0.25 and a.r > a.g * 1.5 and a.r > a.b * 1.5:
+			if red_paint:
+				if a.get_luminance() > 0.45:
+					continue                # lamp core, highlight
+			elif a.r > 0.25 and a.r > a.g * 1.5 and a.r > a.b * 1.5:
 				continue                    # lamp, glow
 			if a.get_luminance() > 0.8 and maxf(a.r, maxf(a.g, a.b)) - minf(a.r, minf(a.g, a.b)) < 0.12:
 				continue                    # number plate
@@ -321,7 +338,7 @@ func _check_spielerauto() -> void:
 		["DEV Limousine 21 Uhr", {"stage_id": "dev_testetappe", "from_city": "dev_start", "start_km": 48.0, "weather": "normal", "vehicle": "limousine", "seed": 17, "hour": 21.0}],
 		# FIX-RINT (QA-RINT-BILD F-06): the red sports car at night in the rain (VALN: Prague – Nuremberg before the Valík
 		# tunnel) and the Kombi – every player car once at night
-		["VALN Sportwagen Regen", {"stage_id": "prag_nuernberg", "from_city": "prag", "start_km": 86.8, "weather": "rain", "vehicle": "sportwagen", "seed": 22}],
+		["VALN Sportwagen Regen", {"stage_id": "prag_nuernberg", "from_city": "prag", "start_km": 86.8, "weather": "rain", "vehicle": "sportwagen", "seed": 22, "red_paint": true}],
 		["S3 Kombi klar", {"stage_id": "kiel_hamburg", "from_city": "kiel", "start_km": 60.0, "weather": "normal", "vehicle": "kombi", "seed": 11}]]
 	var pick := str(CliArgs.all().get("fall", ""))     # "-- --fall=<text>": only the cases whose name contains it
 	for cs: Array in cases:
@@ -330,12 +347,14 @@ func _check_spielerauto() -> void:
 		var extra: Dictionary = (cs[1] as Dictionary).duplicate()
 		extra["start_world_minutes"] = float(extra.get("hour", 22.0)) * 60.0
 		extra.erase("hour")
+		var red := bool(extra.get("red_paint", false))
+		extra.erase("red_paint")
 		var got_a: Array = await _with_without("arcade", extra)
-		var a: Array = _car_body(got_a[1], got_a[2])
+		var a: Array = _car_body(got_a[1], got_a[2], red)
 		_keep(got_a[1], "spielerauto_%s_%s_arcade" % [str(extra["vehicle"]), str(extra["stage_id"])])
 		await _free(got_a[0])
 		var got_m: Array = await _with_without("modern", extra)
-		var m: Array = _car_body(got_m[1], got_m[2])
+		var m: Array = _car_body(got_m[1], got_m[2], red)
 		_keep(got_m[1], "spielerauto_%s_%s_modern" % [str(extra["vehicle"]), str(extra["stage_id"])])
 		await _free(got_m[0])
 		var ratio := float(m[0]) / maxf(float(a[0]), 1.0e-3)
