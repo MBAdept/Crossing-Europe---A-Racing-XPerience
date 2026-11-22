@@ -398,9 +398,26 @@ func test_model_instances_carry_the_placement_tint() -> void:
 		assert_true(code.contains("INSTANCE_CUSTOM.a > 0.5 ? INSTANCE_CUSTOM.rgb : vec3(1.0)") and code.contains("v_tint"),
 			"%s liest die Tönung aus den Instanzdaten" % cls)
 		assert_false(code.contains("instance uniform vec4 tint") or code.contains("instance uniform vec3 tint"), "%s: keine Instanz-Uniform dafür" % cls)
-	assert_true(ModernMaterials.static_code(mats.shader("vpbr").code).contains("alb *= v_tint"), "vpbr_static multipliert die Albedo")
+	assert_true(_code_only(ModernMaterials.static_code(mats.shader("vpbr").code)).contains("alb *= v_tint"), "vpbr_static multipliert die Albedo")
+	# FIX-RINT (QA-RINT-SYSTEM B-02): every class MULTIPLIES its colour by the tint – reading it is not enough (a shader
+	# that reads v_tint but drops the multiplication left the pink houses of S4 white with every check green); comments
+	# do not count
+	var baked := _code_only(mats.shader("baked").code)
+	assert_true(baked.contains("a.rgb *= v_tint;"), "baked multipliert die Albedo mit der Tönung")
+	var leaves := _code_only(mats.shader("leaves").code)
+	var rx := RegEx.create_from_string("ALBEDO\\s*=[^;]*\\*\\s*v_tint\\s*;")
+	assert_true(rx.search(leaves) != null, "leaves multipliert ALBEDO mit der Tönung")
+	var board := _code_only(mats.shader("billboard").code)
+	assert_true(board.contains("vec3 tint = COLOR.rgb * v_tint;") and board.contains("t.rgb * tint"),
+		"billboard multipliert das Bild mit Instanzfarbe × Tönung")
 	parent.free()
 	_cleanup()
+
+
+## Shader code without its comments (// to the end of the line, /* … */).
+static func _code_only(code: String) -> String:
+	var rx := RegEx.create_from_string("/\\*[\\s\\S]*?\\*/|//[^\\n]*")
+	return rx.sub(code, "", true)
 
 
 func test_chunk_lod_shows_one_representation() -> void:

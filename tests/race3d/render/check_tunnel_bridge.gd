@@ -22,6 +22,10 @@ extends SceneTree
 ##   beacon          Kiel – Hamburg km 76.4 at 22:00 (the pylon tops 230 and 350 m ahead, in the picture): the aviation
 ##                   lights of the Köhlbrandbrücke blink in Arcade's rhythm – over 2.4 s every beacon is lit in some
 ##                   frames and dark in others (the flare layer's list) and the picture shows its red where it is lit
+##   ausfahrt_schnee Prag – Nürnberg, Tunel Valík at 8:00 in snow, the car drives out at 80 km/h (FIX-RINT, QA-RINT-BILD
+##                   F-01); ausfahrt_trocken the Gotthard exit at noon at 100 km/h: for 2 s after the camera passed the
+##                   exit Modern is not washed out (pure white at most Arcade's + 5 points in every picture) and shows
+##                   the snow Arcade shows (no frames of snow-free land) – see exit_after below
 ## "-- --only=U1_portal,B1" runs some positions, "-- --save=<absolute folder>" keeps the pictures.
 ## "-- --full" (no picture, --headless is enough; about 3 min): builds EVERY bridge and EVERY tunnel of the network
 ## – each direction of each stage and of the dev stage – with builders/bridge.gd and builders/tunnel.gd as the unit
@@ -53,7 +57,22 @@ const POSITIONS: Array = [
 	{"id": "Somport_portal", "stage": "saragossa_pau", "from": "saragossa", "km": 176.3, "hour": 12.0, "seed": 4, "debug": "cover", "kind": "portal"},
 	{"id": "B1", "stage": "frankfurt_koeln", "from": "frankfurt", "km": 186.2, "hour": 12.0, "seed": 11, "debug": "cover,far", "kind": "water"},
 	{"id": "beacon", "stage": "kiel_hamburg", "from": "kiel", "km": 76.4, "hour": 22.0, "seed": 11, "debug": "", "kind": "beacon"},
+	# FIX-RINT (QA-RINT-BILD F-01): driving out of a tube by day, in snow and dry – Arcade and Modern of the same steps
+	{"id": "ausfahrt_schnee", "stage": "prag_nuernberg", "from": "prag", "km": 87.7, "hour": 8.0, "seed": 22, "debug": "", "kind": "exit_after",
+		"weather": "snow", "speed": 80.0},
+	{"id": "ausfahrt_trocken", "stage": "bern_mailand", "from": "bern", "km": 201.0, "hour": 12.0, "seed": 16, "debug": "", "kind": "exit_after",
+		"weather": "normal", "speed": 100.0},
 ]
+## exit_after (FIX-RINT, QA-RINT-BILD F-01): the car drives out of the tube at `speed`; from the step the camera passes
+## the exit, every AFTER_EVERY steps for AFTER_STEPS steps (2 s), the picture of Arcade and of Modern of the same step.
+## In the scene band (rows 25–80 %, below the HUD boxes, above the speedometer) Modern shows at most Arcade's share of
+## pure white pixels (≥ 240/255 in every channel) + AFTER_WHITE_PLUS (snow: 65–68 % against Arcade's 0.3 % before),
+## and where Arcade shows snow at least AFTER_SNOW_MIN of Arcade's share of snow pixels (bright, nearly grey – 3 frames
+## of brown snow-free land after the exit before).
+const AFTER_STEPS := 120
+const AFTER_EVERY := 6
+const AFTER_WHITE_PLUS := 0.05
+const AFTER_SNOW_MIN := 0.5
 
 var _failed: Array[String] = []
 var _wall0 := 0
@@ -144,6 +163,9 @@ static func _cyan(c: Color) -> bool:
 
 func _check(pos: Dictionary) -> void:
 	var name := "tunnel_bridge_%s" % str(pos["id"])
+	if str(pos["kind"]) == "exit_after":
+		await _check_exit_after(name, pos)
+		return
 	var setup := {"mode": "single", "race_id": "", "stage_id": str(pos["stage"]), "from_city": str(pos["from"]),
 		"vehicle": "limousine", "start_world_minutes": float(pos["hour"]) * 60.0, "weather": "normal",
 		"start_km": float(pos["km"]), "autopilot": false, "seed": int(pos["seed"]), "gfx": "modern", "no_countdown": true}
@@ -321,6 +343,107 @@ func _check_exit(name: String, renderer: Node, pos: Dictionary) -> void:
 		p.append("Ausfahrt ausgebrannt (Leuchtdichte %.3f, %.0f %% reines Weiß)" % [mean, 100.0 * float(white) / float(maxi(n, 1))])
 	_report(name, p, "%s km %.1f: Ausfahrt %d Bildpunkte, Leuchtdichte %.3f = %.2f × Arcade (Röhre daneben %.3f), %.1f %% reines Weiß; Rahmen %.3f (%d Bildpunkte)" % [
 		str(pos["stage"]), float(pos["km"]), n, mean, mean / EXIT_ARCADE, wall_mean, 100.0 * float(white) / float(maxi(n, 1)), frame_mean, fn])
+
+
+## FIX-RINT (QA-RINT-BILD F-01): Arcade and Modern of the same simulation steps after a tunnel exit (exit_after above).
+func _check_exit_after(name: String, pos: Dictionary) -> void:
+	var p: Array[String] = []
+	var a: Array = await _after_series(pos, "arcade")
+	var m: Array = await _after_series(pos, "modern")
+	if a.is_empty() or m.is_empty() or a.size() != m.size():
+		_report(name, ["keine Bildreihe nach der Ausfahrt (Arcade %d, Modern %d Bilder)" % [a.size(), m.size()]] as Array[String], "")
+		return
+	var worst_white := -1.0
+	var worst_snow := 1.0e9
+	var line := PackedStringArray()
+	for i in a.size():
+		var sa: Vector2 = a[i]
+		var sm: Vector2 = m[i]
+		worst_white = maxf(worst_white, sm.x - sa.x)
+		if sa.y > 0.05:
+			worst_snow = minf(worst_snow, sm.y / sa.y)
+		line.append("%.2f/%.2f" % [sa.x, sm.x])
+		if sm.x > sa.x + AFTER_WHITE_PLUS:
+			p.append("Bild %d (%.1f s nach der Ausfahrt): %.1f %% reines Weiß gegen Arcades %.1f %%" % [i, float(i * AFTER_EVERY) / 60.0,
+				100.0 * sm.x, 100.0 * sa.x])
+		if sa.y > 0.05 and sm.y < AFTER_SNOW_MIN * sa.y:
+			p.append("Bild %d (%.1f s nach der Ausfahrt): Schnee %.1f %% gegen Arcades %.1f %%" % [i, float(i * AFTER_EVERY) / 60.0,
+				100.0 * sm.y, 100.0 * sa.y])
+	_report(name, p, "%s km %.1f, %s: %d Bilder in 2 s nach der Ausfahrt, reines Weiß Arcade/Modern %s; höchstens +%.1f Punkte, Schnee mindestens %.2f × Arcade" % [
+		str(pos["stage"]), float(pos["km"]), str(pos["weather"]), a.size(), " ".join(line), 100.0 * worst_white,
+		worst_snow if worst_snow < 1.0e8 else -1.0])
+
+
+## The pictures of one mode after the exit: per picture Vector2(share of pure white, share of snow) of the scene band.
+func _after_series(pos: Dictionary, mode: String) -> Array:
+	var setup := {"mode": "single", "race_id": "", "stage_id": str(pos["stage"]), "from_city": str(pos["from"]),
+		"vehicle": "limousine", "start_world_minutes": float(pos["hour"]) * 60.0, "weather": str(pos["weather"]),
+		"start_km": float(pos["km"]), "autopilot": true, "start_speed_kmh": float(pos["speed"]), "seed": int(pos["seed"]),
+		"gfx": mode, "no_countdown": true}
+	var sc: Node = (load(RACE) as PackedScene).instantiate()
+	sc.set("setup", setup)
+	await physics_frame
+	root.add_child(sc)
+	(sc.get("hud") as Control).visible = false
+	var out: Array = []
+	if mode == "modern":
+		var r: Variant = sc.get("renderer")
+		if not (r is Node) or not (r as Node).has_method(&"is_prepared"):
+			await _free(sc)
+			return out
+		await _until(func() -> bool: return not is_instance_valid(r) or bool((r as Node).call(&"is_prepared")))
+		r = sc.get("renderer")
+		if not (r is Node) or not bool((r as Node).call(&"healthy")):
+			await _free(sc)
+			return out
+	var track: Track = sc.get("track")
+	var proj: RoadProjection = sc.get("proj")
+	var t := track.plan.tunnel_at(float(pos["km"]) + 0.05)
+	if t.is_empty():
+		for tt: Dictionary in track.plan.tunnels:
+			if float(tt["end_km"]) > float(pos["km"]):
+				t = tt
+				break
+	if t.is_empty():
+		await _free(sc)
+		return out
+	var z_exit := track.km_to_z(float(t["end_km"]))
+	# until the camera passes the exit (the session's camera stands cam_distance behind the car)
+	await _until(func() -> bool: return float(sc.get("pos_z")) - proj.cam_distance >= z_exit, 4000)
+	var step0 := int(sc.get("_sim_steps"))
+	var next := step0
+	while next <= step0 + AFTER_STEPS:
+		await _until(func() -> bool: return int(sc.get("_sim_steps")) >= next, 200)
+		var img := await _capture()
+		if out.is_empty() or next == step0 + AFTER_STEPS / 2:
+			_keep(img, "%s_%s_%d" % [str(pos["id"]), mode, next - step0])
+		out.append(_after_shares(img))
+		next += AFTER_EVERY
+	await _free(sc)
+	return out
+
+
+## Shares of pure white (every channel ≥ 240/255) and of snow (bright – luminance 0.55 … 0.94 – and nearly grey) in the
+## scene band, rows 25–80 %, on a 320-pixel-wide copy (nearest neighbour: no new grey from the scaling).
+static func _after_shares(img: Image) -> Vector2:
+	var small := img.duplicate() as Image
+	small.resize(320, 180, Image.INTERPOLATE_NEAREST)
+	var n := 0
+	var white := 0
+	var snow := 0
+	for y in range(45, 144):
+		for x in 320:
+			var c := small.get_pixel(x, y)
+			n += 1
+			if c.r >= 240.0 / 255.0 and c.g >= 240.0 / 255.0 and c.b >= 240.0 / 255.0:
+				white += 1
+				continue
+			var hi := maxf(c.r, maxf(c.g, c.b))
+			var lo := minf(c.r, minf(c.g, c.b))
+			var l := _lum(c)
+			if l >= 0.55 and l < 0.94 and hi > 0.0 and (hi - lo) / hi < 0.15:
+				snow += 1
+	return Vector2(float(white) / float(maxi(n, 1)), float(snow) / float(maxi(n, 1)))
 
 
 func _check_water(name: String, renderer: Node, pos: Dictionary) -> void:

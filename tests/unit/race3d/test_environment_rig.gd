@@ -320,3 +320,20 @@ func test_exit_ramp() -> void:
 	assert_near(Rig.exit_after_timed(30.0, 30.0 / 38.9), Rig.exit_after(30.0), 1.0e-6, "bei 140 km/h entscheidet der Weg (Look von R4)")
 	assert_true(Rig.exit_after_timed(10.0, 1.0) < Rig.exit_after(10.0), "bei 36 km/h entscheidet die Zeit")
 	assert_eq(Rig.exit_after_timed(-1.0, 0.0), 0.0, "vor der Ausfahrt nichts")
+	# FIX-RINT (QA-RINT-BILD F-01): the after-glow lifts the mid tones but burns out only what was nearly white already,
+	# keeps the order of every two values (road < marking) and most of their contrast
+	var top := Rig.EXIT_AFTER
+	assert_eq(Rig.after_law(0.0, top), 0.0, "Nachglühen: Schwarz bleibt Schwarz")
+	assert_near(Rig.after_law(1.0, top), 1.0, 1.0e-6, "Weiß bleibt Weiß")
+	assert_near(Rig.after_law(0.4, 0.0), 0.4, 1.0e-6, "Stärke 0: unverändert")
+	assert_true(Rig.after_law(0.4, top) > 0.5, "an der Ausfahrt deutlich heller (%.3f)" % Rig.after_law(0.4, top))
+	assert_true(Rig.after_law(0.8, top) < 240.0 / 255.0, "unter 0,8 wird nichts reines Weiß (%.3f)" % Rig.after_law(0.8, top))
+	var prev_v := -1.0
+	for i in 21:
+		var v := Rig.after_law(float(i) / 20.0, top)
+		assert_true(v > prev_v, "monoton (%d)" % i)
+		prev_v = v
+	# a grey road (0.35) and its white marking (0.85): the difference keeps at least 80 %
+	assert_true(Rig.after_law(0.85, top) - Rig.after_law(0.35, top) >= 0.8 * (0.85 - 0.35), "Markierung bleibt lesbar (%.3f)" % [
+		Rig.after_law(0.85, top) - Rig.after_law(0.35, top)])
+	assert_eq(Rig.EXIT_AFTER_SNOW, 1.0, "bei Schnee kein Nachglühen (der Schnee ist schon das hellste Bild)")

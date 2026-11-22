@@ -145,13 +145,27 @@ void fragment() {
 	ALPHA = 1.0;
 }
 """
+## FIX-RINT (QA-RINT-BILD F-01): the after-glow of the whole picture has its own law. Arcade's law above clips
+## (display × 1.47 + 0.17 at the portal burnt every pixel above 0.57 white): behind a snowy exit 65–68 % of the picture
+## was pure white for a second, the lane markings and the road edge barely readable (Rule 9), and 15–19 % by a dry
+## noon (Arcade: 0.3 % / 1–3 %, Arcade has no after-glow). Now 1 − (1 − c)^(1 + AFTER_ADAPT × strength): 0 stays 0, 1
+## stays 1, it is monotonic (road, markings and edge keep their order and most of their contrast) and it lifts the mid
+## tones – the eyes still adapted to the tube – but only a pixel that was already nearly white (above about 0.83 at
+## the portal) reaches pure white (after_law(), the same law in GDScript for the tests).
+const AFTER_ADAPT := 0.9
 const AFTER_SHADER := """shader_type canvas_item;
 uniform sampler2D screen_tex : hint_screen_texture, filter_nearest;
-""" + GLARE_LAW + """
+uniform vec4 glare = vec4(1.0, 1.0, 0.97, 0.0);
+uniform float adapt = 0.9;
 void fragment() {
-	COLOR = vec4(over_expose(texture(screen_tex, SCREEN_UV).rgb), 1.0);
+	vec3 c = clamp(texture(screen_tex, SCREEN_UV).rgb, vec3(0.0), vec3(1.0));
+	float p = 1.0 + adapt * clamp(glare.a, 0.0, 1.5);
+	COLOR = vec4(vec3(1.0) - pow(vec3(1.0) - c, vec3(p)), 1.0);
 }
 """
+## … and in snow it fades out (FIX-RINT F-01): the snowy outside is the brightest picture of the game already – any
+## lift washed the snow and the markings on it into one white field. The share of the after-glow that snow takes away.
+const EXIT_AFTER_SNOW := 1.0
 
 var environment: Environment
 var sun: DirectionalLight3D
@@ -302,7 +316,8 @@ func quality_lowered(levels: Dictionary) -> void:
 ##   var env = renderer.get("env"); if env != null and env.has_method("set_zone"): env.call("set_zone", "tunnel", a)
 ## kind "tunnel": amount 0 (open air) .. 1 (inside) blends the light to the tunnel's (Palette.TUNNEL_AMBIENT, sun
 ## energy 0), the fog to Arcade's tunnel law (Palette.TUNNEL_FOG from 12 m over render.tunnel.darkness_m) and the
-## ce_* globals (ce_tunnel = amount; ce_wet, ce_snow and the wind go to 0); the backdrop shows no sky while the
+## ce_* globals (ce_tunnel = amount; the wind goes to 0 – ce_wet and ce_snow stay the weather's since FIX-RINT, the
+## tube and the road inside it ignore them); the backdrop shows no sky while the
 ## exit is out of sight, and towards the exit the outside looks over-exposed (exposure ramp, exit_glare()).
 ## kind "bridge": amount 0..1 over open water – the wind blows stronger (ce_wind).
 ## Any other kind is kept and reported in snapshot() but changes nothing. The value holds until the next call of the
@@ -381,8 +396,13 @@ func update(view: Dictionary, _dt: float) -> void:
 	var overcast := float(pal.get("overcast", 0.0))
 	_send("ce_time", t)
 	_send("ce_night", maxf(night, tunnel01))
-	_send("ce_wet", float(pal.get("wet", 0.0)) * (1.0 - tunnel01))
-	_send("ce_snow", float(pal.get("snow", 0.0)) * (1.0 - tunnel01))
+	# FIX-RINT (QA-RINT-BILD F-01): wetness and snow are the weather's, wherever the camera is. They followed the camera's
+	# tunnel ramp before (× (1 − tunnel01)) – so the WORLD lost its snow while the camera was in a tube: the outside seen
+	# through the exit was snow-free, and for the 26 m of the ramp after the exit (3 frames at 80 km/h) the landscape
+	# stood brown and green before it jumped to snow. Inside the tube nothing takes them: the road marks its tunnel
+	# segments (road.gdshader flag 64), the tube's shader has no weather, vehicles carry no snow (snow_cover 0).
+	_send("ce_wet", float(pal.get("wet", 0.0)))
+	_send("ce_snow", float(pal.get("snow", 0.0)))
 	_send("ce_wind", wind(t, overcast, tunnel01, zone("bridge")))
 	_send("ce_fog_color", fog_color)
 	_send("ce_fog_range", Vector2(begin, end))
@@ -428,7 +448,8 @@ func _update_exit(view: Dictionary, pal: Dictionary, tunnel01: float, fog_out: C
 			_after_t0 = time - behind / maxf(float(view.get("speed", 0.0)) / 3.6, 1.0)
 	else:
 		_after_exit_z = -1.0e9
-	var after := day * exit_after_timed(behind, time - _after_t0)
+	var snow := clampf(float(pal.get("snow", 0.0)), 0.0, 1.0)
+	var after := day * (1.0 - EXIT_AFTER_SNOW * snow) * exit_after_timed(behind, time - _after_t0)
 	_exit_state = Vector2(glare, after)
 	var pl: Dictionary = view.get("player", {})
 	# RINT-M2 (QR5-03, FIX-R5 §8.1): the glare quad stands at the true end of the tube – the segment boundary after
@@ -518,7 +539,11 @@ func _show_exit(a: Vector2, path: RoadPath3D, z_quad: float, fog_out: Color) -> 
 			_after_layer.name = "ExitGlare"
 			_after = ColorRect.new()
 			_after.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			_after_mat = _glare_material(AFTER_SHADER)
+			var sh := Shader.new()
+			sh.code = AFTER_SHADER
+			_after_mat = ShaderMaterial.new()
+			_after_mat.shader = sh
+			_after_mat.set_shader_parameter(&"adapt", AFTER_ADAPT)
 			_after.material = _after_mat
 			_after.set_anchors_preset(Control.PRESET_FULL_RECT)
 			_after_layer.add_child(_after)
@@ -530,7 +555,14 @@ func _show_exit(a: Vector2, path: RoadPath3D, z_quad: float, fog_out: Color) -> 
 		_after_layer.visible = false
 
 
-## A material of the exposure law (GLARE_SHADER or AFTER_SHADER) with EXIT_GAIN / EXIT_LIFT.
+## FIX-RINT: the after-glow law of AFTER_SHADER for one channel (pure): display value c (0..1) at the after-glow
+## strength a (the alpha of exit_after_timed()).
+static func after_law(c: float, a: float) -> float:
+	var p := 1.0 + AFTER_ADAPT * clampf(a / EXIT_GLARE_FAR, 0.0, 1.5)
+	return 1.0 - pow(1.0 - clampf(c, 0.0, 1.0), p)
+
+
+## A material of the exposure law of the glare quad (GLARE_SHADER) with EXIT_GAIN / EXIT_LIFT.
 static func _glare_material(code: String) -> ShaderMaterial:
 	var sh := Shader.new()
 	sh.code = code
