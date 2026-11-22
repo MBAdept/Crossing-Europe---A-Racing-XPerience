@@ -228,7 +228,8 @@ static func _fence(ctx: ChunkContext, kit: Station.Kit, i: int, z0: float, fd: D
 		var xa := float(side) * (ctx.shoulder_edge(i, side) + off)
 		var xb := float(side) * (ctx.shoulder_edge(i + 1, side) + off)
 		var zm := (z0 + z1) * 0.5
-		if ctx.in_bend_corridor(zm, (xa + xb) * 0.5):
+		# the corridor of A-17 runs out at the ends of a bend: a piece goes when any part of it is inside
+		if ctx.in_bend_corridor(zm, (xa + xb) * 0.5) or ctx.in_bend_corridor(z0, xa) or ctx.in_bend_corridor(z1, xb):
 			dropped += 1
 			continue
 		drawn += 1

@@ -577,8 +577,8 @@ func test_city_fences_stay_out_of_bend_corridors() -> void:
 			var rc := _road_coords(ctx, v)
 			if rc.z > 0.1:
 				assert_false(ctx.in_bend_corridor(rc.x, rc.y * 0.98), "kein Zaun im Sichtkorridor der Kurve (z %.0f, x %.1f)" % [rc.x, rc.y])
-	# 5 chunks × 32 segments × 2 sides: the inside of the bend (and the straights next to it: the corridor follows the
-	# strongest curvature nearby) loses its pieces, the outside keeps them
+	# 5 chunks × 32 segments × 2 sides: the inside of the bend (and the straight before it, as far as the sight lines
+	# into the bend reach – A-17) loses its pieces, the outside keeps them
 	assert_true(dropped >= 60, "auf der Innenseite der Kurve fallen Stücke weg (%d)" % dropped)
 	assert_true(drawn >= 140, "auf der Außenseite steht der Zaun (%d)" % drawn)
 	assert_eq(drawn + dropped, 5 * 32 * 2, "jedes Segment, jede Seite: gezeichnet oder weggelassen")
