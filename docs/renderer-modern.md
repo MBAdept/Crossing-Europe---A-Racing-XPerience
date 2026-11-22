@@ -425,6 +425,15 @@ Band ließ das alte Band 37.368 im Kurvenkorridor weg (18,4 %), die Hülle 14.34
 Arcade zeichnet 79.662 Stücke, das alte Band ließ 64,3 % stehen, die Hülle 75,3 %. Grenzdächer: von 48 hängen 3 an
 Masten (vorher 4; Belgrad – Sofia km 340 steht wieder auf vier Pfeilern).
 
+**Fußabdruck (offen für den Requisiten-Builder):** `in_bend_corridor(z, x)` prüft nur den Fuß; der Requisiten-Builder
+gibt den Anker (bei `align: edge` die Vorderkante plus die Ausdehnung des Modells). Gemessen (128 Richtungen,
+`probe/intrude.gd` von R7a): Requisiten über 0,5 m, deren Fuß außerhalb der Hülle steht, deren Vorderkante oder Krone
+aber hineinreicht – mit dem alten Band 1.124, mit der Hülle 5.832 (3.654 Bäume, 1.496 Stadthäuser, bis 19 m tief).
+Dafür hat `in_bend_corridor(z, x, reach, half_len)` zwei optionale Argumente: `reach` = wie weit das Objekt vom Fuß
+zur Straße reicht (Vorderkante, Kronenradius), `half_len` = halbe Länge längs der Straße. Mit ihnen blieben 269
+(nur nicht weglassbare Objekte: gesetzte Gebäude, Windräder), zurück kämen 15.954 statt 22.432, und 1.223 Stücke, die
+die Basis zeichnet, fielen weg. Der Aufruf gehört dem Besitzer von `builders/props.gd` (R7c).
+
 ### 5.4 Konfiguration `graphics.modern.terrain`
 
 Alle Schlüssel sind optional; die Standardwerte stehen im Code.
