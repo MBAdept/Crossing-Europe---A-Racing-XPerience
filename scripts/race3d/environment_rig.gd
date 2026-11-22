@@ -77,6 +77,10 @@ const REF_LUM_NIGHT := 0.3         ## luminance of palette.ambient at which REF_
 const REF_LUM_DAY := 0.75          ## … and from which REF_DAY applies
 const TUNNEL_RAMP_OUT_M := 12.0    ## the tunnel light fades in from this far before the portal …
 const TUNNEL_RAMP_IN_M := 14.0     ## … to this far inside
+## FIX-RINT (QA-RINT-SYSTEM F-01): at the EXIT the light of the open sky is back once the camera leaves the tube – the
+## ramp runs from TUNNEL_RAMP_IN_M inside to the exit itself (Arcade switches its palette there, at camera + 1 m). With
+## the old symmetric ramp (to 12 m outside) the first 26 m after the exit were lit by the warm tunnel light: a snowy
+## landscape read sand-brown for three frames before it turned white.
 const TUNNEL_FOG_BEGIN_M := 12.0   ## Arcade's tunnel fog: pow((d - 12) / darkness_m, 0.8)
 const TUNNEL_FOG_CURVE := 0.8
 const SHADOW_DISTANCE_M := 80.0    ## shadow reach when the quality levels give none
@@ -430,12 +434,17 @@ func _update_exit(view: Dictionary, pal: Dictionary, tunnel01: float, fog_out: C
 	if day <= 0.0 or path == null or not path.is_ready() or _renderer.call(&"builder", "tunnel") == null:
 		_show_exit(Vector2.ZERO, null, 0.0, fog_out)
 		return
-	var cam_z := float(view.get("camera_z", 0.0))
+	# FIX-RINT (F-01): inside or outside is decided where Arcade decides it – 1 m ahead of the camera (RaceSession
+	# cam_tunnel, tunnel_blend()): the glare quad stands up to there, the after-glow starts there. (With the camera
+	# itself the quad stood 0.5–1 m longer, beyond the car's front, and burnt a snowy outside 59 % white in the frame
+	# in which Arcade already shows the plain outside.)
+	var cam_z := float(view.get("camera_z", 0.0)) + 1.0
 	var vis := float(view.get("visibility_m", 900.0))
 	var exit := exit_ahead(_track, cam_z, vis)
 	var glare := 0.0
 	var z_exit := 0.0
-	if not exit.is_empty() and tunnel01 > 0.5:
+	# (FIX-RINT: the light ramp ends at the exit itself now – the quad stays up to the exit while the camera is inside)
+	if not exit.is_empty() and (tunnel01 > 0.5 or float(exit["z"]) - cam_z < TUNNEL_RAMP_IN_M):
 		z_exit = float(exit["z"])
 		glare = day * exit_glare(z_exit - cam_z)
 	var behind := exit_behind(_track, cam_z)
@@ -684,16 +693,17 @@ static func sun_azimuth(sun_pos: Vector2) -> float:
 
 
 ## How much the camera is inside a tunnel, 0..1: 0 in the open, rising from TUNNEL_RAMP_OUT_M before a portal to 1
-## at TUNNEL_RAMP_IN_M inside it. A function of the position alone (the plan's tunnel list).
+## at TUNNEL_RAMP_IN_M inside it, and falling from TUNNEL_RAMP_IN_M before the exit to 0 at the exit (FIX-RINT). A
+## function of the position alone (the plan's tunnel list).
 static func tunnel_blend(track: Track, z: float) -> float:
 	if track == null or track.plan == null or track.plan.tunnels.is_empty() or z > track.length_z + TUNNEL_RAMP_OUT_M:
 		return 0.0
-	var signed := -1.0e9
+	var amount := 0.0
 	for t: Dictionary in track.plan.tunnels:
 		var z0 := track.km_to_z(float(t["start_km"]))
 		var z1 := minf(track.km_to_z(float(t["end_km"])), track.length_z)
-		signed = maxf(signed, minf(z - z0, z1 - z))
-	return smoothstep(-TUNNEL_RAMP_OUT_M, TUNNEL_RAMP_IN_M, signed)
+		amount = maxf(amount, minf(smoothstep(-TUNNEL_RAMP_OUT_M, TUNNEL_RAMP_IN_M, z - z0), smoothstep(0.0, TUNNEL_RAMP_IN_M, z1 - z)))
+	return amount
 
 
 ## The light of a palette (Palette.compute), pure. tunnel01: 0 in the open .. 1 inside a tunnel; road_heading =

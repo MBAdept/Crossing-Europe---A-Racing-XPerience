@@ -216,6 +216,17 @@ func test_tunnel_ramp() -> void:
 		last = v
 		z += 1.0
 	assert_between(Rig.tunnel_blend(t, z0), 0.2, 0.6, "am Portal etwa die Hälfte")
+	# FIX-RINT (QA-RINT-BILD F-01): at the exit the open sky's light is back once the camera leaves the tube
+	assert_eq(Rig.tunnel_blend(t, z1), 0.0, "an der Ausfahrt: Tageslicht (Arcade schaltet dort um)")
+	assert_eq(Rig.tunnel_blend(t, z1 + 3.0), 0.0, "3 m nach der Ausfahrt: Tageslicht")
+	assert_eq(Rig.tunnel_blend(t, z1 - Rig.TUNNEL_RAMP_IN_M - 1.0), 1.0, "vor der Rampe der Ausfahrt: Tunnellicht")
+	last = 1.0
+	z = z1 - 18.0
+	while z < z1 + 2.0:
+		var w := Rig.tunnel_blend(t, z)
+		assert_true(w <= last and last - w < 0.2, "die Rampe zur Ausfahrt fällt stetig (%.1f m: %.3f)" % [z - z1, w])
+		last = w
+		z += 1.0
 	var open: Track = SynTrack.new()
 	open.fill(cfg(), SynTrack.straight(300))
 	assert_eq(Rig.tunnel_blend(open, 400.0), 0.0, "ohne Tunnel: 0")

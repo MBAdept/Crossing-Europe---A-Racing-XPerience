@@ -46,6 +46,10 @@ const SPOT_DECAY := 0.6
 ## RINT-M2 (A-20) the MATERIALS take the lobes of a light next to the eye out (vpbr/glass eye_lamp_spec in the race look,
 ## ModernMaterials.VEHICLE_LOOK) – not the light for everything. The ground never takes this light (GROUND_LAYERS): the
 ## road shows the beam through inc/headlight.gdshaderinc, the wet road its own sheen (road.gdshader).
+## FIX-RINT (QA-RINT-SYSTEM B-06): 0.5 IS the engine's default of Light3D.light_specular – the value is only spelt out.
+## Nothing checked depends on it (0 and 0.5 give the same picture in vehicle_lights, night_nass and nass_kegel,
+## measured by QA): the specular of the low beam that A-20 keeps on the wet road is ce_headlight_light of
+## inc/headlight.gdshaderinc (guarded: without it nass_kegel falls to 0.35 × Arcade).
 const SPOT_SPECULAR := 0.5
 const TUNNEL_BEAM := 0.35           ## Arcade: the low beam inside a tunnel by day
 const TRAFFIC_AHEAD_M := 140.0      ## traffic cones: cars up to this far ahead of the camera
@@ -341,7 +345,16 @@ func _update_pools(view: Dictionary, lamps_on: float, lights: float, ambient: Co
 		_ranked.clear()
 		if _static_count > 0:
 			var all: Array = []
-			for pair: Array in _statics:
+			var k := 0
+			while k < _statics.size():
+				var pair: Array = _statics[k]
+				if not is_instance_valid(pair[0]):
+					# FIX-RINT (B-01): a chunk dropped while it was still being committed never entered the tree (no
+					# tree_exiting): its entries go here
+					_static_count -= (pair[1] as Array).size()
+					_statics.remove_at(k)
+					continue
+				k += 1
 				var parent: Node3D = pair[0]
 				if not parent.is_inside_tree():
 					_rank_seg = -1          # a chunk that is not in the tree yet: rank again in the next frame

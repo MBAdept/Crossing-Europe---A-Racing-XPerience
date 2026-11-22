@@ -94,6 +94,27 @@ func _countdown(frame_ms: float, lowest: bool, on: bool = true, from_s: float = 
 	return [action, probe, judged_at]
 
 
+## Frames of frame_ms of which `long_frames` fall into a countdown of 3 s (the countdown advances 3 s / long_frames
+## per frame), then 16.7-ms frames after it; returns [action, probe, countdown left when judged].
+func _crawl(frame_ms: float, lowest: bool, long_frames: int) -> Array:
+	var probe: RefCounted = PerfProbe.new()
+	probe.call("configure", ConfigLoader.lookup(cfg(), "graphics.watchdog", {}), 60.0, 0, true)
+	var t := 0
+	var left := 3.0
+	var action := ""
+	var judged_at := -1.0
+	for i in long_frames + 30:
+		var dt := frame_ms if i < long_frames else 16.7
+		t += int(dt * 1000.0)
+		var f: int = probe.call("frame", t + 1000000)
+		left -= 3.0 / float(long_frames) if i < long_frames else 0.0167
+		var a: String = probe.call("watch", f, left, lowest)
+		if a != "":
+			action = a
+			judged_at = left
+	return [action, probe, judged_at]
+
+
 func test_watchdog_of_the_countdown() -> void:
 	var fast := _countdown(16.7, false)
 	assert_eq(str(fast[0]), "", "60 Bilder je Sekunde: kein Eingriff")
@@ -122,6 +143,18 @@ func test_watchdog_of_the_countdown() -> void:
 	p2.call("configure", {}, 60.0, 0, true)
 	assert_eq(str(p2.call("watch", 5000000, 2.0, false)), "", "eine Pause von 5 s zählt nicht")
 	assert_eq(float(p2.get("_count_t")), 0.0, "… sie geht nicht in die Messung ein")
+	assert_eq(str(p2.call("watch", 16700, 1.9, false)), "", "… und danach misst er weiter")
+	# FIX-RINT (QA-RINT-SYSTEM B-04): every frame of the countdown longer than a second – the slowest machine, no pause
+	# (the simulation advances at most 8 physics steps per drawn frame: the countdown of 3 s lasts 23 frames there)
+	var crawl := _crawl(1500.0, false, 23)
+	assert_eq(str(crawl[0]), "slow", "Bilder von 1,5 s im Countdown: eine Stufe herunter")
+	assert_true(float(crawl[2]) > 2.0, "… gleich nach dem dritten Bild (%.2f s vorher)" % float(crawl[2]))
+	assert_near(float((crawl[1] as RefCounted).get("judged_median_ms")), PerfProbe.MAX_FRAME_MS, 0.01, "Median: mindestens MAX_FRAME_MS")
+	var crawl_low := _crawl(2500.0, true, 23)
+	assert_eq(str(crawl_low[0]), "", "auf der niedrigsten Stufe kein Eingriff …")
+	assert_eq(str((crawl_low[1] as RefCounted).get("verdict")), "too_slow", "… aber das Urteil „zu langsam“")
+	var two := _crawl(1500.0, false, 2)
+	assert_eq(str((two[1] as RefCounted).get("verdict")), "", "zwei lange Bilder allein urteilen nicht (Pausen)")
 
 
 func test_frame_statistics() -> void:

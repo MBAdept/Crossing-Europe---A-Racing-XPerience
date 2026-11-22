@@ -351,6 +351,90 @@ func test_threaded_mode_matches_sync() -> void:
 	assert_eq(finals[1], finals[0], "threaded endet im selben Schnappschuss wie sync")
 
 
+## A builder whose commit() costs about `ms` on the main thread.
+class SlowCommit extends ChunkBuilder:
+	var ms := 1.2
+	var tag := "slow"
+
+	func id() -> String:
+		return tag
+
+	func collect(_ctx: ChunkContext) -> Variant:
+		return {}
+
+	func build(_ctx: ChunkContext, _input: Variant) -> Dictionary:
+		return {}
+
+	func commit(_ctx: ChunkContext, _part: Dictionary, parent: Node3D) -> void:
+		var t0 := Time.get_ticks_usec()
+		while Time.get_ticks_usec() - t0 < int(ms * 1000.0):
+			pass
+		var n := Node3D.new()
+		n.name = tag
+		parent.add_child(n)
+
+
+## FIX-RINT (QA-RINT-SYSTEM B-01): in the threaded mode a chunk is committed over several frames under the commit
+## budget; its node enters the tree when every builder has committed, chunk_node() answers only then.
+func test_commit_is_spread_over_frames() -> void:
+	var t := _syn_track(3000)
+	var slow: Array = []
+	for k in 4:
+		var b := SlowCommit.new()
+		b.tag = "slow%d" % k
+		slow.append(b)
+	var m := _streamer(t, slow, false)
+	var st: ChunkStreamer = m[0]
+	var root := Node3D.new()
+	root.add_child(st)
+	var cam_z := 20.0
+	st.update(cam_z, 900.0)
+	assert_eq(st.pending_count(), 0, "beim Laden wird alles Sichtbare sofort ganz eingehängt")
+	st.reset_stats()        # as the renderer does after the load: the drive's numbers only
+	var hidden_seen := 0
+	var answered_early := 0
+	var spread := 0
+	var frames := 0
+	var most := 0
+	while cam_z < 2400.0:
+		cam_z += 9.0
+		var before := _builder_commits(st)
+		st.update(cam_z, 900.0)
+		most = maxi(most, _builder_commits(st) - before)
+		frames += 1
+		for c: Variant in st.get("_chunks").values():
+			if int(c.state) == ChunkStreamer.COMMITTING:
+				hidden_seen += 1
+				if (c.node as Node3D).get_parent() != null:
+					spread -= 1000
+				if st.chunk_node(int(c.index)) != null:
+					answered_early += 1
+				if int(c.commit_i) > 0 and int(c.commit_i) < 4:
+					spread += 1
+	var s := st.stats()
+	assert_true(hidden_seen > 0 and spread > 0, "Stücke werden über mehrere Bilder eingehängt (%d Bilder halb fertig)" % spread)
+	assert_eq(answered_early, 0, "chunk_node() erst, wenn alle Bausteine eingehängt sind")
+	assert_true(int(s["commit_steps"]) > int(s["commits"]), "mehr Schritte (%d) als Stücke (%d)" % [int(s["commit_steps"]), int(s["commits"])])
+	# (counted, not timed – load-robust, A-11: 1.2 ms per builder against the budget of 2 ms)
+	assert_true(most >= 1 and most <= 2, "höchstens zwei der vier Bausteine je Bild (%d)" % most)
+	assert_true((s["commit_by"] as Dictionary).has("slow0"), "Zeit je Baustein (commit_by)")
+	st.flush()
+	assert_true(st.is_idle(), "flush(): ein halb eingehängtes Stück wird fertig")
+	for c: Variant in st.get("_chunks").values():
+		assert_true((c.node as Node3D).get_parent() == st, "danach hängen alle Stücke im Baum")
+	st.clear()
+	root.free()
+
+
+## Commits of all builders so far (the streamer's commit_by counts).
+static func _builder_commits(st: ChunkStreamer) -> int:
+	var n := 0
+	var by: Dictionary = st.stats()["commit_by"]
+	for id: Variant in by:
+		n += int((by[id] as Dictionary)["n"])
+	return n
+
+
 ## A whole drive on a real mountain stage like the race session does it: the track window is cut behind the camera.
 func test_real_stage_limits_rebase_and_trim() -> void:
 	var t := _real_track("saragossa_pau", true, false)

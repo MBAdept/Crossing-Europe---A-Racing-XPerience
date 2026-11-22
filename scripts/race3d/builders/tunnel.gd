@@ -921,16 +921,18 @@ func tube_material(materials: ModernMaterials = null) -> ShaderMaterial:
 
 
 ## The zone amount at road position z (0 in the open, rising from ZONE_OUT_M before a portal to 1 at ZONE_IN_M
-## inside) – EnvironmentRig.tunnel_blend's law, a function of the position alone.
+## inside, falling from ZONE_IN_M before the exit to 0 at the exit – FIX-RINT, QA-RINT-BILD F-01: the open sky's light
+## is back once the camera leaves the tube, as Arcade's palette) – EnvironmentRig.tunnel_blend's law, a function of
+## the position alone.
 static func zone_amount(track: Track, z: float) -> float:
 	if track == null or track.plan == null or track.plan.tunnels.is_empty() or z > track.length_z + ZONE_OUT_M:
 		return 0.0
-	var signed := -1.0e9
+	var amount := 0.0
 	for t: Dictionary in track.plan.tunnels:
 		var z0 := track.km_to_z(float(t["start_km"]))
 		var z1 := minf(track.km_to_z(float(t["end_km"])), track.length_z)
-		signed = maxf(signed, minf(z - z0, z1 - z))
-	return smoothstep(-ZONE_OUT_M, ZONE_IN_M, signed)
+		amount = maxf(amount, minf(smoothstep(-ZONE_OUT_M, ZONE_IN_M, z - z0), smoothstep(0.0, ZONE_IN_M, z1 - z)))
+	return amount
 
 
 ## Every frame (main thread): the tunnel light of the palette and the tunnel the camera is in; the zone for the

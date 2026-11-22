@@ -18,7 +18,11 @@ const START_S := 30.0              ## the longest frame is recorded for this lon
 const SKIP_S := 0.4
 const MIN_S := 1.0
 const MIN_FRAMES := 20
-const MAX_FRAME_MS := 1000.0       ## a longer gap is a pause (window minimised, debugger), not a frame
+const MAX_FRAME_MS := 1000.0       ## a longer gap is a pause (window minimised, debugger), not a frame …
+## … but FIX-RINT (QA-RINT-SYSTEM B-04): this many of them in one countdown are the slowest machine, not pauses – on
+## llvmpipe at 1280 × 720 in rain every frame took 1.2–2.5 s and the watchdog never judged (it threw each frame away),
+## so the machine that needs it most got no help. They judge at once: "slow" (or "too_slow" on the lowest preset).
+const LONG_MIN := 3
 
 var enabled := false               ## the watchdog judges this stage
 var verdict := ""                  ## "" (not judged) | "ok" | "slow" | "too_slow"
@@ -38,6 +42,7 @@ var _start_max_us := 0
 var _start_frames := PackedInt32Array()   ## every frame of the first START_S seconds (warm-up check)
 var _count_us := PackedInt32Array()
 var _count_t := 0.0
+var _long := 0                     ## frames over MAX_FRAME_MS in this countdown (not measured, LONG_MIN of them judge)
 
 
 ## cfg_watchdog = config graphics.watchdog; display_hz = refresh rate of the screen (<= 0: unknown), frame_cap =
@@ -82,7 +87,13 @@ func frame(now_us: int) -> int:
 ## lowest = the lowest preset is in use. Returns "slow" in the one frame in which the renderer has to step the
 ## preset down, "" otherwise.
 func watch(us: int, countdown: float, lowest: bool) -> String:
-	if not enabled or verdict != "" or us <= 0 or float(us) > MAX_FRAME_MS * 1000.0:
+	if not enabled or verdict != "" or us <= 0:
+		return ""
+	if float(us) > MAX_FRAME_MS * 1000.0:
+		if countdown > 0.0:
+			_long += 1
+			if _long >= LONG_MIN:
+				return _judge_long(lowest)
 		return ""
 	if countdown <= 0.0:
 		if _count_us.size() >= MIN_FRAMES and _count_t - SKIP_S >= MIN_S * 0.5:
@@ -107,6 +118,15 @@ func _judge(lowest: bool) -> String:
 	verdict = Gfx.watchdog_verdict(judged_median_ms, judged_p95_ms, target_ms, wd_cfg, lowest)
 	if verdict == "ok" and judged_median_ms > 1000.0 / min_fps:
 		verdict = "too_slow" if lowest else "slow"
+	return "slow" if verdict == "slow" else ""
+
+
+## B-04: LONG_MIN frames of more than MAX_FRAME_MS in the countdown – below one frame per second whatever the rest did.
+func _judge_long(lowest: bool) -> String:
+	judged_frames = _count_us.size() + _long
+	judged_median_ms = MAX_FRAME_MS
+	judged_p95_ms = MAX_FRAME_MS
+	verdict = "too_slow" if lowest else "slow"
 	return "slow" if verdict == "slow" else ""
 
 

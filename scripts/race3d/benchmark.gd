@@ -399,7 +399,23 @@ func _scene_result(sc: Dictionary, measured_s: float) -> Dictionary:
 		# FIX1 (QA QB-10): the longest render() of the scene and which part of the renderer carried each longest time
 		"script_ms_max": snappedf(float(p1.get("render_ms_max", 0.0)), 0.01),
 		"hooks_ms_max": p1.get("hooks_ms_max", {}),
+		# FIX-RINT (QA-RINT-SYSTEM B-01/B-03): the budgets of §4.10 (chunk commit per frame) and A-18 (collect() per
+		# builder) measured where they count – on the player's machine, not on the shared VM
+		"chunk_commit_ms_max": snappedf(float(p1.get("chunk_commit_ms_max", 0.0)), 0.01),
+		"collect_ms_max_by": _max_by((p1.get("streamer", {}) as Dictionary).get("collect_by", {})),
+		"commit_ms_max_by": _max_by((p1.get("streamer", {}) as Dictionary).get("commit_by", {})),
 	}
+
+
+## {"<builder>": {"max_ms": x, …}} of the streamer's statistics as {"<builder>": x}.
+static func _max_by(by: Variant) -> Dictionary:
+	var out := {}
+	if by is Dictionary:
+		for id: Variant in by:
+			var e: Variant = (by as Dictionary)[id]
+			if e is Dictionary:
+				out[str(id)] = snappedf(float((e as Dictionary).get("max_ms", 0.0)), 0.01)
+	return out
 
 
 # --- the end ------------------------------------------------------------------------------------------------

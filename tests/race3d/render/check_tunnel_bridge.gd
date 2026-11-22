@@ -423,27 +423,32 @@ func _after_series(pos: Dictionary, mode: String) -> Array:
 	return out
 
 
-## Shares of pure white (every channel ≥ 240/255) and of snow (bright – luminance 0.55 … 0.94 – and nearly grey) in the
-## scene band, rows 25–80 %, on a 320-pixel-wide copy (nearest neighbour: no new grey from the scaling).
+## Shares of pure white (every channel ≥ 240/255) in the scene band, rows 25–80 %, and of snow in the ground band,
+## rows 50–80 % (not pure white, luminance ≥ 0.6, saturation below 0.1 – measured on the pictures of F-01: the snowy
+## ground of both modes 0.58–0.66, the sand-brown frames 0.000–0.003, Arcade-like snow lit by the warm tunnel light
+## 0.000), on a 320-pixel-wide copy (nearest neighbour: no new grey from the scaling).
 static func _after_shares(img: Image) -> Vector2:
 	var small := img.duplicate() as Image
 	small.resize(320, 180, Image.INTERPOLATE_NEAREST)
 	var n := 0
 	var white := 0
+	var ng := 0
 	var snow := 0
 	for y in range(45, 144):
 		for x in 320:
 			var c := small.get_pixel(x, y)
 			n += 1
-			if c.r >= 240.0 / 255.0 and c.g >= 240.0 / 255.0 and c.b >= 240.0 / 255.0:
+			var is_white := c.r >= 240.0 / 255.0 and c.g >= 240.0 / 255.0 and c.b >= 240.0 / 255.0
+			if is_white:
 				white += 1
+			if y < 90:
 				continue
+			ng += 1
 			var hi := maxf(c.r, maxf(c.g, c.b))
 			var lo := minf(c.r, minf(c.g, c.b))
-			var l := _lum(c)
-			if l >= 0.55 and l < 0.94 and hi > 0.0 and (hi - lo) / hi < 0.15:
+			if not is_white and _lum(c) >= 0.6 and hi > 0.0 and (hi - lo) / hi < 0.1:
 				snow += 1
-	return Vector2(float(white) / float(maxi(n, 1)), float(snow) / float(maxi(n, 1)))
+	return Vector2(float(white) / float(maxi(n, 1)), float(snow) / float(maxi(ng, 1)))
 
 
 func _check_water(name: String, renderer: Node, pos: Dictionary) -> void:

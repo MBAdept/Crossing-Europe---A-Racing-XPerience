@@ -59,6 +59,7 @@ var _frames := 0
 var _t0 := -1.0
 var _worst_layer := 0
 var _worst_scene := 0
+var _worst_rest := 0               ## FIX-RINT: most instances outside the vehicle layer in a counted frame
 var _budget := 0
 var _wall0 := 0
 var _wall_live := -1               ## wall clock (ms) when the race ran its first steps: end of the loading phase
@@ -145,10 +146,16 @@ func _process(_dt: float) -> bool:
 	if _probe != null:
 		_inject(view, float(view.get("time", 0.0)) - _t0)
 	var pf: Dictionary = vl.call(&"perf")
-	_worst_layer = maxi(_worst_layer, int(pf.get("vehicle_instances", 0)))
-	# injected traffic runs close to the limit: count the whole scene more often there
-	if _frames % (10 if _probe != null else 60) == 0:
-		_worst_scene = maxi(_worst_scene, _scene_instances())
+	var layer_now := int(pf.get("vehicle_instances", 0))
+	# injected traffic runs close to the limit: count the whole scene more often there – and FIX-RINT (QA-RINT-SYSTEM
+	# B-05) in every frame in which the vehicle layer reaches its highest count so far: the scene holds the layer, and
+	# counted only every 10th frame its peak (171) stood below the layer's (176)
+	var peak := layer_now >= _worst_layer and layer_now > 0
+	_worst_layer = maxi(_worst_layer, layer_now)
+	if peak or _frames % (10 if _probe != null else 60) == 0:
+		var scene := _scene_instances()
+		_worst_scene = maxi(_worst_scene, scene)
+		_worst_rest = maxi(_worst_rest, scene - layer_now)
 	if float(view.get("time", 0.0)) - _t0 >= _sim_s() or _frames >= MAX_FRAMES:
 		return _finish()
 	return false
@@ -189,11 +196,11 @@ func _finish() -> bool:
 	var load_s := float((_wall_live if _wall_live >= 0 else now) - _wall0) / 1000.0
 	var drive_s := float(now - _wall_live) / 1000.0 if _wall_live >= 0 else 0.0
 	print("RENDER-CHECK %-14s %s  %s%s" % [_check_name(), "OK    " if ok else "FEHLER",
-		"%.0f s Verkehr bei 6-facher Zeit (%d Bilder%s): %s, Fahrzeug-Ebene höchstens %d Instanzen (Budget %d, %d freigegeben, %d Bauten), ganze Szene höchstens %d mit Instanz-Uniforms (Grenze %d; Laden %.0f s, Fahrt %.0f s)" % [
+		"%.0f s Verkehr bei 6-facher Zeit (%d Bilder%s): %s, Fahrzeug-Ebene höchstens %d Instanzen (Budget %d, %d freigegeben, %d Bauten), ganze Szene höchstens %d mit Instanz-Uniforms (Grenze %d; obere Schranke Ebene + übrige %d; Laden %.0f s, Fahrt %.0f s)" % [
 			sim_s, _frames, ", %d eingespeiste Autos" % _inject_n() if _inject_n() > 0 else "",
 			"keine Ablehnung der Engine" if _catch.hits == 0 else "%d Ablehnungen der Engine" % _catch.hits,
 			_worst_layer, _budget, trims, builds,
-			_worst_scene, SCENE_LIMIT, load_s, drive_s],
+			_worst_scene, SCENE_LIMIT, _worst_layer + _worst_rest, load_s, drive_s],
 		"" if ok else "  –  FEHLT: " + "; ".join(p)])
 	quit(0 if ok else 1)
 	return true

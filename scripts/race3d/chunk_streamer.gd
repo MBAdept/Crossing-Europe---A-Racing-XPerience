@@ -35,6 +35,15 @@ const COLLECTED := 0
 const BUILDING := 1
 const BUILT := 2
 const COMMITTED := 3
+const COMMITTING := 4      ## FIX-RINT (B-01): some builders committed, the node not yet in the tree
+## FIX-RINT (QA-RINT-SYSTEM B-01): §4.10 allows 3 ms of chunk commit per frame ("Steam Deck", „Niedrig“, „Mittel“);
+## whole chunks took 3.8–9.0 ms at most (mean 1.0–1.3 ms) in every measurement since the base. In the threaded mode a
+## chunk is now committed builder by builder over several frames: a frame commits builders while its commit time is
+## below COMMIT_BUDGET_MS (at least one builder per frame; the next one only when its mean commit time still fits). The
+## chunk node stays out of the tree until every builder has committed – as during a whole commit before – and
+## chunk_node() answers only then; the lamp layers wait for a lamp parent that has not entered the tree yet and forget
+## one that left it or was freed (a chunk dropped half-done). Load and sync mode (flush()) commit whole chunks.
+const COMMIT_BUDGET_MS := 2.0
 
 
 ## One chunk on its way through collect -> build -> commit. The build task only touches `parts` and `build_us`.
@@ -47,6 +56,7 @@ class Chunk extends RefCounted:
 	var state := 0
 	var node: Node3D
 	var build_us := 0
+	var commit_i := 0          ## next builder to commit (COMMITTING)
 
 	func run(builders: Array) -> void:
 		var t0 := Time.get_ticks_usec()
@@ -95,6 +105,10 @@ var _collect_by: Dictionary = {}
 var _commit_us_max := 0
 var _commit_us_sum := 0
 var _commits := 0
+var _commit_steps := 0
+var _frame_commit_us := 0          ## FIX-RINT: commit time of the current frame (all steps of one update())
+## FIX-RINT (B-01): main-thread time of each builder's commit() – id -> [sum us, max us, calls]
+var _commit_by: Dictionary = {}
 var _rebases := 0
 var _restarts := 0
 
@@ -223,8 +237,12 @@ func update(cam_z: float, visibility_m: float) -> void:
 		return
 	if collected:
 		return   # one main-thread job per frame: a frame that collected a chunk commits none
-	# threaded mode: commit finished builds, nearest first
+	# threaded mode: commit finished builds, nearest first – a chunk begun in an earlier frame first –, under the
+	# frame's time budget (B-01)
 	var done := 0
+	var t0 := Time.get_ticks_usec()
+	var budget_us := int(COMMIT_BUDGET_MS * 1000.0)
+	_frame_commit_us = 0
 	while done < commits_per_frame:
 		var best: Chunk = null
 		var best_d := 0
@@ -233,15 +251,20 @@ func update(cam_z: float, visibility_m: float) -> void:
 				_finish_task(c)
 			if c.state == COLLECTED:
 				_build_now(c)
-			if c.state == BUILT:
-				var d := absi(c.index * chunk_segments + chunk_segments / 2 - cam_seg)
+			if c.state == BUILT or c.state == COMMITTING:
+				var d := -1 if c.state == COMMITTING else absi(c.index * chunk_segments + chunk_segments / 2 - cam_seg)
 				if best == null or d < best_d:
 					best = c
 					best_d = d
 		if best == null:
 			break
-		_commit(best)
+		_commit_step(best, t0, budget_us)
+		if best.state != COMMITTED:
+			break          # the frame's budget ended inside the chunk
 		done += 1
+		if Time.get_ticks_usec() - t0 >= budget_us:
+			break
+	_commit_us_max = maxi(_commit_us_max, _frame_commit_us)
 
 
 ## Builds and commits everything that is collected, now (load, sync mode, tests).
@@ -255,7 +278,7 @@ func flush() -> void:
 	keys.sort()
 	for ci: int in keys:
 		var c: Chunk = _chunks[ci]
-		if c.state == BUILT:
+		if c.state == BUILT or c.state == COMMITTING:
 			_commit(c)
 
 
@@ -294,14 +317,20 @@ func stats() -> Dictionary:
 		"build_ms_avg": float(_build_us_sum) / maxf(1.0, float(_builds)) / 1000.0, "build_ms_max": float(_build_us_max) / 1000.0,
 		"collect_ms_avg": float(_collect_us_sum) / maxf(1.0, float(_collects)) / 1000.0, "collect_ms_max": float(_collect_us_max) / 1000.0,
 		"commit_ms_avg": float(_commit_us_sum) / maxf(1.0, float(_commits)) / 1000.0, "commit_ms_max": float(_commit_us_max) / 1000.0,
-		"commits": _commits, "rebases": _rebases, "restarts": _restarts, "collect_by": _collect_by_ms()}
+		"commits": _commits, "commit_steps": _commit_steps, "rebases": _rebases, "restarts": _restarts,
+		"collect_by": _collect_by_ms(), "commit_by": _by_ms(_commit_by)}
 
 
 ## collect() per builder: id -> {"avg_ms", "max_ms", "n"} (RINT-M2, A-18).
 func _collect_by_ms() -> Dictionary:
+	return _by_ms(_collect_by)
+
+
+## id -> [sum us, max us, calls] as id -> {"avg_ms", "max_ms", "n"}.
+static func _by_ms(by: Dictionary) -> Dictionary:
 	var out := {}
-	for id: Variant in _collect_by:
-		var a: Array = _collect_by[id]
+	for id: Variant in by:
+		var a: Array = by[id]
 		out[str(id)] = {"avg_ms": snappedf(float(a[0]) / maxf(1.0, float(a[2])) / 1000.0, 0.001),
 			"max_ms": snappedf(float(a[1]) / 1000.0, 0.001), "n": int(a[2])}
 	return out
@@ -319,12 +348,15 @@ func reset_stats() -> void:
 	_commit_us_max = 0
 	_commit_us_sum = 0
 	_commits = 0
+	_commit_steps = 0
+	_frame_commit_us = 0
+	_commit_by.clear()
 
 
-## The chunk node of a chunk index (null when it is not committed).
+## The chunk node of a chunk index (null when it is not committed – also while it is being committed, B-01).
 func chunk_node(ci: int) -> Node3D:
 	var c: Chunk = _chunks.get(ci)
-	return c.node if c != null else null
+	return c.node if c != null and c.state == COMMITTED else null
 
 
 ## The chunk indices wanted for a camera position (what update() computes; no side effects besides extending the path).
@@ -504,20 +536,75 @@ func _count_build(c: Chunk) -> void:
 	_build_us_max = maxi(_build_us_max, c.build_us)
 
 
+## The whole chunk at once (load, sync mode, flush()) – or the rest of a chunk that _commit_step() began.
 func _commit(c: Chunk) -> void:
 	var t0 := Time.get_ticks_usec()
-	var node := Node3D.new()
-	node.name = "Chunk%d" % c.index
-	node.position = path.point(c.ctx.seg_a)
-	for i in _builders.size():
-		(_builders[i] as ChunkBuilder).commit(c.ctx, c.parts[i], node)
-	add_child(node)
+	var node := c.node
+	if node == null:
+		node = Node3D.new()
+		node.name = "Chunk%d" % c.index
+		node.position = path.point(c.ctx.seg_a)
+	for i in range(c.commit_i, _builders.size()):
+		_commit_builder(c, i, node)
+	c.commit_i = _builders.size()
+	if node.get_parent() == null:
+		add_child(node)
 	c.node = node
 	c.state = COMMITTED
 	_commits += 1
 	var us := Time.get_ticks_usec() - t0
 	_commit_us_max = maxi(_commit_us_max, us)
 	_commit_us_sum += us
+
+
+## B-01: commits builders of chunk c (BUILT or begun) while the frame's commit time since frame_t0 is below budget_us –
+## at least one per frame. The node enters the tree when the last builder is done.
+func _commit_step(c: Chunk, frame_t0: int, budget_us: int) -> void:
+	var t0 := Time.get_ticks_usec()
+	if c.node == null:
+		var node := Node3D.new()
+		node.name = "Chunk%d" % c.index
+		node.position = path.point(c.ctx.seg_a)
+		c.node = node
+		c.commit_i = 0
+		c.state = COMMITTING
+	var first := _frame_commit_us == 0     # at least one builder per frame
+	while c.commit_i < _builders.size():
+		# the next builder only when its mean commit time so far still fits (one builder may exceed the budget alone)
+		if not first and Time.get_ticks_usec() - frame_t0 + _commit_estimate(c.commit_i) > budget_us:
+			break
+		_commit_builder(c, c.commit_i, c.node)
+		c.commit_i += 1
+		first = false
+	if c.commit_i >= _builders.size():
+		add_child(c.node)
+		c.state = COMMITTED
+		_commits += 1
+	var us := Time.get_ticks_usec() - t0
+	_commit_steps += 1
+	_commit_us_sum += us
+	_frame_commit_us += us
+
+
+## Mean commit() time of builder i so far in µs (0 before its first commit).
+func _commit_estimate(i: int) -> int:
+	var a: Variant = _commit_by.get((_builders[i] as ChunkBuilder).id())
+	if a is Array and int((a as Array)[2]) > 0:
+		return int((a as Array)[0]) / int((a as Array)[2])
+	return 0
+
+
+func _commit_builder(c: Chunk, i: int, node: Node3D) -> void:
+	var b0 := Time.get_ticks_usec()
+	var b := _builders[i] as ChunkBuilder
+	b.commit(c.ctx, c.parts[i], node)
+	var us := Time.get_ticks_usec() - b0
+	var id := b.id()
+	var a: Array = _commit_by.get(id, [0, 0, 0])
+	a[0] = int(a[0]) + us
+	a[1] = maxi(int(a[1]), us)
+	a[2] = int(a[2]) + 1
+	_commit_by[id] = a
 
 
 func _drop(c: Chunk) -> void:

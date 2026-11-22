@@ -185,7 +185,8 @@ func add_static(parent: Node3D, lamps: Array) -> void:
 			list.append(l)
 	if list.is_empty():
 		return
-	_static.append([parent, list, Transform3D(), PackedVector3Array(), PackedVector3Array(), false])
+	# [parent, lamps, transform, positions, directions, positions valid, drops, drop z (_drop_of), parent was in the tree]
+	_static.append([parent, list, Transform3D(), PackedVector3Array(), PackedVector3Array(), false, null, null, false])
 	_static_count += list.size()
 
 
@@ -241,10 +242,16 @@ func _add_statics(view: Dictionary) -> void:
 	while i < _static.size():
 		var e: Array = _static[i]
 		var pv: Variant = e[0]
-		if not is_instance_valid(pv) or not (pv as Node3D).is_inside_tree():
+		if not is_instance_valid(pv) or (bool(e[8]) and not (pv as Node3D).is_inside_tree()):
 			_static_count -= (e[1] as Array).size()
 			_static.remove_at(i)
 			continue
+		if not (pv as Node3D).is_inside_tree():
+			# FIX-RINT (B-01): a chunk committed over several frames enters the tree when its last builder is done –
+			# its lamps wait for it (a parent that LEFT the tree is forgotten above)
+			i += 1
+			continue
+		e[8] = true
 		var parent: Node3D = pv
 		var gt := parent.global_transform
 		var lamps: Array = e[1]
