@@ -22,15 +22,17 @@ uniform float emit_energy = 1.6;              // linear energy of lit windows / 
 // the ambient light at night, while the moon lights the light-concrete faces of the model (the Köhlbrandbrücke's
 // pylons were far brighter than Arcade's at 22:00).
 uniform float night_albedo = 1.0;
-// R7c: share of the facade's lit colour a lit window pixel gives up for its light (fragment(), lead decision 4)
-uniform float window_cover = 1.0;
+// R7c: share of the facade's lit colour a lit window pixel gives up for its light (fragment(), lead decision 4).
+// The defaults of the R7c uniforms below keep the earlier picture; builders/props.gd sets them on the materials of its
+// models (PROP_LOOK) – the panels of stations, borders and gantries (lettering) stay as they were
+uniform float window_cover = 0.0;
 // R7c: the night atlas reaches its full light at ce_night = window_ramp (Arcade: palette lights 0.65 at 19:30, 1 from 21:00)
-uniform float window_ramp = 0.6;
+uniform float window_ramp = 1.0;
 // R7c: mip bias of the alpha test of the cut-out variant (fragment(), lead decision 3)
-uniform float cutout_bias = 2.0;
+uniform float cutout_bias = 0.0;
 // R7c: mip bias of the colour, growing from albedo_bias_m.x to albedo_bias_m.y metres (lead decision 3: the painted beams
 // and bars of far facades shimmer less; near the camera the atlas stays as sharp as it was)
-uniform float albedo_bias = 1.25;
+uniform float albedo_bias = 0.0;
 uniform vec2 albedo_bias_m = vec2(30.0, 120.0);
 // FIX1 (QA QB-03): a landmark model keeps Arcade's landmark law (RoadRenderer.landmark_fade) – visible up to
 // L = clamp(visibility × x, min(visibility, 600), max(y, visibility)), fading out over its last 28 % (ordered dither),

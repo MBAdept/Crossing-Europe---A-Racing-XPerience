@@ -459,6 +459,8 @@ func test_chunk_lod_shows_one_representation() -> void:
 	assert_near((b0.z + b0.w) * 0.5, 60.0, 1.0e-3, "Mitte des Bandes = prop_lod0_m × 60 / 60")
 	for mat: ShaderMaterial in b.library.rep_materials("props/tree_oak", "lod0"):
 		assert_eq(mat.get_shader_parameter("lod_band"), b0, "das Band steht auf dem Material von lod0")
+		for l: Array in Props.PROP_LOOK:
+			assert_eq(mat.get_shader_parameter(str(l[0])), l[1], "Requisitenbild %s auf dem Material" % str(l[0]))
 	for mat: ShaderMaterial in b.library.rep_materials("props/tree_oak", "lod1"):
 		assert_eq(mat.get_shader_parameter("lod_band"), b1, "… und auf dem von lod1")
 	parent.free()

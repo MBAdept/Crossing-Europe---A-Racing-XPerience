@@ -96,6 +96,15 @@ const LOD_ENDLESS := 1.0e9
 const ALIGN_MAX_DEG := 30.0
 const FACE_ROAD_DEG := 20.0
 const ATTACH_ITEM_BASE := 200000   ## item numbers of attached props (hashes, lists): beyond every real and cover item
+## R7c: what the materials of the prop models get on top of their bands ([uniform, value]; baked.gdshader – its defaults
+## keep the earlier picture, so the panels of stations, borders and gantries keep their sharp lettering, check_structures
+## "zieltor"):
+##   cutout_bias 2        the alpha test of baked_cutout two mip levels coarser (railings, leaf cards flicker less,
+##                        lead decision 3; the bake keeps the coverage of every level, A-22)
+##   albedo_bias 1.25     the colour up to 1.25 levels coarser, growing from 30 to 120 m (painted beams and bars)
+##   window_ramp 0.6      the night atlas at its full light from ce_night 0.6 (Arcade's light layer: lights 0.65 at 19:30)
+##   window_cover 1       a lit window replaces the facade's lit colour (lead decision 4)
+const PROP_LOOK: Array = [["cutout_bias", 2.0], ["albedo_bias", 1.25], ["window_ramp", 0.6], ["window_cover", 1.0]]
 
 var library: PropLibrary
 
@@ -293,6 +302,8 @@ func _ensure_bands(model_id: String, set_id: String) -> void:
 			m.set_shader_parameter("lod_band", bands[rep])
 			m.set_shader_parameter("shadow_far", far)
 			m.set_shader_parameter("far_sun", fs)
+			for l: Array in PROP_LOOK:
+				m.set_shader_parameter(str(l[0]), l[1])
 
 
 ## ctx.sets = every sprite set id the stage can show: the prop and landmark sets are resolved and loaded here.

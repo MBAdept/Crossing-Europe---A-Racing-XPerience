@@ -421,6 +421,9 @@ Gebäude 0,78, Bäume 0,8, Chalet 0,35, Fachwerk 0,85), eingeblendet mit dem Aus
   `albedo_bias_m`) – in der Nähe bleibt sie so scharf wie vorher.
 - lod0 der Stadthäuser endet bei „Mittel“ bei 35 m, die der Fachwerk- und Pariser Häuser bei 30 m (9.1): ihre Stufe 1
   flimmert wie das Sprite.
+- `cutout_bias`, `albedo_bias`, `window_ramp` und `window_cover` (9.4) setzt `props.gd` nur auf die Materialien seiner
+  Modelle (`PROP_LOOK`); die Vorgaben des Shaders lassen das Bild wie vorher – die Tafeln der Tore, Tankstellen und
+  Grenzen (`baked` mit Schrift aus dem Schilderatlas) bleiben scharf (Render-Prüfung `zieltor`).
 
 ### 9.4 Fenster in der Dämmerung
 
